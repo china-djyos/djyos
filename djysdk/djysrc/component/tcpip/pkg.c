@@ -64,6 +64,7 @@ static u32  sgPkgLevlMap[CN_NETPKG_LEVEL]=  {32,64,128,256,512,1024,2048,4096,81
 static u8  *pPkgMemSrc = NULL;                          //the package heap
 static u32  gPkgMemOffset = 0;                          //the package use heap offset
 static struct MutexLCB *pPkgMemSync = NULL;             //protect the heap and the free list
+static struct MutexLCB   gPkgMemSyncMem;
 // =============================================================================
 // FUNCTION   :use this function to set the aligned size
 // PARAMS IN  :alignsize,must be larger than zero,if less than the default, then will set
@@ -359,6 +360,7 @@ bool_t PkgMemShow(char *param)
 	return true;
 }
 
+extern bool_t tcpipmemshow(char *param);
 struct ShellCmdTab  gPkgDebug[] =
 {
     {
@@ -366,6 +368,12 @@ struct ShellCmdTab  gPkgDebug[] =
 		PkgMemShow,
         "usage:pkgmem",
         "show the pkg module statistics"
+    },
+    {
+        "tcpipmem",
+		tcpipmemshow,
+        "usage:tcpipmem",
+        "show the tcpip mem used"
     },
 
 };
@@ -384,7 +392,7 @@ bool_t PkgInit(void)
     bool_t result = false;
     //FIRST MALLOC THE MEM FROM THE HEAP
     gPkgMemOffset = 0;
-	pPkgMemSync = Lock_MutexCreate(NULL);
+	pPkgMemSync = Lock_MutexCreate_s(&gPkgMemSyncMem,NULL);
 	if(NULL == pPkgMemSync)
 	{
 	    printf("%s:create memory sync failed\r\n",__FUNCTION__);
@@ -396,19 +404,20 @@ bool_t PkgInit(void)
         printf("%s:create memory block failed\r\n",__FUNCTION__);
         goto EXIT_MEM;
     }
-
     result = Sh_InstallCmd(gPkgDebug,gPkgDebugCmdRsc,CN_PKGDEBUG_ITEMNUM);
     if(false == result)
     {
         printf("%s:install memory command failed\r\n",__FUNCTION__);
         goto EXIT_CMD;
     }
+    tcpipmemlog("pkgmem",gNetPkgMemSize,1);
+
     return result;
 EXIT_CMD:
     free((void *)pPkgMemSrc);
     pPkgMemSrc = NULL;
 EXIT_MEM:
-    Lock_MutexDelete(pPkgMemSync);
+    Lock_MutexDelete_s(pPkgMemSync);
     pPkgMemSync = NULL;
 EXIT_SYNC:
     result = false;

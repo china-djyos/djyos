@@ -32,7 +32,7 @@ struct Object *ModuleInstall_SPIBus(ptu32_t Para)
     struct Object *BusTypeSPI = NULL;
     BusTypeSPI = DjyBus_BusTypeAdd_s(&s_SPIBusType,"BusTypeSPI");
     if(NULL != BusTypeSPI)
-        printk("BUS Type SPI Added Succeeded!\r\n");
+        printf("BUS Type SPI Added Succeeded!\r\n");
     return BusTypeSPI;
 }
 
@@ -82,7 +82,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
     NewSPI->SPI_Buf.MaxLen   = NewSPIParam->SPIBufLen;
     NewSPI->SPI_Buf.Offset   = 0;
 
-    printk("%s Added Succeeded!\r\n",NewSPIParam->BusName);
+    printf("%s Added Succeeded!\r\n",NewSPIParam->BusName);
     return NewSPI;
 
 exit_from_spi_buf_semp:
@@ -141,7 +141,7 @@ struct SPI_CB *SPI_BusAdd_s(struct SPI_CB *NewSPI,struct SPI_Param *NewSPIParam)
     NewSPI->SPI_Buf.MaxLen   = NewSPIParam->SPIBufLen;
     NewSPI->SPI_Buf.Offset   = 0;
 
-    printk("%s Added Succeeded!\r\n",NewSPIParam->BusName);
+    printf("%s Added Succeeded!\r\n",NewSPIParam->BusName);
     return NewSPI;
 
 exit_from_spi_buf_semp:
@@ -269,7 +269,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
         SPI_BusCtrl(NewDev,CN_SPI_CS_CONFIG,(ptu32_t)&spicfg,(ptu32_t)cs);
     }
 
-    printk("SPI Device %s Added Succeeded!\r\n",DevName);
+    printf("SPI Device %s Added Succeeded!\r\n",DevName);
     return NewDev;
 }
 
@@ -313,7 +313,7 @@ struct SPI_Device *SPI_DevAdd_s(struct SPI_Device *NewDev,const char *BusName,
         SPI_BusCtrl(NewDev,CN_SPI_CS_CONFIG,(ptu32_t)&spicfg,(ptu32_t)NewDev->Cs);
     }
 
-    printk("SPI Device %s Added Succeeded!\r\n",DevName);
+    printf("SPI Device %s Added Succeeded!\r\n",DevName);
     return (struct SPI_Device *)&NewDev->DevNode;
 }
 

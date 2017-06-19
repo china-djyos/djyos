@@ -61,7 +61,7 @@
 //------------------------------------------------------
 
 #include    <gui/gdd/gdd_private.h>
-
+#include <gkernel.h>
 
 /*
 typedef struct  __WNDCLASS  //窗口类数据结构
@@ -74,12 +74,28 @@ typedef struct  __WNDCLASS  //窗口类数据结构
 */
 
 extern HWND g_CursorHwnd;         //光标窗口
-extern void GK_ApiSetVisible(struct GkWinRsc *gkwin, u32 visible,u32 SyncTime);
-
+extern void GK_SetVisible(struct GkWinRsc *gkwin, u32 visible,u32 SyncTime);
 /*============================================================================*/
 
 static  HWND HWND_Desktop=NULL;
-static  HWND HWND_Focus=NULL;
+u16 sg_MainWindEvtt;
+
+static ptu32_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg);
+static ptu32_t DefWindowProc_ERASEBKGND(struct WindowMsg *pMsg);
+static ptu32_t DefWindowProc_PAINT(struct WindowMsg *pMsg);
+static ptu32_t DefWindowProc_CLOSE(struct WindowMsg *pMsg);
+
+//默认窗口消息处理函数表，处理用户窗口过程没有处理的消息。
+static struct MsgProcTable s_gDefWindowMsgProcTable[] =
+{
+    {MSG_NCPAINT,DefWindowProc_NCPAINT},
+    {MSG_ERASEBKGND,DefWindowProc_ERASEBKGND},
+    {MSG_PAINT,DefWindowProc_PAINT},
+    {MSG_CLOSE&MSG_BODY_MASK,DefWindowProc_CLOSE},
+//  {MSG_DESTROY,DefWindowProc_DESTROY},
+};
+
+static struct MsgTableLink  s_gDefWindowMsgLink;
 
 //----锁定窗口------------------------------------------------------------------
 //描述: 锁定窗口,用于对窗口互斥操作,该函数返回TRUE时,必须调用HWND_Unlock解锁;
@@ -87,9 +103,25 @@ static  HWND HWND_Focus=NULL;
 //参数：hwnd:窗口句柄
 //返回：成功:TRUE; 失败:FLASE;
 //------------------------------------------------------------------------------
-bool_t    HWND_Lock(HWND hwnd)
+bool_t    __HWND_Lock(HWND hwnd)
 {
-    return GDD_Lock();
+    bool_t result;
+    if(__GDD_Lock())
+    {
+        result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
+        __GDD_Unlock( );
+    }
+    return result;
+}
+
+//----解锁窗口------------------------------------------------------------------
+//描述: 当窗口锁定成功后,由该函数进行解锁操作.
+//参数：hwnd:窗口句柄
+//返回：无
+//------------------------------------------------------------------------------
+void __HWND_Unlock(HWND hwnd)
+{
+    Lock_MutexPost(hwnd->mutex_lock);
 }
 
 //----取窗口句柄---------------------------------------------------------------
@@ -99,16 +131,7 @@ bool_t    HWND_Lock(HWND hwnd)
 //---------------------------------------------------------------------------
 HWND GetGddHwnd(struct GkWinRsc *gkwin)
 {
-    return (HWND)GK_ApiGetUserTag(gkwin);
-}
-//----解锁窗口------------------------------------------------------------------
-//描述: 当窗口锁定成功后,由该函数进行解锁操作.
-//参数：hwnd:窗口句柄
-//返回：无
-//------------------------------------------------------------------------------
-void    HWND_Unlock(HWND hwnd)
-{
-    GDD_Unlock();
+    return (HWND)GK_GetUserTag(gkwin);
 }
 
 //----屏幕坐标转客户坐标---------------------------------------------------------
@@ -123,14 +146,14 @@ bool_t    ScreenToClient(HWND hwnd,POINT *pt,s32 count)
     u32 i;
     if(NULL!=pt)
     {
-        if(HWND_Lock(hwnd))
+        if(__HWND_Lock(hwnd))
         {
             for(i=0;i<count;i++)
             {
                 pt[i].x -= hwnd->CliRect.left;
                 pt[i].y -= hwnd->CliRect.top;
             }
-            HWND_Unlock(hwnd);
+            __HWND_Unlock(hwnd);
             return TRUE;
         }
     }
@@ -149,14 +172,14 @@ bool_t    ClientToScreen(HWND hwnd,POINT *pt,s32 count)
     u32 i;
     if(NULL!=pt)
     {
-        if(HWND_Lock(hwnd))
+        if(__HWND_Lock(hwnd))
         {
             for(i=0;i<count;i++)
             {
                 pt[i].x += hwnd->CliRect.left;
                 pt[i].y += hwnd->CliRect.top;
             }
-            HWND_Unlock(hwnd);
+            __HWND_Unlock(hwnd);
             return  TRUE;
         }
 
@@ -177,15 +200,15 @@ bool_t    ScreenToWindow(HWND hwnd,POINT *pt,s32 count)
     RECT rc;
     if(NULL!=pt)
     {
-        if(HWND_Lock(hwnd))
+        if(__HWND_Lock(hwnd))
         {
-            GK_ApiGetArea(hwnd->pGkWin, &rc);
+            GK_GetArea(hwnd->pGkWin, &rc);
             for(i=0;i<count;i++)
             {
                 pt[i].x -= rc.left;
                 pt[i].y -= rc.top;
             }
-            HWND_Unlock(hwnd);
+            __HWND_Unlock(hwnd);
             return  TRUE;
         }
     }
@@ -205,20 +228,21 @@ bool_t    WindowToScreen(HWND hwnd,POINT *pt,s32 count)
     RECT rc;
     if(NULL!=pt)
     {
-        if(HWND_Lock(hwnd))
+        if(__HWND_Lock(hwnd))
         {
-            GK_ApiGetArea(hwnd->pGkWin, &rc);
+            GK_GetArea(hwnd->pGkWin, &rc);
             for(i=0;i<count;i++)
             {
                 pt->x += rc.left;
                 pt->y += rc.top;
             }
-            HWND_Unlock(hwnd);
+            __HWND_Unlock(hwnd);
             return TRUE;
         }
     }
     return FALSE;
 }
+
 
 //----获得桌面窗口句柄-----------------------------------------------------------
 //描述: 略
@@ -230,10 +254,10 @@ HWND    GetDesktopWindow(void)
     HWND hwnd;
 
     hwnd =NULL;
-    if(HWND_Lock(HWND_Desktop))
+    if(__HWND_Lock(HWND_Desktop))
     {
         hwnd =HWND_Desktop;
-        HWND_Unlock(HWND_Desktop);
+        __HWND_Unlock(HWND_Desktop);
     }
     return hwnd;
 }
@@ -247,16 +271,16 @@ HWND    GetDesktopWindow(void)
 bool_t    GetWindowRect(HWND hwnd,RECT *prc)
 {
     if(NULL!=prc)
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
-        GK_ApiGetArea(hwnd->pGkWin, prc);
-        HWND_Unlock(hwnd);
+        GK_GetArea(hwnd->pGkWin, prc);
+        __HWND_Unlock(hwnd);
         return TRUE;
     }
     return FALSE;
 }
 
-//----获得窗口客户矩形区---------------------------------------------------------
+//----获得窗口客户矩形区-------------------------------------------------------
 //描述: 获得窗口客户矩形区,矩形为客户坐标.
 //参数：hwnd:窗口句柄
 //      prc:用于保存矩形数据的指针.
@@ -265,19 +289,19 @@ bool_t    GetWindowRect(HWND hwnd,RECT *prc)
 bool_t    GetClientRect(HWND hwnd,RECT *prc)
 {
     if(NULL!=prc)
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         prc->left =0;
         prc->top =0;
         prc->right =RectW(&hwnd->CliRect);
         prc->bottom =RectH(&hwnd->CliRect);
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
         return TRUE;
     }
     return FALSE;
 }
 
-//----获得窗口客户矩形区并转换为屏幕坐标------------------------------------------
+//----获得窗口客户矩形区并转换为屏幕坐标---------------------------------------
 //描述: 略
 //参数：hwnd:窗口句柄
 //      prc:用于保存矩形数据的指针.
@@ -287,10 +311,10 @@ bool_t    GetClientRectToScreen(HWND hwnd,RECT *prc)
 {
     if(NULL!=prc)
     {
-        if(HWND_Lock(hwnd))
+        if(__HWND_Lock(hwnd))
         {
             CopyRect(prc,&hwnd->CliRect);
-            HWND_Unlock(hwnd);
+            __HWND_Unlock(hwnd);
             return TRUE;
         }
     }
@@ -302,7 +326,7 @@ bool_t    GetClientRectToScreen(HWND hwnd,RECT *prc)
 //参数：hwnd:窗口句柄
 //返回：窗口消息队列指针.
 //------------------------------------------------------------------------------
-struct WindowMsgQ*   __GetWindowMsgQ(HWND hwnd)
+struct WinMsgQueueCB*   __GetWindowMsgQ(HWND hwnd)
 {
     return hwnd->pMsgQ;
 }
@@ -317,8 +341,9 @@ u32 __GetWindowEvent(HWND hwnd)
     return hwnd->EventID;
 }
 
-//----获得窗口风格---------------------------------------------------------------
-//描述: 该函数为内部调用,不检查函数参数的合法,非线程安全
+//----获得窗口风格-------------------------------------------------------------
+//描述: 取窗口风格，是一个32位掩码，其中高16bit用于公共风格，0~7bit用于区分控件
+//      类型，8~15bit用于控件风格。
 //参数：hwnd:窗口句柄
 //返回：窗口风格.
 //------------------------------------------------------------------------------
@@ -326,10 +351,10 @@ u32 GetWindowStyle(HWND hwnd)
 {
     u32 style=0;
 
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         style =hwnd->Style;
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
     }
     return style;
 }
@@ -344,10 +369,10 @@ void* GetWindowPrivateData(HWND hwnd)
     void *data;
 
     data=NULL;
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         data = hwnd->PrivateData;
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
     }
     return data;
 }
@@ -360,11 +385,40 @@ void* GetWindowPrivateData(HWND hwnd)
 //------------------------------------------------------------------------------
 void SetWindowPrivateData(HWND hwnd,void *data)
 {
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         hwnd->PrivateData=data;
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
     }
+}
+
+//----取主窗口句柄-------------------------------------------------------------
+//功能：根据主窗口的标题返回窗口句柄，注意，主窗口标题是不会重复的，但子窗口可能
+//      会，故本函数只能取主窗口的句柄。
+//参数：WinText，窗口标题，与gkwin的win_name相同
+//返回：父窗口句柄，无则返回NULL
+//-----------------------------------------------------------------------------
+HWND Gdd_GetWindowHandle(char *WinText)
+{
+    HWND wnd,first,result = NULL;
+    wnd = GetWindowChild(GetDesktopWindow( ));
+    if(wnd == NULL)
+        return NULL;
+    first = wnd;
+    if(__GDD_Lock( ))
+    {
+        do
+        {
+            if(strcmp(WinText, wnd->Text) == 0)
+            {
+                result = wnd;
+                break;
+            }
+            wnd = GetWindowNext(wnd);
+        } while( wnd != first);
+        __GDD_Unlock( );
+    }
+    return result;
 }
 
 //----取父窗口-----------------------------------------------------------------
@@ -376,13 +430,14 @@ HWND Gdd_GetWindowParent(HWND hwnd)
 {
     HWND wnd=NULL;
 
-    if(GDD_Lock( ))
+    if(__GDD_Lock( ))
     {
-        wnd = (HWND)GK_ApiGetUserTag(GK_ApiGetParent(hwnd->pGkWin));
-        GDD_Unlock( );
+        wnd = (HWND)GK_GetUserTag(GK_GetParentWin(hwnd->pGkWin));
+        __GDD_Unlock( );
     }
     return wnd;
 }
+
 //----取子窗口-----------------------------------------------------------------
 //功能：取窗口的子窗口句柄
 //参数：hwnd，窗口句柄
@@ -392,10 +447,27 @@ HWND GetWindowChild(HWND hwnd)
 {
     HWND wnd=NULL;
 
-    if(GDD_Lock( ))
+    if(__GDD_Lock( ))
     {
-        wnd = (HWND)GK_ApiGetUserTag(GK_ApiGetChild(hwnd->pGkWin));
-        GDD_Unlock( );
+        wnd = (HWND)GK_GetUserTag(GK_GetChildWin(hwnd->pGkWin));
+        __GDD_Unlock( );
+    }
+    return wnd;
+}
+
+//----取末梢窗口---------------------------------------------------------------
+//功能：从后代窗口中取一个不再有子窗口的窗口句柄
+//参数：hwnd，窗口句柄
+//返回：子窗口句柄，无则返回NULL
+//-----------------------------------------------------------------------------
+static HWND __GetWindowTwig(HWND hwnd)
+{
+    HWND wnd=NULL;
+
+    if(__GDD_Lock( ))
+    {
+        wnd = (HWND)GK_GetUserTag(GK_GetTwig(hwnd->pGkWin));
+        __GDD_Unlock( );
     }
     return wnd;
 }
@@ -409,10 +481,10 @@ HWND GetWindowPrevious(HWND hwnd)
 {
     HWND wnd=NULL;
 
-    if(GDD_Lock( ))
+    if(__GDD_Lock( ))
     {
-        wnd = (HWND)GK_ApiGetUserTag(GK_ApiGetPrevious(hwnd->pGkWin));
-        GDD_Unlock( );
+        wnd = (HWND)GK_GetUserTag(GK_GetPreviousWin(hwnd->pGkWin));
+        __GDD_Unlock( );
     }
     return wnd;
 }
@@ -426,10 +498,10 @@ HWND GetWindowNext(HWND hwnd)
 {
     HWND wnd=NULL;
 
-    if(GDD_Lock( ))
+    if(__GDD_Lock( ))
     {
-        wnd = (HWND)GK_ApiGetUserTag(GK_ApiGetNext(hwnd->pGkWin));
-        GDD_Unlock( );
+        wnd = (HWND)GK_GetUserTag(GK_GetNextWin(hwnd->pGkWin));
+        __GDD_Unlock( );
     }
     return wnd;
 }
@@ -443,10 +515,10 @@ HWND GetWindowFirst(HWND hwnd)
 {
     HWND wnd=NULL;
 
-    if(GDD_Lock( ))
+    if(__GDD_Lock( ))
     {
-        wnd = (HWND)GK_ApiGetUserTag(GK_ApiGetFirst(hwnd->pGkWin));
-        GDD_Unlock( );
+        wnd = (HWND)GK_GetUserTag(GK_GetFirstWin(hwnd->pGkWin));
+        __GDD_Unlock( );
     }
     return wnd;
 }
@@ -460,10 +532,10 @@ HWND GetWindowLast(HWND hwnd)
 {
     HWND wnd=NULL;
 
-    if(GDD_Lock( ))
+    if(__GDD_Lock( ))
     {
-        wnd = (HWND)GK_ApiGetUserTag(GK_ApiGetLast(hwnd->pGkWin));
-        GDD_Unlock( );
+        wnd = (HWND)GK_GetUserTag(GK_GetLastWin(hwnd->pGkWin));
+        __GDD_Unlock( );
     }
     return wnd;
 }
@@ -487,15 +559,16 @@ char *GetWindowText(HWND hwnd)
 HWND    GetDlgItem(HWND hwnd,u16 Id)
 {
     HWND Current = hwnd;
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
-        do
+        Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
+        while(Current != NULL)
         {
-            Current = (HWND)GK_ApiGetUserTag(GK_ApiTraveChild(hwnd->pGkWin,Current->pGkWin));
             if(Current->WinId == Id)
                 break;
-        }while(Current != NULL);
-        HWND_Unlock(hwnd);
+            Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
+        }
+        __HWND_Unlock(hwnd);
     }
     return Current;
 }
@@ -510,13 +583,13 @@ HWND    GetWindowFromPoint(struct GkWinRsc *desktop, POINT *pt)
     struct GkWinRsc *GkWin;
     if((NULL == desktop) || (NULL == pt))
         return NULL;
-    if(GDD_Lock( ))
+    if(__GDD_Lock( ))
     {
-        GkWin = GK_ApiGetWinFromPt(desktop, pt);
-        GDD_Unlock( );
+        GkWin = GK_GetWinFromPt(desktop, pt);
+        __GDD_Unlock( );
     }
     if(GkWin != NULL)
-        return (HWND)GK_ApiGetUserTag(GkWin);
+        return (HWND)GK_GetUserTag(GkWin);
     else
         return NULL;
 }
@@ -529,83 +602,8 @@ HWND    GetWindowFromPoint(struct GkWinRsc *desktop, POINT *pt)
 //------------------------------------------------------------------------------
 void SetWindowName(HWND hwnd, char *NewName)
 {
-    GK_ApiSetName(hwnd->pGkWin, NewName);
+    GK_SetName(hwnd->pGkWin, NewName);
     return ;
-}
-
-//----设置焦点窗口---------------------------------------------------------------
-//描述: 略.
-//参数：hwnd: 新的焦点窗口
-//返回：旧的焦点窗口.
-//------------------------------------------------------------------------------
-HWND    SetFocusWindow(HWND hwnd)
-{
-    HWND wnd=NULL;
-
-    if(GDD_Lock())
-    {
-        wnd =HWND_Focus;
-        HWND_Focus =hwnd;
-        GDD_Unlock();
-    }
-    else
-    {
-        return NULL;
-    }
-
-    if(wnd!=NULL)
-    {
-        SendMessage(wnd,MSG_KILLFOCUS,0,0);
-    }
-    if(hwnd!=NULL)
-    {
-        SendMessage(hwnd,MSG_SETFOCUS,0,0);
-    }
-
-    return wnd;
-
-}
-
-//----获得焦点窗口---------------------------------------------------------------
-//描述: 略.
-//参数：无.
-//返回：焦点窗口.
-//------------------------------------------------------------------------------
-HWND    GetFocusWindow(void)
-{
-    HWND wnd=NULL;
-
-    if(GDD_Lock())
-    {
-        wnd =HWND_Focus;
-        GDD_Unlock();
-    }
-    return wnd;
-}
-
-//----判断是否为焦点窗口---------------------------------------------------------
-//描述: 略.
-//参数：无.
-//返回：如果指定的窗口是焦点窗口,将返回TRUE,否则返回FALSE.
-//------------------------------------------------------------------------------
-bool_t    IsFocusWindow(HWND hwnd)
-{
-    bool_t res=FALSE;
-
-    if(HWND_Lock(hwnd))
-    {
-        if(GDD_Lock())
-        {
-            if(hwnd == HWND_Focus)
-            {
-                res=TRUE;
-            }
-            GDD_Unlock();
-        }
-        HWND_Unlock(hwnd);
-    }
-    return res;
-
 }
 
 //----初始化窗口数据结构---------------------------------------------------------
@@ -619,7 +617,7 @@ bool_t    IsFocusWindow(HWND hwnd)
 //      WinId: 窗口Id.
 //返回：无.
 //------------------------------------------------------------------------------
-static  void    __InitWindow(WINDOW *pwin,u32 Style,u32 WinId)
+static  void __InitWindow(HWND pwin,u32 Style,u32 WinId)
 {
     RECT rc;
 
@@ -632,7 +630,7 @@ static  void    __InitWindow(WINDOW *pwin,u32 Style,u32 WinId)
     dListInit(&pwin->node_msg_close);
     dListInit(&pwin->node_msg_ncpaint);
     dListInit(&pwin->node_msg_paint);
-    GK_ApiGetArea(pwin->pGkWin, &rc);
+    GK_GetArea(pwin->pGkWin, &rc);
 
     if(Style&WS_BORDER)
     {
@@ -692,48 +690,16 @@ bool_t DesktopPaint(struct WindowMsg *pMsg)
     return true;
 }
 
+void GDD_HmiInput(void);
 
-//----光标绘制函数-------------------------------------------------------------
-//功能：这是按钮控件的MSG_PAINT消息响应函数
+
+//----GDD服务定时器函数--------------------------------------------------------
+//功能：GDD服务定时器的回调函数，该定时器在GDD初始化时创建，目前只用来扫描人机界面
+//      输入，例如鼠标、键盘等。如果系统没有输入设备，也可以不创建。
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
-static bool_t __Cursor_TmrHandle(struct WinTimer *pTmr)
-{
-    bool_t ret,bIsStart;
-    bIsStart=pTmr->Flag;
-    if(bIsStart&TMR_START)
-    {
-        ret=IsWindowVisible(g_CursorHwnd);
-        if(ret)
-        {
-             SetWindowHide(g_CursorHwnd);
-             UpdateDisplay(CN_TIMEOUT_FOREVER);
-        }
-        else
-        {
-             SetWindowShow(g_CursorHwnd);
-             UpdateDisplay(CN_TIMEOUT_FOREVER);
-        }
-    }
-    else
-    {
-        ret=IsWindowVisible(g_CursorHwnd);
-        if(ret)
-        {
-             SetWindowHide(g_CursorHwnd);
-             UpdateDisplay(CN_TIMEOUT_FOREVER);
-        }
-    }
-    return true;
-}
-
-//----光标绘制函数-------------------------------------------------------------
-//功能：这是按钮控件的MSG_PAINT消息响应函数
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static bool_t DesktopTmrHandle(struct WindowMsg *pMsg)
+static bool_t GddServerTimerHandle(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     struct WinTimer *pTmr;
@@ -749,71 +715,24 @@ static bool_t DesktopTmrHandle(struct WindowMsg *pMsg)
         return false;
     switch(TmrId)
     {
-       case CN_CURSOR_TIMER_ID:
-           __Cursor_TmrHandle(pTmr);
-       break;
+        case CN_HMIINPUT_TIMER_ID:
+            GDD_HmiInput( );
+            break;
        default:
           break;
     }
 
     return true;
 }
-//----光标绘制函数-------------------------------------------------------------
-//功能：这是按钮控件的MSG_PAINT消息响应函数
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static bool_t DesktopTmrStart(struct WindowMsg *pMsg)
-{
-    HWND hwnd;
-    struct WinTimer *pTmr;
-    u16 TmrId;
-    if(pMsg==NULL)
-        return false;
-    hwnd=pMsg->hwnd;
-    if(hwnd==NULL)
-        return false;
-    TmrId=pMsg->Param1;
-    pTmr=GDD_FindTimer(hwnd,TmrId);
-    if(pTmr==NULL)
-        return false;
-    pTmr->Flag|=TMR_START;
-    return true;
-}
-
-//----光标绘制函数-------------------------------------------------------------
-//功能：这是按钮控件的MSG_PAINT消息响应函数
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static bool_t DesktopTmrStop(struct WindowMsg *pMsg)
-{
-    HWND hwnd;
-    struct WinTimer *pTmr;
-    u16 TmrId;
-    if(pMsg==NULL)
-        return false;
-    hwnd=pMsg->hwnd;
-    if(hwnd==NULL)
-        return false;
-    TmrId=pMsg->Param1;
-    pTmr=GDD_FindTimer(hwnd,TmrId);
-    if(pTmr==NULL)
-        return false;
-    pTmr->Flag&=~TMR_START;
-    return true;
-}
-
 
 //桌面消息处理函数表，
 static struct MsgProcTable s_gDesktopMsgProcTable[] =
 {
     {MSG_PAINT,DesktopPaint},
-    {MSG_TIMER,DesktopTmrHandle},
-    {MSG_TIMER_START,DesktopTmrStart},
-    {MSG_TIMER_STOP,DesktopTmrStop}
+    {MSG_TIMER,GddServerTimerHandle},
 };
 
+ptu32_t __MessageLoop( void );
 static struct MsgTableLink  s_gDesktopMsgLink;
 
 //----初始化桌面窗口-----------------------------------------------------------
@@ -825,23 +744,40 @@ static struct MsgTableLink  s_gDesktopMsgLink;
 //------------------------------------------------------------------------------
 HWND    InitGddDesktop(struct GkWinRsc *desktop)
 {
-    WINDOW *pGddWin=NULL;
+    HWND pGddWin=NULL;
     u32 Style;
+    u16 MyEvtt;
+    u16 MyEventid;
 
-    pGddWin=malloc(sizeof(WINDOW));
+    pGddWin=malloc(sizeof(struct WINDOW));
     if(NULL!=pGddWin)
     {
 
-        Style = 0;
-        s_gDesktopMsgLink.LinkNext = NULL;
-        s_gDesktopMsgLink.MsgNum = sizeof(s_gDesktopMsgProcTable) / sizeof(struct MsgProcTable);
-        s_gDesktopMsgLink.myTable = s_gDesktopMsgProcTable;
+        Style = WS_VISIBLE | WS_CAN_FOCUS;
+//      s_gDesktopMsgLink.LinkNext = NULL;
+//      s_gDesktopMsgLink.MsgNum = sizeof(s_gDesktopMsgProcTable) / sizeof(struct MsgProcTable);
+//      s_gDesktopMsgLink.myTable = s_gDesktopMsgProcTable;
         pGddWin->pGkWin     = desktop;
         pGddWin->PrivateData = NULL;
         pGddWin->MyMsgTableLink = &s_gDesktopMsgLink;
+        s_gDesktopMsgLink.LinkPrev = &s_gDefWindowMsgLink;
+
+//      dListInit(&pGddWin->MsgProcFuncTable);
+//
+      s_gDefWindowMsgLink.MsgNum = sizeof(s_gDefWindowMsgProcTable)
+                                      / sizeof(struct MsgProcTable);
+      s_gDefWindowMsgLink.myTable = s_gDefWindowMsgProcTable;
+//      dListInsertAfter(&pGddWin->MsgProcFuncTable,
+//                          &s_gDefWindowMsgLink.TableLink);
+//
+      s_gDesktopMsgLink.MsgNum = sizeof(s_gDesktopMsgProcTable)
+                                      / sizeof(struct MsgProcTable);
+      s_gDesktopMsgLink.myTable = s_gDesktopMsgProcTable;
+//      dListInsertAfter(&pGddWin->MsgProcFuncTable,
+//                          &s_gDesktopMsgLink.TableLink);
+
         pGddWin->mutex_lock =Lock_MutexCreate(NULL);
-        pGddWin->pMsgQ      =GUI_CreateMsgQ(32);
-        pGddWin->EventID   = Djy_MyEventId();
+        pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
         pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
         pGddWin->FillColor = CN_DEF_FILL_COLOR;
         pGddWin->TextColor = CN_DEF_TEXT_COLOR;
@@ -853,21 +789,63 @@ HWND    InitGddDesktop(struct GkWinRsc *desktop)
             }
             if(pGddWin->pMsgQ!=NULL)
             {
-                GUI_DeleteMsgQ(pGddWin->pMsgQ);
+                __GUI_DeleteMsgQ(pGddWin->pMsgQ);
             }
             free(pGddWin);
             return NULL;
         }
 
-        GK_ApiSetUserTag(desktop,pGddWin);
+        GK_SetUserTag(desktop,pGddWin);
         __InitWindow(pGddWin,Style,0);
         HWND_Desktop = pGddWin;
+
+        MyEvtt = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, __MessageLoop,
+                                NULL, 2048, "desktop");
+        if(MyEvtt != CN_EVTT_ID_INVALID)
+        {
+            MyEventid=Djy_EventPop(MyEvtt, NULL, 0, (ptu32_t)pGddWin, 0, 0);
+            if(MyEventid!= CN_EVENT_ID_INVALID)
+            {
+                pGddWin->EventID   = MyEventid;
+                SetWindowShow(pGddWin); //显示窗口
+            }
+            else
+            {
+                Djy_EvttUnregist( MyEvtt );
+                free(pGddWin);
+                pGddWin = NULL;
+            }
+        }
+        else
+        {
+            free(pGddWin);
+            pGddWin = NULL;
+        }
         SendMessage(pGddWin,MSG_CREATE,0,0);
     }
-
-        return pGddWin;
+    return pGddWin;
 }
 
+//----增加消息函数表-----------------------------------------------------------
+//功能：每个窗口都有一个消息处理函数表的链表（struct MsgTableLink），新添加的消
+//      息处理函数表将与原有的链接在一起。系统在查找消息处理函数时，该链表是后进
+//      先出的，即最后加入的函数表，反而先被查找。
+//参数：hwnd，被操作的窗口句柄
+//      pNewMsgTableLink，带添加的消息链
+//返回：无
+// ----------------------------------------------------------------------------
+void AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink)
+{
+    if(__HWND_Lock(hwnd))
+    {
+        pNewMsgTableLink->LinkPrev = hwnd->MyMsgTableLink;
+        hwnd->MyMsgTableLink = pNewMsgTableLink;
+        pNewMsgTableLink->LinkNext = NULL;
+//      dListInsertAfter(&hwnd->MsgProcFuncTable,
+//                      &pNewMsgTableLink->TableLink);
+        __HWND_Unlock(hwnd);
+    }
+}
 //----创建窗口-----------------------------------------------------------------
 //描述: 该函数可以创建主窗口和子窗口(控件)
 //参数：Text: 窗口名字，将copy到gkwin的name成员，长度限CN_GKWIN_NAME_LIMIT，
@@ -887,7 +865,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                      u32 BufProperty,void *pdata,
                      struct MsgTableLink *pUserMsgTableLink)
 {
-    WINDOW *pGddWin=NULL;
+    HWND pGddWin=NULL;
     struct GkWinRsc *pGkWin=NULL;
     struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
 
@@ -896,14 +874,14 @@ HWND    CreateWindow(const char *Text,u32 Style,
         hParent = HWND_Desktop;
     }
 
-    if(HWND_Lock(hParent))
+    if(__HWND_Lock(hParent))
     {
-        pGddWin=M_Malloc(sizeof(WINDOW) + sizeof(struct GkWinRsc),100*mS);
+        pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinRsc),100*mS);
         if(NULL!=pGddWin)
         {
             pGkWin = (struct GkWinRsc*)(pGddWin+1);
 
-            if(!GK_ApiCreateGkwin(hParent->pGkWin, pGkWin,x,y,x+w,y+h,
+            if(!GK_CreateWin(hParent->pGkWin, pGkWin,x,y,x+w,y+h,
                                 RGB(0,0,0), BufProperty, Text,
                                 CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode))
             {
@@ -923,9 +901,8 @@ HWND    CreateWindow(const char *Text,u32 Style,
                 }
                 else
                 {
-                    pGddWin->EventID   = Djy_MyEventId();
                     pGddWin->mutex_lock =Lock_MutexCreate(NULL);
-                    pGddWin->pMsgQ      =GUI_CreateMsgQ(32);
+                    pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
                     pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
                     pGddWin->FillColor = CN_DEF_FILL_COLOR;
                     pGddWin->TextColor = CN_DEF_TEXT_COLOR;
@@ -933,26 +910,43 @@ HWND    CreateWindow(const char *Text,u32 Style,
                     if((pGddWin->mutex_lock==NULL)||(pGddWin->pMsgQ==NULL))
                     {
                         Lock_MutexDelete(pGddWin->mutex_lock);
-                        GUI_DeleteMsgQ(pGddWin->pMsgQ);
-                        GK_ApiDestroyWin(pGkWin);
+                        __GUI_DeleteMsgQ(pGddWin->pMsgQ);
+                        GK_DestroyWin(pGkWin);
                         free(pGkWin);
-                        HWND_Unlock(hParent);
+                        __HWND_Unlock(hParent);
                         return NULL;
                     }
 
                 }
                 pGddWin->pGkWin = pGkWin;
                 pGddWin->PrivateData = pdata;
-                pGddWin->MyMsgTableLink = pUserMsgTableLink;
-                GK_ApiSetUserTag(pGkWin,pGddWin);
+
+
+
+
+                if(pUserMsgTableLink != NULL)
+                {
+                    pGddWin->MyMsgTableLink = pUserMsgTableLink;
+                    pUserMsgTableLink->LinkPrev = &s_gDefWindowMsgLink;
+                }
+                else
+                    pGddWin->MyMsgTableLink = &s_gDefWindowMsgLink;
+
+//              dListInit(&pGddWin->MsgProcFuncTable);
+//              dListInsertAfter(&pGddWin->MsgProcFuncTable,
+//                                  &s_gDefWindowMsgLink.TableLink);
+//              if(pUserMsgTableLink != NULL)
+//                  dListInsertAfter(&pGddWin->MsgProcFuncTable,
+//                                      &pUserMsgTableLink->TableLink);
+                GK_SetUserTag(pGkWin,pGddWin);
                 //初始化窗口数据
                 __InitWindow(pGddWin,Style,WinId);
-                GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
+                GK_SyncShow(CN_TIMEOUT_FOREVER);
                 //将新窗口添加到父窗口
             }
 
         }
-        HWND_Unlock(hParent);
+        __HWND_Unlock(hParent);
 
         if(NULL!=pGddWin)
         {
@@ -972,19 +966,19 @@ HWND    CreateWindow(const char *Text,u32 Style,
 //------------------------------------------------------------------------------
 static void __DeleteChildWindowData(HWND hwnd)
 {
+
     dListRemove(&hwnd->node_msg_close);
     dListRemove(&hwnd->node_msg_ncpaint);
     dListRemove(&hwnd->node_msg_paint);
     __RemoveWindowTimer(hwnd);
-    GK_ApiDestroyWin(hwnd->pGkWin);
+    GK_DestroyWin(hwnd->pGkWin);
     free(hwnd->pGkWin);
     hwnd->pGkWin =NULL;
-
     hwnd->mutex_lock =NULL; //子窗口没有私有的 mutex_lock,不用释放.
-
     free(hwnd);
 
 }
+
 //----删除一个主窗口数据结构---------------------------------------------------
 //描述:该函数为内部调用,除了释放窗口结构内存,还将自己丛父窗口去移除.
 //参数：需要删除的主窗口句柄
@@ -997,8 +991,8 @@ void __DeleteMainWindowData(HWND hwnd)
     dListRemove(&hwnd->node_msg_paint);
 
     __RemoveWindowTimer(hwnd);
-    GUI_DeleteMsgQ(hwnd->pMsgQ);
-    GK_ApiDestroyWin(hwnd->pGkWin);
+    __GUI_DeleteMsgQ(hwnd->pMsgQ);
+    GK_DestroyWin(hwnd->pGkWin);
     UpdateDisplay(CN_TIMEOUT_FOREVER);
     free(hwnd->pGkWin);
     hwnd->pGkWin =NULL;
@@ -1010,68 +1004,36 @@ void __DeleteMainWindowData(HWND hwnd)
 }
 
 //----销毁一个窗口--------------------------------------------------------------
-//描述: 可以是主窗口和子窗口,除了删除自身窗口结构,还将发送WSG_DESTROY消息给父窗口.
+//描述: 可以是主窗口和子窗口,通过给窗口发送close消息来实现。close处理时，将同时
+//      销毁后代窗口。
 //参数：hwnd:需要销毁的窗口句柄
 //返回：无.
 //------------------------------------------------------------------------------
 void    DestroyWindow(HWND hwnd)
 {
-    struct GkWinRsc *Ancestor, *Current;
-
-    SetWindowHide(hwnd);
-
-    if(IsFocusWindow(hwnd))
-    {
-        SetFocusWindow(NULL);
-    }
-
-    GDD_Lock();
-    if(HWND_Lock(hwnd))
-    {
-        Ancestor = hwnd->pGkWin;
-        Current = Ancestor;
-        Current = GK_ApiTraveScion(Ancestor,Current);
-        while(Current != NULL)
-        {
-            __DeleteChildWindowData((HWND)GK_ApiGetUserTag(Current));
-            Current = GK_ApiTraveScion(Ancestor,Current);
-        }
-
-        SendMessage(hwnd,MSG_DESTROY,0,0);
-        if(hwnd->Style&WS_CHILD)
-        {
-            __DeleteChildWindowData(hwnd);   //若是主窗口，不会被销毁
-        }
-        HWND_Unlock(hwnd);
-
-    }
-    GDD_Unlock();
-
+    PostMessage(hwnd, MSG_CLOSE, 0, 0);
 }
 
 //----销毁全部子窗口-----------------------------------------------------------
-//描述: 可以是主窗口和子窗口,除了删除自身窗口结构,还将发送WSG_DESTROY消息给父窗口.
+//描述: 除hwnd窗口本身不销毁外，其余同DestroyWindow
 //参数：hwnd:需要销毁的窗口句柄
 //返回：无.
 //------------------------------------------------------------------------------
-void    DestroyAllChild(HWND hwnd)
+void DestroyAllChild(HWND hwnd)
 {
-    struct GkWinRsc *Ancestor, *Current;
-    GDD_Lock();
-    if(HWND_Lock(hwnd))
+    HWND Current = hwnd;
+
+    if(__HWND_Lock(hwnd))
     {
-        Ancestor = hwnd->pGkWin;
-        Current = Container(OBJ_GetTwig(&Ancestor->node),struct GkWinRsc,node);
+        Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         while(Current != NULL)
         {
-            __DeleteChildWindowData((HWND)GK_ApiGetUserTag(Current));
-            Current = Container(OBJ_GetTwig(&Ancestor->node),struct GkWinRsc,node);
+            PostMessage(Current, MSG_CLOSE, 0, 0);
+            Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
-
-        HWND_Unlock(hwnd);
-
+        __HWND_Unlock(hwnd);
     }
-    GDD_Unlock( );
+    return ;
 
 }
 
@@ -1089,17 +1051,16 @@ static  void    __OffsetWindow(HWND hwnd,s32 dx,s32 dy)
 
     Ancestor = hwnd->pGkWin;
     Current = Ancestor;
-    Current = GK_ApiTraveScion(Ancestor,Current);
+    Current = GK_TraveScion(Ancestor,Current);
     __OffsetRect(&hwnd->CliRect,dx,dy);
     while(Current != NULL)
     {
-        wnd = (HWND)GK_ApiGetUserTag(Current);
+        wnd = (HWND)GK_GetUserTag(Current);
         OffsetRect(&wnd->CliRect,dx,dy);
-        Current = GK_ApiTraveScion(Ancestor,Current);
+        Current = GK_TraveScion(Ancestor,Current);
     }
-    GK_ApiGetArea(hwnd->pGkWin,&rc);
-    GK_ApiMoveWin(  hwnd->pGkWin,rc.left+dx,rc.top+dy,0);
-
+    GK_GetArea(hwnd->pGkWin,&rc);
+    GK_MoveWin(  hwnd->pGkWin,rc.left+dx,rc.top+dy,0);
 }
 
 //----偏移窗口------------------------------------------------------------------
@@ -1114,10 +1075,10 @@ bool_t    OffsetWindow(HWND hwnd,s32 dx,s32 dy)
     {//桌面不允许移动
         return false;
     }
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         __OffsetWindow(hwnd,dx,dy);
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
         return true;
     }
     return FALSE;
@@ -1141,22 +1102,22 @@ static void __MoveWindow(HWND hwnd,s32 x,s32 y)
     point.y=y;
     Ancestor = hwnd->pGkWin;
     Current = Ancestor;
-    GK_ApiGetArea(Ancestor, &rc);//显示区域,显示器的绝对坐标
+    GK_GetArea(Ancestor, &rc);//显示区域,显示器的绝对坐标
     wnd=Gdd_GetWindowParent(hwnd);
     ScreenToClient(wnd,(POINT *)&rc,2);//转化为客户区
     dx = x - rc.left;
     dy = y - rc.top;
-    Current = GK_ApiTraveScion(Ancestor,Current);
+    Current = GK_TraveScion(Ancestor,Current);
     __OffsetRect(&hwnd->CliRect, dx, dy);
     while(Current != NULL)
     {
-        wnd = (HWND)GK_ApiGetUserTag(Current);
+        wnd = (HWND)GK_GetUserTag(Current);
         __OffsetRect(&wnd->CliRect,dx,dy);
-        Current = GK_ApiTraveScion(Ancestor,Current);
+        Current = GK_TraveScion(Ancestor,Current);
     }
     ClientToScreen(wnd,&point,1);
     ScreenToWindow(wnd,&point,1);
-    GK_ApiMoveWin(  hwnd->pGkWin,point.x,point.y,0);
+    GK_MoveWin(  hwnd->pGkWin,point.x,point.y,0);
 }
 
 //----移动窗口------------------------------------------------------------------
@@ -1171,16 +1132,16 @@ bool_t    MoveWindow(HWND hwnd,s32 x,s32 y)
     {//桌面不允许移动
         return false;
     }
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         __MoveWindow(hwnd,x,y);
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
         return TRUE;
     }
     return FALSE;
 }
 
-//----判断窗口是否可见-----------------------------------------------------------
+//----判断窗口是否可见---------------------------------------------------------
 //描述: 略
 //参数：hwnd:窗口句柄.
 //返回：TRUE:窗口可见;FALSE:窗口不可见.
@@ -1189,10 +1150,10 @@ bool_t    IsWindowVisible(HWND hwnd)
 {
     bool_t res=FALSE;
 
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
-        res = GK_ApiIsWinVisible(hwnd->pGkWin);
-        HWND_Unlock(hwnd);
+        res = GK_IsWinVisible(hwnd->pGkWin);
+        __HWND_Unlock(hwnd);
     }
     return res;
 }
@@ -1207,11 +1168,11 @@ void    __InvalidateWindow(HWND hwnd,bool_t bErase)
 {
     if(IsWindowVisible(hwnd))
     {
-        //if(bErase)
+        if(__HWND_Lock(hwnd))
         {
             PostMessage(hwnd,MSG_PAINT,bErase,0);
+            __HWND_Unlock(hwnd);
         }
-
     }
 }
 
@@ -1223,13 +1184,13 @@ void    __InvalidateWindow(HWND hwnd,bool_t bErase)
 //------------------------------------------------------------------------------
 bool_t    InvalidateWindow(HWND hwnd,bool_t bErase)
 {
-    if(HWND_Lock(hwnd))
-    {
+//    if(__HWND_Lock(hwnd))
+//    {
         __InvalidateWindow(hwnd,bErase);
-        HWND_Unlock(hwnd);
+//        __HWND_Unlock(hwnd);
         return TRUE;
-    }
-    return FALSE;
+//    }
+//    return FALSE;
 }
 
 
@@ -1240,11 +1201,11 @@ bool_t    InvalidateWindow(HWND hwnd,bool_t bErase)
 //------------------------------------------------------------------------------
 bool_t SetWindowShow(HWND hwnd)
 {
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         hwnd->Style |= WS_VISIBLE;
-        GK_ApiSetVisible(hwnd->pGkWin,CN_GKWIN_VISIBLE,0);
-        HWND_Unlock(hwnd);
+        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_VISIBLE,0);
+        __HWND_Unlock(hwnd);
         return TRUE;
     }
      return FALSE;
@@ -1256,11 +1217,11 @@ bool_t SetWindowShow(HWND hwnd)
 //------------------------------------------------------------------------------
 bool_t SetWindowHide(HWND hwnd)
 {
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         hwnd->Style &= ~ WS_VISIBLE;
-        GK_ApiSetVisible(hwnd->pGkWin,CN_GKWIN_HIDE,0);
-        HWND_Unlock(hwnd);
+        GK_SetVisible(hwnd->pGkWin,CN_GKWIN_HIDE,0);
+        __HWND_Unlock(hwnd);
         return TRUE;
     }
     return FALSE;
@@ -1327,7 +1288,7 @@ HDC BeginPaint(HWND hwnd)
     {
         __InitDC(hdc,hwnd->pGkWin,hwnd,DC_TYPE_PAINT);
 
-        if(HWND_Lock(hwnd))
+        if(__HWND_Lock(hwnd))
         {
             if(hwnd->Flag&WF_ERASEBKGND)
             {
@@ -1338,10 +1299,11 @@ HDC BeginPaint(HWND hwnd)
                 msg.Param1 =(ptu32_t)hdc;
                 msg.Param2 =0;
                 msg.ExData =NULL;
-                WinMsgProc(&msg);
+                __HWND_Unlock(hwnd);
+                __WinMsgProc(&msg);
             }
-
-            HWND_Unlock(hwnd);
+            else
+                __HWND_Unlock(hwnd);
         }
         return hdc;
     }
@@ -1367,20 +1329,21 @@ bool_t    EndPaint(HWND hwnd,HDC hdc)
 //参数：pMsg: 消息指针.
 //返回：无.
 //-----------------------------------------------------------------------------
-static bool_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg)
+static ptu32_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg)
 {
     HWND hwnd=pMsg->hwnd;
     HDC hdc;
     RECT rc;
 
-    if(HWND_Lock(hwnd))
-    {
-        hdc =GetWindowDC(hwnd);
-        if(NULL!=hdc)
-        {
-            GetWindowRect(hwnd,&rc);
-            ScreenToWindow(hwnd,(POINT*)&rc,2);
 
+    hdc =GetWindowDC(hwnd);
+    if(NULL!=hdc)
+    {
+        GetWindowRect(hwnd,&rc);
+        ScreenToWindow(hwnd,(POINT*)&rc,2);
+
+        if(__HWND_Lock(hwnd))
+        {
             if(hwnd->Style&WS_BORDER)
             {
                 SetDrawColor(hdc,WINDOW_BORDER_COLOR);
@@ -1401,7 +1364,6 @@ static bool_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg)
                 SetDrawColor(hdc,WINDOW_DLGFRAME_COLOR3);
                 DrawRect(hdc,&rc);
                 InflateRect(&rc,-1,-1);
-
             }
 
             if(hwnd->Style&WS_CAPTION)
@@ -1414,13 +1376,11 @@ static bool_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg)
                 InflateRect(&rc,-1,-1);
                 DrawText(hdc, hwnd->Text, -1, &rc, DT_LEFT | DT_VCENTER);
             }
-
             ReleaseDC(hwnd,hdc);
+            __HWND_Unlock(hwnd);
         }
-
-        HWND_Unlock(hwnd);
     }
-    return true;
+    return 0;
 }
 
 //----默认的窗口客户区擦除背景消息处理函数-------------------------------------
@@ -1428,7 +1388,7 @@ static bool_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg)
 //参数：pMsg: 消息指针.
 //返回：无.
 //-----------------------------------------------------------------------------
-static bool_t DefWindowProc_ERASEBKGND(struct WindowMsg *pMsg)
+static ptu32_t DefWindowProc_ERASEBKGND(struct WindowMsg *pMsg)
 {
     HDC hdc;
     RECT rc;
@@ -1438,9 +1398,9 @@ static bool_t DefWindowProc_ERASEBKGND(struct WindowMsg *pMsg)
     {
         GetClientRect(pMsg->hwnd,&rc);
         FillRect(hdc,&rc);
-        return TRUE;
+        return 1;
     }
-    return FALSE;
+    return 0;
 }
 
 //----默认的窗口客户区绘制消息处理函数-------------------------------------
@@ -1448,20 +1408,83 @@ static bool_t DefWindowProc_ERASEBKGND(struct WindowMsg *pMsg)
 //参数：pMsg: 消息指针.
 //返回：无.
 //-----------------------------------------------------------------------------
-static bool_t DefWindowProc_PAINT(struct WindowMsg *pMsg)
+static ptu32_t DefWindowProc_PAINT(struct WindowMsg *pMsg)
 {
     return true;
 }
 
+void __InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32_t param2);
 //----默认的窗口关闭消息处理函数-------------------------------------
-//描述: 关闭窗口
+//描述: 关闭窗口，如果是焦点窗口或者是焦点窗口的祖先窗口，就把焦点窗口转移到桌面。
+//      从末梢窗口开始，逐个删除窗口数据结构。
+//      如果用户窗口定义了消息处理函数，就需要指定为 MSG_ADOPT_NORMAL，否则将有
+//      不可预知的结果。
 //参数：pMsg: 消息指针.
 //返回：无.
 //-----------------------------------------------------------------------------
-static bool_t DefWindowProc_CLOSE(struct WindowMsg *pMsg)
+static ptu32_t DefWindowProc_CLOSE(struct WindowMsg *pMsg)
 {
-    DestroyWindow(pMsg->hwnd);
-    return TRUE;
+    HWND Current;
+    struct WindowMsg SubMsg;
+    HWND hwnd,next;
+
+    if(__GDD_Lock())
+    {
+        hwnd = pMsg->hwnd;
+        //查找被删除窗口是否focus窗口的祖先窗口，如是，则需要转移focus窗口
+        //从被删窗口的兄弟窗口中找到一个允许focus的窗口，设为新的focus窗口。
+        //若还是没有找到，则看父窗口是否允许focus，允许则设为focus窗口。
+        //否则以 desktop 为 focus 窗口
+        if(IsFocusAncestor(hwnd))
+        {
+            next = GetWindowNext(hwnd);
+            while(next != hwnd)
+            {
+                if( IsFocusEnable(next) )
+                {
+                    SetFocusWindow(next);
+                    break;
+                }
+                else
+                    next = GetWindowNext(hwnd);
+            }
+            if(next == hwnd)
+            {
+                if(IsFocusEnable(Gdd_GetWindowParent(next)))
+                {
+                    SetFocusWindow(Gdd_GetWindowParent(next));
+                }
+                else
+                {
+                    SetFocusWindow(GetDesktopWindow( ));
+                }
+            }
+        }
+        Current = __GetWindowTwig(hwnd);
+        while(Current != NULL)
+        {
+            //末梢窗口直接调用消息处理函数，必须调用WinMsgProc函数方式实现，这样
+            //才能正确调用用户定义的消息处理函数，并且正确处理消息处理函数的继承
+            //关系。
+            //这里将引起递归，但递归深度只有1级，因为 twig 不会再有子窗口了。
+            __InitMsg(&SubMsg, Current, MSG_CLOSE, 0, (ptu32_t)Current->PrivateData);
+            __WinMsgProc(&SubMsg);
+            Current = __GetWindowTwig(hwnd);
+        }
+
+        if(hwnd->Style&WS_CHILD)
+        {
+            __DeleteChildWindowData(hwnd);
+        }
+        else
+        {
+            __DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些
+        }
+        pMsg->hwnd = NULL;
+        __GDD_Unlock();
+
+    }
+    return 0;
 }
 
 //----默认的销毁窗口消息处理函数-------------------------------------
@@ -1469,38 +1492,28 @@ static bool_t DefWindowProc_CLOSE(struct WindowMsg *pMsg)
 //参数：pMsg: 消息指针.
 //返回：无.
 //-----------------------------------------------------------------------------
-static bool_t DefWindowProc_DESTROY(struct WindowMsg *pMsg)
-{
-    PostQuitMessage(pMsg->hwnd,0);
-    return TRUE;
-}
-
-//默认窗口消息处理函数表，处理用户窗口过程没有处理的消息。
-static struct MsgProcTable s_gDefWindowMsgProcTable[] =
-{
-    {MSG_NCPAINT,DefWindowProc_NCPAINT},
-    {MSG_ERASEBKGND,DefWindowProc_ERASEBKGND},
-    {MSG_PAINT,DefWindowProc_PAINT},
-    {MSG_CLOSE,DefWindowProc_CLOSE},
-    {MSG_DESTROY,DefWindowProc_DESTROY},
-};
+//static bool_t DefWindowProc_DESTROY(struct WindowMsg *pMsg)
+//{
+//    PostQuitMessage(pMsg->hwnd,0);
+//    return TRUE;
+//}
 
 //----在消息处理函数表中查找对应的消息-----------------------------------------
 //功能：略
-//参数：pMsg，目标消息
+//参数：Code：待查找的消息
 //      MsgTable，源表，以0结束。
+//      Num，表中的消息数量
 //返回：若找到，则返回消息在MsgTable中的偏移，否则返回-1
 //-----------------------------------------------------------------------------
-s32 GetWinMsgFunc(struct WindowMsg *pMsg,struct MsgProcTable *MsgTable,u32 Num)
+s32 GetWinMsgFunc(u32 Code,struct MsgProcTable *MsgTable,u32 Num)
 {
     u32 loop = 0;
-    u32 Code,CodeTab;
-    if((pMsg == NULL) || (MsgTable == NULL))
+    u32 CodeTab;
+    if(MsgTable == NULL)
         return -1;
-    Code = pMsg->Code;
     for(loop = 0; loop < Num; loop++)
     {
-        CodeTab = MsgTable[loop].MsgCode;
+        CodeTab = MsgTable[loop].MsgCode & MSG_BODY_MASK;
         if(Code == CodeTab)
         {
             break;
@@ -1522,14 +1535,20 @@ s32 GetWinMsgFunc(struct WindowMsg *pMsg,struct MsgProcTable *MsgTable,u32 Num)
 //参数：pMsg: 消息指针.
 //返回：消息处理结果.
 //-----------------------------------------------------------------------------
-ptu32_t WinMsgProc(struct WindowMsg *pMsg)
+ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
 {
     HWND hwnd;
-    u32 offset;
-    struct MsgTableLink *MyTable;
+    u32 offset,MsgCtrl;
+    bool_t Adopt = false;
+    ptu32_t result;
+    struct MsgTableLink *MyTableLinkNode;
+    struct MsgTableLink *MyPre;
+    struct MsgProcTable *MyTable;
 
     hwnd = pMsg->hwnd;
-    MyTable = hwnd->MyMsgTableLink;
+    MyTableLinkNode = hwnd->MyMsgTableLink;
+    MyTableLinkNode->LinkNext = NULL;
+//  MyTableLinkNode = Head;
     //这是一级级消息处理继承机制，先从最低一级继承出发
     //以控件的paint消息处理为例说明一下：
     //一般来说，MyMsgTableLink直接指向的是用户的消息表，如果从用户表中找到了
@@ -1538,36 +1557,158 @@ ptu32_t WinMsgProc(struct WindowMsg *pMsg)
     //      消息处理函数，调用后返回。否则：
     //      从窗口系统的默认消息处理函数表 s_gDefWindowMsgProcTable中找。
     //这就是类似C++的继承机制。相当于用户继承控件，控件继承窗口系统。
-    while(MyTable != NULL)
+    while(MyTableLinkNode != NULL)
     {
-        if(MyTable->myTable != NULL)
+//      MyTableLink = (struct MsgTableLink*)dListEntry(MyTableLinkNode,
+//                                              struct MsgTableLink,TableLink);
+        MyTable = MyTableLinkNode->myTable;
+        if(MyTable != NULL)
         {
-            offset = GetWinMsgFunc(pMsg, MyTable->myTable, MyTable->MsgNum);
+            offset = GetWinMsgFunc(pMsg->Code & MSG_BODY_MASK, MyTable, MyTableLinkNode->MsgNum);
             if(offset != -1)
             {
-                return MyTable->myTable[offset].MsgProc(pMsg);
+                MsgCtrl =  MyTable[offset].MsgCode & MSG_CONTROL_MSK;
+                if((MsgCtrl & MSG_ADOPT_MSK) == MSG_ADOPT_NONE)
+                {
+                    result = MyTable[offset].MsgProc(pMsg);
+                    MyTableLinkNode = MyTableLinkNode->LinkNext;
+                    while( (MyTableLinkNode != NULL) && (Adopt == true) )
+                    {
+//                      MyTableLink = (struct MsgTableLink*)dListEntry(MyTableLinkNode,
+//                                                              struct MsgTableLink,TableLink);
+                        MyTable = MyTableLinkNode->myTable;
+                        if(MyTable != NULL)
+                        {
+                            offset = GetWinMsgFunc(pMsg->Code, MyTable, MyTableLinkNode->MsgNum);
+                            if(offset != -1)
+                            {
+                                result = MyTable[offset].MsgProc(pMsg);
+                            }
+                        }
+                        MyTableLinkNode = MyTableLinkNode->LinkNext;
+                    }
+                    break;
+                }
+                else
+                {
+                    Adopt = true;
+                }
             }
         }
-        MyTable = MyTable->LinkNext;
+        MyPre = MyTableLinkNode->LinkPrev;
+        if(MyPre == NULL)
+            break;
+        MyPre->LinkNext = MyTableLinkNode;
+        MyTableLinkNode = MyPre;
     }
-
-    offset = GetWinMsgFunc(pMsg, s_gDefWindowMsgProcTable,
-                sizeof(s_gDefWindowMsgProcTable) / sizeof(struct MsgProcTable));
-    if(offset != -1)
-    {
-        return s_gDefWindowMsgProcTable[offset].MsgProc(pMsg);
-    }
-    else
-        return false;
+    return result;
 
 }
 
-//----GDD窗口模块初始化函数------------------------------------------------------
+//----删除一个主窗口数据结构---------------------------------------------------
+//描述：本函数用于创建主窗口函数调用失败时，清除相关数据用。
+//参数：需要删除的主窗口句柄
+//返回：无.
+//------------------------------------------------------------------------------
+void __ClearMainWindow(HWND hwnd)
+{
+    dListRemove(&hwnd->node_msg_close);
+    dListRemove(&hwnd->node_msg_ncpaint);
+    dListRemove(&hwnd->node_msg_paint);
+
+    __RemoveWindowTimer(hwnd);
+    __GUI_DeleteMsgQ(hwnd->pMsgQ);
+    GK_DestroyWin(hwnd->pGkWin);
+//  UpdateDisplay(CN_TIMEOUT_FOREVER);  //删除尚未生效的窗口，无须刷新
+    free(hwnd->pGkWin);
+    hwnd->pGkWin =NULL;
+
+    Lock_MutexDelete(hwnd->mutex_lock);
+    hwnd->mutex_lock =NULL;
+    free(hwnd);
+
+}
+
+//----创建GUI应用---------------------------------------------------------------
+//功能：为GUI应用创建一个主窗口，并建立消息循环。
+//参数：AppName，Appname，也是窗口名字，将出现在窗口标题栏（如果显示标题栏）
+//      MyMsgLink，窗口响应的消息表
+//      MemSize，该应用所需的内存量
+//      WinBuf，APP使用的主窗口是否带缓冲区，参看 CN_WINBUF_BUF 常量定义
+//返回：应用对应的主窗口句柄
+//-----------------------------------------------------------------------------
+HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
+                      u32 MemSize, u32 WinBuf)
+{
+    HWND result = NULL;
+    RECT rc;
+    u16 MyEvtt;
+    u16 MyEventId;
+
+    GetClientRect(GetDesktopWindow(),&rc);
+
+    //创建主窗口，每个图形应用对应一个主窗口
+    result = CreateWindow(AppName, WS_MAIN_WINDOW | WS_CAN_FOCUS, rc.left, rc.top,
+                                 RectW(&rc), RectH(&rc), NULL, 0x0000,
+                                 WinBuf, NULL, MyMsgLink);
+    if(result != NULL)
+    {
+//      if(MyMsgLink)
+//          AddProcFuncTable(result,MyMsgLink);
+        MyEvtt = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, __MessageLoop,
+                                NULL, MemSize, AppName);
+        if(MyEvtt != CN_EVTT_ID_INVALID)
+        {
+            MyEventId=Djy_EventPop(MyEvtt, NULL, 0, (ptu32_t)result, 0, 0);
+            if(MyEventId != CN_EVENT_ID_INVALID)
+            {
+                result->EventID   = MyEventId;
+                SetFocusWindow(result);
+                SetWindowShow(result); //显示窗口
+            }
+            else
+            {
+                Djy_EvttUnregist( MyEvtt );
+                __ClearMainWindow(result);
+                result = NULL;
+            }
+        }
+        else
+        {
+            __ClearMainWindow(result);
+            result = NULL;
+        }
+    }
+
+    if(result == NULL)
+    {
+        printf("Create APP main window failure\n\r");
+    }
+    return result;
+}
+
+//----等待GUI APP退出----------------------------------------------------------
+//功能：阻塞当前应用，等待名为name的APP退出，不可在当前APP中等待，将直接返回false
+//参数：name：GUI APP 名字。
+//返回：false = 异常退出，在当前APP中调用也返回false
+//      true = APP退出。
+// ----------------------------------------------------------------------------
+void GDD_WaitGuiAppExit(char *AppName)
+{
+    Djy_WaitEvttCompleted(Djy_GetEvttId(AppName), 1, CN_TIMEOUT_FOREVER);
+}
+
+//----GDD窗口模块初始化函数----------------------------------------------------
 //描述: 该函数为内部调用.
 //参数：无
 //返回：无
 //------------------------------------------------------------------------------
 void    GDD_WindowInit(void)
 {
+    s_gDefWindowMsgLink.MsgNum = sizeof(s_gDefWindowMsgProcTable)
+                                    / sizeof(struct MsgProcTable);
+    s_gDefWindowMsgLink.myTable = s_gDefWindowMsgProcTable;
+    s_gDefWindowMsgLink.LinkPrev = NULL;
+    s_gDefWindowMsgLink.LinkNext = NULL;
 }
 

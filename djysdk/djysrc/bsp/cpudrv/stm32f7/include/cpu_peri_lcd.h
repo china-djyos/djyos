@@ -56,37 +56,7 @@ extern "C" {
 #include    <gui/gkernel/gk_display.h>
 
 /*===========================================================================*/
-#define  LCD_WIDTH    ((uint16_t)640)             /* LCD PIXEL WIDTH */
-#define  LCD_HEIGHT   ((uint16_t)480)             /* LCD PIXEL HEIGHT*/
-#define CN_LCD_XSIZE  LCD_WIDTH
-#define CN_LCD_YSIZE  LCD_HEIGHT
 
-/**
-  * @brief  LCD Timing
-  */
-#define  LCD_HSYNC            ((uint16_t)30)      /* Horizontal synchronization */
-#define  LCD_HBP              ((uint16_t)114)     /* Horizontal back porch      */
-#define  LCD_HFP              ((uint16_t)16)      /* Horizontal front porch     */
-#define  LCD_VSYNC            ((uint16_t)3)       /* Vertical synchronization   */
-#define  LCD_VBP              ((uint16_t)32)      /* Vertical back porch        */
-#define  LCD_VFP              ((uint16_t)10)      /* Vertical front porch       */
-
-
-#define  AMPIRE640480_WIDTH    ((uint16_t)640)             /* LCD PIXEL WIDTH            */
-#define  AMPIRE640480_HEIGHT   ((uint16_t)480)             /* LCD PIXEL HEIGHT           */
-
-/**
-  * @brief  AMPIRE640480 Timing
-  */
-#define  AMPIRE640480_HSYNC            ((uint16_t)30)      /* Horizontal synchronization */
-#define  AMPIRE640480_HBP              ((uint16_t)114)     /* Horizontal back porch      */
-#define  AMPIRE640480_HFP              ((uint16_t)16)      /* Horizontal front porch     */
-#define  AMPIRE640480_VSYNC            ((uint16_t)3)       /* Vertical synchronization   */
-#define  AMPIRE640480_VBP              ((uint16_t)32)      /* Vertical back porch        */
-#define  AMPIRE640480_VFP              ((uint16_t)10)      /* Vertical front porch       */
-
-//#define LCD_FB_START_ADDRESS       ((uint32_t)0xC0000000)
-#define CN_LCD_PIXEL_FORMAT CN_SYS_PF_ERGB4444
 
 struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,const char* HeapName);
 

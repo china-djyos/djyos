@@ -31,5 +31,6 @@
 
 #include <sys/socket.h>
 
+int fcntl(int fd,int cmd,...);
 
 #endif /* fcntl.h  */

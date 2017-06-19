@@ -191,8 +191,8 @@ static struct MsgProcTable s_gCheckBoxMsgProcTable[] =
     {MSG_LBUTTON_DOWN,CheckBox_Down},
     {MSG_LBUTTON_UP,CheckBox_Up},
     {MSG_PAINT,CheckBox_Paint},
-	{MSG_TOUCH_DOWN,CheckBox_Down},
-	{MSG_TOUCH_UP,CheckBox_Up}
+    {MSG_TOUCH_DOWN,CheckBox_Down},
+    {MSG_TOUCH_UP,CheckBox_Up}
 };
 
 static struct MsgTableLink  s_gCheckBoxMsgLink;
@@ -202,22 +202,14 @@ HWND CreateCheckBox(  const char *Text,u32 Style,
                     HWND hParent,u32 WinId,void *pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
-    WINDOW *pGddWin=NULL;
-    struct MsgTableLink *Current;
-    if(UserMsgTableLink != NULL)
-    {
-        Current = UserMsgTableLink;
-        while(Current->LinkNext != NULL)
-            Current = Current->LinkNext;
-        Current->LinkNext = &s_gCheckBoxMsgLink;
-        Current = UserMsgTableLink;
-    }
-    else
-        Current = &s_gCheckBoxMsgLink;
-    s_gCheckBoxMsgLink.LinkNext = NULL;
+    HWND pGddWin;
+
     s_gCheckBoxMsgLink.MsgNum = sizeof(s_gCheckBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gCheckBoxMsgLink.myTable = (struct MsgProcTable *)&s_gCheckBoxMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId,CN_WINBUF_PARENT,pdata,Current);
+    pGddWin=CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+                            CN_WINBUF_PARENT,pdata,&s_gCheckBoxMsgLink);
+    if(UserMsgTableLink != NULL)
+        AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

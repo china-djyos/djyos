@@ -46,7 +46,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-
+#include <netdb.h>
 #include <sys/socket.h>
 
 #include "../../rout.h"
@@ -140,14 +140,14 @@ enum __DNS_DECODE_STAT
 };
 
 
-
-static  void __decodeName(unsigned  char *name)
+//must add the len parameter to avoid the memory overrride
+static  void __decodeName(unsigned  char *name,int len)
 {
 	unsigned char *s;
 	unsigned char num;
 
 	s = name;
-	while(*s != '\0')
+	while((*s != '\0')&&((ptu32_t)s < ((ptu32_t)name + len)))
 	{
 		num = *s+1;
 		*s = '.';
@@ -267,7 +267,7 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
 				len = strlen((const char *)p) +1;
 				gDnsCNameAddr[gDnsCNameOffset] = p+1;
 				gDnsCNameOffset++;
-				__decodeName(p);
+				__decodeName(p,len);
 				p+=len;
 
 				memcpy((void *)&qtype,p,sizeof(qtype));
@@ -289,7 +289,7 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
 					len = strlen((const char *)p) +1;
 					gDnsCNameAddr[gDnsCNameOffset] = p+1;
 					gDnsCNameOffset++;
-					__decodeName(p);
+					__decodeName(p,len);
 					p+=len;
 				}
 
@@ -313,9 +313,10 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
 				{
 					if(*p != 0xc0)
 					{
+						len = strlen((const char *)p) +1;
 						gDnsCNameAddr[gDnsCNameOffset] = p+1;
 						gDnsCNameOffset++;
-						__decodeName(p);
+						__decodeName(p,len);
 					}
 				}
 				else

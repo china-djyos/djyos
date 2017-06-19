@@ -380,27 +380,51 @@ s32 FATTruncate(struct FileContext *FileCt, off_t NewSize)
 //      0 -- 成功读取返回;
 //备注: 每读一次,返回一个目录项
 //-----------------------------------------------------------------------------
-s32 FATDirRead(struct FileContext *FileCt, struct Dirent *Content)
+s32 FATDirRead(struct FileContext *pFileCt, struct Dirent *pContent)
 {
-	FILINFO ItemInfo;
-	char LongNameBuf[256];
-	FRESULT Res;
-	_DIR *Dir = (_DIR *)FileCt->Private;
-	
-	ItemInfo.lfname = LongNameBuf;
-	Res = f_readdir(Dir, &ItemInfo);
-	if(FR_OK !=Res)
+	FILINFO info;
+	char lfname[256];
+	FRESULT res;
+	char *des, *src;
+	u8 len, i;
+	s32 ret = 0;
+	_DIR *dir = (_DIR *)pFileCt->Private;
+
+#if _USE_LFN
+	memset(lfname, 0x0, 256);
+	info.lfname = lfname;
+#endif
+	res = f_readdir(dir, &info);
+	if(FR_OK !=res)
 		return (-3);
 		
-	if(0 == ItemInfo.fname[0])
+	if(0 == info.fname[0])
 		return (1);
-		
-	strcpy(Content->Name, ItemInfo.fname);
-	switch(ItemInfo.fattrib & 0x30)
+
+#if _USE_LFN
+	if(0x7E == info.fname[6])
 	{
-		case AM_ARC: Content->Property = P_REG; break;
-		case AM_DIR: Content->Property = P_DIR; break;
+		if(0x0 != info.lfname[0])
+		{
+			strcpy(pContent->Name, info.lfname); // 长文件名
+		}
+		else
+		{
+			strcpy(pContent->Name, info.fname);
+			ret = -3; // 长文件名，但无法解析（当前字符集不支持）
+		}
+	}
+	else
+#endif
+	{
+		strcpy(pContent->Name, info.fname); // 8.3文件名
+	}
+
+	switch(info.fattrib & 0x30)
+	{
+		case AM_ARC: pContent->Property = P_REG; break;
+		case AM_DIR: pContent->Property = P_DIR; break;
 		default: return (-3); // 尚未支持的文件格式
 	}
-	return (0);
+	return (ret);
 }

@@ -120,64 +120,65 @@ static u8 const DMA_Rx_ch[] = {4,4,4,4,4,5,5,5};
 // DMA正在使用标记，是否使用DMA标记
 static bool_t s_UART_DmaSending[] = {false,false,false,false,false,false,false,false};
 static bool_t s_UART_DmaUsed[]    = {false,false,false,false,false,false,false,false};
+static bool_t s_UART_DmaRcvIdle[] = {false,false,false,false,false,false,false,false};
+
 
 #define UART1_SendBufLen            32
 #define UART1_RecvBufLen            32
 #define UART1_DmaBufLen             32
 static u8  UART1_DmaSendBuf[UART1_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART1_DmaRecvBuf[UART1_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART1_DmaRecvBuf[2][UART1_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 #define UART2_SendBufLen            32
 #define UART2_RecvBufLen            32
 #define UART2_DmaBufLen             32
 static u8  UART2_DmaSendBuf[UART2_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART2_DmaRecvBuf[UART2_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART2_DmaRecvBuf[2][UART2_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 #define UART3_SendBufLen            32
 #define UART3_RecvBufLen            32
 #define UART3_DmaBufLen             32
 static u8  UART3_DmaSendBuf[UART3_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART3_DmaRecvBuf[UART3_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART3_DmaRecvBuf[2][UART3_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 #define UART4_SendBufLen            32
 #define UART4_RecvBufLen            32
 #define UART4_DmaBufLen             32
 static u8  UART4_DmaSendBuf[UART4_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART4_DmaRecvBuf[UART4_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART4_DmaRecvBuf[2][UART4_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 #define UART5_SendBufLen            32
 #define UART5_RecvBufLen            32
 #define UART5_DmaBufLen             32
 static u8  UART5_DmaSendBuf[UART5_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART5_DmaRecvBuf[UART5_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART5_DmaRecvBuf[2][UART5_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 #define UART6_SendBufLen            32
 #define UART6_RecvBufLen            32
 #define UART6_DmaBufLen             32
 static u8  UART6_DmaSendBuf[UART6_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART6_DmaRecvBuf[UART6_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART6_DmaRecvBuf[2][UART6_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 #define UART7_SendBufLen            32
 #define UART7_RecvBufLen            32
 #define UART7_DmaBufLen             32
 static u8  UART7_DmaSendBuf[UART7_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART7_DmaRecvBuf[UART7_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART7_DmaRecvBuf[2][UART7_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 #define UART8_SendBufLen            32
 #define UART8_RecvBufLen            32
 #define UART8_DmaBufLen             32
 static u8  UART8_DmaSendBuf[UART8_DmaBufLen]__attribute__ ((section(".nocacheram")));
-static u8  UART8_DmaRecvBuf[UART8_DmaBufLen]__attribute__ ((section(".nocacheram")));
+static u8  UART8_DmaRecvBuf[2][UART8_DmaBufLen/2]__attribute__ ((section(".nocacheram")));
 
 static struct UartCB *pUartCB[CN_UART_NUM];
-
+static u8 *sp_DmaRecvBuf[CN_UART_NUM];
 //用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
 //依此类推，1表示初始化，0表示未初始化
 static u8 sUartInited = 0;
 
 // =============================================================================
 static ptu32_t UART_ISR(ptu32_t IniLine);
-
 uint32_t UART_DmaRx_ISR(ptu32_t IntLine);
 uint32_t UART_DmaTx_ISR(ptu32_t IntLine);
 
@@ -220,7 +221,7 @@ static void __UART_TxIntEnable(u8 flag,u8 port)
     if(flag == CN_DMA_USED)
         Int_RestoreAsynLine(UartDmaTxInt[port]);
     else
-        tg_UART_Reg[port]->CR1 |= (1<<7);
+        tg_UART_Reg[port]->CR1 |= (1<<6);
 }
 
 // =============================================================================
@@ -234,7 +235,7 @@ static void __UART_TxIntDisable(u8 flag, u8 port)
     if(flag == CN_DMA_USED)
         Int_SaveAsynLine(UartDmaTxInt[port]);
     else
-        tg_UART_Reg[port]->CR1 &= ~(1<<7);//禁止发送空中断
+        tg_UART_Reg[port]->CR1 &= ~(1<<6);//禁止发送空中断
 }
 
 // =============================================================================
@@ -347,39 +348,90 @@ static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
     COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
+    Reg->CR1 &= ~(1);//禁止串口
     switch(COM->DataBits)               // data bits
     {
 		case CN_UART_DATABITS_7:
-			Reg->CR1 |= (1<<28);
-			Reg->CR1 &= ~(1<<12);
+		    switch(COM->Parity)
+		    {
+		        case CN_UART_PARITY_NONE:
+		            Reg->CR1 |= (1<<28);//数据效验共7位禁止奇偶效验
+		            Reg->CR1 &= ~(1<<12);
+
+		            Reg->CR1 &= ~(1<<10);
+		            break;//奇效验
+
+		        case CN_UART_PARITY_ODD:
+                    Reg->CR1 &= ~(1<<28);//数据效验共8位奇偶效验
+                    Reg->CR1 &= ~(1<<12);
+
+		            Reg->CR1 |= (1<<9);
+		            Reg->CR1 |= (1<<10);break;//奇效验
+
+		        case CN_UART_PARITY_EVEN:
+                    Reg->CR1 &= ~(1<<28);//数据效验共8位奇偶效验
+                    Reg->CR1 &= ~(1<<12);
+
+		            Reg->CR1 &=~(1<<9);
+		            Reg->CR1 |= (1<<10);break;
+		        default:break;
+		    }
 			break;
+
 		case CN_UART_DATABITS_8:
-			Reg->CR1 &= ~(1<<28);
-			Reg->CR1 &= ~(1<<12);
+            switch(COM->Parity)        //
+            {
+                case CN_UART_PARITY_NONE:
+                    Reg->CR1 &= ~(1<<28);//数据效验共8位禁止奇偶效验
+                    Reg->CR1 &= ~(1<<12);
+                    Reg->CR1 &= ~(1<<10);
+                    break;
+
+                case CN_UART_PARITY_ODD:
+                    Reg->CR1 &= ~(1<<28);//数据效验共9位奇偶效验
+                    Reg->CR1 |= (1<<12);
+
+                    Reg->CR1 |= (1<<9);
+                    Reg->CR1 |= (1<<10);
+                    break;//奇效验
+                case CN_UART_PARITY_EVEN:
+                    Reg->CR1 &= ~(1<<28);//数据效验共9位奇偶效验
+                    Reg->CR1 |= (1<<12);
+
+                    Reg->CR1 &=~(1<<9);
+                    Reg->CR1 |= (1<<10);break;
+                default:break;
+            }
 		break;
+
 		case CN_UART_DATABITS_9:
 			Reg->CR1 &= ~(1<<28);
-			Reg->CR1 |= (1<<12);break;
+			Reg->CR1 |= (1<<12);
+            switch(COM->Parity)        //
+            {
+                case CN_UART_PARITY_NONE:
+                    Reg->CR1 &= ~(1<<28);//数据效验共9位禁止奇偶效验
+                    Reg->CR1 |= (1<<12);
+                    Reg->CR1 &= ~(1<<10);
+                    break;
+                case CN_UART_PARITY_ODD:break;//不支持这种请情况
+                case CN_UART_PARITY_EVEN:break;
+                default:break;
+            }
+			break;
 		default:break;
-    }
-
-    switch(COM->Parity)                 // parity
-    {
-    Reg->CR1 |= (1<<10);                // enable parity
-    case CN_UART_PARITY_ODD:    Reg->CR1 |= (1<<9);break;//奇效验
-    case CN_UART_PARITY_EVEN:   Reg->CR1 &=~(1<<9);break;
-    default:break;
     }
 
     switch(COM->StopBits)  //todu:F7的 0.5个停止位没有写进来
     {
-    Reg->CR2 &= ~(3<<12);
-//    case CN_UART_STOPBITS_0_5;  Reg->CR2 |= (1<<12);break;
-    case CN_UART_STOPBITS_1:    Reg->CR2 |= (0<<12);break;
-    case CN_UART_STOPBITS_1_5:  Reg->CR2 |= (3<<12);break;
-    case CN_UART_STOPBITS_2:    Reg->CR2 |= (2<<12);break;
-    default:break;
+        Reg->CR2 &= ~(3<<12);
+//      case CN_UART_STOPBITS_0_5;  Reg->CR2 |= (1<<12);break;
+        case CN_UART_STOPBITS_1:    Reg->CR2 |= (0<<12);break;
+        case CN_UART_STOPBITS_1_5:  Reg->CR2 |= (3<<12);break;
+        case CN_UART_STOPBITS_2:    Reg->CR2 |= (2<<12);break;
+        default:break;
     }
+    Reg->CR1 |= (1);//使能串口
 }
 
 // =============================================================================
@@ -485,7 +537,7 @@ static void __UART_HardInit(u8 SerialNo)
     __UART_GpioConfig(SerialNo);
     //系统初始化时已经使中断处于禁止状态，无需再禁止和清除中断。
    //初始化uart硬件控制数据结构
-    tg_UART_Reg[SerialNo]->CR1 = 0x00ad;
+    tg_UART_Reg[SerialNo]->CR1 = 0x002d;
     tg_UART_Reg[SerialNo]->CR2 = 0x0;
     tg_UART_Reg[SerialNo]->CR3 = 0x0000;
     __UART_BaudSet(tg_UART_Reg[SerialNo],SerialNo,115200);
@@ -617,60 +669,65 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 // =============================================================================
 void __UART_SetDmaUsed(u32 port)
 {
-    u8 *DmaRecvBuf,*DmaSendBuf;
+    u8 *DmaRecvBuf0,*DmaRecvBuf1,*DmaSendBuf;
     switch(port)
     {
     case CN_UART1:
-        DmaRecvBuf = UART1_DmaRecvBuf;
+        DmaRecvBuf0 = UART1_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART1_DmaRecvBuf[1];
         DmaSendBuf = UART1_DmaSendBuf;
         break;
     case CN_UART2:
-        DmaRecvBuf = UART2_DmaRecvBuf;
+        DmaRecvBuf0 = UART2_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART2_DmaRecvBuf[1];
         DmaSendBuf = UART2_DmaSendBuf;
         break;
     case CN_UART3:
-        DmaRecvBuf = UART3_DmaRecvBuf;
+        DmaRecvBuf0 = UART3_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART3_DmaRecvBuf[1];
         DmaSendBuf = UART3_DmaSendBuf;
         break;
     case CN_UART4:
-        DmaRecvBuf = UART4_DmaRecvBuf;
+        DmaRecvBuf0 = UART4_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART4_DmaRecvBuf[1];
         DmaSendBuf = UART4_DmaSendBuf;
         break;
     case CN_UART5:
-        DmaRecvBuf = UART5_DmaRecvBuf;
+        DmaRecvBuf0 = UART5_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART5_DmaRecvBuf[1];
         DmaSendBuf = UART5_DmaSendBuf;
         break;
     case CN_UART6:
-		DmaRecvBuf = UART6_DmaRecvBuf;
+		DmaRecvBuf0 = UART6_DmaRecvBuf[0];
+		DmaRecvBuf1 = UART6_DmaRecvBuf[1];
 		DmaSendBuf = UART6_DmaSendBuf;
 		break;
     case CN_UART7:
-		DmaRecvBuf = UART7_DmaRecvBuf;
+		DmaRecvBuf0 = UART7_DmaRecvBuf[0];
+		DmaRecvBuf1 = UART7_DmaRecvBuf[1];
 		DmaSendBuf = UART7_DmaSendBuf;
 		break;
     case CN_UART8:
-		DmaRecvBuf = UART8_DmaRecvBuf;
+		DmaRecvBuf0 = UART8_DmaRecvBuf[0];
+		DmaRecvBuf1 = UART8_DmaRecvBuf[1];
 		DmaSendBuf = UART8_DmaSendBuf;
 		break;
     default :        break;
     }
+    sp_DmaRecvBuf[port] = DmaRecvBuf0;
     __UART_RxIntDisable(CN_DMA_UNUSED,port);//串口中断失能
     __UART_TxIntDisable(CN_DMA_UNUSED,port);
     tg_UART_Reg[port]->CR1 |= (1<<4);//enable idle int
 
-    DMA_Config(UartDmaRxStream[port],DMA_Rx_ch[port],(u32)&(tg_UART_Reg[port]->RDR),
-            (u32)DmaRecvBuf,DMA_DIR_P2M,DMA_DATABITS_8,DMA_DATABITS_8,32);
+    DMA_Config(UartDmaRxStream[port],DMA_Rx_ch[port],(u32)&(tg_UART_Reg[port]->RDR),true,
+            (u32)DmaRecvBuf0,(u32)DmaRecvBuf1,DMA_DIR_P2M,DMA_DATABITS_8,DMA_DATABITS_8,16);
 
-    DMA_Config(UartDmaTxStream[port],DMA_Tx_ch[port],(u32)&(tg_UART_Reg[port]->TDR),
-            (u32)DmaSendBuf,DMA_DIR_M2P,DMA_DATABITS_8,DMA_DATABITS_8,32);
-
-
-
-
+    DMA_Config(UartDmaTxStream[port],DMA_Tx_ch[port],(u32)&(tg_UART_Reg[port]->TDR),false,
+            (u32)DmaSendBuf,0,DMA_DIR_M2P,DMA_DATABITS_8,DMA_DATABITS_8,32);
 
     tg_UART_Reg[port]->CR3 |= 0x00c0;  //设置串口使用dma收发
     s_UART_DmaUsed[port] = CN_DMA_USED;
-    DMA_Enable(UartDmaRxStream[port],(u32)DmaRecvBuf,32);//启动dma通道
+    DMA_Enable(UartDmaRxStream[port],(u32)DmaRecvBuf0,16);//启动dma通道
 
     Int_Register(UartDmaTxInt[port]);//注册发送DMA中断
     Int_Register(UartDmaRxInt[port]);//注册接收DMA中断
@@ -870,8 +927,8 @@ uint32_t UART_DmaTx_ISR(ptu32_t tagIntLine)
 // =============================================================================
 uint32_t UART_DmaRx_ISR(ptu32_t tagIntLine)
 {
-    u32 recvs,num,DmaRecvBufLen;
-    u8 *DmaRecvBuf;
+    u32 recvs,num,DmaRecvBufLen,newrcvlen;
+    u8 *DmaRecvBuf0,*DmaRecvBuf1,*DmaRecvBuf;
     u8 port;
     for(port = CN_UART1; port <= CN_UART8;port++)
     {
@@ -881,57 +938,97 @@ uint32_t UART_DmaRx_ISR(ptu32_t tagIntLine)
     switch(port)
     {
     case CN_UART1:
-        DmaRecvBuf = UART1_DmaRecvBuf;
-        DmaRecvBufLen = UART1_DmaBufLen;
+        DmaRecvBuf0 = UART1_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART1_DmaRecvBuf[1];
+        DmaRecvBufLen = UART1_DmaBufLen/2;
         break;
     case CN_UART2:
-        DmaRecvBuf = UART2_DmaRecvBuf;
-        DmaRecvBufLen = UART2_DmaBufLen;
+        DmaRecvBuf0 = UART2_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART2_DmaRecvBuf[1];
+        DmaRecvBufLen = UART2_DmaBufLen/2;
         break;
     case CN_UART3:
-        DmaRecvBuf = UART3_DmaRecvBuf;
-        DmaRecvBufLen = UART3_DmaBufLen;
+        DmaRecvBuf0 = UART3_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART3_DmaRecvBuf[1];
+        DmaRecvBufLen = UART3_DmaBufLen/2;
         break;
     case CN_UART4:
-        DmaRecvBuf = UART4_DmaRecvBuf;
-        DmaRecvBufLen = UART4_DmaBufLen;
+        DmaRecvBuf0 = UART4_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART4_DmaRecvBuf[1];
+        DmaRecvBufLen = UART4_DmaBufLen/2;
         break;
     case CN_UART5:
-        DmaRecvBuf = UART5_DmaRecvBuf;
-        DmaRecvBufLen = UART5_DmaBufLen;
+        DmaRecvBuf0 = UART5_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART5_DmaRecvBuf[1];
+        DmaRecvBufLen = UART5_DmaBufLen/2;
         break;
     case CN_UART6:
-        DmaRecvBuf = UART6_DmaRecvBuf;
-        DmaRecvBufLen = UART6_DmaBufLen;
+        DmaRecvBuf0 = UART6_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART6_DmaRecvBuf[1];
+        DmaRecvBufLen = UART6_DmaBufLen/2;
         break;
     case CN_UART7:
-        DmaRecvBuf = UART7_DmaRecvBuf;
-        DmaRecvBufLen = UART7_DmaBufLen;
+        DmaRecvBuf0 = UART7_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART7_DmaRecvBuf[1];
+        DmaRecvBufLen = UART7_DmaBufLen/2;
         break;
     case CN_UART8:
-        DmaRecvBuf = UART8_DmaRecvBuf;
-        DmaRecvBufLen = UART8_DmaBufLen;
+        DmaRecvBuf0 = UART8_DmaRecvBuf[0];
+        DmaRecvBuf1 = UART8_DmaRecvBuf[1];
+        DmaRecvBufLen = UART8_DmaBufLen/2;
         break;
-    default:
-        break;
+    default:        return 0;
     }
 
-    DMA_Disable(UartDmaRxStream[port]);
+    if(((u32)&DmaRecvBuf0 <= (u32)sp_DmaRecvBuf[port]) && \
+        ((u32)sp_DmaRecvBuf[port] < (u32)&DmaRecvBuf0[DmaRecvBufLen]))
+    {
+        DmaRecvBuf=DmaRecvBuf0;
+    }
+    else if(((u32)&DmaRecvBuf1 <= (u32)sp_DmaRecvBuf[port]) && \
+            ((u32)sp_DmaRecvBuf[port] < (u32)&DmaRecvBuf1[DmaRecvBufLen]))
+    {
+        DmaRecvBuf=DmaRecvBuf1;
+    }
+    else
+    {
+        UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+        DmaRecvBuf=DmaRecvBuf0;
+    }
+
     DMA_ClearIntFlag(UartDmaRxStream[port]);
-    recvs = DmaRecvBufLen - UartDmaRxStream[port]->NDTR;
-    if(recvs == DmaRecvBufLen)     //dma缓冲区满，可能有数据丢失
+    if(s_UART_DmaRcvIdle[port]) //IDLE中断
     {
-        UART_ErrHandle(pUartCB[port],CN_UART_FIFO_OVER_ERR);
-    }else
-    {
-        num = UART_PortWrite(pUartCB[port],DmaRecvBuf,recvs,0);
-        if(num != recvs)
+        s_UART_DmaRcvIdle[port]=false;
+
+        recvs = DmaRecvBufLen - UartDmaRxStream[port]->NDTR;
+        if(recvs==0)
+            return 0;//IDlE中断与DMA中断同时发生时
+        newrcvlen = &DmaRecvBuf[recvs] - sp_DmaRecvBuf[port];
+
+        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],newrcvlen,0);
+        if(num != newrcvlen)
         {
             UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
         }
+        sp_DmaRecvBuf[port] += num;
+    }
+    else //DMA中断
+    {
+        recvs = DmaRecvBufLen;
+        newrcvlen = &DmaRecvBuf[recvs] - sp_DmaRecvBuf[port];
+
+        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],newrcvlen,0);
+        if(num != newrcvlen)
+        {
+            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+        }
+        if(UartDmaRxStream[port]->CR & (1<<19))
+            sp_DmaRecvBuf[port]= DmaRecvBuf1;
+        else
+            sp_DmaRecvBuf[port]= DmaRecvBuf0;
     }
 
-    DMA_Enable(UartDmaRxStream[port],(u32)DmaRecvBuf,DmaRecvBufLen);
     return 0;
 }
 
@@ -974,14 +1071,14 @@ u32 UART_ISR(ptu32_t IntLine)
             UART_ErrHandle(UCB,CN_UART_BUF_OVER_ERR);
         }
     }
-    if((Reg->ISR & (1<<6)) &&(Reg->CR1 & (1<<7)))    //发送中断
+    if((Reg->ISR & (1<<6) ))    //发送中断
     {
         num = UART_PortRead(UCB,&ch,1,0);
         if(num != 0)
             Reg->TDR = ch;
         else
         {
-            Reg->CR1 &= ~(1<<7);        //txeie
+            Reg->CR1 &= ~(1<<6);        //txeie
         }
     }
     if(Reg->ISR & (1<<3))        //ORE过载错误
@@ -991,10 +1088,15 @@ u32 UART_ISR(ptu32_t IntLine)
         UART_ErrHandle(UCB,CN_UART_FIFO_OVER_ERR);
         Reg->ICR |=(1<<3);//清过载标志位
     }
-    if(Reg->ISR & (1<<4))
+    if(Reg->ISR & (1<<4))//idle中断
     {
+        s_UART_DmaRcvIdle[port] = true;
         Reg->ICR |=(1<<4);
         Int_TapLine(UartDmaRxInt[port]);
+    }
+    if(Reg->ISR & (1<<1))//帧错误直接清除暂时不做处理
+    {
+        Reg->ICR |=(1<<1);
     }
     return 0;
 }
@@ -1117,7 +1219,7 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
     u16 CR_Bak;
 
     CR_Bak = PutStrDirectReg->CR1;                          //Save INT
-    PutStrDirectReg->CR1 &= ~(1<<7);                        //disable send INT
+    PutStrDirectReg->CR1 &= ~(1<<6);                        //disable send INT
     for(result=0; result < len+1; result ++)
     {
         // 超时或者发送缓冲为空时退出
@@ -1146,7 +1248,7 @@ char Uart_GetCharDirect(void)
     char result;
 
     CR_Bak = GetCharDirectReg->CR1;                          //Save INT
-    GetCharDirectReg->CR1 &= ~(1<<7);                        //disable send INT
+    GetCharDirectReg->CR1 &= ~(1<<6);                        //disable send INT
     while(__UART_RxHadChar(GetCharDirectReg) == false) ;
     result = GetCharDirectReg->RDR;
     PutStrDirectReg->CR1 = CR_Bak;                         //restore send INT

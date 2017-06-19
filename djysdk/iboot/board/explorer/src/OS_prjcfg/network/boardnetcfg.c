@@ -52,23 +52,23 @@
 
 #include <sys/socket.h>
 #include "cpu_peri.h"     //for the k70 net device in the soc
-const char *gNetDevName = "k70eth";
+const char *gc_NetCardName = "ETH_STM32F4_Explorer";
+static u8   gc_NetMac[CN_MACADDR_LEN] ={0x01,0x02,0x03,0x04,0x05,0x06};
 
 //please refers the following function in the module-trim in proper place.
 //make sure that that os kernel has been initialize ok and the interrupt system intialize ok
 //make sure that that board net hardware has initialized and could work ok
-ptu32_t ModuleInstall_BoardNetStaic(ptu32_t para)   //static ip example
+ptu32_t ModuleInstall_NetStaticIP(ptu32_t para)   //static ip example
 {
     //install the tcpip stack
     ModuleInstall_TcpIp(0);
 	//install the net device you used,you could use more than one, but they
 	//has different names and macs
     //use the corresponding net device install function you use
-//    extern bool_t ModuleInstall_Enet(ptu32_t para);
-//    tagEnetCfg EnetCfg = {gNetDevName,MAC_RMII,AUTONEG_ON,MII_100BASET,
-//                          MII_FDX,NO_LOOPBACK,EXTERNAL_NONE,0,
-//                          {0x00,0x01,0x02,0x03,0x04,0x03}};
-//    ModuleInstall_Enet((ptu32_t)&EnetCfg);
+    extern bool_t ModuleInstall_ETH(const char *devname, u8 *mac,\
+            bool_t loop,u32 loopcycle,\
+            bool_t (*rcvHook)(u8 *buf, u16 len));
+    ModuleInstall_ETH(gc_NetCardName,gc_NetMac,false,1*mS,NULL);
 
     //make an link rout for the netdeb you installed,you could install more
 	//than one link rout for the same net device with different net address
@@ -80,19 +80,19 @@ ptu32_t ModuleInstall_BoardNetStaic(ptu32_t para)   //static ip example
 	ipv4addr.gatway  = inet_addr("192.168.0.1");
 	ipv4addr.dns     = inet_addr("192.168.0.1");
 	ipv4addr.broad   = inet_addr("192.168.0.255");
-	if(RoutCreate(gNetDevName,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+	if(RoutCreate(gc_NetCardName,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
 	{
-	   printk("%s:Add %s success\r\n",__FUNCTION__,gNetDevName);
+	   printk("%s:Add %s success\r\n",__FUNCTION__,gc_NetCardName);
 	}
 	else
 	{
-		printk("%s:Add %s failed\r\n",__FUNCTION__,gNetDevName);
+		printk("%s:Add %s failed\r\n",__FUNCTION__,gc_NetCardName);
 	}
 
 	return 0;
 }
 
-ptu32_t ModuleInstall_BoardNetDynamic(ptu32_t para)   //use the dhcp to malloc an ip dynamic
+ptu32_t ModuleInstall_NetDynamicIP(ptu32_t para)   //use the dhcp to malloc an ip dynamic
 {
     //install the tcpip stack
     ModuleInstall_TcpIp(0);
@@ -108,13 +108,13 @@ ptu32_t ModuleInstall_BoardNetDynamic(ptu32_t para)   //use the dhcp to malloc a
     //make an link rout for the netdeb you installed
     //if you will malloc the ip from the dhcp server,make sure that the dhcp client has been enabled
     //actually,you could only install one rout for the same net dev
-    if(DhcpAddClientTask(gNetDevName))
+    if(DhcpAddClientTask(gc_NetCardName,NULL))
     {
-       printk("%s:Add %s success\r\n",__FUNCTION__,gNetDevName);
+       printk("%s:Add %s success\r\n",__FUNCTION__,gc_NetCardName);
     }
     else
     {
-        printk("%s:Add %s failed\r\n",__FUNCTION__,gNetDevName);
+        printk("%s:Add %s failed\r\n",__FUNCTION__,gc_NetCardName);
     }
 
 	return 0;

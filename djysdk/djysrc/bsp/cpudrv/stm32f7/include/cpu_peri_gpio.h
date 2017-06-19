@@ -124,8 +124,8 @@ extern "C" {
 #define GPIO_UnLockr          (1)
 
 #define AF0 				0
-#define AF1 				1
-#define AF2 				2
+//#define AF1 				1
+#define ST_AF2 				2
 #define AF3 				3
 #define AF4 				4
 #define AF5 				5

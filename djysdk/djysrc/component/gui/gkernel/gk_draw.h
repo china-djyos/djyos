@@ -83,7 +83,6 @@ void __GK_SetPixelRop2Bm(struct RectBitmap *bitmap,
 void __GK_CopyPixelBm(struct RectBitmap *dst_bitmap,
                                 struct RectBitmap *src_bitmap,
                                 s32 x_dst,s32 y_dst,s32 x_src,s32 y_src);
-void GK_SetPixel(struct GkscParaSetPixel *para);
 void __GK_ShadingPixel(struct GkWinRsc *gkwin,s32 x,s32 y);
 void __GK_ShadingRect(struct GkWinRsc *gkwin,struct Rectangle *rect);
 void __GK_ShadingLine(struct GkWinRsc *gkwin,struct Rectangle *limit,
@@ -113,21 +112,22 @@ void __GK_DrawCircleBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
                         s32 x0,s32 y0,s32 r,u32 color,u32 rop2_code);
 void __GK_DrawCircleScreen(struct DisplayRsc *display,struct Rectangle *limit,
                         s32 x0,s32 y0,s32 r,u32 color,u32 rop2_code);
-void GK_DrawCircle(struct GkscParaDrawCircle *para);
+void __GK_DrawCircle(struct GkscParaDrawCircle *para);
 void __GK_BezierBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
                     float x1,float y1,float x2,float y2,float x3,float y3,
                     float x4,float y4,u32 color,u32 rop2_code);
 void __GK_BezierScreen(struct DisplayRsc *display,struct Rectangle *limit,
                     float x1,float y1,float x2,float y2,float x3,float y3,
                     float x4,float y4,u32 color,u32 rop2_code);
-void GK_Bezier(struct GkscParaBezier *para);
-void GK_Lineto(struct GkscParaLineto *para);
-void GK_LinetoIe(struct GkscParaLineto *para);
-void GK_DrawText(struct GkscParaDrawText *para,const char *text);
-void GK_DrawBitMap(struct GkscParaDrawBitmapRop *para);
-void GK_GradientFillRect(struct GkscParaGradientFillWin *para);
-void GK_FillWin(struct GkscParaFillWin *para);
 
+void __GK_SetPixel(struct GkscParaSetPixel *para);
+void __GK_Bezier(struct GkscParaBezier *para);
+void __GK_Lineto(struct GkscParaLineto *para);
+void __GK_LinetoIe(struct GkscParaLineto *para);
+void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes);
+void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para);
+void __GK_GradientFillRect(struct GkscParaGradientFillWin *para);
+void __GK_FillWin(struct GkscParaFillWin *para);
 
 #ifdef __cplusplus
 }

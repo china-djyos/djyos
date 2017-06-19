@@ -62,16 +62,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <os.h>
-//add your own specified header here
 
-#include "ppp.h"
 //usage:we use this function to read from the serial
 //      return the bytes need,-1 if we read abort
 //      this will block until all the data be read or abort
-int iodevread(ptu32_t dev,u8 *buf,u32 len);
+int iodevread(ptu32_t dev,u8 *buf,u32 len,u32 timeout);
 //This function will block until all data can be sent.
-int iodevwrite(ptu32_t dev,u8 *buf, u32 len);
+int iodevwrite(ptu32_t dev,u8 *buf, u32 len,u32 timeout);
 //usage:we use this function to open a serail device
 ptu32_t  iodevopen(const char *name);
+bool_t iodevclose(ptu32_t dev);
+void iodevflush(ptu32_t dev);
+
+bool_t   iodebugset(char *param);
+bool_t PppIoInit(ptu32_t para);
 
 #endif /* HD6F8200D_D7BA_43C7_805A_09B146F47AC6 */

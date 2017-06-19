@@ -77,7 +77,7 @@ struct Object *ModuleInstall_IICBus(ptu32_t Para)
     struct Object *BusTypeIIC = NULL;
     BusTypeIIC = DjyBus_BusTypeAdd_s(&s_tIICBusType,"BusTypeIIC");
     if(NULL != BusTypeIIC)
-        printk("BUS Type IIC Added Succeeded!\r\n");
+        printf("BUS Type IIC Added Succeeded!\r\n");
     return BusTypeIIC;
 }
 
@@ -129,7 +129,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
     //标志初始化，包括 读写标志和轮询中断方式
     NewIIC->Flag =0;
 
-    printk("%s Added Succeeded!\r\n",NewIICParam->BusName);
+    printf("%s Added Succeeded!\r\n",NewIICParam->BusName);
 
     return NewIIC;
 
@@ -191,7 +191,7 @@ struct IIC_CB *IIC_BusAdd_s(struct IIC_CB *NewIIC,struct IIC_Param *NewIICParam)
     //标志初始化，包括 读写标志和轮询中断方式
     NewIIC->Flag =0;
 
-    printk("%s Added Succeeded!\r\n",NewIICParam->BusName);
+    printf("%s Added Succeeded!\r\n",NewIICParam->BusName);
     return NewIIC;
 
 exit_from_iic_buf_semp:
@@ -299,7 +299,7 @@ struct IIC_Device *IIC_DevAdd(const char *BusName ,const char *DevName, u8 DevAd
         return NULL;
     }
 
-    printk("IIC Device %s Added Succeeded!\r\n",DevName);
+    printf("IIC Device %s Added Succeeded!\r\n",DevName);
     return NewDev;
 }
 
@@ -330,7 +330,7 @@ struct IIC_Device *IIC_DevAdd_s(struct IIC_Device *NewDev,const char *BusName,
     OBJ_AddChild(&IIC->IIC_BusNode,&NewDev->DevNode,
                 sizeof(struct IIC_Device),RSC_IIC_DEVICE,DevName);
 
-    printk("IIC Device %s Added Succeeded!\r\n",DevName);
+    printf("IIC Device %s Added Succeeded!\r\n",DevName);
     return (struct IIC_Device *)&NewDev->DevNode;
 }
 

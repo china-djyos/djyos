@@ -47,7 +47,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
-
+#include <stdio.h>
 #include <string.h>
 #include <driver.h>
 #include <djyos.h>
@@ -90,51 +90,63 @@ struct FileSysType FAT =
 //备注:
 //-----------------------------------------------------------------------------
 #define INSTALL_MAKE_NEW            (0x1)
-#define INSTALL_DELAY				(0x2)
-s32 FATInstall(struct MountInfo *Info, void *Private)
+#define INSTALL_DELAY				(0x2) // 使用时才发生安装动作
+s32 FATInstall(struct MountInfo *pInfo, void *pOptions)
 {
-    char *DiskName, *VolName;
-    FATFS *NewFAT;
-    FRESULT Ret;
-    u32 Length;
-    s32 Vol;
-    struct DjyDevice *Dev;
-    u32 Delay = (*(u32*)Private) & INSTALL_DELAY;
+    char *volume, *temp;
+    FATFS *structFAT;
+    FRESULT res;
+    u32 length;
+    s32 volumeNum;
+    struct DjyDevice *device;
+    u32 options = (*(u32*)pOptions) & INSTALL_DELAY;
 
-    Dev = Container(Info->Dev, struct DjyDevice, Node);
-    Length = strlen(Info->Dev->Name);
-    VolName = DiskName = malloc(Length + 2);// 文件系统根名,FAT下就是分区名
-    if(NULL == DiskName)
+    device = Container(pInfo->Dev, struct DjyDevice, Node);
+    length = strlen(pInfo->Dev->Name);
+    volume = malloc(length+2); // 文件系统根名，FAT下就是分区名，需要添加':'
+    if(!volume)
         return (-1);
 
-    strcpy(DiskName, Info->Dev->Name);
-    DiskName[Length] = ':';
-    DiskName[Length+1] = '\0';
+    strcpy(volume, pInfo->Dev->Name);
+    volume[length] = ':';
+    volume[length+1] = '\0';
+    temp = volume; // 执行get_ldnumber()会更新volume
 
-    NewFAT = malloc(sizeof(FATFS));
-    if(NULL == NewFAT)
-        return (-1);
-
-    Vol = get_ldnumber((const char**)&VolName); // 需要ffconf.h中定义"_VOLUME_STRS"
-    if (Vol < 0)
-        return (-1); //
-
-    if(FatDrvInitialize(LD2PD(Vol), (struct FatDrvFuns*)(Dev->PrivateTag)))
-        return (-1); // 安装驱动
-
-    Ret = f_mount(NewFAT, DiskName, Delay); // 挂载
-    if ((FR_NO_FILESYSTEM == Ret) && (*((u32*)Private) & INSTALL_MAKE_NEW))
-        Ret = f_mkfs(DiskName, 1, 0); // 设备上不存在文件系统，则新建FAT
-
-    if(FR_OK != Ret) // 失败
+    volumeNum = get_ldnumber((const char**)&temp); // 需要ffconf.h中定义"_VOLUME_STRS"
+    if (volumeNum < 0)
     {
-        free(NewFAT);
+        printf("\r\nFAT: mount failed, can not find the predefined device(volume) \"%s\"\r\n", volume);
+        free(volume);
+    	return (-1); //
+    }
+
+    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(device->PrivateTag)))
+    {
+        free(volume);
+    	return (-1); // 安装驱动失败
+    }
+
+    structFAT = malloc(sizeof(FATFS));
+	if(!structFAT)
+	{
+		free(volume);
+		return (-1);
+	}
+
+    res = f_mount(structFAT, volume, options); // 挂载
+    if ((FR_NO_FILESYSTEM == res) && (*((u32*)pOptions) & INSTALL_MAKE_NEW))
+        res = f_mkfs(volume, 1, 0); // 设备上不存在文件系统，则新建FAT
+
+    if(FR_OK != res) // 失败
+    {
+        free(structFAT);
+        free(volume);
         return (-1);
     }
 
     // 成功
-    Info->Mount.Name = DiskName;
-    Info->Private = (void*)NewFAT;
+    pInfo->Mount.Name = volume;
+    pInfo->Private = (void*)structFAT;
     return (0);
 }
 
@@ -144,10 +156,10 @@ s32 FATInstall(struct MountInfo *Info, void *Private)
 //返回: 0 -- 成功;
 //备注:
 //-----------------------------------------------------------------------------
-s32 FATUninstall(struct MountInfo *Info)
+s32 FATUninstall(struct MountInfo *pInfo)
 {
 
-    free(Info->Mount.Name);
-    free(Info->Private);
+    free(pInfo->Mount.Name);
+    free(pInfo->Private);
     return (0);
 }

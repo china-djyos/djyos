@@ -47,6 +47,8 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
+#include <netdb.h>
+
 #include "rout.h"
 #include "tpl.h"
 #include "ip.h"
@@ -164,7 +166,7 @@ typedef struct
     u32                       timeout;     //if block, the block time
     int                       buflen;      //the valid data length in the buffer
     int                       buflenlimit; //the buffer length
-    int                       trigerlevel;   //the buffer trigerlevel
+    int                       trigerlevel; //the buffer trigerlevel
     tagNetPkg                *ph;          //the buffer package head
     tagNetPkg                *pt;          //the buffer package tail
     u32                       rcvnxt;      //this is we receive next number
@@ -286,6 +288,9 @@ static bool_t __hashTabInit(u32 len)
     }
 
     pTcpHashTab->tablen = len;
+
+    tcpipmemlog("tcphashtab", sizeof(tagSocket *),len);
+
     result = true;
     return result;
 
@@ -489,6 +494,9 @@ static bool_t  __initCB(int ccbnum, int scbnum)
             pSCBFreeList[i].nxt = &pSCBFreeList[i +1];
         }
     }
+    tcpipmemlog("tcpccb",sizeof(tagCCB),ccbnum);
+    tcpipmemlog("tcpscb",sizeof(tagSCB),scbnum);
+
     result = true;
     return result;
 
@@ -744,7 +752,7 @@ static bool_t __ReseSCB(tagSCB* scb)
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-static u32 gPortEngineTcp = 1024;//usually, the dynamic port is more than 1024
+static u16 gPortEngineTcp = 1024;//usually, the dynamic port is more than 1024
 static tagSocket * __socket(int family, int type, int protocal)
 {
     tagSocket    *sock,*tmp;
@@ -3182,17 +3190,33 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  tagNetPkg *pkg, u32 devfunc)
 // RETURN  :
 // INSTRUCT:true success while false failed
 // =============================================================================
-bool_t __recvProcess(enum_ipv_t  ver,ptu32_t ipsrc, ptu32_t ipdst,  tagNetPkg *pkg, tagNetDev *dev)
+static bool_t __rcvdealv4(ptu32_t ipsrc, ptu32_t ipdst,  tagNetPkg *pkg, tagNetDev *dev)
 {
     bool_t result = false;
     u32 devfunc;
 
-    if(ver == EN_IPV_4)
-    {
-        devfunc = NetDevGetFunc(dev);
-        result = __tcprcvdealv4((u32)ipsrc,(u32)ipdst,pkg,devfunc);
-    }
+    devfunc = NetDevGetFunc(dev);
+    result = __tcprcvdealv4((u32)ipsrc,(u32)ipdst,pkg,devfunc);
 
+    return result;
+}
+
+static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, tagNetDev *dev)
+{
+	bool_t result = false;
+	enum_ipv_t  ver;
+	u32 ipsrc;
+	u32 ipdst;
+	if((NULL != addr)&&(NULL != pkglst)&&(NULL != dev))
+	{
+		ver = addr->ver;
+		if(ver == EN_IPV_4)
+		{
+			ipsrc = addr->src.ipv4;
+			ipdst = addr->dst.ipv4;
+			result = __rcvdealv4(ipsrc,ipdst,pkglst,dev);
+		}
+	}
     return result;
 }
 
@@ -3315,10 +3339,10 @@ static bool_t __dealclienttimer(tagSocket *client)
         	{
                 __senddata(client,1);
         	}
-        	else
-        	{
-        		__sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
-        	}
+//        	else   //better not to send the flag
+//        	{
+//        		__sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
+//        	}
             ccb->persistimer = CN_TCP_TICK_PERSIST;
         }
         else
@@ -3548,6 +3572,9 @@ bool_t TcpInit(ptu32_t para)
     u16  evttID;
     u16  eventID;
 
+    //do the port random initialize
+    gPortEngineTcp = (u16)DjyGetSysTime();
+
     if(false == __hashTabInit(gTcpClientNum+gTcpServerNum))
     {
         return result;
@@ -3601,7 +3628,7 @@ bool_t TcpInit(ptu32_t para)
 
     if((false ==TPL_RegisterProto(AF_INET,SOCK_STREAM,IPPROTO_TCP, &gTcpProto))||\
        (false ==TPL_RegisterProto(AF_INET,SOCK_STREAM,0, &gTcpProto))||\
-       (false == IpRegisterTplHandler(IPPROTO_TCP,__recvProcess)))
+       (false == IpInstallProto("tcp",IPPROTO_TCP,__rcvdeal)))
     {
         printk("%s:ERR:TCP PROTO REGISTER FAILED\n\r,__FUNCTION__");
         goto EXIT_REGISTERTCPFAILED;

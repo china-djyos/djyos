@@ -87,7 +87,7 @@
 //      BaseColor, 灰度图基色，(仅在pf_type == CN_SYS_PF_GRAY1 ~8时有用)
 //返回: true=创建成功，false=创建失败
 //-----------------------------------------------------------------------------
-bool_t GK_ApiCreateDesktop(struct DisplayRsc *display,
+bool_t GK_CreateDesktop(struct DisplayRsc *display,
                            struct GkWinRsc *desktop,
                            s32 width,s32 height,u32 color,
                            u32 buf_mode,u16 PixelFormat,
@@ -105,7 +105,7 @@ bool_t GK_ApiCreateDesktop(struct DisplayRsc *display,
     para.buf_mode = buf_mode;
     para.PixelFormat = PixelFormat;
     para.BaseColor = BaseColor;
-    result = (void*)GK_CreateDesktop(&para);
+    result = (void*)__GK_CreateDesktop(&para);
     if(result == NULL)
         return false;
     else
@@ -117,7 +117,7 @@ bool_t GK_ApiCreateDesktop(struct DisplayRsc *display,
 //参数: display_name，桌面所在显示器的名字
 //返回: 如果找到，则返回指针，否则返回NULL
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_ApiGetDesktop(const char *display_name)
+struct GkWinRsc *GK_GetDesktop(const char *display_name)
 {
     struct DisplayRsc *display;
     display = (struct DisplayRsc *)OBJ_SearchTree("display");
@@ -144,7 +144,7 @@ struct GkWinRsc *GK_ApiGetDesktop(const char *display_name)
 //      RopMode, 混合码，参见 CN_ROP_ALPHA_SRC_MSK 族常量定义,0表示无特殊功能
 //返回: true=创建成功，false=创建失败
 //-----------------------------------------------------------------------------
-bool_t GK_ApiCreateGkwin(struct GkWinRsc *parent,
+bool_t GK_CreateWin(struct GkWinRsc *parent,
                          struct GkWinRsc *newwin,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
@@ -169,7 +169,7 @@ bool_t GK_ApiCreateGkwin(struct GkWinRsc *parent,
     para.HyalineColor = HyalineColor;
     para.BaseColor = BaseColor;
     para.RopCode = RopMode;
-    GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
+    __GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
                             &para,sizeof(para),NULL,0);
     if(result == NULL)
         return false;
@@ -178,12 +178,12 @@ bool_t GK_ApiCreateGkwin(struct GkWinRsc *parent,
         //gui kernel创建窗口时,如果是buf窗口,则在创建的同时完成了填充,否则,
         //在这里执行填充.
         //非buf窗口不能再创建同时填充的原因是,填充非buf窗口是直接绘制在screen
-        //或者framebuffer上的,而创建窗口时,剪切域尚未建立.直到调用 GK_ApiSyncShow
+        //或者framebuffer上的,而创建窗口时,剪切域尚未建立.直到调用 GK_SyncShow
         //后，可视域才能创建好。
         if(newwin->wm_bitmap == NULL)   //wm_bitmap==NULL 表示无窗口缓冲区。
         {
-            GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
-            GK_ApiFillWin(newwin,color,0);
+            GK_SyncShow(CN_TIMEOUT_FOREVER);
+            GK_FillWin(newwin,color,0);
         }
         return true;
     }
@@ -194,14 +194,14 @@ bool_t GK_ApiCreateGkwin(struct GkWinRsc *parent,
 //      color，填充颜色
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiFillWin(struct GkWinRsc *gkwin,u32 color,u32 SyncTime)
+void GK_FillWin(struct GkWinRsc *gkwin,u32 color,u32 SyncTime)
 {
     struct GkscParaFillWin para;
     if(NULL == gkwin)
         return;
     para.gkwin = gkwin;
     para.color = color;
-    GK_SyscallChunnel(CN_GKSC_FILL_WIN,SyncTime,&para,sizeof(para),NULL,0);
+    __GK_SyscallChunnel(CN_GKSC_FILL_WIN,SyncTime,&para,sizeof(para),NULL,0);
     return;
 }
 //----刷新窗口-----------------------------------------------------------------
@@ -209,14 +209,14 @@ void GK_ApiFillWin(struct GkWinRsc *gkwin,u32 color,u32 SyncTime)
 //参数: SyncTime, 同步超时时间
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSyncShow(u32 SyncTime)
+void GK_SyncShow(u32 SyncTime)
 {
-    GK_SyscallChunnel(CN_GKSC_SYNC_SHOW,SyncTime,NULL,0,NULL,0);
+    __GK_SyscallChunnel(CN_GKSC_SYNC_SHOW,SyncTime,NULL,0,NULL,0);
     return;
 }
 
 //----重刷显示器---------------------------------------------------------------
-//功能: 重新刷新显示器,不管是否有更新。GK_ApiSyncShow只是刷新有改变的部分,
+//功能: 重新刷新显示器,不管是否有更新。GK_SyncShow只是刷新有改变的部分,
 //      GK_ApiRefresh则是不管有没有改变,全部重刷,但只针对具体显示器。
 //      在以下情况应该调用本函数:
 //      1. 有镜像显示器驱动程序发出请求.
@@ -227,9 +227,9 @@ void GK_ApiSyncShow(u32 SyncTime)
 //      color，填充颜色
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiRefreshDisplay(struct DisplayRsc *Display)
+void GK_RefreshDisplay(struct DisplayRsc *Display)
 {
-    GK_SyscallChunnel(CN_GKSC_DSP_REFRESH,CN_TIMEOUT_FOREVER,
+    __GK_SyscallChunnel(CN_GKSC_DSP_REFRESH,CN_TIMEOUT_FOREVER,
                     &Display,sizeof(struct DisplayRsc *),NULL,0);
     return;
 }
@@ -243,7 +243,7 @@ void GK_ApiRefreshDisplay(struct DisplayRsc *Display)
 //      color，要填充颜色
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiFillPartWin(struct GkWinRsc *gkwin,
+void GK_FillPartWin(struct GkWinRsc *gkwin,
                        struct Rectangle rect,u32 color,
                        u32 SyncTime)
 {
@@ -253,7 +253,7 @@ void GK_ApiFillPartWin(struct GkWinRsc *gkwin,
     para.gkwin = gkwin;
     para.rect = rect;
     para.color = color;
-    GK_SyscallChunnel(CN_GKSC_FILL_PART_WIN,SyncTime,&para,
+    __GK_SyscallChunnel(CN_GKSC_FILL_PART_WIN,SyncTime,&para,
                         sizeof(para),NULL,0);
     return;
 }
@@ -268,7 +268,7 @@ void GK_ApiFillPartWin(struct GkWinRsc *gkwin,
 //      Mode,渐变模式,含义见CN_FILLRECT_MODE_LR族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiFillRect(struct GkWinRsc *gkwin,struct Rectangle *rect,
+void GK_FillRect(struct GkWinRsc *gkwin,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 SyncTime)
 {
     struct GkscParaGradientFillWin para;
@@ -279,7 +279,7 @@ void GK_ApiFillRect(struct GkWinRsc *gkwin,struct Rectangle *rect,
     para.Color0 = Color0;
     para.Color1 = Color1;
     para.Mode = Mode;
-    GK_SyscallChunnel(CN_GKSC_FILL_RECT,SyncTime,&para,
+    __GK_SyscallChunnel(CN_GKSC_FILL_RECT,SyncTime,&para,
                         sizeof(para),NULL,0);
     return;
 }
@@ -296,7 +296,7 @@ void GK_ApiFillRect(struct GkWinRsc *gkwin,struct Rectangle *rect,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiDrawText(struct GkWinRsc *gkwin,
+void GK_DrawText(struct GkWinRsc *gkwin,
                     struct FontRsc *pFont,
                     struct Charset *pCharset,
                     s32 x,s32 y,
@@ -317,7 +317,7 @@ void GK_ApiDrawText(struct GkWinRsc *gkwin,
     para.Rop2Code = Rop2Code;
     TextBytes = strlen(text);
     TextBytes += GetEOC_Size(pCharset);
-    GK_SyscallChunnel(CN_GKSC_DRAW_TEXT,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_DRAW_TEXT,SyncTime,
                         &para,sizeof(para),(void*)text,TextBytes);
     return;
 }
@@ -329,7 +329,7 @@ void GK_ApiDrawText(struct GkWinRsc *gkwin,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSetPixel(struct GkWinRsc *gkwin,s32 x,s32 y,
+void GK_SetPixel(struct GkWinRsc *gkwin,s32 x,s32 y,
                         u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaSetPixel para;
@@ -340,7 +340,7 @@ void GK_ApiSetPixel(struct GkWinRsc *gkwin,s32 x,s32 y,
     para.y = y;
     para.color = color;
     para.Rop2Code = Rop2Code;
-    GK_SyscallChunnel(CN_GKSC_SET_PIXEL,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_SET_PIXEL,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -352,7 +352,7 @@ void GK_ApiSetPixel(struct GkWinRsc *gkwin,s32 x,s32 y,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiLineto(struct GkWinRsc *gkwin, s32 x1,s32 y1,
+void GK_Lineto(struct GkWinRsc *gkwin, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaLineto para;
@@ -365,7 +365,7 @@ void GK_ApiLineto(struct GkWinRsc *gkwin, s32 x1,s32 y1,
     para.y2 = y2;
     para.color = color;
     para.Rop2Code = Rop2Code;
-    GK_SyscallChunnel(CN_GKSC_LINETO,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_LINETO,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -377,7 +377,7 @@ void GK_ApiLineto(struct GkWinRsc *gkwin, s32 x1,s32 y1,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiLinetoIe(struct GkWinRsc *gkwin, s32 x1,s32 y1,
+void GK_LinetoIe(struct GkWinRsc *gkwin, s32 x1,s32 y1,
                     s32 x2,s32 y2,u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaLineto para;
@@ -390,7 +390,7 @@ void GK_ApiLinetoIe(struct GkWinRsc *gkwin, s32 x1,s32 y1,
     para.y2 = y2;
     para.color = color;
     para.Rop2Code = Rop2Code;
-    GK_SyscallChunnel(CN_GKSC_LINETO_INC_END,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_LINETO_INC_END,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -406,10 +406,10 @@ void GK_ApiLinetoIe(struct GkWinRsc *gkwin, s32 x1,s32 y1,
 //      RopMode, 光栅码，参见 CN_ROP_ALPHA_SRC_MSK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiDrawBitMap(struct GkWinRsc *gkwin,
-                                struct RectBitmap *bitmap,
-                                s32 x,s32 y,
-                                u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime)
+void GK_DrawBitMap(struct GkWinRsc *gkwin,
+                    struct RectBitmap *bitmap,
+                    s32 x,s32 y,
+                    u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime)
 {
     struct GkscParaDrawBitmapRop para;
     memset(&para,sizeof(para),0);
@@ -426,7 +426,7 @@ void GK_ApiDrawBitMap(struct GkWinRsc *gkwin,
     para.x = x;
     para.y = y;
     para.RopCode = RopCode;
-    GK_SyscallChunnel(CN_GKSC_DRAW_BITMAP_ROP,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_DRAW_BITMAP_ROP,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -439,7 +439,7 @@ void GK_ApiDrawBitMap(struct GkWinRsc *gkwin,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiDrawCircle(struct GkWinRsc *gkwin,s32 x0,s32 y0,
+void GK_DrawCircle(struct GkWinRsc *gkwin,s32 x0,s32 y0,
                     u32 r,u32 color,u32 Rop2Code,u32 SyncTime)
 {
     struct GkscParaDrawCircle para;
@@ -451,7 +451,7 @@ void GK_ApiDrawCircle(struct GkWinRsc *gkwin,s32 x0,s32 y0,
     para.r = r;
     para.color = color;
     para.Rop2Code = Rop2Code;
-    GK_SyscallChunnel(CN_GKSC_DRAW_CIRCLE,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_DRAW_CIRCLE,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -463,7 +463,7 @@ void GK_ApiDrawCircle(struct GkWinRsc *gkwin,s32 x0,s32 y0,
 //      Rop2Mode，二元光栅操作码，参见 CN_R2_BLACK 族常量定义
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiDrawBezier(struct GkWinRsc *gkwin,float x1,float y1,
+void GK_DrawBezier(struct GkWinRsc *gkwin,float x1,float y1,
                     float x2,float y2,float x3,float y3,float x4,float y4,
                     u32 color,u32 Rop2Code,u32 SyncTime)
 {
@@ -481,7 +481,7 @@ void GK_ApiDrawBezier(struct GkWinRsc *gkwin,float x1,float y1,
     para.y4 = y4;
     para.color = color;
     para.Rop2Code = Rop2Code;
-    GK_SyscallChunnel(CN_GKSC_BEZIER,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_BEZIER,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -494,7 +494,7 @@ void GK_ApiDrawBezier(struct GkWinRsc *gkwin,float x1,float y1,
 //      pt，目标坐标点
 //返回: 无
 //-----------------------------------------------------------------------------
-struct GkWinRsc* GK_ApiGetWinFromPt(struct GkWinRsc *desktop,
+struct GkWinRsc* GK_GetWinFromPt(struct GkWinRsc *desktop,
                                     const struct PointCdn *pt)
 {
     struct GkWinRsc *current;
@@ -537,13 +537,29 @@ struct GkWinRsc* GK_ApiGetWinFromPt(struct GkWinRsc *desktop,
         return desktop;
 }
 
+//---取末端窗口--------------------------------------------------------------
+//功能: 取当前窗口的一个末端后代窗口，即没有子窗口的窗口。
+//参数: Ancestor，祖先窗口
+//      Current，当前遍历位置
+//返回: 下一个后代窗口
+//-----------------------------------------------------------------------------
+struct GkWinRsc* GK_GetTwig(struct GkWinRsc *Ancestor)
+{
+    struct Object *result;
+
+    if(NULL == Ancestor)
+        return NULL;
+    result = OBJ_GetTwig(&Ancestor->node);
+    return Container(result, struct GkWinRsc, node);
+}
+
 //---遍历后代窗口--------------------------------------------------------------
 //功能: 根据当前位置，返回下一个后代窗口，反复调用直到返回NULL。
 //参数: Ancestor，祖先窗口
 //      Current，当前遍历位置
 //返回: 下一个后代窗口
 //-----------------------------------------------------------------------------
-struct GkWinRsc* GK_ApiTraveScion(struct GkWinRsc *Ancestor,struct GkWinRsc *Current)
+struct GkWinRsc* GK_TraveScion(struct GkWinRsc *Ancestor,struct GkWinRsc *Current)
 {
     struct Object *result;
 
@@ -559,7 +575,7 @@ struct GkWinRsc* GK_ApiTraveScion(struct GkWinRsc *Ancestor,struct GkWinRsc *Cur
 //      Current，当前遍历位置
 //返回: 下一个父窗口
 //-----------------------------------------------------------------------------
-struct GkWinRsc* GK_ApiTraveChild(struct GkWinRsc *Parent,struct GkWinRsc *Current)
+struct GkWinRsc* GK_TraveChild(struct GkWinRsc *Parent,struct GkWinRsc *Current)
 {
     struct Object *result;
 
@@ -569,13 +585,31 @@ struct GkWinRsc* GK_ApiTraveChild(struct GkWinRsc *Parent,struct GkWinRsc *Curre
     return Container(result, struct GkWinRsc, node);
 }
 
+//----过继窗口-----------------------------------------------------------------
+//功能：把一个窗口从其父窗口中移出，变成其他窗口的子窗口。窗口的其他属性不变。
+//参数：gkwin，目标窗口
+//      NewParent，新的父窗口
+//返回: 无
+//-----------------------------------------------------------------------------
+void GK_AdoptWin(struct GkWinRsc *gkwin, struct GkWinRsc *NewParent)
+{
+    struct GkscParaAdoptWin para;
+    if(NULL == gkwin)
+        return;
+    para.gkwin = gkwin;
+    para.NewParent = NewParent;
+    __GK_SyscallChunnel(CN_GKSC_ADOPT_WIN,CN_TIMEOUT_FOREVER,
+                        &para,sizeof(para),NULL,0);
+    return;
+}
+
 //----移动窗口-----------------------------------------------------------------
 //功能: 移动窗口。
 //参数: gkwin，目标窗口
 //      left、top，窗口移动后的左上角坐标，相对于父窗口
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiMoveWin(struct GkWinRsc *gkwin, s32 left,s32 top,u32 SyncTime)
+void GK_MoveWin(struct GkWinRsc *gkwin, s32 left,s32 top,u32 SyncTime)
 {
     struct GkscParaMoveWin para;
     if(NULL == gkwin)
@@ -583,7 +617,7 @@ void GK_ApiMoveWin(struct GkWinRsc *gkwin, s32 left,s32 top,u32 SyncTime)
     para.gkwin = gkwin;
     para.left = left;
     para.top = top;
-    GK_SyscallChunnel(CN_GKSC_MOVE_WIN,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_MOVE_WIN,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -594,7 +628,7 @@ void GK_ApiMoveWin(struct GkWinRsc *gkwin, s32 left,s32 top,u32 SyncTime)
 //      left、top、right、bottom，窗口的新坐标，相对于父窗口
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiChangeWinArea(struct GkWinRsc *gkwin, s32 left,s32 top,
+void GK_ChangeWinArea(struct GkWinRsc *gkwin, s32 left,s32 top,
                                        s32 right,s32 bottom, u32 SyncTime)
 {
     struct GkscParaChangeWinArea para;
@@ -605,7 +639,7 @@ void GK_ApiChangeWinArea(struct GkWinRsc *gkwin, s32 left,s32 top,
     para.top = top;
     para.right = right;
     para.bottom = bottom;
-    GK_SyscallChunnel(CN_GKSC_CHANGE_WIN_AREA,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_CHANGE_WIN_AREA,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -616,14 +650,14 @@ void GK_ApiChangeWinArea(struct GkWinRsc *gkwin, s32 left,s32 top,
 //      mode， 窗口的边界模式，CN_BOUND_LIMIT为受限，CN_BOUND_UNLIMIT为不受限
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSetBoundMode(struct GkWinRsc *gkwin, u32 mode)
+void GK_SetBoundMode(struct GkWinRsc *gkwin, u32 mode)
 {
     struct GkscParaSetBoundMode para;
     if(NULL == gkwin)
         return;
     para.gkwin = gkwin;
     para.mode = mode;
-    GK_SyscallChunnel(CN_GKSC_SET_BOUND_MODE,CN_TIMEOUT_FOREVER,
+    __GK_SyscallChunnel(CN_GKSC_SET_BOUND_MODE,CN_TIMEOUT_FOREVER,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -635,14 +669,14 @@ void GK_ApiSetBoundMode(struct GkWinRsc *gkwin, u32 mode)
 //      sync_time，绘制图形时间同步，在此时间内不管是否绘制完成都返回
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSetPrio(struct GkWinRsc *gkwin, u32 prio,u32 SyncTime)
+void GK_SetPrio(struct GkWinRsc *gkwin, u32 prio,u32 SyncTime)
 {
     struct GkscParaSetPrio para;
     if(NULL == gkwin)
         return;
     para.gkwin = gkwin;
     para.prio = prio;
-    GK_SyscallChunnel(CN_GKSC_SET_PRIO,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_SET_PRIO,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -654,14 +688,14 @@ void GK_ApiSetPrio(struct GkWinRsc *gkwin, u32 prio,u32 SyncTime)
 //      sync_time，绘制图形时间同步，在此时间内不管是否绘制完成都返回
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSetVisible(struct GkWinRsc *gkwin, u32 visible,u32 SyncTime)
+void GK_SetVisible(struct GkWinRsc *gkwin, u32 visible,u32 SyncTime)
 {
     struct GkscParaSetVisible para;
     if(NULL == gkwin)
         return;
     para.gkwin = gkwin;
     para.Visible = visible;
-    GK_SyscallChunnel(CN_GKSC_SET_VISIBLE,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_SET_VISIBLE,SyncTime,
                         &para,sizeof(para),NULL,0);
     return;
 }
@@ -673,7 +707,7 @@ void GK_ApiSetVisible(struct GkWinRsc *gkwin, u32 visible,u32 SyncTime)
 //      RopMode, 混合码，参见 CN_ROP_ALPHA_SRC_MSK 族常量定义，不支持二元光栅混合
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-bool_t GK_ApiSetRopCode(struct GkWinRsc *gkwin,
+bool_t GK_SetRopCode(struct GkWinRsc *gkwin,
                         struct RopGroup RopCode,u32 SyncTime)
 {
     struct GkscParaSetRopCode para;
@@ -684,61 +718,18 @@ bool_t GK_ApiSetRopCode(struct GkWinRsc *gkwin,
         return true;
     para.gkwin = gkwin;
     para.RopCode = RopCode;
-    GK_SyscallChunnel(CN_GKSC_SET_ROP_CODE,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_SET_ROP_CODE,SyncTime,
                         &para,sizeof(para),NULL,0);
     return true;
 }
-#if 0       //删除三元光栅混合功能
-//----设置窗口图案位图---------------------------------------------------------
-//功能: 改变窗口的图案位图。
-//参数: gkwin，目标窗口
-//      pattern，新的图案位图
-//返回: true=成功，false=失败
-//-----------------------------------------------------------------------------
-bool_t GK_ApiSetPatBuf(struct GkWinRsc *gkwin,
-                            struct RectBitmap *pattern,
-                            u32 SyncTime)
-{
-    struct GkscParaSetPatBuf para;
-    memset(&para,sizeof(para),0);
-    if(NULL == gkwin)
-        return false;
-    para.gkwin = gkwin;
-    if(NULL != pattern)
-        para.pattern = *pattern;
-    GK_SyscallChunnel(CN_GKSC_SET_PAT_BUF,SyncTime,
-                        &para,sizeof(para),NULL,0);
-    return true;
-}
-//----设置窗口掩码位图---------------------------------------------------------
-//功能: 设置窗口掩码位图。
-//参数: gkwin，目标窗口
-//      bitmsk，设置的掩码位图
-//返回: true=成功，false=失败
-//-----------------------------------------------------------------------------
-bool_t GK_ApiSetRop4Msk(struct GkWinRsc *gkwin,
-                                struct RectBitmap *Rop4Msk,u32 SyncTime)
-{
-    struct GkscParaSetBitmsk para;
-    memset(&para,sizeof(para),0);
-    if(NULL == gkwin)
-        return false;
-    para.gkwin = gkwin;
-    if(NULL != Rop4Msk)
-        para.Rop4Msk = *Rop4Msk;
-    GK_SyscallChunnel(CN_GKSC_SET_BITMSK,SyncTime,
-                        &para,sizeof(para),NULL,0);
-        return true;
-}
-#endif
+
 //----设置窗口透明色-----------------------------------------------------------
 //功能: 设置窗口的透明色。
 //参数: gkwin，目标窗口
 //      KeyColor，要设置的透明色
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-bool_t GK_ApiSetHyalineColor(struct GkWinRsc *gkwin,
-                                        u32 HyalineColor)
+bool_t GK_SetHyalineColor(struct GkWinRsc *gkwin,u32 HyalineColor)
 {
     struct GkscParaSetHyalineColor para;
     if(NULL == gkwin)
@@ -747,7 +738,7 @@ bool_t GK_ApiSetHyalineColor(struct GkWinRsc *gkwin,
         return true;
     para.gkwin = gkwin;
     para.HyalineColor = HyalineColor;
-    GK_SyscallChunnel(CN_GKSC_SET_TRANSPARENTCOLOR,CN_TIMEOUT_FOREVER,
+    __GK_SyscallChunnel(CN_GKSC_SET_HYALINE_COLOR,CN_TIMEOUT_FOREVER,
                         &para,sizeof(para),NULL,0);
     return true;
 }
@@ -757,11 +748,11 @@ bool_t GK_ApiSetHyalineColor(struct GkWinRsc *gkwin,
 //参数: gkwin，目标窗口
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSetDirectScreen(struct GkWinRsc *gkwin,u32 SyncTime)
+void GK_SetDirectScreen(struct GkWinRsc *gkwin,u32 SyncTime)
 {
     if(NULL == gkwin)
         return;
-    GK_SyscallChunnel(CN_GKSC_SET_DIRECT_SCREEN,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_SET_DIRECT_SCREEN,SyncTime,
                         &gkwin,sizeof(struct GkWinRsc *),NULL,0);
     return;
 }
@@ -770,11 +761,11 @@ void GK_ApiSetDirectScreen(struct GkWinRsc *gkwin,u32 SyncTime)
 //参数: gkwin，目标窗口
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiCancelDirectScreen(struct GkWinRsc *gkwin,u32 SyncTime)
+void GK_SetUnDirectScreen(struct GkWinRsc *gkwin,u32 SyncTime)
 {
     if(NULL == gkwin)
         return;
-    GK_SyscallChunnel(CN_GKSC_UNSET_DIRECT_SCREEN,SyncTime,
+    __GK_SyscallChunnel(CN_GKSC_SET_UNDIRECT_SCREEN,SyncTime,
                         &gkwin,sizeof(struct GkWinRsc *),NULL,0);
     return;
 }
@@ -783,11 +774,11 @@ void GK_ApiCancelDirectScreen(struct GkWinRsc *gkwin,u32 SyncTime)
 //参数: gkwin，目标窗口
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiDestroyWin(struct GkWinRsc *gkwin)
+void GK_DestroyWin(struct GkWinRsc *gkwin)
 {
     if(NULL == gkwin)
         return;
-    GK_SyscallChunnel(CN_GKSC_DESTROY_WIN,CN_TIMEOUT_FOREVER,
+    __GK_SyscallChunnel(CN_GKSC_DESTROY_WIN,CN_TIMEOUT_FOREVER,
                         &gkwin,sizeof(struct GkWinRsc *),NULL,0);
     return;
 }
@@ -798,7 +789,7 @@ void GK_ApiDestroyWin(struct GkWinRsc *gkwin)
 //参数: display，被查询的显卡
 //返回: 颜色格式
 //-----------------------------------------------------------------------------
-u16 GK_ApiGetPixelFormat(struct DisplayRsc *display)
+u16 GK_GetPixelFormat(struct DisplayRsc *display)
 {
     if(display != NULL)
         return display->pixel_format;
@@ -811,7 +802,7 @@ u16 GK_ApiGetPixelFormat(struct DisplayRsc *display)
 //参数: gkwin，被查询gkwin
 //返回: 用户数据
 //-----------------------------------------------------------------------------
-void *GK_ApiGetUserTag(struct GkWinRsc *gkwin)
+void *GK_GetUserTag(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
         return gkwin->UserTag;
@@ -824,7 +815,7 @@ void *GK_ApiGetUserTag(struct GkWinRsc *gkwin)
 //参数: gkwin，被设置gkwin
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSetUserTag(struct GkWinRsc *gkwin,void *Tag)
+void GK_SetUserTag(struct GkWinRsc *gkwin,void *Tag)
 {
     if(gkwin != NULL)
         gkwin->UserTag = Tag;
@@ -836,7 +827,7 @@ void GK_ApiSetUserTag(struct GkWinRsc *gkwin,void *Tag)
 //参数: gkwin，父窗口
 //返回: 子窗口指针
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_ApiGetParent(struct GkWinRsc *gkwin)
+struct GkWinRsc *GK_GetParentWin(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
         return Container(OBJ_Parent(&gkwin->node), struct GkWinRsc, node);
@@ -848,7 +839,7 @@ struct GkWinRsc *GK_ApiGetParent(struct GkWinRsc *gkwin)
 //参数: gkwin，父窗口
 //返回: 子窗口指针
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_ApiGetChild(struct GkWinRsc *gkwin)
+struct GkWinRsc *GK_GetChildWin(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
         return Container(OBJ_Child(&gkwin->node),struct GkWinRsc,node);
@@ -861,7 +852,7 @@ struct GkWinRsc *GK_ApiGetChild(struct GkWinRsc *gkwin)
 //参数: gkwin，窗口
 //返回: 前窗口指针
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_ApiGetPrevious(struct GkWinRsc *gkwin)
+struct GkWinRsc *GK_GetPreviousWin(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
         return Container(OBJ_Previous(&gkwin->node), struct GkWinRsc, node);
@@ -874,7 +865,7 @@ struct GkWinRsc *GK_ApiGetPrevious(struct GkWinRsc *gkwin)
 //参数: gkwin，窗口
 //返回: 后窗口指针
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_ApiGetNext(struct GkWinRsc *gkwin)
+struct GkWinRsc *GK_GetNextWin(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
         return Container(OBJ_Next(&gkwin->node), struct GkWinRsc, node);
@@ -887,7 +878,7 @@ struct GkWinRsc *GK_ApiGetNext(struct GkWinRsc *gkwin)
 //参数: gkwin，窗口
 //返回: 最前窗口指针
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_ApiGetFirst(struct GkWinRsc *gkwin)
+struct GkWinRsc *GK_GetFirstWin(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
         return Container(OBJ_GetHead(&gkwin->node), struct GkWinRsc, node);
@@ -900,7 +891,7 @@ struct GkWinRsc *GK_ApiGetFirst(struct GkWinRsc *gkwin)
 //参数: gkwin，窗口
 //返回: 最后窗口指针
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_ApiGetLast(struct GkWinRsc *gkwin)
+struct GkWinRsc *GK_GetLastWin(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
         return Container(OBJ_GetTwig(&gkwin->node), struct GkWinRsc, node);
@@ -913,7 +904,7 @@ struct GkWinRsc *GK_ApiGetLast(struct GkWinRsc *gkwin)
 //参数: gkwin，窗口
 //返回: 显示区域,显示器的绝对坐标
 //-----------------------------------------------------------------------------
-void GK_ApiGetArea(struct GkWinRsc *gkwin, struct Rectangle *rc)
+void GK_GetArea(struct GkWinRsc *gkwin, struct Rectangle *rc)
 {
     if((gkwin != NULL) && (rc != NULL))
     {
@@ -925,18 +916,20 @@ void GK_ApiGetArea(struct GkWinRsc *gkwin, struct Rectangle *rc)
     return ;
 }
 
-//----设置窗口名-----------------------------------------------------------
-//功能: 略
-//参数: gkwin，窗口
-//返回: 显示区域
+//----窗口改名-----------------------------------------------------------------
+//功能: 修改窗口名字，窗口最多127字符，超过部分将截断。
+//参数: gcwin，被修改的窗口句柄(指针)
+//      name，新的名字
+//返回: 无
 //-----------------------------------------------------------------------------
-void GK_ApiSetName(struct GkWinRsc *gkwin, const char *Name)
+void GK_SetName(struct GkWinRsc *gkwin,const char *name)
 {
-    if((gkwin != NULL) && (Name != NULL))
-    {
-        strncpy(gkwin->win_name,Name,CN_GKWIN_NAME_LIMIT);
-    }
-    return ;
+    s32 size;
+    size = strnlen(name,CN_GKWIN_NAME_LIMIT+1);
+    if(size > CN_GKWIN_NAME_LIMIT)     //名字长度超过限制
+        size = CN_GKWIN_NAME_LIMIT;   //强制切掉超长部分
+    memcpy(gkwin->win_name,name,size);//copy名字，因可能超长，故未copy串结束符\0。
+    gkwin->win_name[size] = '\0';     //串封口(加结束符)
 }
 
 //----设置窗口名-----------------------------------------------------------
@@ -944,7 +937,7 @@ void GK_ApiSetName(struct GkWinRsc *gkwin, const char *Name)
 //参数: gkwin，窗口
 //返回: 显示区域
 //-----------------------------------------------------------------------------
-char *GK_ApiGetName(struct GkWinRsc *gkwin)
+char *GK_GetName(struct GkWinRsc *gkwin)
 {
     if(gkwin != NULL)
     {
@@ -959,7 +952,7 @@ char *GK_ApiGetName(struct GkWinRsc *gkwin)
 //参数: gkwin，目标窗口
 //返回: true=可见（有可视域），false=不可见
 //-----------------------------------------------------------------------------
-bool_t GK_ApiIsWinVisible(struct GkWinRsc *gkwin)
+bool_t GK_IsWinVisible(struct GkWinRsc *gkwin)
 {
     if(NULL == gkwin)
         return false;

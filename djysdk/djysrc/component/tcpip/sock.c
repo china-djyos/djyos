@@ -47,7 +47,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
-
+#include  <errno.h>
 #include  "tpl.h"
 #include  "tcpipconfig.h"
 
@@ -55,14 +55,15 @@
 #define CN_SOCK_FREE            (1<<31)      //IF THIS SOCKET IS FREE, SET THIS BIT
 #define CN_SOCK_FDMASK          (0x7FFFFFFF) //USE TO MASK THE SOCK FD
 #define CN_SOCKET_BASEFD        0X200
-static struct MutexLCB         *pgSocketMemSync = NULL;   //used to protect the mem
+static struct MutexLCB         *pSocketMemSync = NULL;   //used to protect the mem
+static struct MutexLCB          gSocketMemSyncMem;
 static tagSocket               *pgSocketMemHead = NULL;   //the socket mem
 
 tagSocket *SocketMalloc(void)
 {
     u32 i = 0;
     tagSocket *result = NULL;
-    if(Lock_MutexPend(pgSocketMemSync,CN_TIMEOUT_FOREVER))
+    if(Lock_MutexPend(pSocketMemSync,CN_TIMEOUT_FOREVER))
     {
         while(i < gSockNum)
         {
@@ -75,7 +76,7 @@ tagSocket *SocketMalloc(void)
             }
             i++;
         }
-        Lock_MutexPost(pgSocketMemSync);
+        Lock_MutexPost(pSocketMemSync);
     }
     return result;
 }
@@ -83,14 +84,14 @@ tagSocket *SocketMalloc(void)
 bool_t SocketFree(tagSocket *sock)
 {
     bool_t result = false;
-    if(Lock_MutexPend(pgSocketMemSync,CN_TIMEOUT_FOREVER))
+    if(Lock_MutexPend(pSocketMemSync,CN_TIMEOUT_FOREVER))
     {
     	Lock_MutexDelete_s(sock->sync);
         memset((void *)sock,0, sizeof(tagSocket));
         sock->sockfd = CN_SOCK_FREE ;
         result = true;
 
-        Lock_MutexPost(pgSocketMemSync);
+        Lock_MutexPost(pSocketMemSync);
     }
     return result;
 }
@@ -132,6 +133,7 @@ static int __SocketMapSock2Fd(tagSocket *sock)
 //创建一个套接字
 int socket(int family, int type, int protocol)
 {
+	int result = -1;
     tagTlayerProto  *proto = NULL;
     tagSocket       *sock = NULL;
     proto = TPL_GetProto(family, type, protocol);
@@ -140,9 +142,26 @@ int socket(int family, int type, int protocol)
         if(NULL != proto->socket)
         {
             sock = proto->socket(family, type, protocol);
+            result = __SocketMapSock2Fd(sock);
+            if(result < 0)
+            {
+            	errno =EPROTOTYPE;
+            }
+            else
+            {
+            	errno = EN_NEWLIB_NO_ERROR;
+            }
+        }
+        else
+        {
+        	errno =EPROTOTYPE;
         }
     }
-    return  __SocketMapSock2Fd(sock);
+    else
+    {
+    	errno = ENOPROTOOPT;
+    }
+    return  result;
 }
 
 // =============================================================================
@@ -166,6 +185,18 @@ int bind(int sockfd,struct sockaddr *addr, int addrlen)
     if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->bind))
     {
         result = sock->proto->bind(sock, addr, addrlen);
+        if(result < 0)
+        {
+        	errno =EADDRINUSE;
+        }
+        else
+        {
+        	errno =EN_NEWLIB_NO_ERROR;
+        }
+    }
+    else
+    {
+    	errno = ENOTSOCK;
     }
     return  result;
 }
@@ -189,6 +220,10 @@ int listen(int sockfd, int backlog)
     {
         result = sock->proto->listen(sock, backlog);
     }
+    if(result < 0)
+    {
+    	errno = ENOTSOCK;
+    }
     return  result;
 }
 // =============================================================================
@@ -204,13 +239,27 @@ int accept(int sockfd, struct sockaddr *addr, int *addrlen)
 {
     tagSocket *sock;
     tagSocket *result;
+    int        client = -1;
     
     sock = __SocketMapFd2Sock(sockfd);
     if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->accept))
     {
         result = sock->proto->accept(sock, addr,addrlen);
+        client = __SocketMapSock2Fd(result);
+        if(client < 0)
+        {
+        	errno = EAGAIN;
+        }
+        else
+        {
+        	errno =EN_NEWLIB_NO_ERROR;
+        }
     }
-    return __SocketMapSock2Fd(result);
+    else
+    {
+    	errno = ENOTSOCK;
+    }
+    return client;
 }
 
 // =============================================================================
@@ -233,6 +282,18 @@ int connect(int sockfd, struct sockaddr *addr, int addrlen)
     if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->connect))
     {
         result = sock->proto->connect(sock, addr, addrlen);
+        if(errno < 0)
+        {
+        	errno = ECONNREFUSED;
+        }
+        else
+        {
+        	errno =EN_NEWLIB_NO_ERROR;
+        }
+    }
+    else
+    {
+    	errno = ENOTSOCK;
     }
     return  result;
 }
@@ -259,6 +320,22 @@ int send(int sockfd, const void *msg, int len, int flags)
         if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->send))
         {
             result = sock->proto->send(sock, msg, len, flags);
+            if(result < 0)
+            {
+            	errno = EAGAIN;
+            }
+            else if(result == 0)
+            {
+            	errno = ESHUTDOWN;
+            }
+            else
+            {
+            	errno =EN_NEWLIB_NO_ERROR;
+            }
+        }
+        else
+        {
+        	errno = ENOTSOCK;
         }
     }
     return  result; 
@@ -351,6 +428,22 @@ int recv(int sockfd, void *buf,int len, unsigned int flags)
         if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->recv))
         {
             result = sock->proto->recv(sock, buf, len, flags);
+            if(result < 0)
+            {
+            	errno = EAGAIN;
+            }
+            else if(result == 0)
+            {
+            	errno = ESHUTDOWN;
+            }
+            else
+            {
+            	errno =EN_NEWLIB_NO_ERROR;
+            }
+        }
+        else
+        {
+        	errno = ENOTSOCK;
         }
     }
 
@@ -382,6 +475,22 @@ int sendto(int sockfd, const void *msg,int len, unsigned int flags,\
         if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->sendto))
         {
             result = sock->proto->sendto(sock, msg, len, flags,addr, addrlen);
+            if(result < 0)
+            {
+            	errno = EAGAIN;
+            }
+            else if(result == 0)
+            {
+            	errno = ESHUTDOWN;
+            }
+            else
+            {
+            	errno =EN_NEWLIB_NO_ERROR;
+            }
+        }
+        else
+        {
+        	errno = ENOTSOCK;
         }
     }
     return  result; 
@@ -412,6 +521,22 @@ int recvfrom(int sockfd,void *buf, int len, unsigned int flags,\
         if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->recvfrom))
         {
             result = sock->proto->recvfrom(sock, buf, len, flags,addr, addrlen);
+            if(result < 0)
+            {
+            	errno = EAGAIN;
+            }
+            else if(result == 0)
+            {
+            	errno = ESHUTDOWN;
+            }
+            else
+            {
+            	errno =EN_NEWLIB_NO_ERROR;
+            }
+        }
+        else
+        {
+        	errno = ENOTSOCK;
         }
     }
 
@@ -437,6 +562,10 @@ bool_t  shutdown(int sockfd, u32 how)
     {
         result = sock->proto->shutdown(sock, how);
     }
+    else
+    {
+    	errno = ENOTSOCK;
+    }
     return  result; 
 }
 
@@ -458,6 +587,10 @@ bool_t closesocket(int sockfd)
     if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->close))
     {
         result = sock->proto->close(sock);
+    }
+    else
+    {
+    	errno = ENOTSOCK;
     }
     return  result;
 }
@@ -487,6 +620,10 @@ int setsockopt(int sockfd, int level, int optname,\
         result = sock->proto->setsockopt(sock, level, optname,\
                                             optval,optlen);
     }
+    else
+    {
+    	errno = ENOTSOCK;
+    }
 
     return  result;     
 }
@@ -514,6 +651,10 @@ int getsockopt(int sockfd, int level, int optname, void *optval,\
     {
         result = sock->proto->getsockopt(sock, level, optname,\
                                             optval,optlen);
+    }
+    else
+    {
+    	errno = ENOTSOCK;
     }
     return  result;     
 }
@@ -727,32 +868,46 @@ bool_t SocketInit(ptu32_t para)
 {
     bool_t result;
     int i =0;
-    pgSocketMemSync = Lock_MutexCreate("SocketMemSync");
-    if(NULL != pgSocketMemSync)
-    {
-        pgSocketMemHead = (tagSocket *)malloc(gSockNum*sizeof(tagSocket));
-        if(NULL != pgSocketMemHead)
-        {
-            memset((void *)pgSocketMemHead,0, gSockNum*sizeof(tagSocket));
-            for(i = 0;i <gSockNum;i++ )
-            {
-                pgSocketMemHead[i].sockfd|= CN_SOCK_FREE;
-            }
 
-            result = Sh_InstallCmd(gSocketDebug,gSocketDebugCmdRsc,CN_SOCKETDEBUG_NUM);
-        }
-        else
-        {
-            Lock_MutexDelete(pgSocketMemSync);
-            pgSocketMemSync = NULL;
-            printk("%s:ERR:SOCKET MEM MALLOC  FAILED\n\r,__FUNCTION__");
-        }
-    }
-    else
+    //get the mem lock
+    pSocketMemSync = Lock_MutexCreate_s(&gSocketMemSyncMem,NULL);
+    if(NULL == pSocketMemSync)
     {
-        printk("%s:ERR:SOCKET MEM SYNC CREATE FAILED\n\r,__FUNCTION__");
+        printk("%s:ERR:SOCKET MEM SYNC CREATE FAILED\n\r",__FUNCTION__);
+    	goto EXIT_SOCKSYNC;
     }
+    //get the socket mem source
+    pgSocketMemHead = (tagSocket *)malloc(gSockNum*sizeof(tagSocket));
+    if(NULL == pgSocketMemHead)
+    {
+        printk("%s:ERR:SOCKET MEM MALLOC  FAILED\n\r",__FUNCTION__);
+        goto EXIT_SOCKMEM;
+    }
+    //initialize the sock mem
+    memset((void *)pgSocketMemHead,0, gSockNum*sizeof(tagSocket));
+    for(i = 0;i <gSockNum;i++ )
+    {
+        pgSocketMemHead[i].sockfd|= CN_SOCK_FREE;
+    }
+    result = Sh_InstallCmd(gSocketDebug,gSocketDebugCmdRsc,CN_SOCKETDEBUG_NUM);
+    if(result == false)
+    {
+        printk("%s:ERR:SOCKET DEBUG INSTALL FAILED\n\r",__FUNCTION__);
+        goto EXIT_SOCKDEBUG;
+    }
+
+    tcpipmemlog("sockmem",sizeof(tagSocket),gSockNum);
+
     return result;
-}
 
+EXIT_SOCKDEBUG:
+	free(pgSocketMemHead);
+	pgSocketMemHead = NULL;
+EXIT_SOCKMEM:
+    Lock_MutexDelete_s(pSocketMemSync);
+    pSocketMemSync = NULL;
+EXIT_SOCKSYNC:
+	result = false;
+	return result;
+}
 

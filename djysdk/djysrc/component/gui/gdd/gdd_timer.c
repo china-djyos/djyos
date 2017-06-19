@@ -59,16 +59,21 @@
 //   新版本号：V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#include    <gui/gdd/gdd_private.h>
+#include <stdint.h>
+#include <djyos.h>
+#include <gui/gdd/gdd_private.h>
+#include <gui\gdd_timer.h>
 
-static  list_t  list_system_timer;
+static  list_t  sg_GddTimerList;
+static struct MutexLCB     *s_ptGddTimerQSync =NULL;  //定时器队列锁
+static struct SemaphoreLCB *s_ptGddTimerRun =NULL;
 
 //----分配定时器内存-------------------------------------------------------------
 //描述: 略
 //参数：无
 //返回：定时器内存指针
 //------------------------------------------------------------------------------
-static  struct WinTimer*  TMR_Alloc(void)
+static  struct WinTimer*  __gdd_TimerAlloc(void)
 {
     struct WinTimer *tmr;
 
@@ -77,29 +82,29 @@ static  struct WinTimer*  TMR_Alloc(void)
 }
 
 //----释放定时器内存-------------------------------------------------------------
-//描述: 释放一个由TMR_Alloc分配的定时器内存.
+//描述: 释放一个由__gdd_TimerAlloc分配的定时器内存.
 //参数：定时器内存指针
 //返回：无
 //------------------------------------------------------------------------------
-static  void    TMR_Free(struct WinTimer *ptmr)
+static  void    __gdd_TimerFree(struct WinTimer *ptmr)
 {
     free(ptmr);
 }
 
 //----锁定定时器----------------------------------------------------------------
-//描述: 锁定定时器,用于对定时器互斥操作,该函数返回TRUE时,必须调用TMR_Unlock解锁;
-//      而当该函数返回FALSE,则无需调用TMR_Unlock.
+//描述: 锁定定时器,用于对定时器互斥操作,该函数返回TRUE时,必须调用__gdd_TimerUnlock解锁;
+//      而当该函数返回FALSE,则无需调用__gdd_TimerUnlock.
 //参数：定时器对象指针
 //返回：成功:TRUE; 失败:FLASE;
 //------------------------------------------------------------------------------
-bool_t    TMR_Lock(struct WinTimer *ptmr)
+bool_t    __gdd_TimerLock(struct WinTimer *ptmr)
 {
     if(NULL == ptmr)
         return FALSE;
-    if(GDD_Lock())
+    if(__GDD_Lock())
         return TRUE;
 
-    GDD_Unlock();
+    __GDD_Unlock();
     return  FALSE;
 }
 
@@ -108,56 +113,89 @@ bool_t    TMR_Lock(struct WinTimer *ptmr)
 //参数：定时器对象指针
 //返回：无
 //------------------------------------------------------------------------------
-void    TMR_Unlock(struct WinTimer *ptmr)
+void    __gdd_TimerUnlock(struct WinTimer *ptmr)
 {
-    GDD_Unlock();
+    __GDD_Unlock();
 }
 
-//----GDD定时器模块初始化--------------------------------------------------------
+// =============================================================================
+// 函数功能：添加定时器到定时器队列，该队列是依Alarm时刻由近到远排列的。
+// 输入参数：timer,待添加的定时器
+// 输出参数：无
+// 返回值  ：无
+// 说明    ：
+// =============================================================================
+static void __gdd_TimerAdd(struct WinTimer *timer)
+{
+    list_t *tmp;
+    struct WinTimer *t;
+    //找到一个Alarm时间大于timer->Alarm的节点，timer就插入该节点前面。
+    //如果找不到，则会插入sg_GddTimerList前面，也是正确的。
+    //下一行没有  ;  号
+    dListForEach(tmp, &sg_GddTimerList)
+    {
+        t = Container(tmp,struct WinTimer,node_sys);
+        if(t->Alarm >= timer->Alarm)
+            break;
+    }
+    dListInsertBefore(tmp,&timer->node_sys);
+}
+
+//----GDD定时器模块初始化------------------------------------------------------
 //描述: 该函数由GDD内部调用
 //参数：无
 //返回：无
 //------------------------------------------------------------------------------
-void    GDD_TimerInit(void)
+bool_t GDD_TimerInit(void)
 {
-    dListInit(&list_system_timer);
+    dListInit(&sg_GddTimerList);
+    s_ptGddTimerQSync = Lock_MutexCreate("Gdd Timer");
+    s_ptGddTimerRun = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "Gdd Timer");
+    if( (s_ptGddTimerQSync == NULL) || (s_ptGddTimerRun == NULL))
+    {
+        Lock_MutexDelete(s_ptGddTimerQSync);
+        Lock_SempDelete(s_ptGddTimerRun);
+        return false;
+    }
+    else
+        return true;
 }
 
 //----创建定时器----------------------------------------------------------------
-//描述: 略
+//描述: 创建一个定时器，处于停止运行状态。
 //参数：hwnd: 定时器所属窗口.定时到则给该窗口发定时器消息。
 //      Id:   定时器Id.
 //      Flag: 定时器标记.
-//      IntervalMS: 定时间隔时间(毫秒数).
+//      IntervalMS: 定时间隔时间(毫秒数). 0表示暂停工作。
 //返回：定时器对象指针
 //------------------------------------------------------------------------------
-struct WinTimer*  GDD_CreateTimer(HWND hwnd,u16 Id,u32 IntervalMS,u16 Flag)
+struct WinTimer*  GDD_CreateTimer(HWND hwnd,u16 Id,u32 IntervalMS)
 {
     struct WinTimer *ptmr=NULL;
 
-    if(HWND_Lock(hwnd))
+    if((IntervalMS == 0)||(GDD_FindTimer(hwnd,Id)!=NULL))
+        return ptmr;
+    if(__HWND_Lock(hwnd))
     {
-        ptmr =TMR_Alloc();;
+        ptmr =__gdd_TimerAlloc();;
         if(NULL!=ptmr)
         {
-
-            dListInit(&ptmr->node_sys);
             dListInit(&ptmr->node_hwnd);
             dListInit(&ptmr->node_msg_timer);
 
-            ptmr->hwnd          =hwnd;
-            ptmr->Id            =Id;
-            ptmr->Flag          =Flag;
-            ptmr->Interval      =IntervalMS;
-            ptmr->HoldTime      =GUI_GetTickMS();
+            ptmr->hwnd     =hwnd;
+            ptmr->Id       =Id;
+//            ptmr->Flag     =Flag;
+            ptmr->Interval =IntervalMS;
+            ptmr->Alarm    = CN_LIMIT_SINT64;       //新创建的定时器是暂停运行的
+//          ptmr->HoldTime =GUI_GetTickMS();
 
-            GDD_Lock();
-            dListInsertBefore(&list_system_timer,&ptmr->node_sys);
             dListInsertBefore(&hwnd->list_timer,&ptmr->node_hwnd);
-            GDD_Unlock();
-
+            Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+            __gdd_TimerAdd(ptmr);
+            Lock_MutexPost(s_ptGddTimerQSync);
         }
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
     }
     return  ptmr;
 }
@@ -170,102 +208,118 @@ struct WinTimer*  GDD_CreateTimer(HWND hwnd,u16 Id,u32 IntervalMS,u16 Flag)
 //------------------------------------------------------------------------------
 struct WinTimer*  GDD_FindTimer(HWND hwnd,u16 Id)
 {
-    list_t *lst,*n;
+    list_t *n;
     struct WinTimer *ptmr=NULL;
-
-    if(GDD_Lock())
+    if(hwnd==NULL)
+        return ptmr;
+    if(__GDD_Lock())
     {
-        if(HWND_Lock(hwnd))
+        Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+        dListForEach(n, &hwnd->list_timer)
         {
-            lst =&hwnd->list_timer;
-            n   =lst->next;
-            while(n!=lst)
+            ptmr =(struct WinTimer*)Container(n,struct WinTimer,node_hwnd);
+            if(ptmr->Id==Id)
             {
-                ptmr =(struct WinTimer*)dListEntry(n,struct WinTimer,node_hwnd);
-                if(NULL!=ptmr)
-                {
-                    if(ptmr->Id==Id)
-                    {
-                        break;
-                    }
-                }
-                n=n->next;
+                break;
             }
-            HWND_Unlock(hwnd);
+            ptmr=NULL;
         }
-
-        GDD_Unlock();
+        Lock_MutexPost(s_ptGddTimerQSync);
+        __GDD_Unlock();
     }
     return ptmr;
 }
 
 //----重置定时器----------------------------------------------------------------
-//描述: 重新设置定时器参数
+//描述: 重新设置定时器参数，定时器立即进入运行状态
 //参数：ptmr: 定时器对象.
-//      IntervalMS: 定时间隔时间(毫秒数).
-//返回：TRUE:成功; FALSE:失败;
+//      IntervalMS: 定时间隔时间(毫秒数). 0表示暂停工作。
+//返回：无
 //------------------------------------------------------------------------------
-bool_t    GDD_ResetTimer(struct WinTimer *ptmr,u32 IntervalMS,u32 Flag)
+void GDD_ResetTimer(struct WinTimer *ptmr,u32 IntervalMS)
 {
-    bool_t res=FALSE;
-
-    if(TMR_Lock(ptmr))
+    if(ptmr==NULL)
+        return;
+    Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+    if(IntervalMS != 0)
     {
-        if(HWND_Lock(ptmr->hwnd))
-        {
-            ptmr->Flag      =Flag;
-            ptmr->Interval  =IntervalMS;
-            ptmr->HoldTime  =GUI_GetTickMS();
-            dListRemove(&ptmr->node_msg_timer);
-
-            res =TRUE;
-            HWND_Unlock(ptmr->hwnd);
-        }
-
-        TMR_Unlock(ptmr);
+        ptmr->Interval  =IntervalMS;
+        ptmr->Alarm      = DjyGetSysTime( ) + IntervalMS * 1000;
     }
-
-    return res;
+    else
+    {
+        ptmr->Alarm      = CN_LIMIT_SINT64;     //“无限长”定时，表示暂停
+    }
+    dListRemove(&ptmr->node_sys);
+    __gdd_TimerAdd(ptmr);
+    if(&ptmr->node_sys == dListGetAfter(&sg_GddTimerList))
+    {
+        Lock_SempPost(s_ptGddTimerRun);
+    }
+    Lock_MutexPost(s_ptGddTimerQSync);
+    return ;
 }
 
-//----删除定时器----------------------------------------------------------------
-//描述: 该函数为内部调用,不进行参数检查.
+//----停止定时器----------------------------------------------------------------
+//描述: 停止一个定时器，实际上就是把闹到点时间设为“无限长”
 //参数：ptmr: 定时器对象.
 //返回：无
 //------------------------------------------------------------------------------
-static void __DeleteTimer(struct WinTimer*ptmr)
+void GDD_StopTimer(struct WinTimer *ptmr)
 {
-
-    dListRemove(&ptmr->node_hwnd);
+    if(ptmr==NULL)
+        return;
+    Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+    ptmr->Alarm      = CN_LIMIT_SINT64;     //“无限长”定时，表示暂停
     dListRemove(&ptmr->node_sys);
-    dListRemove(&ptmr->node_msg_timer);
-
-    TMR_Free(ptmr);
-
+    __gdd_TimerAdd(ptmr);
+    Lock_MutexPost(s_ptGddTimerQSync);
+    return ;
 }
 
-//----删除定时器----------------------------------------------------------------
-//描述: 略
+//----启动定时器----------------------------------------------------------------
+//描述: 启动一个定时器，如果定时器已经启动，定时时间重新计算
 //参数：ptmr: 定时器对象.
-//返回：TRUE:成功; FALSE:失败;
+//返回：无
 //------------------------------------------------------------------------------
-bool_t    GDD_DeleteTimer(struct WinTimer *ptmr)
+void GDD_StartTimer(struct WinTimer *ptmr)
 {
-    HWND hwnd;
-
-    if(TMR_Lock(ptmr))
+    if(ptmr==NULL)
+        return;
+    Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+    ptmr->Alarm      = DjyGetSysTime( ) + ptmr->Interval * 1000;
+    dListRemove(&ptmr->node_sys);
+//  dListRemove(&ptmr->node_msg_timer);
+    __gdd_TimerAdd(ptmr);
+    Lock_MutexPost(s_ptGddTimerQSync);
+    //看新启动的定时器是否放在队列头，
+    if(&ptmr->node_sys == dListGetAfter(&sg_GddTimerList))
     {
-        hwnd =ptmr->hwnd;
-        if(HWND_Lock(hwnd))
-        {
-            __DeleteTimer(ptmr);
-            HWND_Unlock(hwnd);
-            return TRUE;
-        }
-
-        TMR_Unlock(ptmr);
+        Lock_SempPost(s_ptGddTimerRun);
     }
-    return FALSE;
+    return ;
+}
+//----删除定时器----------------------------------------------------------------
+//描述: 删除一个定时器
+//参数：ptmr: 定时器对象.
+//返回：无
+//------------------------------------------------------------------------------
+void GDD_DeleteTimer(struct WinTimer*ptmr)
+{
+    if(ptmr==NULL)
+        return;
+    Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+    dListRemove(&ptmr->node_sys);
+    Lock_MutexPost(s_ptGddTimerQSync);
+
+    if(__HWND_Lock(ptmr->hwnd))
+    {
+        dListRemove(&ptmr->node_hwnd);
+        dListRemove(&ptmr->node_msg_timer);
+        __HWND_Unlock(ptmr->hwnd);
+    }
+    __gdd_TimerFree(ptmr);
+    return;
 }
 
 //----删除窗口所有定时器-------------------------------------------------------
@@ -275,101 +329,69 @@ bool_t    GDD_DeleteTimer(struct WinTimer *ptmr)
 //------------------------------------------------------------------------------
 void __RemoveWindowTimer(HWND hwnd)
 {
-    list_t *lst,*n,*next;
+    list_t *n;
     struct WinTimer *ptmr;
 
-    lst =&hwnd->list_timer;
-    n   =lst->next;
-
-    while(!dListIsEmpty(n))
+    n = (&hwnd->list_timer)->next;
+    for (;n != (&hwnd->list_timer); n = (&hwnd->list_timer)->next)
     {
-        next =n->next;
-        ptmr =(struct WinTimer*)dListEntry(n,struct WinTimer,node_hwnd);
-        if(NULL!=ptmr)
-        {
-            if(TMR_Lock(ptmr))
-            {
-                __DeleteTimer(ptmr);
-                TMR_Unlock(ptmr);
-            }
-        }
+        ptmr =(struct WinTimer*)Container(n,struct WinTimer,node_hwnd);
 
-        n =next;
+        Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+        dListRemove(&ptmr->node_sys);
+        Lock_MutexPost(s_ptGddTimerQSync);
+
+        if(__HWND_Lock(hwnd))
+        {
+            dListRemove(&ptmr->node_hwnd);
+            dListRemove(&ptmr->node_msg_timer);
+            __HWND_Unlock(hwnd);
+        }
+        __gdd_TimerFree(ptmr);
     }
 }
 
-//----定时器处理函数-------------------------------------------------------------
-//描述: 该函数由GDD内部调用
-//参数：ptmr: 定时器对象指针;
-//     tick_time_ms: 当前tick时间,这个必须由GUI_GetTickMS提供.
-//返回：TRUE:定时器超时; FALSE:定时器未超时.
+//----窗口定时器扫描-----------------------------------------------------------
+//功能：扫描窗口定时器队列，该队列是由 sg_GddTimerList索引按到达时间先后排序
+//参数：
+//返回：不返回
 //------------------------------------------------------------------------------
-bool_t    __TimerHandler(struct WinTimer *ptmr,u32 tick_time_ms)
-{
-    u32 time;
 
-    if(ptmr->Flag&TMR_START)
+ptu32_t GDD_TimerScan(void)
+{
+    list_t *tmp;
+    struct WinTimer *timer;
+    s64 NowTime;
+    while(1)
     {
-        if(tick_time_ms < ptmr->HoldTime)
+        if(dListIsEmpty(&sg_GddTimerList))
         {
-            //32位时间值溢出处理
-            time =(0xFFFFFFFF-ptmr->HoldTime)+tick_time_ms;
+            Lock_SempPend(s_ptGddTimerRun, CN_TIMEOUT_FOREVER);
         }
         else
         {
-            time =tick_time_ms - ptmr->HoldTime;
-        }
-
-        //检查是否超时
-        if(time >= ptmr->Interval)
-        {
-            //更新HoldTime
-            ptmr->HoldTime =tick_time_ms;
-
-            if(ptmr->Flag&TMR_SINGLE)
+            NowTime = DjyGetSysTime( );
+            Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
+            tmp = (&sg_GddTimerList)->next;
+            timer = Container(tmp,struct WinTimer,node_sys);
+            if(timer->Alarm > NowTime)
             {
-                //如果设置了单次定时标记,则停止该定时器
-                ptmr->Flag &=~TMR_START;
+                Lock_MutexPost(s_ptGddTimerQSync);
+                //改为等待信号量，新增定时器时触发该信号量。
+                Lock_SempPend( s_ptGddTimerRun, timer->Alarm - NowTime);
             }
-            return TRUE;
-        }
-
-    }
-    return FALSE;
-}
-
-//----GDD系统定时器模块执行函数--------------------------------------------------
-//描述: 该函数由GDD内部调用,每调用一次该函数,将对系统所有定时器扫描一遍是否有
-//      超时事件,如果有超时事件产生,便向该定时器所属窗口发送定时器超时消息.
-//参数：tick_time_ms: 当前tick时间(毫秒数).
-//返回：无
-//------------------------------------------------------------------------------
-void    GDD_TimerExecu(u32 tick_time_ms)
-{
-    list_t *lst,*n;
-    struct WinTimer *ptmr;
-
-    if(GDD_Lock())
-    {
-        lst =&list_system_timer;
-        n =lst->next;
-        while(n!=lst)
-        {
-            ptmr =(struct WinTimer*)dListEntry(n,struct WinTimer,node_sys);
-            if(TMR_Lock(ptmr))
+            else
             {
-                if(__TimerHandler(ptmr,tick_time_ms))
-                {
-                    __PostTimerMessage(ptmr);
-                }
-                TMR_Unlock(ptmr);
+                timer->Alarm += timer->Interval * mS;
+                dListRemove(tmp);
+                __gdd_TimerAdd(timer);
+                Lock_MutexPost(s_ptGddTimerQSync);
+                PostMessage(timer->hwnd, MSG_TIMER, (ptu32_t)timer->Id, (ptu32_t)timer);
             }
-
-            n =n->next;
         }
-
-        GDD_Unlock();
     }
 }
+
+
 
 

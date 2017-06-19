@@ -239,7 +239,7 @@ void Sys_ModuleInit(void)
     lcd_k70 = ModuleInstall_LCD(480,272,LCD_DEV_NAME,"extram");
 
     //创建桌面,依赖:显示器驱动
-    GK_ApiCreateDesktop(lcd_k70,&desktop,0,0,
+    GK_CreateDesktop(lcd_k70,&desktop,0,0,
                         CN_COLOR_RED+CN_COLOR_GREEN,CN_WINBUF_BUF,0,0);
 
     //触摸屏模块,依赖:gkernel模块和显示器驱动

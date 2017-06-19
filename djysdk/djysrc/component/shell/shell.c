@@ -93,6 +93,8 @@ bool_t Sh_Date(char *param);
 bool_t Sh_Time(char *param);
 bool_t Sh_ExecCommand(char *cmd);
 bool_t Sh_UninstallCmdByName(char *param);
+bool_t Sh_SetDate(char *param);
+bool_t Sh_SetTime(char *param);
 
 ptu32_t Sh_Service(void);
 ptu32_t ModuleInstall_Sh(ptu32_t para);
@@ -116,12 +118,12 @@ struct ShellCmdTab const shell_cmd_table[] =
         "列出子资源",
         "格式: rsc_tree RscName,省略RscName则列出根资源"
     },
-    {
-        "speed",
-        Sh_ShowForCycle,
-        "测量for循环运行速度",
-        NULL
-    },
+//    {
+//        "speed",
+//        Sh_ShowForCycle,
+//        "测量for循环运行速度",
+//        NULL
+//    },
     {
         "d",
         Sh_ShowMemory,
@@ -132,7 +134,7 @@ struct ShellCmdTab const shell_cmd_table[] =
         "f",
         Sh_FillMemory,
         "写数据到内存",
-        NULL
+        "命令格式：f 起始地址  单元数 每单元字节数 填充内容"
     },
     {
         "help",
@@ -158,6 +160,13 @@ struct ShellCmdTab const shell_cmd_table[] =
         "显示当前时间或者设置输入新时间",
         NULL
     },
+
+	{
+		"settime",
+		Sh_SetTime,
+		"Diaplay or set current time",
+		"命令格式:settime year/month/day, hour:min:sec+Enter"
+	},
 
     {
         "uninstall-cmd",
@@ -355,15 +364,15 @@ char *Sh_GetWord(char *buf,char **next)
 //参数: 无
 //返回: 无
 //-----------------------------------------------------------------------------
-extern u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
-
-bool_t Sh_ShowForCycle(char *para)
-{
-    para = para;        //消除编译器告警
-    printf("空for循环执行时间: %dnS\r\n", g_u32CycleSpeed);
-
-    return true;
-}
+//extern u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
+//
+//bool_t Sh_ShowForCycle(char *para)
+//{
+//    para = para;        //消除编译器告警
+//    printf("空for循环执行时间: %dnS\r\n", g_u32CycleSpeed);
+//
+//    return true;
+//}
 
 //----显示子资源----------------------------------------------------------
 //功能: 按参数要求显示资源队列中资源的名字，若该资源名字为空，则显示"无名资源"
@@ -899,28 +908,31 @@ bool_t Sh_Date(char *param)
     Tm_LocalTime_r(&nowtime,&dtm);
     Tm_AscTime(&dtm,command);
 
-    printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
+    printf("\r\n当前时间：%10.10s %s",command, g_cTmWdays[dtm.tm_wday]);
     printf("\r\n输入新日期：");
 
-//    cmdlen = EasyScanf(NULL, command);
-    do
-        fgets(buf,11,stdin);
-    while(strlen(buf) == 0);
-    memcpy(command,buf,10);
-    res = Tm_SetDateTimeStr(command);
-    switch (res)
+    fgets(buf,11,stdin);
+    if(strlen(buf) != 0)
     {
-    case EN_CLOCK_YEAR_ERROR:
-        printf("年份错误。");
-        break;
-    case EN_CLOCK_MON_ERROR:
-        printf("月份错误。");
-        break;
-    case EN_CLOCK_DAY_ERROR:
-        printf("日期错误。");
-        break;
-    default:
-        break;
+        memcpy(command,buf,10);
+		res = Tm_SetDateTimeStr(command);
+		switch (res)
+		{
+		case EN_CLOCK_YEAR_ERROR:
+			printf("年份错误。");
+			break;
+		case EN_CLOCK_MON_ERROR:
+			printf("月份错误。");
+			break;
+		case EN_CLOCK_DAY_ERROR:
+			printf("日期错误。");
+			break;
+		case EN_CLOCK_FMT_ERROR:
+			printf("格式错误。");
+			break;
+		default:
+			break;
+		}
     }
 
     printf("\r\n");
@@ -938,33 +950,90 @@ bool_t Sh_Time(char *param)
     Tm_LocalTime_r(&nowtime,&dtm);
     Tm_AscTime(&dtm,command);
 
-    printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
+    printf("\r\n当前时间：%s",command+11);
     printf("\r\n输入新时间：");
 
-    do
-        fgets(command+11,9,stdin);
-    while(strlen(command+11) == 0);
-    res = Tm_SetDateTimeStr(command);
-    switch (res)
+    fgets(command+11,9,stdin);
+    if(strlen(command+11) != 0)
     {
-    case EN_CLOCK_HOUR_ERROR:
-        printf("小时错误。");
-        break;
-    case EN_CLOCK_MIN_ERROR:
-        printf("分钟错误。");
-        break;
-    case EN_CLOCK_SEC_ERROR:
-        printf("秒钟错误。");
-        break;
-    case EN_CLOCK_FMT_ERROR:
-        printf("格式错误。");
-        break;
-    default:
-        break;
+    	res = Tm_SetDateTimeStr(command);
+		switch (res)
+		{
+		case EN_CLOCK_HOUR_ERROR:
+			printf("小时错误。");
+			break;
+		case EN_CLOCK_MIN_ERROR:
+			printf("分钟错误。");
+			break;
+		case EN_CLOCK_SEC_ERROR:
+			printf("秒钟错误。");
+			break;
+		case EN_CLOCK_FMT_ERROR:
+			printf("格式错误。");
+			break;
+		default:
+			break;
+		}
     }
+
     printf("\r\n");
     return true;
 }
+
+
+/*
+ * 以下两个函数临时添加，用于通过网线在telnet终端修改日期和时间 by zhb20170313
+ */
+
+
+
+bool_t Sh_SetTime(char *param)
+{
+    s64 nowtime;
+    struct tm dtm;
+    char command[20];
+    int res;
+
+    nowtime = Tm_Time(NULL);
+    Tm_LocalTime_r(&nowtime,&dtm);
+    Tm_AscTime(&dtm,command);
+
+   if(param!=NULL)
+   {
+	    memcpy(command,param,20);
+		res = Tm_SetDateTimeStr(command);
+		switch (res)
+		{
+		case EN_CLOCK_HOUR_ERROR:
+			printf("小时错误。");
+			break;
+		case EN_CLOCK_MIN_ERROR:
+			printf("分钟错误。");
+			break;
+		case EN_CLOCK_SEC_ERROR:
+			printf("秒钟错误。");
+			break;
+		case EN_CLOCK_FMT_ERROR:
+			printf("格式错误。");
+			break;
+		default:
+			break;
+		}
+
+	    printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
+
+   }
+   else
+   {
+	   printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
+	   printf("\r\n输入新时间：");
+   }
+
+   printf("\r\n");
+   return true;
+}
+
+
 
 //----判断':'后面是否有数据-----------------------------------------------------
 //功能: 从一个可能包含多级路径名和文件名的字符串中判断第一次遇到':'之后是否还有
@@ -1069,13 +1138,18 @@ ptu32_t Sh_Service(void)
     printf(">");
     while(1)
     {
-        //不能用不安全的gets
-        fgets(command,CN_SHELL_CMD_LIMIT+1,stdin);
-        if(strlen(command) != 0)
-            Sh_ExecCommand(command);  //执行命令
-        if ((fng_pPrintWorkPath != NULL))
-            fng_pPrintWorkPath( );
-        printf(">");
+        if(stdin == NULL)
+            Djy_EventDelay(1000*mS);
+        else
+        {
+            //不能用不安全的gets
+            fgets(command,CN_SHELL_CMD_LIMIT+1,stdin);
+            if(strlen(command) != 0)
+                Sh_ExecCommand(command);  //执行命令
+            if ((fng_pPrintWorkPath != NULL))
+                fng_pPrintWorkPath( );
+            printf(">");
+        }
     }
 }
 

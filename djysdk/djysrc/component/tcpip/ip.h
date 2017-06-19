@@ -51,17 +51,25 @@
 
 #include <sys/socket.h>
 #include "rout.h"
-
-typedef bool_t (*fnIpTpl)(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkglst, tagNetDev *dev);
-bool_t IpRegisterTplHandler(u8 proto,fnIpTpl handler );
-bool_t IpTplHandler(u8 proto ,enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, \
-		            tagNetPkg *pkglst, tagNetDev *dev);
-
+typedef union
+{
+	u32 ipv4;
+	struct in6_addr ipv6;
+}__tagIpAddr;
+typedef struct
+{
+	enum_ipv_t  ver;
+	__tagIpAddr src;
+	__tagIpAddr dst;
+}tagIpAddr;
+typedef bool_t (*fnIpProto)( tagIpAddr *addr,tagNetPkg *pkglst,tagNetDev *dev);
+bool_t IpInstallProto(const char *name,u8 proto,fnIpProto handler);
+bool_t IpProtoDeal(u8 proto,tagIpAddr *addr,tagNetPkg *pkglst,tagNetDev *dev);
 u16    IpChksumSoft16(void *buf,int len,u16 chksum, bool_t done);
 void   IpPkgChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum);
 void   IpPkgLstChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum);
-
 bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkg,\
 		      u16 translen,u8 proto,u32  devtask, u16 *chksum);
+bool_t IpSnd(tagIpAddr *addr,tagNetPkg *pkg,u16 translen,u8 proto,u32  devtask, u16 *chksum);
 
 #endif

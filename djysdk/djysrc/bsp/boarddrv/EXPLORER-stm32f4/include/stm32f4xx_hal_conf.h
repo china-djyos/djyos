@@ -90,7 +90,7 @@
 #define HAL_FMPI2C_MODULE_ENABLED
  #define HAL_SPDIFRX_MODULE_ENABLED
  #define HAL_PPP_MODULE_ENABLED
-
+#define HAL_ETH_MODULE_ENABLED
 
 
 /* ########################## HSE/HSI Values adaptation ##################### */

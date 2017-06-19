@@ -68,20 +68,18 @@ extern "C" {
 #define CN_MULTIPLEX_INVALID   1   //对象不支持Multiplex功能
 #define CN_MULTIPLEX_ERROR     2   //对象虽然支持Multiplex，但拒绝了本次调用
 
-//struct MultiplexSetsCB中Type成员的定义:
-//#define CN_MULTIPLEX_OBJECT_AND      0     //全部Multiplex对象都被触发才触发
-//#define CN_MULTIPLEX_OBJECT_OR   (1<<0)    //有一个Multiplex对象被触发就触发
-//#define CN_MULTIPLEX_POLL            0     //查询型，即等待应用程序查询
-//#define CN_MULTIPLEX_ASYN        (1<<1)    //异步触发型，即Sets触发时立即唤醒
-
-//struct MultiplexObjectCB中SensingBit成员的定义:
+//struct MultiplexObjectCB中SensingBit成员的定义，共24个Sensing bit
 #define CN_MULTIPLEX_SENSINGBIT_READ      (1<<0)  //对象可读
 #define CN_MULTIPLEX_SENSINGBIT_WRITE     (1<<1)  //对象可写
 #define CN_MULTIPLEX_SENSINGBIT_ERROR     (1<<2)  //对象出错
-                                                  //
-#define CN_MULTIPLEX_SENSINGBIT_MODE      (1<<31) //模式位的位偏移
+
+//SensingBit的模式
+#define CN_MULTIPLEX_SENSINGBIT_MODE      (0xff<<24) //模式位的位偏移
+#define CN_MULTIPLEX_SENSINGBIT_LT         0      //电平触发（Level）
+#define CN_MULTIPLEX_SENSINGBIT_ET        (1<<30) //边沿触发（Edge）
 #define CN_MULTIPLEX_SENSINGBIT_AND        0      //SensingBit中全部置位才触发
 #define CN_MULTIPLEX_SENSINGBIT_OR        (1<<31) //SensingBit中有一个置位就触发
+
 
 struct MultiplexSetsCB;
 struct MultiplexObjectCB;
@@ -108,10 +106,9 @@ struct MultiplexObjectCB
     struct MultiplexSetsCB *MySets;      //指向主控制块
     ptu32_t ObjectID;                    //被MultiplexSets等待的对象
     u32 PendingBit;                      //对象中已经触发的bit
-    u32 SensingBit;                      //敏感位标志，共31bit
-                                         //bit31表示敏感位检测类型，
-                                         //CN_MULTIPLEX_SENSINGBIT_AND:全部bit挂起才触发
-                                         //CN_MULTIPLEX_SENSINGBIT_OR:有一个bit挂起就触发
+    u32 SensingBit;                      //敏感位标志，共24bit
+                                         //bit24~31表示敏感位检测类型，参见
+                                         //CN_MULTIPLEX_SENSINGBIT_MODE定义
 };
 
 ptu32_t ModuleInstall_Multiplex(ptu32_t para);

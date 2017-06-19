@@ -295,6 +295,12 @@ bool_t __LinkHookPost(tagNetDev  *dev,tagNetPkg *pkg,u16 proto)
 	if(Lock_MutexPend(gLinkRcvHookModule.mutex,CN_TIMEOUT_FOREVER))
 	{
 		item = gLinkRcvHookModule.list;
+		if(dev->iftype == EN_LINK_ETHERNET)
+		{
+			//here we recover the link head for the ethernet(14 bytes here 6 macdst 6 macsrc 2 type)
+			pkg->datalen += 14;
+			pkg->offset -= 14;
+		}
 		while(NULL != item)
 		{
 			if((proto == item->proto)&&\
@@ -468,7 +474,7 @@ bool_t LinkHookShell(char *param)
 		{
 			printf("No.%-4d   %-8s  %-8x  %-8x  %-8x  %llx\n\r",\
 					i++,item->name?item->name:"NULL",\
-					item->proto,item->hook,\
+					item->proto,(u32)item->hook,\
 					(u32)item->devhandle,item->framenum);
 			item = item->nxt;
 		}
@@ -539,9 +545,9 @@ bool_t LinkInit(void)
 	LinkRawInit(0);
 	extern bool_t LinkEthernetInit(ptu32_t para);
 	LinkEthernetInit(0);
-
-
 	Sh_InstallCmd(gLinkDebug,gLinkDebugCmdRsc,CN_LinkDebug_NUM);
+
+	tcpipmemlog("linkhal",sizeof(tagLink),2);
 	return true;
 
 EXIT_MUTEX:

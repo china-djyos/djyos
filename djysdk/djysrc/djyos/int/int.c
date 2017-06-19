@@ -424,7 +424,7 @@ bool_t Int_SetClearType(ufast_t ufl_line,ufast_t clear_type)
 //----关联中断线与ISR----------------------------------------------------------
 //功能：指定中断线指定中断响应函数，该函数为普通函数，
 //参数：ufl_line,需要设置的中断线号
-//      isr，中断响应函数，由用户提供，原型：void isr(ufast_t)
+//      isr，中断响应函数，由用户提供，原型：void isr(ptu32_t para)
 //返回：无
 //-----------------------------------------------------------------------------
 void Int_IsrConnect(ufast_t ufl_line, u32 (*isr)(ptu32_t))
@@ -436,7 +436,17 @@ void Int_IsrConnect(ufast_t ufl_line, u32 (*isr)(ptu32_t))
     return;
 }
 
-
+//----设置ISR参数--------------------------------------------------------------
+//功能：设置中断ISR被调用时，传入的参数。使用场景举例：有些mcu有多个uart，每个
+//      uart的中断号不一样，控制寄存器组的地址也不一样。但每个uart功能一样，使用
+//      同一个ISR函数。调用ISR时，系统默认的参数是中断号，ISR得到中断号后，要根
+//      据中断号查找控制寄存器地址，无疑中增加了ISR的复杂度，以及执行时间。如果
+//      调用本函数，把控制寄存器地址设为para，那么ISR就可以直接从参数获取控制寄
+//      存器组的地址。
+//参数：ufl_line,需要设置的中断线号
+//      para，调用ISR时的参数。
+//返回：无
+//-----------------------------------------------------------------------------
 void Int_SetIsrPara(ufast_t ufl_line,ptu32_t para)
 {
 
@@ -558,44 +568,44 @@ bool_t Int_AsynSignalSync(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_Register(ufast_t ufl_line)
 {
-	struct IntLine *pIntLine;
+    struct IntLine *pIntLine;
     if(ufl_line > CN_INT_LINE_LAST)
         return false;
     if (tg_pIntLineTable[ufl_line] != NULL) //说明已经注册
-	 return true;
+     return true;
 
     pIntLine = (struct IntLine*)malloc(sizeof(struct IntLine));
     if(NULL == pIntLine)
     {
-    	return false;
+        return false;
     }
-	memset(pIntLine,0x00,sizeof(struct IntLine));
-	pIntLine->para = ufl_line;
-	pIntLine->en_counter = 1;               //禁止中断,计数为1
-	pIntLine->int_type = CN_ASYN_SIGNAL;    //设为异步信号
-	pIntLine->clear_type = CN_INT_CLEAR_AUTO;//设为调用ISR前应答
-	//所有中断函数指针指向空函数
-	pIntLine->ISR = (u32 (*)(ufast_t))NULL_func;
-	pIntLine->sync_event = NULL;                //同步事件空
-	pIntLine->my_evtt_id = CN_EVTT_ID_INVALID;  //不弹出事件
+    memset(pIntLine,0x00,sizeof(struct IntLine));
+    pIntLine->para = ufl_line;
+    pIntLine->en_counter = 1;               //禁止中断,计数为1
+    pIntLine->int_type = CN_ASYN_SIGNAL;    //设为异步信号
+    pIntLine->clear_type = CN_INT_CLEAR_AUTO;//设为调用ISR前应答
+    //所有中断函数指针指向空函数
+    pIntLine->ISR = (u32 (*)(ufast_t))NULL_func;
+    pIntLine->sync_event = NULL;                //同步事件空
+    pIntLine->my_evtt_id = CN_EVTT_ID_INVALID;  //不弹出事件
 
-	tg_pIntLineTable[ufl_line] = pIntLine;
+    tg_pIntLineTable[ufl_line] = pIntLine;
 
-	return true;
+    return true;
 }
 
 //原则上，中断函数一经注册，便不能注销，此处只是与Int_Registerd函数成对出现
 bool_t Int_UnRegister(ufast_t ufl_line)
 {
-	struct IntLine *pIntLine;
+    struct IntLine *pIntLine;
     if(ufl_line > CN_INT_LINE_LAST)
         return false;
     if (tg_pIntLineTable[ufl_line] == NULL) //
-	 return false;
+     return false;
 
     pIntLine = tg_pIntLineTable[ufl_line];
     free(pIntLine);
-	return true;
+    return true;
 }
 //特注: 不提供周期性中断同步功能，因为djyos不提供无条件休眠或者挂起的功能，已周
 //      期性时钟中断为例，一次时钟中断把线程触发进入ready后，到下次时钟中断到来

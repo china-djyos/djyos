@@ -59,23 +59,23 @@ extern "C" {
 //
 // MOUNT的属性
 //
- #define MOUNT_TYPE_MASK				(0xF0)// 文件系统类型
- #define MOUNT_DEV						(0x00)// 设备文件系统
- #define MOUNT_FILE						(0x10)// 普通文件系统
- #define MOUNT_ON_DIR 					(0x01)// 挂载点本身是个目录
- #define MOUNT_ON_MOUNT 				(0x02)// 挂载点本身是个挂载点
+ #define MOUNT_TYPE_MASK                (0xF0)// 文件系统类型
+ #define MOUNT_DEV                      (0x00)// 设备文件系统
+ #define MOUNT_FILE                     (0x10)// 普通文件系统
+ #define MOUNT_ON_DIR                   (0x01)// 挂载点本身是个目录
+ #define MOUNT_ON_MOUNT                 (0x02)// 挂载点本身是个挂载点
 
 //
 // 安装点抽象
 //
 struct VMount
-{	
-	struct VOperations *VOps;
-	struct Object *OldObj;
-	u32 Property;
-	void *Context;
-	char *Name;// 文件系统根名
-	void *Private;// 对于文件系统类型,指向struct FileOperations
+{
+    struct VOperations *VOps;
+    struct Object *OldObj;
+    u32 Property;
+    void *Context;
+    char *Name;// 文件系统根名
+    void *Private;// 对于文件系统类型,指向struct FileOperations
 };
 
 
@@ -84,11 +84,11 @@ struct VMount
 //
 struct MountInfo
 {
-	struct FileSysType *Type;
-	struct VMount Mount;
-	struct Object *Dev;
-	void *Private;
-	struct MountInfo *Next;
+    struct FileSysType *Type;
+    struct VMount Mount;
+    struct Object *Dev;
+    void *Private;
+    struct MountInfo *Next;
 };
 
 //
@@ -96,14 +96,14 @@ struct MountInfo
 //
 struct FileSysType
 {
-	struct FileOperations *FileOps;
-	struct VOpetions *VOps;
-	s32 (*Install)(struct MountInfo *Info, void *Private);
-	s32 (*Uninstall)(struct MountInfo *Info);
-	s32 (*Format)(void *Private);
-	u32 Property;// 文件系统属性
-	struct MountInfo *MountList;
-	char Name[];
+    struct FileOperations *FileOps;
+    struct VOperations *VOps;
+    s32 (*Install)(struct MountInfo *Info, void *Private);
+    s32 (*Uninstall)(struct MountInfo *Info);
+    s32 (*Format)(void *Private);
+    u32 Property;// 文件系统属性
+    struct MountInfo *MountList;
+    char Name[];
 };
 
 //
@@ -111,8 +111,8 @@ struct FileSysType
 //
 struct FileSysTypeInfo
 {
-	struct FileSysTypeInfo *Next;
-	struct FileSysType *Type;
+    struct FileSysTypeInfo *Next;
+    struct FileSysType *Type;
 };
 
 

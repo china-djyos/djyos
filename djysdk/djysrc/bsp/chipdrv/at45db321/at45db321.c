@@ -60,6 +60,8 @@
 #include "at45db321.h"
 #include "spibus.h"
 #include "board-config.h"
+#include "os.h"
+#include "systime.h"
 
 /*------------------------Time Symbol--------------------------------
 Symbol  Parameter                               Typ     Max     Units

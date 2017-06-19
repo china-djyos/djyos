@@ -45,19 +45,22 @@
 // 文件名     ：cpu_peri_iic.h
 // 模块描述: IIC模块底层驱动头文件
 // 模块版本: V1.00
-// 创建人员: hm
-// 创建时间: 10/12.2015
+// 创建时间: 09/17.2014
 // =============================================================================
 
 #ifndef CPU_PERI_IIC_H_
 #define CPU_PERI_IIC_H_
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#define tagI2cReg I2C_TypeDef
 //IIC控制器编号宏定义
-#define CN_I2C1     0
-#define CN_I2C2     1
-#define CN_I2C3     2
-#define CN_I2C_NUM  3
-
+#define CN_IIC1     0
+#define CN_IIC2     1
+#define CN_IIC3     2
+#define CN_IIC_NUM  3
+//时钟宏定义
 #define CN_IIC_SPEED_50KHZ       (50*1000)
 #define CN_IIC_SPEED_100KHZ      (100*1000)
 #define CN_IIC_SPEED_200KHZ      (200*1000)
@@ -66,16 +69,42 @@
 
 //定义总线等待超时时间
 #ifndef CONFIG_I2C_MBB_TIMEOUT
-#define CONFIG_I2C_MBB_TIMEOUT	100000
+#define CONFIG_I2C_MBB_TIMEOUT	1000
 #endif
 
 //定义读写超时时间
 #ifndef CONFIG_I2C_TIMEOUT
-#define CONFIG_I2C_TIMEOUT	10000
+#define CONFIG_I2C_TIMEOUT	100
 #endif
 
 //定义读写操作比特位
 #define I2C_READ_BIT  1
 #define I2C_WRITE_BIT 0
 
+#define I2C_AddMode7bit         0
+#define I2C_AddMode10bit        1
+
+#define start    0
+#define stop     1
+
+
+//============bit define===========================//
+#define I2C_CR1_DNF_4BIT(X)         (X<<8)
+#define I2C_CR2_NBYTES_8BIT(X)      (X<<16)
+#define I2C_CR2_SADD_10BIT(X)       (X)
+#define I2C_ISR_ADDCODE_7BIT(X)     (X<<17)
+
+#define I2C_TIMINGE_FRESC_4BIT(X)   (X<<28)
+
+#define I2C_TIMINGE_SCLDEL_4BIT(X)  (X<<20)
+#define I2C_TIMINGE_SDADEL_4BIT(X)  (X<<16)
+#define I2C_TIMINGE_SCLH_8BIT(X)    (X<<0)
+#define I2C_TIMINGE_SCLL_8BIT(X)    (X<<8)
+
+bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin);
+bool_t IIC_Init(u8 iic_port);
+
+#ifdef __cplusplus
+}
+#endif
 #endif /* CPU_PERI_IIC_H_ */

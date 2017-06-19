@@ -67,20 +67,6 @@
 extern "C" {
 #endif
 
-struct GkscParaCreateDesktop;
-struct GkscParaCreateGkwin;
-struct GkscParaSetRopCode;
-struct GkscParaSetPatBuf;
-struct GkscParaSetPrio;
-struct GkscParaSetHyalineColor;
-struct GkscParaSetBitmsk;
-struct GkscParaDestroyWin;
-struct GkscParaSetBoundMode;
-struct GkscParaMoveWin;
-struct GkscParaChangeWinArea;
-struct GkscParaSetDirectScreen;
-struct GkscParaUnsetDirectScreen;
-
 struct DisplayRsc;
 
 //用户调用消息队列参数配置
@@ -100,44 +86,30 @@ struct GkChunnel       //用户程序(通常是gui windows) 和 gui kernel的通信管道
 
 };
 
-ptu32_t ModuleInstall_GK(ptu32_t para);
 struct GkWinRsc *__GK_GetZsectionStart(struct GkWinRsc *gkwin);
 struct GkWinRsc *__GK_GetZsectionEnd(struct GkWinRsc *gkwin);
-struct GkWinRsc *__GK_GetZsectionAllStart(
-                                                    struct GkWinRsc *gkwin);
-struct GkWinRsc *__GK_GetZsectionAllEnd(
-                                                    struct GkWinRsc *gkwin);
-struct GkWinRsc *GK_CreateDesktop(struct GkscParaCreateDesktop *para);
-struct GkWinRsc *GK_CreateWin(struct GkscParaCreateGkwin *para);
-void GK_SetName(struct GkWinRsc *gkwin,char *name);
-void GK_SetUnlock(struct GkWinRsc *gkwin);
-void GK_SetLock(struct GkWinRsc *gkwin);
-void GK_SetHide(struct GkWinRsc *gkwin);
-void GK_SetShow(struct GkWinRsc *gkwin);
-void GK_MoveWin(struct GkscParaMoveWin *para);
+struct GkWinRsc *__GK_CreateDesktop(struct GkscParaCreateDesktop *para);
+struct GkWinRsc *__GK_CreateWin(struct GkscParaCreateGkwin *para);
+void __GK_AdoptWin(struct GkscParaAdoptWin *para);
+void __GK_MoveWin(struct GkscParaMoveWin *para);
 void __GK_SetBound(struct GkWinRsc *gkwin);
-void GK_SetBoundMode(struct GkscParaSetBoundMode *para);
-void GK_SetPrio(struct GkscParaSetPrio *para);
-bool_t GK_SetRopCode(struct GkscParaSetRopCode *para);
-bool_t GK_SetPatBuf(struct GkscParaSetPatBuf *para);
-bool_t GK_SetHyalineColor(
-                                struct GkscParaSetHyalineColor *para);
-bool_t GK_SetBitMsk(struct GkscParaSetBitmsk *para);
-void GK_SetDirectScreen(struct GkWinRsc *gkwin);
-void GK_UnSetDirectScreen(struct GkWinRsc *gkwin);
+void __GK_SetBoundMode(struct GkscParaSetBoundMode *para);
+void __GK_SetPrio(struct GkscParaSetPrio *para);
+bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para);
+void __GK_SetVisible(struct GkscParaSetVisible *para);
+bool_t __GK_SetHyalineColor(struct GkscParaSetHyalineColor *para);
+void __GK_SetDirectScreen(struct GkWinRsc *gkwin);
+void __GK_SetUnDirectScreen(struct GkWinRsc *gkwin);
 void __GK_DestroyWinChild(struct GkWinRsc *gkwin);
-void GK_DestroyWin(struct GkWinRsc *gkwin);
-bool_t GK_ChangeWinArea(struct GkscParaChangeWinArea *para);
-void GK_SetCanvasColor(struct GkWinRsc *gkwin,u32 color);
-void GK_GetCanvasColor(struct GkWinRsc *gkwin,u32 *color);
+void __GK_DestroyWin(struct GkWinRsc *gkwin);
+bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para);
 void __GK_OutputRedraw(struct DisplayRsc *display);
-void __GK_OutputFrameBuffer(struct DisplayRsc *display);
-u16 GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
+u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                                                 void *param2,u16 size2);
-bool_t  GK_PostUsercall(u16 usercall_id,void *pdata,u16 size);
+bool_t  __GK_PostUsercall(u16 usercall_id,void *pdata,u16 size);
 
-ptu32_t GK_UsercallServer(void);
-ptu32_t GK_Server(void);
+ptu32_t __GK_UsercallServer(void);
+ptu32_t __GK_Server(void);
 
 #ifdef __cplusplus
 }

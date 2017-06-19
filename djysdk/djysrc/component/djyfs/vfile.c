@@ -448,7 +448,8 @@ void FreeVFile(struct VFile *File)
     Lock_MutexPost(g_ptVFilePoolMutex);
 }
 //-----------------------------------------------------------------------------
-//功能: 扩展文件描述结构体空间.
+//功能: 扩展文件描述符结构体空间.文件描述符空间由多个串在一起的内存池组成，因此
+//      djyos文件句柄数量是可以动态添加的，不需要静态配置。
 //参数:
 //返回: 非NULL -- 成功; NULL -- 失败;
 //备注: 调用本函数，需注意互斥处理。
@@ -530,7 +531,7 @@ struct VFilePool *PoolOf(struct VFile *Fp)
 //备注:
 //-----------------------------------------------------------------------------
 const u32 gc_CONFIG_FS __attribute__ ((weak));
-#define BUF_SIZE        	(512)
+#define BUF_SIZE            (512)
 s32 AllocFileBuf(struct FileBuf **BufRet, u8 Force)
 {
     struct FileBuf *Buf = NULL;
@@ -586,7 +587,7 @@ char *PathCopy(const char *Root, const char *RelPath, char (*Rebuild)(char *Path
         Length = strlen(Root);
         memcpy(g_cPathSegment, Root, Length);
         if(RelPath && ('/' != RelPath[0]))
-        	g_cPathSegment[Length++] = '/';
+            g_cPathSegment[Length++] = '/';
     }
 
     if(RelPath)
@@ -955,13 +956,13 @@ s32 FWrite(const void *Buf, u32 Size, u32 Nmemb, void *Private)
         {
             if(BufLeft) // 考虑写入数据对齐逻辑
             {
-            	memcpy(FileCt->Buf->Current, DataPtr, BufLeft);
-            	LengthLef -= BufLeft;
-            	DataPtr += BufLeft;
+                memcpy(FileCt->Buf->Current, DataPtr, BufLeft);
+                LengthLef -= BufLeft;
+                DataPtr += BufLeft;
             }
 
             BufSize = FileCt->Buf->End - FileCt->Buf->Start;
-        	if((BufSize != FileOps->FileWrite(FileCt->Buf->Start, 1, BufSize, Private)))
+            if((BufSize != FileOps->FileWrite(FileCt->Buf->Start, 1, BufSize, Private)))
                 return (0);// 写入错误
 
             FileCt->Buf->Current = FileCt->Buf->Start;

@@ -254,7 +254,7 @@ void Sys_ModuleInit(void)
     lcd = (struct DisplayRsc*)ModuleInstall_LCD(LCD_DEV_NAME,"extram");
 
     //创建桌面,依赖:显示器驱动
-    GK_ApiCreateDesktop(lcd,&desktop,0,0,
+    GK_CreateDesktop(lcd,&desktop,0,0,
                         CN_COLOR_BLUE,CN_WINBUF_PARENT,CN_SYS_PF_DISPLAY,0);
 
 

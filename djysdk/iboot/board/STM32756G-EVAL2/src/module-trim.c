@@ -121,8 +121,6 @@ void Sys_ModuleInit(void)
 {
     uint16_t evtt_main;
 
-//    HAL_Init();
-
     extern bool_t Board_GpioInit(void);
     Board_GpioInit();
     //初始化直接输入和输出的硬件，为stdio.c中定义的 PutStrDirect、GetCharDirect
@@ -158,12 +156,12 @@ void Sys_ModuleInit(void)
 //      Djyfs_SetWorkPath(gc_pCfgWorkPath);
 		ModuleInstall_UART(CN_UART1);
 //		ModuleInstall_UART(CN_UART2);
-		ModuleInstall_UART(CN_UART3);   //232TXD/232RXD
+//		ModuleInstall_UART(CN_UART3);   //232TXD/232RXD
 //		ModuleInstall_UART(CN_UART4);
 //		ModuleInstall_UART(CN_UART5);
 //		ModuleInstall_UART(CN_UART6);
 //		ModuleInstall_UART(CN_UART7);
-		ModuleInstall_UART(CN_UART8);   //DEBUG串口
+//		ModuleInstall_UART(CN_UART8);   //DEBUG串口
     //打开IO设备,不同的板件,这部分可能区别比较大,不影响printk函数。
     //此后,printf和scanf将使用stdin/out输出和输入。
     //依赖: 若stdin/out/err是文件,则依赖文件系统

@@ -84,19 +84,15 @@ static  bool_t LabelPaint(struct WindowMsg *pMsg)
         FillRect(hdc,&rc);
         if(hwnd->Style&WS_BORDER)
         {
-             SetDrawColor(hdc,RGB(220,220,220));
+             SetDrawColor(hdc,RGB(169,169,169));
              DrawLine(hdc,0,0,0,RectH(&rc)-1);      //L
              DrawLine(hdc,0,0,RectW(&rc)-1,0);      //U
-             if(hwnd->Style&LABEL_BORDER_FIXED3D)
-             {
-                 SetDrawColor(hdc,RGB(100,100,100));
-             }
              DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
              DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
         }
 
         SetTextColor(hdc,RGB(1,1,1));
-        DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_CENTER);
+        DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_LEFT);
         EndPaint(hwnd,hdc);
       }
     return true;
@@ -115,22 +111,13 @@ HWND CreateLabel(  const char *Text,u32 Style,
                     HWND hParent,u32 WinId,void *pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
-    struct MsgTableLink *Current;
-    WINDOW *pGddWin=NULL;
-    if(UserMsgTableLink != NULL)
-    {
-        Current = UserMsgTableLink;
-        while(Current->LinkNext != NULL)
-            Current = Current->LinkNext;
-        Current->LinkNext = &s_gLabelMsgLink;
-        Current = UserMsgTableLink;
-    }
-    else
-        Current = &s_gLabelMsgLink;
-    s_gLabelMsgLink.LinkNext = NULL;
+    HWND pGddWin;
     s_gLabelMsgLink.MsgNum = sizeof(s_gLabelMsgProcTable) / sizeof(struct MsgProcTable);
     s_gLabelMsgLink.myTable =(struct MsgProcTable *)&s_gLabelMsgProcTable;
-    pGddWin = CreateWindow(Text, WS_CHILD | Style, x, y, w, h, hParent, WinId, CN_WINBUF_PARENT, pdata, Current);
+    pGddWin = CreateWindow(Text, WS_CHILD | Style, x, y, w, h, hParent, WinId,
+                            CN_WINBUF_PARENT, pdata, &s_gLabelMsgLink);
+
+    if(UserMsgTableLink != NULL)
+        AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
-

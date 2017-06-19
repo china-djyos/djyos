@@ -146,7 +146,7 @@ ptu32_t ModuleInstall_Lock2(ptu32_t para)
 //返回：新建立的信号量指针
 //-----------------------------------------------------------------------------
 struct SemaphoreLCB *Lock_SempCreate(u32 lamps_limit,u32 init_lamp,
-                                        u32 sync_order,const char *name)
+                                     u32 sync_order,const char *name)
 {
     struct SemaphoreLCB *semp;
     if(init_lamp > lamps_limit)
@@ -534,10 +534,11 @@ void Lock_MutexPost(struct MutexLCB *mutex)
     {
         if(mutex->enable == -1)
         {
-            return;                        //程序应该不会走到这里，容错一下
+            return;                         //程序应该不会走到这里，容错一下
         }
     }
-    if(mutex->owner != g_ptEventRunning)    //互斥量只能由拥有者释放
+    if((mutex->owner != g_ptEventRunning)   //互斥量只能由拥有者释放
+        &&(mutex->owner != Djy_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
         return;
     Int_SaveAsynSignal();
     if(mutex->enable > 0)

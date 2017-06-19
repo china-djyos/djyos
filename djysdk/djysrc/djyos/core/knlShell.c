@@ -222,7 +222,7 @@ struct ShellCmdTab const tg_ShellKernelCmdTbl[] =
     {
         "evtt",
         Sh_ShowEvtt,
-        "显示事件表",
+        "显示事件类型表",
         NULL
     },
     {

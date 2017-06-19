@@ -256,10 +256,10 @@ struct Object *OBJ_AddTree(struct Object *Obj, u16 Size,
 
     if(Obj == NULL)
         return NULL;
-        
+
     if(OBJ_SearchTree(Name) != NULL)
         return NULL;
-        
+
     Obj->Parent = s_ptRscRoot;
     Obj->Child=NULL;
     Obj->Size = Size;
@@ -292,7 +292,7 @@ struct Object *OBJ_AddToPrevious(struct Object *Obj, struct Object *NewObj,
 
     if((Obj == NULL) || (NewObj == NULL))
         return NULL;
-        
+
     low_atom = Int_LowAtomStart();
     NewObj->Next = Obj;
     NewObj->Previous = Obj->Previous;
@@ -323,7 +323,7 @@ struct Object *OBJ_AddToNext(struct Object *Obj, struct Object *NewObj,
 
     if((Obj == NULL) || (NewObj == NULL))
         return NULL;
-        
+
     low_atom = Int_LowAtomStart();
     NewObj->Previous = Obj;
     NewObj->Next = Obj->Next;
@@ -423,6 +423,40 @@ struct Object *OBJ_AddChildHead(struct Object *Parent, struct  Object *Child,
     }
     Int_LowAtomEnd(low_atom);
     return Child;
+}
+
+//----插入子节点---------------------------------------------------------------
+//功能：把一个对象插入到另一个对象的子节点位置，新节点将位于队列头位置，注意，
+//      新节点可能有子节点。
+//参数：Parent，父节点
+//      New，待插入的子节点，可能有下级节点。
+//返回：新节点指针
+//-----------------------------------------------------------------------------
+struct Object *OBJ_InsertChild(struct Object *Parent, struct Object *New)
+{
+    struct Object *p;
+    atom_low_t low_atom;
+    if( (Parent == NULL) || (New == NULL))
+        return NULL;
+    New->Parent = Parent;
+    low_atom = Int_LowAtomStart();
+    if(Parent->Child == NULL)
+    {
+        Parent->Child = New;
+        New->Next = New;
+        New->Previous = New;
+    }
+    else
+    {
+        p = Parent->Child;
+        New->Next = p;
+        New->Previous = p->Previous;
+        p->Previous->Next = New;
+        p->Previous = New;
+        Parent->Child = New;
+    }
+    Int_LowAtomEnd(low_atom);
+    return New;
 }
 
 //----替换节点-----------------------------------------------------------------
@@ -534,13 +568,36 @@ struct Object *OBJ_Del(struct Object *Obj)
 }
 
 //---移动一棵树---------------------------------------------------------------
-//功能: 移动一棵树到别的节点下面成为其子树
-//参数: node,被移动的节点指针
+//功能: 移动一个对象树枝到别的节点下面成为其子树
+//参数：Parent，新父节点
+//      Obj，待插入的子节点，可能有下级节点。
 //返回: TRUE = 成功执行，FALSE = 失败
 //-----------------------------------------------------------------------------
 bool_t OBJ_MoveToTree(struct Object *Parent,struct  Object *Obj)
 {
-    return TRUE;
+    atom_low_t low_atom;
+    struct Object *p;
+    if( (Parent == NULL) || (Obj == NULL))
+        return NULL;
+    low_atom = Int_LowAtomStart();
+    OBJ_DelBranch(Obj);
+    Obj->Parent = Parent;
+    if(Parent->Child == NULL)
+    {
+        Parent->Child = Obj;
+        Obj->Next = Obj;
+        Obj->Previous = Obj;
+    }
+    else
+    {
+        p = Parent->Child;
+        Obj->Next = p;
+        Obj->Previous = p->Previous;
+        p->Previous->Next = Obj;
+        p->Previous = Obj;
+        Parent->Child = Obj;
+    }
+    Int_LowAtomEnd(low_atom);
 }
 
 //----移动节点到最后---------------------------------------------------------
@@ -599,62 +656,75 @@ bool_t OBJ_MoveToHead(struct Object *Obj)
 }
 
 //----移动节点到某节点next位置-------------------------------------------------
-//功能: 移动资源队列中的一个节点NewNext到另一个节点Obj的next位置
-//参数: Obj,被移动的节点指针
-//      NewNext,目标节点,Obj移动到本节点后面
+//功能: 移动资源队列中的一个节点NewNext到另一个节点Obj的next位置，被移动的节点
+//      可能有子节点
+//参数: Loc，目标位置，Obj移动到本节点后面
+//      Obj,目标节点,它可能原本就在Object队列中
 //返回: TRUE = 成功执行，FALSE = 失败
 //------------------------------------------------------------------------------
-bool_t OBJ_MoveToNext(struct Object *Obj, struct Object *NewNext)
+bool_t OBJ_MoveToNext(struct Object *Loc, struct Object *Obj)
 {
     atom_low_t low_atom;
 
-    if((Obj == NULL) || (NewNext == NULL) || (Obj == NewNext))
+    if((Loc == NULL) || (Obj == NULL) || (Loc == Obj))
         return FALSE;
-    else if(Obj->Parent != NewNext->Parent)
-        return FALSE;
-
     low_atom = Int_LowAtomStart();
-    //以下从链表中取出节点
-    NewNext->Next->Previous = NewNext->Previous;
-    NewNext->Previous->Next = NewNext->Next;
-    NewNext->Previous = Obj;
-    NewNext->Next = Obj->Next;
-    Obj->Next->Previous = NewNext;
-    Obj->Next = NewNext;
+    if(Loc->Parent != Obj->Parent)
+    {
+        OBJ_DelBranch(Obj);
+    }
+    else
+    {
+        //以下从链表中取出节点
+        Obj->Next->Previous = Obj->Previous;
+        Obj->Previous->Next = Obj->Next;
+    }
+    Obj->Previous = Loc;
+    Obj->Next = Loc->Next;
+    Loc->Next->Previous = Obj;
+    Loc->Next = Obj;
+    Obj->Parent = Loc->Parent;
     Int_LowAtomEnd(low_atom);
 
     return TRUE;
 }
 
 //----移动节点到某节点previous位置---------------------------------------------
-//功能: 移动资源队列中的一个节点NewPre到另一个节点Obj的previous位置
-//参数: Obj,被移动的节点指针
-//      NewPre,目标节点,obj移动到本节点前面
+//功能: 移动资源队列中的一个节点NewPre到另一个节点Obj的previous位置，被移动的节点
+//      可能有子节点
+//参数: Loc，目标位置，Obj移动到本节点前面
+//      Obj,目标节点，它原本就在Object队列中。
 //返回: TRUE = 成功执行，FALSE = 失败
 //------------------------------------------------------------------------------
-bool_t OBJ_MoveToPrevious(struct Object *Obj, struct Object *NewPre)
+bool_t OBJ_MoveToPrevious(struct Object *Loc, struct Object *Obj)
 {
     atom_low_t low_atom;
 
-    if((Obj == NULL) || (NewPre == NULL) || (Obj == NewPre))
-        return FALSE;
-    else if(Obj->Parent != NewPre->Parent)
+    if((Loc == NULL) || (Obj == NULL) || (Loc == Obj))
         return FALSE;
 
     low_atom = Int_LowAtomStart();
     //以下从链表中取出节点
-    NewPre->Next->Previous = NewPre->Previous;
-    NewPre->Previous->Next = NewPre->Next;
-    NewPre->Next = Obj;
-    NewPre->Previous = Obj->Previous;
-    Obj->Previous->Next = NewPre;
-    Obj->Previous = NewPre;
+    if(Loc->Parent != Obj->Parent)
+    {
+        OBJ_DelBranch(Obj);
+    }
+    else
+    {
+        Obj->Next->Previous = Obj->Previous;
+        Obj->Previous->Next = Obj->Next;
+    }
+    Obj->Next = Loc;
+    Obj->Previous = Loc->Previous;
+    Loc->Previous->Next = Obj;
+    Loc->Previous = Obj;
+    Obj->Parent = Loc->Parent;
     Int_LowAtomEnd(low_atom);
 
     return TRUE;
 }
 
-//----队列头位置后移--------------------------------------------------------------
+//----队列头位置后移-----------------------------------------------------------
 //功能: Parent的子节点的相对位置不变,队列头朝previous方向移动一格。
 //参数: Parent,父节点指针
 //返回: TURE = 成功执行，FALSE = 失败
@@ -723,10 +793,10 @@ struct Object *OBJ_GetTree(struct Object *Obj)
 {
     atom_low_t low_atom;
     struct Object *node = Obj;
-    
+
     if(node == NULL)    //目标节点空
         return NULL;
-    
+
     low_atom = Int_LowAtomStart();
     while(node->Parent != s_ptRscRoot)
     {
@@ -762,12 +832,12 @@ struct Object *OBJ_SysRoot(void)
 char *OBJ_Name(struct Object *Obj)
 {
     char *name;
-    
+
     if(Obj == NULL)
         return NULL;
 
     name = Obj->Name;
-    
+
     return name;
 }
 
@@ -839,7 +909,7 @@ struct Object *OBJ_Child(struct Object *Obj)
 struct Object *OBJ_Previous(struct Object *Obj)
 {
     struct Object *node;
-    
+
     if(Obj == NULL)
         return NULL;
 
@@ -856,7 +926,7 @@ struct Object *OBJ_Previous(struct Object *Obj)
 struct Object *OBJ_Next(struct Object *Obj)
 {
     struct Object *node;
-    
+
     if(Obj == NULL)
         return NULL;
 
@@ -893,7 +963,7 @@ struct Object *OBJ_GetHead(struct Object *Obj)
 struct Object *OBJ_GetTwig(struct Object *Obj)
 {
     struct Object *result = NULL, *current;
-    
+
     if(Obj == NULL)
         return NULL;
 
@@ -919,7 +989,7 @@ u32 OBJ_GetLevel(struct Object *Obj)
 {
     u32 n = 0;
     struct Object *pl_node = Obj;
-    
+
     if(pl_node == NULL)
         return CN_LIMIT_UINT32;
 
@@ -941,7 +1011,7 @@ u32 OBJ_GetLevel(struct Object *Obj)
 //----遍历子节点--------------------------------------------------------------
 //功能: 从当前节点开始,获取下一个节点的指针,直到遍历完全部子节点
 //参数: Parent,需要搜索的树枝的祖先节点
-//      Child,当前搜索位置,
+//      Child,当前搜索位置,起始位置应该设为与parent相等，才能搜索全部子节点。
 //返回: 当前搜索位置的下一个节点指针,如果已经搜索完成,则返回NULL.
 //------------------------------------------------------------------------------
 struct Object *OBJ_TraveChild(struct Object *Parent, struct Object *Child)
@@ -1108,10 +1178,10 @@ struct Object *OBJ_SearchChild(struct Object *Parent, const char *Name)
 struct Object *OBJ_SearchScion(struct Object *Ancestor, const char *Name)
 {
     struct Object *current, *temp, *result = NULL;
-    
+
     if((Ancestor == NULL) || (Name == NULL))
         return NULL;
-        
+
     current = Ancestor;
     //在rsc_trave_scion中已经有信号量保护，此处无须保护
     while((temp = OBJ_TraveScion(Ancestor, current)) != NULL)

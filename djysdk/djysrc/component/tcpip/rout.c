@@ -47,6 +47,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
+#include <netdb.h>
 
 #include "arp.h"
 #include "rout.h"
@@ -55,6 +56,8 @@
 //first we should implement the device layer
 static tagNetDev        *pNetDevQ        = NULL;
 static struct MutexLCB  *pRoutMutex      = NULL;
+static struct MutexLCB  gRoutMutexMem          ;
+
 static tagRout          *pRoutDefaultV4  = NULL;   //this is the default  v4 rout
 static tagRout          *pRoutLoop       = NULL;   //this is the loop rout
 //this function used to get the specified dev
@@ -109,6 +112,75 @@ ptu32_t NetDevHandle(const char *name)
 	return (ptu32_t)NetDevGet(name);
 }
 
+
+//the device event listen hook module
+static bool_t deveventhookfault(ptu32_t handle,enNetDevEvent event)
+{
+	switch(event)
+	{
+		case EN_NETDEVEVENT_LINKDOWN:
+			printf("link is down\n\r");  //warning the app to do some notice
+			break;
+		case EN_NETDEVEVENT_LINKUP:
+			printf("link is up\n\r"); //warning the app to do some notice
+			break;
+		case EN_NETDEVEVENT_IPGET:
+			printf("ip get\n\r"); //warning the app to do some notice
+			break;
+		case EN_NETDEVEVENT_IPRELEASE:
+			printf("ip release\n\r"); //warning the app to do some notice
+			break;
+		case EN_NETDEVEVENT_BROADSTORMB:
+			//should shutdown the receive broad frame of the net device
+			printf("broad strom has come\n\r");
+			break;
+		case EN_NETDEVEVENT_BROADSTORME:
+			//should open the receive broad frame of the net device
+			printf("broad strom has gone\n\r");
+			break;
+		case EN_NETDEVEVENT_MULTISTORMB:
+			//should shutdown the receive multi frame of the net device
+			printf("multi storm has come\n\r");
+			break;
+		case EN_NETDEVEVENT_MULTISTORME:
+			//should open the recieve multi frame of the net device
+			printf("multi storm has gone\n\r");
+			break;
+		case EN_NETDEVEVENT_POINTSTORMB:
+			//should shutdown the recieve point frame of the net device
+			printf("point storm has come\n\r");
+			break;
+		case EN_NETDEVEVENT_POINTSTORME:
+			//should open the recieve multi frame of the net device
+			printf("point storm has gone\n\r");
+			break;
+		case EN_NETDEVEVENT_FLOWOVERB:
+			//maybe too much frame come,shutdown the receive function to save your
+			//money if you care much about the download flow
+			printf("flow over has come\n\r");
+			break;
+		case EN_NETDEVEVENT_FLOWOVERE:
+			//we should open the receive function here
+			printf("flow over has gone\n\r");
+			break;
+		case EN_NETDEVEVENT_FLOWLACKB:
+			//maybe some err happened to the device,should reset
+			printf("flow lack has come\n\r");
+			break;
+		case EN_NETDEVEVENT_FLOWLACKE:
+			//the net work comes to normal
+			printf("flow lack has gone\n\r");
+			break;
+		case EN_NETDEVEVENT_RESET:
+			printf("dev reset\n\r"); //should do some log here
+			break;
+		default:
+			printf("unknown event\n\r"); //should ignore here
+			break;
+	}
+	return true;
+}
+
 // =============================================================================
 // FUNCTION   :install an net device to the stack
 // PARAMS IN  :para, the net device function paras as tagNetDevPara defined
@@ -141,22 +213,34 @@ ptu32_t NetDevInstall(tagNetDevPara *para)
                 memcpy(dev->mac, para->mac, CN_MACADDR_LEN);
                 dev->ifsend  = para->ifsend;
                 dev->ifctrl  = para->ifctrl;
+                dev->eventhook = deveventhookfault;
                 dev->private = para->private;
                 dev->iftype = para->iftype;
                 dev->mtu= para->mtu;
                 dev->devfunc= para->devfunc;
-                //initialize the filter
-                dev->rfilter[EN_NETDEV_FRAME_NOPKG].cmd = EN_NETDEV_SETNOPKG;
-                dev->rfilter[EN_NETDEV_FRAME_BROAD].cmd = EN_NETDEV_SETBORAD;
-                dev->rfilter[EN_NETDEV_FRAME_POINT].cmd = EN_NETDEV_SETPOINT;
-                dev->rfilter[EN_NETDEV_FRAME_MULTI].cmd = EN_NETDEV_SETMULTI;
+                //initialize the dev filter part
+                dev->rfilter[EN_NETDEV_FLOW_BROAD].uactionb =EN_NETDEVEVENT_BROADSTORMB;
+                dev->rfilter[EN_NETDEV_FLOW_BROAD].uactione =EN_NETDEVEVENT_BROADSTORME;
+                dev->rfilter[EN_NETDEV_FLOW_BROAD].lactionb =EN_NETDEVEVENT_RESERVED;
+                dev->rfilter[EN_NETDEV_FLOW_BROAD].lactione =EN_NETDEVEVENT_RESERVED;
+
+                dev->rfilter[EN_NETDEV_FLOW_MULTI].uactionb =EN_NETDEVEVENT_MULTISTORMB;
+                dev->rfilter[EN_NETDEV_FLOW_MULTI].uactione =EN_NETDEVEVENT_MULTISTORME;
+                dev->rfilter[EN_NETDEV_FLOW_MULTI].lactionb =EN_NETDEVEVENT_RESERVED;
+                dev->rfilter[EN_NETDEV_FLOW_MULTI].lactione =EN_NETDEVEVENT_RESERVED;
+
+                dev->rfilter[EN_NETDEV_FLOW_POINT].uactionb =EN_NETDEVEVENT_POINTSTORMB;
+                dev->rfilter[EN_NETDEV_FLOW_POINT].uactione =EN_NETDEVEVENT_POINTSTORME;
+                dev->rfilter[EN_NETDEV_FLOW_POINT].lactionb =EN_NETDEVEVENT_RESERVED;
+                dev->rfilter[EN_NETDEV_FLOW_POINT].lactione =EN_NETDEVEVENT_RESERVED;
+
+                dev->rfilter[EN_NETDEV_FLOW_FRAME].uactionb =EN_NETDEVEVENT_FLOWOVERB;
+                dev->rfilter[EN_NETDEV_FLOW_FRAME].uactione =EN_NETDEVEVENT_FLOWOVERE;
+                dev->rfilter[EN_NETDEV_FLOW_FRAME].lactionb =EN_NETDEVEVENT_FLOWLACKB;
+                dev->rfilter[EN_NETDEV_FLOW_FRAME].lactione =EN_NETDEVEVENT_FLOWLACKE;
+
                 //fill the ops
                 dev->linkops = ops;
-                //send a event to the link
-                if(NULL != ops->linkevent)
-                {
-                	ops->linkevent(dev,EN_LINKEVENT_DEVADD);
-                }
                 //add it to the dev chain
                 dev->nxt = pNetDevQ;
                 pNetDevQ = dev;
@@ -211,11 +295,6 @@ bool_t  NetDevUninstall(const char *name)
                 {
                     bak->nxt = tmp->nxt;
                 }
-                //send a event to the link
-                if(NULL != dev->linkops->linkevent)
-                {
-                	dev->linkops->linkevent(dev,EN_LINKEVENT_DEVDEL);
-                }
                 //free all the rout bind to the dev
                 rout = dev->routq;
                 while(NULL != rout)
@@ -244,6 +323,107 @@ bool_t  NetDevUninstall(const char *name)
             }
         }
         Lock_MutexPost(pRoutMutex);
+    }
+    return result;
+}
+// =============================================================================
+// FUNCTION   :register a hook to do the device event here
+// PARAMS IN  :handle:the device handle returned by NetDevInstall
+//			   devname:the name of the net device that has been installed
+//			   hook:which will used to deal the net dev event
+// PARAMS OUT :NULL
+// RETURN     :true success while false failed
+// DESCRIPTION:if handle NULL,then use the devname to search the net device
+// =============================================================================
+bool_t NetDevRegisterEventHook(ptu32_t handle,const char *devname,fnNetDevEventHook hook)
+{
+	bool_t result = false;
+    tagNetDev *dev = NULL;
+
+    if(Lock_MutexPend(pRoutMutex, CN_TIMEOUT_FOREVER))
+    {
+    	if(NULL != (void *)handle)
+    	{
+    		dev =(tagNetDev *)handle;
+    	}
+    	else
+    	{
+    		dev = __NetDevGet(devname);
+    	}
+    	if(NULL != dev)
+    	{
+    		dev->eventhook = hook;
+    		result = true;
+    	}
+        Lock_MutexPost(pRoutMutex);
+    }
+    return result;
+}
+// =============================================================================
+// FUNCTION   :Unregister the event hook  of the device
+// PARAMS IN  :handle:the device handle returned by NetDevInstall
+//			   devname:the name of the net device that has been installed
+// PARAMS OUT :NULL
+// RETURN     :true success while false failed
+// DESCRIPTION:if handle NULL,then use the devname to search the net device
+// =============================================================================
+bool_t NetDevUnRegisterEventHook(ptu32_t handle,const char *devname)
+{
+	bool_t result = false;
+    tagNetDev *dev = NULL;
+
+    if(Lock_MutexPend(pRoutMutex, CN_TIMEOUT_FOREVER))
+    {
+    	if(NULL !=(void *) handle)
+    	{
+    		dev =(tagNetDev *)handle;
+    	}
+    	else
+    	{
+    		dev = __NetDevGet(devname);
+    	}
+    	if(NULL != dev)
+    	{
+    		dev->eventhook = NULL;
+    		result = true;
+    	}
+        Lock_MutexPost(pRoutMutex);
+    }
+    return result;
+}
+// =============================================================================
+// FUNCTION   :used to post a event to the net device
+// PARAMS IN  :handle:the device handle returned by NetDevInstall
+//			   devname:the name of the net device that has been installed
+//			   event:the event to post
+// PARAMS OUT :NULL
+// RETURN     :true success while false failed
+// DESCRIPTION:if handle NULL,then use the devname to search the net device
+// =============================================================================
+bool_t NetDevPostEvent(ptu32_t handle,const char *devname,enNetDevEvent event)
+{
+	bool_t result = false;
+    tagNetDev *dev = NULL;
+    fnNetDevEventHook hook= NULL;
+    if(Lock_MutexPend(pRoutMutex, CN_TIMEOUT_FOREVER))
+    {
+    	if(NULL != (void *)handle)
+    	{
+    		dev =(tagNetDev *)handle;
+    	}
+    	else
+    	{
+    		dev = __NetDevGet(devname);
+    	}
+    	if(NULL != dev)
+    	{
+    		hook =dev->eventhook;
+    	}
+        Lock_MutexPost(pRoutMutex);
+        if(NULL != hook)
+        {
+        	result = hook((ptu32_t)dev,event);
+        }
     }
     return result;
 }
@@ -296,163 +476,179 @@ bool_t  NetDevCtrlByHandle(ptu32_t handle,enNetDevCmd cmd, ptu32_t para)
             ArpInform(dev->name);
         }
     }
-
     return result;
 }
-
 // =============================================================================
-// FUNCTION   :use this function to initialize the net device filter
-// PARAMS IN  :name, the net device you installed
-//
+// FUNCTION   :use this function to config the net device filter
+// PARAMS IN  :
+//             devname :the net device name
+//             type    :the frame type, which defines by enNetDevFlowType
+//             uflimit :the upper limit of the frame
+//             lflimit :the lower limit of the frame
+//             measuretime:during the time, if the flow is over, then triggle the corresponding event
+//             enable :1 true while 0 false
 // PARAMS OUT :
-// RETURN     :
-// DESCRIPTION:
-// =============================================================================
-bool_t NetDevFilterSet(const char *name,enNetDevFramType type,u32 framelimit,\
-		u32 actiontime,u32 measuretime)
-{
-    bool_t      result = false;
-    tagNetDev  *dev;
-	tagNetDevRcvFilter *filter;
-
-    dev = NetDevGet((const char *)name);
-    if((NULL != dev)&&(type < EN_NETDEV_FRAME_LAST))
-    {
-		 filter = &dev->rfilter[type];
-		 filter->framlimit = framelimit;
-		 filter->actiontime = actiontime;
-		 filter->measuretime = measuretime;
-		 result = true;
-    }
-    return result;
-}
-bool_t NetDevFilterEnable(const char *name,enNetDevFramType type,bool_t enable)
-{
-    bool_t      result = false;
-    tagNetDev  *dev;
-	tagNetDevRcvFilter *filter;
-
-    dev = NetDevGet((const char *)name);
-    if((NULL != dev)&&(type < EN_NETDEV_FRAME_LAST))
-    {
-		 filter = &dev->rfilter[type];
-		 filter->enable = enable;
-		 result = true;
-    }
-    return result;
-}
-
-// =============================================================================
-// FUNCTION   :use this function to do the frame counter
-// PARAMS IN  :handle, the net device handle returned when you install the net device
-//             type, the receive frame type,defined by tagNetDevFramType
-// PARAMS OUT :NULL
-// RETURN     :
-// DESCRIPTION:when call this function ,then it will add one to the statistics
-// =============================================================================
-bool_t NetDevFilterCounter(ptu32_t handle,enNetDevFramType type)
-{
-	 tagNetDev  *dev;
-	 tagNetDevRcvFilter *filter;
-
-	 dev = (tagNetDev *)handle;
-	 if((NULL != dev)&&(type < EN_NETDEV_FRAME_LAST))
-	 {
-		 filter = &dev->rfilter[type];
-		 if(filter->enable)
-		 {
-			 filter->framcounter++;
-		 }
-		 filter->framtotal++;
-		 if(type != EN_NETDEV_FRAME_NOPKG)
-		 {
-			 dev->rfilter[EN_NETDEV_FRAME_NOPKG].framcounter = 0;
-		 }
-	 }
-	 return true;
-}
-// =============================================================================
-// FUNCTION   :use this function to do the frame filter
-// PARAMS IN  :handle, the net device handle returned when you install the net device
-// PARAMS OUT :NULL
 // RETURN     :true success while false failed
 // DESCRIPTION:
 // =============================================================================
-bool_t NetDevFilterCheck(ptu32_t handle)
+bool_t NetDevFlowSet(const char *devname,enNetDevFlowType type,\
+		             u32 llimit,u32 ulimit,u32 period,int enable)
 {
-	u32 type;
-	tagNetDev  *dev;
+	bool_t result = false;
+    tagNetDev *dev = NULL;
 	tagNetDevRcvFilter *filter;
-	s64                 timenow;
 
-	dev = (tagNetDev *)handle;
-	if(NULL == dev)
-	{
-		return false;
-	}
+    if(Lock_MutexPend(pRoutMutex, CN_TIMEOUT_FOREVER))
+    {
+		dev = __NetDevGet(devname);
+    	if(NULL != dev)
+    	{
+    		filter = &dev->rfilter[type];
+    		filter->period = period;
+    		filter->fulimit =ulimit;
+    		filter->fllimit =llimit;
+    		filter->fcounter = 0;
+    		filter->deadtime = DjyGetSysTime() + period;
+    		filter->enable = enable?1:0;
+    		result = true;
+    	}
+        Lock_MutexPost(pRoutMutex);
+    }
+    return result;
+}
 
-	timenow = DjyGetSysTime();
-	for(type =0; type < EN_NETDEV_FRAME_LAST;type++)  //we should
+// =============================================================================
+// FUNCTION   :use this function to check the frame type
+// PARAMS IN  :buf, the frame buffer
+// PARAMS OUT :
+// RETURN     :enNetDevFramType,which type of the frame
+// DESCRIPTION:
+// =============================================================================
+enNetDevFramType NetDevFrameType(u8 *buf,u16 len)
+{
+	enNetDevFramType result = EN_NETDEV_FRAME_LAST;
+	if((NULL != buf)&&(len > CN_MACADDR_LEN))
 	{
-		filter = &dev->rfilter[type];
-		if(filter->enable)
+		if(0 == memcmp(buf,CN_MAC_BROAD,CN_MACADDR_LEN))
 		{
-			if(filter->action)
-			{
-				//THE ACTION HAS START, SO WE'D BETTER TO CHECK IF START TIME IS TIMEOUT
-				if(timenow > (filter->actiontime+filter->starttime)) //has timeout
-				{
-					//so restart the logic
-					filter->framcounter = 0;
-					filter->starttime = timenow;
-					filter->action = false;
-					NetDevCtrlByHandle(handle,filter->cmd,true);
-				}
-				else
-				{
-					//still in the action logic,we do nothing here
-				}
-			}
-			else
-			{
-				//the action not start, so we should check if should start the action
-				if(filter->framcounter >= filter->framlimit)
-				{
-					//the logic action should be start
-					filter->starttime = timenow;
-					filter->action = true;
-					filter->actiontimes++;
-					NetDevCtrlByHandle(handle,filter->cmd,false);
-				}
-				else if(timenow >(filter->starttime + filter->measuretime))
-				{
-					//we should clear it, and measure it in the next stage
-					filter->framcounter = 0;
-					filter->starttime = timenow;
-				}
-				else
-				{
-					//we need do nothing here
-				}
-			}
+			result = EN_NETDEV_FRAME_BROAD;
+		}
+		else if(buf[0]&0x01)
+		{
+			result = EN_NETDEV_FRAME_MULTI;
 		}
 		else
 		{
-			//filter not enable yet
+			result = EN_NETDEV_FRAME_POINT;
 		}
 	}
-	return true;
+	return result;
 }
 
-const char *pFilterItemName[EN_NETDEV_FRAME_LAST]=
+// =============================================================================
+// FUNCTION   :use this function to config the net device filter
+// PARAMS IN  :
+//             handle:the device handle,returned by NetDevInstall
+//             type  :the frame type has received
+// PARAMS OUT :
+// RETURN     :true success while false failed
+// DESCRIPTION:
+// =============================================================================
+static void __NetDevFlowCheck(ptu32_t handle,tagNetDevRcvFilter *filter,s64 timenow)
 {
-	"NOPKG",
+	if(filter->enable)
+	{
+		if(timenow > filter->deadtime) //shold check if the upper limit meets
+		{
+			//check the upper limit
+			if(filter->fulimit > filter->fcounter)
+			{
+				if(filter->uaction)
+				{
+					NetDevPostEvent(handle,NULL,filter->uactione);//post a gone message
+					filter->uaction = 0;
+				}
+			}
+			//check the lower limit
+			if(filter->fcounter < filter->fllimit)
+			{
+				if(!filter->laction)
+				{
+					filter->laction = 1;
+					NetDevPostEvent(handle,NULL,filter->lactionb);//post a begin message
+				}
+			}
+			filter->fcounter = 0;
+			filter->deadtime = timenow + filter->period;
+		}
+		else
+		{
+			//check the upper limit
+			if(filter->fulimit < filter->fcounter)
+			{
+				if(!filter->uaction)
+				{
+					filter->uaction = 1;
+					NetDevPostEvent(handle,NULL,filter->uactionb);//post a begin message
+				}
+			}
+			//check the lower limit
+			if(filter->fcounter > filter->fllimit)
+			{
+				if(filter->laction)
+				{
+					filter->laction = 0;
+					NetDevPostEvent(handle,NULL,filter->lactione);//post a end message
+				}
+			}
+		}
+	}
+}
+
+
+bool_t NetDevFlowCounter(ptu32_t handle,enNetDevFramType type)
+{
+	bool_t result = false;
+    tagNetDev *dev = NULL;
+	tagNetDevRcvFilter *filter;
+	s64 timenow;
+	u32 looptype;
+	if((NULL != (void *)handle)&&(type < EN_NETDEV_FRAME_LAST))
+	{
+		dev = (tagNetDev *)handle;
+		filter = &dev->rfilter[type];
+		if(filter->enable)
+		{
+			filter->fcounter ++;
+			filter->ftotal++;
+		}
+		//any data will inc the frame filter
+		filter = &dev->rfilter[EN_NETDEV_FLOW_FRAME];
+		if(filter->enable)
+		{
+			filter->fcounter ++;
+			filter->ftotal++;
+		}
+		//check all the filter
+		timenow = DjyGetSysTime();
+		for(looptype =0;looptype < EN_NETDEV_FLOW_LAST;looptype++)
+		{
+			filter = &dev->rfilter[looptype];
+			__NetDevFlowCheck(handle,filter,timenow);
+		}
+	}
+	return result;
+}
+
+const char *pFilterItemName[EN_NETDEV_FLOW_LAST]=
+{
 	"BROAD",
 	"POINT",
 	"MULTI",
+	"FRAME",
 };
 //we use this function to show the net device filter state
-static bool_t NetDevFilterStat(char *name)
+static bool_t NetDevFlowStat(char *name)
 {
     bool_t      result = false;
     tagNetDev  *dev;
@@ -462,34 +658,24 @@ static bool_t NetDevFilterStat(char *name)
     dev = NetDevGet((const char *)name);
     if(NULL != dev)
     {
-    	printf("%-8s%-5s%-6s%-3s%-10s%-10s%-10s%-4s%-4s%-10s%-10s\n\r",\
-    			"Name","EN","STAT","CM","MT(us)","AN","AT(us)","FC","FL","FT","ST(us)");
-    	char *instruct="CM:command;"
-    			"MT:measure time;"
-    			"AN:action times;"
-    			"AT:action time;"
-    			"FC:frame counter in measure time;"
-    			"FL:frame limit in measure time;"
-    			"FT:frame up till now;"
-    			"ST:action start time";
-    	for(type =0; type < EN_NETDEV_FRAME_LAST;type++)
+    	printf("%-6s%-3s%-3s%-3s%-9s%-9s%-9s%-9s%-12s%-12s\n\r",\
+    			"Name","EN","LS","US","FC","FU","FL","PERIOD(US)","DEADLINE(US)","FT");
+    	for(type =0; type < EN_NETDEV_FLOW_LAST;type++)
     	{
     		filter = &dev->rfilter[type];
-    		printf("%-8s%-5s%-6s%-2d %-8x  %-8x  %-8x  %-4x%-4x%-8llx  %-8llx\n\r",\
+    		printf("%-6s%-3s%-3s%-3s %-8x %-8x %-8x %-9x %-8llx  %-8llx\n\r",\
     				pFilterItemName[type],\
-					filter->enable==true?"Yes":"No",\
-					filter->action?"start":"stop",\
-					filter->cmd,\
-					filter->measuretime,\
-					filter->actiontimes,\
-					filter->actiontime,\
-					filter->framcounter,\
-					filter->framlimit,\
-					filter->framtotal,\
-					filter->starttime
+					filter->enable==true?"Y":"N",\
+					filter->laction?"Y":"N",\
+					filter->uaction?"Y":"N",\
+					filter->fcounter,\
+					filter->fulimit,\
+					filter->fllimit,\
+					filter->period,\
+					filter->deadtime,\
+					filter->ftotal
 					);
     	}
-    	printf("%s\n\r",instruct);
     	result =true;
     }
     return result;
@@ -507,13 +693,6 @@ bool_t NetDevPrivate(ptu32_t handle)
     result = ((tagNetDev*)handle)->private;
     return result;
 }
-//-----------------------------------------------------------------------------
-//功能:use this function to send data to the net device
-//参数:
-//返回:
-//备注:
-//作者:zhangqf@下午3:49:46/2016年12月29日
-//-----------------------------------------------------------------------------
 // =============================================================================
 // FUNCTION:Use this function to update the net rout malloced by the dhcp client
 // PARA  IN:name, the net dev name
@@ -1016,7 +1195,7 @@ tagRout *RoutGetDefault(enum_ipv_t ver)
 	return result;
 }
 
-bool_t *RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns)
+bool_t RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns)
 {
 	bool_t result = false;
 	if((NULL != pRoutDefaultV4)&&(ver = EN_IPV_4))
@@ -1027,14 +1206,10 @@ bool_t *RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gat
 		pRoutDefaultV4->ipaddr.ipv4.dns = dns;
 		pRoutDefaultV4->ipaddr.ipv4.broad = (ip&mask)|(~mask);
 
-		result = false;
+		result = true;
 	}
-	return true;
+	return result;
 }
-
-
-
-
 
 //-----------------------------------------------------------------------------
 //功能:use this function to select a match rout,(same subnet)
@@ -1255,42 +1430,6 @@ bool_t RoutSubNet(tagNetDev *dev,enum_ipv_t ver,ipaddr_t ipaddr)
 	return   result;
 }
 
-//here we create an net dev monitor task to do the broad storm inform
-//check every ten seconds;
-static  ptu32_t __NetDevMonitor(void)
-{
-	tagNetDev  *dev;
-	tagRout    *rout;
-
-	while(1)
-	{
-	    if(Lock_MutexPend(pRoutMutex,CN_TIMEOUT_FOREVER))
-	    {
-	    	dev = pNetDevQ;
-	    	while(NULL != dev)
-	    	{
-		    	if(dev->rfilter[EN_NETDEV_FRAME_BROAD].action)
-		    	{
-		    		//THE FILTER HAS START, DO THE BROAD INFORM
-		    		rout = dev->routq;
-		    		while(NULL != rout)
-		    		{
-		    			ArpInformAll(rout);
-		    			rout = rout->nxt;
-		    		}
-		    	}
-
-	    		dev = dev->nxt;
-	    	}
-
-	    	Lock_MutexPost(pRoutMutex);
-	    }
-
-	    Djy_EventDelay(10*1000*mS);
-	}
-	return 0;
-}
-
 
 struct ShellCmdTab  gRoutDebug[] =
 {
@@ -1313,10 +1452,10 @@ struct ShellCmdTab  gRoutDebug[] =
         "usage:netdevmac devname  mac0-mac1-mac2-mac3-mac4-mac5",
     },
     {
-        "netdevfilter",
-		NetDevFilterStat,
-        "usage:netdevfilter",
-        "usage:netdevfilter",
+        "netdevflow",
+		NetDevFlowStat,
+        "usage:netdevflow",
+        "usage:netdevflow",
     },
 };
 #define CN_ROUTDEBUG_NUM  ((sizeof(gRoutDebug))/(sizeof(struct ShellCmdTab)))
@@ -1331,15 +1470,11 @@ static struct ShellCmdRsc gRoutDebugCmdRsc[CN_ROUTDEBUG_NUM];
 bool_t RoutInit(void)
 {
     bool_t result;
-
-    u16 evttID;
-    u16 eventID;
-
     pNetDevQ = NULL;
     pRoutLoop = NULL;
     pRoutDefaultV4 = NULL;
 
-    pRoutMutex = Lock_MutexCreate(NULL);
+    pRoutMutex = Lock_MutexCreate_s(&gRoutMutexMem,NULL);
     if(NULL == pRoutMutex)
     {
         goto EXIT_MUTEX;
@@ -1349,30 +1484,22 @@ bool_t RoutInit(void)
     {
         goto EXIT_ROUTCMD;
     }
-    //create the device monitor task
-    evttID= Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,
-             (ptu32_t (*)(void))__NetDevMonitor,NULL, 0x800, "DevMonitor");
-    if(evttID == CN_EVTT_ID_INVALID)
-    {
-        goto EXIT_EVTTFAILED;
-    }
-    eventID = Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
-    if(eventID == CN_EVENT_ID_INVALID)
-    {
-        goto EXIT_EVENTFAILED;
-    }
     result = true;
     return result;
 
-EXIT_EVENTFAILED:
-	Djy_EvttUnregist(evttID);
-EXIT_EVTTFAILED:
 EXIT_ROUTCMD:
-    Lock_MutexDelete(pRoutMutex);
+    Lock_MutexDelete_s(pRoutMutex);
     pRoutMutex = NULL;
 EXIT_MUTEX:
     result = false;
     return result;
 }
+
+
+
+
+
+
+
 
 

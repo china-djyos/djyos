@@ -63,13 +63,13 @@
 
 /*============================================================================*/
 
-struct QMSG
+struct MsgList
 {
     struct WindowMsg Msg;
-    struct QMSG *Next;
+    struct MsgList *Next;
 };
 
-struct WindowMsgQ
+struct WinMsgQueueCB
 {
     struct MutexLCB *mutex_lock;            //消息队列锁
     struct SemaphoreLCB   *sem_msg;         //消息信号量
@@ -87,9 +87,9 @@ struct WindowMsgQ
 
     //Post类型消息数据
     void    *post_pbuf;         //记录原始的post消息缓冲区首址(用于动态内存释放)
-    struct QMSG *post_free;     //指向空闲的post消息缓冲链表
-    struct QMSG *post_first;    //指向第一个post消息链表
-    struct QMSG *post_last;     //指向最后一个post消息链表节点
+    struct MsgList *post_free;     //指向空闲的post消息缓冲链表
+    struct MsgList *post_first;    //指向第一个post消息链表
+    struct MsgList *post_last;     //指向最后一个post消息链表节点
 };
 
 //----复制一条消息--------------------------------------------------------------
@@ -117,7 +117,7 @@ static  void __CopyMsg(struct WindowMsg *dst,const struct WindowMsg* src)
 //     param2: 消息参数2.
 //返回：无.
 //-----------------------------------------------------------------------------
-static  void __InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32_t param2)
+void __InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32_t param2)
 {
     msg->hwnd   =hwnd;
     msg->Code   =code;
@@ -132,12 +132,12 @@ static  void __InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32
 //参数：size: 异步消息缓冲区数量.
 //返回：消息队列指针.
 //------------------------------------------------------------------------------
-struct WindowMsgQ*   GUI_CreateMsgQ(u32 size)
+struct WinMsgQueueCB*   __GUI_CreateMsgQ(u32 size)
 {
-    struct WindowMsgQ *pMsgQ=NULL;
+    struct WinMsgQueueCB *pMsgQ=NULL;
     s32 i;
 
-    pMsgQ =(struct WindowMsgQ*)malloc(sizeof(struct WindowMsgQ));
+    pMsgQ =(struct WinMsgQueueCB*)malloc(sizeof(struct WinMsgQueueCB));
     if(NULL==pMsgQ)
     {
         return NULL;
@@ -150,11 +150,11 @@ struct WindowMsgQ*   GUI_CreateMsgQ(u32 size)
 //  pMsgQ->sem_msg  =Lock_SempCreate(1000,0,CN_BLOCK_PRIO,NULL);
     pMsgQ->sem_msg  =Lock_SempCreate(size,0,CN_BLOCK_PRIO,NULL);
 
-    pMsgQ->sem_sync_send =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
+    pMsgQ->sem_sync_send =Lock_SempCreate(1,1,CN_BLOCK_PRIO,NULL);
     pMsgQ->sem_sync_recv =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
 
     //创建post消息链表缓冲区
-    pMsgQ->post_pbuf =(void*)malloc(size*sizeof(struct QMSG));
+    pMsgQ->post_pbuf =(void*)malloc(size*sizeof(struct MsgList));
     if( (NULL==pMsgQ->post_pbuf)||(NULL==pMsgQ->mutex_lock)
             ||(NULL==pMsgQ->sem_msg)||(NULL==pMsgQ->sem_sync_send)
             ||(NULL==pMsgQ->sem_sync_recv) )
@@ -163,7 +163,7 @@ struct WindowMsgQ*   GUI_CreateMsgQ(u32 size)
     }
 
     //初始化post消息链表缓冲区
-    pMsgQ->post_free =(struct QMSG*)pMsgQ->post_pbuf;
+    pMsgQ->post_free =(struct MsgList*)pMsgQ->post_pbuf;
     for(i=0;i<(size-1);i++)
     {
         pMsgQ->post_free[i].Next =  &pMsgQ->post_free[i+1];
@@ -194,7 +194,7 @@ ErrorExit:
     return NULL;
 }
 
-void    GUI_DeleteMsgQ(struct WindowMsgQ *pMsgQ)
+void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ)
 {
     if(pMsgQ)
     {
@@ -223,11 +223,47 @@ u32 DispatchMessage(struct WindowMsg *pMsg)
 //  {
 //      if(__GetWindowEvent(pMsg->hwnd) == Djy_MyEventId())
 //      { //同线程内,直接调用窗口过程.
-//          res =WinMsgProc(pMsg);
+//          res =__WinMsgProc(pMsg);
 //      }
 //  }
-    res =WinMsgProc(pMsg);
+    res =__WinMsgProc(pMsg);
     return res;
+}
+
+//----主窗口消息循环-----------------------------------------------------------
+//功能：主窗口的消息循环函数，执行消息的提取、分发功能，主窗口被close将导致本
+//      函数返回，从而线程结束。
+//参数：无
+//返回：0
+//-----------------------------------------------------------------------------
+ptu32_t __MessageLoop( void )
+{
+    struct WindowMsg msg;
+    bool_t SyncMsg;
+    u32 result;
+    HWND MyHwnd;
+    Djy_GetEventPara((ptu32_t *)&MyHwnd,NULL);
+    while(GetMessage(&msg,MyHwnd,&SyncMsg))
+    {
+        //如果被处理的是发给主窗口的close消息，处理完成后退出消息循环
+        //注msg.hwnd不能在调用DispatchMessage后访问，因为对于MSG_CLOSE来说，消息
+        //里的hwnd在调用DispatchMessage后已经被清除。
+        if( (msg.Code == MSG_CLOSE) && (msg.hwnd == MyHwnd) )
+        {
+            DispatchMessage(&msg);
+            break;
+        }
+        else
+            result = DispatchMessage(&msg);
+
+        if(SyncMsg) //若是同步消息，则要返回处理结果，并释放信号量。
+        {
+            MyHwnd->pMsgQ->sync_msg.Param1 = result;
+            Lock_SempPost(MyHwnd->pMsgQ->sem_sync_send);
+        }
+    }
+    Djy_EvttUnregist( Djy_MyEvttId( ) );    //消息循环结束，释放事件类型
+    return result;
 }
 
 //----发送同步消息--------------------------------------------------------------
@@ -240,13 +276,13 @@ u32 DispatchMessage(struct WindowMsg *pMsg)
 //------------------------------------------------------------------------------
 static u32 __PostSyncMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 {
-    struct WindowMsgQ *pMsgQ;
+    struct WinMsgQueueCB *pMsgQ;
     u32 res;
 
 
     pMsgQ =__GetWindowMsgQ(hwnd);
 
-    Lock_MutexPend(pMsgQ->mutex_lock,5000000);
+    Lock_MutexPend(pMsgQ->mutex_lock,CN_TIMEOUT_FOREVER);
 
     __InitMsg(&pMsgQ->sync_msg,hwnd,msg,param1,param2);
 
@@ -263,19 +299,37 @@ static u32 __PostSyncMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
 }
 
+//----获取同步消息--------------------------------------------------------------
+//描述: 把窗口的同步消息取出
+//参数：pMsgQ: 消息队列指针.
+//      pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
+//返回：TRUE:成功获取了消息; FALSE:没有获得消息.
+//------------------------------------------------------------------------------
+static bool_t __PeekSyncMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
+{
+    if(Lock_SempPend(pMsgQ->sem_sync_recv, 0))
+    {
+        __CopyMsg(pMsg,&pMsgQ->sync_msg);
+
+        return true;
+    }
+    else
+        return false;
+}
+
 //----处理同步消息--------------------------------------------------------------
 //描述: 该函数为内部调用,不检查函数参数的合法性.
 //参数：pMsgQ:消息队列指针.
 //返回：无.
 //------------------------------------------------------------------------------
-static void __HandleSyncMessage(struct WindowMsgQ *pMsgQ)
+static void __HandleSyncMessage(struct WinMsgQueueCB *pMsgQ)
 {
-    if(Lock_SempPend(pMsgQ->sem_sync_recv, 1000))
+    if(Lock_SempPend(pMsgQ->sem_sync_recv, 0))
     {
         struct WindowMsg *pMsg;
 
         pMsg =&pMsgQ->sync_msg;
-        pMsgQ->sync_msg.Param1 = WinMsgProc(pMsg);
+        pMsgQ->sync_msg.Param1 = __WinMsgProc(pMsg);
 
         Lock_SempPost(pMsgQ->sem_sync_send);
 
@@ -305,19 +359,19 @@ u32 SendMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
     }
     else
     {
-        if(HWND_Lock(hwnd))
+        if(__HWND_Lock(hwnd))
         {
             if(__GetWindowEvent(hwnd) == Djy_MyEventId())
             {
                 //如果是同一线程内,直接调用窗口过程
                 __InitMsg(&Msg,hwnd,msg,param1,param2);
-                res = WinMsgProc(&Msg);
-                HWND_Unlock(hwnd);
+                res = __WinMsgProc(&Msg);
+                __HWND_Unlock(hwnd);
 
             }
             else
             {
-                HWND_Unlock(hwnd);
+                __HWND_Unlock(hwnd);
                 res=__PostSyncMessage(hwnd,msg,param1,param2);
             }
         }
@@ -332,7 +386,7 @@ u32 SendMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 //      hwnd: 需要绘制的窗口句柄.
 //返回：无.
 //------------------------------------------------------------------------------
-static void    __PostNCPaintMessage(struct WindowMsgQ *pMsgQ,HWND hwnd)
+static void    __PostNCPaintMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 {
     //判断窗口是否为可见,如果窗口不可见,则不发送绘制消息.
     if(IsWindowVisible(hwnd))
@@ -358,7 +412,7 @@ static void    __PostNCPaintMessage(struct WindowMsgQ *pMsgQ,HWND hwnd)
 //      bErase: 是否重绘背景
 //返回：无.
 //------------------------------------------------------------------------------
-static void    __PostPaintMessage(struct WindowMsgQ *pMsgQ,HWND hwnd,bool_t bErase)
+static void    __PostPaintMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,bool_t bErase)
 {
     //判断窗口是否为可见,如果窗口不可见,则不发送绘制消息.
     if(IsWindowVisible(hwnd))
@@ -388,10 +442,10 @@ static void    __PostPaintMessage(struct WindowMsgQ *pMsgQ,HWND hwnd,bool_t bEra
 //------------------------------------------------------------------------------
 void    __PostTimerMessage(struct WinTimer *ptmr)
 {
-    struct WindowMsgQ *pMsgQ;
+    struct WinMsgQueueCB *pMsgQ;
     HWND hwnd=ptmr->hwnd;
 
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         pMsgQ =__GetWindowMsgQ(hwnd);
 
@@ -404,19 +458,20 @@ void    __PostTimerMessage(struct WinTimer *ptmr)
         //发送消息信号量
         Lock_SempPost(pMsgQ->sem_msg);
 
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
     }
 }
 
-//----发送窗口关闭消息-----------------------------------------------------------
+//----发送窗口关闭消息---------------------------------------------------------
 //描述:该函数为内部调用,不检查函数参数合法性.
 //参数：pMsgQ:消息队列指针.
 //      hwnd:需要关闭的窗口句柄.
 //返回：无.
-//------------------------------------------------------------------------------
-void __PostCloseMessage(struct WindowMsgQ *pMsgQ,HWND hwnd)
+//-----------------------------------------------------------------------------
+void __PostCloseMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 {
-
+    if(hwnd == GetDesktopWindow( ))
+        return;                 //桌面不接收close消息。
     //判断窗口node_msg_close是否为空,如果不为空,
     //则表示该窗口节点已经加入到消息队列的 list_msg_close中.
     if(dListIsEmpty(&hwnd->node_msg_close))
@@ -438,9 +493,9 @@ void __PostCloseMessage(struct WindowMsgQ *pMsgQ,HWND hwnd)
 //      param2:消息参数2.
 //返回：TRUE:成功;FALSE:失败.
 //------------------------------------------------------------------------------
-bool_t    __PostMessage(struct WindowMsgQ *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
+bool_t    __PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 {
-    struct QMSG *new_msg;
+    struct MsgList *new_msg;
     bool_t res=FALSE;
 
     //判断是否有空闲的QMSG
@@ -478,26 +533,6 @@ bool_t    __PostMessage(struct WindowMsgQ *pMsgQ,HWND hwnd,u32 msg,u32 param1,pt
     return res;
 }
 
-//----发送窗口退出消息---------------------------------------------------------
-//描述: 略.
-//参数：hwnd:目标窗口句柄.
-//     exit_code: 窗口退出代码.
-//返回：TRUE:成功;FALSE:失败.
-//------------------------------------------------------------------------------
-bool_t    PostQuitMessage(HWND hwnd,u32 exit_code)
-{
-    struct WindowMsgQ *pMsgQ;
-
-    if(HWND_Lock(hwnd))
-    {
-        pMsgQ =__GetWindowMsgQ(hwnd);
-        __InitMsg(&pMsgQ->quit_msg,hwnd,MSG_QUIT,0,0);
-        HWND_Unlock(hwnd);
-        return TRUE;
-    }
-    return FALSE;
-}
-
 //----发送异步消息--------------------------------------------------------------
 //描述: 发送消息到消息队列中,不等待处理,立即返回.
 //参数：hwnd:窗口句柄.
@@ -508,10 +543,10 @@ bool_t    PostQuitMessage(HWND hwnd,u32 exit_code)
 //------------------------------------------------------------------------------
 bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 {
-    struct WindowMsgQ *pMsgQ;
+    struct WinMsgQueueCB *pMsgQ;
     bool_t res=FALSE;
 
-    if(HWND_Lock(hwnd))
+    if(__HWND_Lock(hwnd))
     {
         pMsgQ =__GetWindowMsgQ(hwnd);
         if(NULL!=pMsgQ)
@@ -544,7 +579,7 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
         }
 
-        HWND_Unlock(hwnd);
+        __HWND_Unlock(hwnd);
     }
     return res;
 }
@@ -556,9 +591,9 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 //      pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
 //返回：TRUE:成功获取了消息; FALSE:没有获得消息.
 //------------------------------------------------------------------------------
-static  bool_t    __PeekPostMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *pMsg)
+static  bool_t    __PeekPostMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
 {
-    struct QMSG *new_msg;
+    struct MsgList *new_msg;
     bool_t res=FALSE;
 
     //判断是否有消息
@@ -602,7 +637,7 @@ static  bool_t    __PeekPostMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *p
 //      pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
 //返回：TRUE:成功获取了消息; FALSE:没有获得消息.
 //------------------------------------------------------------------------------
-static  bool_t    __PeekNCPaintMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *pMsg)
+static  bool_t    __PeekNCPaintMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
 {
     list_t *n;
     HWND hwnd;
@@ -611,7 +646,7 @@ static  bool_t    __PeekNCPaintMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg
     {
         n =pMsgQ->list_msg_ncpaint.next;
         dListRemove(n);
-        hwnd =dListEntry(n,WINDOW,node_msg_ncpaint);
+        hwnd =dListEntry(n,struct WINDOW,node_msg_ncpaint);
         __InitMsg(pMsg,hwnd,MSG_NCPAINT,0,0);
         return TRUE;
     }
@@ -625,7 +660,7 @@ static  bool_t    __PeekNCPaintMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg
 //      pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
 //返回：TRUE:成功获取了消息; FALSE:没有获得消息.
 //------------------------------------------------------------------------------
-static  bool_t    __PeekPaintMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *pMsg)
+static  bool_t    __PeekPaintMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
 {
     list_t *n;
     HWND hwnd;
@@ -634,7 +669,7 @@ static  bool_t    __PeekPaintMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *
     {
         n =pMsgQ->list_msg_paint.next;
         dListRemove(n);
-        hwnd =dListEntry(n,WINDOW,node_msg_paint);
+        hwnd =dListEntry(n,struct WINDOW,node_msg_paint);
         __InitMsg(pMsg,hwnd,MSG_PAINT,0,0);
         return TRUE;
     }
@@ -648,7 +683,7 @@ static  bool_t    __PeekPaintMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *
 //      pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
 //返回：TRUE:成功获取了消息; FALSE:没有获得消息.
 //------------------------------------------------------------------------------
-static  bool_t    __PeekTimerMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *pMsg)
+static  bool_t    __PeekTimerMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
 {
     list_t *n;
     struct WinTimer *ptmr;
@@ -672,7 +707,7 @@ static  bool_t    __PeekTimerMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *
 //      pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
 //返回：TRUE:成功获取了消息; FALSE:没有获得消息.
 //------------------------------------------------------------------------------
-static  bool_t    __PeekCloseMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *pMsg)
+static  bool_t    __PeekCloseMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
 {
     list_t *n;
     HWND hwnd;
@@ -681,82 +716,11 @@ static  bool_t    __PeekCloseMessage(struct WindowMsgQ *pMsgQ,struct WindowMsg *
     {
         n =dListGetAfter(&pMsgQ->list_msg_close);
         dListRemove(n);
-        hwnd =dListEntry(n,WINDOW,node_msg_close);
-        __InitMsg(pMsg,hwnd,MSG_CLOSE,0,0);
+        hwnd =dListEntry(n,struct WINDOW,node_msg_close);
+        __InitMsg(pMsg, hwnd, MSG_CLOSE, 0, (ptu32_t)hwnd->PrivateData);
         return TRUE;
     }
     return FALSE;
-}
-
-//----获取消息------------------------------------------------------------------
-//描述: 丛消息队列中以非阻塞方式获取一条消息.
-//参数：pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
-//     hwnd: 窗口句柄.
-//返回：TRUE:成功获取了消息; FALSE:没有获得消息.
-//------------------------------------------------------------------------------
-bool_t PeekMessage(struct WindowMsg *pMsg,HWND hwnd)
-{
-    struct WindowMsgQ *pMsgQ;
-    bool_t res=FALSE;
-
-    if(NULL!=pMsg)
-    if(HWND_Lock(hwnd))
-    {
-        pMsgQ =__GetWindowMsgQ(hwnd);
-        if(NULL!=pMsgQ)
-        {
-            do
-            {
-                if(pMsgQ->quit_msg.Code == MSG_QUIT)
-                {
-                    __InitMsg(pMsg,hwnd,MSG_QUIT,0,0);
-                    __DeleteMainWindowData(hwnd);
-
-                    res=TRUE;
-                    break;
-                }
-                if(__PeekCloseMessage(pMsgQ,pMsg))
-                {
-                    res=TRUE;
-                    break;
-                }
-
-                HWND_Unlock(hwnd);
-                __HandleSyncMessage(pMsgQ);
-                HWND_Lock(hwnd);
-
-                if(__PeekPostMessage(pMsgQ,pMsg))
-                {
-                    res=TRUE;
-                    break;
-                }
-
-                if(__PeekNCPaintMessage(pMsgQ,pMsg))
-                {
-                    res=TRUE;
-                    break;
-                }
-
-                if(__PeekPaintMessage(pMsgQ,pMsg))
-                {
-                    res=TRUE;
-                    break;
-                }
-
-                if(__PeekTimerMessage(pMsgQ,pMsg))
-                {
-                    res=TRUE;
-                    break;
-                }
-
-
-            }while(0);
-        }
-
-        HWND_Unlock(hwnd);
-    }
-
-    return res;
 }
 
 /*============================================================================*/
@@ -767,32 +731,79 @@ bool_t PeekMessage(struct WindowMsg *pMsg,HWND hwnd)
 //     hwnd: 窗口句柄.
 //返回：当获得了MSG_QUIT时,该函数返回FALSE,否则返回TRUE.
 //------------------------------------------------------------------------------
-bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd)
+bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
 {
     s32 res=FALSE;
+    struct WinMsgQueueCB *pMsgQ;
+    bool_t GetMsg;
 
+    *SyncMsg = false;
     while(1)
     {
-        if(PeekMessage(pMsg,hwnd))
+//      if(PeekMessage(pMsg,hwnd))
+//      {
+//          if(pMsg->Code == MSG_QUIT)
+//          {
+//              res=FALSE;
+//          }
+//          else
+//          {
+//              res=TRUE;
+//          }
+//          break;
+//      }
+//      else
+
+        if(__HWND_Lock(hwnd))
         {
-            if(pMsg->Code!=MSG_QUIT)
+            GetMsg = true;
+            pMsgQ =__GetWindowMsgQ(hwnd);
+            if(NULL!=pMsgQ)
             {
-                res=TRUE;
+                res = true;
+                //注，if语句的顺序，就是各类消息的优先级，不得随意调整
+                if(__PeekCloseMessage(pMsgQ,pMsg))
+                {
+                }
+//                  __HWND_Unlock(hwnd);
+                else if(__PeekSyncMessage(pMsgQ,pMsg))
+                {
+                    *SyncMsg = true;
+                }
+//                  __HWND_Lock(hwnd);
+                else if(__PeekPostMessage(pMsgQ,pMsg))
+                {
+                }
+
+                else if(__PeekNCPaintMessage(pMsgQ,pMsg))
+                {
+                }
+
+                else if(__PeekPaintMessage(pMsgQ,pMsg))
+                {
+                }
+
+                else if(__PeekTimerMessage(pMsgQ,pMsg))
+                {
+                }
+                else
+                    GetMsg = false;
             }
-            else
-            {
-                res=FALSE;
-            }
+            __HWND_Unlock(hwnd);
+        }
+
+        if(GetMsg)
+        {
             break;
         }
         else
         {
-            struct WindowMsgQ *pMsgQ;
+            struct WinMsgQueueCB *pMsgQ;
 
-            if(HWND_Lock(hwnd))
+            if(__HWND_Lock(hwnd))
             {
                 pMsgQ =__GetWindowMsgQ(hwnd);
-                HWND_Unlock(hwnd);
+                __HWND_Unlock(hwnd);
 
                 if(NULL!=pMsgQ)
                 {

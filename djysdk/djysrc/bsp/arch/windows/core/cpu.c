@@ -95,6 +95,7 @@ extern ufast_t ufg_int_number;
 
 extern u32  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed = 100; //for(i=j;i>0;i--);每循环纳秒数*1.024
+u32 g_u32HundreUsfor = (1024<<7)/g_u32CycleSpeed;
 s64 s64g_freq;
 extern struct EventECB  *g_ptEventReady;      //就绪队列头
 extern struct EventECB  *g_ptEventRunning;    //当前正在执行的事件

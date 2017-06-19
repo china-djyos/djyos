@@ -48,81 +48,68 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-
 #include "stdint.h"
 #include "cpu_peri.h"
 #include "board-config.h"
+#include "stm32f7xx_hal_conf.h"
+#include "stm32f7xx_ll_system.h"
 
-// ===================== PLL配置所需的宏定义 =====================================
-//PLL_N:主PLL倍频系数(PLL倍频),取值范围:64~432.
-//PLL_M:主PLL和音频PLL分频系数(PLL之前的分频),取值范围:2~63.
-//PLL_P:系统时钟的主PLL分频系数(PLL之后的分频),取值范围:2,4,6,8.(仅限这4个值!)
-//PLL_Q:USB/SDIO/随机数产生器等的主PLL分频系数(PLL之后的分频),取值范围:2~15.
-//VCO频率=PLL*(PLL_N/PLL_M);
-//系统时钟频率=VCO频率/PLL_P=PLL*(PLL_N/(PLL_M*PLL_P));
-//USB,SDIO,RNG等的时钟频率=VCO频率/PLL_Q=PLL*(PLL_N/(PLL_M*PLL_Q));
 // =============================================================================
-/*设置  VCO频率=432Mhz 系统时钟频率=216Mhz USB,SDIO,RNG等的时钟频率=48Mhz*/
-#define PLL_N      ((CN_CFG_MCLK/Mhz)*2)
-
-#define PLL_M      8
-
-#define PLL_P      2
-#define PLL_Q      9
-
-#define PLLSAI_N      192
-#define PLLSAI_R      5
-#define PLLSAI_P      2
-#define PLLSAI_Q      2
-//0 1 2 3对应2 4 8 16分频
-#define PLLSAIDIVR    0
-// =============================================================================
-// 功能：该函数实现系统时钟的初始化，主要包括：1、系统时钟从内部时钟切换到外部时钟；2、配置
-//       HCLK、PCLK1、PCLK2、MCLK分频系数；3、用PLL为系统时钟
-//       本函数的时钟设置，必须与board-config.h中的CN_CFG_MCLK等常量定义一致。
+// 功能：该函数实现系统时钟的初始化，修改请参照board-config.h
+// 中的宏定义
 // 参数：无
 // 返回：true false
 // =============================================================================
+  /* This variable is updated in three ways:
+      1) by calling CMSIS function SystemCoreClockUpdate()
+      2) by calling HAL API function HAL_RCC_GetHCLKFreq()
+      3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
+         Note: If you use this function to configure the system clock; then there
+               is no need to call the 2 first functions listed above, since SystemCoreClock
+               variable is updated automatically.
+  */
+const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+const uint8_t APBPrescTable[8] = {0, 0, 0, 0, 1, 2, 3, 4};
+
 bool_t SysClockInit(void)
 {
+    bool_t flag =true;
+    HAL_StatusTypeDef ret = HAL_OK;
+    RCC_OscInitTypeDef RCC_OscInitStructure;
+    RCC_ClkInitTypeDef RCC_ClkInitStructure;
 
-//相应寄存器初始化
-    RCC->CR|=0x00000001;//高速内部时钟使能
-    RCC->CFGR=0x00000000;
-    RCC->CR&=0xFEF6FFFF;
-    RCC->PLLCFGR=0x24003010;
-    RCC->CR&=~(1<<18);
-    RCC->CIR=0x00000000;//禁止时钟中断
-    RCC->CR|=1<<16;//开HSE
-    while((RCC->CR&(1<<17))==0);
+    __HAL_RCC_PWR_CLK_ENABLE(); //使能PWR时钟
 
-//配置PLL PLLSAI
-    RCC->APB1ENR|=1<<28;    //电源接口时钟使能
-    PWR->CR1|=3<<14;        //切换到高性能模式
-    RCC->PLLCFGR=PLL_M|(PLL_N<<6)|(((PLL_P>>1)-1)<<16)|(PLL_Q<<24)|(1<<22);//配置主PLL
-    RCC->PLLSAICFGR=(PLLSAI_R<<28)|(PLLSAI_Q<<24)|(((PLL_P>>1)-1)<<16)|( PLLSAI_N<<6); //配置主SAI
-    RCC->DCKCFGR1 |=(PLLSAIDIVR <<16);
-    RCC->CR |=(1<<24);//关闭主PLL
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);//设置调压器输出电压级别，以便在器件未以最大频率工作
 
-//切换到过驱动模式
-    PWR->CR1|=1<<16;        //使能过驱动,频率可到216Mhz
-    while(0==(PWR->CSR1&(1<<16)));
-    PWR->CR1|=1<<17;        //使能过驱动切换
-    while((PWR->CSR1&(1<<17))==0);
+    RCC_OscInitStructure.OscillatorType=RCC_OSCILLATORTYPE_HSE;    //时钟源为HSE
+    RCC_OscInitStructure.HSEState=RCC_HSE_ON;                      //打开HSE
+    RCC_OscInitStructure.PLL.PLLState=RCC_PLL_ON;                  //打开PLL
+    RCC_OscInitStructure.PLL.PLLSource=RCC_PLLSOURCE_HSE;          //PLL时钟源选择HSE
+    RCC_OscInitStructure.PLL.PLLM=(CN_CFG_HSE/Mhz); //主PLL和音频PLL分频系数(PLL之前的分频)
+    RCC_OscInitStructure.PLL.PLLN=((CN_CFG_MCLK/Mhz)*2); //主PLL倍频系数(PLL倍频)
+    RCC_OscInitStructure.PLL.PLLP=2; //系统时钟的主PLL分频系数(PLL之后的分频)
+    RCC_OscInitStructure.PLL.PLLQ=9; //USB/SDIO/随机数产生器等的主PLL分频系数(PLL之后的分频)
+    ret=HAL_RCC_OscConfig(&RCC_OscInitStructure);//初始化
+    if(ret!=HAL_OK)
+        flag=false;
 
-//FLASH 时序设置 APB1 APB2分频系数
-    FLASH->ACR|=7<<0;       //7个CPU等待周期.
-    FLASH->ACR|=1<<8;       //指令预取使能.
-    FLASH->ACR|=1<<9;       //使能ART Accelerator
-    RCC->CFGR|=(0<<4)|(5<<10)|(4<<13);//HCLK 不分频;APB1 4分频;APB2 2分频.
+    ret=HAL_PWREx_EnableOverDrive(); //开启Over-Driver功能
+    if(ret!=HAL_OK)
+        flag=false;
 
-//切换系统时钟
-    RCC->CR|=1<<24;         //打开主PLL
-    while((RCC->CR&(1<<25))==0);//等待PLL准备好
-    RCC->CFGR&=~(3<<0);     //清零
-    RCC->CFGR|=2<<0;        //选择主PLL作为系统时钟
-    while((RCC->CFGR&(3<<2))!=(2<<2));//等待主PLL作为系统时钟成功.
-    return true;
+    //选中PLL作为系统时钟源并且配置HCLK,PCLK1和PCLK2
+    RCC_ClkInitStructure.ClockType=(RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2);
+    RCC_ClkInitStructure.SYSCLKSource=RCC_SYSCLKSOURCE_PLLCLK;//设置系统时钟时钟源为PLL
+    RCC_ClkInitStructure.AHBCLKDivider=SYSCLK_DIV;//AHB分频系数为1
+    RCC_ClkInitStructure.APB1CLKDivider=AHB1_DIV;//APB1分频系数为4
+    RCC_ClkInitStructure.APB2CLKDivider=AHB2_DIV;//APB2分频系数为2
+
+    ret=HAL_RCC_ClockConfig(&RCC_ClkInitStructure,FLASH_LATENCY_7);//同时设置FLASH延时周期为7WS，也就是8个CPU周期。
+    if(ret!=HAL_OK)
+        flag=false;
+    LL_FLASH_EnableART();
+    return flag;
 }
 
 // =============================================================================
@@ -211,8 +198,8 @@ static void SRAM_FmcInit(void)
 //SDRAM初始化
 void SRAM_Init(void)
 {
-    SRAM_GpioInit();
-    SRAM_FmcInit();
+//    SRAM_GpioInit();
+//    SRAM_FmcInit();
 
 }
 

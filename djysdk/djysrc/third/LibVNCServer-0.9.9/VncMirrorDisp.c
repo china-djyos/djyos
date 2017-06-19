@@ -184,7 +184,7 @@ bool_t VncDispInstall(rfbScreenInfo* rfbserver,const char *lcdname)
     struct GkWinRsc   *desktop;
 
     result = false;
-    desktop = GK_ApiGetDesktop(lcdname);
+    desktop = GK_GetDesktop(lcdname);
     if(NULL==desktop)//ÕÒ²»µ½×ÀÃæ¡£
     {
         goto EXIT_PARAERR;

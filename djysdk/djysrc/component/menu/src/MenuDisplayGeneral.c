@@ -79,13 +79,13 @@ static bool_t DrawMenuLayerBox_V(struct menu_displaypara*  dispara)
     temp_rec.bottom=(dispara->MenuitemSpace.height)*num_item+cn_space_margin/2;
     temp_rec.right=dispara->MenuitemSpace.width+cn_space_margin/2;
 
-    GK_ApiLineto(win, temp_rec.left, temp_rec.top, temp_rec.right, temp_rec.top,\
+    GK_Lineto(win, temp_rec.left, temp_rec.top, temp_rec.right, temp_rec.top,\
                   CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-    GK_ApiLineto(win, temp_rec.left, temp_rec.bottom, temp_rec.right, temp_rec.bottom,\
+    GK_Lineto(win, temp_rec.left, temp_rec.bottom, temp_rec.right, temp_rec.bottom,\
                   CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-    GK_ApiLineto(win, temp_rec.left, temp_rec.top, temp_rec.left, temp_rec.bottom,\
+    GK_Lineto(win, temp_rec.left, temp_rec.top, temp_rec.left, temp_rec.bottom,\
                    CN_COLOR_BLACK, CN_R2_COPYPEN,0);
-    GK_ApiLineto(win, temp_rec.right, temp_rec.top, temp_rec.right, temp_rec.bottom,\
+    GK_Lineto(win, temp_rec.right, temp_rec.top, temp_rec.right, temp_rec.bottom,\
                    CN_COLOR_BLACK, CN_R2_COPYPEN, CN_TIMEOUT_FOREVER);
 
      result=true;
@@ -111,13 +111,13 @@ static bool_t DrawMenuLayerBox_V(struct menu_displaypara*  dispara)
     temp_rec.top=cn_space_margin/4;
     temp_rec.bottom=dispara->MenuitemSpace.height+cn_space_margin/2;
     temp_rec.right=(dispara->MenuitemSpace.width)*num_item+cn_space_margin/2;
-    GK_ApiLineto(win, temp_rec.left, temp_rec.top, temp_rec.right, temp_rec.top,\
+    GK_Lineto(win, temp_rec.left, temp_rec.top, temp_rec.right, temp_rec.top,\
                   CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-    GK_ApiLineto(win, temp_rec.left, temp_rec.bottom, temp_rec.right, temp_rec.bottom,\
+    GK_Lineto(win, temp_rec.left, temp_rec.bottom, temp_rec.right, temp_rec.bottom,\
                   CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-    GK_ApiLineto(win, temp_rec.left, temp_rec.top, temp_rec.left, temp_rec.bottom,\
+    GK_Lineto(win, temp_rec.left, temp_rec.top, temp_rec.left, temp_rec.bottom,\
                   CN_COLOR_BLACK, CN_R2_COPYPEN,0);
-    GK_ApiLineto(win, temp_rec.right, temp_rec.top, temp_rec.right, temp_rec.bottom,\
+    GK_Lineto(win, temp_rec.right, temp_rec.top, temp_rec.right, temp_rec.bottom,\
                   CN_COLOR_BLACK, CN_R2_COPYPEN, CN_TIMEOUT_FOREVER);
 
     result=true;
@@ -140,13 +140,13 @@ static bool_t DrawMenuLayerBox_3by3(struct menu_displaypara*  dispara)
       temp_rec.bottom=dispara->CurWin->bottom-dispara->CurWin->top-cn_space_margin/4;
       temp_rec.right=dispara->CurWin->right-dispara->CurWin->left-cn_space_margin/4;
 
-      GK_ApiLineto(win, temp_rec.left, temp_rec.top, temp_rec.right, temp_rec.top,\
+      GK_Lineto(win, temp_rec.left, temp_rec.top, temp_rec.right, temp_rec.top,\
                     CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-      GK_ApiLineto(win, temp_rec.left, temp_rec.bottom, temp_rec.right, temp_rec.bottom,\
+      GK_Lineto(win, temp_rec.left, temp_rec.bottom, temp_rec.right, temp_rec.bottom,\
                       CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-      GK_ApiLineto(win, temp_rec.left, temp_rec.top, temp_rec.left, temp_rec.bottom,\
+      GK_Lineto(win, temp_rec.left, temp_rec.top, temp_rec.left, temp_rec.bottom,\
                       CN_COLOR_BLACK, CN_R2_COPYPEN,0);
-      GK_ApiLineto(win, temp_rec.right, temp_rec.top, temp_rec.right, temp_rec.bottom,\
+      GK_Lineto(win, temp_rec.right, temp_rec.top, temp_rec.right, temp_rec.bottom,\
                      CN_COLOR_BLACK, CN_R2_COPYPEN, CN_TIMEOUT_FOREVER);
       result=true;
 
@@ -277,7 +277,7 @@ static void  draw_win_text(struct draw_wintext_para *para,const char *text)//È·È
              mpara.bitmap.PixelFormat=CN_SYS_PF_ERGB8888;
              mpara.bitmap.bm_bits=colorbuf;
              //Ã¿´ÎÌâÍ¼¶¼ÒªÁ¢¼´Íê³É£¬²»È»»á³öÏÖÄÚ´æ±»ÖØĞ´£¬µ¼ÖÂÏÔÊ¾ÎÉÂÒ
-             GK_ApiDrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y,0,0, CN_TIMEOUT_FOREVER);
+             GK_DrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y,0,0, CN_TIMEOUT_FOREVER);
              //¿¼ÂÇµ½ÒªÊÍ·ÅÄÚ´æ£¬ËùÒÔ±ØĞëµÈ´ıÍê³ÉÒÔºóÔÙ·µ»Ø£¬¼´´æÔÚÏß³ÌÇĞ»»¡£
               bitmap_para.x += bitmap_para.bitmap.width;
         }
@@ -367,7 +367,7 @@ bool_t display_menu_horizontal(struct menu_displaypara * dispara)//µ÷ÓÃĞ´²Ëµ¥ÄÚÈ
       x=cn_space_margin/2;
       y=cn_space_margin/2;
           //Ê×ÏÈÒª½«Õû¸ö´°¿ÚÑÕÉ«¸´Ô­,²»Ó¦¸ÃÔÚÕâÀï×ö£¬²»È»ºÜÀË·Ñ×ÊÔ´µÄ£¬Ã¿´Î¶¼ÒªË¢ÆÁ£¬Ì«²ĞÈÌÁË£¡
-    //  GK_ApiFillWin(dispara->CurWin, dispara->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
+    //  GK_FillWin(dispara->CurWin, dispara->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
       do{
           //¸öÈË×ÔÉ¨ÃÅÇ°Ñ©£¬Ã¿¸ömenuitemµÄĞ´Èë¶¼ÒªÇå³ıÒ»ÏÂ
           LightedRec.left=x,
@@ -377,13 +377,13 @@ bool_t display_menu_horizontal(struct menu_displaypara * dispara)//µ÷ÓÃĞ´²Ëµ¥ÄÚÈ
           if(temp==dispara->OperatingMenuitem)//¼ÓÁÁµ±Ç°²Ù×÷Ïî
           {
               //Õâ¸öÊ±ºò²»ĞèÒªÇĞ»»ÊÂ¼ş£¬ÏÂÃæµÄĞ´×Öº¯Êı»á×èÈûÊÂ¼ş£¬Ö±µ½Ğ´Íê
-              GK_ApiFillRect(dispara->CurWin, &LightedRec,
+              GK_FillRect(dispara->CurWin, &LightedRec,
                            dispara->DisplayColor.menu_lighted_color,
                            0,CN_FILLRECT_MODE_N,0);
           }
           else
           {
-              GK_ApiFillRect(dispara->CurWin, &LightedRec,
+              GK_FillRect(dispara->CurWin, &LightedRec,
                              dispara->DisplayColor.menu_color,
                              0,CN_FILLRECT_MODE_N,0);
           }
@@ -432,7 +432,7 @@ bool_t display_menu_vertical(struct menu_displaypara * dispara)//µ÷ÓÃĞ´²Ëµ¥ÄÚÈİº
       x=cn_space_margin/2;
       y=cn_space_margin/2;
     //Ê×ÏÈÒª½«Õû¸ö´°¿ÚÑÕÉ«¸´Ô­,²»Ó¦¸ÃÔÚÕâÀï×ö£¬²»È»ºÜÀË·Ñ×ÊÔ´µÄ£¬Ã¿´Î¶¼ÒªË¢ÆÁ£¬Ì«²ĞÈÌÁË£¡
-    //  GK_ApiFillWin(dispara->CurWin, dispara->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
+    //  GK_FillWin(dispara->CurWin, dispara->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
       do{
           LightedRec.left=x,
           LightedRec.top=y;
@@ -441,13 +441,13 @@ bool_t display_menu_vertical(struct menu_displaypara * dispara)//µ÷ÓÃĞ´²Ëµ¥ÄÚÈİº
           if(temp==dispara->OperatingMenuitem)//¼ÓÁÁµ±Ç°²Ù×÷Ïî
           {
               //Õâ¸öÊ±ºò²»ĞèÒªÇĞ»»ÊÂ¼ş£¬ÏÂÃæµÄĞ´×Öº¯Êı»á×èÈûÊÂ¼ş£¬Ö±µ½Ğ´Íê
-              GK_ApiFillRect(dispara->CurWin, &LightedRec,
+              GK_FillRect(dispara->CurWin, &LightedRec,
                              dispara->DisplayColor.menu_lighted_color,
                              0,CN_FILLRECT_MODE_N,0);
           }
           else
           {
-              GK_ApiFillRect(dispara->CurWin, &LightedRec,
+              GK_FillRect(dispara->CurWin, &LightedRec,
                              dispara->DisplayColor.menu_color,
                              0,CN_FILLRECT_MODE_N,0);
           }
@@ -497,7 +497,7 @@ bool_t display_menu_3by3(struct menu_displaypara * dispara)//µ÷ÓÃĞ´²Ëµ¥ÄÚÈİº¯Êıº
   temp=dispara->FVisualMenuitem;
 
   //Ê×ÏÈÒª½«Õû¸ö´°¿ÚÑÕÉ«¸´Ô­
-  GK_ApiFillWin(dispara->CurWin, dispara->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
+  GK_FillWin(dispara->CurWin, dispara->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
 
   x0=(dispara->CurWin->right-dispara->CurWin->left-cn_space_margin)/2-(dispara->MenuitemSpace.width*3)/2;
   y0=(dispara->CurWin->bottom-dispara->CurWin->top-cn_space_margin)/2-(dispara->MenuitemSpace.height*3)/2;
@@ -511,13 +511,13 @@ bool_t display_menu_3by3(struct menu_displaypara * dispara)//µ÷ÓÃĞ´²Ëµ¥ÄÚÈİº¯Êıº
       if(temp==dispara->OperatingMenuitem)//¼ÓÁÁµ±Ç°²Ù×÷Ïî
       {
           //Õâ¸öÊ±ºò²»ĞèÒªÇĞ»»ÊÂ¼ş£¬ÏÂÃæµÄĞ´×Öº¯Êı»á×èÈûÊÂ¼ş£¬Ö±µ½Ğ´Íê
-          GK_ApiFillRect(dispara->CurWin, &LightedRec,
+          GK_FillRect(dispara->CurWin, &LightedRec,
                          dispara->DisplayColor.menu_lighted_color,
                          0,CN_FILLRECT_MODE_N,0);
       }
       else
       {
-          GK_ApiFillRect(dispara->CurWin, &LightedRec,
+          GK_FillRect(dispara->CurWin, &LightedRec,
                          dispara->DisplayColor.menu_color,
                          0,CN_FILLRECT_MODE_N,0);
       }
@@ -739,7 +739,7 @@ void  my_draw_text(struct draw_wintext_para *para,const char *text)//È·ÈÏ
              mpara.bitmap.PixelFormat=CN_SYS_PF_ERGB8888;
              mpara.bitmap.bm_bits=colorbuf;
              //¿¼ÂÇµ½ÒªÊÍ·ÅÄÚ´æ£¬ËùÒÔ±ØĞëµÈ´ıÍê³ÉÒÔºóÔÙ·µ»Ø£¬¼´´æÔÚÏß³ÌÇĞ»»¡£
-             GK_ApiDrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y,0,0, CN_TIMEOUT_FOREVER);
+             GK_DrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y,0,0, CN_TIMEOUT_FOREVER);
         }
     }
     free(colorbuf);//
@@ -781,7 +781,7 @@ struct menu_displaypara *goto_submenu(struct menu_displaypara *operatingDispara)
     //²ÎÊıµ÷Õû
     temp->AdjustVisualMenuitem(temp);
     //ÏÔÊ¾
-    GK_ApiFillWin(temp->CurWin, operatingDispara->DisplayColor.menu_color, 0);
+    GK_FillWin(temp->CurWin, operatingDispara->DisplayColor.menu_color, 0);
     temp->MyMenuDispalyFunction(temp);
 
     return temp;
@@ -814,7 +814,7 @@ struct menu_displaypara *goto_parmenu(struct menu_displaypara *operatingDispara)
         temp=operatingDispara;
         operatingDispara=operatingDispara->pre;
         operatingDispara->next=NULL;
-//        GK_ApiFillWin(temp->CurWin, temp->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
+//        GK_FillWin(temp->CurWin, temp->DisplayColor.menu_color, CN_TIMEOUT_FOREVER);
         deldisplaypara(temp);
 //ÒòÎª×Ó²Ëµ¥¿ÉÄÜµ²×¡ÁËºÜ¶à¸¸²Ëµ¥£¬ËùÒÔÒªÒÀ´Î»Ø¸´ËùÓĞµÄ²Ëµ¥£¬¾¡¹ÜÄ¿Ç°¶àÓà£¬µ«ÊÇºóĞø¿ª·¢ºÜÖØÒª--TODO
 //ÒòÎªÊÇ»Ö¸´²Ëµ¥£¬ËùÒÔ´ËÊ±ÊÇÃ»ÓĞ±ØÒªµ÷Õû²Ëµ¥ÏîµÄ¡£
@@ -822,11 +822,11 @@ struct menu_displaypara *goto_parmenu(struct menu_displaypara *operatingDispara)
         temp=pMainmenuDispara;
         while(temp!=operatingDispara)
         {
-            GK_ApiFillWin(temp->CurWin, operatingDispara->DisplayColor.menu_color, 0);
+            GK_FillWin(temp->CurWin, operatingDispara->DisplayColor.menu_color, 0);
             temp->MyMenuDispalyFunction(temp);
             temp=temp->next;
         }
-        GK_ApiFillWin(temp->CurWin, operatingDispara->DisplayColor.menu_color, 0);
+        GK_FillWin(temp->CurWin, operatingDispara->DisplayColor.menu_color, 0);
         temp->MyMenuDispalyFunction(temp);
          return operatingDispara;
     }
@@ -847,7 +847,7 @@ void goto_nextmenuitem(struct menu_displaypara  *operatingDispara)
          return;
     }
     operatingDispara->OperatingMenuitem=GetNextMenuitem(operatingDispara->OperatingMenuitem);
-//    GK_ApiFillWin(operatingDispara->CurWin, operatingDispara->DisplayColor.menu_color, 0);
+//    GK_FillWin(operatingDispara->CurWin, operatingDispara->DisplayColor.menu_color, 0);
     operatingDispara->AdjustVisualMenuitem(operatingDispara);
     operatingDispara->MyMenuDispalyFunction(operatingDispara);
 }
@@ -867,7 +867,7 @@ void goto_premenuitem(struct menu_displaypara  *operatingDispara)
          return;
     }
     operatingDispara->OperatingMenuitem=GetPreMenuitem(operatingDispara->OperatingMenuitem);
-//   GK_ApiFillWin(operatingDispara->CurWin, operatingDispara->DisplayColor.menu_color, 0);
+//   GK_FillWin(operatingDispara->CurWin, operatingDispara->DisplayColor.menu_color, 0);
     operatingDispara->AdjustVisualMenuitem(operatingDispara);
     operatingDispara->MyMenuDispalyFunction(operatingDispara);
 }
@@ -904,7 +904,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
      }
     //ÖØ»æµ±Ç°²Ëµ¥´°¿Ú
     operatingDispara->OperatingMenuitem=pDestMenuitem;
-//    GK_ApiFillWin(operatingDispara->CurWin,operatingDispara->DisplayColor.menu_color, 0);
+//    GK_FillWin(operatingDispara->CurWin,operatingDispara->DisplayColor.menu_color, 0);
     operatingDispara->AdjustVisualMenuitem(operatingDispara);
     operatingDispara->MyMenuDispalyFunction(operatingDispara);
     return;
@@ -1016,7 +1016,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
              mpara.bitmap.bm_bits=colorbuf;
              //Ã¿´ÎÌâÍ¼¶¼ÒªÁ¢¼´Íê³É£¬²»È»»á³öÏÖÄÚ´æ±»ÖØĞ´£¬µ¼ÖÂÏÔÊ¾ÎÉÂÒ
              printf("x=%d  y=%d\n",mpara.x,mpara.y);
-             GK_ApiDrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y,0,0, CN_TIMEOUT_FOREVER);
+             GK_DrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y,0,0, CN_TIMEOUT_FOREVER);
              //¿¼ÂÇµ½ÒªÊÍ·ÅÄÚ´æ£¬ËùÒÔ±ØĞëµÈ´ıÍê³ÉÒÔºóÔÙ·µ»Ø£¬¼´´æÔÚÏß³ÌÇĞ»»¡£
               bitmap_para.x += bitmap_para.bitmap.width;
         }
@@ -1162,7 +1162,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
 //              mpara.bitmap.bm_bits=colorbuf;
 //           //Ã¿´ÎÌâÍ¼¶¼ÒªÁ¢¼´Íê³É£¬²»È»»á³öÏÖÄÚ´æ±»ÖØĞ´£¬µ¼ÖÂÏÔÊ¾ÎÉÂÒ
 //              printf("x=%d  y=%d\n",mpara.x,mpara.y);
-//              GK_ApiDrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y, CN_TIMEOUT_FOREVER);
+//              GK_DrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y, CN_TIMEOUT_FOREVER);
 //              //Ôö¼ÓÏÔÊ¾µÄ¿í¶ÈºÍ¸ß¶È
 //              width_draw+=bitmap_para.bitmap.width;
 //              height_draw+=bitmap_para.bitmap.height;
@@ -1181,7 +1181,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
 //              mpara.bitmap.bm_bits=colorbuf;
 //           //Ã¿´ÎÌâÍ¼¶¼ÒªÁ¢¼´Íê³É£¬²»È»»á³öÏÖÄÚ´æ±»ÖØĞ´£¬µ¼ÖÂÏÔÊ¾ÎÉÂÒ
 //              printf("x=%d  y=%d\n",mpara.x,mpara.y);
-//              GK_ApiDrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y, CN_TIMEOUT_FOREVER);
+//              GK_DrawBitMap(mpara.gkwin, &(mpara.bitmap), mpara.x, mpara.y, CN_TIMEOUT_FOREVER);
 //              //Ôö¼ÓÏÔÊ¾µÄ¿í¶ÈºÍ¸ß¶È
 //              width_draw+=bitmap_para.bitmap.width;
 //              height_draw+=bitmap_para.bitmap.height;

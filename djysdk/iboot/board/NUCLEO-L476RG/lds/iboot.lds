@@ -187,6 +187,8 @@ SECTIONS
         . = ALIGN(0x08);
         gc_ptIbootSize = .;
         LONG(IbootSize)
+        gc_ptFlashRange = .;
+        LONG(InnerFlashRange)
     }>InnerFlash
 
     App_Info :

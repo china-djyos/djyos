@@ -82,10 +82,10 @@ static  bool_t ButtonPaint(struct WindowMsg *pMsg)
     HDC hdc;
     RECT rc;
     if(pMsg==NULL)
-    	return false;
+        return false;
     hwnd=pMsg->hwnd;
     if(hwnd==NULL)
-    	return false;
+        return false;
     hdc =BeginPaint(hwnd);
     if(NULL!=hdc)
     {
@@ -157,10 +157,10 @@ static  bool_t Button_Down(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     if(pMsg==NULL)
-       	return false;
+        return false;
     hwnd=pMsg->hwnd;
     if(hwnd==NULL)
-       	return false;
+        return false;
 
     switch(_get_button_type(hwnd))
     {
@@ -200,9 +200,9 @@ static  bool_t Button_Up(struct WindowMsg *pMsg)
     HWND hwnd;
     if(pMsg==NULL)
         return false;
-	hwnd=pMsg->hwnd;
-	if(hwnd==NULL)
-		return false;
+    hwnd=pMsg->hwnd;
+    if(hwnd==NULL)
+        return false;
     switch(_get_button_type(hwnd))
     {
         case    BS_NORMAL:
@@ -248,16 +248,16 @@ static bool_t Button_SetTextColor(u32 color)
 //-----------------------------------------------------------------------------
 static bool_t Button_SetAttr(struct WindowMsg *pMsg)
 {
-//	HWND hwnd;
-//	u32 attrid;
-//	ptu32 attr;
-//	if(pMsg==NULL)
-//	    return false;
-//	hwnd=pMsg->hwnd;
-//	if(hwnd==NULL)
-//		return false;
-//	attrid=pMsg->Param1;
-//	attr=pMsg->Param2;
+//  HWND hwnd;
+//  u32 attrid;
+//  ptu32 attr;
+//  if(pMsg==NULL)
+//      return false;
+//  hwnd=pMsg->hwnd;
+//  if(hwnd==NULL)
+//      return false;
+//  attrid=pMsg->Param1;
+//  attr=pMsg->Param2;
 //
 //
 //
@@ -282,22 +282,13 @@ HWND CreateButton(  const char *Text,u32 Style,
                     HWND hParent,u32 WinId,void *pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
-    WINDOW *pGddWin=NULL;
-    struct MsgTableLink *Current;
-    if(UserMsgTableLink != NULL)
-    {
-        Current = UserMsgTableLink;
-        while(Current->LinkNext != NULL)
-            Current = Current->LinkNext;
-        Current->LinkNext = &s_gButtonMsgLink;
-        Current = UserMsgTableLink;
-    }
-    else
-        Current = &s_gButtonMsgLink;
-    s_gButtonMsgLink.LinkNext = NULL;
+    HWND pGddWin;
     s_gButtonMsgLink.MsgNum = sizeof(s_gButtonMsgProcTable) / sizeof(struct MsgProcTable);
     s_gButtonMsgLink.myTable = (struct MsgProcTable *)&s_gButtonMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId,CN_WINBUF_PARENT,pdata,Current);
+    pGddWin=CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+                            CN_WINBUF_PARENT,pdata,&s_gButtonMsgLink);
+    if(UserMsgTableLink != NULL)
+        AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

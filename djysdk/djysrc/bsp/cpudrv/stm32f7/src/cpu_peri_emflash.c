@@ -66,6 +66,19 @@ static struct EmbdFlashDescr{
 extern u32 gc_ptIbootSize;
 extern u32 gc_ptFlashOffset;
 extern u32 gc_ptFlashRange;
+
+//-----------------------------------------------------------------------------
+//功能: 喂狗
+//参数:
+//返回:
+//备注: 函数由文件max706.c实现
+//-----------------------------------------------------------------------------
+extern bool_t BrdWdt_FeedDog(void) __attribute__((weak));
+bool_t BrdWdt_FeedDog(void)
+{
+	return (TRUE); // 空函数
+}
+
 //-----------------------------------------------------------------------------
 //功能: 获取内置FLASH的信息
 //参数:
@@ -82,7 +95,7 @@ static s32 EmFlash_Init(struct EmbdFlashDescr *Description)
 	Description->LargeSectorsPerPlane = 1;
 	Description->NormalSectorsPerPlane = 7; // STM32F767
 	Description->Planes = 1;
-	Description->MappedStAddr = gc_ptFlashOffset;
+	Description->MappedStAddr = 0x08000000;
 	return (0);
 }
 
@@ -125,10 +138,12 @@ static s32 Flash_SectorEarse(u32 SectorNo)
 	EraseInitStruct.Sector        = SectorNo;
 	EraseInitStruct.NbSectors     = 1;
 
+	BrdWdt_FeedDog(); // 喂狗
 	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
 	 	Ret=-1;
 	else
 		Ret=0;
+	BrdWdt_FeedDog(); // 喂狗
 	HAL_FLASH_Lock();
 
 	SCB_CleanInvalidateDCache();//块擦除后，需清cache，否则读flash可能数据错误

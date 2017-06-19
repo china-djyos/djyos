@@ -104,10 +104,7 @@ extern "C" {
 
 
 typedef struct DC       DC;
-struct WindowMsgQ;
-typedef struct WINDOW   WINDOW;
-
-
+struct WinMsgQueueCB;
 
 /*============================================================================*/
 
@@ -148,19 +145,21 @@ struct WINDOW
     //窗口（一般是控件）的私有消息处理函数表。
     //本成员是实现窗口消息继承机制的关键
     struct MsgTableLink *MyMsgTableLink;
+//  list_t MsgProcFuncTable;
     char    *Text;
     struct MutexLCB *mutex_lock;        //窗口互斥锁
-    struct WindowMsgQ    *pMsgQ;        //窗口消息队列
+    struct WinMsgQueueCB    *pMsgQ;        //窗口消息队列
     struct GkWinRsc *pGkWin;   //继承GkWin
     void    *PrivateData;      //窗口私有数据
 
-    u32     EventID;       //窗口所属事件ID
-
+    u16     EventID;        //窗口所属事件ID
     u16     WinId;          //窗口ID
-    u16     Flag;           //窗口标记
-    u32     Style;          //窗口风格
+
     u8      BorderSize;     //边框大小
     u8      CaptionSize;    //标题栏大小
+    u16     Flag;           //窗口标记，例如：WF_ERASEBKGND
+    u32     Style;          //窗口风格,高16位系统使用，例如：WS_CHILD
+                            //0~7 bit=控件类型，8~15 bit = 控件风格
     RECT    CliRect;        //窗口客户区(使用屏幕坐标)
     u32     DrawColor;      //绘制颜色，创建子窗口时，将继承
     u32     FillColor;      //填充颜色，创建子窗口时，将继承
@@ -179,45 +178,42 @@ struct WinTimer
 //    u32 Tag ;
     HWND hwnd;              //定时器所属窗口.
     u16 Id;                 //定时器Id.
-    u16 Flag;               //定时器标记，参看TMR_START等定义
-    u32 Interval;           //定时间隔(单位:uS).
-    u32 HoldTime;           //定时开始时间(单位:uS).
+//    u16 Flag;               //定时器标记，参看TMR_START等定义
+    u32 Interval;           //定时间隔(单位:mS).
+    s64 Alarm;             //下一次到点时间（uS）.
     list_t  node_sys;       //系统定时器链表节点.
     list_t  node_hwnd;      //所属窗口的定时器链表节点.
     list_t  node_msg_timer; //TIMER消息节点,当产生MSG_TIMER消息时,该节点插入到
                             //所属窗口的消息队列中的list_timer上.
 };
 
-#define CN_INTERVAL_TIME         800
-#define CN_CURSOR_TIMER_ID       0xff00
+#define CN_HMIINPUT_TIMER_ID     0xff01         //HMI输入扫描定时器
 /*============================================================================*/
 void    GDD_Init(void);
 
-bool_t    GDD_Lock(void);
-void    GDD_Unlock(void);
-u32     GUI_GetTickMS(void);
+bool_t  __HWND_Lock(HWND hwnd);
+void    __HWND_Unlock(HWND hwnd);
+bool_t  __GDD_Lock(void);
+void    __GDD_Unlock(void);
 
 void    __InitDC(DC *pdc,struct GkWinRsc *gk_win,HWND hwnd,s32 dc_type);
-bool_t    CopyRect(RECT *dst,const RECT *src);
 void    __OffsetRect(RECT *prc,s32 dx,s32 dy);
 void    __InflateRect(RECT *prc,s32 dx,s32 dy);
 void    __InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
-bool_t    __PtInRect(const RECT *prc,const POINT *pt);
+bool_t  __PtInRect(const RECT *prc,const POINT *pt);
 
-bool_t    HWND_Lock(HWND hwnd);
-void    HWND_Unlock(HWND hwnd);
 
-bool_t    __PostMessage(struct WindowMsgQ *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
+bool_t  __PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
 void    __PostTimerMessage(struct WinTimer *ptmr);
 
 void    __InvalidateWindow(HWND hwnd,bool_t bErase);
-struct WindowMsgQ*   GUI_CreateMsgQ(u32 size);
-void    GUI_DeleteMsgQ(struct WindowMsgQ *pMsgQ);
+struct WinMsgQueueCB*   __GUI_CreateMsgQ(u32 size);
+void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ);
 void    __RemoveWindowTimer(HWND hwnd);
 void    __DeleteMainWindowData(HWND hwnd);
 
-struct WindowMsgQ*       __GetWindowMsgQ(HWND hwnd);
-bool_t WinMsgProc(struct WindowMsg *pMsg);
+struct WinMsgQueueCB *__GetWindowMsgQ(HWND hwnd);
+bool_t __WinMsgProc(struct WindowMsg *pMsg);
 u32         __GetWindowEvent(HWND hwnd);
 
 /*============================================================================*/

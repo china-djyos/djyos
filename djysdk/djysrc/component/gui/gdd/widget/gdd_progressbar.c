@@ -427,22 +427,13 @@ HWND CreateProgressBar(  const char *Text,u32 Style,
                     HWND hParent,u32 WinId,void *pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
-    WINDOW *pGddWin=NULL;
-    struct MsgTableLink *Current;
-    if(UserMsgTableLink != NULL)
-    {
-        Current = UserMsgTableLink;
-        while(Current->LinkNext != NULL)
-            Current = Current->LinkNext;
-        Current->LinkNext = &s_gProgressBarMsgLink;
-        Current = UserMsgTableLink;
-    }
-    else
-        Current = &s_gProgressBarMsgLink;
-    s_gProgressBarMsgLink.LinkNext = NULL;
+    HWND pGddWin;
     s_gProgressBarMsgLink.MsgNum = sizeof(s_gProgressBarMsgProcTable) / sizeof(struct MsgProcTable);
     s_gProgressBarMsgLink.myTable = (struct MsgProcTable *)&s_gProgressBarMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId, CN_WINBUF_PARENT,pdata,Current);
+    pGddWin = CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId, 
+                                CN_WINBUF_PARENT,pdata,&s_gProgressBarMsgLink);
+    if(UserMsgTableLink != NULL)
+        AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

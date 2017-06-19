@@ -62,278 +62,37 @@
 #include "stdint.h"
 #include <gui\gkernel\gk_display.h>
 #include    <gui/gdd/gdd_private.h>
+#include    <gui/gdd_timer.h>
 #include    <cfg/gui_config.h>
 #include "list.h"
+
+
+
+extern HWND    InitGddDesktop(struct GkWinRsc *desktop);
+extern bool_t Cursor_Init(void);
 /*============================================================================*/
-HWND g_CursorHwnd=NULL;         //光标窗口
-
-u32 GUI_GetTickMS(void)
-{
-    return ((u32)DjyGetSysTime( )/1000);
-}
-
 
 static  struct MutexLCB *gdd_mutex_lock=NULL;
 
-bool_t    GDD_Lock(void)
+bool_t    __GDD_Lock(void)
 {
-        Lock_MutexPend(gdd_mutex_lock,5000*mS);
-        return TRUE;
+    Lock_MutexPend(gdd_mutex_lock, CN_TIMEOUT_FOREVER);
+    return TRUE;
 }
 
-void    GDD_Unlock(void)
+void    __GDD_Unlock(void)
 {
-        Lock_MutexPost(gdd_mutex_lock);
+    Lock_MutexPost(gdd_mutex_lock);
 }
 
 void    GDD_WindowInit(void);
-void    GDD_TimerInit(void);
 
-/*============================================================================*/
-void    GDD_Init(void)
-{
-    gdd_mutex_lock =Lock_MutexCreate(NULL);
-    if(gdd_mutex_lock!=NULL)
-    {
-        GDD_WindowInit();
-        GDD_TimerInit();
-    }
-}
 
 /*============================================================================*/
 
-static  const char **GDD_InputDevName;
+ptu32_t GDD_TimerScan(void);
+bool_t GDD_InputDevInit(const char *InputDevName[]);
 
-static HWND sg_pMouseHwnd;
-static  ptu32_t gdd_input_thread(void)
-{
-    HWND hwnd;
-    tpInputMsgQ pMsgQ;
-    struct InputDeviceMsg msg;
-    s32 i;
-
-    pMsgQ=HmiIn_CreatInputMsgQ(20,"input_msg");
-
-    if(pMsgQ!=NULL)
-    {
-        if(GDD_InputDevName!=NULL)
-        {
-            i=0;
-            while(1)
-            {
-                if(GDD_InputDevName[i] == NULL)
-                {
-                    break;
-                }
-
-                HmiIn_SetFocus((char*)GDD_InputDevName[i],pMsgQ);
-                i++;
-            }
-        }
-
-        while(1)
-        {
-            if(HmiIn_ReadMsg(pMsgQ, &msg, CN_TIMEOUT_FOREVER) != false)
-            {
-                //单点触摸屏消息，模拟成鼠标消息
-                if(msg.input_type == EN_HMIIN_SINGLE_TOUCH)
-                {
-                    struct SingleTouchMsg *TouchMsg;
-                    static s32 z=0;
-                    s32 Touch_Msg;
-                    bool_t NC;
-                    POINT pt;
-                    RECT rc;
-                    TouchMsg = &msg.input_data.SingleTouchMsg;
-                    pt.x = TouchMsg->x;
-                    pt.y = TouchMsg->y;
-                    GDD_Lock();
-                    //TouchDown所在窗口.
-                    if(TouchMsg->display != NULL)
-                        hwnd = GetWindowFromPoint(TouchMsg->display->desktop, &pt);
-                    else
-                        hwnd = GetWindowFromPoint(GetDesktopWindow()->pGkWin, &pt);
-                    //MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
-                    UpdateDisplay(CN_TIMEOUT_FOREVER);
-                    if(hwnd != NULL)
-                    {
-                        GetClientRectToScreen(hwnd,&rc);
-                        if(PtInRect(&rc, &pt))
-                            NC = false;
-                        else
-                            NC = true;
-
-                        if(z == TouchMsg->z)    //相等，必然是按下并拖动
-                        {
-                            if(NC )
-                                Touch_Msg = MSG_TOUCH_MOVE;
-                            else
-                                Touch_Msg = MSG_NCTOUCH_MOVE;
-                            PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
-                        }
-                        else
-                        {
-                            z = TouchMsg->z;
-                            if(z>0)     //touch按下，模拟成鼠标左键按下
-                            {
-                                if(NC)
-                                    Touch_Msg = MSG_NCTOUCH_DOWN;
-                                else
-                                    Touch_Msg = MSG_TOUCH_DOWN;
-                            }
-                            else        //touch离开，模拟成鼠标左键松开
-                            {
-                                if(NC)
-                                    Touch_Msg = MSG_NCTOUCH_UP;
-                                else
-                                    Touch_Msg = MSG_TOUCH_UP;
-                            }
-                            PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
-                        }
-                    }
-                    GDD_Unlock();
-                }
-
-                if(msg.input_type == EN_HMIIN_KEYBOARD)
-                {
-                    u8* key;
-                    u8 val,event;
-                    u32 KeyTime;
-
-                    hwnd = GetFocusWindow();
-                    if(NULL != hwnd)
-                    {
-                        key  = msg.input_data.key_board.key_value;
-                        KeyTime = msg.input_data.key_board.time;
-
-                        val  =key[0];
-                        event =key[1];
-
-                        if(event==0x00)
-                        {
-                            PostMessage(hwnd, MSG_KEY_DOWN, val, KeyTime);
-                        }
-
-                        if(event==0xF0)
-                        {
-                            PostMessage(hwnd, MSG_KEY_UP, val, KeyTime);
-                        }
-                    }
-                }
-
-
-            }
-        }
-
-        HmiIn_DeleteInputMsgQ(pMsgQ);
-    }
-    return 0;
-}
-
-//----GDD主函数-----------------------------------------------------------------
-//描述: GDD服务执行函数,该函数不会返回.
-//参数：无
-//返回：无
-//------------------------------------------------------------------------------
-void    GDD_TimerExecu(u32 tick_time_ms);
-static  ptu32_t gdd_server_thread(void)
-{
-    HWND hwnd;
-    struct WindowMsg msg;
-    hwnd = GetDesktopWindow( );
-    UpdateDisplay(CN_TIMEOUT_FOREVER);
-
-    while(1)
-    {
-
-        if(PeekMessage(&msg,hwnd))
-        {
-            DispatchMessage(&msg);
-        }
-        else
-        {
-            Djy_EventDelay(mS*50);
-            GDD_TimerExecu(GUI_GetTickMS());
-          //  TouchScreenExecu();
-        }
-    }
-    return 0;
-}
-//----鼠标绘制函数-------------------------------------------------------------
-//功能：这是按钮控件的MSG_PAINT消息响应函数
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static  bool_t MousePaint(struct WindowMsg *pMsg)
-{
-    HWND hwnd;
-    HDC hdc;
-    RECT rc;
-
-    hwnd=pMsg->hwnd;
-    hdc =BeginPaint(hwnd);
-    if(NULL!=hdc)
-    {
-        GetClientRect(hwnd,&rc);
-        SetFillColor(hdc,RGB(255,0,0));
-        FillRect(hdc,&rc);
-
-        SetDrawColor(hdc,RGB(1,1,1));
-        DrawLine(hdc,0,4,8,4);
-        DrawLine(hdc,4,0,4,8);
-
-        EndPaint(hwnd,hdc);
-    }
-    return true;
-}
-
-//鼠标消息处理函数表，处理用户函数表中没有处理的消息。
-static struct MsgProcTable s_gMouseMsgProcTable[] =
-{
-    {MSG_CREATE,MousePaint}
-};
-
-static struct MsgTableLink  s_gMouseMsgLink;
-
-
-//----光标绘制函数-------------------------------------------------------------
-//功能：这是按钮控件的MSG_PAINT消息响应函数
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static bool_t Cursor_Create(struct WindowMsg *pMsg)
-{
-    HWND hwnd;
-    s32 x,y;
-    RECT rc;
-    HDC hdc;
-    if(pMsg==NULL)
-       return false;
-    hwnd=pMsg->hwnd;
-    if(hwnd==NULL)
-         return false;
-    hdc =BeginPaint(hwnd);
-    if(NULL!=hdc)
-    {
-        GetClientRect(hwnd,&rc);
-        x=RectW(&rc);
-        y=RectH(&rc);
-        SetFillColor(hdc,RGB(255,0,0));
-        FillRect(hdc,&rc);
-        SetDrawColor(hdc,RGB(1,1,1));
-        DrawLine(hdc,x/2,0,x/2,y);
-        EndPaint(hwnd,hdc);
-    }
-    return true;
-}
-
-//光标消息处理函数链表
-static struct MsgProcTable s_gCursorMsgProcTable[]=
-{
-    {MSG_CREATE,Cursor_Create}
-};
-
-static struct MsgTableLink  s_gCursorMsgLink;
 //----GDD主函数-----------------------------------------------------------------
 //描述: GDD服务执行函数,该函数不会返回.
 //参数：无
@@ -342,69 +101,23 @@ static struct MsgTableLink  s_gCursorMsgLink;
 void    ModuleInstall_GDD(struct GkWinRsc *desktop,const char *InputDevName[])
 {
     u16 evtt;
-    HWND hwnd;
-    struct WinTimer *pTmr;
-    struct RopGroup RopCode;
-    GDD_Init();
-    GDD_InputDevName =InputDevName;
-    InitGddDesktop(desktop);
-    if(gc_bShowMouse == true)
+    HWND pGddWin=NULL;
+    gdd_mutex_lock =Lock_MutexCreate(NULL);
+    if(gdd_mutex_lock == NULL)
+        return;
+
+    pGddWin=InitGddDesktop(desktop);
+    GDD_WindowInit();
+    GDD_TimerInit();
+    GDD_InputDevInit(InputDevName);
+    if(pGddWin != NULL)
     {
-        s_gMouseMsgLink.LinkNext = NULL;
-        s_gMouseMsgLink.MsgNum = sizeof(s_gMouseMsgProcTable) / sizeof(struct MsgProcTable);
-        s_gMouseMsgLink.myTable = &s_gMouseMsgProcTable;
-        sg_pMouseHwnd = CreateWindow("Mouse_Cursor", 0, desktop->right / 2,
-                                      desktop->bottom / 2, 8, 8, NULL, 0,
-                                      CN_WINBUF_BUF, NULL, &s_gMouseMsgLink);
-        if(sg_pMouseHwnd!=NULL)
-        {
-           GK_ApiSetPrio(sg_pMouseHwnd->pGkWin,CN_WINDOW_ZPRIO_MOUSE , CN_TIMEOUT_FOREVER);
-//         GK_ApiSetHyalineColor(sg_pMouseHwnd->pGkWin,RGB(0, 0, 0));
-           RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_XORPEN, 0, 0, 0  };
-           GK_ApiSetRopCode(sg_pMouseHwnd->pGkWin, RopCode, CN_TIMEOUT_FOREVER);
-        }
+        if(Cursor_Init())
+            SetFocusWindow(pGddWin);
     }
-
-    s_gCursorMsgLink.LinkNext = NULL;
-    s_gCursorMsgLink.MsgNum = sizeof(s_gCursorMsgProcTable) / sizeof(struct MsgProcTable);
-    s_gCursorMsgLink.myTable = (struct MsgProcTable *)&s_gCursorMsgProcTable;
-    g_CursorHwnd=CreateWindow("Cursor",0,desktop->right /3,desktop->bottom/3,2\
-             , 12,NULL, 0, CN_WINBUF_BUF,NULL,&s_gCursorMsgLink);
-    if(g_CursorHwnd!=NULL)
-    {
-         GK_ApiSetPrio(g_CursorHwnd->pGkWin,CN_WINDOW_ZPRIO_CURSOR , CN_TIMEOUT_FOREVER);
-         RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_XORPEN, 0, 0, 0  };
-         GK_ApiSetRopCode(g_CursorHwnd->pGkWin, RopCode, CN_TIMEOUT_FOREVER);
-         //在桌面窗口创建一个定时周期为800ms的定时器
-         hwnd = GetDesktopWindow( );
-         if(hwnd==NULL)
-         {
-           #ifdef DEBUG
-               printf("Cursor Create Failed.\r\n");
-               while(1);
-           #endif
-               DestroyWindow(g_CursorHwnd);
-         }
-
-         pTmr=GDD_CreateTimer(hwnd,CN_CURSOR_TIMER_ID,CN_INTERVAL_TIME,0);
-         if(pTmr==NULL)
-         {
-             DestroyWindow(g_CursorHwnd);
-             return ;
-         }
-         SetWindowHide(g_CursorHwnd);
-     }
-    ////gdd_server
-    evtt = Djy_EvttRegist(  EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                           gdd_server_thread, NULL,2048,"gdd server");
-    if (evtt != CN_EVTT_ID_INVALID)
-    {
-        Djy_EventPop(evtt, NULL, 0, 0, 0, 0);
-    }
-
     ////gdd_input
     evtt = Djy_EvttRegist(  EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                          gdd_input_thread, NULL,2048,"gdd input");
+                          GDD_TimerScan, NULL,2048,"gdd input");
     if (evtt != CN_EVTT_ID_INVALID)
     {
         Djy_EventPop(evtt, NULL, 0, 0, 0, 0);

@@ -55,7 +55,7 @@ bool_t ArpFindMac(u32 ip,u8 *mac);
 bool_t ArpInform(char *param);
 
 #include "rout.h"
-bool_t ArpInformAll(tagRout *rout);
+bool_t ArpBroadRout(tagRout *rout);
 
 #endif /* __ARP_H */
 

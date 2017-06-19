@@ -64,7 +64,6 @@
 #include  "font.h"
 #include  <gdd_widget.h>
 
-extern HWND g_CursorHwnd;         //光标窗口
 
 #define CN_CHAR_NUM_MAX                 255
 #define CN_CANCLE_KEY                   0xA3
@@ -80,7 +79,7 @@ static s16 __GetValidStrLen(char *str)
 {
     u8 cnt=0;
     char ch;
-    s16 str_len;
+    s16 str_len=0;
     if(str==NULL)
         return -1;
     cnt=GetStrLineCount(str);
@@ -121,7 +120,7 @@ static u32 __GetCharByIndex(char *str,u8 idx)
     struct FontRsc* cur_font;
     struct Charset* cur_enc;
     u32 wc=0;
-    u8 cnt;
+    u8 cnt=0;
     if(str==NULL)
         return false;
     str_len=__GetValidStrLen(str);
@@ -298,7 +297,9 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
         x=rc.left+width+1;
     }
     y=rc.top;
-    MoveWindow(g_CursorHwnd,x,y);
+    Cursor_Move(x,y);
+
+//    MoveWindow(g_CursorHwnd,x,y);
     UpdateDisplay(CN_TIMEOUT_FOREVER);
     return true;
 }
@@ -315,7 +316,7 @@ static s16 __FindIdx(HWND hwnd,u16 x,u16 y)
     char *str;
     TextBox *pTB;
     RECT rc;
-    s16 tmp,val1,val2;
+    s16 tmp=0,val1=0,val2=0;
     u16 chnum,idx,width=0;
     str=hwnd->Text;
     if(str==NULL)
@@ -425,7 +426,7 @@ static bool_t TextBox_AddChar(HWND hwnd,char *str )
      if(pTB==NULL)
         return false;
     //检查文本框编辑属性
-     if(pTB->EditProperty==EN_R_O)
+     if(pTB->EditProperty==WS_TEXTBOX_R_O)
         return false;
      text=hwnd->Text;
      len=__GetValidStrLen(text);
@@ -469,15 +470,15 @@ static bool_t TextBox_DeleteChar(HWND hwnd,u8 idx,u8 count)
      u8 i,cnt,k,tmp;
      u16 f_len,len,last_len=0;
      s16 str_len=0;
-     bool_t ret;
+//     bool_t ret;
      TextBox *pTB;
      if(hwnd==NULL)
          return false;
      pTB=(TextBox *)GetWindowPrivateData(hwnd);
      if(pTB==NULL)
-            return false;
-     if(pTB->EditProperty==EN_R_O)
-           return false;
+         return false;
+     if(pTB->EditProperty==WS_TEXTBOX_R_O)
+         return false;
      text=hwnd->Text;
      cnt=pTB->ChNum;
      str_len=__GetValidStrLen(text);
@@ -555,12 +556,12 @@ static bool_t TextBox_InsertChar(HWND hwnd,u8 idx,char *str)
      if(pTB==NULL)
         return false;
      //检查文本框编辑属性
-     if(pTB->EditProperty==EN_R_O)
-            return false;
+     if(pTB->EditProperty==WS_TEXTBOX_R_O)
+        return false;
      text=hwnd->Text;
      str_len=__GetValidStrLen(text);
      if(str_len==-1)
-         return false;
+        return false;
      ret=__GetValidStrInfo(str,&num,NULL);
      if(!ret)
          return false;
@@ -602,23 +603,37 @@ static bool_t TextBox_InsertChar(HWND hwnd,u8 idx,char *str)
 // =============================================================================
 static bool_t TextBox_Create(struct WindowMsg *pMsg)
 {
-	HWND hwnd;
-	TextBox *pTB;
-	if(pMsg==NULL)
-		return false;
-	hwnd =pMsg->hwnd;
-	if(hwnd==NULL)
-		return false;
-	if(pMsg->Param1==0)
-	{
-		pTB=(TextBox *)malloc(sizeof(TextBox));
-		if(pTB==NULL)
-			return false;
-		pTB->ChNum=0;
-		pTB->CharNumLimit=CN_CHAR_NUM_MAX;
-		pTB->EditProperty=EN_R_W;
-		pTB->Visible=true;
-		pTB->CursorLoc=0;
+    HWND hwnd;
+    TextBox *pTB;
+    u32 Style=0;
+    if(pMsg==NULL)
+        return false;
+    hwnd =pMsg->hwnd;
+    if(hwnd==NULL)
+        return false;
+    hwnd =pMsg->hwnd;
+    Style=hwnd->Style;
+    if(pMsg->Param1==0)
+    {
+        pTB=(TextBox *)malloc(sizeof(TextBox));
+        if(pTB==NULL)
+            return false;
+        pTB->ChNum=0;
+        pTB->CharNumLimit=CN_CHAR_NUM_MAX;
+        if(Style&&WS_TEXTBOX_R_O)
+        {
+            pTB->EditProperty=WS_TEXTBOX_R_O;
+        }
+        else if(Style&&WS_TEXTBOX_W_O)
+        {
+            pTB->EditProperty=WS_TEXTBOX_W_O;
+        }
+        else
+        {
+            pTB->EditProperty=WS_TEXTBOX_R_W;
+        }
+        pTB->Visible=true;
+        pTB->CursorLoc=0;
         pTB->IsMultiLines=false;
         pTB->MaxLines=1;
         pTB->CharWidthSum=0;
@@ -656,10 +671,8 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
     HWND hwnd;
     HDC hdc;
     RECT rc;
-    u8 linecount;
-    char *str;
+    char *str="";
     u16 count;
-    u32 flag;
     TextBox *pTB;
     bool_t ret;
     if(pMsg==NULL)
@@ -721,7 +734,7 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
 // =============================================================================
 static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
 {
-    HWND hwnd;
+    HWND hwnd,Tmrhwnd;
     u8 cursorloc,chnum,chnummax,keyval;
     TextBox *pTB;
     char tmpbuf[2];
@@ -785,28 +798,34 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
     {
          switch (keyval)
          {
-               case VK_RETURN:
-                //todo
-                break;
-               case VK_DEL:
-               case CN_CANCLE_KEY:
+               case VK_ENTER_CHAR:
+               {
+            	   Cursor_SetHide( );
+                   break;
+               }
+               case VK_DEL_CHAR:
+               {
                    if(pTB->ChNum>=1)
                    {
-                      if(cursorloc!=0)
-                      {
-                         str=hwnd->Text;
-                         ch=__GetCharByIndex(str,pTB->CursorLoc);
-                         cur_font = Font_GetCurFont();
-                         chwidth=cur_font->GetCharWidth(ch);
-                         TextBox_DeleteChar(hwnd, cursorloc,1);
-                         pTB->ChNum--;
-                         pTB->CursorLoc--;
-                         pTB->CharWidthSum-=chwidth;
-                      }
-                      InvalidateWindow( hwnd, true);
-                      __MoveCursor(hwnd,pTB->CursorLoc);
+                     if(cursorloc!=0)
+                     {
+                        str=hwnd->Text;
+                        ch=__GetCharByIndex(str,pTB->CursorLoc);
+                        cur_font = Font_GetCurFont();
+                        chwidth=cur_font->GetCharWidth(ch);
+                        TextBox_DeleteChar(hwnd, cursorloc,1);
+                        pTB->ChNum--;
+                        pTB->CursorLoc--;
+                        pTB->CharWidthSum-=chwidth;
+                     }
+                     InvalidateWindow( hwnd, true);
+                     __MoveCursor(hwnd,pTB->CursorLoc);
                    }
-                break;
+                   break;
+               }
+               case VK_UP:
+               case VK_DOWN:
+                    break;
 
            default:
             break;
@@ -818,44 +837,44 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
     return true;
 }
 
-// =============================================================================
-// 函数功能: TextBox控件KEY_UP_MSG消息响应函数
-// 输入参数: pMsg,窗体消息结构体指针
-// 输出参数: 无。
-// 返回值  :无。
-// =============================================================================
-static bool_t TextBox_KeyUp(struct WindowMsg *pMsg)
-{
-
-}
-// =============================================================================
-// 函数功能: TextBox控件KEY_PRESS_MAG消息绘制函数
-// 输入参数: pMsg,窗体消息结构体指针
-// 输出参数: 无。
-// 返回值  :无。
-// =============================================================================
-static bool_t TextBox_KeyPress(struct WindowMsg *pMsg)
-{
-    return true;
-}
-
-
-
-static bool_t TextBoxL_Down(struct WindowMsg *pMsg)
-{
-    return true;
-}
-
-static bool_t TextBoxL_Up(struct WindowMsg *pMsg)
-{
-   return true;
-}
-
-
-static void TextBox_TouchUp(struct WindowMsg *pMsg)
-{
-
-}
+//// =============================================================================
+//// 函数功能: TextBox控件KEY_UP_MSG消息响应函数
+//// 输入参数: pMsg,窗体消息结构体指针
+//// 输出参数: 无。
+//// 返回值  :无。
+//// =============================================================================
+//static bool_t TextBox_KeyUp(struct WindowMsg *pMsg)
+//{
+//   return true;
+//}
+//// =============================================================================
+//// 函数功能: TextBox控件KEY_PRESS_MAG消息绘制函数
+//// 输入参数: pMsg,窗体消息结构体指针
+//// 输出参数: 无。
+//// 返回值  :无。
+//// =============================================================================
+//static bool_t TextBox_KeyPress(struct WindowMsg *pMsg)
+//{
+//    return true;
+//}
+//
+//
+//
+//static bool_t TextBoxL_Down(struct WindowMsg *pMsg)
+//{
+//    return true;
+//}
+//
+//static bool_t TextBoxL_Up(struct WindowMsg *pMsg)
+//{
+//   return true;
+//}
+//
+//
+//static void TextBox_TouchUp(struct WindowMsg *pMsg)
+//{
+//
+//}
 
 // =============================================================================
 // 函数功能: TextBox控件触摸屏按下响应函数。
@@ -866,7 +885,7 @@ static void TextBox_TouchUp(struct WindowMsg *pMsg)
 static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
 {
     HWND hwnd;
-    u32 loc;;
+    u32 loc,Style;;
     u16 chnum,idx,CharWidth,x,y;
     TextBox *pTB;
     char *str;
@@ -881,8 +900,17 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
     pTB=(TextBox *)GetWindowPrivateData(hwnd);
     if(pTB==NULL)
         return false;
-    //将当前TextBox控件设置为焦点窗口
-    SetFocusWindow(hwnd);
+    //不可编辑的文本框(Lable不响应该事件)
+    Style=pTB->EditProperty;
+    if(Style==WS_TEXTBOX_R_O)
+          return false;
+    str=hwnd->Text;
+    if(str!=NULL)
+    {
+       __GetValidStrInfo(str,&chnum,&CharWidth);
+    }
+    pTB->ChNum=chnum;
+    pTB->CharWidthSum=CharWidth;
     //在文本框上
     loc=pMsg->Param2;   //获取触摸点信息
     x=loc;
@@ -912,6 +940,11 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
         }
     }
     SetWindowPrivateData(hwnd,(void *)pTB);
+
+    Cursor_SetHost(hwnd);
+
+    SetFocusWindow(hwnd);
+
     return true;
 }
 
@@ -923,17 +956,17 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
 // ======================================================================
 static bool_t TextBox_SetFocus(struct WindowMsg *pMsg)
 {
-    HWND hwnd,Tmrhwnd;
-    if(pMsg==NULL)
-        return false;
-    hwnd =pMsg->hwnd;
-    if(hwnd==NULL)
-        return false;
-    Tmrhwnd=GetDesktopWindow();
-    if(Tmrhwnd!=NULL)
-    {
-       PostMessage(Tmrhwnd,MSG_TIMER_START,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
-    }
+//    HWND hwnd,Tmrhwnd;
+//    if(pMsg==NULL)
+//        return false;
+//    hwnd =pMsg->hwnd;
+//    if(hwnd==NULL)
+//        return false;
+//    Tmrhwnd=GetDesktopWindow();
+//    if(Tmrhwnd!=NULL)
+//    {
+//       PostMessage(Tmrhwnd,MSG_TIMER_START,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
+//    }
     return true;
 }
 // =============================================================================
@@ -944,17 +977,17 @@ static bool_t TextBox_SetFocus(struct WindowMsg *pMsg)
 // ======================================================================
 static bool_t TextBox_KillFocus(struct WindowMsg *pMsg)
 {
-     HWND hwnd,Tmrhwnd;
-     if(pMsg==NULL)
-          return false;
-     hwnd =pMsg->hwnd;
-     if(hwnd==NULL)
-          return false;
-     Tmrhwnd=GetDesktopWindow();
-     if(Tmrhwnd!=NULL)
-     {
-         PostMessage(Tmrhwnd,MSG_TIMER_STOP,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
-     }
+//     HWND hwnd,Tmrhwnd;
+//     if(pMsg==NULL)
+//          return false;
+//     hwnd =pMsg->hwnd;
+//     if(hwnd==NULL)
+//          return false;
+//     Tmrhwnd=GetDesktopWindow();
+//     if(Tmrhwnd!=NULL)
+//     {
+//         PostMessage(Tmrhwnd,MSG_TIMER_STOP,CN_CURSOR_TIMER_ID,(ptu32_t)hwnd);
+//     }
      return true;
 }
 
@@ -1041,11 +1074,9 @@ bool_t TextBox_TextCtrl(HWND hwnd,u8 ctrlcmd,u32 para1,ptu32_t para2)
 static struct MsgProcTable s_gTextBoxMsgProcTable[] =
 {
     {MSG_KEY_DOWN,TextBox_KeyDown},
-    {MSG_KEY_UP,TextBox_KeyUp},
     {MSG_PAINT,TextBox_Paint},
     {MSG_CREATE,TextBox_Create},
     {MSG_TOUCH_DOWN,TextBox_TouchDown},
-    {MSG_TOUCH_UP,TextBox_TouchUp},
     {MSG_SETFOCUS,TextBox_SetFocus},
     {MSG_KILLFOCUS,TextBox_KillFocus}
 };
@@ -1071,22 +1102,14 @@ HWND CreateTextBox(const char *Text,u32 Style,
                     HWND hParent,u32 WinId,void *pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
-    WINDOW *pGddWin=NULL;
-    struct MsgTableLink *Current;
-    if(UserMsgTableLink != NULL)
-    {
-        Current = UserMsgTableLink;
-        while(Current->LinkNext != NULL)
-            Current = Current->LinkNext;
-        Current->LinkNext = &s_gTextBoxMsgLink;
-        Current = UserMsgTableLink;
-    }
-    else
-        Current = &s_gTextBoxMsgLink;
-    s_gTextBoxMsgLink.LinkNext = NULL;
+    HWND pGddWin;
     s_gTextBoxMsgLink.MsgNum = sizeof(s_gTextBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gTextBoxMsgLink.myTable = (struct MsgProcTable *)&s_gTextBoxMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD|Style|TEXTBOX,x,y,w,h,hParent,WinId,CN_WINBUF_PARENT,pdata,Current);
+    pGddWin = CreateWindow(Text, WS_CHILD | WS_CAN_FOCUS | WS_SHOW_CURSOR | Style,
+                                x, y, w, h, hParent, WinId, CN_WINBUF_PARENT,
+                                pdata, &s_gTextBoxMsgLink);
+    if(UserMsgTableLink != NULL)
+        AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

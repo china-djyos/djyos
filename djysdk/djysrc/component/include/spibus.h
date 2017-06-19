@@ -85,10 +85,11 @@ struct SPI_CB
 // SPI mode flags
 #define SPI_CPHA    0x01            /* clock phase */
 #define SPI_CPOL    0x02            /* clock polarity */
-#define SPI_MODE_0  (0|0)           /* (original MicroWire) */
-#define SPI_MODE_1  (0|SPI_CPHA)
-#define SPI_MODE_2  (SPI_CPOL|0)
-#define SPI_MODE_3  (SPI_CPOL|SPI_CPHA)
+#define SPI_MODE_0  (0|0)        //clk空闲为低电平 第一个跳变沿采集/输出数据
+#define SPI_MODE_1  (0|SPI_CPHA) //clk空闲为低电平 第二个跳变沿采集/输出数据
+#define SPI_MODE_2  (SPI_CPOL|0) //clk空闲为高电平 第一个跳变沿采集/输出数据
+#define SPI_MODE_3  (SPI_CPOL|SPI_CPHA)//clk空闲为低电平 第二个跳变沿采集/输出数据
+
 
 #define SPI_SHIFT_MSB  0
 #define SPI_SHIFT_LSB  1

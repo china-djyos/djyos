@@ -144,7 +144,7 @@ void deldisplaypara(struct menu_displaypara *menudispara)
     {
         if(NULL!=temp1->CurWin)//销毁窗口
         {
-           GK_ApiDestroyWin(temp1->CurWin);//该函数是立即执行函数，不会阻塞
+           GK_DestroyWin(temp1->CurWin);//该函数是立即执行函数，不会阻塞
            free(temp1->CurWin);//删除窗口所占用的内存
         }
 
@@ -155,7 +155,7 @@ void deldisplaypara(struct menu_displaypara *menudispara)
     //删除当前节点
     if(NULL!=temp1->CurWin)//
     {
-        GK_ApiDestroyWin(temp1->CurWin);
+        GK_DestroyWin(temp1->CurWin);
         //立即删除当前窗口，不经过管道,因为要待会释放内存，不然的话在释放内存后销毁
         //必然会造成内存紊乱
         free(temp1->CurWin);//释放窗口占用的内存
@@ -405,7 +405,7 @@ bool_t create_menudisparawin(struct menu_displaypara  *menudispara,struct Rectan
     printf("no enough mem for the displaypara win!\n");
     return result;
   }
-  result=GK_ApiCreateGkwin(parwin,menudispara->CurWin,\
+  result=GK_CreateWin(parwin,menudispara->CurWin,\
                              win_rec.left, win_rec.top,win_rec.right,win_rec.bottom,\
                              menudispara->DisplayColor.menu_color, CN_WINBUF_NONE,\
                              win_name, 0,0,0,0);
@@ -419,7 +419,7 @@ bool_t create_menudisparawin(struct menu_displaypara  *menudispara,struct Rectan
   }
   else
   {
-    GK_ApiSetBoundMode(menudispara->CurWin, CN_BOUND_UNLIMIT);
+    GK_SetBoundMode(menudispara->CurWin, CN_BOUND_UNLIMIT);
     menudispara->CurWin->user_private=menudispara;
     return result;
   }

@@ -37,9 +37,14 @@ SECTIONS
         KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:cpu_peri_gpio.o (.text .text.* .rodata .rodata.*))
         KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
         KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:set-cache.o (.text .text.* .rodata .rodata.*))
- 	KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:cpu_peri_hal.o (.text .text.* .rodata .rodata.*))
+        KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:cpu_peri_hal.o (.text .text.* .rodata .rodata.*))
+        KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:stm32f7xx_hal.o (.text .text.* .rodata .rodata.*))
         KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:stm32f7xx_hal_tim.o (.text .text.* .rodata .rodata.*))
-        KEEP(*board/NUCLEO-F746ZG/src/OS_prjcfg/Iboot_config.o (.text .text.* .rodata .rodata.*))
+        KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:stm32f7xx_hal_rcc.o (.text .text.* .rodata .rodata.*))
+        KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:stm32f7xx_hal_pwr_ex.o (.text .text.* .rodata .rodata.*))
+        KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:stm32f7xx_hal_cortex.o (.text .text.* .rodata .rodata.*))
+        KEEP(*liblibOS_NUCLEO-F746ZG_o0.a:stm32f7xx_ll_fmc.o (.text .text.* .rodata .rodata.*))
+        KEEP(*board/sr5333-v2.0/src/OS_prjcfg/Iboot_config.o (.text .text.* .rodata .rodata.*))
     }>InnerFlash
 
     text_preload_rIbootRom_lIbootRom :

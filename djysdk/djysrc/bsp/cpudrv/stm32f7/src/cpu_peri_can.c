@@ -1394,7 +1394,7 @@ ptu32_t __Can_Monitor(void)
 //参数: pCanPara,CAN控制器配置参数结构体指针
 //返回: 成功初始化则返回true,否则则返回false.
 //-----------------------------------------------------------------------------
-bool_t CAN_Main(void)
+bool_t CAN_Main(uint8_t baudrate)
 {
 	uint16_t evtt;
 	uint8_t i;
@@ -1419,7 +1419,7 @@ bool_t CAN_Main(void)
 
 	for(i=0;i<CN_CAN_NUM;i++)
 	{
-		ret=CAN_Hard_Init(i,125,pFilterConfPara);
+		ret=CAN_Hard_Init(i,baudrate,pFilterConfPara);
 		if(!ret)
 		{
 			printf("Can Init failed.\r\n");

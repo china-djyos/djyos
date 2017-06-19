@@ -17,13 +17,17 @@
 typedef unsigned int  pthread_t;
 typedef unsigned int pthread_attr_t;
 
-#define pthread_mutex_t(mutex)  struct MutexLCB mutex
+//#define pthread_mutex_t(mutex)  struct MutexLCB mutex
+#define pthread_mutex_t  struct MutexLCB
+
 bool_t pthread_mutex_lock(struct MutexLCB *mutex);
 bool_t pthread_mutex_unlock(struct MutexLCB *mutex);
 bool_t pthread_mutex_init(struct MutexLCB *mutex, const char *name);
 bool_t pthread_mutex_destroy(struct MutexLCB *mutex);
 
-#define pthread_cond_t(cond)   int cond
+//#define pthread_cond_t(cond)   int cond
+#define pthread_cond_t  int
+
 bool_t  pthread_cond_signal(int *cond);
 bool_t  pthread_cond_wait(int *cond, struct MutexLCB *mutex);
 bool_t  pthread_cond_init(int *cond,char *name);
@@ -31,7 +35,6 @@ bool_t  pthread_cond_destroy(int *cond);
 
 int pthread_create(pthread_t  *threadId, const pthread_attr_t *attr,\
        ptu32_t (*taskroutine)(void ),void *arg);
-
 
 
 #endif /* __PTHREAD_H */

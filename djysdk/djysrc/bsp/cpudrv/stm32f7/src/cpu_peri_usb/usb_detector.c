@@ -49,12 +49,12 @@
 #include <cpu_peri_gpio.h>
 
 
-#define INSERTED						(s32)1
-#define DM_PIN							&USB_Plug[0]
-#define DP_PIN							&USB_Plug[1]
-#define POWER_SWITCH_PIN				&USB_Plug[2]
+#define INSERTED						(s32)1 // USB设备插入
+#define USB_DM							&USB_PINS[0]
+#define USB_DP							&USB_PINS[1]
+#define USB_POWER						&USB_PINS[2]
 
-static const Pin USB_Plug[] = {
+static const Pin USB_PINS[] = {
 		{GPIO_B, PIN14, GPIO_MODE_IN, GPIO_OTYPE_PP, GPIO_SPEED_VH, GPIO_PUPD_PD, AF_NUll},
 		{GPIO_B, PIN15, GPIO_MODE_IN, GPIO_OTYPE_PP, GPIO_SPEED_VH, GPIO_PUPD_PD, AF_NUll},
 		{GPIO_H, PIN3, GPIO_MODE_OUT, GPIO_OTYPE_PP, GPIO_SPEED_VH, GPIO_PUPD_NONE, AF_NUll},
@@ -66,11 +66,11 @@ static const Pin USB_Plug[] = {
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static void Wait(u32 Time)
+static void Wait(u32 dwTime)
 {
 	volatile u32 i, j;
 
-	for(j = 0; j < Time; j++)
+	for(j = 0; j < dwTime; j++)
 		for(i = 0; i < 60000; i++);
 }
 //-----------------------------------------------------------------------------
@@ -79,31 +79,51 @@ static void Wait(u32 Time)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static s32 USB_PlugInit(void)
+static void USB_DetectorInit(void)
 {
-	PIO_Configure(USB_Plug, PIO_LISTSIZE(USB_Plug));
-	return (0);
+	PIO_Configure(USB_PINS, PIO_LISTSIZE(USB_PINS));
 }
 
+//-----------------------------------------------------------------------------
+//功能: USB上电
+//参数:
+//返回:
+//备注:
+//-----------------------------------------------------------------------------
+void USB_PowerOn(void)
+{
+	PIO_Clear(USB_POWER); // USB供电
+	Wait(300); // 等待USB完全上电，有些USB设备的上电速度会慢些
+}
+
+//-----------------------------------------------------------------------------
+//功能: USB断电
+//参数:
+//返回:
+//备注:
+//-----------------------------------------------------------------------------
+void USB_PowerOff(void)
+{
+	PIO_Set(USB_POWER);
+}
 //-----------------------------------------------------------------------------
 //功能: 查询USB是否被插入
 //参数:
 //返回: 1 -- 插入； 0 -- 未插入
 //备注:
 //-----------------------------------------------------------------------------
-static s32 USB_PlugState(void)
+static s32 USB_State(void)
 {
-	s32 DM, DP;
+	s32 dm, dp;
 
-	PIO_Clear(POWER_SWITCH_PIN); // USB供电
-	Wait(100); // 等待USB完全上电
-	DM = PIO_Get(DM_PIN);
-	DP = PIO_Get(DP_PIN);
-	PIO_Set(POWER_SWITCH_PIN); // USB供电
-	Wait(2000); // 等待USB完全掉电
-	if(DM || DP)
-		return (1);
+	USB_PowerOn();
+	dm = PIO_Get(USB_DM);
+	dp = PIO_Get(USB_DP);
+
+	if(dm || dp)
+		return (1); // USB已经插入，不考虑是否
 	
+	USB_PowerOff(); // USB未插入，USB断电
 	return (0);
 }
 
@@ -115,12 +135,9 @@ static s32 USB_PlugState(void)
 //-----------------------------------------------------------------------------
 s32 USB_Detector(void)
 {
-	s32 Res;
-	Res = USB_PlugInit();
-	if(Res)
-		return (0);
+	USB_DetectorInit();
 		
-	if(INSERTED == USB_PlugState())
+	if(INSERTED == USB_State())
 		return (1);
 		
 	return (0);	

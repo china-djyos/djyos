@@ -78,7 +78,7 @@
 //      ndtr,
 // 返回：
 // =============================================================================
-u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,u32 mar,
+u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer,u32 mar0,u32 mar1,
 		u8 dir,u8 msize,u8 psize,u16 ndtr)
 {
 	DMA_TypeDef *DMAx;
@@ -128,10 +128,18 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,u32 mar,
 		DMAx->LIFCR|=0X3D<<6*streamx;
 
 	DMA_Streamx->PAR=par;			//DMA外设地址
-	DMA_Streamx->M0AR=mar;			//DMA 存储器0地址
+	DMA_Streamx->M0AR=mar0;			//DMA 存储器0地址
+	DMA_Streamx->M1AR=mar1;			//DMA 存储器0地址
 	DMA_Streamx->NDTR=ndtr;			//DMA 传输数据量
 	DMA_Streamx->CR=0;				//先全部复位CR寄存器值
-
+	if(MultiBuffer)
+	{
+	    DMA_Streamx->CR|=1<<18;
+	    DMA_Streamx->CR|=(1<<4);//传输完成中断
+	}
+	else
+	    DMA_Streamx->CR|=(dir == DMA_DIR_P2M)?(1<<3):(1<<4);//半传输中断
+	DMA_Streamx->CR &=~(1<<19);
 	DMA_Streamx->CR|= (dir == DMA_DIR_P2M) ? (0<<6) : (1<<6);		//外设到存储器模式
 	DMA_Streamx->CR|=0<<8;			//非循环模式(即使用普通模式)
 	DMA_Streamx->CR|=0<<9;			//外设非增量模式
@@ -142,8 +150,8 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,u32 mar,
 	DMA_Streamx->CR|=0<<21;			//外设突发单次传输
 	DMA_Streamx->CR|=0<<23;			//存储器突发单次传输
 	DMA_Streamx->CR|=(u32)chx<<25;	//通道选择
-	DMA_Streamx->CR|=(dir == DMA_DIR_P2M)?(1<<3):(1<<4);//半传输中断
-	//DMA_Streamx->FCR=0X21;		//FIFO控制寄存器
+
+//	DMA_Streamx->FCR=0X21;		//FIFO控制寄存器//
 
 	return true;
 }
@@ -222,8 +230,8 @@ void DMA_ClearIntFlag(DMA_Stream_TypeDef *DMA_Streamx)
 
 	streamx=(((u32)DMA_Streamx-(u32)DMAx)-0X10)/0X18;		//得到stream通道号
 
-	DMA_Streamx->CR&=~(1<<0); 		//关闭DMA传输
-	while(DMA_Streamx->CR&0X1);		//确保DMA可以被设置
+//	DMA_Streamx->CR&=~(1<<0); 		//关闭DMA传输
+//	while(DMA_Streamx->CR&0X1);		//确保DMA可以被设置
 
  	if(streamx>=6)
  		DMAx->HIFCR|=0X3D<<(6*(streamx-6)+16);				//清空之前该stream上的所有中断标志

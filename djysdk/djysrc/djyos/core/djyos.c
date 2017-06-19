@@ -157,7 +157,6 @@ s64 g_s64RunningStartTime;        //当前运行中事件的开始执行时间.
 s64  g_s64OsTicks;            //操作系统运行ticks
 bool_t g_bScheduleEnable;     //系统当前运行状态是否允许调
 bool_t g_bMultiEventStarted = false;    //多事件(线程)调度是否已经开始
-extern u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
 
 u32 (*g_fnEntryLowPower)(struct ThreadVm *vm) = NULL;  //进入低功耗状态的函数指针。
 void __Djy_SelectEventToRun(void);
@@ -174,7 +173,7 @@ extern void __asm_start_thread(struct ThreadVm  *new_vm);
 extern void __asm_switch_context_int(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 extern void __asm_switch_context(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 extern void __Int_ResetAsynSignal(void);
-
+extern void __asm_delay_us(u64 timeCoreClock);
 
 //----微秒级延时-------------------------------------------------------------
 //功能：利用循环实现的微秒分辨率延时，调用__DjySetDelay函数后才能使用本函数，
@@ -185,10 +184,22 @@ extern void __Int_ResetAsynSignal(void);
 //-----------------------------------------------------------------------------
 void Djy_DelayUs(u32 time)
 {
-    volatile u32 i;
-
-    i = (time << 10) / g_u32CycleSpeed;
-    for(; i >0 ; i--);
+    if(time > 0)
+        __asm_delay_us((u64)(time*((CN_CFG_MCLK)/1000000)));
+//    volatile u32 u32Time;
+//    if(time<1000000)
+//    {
+//        //延时量较小时，在慢速CPU上，使用else分之将会有很大误差
+//        u32Time= (u32)((time << 10) / g_u32CycleSpeed);
+//        for(; u32Time>0 ; u32Time--);
+//    }
+//    else
+//    {
+//        volatile u32 i;
+//        u32Time = time>>7;                            //time>1000000,舍入误差很小
+//        for(; u32Time>0 ; u32Time--)
+//            for(i = g_u32HundreUsfor; i > 0; i--);    //100uS for循环数
+//    }
 }
 
 //----线程栈检查---------------------------------------------------------------
@@ -385,15 +396,15 @@ u32 Djy_GetLastError(void)
 
 u32 *DjyCurrentErrnoAddr(void)
 {
-	static u32 err;
-	if(NULL == g_ptEventRunning)
-	{
-		return &err;
-	}
-	else
-	{
-		return &g_ptEventRunning->error_no;
-	}
+    static u32 err;
+    if(NULL == g_ptEventRunning)
+    {
+        return &err;
+    }
+    else
+    {
+        return &g_ptEventRunning->error_no;
+    }
 }
 
 
@@ -1821,11 +1832,11 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
 //
 //参数：hybrid_id，id，可能是事件类型id，也可能是事件id。
 //          如果是事件id，系统会查找该事件对应的事件类型id。
-//          如果是关联/串行型事件类型，则事件id和事件类型id是等效的。
-//          如果是独立/并行型事件类型，则根据hybrid_id传入的id类型做分别处理:
-//              1、事件类型id，将新分配一个事件类型控制块，处理事件时，将会分配/
+//          如果是关联型事件类型，则事件id和事件类型id是等效的。
+//          如果是独立型事件类型，则根据hybrid_id传入的id类型做分别处理:
+//              1、事件类型id，将新分配一个事件控制块，处理事件时，将会分配/
 //                 创建一个新的线程。
-//              2、事件id，则只是把新参数加入事件的参数队列中。
+//              2、事件id，则只是把新参数加入事件的参数中。
 //      timeout,定义超时时间，如果=0，则弹出事件后，立即返回，何时处理事件将由
 //          调度器决定；若!=0，则等待事件处理完成后才返回，并且在pop_result中返
 //          回处理结果。单位是us
@@ -2923,6 +2934,15 @@ void __Djy_VmEngine(ptu32_t (*thread_routine)(void))
     Djy_EventComplete( thread_routine() );
 }
 
+//----取IDLE事件控制块---------------------------------------------------------
+//功能：取IDLE事件控制块的指针
+//参数：无
+//返回：IDLE事件控制块指针。
+//-----------------------------------------------------------------------------
+struct EventECB *Djy_GetIdle(void)
+{
+    return &g_ptECB_Table[0];
+}
 //----系统服务-----------------------------------------------------------------
 //功能: 操作系统的系统服务功能,提供调试,统计等服务.
 //参数: 无

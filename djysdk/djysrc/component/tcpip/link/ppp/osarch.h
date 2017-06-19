@@ -68,14 +68,10 @@ void   semp_reset(semp_t semp);
 bool_t semp_pend(semp_t semp);
 bool_t semp_pendtimeout(semp_t semp,unsigned int timeout);
 bool_t semp_post(semp_t semp);
-
 //task
 bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),ptu32_t para);
-
-
 //some lib
 u32 get_random(void);
-
 
 
 #endif /* __OSARCH_H */

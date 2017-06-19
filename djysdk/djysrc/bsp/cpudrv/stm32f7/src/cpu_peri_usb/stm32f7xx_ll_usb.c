@@ -1236,7 +1236,7 @@ HAL_StatusTypeDef USB_ResetPort(USB_OTG_GlobalTypeDef *USBx)
              USB_OTG_HPRT_POCCHNG ); // 清变化
   
   USBx_HPRT0 = (USB_OTG_HPRT_PRST | hprt0); // 端口复位
-  HAL_Delay (10); // TODO  /* See Note #1 */
+  HAL_Delay (10);  /* See Note #1 */
   // Djy_EventDelay(10);
   USBx_HPRT0 = ((~USB_OTG_HPRT_PRST) & hprt0); // 清端口复位
   return HAL_OK;
@@ -1464,15 +1464,16 @@ HAL_StatusTypeDef USB_HC_StartXfer(USB_OTG_GlobalTypeDef *USBx, USB_OTG_HCTypeDe
   {
     num_packets = 1;
   }
+
   if (hc->ep_is_in)
   {
     hc->xfer_len = num_packets * hc->max_packet;
   }
   
   /* Initialize the HCTSIZn register */
-  USBx_HC(hc->ch_num)->HCTSIZ = (((hc->xfer_len) & USB_OTG_HCTSIZ_XFRSIZ)) |\
-    ((num_packets << 19) & USB_OTG_HCTSIZ_PKTCNT) |\
-      (((hc->data_pid) << 29) & USB_OTG_HCTSIZ_DPID);
+  USBx_HC(hc->ch_num)->HCTSIZ = (((hc->xfer_len) & USB_OTG_HCTSIZ_XFRSIZ)) | // 传输大小
+    ((num_packets << 19) & USB_OTG_HCTSIZ_PKTCNT) | // 数据包计数
+      (((hc->data_pid) << 29) & USB_OTG_HCTSIZ_DPID); // 数据PID
   
   if (dma)
   {
@@ -1480,19 +1481,19 @@ HAL_StatusTypeDef USB_HC_StartXfer(USB_OTG_GlobalTypeDef *USBx, USB_OTG_HCTypeDe
     USBx_HC(hc->ch_num)->HCDMA = (uint32_t)hc->xfer_buff;
   }
   
-  is_oddframe = (USBx_HOST->HFNUM & 0x01) ? 0 : 1;
-  USBx_HC(hc->ch_num)->HCCHAR &= ~USB_OTG_HCCHAR_ODDFRM;
-  USBx_HC(hc->ch_num)->HCCHAR |= (is_oddframe << 29);
+  is_oddframe = (USBx_HOST->HFNUM & 0x01) ? 0 : 1; // 奇偶帧
+  USBx_HC(hc->ch_num)->HCCHAR &= ~USB_OTG_HCCHAR_ODDFRM; // 清奇偶位
+  USBx_HC(hc->ch_num)->HCCHAR |= (is_oddframe << 29); // 设置奇偶位
   
   /* Set host channel enable */
   tmpreg = USBx_HC(hc->ch_num)->HCCHAR;
-  tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-  tmpreg |= USB_OTG_HCCHAR_CHENA;
+  tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 使能通道
+  tmpreg |= USB_OTG_HCCHAR_CHENA; // 使能通道
   USBx_HC(hc->ch_num)->HCCHAR = tmpreg;
   
   if (dma == 0) /* Slave mode */
   {  
-    if((hc->ep_is_in == 0) && (hc->xfer_len > 0))
+    if((hc->ep_is_in == 0) && (hc->xfer_len > 0)) // 输出
     {
       switch(hc->ep_type) 
       {
@@ -1581,7 +1582,7 @@ HAL_StatusTypeDef USB_HC_Halt(USB_OTG_GlobalTypeDef *USBx , uint8_t hc_num)
   }
   else // 其他传输模式
   {
-    USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHDIS; // 禁止通道
+	USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHDIS; // 禁止通道
     
     if ((USBx_HOST->HPTXSTS & 0xFFFF) == 0)
     {
@@ -1599,7 +1600,7 @@ HAL_StatusTypeDef USB_HC_Halt(USB_OTG_GlobalTypeDef *USBx , uint8_t hc_num)
     }
     else
     {
-       USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA; 
+       USBx_HC(hc_num)->HCCHAR |= USB_OTG_HCCHAR_CHENA; // 通道使能
     }
   }
   

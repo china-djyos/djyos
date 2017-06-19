@@ -193,7 +193,7 @@ static struct IAP_File *__FileDecode(struct HeadFormat *FileHead)
 	}
 	
 	if((S_APP_UPDATE_DONE != FileHead->Signature) &&
-	   (S_APP_DEBUG != FileHead->Signature))
+	   (S_APP_DEBUG != FileHead->Signature)) // debug模式的程序
 	{
 		printf("IAP: file is bad.\r\n");
 		return (NULL); // 格式错误

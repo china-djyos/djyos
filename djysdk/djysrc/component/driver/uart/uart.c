@@ -82,10 +82,10 @@
                                 //区数据量降至SendRingTrigLevel时释放之。
     u32 MplReadTrigLevel;       //多路复用可读触发水平
     u32 MplWriteTrigLevel;      //多路复用可写触发水平
-    u32 Baud;                   //串口当前波特率
-    ptu32_t UartPortTag;        //串口标签
     struct MultiplexObjectCB * pMultiplexUart;      //多路复用目标对象头指针
     u32 MplUartStatus;          //多路复用的当前状态，如可读，可写等
+    u32 Baud;                   //串口当前波特率
+    ptu32_t UartPortTag;        //串口标签
     UartStartSend StartSend;
 //    UartDirectSend DirectlySend;
     UartControl UartCtrl;
@@ -374,8 +374,8 @@ ptu32_t UART_Ctrl(struct UartCB *UCB,u32 cmd,ptu32_t data1,ptu32_t data2)
         case CN_UART_START:
         case CN_UART_STOP:
         case CN_UART_COM_SET:
-        case CN_UART_RX_PAUSE:      //暂停接收
-        case CN_UART_RX_RESUME:     //恢复接收
+        case CN_UART_RX_PAUSE:          //暂停接收
+        case CN_UART_RX_RESUME:         //恢复接收
         case CN_UART_RECV_HARD_LEVEL:    //设置接收fifo触发水平
         case CN_UART_SEND_HARD_LEVEL:    //设置发送fifo触发水平
         case CN_UART_EN_RTS:             //使能rts流控
@@ -386,7 +386,7 @@ ptu32_t UART_Ctrl(struct UartCB *UCB,u32 cmd,ptu32_t data1,ptu32_t data2)
         case CN_UART_DMA_UNUSED:         //禁止dma传输
         case CN_UART_HALF_DUPLEX_SEND:
         case CN_UART_HALF_DUPLEX_RECV:
-        case CN_UART_SETTO_ALL_DUPLEX:
+//        case CN_UART_SETTO_ALL_DUPLEX:
              UCB->UartCtrl(UCB->UartPortTag,cmd,data1,data2);
              break;
         case CN_UART_SET_BAUD:          //设置Baud
@@ -447,7 +447,7 @@ ptu32_t UART_Ctrl(struct UartCB *UCB,u32 cmd,ptu32_t data1,ptu32_t data2)
 //-----------------------------------------------------------------------------
 bool_t UART_MultiplexAdd(struct UartCB *UCB,
                          struct MultiplexSetsCB *MultiplexSets,
-                         u32 DevAlias,
+                         struct DjyDevice *Dev,
                          u32 SensingBit)
 {
     bool_t result=false;
@@ -458,7 +458,9 @@ bool_t UART_MultiplexAdd(struct UartCB *UCB,
     result = Multiplex_AddObject(MultiplexSets,
                             &UCB->pMultiplexUart,
                             UCB->MplUartStatus,
-                            (ptu32_t)DevAlias,SensingBit);
+                            (ptu32_t)Dev,SensingBit);
+    UCB->MplReadTrigLevel   = 1;
+    UCB->MplWriteTrigLevel  = 1;
     return result;
 }
 
@@ -521,8 +523,8 @@ struct UartCB * UART_InstallPort(struct UartParam *Param)
 
     UCB->SendRingTrigLevel  = (Param->TxRingBufLen)>>2;  //默认缓冲触发水平为1/16
     UCB->RecvRingTrigLevel  = (Param->RxRingBufLen)>>4;
-    UCB->MplReadTrigLevel   = (Param->TxRingBufLen)>>4;
-    UCB->MplWriteTrigLevel  = (Param->RxRingBufLen)>>2;
+    UCB->MplReadTrigLevel   = Param->RxRingBufLen + 1;
+    UCB->MplWriteTrigLevel  = Param->TxRingBufLen + 1;
     UCB->Baud               = Param->Baud;
     UCB->UartPortTag        = Param->UartPortTag;
     UCB->StartSend          = Param->StartSend;

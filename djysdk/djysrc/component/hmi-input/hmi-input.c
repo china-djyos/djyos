@@ -171,18 +171,18 @@ bool_t HmiIn_DeleteInputMsgQ(tpInputMsgQ InputMsgQ)
 }
 
 //----设置输入焦点------------------------------------------------------------
-//功能: 设置输入设备的输入焦点，即把输入消息(例如键盘击键、鼠标点击)传给谁
+//功能: 设置输入设备的输入焦点，即把输入消息(例如键盘击键、鼠标点击)传给哪个输入
+//      消息队列
 //参数: device_name，目标设备的资源名
-//      focus_evtt，新的焦点
+//      FocusMsgQ，新的焦点
 //返回: true =成功，false=输入设备找不到
 //----------------------------------------------------------------------------
 bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
 {
     struct HMI_InputDeviceRsc *result;
 
-    result =
-        (struct HMI_InputDeviceRsc *)OBJ_SearchChild
-        (&s_ptHmiInDeviceRscTree->stdin_device_node,device_name);
+    result = (struct HMI_InputDeviceRsc *)OBJ_SearchChild
+                    (&s_ptHmiInDeviceRscTree->stdin_device_node,device_name);
     if(result != NULL)
     {
         result->FocusMsgQ = FocusMsgQ;
@@ -191,6 +191,27 @@ bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
     else
     {
         return false;
+    }
+}
+
+//----查询设备类型------------------------------------------------------------
+//功能: 查询名为name的设备的类型。
+//参数: device_name，目标设备的资源名
+//返回: 设备的类型
+//----------------------------------------------------------------------------
+enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name)
+{
+    struct HMI_InputDeviceRsc *InputDev;
+
+    InputDev = (struct HMI_InputDeviceRsc *)OBJ_SearchChild
+                    (&s_ptHmiInDeviceRscTree->stdin_device_node,device_name);
+    if(InputDev != NULL)
+    {
+        return InputDev->input_type;
+    }
+    else
+    {
+        return EN_HMIIN_INVALID;
     }
 }
 
@@ -206,6 +227,12 @@ void HmiIn_SetFocusDefault(tpInputMsgQ FocusMsgQ)
     tg_pDefaultFocusMsgQ = FocusMsgQ;
 }
 
+//----取默认消息队列-----------------------------------------------------------
+//功能：获取默认消息队列，对于没有指定消息队列的输入设备，其输入消息将用默认消息
+//      队列。
+//参数：无
+//返回：默认消息对哦指针。
+//-----------------------------------------------------------------------------
 tpInputMsgQ HmiIn_GetFocusDefault(void)
 {
    return tg_pDefaultFocusMsgQ;

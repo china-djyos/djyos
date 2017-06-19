@@ -72,29 +72,18 @@ typedef struct  __Rout
    u64 outerr;
 }tagRout;
 
-typedef enum
-{
-	EN_LINKEVENT_POWERON = 0,//the link device is power on
-	EN_LINKEVENT_DEVADD,    //add a device
-	EN_LINKEVENT_DEVDEL,    //del a device
-	EN_LINKEVENT_DOWN,      //the link rout is shutdown or disconnet
-	EN_LINKEVENT_UP,        //the link rout is established or power on
-	EN_LINKEVENT_TIMEOUT,   //the link rout is timeout state
-}enLinkEvent;
+
 //return value is the really receive or send data units(bytes)
 //the device driver use this function to pass the receive package to the tcpip stack
 typedef bool_t (*fnLinkIn)(tagNetDev *dev,tagNetPkg *pkg); //pkg is the link frame
 //the tcpip stack use this function to pass the package to the hard device
 typedef bool_t (*fnLinkOut)(tagRout *rout,tagNetPkg *pkglst,u32 framlen,u32 devtask,u16 proto,enum_ipv_t ver,ipaddr_t ipdst);//pkg is the ip frame
-//this function is used do some event to the upper protocols
-typedef bool_t (*fnLinkEvent)(tagNetDev *dev,enLinkEvent event);
 //this function is used do some command from the upper protocols;
 typedef bool_t (*fnLinkIo)(tagNetDev *dev,u32 cmd,u32 para);
 typedef struct
 {
 	fnLinkIn     linkin;
 	fnLinkOut    linkout;
-	fnLinkEvent  linkevent;
 	fnLinkIo     linkio;
 	void       *ctx;    //this is the link control block here,used by the link here
 	//do the debug info
@@ -107,16 +96,20 @@ typedef struct
 
 typedef struct
 {
-	bool_t     enable;               //if true the filter item is enable
-	bool_t     action;               //which means the action start or not(1 start while 0 stop)
-	vu32       cmd;                  //which means the filter start or stop command
+	vu32       enable:1;             //enable it or not
+	vu32       uaction:1;            //if more than the upperlimit then set it
+	vu32       laction:1;            //if less than lower limit then set it
+	vu32       lactionb:5;           //low begin message
+	vu32       lactione:5;           //low end message
+	vu32       uactionb:5;           //upper begin message
+	vu32       uactione:5;           //upper end message
 	vu32       actiontimes;          //which means the action total times
-	vu32       actiontime;           //which means the action time length
-	vu32       framcounter;          //which means in the measure time,the specified type frame number
-	vu32       framlimit;            //which means the frame limit,if over then the action will start
-	vu32       measuretime;          //which means the measure time length
-	vu64       framtotal;            //which means the frame of the type total number
-	vs64       starttime;            //which means the action start or measure start time
+	vu32       fcounter;             //which means how many frame received
+	vu32       fulimit;              //which means the upper limit
+	vu32       fllimit;              //which means the lower limit
+	vu32       period;               //which means the measure period
+	vu64       ftotal;               //which means the total frame of the type
+	vs64       deadtime;             //which means the measure end time
 }tagNetDevRcvFilter;
 struct NetDev
 {
@@ -125,6 +118,7 @@ struct NetDev
     u8                             iftype;   //dev type
     fnIfSend                       ifsend;   //dev snd function
     fnIfCtrl                       ifctrl;   //dev ctrl or stat get fucntion
+    fnNetDevEventHook              eventhook;//dev event hook dealer
     u32                            devfunc;  //dev hard function,such as tcp chksum
     u16                            mtu;      //dev mtu
     ptu32_t                        private;  //the dev driver use this to has its owner property
@@ -135,7 +129,7 @@ struct NetDev
     u32                            fsnderr;  //frame snd failed
     u32                            frcv;     //frame receive
     u32                            frcverr;  //frame receive err
-    tagNetDevRcvFilter             rfilter[EN_NETDEV_FRAME_LAST];  //the recv filter
+    tagNetDevRcvFilter             rfilter[EN_NETDEV_FLOW_LAST];  //the recv filter
     //the following function used to package the info
     tagLinkOps                    *linkops;
 };

@@ -47,16 +47,25 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
+#include <netdb.h>
 #include <sys/socket.h>
 
 #include "shell.h"
 #include "../../icmp.h"
 
-
 #define CN_PING_DEFAULT_TIMEOUT   (1*1000*mS)   //1s
 #define CN_PING_WAIT_TIME         (5*1000*mS)
 #define CN_PING_DEFAULT_COUNTER   (4)
-#define CN_PING_DEFAULT_SIZE      (32)
+#define CN_PING_DEFAULT_SIZE      (60)
+static void pingusage(void)
+{
+	printf("usage:\n\r\
+-l         length\n\r\
+-t         timeout\n\r\
+-n         times\n\r \
+-h         help\n\r");
+	return;
+}
 // =============================================================================
 // FUNCTION:This function is used to do the ping echo
 // PARA  IN:param
@@ -65,48 +74,82 @@
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-bool_t Ping(char *param)
+static bool_t pingshell(char *param)
 {
     u32 i;
     u32 ip;
     u32 timeused;
     u32 timestart;
     u32 timeend;
-    u8  datapad[CN_PING_DEFAULT_SIZE];
     struct in_addr ipaddr;
     struct hostent *host;
     u32    times;
     u32    numrcv = 0;
     u32    waittime;
+    int    len = CN_PING_DEFAULT_SIZE;
 
-    char *argv[3];
-    int argc = 3;
-    memset(argv,0,sizeof(argv));
-    if(NULL == param)
-    {
-        return false;
-    }
-    string2arg(&argc,argv,param);
-    if(argc == 0)
-    {
-    	return false;
-    }
+    int argc = 6;
+    char *argv[6];
 
     times = CN_PING_DEFAULT_COUNTER;
     waittime = CN_PING_DEFAULT_TIMEOUT;
-    if(NULL != argv[1])
-    {
-        times = strtol(argv[1],NULL,0);
-    }
-    if(NULL != argv[2])
-    {
-        waittime = strtol(argv[2],NULL,0);
-        waittime =waittime*1000*mS;
-    }
-    if(0 == inet_aton(argv[0],&ipaddr))
+
+	argc = getargs(argc-1,&argv[1],param);
+	if(argc < 1)
+	{
+		pingusage();
+		return true;
+	}
+	else if(argc >1)
+	{
+		//do some set here
+		i =2;
+		argc++;
+		while(i<argc)
+		{
+			if(0 == strcmp(argv[i],"-l"))
+			{
+				i++;
+				if(i < argc)
+				{
+					len = strtol(argv[i],NULL,NULL);
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-n"))
+			{
+				i++;
+				if(i < argc)
+				{
+					times = strtol(argv[i],NULL,NULL);
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-t"))
+			{
+				i++;
+				if(i < argc)
+				{
+					waittime = strtol(argv[i],NULL,NULL);
+					waittime = waittime*1000*mS;
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-help"))
+			{
+				i++;
+				pingusage();
+			}
+			else
+			{
+				i++;
+			}
+		}
+	}
+    if(0 == inet_aton(argv[1],&ipaddr))
     {
         //use the dns to get the ip
-        host = gethostbyname(argv[0]);
+        host = gethostbyname(argv[1]);
         if(NULL != host)
         {
             memcpy((void *)&ipaddr,host->h_addr_list[0],sizeof(ipaddr));
@@ -119,11 +162,22 @@ bool_t Ping(char *param)
     }
     ip = ipaddr.s_addr;
 
-    memset(datapad,0x55,CN_PING_DEFAULT_SIZE);
+    u8 *buf;
+    if(len < 32)
+    {
+    	len = 32;
+    }
+    len = len -28;
+    buf = malloc(len);
+    if(NULL == buf)
+    {
+    	return true;
+    }
+    memset(buf,0x55,len);
     for(i = 0; i <times; i++)
     {
         timestart = (u32)DjyGetSysTime();
-        if(Icmp_EchoRequest(ip,datapad,CN_PING_DEFAULT_SIZE,CN_PING_WAIT_TIME))
+        if(Icmp_EchoRequest(ip,buf,len,CN_PING_WAIT_TIME))
         {
             timeend = (u32)DjyGetSysTime();
             timeused = (u32)(timeend - timestart);
@@ -137,16 +191,96 @@ bool_t Ping(char *param)
         }
     }
     printf("%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+    free(buf);
     return true;
 }
+
+
+
+
+
+//bool_t Ping(char *param)
+//{
+//    u32 i;
+//    u32 ip;
+//    u32 timeused;
+//    u32 timestart;
+//    u32 timeend;
+//    u8  datapad[CN_PING_DEFAULT_SIZE];
+//    struct in_addr ipaddr;
+//    struct hostent *host;
+//    u32    times;
+//    u32    numrcv = 0;
+//    u32    waittime;
+//
+//    char *argv[3];
+//    int argc = 3;
+//    memset(argv,0,sizeof(argv));
+//    if(NULL == param)
+//    {
+//        return false;
+//    }
+//    string2arg(&argc,argv,param);
+//    if(argc == 0)
+//    {
+//    	return false;
+//    }
+//
+//    times = CN_PING_DEFAULT_COUNTER;
+//    waittime = CN_PING_DEFAULT_TIMEOUT;
+//    if(NULL != argv[1])
+//    {
+//        times = strtol(argv[1],NULL,0);
+//    }
+//    if(NULL != argv[2])
+//    {
+//        waittime = strtol(argv[2],NULL,0);
+//        waittime =waittime*1000*mS;
+//    }
+//    if(0 == inet_aton(argv[0],&ipaddr))
+//    {
+//        //use the dns to get the ip
+//        host = gethostbyname(argv[0]);
+//        if(NULL != host)
+//        {
+//            memcpy((void *)&ipaddr,host->h_addr_list[0],sizeof(ipaddr));
+//        }
+//        else
+//        {
+//            printf("%s:Unknown host:%s\n\r",__FUNCTION__,param);
+//            return true;
+//        }
+//    }
+//    ip = ipaddr.s_addr;
+//
+//    memset(datapad,0x55,CN_PING_DEFAULT_SIZE);
+//    for(i = 0; i <times; i++)
+//    {
+//        timestart = (u32)DjyGetSysTime();
+//        if(Icmp_EchoRequest(ip,datapad,CN_PING_DEFAULT_SIZE,CN_PING_WAIT_TIME))
+//        {
+//            timeend = (u32)DjyGetSysTime();
+//            timeused = (u32)(timeend - timestart);
+//            printf("0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+//            Djy_EventDelay(waittime);
+//            numrcv++;
+//        }
+//        else
+//        {
+//            printf("0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+//        }
+//    }
+//    printf("%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+//    return true;
+//}
 
 struct ShellCmdTab  gServicePing[] =
 {
     {
         "ping",
-        Ping,
-        "usage:ping hostname [times] [waittime](second)",
-        "usage:ping hostname [times] [waittime](second)",
+        pingshell,
+        "usage:ping hostname [options/-help]",
+        "usage:ping hostname [options/-help]",
     }
 };
 

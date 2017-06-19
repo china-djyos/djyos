@@ -712,22 +712,13 @@ HWND CreateListBox(  const char *Text,u32 Style,
                     HWND hParent,u32 WinId,void *pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
-    WINDOW *pGddWin=NULL;
-    struct MsgTableLink *Current;
-    if(UserMsgTableLink != NULL)
-    {
-        Current = UserMsgTableLink;
-        while(Current->LinkNext != NULL)
-            Current = Current->LinkNext;
-        Current->LinkNext = &s_gListBoxMsgLink;
-        Current = UserMsgTableLink;
-    }
-    else
-        Current = &s_gListBoxMsgLink;
-    s_gListBoxMsgLink.LinkNext = NULL;
+    HWND pGddWin;
     s_gListBoxMsgLink.MsgNum = sizeof(s_gListBoxMsgProcTable) / sizeof(struct MsgProcTable);
     s_gListBoxMsgLink.myTable = (struct MsgProcTable *)&s_gListBoxMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId, CN_WINBUF_PARENT,pdata,Current);
+    pGddWin=CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId, 
+                            CN_WINBUF_PARENT,pdata,&s_gListBoxMsgLink);
+    if(UserMsgTableLink != NULL)
+        AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

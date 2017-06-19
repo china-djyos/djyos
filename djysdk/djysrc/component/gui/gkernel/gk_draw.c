@@ -1354,7 +1354,7 @@ void __GK_CopyPixelBm(struct RectBitmap *dst_bitmap,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_SetPixel(struct GkscParaSetPixel *para)
+void __GK_SetPixel(struct GkscParaSetPixel *para)
 {
     struct ClipRect *clip;
     struct GkWinRsc *fb_gkwin,*pixelwin;
@@ -3112,7 +3112,7 @@ void __GK_DrawCircleScreen(struct DisplayRsc *display,struct Rectangle *limit,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
+void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
 {
     struct Rectangle limit;
     struct ClipRect *clip;
@@ -3290,7 +3290,7 @@ void __GK_BezierScreen(struct DisplayRsc *display,struct Rectangle *limit,
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_Bezier(struct GkscParaBezier *para)
+void __GK_Bezier(struct GkscParaBezier *para)
 {
     s32 offsetx,offsety;
     struct Rectangle limit;
@@ -3356,7 +3356,7 @@ void GK_Bezier(struct GkscParaBezier *para)
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_Lineto(struct GkscParaLineto *para)
+void __GK_Lineto(struct GkscParaLineto *para)
 {
     struct Rectangle limit;
     struct ClipRect *clip;
@@ -3450,7 +3450,7 @@ void GK_Lineto(struct GkscParaLineto *para)
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_LinetoIe(struct GkscParaLineto *para)
+void __GK_LinetoIe(struct GkscParaLineto *para)
 {
     s32 dx,dy;
     struct Rectangle limit;
@@ -3720,16 +3720,17 @@ void GK_LinetoIe(struct GkscParaLineto *para)
 //      count，要显示的字符数，-1表示要显示整串
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_DrawText(struct GkscParaDrawText *para,const char *text)
+void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
 {
     struct GkscParaDrawBitmapRop bitmap_para;
     struct FontRsc* cur_font;
     struct Charset* cur_enc;
+    char *String = text;
     s32 len, char_num = 0,size,size_bak;
     u32 wc;
     u8 buf[128],*dbuf;  //定义一个足够存32点阵汉字的缓冲区，如果需要显示的字符
                         //超过此点阵，就需要动态分配
-
+    *Bytes = 0;
     if(para->Rop2Code == CN_R2_NOP)
         return;
 
@@ -3759,17 +3760,19 @@ void GK_DrawText(struct GkscParaDrawText *para,const char *text)
     for(; ;)
     {
         if((para->count != -1)  && (char_num >= para->count))
+        {
             break;
-        len= cur_enc->MbToUcs4(&wc, text, -1);
+        }
+        len= cur_enc->MbToUcs4(&wc, String, -1);
         if(len == -1)
         { // 无效字符
-            text++;
+            String++;
         }
         else
         { // 有效字符
             if(len == 0)
                 break;
-            text += len;
+            String += len;
             char_num++;
             if(wc==L'\r')
             {
@@ -3796,17 +3799,18 @@ void GK_DrawText(struct GkscParaDrawText *para,const char *text)
                     free(dbuf);
                     dbuf = M_MallocLc(size,0);
                     if(dbuf == NULL)
-                        return;
+                        break;
                     size_bak = size;
                 }
                 bitmap_para.bitmap.bm_bits = dbuf;
             }
             cur_font->GetBitmap(wc,0,0,&(bitmap_para.bitmap));
-            GK_DrawBitMap(&bitmap_para);
+            __GK_DrawBitMapt(&bitmap_para);
 
             bitmap_para.x += bitmap_para.bitmap.width;
         }
     }
+    *Bytes =(u32)( String - text);
     free(dbuf);
 }
 //----绘制光栅位图-------------------------------------------------------------
@@ -3822,7 +3826,7 @@ void GK_DrawText(struct GkscParaDrawText *para,const char *text)
 //      rop_code，光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
+void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
 {
 //    u32 HyalineColor;
     s32 x_src,y_src,x_dst,y_dst;
@@ -4028,7 +4032,7 @@ void GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
 //注: 斜线渐变使用的是近似模式，严格模式应该是算出所在像素与顶点的距离，但计算
 //    距离就涉及到开方运算。人眼对颜色变化是不敏感的，近似计算也没啥副作用。
 //-----------------------------------------------------------------------------
-void __GK_GradientFillRect(     struct RectBitmap *bitmap,
+void __GK_GradientFillRectSoft( struct RectBitmap *bitmap,
                                 struct Rectangle *Target,
                                 struct Rectangle *Focus,
                                 u32 Color0,u32 Color1,u32 Mode)
@@ -4388,7 +4392,7 @@ void __GK_FillPartWin(struct GkWinRsc *Gkwin,struct Rectangle *Rect,u32 Color)
 //      color，填充使用的颜色
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_GradientFillRect(struct GkscParaGradientFillWin *para)
+void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
 {
     struct RectBitmap *bitmap;
     struct Rectangle target,ins_rect,rc;
@@ -4438,7 +4442,7 @@ void GK_GradientFillRect(struct GkscParaGradientFillWin *para)
         if(!my_draw_fun->FillRectToBitmap(bitmap,&target,&target,Color0,Color1,Mode))
         {
             //硬件加速不支持填充位图，则用软件实现
-            __GK_GradientFillRect(bitmap,&target,&target,Color0,Color1,Mode);
+            __GK_GradientFillRectSoft(bitmap,&target,&target,Color0,Color1,Mode);
         }
         __GK_ShadingRect(fpwwin,&para->rect);//着色填充区域的changed_msk
     }else
@@ -4464,7 +4468,7 @@ void GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                                          &target,&ins_rect,Color0,Color1,Mode))
                     {
                         //硬件加速不支持填充位图，则用软件实现
-                        __GK_GradientFillRect(fb_gkwin->wm_bitmap,&target,
+                        __GK_GradientFillRectSoft(fb_gkwin->wm_bitmap,&target,
                                                 &ins_rect,Color0,Color1,Mode);
                     }
                     //标志填充区域的changed_msk
@@ -4518,7 +4522,7 @@ void GK_GradientFillRect(struct GkscParaGradientFillWin *para)
 //      color，填充使用的颜色
 //返回: 无
 //-----------------------------------------------------------------------------
-void GK_FillWin(struct GkscParaFillWin *para)
+void __GK_FillWin(struct GkscParaFillWin *para)
 {
     struct Rectangle rect;
     struct ClipRect *clip;

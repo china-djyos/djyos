@@ -87,15 +87,15 @@ static bool_t HmiCreate_Qrcode(struct WindowMsg *pMsg)
 	输入   :QRcode结构体指针
 	输出 :存储像素阵列的数组指针
 ---------------------------------------------------------------------------*/
-static u8 *Data_conversion(QRcode*qrcode)
+static uint8_t *Data_conversion(QRcode*qrcode)
 {
 	u64 i,j,k,n,m;
-	u8*Data;
-	u8*QrcodeData;
-	u8 *addr;
+	uint8_t*Data;
+	uint8_t*QrcodeData;
+	uint8_t *addr;
 	QrcodeData=qrcode->data;
 	n=(qrcode->width+7)/8;   //每行占得字节数
-	Data=(u8*)malloc(n*qrcode->width);
+	Data=(uint8_t*)malloc(n*qrcode->width);
 	addr=Data;
 	m=(qrcode->width)%8;
 	for(k=0;k<qrcode->width;k++)
@@ -122,7 +122,56 @@ static u8 *Data_conversion(QRcode*qrcode)
 		}
 		Data++;
 	}
+
 	return addr;
+}
+
+
+static uint8_t __transfer(uint8_t c)
+{
+	uint8_t tmp=0;
+	if(c&0x1)
+		tmp+=0x3;
+	if(c&0x2)
+		tmp+=0xc;
+	if(c&0x4)
+		tmp+=0x30;
+	if(c&0x8)
+		tmp+=0xc0;
+	return tmp;
+}
+
+static uint8_t *__BitmapEnlarge(uint8_t *srcbm,uint8_t wid,uint8_t bytes)
+{
+	uint8_t *dstbm;
+	uint8_t i,j,c,tmp1,tmp2;
+	uint16_t len;
+	len=bytes*wid;
+	dstbm=(uint8_t *)malloc(4*len);
+	if(dstbm==NULL)
+		return NULL;
+    for(i=0;i<wid;i++)
+    {
+    	for(j=0;j<bytes;j++)
+    	{
+    		c=*(srcbm+i*bytes+j);
+    		//取高四位
+    		tmp1=c;
+    		tmp1=tmp1&0xf0;
+    		tmp1=tmp1>>4;
+    		tmp2=__transfer(tmp1);
+    		*(dstbm+2*i*bytes*2+j*2)=tmp2;
+    		*(dstbm+(2*i+1)*bytes*2+j*2)=tmp2;
+    		//取高四位
+    		tmp1=c;
+    		tmp1=tmp1&0xf;
+    		tmp2=__transfer(tmp1);
+    		*(dstbm+2*i*bytes*2+j*2+1)=tmp2;
+    		*(dstbm+(2*i+1)*bytes*2+j*2+1)=tmp2;
+    	}
+
+    }
+    return dstbm;
 }
 /*---------------------------------------------------------------------------
 功能：根据输入参数得到二维码信息
@@ -142,13 +191,13 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     HWND hwnd;
     HDC  hdc;
     RECT rc0;
-    s32 height,width,size;
+    s32 height,width,size,bytes;
     u8 vernum;
     char *str;
     QRcode*qrcode; //最后结果
 	struct RectBitmap   bitmap;
 	struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0 };
-	u8 *Data;
+	u8 *Data,*bm;
     if(pMsg==NULL)
        	return false;
     hwnd=pMsg->hwnd;
@@ -167,6 +216,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     {
     	size=height;
     }
+    size=size/2;
     //根据尺寸计算二维码大小
     vernum=(size-17)/4;
     str=hwnd->Text;
@@ -185,16 +235,21 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
 	   return false;
    }
     Data=Data_conversion(qrcode);//提取显示数据到Data
-    bitmap.bm_bits = Data;
-    bitmap.linebytes = (qrcode->width+7)/8;
+    bytes=(qrcode->width+7)/8;   //每行占得字节数
+    bm=__BitmapEnlarge(Data,size,bytes);   //每行占得字节数);
+
+    bitmap.bm_bits = bm;
+    bitmap.linebytes = 2*((qrcode->width+7)/8);
     bitmap.PixelFormat = CN_SYS_PF_GRAY1;
     bitmap.ExColor = CN_COLOR_WHITE;
-    bitmap.height=(s32)(qrcode->width);
-    bitmap.width=(s32)(qrcode->width);
+    bitmap.height=(s32)(qrcode->width)*2;
+    bitmap.width=(s32)(qrcode->width)*2;
     DrawBitmap(hdc,rc0.left,rc0.top,&bitmap,CN_SYS_PF_GRAY1,RopCode);
 	EndPaint(hwnd,hdc);
     QRcode_free(qrcode);
     free(Data);
+    free(bm);
+
     return true;
 }
 

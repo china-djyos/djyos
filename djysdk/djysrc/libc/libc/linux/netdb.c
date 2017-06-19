@@ -5,6 +5,8 @@
  *      Author: zqf
  */
 
+#include <stdlib.h>
+#include <netdb.h>
 #include <sys/socket.h>
 
 
@@ -30,7 +32,7 @@ struct servent *getservbyname(const char *name, const char *proto)
     {
         if(0==strcmp(name,gServEnt[i].s_name))
         {
-            if(!((NULL != proto)&&(0==strcmp(proto,gServEnt[i].s_proto))))
+            if((NULL == proto)||(0==strcmp(proto,gServEnt[i].s_proto)))
             {
                 result = &gServEnt[i];
                 break;
@@ -40,11 +42,11 @@ struct servent *getservbyname(const char *name, const char *proto)
     return result;
 }
 
-u32 inet_addr(const char *addr)
+in_addr_t inet_addr(const char *addr)
 {
     int para;
     int tmp[4];
-    u32 result = INADDR_NONE;
+    in_addr_t result = INADDR_NONE;
     u8  ip[4];
 
 
@@ -175,6 +177,152 @@ int  gethostname(char *name, int len)
 
 //usage:use this data to storage the netdb errors
 int h_errno;
+//these functions must be implement,but not now;
+//the gethostbyname only used for the ipv4,and this one is used for both ipv4
+//and ipv6,you also can request for the service and port
+//return 0 success while others failed
+//--TODO,should make a list for more than one address and port,but now only one
+int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result )
+{
+	int res = -1;
+	struct hostent     *host;
+	struct servent     *serve;
+	struct addrinfo    *answer;
+	struct sockaddr_in *addr;
+	const char         *protoname;
 
+	answer= malloc(sizeof(struct addrinfo));
+	if(NULL == answer)
+	{
+		res = EAI_MEMORY;
+		goto EXIT_INFOMEM;
+	}
+	memset(answer,0,sizeof(struct addrinfo));
+
+	addr =malloc(sizeof(struct sockaddr_in));
+	if(NULL == addr)
+	{
+		res = EAI_MEMORY;
+		goto EXIT_ADDRMEM;
+	}
+	memset(addr,0,sizeof(struct sockaddr_in));
+
+
+	if(((NULL == hostname)&&(NULL== service))||(NULL == result))
+	{
+		res = EAI_NONAME;
+		goto EXIT_PARAM;
+	}
+	if((NULL != hints)&&\
+	   (hints->ai_family != AF_INET)&&(hints->ai_family != AF_INET6)&&(hints->ai_family != AF_UNSPEC))
+	{
+		res = EAI_FAMILY;
+		goto EXIT_FAMILY;
+	}
+	if((NULL != hints)&&\
+		(hints->ai_socktype != SOCK_STREAM)&&(hints->ai_socktype != SOCK_DGRAM))
+	{
+		res = EAI_SOCKTYPE;
+		goto EXIT_SOCKTYPE;
+	}
+	if((NULL == hostname)||(0 == strcmp(hostname,"localhost")))
+	{
+		addr->sin_family = AF_INET;
+		addr->sin_addr.s_addr = INADDR_ANY;
+		//look up the port
+		if(NULL != service)
+		{
+			protoname = NULL;
+			if(NULL != hints)
+			{
+				if(hints->ai_socktype == SOCK_STREAM)
+				{
+					protoname = "tcp";
+				}
+				else
+				{
+					protoname = "udp";
+				}
+				addr->sin_family = hints->ai_family;
+			}
+			serve = getservbyname(service,protoname);
+			if(NULL == serve)
+			{
+				res = EAI_NODATA;
+				goto EXIT_GETFAIL;
+			}
+			addr->sin_port = (in_port_t)serve->s_port;
+			addr->sin_addr.s_addr = (in_addr_t)inet_addr("127.0.0.1");
+		}
+		answer->ai_family = addr->sin_family;
+		answer->ai_addrlen = sizeof(struct sockaddr_in);
+		answer->ai_addr = (struct sockaddr*)addr;
+		answer->ai_next = NULL;
+		if(NULL != hints)
+		{
+			answer->ai_socktype = hints->ai_socktype;
+			answer->ai_protocol = hints->ai_protocol;
+		}
+		res = EAI_OK;
+	}
+	else
+	{
+		if(inet_aton(hostname,&addr->sin_addr) > 0)
+		{
+			answer->ai_family = AF_INET;
+			answer->ai_next = NULL;
+			answer->ai_addrlen = sizeof(struct sockaddr_in);
+			answer->ai_addr = (struct sockaddr*)addr;
+		}
+		else
+		{
+			host = gethostbyname(hostname);
+			if(NULL == host)
+			{
+				res = EAI_NODATA;
+				goto EXIT_GETFAIL;
+			}
+
+			memcpy(&addr->sin_addr,host->h_addr_list[0],sizeof(addr->sin_addr));
+			addr->sin_family = AF_INET;
+			answer->ai_family = AF_INET;
+			answer->ai_next = NULL;
+			answer->ai_addrlen = sizeof(struct sockaddr_in);
+			answer->ai_addr = (struct sockaddr*)addr;
+		}
+		if(NULL != hints)
+		{
+			answer->ai_socktype = hints->ai_socktype;
+			answer->ai_protocol = hints->ai_protocol;
+		}
+		res = EAI_OK;
+	}
+	*result = answer;
+	return res;
+
+EXIT_GETFAIL:
+EXIT_SOCKTYPE:
+EXIT_FAMILY:
+EXIT_PARAM:
+	free(addr);
+EXIT_ADDRMEM:
+	free(answer);
+EXIT_INFOMEM:
+	h_errno = res;
+	return res;
+}
+//free the ai by getaddrinfo returned;
+void freeaddrinfo (struct addrinfo*ai)
+{
+	if(NULL != ai)
+	{
+		if(NULL != ai->ai_addr)
+		{
+			free(ai->ai_addr);
+		}
+		free(ai);
+	}
+	return;
+}
 
 

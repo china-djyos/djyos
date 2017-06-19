@@ -60,7 +60,7 @@ extern "C" {
 #define CN_INT_LINE_WWDG            (0x00)
 #define CN_INT_LINE_PVD             (0x01)
 #define CN_INT_LINE_TAMPER          (0x02)
-#define CN_INT_LINE_RTC             (0x03)
+#define CN_INT_LINE_RTC_WKUP        (0x03)
 #define CN_INT_LINE_FLASH           (0x04)
 #define CN_INT_LINE_RCC             (0x05)
 #define CN_INT_LINE_EXTI0           (0x06)

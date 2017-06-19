@@ -233,7 +233,8 @@ typedef struct
 
   USB_OTG_HCStateTypeDef   state;     /*!< Host Channel state. 
                                            This parameter can be any value of @ref USB_OTG_HCStateTypeDef  */
-
+  uint8_t async; // Òì²½»º³å±êÖ¾
+                                             
 }USB_OTG_HCTypeDef;
   
 /* Exported constants --------------------------------------------------------*/

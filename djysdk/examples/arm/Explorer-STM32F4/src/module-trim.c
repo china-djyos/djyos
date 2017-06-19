@@ -109,6 +109,7 @@ void Sys_ModuleInit(void)
 {
     uint16_t evtt_main;
 
+    Board_GpioInit();
     //初始化直接输入和输出的硬件，为stdio.c中定义的 PutStrDirect、GetCharDirect
     //两个指针赋值，也可以只为PutStrDirect赋值，以支持printk。
     //这是来自bsp的函数，一般是串口驱动,BSP没提供的话，就不要调用，会导致应用程序编译不通过。
@@ -116,9 +117,7 @@ void Sys_ModuleInit(void)
    //shell模块,依赖:无
     ModuleInstall_Sh(0);
     //文件系统模块,依赖:shell
-#if 0
-    ModuleInstall_Djyfs(0);
-#endif
+
     //设备驱动模块
     ModuleInstall_Driver(0);
     //多路复用模块,提供类似Linux的epoll、select的功能
@@ -139,7 +138,7 @@ void Sys_ModuleInit(void)
     //设置工作路径,依赖:文件系统,且相关路径存在.
 //    Djyfs_SetWorkPath(gc_pCfgWorkPath);
 #else
-    ModuleInstall_SD("sd", 0);
+//    ModuleInstall_SD("sd", 0);
 //   ModuleInstall_NAND("nand", 1, 0);
    	ModuleInstall_FileSystem();
    	ModuleInstall_YAFFS2();

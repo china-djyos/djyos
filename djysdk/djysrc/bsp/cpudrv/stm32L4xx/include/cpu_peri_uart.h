@@ -49,21 +49,14 @@
 extern "C" {
 #endif
 
-//同步/异步串口位域，bo_为位偏移，1位的用位带地址，bb_前缀，多位用掩码，bm_前缀
-//uart1 sr寄存器位定义
-//usart:1,2,3,6//uart4,5,7,8
+//USART: 1,2,3    UART:4,5   LPUART:6
 #define CN_UART1    0
 #define CN_UART2    1
 #define CN_UART3    2
 #define CN_UART4    3
 #define CN_UART5    4
 #define CN_UART6    5
-#define CN_UART7    6
-#define CN_UART8    7
-#define CN_UART_NUM 8
-
-#define CN_USART1   0
-#define CN_USART2   1
+#define CN_UART_NUM  6
 
 ptu32_t ModuleInstall_UART(ptu32_t para);
 

@@ -47,6 +47,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
+#include <netdb.h>
 
 #include "rout.h"
 #include "tpl.h"
@@ -91,6 +92,8 @@ typedef struct UdpCB
 }tagUdpCB;
 static tagUdpCB          *pUcbFreeLst = NULL;     //this is the udp control list
 static struct MutexLCB   *pUcbFreeLstSync = NULL; //this is used for the ucb protect
+static struct MutexLCB    gUcbFreeLstSyncMem;
+
 //define for the udp msg pkg len
 #define CN_UDP_PKGMSGLEN        1472
 #define CN_UDP_BUFLENDEFAULT    0x2000      //8KB
@@ -100,6 +103,7 @@ typedef struct
 {
     u32                          tablen;
     struct MutexLCB             *tabsync;
+    struct MutexLCB              tabsyncmem;
     tagSocket                   *array[0];
 }tagUdpHashTab;
 static tagUdpHashTab   *pUdpHashTab = NULL;
@@ -121,13 +125,15 @@ static bool_t __hashTabInit(u32 len)
     }
     memset((void *)pUdpHashTab,0,sizeof(tagUdpHashTab) + len *sizeof(tagSocket *));
 
-    pUdpHashTab->tabsync = Lock_MutexCreate(NULL);
+    pUdpHashTab->tabsync = Lock_MutexCreate_s(&pUdpHashTab->tabsyncmem,NULL);
     if(NULL == pUdpHashTab->tabsync)
     {
         goto ERR_SYNC;
     }
 
     pUdpHashTab->tablen = len;
+
+    tcpipmemlog("udphashtab",sizeof(tagSocket *),len);
     result = true;
     return result;
 
@@ -273,7 +279,7 @@ static  bool_t  __UdpCbInit(int len)
     bool_t result = false;
     int i = 0;
 
-    pUcbFreeLstSync = Lock_MutexCreate(NULL);
+    pUcbFreeLstSync = Lock_MutexCreate_s(&gUcbFreeLstSyncMem,NULL);
     if(NULL == pUcbFreeLstSync)
     {
     	return result;
@@ -301,6 +307,8 @@ static  bool_t  __UdpCbInit(int len)
 
         result = true;
     }
+
+    tcpipmemlog("udpcb",sizeof(tagUdpCB),len);
 
     return result;
 }
@@ -1136,7 +1144,7 @@ static void __addpkg2rbuf(tagUdpCB *ucb, tagNetPkg *pkg)
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-static bool_t __UdpRcvV4(u32 ipsrc, u32 ipdst, tagNetPkg *pkg, tagNetDev *dev)
+static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkg, tagNetDev *dev)
 {
     bool_t              result ;
     u16                 portdst;
@@ -1227,17 +1235,24 @@ EXIT_RCVEND:
     return true;
 }
 
-static bool_t __recvProcess(enum_ipv_t  ver, ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkg, tagNetDev *dev)
+static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, tagNetDev *dev)
 {
-    bool_t result =false;
-    if(EN_IPV_4 == ver)
-    {
-        result = __UdpRcvV4((u32)ipsrc, (u32)ipdst,pkg,dev);
-    }
-
+	bool_t result = false;
+	enum_ipv_t  ver;
+	u32 ipsrc;
+	u32 ipdst;
+	if((NULL != addr)&&(NULL != pkglst)&&(NULL != dev))
+	{
+		ver = addr->ver;
+		if(ver == EN_IPV_4)
+		{
+			ipsrc = addr->src.ipv4;
+			ipdst = addr->dst.ipv4;
+			result = __rcvdealv4(ipsrc,ipdst,pkglst,dev);
+		}
+	}
     return result;
 }
-
 
 
 #define CN_UDP_DEBUG_PREFIX  "         "
@@ -1281,7 +1296,7 @@ bool_t UdpInit(ptu32_t para)
 {
     bool_t   result = false;
 
-    if(false == __hashTabInit(gUdpSockNum))
+    if(false == __hashTabInit(gUdpHashLen))
     {
         return result;
     }
@@ -1302,17 +1317,17 @@ bool_t UdpInit(ptu32_t para)
     gTplProto.shutdown   = __shutdown;
     gTplProto.close      = __socketclose;
     gTplProto.debuginfo  = __debug;
-
-    result = TPL_RegisterProto(AF_INET,SOCK_DGRAM,0, &gTplProto);
-    if(result)
+    if((false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,IPPROTO_UDP, &gTplProto))||\
+       (false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,0, &gTplProto))||\
+       (false == IpInstallProto("udp",IPPROTO_UDP,__rcvdeal)))
     {
-        result = TPL_RegisterProto(AF_INET,SOCK_DGRAM,IPPROTO_UDP, &gTplProto);
-        if(result)
-        {
-            result = IpRegisterTplHandler(IPPROTO_UDP,__recvProcess);
-        }
+        printk("%s:ERR:UDP PROTO REGISTER FAILED\n\r",__FUNCTION__);
+        result = false;
     }
-
+    else
+    {
+    	result = true;
+    }
     return result;
 }
 

@@ -14,31 +14,31 @@ static const struct   {
     const char *text;
     u32 flag;
 }DrawText_Cfg_Tbl[]={
-		{"正文左对齐+正文顶端对齐"           ,DT_LEFT|DT_TOP},
-		{"正文左对齐+正文垂直居中"           ,DT_LEFT|DT_VCENTER},
-		{"正文左对齐+正文底部对齐"           ,DT_LEFT|DT_BOTTOM},
+        {"正文左对齐+正文顶端对齐"           ,DT_LEFT|DT_TOP},
+        {"正文左对齐+正文垂直居中"           ,DT_LEFT|DT_VCENTER},
+        {"正文左对齐+正文底部对齐"           ,DT_LEFT|DT_BOTTOM},
 
-		{"水平居中+正文顶端对齐"             ,DT_CENTER|DT_TOP},
-		{"水平居中+正文垂直居中"             ,DT_CENTER|DT_VCENTER},
-		{"水平居中+正文底部对齐"             ,DT_CENTER|DT_BOTTOM},
+        {"水平居中+正文顶端对齐"             ,DT_CENTER|DT_TOP},
+        {"水平居中+正文垂直居中"             ,DT_CENTER|DT_VCENTER},
+        {"水平居中+正文底部对齐"             ,DT_CENTER|DT_BOTTOM},
 
-		{"水平右对齐+正文顶端对齐"            ,DT_RIGHT|DT_TOP},
-		{"水平右对齐+正文垂直居中"            ,DT_RIGHT|DT_VCENTER},
-		{"水平右对齐+正文底部对齐"            ,DT_RIGHT|DT_BOTTOM},
+        {"水平右对齐+正文顶端对齐"            ,DT_RIGHT|DT_TOP},
+        {"水平右对齐+正文垂直居中"            ,DT_RIGHT|DT_VCENTER},
+        {"水平右对齐+正文底部对齐"            ,DT_RIGHT|DT_BOTTOM},
 
-		{"多行显示1\r\n正文左对齐+正文顶端对齐"  ,DT_LEFT|DT_TOP},
-		{"多行显示2\r\n正文左对齐+正文垂直居中"  ,DT_LEFT|DT_VCENTER},
-		{"多行显示3\r\n正文左对齐+正文底部对齐"  ,DT_LEFT|DT_BOTTOM},
+        {"多行显示1\r\n正文左对齐+正文顶端对齐"  ,DT_LEFT|DT_TOP},
+        {"多行显示2\r\n正文左对齐+正文垂直居中"  ,DT_LEFT|DT_VCENTER},
+        {"多行显示3\r\n正文左对齐+正文底部对齐"  ,DT_LEFT|DT_BOTTOM},
 
-		{"多行显示4\r\n水平居中+正文顶端对齐"   ,DT_CENTER|DT_TOP},
-		{"多行显示5\r\n水平居中+正文垂直居中"   ,DT_CENTER|DT_VCENTER},
-		{"多行显示6\r\n水平右对齐+正文底部对齐"  ,DT_CENTER|DT_BOTTOM},
+        {"多行显示4\r\n水平居中+正文顶端对齐"   ,DT_CENTER|DT_TOP},
+        {"多行显示5\r\n水平居中+正文垂直居中"   ,DT_CENTER|DT_VCENTER},
+        {"多行显示6\r\n水平右对齐+正文底部对齐"  ,DT_CENTER|DT_BOTTOM},
 
-		{"多行显示7\r\n水平右对齐+正文顶端对齐"  ,DT_RIGHT|DT_TOP},
-		{"多行显示8\r\n水平右对齐+垂直居中"     ,DT_RIGHT|DT_VCENTER},
-		{"多行显示9\r\n水平右对齐+正文底部对齐"  ,DT_RIGHT|DT_BOTTOM},
+        {"多行显示7\r\n水平右对齐+正文顶端对齐"  ,DT_RIGHT|DT_TOP},
+        {"多行显示8\r\n水平右对齐+垂直居中"     ,DT_RIGHT|DT_VCENTER},
+        {"多行显示9\r\n水平右对齐+正文底部对齐"  ,DT_RIGHT|DT_BOTTOM},
 
-        {NULL,NULL},
+        {NULL,0},
 };
 
 static const struct   {
@@ -73,6 +73,7 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     HWND hwnd;
     RECT rc0;
     u32 i;
+    struct WinTimer *timer;
     hwnd =pMsg->hwnd;
     cfg_idx =0;
 
@@ -82,8 +83,10 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     CreateButton("绘制边框",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+0*32,128,24,hwnd,ID_BORDER,NULL,NULL);
     CreateButton("绘制背景",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+1*32,128,24,hwnd,ID_BKGND,NULL,NULL);
     CreateButton("改变颜色",WS_CHILD|BS_HOLD|WS_BORDER|WS_VISIBLE,4,i+2*32,128,24,hwnd,ID_COLOR,NULL,NULL);
-    GDD_CreateTimer(hwnd,1,3000,TMR_START);
-    GDD_CreateTimer(hwnd,2,1000,TMR_START);
+    timer = GDD_CreateTimer(hwnd,1,3000);
+    GDD_StartTimer(timer);
+    timer = GDD_CreateTimer(hwnd,2,1000);
+    GDD_StartTimer(timer);
     return true;
 }
 
@@ -232,7 +235,7 @@ static  u32 HmiTimer(struct WindowMsg *pMsg)
 
 
 //消息处理函数表
-static struct MsgProcTable s_gHmiMsgTextTable[] =
+static struct MsgProcTable s_gDrawTextMsgTable[] =
 {
     {MSG_CREATE,HmiCreate},         //主窗口创建消息
     {MSG_TIMER,HmiTimer},           //定时器消息
@@ -240,36 +243,12 @@ static struct MsgProcTable s_gHmiMsgTextTable[] =
     {MSG_PAINT,HmiPaint},           //绘制消息
     {MSG_ERASEBKGND,HmiErasebkgnd}, ///窗口背景擦除; Param1:绘图上下文;
 };
-static struct MsgTableLink  s_gHmiMsgLink;
+static struct MsgTableLink  s_gDrawTextDemoMsgLink;
 
 void    GDD_Demo_DrawText(void)
 {
-    HWND g_ptMainHwnd;
-    struct WindowMsg msg;
-    RECT rc;
-    //WDD_SleepMS(200);
-
-    GetClientRect(GetDesktopWindow(),&rc);
-
-    InflateRect(&rc,-5,-5);
-
-   s_gHmiMsgLink.LinkNext = NULL;
-   s_gHmiMsgLink.MsgNum = sizeof(s_gHmiMsgTextTable) / sizeof(struct MsgProcTable);
-   s_gHmiMsgLink.myTable = (struct MsgProcTable *)&s_gHmiMsgTextTable;
-   g_ptMainHwnd = CreateWindow("DrawText(字符绘制)",WS_MAIN_WINDOW,
-                               rc.left,rc.top,RectW(&rc),RectH(&rc),
-                               NULL,0x0000, CN_WINBUF_PARENT,NULL,&s_gHmiMsgLink);
-   SetFocusWindow(g_ptMainHwnd);
-
-    //创建主窗口
-   
-    SetWindowShow(g_ptMainHwnd);    //显示窗口
-
-    while(GetMessage(&msg,g_ptMainHwnd))
-    {
-        DispatchMessage(&msg);
-    }
-
-    printf("win_exit.\r\n");
-
+    s_gDrawTextDemoMsgLink.MsgNum = sizeof(s_gDrawTextMsgTable) / sizeof(struct MsgProcTable);
+    s_gDrawTextDemoMsgLink.myTable = (struct MsgProcTable *)&s_gDrawTextMsgTable;
+    GDD_CreateGuiApp("DrawText", &s_gDrawTextDemoMsgLink, 0x1000, CN_WINBUF_PARENT);
+    GDD_WaitGuiAppExit("DrawText");
 }

@@ -93,6 +93,8 @@ ptu32_t djy_main(void)
 	extern void Sh_GetRunMode(char *param);
 	Sh_GetRunMode(NULL);
 	Sh_GetStatus(NULL);
+	void  gdd_test(void);
+	gdd_test();
     while(1)
     {
     	Djy_EventDelay(500*mS);

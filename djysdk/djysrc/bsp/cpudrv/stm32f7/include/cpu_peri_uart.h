@@ -65,6 +65,7 @@ extern "C" {
 #define CN_UART_NUM 8
 
 ptu32_t ModuleInstall_UART(ptu32_t para);
+void Stdio_KnlInOutInit(uint32_t para);
 
 #ifdef __cplusplus
 }

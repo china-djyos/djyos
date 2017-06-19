@@ -129,22 +129,23 @@ struct COMParam
 #define CN_UART_COM_SET               (CN_DRV_CTRL_USER+3 )  //设置串口参数
 #define CN_UART_HALF_DUPLEX_SEND      (CN_DRV_CTRL_USER+4 )  //发送数据
 #define CN_UART_HALF_DUPLEX_RECV      (CN_DRV_CTRL_USER+5 )  //接收数据
-#define CN_UART_COMPLETED_SEND        (CN_DRV_CTRL_USER+6 )  //完成发送工作
-#define CN_UART_RX_PAUSE              (CN_DRV_CTRL_USER+7 )  //暂停接收数据到缓冲区
-#define CN_UART_RX_RESUME             (CN_DRV_CTRL_USER+8 )  //重新开始接收数据到缓冲区
-#define CN_UART_RX_OVERTIME           (CN_DRV_CTRL_USER+9 )  //设置接收超时时间，毫秒数
-#define CN_UART_RECV_SOFT_LEVEL       (CN_DRV_CTRL_USER+10)  //设置接收软件缓冲区触发水平
-#define CN_UART_SEND_SOFT_LEVEL       (CN_DRV_CTRL_USER+11)  //设置接收软件缓冲区触发水平
-#define CN_UART_RECV_HARD_LEVEL       (CN_DRV_CTRL_USER+12)  //设置接收fifo触发水平
-#define CN_UART_SEND_HARD_LEVEL       (CN_DRV_CTRL_USER+13)  //设置发送fifo触发水平
-#define CN_UART_RECV_ERROR_EVTT       (CN_DRV_CTRL_USER+14)  //设置错误弹出事件类型
-#define CN_UART_EN_RTS                (CN_DRV_CTRL_USER+15)  //使能rts流控
-#define CN_UART_DIS_RTS               (CN_DRV_CTRL_USER+16)  //禁止rts流控
-#define CN_UART_EN_CTS                (CN_DRV_CTRL_USER+17)  //使能cts流控
-#define CN_UART_DIS_CTS               (CN_DRV_CTRL_USER+18)  //禁止cts流控
-#define CN_UART_DMA_USED              (CN_DRV_CTRL_USER+19)  //使用dma传输
-#define CN_UART_DMA_UNUSED            (CN_DRV_CTRL_USER+20)  //禁止dma传输
-#define CN_UART_SETTO_ALL_DUPLEX      (CN_DRV_CTRL_USER+21)  //设置为全双工方式
+//#define CN_UART_SETTO_HALF_DUPLEX     (CN_DRV_CTRL_USER+6 )  //设置为全双工方式
+//#define CN_UART_SETTO_ALL_DUPLEX      (CN_DRV_CTRL_USER+7 )  //设置为全双工方式
+#define CN_UART_COMPLETED_SEND        (CN_DRV_CTRL_USER+8 )  //完成发送工作
+#define CN_UART_RX_PAUSE              (CN_DRV_CTRL_USER+9 )  //暂停接收数据到缓冲区
+#define CN_UART_RX_RESUME             (CN_DRV_CTRL_USER+10)  //重新开始接收数据到缓冲区
+#define CN_UART_RX_OVERTIME           (CN_DRV_CTRL_USER+11)  //设置接收超时时间，毫秒数
+#define CN_UART_RECV_SOFT_LEVEL       (CN_DRV_CTRL_USER+12)  //设置接收软件缓冲区触发水平
+#define CN_UART_SEND_SOFT_LEVEL       (CN_DRV_CTRL_USER+13)  //设置接收软件缓冲区触发水平
+#define CN_UART_RECV_HARD_LEVEL       (CN_DRV_CTRL_USER+14)  //设置接收fifo触发水平
+#define CN_UART_SEND_HARD_LEVEL       (CN_DRV_CTRL_USER+15)  //设置发送fifo触发水平
+#define CN_UART_RECV_ERROR_EVTT       (CN_DRV_CTRL_USER+16)  //设置错误弹出事件类型
+#define CN_UART_EN_RTS                (CN_DRV_CTRL_USER+17)  //使能rts流控
+#define CN_UART_DIS_RTS               (CN_DRV_CTRL_USER+18)  //禁止rts流控
+#define CN_UART_EN_CTS                (CN_DRV_CTRL_USER+19)  //使能cts流控
+#define CN_UART_DIS_CTS               (CN_DRV_CTRL_USER+20)  //禁止cts流控
+#define CN_UART_DMA_USED              (CN_DRV_CTRL_USER+21)  //使用dma传输
+#define CN_UART_DMA_UNUSED            (CN_DRV_CTRL_USER+22)  //禁止dma传输
 
 #ifdef __cplusplus
 }

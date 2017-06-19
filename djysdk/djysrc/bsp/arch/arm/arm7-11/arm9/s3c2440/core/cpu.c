@@ -73,7 +73,7 @@ void __asm_reset_thread(void (*thread_routine)(void),struct ThreadVm *vm);
 
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
-
+u32 g_u32HundreUsfor;
 //tick选择t64-0的t12
 
 //----创建线程-----------------------------------------------------------------
@@ -175,6 +175,7 @@ void __DjySetDelay(void)
     counter = clksum - counter;    //取实际脉冲数。
     g_u32CycleSpeed = ((uint64_t)counter * (u64)10E8)/timer_clk_hz/u32_fors;//防溢出，用64位
     g_u32CycleSpeed = (g_u32CycleSpeed << 10) / 1000;     //扩大1.024倍
+    g_u32HundreUsfor = (1024<<7)/g_u32CycleSpeed;
 }
 
 

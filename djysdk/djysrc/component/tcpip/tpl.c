@@ -59,6 +59,8 @@ typedef struct
 
 static tagTplProtoItem    *pTplProtoTab = NULL;
 static struct MutexLCB    *pTplProtoSync = NULL;
+static struct MutexLCB     gTplProtoSyncMem;
+
 
 // =============================================================================
 // FUNCTION£ºthis function is used to initialize the transmit layer
@@ -77,11 +79,13 @@ bool_t TPLInit(ptu32_t para)
 	}
 	memset((void *)pTplProtoTab,0,sizeof(tagTplProtoItem)*gTplProtoNum);
 
-	pTplProtoSync = Lock_MutexCreate(NULL);
+	pTplProtoSync = Lock_MutexCreate_s(&gTplProtoSyncMem,NULL);
 	if(NULL == pTplProtoSync)
 	{
 		goto EXIT_SYNCFAILED;
 	}
+	tcpipmemlog("tpltab",sizeof(tagTplProtoItem),gTplProtoNum);
+
 	result = true;
 	return result;
 

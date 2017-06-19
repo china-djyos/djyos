@@ -97,17 +97,20 @@ enum _DRV_ERROR_CODE_
 //#define CN_XXX_CTRL_MYCMD2        (CN_DRV_CTRL_USER+1)
 
 //定义dev_Write的完成条件(block_option参数)，达到条件后，函数返回。
-#define CN_BLOCK_BUFFER         0       //dev_Write的完成条件是发送到缓冲区
-#define CN_BLOCK_COMPLETE       1       //dev_Write的完成条件是传输完成
+#define CN_BLOCK_BUFFER         0       //dev_WriteDevice的完成条件是发送到缓冲区
+#define CN_BLOCK_COMPLETE       1       //dev_WriteDevice的完成条件是传输完成
 
-//返回值:成功写入的字节数，如果设备有缓冲区，则写到缓冲区就算。例如一个串口设备，
-//返回值表示函数返回时成功写入到设备缓冲区的数据量，并不确定是否已经从物理串口
-//传输出去了。
+//操纵设备时，通过这些指针，间接调用设备驱动提供的函数。
+//返回值:成功写入的字节数。
+//以串口为例，如果调用dev_WriteDevice时BlockOption = CN_BLOCK_BUFFER，则返回值表
+//示函数返回时成功写入到设备缓冲区的数据量，并不确定是否已经从物理串口传输出去了。
+//如果BlockOption = CN_BLOCK_COMPLETE，则能确保传输完成才返回。
+//这个特性对485通信特别有用，因为RS485需要控制收发切换，
 typedef u32 (*fntDevWrite)(ptu32_t PrivateTag,u8 *buf,
-                         u32 len,u32 offset,bool_t BlockOption,u32 timeout);
+                           u32 len,u32 offset,bool_t BlockOption,u32 timeout);
 //返回值:成功读取的字节数
 typedef u32 (*fntDevRead) (ptu32_t PrivateTag,u8 *buf,
-                                     u32 len,u32 offset,u32 timeout);
+                                   u32 len,u32 offset,u32 timeout);
 //返回值:收到不支持的命令，返回-1，0表示成功执行，其他返回值的含义自定
 typedef u32 (*fntDevCtrl) (ptu32_t PrivateTag,u32 cmd,
                                      ptu32_t data1,ptu32_t data2);
@@ -115,7 +118,7 @@ typedef u32 (*fntDevCtrl) (ptu32_t PrivateTag,u32 cmd,
 //SendsingBit设为0表示从MultiplexSets中删除该设备
 typedef bool_t (*fntDevMultiplexAdd) (ptu32_t PrivateTag,
                                        struct MultiplexSetsCB *MultiplexSets,
-                                       u32 DevAlias,
+                                       struct DjyDevice *Dev,
                                        u32 SensingBit);
 #define DEV_READ_MUTEX_SYS      1       //bit0,1=读设备的互斥量是系统分配的。
 #define DEV_WRITE_MUTEX_SYS     2       //bit1,1=写设备的互斥量是系统分配的。
@@ -128,13 +131,18 @@ struct DjyDevice
     fntDevWrite  dWrite;
     fntDevRead   dRead;
     fntDevCtrl   dCtrl;
-    fntDevMultiplexAdd dMultiplexAdd;  //若设备driver不支持多路复用，请置空。
-    struct MutexLCB *dReadMutex;     //互斥量,控制设备独占式读访问
-    struct MutexLCB *dWriteMutex;    //互斥量,控制设备独占式写访问
+    fntDevMultiplexAdd dMultiplexAdd;   //若设备driver不支持多路复用，请置空。
+    struct MutexLCB *dReadMutex;        //互斥量,控制设备独占式读访问
+    struct MutexLCB *dWriteMutex;       //互斥量,控制设备独占式写访问
     u32    MutexFlag;                   //标志互斥量是用户提供的,还是系统分配的。
                                         //见DEV_READ_MUTEX_SYS的定义
-    u32 delete_lock;                    //删除锁，大于 0 表示该设备不能删除
-    ptu32_t PrivateTag;                 //本设备特有的数据
+//  u32 ProtectCounter;                 //删除锁，大于 0 表示该设备不能删除
+    u32 OpenCounter;                    //打开计数，大于 0 表示该设备被打开，不
+                                        //能删除.读写方式打开独立计算，即“读”
+                                        //方式打开+1，“写”方式打开也+1，“读写”
+                                        //方式打开则+2
+    ptu32_t PrivateTag;                 //本设备特征的数据，在创建设备时，参数传入
+    ptu32_t UserTag;                    //用户特征数据，用户使用过程中设置
 };
 
 ptu32_t ModuleInstall_Driver(ptu32_t para);
@@ -147,25 +155,27 @@ struct DjyDevice * Driver_DeviceCreate(  struct DjyDevice *         ParentDevice
                                 fntDevCtrl             Ctrl ,
                                 fntDevMultiplexAdd     MultiplexAdd,
                                 ptu32_t                 tag);
-bool_t Driver_LockDevice(u32 DevAlias);
-bool_t Driver_UnLockDevice(u32 DevAlias);
+bool_t Driver_ProtectDevice(u32 DevAlias);
+bool_t Driver_UnProtectDevice(u32 DevAlias);
 bool_t Driver_DeleteDevice(struct DjyDevice * handle);
-u32 Driver_FindDevice(const char * name);
-u32 Driver_FindScionDevice(struct DjyDevice * ancestor,const char * scion_name);
+struct DjyDevice *Driver_FindDevice(const char * name);
+struct DjyDevice *Driver_FindScionDevice(struct DjyDevice * ancestor,const char * scion_name);
 struct DjyDevice * Driver_OpenDevice(const char *name,u32 flags,u32 timeout);
 struct DjyDevice * Driver_OpenScionDevice(struct DjyDevice * ancestor,
                                 const char *scion_name,u32 flags, u32 timeout);
-struct DjyDevice * Driver_OpenDeviceAlias(u32 DevAlias,u32 flags,u32 timeout);
+struct DjyDevice * Driver_OpenDeviceFast(struct DjyDevice *Device,u32 flags,u32 timeout);
 bool_t Driver_CloseDevice(struct DjyDevice * handle);
 u32 Driver_ReadDevice(struct DjyDevice * handle,u8 *buf,u32 len,u32 offset,u32 timeout);
 u32 Driver_WriteDevice(struct DjyDevice * handle,u8 *buf,
                   u32 len,u32 offset,bool_t BlockOption,u32 timeout);
 u32 Driver_CtrlDevice(struct DjyDevice * handle,u32 cmd,ptu32_t data1,ptu32_t data2);
-u32 Driver_MultiplexCtrl(u32 DevAlias,u32 *ReadLevel,u32 *WriteLevel);
+u32 Driver_MultiplexCtrl(struct DjyDevice * Dev,u32 *ReadLevel,u32 *WriteLevel);
 u32 Driver_MultiplexAdd(struct MultiplexSetsCB *MultiplexSets,
-                        u32 *DevAliases,u32 num,u32 SensingBit);
+                        struct DjyDevice **Dev,u32 num,u32 SensingBit);
 void Driver_MultiplexDel(struct MultiplexSetsCB *MultiplexSets,
-                         u32 *DevAliases,u32 num);
+                         struct DjyDevice **Dev,u32 num);
+void Driver_SetUserTag(struct DjyDevice * Dev,ptu32_t tag);
+ptu32_t Driver_GetUserTag(struct DjyDevice * Dev);
 
 #ifdef __cplusplus
 }

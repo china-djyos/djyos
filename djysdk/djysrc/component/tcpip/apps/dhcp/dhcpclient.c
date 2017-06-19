@@ -74,6 +74,8 @@ enum __EN_DHCPCLIENT_STAT
 static int                   gDhcpClientSock = -1;
 static tagDhcpTask          *pgDhcpTaskLst = NULL;
 struct MutexLCB             *pDhcpClientSync;
+struct MutexLCB              gDhcpClientSyncMem;
+
 static u32                   gDhcpClientTxID = 0x10000000;
 static tagDhcpMsg            gDhcpClientMsg;
 //the first time to get the ip from the server is init->discover->request->stable
@@ -168,6 +170,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
         		hostaddr.broad = (~(hostaddr.submask&hostaddr.ip))|hostaddr.submask;
         		RoutUpdate(tmp->name,EN_IPV_4,&hostaddr);
         		RoutSetDefault(EN_IPV_4,hostaddr.ip);
+        		NetDevPostEvent(NULL,tmp->name,EN_NETDEVEVENT_IPGET);
         	}
         	else if(tmp->replypara.msgtype == DHCP_NAK)
         	{
@@ -307,7 +310,7 @@ bool_t  ModuleInstall_DhcpClient(ptu32_t para)
     u16 evttID;
     u16 eventID;
 
-    pDhcpClientSync = Lock_MutexCreate(NULL);
+    pDhcpClientSync = Lock_MutexCreate_s(&gDhcpClientSyncMem,NULL);
     if(NULL == pDhcpClientSync)
     {
     	printf("%s:dhcpy client sync failed\n\r",__FUNCTION__);
@@ -332,7 +335,7 @@ EVENT_FAILED:
 	Djy_EvttUnregist(evttID);
 	evttID = CN_EVTT_ID_INVALID;
 EVTT_FAILED:
-	Lock_MutexDelete(pDhcpClientSync);
+	Lock_MutexDelete_s(pDhcpClientSync);
 	pDhcpClientSync = NULL;
 SYNC_FAILED:
 	return result;

@@ -24,6 +24,7 @@ static ptu32_t HmiCreateMove(struct WindowMsg  *pMsg)
 {
     HWND hwnd;
     RECT rc;
+    struct WinTimer *timer;
     hwnd =pMsg->hwnd;
 
     x1_inc =2;
@@ -36,9 +37,12 @@ static ptu32_t HmiCreateMove(struct WindowMsg  *pMsg)
     hwnd_BTN2 =CreateButton("关闭",WS_CHILD|WS_BORDER|WS_VISIBLE,10,34,100,50,hwnd,ID_CLOSE,NULL,NULL);
 
     CreateButton("移动主窗口",WS_CHILD|BS_HOLD|WS_VISIBLE|WS_BORDER,4,RectH(&rc)-28,100,54,hwnd,ID_MOVE_1,NULL,NULL);
-    GDD_CreateTimer(hwnd,0,200,TMR_START);
-    GDD_CreateTimer(hwnd,1,150,TMR_START);
-    GDD_CreateTimer(hwnd,2,100,TMR_START);
+    timer = GDD_CreateTimer(hwnd,0,200);
+    GDD_StartTimer(timer);
+    timer = GDD_CreateTimer(hwnd,1,150);
+    GDD_StartTimer(timer);
+    timer = GDD_CreateTimer(hwnd,2,100);
+    GDD_StartTimer(timer);
 
     return true;
 }
@@ -221,7 +225,7 @@ static ptu32_t HmiPaintMove(struct WindowMsg  *pMsg)
 }
 
 //消息处理函数表
-static struct MsgProcTable s_gHmiMsgMoveTable[] =
+static struct MsgProcTable s_gMoveWinMsgTable[] =
 {
     {MSG_CREATE,HmiCreateMove},         //主窗口创建消息
     {MSG_TIMER,HmiTimerMove},           //定时器消息
@@ -229,34 +233,14 @@ static struct MsgProcTable s_gHmiMsgMoveTable[] =
     {MSG_PAINT,HmiPaintMove},           //绘制消息
 };
 
-static struct MsgTableLink  s_gHmiMsgLink;
+static struct MsgTableLink  s_gMoveWinDemoMsgLink;
 
 /*============================================================================*/
 
 void    GDD_Demo_MoveWindow(void)
 {
-    HWND hwnd;
-    struct WindowMsg  msg;
-    RECT rc;
-
-    GetClientRect(GetDesktopWindow(),&rc);
-
-    //创建主窗口
-    s_gHmiMsgLink.LinkNext = NULL;
-    s_gHmiMsgLink.MsgNum = sizeof(s_gHmiMsgMoveTable) / sizeof(struct MsgProcTable);
-    s_gHmiMsgLink.myTable = (struct MsgProcTable *)&s_gHmiMsgMoveTable;
-    hwnd = CreateWindow("窗口/控件移动",WS_MAIN_WINDOW,
-                              rc.left,rc.top,RectW(&rc),RectH(&rc),
-                              NULL,0x0000, CN_WINBUF_PARENT,NULL,&s_gHmiMsgLink);
-    SetFocusWindow(hwnd);
-   
-    SetWindowShow(hwnd);
-
-    while(GetMessage(&msg,hwnd))
-    {
-        DispatchMessage(&msg);
-    }
-
-    printf("win_exit gdd_move.\r\n");
-
+    s_gMoveWinDemoMsgLink.MsgNum = sizeof(s_gMoveWinMsgTable) / sizeof(struct MsgProcTable);
+    s_gMoveWinDemoMsgLink.myTable = (struct MsgProcTable *)&s_gMoveWinMsgTable;
+    GDD_CreateGuiApp("move window", &s_gMoveWinDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_WaitGuiAppExit("move window");
 }

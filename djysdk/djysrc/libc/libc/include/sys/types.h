@@ -5,11 +5,9 @@
  *      Author: zhangqf
  */
 
+#include <stddef.h>
 #ifndef __TYPES_h
 #define __TYPES_h
-#ifdef  __cplusplus
-extern "C"{
-#endif
 
 
 #define _CLOCK_T_   unsigned long       /* clock() */
@@ -64,7 +62,4 @@ typedef __time_t time_t;
 
 #define ARG_MAX 256
 
-#ifdef  __cplusplus
-}
-#endif
 #endif /* __TYPES_h */

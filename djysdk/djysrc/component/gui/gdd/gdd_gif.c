@@ -123,7 +123,7 @@ typedef struct
 
 } LZW_CONTEXT;
 
-struct  __GIF_DECODE
+struct  GIF_DECODE
 {
   u8 *pCurData;
   u8 *pSrcData;
@@ -181,7 +181,7 @@ static const s32 _aInterlaceYPos[]   = {  0, 4, 2, 1 };
 *   Reads one byte from the given pointer if possible and increments the pointer
 */
 
-static u8 read_u8(GIF_DECODE *decode)
+static u8 read_u8(struct GIF_DECODE *decode)
 {
   u8 Value;
 
@@ -205,7 +205,7 @@ static u8 read_u8(GIF_DECODE *decode)
 * Purpose:
 *   Reads a word from the given pointer if possible and increments the pointer
 */
-static u16 read_u16(GIF_DECODE *decode)
+static u16 read_u16(struct GIF_DECODE *decode)
 {
   u16 Value;
   u8 Byte0, Byte1;
@@ -225,7 +225,7 @@ static u16 read_u16(GIF_DECODE *decode)
 * Purpose:
 *   Reads a string from the given pointer if possible and increments the pointer
 */
-static void read_bytes(GIF_DECODE *decode,u8 * pBuffer, s32 Len)
+static void read_bytes(struct GIF_DECODE *decode,u8 * pBuffer, s32 Len)
 {
   if (decode->RemBytes < 0)
   {
@@ -249,7 +249,7 @@ static void read_bytes(GIF_DECODE *decode,u8 * pBuffer, s32 Len)
 * Purpose:
 *   Skips the number of given bytes and increments the pointer
 */
-static void skip_bytes(GIF_DECODE *decode,s32 Len)
+static void skip_bytes(struct GIF_DECODE *decode,s32 Len)
 {
   if (decode->RemBytes < 0)
   {
@@ -274,7 +274,7 @@ static void skip_bytes(GIF_DECODE *decode,s32 Len)
 * Purpose:
 *   Initializes the given LZW with the input code size
 */
-static void LZW_init(GIF_DECODE *decode,s32 InputCodeSize)
+static void LZW_init(struct GIF_DECODE *decode,s32 InputCodeSize)
 {
   memset((u8 *)&(decode->LZW), 0, sizeof(LZW_CONTEXT));
 
@@ -300,7 +300,7 @@ static void LZW_init(GIF_DECODE *decode,s32 InputCodeSize)
 * Return value:
 *   Length of the data block
 */
-static s32 get_data_block(GIF_DECODE *decode,u8 * pBuffer)
+static s32 get_data_block(struct GIF_DECODE *decode,u8 * pBuffer)
 {
   u8 Count;
 
@@ -330,7 +330,7 @@ static s32 get_data_block(GIF_DECODE *decode,u8 * pBuffer)
 *   >= 0 if succeed
 *   <  0 if not succeed
 */
-static s32 get_next_code(GIF_DECODE *decode)
+static s32 get_next_code(struct GIF_DECODE *decode)
 {
   s32 i, j, End;
   u32 Result;
@@ -406,7 +406,7 @@ static s32 get_next_code(GIF_DECODE *decode)
 *   -1   if not succeed
 *   -2   if end code has been read
 */
-static s32 get_next_byte(GIF_DECODE *decode)
+static s32 get_next_byte(struct GIF_DECODE *decode)
 {
   s32 i, Code, Incode;
   while ((Code = get_next_code(decode)) >= 0)
@@ -500,7 +500,7 @@ static s32 get_next_byte(GIF_DECODE *decode)
 *   If an unknown extension block occures, the routine failes.
 */
 
-static s32 read_extension(GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE_INFO * pInfo, u8 * pDisposal)
+static s32 read_extension(struct GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE_INFO * pInfo, u8 * pDisposal)
 {
   u8 Label;
   ////
@@ -579,7 +579,7 @@ static s32 read_extension(GIF_DECODE *decode,s32 * pTransIndex, GIF_IMAGE_INFO *
 */
 
 
-static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,GIF_DECODE *hgif, s32 TransIndex, s32 Disposal)
+static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,struct GIF_DECODE *hgif, s32 TransIndex, s32 Disposal)
 {
 
   s32 Index, OldIndex, XPos, YPos, YCnt, Pass, Interlace, XEnd;
@@ -728,7 +728,7 @@ static bool_t display_gif_image(HDC hdc,s32 x, s32 y,u32 bk_color,GIF_DECODE *hg
 *
 *       read_color_map
 */
-static s32 read_color_map(GIF_DECODE *decode,s32 NumColors)
+static s32 read_color_map(struct GIF_DECODE *decode,s32 NumColors)
 {
   s32 i,r,g,b;
   ////
@@ -758,7 +758,7 @@ static s32 read_color_map(GIF_DECODE *decode,s32 NumColors)
 *   0 on success, 1 on error
 */
 
-static s32 gif_decode_init(GIF_DECODE *decode)
+static s32 gif_decode_init(struct GIF_DECODE *decode)
 {
       u8 acVersion[7] = {0};
       ////
@@ -791,7 +791,7 @@ static s32 gif_decode_init(GIF_DECODE *decode)
 *   0 on success, 1 on error
 */
 
-static s32 get_image_dimension(GIF_DECODE *decode)
+static s32 get_image_dimension(struct GIF_DECODE *decode)
 {
   s32 XSize, YSize;
   /* Read image size */
@@ -819,7 +819,7 @@ static s32 get_image_dimension(GIF_DECODE *decode)
 * Return value:
 *   0 on success, 1 on error
 */
-static s32 get_global_color_table(GIF_DECODE *decode)
+static s32 get_global_color_table(struct GIF_DECODE *decode)
 {
 
   u8 Flags;
@@ -853,7 +853,7 @@ static s32 get_global_color_table(GIF_DECODE *decode)
 *       init_size_and_color_table
 */
 
-static s32 init_size_and_color_table(GIF_DECODE *decode)
+static s32 init_size_and_color_table(struct GIF_DECODE *decode)
 {
 
   /* Initialize decoding */
@@ -877,7 +877,7 @@ static s32 init_size_and_color_table(GIF_DECODE *decode)
 }
 
 
-static bool_t gif_init(GIF_DECODE *decode)
+static bool_t gif_init(struct GIF_DECODE *decode)
 {
   u8 Flags, Introducer;
   s32 ImageCnt;
@@ -937,7 +937,7 @@ static bool_t gif_init(GIF_DECODE *decode)
 
 /*============================================================================*/
 //获得GIF图像信息
-static    bool_t get_gif_image_info(GIF_DECODE *decode,s32 Index,GIF_IMAGE_INFO * pInfo)
+static    bool_t get_gif_image_info(struct GIF_DECODE *decode,s32 Index,GIF_IMAGE_INFO * pInfo)
 {
   u8 Flags, Introducer;
   s32 NumColors=0, ImageCnt=0;
@@ -1004,9 +1004,9 @@ static    bool_t get_gif_image_info(GIF_DECODE *decode,s32 Index,GIF_IMAGE_INFO 
 //      size:　GIF图像数据总字节数
 //返回：成功则返回GIF解码上下文，失败返回NULL
 //------------------------------------------------------------------------------
-GIF_DECODE*    OpenGIF(const void *dat,u32 size)
+struct GIF_DECODE*    OpenGIF(const void *dat,u32 size)
 {
-    GIF_DECODE *hgif;
+    struct GIF_DECODE *hgif;
     u8 *p;
     ////
 
@@ -1016,7 +1016,7 @@ GIF_DECODE*    OpenGIF(const void *dat,u32 size)
     if(p[1]!='I')    return NULL;
     if(p[2]!='F')    return NULL;
 
-    hgif=malloc(sizeof(GIF_DECODE));
+    hgif=malloc(sizeof(struct GIF_DECODE));
     if(hgif==NULL)
     {
         return NULL;
@@ -1038,7 +1038,7 @@ GIF_DECODE*    OpenGIF(const void *dat,u32 size)
 //参数：hgif: GIF解码上下文
 //返回：成功则返回GIF图像宽度，失败返回0
 //------------------------------------------------------------------------------
-u32    GetGIFWidth(GIF_DECODE *hgif)
+u32    GetGIFWidth(struct GIF_DECODE *hgif)
 {
 
     if(hgif!=NULL)
@@ -1054,7 +1054,7 @@ u32    GetGIFWidth(GIF_DECODE *hgif)
 //参数：hgif: GIF解码上下文
 //返回：成功则返回GIF图像高度，失败返回0
 //------------------------------------------------------------------------------
-u32    GetGIFHeight(GIF_DECODE *hgif)
+u32    GetGIFHeight(struct GIF_DECODE *hgif)
 {
     if(hgif!=NULL)
     {
@@ -1068,7 +1068,7 @@ u32    GetGIFHeight(GIF_DECODE *hgif)
 //参数：hgif: GIF解码上下文
 //返回：成功则返回GIF图像总帧数，失败返回0
 //------------------------------------------------------------------------------
-u32    GetGIFFrameCount(GIF_DECODE *hgif)
+u32    GetGIFFrameCount(struct GIF_DECODE *hgif)
 {
     if(hgif!=NULL)
     {
@@ -1083,7 +1083,7 @@ u32    GetGIFFrameCount(GIF_DECODE *hgif)
 //      frame_idx: 帧索引值
 //返回：成功则返回指定帧的延时时间，失败返回-1
 //------------------------------------------------------------------------------
-s32    GetGIFFrameDelay(GIF_DECODE *hgif,u32 frame_idx)
+s32    GetGIFFrameDelay(struct GIF_DECODE *hgif,u32 frame_idx)
 {
     GIF_IMAGE_INFO Info;
 
@@ -1107,7 +1107,7 @@ s32    GetGIFFrameDelay(GIF_DECODE *hgif,u32 frame_idx)
 //      frame_idx: 帧索引值
 //返回：成功返回TRUE，失败返回FALSE
 //------------------------------------------------------------------------------
-bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,GIF_DECODE *hgif,u32 bk_color,u32 frame_idx)
+bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,struct GIF_DECODE *hgif,u32 bk_color,u32 frame_idx)
 {
   s32 TransIndex, ImageCnt,Index;
   GIF_IMAGE_INFO Info;
@@ -1214,13 +1214,13 @@ bool_t    DrawGIFFrame(HDC hdc,s32 x,s32 y,GIF_DECODE *hgif,u32 bk_color,u32 fra
 
 }
 
-//---- CloseGIF ------------------------------------------------------------
+//---- CloseGIF ---------------------------------------------------------------
 //描述: 释放一个GIF上下文
 //参数：
 //      hgif: GIF解码上下文
 //返回：无
-//------------------------------------------------------------------------------
-void    CloseGIF(GIF_DECODE *hgif)
+//-----------------------------------------------------------------------------
+void    CloseGIF(struct GIF_DECODE *hgif)
 {
     if(hgif)
     {

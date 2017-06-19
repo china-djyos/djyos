@@ -132,8 +132,6 @@
 
 static  u16 *pFrameBufferFG;    //前台显示缓冲区.
 
-u32 GK_GetPixelBm(struct RectBitmap *bitmap, s32 x,s32 y);
-
 //----初始化lcd硬件------------------------------------------------------------
 //功能: 初始化lcd硬件。
 //参数: 无

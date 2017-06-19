@@ -236,7 +236,7 @@ static struct ShellCmdTab  gGoAheadCmd[] =
 
 #define CN_GOAHEAD_CMDNUM  ((sizeof(gGoAheadCmd))/(sizeof(struct ShellCmdTab)))
 static struct ShellCmdRsc gGoAheadCmdRsc[CN_GOAHEAD_CMDNUM];
-bool_t ModuleInstall_GoAhead(void)
+int Goahead_main(int argc, char *argv[])
 {
     bool_t result;
 

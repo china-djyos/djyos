@@ -73,11 +73,7 @@ int pthread_create(pthread_t  *threadId, const pthread_attr_t *attr,\
     return result;
 }
 
-//todo: 前福，把libc中的qsort实现了。
-void qsort(void*base,size_t num,size_t width,int(*compare)(const void*,const void*))
-{
 
-}
 
 int exit(int no)
 {
@@ -87,4 +83,12 @@ int exit(int no)
     }
     return 0;
 }
+
+//get the current process id
+//we has no multi process yet,so we use the current taskID to replace it
+int getpid(void)
+{
+	return (int)Djy_MyEventId();
+}
+
 

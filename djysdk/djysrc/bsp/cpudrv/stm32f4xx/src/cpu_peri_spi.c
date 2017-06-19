@@ -57,13 +57,13 @@
 #include "cpu_peri.h"
 #include "int.h"
 #include "spibus.h"
-
+#include "math.h"
 // =============================================================================
 #define CN_TIMEOUT  (20*1000)
 #define tagSpiReg SPI_TypeDef
 static tagSpiReg volatile * const tg_SpiReg[] = {(tagSpiReg *)SPI1_BASE,
-                                                (tagSpiReg *)SPI2_BASE,
-                                                (tagSpiReg *)SPI3_BASE};
+                                                 (tagSpiReg *)SPI2_BASE,
+                                                 (tagSpiReg *)SPI3_BASE};
 
 //定义中断中需使用的静态量结构体
 struct SPI_IntParamSet
@@ -142,53 +142,6 @@ static void __SPI_SetClk(volatile tagSpiReg *Reg,u32 Fre)
 }
 
 // =============================================================================
-// 功能：SPI引脚初始化，初始化为外设使用，包括时钟和引脚
-// 参数：spi_no,SPI控制器号
-// 返回：无
-// =============================================================================
-static void __SPI_GpioInit(u32 BaseAddr)
-{
-#if 0
-    u8 i;
-    for(i = 0; i < CN_SPI_NUM; i++)
-    {
-        if(BaseAddr == (u32)tg_SpiReg[i])
-            break;
-    }
-    if(i == CN_SPI_NUM)
-        return;
-
-    extern bool_t BoardBoard_SpiGpioInit(u8 SPIx);
-    Board_SpiGpioInit(i); //
-#else
-    u8 SPIPort;
-
-    // 根据基地址找对应的端口号
-    for(SPIPort = 0; SPIPort < CN_SPI_NUM; SPIPort++)
-    {
-        if(BaseAddr == (u32)tg_SpiReg[SPIPort])
-            break;
-    }
-
-    // 当前只支持了SPI1,其他暂不管
-    if(SPIPort == CN_SPI1)
-    {
-        RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // 使能PORTB时钟
-        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN; // 使能SPI1时钟
-
-        RCC->APB2RSTR |= RCC_APB2RSTR_SPI1; // 复位SPI1
-        RCC->APB2RSTR &= ~RCC_APB2RSTR_SPI1; // 停止复位SPI1
-
-        GPIO_CfgPinFunc(GPIO_B, PIN4|PIN5|PIN3, GPIO_MODE_AF, GPIO_OTYPE_PP,
-                        GPIO_SPEED_50M, GPIO_PUPD_PU); // GPB3、4和5为SCK、MISO和MOSI
-        GPIO_AFSet(GPIO_B, 3, 5);
-        GPIO_AFSet(GPIO_B, 4, 5);
-        GPIO_AFSet(GPIO_B, 5, 5);
-    }
-#endif
-}
-
-// =============================================================================
 // 功能：SPI控制寄存器参数配置，如PHA和CPOL、时钟等，根据各种寄存器而异
 // 参数：tpSPI,SPI控制器基址
 //       ptr,参数指针
@@ -247,7 +200,6 @@ static void __SPI_HardConfig(u32 BaseAddr)
 
     Reg = (tagSpiReg *)BaseAddr;
     //配置SPI使用GPIO引脚
-    __SPI_GpioInit(BaseAddr);
 
     //这里只针对SPI口初始化
     temp &= ~SPI_CR1_RXONLY;                   // 全双工模式
@@ -272,9 +224,16 @@ static void __SPI_HardConfig(u32 BaseAddr)
 // 返回：无
 // 说明：SPI控制器上只引出了一个CS，若需要接多个CS，则必须应用程序自己控制CS
 // =============================================================================
+extern bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 static bool_t __SPI_BusCsActive(tagSpiReg *Reg, u8 cs)
 {
-    return false;
+    u8 SPIPort;
+    for(SPIPort = 0; SPIPort < CN_SPI_NUM; SPIPort++)
+    {
+        if(Reg ==  tg_SpiReg[SPIPort])
+            break;
+    }
+    return Board_SpiCsCtrl(SPIPort,cs,0);
 }
 
 // =============================================================================
@@ -285,7 +244,14 @@ static bool_t __SPI_BusCsActive(tagSpiReg *Reg, u8 cs)
 // =============================================================================
 static bool_t __SPI_BusCsInActive(tagSpiReg *Reg, u8 cs)
 {
-    return false;
+    u8 SPIPort;
+    for(SPIPort = 0; SPIPort < CN_SPI_NUM; SPIPort++)
+    {
+        if(Reg ==  tg_SpiReg[SPIPort])
+            break;
+    }
+
+    return Board_SpiCsCtrl(SPIPort,cs,1);
 }
 
 // =============================================================================
@@ -370,7 +336,7 @@ static bool_t __SPI_TxRxPoll(tagSpiReg *Reg,u8 *srcAddr,u32 wrSize,
         u8 *destAddr, u32 rdSize,u32 recvoff,u8 cs)
 {
     u32 i,len_limit;
-    u8 data;
+
     if( (!srcAddr) || ((rdSize != 0) && (!destAddr)))
         return false;
 

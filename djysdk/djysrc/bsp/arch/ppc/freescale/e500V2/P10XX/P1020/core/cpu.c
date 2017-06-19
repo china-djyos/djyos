@@ -61,6 +61,7 @@
 #include "E500v2RegBits.h"
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
+u32 g_u32HundreUsfor;
 void HardExp_ConnectSystick(void (*tick)(void));
 extern void __asm_init_Dtimer(u32 value_tick);
 extern void __asm_get_tb_value(u32 *value_h32, u32 *value_l32);
@@ -161,7 +162,7 @@ void __DjySetDelay(void)
     g_u32CycleSpeed = counter_l*cfg_core_tb_clk_time;//ns
 
     g_u32CycleSpeed = g_u32CycleSpeed/10000;//每次需要的纳秒数
-
+    g_u32HundreUsfor = (1024<<7)/g_u32CycleSpeed;
     return;
 }
 // =============================================================================

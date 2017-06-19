@@ -2,6 +2,7 @@
 
 /* Dumb implementation so programs will at least run.  */
 
+#include <_ansi.h>
 #include <sys/stat.h>
 #include <errno.h>
 

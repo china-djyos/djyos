@@ -57,7 +57,7 @@
 #include "stdint.h"
 
 const u32 gc_u32CfgOpenedfileLimit = 16;
-const char *gc_pCfgStdinName = "/dev/USART2";    //标准输入设备
-const char *gc_pCfgStdoutName = "/dev/USART2";   //标准输出设备
-const char *gc_pCfgStderrName = "/dev/USART2";   //标准错误输出设备
+const char *gc_pCfgStdinName = "/dev/UART2";    //标准输入设备
+const char *gc_pCfgStdoutName = "/dev/UART2";   //标准输出设备
+const char *gc_pCfgStderrName = "/dev/UART2";   //标准错误输出设备
 

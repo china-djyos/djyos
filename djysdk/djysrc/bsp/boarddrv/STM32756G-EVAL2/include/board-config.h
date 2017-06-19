@@ -72,21 +72,22 @@ extern "C" {
 #define CN_CFG_MCLK (216*Mhz)  //主频，内核要用，必须定义
 #define CN_CFG_FCLK CN_CFG_MCLK  //cm7自由运行外设时钟
 #define BOARD_MCK   (CN_CFG_MCLK/2) //的MCK
-#define CN_CFG_PCLK1  (54*Mhz)
-#define CN_CFG_PCLK2  (108*Mhz)
 
-//#define CN_CFG_HSE (25*Mhz)
-//#define CN_CFG_HSI (16*Mhz)
-//#define CN_CFG_LSE (32768)
-//#define CN_CFG_LSI (32000)
+#define SYSCLK_DIV  RCC_SYSCLK_DIV1
+#define AHB1_DIV RCC_HCLK_DIV4
+#define CN_CFG_PCLK1  (CN_CFG_MCLK/4)
+
+#define AHB2_DIV RCC_HCLK_DIV2
+#define CN_CFG_PCLK2  (CN_CFG_MCLK/2)
 
 #define CN_CFG_LSE (32768)
+#define CN_CFG_HSE (25*Mhz)
 
 
 /*____以下定义tick参数____*/
 #define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
 #define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
-#define CN_CFG_FINE_US 0x00000DA  //1/300M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
+#define CN_CFG_FINE_US 0x000012f  //1/216M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
 #define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数。
 
 //内核相关配置
@@ -102,6 +103,9 @@ extern "C" {
 
 #define BOARD_GMAC_PHY_ADDR        1
 #define MAX_PIO_INTERRUPT_SOURCES  5
+
+#define CN_LCD_XSIZE   ((uint16_t)640)    /* LCD PIXEL WIDTH */
+#define CN_LCD_YSIZE  ((uint16_t)480)   /* LCD PIXEL HEIGHT*/
 
 #ifdef __cplusplus
 }

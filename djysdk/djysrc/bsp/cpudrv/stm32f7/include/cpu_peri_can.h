@@ -108,7 +108,7 @@ typedef struct
 
 uint32_t CAN_WriteData(uint8_t byChip, uint8_t* txBuf, uint32_t len);
 uint32_t CAN_ReadData(uint8_t byChip, uint8_t* rxBuf, uint32_t len, uint32_t *pRd);
-bool_t CAN_Main(void);
+bool_t CAN_Main(uint8_t baudrate);
 bool_t CAN_SetFilterConfig(CanFilterConfPara *pFilterConfPara);
 
 

@@ -23,6 +23,7 @@ static HWND hwndLB2=NULL;
 static ptu32_t HmiCreate(struct WindowMsg *pMsg)
 {
     HWND hwnd;
+    struct WinTimer *timer;
     RECT rc,rc0;
     hwnd=pMsg->hwnd;
 
@@ -68,8 +69,10 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,9,(u32)"ListItem-19");
     SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,3,0);
 
-    GDD_CreateTimer(hwnd,1,3000,TMR_START);
-    GDD_CreateTimer(hwnd,2,100,TMR_START);
+    timer = GDD_CreateTimer(hwnd,1,3000);
+    GDD_StartTimer(timer);
+    timer = GDD_CreateTimer(hwnd,2,100);
+    GDD_StartTimer(timer);
 
     return true;
 }
@@ -105,29 +108,29 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
         case ID_RIGHT://-->
             if(event==MSG_BTN_UP )
                 {
-					char *buf;
-					int i_1,i_2,n;
-					i_1 =SendMessage(hwndLB1,MSG_ListBox_GETCURSEL,0,0);//获取当前选中项
-					i_2 =SendMessage(hwndLB2,MSG_ListBox_GETCURSEL,0,0);
+                    char *buf;
+                    int i_1,i_2,n;
+                    i_1 =SendMessage(hwndLB1,MSG_ListBox_GETCURSEL,0,0);//获取当前选中项
+                    i_2 =SendMessage(hwndLB2,MSG_ListBox_GETCURSEL,0,0);
 
-					if(i_1>=0)
-					{
-						buf =(char*)malloc(SendMessage(hwndLB1,MSG_ListBox_GETTEXTLEN,i_1,0));
-						if(buf!=NULL)
-						{
-							SendMessage(hwndLB1,MSG_ListBox_GETTEXT,i_1,(u32)buf);//获取字符串
-							SendMessage(hwndLB1,MSG_ListBox_DELSTRING,i_1,0);     //删除一个字符
-							n=SendMessage(hwndLB1,MSG_ListBox_GETCOUNT,0,0);//所有项个数
-							if((n-1)<i_1)   i_1--;
-							SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,i_1,0);     //设置当前选项
+                    if(i_1>=0)
+                    {
+                        buf =(char*)malloc(SendMessage(hwndLB1,MSG_ListBox_GETTEXTLEN,i_1,0));
+                        if(buf!=NULL)
+                        {
+                            SendMessage(hwndLB1,MSG_ListBox_GETTEXT,i_1,(u32)buf);//获取字符串
+                            SendMessage(hwndLB1,MSG_ListBox_DELSTRING,i_1,0);     //删除一个字符
+                            n=SendMessage(hwndLB1,MSG_ListBox_GETCOUNT,0,0);//所有项个数
+                            if((n-1)<i_1)   i_1--;
+                            SendMessage(hwndLB1,MSG_ListBox_SETCURSEL,i_1,0);     //设置当前选项
 
 
 
-							SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,i_2,(u32)buf);//添加一个字符索引为
-							SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2+1,0);     //设置当前选项
-							free(buf);
-						}
-					 }
+                            SendMessage(hwndLB2,MSG_ListBox_ADDSTRING,i_2,(u32)buf);//添加一个字符索引为
+                            SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2+1,0);     //设置当前选项
+                            free(buf);
+                        }
+                     }
                 }
                     break;
         case ID_LEFT://<--
@@ -138,7 +141,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
                     i_1 =SendMessage(hwndLB1,MSG_ListBox_GETCURSEL,0,0);//获取当前选中项
                     i_2 =SendMessage(hwndLB2,MSG_ListBox_GETCURSEL,0,0);
 
-					if(i_2>=0)
+                    if(i_2>=0)
                     {
                         buf =(char*)malloc(SendMessage(hwndLB2,MSG_ListBox_GETTEXTLEN,i_2,0));
                         if(buf!=NULL)
@@ -147,7 +150,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
                             SendMessage(hwndLB2,MSG_ListBox_DELSTRING,i_2,0);     //删除一个字符
                             n=SendMessage(hwndLB2,MSG_ListBox_GETCOUNT,0,0);//所有项个数
                             if((n-1)<i_2)   i_2--;
-							SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2,0);     //设置当前选项
+                            SendMessage(hwndLB2,MSG_ListBox_SETCURSEL,i_2,0);     //设置当前选项
 
 
 
@@ -164,7 +167,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
                   printf("listbox1 sel change.\r\n");
                     break;
         case ID_LISTBOX2:
-        	 if(event==LBN_SELCHANGE )
+             if(event==LBN_SELCHANGE )
             printf("listbox2 sel change.\r\n");
                     break;
         default:    break;
@@ -190,7 +193,7 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     return true;
 }
 //消息处理函数表
-static struct MsgProcTable s_gHmiMsgListboxTable[] =
+static struct MsgProcTable s_gListboxMsgTable[] =
 {
     {MSG_CREATE,HmiCreate},         //主窗口创建消息
     {MSG_TIMER,HmiTimer},           //定时器消息
@@ -198,32 +201,13 @@ static struct MsgProcTable s_gHmiMsgListboxTable[] =
     {MSG_PAINT,HmiPaint},           //绘制消息
 };
 
-static struct MsgTableLink  s_gHmiMsgLink;
+static struct MsgTableLink  s_gListboxDemoMsgLink;
 
 /*========================================================================================*/
 void    GDD_Demo_Listbox(void)
 {
-    HWND g_ptMainHwnd;
-    struct WindowMsg msg;
-    RECT rc;
-
-
-    GetClientRect(GetDesktopWindow(),&rc);
-
-    InflateRect(&rc,-5,-5);
-
-    s_gHmiMsgLink.LinkNext = NULL;
-    s_gHmiMsgLink.MsgNum = sizeof(s_gHmiMsgListboxTable) / sizeof(struct MsgProcTable);
-    s_gHmiMsgLink.myTable =(struct MsgProcTable *)&s_gHmiMsgListboxTable;
-    g_ptMainHwnd = CreateWindow("列表框控件演示",WS_MAIN_WINDOW,
-                      rc.left,rc.top,RectW(&rc),RectH(&rc),
-                      NULL,0x0000, CN_WINBUF_PARENT,NULL,&s_gHmiMsgLink);
-    SetFocusWindow(g_ptMainHwnd);
-     //显示窗口
-    SetWindowShow(g_ptMainHwnd);
-
-    while(GetMessage(&msg,g_ptMainHwnd))
-    {
-      DispatchMessage(&msg);
-    }
+    s_gListboxDemoMsgLink.MsgNum = sizeof(s_gListboxMsgTable) / sizeof(struct MsgProcTable);
+    s_gListboxDemoMsgLink.myTable = (struct MsgProcTable *)&s_gListboxMsgTable;
+    GDD_CreateGuiApp("Listbox", &s_gListboxDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_WaitGuiAppExit("Listbox");
 }

@@ -68,8 +68,25 @@
 //   说明: 创建
 //   作者: 罗侍田
 //-----------------------------------------------------------------------------
+
+//the memory returned by calloc must be initialized by zero,so the
+//original one is wrong!--TODO,zqf
+//void *calloc(ptu32_t nmemb, ptu32_t size)
+//{
+//  return malloc (nmemb*size);
+//}
 void *calloc(ptu32_t nmemb, ptu32_t size)
 {
-  return malloc (nmemb*size);
+	void *result = NULL;
+	int len;
+	len = nmemb*size;
+	if(len > 0)
+	{
+		result = malloc(len);
+		if(NULL != result)
+		{
+			memset(result,0,len);
+		}
+	}
+	return result;
 }
-

@@ -135,14 +135,15 @@ struct Object *OBJ_AddChild(struct Object *Parent, struct Object *Child,
                             u16 Size, u16 RscType, const char *Name);
 struct Object *OBJ_AddChildHead(struct Object *Parent, struct Object *Child,
                                 u16 Size, u16 RscType, const char *Name);
+struct Object *OBJ_InsertChild(struct Object *Parent, struct Object *New);
 bool_t OBJ_Displace(struct Object *Old, struct Object *New);
 struct Object *OBJ_DelBranch(struct Object *Branch);
 struct Object *OBJ_Del(struct  Object *Obj);
 bool_t OBJ_MoveToTree(struct Object *Parent,struct Object *Node);
 bool_t OBJ_MoveToLast(struct Object *Obj);
 bool_t OBJ_MoveToHead(struct Object *Obj);
-bool_t OBJ_MoveToNext(struct Object *Obj, struct Object *NewNext);
-bool_t OBJ_MoveToPrevious(struct Object *Obj, struct Object *NewPre);
+bool_t OBJ_MoveToNext(struct Object *Loc, struct Object *Obj);
+bool_t OBJ_MoveToPrevious(struct Object *Loc, struct Object *Obj);
 bool_t OBJ_RoundPrevious(struct Object *Parent);
 bool_t OBJ_RoundNext(struct Object *Parent);
 bool_t OBJ_Rename(struct Object *Obj, const char *NewName);

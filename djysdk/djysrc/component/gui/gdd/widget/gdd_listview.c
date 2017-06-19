@@ -375,12 +375,12 @@ static void __ListView_DeleteAllRows(listview_t *pLV)
 }
 
 
-static  bool_t ListView_Destroy(struct WindowMsg *pMsg)
+static  bool_t ListView_Close(struct WindowMsg *pMsg)
 {
     listview_t *pLV;
-    HWND hwnd;
-    hwnd =pMsg->hwnd;
-    pLV =(listview_t*)GetWindowPrivateData(hwnd);
+    //注：这里不能从pMsg->hwnd中取PrivateData指针，因为系统执行close后，hwnd已经
+    //无效。
+    pLV = (listview_t *)pMsg->Param2;
     list_t *lst,*n;
     //destroy row
     __ListView_DeleteAllRows(pLV);
@@ -774,7 +774,7 @@ static struct MsgProcTable s_gListViewMsgProcTable[] =
     {LVM_SETFIRSTROW,ListView_SetFirstRowIdx},
     {MSG_LBUTTON_DOWN,ListView_LbuttonDown},
     {MSG_PAINT,ListView_Paint},
-    {MSG_DESTROY,ListView_Destroy},
+    {MSG_CLOSE, ListView_Close},
 };
 
 static struct MsgTableLink  s_gListViewMsgLink;
@@ -784,22 +784,13 @@ HWND CreateListView(  const char *Text,u32 Style,
                     HWND hParent,u32 WinId,void *pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
-    WINDOW *pGddWin=NULL;
-    struct MsgTableLink *Current;
-    if(UserMsgTableLink != NULL)
-    {
-        Current = UserMsgTableLink;
-        while(Current->LinkNext != NULL)
-            Current = Current->LinkNext;
-        Current->LinkNext = &s_gListViewMsgLink;
-        Current = UserMsgTableLink;
-    }
-    else
-        Current = &s_gListViewMsgLink;
-    s_gListViewMsgLink.LinkNext = NULL;
+    HWND pGddWin;
     s_gListViewMsgLink.MsgNum = sizeof(s_gListViewMsgProcTable) / sizeof(struct MsgProcTable);
     s_gListViewMsgLink.myTable = (struct MsgProcTable *)&s_gListViewMsgProcTable;
-    pGddWin=CreateWindow(Text,WS_CHILD|Style,x,y,w,h,hParent,WinId, CN_WINBUF_PARENT,pdata,Current);
+    pGddWin=CreateWindow(Text,WS_CHILD | WS_CAN_FOCUS|Style,x,y,w,h,hParent,WinId,
+                            CN_WINBUF_PARENT,pdata,&s_gListViewMsgLink);
+    if(UserMsgTableLink != NULL)
+        AddProcFuncTable(pGddWin,UserMsgTableLink);
     return pGddWin;
 }
 

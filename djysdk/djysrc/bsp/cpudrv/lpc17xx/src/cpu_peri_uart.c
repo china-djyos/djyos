@@ -175,7 +175,7 @@ static void __UART_BaudSet(tagUartReg volatile *Reg,u32 baud)
     if(Reg == NULL)
         return;
 
-    temp = ( CN_CFG_CCLK / 16 ) / baud ;	/*baud rate */
+    temp = ( CN_CFG_CCLK / 16 ) / baud ;    /*baud rate */
     DLM = temp / 256;
     DLL = temp % 256;
 
@@ -437,7 +437,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             __UART_ComConfig(Reg,data1);
             break;
         case CN_UART_HALF_DUPLEX_RECV:
-            Board_UartHalfDuplexSend(i);
+            Board_UartHalfDuplexRecv(i);
             break;
         case CN_UART_HALF_DUPLEX_SEND:
             Board_UartHalfDuplexSend(i);

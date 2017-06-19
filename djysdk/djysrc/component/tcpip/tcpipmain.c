@@ -60,9 +60,9 @@ bool_t TcpIpVersion(char *param)
     printf("VERSION  :%s \r\n",CN_TCPIP_VERSION);
     printf("TIME     :%s \r\n",__TIME__);
     printf("DAT      :%s \r\n",__DATE__);
-    printf("SUBMIT2  :any new idea, please contact with %s \r\n",CN_TCPIP_AUTHOR);
+    printf("SUBMIT2  :Any idea, please contact with %s \r\n",CN_TCPIP_AUTHOR);
     printf("ChangeLog:\r\n");
-    printf("FUNCTIONS:TCP/UDP/IPV4/PPP/FTP/TFTP/ICMP/PING/SOCKET\r\n");
+    printf("FUNCTIONS:/ETHERNET/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING\r\n");
     return true;
 }
 // =============================================================================
@@ -79,9 +79,6 @@ ptu32_t ModuleInstall_TcpIp(ptu32_t para)
     printk("VERSION  :%s \r\n",CN_TCPIP_VERSION);
     printk("TIME     :%s \r\n",__TIME__);
     printk("DAT      :%s \r\n",__DATE__);
-    printk("SUBMIT2  :any new idea, please contact with %s \r\n",CN_TCPIP_AUTHOR);
-    printk("ChangeLog:\r\n");
-    printk("FUNCTIONS:TCP/UDP/IPV4/PPP/FTP/TFTP/ICMP/PING/SOCKET\r\n");
 	//do the package manage module initialize
 	extern bool_t PkgInit(void);
 	if(false == PkgInit())
@@ -206,8 +203,17 @@ ptu32_t ModuleInstall_TcpIp(ptu32_t para)
 	{
 		printk("%s:#LOOP Module-------------------OK\n\r",__FUNCTION__);
 	}
-
-
+	//add the ppp module
+	extern bool_t PppInit(void);
+	if(gUsePpp&&(false == PppInit()))
+	{
+		printk("%s:#PPP Module-------------------BAD\n\r",__FUNCTION__);
+		goto TCPIP_INITERR;
+	}
+	else
+	{
+		printk("%s:#PPP Module-------------------OK\n\r",__FUNCTION__);
+	}
     //add the tcpip service
     extern bool_t ServiceInit(void);
     if(false == ServiceInit())
@@ -219,7 +225,6 @@ ptu32_t ModuleInstall_TcpIp(ptu32_t para)
     {
         printk("%s:#APPS Module-------------------OK\n\r",__FUNCTION__);
     }
-
 	printk("*********DJY TCP/IP INIT SUCCESS**********************\n\r");
 	return 0;
 

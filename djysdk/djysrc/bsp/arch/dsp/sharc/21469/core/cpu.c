@@ -80,6 +80,7 @@ u32 *sys_heap_top_cnt = &ldf_heap_end;
 
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed;
+u32 g_u32HundreUsfor;
 static volatile ufast_t uf_delay_counter;
 u32 volatile  core_time;
 
@@ -164,6 +165,7 @@ void __DjySetDelay(void)
     counter = clksum - counter;    //取实际脉冲数。
     narrow_cfg_mclk=CN_CFG_MCLK/1000000;
     g_u32CycleSpeed = (uint64_t)((counter * 1000) /(u32_fors*narrow_cfg_mclk));//防溢出，用64位
+    g_u32HundreUsfor = (1024<<7)/g_u32CycleSpeed;
     Int_HighAtomEnd(high_atom);
     return;
 }

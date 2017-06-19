@@ -191,7 +191,7 @@ bool_t __LP_BSP_RestoreRamL3(void)
 //-----------------------------------------------------------------------------
 bool_t __LP_BSP_SaveRamL3(void)
 {
-    u32 i,RamAddr,FlashAddr,len;
+    u32 RamAddr,FlashAddr,len;
    //将现场缓存中的数据保存到flash
 //   if(ModuleInit_K9f1208())
 //   {

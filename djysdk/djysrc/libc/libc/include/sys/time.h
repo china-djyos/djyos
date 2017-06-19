@@ -56,9 +56,11 @@
 
 #ifndef __TIME_H__
 #define __TIME_H__
+
 #include "stdint.h"
 #include "errno.h"
 #include <types.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,7 +106,7 @@ struct tm
 
 extern char g_cTmWdays[][8];
 
-//ptu32_t ModuleInstall_TM(ptu32_t para);
+ptu32_t ModuleInstall_TM(ptu32_t para);
 s64 Tm_Time(s64 *ret);
 s64 Tm_TimeMs(s64 *ret);
 s64 Tm_TimeUs(s64 *ret);
@@ -172,6 +174,13 @@ int settimeofday(const struct timeval *tv, const struct timezone *tz);
 
 int gettimezone(int *result);
 int settimezone(int timezone);
+
+size_t strftime(
+char *strDest,
+size_t maxsize,
+const char *format,
+const  struct tm *timeptr
+);
 
 #ifdef __cplusplus
 }

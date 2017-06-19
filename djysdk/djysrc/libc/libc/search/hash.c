@@ -769,8 +769,7 @@ hash_seq(dbp, key, data, flag)
 
     hashp = (HTAB *)dbp->internal;
     if (flag && flag != R_FIRST && flag != R_NEXT) {
-        hashp->error = ;
-        Djy_SaveLastError(EINVAL);
+        errno = EINVAL;
         return (ERROR);
     }
 #ifdef HASH_STATISTICS

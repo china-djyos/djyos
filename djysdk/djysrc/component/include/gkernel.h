@@ -344,85 +344,89 @@ struct GkWinRsc                  //窗口资源定义
 
 };
 
-bool_t GK_ApiCreateDesktop(struct DisplayRsc *display,
+ptu32_t ModuleInstall_GK(ptu32_t para);
+
+//原始窗口操作函数组
+bool_t GK_CreateDesktop(struct DisplayRsc *display,
                                         struct GkWinRsc *desktop,
                                         s32 width,s32 height,u32 color,
                                         u32 buf_mode,u16 PixelFormat,
                                         u32 BaseColor);
-struct GkWinRsc *GK_ApiGetDesktop(const char *display_name);
-bool_t GK_ApiCreateGkwin(struct GkWinRsc *parent,
+struct GkWinRsc *GK_GetDesktop(const char *display_name);
+bool_t GK_CreateWin(struct GkWinRsc *parent,
                                         struct GkWinRsc *newwin,
                                         s32 left,s32 top,s32 right,s32 bottom,
                                         u32 color,u32 buf_mode,
                                         const char *name,u16 PixelFormat,u32 HyalineColor,
                                         u32 BaseColor,struct RopGroup RopCode);
-void GK_ApiFillWin(struct GkWinRsc *gkwin,u32 color,u32 sync_time);
-void GK_ApiFillRect(struct GkWinRsc *gkwin,struct Rectangle *rect,
+void GK_FillWin(struct GkWinRsc *gkwin,u32 color,u32 sync_time);
+void GK_FillRect(struct GkWinRsc *gkwin,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 sync_time);
-void GK_ApiSyncShow(u32 sync_time);
-void GK_ApiRefreshDisplay(struct DisplayRsc *Display);
-void GK_ApiDrawText(struct GkWinRsc *gkwin,
-                    struct FontRsc *pFont,
-                    struct Charset *pCharset,
-                    s32 x,s32 y,
-                    const char *text,u32 count,u32 color,
-                    u32 Rop2Code,u32 SyncTime);
-void GK_ApiSetPixel(struct GkWinRsc *gkwin,s32 x,s32 y,
-                        u32 color,u32 rop2_code,u32 sync_time);
-void GK_ApiLineto(struct GkWinRsc *gkwin, s32 x1,s32 y1,
-                    s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
-void GK_ApiLinetoIe(struct GkWinRsc *gkwin, s32 x1,s32 y1,
-                    s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
-void GK_ApiDrawBitMap(struct GkWinRsc *gkwin,
-                                struct RectBitmap *bitmap,
-                                s32 x,s32 y,
-                                u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime);
-void GK_ApiDrawCircle(struct GkWinRsc *gkwin,s32 x0,s32 y0,
-                    u32 r,u32 color,u32 rop2_code,u32 sync_time);
-void GK_ApiDrawBezier(struct GkWinRsc *gkwin,float x1,float y1,
-                    float x2,float y2,float x3,float y3,float x4,float y4,
-                    u32 color,u32 rop2_code,u32 sync_time);
-struct GkWinRsc* GK_ApiGetWinFromPt(struct GkWinRsc *desktop, const struct PointCdn *pt);
-struct GkWinRsc* GK_ApiTraveScion(struct GkWinRsc *Ancestor,struct GkWinRsc *Current);
-struct GkWinRsc* GK_ApiTraveChild(struct GkWinRsc *Parent,struct GkWinRsc *Current);
-void GK_ApiMoveWin(struct GkWinRsc *gkwin,s32 left,s32 top,u32 sync_time);
-void GK_ApiChangeWinArea(struct GkWinRsc *gkwin, s32 left,s32 top,
+void GK_SyncShow(u32 sync_time);
+void GK_RefreshDisplay(struct DisplayRsc *Display);
+struct GkWinRsc* GK_GetWinFromPt(struct GkWinRsc *desktop, const struct PointCdn *pt);
+struct GkWinRsc* GK_GetTwig(struct GkWinRsc *Ancestor);
+struct GkWinRsc* GK_TraveScion(struct GkWinRsc *Ancestor,struct GkWinRsc *Current);
+struct GkWinRsc* GK_TraveChild(struct GkWinRsc *Parent,struct GkWinRsc *Current);
+void GK_AdoptWin(struct GkWinRsc *gkwin, struct GkWinRsc *NewParent);
+void GK_MoveWin(struct GkWinRsc *gkwin,s32 left,s32 top,u32 sync_time);
+void GK_ChangeWinArea(struct GkWinRsc *gkwin, s32 left,s32 top,
                                        s32 right,s32 bottom, u32 SyncTime);
-void GK_ApiSetBoundMode(struct GkWinRsc *gkwin,bool_t mode);
-void GK_ApiSetPrio(struct GkWinRsc *gkwin,u32 prio,u32 sync_time);
-bool_t GK_ApiSetRopCode(struct GkWinRsc *gkwin,
+void GK_SetBoundMode(struct GkWinRsc *gkwin,bool_t mode);
+void GK_SetPrio(struct GkWinRsc *gkwin,u32 prio,u32 sync_time);
+bool_t GK_SetRopCode(struct GkWinRsc *gkwin,
                             struct RopGroup RopCode,u32 sync_time);
-//bool_t GK_ApiSetPatBuf(struct GkWinRsc *gkwin,
+//bool_t GK_SetPatBuf(struct GkWinRsc *gkwin,
 //                            struct RectBitmap *pattern,
 //                            u32 sync_time);
-bool_t GK_ApiSetHyalineColor(struct GkWinRsc *gkwin,
-                                    u32 HyalineColor);
-//bool_t GK_ApiSetRop4Msk(struct GkWinRsc *gkwin,
+bool_t GK_SetHyalineColor(struct GkWinRsc *gkwin,u32 HyalineColor);
+//bool_t GK_SetRop4Msk(struct GkWinRsc *gkwin,
 //                                struct RectBitmap *Rop4Msk,u32 sync_time);
-void GK_ApiSetDirectScreen(struct GkWinRsc *gkwin,
-                                                u32 sync_time);
-void GK_ApiCancelDirectScreen(struct GkWinRsc *gkwin,
-                                                u32 sync_time);
-void GK_ApiDestroyWin(struct GkWinRsc *gkwin);
-u16 GK_ApiGetPixelFormat(struct DisplayRsc *display);
-void *GK_ApiGetUserTag(struct GkWinRsc *gkwin);
-void GK_ApiSetUserTag(struct GkWinRsc *gkwin,void *Tag);
-struct GkWinRsc *GK_ApiGetParent(struct GkWinRsc *gkwin);
-struct GkWinRsc *GK_ApiGetChild(struct GkWinRsc *gkwin);
-struct GkWinRsc *GK_ApiGetPrevious(struct GkWinRsc *gkwin);
-struct GkWinRsc *GK_ApiGetNext(struct GkWinRsc *gkwin);
-struct GkWinRsc *GK_ApiGetFirst(struct GkWinRsc *gkwin);
-struct GkWinRsc *GK_ApiGetLast(struct GkWinRsc *gkwin);
-void GK_ApiGetArea(struct GkWinRsc *gkwin, struct Rectangle *rc);
-void GK_ApiSetName(struct GkWinRsc *gkwin, const char *Name);
-char *GK_ApiGetName(struct GkWinRsc *gkwin);
-bool_t GK_ApiIsWinVisible(struct GkWinRsc *gkwin);
+void GK_SetDirectScreen(struct GkWinRsc *gkwin,u32 sync_time);
+void GK_SetUnDirectScreen(struct GkWinRsc *gkwin,u32 sync_time);
+void GK_DestroyWin(struct GkWinRsc *gkwin);
+u16 GK_GetPixelFormat(struct DisplayRsc *display);
+void *GK_GetUserTag(struct GkWinRsc *gkwin);
+void GK_SetUserTag(struct GkWinRsc *gkwin,void *Tag);
+struct GkWinRsc *GK_GetParentWin(struct GkWinRsc *gkwin);
+struct GkWinRsc *GK_GetChildWin(struct GkWinRsc *gkwin);
+struct GkWinRsc *GK_GetPreviousWin(struct GkWinRsc *gkwin);
+struct GkWinRsc *GK_GetNextWin(struct GkWinRsc *gkwin);
+struct GkWinRsc *GK_GetFirstWin(struct GkWinRsc *gkwin);
+struct GkWinRsc *GK_GetLastWin(struct GkWinRsc *gkwin);
+void GK_GetArea(struct GkWinRsc *gkwin, struct Rectangle *rc);
+void GK_SetName(struct GkWinRsc *gkwin, const char *Name);
+char *GK_GetName(struct GkWinRsc *gkwin);
+bool_t GK_IsWinVisible(struct GkWinRsc *gkwin);
 
+//色彩转换函数组
 u32 GK_ConvertPF2PF(u16 spf_type,u16 dpf_type,u32 color,ptu32_t ExColor);
 u32 GK_BlendRop2(u32 dest,u32 pen,u32 rop2_code);
 u32 GK_ConvertColorToRGB24(u16 PixelFormat,u32 color,ptu32_t ExColor);
 u32 GK_ConvertRGB24ToPF(u16 PixelFormat,u32 color);
 
+//绘图函数组
+void GK_DrawText(struct GkWinRsc *gkwin,
+                    struct FontRsc *pFont,
+                    struct Charset *pCharset,
+                    s32 x,s32 y,
+                    const char *text,u32 count,u32 color,
+                    u32 Rop2Code,u32 SyncTime);
+void GK_SetPixel(struct GkWinRsc *gkwin,s32 x,s32 y,
+                        u32 color,u32 rop2_code,u32 sync_time);
+void GK_Lineto(struct GkWinRsc *gkwin, s32 x1,s32 y1,
+                    s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
+void GK_LinetoIe(struct GkWinRsc *gkwin, s32 x1,s32 y1,
+                    s32 x2,s32 y2,u32 color,u32 rop2_code,u32 sync_time);
+void GK_DrawBitMap(struct GkWinRsc *gkwin,
+                                struct RectBitmap *bitmap,
+                                s32 x,s32 y,
+                                u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime);
+void GK_DrawCircle(struct GkWinRsc *gkwin,s32 x0,s32 y0,
+                    u32 r,u32 color,u32 rop2_code,u32 sync_time);
+void GK_DrawBezier(struct GkWinRsc *gkwin,float x1,float y1,
+                    float x2,float y2,float x3,float y3,float x4,float y4,
+                    u32 color,u32 rop2_code,u32 sync_time);
 u32 GK_GetPixelBm(struct RectBitmap *bitmap,s32 x,s32 y);
 
 #ifdef __cplusplus

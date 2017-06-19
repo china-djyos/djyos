@@ -115,6 +115,7 @@ void Init_Cpu(void)
     SysClockInit();
 
     HAL_TickInit();
+    __LP_BSP_HardInit();
     IAP_SelectLoadProgam();
 }
 

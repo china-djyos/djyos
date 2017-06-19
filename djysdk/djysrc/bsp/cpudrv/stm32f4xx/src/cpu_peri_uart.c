@@ -63,7 +63,7 @@
 
 extern const char *gc_pCfgStdinName;    //标准输入设备
 extern const char *gc_pCfgStdoutName;   //标准输出设备
-extern const char *gc_pCfgStderrName;   //标准错误输出设备
+//extern const char *gc_pCfgStderrName;   //标准错误输出设备
 // =============================================================================
 #define CN_UART1_BASE 0x40011000//0x40013800
 #define CN_UART2_BASE 0x40004400
@@ -102,6 +102,8 @@ static DMA_Stream_TypeDef * const UartDmaTxStream[] = {DMA2_Stream7,DMA1_Stream6
                                                 DMA1_Stream3,DMA1_Stream4,
                                                 DMA1_Stream7,DMA2_Stream6};
 
+static u8 const DMA_Tx_ch[] = {4,4,4,4,4,5};
+static u8 const DMA_Rx_ch[] = {4,4,4,4,4,5};
 // DMA正在使用标记，是否使用DMA标记
 static bool_t s_UART_DmaSending[] = {false,false,false,false,false,false};
 static bool_t s_UART_DmaUsed[] = {false,false,false,false,false,false};
@@ -242,7 +244,7 @@ static void __UART_BaudSet(tagUartReg volatile *Reg,u32 port,u32 baud)
 {
     u32 mantissa,fraction;
     float temp;
-    if((port == CN_UART1) || (port == CN_UART5))
+    if((port == CN_UART1) || (port == CN_UART6))
     {
         temp = (float)CN_CFG_PCLK2/(16*baud);
         mantissa = temp;
@@ -263,16 +265,6 @@ static void __UART_BaudSet(tagUartReg volatile *Reg,u32 port,u32 baud)
     }
 }
 
-// =============================================================================
-// 功能: 设置对应UART的IO口，包括时钟和IO配置
-// 参数: SerialNo,串口号
-// 返回: 无
-// =============================================================================
-static void __UART_GpioConfig(u8 SerialNo)
-{
-    extern bool_t Board_UartGpioInit(u8 SerialNo);
-    Board_UartGpioInit(SerialNo);//存入在boarddrv对应板件目录下的board.c中
-}
 
 // =============================================================================
 // 功能: 对串口传输参数配置，包括波特率、奇偶校验、数据位、停止位
@@ -398,7 +390,6 @@ static void __UART_HardInit(u8 SerialNo)
 {
     if(SerialNo > CN_UART6)
         return;
-    __UART_GpioConfig(SerialNo);
     //系统初始化时已经使中断处于禁止状态，无需再禁止和清除中断。
    //初始化uart硬件控制数据结构
     tg_UART_Reg[SerialNo]->CR1 = 0x20ac;
@@ -589,10 +580,10 @@ void __UART_SetDmaUsed(u32 port)
     __UART_TxIntDisable(CN_DMA_UNUSED,port);
     tg_UART_Reg[port]->CR1 |= (1<<4);//enable idle int
 
-    DMA_Config(UartDmaRxStream[port],4,(u32)&(tg_UART_Reg[port]->DR),
+    DMA_Config(UartDmaRxStream[port],DMA_Rx_ch[port],(u32)&(tg_UART_Reg[port]->DR),
             (u32)DmaRecvBuf,DMA_DIR_P2M,DMA_DATABITS_8,DMA_DATABITS_8,32);
 
-    DMA_Config(UartDmaTxStream[port],4,(u32)&(tg_UART_Reg[port]->DR),
+    DMA_Config(UartDmaTxStream[port],DMA_Tx_ch[port],(u32)&(tg_UART_Reg[port]->DR),
             (u32)DmaSendBuf,DMA_DIR_M2P,DMA_DATABITS_8,DMA_DATABITS_8,32);
 
     DMA_IntEnable(UartDmaTxStream[port],DMA_INT_TCIE);  //使能发送完成中断
@@ -603,6 +594,7 @@ void __UART_SetDmaUsed(u32 port)
     DMA_Enable(UartDmaRxStream[port],(u32)DmaRecvBuf,32);//启动dma通道
 
     Int_Register(UartDmaTxInt[port]);
+    Int_Register(UartDmaRxInt[port]);//注册接收DMA中断
     Int_SetClearType(UartDmaRxInt[port],CN_INT_CLEAR_AUTO);
     Int_IsrConnect(UartDmaRxInt[port],UART_DmaRx_ISR);
     Int_SetClearType(UartDmaTxInt[port],CN_INT_CLEAR_AUTO);
@@ -655,6 +647,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 {
     ptu32_t result = 0;
     u32 port;
+    u32 timeout = 10000;
     if(Reg == NULL)
         return 0;
 
@@ -677,6 +670,19 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_UART_STOP:
             __UART_Disable(port);
             break;
+        case CN_UART_HALF_DUPLEX_SEND: //发送数据
+        	Board_UartHalfDuplexSend(port);
+        	break;
+
+        case CN_UART_HALF_DUPLEX_RECV: //接收数据
+            while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
+            {
+                timeout -=10;
+                Djy_DelayUs(10);
+            }
+            Board_UartHalfDuplexRecv(port);
+        	break;
+
         case CN_UART_SET_BAUD:  //设置Baud
              __UART_BaudSet(Reg,port, data1);
             break;

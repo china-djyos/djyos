@@ -28,7 +28,7 @@ uint32_t HAL_GetTick(void)
 	static u32 sTicks = 0;
 	static u16 sTimCntLast = 0;
 	u16 TimCntCurrent;
-	u32 TimMs;
+
 	TIM_HandleTypeDef TimHandle;
 
 	TimHandle.Instance = TIM6;

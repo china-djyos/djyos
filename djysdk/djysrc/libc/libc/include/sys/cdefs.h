@@ -680,4 +680,10 @@
 #endif
 #endif
 
+//some lib use the u_xxx data type,so we add it here--zqf--TODO
+typedef unsigned long    u_long;
+typedef unsigned int     u_int;
+typedef unsigned char    u_char;
+typedef unsigned short   u_short;
+
 #endif /* !_SYS_CDEFS_H_ */

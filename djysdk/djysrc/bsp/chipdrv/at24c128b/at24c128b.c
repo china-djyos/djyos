@@ -81,6 +81,10 @@ void __AT24_GpioInit(void)
 //    Board_AT24GpioInit();
     //已经在board.c里面Board_GpioInit完成
 }
+__weak void AT24_WPEn(u8 En)
+{
+
+}
 
 // =============================================================================
 // 功能：AT24芯片按页写,地址范围只局限在该页内
@@ -134,14 +138,14 @@ u32 AT24_WriteBytes(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
     u32 offset = 0,wSize = 0;
 
     //判断是否超出芯片地址范围
-    if((wAddr + wBytesNum) >= CN_AT24_CHIP_SIZE)
+    if((wAddr + wBytesNum-1) >= CN_AT24_CHIP_SIZE)
         return false;
 
     if(false == Lock_SempPend(&AT24_Semp,2500*mS))// TODO --- 10*mS
     {
         return false;
     }
-
+    AT24_WPEn(0);
     //分页操作
     while(wBytesNum)
     {
@@ -153,7 +157,7 @@ u32 AT24_WriteBytes(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
         pbyBuf += wSize;                                //缓冲区增加
         wBytesNum -= wSize;                             //写长度递减
     }
-
+    AT24_WPEn(1);
     Lock_SempPost(&AT24_Semp);
 
     return true;
@@ -171,7 +175,7 @@ u32 AT24_ReadBytes(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
     u16 offset = 0,rSize = 0;
 
     //判断是否超出芯片地址范围
-    if((wAddr + wBytesNum) >= CN_AT24_CHIP_SIZE)
+    if((wAddr + wBytesNum-1) >= CN_AT24_CHIP_SIZE)
         return false;
 
     if(false == Lock_SempPend(&AT24_Semp,2500*mS))//TODO
@@ -242,7 +246,7 @@ bool_t AT24_ModuleInit(char *BusName)
     //GPIO初始化，SDA、SCL已经在IIC中初始化了，此处只需初始化WP即可
     __AT24_GpioInit();
 
-    if(NULL == Lock_SempCreate_s(&AT24_Semp,1,1,CN_BLOCK_FIFO,"AT45 semp"))
+    if(NULL == Lock_SempCreate_s(&AT24_Semp,1,1,CN_BLOCK_FIFO,"AT24 semp"))
         return false;
 
     //添加FM24CL64到IIC0总线

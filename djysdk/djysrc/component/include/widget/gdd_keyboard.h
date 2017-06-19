@@ -68,17 +68,17 @@ extern "C" {
 #include    "gdd.h"
 #include    "keyboard.h"
 
-#define VK_DEL                127
-#define VK_ESCAPE             27
-#define VK_RETURN             13
-#define VK_SPACE              32
 
-#define VK_LEFT               37
-#define VK_UP                 38
-#define VK_RIGHT              39
-#define VK_DOWN               40
 
-#define VK_DECIMAL_POINT      46
+
+#define VK_DEL_CHAR           120
+#define VK_ENTER_CHAR         161
+#define VK_UP                 85
+#define VK_DOWN               68
+
+
+
+#define VK_DECIMAL_POINT      46   //小数点
 
 #define VK_NUM_0              48
 #define VK_NUM_1              49
@@ -92,13 +92,15 @@ extern "C" {
 #define VK_NUM_9              57
 
 
+
+
 struct VirKeyBoardPara
 {
     u8 rows;            //键盘行数
     u8 cols;             //键盘列数
     u8 keyspace;     //相邻两个键盘的间隔距离
     u8 id;           //键盘id编号
-    char *keysets;   //键盘的键值集合
+    //char *keysets;   //键盘的键值集合
     struct KeyBoardPrivate *pKBP;
 };
 

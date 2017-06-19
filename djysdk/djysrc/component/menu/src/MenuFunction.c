@@ -72,7 +72,7 @@ void  Menuitem_func(struct menu_item *menuitem)
       printf("In menuitem function!--menuitem name=%s\n",menuitem->node.name);
   }
 
-  GK_ApiDrawText(menuitem->myprivate,NULL,NULL,0,30,content,strnlen(content,namesize),CN_COLOR_BLUE,0,CN_TIMEOUT_FOREVER);
+  GK_DrawText(menuitem->myprivate,NULL,NULL,0,30,content,strnlen(content,namesize),CN_COLOR_BLUE,0,CN_TIMEOUT_FOREVER);
   //
   for(i=0;i<3;i++)
   {
@@ -112,7 +112,7 @@ void  CheckEquipment(struct menu_item *menuitem)//查看装置信息
 
     width=Appwin->right-Appwin->left;
     height=Appwin->bottom-Appwin->top;
-    result=GK_ApiCreateGkwin(Appwin, &CheckWin_text, 0, 0, width/2+16, height,\
+    result=GK_CreateWin(Appwin, &CheckWin_text, 0, 0, width/2+16, height,\
                              0x00202060, CN_WINBUF_NONE, "Checkwin_text",0,0,0, 0);
 
 
@@ -123,10 +123,10 @@ void  CheckEquipment(struct menu_item *menuitem)//查看装置信息
     para.y=0;
     para.count=strlen(content);
 //    windows_draw_text(&para,content);
-    GK_ApiDrawText(&CheckWin_text,NULL,NULL,0,0,"装置名称：",10,0,CN_COLOR_BLUE,0);
-    GK_ApiDrawText(&CheckWin_text,NULL,NULL,0,16,"装置参数：",10,0,CN_COLOR_BLUE,0);
-    GK_ApiDrawText(&CheckWin_text,NULL,NULL,0,32,"软件CRC：",9,0,CN_COLOR_BLUE,0);
-    GK_ApiDrawText(&CheckWin_text,NULL,NULL,0,48,"工程日期：",10,0,CN_COLOR_BLUE,CN_TIMEOUT_FOREVER);
+    GK_DrawText(&CheckWin_text,NULL,NULL,0,0,"装置名称：",10,0,CN_COLOR_BLUE,0);
+    GK_DrawText(&CheckWin_text,NULL,NULL,0,16,"装置参数：",10,0,CN_COLOR_BLUE,0);
+    GK_DrawText(&CheckWin_text,NULL,NULL,0,32,"软件CRC：",9,0,CN_COLOR_BLUE,0);
+    GK_DrawText(&CheckWin_text,NULL,NULL,0,48,"工程日期：",10,0,CN_COLOR_BLUE,CN_TIMEOUT_FOREVER);
 
     for ( ; ; )
     {
@@ -164,11 +164,11 @@ void  CheckEquipment(struct menu_item *menuitem)//查看装置信息
 //      Djy_WaitEvttPop(Djy_MyEvttId(),1,20*mS);
     }
 
-    GK_ApiDestroyWin(&CheckWin_text);
+    GK_DestroyWin(&CheckWin_text);
     return;
 }
 
-struct menu_item_function   menufunc_tab[]=//menu item hook function tab
+struct menu_item_function   menufunc_tab[]=     //menu item hook function tab
 {
  {"Menuitem_func",Menuitem_func},
 

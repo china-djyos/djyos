@@ -82,9 +82,9 @@
 
 static struct  Object *s_ptDeviceRscTree;
 
-static struct DjyDevice *s_ptMenOfDevice;//设备控制块内存池
-static struct MemCellPool *s_ptDevicePool;     //设备控制块内存池头指针
-static struct MutexLCB s_tDevMutex;       //保护设备资源树的并发访问安全
+static struct DjyDevice *s_ptMenOfDevice;   //设备控制块内存池
+static struct MemCellPool *s_ptDevicePool;  //设备控制块内存池头指针
+static struct MutexLCB s_tDevMutex;         //保护设备资源树的并发访问安全
 
 struct VCommon g_tDevCom =
 {
@@ -151,41 +151,41 @@ ptu32_t ModuleInstall_Driver(ptu32_t para)
 //    return (struct DjyDevice *)Dev;
 //};
 
-//----获取设备指针-------------------------------------------------------------
-//功能: 通过设备别名查找设备的设备指针。
-//参数: DevAlias,设备别名
-//返回: 设备指针
-//-----------------------------------------------------------------------------
-struct DjyDevice *__dev_Alias2Dev(u32 DevAlias)
-{
-    return (struct DjyDevice *)(DevAlias-1);
-};
+////----获取设备指针-------------------------------------------------------------
+////功能: 通过设备别名查找设备的设备指针。
+////参数: DevAlias,设备别名
+////返回: 设备指针
+////-----------------------------------------------------------------------------
+//struct DjyDevice *__dev_Alias2Dev(u32 DevAlias)
+//{
+//    return (struct DjyDevice *)(DevAlias-1);
+//};
 
-//----获取设备别名-------------------------------------------------------------
-//功能: 通过设备指针查找设备的设备别名
-//参数: Dev,设备指针
-//返回: 设备handle
-//-----------------------------------------------------------------------------
-u32 __dev_Dev2Alias(struct DjyDevice * Dev)
-{
-    return (u32)Dev+1;
-};
-//
-////----获取设备句柄-------------------------------------------------------------
+////----获取设备别名-------------------------------------------------------------
+////功能: 通过设备指针查找设备的设备别名
+////参数: Dev,设备指针
+////返回: 设备handle
+////-----------------------------------------------------------------------------
+//u32 __dev_Dev2Alias(struct DjyDevice * Dev)
+//{
+//    return (u32)Dev+1;
+//};
+
+////----获取设备句柄-----------------------------------------------------------
 ////功能: 通过设备别名查找设备的设备句柄。
 ////参数: DevAlias,设备别名
 ////返回: 设备句柄
-////-----------------------------------------------------------------------------
+////---------------------------------------------------------------------------
 //struct DjyDevice * __dev_Alias2Hdl(u32 DevAlias)
 //{
 //    return (struct DjyDevice *)(DevAlias-1);
 //};
 //
-////----获取设备别名-------------------------------------------------------------
+////----获取设备别名-----------------------------------------------------------
 ////功能: 通过设备句柄查找设备的设备别名
 ////参数: Handle,设备句柄
 ////返回: 设备handle
-////-----------------------------------------------------------------------------
+////---------------------------------------------------------------------------
 //u32 __dev_Hdl2Alias(struct DjyDevice * Handle)
 //{
 //    return (u32)Handle+1;
@@ -299,37 +299,37 @@ struct DjyDevice * Driver_DeviceCreate(  struct DjyDevice *ParentDevice,
     return result;
 }
 
-//----锁定设备-----------------------------------------------------------------
-//功能: 锁定设备，使该设备不能被删除，但不影响对设备的其他操作。锁定设备是
-//      Driver_OpenDeviceAlias函数安全运行的保证，可以确保Driver_OpenDeviceAlias前，
-//      设备不会被卸载
-//参数: DevAlias，目标设备别名，由Driver_FindDevice返回
-//返回: 锁定状态，true=锁定，false=未锁定
-//-----------------------------------------------------------------------------
-bool_t Driver_LockDevice(u32 DevAlias)
-{
-    struct DjyDevice *Dev;
-    if(DevAlias == 0)
-        return false;
-    Dev = __dev_Alias2Dev(DevAlias);
-    atom_uadd32(&(Dev->delete_lock),1);
-    return (Dev->delete_lock > 0);
-}
-
-//----解除锁定设备-------------------------------------------------------------
-//功能: Driver_LockDevice函数的逆操作
-//参数: DevAlias，目标设备别名，由Driver_FindDevice返回
-//返回: 锁定状态，false=锁定，true=未锁定
-//-----------------------------------------------------------------------------
-bool_t Driver_UnLockDevice(u32 DevAlias)
-{
-    struct DjyDevice *Dev;
-    if(DevAlias == 0)
-        return false;
-    Dev = __dev_Alias2Dev(DevAlias);
-    atom_usub32(&(Dev->delete_lock),1);
-    return (Dev->delete_lock == 0);
-}
+////----保护设备-----------------------------------------------------------------
+////功能: 保护设备，使该设备不能被删除，但不影响对设备的其他操作。保护设备是
+////      Driver_OpenDeviceAlias函数安全运行的保证，可以确保Driver_OpenDeviceAlias
+////      前，设备不会被卸载。
+////参数: DevAlias，目标设备别名，由Driver_FindDevice返回
+////返回: 设备状态，true=被保护，false=未被保护
+////-----------------------------------------------------------------------------
+//bool_t Driver_ProtectDevice(u32 DevAlias)
+//{
+//    struct DjyDevice *Dev;
+//    if(DevAlias == 0)
+//        return false;
+//    Dev = __dev_Alias2Dev(DevAlias);
+//    atom_uadd32(&(Dev->ProtectCounter),1);
+//    return (Dev->ProtectCounter > 0);
+//}
+//
+////----解除保护设备-------------------------------------------------------------
+////功能: Driver_LockDevice函数的逆操作
+////参数: DevAlias，目标设备别名，由Driver_FindDevice返回
+////返回: 设备状态，false=被保护，true=未被保护
+////-----------------------------------------------------------------------------
+//bool_t Driver_UnProtectDevice(u32 DevAlias)
+//{
+//    struct DjyDevice *Dev;
+//    if(DevAlias == 0)
+//        return false;
+//    Dev = __dev_Alias2Dev(DevAlias);
+//    atom_usub32(&(Dev->ProtectCounter),1);
+//    return (Dev->ProtectCounter == 0);
+//}
 
 //----卸载设备------------------------------------------------------------------
 //功能: 把设备从设备链表中删除,并释放其占用的内存.该设备需符合以下条件:
@@ -346,7 +346,7 @@ bool_t Driver_DeleteDevice(struct DjyDevice * device)
     bool_t en_del = true;
     if(device == NULL)
         return false;
-    if(device->delete_lock > 0)
+    if(device->OpenCounter > 0)
         return false;
     Lock_MutexPend(&s_tDevMutex,CN_TIMEOUT_FOREVER);
     if( Lock_MutexQuery(device->dReadMutex)
@@ -376,48 +376,49 @@ bool_t Driver_DeleteDevice(struct DjyDevice * device)
     return en_del;
 }
 
-
 //----查找设备-----------------------------------------------------------------
-//功能: 查询设备，若存在返回设备的别名，但并不打开设备，不存在则返回0
+//功能: 查询设备，若存在返回设备指针，但并不打开设备，不存在则返回0
 //参数: name，设备名字，包含路径名，但不必包含'dev\'这4个字符
-//返回: 设备存在则返回设备别名，不存在则返回0
+//返回: 设备存在则返回设备指针，不存在则返回NULL
 //-----------------------------------------------------------------------------
-u32 Driver_FindDevice(const char * name)
+struct DjyDevice *Driver_FindDevice(const char * name)
 {
     struct DjyDevice     *Dev;
     if( ! Lock_MutexPend(&s_tDevMutex,0))    //这是保护设备树的互斥量
-        return 0;
+        return NULL;
     //在设备树中搜索设备
     Dev = (struct DjyDevice *)OBJ_Search(s_ptDeviceRscTree,name);
     Lock_MutexPost(&s_tDevMutex);
     if(Dev != NULL)
-        return __dev_Dev2Alias(Dev);
+//      return __dev_Dev2Alias(Dev);
+        return Dev;
     else
-        return 0;
+        return NULL;
 }
 
 //----查找后代设备-------------------------------------------------------------
 //功能: 某设备的后代设备中，查询名字为scion_name的设备是否存在，存在则返回其设
-//      备别名，但并不打开，不存在则返回0.
+//      备指针，但并不打开，不存在则返回0.
 //参数: ancestor，被查询设备的祖先设备。
 //      scion_name,设备名字符串,包含路径名,
-//返回: 设备存在则返回设备别名，不存在则返回0
+//返回: 设备存在则返回设备指针，不存在则返回NULL
 //-----------------------------------------------------------------------------
-u32 Driver_FindScionDevice(struct DjyDevice * ancestor,const char * scion_name)
+struct DjyDevice *Driver_FindScionDevice(struct DjyDevice * ancestor,const char * scion_name)
 {
     struct DjyDevice *Dev_scion;
     if(ancestor == NULL)
-        return 0;
+        return NULL;
     if( ! Lock_MutexPend(&s_tDevMutex,0))    //这是保护设备树的互斥量
-        return 0;
+        return NULL;
     //在设备树中搜索设备
     Dev_scion = (struct DjyDevice*)OBJ_Search(&(ancestor->Node),
                                                 scion_name);
     Lock_MutexPost(&s_tDevMutex);
     if(Dev_scion != NULL)
-        return __dev_Dev2Alias(Dev_scion);
+//      return __dev_Dev2Alias(Dev_scion);
+        return Dev_scion;
     else
-        return 0;
+        return NULL;
 }
 
 //----打开设备-----------------------------------------------------------------
@@ -445,11 +446,17 @@ struct DjyDevice * Driver_OpenDevice(const char *name,u32 flags,u32 timeout)
         {
             if(Lock_MutexPend(Dev->dReadMutex,timeout)==false)//获取互斥量,这是保护设备的
                 Dev = NULL;
+            else
+                if(Dev->OpenCounter != CN_LIMIT_UINT32)
+                    Dev->OpenCounter++;
         }
         else if(flags == O_WRONLY)
         {
             if(Lock_MutexPend(Dev->dWriteMutex,timeout)==false)//获取互斥量,这是保护设备的
                 Dev = NULL;
+            else
+                if(Dev->OpenCounter != CN_LIMIT_UINT32)
+                    Dev->OpenCounter++;
         }
         else if (flags == O_RDWR)
         {
@@ -460,6 +467,9 @@ struct DjyDevice * Driver_OpenDevice(const char *name,u32 flags,u32 timeout)
                     Lock_MutexPost(Dev->dReadMutex);
                     Dev = NULL;
                 }
+                else
+                    if(Dev->OpenCounter < (CN_LIMIT_UINT32-1) )
+                        Dev->OpenCounter += 2;
             }
         }
     }
@@ -497,11 +507,17 @@ struct DjyDevice * Driver_OpenScionDevice(struct DjyDevice * ancestor,
         {
             if(Lock_MutexPend(Dev->dReadMutex,timeout)==false)//获取互斥量,这是保护设备的
                 Dev = NULL;
+            else
+                if(Dev->OpenCounter != CN_LIMIT_UINT32)
+                    Dev->OpenCounter++;
         }
         else if(flags == D_WRONLY)
         {
             if(Lock_MutexPend(Dev->dWriteMutex,timeout)==false)//获取互斥量,这是保护设备的
                 Dev = NULL;
+            else
+                if(Dev->OpenCounter != CN_LIMIT_UINT32)
+                    Dev->OpenCounter++;
         }
         else if (flags == O_RDWR)
         {
@@ -512,7 +528,12 @@ struct DjyDevice * Driver_OpenScionDevice(struct DjyDevice * ancestor,
                     Lock_MutexPost(Dev->dReadMutex);
                     Dev = NULL;
                 }
+                else
+                    if(Dev->OpenCounter < (CN_LIMIT_UINT32-1) )
+                        Dev->OpenCounter += 2;
             }
+            else
+                Dev = NULL;
         }
     }
 
@@ -521,36 +542,44 @@ struct DjyDevice * Driver_OpenScionDevice(struct DjyDevice * ancestor,
 }
 
 //----快速打开设备-------------------------------------------------------------
-//功能: 在设备别名已知的情况下，Driver_OpenDeviceAlias函数用字符串名遍历设备树
+//功能: 在设备指针已知的情况下，Driver_OpenDeviceFast函数不用字符串名遍历设备树
 //      查找设备，执行速度很快。本函数与Driver_FindDevice函数Driver_CloseDevice
 //      函数配合使用，可实现快速打开设备，及时关闭，不长期占据设备。
 //      多线程互斥方式如下:
 //      A线程以D_RDWR模式打开,------其他线程不能再打开
 //      A线程以D_RDONLY模式打开,----任意线程(包含A)还可以用D_WRONLY模式打开
 //      D_WRONLY同上
-//参数: DevAlias,待打开的设备别名
+//参数: Device,待打开的设备指针，调用者须自行确保该设备未被删除。
 //      flags,设备打开模式,D_RDONLY,D_WRONLY,D_RDWR中的一个
 //      timeout，超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
 //          超时返回。非0值将被向上调整为CN_CFG_TICK_US的整数倍
 //返回: 成功打开设备则返回句柄,否则返回NULL.
 //-----------------------------------------------------------------------------
-struct DjyDevice * Driver_OpenDeviceAlias(u32 DevAlias,u32 flags,u32 timeout)
+struct DjyDevice * Driver_OpenDeviceFast(struct DjyDevice *Device,u32 flags,u32 timeout)
 {
-    struct DjyDevice     *Dev;
-    if (DevAlias == 0)
+    struct DjyDevice     *Dev = Device;
+    if( ! Lock_MutexPend(&s_tDevMutex,timeout))    //这是保护设备树的互斥量
         return NULL;
-    Dev = __dev_Alias2Dev(DevAlias);
+//  if (DevAlias == 0)
+//      return NULL;
+//  Dev = __dev_Alias2Dev(DevAlias);
     if(Dev != NULL)     //如果没有找到name设备,返回空
     {
         if(flags == O_RDONLY)
         {
             if(Lock_MutexPend(Dev->dReadMutex,timeout)==false)//获取互斥量,这是保护设备的
                 Dev = NULL;
+            else
+                if(Dev->OpenCounter != CN_LIMIT_UINT32)
+                    Dev->OpenCounter++;
         }
         else if(flags == O_WRONLY)
         {
             if(Lock_MutexPend(Dev->dWriteMutex,timeout)==false)//获取互斥量,这是保护设备的
                 Dev = NULL;
+            else
+                if(Dev->OpenCounter != CN_LIMIT_UINT32)
+                    Dev->OpenCounter++;
         }
         else if (flags == O_RDWR)
         {
@@ -561,13 +590,17 @@ struct DjyDevice * Driver_OpenDeviceAlias(u32 DevAlias,u32 flags,u32 timeout)
                     Lock_MutexPost(Dev->dReadMutex);
                     Dev = NULL;
                 }
+                else
+                    if(Dev->OpenCounter < (CN_LIMIT_UINT32-1) )
+                        Dev->OpenCounter += 2;
             }
             else
             {
-            	Dev = NULL;		
+                Dev = NULL;
             }
         }
     }
+    Lock_MutexPost(&s_tDevMutex);
     return Dev;
 }
 
@@ -598,10 +631,14 @@ bool_t Driver_CloseDevice(struct DjyDevice * Dev)
     if(Lock_MutexGetOwner(Dev->dReadMutex) == Djy_MyEventId())
     {
         Lock_MutexPost(Dev->dReadMutex );
+        if(Dev->OpenCounter != 0)
+            Dev->OpenCounter--;
     }
     if(Lock_MutexGetOwner(Dev->dWriteMutex) == Djy_MyEventId())
     {
         Lock_MutexPost(Dev->dWriteMutex );
+        if(Dev->OpenCounter != 0)
+            Dev->OpenCounter--;
     }
 
     return true;
@@ -664,7 +701,7 @@ u32 Driver_WriteDevice(struct DjyDevice * Dev,u8 *buf,
 
 //----控制设备函数-------------------------------------------------------------
 //功能: 用于控制设备.
-//参数: left_handle,设备句柄
+//参数: Dev,设备指针
 //      cmd,命令号，driver.h中预定义了一些命令，以及用户命令的使用规则，可参阅
 //          常量CN_DRV_CTRL_START定义附近代码。
 //      data1，data2,控制命令所需要的参数，由设备开发者定义
@@ -681,6 +718,37 @@ u32 Driver_CtrlDevice(struct DjyDevice * Dev,u32 cmd,ptu32_t data1,ptu32_t data2
             return (Dev->dCtrl(Dev->PrivateTag,cmd,data1,data2));
 //        else
 //            return -1;
+    }
+}
+
+//----设置用户标签-------------------------------------------------------------
+//功能: 设置设备控制块中的UserTag成员的值
+//参数: Dev,设备指针
+//      tag,被设置的值
+//返回: 无
+//-----------------------------------------------------------------------------
+void Driver_SetUserTag(struct DjyDevice * Dev,ptu32_t tag)
+{
+    if (Dev == NULL)
+        return;
+    else
+    {
+        Dev->UserTag = tag;
+    }
+}
+
+//----提取用户标签-------------------------------------------------------------
+//功能: 提取设备控制块中的UserTag成员的值
+//参数: Dev,设备指针
+//返回: UserTag成员的值
+//-----------------------------------------------------------------------------
+ptu32_t Driver_GetUserTag(struct DjyDevice * Dev)
+{
+    if (Dev == NULL)
+        return 0;
+    else
+    {
+        return Dev->UserTag;
     }
 }
 
@@ -701,14 +769,14 @@ u32 Driver_CtrlDevice(struct DjyDevice * Dev,u32 cmd,ptu32_t data1,ptu32_t data2
 //      CN_MULTIPLEX_INVALID = 设备不支持Multiplex功能。
 //      CN_MULTIPLEX_ERROR   = 设备支持Multiplex，但拒绝了本次调用
 //-----------------------------------------------------------------------------
-u32 Driver_MultiplexCtrl(u32 DevAlias,u32 *ReadLevel,u32 *WriteLevel)
+u32 Driver_MultiplexCtrl(struct DjyDevice * Dev,u32 *ReadLevel,u32 *WriteLevel)
 {
-    struct DjyDevice *Dev;
-    if (DevAlias == 0)
+//  struct DjyDevice *Dev;
+    if (Dev == NULL)
         return CN_MULTIPLEX_INVALID;
     else
     {
-        Dev = __dev_Alias2Dev(DevAlias);
+//      Dev = __dev_Alias2Dev(DevAlias);
         if(Dev->dMultiplexAdd != NULL)
         {
             if(Dev->dCtrl(Dev->PrivateTag,CN_DRV_CTRL_SET_LEVEL,(ptu32_t)ReadLevel,
@@ -726,8 +794,9 @@ u32 Driver_MultiplexCtrl(u32 DevAlias,u32 *ReadLevel,u32 *WriteLevel)
 //功能: 把一组设备加入到一个多路复用集中，使用设备Index。
 //
 //参数: MultiplexSets，目标多路复用集指针
-//      DevAliases,一组被操作的设备Index数组地址,由Driver_FindDevice函数返回。
-//      num,DevAliases数组中设备数量
+//      Dev,一组被操作的设备Index数组地址,可由Driver_FindDevice函数得到，也可由
+//          open函数得到
+//      num,Dev数组中设备数量
 //      SensingBit,感兴趣的操作，见Multiplex.h中CN_MULTIPLEX_SENSINGBIT_READ常量
 //          及相关常量定义.特别注意，如果是0，则从MultiplexSets中删除对象(driver
 //          将调用Multiplex_Del函数)。共31个感兴趣的bit，bit31用于定义对象触发类
@@ -735,21 +804,20 @@ u32 Driver_MultiplexCtrl(u32 DevAlias,u32 *ReadLevel,u32 *WriteLevel)
 //返回: 操作成功的设备数量
 //-----------------------------------------------------------------------------
 u32 Driver_MultiplexAdd(struct MultiplexSetsCB *MultiplexSets,
-                        u32 *DevAliases,u32 num,u32 SensingBit)
+                        struct DjyDevice **Dev,u32 num,u32 SensingBit)
 {
-    struct DjyDevice *Dev;
     u32 n,result=0;
-    if (DevAliases == NULL)
+    if (Dev == NULL)
         return 0;
     else
     {
         for(n = 0; n < num; n++)
         {
-            Dev = __dev_Alias2Dev(DevAliases[n]);
-            if(Dev->dMultiplexAdd != NULL)
+//            Dev = __dev_Alias2Dev(DevAliases[n]);
+            if(Dev[n]->dMultiplexAdd != NULL)
             {
-                if( (Dev->dMultiplexAdd(Dev->PrivateTag,MultiplexSets,
-                                        DevAliases[n],SensingBit)) )
+                if( (Dev[n]->dMultiplexAdd(Dev[n]->PrivateTag,MultiplexSets,
+                                        Dev[n],SensingBit)) )
                     result++;
             }
         }
@@ -760,13 +828,14 @@ u32 Driver_MultiplexAdd(struct MultiplexSetsCB *MultiplexSets,
 //----Multiplex清除函数-----------------------------------------------------------
 //功能: 把一组设备从一个多路复用集中删除，使用设备Index。
 //参数: MultiplexSets，目标多路复用集指针
-//      DevAliases,一组被操作的设备Index数组地址,由Driver_FindDevice函数返回。
-//      num,DevAliases数组中设备数量
+//      Dev,一组被操作的设备Index数组地址,由Driver_FindDevice函数得到，也可由
+//          open函数得到。
+//      num,Dev数组中设备数量
 //返回: 无
 //-----------------------------------------------------------------------------
 void Driver_MultiplexDel(struct MultiplexSetsCB *MultiplexSets,
-                         u32 *DevAliases,u32 num)
+                         struct DjyDevice **Dev,u32 num)
 {
-    Driver_MultiplexAdd(MultiplexSets,DevAliases,num,0);
+    Driver_MultiplexAdd(MultiplexSets,Dev,num,0);
 }
 

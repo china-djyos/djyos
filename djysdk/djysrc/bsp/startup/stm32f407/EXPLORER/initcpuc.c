@@ -141,6 +141,18 @@ void AppStart(void)
 //-----------------------------------------------------------------
 void IAP_GpioPinInit(void)
 {
+	u32 i;
+
+	RCC->AHB1ENR|=1<<4;//使能PORTB时钟		KEY0(PE4)
+	GPIOE->MODER    &= ~(3UL << 2*4);
+	GPIOE->MODER    |=  (0UL << 2*4);		//MODE_IN
+	GPIOE->PUPDR    &= ~(3UL << 2*4);
+	GPIOE->PUPDR    |=  (1UL << 2*4);		//PULL UP
+
+	for(i = 600*1000;i>0;i--)				//初始化后延时一小段时间
+	{
+
+	}
 }
 
 //-----------------------------------------------------------------
@@ -158,13 +170,11 @@ void IAP_GpioPinInit(void)
 //-----------------------------------------------------------------
 bool_t IAP_IsForceIboot(void)
 {
-//    u32 flag;
-//    IAP_GpioPinInit( );
-//    flag=pg_gpio_regc->IDR&(1<<10);
-//    if(flag==0)
-//        return false;
-//    return true;
-
+    u32 flag;
+    IAP_GpioPinInit( );
+    flag=GPIOE->IDR&(1<<4);
+    if(flag==0)
+        return true;
     return false;
 
 }

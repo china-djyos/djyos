@@ -61,7 +61,7 @@ extern "C"{
 #endif
 #endif /* __cplusplus */
 
-ptu32_t ModuleInstall_LCM240128C(ptu32_t para);
+ptu32_t ModuleInstall_LCM240128C(const char *ChipName);
 
 #ifdef __cplusplus
 #if __cplusplus

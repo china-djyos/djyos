@@ -56,16 +56,17 @@
 #include "endian.h"
 #include "lock.h"
 #include "int.h"
-
+#include "stm32f7xx_hal_conf.h"
 // =============================================================================
-static I2C_TypeDef volatile * const tg_I2c_Reg[] = {(I2C_TypeDef *)I2C1_BASE,
-                                                    (I2C_TypeDef *)I2C2_BASE,
-                                                    (I2C_TypeDef *)I2C3_BASE,
-                                                    (I2C_TypeDef *)I2C4_BASE};
+static I2C_TypeDef volatile * const tg_I2c_Reg[] = { I2C1,
+                                                     I2C2,
+                                                     I2C3,
+                                                     I2C4};
 
 #define tagI2CReg  I2C_TypeDef
 static struct IIC_CB s_IIC_CB[CN_IIC_NUM];
 //static struct IIC_CB s_IIC_CB[CN_IIC2];
+
 
 static u32 IIC_BUF_LEN[CN_IIC_NUM]={128,128,128,128};
 //iic缓冲区定数组
@@ -75,9 +76,9 @@ static u8 s_IIC3Buf[128];
 static u8 s_IIC4Buf[128];
 
 static u8* s_IICBuf[CN_IIC_NUM]={s_IIC1Buf,
-								 s_IIC2Buf,
-								 s_IIC3Buf,
-								 s_IIC4Buf,};
+                                 s_IIC2Buf,
+                                 s_IIC3Buf,
+                                 s_IIC4Buf,};
 
 struct IIC_IntParamSet
 {
@@ -89,7 +90,7 @@ struct IIC_IntParamSet
 static struct IIC_IntParamSet IntParamset[CN_IIC_NUM];
 
 const char *IIC_Name[CN_IIC_NUM]=
-		 {"IIC1","IIC2","IIC3","IIC4"};
+         {"IIC1","IIC2","IIC3","IIC4"};
 
 
 // =============================================================================
@@ -100,12 +101,12 @@ const char *IIC_Name[CN_IIC_NUM]=
 static bool_t  _IIC_Chek(tagI2CReg *reg)
 {
     if (reg->ISR & (I2C_ISR_NACKF))       /*如果仲裁丢失*/
-		{
-			#ifdef DEBUG
-			printk("__i2c_wait: nackf\n");
-			#endif
-			return false;
-		}
+        {
+            #ifdef DEBUG
+            printk("__i2c_wait: nackf\n\r");
+            #endif
+            return false;
+        }
     return true;
 }
 
@@ -135,21 +136,21 @@ static void __IIC_IntDisable(tagI2CReg *reg)
 // =============================================================================
 // 功能: 选择设置时钟
 // 参数: iic_port iic编号，
-//		sel:选择时钟 //bit:0- APB1-54MHz 	1-sysclk-216MHz 	2- HSI-108MHz
-//	    TIMINGR 寄存器设置 (4<<28)|(9<<20)|(1<<16)|(39<<8)|(50);
-//		初始值:0x40912732;
+//        sel:选择时钟 //bit:0- APB1-54MHz     1-sysclk-216MHz     2- HSI-108MHz
+//        TIMINGR 寄存器设置 (4<<28)|(9<<20)|(1<<16)|(39<<8)|(50);
+//        初始值:0x40912732;
 // 返回: 无
 // =============================================================================
 
 static bool_t __IIC_ClkSet(u8 iic_port,u8 sel,u32 TIMINGR)
 {
-	if(iic_port>=CN_IIC_NUM)
-		return false;
-	RCC->DCKCFGR2 &=~(3<<((2*iic_port)+16));//清除原来的设置
-	RCC->DCKCFGR2 |=(sel<<((2*iic_port)+16));
-	tg_I2c_Reg[iic_port]->CR1 &=~(1);
-	tg_I2c_Reg[iic_port]->TIMINGR=TIMINGR;
-	return true;
+    if(iic_port>=CN_IIC_NUM)
+        return false;
+    RCC->DCKCFGR2 &=~(3<<((2*iic_port)+16));//清除原来的设置
+    RCC->DCKCFGR2 |=(sel<<((2*iic_port)+16));
+    tg_I2c_Reg[iic_port]->CR1 &=~(1);
+    tg_I2c_Reg[iic_port]->TIMINGR=TIMINGR;
+    return true;
 }
 
 
@@ -163,11 +164,11 @@ static bool_t __IIC_ClkSet(u8 iic_port,u8 sel,u32 TIMINGR)
 bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
 {
      u32 timeout=0;
+     GPIO_PowerOn(port);
      GPIO_CfgPinFunc(port,sda_pin,GPIO_MODE_IN, //TS_SDA
-         			GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
-     GPIO_CfgPinFunc(port,sda_pin,GPIO_MODE_OUT,  //TS_SCK
-         			GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
-
+                     GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
+     GPIO_CfgPinFunc(port,sck_pin,GPIO_MODE_OUT,  //TS_SCK
+                     GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
      while(1)
      {
           timeout++;
@@ -182,8 +183,8 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
           if( GPIO_GetData(port)&(sda_pin))
               break;
     }
-     GPIO_CfgPinFunc(port,sck_pin,GPIO_MODE_OUT,  //TS_SCK
-             			GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
+     GPIO_CfgPinFunc(port,sda_pin,GPIO_MODE_OUT,  //TS_SCK
+                         GPIO_OTYPE_OD,GPIO_SPEED_100M,GPIO_PUPD_PU);
     //产生停止信号 iic总线释放
     GPIO_SettoLow(port,sda_pin);
     Djy_DelayUs(10);
@@ -200,21 +201,23 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
 // =============================================================================
 static bool_t __IIC_GpioConfig(u8 iic_port)
 {
-    u8 tout,gpio;
-    u16 pin;
-	RCC->APB1ENR |=(1<<(21+iic_port));//外设时钟使能
-    //0- APB1-54	1-sysclk-216 	2- HSI-108
-    if(__IIC_ClkSet(iic_port,1,0x40912732)==false)//默认时钟源为APB1时钟
-    	return false;
 
-	//时序初始化
-	tg_I2c_Reg[iic_port]->CR1 &=~I2C_CR1_ANFOFF;//时钟50ns以下时需要写1禁止模拟滤波器减小抑制
-	tg_I2c_Reg[iic_port]->CR1 |=I2C_CR1_DNF_4BIT(0);//可滤除的噪声尖峰脉宽 0~15 tI2CCLK
-	tg_I2c_Reg[iic_port]->CR2 |=I2C_CR2_AUTOEND;//自动结束模式
-	tg_I2c_Reg[iic_port]->CR2 &=~I2C_CR2_ADD10;//7位寻址模式
-	tg_I2c_Reg[iic_port]->OAR1=0x8000;//自身地址
-	tg_I2c_Reg[iic_port]->CR1 |=I2C_CR1_PE;//PE使能
-	return true;
+
+    RCC->APB1ENR |=(1<<(21+iic_port));//外设时钟使能
+    //0- APB1-54    1-sysclk-216     2- HSI-108
+    if(__IIC_ClkSet(iic_port,1,0x40912732)==false)//默认时钟源为APB1时钟
+        return false;
+
+     tg_I2c_Reg[iic_port]->CR1 &=~I2C_CR1_PE;//PE使能
+    tg_I2c_Reg[iic_port]->CR1 &=~I2C_CR1_ANFOFF;//时钟50ns以下时需要写1禁止模拟滤波器减小抑制
+    tg_I2c_Reg[iic_port]->CR1 |=I2C_CR1_DNF_4BIT(0);//可滤除的噪声尖峰脉宽 0~15 tI2CCLK
+    tg_I2c_Reg[iic_port]->CR1 &=~I2C_CR1_NOSTRETCH;//
+    tg_I2c_Reg[iic_port]->CR2 |=I2C_CR2_AUTOEND;//自动结束模式
+    tg_I2c_Reg[iic_port]->CR2 &=~I2C_CR2_ADD10;//7位寻址模式
+    tg_I2c_Reg[iic_port]->OAR1=0x8000;//自身地址
+    tg_I2c_Reg[iic_port]->CR1  = I2C_CR1_PE;//PE使能
+
+    return true;
 
 }
 // RELOAD CR2_24 位置 1。在该模式下，完成 NBYTES
@@ -229,24 +232,24 @@ static bool_t __IIC_GpioConfig(u8 iic_port)
 // =============================================================================
 static void __IIC_IntConfig(u8 iic_port,u32 (*isr)(ptu32_t))
 {
-		ufast_t IntLine;
-		switch (iic_port)
-		{
-		case CN_IIC1:
-			IntLine=CN_INT_LINE_I2C1_EV;
-			break;
-		case CN_IIC2:
-			IntLine=CN_INT_LINE_I2C2_EV;
-			break;
-		case CN_IIC3:
-			IntLine=CN_INT_LINE_I2C3_EV;
-			break;
-		case CN_IIC4:
-			IntLine=CN_INT_LINE_I2C4_EV;
-			break;
-			default:return;
-		}
-		Int_Register(IntLine);
+        ufast_t IntLine;
+        switch (iic_port)
+        {
+        case CN_IIC1:
+            IntLine=CN_INT_LINE_I2C1_EV;
+            break;
+        case CN_IIC2:
+            IntLine=CN_INT_LINE_I2C2_EV;
+            break;
+        case CN_IIC3:
+            IntLine=CN_INT_LINE_I2C3_EV;
+            break;
+        case CN_IIC4:
+            IntLine=CN_INT_LINE_I2C4_EV;
+            break;
+            default:return;
+        }
+        Int_Register(IntLine);
         Int_IsrConnect(IntLine,isr);
         Int_SettoAsynSignal(IntLine);
         Int_ClearLine(IntLine);     //清掉初始化产生的发送fifo空的中断
@@ -260,17 +263,17 @@ static void __IIC_IntConfig(u8 iic_port,u32 (*isr)(ptu32_t))
 // =============================================================================
 static void __IIC_GenerateStop(tagI2CReg *reg)
 {
-	reg->CR2 |=I2C_CR2_STOP;//产生停止位
+    reg->CR2 |=I2C_CR2_STOP;//产生停止位
 
 }
 
 // =============================================================================
 // 功能：IIC写
 // 参数： reg,寄存器基址
-//		devaddr,器件物理地址，最后一bit区分读写
-//		 buf_addr地址写缓冲
+//        devaddr,器件物理地址，最后一bit区分读写
+//         buf_addr地址写缓冲
 //       len_addr 地址长度
-//		 buf写缓冲
+//         buf写缓冲
 //       len 长度
 // 返回：true/false
 // =============================================================================
@@ -279,109 +282,115 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u8 *adder_nuf, u32 addr_len
     u32 timeout=0;
     u32 i=0;
     reg->CR2 &=~I2C_CR2_SADD_10BIT(0x7f<<1);
-	reg->CR2 |=I2C_CR2_SADD_10BIT(devaddr<<1);//从器件地址
-	reg->CR2 &=~I2C_CR2_RD_WRN;//写控制
-	 if(reg->ISR|=I2C_ISR_STOPF)
-	    	reg->ICR|=I2C_ICR_STOPCF;
-	 if(reg->ISR|=I2C_ISR_NACKF)
-	    	reg->ICR|=I2C_ICR_NACKCF;
-	 len=len+addr_len;
+    reg->CR2 |=I2C_CR2_SADD_10BIT(devaddr<<1);//从器件地址
+    reg->CR2 &=~I2C_CR2_RD_WRN;//写控制
+     if(reg->ISR|=I2C_ISR_STOPF)
+            reg->ICR|=I2C_ICR_STOPCF;
+     if(reg->ISR|=I2C_ISR_NACKF)
+            reg->ICR|=I2C_ICR_NACKCF;
+     len=len+addr_len;
     if(len>255)
     {
-    	reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
+        reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
         reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xFF);
-		reg->CR2 &=~I2C_CR2_AUTOEND;//非自动结束方式
-		reg->CR2 |=I2C_CR2_START;//start
+        reg->CR2 |=I2C_CR2_AUTOEND;//自动结束方式
+        reg->CR2 |=I2C_CR2_START;//start
 
-	    while(timeout<CONFIG_I2C_MBB_TIMEOUT)
-	    {
-			if(reg->ISR&I2C_ISR_TXIS)//传输字节
-			{
-				if(i<addr_len)
-					reg->TXDR=adder_nuf[i];
-				else
-					reg->TXDR=buf[i-addr_len];
-				i++;
-			}
-			else//判断出错或者超时
-			{
-				if(_IIC_Chek==false)
-					return false;
-				timeout++;
-				Djy_EventDelay(1);
-			}
+        while(timeout<CONFIG_I2C_MBB_TIMEOUT)
+        {
 
-			if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
-			{
-				len-=255;
-				if(len>255)
-				{
-					reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xFF);
-					reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
-				}
-				else
-				{
-			    	reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
-					reg->CR2 |=I2C_CR2_NBYTES_8BIT(len);
-					reg->CR2 &=~I2C_CR2_RELOAD;//传输字节
-//					reg->CR2 |=I2C_CR2_AUTOEND;//自读发送停止位
+            if((reg->ISR&I2C_ISR_TXE)&&(reg->ISR&I2C_ISR_TXIS)\
+                      &&(!(reg->ISR&I2C_ISR_NACKF)))//传输字节
+            {
+                if(i<addr_len)
+                    *((volatile u8 *)&reg->TXDR)=adder_nuf[i];
+                else
+                    *((volatile u8 *)&reg->TXDR)=buf[i-addr_len];
+                i++;
+            }
+            else//判断出错或者超时
+            {
+                if(_IIC_Chek(reg)==false)
+                    return false;
+                timeout++;
+                Djy_DelayUs(10);
+            }
 
-				}
-			}
-			//传输是结束
-			if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
-			{
-				__IIC_GenerateStop(reg);
-				return true;
-			}
-	    }
-	    return false;
+            if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
+            {
+                len-=255;
+                if(len>255)
+                {
+                    reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xFF);
+                    reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
+                }
+                else
+                {
+                    reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
+                    reg->CR2 |=I2C_CR2_NBYTES_8BIT(len);
+                    reg->CR2 &=~I2C_CR2_RELOAD;//传输字节
+
+                }
+            }
+            //传输是结束
+            if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
+            {
+                __IIC_GenerateStop(reg);
+                return true;
+            }
+        }
+        return false;
 
     }
     //写字节小于255字节
     else
     {
-    	reg->CR2 &=~I2C_CR2_RELOAD;//小于255字节
-    	reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
+        reg->CR2 &=~I2C_CR2_RELOAD;//小于255字节
+        reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
         reg->CR2 |=I2C_CR2_NBYTES_8BIT(len);
-		reg->CR2 &=~I2C_CR2_AUTOEND;//非自动结束方式
-		reg->CR2 |=I2C_CR2_START;//start
-	    while(timeout<CONFIG_I2C_MBB_TIMEOUT)
-	    {
-			if(reg->ISR&I2C_ISR_TXIS)//传输字节
-			{
-				if(i<addr_len)
-					reg->TXDR=adder_nuf[i];
-				else
-					reg->TXDR=buf[i-addr_len];
-				i++;
-			}
-			else//判断出错或者超时
-			{
-				if(_IIC_Chek(reg)==false)
-					return false;
-				timeout++;
-				Djy_EventDelay(1);
-			}
-			//判断是否传输完成
-			if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
-			{
-				__IIC_GenerateStop(reg);
-				if(_IIC_Chek(reg)==false)
-					return false;
-				return true;
-			}
-	    }
-	    return false;
+        reg->CR2 |=I2C_CR2_AUTOEND;//自动结束方式
+        reg->CR2 |=I2C_CR2_START;//start
+        while(timeout<CONFIG_I2C_MBB_TIMEOUT)
+        {
+
+            if((reg->ISR&I2C_ISR_TXE)&&(reg->ISR&I2C_ISR_TXIS)\
+                  &&(!(reg->ISR&I2C_ISR_NACKF)))//传输字节
+            {
+
+                if(i<addr_len)
+                     reg->TXDR = adder_nuf[i];
+                else
+                    reg->TXDR= buf[i-addr_len];
+                i++;
+            }
+
+            else//判断出错或者超时
+            {
+                if(_IIC_Chek(reg)==false)
+                    return false;
+                timeout++;
+                Djy_DelayUs(10);
+            }
+            //判断是否传输完成
+            if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
+            {
+                if(reg->ISR|I2C_ISR_STOPF)
+                    return true;
+                if(_IIC_Chek(reg)==false)
+                    return false;
+                return true;
+            }
+        }
+        return false;
     }
 }
 // =============================================================================
 // 功能：IIC写地址
 // 参数： reg,寄存器基址
-//		devaddr,器件物理地址，最后一bit区分读写
-//		 mem_addr写缓冲
+//        devaddr,器件物理地址，最后一bit区分读写
+//         mem_addr写缓冲
 //       maddrlen 长度
-//		Start_falg发送起始停止标着为
+//        Start_falg发送起始停止标着为
 // 返回：true/false
 // =============================================================================
 static bool_t __IIC_WriteAddr(tagI2CReg *reg,u8 devaddr, u8 *mem_addr, u32 maddrlen)
@@ -389,47 +398,49 @@ static bool_t __IIC_WriteAddr(tagI2CReg *reg,u8 devaddr, u8 *mem_addr, u32 maddr
     u32 timeout=0;
     u32 i=0;
     reg->CR2 &=~I2C_CR2_SADD_10BIT(0x7f<<1);
-	reg->CR2 |=I2C_CR2_SADD_10BIT(devaddr<<1);//从器件地址
-	reg->CR2 &=~I2C_CR2_RD_WRN;//写控制
-	 if(reg->ISR|=I2C_ISR_STOPF)
-	    	reg->ICR|=I2C_ICR_STOPCF;
-	 if(reg->ISR|=I2C_ISR_NACKF)
-	    	reg->ICR|=I2C_ICR_NACKCF;
+    reg->CR2 |=I2C_CR2_SADD_10BIT(devaddr<<1);//从器件地址
+    reg->CR2 &=~I2C_CR2_RD_WRN;//写控制
+     if(reg->ISR|=I2C_ISR_STOPF)
+            reg->ICR|=I2C_ICR_STOPCF;
+     if(reg->ISR|=I2C_ISR_NACKF)
+            reg->ICR|=I2C_ICR_NACKCF;
 
-	reg->CR2 &=~I2C_CR2_RELOAD;//小于255字节
-	reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
-	reg->CR2 |=I2C_CR2_NBYTES_8BIT(maddrlen);
-	reg->CR2 &=~I2C_CR2_AUTOEND;//非自动结束方式
-	reg->CR2 |=I2C_CR2_START;//start
-	while(timeout<CONFIG_I2C_MBB_TIMEOUT)
-	{
-		if(reg->ISR&I2C_ISR_TXIS)//传输字节
-		{
-			reg->TXDR=mem_addr[i++];
-		}
-		else//判断出错或者超时
-		{
-			if(_IIC_Chek(reg)==false)
-				return false;
-			timeout++;
-			Djy_EventDelay(1);
-		}
-		//判断是否传输完成
-		if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
-		{
-				__IIC_GenerateStop(reg);
-				return(_IIC_Chek(reg));
-		}
-	}
-	return false;
+    reg->CR2 &=~I2C_CR2_RELOAD;//小于255字节
+    reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
+    reg->CR2 |=I2C_CR2_NBYTES_8BIT(maddrlen);
+    reg->CR2 |=I2C_CR2_AUTOEND;//自动结束方式
+    reg->CR2 |=I2C_CR2_START;//start
+    while(timeout<CONFIG_I2C_MBB_TIMEOUT)
+    {
+
+        if((reg->ISR&I2C_ISR_TXE)&&(reg->ISR&I2C_ISR_TXIS)\
+                &&(!(reg->ISR&I2C_ISR_NACKF)))//传输字节
+        {
+            *((volatile u8 *)&reg->TXDR)=mem_addr[i++];
+        }
+        else//判断出错或者超时
+        {
+            if(_IIC_Chek(reg)==false)
+                return false;
+            timeout++;
+            Djy_DelayUs(10);
+        }
+        //判断是否传输完成
+        if((reg->ISR&I2C_ISR_TC)||(reg->ISR&I2C_ISR_STOPF))//传输完成
+        {
+//                __IIC_GenerateStop(reg);
+                return(_IIC_Chek(reg));
+        }
+    }
+    return false;
 
 }
 
 // =============================================================================
 // 功能：IIC读
 // 参数： reg,寄存器基址
-//		devaddr 器件地址
-//		 buf收缓冲区
+//        devaddr 器件地址
+//         buf收缓冲区
 //       len 长度
 // 返回：true/false
 // =============================================================================
@@ -438,93 +449,93 @@ static bool_t __IIC_Read(tagI2CReg *reg,u8 devaddr,u8 *buf, u32 len)
     u32 timeout=0,i=0;
     u32 timedef;
     reg->CR2 &=~I2C_CR2_SADD_10BIT(0x7f<<1);
-	reg->CR2 |=I2C_CR2_SADD_10BIT(devaddr<<1);//从器件地址
-	reg->CR2 |=I2C_CR2_RD_WRN;//读控制位
-	timedef=CONFIG_I2C_TIMEOUT*len;
+    reg->CR2 |=I2C_CR2_SADD_10BIT(devaddr<<1);//从器件地址
+    reg->CR2 |=I2C_CR2_RD_WRN;//读控制位
+    timedef=CONFIG_I2C_TIMEOUT*len;
     if(reg->ISR|=I2C_ISR_STOPF)//清除停止位
-    	reg->ICR|=I2C_ICR_STOPCF;
-	if(reg->ISR|=I2C_ISR_NACKF)
-	    	reg->ICR|=I2C_ICR_NACKCF;
+        reg->ICR|=I2C_ICR_STOPCF;
+    if(reg->ISR|=I2C_ISR_NACKF)
+            reg->ICR|=I2C_ICR_NACKCF;
     if(len>255)
     {
-		reg->CR2 |=I2C_CR2_RELOAD;//大于255字节
-		reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xff);
-		reg->CR2 &=~I2C_CR2_AUTOEND;//非自动结束方式
-		reg->CR2 |=I2C_CR2_START;//start
+        reg->CR2 |=I2C_CR2_RELOAD;//大于255字节
+        reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xff);
+        reg->CR2 |=I2C_CR2_AUTOEND;//自动结束方式
+        reg->CR2 |=I2C_CR2_START;//start
 
-	    while((timeout<timedef))
-	    {
-			if(reg->ISR&I2C_ISR_RXNE)//传输字节
-			{
-				buf[i++]=reg->RXDR;
-			}
-			else//判断出错或者超时
-			{
-				if(_IIC_Chek==false)
-					return false;
-				timeout++;
-				Djy_EventDelay(1);
-			}
+        while((timeout<timedef))
+        {
+            if(reg->ISR&I2C_ISR_RXNE)//传输字节
+            {
+                buf[i++]=reg->RXDR;
+            }
+            else//判断出错或者超时
+            {
+                if(_IIC_Chek(reg)==false)
+                    return false;
+                timeout++;
+                Djy_DelayUs(10);
+            }
 
-			if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
-			{
-				len-=255;
-				if(len>255)
-				{
-					reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xFF);
-					reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
-				}
-				else
-				{
-			    	reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
-					reg->CR2 |=I2C_CR2_NBYTES_8BIT(len);
-					reg->CR2 &=~I2C_CR2_RELOAD;//传输字节
-//					reg->CR2 |=I2C_CR2_AUTOEND;//自读发送停止位
+            if(reg->ISR&I2C_ISR_TCR)//255字节传输完成
+            {
+                len-=255;
+                if(len>255)
+                {
+                    reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xFF);
+                    reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
+                }
+                else
+                {
+                    reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
+                    reg->CR2 |=I2C_CR2_NBYTES_8BIT(len);
+                    reg->CR2 &=~I2C_CR2_RELOAD;//传输字节
+//                    reg->CR2 |=I2C_CR2_AUTOEND;//自读发送停止位
 
-				}
-			}
-			//传输是结束
-			if((!(reg->ISR&I2C_ISR_RXNE))&&    //最后一位读取完成
-			((reg->ISR&I2C_ISR_TC)))
-			{
-				__IIC_GenerateStop(reg);
-				return true;
-			}
-	    }
-	    return false;
+                }
+            }
+            //传输是结束
+            if((!(reg->ISR&I2C_ISR_RXNE))&&    //最后一位读取完成
+            ((reg->ISR&I2C_ISR_TC)))
+            {
+                __IIC_GenerateStop(reg);
+                return true;
+            }
+        }
+        return false;
     }
     //读小于255字节
     else
     {
-    	reg->CR2 &=~I2C_CR2_RELOAD;//小于255字节
-    	reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
+        reg->CR2 &=~I2C_CR2_RELOAD;//小于255字节
+        reg->CR2 &=~I2C_CR2_NBYTES_8BIT(0xff);//清零
         reg->CR2 |=I2C_CR2_NBYTES_8BIT(len);
-		reg->CR2 &=~I2C_CR2_AUTOEND;//非自动结束方式
-	    reg->CR2 |=I2C_CR2_START;//start
-//	    Djy_EventDelay(200);
+        reg->CR2 |=I2C_CR2_AUTOEND;//自动结束方式
+        reg->CR2 |=I2C_CR2_START;//start
 
-	    while((timeout<timedef))
-	    {
-	    	if(reg->ISR&I2C_ISR_RXNE)//传输字节
-			{
-				buf[i++]=reg->RXDR;
-			}
-	    	else
-	    	{
-	    		if(_IIC_Chek==false)
-					return false;
-				timeout++;
-				Djy_DelayUs(1);
-	    	}
-			//判断是否传输完成传输完成或者已经产生停止位
-			if((!(reg->ISR&I2C_ISR_RXNE))&&    //最后一位读取完成
-			(reg->ISR&I2C_ISR_TC))//(reg->ISR&I2C_ISR_STOPF)????检测stop不行
-			{
-				__IIC_GenerateStop(reg);//非自动方式需要手动调用
-				return true;
-			}
-	    }
-	    return false;
+
+        while((timeout<timedef))
+        {
+            if(reg->ISR&I2C_ISR_RXNE)//传输字节
+            {
+                buf[i++]=reg->RXDR;
+            }
+            else
+            {
+                if(_IIC_Chek(reg)==false)
+                    return false;
+                timeout++;
+                Djy_DelayUs(10);
+            }
+            //判断是否传输完成传输完成或者已经产生停止位
+            if((!(reg->ISR&I2C_ISR_RXNE))&&    //最后一位读取完成
+            (reg->ISR&I2C_ISR_TC))//(reg->ISR&I2C_ISR_STOPF)
+            {
+                __IIC_GenerateStop(reg);//非自动方式需要手动调用
+                return true;
+            }
+        }
+        return false;
     }
 
 }
@@ -533,8 +544,8 @@ static bool_t __IIC_Read(tagI2CReg *reg,u8 devaddr,u8 *buf, u32 len)
 // 功能：轮询方式读IIC从设备的数据
 // 参数：reg,寄存器基址
 //       devaddr,器件物理地址，最后一bit区分读写
-//		 memaddr//寄存器地址
-//		 maddrlen的寄存器地址的长度
+//         memaddr//寄存器地址
+//         maddrlen的寄存器地址的长度
 //       addr,访问的寄存器地址
 //       buf, 存储缓冲区
 //       len, 存储缓冲区的长度
@@ -546,13 +557,17 @@ static s32 __IIC_ReadPoll(tagI2CReg *reg,u8 devaddr,u32 memaddr,
 
     u8 mem_addr_buf[4];
     //将地址作大小端变换
-    fill_little_32bit(mem_addr_buf,0,memaddr);
+    u8 i;
+    for(i=0;i<maddrlen;i++)
+    {
+        mem_addr_buf[(maddrlen-1)-i]=((memaddr>>(8*i))&0xff);
+    }
     // 发送写器件地址和内部寄存器地址
     if(false == __IIC_WriteAddr(reg, devaddr, mem_addr_buf, maddrlen))
         return -1;
 
     if(false == __IIC_Read(reg, devaddr, buf,len))
-    	return -1;
+        return -1;
     __IIC_GenerateStop(reg);//非自动方式需要手动调用
     return len;
 }
@@ -571,15 +586,16 @@ static s32 __IIC_WritePoll(tagI2CReg *reg,u8 devaddr,u32 memaddr,
                         u8 maddrlen, u8 *buf, u32 len)
 {
     u8 mem_addr_buf[4];
-    //将地址作大小端变换
-    fill_little_32bit(mem_addr_buf,0,memaddr);
+    u8 i;
+    for(i=0;i<maddrlen;i++)
+    {
+        mem_addr_buf[(maddrlen-1)-i]=((memaddr>>(8*i))&0xff);
+    }
 
     if( __IIC_Write(reg, devaddr, mem_addr_buf, maddrlen,buf,len)==false)//写存储器地址
-	   return -1;
-//	if( __IIC_Write(reg, devaddr, buf, len,stop)==false)//写存储器地址
-//		   return -1;
-//	__IIC_GenerateStop(reg);//非自动方式需要手动调用
-	return len;
+       return -1;
+
+    return len;
 
 }
 
@@ -597,21 +613,27 @@ static s32 __IIC_WritePoll(tagI2CReg *reg,u8 devaddr,u32 memaddr,
 static bool_t __IIC_WriteReadPoll(tagI2CReg *reg,u8 DevAddr,u32 MemAddr,\
                                 u8 MemAddrLen,u8* Buf, u32 Length,u8 WrRdFlag)
 {
+    static bool_t flag;
+
     __IIC_IntDisable(reg);
+    reg->CR1 |= I2C_CR1_PE;//PE使能
     if(WrRdFlag == CN_IIC_WRITE_FLAG)   //写
     {
         if(Length == __IIC_WritePoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
-            return true;
+            flag = true;
         else
-            return false;
+            flag = false;
     }
     else                                //读
     {
         if(Length == __IIC_ReadPoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
-            return true;
+            flag = true;
         else
-            return false;
+            flag = false;
     }
+    reg->CR1 &=~I2C_CR1_PE;//PE失能
+
+    return  flag ;
 }
 
 // =============================================================================
@@ -642,34 +664,39 @@ static bool_t __IIC_GenerateWriteStart(tagI2CReg *reg,
     u8 iic_port;
     //通过specific_flag区分是哪条总线
     if(reg==tg_I2c_Reg[CN_IIC1])
-    	iic_port=CN_IIC1;
+        iic_port=CN_IIC1;
     else if (reg==tg_I2c_Reg[CN_IIC2])
-    	iic_port=CN_IIC2;
+        iic_port=CN_IIC2;
     else if (reg==tg_I2c_Reg[CN_IIC3])
-    	iic_port=CN_IIC3;
+        iic_port=CN_IIC3;
     else if (reg==tg_I2c_Reg[CN_IIC4])
-    	iic_port=CN_IIC4;
+        iic_port=CN_IIC4;
     else
-    	return false;
+        return false;
 
     IntParamset[iic_port].TransTotalLen = length;
-	IntParamset[iic_port].TransCount = 0;
-	IntParamset[iic_port].pDrvPostSemp = iic_semp;           //iic_bus_semp
+    IntParamset[iic_port].TransCount = 0;
+    IntParamset[iic_port].pDrvPostSemp = iic_semp;           //iic_bus_semp
 
     //将地址作大小端变换
-    fill_little_32bit(mem_addr_buf,0,mem_addr);
+
+    u8 i;
+    for(i=0;i<maddr_len;i++)
+    {
+        mem_addr_buf[(maddr_len-1)-i]=((mem_addr>>(8*i))&0xff);
+    }
     __IIC_IntDisable(reg);                 //关中断
     //先发送器件地址，内部地址，然后发送第一个数据
     if(__IIC_WriteAddr(reg, dev_addr, mem_addr_buf,maddr_len) )
-	{
-		reg->CR2 &=~I2C_CR2_RD_WRN;//写标志
-    	reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
+    {
+        reg->CR2 &=~I2C_CR2_RD_WRN;//写标志
+        reg->CR2 |=I2C_CR2_RELOAD;//传输字节大于255
         reg->CR2 |=I2C_CR2_NBYTES_8BIT(0xFF);
-		reg->CR2 &=~I2C_CR2_AUTOEND;//非自动结束方式
-		__IIC_IntEnable(reg);//使能中断
-		reg->CR2 |=I2C_CR2_START;//start
-		return true;
-	}
+        reg->CR2 |=I2C_CR2_AUTOEND;//自动结束方式
+        __IIC_IntEnable(reg);//使能中断
+        reg->CR2 |=I2C_CR2_START;//start
+        return true;
+    }
 
     return false;
 }
@@ -700,33 +727,37 @@ static bool_t __IIC_GenerateReadStart( tagI2CReg *reg,
     u8 mem_addr_buf[4];
     u8 iic_port;
     if(reg==tg_I2c_Reg[CN_IIC1])
-    	iic_port=CN_IIC1;
+        iic_port=CN_IIC1;
     else if(reg==tg_I2c_Reg[CN_IIC2])
-    	iic_port=CN_IIC2;
+        iic_port=CN_IIC2;
     else if(reg==tg_I2c_Reg[CN_IIC3])
-    	iic_port=CN_IIC3;
+        iic_port=CN_IIC3;
     else if(reg==tg_I2c_Reg[CN_IIC4])
-    	iic_port=CN_IIC4;
+        iic_port=CN_IIC4;
     else
-    	return false;
+        return false;
 
-	IntParamset[iic_port].TransTotalLen = length;
-	IntParamset[iic_port].TransCount = 0;
-	IntParamset[iic_port].pDrvPostSemp = iic_semp;               //iic_buf_semp
+    IntParamset[iic_port].TransTotalLen = length;
+    IntParamset[iic_port].TransCount = 0;
+    IntParamset[iic_port].pDrvPostSemp = iic_semp;               //iic_buf_semp
 
-    fill_little_32bit(mem_addr_buf,0,mem_addr);
+    u8 i;
+    for(i=0;i<maddr_len;i++)
+    {
+        mem_addr_buf[(maddr_len-1)-i]=((mem_addr>>(8*i))&0xff);
+    }
     __IIC_IntDisable(reg);//关中断
 
     //写器件地址和寻址地址
     //写器件地址和寻址地址
-    if(__IIC_WriteAddr(reg, dev_addr, mem_addr,maddr_len) )
-	{
-		reg->CR2 &=~I2C_CR2_AUTOEND;//非自动结束方式
-		reg->CR2 |=I2C_CR2_RD_WRN;//读标志
-		__IIC_IntEnable(reg);//使能中断
-		reg->CR2 |=I2C_CR2_START;//start
-		return true;
-	}
+    if(__IIC_WriteAddr(reg, dev_addr, mem_addr_buf,maddr_len) )
+    {
+        reg->CR2 |=I2C_CR2_AUTOEND;//自动结束方式
+        reg->CR2 |=I2C_CR2_RD_WRN;//读标志
+        __IIC_IntEnable(reg);//使能中断
+        reg->CR2 |=I2C_CR2_START;//start
+        return true;
+    }
     return false;
 }
 
@@ -742,8 +773,8 @@ static void __IIC_GenerateEnd(tagI2CReg *reg)
         return;
     if(reg->CR2 & I2C_CR2_RD_WRN )//发送
     {
-    	reg->CR1 |= I2C_CR2_NACK;//停止回复ACK
-    	__IIC_GenerateStop(reg);
+        reg->CR1 |= I2C_CR2_NACK;//停止回复ACK
+        __IIC_GenerateStop(reg);
     }
     else //接收
     {
@@ -754,22 +785,22 @@ static void __IIC_GenerateEnd(tagI2CReg *reg)
 //==============================================================================
 // 功能：IIC总线控制回调函数，被上层调用，目前只实现对IIC时钟频率配置
 // 参数：TIMINGR-->位 31:28 PRESC时序预分频因子
-//				   位 23:20 SCLDEL[3:0]：数据建立时间
-//				   位 19:16 SDADEL[3:0]：数据保持时间
-//				   位 15:8 SCLH[7:0]：SCL 高电平周期
-//				   位 7:0 SCLL[7:0]：SCL 低电平周期
+//                   位 23:20 SCLDEL[3:0]：数据建立时间
+//                   位 19:16 SDADEL[3:0]：数据保持时间
+//                   位 15:8 SCLH[7:0]：SCL 高电平周期
+//                   位 7:0 SCLL[7:0]：SCL 低电平周期
 //   reg    本模块内即IIC寄存器基址
 // 返回：无
 //==============================================================================
 static void _IIC_ClkSet(tagI2CReg *reg,u32 data)
 {
-	u32 SCLH,SCLL;
-	reg->CR1 &=~I2C_CR1_PE;
-	SCLH=(216*1000*1000)/(data*2);
-	SCLL=SCLH;
-	reg->TIMINGR&=~((I2C_TIMINGE_SCLH_8BIT(0xff)|I2C_TIMINGE_SCLL_8BIT(0xff)));
-	reg->TIMINGR|=(I2C_TIMINGE_SCLH_8BIT(SCLH)|I2C_TIMINGE_SCLL_8BIT(SCLL));
-	reg->CR1 |=I2C_CR1_PE;//PE使能
+    u32 SCLH,SCLL;
+    reg->CR1 &=~I2C_CR1_PE;
+    SCLH=(CN_CFG_MCLK)/(data*2);
+    SCLL=SCLH;
+    reg->TIMINGR&=~((I2C_TIMINGE_SCLH_8BIT(0xff)|I2C_TIMINGE_SCLL_8BIT(0xff)));
+    reg->TIMINGR|=(I2C_TIMINGE_SCLH_8BIT(SCLH)|I2C_TIMINGE_SCLL_8BIT(SCLL));
+    reg->CR1 |=I2C_CR1_PE;//PE使能
 }
 
 // =============================================================================
@@ -785,20 +816,20 @@ static s32 __IIC_BusCtrl(tagI2CReg *reg,u32 cmd,u32 data1,u32 data2)
         return 0;
     switch(cmd)
     {
-		case CN_IIC_SET_CLK: //设置时钟频率
-				_IIC_ClkSet(reg,data1);
-			  break;
-		case CN_IIC_DMA_USED://使用dma传输
+        case CN_IIC_SET_CLK: //设置时钟频率
+                _IIC_ClkSet(reg,data1);
+              break;
+        case CN_IIC_DMA_USED://使用dma传输
 
-			break;
-		case CN_IIC_DMA_UNUSED://禁止dma传输
+            break;
+        case CN_IIC_DMA_UNUSED://禁止dma传输
 
-			break;
-		case CN_IIC_SET_POLL:           //使用轮询方式发送接收
-			__IIC_IntDisable(reg);
-			break;
-		default:
-			return 0;
+            break;
+        case CN_IIC_SET_POLL:           //使用轮询方式发送接收
+            __IIC_IntDisable(reg);
+            break;
+        default:
+            return 0;
     }
     return 1;
 }
@@ -824,67 +855,67 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
     u32 IicErrorNo;
     switch (i2c_int_line)
     {
-		case CN_INT_LINE_I2C1_EV:
-			iic_port=CN_IIC1;
-			break;
-		case CN_INT_LINE_I2C2_EV:
-			iic_port=CN_IIC2;
-			break;
-		case CN_INT_LINE_I2C3_EV:
-			iic_port=CN_IIC3;
-			break;
-		case CN_INT_LINE_I2C4_EV:
-			iic_port=CN_IIC4;
-			break;
-		default:	return false;
-	}
-	reg = (tagI2CReg*)tg_I2c_Reg[iic_port];
-	ICB = &s_IIC_CB[iic_port];
-	IntParam = &IntParamset[iic_port];
+        case CN_INT_LINE_I2C1_EV:
+            iic_port=CN_IIC1;
+            break;
+        case CN_INT_LINE_I2C2_EV:
+            iic_port=CN_IIC2;
+            break;
+        case CN_INT_LINE_I2C3_EV:
+            iic_port=CN_IIC3;
+            break;
+        case CN_INT_LINE_I2C4_EV:
+            iic_port=CN_IIC4;
+            break;
+        default:    return false;
+    }
+    reg = (tagI2CReg*)tg_I2c_Reg[iic_port];
+    ICB = &s_IIC_CB[iic_port];
+    IntParam = &IntParamset[iic_port];
 
-	//判断中断方式
-	//清除中断
-	//发送或者接受数据
-	//出错检查
-	if(reg->ISR & I2C_ISR_TXIS) //发送中断
-	{
-		if(IIC_PortRead(ICB,&ch,1) > 0)
-		{
-			reg->TXDR = ch;
-			IntParam->TransCount ++;;
-		}
-		else if(IntParam->TransCount == IntParam->TransTotalLen)
-		{
-		  Lock_SempPost(IntParam->pDrvPostSemp);
-		  __IIC_IntDisable(reg);//关中断
-		  __IIC_GenerateStop(reg);
-		}
-	}
-	else if(reg->ISR & I2C_ISR_RXNE)//接收中断
-	{
-		while((IntParam->TransCount < IntParam->TransTotalLen))
-		{
-			// 最后一个字节master不发ACK，表示读操作终止
-			if(IntParam->TransCount == IntParam->TransTotalLen - 1)
-			{
-				reg->CR2 |= I2C_CR2_NACK;
-			}
+    //判断中断方式
+    //清除中断
+    //发送或者接受数据
+    //出错检查
+    if(reg->ISR & I2C_ISR_TXIS) //发送中断
+    {
+        if(IIC_PortRead(ICB,&ch,1) > 0)
+        {
+            *((volatile u8 *)&reg->TXDR) = ch;
+            IntParam->TransCount ++;;
+        }
+        else if(IntParam->TransCount == IntParam->TransTotalLen)
+        {
+          Lock_SempPost(IntParam->pDrvPostSemp);
+          __IIC_IntDisable(reg);//关中断
+          __IIC_GenerateStop(reg);
+        }
+    }
+    else if(reg->ISR & I2C_ISR_RXNE)//接收中断
+    {
+        while((IntParam->TransCount < IntParam->TransTotalLen))
+        {
+            // 最后一个字节master不发ACK，表示读操作终止
+            if(IntParam->TransCount == IntParam->TransTotalLen - 1)
+            {
+                reg->CR2 |= I2C_CR2_NACK;
+            }
 
-			while (reg->ISR&I2C_ISR_RXNE)//传输字节
-				ch = reg->RXDR;
-			//写数据
-			IIC_PortWrite(ICB,&ch,1);
-			IntParam->TransCount ++;
-		}
-		if((IntParam->TransCount == IntParam->TransTotalLen)  &&
-									(!(reg->ISR&I2C_ISR_RXNE)))//最后一位读取完成
-		{
-			__IIC_GenerateStop(reg);
-			__IIC_IntDisable(reg);//关中断
-			Lock_SempPost(IntParam->pDrvPostSemp);//释放总线信号量
-		}
+            while (reg->ISR&I2C_ISR_RXNE)//传输字节
+                ch = reg->RXDR;
+            //写数据
+            IIC_PortWrite(ICB,&ch,1);
+            IntParam->TransCount ++;
+        }
+        if((IntParam->TransCount == IntParam->TransTotalLen)  &&
+                                    (!(reg->ISR&I2C_ISR_RXNE)))//最后一位读取完成
+        {
+            __IIC_GenerateStop(reg);
+            __IIC_IntDisable(reg);//关中断
+            Lock_SempPost(IntParam->pDrvPostSemp);//释放总线信号量
+        }
 
-	}
+    }
 
     else//未启动通信
     {
@@ -912,7 +943,7 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
 //       3.中断初始化，完成读写中断配置；
 //       4.调用IICBusAdd或IICBusAdd_r增加总线结点；
 // 参数：iic_port  IIC编号 CN_IIC1
-//	   Add_mode 寻址模式
+//       Add_mode 寻址模式
 // 返回：无
 // =============================================================================
 bool_t IIC_Init(u8 iic_port)
@@ -923,7 +954,7 @@ bool_t IIC_Init(u8 iic_port)
     IIC_Config[iic_port].BusName             = (char *)IIC_Name[iic_port];
     IIC_Config[iic_port].IICBuf              = (u8*)s_IICBuf[iic_port];
     IIC_Config[iic_port].IICBufLen           = IIC_BUF_LEN[iic_port];
-    IIC_Config[iic_port].SpecificFlag        = tg_I2c_Reg[iic_port];
+    IIC_Config[iic_port].SpecificFlag        = (ptu32_t)tg_I2c_Reg[iic_port];
     IIC_Config[iic_port].pGenerateWriteStart = (WriteStartFunc)__IIC_GenerateWriteStart;
     IIC_Config[iic_port].pGenerateReadStart  = (ReadStartFunc)__IIC_GenerateReadStart;
     IIC_Config[iic_port].pGenerateEnd        = (GenerateEndFunc)__IIC_GenerateEnd;

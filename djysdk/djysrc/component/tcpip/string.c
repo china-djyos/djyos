@@ -96,6 +96,52 @@ int string2arg(int *argc, char *argv[],char *string)
 	return 0;
 }
 
+//usage:use this function to change the string to the args
+int getargs(int argc, char *argv[],char *string)
+{
+	int argvlen = 0;
+	int paramnum = 0;
+	char *tmp = NULL;
+	char bak;
+	int len;
+
+	argvlen = argc;
+	if(NULL == string)
+	{
+		return paramnum;
+	}
+
+	//use the '\0' to replace the ' '
+	len = strlen(string);
+	tmp = string;
+	while(tmp < (string + len))
+	{
+		if(*tmp == ' ')
+		{
+			*tmp = '\0';
+		}
+		tmp++;
+	}
+	bak = '\0';
+	tmp = string;
+	while(tmp < (string + len))
+	{
+		if((*tmp != '\0')&&(bak =='\0'))
+		{
+			if(paramnum < argvlen)
+			{
+				argv[paramnum] = tmp;
+				paramnum++;
+			}
+		}
+		bak = *tmp;
+		tmp++;
+	}
+	return paramnum;
+}
+
+
+
 //this is an function tools, used to make the string to mac address
 //string must be xx-xx-xx-xx-xx-xx style
 bool_t string2Mac(char *str,u8 *mac)

@@ -557,7 +557,7 @@ extern struct DMA_StChannelReg volatile * const pg_dma2_channel5_reg;
 #define DMA_INT_DMEIE  (1<<1)
 
 // DMAÇý¶¯API
-u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,u32 mar,
+u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer,u32 mar0,u32 mar1,
         u8 dir,u8 msize,u8 psize,u16 ndtr);
 void DMA_Enable(DMA_Stream_TypeDef *DMA_Streamx,u32 mar,u16 ndtr);
 void DMA_Disable(DMA_Stream_TypeDef *DMA_Streamx);

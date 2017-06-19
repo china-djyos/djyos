@@ -71,9 +71,16 @@ extern "C" {
 
 typedef enum{
 	EN_R_W =0,   //可读可写
-    EN_R_O ,  //read only.
-    EN_W_O ,  //write only.
+    EN_R_O ,     //read only.
+    EN_W_O ,     //write only.
 }EN_TEXTBOX_EDIT_PROPERTY;
+
+
+
+#define WS_TEXTBOX_R_W       (1<<8) //子窗口标志,控件窗口必须指定该标志.
+#define WS_TEXTBOX_R_O       (1<<9) //窗口是否可见
+#define WS_TEXTBOX_W_O       (1<<10) //窗口是否为禁止状态,如果指定该标志,窗口将不响应输入消息
+
 
 //文本框Text内容操作控制码
 enum TextCtrlCmd

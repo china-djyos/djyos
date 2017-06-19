@@ -720,10 +720,10 @@ int socketSelect(int sid, int timeout)
  *  Windows select() fails if no descriptors are set, instead of just sleeping
  *  like other, nice select() calls. So, if WIN, sleep.
  */
-    if (nEvents == 0) {
-        Djy_EventDelay(timeout*mS);
-        return 0;
-    }
+	if (nEvents == 0) {
+		usleep(timeout);
+		return 0;
+	}
 
 /*
  *  Wait for the event or a timeout.

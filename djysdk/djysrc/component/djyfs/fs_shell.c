@@ -51,8 +51,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include <djyfs/file.h>
-#include <djyfs/iofile.h>
+#include <stdlib.h>
 #include <djyfs/mount.h>
 #include <shell.h>
 #include <driver.h>
@@ -61,14 +60,14 @@
 //
 //
 //
-static bool_t SH_Format(const char *Param);
-static bool_t SH_PrintWorkingPath(const char *Param);
-static bool_t SH_MkDir(const char *Param);
-static bool_t SH_List(const char *Param);
-static bool_t SH_ChangeDir(const char *Param);
-static bool_t SH_Remove(const char *Param);
-static bool_t SH_Cat(const char *Param);
-static bool_t SH_Copy(const char *Param);
+static bool_t SH_Format(char *Param);
+static bool_t SH_PrintWorkingPath(char *Param);
+static bool_t SH_MkDir(char *Param);
+static bool_t SH_List(char *Param);
+static bool_t SH_ChangeDir(char *Param);
+static bool_t SH_Remove(char *Param);
+static bool_t SH_Cat(char *Param);
+static bool_t SH_Copy(char *Param);
 //
 //
 //
@@ -118,12 +117,12 @@ static struct ShellCmdTab const FsCmdTable[] =
         "读文件并打印",
         "\r\n"
     },
-	{
-		"cp",
-		SH_Copy,
-		"拷贝文件",
-		"example: cp /fat/abc /yaffs/abc\r\n"
-	},
+    {
+        "cp",
+        SH_Copy,
+        "拷贝文件",
+        "example: cp /fat/abc /yaffs/abc\r\n"
+    },
 #if 0
     {
         "mount",
@@ -150,23 +149,25 @@ const char *s_cREG = "文件";
 const char *s_cLINK = "链接";
 const char *s_cDIR = "目录";
 const char *s_cUNKNOW = "未知";
-static const char *PropertyToStr(u32 Mode)
+static char *PropertyToStr(u32 Mode)
 {
+    char *res;
+
     if(((S_ISREG(Mode)) && (S_ISLNK(Mode))) ||
         ((S_ISREG(Mode)) && (S_ISDIR(Mode))) ||
         ((S_ISDIR(Mode)) && (S_ISLNK(Mode))))
-        return (s_cUNKNOW);
+        res = (char*)s_cUNKNOW;
 
     if(S_ISREG(Mode))
-        return (s_cREG);
+        res = (char*)s_cREG;
 
     if(S_ISLNK(Mode))
-        return (s_cLINK);
+        res = (char*)s_cLINK;
 
     if(S_ISDIR(Mode))
-        return (s_cDIR);
+        res = (char*)s_cDIR;
 
-    return (s_cUNKNOW);
+    return (res);
 }
 
 //-----------------------------------------------------------------------------
@@ -175,7 +176,7 @@ static const char *PropertyToStr(u32 Mode)
 //返回:
 //备注: todo: 逻辑待完善
 //-----------------------------------------------------------------------------
-static bool_t SH_Format(const char *Param)
+static bool_t SH_Format(char *Param)
 {
     if(NULL == Param)
         return (FALSE);
@@ -195,7 +196,7 @@ static bool_t SH_Format(const char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t SH_PrintWorkingPath(const char *Param)
+static bool_t SH_PrintWorkingPath(char *Param)
 {
     s32 Len;
     bool_t Ret;
@@ -235,7 +236,7 @@ static bool_t SH_PrintWorkingPath(const char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t  SH_MkDir(const char *Param)
+static bool_t  SH_MkDir(char *Param)
 {
     char *Temp, *SlashPos, *Path, *FullPath;
     int Fd;
@@ -306,7 +307,7 @@ static bool_t  SH_MkDir(const char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t SH_List(const char *Param)
+static bool_t SH_List(char *Param)
 {
     DIR *Dir;
     s32 Len;
@@ -314,6 +315,8 @@ static bool_t SH_List(const char *Param)
     struct dirent *DirentInfo;
     struct stat DirentStat;
     u8 Flags = 0;
+    char size[11], *temp;
+    u8 len, i;
 
     if(Param && strstr(Param, "-l"))
         Flags = 1; // 显示完整信息
@@ -344,13 +347,33 @@ static bool_t SH_List(const char *Param)
                 {
                     strcpy(CWP+Len, DirentInfo->d_name);
                     if(stat(CWP, &DirentStat))
-                        printf("%s -- 该目录项无法解析\r\n", DirentInfo->d_name);
+                    {
+                        for(i = 0; i < 24; i++)
+                            printf(" ");
+
+                        printf("<无法解析>");
+                        for(i = 0; i < 2; i++)
+                            printf(" ");
+
+                        printf("%s \r\n", DirentInfo->d_name);
+                    }
                     else
                     {
-                        printf("%s", PropertyToStr(DirentStat.st_mode));
-                        printf("\t");
-                        printf("%d", (u32)(DirentStat.st_size));// todo: 64位逻辑还在处理中
-                        printf("\t");
+                        temp = PropertyToStr(DirentStat.st_mode);
+                        printf("%s", temp);
+                        len = strlen(temp);
+                        for(i = len; i < 10; i++)
+                            printf(" ");
+
+                        itoa(DirentStat.st_size, size, 10);
+                        len = strlen(size);
+                        printf("%s", size);
+                        for(i = len; i < 16; i++)
+                            printf(" ");
+
+                        for(i = 0; i < 10; i++)
+                            printf(" ");
+
                         printf("%s", DirentInfo->d_name);
                         printf("\r\n");
                     }
@@ -378,7 +401,7 @@ static bool_t SH_List(const char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t SH_ChangeDir(const char *Param)
+static bool_t SH_ChangeDir(char *Param)
 {
     s32 Ret;
     char *Path = (char *)Param;
@@ -421,7 +444,7 @@ bool_t Sh_PrintWorkPath(void)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t SH_Remove(const char *Param)
+static bool_t SH_Remove(char *Param)
 {
 
     u16 Offset;
@@ -506,7 +529,7 @@ static bool_t SH_Remove(const char *Param)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-static bool_t SH_Cat(const char *Param)
+static bool_t SH_Cat(char *Param)
 {
     char *Path = (char *)Param;
     int FH;
@@ -547,11 +570,11 @@ static bool_t SH_Cat(const char *Param)
 //备注:
 //-----------------------------------------------------------------------------
 #define RW_SIZE  256
-static bool_t SH_Copy(const char *Param)
+static bool_t SH_Copy(char *Param)
 {
 
-	char *PathTemp;
-	char *PathSrc;
+    char *PathTemp;
+    char *PathSrc;
     char *PathDes;
     u16 Length;
     s32 HandleSrc;
@@ -562,24 +585,24 @@ static bool_t SH_Copy(const char *Param)
     PathTemp = (char*)Param;
     if(NULL == PathTemp)
     {
-    	printf("\"cp\": no parameters!\r\n");
-    	return (FALSE);
+        printf("\"cp\": no parameters!\r\n");
+        return (FALSE);
     }
 
     while(*PathTemp == ' ')
-    	PathTemp = PathTemp + 1; // 去除多余的空格符,对于文件系统路径而言,是不可能以空格开始的
+        PathTemp = PathTemp + 1; // 去除多余的空格符,对于文件系统路径而言,是不可能以空格开始的
 
     PathDes = PathTemp; // 临时保存头位置
     PathSrc = PathTemp;
     while(*PathTemp != ' ')
-    	PathTemp = PathTemp + 1; // 找到空格
+        PathTemp = PathTemp + 1; // 找到空格
 
     Length = PathTemp - PathSrc;
     PathSrc = malloc(Length + 1); // 含结束符
     if(!PathSrc)
     {
-    	printf("\"cp\": memory out!\r\n");
-    	return (FALSE);
+        printf("\"cp\": memory out!\r\n");
+        return (FALSE);
     }
 
     memcpy(PathSrc, (PathTemp - Length), Length);
@@ -593,35 +616,35 @@ static bool_t SH_Copy(const char *Param)
     }
 
     HandleDes = open(PathDes, O_RDWR | O_CREAT);
-	if(-1 == HandleDes)
-	{
-		printf("\"cp\": cannot open destination file!\r\n");
-		return (FALSE);
-	}
+    if(-1 == HandleDes)
+    {
+        printf("\"cp\": cannot open destination file!\r\n");
+        return (FALSE);
+    }
 
-	while(1)
-	{
-		Res = read(HandleSrc, Buf, RW_SIZE);
-		if(!Res)
-			break; // 全部读完
+    while(1)
+    {
+        Res = read(HandleSrc, Buf, RW_SIZE);
+        if(!Res)
+            break; // 全部读完
 
-		if(Res != write(HandleDes, Buf, Res))
-		{
-			printf("\"cp\": write destination file error.\r\n");
-			break;
-		}
+        if(Res != write(HandleDes, Buf, Res))
+        {
+            printf("\"cp\": write destination file error.\r\n");
+            break;
+        }
 
-		if(Res != RW_SIZE)
-			break; // 全部读完
-	}
+        if(Res != RW_SIZE)
+            break; // 全部读完
+    }
 
-	Res = close(HandleDes);
-	if(Res)
-		printf("\"cp\": close destination file error.\r\n");
-
-	Res = close(HandleSrc);
+    Res = close(HandleDes);
     if(Res)
-    	printf("\"cp\": close source file error.\r\n");
+        printf("\"cp\": close destination file error.\r\n");
+
+    Res = close(HandleSrc);
+    if(Res)
+        printf("\"cp\": close source file error.\r\n");
 
     return (TRUE);
 }

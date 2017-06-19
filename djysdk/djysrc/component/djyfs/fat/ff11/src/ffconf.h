@@ -71,7 +71,7 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#define _CODE_PAGE  936
+#define _CODE_PAGE  437
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect setting of the code page can cause a file open failure.
 /
@@ -148,7 +148,7 @@
 
 
 #define _STR_VOLUME_ID  1
-#define _VOLUME_STRS    "RAM","NAND","CF","SD","USB"/* "vol"号从0-4,不区分大小写 */
+#define _VOLUME_STRS    "RAM","NAND","CF","SD", "USB MSC"/* "vol"号从0-4，需大写 */
 /* _STR_VOLUME_ID option switches string volume ID feature.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each

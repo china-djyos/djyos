@@ -73,6 +73,7 @@
 
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
+u32 g_u32HundreUsfor;
 
 //----创建线程-----------------------------------------------------------------
 //功能：为事件类型创建线程，初始化上下文环境，安装执行函数，构成完整线程
@@ -177,6 +178,7 @@ void __DjySetDelay(void)
     counter = clksum - counter;    //取实际脉冲数。
     g_u32CycleSpeed = ((uint64_t)counter * (u64)10E8)/CN_CFG_FCLK/u32_fors;//防溢出，用64位
     g_u32CycleSpeed = (g_u32CycleSpeed << 10) / 1000;     //扩大1.024倍
+    g_u32HundreUsfor = (1024<<7)/g_u32CycleSpeed;
 }
 
 //----初始化tick---------------------------------------------------------------

@@ -68,7 +68,7 @@ bool_t ModuleInstall_DjyBus (ptu32_t Para)
     //在资源链表中建立一个根结点，所有建立的总线结点都挂在该结点上。
     if(OBJ_AddTree(&tg_djybus_root,sizeof(struct  Object),RSC_RSCNODE,"DjyBus"))
     {
-        printk("DjyBus Install Successed !\r\n");
+        printf("DjyBus Install Successed !\r\n");
         return true;
     }
     return false;

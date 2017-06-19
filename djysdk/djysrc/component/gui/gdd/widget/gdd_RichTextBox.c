@@ -229,10 +229,6 @@ u32 RichTextBox_proc(struct WindowMsg *pMsg)
                 return 1;
                 ////
 
-        case    MSG_DESTROY:
-                printf("Richtextbox[%04XH]: MSG_DESTROY.\r\n",hwnd->WinId);
-                return 1;
-                ////
 
         default:
                 return DefWindowProc(pMsg);

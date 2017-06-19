@@ -237,7 +237,7 @@ float Max31865_TemperatureGet(void)
 //功能：初始化Max31865芯片，若采用连续读模式，则配置其模式为连续采样
 //参数：参数：
 //     BusName,总结名称，如“SPI1”
-//     Mode，连续模式或单次采样模式
+//     Mode，连续模式或单次采样模式,
 //返回：true = 成功初始化，false = 初始化失败
 // =============================================================================
 bool_t ModuleInstall_Max31865(char *BusName,u8 SampleMode)

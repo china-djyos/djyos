@@ -52,15 +52,11 @@ void led_init(void)
 // 参数:无
 // 返回: 无
 // =============================================================================
-
-
-
-
-
+extern void gdd_test(void);
 void djy_main(void)
 {
 	led_init();
-
+	gdd_test();
 	printf("Run Mode:App.\r\n");
     for(;;)
     {

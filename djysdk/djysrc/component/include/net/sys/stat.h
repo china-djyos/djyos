@@ -57,7 +57,8 @@
 #ifndef __STAT_H__
 #define __STAT_H__
 
-#include "stdint.h"
+#include <stdint.h>
+#include <stdio.h>
 #ifdef __cplusplus
 extern "C"{
 #endif

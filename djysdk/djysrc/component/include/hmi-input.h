@@ -65,12 +65,13 @@ typedef struct MsgQueue * tpInputMsgQ;
 
 enum _STDIN_INPUT_TYPE_
 {
-    EN_HMIIN_KEYBOARD,            //键盘
-    EN_HMIIN_MOUSE_2D,            //2d鼠标
-    EN_HMIIN_MOUSE_3D,            //3d鼠标
-    EN_HMIIN_SINGLE_TOUCH,        //单点触摸屏
-    EN_HMIIN_MUTI_TOUCH,          //多点触摸屏
-    EN_HMIIN_AREA_TOUCH,          //区域触摸屏
+    EN_HMIIN_INVALID,           //非法设备
+    EN_HMIIN_KEYBOARD,          //键盘
+    EN_HMIIN_MOUSE_2D,          //2d鼠标
+    EN_HMIIN_MOUSE_3D,          //3d鼠标
+    EN_HMIIN_SINGLE_TOUCH,      //单点触摸屏
+    EN_HMIIN_MUTI_TOUCH,        //多点触摸屏
+    EN_HMIIN_AREA_TOUCH,        //区域触摸屏
 };
 
 
@@ -159,6 +160,7 @@ bool_t HmiIn_ReadMsg(tpInputMsgQ InputMsgQ,
                      struct InputDeviceMsg *MsgBuf,u32 TimeOut);
 bool_t HmiIn_ReadDefaultMsg(struct InputDeviceMsg *MsgBuf,u32 TimeOut);
 bool_t HmiIn_SetFocus(const char *device_name,tpInputMsgQ FocusMsgQ);
+enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name);
 void HmiIn_SetFocusDefault(tpInputMsgQ FocusMsgQ);
 void HmiIn_SetFocusAll(tpInputMsgQ FocusMsgQ);
 tpInputMsgQ HmiIn_GetFocusDefault(void);

@@ -135,7 +135,50 @@ bool_t Board_IicGpioInit(u8 I2Cx)
 
 	return true;
 }
+// =============================================================================
+// 功能：网络相关的gpio配置
+// 参数：无
+// 返回：true
+// =============================================================================
 
+bool_t Board_EthGpioInit(void)
+{
+    GPIO_PowerOn(GPIO_A);
+    GPIO_PowerOn(GPIO_C);
+    GPIO_PowerOn(GPIO_D);
+    GPIO_PowerOn(GPIO_G);
+ 	RCC->APB2ENR|=1<<14;   	//使能SYSCFG时钟
+	SYSCFG->PMC|=1<<23;		//使用RMII接口
+
+
+
+
+    GPIO_CfgPinFunc(GPIO_A,PIN1|PIN2|PIN7,GPIO_MODE_AF,GPIO_OTYPE_PP,
+                    GPIO_SPEED_100M,GPIO_PUPD_NONE);
+    GPIO_CfgPinFunc(GPIO_D,PIN3,GPIO_MODE_OUT,GPIO_OTYPE_PP,
+    				GPIO_SPEED_100M,GPIO_PUPD_NONE);
+    GPIO_CfgPinFunc(GPIO_C,PIN1|PIN4|PIN5,GPIO_MODE_AF,GPIO_OTYPE_PP,
+    				GPIO_SPEED_100M,GPIO_PUPD_PU);
+    GPIO_CfgPinFunc(GPIO_G,PIN11|PIN13|PIN14,GPIO_MODE_AF,GPIO_OTYPE_PP,
+    				GPIO_SPEED_100M,GPIO_PUPD_PU);
+
+	GPIO_AFSet(GPIO_A,1,11);	//PA1,AF11
+ 	GPIO_AFSet(GPIO_A,2,11);	//PA2,AF11
+ 	GPIO_AFSet(GPIO_A,7,11);	//PA7,AF11
+
+	GPIO_AFSet(GPIO_C,1,11);	//PC1,AF11
+ 	GPIO_AFSet(GPIO_C,4,11);	//PC4,AF11
+ 	GPIO_AFSet(GPIO_C,5,11);	//PC5,AF11
+
+	GPIO_AFSet(GPIO_G,11,11);	//PG11,AF11
+ 	GPIO_AFSet(GPIO_G,13,11);	//PG13,AF11
+ 	GPIO_AFSet(GPIO_G,14,11);	//PG14,AF11
+
+ 	GPIO_SettoLow(GPIO_D,PIN3);
+ 	Djy_EventDelay(10*1000);
+ 	GPIO_SettoHigh(GPIO_D,PIN3);
+    return true;
+}
 // =============================================================================
 // 功能：根据具体的板件配置SPI的GPIO的引脚功能，这是与板件相关，所以该函数放在该文件，CPU
 //      SPI驱动直接调用该函数来初始化串口的GPIO引脚
@@ -178,10 +221,52 @@ bool_t Board_SpiGpioInit(u8 SPIx)
 	return true;
 }
 
+// =============================================================================
+// 功能：根据具体的板件485所需的控制管脚，控制485为发送状态该板件由硬件电路实现无需控制
+// 参数：串口号如：CN_UART1
+// 返回：无
+// =============================================================================
+
+void Board_UartHalfDuplexSend(u8 SerialNo)
+{
+    switch(SerialNo)
+    {
+        case CN_UART1:break;
+        case CN_UART2:break;
+        default:      break;
+    }
+}
+ // =============================================================================
+ // 功能：根据具体的板件485所需的控制管脚，控制485为接受收状态
+ // 参数：串口号如：CN_UART1
+ // 返回：无
+ // =============================================================================
+
+void Board_UartHalfDuplexRecv(u8 SerialNo)
+{
+
+    switch(SerialNo)
+    {
+    case CN_UART1: break;
+    case CN_UART2: break;
+    default:       break;
+    }
+}
 
 
+// =============================================================================
+// 功能：Board_GpioInit板上所有用到的GPIO初始化
+//  在这里将所有可能用到的复用模式的gpio定义在这里需要用取消注释即可
+// 参数：无
+// 返回：无
+// =============================================================================
 
-
+void Board_GpioInit(void)
+{
+    Board_EthGpioInit();//网络
+    Board_UartGpioInit(CN_UART1);
+    Board_UartGpioInit(CN_UART2);
+}
 
 
 

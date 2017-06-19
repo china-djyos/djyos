@@ -1281,8 +1281,11 @@ void *__M_MallocStack(ptu32_t size)
     u16    *pl_id;
     void *result;
 
-    if( (size == 0) || (tg_pSysHeap == NULL) )
+    // 系统堆正在被操作时，不能分配
+    if( (size == 0) || (tg_pSysHeap == NULL)
+            || (Lock_MutexQuery(&tg_pSysHeap->HeapMutex) == false) )
         return NULL;
+		
     if(__M_GetMaxFreeBlockHeap(tg_pSysHeap) < size)
     {
         result = NULL;

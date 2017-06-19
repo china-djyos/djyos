@@ -52,7 +52,6 @@
 //------------------------------------------------------
 
 //standard includes
-#include "iodev.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -63,6 +62,18 @@
 //add your own specified header here
 #include <driver.h>
 #include <shell.h>
+#include "iodev.h"
+
+
+typedef struct
+{
+	u8  idebug;
+	u8  odebug;
+}tagIoDebug;
+static tagIoDebug  gIoDebug = {
+		.idebug = 0,
+		.odebug = 0,
+};
 //-----------------------------------------------------------------------------
 //功能:weuse,0xthis,0xfunction,0xto open the serial device
 //参数:
@@ -74,20 +85,9 @@ ptu32_t iodevopen(const char *name)
 {
 	ptu32_t result = 0;
 	result = (ptu32_t)Driver_OpenDevice(name,O_RDWR,0);
-	if(0 == result)
-	{
-		printf("%s:open %s failed\n\r",__FUNCTION__,name);
-	}
-	else
-	{
-		printf("%s:open %s success\n\r",__FUNCTION__,name);
-	}
 	return result;
 }
-#define CN_UART_RT_TIMEOUT (100*mS)
-
-static u8 gDevIDebugMode = 0;  //0,no debug 1,in ascii mode,2 in hex mode :in debug
-static u8 gDevODebugMode = 0;  //0,no debug 1,in ascii mode,2 in hex mode :out debug
+//#define CN_UART_RT_TIMEOUT (10*mS)
 //-----------------------------------------------------------------------------
 //功能:we use this function to read data from the serial device
 //参数:dev,device handle;buf,data buf to read;len,data len
@@ -95,23 +95,26 @@ static u8 gDevODebugMode = 0;  //0,no debug 1,in ascii mode,2 in hex mode :out d
 //备注:do the block read
 //作者:zhangqf@下午4:57:17/2017年1月5日
 //-----------------------------------------------------------------------------
-int iodevread(ptu32_t dev,u8 *buf,u32 buflen)
+int iodevread(ptu32_t dev,u8 *buf,u32 buflen,u32 timeout)
 {
-
-	int len = 0;
-	len = Driver_ReadDevice((struct DjyDevice *)dev,buf,buflen,0,CN_UART_RT_TIMEOUT);
-	if((len > 0)&&(gDevIDebugMode > 0))
+	int len = -1;
+	if(NULL == (void *)dev)
+	{
+		return len;
+	}
+	len = Driver_ReadDevice((struct DjyDevice *)dev,buf,buflen,0,timeout);
+	if((len > 0)&&(gIoDebug.idebug > 0))
 	{
 		time_t printtime;
 		printtime = time(NULL);
 		printf("[RCV:%s:%d bytes]",ctime(&printtime),len);
 		for(int i = 0;i < len;i++)
 		{
-			if(gDevIDebugMode == 1)
+			if(gIoDebug.idebug == 1)
 			{
 				printf("%c",buf[i]);
 			}
-			else if(gDevIDebugMode ==2)
+			else if(gIoDebug.idebug ==2)
 			{
 				printf("%02x ",buf[i]);
 			}
@@ -128,29 +131,67 @@ int iodevread(ptu32_t dev,u8 *buf,u32 buflen)
 //备注:do the block send
 //作者:zhangqf@下午4:57:17/2017年1月5日
 //-----------------------------------------------------------------------------
-int iodevwrite(ptu32_t dev,u8 *buf,u32 len)
+int iodevwrite(ptu32_t dev,u8 *buf,u32 len,u32 timeout)
 {
-	Driver_WriteDevice((struct DjyDevice *)dev,buf,len,0,CN_BLOCK_BUFFER,CN_UART_RT_TIMEOUT);
-	if(gDevODebugMode > 0)
+	int result = -1;
+	int sentlen;
+	sentlen  =0;
+
+	if(NULL == (void *)dev)
+	{
+		return result;
+	}
+	while(sentlen != len)
+	{
+		result = Driver_WriteDevice((struct DjyDevice *)dev,buf+sentlen,len-sentlen,0,CN_BLOCK_BUFFER,timeout);
+		if(result > 0)
+		{
+			sentlen += result;
+		}
+		else
+		{
+			break;
+		}
+	}
+	result = sentlen;
+
+	if(gIoDebug.odebug > 0)
 	{
 		time_t printtime;
 		printtime = time(NULL);
 		printf("[SND:%s:%d bytes]",ctime(&printtime),len);
 		for(int i = 0;i < len;i++)
 		{
-			if(gDevODebugMode == 1)
+			if(gIoDebug.odebug == 1)
 			{
 				printf("%c",buf[i]);
 			}
-			else if(gDevODebugMode ==2)
+			else if(gIoDebug.odebug ==2)
 			{
 				printf("%02x ",buf[i]);
 			}
 		}
 		printf("\n\r");
 	}
-	return len;
+	return result;
 }
+
+//-----------------------------------------------------------------------------
+//功能:we use this function to flush the device,read all the exited data
+//参数:dev,device handle;buf,data buf to write;len,data len
+//返回:
+//备注:do the block send
+//作者:zhangqf@下午4:57:17/2017年1月5日
+//-----------------------------------------------------------------------------
+void iodevflush(ptu32_t dev)
+{
+	u8 buf[8];
+	int len;
+	while((len =iodevread(dev,buf,8,0))>0);
+	return;
+}
+
+
 //-----------------------------------------------------------------------------
 //功能:use this function to close the sio device
 //参数:
@@ -160,11 +201,12 @@ int iodevwrite(ptu32_t dev,u8 *buf,u32 len)
 //-----------------------------------------------------------------------------
 bool_t iodevclose(ptu32_t dev)
 {
-	Driver_CloseDevice((struct DjyDevice *)dev);
-	return true;
+	bool_t result;
+	result = Driver_CloseDevice((struct DjyDevice *)dev);
+	return result;
 }
 //usage:this function to set the sdev debug mode
-bool_t IoDevDebug(char *param)
+bool_t iodebugset(char *param)
 {
 	char *argv[2];
 	int   argc=2;
@@ -176,16 +218,40 @@ bool_t IoDevDebug(char *param)
 		v1 = strtol(argv[0],NULL,NULL);
 		if(v1 == 0)
 		{
-			gDevIDebugMode = strtol(argv[1],NULL,NULL);
+			gIoDebug.idebug = strtol(argv[1],NULL,NULL);
 		}
 		else
 		{
-			gDevODebugMode = strtol(argv[1],NULL,NULL);
+			gIoDebug.odebug = strtol(argv[1],NULL,NULL);
 		}
 	}
 	return true;
 }
 
+struct ShellCmdTab  gIoDebugItem[] =
+{
+    {
+        "iodebug",
+		iodebugset,
+        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
+        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
+    },
+};
+#define CN_IoDebug_NUM  ((sizeof(gIoDebugItem))/(sizeof(struct ShellCmdTab)))
+static struct ShellCmdRsc gIoDebugCmdRsc[CN_IoDebug_NUM];
+//-----------------------------------------------------------------------------
+//功能:this is the ppp main function here
+//参数:
+//返回:
+//备注:
+//作者:zhangqf@下午4:06:57/2017年1月5日
+//-----------------------------------------------------------------------------
+bool_t PppIoInit(ptu32_t para)
+{
+	bool_t result;
+	result = Sh_InstallCmd(gIoDebugItem,gIoDebugCmdRsc,CN_IoDebug_NUM);
+	return result;
+}
 
 
 

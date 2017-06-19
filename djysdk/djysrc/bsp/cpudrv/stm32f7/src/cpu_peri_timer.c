@@ -701,7 +701,7 @@ u32  __STM32Timer_GetFreq(ptu32_t timerhandle)
 {
     //定时器TIM25 时钟源为低速外设时钟PCLK1，速度为54M
     //定时器分频配置为108，
-    return 108*1000*1000;//108MHz
+    return CN_CFG_PCLK1*2;//108MHz
 }
 // =============================================================================
 // 函数功能:module_init_timer
@@ -723,11 +723,11 @@ bool_t ModuleInstall_HardTimer(void)
     for(i=0;i<CN_STM32TIMER_NUM;i++)
     {
         tg_TIMER_Reg[i]->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
-        tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE;//自动重装
+        tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE|TIM_CR1_DIR;//自动重装
 
         tg_TIMER_Reg[i]->DIER |= TIM_DIER_UIE;//使能更新中断
         tg_TIMER_Reg[i]->PSC = 0;//分频系数 为零 不分频(1/108)1uS
-        tg_TIMER_Reg[i]->ARR = 0xFFFFFFFF;//定时器预装初值
+        tg_TIMER_Reg[i]->ARR = 0;//定时器预装初值
     }
 
     STM32timer.chipname = "STM32TIMER";

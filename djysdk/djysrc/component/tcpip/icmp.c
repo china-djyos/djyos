@@ -366,7 +366,7 @@ bool_t __Icmp_EchoReply(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkg)
 //          pkg, info for the specified type and code
 // 输出参数：
 // 返回值  ：true , request success while false timeout 
-// 说明    :
+// 说明    :--todo, CPY PROCESS MAYBE TOO OLD
 // =============================================================================
 bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkglst)
 {
@@ -427,11 +427,11 @@ bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkglst
 // 返回值  ：true数据包已经被缓存或者释放， false数据包没有被缓存或者释放失败
 // 说明    :
 // =============================================================================
-bool_t IcmpRecvProcess(enum_ipv_t  ver,u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, tagNetDev *dev)
+static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, tagNetDev *dev)
 {
     bool_t        result;
     tagIcmpHdr     *hdr;
-    u16            chksum16; 
+    u16            chksum16;
     u32            devfunc;
 
     result = true;
@@ -461,7 +461,26 @@ bool_t IcmpRecvProcess(enum_ipv_t  ver,u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, 
         default:
             break;
     }
-    
+
+    return result;
+}
+
+static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, tagNetDev *dev)
+{
+	bool_t result = false;
+	enum_ipv_t  ver;
+	u32 ipsrc;
+	u32 ipdst;
+	if((NULL != addr)&&(NULL != pkglst)&&(NULL != dev))
+	{
+		ver = addr->ver;
+		if(ver == EN_IPV_4)
+		{
+			ipsrc = addr->src.ipv4;
+			ipdst = addr->dst.ipv4;
+			result = __rcvdealv4(ipsrc,ipdst,pkglst,dev);
+		}
+	}
     return result;
 }
 // =============================================================================
@@ -476,9 +495,7 @@ bool_t IcmpRecvProcess(enum_ipv_t  ver,u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, 
 bool_t IcmpInit(ptu32_t para)
 {
     bool_t result;
-
-    result = IpRegisterTplHandler(IPPROTO_ICMP,IcmpRecvProcess);
-
+    result = IpInstallProto("icmp",IPPROTO_ICMP,__rcvdeal);
     return result;
 }
 

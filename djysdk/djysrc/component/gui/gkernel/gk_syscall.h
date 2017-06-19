@@ -71,32 +71,23 @@ extern "C" {
 struct RectBitmap;
 //gui kernel的syscall编码,由上层通过管道传递给gui kernel
 //窗口控制命令组
-#define CN_GKSC_SET_PEN_COLOR       0x000   //设置窗口画笔颜色
-#define CN_GKSC_GET_PEN_COLOR       0x001   //取画笔颜色
-#define CN_GKSC_SET_CANVAS_COLOR    0x002   //设置窗口画布颜色
-#define CN_GKSC_GET_CANVAS_COLOR    0x003   //取画布颜色
-#define CN_GKSC_SET_SIZE            0x004   //设置窗口分辨率
-#define CN_GKSC_GET_SIZE            0x005   //取窗口分辨率
-#define CN_GKSC_SET_CURSOR          0x006   //设置窗口光标位置
-#define CN_GKSC_GET_CURSOR          0x007   //设置窗口光标位置
-#define CN_GKSC_CREAT_GKWIN         0x008   //创建窗口命令
-#define CN_GKSC_CREAT_DESKTOP       0x009   //创建桌面命令
-#define CN_GKSC_SET_DIRECT_SCREEN   0x00a   //设置窗口的直接写屏属性
-#define CN_GKSC_UNSET_DIRECT_SCREEN 0x00b   //取消窗口的直接写屏属性
-#define CN_GKSC_FLUSH_WBUF          0x00c   //把窗口缓冲区中的图像刷新到screen
-#define CN_GKSC_FLUSH_FBUF          0x00d   //把帧缓冲区中的图像刷新到screen
-#define CN_GKSC_SET_ROP_CODE        0x00e   //设置窗口的光栅属性
-#define CN_GKSC_SET_PAT_BUF         0x00f   //设置窗口的图案位图
-#define CN_GKSC_SET_TRANSPARENTCOLOR 0x010  //设置窗口的透明色
-#define CN_GKSC_SET_BITMSK          0x011   //设置窗口的掩码位图
-#define CN_GKSC_DESTROY_WIN         0x012   //释放窗口的资源
-#define CN_GKSC_SET_PRIO            0x013   //改变窗口的优先级
-#define CN_GKSC_SET_BOUND_MODE      0x014   //设置窗口边界模式
-#define CN_GKSC_MOVE_WIN            0x015   //移动窗口
-#define CN_GKSC_CHANGE_WIN_AREA     0x016   //移动窗口
-#define CN_GKSC_SYNC_SHOW           0x017   //立即输出至显示器
-#define CN_GKSC_DSP_REFRESH         0x018   //重新刷新显示器
-#define CN_GKSC_SET_VISIBLE         0x019   //重新刷新显示器
+#define CN_GKSC_CREAT_GKWIN         0x000   //创建窗口命令
+#define CN_GKSC_CREAT_DESKTOP       0x001   //创建桌面命令
+#define CN_GKSC_SET_DIRECT_SCREEN   0x002   //设置窗口的直接写屏属性
+#define CN_GKSC_SET_UNDIRECT_SCREEN 0x004   //取消窗口的直接写屏属性
+#define CN_GKSC_FLUSH_WBUF          0x005   //把窗口缓冲区中的图像刷新到screen
+#define CN_GKSC_FLUSH_FBUF          0x006   //把帧缓冲区中的图像刷新到screen
+#define CN_GKSC_SET_ROP_CODE        0x007   //设置窗口的光栅属性
+#define CN_GKSC_SET_HYALINE_COLOR   0x008  //设置窗口的透明色
+#define CN_GKSC_DESTROY_WIN         0x009   //释放窗口的资源
+#define CN_GKSC_SET_PRIO            0x00a   //改变窗口的优先级
+#define CN_GKSC_SET_BOUND_MODE      0x00b   //设置窗口边界模式
+#define CN_GKSC_ADOPT_WIN           0x00c   //过继窗口
+#define CN_GKSC_MOVE_WIN            0x00d   //移动窗口
+#define CN_GKSC_CHANGE_WIN_AREA     0x00e   //移动窗口
+#define CN_GKSC_SYNC_SHOW           0x00f   //立即输出至显示器
+#define CN_GKSC_DSP_REFRESH         0x010   //重新刷新显示器
+#define CN_GKSC_SET_VISIBLE         0x011   //重新刷新显示器
 
 //绘制命令组
 #define CN_GKSC_SET_PIXEL           0x100   //画点命令
@@ -204,6 +195,11 @@ struct GkscParaBezier
     u32 color;                      //画Bezier曲线使用的颜色
     u32 Rop2Code;                   //二元光栅操作码
 };
+struct GkscParaAdoptWin
+{
+    struct GkWinRsc *gkwin;         //目标窗口
+    struct GkWinRsc *NewParent;     //新的父窗口
+};
 struct GkscParaMoveWin
 {
     struct GkWinRsc *gkwin;      //目标窗口
@@ -234,21 +230,12 @@ struct GkscParaSetRopCode
     struct GkWinRsc *gkwin;      //绘制的目标窗口
     struct RopGroup RopCode;     //新的光栅操作码
 };
-struct GkscParaSetPatBuf
-{
-    struct GkWinRsc *gkwin;      //绘制的目标窗口
-    struct RectBitmap pattern; //要设置的图案位图
-};
 struct GkscParaSetHyalineColor
 {
     struct GkWinRsc *gkwin;      //绘制的目标窗口
     u32 HyalineColor;                   //要设置的透明色
 };
-struct GkscParaSetBitmsk
-{
-    struct GkWinRsc *gkwin;      //绘制的目标窗口
-    struct RectBitmap Rop4Msk;  //要设置的掩码位图
-};
+
 #ifdef __cplusplus
 }
 #endif

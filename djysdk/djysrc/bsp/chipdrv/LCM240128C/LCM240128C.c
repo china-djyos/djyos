@@ -20,7 +20,6 @@
 #include "os.h"
 #include "board-config.h"
 #include <gui/gkernel/gk_display.h>
-#include <LCM240128C/sr5333/lcm240128c_config.h>
 
 //坐标系说明,描述了显存偏移地址与屏上像素点的坐标映射关系,注意单色和灰度显示器
 //每字节可能包含不止一个像素点,图中没有加以区分.
@@ -44,51 +43,29 @@ u8 ContrastLevel;
 #define CN_TONTRAST_LEVEL_DEFAULT   0x68
 
 
-static const Pin LCD_BLK[] = {
-        {PIO_PA10, PIOA, ID_PIOA, PIO_OUTPUT_0,    PIO_DEFAULT}
-};
+#define LCD_STATUS_GE_BIT     1<<7
+#define LCD_STATUS_MX_BIT     1<<6
+#define LCD_STATUS_MY_BIT     1<<5
+#define LCD_STATUS_WA_BIT     1<<4
+#define LCD_STATUS_DE_BIT     1<<5
+#define LCD_STATUS_WS_BIT     1<<6
+#define LCD_STATUS_MD_BIT     1<<1
+#define LCD_STATUS_MS_BIT     1<<0
 
-static const Pin LCD_Pins[] = {
-    PIN_EBI_DBUS,
-    PIN_EBI_DNRD,
-    PIN_EBI_DNWE,
-    PIN_EBI_ABUS0,
-    PIN_EBI_ENCS0,
-    PIN_LCD_BACKLED,
-};
-static void Lcd_PortEBI_Init(void)
+extern const Pin LCD_BLK[1];
+extern const Pin LCD_RST[1];
+
+
+
+u8 LCD_GetStatus(void)
 {
-    PIO_Configure(LCD_Pins,PIO_LISTSIZE(LCD_Pins));
-    PMC_EnablePeripheral(ID_SMC ) ;
-
-    SMC->SMC_CS_NUMBER[0].SMC_SETUP = (0
-                    | (SMC_SETUP_NWE_SETUP(40))
-                    | (SMC_SETUP_NCS_WR_SETUP(20))
-                    | (SMC_SETUP_NRD_SETUP(40))
-                    | (SMC_SETUP_NCS_RD_SETUP(20))
-                      );
-
-    SMC->SMC_CS_NUMBER[0].SMC_PULSE = (0
-                    | (SMC_PULSE_NWE_PULSE(50))
-                    | (SMC_PULSE_NCS_WR_PULSE(80))
-
-                    | (SMC_PULSE_NRD_PULSE(50))
-                    | (SMC_PULSE_NCS_RD_PULSE(80))
-                      );
-
-    SMC->SMC_CS_NUMBER[0].SMC_CYCLE = (0
-                    | (SMC_CYCLE_NWE_CYCLE(150))
-                    | (SMC_CYCLE_NRD_CYCLE(150))
-                      );
-
-    SMC->SMC_CS_NUMBER[0].SMC_MODE = (0
-                    | (SMC_MODE_DBW_8_BIT)
-                    | (SMC_MODE_EXNW_MODE_DISABLED)
-                    | (SMC_MODE_BAT_BYTE_WRITE)
-                    | (SMC_MODE_READ_MODE)
-                    | (SMC_MODE_WRITE_MODE)
-                      );
+	u8 s0,s1,s2;
+	s0 = *CmdPort;
+	s1 = *CmdPort;
+	s2 = *CmdPort;
+	return s0;
 }
+
 
 //----初始化lcd硬件------------------------------------------------------------
 //功能: 如名
@@ -98,6 +75,7 @@ static void Lcd_PortEBI_Init(void)
 //----------------------------------------------------------------------------
 void InitLCM240128C(void)
 {
+    PatchF7Bug_ClearA0;
     ContrastLevel = CN_TONTRAST_LEVEL_DEFAULT;
     *CmdPort = 0xE2;                            // 设置温度补偿系数-0.05%/C
     Djy_EventDelay(10*mS);
@@ -121,6 +99,7 @@ void InitLCM240128C(void)
     *CmdPort = 0xf8;                            // 设置窗口操作使能
     *CmdPort = 0x00; *CmdPort = 0x10;           // 设置起始列地址
     *CmdPort = 0x60; *CmdPort = 0x70;           // 设置起始行地址
+
     Djy_EventDelay(50*mS);
 }
 
@@ -129,13 +108,27 @@ void InitLCM240128C(void)
 //参数: OnOff，true=点亮，false=熄灭
 //返回: 无
 //-----------------------------------------------------------------------------
-void __lcd_BackLight(bool_t OnOff)
+void LCD_BackLight(bool_t OnOff)
 {
     if(OnOff)
         PIO_Clear(LCD_BLK);
     else
         PIO_Set(LCD_BLK);
 }
+
+//----LCD复位------------------------------------------------------------------
+//功能: 略
+//参数: OnOff，true=点亮，false=熄灭
+//返回: 无
+//-----------------------------------------------------------------------------
+void LCD_Reset(void)
+{
+	 PIO_Clear(LCD_RST);
+	 Djy_EventDelay(10*mS);
+	 PIO_Set(LCD_RST);
+	 Djy_EventDelay(50*mS);
+}
+
 
 //----LCD显示使能------------------------------------------------------------
 //功能: 略
@@ -144,6 +137,7 @@ void __lcd_BackLight(bool_t OnOff)
 //-----------------------------------------------------------------------------
 void __lcd_envid_of(bool_t OnOff)
 {
+    GPIO_SettoLow(GPIO_F,1);
     if(OnOff)
         *CmdPort = 0xaf;                // 开显示  启动灰度显示
     else
@@ -157,6 +151,7 @@ void __lcd_envid_of(bool_t OnOff)
 //-----------------------------------------------------------------------------
 void __lcd_power_enable(bool_t OnOff)
 {
+    GPIO_SettoLow(GPIO_F,1);
     if(OnOff)
         *CmdPort = 0x28;                // 开显示  启动灰度显示
     else
@@ -170,6 +165,7 @@ void __lcd_power_enable(bool_t OnOff)
 //-----------------------------------------------------------------------------
 bool_t __lcd_disp_ctrl(struct DisplayRsc *disp)
 {
+
     return true;
 }
 
@@ -329,12 +325,14 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     s32 realxsrc;
     s32 loopx,loopy;
     u32 offset;
-    u8 c;
+    u8 c,s0,s1,s2;
+
     //根据LCD模块的要求，x的start和end都要调整为6的倍数
     xstart = (dst_rect->left/6)*6;
     xend = ((dst_rect->right-1)/6)*6;
     realxsrc = xsrc - (dst_rect->left-xstart);
 
+    PatchF7Bug_ClearA0;
     *CmdPort = 0xf4; *CmdPort = xstart/3;           // 设置操作窗口左边界
     *CmdPort = 0xf5; *CmdPort = (u8)dst_rect->top;  // 设置操作窗口上边界
     *CmdPort = 0xf6; *CmdPort = xend/3+1;             // 设置操作窗口右边界
@@ -349,6 +347,8 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     if(realxsrc%2 == 0)
     {
         offset = ysrc * src_bitmap->linebytes + realxsrc/2;
+        Djy_DelayUs(1);
+        PatchF7Bug_SetA0;
         for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
         {
             for(loopx = 0; loopx < (xend-xstart+6)/2; loopx++ )
@@ -358,11 +358,59 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
             }
             offset += src_bitmap->linebytes;
         }
+        PatchF7Bug_ClearA0;
+        s0 = *CmdPort;
+        s1 = *CmdPort;
+        s2 = *CmdPort;
+        while(s0 != 0xba)
+        {
+            *CmdPort = 0xE2;                            // 设置温度补偿系数-0.05%/C
+            *CmdPort = 0x25;                            // 设置温度补偿系数-0.05%/C
+            *CmdPort = 0x2b;                            // 内部DC-DC
+            *CmdPort = 0xc4;                            // LCD映像MY=1，MX=0，LC0=0
+            *CmdPort = 0xa3;                            // 设置行扫描频率 FR=263Hz
+            *CmdPort = 0xd1;                            // 彩色数据格式R-G-B
+            *CmdPort = 0xd5;                            // 设置数据位为12位RRRR-GGGG-BBBB
+            *CmdPort = 0xc8; *CmdPort = 0x18;           // 设置M信号为帧翻转
+            *CmdPort = 0xeb;                            // 设置偏压比1/12
+            *CmdPort = 0xa7;                            // 负性显示
+            *CmdPort = 0xa4;                            // 正常显示
+            *CmdPort = 0x81; *CmdPort = ContrastLevel;  // 设置对比度  对应单色图案
+            *CmdPort = 0xdf;                            // 设置扫描模式 启动FRC
+            *CmdPort = 0xad;                            // 开显示  启动灰度显示
+
+            *CmdPort = 0xf4; *CmdPort = xstart/3;           // 设置操作窗口左边界
+		   *CmdPort = 0xf5; *CmdPort = (u8)dst_rect->top;  // 设置操作窗口上边界
+		   *CmdPort = 0xf6; *CmdPort = xend/3+1;             // 设置操作窗口右边界
+		   *CmdPort = 0xf7; *CmdPort = (u8)(dst_rect->bottom-1);  // 设置操作窗口下边界
+		   *CmdPort = 0xf8;                                // 设置窗口操作使能
+		   *CmdPort = xstart/3 & 0x0f;
+		   *CmdPort = 0x10|(xstart/3 >> 4);            // 设置起始列地址
+           *CmdPort = 0x60 + ((u8)dst_rect->top & 0x0f);
+           *CmdPort = 0x70 + ((u8)(dst_rect->top)>> 4);// 设置起始行地址
+			offset = ysrc * src_bitmap->linebytes + realxsrc/2;
+	        Djy_DelayUs(1);
+	        PatchF7Bug_SetA0;
+			for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
+			{
+				for(loopx = 0; loopx < (xend-xstart+6)/2; loopx++ )
+				{
+					c = src_bitmap->bm_bits[offset+loopx];
+					*DataPort = c;
+				}
+				offset += src_bitmap->linebytes;
+			}
+		    PatchF7Bug_ClearA0;
+	        s0 = *CmdPort;
+	        s1 = *CmdPort;
+	        s2 = *CmdPort;
+		}
     }
     else
     {
 
     }
+
     return true;
 }
 //----从screen中取像素---------------------------------------------------------
@@ -392,15 +440,17 @@ bool_t __lcd_get_rect_screen(struct Rectangle *rect,struct RectBitmap *dest)
 //参数: 无
 //返回: 显示器资源指针
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_LCM240128C(ptu32_t para)
+ptu32_t ModuleInstall_LCM240128C(const char *ChipName)
 {
     static struct GkWinRsc frame_win;
     static struct RectBitmap FrameBitmap;
 
-    PIO_Configure(LCD_BLK, PIO_LISTSIZE(LCD_BLK));
-    __lcd_BackLight(1);
-    Lcd_PortEBI_Init();
+    Djy_EventDelay(10*mS);
+    LCD_BackLight(1);
+    LCD_Reset();
     InitLCM240128C( );
+    extern ptu32_t LCD_Shell_Module_Install(void);
+    LCD_Shell_Module_Install();
 
     pg_frame_buffer = malloc(CN_LCD_XSIZE*CN_LCD_YSIZE/2);
     memset(pg_frame_buffer,0,CN_LCD_XSIZE*CN_LCD_YSIZE/2);
@@ -438,7 +488,7 @@ ptu32_t ModuleInstall_LCM240128C(ptu32_t para)
 
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
-    if(GK_InstallDisplay(&tg_lcd_display,(char*)para))
+    if(GK_InstallDisplay(&tg_lcd_display,ChipName))
         return (ptu32_t)&tg_lcd_display;
     else
         return 0;

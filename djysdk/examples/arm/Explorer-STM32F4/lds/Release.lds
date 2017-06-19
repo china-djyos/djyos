@@ -172,7 +172,15 @@ SECTIONS
        . = ALIGN(0x08);
         sys_heap_bottom = .;
     }>RAM1
-    sys_heap_top = InnerRamStart + InnerRamSize;
+    sys_heap_top = InnerRam1Start + InnerRam1Size;
+
+    heap_rRAM2_lRAM2 (NOLOAD) :
+    {
+        . = ALIGN(0x08);
+        ram2_heap_bottom = .;
+    }>RAM2
+    ram2_heap_top = InnerRam2Start + InnerRam2Size;
+    
     heap_rextram_lextram (NOLOAD) :
     {
         . = ALIGN(0x08);
@@ -200,6 +208,19 @@ SECTIONS
         BYTE(0x73)                  /*'s'*/
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
 
+        . = ALIGN(0x04);
+        LONG(1)                     /*表示该堆由1段内存组成*/
+        LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+        LONG(0)                     /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+        LONG(ram2_heap_bottom)   /*第一段基址，须符合对齐要求*/
+        LONG(ram2_heap_top)      /*第一段地址上限（不含），须符合对齐要求*/
+        LONG(32)                   /*第一段页尺寸=32bytes*/
+        BYTE(0x72)                  /*'r'*/
+        BYTE(0x61)                  /*'a'*/
+        BYTE(0x6d)                  /*'m'*/
+        BYTE(0x32)                  /*'2'*/
+        BYTE(0)                     /*串结束，"extram"是堆的名字*/
+        
         . = ALIGN(0x04);
         LONG(1)                     /*表示该堆由1段内存组成*/
         LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/

@@ -66,6 +66,8 @@
 #include "page.h"
 #include "extern.h"
 
+#include <signal.h>
+
 static __uint32_t   *fetch_bitmap(HTAB *, int);
 static __uint32_t    first_free(__uint32_t);
 static int   open_temp(HTAB *);

@@ -66,8 +66,6 @@ typedef struct  __LVCELL
 
 u32 listview_proc(struct WindowMsg *pMsg);
 
-#define LISTVIEW    listview_proc
-
 /*=========================================================================================*/
 
 #endif /* SRC_OS_CODE_COMPONENT_GUI_INCLUDE_GDD_LISTVIEW_H_ */

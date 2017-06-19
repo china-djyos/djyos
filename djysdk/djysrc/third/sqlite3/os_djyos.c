@@ -13,12 +13,12 @@
 ** This file contains code that is specific to Windows.
 */
 #include "sqliteInt.h"
-#include "stdint.h"
-#include "stdio.h"
-#include "stat.h"
-#include "time.h"
-#include "djyos.h"
-#include "unistd.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <djyos.h>
+#include <unistd.h>
 #if SQLITE_OS_DJYOS               /* This file is used for djyos only */
 
 /*

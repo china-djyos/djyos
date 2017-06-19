@@ -88,6 +88,10 @@ ptu32_t UART_PortWrite(struct UartCB *UCB,u8* buf,u32 len,u32 res);
 ptu32_t UART_PortRead(struct UartCB *UCB,u8* dst_buf,u32 len,u32 res);
 ptu32_t UART_ErrHandle(struct UartCB *UCB,u32 ErrNo);
 ptu32_t UART_Ctrl(struct UartCB *UCB,u32 cmd,ptu32_t data1,ptu32_t data2);
+bool_t UART_MultiplexAdd(struct UartCB *UCB,
+                         struct MultiplexSetsCB *MultiplexSets,
+                         struct DjyDevice *Dev,
+                         u32 SensingBit);
 struct UartCB *UART_InstallPort(struct UartParam *Param);
 #ifdef __cplusplus
 }

@@ -5,8 +5,10 @@
 IbootSize = 256k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
 InnerFlashOffset = 0x8000000;
 InnerFlashRange = 1024k;
-InnerRamStart = 0x20000000;
-InnerRamSize = 128k;
+InnerRam1Start = 0x20000000;
+InnerRam1Size = 128k;
+InnerRam2Start = 0x10000000;
+InnerRam2Size = 64k;
 ExtRamStart = 0x68000000;
 ExtRamSize  = 0x100000;
 MEMORY
@@ -14,5 +16,6 @@ MEMORY
     InnerFlash(RX)    : org = 0x08000000,               len = 1024k
     
     RAM1(RXW)       : org = 0x20000000,                 len = 128k
+    RAM2(RXW)       : org = 0x10000000,                 len = 64k
     extram(RXW)     : org = 0x68000000,                 len = 0x100000
 }

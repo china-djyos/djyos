@@ -71,19 +71,10 @@ ptu32_t ModuleInstall_NetStaticIP(ptu32_t para)   //static ip example
             bool_t (*rcvHook)(u8 *buf, u16 len));
     ModuleInstall_GMAC(gc_NetCardName,gc_NetMac,true,1*mS,NULL);
     //set the netdevice filter
-    //maybe you want to add some net device filter:such as broadcast limited
-    //no frame reset and so on, if you use filter,operate it like following:
-    //set the netdevice filter
-    //initialize the filter(EN_NETDEV_FRAME_NOPKG),the measure time is 10 SECONS
-    //and the action time(which will reset the net device) is 1 seconds
-    //if in the 10s time, no package comes reached 10000 times, then the filter
-    //initialize the nopkg filter
-    //enable the nopkg filter
-//    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,10000,1000*mS,10*1000*mS);
-//    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,true);
-
-    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_BROAD,100,100*1000*mS,1*1000*mS);
-    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_BROAD,true);
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_BROAD,0,100,10*1000*mS,1);
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_MULTI,0,100,10*1000*mS,1);
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_POINT,0,100,10*1000*mS,1);
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_FRAME,10,1000,10*1000*mS,1);
 
     //make an link rout for the netdeb you installed,you could install more
 	//than one link rout for the same net device with different net address
@@ -123,20 +114,10 @@ ptu32_t ModuleInstall_NetDynamicIP(ptu32_t para)   //use the dhcp to malloc an i
             bool_t (*rcvHook)(u8 *buf, u16 len));
     ModuleInstall_GMAC(gc_NetCardName,gc_NetMac,true,1*mS,NULL);
     //set the netdevice filter
-    //maybe you want to add some net device filter:such as broadcast limited
-    //no frame reset and so on, if you use filter,operate it like following:
-    //set the netdevice filter
-    //initialize the filter(EN_NETDEV_FRAME_NOPKG),the measure time is 10 SECONS
-    //and the action time(which will reset the net device) is 1 seconds
-    //if in the 10s time, no package comes reached 10000 times, then the filter
-    //initialize the nopkg filter
-    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,10000,1000*mS,10*1000*mS);
-    //enable the nopkg filter
-    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,true);
-
-    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_BROAD,100,100*1000*mS,1*1000*mS);
-    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_BROAD,true);
-
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_BROAD,0,100,10*1000*mS,1);
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_MULTI,0,100,10*1000*mS,1);
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_POINT,0,100,10*1000*mS,1);
+    NetDevFlowSet(gc_NetCardName,EN_NETDEV_FLOW_FRAME,10,1000,10*1000*mS,1);
     //make an link rout for the netdeb you installed
     //if you will malloc the ip from the dhcp server,make sure that the dhcp client has been enabled
     //actually,you could only install one rout for the same net dev

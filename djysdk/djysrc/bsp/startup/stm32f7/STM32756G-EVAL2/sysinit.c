@@ -52,77 +52,66 @@
 #include "stdint.h"
 #include "cpu_peri.h"
 #include "board-config.h"
+#include "stm32f7xx_hal_conf.h"
+#include "stm32f7xx_ll_system.h"
 
-// ===================== PLL配置所需的宏定义 =====================================
-//PLL_N:主PLL倍频系数(PLL倍频),取值范围:64~432.
-//PLL_M:主PLL和音频PLL分频系数(PLL之前的分频),取值范围:2~63.
-//PLL_P:系统时钟的主PLL分频系数(PLL之后的分频),取值范围:2,4,6,8.(仅限这4个值!)
-//PLL_Q:USB/SDIO/随机数产生器等的主PLL分频系数(PLL之后的分频),取值范围:2~15.
-//VCO频率=PLL*(PLL_N/PLL_M);
-//系统时钟频率=VCO频率/PLL_P=PLL*(PLL_N/(PLL_M*PLL_P));
-//USB,SDIO,RNG等的时钟频率=VCO频率/PLL_Q=PLL*(PLL_N/(PLL_M*PLL_Q));
 // =============================================================================
-/*设置  VCO频率=432Mhz 系统时钟频率=216Mhz USB,SDIO,RNG等的时钟频率=48Mhz*/
-#define PLL_N      ((CN_CFG_MCLK/Mhz)*2)
-
-#define PLL_M      25//分频系数等于外部晶振
-
-#define PLL_P      2
-#define PLL_Q      9
-
-#define PLLSAI_N      192
-#define PLLSAI_R      5
-#define PLLSAI_P      2
-#define PLLSAI_Q      2
-//0 1 2 3对应2 4 8 16分频
-#define PLLSAIDIVR    0
-// =============================================================================
-// 功能：该函数实现系统时钟的初始化，主要包括：1、系统时钟从内部时钟切换到外部时钟；2、配置
-//       HCLK、PCLK1、PCLK2、MCLK分频系数；3、用PLL为系统时钟
-//       本函数的时钟设置，必须与board-config.h中的CN_CFG_MCLK等常量定义一致。
+// 功能：该函数实现系统时钟的初始化，修改请参照board-config.h
+// 中的宏定义
 // 参数：无
 // 返回：true false
 // =============================================================================
+  /* This variable is updated in three ways:
+      1) by calling CMSIS function SystemCoreClockUpdate()
+      2) by calling HAL API function HAL_RCC_GetHCLKFreq()
+      3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
+         Note: If you use this function to configure the system clock; then there
+               is no need to call the 2 first functions listed above, since SystemCoreClock
+               variable is updated automatically.
+  */
+const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+const uint8_t APBPrescTable[8] = {0, 0, 0, 0, 1, 2, 3, 4};
+
 bool_t SysClockInit(void)
 {
+    bool_t flag =true;
+    HAL_StatusTypeDef ret = HAL_OK;
+    RCC_OscInitTypeDef RCC_OscInitStructure;
+    RCC_ClkInitTypeDef RCC_ClkInitStructure;
 
-//相应寄存器初始化
-    RCC->CR|=0x00000001;//高速内部时钟使能
-    RCC->CFGR=0x00000000;
-    RCC->CR&=0xFEF6FFFF;
-    RCC->PLLCFGR=0x24003010;
-    RCC->CR&=~(1<<18);
-    RCC->CIR=0x00000000;//禁止时钟中断
-    RCC->CR|=1<<16;//开HSE
-    while((RCC->CR&(1<<17))==0);
+    __HAL_RCC_PWR_CLK_ENABLE(); //使能PWR时钟
+    //设置调压器输出电压级别，以便在器件未以最大频率工作
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-//配置PLL PLLSAI
-    RCC->APB1ENR|=1<<28;    //电源接口时钟使能
-    PWR->CR1|=3<<14;        //切换到高性能模式
-    RCC->PLLCFGR=PLL_M|(PLL_N<<6)|(((PLL_P>>1)-1)<<16)|(PLL_Q<<24)|(1<<22);//配置主PLL
-    RCC->PLLSAICFGR=(PLLSAI_R<<28)|(PLLSAI_Q<<24)|(((PLL_P>>1)-1)<<16)|( PLLSAI_N<<6); //配置主SAI
-    RCC->DCKCFGR1 |=(PLLSAIDIVR <<16);
-    RCC->CR |=(1<<24);//关闭主PLL
+    RCC_OscInitStructure.OscillatorType=RCC_OSCILLATORTYPE_HSE;    //时钟源为HSE
+    RCC_OscInitStructure.HSEState=RCC_HSE_ON;                      //打开HSE
+    RCC_OscInitStructure.PLL.PLLState=RCC_PLL_ON;                  //打开PLL
+    RCC_OscInitStructure.PLL.PLLSource=RCC_PLLSOURCE_HSE;          //PLL时钟源选择HSE
+    RCC_OscInitStructure.PLL.PLLM=(CN_CFG_HSE/Mhz); //主PLL和音频PLL分频系数(PLL之前的分频)
+    RCC_OscInitStructure.PLL.PLLN=((CN_CFG_MCLK/Mhz)*2); //主PLL倍频系数(PLL倍频)
+    RCC_OscInitStructure.PLL.PLLP=2; //系统时钟的主PLL分频系数(PLL之后的分频)
+    RCC_OscInitStructure.PLL.PLLQ=9; //USB/SDIO/随机数产生器等的主PLL分频系数(PLL之后的分频)
+    ret=HAL_RCC_OscConfig(&RCC_OscInitStructure);//初始化
+    if(ret!=HAL_OK)
+        flag=false;
 
-//切换到过驱动模式
-    PWR->CR1|=1<<16;        //使能过驱动,频率可到216Mhz
-    while(0==(PWR->CSR1&(1<<16)));
-    PWR->CR1|=1<<17;        //使能过驱动切换
-    while((PWR->CSR1&(1<<17))==0);
+    ret=HAL_PWREx_EnableOverDrive(); //开启Over-Driver功能
+    if(ret!=HAL_OK)
+        flag=false;
 
-//FLASH 时序设置 APB1 APB2分频系数
-    FLASH->ACR|=7<<0;       //7个CPU等待周期.
-    FLASH->ACR|=1<<8;       //指令预取使能.
-    FLASH->ACR|=1<<9;       //使能ART Accelerator
-    RCC->CFGR|=(0<<4)|(5<<10)|(4<<13);//HCLK 不分频;APB1 4分频;APB2 2分频.
+    //选中PLL作为系统时钟源并且配置HCLK,PCLK1和PCLK2
+    RCC_ClkInitStructure.ClockType=(RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_HCLK\
+            |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2);
+    RCC_ClkInitStructure.SYSCLKSource=RCC_SYSCLKSOURCE_PLLCLK;//设置系统时钟时钟源为PLL
+    RCC_ClkInitStructure.AHBCLKDivider=SYSCLK_DIV;//AHB分频系数
+    RCC_ClkInitStructure.APB1CLKDivider=AHB1_DIV;//APB1分频系数
+    RCC_ClkInitStructure.APB2CLKDivider=AHB2_DIV;//APB2分频系数
 
-//切换系统时钟
-    RCC->CR|=1<<24;         //打开主PLL
-    while((RCC->CR&(1<<25))==0);//等待PLL准备好
-    RCC->CFGR&=~(3<<0);     //清零
-    RCC->CFGR|=2<<0;        //选择主PLL作为系统时钟
-    while((RCC->CFGR&(3<<2))!=(2<<2));//等待主PLL作为系统时钟成功.
-    return true;
+    ret=HAL_RCC_ClockConfig(&RCC_ClkInitStructure,FLASH_LATENCY_7);//同时设置FLASH延时周期为7WS，也就是8个CPU周期。
+    if(ret!=HAL_OK)
+        flag=false;
+    LL_FLASH_EnableART();
+    return flag;
 }
 
 // =============================================================================
@@ -130,90 +119,173 @@ bool_t SysClockInit(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-static void SRAM_GpioInit(void)
+#define SDRAM_MODEREG_BURST_LENGTH_1             ((uint16_t)0x0000)
+#define SDRAM_MODEREG_BURST_LENGTH_2             ((uint16_t)0x0001)
+#define SDRAM_MODEREG_BURST_LENGTH_4             ((uint16_t)0x0002)
+#define SDRAM_MODEREG_BURST_LENGTH_8             ((uint16_t)0x0004)
+#define SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL      ((uint16_t)0x0000)
+#define SDRAM_MODEREG_BURST_TYPE_INTERLEAVED     ((uint16_t)0x0008)
+#define SDRAM_MODEREG_CAS_LATENCY_2              ((uint16_t)0x0020)
+#define SDRAM_MODEREG_CAS_LATENCY_3              ((uint16_t)0x0030)
+#define SDRAM_MODEREG_OPERATING_MODE_STANDARD    ((uint16_t)0x0000)
+#define SDRAM_MODEREG_WRITEBURST_MODE_PROGRAMMED ((uint16_t)0x0000)
+#define SDRAM_MODEREG_WRITEBURST_MODE_SINGLE     ((uint16_t)0x0200)
+static void BSP_SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command)
 {
-    GPIO_PowerOn(GPIO_D);//使能P-DEFGHI时钟
-    GPIO_PowerOn(GPIO_E);
-    GPIO_PowerOn(GPIO_F);
-    GPIO_PowerOn(GPIO_G);
-    GPIO_PowerOn(GPIO_H);
-    GPIO_PowerOn(GPIO_I);
-//初始化总线IO
-    GPIO_CfgPinFunc(GPIO_D,
-            PIN0|PIN1|PIN4|PIN5|PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15,
-            GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_100M,GPIO_PUPD_NONE);         //PC0/2/3
+  __IO uint32_t tmpmrd =0;
+  /* Step 1:  Configure a clock configuration enable command */
+  Command->CommandMode = FMC_SDRAM_CMD_CLK_ENABLE;
+  Command->CommandTarget = FMC_SDRAM_CMD_TARGET_BANK1;
+  Command->AutoRefreshNumber = 1;
+  Command->ModeRegisterDefinition = 0;
 
-    GPIO_CfgPinFunc(GPIO_E,
-            PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN6|PIN7|PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15,
-            GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_100M,GPIO_PUPD_NONE);     //PD0/1/8/9/10/14/15
+  /* Send the command */
+  HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
 
-    GPIO_CfgPinFunc(GPIO_F,
-            PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN12|PIN13|PIN14|PIN15,
-            GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_100M,GPIO_PUPD_NONE);         //PE0/1/7~15
+  /* Step 2: Insert 100 us minimum delay */
+  extern void HAL_Delay(__IO uint32_t Delay);
+  HAL_Delay(1);
 
-    GPIO_CfgPinFunc(GPIO_G,
-            PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN10,
-            GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_100M,GPIO_PUPD_NONE);     //PG0~5/11~15
+  /* Step 3: Configure a PALL (precharge all) command */
+  Command->CommandMode = FMC_SDRAM_CMD_PALL;
+  Command->CommandTarget = FMC_SDRAM_CMD_TARGET_BANK1;
+  Command->AutoRefreshNumber = 1;
+  Command->ModeRegisterDefinition = 0;
 
-    GPIO_CfgPinFunc(GPIO_H,
-            PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15,
-            GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_100M,GPIO_PUPD_NONE);         //PC0/2/3
+  /* Send the command */
+  HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
 
-    GPIO_CfgPinFunc(GPIO_I,
-            PIN0|PIN1|PIN3|PIN6|PIN7|PIN9|PIN10,
-            GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_100M,GPIO_PUPD_NONE); //PF0~2/4/5/8/15
-//////////////////////////////////////
-    GPIO_AFSet(GPIO_D,
-            PIN0|PIN1|PIN4|PIN5|PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15,AF12);            //PC0/2/3
+  /* Step 4 : Configure a Auto-Refresh command */
+  Command->CommandMode = FMC_SDRAM_CMD_AUTOREFRESH_MODE;
+  Command->CommandTarget = FMC_SDRAM_CMD_TARGET_BANK1;
+  Command->AutoRefreshNumber = 8;
+  Command->ModeRegisterDefinition = 0;
 
-    GPIO_AFSet(GPIO_E,
-            PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN6|PIN7|PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15,AF12);        //PD0/1/8/9/10/14/15
+  /* Send the command */
+  HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
 
-    GPIO_AFSet(GPIO_F,
-                    PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN12|PIN13|PIN14|PIN15,AF12);            //PE0/1/7~15
+  /* Step 5: Program the external memory mode register */
+  tmpmrd = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_1          |
+                     SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL   |
+                     SDRAM_MODEREG_CAS_LATENCY_3           |
+                     SDRAM_MODEREG_OPERATING_MODE_STANDARD |
+                     SDRAM_MODEREG_WRITEBURST_MODE_SINGLE;
 
-    GPIO_AFSet(GPIO_G,
-            PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN10,AF12);      //PG0~5/11~15
+  Command->CommandMode = FMC_SDRAM_CMD_LOAD_MODE;
+  Command->CommandTarget = FMC_SDRAM_CMD_TARGET_BANK1;
+  Command->AutoRefreshNumber = 1;
+  Command->ModeRegisterDefinition = tmpmrd;
 
-    GPIO_AFSet(GPIO_H,
-            PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15,AF12);            //PC0/2/3
+  /* Send the command */
+  HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
 
-    GPIO_AFSet(GPIO_I,
-            PIN0|PIN1|PIN3|PIN6|PIN7|PIN9|PIN10,AF12);  //PF0~2/4/5/8/15
-//功能I/o
-
+  /* Step 6: Set the refresh rate counter */
+  /* (15.62 us x Freq) - 20 */
+  /* Set the device refresh counter */
+  hsdram->Instance->SDRTR |= ((uint32_t)((1292)<< 1));
 
 }
-static void SRAM_FmcInit(void)
+void HAL_SDRAM_MspInit(SDRAM_HandleTypeDef *hsdram)
 {
 
-    RCC->AHB3ENR|=1<<0;         //使能FMC时钟
-      /* Configure and enable Bank1_SRAM3，NE3 */
-    //bank1有NE1~4,每一个有一个BCR+TCR，所以总共八个寄存器。
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOI_CLK_ENABLE();
+  __HAL_RCC_FMC_CLK_ENABLE();
 
-    FMC_Bank1->BTCR[4]=0X00000000;
-    FMC_Bank1->BTCR[5]=0X00000000;
-    FMC_Bank1E->BWTR[4]=0X00000000;
-    //操作BCR寄存器 使用异步模式,模式A(读写共用一个时序寄存器)
-    //BTCR[偶数]:BCR寄存器;BTCR[奇数]:BTR寄存器
-    FMC_Bank1->BTCR[4]|=1<<12;//存储器写使能
-    FMC_Bank1->BTCR[4]|=1<<4; //存储器数据宽度为16bit
-    //操作BTR寄存器         （HCLK=216M/2, 1个HCLK=2*4.629ns
-    FMC_Bank1->BTCR[5]|=8<<5; //数据保持时间（DATAST）
-    FMC_Bank1->BTCR[5]|=0<<3; //地址保持时间（ADDHLD）未用到
-    FMC_Bank1->BTCR[5]|=6<<0; //地址建立时间（ADDSET）为0个HCLK 0ns
-    //闪存写时序寄存器
-    FMC_Bank1E->BWTR[4]=0x0FFFFFFF;//默认值
-    //使能BANK1区域3
-    FMC_Bank1->BTCR[4]|=1<<0;
+  u32 Pin   = PIN0|PIN1|PIN8| PIN9|PIN10|PIN14|PIN15;
+  GPIO_CfgPinFunc(GPIO_D,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_D,Pin,AF12);
+
+  Pin   = PIN0|PIN1|PIN7| PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14 |PIN15;
+  GPIO_CfgPinFunc(GPIO_E,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_E,Pin,AF12);
+
+  Pin   = PIN0|PIN1|PIN2| PIN3|PIN4|PIN5|PIN11|PIN12|PIN13|PIN14|PIN15;
+  GPIO_CfgPinFunc(GPIO_F,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_F,Pin,AF12);
+
+  Pin   = PIN0|PIN1|PIN4| PIN5|PIN8|PIN15;
+  GPIO_CfgPinFunc(GPIO_G,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_G,Pin,AF12);
+
+  Pin   = PIN2|PIN3|PIN5|PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15;
+  GPIO_CfgPinFunc(GPIO_H,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_H,Pin,AF12);
+
+  Pin   = PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN6|PIN7|PIN9|PIN10;
+  GPIO_CfgPinFunc(GPIO_I,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_I,Pin,AF12);
+
+}
+
+
+
+void HAL_SRAM_MspInit(SRAM_HandleTypeDef *hsram)
+{
+   __HAL_RCC_FMC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+
+  /* GPIOD configuration */
+  u32 Pin   = PIN0|PIN1|PIN3| PIN4|PIN5|PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15;
+  GPIO_CfgPinFunc(GPIO_D,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_D,Pin,AF12);
+
+  /* GPIOE configuration */
+  Pin   = PIN0|PIN1|PIN3| PIN4|PIN7|PIN8|PIN9|PIN10|PIN11|PIN12|PIN13|PIN14|PIN15;
+  GPIO_CfgPinFunc(GPIO_E,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_E,Pin,AF12);
+
+  /* GPIOF configuration */
+  Pin   = PIN0|PIN1|PIN2| PIN3|PIN4|PIN5|PIN12|PIN13|PIN14|PIN15;
+  GPIO_CfgPinFunc(GPIO_F,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_F,Pin,AF12);
+
+  /* GPIOG configuration */
+  Pin   = PIN0|PIN1|PIN2|PIN3|PIN4|PIN5|PIN10;
+  GPIO_CfgPinFunc(GPIO_G,Pin,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE);
+  GPIO_AFSet(GPIO_G,Pin,AF12);
+
 }
 
 //SDRAM初始化
-void SRAM_Init(void)
+bool_t SRAM_Init(void)
 {
-    SRAM_GpioInit();
-    SRAM_FmcInit();
+    bool_t flag;
+    SDRAM_HandleTypeDef      hsdram;
+    FMC_SDRAM_TimingTypeDef  SDRAM_Timing;
+    FMC_SDRAM_CommandTypeDef command;
 
+    hsdram.Instance = FMC_SDRAM_DEVICE;
+    SDRAM_Timing.LoadToActiveDelay    = 2;
+    SDRAM_Timing.ExitSelfRefreshDelay = 6;
+    SDRAM_Timing.SelfRefreshTime      = 4;
+    SDRAM_Timing.RowCycleDelay        = 6;
+    SDRAM_Timing.WriteRecoveryTime    = 2;
+    SDRAM_Timing.RPDelay              = 2;
+    SDRAM_Timing.RCDDelay             = 2;
+
+    hsdram.State = HAL_SRAM_STATE_RESET;
+    hsdram.Init.SDBank             = FMC_SDRAM_BANK1;
+    hsdram.Init.ColumnBitsNumber   = FMC_SDRAM_COLUMN_BITS_NUM_9;
+    hsdram.Init.RowBitsNumber      = FMC_SDRAM_ROW_BITS_NUM_12;
+    hsdram.Init.MemoryDataWidth    = FMC_SDRAM_MEM_BUS_WIDTH_32;
+    hsdram.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
+    hsdram.Init.CASLatency         = FMC_SDRAM_CAS_LATENCY_3;
+    hsdram.Init.WriteProtection    = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
+    hsdram.Init.SDClockPeriod      = FMC_SDRAM_CLOCK_PERIOD_2;
+    hsdram.Init.ReadBurst          = FMC_SDRAM_RBURST_ENABLE;
+    hsdram.Init.ReadPipeDelay      = FMC_SDRAM_RPIPE_DELAY_0;
+    if(HAL_SDRAM_Init(&hsdram, &SDRAM_Timing) != HAL_OK)
+        flag=false;
+    BSP_SDRAM_Initialization_Sequence(&hsdram, &command);
+    return flag;
 }
 
 

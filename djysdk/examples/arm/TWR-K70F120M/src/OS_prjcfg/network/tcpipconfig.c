@@ -68,7 +68,7 @@ const u32  gTplProtoNum          = 5      ; //the transmit protocol number suppo
 //*******************************UDP******************************************//
 const bool_t   gUseUdp           = true   ; //use udp, and the icmp must be open
 const u32  gUdpSockNum           = 10     ; //you could create mostly 10 udpv4 socket at the same time
-
+const u32  gUdpHashLen           = 0x200  ;
 //*******************************TCP******************************************//
 const bool_t   gUseTcp           = true   ; //use the tcp
 const bool_t   gEnableTcpReoder  = false  ; //enable the tcp reorder or not,if resource is enough,please enable it
@@ -124,5 +124,12 @@ const char    *pDhcpRouterIp     = "192.168.0.100"; //ROUTER SERVER IP
 const char    *pDhcpSubnetMask   = "255.255.255.0"; //USED TO MASK THE IP
 const char    *pDhcpDns          = "192.168.0.100"; //DNSSERVER
 const char    *pDhcpDomainName   = "www.djyos.com"; //domain name
+//*******************************PPP******************************************//
+const bool_t  gUsePpp            = true   ;  //load the ppp module or not
+const bool_t  gPppStackSize      = 0x800  ;  //the ppp task stack size
+const u32     gPppTaskPrior      = 190    ;  //the ppp task prior
+const bool_t  gPppDevLimit       = 1      ;  //how many ppp device could be add
+const char   *pPppEvttName       ="PppTask"; //the ppp task name(evtt name)
+
 
 

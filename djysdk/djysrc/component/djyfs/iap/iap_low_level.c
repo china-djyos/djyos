@@ -206,8 +206,8 @@ s32 LowLevelWrite(void *LowLevel, u8 *Buf, u32 Bytes, u32 Addr)
             {
                 if((0xFF != LL->Buf[i]) && (LL->Buf[i] != DataBuf[i]))
                 {
-                    printf("data cannot be writen, offset %d, destination 0x%x, source 0x%x\r\n",
-                            i, LL->Buf[i], DataBuf[i]);
+                    printf("page 0x%x cannot be written, offset %d, destination 0x%x, source 0x%x\r\n",
+                    		PageNo, i, LL->Buf[i], DataBuf[i]);
                     goto FAILURE; //
                 }
             }

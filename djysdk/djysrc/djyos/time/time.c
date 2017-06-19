@@ -618,9 +618,19 @@ struct tm *localtime(const time_t *timep)
 
     return localtime_r(timep,&result);
 }
+
+//TODO,modified by zqf,gmtime return the year from 1900
+//     and moth is is 0 to 11
 struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
-    return Tm_GmTime_r(timep,result);
+	struct tm *myresult;
+	myresult = Tm_GmTime_r(timep,result);
+	if(NULL != result)
+	{
+		result->tm_year -= 1900;
+		result->tm_mon -= 1;
+	}
+    return myresult;
 }
 struct tm *gmtime(const time_t *timep)
 {
@@ -642,7 +652,7 @@ char *asctime_r(const struct tm *tm,char *buf)
         (tm->tm_mon<CN_MONTH_MAX))
     {
         //do the transfer
-        sprintf(buf,"%s %s %d %d:%d:%d %d",pWeekDay[tm->tm_wday],pMonth[tm->tm_mon],\
+        sprintf(buf,"%s %s %d %d:%02d:%02d %d",pWeekDay[tm->tm_wday],pMonth[tm->tm_mon],\
                 tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec,tm->tm_year);
         result = buf;
     }

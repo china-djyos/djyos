@@ -64,7 +64,7 @@
 #include <os.h>
 
 
-
+typedef bool_t (*fnAtRegNet)(char *dev,char *apn);
 
 
 #endif /* HD6072C87_1D75_49F4_99A6_5C6D8005AEF2 */

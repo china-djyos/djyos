@@ -7,7 +7,7 @@
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
+			<triggers>full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -35,14 +35,14 @@
 			<locationURI>DJYOS_SRC_LOCATION/djyos</locationURI>
 		</link>
 		<link>
-			<name>src/third</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/third</locationURI>
-		</link>
-		<link>
 			<name>src/libc</name>
 			<type>2</type>
 			<locationURI>DJYOS_SRC_LOCATION/libc</locationURI>
+		</link>
+		<link>
+			<name>src/third</name>
+			<type>2</type>
+			<locationURI>DJYOS_SRC_LOCATION/third</locationURI>
 		</link>
 		<link>
 			<name>src/bsp/boarddrv</name>

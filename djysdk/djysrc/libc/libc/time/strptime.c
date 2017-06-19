@@ -30,7 +30,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-#if 0  //todo 现在没空，需要时实现。
 
 #include <stddef.h>
 #include <stdio.h>
@@ -476,4 +475,4 @@ _DEFUN (strptime, (buf, format, timeptr),
 
     return (char *)buf;
 }
-#endif
+

@@ -213,6 +213,19 @@ static tagNetPkg *__MacRcv(ptu32_t devhandle)
 		pkg->datalen = len;
 		EthHandle->RxFrameInfos.SegCount =0;
 	}
+	else		//if malloc pkg failed
+	{
+		dmarxdesc = EthHandle->RxFrameInfos.FSRxDesc;
+		while(CopyBytes > EthRxBufSize)
+		{
+			CopyBytes -= EthRxBufSize;
+
+			dmarxdesc->Status |= ETH_DMARXDESC_OWN;		//release Des to DMA
+			dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
+		}
+		dmarxdesc->Status |= ETH_DMARXDESC_OWN;
+		EthHandle->RxFrameInfos.SegCount =0;
+	}
 
 	// When Rx Buffer unavailable flag is set: clear it and resume reception
 	if ((EthHandle->Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)
@@ -371,6 +384,7 @@ u32 ETH_IntHandler(ufast_t IntLine)
     return 0;
 }
 //mac control function
+#define EN_NETDEV_ADDRFILTER (EN_NETDEV_CMDLAST + 1)
 static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
 {
     bool_t result = false;
@@ -475,6 +489,18 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
                     result = true;
                 }
                 break;
+            case (EN_NETDEV_ADDRFILTER):	//增加一条是否接收所有包
+				if(para)
+				{
+					__macbitsclear(&pDrive->EthHandle->Instance->MACFFR,
+							ETH_MACFFR_RA);//addr filter
+				}
+				else
+				{
+					__macbitsset(&pDrive->EthHandle->Instance->MACFFR,
+											   ETH_MACFFR_RA);//pass all pkg
+				}
+				break;
             default:
                 result = false;
                 break;
@@ -497,7 +523,27 @@ static ptu32_t __MacRcvTask(void)
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
+
+
+    u32 *addr;
+    u32 value;
+    u32 resettimes= 0;
+	time_t printtime;
+	bool_t MacReset(char *param);
+
     Djy_GetEventPara(&handle,NULL);
+
+    addr = (u32 *)((u32)ETH + 0x194);
+    value =*addr;
+    if(value > 0)
+    {
+    	printtime = time(NULL);
+    	printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x start\n\r",\
+    			ctime(&printtime),resettimes++,value);
+    	MacReset(NULL);
+    	Djy_EventDelay(10*mS);
+    }
+
     while(1)
     {
         Lock_SempPend(pDrive->rcvsync,pDrive->loopcycle);
@@ -511,6 +557,9 @@ static ptu32_t __MacRcvTask(void)
             }
             if(NULL != pkg)
             {
+            	//maybe we have another method like the hardware
+            	NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+            	//you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
                     rawbuf = pkg->buf + pkg->offset;
@@ -523,16 +572,27 @@ static ptu32_t __MacRcvTask(void)
                 }
                 PkgTryFreePart(pkg);
                 pDrive->debuginfo.rcvPkgTimes++;
-                //check the any filter logic matches
-                NetDevFilterCheck(pDrive->devhandle);
             }
             else
             {
-                //check the any filter logic matches
-                NetDevFilterCheck(pDrive->devhandle);
+            	//here we still use the counter to do the time state check
+            	NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
+
+        //check if any crc error get then reset the mac
+        addr = (u32 *)((u32)ETH + 0x194);
+        value =*addr;
+        if(value > 0)
+        {
+        	printtime = time(NULL);
+        	printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x running\n\r",\
+        			ctime(&printtime),resettimes++,value);
+        	MacReset(NULL);
+        	Djy_EventDelay(10*mS);
+        }
+
     }
     return 0;
 }
@@ -599,6 +659,7 @@ bool_t macdebuginfo(char *param)
     printf("sndTimes      :%d\n\r",pDrive->debuginfo.sndTimes);
     printf("sndOkTime     :%d\n\r",pDrive->debuginfo.sndOkTimes);
     printf("sndnobdCnt    :%d\n\r",pDrive->debuginfo.sndnobdCnt);
+    printf("rcvnopkgCnt    :%d\n\r",pDrive->debuginfo.nopkgCnts);
     printf("rxTaskRun     :%d\n\r",pDrive->debuginfo.rxTaskRun);
     printf("rcvSpeed      :%d\n\r",rcvSpeed);
     printf("intSpeed      :%d\n\r",intSpeed);
@@ -728,6 +789,23 @@ bool_t MacSndDis(char *param)
     return true;
 }
 
+bool_t MacAddrFilterEn(char *param)
+{
+    tagMacDriver      *pDrive;
+
+    pDrive = &gMacDriver;
+	MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,1);//开通地址过滤功能
+	return true;
+}
+bool_t MacAddrFilterDis(char *param)
+{
+    tagMacDriver      *pDrive;
+
+    pDrive = &gMacDriver;
+	MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,0);//关闭地址过滤功能
+	return true;
+}
+
 #include <shell.h>
 static struct ShellCmdTab  gMacDebug[] =
 {
@@ -791,6 +869,18 @@ static struct ShellCmdTab  gMacDebug[] =
         "usage:MacSndDis",
         NULL
     },
+	{
+        "macfilten",
+		MacAddrFilterEn,
+        "usage:MacAddrEn, don't receive all frame(MAC filter)",
+        NULL
+    },
+	{
+        "macfiltdis",
+		MacAddrFilterDis,
+        "usage:MacAddrDis, receive all frame(don't care MAC filter)",
+        NULL
+    },
 };
 
 #define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
@@ -826,7 +916,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
 
     pDrive->EthHandle = &sEthHandle;
 	pDrive->EthHandle->Instance = ETH;
-	pDrive->EthHandle->Init.MACAddr = macaddress;
+	pDrive->EthHandle->Init.MACAddr = pDrive->macaddr;
 	pDrive->EthHandle->Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
 	pDrive->EthHandle->Init.Speed = ETH_SPEED_100M;
 	pDrive->EthHandle->Init.DuplexMode = ETH_MODE_FULLDUPLEX;
@@ -849,6 +939,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     {
         goto DEVPROTECT_FAILED;
     }
+    MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,1);//开通地址过滤功能
 
     //install the net device
     devpara.ifctrl = MacCtrl;

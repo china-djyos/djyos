@@ -70,7 +70,7 @@ extern const u32  gTplProtoNum          ; //the transmit protocol number support
 //*******************************UDP******************************************//
 extern const bool_t   gUseUdp           ; //use udp, and the icmp must be open
 extern const u32  gUdpSockNum           ; //you could create mostly 10 udpv4 socket at the same time
-
+extern const u32  gUdpHashLen           ; //udp hash search tab
 //*******************************TCP******************************************//
 extern const bool_t   gUseTcp           ; //use tcp
 extern const bool_t   gEnableTcpReoder  ; //enable the tcp reorder or not
@@ -126,5 +126,12 @@ extern const char    *pDhcpRouterIp   ;     //ROUTER SERVER IP
 extern const char    *pDhcpSubnetMask ;     //USED TO MASK THE IP
 extern const char    *pDhcpDns        ;     //DNSSERVER
 extern const char    *pDhcpDomainName ;     //domain name
+
+//*******************************PPP******************************************//
+extern const bool_t  gUsePpp            ;  //load the ppp module or not
+extern const bool_t  gPppStackSize      ;  //the ppp task stack size
+extern const u32     gPppTaskPrior      ;  //the ppp task prior
+extern const bool_t  gPppDevLimit       ;  //how many ppp device could be add
+extern const char   *pPppEvttName       ; //the ppp task name(evtt name)
 
 #endif /* __TCPIP_CONFIG_H */

@@ -57,4 +57,11 @@ ssize_t _EXFUN(readlink, (const char *__restrict __path,
                           char *__restrict __buf, size_t __buflen));
 int     _EXFUN(symlink, (const char *__name1, const char *__name2));
 
+
+//add by zqf, we must add the fileno for the io read and write for the stdio--TODO
+/* Standard file descriptors.  */
+#define STDIN_FILENO  0 /* Standard input.  */
+#define STDOUT_FILENO 1 /* Standard output.  */
+#define STDERR_FILENO 2 /* Standard error output.  */
+
 #endif /* _UNISTD_H_ */

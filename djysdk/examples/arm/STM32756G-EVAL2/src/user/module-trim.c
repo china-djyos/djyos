@@ -71,7 +71,7 @@
 
 extern ptu32_t ModuleInstall_DebugInfo(ptu32_t para);
 
-#define TOUCH_DEV_NAME  "stmpe811"
+#define TOUCH_DEV_NAME  "EXC7200"
 #define KBD_DEV_NAME    "keyboard_driver"
 #define DISPLAY_NAME   "AM-640480"
 
@@ -121,7 +121,8 @@ void Sys_ModuleInit(void)
 {
     uint16_t evtt_main;
 
-//    HAL_Init();
+    extern bool_t Board_GpioInit(void);
+    Board_GpioInit();
     //初始化直接输入和输出的硬件，为stdio.c中定义的 PutStrDirect、GetCharDirect
     //两个指针赋值，也可以只为PutStrDirect赋值，以支持printk。
     //这是来自bsp的函数，一般是串口驱动,BSP没提供的话，就不要调用，会导致应用程序编译不通过。
@@ -184,10 +185,10 @@ void Sys_ModuleInit(void)
     ModuleInstall_HmiIn( 0 );
 
     //djybus模块
-//    ModuleInstall_DjyBus(0);
+    ModuleInstall_DjyBus(0);
     //IIC总线模块,依赖:djybus
-//    ModuleInstall_IICBus(0);
-//    IIC_Init(CN_IIC1);
+    ModuleInstall_IICBus(0);
+    IIC_Init(CN_IIC1);
 //    IIC_Init(CN_IIC2);
 //    IIC_Init(CN_IIC3);
 //    IIC_Init(CN_IIC4);
@@ -218,61 +219,63 @@ void Sys_ModuleInit(void)
 //    ModuleInstall_KeyBoardHard(0);
 //
 //    //字符集模块
-//    ModuleInstall_Charset(0);
+    ModuleInstall_Charset(0);
 //    //gb2312字符编码,依赖:字符集模块
-//    ModuleInstall_CharsetGb2312(0);
+    ModuleInstall_CharsetGb2312(0);
 //    //ascii字符集,注意,gb2312包含了ascii,初始化了gb2312后,无须本模块
 //    //依赖:字符集模块
 //    ModuleInstall_CharsetAscii(0);
 //    初始化utf8字符集
 //    ModuleInstall_CharsetUtf8(0);
 //    //国际化字符集支持,依赖所有字符集模块以及具体字符集初始化
-//    ModuleInstall_CharsetNls("C");
+    ModuleInstall_CharsetNls("C");
 //
 //
-//     ModuleInstall_Font(0);                 //字体模块
+     ModuleInstall_Font(0);                 //字体模块
 //
 //    //8*8点阵的ascii字体依赖:字体模块
 //    ModuleInstall_FontAscii8x8Font(0);
 //    //6*12点阵的ascii字体依赖:字体模块
 //    ModuleInstall_FontAscii6x12Font(0);
 //    //从数组安装GB2312点阵字体,包含了8*16的ascii字体.依赖:字体模块
-//    ModuleInstall_FontGb2312_816_1616_Array(0);
+    ModuleInstall_FontGb2312_816_1616_Array(0);
 //    //从文件安装GB2312点阵字体,包含了8*16的ascii字体.依赖:字体模块,文件系统
 ////    ModuleInstall_FontGb2312_816_1616_File("sys:\\gb2312_1616");
 //    //8*16 ascii字体初始化,包含高128字节,依赖:字体模块
 //    //注:如果安装了GB2312,无须再安装
-////    ModuleInstall_FonAscii8x16Font(0);
+//    ModuleInstall_FonAscii8x16Font(0);
 //
 //
     //初始化gui kernel模块
     static struct GkWinRsc desktop;
     struct DisplayRsc *lcd;
-//    ModuleInstall_GK(0);           //gkernel模块
+    ModuleInstall_GK(0);           //gkernel模块
     //lcd驱动初始化,如果用系统堆的话,第二个参数用NULL
     //堆的名字,是在lds文件中命名的,注意不要搞错.
     //依赖: gkernel模块
 
-//    lcd = (struct DisplayRsc*)ModuleInstall_LCD(DISPLAY_NAME,"extram");
+    lcd = (struct DisplayRsc*)ModuleInstall_LCD(DISPLAY_NAME,"extram");
 
     //创建桌面,依赖:显示器驱动
-//    GK_ApiCreateDesktop(lcd,&desktop,0,0,
-//                        CN_COLOR_BLUE,CN_WINBUF_PARENT,CN_SYS_PF_DISPLAY,0);
+    GK_CreateDesktop(lcd,&desktop,0,0,
+                        CN_COLOR_BLUE,CN_WINBUF_PARENT,CN_SYS_PF_DISPLAY,0);
 
 
 //    //触摸屏模块,依赖:gkernel模块和显示器驱动
+    ptu32_t ModuleInstall_Touch(ptu32_t para);
 //    ModuleInstall_Touch(0);
 //    //触摸屏驱动,
 //    //依赖:触摸屏模块,宿主显示器驱动,以及所依赖的硬件,例如qh_1的IIC驱动.
 //    //     如果矫正数据存在文件中,还依赖文件系统.
-//    ModuleInstall_Touch(DISPLAY_NAME,"IIC1");
-//
+    extern ptu32_t ModuleInstall_Touch_EXC7200(struct GkWinRsc *desktop,const char *touch_dev_name);
+//    ModuleInstall_Touch_EXC7200(&desktop,TOUCH_DEV_NAME);
+
 //    //看门狗模块,如果启动了加载时喂狗,看门狗软件模块从此开始接管硬件狗.
 //    extern ptu32_t ModuleInstall_Wdt(ptu32_t para);
 //    ModuleInstall_Wdt(0);
 //
 //    //GDD组件初始化
-//    ModuleInstall_GDD(&desktop,gdd_input_dev);
+    ModuleInstall_GDD(&desktop,gdd_input_dev);
 
     evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
                                 __djy_main,NULL,gc_u32CfgMainStackLen,

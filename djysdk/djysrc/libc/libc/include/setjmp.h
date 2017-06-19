@@ -63,6 +63,16 @@
 #ifndef SETJMP_H_
 #define SETJMP_H_
 
+
+//add by zqf,--TODO,although we not support setjump, we must add the
+//data structure here for the builder
+typedef struct
+{
+	volatile unsigned int reg1;
+}tagJmpBuf;
+
+typedef tagJmpBuf*   jmp_buf;
+
 //说明：setjmp和longjmp是goto语句的升级版本，严重破坏程序流程的东西，使程序变得
 //晦涩难懂，特别容易隐藏bug。本来是直接删掉了的（说djyos不符合c库也在所不惜）。
 //奈何开源界的高手们都爱他，像VNCserver、Jerryscript、duktape等，为了编译通过，

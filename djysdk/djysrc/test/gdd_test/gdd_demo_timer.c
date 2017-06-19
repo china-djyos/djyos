@@ -27,9 +27,9 @@ static struct   {
 }DrawText_Color_Tbl[6]={
 
          {RGB(255,0,0),RGB(255,0,0),RGB(0,0,0)},
-		 {RGB(0,255,0),RGB(0,255,0),RGB(0,0,0)},
-		 {RGB(0,160,255),RGB(0,160,255),RGB(0,0,0)},
-		 {RGB(255,255,0),RGB(255,255,0),RGB(0,0,0)},
+         {RGB(0,255,0),RGB(0,255,0),RGB(0,0,0)},
+         {RGB(0,160,255),RGB(0,160,255),RGB(0,0,0)},
+         {RGB(255,255,0),RGB(255,255,0),RGB(0,0,0)},
 };
 
 static  int cfg_idx=0;
@@ -49,9 +49,9 @@ static  int timer_run[8];
 //创建主窗口
 static ptu32_t HmiCreate(struct WindowMsg *pMsg)
 {
-
     HWND hwnd;
     RECT rc0;
+    struct WinTimer *Timer;
     u32 i,x,y;
     hwnd=pMsg->hwnd;
 
@@ -81,11 +81,12 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     CreateButton("清零",WS_CHILD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_CLR_3,NULL,NULL);
     CreateButton("清零",WS_CHILD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_CLR_4,NULL,NULL);
 
-    GDD_CreateTimer(hwnd,0,timer_interval[0],0);
-    GDD_CreateTimer(hwnd,1,timer_interval[1],0);
-    GDD_CreateTimer(hwnd,2,timer_interval[2],0);
-    GDD_CreateTimer(hwnd,3,timer_interval[3],0);
-    GDD_CreateTimer(hwnd,7,500,TMR_START);
+    GDD_CreateTimer(hwnd,0,timer_interval[0]);
+    GDD_CreateTimer(hwnd,1,timer_interval[1]);
+    GDD_CreateTimer(hwnd,2,timer_interval[2]);
+    GDD_CreateTimer(hwnd,3,timer_interval[3]);
+    Timer = GDD_CreateTimer(hwnd,7,500);
+    GDD_StartTimer(Timer);
     return true;
 }
 //定时器处理函数
@@ -118,7 +119,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
             {
                 i =id&0xF;
                 timer_run[i] =TRUE;
-                GDD_ResetTimer(GDD_FindTimer(hwnd,i),timer_interval[i],TMR_START);
+                GDD_ResetTimer(GDD_FindTimer(hwnd,i),timer_interval[i]);
             }
 
             if(id>=ID_CLR_1 && id<=ID_CLR_4)
@@ -140,7 +141,7 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
             {
                 i =id&0xF;
                 timer_run[i] =FALSE;
-                GDD_ResetTimer(GDD_FindTimer(hwnd,i),timer_interval[i],0);
+                GDD_StopTimer(GDD_FindTimer(hwnd,i));
             }
             break;
         default: break;
@@ -205,7 +206,7 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     return true;
 }
 //消息处理函数表
-static struct MsgProcTable s_gHmiMsgTimeTable[] =
+static struct MsgProcTable s_gTimerMsgTable[] =
 {
     {MSG_CREATE,HmiCreate},         //主窗口创建消息
     {MSG_TIMER,HmiTimer},           //定时器消息
@@ -214,32 +215,13 @@ static struct MsgProcTable s_gHmiMsgTimeTable[] =
     {MSG_PAINT,HmiPaint},           //绘制消息
 };
 
-static struct MsgTableLink  s_gHmiMsgLink;
+static struct MsgTableLink  s_gTimerDemoMsgLink;
 /*============================================================================*/
 
 void    GDD_Demo_Timer(void)
 {
-
-    struct WindowMsg msg;
-    RECT rc;
-
-    GetClientRect(GetDesktopWindow(),&rc);
-
-    //创建主窗口
-    s_gHmiMsgLink.LinkNext = NULL;
-    s_gHmiMsgLink.MsgNum = sizeof(s_gHmiMsgTimeTable) / sizeof(struct MsgProcTable);
-    s_gHmiMsgLink.myTable = (struct MsgProcTable *)&s_gHmiMsgTimeTable;
-    g_ptMainHwnd = CreateWindow("窗口定时器",WS_MAIN_WINDOW,
-                                rc.left,rc.top,RectW(&rc),RectH(&rc),
-                                NULL,0x0000, CN_WINBUF_PARENT,NULL,&s_gHmiMsgLink);
-    SetFocusWindow(g_ptMainHwnd);
-     //显示窗口
-    SetWindowShow(g_ptMainHwnd);
-
-    while(GetMessage(&msg,g_ptMainHwnd))
-    {
-        DispatchMessage(&msg);
-    }
-    printf("win_exit.\r\n");
-
+    s_gTimerDemoMsgLink.MsgNum = sizeof(s_gTimerMsgTable) / sizeof(struct MsgProcTable);
+    s_gTimerDemoMsgLink.myTable = (struct MsgProcTable *)&s_gTimerMsgTable;
+    GDD_CreateGuiApp("Timer", &s_gTimerDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_WaitGuiAppExit("Timer");
 }

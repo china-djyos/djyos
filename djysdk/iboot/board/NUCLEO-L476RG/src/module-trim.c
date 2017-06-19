@@ -119,6 +119,8 @@ void Sys_ModuleInit(void)
 {
     uint16_t evtt_main;
 
+    Board_GpioInit();
+
     //初始化直接输入和输出的硬件，为stdio.c中定义的 PutStrDirect、GetCharDirect
     //两个指针赋值，也可以只为PutStrDirect赋值，以支持printk。
     //这是来自bsp的函数，一般是串口驱动,BSP没提供的话，就不要调用，会导致应用程序编译不通过。
@@ -134,19 +136,19 @@ void Sys_ModuleInit(void)
     ModuleInstall_MsgQ(0);
 
     //提供在shell上输出内核信息的功能,依赖:shell模块
-//    ModuleInstall_DebugInfo(0);
+    ModuleInstall_DebugInfo(0);
 
     //异常监视模块,依赖:shell模块
     ModuleInstall_Exp(0);
 //    ModuleInstall_SD("sd", 0);
 //   ModuleInstall_NAND("nand", 1, 0);
-//   	ModuleInstall_FileSystem();
+   	ModuleInstall_FileSystem();
 //   	ModuleInstall_YAFFS2();
 //   	ModuleInstall_FAT();
 
 
 //    ModuleInstall_UART(CN_UART1);
-//    ModuleInstall_UART(CN_UART2);
+    ModuleInstall_UART(CN_UART2);
 //    ModuleInstall_UART(CN_UART3);
 //    ModuleInstall_UART(CN_UART4);
 //    ModuleInstall_UART(CN_UART5);
@@ -156,23 +158,23 @@ void Sys_ModuleInit(void)
     //依赖: 若stdin/out/err是文件,则依赖文件系统
     //      若是设备,则依赖设备驱动
     //      同时,还依赖用来输出信息的设施,例如串口,LCD等
-//    OpenStdin(gc_pCfgStdinName);
-//    OpenStdout(gc_pCfgStdoutName);
-//    OpenStderr(gc_pCfgStderrName);
+    OpenStdin(gc_pCfgStdinName);
+    OpenStdout(gc_pCfgStdoutName);
+    OpenStderr(gc_pCfgStderrName);
     //一下三个函数，如果stdin、stdout、stderr使用不同的串口或其他IO通道，则要
     //分别设定参数。
-//    Driver_CtrlDevice(ToDev(stdin),CN_UART_START,0,0);
-//    Driver_CtrlDevice(ToDev(stdin),CN_UART_DMA_USED,0,0);
-    //设置串口波特率为115200，
-//    Driver_CtrlDevice(ToDev(stdin),CN_UART_SET_BAUD,115200,0);
 
+    //设置串口波特率为115200，
+    Driver_CtrlDevice(ToDev(stdin),CN_UART_SET_BAUD,115200,0);
+//    Driver_CtrlDevice(ToDev(stdin),CN_UART_DMA_USED,0,0);
+    Driver_CtrlDevice(ToDev(stdin),CN_UART_START,0,0);
     //安装人机交互输入模块，例如键盘、鼠标等
 //    ModuleInstall_HmiIn( 0 );
 
-//    ModuleInstall_Ymodem(0);
-//	Ymodem_PathSet("/iboot");
-//	ModuleInstall_IAP_FS(NULL);
-//    ModuleInstall_IAP();
+    ModuleInstall_Ymodem(0);
+	Ymodem_PathSet("/iboot");
+	ModuleInstall_IAP_FS(NULL);
+    ModuleInstall_IAP();
 
     //djybus模块
 //    ModuleInstall_DjyBus(0);

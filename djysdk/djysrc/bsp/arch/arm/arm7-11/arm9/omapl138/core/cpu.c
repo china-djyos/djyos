@@ -64,7 +64,7 @@
 
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
-
+u32 g_u32HundreUsfor;
 //tick选择t64-0的t12
 
 //----创建线程-----------------------------------------------------------------
@@ -165,6 +165,7 @@ void __DjySetDelay(void)
     g_u32CycleSpeed = ((u64)CN_CFG_FINE_US * u32_fors>>16) / 10;
     g_u32CycleSpeed = (g_u32CycleSpeed << 10) / 1000;     //扩大1.024倍
 //    pg_timer0_reg->TCR &= ~((u32)1<<10);       //清除t64-0的t12的读清零模式
+    g_u32HundreUsfor = (1024<<7)/g_u32CycleSpeed;
 }
 
 uint32_t __DjyIsrTick(ptu32_t line)

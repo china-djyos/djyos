@@ -53,11 +53,6 @@
 #include "ip.h"
 #include "tcpipconfig.h"
 
-static tagNetPkg            *pIpPkgQH         = NULL;   //ip pkg head
-static tagNetPkg            *pIpPkgQT         = NULL;   //ip pkg tail
-static struct MutexLCB      *pIpPkgMutex      = NULL;   //ip pkg mutex
-static struct SemaphoreLCB  *pIpEngineSync    = NULL;   //ip engine sync
-
 typedef struct
 {
    u32 rcvnum;
@@ -65,33 +60,162 @@ typedef struct
    u32 rcvcached;
    u32 sndnum;
    u32 snderr;
-}tagIpStatistics;
+   u32 unknownsnd;
+   u32 unknownrcv;
+}tagIpDebug;
+//usage: we use this module to create the proto install and uninstall
+typedef struct __tagIpProto
+{
+	void *nxt;
+	const char *name;
+	u8          proto;
+	fnIpProto   dealer;
+	//the following for the debug here
+	u32         rcv;
+	u32         rcverr;
+	u32         snd;
+	u32         snderr;
+}tagIpProto;
+#define CN_PROTO_HASHLEN  7
+typedef struct
+{
+	tagNetPkg            *cachedH;
+	tagNetPkg            *cachedT;
+	struct MutexLCB      *mutex;
+	struct SemaphoreLCB  *semp;
+	struct MutexLCB       mutexsrc;
+	struct SemaphoreLCB   sempsrc;
+	u16                   evttID;
+	u16                   eventID;
+	tagIpProto           *prototab[CN_PROTO_HASHLEN]; //TODO,check if need the mutex to protect
+	tagIpDebug            debug;
+}tagIp;
+static tagIp  gIpCtrl;
+//add the proto to the hash tab
+bool_t IpInstallProto(const char *name,u8 proto,fnIpProto handler)
+{
+	tagIpProto  *hash;
+	int hashkey;
+	hash = malloc(sizeof(tagIpProto));
+	if(NULL != hash)
+	{
+		memset(hash,0,sizeof(tagIpProto));
+		hash->proto = proto;
+		hash->name = name;
+		hash->dealer = handler;
+		hash->nxt = NULL;
+		hashkey = proto%CN_PROTO_HASHLEN;
+		if(NULL == gIpCtrl.prototab[hashkey])
+		{
+			gIpCtrl.prototab[hashkey] = hash;
+		}
+		else
+		{
+			hash->nxt = gIpCtrl.prototab[hashkey];
+			gIpCtrl.prototab[hashkey] = hash;
+		}
+	}
+	return true;
+}
+//uninstall the hash to the hash tab--TODO,not support yet
+bool_t IpUnInstallProto(const char *name,u8 proto,fnIpProto handler)
+{
+	return false;
+}
 
-static tagIpStatistics  gIpStatistics;
+//find the the hash
+tagIpProto *IpProtoFind(u8 proto)
+{
+	tagIpProto  *hash;
+	int hashkey;
+	hashkey = proto%CN_PROTO_HASHLEN;
+	hash = gIpCtrl.prototab[hashkey];
+	while(NULL !=  hash)
+	{
+		if(hash->proto == proto)
+		{
+			break;
+		}
+		else
+		{
+			hash = hash->nxt;
+		}
+	}
+	return hash;
+}
+
+//usage:use this function to upload the package
+bool_t IpProtoDeal(u8 proto,tagIpAddr *addr,tagNetPkg *pkglst,tagNetDev *dev)
+{
+	bool_t result = false;
+	tagIpProto  *hash;
+	hash = IpProtoFind(proto);
+	if((NULL != hash)&&(NULL != hash->dealer))
+	{
+		TCPIP_DEBUG_INC(hash->rcv);
+		result =  hash->dealer(addr,pkglst,dev);
+		if(false == result)
+		{
+			TCPIP_DEBUG_INC(hash->rcverr);
+		}
+	}
+	return result;
+}
+
+//show all the ip status
+static bool_t ipstatusshell(char *param)
+{
+	tagIpProto  *hash;
+	printf("IPSTATUS:\n\r");
+	printf("EVTTID  :0x%02x\n\r",gIpCtrl.evttID);
+	printf("EVENTID :0x%02x\n\r",gIpCtrl.eventID);
+	printf("RCVSEMP :%s\n\r",gIpCtrl.semp->lamp_counter>0?"active":"inactive");
+	printf("RCVMUTEX:%s\n\r",gIpCtrl.mutex->enable?"inactive":"active");
+	printf("SND     :0x%08x\n\r",gIpCtrl.debug.sndnum);
+    printf("SNDERR  :0x%08x\n\r",gIpCtrl.debug.snderr);
+    printf("RCV     :0x%08x\n\r",gIpCtrl.debug.rcvnum);
+    printf("RCVERR  :0x%08x\n\r",gIpCtrl.debug.rcverr);
+    printf("RCVCAC  :0x%08x\n\r",gIpCtrl.debug.rcvcached);
+    int i = 0;
+	printf("%5s %-5s %-10s %-10s %-10s %-10s\n\r",\
+			"proto","No.","SndNum","SndErr","RcvNum","RcvErr");
+    for( i = 0;i < CN_PROTO_HASHLEN;i++)
+	{
+    	hash = gIpCtrl.prototab[i];
+    	while(NULL != hash)
+    	{
+    		printf("%-5s 0x%02x 0x%08x 0x%08x 0x%08x 0x%08x\n\r",
+    				hash->name,hash->proto,hash->snd,hash->snderr,hash->rcv,hash->rcverr);
+    		hash = hash->nxt;
+    	}
+	}
+    return true;
+}
+
 //use this function to get a package from the arp package queue
 static tagNetPkg* __IpPkgPop(void)
 {
     tagNetPkg *result = NULL;
-    if(Lock_MutexPend(pIpPkgMutex,CN_TIMEOUT_FOREVER))
+    if(Lock_MutexPend(gIpCtrl.mutex,CN_TIMEOUT_FOREVER))
     {
-        if(NULL != pIpPkgQH)
+        if(NULL != gIpCtrl.cachedH)
         {
-            if(pIpPkgQH == pIpPkgQT)
+            if(gIpCtrl.cachedH ==  gIpCtrl.cachedT)
             {
-                result = pIpPkgQH;
-                pIpPkgQH = NULL;
-                pIpPkgQT = NULL;
+                result = gIpCtrl.cachedH;
+                gIpCtrl.cachedH = NULL;
+                 gIpCtrl.cachedT = NULL;
             }
             else
             {
-                result = pIpPkgQH;
-                pIpPkgQH = result->partnext;
+                result = gIpCtrl.cachedH;
+                gIpCtrl.cachedH = result->partnext;
             }
             result->partnext = NULL;
-            TCPIP_DEBUG_DEC(gIpStatistics.rcvcached);
+            TCPIP_DEBUG_DEC(gIpCtrl.debug.rcvcached);
         }
 
-        Lock_MutexPost(pIpPkgMutex);
+        Lock_MutexPost(gIpCtrl.mutex);
     }
     return result;
 }
@@ -108,24 +232,24 @@ static tagNetPkg* __IpPkgPop(void)
 bool_t  IpPushPkg(tagNetDev *dev,tagNetPkg *pkg)
 {
     bool_t result = false;
-    if(Lock_MutexPend(pIpPkgMutex,CN_TIMEOUT_FOREVER))
+    if(Lock_MutexPend(gIpCtrl.mutex,CN_TIMEOUT_FOREVER))
     {
         pkg->private = (ptu32_t)dev;
-        if(NULL == pIpPkgQT)
+        if(NULL ==  gIpCtrl.cachedT)
         {
-            pIpPkgQT = pkg;
-            pIpPkgQH = pIpPkgQT;
+             gIpCtrl.cachedT = pkg;
+             gIpCtrl.cachedH =  gIpCtrl.cachedT;
         }
         else
         {
-            pIpPkgQT->partnext = pkg;
-            pIpPkgQT           = pkg;
+             gIpCtrl.cachedT->partnext = pkg;
+             gIpCtrl.cachedT           = pkg;
         }
         PkgCachedPart(pkg);
-        TCPIP_DEBUG_INC(gIpStatistics.rcvcached);
-        Lock_MutexPost(pIpPkgMutex);
+        TCPIP_DEBUG_INC(gIpCtrl.debug.rcvcached);
+        Lock_MutexPost(gIpCtrl.mutex);
 
-        Lock_SempPost(pIpEngineSync);
+        Lock_SempPost(gIpCtrl.semp);
         result = true;
     }
 
@@ -142,13 +266,14 @@ static ptu32_t  __IpProcessor(void)
     tagNetPkg    *pkg;
     tagNetDev    *dev;
     u8            ipv;
+    bool_t        result;
     while(1)
     {
-        if(Lock_SempPend(pIpEngineSync,CN_TIMEOUT_FOREVER))
+        if(Lock_SempPend(gIpCtrl.semp,CN_TIMEOUT_FOREVER))
         {
             while((pkg = __IpPkgPop()) != NULL)
             {
-                TCPIP_DEBUG_INC(gIpStatistics.rcvnum);
+                TCPIP_DEBUG_INC(gIpCtrl.debug.rcvnum);
 
                 dev = (tagNetDev *)pkg->private;
                 if((NULL != dev)&& (NULL!= pkg))
@@ -157,7 +282,11 @@ static ptu32_t  __IpProcessor(void)
                     ipv = (ipv >>4)&CN_IP_VERMASK;
                     if(ipv == EN_IPV_4)
                     {
-                        IpV4Process(pkg,dev);
+                    	result = IpV4Process(pkg,dev);
+                    	if(result == false)
+                    	{
+                    		TCPIP_DEBUG_INC(gIpCtrl.debug.rcverr);
+                    	}
                     }
                     else
                     {
@@ -172,50 +301,6 @@ static ptu32_t  __IpProcessor(void)
     return 0;
 }
 
-#define CN_TPLPROTO_NUM  32
-static fnIpTpl gIpTplDealFun[CN_TPLPROTO_NUM];
-// =============================================================================
-// FUNCTION:this function is used to register an ip tpl handler proto
-// PARA  IN:
-// PARA OUT:
-// RETURN  :true success while false failed
-// INSTRUCT:
-// =============================================================================
-bool_t IpRegisterTplHandler(u8 proto,fnIpTpl handler )
-{
-    bool_t  result;
-    if((proto < CN_TPLPROTO_NUM)&&(NULL == gIpTplDealFun[proto]))
-    {
-    	gIpTplDealFun[proto] = handler;
-        result =  true;
-    }
-    else
-    {
-        result =  false;
-    }
-
-    return result;
-}
-
-// =============================================================================
-// FUNCTION:this function is used to deal an tpl pkg
-// PARA  IN:
-// PARA OUT:
-// RETURN  :true success while false failed
-// INSTRUCT:
-// =============================================================================
-bool_t IpTplHandler(u8 proto ,enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, \
-                    tagNetPkg *pkglst, tagNetDev  *dev)
-{
-    bool_t result = false;
-
-    if((proto < CN_TPLPROTO_NUM)&&(NULL != gIpTplDealFun[proto]))
-    {
-        result = gIpTplDealFun[proto](ver,ipsrc,ipdst,pkglst,dev);
-    }
-
-    return result;
-}
 
 // =============================================================================
 // FUNCTION:This function is used to compute the checksum
@@ -227,94 +312,57 @@ bool_t IpTplHandler(u8 proto ,enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, \
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-int IpChksumSoft16_old(void *buf,short len,int chksum, bool_t done)
-{
-    u16 *buf16;
-    u8   left[2];
-    u16  leftvalue;
-
-    u32  sum;
-
-    sum = chksum;
-    if(((u32)buf)&0x01)  //never should not aligned
-    {
-    	while(1);
-    }
-
-    buf16 = (u16 *)buf;
-    for(;len>1;len-=2)
-    {
-    	sum+=*buf16++;
-    }
-    if(len ==1)
-    {
-    	left[0] = *(u8 *)buf16;
-    	left[1] = 0;
-    	memcpy(&leftvalue,left,2);
-    	sum += leftvalue;
-    }
-    while((sum>>16))
-    {
-    	sum = (sum>>16) + (sum&0xFFFF);//将高16bit与低16bit相加
-    }
-    if(done)
-    {
-    	sum = ~sum;
-    }
-
-    return sum;
-}
 u16 IpChksumSoft16(void *dataptr, int len,u16 chksum,bool_t done)
 {
-  u8 *pb = (u8 *)dataptr;
-  u16 *ps, t = 0;
-  u32 sum = 0;
-  int odd = ((ptu32_t)pb & 1);
-  u16 data16;
+	u8 *pb = (u8 *)dataptr;
+	u16 *ps, t = 0;
+	u32 sum = 0;
+	int odd = ((ptu32_t)pb & 1);
+	u16 data16;
 
-  /* Get aligned to u16 */
-  if (odd && len > 0) {
-    ((u8 *)&t)[1] = *pb++;
-    len--;
-  }
+	/* Get aligned to u16 */
+	if (odd && len > 0) {
+		((u8 *)&t)[1] = *pb++;
+		len--;
+	}
 
-  /* Add the bulk of the data */
-  ps = (u16 *)(void *)pb;
-  while (len > 1) {
-    sum += *ps++;
-    len -= 2;
-  }
+	/* Add the bulk of the data */
+	ps = (u16 *)(void *)pb;
+	while (len > 1) {
+		sum += *ps++;
+		len -= 2;
+	}
 
-  /* Consume left-over byte, if any */
-  if (len > 0) {
-    ((u8 *)&t)[0] = *(u8 *)ps;
-  }
+	/* Consume left-over byte, if any */
+	if (len > 0) {
+		((u8 *)&t)[0] = *(u8 *)ps;
+	}
 
-  /* Add end bytes */
-  sum += t;
+	/* Add end bytes */
+	sum += t;
 
-  /* Fold 32-bit sum to 16 bits
-     calling this twice is propably faster than if statements... */
-  sum = (sum>>16)+ (sum&0xffff);
-  sum = (sum>>16)+ (sum&0xffff);
-  data16 = (u16)sum;
-  /* Swap if alignment was odd */
-  if (odd) {
-    data16 = htons(data16);
-  }
+	/* Fold 32-bit sum to 16 bits
+	 calling this twice is propably faster than if statements... */
+	sum = (sum>>16)+ (sum&0xffff);
+	sum = (sum>>16)+ (sum&0xffff);
+	data16 = (u16)sum;
+	/* Swap if alignment was odd */
+	if (odd) {
+		data16 = htons(data16);
+	}
 
-  //add the sum before
-  sum = chksum + data16;
-  sum = (sum>>16)+ (sum&0xffff);
-  sum = (sum>>16)+ (sum&0xffff);
-  data16 = (u16)sum;
+	//add the sum before
+	sum = chksum + data16;
+	sum = (sum>>16)+ (sum&0xffff);
+	sum = (sum>>16)+ (sum&0xffff);
+	data16 = (u16)sum;
 
-  if(done)
-  {
-  	data16 = ~data16;
-  }
+	if(done)
+	{
+		data16 = ~data16;
+	}
 
-  return data16;
+	return data16;
 }
 
 // =============================================================================
@@ -370,8 +418,6 @@ void IpPkgLstChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum)
         }
     }while(NULL != pkgtmp);
 }
-
-
 // =============================================================================
 // FUNCTION:This function is used to make an interface for the transmit layer
 // PARA  IN:ver:which means that EN_IPV_6 (which means ptu32_t is pointed to
@@ -393,11 +439,21 @@ bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkg,\
 {
     bool_t result;
 
-    TCPIP_DEBUG_INC(gIpStatistics.sndnum);
+    TCPIP_DEBUG_INC(gIpCtrl.debug.sndnum);
 
+    tagIpProto  *hash;
+    hash = IpProtoFind(proto);
+    if(NULL != hash)
+    {
+    	TCPIP_DEBUG_INC(hash->snd);
+    }
     if(ver == EN_IPV_4)
     {
         result = IpV4Send((u32)ipsrc, (u32)ipdst, pkg,translen,proto,devtask, chksum);
+        if(false == result)
+        {
+        	TCPIP_DEBUG_INC(hash->snderr);
+        }
     }
     else
     {
@@ -406,19 +462,6 @@ bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkg,\
 
     return result;
 }
-
-//this is for the ip layer debug
-static bool_t IpShow(char *param)
-{
-    printf("IP STATISTICS:\n\r");
-    printf("IP STATISTICS:SND         :%d\n\r",gIpStatistics.sndnum);
-    printf("IP STATISTICS:SND  ERR    :%d\n\r",gIpStatistics.snderr);
-    printf("IP STATISTICS:RCV         :%d\n\r",gIpStatistics.rcvnum);
-    printf("IP STATISTICS:RCV  ERR    :%d\n\r",gIpStatistics.rcverr);
-    printf("IP STATISTICS:RCV  CACHED :%d\n\r",gIpStatistics.rcvcached);
-    return true;
-}
-
 extern bool_t Ipv4Show(char *param);
 extern bool_t TcpIpVersion(char *param);
 struct ShellCmdTab  gIpDebug[] =
@@ -430,10 +473,10 @@ struct ShellCmdTab  gIpDebug[] =
         "usage:ipv4",
     },
     {
-        "ip",
-        IpShow,
-        "usage:ip",
-        "usage:ip",
+        "ipstatus",
+		ipstatusshell,
+        "usage:ipstatus",
+        "usage:ipstatus",
     },
     {
         "tcpipversion",
@@ -458,31 +501,29 @@ extern bool_t  Ipv4Init(void);
 bool_t IpInit(void)
 {
     bool_t result;
-    u16   evttID;
-    u16   eventID;
 
     Ipv4Init();
-    memset((void *)gIpTplDealFun,0,sizeof(gIpTplDealFun));
-    pIpEngineSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
-    if(NULL == pIpEngineSync)
+    memset((void *)&gIpCtrl,0,sizeof(gIpCtrl));
+    gIpCtrl.semp = Lock_SempCreate_s(&gIpCtrl.sempsrc,1,0,CN_BLOCK_FIFO,NULL);
+    if(NULL == gIpCtrl.semp)
     {
         goto EXIT_ENGINESYNC;
     }
-    pIpPkgQH = NULL;
-    pIpPkgQT = NULL;
-    pIpPkgMutex = Lock_MutexCreate(NULL);
-    if(NULL == pIpPkgMutex)
+    gIpCtrl.cachedH = NULL;
+    gIpCtrl.cachedT = NULL;
+    gIpCtrl.mutex = Lock_MutexCreate_s(&gIpCtrl.mutexsrc,NULL);
+    if(NULL == gIpCtrl.mutex)
     {
         goto EXIT_PKGMUTEX;
     }
-    evttID= Djy_EvttRegist(EN_CORRELATIVE, gIpRcvTaskPrior, 0, 1,
+    gIpCtrl.evttID= Djy_EvttRegist(EN_CORRELATIVE, gIpRcvTaskPrior, 0, 1,
             (ptu32_t (*)(void))__IpProcessor,NULL, gIpRcvTaskStack, "IpProcessor");
-    if(evttID == CN_EVTT_ID_INVALID)
+    if(gIpCtrl.evttID == CN_EVTT_ID_INVALID)
     {
         goto EXIT_EVTTFAILED;
     }
-    eventID = Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
-    if(eventID == CN_EVENT_ID_INVALID)
+    gIpCtrl.eventID = Djy_EventPop(gIpCtrl.evttID, NULL, 0, 0, 0, 0);
+    if(gIpCtrl.eventID == CN_EVENT_ID_INVALID)
     {
         goto EXIT_EVENTFAILED;
     }
@@ -490,14 +531,15 @@ bool_t IpInit(void)
     return result;
 
 EXIT_EVENTFAILED:
-    Djy_EvttUnregist(evttID);
+    Djy_EvttUnregist(gIpCtrl.evttID);
 EXIT_EVTTFAILED:
-    Lock_MutexDelete(pIpPkgMutex);
-    pIpPkgMutex = NULL;
+    Lock_MutexDelete(gIpCtrl.mutex);
+    gIpCtrl.mutex = NULL;
 EXIT_PKGMUTEX:
-    Lock_SempDelete(pIpEngineSync);
-    pIpEngineSync = NULL;
+    Lock_SempDelete(gIpCtrl.semp);
+    gIpCtrl.semp = NULL;
 EXIT_ENGINESYNC:
+	memset((void *)&gIpCtrl,0,sizeof(gIpCtrl));
     result = false;
     return result;
 }

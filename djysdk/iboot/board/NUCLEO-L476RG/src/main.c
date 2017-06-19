@@ -79,7 +79,60 @@ void LED_Off (unsigned int num)
 {
 	GPIOA->BSRR = led_mask[num]<<16;
 }
+ptu32_t FlashEraseTest(u32 num)
+{
+	s32 Ret;
+	u32 SectorNo;
+	u32 SECTORError=0;//保存出错类型信息
+	static FLASH_EraseInitTypeDef EraseInitStruct;
 
+	SectorNo = num + 512;
+	HAL_FLASH_Unlock();
+
+	EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
+	EraseInitStruct.Banks       = FLASH_BANK_2;
+	EraseInitStruct.Page        = SectorNo;
+	EraseInitStruct.NbPages     = 1;
+
+	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
+	 	Ret=-1;
+	else
+		Ret=0;
+	HAL_FLASH_Lock();
+
+	return Ret;
+}
+
+s32 Flash_PageProgram( u8 *Data)
+{
+	u32 Ret,i,ipage;
+	u64 *pData = (u64*)Data;
+
+	u32 Addr = 0x08080000;
+
+	if(!Data)
+		return (-1);
+
+	HAL_FLASH_Unlock();
+
+	for(i = 0; i < 512;)
+	{
+    	if(*(u64*)Addr != *pData)
+    	{
+    		Ret = HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD,Addr,*pData);
+    		if(Ret != HAL_OK)
+    			break;
+    	}
+		pData++;
+		i += 8;
+		Addr += 8;
+	}
+
+	HAL_FLASH_Lock();
+
+	return i;
+}
+u8 buf[512];
 ptu32_t djy_main(void)
 {
 	extern void Sh_GetStatus(char *param);
@@ -87,12 +140,25 @@ ptu32_t djy_main(void)
 	Sh_GetRunMode(NULL);
 	Sh_GetStatus(NULL);
 	LED_Init();
+
+	u32 i,flag = 0;
+	for(i = 0; i < 512; i++)
+	{
+		buf[i] = i;
+	}
 	while(1)
 	{
 		Djy_EventDelay(500*mS);
 		LED_On(LD2);
 		Djy_EventDelay(500*mS);
 		LED_Off(LD2);
+
+		if(flag)
+		{
+			flag = 0;
+			Flash_PageProgram(buf);
+			FlashEraseTest(0);
+		}
 	}
 	return 0;
 }

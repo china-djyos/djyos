@@ -62,11 +62,13 @@
 #include <string.h>
 #include <os.h>
 //add your own specified header here
-
 #include <sys/socket.h>
-
+//we only make one task here:rcv then deal, then check the timeout
 #include "iodev.h"
 #include "osarch.h"
+
+
+#include "../../tcpipconfig.h"
 /*
  * FCS lookup table as calculated by genfcstab.
  */
@@ -163,45 +165,16 @@ static const u16 fcstab[256] = {
 #define LCP_OPT_ACFC    8
 #define PPP_MTU         1500     /* Default MTU (size of Info field) */
 
-typedef enum
-{
-	EN_PPPOS_RX_DROPS = 0,   //which means drops all the data receive until receive start flag
-	EN_PPPOS_RX_START,       //which means received start flag
-	EN_PPPOS_RX_ADDRESS,     //which means received address flag
-	EN_PPPOS_RX_CONTROL,     //which means received control flag
-	EN_PPPOS_RX_P1,          //which means received  p1  flag
-	EN_PPPOS_RX_CPROTO,      //which means use the common proto receiver
-}enPpposRxStat;
-//usage:this data structure used for the receive data controller
-#define CN_PPPOS_RXTXLEN       0X800   //large enough to storage all the frames
-typedef struct
-{
-	u16 rxbuflen;
-	u16 datalen;
-	u16 framlen;                     //which means the data has the len
-	u8  buf[CN_PPPOS_RXTXLEN];
-	u16 protocol;
-	u16 fcs;                          /*The frame checksum has computed*/
-	enPpposRxStat stat;               /* The input process state.      */
-	u8     inescape;                  /* has received the a escaped flag*/
-}tagPppRcvCtrl;
+#define CN_PPP_BUFLEN   1600
 //usage:this data structure used for the send control
 typedef struct
 {
 	u16      datalen;
 	u16      buflen;
-	u8       buf[CN_PPPOS_RXTXLEN];
+	u8       buf[CN_PPP_BUFLEN];
 	mutex_t  mutex;   //used for the multi thread
 	u16      fcs;
-}tagPppTxCtrl;
-
-//usage:this data structure used for the machine state monitor
-typedef struct
-{
-	u64 timedead;      //the timeout time by the system
-	u32 timeoutnum;    //continuing timeout times
-	u32 timeoutlimit;  //continuing timeout times limit,if overlap,goto dead state
-}tagTimeout;
+}tagPppSC;
 //usage:use this data structure for the lcp negotiation  options
 #define CN_OPTION_BUFLEN         64
 typedef struct
@@ -272,68 +245,14 @@ typedef struct
 #define NCP_OPT_NBNS  0X82
 #define NCP_OPT_DNS2  0X83
 #define NCP_OPT_NBNS2 0X84
-//usage:this data structure used for the ppp controller
-typedef enum
-{
-	EN_PPP_ATDEBUG= 0,       //use the at command to do the debug
-	EN_PPP_DEAD,             //the link has not established yet
-	EN_PPP_ESTABLISH,        //do the lcp negotiation
-	EN_PPP_AUTH,             //do the authentication
-	EN_PPP_NCP,              //do the net negotiation
-	EN_PPP_NETWORK,          //do the normal net work
-	EN_PPP_TERMINATE,        //do the normal shutdown
-
-}enPppStat;
-const char *gPppStatName[]={"ATDEBUG","DEAD","ESATBLISH","AUTH","NCP","NETWORK","TERMINAL"};
-//the following for the debug info
-typedef struct
-{
-	u32    numtotal;      //which means how many we have send or receive
-	u32    numok;         //which means how many we have send or receive ok
-	u32    numfcserr;     //which means the frame droped for the fcserr;
-	u32    numoverlap;    //which means the frame too large
-	u32    numlcp;        //which means how many for the lcp
-	u32    numpap;        //which means how many for the pap
-	u32    numchap;       //which means how many for the chap
-	u32    numipcp;       //which means how many for the ipcp
-	u32    numip;         //which means how many for the ip
-	u32    numunknown;    //which means we don't know the proto
-}tagPppDebug;
 
 //usage:this data struct used for the ip control
 typedef struct
 {
+	//for the ip statistics
+	u64                 ipflow_d;      //all the ip flow download:unites:bytes
+	u64                 ipflow_u;      //all the ip flow upload:unites:bytes
 }tagIp;
-
-typedef bool_t (*fnModemReset)(void);
-//usage:this data struct used for the ppp control
-typedef struct
-{
-	tagPppRcvCtrl       rxctrl;  //used for the receive
-	tagPppTxCtrl        txctrl;  //used for the send
-	ptu32_t             sfd;     //the serial device fd
-	ptu32_t             nfd;     //the net device fd
-	tagLcp              lcp;     //used for the lcp
-	tagAuth             auth;    //used for the auth
-	tagNcp              ncp;     //used for the ncp
-	tagIp               ip;      //used for the ip
-	enPppStat           stat;    //used for the machine state
-	char                apn[CN_NAME_LIMIT];
-	char                user[CN_NAME_LIMIT];
-	char                passwd[CN_NAME_LIMIT];
-	char                iodevname[CN_NAME_LIMIT];
-	char                rcvtaskname[CN_NAME_LIMIT];
-	char                dealtaskname[CN_NAME_LIMIT];
-	char                cgmi[CN_NAME_LIMIT];
-	char                cgmm[CN_NAME_LIMIT];
-	char                cgmr[CN_NAME_LIMIT];
-	char                cgsn[CN_NAME_LIMIT];
-	fnModemReset        modemreset;
-	tagTimeout          mstimeout;
-	tagPppDebug         rxinfo;
-	tagPppDebug         txinfo;
-}tagPppCtrl;
-static tagPppCtrl gPppCtrl;
 
 #pragma pack(1)
 typedef struct
@@ -360,464 +279,167 @@ typedef struct
 #define CN_PPP_HDRSIZE  (sizeof(tagPppHdr))
 #pragma pack()
 
-//usage:we use this function to pass the info to the state machine
-typedef struct __PppMsg
-{
-	struct __PppMsg   *nxt;
-	tagPppCtrl        *ppp;
-	u16 len;
-	u16 proto;
-	u8  data[0];
-}tagPppMsg;
-#define CN_PPPOS_MSGHDR_SZIE   sizeof(tagPppMsg)
-#define CN_PPPOS_MSGTIMEOUT    (1000*mS)
-typedef struct
-{
-	tagPppMsg     *msgH;
-	tagPppMsg     *msgT;
-	u16            msglen;
-	mutex_t        mutex;
-	semp_t         sync;
-}tagPppMsgQ;
-static tagPppMsgQ gPppMsgQ;
 
-#define CN_SERIAL_TIMEOUT     (2*1000*mS)
+//usage:use this header for the receive control
+#define CN_PPP_RBUF  1600
+//usage:use this function to decode the input data and check the frame we got
+typedef enum
+{
+	EN_CHECK_START = 0,   //check 0x7e
+	EN_CHECK_STATION,     //check 0xff
+	EN_CHECK_CTRL,        //check 0x03
+	EN_CHECK_PROTO_H,     //check the proto high
+	EN_CHECK_PROTO_L,     //check the proto low
+	EN_CHECK_CDR_CODE,    //check the code
+	EN_CHECK_CDR_ID,      //check the id
+	EN_CHECK_LEN1,        //check the len
+	EN_CHECK_LEN2,        //check the len
+	EN_CHECK_DATA,        //check the proto data
+	EN_CHECK_FCS1,        //check the fcs1
+	EN_CHECK_FCS2,        //check the fcs2
+	EN_CHECK_UNKNOWN,     //illegal state
+}enCheckStat;
 typedef struct
 {
-	u8       *buf;
-	u16       buflen;
-	u16       datalen;
-	mutex_t   mutex;
-	semp_t    semp;
-}tagRcvHook;
-static tagRcvHook gRcvHook;
-//usage:this function to register a buffer to get message from the receive engine
-static int  __RcvMsgPop(u8 *buf,u16 len,u32 timeout)
+	u8  data[CN_PPP_RBUF];
+	u16 datalen;
+	u16 drops;
+	u16         fcs;
+	enCheckStat state;
+	tagCHdr     chdr;
+	u16         proto;
+	bool_t      inespace;
+}tagPppRC;    //used for the receive control
+
+//defines for the machine state
+#define CN_LCP_TIME        (10*1000*mS)    //lcp  timeout
+#define CN_AUTH_TIME       (10*1000*mS)    //auth timeout
+#define CN_NCP_TIME        (10*1000*mS)    //ncp  timeout
+#define CN_IP_TIME         (50*1000*mS)    //ip   timeout:if timeout will send the lcp echo
+#define CN_MS_TIMEOUT      (5*1000*mS)     //each timeout,we will retrive it
+#define CN_TIMEOUT_LIMIT   10              //timeout limittimes,if over,then will terminate and goto dead state
+typedef enum
 {
-	int result = -1;
-	if(mutex_lock(gRcvHook.mutex))
+	EN_PPP_DEAD= 0,          //the link has not established yet
+	EN_PPP_ESTABLISH,        //do the lcp negotiation
+	EN_PPP_AUTH,             //do the authentication
+	EN_PPP_NCP,              //do the net negotiation
+	EN_PPP_NETWORK,          //do the normal net work
+	EN_PPP_TERMINATE,        //do the normal shutdown
+}enPppStat;
+const char *gPppStatName[]={"DEAD","ESATBLISH","AUTH","NCP","NETWORK","TERMINAL"};
+typedef struct
+{
+	enPppStat  stat;          //used for the machine state
+	s64        timedead;      //the timeout time by the system
+	u32        timeoutnum;    //continuing timeout times
+	u32        timeoutlimit;  //continuing timeout times limit,if overlap,goto dead state
+}tagPppMs;
+
+//the following defines for the reg the sim card to the station
+typedef bool_t (*fnModemReset)(void);
+typedef struct
+{
+//	bool_t              pppmode;     //true for the ppp else for the debug mode(AT)
+//	bool_t              regnetstop;  //check if we should continous register the net or not
+//	u32                 regnettimes; //the times we register to the net
+	bool_t              regnetstart; //which means we begin to start the reg
+	bool_t              regnetok;
+	bool_t              regnetauto;  //which means we begin to auto register the network
+	fnModemReset        modemreset;
+	fnAtRegNet          regnet;
+}tagPppReg;  //used for the ppp register to the net control
+typedef struct
+{
+	u64 fall;
+	u64 fcserr;
+}tagStatistics;
+//usage:this data struct used for the ppp control
+typedef struct
+{
+	void               *nxt;     //do the list
+	ptu32_t             iofd;    //the io device fd
+	ptu32_t             nfd;     //the net device fd
+	tagLcp              lcp;     //used for the lcp
+	tagAuth             auth;    //used for the auth
+	tagNcp              ncp;     //used for the ncp
+	tagIp               ip;      //used for the ip
+	char                apn[CN_NAME_LIMIT];
+	char                user[CN_NAME_LIMIT];
+	char                passwd[CN_NAME_LIMIT];
+	char                iodevname[CN_NAME_LIMIT];
+	char                netdevname[CN_NAME_LIMIT];
+	bool_t              framdebug;   //check if we should print the info receive or send
+	tagPppRC            rc;       //receive data control block
+	tagPppSC            sc;       //send frame control block
+	tagPppMs            ms;       //ppp machine state control block
+	tagPppReg           reg;      //used for the sim card register
+	tagStatistics       num;
+
+}tagPppCtrl;
+//static tagPppCtrl gPppCtrl;       //now we define one here
+static tagPppCtrl *pPppDevLst;     //this is the ppp dev list
+static tagPppCtrl * __PppGet(char *name)
+{
+	tagPppCtrl *ppp = NULL;
+	ppp =pPppDevLst;
+	while(NULL != ppp)
 	{
-		gRcvHook.buf = buf;
-		gRcvHook.buflen = len;
-		mutex_unlock(gRcvHook.mutex);
-		if((semp_pendtimeout(gRcvHook.semp,timeout))&&(gRcvHook.datalen > 0))
+		if(0 == strcmp(ppp->netdevname,name))
 		{
-			result = gRcvHook.datalen;
+			break;
 		}
-		if(mutex_lock(gRcvHook.mutex))
+		else
 		{
-			gRcvHook.buf = NULL;
-			gRcvHook.buflen = 0;
-			gRcvHook.datalen = 0;
-			mutex_unlock(gRcvHook.mutex);
+			ppp = ppp->nxt;
 		}
 	}
-	return result;
+	return ppp;
 }
-//usage:this function used for the receive engine to put the message to the hook
-static void  __RcvMsgPush(u8 *buf,u16 len)
+//usage:show the ppp state
+static void pppstat(tagPppCtrl *ppp)
 {
-	u16 cpylen;
-	if(mutex_lock(gRcvHook.mutex))
-	{
-		if(NULL != gRcvHook.buf)
-		{
-			cpylen = len>gRcvHook.buflen?gRcvHook.buflen:len;
-			memcpy(gRcvHook.buf,buf,cpylen);
-			gRcvHook.datalen = cpylen;
-			semp_post(gRcvHook.semp);
-		}
-		mutex_unlock(gRcvHook.mutex);
-	}
+	printf("MODEMINFO:\n\r");
+	printf("apn   :%s\n\r",ppp->apn);
+	printf("user  :%s\n\r",ppp->user);
+	printf("pass  :%s\n\r",ppp->passwd);
+	printf("iodev :%s\n\r",ppp->iodevname);
+	printf("netdev:%s\n\r",ppp->netdevname);
+	//machine state
+	printf("MS  :%s\n\r",gPppStatName[ppp->ms.stat]);
+	printf("MSTO:%d\n\r",ppp->ms.timeoutnum);
+	printf("MSTL:%d\n\r",ppp->ms.timeoutlimit);
+	printf("MSTD:%lld\n\r",ppp->ms.timedead);
+	//frame got
+	printf("FRCV:%lld\n\r",ppp->num.fall);
+	printf("FRER:%lld\n\r",ppp->num.fcserr);
+	//IP FRAME GOT
+	printf("IPD :%lld\n\r",ppp->ip.ipflow_d);
+	printf("IPU :%lld\n\r",ppp->ip.ipflow_u);
 	return;
 }
 
-//usage:we use this function to deal the at result as the args format
-static int __fetchPara(char *text,char *seperate,char *argv[],int argc)
+
+//usage:we use this function to pass the receive info to the state machine
+typedef struct __PppMsg
 {
-	int result;
-	char *s;
-	int len,i;
-	s = seperate;
-	len = strlen(text);
-	while(*s != '\0') //make all the charactor in text matching the seperate to 0
+	tagPppCtrl        *ppp;    //ppp control block here
+	u16                proto;  //frame proto here
+	u16                len;    //data length
+	u8                *data;   //data buffer
+}tagPppMsg;
+
+//usage:this function to regnet up by the machine
+static bool_t __RegNetUp(tagPppCtrl *ppp)
+{
+	bool_t result = true;
+	if(NULL != ppp->reg.regnet)
 	{
-		for(i =0;i<len;i++)
-		{
-			if(text[i]==*s)
-			{
-				text[i]='\0';
-			}
-		}
-		s++;
-	}
-	//ok now check the para start
-	result = 0;
-	i = 0;
-	while((i <(len-1))&&(result < argc))
-	{
-		if((text[i]=='\0')&&(text[i+1]!='\0'))
-		{
-			argv[result] = text+i+1;
-			result++;
-		}
-		i++;
+		result = ppp->reg.regnet(ppp->iodevname,ppp->apn);
 	}
 	return result;
 }
 
-#define CN_AT_LEN  64
-//usage:send the at command to the serial device
-static int __AtCmd(tagPppCtrl *ppp,char *cmd,u8 *buf,int buflen,char *argv[],int argc)
-{
-	char   cmdbuf[CN_AT_LEN];
-	int  result = -1;
-
-	memset(cmdbuf,0,CN_AT_LEN);
-	snprintf(cmdbuf,CN_AT_LEN,"%s\r",cmd);
-	result = iodevwrite(ppp->sfd,(u8 *)cmdbuf,(u32)strlen(cmdbuf));
-	//if need the result,then we will wait for the timeout
-	if((NULL != buf)&&(buflen>0))
-	{
-		result = __RcvMsgPop(buf,buflen,CN_SERIAL_TIMEOUT);
-		if((result > 0)&&(argc > 0)&&(NULL != argv))
-		{
-			result = __fetchPara((char *)buf,"\n\r",argv,argc);
-		}
-	}
-	return  result;
-}
-
-
-//usage:this function to dial up by the machine
-#define CN_CMD_SLEEP    (1000*mS)
-#define CN_CMD_TRIES    10  //if over, then return failed
-static bool_t __DialUp(tagPppCtrl *ppp)
-{
-	bool_t result = false;
-	char *argv[6];
-	int  argc;
-	int  retries;
-	u8   buf[CN_AT_LEN];
-	//first we should check if the sim card inserted:at+cpin?
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("SIM CHECK:");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,"at+cpin?",buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&strstr(argv[0],"READY"))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("DONE\n\r");
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-	//we'd better to get the modem info
-	//cgmi:the manufacture
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("CGMI:");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,"at+cgmi",buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&strstr(argv[argc-1],"OK"))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("%s DONE\n\r",argv[0]);
-		strncpy(ppp->cgmi,argv[0],CN_NAME_LIMIT);
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-	//cgmm:the modem name
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("CGMM:");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,"at+cgmm",buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&strstr(argv[argc-1],"OK"))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("%s DONE\n\r",argv[0]);
-		strncpy(ppp->cgmm,argv[0],CN_NAME_LIMIT);
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-	//cgmr:the modem version
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("CGMR:");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,"at+cgmr",buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&strstr(argv[argc-1],"OK"))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("%s DONE\n\r",argv[0]);
-		strncpy(ppp->cgmr,argv[0],CN_NAME_LIMIT);
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-	//cgsn:the modem sn number
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("CGSN:");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,"at+cgsn",buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&strstr(argv[argc-1],"OK"))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("%s DONE\n\r",argv[0]);
-		strncpy(ppp->cgsn,argv[0],CN_NAME_LIMIT);
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-	//check if we has register the sim card to the carrieroperator
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("SIM REGISTER:");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,"at+cgreg?",buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&(strstr(argv[0],",1")||strstr(argv[0],",5")))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("DONE\n\r");
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-
-	//OK,now set the apn to the carrieroperator
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("APN SET:");
-	char cgdcont[64];
-	memset(cgdcont,0,64);
-	snprintf(cgdcont,63,"%s%s%s%s","at+cgdcont=1,\"ip\",","\"",ppp->apn,"\"");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,cgdcont,buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&(strstr(argv[0],"OK")||strstr(argv[0],"ok")))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("DONE\n\r");
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-
-	//now we begin to atd(call the data service)
-	retries =0;
-	memset(argv,0,sizeof(argv));
-	memset(buf,0,sizeof(buf));
-	printf("ATD:");
-	while(retries <CN_CMD_TRIES )
-	{
-		argc = __AtCmd(ppp,"atd*99#",buf,CN_AT_LEN,argv,6);
-		if((argc >0)&&(strstr(argv[0],"CONNECT")||strstr(argv[0],"connect")))
-		{
-			break;
-		}
-		Djy_EventDelay(CN_CMD_SLEEP);
-		printf(".");
-		retries++;
-	}
-	if(retries < CN_CMD_TRIES)
-	{
-		printf("DONE\n\r");
-	}
-	else
-	{
-		printf("TIMEOUT\n\r");
-		return result;
-	}
-	result = true;
-	return result;
-}
-//usage:this var used for the ppp frame debug switch
-static bool_t  gPppFrameDebug = false;
-//usage:use this function to show the ppp frame
-static bool_t __PppFrameInfo(tagPppCtrl *ppp,bool_t read,u16 proto,u8 *buf,u16 len)
-{
-	time_t printtime;
-	tagPppDebug  *debug;
-
-	if(read)
-	{
-		if(gPppFrameDebug)
-		{
-			printtime = time(NULL);
-			printf("[RCV:%s]:%04x:",ctime(&printtime),proto);
-			//should add the head for the beuty show
-			printf("%02x ",0x7e);
-			tagPppHdr       hdr;
-			hdr.a = PPP_ALLSTATIONS;
-			hdr.c = PPP_UI;
-			hdr.p = htons(proto);
-			for(u16 i=0;i <CN_PPP_HDRSIZE;i++)
-			{
-				printf("%02x ",((u8 *)&hdr)[i]);
-			}
-
-			for(u16 i=0;i <len;i++)
-			{
-				printf("%02x ",buf[i]);
-			}
-
-			printf("\n\r");
-		}
-		//do the statistics
-		debug = &ppp->rxinfo;
-		TCPIP_DEBUG_INC(debug->numtotal);
-		if(proto == PPP_LCP)
-		{
-			TCPIP_DEBUG_INC(debug->numlcp);
-		}
-		else if(proto == PPP_PAP)
-		{
-			TCPIP_DEBUG_INC(debug->numpap);
-		}
-		else if(proto == PPP_CHAP)
-		{
-			TCPIP_DEBUG_INC(debug->numchap);
-		}
-		else if(proto == PPP_IPCP)
-		{
-			TCPIP_DEBUG_INC(debug->numipcp);
-		}
-		else if(proto == PPP_IP)
-		{
-			TCPIP_DEBUG_INC(debug->numip);
-		}
-		else
-		{
-			TCPIP_DEBUG_INC(debug->numunknown);
-		}
-
-	}
-	else
-	{
-		if(gPppFrameDebug)
-		{
-			printtime = time(NULL);
-			printf("[SND:%s]:%04x:",ctime(&printtime),proto);
-			for(u16 i=0;i <len;i++)
-			{
-				printf("%02x ",buf[i]);
-			}
-			printf("\n\r");
-		}
-
-		//do the statistics
-		debug = &ppp->txinfo;
-		TCPIP_DEBUG_INC(debug->numtotal);
-		if(proto == PPP_LCP)
-		{
-			TCPIP_DEBUG_INC(debug->numlcp);
-		}
-		else if(proto == PPP_PAP)
-		{
-			TCPIP_DEBUG_INC(debug->numpap);
-		}
-		else if(proto == PPP_CHAP)
-		{
-			TCPIP_DEBUG_INC(debug->numchap);
-		}
-		else if(proto == PPP_IPCP)
-		{
-			TCPIP_DEBUG_INC(debug->numipcp);
-		}
-		else if(proto == PPP_IP)
-		{
-			TCPIP_DEBUG_INC(debug->numip);
-		}
-		else
-		{
-			TCPIP_DEBUG_INC(debug->numunknown);
-		}
-	}
-
-
-	return true;
-}
 //-----------------------------------------------------------------------------
 //功能:we use this function to send data to the peer
 //参数:
@@ -830,10 +452,25 @@ static bool_t __PppMsgSnd(tagPppCtrl *ppp,u16 proto,tagCHdr *chdr,u8 *buf,u16 l,
 	u8             *dst,*dstedge,*src;
 	u8              c;
 	u16             fcs,len;
-	tagPppTxCtrl   *tx;
+	tagPppSC       *tx;
 	tagPppHdr       hdr;
 
-	tx = &ppp->txctrl;
+	tx = &ppp->sc;
+	if(ppp->framdebug)
+	{
+		time_t printtime;
+		printtime = time(NULL);
+		if(NULL != chdr)
+		{
+			printf("[%s]snd:proto:0x%04x code:0x%02x id:0x%02x len:0x%04x\n\r",\
+					ctime(&printtime),proto,chdr->code,chdr->id,htons(chdr->len));
+		}
+		else
+		{
+			printf("[%s]snd:proto:0x%04x len:0x%04x\n\r",\
+					ctime(&printtime),proto,l);
+		}
+	}
 	if(mutex_lock(tx->mutex))
 	{
 		//do some initialize;
@@ -941,13 +578,11 @@ static bool_t __PppMsgSnd(tagPppCtrl *ppp,u16 proto,tagCHdr *chdr,u8 *buf,u16 l,
 			*dst++= PPP_FLAG;
 			//compute the len, and send it to the device;
 			len =(u16)(dst -tx->buf);
-			iodevwrite(ppp->sfd,tx->buf,len);
-			__PppFrameInfo(ppp,false,proto,tx->buf,len);
+			iodevwrite(ppp->iofd,tx->buf,len,10*mS);
 		}
 		else
 		{
 			//buf maybe overlap
-			TCPIP_DEBUG_INC(ppp->txinfo.numoverlap);
 		}
 		mutex_unlock(tx->mutex);
 	}
@@ -955,10 +590,10 @@ static bool_t __PppMsgSnd(tagPppCtrl *ppp,u16 proto,tagCHdr *chdr,u8 *buf,u16 l,
 	return true;
 }
 //here we create a ppp net device to the stack
+#include <netdb.h>
 #include <sys/socket.h>
 //data flow in the loop
 #define CN_PPP_MTU      4*1024        //4KB
-#define CN_PPP_DEVICE   "pppdev"
 //-----------------------------------------------------------------------------
 //功能:the linkoutloop call this function to pass the package to the stack
 //参数:
@@ -974,9 +609,15 @@ static bool_t __PppDevOut(ptu32_t dev,tagNetPkg *pkg,u32 framlen,u32 netdevtask)
     u8 *src;
     u8 *dst;
     u32 cpylen;
+    tagPppCtrl *ppp;
 
     result = false;
+    ppp = (tagPppCtrl*)NetDevPrivate(dev);
 
+    if(ppp->ms.stat != EN_PPP_NETWORK)
+    {
+    	return result;   //if no ppp link got ,return false
+    }
     buf = malloc(framlen);
     if(NULL != buf)
     {
@@ -999,11 +640,11 @@ static bool_t __PppDevOut(ptu32_t dev,tagNetPkg *pkg,u32 framlen,u32 netdevtask)
             }
         }
         //send the buf to the ppp
-        tagPppCtrl *ppp;
-        ppp = (tagPppCtrl*)NetDevPrivate(dev);
         result = __PppMsgSnd(ppp,PPP_IP,NULL,buf,cpylen,ppp->lcp.peer.accm);
         free(buf);
+        ppp->ip.ipflow_u += framlen;
     }
+
     return result;
 }
 
@@ -1019,6 +660,8 @@ static bool_t __IpFrameDeal(tagPppMsg   *msg )
 	len = msg->len;
 	ppp = msg->ppp;
 
+
+	ppp->ip.ipflow_d += len;
 	pkg = PkgMalloc(len,CN_PKLGLST_END);
 	if(NULL != pkg)
 	{
@@ -1030,6 +673,8 @@ static bool_t __IpFrameDeal(tagPppMsg   *msg )
 
 		PkgTryFreePart(pkg);
 	}
+
+
 	return true;
 }
 //-----------------------------------------------------------------------------
@@ -1039,7 +684,7 @@ static bool_t __IpFrameDeal(tagPppMsg   *msg )
 //备注:
 //作者:zhangqf@上午9:26:04/2016年12月29日
 //-----------------------------------------------------------------------------
-static ptu32_t __PppNetDevAdd(ptu32_t para)
+static ptu32_t __PppNetDevAdd(tagPppCtrl *ppp)
 {
 	ptu32_t         dev;
     tagNetDevPara   devpara;
@@ -1048,8 +693,8 @@ static ptu32_t __PppNetDevAdd(ptu32_t para)
     memset((void *)&devpara,0,sizeof(devpara));
     devpara.ifsend = __PppDevOut;
     devpara.iftype = EN_LINK_RAW;
-    devpara.name = CN_PPP_DEVICE;
-    devpara.private = para;
+    devpara.name = ppp->netdevname;
+    devpara.private = (ptu32_t)ppp;
     devpara.mtu = CN_PPP_MTU;
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac,CN_MAC_BROAD,CN_MACADDR_LEN);
@@ -1066,9 +711,8 @@ static ptu32_t __PppNetDevAdd(ptu32_t para)
     devaddr.dns     = inet_addr("192.168.253.1");
     devaddr.broad   = inet_addr("255.255.255.255");
     //loop could receive the broad mail,but never send the broad mail
-    if(false == RoutCreate(CN_PPP_DEVICE,EN_IPV_4,(void *)&devaddr,CN_ROUT_NONE))
+    if(false == RoutCreate(ppp->netdevname,EN_IPV_4,(void *)&devaddr,CN_ROUT_NONE))
     {
-    	printf("%s:NetDevInstall Err\n\r",__FUNCTION__);
     	goto EXIT_PPPROUT;
     }
     //here means we are successful
@@ -1076,12 +720,10 @@ static ptu32_t __PppNetDevAdd(ptu32_t para)
     return dev;
 
 EXIT_PPPROUT:
-	NetDevUninstall(CN_PPP_DEVICE);
+	NetDevUninstall(ppp->netdevname);
 EXIT_PPPDEV:
     return 0;
 }
-
-
 extern bool_t __AuthSndRequest(tagPppCtrl *ppp);
 //-----------------------------------------------------------------------------
 //功能:we use this function to pass the receive data to the queue
@@ -1090,73 +732,11 @@ extern bool_t __AuthSndRequest(tagPppCtrl *ppp);
 //备注:
 //作者:zhangqf@上午10:10:36/2017年1月5日
 //-----------------------------------------------------------------------------
-static bool_t __NetFramePut(tagPppCtrl *ppp)
-{
-	bool_t         result = false;
-	u16            msglen;
-	tagPppMsg   *msg;
 
-	msglen = ppp->rxctrl.datalen + CN_PPPOS_MSGHDR_SZIE;
-	msg = malloc(msglen);
-	if(NULL != msg)
-	{
-		memset((void *)msg,0,sizeof(tagPppMsg));
-		msg->ppp =ppp;
-		msg->len = ppp->rxctrl.datalen;
-		msg->proto = ppp->rxctrl.protocol;
-		memcpy(msg->data,ppp->rxctrl.buf,ppp->rxctrl.datalen);
-		if(mutex_lock(gPppMsgQ.mutex))
-		{
-			if(NULL == gPppMsgQ.msgT)
-			{
-				gPppMsgQ.msgH = msg;
-			}
-			else
-			{
-				gPppMsgQ.msgT->nxt = msg;
-			}
-			gPppMsgQ.msgT = msg;
-			mutex_unlock(gPppMsgQ.mutex);
-			semp_post(gPppMsgQ.sync);
-		}
-		else
-		{
-			free(msg);
-		}
-	}
-	return result;
-}
-//-----------------------------------------------------------------------------
-//功能:we use this function to get a message from the queue
-//参数:
-//返回:
-//备注:
-//作者:zhangqf@上午10:30:49/2017年1月5日
-//-----------------------------------------------------------------------------
-static tagPppMsg *__NetFrameGet(u32 timeout)
-{
-	tagPppMsg   *msg = NULL;
-	semp_pendtimeout(gPppMsgQ.sync,timeout);
-	if(mutex_lock(gPppMsgQ.mutex))
-	{
-		if(NULL != gPppMsgQ.msgH)
-		{
-			if(gPppMsgQ.msgH == gPppMsgQ.msgT)
-			{
-				gPppMsgQ.msgT = NULL;
-			}
-			msg = gPppMsgQ.msgH;
-			gPppMsgQ.msgH = msg->nxt;
-			msg->nxt = NULL;
-		}
-		mutex_unlock(gPppMsgQ.mutex);
-	}
-	return msg;
-}
 //usage:use this function to reset the ppp machine state
 static bool_t  __PppMsReset(tagPppCtrl *ppp,enPppStat state)
 {
-	ppp->stat = state;
+	ppp->ms.stat = state;
     //initialize the lcp options
 	memset((void *)&ppp->lcp,0,sizeof(tagLcp));
 	ppp->lcp.host.mru = PPP_MTU;
@@ -1182,168 +762,6 @@ static bool_t  __PppMsReset(tagPppCtrl *ppp,enPppStat state)
 	ppp->ncp.enNbnsBak = 1;
 	ppp->ncp.id = 0x20;
 
-	return true;
-}
-
-
-//deal the configure request
-static bool_t __LcpDealCRQ(tagPppCtrl *ppp,u8 id,u8 *buf, u16 len)
-{
-	u8                 *src;
-	u8                 *stop;
-	tagPppOptions      *opt;
-	tagLcpPeerOptions  *peer;
-	u16                 v16;
-	u32                 v32;
-	tagPppOptions       mopt;
-	tagCHdr             cdr;
-
-	src = buf;
-	stop = buf + len;
-	peer = &ppp->lcp.peer;
-	peer->naklen = 0;
-	peer->rejlen = 0;
-	peer->acklen = 0;
-	//now decode the lcp options here
-	while(src < stop)
-	{
-		opt = (tagPppOptions *)src;
-		src += opt->len;
-		switch (opt->type)
-		{
-			case LCP_OPT_MRU:
-				memcpy(&v16,opt->v,sizeof(v16));
-				v16 = ntohl(v16);
-//				printf("mru:0x%04x\n\r",v16);
-				if(v16 > PPP_MTU) //should advise it small
-				{
-					v16 = htons(PPP_MTU);
-					mopt.type = opt->type;
-					mopt.len = 4;
-					memcpy(&peer->optionnack[peer->naklen],&mopt,CN_PPPOS_OPTSIZE);
-					peer->naklen += CN_PPPOS_OPTSIZE;
-					memcpy(&peer->optionnack[peer->naklen],&v16,sizeof(v16));
-					peer->naklen += sizeof(v16);
-				}
-				else
-				{
-					peer->mru = v16;
-					memcpy(&peer->optionack[peer->acklen],opt,opt->len);
-					peer->acklen += opt->len;
-				}
-				break;
-			case LCP_OPT_ACCM:
-				memcpy(&v32,opt->v,sizeof(v32));
-				v32 = ntohl(v32);
-//				printf("accm:0x%08x\n\r",v32);
-				peer->accm = v32;
-				memcpy(&peer->optionack[peer->acklen],opt,opt->len);
-				peer->acklen += opt->len;
-				break;
-			case LCP_OPT_AUTH:
-				memcpy(&v16,opt->v,sizeof(v16));
-				v16 = ntohs(v16);
-//				printf("auth:0x%04x\n\r",v16);
-				if(v16 != PPP_PAP)  //only md5 supported
-				{
-					v16 = htons(PPP_PAP);
-					mopt.type = opt->type;
-					mopt.len = 4;
-					memcpy(&peer->optionnack[peer->naklen],&mopt,CN_PPPOS_OPTSIZE);
-					peer->naklen += CN_PPPOS_OPTSIZE;
-					memcpy(&peer->optionnack[peer->naklen],&v16,sizeof(v16));
-					peer->naklen += sizeof(v16);
-				}
-				else
-				{
-					peer->authcode = v16;
-					memcpy(&peer->optionack[peer->acklen],opt,opt->len);
-					peer->acklen += opt->len;
-				}
-				break;
-			case LCP_OPT_MAGIC:
-				memcpy(&v32,opt->v,sizeof(v32));
-				v32 = ntohl(v32);
-//				printf("magic:0x%04x\n\r",v32);
-				peer->macgic = v32;
-				memcpy(&peer->optionack[peer->acklen],opt,opt->len);
-				peer->acklen += opt->len;
-				break;
-			case LCP_OPT_PFC: //not supported yet
-//				printf("pfc:\n\r");
-				memcpy(&peer->optionrej[peer->rejlen],opt,opt->len);
-				peer->rejlen += opt->len;
-				break;
-			case LCP_OPT_ACFC://not supported yet
-//				printf("acfc:\n\r");
-				memcpy(&peer->optionrej[peer->rejlen],opt,opt->len);
-				peer->rejlen += opt->len;
-				break;
-			default:
-//				printf("unknown:type:%02x len:%d\n\r",opt->type,opt->len);
-				memcpy(&peer->optionrej[peer->rejlen],opt,opt->len);
-				peer->rejlen += opt->len;
-				break;
-		}
-	}
-	u32 accm = 0xffff;
-	//here we should do the machine state changed, and do the time out configure
-	if(peer->rejlen > 0) //do the rej
-	{
-		cdr.code = CONFREJ;
-		cdr.id = id;
-		cdr.len = peer->rejlen + CN_PPPOS_CHDRSIZE;
-		cdr.len = htons(cdr.len);
-		__PppMsgSnd(ppp,PPP_LCP,&cdr,peer->optionrej,peer->rejlen,accm);
-	}
-	else if(peer->naklen > 0)//if no rej, then do the nack
-	{
-		cdr.code = CONFNAK;
-		cdr.id = id;
-		cdr.len = peer->naklen + CN_PPPOS_CHDRSIZE;
-		cdr.len = htons(cdr.len);
-		__PppMsgSnd(ppp,PPP_LCP,&cdr,peer->optionnack,peer->naklen,accm);
-	}
-	else //if no rej and nack, then we do the ack
-	{
-		cdr.code = CONFACK;
-		cdr.id = id;
-		cdr.len = peer->acklen + CN_PPPOS_CHDRSIZE;
-		cdr.len = htons(cdr.len);
-		__PppMsgSnd(ppp,PPP_LCP,&cdr,peer->optionack,peer->acklen,accm);
-		peer->done = 1;
-		if(ppp->lcp.host.done)
-		{
-			//if the peer has agree the negotiation,then we do the auth
-			printf("LCP SUCCESS,GOTO AUTH\n\r");
-			ppp->mstimeout.timeoutnum = 0;
-			ppp->stat = EN_PPP_AUTH;
-			__AuthSndRequest(ppp);
-		}
-	}
-	return true;
-}
-
-//-----------------------------------------------------------------------------
-//功能:when we receive this frame type,it means it has agree all the options we supplied
-//参数:
-//返回:
-//备注:we should changge the stage and go on
-//作者:zhangqf@上午10:12:07/2017年1月7日
-//-----------------------------------------------------------------------------
-static bool_t __LcpDealCACK(tagPppCtrl *ppp,u8 id,u8 *buf, u16 len)
-{
-	//i think all i want to do is to change the state,and do the next thing
-	//maybe should send the pap or chap to the peer
-	ppp->lcp.host.done = 1;
-	ppp->lcp.host.id++;
-	if(ppp->lcp.peer.done)//if the peer has agree the negotiation,then we do the auth
-	{
-		printf("LCP SUCCESS,GOTO AUTH\n\r");
-		ppp->mstimeout.timeoutnum = 0;
-		ppp->stat = EN_PPP_AUTH;
-		__AuthSndRequest(ppp);
-	}
 	return true;
 }
 
@@ -1412,7 +830,7 @@ static bool_t __LcpSndRequest(tagPppCtrl *ppp)
 		memcpy(dst,&v32,sizeof(v32));
 		dst += sizeof(v32);
 	}
-	if(host->enmagic) //CHECK THE MRU
+	if(host->enmru) //CHECK THE MRU
 	{
 		opt.type = LCP_OPT_MRU;
 		opt.len = 4;
@@ -1467,7 +885,164 @@ static bool_t __LcpSendTerminateReq(tagPppCtrl *ppp)
 	__PppMsgSnd(ppp,PPP_LCP,&cdr,(u8 *)&magic,sizeof(magic),accm);
 	return true;
 }
+//deal the configure request
+static bool_t __LcpDealCRQ(tagPppCtrl *ppp,u8 id,u8 *buf, u16 len)
+{
+	u8                 *src;
+	u8                 *stop;
+	tagPppOptions      *opt;
+	tagLcpPeerOptions  *peer;
+	u16                 v16;
+	u32                 v32;
+	tagPppOptions       mopt;
+	tagCHdr             cdr;
 
+	src = buf;
+	stop = buf + len;
+	peer = &ppp->lcp.peer;
+	peer->naklen = 0;
+	peer->rejlen = 0;
+	peer->acklen = 0;
+	//now decode the lcp options here
+	while(src < stop)
+	{
+		opt = (tagPppOptions *)src;
+		src += opt->len;
+		switch (opt->type)
+		{
+			case LCP_OPT_MRU:
+				memcpy(&v16,opt->v,sizeof(v16));
+				v16 = ntohl(v16);
+				if(v16 > PPP_MTU) //should advise it small
+				{
+					v16 = htons(PPP_MTU);
+					mopt.type = opt->type;
+					mopt.len = 4;
+					memcpy(&peer->optionnack[peer->naklen],&mopt,CN_PPPOS_OPTSIZE);
+					peer->naklen += CN_PPPOS_OPTSIZE;
+					memcpy(&peer->optionnack[peer->naklen],&v16,sizeof(v16));
+					peer->naklen += sizeof(v16);
+				}
+				else
+				{
+					peer->mru = v16;
+					memcpy(&peer->optionack[peer->acklen],opt,opt->len);
+					peer->acklen += opt->len;
+				}
+				break;
+			case LCP_OPT_ACCM:
+				memcpy(&v32,opt->v,sizeof(v32));
+				v32 = ntohl(v32);
+				peer->accm = v32;
+				memcpy(&peer->optionack[peer->acklen],opt,opt->len);
+				peer->acklen += opt->len;
+				break;
+			case LCP_OPT_AUTH:
+				memcpy(&v16,opt->v,sizeof(v16));
+				v16 = ntohs(v16);
+				if(v16 != PPP_PAP)  //only md5 supported
+				{
+					v16 = htons(PPP_PAP);
+					mopt.type = opt->type;
+					mopt.len = 4;
+					memcpy(&peer->optionnack[peer->naklen],&mopt,CN_PPPOS_OPTSIZE);
+					peer->naklen += CN_PPPOS_OPTSIZE;
+					memcpy(&peer->optionnack[peer->naklen],&v16,sizeof(v16));
+					peer->naklen += sizeof(v16);
+				}
+				else
+				{
+					peer->authcode = v16;
+					memcpy(&peer->optionack[peer->acklen],opt,opt->len);
+					peer->acklen += opt->len;
+				}
+				break;
+			case LCP_OPT_MAGIC:
+				memcpy(&v32,opt->v,sizeof(v32));
+				v32 = ntohl(v32);
+				peer->macgic = v32;
+				memcpy(&peer->optionack[peer->acklen],opt,opt->len);
+				peer->acklen += opt->len;
+				break;
+			case LCP_OPT_PFC: //not supported yet
+				memcpy(&peer->optionrej[peer->rejlen],opt,opt->len);
+				peer->rejlen += opt->len;
+				break;
+			case LCP_OPT_ACFC://not supported yet
+				memcpy(&peer->optionrej[peer->rejlen],opt,opt->len);
+				peer->rejlen += opt->len;
+				break;
+			default:
+				memcpy(&peer->optionrej[peer->rejlen],opt,opt->len);
+				peer->rejlen += opt->len;
+				break;
+		}
+	}
+	u32 accm = 0xffff;
+	//here we should do the machine state changed, and do the time out configure
+	if(peer->rejlen > 0) //do the rej
+	{
+		cdr.code = CONFREJ;
+		cdr.id = id;
+		cdr.len = peer->rejlen + CN_PPPOS_CHDRSIZE;
+		cdr.len = htons(cdr.len);
+		__PppMsgSnd(ppp,PPP_LCP,&cdr,peer->optionrej,peer->rejlen,accm);
+	}
+	else if(peer->naklen > 0)//if no rej, then do the nack
+	{
+		cdr.code = CONFNAK;
+		cdr.id = id;
+		cdr.len = peer->naklen + CN_PPPOS_CHDRSIZE;
+		cdr.len = htons(cdr.len);
+		__PppMsgSnd(ppp,PPP_LCP,&cdr,peer->optionnack,peer->naklen,accm);
+	}
+	else //if no rej and nack, then we do the ack
+	{
+		cdr.code = CONFACK;
+		cdr.id = id;
+		cdr.len = peer->acklen + CN_PPPOS_CHDRSIZE;
+		cdr.len = htons(cdr.len);
+		__PppMsgSnd(ppp,PPP_LCP,&cdr,peer->optionack,peer->acklen,accm);
+		peer->done = 1;
+		if(ppp->lcp.host.done)
+		{
+			//if the peer has agree the negotiation,then we do the auth
+			printf("LCP SUCCESS,GOTO AUTH\n\r");
+			ppp->ms.timeoutnum = 0;
+			ppp->ms.stat = EN_PPP_AUTH;
+			__AuthSndRequest(ppp);
+		}
+		else
+		{
+			__LcpSndRequest(ppp);//redo the request
+		}
+	}
+	return true;
+}
+
+//-----------------------------------------------------------------------------
+//功能:when we receive this frame type,it means it has agree all the options we supplied
+//参数:
+//返回:
+//备注:we should changge the stage and go on
+//作者:zhangqf@上午10:12:07/2017年1月7日
+//-----------------------------------------------------------------------------
+static bool_t __LcpDealCACK(tagPppCtrl *ppp,u8 id,u8 *buf, u16 len)
+{
+	//i think all i want to do is to change the state,and do the next thing
+	//maybe should send the pap or chap to the peer
+	ppp->lcp.host.done = 1;
+	ppp->lcp.host.id++;
+	if(ppp->lcp.peer.done)//if the peer has agree the negotiation,then we do the auth
+	{
+		printf("LCP SUCCESS,GOTO AUTH\n\r");
+		ppp->ms.timeoutnum = 0;
+		ppp->ms.stat = EN_PPP_AUTH;
+		ppp->ms.timedead = DjyGetSysTime() + (CN_MS_TIMEOUT<<ppp->ms.timeoutnum);
+		__AuthSndRequest(ppp);
+	}
+	return true;
+}
 //usage:use this function to deal the lcp nack frame
 static bool_t __LcpDealCNACK(tagPppCtrl *ppp,u8 id,u8 *buf, u16 len)
 {
@@ -1595,7 +1170,6 @@ static bool_t __LcpFrameDeal(tagPppMsg   *msg )
 	hdr.len = htons(hdr.len);
 	src += CN_PPPOS_CHDRSIZE;
 	len = msg->len - CN_PPPOS_CHDRSIZE;
-//	printf("LCP:code:%02x id:%02x len:%04x\n\r",hdr.code,hdr.id,hdr.len);
 	//now decode the lcp options here
 	switch(hdr.code)
 	{
@@ -1615,15 +1189,20 @@ static bool_t __LcpFrameDeal(tagPppMsg   *msg )
 			//we should send the term ack and turn to the down state
 			hdr.code = TERMACK;
 			__PppMsgSnd(msg->ppp,PPP_LCP,&hdr,src,len,0xFFFFFFFF);
+			if(msg->ppp->ms.stat == EN_PPP_NETWORK)
+			{
+				//here we call the uplayer that the link is down
+        		NetDevPostEvent(msg->ppp->nfd,NULL,EN_NETDEVEVENT_IPRELEASE);
+			}
 			//goto dead
-			msg->ppp->stat = EN_PPP_DEAD;
+			msg->ppp->ms.stat = EN_PPP_DEAD;
 			printf("LCP:TERMINATE!,GOTO DEAD\n\r");
 			break;
 		case TERMACK:
 			//goto dead
-			if(msg->ppp->stat == EN_PPP_TERMINATE)
+			if(msg->ppp->ms.stat == EN_PPP_TERMINATE)
 			{
-				msg->ppp->stat = EN_PPP_DEAD;
+				msg->ppp->ms.stat = EN_PPP_DEAD;
 				printf("LCP:TERMINATE ACK!,GOTO DEAD\n\r");
 			}
 			break;
@@ -1636,7 +1215,7 @@ static bool_t __LcpFrameDeal(tagPppMsg   *msg )
 			break;
 		case ECHOREP:
 			msg->ppp->lcp.host.id++;
-			msg->ppp->mstimeout.timeoutnum = 0;
+			msg->ppp->ms.timeoutnum = 0;
 			break;
 		case DISREQ:
 			break;
@@ -1693,6 +1272,7 @@ bool_t __AuthSndRequest(tagPppCtrl *ppp)
 	return true;
 }
 
+static bool_t __NcpSndRequest(tagPppCtrl *ppp);
 //usage:we use this function to deal a auth msg
 static bool_t __AuthFrameDeal(tagPppMsg   *msg)
 {
@@ -1710,23 +1290,25 @@ static bool_t __AuthFrameDeal(tagPppMsg   *msg)
 	hdr.len = htons(hdr.len);
 	src += CN_PPPOS_CHDRSIZE;
 	len -= CN_PPPOS_CHDRSIZE;
-//	printf("AUTH:code:%02x id:%02x len:%04x\n\r",hdr.code,hdr.id,hdr.len);
 	if((proto == PPP_PAP)&&(ppp->lcp.host.authcode == PPP_PAP))
 	{
 		//we support the pap mode
 		if(hdr.code == EN_PAP_ACK)
 		{
 			//we has passed ,goto the ncp
-			ppp->mstimeout.timeoutnum = 0;
-			ppp->stat = EN_PPP_NCP;
+			ppp->ms.timeoutnum = 0;
+			ppp->ms.stat = EN_PPP_NCP;
+			ppp->ms.timedead = DjyGetSysTime() + (CN_MS_TIMEOUT<<ppp->ms.timeoutnum);
 			printf("AUTH SUCCESS,GOTO NCP\n\r");
+			//send the ncp request
+			__NcpSndRequest(ppp);
 		}
 		else if(hdr.code == EN_PAP_NACK)
 		{
-			ppp->stat = EN_PPP_DEAD; //FAILED
-			ppp->mstimeout.timeoutnum = 0;
-			ppp->stat = EN_PPP_TERMINATE;
-			printf("AUTH FAILED,GOTO NCP\n\r");
+			ppp->ms.timeoutnum = 0;
+			ppp->ms.stat = EN_PPP_TERMINATE;
+			ppp->ms.timedead = DjyGetSysTime() + (CN_MS_TIMEOUT<<ppp->ms.timeoutnum);
+			printf("AUTH FAILED,GOTO TERMINATE\n\r");
 		}
 		else
 		{
@@ -1824,78 +1406,63 @@ static bool_t __NcpOptionModify(tagNcp *ncp,u8 *src,u16 len,bool_t rej)
 		switch (opt->type)
 		{
 			case NCP_OPT_IP:
-//				printf("IPV4:");
 				if(rej)
 				{
 					ncp->enIp = 0;
-//					printf("REJECT\n\r");
 				}
 				else
 				{
 					memcpy(&v32,opt->v,sizeof(v32));
 					ncp->ip = v32;
 					ncp->enIp = 1;
-//					printf("%08x(ADVICE)\n\r",v32);
 				}
 				break;
 			case NCP_OPT_DNS:
-//				printf("DNS:");
 				if(rej)
 				{
 					ncp->enDns = 0;
-//					printf("REJECT\n\r");
 				}
 				else
 				{
 					memcpy(&v32,opt->v,sizeof(v32));
 					ncp->dns = v32;
 					ncp->enDns =1;
-//					printf("%08x(ADVICE)\n\r",v32);
 				}
 				break;
 			case NCP_OPT_DNS2:
-//				printf("DNSBAK:");
 				if(rej)
 				{
 					ncp->enDnsBak = 0;
-//					printf("REJECT\n\r");
 				}
 				else
 				{
 					memcpy(&v32,opt->v,sizeof(v32));
 					ncp->dnsbak = v32;
 					ncp->enDnsBak = 1;
-//					printf("%08x(ADVICE)\n\r",v32);
 				}
 				break;
 			case NCP_OPT_NBNS:
-//				printf("NBNS:");
 				if(rej)
 				{
 					ncp->enNbns = 0;
-//					printf("REJECT\n\r");
 				}
 				else
 				{
 					memcpy(&v32,opt->v,sizeof(v32));
 					ncp->nbns = v32;
 					ncp->enNbns = 1;
-//					printf("%08x(ADVICE)\n\r",v32);
 				}
 				break;
 			case NCP_OPT_NBNS2:
-//				printf("NBNSBAK:");
 				if(rej)
 				{
 					ncp->enNbnsBak = 0;
-//					printf("REJECT\n\r");
 				}
 				else
 				{
 					memcpy(&v32,opt->v,sizeof(v32));
 					ncp->nbnsbak = v32;
 					ncp->enNbnsBak=1;
-//					printf("%08x(ADVICE)\n\r",v32);
 				}
 				break;
 			default:
@@ -1906,6 +1473,8 @@ static bool_t __NcpOptionModify(tagNcp *ncp,u8 *src,u16 len,bool_t rej)
 	return true;
 }
 
+//when we got a ppp frame, we use this function to deal it
+//we should know which proto and the data and datalen we got
 static bool_t __NcpFrameDeal(tagPppMsg   *msg)
 {
 	tagCHdr      hdr;
@@ -1921,19 +1490,20 @@ static bool_t __NcpFrameDeal(tagPppMsg   *msg)
 	hdr.len = htons(hdr.len);
 	src += CN_PPPOS_CHDRSIZE;
 	len = msg->len -  CN_PPPOS_CHDRSIZE;
-//	printf("ipcp:code:%02x id:%02x len:%04x\n\r",hdr.code,hdr.id,hdr.len);
 	//here we should check if it is a ack nack rej or something else
     ncp = &ppp->ncp;
 	switch(hdr.code)
     {
 		case CONFACK:
 			//turn to another state
-			ppp->mstimeout.timeoutnum = 0;
-			ppp->stat = EN_PPP_NETWORK;
+			ppp->ms.timeoutnum = 0;
+			ppp->ms.stat = EN_PPP_NETWORK;
 			//here we should create a net device and build a rout here
 			//modify the rout
 			RoutSetDefaultAddr(EN_IPV_4,ncp->ip,0xFFFFFFFF,ncp->ip,ncp->dns);
 			printf("NCP SUCCESS!,GOTO NETWORK\n\r");
+			//here we call the uplayer that the ip get here
+    		NetDevPostEvent(ppp->nfd,NULL,EN_NETDEVEVENT_IPGET);
 			break;
     	case CONFREQ:
     		if(len != 0)
@@ -1977,178 +1547,157 @@ static bool_t __NcpFrameDeal(tagPppMsg   *msg)
 //备注:
 //作者:zhangqf@上午10:50:16/2017年1月5日
 //-----------------------------------------------------------------------------
-#define CN_LCP_TIME        (5*1000*mS)
-#define CN_AUTH_TIME       (5*1000*mS)
-#define CN_NCP_TIME        (5*1000*mS)
-#define CN_IP_TIME         (10*1000*mS)
-#define CN_TIMEOUT_LIMIT    5
-ptu32_t __PppDealEngine(void)
-{
-	tagPppMsg     *msg = NULL;
-	tagPppCtrl    *ppp;
-	tagCHdr        hdr;
-	u64            timenow;
 
-	Djy_GetEventPara((ptu32_t *)&ppp,NULL);
-	//first we must make the link up,which use the at subsets to make the link up
-	while(1)
+static void __FrameDeal(tagPppMsg  *msg)
+{
+	tagCHdr        hdr;
+	//we receive a message from the peer, we should deal it carefully
+	if(msg->ppp->ms.stat > EN_PPP_DEAD)
 	{
-		msg = __NetFrameGet(CN_PPPOS_MSGTIMEOUT);
-		if(NULL != msg)
+		switch(msg->proto)
 		{
-			__PppFrameInfo(ppp,true,msg->proto,msg->data,msg->len);
-			//we receive a message from the peer, we should deal it carefully
-			if(msg->ppp->stat > EN_PPP_DEAD)
-			{
-				switch(msg->proto)
-				{
-					case PPP_LCP://this is a lcp frame,so we should deal it with the LCP
-						__LcpFrameDeal(msg);
-						break;
-					case PPP_PAP:
-						__AuthFrameDeal(msg);
-						break;
-					case PPP_CHAP:
-						__AuthFrameDeal(msg);
-						break;
-					case PPP_IPCP:
-						__NcpFrameDeal(msg);
-						break;
-					case PPP_IP:
-						__IpFrameDeal(msg);
-						break;
-					default:
-						//maybe a unknown proto, we should send a protorej message to the peer
-						hdr.code = PROTOREJ;
-						hdr.id = ppp->lcp.host.id;
-						hdr.len = htons(msg->len);
-						__PppMsgSnd(msg->ppp,PPP_LCP,&hdr,msg->data,msg->len,0xffffff);
-						break;
-				}
-			}
-			free(msg);
-		}
-		else
-		{
-			//maybe timeout, we should check if any ppp to do the timeout resend
-			timenow = (u64)DjyGetSysTime();
-			switch(ppp->stat)
-			{
-				case EN_PPP_ATDEBUG:
-					//for this mode, we should do the at debug
-					break;
-				case EN_PPP_DEAD:
-					//use the at command to do the link up
-					if(__DialUp(ppp))
-					{
-						__PppMsReset(ppp,EN_PPP_ESTABLISH);
-						printf("DIAL SUCCESS!GOTO LCP\n\r");
-					}
-					else
-					{
-						//we should do the hard reset
-						if(NULL != ppp->modemreset)
-						{
-							ppp->modemreset();
-						}
-					}
-					break;
-				case EN_PPP_ESTABLISH:
-					//we should check if the config request timeout
-					if(timenow > ppp->mstimeout.timedead)
-					{
-						if(ppp->mstimeout.timeoutnum < CN_TIMEOUT_LIMIT)
-						{
-							__LcpSndRequest(ppp);
-							ppp->mstimeout.timedead += CN_LCP_TIME;
-							ppp->mstimeout.timeoutnum++;
-						}
-						else
-						{
-							ppp->mstimeout.timeoutnum = 0;
-							ppp->stat = EN_PPP_TERMINATE;
-							printf("LCP TIMEOUT\n\r");
-						}
-					}
-					break;
-				case EN_PPP_AUTH:
-					//we should check if the auth timeout
-					if(timenow > ppp->mstimeout.timedead)
-					{
-						if(ppp->mstimeout.timeoutnum < CN_TIMEOUT_LIMIT)
-						{
-							__AuthSndRequest(ppp);
-							ppp->mstimeout.timedead += CN_AUTH_TIME;
-							ppp->mstimeout.timeoutnum++;
-						}
-						else
-						{
-							ppp->mstimeout.timeoutnum = 0;
-							ppp->stat = EN_PPP_TERMINATE;
-							printf("AUTH TIMEOUT\n\r");
-						}
-					}
-					break;
-				case EN_PPP_NCP:
-					//we should check if the ncp timeout
-					if(timenow > ppp->mstimeout.timedead)
-					{
-						if(ppp->mstimeout.timeoutnum < CN_TIMEOUT_LIMIT)
-						{
-							__NcpSndRequest(ppp);
-							ppp->mstimeout.timedead += CN_NCP_TIME;
-							ppp->mstimeout.timeoutnum++;
-						}
-						else
-						{
-							ppp->mstimeout.timeoutnum = 0;
-							ppp->stat = EN_PPP_TERMINATE;
-							printf("NCP TIMEOUT\n\r");
-						}
-					}
-					break;
-				case EN_PPP_NETWORK:
-					//here we should check if any echo request timeout
-					if(timenow > ppp->mstimeout.timedead)
-					{
-						if(ppp->mstimeout.timeoutnum < CN_TIMEOUT_LIMIT)
-						{
-							__LcpSendEchoReq(ppp);
-							ppp->mstimeout.timedead += CN_IP_TIME;
-							ppp->mstimeout.timeoutnum++;
-						}
-						else
-						{
-							ppp->mstimeout.timeoutnum = 0;
-							ppp->stat = EN_PPP_TERMINATE;
-							printf("IP TIMEOUT\n\r");
-						}
-					}
-					break;
-				case EN_PPP_TERMINATE:
-					//do the reset and shut down
-					if(timenow > ppp->mstimeout.timedead)
-					{
-						if(ppp->mstimeout.timeoutnum < CN_TIMEOUT_LIMIT)
-						{
-							__LcpSendTerminateReq(ppp);
-							ppp->mstimeout.timedead += CN_NCP_TIME;
-							ppp->mstimeout.timeoutnum++;
-						}
-						else
-						{
-							ppp->mstimeout.timeoutnum = 0;
-							printf("TERMINATE TIMEOUT\n\r");
-						}
-					}
-					break;
-				default:
-					//do the reset and shut down
-					break;
-			}
+			case PPP_LCP://this is a lcp frame,so we should deal it with the LCP
+				__LcpFrameDeal(msg);
+				break;
+			case PPP_PAP:
+				__AuthFrameDeal(msg);
+				break;
+			case PPP_CHAP:
+				__AuthFrameDeal(msg);
+				break;
+			case PPP_IPCP:
+				__NcpFrameDeal(msg);
+				break;
+			case PPP_IP:
+				__IpFrameDeal(msg);
+				break;
+			default:
+				//maybe a unknown proto, we should send a protorej message to the peer
+				hdr.code = PROTOREJ;
+				hdr.id = msg->ppp->lcp.host.id;
+				hdr.len = htons(msg->len);
+				__PppMsgSnd(msg->ppp,PPP_LCP,&hdr,msg->data,msg->len,0xffffff);
+				break;
 		}
 	}
-	return 0;
+}
+
+//usage:this function used for the modem reset
+static bool_t __PppDevReset(tagPppCtrl *ppp)
+{
+	if(NULL!= ppp->reg.modemreset)
+	{
+		ppp->reg.modemreset();
+	}
+	return true;
+}
+static void __CheckTimeout(tagPppCtrl    *ppp)
+{
+	u64            timenow;
+	//maybe timeout, we should check if any ppp to do the timeout resend
+	timenow = (u64)DjyGetSysTime();
+	switch(ppp->ms.stat)
+	{
+		case EN_PPP_DEAD:
+			//use the at command to do the link up
+			__PppDevReset(ppp);
+			break;
+		case EN_PPP_ESTABLISH:
+			//we should check if the config request timeout
+			if(timenow > ppp->ms.timedead)
+			{
+				if(ppp->ms.timeoutnum < CN_TIMEOUT_LIMIT)
+				{
+					__LcpSndRequest(ppp);
+					ppp->ms.timedead = timenow+ CN_LCP_TIME;
+					ppp->ms.timeoutnum++;
+				}
+				else
+				{
+					ppp->ms.timeoutnum = 0;
+					ppp->ms.stat = EN_PPP_TERMINATE;
+					printf("LCP TIMEOUT\n\r");
+				}
+			}
+			break;
+		case EN_PPP_AUTH:
+			//we should check if the auth timeout
+			if(timenow > ppp->ms.timedead)
+			{
+				if(ppp->ms.timeoutnum < CN_TIMEOUT_LIMIT)
+				{
+					__AuthSndRequest(ppp);
+					ppp->ms.timedead =timenow+ CN_AUTH_TIME;
+					ppp->ms.timeoutnum++;
+				}
+				else
+				{
+					ppp->ms.timeoutnum = 0;
+					ppp->ms.stat = EN_PPP_TERMINATE;
+					printf("AUTH TIMEOUT\n\r");
+				}
+			}
+			break;
+		case EN_PPP_NCP:
+			//we should check if the ncp timeout
+			if(timenow > ppp->ms.timedead)
+			{
+				if(ppp->ms.timeoutnum < CN_TIMEOUT_LIMIT)
+				{
+					__NcpSndRequest(ppp);
+					ppp->ms.timedead =timenow+ CN_NCP_TIME;
+					ppp->ms.timeoutnum++;
+				}
+				else
+				{
+					ppp->ms.timeoutnum = 0;
+					ppp->ms.stat = EN_PPP_TERMINATE;
+					printf("NCP TIMEOUT\n\r");
+				}
+			}
+			break;
+		case EN_PPP_NETWORK:
+			//here we should check if any echo request timeout
+			if(timenow > ppp->ms.timedead)
+			{
+				if(ppp->ms.timeoutnum < CN_TIMEOUT_LIMIT)
+				{
+					__LcpSendEchoReq(ppp);
+					ppp->ms.timedead =timenow+ CN_IP_TIME;
+					ppp->ms.timeoutnum++;
+				}
+				else
+				{
+					ppp->ms.timeoutnum = 0;
+					ppp->ms.stat = EN_PPP_TERMINATE;
+					printf("IP TIMEOUT\n\r");
+					//here we call the uplayer that the link is down
+	        		NetDevPostEvent(ppp->nfd,NULL,EN_NETDEVEVENT_IPRELEASE);
+				}
+			}
+			break;
+		case EN_PPP_TERMINATE:
+			//do the reset and shut down
+			if(timenow > ppp->ms.timedead)
+			{
+				if(ppp->ms.timeoutnum < CN_TIMEOUT_LIMIT)
+				{
+					__LcpSendTerminateReq(ppp);
+					ppp->ms.timedead =timenow+ CN_NCP_TIME;
+					ppp->ms.timeoutnum++;
+				}
+				else
+				{
+					ppp->ms.timeoutnum = 0;
+					printf("TERMINATE TIMEOUT\n\r");
+					ppp->ms.stat = EN_PPP_DEAD;
+				}
+			}
+			break;
+		default:
+			//do the reset and shut down
+			break;
+	}
 }
 ////////////////////////THE FOLLOWING USED TO DECODE THE LINK FRAME////////////
 //-----------------------------------------------------------------------------
@@ -2158,402 +1707,533 @@ ptu32_t __PppDealEngine(void)
 //备注:
 //作者:zhangqf@下午8:05:58/2017年1月4日
 //-----------------------------------------------------------------------------
-//use this function to do the receive state reset
-static void __RcvEngineReset(tagPppRcvCtrl *rxctrl)
+//usage:upload the frame
+static void __FrameUpload(tagPppCtrl *ppp)
 {
-	rxctrl->fcs = PPP_INITFCS;
-	rxctrl->stat = EN_PPPOS_RX_DROPS;
-	rxctrl->framlen = 0;
-	rxctrl->datalen = 0;
-	rxctrl->inescape = 0;
-	rxctrl->protocol = 0;
+	tagPppMsg      msg;
+
+	msg.ppp =ppp;
+	msg.len = ppp->rc.datalen;
+	msg.proto = ppp->rc.proto;
+	msg.data =ppp->rc.data;
+	__FrameDeal(&msg);
+	return;
+}
+//usage:use this to reset the receive machine state
+static bool_t __RcReset(tagPppRC *rc)
+{
+	rc->datalen = 0;
+	rc->drops = 0;
+	rc->state = EN_CHECK_START;
+	rc->proto = 0;
+	rc->chdr.code = 0;
+	rc->chdr.id = 0;
+	rc->chdr.len = 0;
+	rc->fcs = PPP_INITFCS;
+	rc->inespace = false;
+	return true;
+}
+//usage:use this function to show the receive frame simple info
+static bool_t __rcframe(tagPppRC *rc)
+{
+	time_t printtime;
+	printtime = time(NULL);
+	printf("[%s]rcv:proto:0x%04x code:0x%02x id:0x%02x len:0x%04x \n\r",\
+			ctime(&printtime),rc->proto,rc->chdr.code,rc->chdr.id,rc->chdr.len);
+	return true;
 }
 
-static u16 __ProtoRcv(tagPppCtrl *ppp,u8 *s,u16 l )
+//usage:this is the receive machine state,continuing to decode the data received
+//      if receive a good frame,then upload it to the upper layer
+static void __DecodeData(tagPppCtrl *ppp,u8 *s,u16 l)
 {
 	u8              curchar;
-	tagPppRcvCtrl *rxctrl;
 	u8             *str;
-	u16             lendone;
-	tagCHdr         hdr;
+	tagPppRC       *rc;
+
+	rc =&ppp->rc;
 	str = s;
-	rxctrl = &ppp->rxctrl;
 	while (l-- > 0)
 	{
 		curchar = *str++;
-		if(curchar == PPP_ESCAPE) //it is a transform char
+		if(curchar == PPP_FLAG)
 		{
-			rxctrl->inescape = 1;  //record the transform state
+			__RcReset(rc);
+			rc->state =EN_CHECK_STATION;
+			continue;
 		}
-		else if(curchar == PPP_FLAG)
+		if((curchar == PPP_ESCAPE)&&(false == rc->inespace))
 		{
-			//which means the frame is not complete, so drop it
-			str--; //make the ppp_flag still could be used
-			__RcvEngineReset(rxctrl);//reset the receive state
-			break;
+			rc->inespace = true; //if it is the char espace
+			continue;  //do another one
 		}
-		else
+		if(rc->inespace)
 		{
-			if (rxctrl->inescape) //clear the transform state and transform the char
-			{
-				rxctrl->inescape = 0;
-				curchar ^= PPP_TRANS;
-				//maybe we should check whether it is in the accm
-				//if it is not in the accm, we should go to the drop stat
-			}
-			rxctrl->fcs = PPP_FCS(rxctrl->fcs, curchar);
-			//put it to the receive buffer,if buffer is full then drop the frame
-			rxctrl->buf[rxctrl->datalen] = curchar;
-			rxctrl->datalen++;
-			if(rxctrl->datalen == CN_PPPOS_CHDRSIZE)
-			{
-				//we has get the total header, then we could decode the framelen
-				memcpy(&hdr,rxctrl->buf,CN_PPPOS_CHDRSIZE);
-				rxctrl->framlen  = ntohs(hdr.len) + PPP_FCSLEN;//we should also receive the fcs
-			}
-			else if(rxctrl->datalen == rxctrl->framlen)
-			{
-				//then check the fcs if it is good enough
-				if(rxctrl->fcs == PPP_GOODFCS)
+			curchar ^= PPP_TRANS;
+			rc->inespace = false;
+			//maybe we should check whether it is in the accm
+			//if it is not in the accm, we should go to the drop stat
+		}
+		//compute the fcs
+		rc->fcs = PPP_FCS(rc->fcs, curchar);
+		switch(rc->state)
+		{
+			case EN_CHECK_START: //only care about the start flag 0x7e
+				if(curchar == PPP_FLAG)
 				{
-					//dispatch the frame check sum
-					rxctrl->datalen -= PPP_FCSLEN;
-					//pass the message to the msg  queue of the stat machine
-					__NetFramePut(ppp);
+					rc->state = EN_CHECK_STATION;
 				}
 				else
 				{
-					//drop the frame please
-					TCPIP_DEBUG_INC(ppp->rxinfo.numfcserr);
+					//drops.here
 				}
-				__RcvEngineReset(rxctrl);//reset the receive state
 				break;
-			}
-			else if(rxctrl->datalen >= rxctrl->rxbuflen)
-			{
-				//maybe overlap,then drop this
-				__RcvEngineReset(rxctrl);//reset the receive state
+			case EN_CHECK_STATION:
+				if(curchar == PPP_ALLSTATIONS)
+				{
+					rc->state = EN_CHECK_CTRL;//got the station here
+				}
+				else if(curchar == PPP_UI)
+				{
+					rc->state = EN_CHECK_PROTO_H; //the station has been compressed
+				}
+				else if(0 == (curchar &0x01))
+				{
+					rc->proto = curchar<<8;
+					rc->state = EN_CHECK_PROTO_L; //the station and ui has been compressed
+				}
+				else
+				{
+					rc->proto = curchar;
+					rc->state = EN_CHECK_CDR_CODE;
+				}
 				break;
-			}
-			else
-			{
-				//continue to decode the frame
-			}
-		}
-	} /* while (l-- > 0), all bytes processed */
-	lendone = (u16)(str -s);
-	return lendone;
-}
-static void __PppInput(tagPppCtrl *ppp,u8 *s,u16 l)
-{
-	u8              curchar;
-	tagPppRcvCtrl *rxctrl;
-	u16             lendone;
-
-	rxctrl = &ppp->rxctrl;
-	while (l > 0)
-	{
-		if(rxctrl->stat == EN_PPPOS_RX_CPROTO)
-		{
-			//let the proto do the decode
-			lendone = __ProtoRcv(ppp,s,l);  //let the proto do the left
-			if(lendone != l)
-			{
-				s += lendone;
-				l -= lendone;
-				//do another
-				__RcvEngineReset(rxctrl);
-			}
-		}
-		else
-		{
-			curchar = *s++;
-			l--;
-			if(curchar == PPP_ESCAPE) //it is a transform char
-			{
-				rxctrl->inescape = 1;  //record the transform state
-			}
-			else
-			{
-				if ((rxctrl->inescape)&&(curchar != PPP_FLAG)) //clear the transform state and transform the char
+			case EN_CHECK_CTRL:
+				if(curchar == PPP_UI)
 				{
-					rxctrl->inescape = 0;
-					curchar ^= PPP_TRANS;
+					rc->state = EN_CHECK_PROTO_H; //the station has been compressed
 				}
-				//call the machine state to do the decode
-				switch(rxctrl->stat)
+				else if(0 == (curchar &0x01))
 				{
-					case EN_PPPOS_RX_DROPS:
-						if(curchar== PPP_FLAG)
-						{
-							rxctrl->stat = EN_PPPOS_RX_START; //find a start flag
-						}
-						break;
-					case EN_PPPOS_RX_START:
-						if(curchar == PPP_FLAG)
-						{
-							//external flag,just stay in the same state
-							break;
-						}
-						else if(curchar == PPP_ALLSTATIONS)
-						{
-							rxctrl->stat = EN_PPPOS_RX_ADDRESS;
-							rxctrl->fcs = PPP_FCS(rxctrl->fcs, curchar);
-							break;
-						}
-					case EN_PPPOS_RX_ADDRESS:
-						if(curchar == PPP_UI)
-						{
-							rxctrl->stat = EN_PPPOS_RX_CONTROL;
-							rxctrl->fcs = PPP_FCS(rxctrl->fcs, curchar);
-							break;
-						}
-					case EN_PPPOS_RX_CONTROL:
-						if(0 ==(curchar&0x01))
-						{
-							rxctrl->stat = EN_PPPOS_RX_P1;
-							rxctrl->protocol = curchar<<8;
-							rxctrl->fcs = PPP_FCS(rxctrl->fcs, curchar);
-							break;
-						}
-					case EN_PPPOS_RX_P1:
-						rxctrl->protocol |= curchar;
-						rxctrl->fcs = PPP_FCS(rxctrl->fcs, curchar);
-						//find which proto it should goto
-						if((rxctrl->protocol == PPP_LCP)||\
-								(rxctrl->protocol == PPP_PAP)||\
-								(rxctrl->protocol == PPP_CHAP)||\
-								(rxctrl->protocol == PPP_IP)||\
-								(rxctrl->protocol == PPP_IPCP))
-						{
-							rxctrl->stat = EN_PPPOS_RX_CPROTO;
-						}
-						else
-						{
-							//can't find the proto, then do the proreject--TODO
-							//and goto the drop stat
-							__RcvEngineReset(rxctrl);
-						}
-						break;
-					default:
-						__RcvEngineReset(rxctrl);
-						break;
+					rc->proto = curchar<<8;
+					rc->state = EN_CHECK_PROTO_L; //the station and ui has been compressed
 				}
-			}
-		}
-	}
+				else
+				{
+					rc->proto = curchar;
+					rc->state = EN_CHECK_CDR_CODE;
+				}
+				break;
+			case EN_CHECK_PROTO_H:
+				rc->proto = curchar<<8;
+				rc->state = EN_CHECK_PROTO_L; //the station and ui has been compressed
+				break;
+			case EN_CHECK_PROTO_L:
+				rc->proto |= curchar;
+				rc->state = EN_CHECK_CDR_CODE; //the station and ui has been compressed
+				break;
+			case EN_CHECK_CDR_CODE:
+				rc->chdr.code = curchar;
+				rc->state = EN_CHECK_CDR_ID;
+				rc->data[rc->datalen]= curchar;
+				rc->datalen++;
+				break;
+			case EN_CHECK_CDR_ID:
+				rc->chdr.id = curchar;
+				rc->state = EN_CHECK_LEN1;
+				rc->data[rc->datalen]= curchar;
+				rc->datalen++;
+				break;
+			case EN_CHECK_LEN1:
+				rc->chdr.len = curchar<<8;
+				rc->state = EN_CHECK_LEN2;
+				rc->data[rc->datalen]= curchar;
+				rc->datalen++;
+				break;
+			case EN_CHECK_LEN2:
+				rc->chdr.len |= curchar;
+				rc->state = EN_CHECK_DATA;
+				rc->data[rc->datalen]= curchar;
+				rc->datalen++;
+				if(rc->datalen == rc->chdr.len)
+				{
+					rc->state = EN_CHECK_FCS1; //no data following the chdr
+				}
+				if(rc->chdr.len > CN_PPP_MTU)
+				{
+					__RcReset(rc);//if big enough then do the reset
+				}
+				break;
+			case EN_CHECK_DATA:
+				rc->data[rc->datalen]= curchar;
+				rc->datalen++;
+				if(rc->datalen == rc->chdr.len)
+				{
+					rc->state = EN_CHECK_FCS1; //got all the data now
+				}
+				break;
+			case EN_CHECK_FCS1:
+				rc->state = EN_CHECK_FCS2;
+				break;//just do the fcs
+			case EN_CHECK_FCS2:
+				if(ppp->framdebug)
+				{
+					__rcframe(rc);
+				}
+				TCPIP_DEBUG_INC(ppp->num.fall);
+				if(rc->fcs == PPP_GOODFCS)
+				{
+					__FrameUpload(ppp);
+				}
+				else
+				{
+					TCPIP_DEBUG_INC(ppp->num.fcserr);
+				}
+				//we should do the reset here for another accept
+				__RcReset(rc);
+				break;
+			default:
+				break; //drops here
+		} //end for the switch
+	}//end for the while
+	return;
 }
 //-----------------------------------------------------------------------------
-//功能:this is the main receive thread function
+//功能:use this function to deal the ppp frames
 //参数:
 //返回:
 //备注:
-//作者:zhangqf@下午4:21:33/2017年1月5日
+//作者:zhangqf@下午7:14:31/2017年3月23日
 //-----------------------------------------------------------------------------
-static ptu32_t __PppRcvEngine(void)
+ptu32_t __PppTask(void)
 {
-#define CN_READ_BUF 128
-
-	u8  siobuf[CN_READ_BUF];
+#define CN_READ_BUF 64
+	u8  iobuf[CN_READ_BUF];
 	int len;
-	tagPppCtrl *ppp;
+	tagPppCtrl  *ppp;
 	Djy_GetEventPara((ptu32_t *)&ppp,NULL);
-	if(NULL != ppp)
+	if(NULL == ppp)
 	{
-		//do the receive state reset
-		__RcvEngineReset(&ppp->rxctrl);
-		while(1)
+		printf("%s:para invalid\n\r",__FUNCTION__);
+		goto EXIT_PARA;
+	}
+	//we here should do the at regnet
+	while(1)
+	{
+		//here we're waiting for the at reg start command,which means
+		if(ppp->reg.regnetauto)
 		{
-			//we need the uart to echo more efficient
-			len = iodevread(ppp->sfd,siobuf,CN_READ_BUF);
+			//here we will do reset the device and do the reset
+			__PppDevReset(ppp);
+		}
+		else
+		{
+			while(ppp->reg.regnetstart == false)
+			{
+				sleep(1);
+			}
+		}
+		//use the at command to register the module
+		ppp->reg.regnetok = __RegNetUp(ppp);
+		ppp->reg.regnetstart = false;
+		if(false == ppp->reg.regnetok)
+		{
+			NetDevPostEvent(ppp->nfd,NULL,EN_NETDEVEVENT_LINKDOWN);
+			printf("%s:register 3G/4G failed\n\r",__FUNCTION__);
+			continue; //wait for another register if need
+		}
+		else
+		{
+			NetDevPostEvent(ppp->nfd,NULL,EN_NETDEVEVENT_LINKUP);
+			printf("%s:register 3G/4G success\n\r",__FUNCTION__);
+		}
+		//here we reset the machine state and do the ppp negotiation
+		__PppMsReset(ppp,EN_PPP_ESTABLISH);
+		ppp->iofd = iodevopen(ppp->iodevname);
+		if(0 == ppp->iofd)
+		{
+			printf("%s:open %s failed\n\r",__FUNCTION__,ppp->iodevname);
+			goto EXIT_OPENDEV;
+		}
+		//here we always do the receive here
+		//do the receive state reset
+		__RcReset(&ppp->rc);
+		while(ppp->ms.stat != EN_PPP_DEAD)
+		{
+			len = iodevread(ppp->iofd,iobuf,CN_READ_BUF,0);
 			if(len > 0)
 			{
-				__RcvMsgPush(siobuf,len);
-				__PppInput(ppp,siobuf,len);
+				__DecodeData(ppp,iobuf,len);
 			}
 			else
 			{
-				//do the receive reset
-				__RcvEngineReset(&ppp->rxctrl);//reset the receive state
+			    Djy_EventDelay(1*mS); //do some wait here
+			}
+			__CheckTimeout(ppp);	  //check the machine state
+		}
+		//here close the device
+		iodevclose(ppp->iofd);
+		ppp->iofd = 0;
+	}
+EXIT_OPENDEV:
+EXIT_PARA:
+	return 0;
+}
+
+
+static void pppusage(void)
+{
+	printf("usage:\n\r\
+-apn       apn\n\r\
+-debug     on/off\n\r\
+-dev       devname\n\r\
+-user      user\n\r\
+-passwd    passwd\n\r\
+-mode      start/stop\n\r\
+-help      help the uage\n\r");
+	return;
+}
+
+static bool_t pppshell(char *param)
+{
+	int argc= 10;
+	char *argv[10];
+	int i = 0;
+	tagPppCtrl *ppp;
+
+	ppp = pPppDevLst;
+	if(NULL == ppp)
+	{
+		printf("no ppp\n\r");
+		return true;
+	}
+	argc = getargs(argc-1,&argv[1],param);
+	if(argc == 0)
+	{
+		pppstat(ppp);
+	}
+	else
+	{
+		//do some set here
+		i =1;
+		argc++;
+		while(i<argc)
+		{
+			if(0 == strcmp(argv[i],"-apn"))
+			{
+				i++;
+				if(i < argc)
+				{
+					strncpy(ppp->apn,argv[i],CN_NAME_LIMIT);
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-dev"))
+			{
+				i++;
+				if(i < argc)
+				{
+					strncpy(ppp->iodevname,argv[i],CN_NAME_LIMIT);
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-user"))
+			{
+				i++;
+				if(i < argc)
+				{
+					strncpy(ppp->user,argv[i],CN_NAME_LIMIT);
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-passwd"))
+			{
+				i++;
+				if(i < argc)
+				{
+					strncpy(ppp->passwd,argv[i],CN_NAME_LIMIT);
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-passwd"))
+			{
+				i++;
+				if(i < argc)
+				{
+					strncpy(ppp->passwd,argv[i],CN_NAME_LIMIT);
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-debug"))
+			{
+				i++;
+				if(i < argc)
+				{
+					if(0 == strcmp(argv[i],"start"))
+					{
+						ppp->framdebug = true;
+					}
+					else
+					{
+						ppp->framdebug = false;
+					}
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-mode"))
+			{
+				i++;
+				if(i < argc)
+				{
+					if(0 == strcmp(argv[i],"start"))
+					{
+						ppp->reg.regnetstart = true;
+					}
+					else
+					{
+						ppp->reg.regnetstart = false;
+					}
+					i++;
+				}
+			}
+			else if(0 == strcmp(argv[i],"-help"))
+			{
+				pppusage();
+				i++;
+			}
+			else
+			{
+				i++;
 			}
 		}
 	}
-
-	return 0;
+	return true;
 }
-//usage:show the ppp state
-static void __PppStat(tagPppCtrl *ppp)
+
+//usage:use this function to start the ppp dev
+bool_t PppDevLinkStart(char *pppdevname)
 {
-	tagPppDebug *debug;
-
-	printf("MODEMINFO:\n\r");
-	printf("         :apn :%s\n\r",ppp->apn);
-	printf("         :user:%s\n\r",ppp->user);
-	printf("         :pass:%s\n\r",ppp->passwd);
-	printf("         :dev :%s\n\r",ppp->iodevname);
-	printf("         :cgmi:%s\n\r",ppp->cgmi);
-	printf("         :cgmm:%s\n\r",ppp->cgmm);
-	printf("         :cgmr:%s\n\r",ppp->cgmr);
-	printf("         :cgsn:%s\n\r",ppp->cgsn);
-
-	printf("PPP:STATE:%s\n\r",gPppStatName[ppp->stat]);
-	printf("%4s%-9s%-9s%-9s%-9s%-9s%-9s%-9s%-9s%-9s%-9s\n\r",\
-			"Type","Total","OkNum","FcsErrNum","OverNum","LcpNum","PapNum",\
-			"ChapNum","IpcpNum","IpNum","Unknown");
-	debug = &ppp->rxinfo;
-	printf("%4s%08x %08x %08x %08x %08x %08x %08x %08x %08x %08x\n\r",\
-			"Rcv:",debug->numtotal,debug->numok,debug->numfcserr,debug->numoverlap,\
-			debug->numlcp,debug->numpap,debug->numchap,debug->numipcp,debug->numip,debug->numunknown);
-	debug = &ppp->txinfo;
-	printf("%4s%08x %08x %08x %08x %08x %08x %08x %08x %08x %08x\n\r",\
-			"Snd:",debug->numtotal,debug->numok,debug->numfcserr,debug->numoverlap,\
-			debug->numlcp,debug->numpap,debug->numchap,debug->numipcp,debug->numip,debug->numunknown);
+	tagPppCtrl *ppp;
+	ppp = __PppGet(pppdevname);
+	if(NULL != ppp)
+	{
+		ppp->reg.regnetstart = true;
+	}
+	return true;
 }
-//usage:use this function do the shell interface
-static bool_t __PppStatShell(char *param)
+//usage:use this function to stop the ppp dev
+bool_t PppDevLinkStop(char *pppdevname)
 {
-	int argc = 4;
-	const char *argv[4];
+	tagPppCtrl *ppp;
+	ppp = __PppGet(pppdevname);
+	if(NULL != ppp)
+	{
+		ppp->reg.regnetstart = false;
+	}
+	return true;
+}
+//usage:use this function to check if the ppp dial is ok or not
+//      this function is a block function here
+bool_t PppDevLinkIsOk(char *pppdevname)
+{
+	tagPppCtrl *ppp;
+	bool_t result = false;
+	ppp = __PppGet(pppdevname);
+	if((NULL != ppp)&&(ppp->ms.stat == EN_PPP_NETWORK))
+	{
+		result = true;
+	}
+	return result;
+}
+//usage:use this function to reset the ppp dev,as it create state
+bool_t PppDevLinkRst(char *pppdevname)
+{
+	//we will do another  register and  ppp negotiation
+	tagPppCtrl *ppp;
+	ppp = __PppGet(pppdevname);
+	if(NULL != ppp)
+	{
+		ppp->reg.regnetstart = false;
+		ppp->ms.stat = EN_PPP_DEAD;
+		//do the reset here
+		__PppDevReset(ppp);
+	}
+	return true;
+}
+//usage:use this function to set the ppp auto register and auto negotiation
+bool_t PppDevLinkAuto(char *pppdevname,bool_t mode)
+{
+	//we will do another  register and  ppp negotiation
+	tagPppCtrl *ppp;
+	ppp = __PppGet(pppdevname);
+	if(NULL != ppp)
+	{
+		ppp->reg.regnetauto = mode;
+		//do the reset here
+	}
+	return true;
+}
+
+bool_t PppDevLinkAutoShell(char *param)
+{
+	bool_t result = false;
+	//we will do another  register and  ppp negotiation
+	int argc=2;
+	char *argv[2];
 	string2arg(&argc,argv,param);
-	if(argc > 0)
+	if(argc == 2)
 	{
-
+		if(strcmp(argv[1],"auto"))
+		{
+			PppDevLinkAuto(argv[0],true);
+		}
+		else
+		{
+			PppDevLinkAuto(argv[0],false);
+		}
+		result = true;
 	}
 	else
 	{
-		//show the ppp mode here
-		__PppStat(&gPppCtrl);
+		result = false;
 	}
-	return true;
-}
-//usage:do the at command in the shell mode
-static bool_t __AtCmdShell(char *param)
-{
-	u8  buf[CN_AT_LEN];
-
-	if(__AtCmd(&gPppCtrl,param,buf,CN_AT_LEN,NULL,0)&&\
-			(strstr(buf,"OK")||strstr(buf,"ok")))
-	{
-		printf("AT:%s:OK\n\r",param);
-	}
-	else
-	{
-		printf("AT:%s:FAILED\n\r",param);
-	}
-	return true;
-}
-//use the at command to change to data mode
-static bool_t __DialUpShell(char *param)
-{
-	bool_t result;
-	result = __DialUp(&gPppCtrl);
 	return result;
 }
 
-//make the data mode to the at command mode
-static bool_t __DialEndShell(char *param)
-{
-	gPppCtrl.stat = EN_PPP_TERMINATE;
-	gPppCtrl.mstimeout.timedead = 1;
-	return true;
-}
-//do the at debug
-static bool_t __AtDebugShell(char *param)
-{
-	gPppCtrl.stat = EN_PPP_ATDEBUG;
-	__LcpSendTerminateReq(&gPppCtrl);
-	return true;
-}
-//do the data mode
-static bool_t __DialDebugShell(char *param)
-{
-	gPppCtrl.stat = EN_PPP_DEAD;
-	return true;
-}
-
-//usage:use this function to set the debug mode
-static bool_t  __PppFrameDebugMode(char *param)
-{
-	int level;
-	level = strtol(param,NULL,0);
-	if(level)
-	{
-		gPppFrameDebug = true;
-	}
-	else
-	{
-		gPppFrameDebug = false;
-	}
-	return true;
-}
-//usage:this function used for the modem reset
-static bool_t __ModemReset(char *param)
-{
-	if(NULL!= gPppCtrl.modemreset)
-	{
-		gPppCtrl.modemreset();
-	}
-	return true;
-}
-
-extern bool_t IoDevDebug(char *param);
 //usage:this is the ppp cmd for the os shell
 struct ShellCmdTab  gPppDebug[] =
 {
-    {
-        "iocmd",
-		__AtCmdShell,
-        "usage:iocmd+ATCMD",
-        "usage:iocmd+ATCMD",
-    },
-    {
-        "pppdebug",
-		__PppFrameDebugMode,
-        "usage:pppdebug",
-        "usage:pppdebug",
-    },
-    {
-        "pppstate",
-		__PppStatShell,
-        "usage:pppstat",
-        "usage:pppstat",
-    },
-    {
-        "dial",
-		__DialUpShell,
-        "usage:dialup",
-        "usage:dialup",
-    },
-    {
-        "dialend",
-		__DialEndShell,
-        "usage:dialend",
-        "usage:dialend",
-    },
-    {
-        "atmode",
-		__AtDebugShell,
-        "usage:atmode",
-        "usage:atmode",
-    },
-    {
-        "dialmode",
-		__DialDebugShell,
-        "usage:dialmode",
-        "usage:dialmode",
-    },
-    {
-        "iodebug",
-		IoDevDebug,
-        "usage:iodebug+type+mode",
-        "usage:iodebug+type+mode",
-    },
-    {
-        "modemreset",
-		__ModemReset,
-        "usage:modemreset",
-        "usage:modemreset",
-    }
+	{
+		"ppp",
+		pppshell,
+		"usage:ppp [options/-help for the usage help]",
+		"usage:ppp [options/-help for the usage help]",
+	},
+	{
+		"pppreset",
+		PppDevLinkRst,
+		"usage:pppreset devname",
+		"usage:pppreset devname",
+	},
+	{
+		"pppstart",
+		PppDevLinkStart,
+		"usage:pppstart devname",
+		"usage:pppstart devname",
+	},
+	{
+		"pppstop",
+		PppDevLinkStop,
+		"usage:pppstop devname",
+		"usage:pppstop devname",
+	},
+	{
+		"pppmode",
+		PppDevLinkAutoShell,
+		"usage:pppmode auto/manual",
+		"usage:pppmode auto/manual",
+	}
+
 };
 #define CN_PPPDEBUG_NUM  ((sizeof(gPppDebug))/(sizeof(struct ShellCmdTab)))
 static struct ShellCmdRsc gPppDebugCmdRsc[CN_PPPDEBUG_NUM];
@@ -2564,73 +2244,131 @@ static struct ShellCmdRsc gPppDebugCmdRsc[CN_PPPDEBUG_NUM];
 //备注:
 //作者:zhangqf@下午4:06:57/2017年1月5日
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_Ppp(const char *devname,const char *user,const char *passwd,const char *apn,bool_t (*fnModemReset)(void))
+//usage:this is the new version to add the down and up event here
+//the downhook is used to notify the user that the ppp
+//first we should do install the ppp mode.
+static u16  gPppEvttID = CN_EVTT_ID_INVALID;
+static u16  gPppNum = 0;
+bool_t PppInit(void)
 {
-	tagPppCtrl  *ppp;
+	bool_t result = false;
+	//initialize the at and io modem
+    extern bool_t PppIoInit(ptu32_t para);
+    PppIoInit(0);
+    extern bool_t PppAtInit(ptu32_t para);
+    PppAtInit(0);
 
-	//initialize the message queue
-	memset(&gPppMsgQ,0,sizeof(gPppMsgQ));
-	gPppMsgQ.mutex = mutex_init(NULL);
-	if(NULL == gPppMsgQ.mutex)
+    gPppEvttID = Djy_EvttRegist(EN_INDEPENDENCE, gPppTaskPrior, 0, gPppDevLimit,\
+    		        __PppTask,NULL, gPppStackSize,(char *)pPppEvttName);
+    if(gPppEvttID == CN_EVENT_ID_INVALID)
+    {
+    	return result;
+    }
+	//install the debug shell for the system
+	result = Sh_InstallCmd(gPppDebug,gPppDebugCmdRsc,CN_PPPDEBUG_NUM);
+    return result;
+}
+//add the device to the task list
+static bool_t __PppAddTask(tagPppCtrl  *ppp)
+{
+	bool_t result = false;
+	u16 eventID;
+
+	if((NULL != ppp)&&(CN_EVTT_ID_INVALID != gPppEvttID))
 	{
-		goto EXIT_MSGBOX_MUTEX;
+		eventID = Djy_EventPop(gPppEvttID, NULL, 0, (ptu32_t)ppp, 0, 0);
+		if(CN_EVENT_ID_INVALID != eventID)
+		{
+			ppp->nxt = pPppDevLst;
+			pPppDevLst = ppp;
+			gPppNum++;
+			result = true;
+		}
 	}
-	gPppMsgQ.sync = semp_init();
-	if(NULL == gPppMsgQ.sync)
+	return result;
+}
+
+//usage:the user call this function to create a ppp device
+bool_t PppDevAdd(char *netdevname,char *iodevname,const char *user,const char *passwd,const char *apn,\
+		         bool_t (*fnModemReset)(void),bool_t (*fnModemAtregnet)(char *devname,char *apn),\
+				 fnNetDevEventHook eventhook)
+{
+	bool_t result = false;
+	tagPppCtrl  *ppp;
+	//malloc a ppp device rsc
+	ppp = malloc(sizeof(tagPppCtrl));
+	if(NULL == ppp)
 	{
-		goto EXIT_MSGBOX_SYNC;
+		printf("%s:Mem Err\n\r",__FUNCTION__);
+		goto EXIT_PPPMEM;
 	}
-	//make the ppp control block and initialize it
-	ppp = &gPppCtrl;  //now make a static one
-	memset((void *)ppp,0,sizeof(tagPppCtrl));
-	ppp->rxctrl.rxbuflen = CN_PPPOS_RXTXLEN;   //receive buffer
-	ppp->txctrl.buflen = CN_PPPOS_RXTXLEN;     //send buffer
-	ppp->txctrl.mutex = mutex_init(NULL);
-	if(NULL == ppp->txctrl.mutex)
+	memset(ppp,0,sizeof(tagPppCtrl));
+	ppp->sc.buflen = CN_PPP_BUFLEN;     //send buffer
+	ppp->sc.mutex = mutex_init(NULL);
+	if(NULL == ppp->sc.mutex)
 	{
+		printf("%s:mutex Err\n\r",__FUNCTION__);
 		goto EXIT_TXBUF_MUTEX;
 	}
-	__PppMsReset(ppp,EN_PPP_DEAD);
-	strncpy(ppp->apn,apn,CN_NAME_LIMIT);
-	strncpy(ppp->user,user,CN_NAME_LIMIT);
-	strncpy(ppp->passwd,passwd,CN_NAME_LIMIT);
-	strncpy(ppp->iodevname,devname,CN_NAME_LIMIT);
-	snprintf(ppp->rcvtaskname,CN_NAME_LIMIT,"%s%s","ppprcv_",devname);
-	snprintf(ppp->dealtaskname,CN_NAME_LIMIT,"%s%s","pppdeal_",devname);
-
-	ppp->modemreset = fnModemReset;
-	//now open the serial device
-	ppp->sfd = iodevopen(ppp->iodevname);
-	if(0  == ppp->sfd)
+	//initialize the ppp control block and  add it to the ppp task
+	if(NULL!=apn)
 	{
-		goto EXIT_SIO_OPEN;
+		strncpy(ppp->apn,apn,CN_NAME_LIMIT);
 	}
-	//create the two main task
-	taskcreate(ppp->dealtaskname,0x800,19,__PppDealEngine,(ptu32_t)&gPppCtrl);
-	taskcreate(ppp->rcvtaskname,0x800,20,__PppRcvEngine,(ptu32_t)&gPppCtrl);
-	ppp->nfd=__PppNetDevAdd((ptu32_t)ppp);
-	//debug.for init the rcv hook
-	gRcvHook.mutex = mutex_init(NULL);
-	gRcvHook.semp = semp_init();
-	gRcvHook.buf = NULL;
-	gRcvHook.buflen = 0;
-	gRcvHook.datalen = 0;
-	//install the debug shell for the system
-	Sh_InstallCmd(gPppDebug,gPppDebugCmdRsc,CN_PPPDEBUG_NUM);
-	printf("%s:success!\n\r",__FUNCTION__);
-	return true;
+	if(NULL != user)
+	{
+		strncpy(ppp->user,user,CN_NAME_LIMIT);
+	}
+	if(NULL != passwd)
+	{
+		strncpy(ppp->passwd,passwd,CN_NAME_LIMIT);
+	}
+	if(NULL != iodevname)
+	{
+		strncpy(ppp->iodevname,iodevname,CN_NAME_LIMIT);
+	}
+	if(NULL != netdevname)
+	{
+		strncpy(ppp->netdevname,netdevname,CN_NAME_LIMIT);
+	}
+	ppp->reg.modemreset = fnModemReset;
+	ppp->reg.regnet = fnModemAtregnet;
+	ppp->reg.regnetauto = false;
+	ppp->reg.regnetstart = false;
+	//initialize the ppp internal member
+	__PppMsReset(ppp,EN_PPP_DEAD);
+	//add a netdevice to the stack
+	ppp->nfd=__PppNetDevAdd(ppp);
+	if(NULL == (void *)ppp->nfd)
+	{
+		printf("%s:NETDEV Err\n\r",__FUNCTION__);
+		goto EXIT_NETDEV;
+	}
+	//add the event hook here
+	if(NULL != eventhook)
+	{
+		NetDevRegisterEventHook(ppp->nfd,NULL,eventhook);
+	}
+	//add the device to the task list
+	result = __PppAddTask(ppp);
+	if(false == result)
+	{
+		printf("%s:Task Err\n\r",__FUNCTION__);
+		goto EXIT_PPPTASK;
+	}
+	return result;
 
-EXIT_SIO_OPEN:
-	mutex_del(ppp->txctrl.mutex);
-	ppp->txctrl.mutex = NULL;
+EXIT_PPPTASK:
+EXIT_NETDEV:
+	mutex_del(ppp->sc.mutex);
 EXIT_TXBUF_MUTEX:
-	semp_del(gPppMsgQ.sync);
-	gPppMsgQ.sync = NULL;
-EXIT_MSGBOX_SYNC:
-	mutex_del(gPppMsgQ.mutex);
-	gPppMsgQ.mutex = NULL;
-EXIT_MSGBOX_MUTEX:
-	printf("%s:err!\n\r",__FUNCTION__);
+	free(ppp);
+EXIT_PPPMEM:
 	return false;
 }
+
+
+
+
+
 

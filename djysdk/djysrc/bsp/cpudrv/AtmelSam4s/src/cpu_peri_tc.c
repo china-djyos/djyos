@@ -657,7 +657,7 @@ bool_t __AtTimer_Ctrl(ptu32_t timerhandle, \
 // 返回值  :
 // 说明    :
 // =============================================================================
-void ModuleInstall_Timer(void)
+void ModuleInstall_HardTimer(void)
 {
     struct TimerChip  LPCtimer;
     u32 temp,temp1;

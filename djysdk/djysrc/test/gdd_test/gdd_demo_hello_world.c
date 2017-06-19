@@ -57,15 +57,11 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
 //窗口关闭消息处理函数
 static ptu32_t HmiClose(struct WindowMsg *pMsg)
 {
-    HWND hwnd;
-    hwnd =pMsg->hwnd;
-
     printf("win2_close.\r\n");
-    PostQuitMessage(hwnd,0);
     return true;
 }
 //消息处理函数表
-static struct MsgProcTable s_gHmiWordTable[] =
+static struct MsgProcTable s_gHelloMsgTable[] =
 {
     {MSG_CREATE,HmiCreate},         //定时器消息
     {MSG_NOTIFY,HmiNotify},         //子控件发来的通知消息
@@ -73,33 +69,14 @@ static struct MsgProcTable s_gHmiWordTable[] =
     {MSG_CLOSE,HmiClose}      //窗口关闭消息
 };
 
-static struct MsgTableLink  s_gHmiMsgLink;
+static struct MsgTableLink  s_gHelloDemoMsgLink;
 
 void Hello_Word(void)
 {
-    HWND hwnd;
-    struct WindowMsg msg;
-    RECT rc;
-
-    GetClientRect(GetDesktopWindow(),&rc);
-    InflateRect(&rc,-7,-7);
-    //创建主窗口
-    s_gHmiMsgLink.LinkNext = NULL;
-    s_gHmiMsgLink.MsgNum = sizeof(s_gHmiWordTable) / sizeof(struct MsgProcTable);
-    s_gHmiMsgLink.myTable = (struct MsgProcTable *)&s_gHmiWordTable;
-    hwnd = CreateWindow("Hello World",      //窗口标题名。
-                            WS_MAIN_WINDOW,     //窗口风格：主窗口。
-							rc.left,rc.top,RectW(&rc),RectH(&rc),      //窗口的位置及大小。
-                            NULL,0x0000, CN_WINBUF_PARENT,NULL,&s_gHmiMsgLink); //窗口的父窗口，ID,附加数据。);
-    SetFocusWindow(hwnd);
-      //显示窗口
-    SetWindowShow(hwnd);
-
-    while(GetMessage(&msg,hwnd))
-    {
-        DispatchMessage(&msg);
-    }
-    printf("win2_exit hello world.\r\n");
+    s_gHelloDemoMsgLink.MsgNum = sizeof(s_gHelloMsgTable) / sizeof(struct MsgProcTable);
+    s_gHelloDemoMsgLink.myTable = (struct MsgProcTable *)&s_gHelloMsgTable;
+    GDD_CreateGuiApp("hello World", &s_gHelloDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_WaitGuiAppExit("hello World");
 }
 
 

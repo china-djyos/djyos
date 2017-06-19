@@ -50,8 +50,6 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-
-
 #include "string.h"
 #include "djyos.h"
 #include "cpu_peri.h"
@@ -525,6 +523,7 @@ static bool_t __SPI_TxRxPoll(tagSpiReg *Reg,u8 *srcAddr,u32 wrSize,
         {
           __SPI_Write(Reg,0);
         }
+
         if((destAddr) && (i>=recvoff))
         {
             destAddr[i-recvoff] = __SPI_Read(Reg);
@@ -757,6 +756,8 @@ bool_t SPI_Initialize(u8 port)
         SPI_Config.SPIBuf           = (u8*)&s_Spi5_Buf;
         IntLine = CN_INT_LINE_SPI5;
         pSpiCB = &s_Spi5_CB;
+//        tg_SpiReg[CN_SPI5]->CR1 |= SPI_CR1_CPHA;   //TODO  临时添加
+//        tg_SpiReg[CN_SPI5]->CR1 &= ~SPI_CR1_CPOL;
         break;
     case CN_SPI6:
         SPI_Config.BusName          = "SPI6";
@@ -793,8 +794,6 @@ bool_t SPI_Initialize(u8 port)
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_SPI(u8 Port)
 {
-    if(CN_SPI1 != Port) // 板件只支持到SPI1
-        return (-1);
     if(0 == SPI_Initialize(Port))
         return (-1);
     return (0);

@@ -118,39 +118,86 @@ typedef enum
 	EN_IPV_6 =6,
 }enum_ipv_t;
 
-//this is for the
-#define SOMAXCONN       100
-
-//this is the domain family
-#define AF_UNSPEC		(0) /* unspecified */
-#define AF_LOCAL		(1) /* local to host (pipes, portals) */
-#define AF_UNIX			AF_LOCAL /* backward compatibility */
-#define AF_INET			(2) /* internetwork: UDP, TCP, etc. */
+/* Supported address families. */
+#define AF_UNSPEC       0
+#define AF_UNIX         1       /* Unix domain sockets          */
+#define AF_LOCAL        1       /* POSIX name for AF_UNIX       */
+#define AF_INET         2       /* Internet IP Protocol         */
+#define AF_AX25         3       /* Amateur Radio AX.25          */
+#define AF_IPX          4       /* Novell IPX                   */
+#define AF_APPLETALK    5       /* AppleTalk DDP                */
+#define AF_NETROM       6       /* Amateur Radio NET/ROM        */
+#define AF_BRIDGE       7       /* Multiprotocol bridge         */
+#define AF_ATMPVC       8       /* ATM PVCs                     */
+#define AF_X25          9       /* Reserved for X.25 project    */
+#define AF_INET6        10      /* IP version 6                 */
+#define AF_ROSE         11      /* Amateur Radio X.25 PLP       */
+#define AF_DECnet       12      /* Reserved for DECnet project  */
+#define AF_NETBEUI      13      /* Reserved for 802.2LLC project*/
+#define AF_SECURITY     14      /* Security callback pseudo AF */
+#define AF_KEY   15      /* PF_KEY key management API */
+#define AF_NETLINK      16
+#define AF_ROUTE        AF_NETLINK /* Alias to emulate 4.4BSD */
+#define AF_PACKET       17      /* Packet family                */
+#define AF_ASH          18      /* Ash                          */
+#define AF_ECONET       19      /* Acorn Econet                 */
+#define AF_ATMSVC       20      /* ATM SVCs                     */
+#define AF_SNA          22      /* Linux SNA Project (nutters!) */
+#define AF_IRDA         23      /* IRDA sockets                 */
+#define AF_MAX          32      /* For now.. */
+/* Protocol families, same as address families. */
+#define PF_UNSPEC       AF_UNSPEC
+#define PF_UNIX         AF_UNIX
+#define PF_LOCAL        AF_LOCAL
 #define PF_INET         AF_INET
-#define AF_IMPLINK		(3) /* arpanet imp addresses */
-#define AF_PUP			(4) /* pup protocols: e.g. BSP */
-#define AF_CHAOS        (5) /* mit CHAOS protocols */
-#define AF_NS			(6) /* XEROX NS protocols */
-#define AF_ISO			(7) /* ISO protocols */
-#define AF_OSI			AF_ISO
-#define AF_ECMA			(8) /* european computer manufacturers */
-#define AF_DATAKIT		(9) /* datakit protocols */
-#define AF_CCITT        (10) /* CCITT protocols, X.25 etc */
-#define AF_SNA			(11) /* IBM SNA */
-#define AF_DECnet		(12) /* DECnet */
-#define AF_DLI			(13) /* DEC Direct data link interface */
-#define AF_LAT			(14) /* LAT */
-#define AF_HYLINK		(15) /* NSC Hyperchannel */
-#define AF_APPLETALK    (16) /* Apple Talk */
-#define AF_ROUTE        (17) /* Internal Routing Protocol */
-#define AF_LINK			(18) /* Link layer interface */
-#define pseudo_AF_XTP	(19) /* eXpress Transfer Protocol (no AF) */
-#define AF_COIP			(20) /* connection-oriented IP, aka ST II */
-#define AF_CNT			(21) /* Computer Network Technology */
-#define pseudo_AF_RTIP	(22) /* Help Identify RTIP packets */
-#define AF_IPX			(23) /* Novell Internet Protocol */
-#define AF_SIP			(24) /* Simple Internet Protocol */
-#define pseudo_AF_PIP	(25) /* Help Identify PIP packets */
+#define PF_AX25         AF_AX25
+#define PF_IPX          AF_IPX
+#define PF_APPLETALK    AF_APPLETALK
+#define PF_NETROM       AF_NETROM
+#define PF_BRIDGE       AF_BRIDGE
+#define PF_ATMPVC       AF_ATMPVC
+#define PF_X25          AF_X25
+#define PF_INET6        AF_INET6
+#define PF_ROSE         AF_ROSE
+#define PF_DECnet       AF_DECnet
+#define PF_NETBEUI      AF_NETBEUI
+#define PF_SECURITY     AF_SECURITY
+#define PF_KEY          AF_KEY
+#define PF_NETLINK      AF_NETLINK
+#define PF_ROUTE        AF_ROUTE
+#define PF_PACKET       AF_PACKET
+#define PF_ASH          AF_ASH
+#define PF_ECONET       AF_ECONET
+#define PF_ATMSVC       AF_ATMSVC
+#define PF_SNA          AF_SNA
+#define PF_IRDA         AF_IRDA
+#define PF_MAX          AF_MAX
+/* Maximum queue length specifiable by listen.  */
+#define SOMAXCONN       128
+/* Flags we can use with send/ and recv.
+   Added those for 1003.1g not all are supported yet
+ */
+
+#define MSG_OOB         1
+#define MSG_PEEK        2
+#define MSG_DONTROUTE   4
+#define MSG_TRYHARD     4       /* Synonym for MSG_DONTROUTE for DECnet */
+#define MSG_CTRUNC      8
+#define MSG_PROXY       0x10    /* Supply or ask second address. */
+#define MSG_TRUNC       0x20
+#define MSG_DONTWAIT    0x40    /* Nonblocking io                */
+#define MSG_EOR         0x80    /* End of record */
+#define MSG_WAITALL     0x100   /* Wait for a full request */
+#define MSG_FIN         0x200
+#define MSG_SYN         0x400
+#define MSG_URG         0x800
+#define MSG_RST         0x1000
+#define MSG_ERRQUEUE    0x2000
+#define MSG_NOSIGNAL    0x4000
+#define MSG_CTLIGNORE   0x80000000
+#define MSG_EOF         MSG_FIN
+#define MSG_CTLFLAGS    (MSG_OOB|MSG_URG|MSG_FIN|MSG_SYN|MSG_RST)
+
 
 // type
 #define SOCK_STREAM		1        // 可靠的双向字节流服务 - TCP
@@ -178,25 +225,63 @@ typedef enum
 #define CN_INVALID_FD  -1
 
 
-//BSD标准的网络地址结构
-//内核使用的sockaddr结构
-struct sockaddr
-{
-    u16 sa_family;    // 地址族，AF_INET/AF_ISO/AP_UNIX或其它AF_xxx
-    char sa_data[14]; // 14 字节的协议地址 ，保存该socket的端口号和IP地址
+//bsd socket type and addr type defines
+typedef uint16_t sa_family_t;
+typedef uint16_t in_port_t;
+typedef uint32_t in_addr_t;
+
+struct sockaddr {
+      sa_family_t sa_family;       /* Address family */
+      char sa_data[14];            /* protocol-specific address */
 };
-struct in_addr
-{
-    unsigned long s_addr;
+struct in_addr  {
+    in_addr_t s_addr;                    /* IPv4 address */
 };
-// 为了更便于使用sockaddr，这里自定义一个socketaddr结构，用户程序使用本结构体设置参数
-struct sockaddr_in
-{
-    u16             sin_family;    // 地址族，AF_INET/AF_ISO/AP_UNIX或其它AF_xxx
-    u16             sin_port;      // 端口地址，网络字节序
-    struct in_addr  sin_addr;      // IP地址
-    u8              sin_zero[8];   // 填充字节
+struct sockaddr_in {
+     sa_family_t sin_family;             /* AF_INET */
+     in_port_t sin_port;                 /* Port number.  */
+     struct in_addr sin_addr;            /* Internet address.  */
+
+     /* Pad to size of `struct sockaddr'.  */
+     unsigned char sin_zero[8];
 };
+struct in6_addr {
+    union {
+        uint8_t u6_addr8[16];
+        uint16_t u6_addr16[8];
+        uint32_t u6_addr32[4];
+    } in6_u;
+
+    #define s6_addr                 in6_u.u6_addr8
+    #define s6_addr16               in6_u.u6_addr16
+    #define s6_addr32               in6_u.u6_addr32
+};
+
+struct sockaddr_in6 {
+    sa_family_t sin6_family;    /* AF_INET6 */
+    in_port_t sin6_port;        /* Transport layer port # */
+    uint32_t sin6_flowinfo;     /* IPv6 flow information */
+    struct in6_addr sin6_addr;  /* IPv6 address */
+    uint32_t sin6_scope_id;     /* IPv6 scope-id */
+};
+/* Structure large enough to hold any socket address
+(with the historical exception of AF_UNIX). 128 bytes reserved.  */
+
+#if ULONG_MAX > 0xffffffff
+# define __ss_aligntype __uint64_t
+#else
+# define __ss_aligntype __uint32_t
+#endif
+#define _SS_SIZE        128
+#define _SS_PADSIZE     (_SS_SIZE - (2 * sizeof (__ss_aligntype)))
+
+struct sockaddr_storage
+{
+    sa_family_t ss_family;      /* Address family */
+    __ss_aligntype __ss_align;  /* Force desired alignment.  */
+    char __ss_padding[_SS_PADSIZE];
+};
+
 
 //SOL_SOCKET
 enum _EN_SOL_SOCKET_OPTNAME
@@ -281,6 +366,7 @@ typedef struct
 }tagSockElementV4;
 
 #define CN_IPV6_LEN_WORD    4
+#define INET6_ADDRSTRLEN    46
 typedef struct
 {
     u32 iplocal[CN_IPV6_LEN_WORD];
@@ -491,42 +577,6 @@ enum __FCNTL_CMD
 extern int fcntl(int fd,int cmd,...);
 extern off_t lseek(int fd,off_t offset, int whence);
 
-//netdb.h
-/* Description of data base entry for a single host.  */
-struct hostent
-{
-	char * h_name;			/* Official name of host.  */
-	char **h_aliases;		/* Alias list.  */
-	int    h_addrtype;		/* Host address type.  */
-	int    h_length;	    /* Length of address.  */
-	char **h_addr_list;		/* List of addresses from name server.  */
-	# define	h_addr	h_addr_list[0] /* Address, for backward compatibility.*/
-};
-/* Description of data base entry for a single service.  */
-struct servent
-{
-	char      *s_name;			/* Official service name.  */
-	char     **s_aliases;		/* Alias list.  */
-	int        s_port;			/* Port number.  */
-	char      *s_proto;		    /* Protocol to use.  */
-};
-
-/* Description of data base entry for a single service.  */
-struct protoent
-{
-	char    *p_name;			/* Official protocol name.  */
-	char   **p_aliases;		    /* Alias list.  */
-	int      p_proto;			/* Protocol number.  */
-};
-
-struct servent *getservbyname(const char *name, const char *proto);
-u32 inet_addr(const char *addr);
-char *inet_ntoa(struct in_addr addr);
-int inet_aton(const char *string,struct in_addr *addr);
-struct hostent *gethostbyname(const char *name);
-int  gethostname(char *name, int len);
-const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
-
 //select.h
 #include <sys/time.h>
 #define CN_SELECT_MAXNUM      FD_SETSIZE
@@ -573,15 +623,6 @@ char* Mac2string(u8 *mac);
 #define TCPIP_DEBUG_DEC(x)     do{x--;}while(0)
 
 #define CN_TCPIP_NAMELEN      32    //IN THE TCP IP STACK ,THIS IS THE NAME LEN LIMIT
-
-typedef enum
-{
-	EN_NETDEV_FRAME_NOPKG = 0,
-	EN_NETDEV_FRAME_BROAD,
-	EN_NETDEV_FRAME_POINT,
-	EN_NETDEV_FRAME_MULTI,
-	EN_NETDEV_FRAME_LAST,
-}enNetDevFramType;
 typedef enum
 {
     EN_NETDEV_SETNOPKG = 0,      //PARA IS NOT CARE
@@ -598,6 +639,38 @@ typedef enum
 	EN_NETDEV_CMDLAST,           //which means the max command
 }enNetDevCmd;
 
+typedef enum
+{
+	EN_NETDEV_FRAME_BROAD = 0,
+	EN_NETDEV_FRAME_POINT,
+	EN_NETDEV_FRAME_MULTI,
+	EN_NETDEV_FRAME_LAST,
+}enNetDevFramType;
+
+typedef enum
+{
+	EN_NETDEV_FLOW_BROAD = EN_NETDEV_FRAME_BROAD,   //broad flow control type
+	EN_NETDEV_FLOW_POINT = EN_NETDEV_FRAME_POINT,   //multi flow control type
+	EN_NETDEV_FLOW_MULTI = EN_NETDEV_FRAME_MULTI,   //point flow control type
+	EN_NETDEV_FLOW_FRAME,                           //frame flow control type
+	EN_NETDEV_FLOW_LAST,
+}enNetDevFlowType;
+enNetDevFramType NetDevFrameType(u8 *buf,u16 len);
+//frame flow control,there are four independent counter control module,you could
+//each of them or all of them
+//****************************************************************************//
+//devname :the net device name
+//type    :the frame type, which defines by enNetDevFlowType
+//uflimit :the upper limit of the frame
+//lflimit :the lower limit of the frame
+//measuretime:during the time, if the flow is over, then triggle the corresponding event
+//enable :1 true while 0 false
+bool_t NetDevFlowSet(const char *devname,enNetDevFlowType type,\
+		             u32 llimit,u32 ulimit,u32 period,int enable);
+//handle:the device handle,returned by NetDevInstall
+//type  :the frame type has received
+bool_t NetDevFlowCounter(ptu32_t handle,enNetDevFramType type);
+
 typedef enum _EN_LINK_INTERFACE_TYPE
 {
     EN_LINK_ETHERNET = 0,  //ethenet net device,ethernetII
@@ -608,10 +681,10 @@ typedef enum _EN_LINK_INTERFACE_TYPE
 
 typedef enum
 {
-	EN_LINKPROTO_IPV4 = 0x0800,
-	EN_LINKPROTO_IPV6 = 0x86dd,
-	EN_LINKPROTO_ARP = 0x0806,
-	EN_LINKPROTO_RARP = 0x8035,
+	EN_LINKPROTO_IPV4    = 0x0800,
+	EN_LINKPROTO_IPV6    = 0x86dd,
+	EN_LINKPROTO_ARP     = 0x0806,
+	EN_LINKPROTO_RARP    = 0x8035,
 	EN_LINKPROTO_RESBASE = 0x1000,
 }enLinkProto;
 
@@ -634,6 +707,29 @@ typedef struct NetDevPara
     ptu32_t                        private;  //the dev driver use this to has its owner property
     u8                             mac[CN_MACADDR_LEN];   //mac address
 }tagNetDevPara;  //we use the para to create an net device
+
+//usage:for the net device event
+//      all these event are edge-triggled
+typedef enum
+{
+	//THE OLD ONES ARE DEPRECATED
+	EN_NETDEVEVENT_LINKDOWN = 0, //which means the phy down or network cable is pullout
+	EN_NETDEVEVENT_LINKUP,       //which means the phy up or network cable has been inserted ok
+	EN_NETDEVEVENT_IPGET,        //which means has get ip from dhcp or ppp
+	EN_NETDEVEVENT_IPRELEASE,    //which means has release ip to dhcp or ppp down
+	EN_NETDEVEVENT_BROADSTORMB,  //which means a lot of broadcast frame comes in the time set
+	EN_NETDEVEVENT_BROADSTORME,  //broad storm has gone
+	EN_NETDEVEVENT_MULTISTORMB,  //which means a lot of multi frame comes in the time set
+	EN_NETDEVEVENT_MULTISTORME,  //multi storm has gone
+	EN_NETDEVEVENT_POINTSTORMB,  //which means a lot of point frame comes in the time set
+	EN_NETDEVEVENT_POINTSTORME,  //point storm has gone
+	EN_NETDEVEVENT_FLOWOVERB,    //which means flow over has come
+	EN_NETDEVEVENT_FLOWOVERE,    //which means flow over has gone
+	EN_NETDEVEVENT_FLOWLACKB,    //which means flow lack has come
+	EN_NETDEVEVENT_FLOWLACKE,    //which means flow lack has gone
+	EN_NETDEVEVENT_RESET,        //which means the dev has been reset for some reason
+	EN_NETDEVEVENT_RESERVED,     //which means nothing
+}enNetDevEvent;
 //the following we be cut in the socket.h
 ptu32_t NetDevInstall(tagNetDevPara *para);          //return net dev handle, 0 failed
 ptu32_t NetDevHandle(const char *name);
@@ -643,13 +739,21 @@ bool_t NetDevUninstall(const char *name);
 bool_t NetDevPrivate(ptu32_t handle);
 //link function that driver should use
 bool_t LinkPost(ptu32_t devhandle,tagNetPkg *pkg);
-//this is used for the net device filter
-bool_t NetDevFilterSet(const char *name,enNetDevFramType type,u32 framelimit,\
-		u32 actiontime,u32 measuretime);
-bool_t NetDevFilterEnable(const char *name,enNetDevFramType type,bool_t enable);
-bool_t NetDevFilterCounter(ptu32_t handle,enNetDevFramType type);
-bool_t NetDevFilterCheck(ptu32_t handle);
-
+//the hook function  module for the dev event
+//handle:which device has triggled the event
+//event :the message we has get
+typedef bool_t (*fnNetDevEventHook)(ptu32_t handle,enNetDevEvent event);
+//handle :the netdevice you install (returned by NetDevInstall)
+//devname:if the netdevice is NULL,then we use the devname to search the device
+//hook   :which used to deal the device message has been triggled
+bool_t NetDevRegisterEventHook(ptu32_t handle,const char *devname,fnNetDevEventHook hook);
+//handle :the netdevice you install (returned by NetDevInstall)
+//devname:if the netdevice is NULL,then we use the devname to search the device
+bool_t NetDevUnRegisterEventHook(ptu32_t handle,const char *devname);
+//handle :the netdevice you install (returned by NetDevInstall)
+//devname:if the netdevice is NULL,then we use the devname to search the device
+//event  :the message want to send to the device
+bool_t NetDevPostEvent(ptu32_t handle,const char *devname,enNetDevEvent event);
 //the user could use the following api to listen on more protocol or send specified frames
 typedef bool_t (*fnLinkProtoDealer)(ptu32_t devhandle,u16 proto,tagNetPkg *pkg);
 bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook, ptu32_t devhandle,u16 proto,const char *hookname);
@@ -685,11 +789,28 @@ bool_t RoutDelete(const char *name,enum_ipv_t ver,ipaddr_t addr);
 bool_t RoutSet(const char *name,enum_ipv_t ver,ipaddr_t ipold,void *newaddr);
 bool_t RoutSetDefault(enum_ipv_t ver,ipaddr_t ip);
 bool_t RoutDns(enum_ipv_t ver, ipaddr_t ip);
-bool_t *RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns);
+bool_t RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns);
 //this function use to alloc an ip from the dhcp dynamicly
 bool_t DhcpAddClientTask(const char *name);
 //this is the tcpip stack main entry
 ptu32_t ModuleInstall_TcpIp(ptu32_t para);
+
+//used for the multicast
+#define MULTICAST_MASK     (htonl(0xf0000000))
+#define MULTICAST_FLAG     (htonl(0xe0000000))
+#define IN_MULTICAST(x)    (MULTICAST_MASK&x==MULTICAST_FLAG?true:false)
+#define IN6_IS_ADDR_MULTICAST(x) (*(u8 *)x==0xff?true:false)
+
+
+//add the mem here for the tcpip statistics for the internal call
+bool_t tcpipmemlog(const char *name,int size, int num);
+#define CN_LOCK_SIZE      (struct MutexLCB)
+
+//some string deal functions in the tcp ip
+char* Mac2string(u8 *mac);
+bool_t string2Mac(char *str,u8 *mac);
+int getargs(int argc, char *argv[],char *string);
+
 
 #endif /* __SOCKET_H */
 

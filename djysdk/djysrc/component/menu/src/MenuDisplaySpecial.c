@@ -80,7 +80,7 @@ void DrawStateContentRightside_9cell(struct menuDisplaypara  *dispara)
    state_area.right=dispara->CurWin->right-dispara->CurWin->left;
    state_area.top=0;
    state_area.bottom=dispara->CurWin->bottom-dispara->CurWin->top;
-   GK_ApiFillRect(dispara->CurWin, &state_area, color_back,
+   GK_FillRect(dispara->CurWin, &state_area, color_back,
                   0,CN_FILLRECT_MODE_N,0);
    //标志当前的可视区
    lengthT=state_area.bottom-state_area.top;
@@ -91,9 +91,9 @@ void DrawStateContentRightside_9cell(struct menuDisplaypara  *dispara)
    state_area.top=(state_area.top)/1000;
    state_area.bottom=(numOp)*LengthE;
    state_area.bottom=(state_area.bottom)/1000;
-   GK_ApiFillRect(dispara->CurWin, &state_area, color_light,
+   GK_FillRect(dispara->CurWin, &state_area, color_light,
                   0,CN_FILLRECT_MODE_N,0);
-   GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
+   GK_SyncShow(CN_TIMEOUT_FOREVER);
    return;
 }
 // =========================================================================
@@ -120,7 +120,7 @@ void DrawStateContentRightside_pull(struct menuDisplaypara  *dispara)
 
        state_area.top=0;
        state_area.bottom=dispara->CurWin->bottom-dispara->CurWin->top;
-       GK_ApiFillRect(dispara->CurWin, &state_area, color_back,
+       GK_FillRect(dispara->CurWin, &state_area, color_back,
                       0,CN_FILLRECT_MODE_N,0);
        //标志当前的可视区
        lengthT=state_area.bottom-state_area.top;
@@ -135,9 +135,9 @@ void DrawStateContentRightside_pull(struct menuDisplaypara  *dispara)
        state_area.bottom=(numOp)*LengthE;
        state_area.bottom=(state_area.bottom)/1000;
 
-       GK_ApiFillRect(dispara->CurWin, &state_area, color_light,
+       GK_FillRect(dispara->CurWin, &state_area, color_light,
                       0,CN_FILLRECT_MODE_N,0);
-       GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
+       GK_SyncShow(CN_TIMEOUT_FOREVER);
         return;
 }
 // =========================================================================
@@ -171,7 +171,7 @@ void DrawStateContentRightside_pull(struct menuDisplaypara  *dispara)
 //
 //     state_area.top=dispara->CurWin->bottom-dispara->CurWin->top-cn_column_space;
 //     state_area.bottom=dispara->CurWin->bottom-dispara->CurWin->top;
-//        GK_ApiFillRect(dispara->CurWin, &state_area, color_back,
+//        GK_FillRect(dispara->CurWin, &state_area, color_back,
 //                       0,CN_FILLRECT_MODE_N,0);
 //     //标志当前的可视区
 //     lengthT=state_area.right-state_area.left;
@@ -185,9 +185,9 @@ void DrawStateContentRightside_pull(struct menuDisplaypara  *dispara)
 //
 //     state_area.right=(numOp)*LengthE;
 //     state_area.right=(state_area.right)/1000;
-//       GK_ApiFillRect(dispara->CurWin, &state_area, color_light,
+//       GK_FillRect(dispara->CurWin, &state_area, color_light,
 //                      0,CN_FILLRECT_MODE_N,0);
-//        GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
+//        GK_SyncShow(CN_TIMEOUT_FOREVER);
 //        return;
 //}
 // =========================================================================

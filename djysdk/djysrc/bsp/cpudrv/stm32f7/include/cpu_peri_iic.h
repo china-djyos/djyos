@@ -70,7 +70,7 @@ extern "C" {
 
 //定义总线等待超时时间
 #ifndef CONFIG_I2C_MBB_TIMEOUT
-#define CONFIG_I2C_MBB_TIMEOUT	100000
+#define CONFIG_I2C_MBB_TIMEOUT	1000
 #endif
 
 //定义读写超时时间

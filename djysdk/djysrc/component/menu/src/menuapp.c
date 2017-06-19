@@ -105,14 +105,14 @@ void start_menu(void)
 
   printf("----This menu_display show time-------\n");
   //创建祖先窗口
-  desktop = GK_ApiGetDesktop("sim_display");
+  desktop = GK_GetDesktop("sim_display");
   height=desktop->limit_bottom;
   width=desktop->limit_right;
   printf("Display:height=%d,width=%d\n",height,width);
-  result=GK_ApiCreateGkwin(desktop, &testwin, 0, 0, width, height,\
+  result=GK_CreateWin(desktop, &testwin, 0, 0, width, height,\
                              0x00202060, CN_WINBUF_BUF, "menu window", 0,0,0,0);
 
-  GK_ApiDrawText(&testwin,NULL,NULL,0,0,"Appwin",6,CN_COLOR_BLUE,0,0,CN_TIMEOUT_FOREVER);
+  GK_DrawText(&testwin,NULL,NULL,0,0,"Appwin",6,CN_COLOR_BLUE,0,0,CN_TIMEOUT_FOREVER);
   //开始测试我们的显示功能
   tempmenuitem=GetSonMenuitem(menutreenode);
   if(tempmenuitem==NULL)

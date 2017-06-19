@@ -253,6 +253,7 @@ static u8 PhyLinkConfig(u8 port)
     GMAC_MdioW(dev, PHY_BMCR, value);
 
 //    //set the fixed speed
+//    GMAC_MdioR(dev, PHY_BMCR, &value);
 //    value = PHY_SPEED_SELECT_LSB|PHY_DUPLEX_MODE;
 //    GMAC_MdioW(dev, PHY_BMCR, value);
 
@@ -679,6 +680,7 @@ ptu32_t LS88e6060Init(u16 vlan[6])
     }
 
     DevGIntSet();   //open the master interrupt
+//    printf("autoconfig!\n\r");
     DevDebugInstall();
     return 0;
 }

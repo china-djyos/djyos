@@ -82,7 +82,7 @@ static  void    __LPtoDP(HDC hdc,POINT *pt,s32 count)
     {
         case    DC_TYPE_PAINT:
         case    DC_TYPE_CLIENT:
-            GK_ApiGetArea(hdc->pGkWin, &rc);
+            GK_GetArea(hdc->pGkWin, &rc);
             while(count--)
             {
                 pt->x +=(hdc->hwnd->CliRect.left - rc.left);
@@ -133,7 +133,7 @@ u32 AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha)
 
 void    UpdateDisplay(u32 timeout)
 {
-    GK_ApiSyncShow(timeout);
+    GK_SyncShow(timeout);
 }
 
 /*============================================================================*/
@@ -466,7 +466,7 @@ void SetPixel(HDC hdc,s32 x,s32 y,u32 color)
         pt.x =x;
         pt.y =y;
         __LPtoDP(hdc,&pt,1);
-        GK_ApiSetPixel(hdc->pGkWin,pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+        GK_SetPixel(hdc->pGkWin,pt.x,pt.y,color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
         EndDraw(hdc);
     }
 }
@@ -490,7 +490,7 @@ void    DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
         pt[1].y =y1;
         __LPtoDP(hdc,pt,2);
 
-        GK_ApiLinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
     }
 }
@@ -525,7 +525,7 @@ void    DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
                  pt[1].x =x1;
                  pt[1].y =y0+2*temp*(i);
                  __LPtoDP(hdc,pt,2);
-                GK_ApiLinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+                GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                         hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             }
         }
@@ -552,7 +552,7 @@ void    DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
              pt[1].x =x0+2*temp*(i);
              pt[1].y =y1;
              __LPtoDP(hdc,pt,2);
-            GK_ApiLinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+            GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                     hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
           }
         }
@@ -580,7 +580,7 @@ void    DrawLineEx(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1,u32 color)
         pt[1].y =y1;
         __LPtoDP(hdc,pt,2);
 
-        GK_ApiLinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 color,hdc->RopCode.Rop2Mode,hdc->SyncTime);
     }
 }
@@ -605,7 +605,7 @@ void    DrawLineTo(HDC hdc,s32 x,s32 y)
 
         __LPtoDP(hdc,pt,2);
 
-        GK_ApiLinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
+        GK_LinetoIe(hdc->pGkWin,pt[0].x,pt[0].y,pt[1].x,pt[1].y,
                 hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
 
         __MoveTo(hdc,x,y,NULL);
@@ -641,7 +641,7 @@ bool_t    TextOut(HDC hdc,s32 x,s32 y,const char *text,s32 count)
 
             if(text!=NULL)
             {
-               GK_ApiDrawText(hdc->pGkWin,hdc->pFont,hdc->pCharset,
+               GK_DrawText(hdc->pGkWin,hdc->pFont,hdc->pCharset,
                                       x,y,text,count,hdc->TextColor,
                                       hdc->RopCode.Rop2Mode,hdc->SyncTime);
 
@@ -962,13 +962,13 @@ void    DrawRect(HDC hdc,const RECT *prc)
             y1 =rc.bottom-1;
 
             //Left
-            GK_ApiLinetoIe(hdc->pGkWin,x0,y0,x0,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_LinetoIe(hdc->pGkWin,x0,y0,x0,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             //Top
-            GK_ApiLinetoIe(hdc->pGkWin,x0,y0,x1,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_LinetoIe(hdc->pGkWin,x0,y0,x1,y0,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             //Right
-            GK_ApiLinetoIe(hdc->pGkWin,x1,y0,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_LinetoIe(hdc->pGkWin,x1,y0,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
             //Bottom
-            GK_ApiLinetoIe(hdc->pGkWin,x0,y1,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
+            GK_LinetoIe(hdc->pGkWin,x0,y1,x1,y1,hdc->DrawColor,hdc->RopCode.Rop2Mode,hdc->SyncTime);
 
             EndDraw(hdc);
         }
@@ -995,7 +995,7 @@ void    FillRect(HDC hdc,const RECT *prc)
             {
                 __LPtoDP(hdc,(POINT*)&rc,2);
 
-                GK_ApiFillRect(hdc->pGkWin,&rc,hdc->FillColor,hdc->FillColor,
+                GK_FillRect(hdc->pGkWin,&rc,hdc->FillColor,hdc->FillColor,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 EndDraw(hdc);
             }
@@ -1022,7 +1022,7 @@ void    FillRectEx(HDC hdc,const RECT *prc,u32 color)
             {
                 __LPtoDP(hdc,(POINT*)&rc,2);
 
-                GK_ApiFillRect(hdc->pGkWin,&rc,color,color,
+                GK_FillRect(hdc->pGkWin,&rc,color,color,
                             CN_FILLRECT_MODE_N,hdc->SyncTime);
                 EndDraw(hdc);
             }
@@ -1083,7 +1083,7 @@ void    GradientFillRect(HDC hdc,const RECT *prc,u32 Color1,u32 Color2,u32 mode)
                             break;
 
                 }
-                GK_ApiFillRect(hdc->pGkWin,&gk_rc,Color1,Color2,
+                GK_FillRect(hdc->pGkWin,&gk_rc,Color1,Color2,
                             mode,hdc->SyncTime);
                 EndDraw(hdc);
             }
@@ -1475,13 +1475,13 @@ void    FillSector(HDC hdc, s32 xCenter, s32 yCenter, s32 radius,s32 angle1,s32 
   }
 }
 
-//----绘制3阶Bezier线------------------------------------------------------------------
+//----绘制3阶Bezier线----------------------------------------------------------
 //描述: 按指定坐标点绘制连续的贝塞尔线
 //参数：hdc: 绘图上下文句柄.
 //      pt: 线段坐标点
 //      cnt: 坐标点数量
 //返回：无.
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void DrawBezier3(HDC hdc,const POINT *pt,s32 cnt)
 {
     float t,t1,t2,xt,yt,step;
@@ -1624,7 +1624,7 @@ bool_t    DrawBitmap(HDC hdc,s32 x,s32 y,struct RectBitmap *bitmap,u32 HyalineCo
         pt.y =y;
         __LPtoDP(hdc,&pt,1);
 
-        GK_ApiDrawBitMap(hdc->pGkWin,bitmap,pt.x,pt.y,HyalineColor,RopCode,hdc->SyncTime);
+        GK_DrawBitMap(hdc->pGkWin,bitmap,pt.x,pt.y,HyalineColor,RopCode,hdc->SyncTime);
         EndDraw(hdc);
         return true;
     }

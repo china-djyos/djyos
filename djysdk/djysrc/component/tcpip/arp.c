@@ -34,6 +34,7 @@
 // 闂佸搫鐗滈崜婵嬫嫃鐎ｎ偆顪栭悹鍝勬惈閻﹀爼鎮锋担鍛婂櫢缂佹顦介幏褰掓偄閼搁潧搴婃繛杈剧稻濞叉ê危閹寸姷鐭嗛柣鎴灻悘妤�瀾濞戞瑯鐒介柕鍥ㄧ缁嬪﹦锟介銏╋拷婵烇絽娲︾换鍡涙儗濡や胶顪栧ù鍏肩懅缁�鏌涢弽褎鍣洪悗姘煎幗閹峰懘宕遍弴鐘垫喒闂傚倸�?�崝鎺旇姳椤掑倷鐒婇梺顒�▌閹风兘鏌涢悜鍡楁灍闁跨喕濮ょ粋鎺楀Ψ閵夈儲灏嬮梺缁橆殶閹虫捇鎮炬ィ鍐╁剮闁跨噦鎷�?/ 闂佹眹鍔�?�顔尖枔閹达附鐒婚柛灞剧矋閺嗗繘鏌熼顒��缁�顬戝☉娆樼劷闁靛洦�?搁獮锟筋樋濠殿垰鐡ㄧ粚鍗炩攽閸曡埖�?�归梺缁橆殰閻楀﹤顭囬崼銉ョ濞达綀顬冪粻鎺懨瑰鍐╂儓鐎殿喚鍏樺鐢割敆閸愵厽瀚繛�?�稿У濠�湱绮婚敐鍥ㄥ闁挎稑瀚惄锟芥煠閺夋寧�?�呯紒杈ㄧ箞瀵噣鎮╂笟顖氭櫏婵炲濮鹃濠勭礊瀹ュ绾ч柍銉ュ级椤愪粙鏌曢崱顓熷�?
 // 闂佸搫鍟版慨楣冾敊閹达箑绠ｉ柟閭�?墯缁�牓鏌熺�妯煎ⅶ闁瑰箍鍨洪幏鍛村即閿涘嫮鍘繛�?�稿Ь椤斿﹦锟界仦鍓�?枙濠㈣泛鐗為幏鐑芥煛閸愵亜鞋妞ゆ梹鍨甸�?�婊堝Χ閸垻鍘繛�?�稿Ь椤斿﹦鎷归悢鐓庣倞闁绘ê寮堕崐銈囩磼閹惧懐鐣遍柛娅诲懎瀵叉慨鐟版祫閹风兘鏌￠崘顏勑紒璇插暞�?�板嫭娼忛銈囧�?婵炲濮鹃濠勶拷鐏炲墽鈻曞璺侯儏閻忔鏌涢妷褍鈻堟繛纰变簼濞煎鏁撻敓锟�? 缂備焦鎷濈紓姘辩不閿濆棛鐟归柛顭戝亝缂嶏拷鏌ㄥ☉妯煎閻庡灚锕㈤獮蹇涱敆閸愵亞鐣烘繝銏�?�劶妞存悂宕归妸鈺佺闁哄牏鏁搁柧鍌炴煕濡厧鏋庢繛鍙夌矌缁灚寰勫☉姘鳖樂闂佸吋婢�?惌渚�箲閿濆鏅悘鐐电摂閸ょ姴霉濠婂啰鍑归柟骞垮灪閹峰懘寮撮悙瀵割樄婵炶揪缍�▔鏇㈠极閵堝�?�夋い鎺戝暢閹奉偄霉閻樼儤纭鹃悗鍨焽閹叉宕ㄩ纰辨殹婵炲瓨绫傞崨顔芥闂佹椿鐓夐幏锟�?/ 婵炲濮鹃濠勭礊�?�ュ鍎庨悗娑櫭径宥夋煙椤戭兛绶ら幏鐑芥⒒閸屾氨鎽犻悽顖涙尦楠烇拷顦奸柨鐔剁矙瀹曟垹鎹勯崫鍕矝闂佽鍎告笟濠冨闂佺粯顨犻�?�鍐偩閳哄懎绠戠憸瀣晸娴犲绠氶柍鍝勫暟缁嬪牓鏌熼顒�閻忔霉閻樹警鍞虹紓宥呯Ф缁辨帡骞樼�闀愬嚱闂佹眹鍔�?�顓炵暦椤栨粣鎷风紒娑樻贡缁�嫰鏌涢弽褎鍣洪悗姘煎幗閹峰懘宕遍弴鐘垫喒闂傚�?��?�搁幏锟�?/ 婵炲瓨绮�?�鈺伱瑰☉娆戭湒闁挎繂鎳忓▍�?勬煕濠靛懐鍔嶉柛銊ｅ姂�?�曟繈宕�?幓鎺濈亱婵炴垶鏌ㄩ鍫ュ窗濮楋拷鍋ㄩ柕濠忕秶閹峰嘲霉閿濆牊纭堕柡浣靛�楠炴垿鎮㈤弸顐℃澀闂侀潧妫斿ù鍥╃矈椤愶箑妫樻繛鍡樺姇閻ゎ喖顭块張鐢碘敀闁跨喍绮欏畷姘跺煛閸愨晜濡遍梺鐟版贡閸犲酣濡甸幋锕�ュù锝夘棢閻熷綊鏌涢弬鐚存嫹闁煎灚鍨垮顒勵敇閻樺灚鎯ｇ紓浣圭☉椤у瞼妲愬鑸垫櫖闁跨噦鎷�/ 婵炴垶鎸哥粔椋庣矆鐎ｎ偆顪栭悹浣哥－缁夊潡鎮归幇鍓佸闁瑰箍鍨介弫宥囦沪閽樺銈�?梺闈╄礋閸斿繘顢氬杈╃煋鐎广儱瀚埢蹇涙煟椤ゅ苯濡奸柛鎴�?閹炽垽鎽庨崒婊呮闂佸憡鎸哥粔鎾箟閿熺姵鍎楅柕澶堝劚鐠佹煡鏌ら搹顐㈢亰缂佸彉鍗抽弻鍛存偐閸愯尙浜ｅ┑顔界缚閸婃鎮�?锕�闁绘柨顨ラ崬娲煟閵娿儱顏柛搴＄箺閵囨劙路瀹ュ洨鎲繛瀛樼玻婵″洭宕濊婵℃挳鏁撻敓锟�?-----------------------------------------------------------------------------
 #include <sys/socket.h>
+#include <netdb.h>
 
 #include "rout.h"
 #include "tcpipconfig.h"
@@ -46,7 +47,6 @@ typedef struct
 {
 #define CN_ARP_HW_TYPE_ETHERNET        0x01
     u16 hwtype;
-#define CN_ARP_FINDIP                     0X0800
     u16 protype;
     u8  hwaddrlen;
     u8  proaddrlen;
@@ -59,12 +59,24 @@ typedef struct
     u8  tarproaddr[CN_IPADDR_LEN_V4];
     u8  rev_blank[18];  // 濞寸姰鍎遍妵濠勭磾閹存粎鐟愰悷鏇氱劍閻増绋夋繝鍌滄勾闁轰胶澧楀畵渚�礌閸涙澘娈鹃悘蹇斿灦濠�拷6閻庢稒顨犳俊顓㈡晬�?��啰绠�?8閻庢稒顨犳俊顓㈡偨閵娿�?�鑹惧┑澶樺亜閸橈拷
 }tagArpHdr;
+typedef struct
+{
+	u8   macto[CN_MACADDR_LEN];
+	u8   macfrom[CN_MACADDR_LEN];
+	u16  frametype;
+}tagEthAddr;
+typedef struct
+{
+	tagEthAddr  eth;
+	tagArpHdr   arp;
+}tagArpFrame;
 #pragma pack()
 
 #define CN_ARP_MSGLEN          (sizeof(tagArpHdr))
 #define CN_ARPITEM_SCANCYCLE   (60*1000*mS)   //(30 seconds)
 #define CN_ARPITEM_LIFE        (20)           //20 UNIT(20 minute)
 #define CN_ARPITEM_LIFE_TRIG   (10)           //if life less than this, we will give the arp request
+#define CN_ARP_FRAMELEN        (sizeof(tagArpFrame))
 
 typedef struct  __ArpItem
 {
@@ -73,15 +85,24 @@ typedef struct  __ArpItem
    u8  mac[CN_MACADDR_LEN];
    u8  timeout;
    u8  pro;
+
+#define CN_ARP_SYNC_TIME         (5*1000*mS) //anyway,we should at most 5 seconds
+   struct SemaphoreLCB *semp;                //use this semp to sync all the task waiting for the same arp
+   struct SemaphoreLCB  sempmem;
    u32 reffers;        //means how many times reffered, if none and the timeout is up
                        //this arp item will be deleted,each cycle will reset
 }tagArpItem;
 static struct MutexLCB      *pArpItemMutex = NULL;//use this to protect the arp item
+static struct MutexLCB      gArpItemMutexMem     ;
+
+
 static struct SemaphoreLCB  *pArpEngineSync = NULL; //use this to triger the arp scan thread
+static struct SemaphoreLCB  gArpEngineSyncMem;
+
 static tagArpItem          **pArpItemTab  = NULL;     //which used to arp hash chain
 static tagNetPkg            *pArpPkgQH  = NULL;     //this used to storage the arp package head
 static struct MutexLCB      *pArpPkgMutex = NULL; //this used to protect the arp package queue
-
+static struct MutexLCB      gArpPkgMutexMem;
 #define CN_ARPITEM_PRO_DYNAMIC (1<<0)         //set by the hand
 #define CN_ARPITEM_PRO_STABLE  (1<<1)         //which means the mac could be use
 #define CN_ARPITEM_PRO_NONE    (0)            //no property
@@ -136,10 +157,20 @@ static tagArpItem *__ArpCreateItem(u32 ip)
     if(NULL != result)
     {
         memset((void *)result,0,sizeof(tagArpItem));
-        result->ip = ip;
-        offset = ip%gArpItemHashLen;
-        result->nxt = pArpItemTab[offset];
-        pArpItemTab[offset] = result;
+        result->semp = Lock_SempCreate_s(&result->sempmem,1,0,CN_BLOCK_FIFO,NULL);
+        if(NULL != result->semp)
+        {
+            //add this arp item to the hash tab
+            result->ip = ip;
+            offset = ip%gArpItemHashLen;
+            result->nxt = pArpItemTab[offset];
+            pArpItemTab[offset] = result;
+        }
+        else
+        {
+        	free(result);
+        	result = NULL;
+        }
     }
     return result;
 }
@@ -167,6 +198,7 @@ static bool_t __ArpDeleteItem(u32 ip)
             {
                 bak->nxt = tmp->nxt;
             }
+            Lock_SempDelete_s(tmp->semp);
             free((void *)tmp);
             result = true;
             break;
@@ -181,6 +213,55 @@ static bool_t __ArpDeleteItem(u32 ip)
     return result;
 }
 
+//-----------------------------------------------------------------------------
+//����:use this function to build a arp frame
+//����:the ip is must be the net byte order,macdst and macsrc is for the arp proto
+//    and the macto and macfrom is for the eth rout
+//����:
+//��ע:care that the macto and macfrom must not be NULL!
+//����:zhangqf@����10:05:54/2017��3��14��
+//-----------------------------------------------------------------------------
+static tagNetPkg *__buildArpFrame(u8 *macto,u8 *macfrom,u32 ipdst,u32 ipsrc,\
+		                          u8 *macdst,u8 *macsrc,u16 opcode)
+{
+	tagArpHdr         *arp;
+	tagNetPkg         *pkg;
+	tagArpFrame       *frame;
+	tagEthAddr        *eth;
+
+	//we will create an item for this ip
+	pkg = PkgMalloc(CN_ARP_FRAMELEN, CN_PKLGLST_END);
+	if(NULL != pkg)
+	{
+		frame = (tagArpFrame*)(pkg->buf + pkg->offset);
+		memset((void *)frame,0,CN_ARP_FRAMELEN);
+		//fill the arp proto
+		arp = &frame->arp;
+		memcpy(arp->tarproaddr ,&ipdst,CN_IPADDR_LEN_V4);
+		memcpy(arp->senproaddr ,&ipsrc,CN_IPADDR_LEN_V4);
+		if(NULL != macdst)
+		{
+			memcpy(arp->tarhwaddr, macdst, CN_MACADDR_LEN);
+		}
+		if(NULL != macsrc)
+		{
+			memcpy(arp->senhwaddr,macsrc,CN_MACADDR_LEN);
+		}
+		arp->hwtype = htons(CN_ARP_HW_TYPE_ETHERNET);
+		arp->protype = htons(EN_LINKPROTO_IPV4);
+		arp->hwaddrlen = CN_MACADDR_LEN;
+		arp->proaddrlen = CN_IPADDR_LEN_V4;
+		arp->opcode = htons(opcode);
+		//fill the eth part
+		eth = &frame->eth;
+		memcpy(eth->macto, macto, CN_MACADDR_LEN);
+		memcpy(eth->macfrom,macfrom,CN_MACADDR_LEN);
+		eth->frametype = htons(EN_LINKPROTO_ARP);
+		pkg->datalen = CN_ARP_FRAMELEN;
+	}
+	return pkg;
+}
+
 //use this function to do the arp request
 static bool_t __ArpSndRequest(u32 ip)
 {
@@ -190,10 +271,13 @@ static bool_t __ArpSndRequest(u32 ip)
     u32                ipsrc;
     u32                ipdst;
     u8                *macsrc;
-    tagArpHdr         *hdr;
+    u8                *macdst;
+    u8                *macto;
+    u8                *macfrom;
 
     result = false;
     ipdst = ip;
+    macdst = NULL;
     TCPIP_DEBUG_INC(gArpDebugs.sndnum);
     //if the src is in the sub net, we will response it, else do nothing
     rout = RoutMatch(EN_IPV_4,ipdst);
@@ -201,83 +285,60 @@ static bool_t __ArpSndRequest(u32 ip)
     {
     	return result; //NO ROUT FOR THIS IP TO FIND
     }
-    //we will create an item for this ip
-    pkg = PkgMalloc(CN_ARP_MSGLEN, CN_PKLGLST_END);
-    if(NULL != pkg)
-    {
-    	macsrc = NetDevGetMac(rout->dev);
-    	ipsrc = rout->ipaddr.ipv4.ip;
-        hdr = (tagArpHdr *)(pkg->buf + pkg->offset);
-        memcpy(hdr->tarproaddr ,&ipdst,CN_IPADDR_LEN_V4);
-        memcpy(hdr->senproaddr ,&ipsrc,CN_IPADDR_LEN_V4);
-        memset(hdr->tarhwaddr,0,CN_MACADDR_LEN);
-        memcpy(hdr->senhwaddr,macsrc,CN_MACADDR_LEN);
-        hdr->hwtype = htons(CN_ARP_HW_TYPE_ETHERNET);
-        hdr->protype = htons(CN_ARP_FINDIP);
-        hdr->hwaddrlen = CN_MACADDR_LEN;
-        hdr->proaddrlen = CN_IPADDR_LEN_V4;
-        hdr->opcode = htons(CN_ARP_OP_REQUEST);
-        pkg->datalen = CN_ARP_MSGLEN;
-        result = LinkSend(rout,pkg,CN_ARP_MSGLEN,CN_IPDEV_NONE,\
-        		EN_LINKPROTO_ARP,EN_IPV_4,INADDR_BROADCAST);
+	macsrc = NetDevGetMac(rout->dev);
+	ipsrc = rout->ipaddr.ipv4.ip;
+	macto = (u8 *)CN_MAC_BROAD;
+	macfrom = macsrc;
+	pkg = __buildArpFrame(macto,macfrom,ipdst,ipsrc,macdst,macsrc,CN_ARP_OP_REQUEST);
+	if(NULL != pkg)
+	{
+		result =LinkSendRaw(rout->dev,pkg,pkg->datalen,CN_IPDEV_NONE);
         PkgTryFreePart(pkg);
         result = true;
-    }
+	}
     if(result == false)
     {
         TCPIP_DEBUG_DEC(gArpDebugs.snderr);
     }
-
     return result;
 }
-
-
 //-----------------------------------------------------------------------------
-//����://i want send a arp response to (ip,mac) through (rout) with the ip and mac inside rout
+//����:use this function to send the arp response
 //����:
 //����:
 //��ע:
-//����:zhangqf@����2:51:14/2016��12��29��
+//����:zhangqf@����11:10:56/2017��3��14��
 //-----------------------------------------------------------------------------
+//use this function to do the arp request
 static bool_t __ArpSndResponse(u32 ip,u8 *mac,tagRout *rout)
 {
-
     bool_t             result;
+    tagNetPkg         *pkg;
     u32                ipsrc;
     u32                ipdst;
     u8                *macsrc;
     u8                *macdst;
-    tagArpHdr         *hdr;
-    tagNetPkg         *pkg;
+    u8                *macto;
+    u8                *macfrom;
 
     result = false;
-    //we will create an item for this ip
-    pkg = PkgMalloc(CN_ARP_MSGLEN, CN_PKLGLST_END);
-    if(NULL != pkg)
-    {
-        //LEAVE SOME SPACE FOR THE LINK
-    	hdr = (tagArpHdr*)(pkg->buf + pkg->offset);
-        memset((void *)hdr,0,CN_ARP_MSGLEN);
-
-        ipdst = ip;
-        ipsrc = rout->ipaddr.ipv4.ip;
-        macdst = mac;
-        macsrc = NetDevGetMac(rout->dev);
-
-        memcpy(hdr->tarproaddr ,&ipdst,CN_IPADDR_LEN_V4);
-        memcpy(hdr->senproaddr ,&ipsrc,CN_IPADDR_LEN_V4);
-        memcpy(hdr->tarhwaddr, macdst, CN_MACADDR_LEN);
-        memcpy(hdr->senhwaddr,macsrc,CN_MACADDR_LEN);
-        hdr->hwtype = htons(CN_ARP_HW_TYPE_ETHERNET);
-        hdr->protype = htons(CN_ARP_FINDIP);
-        hdr->hwaddrlen = CN_MACADDR_LEN;
-        hdr->proaddrlen = CN_IPADDR_LEN_V4;
-        hdr->opcode = htons(CN_ARP_OP_RESPONSE);
-        pkg->datalen = CN_ARP_MSGLEN;
-        result = LinkSend(rout,pkg,CN_ARP_MSGLEN,CN_IPDEV_NONE,\
-        		EN_LINKPROTO_ARP,EN_IPV_4,ip);
+    ipdst = ip;
+    macdst = mac;
+    TCPIP_DEBUG_INC(gArpDebugs.sndnum);
+	macsrc = NetDevGetMac(rout->dev);
+	ipsrc = rout->ipaddr.ipv4.ip;
+	macto = macdst;
+	macfrom = macsrc;
+	pkg = __buildArpFrame(macto,macfrom,ipdst,ipsrc,macdst,macsrc,CN_ARP_OP_RESPONSE);
+	if(NULL != pkg)
+	{
+		result =LinkSendRaw(rout->dev,pkg,pkg->datalen,CN_IPDEV_NONE);
         PkgTryFreePart(pkg);
         result = true;
+	}
+    if(result == false)
+    {
+        TCPIP_DEBUG_DEC(gArpDebugs.snderr);
     }
     return result;
 }
@@ -290,32 +351,43 @@ static bool_t __ArpSndResponse(u32 ip,u8 *mac,tagRout *rout)
 //����:zhangqf@����3:02:23/2016��12��29��
 //-----------------------------------------------------------------------------
 //use this function to deal with the arp request
-bool_t __Arp_Process_Request(tagNetDev *dev,tagArpHdr *arp)
+static bool_t __ProcessRequst(tagNetDev *dev,tagArpHdr *arp)
 {
     bool_t             result;
+    u32                iphost;
+    u32                ippeer;
     u32                ipdst;
     u32                ipsrc;
     u8                *macsrc;
-    tagRout           *rout;
+    u8                *macdst;
+    u8                *macto;
+    u8                *macfrom;
+    tagNetPkg         *pkg;
 
     result = false;
-    memcpy(&ipdst,arp->tarproaddr,CN_IPADDR_LEN_V4);
-    memcpy(&ipsrc,arp->senproaddr,CN_IPADDR_LEN_V4);
-    macsrc = arp->senhwaddr;
-
-	//create the item or update it if the ipsrc is in the subnet
-    if(RoutSubNet(dev,EN_IPV_4,ipsrc))
-    {
-    	ArpItemCreate(ipsrc,macsrc,CN_ARPITEM_PRO_STABLE|CN_ARPITEM_PRO_DYNAMIC);
-    }
+    memcpy(&iphost,arp->tarproaddr,CN_IPADDR_LEN_V4);
+    memcpy(&ippeer,arp->senproaddr,CN_IPADDR_LEN_V4);
     //if we are the destination ip host, then we will send a response to it
-    if(RoutHostIp(EN_IPV_4,ipdst))
+    if(RoutHostIp(EN_IPV_4,iphost)&&(RoutSubNet(dev,EN_IPV_4,ippeer)||(ippeer == INADDR_ANY)))
     {
-        rout = RoutMatch(EN_IPV_4,ipsrc);
-        if(NULL != rout)
-        {
-            __ArpSndResponse(ipsrc,macsrc,rout);
-        }
+    	//do the response here
+    	ipsrc = iphost;
+    	ipdst = ippeer;
+    	macsrc =NetDevGetMac(dev);
+    	macfrom = macsrc;
+    	macdst = arp->senhwaddr;
+    	macto = macdst;
+    	pkg = __buildArpFrame(macto,macfrom,ipdst,ipsrc,macdst,macsrc,CN_ARP_OP_RESPONSE);
+		if(NULL != pkg)
+		{
+			result =LinkSendRaw(dev,pkg,pkg->datalen,CN_IPDEV_NONE);
+			PkgTryFreePart(pkg);
+			result = true;
+		}
+		if(result == false)
+		{
+			TCPIP_DEBUG_DEC(gArpDebugs.snderr);
+		}
     }
     return result;
 }
@@ -326,7 +398,7 @@ bool_t __Arp_Process_Request(tagNetDev *dev,tagArpHdr *arp)
 //��ע:
 //����:zhangqf@����3:02:55/2016��12��29��
 //-----------------------------------------------------------------------------
-bool_t __Arp_Process_Response(tagNetDev *netdev,tagArpHdr *arp)
+static bool_t __ProcessResponse(tagNetDev *netdev,tagArpHdr *arp)
 {
     bool_t             result;
     u32                ipsrc;
@@ -337,7 +409,8 @@ bool_t __Arp_Process_Response(tagNetDev *netdev,tagArpHdr *arp)
     macsrc = arp->senhwaddr;
     memcpy(&ipdst,arp->tarproaddr,CN_IPADDR_LEN_V4);
     //if the src is in the sub net, update the item
-    if(RoutSubNet(netdev,EN_IPV_4,ipsrc))
+    if(RoutSubNet(netdev,EN_IPV_4,ipsrc)&&\
+      (ipsrc != INADDR_ANY)&&(ipsrc != INADDR_BROAD)&&(0!= memcmp(macsrc,CN_MAC_BROAD,CN_MACADDR_LEN)))
     {
     	result = ArpItemUpdate(ipsrc,macsrc);
     }
@@ -382,11 +455,11 @@ static void __ArpPkgDeal(void)
             switch (opcode)
             {
                 case CN_ARP_OP_REQUEST:
-                    __Arp_Process_Request(dev,hdr);
+                    __ProcessRequst(dev,hdr);
                     TCPIP_DEBUG_INC(gArpDebugs.rcvreq);
                     break;
                 case CN_ARP_OP_RESPONSE:
-                    __Arp_Process_Response(dev,hdr);
+                    __ProcessResponse(dev,hdr);
                     TCPIP_DEBUG_INC(gArpDebugs.rcvres);
                     break;
                 default:
@@ -506,6 +579,11 @@ bool_t ArpItemUpdate(u32 ip,u8 *mac)
             memcpy(tmp->mac,mac,CN_MACADDR_LEN);
             tmp->pro |= CN_ARPITEM_PRO_STABLE;
             tmp->timeout = CN_ARPITEM_LIFE;
+            //post all the task pend on the arp
+            while(Lock_SempCheckBlock(tmp->semp))
+            {
+            	Lock_SempPost(tmp->semp);
+            }
         }
         Lock_MutexPost(pArpItemMutex);
     }
@@ -599,7 +677,6 @@ bool_t ArpFindMac(u32 ip,u8 *mac)
                 tmp->timeout = CN_ARPITEM_LIFE_TRIG;
                 __ArpSndRequest(ip);
             }
-            TCPIP_DEBUG_INC(gArpDebugs.resolveerr);
         }
         else
         {
@@ -612,12 +689,30 @@ bool_t ArpFindMac(u32 ip,u8 *mac)
             else
             {
                 __ArpSndRequest(ip);  //do an arp request
-                TCPIP_DEBUG_INC(gArpDebugs.resolveerr);
             }
         }
         Lock_MutexPost(pArpItemMutex);
     }
-
+    if((false == result)&&(NULL != tmp))
+    {
+    	//just for the wait
+    	Lock_SempPend(tmp->semp,CN_ARP_SYNC_TIME);
+    	//check once more
+        if(Lock_MutexPend(pArpItemMutex,CN_TIMEOUT_FOREVER))
+        {
+            if(tmp->pro &CN_ARPITEM_PRO_STABLE)
+            {
+                memcpy(mac,tmp->mac,CN_MACADDR_LEN);
+                tmp->reffers++;
+                result = true;
+            }
+            else
+            {
+                TCPIP_DEBUG_INC(gArpDebugs.resolveerr);
+            }
+            Lock_MutexPost(pArpItemMutex);
+        }
+    }
     return result;
 }
 // =============================================================================
@@ -655,7 +750,7 @@ bool_t ArpTabClean()
 
 
 //tell all the others this rout has existed
-bool_t ArpInformAll(tagRout *rout)
+bool_t ArpBroadRout(tagRout *rout)
 {
     bool_t      result = false;
 	u32         offset;
@@ -706,7 +801,7 @@ bool_t ArpInform(char *param)
     rout = dev->routq;
     while(NULL != rout)
     {
-    	ArpInformAll(rout);
+    	ArpBroadRout(rout);
 
     	rout = rout->nxt;
     }
@@ -845,12 +940,12 @@ bool_t ArpInit(void)
     u16   evttID;
     u16   eventID;
 
-    pArpItemMutex = Lock_MutexCreate(NULL);
+    pArpItemMutex = Lock_MutexCreate_s(&gArpItemMutexMem,NULL);
     if(NULL == pArpItemMutex)
     {
         goto EXIT_ITEMMUTEX;
     }
-    pArpEngineSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
+    pArpEngineSync = Lock_SempCreate_s(&gArpEngineSyncMem,1,0,CN_BLOCK_FIFO,NULL);
     if(NULL == pArpEngineSync)
     {
         goto EXIT_ENGINESYNC;
@@ -863,7 +958,7 @@ bool_t ArpInit(void)
     memset((void *)pArpItemTab,0,gArpItemHashLen*sizeof(void *));
     pArpPkgQH = NULL;
 
-    pArpPkgMutex = Lock_MutexCreate(NULL);
+    pArpPkgMutex = Lock_MutexCreate_s(&gArpPkgMutexMem,NULL);
     if(NULL == pArpItemMutex)
     {
         goto EXIT_PKGMUTEX;
@@ -880,6 +975,9 @@ bool_t ArpInit(void)
         goto EXIT_EVENTFAILED;
     }
     result = Sh_InstallCmd(gArpDebug,gArpDebugCmdRsc,CN_ARPDEBUG_NUM);
+
+    tcpipmemlog("arptab",sizeof(void *),gArpItemHashLen);
+
     return result;
 
 EXIT_EVENTFAILED:

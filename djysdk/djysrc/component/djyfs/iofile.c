@@ -455,42 +455,43 @@ DIR *opendir(const char *name)
 //-----------------------------------------------------------------------------
 struct dirent *readdir(DIR *dir)
 {
-	s32 Handle;
+	s32 handle, res;
 	struct VFile *Fp;
 	struct Dirent DirentInfo;
-	struct dirent *DirentRet;
+	struct dirent *ret;
 	u8 i;
 
 	if(NULL == dir)
 		return (NULL);
 
-	Handle = (s32)dir->__fd;
+	handle = (s32)dir->__fd;
 
-	Fp = HandleToVFile(Handle);
+	Fp = HandleToVFile(handle);
 	if(NULL == Fp)
 		return (NULL);
 
-	if(ReadDir(Fp, &DirentInfo))
-		return (NULL);
+	res = ReadDir(Fp, &DirentInfo);
+	if(1 == res)
+		return (NULL); // 已全部遍历完
 
-	DirentRet = (struct dirent *)dir->__data;
-	if(NULL == DirentRet)
+	ret = (struct dirent *)dir->__data;
+	if(NULL == ret)
 	{
-		DirentRet = malloc(sizeof(*DirentRet));
-		if(NULL == DirentRet)
+		ret = malloc(sizeof(*ret));
+		if(NULL == ret)
 			return (NULL);
-		memset(DirentRet, 0, sizeof(*DirentRet));
-		dir->__data = (void*)DirentRet;
+		memset(ret, 0, sizeof(*ret));
+		dir->__data = (void*)ret;
 	}
 
 	for(i = 0; i < NAME_MAX; i++)
 	{
-		DirentRet->d_name[i] = DirentInfo.Name[i];
+		ret->d_name[i] = DirentInfo.Name[i];
 		if('\0' == DirentInfo.Name[i])
 			break;
 	}
 
-	return (DirentRet);
+	return (ret);
 }
 //-----------------------------------------------------------------------------
 //功能: 创建目录

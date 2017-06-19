@@ -263,5 +263,32 @@ __asm_reset_cpu_hot:
     mov     r0,#0
     mov     pc,r0
 
-
+/*
+@----指令操作实现延时函数-------------------------------------------------------
+@功能:  指令延时
+@参数:  timeCoreClock。时间所对应的内核时钟数
+@返回:  无
+@函数原型:  void __asm_delay_us(u64 timeCoreClock)@
+@-----------------------------------------------------------------------------
+*/
+.text
+.align 2
+.global __asm_delay_us
+.thumb
+.thumb_func
+__asm_delay_us:
+	subs    r0 ,#6      /*减去运算的周期数*/
+	lsr     r0 ,r0, #2
+ loop:
+	subs    r0 ,#1
+	nop
+    bne     loop
+	subs    r1 ,#1
+	bne     end
+	mov     r0 ,#0xffffffff
+	b       __asm_delay_us
+end:
+	bx      lr
 .end
+
+

@@ -326,17 +326,17 @@ static void touch_ratio_adjust(struct GkWinRsc *desktop)
         limit_top = desktop->limit_top;
         limit_right = desktop->limit_right;
         limit_bottom = desktop->limit_bottom;
-    //    GK_ApiCreateGkwin(desktop,desktop,limit_left,limit_top,limit_right,limit_bottom,
+    //    GK_CreateWin(desktop,desktop,limit_left,limit_top,limit_right,limit_bottom,
     //                      CN_COLOR_WHITE,CN_WINBUF_BUF,"&tg_touch_adjust",CN_R3_SRCCOPY,0);
-    //    GK_ApiSetPrio(desktop,-1,CN_GK_SYNC);
-        GK_ApiFillWin(desktop,CN_COLOR_WHITE,0);
-        GK_ApiDrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+    //    GK_SetPrio(desktop,-1,CN_GK_SYNC);
+        GK_FillWin(desktop,CN_COLOR_WHITE,0);
+        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
                        "触摸屏矫正", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-        GK_ApiDrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
                        "请准确点击十字交叉点", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-        GK_ApiLineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_ApiLineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
-        GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
+        GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
+        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
+        GK_SyncShow(CN_TIMEOUT_FOREVER);
         while(!read_touch_stmpe811(&touch_xyz0));           //记录触摸屏第一点校正值
         Djy_DelayUs(300);
 //这里的松手检测是通过读检查fifo中是否有坐标点数据来实现的，
@@ -358,18 +358,18 @@ static void touch_ratio_adjust(struct GkWinRsc *desktop)
         }while(sta&2);//fifo中有数据则重读，无数据则认为松手
 
 
-        GK_ApiFillWin(desktop,CN_COLOR_WHITE,0);
-        GK_ApiDrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+        GK_FillWin(desktop,CN_COLOR_WHITE,0);
+        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
                        "触摸屏矫正", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-        GK_ApiDrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
                        "再次准确点击十字交叉点", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
-        GK_ApiLineto(desktop,limit_right-40,limit_bottom-20,
+        GK_Lineto(desktop,limit_right-40,limit_bottom-20,
                       limit_right,limit_bottom-20,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_ApiLineto(desktop,limit_right-20,limit_bottom-40,
+        GK_Lineto(desktop,limit_right-20,limit_bottom-40,
                       limit_right-20,limit_bottom,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
+        GK_SyncShow(CN_TIMEOUT_FOREVER);
 
         if (TS_Read(FIFO_SIZE, 1))
         {
@@ -400,15 +400,15 @@ static void touch_ratio_adjust(struct GkWinRsc *desktop)
         }while(sta&2);//等待松手
 
 
-        GK_ApiFillWin(desktop,CN_COLOR_WHITE,0);
+        GK_FillWin(desktop,CN_COLOR_WHITE,0);
         tg_touch_adjust.ratio_x = ((touch_xyz1.x - touch_xyz0.x)<<16)
                         /(limit_right - limit_left -40);
         tg_touch_adjust.offset_x = (touch_xyz0.x<<16) - 20*tg_touch_adjust.ratio_x;
         tg_touch_adjust.ratio_y = ((touch_xyz1.y - touch_xyz0.y)<<16)
                         /(limit_bottom- limit_top-40);
         tg_touch_adjust.offset_y= (touch_xyz0.y<<16) - 20*tg_touch_adjust.ratio_y;
-        GK_ApiFillWin(desktop,CN_COLOR_BLUE,0);
-        GK_ApiSyncShow(CN_TIMEOUT_FOREVER);
+        GK_FillWin(desktop,CN_COLOR_BLUE,0);
+        GK_SyncShow(CN_TIMEOUT_FOREVER);
     //    GK_DestroyWin(desktop);
         touch_init = fopen("sys:\\touch_init.dat","w+");
         if(touch_init)

@@ -448,6 +448,7 @@ void *__M_StaticRealloc(void *p, ptu32_t NewSize,u32 Timeout)
         {
             memcpy(NewP,p,NewSize < OldSize ? NewSize:OldSize);
         }
+        __M_StaticFree(p);
     }
     return NewP;
 }

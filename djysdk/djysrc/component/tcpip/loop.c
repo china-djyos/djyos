@@ -60,15 +60,16 @@
 #include <string.h>
 #include <os.h>
 //add your own specified header here
-//add your own specified header here
 #include "linkhal.h"
 #include "rout.h"
+#include "netdb.h"
+
 //data flow in the loop
 //ipout->linkout->linkoutloop->loopout->loopin->LinkIn->linkInLoop->link2Ip
 
 #define CN_LOOP_MTU      4*1024        //4KB
 #define CN_LOOP_DEVICE   "loop"
-static  ptu32_t          LoopHandle = NULL;
+static  ptu32_t          LoopHandle = (ptu32_t)NULL;
 //-----------------------------------------------------------------------------
 //功能:the loop device in function
 //参数:
@@ -144,7 +145,7 @@ bool_t LoopInit(void)
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,CN_MAC_BROAD,CN_MACADDR_LEN);
     LoopHandle = NetDevInstall(&devpara);
-    if(NULL == LoopHandle)
+    if(NULL == (void *)LoopHandle)
     {
     	goto EXIT_LOOPDEV;
     }

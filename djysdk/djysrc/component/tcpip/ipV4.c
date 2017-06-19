@@ -194,6 +194,7 @@ static bool_t assemblepkg(u32 ipsrc,u32 ipdst,u16 id,u16 fragment,u8 proto,tagNe
 	tagNetPkg *pkgassemble,*pkgtmp;
 	u8        *src,*dst;
 	offset = fragment&CN_IP_OFFMASK;
+	tagIpAddr  addr;
 	if(offset > CN_ASSEMBLE_LIMIT )
 	{
 		return false;
@@ -311,7 +312,11 @@ static bool_t assemblepkg(u32 ipsrc,u32 ipdst,u16 id,u16 fragment,u8 proto,tagNe
 					else
 					{
 						//ok, the frame is ok, so put it to the upper
-						IpTplHandler(proto,EN_IPV_4,(ptu32_t)ipsrc, (ptu32_t)ipdst,pkgassemble,dev);
+//						IpTplHandler(proto,EN_IPV_4,(ptu32_t)ipsrc, (ptu32_t)ipdst,pkgassemble,dev);
+				        addr.ver = EN_IPV_4;
+				        addr.src.ipv4 = ipsrc;
+				        addr.dst.ipv4 = ipdst;
+				        IpProtoDeal(proto,&addr,pkg,dev);
 						PkgTryFreePart(pkgassemble);
 					}
 				}
@@ -569,6 +574,7 @@ static bool_t rcvlocal(tagNetPkg *pkg,tagNetDev *dev)
     u16                         fragment;
     u16                         id;
     u16                         framlen;
+    tagIpAddr addr;
 
     result = true;
     hdr = (tagIpHdrV4 *)(pkg->buf + pkg->offset);
@@ -607,7 +613,11 @@ static bool_t rcvlocal(tagNetPkg *pkg,tagNetDev *dev)
         ((0== (fragment&CN_IP_MF_MSK))&&(0 == (fragment&CN_IP_OFFMASK))))
     {
         //OK, this mail could go upper now, so remove the ip message
-        result = IpTplHandler(proto,EN_IPV_4,(ptu32_t)ipsrc, (ptu32_t)ipdst,pkg,dev);
+//        result = IpTplHandler(proto,EN_IPV_4,(ptu32_t)ipsrc, (ptu32_t)ipdst,pkg,dev);
+        addr.ver = EN_IPV_4;
+        addr.src.ipv4 = ipsrc;
+        addr.dst.ipv4 = ipdst;
+        result = IpProtoDeal(proto,&addr,pkg,dev);
     }
     else
     {
@@ -663,6 +673,9 @@ bool_t Ipv4Show(char *param)
     __showAssemble(NULL);
     return true;
 }
+
+
+
 
 bool_t  Ipv4Init(void)
 {

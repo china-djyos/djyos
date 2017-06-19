@@ -58,10 +58,10 @@ void    lua_test(void)
     lua_State *L;
  //   float a,c2;
 
-    djy_printf("lua_test.\r\n");
+    printf("lua_test.\r\n");
 
     L   = lua_open();
-    djy_printf("L=%08XH.\r\n",L);
+    printf("L=%08XH.\r\n",L);
 
     luaopen_base(L);
     //注_册自己的c函数到lua中
@@ -71,19 +71,19 @@ void    lua_test(void)
 
     //这里是lua脚本， 脚本里面又调用了自己定义得c函数, Lmyputs0---串口输出函数   average --平均值函数，  Lsleep--延时函数
 
-    //strcpy(buf," Lmyputs0(\"start!\",6); c2=2; a1 = {\"one\",\"two\",\"three\"}    a=average(10, 20, 30, 40, 50); count=0;  while 1>0 do  \r\n  count=count+1;  Lmyputs0(a1[(count%3)+1],6);  Lsleep(300); \r\n end; \r\n Lmyputs0(\"end!\",4)");
+    strcpy(buf," Lmyputs0(\"start!\",6); c2=2; a1 = {\"one\",\"two\",\"three\"}    a=average(10, 20, 30, 40, 50); count=0;  while 1>0 do  \r\n  count=count+1;  Lmyputs0(a1[(count%3)+1],6);  Lsleep(300); \r\n end; \r\n Lmyputs0(\"end!\",4)");
 
 
-    buf=(char*)0x001F0000;
-    djy_printf("====================Start\r\n");
-    djy_printf("\r\n");
-    djy_printf("%s",buf);
-    djy_printf("\r\n");
-    djy_printf("====================End\r\n");
+//    buf=(char*)0x001F0000;
+    printf("====================Start\r\n");
+    printf("\r\n");
+    printf("%s",buf);
+    printf("\r\n");
+    printf("====================End\r\n");
     //让lua运行脚本!
     luaL_dostring(L, buf);
 
-    djy_printf("lua_test end.\r\n");
+    printf("lua_test end.\r\n");
 
 }
 
