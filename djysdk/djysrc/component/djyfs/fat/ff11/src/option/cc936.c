@@ -6,7 +6,7 @@
 
 #include "../ff.h"
 
-
+#if (_CODE_PAGE == 936)
 #if !_USE_LFN || _CODE_PAGE != 936
 #error This file is not needed in current configuration. Remove from the project.
 #endif
@@ -10973,3 +10973,4 @@ WCHAR ff_wtoupper ( /* Upper converted character */
     return tbl_lower[i] ? tbl_upper[i] : chr;
 }
 
+#endif // #if (_CODE_PAGE == 936)
