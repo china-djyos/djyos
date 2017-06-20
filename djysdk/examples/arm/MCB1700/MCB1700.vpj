@@ -219,24 +219,11 @@
             Filters=""></Folder>
     </CustomFolders>
     <Files AutoFolders="DirectoryView">
-        <Folder Name="config">
-            <F N="config/Debug.lds"/>
-            <F N="config/Release.lds"/>
-        </Folder>
         <Folder Name="src">
             <Folder Name="OS_prjcfg">
                 <Folder Name="include">
                     <F N="src/OS_prjcfg/include/config-prj.h"/>
                 </Folder>
-            </Folder>
-            <Folder Name="user">
-                <Folder Name="critical">
-                    <F N="src/user/critical/critical.c"/>
-                </Folder>
-                <F N="src/user/main.c"/>
-                <F N="src/user/main_gui.c"/>
-                <F N="src/user/main_test.c"/>
-                <F N="src/user/module-trim.c"/>
             </Folder>
         </Folder>
     </Files>

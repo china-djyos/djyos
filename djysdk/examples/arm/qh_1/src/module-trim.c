@@ -241,7 +241,7 @@ void Sys_ModuleInit(void)
     ili9325 = (struct DisplayRsc*)ModuleInstall_ili9325("ili9325","extram");
 
     //创建桌面,依赖:显示器驱动
-    GK_ApiCreateDesktop(ili9325,&desktop,0,0,
+    GK_CreateDesktop(ili9325,&desktop,0,0,
                         CN_COLOR_RED+CN_COLOR_GREEN,CN_WINBUF_BUF,0,0);
 
     //触摸屏模块,依赖:gkernel模块和显示器驱动

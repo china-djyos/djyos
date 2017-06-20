@@ -203,7 +203,7 @@ void Sys_ModuleInit(void)
     //依赖: gkernel模块
     lcd_windows = (struct DisplayRsc*)ModuleInstall_Lcd("sim_display",NULL);
 
-    GK_ApiCreateDesktop(lcd_windows,&desktop,0,0,
+    GK_CreateDesktop(lcd_windows,&desktop,0,0,
                         CN_COLOR_RED+CN_COLOR_GREEN,CN_WINBUF_BUF,0,0);
 
     //触摸屏模块,依赖:gkernel模块和显示器驱动
