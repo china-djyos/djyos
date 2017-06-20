@@ -1742,9 +1742,15 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
     struct EventECB *pl_ecb;
     u32 popt;
     u16 evttoffset;
+
+
+    if(0 == (evtt_id & CN_EVTT_ID_MASK))
+    {
+    	return CN_SYNC_ERROR;
+    }
     evttoffset = evtt_id & (~CN_EVTT_ID_MASK);
     if(evttoffset >= gc_u32CfgEvttLimit)
-        return EN_KNL_EVTTID_LIMIT;
+        return CN_SYNC_ERROR;
     pl_evtt = &g_ptEvttTable[evttoffset];
     //不能在禁止调度的情况下执行同步操作
     if(Djy_QuerySch() == false)
@@ -1934,58 +1940,73 @@ u16 Djy_EventPop(   u16  hybrid_id,
     //  a、如果hybrid_id是事件id，则不激活同类型的其他事件。
     //  b、如果hybrid_id是事件类型id，则激活所有sync_counter减至0的事件。
     pl_ecb = pl_evtt->pop_sync;
-    if(pl_ecb != NULL)
+    while(NULL != pl_ecb)
     {
-        do
+        //sync_counter减量的条件:
+        //1、关联型事件，或者:
+        //2、独立型事件，hybrid_id是事件id，且等于pl_ecb->event_id，或者:
+        //3、独立型事件，且类型和pl_ecb->evtt_id相同
+        if( (pl_evtt->property.correlative == EN_CORRELATIVE)
+                || (pl_ecb->event_id == hybrid_id)
+                || ((evtt_offset|CN_EVTT_ID_MASK) == pl_ecb->evtt_id) )
         {
-            //sync_counter减量的条件:
-            //1、关联型事件，或者:
-            //2、独立型事件，hybrid_id是事件id，且等于pl_ecb->event_id，或者:
-            //3、独立型事件，且类型和pl_ecb->evtt_id相同
-            if( (pl_evtt->property.correlative == EN_CORRELATIVE)
-                    || (pl_ecb->event_id == hybrid_id)
-                    || ((evtt_offset|CN_EVTT_ID_MASK) != pl_ecb->evtt_id) )
+            //同步条件达成的条件: 1、同步计数器已减至1。
+            if(pl_ecb->sync_counter <= 1)
             {
-                //同步条件达成的条件: 1、同步计数器已减至1。
-                if(pl_ecb->sync_counter <= 1)
+                pl_ecb->sync_head = NULL;
+                //指定的超时未到
+                if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)
                 {
-                    pl_ecb->sync_head = NULL;
-                    //指定的超时未到
-                    if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)
-                    {
-                        __Djy_ResumeDelay(pl_ecb);     //从闹钟队列中移除事件
-                    }
-                    pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_POP;
-                    pl_ecb->event_status = CN_STS_EVENT_READY;
-                    pl_ecb_temp = pl_ecb;
-                    if(pl_ecb_temp == pl_ecb_temp->multi_next)  //是最后一个事件
-                    {
-                        pl_ecb = NULL;
-                        pl_evtt->pop_sync = NULL;
-                    }else
-                    {
-                        pl_ecb = pl_ecb->multi_next;
-                        pl_ecb_temp->multi_previous->multi_next
-                                            = pl_ecb_temp->multi_next;
-                        pl_ecb_temp->multi_next->multi_previous
-                                            = pl_ecb_temp->multi_previous;
-                    }
-                    __Djy_EventReady(pl_ecb_temp);
-//                  if(pl_evtt->pop_sync != NULL)
-//                      pl_evtt = NULL;
+                    __Djy_ResumeDelay(pl_ecb);     //从闹钟队列中移除事件
+                }
+                pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_POP;
+                pl_ecb->event_status = CN_STS_EVENT_READY;
+                pl_ecb_temp = pl_ecb;
+                if(pl_ecb_temp == pl_ecb_temp->multi_next)
+                {
+                    pl_ecb = NULL;
+                    pl_evtt->pop_sync = NULL;
                 }else
                 {
-                    pl_ecb->sync_counter--;
                     pl_ecb = pl_ecb->multi_next;
+                    pl_ecb_temp->multi_previous->multi_next
+                                        = pl_ecb_temp->multi_next;
+                    pl_ecb_temp->multi_next->multi_previous
+                                        = pl_ecb_temp->multi_previous;
+
+                    if(pl_ecb_temp == pl_evtt->pop_sync) //if match the head,then change it
+                    {
+                    	pl_evtt->pop_sync = pl_ecb;
+                    }
+                    else if(pl_ecb == pl_evtt->pop_sync)
+                    {
+                    	pl_ecb = NULL;//which means we loop back,so terminate
+                    }
+                    else
+                    {
+                    	//continue to loop,do nothing here
+                    }
+                }
+                __Djy_EventReady(pl_ecb_temp);
+            }else
+            {
+                pl_ecb->sync_counter--;
+                pl_ecb = pl_ecb->multi_next;
+                if(pl_ecb == pl_evtt->pop_sync) //which means it is back now, so terminate the loop
+                {
+                	pl_ecb = NULL;
                 }
             }
-            else
+        }
+        else
+        {
+            pl_ecb = pl_ecb->multi_next;
+            if(pl_ecb == pl_evtt->pop_sync) //which means it is back now, so terminate the loop
             {
-                pl_ecb = pl_ecb->multi_next;
+            	pl_ecb = NULL;
             }
-        }while(pl_ecb != pl_evtt->pop_sync);
+        }
     }
-
     //需要创建新事件的情况为两者之一:
     //1、事件队列中尚无该类型事件。
     //2、独立型事件且hybrid_id是事件类型id
@@ -2403,45 +2424,59 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     pl_evtt =&g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
     pl_evtt->events--;
     pl_ecb = pl_evtt->done_sync;
-    if(pl_ecb != NULL)
+    while(pl_ecb != NULL)
     {
-        do
-        {//链表中的事件都是要么没有指定超时，要么时限未到，其他情况不会在此链表
-         //中留下痕迹，evtt_done_sync位也已经清除
+		//链表中的事件都是要么没有指定超时，要么时限未到，其他情况不会在此链表
+		//中留下痕迹，evtt_done_sync位也已经清除
+		//同步条件达成的条件: 1、同步计数器已减至1。
+		//2、同步计数器为0且本类型最后一条事件已经处理完
+		if((pl_ecb->sync_counter == 1)
+		 ||((pl_ecb->sync_counter == 0) && (pl_evtt->vpus == 1)) )
+		{
+			pl_ecb->sync_head = NULL;
+			if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT) //指定的超时未到
+			{
+				__Djy_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
+			}
+			pl_ecb->event_status = CN_STS_EVENT_READY;
+			pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_DONE;
+			pl_ecb_temp = pl_ecb;
+			if(pl_ecb_temp == pl_ecb_temp->multi_next)    //是最后一个事件
+			{
+				pl_ecb = NULL;
+				pl_evtt->done_sync = NULL;
+			}else
+			{
+				pl_ecb = pl_ecb->multi_next;
+				pl_ecb_temp->multi_previous->multi_next
+									= pl_ecb_temp->multi_next;
+				pl_ecb_temp->multi_next->multi_previous
+									= pl_ecb_temp->multi_previous;
+                if(pl_ecb_temp == pl_evtt->done_sync) //if match the head,then change it
+                {
+                	pl_evtt->done_sync = pl_ecb;
+                }
+                else if(pl_ecb == pl_evtt->done_sync)
+                {
+                	pl_ecb = NULL;//which means we loop back,so terminate
+                }
+                else
+                {
+                	//continue to loop,do nothing here
+                }
 
-            //同步条件达成的条件: 1、同步计数器已减至1。
-            //2、同步计数器为0且本类型最后一条事件已经处理完
-            if((pl_ecb->sync_counter == 1)
-                    ||((pl_ecb->sync_counter == 0) && (pl_evtt->vpus == 1)) )
+			}
+			__Djy_EventReady(pl_ecb_temp);
+		}else
+		{
+			if(pl_ecb->sync_counter != 0)
+				pl_ecb->sync_counter--;
+			pl_ecb = pl_ecb->multi_next;
+            if(pl_ecb == pl_evtt->done_sync)
             {
-                pl_ecb->sync_head = NULL;
-                if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT)//指定的超时未到
-                {
-                    __Djy_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
-                }
-                pl_ecb->event_status = CN_STS_EVENT_READY;
-                pl_ecb->wakeup_from = CN_STS_EVENT_EXP_EXIT;
-                pl_ecb_temp = pl_ecb;
-                if(pl_ecb_temp == pl_ecb_temp->multi_next)    //是最后一个事件
-                {
-                    pl_ecb = NULL;
-                    pl_evtt->done_sync = NULL;
-                }else
-                {
-                    pl_ecb = pl_ecb->multi_next;
-                    pl_ecb_temp->multi_previous->multi_next
-                                        = pl_ecb_temp->multi_next;
-                    pl_ecb_temp->multi_next->multi_previous
-                                        = pl_ecb_temp->multi_previous;
-                }
-                __Djy_EventReady(pl_ecb_temp);
-            }else
-            {
-                if(pl_ecb->sync_counter != 0)
-                    pl_ecb->sync_counter--;
-                pl_ecb = pl_ecb->multi_next;
+            	pl_ecb = NULL;//which means we loop back,so terminate
             }
-        }while(pl_ecb != pl_evtt->done_sync);
+		}
     }
 
     //线程和事件控制块的处理方式
@@ -2679,45 +2714,58 @@ void Djy_EventComplete(ptu32_t result)
     pl_ecb = pl_evtt->done_sync;
     while(pl_ecb != NULL)
     {
-        do
-        {//链表中的事件都是要么没有指定超时，要么时限未到，其他情况不会在此链表
-         //中留下痕迹，evtt_done_sync位也已经清除
+		//链表中的事件都是要么没有指定超时，要么时限未到，其他情况不会在此链表
+		//中留下痕迹，evtt_done_sync位也已经清除
+		//同步条件达成的条件: 1、同步计数器已减至1。
+		//2、同步计数器为0且本类型最后一条事件已经处理完
+		if((pl_ecb->sync_counter == 1)
+		 ||((pl_ecb->sync_counter == 0) && (pl_evtt->vpus == 1)) )
+		{
+			pl_ecb->sync_head = NULL;
+			if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT) //指定的超时未到
+			{
+				__Djy_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
+			}
+			pl_ecb->event_status = CN_STS_EVENT_READY;
+			pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_DONE;
+			pl_ecb_temp = pl_ecb;
+			if(pl_ecb_temp == pl_ecb_temp->multi_next)    //是最后一个事件
+			{
+				pl_ecb = NULL;
+				pl_evtt->done_sync = NULL;
+			}else
+			{
+				pl_ecb = pl_ecb->multi_next;
+				pl_ecb_temp->multi_previous->multi_next
+									= pl_ecb_temp->multi_next;
+				pl_ecb_temp->multi_next->multi_previous
+									= pl_ecb_temp->multi_previous;
+                if(pl_ecb_temp == pl_evtt->done_sync) //if match the head,then change it
+                {
+                	pl_evtt->done_sync = pl_ecb;
+                }
+                else if(pl_ecb == pl_evtt->done_sync)
+                {
+                	pl_ecb = NULL;//which means we loop back,so terminate
+                }
+                else
+                {
+                	//continue to loop,do nothing here
+                }
 
-            //同步条件达成的条件: 1、同步计数器已减至1。
-            //2、同步计数器为0且本类型最后一条事件已经处理完
-         if((pl_ecb->sync_counter == 1)
-             ||((pl_ecb->sync_counter == 0) && (pl_evtt->vpus == 1)) )
+			}
+			__Djy_EventReady(pl_ecb_temp);
+		}else
+		{
+			if(pl_ecb->sync_counter != 0)
+				pl_ecb->sync_counter--;
+			pl_ecb = pl_ecb->multi_next;
+            if(pl_ecb == pl_evtt->done_sync)
             {
-                pl_ecb->sync_head = NULL;
-                if(pl_ecb->event_status & CN_STS_SYNC_TIMEOUT) //指定的超时未到
-                {
-                    __Djy_ResumeDelay(pl_ecb);       //从闹钟队列中移除事件
-                }
-                pl_ecb->event_status = CN_STS_EVENT_READY;
-                pl_ecb->wakeup_from = CN_STS_WAIT_EVTT_DONE;
-                pl_ecb_temp = pl_ecb;
-                if(pl_ecb_temp == pl_ecb_temp->multi_next)    //是最后一个事件
-                {
-                    pl_ecb = NULL;
-                    pl_evtt->done_sync = NULL;
-                }else
-                {
-                    pl_ecb = pl_ecb->multi_next;
-                    pl_ecb_temp->multi_previous->multi_next
-                                        = pl_ecb_temp->multi_next;
-                    pl_ecb_temp->multi_next->multi_previous
-                                        = pl_ecb_temp->multi_previous;
-                }
-                __Djy_EventReady(pl_ecb_temp);
-            }else
-            {
-                if(pl_ecb->sync_counter != 0)
-                    pl_ecb->sync_counter--;
-                pl_ecb = pl_ecb->multi_next;
+            	pl_ecb = NULL;//which means we loop back,so terminate
             }
-        }while(pl_ecb != pl_evtt->done_sync);
+		}
     }
-
     //以下看事件的线程如何处理。
 #if (CN_CFG_DYNAMIC_MEM == 1)
     if(g_ptEventRunning->local_memory != 0)
