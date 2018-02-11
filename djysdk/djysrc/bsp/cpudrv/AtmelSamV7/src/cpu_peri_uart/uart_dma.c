@@ -171,8 +171,8 @@ static uint8_t _configureUartRxDma(UartDma *pUartd ,  UartChannel *pUartRx)
 
 		//32×Ö½ÚË¢cache¶ÔÆë
 		pUartRx->pLLIview = malloc(sizeof(LinkedListDescriporView1)*LLI_Size + 32);
-		pUartRx->pLLIview = (LinkedListDescriporView1*)((u32)(pUartRx->pLLIview)
-				- (u32)(pUartRx->pLLIview)%32);
+//		pUartRx->pLLIview = (LinkedListDescriporView1*)((u32)(pUartRx->pLLIview)
+//				- (u32)(pUartRx->pLLIview)%32);
 
 		if( pUartRx->pLLIview == NULL) {
 		  TRACE_ERROR(" Can not allocate memory to Rx LLI");
@@ -282,8 +282,8 @@ static uint8_t _configureUartTxDma(UartDma *pUartd, UartChannel *pUartTx)
 		}
 		
 		pUartTx->pLLIview = malloc(sizeof(LinkedListDescriporView1)*LLI_Size + 32);
-		pUartTx->pLLIview = (LinkedListDescriporView1*)((u32)(pUartTx->pLLIview)
-				- (u32)(pUartTx->pLLIview)%32);
+//		pUartTx->pLLIview = (LinkedListDescriporView1*)((u32)(pUartTx->pLLIview)
+//				- (u32)(pUartTx->pLLIview)%32);
 		if( pUartTx->pLLIview == NULL) {
 		  TRACE_ERROR(" Can not allocate memory to Tx LLI");
 		  return UARTD_ERROR;

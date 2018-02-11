@@ -55,6 +55,7 @@
 #include "os.h"
 #include "cpu_peri.h"
 
+
 //串口引脚定义
 static const Pin DBGU_Pin[] = {
     {PIO_PA9A_URXD0, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT},

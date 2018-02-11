@@ -10,12 +10,13 @@ struct FatDrvFuns g_tFatDrvs[_VOLUMES];
 //
 // 与ffconf.h中对应
 //
-PARTITION VolToPart[_VOLUMES] =
-{ { 0, 0,}, // 对应"_VOLUME_STRS"中的"RAM"
-  { 3, 0,}, // 对应"_VOLUME_STRS"中的"NAND"，"3"表示底层设备号
-  { 0, 0,}, // 对应"_VOLUME_STRS"中的"CF"
-  { 1, 0,}, // 对应"_VOLUME_STRS"中的"SD"，"1"表示底层设备号
-  { 2, 0,}  // 对应"_VOLUME_STRS"中的"usb msc"，"2"表示底层设备号
+PARTITION VolToPart[_VOLUMES] = {
+    { 0, 0,}, // 对应"_VOLUME_STRS"中的"RAM"
+    { 3, 0,}, // 对应"_VOLUME_STRS"中的"NAND"，"3"表示底层设备号
+    { 0, 0,}, // 对应"_VOLUME_STRS"中的"CF"
+    { 1, 0,}, // 对应"_VOLUME_STRS"中的"SD"，"1"表示底层设备号
+    { 2, 0,},  // 对应"_VOLUME_STRS"中的"usb msc"，"2"表示底层设备号
+	{ 4, 0,}  // 对应"_VOLUME_STRS"中的"usb msc"，"4"表示底层设备号
 };
 //-----------------------------------------------------------------------------
 //功能:

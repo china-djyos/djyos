@@ -66,6 +66,8 @@ extern "C" {
 
 #include "../cpu-optional.h"
 
+#define DJY_BOARD    "SAMV71Xplained"
+
 #define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。*
 #define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
 

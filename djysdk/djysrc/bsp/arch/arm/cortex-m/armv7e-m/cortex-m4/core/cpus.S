@@ -82,15 +82,16 @@ __asm_reset_thread:
     mov     r12,#0x01000000     /* xpsr的初始值 */
     ldr     r3,=__Djy_VmEngine  /* 取线程引擎指针 */
     stmfd   r2!,{r3,r12}        /* 存pc，xpsr */
-    sub     r2,r2,#14*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义， */
+    sub     r2,r2,#15*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义， */
                                 /* __vm_engine函数不返回，lr也无意义 */
+                                /* 另外4字节是为了与EXC_RETURN形成栈的8字节对齐*/
 
     mov     r3,#0xfffffffd      /* 初始值EXC_RETURN*/
     stmfd   r2!,{r3}              /* 压栈lr，用于线程切入时读取是否需弹出fpu寄存器 */
 
     /* 存在r0中的thread_routine是__vm_engine的参数，切换上下文时，thread_routine将
         恢复到r0中，根据调用约定，r0的值就是__vm_engine函数的参数。 */
-    str     r0,[r2,#9*4]        /* 保存 thread_routine指针到r0的位置. */
+    str     r0,[r2,#10*4]        /* 保存 thread_routine指针到r0的位置. */
     str     r2,[r1]             /* 保存vm的当前栈指针到vm->stack中 */
     bx      lr
 
@@ -120,8 +121,9 @@ __asm_reset_switch:
     ldr     r11,=__Djy_VmEngine    /* 取线程引擎指针 */
     push    {r11,r12}           /* 存pc,xpsr */
 
-    sub     sp,sp,#14*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义，
+    sub     sp,sp,#15*4         /* 后退14个寄存器,初始状态r0-r12中，除r0外均无意义，
                                    __vm_engine函数不返回，lr也无意义，至此，完成老线程复位*/
+                                   /* 另外4字节是为了与EXC_RETURN形成栈的8字节对齐*/
 
     mov     r3,#0xfffffffd      /* 初始值EXC_RETURN*/
     push   {r3}            /* 压栈lr，用于线程切入时读取是否需弹出fpu寄存器 */
@@ -131,7 +133,7 @@ __asm_reset_switch:
     orr     r3,#4
     msr     control,r3          /* 复位线程时默认无fpu*/
 
-    str     r0,[sp,#9*4]       /* 保存 thread_routine指针到r0的位置. */
+    str     r0,[sp,#10*4]       /* 保存 thread_routine指针到r0的位置. */
     str     sp,[r2]             /* 保存当前栈指针到old_vm->stack中 */
 
     ldr     sp,[r1]             /* 取得新上下文指针 */
@@ -154,10 +156,12 @@ __asm_reset_switch:
 __asm_start_thread:
     ldr     r1,=msp_top
     msr     msp,r1			    /* 重置主栈指针，主栈将用于异常和中断 */
+    mrs     r2, control
     mov     r1,#2
+    orr     r1,r2
+    ldr     r0,[r0]             /* 取得新上下文指针 */
+    msr     psp,r0
     msr     control,r1          /* 切换到特权线程模式，栈指针用psp */
-    ldr     sp,[r0]             /* 取得新上下文指针 */
-
     svc     0                   /* 切入新上下文 */
     bx      lr
 

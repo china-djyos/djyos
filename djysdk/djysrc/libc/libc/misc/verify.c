@@ -56,6 +56,8 @@
 //------------------------------------------------------
 #include "stdint.h"
 #include "arch_feature.h"
+#include <djyfs/iofile.h>
+#include "verify.h"
 static const u16 crc16_tab[] = {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
     0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
@@ -268,7 +270,11 @@ u16 crc16(u8 *buf, u32 len)
 }
 
 
-const u32 g_CRC32_tab[] = {                                               // CRC polynomial 0xedb88320
+
+//----CRC32查询表-----------------------------------------------------------
+//add by zhb 20170803
+//------------------------------------------------------------------------------
+const u32 g_CRC32_tab[] = {                            // CRC polynomial 0xedb88320
 0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
@@ -314,21 +320,205 @@ const u32 g_CRC32_tab[] = {                                               // CRC
 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
+//----计算-----------------------------------------------------------
+//功能: 从环形缓冲区读出若干个字节,返回实际读出的数据量,并且移动读指针如果
+//      缓冲区内数据不足，按实际数量读取。
+//参数: ring,目标环形缓冲区结构指针
+//      buffer,接收数据的缓冲区指针
+//      len,待读出的数据长度.单位是字节数
+//返回: 实际读出的字节数,如果缓冲区有足够的数据,=len
+//------------------------------------------------------------------------------
+#define BUFSIZE     4096
 
-// ============================================================================
-
-//crc32实现函数
-u32 crc32( char *buf, int len)
+uint32_t crc32_buf(char *buf,int len)
 {
-    u32 ret = 0xFFFFFFFF;
-    int   i;
+	int   i;
+	uint32_t ret;
+	ret = 0xFFFFFFFF;
+	for(i = 0; i < len;i++)
+	{
+		 ret = g_CRC32_tab[(ret ^buf[i] ) &0xFF] ^ (ret >> 8);
+	}
+	ret = ~ret;
+	return ret;
+}
+
+//---------------------------------------------------------------
+//功能: 将一个大块数据进行CRC32校验时，内存缓冲区不足时，可将大块数据拆分成若干个小块，依次进行校验
+//      最终得到整个大块数据CRC32校验结果.
+//参数:  crc,上一次进行校验得到的校验码，第一次调用时该值无意义，可设置为0;
+//      buf,待校验的数据缓冲区首指针
+//      len,待校验的数据长度.单位是字节数
+//      lastflg,最后一块进行校验的标识符
+//      startflg,第一块进行校验的标识符
+//返回: 实际读出的字节数,如果缓冲区有足够的数据,=len
+//------------------------------------------------------------------------------
+u32 cal_crc32( u32 crc,char *buf, int len,bool_t startflg,bool_t lastflg)
+{
+	int   i;
+	u32 ret;
+	if(startflg)
+	{
+        ret = 0xFFFFFFFF;
+	}
+	else
+	{
+		ret=crc;
+	}
+
     for(i = 0; i < len;i++)
     {
          ret = g_CRC32_tab[(ret ^buf[i] ) &0xFF] ^ (ret >> 8);
     }
-     ret = ~ret;
+    if(lastflg)
+    {
+       ret = ~ret;
+    }
     return ret;
 }
 
 
+static int cal_file_crc(const char *in_file,uint32_t *pcrc)
+{
+	int fd,nread;
+	uint32_t tmp_crc;
+	static bool_t sflag=false,lflag=false;
+	char buf[BUFSIZE];
+	uint32_t crc;
+	fd=open(in_file,O_RDONLY);
+	if(fd<0)
+	{
+		printf("%s file open failed.\r\n",__FUNCTION__);
+		return -1;
+	}
+	while(nread=read(fd,buf,BUFSIZE)>0)
+	{
+		if(!sflag)
+		{
+			if(nread==BUFSIZE)
+			{
+			   tmp_crc=cal_crc32(0,buf,BUFSIZE,true,false);
+			}
+			else
+			{
+			   tmp_crc=cal_crc32(0,buf,nread,true,true);
+			}
+			sflag=true;
+		}
+		else
+		{
+          if(nread!=BUFSIZE)
+          {
+        	  tmp_crc=cal_crc32(tmp_crc,buf,nread,false,true);
+        	  lflag=true;
+          }
+          else
+          {
+        	  tmp_crc=cal_crc32(tmp_crc,buf,nread,false,false);
+          }
+		}
 
+	}
+	crc=tmp_crc;
+	if(!lflag)
+	{
+		crc=~crc;
+	}
+	*pcrc=crc;
+	return 0;
+
+}
+
+// =============================================================================
+// 功能：建立并初始化DjyBus总线根节点，它是总线类型节点的父结点
+// 参数：type,数据源类型，EN_ARRAY_TYPE表示为数组，EN_FILE_TYPE表示为文件；
+//     source,待校验数据源，数组指针或者文件名;
+//     len,待校验数据源长度，如果数据源是EN_FILE_TYPE，则改参数无效，则直接输入NULL;
+//     pcrc,存储校验结果的指针.
+// 返回：成功校验则返回0,失败则返回-1.
+// =============================================================================
+int crc32(uint8_t type,char *source,ptu32_t len,uint32_t *pcrc)
+{
+	uint32_t crc;
+	int ret;
+	if((source==NULL)||(pcrc==NULL))
+	{
+		printf("%s para is invalid.\r\n",__FUNCTION__);
+		return -1;
+	}
+	if(type==EN_ARRAY_TYPE)
+	{
+		crc=crc32_buf(source,len);
+		*pcrc=crc;
+		return 0;
+	}
+	else if(type==EN_FILE_TYPE)
+	{
+		ret=cal_file_crc(source,pcrc);
+		return ret;
+	}
+	else
+		return -1;
+}
+
+// ============================================================================
+// 功能：CRC分步计算初始化
+// 参数：pCRC -- CRC值
+// 返回：0 -- 失败；-1 -- 失败；
+// 备注：
+// ============================================================================
+s32 crc32Init(u32 *pCRC)
+{
+	if(!pCRC)
+		return (0);
+
+	*pCRC = -1;
+	return (-1);
+}
+
+// ============================================================================
+// 功能：CRC分步计算
+// 参数：pCRC -- CRC值；pBuf -- 数据；dwLen -- 数据长度；
+// 返回：0 -- 失败；-1 -- 失败；
+// 备注：
+// ============================================================================
+s32 crc32Run(u32 *pCRC, u8 *pBuf, u32 dwLen)
+{
+	u32 i;
+	u8 *buf;
+	u32 crc;
+
+	if((!pCRC) || (!pBuf))
+		return (0);
+
+	crc = *pCRC;
+	buf = pBuf;
+
+	for(i = 0; i < dwLen;i++)
+	{
+		crc = g_CRC32_tab[(crc ^buf[i] ) &0xFF] ^ (crc >> 8);
+	}
+
+	*pCRC = crc;
+	return (-1);
+}
+
+// ============================================================================
+// 功能：CRC分步计算退出
+// 参数：pCRC -- CRC值；
+// 返回：0 -- 失败；-1 -- 失败；
+// 备注：
+// ============================================================================
+s32 crc32Exit(u32 *pCRC)
+{
+	u32 crc;
+
+	if(!pCRC)
+		return (0);
+
+	crc = *pCRC;
+	crc = ~crc;
+	*pCRC = crc;
+
+	return (-1);
+}

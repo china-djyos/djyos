@@ -633,6 +633,36 @@ static ptu32_t Wdt_Service(void)
     return 1; //if no exp, this could not be reached
 }
 
+#include <shell.h>
+static bool_t wdtshow(char *param)
+{
+	u8 i = 0;
+	tagWdt *wdt;
+    wdt = ptWdtHead;
+    printf("WDT:\n\r");
+    printf("%-4s%-16s%-9s%-9s%-9s%-9s%-9s\n\r",
+    		"No","NAME","FUNCTION","ACTION","CYCLE","OWNER","DEADLINE");
+    while(NULL != wdt)
+    {
+    	printf("%-4d%-16s%-8x %-8x %-8x %-8x %llx\n\r",\
+    			i++	,wdt->pname,wdt->fnhook,wdt->action,wdt->cycle,wdt->WdtOnwer,wdt->deadtime);
+    	wdt = wdt->pnxt;
+    }
+    return true;
+}
+
+struct ShellCmdTab  gWdtDebug[] =
+{
+    {
+        "wdtshow",
+		wdtshow,
+        "usage:wdtshow",
+        "usage:wdtshow",
+    },
+};
+#define CN_WdtDebug_NUM  ((sizeof(gWdtDebug))/(sizeof(struct ShellCmdTab)))
+static struct ShellCmdRsc gWdtDebugCmdRsc[CN_WdtDebug_NUM];
+
 // =============================================================================
 // 函数功能：看门狗模块的初始化
 // 输入参数：
@@ -689,6 +719,7 @@ ptu32_t ModuleInstall_Wdt(ptu32_t para)
     {
         printf("WDT MODULE: Register Wdt Exp Decoder Failed!\n\r");
     }
+    Sh_InstallCmd(gWdtDebug,gWdtDebugCmdRsc,CN_WdtDebug_NUM);
 
     printf("WDT MODULE:Init end ...\n\r");
     return 1;

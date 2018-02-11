@@ -103,7 +103,7 @@ typedef struct         //offset
 #define CN_USART2       7
 #define CN_UART_MAX     7
 #define CN_UART_NUM     8
-
+#define ALIGN_SIZE_32(x)  (u8 *)(((u32)x+32)&(0xffffffe0))
 ptu32_t ModuleInstall_UART(ptu32_t para);//´®¿Ú³õÊ¼»¯
 u32 UART_SendServiceDirectly(char *str);
 

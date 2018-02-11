@@ -415,18 +415,18 @@ bool_t DnsNameResolveShell(char *param)
 	char   ipstr[20];
 
 	name = param;
-	printk("%s:Resolve Name:%s\n\r",__FUNCTION__,name);
+	printf("%s:Resolve Name:%s\n\r",__FUNCTION__,name);
 	host = DnsNameResolve(name);
 
 	if(NULL != host)
 	{
-		printk("%s:GetName:%s addrtype:%d lenth:%d\n\r",\
+		printf("%s:GetName:%s addrtype:%d lenth:%d\n\r",\
 				__FUNCTION__,host->h_name,host->h_addrtype,host->h_length);
 
 		alias = host->h_aliases;
 		while(NULL != *alias)
 		{
-			printk("%s:alias:%s\n\r",__FUNCTION__,*alias);
+			printf("%s:alias:%s\n\r",__FUNCTION__,*alias);
 			alias++;
 		}
 		addr = host->h_addr_list;
@@ -434,14 +434,14 @@ bool_t DnsNameResolveShell(char *param)
 		{
 			if(inet_ntop(AF_INET,*addr,ipstr,20)>0)
 			{
-				printk("%s:ip:%s\n\r",__FUNCTION__,ipstr);
+				printf("%s:ip:%s\n\r",__FUNCTION__,ipstr);
 			}
 			addr++;
 		}
 	}
 	else
 	{
-		printk("%s:Resolve Name:%s--FAILED\n\r",__FUNCTION__,name);
+		printf("%s:Resolve Name:%s--FAILED\n\r",__FUNCTION__,name);
 	}
 
 	return result;

@@ -14,7 +14,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${cross_rm} -rf" description="" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.923972346.395795115" name="Debug" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.923972346.395795115" name="Debug" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.923972346.395795115." name="/" resourcePath="">
 						<toolChain id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug.1263304121" name="Cross ARM GCC" nonInternalBuilderId="ilg.gnuarmeclipse.managedbuild.cross.builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.334495273" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.none" valueType="enumerated"/>
@@ -59,6 +59,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\arch\arm\cortex-m\armv7e-m\cortex-m7\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\startup\stm32f7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\component\include\net&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.201826586" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ARM_ARCH_7EM__=1"/>
@@ -82,10 +83,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\arch\arm\cortex-m\armv7e-m\cortex-m7\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\CMSIS\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7\STM32F7xx_HAL_Driver\Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\cpudrv\stm32f7\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\startup\stm32f7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\boarddrv\NUCLEO-F746ZG\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7\Inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\component\include\net&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1443832433" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
@@ -110,6 +112,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.463360332" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;..\lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../libcompile\libOS\libOS_NUCLEO-F746ZG_o0&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags.2064899595" name="Linker flags (-Xlinker [option])" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.scriptfile.585161599" name="Script files (-T)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.scriptfile" valueType="stringList">
@@ -161,7 +164,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${cross_rm} -rf" description="" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.923972346.395795115.708652329" name="Release" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.923972346.395795115.708652329" name="Release" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.923972346.395795115.708652329." name="/" resourcePath="">
 						<toolChain id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug.1713978660" name="Cross ARM GCC" nonInternalBuilderId="ilg.gnuarmeclipse.managedbuild.cross.builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.902450626" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.none" valueType="enumerated"/>
@@ -206,6 +209,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\arch\arm\cortex-m\armv7e-m\cortex-m7\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\startup\stm32f7&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\component\include\net&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1445026069" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ARM_ARCH_7EM__=1"/>
@@ -229,10 +233,11 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\arch\arm\cortex-m\armv7e-m\cortex-m7\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\CMSIS\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7\STM32F7xx_HAL_Driver\Inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\cpudrv\stm32f7\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\startup\stm32f7&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\bsp\boarddrv\NUCLEO-F746ZG\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\third\firmware\stm32f7\Inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}\component\include\net&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.744899666" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
@@ -257,6 +262,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.921103975" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;..\lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../libcompile\libOS\libOS_NUCLEO-F746ZG_o2&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags.859011389" name="Linker flags (-Xlinker [option])" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.scriptfile.574265559" name="Script files (-T)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.scriptfile" valueType="stringList">

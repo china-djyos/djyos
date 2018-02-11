@@ -940,6 +940,7 @@ FRESULT remove_chain (
 /*-----------------------------------------------------------------------*/
 /* FAT handling - Stretch or Create a cluster chain                      */
 /*-----------------------------------------------------------------------*/
+// 这个函数操作了公共的资源
 #if !_FS_READONLY
 static
 DWORD create_chain (    /* 0:No free cluster, 1:Internal error, 0xFFFFFFFF:Disk error, >=2:New cluster# */
@@ -2334,7 +2335,7 @@ FRESULT validate (  /* FR_OK(0): The object is valid, !=0: Invalid */
     if (!fil || !fil->fs || !fil->fs->fs_type || fil->fs->id != fil->id)
         return FR_INVALID_OBJECT;
 
-    ENTER_FF(fil->fs);      /* Lock file system */
+    ENTER_FF(fil->fs);      /* Lock file system，上锁 */
 
     if (disk_status(fil->fs->drv) & STA_NOINIT)
         return FR_NOT_READY;
@@ -2673,14 +2674,14 @@ FRESULT f_write (
                 if (fp->fptr == 0) {        /* On the top of the file? */
                     clst = fp->sclust;      /* Follow from the origin */
                     if (clst == 0)          /* When no cluster is allocated, */
-                        clst = create_chain(fp->fs, 0); /* Create a new cluster chain */
+                        clst = create_chain(fp->fs, 0); /* Create a new cluster chain, TODO: 这里会操作公共资源fs */
                 } else {                    /* Middle or end of the file */
 #if _USE_FASTSEEK
                     if (fp->cltbl)
                         clst = clmt_clust(fp, fp->fptr);    /* Get cluster# from the CLMT */
                     else
 #endif
-                        clst = create_chain(fp->fs, fp->clust); /* Follow or stretch cluster chain on the FAT */
+                        clst = create_chain(fp->fs, fp->clust); /* Follow or stretch cluster chain on the FAT, TODO: 这里会操作公共资源fs */
                 }
                 if (clst == 0) break;       /* Could not allocate a new cluster (disk full) */
                 if (clst == 1) ABORT(fp->fs, FR_INT_ERR);
@@ -2772,14 +2773,14 @@ FRESULT f_sync (
     BYTE *dir;
 
 
-    res = validate(fp);                 /* Check validity of the object */
+    res = validate(fp); /* Check validity of the object，包括上锁 */
     if (res == FR_OK) {
         if (fp->flag & FA__WRITTEN) {   /* Has the file been written? */
             /* Write-back dirty buffer */
 #if !_FS_TINY
             if (fp->flag & FA__DIRTY) {
                 if (disk_write(fp->fs->drv, fp->buf, fp->dsect, 1) != RES_OK)
-                    LEAVE_FF(fp->fs, FR_DISK_ERR);
+                    LEAVE_FF(fp->fs, FR_DISK_ERR); // 解锁
                 fp->flag &= ~FA__DIRTY;
             }
 #endif
@@ -2800,7 +2801,7 @@ FRESULT f_sync (
         }
     }
 
-    LEAVE_FF(fp->fs, res);
+    LEAVE_FF(fp->fs, res); // 解锁
 }
 
 #endif /* !_FS_READONLY */
@@ -4059,11 +4060,11 @@ FRESULT f_mkfs (
     if (disk_ioctl(pdrv, GET_SECTOR_SIZE, &SS(fs)) != RES_OK || SS(fs) > _MAX_SS || SS(fs) < _MIN_SS)
         return FR_DISK_ERR;
 #endif
-    if (_MULTI_PARTITION && part) {/* 支持多分区,并且分区不为零,则读入分区表 */
+    if (_MULTI_PARTITION && part) {/* 支持多分区,并且分区不为零,则读入分区表(sector0) */
         /* Get partition information from partition table in the MBR */
         if (disk_read(pdrv, fs->win, 0, 1) != RES_OK) return FR_DISK_ERR;
-        if (LD_WORD(fs->win + BS_55AA) != 0xAA55) return FR_MKFS_ABORTED;
-        tbl = &fs->win[MBR_Table + (part - 1) * SZ_PTE];
+        if (LD_WORD(fs->win + BS_55AA) != 0xAA55) return FR_MKFS_ABORTED;/* MBR是坏的 */
+        tbl = &fs->win[MBR_Table + (part - 1) * SZ_PTE];/* 查找目标分区信息 */
         if (!tbl[4]) return FR_MKFS_ABORTED;    /* No partition?(检查TypeCode) */
         b_vol = LD_DWORD(tbl + 8);  /* Volume start sector */
         n_vol = LD_DWORD(tbl + 12); /* Volume size */
@@ -4071,7 +4072,7 @@ FRESULT f_mkfs (
         /* Create a partition in this function */
         if (disk_ioctl(pdrv, GET_SECTOR_COUNT, &n_vol) != RES_OK || n_vol < 128)
             return FR_DISK_ERR;
-        b_vol = (sfd) ? 0 : 63;     /* Volume start sector */
+        b_vol = (sfd) ? 0 : 63;     /* Volume start sector，63个sector用于什么？ */
         n_vol -= b_vol;             /* Volume size */
     }
 
@@ -4088,7 +4089,8 @@ FRESULT f_mkfs (
     if (au > 128) au = 128;
 
     /* 计算设备分区下有个多少个簇 = 设备有多少个sector / 一个簇有多个sector
-       从而选定不同的FAT格式 */
+                从而选定不同的FAT格式
+    */
     /* Pre-compute number of clusters and FAT sub-type */
     n_clst = n_vol / au;
     fmt = FS_FAT12;

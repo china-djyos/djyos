@@ -85,7 +85,7 @@
 #define DIFF_SEC_1900_1970         (2208988800)
 
 
-#define PRINT_SNTPDEBUG(x)            printk
+#define PRINT_SNTPDEBUG(x)            printf
 
 static int __SntpDealTime(time_t time)
 {
@@ -109,8 +109,8 @@ static int __SntpDealTime(time_t time)
 	asct = asctime(&ostime);
 	ct = ctime(&time_now);
 
-	printk("%s:ASCTIME:%s\n\r",__FUNCTION__,asct);
-	printk("%s:CTIME:%s\n\r",__FUNCTION__,ct);
+	printf("%s:ASCTIME:%s\n\r",__FUNCTION__,asct);
+	printf("%s:CTIME:%s\n\r",__FUNCTION__,ct);
 
 	return 0;
 }

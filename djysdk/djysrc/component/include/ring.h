@@ -73,6 +73,7 @@ struct RingBuf
 
 void Ring_Init(struct RingBuf *ring, u8 *buf, u32 len);
 u32 Ring_Capacity(struct RingBuf *ring);
+u32 Ring_Capacity2(struct RingBuf *ring);
 u8 *Ring_GetBuf(struct RingBuf *ring);
 u32    Ring_Write(struct RingBuf *ring,u8 *buffer,u32 len);
 u32    Ring_Read(struct RingBuf *ring,u8 *buffer,u32 len);
@@ -86,6 +87,8 @@ u32 Ring_SkipTail(struct RingBuf *ring,u32 size);
 void Ring_Clean(struct RingBuf *ring);
 u32 Ring_SearchCh(struct RingBuf *ring, char c);
 u32 Ring_SearchStr(struct RingBuf *ring, char *string,u32 str_len);
+struct RingBuf *Ring_Create(u32 dwLen);
+s32 Ring_Destroy(struct RingBuf *pRing);
 
 #ifdef __cplusplus
 }

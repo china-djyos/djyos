@@ -155,7 +155,8 @@ void    __InitDC(DC *pdc,struct GkWinRsc *gk_win,HWND hwnd,s32 dc_type)
     pdc->FillColor  =hwnd->FillColor;
     pdc->TextColor  =hwnd->TextColor;
     pdc->SyncTime   =100*mS;
-    pdc->RopCode    =(struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
+    //pdc->RopCode    =(struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
+    pdc->RopCode=gk_win->RopCode;
 
 }
 

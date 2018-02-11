@@ -70,12 +70,6 @@ ptu32_t ModuleInstall_NetStaticIP(ptu32_t para)   //static ip example
             bool_t loop,u32 loopcycle,\
             bool_t (*rcvHook)(u8 *buf, u16 len));
     ModuleInstall_ETH(gc_NetCardName,gc_NetMac,false,1*mS,NULL);
-//    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,10000,1000*mS,10*1000*mS);
-//    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,true);
-    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_BROAD,100,100*1000*mS,1*1000*mS);
-    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_BROAD,true);
-    //make an link rout for the netdeb you installed,you could install more
-	//than one link rout for the same net device with different net address
 	tagHostAddrV4  ipv4addr;
 	//we use the static ip we like
 	memset((void *)&ipv4addr,0,sizeof(ipv4addr));
@@ -110,25 +104,11 @@ ptu32_t ModuleInstall_NetDynamicIP(ptu32_t para)   //use the dhcp to malloc an i
     extern bool_t ModuleInstall_ETH(const char *devname, u8 *mac,\
             bool_t loop,u32 loopcycle,\
             bool_t (*rcvHook)(u8 *buf, u16 len));
-    ModuleInstall_ETH(gc_NetCardName,gc_NetMac,false,1*mS,NULL);
-    //set the netdevice filter
-    //maybe you want to add some net device filter:such as broadcast limited
-    //no frame reset and so on, if you use filter,operate it like following:
-    //set the netdevice filter
-    //initialize the filter(EN_NETDEV_FRAME_NOPKG),the measure time is 10 SECONS
-    //and the action time(which will reset the net device) is 1 seconds
-    //if in the 10s time, no package comes reached 10000 times, then the filter
-    //initialize the nopkg filter
-//    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,10000,1000*mS,10*1000*mS);
-//    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_NOPKG,true);
-
-    NetDevFilterSet(gc_NetCardName,EN_NETDEV_FRAME_BROAD,100,100*1000*mS,1*1000*mS);
-    NetDevFilterEnable(gc_NetCardName,EN_NETDEV_FRAME_BROAD,true);
-
+    ModuleInstall_ETH(gc_NetCardName,gc_NetMac,false,1*mS,NULL);    
     //make an link rout for the netdeb you installed
     //if you will malloc the ip from the dhcp server,make sure that the dhcp client has been enabled
     //actually,you could only install one rout for the same net dev
-    if(DhcpAddClientTask(gc_NetCardName,NULL))
+    if(DhcpAddClientTask(gc_NetCardName))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,gc_NetCardName);
     }

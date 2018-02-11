@@ -108,8 +108,8 @@ struct HeapCB
                                 //途，在该heap上分配的内存，有特殊的对齐尺寸。
     u32  HeapProperty;          //0=通用堆,1=专用堆
     char *HeapName;
-    struct MutexLCB HeapMutex;
 #if ((CN_CFG_DYNAMIC_MEM == 1))
+    struct MutexLCB HeapMutex;
     // 等待分配内存的事件链表,双向循环链表。
     // 无论是否支持动态分配,在准静态分配期间,指针无效.
     // 仅专用堆的指针有效,通用堆将用静态变量s_ptMemSync替代.

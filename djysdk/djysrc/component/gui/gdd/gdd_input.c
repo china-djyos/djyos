@@ -65,6 +65,48 @@
 #include    <gui/gdd/gdd_private.h>
 
 static tpInputMsgQ sg_ptGddMsgQ;
+
+//-----------------------------------------------------------------------------
+//功能：添加输入设备，用于接收来自HMI设备的输入消息。
+//参数：用于GDD的输入设备名。注意，非设计用于GDD的输入设备，不放在这里。
+//返回：true = 成功初始化，false =失败。
+//-----------------------------------------------------------------------------
+bool_t GDD_AddInputDev(const char *InputDevName)
+{
+    bool_t flag;
+    enum _STDIN_INPUT_TYPE_ DevType;
+    flag = HmiIn_SetFocus((char*)InputDevName,sg_ptGddMsgQ);
+    DevType = HmiIn_CheckDevType(InputDevName);
+    switch(DevType)
+    {
+        case EN_HMIIN_MOUSE_2D:
+            GDD_CreateMouseIcon( );
+            break;
+        case EN_HMIIN_MOUSE_3D:
+            break;
+        case EN_HMIIN_SINGLE_TOUCH:
+            break;
+        case EN_HMIIN_MUTI_TOUCH:
+            break;
+        case EN_HMIIN_AREA_TOUCH:
+            break;
+        default:break;
+    }
+    return flag;
+}
+
+//-----------------------------------------------------------------------------
+//功能：将该设备的输入焦点从 设备队列中删除并 设置为默认值
+//参数：用于GDD的输入设备名。
+//返回：true = 成功初始化，false =失败。
+//-----------------------------------------------------------------------------
+bool_t GDD_DeleteInputDev(const char *InputDevName)
+{
+    bool_t flag;
+    flag = HmiIn_SetFocus((char*)InputDevName,HmiIn_GetFocusDefault());
+    return flag;
+}
+
 //----输入设备初始化-----------------------------------------------------------
 //功能：创建输入设备队列，用于接收来自HMI设备的输入消息。
 //参数：用于GDD的输入设备名列表。注意，非设计用于GDD的输入设备，不放在这里。
@@ -73,7 +115,6 @@ static tpInputMsgQ sg_ptGddMsgQ;
 bool_t GDD_InputDevInit(const char *InputDevName[])
 {
     s32 i = 0;
-    enum _STDIN_INPUT_TYPE_ DevType;
     if(InputDevName[0] == NULL)
         return false;
     GDD_StartTimer(GDD_CreateTimer(GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
@@ -90,24 +131,7 @@ bool_t GDD_InputDevInit(const char *InputDevName[])
                 {
                     break;
                 }
-
-                HmiIn_SetFocus((char*)InputDevName[i],sg_ptGddMsgQ);
-                DevType = HmiIn_CheckDevType(InputDevName[i]);
-                switch(DevType)
-                {
-                    case EN_HMIIN_MOUSE_2D:
-                        GDD_CreateMouseIcon( );
-                        break;
-                    case EN_HMIIN_MOUSE_3D:
-                        break;
-                    case EN_HMIIN_SINGLE_TOUCH:
-                        break;
-                    case EN_HMIIN_MUTI_TOUCH:
-                        break;
-                    case EN_HMIIN_AREA_TOUCH:
-                        break;
-                    default:break;
-                }
+                GDD_AddInputDev((char*)InputDevName[i]);
                 i++;
             }
         }

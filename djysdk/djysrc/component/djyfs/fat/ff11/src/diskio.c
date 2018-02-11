@@ -32,7 +32,9 @@ DSTATUS disk_status (
     BYTE pdrv       /* Physical drive nmuber to identify the drive */
 )
 {
+#if 0
 	DSTATUS stat = 0;
+#endif
 	int result;
 #if 0
 	switch (pdrv) {

@@ -342,7 +342,7 @@ SYNC_FAILED:
 }
 
 //this is the dhcp entry
-bool_t ServiceDhcpInit(ptu32_t para)
+bool_t ServiceDhcpcInit(ptu32_t para)
 {
     bool_t result;
     result = ModuleInstall_DhcpClient(0);

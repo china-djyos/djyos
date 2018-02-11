@@ -95,7 +95,7 @@
 */
 
 
-#define _USE_LFN    1
+#define _USE_LFN    3
 #define _MAX_LFN    255
 /* The _USE_LFN option switches the LFN(Long FileName) feature.
 /
@@ -143,12 +143,12 @@
 / Drive/Volume Configurations
 /---------------------------------------------------------------------------*/
 
-#define _VOLUMES    5/* 根据下面的_VOLUME_STRS数量，不能小于1，大于9 */
+#define _VOLUMES    6/* 根据下面的_VOLUME_STRS数量，不能小于1，大于9 */
 /* Number of volumes (logical drives) to be used. */
 
 
 #define _STR_VOLUME_ID  1
-#define _VOLUME_STRS    "RAM","NAND","CF","SD", "USB MSC"/* "vol"号从0-4，需大写 */
+#define _VOLUME_STRS    "RAM","NAND","CF","SD", "USB MSC", "EMMC" /* "vol"号从0-x，需大写 */
 /* _STR_VOLUME_ID option switches string volume ID feature.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each
@@ -211,7 +211,7 @@
 /  These options have no effect at read-only configuration (_FS_READONLY == 1). */
 
 
-#define _FS_LOCK    0
+#define _FS_LOCK    100 //
 /* The _FS_LOCK option switches file lock feature to control duplicated file open
 /  and illegal operation to open objects. This option must be 0 when _FS_READONLY
 /  is 1.
@@ -223,9 +223,9 @@
 /      lock feature is independent of re-entrancy. */
 
 
-#define _FS_REENTRANT   0
-#define _FS_TIMEOUT     1000
-#define _SYNC_t         HANDLE
+#define _FS_REENTRANT   1
+#define _FS_TIMEOUT     1000 // 这个超时用于下面的互斥量的等待，可用可不用
+#define _SYNC_t         void* // HANDLE // 原值为HANDLE后改为void*，相当于互斥量的结构体
 /* The _FS_REENTRANT option switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different
 /  volume is always re-entrant and volume control functions, f_mount(), f_mkfs()

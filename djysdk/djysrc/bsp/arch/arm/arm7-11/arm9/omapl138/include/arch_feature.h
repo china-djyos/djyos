@@ -65,6 +65,10 @@ extern "C" {
 
 #define arm926ej_s
 
+//保存上下文所需的栈空间最大值
+//16=通用寄存器，+cpsr-SP
+#define CN_CONTEXT_LIMIT        (16)*4
+
 //虽然cache.h中有定义cache尺寸的地方,但926ej_s的cache尺寸由厂商决定，直接与CPU
 //实现相关,故需要在这里定义.
 #define CN_CACHE_SIZE           0x4000

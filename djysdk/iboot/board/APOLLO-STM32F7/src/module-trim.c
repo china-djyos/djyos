@@ -52,7 +52,7 @@
 #include <djyos.h>
 #include <driver.h>
 #include <exp.h>
-#include <font.h>
+#include <font/font.h>
 #include <gdd.h>
 #include <gkernel.h>
 #include <iicbus.h>
@@ -67,6 +67,7 @@
 #include <uartctrl.h>
 #include "hmi-input.h"
 #include "keyboard.h"
+#include <driver/flash/flash.h>
 #include "../../../../../djysrc/bsp/arch/arm/arm32_stdint.h"
 
 extern ptu32_t ModuleInstall_DebugInfo(ptu32_t para);
@@ -74,13 +75,13 @@ extern ptu32_t ModuleInstall_DebugInfo(ptu32_t para);
 #define TOUCH_DEV_NAME  "FT5X26"
 #define KBD_DEV_NAME    "keyboard_driver"
 #define DISPLAY_NAME   "ALIENTEK-7'-RGB"
-//static  const char *gdd_input_dev[]={
-//
-//    TOUCH_DEV_NAME,
-////    KBD_DEV_NAME,
-//    NULL, //必须要以NULL作为结束标记
-//
-//};
+static  const char *gdd_input_dev[]={
+
+    TOUCH_DEV_NAME,
+//    KBD_DEV_NAME,
+    NULL, //必须要以NULL作为结束标记
+
+};
 
 
 ptu32_t djy_main(void);
@@ -119,6 +120,8 @@ void Sys_ModuleInit(void)
 
     extern bool_t Board_GpioInit(void);
     Board_GpioInit();
+    extern bool_t MoudleInit_Systime(ptu32_t para);
+    MoudleInit_Systime(0);
     //初始化直接输入和输出的硬件，为stdio.c中定义的 PutStrDirect、GetCharDirect
     //两个指针赋值，也可以只为PutStrDirect赋值，以支持printk。
     //这是来自bsp的函数，一般是串口驱动,BSP没提供的话，就不要调用，会导致应用程序编译不通过。
@@ -138,6 +141,10 @@ void Sys_ModuleInit(void)
 
     //异常监视模块,依赖:shell模块
     ModuleInstall_Exp(0);
+	
+	//extern bool_t ModuleInstall_ExpBkpsram(ptu32_t para);
+    //ModuleInstall_ExpBkpsram(0);
+	
 
     // SD设备 -- 依赖设备驱动模块
 //    ModuleInstall_SD("sd", 0);
@@ -149,7 +156,7 @@ void Sys_ModuleInit(void)
     s32  ModuleInstall_FileSystem(void);
     ModuleInstall_FileSystem();
     // 安装yaffs2文件系统,依赖:文件系统模块和NAND设备
-    s32 ModuleInstall_YAFFS2(const char* DevPath, u32 Options);
+   // s32 ModuleInstall_YAFFS2(const char* DevPath, u32 Options);
 //    ModuleInstall_YAFFS2("/dev/nand",1);
     // 安装fat文件系统,依赖:文件系统模块和SD设备
 //   ModuleInstall_FAT("dev/sd");
@@ -184,8 +191,10 @@ void Sys_ModuleInit(void)
 	//  Dev = Driver_OpenDevice("UART3",D_RDONLY,CN_TIMEOUT_FOREVER);
 	ModuleInstall_Ymodem(0);
 	Ymodem_PathSet("/iboot");
-	ModuleInstall_IAP_FS(NULL);
 	ModuleInstall_IAP();
+	ModuleInstall_EmbededFlash("embedded flash", FLASH_BUFFERED, 0);
+	ModuleInstall_IAP_FS("/iboot", "/dev/embedded flash");
+	
 //
 //    //安装人机交互输入模块，例如键盘、鼠标等
 //    ModuleInstall_HmiIn();
@@ -226,30 +235,30 @@ void Sys_ModuleInit(void)
 
 //    ModuleInstall_KeyBoard(0);
 //    //键盘输入驱动,依赖:键盘输入模块
-
+#if (0)
     bool_t ModuleInstall_Keyboard(const char *dev_name);
 //    ModuleInstall_Keyboard(KBD_DEV_NAME);
 //    //字符集模块
-//    ModuleInstall_Charset(0);
+    ModuleInstall_Charset(0);
 //    //gb2312字符编码,依赖:字符集模块
-//    ModuleInstall_CharsetGb2312(0);
+    ModuleInstall_CharsetGb2312(0);
 //    //ascii字符集,注意,gb2312包含了ascii,初始化了gb2312后,无须本模块
 //    //依赖:字符集模块
 //    ModuleInstall_CharsetAscii(0);
 //    初始化utf8字符集
 //    ModuleInstall_CharsetUtf8(0);
 //    //国际化字符集支持,依赖所有字符集模块以及具体字符集初始化
-//    ModuleInstall_CharsetNls("C");
+    ModuleInstall_CharsetNls("C");
 //
 //
-//     ModuleInstall_Font(0);                 //字体模块
+     ModuleInstall_Font(0);                 //字体模块
 //
 //    //8*8点阵的ascii字体依赖:字体模块
 //    ModuleInstall_FontAscii8x8Font(0);
 //    //6*12点阵的ascii字体依赖:字体模块
 //    ModuleInstall_FontAscii6x12Font(0);
 //    //从数组安装GB2312点阵字体,包含了8*16的ascii字体.依赖:字体模块
-//    ModuleInstall_FontGb2312_816_1616_Array(0);
+    ModuleInstall_FontGb2312_816_1616_Array(0);
 //    //从文件安装GB2312点阵字体,包含了8*16的ascii字体.依赖:字体模块,文件系统
 ////    ModuleInstall_FontGb2312_816_1616_File("sys:\\gb2312_1616");
 //    //8*16 ascii字体初始化,包含高128字节,依赖:字体模块
@@ -258,18 +267,18 @@ void Sys_ModuleInit(void)
 //
 //
     //初始化gui kernel模块
-//    static struct GkWinRsc desktop;
-//    struct DisplayRsc *lcd;
-//    ModuleInstall_GK(0);           //gkernel模块
+    static struct GkWinRsc desktop;
+    struct DisplayRsc *lcd;
+    ModuleInstall_GK(0);           //gkernel模块
     //lcd驱动初始化,如果用系统堆的话,第二个参数用NULL
     //堆的名字,是在lds文件中命名的,注意不要搞错.
     //依赖: gkernel模块
-
-//     lcd = (struct DisplayRsc*)ModuleInstall_LCD(DISPLAY_NAME,"extram");
+   extern bool_t Ltdc_Lcd_Config(struct LCD_ConFig *lcd);
+    lcd = (struct DisplayRsc*)ModuleInstall_LCD(DISPLAY_NAME,"extram",Ltdc_Lcd_Config);
 
     //创建桌面,依赖:显示器驱动
-//    GK_ApiCreateDesktop(lcd,&desktop,0,0,
-//                        CN_COLOR_BLUE,CN_WINBUF_PARENT,CN_SYS_PF_DISPLAY,0);
+    GK_CreateDesktop(lcd,&desktop,0,0,
+                        CN_COLOR_BLUE,CN_WINBUF_PARENT,CN_SYS_PF_DISPLAY,0);
 
 
 //    //触摸屏模块,依赖:gkernel模块和显示器驱动
@@ -285,8 +294,8 @@ void Sys_ModuleInit(void)
 
 
 //    //GDD组件初始化
-//    ModuleInstall_GDD(&desktop,gdd_input_dev);
-
+    ModuleInstall_GDD(&desktop,gdd_input_dev);
+#endif
     evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
                                 __djy_main,NULL,gc_u32CfgMainStackLen,
                                 "main function");

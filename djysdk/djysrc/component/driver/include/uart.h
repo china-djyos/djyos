@@ -74,6 +74,7 @@ struct UartParam
     u32 TxRingBufLen;                   //发送缓冲区配置字节数
     u32 RxRingBufLen;                   //接收缓冲区配置字节数
     u32 Baud;                           //默认的波特率
+    u8  mode;                           //串口工作模式，参见CN_UART_GENERAL说明
     ptu32_t UartPortTag;                //UART私有标签，如寄存器基址
     UartStartSend StartSend;            //启动发送回调函数指针
 //    UartDirectSend DirectlySend;        //直接轮询发送回调函数指针
@@ -86,6 +87,8 @@ ptu32_t UART_AppRead(struct UartCB *UCB,u8* dst_buf,u32 len,
         u32 offset,u32 timeout);
 ptu32_t UART_PortWrite(struct UartCB *UCB,u8* buf,u32 len,u32 res);
 ptu32_t UART_PortRead(struct UartCB *UCB,u8* dst_buf,u32 len,u32 res);
+ptu32_t UART_Poll_PortRead(struct UartCB *UCB);
+ptu32_t UART_Poll_PortWrite(struct UartCB *UCB,u32 len);
 ptu32_t UART_ErrHandle(struct UartCB *UCB,u32 ErrNo);
 ptu32_t UART_Ctrl(struct UartCB *UCB,u32 cmd,ptu32_t data1,ptu32_t data2);
 bool_t UART_MultiplexAdd(struct UartCB *UCB,

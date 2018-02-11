@@ -79,6 +79,9 @@ extern "C" {
 #define CN_MEM_ALIGN            1    //如果目标系统没有对齐要求，改为0
 #define CN_ALIGN_SIZE           16   //E500V2 16字节对齐
 
+//保存上下文所需的栈空间最大值
+//32个通用寄存器，CR,XER,CRT,LR,MSR,PC，全部64bit
+#define CN_CONTEXT_LIMIT        (38)*8
 
 typedef ucpu_t atom_high_t;
 typedef ucpu_t atom_low_t;

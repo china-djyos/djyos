@@ -55,6 +55,9 @@
 
 #define CN_SPI0    0
 #define CN_SPI1    1
+#define CN_SPI2    2
+#define CN_SPI3    3
+#define CN_SPI4    4
 #define CN_SPI_NUM  2
 #define CN_CS_MAX  3
 

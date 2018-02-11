@@ -900,7 +900,7 @@ static int __shutdown_wr(tagSocket *sock)
 // =============================================================================
 static int __shutdown(tagSocket *sock, u32 how)
 {
-    int    result;
+    int    result=-1;
 
     if(Lock_MutexPend(sock->sync,CN_TIMEOUT_FOREVER))
     {
@@ -1321,7 +1321,7 @@ bool_t UdpInit(ptu32_t para)
        (false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,0, &gTplProto))||\
        (false == IpInstallProto("udp",IPPROTO_UDP,__rcvdeal)))
     {
-        printk("%s:ERR:UDP PROTO REGISTER FAILED\n\r",__FUNCTION__);
+        printf("%s:ERR:UDP PROTO REGISTER FAILED\n\r",__FUNCTION__);
         result = false;
     }
     else

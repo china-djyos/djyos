@@ -141,9 +141,14 @@ __asm_reset_switch:
 __asm_start_thread:
     ldr     r1,=msp_top
     msr     msp,r1              /* 重置主栈指针，主栈将用于异常和中断 */
+    mrs     r2, control
     mov     r1,#2
+    orr     r1,r2
+    ldr     r0,[r0]             /* 取得新上下文指针 */
+    msr     psp,r0
     msr     control,r1          /* 切换到特权线程模式，栈指针用psp */
-    ldr     sp,[r0]             /* 取得新上下文指针 */
+
+
 @    bl      Int_HalfEnableAsynSignal /* 线程启动后，调度应该是允许的 */
     svc     0                   /* 切入新上下文 */
     bx      lr

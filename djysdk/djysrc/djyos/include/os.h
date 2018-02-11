@@ -73,6 +73,7 @@ extern "C" {
 #include "systime.h"
 #include "version.h"
 #include "atomic.h"
+#include "cpuinfo.h"
 
 #ifdef __cplusplus
 }

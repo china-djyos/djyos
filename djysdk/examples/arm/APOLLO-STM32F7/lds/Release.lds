@@ -201,6 +201,13 @@ SECTIONS
     }>extram
     extram_heap_top = ExtRamStart + ExtRamSize;
 
+     heap_rnocache_lextram (NOLOAD) : 
+      { 
+         . = ALIGN(0x08);
+         NoCacheRam_heap_bottom = .;
+      }>RAM1NOCACHE
+     NoCacheRam_heap_top = NoCacheRamStart + NoCacheRamSize;
+
     heap_cp_table :
     {
         . = ALIGN(0x08);
@@ -235,8 +242,23 @@ SECTIONS
         BYTE(0x61)                  /*'a'*/
         BYTE(0x6d)                  /*'m'*/
         BYTE(0)                     /*串结束，"extram"是堆的名字*/
+        
         . = ALIGN(0x04);
-      
+	    LONG(1)                     /*表示该堆由1段内存组成*/
+    	LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+		LONG(0)                     /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+		LONG(NoCacheRam_heap_bottom)    /*第一段基址，须符合对齐要求*/
+		LONG(NoCacheRam_heap_top)       /*第一段地址上限（不含），须符合对齐要求*/
+		LONG(64)                    /*第一段页尺寸=128bytes*/
+		BYTE(0x6e)                  /*'n'*/
+		BYTE(0x6f)                  /*'o'*/
+		BYTE(0x63)                  /*'c'*/
+		BYTE(0x61)                  /*'a'*/
+		BYTE(0x63)                  /*'c'*/
+		BYTE(0x68)                  /*'h'*/
+		BYTE(0x65)                  /*'e'*/
+		BYTE(0)                     /*串结束，"nocache"是堆的名字*/
+        . = ALIGN(0x04);      
         LONG(0)                     /*结束标志*/
     }>InnerFlash
     

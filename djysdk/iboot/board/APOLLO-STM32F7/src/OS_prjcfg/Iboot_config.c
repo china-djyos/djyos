@@ -58,10 +58,14 @@
 #include "cpu_peri.h"
 #include "IAP.h"
 
+char * const DJY_IBOOT_VERSION = "0.0.0";
+char * const DJY_IBOOT_COMPILE_DATE = __DATE__;
+char * const DJY_IBOOT_COMPILE_TIME = __TIME__;
 
 const u8 g_IbootType  =EN_DIRECT_RUN;	//是否直接从程序存储器中加载（即Mcu模式）
 const u8 g_IbootCRC   =EN_USE_CRC;	//是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
-const char *g_pcIbootDir       ="";
-
+const char *g_AppUpdateName="";
+const char *g_AppUpdatePath="";
+const char *g_IbootUpdateName="APOLLO_IBOOT.bin";
 
 

@@ -30,15 +30,19 @@ u32 LP_EntryLowPower(struct ThreadVm *vm)
     switch(g_tLowPower.SleepLevel)
     {
        case CN_SLEEP_L0:
+    	   Int_CutTrunk();
            g_tLowPower.EntrySleepReCall(CN_SLEEP_L0);
            __LP_BSP_EntrySleepL0( );
            g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
+           Int_ContactTrunk();
            return CN_SLEEP_L0;
            break;
        case CN_SLEEP_L1:
+    	   Int_CutTrunk();
            g_tLowPower.EntrySleepReCall(CN_SLEEP_L1);
            __LP_BSP_EntrySleepL1( );
            g_tLowPower.ExitSleepReCall(CN_SLEEP_L1);
+           Int_ContactTrunk();
            return CN_SLEEP_L1;
            break;
        case CN_SLEEP_L2:
@@ -106,6 +110,14 @@ u32 LP_SetSleepLevel(u32 Level)
     return g_tLowPower.SleepLevel;
 }
 
+
+u32 LP_GetSleepLevel(void)
+{
+	return g_tLowPower.SleepLevel;
+}
+
+
+
 u32 EmptyReCall(u32 SleepLevel)
 {
     return 0;
@@ -128,7 +140,7 @@ ptu32_t ModuleInstall_LowPower (u32 (*EntrySleepReCall)(u32 SleepLevel),
         g_tLowPower.ExitSleepReCall = ExitSleepReCall;
     else
         g_tLowPower.ExitSleepReCall = EmptyReCall;
-    g_tLowPower.SleepLevel = 0;
+    g_tLowPower.SleepLevel = CN_SLEEP_NORMAL;
     g_tLowPower.DisableCounter = 0;
     g_fnEntryLowPower = LP_EntryLowPower;
     return 0;

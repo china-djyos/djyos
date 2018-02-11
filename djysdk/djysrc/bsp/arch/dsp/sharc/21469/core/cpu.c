@@ -88,37 +88,6 @@ u32 volatile  core_time;
 void SetDelayHandler(int sig_int);
 
 u32 __DjyIsrTick(ptu32_t line);
-//----创建线程-----------------------------------------------------------------
-//功能：为事件类型创建伪虚拟机，初始化上下文环境，安装执行函数，构成完整线程
-//参数：evtt_id，待创建的线程所服务的事件类型id
-//返回：新创建的线程的虚拟机指针
-//注: 移植敏感函数
-//-----------------------------------------------------------------------------
-struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
-{
-    struct ThreadVm  *result;
-    ptu32_t  len;
-
-    //计算虚拟机栈:线程+最大单个api需求的栈
-    len = evtt->stack_size;
-    //栈顶需要对齐，malloc函数能保证栈底是对齐的，对齐长度可以使栈顶对齐
-    len = align_up_sys(len);
-    result=(struct ThreadVm  *)__MallocStack(len);
-    *stack_size = len;
-    if(result==NULL)
-    {
-        Djy_SaveLastError(EN_MEM_TRIED);   //内存不足，返回错误
-        return result;
-    }
-    memset(result,'d',len);
-    result->stack_top = (u32*)((ptu32_t)result+len); //栈顶地址，移植敏感
-    result->next = NULL;
-    result->stack_size = len - sizeof(struct ThreadVm); //保存栈深度
-    result->host_vm = NULL;
-    //复位虚拟机并重置线程
-    __asm_reset_thread(evtt->thread_routine,result);
-    return result;
-}
 
 //----set the instruction delay constant varaible-------------------------------
 //function:set the instruction delay to constant, which makes the djy_delay_10us

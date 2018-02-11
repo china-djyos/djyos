@@ -108,7 +108,7 @@ ptu32_t ModuleInstall_NetDynamicIP(ptu32_t para)   //use the dhcp to malloc an i
     //make an link rout for the netdeb you installed
     //if you will malloc the ip from the dhcp server,make sure that the dhcp client has been enabled
     //actually,you could only install one rout for the same net dev
-    if(DhcpAddClientTask(gc_NetCardName,NULL))
+    if(DhcpAddClientTask(gc_NetCardName))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,gc_NetCardName);
     }

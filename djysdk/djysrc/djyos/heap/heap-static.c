@@ -96,7 +96,7 @@ void *__M_StaticMalloc(ptu32_t size,u32 timeout);
 void __M_StaticFreeHeap(void *pl_mem,struct HeapCB *Heap);
 void __M_StaticFree(void *pl_mem);
 void *__M_StaticRealloc(void *, ptu32_t NewSize,u32 timeout);
-void *__M_StaticMallocStack(ptu32_t size);
+void *__M_StaticMallocStack(struct EventECB *event, u32 size);
 
 ptu32_t Heap_StaticModuleInit(ptu32_t para);
 
@@ -118,7 +118,7 @@ void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
 void    (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap);
-void *  (*__MallocStack)(ptu32_t size);
+void *(*__MallocStack)(struct EventECB *pl_ecb,u32 size);
 ptu32_t (*M_FormatSizeHeap)(ptu32_t size,struct HeapCB *Heap);
 ptu32_t (*M_FormatSize)(ptu32_t size);
 ptu32_t (*M_GetMaxFreeBlockHeap)(struct HeapCB *Heap);
@@ -380,7 +380,7 @@ void *__M_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout)
 //参数：size,欲分配的内存块尺寸
 //返回：分配的内存指针，NULL表示没有内存可以分配
 //-----------------------------------------------------------------------------
-void *__M_StaticMallocStack(ptu32_t size)
+void *__M_StaticMallocStack(struct EventECB *event, u32 size)
 {
     struct HeapCB *Work;
     void *result = NULL;

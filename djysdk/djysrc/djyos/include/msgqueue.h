@@ -84,6 +84,7 @@ bool_t MsgQ_Delete_s(struct MsgQueue *pMsgQ);
 bool_t MsgQ_Send(struct MsgQueue *pMsgQ,u8 *buffer,u32 nBytes,u32 Timeout,
                  bool_t priority);
 bool_t MsgQ_Receive(struct MsgQueue *pMsgQ,u8 *buffer,u32 nBytes,u32 Timeout);
+u32 MsgQ_NumMsgs(struct MsgQueue *pMsgQ);
 
 #ifdef __cplusplus
 }

@@ -176,6 +176,8 @@ bool_t __UART_TxTranEmpty(volatile tagUartReg *reg)
 //参数：串口号
 //返回: 无
 //-----------------------------------------------------------------------------
+extern uint32_t UART_ISR(ptu32_t IntLine);
+
 void __UART_IntInit(ptu32_t SerialNo)
 {
     u8 IntLine;

@@ -101,6 +101,14 @@ static u8 sUartInited = 0;
 // =============================================================================
 static ptu32_t UART_ISR(ptu32_t IniLine);
 
+__attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
+{
+    return;
+}
+__attribute__((weak))  void Board_UartHalfDuplexRecv(u8 SerialNo)
+{
+    return ;
+}
 // ----使能接收中断-------------------------------------------------------------
 // 功能: 使能UART的接收中断
 // 参数: reg,被操作的寄存器组指针
@@ -383,7 +391,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
     case CN_UART5_BASE:   port = CN_UART5;   break;
     default:return 0;
     }
-
+    Board_UartHalfDuplexSend(port);
     __UART_TxIntDisable(Reg);
     if(__UART_TxTranEmpty(Reg))
     {
@@ -452,6 +460,7 @@ static u32 UART_ISR(ptu32_t IntLine)
     volatile tagUartReg *Reg;
     u32 i,fifodep=1,num=0;
     u8 ch[16];
+    u8 port;
 
     switch(IntLine)
     {
@@ -460,32 +469,38 @@ static u32 UART_ISR(ptu32_t IntLine)
         UCB = pUartCB[CN_UART0];
         Reg = tg_UART_Reg[CN_UART0];
         fifodep = 8;
+        port = CN_UART0;
         break;
     case CN_INT_LINE_UART1_RX_TX:
     case CN_INT_LINE_UART1_ERR:
         UCB = pUartCB[CN_UART1];
         Reg = tg_UART_Reg[CN_UART1];
         fifodep = 8;
+        port = CN_UART1;
         break;
     case CN_INT_LINE_UART2_RX_TX:
     case CN_INT_LINE_UART2_ERR:
         UCB = pUartCB[CN_UART2];
         Reg = tg_UART_Reg[CN_UART2];
+        port = CN_UART2;
         break;
     case CN_INT_LINE_UART3_RX_TX:
     case CN_INT_LINE_UART3_ERR:
         UCB = pUartCB[CN_UART3];
         Reg = tg_UART_Reg[CN_UART3];
+        port = CN_UART3;
         break;
     case CN_INT_LINE_UART4_RX_TX:
     case CN_INT_LINE_UART4_ERR:
         UCB = pUartCB[CN_UART4];
         Reg = tg_UART_Reg[CN_UART4];
+        port = CN_UART4;
         break;
     case CN_INT_LINE_UART5_RX_TX:
     case CN_INT_LINE_UART5_ERR:
         UCB = pUartCB[CN_UART5];
         Reg = tg_UART_Reg[CN_UART5];
+        port = CN_UART5;
         break;
     default:return 0;
     }
@@ -513,6 +528,7 @@ static u32 UART_ISR(ptu32_t IntLine)
         else
         {
             __UART_TxIntDisable(Reg);
+            Board_UartHalfDuplexRecv(port);
         }
     }
 
@@ -596,7 +612,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
     default:
         return 0;
     }
-
+    UART_Param.mode = CN_UART_GENERAL;
     //硬件初始化
     __UART_HardInit(serial_no);
     __UART_IntInit(serial_no);
@@ -618,7 +634,8 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
 // =============================================================================
 s32 Uart_PutStrDirect(const char *str,u32 len)
 {
-    u32 result = 0,timeout = TxByteTime * len;
+    u32 result = 0;
+    s32 timeout = TxByteTime * len;
     u16 CR_Bak;
 
     CR_Bak = GetCharDirectReg->C2;                          //Save INT

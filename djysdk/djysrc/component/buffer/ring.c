@@ -59,10 +59,11 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#include "stdint.h"
-#include "int.h"
-#include "ring.h"
+#include <stdint.h>
+#include <int.h>
 #include <string.h>
+#include <stdlib.h>
+#include "./include/ring.h"
 
 //----建立环形缓冲区----------------------------------------------------------
 //功能: 建立环形缓冲区并初始化，使用这个函数之前，用户应该定义缓冲区内存块和
@@ -506,4 +507,56 @@ u32 Ring_SearchStr(struct RingBuf *ring, char *string,u32 str_len)
         }
     }
     return CN_LIMIT_UINT32;
+}
+
+// ============================================================================
+// 功能: 查询ring中剩余容量
+// 参数: ring,目标环形缓冲区结构指针
+// 返回: ring中剩余容量（字节数）
+// 备注：
+// ============================================================================
+u32 Ring_Capacity2(struct RingBuf *ring)
+{
+	return (ring->max_len - ring->len);
+}
+
+// ============================================================================
+// 功能：创建ring buffer
+// 参数：ring -- ring长度(字节数)
+// 返回：ring buffer控制句柄
+// 备注：
+// ============================================================================
+struct RingBuf *Ring_Create(u32 dwLen)
+{
+	u8 *buf;
+	struct RingBuf *ring;
+
+	ring = malloc(sizeof(*ring)+dwLen);
+	if(!ring)
+		return (NULL);
+
+	buf = (u8*)ring + sizeof(*ring);
+	ring->buf = buf;
+	ring->max_len = dwLen;
+	ring->offset_write = 0;
+	ring->offset_read = 0;
+	ring->len = 0;
+
+	return (ring);
+}
+
+// ============================================================================
+// 功能：销毁ring buffer
+// 参数：pRing -- ring buffer控制句柄
+// 返回：-1 -- 失败；0 -- 成功。
+// 备注：
+// ============================================================================
+s32 Ring_Destroy(struct RingBuf *pRing)
+{
+	if(!pRing)
+		return (-1);
+
+	free(pRing);
+	pRing = NULL;
+	return (0);
 }

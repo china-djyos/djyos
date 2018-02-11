@@ -62,9 +62,8 @@
 #include "stdint.h"
 #include "stdio.h"
 #include "gkernel.h"
-#include "font.h"
-
-#include "ascii8x8.h"
+#include "../include/font/font.h"
+#include "../include/font/ascii8x8.h"
 
 bool_t __Font_Ascii8x8LoadFont(void *zk_addr);
 void __Font_Ascii8x8UnloadFont(void);

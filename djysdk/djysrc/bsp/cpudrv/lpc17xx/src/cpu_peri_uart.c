@@ -590,7 +590,8 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
 // =============================================================================
 s32 Uart_PutStrDirect(const char *str,u32 len)
 {
-    u32 result = 0,timeout = TxByteTime * len;
+    u32 result = 0;
+    s32 timeout = TxByteTime * len;
     u16 CR_Bak;
 
     CR_Bak = GetCharDirectReg->IER;                          //Save INT

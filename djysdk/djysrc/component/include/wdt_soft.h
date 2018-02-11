@@ -92,6 +92,10 @@ typedef struct Wdt
     u32             ExhaustLimit;
 }tagWdt;
 
+
+
+
+
 enum _EN_WDT_CMD
 {
     EN_WDTCMD_ADD =0,

@@ -61,10 +61,27 @@
 extern "C" {
 #endif
 
+enum CRC_DATA_SOURCE_TYPE
+{
+	EN_ARRAY_TYPE,
+	EN_FILE_TYPE,
+};
+
+
 u16 crc16(u8 *buf, u32 len);
 void Ecc_Make256(const u8 *data,u8 *ecc);
 s32 Ecc_Corect256(u8 *data, const u8 *old_ecc);
-u32 crc32( char *buf, int len);
+uint32_t crc32_buf(char *buf,int len);
+// =============================================================================
+// 功能：建立并初始化DjyBus总线根节点，它是总线类型节点的父结点
+// 参数：type,数据源类型，EN_ARRAY_TYPE表示为数组，EN_FILE_TYPE表示为文件；
+//     source,待校验数据源，数组指针或者文件名;
+//     len,待校验数据源长度，如果数据源是EN_FILE_TYPE，则改参数无效，则直接输入NULL;
+//     pcrc,存储校验结果的指针.
+// 返回：成功校验则返回0,失败则返回-1.
+// =============================================================================
+int crc32(uint8_t type,char *source,ptu32_t len,uint32_t *pcrc);
+
 
 
 #ifdef __cplusplus

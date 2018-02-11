@@ -724,7 +724,7 @@ bool_t __P1020PicTimer_GetState(struct P1020PicTimerHandle   *timer, u32 *timerf
 // หตร๗    :
 // =============================================================================
 bool_t __P1020PicTimer_Ctrl(ptu32_t timerhandle, \
-                         enum TimerCmdCode ctrlcmd, \
+                         enum HardTimerCmdCode ctrlcmd, \
                          ptu32_t inoutpara)
 {
     bool_t result;

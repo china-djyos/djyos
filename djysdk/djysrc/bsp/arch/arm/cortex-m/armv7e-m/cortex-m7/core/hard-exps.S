@@ -254,6 +254,7 @@ HardExp_SystickHandler:
     VSTMDBEQ R0!,{S16-S31}      /* 手动压栈FPU寄存器 */
 
     STMFD   R0!,{r4-r11}        /* 保护寄存器,以及返回地址 */
+    SUB     R0,R0,#4               /*与R14组成8字节对齐*/
     STMFD   R0!,{R14}
     MSR     PSP,R0
     BL      Exp_SystickTickHandler
@@ -261,6 +262,7 @@ HardExp_SystickHandler:
     mrs     R0,PSP
 
     LDMFD   R0!,{R14}
+    ADD     R0,R0,#4
     LDMFD   R0!,{R4-R11}
 
     TST     R14, #0x10          /* 测试EXC_RETURN的比特4 */
@@ -295,25 +297,32 @@ HardExp_SvcHandler:
     MRSEQ   R0,MSP              /* 则使用的是主堆栈，故把MSP的值取出 */
     MRSNE   R0,PSP              /* 否则, 使用的是进程堆栈，故把PSP的值取出 */
 
+    TST     R14, #0x10          /* 测试EXC_RETURN的比特4 */
+    ITE      EQ                  /* 如果为0 */
+    MOVEQ   R3,#104            /* fpu 上调指针值为（8+18）*4*/
+    MOVNE   R3,#32              /*NO FPU*/
+
     LDR     R2,[R0,#24]         /* 从栈中读取PC的值 */
     LDRB    R2,[R2,#-2]         /* 从SVC指令中读取立即数放到R2 */
     CMP     R2,#1               /* svc号为 1,只有一号SVC才需要压栈 */
     ITTEE   EQ
     LDREQ   R2,[R0]             /* 计算new_vm栈顶，并暂存在R2*/
     LDREQ   R2,[R2]
-    ADDNE   R2,R0,#36
+    ADDNE   R2,R0,R3
     BNE     svc_switch          /* 目前只支持0号svc调用 */
 
     TST     R14, #0x10          /* 测试EXC_RETURN的比特4 */
     IT      EQ                  /* 如果为0 */
     VSTMDBEQ R0!,{S16-S31}      /* 手动压栈FPU寄存器 */
     STMFD   R0!,{R4-R11}        /* 手动压栈内核寄存器，压栈R14是为了下次切入时查询是否需pop FPU寄存器 */
+    SUB     R0,R0,#4
     STMFD   R0!,{R14}
 
     STR     R0, [R1]            /* 保存老线程到old_vm->stack */
 
 svc_switch:                     /* svc为0时，只需弹出新线程即可*/
     LDMFD   R2!,{R14}           /* 从R14中可得知是否需pop FPU寄存器 */
+    ADD     R2,R2,#4
     LDMFD   R2!,{R4-R11}        /* 手工弹出r4-r11 */
 
     TST     R14, #0x10          /* 测试EXC_RETURN的比特4 */

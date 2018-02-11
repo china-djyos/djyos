@@ -9,7 +9,7 @@ InnerRamSize = 128k;
 
 MEMORY
 {
-    IbootRom(RX)    : org = 0x00400000,                 len = 1024k
+    InnerFlash(RX)    : org = 0x00400000,                 len = 1024k
     
     RAM1(RXW)       : org = 0x20000000,                 len = 128k
 }

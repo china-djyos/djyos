@@ -1227,6 +1227,95 @@ bool_t SetWindowHide(HWND hwnd)
     return FALSE;
 }
 
+
+bool_t SetWindowRopCode(HWND hwnd, struct RopGroup RopCode)
+{
+	if(hwnd==NULL)
+		 return FALSE;
+
+	 if(__HWND_Lock(hwnd))
+	 {
+	    GK_SetRopCode(hwnd->pGkWin,RopCode,0);
+	    __HWND_Unlock(hwnd);
+	    return TRUE;
+	 }
+	 return FALSE;
+}
+
+bool_t SetWindowHyalineColor(HWND hwnd,u32 HyalineColor)
+{
+	if(hwnd==NULL)
+		return FALSE;
+	if(__HWND_Lock(hwnd))
+	{
+		GK_SetHyalineColor(hwnd->pGkWin,HyalineColor);
+		__HWND_Unlock(hwnd);
+	    return TRUE;
+	}
+	return FALSE;
+}
+
+bool_t SetWindowFillColor(HWND hwnd,u32 FillColor)
+{
+	HWND pGddWin=NULL;
+	if(hwnd==NULL)
+	   return FALSE;
+	if(__HWND_Lock(hwnd))
+	{
+		pGddWin=hwnd;
+		pGddWin->FillColor=FillColor;
+		__HWND_Unlock(hwnd);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+bool_t GetWindowFillColor(HWND hwnd,u32 *pFillColor)
+{
+	HWND pGddWin=NULL;
+	if(hwnd==NULL)
+	   return FALSE;
+	if(__HWND_Lock(hwnd))
+	{
+		pGddWin=hwnd;
+		*pFillColor=pGddWin->FillColor;
+		__HWND_Unlock(hwnd);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+
+bool_t SetWindowTextColor(HWND hwnd,u32 TextColor)
+{
+	HWND pGddWin=NULL;
+	if(hwnd==NULL)
+	   return FALSE;
+	if(__HWND_Lock(hwnd))
+	{
+		pGddWin=hwnd;
+		pGddWin->TextColor=TextColor;
+		__HWND_Unlock(hwnd);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+bool_t GetWindowTextColor(HWND hwnd,u32 *pTextColor)
+{
+	HWND pGddWin=NULL;
+	if(hwnd==NULL)
+	   return FALSE;
+	if(__HWND_Lock(hwnd))
+	{
+		pGddWin=hwnd;
+		*pTextColor=pGddWin->TextColor;
+		__HWND_Unlock(hwnd);
+		return TRUE;
+	}
+	return FALSE;
+}
 //----获得窗口绘图上下文(DC)-----------------------------------------------------
 //描述: 该函数获得的DC,可以在整个窗口范围内绘图输出(非客户区+客户区).
 //参数：hwnd:窗口句柄.

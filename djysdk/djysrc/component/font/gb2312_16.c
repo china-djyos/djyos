@@ -64,9 +64,9 @@
 #include "stdlib.h"
 #include "gkernel.h"
 #include "charset.h"
-#include "font.h"
+#include "../include/font/font.h"
+#include "../include/font/gb2312_16.h"
 
-#include "gb2312_16.h"
     static struct Charset* s_ptGb2312Set;
 //横向左高位取模,包含GB2312-80标准汉字库
 static const u8 cs_GB2312Song8x16 [] =

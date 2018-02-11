@@ -86,8 +86,8 @@ extern "C" {
 //L4.每次系统服务事件执行,执行栈检查后,进入深度睡眠,内存掉电,时钟停止,调用回调
 //   函数,把关键数据保存到非易失存储器中,中断唤醒CPU后,重新启动并加载运行。
 
-#define CN_SLEEP_NORMAL    0xff    //休眠方式:正常
-#define CN_SLEEP_ERROR     0       //休眠方式:错误
+#define CN_SLEEP_NORMAL    0       //休眠方式:正常
+#define CN_SLEEP_ERROR     0xff    //休眠方式:错误
 #define CN_SLEEP_L0        1       //休眠方式:L0
 #define CN_SLEEP_L1        2       //休眠方式:L1
 #define CN_SLEEP_L2        3       //休眠方式:L2
@@ -139,6 +139,7 @@ u32 LP_EnableSleep(void);
 // 设置进入休眠时的休眠模式,调用本函数后,并不立即休眠,而是要等次系统服务事件执
 // 行,且休眠没有被禁止时,才会进入相应的休眠模式
 u32 LP_SetSleepLevel(u32 Level);
+u32 LP_GetSleepLevel(void);
 //安装低功耗组件
 ptu32_t ModuleInstall_LowPower (u32 (*EntrySleepReCall)(u32 SleepLevel),
                                 u32 (*ExitSleepReCall)(u32 SleepLevel));

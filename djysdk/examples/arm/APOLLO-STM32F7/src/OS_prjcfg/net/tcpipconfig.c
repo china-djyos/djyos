@@ -68,7 +68,8 @@ const u32  gTplProtoNum          = 5      ; //the transmit protocol number suppo
 //*******************************UDP******************************************//
 const bool_t   gUseUdp           = true   ; //use udp, and the icmp must be open
 const u32  gUdpSockNum           = 10     ; //you could create mostly 10 udpv4 socket at the same time
-const u32  gUdpHashLen           = 0x200  ; //you could create mostly 10 udpv4 socket at the same time
+const u32  gUdpHashLen           = 4      ; //udp hash search tab
+
 //*******************************TCP******************************************//
 const bool_t   gUseTcp           = true   ; //use the tcp
 const bool_t   gEnableTcpReoder  = false  ; //enable the tcp reorder or not,if resource is enough,please enable it
@@ -76,7 +77,7 @@ const bool_t   gEnableTcpReoder  = false  ; //enable the tcp reorder or not,if r
 const u32  gTcpClientNum         = 10     ; //the max tcp client num
 const u32  gTcpServerNum         = 5      ; // the max tcp server num
 const u32  gTcpTickTaskPrior     = 135    ; // the tcp tick task prior
-const u32  gTcpTickTaskStack     = 0x800  ; // the tcp tick task stack size
+const u32  gTcpTickTaskStack     = 0x400  ; // the tcp tick task stack size
 const int  gTcpSndBufSizeDefault = 0x800  ; //the tcp send buf size default
 const int  gTcpRcvBufSizeDefault = 0x800  ; //the tcp receive buf size default
 const u16  gTcpMssDefault        = 1460   ; //the tcp mss default used to
@@ -97,7 +98,7 @@ const u32     gTelnetProcessPrior= 200    ;  //telnet processor task prior
 const bool_t  gUseFtp            = true   ;  //load the ftp module or not
 const bool_t  gUseFtpServer      = true   ;  //enable the ftp server or not
 const bool_t  gUseFtpClient      = false  ;  //enable the ftp server or not
-const u32     gFtpAcceptStack    = 0x1000  ;  //the ftp accept task stack size
+const u32     gFtpAcceptStack    = 0x800  ;  //the ftp accept task stack size
 const u32     gFtpProcessStack   = 0x1000 ;  //the ftp processor task stack,use fs,configure more
 const u32     gFtpAcceptPrior    = 200    ;  //ftp accept task prior
 const u32     gFtpProcessPrior   = 200    ;  //ftp processor task prior
@@ -119,16 +120,17 @@ const u32      gDhcpRebindTime   = 3600;            //one hour
 const u32      gDhcpLeaseTime    = 3600;            //one hour
 const u32      gDhcpServerIpNum  = 0x40;            //64
 const u32      gDhcpIpMapBytes   = 0x08;            //which defines the bitmap lenth
+const char    *pDhcpServerStartIp= "192.168.0.2";
 const char    *pDhcpServerIp     = "192.168.0.100"; //DHCP SERVER IP
 const char    *pDhcpRouterIp     = "192.168.0.100"; //ROUTER SERVER IP
 const char    *pDhcpSubnetMask   = "255.255.255.0"; //USED TO MASK THE IP
 const char    *pDhcpDns          = "192.168.0.100"; //DNSSERVER
 const char    *pDhcpDomainName   = "www.djyos.com"; //domain name
-
 //*******************************PPP******************************************//
 const bool_t  gUsePpp            = true   ;  //load the ppp module or not
 const bool_t  gPppStackSize      = 0x800  ;  //the ppp task stack size
 const u32     gPppTaskPrior      = 190    ;  //the ppp task prior
 const bool_t  gPppDevLimit       = 1      ;  //how many ppp device could be add
 const char   *pPppEvttName       ="PppTask"; //the ppp task name(evtt name)
+
 

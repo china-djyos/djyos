@@ -57,6 +57,8 @@
 #include "lowpower.h"
 #include "list.h"
 #include "..\heap\heap-in.h"
+#include "driver/flash/flash.h"
+
 extern ptu32_t ModuleInstall_DebugInfo(ptu32_t para);
 
 
@@ -212,7 +214,9 @@ void Sys_ModuleInit(void)
     //  Dev = Driver_OpenDevice("UART3",D_RDONLY,CN_TIMEOUT_FOREVER);
     ModuleInstall_Ymodem(NULL);
     Ymodem_PathSet("/iboot");
-	ModuleInstall_IAP_FS(NULL);
+	
+	ModuleInstall_EmbededFlash("embedded flash", FLASH_BUFFERED, 0);
+	ModuleInstall_IAP_FS("/iboot", "/dev/embedded flash");
     ModuleInstall_IAP();
 //    ModuleInstall_Font(0);                 //×ÖÌåÄ£¿é
 

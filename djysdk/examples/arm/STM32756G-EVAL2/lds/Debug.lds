@@ -123,6 +123,13 @@ SECTIONS
        . = ALIGN(0x08);
         * (.data .data.*)
     }>RAM1 AT>InnerFlash
+    zi_sysload_rextram_lextram (NOLOAD) :
+    {
+        . = ALIGN(0x08);         
+        *liblibOS_STM32756G-EVAL2_o0.a:gk_draw.o (.bss .bss.* COMMON)
+        *liblibOS_STM32756G-EVAL2_o0.a:gk_clip.o (.bss .bss.* COMMON)
+        *liblibOS_STM32756G-EVAL2_o0.a:gk_win.o (.bss .bss.* COMMON)
+    }>extram
 
     zi_sysload_rRAM1_lRAM1 (NOLOAD) :
     {
@@ -159,7 +166,7 @@ SECTIONS
        . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(4)
 
         LONG(LOADADDR(text_sysload_rAppRom_lAppRom))
         LONG(ADDR(text_sysload_rAppRom_lAppRom))
@@ -170,6 +177,10 @@ SECTIONS
         LONG(ADDR(rw_sysload_rRAM1_lAppRom))
         LONG(SIZEOF(rw_sysload_rRAM1_lAppRom))
         LONG(1)
+        LONG(LOADADDR(zi_sysload_rextram_lextram))
+        LONG(ADDR(zi_sysload_rextram_lextram))
+        LONG(SIZEOF(zi_sysload_rextram_lextram))
+        LONG(0)
 
         LONG(LOADADDR(zi_sysload_rRAM1_lRAM1))
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
@@ -183,8 +194,20 @@ SECTIONS
         sys_heap_bottom = .;
     }>RAM1
     sys_heap_top = InnerRamStart + InnerRamSize;
+     heap_rextram_lextram (NOLOAD) : 
+      { 
+          . = ALIGN(0x08); 
+          extram_heap_bottom = .; 
+      }>extram
+      extram_heap_top = ExtRamStart + ExtRamSize;
 
-
+     heap_rnocache_lextram (NOLOAD) : 
+      { 
+         . = ALIGN(0x08);
+         NoCacheRam_heap_bottom = .;
+      }>RAM1NOCACHE
+     NoCacheRam_heap_top = NoCacheRamStart + NoCacheRamSize;
+     
     heap_cp_table :
     {
        . = ALIGN(0x08);
@@ -219,6 +242,22 @@ SECTIONS
 /*        BYTE(0x61)        */          /*'a'*/
 /*        BYTE(0x6d)        */          /*'m'*/
 /*        BYTE(0)           */          /*串结束，"extram"是堆的名字*/
+
+		. = ALIGN(0x04);
+		LONG(1)                     /*表示该堆由1段内存组成*/
+		LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+		LONG(0)                     /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+		LONG(NoCacheRam_heap_bottom)    /*第一段基址，须符合对齐要求*/
+		LONG(NoCacheRam_heap_top)       /*第一段地址上限（不含），须符合对齐要求*/
+		LONG(64)                    /*第一段页尺寸=128bytes*/
+		BYTE(0x6e)                  /*'n'*/
+		BYTE(0x6f)                  /*'o'*/
+		BYTE(0x63)                  /*'c'*/
+		BYTE(0x61)                  /*'a'*/
+		BYTE(0x63)                  /*'c'*/
+		BYTE(0x68)                  /*'h'*/
+		BYTE(0x65)                  /*'e'*/
+		BYTE(0)                     /*串结束，"nocache"是堆的名字*/
         . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
     }>InnerFlash

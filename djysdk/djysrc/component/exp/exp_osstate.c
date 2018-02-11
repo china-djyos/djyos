@@ -66,14 +66,13 @@
 //跑出异常时搜集的系统信息
 struct ExpOsState
 {
-    u32   magicnumber;                             //系统信息有效标志
-    u16   eventrunning_id;                         //正在运行的事件ID
-    u16   evttrunning_id;                          //其事件类型Id
-    char  evttrunningname[CN_EXP_NAMELEN_LIMIT];   //事件类型名字
-    s64   exptime;                                 //异常时刻
+    u32     magicnumber;                             //系统信息有效标志
+    u16     eventrunning_id;                         //正在运行的事件ID
+    u16     evttrunning_id;                          //其事件类型Id
+    char    evttrunningname[CN_EXP_NAMELEN_LIMIT];   //事件类型名字
+    time_t  exptime;                                 //异常时刻
 };
 static struct ExpOsState s_tExpOsstateInfo;
-
 // =============================================================================
 // 函数功能:__Exp_OsStateInfoGather
 //         异常时刻系统的运行状态
@@ -83,12 +82,13 @@ static struct ExpOsState s_tExpOsstateInfo;
 //          infolen,存储OS状态信息的长度
 // 返回值  :true成功处理，false 处理失败
 // 说明    :软件异常的通用信息处理，主要是搜集信息等。
-//          异常模块内部使用，不对外开放
-//          目前未针对异常具体抛出者搜集特别信息，做通用处理
+//      异常模块内部使用，不对外开放
+//      目前未针对异常具体抛出者搜集特别信息，做通用处理
 // =============================================================================
 void  __Exp_OsStateInfoGather(ptu32_t *infoaddr,u32 *infolen)
 {
-    s_tExpOsstateInfo.exptime = DjyGetSysTime();
+    memset(&s_tExpOsstateInfo,0,sizeof(s_tExpOsstateInfo));
+	s_tExpOsstateInfo.exptime = time(NULL);
     s_tExpOsstateInfo.eventrunning_id = Djy_MyEventId();
     s_tExpOsstateInfo.evttrunning_id  = Djy_MyEvttId();
     Djy_GetEvttName(s_tExpOsstateInfo.evttrunning_id,\
@@ -96,12 +96,12 @@ void  __Exp_OsStateInfoGather(ptu32_t *infoaddr,u32 *infolen)
     s_tExpOsstateInfo.magicnumber = CN_EXP_OSSTATEINFO_MAGICNUMBER;
     *infoaddr = (ptu32_t)(&s_tExpOsstateInfo);
     *infolen = sizeof(s_tExpOsstateInfo);
-    printk("异常时系统运行状态\n\r");
-    printk("事件号  所属类型  异常时间  类型名\n\r");
-    printk("%5hd   %5hd    %lld %s\n\r",s_tExpOsstateInfo.eventrunning_id,
+#ifdef DEBUG
+    printk("OSSTATE:运行事件：%d 所属类型：%d 系统运行时间：%s 类型名：%s\n\r",s_tExpOsstateInfo.eventrunning_id,
                                   s_tExpOsstateInfo.evttrunning_id&(~CN_EVTT_ID_MASK),
-                                  s_tExpOsstateInfo.exptime,
+                                  ctime(&s_tExpOsstateInfo.exptime),
                                   s_tExpOsstateInfo.evttrunningname);
+#endif
     return;
 }
 
@@ -147,13 +147,8 @@ bool_t  __Exp_OsStateInfoDecoder(ptu32_t infoaddr,u32 infolen,u32 endian)
         }
         if(CN_EXP_OSSTATEINFO_MAGICNUMBER == osstate.magicnumber)
         {
-            printf("osstate:EventIdRunning     :0x%04x\n\r",\
-                                   osstate.eventrunning_id);
-            printf("osstate:EvttIdRunning      :0x%04x\n\r",\
-                                      (osstate.eventrunning_id)&(~CN_EVTT_ID_MASK));
-            printf("osstate:EvttNameRunning    :%s\n\r",\
-                                       osstate.evttrunningname);
-            printf("osstate:OsTime             :%s(DEC) \n\r",ctime((s64 *)&osstate.exptime));
+            printf("OSSTATE:运行事件：%d 所属类型：%d 系统运行时间：%s 类型名：%s\n\r",\
+            		osstate.eventrunning_id,osstate.evttrunning_id&(~CN_EVTT_ID_MASK), ctime(&osstate.exptime),osstate.evttrunningname);
             result = true;
         }
         else

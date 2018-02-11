@@ -230,6 +230,16 @@ _DEFUN (match, (sp, t),
 #endif /* INFNAN_CHECK */
 
 
+static struct lconv  gMyLocal={
+	.decimal_point = ".",
+};
+
+struct lconv *localeconv(void)
+{
+	return &gMyLocal;
+}
+
+
 double
 _DEFUN (_strtod_r, (ptr, s00, se),
     struct _mprec *ptr _AND

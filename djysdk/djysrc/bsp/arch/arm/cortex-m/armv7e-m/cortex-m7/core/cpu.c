@@ -1,6 +1,6 @@
 //----------------------------------------------------
 // Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
- 
+
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
@@ -68,6 +68,7 @@
 #include "cpu.h"
 #include "djyos.h"
 #include "cpu_peri.h"
+#include <board-config.h>
 
 #include "core_cm7.h"
 
@@ -80,73 +81,8 @@ extern void __set_MSP(uint32_t topOfProcStack);
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
 u32 g_u32HundreUsfor;
-//----创建线程-----------------------------------------------------------------
-//功能：为事件类型创建线程，初始化上下文环境，安装执行函数，构成完整线程
-//参数：evtt_id，待创建的线程所服务的事件类型id
-//返回：新创建的线程指针
-//注: 移植敏感函数
-//-----------------------------------------------------------------------------
-struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
-{
-    struct ThreadVm  *result;
-    ptu32_t  len;
 
-    //计算线程栈:线程+最大单个api需求的栈
-    len = evtt->stack_size;
-    //栈顶需要对齐，malloc函数能保证栈底是对齐的，对齐长度可以使栈顶对齐
-    len = align_up_sys(len);
-    result=(struct ThreadVm  *)__MallocStack(len);
-    *stack_size = len;
-    if(result==NULL)
-    {
-        Djy_SaveLastError(EN_MEM_TRIED);   //内存不足，返回错误
-        return result;
-    }
-    len = M_CheckSize(result);
-    memset(result,'d',len);
-
-    //看实际分配了多少内存，djyos内存分配使用块相联策略，如果分配的内存量大于
-    //申请量，可以保证其实际尺寸是对齐的。之所以注释掉，是因为当len大于申请量时，
-    //对齐只是实际结果，而不是内存管理的规定动作，如果不注释掉，就要求内存管理
-    //模块必须提供对齐的结果，对模块独立性是不利的。
-//    len = M_CheckSize(result);
-    result->stack_top = (u32*)((ptu32_t)result+len); //栈顶地址，移植敏感
-    result->next = NULL;
-    result->stack_size = len - sizeof(struct ThreadVm); //保存栈深度
-    result->host_vm = NULL;
-    //复位线程并重置线程
-    __asm_reset_thread(evtt->thread_routine,result);
-    return result;
-}
-
-//----静态创建线程-------------------------------------------------------------
-//功能：为事件类型创建线程，初始化上下文环境，安装执行函数，构成完整线程
-//参数：evtt_id，待创建的线程所服务的事件类型id
-//返回：新创建的线程指针
-//注: 移植敏感函数
-//-----------------------------------------------------------------------------
-struct ThreadVm *__CreateStaticThread(struct EventType *evtt,void *Stack,
-                                    u32 StackSize)
-{
-    struct ThreadVm  *result;
-    result = (struct ThreadVm  *)align_up_sys(Stack);
-
-    memset(Stack, 'd', StackSize-((ptu32_t)result - (ptu32_t)Stack));
-
-    //看实际分配了多少内存，djyos内存分配使用块相联策略，如果分配的内存量大于
-    //申请量，可以保证其实际尺寸是对齐的。之所以注释掉，是因为当len大于申请量时，
-    //对齐只是实际结果，而不是内存管理的规定动作，如果不注释掉，就要求内存管理
-    //模块必须提供对齐的结果，对模块独立性是不利的。
-//    len = M_CheckSize(result);
-    result->stack_top = (u32*)align_down_sys((ptu32_t)Stack+StackSize); //栈顶地址，移植敏感
-    result->next = NULL;
-    result->stack_size = (ptu32_t)(result->stack_top) - (ptu32_t)result
-                            - sizeof(struct ThreadVm);       //保存栈深度
-    result->host_vm = NULL;
-    //复位线程并重置线程
-    __asm_reset_thread(evtt->thread_routine,result);
-    return result;
-}
+//todo 该函数是不是不需要了.
 //----测量指令指令延时常数-----------------------------------------------------
 //功能: 设置指令延时常数,使不管用何种编译器和编译优化选项,djy_delay_us函数准确延时，
 //参数：无
@@ -192,14 +128,15 @@ void __DjySetDelay(void)
 //返回: 无
 //备注: 本函数是移植敏感函数.
 //-----------------------------------------------------------------------------
-void __DjyInitTick(void)
+__attribute__((weak)) void __DjyInitTick(void)
 {
     HardExp_ConnectSystick(Djy_IsrTick);
     pg_systick_reg->reload = CN_CFG_FCLK/CN_CFG_TICK_HZ;
     pg_systick_reg->current =CN_CFG_FCLK/CN_CFG_TICK_HZ;
     pg_systick_reg->ctrl =   (1<<bo_systick_ctrl_enable)    //使能
-                            |(1<<bo_systick_ctrl_tickint)   //允许产生中断
-                            |(1<<bo_systick_ctrl_clksource);//用内核时钟
+                                |(1<<bo_systick_ctrl_tickint)   //允许产生中断
+                                |(1<<bo_systick_ctrl_clksource);//用使用外部时钟
+
 }
 
 //----读取当前时间(uS)---------------------------------------------------------
@@ -211,7 +148,7 @@ void __DjyInitTick(void)
 //说明: 这是一个桩函数,被systime.c文件的 DjyGetSysTime 函数调用。
 //      如果systime不使用ticks作为时基，本函数可保持空函数。
 //-----------------------------------------------------------------------------
-s64 __DjyGetSysTime(void)
+__attribute__((weak)) s64 __DjyGetSysTime(void)
 {
     s64 time;
     static s64 BakTime = 0;
@@ -233,36 +170,128 @@ s64 __DjyGetSysTime(void)
 
 
 extern void Load_Preload(void);
+#include <exp.h>
+#include <osboot.h>
+#include <IAP_Inner.h>
+extern tagIapVar pg_IapVar;
+
+#define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
+#define CN_BOOT_SOFTRELOAD_FLAG         (CN_BOOT_LEGALKEY <<2)
+#define CN_BOOT_HARDRST_FLAG         (CN_BOOT_LEGALKEY <<3)
+#define CN_BOOT_SOFTRESET_FLAG          (CN_BOOT_LEGALKEY <<4)
+
 // =============================================================================
 // 功能：运行到选择系统运行方式前，对于M3/M4的CPU，即PC跳转到Init_CPU()
 // 参数：无
 // 返回：无
 // =============================================================================
-void reboot(void)
+void reboot(u32 key)
 {
-    SCB_DisableDCache();
-    u32 InitCpu_Addr;
-    InitCpu_Addr = *(u32*)0x00000004;
-    ((void (*)(void))(InitCpu_Addr))();
+    vu32 *addr;
+    vu32 value;
+
+    if(key != CN_BOOT_LEGALKEY)
+    {
+        printf("IllegalKey:0x%08x Recorded\n\r",key);
+        ThrowOsBootInfo(EN_BOOT_REBOOT);
+    }
+    else
+    {
+        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
+        value = CN_BOOT_SOFTREBOOT_FLAG;
+        *addr = value;
+        value = *addr;
+        Djy_DelayUs(10);
+        SCB_DisableDCache();
+        u32 InitCpu_Addr;
+        InitCpu_Addr = *(u32*)0x00000004;
+        ((void (*)(void))(InitCpu_Addr))();
+    }
+    return;
 }
 // =============================================================================
 // 功能：Reset硬件CPU，相当于上电重新启动，硬件软件都得到复位
 // 参数：无
 // 返回：无
 // =============================================================================
-void reset(void)
+void reset(u32 key)
 {
-    pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
+    vu32 *addr;
+    vu32 value;
+
+    if(key != CN_BOOT_LEGALKEY)
+    {
+        printf("IllegalKey:0x%08x Recorded\n\r",key);
+        ThrowOsBootInfo(EN_BOOT_SRST);
+    }
+    else
+    {
+        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
+        value = CN_BOOT_SOFTRESET_FLAG;
+        *addr = value;
+        value = *addr;
+        Djy_DelayUs(10);
+        pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
+    }
+    return;
 }
 // =============================================================================
 // 功能：运行到CPU加载代码前，即pre_load()前
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_system(void)
+void restart_system(u32 key)
 {
-    __set_PSP((uint32_t)msp_top);
-    __set_MSP((uint32_t)msp_top);
-    Load_Preload();
+    vu32 *addr;
+    vu32 value;
+
+    if(key != CN_BOOT_LEGALKEY)
+    {
+        printf("IllegalKey:0x%08x Recorded\n\r",key);
+        ThrowOsBootInfo(EN_BOOT_RELOAD);
+    }
+    else
+    {
+        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
+        value = CN_BOOT_SOFTRELOAD_FLAG;
+        *addr = value;
+        value = *addr;
+        Djy_DelayUs(10);
+        __set_PSP((uint32_t)msp_top);
+        __set_MSP((uint32_t)msp_top);
+        Load_Preload();
+    }
+    return;
 }
 
+enBootMode GetBootMethodSoft(void)
+{
+    vu32 *addr;
+    vu32 value;
+    enBootMode result;
+    addr = (u32*)&pg_IapVar.IbootFlag[12];
+    value = *addr;
+    if(value == CN_BOOT_SOFTRESET_FLAG)
+    {
+        result = EN_BOOT_SRST;
+    }
+    else if(value == CN_BOOT_SOFTREBOOT_FLAG)
+    {
+        result = EN_BOOT_REBOOT;
+    }
+    else if(value == CN_BOOT_SOFTRELOAD_FLAG)
+    {
+        result = EN_BOOT_RELOAD;
+    }
+    else if(value == CN_BOOT_HARDRST_FLAG)
+    {
+        result = EN_BOOT_HRST;
+    }
+    else
+    {
+        result = EN_BOOT_POWERDOWN;
+    }
+    value = CN_BOOT_HARDRST_FLAG;
+    *addr = value;
+    return result;
+}

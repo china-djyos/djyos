@@ -173,7 +173,9 @@ void Sys_ModuleInit(void)
 
     ModuleInstall_Ymodem(0);
 	Ymodem_PathSet("/iboot");
-	ModuleInstall_IAP_FS(NULL);
+	
+//	ModuleInstall_EmbededFlash("embedded flash", FLASH_BUFFERED, 0);
+//	ModuleInstall_IAP_FS("/iboot", "/dev/embedded flash");
     ModuleInstall_IAP();
 
     //djybusÄ£¿é

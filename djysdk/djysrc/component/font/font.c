@@ -62,10 +62,10 @@
 #include "stdint.h"
 #include "stdio.h"
 #include "object.h"
-#include "font.h"
-#include "ascii8x8.h"
-#include "ascii8x16.h"
-#include "gb2312_16.h"
+#include "../include/font/font.h"
+#include "../include/font/ascii8x8.h"
+#include "../include/font/ascii8x16.h"
+#include "../include/font/gb2312_16.h"
 #include "string.h"
 #include <cfg/local_config.h>
 

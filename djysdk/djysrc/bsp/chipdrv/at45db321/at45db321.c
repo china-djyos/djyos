@@ -134,7 +134,7 @@ tBE     Block Erase Time                        45      100     ms
 #define no_Erase    2
 
 static struct SPI_Device s_AT45_Dev;
-static u32 s_AT45_Timeout = CN_TIMEOUT_FOREVER;
+u32 AT45_OP_TIMEOUT = 1800000; // 30分钟
 #define AT45_SPI_SPEED      (10*1000*1000)
 static bool_t sAT45Inited = false;
 
@@ -145,7 +145,7 @@ u8 _at45db321_buff[AT45_Page_Size] = {0};
 //当前可用于写数据的Buff,代表另一Buff有可能正处于向FLASH写数据的阶段
 u8 _at45db321_Ready_Buff = AT45_Buff1;
 
-static struct SemaphoreLCB AT45_Semp;   //芯片互斥访问保护
+struct MutexLCB *pAT45_Lock;   //芯片互斥访问保护
 
 bool_t at45db321_Wait_Ready(u32 Time_Out);
 /*---------------------test use only----------------------
@@ -156,7 +156,7 @@ u32 buff1_cnt=0,buff2_cnt=0;
 ---------------------test use only----------------------*/
 void _at45db321_cs_active(void)
 {
-    SPI_CsActive(&s_AT45_Dev,s_AT45_Timeout);
+    SPI_CsActive(&s_AT45_Dev, AT45_OP_TIMEOUT);
 }
 void _at45db321_cs_inactive(void)
 {
@@ -174,7 +174,7 @@ u32 _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
     data.SendBuf = sdata;
     data.SendLen = slen;
 
-    result = SPI_Transfer(&s_AT45_Dev,&data,true,s_AT45_Timeout);
+    result = SPI_Transfer(&s_AT45_Dev,&data,true,AT45_OP_TIMEOUT);
     if(result != CN_SPI_EXIT_NOERR)
         return 0;
     return 1;
@@ -453,16 +453,18 @@ bool_t _at45db321_Need_Erase_orNot(u8 *data,u32 data_len)
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
+
+bool_t at45db321_Wait_Ready_erase(u32 Time_Out);
 bool_t AT45_Page_Erase(u32 Address)
 {
     u32 page_addr;
 
-    if(false == Lock_SempPend(&AT45_Semp,50*mS))
+    if(false == Lock_MutexPend(pAT45_Lock, AT45_OP_TIMEOUT))
     {
         return false;
     }
 
-    if(false == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
+    if(false == at45db321_Wait_Ready_erase(500000))       //查忙，若超时则返回false
         return false;//超时，退出
 
     page_addr = _at45db321_Page_Caculate(Address);
@@ -483,7 +485,8 @@ bool_t AT45_Page_Erase(u32 Address)
 
     _at45db321_cs_inactive();
 
-    Lock_SempPost(&AT45_Semp);
+	Djy_EventDelay(50000);
+    Lock_MutexPost(pAT45_Lock);
     return true;
 }
 
@@ -495,7 +498,7 @@ bool_t AT45_Page_Erase(u32 Address)
 bool_t AT45_Block_Erase(u32 Address)
 {
     u32 block_addr;
-    if(false == Lock_SempPend(&AT45_Semp,100*mS))
+    if(false == Lock_MutexPend(pAT45_Lock, AT45_OP_TIMEOUT))
     {
         return false;
     }
@@ -517,7 +520,8 @@ bool_t AT45_Block_Erase(u32 Address)
 
     _at45db321_cs_inactive();
 
-    Lock_SempPost(&AT45_Semp);
+	Djy_EventDelay(100000);
+    Lock_MutexPost(pAT45_Lock);
 
     return true;
 }
@@ -529,7 +533,7 @@ bool_t AT45_Block_Erase(u32 Address)
 //-----------------------------------------------------------------------------
 bool_t AT45_Chip_Erase(void)
 {
-    if(false == Lock_SempPend(&AT45_Semp,200*mS))
+    if(false == Lock_MutexPend(pAT45_Lock, AT45_OP_TIMEOUT))
     {
         return false;
     }
@@ -548,7 +552,8 @@ bool_t AT45_Chip_Erase(void)
 
     _at45db321_cs_inactive();
 
-    Lock_SempPost(&AT45_Semp);
+	Djy_EventDelay(100000000);
+    Lock_MutexPost(pAT45_Lock);
 
     return true;
 }
@@ -765,6 +770,32 @@ bool_t at45db321_Wait_Ready(u32 Time_Out)
     return result;
 }
 
+bool_t at45db321_Wait_Ready_erase(u32 Time_Out)
+{
+    u8 Data[2],result = true;
+
+    if(Time_Out < 1000)
+        Time_Out = 1000;
+    _at45db321_Command[0] = AT45_Status_Register_Read;
+
+    do
+    {
+        _at45db321_cs_active();
+        _at45db321_TxRx(_at45db321_Command,1,Data,2);
+        _at45db321_cs_inactive();
+
+        Time_Out -= 1000;
+        Djy_EventDelay(1*mS);
+        if(Time_Out == 0)
+        {
+            result = false;
+            break;
+        }
+    }while( AT45_Status_Reg_Bit_BUSY != (AT45_Status_Reg_Bit_BUSY & Data[0]) );
+
+    return result;
+}
+
 //----SPI FLASH模块读函数------------------------------------------------------
 //功能：从SPI FLASH的Address地址处开始，读出data_len长度的数据，数据存储首地址为data
 //      若地址累加到FLASH的末尾，则会返回FLASH开头处继续读取，直到读满data_len个数据为止
@@ -783,7 +814,7 @@ u32 AT45_FLASH_Read(u32 Address,u8 *data,u32 data_len)
         return 0;
     }
 
-    if(false == Lock_SempPend(&AT45_Semp,25*mS))
+    if(false == Lock_MutexPend(pAT45_Lock, AT45_OP_TIMEOUT))
     {
         return 0;
     }
@@ -796,7 +827,8 @@ u32 AT45_FLASH_Read(u32 Address,u8 *data,u32 data_len)
 
     _at45db321_Continuous_Array_Read(page_addr,byte_offset_addr,data,data_len);
 
-    Lock_SempPost(&AT45_Semp);
+	Djy_EventDelay(10000);
+    Lock_MutexPost(pAT45_Lock);
 
     return data_len;
 }
@@ -879,7 +911,7 @@ u32 AT45_FLASH_Write(u32 Address,u8 *data,u32 data_len)
     {
         return false;
     }
-    if(false == Lock_SempPend(&AT45_Semp,25*mS))
+    if(false == Lock_MutexPend(pAT45_Lock, AT45_OP_TIMEOUT))
     {
         return false;
     }
@@ -893,7 +925,8 @@ u32 AT45_FLASH_Write(u32 Address,u8 *data,u32 data_len)
         data    += wsize;
         temp -= wsize;
     }
-    Lock_SempPost(&AT45_Semp);
+	Djy_EventDelay(10000);
+    Lock_MutexPost(pAT45_Lock);
     return data_len - temp;
 }
 
@@ -906,17 +939,20 @@ bool_t AT45_FLASH_Ready(void)
 {
     return sAT45Inited;
 }
-//----初始化SPI FLASH模块------------------------------------------------------
-//功能：初始化SPI FLASH模块，校验芯片ID是否正确
-//参数：模块初始化函数没有参数
-//返回：true = 成功初始化，false = 初始化失败
-//-----------------------------------------------------------------------------
-//#define test_buff_size  2048
-//u8 Data_write[test_buff_size];
-//u8 Data_read[test_buff_size];
-bool_t ModuleInstall_at45db321(char *BusName)
+
+#if 0
+// =============================================================================
+// 功能：初始化SPI FLASH模块，校验芯片ID是否正确
+// 参数：
+// 返回：
+// 备注：
+// =============================================================================
+bool_t ModuleInstall_at45db321(char *pBusName)
 {
-    if(NULL == Lock_SempCreate_s(&AT45_Semp,1,1,CN_BLOCK_FIFO,"AT45 semp"))
+    static char *name = "AT45DB321E";
+    extern s32 AT45_DevRegister(char *name, u32 dwStartPage, u32 dwOptions, void *pPrivate);
+
+    if(NULL == Lock_SempCreate_s(pAT45_Lock,1,1,CN_BLOCK_FIFO,"AT45 semp"))
         return false;
 
     /* setup baud rate */
@@ -927,7 +963,7 @@ bool_t ModuleInstall_at45db321(char *BusName)
     s_AT45_Dev.Mode = SPI_MODE_0;
     s_AT45_Dev.ShiftDir = SPI_SHIFT_MSB;
 
-    if(NULL != SPI_DevAdd_s(&s_AT45_Dev,BusName,"AT45DB321E"))
+    if(NULL != SPI_DevAdd_s(&s_AT45_Dev, pBusName, name))
     {
         SPI_BusCtrl(&s_AT45_Dev,CN_SPI_SET_POLL,0,0);
     }
@@ -940,35 +976,92 @@ bool_t ModuleInstall_at45db321(char *BusName)
         _at45db321_Binary_Page_Size_512();//不可逆，且需重启
     }
 
+    AT45_DevRegister(name, 4*1024, 0, &s_AT45_Dev);
     sAT45Inited = true;
     return sAT45Inited;
+}
+#else
+// =============================================================================
+// 功能：初始化SPI FLASH模块，校验芯片ID是否正确
+// 参数：bArgC -- 参数个数；
+//      参数1 -- SPI端口（必须）；
+//      参数2 -- 分区1起始块；
+//      参数3 -- 分区1大小（块为单位）；
+//      参数4 -- 分区1用途；用于EFS（2）；用于其他文件系统（1）；
+//      参数n -- 重复上述分区逻辑；
+// 返回：成功（0）；失败（-1）；
+// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
+// =============================================================================
+s32 ModuleInstall_AT45DB321E(u8 bArgC, ...)
+{
+    va_list ap;
+    char *bus = NULL;
+    u32 start[3] = {0};
+    u32 size[3] = {0};
+    u32 special[3] = {0};
+    u8 partitions = 0, i;
+    static char *name = "AT45DB321E";
+    extern s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, void *pPrivate);
 
-/*---------------------test use only----------------------
-    for(i=0;i<test_buff_size;i++) Data_write[i]=i&0xff;
-
-    SPI_FLASH_Read(0,Data_read,test_buff_size);
-
-    j=test_buff_size;
-    k=0;
-    while(j!=0)
+    va_start(ap, bArgC);
+    for(i = 0; i < bArgC; i++)
     {
-        result = SPI_FLASH_Write(k,Data_write+k,j);
-        j = j - result;
-        k = k + result;
-    }
-
-    SPI_FLASH_Read(0,Data_read,test_buff_size);
-
-    for(i=0;i<test_buff_size;i++)
-    {
-        if(Data_write[i]!=Data_read[i])
+        switch(i)
         {
-            printk("at45 test error!\r\n");
-            break;
+            case 0 : bus = (char*)va_arg(ap, u32); break;
+            case 1 : start[0] = va_arg(ap, u32); break;
+            case 2 : size[0] = va_arg(ap, u32); ; break;
+            case 3 : special[0] = va_arg(ap, u32); partitions++;break;
+            case 4 : start[1] = va_arg(ap, u32); break;
+            case 5 : size[1] = va_arg(ap, u32); break;
+            case 6 : special[1] = va_arg(ap, u32); partitions++;break;
+            case 7 : start[2] = va_arg(ap, u32); break;
+            case 8 : size[2] = va_arg(ap, u32); ;break;
+            case 9 : special[2] = va_arg(ap, u32); partitions++;break;
+            default: break;
         }
     }
-    printk("at45 test finished!\r\n");
-    return true;
-/---------------------test use only----------------------*/
-}
+    va_end(ap);
 
+    if(((size[0]+size[1]+size[2]) > 1024) || (!bus))
+    {
+        printf("\r\nMODULE INSTALL : error : bad parameters to install flash <at45db321e>.");
+        return (-1);
+    }
+
+    pAT45_Lock = Lock_MutexCreate("AT45 Lock");
+    if(!pAT45_Lock)
+    {
+        printf("\r\nMODULE INSTALL : error : cannot create AT45 flash lock.");
+        return (-1);
+    }
+
+    s_AT45_Dev.AutoCs = FALSE;
+    s_AT45_Dev.CharLen = 8;
+    s_AT45_Dev.Cs = 0;
+    s_AT45_Dev.Freq = AT45_SPI_SPEED;
+    s_AT45_Dev.Mode = SPI_MODE_0;
+    s_AT45_Dev.ShiftDir = SPI_SHIFT_MSB;
+
+    if(SPI_DevAdd_s(&s_AT45_Dev, bus, name))
+    {
+        SPI_BusCtrl(&s_AT45_Dev, CN_SPI_SET_POLL, 0, 0);
+    }
+
+    if(FALSE == _at45db321_Check_ID())  //校验芯片ID
+    {
+        printf("\r\nMODULE INSTALL : error : bad ID check for <at45db321e>.");
+        return (-1);
+    }
+
+    if(!(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ)) //转换成512字节
+        _at45db321_Binary_Page_Size_512();
+
+    sAT45Inited = TRUE;
+
+    for(i = 0; i < partitions; i++)
+        __AT45_MakePartition(name, start[i], size[i], special[i], &s_AT45_Dev);
+
+    return sAT45Inited;
+}
+#endif

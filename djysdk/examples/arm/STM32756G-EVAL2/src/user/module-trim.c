@@ -184,22 +184,27 @@ void Sys_ModuleInit(void)
 //    //安装人机交互输入模块，例如键盘、鼠标等
     ModuleInstall_HmiIn( 0 );
 
+//    //安装人机交互输入模块，例如键盘、鼠标等
+    ModuleInstall_HmiIn( 0 );
+
     //djybus模块
     ModuleInstall_DjyBus(0);
     //IIC总线模块,依赖:djybus
     ModuleInstall_IICBus(0);
-    IIC_Init(CN_IIC1);
+//    IIC_Init(CN_IIC1);
 //    IIC_Init(CN_IIC2);
 //    IIC_Init(CN_IIC3);
-//    IIC_Init(CN_IIC4);
+    IIC_Init(CN_IIC4);
     //SPI总线模块,依赖:djybus
 //    ModuleInstall_SPIBus(0);
-//  SPI_Initialization(CN_SPI0);
-//  SPI_Initialization(CN_SPI1);
-//  TWI_Initialization(CN_TWI0);
-//  TWI_Initialization(CN_TWI1);
-//  TWI_Initialization(CN_TWI2);
-    ModuleInstall_IAP();
+//    ModuleInstall_SPIPort(CN_SPI1);
+//    ModuleInstall_SPIPort(CN_SPI2);
+//    ModuleInstall_SPIPort(CN_SPI3);
+//    ModuleInstall_SPIPort(CN_SPI4);
+//    ModuleInstall_SPIPort(CN_SPI5);
+//    ModuleInstall_SPIPort(CN_SPI6);
+//    ModuleInstall_SPIPort(CN_TWI0);
+
     //日历时钟模块
       ModuleInstall_TM(0);
 //    //使用硬件RTC,注释掉则使用tick做RTC计时,依赖:日历时钟模块
@@ -243,7 +248,7 @@ void Sys_ModuleInit(void)
 ////    ModuleInstall_FontGb2312_816_1616_File("sys:\\gb2312_1616");
 //    //8*16 ascii字体初始化,包含高128字节,依赖:字体模块
 //    //注:如果安装了GB2312,无须再安装
-//    ModuleInstall_FonAscii8x16Font(0);
+////    ModuleInstall_FonAscii8x16Font(0);
 //
 //
     //初始化gui kernel模块
@@ -253,8 +258,8 @@ void Sys_ModuleInit(void)
     //lcd驱动初始化,如果用系统堆的话,第二个参数用NULL
     //堆的名字,是在lds文件中命名的,注意不要搞错.
     //依赖: gkernel模块
-
-    lcd = (struct DisplayRsc*)ModuleInstall_LCD(DISPLAY_NAME,"extram");
+    bool_t Ltdc_Lcd_Config(struct LCD_ConFig *lcd);
+    lcd = (struct DisplayRsc*)ModuleInstall_LCD(DISPLAY_NAME,"extram",Ltdc_Lcd_Config);
 
     //创建桌面,依赖:显示器驱动
     GK_CreateDesktop(lcd,&desktop,0,0,
@@ -262,21 +267,18 @@ void Sys_ModuleInit(void)
 
 
 //    //触摸屏模块,依赖:gkernel模块和显示器驱动
-    ptu32_t ModuleInstall_Touch(ptu32_t para);
-//    ModuleInstall_Touch(0);
+    ModuleInstall_Touch(0);
 //    //触摸屏驱动,
 //    //依赖:触摸屏模块,宿主显示器驱动,以及所依赖的硬件,例如qh_1的IIC驱动.
 //    //     如果矫正数据存在文件中,还依赖文件系统.
-    extern ptu32_t ModuleInstall_Touch_EXC7200(struct GkWinRsc *desktop,const char *touch_dev_name);
-//    ModuleInstall_Touch_EXC7200(&desktop,TOUCH_DEV_NAME);
-
+    ModuleInstall_Touch(DISPLAY_NAME,"IIC1");
+//
+    //    //GDD组件初始化
+    ModuleInstall_GDD(&desktop,gdd_input_dev);
+//    //看门狗模块,如果启动了加载时喂狗,看门狗软件模块从此开始接管硬件狗.
 //    //看门狗模块,如果启动了加载时喂狗,看门狗软件模块从此开始接管硬件狗.
 //    extern ptu32_t ModuleInstall_Wdt(ptu32_t para);
 //    ModuleInstall_Wdt(0);
-//
-//    //GDD组件初始化
-    ModuleInstall_GDD(&desktop,gdd_input_dev);
-
     evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
                                 __djy_main,NULL,gc_u32CfgMainStackLen,
                                 "main function");

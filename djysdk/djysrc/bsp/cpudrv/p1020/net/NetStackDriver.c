@@ -59,13 +59,12 @@
 #include "os.h"
 
 #include "cpu_peri_tsec.h"
-#include <tcpip/netdev.h>
+#include <sys/socket.h>
 
 #define CN_HARD_BOARD            0x02
 u8  sgNetHardMac[6] = {0x00,0x01, 0x02, 0x03, 0x04, CN_HARD_BOARD};
 #define CN_PKG_LEN  1536
 static tagNetDev *pgChkNetDev = NULL;
-
 static u8  sgSndBuf[CN_PKG_LEN];
 // =============================================================================
 // º¯Êý¹¦ÄÜ£ºNetHard_Send

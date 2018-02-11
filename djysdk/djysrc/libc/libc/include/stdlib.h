@@ -165,7 +165,6 @@ extern void *(*M_MallocHeap)(ptu32_t size,pHeap_t Heap,u32 timeout);
 extern void *(*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *(*M_MallocLcHeap)(ptu32_t size,pHeap_t Heap, u32 timeout);
 extern void  (*M_FreeHeap)(void * pl_mem,pHeap_t Heap);
-extern void *(*__MallocStack)(ptu32_t size);
 extern ptu32_t (*M_FormatSizeHeap)(ptu32_t size,pHeap_t Heap);
 extern ptu32_t (*M_FormatSize)(ptu32_t size);
 extern ptu32_t (*M_GetMaxFreeBlockHeap)(pHeap_t Heap);

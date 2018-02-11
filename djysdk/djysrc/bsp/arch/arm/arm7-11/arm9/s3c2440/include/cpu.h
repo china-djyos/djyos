@@ -67,7 +67,6 @@ extern "C" {
 
 #define __asm_start_thread __asm_turnto_context
 
-extern struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size);
 extern void __asm_reset_switch(ptu32_t (*thread_routine)(void),
                                struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 extern void __asm_turnto_context(struct ThreadVm  *new_vm);

@@ -235,7 +235,9 @@ struct DjyDevice * Driver_DeviceCreate(  struct DjyDevice *ParentDevice,
         new_device = Mb_Malloc(s_ptDevicePool,0);
         if(new_device != NULL)
         {
-            OBJ_AddChild(&ParentDevice->Node,&new_device->Node,
+            memset(new_device, 0, sizeof(*new_device));
+
+        	OBJ_AddChild(&ParentDevice->Node,&new_device->Node,
                                     sizeof(struct DjyDevice),RSC_DEVICE,name);
             new_device->MutexFlag = 0;
             if(dReadMutex != NULL)
@@ -648,7 +650,7 @@ bool_t Driver_CloseDevice(struct DjyDevice * Dev)
 //功能: 从设备读取数据.
 //参数: Dev,设备指针
 //      buf,用于接收数据的缓冲区，其容量必须不小于len。buf的容量无法检查。
-//      len,读取的数据量，须不大于buf的容量
+//      len,buf的容量，接收数据将不大于它，须小于buf的实际容量。
 //      offset,读取位置在设备中的偏移，对于流设备(例如串口)来说，通常是0.
 //      timeout，超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
 //          超时返回。非0值将被向上调整为CN_CFG_TICK_US的整数倍
@@ -658,7 +660,7 @@ bool_t Driver_CloseDevice(struct DjyDevice * Dev)
 //-----------------------------------------------------------------------------
 u32 Driver_ReadDevice(struct DjyDevice * Dev,u8 *buf,u32 len,u32 offset,u32 timeout)
 {
-    if (Dev == NULL)
+    if( (Dev == NULL)||(len==0) || ((u8*)buf == NULL) )
         return -1;
     else
     {
@@ -673,8 +675,8 @@ u32 Driver_ReadDevice(struct DjyDevice * Dev,u8 *buf,u32 len,u32 offset,u32 time
 //----写设备函数---------------------------------------------------------------
 //功能: 把数据写入设备.
 //参数: Dev,设备指针
-//      buf,待发送数据的缓冲区，其容量必须不小于len。buf的容量无法检查。
-//      len,发送的数据量，须不大于buf的容量
+//      buf,待发送数据的缓冲区。
+//      len,发送的数据量
 //      offset,写入位置在设备中的偏移，对于流设备(例如串口)来说，通常是0.
 //      timeout，超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
 //          超时返回。非0值将被向上调整为CN_CFG_TICK_US的整数倍
@@ -687,7 +689,7 @@ u32 Driver_ReadDevice(struct DjyDevice * Dev,u8 *buf,u32 len,u32 offset,u32 time
 u32 Driver_WriteDevice(struct DjyDevice * Dev,u8 *buf,
                   u32 len,u32 offset,bool_t BlockOption,u32 timeout)
 {
-    if (Dev == NULL)
+    if( (Dev == NULL)||(len==0) || ((u8*)buf == NULL) )
         return -1;
     else
     {

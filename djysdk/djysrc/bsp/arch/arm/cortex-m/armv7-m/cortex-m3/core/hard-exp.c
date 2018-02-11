@@ -81,7 +81,7 @@ extern void HardExp_BusfaultHandler(void);
 extern   uint32_t   msp_top[ ];
 extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
-bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian);
+bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian);
 
 struct SystickReg volatile * const pg_systick_reg
                         = (struct SystickReg *)0xE000E010;
@@ -264,7 +264,7 @@ enum EN_ExpAction Exp_MemManageFaultHandler(u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_MEMMANAGE_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
 
    Action = Exp_Throw(&head);
 
@@ -334,7 +334,7 @@ enum EN_ExpAction Exp_HardFaultHandler(u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_HARD_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = Exp_Throw(&head);
 
     //recovethe shedule
@@ -457,7 +457,7 @@ enum EN_ExpAction Exp_BusFaultHandler(u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_BUS_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = Exp_Throw(&head);
 
     //recovethe shedule
@@ -541,7 +541,7 @@ enum EN_ExpAction Exp_UsageFaultHandler(u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_USAGE_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = Exp_Throw(&head);
 
     //recovethe shedule
@@ -558,7 +558,7 @@ enum EN_ExpAction Exp_UsageFaultHandler(u32 *core_info)
 // 输出参数：无
 // 返回值  : true成功, false失败
 // =============================================================================
-bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
+bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian)
 {
     bool_t result = false;
     struct SysExceptionInfo  *mycpuinfo;
@@ -583,7 +583,7 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
             if(CN_SYS_EXP_CPUINFO_VALIDFLAG == mycpuinfo->SysExpCpuFlag)//当前版本，可以解析
             {
                 printk("异常类型: ");
-                switch(parahead->ExpAction)
+                switch(parahead->ExpType)
                 {
                     case CN_EXP_TYPE_HARD_FAULT: printk("hard fault\r\n");break;
                     case CN_EXP_TYPE_MEMMANAGE_FAULT: printk("存储器管理异常\r\n");break;
@@ -591,7 +591,7 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
                     case CN_EXP_TYPE_USAGE_FAULT: printk("用法异常\r\n");break;
                     default: break;
                 }
-                printk("异常最终动作: ", parahead->ExpAction);
+                printk("异常最终动作: ");
                 switch(parahead->ExpAction)
                 {
                     case EN_EXP_DEAL_RECORD: printk("仅记录\r\n");break;
@@ -603,31 +603,31 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
                 }
                 //EXP FAULT 信息解析
                 printk("异常时CPU寄存器值:\n\r");
-                printk("R0:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r0);
-                printk("R1:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r1);
-                printk("R2:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r2);
-                printk("R3:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r3);
-                printk("R4:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r4);
-                printk("R5:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r5);
-                printk("R6:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r6);
-                printk("R7:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r7);
-                printk("R8:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r8);
-                printk("R9:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r9);
-                printk("R10:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r10);
-                printk("R11:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r11);
-                printk("R12:0x%08x\n\r",mycpuinfo->CoreInfo.ger_r12);
-
-                printk("SP:0x%08x\n\r",mycpuinfo->CoreInfo.spr_sp);
-                printk("LR:0x%08x\n\r",mycpuinfo->CoreInfo.spr_lr);
-                printk("PC:0x%08x\n\r",mycpuinfo->CoreInfo.spr_pc);
-                printk("XPSR:0x%08x\n\r",mycpuinfo->CoreInfo.spr_xpsr);
-
-                printk("NVIC Exception Registers:\n\r");
-                printk("MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.mfsr);
-                printk("BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfsr);
+				printk("R0 :0X%08x R1 :0x%08x R2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
+				printk("R3 :0X%08x R4 :0x%08x R5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
+				printk("R6 :0X%08x R7 :0x%08x R8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
+				printk("R9 :0X%08x R10:0x%08x R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
+				printk("R12:0X%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
+				printk("SP :0X%08x LR :0x%08x PC :0x%08x  XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp,\
+																	   mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
+																	   mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
+																	   mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
+				printk("NVIC Exception Registers:\n\r");
+                printk("BFAR:0x%08x MMAR:0x%08x MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfar,\
+                											 	 mycpuinfo->NvicInfo.mmar,\
+																 mycpuinfo->NvicInfo.mfsr);
+                printk("HFSR:0x%08x DFSR:0x%08x BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.hfsr,\
+                                								 mycpuinfo->NvicInfo.dfsr,\
+                												 mycpuinfo->NvicInfo.bfsr);
                 printk("UFSR:0x%04x\n\r",mycpuinfo->NvicInfo.ufsr);
-                printk("HFSR:0x%08x\n\r",mycpuinfo->NvicInfo.hfsr);
-                printk("DFSR:0x%04x\n\r",mycpuinfo->NvicInfo.dfsr);
 
                 result = true;
             }
@@ -646,7 +646,99 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
 
     return result;
 }
+// =============================================================================
+// 函数功能：异常信息解析，解析异常信息
+// 输入参数：layer,抛出层次
+//           parahead，抛出时的参数
+//           endian, 信息的存储格式
+// 输出参数：无
+// 返回值  : true成功, false失败
+// =============================================================================
+bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
+{
+    bool_t result = false;
+    struct SysExceptionInfo  *mycpuinfo;
 
+    if(parahead == NULL)
+    {
+        //非本层信息，无需解析
+        printf("CPU核心硬件没有异常\r\n");
+        result = false;
+    }
+    else
+    {
+        if((sizeof(struct SysExceptionInfo))== parahead->ExpInfoLen)//看看包是否完整
+        {
+            //基本算是完整包，慢慢解析吧
+            mycpuinfo = (struct SysExceptionInfo *)(parahead->ExpInfo);
+            //存储端转换
+            if(endian != CN_CFG_BYTE_ORDER)
+            {
+                __SwapExpCpuInfoByEndian(mycpuinfo);
+            }
+            if(CN_SYS_EXP_CPUINFO_VALIDFLAG == mycpuinfo->SysExpCpuFlag)//当前版本，可以解析
+            {
+                printf("异常类型: ");
+                switch(parahead->ExpType)
+                {
+                    case CN_EXP_TYPE_HARD_FAULT: printf("hard fault\r\n");break;
+                    case CN_EXP_TYPE_MEMMANAGE_FAULT: printf("存储器管理异常\r\n");break;
+                    case CN_EXP_TYPE_BUS_FAULT: printf("总线异常\r\n");break;
+                    case CN_EXP_TYPE_USAGE_FAULT: printf("用法异常\r\n");break;
+                    default: break;
+                }
+                printf("异常最终动作:");
+                switch(parahead->ExpAction)
+                {
+                    case EN_EXP_DEAL_RECORD: printf("仅记录\r\n");break;
+                    case EN_EXP_DEAL_RESET: printf("硬件复位\r\n");break;
+                    case EN_EXP_DEAL_REBOOT: printf("跳转到启动地址,重新初始化内存和时钟\r\n");break;
+                    case EN_EXP_DEAL_RESTART: printf("跳转到预加载之后的运行地址\r\n");break;
+                    case EN_EXP_DEAL_WAIT: printf("死循环等待\r\n");break;
+                    default: break;
+                }
+                //EXP FAULT 信息解析
+                printf("异常时CPU寄存器值:\n\r");
+                printf("R0 :0X%08x R1 :0x%08x R2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
+                printf("R3 :0X%08x R4 :0x%08x R5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
+                printf("R6 :0X%08x R7 :0x%08x R8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
+                printf("R9 :0X%08x R10:0x%08x R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
+                printf("R12:0X%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
+                printf("SP :0X%08x LR :0x%08x PC :0x%08x  XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp,\
+                		                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
+						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
+						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
+                printf("NVIC Exception Registers:\n\r");
+                printf("BFAR:0x%08x MMAR:0x%08x MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfar,\
+                											 	 mycpuinfo->NvicInfo.mmar,\
+																 mycpuinfo->NvicInfo.mfsr);
+                printf("HFSR:0x%08x DFSR:0x%08x BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.hfsr,\
+                                								 mycpuinfo->NvicInfo.dfsr,\
+                												 mycpuinfo->NvicInfo.bfsr);
+                printf("UFSR:0x%04x\n\r",mycpuinfo->NvicInfo.ufsr);
+            }
+            else
+            {
+                printf("CPU Info Decode:ivalid info flag!\n\r");
+                result = false; //可能不是一样的CPU或者版本，无法解析
+            }
+        }
+        else
+        {
+            printf("CPU Info Decode:incomplete info frame!\n\r");
+            result = false;
+        }
+    }
+    return result;
+}
 // =============================================================================
 // 函数功能：异常数据解析函数，异常硬件解码函数的注册,初始化异常模块后调用
 // 输入参数：无

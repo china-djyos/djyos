@@ -63,7 +63,6 @@
 extern "C" {
 #endif
 
-struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size);
 void *__asm_reset_thread(ptu32_t (*thread_routine)(void),
                            struct ThreadVm  *vm);
 void __asm_reset_switch(ptu32_t (*thread_routine)(void),

@@ -81,40 +81,40 @@ static  bool_t ButtonPaint(struct WindowMsg *pMsg)
     HWND hwnd;
     HDC hdc;
     RECT rc;
+    u32 color;
     if(pMsg==NULL)
         return false;
     hwnd=pMsg->hwnd;
     if(hwnd==NULL)
         return false;
     hdc =BeginPaint(hwnd);
-    if(NULL!=hdc)
-    {
-        GetClientRect(hwnd,&rc);
+    if(hdc==NULL)
+    	return false;
+	GetClientRect(hwnd,&rc);
+    Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
+	SetFillColor(hdc,color);
+	FillRect(hdc,&rc);
+	if(hwnd->Style&WS_DISABLE)
+	{
+		FillRect(hdc,&rc);
+		OffsetRect(&rc,1,1);
+	}
+	else if(hwnd->Style&BS_PUSHED)
+	{
+		SetTextColor(hdc,RGB(255,255,255));
 
-        SetFillColor(hdc,RGB(255,0,0));
-        FillRect(hdc,&rc);
-
-        if(hwnd->Style&WS_DISABLE)
-        {
-            FillRect(hdc,&rc);
-            OffsetRect(&rc,1,1);
-        }
-        else if(hwnd->Style&BS_PUSHED)
-        {
-            SetTextColor(hdc,RGB(255,255,255));
-
-            SetFillColor(hdc,RGB(0,0,0));
-            FillRect(hdc,&rc);
-            OffsetRect(&rc,1,1);
-        }
-        else
-        {
-            switch(hwnd->Style&BS_SURFACE_MASK)
-            {
-                case    BS_NICE:
-                  GradientFillRect(hdc,&rc,
-                            RGB(210,210,210),RGB(150,150,150),CN_FILLRECT_MODE_UD);
-                    break;
+		SetFillColor(hdc,RGB(0,0,0));
+		FillRect(hdc,&rc);
+		OffsetRect(&rc,1,1);
+	}
+	else
+	{
+		switch(hwnd->Style&BS_SURFACE_MASK)
+		{
+			case    BS_NICE:
+			  GradientFillRect(hdc,&rc,
+						RGB(210,210,210),RGB(150,150,150),CN_FILLRECT_MODE_UD);
+				break;
 
                 case    BS_SIMPLE:
                     SetDrawColor(hdc,CN_COLOR_BLACK);
@@ -140,11 +140,16 @@ static  bool_t ButtonPaint(struct WindowMsg *pMsg)
 
         }
 
-       SetTextColor(hdc,RGB(1,1,1));
+	Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,&color);
 
-        DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_CENTER);
-        EndPaint(hwnd,hdc);
-    }
+	SetTextColor(hdc,color);
+
+	DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_CENTER);
+
+	UpdateDisplay(0);
+
+	EndPaint(hwnd,hdc);
+
     return true;
 }
 
@@ -221,48 +226,29 @@ static  bool_t Button_Up(struct WindowMsg *pMsg)
 }
 
 
-//----Button弹起响应函数---------------------------------------------------------
-//功能：略
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static bool_t Button_SetBackgroudColor(u32 color)
+static bool_t Button_Move(struct WindowMsg *pMsg)
 {
+	HWND hwnd;
+	if(pMsg==NULL)
+		return false;
+	hwnd=pMsg->hwnd;
+	if(hwnd==NULL)
+		return false;
 
+	if(pMsg->Code==MSG_NCTOUCH_MOVE)
+	{
+		switch(_get_button_type(hwnd))
+	    {
+		        case    BS_NORMAL:
+		            hwnd->Style &= ~BS_PUSHED;
+		            InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除
+		            break;
+		        case BS_HOLD:
+		        	break;
+	    }
+	}
+	return true;
 }
-//----Button弹起响应函数---------------------------------------------------------
-//功能：略
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static bool_t Button_SetTextColor(u32 color)
-{
-
-}
-
-
-//----Button弹起响应函数---------------------------------------------------------
-//功能：略
-//参数：pMsg，消息指针
-//返回：固定true
-//-----------------------------------------------------------------------------
-static bool_t Button_SetAttr(struct WindowMsg *pMsg)
-{
-//  HWND hwnd;
-//  u32 attrid;
-//  ptu32 attr;
-//  if(pMsg==NULL)
-//      return false;
-//  hwnd=pMsg->hwnd;
-//  if(hwnd==NULL)
-//      return false;
-//  attrid=pMsg->Param1;
-//  attr=pMsg->Param2;
-//
-//
-//
-}
-
 
 //默认按钮消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gButtonMsgProcTable[] =
@@ -272,7 +258,8 @@ static struct MsgProcTable s_gButtonMsgProcTable[] =
     {MSG_PAINT,ButtonPaint},
     {MSG_TOUCH_DOWN,Button_Down},
     {MSG_TOUCH_UP,Button_Up},
-    {MSG_SETATTR,Button_SetAttr}
+	{MSG_TOUCH_MOVE,Button_Move},
+	{MSG_NCTOUCH_MOVE,Button_Move},
 };
 
 static struct MsgTableLink  s_gButtonMsgLink;

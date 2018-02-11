@@ -68,7 +68,8 @@ const u32  gTplProtoNum          = 5      ; //the transmit protocol number suppo
 //*******************************UDP******************************************//
 const bool_t   gUseUdp           = true   ; //use udp, and the icmp must be open
 const u32  gUdpSockNum           = 10     ; //you could create mostly 10 udpv4 socket at the same time
-const u32  gUdpHashLen           = 0x200  ;
+const u32  gUdpHashLen           = 4      ; //udp hash search tab
+
 //*******************************TCP******************************************//
 const bool_t   gUseTcp           = true   ; //use the tcp
 const bool_t   gEnableTcpReoder  = false  ; //enable the tcp reorder or not,if resource is enough,please enable it
@@ -130,6 +131,5 @@ const bool_t  gPppStackSize      = 0x800  ;  //the ppp task stack size
 const u32     gPppTaskPrior      = 190    ;  //the ppp task prior
 const bool_t  gPppDevLimit       = 1      ;  //how many ppp device could be add
 const char   *pPppEvttName       ="PppTask"; //the ppp task name(evtt name)
-
 
 

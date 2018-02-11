@@ -99,7 +99,7 @@ s32 FATInstall(struct MountInfo *pInfo, void *pOptions)
     u32 length;
     s32 volumeNum;
     struct DjyDevice *device;
-    u32 options = (*(u32*)pOptions) & INSTALL_DELAY;
+    u32 options = 1;
 
     device = Container(pInfo->Dev, struct DjyDevice, Node);
     length = strlen(pInfo->Dev->Name);
@@ -132,6 +132,9 @@ s32 FATInstall(struct MountInfo *pInfo, void *pOptions)
 		free(volume);
 		return (-1);
 	}
+
+	if((*(u32*)pOptions) & INSTALL_DELAY)
+		options = 0;
 
     res = f_mount(structFAT, volume, options); // ╧рть
     if ((FR_NO_FILESYSTEM == res) && (*((u32*)pOptions) & INSTALL_MAKE_NEW))

@@ -65,6 +65,8 @@ extern "C" {
 
 #include "cpu-optional.h"
 
+#define DJY_BOARD        "TQ2440"
+
 /*____与硬件相关的配置____*/
 #define Mhz 1000000
 #define CN_CFG_MCLK (532*Mhz)  //主频，内核要用，必须定义

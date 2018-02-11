@@ -69,70 +69,6 @@ extern void __asm_reset_the_tb(void);
 extern ptu32_t __asm_reset_thread(ptu32_t (*thread_routine)(void),
                            struct ThreadVm  *vm);
 
-
-// =============================================================================
-// 函数功能:__CreateThread
-//          创建线程
-// 输入参数:evtt，线程关联的evtt
-// 输出参数:stack_size，创建的VM的stack的大小
-// 返回值  :
-// 说明    :将evtt中的内容恢复到创建的VM当中
-// =============================================================================
-struct ThreadVm *__CreateThread(struct EventType *evtt,u32 *stack_size)
-{
-    struct ThreadVm  *result;
-    ptu32_t  len;
-
-    //计算虚拟机栈:线程+最大单个api需求的栈
-    len = evtt->stack_size;
-    //栈顶需要对齐，malloc函数能保证栈底是对齐的，对齐长度可以使栈顶对齐
-    len = align_up_sys(len);
-    result=(struct ThreadVm  *)(__MallocStack(len));
-    *stack_size = len;
-    if(result==NULL)
-    {
-        Djy_SaveLastError(EN_MEM_TRIED);   //内存不足，返回错误
-        return result;
-    }
-    memset(result,'d',len);
-    result->stack_top = (u32*)((ptu32_t)result+len); //栈顶地址，移植敏感
-    result->next = NULL;
-    result->stack_size = len - sizeof(struct ThreadVm); //保存栈深度
-    result->host_vm = NULL;
-    //复位虚拟机并重置线程
-    __asm_reset_thread(evtt->thread_routine,result);
-    return result;
-} 
-
-//----静态创建线程-------------------------------------------------------------
-//功能：为事件类型创建线程，初始化上下文环境，安装执行函数，构成完整线程
-//参数：evtt_id，待创建的线程所服务的事件类型id
-//返回：新创建的线程指针
-//注: 移植敏感函数
-//-----------------------------------------------------------------------------
-struct ThreadVm *__CreateStaticThread(struct EventType *evtt,void *Stack,
-                                    u32 StackSize)
-{
-    struct ThreadVm  *result;
-
-    result = (struct ThreadVm  *)align_up_sys(Stack);
-
-    memset(Stack, 'd', StackSize-((ptu32_t)result - (ptu32_t)Stack)); 
-
-    //看实际分配了多少内存，djyos内存分配使用块相联策略，如果分配的内存量大于
-    //申请量，可以保证其实际尺寸是对齐的。之所以注释掉，是因为当len大于申请量时，
-    //对齐只是实际结果，而不是内存管理的规定动作，如果不注释掉，就要求内存管理
-    //模块必须提供对齐的结果，对模块独立性是不利的。
-//    len = M_CheckSize(result);
-    result->stack_top = (u32 *)(align_down_sys((ptu32_t)Stack+StackSize)); //栈顶地址，移植敏感
-    result->next = NULL;
-    result->stack_size = (ptu32_t)(result->stack_top) - (ptu32_t)result
-                            - sizeof(struct ThreadVm);       //保存栈深度
-    result->host_vm = NULL;
-    //复位线程并重置线程
-    __asm_reset_thread(evtt->thread_routine,result);
-    return result;
-}
 // =============================================================================
 // 函数功能:__DjySetDelay
 //          测试for循环速度
@@ -254,5 +190,26 @@ void LockSysCode(void)
 
     return;
 }
+
+void __asm_delay_us(u32 time)
+{
+
+    volatile u32 u32Time;
+    if(time<1000000)
+    {
+        //延时量较小时，在慢速CPU上，使用else分之将会有很大误差
+        u32Time= (u32)((time << 10) / g_u32CycleSpeed);
+        for(; u32Time>0 ; u32Time--);
+    }
+    else
+    {
+        volatile u32 i;
+        u32Time = time>>7;                            //time>1000000,舍入误差很小
+        for(; u32Time>0 ; u32Time--)
+            for(i = g_u32HundreUsfor; i > 0; i--);    //100uS for循环数
+    }
+}
+
+
 
 

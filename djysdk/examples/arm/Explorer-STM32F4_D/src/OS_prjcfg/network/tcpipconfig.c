@@ -68,6 +68,7 @@ const u32  gTplProtoNum          = 5      ; //the transmit protocol number suppo
 //*******************************UDP******************************************//
 const bool_t   gUseUdp           = true   ; //use udp, and the icmp must be open
 const u32  gUdpSockNum           = 10     ; //you could create mostly 10 udpv4 socket at the same time
+const u32  gUdpHashLen           = 4      ; //udp hash search tab
 
 //*******************************TCP******************************************//
 const bool_t   gUseTcp           = true   ; //use the tcp

@@ -66,7 +66,7 @@
 #include <stdio.h>
 #include <timer.h>
 #include <uartctrl.h>
-
+#include "driver/flash/flash.h"
 #include "../../../../../djysrc/bsp/arch/arm/arm32_stdint.h"
 
 extern ptu32_t ModuleInstall_DebugInfo(ptu32_t para);
@@ -183,7 +183,9 @@ void Sys_ModuleInit(void)
 	//  Dev = Driver_OpenDevice("UART3",D_RDONLY,CN_TIMEOUT_FOREVER);
 	ModuleInstall_Ymodem(0);
 	Ymodem_PathSet("/iboot");
-	ModuleInstall_IAP_FS(NULL);
+	
+	ModuleInstall_EmbededFlash("embedded flash", FLASH_BUFFERED, 0);
+	ModuleInstall_IAP_FS("/iboot", "/dev/embedded flash");
 	ModuleInstall_IAP();
 //
 //    //安装人机交互输入模块，例如键盘、鼠标等

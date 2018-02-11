@@ -114,6 +114,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.2092251909" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;..\lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../libcompile\libOS\libOS_explorerstm32f4_o0&quot;"/>
 									<listOptionValue builtIn="false" value="gcc"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags.1841418297" name="Linker flags (-Xlinker [option])" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags"/>
@@ -266,6 +267,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.2092039684" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="gcc"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../libcompile\libOS\libOS_explorerstm32f4_o2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;..\lib&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags.1618744409" name="Linker flags (-Xlinker [option])" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.flags"/>

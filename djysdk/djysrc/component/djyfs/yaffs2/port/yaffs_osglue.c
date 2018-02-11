@@ -36,7 +36,6 @@
 static int yaffsfs_lastError;
 struct MutexLCB YaffsLock;
 const char LockName[] = "YaffsLock";
-
 void yaffsfs_SetError(int err)
 {
     //Do whatever to set error
@@ -114,20 +113,41 @@ u32 yaffsfs_CurrentTime(void)
  *
  * Functions to allocate and free memory.
  */
-
+static void *pHeapFirst;
 void *yaffsfs_malloc(size_t size)
 {
-    return malloc(size);
+	extern void *(*M_MallocHeap)(ptu32_t size,pHeap_t Heap,u32 timeout);
+
+	if(NULL != pHeapFirst)
+	{
+		return M_MallocHeap(size, (pHeap_t)pHeapFirst, CN_TIMEOUT_FOREVER);
+	}
+	else
+	{
+		return malloc(size);
+	}
 }
 
 void yaffsfs_free(void *ptr)
 {
-    free(ptr);
+	struct HeapCB *sdram2;
+	extern void  (*M_FreeHeap)(void *pl_mem, pHeap_t Heap);
+
+	if(NULL != pHeapFirst)
+	{
+		return M_FreeHeap(ptr, (pHeap_t)pHeapFirst);
+	}
+	else
+	{
+		return free(ptr);
+	}
 }
 
 void yaffsfs_OSInitialisation(void)
 {
-    yaffsfs_LockInit();// 初始化文件互斥锁
+    yaffsfs_LockInit(); // 初始化文件互斥锁
+	extern struct HeapCB *M_FindHeap(const char *HeapName);
+	pHeapFirst = M_FindHeap("extram"); // 优先使用extram上的heap
 }
 
 /*

@@ -68,9 +68,11 @@ extern "C" {
 #include "arm32_feature.h"
 #include "board-config.h"
 
-#ifndef arm920t
 #define arm920t
-#endif
+
+//保存上下文所需的栈空间最大值
+//16=通用寄存器，+cpsr-SP
+#define CN_CONTEXT_LIMIT        (16)*4
 
 //根据cache.h中的说明,有些arm9内核需要在这里定义cache尺寸的.
 

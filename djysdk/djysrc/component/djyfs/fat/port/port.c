@@ -71,7 +71,7 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
 		return (NULL);// 当前不支持的模式,(Mode & M_TRUNCATE)还没有处理
 	
 	LocalPath = PathCopy(Root, Path, NULL);// todo:考虑放入虚拟层
-	
+
 	FileCt = AllocContext();
 	if(!FileCt)
 		return (NULL);
@@ -101,7 +101,7 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
 	
 	if(!(Mode & M_TYPE))// 参数未指定，则两个都要尝试下
 		Mode |= M_REG | M_DIR;
-		
+
 	if(Mode & M_REG)// 打开文件
 	{
 		FIL *NewFile = malloc(sizeof(FIL));
@@ -385,8 +385,6 @@ s32 FATDirRead(struct FileContext *pFileCt, struct Dirent *pContent)
 	FILINFO info;
 	char lfname[256];
 	FRESULT res;
-	char *des, *src;
-	u8 len, i;
 	s32 ret = 0;
 	_DIR *dir = (_DIR *)pFileCt->Private;
 

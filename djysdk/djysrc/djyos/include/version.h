@@ -61,8 +61,12 @@
 extern "C" {
 #endif
 
+#define DJY_OS_VERSION           "1.3.0"
+#define DJY_OS_COMPILE_DATE      __DATE__
+#define DJY_OS_COMPILE_TIME      __TIME__
+
 // DJYOS°æ±¾ºÅ
-#define djyos_kernel_version    "djyosV1.3.0-"__DATE__"-" __TIME__
+#define djyos_kernel_version    "djyosV"DJY_OS_VERSION" - "DJY_OS_COMPILE_DATE", "DJY_OS_COMPILE_TIME
 
 #ifdef __cplusplus
 }

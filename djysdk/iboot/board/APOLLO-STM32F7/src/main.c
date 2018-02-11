@@ -1,12 +1,24 @@
-#include <cpu_peri_gpio.h>
-#include <djyos.h>
+
 #include <stdint.h>
 #include <stdio.h>
-#include <systime.h>
+
 #include "shell.h"
 #include "../../../../../djysrc/bsp/arch/arm/arm32_stdint.h"
 #include "hmi-input.h"
-
+#include <cfg/iboot_config.h>
+#include "IAP.h"
+#include "uartctrl.h"
+#include <osboot.h>
+#include <IAP_Inner.h>
+#include "os.h"
+#include "string.h"
+#include "stddef.h"
+#include "cpu_peri.h"
+#include "uartctrl.h"
+extern bool_t HAL_ClrUpdateFlag(void);
+extern bool_t HAL_CheckUpdateFlag(void);
+extern tagIapVar pg_IapVar;
+extern void RunApp(void);
 
 // =============================================================================
 // 功能: LED TEST
@@ -157,7 +169,65 @@ bool_t fs_test(void)
 
 }
 
+// ============================================================================
+// 功能：通过模式一升级应用程序
+// 参数：pPath -- 文件所在路径
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+static void __UpdateApplication(void)
+{
+    bool_t doUpdate;
+    s32 res;
+    u8 doPrint = 1;
 
+    while(1)
+    {
+        doUpdate = HAL_CheckUpdateFlag();
+        if(doUpdate)
+        {
+            if(doPrint)
+            {
+                printf("\r\nAPP need update(flag).");
+                doPrint = 0;
+            }
+
+            res = IAP_Update(2, IAP_GetMethod(), IAP_GetPath());
+            if(res != -1)
+            {
+                HAL_ClrUpdateFlag();
+                printf("\r\nAPP update succeed. Now going to running APP in 5 seconds.\r\n");
+                Djy_EventDelay(5000*mS);
+                RunApp();
+            }
+            else
+            {
+                printf("\r\nAPP update failed. will retry.");
+            }
+        }
+        else if(pg_IapVar.IbootStatus==EN_CRC_ERR)
+        {
+            if(doPrint)
+            {
+                printf("\r\nAPP need update(status).");
+                doPrint = 0;
+            }
+            res = IAP_Update(2, IAP_GetMethod(), IAP_GetPath());
+            if(res != -1)
+            {
+                printf("\r\nAPP update succeed. Now going to running APP in 5 seconds.\r\n");
+                Djy_EventDelay(5000*mS);
+                RunApp();
+            }
+            else
+            {
+                printf("\r\nAPP update failed. will retry.");
+            }
+        }
+
+        Djy_EventDelay(5000*mS);
+    }
+}
 
 
 void djy_main(void)
@@ -168,12 +238,15 @@ void djy_main(void)
 
 //	iic_test( );
 
+
+
+/*
     for(;;)
     {
     	Djy_EventDelay(1000*mS);
     }
-
-
+*/
+    __UpdateApplication();
 }
 
 

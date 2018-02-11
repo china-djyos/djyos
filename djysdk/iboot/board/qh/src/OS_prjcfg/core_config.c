@@ -57,18 +57,18 @@
 #include "stdint.h"
 
 //定义初始化过程使用的栈空间，
-#define CN_INITSTACK_SIZE   4096
+#define CN_INITSTACK_SIZE   2048
 align_type InitStack[CN_INITSTACK_SIZE/sizeof(align_type)] = {'d'};
 
 const u32 gc_IdleSeventStackSize = 1024;   //
 const u32 gc_u32CfgDeviceLimit = 8;     //定义设备数量。
 //定义锁数量。用户调用semp_create和mutex_create创建的锁，不包括用Lock_SempCreate_s和
 //Lock_MutexCreate_s创建的锁
-const u32 gc_u32CfgLockLimit = 30;      //
-const u32 gc_u32CfgEventLimit = 14;     //事件数量
-const u32 gc_u32CfgEvttLimit = 15;      //总事件类型数
+const u32 gc_u32CfgLockLimit = 10;      //
+const u32 gc_u32CfgEventLimit = 8;     //事件数量
+const u32 gc_u32CfgEvttLimit = 8;      //总事件类型数
 const u32 gc_u32CfgWdtLimit = 3;       //允许养狗数量
 const u32 gc_u32CfgPipeLimit = 1;       //管道数量
 const u32 gc_u32CfgMemPoolLimit = 20;   //允许建立10个内存池
 const u32 gc_u32CfgStdinDeviceLimit = 4;    //标准输入设备数量，如键盘、鼠标等
-const u32 gc_u32CfgMainStackLen = 2048;
+const u32 gc_u32CfgMainStackLen = 1024;

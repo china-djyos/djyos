@@ -114,13 +114,13 @@ extern const u32     gTftpServerPrior   ;  //tftp server prior
 
 
 //*******************************DHCP SERVER**********************************//
-extern const bool_t   gUseDhcp;             //load the dhcp module or not
 extern const bool_t   gUseDhcpClient;       //enable the dhcp client or not
 extern const bool_t   gUseDhcpServer;       //enable the dhcp server or not
 extern const u32      gDhcpRenewTime ;      //one hour
 extern const u32      gDhcpRebindTime ;     //one hour
 extern const u32      gDhcpLeaseTime  ;     //one hour
 extern const u32      gDhcpServerIpNum ;    //64
+extern const char    *pDhcpServerStartIp;   //start to malloc ip
 extern const char    *pDhcpServerIp   ;     //DHCP SERVER IP
 extern const char    *pDhcpRouterIp   ;     //ROUTER SERVER IP
 extern const char    *pDhcpSubnetMask ;     //USED TO MASK THE IP

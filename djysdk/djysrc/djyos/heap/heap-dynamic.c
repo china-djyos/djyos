@@ -226,7 +226,11 @@ const ucpu_t cn_low_xbit_msk []=
 };
 
 struct EventECB;
-static struct EventECB *s_ptMemSync;
+//通用堆的同步指针，专用堆使用对控制块 struct HeapCB 的 mem_sync 成员
+static struct EventECB *s_ptGenMemSync;
+//分配栈的同步指针，如果线程在分配栈时被互斥量阻塞，将进入本队列。
+static struct EventECB *s_ptStackSync;
+
 #define CN_MEM_DOUBLE_PAGE_LOCAL    0xffff
 #define CN_MEM_MANY_PAGE_LOCAL      0xfffe
 #define CN_MEM_SINGLE_PAGE_GLOBAL   0xfffd
@@ -244,7 +248,7 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *__M_MallocLc(ptu32_t size,u32 timeout);
 void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout);
 void  __M_FreeHeap(void * pl_mem,struct HeapCB *Heap);
-void *__M_MallocStack(ptu32_t size);
+void *__M_MallocStack(struct EventECB *event, u32 size);
 
 ptu32_t Heap_DynamicModuleInit(ptu32_t para);
 void __M_ShowHeap(void);
@@ -268,7 +272,7 @@ extern void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 extern void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
 extern void    (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap);
-extern void *  (*__MallocStack)(ptu32_t size);
+extern void *(*__MallocStack)(struct EventECB *pl_ecb,u32 size);
 extern ptu32_t (*M_FormatSizeHeap)(ptu32_t size,struct HeapCB *Heap);
 extern ptu32_t (*M_FormatSize)(ptu32_t size);
 extern ptu32_t (*M_GetMaxFreeBlockHeap)(struct HeapCB *Heap);
@@ -285,7 +289,7 @@ extern void __Djy_EventReady(struct EventECB *event_ready);
 extern void __Djy_CutReadyEvent(struct EventECB *event);
 extern void __Djy_ResumeDelay(struct EventECB *delay_event);
 extern void __Djy_AddToDelay(u32 u32l_uS);
-extern void __Djy_CutEventFromEvttMarked(struct EventECB *event);
+//extern void __Djy_CutEventFromEvttMarked(struct EventECB *event);
 
 //----查找堆-------------------------------------------------------------------
 //功能: 通过名字，查找堆控制块指针
@@ -779,7 +783,7 @@ bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
     if( (Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
         MemSyncHead = &Heap->mem_sync;      //使用专用堆的同步指针
     else
-        MemSyncHead = &s_ptMemSync;         //使用通用堆的同步指针
+        MemSyncHead = &s_ptGenMemSync;         //使用通用堆的同步指针
 
     do
     {
@@ -862,14 +866,14 @@ bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
 //   说明: 改为把事件放进通用堆等待队列中
 //   作者: 罗侍田
 //-----------------------------------------------------------------------------
-void __M_WaitMemory(struct EventECB *event)
+void __M_WaitMemoryStack(struct EventECB *event,u32 size)
 {
     struct EventECB *pl_event;
-    ptu32_t size;
 
-    size = event->wait_mem_size;
-    pl_event = s_ptMemSync;     //获取内存等待表指针
-    event->sync_head = &s_ptMemSync;
+
+    event->wait_mem_size = size;
+    pl_event = s_ptGenMemSync;     //获取内存等待表指针
+    event->sync_head = &s_ptGenMemSync;
     if(pl_event == NULL)            //等待队列空
     {
         event->next = NULL;
@@ -878,7 +882,7 @@ void __M_WaitMemory(struct EventECB *event)
         event->multi_next = event;
         event->multi_previous = event;
 
-        s_ptMemSync = event;
+        s_ptGenMemSync = event;
     }else
     {
         do
@@ -887,7 +891,7 @@ void __M_WaitMemory(struct EventECB *event)
                 pl_event = pl_event->multi_next;
             else
                 break;
-        }while(pl_event != s_ptMemSync);
+        }while(pl_event != s_ptGenMemSync);
         //如果没有找到申请内存比新事件长的事件,新事件插入队列尾,而队列
         //尾部就是event_wait的前面,此时event恰好等于event_wait
         //如果找到剩余延时时间长于新事件的事件,新事件插入该事件前面.
@@ -897,6 +901,7 @@ void __M_WaitMemory(struct EventECB *event)
         pl_event->multi_previous->multi_next = event;
         pl_event->multi_previous = event;
     }
+    event->event_status = CN_STS_WAIT_MEMORY + CN_WF_EVENT_NORUN;
     return;
 }
 
@@ -1169,7 +1174,7 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
             ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
             g_ptEventRunning->local_memory++;
 
-            //阅读以下条件句请结合struct HeapCession中index_event_id的注释.
+            //阅读以下条件句请结合struct HeapCession 中index_event_id的注释.
             pl_id = Cession->index_event_id;
             id = g_ptEventRunning->event_id;
             page = (ptu32_t)((u8*)ua_address-Cession->heap_bottom)/Cession->PageSize;
@@ -1190,6 +1195,7 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
         }
     }
     Lock_MutexPost(&Heap->HeapMutex);
+    __M_CheckSTackSync( );
     return result;
 }
 
@@ -1241,7 +1247,7 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
             ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
 
             //以下在id表中记录本次分配的性质
-            //阅读本段代码请结合mem_global_t中index_event_id成员定义的注释.
+            //阅读本段代码请结合 struct HeapCession 中index_event_id成员定义的注释.
             pl_id = &Cession->index_event_id
                     [(ptu32_t)((u8*)ua_address-Cession->heap_bottom)
                             /Cession->PageSize];
@@ -1256,6 +1262,7 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
         }
     }
     Lock_MutexPost(&Heap->HeapMutex);
+    __M_CheckSTackSync( );
     return result;
 }
 void *__M_Malloc(ptu32_t size,u32 timeout)
@@ -1263,6 +1270,33 @@ void *__M_Malloc(ptu32_t size,u32 timeout)
     return (__M_MallocHeap(size,tg_pSysHeap,timeout));
 }
 
+//----检查stack等待队列--------------------------------------------------------
+//功能：如果在heap的互斥量锁定期间创建线程，就会导致事件挂到 s_ptStackSync 队列
+//      中，post互斥量后，需要检查该队列，并且释放它。本函数内部调用。
+//参数：无
+//返回：无
+//-----------------------------------------------------------------------------
+void __M_CheckSTackSync(void)
+{
+    struct EventECB *event = s_ptStackSync,*next_sync;
+    atom_low_t atom_low;
+    atom_low = Int_LowAtomStart();
+    if(event != NULL)
+    {
+        next_sync = event;
+        do
+        {
+            next_sync = event->multi_next;
+            event->wakeup_from = CN_STS_WAIT_MEMORY + CN_WF_EVENT_NORUN;
+            event->event_status = CN_STS_EVENT_READY;
+            __Djy_EventReady(event);
+            event = next_sync;
+        }while(next_sync != s_ptStackSync);
+        s_ptStackSync = NULL;
+    }
+    Int_LowAtomEnd(atom_low);
+    return;
+}
 //----分配线程栈---------------------------------------------------------------
 //功能：与m_malloc_gbl相似，但要求在关异步信号的条件下调用，本函数仅提供给创建
 //      线程函数__CreateThread使用
@@ -1273,7 +1307,10 @@ void *__M_Malloc(ptu32_t size,u32 timeout)
 //   说明: 改从tg_pSysHeap堆中分配为从所有通用堆中分配,优先从tg_pSysHeap中分配。
 //   作者: 罗侍田
 //-----------------------------------------------------------------------------
-void *__M_MallocStack(ptu32_t size)
+extern void __M_WaitMemoryStack(struct EventECB *event,u32 size);
+bool_t __Djy_RaiseTempPrioForStack(u16 event_id);
+void __Djy_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status);
+void *__M_MallocStack(struct EventECB *event, u32 size)
 {
     struct HeapCession *Cession;
     void *ua_address;
@@ -1281,18 +1318,27 @@ void *__M_MallocStack(ptu32_t size)
     u16    *pl_id;
     void *result;
 
-    // 系统堆正在被操作时，不能分配
-    if( (size == 0) || (tg_pSysHeap == NULL)
-            || (Lock_MutexQuery(&tg_pSysHeap->HeapMutex) == false) )
+    if( (size == 0) || (tg_pSysHeap == NULL))
         return NULL;
-		
+
+    //此处已经关了调度，不会被抢占。
     if(__M_GetMaxFreeBlockHeap(tg_pSysHeap) < size)
     {
+        __M_WaitMemoryStack(event,size);
         result = NULL;
-    }else
+    }
+    else
     {
-        uf_grade_th=__M_GetFreeGrade(size,tg_pSysHeap,&Cession);    //取阶号
-        ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
+        if(Lock_MutexQuery(&tg_pSysHeap->HeapMutex) == false)
+        {
+            __Djy_RaiseTempPrioForStack(tg_pSysHeap->HeapMutex.owner->event_id);
+            __Djy_AddToBlockForStack(&s_ptStackSync,CN_BLOCK_PRIO,CN_STS_WAIT_MUTEX);
+            result = NULL;
+        }
+        else
+        {
+            uf_grade_th=__M_GetFreeGrade(size,tg_pSysHeap,&Cession);    //取阶号
+            ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
 
             //以下在id表中记录本次分配的性质
             //阅读本段代码请结合mem_global_t中index_event_id成员定义的注释.
@@ -1307,6 +1353,7 @@ void *__M_MallocStack(ptu32_t size)
                 *pl_id = uf_grade_th;
             }
             result = ua_address;
+        }
     }
     return result;
 }
@@ -1615,7 +1662,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     }
     else
     {
-        MemSyncHead = &s_ptMemSync;         //使用通用堆的同步指针
+        MemSyncHead = &s_ptGenMemSync;         //使用通用堆的同步指针
         CurHeap = Heap;
         do
         {
@@ -1684,9 +1731,10 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
                 uf_free_grade_th = 0;
             }else
             {
+                pl_id[0] = CN_MEM_FREE_PAGE;
                 Djy_SaveLastError(EN_MEM_ERROR);   //指针有错,直接退出
                 Lock_MutexPost(&(CurHeap->HeapMutex) );
-                pl_id[0] = CN_MEM_FREE_PAGE;
+                __M_CheckSTackSync( );
                 return;
 
             }
@@ -1804,6 +1852,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     }while(uf_grade_th-- >0);   //从最高阶(最大块)扫描到0阶
 
     Lock_MutexPost( &(CurHeap->HeapMutex) );
+    __M_CheckSTackSync( );
     //we don't konw if it is local memory, so we could not sub it directly ,
     //the local_memory must be used with the __M_MallocLc, so it should sub in
     //the matched __M_FreeLc, but up tills now, we have no __M_FreeLc--TODO
@@ -1855,14 +1904,14 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
                 }
                 //看看该    ECB是不是有VM，如果没有则是因为创建VM不得，才放在此，
                 //因此需要从maked队列中移除。
-                if(NULL == event->vm)//创建VM不得，从marked队列删除
-                {
-                    __Djy_CutEventFromEvttMarked(event);
-                }
-                else//这种是在运行时申请内存而不得导致的
-                {
-                    //目前而言什么都不用做
-                }
+//                if(NULL == event->vm)//创建VM不得，从marked队列删除
+//                {
+//                    __Djy_CutEventFromEvttMarked(event);
+//                }
+//                else//这种是在运行时申请内存而不得导致的
+//                {
+//                    //目前而言什么都不用做
+//                }
                 __Djy_EventReady(event);
             }else
                 break;

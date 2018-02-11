@@ -55,34 +55,34 @@
 #include "lowpower.h"
 extern ptu32_t ModuleInstall_DebugInfo(ptu32_t para);
 
-const u32 gc_u32CfgTimeZone = 8;     //本地时区为东8区(北京)
-
-const char *gc_pCfgDefaultCharsetName = "gb2312";  //默认字符集
-const char *gc_pCfgDefaultFontName = "gb2312_8_16_1616";  //默认字体
-
-const u32 gc_u32CfgGuiCmdDeep = 1024;   //gkernel命令缓冲区深度(字节数,非命令条数)
-const u32 gc_u32CfgGuiStsDeep = 256;    //gkernel状态缓冲区深度(字节数,非命令条数)
-
-const u32 gc_u32CfgDeviceLimit = 5;     //定义设备数量。
-const u32 gc_u32CfgLockLimit = 50;      //定义锁数量。用户调用semp_create和mutex_create创建的锁，不包括内核用到的锁。
-const u32 gc_u32CfgEventLimit = 10;     //事件数量
-const u32 gc_u32CfgEvttLimit = 10;      //总事件类型数
-const u32 gc_u32CfgWdtLimit = 1;       //允许养狗数量
-const u32 gc_u32CfgPipeLimit = 1;       //管道数量
-const u32 gc_u32CfgMemPoolLimit = 10;    //允许建立10个内存池
-const u32 gc_u32CfgStdinDeviceLimit = 2;
-const u32 gc_u32CfgMainStackLen = 4096;
-
-const u32 gc_u32CfgOpenedfileLimit = 16;
-const u32 gc_u32CfgTimerLimit = 5;
-
-const char *gc_pCfgStdinName = "/dev/UART0";    //标准输入设备
-const char *gc_pCfgStdoutName = "/dev/UART0";   //标准输出设备
-const char *gc_pCfgStderrName = "/dev/UART0";   //标准错误输出设备
-const char *gc_pCfgWorkPath = "easyfs:\\";   //工作路径设置
-
-//协议栈配置
-const u32 gNetPkgMemSize = 1024*4096;
+//const u32 gc_u32CfgTimeZone = 8;     //本地时区为东8区(北京)
+//
+//const char *gc_pCfgDefaultCharsetName = "gb2312";  //默认字符集
+//const char *gc_pCfgDefaultFontName = "gb2312_8_16_1616";  //默认字体
+//
+//const u32 gc_u32CfgGuiCmdDeep = 1024;   //gkernel命令缓冲区深度(字节数,非命令条数)
+//const u32 gc_u32CfgGuiStsDeep = 256;    //gkernel状态缓冲区深度(字节数,非命令条数)
+//
+//const u32 gc_u32CfgDeviceLimit = 5;     //定义设备数量。
+//const u32 gc_u32CfgLockLimit = 50;      //定义锁数量。用户调用semp_create和mutex_create创建的锁，不包括内核用到的锁。
+//const u32 gc_u32CfgEventLimit = 10;     //事件数量
+//const u32 gc_u32CfgEvttLimit = 10;      //总事件类型数
+//const u32 gc_u32CfgWdtLimit = 1;       //允许养狗数量
+//const u32 gc_u32CfgPipeLimit = 1;       //管道数量
+//const u32 gc_u32CfgMemPoolLimit = 10;    //允许建立10个内存池
+//const u32 gc_u32CfgStdinDeviceLimit = 2;
+//const u32 gc_u32CfgMainStackLen = 4096;
+//
+//const u32 gc_u32CfgOpenedfileLimit = 16;
+//const u32 gc_u32CfgTimerLimit = 5;
+//
+//const char *gc_pCfgStdinName = "/dev/UART0";    //标准输入设备
+//const char *gc_pCfgStdoutName = "/dev/UART0";   //标准输出设备
+//const char *gc_pCfgStderrName = "/dev/UART0";   //标准错误输出设备
+//const char *gc_pCfgWorkPath = "easyfs:\\";   //工作路径设置
+//
+////协议栈配置
+//const u32 gNetPkgMemSize = 1024*4096;
 
 u32 QH_EntrySleepReCall(u32 SleepLevel);
 u32 QH_ExitSleepReCall(u32 SleepLevel);
@@ -155,18 +155,18 @@ void Sys_ModuleInit(void)
     //依赖: 若stdin/out/err是文件,则依赖文件系统
     //      若是设备,则依赖设备驱动
     //      同时,还依赖用来输出信息的设施,例如串口,LCD等
-    OpenStdin(gc_pCfgStdinName);
-    OpenStdout(gc_pCfgStdoutName);
-    OpenStderr(gc_pCfgStderrName);
-    //一下三个函数，如果stdin、stdout、stderr使用不同的串口或其他IO通道，则要
-    //分别设定参数。
-    Driver_CtrlDevice(stdin,CN_UART_START,0,0);
-    Driver_CtrlDevice(stdin,CN_UART_DMA_USED,0,0);
-    //设置串口波特率为115200，
-    Driver_CtrlDevice(stdin,CN_UART_SET_BAUD,115200,0);
+//    OpenStdin(gc_pCfgStdinName);
+//    OpenStdout(gc_pCfgStdoutName);
+//    OpenStderr(gc_pCfgStderrName);
+//    //一下三个函数，如果stdin、stdout、stderr使用不同的串口或其他IO通道，则要
+//    //分别设定参数。
+//    Driver_CtrlDevice(stdin,CN_UART_START,0,0);
+//    Driver_CtrlDevice(stdin,CN_UART_DMA_USED,0,0);
+//    //设置串口波特率为115200，
+//    Driver_CtrlDevice(stdin,CN_UART_SET_BAUD,115200,0);
 
     //安装人机交互输入模块，例如键盘、鼠标等
-    ModuleInstall_HmiIn( 0 );
+//    ModuleInstall_HmiIn( 0 );
 
     //djybus模块
 //    ModuleInstall_DjyBus(0);

@@ -68,7 +68,7 @@ const u32  gTplProtoNum          = 5      ; //the transmit protocol number suppo
 //*******************************UDP******************************************//
 const bool_t   gUseUdp           = true   ; //use udp, and the icmp must be open
 const u32  gUdpSockNum           = 10     ; //you could create mostly 10 udpv4 socket at the same time
-const u32  gUdpHashLen           = 0x200  ; //you could create mostly 10 udpv4 socket at the same time
+const u32  gUdpHashLen           = 4      ; //udp hash search tab
 //*******************************TCP******************************************//
 const bool_t   gUseTcp           = true   ; //use the tcp
 const bool_t   gEnableTcpReoder  = false  ; //enable the tcp reorder or not,if resource is enough,please enable it
@@ -112,17 +112,17 @@ const u32     gTftpServerPrior   = 200    ;  //tftp server prior
 
 //*******************************DHCP SERVER**********************************//
 const bool_t   gUseDhcp          = true   ;  //load the dhcp module or not
-const bool_t   gUseDhcpClient    = true   ;  //enable the dhcp client or not
-const bool_t   gUseDhcpServer    = false  ;  //enable the dhcp server or not
+const bool_t   gUseDhcpClient    = true  ;  //enable the dhcp client or not
+const bool_t   gUseDhcpServer    = true   ;  //enable the dhcp server or not
 const u32      gDhcpRenewTime    = 3600;            //one hour
 const u32      gDhcpRebindTime   = 3600;            //one hour
 const u32      gDhcpLeaseTime    = 3600;            //one hour
 const u32      gDhcpServerIpNum  = 0x40;            //64
-const u32      gDhcpIpMapBytes   = 0x08;            //which defines the bitmap lenth
-const char    *pDhcpServerIp     = "192.168.0.100"; //DHCP SERVER IP
-const char    *pDhcpRouterIp     = "192.168.0.100"; //ROUTER SERVER IP
+const char    *pDhcpServerStartIp= "192.168.0.2";
+const char    *pDhcpServerIp     = "192.168.0.253"; //DHCP SERVER IP
+const char    *pDhcpRouterIp     = "192.168.0.253"; //ROUTER SERVER IP
 const char    *pDhcpSubnetMask   = "255.255.255.0"; //USED TO MASK THE IP
-const char    *pDhcpDns          = "192.168.0.100"; //DNSSERVER
+const char    *pDhcpDns          = "192.168.0.253"; //DNSSERVER
 const char    *pDhcpDomainName   = "www.djyos.com"; //domain name
 
 //*******************************PPP******************************************//

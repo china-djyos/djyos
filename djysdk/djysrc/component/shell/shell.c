@@ -103,6 +103,7 @@ void (*fng_pPrintWorkPath)(void) = NULL;
 bool_t (*fng_pCD_PTT)(const char *PTT_Name) = NULL;
 
 extern bool_t Sh_PrintWorkPath(void);
+extern bool_t ShowCpuInfo(char *param);
 //内置命令表,包含系统自带的命令
 struct ShellCmdTab const shell_cmd_table[] =
 {
@@ -172,6 +173,12 @@ struct ShellCmdTab const shell_cmd_table[] =
         "uninstall-cmd",
         Sh_UninstallCmdByName,
         "删除shell命令--用名字",
+        NULL
+    },
+    {
+        "cpuinfo",
+		ShowCpuInfo,
+        "usage:cpuinfo:show the cpu",
         NULL
     },
 };

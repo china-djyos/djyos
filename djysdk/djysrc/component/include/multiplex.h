@@ -68,18 +68,24 @@ extern "C" {
 #define CN_MULTIPLEX_INVALID   1   //对象不支持Multiplex功能
 #define CN_MULTIPLEX_ERROR     2   //对象虽然支持Multiplex，但拒绝了本次调用
 
+
+#define CN_MULTIPLEX_MODEMSK                0xff000000  //模式位掩码
+#define CN_MULTIPLEX_STATUSMSK              0x00ffffff  //状态位掩码
+
 //struct MultiplexObjectCB中SensingBit成员的定义，共24个Sensing bit
-#define CN_MULTIPLEX_SENSINGBIT_READ      (1<<0)  //对象可读
-#define CN_MULTIPLEX_SENSINGBIT_WRITE     (1<<1)  //对象可写
-#define CN_MULTIPLEX_SENSINGBIT_ERROR     (1<<2)  //对象出错
+//其中约定bit16~23由用户定义，例如uart的CN_UART_FIFO_OVER_ERR
+#define CN_MULTIPLEX_SENSINGBIT_READ        (1<<0)  //对象可读
+#define CN_MULTIPLEX_SENSINGBIT_WRITE       (1<<1)  //对象可写
+#define CN_MULTIPLEX_SENSINGBIT_ERROR       (1<<2)  //对象出错
 
-//SensingBit的模式
-#define CN_MULTIPLEX_SENSINGBIT_MODE      (0xff<<24) //模式位的位偏移
-#define CN_MULTIPLEX_SENSINGBIT_LT         0      //电平触发（Level）
-#define CN_MULTIPLEX_SENSINGBIT_ET        (1<<30) //边沿触发（Edge）
-#define CN_MULTIPLEX_SENSINGBIT_AND        0      //SensingBit中全部置位才触发
-#define CN_MULTIPLEX_SENSINGBIT_OR        (1<<31) //SensingBit中有一个置位就触发
+//触发模式，利用SensingBit.24~31
+#define CN_MULTIPLEX_SENSINGBIT_AND          0      //SensingBit中全部置位才触发
+#define CN_MULTIPLEX_SENSINGBIT_OR          (1<<31) //SensingBit中有一个置位就触发
+#define CN_MULTIPLEX_SENSINGBIT_LT           0      //电平触发（Level）
+#define CN_MULTIPLEX_SENSINGBIT_ET          (1<<30) //边沿触发（Edge）
 
+//多路复用对象是否actived，利用PendingBit.31
+#define CN_MULTIPLEX_OBJECT_ACTIVED         (1<<31) //1=object is actived
 
 struct MultiplexSetsCB;
 struct MultiplexObjectCB;
@@ -101,14 +107,16 @@ struct MultiplexObjectCB
     struct MultiplexObjectCB *NextObject;//纵向双向链表，用于连接一个MultiplexSets
                                          //包含的多个object
     struct MultiplexObjectCB *PreObject;
-    struct MultiplexObjectCB *NextSets;  //横向单向链表，用于一个object被多个
-                                         //MultiplexSets包含的情况
-    struct MultiplexSetsCB *MySets;      //指向主控制块
-    ptu32_t ObjectID;                    //被MultiplexSets等待的对象
-    u32 PendingBit;                      //对象中已经触发的bit
-    u32 SensingBit;                      //敏感位标志，共24bit
-                                         //bit24~31表示敏感位检测类型，参见
-                                         //CN_MULTIPLEX_SENSINGBIT_MODE定义
+    struct MultiplexObjectCB *NextSets; //横向单向链表，用于一个object被多个
+                                        //MultiplexSets包含的情况
+    struct MultiplexSetsCB *MySets;     //指向主控制块
+    ptu32_t ObjectID;                   //被MultiplexSets等待的对象
+    u32 ET_SaveBit;                     //保存 ET（边沿）触发的原状态。
+    u32 PendingBit;                     //bit0~23：对象中已经触发的bit，
+                                        //bit31：1=对象已激活。
+    u32 SensingBit;                     //bit0~23：敏感位标志
+                                        //bit24~31表示敏感位检测类型，参见
+                                        //CN_MULTIPLEX_SENSINGBIT_MODE定义
 };
 
 ptu32_t ModuleInstall_Multiplex(ptu32_t para);

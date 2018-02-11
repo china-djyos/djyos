@@ -61,7 +61,10 @@
 //------------------------------------------------------
 #include "stdint.h"
 #include "gkernel.h"
-#include "font.h"
+#include "../include/font/font.h"
+#include "stddef.h"
+#include "stdio.h"
+#include "../include/font/ascii8x16.h"
 
 // 8*16µãÕóASCII×Ö·û¿â
 const u8 cs_ascii_8x16[16*256] =
@@ -580,12 +583,7 @@ const u8 cs_ascii_8x16[16*256] =
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-#include "stdint.h"
-#include "stddef.h"
-#include "stdio.h"
-#include "gkernel.h"
-#include "font.h"
-#include "ascii8x16.h"
+
 
 bool_t __Font_Ascii8x16LoadFont(void *);
 void __Font_Ascii8x16UnloadFont(void);

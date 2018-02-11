@@ -74,13 +74,13 @@
 struct ShellCmdTab const ymodem_cmd_table[] =
 {
     {
-        "download",
+        "downloadym",
 		Ymodem_DownloadFile,
         "下载文件",
         "命令格式: download"
     },
     {
-        "upload",
+        "uploadym",
 		Ymodem_UploadFile,
         "上传文件",
         "命令格式: upload 文件名"
@@ -131,6 +131,8 @@ ptu32_t ModuleInstall_Ymodem(ptu32_t Param)
     		free(pYmodem);
     	}
     }
+
+    printf("\r\nMODULE : INSTALL : YMODEM FAILED !\r\n");
     return false;
 }
 
@@ -165,10 +167,31 @@ bool_t Ymodem_PathSet(const char *Path)
 //功能：YMODEM数据接口通道，通过这两对通道获取和传送数据
 //参数：
 //返回：
+//备注：串口驱动阻塞机制变更，这里逻辑不变，即没有读到len长度时，
+//     会一直等待timeout
 //-----------------------------------------------------------
 static u32 __Ymodem_Gets(u8 *buf,u32 len, u32 timeout)
 {
-   return Driver_ReadDevice(s_ptYmodemDevice,buf,len,0,timeout);
+	u32 res, bytesToGet = len;
+	s64 end, log;
+
+	log = DjyGetSysTime();
+	end = log + (s64)timeout;
+
+	while(1)
+	{
+		res = Driver_ReadDevice(s_ptYmodemDevice, buf, bytesToGet, 0, timeout);
+		bytesToGet -= res;
+		if(!bytesToGet)
+			break;
+
+		if(DjyGetSysTime() > end)
+			break;
+
+		buf += res;
+	}
+
+	return (len - bytesToGet);
 }
 static u32 __Ymodem_Get(u8 *buf)
 {

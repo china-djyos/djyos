@@ -58,9 +58,9 @@
 #include "cpu_peri.h"
 #include "IAP.h"
 
-
-
-
+char * const DJY_IBOOT_VERSION = "0.0.0";
+char * const DJY_IBOOT_COMPILE_DATE = __DATE__;
+char * const DJY_IBOOT_COMPILE_TIME = __TIME__;
 
 extern const char *g_pcIbootDir = "yaffs2/tq2416.bin";
 const u8 g_IbootType           =EN_LOAD_FORM_DATA;

@@ -94,7 +94,7 @@ enum _EN_TCPSTATE
 //define for the tcp timer
 #define CN_TCP_TICK_TIME                   (100*mS) //Units:Micro Seconds
 #define CN_TCP_TICK_2ML                    (10)     //unit:tcp tick
-#define CN_TCP_TICK_KEEPALIVE              (180*10) //unit:tcp tick
+#define CN_TCP_TICK_KEEPALIVE              (500*10) //unit:tcp tick
 #define CN_TCP_TICK_PERSIST                (10)     //unit:tcp tick
 #define CN_TCP_TICK_ACK                    (5)      //Unit:package number
 #define CN_TCP_TIMER_SYN                   (1<<0)   //SYNC TIMER
@@ -1031,7 +1031,6 @@ static bool_t __sendmsg(tagSocket *sock, tagNetPkg *pkg,u16 translen)
     if(result)
     {
         ccb->acktimes = 0;
-        ccb->keeptimer = CN_TCP_TICK_KEEPALIVE;
     }
     return result;
 }
@@ -2174,7 +2173,7 @@ static bool_t  __rcvchecksum(u32 iplocal,u32 ipremote, tagNetPkg *pkglst)
     return result;
 }
 //if could not find or create a socket for the remote, then just reset it
-static bool_t __resetremoteraw(u32 iplocal, u16 portlocal,u32 ipremote, u16 portremote,u32 ackno)
+static bool_t __resetremoteraw(u32 iplocal, u16 portlocal,u32 ipremote, u16 portremote,u32 ackno,u32 seqno)
 {
     bool_t result ;
     tagNetPkg *pkg;
@@ -2192,7 +2191,7 @@ static bool_t __resetremoteraw(u32 iplocal, u16 portlocal,u32 ipremote, u16 port
         hdr->portdst = portremote;
         hdr->portsrc = portlocal;
         hdr->ackno  = htonl(ackno);
-        hdr->seqno = 0;
+        hdr->seqno = htonl(seqno);
         hdr->urgencyp = 0;
         pkg->datalen = sizeof(tagTcpHdr);
         translen = pkg->datalen;
@@ -2348,6 +2347,10 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,tagNetPkg *pkg)
         ccb->rbuf.buflen += pkg->datalen;
         ccb->rbuf.rcvnxt+= pkg->datalen;
         rcvlen += pkg->datalen;
+    }
+    else if(pkgstop == ccb->rbuf.rcvnxt) //maybe a keepalive package,just ignore it
+    {
+
     }
     else
     {
@@ -2950,6 +2953,10 @@ static bool_t __dealrecvpkg(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     tagCCB  *ccb;
     ccb = (tagCCB *)client->cb;
+    if(ccb->timerctrl&CN_TCP_TIMER_KEEPALIVE)
+    {
+    	ccb->keeptimer = CN_TCP_TICK_KEEPALIVE; //any receive data will reset the keep alive timer
+    }
     if((hdr->flags & CN_TCP_FLAG_RST)&&(ccb->rbuf.rcvnxt == htonl(hdr->seqno)))
     {
         __ResetCCB(ccb, EN_TCP_MC_2FREE);           //general deal the reset socket
@@ -3138,7 +3145,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  tagNetPkg *pkg, u32 devfunc)
             client = __newclient(server,hdr,ipdst, portdst, ipsrc, portsrc);
             if(NULL == client) //could not add any more client
             {
-                __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno)+1);
+                __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
             }
         }
         else
@@ -3158,7 +3165,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  tagNetPkg *pkg, u32 devfunc)
             client = __newclient(server,hdr,ipdst, portdst, ipsrc, portsrc);
             if(NULL == client) //could not add any more client
             {
-                __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno)+1);
+                __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
             }
         }
         else
@@ -3171,7 +3178,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  tagNetPkg *pkg, u32 devfunc)
     {
         if(0==(hdr->flags & CN_TCP_FLAG_RST))
         {
-            __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno)+1);
+            __resetremoteraw(ipdst, portdst,ipsrc, portsrc,ntohl(hdr->seqno),ntohl(hdr->ackno));
         }
     }
     Lock_MutexPost(pTcpHashTab->tabsync);
@@ -3264,7 +3271,13 @@ static bool_t __dealclienttimer(tagSocket *client)
 
         	if(ccb->resndtimes > CN_TCP_RSNDMAX)
         	{
-                __ResetCCB(ccb,EN_TCP_MC_2FREE);  //resend timeout
+                if ((client->sockstat & CN_SOCKET_CLOSE)
+                        || (0 == (client->sockstat & CN_SOCKET_OPEN))) {
+                    __ResetCCB(ccb, EN_TCP_MC_2FREE);
+                } else //just state the state as it before but close the channel
+                {
+                    __ResetCCB(ccb, ccb->machinestat);
+                }
         	}
         	else
         	{
@@ -3323,7 +3336,15 @@ static bool_t __dealclienttimer(tagSocket *client)
     {
         if(ccb->keeptimer == 0)
         {
-            __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
+            if ((ccb->sbuf.unacklen == 0) && (ccb->sbuf.datalen == 0)) {
+                ccb->sbuf.unackoff = (ccb->sbuf.unackoff + ccb->sbuf.buflenlimit
+                        - 1) % ccb->sbuf.buflenlimit;
+                ccb->sbuf.unacklen = 1;
+                ccb->sbuf.unackno = ccb->sbuf.unackno - 1;
+                ccb->timerctrl |= CN_TCP_TIMER_RESEND;
+            }
+            else {
+            }
             ccb->keeptimer = CN_TCP_TICK_KEEPALIVE;
         }
         else
@@ -3388,10 +3409,10 @@ static ptu32_t __tcptick(void)
             sock = pTcpHashTab->array[i];
             while(NULL != sock)
             {
+                Lock_MutexPend(sock->sync, CN_TIMEOUT_FOREVER);
                 if(CN_SOCKET_CLIENT&sock->sockstat)//this is the client
                 {
                     client = sock;
-                    Lock_MutexPend(client->sync, CN_TIMEOUT_FOREVER);
                     ccb = (tagCCB *)client->cb;
                     if((CN_SOCKET_CLOSE&client->sockstat)&&\
                         (EN_TCP_MC_2FREE == ccb->machinestat))
@@ -3412,7 +3433,6 @@ static ptu32_t __tcptick(void)
                 else//this is an server, we should deal the client hang on it
                 {
                     server = sock;
-                    Lock_MutexPend(server->sync, CN_TIMEOUT_FOREVER);
                     scb = (tagSCB *)server->cb;
                     client = scb->clst;
                     clientpre = client;
@@ -3422,25 +3442,41 @@ static ptu32_t __tcptick(void)
                         ccb = (tagCCB *)client->cb;
                         if(EN_TCP_MC_2FREE == ccb->machinestat)
                         {
-                        	//remove it from the queue
+                            //remove it from the queue
                             if(client == scb->clst)
                             {
-                            	scb->clst = client->nxt;
-                            	clientpre = client->nxt;
+                                scb->clst = client->nxt;
+                                clientpre = client->nxt;
                             }
                             else
                             {
-                            	clientpre->nxt = client->nxt;
+                                clientpre->nxt = client->nxt;
                             }
-                        	clientnxt = client->nxt;
-                        	client->nxt = NULL;
+                            clientnxt = client->nxt;
+                            client->nxt = NULL;
                             __ResetCCB(ccb,EN_TCP_MC_2FREE);
                             __DeleCCB(ccb);
                             SocketFree(client);  //free the client
+                            if (scb->pendnum > 0) {
+                                scb->pendnum--;
+                                Lock_SempPend(scb->acceptsemp, 0);
+                            }
+                        }
+                        else if (EN_TCP_MC_CLOSEWAIT == ccb->machinestat) {
+                            //send the fin to close
+                            ccb->channelstat &= (~(CN_TCP_CHANNEL_STATKSND));
+                            __sendflag(sock, CN_TCP_FLAG_FIN | CN_TCP_FLAG_ACK,
+                                    NULL, 0, ccb->sbuf.sndnxtno);
+                            ccb->sbuf.sndnxtno++;
+                            ccb->resndtimer = ccb->rto;
+                            ccb->timerctrl |= CN_TCP_TIMER_FIN;
+                            ccb->machinestat = EN_TCP_MC_LASTACK;
+                            clientpre = client;
+                            clientnxt = client->nxt;
                         }
                         else
                         {
-                        	clientpre = client;
+                            clientpre = client;
                             clientnxt = client->nxt;
                         }
                         client = clientnxt;
@@ -3521,14 +3557,14 @@ static void __tcpdebugccb(tagCCB *ccb,char *prefix)
     printf("%s:resndtimer:%04d resndtimes:%04d acktimes:%04d\r\n",prefix,\
     		ccb->resndtimer,ccb->resndtimes,ccb->acktimes);
     //timer
-    printf("%s:syntimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_SYN?"enable":"disable");
-    printf("%s:2mltimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_2MSL?"enable":"disable");
-    printf("%s:kpatimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_KEEPALIVE?"enable":"disable");
-    printf("%s:pestimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_PERSIST?"enable":"disable");
-    printf("%s:cortimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_CORK?"enable":"disable");
-    printf("%s:ligtimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_LINGER?"enable":"disable");
-    printf("%s:sndtimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_RESEND?"enable":"disable");
-    printf("%s:fintimer:%s  \r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_FIN?"enable":"disable");
+    printf("%s:syntimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_SYN?"enable":"disable",ccb->mltimer);
+    printf("%s:2mltimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_2MSL?"enable":"disable",ccb->mltimer);
+    printf("%s:kpatimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_KEEPALIVE?"enable":"disable",ccb->keeptimer);
+    printf("%s:pestimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_PERSIST?"enable":"disable",ccb->persistimer);
+    printf("%s:cortimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_CORK?"enable":"disable",ccb->corktimer);
+    printf("%s:ligtimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_LINGER?"enable":"disable",ccb->lingertimer);
+    printf("%s:sndtimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_RESEND?"enable":"disable",ccb->mltimer);
+    printf("%s:fintimer:%s:%d\r\n",prefix,ccb->timerctrl&CN_TCP_TIMER_FIN?"enable":"disable",ccb->mltimer);
 	return;
 }
 
@@ -3606,7 +3642,7 @@ bool_t TcpInit(ptu32_t para)
     }
     if(CN_EVENT_ID_INVALID == eventID)
     {
-        printk("%s:ERR:TCP TICKTASK CREATE FAILED\n\r,__FUNCTION__");
+        printf("%s:ERR:TCP TICKTASK CREATE FAILED\n\r",__FUNCTION__);
         goto EXIT_TICKSTASKFAILED;
     }
 
@@ -3630,7 +3666,7 @@ bool_t TcpInit(ptu32_t para)
        (false ==TPL_RegisterProto(AF_INET,SOCK_STREAM,0, &gTcpProto))||\
        (false == IpInstallProto("tcp",IPPROTO_TCP,__rcvdeal)))
     {
-        printk("%s:ERR:TCP PROTO REGISTER FAILED\n\r,__FUNCTION__");
+        printf("%s:ERR:TCP PROTO REGISTER FAILED\n\r",__FUNCTION__);
         goto EXIT_REGISTERTCPFAILED;
     }
     result = true;

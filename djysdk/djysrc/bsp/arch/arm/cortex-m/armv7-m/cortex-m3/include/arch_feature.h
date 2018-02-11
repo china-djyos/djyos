@@ -77,6 +77,10 @@ extern "C" {
 #define CN_M3_REVISION_R1P1   0x411fc231
 #define CN_M3_REVISION_R2P0   0x412fc320
 
+//保存上下文所需的栈空间最大值
+//16=通用寄存器，+cpsr-SP
+#define CN_CONTEXT_LIMIT        (16)*4
+
 #ifdef __cplusplus
 }
 #endif

@@ -135,14 +135,15 @@ struct ProcessVm       //进程
 #define CN_SAVE_CONTEXT_NOINT   0
 //有mmu的机器上,地址分配:0~1G操作系统,1~2G进程共享区,2~4G进程私有空间.
 //特别注意:本结构要被汇编访问，其成员顺序不能改变，也不能随意增加成员
- struct ThreadVm          //线程数据结构
+struct ThreadVm          //线程数据结构
 {
     //线程栈指针,在线程被抢占时保存sp,运行时并不动态跟踪sp变化
     u32    *stack;
-    u32    *stack_top;     //线程的栈顶指针
-    struct ThreadVm *next;     //用于把evtt的所有空闲线程连成一个单向开口链表
+    u32    *stack_top;          //线程的栈顶指针
+    u32    *stack_used;         //已经使用的栈底部
+    struct ThreadVm *next;      //用于把evtt的所有空闲线程连成一个单向开口链表
                                 //该链表由evtt的my_free_vm指针索引
-    u32    stack_size;     //栈深度
+    u32    stack_size;          //栈深度
     struct ProcessVm *host_vm;  //宿主进程，在si和dlsp模式中为NULL
 };
 
@@ -333,7 +334,7 @@ struct EventType
     u32 stack_size;              //thread_routine所需的栈大小
     u32 pop_times;     //本类型事件历史累计弹出次数，超过0xffffffff将回绕0
 
-    struct EventECB *mark_event;
+//  struct EventECB *mark_event;
     //关联型事件才有效，指向事件队列中的本类型事件
     //对于独立型事件，该队列仅仅是用于存放那些没有分配到VM的ECB,按照优先级从高
     //到低的顺序

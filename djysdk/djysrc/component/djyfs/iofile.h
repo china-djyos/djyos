@@ -61,127 +61,127 @@ extern "C" {
 // 八进制表示(来自于linux)
 //
 #ifndef O_ACCMODE
- #define O_ACCMODE					(00000003)/* 模式屏蔽位 */
+ #define O_ACCMODE                  (00000003)/* 模式屏蔽位 */
 #else
  #warning "O_ACCMODE" duplicate definition!
 #endif
 #ifndef O_RDONLY
- #define O_RDONLY					(00000000)
+ #define O_RDONLY                   (00000001)
 #else
  #warning "O_RDONLY" duplicate definition!
 #endif
 #ifndef O_WRONLY
- #define O_WRONLY					(00000001)
+ #define O_WRONLY                   (00000002)
 #else
  #warning "O_WRONLY" duplicate definition!
 #endif
 #ifndef O_RDWR
- #define O_RDWR						(00000002)
+ #define O_RDWR                     (O_RDONLY|O_WRONLY)
 #else
  #warning "O_RDWR" duplicate definition!
 #endif
 #ifndef O_CREAT
- #define O_CREAT					(00000100)
+ #define O_CREAT                    (00000100)
 #else
  #warning "O_CREATE" duplicate definition!
 #endif
 #ifndef O_EXCL
- #define O_EXCL                 	(00000200)
+ #define O_EXCL                     (00000200)
 #else
  #warning "O_EXCL" duplicate definition!
 #endif
 #ifndef O_NOCTTY
- #define O_NOCTTY               	(00000400)
+ #define O_NOCTTY                   (00000400)
 #else
  #warning "O_NOCTTY" duplicate definition!
 #endif
 #ifndef O_TRUNC
- #define O_TRUNC	                (00001000)
+ #define O_TRUNC                    (00001000)
 #else
  #warning "O_TRUNC" duplicate definition!
 #endif
 #ifndef O_APPEND
- #define O_APPEND                	(00002000)
+ #define O_APPEND                   (00002000)
 #else
  #warning "O_APPEND" duplicate definition!
 #endif
 #ifndef O_NONBLOCK
- #define O_NONBLOCK             	(00004000)
+ #define O_NONBLOCK                 (00004000)
 #else
  #warning "O_NONBLOCK" duplicate definition!
 #endif
 #ifndef O_DSYNC
- #define O_DSYNC         			(00010000)
+ #define O_DSYNC                    (00010000)
 #else
  #warning "O_DSYNC" duplicate definition!
 #endif
 #ifndef O_DIRECT
- #define O_DIRECT        			(00040000)
+ #define O_DIRECT                   (00040000)
 #else
  #warning "O_DIRECT" duplicate definition!
 #endif
 #ifndef O_LARGEFILE
- #define O_LARGEFILE     			(00100000)
+ #define O_LARGEFILE                (00100000)
 #else
  #warning "O_LARGEFILE" duplicate definition!
 #endif
 #ifndef O_DIRECTORY
-#define O_DIRECTORY     			(00200000)
+#define O_DIRECTORY                 (00200000)
 #else
  #warning "O_DIRECTORY" duplicate definition!
 #endif
 #ifndef O_NOFOLLOW
- #define O_NOFOLLOW      			(00400000)
+ #define O_NOFOLLOW                 (00400000)
 #else
  #warning "O_NOFOLLOW" duplicate definition!
 #endif
 #ifndef O_NOATIME
-#define O_NOATIME       			(01000000)
+#define O_NOATIME                   (01000000)
 #else
  #warning "O_NOATIME" duplicate definition!
 #endif
 #ifndef O_CLOEXEC
- #define O_CLOEXEC       			(02000000)
+ #define O_CLOEXEC                  (02000000)
 #else
  #warning "O_CLOEXEC" duplicate definition!
 #endif
 #ifndef S_IFMT
- #define S_IFMT                  	(00170000)// 1111-0000-0000-0000 文件类型屏蔽位
+ #define S_IFMT                     (00170000)// 1111-0000-0000-0000 文件类型屏蔽位
 #else
  #warning "S_IFMT" duplicate definition!
 #endif
 #ifndef S_IFSOCK
- #define S_IFSOCK					(00140000)// 1100-0000-0000-0000
+ #define S_IFSOCK                   (00140000)// 1100-0000-0000-0000
 #else
  #warning "S_IFSOCK" duplicate definition!
 #endif
 #ifndef S_IFLNK
- #define S_IFLNK					(00120000)// 1010-0000-0000-0000
+ #define S_IFLNK                    (00120000)// 1010-0000-0000-0000
 #else
  #warning "S_IFlINK" duplicate definition!
 #endif
 #ifndef S_IFREG
- #define S_IFREG                 	(00100000)// 1000-0000-0000-0000
+ #define S_IFREG                    (00100000)// 1000-0000-0000-0000
 #else
  #warning "S_IFREG" duplicate definition!
 #endif
 #ifndef S_IFBLK
- #define S_IFBLK                 	(00060000)// 0110-0000-0000-0000
+ #define S_IFBLK                    (00060000)// 0110-0000-0000-0000
 #else
  #warning "S_IFBLK" duplicate definition!
 #endif
 #ifndef S_IFDIR
- #define S_IFDIR                 	(00040000)// 0100-0000-0000-0000
+ #define S_IFDIR                    (00040000)// 0100-0000-0000-0000
 #else
  #warning "S_IFDIR" duplicate definition!
 #endif
 #ifndef S_IFCHR
- #define S_IFCHR                 	(00020000)// 0010-0000-0000-0000
+ #define S_IFCHR                    (00020000)// 0010-0000-0000-0000
 #else
  #warning "S_IFCHR" duplicate definition!
 #endif
 #ifndef S_IFIFO
- #define S_IFIFO                 	(00010000)// 0001-0000-0000-0000
+ #define S_IFIFO                    (00010000)// 0001-0000-0000-0000
 #else
  #warning "S_IFIFO" duplicate definition!
 #endif
@@ -234,13 +234,13 @@ struct dirent
 //
 struct __dirstream
 {
-	void *__fd; /* `struct hurd_fd' pointer for descriptor.   */
-	char *__data; /* Directory block.   */
-	int __entry_data; /* Entry number `__data' corresponds to.   */
-	char *__ptr; /* Current pointer into the block.   */
-	int __entry_ptr; /* Entry number `__ptr' corresponds to.   */
-	size_t __allocation; /* Space allocated for the block.   */
-	size_t __size; /* Total valid data in the block.   */
+    void *__fd; /* `struct hurd_fd' pointer for descriptor.   */
+    char *__data; /* Directory block.   */
+    int __entry_data; /* Entry number `__data' corresponds to.   */
+    char *__ptr; /* Current pointer into the block.   */
+    int __entry_ptr; /* Entry number `__ptr' corresponds to.   */
+    size_t __allocation; /* Space allocated for the block.   */
+    size_t __size; /* Total valid data in the block.   */
 };
 
 typedef struct __dirstream DIR;

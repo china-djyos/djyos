@@ -82,6 +82,7 @@ __start_asyn_signal:
     it eq
     vstmdbeq r0!, {s16-s31}
     stmfd   r0!,{r4-r11}        /* 保护寄存器,以及返回地址 */
+    sub     r0,r0,#4
     stmfd   r0!,{r14}
     msr     psp,r0
 
@@ -92,6 +93,7 @@ __start_asyn_signal:
     mrs     r0,psp
 
     ldmfd   r0!,{r14}
+    add     r0,r0,#4
     ldmfd   r0!,{r4-r11}
 
     tst r14, #0x10              /* 出栈FPU寄存器*/

@@ -503,7 +503,7 @@ int mkdir (const char *filename, mode_t mode)
 {
     s32 Ret;
 
-	Ret = open(filename, O_DIRECTORY | O_RDWR | O_CREAT, mode);
+	Ret = open(filename, O_DIRECTORY | O_CREAT | O_EXCL | O_RDWR, mode);
 	if(-1 != Ret)
 	{
 		close(Ret);

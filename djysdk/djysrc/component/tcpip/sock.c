@@ -99,7 +99,7 @@ bool_t SocketFree(tagSocket *sock)
 static tagSocket *__SocketMapFd2Sock(int fd)
 {
     tagSocket *result = NULL;
-    if((fd >=CN_SOCKET_BASEFD)&&(fd <(CN_SOCKET_BASEFD+CN_SOCKET_BASEFD)))
+    if((fd >=CN_SOCKET_BASEFD)&&(fd <(CN_SOCKET_BASEFD+gSockNum)))
     {
         result = pgSocketMemHead + (fd-CN_SOCKET_BASEFD);
         if(result->sockfd&CN_SOCK_FREE)
@@ -873,14 +873,14 @@ bool_t SocketInit(ptu32_t para)
     pSocketMemSync = Lock_MutexCreate_s(&gSocketMemSyncMem,NULL);
     if(NULL == pSocketMemSync)
     {
-        printk("%s:ERR:SOCKET MEM SYNC CREATE FAILED\n\r",__FUNCTION__);
+        printf("%s:ERR:SOCKET MEM SYNC CREATE FAILED\n\r",__FUNCTION__);
     	goto EXIT_SOCKSYNC;
     }
     //get the socket mem source
     pgSocketMemHead = (tagSocket *)malloc(gSockNum*sizeof(tagSocket));
     if(NULL == pgSocketMemHead)
     {
-        printk("%s:ERR:SOCKET MEM MALLOC  FAILED\n\r",__FUNCTION__);
+        printf("%s:ERR:SOCKET MEM MALLOC  FAILED\n\r",__FUNCTION__);
         goto EXIT_SOCKMEM;
     }
     //initialize the sock mem
@@ -892,7 +892,7 @@ bool_t SocketInit(ptu32_t para)
     result = Sh_InstallCmd(gSocketDebug,gSocketDebugCmdRsc,CN_SOCKETDEBUG_NUM);
     if(result == false)
     {
-        printk("%s:ERR:SOCKET DEBUG INSTALL FAILED\n\r",__FUNCTION__);
+        printf("%s:ERR:SOCKET DEBUG INSTALL FAILED\n\r",__FUNCTION__);
         goto EXIT_SOCKDEBUG;
     }
 

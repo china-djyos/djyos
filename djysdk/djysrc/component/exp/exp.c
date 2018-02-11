@@ -139,9 +139,12 @@ static enum EN_ExpAction  __Exp_ResultMerge(enum EN_ExpAction Result_Throw,\
     }
     return result;
 }
-extern void reset(void);
-extern void reboot(void);
-extern void restart_system(void);
+
+//if key is 0XAA55AA55 ,then will not record in the reset reboot and restart
+//else key will do record in the reset reboot or restart
+extern void reset(u32 key);
+extern void reboot(u32 key);
+extern void restart_system(u32 key);
 // =============================================================================
 // 函数功能: 处理异常的最终结果
 // 输入参数:expdealresult,异常结果
@@ -163,13 +166,13 @@ static enum EN_ExpDealResult  __Exp_ExecAction(u32 FinalAction,\
     {
         //重启是不会返回的，不然必然是出错了
         case EN_EXP_DEAL_RESET:
-            reset();
+            reset(0XAA55AA55);
             break;
         case EN_EXP_DEAL_REBOOT:
-            reboot();
+            reboot(0XAA55AA55);
             break;
         case EN_EXP_DEAL_RESTART:
-            restart_system();
+            restart_system(0XAA55AA55);
             break;
         case EN_EXP_DEAL_WAIT:
             while(1);

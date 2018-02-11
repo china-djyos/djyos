@@ -5,10 +5,12 @@ IbootSize = 256k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
 InnerFlashOffset = 0x08000000;
 InnerFlashRange = 1024k;
 InnerRamStart = 0x20000000;
-InnerRamSize = 320K;
+InnerRamSize = 320K-32K;
  
 CacheRam1Size    = 256k;        /*第一段cache大小*/
 CacheRam2Size    = 32K;
+
+NoCacheRamStart  = 0x20048000;    /*0x20048000 = 0x20000000+320K - 32k*/
 NoCacheRamSize   = 32k;         /*非cache区大小*/
 
 RevSectors = 0;                                 /*保留块数，保留位于flash末尾块*/

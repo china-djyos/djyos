@@ -63,7 +63,8 @@
 #include "stddef.h"
 #include "stdio.h"
 #include "gkernel.h"
-#include "font.h"
+#include "../include/font/font.h"
+#include "../include/font/ascii6x12.h"
 
 // 6x12µãÕóASCII×Ö·û¿â
 const u8 cs_ascii_6x12[12*256] =
@@ -326,9 +327,7 @@ const u8 cs_ascii_6x12[12*256] =
     0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,        // 0xFF
 };
 
-#include "gkernel.h"
-#include "font.h"
-#include "ascii6x12.h"
+
 
 bool_t __Font_Ascii6x12LoadFont(void *);
 void __Font_Ascii6x12UnloadFont(void);

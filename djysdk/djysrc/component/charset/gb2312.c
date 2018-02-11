@@ -64,7 +64,7 @@
 #include "errno.h"
 #include "ascii.h"
 #include "charset.h"
-#include "gb2312.h"
+#include <font/gb2312.h>
 #include "gkernel.h"    //todo: 这里定义了安装字符集的出错信息，要移到别的地方去
 
 s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n);

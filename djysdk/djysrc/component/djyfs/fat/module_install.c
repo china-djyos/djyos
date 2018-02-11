@@ -46,7 +46,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-
+#include <stdio.h>
 #include <stddef.h>
 #include <djyfs/iofile.h>
 #include <djyfs/mount.h>
@@ -64,24 +64,28 @@ extern struct FileSysType FAT;
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_FAT(const char *DevPath, u32 Options)
 {
-	s32 Ret;
-	u32 Private = Options;//
+	s32 res;
+	u32 parameters = Options;//
 
 	if(NULL == DevPath)
 		return (-1);
 
-	Ret = RegisterFSType(&FAT);
-	if((Ret < 0) && (-2 != Ret))
+	res = RegisterFSType(&FAT);
+	if((res < 0) && (-2 != res))
 		return (-1); // 失败;
 
-	Ret = open("/fat", O_DIRECTORY | O_CREAT | O_RDWR, 0); // 创建/fat目录 
-	if(-1 == Ret)
+	res = open("/fat", O_DIRECTORY | O_CREAT | O_RDWR, 0); // 创建/fat目录
+	if(-1 == res)
 		return (-1);// 失败;
 
 
-	Ret = Mount("/fat", DevPath, "FAT", &Private); // todo: 路径与设备安装相关
-	if(Ret < 0)
+	res = Mount("/fat", DevPath, "FAT", &parameters);
+	if(res < 0)
+	{
+		printf("MODULE : INSTALL : \"FAT\" file system installation failed.\r\n");
+		remove("/fat");
 		return (-1);// 失败
+	}
 
 	return (0);
 }

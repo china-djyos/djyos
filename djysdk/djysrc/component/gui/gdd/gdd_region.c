@@ -204,16 +204,16 @@ bool_t InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b)
 
 /*============================================================================*/
 
-bool_t    __PtInRect(const RECT *prc,const POINT *pt)
-{
-    if(pt->x < prc->left)   return FALSE;
-    if(pt->x >= prc->right) return FALSE;
-
-    if(pt->y < prc->top)        return FALSE;
-    if(pt->y >= prc->bottom)    return FALSE;
-    return TRUE;
-
-}
+//bool_t    __PtInRect(const RECT *prc,const POINT *pt)
+//{
+//    if(pt->x < prc->left)   return FALSE;
+//    if(pt->x >= prc->right) return FALSE;
+//
+//    if(pt->y < prc->top)        return FALSE;
+//    if(pt->y >= prc->bottom)    return FALSE;
+//    return TRUE;
+//
+//}
 
 bool_t    PtInRect(const RECT *prc,const POINT *pt)
 {

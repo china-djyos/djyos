@@ -81,7 +81,7 @@ extern void HardExp_BusfaultHandler(void);
 extern   uint32_t   msp_top[ ];
 //extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
-bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian);
+bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian);
 struct SystickReg volatile * const pg_systick_reg
                         = (struct SystickReg *)0xE000E010;
 struct ScbReg volatile * const pg_scb_reg
@@ -268,10 +268,10 @@ enum EN_ExpAction Exp_MemManageFaultHandler(u32 fpu_used,u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_MEMMANAGE_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
-
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = Exp_Throw(&head);
-    //recovethe shedule
+
+   //recovethe shedule
     g_bScheduleEnable = shedule_bak;
 
     return Action;
@@ -342,7 +342,7 @@ enum EN_ExpAction Exp_HardFaultHandler(u32 fpu_used,u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_HARD_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = Exp_Throw(&head);
 
     //recovethe shedule
@@ -477,9 +477,8 @@ enum EN_ExpAction Exp_BusFaultHandler(u32 fpu_used,u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_BUS_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
    Action = Exp_Throw(&head);
-
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
 
@@ -566,9 +565,9 @@ enum EN_ExpAction Exp_UsageFaultHandler(u32 fpu_used,u32 *core_info)
    head.ExpInfoLen = sizeof(struct SysExceptionInfo);
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.ExpType = CN_EXP_TYPE_USAGE_FAULT;
-   HardExp_Decoder(&head,CN_CFG_BYTE_ORDER);
-   Action = Exp_Throw(&head);
 
+   Action = Exp_Throw(&head);
+   HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
 
@@ -576,14 +575,14 @@ enum EN_ExpAction Exp_UsageFaultHandler(u32 fpu_used,u32 *core_info)
 }
 
 // =============================================================================
-// 函数功能：此部分主要用来处理处理器的通用异常信息和NVIC的部分带有异常信息的寄存器
+// 函数功能：异常信息解析，打印异常时的分析结果和寄存器值
 // 输入参数：layer,抛出层次
 //           parahead，抛出时的参数
 //           endian, 信息的存储格式
 // 输出参数：无
 // 返回值  : true成功, false失败
 // =============================================================================
-bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
+bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian)
 {
     bool_t result = false;
     struct SysExceptionInfo  *mycpuinfo;
@@ -616,7 +615,7 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
                     case CN_EXP_TYPE_USAGE_FAULT: printk("用法异常\r\n");break;
                     default: break;
                 }
-                printk("异常最终动作: ", parahead->ExpAction);
+                printk("异常最终动作:");
                 switch(parahead->ExpAction)
                 {
                     case EN_EXP_DEAL_RECORD: printk("仅记录\r\n");break;
@@ -628,71 +627,67 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
                 }
                 //EXP FAULT 信息解析
                 printk("异常时CPU寄存器值:\n\r");
-                printk("R0:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0);
-                printk("R1:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r1);
-                printk("R2:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
-                printk("R3:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3);
-                printk("R4:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r4);
-                printk("R5:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
-                printk("R6:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6);
-                printk("R7:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r7);
-                printk("R8:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
-                printk("R9:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9);
-                printk("R10:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r10);
-                printk("R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
-                printk("R12:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
-
-                printk("SP:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp);
-                printk("LR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_lr);
-                printk("PC:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_pc);
-                printk("XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
-
+                printk("R0 :0X%08x R1 :0x%08x R2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
+                printk("R3 :0X%08x R4 :0x%08x R5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
+                printk("R6 :0X%08x R7 :0x%08x R8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
+                printk("R9 :0X%08x R10:0x%08x R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
+                printk("R12:0X%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
+                printk("SP :0X%08x LR :0x%08x PC :0x%08x  XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp,\
+                		                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
+						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
+						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
                 printk("NVIC Exception Registers:\n\r");
-                printk("MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.mfsr);
-                printk("BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfsr);
+                printk("BFAR:0x%08x MMAR:0x%08x MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfar,\
+                											 	 mycpuinfo->NvicInfo.mmar,\
+																 mycpuinfo->NvicInfo.mfsr);
+                printk("HFSR:0x%08x DFSR:0x%08x BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.hfsr,\
+                                								 mycpuinfo->NvicInfo.dfsr,\
+                												 mycpuinfo->NvicInfo.bfsr);
                 printk("UFSR:0x%04x\n\r",mycpuinfo->NvicInfo.ufsr);
-                printk("HFSR:0x%08x\n\r",mycpuinfo->NvicInfo.hfsr);
-                printk("DFSR:0x%04x\n\r",mycpuinfo->NvicInfo.dfsr);
-
-                #if(CN_CPU_OPTIONAL_FPU == 1)
+//                #if(CN_CPU_OPTIONAL_FPU == 1)
                 printk("Cortex M7 FPU Register:\r\n");
-                printk("S0:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s0);
-                printk("S1:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s1);
-                printk("S2:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s2);
-                printk("S3:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s3);
-                printk("S4:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s4);
-                printk("S5:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s5);
-                printk("S6:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s6);
-                printk("S7:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s7);
-                printk("S8:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s8);
-                printk("S9:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s9);
-                printk("S10:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s10);
-                printk("S11:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s11);
-                printk("S12:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s12);
-                printk("S13:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s13);
-                printk("S14:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s14);
-                printk("S15:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s15);
-
-                printk("S16:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s16);
-                printk("S17:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s17);
-                printk("S18:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s18);
-                printk("S19:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s19);
-                printk("S20:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s20);
-                printk("S21:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s21);
-                printk("S22:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s22);
-                printk("S23:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s23);
-                printk("S24:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s24);
-                printk("S25:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s25);
-                printk("S26:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s26);
-                printk("S27:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s27);
-                printk("S28:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s28);
-                printk("S29:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s29);
-                printk("S30:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s30);
-                printk("S31:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s31);
-
+                printk("S0 :0X%08x S1 :0x%08x S2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s0,\
+                											  mycpuinfo->ExpRegInfo.fpu_s1,\
+															  mycpuinfo->ExpRegInfo.fpu_s2);
+                printk("S3 :0X%08x S4 :0x%08x S5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s3,\
+                											  mycpuinfo->ExpRegInfo.fpu_s4,\
+															  mycpuinfo->ExpRegInfo.fpu_s5);
+                printk("S6 :0X%08x S7 :0x%08x S8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s6,\
+                											  mycpuinfo->ExpRegInfo.fpu_s7,\
+															  mycpuinfo->ExpRegInfo.fpu_s8);
+                printk("S9 :0X%08x S10:0x%08x S11:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s9,\
+                											  mycpuinfo->ExpRegInfo.fpu_s10,\
+															  mycpuinfo->ExpRegInfo.fpu_s11);
+                printk("S12:0X%08x S13:0x%08x S14:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s12,\
+                											  mycpuinfo->ExpRegInfo.fpu_s13,\
+															  mycpuinfo->ExpRegInfo.fpu_s14);
+                printk("S15:0X%08x S16:0x%08x S17:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s15,\
+                											  mycpuinfo->ExpRegInfo.fpu_s16,\
+															  mycpuinfo->ExpRegInfo.fpu_s17);
+                printk("S18:0X%08x S19:0x%08x S20:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s18,\
+                											  mycpuinfo->ExpRegInfo.fpu_s19,\
+															  mycpuinfo->ExpRegInfo.fpu_s20);
+                printk("S21:0X%08x S22:0x%08x S23:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s21,\
+                											  mycpuinfo->ExpRegInfo.fpu_s22,\
+															  mycpuinfo->ExpRegInfo.fpu_s23);
+                printk("S24:0X%08x S25:0x%08x S26:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s24,\
+                											  mycpuinfo->ExpRegInfo.fpu_s25,\
+															  mycpuinfo->ExpRegInfo.fpu_s26);
+                printk("S27:0X%08x S28:0x%08x S29:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s27,\
+                											  mycpuinfo->ExpRegInfo.fpu_s28,\
+															  mycpuinfo->ExpRegInfo.fpu_s29);
+                printk("S30:0X%08x S31:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s30,\
+                											  mycpuinfo->ExpRegInfo.fpu_s31);
                 printk("FPSCR:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_fpscr);
-
-                #endif
+//#endif
                 result = true;
             }
             else
@@ -704,6 +699,138 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
         else
         {
             printk("CPU Info Decode:incomplete info frame!\n\r");
+            result = false;
+        }
+    }
+    return result;
+}
+// =============================================================================
+// 函数功能：异常信息解析，解析异常信息
+// 输入参数：layer,抛出层次
+//           parahead，抛出时的参数
+//           endian, 信息的存储格式
+// 输出参数：无
+// 返回值  : true成功, false失败
+// =============================================================================
+bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
+{
+    bool_t result = false;
+    struct SysExceptionInfo  *mycpuinfo;
+
+    if(parahead == NULL)
+    {
+        //非本层信息，无需解析
+        printf("CPU核心硬件没有异常\r\n");
+        result = false;
+    }
+    else
+    {
+        if((sizeof(struct SysExceptionInfo))== parahead->ExpInfoLen)//看看包是否完整
+        {
+            //基本算是完整包，慢慢解析吧
+            mycpuinfo = (struct SysExceptionInfo *)(parahead->ExpInfo);
+            //存储端转换
+            if(endian != CN_CFG_BYTE_ORDER)
+            {
+                __SwapExpCpuInfoByEndian(mycpuinfo);
+            }
+            if(CN_SYS_EXP_CPUINFO_VALIDFLAG == mycpuinfo->SysExpCpuFlag)//当前版本，可以解析
+            {
+                printf("异常类型: ");
+                switch(parahead->ExpType)
+                {
+                    case CN_EXP_TYPE_HARD_FAULT: printf("hard fault\r\n");break;
+                    case CN_EXP_TYPE_MEMMANAGE_FAULT: printf("存储器管理异常\r\n");break;
+                    case CN_EXP_TYPE_BUS_FAULT: printf("总线异常\r\n");break;
+                    case CN_EXP_TYPE_USAGE_FAULT: printf("用法异常\r\n");break;
+                    default: break;
+                }
+                printf("异常最终动作:");
+                switch(parahead->ExpAction)
+                {
+                    case EN_EXP_DEAL_RECORD: printf("仅记录\r\n");break;
+                    case EN_EXP_DEAL_RESET: printf("硬件复位\r\n");break;
+                    case EN_EXP_DEAL_REBOOT: printf("跳转到启动地址,重新初始化内存和时钟\r\n");break;
+                    case EN_EXP_DEAL_RESTART: printf("跳转到预加载之后的运行地址\r\n");break;
+                    case EN_EXP_DEAL_WAIT: printf("死循环等待\r\n");break;
+                    default: break;
+                }
+                //EXP FAULT 信息解析
+                printf("异常时CPU寄存器值:\n\r");
+                printf("R0 :0X%08x R1 :0x%08x R2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
+                printf("R3 :0X%08x R4 :0x%08x R5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
+                printf("R6 :0X%08x R7 :0x%08x R8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
+                printf("R9 :0X%08x R10:0x%08x R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9,\
+                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
+															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
+                printf("R12:0X%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
+                printf("SP :0X%08x LR :0x%08x PC :0x%08x  XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp,\
+                		                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
+						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
+						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
+                printf("NVIC Exception Registers:\n\r");
+                printf("BFAR:0x%08x MMAR:0x%08x MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfar,\
+                											 	 mycpuinfo->NvicInfo.mmar,\
+																 mycpuinfo->NvicInfo.mfsr);
+                printf("HFSR:0x%08x DFSR:0x%08x BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.hfsr,\
+                                								 mycpuinfo->NvicInfo.dfsr,\
+                												 mycpuinfo->NvicInfo.bfsr);
+                printf("UFSR:0x%04x\n\r",mycpuinfo->NvicInfo.ufsr);
+
+//                #if(CN_CPU_OPTIONAL_FPU == 1)
+                printf("Cortex M7 FPU Register:\r\n");
+                printf("S0 :0X%08x S1 :0x%08x S2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s0,\
+                											  mycpuinfo->ExpRegInfo.fpu_s1,\
+															  mycpuinfo->ExpRegInfo.fpu_s2);
+                printf("S3 :0X%08x S4 :0x%08x S5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s3,\
+                											  mycpuinfo->ExpRegInfo.fpu_s4,\
+															  mycpuinfo->ExpRegInfo.fpu_s5);
+                printf("S6 :0X%08x S7 :0x%08x S8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s6,\
+                											  mycpuinfo->ExpRegInfo.fpu_s7,\
+															  mycpuinfo->ExpRegInfo.fpu_s8);
+                printf("S9 :0X%08x S10:0x%08x S11:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s9,\
+                											  mycpuinfo->ExpRegInfo.fpu_s10,\
+															  mycpuinfo->ExpRegInfo.fpu_s11);
+                printf("S12:0X%08x S13:0x%08x S14:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s12,\
+                											  mycpuinfo->ExpRegInfo.fpu_s13,\
+															  mycpuinfo->ExpRegInfo.fpu_s14);
+                printf("S15:0X%08x S16:0x%08x S17:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s15,\
+                											  mycpuinfo->ExpRegInfo.fpu_s16,\
+															  mycpuinfo->ExpRegInfo.fpu_s17);
+                printf("S18:0X%08x S19:0x%08x S20:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s18,\
+                											  mycpuinfo->ExpRegInfo.fpu_s19,\
+															  mycpuinfo->ExpRegInfo.fpu_s20);
+                printf("S21:0X%08x S22:0x%08x S23:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s21,\
+                											  mycpuinfo->ExpRegInfo.fpu_s22,\
+															  mycpuinfo->ExpRegInfo.fpu_s23);
+                printf("S24:0X%08x S25:0x%08x S26:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s24,\
+                											  mycpuinfo->ExpRegInfo.fpu_s25,\
+															  mycpuinfo->ExpRegInfo.fpu_s26);
+                printf("S27:0X%08x S28:0x%08x S29:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s27,\
+                											  mycpuinfo->ExpRegInfo.fpu_s28,\
+															  mycpuinfo->ExpRegInfo.fpu_s29);
+                printf("S30:0X%08x S31:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_s30,\
+                											  mycpuinfo->ExpRegInfo.fpu_s31);
+                printf("FPSCR:0x%08x\n\r",mycpuinfo->ExpRegInfo.fpu_fpscr);
+
+                result = true;
+//#endif
+            }
+            else
+            {
+                printf("CPU Info Decode:ivalid info flag!\n\r");
+                result = false; //可能不是一样的CPU或者版本，无法解析
+            }
+        }
+        else
+        {
+            printf("CPU Info Decode:incomplete info frame!\n\r");
             result = false;
         }
     }

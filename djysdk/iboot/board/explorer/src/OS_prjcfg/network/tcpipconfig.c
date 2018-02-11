@@ -119,6 +119,7 @@ const u32      gDhcpRebindTime   = 3600;            //one hour
 const u32      gDhcpLeaseTime    = 3600;            //one hour
 const u32      gDhcpServerIpNum  = 0x40;            //64
 const u32      gDhcpIpMapBytes   = 0x08;            //which defines the bitmap lenth
+const char    *pDhcpServerStartIp= "192.168.0.2";
 const char    *pDhcpServerIp     = "192.168.0.100"; //DHCP SERVER IP
 const char    *pDhcpRouterIp     = "192.168.0.100"; //ROUTER SERVER IP
 const char    *pDhcpSubnetMask   = "255.255.255.0"; //USED TO MASK THE IP

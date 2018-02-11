@@ -404,6 +404,7 @@ bool_t SPI_CsActive(struct SPI_Device *Dev,u32 timeout)
             spicfg.CharLen = Dev->CharLen;
             spicfg.Mode    = Dev->Mode;
             spicfg.Freq    = Dev->Freq;
+            spicfg.ShiftDir= Dev->ShiftDir;
             SPI->pBusCtrl(SPI->SpecificFlag,CN_SPI_CS_CONFIG,
                             (ptu32_t)&spicfg,(ptu32_t)Dev->Cs);
         }

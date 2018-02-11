@@ -65,8 +65,6 @@ extern const char *gc_pCfgStdinName;    //标准输入设备
 extern const char *gc_pCfgStdoutName;   //标准输出设备
 extern const char *gc_pCfgStderrName;   //标准错误输出设备
 
-extern void Board_UartHalfDuplexSend(u8 SerialNo);
-extern void Board_UartHalfDuplexRecv(u8 SerialNo);
 // =============================================================================
 //base address
 #define CN_UART0_BASE   (0x400E0800)
@@ -135,7 +133,14 @@ static struct UartCB *pUartCB[CN_UART_NUM];
 //用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
 //依此类推，1表示初始化，0表示未初始化
 static u8 sUartInited = 0;
-
+__attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
+{
+    return;
+}
+__attribute__((weak))  void Board_UartHalfDuplexRecv(u8 SerialNo)
+{
+    return ;
+}
 //----使能接收中断-------------------------------------------------------------
 //功能: 使能uart的接收中断,DMA中断使用的是endrx
 //参数: reg,被操作的寄存器组指针
@@ -478,7 +483,7 @@ void UART_DmaRxIntIsr(uint32_t channel, UartDma* pArg)
     UCB = pUartCB[Port];
     Reg = tg_UART_Reg[Port];
     UartDmaRcvLen = s_UART_DmaRcvLen[Port];
-    puart_dma_recv_buf = pUartRx->pBuff;//UartDmaRecvBuf[Port];
+    puart_dma_recv_buf = ALIGN_SIZE_32(pUartRx->pBuff);//UartDmaRecvBuf[Port];
 
     XDMAC_SoftwareFlushReq(dmad.pXdmacs,pUartRx->ChNum);
     num = __UART_DmaGetDataLen(dmad.pXdmacs,pUartRx->ChNum);
@@ -492,7 +497,7 @@ void UART_DmaRxIntIsr(uint32_t channel, UartDma* pArg)
     //重新配置一下DMA
 //    XDMAC_SetDescriptorAddr(dmad.pXdmacs, pUartRx->ChNum, (u32)(pUartRx->pLLIview), 0);
     __UART_DmaRxLLIConfig(pUartRx,(u32)&Reg->UART_RHR,
-            (u32)(pUartRx->pBuff),UartDmaRcvLen);
+            (u32)ALIGN_SIZE_32((pUartRx->pBuff)),UartDmaRcvLen);
 
     UARTD_RcvData(pArg);
 
@@ -531,7 +536,7 @@ void UART_DmaTxIntIsr(uint32_t channel, UartDma* pArg)
     pUartTx = pArg->pTxChannel;
     UCB = pUartCB[Port];
     Reg = tg_UART_Reg[Port];
-    puart_dma_send_buf = pUartTx->pBuff;//UartDmaRecvBuf[Port];
+    puart_dma_send_buf = ALIGN_SIZE_32(pUartTx->pBuff);//UartDmaRecvBuf[Port];
 
     UARTD_SendPause(pArg);
 
@@ -543,6 +548,8 @@ void UART_DmaTxIntIsr(uint32_t channel, UartDma* pArg)
 
         UARTD_SendData(pArg);
     }
+    else
+        __UART_SendIntEnable(Reg,1);
     return ;
 }
 
@@ -616,11 +623,19 @@ static void __UART_DMA_Config(tagUartReg* Reg,u32 cmd,u32 Port)
         }
 
         //cache 清cache需保证32字节对齐，因此的地址需32字节对齐
-        pUartDmaRxBuf = (u8*)M_Malloc(UART_DMA_BUF_LEN*2 + 32,0);
-        pUartDmaRxBuf = (u8*)((u32)pUartDmaRxBuf - ((u32)pUartDmaRxBuf % 32));
-        pUartDmaTxBuf = pUartDmaRxBuf + UART_DMA_BUF_LEN;
+        pUartDmaRxBuf = (u8*)M_Malloc(UART_DMA_BUF_LEN + 32,0);
         if(pUartDmaRxBuf == NULL)
+        {
             return ;
+        }
+        pUartDmaTxBuf = (u8*)M_Malloc(UART_DMA_BUF_LEN + 32,0);
+//        pUartDmaRxBuf = (u8*)((u32)pUartDmaRxBuf - ((u32)pUartDmaRxBuf % 32));
+//        pUartDmaTxBuf = pUartDmaRxBuf + UART_DMA_BUF_LEN;
+        if(pUartDmaTxBuf == NULL)
+        {
+            free(pUartDmaRxBuf);
+            return ;
+        }
 
         memset(pUartTx, 0, sizeof(UartChannel));
         memset(pUartRx, 0, sizeof(UartChannel));
@@ -654,7 +669,7 @@ static void __UART_DMA_Config(tagUartReg* Reg,u32 cmd,u32 Port)
         UARTD_RcvPause(pUartDma);
 
         __UART_DmaRxLLIConfig(pUartRx,(u32)&Reg->UART_RHR,
-                (u32)(pUartRx->pBuff),UartDmaRcvLen);
+                (u32)ALIGN_SIZE_32((pUartRx->pBuff)),UartDmaRcvLen);
 
         UARTD_RcvData(pUartDma);
     }
@@ -704,7 +719,7 @@ static void __UART_HardInit(u8 SerialNo)
 ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 {
     u8 Port;
-    u32 timeout = 10000;
+    s32 timeout = 10000;
     switch((u32)Reg)
     {
     case CN_UART0_BASE: Port = CN_UART0;break;
@@ -741,17 +756,17 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_UART_COM_SET:
             __UART_SetCom(Reg,(struct COMParam *)data1);
             break;
-        case CN_UART_HALF_DUPLEX_SEND:
-            Board_UartHalfDuplexSend(Port);
-            break;
-        case CN_UART_HALF_DUPLEX_RECV:
-            while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
-            {
-                timeout -=10;
-                Djy_DelayUs(10);
-            }
-            Board_UartHalfDuplexRecv(Port);
-            break;
+//        case CN_UART_HALF_DUPLEX_SEND:
+//            Board_UartHalfDuplexSend(Port);
+//            break;
+//        case CN_UART_HALF_DUPLEX_RECV:
+//            while((false == __UART_TxTranEmpty(Reg))&& (timeout > 10))
+//            {
+//                timeout -=10;
+//                Djy_DelayUs(10);
+//            }
+//            Board_UartHalfDuplexRecv(Port);
+//            break;
         case CN_UART_DMA_USED:
         case CN_UART_DMA_UNUSED:
             __UART_DMA_Config(Reg,cmd,Port);
@@ -791,12 +806,12 @@ u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
 
     if( !(sUartInited & (0x01 << Port)) )
     	return 0;
-
+    Board_UartHalfDuplexSend(Port);
     if(s_UART_DmaUsed[Port])
     {
         if(pUartd->pTxChannel->sempaphore==1)
         {
-        	UartDmaSendBuf = pUartd->pTxChannel->pBuff;
+        	UartDmaSendBuf = ALIGN_SIZE_32(pUartd->pTxChannel->pBuff);
             UARTD_SendPause(pUartd);
             num = UART_PortRead(UCB,UartDmaSendBuf,UART_DMA_BUF_LEN,0);
             if(num > 0)
@@ -827,7 +842,8 @@ uint32_t UART_ISR(ptu32_t IntLine)
     static struct UartCB *UCB;
     volatile tagUartReg *Reg;
     uint8_t ch,Port;
-    uint32_t IIR=0,num,timeout = 1000;
+    uint32_t IIR=0,num;
+    s32 timeout = 1000;
     UartDma *pUartDma = NULL;
 
     switch(IntLine)
@@ -872,6 +888,7 @@ uint32_t UART_ISR(ptu32_t IntLine)
         else
         {
             __UART_SendIntEnable(Reg,0);
+            Board_UartHalfDuplexRecv(Port);
         }
     }
 
@@ -920,6 +937,7 @@ ptu32_t ModuleInstall_UART(ptu32_t SerialNo)
     UART_Param.Baud         = 115200;
     UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
     UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+    UART_Param.mode         = CN_UART_GENERAL;
     //硬件初始化
     __UART_HardInit(SerialNo);
     __UART_IntInit(SerialNo);
@@ -941,7 +959,8 @@ ptu32_t ModuleInstall_UART(ptu32_t SerialNo)
 // =============================================================================
 s32 Uart_PutStrDirect(const char *str,u32 len)
 {
-    u32 result = 0,timeout = TxByteTime * len;
+    u32 result = 0;
+    s32 timeout = TxByteTime * len;
     u16 CR_Bak;
 
     CR_Bak = PutStrDirectReg->UART_IER;                          //Save INT

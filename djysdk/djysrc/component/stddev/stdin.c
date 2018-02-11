@@ -137,6 +137,7 @@ s32 getc(FILE *fp)     //getc = fgetc
                     ch = GetCharDirect( );
                     putchar(ch);
                 }
+                else
                 {
                     ch = EOF;
                 }
@@ -205,7 +206,7 @@ char * fgets(char *buf, s32 size,FILE *fp)
     }
     //是文件，从文件读，ungetc由文件系统提供支持，不支持行编辑，不需要回显
     //是设备且非stdin，从设备读，不支持ungetc，不支持行编辑，不需要回显
-    if (IS_FILE(fp) || (fp != stdin)) 
+    if (IS_FILE(fp) || (fp != stdin))
     {
         for (position = 0; position < size; position++)
         {

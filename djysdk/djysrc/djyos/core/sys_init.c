@@ -61,7 +61,7 @@
 #include "driver.h"
 //#include "hard-exp.h"
 
-extern void __DjySetDelay(void);
+
 extern void __Djy_InitSys(void);
 extern void __Djy_StartOs(void);
 extern void Sys_ModuleInit(void);
@@ -73,7 +73,6 @@ extern void Sys_ModuleInit(void);
 //---------------------------------------------------------------------------
 void Sys_Start(void)
 {
-    __DjySetDelay( );
     __Djy_InitSys( );
     ModuleInstall_OBJ(0);
     ModuleInstall_Lock1(0);
