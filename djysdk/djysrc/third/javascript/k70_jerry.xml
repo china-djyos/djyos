@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="Assembly Source File">
+
+</language>
+<language name="C Source File">
+<includepath>${DJYOS_SRC_LOCATION}\libc\libc\include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\libc\libm\common</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\libc\libc\include\sys</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\bsp\chipdrv\include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\djyos\include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\component</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\component\include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\bsp\cpudrv\FslKxx\include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\bsp\arch\arm\cortex-m\armv7e-m\cortex-m4\include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\bsp\startup\FslKxx\TWR_K70F120M</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\extern-component\firmware\FslKxx</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\extern-component\firmware\CMSIS\include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\bsp\startup\FslKxx</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\bsp\boarddrv\TWR_K70F120M\include</includepath>
+<includepath workspace_path="true">/iboot/board/twrk70/src/OS_prjcfg/include</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\loader\si</includepath>
+<includepath>${DJYOS_SRC_LOCATION}\component\include\net</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/debugger</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/ecma/base</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/ecma/builtin-objects</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/ecma/operations</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/jmem</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/jrt</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/lit</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/parser</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/profiles</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/vm</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/parser/js</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/parser/regexp</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/jcontext</includepath>
+<includepath workspace_path="true">/iboot/jerryscript-master/jerry-core/ecma/builtin-objects/typedarray</includepath>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.Macros">
+<language name="Assembly Source File">
+<macro>
+<name>__ARM_ARCH_7EM__</name><value>1</value>
+</macro>
+<macro>
+<name>DEBUG</name><value>1</value>
+</macro>
+
+</language>
+<language name="C Source File">
+<macro>
+<name>DEBUG</name><value>1</value>
+</macro>
+<macro>
+<name>JERRY_JS_PARSER</name><value>1</value>
+</macro>
+<macro>
+<name>__ARM_ARCH_7EM__</name><value>1</value>
+</macro>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+</cdtprojectproperties>
