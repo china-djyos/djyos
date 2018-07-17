@@ -132,7 +132,7 @@
 
 
 #if SQLITE_ENABLE_LOCKING_STYLE
-# include <sys/ioctl.h>
+# include <sys/stropts.h>
 # if OS_VXWORKS
 #  include <semaphore.h>
 #  include <limits.h>

@@ -11,7 +11,7 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "systime.h"        //todo : stdout标准化后删掉。
-#include "driver.h"         //todo : stdout标准化后删掉。
+#include <device.h>         //todo : stdout标准化后删掉。
 #include "char_term.h"
 
 #define CN_VNC_IOBUFLEN   0x100

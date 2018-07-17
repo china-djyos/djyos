@@ -63,8 +63,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include <sys/time.h>
-
-extern const u32 gc_u32CfgTimeZone;
+#include "component_config_time.h"
 
 extern s64 __Rtc_Time(s64 *rtctime);
 extern s64 __Rtc_TimeUs(s64 *rtctime);
@@ -128,11 +127,11 @@ struct tm *Tm_GmTime_r(const s64 *time,struct tm *result)
     if(time == NULL)
     {
         temp_time = __Rtc_Time(NULL);
-        temp_time -= ((s64)gc_u32CfgTimeZone*3600);
+        temp_time -= ((s64)CFG_LOCAL_TIMEZONE*3600);
     }
     else
     {
-        temp_time = *time - ((s64)gc_u32CfgTimeZone*3600);
+        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600);
     }
     return Tm_LocalTime_r(&temp_time,result);
 }
@@ -150,11 +149,11 @@ struct tm *Tm_GmTime(const s64 *time)
     if(time == NULL)
     {
         temp_time = __Rtc_Time(NULL);
-        temp_time -= ((s64)gc_u32CfgTimeZone*3600);
+        temp_time -= ((s64)CFG_LOCAL_TIMEZONE*3600);
     }
     else
     {
-        temp_time = *time - ((s64)gc_u32CfgTimeZone*3600);
+        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600);
     }
     return Tm_LocalTime_r(&temp_time,&datetime);
 }
@@ -173,11 +172,11 @@ struct tm *Tm_GmTimeUs_r(const s64 *time,struct tm *result)
     if(time == NULL)
     {
         temp_time = __Rtc_TimeUs(NULL);
-        temp_time -= (((s64)gc_u32CfgTimeZone*3600)*1000000);
+        temp_time -= (((s64)CFG_LOCAL_TIMEZONE*3600)*1000000);
     }
     else
     {
-        temp_time = *time - ((s64)gc_u32CfgTimeZone*3600)*1000000;
+        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600)*1000000;
     }
     return Tm_LocalTimeUs_r(&temp_time,result);
 }
@@ -195,11 +194,11 @@ struct tm *Tm_GmTimeUs(const s64 *time)
     if(time == NULL)
     {
         temp_time = __Rtc_TimeUs(NULL);
-        temp_time -= (((s64)gc_u32CfgTimeZone*3600)*1000000);
+        temp_time -= (((s64)CFG_LOCAL_TIMEZONE*3600)*1000000);
     }
     else
     {
-        temp_time = *time - ((s64)gc_u32CfgTimeZone*3600)*1000000;
+        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600)*1000000;
     }
     return Tm_LocalTimeUs_r(&temp_time,&datetime);
 }
@@ -230,6 +229,8 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
         temp_time = *time;
     else
         temp_time = __Rtc_Time(NULL);
+    if(temp_time > 47650000000) //算法在公元3480年后会出错
+        return NULL;
 
     second = temp_time % 60;
     minute = temp_time/60 %60;
@@ -550,15 +551,6 @@ void Tm_AscTimeUs(struct tm *tm, char buf[])
     buf[26] = '\0';
     return ;
 }
-//----time模块初始化-----------------------------------------------------------
-//功能: 初始化日期时间模块
-//参数: para，不使用
-//返回: 不使用
-//-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_TM(ptu32_t para)
-{
-    return true;
-}
 
 //----取日历时间(秒)-----------------------------------------------------------
 //功能: 取从1970年1月1日0:0:0到现在的时间差，秒数。
@@ -623,13 +615,13 @@ struct tm *localtime(const time_t *timep)
 //     and moth is is 0 to 11
 struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
-	struct tm *myresult;
-	myresult = Tm_GmTime_r(timep,result);
-	if(NULL != result)
-	{
-		result->tm_year -= 1900;
-		result->tm_mon -= 1;
-	}
+    struct tm *myresult;
+    myresult = Tm_GmTime_r(timep,result);
+    if(NULL != result)
+    {
+        result->tm_year -= 1900;
+        result->tm_mon -= 1;
+    }
     return myresult;
 }
 struct tm *gmtime(const time_t *timep)
@@ -729,7 +721,7 @@ int gettimezone(int *result)
 {
     if(NULL != result)
     {
-        *result = gc_u32CfgTimeZone;
+        *result = CFG_LOCAL_TIMEZONE;
     }
     return 0;
 }

@@ -62,8 +62,12 @@
 #include "atomic.h"
 #include "int.h"
 #include "systime.h"
+#include "board-config.h"
+#include "component_config_time.h"
 
-s64 __DjyGetSysTime(void);
+extern u64 __DjyGetSysTime(void);
+extern u32 __Djy_GetTimeBaseCnt(void);
+extern u32 __Djy_GetTimeBaseReload(void);
 static fntSysTimeHard32  fnSysTimeHard32 = NULL;
 static fntSysTimeHard64  fnSysTimeHard64 = NULL;
 static u32 s_u32SysTimeFreq = 1000000;  //系统时钟的输入时钟频率
@@ -72,7 +76,6 @@ static u32 s_u32SysTimeCycle = CN_CFG_TICK_US;  //系统时钟走时周期，CN_CFG_TICK_
                                                 //是选tick时基默认值
 static s64 s_s64sysTimeMajor = 0;       //时钟高位
 static u32 s_u32BakCounter = 0;         //计数值的备份
-extern s64  g_s64OsTicks;               //操作系统运行ticks数
 
 // =============================================================================
 // 函数功能：连接专用定时器到系统时间
@@ -100,7 +103,7 @@ void SysTimeConnect(fntSysTimeHard32 GetSysTime32,fntSysTimeHard64 GetSysTime64,
 // 输出参数：
 // 返回值  ：获取的系统运行时间，uS
 // =============================================================================
-s64 DjyGetSysTime(void)
+u64 DjyGetSysTime(void)
 {
     u32 CurrentTime;
     s64 s64sysTimeMajorBak;
@@ -133,10 +136,10 @@ s64 DjyGetSysTime(void)
 // 输出参数：
 // 返回值  ：获取的系统运行时间，周期数
 // =============================================================================
-s64 DjyGetSysTimeCycle(void)
+u64 DjyGetSysTimeCycle(void)
 {
     u32 CurrentTime;
-    s64 s64sysTimeMajorBak;
+    u64 s64sysTimeMajorBak;
     atom_low_t atom;
 
     if((fnSysTimeHard32 == NULL) && (fnSysTimeHard64 == NULL))
@@ -195,21 +198,8 @@ u32 DjyGetSysTimeFreq(void)
 //参数：无
 //返回：当前时钟
 //-----------------------------------------------------------------------------
-s64 DjyGetSysTick(void)
+u64 DjyGetSysTimeBase(void)
 {
-    s64 time;
-#if (64 > CN_CPU_BITS)
-    //若处理器字长不是64位,需要多个周期才能读取os_ticks,该过程不能被时钟中断打断.
-    atom_low_t atom_low;
-    atom_low = Int_LowAtomStart();
-#endif
-
-    time = g_s64OsTicks;
-
-#if (64 > CN_CPU_BITS)
-    //若处理器字长不是64位,需要多个周期才能读取os_ticks,该过程不能被时钟中断打断.
-    Int_LowAtomEnd(atom_low);
-#endif
-    return time;
+	return __DjyGetSysTime();
 }
 

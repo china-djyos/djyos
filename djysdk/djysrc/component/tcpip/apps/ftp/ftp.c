@@ -46,27 +46,31 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-#include <netdb.h>
-#include <sys/socket.h>
+
 #include <sys/time.h>
 #include <unistd.h>
-#include "../../tcpipconfig.h"
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include "dbug.h"
 #include "ftp.h"
+#include "../../component_config_tcpip.h"
+
 
 
 extern bool_t ServiceFtpdInit(ptu32_t para);
 extern bool_t ServiceFtpcInit(ptu32_t para);
 bool_t ServiceFtpInit(ptu32_t para)
 {
-	bool_t ret = true;
-    if((gUseFtpServer)&&(false == ServiceFtpdInit(0)))
+    bool_t ret = true;
+    if((CFG_FTPD_ENABLE)&&(false == ServiceFtpdInit(0)))
     {
-        printf("###err:FTPD ERR\n\r");
+        error_printf("ftp","###err:FTPD ERR\n\r");
         ret = false;
     }
-    if((gUseFtpClient)&&(false == ServiceFtpcInit(0)))
+    if((CFG_FTPC_ENABLE)&&(false == ServiceFtpcInit(0)))
     {
-        printf("###err:FTPC ERR\n\r");
+        error_printf("ftp","###err:FTPC ERR\n\r");
         ret = false;
     }
     return ret;
@@ -77,67 +81,67 @@ bool_t ServiceFtpInit(ptu32_t para)
 //this function used to display the ftp connection stat
 void FtpShowClient(tagFtpClient *client)
 {
-	printf("Client:user       :%s\r\n",client->user);
-	printf("Client:passwd     :%s\r\n",client->passwd);
-	printf("Client:curdir     :%s\r\n",client->curdir);
-	printf("Client:cmdsock    :%d\r\n",client->cchannel.s);
-	printf("Client:ip:%s port:%d\r\n",inet_ntoa(client->cchannel.ipaddr),ntohs(client->cchannel.port));
-	if(client->dchannel.ispasv)
-	{
-		printf("Client:PASV:LISTENIP:%s LISTENPORT:%d  slisten:%d saccept:%d\r\n",\
-				inet_ntoa(client->dchannel.ipaddr),ntohs(client->dchannel.port),\
-				client->dchannel.slisten,client->dchannel.saccept);
-	}
-	else
-	{
-		printf("Client:PORT:LISTENIP:%s LISTENPORT:%d  sconnect:%d n\r",\
-				inet_ntoa(client->dchannel.ipaddr),ntohs(client->dchannel.port),\
-				client->dchannel.sconnect);
-	}
-    printf("Client:buf:0x%08x buflen:%d datalen:%d\r\n",(u32)client->buf,client->buflen,client->datalen);
-	return;
+    debug_printf("ftp","Client:user       :%s\r\n",client->user);
+    debug_printf("ftp","Client:passwd     :%s\r\n",client->passwd);
+    debug_printf("ftp","Client:curdir     :%s\r\n",client->curdir);
+    debug_printf("ftp","Client:cmdsock    :%d\r\n",client->cchannel.s);
+    debug_printf("ftp","Client:ip:%s port:%d\r\n",inet_ntoa(client->cchannel.ipaddr),ntohs(client->cchannel.port));
+    if(client->dchannel.ispasv)
+    {
+        debug_printf("ftp","Client:PASV:LISTENIP:%s LISTENPORT:%d  slisten:%d saccept:%d\r\n",\
+                    inet_ntoa(client->dchannel.ipaddr),ntohs(client->dchannel.port),\
+                        client->dchannel.slisten,client->dchannel.saccept);
+    }
+    else
+    {
+        debug_printf("ftp","Client:PORT:LISTENIP:%s LISTENPORT:%d  sconnect:%d n\r",\
+                    inet_ntoa(client->dchannel.ipaddr),ntohs(client->dchannel.port),\
+                        client->dchannel.sconnect);
+    }
+    debug_printf("ftp","Client:buf:0x%08x buflen:%d datalen:%d\r\n",(u32)client->buf,client->buflen,client->datalen);
+    return;
 }
 
 //use this function to receive the specified line message here,if more message here
 //we will only storage the first few strings,len must be more than one
 int FtpRcvLine(int sock,u8 *buf,int len)
 {
-	int timeout = 0;
-	int rcv = 0;
-	char c;
-	int ret = 1; //initialize the first time
-	memset(buf,0,len);
-	while(ret&&(timeout <CN_FTPCLIENT_TRYTIMES))
-	{
-		ret = recv(sock,&c,1,0);
-		if(ret == 1)
-		{
-			if(c == '\n')//get the response line
-			{
-				*buf++=c;
-				rcv++;
-				break;
-			}
-			else if(rcv < (len-1)) //the last char is '\0'
-			{
-				*buf++=c;
-				rcv++;
-			}
-			else
-			{
-				//ignore the data,just abandon it
-			}
-		}
-		else if(ret == -1) //timeout
-		{
-			timeout ++;
-		}
-		else
-		{
-			break;
-		}
-	}
-	return rcv;
+    int timeout = 0;
+    int rcv = 0;
+    char c;
+    int ret = 1; //initialize the first time
+    memset(buf,0,len);
+    while(ret&&(timeout <CN_FTPCLIENT_TRYTIMES))
+    {
+        ret = recv(sock,&c,1,0);
+        if(ret == 1)
+        {
+            if(c == '\n')//get the response line
+            {
+                *buf++=c;
+                rcv++;
+                break;
+            }
+            else if(rcv < (len-1)) //the last char is '\0'
+            {
+                *buf++=c;
+                rcv++;
+            }
+            else
+            {
+                //ignore the data,just abandon it
+            }
+        }
+        else if(ret == -1) //timeout
+        {
+            timeout ++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return rcv;
 }
 
 //create a socket and connect to the server,return the connected socket handle
@@ -148,7 +152,7 @@ int FtpConnect(struct in_addr *addr,u16 port)
     memset(&address, 0, sizeof(address));
     if ((s = socket(AF_INET, SOCK_STREAM, 0)) > 0 )
     {
-    	//set the timeout
+        //set the timeout
         //set the receive and send timeout limit
         u32 timeo = CN_FTPCLIENT_TIMEOUT;  //DO THE TIME OUT SET
         setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo));
@@ -159,14 +163,14 @@ int FtpConnect(struct in_addr *addr,u16 port)
         address.sin_addr =*addr;
         if(connect(s, (struct sockaddr*) &address, sizeof(address)) == -1)
         {
-        	closesocket(s);
-        	s = -1;
-        	printf("%s:CONNECT ERR\r\n",__FUNCTION__);
+            closesocket(s);
+            s = -1;
+            debug_printf("ftp","%s:CONNECT ERR\r\n",__FUNCTION__);
         }
     }
     else
     {
-    	printf("%s:SOCKET ERR\r\n",__FUNCTION__);
+        debug_printf("ftp","%s:SOCKET ERR\r\n",__FUNCTION__);
     }
     return s;
 }
@@ -181,7 +185,7 @@ int FtpAccept(int s,struct in_addr *ipaddr,u16 *port)
 
     addrlen = sizeof(struct sockaddr_in);
     memset(&address, 0, addrlen);
-	//set the timeout
+    //set the timeout
     //set the receive and send timeout limit
     sockopt = CN_FTPCLIENT_TIMEOUT;  //DO THE TIME OUT SET
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &sockopt, sizeof(sockopt));
@@ -190,18 +194,18 @@ int FtpAccept(int s,struct in_addr *ipaddr,u16 *port)
         ret = accept(s, (struct sockaddr*) &address,&addrlen);
         if(ret>0)
         {
-        	sockopt = CN_FTPCLIENT_TIMEOUT;
+            sockopt = CN_FTPCLIENT_TIMEOUT;
             setsockopt(ret, SOL_SOCKET, SO_SNDTIMEO, &sockopt, sizeof(sockopt));
             setsockopt(ret, SOL_SOCKET, SO_RCVTIMEO, &sockopt, sizeof(sockopt));
             sockopt = 1;
             setsockopt(ret,SOL_SOCKET,SO_KEEPALIVE,&sockopt,sizeof(sockopt));
             if(NULL != ipaddr)
             {
-            	*ipaddr = address.sin_addr;
+                *ipaddr = address.sin_addr;
             }
             if(NULL != port)
             {
-            	*port = address.sin_port;
+                *port = address.sin_port;
             }
         }
         trytimes++;

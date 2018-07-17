@@ -128,6 +128,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "cpu.h"
+#include "align.h"
 #include "object.h"
 #include "lock.h"
 #include "int.h"
@@ -135,36 +136,49 @@
 #include "systime.h"
 #include "djyos.h"
 #include "exp.h"
-#include "core_config.h"
-#include "lowpower.h"
-#include "../include/align.h"
+#include "dbug.h"
 
+#include "lowpower.h"
+#include "component_config_core.h"
+#include "../heap/component_config_heap.h"
 ptu32_t __Djy_Service(void);
 
+enum __Djy_TickEvent{
+    ISR_TICK_DELAY_TOO_LONG,
+    EVENT_DELAY,
+    RESUME_DELAY,
+    RRS_ENABLE,
+    RRS_CANCLE,
+    ISR_TICK_HANDLE,
+    SET_INT_TICK_DEFAULT=0xff
+};
 struct ProcessVm *  g_ptMyProcess;
 //为cn_events_limit条事件控制块分配内存
-struct EventECB *g_ptECB_Table;
+struct EventECB g_tECB_Table[CFG_EVENT_LIMIT];
 //static struct ParaPCB  s_tEventParaTable[CN_CFG_PARAS_LIMIT];
 //为cn_evtts_limit个事件类型控制块分配内存
-struct EventType *g_ptEvttTable;
+struct EventType g_tEvttTable[CFG_EVENT_TYPE_LIMIT];
 struct EventECB  *s_ptEventFree; //空闲链表头,不排序
 //static struct ParaPCB  *s_ptParaFree; //空闲链表头,不排序
 //轮转调度时间片，0表示禁止轮转调度，默认1，RRS = "round robin scheduling"缩写。
-static u32 s_u32RRS_Slice = 1;
+static u64 s_u64RRS_Slice = (CN_CFG_TIME_BASE_HZ/1000);//单位：US
 static u32 s_u32StackCheckLevel = 10;      //栈报警水平，百分数
 struct EventECB  *g_ptEventReady;      //就绪队列头
 struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
 struct EventECB  *g_ptEventDelay;      //闹钟同步队列表头
-s64 g_s64RunningStartTime;        //当前运行中事件的开始执行时间.
-s64  g_s64OsTicks;            //操作系统运行ticks
+u64 g_s64RunningStartCnt;        //当前运行中事件的开始执行时间.
+u64  g_s64OsTimeCnt=0;            //操作系统运行ticks
+u64  g_s64OsNextDelayCnt=CN_LIMIT_UINT64;        //下一次TICK中断的时间,单位：US
+u64 g_s64OsNextRRSCnt=CN_LIMIT_UINT64;          //下一次轮转调度的时间，单位：US
 bool_t g_bScheduleEnable;     //系统当前运行状态是否允许调
 bool_t g_bMultiEventStarted = false;    //多事件(线程)调度是否已经开始
+u32 g_u32OsRunMode;     //运行模式，参看 CN_RUNMODE_SI 系列定义
 
 u32 (*g_fnEntryLowPower)(struct ThreadVm *vm) = NULL;  //进入低功耗状态的函数指针。
 void __Djy_SelectEventToRun(void);
 void __Djy_EventReady(struct EventECB *event_ready);
 void __Djy_ResumeDelay(struct EventECB *delay_event);
-extern void __DjyInitTick(void);
+
 extern void __M_CleanUp(uint16_t event_id);
 extern void __asm_reset_switch(ptu32_t (*thread_routine)(void),
                                struct ThreadVm *new_vm,struct ThreadVm *old_vm);
@@ -174,6 +188,14 @@ extern void __asm_switch_context_int(struct ThreadVm *new_vm,struct ThreadVm *ol
 extern void __asm_switch_context(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 extern void __Int_ResetAsynSignal(void);
 extern void __asm_delay_us(u64 timeCoreClock);
+extern void __DjyStartTimeBase(void);
+extern void __Djy_SetTimeBaseCnt(u32 cnt);
+extern u64 __Djy_GetTimeBaseCnt(u32 cnt);
+extern u64 __Djy_TimeBaseUsToCnt(u64 us);
+extern u64 __DjyGetSysCnt(void);
+extern u32 __Djy_GetDelayMaxCnt(void);
+extern u32 __Djy_GetTimeBaseGap(void);
+void __Djy_ChangeBlockQueue(struct EventECB *Event);
 
 //----微秒级延时-------------------------------------------------------------
 //功能：利用循环实现的微秒分辨率延时，调用__DjySetDelay函数后才能使用本函数，
@@ -235,15 +257,16 @@ bool_t __Djy_CheckStack(s16 event_id)
     u32 *stack;
     u32 pads;
     bool_t result=true;
+    char *name;
 
     pads = 0x64646464;
-    if(g_ptECB_Table[event_id].vm == NULL)
+    if(g_tECB_Table[event_id].vm == NULL)
         return true;
-    if(g_ptECB_Table[event_id].previous ==
+    if(g_tECB_Table[event_id].previous ==
                     (struct EventECB*)&s_ptEventFree)
         return true;
 
-    Vm = g_ptECB_Table[event_id].vm;
+    Vm = g_tECB_Table[event_id].vm;
     level = Vm->stack_size * s_u32StackCheckLevel / 100;
 
     stack = (u32*)(&(Vm[1]));
@@ -262,10 +285,15 @@ bool_t __Djy_CheckStack(s16 event_id)
             Vm->stack_used = &stack[loop];  //记录新的已用指针
             parahead.DecoderName = NULL;
             parahead.ExpAction = EN_EXP_DEAL_RESTART;
+#if CFG_OS_TINY == false
+            name = g_tEvttTable[g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+            name = "unknown";
+#endif  //CFG_OS_TINY == false
             sprintf(StackExp,"栈溢出风险,栈底:0x%x,栈尺寸:0x%x,剩余:0x%x,事件号:%d,类型号%d,类型名:%s",
                                 (ptu32_t)stack,Vm->stack_size,loop<<2,
-                                event_id, g_ptECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK),
-                                g_ptEvttTable[g_ptECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name);
+                                event_id, g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK),
+                                name);
             parahead.ExpInfo = (u8*)StackExp;
             parahead.ExpInfoLen = sizeof(StackExp);
             parahead.ExpType = CN_EXP_TYPE_STACK_OVER;
@@ -280,6 +308,101 @@ bool_t __Djy_CheckStack(s16 event_id)
     return result;
 }
 
+//----设置系统滴答中断时间-----------------------------------------------------------------
+//功能：根据系统现在的状态设置系统滴答工作模式以及中断事件.
+//参数：CurUs,当前时间
+//      NextDelay，下一个延时时间的结束时间
+//      NextRRS：下一次轮转调度的时间
+//返回：无
+//first commit by chj,2018/6/6
+//-----------------------------------------------------------------------------
+void __Djy_SetIntTime(u64* Cur,u64* NextDelay,u64* NextRRS,u8 evt)
+{
+    static u64 NextInt=CN_LIMIT_UINT64; //NextIntUs：下一次中断的时间
+	u32 cnt=0;			//转换成US数后写入reload设置函数
+    switch(evt)
+    {
+        case ISR_TICK_DELAY_TOO_LONG:
+        //当在DJY_ISR_TICK函数里面检测到正在运行的时钟的reload值为
+        //最大值时，则会进入这里，有两种情况：
+        //1.此时系统没有延时事件以及轮转事件，系统以最大值作为reload值运行
+        //2.此时系统有延时事件或者轮转事件，但是其延时时间比系统时钟的一个周期的延时时间还长，
+        //此时也会把reload值设为最大值
+            if(NextInt==CN_LIMIT_UINT64)    //若NextIntUs为最大值，则说明此时属于第一种情况，无需改变reload值
+                return; //否则就是第二种情况，需在switch外面判断NextIntUs值是否还比最大延时值还大
+                        //直接退出
+            break;
+        case ISR_TICK_HANDLE:
+        //此事件在isr_tick函数里面被触发
+        //case RESUME_DELAY:
+        //此事件会在__Djy_ResumeDelay函数里被触发，延时队列头的delay_end_cnt会作为
+        //*NextDelay被传进来，若此时队列已空，则*NextDelay=0，需要确定一下此时NextIntUs是
+        //等于*NextRRS，若相等，则无需动作，若不等，则说明此时已经没有需要延时的事件了，直接把
+        //NextIntUs值设为最大值
+        case EVENT_DELAY:
+        //此事件会在DJY_EVENT_DELAY函数里被触发，延时队列头的delay_end_cnt会作为
+        //*NextDelay被传进来，若此时NextIntUs不为最大值，则需要和*NextDelay比较，取最小值，
+        //否则，直接赋值
+            NextInt=(*NextDelay>*NextRRS)?*NextRRS:*NextDelay;
+            break;
+        case RRS_ENABLE:
+            //此事件在DJY_SELECT_EVENT_TO_RUN中当当前的就绪的线程优先级和其下一个线程的
+            //优先级相同时会进入此处
+            //当之前定时的时间是延时时间并且比*NextRRS小时，直接返回，否则取他们的最小值
+            if(NextInt==*NextDelay && *NextDelay<=*NextRRS)
+                return;
+            else
+                NextInt=*NextDelay>*NextRRS?*NextRRS:*NextDelay;
+            break;
+        case RESUME_DELAY:
+//      //此事件会在__Djy_ResumeDelay函数里被触发，延时队列头的delay_end_cnt会作为
+//      //*NextDelay被传进来，若此时队列已空，则*NextDelay=0，需要确定一下此时NextIntUs是
+//      //等于*NextRRS，若相等，则无需动作，若不等，则说明此时已经没有需要延时的事件了，直接把
+//      //NextIntUs值设为最大值
+            if(NextInt==*NextRRS && *NextRRS<=*NextDelay)
+            {
+                return;
+            }
+            else
+            {
+                NextInt=(*NextDelay>*NextRRS)?*NextRRS:*NextDelay;
+            }
+            break;
+        case RRS_CANCLE:
+            //取消RRS轮转，当前正在运行的任务的优先级和他下一个任务的优先级不一样的情况下会被触发
+            //说明此时已经不需要进行轮转调度，在DJY_SELECT_EVENT_TO_RUN中会被判断触发
+            if(NextInt==*NextRRS)
+            {
+                *NextRRS=CN_LIMIT_UINT64;
+                NextInt=*NextDelay;
+            }
+            else
+            {
+                *NextRRS=CN_LIMIT_UINT64;
+                NextInt=*NextDelay;
+                return;
+            }
+            break;
+        default:
+            //正常情况下不会进入此处，但当执行RESUME_DELAY之前中断已经到达，此时有可能会进入此处
+			if( ((NextInt==*NextDelay) && (*NextDelay<=*NextRRS)) || \
+					((NextInt==*NextRRS) && (*NextRRS<=*NextDelay)) )
+				return;
+            NextInt=(*NextDelay>*NextRRS)?*NextRRS:*NextDelay;
+            break;
+    }
+    //当systick中断已经到了，但是系统却已经关闭了中断的情况下，
+    //有可能会出现NextIntUs<*CurUs的情况，有可能会在DJY_SELECT_EVENT_TO_RUN
+    //函数里进入此处，此时不需要做什么，直接返回即可，在isr_tick里面会做正确处理
+    if(NextInt<=*Cur)
+    {
+        return;
+    }
+    //计算需要设置的定时时间长度，其最大值不能比定时器的最大定时时间还长
+    cnt=((NextInt-*Cur)>__Djy_GetDelayMaxCnt())?    \
+            __Djy_GetDelayMaxCnt():(NextInt-*Cur);
+    __Djy_SetTimeBaseCnt(cnt);
+}
 //以下为多任务管理函数
 
 //----tick中断-----------------------------------------------------------------
@@ -290,18 +413,27 @@ bool_t __Djy_CheckStack(s16 event_id)
 //返回：无
 //-----------------------------------------------------------------------------
 void __DjyMaintainSysTime(void);
-void  Djy_IsrTick(u32 inc_ticks)
+void  Djy_IsrTimeBase(u32 inc_ticks)
 {
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
-    g_s64OsTicks += (s64)inc_ticks;    //系统时钟,默认永不溢出
+    u32 event=0;
+
+    g_s64OsTimeCnt=__Djy_GetTimeBaseCnt(inc_ticks);
     //用于维护系统时钟运转，使读系统时间的间隔，小于硬件定时器循环周期。
     __DjyMaintainSysTime( );
+    if(inc_ticks==__Djy_GetDelayMaxCnt() && \
+            g_s64OsTimeCnt<(g_s64OsNextDelayCnt - __Djy_GetTimeBaseGap()) && \
+            g_s64OsTimeCnt<(g_s64OsNextRRSCnt - __Djy_GetTimeBaseGap()) )
+    {
+        __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,ISR_TICK_DELAY_TOO_LONG);
+        return;
+    }
     if(g_ptEventDelay != NULL)
     {
         pl_ecb = g_ptEventDelay;
         while(1)
         {
-            if(pl_ecb->delay_end_tick <= g_s64OsTicks) //默认64位ticks不会溢出
+            if(pl_ecb->delay_end_cnt <= g_s64OsTimeCnt+__Djy_GetTimeBaseGap()) //默认64位ticks不会溢出
             {
                 //事件在某同步队列中，应该从该队列取出
                 if(pl_ecb->sync_head != NULL)
@@ -339,6 +471,8 @@ void  Djy_IsrTick(u32 inc_ticks)
                 {
                     g_ptEventDelay = NULL;
                     __Djy_EventReady(pl_ecb);
+                    event++;
+                    g_s64OsNextDelayCnt = CN_LIMIT_UINT64;
                     break;
                 }else
                 {
@@ -347,6 +481,8 @@ void  Djy_IsrTick(u32 inc_ticks)
                     pl_ecb->previous->next = pl_ecb->next;
                     __Djy_EventReady(pl_ecb);
                     pl_ecb = g_ptEventDelay;
+                    event++;
+                    g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
                 }
             }else
                 break;
@@ -356,12 +492,12 @@ void  Djy_IsrTick(u32 inc_ticks)
     //下面处理时间片轮转调度.
     //因在开异步信号(允许调度)才可能进入__djy_isr_tick，即使因闹钟响导致新事件加
     //入，pg_event_running也必定在优先级单调队列中，但可能不等于pg_event_ready
-    if(s_u32RRS_Slice != 0)      //允许轮转调度
+    if(s_u64RRS_Slice != 0)      //允许轮转调度
     {
         if( (g_ptEventRunning->prio == g_ptEventRunning->next->prio)
                     &&(g_ptEventRunning != g_ptEventRunning->next) )
         {//该优先级有多个事件，看轮转时间是否到
-            if((u32)g_s64OsTicks % s_u32RRS_Slice == 0) //时间片用完
+            if(g_s64OsNextRRSCnt <= g_s64OsTimeCnt+__Djy_GetTimeBaseGap()) //时间片用完
             {
                 //先处理优先级单调队列，把pg_event_running从队列中取出，代之以
                 //g_ptEventRunning->next。
@@ -391,9 +527,15 @@ void  Djy_IsrTick(u32 inc_ticks)
                 g_ptEventRunning->next = pl_ecbn;
                 pl_ecbn->previous->next = g_ptEventRunning;
                 pl_ecbn->previous = g_ptEventRunning;
+                g_s64OsNextRRSCnt = CN_LIMIT_UINT64;
+                event++;
             }
         }
     }
+    if(event!=0)
+        __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,ISR_TICK_HANDLE);
+    else
+        __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,SET_INT_TICK_DEFAULT);
     return;
 }
 
@@ -489,15 +631,15 @@ void __Djy_CutReadyEvent(struct EventECB *event)
 //-----------------------------------------------------------------------------
 void Djy_SetRRS_Slice(u32 slices)
 {
-#if (32 > CN_CPU_BITS)
+#if (64 > CN_CPU_BITS)
     atom_low_t atom_low;
     //若处理器字长＜32位,需要多个周期才能更新u32g_RRS_slice,该过程不能被时钟中断打断.
     atom_low = Int_LowAtomStart( );   //本函数对不能嵌套调用
 #endif
+    s_u64RRS_Slice = __Djy_TimeBaseUsToCnt((u64)slices);
 
-    s_u32RRS_Slice =(slices + CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
 
-#if (32 > CN_CPU_BITS)
+#if (64 > CN_CPU_BITS)
     //若处理器字长＜32位,需要多个周期才能更新u32g_RRS_slice,该过程不能被时钟中断打断.
     Int_LowAtomEnd( atom_low );
 #endif
@@ -511,19 +653,19 @@ void Djy_SetRRS_Slice(u32 slices)
 u32 Djy_GetRRS_Slice(void)
 {
     u32 temp;
-#if (32 > CN_CPU_BITS)
+#if (64 > CN_CPU_BITS)
     atom_low_t atom_low;
     //处理器字长＜32位,需要多个周期才能读取u32g_RRS_slice,该过程不能被时钟中断打断.
     atom_low = Int_LowAtomStart( );   //本函数对不能嵌套调用
 #endif
-
-    temp = s_u32RRS_Slice;
-
-#if (32 > CN_CPU_BITS)
+    temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
+            ((s_u64RRS_Slice*Mhz + CN_CFG_TIME_BASE_HZ>>1 )/CN_CFG_TIME_BASE_HZ):
+            (s_u64RRS_Slice*((Mhz + CN_CFG_TIME_BASE_HZ>>1)/CN_CFG_TIME_BASE_HZ)));
+#if (64 > CN_CPU_BITS)
     //处理器字长＜32位,需要多个周期才能读取u32g_RRS_slice,该过程不能被时钟中断打断.
     Int_LowAtomEnd( atom_low );
 #endif
-    return temp * CN_CFG_TICK_US;
+    return temp;
 }
 //----创建线程-----------------------------------------------------------------
 //功能：为事件类型创建线程，初始化上下文环境，安装执行函数，构成完整线程
@@ -608,13 +750,13 @@ struct ThreadVm *__CreateStaticThread(struct EventType *evtt,void *Stack,
 //----------------------------------------------------------------------------
 void __Djy_SelectEventToRun(void)
 {
-    struct EventECB *pl_ecb,*temp_var;
     struct ThreadVm *vm;
-   // struct EventType *pl_evtt;  //被操作的事件的类型指针
+    // struct EventType *pl_evtt;  //被操作的事件的类型指针
     struct EventType *pl_evtt;
+    u32 temp=0;
     while(g_ptEventReady->vm == NULL)
     {
-        pl_evtt =& g_ptEvttTable[g_ptEventReady->evtt_id &(~CN_EVTT_ID_MASK)];
+        pl_evtt =& g_tEvttTable[g_ptEventReady->evtt_id &(~CN_EVTT_ID_MASK)];
         if(pl_evtt->my_free_vm != NULL)     //该事件类型有空闲的线程,直接使用
         {
             g_ptEventReady->vm = pl_evtt->my_free_vm;
@@ -632,6 +774,29 @@ void __Djy_SelectEventToRun(void)
                 pl_evtt->vpus++;        //独立事件vpus表示线程数
                                         //关联事件的vpus无意义
             }
+        }
+    }
+    if(s_u64RRS_Slice==0)
+        return;
+    if(g_ptEventReady->prio==g_ptEventReady->next->prio \
+            && (g_ptEventReady != g_ptEventReady->next))
+    {
+        g_s64OsTimeCnt = __DjyGetSysCnt();
+        temp = g_s64OsTimeCnt%s_u64RRS_Slice;
+
+        if(temp+__Djy_GetTimeBaseGap()>s_u64RRS_Slice)
+            g_s64OsNextRRSCnt = g_s64OsTimeCnt + 2*s_u64RRS_Slice-temp;
+        else
+            g_s64OsNextRRSCnt = g_s64OsTimeCnt + s_u64RRS_Slice-temp;
+
+        __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,RRS_ENABLE);
+    }
+    else
+    {
+        if(g_s64OsNextRRSCnt!=CN_LIMIT_UINT64)
+        {
+            g_s64OsTimeCnt = __DjyGetSysCnt();
+            __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,RRS_CANCLE);
         }
     }
 }
@@ -666,7 +831,6 @@ void Djy_CreateProcessVm(void)
 bool_t __Djy_Schedule(void)
 {
     struct EventECB *event;
-    u32 time;
 
 //    if(!Djy_QuerySch())
 //        return false;
@@ -676,15 +840,15 @@ bool_t __Djy_Schedule(void)
     {//当running事件仍在ready队列中,且内存不足以建立新线程时,可能会出现优先
      //级高于running的事件全部进入内存等待队列的可能.此时执行else子句.
         event = g_ptEventRunning;
-//#if(CN_CFG_DEBUG_INFO == 1)
-        time = (u32)DjyGetSysTime();
-        event->consumed_time += time - g_s64RunningStartTime;
-        g_s64RunningStartTime = time;
-//#endif
-        g_ptEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
+        g_s64OsTimeCnt = __DjyGetSysCnt();
+#if CFG_OS_TINY == false
+        event->consumed_cnt += g_s64OsTimeCnt - g_s64RunningStartCnt;
+#endif  //CFG_OS_TINY == false
+        g_s64RunningStartCnt = g_s64OsTimeCnt;
+        g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
         g_ptEventRunning=g_ptEventReady;
-        g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
         __asm_switch_context(g_ptEventReady->vm ,event->vm);
     }else
@@ -708,22 +872,21 @@ bool_t __Djy_Schedule(void)
 void __Djy_ScheduleAsynSignal(void)
 {
     struct EventECB *event;
-    u32 time;
 
     __Djy_SelectEventToRun();
     if(g_ptEventReady != g_ptEventRunning)
     {//当running事件仍在ready队列中,且内存不足以建立新线程时,可能会出现优先
      //级高于running的事件全部进入内存等待队列的可能.此时执行else子句.
          event=g_ptEventRunning;
-//#if(CN_CFG_DEBUG_INFO == 1)
-         time = (u32)DjyGetSysTime();
-         event->consumed_time += time - g_s64RunningStartTime;
-         g_s64RunningStartTime = time;
-//#endif
-         g_ptEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
+         g_s64OsTimeCnt = __DjyGetSysCnt();
+#if CFG_OS_TINY == false
+         event->consumed_cnt += g_s64OsTimeCnt - g_s64RunningStartCnt;
+#endif  //CFG_OS_TINY == false
+         g_s64RunningStartCnt = g_s64OsTimeCnt;
+         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
          g_ptEventRunning=g_ptEventReady;
-         g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);
     }else
     {//优先级高于running的事件全部进入内存等待队列,下一个要处理的事件就是
@@ -764,19 +927,19 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
     struct ExpThrowPara  parahead;
     char ExpStr[64] = "事件类型控制块耗尽: ";
     u16 i,evtt_offset;
-    u32 temp;
+
     if((default_prio >= CN_PRIO_SYS_SERVICE) || (default_prio == 0))
     {
         Djy_SaveLastError(EN_KNL_INVALID_PRIO);
-        printf("事件类型优先级非法\n\r");
+        debug_printf("djyos","事件类型优先级非法\n\r");
         return CN_EVTT_ID_INVALID;
     }
     Int_SaveAsynSignal();      //禁止调度也就是禁止异步事件
     //查找空闲的事件控制块
-    for(evtt_offset=0; evtt_offset<gc_u32CfgEvttLimit; evtt_offset++)
-        if( g_ptEvttTable[evtt_offset].property.registered ==0)
+    for(evtt_offset=0; evtt_offset<CFG_EVENT_TYPE_LIMIT; evtt_offset++)
+        if( g_tEvttTable[evtt_offset].property.registered ==0)
             break;
-    if(evtt_offset == gc_u32CfgEvttLimit)     //没有空闲事件控制块
+    if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //没有空闲事件控制块
     {
         parahead.DecoderName = NULL;
         parahead.ExpAction = EN_EXP_DEAL_RECORD;
@@ -786,65 +949,69 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
         parahead.ExpType = CN_EXP_TYPE_ETCB_EXHAUSTED;
         Exp_Throw(&parahead);
         Djy_SaveLastError(EN_KNL_ETCB_EXHAUSTED);
-        printf("没有空闲事件控制块: %s\n\r",evtt_name);
+        debug_printf("djyos","没有空闲事件控制块: %s\n\r",evtt_name);
         Int_RestoreAsynSignal();
         return CN_EVTT_ID_INVALID;
     }else if(evtt_name != NULL) //新类型有名字，需检查有没有重名
     {
-        for(i=0; i<gc_u32CfgEvttLimit; i++)
+#if CFG_OS_TINY == false
+        for(i=0; i<CFG_EVENT_TYPE_LIMIT; i++)
         {
-            if(g_ptEvttTable[i].property.registered == 1)
+            if(g_tEvttTable[i].property.registered == 1)
             {
-                if(strcmp(g_ptEvttTable[i].evtt_name,evtt_name) == 0)
+                if(strcmp(g_tEvttTable[i].evtt_name,evtt_name) == 0)
                 {
                     Djy_SaveLastError(EN_KNL_EVTT_HOMONYMY);
-                    printf("事件类型重名: %s\n\r",evtt_name);
+                    debug_printf("djyos","事件类型重名: %s\n\r",evtt_name);
                     Int_RestoreAsynSignal();
                     return CN_EVTT_ID_INVALID;
                 }
             }
         }
         if(strnlen(evtt_name,32) <= 31)
-            strcpy(g_ptEvttTable[evtt_offset].evtt_name,evtt_name);
+            strcpy(g_tEvttTable[evtt_offset].evtt_name,evtt_name);
         else
         {
-            memcpy(g_ptEvttTable[evtt_offset].evtt_name,evtt_name,31);
-            g_ptEvttTable[evtt_offset].evtt_name[31] = '\0';
+            memcpy(g_tEvttTable[evtt_offset].evtt_name,evtt_name,31);
+            g_tEvttTable[evtt_offset].evtt_name[31] = '\0';
         }
+#endif  //CFG_OS_TINY == false
     }else
     {
-        g_ptEvttTable[evtt_offset].evtt_name[0] = '\0';   //清空事件类型名
+#if CFG_OS_TINY == false
+        g_tEvttTable[evtt_offset].evtt_name[0] = '\0';   //清空事件类型名
+#endif  //CFG_OS_TINY == false
     }
 
-    g_ptEvttTable[evtt_offset].default_prio = default_prio;
-    g_ptEvttTable[evtt_offset].events = 0;
-    g_ptEvttTable[evtt_offset].vpus_limit = vpus_limit;
+    g_tEvttTable[evtt_offset].default_prio = default_prio;
+    g_tEvttTable[evtt_offset].events = 0;
+    g_tEvttTable[evtt_offset].vpus_limit = vpus_limit;
     if(relation == EN_INDEPENDENCE)
     {
         //高优先级事件类型至少保留一个线程
         if( (vpus_res == 0) && ((default_prio < 0x80)
-                              || (CN_CFG_DYNAMIC_MEM == 0) ) )
-            g_ptEvttTable[evtt_offset].vpus_res = 1;
+                              || (CFG_DYNAMIC_MEM == 0) ) )
+            g_tEvttTable[evtt_offset].vpus_res = 1;
         else
-            g_ptEvttTable[evtt_offset].vpus_res = vpus_res;
+            g_tEvttTable[evtt_offset].vpus_res = vpus_res;
     }else
     {
-        g_ptEvttTable[evtt_offset].vpus_res = 0;    //关联型事件，vpus_res无效
+        g_tEvttTable[evtt_offset].vpus_res = 0;    //关联型事件，vpus_res无效
     }
-    g_ptEvttTable[evtt_offset].SchHook = (SchHookFunc)NULL_func;
-    g_ptEvttTable[evtt_offset].thread_routine = thread_routine;
-    g_ptEvttTable[evtt_offset].stack_size = StackSize;
-//  g_ptEvttTable[evtt_offset].mark_event = NULL;
-    g_ptEvttTable[evtt_offset].done_sync = NULL;
-    g_ptEvttTable[evtt_offset].pop_sync = NULL;
-//    g_ptEvttTable[evtt_offset].para_limit = para_limit;
+    g_tEvttTable[evtt_offset].SchHook = (SchHookFunc)NULL_func;
+    g_tEvttTable[evtt_offset].thread_routine = thread_routine;
+    g_tEvttTable[evtt_offset].stack_size = StackSize;
+//  g_tEvttTable[evtt_offset].mark_event = NULL;
+    g_tEvttTable[evtt_offset].done_sync = NULL;
+    g_tEvttTable[evtt_offset].pop_sync = NULL;
+//    g_tEvttTable[evtt_offset].para_limit = para_limit;
     if(Stack == NULL)
     {
-//        if((default_prio<0x80) ||(CN_CFG_DYNAMIC_MEM == 0))
+//        if((default_prio<0x80) ||(CFG_DYNAMIC_MEM == 0))
 //        {//运行模式为si或dlsp，或该事件类型拥有紧急优先级，需预先创建一个线程
-//            g_ptEvttTable[evtt_offset].my_free_vm =
-//                                __CreateThread(&g_ptEvttTable[evtt_offset],&temp);
-//            if(g_ptEvttTable[evtt_offset].my_free_vm == NULL)
+//            g_tEvttTable[evtt_offset].my_free_vm =
+//                                __CreateThread(&g_tEvttTable[evtt_offset],&temp);
+//            if(g_tEvttTable[evtt_offset].my_free_vm == NULL)
 //            {//内存不足，不能创建线程
 //                parahead.DecoderName = NULL;
 //                parahead.ExpAction = EN_EXP_DEAL_RECORD;
@@ -856,30 +1023,30 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //                parahead.ExpType = CN_EXP_TYPE_MEM_EVTT;
 //                Exp_Throw(&parahead);
 //                Djy_SaveLastError(EN_MEM_TRIED);
-//                printf("%s\n\r",evtt_name);
+//                debug_printf("djyos","%s\n\r",evtt_name);
 //                Int_RestoreAsynSignal();
 //                return CN_EVTT_ID_INVALID;
 //            }else
 //            {
-//                g_ptEvttTable[evtt_offset].vpus = 1;
+//                g_tEvttTable[evtt_offset].vpus = 1;
 //            }
 //        }else
 //        {
-            g_ptEvttTable[evtt_offset].vpus = 0;
-            g_ptEvttTable[evtt_offset].my_free_vm = NULL;
+            g_tEvttTable[evtt_offset].vpus = 0;
+            g_tEvttTable[evtt_offset].my_free_vm = NULL;
 //        }
     }
     else
     {
-        g_ptEvttTable[evtt_offset].vpus = 1;
-        g_ptEvttTable[evtt_offset].my_free_vm =
-               __CreateStaticThread(&g_ptEvttTable[evtt_offset],Stack,StackSize);
+        g_tEvttTable[evtt_offset].vpus = 1;
+        g_tEvttTable[evtt_offset].my_free_vm =
+               __CreateStaticThread(&g_tEvttTable[evtt_offset],Stack,StackSize);
     }
-    g_ptEvttTable[evtt_offset].property.correlative = relation;
-    g_ptEvttTable[evtt_offset].property.registered = 1;
-    g_ptEvttTable[evtt_offset].property.inuse = 0;
-    g_ptEvttTable[evtt_offset].property.deleting = 0;
-    g_ptEvttTable[evtt_offset].pop_times = 0;
+    g_tEvttTable[evtt_offset].property.correlative = relation;
+    g_tEvttTable[evtt_offset].property.registered = 1;
+    g_tEvttTable[evtt_offset].property.inuse = 0;
+    g_tEvttTable[evtt_offset].property.deleting = 0;
+    g_tEvttTable[evtt_offset].pop_times = 0;
     Int_RestoreAsynSignal();
     return evtt_offset | CN_EVTT_ID_MASK;
 }
@@ -893,14 +1060,14 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //----------------------------------------------------------------------------
 bool_t Djy_RegisterHook(u16 EvttID,SchHookFunc HookFunc)
 {
-    if(EvttID-CN_EVTT_ID_BASE  >= gc_u32CfgEvttLimit)
+    if(EvttID-CN_EVTT_ID_BASE  >= CFG_EVENT_TYPE_LIMIT)
     {
         return false;
     }
     else
     {
         //无须判断相应EvttID是否被使用
-        g_ptEvttTable[EvttID-CN_EVTT_ID_BASE].SchHook = HookFunc;
+        g_tEvttTable[EvttID-CN_EVTT_ID_BASE].SchHook = HookFunc;
     }
     return true;
 }
@@ -913,16 +1080,20 @@ bool_t Djy_RegisterHook(u16 EvttID,SchHookFunc HookFunc)
 //----------------------------------------------------------------------------
 u16 Djy_GetEvttId(char *evtt_name)
 {
+#if CFG_OS_TINY == false
     u16 loop;
     if(evtt_name == NULL)
         return CN_EVTT_ID_INVALID;
-    for(loop = 0; loop < gc_u32CfgEvttLimit; loop++)
+    for(loop = 0; loop < CFG_EVENT_TYPE_LIMIT; loop++)
     {
-        if((strcmp(g_ptEvttTable[loop].evtt_name,evtt_name) ==0)
-                &&(g_ptEvttTable[loop].property.registered))
+        if((strcmp(g_tEvttTable[loop].evtt_name,evtt_name) ==0)
+                &&(g_tEvttTable[loop].property.registered))
             return loop | CN_EVTT_ID_MASK;
     }
     return CN_EVTT_ID_INVALID;
+#else
+    return CN_EVTT_ID_INVALID;
+#endif  //CFG_OS_TINY == false
 }
 
 //----删除事件类型-------------------------------------------------------------
@@ -938,10 +1109,10 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
     struct EventType *pl_evtt;
     struct EventECB *pl_ecb,*pl_ecb_temp;
     bool_t result = true;
-    if((evtt_id & (~CN_EVTT_ID_MASK)) >= gc_u32CfgEvttLimit)
+    if((evtt_id & (~CN_EVTT_ID_MASK)) >= CFG_EVENT_TYPE_LIMIT)
         return false;
     Int_SaveAsynSignal();
-    pl_evtt = &g_ptEvttTable[evtt_id & (~CN_EVTT_ID_MASK)];
+    pl_evtt = &g_tEvttTable[evtt_id & (~CN_EVTT_ID_MASK)];
     if(pl_evtt->property.registered == 0)
     {//该事件类型是无效事件类型
         result = false;
@@ -1000,7 +1171,9 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
     {
         //回收事件类型控制块，只需把registered属性清零。
         pl_evtt->property.registered = 0;
+#if CFG_OS_TINY == false
         pl_evtt->evtt_name[0] = '\0';      //清空事件类型名
+#endif  //CFG_OS_TINY == false
         next_vm = pl_evtt->my_free_vm;
         while(next_vm != NULL)          //释放该事件类型拥有的空闲线程
         {
@@ -1042,88 +1215,88 @@ const struct EventECB cn_sys_event = {
 
 //----建立事件链表-------------------------------------------------------------
 //功能：1.根据系统设定初始化操作系统线程和事件表指针
-//      2.把 gc_u32CfgEventLimit 个事件控制块结构连接成一个空闲队列,队列的结构参见
+//      2.把 CFG_EVENT_LIMIT 个事件控制块结构连接成一个空闲队列,队列的结构参见
 //        文档，由指针pg_free_event索引,
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
-void __Djy_InitSys(void)
+void __InitSys(void)
 {
     u16 i;
     u8 *IdleStack;
     struct ThreadVm *vm;
     g_ptEventDelay=NULL;    //延时事件链表空
 
-    IdleStack = M_Malloc(gc_IdleSeventStackSize,0);
-    g_ptECB_Table = M_Malloc(gc_u32CfgEventLimit * sizeof(struct EventECB),0);
-    g_ptEvttTable = M_Malloc(gc_u32CfgEvttLimit * sizeof(struct EventType),0);
-    if(g_ptEvttTable == NULL)
+    IdleStack = M_Malloc(CFG_IDLESTACK_LIMIT,0);
+    if(g_tEvttTable == NULL)
     {
         while(1);       //此时IO系统未准备好，能跑到这里，开发调试时必然能发现。
     }
     //把事件类型表全部置为没有注册,0为系统服务类型
-    for(i=1; i<gc_u32CfgEvttLimit; i++)
+    for(i=1; i<CFG_EVENT_TYPE_LIMIT; i++)
     {
-        g_ptEvttTable[i].property.registered = 0;
+        g_tEvttTable[i].property.registered = 0;
     }
-    for(i = 1; i < gc_u32CfgEventLimit; i++)    //i=0为系统服务事件
+    for(i = 1; i < CFG_EVENT_LIMIT; i++)    //i=0为系统服务事件
     {
-        if(i==(gc_u32CfgEventLimit-1))
-            g_ptECB_Table[i].next = NULL;
+        if(i==(CFG_EVENT_LIMIT-1))
+            g_tECB_Table[i].next = NULL;
         else
-            g_ptECB_Table[i].next = &g_ptECB_Table[i+1];
+            g_tECB_Table[i].next = &g_tECB_Table[i+1];
         //向前指针指向pg_event_free的地址,说明这事个空闲事件块.
         //没有别的含义,只是找一个唯一且不变的数值,全局变量地址在整个运行期
         //是不会变化的.
-        g_ptECB_Table[i].previous = (struct EventECB*)&s_ptEventFree;
-        g_ptECB_Table[i].event_id = i;    //本id号在程序运行期维持不变
-        g_ptECB_Table[i].evtt_id = CN_EVENT_ID_INVALID;
+        g_tECB_Table[i].previous = (struct EventECB*)&s_ptEventFree;
+        g_tECB_Table[i].event_id = i;    //本id号在程序运行期维持不变
+        g_tECB_Table[i].evtt_id = CN_EVENT_ID_INVALID;
     }
-    s_ptEventFree = &g_ptECB_Table[1];
+    s_ptEventFree = &g_tECB_Table[1];
 
-    g_ptEventReady = g_ptECB_Table;
+    g_ptEventReady = g_tECB_Table;
     g_ptEventRunning = g_ptEventReady;
-    g_ptEvttTable[0].property.correlative = 1;
-//    g_ptEvttTable[0].property.overlay = 0;
-    g_ptEvttTable[0].property.registered = 1;
-    g_ptEvttTable[0].property.inuse = 1;
-    g_ptEvttTable[0].property.deleting = 0;
-    g_ptEvttTable[0].my_free_vm = NULL;
-    g_ptEvttTable[0].SchHook = (SchHookFunc)NULL_func;
-   // g_ptEvttTable[0].evtt_name[0] = '\0';
+    g_tEvttTable[0].property.correlative = 1;
+//    g_tEvttTable[0].property.overlay = 0;
+    g_tEvttTable[0].property.registered = 1;
+    g_tEvttTable[0].property.inuse = 1;
+    g_tEvttTable[0].property.deleting = 0;
+    g_tEvttTable[0].my_free_vm = NULL;
+    g_tEvttTable[0].SchHook = (SchHookFunc)NULL_func;
+   // g_tEvttTable[0].evtt_name[0] = '\0';
 
-    strcpy(g_ptEvttTable[0].evtt_name,"sys_idle");
+#if CFG_OS_TINY == false
+    strcpy(g_tEvttTable[0].evtt_name,"sys_idle");
+#endif  //CFG_OS_TINY == false
 
-    g_ptEvttTable[0].default_prio = CN_PRIO_SYS_SERVICE;
-    g_ptEvttTable[0].events = 1;
-    g_ptEvttTable[0].vpus_res =0;
-    g_ptEvttTable[0].vpus_limit =1;
-    g_ptEvttTable[0].vpus = 1;
-    g_ptEvttTable[0].thread_routine = __Djy_Service;
-    g_ptEvttTable[0].stack_size = gc_IdleSeventStackSize;
-//  g_ptEvttTable[0].mark_event = g_ptECB_Table;
-    g_ptEvttTable[0].done_sync = NULL;
-    g_ptEvttTable[0].pop_sync = NULL;
+    g_tEvttTable[0].default_prio = CN_PRIO_SYS_SERVICE;
+    g_tEvttTable[0].events = 1;
+    g_tEvttTable[0].vpus_res =0;
+    g_tEvttTable[0].vpus_limit =1;
+    g_tEvttTable[0].vpus = 1;
+    g_tEvttTable[0].thread_routine = __Djy_Service;
+    g_tEvttTable[0].stack_size = CFG_IDLESTACK_LIMIT;
+//  g_tEvttTable[0].mark_event = g_tECB_Table;
+    g_tEvttTable[0].done_sync = NULL;
+    g_tEvttTable[0].pop_sync = NULL;
 
-    vm = __CreateStaticThread(&g_ptEvttTable[0],IdleStack,gc_IdleSeventStackSize);
+    vm = __CreateStaticThread(&g_tEvttTable[0],IdleStack,CFG_IDLESTACK_LIMIT);
     if(vm == NULL)      //内存不足，不能创建常驻线程
     {
         //此时g_ptEventRunning尚未赋值，无法调用Djy_SaveLastError
 //        Djy_SaveLastError(EN_MEM_TRIED);
-//        printf"创建线程时内存不足\n\r");
-        g_ptEvttTable[0].vpus = 0;
+//        debug_printf("djyos","创建线程时内存不足\n\r");
+        g_tEvttTable[0].vpus = 0;
         return ;
     }
     //以下模拟popup函数,弹出系统服务事件.当事件队列为空时,调用popup的结果
     //是不可预知的.由于系统运行时,系统服务事件总在队列中,所以事件队列是不会空
     //的,这里模拟popup事件,而不是直接调用,可以使popup函数中省掉一个判断队列是否
     //空的操作.
-    g_ptECB_Table[0] = cn_sys_event;
-    g_ptECB_Table[0].vm = vm;
-    g_ptECB_Table[0].next = g_ptECB_Table;
-    g_ptECB_Table[0].previous = g_ptECB_Table;
-    g_ptECB_Table[0].multi_next = g_ptECB_Table;
-    g_ptECB_Table[0].multi_previous = g_ptECB_Table;
+    g_tECB_Table[0] = cn_sys_event;
+    g_tECB_Table[0].vm = vm;
+    g_tECB_Table[0].next = g_tECB_Table;
+    g_tECB_Table[0].previous = g_tECB_Table;
+    g_tECB_Table[0].multi_next = g_tECB_Table;
+    g_tECB_Table[0].multi_previous = g_tECB_Table;
 }
 
 //--------检查是否允许调度------------------------------------------------------
@@ -1146,6 +1319,17 @@ bool_t Djy_IsMultiEventStarted(void)
 {
     return g_bMultiEventStarted;
 }
+
+//--------检查系统运行模式--------------------------------------------------
+//功能: 检查系统的运行模式，参看 CN_RUNMODE_SI 族宏定义
+//参数: 无
+//返回: g_u32OsRunMode的值，参看 CN_RUNMODE_SI 族宏定义
+//-----------------------------------------------------------------------------
+u32 Djy_GetRunMode(void)
+{
+    return g_u32OsRunMode;
+}
+
 //----把事件插入就绪队列中----------------------------------------------------
 //功能：把事件插入到就绪队列中合适的位置,该事件原来不在就绪队列中.本函数只处理
 //      事件队列，不设置event_status的值
@@ -1200,18 +1384,27 @@ void __Djy_EventReady(struct EventECB *event_ready)
 //-----------------------------------------------------------------------------
 void __Djy_ResumeDelay(struct EventECB *delay_event)
 {
+    g_s64OsTimeCnt = __DjyGetSysCnt();
     if(g_ptEventDelay->next == g_ptEventDelay)  //队列中只有一个事件
+    {
         g_ptEventDelay = NULL;
+        g_s64OsNextDelayCnt = CN_LIMIT_UINT64;
+        __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,RESUME_DELAY);
+    }
     else
     {
         if(delay_event == g_ptEventDelay)
+        {
             g_ptEventDelay = g_ptEventDelay->next;
+            g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
+            __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,RESUME_DELAY);
+        }
         delay_event->next->previous = delay_event->previous;
         delay_event->previous->next = delay_event->next;
     }
     delay_event->next = NULL;
     delay_event->previous = NULL;
-    delay_event->delay_end_tick = DjyGetSysTick();
+    delay_event->delay_end_cnt = g_s64OsTimeCnt;
 }
 
 //----加入延时队列------------------------------------------------------------
@@ -1229,21 +1422,23 @@ void __Djy_AddToDelay(u32 u32l_uS)
 {
     struct EventECB * event;
 
-    g_ptEventRunning->delay_start_tick = DjyGetSysTick(); //事件延时开始时间
-    g_ptEventRunning->delay_end_tick = g_ptEventRunning->delay_start_tick
-                  + ((s64)u32l_uS + CN_CFG_TICK_US -(u32)1)/CN_CFG_TICK_US; //闹铃时间
-
+    g_ptEventRunning->delay_start_cnt = __DjyGetSysCnt(); //事件延时开始时间
+    g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt + \
+                                                __Djy_TimeBaseUsToCnt(u32l_uS); //闹铃时间
+    g_s64OsTimeCnt = g_ptEventRunning->delay_start_cnt;
     if(g_ptEventDelay==NULL)    //延时队列空
     {
         g_ptEventRunning->next = g_ptEventRunning;
         g_ptEventRunning->previous = g_ptEventRunning;
         g_ptEventDelay=g_ptEventRunning;
+        g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
+        __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
     }else
     {
         event = g_ptEventDelay;
         do
         {//本循环找到第一个剩余延时时间大于新延时事件的事件.
-            if(event->delay_end_tick <= g_ptEventRunning->delay_end_tick)
+            if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
             {
                 event = event->next;
             }
@@ -1259,9 +1454,13 @@ void __Djy_AddToDelay(u32 u32l_uS)
         g_ptEventRunning->previous = event->previous;
         event->previous->next = g_ptEventRunning;
         event->previous = g_ptEventRunning;
-        if(g_ptEventDelay->delay_end_tick > g_ptEventRunning->delay_end_tick)
+        if(g_ptEventDelay->delay_end_cnt > g_ptEventRunning->delay_end_cnt)
             //新事件延时小于原队列中的最小延时.
+        {
             g_ptEventDelay = g_ptEventRunning;
+            g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
+            __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
+        }
     }
 }
 
@@ -1336,10 +1535,10 @@ bool_t __Djy_RaiseTempPrioForStack(u16 event_id)
 {
     struct EventECB * pl_ecb;
 
-    if(event_id >= gc_u32CfgEventLimit)
+    if(event_id >= CFG_EVENT_LIMIT)
         return false;
 
-    pl_ecb = &g_ptECB_Table[event_id];
+    pl_ecb = &g_tECB_Table[event_id];
     if(g_ptEventReady->prio < pl_ecb->prio)
     {
         //事件原来的状态，可能：1、处于就绪态，2、处于某种阻塞态。
@@ -1482,11 +1681,11 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
     struct EventECB * pl_ecb;
 
     if((new_prio >= CN_PRIO_SYS_SERVICE) || (new_prio == 0)
-       || (event_id >= gc_u32CfgEventLimit))
+       || (event_id >= CFG_EVENT_LIMIT))
         return false;
 
     Int_SaveAsynSignal();
-    pl_ecb = &g_ptECB_Table[event_id];
+    pl_ecb = &g_tECB_Table[event_id];
     pl_ecb->prio_base = new_prio;
     if(new_prio != pl_ecb->prio)
     {
@@ -1520,11 +1719,11 @@ bool_t Djy_RaiseTempPrio(u16 event_id)
 {
     struct EventECB * pl_ecb;
 
-    if(event_id >= gc_u32CfgEventLimit)
+    if(event_id >= CFG_EVENT_LIMIT)
         return false;
 
     Int_SaveAsynSignal();
-    pl_ecb = &g_ptECB_Table[event_id];
+    pl_ecb = &g_tECB_Table[event_id];
     if(g_ptEventRunning->prio < pl_ecb->prio)
     {
         //事件原来的状态，可能：1、处于就绪态，2、处于某种阻塞态。
@@ -1594,7 +1793,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
         if((g_ptEventRunning->prio == g_ptEventRunning->next->prio)
                     && (g_ptEventRunning != g_ptEventRunning->next)   )
         {
-            g_ptEventRunning->delay_start_tick = DjyGetSysTick();//闹铃时间
+            g_ptEventRunning->delay_start_cnt = __DjyGetSysCnt();//闹铃时间
             __Djy_CutReadyEvent(g_ptEventRunning);      //从同步队列取出
             __Djy_EventReady(g_ptEventRunning);            //放回同步队列尾部
         }else
@@ -1604,9 +1803,10 @@ u32 Djy_EventDelay(u32 u32l_uS)
         }
     }else
     {
-        g_ptEventRunning->delay_start_tick =DjyGetSysTick();//设定闹铃的时间
-        g_ptEventRunning->delay_end_tick = g_ptEventRunning->delay_start_tick
-                  + ((s64)u32l_uS + CN_CFG_TICK_US -(u32)1)/CN_CFG_TICK_US; //闹铃时间
+        g_ptEventRunning->delay_start_cnt =__DjyGetSysCnt();//设定闹铃的时间
+        g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt +   \
+                                                __Djy_TimeBaseUsToCnt((u64)u32l_uS);//闹铃时间
+        g_s64OsTimeCnt = g_ptEventRunning->delay_start_cnt;
 
         __Djy_CutReadyEvent(g_ptEventRunning);
 
@@ -1616,12 +1816,14 @@ u32 Djy_EventDelay(u32 u32l_uS)
             g_ptEventRunning->next = g_ptEventRunning;
             g_ptEventRunning->previous = g_ptEventRunning;
             g_ptEventDelay=g_ptEventRunning;
+            g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
+            __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
         }else
         {
             event = g_ptEventDelay;
             do
             {//本循环找到第一个闹铃时间晚于新事件的事件.
-                if(event->delay_end_tick <= g_ptEventRunning->delay_end_tick)
+                if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
                 {
                     event = event->next;
                 }
@@ -1634,13 +1836,17 @@ u32 Djy_EventDelay(u32 u32l_uS)
             g_ptEventRunning->previous = event->previous;
             event->previous->next = g_ptEventRunning;
             event->previous = g_ptEventRunning;
-            if(g_ptEventDelay->delay_end_tick >g_ptEventRunning->delay_end_tick)
+            if(g_ptEventDelay->delay_end_cnt >g_ptEventRunning->delay_end_cnt)
                 //新事件延时小于原队列中的最小延时.
+            {
                 g_ptEventDelay = g_ptEventRunning;
+                g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
+                __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
+            }
         }
     }
     Int_RestoreAsynSignal();
-    return (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
+    return (__DjyGetSysCnt() -g_ptEventRunning->delay_start_cnt);
 }
 
 //----闹钟同步2----------------------------------------------------------------
@@ -1650,20 +1856,21 @@ u32 Djy_EventDelay(u32 u32l_uS)
 //备注：延时队列为双向循环链表
 //add by lst in 20130922
 //-----------------------------------------------------------------------------
-u32 Djy_EventDelayTo(s64 s64l_uS)
+u64 Djy_EventDelayTo(u64 u64l_uS)
 {
     struct EventECB * event;
 
     if( !Djy_QuerySch())
     {
 //      Djy_SaveLastError(EN_KNL_CANT_SCHED);
-        Djy_DelayUs((u32)(s64l_uS - DjyGetSysTime()));
+        Djy_DelayUs((u32)(u64l_uS - DjyGetSysTime()));
         return 0;
     }
     Int_SaveAsynSignal();
-    g_ptEventRunning->delay_start_tick =DjyGetSysTick();//设定闹铃的时间
-    g_ptEventRunning->delay_end_tick =(s64l_uS +CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
-    if(g_ptEventRunning->delay_end_tick <= g_ptEventRunning->delay_start_tick)
+    g_ptEventRunning->delay_start_cnt =__DjyGetSysCnt();//设定闹铃的时间
+    g_ptEventRunning->delay_end_cnt = __Djy_TimeBaseUsToCnt(u64l_uS);
+    g_s64OsTimeCnt = g_ptEventRunning->delay_start_cnt;
+    if(g_ptEventRunning->delay_end_cnt <= g_ptEventRunning->delay_start_cnt)
     {
         Int_RestoreAsynSignal();
         return 0;
@@ -1677,12 +1884,14 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         g_ptEventRunning->next = g_ptEventRunning;
         g_ptEventRunning->previous = g_ptEventRunning;
         g_ptEventDelay=g_ptEventRunning;
+        g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
+        __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
     }else
     {
         event = g_ptEventDelay;
         do
         {//本循环找到第一个闹铃时间晚于新事件的事件.
-            if(event->delay_end_tick <= g_ptEventRunning->delay_end_tick)
+            if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
             {
                 event = event->next;
             }
@@ -1695,12 +1904,16 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         g_ptEventRunning->previous = event->previous;
         event->previous->next = g_ptEventRunning;
         event->previous = g_ptEventRunning;
-        if(g_ptEventDelay->delay_end_tick >g_ptEventRunning->delay_end_tick)
+        if(g_ptEventDelay->delay_end_cnt >g_ptEventRunning->delay_end_cnt)
             //新事件延时小于原队列中的最小延时.
+        {
             g_ptEventDelay = g_ptEventRunning;
+            g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
+            __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
+        }
     }
     Int_RestoreAsynSignal();
-    return (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
+    return (__DjyGetSysCnt() -g_ptEventRunning->delay_start_cnt);
 }
 
 //----同步事件----------------------------------------------------------------
@@ -1719,7 +1932,7 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
 u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout)
 {
     struct EventECB * pl_ecb;
-    pl_ecb = &g_ptECB_Table[event_id];
+    pl_ecb = &g_tECB_Table[event_id];
 
     if (event_id == g_ptEventRunning->event_id)
         return CN_EVENT_ID_INVALID;
@@ -1799,9 +2012,9 @@ u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout)
     struct EventECB *pl_ecb;
     u16 evttoffset;
     evttoffset = evtt_id & (~CN_EVTT_ID_MASK);
-    if(evttoffset >= gc_u32CfgEvttLimit)
+    if(evttoffset >= CFG_EVENT_TYPE_LIMIT)
         return EN_KNL_EVTTID_LIMIT;
-    pl_evtt = &g_ptEvttTable[evttoffset];
+    pl_evtt = &g_tEvttTable[evttoffset];
     if(Djy_QuerySch() == false)  //不能在禁止调度的情况下执行同步操作
         return (u32)EN_KNL_CANT_SCHED;
     if(timeout == 0)
@@ -1897,9 +2110,9 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
         return CN_SYNC_ERROR;
     }
     evttoffset = evtt_id & (~CN_EVTT_ID_MASK);
-    if(evttoffset >= gc_u32CfgEvttLimit)
+    if(evttoffset >= CFG_EVENT_TYPE_LIMIT)
         return CN_SYNC_ERROR;
-    pl_evtt = &g_ptEvttTable[evttoffset];
+    pl_evtt = &g_tEvttTable[evttoffset];
     //不能在禁止调度的情况下执行同步操作
     if(Djy_QuerySch() == false)
         return CN_SYNC_ERROR;
@@ -2033,7 +2246,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
     if(hybrid_id >= CN_EVTT_ID_BASE)
     {
         evtt_offset = hybrid_id & (~CN_EVTT_ID_MASK);
-        if(evtt_offset >= gc_u32CfgEvttLimit)
+        if(evtt_offset >= CFG_EVENT_TYPE_LIMIT)
         {
             Djy_SaveLastError(EN_KNL_EVTTID_LIMIT);
             if(pop_result != NULL)
@@ -2043,7 +2256,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
     }
     else
     {
-        if(hybrid_id >= gc_u32CfgEventLimit)
+        if(hybrid_id >= CFG_EVENT_LIMIT)
         {
             Djy_SaveLastError(EN_KNL_EVENT_FREE);
             if(pop_result != NULL)
@@ -2052,7 +2265,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
         }
         else
         {
-            evtt_offset = g_ptECB_Table[hybrid_id].evtt_id & (~CN_EVTT_ID_MASK);
+            evtt_offset = g_tECB_Table[hybrid_id].evtt_id & (~CN_EVTT_ID_MASK);
         }
     }
     schbak = Djy_QuerySch( );
@@ -2063,7 +2276,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
             *pop_result = (ptu32_t)EN_KNL_CANT_SCHED;
         return CN_EVENT_ID_INVALID;
     }
-    pl_evtt =&g_ptEvttTable[evtt_offset];
+    pl_evtt =&g_tEvttTable[evtt_offset];
     if((pl_evtt->property.registered == 0)      //类型未登记
         ||(pl_evtt->property.deleting == 1))    //事件类型正在等待注销
     {
@@ -2202,14 +2415,14 @@ u16 Djy_EventPop(   u16  hybrid_id,
             pl_ecb->sync = NULL;
             pl_ecb->sync_head = NULL;
 
-            pl_ecb->EventStartTime = DjyGetSysTime();   //事件发生时间
-            pl_ecb->consumed_time = 0;
-//#if(CN_CFG_DEBUG_INFO == 1)
-            pl_ecb->consumed_time_second = 0;
-            pl_ecb->consumed_time_record = 0;
-//#endif
-            pl_ecb->delay_start_tick = 0;
-            pl_ecb->delay_end_tick = 0;
+#if CFG_OS_TINY == false
+            pl_ecb->EventStartCnt = __DjyGetSysCnt();   //事件发生时间
+            pl_ecb->consumed_cnt = 0;
+            pl_ecb->consumed_cnt_second = 0;
+            pl_ecb->consumed_cnt_record = 0;
+#endif  //CFG_OS_TINY == false
+            pl_ecb->delay_start_cnt = 0;
+            pl_ecb->delay_end_cnt = 0;
             pl_ecb->error_no = 0;
             pl_ecb->wait_mem_size = 0;
             pl_ecb->wakeup_from = CN_WF_EVENT_NORUN;
@@ -2244,7 +2457,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
 //      if(pl_evtt->property.correlative == EN_INDEPENDENCE)
 //      {
 //          //此时hybrid_id一定是事件ID,而mark_event并不指向相应事件
-        pl_ecb = &g_ptECB_Table[hybrid_id];
+        pl_ecb = &g_tECB_Table[hybrid_id];
 //      }
 //      else
 //      {
@@ -2291,7 +2504,7 @@ end_pop:
 //-----------------------------------------------------------------------------
 u32 Djy_GetEvttPopTimes(u16 evtt_id)
 {
-    return g_ptEvttTable[evtt_id &(~CN_EVTT_ID_MASK)].pop_times;
+    return g_tEvttTable[evtt_id &(~CN_EVTT_ID_MASK)].pop_times;
 }
 
 //----取事件处理结果-----------------------------------------------------------
@@ -2363,15 +2576,16 @@ u16 Djy_MyEventId(void)
 //参数: 无
 //返回: 无
 //_____________________________________________________________________________
-void __Djy_StartOs(void)
+void __StartOs(void)
 {
     //本句为容错性质，以防用户模块初始化过程中没有成对调用异步信号使能与禁止函数
     __Int_ResetAsynSignal();
-    __DjyInitTick();
+    __DjyStartTimeBase();
     __Djy_SelectEventToRun();
     g_ptEventRunning = g_ptEventReady;
     g_bScheduleEnable = true;
     g_bMultiEventStarted = true;
+    g_u32OsRunMode = CN_RUNMODE_SI;
     Int_HalfEnableAsynSignal( );
     __asm_start_thread(g_ptEventRunning->vm);
 }
@@ -2497,7 +2711,7 @@ void __Djy_CutEcbFromSync(struct EventECB  *event)
 //{
 //    struct EventType  *pl_evtt;
 //
-//    pl_evtt =& g_ptEvttTable[event->evtt_id &(~CN_EVTT_ID_MASK)];
+//    pl_evtt =& g_tEvttTable[event->evtt_id &(~CN_EVTT_ID_MASK)];
 //    if(event == event->previous)//maked队列中只有一个
 //    {
 //        pl_evtt->mark_event = NULL;
@@ -2553,7 +2767,7 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 //  __Djy_ActiveEventParaSyncExp(g_ptEventRunning->para_high_prio);
 //  __Djy_ActiveEventParaSyncExp(g_ptEventRunning->para_low_prio);
 
-#if (CN_CFG_DYNAMIC_MEM == 1)
+#if (CFG_DYNAMIC_MEM == 1)
     if(g_ptEventRunning->local_memory != 0)
     {
         __M_CleanUp(g_ptEventRunning->event_id);    //
@@ -2565,11 +2779,11 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     g_ptEventRunning->next = s_ptEventFree;     //pg_event_free是单向非循环队列
     g_ptEventRunning->evtt_id = CN_EVTT_ID_INVALID;     //todo
     s_ptEventFree = g_ptEventRunning;
-    s_ptEventFree->event_id = s_ptEventFree - g_ptECB_Table;   //容错用
+    s_ptEventFree->event_id = s_ptEventFree - g_tECB_Table;   //容错用
 
     //下面处理完成同步队列，必须联系共享文档的相关章节才容易读懂，注释难于解释
     //那么清楚的。
-    pl_evtt =&g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
+    pl_evtt =&g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
     pl_evtt->events--;
     pl_ecb = pl_evtt->done_sync;
     while(pl_ecb != NULL)
@@ -2683,7 +2897,9 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
         next_vm = pl_evtt->my_free_vm;
         //回收事件类型控制块，只需把registered属性清零。
         pl_evtt->property.registered = 0;
+#if CFG_OS_TINY == false
         pl_evtt->evtt_name[0] = '\0';   //清空事件类型名
+#endif  //CFG_OS_TINY == false
         while(next_vm != NULL)          //释放该事件类型拥有的空闲线程
         {
             temp = next_vm;
@@ -2699,49 +2915,12 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
         free((void*)g_ptEventRunning->vm);    //删除线程
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
-        g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+        g_s64RunningStartCnt = __DjyGetSysCnt();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }else if(vm_final == CN_KEEP)    //保留线程
     {
-        //本事件类型有等待的VM的ECB,将vm转交给响应队列中的ECB就可以。
-//      if((pl_evtt->property.correlative == EN_INDEPENDENCE)&&\
-//              (pl_evtt->mark_event != NULL))
-//      {
-//          pl_ecb = pl_evtt->mark_event;
-//          if(pl_evtt->mark_event->previous == pl_evtt->mark_event)//只有一个
-//          {
-//              pl_evtt->mark_event = NULL;
-//          }
-//          else
-//          {
-//              pl_ecb->previous->next = pl_ecb->next;
-//              pl_ecb->next->previous = pl_ecb->previous;
-//              pl_evtt->mark_event = pl_ecb->next;
-//          }
-//          //从同步队列中移除,可以肯定的是内存同步队列
-//          if(NULL != pl_ecb->sync_head)
-//          {
-//              __Djy_CutEcbFromSync(pl_ecb);
-//          }
-//          //接受旧线程的VM
-//          pl_ecb->vm = g_ptEventRunning->vm;
-//          __Djy_EventReady(pl_ecb);
-//          pl_ecb = g_ptEventRunning;
-//          pl_evtt->SchHook(EN_SWITCH_OUT);
-//
-//          g_ptEventRunning=g_ptEventReady;
-//          g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-//          g_s64RunningStartTime = DjyGetSysTime();
-//          pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
-//          //下面一句很关键，running和pl_ecb可能是同一个，所以一定要先reset，然
-//          //后switch
-//          Int_HalfEnableAsynSignal( );
-//          __asm_reset_switch(pl_evtt->thread_routine,
-//                          g_ptEventRunning->vm,pl_ecb->vm);
-//      }
-//      else//这种情况下还是放在free队列吧
         {
             g_ptEventRunning->vm->next = pl_evtt->my_free_vm;
             pl_evtt->my_free_vm = g_ptEventRunning->vm;
@@ -2749,8 +2928,8 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
             pl_evtt->SchHook(EN_SWITCH_OUT);
 
             g_ptEventRunning=g_ptEventReady;
-            g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-            g_s64RunningStartTime = DjyGetSysTime();
+            g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+            g_s64RunningStartCnt = __DjyGetSysCnt();
             pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
             Int_HalfEnableAsynSignal( );
             __asm_reset_switch(pl_evtt->thread_routine,
@@ -2760,8 +2939,8 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     {
 //        pl_ecb = g_ptEventRunning;
         g_ptEventRunning = g_ptEventReady;
-        g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+        g_s64RunningStartCnt = __DjyGetSysCnt();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }
@@ -2836,7 +3015,7 @@ void Djy_EventComplete(ptu32_t result)
     struct EventECB *pl_ecb_temp;
     ucpu_t  vm_final = CN_DELETE;
 
-    pl_evtt =&g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
+    pl_evtt =&g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.
     //下面处理同步队列，必须联系共享文档的相关章节才容易读懂，注释难于解释
     //那么清楚的。
@@ -2917,7 +3096,7 @@ void Djy_EventComplete(ptu32_t result)
         }
     }
     //以下看事件的线程如何处理。
-#if (CN_CFG_DYNAMIC_MEM == 1)
+#if (CFG_DYNAMIC_MEM == 1)
     if(g_ptEventRunning->local_memory != 0)
     {
         __M_CleanUp(g_ptEventRunning->event_id);//强行清除事件运行中申请的内存
@@ -2929,7 +3108,7 @@ void Djy_EventComplete(ptu32_t result)
     g_ptEventRunning->next = s_ptEventFree;     //pg_event_free是单向非循环队列
     g_ptEventRunning->evtt_id = CN_EVTT_ID_INVALID;     //todo
     s_ptEventFree = g_ptEventRunning;
-    s_ptEventFree->event_id = s_ptEventFree - g_ptECB_Table;   //容错用
+    s_ptEventFree->event_id = s_ptEventFree - g_tECB_Table;   //容错用
 
     pl_evtt->events--;
 
@@ -2982,7 +3161,9 @@ void Djy_EventComplete(ptu32_t result)
         next_vm = pl_evtt->my_free_vm;
         //回收事件类型控制块，只需把registered属性清零。
         pl_evtt->property.registered = 0;
+#if CFG_OS_TINY == false
         pl_evtt->evtt_name[0] = '\0';   //清空事件类型名
+#endif  //CFG_OS_TINY == false
         while(next_vm != NULL)          //释放该事件类型拥有的空闲线程
         {
             temp = next_vm;
@@ -2998,56 +3179,20 @@ void Djy_EventComplete(ptu32_t result)
         free((void*)g_ptEventRunning->vm);    //删除线程
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
-        g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+        g_s64RunningStartCnt = __DjyGetSysCnt();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }else if(vm_final == CN_KEEP)    //保留线程,和exit一样
     {
-        //本事件类型有等待的VM的ECB,将vm转交给响应队列中的ECB就可以。
-//      if((pl_evtt->property.correlative == EN_INDEPENDENCE)&&\
-//              (pl_evtt->mark_event != NULL))
-//      {
-//          pl_ecb = pl_evtt->mark_event;
-//          if(pl_evtt->mark_event->previous == pl_evtt->mark_event)//只有一个
-//          {
-//              pl_evtt->mark_event = NULL;
-//          }
-//          else
-//          {
-//              pl_ecb->previous->next = pl_ecb->next;
-//              pl_ecb->next->previous = pl_ecb->previous;
-//              pl_evtt->mark_event = pl_ecb->next;
-//          }
-//          //从同步队列中移除,可以肯定的是内存同步队列
-//          if(NULL != pl_ecb->sync_head)
-//          {
-//              __Djy_CutEcbFromSync(pl_ecb);
-//          }
-//          //接受旧线程的VM
-//          pl_ecb->vm = g_ptEventRunning->vm;
-//          __Djy_EventReady(pl_ecb);
-//          pl_ecb = g_ptEventRunning;
-//          pl_evtt->SchHook(EN_SWITCH_OUT);
-//          g_ptEventRunning = g_ptEventReady;
-//          g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-//          g_s64RunningStartTime = DjyGetSysTime();
-//          pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
-//          //下面一句很关键，running和pl_ecb可能是同一个，所以一定要先reset，然
-//          //后switch
-//          Int_HalfEnableAsynSignal( );
-//          __asm_reset_switch(pl_evtt->thread_routine,
-//                          g_ptEventRunning->vm,pl_ecb->vm);
-//      }
-//      else//这种情况下还是放在free队列吧
         {
             g_ptEventRunning->vm->next = pl_evtt->my_free_vm;
             pl_evtt->my_free_vm = g_ptEventRunning->vm;
             pl_ecb = g_ptEventRunning;
             pl_evtt->SchHook(EN_SWITCH_OUT);
             g_ptEventRunning = g_ptEventReady;
-            g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-            g_s64RunningStartTime = DjyGetSysTime();
+            g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+            g_s64RunningStartCnt = __DjyGetSysCnt();
             pl_ecb->vm->stack_used = pl_ecb->vm->stack_top;//复原已用指针
             Int_HalfEnableAsynSignal( );
             __asm_reset_switch(pl_evtt->thread_routine,
@@ -3057,8 +3202,8 @@ void Djy_EventComplete(ptu32_t result)
     {
 //        pl_ecb = g_ptEventRunning;
         g_ptEventRunning = g_ptEventReady;
-        g_ptEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-        g_s64RunningStartTime = DjyGetSysTime();
+        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+        g_s64RunningStartCnt = __DjyGetSysCnt();
         Int_HalfEnableAsynSignal( );
         __asm_turnto_context(g_ptEventRunning->vm);
     }
@@ -3082,16 +3227,18 @@ u32 Djy_WakeUpFrom(void)
 bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info)
 {
     struct EventECB *event;
-    if(id >=gc_u32CfgEventLimit)
+    if(id >=CFG_EVENT_LIMIT)
     {
         return false;
     }
     else
     {
-        event = &g_ptECB_Table[id];
-        info->consumed_time = event->consumed_time;
+        event = &g_tECB_Table[id];
         info->error_no = event->error_no;
-        info->EventStartTime = event->EventStartTime;
+#if CFG_OS_TINY == false
+        info->consumed_cnt = event->consumed_cnt;
+        info->EventStartCnt = event->EventStartCnt;
+#endif  //CFG_OS_TINY == false
         return true;
     }
 }
@@ -3102,6 +3249,7 @@ bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info)
 //-----------------------------------------------------------------------------
 bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len)
 {
+#if CFG_OS_TINY == false
     struct EventType *pl_evtt;
     u16 evttoffset;
     if((NULL == dest)||(0 ==len))
@@ -3109,9 +3257,9 @@ bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len)
         return false;
     }
     evttoffset = evtt_id & (~CN_EVTT_ID_MASK);
-    if(evttoffset >= gc_u32CfgEvttLimit)
+    if(evttoffset >= CFG_EVENT_TYPE_LIMIT)
         return false;
-    pl_evtt = &g_ptEvttTable[evttoffset];
+    pl_evtt = &g_tEvttTable[evttoffset];
 
     if(NULL == pl_evtt->evtt_name)
     {
@@ -3123,6 +3271,10 @@ bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len)
     }
 
     return true;
+#else
+    dest[0] = '\0';
+    return false;
+#endif  //CFG_OS_TINY == false
 }
 //----线程引擎---------------------------------------------------------------
 //功能: 启动线程,执行线程入口函数,事件完成后执行清理工作
@@ -3141,7 +3293,7 @@ void __Djy_VmEngine(ptu32_t (*thread_routine)(void))
 //-----------------------------------------------------------------------------
 struct EventECB *Djy_GetIdle(void)
 {
-    return &g_ptECB_Table[0];
+    return &g_tECB_Table[0];
 }
 //----系统服务-----------------------------------------------------------------
 //功能: 操作系统的系统服务功能,提供调试,统计等服务.
@@ -3159,13 +3311,13 @@ ptu32_t __Djy_Service(void)
         if(level==CN_SLEEP_NORMAL)
         {
 
-            for(loop = 0; loop<gc_u32CfgEventLimit; loop++)
+            for(loop = 0; loop<CFG_EVENT_LIMIT; loop++)
             {
                 __Djy_CheckStack(loop);
     //            {
     //                Djy_SaveLastError(EN_KNL_STACK_OVERFLOW);
     //              printk("%d 号事件有栈溢出风险,类型=%d Name = %s\n\r",loop,
-    //                     g_ptEvttTable[loop],g_ptEvttTable[loop].evtt_name);
+    //                     g_tEvttTable[loop],g_tEvttTable[loop].evtt_name);
     //            }
             }
         }
@@ -3191,5 +3343,6 @@ void Djy_ApiStart(u32 api_no)
 }
 //空函数,未初始化的函数指针指向.
 void NULL_func(void)
-{}
+{
+}
 

@@ -35,7 +35,7 @@
   *
   ******************************************************************************
   */ 
-
+#if 0 // DJYOS≤ª±‡“Î
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_audio.h"
 
@@ -2022,3 +2022,4 @@ __weak void  USBH_AUDIO_BufferEmptyCallback(USBH_HandleTypeDef *phost)
 */
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
+#endif // DJYOS≤ª±‡“Î

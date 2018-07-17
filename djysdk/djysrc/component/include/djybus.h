@@ -54,12 +54,8 @@
 
 
 //djybusÄ£¿é³õÊ¼»¯
-bool_t ModuleInstall_DjyBus (ptu32_t para);
 struct Object * DjyBus_BusTypeAdd (const char* NewBusTypeName);
-struct Object * DjyBus_BusTypeAdd_s(struct Object * NewBusType,
-                                        const char* NewBusTypeName);
 bool_t            DjyBus_BusTypeDelete(struct Object * DelBusType);
-bool_t            DjyBus_BusTypeDelete_s(struct Object * DelBusType);
 struct Object * DjyBus_BusTypeFind(const char * BusTypeName);
 
 

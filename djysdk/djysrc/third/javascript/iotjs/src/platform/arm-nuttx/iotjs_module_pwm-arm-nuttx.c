@@ -18,7 +18,7 @@
 
 #include <nuttx/drivers/pwm.h>
 #include <stdlib.h>
-#include <sys/ioctl.h>
+#include <sys/stropts.h>
 
 #include "iotjs_def.h"
 #include "iotjs_systemio-arm-nuttx.h"

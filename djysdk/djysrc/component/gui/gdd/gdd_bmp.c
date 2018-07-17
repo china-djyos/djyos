@@ -484,22 +484,24 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
         bm = (BITMAP*)buf;
         bm->PixelFormat =CN_SYS_PF_RGB565;
         bm->width  =w;
-        bm->height =1;
+        bm->height =h;
         bm->linebytes =line_bytes;
         bm->ExColor =(ptu32_t)0;
-        bm->bm_bits =malloc(line_bytes);
+//      bm->bm_bits =malloc(line_bytes);
+        bm->bm_bits =rd->pData + bfOffsetBits;
+        DrawBitmap(hdc,x,y,bm,0,RopCode);
 
-        if(bm->bm_bits!=NULL)
-        {
-            for (i = 0; i < h; i++)
-            {
-                rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-                DrawBitmap(hdc,x,y+i,bm,0,RopCode);
-                offset -= line_bytes;
-            }
-
-            free(bm->bm_bits);
-        }
+//      if(bm->bm_bits!=NULL)
+//      {
+//          for (i = 0; i < h; i++)
+//          {
+//              rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
+//              DrawBitmap(hdc,x,y+i,bm,0,RopCode);
+//              offset -= line_bytes;
+//          }
+//
+//          free(bm->bm_bits);
+//      }
         return TRUE;
         ////////
 

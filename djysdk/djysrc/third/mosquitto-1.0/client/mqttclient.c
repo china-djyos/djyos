@@ -63,17 +63,17 @@
 #define CN_BUF_LEN        256
 typedef struct
 {
-	semp_t sempr;        //used for the read wait semp
-	semp_t sempw;        //used for the write wait semp
-	u8     buf[CN_BUF_LEN];
-	u16    datalen;
+    semp_t sempr;        //used for the read wait semp
+    semp_t sempw;        //used for the write wait semp
+    u8     buf[CN_BUF_LEN];
+    u16    datalen;
 }tagRwBuf;  //used as the read and write buffer structure
 
 typedef struct  __MosDev
 {
-	struct  __MosDev  *nxt;
-	tagRwBuf rbuf;   //used for the read buffer
-	tagRwBuf wbuf;   //used for the write buffer
+    struct  __MosDev  *nxt;
+    tagRwBuf rbuf;   //used for the read buffer
+    tagRwBuf wbuf;   //used for the write buffer
     mutex_t  mutex;  //used to protect the mosquitto device
     char *devname;   //used for the dev to create
     char *id;        //used for the client name
@@ -109,85 +109,85 @@ static tagMqttDev *pMqttDevLst;  //this is the mosquitto device list
 //app use this function to read the device
 static u32 __DevRead(ptu32_t PrivateTag,u8 *buf,u32 len,u32 offset,u32 timeout)
 {
-	u32 result = 0;
-	tagMqttDev *dev;
+    u32 result = 0;
+    tagMqttDev *dev;
 
-	dev = (tagMqttDev *)PrivateTag;
-	if(NULL != dev)
-	{
-		if(semp_pendtimeout(dev->rbuf.sempr,timeout))
-		{
-			if(mutex_lock(dev->mutex))
-			{
-				result = dev->rbuf.datalen > len?len:dev->rbuf.datalen;
-				memcpy(buf,dev->rbuf.buf,result);
-				dev->rbuf.datalen = 0;
-				semp_post(dev->rbuf.sempw);  //tell the down layer to write data
+    dev = (tagMqttDev *)PrivateTag;
+    if(NULL != dev)
+    {
+        if(semp_pendtimeout(dev->rbuf.sempr,timeout))
+        {
+            if(mutex_lock(dev->mutex))
+            {
+                result = dev->rbuf.datalen > len?len:dev->rbuf.datalen;
+                memcpy(buf,dev->rbuf.buf,result);
+                dev->rbuf.datalen = 0;
+                semp_post(dev->rbuf.sempw);  //tell the down layer to write data
 
-				mutex_unlock(dev->mutex);
-			}
-		}
-	}
-	return result;
+                mutex_unlock(dev->mutex);
+            }
+        }
+    }
+    return result;
 }
 
 
 //app use this function to write the device
 static u32 __DevWrite(ptu32_t PrivateTag,u8 *buf,u32 len,u32 offset,bool_t BlockOption,u32 timeout)
 {
-	int mid;
-	int result = 0;
-	tagMqttDev *dev;
+    int mid;
+    int result = 0;
+    tagMqttDev *dev;
 
-	dev = (tagMqttDev *)PrivateTag;
-	if((NULL != dev)&&(NULL != dev->mos))
-	{
-		TCPIP_DEBUG_INC(dev->sndnum);
-		result = mosquitto_publish(dev->mos,&mid,dev->ptopic,len,buf,dev->pqos,dev->retain);
-		if(result == MOSQ_ERR_SUCCESS)
-		{
-			result = len;
-			if(dev->debug)
-			{
-				printf("%s:topic:%s qos:%d mid:%d len:%d\n\r",__FUNCTION__,dev->ptopic,dev->pqos,mid,len);
-			}
-		}
-		else
-		{
-			TCPIP_DEBUG_INC(dev->snderr);
-			printf("%s:error:%d\n\r",__FUNCTION__,result);
-		}
-	}
-	return result;
+    dev = (tagMqttDev *)PrivateTag;
+    if((NULL != dev)&&(NULL != dev->mos))
+    {
+        TCPIP_DEBUG_INC(dev->sndnum);
+        result = mosquitto_publish(dev->mos,&mid,dev->ptopic,len,buf,dev->pqos,dev->retain);
+        if(result == MOSQ_ERR_SUCCESS)
+        {
+            result = len;
+            if(dev->debug)
+            {
+                printf("%s:topic:%s qos:%d mid:%d len:%d\n\r",__FUNCTION__,dev->ptopic,dev->pqos,mid,len);
+            }
+        }
+        else
+        {
+            TCPIP_DEBUG_INC(dev->snderr);
+            printf("%s:error:%d\n\r",__FUNCTION__,result);
+        }
+    }
+    return result;
 }
 
 
 //static functions for the mosquito client to inout or out put data
 static u32 __Inputdata(tagMqttDev *dev,u8 *buf, u16 len,u32 timeout)
 {
-	u32 result = 0;
-	if(NULL != dev)
-	{
-		TCPIP_DEBUG_INC(dev->rcvnum);
-		if(semp_pendtimeout(dev->rbuf.sempw,0))
-		{
-			if(mutex_lock(dev->mutex))
-			{
-				result =  CN_BUF_LEN> len?len:CN_BUF_LEN;
-				memcpy(dev->rbuf.buf,buf,result);
-				dev->rbuf.datalen = result;
-				semp_post(dev->rbuf.sempr);  //tell the down layer to write data
+    u32 result = 0;
+    if(NULL != dev)
+    {
+        TCPIP_DEBUG_INC(dev->rcvnum);
+        if(semp_pendtimeout(dev->rbuf.sempw,0))
+        {
+            if(mutex_lock(dev->mutex))
+            {
+                result =  CN_BUF_LEN> len?len:CN_BUF_LEN;
+                memcpy(dev->rbuf.buf,buf,result);
+                dev->rbuf.datalen = result;
+                semp_post(dev->rbuf.sempr);  //tell the down layer to write data
 
-				mutex_unlock(dev->mutex);
-			}
-		}
-		else
-		{
-			TCPIP_DEBUG_INC(dev->rcvdrop);
-			printf("Drops:%d bytes\n\r",len);
-		}
-	}
-	return result;
+                mutex_unlock(dev->mutex);
+            }
+        }
+        else
+        {
+            TCPIP_DEBUG_INC(dev->rcvdrop);
+            printf("Drops:%d bytes\n\r",len);
+        }
+    }
+    return result;
 }
 
 //here is the mosquitto client work,we make the mosquitto client work as a
@@ -202,145 +202,145 @@ static u32 __Inputdata(tagMqttDev *dev,u8 *buf, u16 len,u32 timeout)
 
 static void msg_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message)
 {
-	tagMqttDev  *dev;
-	dev = (tagMqttDev *)obj;
-	if((NULL != message)&&(message->payloadlen > 0)&&(dev->debug))
-	{
-		int i = 0;
-		printf("Topic:%s:hex:",message->topic);
-		for(i =0;i<message->payloadlen;i++)
-		{
-			printf("%02x ",((u8 *)message->payload)[i]);
-		}
-		printf("\n\r");
-		fflush(stdout);
-	}
-	__Inputdata(obj,message->payload,message->payloadlen,0);
-	return;
+    tagMqttDev  *dev;
+    dev = (tagMqttDev *)obj;
+    if((NULL != message)&&(message->payloadlen > 0)&&(dev->debug))
+    {
+        int i = 0;
+        printf("Topic:%s:hex:",message->topic);
+        for(i =0;i<message->payloadlen;i++)
+        {
+            printf("%02x ",((u8 *)message->payload)[i]);
+        }
+        printf("\n\r");
+        fflush(stdout);
+    }
+    __Inputdata(obj,message->payload,message->payloadlen,0);
+    return;
 }
 
 static void con_callback(struct mosquitto *mosq, void *obj, int result)
 {
-	tagMqttDev  *dev;
-	dev = (tagMqttDev *)obj;
-	if(!result)
-	{
-		mosquitto_subscribe(mosq, NULL,dev->stopic, dev->sqos);
-	}
-	else
-	{
-		fprintf(stderr, "%s\n\r", mosquitto_connack_string(result));
-	}
-	return;
+    tagMqttDev  *dev;
+    dev = (tagMqttDev *)obj;
+    if(!result)
+    {
+        mosquitto_subscribe(mosq, NULL,dev->stopic, dev->sqos);
+    }
+    else
+    {
+        fprintf(stderr, "%s\n\r", mosquitto_connack_string(result));
+    }
+    return;
 }
 
 static void sub_callback(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos)
 {
-	tagMqttDev  *dev;
-	dev = (tagMqttDev *)obj;
-	if(dev->debug)
-	{
-		printf("Subscribed (mid: %d): %d", mid, granted_qos[0]);
-	}
+    tagMqttDev  *dev;
+    dev = (tagMqttDev *)obj;
+    if(dev->debug)
+    {
+        printf("Subscribed (mid: %d): %d", mid, granted_qos[0]);
+    }
 
-	return;
+    return;
 }
 
 static void log_callback(struct mosquitto *mosq, void *obj, int level, const char *str)
 {
-	tagMqttDev  *dev;
-	dev = 	obj;
-	if((NULL != dev)&&(dev->debug))
-	{
-		printf("%s\n\r", str);
-	}
-	return;
+    tagMqttDev  *dev;
+    dev =   obj;
+    if((NULL != dev)&&(dev->debug))
+    {
+        printf("%s\n\r", str);
+    }
+    return;
 }
 
 static ptu32_t __mqtttask(void)
 {
-	tagMqttDev  *dev;
-	char err[1024];
-	struct mosquitto *mosq;
-	int rc;
+    tagMqttDev  *dev;
+    char err[1024];
+    struct mosquitto *mosq;
+    int rc;
 
-	Djy_GetEventPara((ptu32_t *)&dev,NULL);
-	if((NULL == dev)||(NULL!=dev->mos))
-	{
-		printf("%s:No dev or Mosq existed!\n\r",__FUNCTION__);
-		return 0;
-	}
-	mosquitto_lib_init();
-	mosq = mosquitto_new(dev->id, dev->clean, dev);
-	if(NULL == mosq)
-	{
-		return 0;
-	}
+    Djy_GetEventPara((ptu32_t *)&dev,NULL);
+    if((NULL == dev)||(NULL!=dev->mos))
+    {
+        printf("%s:No dev or Mosq existed!\n\r",__FUNCTION__);
+        return 0;
+    }
+    mosquitto_lib_init();
+    mosq = mosquitto_new(dev->id, dev->clean, dev);
+    if(NULL == mosq)
+    {
+        return 0;
+    }
 
-	mosquitto_username_pw_set(mosq, dev->user, dev->passwd);
-	mosquitto_log_callback_set(mosq, log_callback);
-	mosquitto_connect_callback_set(mosq, con_callback);
-	mosquitto_message_callback_set(mosq, msg_callback);
-	mosquitto_subscribe_callback_set(mosq, sub_callback);
+    mosquitto_username_pw_set(mosq, dev->user, dev->passwd);
+    mosquitto_log_callback_set(mosq, log_callback);
+    mosquitto_connect_callback_set(mosq, con_callback);
+    mosquitto_message_callback_set(mosq, msg_callback);
+    mosquitto_subscribe_callback_set(mosq, sub_callback);
 
-	while(rc = mosquitto_connect(mosq, dev->host, dev->port,dev->keeptime))
-	{
-		if(dev->debug){
-			if(rc == MOSQ_ERR_ERRNO){ 
-				strerror_r(errno, err, 1024);
-				fprintf(stderr, "Error: %s\n\r", err);
-			}else{
-				fprintf(stderr, "Unable to connect (%d).\n\r", rc);
-			}
-		}
-	}//continue do the connect for the mosquitto client
-	//set the mosq
-	dev->mos = mosq;
-	if(NULL != dev->hook)
-	{
-		dev->hook((ptu32_t)dev,EN_NETDEVEVENT_LINKUP);
-	}
-	dev->running = true;
-	do{
-		rc = mosquitto_loop(mosq, -1, 100);
-		Djy_EventDelay(10*mS);
-	}while((rc == MOSQ_ERR_SUCCESS)&&(dev->running));
-	mosquitto_destroy(mosq);
-	mosquitto_lib_cleanup();
-	if(rc){
-		if(rc == MOSQ_ERR_ERRNO){
-			fprintf(stderr, "Error: %s\n\r", strerror(errno));
-		}else{
-			fprintf(stderr, "Error: %s\n\r", mosquitto_strerror(rc));
-		}
-	}
-	dev->mos = NULL;
-	if(NULL != dev->hook)
-	{
-		dev->hook((ptu32_t)dev,EN_NETDEVEVENT_LINKDOWN);
-	}
+    while(rc = mosquitto_connect(mosq, dev->host, dev->port,dev->keeptime))
+    {
+        if(dev->debug){
+            if(rc == MOSQ_ERR_ERRNO){
+                strerror_r(errno, err, 1024);
+                fprintf(stderr, "Error: %s\n\r", err);
+            }else{
+                fprintf(stderr, "Unable to connect (%d).\n\r", rc);
+            }
+        }
+    }//continue do the connect for the mosquitto client
+    //set the mosq
+    dev->mos = mosq;
+    if(NULL != dev->hook)
+    {
+        dev->hook((ptu32_t)dev,EN_NETDEVEVENT_LINKUP);
+    }
+    dev->running = true;
+    do{
+        rc = mosquitto_loop(mosq, -1, 100);
+        Djy_EventDelay(10*mS);
+    }while((rc == MOSQ_ERR_SUCCESS)&&(dev->running));
+    mosquitto_destroy(mosq);
+    mosquitto_lib_cleanup();
+    if(rc){
+        if(rc == MOSQ_ERR_ERRNO){
+            fprintf(stderr, "Error: %s\n\r", strerror(errno));
+        }else{
+            fprintf(stderr, "Error: %s\n\r", mosquitto_strerror(rc));
+        }
+    }
+    dev->mos = NULL;
+    if(NULL != dev->hook)
+    {
+        dev->hook((ptu32_t)dev,EN_NETDEVEVENT_LINKDOWN);
+    }
 
-	return rc;
+    return rc;
 }
 
 //usage:do the mosquittocfg here
 #include <getopt.h>
 static bool_t mqttconfig(char *param)
 {
-	int    argc = 10;
-	char  *argv[10];
+    int    argc = 10;
+    char  *argv[10];
 
-	tagMqttDev *dev;
-	dev = pMqttDevLst;
-	if(NULL == dev)
-	{
-		return false;
-	}
-	if(NULL!=param)
-	{
-		string2arg(&argc,&argv[1],param);
-		argc++;
-		argv[0] = __FUNCTION__;
+    tagMqttDev *dev;
+    dev = pMqttDevLst;
+    if(NULL == dev)
+    {
+        return false;
+    }
+    if(NULL!=param)
+    {
+        string2arg(&argc,&argv[1],param);
+        argc++;
+        argv[0] = __FUNCTION__;
         int ch;
         opterr = 0;
         while ((ch = getopt(argc,argv,"h:p:u:P:t:i:I:m:"))!=-1)
@@ -350,46 +350,46 @@ static bool_t mqttconfig(char *param)
                         case 'h':
                                 if(NULL != dev->host)
                                 {
-                                	free(dev->host);
-                                	dev->host = NULL;
+                                    free(dev->host);
+                                    dev->host = NULL;
                                 }
                                 dev->host = strdup(optarg);
                                 break;
                         case 'p':
-                        		dev->port = strtol(optarg,NULL,0);
-								break;
+                                dev->port = strtol(optarg,NULL,0);
+                                break;
                         case 'u':
-								if(NULL != dev->user)
-								{
-									free(dev->user);
-									dev->user = NULL;
-								}
-								dev->user = strdup(optarg);
-								break;
+                                if(NULL != dev->user)
+                                {
+                                    free(dev->user);
+                                    dev->user = NULL;
+                                }
+                                dev->user = strdup(optarg);
+                                break;
                         case 'P':
-								if(NULL != dev->passwd)
-								{
-									free(dev->passwd);
-									dev->passwd = NULL;
-								}
-								dev->passwd = strdup(optarg);
-								break;
+                                if(NULL != dev->passwd)
+                                {
+                                    free(dev->passwd);
+                                    dev->passwd = NULL;
+                                }
+                                dev->passwd = strdup(optarg);
+                                break;
                         case 't':
-								if(NULL != dev->stopic)
-								{
-									free(dev->stopic);
-									dev->stopic = NULL;
-								}
-								dev->stopic = strdup(optarg);
-								break;
+                                if(NULL != dev->stopic)
+                                {
+                                    free(dev->stopic);
+                                    dev->stopic = NULL;
+                                }
+                                dev->stopic = strdup(optarg);
+                                break;
                         case 'i':
-								if(NULL != dev->id)
-								{
-									free(dev->id);
-									dev->id = NULL;
-								}
-								dev->id = strdup(optarg);
-								break;
+                                if(NULL != dev->id)
+                                {
+                                    free(dev->id);
+                                    dev->id = NULL;
+                                }
+                                dev->id = strdup(optarg);
+                                break;
                         default:
                                 printf("other option :%c\n",ch);
                                 break;
@@ -400,368 +400,368 @@ static bool_t mqttconfig(char *param)
         optind = 0;
         opterr = 0;
         optopt = '?';
-	}
-	else
-	{
-		//print all the config status
-		printf("mqttconfig:\n\r");
-		printf("host    :%s\n\r",dev->host?dev->host:"NULL");
-		printf("port    :%d\n\r",dev->port);
-		printf("clean   :%s\n\r",dev->clean?"true":"false");
-		printf("debug   :%s\n\r",dev->debug?"true":"false");
-		printf("id      :%s\n\r",dev->id?dev->id:"NULL");
-		printf("user    :%s\n\r",dev->user?dev->user:"NULL");
-		printf("passwd  :%s\n\r",dev->passwd?dev->passwd:"NULL");
-		printf("stopic  :%s  qos:%d\n\r",dev->stopic?dev->stopic:"NULL",dev->sqos);
-		printf("ptopic  :%s  qos:%d\n\r",dev->ptopic?dev->ptopic:"NULL",dev->pqos);
-		if(dev->will)
-		{
-			printf("willtopic:%s\n\r",dev->wtopic?dev->wtopic:"NULL");
-			printf("willmsg  :%s\n\r",dev->wmsg?dev->wmsg:"NULL");
-		}
-	}
-	return true;
+    }
+    else
+    {
+        //print all the config status
+        printf("mqttconfig:\n\r");
+        printf("host    :%s\n\r",dev->host?dev->host:"NULL");
+        printf("port    :%d\n\r",dev->port);
+        printf("clean   :%s\n\r",dev->clean?"true":"false");
+        printf("debug   :%s\n\r",dev->debug?"true":"false");
+        printf("id      :%s\n\r",dev->id?dev->id:"NULL");
+        printf("user    :%s\n\r",dev->user?dev->user:"NULL");
+        printf("passwd  :%s\n\r",dev->passwd?dev->passwd:"NULL");
+        printf("stopic  :%s  qos:%d\n\r",dev->stopic?dev->stopic:"NULL",dev->sqos);
+        printf("ptopic  :%s  qos:%d\n\r",dev->ptopic?dev->ptopic:"NULL",dev->pqos);
+        if(dev->will)
+        {
+            printf("willtopic:%s\n\r",dev->wtopic?dev->wtopic:"NULL");
+            printf("willmsg  :%s\n\r",dev->wmsg?dev->wmsg:"NULL");
+        }
+    }
+    return true;
 }
 
 //usage:we will create a virtual device with the name of id,you could read and write message to it
 void * mqttcreate(char *devname,char *id,char *host,char *user,char *passwd,\
-		char *stopic,char *ptopic,fnNetDevEventHook hook,bool_t debug)
+        char *stopic,char *ptopic,fnNetDevEventHook hook,bool_t debug)
 {
-	tagMqttDev *dev;
+    tagMqttDev *dev;
 
-	//malloc some resource for the mosquitto client
-	dev = malloc(sizeof(tagMqttDev));
-	if(NULL == dev)
-	{
-		printf("%s:mem error!\n\r",__FUNCTION__);
-		goto EXIT_MEM;
-	}
-	memset(dev,0,sizeof(tagMqttDev));
+    //malloc some resource for the mosquitto client
+    dev = malloc(sizeof(tagMqttDev));
+    if(NULL == dev)
+    {
+        printf("%s:mem error!\n\r",__FUNCTION__);
+        goto EXIT_MEM;
+    }
+    memset(dev,0,sizeof(tagMqttDev));
 
-	dev->rbuf.sempr = semp_init();
-	if(NULL == dev->rbuf.sempr)
-	{
-		printf("%s:rbuf-rsemperr\n\r",__FUNCTION__);
-		goto EXIT_RBUFR;
-	}
-	dev->rbuf.sempw = semp_init();
-	if(NULL == dev->rbuf.sempw)
-	{
-		printf("%s:rbuf-wsemperr\n\r",__FUNCTION__);
-		goto EXIT_RBUFW;
-	}
-	dev->rbuf.sempw->lamp_counter =1;
+    dev->rbuf.sempr = semp_init();
+    if(NULL == dev->rbuf.sempr)
+    {
+        printf("%s:rbuf-rsemperr\n\r",__FUNCTION__);
+        goto EXIT_RBUFR;
+    }
+    dev->rbuf.sempw = semp_init();
+    if(NULL == dev->rbuf.sempw)
+    {
+        printf("%s:rbuf-wsemperr\n\r",__FUNCTION__);
+        goto EXIT_RBUFW;
+    }
+    dev->rbuf.sempw->lamp_counter =1;
 
-	dev->mutex = mutex_init(NULL);
-	if(NULL == dev->mutex)
-	{
-		printf("%s:mutexerr\n\r",__FUNCTION__);
-		goto EXIT_MUTEX;
-	}
+    dev->mutex = mutex_init(NULL);
+    if(NULL == dev->mutex)
+    {
+        printf("%s:mutexerr\n\r",__FUNCTION__);
+        goto EXIT_MUTEX;
+    }
 
-	//initialize all the configure to the default
-	dev->port =1883;
-	dev->clean = true;
-	dev->debug = debug;
-	dev->hook = hook;
-	dev->keeptime = 60;//60 seconds
+    //initialize all the configure to the default
+    dev->port =1883;
+    dev->clean = true;
+    dev->debug = debug;
+    dev->hook = hook;
+    dev->keeptime = 60;//60 seconds
 
-	if(NULL == devname)
-	{
-		dev->devname = strdup("mqttio");
-	}
-	else
-	{
-		dev->devname = strdup(devname);
-	}
+    if(NULL == devname)
+    {
+        dev->devname = strdup("mqttio");
+    }
+    else
+    {
+        dev->devname = strdup(devname);
+    }
 
-	if(NULL == host)
-	{
-		dev->host = strdup("iot1.mqtt.iot.gz.baidubce.com");
-	}
-	else
-	{
-		dev->host = strdup(host);
-	}
-	if(NULL == id)
-	{
-		dev->id = strdup("djyosterm");
-	}
-	else
-	{
-		dev->id = strdup(id);
-	}
-	if(NULL == user)
-	{
-		dev->user = strdup("zhangqf");
-	}
-	else
-	{
-		dev->user = strdup(user);
-	}
-	if(NULL == passwd)
-	{
-		dev->passwd = strdup("123456");
-	}
-	else
-	{
-		dev->passwd = strdup(passwd);
-	}
-	if(NULL == stopic)
-	{
-		dev->stopic = strdup("subtopics");
-	}
-	else
-	{
-		dev->stopic = strdup(stopic);
-	}
-	if(NULL == ptopic)
-	{
-		dev->ptopic = strdup("pubtopics");
-	}
-	else
-	{
-		dev->ptopic = strdup(ptopic);
-	}
+    if(NULL == host)
+    {
+        dev->host = strdup("iot1.mqtt.iot.gz.baidubce.com");
+    }
+    else
+    {
+        dev->host = strdup(host);
+    }
+    if(NULL == id)
+    {
+        dev->id = strdup("djyosterm");
+    }
+    else
+    {
+        dev->id = strdup(id);
+    }
+    if(NULL == user)
+    {
+        dev->user = strdup("zhangqf");
+    }
+    else
+    {
+        dev->user = strdup(user);
+    }
+    if(NULL == passwd)
+    {
+        dev->passwd = strdup("123456");
+    }
+    else
+    {
+        dev->passwd = strdup(passwd);
+    }
+    if(NULL == stopic)
+    {
+        dev->stopic = strdup("subtopics");
+    }
+    else
+    {
+        dev->stopic = strdup(stopic);
+    }
+    if(NULL == ptopic)
+    {
+        dev->ptopic = strdup("pubtopics");
+    }
+    else
+    {
+        dev->ptopic = strdup(ptopic);
+    }
 
-	//here we should create the mosquitto device here,then the app could open the device and
-	//do the read and write
-	Driver_DeviceCreate(NULL,dev->devname,NULL,NULL,__DevWrite,__DevRead,NULL,NULL,(ptu32_t)dev);
-	//add it to the list
-	dev->nxt = pMqttDevLst;
-	pMqttDevLst = dev;
+    //here we should create the mosquitto device here,then the app could open the device and
+    //do the read and write
+    dev_add(NULL, dev->devname,NULL,NULL,__DevWrite,__DevRead,NULL,(ptu32_t)dev);
+    //add it to the list
+    dev->nxt = pMqttDevLst;
+    pMqttDevLst = dev;
 
-	return dev;
+    return dev;
 
 EXIT_MUTEX:
-	semp_del(dev->rbuf.sempw);
+    semp_del(dev->rbuf.sempw);
 EXIT_RBUFW:
-	semp_del(dev->rbuf.sempr);
+    semp_del(dev->rbuf.sempr);
 EXIT_RBUFR:
-	free(dev);
-	dev = NULL;
+    free(dev);
+    dev = NULL;
 EXIT_MEM:
-	return NULL;
+    return NULL;
 }
 
 //uages:used to set the publish topic
 bool_t mqttsetpubtopic(char *topics)
 {
-	tagMqttDev *dev;
-	dev = pMqttDevLst;
-	if(NULL == dev)
-	{
-		return false;
-	}
-	if(NULL != dev->ptopic)
-	{
-		free(dev->ptopic);
-		dev->ptopic = NULL;
-	}
-	dev->ptopic = strdup(topics);
-	return true;
+    tagMqttDev *dev;
+    dev = pMqttDevLst;
+    if(NULL == dev)
+    {
+        return false;
+    }
+    if(NULL != dev->ptopic)
+    {
+        free(dev->ptopic);
+        dev->ptopic = NULL;
+    }
+    dev->ptopic = strdup(topics);
+    return true;
 }
 //usage:used to set the subscribe topic
 bool_t mqttsetsubtopic(char *topics)
 {
-	tagMqttDev *dev;
-	dev = pMqttDevLst;
-	if(NULL == dev)
-	{
-		return false;
-	}
-	if(NULL != dev->stopic)
-	{
-		free(dev->stopic);
-		dev->stopic = NULL;
-	}
-	dev->stopic = strdup(topics);
-	return true;
+    tagMqttDev *dev;
+    dev = pMqttDevLst;
+    if(NULL == dev)
+    {
+        return false;
+    }
+    if(NULL != dev->stopic)
+    {
+        free(dev->stopic);
+        dev->stopic = NULL;
+    }
+    dev->stopic = strdup(topics);
+    return true;
 }
 
 
 //usage:check if the configuration is completed
 static bool_t __mqttcfgcheck(tagMqttDev *dev)
 {
-	bool_t result = true;
+    bool_t result = true;
 
-	if(NULL == dev->devname)
-	{
-		printf("devname not set \n\r");
-		result = false;
-	}
+    if(NULL == dev->devname)
+    {
+        printf("devname not set \n\r");
+        result = false;
+    }
 
-	if(NULL == dev->id)
-	{
-		printf("id not set \n\r");
-		result = false;
-	}
-	if(NULL == dev->host)
-	{
-		printf("host not set \n\r");
-		result = false;
-	}
-	if((NULL != dev->user)&&(NULL == dev->passwd))
-	{
-		printf("need passwd\n\r");
-		result = false;
-	}
-	if(NULL == dev->stopic)
-	{
-		printf("subscribe topic not set \n\r");
-		result = false;
-	}
-	if(NULL == dev->ptopic)
-	{
-		printf("publish topic not set \n\r");
-		result = false;
-	}
-	if(dev->will&&((NULL == dev->wtopic)||(NULL == dev->wmsg)))
-	{
-		printf("will topic or message not set \n\r");
-		result = false;
-	}
+    if(NULL == dev->id)
+    {
+        printf("id not set \n\r");
+        result = false;
+    }
+    if(NULL == dev->host)
+    {
+        printf("host not set \n\r");
+        result = false;
+    }
+    if((NULL != dev->user)&&(NULL == dev->passwd))
+    {
+        printf("need passwd\n\r");
+        result = false;
+    }
+    if(NULL == dev->stopic)
+    {
+        printf("subscribe topic not set \n\r");
+        result = false;
+    }
+    if(NULL == dev->ptopic)
+    {
+        printf("publish topic not set \n\r");
+        result = false;
+    }
+    if(dev->will&&((NULL == dev->wtopic)||(NULL == dev->wmsg)))
+    {
+        printf("will topic or message not set \n\r");
+        result = false;
+    }
 
-	return result;
+    return result;
 }
 
 //usage:use this function to start the mqtt or stop the mqtt task
 static u16  gMqttEvttID = CN_EVTT_ID_INVALID;
 bool_t mqttstart(void *handle)
 {
-	bool_t result = false;
-	u16   eventID;
-	tagMqttDev *dev;
-	dev = handle;
-	if(NULL != dev)
-	{
-		if(__mqttcfgcheck(dev))
-		{
-			//make a mqtt task
-			if(gMqttEvttID != CN_EVTT_ID_INVALID)
-			{
-				eventID = Djy_EventPop(gMqttEvttID,NULL,0,(ptu32_t)dev,NULL,0);
-				if(eventID != CN_EVENT_ID_INVALID)
-				{
-					printf("event pop ok\n\r");
-				}
-				else
-				{
-					printf("event pop error\n\r");
-				}
-			}
-		}
-	}
-	else
-	{
-		printf("No mqtt get!\n\r");
-	}
-	return result;
+    bool_t result = false;
+    u16   eventID;
+    tagMqttDev *dev;
+    dev = handle;
+    if(NULL != dev)
+    {
+        if(__mqttcfgcheck(dev))
+        {
+            //make a mqtt task
+            if(gMqttEvttID != CN_EVTT_ID_INVALID)
+            {
+                eventID = Djy_EventPop(gMqttEvttID,NULL,0,(ptu32_t)dev,NULL,0);
+                if(eventID != CN_EVENT_ID_INVALID)
+                {
+                    printf("event pop ok\n\r");
+                }
+                else
+                {
+                    printf("event pop error\n\r");
+                }
+            }
+        }
+    }
+    else
+    {
+        printf("No mqtt get!\n\r");
+    }
+    return result;
 }
 bool_t mqttstartshell(char *param)
 {
 
-	tagMqttDev *dev;
-	dev = pMqttDevLst;
-	if(NULL != dev)
-	{
-		mqttstart(dev);
-	}
-	return true;
+    tagMqttDev *dev;
+    dev = pMqttDevLst;
+    if(NULL != dev)
+    {
+        mqttstart(dev);
+    }
+    return true;
 }
 bool_t mqttstopshell(char *param)
 {
-	tagMqttDev *dev;
-	dev = pMqttDevLst;
-	if(NULL != dev)
-	{
-		dev->running = false;
-	}
-	return true;
+    tagMqttDev *dev;
+    dev = pMqttDevLst;
+    if(NULL != dev)
+    {
+        dev->running = false;
+    }
+    return true;
 }
 
 //usage:used to set the debug on/off
 bool_t mqttdebugset(bool_t mode)
 {
-	tagMqttDev *dev;
-	dev = pMqttDevLst;
-	if(NULL != dev)
-	{
-		dev->debug = mode;
-	}
-	return true;
+    tagMqttDev *dev;
+    dev = pMqttDevLst;
+    if(NULL != dev)
+    {
+        dev->debug = mode;
+    }
+    return true;
 }
 bool_t mqttdebugsetshell(char *param)
 {
-	bool_t mode;
-	if(0 == strcmp(param,"on"))
-	{
-		mode = true;
-	}
-	else
-	{
-		mode = false;
-	}
-	mqttdebugset(mode);
-	return true;
+    bool_t mode;
+    if(0 == strcmp(param,"on"))
+    {
+        mode = true;
+    }
+    else
+    {
+        mode = false;
+    }
+    mqttdebugset(mode);
+    return true;
 }
 
 static bool_t mqttpubmsg(char *param)
 {
-	int mid;
-	int len = 0;
-	int result = 0;
-	tagMqttDev *dev;
+    int mid;
+    int len = 0;
+    int result = 0;
+    tagMqttDev *dev;
 
-	dev = pMqttDevLst;
-	if(NULL != dev)
-	{
-		TCPIP_DEBUG_INC(dev->sndnum);
-		len = strlen(param);
-		result = mosquitto_publish(dev->mos,&mid,dev->ptopic,len,param,dev->pqos,dev->retain);
-		if(result == MOSQ_ERR_SUCCESS)
-		{
-			if(dev->debug)
-			{
-				printf("%s:topic:%s qos:%d mid:%d len:%d\n\r",__FUNCTION__,dev->ptopic,dev->pqos,mid,len);
-			}
-		}
-		else
-		{
-			TCPIP_DEBUG_INC(dev->snderr);
-			printf("%s:error:%d\n\r",__FUNCTION__,result);
-		}
-	}
-	return true;
+    dev = pMqttDevLst;
+    if(NULL != dev)
+    {
+        TCPIP_DEBUG_INC(dev->sndnum);
+        len = strlen(param);
+        result = mosquitto_publish(dev->mos,&mid,dev->ptopic,len,param,dev->pqos,dev->retain);
+        if(result == MOSQ_ERR_SUCCESS)
+        {
+            if(dev->debug)
+            {
+                printf("%s:topic:%s qos:%d mid:%d len:%d\n\r",__FUNCTION__,dev->ptopic,dev->pqos,mid,len);
+            }
+        }
+        else
+        {
+            TCPIP_DEBUG_INC(dev->snderr);
+            printf("%s:error:%d\n\r",__FUNCTION__,result);
+        }
+    }
+    return true;
 }
 
 static bool_t mqttstat(char *param)
 {
-	tagMqttDev *dev;
-	dev = pMqttDevLst;
-	if(NULL != dev)
-	{
-		//print all the config status
-		printf("mqttconfig:\n\r");
-		printf("dev     :%s\n\r",dev->devname?dev->devname:"NULL");
-		printf("host    :%s\n\r",dev->host?dev->host:"NULL");
-		printf("port    :%d\n\r",dev->port);
-		printf("clean   :%s\n\r",dev->clean?"true":"false");
-		printf("debug   :%s\n\r",dev->debug?"true":"false");
-		printf("id      :%s\n\r",dev->id?dev->id:"NULL");
-		printf("user    :%s\n\r",dev->user?dev->user:"NULL");
-		printf("passwd  :%s\n\r",dev->passwd?dev->passwd:"NULL");
-		printf("stopic  :%s  qos:%d\n\r",dev->stopic?dev->stopic:"NULL",dev->sqos);
-		printf("ptopic  :%s  qos:%d\n\r",dev->ptopic?dev->ptopic:"NULL",dev->pqos);
-		if(dev->will)
-		{
-			printf("willtopic:%s\n\r",dev->wtopic?dev->wtopic:"NULL");
-			printf("willmsg  :%s\n\r",dev->wmsg?dev->wmsg:"NULL");
-		}
-		printf("snd:0x%08x snderr :0x%08x\n\r",dev->sndnum,dev->snderr);
-		printf("rcv:0x%08x rcvdrop:0x%08x\n\r",dev->rcvnum,dev->rcvdrop);
-	}
-	return true;
+    tagMqttDev *dev;
+    dev = pMqttDevLst;
+    if(NULL != dev)
+    {
+        //print all the config status
+        printf("mqttconfig:\n\r");
+        printf("dev     :%s\n\r",dev->devname?dev->devname:"NULL");
+        printf("host    :%s\n\r",dev->host?dev->host:"NULL");
+        printf("port    :%d\n\r",dev->port);
+        printf("clean   :%s\n\r",dev->clean?"true":"false");
+        printf("debug   :%s\n\r",dev->debug?"true":"false");
+        printf("id      :%s\n\r",dev->id?dev->id:"NULL");
+        printf("user    :%s\n\r",dev->user?dev->user:"NULL");
+        printf("passwd  :%s\n\r",dev->passwd?dev->passwd:"NULL");
+        printf("stopic  :%s  qos:%d\n\r",dev->stopic?dev->stopic:"NULL",dev->sqos);
+        printf("ptopic  :%s  qos:%d\n\r",dev->ptopic?dev->ptopic:"NULL",dev->pqos);
+        if(dev->will)
+        {
+            printf("willtopic:%s\n\r",dev->wtopic?dev->wtopic:"NULL");
+            printf("willmsg  :%s\n\r",dev->wmsg?dev->wmsg:"NULL");
+        }
+        printf("snd:0x%08x snderr :0x%08x\n\r",dev->sndnum,dev->snderr);
+        printf("rcv:0x%08x rcvdrop:0x%08x\n\r",dev->rcvnum,dev->rcvdrop);
+    }
+    return true;
 }
 
 
@@ -772,52 +772,52 @@ static struct ShellCmdTab  gMosquittoCmd[] =
 {
     {
         "mqttcfg",
-		mqttconfig,
+        mqttconfig,
         "usage:moscfg -h[host] -p[port] -u[user] -P[passwd] -i[id] -t[topic] -m[message]",
         "usage:moscfg config the environment"
     },
-	{
-		"subset",
-		mqttsetsubtopic,
-		"usage:subset subtopics",
-		"usage:subset subtopics",
-	},
-	{
-		"pubset",
-		mqttsetpubtopic,
-		"usage:pubset pubtopics",
-		"usage:pubset pubtopics",
-	},
-	{
-		"mqttstart",
-		mqttstartshell,
-		"usage:mqttstart ",
-		"usage:mqttstart ",
-	},
-	{
-		"mqttstop",
-		mqttstopshell,
-		"usage:mqttstop ",
-		"usage:mqttstop ",
-	},
-	{
-		"mqttdebug",
-		mqttdebugsetshell,
-		"usage:mqttdebug on/off",
-		"usage:mqttdebug on/off",
-	},
-	{
-		"mqttstat",
-		mqttstat,
-		"usage:mqttstat",
-		"usage:mqttstat",
-	},
-	{
-		"mqttpub",
-		mqttpubmsg,
-		"usage:mqttpub messages",
-		"usage:mqttpub messages",
-	},
+    {
+        "subset",
+        mqttsetsubtopic,
+        "usage:subset subtopics",
+        "usage:subset subtopics",
+    },
+    {
+        "pubset",
+        mqttsetpubtopic,
+        "usage:pubset pubtopics",
+        "usage:pubset pubtopics",
+    },
+    {
+        "mqttstart",
+        mqttstartshell,
+        "usage:mqttstart ",
+        "usage:mqttstart ",
+    },
+    {
+        "mqttstop",
+        mqttstopshell,
+        "usage:mqttstop ",
+        "usage:mqttstop ",
+    },
+    {
+        "mqttdebug",
+        mqttdebugsetshell,
+        "usage:mqttdebug on/off",
+        "usage:mqttdebug on/off",
+    },
+    {
+        "mqttstat",
+        mqttstat,
+        "usage:mqttstat",
+        "usage:mqttstat",
+    },
+    {
+        "mqttpub",
+        mqttpubmsg,
+        "usage:mqttpub messages",
+        "usage:mqttpub messages",
+    },
 
 };
 
@@ -832,7 +832,7 @@ int mqttserviceinit(void)
     gMqttEvttID = Djy_EvttRegist(EN_INDEPENDENCE,200,0,5,__mqtttask,NULL,0x1000,"mqtttask");
     if(gMqttEvttID == CN_EVTT_ID_INVALID)
     {
-    	printf("%s:evtt register error\n\r",__FUNCTION__);
+        printf("%s:evtt register error\n\r",__FUNCTION__);
     }
     else
     {

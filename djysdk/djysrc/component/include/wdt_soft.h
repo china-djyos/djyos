@@ -113,15 +113,15 @@ enum _EN_WDT_CMD
     EN_WDTCMD_INVALID,                      //ÎÞÐ§²Ù×÷
 };
 
-ptu32_t ModuleInstall_Wdt(ptu32_t para);
+ptu32_t ModuleInstall_Wdt(void);
 tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
                    fnYipHook yiphook,
-                   enum EN_ExpAction yip_action, 
+                   enum EN_ExpAction yip_action,
                    u32 ExhaustLevelSet,
                    u32 ExhaustLimit);
 tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
                      fnYipHook yiphook,
-                     enum EN_ExpAction yip_action, 
+                     enum EN_ExpAction yip_action,
                      u32 ExhaustLevelSet,
                      u32 ExhaustLimit);
 bool_t Wdt_Delete(tagWdt *wdt);

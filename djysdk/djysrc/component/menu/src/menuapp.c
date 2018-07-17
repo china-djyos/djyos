@@ -79,8 +79,8 @@ void start_menu(void)
   s32 height,width;
   struct menu_item      *tempmenuitem;
   bool_t   result;
-  struct GkWinRsc *desktop;
-  struct GkWinRsc testwin;
+  struct GkWinObj *desktop;
+  struct GkWinObj testwin;
   struct menu_item   *menutreenode;
   struct menu_displaypara  *operatingDispara;
   //…Ë÷√ Û±ÍΩπµ„

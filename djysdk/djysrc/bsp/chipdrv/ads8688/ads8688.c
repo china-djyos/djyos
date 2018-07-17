@@ -50,7 +50,7 @@
 // 创建人员: zhb
 // 创建时间: 05/10.2017
 // =============================================================================
-#include <harddrv_ad.h>		//
+#include <harddrv_ad.h>     //
 
 
 //#define SPI_BASE         SPI2_BASE
@@ -67,12 +67,53 @@
 #include "cpu_peri.h"
 #include "shell.h"
 #include "ads8688.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern void ADS8688_SpiInit(uint8_t port);
+//    ADS8688_SpiInit(0);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"ads8688"      //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:none                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"sr5333_board"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_ADS8688_CS   //****检查参数是否已经配置好
+#warning    ads8688组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,0,1,2,3
+#define CFG_ADS8688_CS        0//"片选",片选号
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 
 
 extern const Pin ADCS[];
 // =============================================================================
-#define ADS8688_CS           (0)
+//#define CFG_ADS8688_CS           (0)
 #define WRITE                 1
 #define READ                  0
 
@@ -86,29 +127,29 @@ extern s32 SPI_Write(uint32_t dwNpcs, uint16_t wData);
 // =============================================================================
 void ADS8688_SpiInit(uint8_t port)
 {
-	//已经在board.c里面初始化了SPI2的驱动
-	 Spi *Reg;
-	 Reg = (Spi *)SPI_BASE;
-	 //配置SPI使用GPIO引脚
-	 RCC->APB1ENR |= RCC_APB1ENR_SPI2EN; // 使能SPI2
-	 RCC->APB1RSTR |= RCC_APB1RSTR_SPI2RST; // 复位SPI2
-	 RCC->APB1RSTR &= ~RCC_APB1RSTR_SPI2RST; // 停止复位SPI2
+    //已经在board.c里面初始化了SPI2的驱动
+     Spi *Reg;
+     Reg = (Spi *)SPI_BASE;
+     //配置SPI使用GPIO引脚
+     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN; // 使能SPI2
+     RCC->APB1RSTR |= RCC_APB1RSTR_SPI2RST; // 复位SPI2
+     RCC->APB1RSTR &= ~RCC_APB1RSTR_SPI2RST; // 停止复位SPI2
 
-	 Reg->CR1 |=SPI_CR1_BR_0;//波特率设置  108M/4=27MHz
-	 Reg->CR1 &= ~SPI_CR1_CPOL;                      // 空闲模式下SCK为1 CPOL=0
-	 Reg->CR1 |= SPI_CR1_CPHA;                      // 数据采样从第2个时间边沿开始,CPHA=1
-	 Reg->CR1 &= ~SPI_CR1_RXONLY;//全双工通讯模式
-	 Reg->CR1 &= ~SPI_CR1_LSBFIRST;//数据帧格式
-	 Reg->CR1 &= ~ SPI_CR1_SSM;         // 禁止软件nss管理
-	 Reg->CR1 |= SPI_CR1_SSI;  //SSM
-	 Reg->CR1 |= SPI_CR1_MSTR;       // SPI主机
+     Reg->CR1 |=SPI_CR1_BR_0;//波特率设置  108M/4=27MHz
+     Reg->CR1 &= ~SPI_CR1_CPOL;                      // 空闲模式下SCK为1 CPOL=0
+     Reg->CR1 |= SPI_CR1_CPHA;                      // 数据采样从第2个时间边沿开始,CPHA=1
+     Reg->CR1 &= ~SPI_CR1_RXONLY;//全双工通讯模式
+     Reg->CR1 &= ~SPI_CR1_LSBFIRST;//数据帧格式
+     Reg->CR1 &= ~ SPI_CR1_SSM;         // 禁止软件nss管理
+     Reg->CR1 |= SPI_CR1_SSI;  //SSM
+     Reg->CR1 |= SPI_CR1_MSTR;       // SPI主机
 
-	 Reg->CR2 |=SPI_CR2_DS_0|SPI_CR2_DS_1|SPI_CR2_DS_2|SPI_CR2_DS_3 ;//数据帧格式为16bit
-	 Reg->CR2 |=SPI_CR2_SSOE;//SS 输出使能
-	 Reg->CR2 |=SPI_CR2_NSSP;//生成 NSS 脉冲
-	 Reg->CR2 &=~SPI_CR2_FRXTH;//16字节fifo
-	 Reg->I2SCFGR &= (uint16_t)(~SPI_I2SCFGR_I2SMOD);// 选择SPI模式
-	 Reg->CR1 |= SPI_CR1_SPE;
+     Reg->CR2 |=SPI_CR2_DS_0|SPI_CR2_DS_1|SPI_CR2_DS_2|SPI_CR2_DS_3 ;//数据帧格式为16bit
+     Reg->CR2 |=SPI_CR2_SSOE;//SS 输出使能
+     Reg->CR2 |=SPI_CR2_NSSP;//生成 NSS 脉冲
+     Reg->CR2 &=~SPI_CR2_FRXTH;//16字节fifo
+     Reg->I2SCFGR &= (uint16_t)(~SPI_I2SCFGR_I2SMOD);// 选择SPI模式
+     Reg->CR1 |= SPI_CR1_SPE;
 }
 
 // =============================================================================
@@ -123,38 +164,38 @@ static bool_t __ADS8688_SpiTrans(uint16_t *wBuf, uint32_t wlen, uint16_t *rBuf,u
     s32 ret;
     bool_t result = false;
     Spi *Reg;
-   	Reg = (Spi *)SPI_BASE;
+    Reg = (Spi *)SPI_BASE;
     PIO_Clear(ADCS);
-	for(i = 0; i < wlen; i++)
-	{
-    	ret=SPI_Write(ADS8688_CS,wBuf[i]);
-		if(ret==-1)
-	      	goto SPI_EXIT;
-    	ret=SPI_Read();
-	    if(ret==-1)
-	      	goto SPI_EXIT;
-	}
-	for(i = 0; i < rlen; i ++)
-	{
-    	ret=SPI_Write(ADS8688_CS,0x0000);
-		if(ret==-1)
-	      	goto SPI_EXIT;
-    	 ret = SPI_Read();
-		 if(ret==-1)
-		    goto SPI_EXIT;
+    for(i = 0; i < wlen; i++)
+    {
+        ret=SPI_Write(CFG_ADS8688_CS,wBuf[i]);
+        if(ret==-1)
+            goto SPI_EXIT;
+        ret=SPI_Read();
+        if(ret==-1)
+            goto SPI_EXIT;
+    }
+    for(i = 0; i < rlen; i ++)
+    {
+        ret=SPI_Write(CFG_ADS8688_CS,0x0000);
+        if(ret==-1)
+            goto SPI_EXIT;
+         ret = SPI_Read();
+         if(ret==-1)
+            goto SPI_EXIT;
 
-	     rBuf[i] = (uint16_t)(ret & 0xFFFF);
-	}
-  	result = true;
+         rBuf[i] = (uint16_t)(ret & 0xFFFF);
+    }
+    result = true;
 SPI_EXIT:
     PIO_Set(ADCS);
-	return result;
+    return result;
 }
 
 // =============================================================================
 void ADS8688_WriteCmdReg(uint16_t command)//写ADS8688命令寄存器
 {
-	uint16_t tmp=0;
+    uint16_t tmp=0;
     __ADS8688_SpiTrans(&command,1,&tmp,1);
 }
 
@@ -176,22 +217,22 @@ void ADS8688_EnterRstMode(void)
 // =============================================================================
 static bool_t ADS8688_WRProgReg(uint8_t addr,uint8_t data)
 {
-	uint16_t w_dat=0x0000;
-	uint16_t r_dat=0x0000;
-	bool_t ret=true;
-	uint8_t temp=0x00;
-	temp=addr<<1;
-	temp=temp|WRITE;
-	w_dat=temp;
-	w_dat=w_dat<<8;
-	w_dat=w_dat|data;
-	ret=__ADS8688_SpiTrans(&w_dat,1,&r_dat,1);
-	if(ret==false)
-		return ret;
-	r_dat=r_dat>>8;
-	if(r_dat!=data)
-		return false;
-	return true;
+    uint16_t w_dat=0x0000;
+    uint16_t r_dat=0x0000;
+    bool_t ret=true;
+    uint8_t temp=0x00;
+    temp=addr<<1;
+    temp=temp|WRITE;
+    w_dat=temp;
+    w_dat=w_dat<<8;
+    w_dat=w_dat|data;
+    ret=__ADS8688_SpiTrans(&w_dat,1,&r_dat,1);
+    if(ret==false)
+        return ret;
+    r_dat=r_dat>>8;
+    if(r_dat!=data)
+        return false;
+    return true;
 }
 // =============================================================================
 // 功能：设置通道输入范围
@@ -200,9 +241,9 @@ static bool_t ADS8688_WRProgReg(uint8_t addr,uint8_t data)
 // =============================================================================
 bool_t ADS8688_SetChInRange(uint8_t ch,uint8_t range)
 {
-	bool_t result;
-	result=ADS8688_WRProgReg(ch,range);
-	return result;
+    bool_t result;
+    result=ADS8688_WRProgReg(ch,range);
+    return result;
 }
 
 
@@ -213,24 +254,24 @@ bool_t ADS8688_SetChInRange(uint8_t ch,uint8_t range)
 // =============================================================================
 bool_t ADS8688_GetRstModeData(uint8_t seq,uint16_t *pdata,uint8_t chnum)
 {
-	uint8_t i;
-	uint16_t bData = 0x0000;
-	bool_t ret=true;
-	uint16_t temp=0;
-	ret=ADS8688_WRProgReg(AUTO_SEQ_EN,seq);
-	if(!ret)
-		return false;
-	ADS8688_EnterRstMode();
-	for (i = 0; i < chnum; i ++)
-	{
-		ret=__ADS8688_SpiTrans(&bData,1,pdata,1);
-		if(ret==false)
-			return ret;
-		temp=*pdata;
-		*pdata=temp;
-		pdata++;
-	}
-	return true;
+    uint8_t i;
+    uint16_t bData = 0x0000;
+    bool_t ret=true;
+    uint16_t temp=0;
+    ret=ADS8688_WRProgReg(AUTO_SEQ_EN,seq);
+    if(!ret)
+        return false;
+    ADS8688_EnterRstMode();
+    for (i = 0; i < chnum; i ++)
+    {
+        ret=__ADS8688_SpiTrans(&bData,1,pdata,1);
+        if(ret==false)
+            return ret;
+        temp=*pdata;
+        *pdata=temp;
+        pdata++;
+    }
+    return true;
 }
 
 // =============================================================================
@@ -240,15 +281,15 @@ bool_t ADS8688_GetRstModeData(uint8_t seq,uint16_t *pdata,uint8_t chnum)
 // =============================================================================
 uint16_t ADS8688_GetManModeData(uint16_t ch)
 {
-	uint16_t dat=0;
-	bool_t ret=true;
-	uint16_t bData = 0x0000;
-	//设置指定通道为手动模式
-	ADS8688_WriteCmdReg(ch);
-	ret=__ADS8688_SpiTrans(&bData,1,&dat,1);
-	if(ret==false)
-		return 0;
-	return dat;
+    uint16_t dat=0;
+    bool_t ret=true;
+    uint16_t bData = 0x0000;
+    //设置指定通道为手动模式
+    ADS8688_WriteCmdReg(ch);
+    ret=__ADS8688_SpiTrans(&bData,1,&dat,1);
+    if(ret==false)
+        return 0;
+    return dat;
 }
 
 

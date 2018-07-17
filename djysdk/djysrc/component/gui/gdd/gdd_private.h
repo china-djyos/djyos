@@ -120,9 +120,9 @@ struct WinMsgQueueCB;
 
 struct DC
 {
-    struct GkWinRsc *pGkWin;
-    struct FontRsc *pFontDef;   //默认字体,这个值在创建DC时指定,后续将不可更改
-    struct FontRsc *pFont;      //当前字体,这个值在DC使用过程中,可以被更改
+    struct GkWinObj *pGkWin;
+    struct FontObj *pFontDef;   //默认字体,这个值在创建DC时指定,后续将不可更改
+    struct FontObj *pFont;      //当前字体,这个值在DC使用过程中,可以被更改
     struct Charset *pCharset;   //当前字符集
     HWND hwnd;                  //DC所属窗口
     u32 DCType;                 //DC类型
@@ -149,7 +149,7 @@ struct WINDOW
     char    *Text;
     struct MutexLCB *mutex_lock;        //窗口互斥锁
     struct WinMsgQueueCB    *pMsgQ;        //窗口消息队列
-    struct GkWinRsc *pGkWin;   //继承GkWin
+    struct GkWinObj *pGkWin;   //继承GkWin
     void    *PrivateData;      //窗口私有数据
 
     u16     EventID;        //窗口所属事件ID
@@ -196,7 +196,7 @@ void    __HWND_Unlock(HWND hwnd);
 bool_t  __GDD_Lock(void);
 void    __GDD_Unlock(void);
 
-void    __InitDC(DC *pdc,struct GkWinRsc *gk_win,HWND hwnd,s32 dc_type);
+void    __InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type);
 void    __OffsetRect(RECT *prc,s32 dx,s32 dy);
 void    __InflateRect(RECT *prc,s32 dx,s32 dy);
 void    __InflateRectEx(RECT *prc,s32 l,s32 t,s32 r,s32 b);
@@ -207,7 +207,7 @@ bool_t  __PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,p
 void    __PostTimerMessage(struct WinTimer *ptmr);
 
 void    __InvalidateWindow(HWND hwnd,bool_t bErase);
-struct WinMsgQueueCB*   __GUI_CreateMsgQ(u32 size);
+struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size);
 void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ);
 void    __RemoveWindowTimer(HWND hwnd);
 void    __DeleteMainWindowData(HWND hwnd);

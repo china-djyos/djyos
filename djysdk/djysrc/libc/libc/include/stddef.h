@@ -66,7 +66,7 @@ extern "C"{
 
 typedef ptu32_t ptrdiff_t;
 typedef u32 size_t;     //todo,这里必须跟编译器的设置一致,不然memcpy等有问题。
-typedef size_t off_t;
+typedef s64 off_t;
 typedef s32 ssize_t;
 typedef s32 mode_t;
 void NULL_func(void);
@@ -75,7 +75,7 @@ void NULL_func(void);
   #define true  1
 #endif
 #ifndef false
-  #define false (ufast_t)0
+  #define false               0
 #endif
 #ifndef FALSE
     #define FALSE             0

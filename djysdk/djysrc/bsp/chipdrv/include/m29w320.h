@@ -31,7 +31,7 @@ ERROR_CODE m29w320_Write(unsigned short *pusData,	/* write some bytes to flash *
 ERROR_CODE m29w320_Control(unsigned int uiCmd,		/* send a command to device */
 						   COMMAND_STRUCT *pCmdStruct);
 
-/*--------------------------------djyfs-------------------------------------*/
+/*--------------------------------fs-------------------------------------*/
 
 void reset_norflash(void);
 bool_t erase_sector(u32 sector);

@@ -393,13 +393,13 @@ void adjustvisualmenuitem_pull(struct menu_displaypara  *dispara)
 // 返回值  :
 //需要说明的是:位置前面都计算好了，已经没有啥子好说的了
 // =========================================================================
-struct menu_displaypara *createmenudisparabypre_pull(struct menu_displaypara *pre,struct menu_item *menuitem,struct GkWinRsc  *Appwin)
+struct menu_displaypara *createmenudisparabypre_pull(struct menu_displaypara *pre,struct menu_item *menuitem,struct GkWinObj  *Appwin)
 {
 
   bool_t  result;
   struct menu_displaypara  *cur=NULL;
   struct Rectangle   Disparawin_rec;
- // struct GkWinRsc  *win;
+ // struct GkWinObj  *win;
    //简单的根据前一个菜单窗口创建
 
   if((NULL==pre)&&((NULL==menuitem)||(NULL==Appwin)))

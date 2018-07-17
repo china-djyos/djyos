@@ -72,7 +72,7 @@ enum EN_ExpAction
     EN_EXP_DEAL_RESTART,        //重置sp后和cpu核状态后,跳转到预加载函数
     EN_EXP_DEAL_WAIT,           //等待,一般用于调试,将进入死循环
     EN_EXP_DEAL_ERROR,          //异常处理出错,动作将被忽略
-	EN_EXP_DEAL_LENTH,          //lenth
+    EN_EXP_DEAL_LENTH,          //lenth
 };
 
 //抛出异常处理结果
@@ -297,7 +297,7 @@ enum EN_ExpDealResult  Exp_Throw(struct ExpThrowPara *throwpara);
 // 返回值  :ptu32_t 暂时无定义
 // 说明    :主要是初始化存储方案
 // =============================================================================
-ptu32_t ModuleInstall_Exp(ptu32_t para);
+void ModuleInstall_Exp(void);
 const char *ExpActionName(enum EN_ExpAction action); //获取异常动作名字
 
 //THE INTERFACE FOR THE LINE MEMORY RECORDER,IF YOU HAS A LINE MEMORY THAT COULD
@@ -312,10 +312,10 @@ typedef bool_t (*fnFormat)(u16 offset,u16 len);        //format the media
 typedef bool_t (*fnInit)(void);          //initialize the hard media
 typedef struct
 {
-	fnRead     read;
-	fnWrite    write;
-	fnFormat   format;
-	fnInit     init;
+    fnRead     read;
+    fnWrite    write;
+    fnFormat   format;
+    fnInit     init;
 }tagExpLowLevelOpt;
 //CONFIGUER A LINE MEMORY TO THE EXCEPTION RECORDER
 bool_t LineMemExpRecord_Config(tagExpLowLevelOpt *lopt,u16 memsize);

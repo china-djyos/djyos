@@ -134,7 +134,7 @@ static void __gdd_TimerAdd(struct WinTimer *timer)
     //下一行没有  ;  号
     dListForEach(tmp, &sg_GddTimerList)
     {
-        t = Container(tmp,struct WinTimer,node_sys);
+        t = dListEntry(tmp,struct WinTimer,node_sys);
         if(t->Alarm >= timer->Alarm)
             break;
     }
@@ -217,7 +217,7 @@ struct WinTimer*  GDD_FindTimer(HWND hwnd,u16 Id)
         Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
         dListForEach(n, &hwnd->list_timer)
         {
-            ptmr =(struct WinTimer*)Container(n,struct WinTimer,node_hwnd);
+            ptmr =(struct WinTimer*)dListEntry(n,struct WinTimer,node_hwnd);
             if(ptmr->Id==Id)
             {
                 break;
@@ -335,7 +335,7 @@ void __RemoveWindowTimer(HWND hwnd)
     n = (&hwnd->list_timer)->next;
     for (;n != (&hwnd->list_timer); n = (&hwnd->list_timer)->next)
     {
-        ptmr =(struct WinTimer*)Container(n,struct WinTimer,node_hwnd);
+        ptmr =(struct WinTimer*)dListEntry(n,struct WinTimer,node_hwnd);
 
         Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
         dListRemove(&ptmr->node_sys);
@@ -373,7 +373,7 @@ ptu32_t GDD_TimerScan(void)
             NowTime = DjyGetSysTime( );
             Lock_MutexPend(s_ptGddTimerQSync,CN_TIMEOUT_FOREVER);
             tmp = (&sg_GddTimerList)->next;
-            timer = Container(tmp,struct WinTimer,node_sys);
+            timer = dListEntry(tmp,struct WinTimer,node_sys);
             if(timer->Alarm > NowTime)
             {
                 Lock_MutexPost(s_ptGddTimerQSync);

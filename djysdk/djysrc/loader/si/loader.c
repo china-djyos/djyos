@@ -123,6 +123,10 @@ void Pre_Start(void)
     Int_Init();
     critical();
     loader();
-
+    //__libc_init_array和__libc_fini_array均由ld产生静态数组的方式调用全局构造和析构
+    //函数，进适用于SI模式，动态加载需要重新设计。
+    //只管到loader，没有涉及preloader，故紧急代码等不允许用c++写。
+    __libc_init_array();
     Sys_Start();        //开始启动系统
+    __libc_fini_array();
 }

@@ -26,6 +26,7 @@
   */ 
 
 /* Includes ------------------------------------------------------------------*/
+#if 0 // DJYOS≤ª±‡“Î
 #include "usbh_core.h"
 
 /**
@@ -269,3 +270,4 @@ void  USBH_Delay (uint32_t Delay)
 
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+#endif // DJYOS≤ª±‡“Î

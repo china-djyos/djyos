@@ -64,7 +64,7 @@
 
 
 struct Charset* Charset_NlsGetLocCharset(const char* loc);
-ptu32_t ModuleInstall_CharsetNls(const char * para);
+void ModuleInstall_CharsetNls(const char * DefaultCharset);
 
 #endif
 

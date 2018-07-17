@@ -63,7 +63,7 @@ extern "C" {
 
 struct MsgQueue
 {
-    struct Object MsgNode;
+    struct Object *HostObj;
     struct SemaphoreLCB MsgSendSemp;    //发送端控制信号量
     struct SemaphoreLCB MsgRecvSemp;    //接收端控制信号量
 
@@ -75,12 +75,9 @@ struct MsgQueue
 };
 typedef struct MsgQueue tagMsgQueue;
 
-struct MsgQueue *MsgQ_Create( u32 MaxMsgs,u32  MsgLength,u32 Options);
-ptu32_t ModuleInstall_MsgQ (ptu32_t para);
-struct MsgQueue *MsgQ_Create_s(struct MsgQueue *pMsgQ, u32 MaxMsgs,
-                                  u32  MsgLength,u32 Options,void *buf);
+struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options);
+bool_t ModuleInstall_MsgQ (void);
 bool_t MsgQ_Delete(struct MsgQueue *pMsgQ);
-bool_t MsgQ_Delete_s(struct MsgQueue *pMsgQ);
 bool_t MsgQ_Send(struct MsgQueue *pMsgQ,u8 *buffer,u32 nBytes,u32 Timeout,
                  bool_t priority);
 bool_t MsgQ_Receive(struct MsgQueue *pMsgQ,u8 *buffer,u32 nBytes,u32 Timeout);

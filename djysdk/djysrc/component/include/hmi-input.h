@@ -87,7 +87,7 @@ struct Mouse2D_Msg
 {
     u32 time;                       //鼠标事件发生时间,ticks数
     //指明鼠标事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
-    struct DisplayRsc *display;
+    struct DisplayObj *display;
     s32 x,y;                        //表示鼠标指针位置
     u16 key_no;                     //动作的鼠标键号
 };
@@ -97,7 +97,7 @@ struct Mouse3D_Msg
 {
     u32 time;                       //按键事件发生时间,ticks数
     //指明鼠标事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
-    struct DisplayRsc *display;
+    struct DisplayObj *display;
     s32 x,y,z;                      //表示鼠标指针位置
     u16 key_no;                     //动作的鼠标键号
 };
@@ -107,7 +107,7 @@ struct SingleTouchMsg
 {
     u32 time;              //按键事件发生时间,ticks数
     //指明触摸事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
-    struct DisplayRsc *display;
+    struct DisplayObj *display;
     s32 x,y,z;  //x,y表示触摸位置，z>0标志触摸压力，0标志未触摸
 };
 
@@ -140,9 +140,9 @@ struct InputDeviceMsg
     union un_input_data input_data;
 };
 
-struct HMI_InputDeviceRsc
+struct HMI_InputDeviceObj
 {
-    struct Object stdin_device_node;
+    struct Object *HostObj;
     enum _STDIN_INPUT_TYPE_ input_type;   //输入设备类型
     s32 device_id;                      //输入设备id
     u32 input_counter;                  //本输入设备累计输入了多少消息

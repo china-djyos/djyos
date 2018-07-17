@@ -137,8 +137,8 @@ void main(int argc, char *argv[])
     pHeapList.PageSize = 128;
     strcpy(pHeapList.name,"sys");
     pHeapList.name[4] = '\0';
-//  a = CreateDirectory(_TEXT("djyfs"),NULL);
-//  a = CreateDirectory(_TEXT("djyfs\\sys"),NULL);
+//  a = CreateDirectory(_TEXT("fs"),NULL);
+//  a = CreateDirectory(_TEXT("fs\\sys"),NULL);
     Heap_StaticModuleInit(0);
     Int_Init();
     QueryPerformanceFrequency(&litmp);

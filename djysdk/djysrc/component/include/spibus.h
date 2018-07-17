@@ -36,7 +36,7 @@ struct SPI_Param
 //SPI总线器件结构体
 struct SPI_Device
 {
-    struct Object DevNode;
+    struct Object *HostObj;
     u8 Cs;                                  //片选信号
     bool_t AutoCs;                          //自动片选
     u8 CharLen;                             //数据长度
@@ -63,17 +63,17 @@ struct SPI_Buf
 //SPI总线控制块结构体,本模块可见
 struct SPI_CB
 {
-    struct Object       SPI_BusNode;                //总线资源节点
-    struct SPI_Buf       SPI_Buf;                    //缓冲区,用于异步发送
-    struct SemaphoreLCB *SPI_BusSemp;                //SPI总线保护信号量
-    struct SemaphoreLCB *SPI_BlockSemp;              //简易缓冲区保护信号量
-    struct SPI_DataFrame Frame;
-    struct SPI_Device    *CurrentDev;                //占有当前总线的设备
-    u16                     ErrorPopEvtt;               //出错处理事件的类型
-    bool_t                  MultiCsReg;                 //是否具有多套CS寄存器
-    u8                      BlockOption;                //当前总线操作是否阻塞
-    u8                      Flag;                       //轮询中断标记
-    ptu32_t                 SpecificFlag;               //个性标记
+    struct Object           *HostObj;              //宿主对象
+    struct SPI_Buf          SPI_Buf;               //缓冲区,用于异步发送
+    struct SemaphoreLCB     *SPI_BusSemp;           //SPI总线保护信号量
+    struct SemaphoreLCB     *SPI_BlockSemp;         //简易缓冲区保护信号量
+    struct SPI_DataFrame    Frame;
+    struct SPI_Device       *CurrentDev;           //占有当前总线的设备
+    u16                     ErrorPopEvtt;       //出错处理事件的类型
+    bool_t                  MultiCsReg;         //是否具有多套CS寄存器
+    u8                      BlockOption;        //当前总线操作是否阻塞
+    u8                      Flag;               //轮询中断标记
+    ptu32_t                 SpecificFlag;       //个性标记
     TransferFunc            pTransferTxRx;
     TransferPoll            pTransferPoll;
     CsActiveFunc            pCsActive;
@@ -128,7 +128,7 @@ typedef struct SpiConfig
 #define CN_SPI_POP_UNKNOW_ERR               (0x01 << 16)        //未知错误
 
 //SPI模块API函数
-struct Object *ModuleInstall_SPIBus(ptu32_t para);
+bool_t ModuleInstall_SPIBus(void);
 
 struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam);
 struct SPI_CB *SPI_BusAdd_s(struct SPI_CB *NewSPI,struct SPI_Param *NewSPIParam);
@@ -138,11 +138,8 @@ struct SPI_CB *SPI_BusFind(const char *BusName);
 
 struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 charlen,
                                 u8 mode,u8 shiftdir,u32 freq,u8 autocs);
-struct SPI_Device *SPI_DevAdd_s(struct SPI_Device *NewDev,const char *BusName,
-                                   const char *DevName);
 bool_t SPI_DevDelete(struct SPI_Device *DelDev);
-bool_t SPI_DevDelete_s(struct SPI_Device *DelDev);
-struct SPI_Device *SPI_DevFind(const char *DevName);
+struct SPI_Device *SPI_DevFind(const char *BusName ,const char *DevName);
 
 s32 SPI_Transfer(struct SPI_Device *Dev,struct SPI_DataFrame *spidata,
                 u8 block_option,u32 timeout);

@@ -152,15 +152,16 @@
 #define GZ_WRITE 31153
 #define GZ_APPEND 1     /* mode set to GZ_WRITE after the file is opened */
 
-#define O_RDONLY  1
-#define O_WRONLY  2
-#define O_RDWR    4
-#define O_CREAT   0x0100
-#define O_TRUNC   0X0200
-#define O_EXCL    0x0400
-#define O_APPEND  0X0800
-#define O_TEXT    0X4000
-#define O_BINARY  0X8000
+// lst 以下定义c库重复，且有冲突
+//#define O_RDONLY  1
+//#define O_WRONLY  2
+//#define O_RDWR    4
+//#define O_CREAT   0x0100
+//#define O_TRUNC   0X0200
+//#define O_EXCL    0x0400
+//#define O_APPEND  0X0800
+//#define O_TEXT    0X4000
+//#define O_BINARY  0X8000
 
 /* values for gz_state how */
 #define LOOK 0      /* look for a gzip header */

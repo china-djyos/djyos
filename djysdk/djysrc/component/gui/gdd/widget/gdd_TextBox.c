@@ -117,7 +117,7 @@ static s16 __GetValidStrLen(char *str)
 static u32 __GetCharByIndex(char *str,u8 idx)
 {
     s16 str_len=0,len=0;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     struct Charset* cur_enc;
     u32 wc=0;
     u8 cnt=0;
@@ -168,7 +168,7 @@ static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
     u16 cnt=0,chwidthsum=0;
     s16 str_len=0;
     s32 len,chwidth=0;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     struct Charset* cur_enc;
     u32 wc;
     if(str==NULL)
@@ -222,7 +222,7 @@ static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
 // =============================================================================
 static s16 __GetStrWidth(char *str,u16 idx)
 {
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     struct Charset* cur_enc;
     u32 wc;
     s32 len,chwidth=0;
@@ -362,7 +362,7 @@ static s16 __CharToBytes(char *str,u8 num)
      u8 cnt=0;
      u32 wc;
      s32 len;
-     struct FontRsc* cur_font;
+     struct FontObj* cur_font;
      struct Charset* cur_enc;
      if(str==NULL)
           return -1;
@@ -700,7 +700,7 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
 
    GetClientRect(hwnd,&rc);
 
-   Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,color);
+   Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
    SetFillColor(hdc,color);
 //   SetFillColor(hdc,RGB(255,0,0));
    FillRect(hdc,&rc);
@@ -726,7 +726,7 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
 	}
 
 //	SetTextColor(hdc,RGB(1,1,1));
-    Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,color);
+    Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,&color);
     SetTextColor(hdc,color);
 	DrawText(hdc,str,count,&rc,DT_VCENTER|DT_LEFT);
 	EndPaint(hwnd,hdc);
@@ -747,7 +747,7 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
     TextBox *pTB;
     char tmpbuf[2];
     bool_t ret;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     struct Charset* cur_enc;
     u32 wc;
     s32 chwidth,width=0;
@@ -808,7 +808,7 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
          {
                case VK_ENTER_CHAR:
                {
-            	   Cursor_SetHide( );
+                   Cursor_SetHide( );
                    break;
                }
                case VK_DEL_CHAR:

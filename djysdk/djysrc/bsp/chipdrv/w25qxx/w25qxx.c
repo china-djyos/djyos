@@ -51,11 +51,54 @@
 #include <stdlib.h>
 #include <cpu_peri.h>
 #include <djyos.h>
-#include <driver.h>
-#include <driver/flash/flash.h>
+#include <device.h>
+#include <device/flash/flash.h>
 #include <spibus.h>
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-// 
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk);
+//    ModuleInstall_NOR(CFG_W25QXX_BUS_NAME,CFG_W25QXX_FLAG,CFG_W25QXX_START_BLK);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"W25QXX"       //填写该组件的名字
+//parent:"djyfs"                //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"djyfs","heap","spibus",     //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_W25QXX_FLAG          //****检查参数是否已经配置好
+#warning    W25QXX组件参数未配置，使用默认值
+//%$#@num,0,100,
+#define CFG_W25QXX_START_BLK               0         //"起始块",文件系统起始块
+//%$#@enum,1,2,
+#define CFG_W25QXX_FLAG                   (2)        //"FLASH标记位",FLASH_BUFFERED(2) OR FLASH_ERASE_ALL(1)
+//%$#@string,1,20,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#define CFG_W25QXX_BUS_NAME               ""         //"总线名称",FLASH总线接口名称
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+//
 //  开发板源码,BITBAND逻辑
 /*
 #define BITBAND(addr, bitnum)         ((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))
@@ -66,12 +109,12 @@
 #define PAout(n)                       BIT_ADDR(GPIOA_ODR_Addr,n)  //输出
 #define PBout(n)                       BIT_ADDR(GPIOB_ODR_Addr,n)  //输出
 */
-static struct SPI_Device *s_pSpiPort; // 器件使用的SPI端口
+static struct SPI_Device *s_ptSpiPort; // 器件使用的SPI端口
 static struct FlashChip *s_pChip; // 测试用
 
 //-----------------------------------------------------------------------------
 //功能: Nor专用逻辑，写使能
-//参数: 
+//参数:
 //返回: 0 -- 成功; -1 -- 失败;
 //备注:
 //-----------------------------------------------------------------------------
@@ -87,22 +130,22 @@ static s32 __WriteEnable(void)
     CommandFrame.SendBuf = Command;
     CommandFrame.SendLen = 1;
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
 
     if(CN_SPI_EXIT_NOERR !=
-            SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+            SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
     {
         Ret = -1;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     return (Ret);
 }
 
 //-----------------------------------------------------------------------------
 //功能: 获取Nor状态
-//参数: 
+//参数:
 //返回: 0 -- 成功; -1 -- 失败;
 //备注:
 //-----------------------------------------------------------------------------
@@ -118,22 +161,22 @@ static s32 __Status1(u8 *Status)
     CommandFrame.SendBuf = Command;
     CommandFrame.SendLen = 1;
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
 
     if(CN_SPI_EXIT_NOERR !=
-            SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+            SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
     {
         Ret = -1;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     return (Ret);
 }
 
 //-----------------------------------------------------------------------------
 //功能: 检查操作是否完成
-//参数: 
+//参数:
 //返回:  -1 -- 未完成; 0 -- 完成;
 //备注:
 //-----------------------------------------------------------------------------
@@ -152,7 +195,7 @@ static s32 __Done(void)
 
 //-----------------------------------------------------------------------------
 //功能: 获取Nor ID信息
-//参数: 
+//参数:
 //返回: 非零 -- ID信息; 0 -- 失败;
 //备注:
 //-----------------------------------------------------------------------------
@@ -174,15 +217,15 @@ static u16 __ID(void)
     CommandFrame.SendBuf = Command;
     CommandFrame.SendLen = 4;
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
 
-    Ret = SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER);
+    Ret = SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER);
     if(CN_SPI_EXIT_NOERR != Ret)
     {
         ID = 0;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     return (ID);
 }
@@ -214,15 +257,15 @@ s32 w25qxx_SectorErase(u32 SectorNo)
     if(__WriteEnable())
         return (-1);
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
 
     if(CN_SPI_EXIT_NOERR !=
-            SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+            SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
     {
         Ret = -1;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     Djy_EventDelay(400000);// 切出//延时切出.
 
@@ -259,15 +302,15 @@ s32 w25qxx_BlkErase(u32 BlkNo)
     if(__WriteEnable())
         return (-1);
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
 
     if(CN_SPI_EXIT_NOERR !=
-            SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+            SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
     {
         Ret = -1;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     Djy_EventDelay(1000000);// 切出//延时切出.
 
@@ -300,15 +343,15 @@ s32 w25qxx_ChipErase(void)
     if(__WriteEnable())
         return (-1);
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
 
     if(CN_SPI_EXIT_NOERR !=
-            SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+            SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
     {
         Ret = -1;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     Djy_EventDelay(40000000);// 切出//延时切出.
 
@@ -348,15 +391,15 @@ s32 w25qxx_PageRead(u32 PageNo, u8 *Data, u32 Flags)
     CommandFrame.SendBuf = Command;
     CommandFrame.SendLen = 4;
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
 
     if(CN_SPI_EXIT_NOERR ==
-            SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
+            SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER))
     {
         Ret = 256;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     return (Ret);
 }
@@ -392,8 +435,8 @@ s32 w25qxx_PageWrite(u32 PageNo, u8 *Data, u32 Flags)
     CommandFrame.SendBuf = Command;
     CommandFrame.SendLen = 4;
 
-    SPI_CsActive(s_pSpiPort, CN_TIMEOUT_FOREVER);
-    Ret = SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER);
+    SPI_CsActive(s_ptSpiPort, CN_TIMEOUT_FOREVER);
+    Ret = SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER);
     if(CN_SPI_EXIT_NOERR == Ret)
     {
         CommandFrame.RecvBuf = NULL;
@@ -401,7 +444,7 @@ s32 w25qxx_PageWrite(u32 PageNo, u8 *Data, u32 Flags)
         CommandFrame.RecvOff = 0;
         CommandFrame.SendBuf = Data;
         CommandFrame.SendLen = 256;
-        Ret = SPI_Transfer(s_pSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER);
+        Ret = SPI_Transfer(s_ptSpiPort, &CommandFrame, TRUE, CN_TIMEOUT_FOREVER);
         if(CN_SPI_EXIT_NOERR == Ret)
         {
             Ret = 256;
@@ -416,7 +459,7 @@ s32 w25qxx_PageWrite(u32 PageNo, u8 *Data, u32 Flags)
         Ret = -2;
     }
 
-    SPI_CsInactive(s_pSpiPort);
+    SPI_CsInactive(s_ptSpiPort);
 
     Djy_EventDelay(3000);// 延时切出.
 
@@ -437,24 +480,19 @@ s32 Nor_Init(struct FlashChip *Nor)
 {
     struct SPI_Device *SpiPort;
 
-    // SPI接口
-    SpiPort = (struct SPI_Device*)malloc(sizeof(*SpiPort));
-    if(NULL == SpiPort)
-        return (-1);
 
-    SpiPort->AutoCs = FALSE;
-    SpiPort->CharLen = 8;
-    SpiPort->Cs = 0;
-    SpiPort->Freq = 1000000; // 1M
-    SpiPort->Mode = SPI_MODE_0;
-    SpiPort->ShiftDir = SPI_SHIFT_MSB;
+    if(s_ptSpiPort = SPI_DevAdd("SPI1","w25qxx",0,8,SPI_MODE_0,SPI_SHIFT_MSB,1000*1000,false))
+    {
+        SPI_BusCtrl(s_ptSpiPort,CN_SPI_SET_POLL,0,0);
+    }
+    else
+    {
+        printf("w25qxx init failed.\n\r");
+        return false;
+    }
 
-    if(NULL != SPI_DevAdd_s(SpiPort, "SPI1", "DevOnSPI1"))
-        SPI_BusCtrl(SpiPort, CN_SPI_SET_POLL, 0, 0);
-
-    s_pSpiPort = SpiPort;
     Nor->Descr.Nor.PortType = NOR_SPI;
-    Nor->Descr.Nor.Port = (void*)s_pSpiPort;
+    Nor->Descr.Nor.Port = (void*)s_ptSpiPort;
 
     Nor->Descr.Nor.BytesPerPage = 256;
     Nor->Descr.Nor.PagesPerSector = 16;
@@ -513,7 +551,7 @@ s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk)
         return (-2);
     }
 
-    Driver_DeviceCreate(NULL, Chip->Name, NULL, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
+    dev_add(NULL,Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
 
     return (0);
 

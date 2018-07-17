@@ -60,9 +60,78 @@
 #include <stm32f7xx_hal_dma_ex.h>
 #include <stm32f7xx_hal.h>
 #include <stm32f7xx_hal_i2s.h>
-#include <wave.h>
 #include "shell.h"
 #include "msgqueue.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern ptu32_t ModuleInstall_MAX98357(void);
+//    ModuleInstall_MAX98357();
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"max98357"              //填写该组件的名字
+//parent:"none"                          //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件                      //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                        //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                            //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                        //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"int","msgQ","stm32f7","shell",     //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                        //选中该组件时，被依赖组件将强制选中，
+                                        //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                        //选中该组件时，被依赖组件不会被强制选中，
+                                        //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                          //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                        //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_MAX98357_SAM_MODE   //****检查参数是否已经配置好
+#warning    max98357组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+
+#define CN_WAVE_FORMAT_PCM     1
+#define CN_WAVE_FORMAT_ADPCM   2
+
+#define CN_CHANNEL_SINGLE      1
+#define CN_CHANNEL_DOUBLE      2
+
+#define CN_RIFF_FLAG          0x52494646
+
+#pragma pack(1)
+typedef  struct
+{
+     uint32_t riff;                  /* = "RIFF" 0x46464952*/
+     uint32_t size_8;                /* 从下个地址开始到文件尾的总字节数 */
+     uint32_t wave;                  /* = "WAVE" 0x45564157*/
+     uint32_t fmt;                   /* = "fmt " 0x20746d66*/
+     uint32_t fmtSize;               /* 下一个结构体的大小(一般为16) */
+     uint16_t wFormatTag;            /* 编码方式,一般为1 */
+     uint16_t wChannels;             /* 通道数，单声道为1，立体声为2 */
+     uint32_t dwSamplesPerSec;       /* 采样率 */
+     uint32_t dwAvgBytesPerSec;      /* 每秒字节数(= 采样率 × 每个采样点字节数) */
+     uint16_t wBlockAlign;           /* 每个采样点字节数(=量化比特数/8*通道数) */
+     uint16_t wBitsPerSample;        /* 量化比特数(每个采样需要的bit数) */
+     uint32_t data;                  /* = "data" 0x61746164*/
+     uint32_t datasize;              /* 纯数据长度 */
+ } WavHead;
+
+
+
 
 #define CN_I2S_DMA_BUF_LEN             4096
 #define CN_SINGLE_READ_LEN             2048
@@ -87,7 +156,11 @@ u32 fillnum=CN_SINGLE_READ_LEN;            //填充进缓冲区的数据大小
 static struct MsgQueue * gs_ptMax98357MsgQ;//中断处理函数中发送的消息
 #define CN_WAVE_READ_STATCK_LEN     2048
 static uint8_t gs_WaveReadStack[CN_WAVE_READ_STATCK_LEN];
-static bool_t b_ReadCompleteFlag=false;    //传输完成标志位
+static bool_t b_ReadCompleteFlag=true;    //传输完成标志位
+static bool_t b_DMACloseFlag=true;    //传输完成标志位
+static bool_t b_FileCloseFlag=true;    //传输完成标志位
+
+
 
 /*******************************************************************************
 功能:I2S的DMA功能使能
@@ -98,10 +171,13 @@ static bool_t b_ReadCompleteFlag=false;    //传输完成标志位
 void I2S_DMA_Enable(void)
 {
     u32 tempreg=0;
-    tempreg=SPI3->CR2;
-	tempreg|=1<<1;
-	SPI3->CR2=tempreg;
+    tempreg=MAX98357_SPIX->CR2;
+    tempreg|=1<<1;
+    MAX98357_SPIX->CR2=tempreg;
 }
+
+
+
 /*******************************************************************************
 功能:I2S初始化配置
 参数:
@@ -110,12 +186,12 @@ void I2S_DMA_Enable(void)
 *********************************************************************************/
 void I2S_ModeConfig(void)
 {
-	HAL_I2S_DeInit(&I2SHandle);
-	I2SHandle.Instance = SPI3;
-	I2SHandle.Init.Mode = I2S_MODE_MASTER_TX;
-	I2SHandle.Init.Standard = I2S_STANDARD_PHILIPS;
-	I2SHandle.Init.DataFormat = I2S_DATAFORMAT_16B;
-	I2SHandle.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+    HAL_I2S_DeInit(&I2SHandle);
+    I2SHandle.Instance = MAX98357_SPIX;
+    I2SHandle.Init.Mode = I2S_MODE_MASTER_TX;
+    I2SHandle.Init.Standard = I2S_STANDARD_PHILIPS;
+    I2SHandle.Init.DataFormat = I2S_DATAFORMAT_16B;
+    I2SHandle.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
     I2SHandle.Init.AudioFreq = I2S_AUDIOFREQ_16K;
     I2SHandle.Init.CPOL = I2S_CPOL_HIGH;
     I2SHandle.Init.ClockSource = I2S_CLOCK_PLL;
@@ -123,7 +199,7 @@ void I2S_ModeConfig(void)
     __HAL_I2S_DISABLE(&I2SHandle);
     if(HAL_I2S_Init(&I2SHandle) != HAL_OK)
     {
-    	printf("I2S3 init failed.\r\n");
+        printf("I2S3 init failed.\r\n");
     }
     I2S_DMA_Enable();
     __HAL_I2S_ENABLE(&I2SHandle);
@@ -136,45 +212,46 @@ void I2S_ModeConfig(void)
 *********************************************************************************/
 void I2Sx_TX_DMA_Init(void)
 {
-	  __HAL_RCC_DMA1_CLK_ENABLE();
-	  __HAL_LINKDMA(&I2SHandle,hdmatx,DmaHandle);
-	 /*##-2- Select the DMA functional Parameters ###############################*/
-	 /* 配置 DMA Stream */
-	 //通道0 SPIx_TX通道
-	  DmaHandle.Init.Channel = DMA_CHANNEL_0;                  /* DMA_CHANNEL_0                    */
-	  DmaHandle.Init.Direction = DMA_MEMORY_TO_PERIPH;         /* M2M transfer mode                */
-	  DmaHandle.Init.PeriphInc = DMA_PINC_DISABLE;             /* Peripheral increment mode Disable */
-	  DmaHandle.Init.MemInc = DMA_MINC_ENABLE;                 /* Memory increment mode Enable     */
-	  DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD; /* Peripheral data alignment : 16bit */
-	  DmaHandle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;    /* memory data alignment : 16bit     */
-	  DmaHandle.Init.Mode = DMA_CIRCULAR;                         /* Normal DMA mode                  */
-	  DmaHandle.Init.Priority = DMA_PRIORITY_HIGH;              /* priority level : high            */
-	  DmaHandle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;           /* FIFO mode disabled               */
-	  DmaHandle.Init.MemBurst = DMA_MBURST_SINGLE;              /* Memory burst                     */
-	  DmaHandle.Init.PeriphBurst = DMA_PBURST_SINGLE;           /* Peripheral burst                 */
+      __HAL_RCC_DMA1_CLK_ENABLE();
+      __HAL_LINKDMA(&I2SHandle,hdmatx,DmaHandle);
+     /*##-2- Select the DMA functional Parameters ###############################*/
+     /* 配置 DMA Stream */
+     //通道0 MAX98357_SPIX_TX通道
+      DmaHandle.Init.Channel = DMA_CHANNEL_0;                  /* DMA_CHANNEL_0                    */
+      DmaHandle.Init.Direction = DMA_MEMORY_TO_PERIPH;         /* M2M transfer mode                */
+      DmaHandle.Init.PeriphInc = DMA_PINC_DISABLE;             /* Peripheral increment mode Disable */
+      DmaHandle.Init.MemInc = DMA_MINC_ENABLE;                 /* Memory increment mode Enable     */
+      DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD; /* Peripheral data alignment : 16bit */
+      DmaHandle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;    /* memory data alignment : 16bit     */
+      DmaHandle.Init.Mode = DMA_CIRCULAR;                         /* Normal DMA mode                  */
+      DmaHandle.Init.Priority = DMA_PRIORITY_VERY_HIGH;              /* priority level : high            */
+      DmaHandle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;           /* FIFO mode disabled               */
+      DmaHandle.Init.MemBurst = DMA_MBURST_SINGLE;              /* Memory burst                     */
+      DmaHandle.Init.PeriphBurst = DMA_PBURST_SINGLE;           /* Peripheral burst                 */
 
-	  /*##-3- Select the DMA instance to be used for the transfer : DMA1_Stream5 #*/
-	  DmaHandle.Instance = DMA1_Stream5;
+      /*##-3- Select the DMA instance to be used for the transfer : DMAX_StreamX #*/
+      DmaHandle.Instance = MAX98357_DMAX_StreamX;
 
-	  HAL_DMA_DeInit(&DmaHandle);
-	  HAL_DMA_Init(&DmaHandle);
+      HAL_DMA_DeInit(&DmaHandle);
+      HAL_DMA_Init(&DmaHandle);
 
-	  HAL_DMA_RegisterCallback(&DmaHandle,HAL_DMA_XFER_M1CPLT_CB_ID,I2S_DMA_TX_CallBack2);
-	  HAL_DMA_RegisterCallback(&DmaHandle,HAL_DMA_XFER_CPLT_CB_ID,I2S_DMA_TX_CallBack1);
+      HAL_DMA_RegisterCallback(&DmaHandle,HAL_DMA_XFER_M1CPLT_CB_ID,I2S_DMA_TX_CallBack2);
+      HAL_DMA_RegisterCallback(&DmaHandle,HAL_DMA_XFER_CPLT_CB_ID,I2S_DMA_TX_CallBack1);
 
-	  HAL_DMAEx_MultiBufferStart(&DmaHandle,(u32)gs_buf1,(u32)&(SPI3->DR),(u32)gs_buf2,CN_SINGLE_READ_LEN);
-	  __HAL_DMA_DISABLE(&DmaHandle);
-	  Djy_DelayUs(100);
+      HAL_DMAEx_MultiBufferStart(&DmaHandle,(u32)gs_buf1,(u32)&(MAX98357_SPIX->DR),(u32)gs_buf2,CN_SINGLE_READ_LEN);
+      __HAL_DMA_DISABLE(&DmaHandle);
+      Djy_DelayUs(100);
 
       extern void DMA_IntEnable(DMA_Stream_TypeDef *DMA_Streamx,u8 SrcInt);
-      DMA_IntEnable(DMA1_Stream5,DMA_INT_TCIE);    //使能传输完成中断
-	  Int_Register(CN_INT_LINE_DMA1_Stream5);
-	  Int_IsrConnect(CN_INT_LINE_DMA1_Stream5,(uint32_t(*)(ptu32_t))HAL_DMA_IRQHandler);
-	  Int_SetIsrPara(CN_INT_LINE_DMA1_Stream5,&DmaHandle);
-	  Int_SettoAsynSignal(CN_INT_LINE_DMA1_Stream5);
-	  Int_ClearLine(CN_INT_LINE_DMA1_Stream5);
-	  Int_RestoreAsynLine(CN_INT_LINE_DMA1_Stream5);
+      DMA_IntEnable(MAX98357_DMAX_StreamX,DMA_INT_TCIE);    //使能传输完成中断
+      Int_Register(MAX98357_CN_INT_LINE_DMAX_StreamX);
+      Int_IsrConnect(MAX98357_CN_INT_LINE_DMAX_StreamX,(uint32_t(*)(ptu32_t))HAL_DMA_IRQHandler);
+      Int_SetIsrPara(MAX98357_CN_INT_LINE_DMAX_StreamX,&DmaHandle);
+      Int_SettoAsynSignal(MAX98357_CN_INT_LINE_DMAX_StreamX);
+      Int_ClearLine(MAX98357_CN_INT_LINE_DMAX_StreamX);
+      Int_RestoreAsynLine(MAX98357_CN_INT_LINE_DMAX_StreamX);
  }
+
 
 
 /*******************************************************************************
@@ -185,25 +262,25 @@ void I2Sx_TX_DMA_Init(void)
 *********************************************************************************/
 u32 wav_buffill(u8 *buf,u16 size,u8 bits)
 {
-	u32 bread;
-	u16 i;
+    u32 bread;
+    u16 i;
 
-	bread=fread(gs_srcbuf,size,1,Fp);
+    bread=fread(gs_srcbuf,size,1,Fp);
+    if(bread<size)
+    {
+        memset(gs_srcbuf+bread,0,size-bread);
+    }
+    for(i=0;i<CN_SINGLE_READ_LEN;i++)
+    {
+        buf[2*i+1]=gs_srcbuf[i];
+    }
+    gs_WaveFileLen-=size;
 
-	if(bread<size)
-	{
-		for(i=bread;i<size-bread;i++)gs_srcbuf[i]=0;
-	}
-	for(i=0;i<CN_SINGLE_READ_LEN;i++)
-	{
-		buf[2*i]=0;
-		buf[2*i+1]=gs_srcbuf[i];
-	}
-	gs_WaveFileLen-=size;
-
-
-	return bread;
+    return bread;
 }
+
+
+
 // =============================================================================
 // 功能：DMA使能
 // 参数:
@@ -211,7 +288,7 @@ u32 wav_buffill(u8 *buf,u16 size,u8 bits)
 // =============================================================================
 void I2S_PlayStart(void)
 {
-	__HAL_DMA_ENABLE(&DmaHandle);
+    __HAL_DMA_ENABLE(&DmaHandle);
 }
 // =============================================================================
 // 功能：DMA停止
@@ -220,7 +297,11 @@ void I2S_PlayStart(void)
 // =============================================================================
 void I2S_PlayStop(void)
 {
-	__HAL_DMA_DISABLE(&DmaHandle);
+    uint8_t dat;
+    dat=2;
+    MsgQ_Send(gs_ptMax98357MsgQ,&dat,1,0,CN_MSGQ_PRIO_NORMAL);
+//  b_ReadCompleteFlag=true;
+//  __HAL_DMA_DISABLE(&DmaHandle);
 }
 
 // =============================================================================
@@ -231,41 +312,48 @@ void I2S_PlayStop(void)
 // =============================================================================
 void I2S_DMA_TX_CallBack1()
 {
-	uint8_t dat;
-	DMA1->HIFCR |= 1<<9;
-	DMA1->HIFCR |= 1<<6;
-	DMA1->HIFCR |= 1<<11;
-	DMA_ClearIntFlag(DMA1_Stream5);
-	Int_ClearLine(CN_INT_LINE_DMA1_Stream5);
-	if(b_ReadCompleteFlag)
-	{
-		__HAL_DMA_DISABLE(&DmaHandle);
-	}
-	else
-	{
-		dat=0;
-		MsgQ_Send(gs_ptMax98357MsgQ,&dat,1,0,CN_MSGQ_PRIO_NORMAL);
-	}
+    uint8_t dat;
+
+    if(b_DMACloseFlag==false)
+    {
+        DMA_ClearIntFlag(MAX98357_DMAX_StreamX);
+        Int_ClearLine(MAX98357_CN_INT_LINE_DMAX_StreamX);
+        if(b_ReadCompleteFlag && b_FileCloseFlag)
+        {
+            b_DMACloseFlag=true;
+            DmaHandle.Instance->CR  &= 0xfff7ffff;
+            memset(gs_buf1,0,CN_I2S_DMA_BUF_LEN);
+            memset(gs_buf2,0,CN_I2S_DMA_BUF_LEN);
+        }
+        else
+        {
+            dat=0;
+            MsgQ_Send(gs_ptMax98357MsgQ,&dat,1,0,CN_MSGQ_PRIO_NORMAL);
+        }
+    }
 }
+
 void I2S_DMA_TX_CallBack2()
 {
-	uint8_t dat;
+    uint8_t dat;
 
-	DMA1->HIFCR |= 1<<9;
-	DMA1->HIFCR |= 1<<6;
-	DMA1->HIFCR |= 1<<11;
-	DMA_ClearIntFlag(DMA1_Stream5);
-	Int_ClearLine(CN_INT_LINE_DMA1_Stream5);
-	if(b_ReadCompleteFlag)
-	{
-		__HAL_DMA_DISABLE(&DmaHandle);
-	}
-	else
-	{
-		dat=1;
-		MsgQ_Send(gs_ptMax98357MsgQ,&dat,1,0,CN_MSGQ_PRIO_NORMAL);
-	}
-
+    if(b_DMACloseFlag==false)
+    {
+        DMA_ClearIntFlag(MAX98357_DMAX_StreamX);
+        Int_ClearLine(MAX98357_CN_INT_LINE_DMAX_StreamX);
+        if(b_ReadCompleteFlag && b_FileCloseFlag)
+        {
+            b_DMACloseFlag=true;
+            DmaHandle.Instance->CR  &= 0xfff7ffff;
+            memset(gs_buf2,0,CN_I2S_DMA_BUF_LEN);
+            memset(gs_buf1,0,CN_I2S_DMA_BUF_LEN);
+        }
+        else
+        {
+            dat=1;
+            MsgQ_Send(gs_ptMax98357MsgQ,&dat,1,0,CN_MSGQ_PRIO_NORMAL);
+        }
+    }
 }
 // =============================================================================
 // 功能：音频输出的主函数
@@ -274,79 +362,69 @@ void I2S_DMA_TX_CallBack2()
 // =============================================================================
 bool_t Audio_StartPlay(const char *filename)
 {
-	char *Path;
-	u8 FileNameLen,WaveHeadLen;
-	s32 Ret;
-	uint32_t i;
-	b_ReadCompleteFlag=false;
+    char *Path;
+    u8 FileNameLen,WaveHeadLen;
+    s32 Ret;
+    u8 num=0;
 
-	struct stat FileInfo = {0};
-	if(filename==NULL)
-		return false;
-	printf("当前播放文件->%s.\r\n",filename);
-	FileNameLen=strlen(filename);
-	Path=malloc(5+FileNameLen);
-	if(Path==NULL)
-		return false;
-	strcpy(Path,"/efs/");
-	strcpy(Path+5,filename);
-	Fp=fopen(Path,"r");
-	if(Fp==NULL)
-	{
-		printf("音频文件%s打开失败.\r\n",filename);
-		fclose(Fp);
-		return false;
-	}
-	Ret=stat(Path,&FileInfo);
-	if(Ret)
-	{
-		printf("%s cannot stat.\r\n",Path);
-		return false;
-	}
-	gs_WaveFileLen=FileInfo.st_size;
-	//读取WAVE文件头
-	WaveHeadLen=sizeof(gs_wavhead);
-	Ret=fread(&gs_wavhead,WaveHeadLen,1,Fp);
-	if(Ret!=WaveHeadLen)
-	{
-		printf("音频文件%s头信息读取失败.\r\n",filename);
-		return false;
-	}
-	gs_WaveFileLen-=WaveHeadLen;
+    if(b_FileCloseFlag!=true)
+    {
+        I2S_PlayStop();
+    }
+    while((b_FileCloseFlag!=true) || (b_ReadCompleteFlag!=true)||(b_DMACloseFlag!=true))
+    {
+        num++;
+        Djy_EventDelay( 1 * mS );
+    }
 
-	memset(gs_buf1,0,CN_I2S_DMA_BUF_LEN);
-	memset(gs_buf2,0,CN_I2S_DMA_BUF_LEN);
+    Djy_EventDelay( 1 * mS );
 
-	Ret=fread(gs_srcbuf,CN_SINGLE_READ_LEN,1,Fp);
-	if(Ret!=CN_SINGLE_READ_LEN)
-	{
-		printf("音频文件%s信息读取失败.\r\n",filename);
-		return false;
-	}
-	for(i=0;i<CN_SINGLE_READ_LEN;i++)
-	{
-		gs_buf1[2*i]=0;
-		gs_buf1[2*i+1]=gs_srcbuf[i];
-	}
-	gs_WaveFileLen-=CN_SINGLE_READ_LEN;
-	Ret=fread(gs_srcbuf,CN_SINGLE_READ_LEN,1,Fp);
-	if(Ret!=CN_SINGLE_READ_LEN)
-	{
-		printf("音频文件%s信息读取失败.\r\n",filename);
-		return false;
-	}
-	for(i=0;i<CN_SINGLE_READ_LEN;i++)
-	{
-		gs_buf2[2*i]=0;
-		gs_buf2[2*i+1]=gs_srcbuf[i];
-	}
-	gs_WaveFileLen-=CN_SINGLE_READ_LEN;
-	DMA1->HIFCR |= 1<<10;
-	DMA1->HIFCR |= 1<<11;
-	DmaHandle.Instance->FCR |=0<<7;
-	fillnum=CN_SINGLE_READ_LEN;
-	I2S_PlayStart();
-	return true;
+    struct stat FileInfo = {0};
+    if(filename==NULL)
+        return false;
+    printf("当前播放文件->%s.\r\n",filename);
+    FileNameLen=strlen(filename);
+    Path=malloc(FileNameLen);
+    if(Path==NULL)
+        return false;
+    strcpy(Path,filename);
+    Fp=fopen(Path,"r");
+    if(Fp==NULL)
+    {
+        printf("音频文件%s打开失败.\r\n",filename);
+        fclose(Fp);
+        return false;
+    }
+    Ret=stat(Path,&FileInfo);
+    if(Ret)
+    {
+        printf("%s cannot stat.\r\n",Path);
+        return false;
+    }
+    gs_WaveFileLen=FileInfo.st_size;
+    //读取WAVE文件头
+    WaveHeadLen=sizeof(gs_wavhead);
+    Ret=fread(&gs_wavhead,WaveHeadLen,1,Fp);
+    if(Ret!=WaveHeadLen)
+    {
+        printf("音频文件%s头信息读取失败.\r\n",filename);
+        return false;
+    }
+    gs_WaveFileLen-=WaveHeadLen;
+
+    memset(gs_buf1,0,CN_I2S_DMA_BUF_LEN);
+    memset(gs_buf2,0,CN_I2S_DMA_BUF_LEN);
+
+    b_ReadCompleteFlag=false;
+    b_DMACloseFlag=false;
+    b_FileCloseFlag=false;
+
+    DMA_ClearIntFlag(MAX98357_DMAX_StreamX);
+    Int_ClearLine(MAX98357_CN_INT_LINE_DMAX_StreamX);
+    DmaHandle.Instance->FCR &=0x7f;
+    fillnum=CN_SINGLE_READ_LEN;
+    I2S_PlayStart();
+    return true;
 }
 
 
@@ -357,36 +435,47 @@ bool_t Audio_StartPlay(const char *filename)
 // =============================================================================
 ptu32_t __WaveReadHandle(void)
 {
-	uint8_t dat;
-	while(1)
-	{
-		MsgQ_Receive(gs_ptMax98357MsgQ, &dat, 1, CN_TIMEOUT_FOREVER);
-		{
-			if(dat==0)
-			{
-				memset(gs_buf1,0,CN_I2S_DMA_BUF_LEN);
-				fillnum=wav_buffill(gs_buf1,CN_SINGLE_READ_LEN,16);
-				if(fillnum<CN_SINGLE_READ_LEN && Fp!=NULL)
-				{
-					b_ReadCompleteFlag=true;
-
-				}
-			}
-			else
-			{
-				memset(gs_buf2,0,CN_I2S_DMA_BUF_LEN);
-				fillnum=wav_buffill(gs_buf2,CN_SINGLE_READ_LEN,16);
-				if(fillnum<CN_SINGLE_READ_LEN && Fp!=NULL)
-				{
-					b_ReadCompleteFlag=true;
-				}
-			}
-			if(b_ReadCompleteFlag)
-			{
-				fclose(Fp);
-			}
-		}
-	}
+    uint8_t dat;
+    while(1)
+    {
+        MsgQ_Receive(gs_ptMax98357MsgQ, &dat, 1, CN_TIMEOUT_FOREVER);
+        {
+            if(dat==2)//此处不关文件，只改完成标志，再跑一轮到dat==0，1时让他们关，然后在中断里判断完成标志且文件标志，再停DMA
+            {
+                b_ReadCompleteFlag=true;
+//              fclose(Fp);
+//              b_FileCloseFlag=true;
+            }
+            if(dat==0)
+            {
+                memset(gs_buf1,0,CN_I2S_DMA_BUF_LEN);
+                fillnum=wav_buffill(gs_buf1,CN_SINGLE_READ_LEN,16);
+                if(fillnum<CN_SINGLE_READ_LEN && Fp!=NULL)
+                {
+                    b_ReadCompleteFlag=true;
+                }
+                if(b_ReadCompleteFlag)
+                {
+                    fclose(Fp);
+                    b_FileCloseFlag=true;
+                }
+            }
+            if(dat==1)
+            {
+                memset(gs_buf2,0,CN_I2S_DMA_BUF_LEN);
+                fillnum=wav_buffill(gs_buf2,CN_SINGLE_READ_LEN,16);
+                if(fillnum<CN_SINGLE_READ_LEN && Fp!=NULL)
+                {
+                    b_ReadCompleteFlag=true;
+                }
+                if(b_ReadCompleteFlag)
+                {
+                    fclose(Fp);
+                    b_FileCloseFlag=true;
+                }
+            }
+        }
+    }
 }
 // =============================================================================
 // 功能：初始化函数
@@ -395,32 +484,32 @@ ptu32_t __WaveReadHandle(void)
 // =============================================================================
 ptu32_t ModuleInstall_MAX98357(void)
 {
-	uint16_t evtt_id,event_id;
-	I2S_ModeConfig();
-	I2Sx_TX_DMA_Init();
-	MAX98357_Shell_Module_Install();
-	gs_ptMax98357MsgQ=MsgQ_Create(1,1,CN_MSGQ_TYPE_FIFO);
+    uint16_t evtt_id,event_id;
+    I2S_ModeConfig();
+    I2Sx_TX_DMA_Init();
+    MAX98357_Shell_Module_Install();
+    gs_ptMax98357MsgQ=MsgQ_Create(1,1,CN_MSGQ_TYPE_FIFO);
     if(gs_ptMax98357MsgQ==NULL)
-		return false;
-    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,100,0,0,__WaveReadHandle,
-    		gs_WaveReadStack,sizeof(gs_WaveReadStack),"wave read function");
-	if(evtt_id!=CN_EVTT_ID_INVALID)
-	{
-	   event_id=Djy_EventPop(evtt_id,NULL,0,NULL,0,0);
-	}
-	else
-	{
-		Djy_EvttUnregist(evtt_id);
-		printf("wave read evtt pop failed.\r\n");
-	}
-	return 1;
+        return false;
+    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,10,0,0,__WaveReadHandle,
+            gs_WaveReadStack,sizeof(gs_WaveReadStack),"wave read function");
+    if(evtt_id!=CN_EVTT_ID_INVALID)
+    {
+       event_id=Djy_EventPop(evtt_id,NULL,0,NULL,0,0);
+    }
+    else
+    {
+        Djy_EvttUnregist(evtt_id);
+        printf("wave read evtt pop failed.\r\n");
+    }
+    return 1;
 }
 
 //**************************************************************************
 struct ShellCmdTab const shell_cmd_max98357_table[]=
 {
-	{"audiop",(bool_t(*)(char*))Sh_AudioStart,    "播放音频文件",          NULL},
-	{"audios",(bool_t(*)(char*))Sh_AudioStop,    "停止播放音频文件",         NULL},
+    {"audiop",(bool_t(*)(char*))Sh_AudioStart,    "播放音频文件",          NULL},
+    {"audios",(bool_t(*)(char*))Sh_AudioStop,    "停止播放音频文件",         NULL},
 };
 //**************************************************************************
 #define CN_MAX98357_SHELL_NUM  sizeof(shell_cmd_max98357_table)/sizeof(struct ShellCmdTab)
@@ -433,8 +522,8 @@ static struct ShellCmdRsc tg_max98357_shell_cmd_rsc[CN_MAX98357_SHELL_NUM];
 *********************************************************************************/
 ptu32_t MAX98357_Shell_Module_Install(void)
 {
-	Sh_InstallCmd(shell_cmd_max98357_table,tg_max98357_shell_cmd_rsc,CN_MAX98357_SHELL_NUM);
-	return 1;
+    Sh_InstallCmd(shell_cmd_max98357_table,tg_max98357_shell_cmd_rsc,CN_MAX98357_SHELL_NUM);
+    return 1;
 }
 
 
@@ -445,14 +534,14 @@ ptu32_t MAX98357_Shell_Module_Install(void)
 *********************************************************************************/
 static bool_t Sh_AudioStart(char *param)
 {
-	bool_t ret;
-	if(param==NULL)
-	{
-		printf("%s para invaild.\r\n",__FUNCTION__);
-		return false;
-	}
-	ret=Audio_StartPlay(param);
-	return ret;
+    bool_t ret;
+    if(param==NULL)
+    {
+        printf("%s para invaild.\r\n",__FUNCTION__);
+        return false;
+    }
+    ret=Audio_StartPlay(param);
+    return ret;
 }
 
 /*******************************************************************************
@@ -462,38 +551,73 @@ static bool_t Sh_AudioStart(char *param)
 *********************************************************************************/
 static bool_t Sh_AudioStop(char *param)
 {
-	I2S_PlayStop();
-	return true;
+    I2S_PlayStop();
+    return true;
 }
 
 
-
+#if 0
 /*******************************************************************************
 功能:测试用的程序
 参数:无.
 返回值:1。
 *********************************************************************************/
-//void text()
+//void max98357_text()
 //{
-//	ModuleInstall_MAX98357();
-//	Audio_StartPlay("04.wav");
 //}
 
 
+//board_config.h********************************
 
+//#define MAX98357_DMAX_StreamX               DMA1_Stream4
+//#define MAX98357_SPIX                       SPI2
+//#define MAX98357_CN_INT_LINE_DMAX_StreamX   CN_INT_LINE_DMA1_Stream4
 
+//board.c***************************************
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//static const Pin AUDIO_I2S2_pin[]={
+//  {GPIO_I,PIN0,GPIO_MODE_AF,GPIO_OTYPE_OD,GPIO_SPEED_H,GPIO_PUPD_PU,AF5}, //I2S3 FSYNC
+//  {GPIO_I,PIN1,GPIO_MODE_AF,GPIO_OTYPE_OD,GPIO_SPEED_H,GPIO_PUPD_PU,AF5},  //I2S3 CLK
+//  {GPIO_I,PIN3,GPIO_MODE_AF,GPIO_OTYPE_OD,GPIO_SPEED_H,GPIO_PUPD_PU,AF5},  //I2S3 SD
+//  {GPIO_H,PIN12,GPIO_MODE_OUT,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE,AF_NUll}, //SD_MODE
+//};
+//
+//
+//
+//void HAL_I2S_MspInit(I2S_HandleTypeDef *hi2s)
+//{
+//   RCC_PeriphCLKInitTypeDef RCC_ExCLKInitStruct;
+//     GPIO_InitTypeDef  GPIO_InitStruct;
+//     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
+//     if(hi2s->Instance==SPI2)
+//     {
+//       __HAL_RCC_SPI2_CLK_ENABLE();
+//       PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
+//     PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
+//     PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLP_DIV2;
+//     PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
+//     PeriphClkInitStruct.PLLI2S.PLLI2SQ = 2;
+//     PeriphClkInitStruct.PLLI2SDivQ = 1;
+//     PeriphClkInitStruct.I2sClockSelection = RCC_I2SCLKSOURCE_PLLI2S;
+//     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+//     {
+//         printf("I2S CLK init failed.\r\n");
+//     }
+//
+//     }
+//}
+//
+//void HAL_I2S_MspDeInit(I2S_HandleTypeDef* hi2s)
+//{
+//
+//  if(hi2s->Instance==SPI2)
+//  {
+//    /* Peripheral clock disable */
+//    __HAL_RCC_SPI2_CLK_DISABLE();
+//    HAL_GPIO_DeInit(GPIOI, GPIO_PIN_0);
+//    HAL_GPIO_DeInit(GPIOI, GPIO_PIN_1);
+//    HAL_GPIO_DeInit(GPIOI, GPIO_PIN_3);
+//    HAL_GPIO_DeInit(GPIOH, GPIO_PIN_12);
+//  }
+//}
+#endif

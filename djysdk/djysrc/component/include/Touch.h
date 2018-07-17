@@ -79,7 +79,6 @@ struct SingleTouchPrivate
 s32 Touch_InstallDevice(char *touch_name,struct SingleTouchPrivate *touch_pr);
 
 ptu32_t Touch_Scan(void);
-ptu32_t ModuleInstall_Touch(ptu32_t para);
 
 #ifdef __cplusplus
 }

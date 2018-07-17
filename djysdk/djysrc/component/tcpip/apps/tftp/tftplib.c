@@ -48,6 +48,7 @@
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
 #include "tftplib.h"
+#include "dbug.h"
 
 char  gTftpWorkSpace[CN_PATH_LENLIMIT];
 static char *gTftpErrMsg[] =
@@ -87,7 +88,7 @@ bool_t TftpSetWorkSpace(char *path)
 }
 bool_t TftpWorkSpaceShow(char *param)
 {
-    printf("%s:%s\n\r",__FUNCTION__,gTftpWorkSpace);
+    debug_printf("tftp","%s:%s\n\r",__FUNCTION__,gTftpWorkSpace);
     return true;
 }
 
@@ -154,7 +155,7 @@ int MakeRequestMsg(u8 *buf, int buflen,u16 opcode,char *filename,char *mode,\
 
     if(result > buflen)
     {
-        printf("%s:buf overflow:buflen:%08d  result:%08d\n\r",\
+        debug_printf("tftp","%s:buf overflow:buflen:%08d  result:%08d\n\r",\
                 __FUNCTION__,buflen,result);
         result = buflen;  //don't send the exceeded msg
     }
@@ -299,7 +300,7 @@ int MakeOAckMsg(u8 *buf, int buflen,int blksize,int timeout,int tsize)
 
     if(result > buflen)
     {
-        printf("%s:buf overflow:buflen:%08d  result:%08d\n\r",\
+        debug_printf("tftp","%s:buf overflow:buflen:%08d  result:%08d\n\r",\
                 __FUNCTION__,buflen,result);
         result = buflen;  //don't send the exceeded msg
     }
@@ -375,7 +376,7 @@ int DecodeOAckMsg(u8 *buf, int buflen,int *blksize,int *timeout, int *tsize)
         }
     }
 
-    printf("OACK:blksize:%04d timeout:%04d tsize:%04d\n\r",oblksize,otimeout,otsize);
+        debug_printf("tftp","OACK:blksize:%04d timeout:%04d tsize:%04d\n\r",oblksize,otimeout,otsize);
 
 
     return 0;
@@ -403,7 +404,7 @@ int MakeAckMsg(u8 *buf, int buflen,u16 block)
 
     if(result > buflen)
     {
-        printf("%s:buf overflow:buflen:%08d  result:%08d\n\r",\
+        debug_printf("tftp","%s:buf overflow:buflen:%08d  result:%08d\n\r",\
                 __FUNCTION__,buflen,result);
         result = buflen;  //don't send the exceeded msg
     }
@@ -455,7 +456,7 @@ int MakeErrMsg(u8 *buf,int buflen,u16 errcode,char *msg)
 
     if(result > buflen)
     {
-        printf("%s:buf overflow:buflen:%08d  result:%08d\n\r",\
+        debug_printf("tftp","%s:buf overflow:buflen:%08d  result:%08d\n\r",\
                 __FUNCTION__,buflen,result);
         result = buflen;  //don't send the exceeded msg
     }
@@ -534,17 +535,17 @@ int  DecodeDataMsg(u8 *buf,int buflen,u16 *block)
 //show the client stat
 bool_t ClientShow(tagTftpClient *client)
 {
-    printf("Result:\n\r");
-    printf("FileName    :%s   MsgMode:%s\n\r",client->filename,client->mode);
-    printf("Reqmode     :%08d (get=%d put=%d)\n\r",client->reqmode,TFTP_RRQ,TFTP_WRQ);
-    printf("Timout      :%08d TimeoutNegotiation  :%08d (unit:second)\n\r",client->timeout,client->otimeout);
-    printf("TimeoutTimes:%08d TimeoutTimesLimit   :%08d (unit:times)\n\r",client->timeoutTimes,client->timeoutLimit);
-    printf("Blksize     :%08d BlksizeNegotiation  :%08d (unit:byte)\n\r",client->blksize,client->oblksize);
-    printf("Tszie       :%08d TsizeNegotiation    :%08d (unit:byte)\n\r",client->tsize,client->otsize);
-    printf("SndLen      :%08d Speed               :%08d (unit:KBytes/Second)\n\r",client->sntlen,client->sndspeed);
-    printf("RcvLen      :%08d Speed               :%08d (unit:KBytes/Second)\n\r",client->rcvlen,client->rcvspeed);
-    printf("ErrCode     :%08d ErrMsg              :%s\n\r",client->errcode,client->errmsg);
-    printf("LastBlockNum:%08d %s\n\r",client->block,client->lastblock==true?"Yes":"No");
+    debug_printf("tftp","Result:\n\r");
+    debug_printf("tftp","FileName    :%s   MsgMode:%s\n\r",client->filename,client->mode);
+    debug_printf("tftp","Reqmode     :%08d (get=%d put=%d)\n\r",client->reqmode,TFTP_RRQ,TFTP_WRQ);
+    debug_printf("tftp","Timout      :%08d TimeoutNegotiation  :%08d (unit:second)\n\r",client->timeout,client->otimeout);
+    debug_printf("tftp","TimeoutTimes:%08d TimeoutTimesLimit   :%08d (unit:times)\n\r",client->timeoutTimes,client->timeoutLimit);
+    debug_printf("tftp","Blksize     :%08d BlksizeNegotiation  :%08d (unit:byte)\n\r",client->blksize,client->oblksize);
+    debug_printf("tftp","Tszie       :%08d TsizeNegotiation    :%08d (unit:byte)\n\r",client->tsize,client->otsize);
+    debug_printf("tftp","SndLen      :%08d Speed               :%08d (unit:KBytes/Second)\n\r",client->sntlen,client->sndspeed);
+    debug_printf("tftp","RcvLen      :%08d Speed               :%08d (unit:KBytes/Second)\n\r",client->rcvlen,client->rcvspeed);
+    debug_printf("tftp","ErrCode     :%08d ErrMsg              :%s\n\r",client->errcode,client->errmsg);
+    debug_printf("tftp","LastBlockNum:%08d %s\n\r",client->block,client->lastblock==true?"Yes":"No");
     printf("\n\r");
     return true;
 }
@@ -568,21 +569,10 @@ static int __WriteData(struct TftpClient *client,u8 *buf, int count)
 //read data from the file system
 static int __ReadData(struct TftpClient *client,u8 *buf, int count)
 {
-
+    int ret = -1;
     u32 offset;
     u32 whence;
-    int result;
     u32 block;
-
-    FILE *stream;
-
-    result = 0;
-    stream = HandleToVFile(client->fd);
-    if(NULL == stream)
-    {
-        printf("%s:handle to file failed\n\r",__FUNCTION__);
-        return result;
-    }
 
     block = client->block;
     if(block > 0)
@@ -593,19 +583,18 @@ static int __ReadData(struct TftpClient *client,u8 *buf, int count)
     {
         offset = 0;
     }
-    whence = V_SEEK_SET;
-    if(0 != fseek(stream,offset,whence))
+    whence = SEEK_SET;
+    if(-1 == lseek(client->fd,offset,whence))
     {
-        printf("%s:Seek offset:%08d  whence:%08d failed\n\r",__FUNCTION__,offset,whence);
-        return result;
+        debug_printf("tftp","%s:Seek offset:%08d  whence:%08d failed\n\r",__FUNCTION__,offset,whence);
+        return ret;
     }
-    result = read(client->fd,buf,count);
-    if(result < 0)
+    ret = read(client->fd,buf,count);
+    if(ret < 0)
     {
-        result = 0;
+        ret = 0;
     }
-
-    return result;
+    return ret;
 }
 
 
@@ -623,10 +612,10 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
     u32                 timeout;
     char                filepath[CN_PATH_LENLIMIT];
 
-    client = (tagTftpClient *)malloc(sizeof(tagTftpClient));
+    client = (tagTftpClient *)net_malloc(sizeof(tagTftpClient));
     if(NULL == client)
     {
-        printf("%s:malloc client failed\n\r",__FUNCTION__);
+        debug_printf("tftp","%s:net_malloc client failed\n\r",__FUNCTION__);
         errcode = EN_TFTPERR_LOCALMEM;
         goto EXIT_CLIENT;
     }
@@ -636,7 +625,7 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
     client->sock = socket(AF_INET,SOCK_DGRAM,0);
     if(client->sock < 0)
     {
-        printf("%s:client socket err\n\r",__FUNCTION__);
+        debug_printf("tftp","%s:client socket err\n\r",__FUNCTION__);
         errcode= EN_TFTPERR_SOCKET;
         goto EXIT_CLIENTSOCK;
     }
@@ -645,7 +634,7 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
     if(0 != setsockopt(client->sock,SOL_SOCKET,SO_RCVTIMEO,\
                       (const void *)&timeout,sizeof(timeout)))
     {
-        printf("%s:set receive timeout err\n\r",__FUNCTION__);
+        debug_printf("tftp","%s:set receive timeout err\n\r",__FUNCTION__);
         errcode= EN_TFTPERR_SOCKET;
         goto EXIT_CLIENTSOCKOPT;
     }
@@ -671,7 +660,7 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
 
     client->timeoutLimit = CN_TFTP_TIMEOUTLIMIT_DEFAULT;
     client->buflen       = client->blksize+4;
-    client->buf          = (u8 *)malloc(client->buflen);
+    client->buf          = (u8 *)net_malloc(client->buflen);
     if(NULL == client->buf)
     {
         errcode = EN_TFTPERR_LOCALMEM;
@@ -692,13 +681,13 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
         client->fd = open(filepath, fileflag , filemode);
         if(client->fd < 0)
         {
-            printf("%s:open the file:%s failed\n\r",__FUNCTION__,client->filename);
+            debug_printf("tftp","%s:open the file:%s failed\n\r",__FUNCTION__,client->filename);
             errcode = EN_TFTPERR_FILENOTFOUND;
             goto EXIT_FILEOPEN;
         }
         if(0 != stat(filepath,&filestat))
         {
-            printf("%s:stat the file:%s failed\n\r",__FUNCTION__,filename);
+            debug_printf("tftp","%s:stat the file:%s failed\n\r",__FUNCTION__,filename);
             errcode = EN_TFTPERR_FILESTATERR;
             goto EXIT_FILESTAT;
         }
@@ -712,7 +701,7 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
         client->fd = open(filepath, fileflag , filemode);
         if(client->fd < 0)
         {
-            printf("%s:open the file:%s failed\n\r",__FUNCTION__,client->filename);
+            debug_printf("tftp","%s:open the file:%s failed\n\r",__FUNCTION__,client->filename);
             errcode = EN_TFTPERR_FILECREATFAILED;
             goto EXIT_FILEOPEN;
         }
@@ -725,27 +714,27 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
 EXIT_FILESTAT:
     close(client->fd);
 EXIT_FILEOPEN:
-    free((void *)client->buf);
+    net_free((void *)client->buf);
 EXIT_BUF:
 EXIT_CLIENTSOCKOPT:
     closesocket(client->sock);
 EXIT_CLIENTSOCK:
-     free(client);
+     net_free(client);
      client = NULL;
 EXIT_CLIENT:
     *tftpclient = client;
     return errcode;
 }
 
-//delete the client and free all the resource in the client
+//delete the client and net_free all the resource in the client
 bool_t DeleteClient(tagTftpClient *client)
 {
     if(NULL != client)
     {
-        free((void *)client->buf);     //free the client buf
+        net_free((void *)client->buf);     //net_free the client buf
         close(client->fd);             //close the file handle
         closesocket(client->sock);     //close the transaction socket
-        free((void *)client);          //free the client memory
+        net_free((void *)client);          //net_free the client memory
     }
     return true;
 }
@@ -799,7 +788,7 @@ int TftpTransEngine(tagTftpClient *client)
                     sendto(client->sock,client->buf,sndmsglen,0,\
                            (struct sockaddr *)&client->netaddr,client->addrlen);
                     rcvloop = false;
-                    printf("%s:err:got rrq from server\n\r",__FUNCTION__);
+                    debug_printf("tftp","%s:err:got rrq from server\n\r",__FUNCTION__);
                     break;
 
                 case TFTP_WRQ:
@@ -808,7 +797,7 @@ int TftpTransEngine(tagTftpClient *client)
                     sendto(client->sock,client->buf,sndmsglen,0,\
                            (struct sockaddr *)&client->netaddr,client->addrlen);
                     rcvloop = false;
-                    printf("%s:err:got wrq from server\n\r",__FUNCTION__);
+                    debug_printf("tftp","%s:err:got wrq from server\n\r",__FUNCTION__);
                     break;
 
                 case TFTP_DATA:
@@ -852,7 +841,7 @@ int TftpTransEngine(tagTftpClient *client)
                         sendto(client->sock,client->buf,sndmsglen,0,\
                                (struct sockaddr *)&client->netaddr,client->addrlen);
                         rcvloop = false;
-                        printf("%s:err:got data from server but we are wrq\n\r",__FUNCTION__);
+                        debug_printf("tftp","%s:err:got data from server but we are wrq\n\r",__FUNCTION__);
                     }
                     break;
                 case TFTP_ACK:
@@ -897,14 +886,14 @@ int TftpTransEngine(tagTftpClient *client)
                         sendto(client->sock,client->buf,sndmsglen,0,\
                                (struct sockaddr *)&client->netaddr,client->addrlen);
                         rcvloop = false;
-                        printf("%s:err:got ack from server but we are rrq\n\r",__FUNCTION__);
+                        debug_printf("tftp","%s:err:got ack from server but we are rrq\n\r",__FUNCTION__);
                     }
                     break;
 
                 case TFTP_ERR:
                     DecodeErrMsg(buf,rcvmsglen,client);
                     rcvloop = false;
-                    printf("%s:got errcode:%d:msg:%s\n\r",__FUNCTION__,client->errcode,client->errmsg);
+                    debug_printf("tftp","%s:got errcode:%d:msg:%s\n\r",__FUNCTION__,client->errcode,client->errmsg);
                     break;
                 case TFTP_OACK:  //the server may do this:specified the blksize
                     DecodeOAckMsg(buf,rcvmsglen,&client->oblksize,&client->otimeout,&client->otsize);
@@ -912,7 +901,7 @@ int TftpTransEngine(tagTftpClient *client)
                     {
                         //if this happens, so exit
                         rcvloop = false;
-                        printf("%s:oackfailed:blksize:%08d:oblksie:%08d\n\r",\
+                        debug_printf("tftp","%s:oackfailed:blksize:%08d:oblksie:%08d\n\r",\
                                 __FUNCTION__,client->blksize,client->oblksize);
                     }
                     if(((client->server==true)&&(client->reqmode == TFTP_WRQ))||\
@@ -939,14 +928,14 @@ int TftpTransEngine(tagTftpClient *client)
                     sendto(client->sock,client->buf,sndmsglen,0,\
                            (struct sockaddr *)&client->netaddr,client->addrlen);
                     rcvloop = false;
-                    printf("%s:got err opcode:%d\n\r",__FUNCTION__,opcode);
+                    debug_printf("tftp","%s:got err opcode:%d\n\r",__FUNCTION__,opcode);
                     break;
             }
             timeouttimes = 0;
         }
         else if(rcvmsglen == 0)  //the remote shutdown
         {
-            printf("%s:the remote shutdown:will exit\n\r",__FUNCTION__);
+            debug_printf("tftp","%s:the remote shutdown:will exit\n\r",__FUNCTION__);
             rcvloop = false;
         }
         else  //maybe an timeout
@@ -959,12 +948,12 @@ int TftpTransEngine(tagTftpClient *client)
 
         if(timeouttimes >= client->timeoutLimit)
         {
-            printf("%s:TimeoutExcceed:%d/%d\n\r",__FUNCTION__,timeouttimes,client->timeoutLimit);
+            debug_printf("tftp","%s:TimeoutExcceed:%d/%d\n\r",__FUNCTION__,timeouttimes,client->timeoutLimit);
             rcvloop = false;
         }
         if(client->retrans >= CN_TFTP_RETRANSLIMIT)
         {
-            printf("%s:RetransExcceed:%d/%d\n\r",__FUNCTION__,client->retrans,CN_TFTP_RETRANSLIMIT);
+            debug_printf("tftp","%s:RetransExcceed:%d/%d\n\r",__FUNCTION__,client->retrans,CN_TFTP_RETRANSLIMIT);
             rcvloop = false;
         }
     }

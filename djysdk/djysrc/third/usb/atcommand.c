@@ -50,11 +50,11 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <driver.h>
+#include <device.h>
 #include <stdio.h>
 
-#define LOCAL_PRINT					printk
-#define LOCAL_RESPONSE_TIMEOUT		50
+#define LOCAL_PRINT                 printk
+#define LOCAL_RESPONSE_TIMEOUT      50
 char *AT_COMMANDS[] = {"AT+CSQ"};
 char *AT_END = " \r";
 char *AT_OK = "OK";
@@ -67,90 +67,93 @@ char *AT_ERROR = "ERROR";
 //返回：-1 -- 失败； 0 -- OK； 1 -- ERROR。
 //备注：
 // ============================================================================
-s32 __GetResponse(void *pHandle, char *pCommand, u8 *pResp, u32 dwLimit)
+//s32 __GetResponse(void *pHandle, char *pCommand, u8 *pResp, u32 dwLimit)
+s32 __GetResponse(s32 handle, char *pCommand, u8 *pResp, u32 dwLimit)
 {
-	u32 i, j, res, wait = LOCAL_RESPONSE_TIMEOUT;
-	u32 responsed;
-	char response = 0;
-	u32 cLen = strlen(pCommand);
-	u8 checkCommand = 1, checkStatus = 1, log = 1;
+    u32 i, j, res, wait = LOCAL_RESPONSE_TIMEOUT;
+    u32 responsed;
+    char response = 0;
+    u32 cLen = strlen(pCommand);
+    u8 checkCommand = 1, checkStatus = 1, log = 1;
 
-	i = 0;
-	responsed = 0;
-	while(checkCommand)
-	{
-		res = Driver_ReadDevice(pHandle, (u8*)&response, 1, 0, 0);
-		if(!res)
-		{
-			if(!wait--)
-			{
-				if(log)
-					LOCAL_PRINT("AT : error : \"%s\" has %s response.\r\n", pCommand, (responsed?"error":"no"));
+    i = 0;
+    responsed = 0;
+    while(checkCommand)
+    {
+        //res = DevRead(pHandle, (u8*)&response, 1, 0, 0);
+        res = read(handle, (u8*)&response, 1);
+        if(!res)
+        {
+            if(!wait--)
+            {
+                if(log)
+                    LOCAL_PRINT("AT : error : \"%s\" has %s response.\r\n", pCommand, (responsed?"error":"no"));
 
-				return (-1);
-			}
+                return (-1);
+            }
 
-			Djy_EventDelay(1000);
-			continue;
-		}
+            Djy_EventDelay(1000);
+            continue;
+        }
 
-		wait = LOCAL_RESPONSE_TIMEOUT;
-		responsed++;
-		if(pCommand[i] == response)
-			i++;
-		else
-			i = 0; // 重置
+        wait = LOCAL_RESPONSE_TIMEOUT;
+        responsed++;
+        if(pCommand[i] == response)
+            i++;
+        else
+            i = 0; // 重置
 
-		if(i == cLen)
-			break;
-	}
+        if(i == cLen)
+            break;
+    }
 
-	i = 0;
-	j = 0;
-	responsed = 0;
-	while(checkStatus)
-	{
-		if(AT_OK[i] == response)
-		{
-			if(++i == strlen(AT_OK))
-				break;
+    i = 0;
+    j = 0;
+    responsed = 0;
+    while(checkStatus)
+    {
+        if(AT_OK[i] == response)
+        {
+            if(++i == strlen(AT_OK))
+                break;
 
-		}
-		else if(AT_ERROR[j] == response)
-		{
-			if(++j == strlen(AT_ERROR))
-				return (1);
-		}
-		else
-		{
-			i = 0; // 重置
-			j = 0;
-		}
+        }
+        else if(AT_ERROR[j] == response)
+        {
+            if(++j == strlen(AT_ERROR))
+                return (1);
+        }
+        else
+        {
+            i = 0; // 重置
+            j = 0;
+        }
 
-		res = Driver_ReadDevice(pHandle, (u8*)&response, 1, 0, 0);
-		if(!res)
-		{
-			if(!wait--)
-			{
-				if(log)
-					LOCAL_PRINT("AT : error : \"%s\" has %s response.\r\n", pCommand, (responsed?"error":"no"));
+        //res = DevRead(pHandle, (u8*)&response, 1, 0, 0);
+        res = read(handle, (u8*)&response, 1);
+        if(!res)
+        {
+            if(!wait--)
+            {
+                if(log)
+                    LOCAL_PRINT("AT : error : \"%s\" has %s response.\r\n", pCommand, (responsed?"error":"no"));
 
-				return (-1);
-			}
+                return (-1);
+            }
 
-			Djy_EventDelay(1000);
-			continue;
-		}
+            Djy_EventDelay(1000);
+            continue;
+        }
 
-		wait = LOCAL_RESPONSE_TIMEOUT;
+        wait = LOCAL_RESPONSE_TIMEOUT;
 
-		if(responsed < dwLimit)
-			pResp[responsed] = response;
+        if(responsed < dwLimit)
+            pResp[responsed] = response;
 
-		responsed++;
-	}
+        responsed++;
+    }
 
-	return (0);
+    return (0);
 }
 
 // ============================================================================
@@ -160,9 +163,13 @@ s32 __GetResponse(void *pHandle, char *pCommand, u8 *pResp, u32 dwLimit)
 //返回：实际发送的名字字符数。
 //备注：
 // ============================================================================
-u32 __Command(void *pHandle, char *pCommand, u32 dwLen)
+//u32 __Command(void *pHandle, char *pCommand, u32 dwLen)
+//{
+//    return (Driver_WriteDevice(pHandle, (u8*)pCommand, dwLen, 0, 0, 2000000));
+//}
+u32 __Command(s32 handle, char *pCommand, u32 dwLen)
 {
-	return (Driver_WriteDevice(pHandle, (u8*)pCommand, dwLen, 0, 0, 2000000));
+    return (write(handle, (u8*)pCommand, dwLen));
 }
 
 // ============================================================================
@@ -173,99 +180,108 @@ u32 __Command(void *pHandle, char *pCommand, u32 dwLen)
 // ============================================================================
 s32 SignalStrength(u8 bArgC, ...)
 {
-	const char *defaultName = "uat";
-	char *name = NULL;
-	char command[10] = {0};
-	u8 response[50];
-	va_list ap;
-	void *handle;
-	u32 len, res;
-	u8 i;
-	s32 strength;
-	u32 good = 0;
-	
-	va_start(ap, bArgC);
-	for(i = 0; i < bArgC; i++)
-	{
-		switch(i)
-		{
-		case 0 : name = va_arg(ap, char*); break;
-		default: break;
-		}
-	}
-	va_end(ap);
-	
-	if(!name)
-		name = (char*)defaultName;
-		
-	handle = (void*)Driver_OpenDevice(name, D_RDWR, 0);
-	if(!handle)
-	{
-		LOCAL_PRINT("AT : error : \"%s\" does not exist.\r\n", name);
-		return (-1);
-	}	
-	
-	memset(command, 0x0, sizeof(command));
-	memset(response, 0x0, sizeof(response));
-	strcat(command, AT_COMMANDS[0]);
-	strcat(command, AT_END);
-	len = strlen(command)+1;
-	res = __Command(handle, command, len);
-	if(res != len)
-	{
-		LOCAL_PRINT("AT : error : \"%s\" cannot sent for signal strength.\r\n", AT_COMMANDS[0]);
-		Driver_CloseDevice(handle);
-		return (-1);
-	}
-	
-	if(__GetResponse(handle, AT_COMMANDS[0], response, sizeof(response)))
-	{
-		Driver_CloseDevice(handle);
-		return (-1);
-	}
+    // const char *defaultName = "uat";
+    const char *defaultName = "/dev/uat";
+    char *name = NULL;
+    char command[10] = {0};
+    u8 response[50];
+    va_list ap;
+    // void *handle;
+    s32 handle;
+    u32 len, res;
+    u8 i;
+    s32 strength;
+    u32 good = 0;
+    
+    va_start(ap, bArgC);
+    for(i = 0; i < bArgC; i++)
+    {
+        switch(i)
+        {
+        case 0 : name = va_arg(ap, char*); break;
+        default: break;
+        }
+    }
+    va_end(ap);
+    
+    if(!name)
+        name = (char*)defaultName;
+        
+    // handle = (void*)DevOpen(name, O_RDWR, 0);
+    // if(!handle)
+    handle = (void*)open(name, O_RDWR);
+    if(-1 == handle)
+    {
+        LOCAL_PRINT("AT : error : \"%s\" does not exist.\r\n", name);
+        return (-1);
+    }   
+    
+    memset(command, 0x0, sizeof(command));
+    memset(response, 0x0, sizeof(response));
+    strcat(command, AT_COMMANDS[0]);
+    strcat(command, AT_END);
+    len = strlen(command)+1;
+    res = __Command(handle, command, len);
+    if(res != len)
+    {
+        LOCAL_PRINT("AT : error : \"%s\" cannot sent for signal strength.\r\n", AT_COMMANDS[0]);
+        // Driver_CloseDevice(handle);
+        close(handle);
+        return (-1);
+    }
+    
+    if(__GetResponse(handle, AT_COMMANDS[0], response, sizeof(response)))
+    {
+        // Driver_CloseDevice(handle);
+        close(handle);
+        return (-1);
+    }
 
 #if 0
-	res = sscanf((const char*)response, "+CSQ: %d", &strength);
-	if(-1 == res)
-		return (-1);
+    res = sscanf((const char*)response, "+CSQ: %d", &strength);
+    if(-1 == res)
+        return (-1);
 #else
 
-	for(i = 0; i < (sizeof(response)-5); i++)
-	{
-		if((response[i] == '+') && (response[i+1] == 'C') &&
-		   (response[i+2] == 'S') && (response[i+3] == 'Q') &&
-		   (response[i+4] == ':') && (response[i+5] == ' '))
-		{
-			good = i+6;
-			break;
-		}
-	}
+    for(i = 0; i < (sizeof(response)-5); i++)
+    {
+        if((response[i] == '+') && (response[i+1] == 'C') &&
+           (response[i+2] == 'S') && (response[i+3] == 'Q') &&
+           (response[i+4] == ':') && (response[i+5] == ' '))
+        {
+            good = i+6;
+            break;
+        }
+    }
 
-	if(!good)
-	{
-		Driver_CloseDevice(handle);
-		return (-1);
-	}
+    if(!good)
+    {
+        // Driver_CloseDevice(handle);
+        close(handle);
+        return (-1);
+    }
 
-	i = good;
-	for(; i < (sizeof(response)-i); i++)
-	{
-		if(response[i] < '0' || response [i] > '9')
-		{
-			response[i] = '\0';
-			break;
-		}
-	}
+    i = good;
+    for(; i < (sizeof(response)-i); i++)
+    {
+        if(response[i] < '0' || response [i] > '9')
+        {
+            response[i] = '\0';
+            break;
+        }
+    }
 
-	if(i == (sizeof(response)-i))
-	{
-		Driver_CloseDevice(handle);
-		return (-1);
-	}
+    if(i == (sizeof(response)-i))
+    {
+        // Driver_CloseDevice(handle);
+        close(handle);
+        return (-1);
+    }
 
-	strength = atoi((char*)(response+good));
+    strength = atoi((char*)(response+good));
 #endif
 
-	Driver_CloseDevice(handle);
-	return (strength);
+    // Driver_CloseDevice(handle);
+    close(handle);
+    return (strength);
 }

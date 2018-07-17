@@ -40,7 +40,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stat.h>
 #include <unistd.h>
+#include <fcntl.h>
 #ifdef DEBUG
 #include <assert.h>
 #endif
@@ -135,7 +137,7 @@ _DEFUN(__hash_open, (file, flags, mode, info, dflags),
 #ifdef __USE_INTERNAL_STAT64
         (_stat64(file, &statbuf) && (g_ptEventRunning->error_no == ENOENT))) {
 #else
-        (stat(file, &statbuf) && (g_ptEventRunning->error_no == ENOENT))) {
+        (stat(file, &statbuf) && (Djy_GetLastError() == ENOENT))) {
 #endif
         if (g_ptEventRunning->error_no == ENOENT)
             Djy_SaveLastError(0); /* Just in case someone looks at errno */
@@ -450,7 +452,7 @@ hdestroy(hashp)
      * write them to disk.
      */
     if (__buf_free(hashp, 1, hashp->save_file))
-        save_errno = g_ptEventRunning->error_no;
+        save_errno = Djy_GetLastError();
     if (hashp->dir) {
         free(*hashp->dir);  /* Free initial segments */
         /* Free extra segments */
@@ -459,7 +461,7 @@ hdestroy(hashp)
         free(hashp->dir);
     }
     if (flush_meta(hashp) && !save_errno)
-        save_errno = g_ptEventRunning->error_no;
+        save_errno = Djy_GetLastError();
     /* Free Bigmaps */
     for (i = 0; i < hashp->nmaps; i++)
         if (hashp->mapp[i])
@@ -540,7 +542,7 @@ flush_meta(hashp)
     else
         if (wsize != sizeof(HASHHDR)) {
             Djy_SaveLastError(EFTYPE);
-            hashp->error = g_ptEventRunning->error_no;
+            hashp->error = Djy_GetLastError();
             return (-1);
         }
     for (i = 0; i < NCACHED; i++)
@@ -949,7 +951,7 @@ alloc_segs(hashp, nsegs)
 
     if ((hashp->dir =
         (SEGMENT *)calloc(hashp->DSIZE, sizeof(SEGMENT *))) == NULL) {
-        save_errno = g_ptEventRunning->error_no;
+        save_errno = Djy_GetLastError();
         (void)hdestroy(hashp);
         Djy_SaveLastError(save_errno);
         return (-1);
@@ -957,7 +959,7 @@ alloc_segs(hashp, nsegs)
     /* Allocate segments */
     if ((store =
         (SEGMENT)calloc(nsegs << hashp->SSHIFT, sizeof(SEGMENT))) == NULL) {
-        save_errno = g_ptEventRunning->error_no;
+        save_errno = Djy_GetLastError();
         (void)hdestroy(hashp);
         Djy_SaveLastError(save_errno);
         return (-1);

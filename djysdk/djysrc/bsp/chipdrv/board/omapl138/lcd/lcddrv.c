@@ -87,10 +87,10 @@ bool_t __lcd_bm_to_screen(struct StRect *dst_rect,
             struct StRectBitmap *src_bitmap,s32 xsrc,s32 ysrc);
 u32 __lcd_get_pixel_screen(s32 x,s32 y);
 bool_t __lcd_get_rect_screen(struct StRect *rect,struct StRectBitmap *dest);
-bool_t __lcd_disp_ctrl(struct DisplayRsc *disp);
+bool_t __lcd_disp_ctrl(struct DisplayObj *disp);
 
 
-struct DisplayRsc tg_lcd_display;
+struct DisplayObj tg_lcd_display;
 
 //size = [CN_PALETTE_SIZE + cn_frame_buffer_size]
 u8 *u8g_dsp_buffer = (u8*)(CN_FRAME_BASE_ADDRESS +CN_PALETTE_SIZE);
@@ -365,7 +365,7 @@ bool_t __lcd_get_rect_screen(struct StRect *rect,struct StRectBitmap *dest)
 //参数: disp，显示器指针
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-bool_t __lcd_disp_ctrl(struct DisplayRsc *disp)
+bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 {
     return true;
 }
@@ -377,7 +377,7 @@ bool_t __lcd_disp_ctrl(struct DisplayRsc *disp)
 //-----------------------------------------------------------------------------
 ptu32_t ModuleInstall_Lcd(ptu32_t para)
 {
-    static struct GkWinRsc frame_win;
+    static struct GkWinObj frame_win;
 
     __lcd_hard_init( );
     frame_win.wm_bitmap.bm_bits = u8g_dsp_buffer;

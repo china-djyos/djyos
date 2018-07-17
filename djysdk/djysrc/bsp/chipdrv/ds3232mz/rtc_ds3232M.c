@@ -63,6 +63,46 @@
 #include "board-config.h"
 #include <time.h>
 #include "shell.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    ModuleInstall_RTCDS3232M(CFG_DS3232M_BUS_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"rtc_ds3232M"  //填写该组件的名字
+//parent:none               //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"spibus","lock"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_DS3232M_BUS_NAME    //****检查参数是否已经配置好
+#warning    rtc_ds3232M组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+#define CFG_DS3232M_BUS_NAME              "SPI0"      //"SPI总线名称",DS3232M使用的SPI总线名称
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 ptu32_t RTC_Shell_Module_Install(void);
 void Sh_RTC_SetTime(char *param);
@@ -73,7 +113,7 @@ void Sh_RTC_GetTime(void);
 
 
 
-static struct IIC_Device *pg_DS3232MZ_Dev=NULL;
+static struct IIC_Device *s_ptDS3232MZ_Dev=NULL;
 u32 timeout = 1000*mS;                 //1000*mS;
 #define DS3232MZ_CLK_FRE             (200*1000)      //总线速度，单位Hz
 static struct MutexLCB *  ptSemID_RTC;       // IIC操作互斥标志
@@ -91,30 +131,30 @@ static s64  UpdateTime = 0;                     //需更新的时间
 
 
 //连续读写的寄存器个数
-#define DS3232_TIME_REG_LEN			7       //DS1390=8多ms位
+#define DS3232_TIME_REG_LEN         7       //DS1390=8多ms位
 #define DS3232_ALARM_REG_LEN        5       //DS1390=5多ms位,DS3232M用Alarm2.min位做ms位
 
 
 #define DS3232_TIME_ADDR    0x00
 
-#define DS3232_REG_SECONDS	0x00
-#define DS3232_REG_MINUTES	0x01
-#define DS3232_REG_HOURS	0x02
-#define DS3232_REG_AMPM		0x02
-#define DS3232_REG_DAY		0x03
-#define DS3232_REG_DATE		0x04
-#define DS3232_REG_MONTH	0x05
-#define DS3232_REG_CENTURY	0x05
-#define DS3232_REG_YEAR		0x06
-#define DS3232_REG_ALARM1   0x07	/* Alarm 1 BASE */
-#define DS3232_REG_ALARM2   0x0B	/* Alarm 2 BASE */
-#define DS3232_REG_CR		0x0E	/* Control register */
+#define DS3232_REG_SECONDS  0x00
+#define DS3232_REG_MINUTES  0x01
+#define DS3232_REG_HOURS    0x02
+#define DS3232_REG_AMPM     0x02
+#define DS3232_REG_DAY      0x03
+#define DS3232_REG_DATE     0x04
+#define DS3232_REG_MONTH    0x05
+#define DS3232_REG_CENTURY  0x05
+#define DS3232_REG_YEAR     0x06
+#define DS3232_REG_ALARM1   0x07    /* Alarm 1 BASE */
+#define DS3232_REG_ALARM2   0x0B    /* Alarm 2 BASE */
+#define DS3232_REG_CR       0x0E    /* Control register */
 
 #define DS3232_REG_CR_nEOSC 0x80
 #define DS3232_REG_CR_INTCN 0x04
 #define DS3232_REG_CR_A2IE  0x02
 #define DS3232_REG_CR_A1IE  0x01
-#define DS3232_REG_SR	    0x0F	/* control/status register */
+#define DS3232_REG_SR       0x0F    /* control/status register */
 #define DS3232_REG_SR_OSF   0x80
 #define DS3232_REG_SR_BSY   0x04
 #define DS3232_REG_SR_A2F   0x02
@@ -135,10 +175,10 @@ static bool_t Rtc_GetTime(s64 *time);
 // =============================================================================
 static s32 __rtc_ReadData(uint8_t byAddress,uint8_t *pbyBuf,uint8_t byLen)
 {
-	s32 ret;
-	ret=IIC_Read(pg_DS3232MZ_Dev,byAddress,pbyBuf,byLen,timeout);
+    s32 ret;
+    ret=IIC_Read(s_ptDS3232MZ_Dev,byAddress,pbyBuf,byLen,timeout);
 
-	return ret;
+    return ret;
 }
 
 
@@ -151,9 +191,9 @@ static s32 __rtc_ReadData(uint8_t byAddress,uint8_t *pbyBuf,uint8_t byLen)
 // =============================================================================
 static s32 __rtc_WriteData(uint8_t byAddress,uint8_t *pbyBuf,uint8_t byLen)
 {
-	s32 ret;
-	ret=IIC_Write(pg_DS3232MZ_Dev,byAddress,pbyBuf,byLen,true,timeout);
-	return ret;
+    s32 ret;
+    ret=IIC_Write(s_ptDS3232MZ_Dev,byAddress,pbyBuf,byLen,true,timeout);
+    return ret;
 }
 
 // =============================================================================
@@ -166,23 +206,23 @@ static s32 __rtc_WriteData(uint8_t byAddress,uint8_t *pbyBuf,uint8_t byLen)
 bool_t RTC_DS3232MZ_UpdateTime(struct tm *ptm)
 {
     s32 ret;
-	uint8_t dat[DS3232_TIME_REG_LEN];
-	if(ptm==NULL)
-	{
-		printf("%s para is invalid.\r\n",__FUNCTION__);
-		return false;
-	}
+    uint8_t dat[DS3232_TIME_REG_LEN];
+    if(ptm==NULL)
+    {
+        printf("%s para is invalid.\r\n",__FUNCTION__);
+        return false;
+    }
     dat[0]=HexToBcd(ptm->tm_sec);
     dat[1]=HexToBcd(ptm->tm_min);
     dat[2]=HexToBcd(ptm->tm_hour);
     dat[3]=HexToBcd(ptm->tm_wday);
-	dat[4]=HexToBcd(ptm->tm_mday);
-	dat[5]=HexToBcd(ptm->tm_mon);
-	dat[6]=HexToBcd(ptm->tm_year-2000);
-	ret=__rtc_WriteData(DS3232_TIME_ADDR,dat,DS3232_TIME_REG_LEN);
-	if(ret==-1)
-		return false;
-	return true;
+    dat[4]=HexToBcd(ptm->tm_mday);
+    dat[5]=HexToBcd(ptm->tm_mon);
+    dat[6]=HexToBcd(ptm->tm_year-2000);
+    ret=__rtc_WriteData(DS3232_TIME_ADDR,dat,DS3232_TIME_REG_LEN);
+    if(ret==-1)
+        return false;
+    return true;
 
 }
 
@@ -195,194 +235,194 @@ bool_t RTC_DS3232MZ_UpdateTime(struct tm *ptm)
 // =============================================================================
 bool_t RTC_DS3232MZ_GetTime(struct tm *ptm)
 {
-	s32 ret;
-	uint8_t dat[DS3232_TIME_REG_LEN];
-	if(ptm==NULL)
-	{
-		printf("%s para is invalid.\r\n",__FUNCTION__);
-		return false;
-	}
-	ret=__rtc_ReadData(DS3232_TIME_ADDR,dat,DS3232_TIME_REG_LEN);
-	if(ret==-1)
-		return false;
-	 //将BCD格式转化为正常模式
-	ptm->tm_sec    = BcdToHex(dat[0] & 0x7F);
-	ptm->tm_min    = BcdToHex(dat[1] & 0x7F);
-	ptm->tm_hour   = BcdToHex(dat[2]);
-	ptm->tm_wday   = BcdToHex(dat[3] & 0x07);
-	ptm->tm_mday   = BcdToHex(dat[4] & 0x3F);
-	ptm->tm_mon    = BcdToHex(dat[5] & 0x1F);
-	ptm->tm_year   = BcdToHex(dat[6]) + 2000;
-	return true;
+    s32 ret;
+    uint8_t dat[DS3232_TIME_REG_LEN];
+    if(ptm==NULL)
+    {
+        printf("%s para is invalid.\r\n",__FUNCTION__);
+        return false;
+    }
+    ret=__rtc_ReadData(DS3232_TIME_ADDR,dat,DS3232_TIME_REG_LEN);
+    if(ret==-1)
+        return false;
+     //将BCD格式转化为正常模式
+    ptm->tm_sec    = BcdToHex(dat[0] & 0x7F);
+    ptm->tm_min    = BcdToHex(dat[1] & 0x7F);
+    ptm->tm_hour   = BcdToHex(dat[2]);
+    ptm->tm_wday   = BcdToHex(dat[3] & 0x07);
+    ptm->tm_mday   = BcdToHex(dat[4] & 0x3F);
+    ptm->tm_mon    = BcdToHex(dat[5] & 0x1F);
+    ptm->tm_year   = BcdToHex(dat[6]) + 2000;
+    return true;
 }
 
 
 bool_t RTC_DS3232MZ_SetAlarm1Time(struct tm *ptm)
 {
-	s32 ret;
-	uint8_t dat[DS3232_ALARM_REG_LEN];
-	if(ptm==NULL)
-	{
-		printf("%s para is invalid.\r\n",__FUNCTION__);
-		return false;
-	}
-	dat[0]=HexToBcd(ptm->tm_sec)&0x7F;
-	dat[1]=HexToBcd(ptm->tm_min)&0x7F;
-	dat[2]=HexToBcd(ptm->tm_hour&DS3232M_ALARM_HOUR_MODE24_MASK);
-	dat[3]=HexToBcd(ptm->tm_mday&DS3232M_ALARM_DATE_MODE_MASK);
-	ret=__rtc_WriteData(DS3232_REG_ALARM1,dat,DS3232_ALARM_REG_LEN);
-	if(ret==-1)
-		return false;
-	return true;
+    s32 ret;
+    uint8_t dat[DS3232_ALARM_REG_LEN];
+    if(ptm==NULL)
+    {
+        printf("%s para is invalid.\r\n",__FUNCTION__);
+        return false;
+    }
+    dat[0]=HexToBcd(ptm->tm_sec)&0x7F;
+    dat[1]=HexToBcd(ptm->tm_min)&0x7F;
+    dat[2]=HexToBcd(ptm->tm_hour&DS3232M_ALARM_HOUR_MODE24_MASK);
+    dat[3]=HexToBcd(ptm->tm_mday&DS3232M_ALARM_DATE_MODE_MASK);
+    ret=__rtc_WriteData(DS3232_REG_ALARM1,dat,DS3232_ALARM_REG_LEN);
+    if(ret==-1)
+        return false;
+    return true;
 }
 
 bool_t RTC_DS3232MZ_SetAlarm2Time(struct tm *ptm)
 {
-	s32 ret;
-	uint8_t dat[DS3232_ALARM_REG_LEN];
-	if(ptm==NULL)
-	{
-		printf("%s para is invalid.\r\n",__FUNCTION__);
-		return false;
-	}
-	dat[0]=HexToBcd(ptm->tm_sec)&0x7F;;
-	dat[1]=HexToBcd(ptm->tm_min)&0x7F;;
-	dat[2]=HexToBcd(ptm->tm_hour&DS3232M_ALARM_HOUR_MODE24_MASK);
-	dat[3]=HexToBcd(ptm->tm_mday&DS3232M_ALARM_DATE_MODE_MASK);
-	ret=__rtc_WriteData(DS3232_REG_ALARM2,dat,DS3232_ALARM_REG_LEN);
-	if(ret==-1)
-		return false;
-	return true;
+    s32 ret;
+    uint8_t dat[DS3232_ALARM_REG_LEN];
+    if(ptm==NULL)
+    {
+        printf("%s para is invalid.\r\n",__FUNCTION__);
+        return false;
+    }
+    dat[0]=HexToBcd(ptm->tm_sec)&0x7F;;
+    dat[1]=HexToBcd(ptm->tm_min)&0x7F;;
+    dat[2]=HexToBcd(ptm->tm_hour&DS3232M_ALARM_HOUR_MODE24_MASK);
+    dat[3]=HexToBcd(ptm->tm_mday&DS3232M_ALARM_DATE_MODE_MASK);
+    ret=__rtc_WriteData(DS3232_REG_ALARM2,dat,DS3232_ALARM_REG_LEN);
+    if(ret==-1)
+        return false;
+    return true;
 }
 
 
 bool_t RTC_DS3232MZ_GetAlarm1Time(struct tm *ptm)
 {
-	s32 ret;
-	uint8_t dat[DS3232_ALARM_REG_LEN];
-	if(ptm==NULL)
-	{
-		printf("%s para is invalid.\r\n",__FUNCTION__);
-		return false;
-	}
-	ret=__rtc_ReadData(DS3232_REG_ALARM1,dat,DS3232_ALARM_REG_LEN);
-	if(ret==-1)
-		return false;
-	 //将BCD格式转化为正常模式
-	ptm->tm_sec    = BcdToHex(dat[0] & 0x7F);
-	ptm->tm_min    = BcdToHex(dat[1] & 0x7F);
-	ptm->tm_hour   = BcdToHex(dat[2]);
-	ptm->tm_mday   = BcdToHex(dat[3] & 0x3F);
+    s32 ret;
+    uint8_t dat[DS3232_ALARM_REG_LEN];
+    if(ptm==NULL)
+    {
+        printf("%s para is invalid.\r\n",__FUNCTION__);
+        return false;
+    }
+    ret=__rtc_ReadData(DS3232_REG_ALARM1,dat,DS3232_ALARM_REG_LEN);
+    if(ret==-1)
+        return false;
+     //将BCD格式转化为正常模式
+    ptm->tm_sec    = BcdToHex(dat[0] & 0x7F);
+    ptm->tm_min    = BcdToHex(dat[1] & 0x7F);
+    ptm->tm_hour   = BcdToHex(dat[2]);
+    ptm->tm_mday   = BcdToHex(dat[3] & 0x3F);
     return true;
 }
 
 bool_t RTC_DS3232MZ_GetAlarm2Time(struct tm *ptm)
 {
-	s32 ret;
-	uint8_t dat[DS3232_ALARM_REG_LEN];
-	if(ptm==NULL)
-	{
-		printf("%s para is invalid.\r\n",__FUNCTION__);
-		return false;
-	}
-	ret=__rtc_ReadData(DS3232_REG_ALARM2,dat,DS3232_ALARM_REG_LEN);
-	if(ret==-1)
-		return false;
-	 //将BCD格式转化为正常模式
-	ptm->tm_sec    = BcdToHex(dat[0] & 0x7F);
-	ptm->tm_min    = BcdToHex(dat[1] & 0x7F);
-	ptm->tm_hour   = BcdToHex(dat[2]);
-	ptm->tm_mday   = BcdToHex(dat[3] & 0x3F);
+    s32 ret;
+    uint8_t dat[DS3232_ALARM_REG_LEN];
+    if(ptm==NULL)
+    {
+        printf("%s para is invalid.\r\n",__FUNCTION__);
+        return false;
+    }
+    ret=__rtc_ReadData(DS3232_REG_ALARM2,dat,DS3232_ALARM_REG_LEN);
+    if(ret==-1)
+        return false;
+     //将BCD格式转化为正常模式
+    ptm->tm_sec    = BcdToHex(dat[0] & 0x7F);
+    ptm->tm_min    = BcdToHex(dat[1] & 0x7F);
+    ptm->tm_hour   = BcdToHex(dat[2]);
+    ptm->tm_mday   = BcdToHex(dat[3] & 0x3F);
     return true;
 }
 
 
 static bool_t RTC_DS3232MZ_ClearAlarmSta(void)
 {
-	s32 ret;
-	u8 dat;
+    s32 ret;
+    u8 dat;
 
-	ret=__rtc_ReadData(DS3232_REG_SR,&dat,1);
-	if(ret==-1)
-		return false;
+    ret=__rtc_ReadData(DS3232_REG_SR,&dat,1);
+    if(ret==-1)
+        return false;
 
-	dat &= (u8)(~(DS3232_REG_SR_A1F | DS3232_REG_SR_A1F));//clear;
-	ret=__rtc_WriteData(DS3232_REG_SR,&dat,1);
-	if(ret==-1)
-		return false;
-	return true;
+    dat &= (u8)(~(DS3232_REG_SR_A1F | DS3232_REG_SR_A1F));//clear;
+    ret=__rtc_WriteData(DS3232_REG_SR,&dat,1);
+    if(ret==-1)
+        return false;
+    return true;
 }
 
 static bool_t RTC_DS3232MZ_AlarmConfig(u8 alarm1,u8 alarm2)
 {
-	s32 ret;
-	u8 dat;
+    s32 ret;
+    u8 dat;
 
-	ret=__rtc_ReadData(DS3232_REG_CR,&dat,1);
-	if(ret==-1)
-		return false;
+    ret=__rtc_ReadData(DS3232_REG_CR,&dat,1);
+    if(ret==-1)
+        return false;
 
-	dat &= ~(DS3232_REG_CR_INTCN | DS3232_REG_CR_A2IE |DS3232_REG_CR_A1IE );
-	if(alarm1 || alarm2 )
-	{
-		dat |= DS3232_REG_CR_INTCN;
-		if(alarm1)
-			dat |= DS3232_REG_CR_A1IE;
-		if(alarm2)
-			dat |= DS3232_REG_CR_A2IE;
-	}
-	ret=__rtc_WriteData(DS3232_REG_CR,&dat,1);
-	if(ret==-1)
-		return false;
+    dat &= ~(DS3232_REG_CR_INTCN | DS3232_REG_CR_A2IE |DS3232_REG_CR_A1IE );
+    if(alarm1 || alarm2 )
+    {
+        dat |= DS3232_REG_CR_INTCN;
+        if(alarm1)
+            dat |= DS3232_REG_CR_A1IE;
+        if(alarm2)
+            dat |= DS3232_REG_CR_A2IE;
+    }
+    ret=__rtc_WriteData(DS3232_REG_CR,&dat,1);
+    if(ret==-1)
+        return false;
 
-	return true;
+    return true;
 }
 
 void (*gfunRTC_TrigIoInit)(void) =  NULL;
 
 bool_t RTC_SetAlarm(u32 timeout_s)
 {
-	bool_t result = false;
-	static bool_t sAlarmSet = false;
-	s64 time;
+    bool_t result = false;
+    static bool_t sAlarmSet = false;
+    s64 time;
     struct tm dtm;
 
     if(true == RTC_DS3232MZ_ClearAlarmSta())
     {
-    	if(false == sAlarmSet)
-    	{
-    		RTC_DS3232MZ_AlarmConfig(1,0);
-    		sAlarmSet = true;
-    		if(NULL != gfunRTC_TrigIoInit)
-    			gfunRTC_TrigIoInit();
-    	}
+        if(false == sAlarmSet)
+        {
+            RTC_DS3232MZ_AlarmConfig(1,0);
+            sAlarmSet = true;
+            if(NULL != gfunRTC_TrigIoInit)
+                gfunRTC_TrigIoInit();
+        }
 
-    	if(true == sAlarmSet)
-    	{
-    	    if(true == RTC_DS3232MZ_GetTime(&dtm))
-    	    {
-        	    time = (s64)(Tm_MkTime(&dtm) + timeout_s);
+        if(true == sAlarmSet)
+        {
+            if(true == RTC_DS3232MZ_GetTime(&dtm))
+            {
+                time = (s64)(Tm_MkTime(&dtm) + timeout_s);
 
-        	    Tm_LocalTime_r(&time,&dtm);
-        	    result = RTC_DS3232MZ_SetAlarm1Time(&dtm);
+                Tm_LocalTime_r(&time,&dtm);
+                result = RTC_DS3232MZ_SetAlarm1Time(&dtm);
 
-        	    RTC_DS3232MZ_GetAlarm1Time(&dtm);
-    	    }
-    	}
+                RTC_DS3232MZ_GetAlarm1Time(&dtm);
+            }
+        }
     }
 
-	return result;
+    return result;
 }
 
 bool_t RTC_AlarmConfig(void (*RTC_TrigIoInit)(void))
 {
-	bool_t result = false;
-	if(NULL != RTC_TrigIoInit)
-	{
-		gfunRTC_TrigIoInit = RTC_TrigIoInit;
-		result = true;
-	}
-	return result;
+    bool_t result = false;
+    if(NULL != RTC_TrigIoInit)
+    {
+        gfunRTC_TrigIoInit = RTC_TrigIoInit;
+        result = true;
+    }
+    return result;
 }
 
 /* =============================================================================
@@ -393,23 +433,25 @@ bool_t RTC_AlarmConfig(void (*RTC_TrigIoInit)(void))
 
 static bool_t DS3232MZ_Init(char *BusName)
 {
-    static struct  IIC_Device s_RTC_Dev;
     ptSemID_RTC = Lock_MutexCreate("DS3232MZ Lock");
     if(ptSemID_RTC==NULL)
     {
-    	printf("%s malloc failed.\r\n",__FUNCTION__);
-    	return false;
+        printf("%s malloc failed.\r\n",__FUNCTION__);
+        return false;
     }
 
-    if(NULL != IIC_DevAdd_s(&s_RTC_Dev,BusName,"DS3232MZ",DS3232MZ_ADDR,0,8))
+    s_ptDS3232MZ_Dev = IIC_DevAdd(BusName,"DS3232MZ",DS3232MZ_ADDR,0,8);
+    if(s_ptDS3232MZ_Dev)
     {
-    	pg_DS3232MZ_Dev = &s_RTC_Dev;
-        IIC_BusCtrl(pg_DS3232MZ_Dev,CN_IIC_SET_CLK,DS3232MZ_CLK_FRE,0);//设置时钟大小
-        IIC_BusCtrl(pg_DS3232MZ_Dev,CN_IIC_SET_POLL,0,0);       //使用中断方式发送
+        IIC_BusCtrl(s_ptDS3232MZ_Dev,CN_IIC_SET_CLK,DS3232MZ_CLK_FRE,0);//设置时钟大小
+        IIC_BusCtrl(s_ptDS3232MZ_Dev,CN_IIC_SET_POLL,0,0);       //使用中断方式发送
         return true;
     }
-
-    return false;
+    else
+    {
+        Lock_MutexDelete(ptSemID_RTC);
+        return false;
+    }
 }
 
 
@@ -475,21 +517,21 @@ ptu32_t Rtc_UpdateTime(void)
 
 ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
 {
-	u16 evtt;
-	s64 rtc_time;
-	struct timeval tv;
+    u16 evtt;
+    s64 rtc_time;
+    struct timeval tv;
 
-	DS3232MZ_Init(RTC_IIC_BUS_NAME);
-	pRtcSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"RTC_SEMP");
-	if(NULL == pRtcSemp)
-	     return -1;
-	evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
-	                           Rtc_UpdateTime,NULL,800,
-	                               "RTC Update Event");
+    DS3232MZ_Init(RTC_IIC_BUS_NAME);
+    pRtcSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"RTC_SEMP");
+    if(NULL == pRtcSemp)
+         return -1;
+    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+                               Rtc_UpdateTime,NULL,800,
+                                   "RTC Update Event");
     if(evtt == CN_EVTT_ID_INVALID)
     {
-	    free(pRtcSemp);
-	    return false;
+        free(pRtcSemp);
+        return false;
     }
     Djy_EventPop(evtt,NULL,0,NULL,0,0);
 
@@ -502,59 +544,59 @@ ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
     RTC_Shell_Module_Install();
     //注册RTC时间
     if(!Rtc_RegisterDev(NULL,Rtc_SetTime))
-    	return false;
+        return false;
     else
-    	return true;
+        return true;
 }
 
 
 
 void Sh_RTC_SetTime(char *param)
 {
-	char command[20];
-	bool_t ret;
-	struct tm ptDateTime;
-	if(param!=NULL)
-	{
-		 memcpy(command,param,20);
-		 sscanf(command,"%d/%d/%d,%d:%d:%d:%d",\
-		             &ptDateTime.tm_year,&ptDateTime.tm_mon,&ptDateTime.tm_mday,\
-		             &ptDateTime.tm_hour,&ptDateTime.tm_min,&ptDateTime.tm_sec);
-		 ret=RTC_DS3232MZ_UpdateTime(&ptDateTime);
-		 if(ret)
-		 {
-			 printf("Update Time OK.\r\n");
-		 }
-		 else
-		 {
-			 printf("Update Time failed.\r\n");
-		 }
-	}
+    char command[20];
+    bool_t ret;
+    struct tm ptDateTime;
+    if(param!=NULL)
+    {
+         memcpy(command,param,20);
+         sscanf(command,"%d/%d/%d,%d:%d:%d:%d",\
+                     &ptDateTime.tm_year,&ptDateTime.tm_mon,&ptDateTime.tm_mday,\
+                     &ptDateTime.tm_hour,&ptDateTime.tm_min,&ptDateTime.tm_sec);
+         ret=RTC_DS3232MZ_UpdateTime(&ptDateTime);
+         if(ret)
+         {
+             printf("Update Time OK.\r\n");
+         }
+         else
+         {
+             printf("Update Time failed.\r\n");
+         }
+    }
 
 }
 void Sh_RTC_GetTime(void)
 {
-	struct tm ptDateTime;
-	bool_t ret;
-	ret=RTC_DS3232MZ_GetTime(&ptDateTime);
-	if(!ret)
-	{
-		 printf("Get RTC Time failed.\r\n");
-	}
-	else
-	{
-		 printf("Get RTC Time:%04d/%02d/%02d,%02d:%02d:%02d.\r\n",
-				ptDateTime.tm_year, ptDateTime.tm_mon, ptDateTime.tm_mday,
-				ptDateTime.tm_hour, ptDateTime.tm_min,ptDateTime.tm_sec);
-	}
+    struct tm ptDateTime;
+    bool_t ret;
+    ret=RTC_DS3232MZ_GetTime(&ptDateTime);
+    if(!ret)
+    {
+         printf("Get RTC Time failed.\r\n");
+    }
+    else
+    {
+         printf("Get RTC Time:%04d/%02d/%02d,%02d:%02d:%02d.\r\n",
+                ptDateTime.tm_year, ptDateTime.tm_mon, ptDateTime.tm_mday,
+                ptDateTime.tm_hour, ptDateTime.tm_min,ptDateTime.tm_sec);
+    }
 
 }
 
 //**************************************************************************
 struct ShellCmdTab const shell_cmd_rtc_table[]=
 {
-	{"rtcst",(bool_t(*)(char*))Sh_RTC_SetTime,   "设置RTC时间",   "格式:2017/08/20,21:00:00"},
-	{"rtcgt",(bool_t(*)(char*))Sh_RTC_GetTime,   "获取RTC时间",    NULL},
+    {"rtcst",(bool_t(*)(char*))Sh_RTC_SetTime,   "设置RTC时间",   "格式:2017/08/20,21:00:00"},
+    {"rtcgt",(bool_t(*)(char*))Sh_RTC_GetTime,   "获取RTC时间",    NULL},
 };
 //**************************************************************************
 #define CN_RTC_SHELL_NUM  sizeof(shell_cmd_rtc_table)/sizeof(struct ShellCmdTab)
@@ -562,6 +604,6 @@ static struct ShellCmdRsc tg_rtc_cmd_rsc[CN_RTC_SHELL_NUM];
 
 ptu32_t RTC_Shell_Module_Install(void)
 {
-	Sh_InstallCmd(shell_cmd_rtc_table,tg_rtc_cmd_rsc,CN_RTC_SHELL_NUM);
-	return 1;
+    Sh_InstallCmd(shell_cmd_rtc_table,tg_rtc_cmd_rsc,CN_RTC_SHELL_NUM);
+    return 1;
 }

@@ -71,7 +71,7 @@ extern "C" {
 
  struct GkucParaRepaint
 {
-    struct GkWinRsc *gk_win;          //绘制的目标窗口
+    struct GkWinObj *gk_win;          //绘制的目标窗口
     struct ClipRect *redraw_clip;  //需重绘的剪切域链表
 };
 

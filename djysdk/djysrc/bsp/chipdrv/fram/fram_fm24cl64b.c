@@ -14,12 +14,53 @@
 #include "iicbus.h"
 #include "endian.h"
 #include "fram_fm24cl64b.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-#define FRAM_MAX_ADDR                 (0x2000) //铁电大小，字节单位
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    ModuleInit_Fram(CFG_FRAM_BUS_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"fram_fm24cl64b"  //填写该组件的名字
+//parent:"IICBUS"                  //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件               //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                     //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                      //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                  //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"iicbus","lock"      //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                  //选中该组件时，被依赖组件将强制选中，
+                                  //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"           //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                  //选中该组件时，被依赖组件不会被强制选中，
+                                  //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                  //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header             //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_FRAM_BUS_NAME         //****检查参数是否已经配置好
+#warning    fram_fm24cl64b组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+#define CFG_FRAM_BUS_NAME              "IIC0"       //"IIC总线",配置铁电使用的IIC总线名称
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#define CFG_FRAM_ADDR                 (0x80)             //"地址",铁电的地址（硬件地址）
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+#define CFG_FRAM_MAX_ADDR             (0x2000) //铁电大小，字节单位
 struct MutexLCB *  ptSemID_Fram;       // IIC操作互斥标志
-static struct IIC_Device *pg_FRAM_Dev=NULL;
-static s32 timeout = 2000*mS;//2000*mS;//;100*mS
-#define FM24CL64B_CLK_FRE             (100*1000)      //总线速度，单位Hz
+static struct IIC_Device *s_ptFRAM_Dev=NULL;
+#define CFG_FM24CL64B_TIMEOUT         (2000*mS)
+#define CFG_FM24CL64B_CLK_FRE         (100*1000)      //总线速度，单位Hz
 // =============================================================================
 // 功能：读铁电指定地址开始Dstlen长度的数据
 // 参数：fram_no,铁电号，为0或1
@@ -31,9 +72,9 @@ static s32 timeout = 2000*mS;//2000*mS;//;100*mS
 u32 FRAM_Read_Data(u32 Fram_DstAddr,u8 *pDstBuf,u32 DstLen)
 {
     u32 ret = 0;
-    if(Fram_DstAddr + DstLen> FRAM_MAX_ADDR)
+    if(Fram_DstAddr + DstLen> CFG_FRAM_MAX_ADDR)
         return 0;
-    ret=IIC_Read(pg_FRAM_Dev, Fram_DstAddr, pDstBuf, DstLen, timeout);
+    ret=IIC_Read(s_ptFRAM_Dev, Fram_DstAddr, pDstBuf, DstLen, CFG_FM24CL64B_TIMEOUT);
     return ret;
 }
 // =============================================================================
@@ -47,9 +88,9 @@ u32 FRAM_Read_Data(u32 Fram_DstAddr,u8 *pDstBuf,u32 DstLen)
 u32 FRAM_Write_Data(u32 Fram_DstAddr,u8 *pSrcBuf,u32 SrcLen)
 {
     u32 ret = 0;
-    if(Fram_DstAddr + SrcLen > FRAM_MAX_ADDR)
+    if(Fram_DstAddr + SrcLen > CFG_FRAM_MAX_ADDR)
         return 0;
-    ret=IIC_Write(pg_FRAM_Dev, Fram_DstAddr, pSrcBuf, SrcLen,0, timeout);
+    ret=IIC_Write(s_ptFRAM_Dev, Fram_DstAddr, pSrcBuf, SrcLen,0, CFG_FM24CL64B_TIMEOUT);
     return ret;
 }
 // =============================================================================
@@ -133,13 +174,13 @@ u32 FRAM_Write_Word( u32 Fram_DstAddr,u16 u16data)
 u16 FRAM_Read_Word_r(u16 wAddress )
 {
     u16    wData = 0;
-	if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))  // 获取写权限
-	{
-		printf("FRAM1_Read_Word_r 获取写权限失败\n");
-		return  false;
-	}
-	wData = FRAM_Read_Word(wAddress );   // 写铁电
-	Lock_MutexPost( ptSemID_Fram );
+    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))  // 获取写权限
+    {
+        printf("FRAM1_Read_Word_r 获取写权限失败\n");
+        return  false;
+    }
+    wData = FRAM_Read_Word(wAddress );   // 写铁电
+    Lock_MutexPost( ptSemID_Fram );
     return    wData;
 }
 
@@ -152,13 +193,13 @@ u32 FRAM_Read_Data_r( u16 wAddress, u8 *pbyBuf, u32 dwLen )
 {
     register u32      dwStatus = 0;
 
-	if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
-	{
-		printf("FRAM1_Read_Data 获取写权限失败\n");
-		return  false;
-	}
-	dwStatus = FRAM_Read_Data(wAddress, pbyBuf, dwLen );// 写铁电
-	Lock_MutexPost( ptSemID_Fram );
+    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
+    {
+        printf("FRAM1_Read_Data 获取写权限失败\n");
+        return  false;
+    }
+    dwStatus = FRAM_Read_Data(wAddress, pbyBuf, dwLen );// 写铁电
+    Lock_MutexPost( ptSemID_Fram );
 
     return    dwStatus;
 }
@@ -171,13 +212,13 @@ u32 FRAM_Read_Data_r( u16 wAddress, u8 *pbyBuf, u32 dwLen )
 s32 FRAM_Write_Word_r(u16 wAddress, u16 wData )
 {
     s32    Status = 0;
-	if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))       // 获取写权限
-	{
-		printf("FRAM1_Write_Word_r 获取写权限失败\n");
-		return  false;
-	}
-	Status = FRAM_Write_Word(wAddress, wData);   // 写铁电
-	Lock_MutexPost( ptSemID_Fram);
+    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))       // 获取写权限
+    {
+        printf("FRAM1_Write_Word_r 获取写权限失败\n");
+        return  false;
+    }
+    Status = FRAM_Write_Word(wAddress, wData);   // 写铁电
+    Lock_MutexPost( ptSemID_Fram);
     return    Status;
 }
 
@@ -189,13 +230,13 @@ s32 FRAM_Write_Word_r(u16 wAddress, u16 wData )
 u32 FRAM_Write_Data_r(u16 wAddress, u8 *pbyBuf, u32 dwLen)
 {
     register u32      dwStatus = 0;
-	if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
-	{
-		printf("FRAM1_Write_Data_r 获取写权限失败\n");
-		return  false;
-	}
-	dwStatus = FRAM_Write_Data(wAddress, pbyBuf, dwLen );// 写铁电
-	Lock_MutexPost( ptSemID_Fram );
+    if(-1 == Lock_MutexPend( ptSemID_Fram, CN_TIMEOUT_FOREVER))   // 获取写权限
+    {
+        printf("FRAM1_Write_Data_r 获取写权限失败\n");
+        return  false;
+    }
+    dwStatus = FRAM_Write_Data(wAddress, pbyBuf, dwLen );// 写铁电
+    Lock_MutexPost( ptSemID_Fram );
 
     return    dwStatus;
 }
@@ -207,21 +248,18 @@ u32 FRAM_Write_Data_r(u16 wAddress, u8 *pbyBuf, u32 dwLen)
 // =============================================================================
 ptu32_t ModuleInit_Fram(char *BusName)
 {
-    static struct IIC_Device Dev;
-    char *DevName;
-	DevName = "FRAM_FM24CL64B";
-	ptSemID_Fram = Lock_MutexCreate("Fram0 Lock");
-    if(NULL != IIC_DevAdd_s(&Dev,BusName,DevName,FRAM_ADDR,1,17))
+    ptSemID_Fram = Lock_MutexCreate("Fram0 Lock");
+
+    s_ptFRAM_Dev = IIC_DevAdd(BusName,"FRAM_FM24CL64B",CFG_FRAM_ADDR,1,17);
+    if(s_ptFRAM_Dev)
     {
-    	pg_FRAM_Dev=&Dev;
-    	IIC_BusCtrl(pg_FRAM_Dev,CN_IIC_SET_CLK,FM24CL64B_CLK_FRE,0);
-    	IIC_BusCtrl(pg_FRAM_Dev,CN_IIC_SET_POLL,0,0);
-    	return true;
+        IIC_BusCtrl(s_ptFRAM_Dev,CN_IIC_SET_CLK,CFG_FM24CL64B_CLK_FRE,0);
+        IIC_BusCtrl(s_ptFRAM_Dev,CN_IIC_SET_POLL,0,0);
+        return true;
     }
     else
-        return true;
+    {
+        Lock_MutexDelete(ptSemID_Fram);
+        return false;
+    }
 }
-
-
-
-

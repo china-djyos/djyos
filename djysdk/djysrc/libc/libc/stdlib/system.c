@@ -62,11 +62,12 @@
 
 #include <stdint.h>
 #include <string.h>
-
+#include "dbug.h"
 //TODO：完成shell系统重构后实现之
 s32 system(_CONST char *s)
 {
-    printf("执行命令:%s，暂不支持\n\r",s);
+	debug_printf("null","执行命令:%s，暂不支持\n\r",s);
+	return 1;
 }
 
 

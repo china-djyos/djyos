@@ -19,7 +19,7 @@
 
 #include <uv.h>
 #include <linux/spi/spidev.h>
-#include <sys/ioctl.h>
+#include <sys/stropts.h>
 
 #include "iotjs_def.h"
 #include "module/iotjs_module_buffer.h"

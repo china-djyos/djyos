@@ -63,6 +63,7 @@
 #include <os.h>
 #include <exp.h>
 #include <shell.h>
+#include "dbug.h"
 //for some cpu or project,they has some external or internal memory which will
 //maintain their data when the board power off(they use the back up power)
 //for the ST mcu,they has a 4KB internal ram on the chip use the back up power
@@ -687,7 +688,7 @@ static void __RecordScan(void)
 	if(ret == false)
 	{
 		//format the ramdisk
-		printf("Controller Not Format,will do the format!\n\r");
+	    debug_printf("null","Controller Not Format,will do the format!\n\r");
 		__LineMemDiskFormat();
 	}
 	else
@@ -695,7 +696,7 @@ static void __RecordScan(void)
 		ret = __ItemGet(ctrl.nxtptr,&item);
 		if(ret == false)
 		{
-			printf("Item Get Failed,will do the format!\n\r");
+		    debug_printf("null","Item Get Failed,will do the format!\n\r");
 		}
 	}
 	return;
@@ -706,12 +707,12 @@ static void __LineMemCtrlShow(void)
 	tagController ctrl;
 	if(__ControllerGet(&ctrl))
 	{
-		printf("Ctroller:Magic:0x%08x Nxtptr:0x%04x MaxNo:0x%08x\n\r",\
+	    debug_printf("null","Ctroller:Magic:0x%08x Nxtptr:0x%04x MaxNo:0x%08x\n\r",\
 				ctrl.magic,ctrl.nxtptr,ctrl.maxno);
 	}
 	else
 	{
-		printf("Ctroller Not Fomat Yet!\n\r");
+	        debug_printf("null","Ctroller Not Fomat Yet!\n\r");
 	}
 }
 //use this function to show the item
@@ -721,17 +722,17 @@ static void __LineMemItemShow()
 	u16 offset;
 	tagRingItem item;
 
-	printf("%-4s %-4s %-4s %-4s %-4s %-4s %-4s %-4s %-8s\n\r",
-			"No","Off","NPTR","Size","Msgl","Head","Tail","Inuse","Seq");
+	    debug_printf("null","%-4s %-4s %-4s %-4s %-4s %-4s %-4s %-4s %-8s\n\r",
+	            "No","Off","NPTR","Size","Msgl","Head","Tail","Inuse","Seq");
 	offset = CN_ITEM_BASE;
 	while(__ItemGet(offset,&item))
 	{
-		printf("%-4d %-4x %-4x %-4d %-4d %-4s %-4s %-4s %-8x\n\r",\
-				i++,offset,item.nxtptr,item.size,item.msglen,\
-				item.state&CN_ITEM_STATE_HEAD?"YES":"NO",\
-				item.state&CN_ITEM_STATE_TAIL?"YES":"NO",\
-				item.state&CN_ITEM_STATE_INUSE?"YES":"NO",\
-				item.no);
+	    debug_printf("null","%-4d %-4x %-4x %-4d %-4d %-4s %-4s %-4s %-8x\n\r",\
+	            i++,offset,item.nxtptr,item.size,item.msglen,\
+	            item.state&CN_ITEM_STATE_HEAD?"YES":"NO",\
+	                    item.state&CN_ITEM_STATE_TAIL?"YES":"NO",\
+	                            item.state&CN_ITEM_STATE_INUSE?"YES":"NO",\
+	                                    item.no);
 		if(item.state&CN_ITEM_STATE_TAIL)
 		{
 			break;
@@ -756,8 +757,8 @@ static void __LineMemByteShow(void)
 		__MemReadL(CN_CONTROLLER_BASE,buf,len);
 		for(i =0;i < len;i+= 16)
 		{
-			printf("%04x:%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n\r",
-					i,buf[i+0],buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7],buf[i+8],buf[i+9],buf[i+10],buf[i+11],buf[i+12],buf[i+13],buf[i+14],buf[i+15]);
+		    debug_printf("null","%04x:%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n\r",
+		            i,buf[i+0],buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7],buf[i+8],buf[i+9],buf[i+10],buf[i+11],buf[i+12],buf[i+13],buf[i+14],buf[i+15]);
 		}
 		free(buf);
 	}
@@ -817,8 +818,8 @@ bool_t LineMemExpRecord_Config(tagExpLowLevelOpt *lopt,u16 memsize)
     if((NULL == lopt)||(NULL == lopt->read)||(NULL == lopt->write)||\
        (NULL== lopt->format)||(NULL == lopt->init)||(memsize < CN_LINEMEM_MINI))
     {
-    	printf("%s:make sure lopt and its member NOT NULL, and  memory size more than CN_LINEMEM_MINI\n\r",\
-    			__FUNCTION__);
+        debug_printf("null","%s:make sure lopt and its member NOT NULL, and  memory size more than CN_LINEMEM_MINI\n\r",\
+                __FUNCTION__);
     	return ret;
     }
     gMemCtrl.lopt = *lopt;
@@ -827,8 +828,8 @@ bool_t LineMemExpRecord_Config(tagExpLowLevelOpt *lopt,u16 memsize)
     ret = __MemInitL();
     if(false == ret)
     {
-    	printf("%s:memory hard initialize failed\n\r",__FUNCTION__);
-    	return ret;
+        debug_printf("null","%s:memory hard initialize failed\n\r",__FUNCTION__);
+        return ret;
     }
     //then register the line memory record method to the exception module
 	ExpOpt.fnExpRecordScan      = __RecordScan;
@@ -840,14 +841,14 @@ bool_t LineMemExpRecord_Config(tagExpLowLevelOpt *lopt,u16 memsize)
 	ret = Exp_RegisterRecorder(&ExpOpt);
 	if(false == ret)
 	{
-		printf("%s:register recorder failed\r\n",__FUNCTION__);
-		return ret;
+	    debug_printf("null","%s:register recorder failed\r\n",__FUNCTION__);
+	    return ret;
 	}
 	ret = Sh_InstallCmd(gLineMemDebug,gLineMemDebugCmdRsc,CN_LineMemDebug_NUM);
 	if(false == ret)
 	{
-		printf("%s:register shell failed\r\n",__FUNCTION__);
-		return ret;
+	    debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
+	    return ret;
 	}
 	return ret;
 }
@@ -870,8 +871,8 @@ bool_t LineMemExpRecord_ConfigTest(tagExpLowLevelOpt *lopt,u16 memsize,u32 maxle
     if((NULL == lopt)||(NULL == lopt->read)||(NULL == lopt->write)||\
        (NULL== lopt->format)||(NULL == lopt->init)||(memsize < CN_LINEMEM_MINI))
     {
-    	printf("%s:make sure lopt and its member NOT NULL, and  memory size more than CN_LINEMEM_MINI\n\r",\
-    			__FUNCTION__);
+        debug_printf("null","%s:make sure lopt and its member NOT NULL, and  memory size more than CN_LINEMEM_MINI\n\r",\
+                __FUNCTION__);
     	return ret;
     }
     gMemCtrl.lopt = *lopt;
@@ -880,8 +881,8 @@ bool_t LineMemExpRecord_ConfigTest(tagExpLowLevelOpt *lopt,u16 memsize,u32 maxle
     ret = __MemInitL();
     if(false == ret)
     {
-    	printf("%s:memory hard initialize failed\n\r",__FUNCTION__);
-    	return ret;
+        debug_printf("null","%s:memory hard initialize failed\n\r",__FUNCTION__);
+        return ret;
     }
     //then register the line memory record method to the exception module
 	ExpOpt.fnExpRecordScan      = __RecordScan;
@@ -893,14 +894,14 @@ bool_t LineMemExpRecord_ConfigTest(tagExpLowLevelOpt *lopt,u16 memsize,u32 maxle
 	ret = ModuleInstall_ExpRecordTest(&ExpOpt,maxlen,autotest,debugmsg);
 	if(false == ret)
 	{
-		printf("%s:register recorder failed\r\n",__FUNCTION__);
-		return ret;
+	    debug_printf("null","%s:register recorder failed\r\n",__FUNCTION__);
+	    return ret;
 	}
 	ret = Sh_InstallCmd(gLineMemDebug,gLineMemDebugCmdRsc,CN_LineMemDebug_NUM);
 	if(false == ret)
 	{
-		printf("%s:register shell failed\r\n",__FUNCTION__);
-		return ret;
+	    debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
+	    return ret;
 	}
 	return ret;
 }

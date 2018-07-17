@@ -70,6 +70,7 @@
 #include "gk_win.h"
 #include "gk_clip.h"
 #include "gk_draw.h"
+#include "dbug.h"
 struct MemCellPool *g_ptClipRectPool;   //剪切域内存池
 
 //----释放clip队列-------------------------------------------------------------
@@ -244,7 +245,7 @@ struct ClipRect * __GK_CombineClip(struct ClipRect *clipq)
         endclip = clippop;
         startclip = maxclip->next;  //todo:此句貌似可以往前挪2行
         endclip = endclip->previous;
-        //printf("used times =%d\n",firstTime);
+        //debug_printf("gkclip","used times =%d\n",firstTime);
     }while(startclip!= endclip);
 
     return  __GK_CombineClip_s(startclip);
@@ -393,9 +394,9 @@ bool_t __GK_GetRectInts(struct Rectangle *rect1,struct Rectangle *rect2,
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
-bool_t __GK_ScanNewVisibleClip(struct DisplayRsc *display)
+bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
 {
-    struct GkWinRsc *tempwin;
+    struct GkWinObj *tempwin;
     struct Rectangle *rect;
     struct ClipRect *clip,*clip1,*clip_head = NULL;
     s32 num,rect_left,rect_top,rect_right,rect_bottom,loop,temp;
@@ -544,9 +545,9 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayRsc *display)
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
-bool_t __GK_GetVisibleClip(struct DisplayRsc *display)
+bool_t __GK_GetVisibleClip(struct DisplayObj *display)
 {
-    struct GkWinRsc *tempwin;
+    struct GkWinObj *tempwin;
     if(__GK_ScanNewVisibleClip(display) == false)
         return false;
     tempwin = display->z_topmost;
@@ -675,7 +676,7 @@ void __GK_ClipLinkConnect(struct ClipRect **mlink,struct ClipRect *sub)
 //参数: gkwin，目标窗口
 //返回: 链表指针，NULL表示窗口未被修改
 //-----------------------------------------------------------------------------
-struct ClipRect *__GK_GetChangedClip(struct GkWinRsc *gkwin)
+struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin)
 {
     struct ClipRect *clip=NULL,*clip1,*tempclip,*clip_head = NULL;
     u8 *msk;
@@ -982,7 +983,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
 //参数: gkwin，目标窗口
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_GetNewClip(struct GkWinRsc *gkwin)
+void __GK_GetNewClip(struct GkWinObj *gkwin)
 {
     struct ClipRect *redraw;       //visible_clip-visible_bak多出的部分
     struct ClipRect *res;          //visible_clip与visible_bak相交的clip
@@ -1047,10 +1048,10 @@ struct ClipRect *__GK_GetClipLinkInts(struct ClipRect **srcclip,
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
-bool_t __GK_GetRedrawClipAll(struct DisplayRsc *display)
+bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
 {
-    struct GkWinRsc *tempwin;
-    struct GkWinRsc *special_win;
+    struct GkWinObj *tempwin;
+    struct GkWinObj *special_win;
     struct ClipRect *changed_clip,*tempclip1;
     if(display->reset_clip == true)         //看是否需要重新生成可视域
     {
@@ -1234,7 +1235,7 @@ bool_t __GK_GetRedrawClipAll(struct DisplayRsc *display)
 //      z2，z轴中靠前的窗口，包含在内
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_GetClipSection( struct GkWinRsc *z1,struct GkWinRsc *z2)
+void __GK_GetClipSection( struct GkWinObj *z1,struct GkWinObj *z2)
 {
 }
 

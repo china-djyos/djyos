@@ -46,22 +46,24 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-
 #include <sys/socket.h>
-#include "../../tcpipconfig.h"
+#include <arpa/inet.h>
+#include <netdb.h>
 #include "dhcpLib.h"
+#include "dbug.h"
 
 #include <stdio.h>
 #include <shell.h>
-static u32   gDhcpIpMapBytes;                       //which defines the bitmap lenth
+#include "../../component_config_tcpip.h"
+static s32   gDhcpIpMapBytes;                       //which defines the bitmap lenth
 static u8   *gDhcpServerIpBitmap;                   //this is bitmap
 typedef struct
 {
-	const char *dhcpserverip;
-	const char *routerip;
-	const char *subnetmask;
-	const char *domainname;
-	const char *dnsip;
+    const char *dhcpserverip;
+    const char *routerip;
+    const char *subnetmask;
+    const char *domainname;
+    const char *dnsip;
     u32   ipnum;
     u32   leasetime;
 }tagDhcpServerConfig;
@@ -70,181 +72,181 @@ static tagDhcpMsg          gDhcpClientMsg;
 
 typedef struct  DhcpClient
 {
-	struct  DhcpClient  *nxt;
-	u8      clientmac[CN_MACADDR_LEN];
-	int     offset;       //which offer an ip for the client in the bitmap
-	u32     ipaddress;    //client ip
-	u32     timeout;      //which will count the lease time
+    struct  DhcpClient  *nxt;
+    u8      clientmac[CN_MACADDR_LEN];
+    int     offset;       //which offer an ip for the client in the bitmap
+    u32     ipaddress;    //client ip
+    u32     timeout;      //which will count the lease time
 }tagDhcpClient;
 
 static tagDhcpClient   *pDhcpClientQ;
 bool_t showDhcpClient(char *param)
 {
-	tagDhcpClient *client;
-	u32 num = 1;
-	client = pDhcpClientQ;
-	while(NULL != client)
-	{
-		printf("Client:%d\n\r",num++);
-		printf("      :offset :%d\n\r",client->offset);
-		printf("      :ipaddr :%s\n\r",inet_ntoa(*(struct in_addr*)&client->ipaddress));
-		printf("      :mac    :%s\n\r",Mac2string(client->clientmac));
-		printf("      :timeout:%d\n\r",client->timeout);
-		client = client->nxt;
-	}
-	return true;
+    tagDhcpClient *client;
+    u32 num = 1;
+    client = pDhcpClientQ;
+    while(NULL != client)
+    {
+        debug_printf("dhcp","Client:%d\n\r",num++);
+        debug_printf("dhcp","      :offset :%d\n\r",client->offset);
+        debug_printf("dhcp","      :ipaddr :%s\n\r",inet_ntoa(*(struct in_addr*)&client->ipaddress));
+        debug_printf("dhcp","      :mac    :%s\n\r",mac2string(client->clientmac));
+        debug_printf("dhcp","      :timeout:%d\n\r",client->timeout);
+        client = client->nxt;
+    }
+    return true;
 }
 
 //return -1 invalid while others ok
 static int __mallocIp()
 {
-	int result;
-	int bytes;
-	int bit;
+    int result;
+    int bytes;
+    int bit;
 
-	result = -1;
-	for(bytes =0;bytes<gDhcpIpMapBytes;bytes++)
-	{
-		for(bit =0;bit<8;bit++)
-		{
-			if(0==(gDhcpServerIpBitmap[bytes]&(1<<bit)))
-			{
-				//not used, ok, now malloc it
-				result = bytes*8 + bit;
-				gDhcpServerIpBitmap[bytes] |= (1<<bit);//mark it
-				break;
-			}
-		}
-		if(result != -1)
-		{
-			break;
-		}
-	}
+    result = -1;
+    for(bytes =0;bytes<gDhcpIpMapBytes;bytes++)
+    {
+        for(bit =0;bit<8;bit++)
+        {
+            if(0==(gDhcpServerIpBitmap[bytes]&(1<<bit)))
+            {
+                //not used, ok, now net_malloc it
+                result = bytes*8 + bit;
+                gDhcpServerIpBitmap[bytes] |= (1<<bit);//mark it
+                break;
+            }
+        }
+        if(result != -1)
+        {
+            break;
+        }
+    }
     return result;
 }
 static int __freeIp(int offset)
 {
-	int result = -1;
-	int bytes;
-	int bit;
-	if((offset >=0)&&(offset < gDhcpServerIpNum))
-	{
-		bytes = offset/8;
-		bit = offset%8;
-		gDhcpServerIpBitmap[bytes] &= (~(1<<bit));//remove the mark
-	}
-	return result;
+    int result = -1;
+    int bytes;
+    int bit;
+    if((offset >=0)&&(offset < CFG_DHCPD_IPNUM))
+    {
+        bytes = offset/8;
+        bit = offset%8;
+        gDhcpServerIpBitmap[bytes] &= (~(1<<bit));//remove the mark
+    }
+    return result;
 }
 
-//if any client match the mac, then return the match one, else malloc one
+//if any client match the mac, then return the match one, else net_malloc one
 static tagDhcpClient *__newClient(u8 *mac)
 {
-	tagDhcpClient *result;
+    tagDhcpClient *result;
 
-	result = pDhcpClientQ;
-	while(NULL != result)
-	{
-		if(0 ==  memcmp(mac,result->clientmac,CN_MACADDR_LEN))
-		{
-			break;
-		}
-		result = result->nxt;
-	}
+    result = pDhcpClientQ;
+    while(NULL != result)
+    {
+        if(0 ==  memcmp(mac,result->clientmac,CN_MACADDR_LEN))
+        {
+            break;
+        }
+        result = result->nxt;
+    }
 
-	if(NULL == result)
-	{
-		//OK, NOW MALLOC ONE
-		result = (tagDhcpClient *)malloc(sizeof(tagDhcpClient));
-		if(NULL != result)
-		{
-			result->offset = __mallocIp();
-			if(-1 != result->offset)
-			{
-				memcpy(result->clientmac,mac,CN_MACADDR_LEN);
-				result->timeout = gDhcpLeaseTime;
-				u32 ip = 0;
-				ip = inet_addr(pDhcpServerStartIp);
-				ip = ntohl(ip);
-				ip += result->offset;
-				ip = htonl(ip);
-				result->ipaddress = ip;
-				//add it to the client queue
-				result->nxt = pDhcpClientQ;
-				pDhcpClientQ = result;
-			}
-		}
-	}
+    if(NULL == result)
+    {
+        //OK, NOW net_malloc ONE
+        result = (tagDhcpClient *)net_malloc(sizeof(tagDhcpClient));
+        if(NULL != result)
+        {
+            result->offset = __mallocIp();
+            if(-1 != result->offset)
+            {
+                memcpy(result->clientmac,mac,CN_MACADDR_LEN);
+                result->timeout = CFG_DHCP_LEASETIME;
+                u32 ip = 0;
+                ip = inet_addr(CFG_DHCPD_IPSTART);
+                ip = ntohl(ip);
+                ip += result->offset;
+                ip = htonl(ip);
+                result->ipaddress = ip;
+                //add it to the client queue
+                result->nxt = pDhcpClientQ;
+                pDhcpClientQ = result;
+            }
+        }
+    }
 
-	return result;
+    return result;
 }
 
 static void __delClient(tagDhcpClient *client)
 {
-	tagDhcpClient *tmp;
-	if(NULL != client)
-	{
-		//first remove it from the client queue
-		if(client == pDhcpClientQ)
-		{
-			pDhcpClientQ = client->nxt;
-		}
-		else
-		{
-			tmp = pDhcpClientQ;
-			while(NULL != tmp)
-			{
-				if(tmp->nxt == client)
-				{
-					tmp->nxt = client->nxt;
-					break;
-				}
-				else
-				{
-					tmp = tmp->nxt;
-				}
-			}
-		}
+    tagDhcpClient *tmp;
+    if(NULL != client)
+    {
+        //first remove it from the client queue
+        if(client == pDhcpClientQ)
+        {
+            pDhcpClientQ = client->nxt;
+        }
+        else
+        {
+            tmp = pDhcpClientQ;
+            while(NULL != tmp)
+            {
+                if(tmp->nxt == client)
+                {
+                    tmp->nxt = client->nxt;
+                    break;
+                }
+                else
+                {
+                    tmp = tmp->nxt;
+                }
+            }
+        }
 
-		//free the client ip and the mem
-		__freeIp(client->offset);
-		free((void *)client);
-	}
-	return;
+        //net_free the client ip and the mem
+        __freeIp(client->offset);
+        net_free((void *)client);
+    }
+    return;
 }
 
 
 static void __buildReplyPara(tagDhcpClient *client,tagDhcpReplyPara *para,u32 txid,u8 msgtype)
 {
-	u32    ip;
+    u32    ip;
 
-	memset((void *)para,0,sizeof(tagDhcpReplyPara));
-	para->optype  = DHCP_BOOTREPLY;
-	para->msgtype = msgtype;
-	para->transaction = txid;
+    memset((void *)para,0,sizeof(tagDhcpReplyPara));
+    para->optype  = DHCP_BOOTREPLY;
+    para->msgtype = msgtype;
+    para->transaction = txid;
 
-	ip = inet_addr(pDhcpSubnetMask);
-	para->ipmask = ip;
-	para->offerip  = client->ipaddress;
+    ip = inet_addr(CFG_DHCPD_NETIP);
+    para->ipmask = ip;
+    para->offerip  = client->ipaddress;
 
-	ip = inet_addr(pDhcpRouterIp);
-	para->router = ip;
-	para->relayagent = ip;
+    ip = inet_addr(CFG_DHCPD_ROUTERIP);
+    para->router = ip;
+    para->relayagent = ip;
 
-	ip = inet_addr(pDhcpServerIp);
-	para->dhcpserver = ip;
-	para->dhcpservernxt = ip;
+    ip = inet_addr(CFG_DHCPD_SERVERIP);
+    para->dhcpserver = ip;
+    para->dhcpservernxt = ip;
 
-	memcpy(para->clientmac,client->clientmac,CN_MACADDR_LEN);
-	para->renewtime = gDhcpRenewTime;
-	para->bindtime  = gDhcpRebindTime;
-	para->leasetime = gDhcpLeaseTime;
+    memcpy(para->clientmac,client->clientmac,CN_MACADDR_LEN);
+    para->renewtime = CFG_DHCP_RENEWTIME;
+    para->bindtime  = CFG_DHCP_REBINDTIME;
+    para->leasetime = CFG_DHCP_LEASETIME;
 
-	memcpy(para->domainname,pDhcpDomainName,CN_DHCP_STRLEN);
-	ip = inet_addr(pDhcpDns);
-	para->dns1 = ip;
-	para->dns2 = ip;
+    memcpy(para->domainname,CFG_DHCPD_DOMAINNAME,CN_DHCP_STRLEN);
+    ip = inet_addr(CFG_DHCPD_DNS);
+    para->dns1 = ip;
+    para->dns2 = ip;
 
-	return;
+    return;
 }
 
 
@@ -321,40 +323,40 @@ ptu32_t __DhcpServerMain(void)
                 recvlen = recv(serversock, (void *)&gDhcpClientMsg, sizeof(gDhcpClientMsg), 0);
                 if(recvlen >0)
                 {
-                	//now paste client request message
-                	if(pasteDhcpRequestMsg(&request,&gDhcpClientMsg))
-                	{
-                		
-                		//ok now deal it
-                		client = __newClient(request.clientmac);
-                		if(NULL != client)
-                		{
-                			if(request.msgtype == DHCP_DISCOVER)
-                			{
-                				__buildReplyPara(client,&gDhcpServerPara,\
-                						request.transaction,DHCP_OFFER);
-                				makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
-                				send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);
-                			}
-                			else if(request.msgtype == DHCP_REQUEST)
-                			{
-                				__buildReplyPara(client,&gDhcpServerPara,\
-                						request.transaction,DHCP_ACK);
-                				makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
-                				send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);                			}
-                			else if(request.msgtype == DHCP_INFORM)
-                			{
-                				__buildReplyPara(client,&gDhcpServerPara,\
-                						request.transaction,DHCP_ACK);
-                				makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
-                				send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);                			}
-                			else  //maybe lease
-                			{
-                				//del the client
-                				__delClient(client);
-                			}
-                		}
-                	}
+                    //now paste client request message
+                    if(pasteDhcpRequestMsg(&request,&gDhcpClientMsg))
+                    {
+
+                        //ok now deal it
+                        client = __newClient(request.clientmac);
+                        if(NULL != client)
+                        {
+                            if(request.msgtype == DHCP_DISCOVER)
+                            {
+                                __buildReplyPara(client,&gDhcpServerPara,\
+                                        request.transaction,DHCP_OFFER);
+                                makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
+                                send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);
+                            }
+                            else if(request.msgtype == DHCP_REQUEST)
+                            {
+                                __buildReplyPara(client,&gDhcpServerPara,\
+                                        request.transaction,DHCP_ACK);
+                                makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
+                                send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);                          }
+                            else if(request.msgtype == DHCP_INFORM)
+                            {
+                                __buildReplyPara(client,&gDhcpServerPara,\
+                                        request.transaction,DHCP_ACK);
+                                makeDhcpReplyMsg(&gDhcpClientMsg,&gDhcpServerPara);
+                                send(serversock,&gDhcpClientMsg,sizeof(gDhcpClientMsg),0);                          }
+                            else  //maybe lease
+                            {
+                                //del the client
+                                __delClient(client);
+                            }
+                        }
+                    }
                 }
             }while(recvlen >0);
             //each seconds we will be runing
@@ -377,9 +379,7 @@ static struct ShellCmdRsc gServiceDhcpdCmdRsc[CN_PINGDEBUG_NUM];
 //this is main dhcp client module
 bool_t  ModuleInstall_DhcpServer(ptu32_t para)
 {
-    bool_t  result = false;
-    u16 evttID;
-    u16 eventID;
+    bool_t  ret = false;
 
     u32 serverip;
     u32 ipmask;
@@ -387,47 +387,37 @@ bool_t  ModuleInstall_DhcpServer(ptu32_t para)
     u32 bits;
     u32 bytes;
     //do the bitmap initialize
-    gDhcpIpMapBytes = (gDhcpServerIpNum +7)/8;
-    gDhcpServerIpBitmap = malloc(gDhcpIpMapBytes);
+    gDhcpIpMapBytes = (CFG_DHCPD_IPNUM +7)/8;
+    gDhcpServerIpBitmap = net_malloc(gDhcpIpMapBytes);
     if(NULL == gDhcpServerIpBitmap)
     {
-    	goto BITMAP_FAILED;
+        goto BITMAP_FAILED;
     }
     memset(gDhcpServerIpBitmap,0,gDhcpIpMapBytes);
-    serverip = inet_addr(pDhcpServerIp);
-    ipmask = inet_addr(pDhcpSubnetMask);
+    serverip = inet_addr(CFG_DHCPD_SERVERIP);
+    ipmask = inet_addr(CFG_DHCPD_NETIP);
     serverip = ntohl(serverip);
     ipmask = ntohl(ipmask);
     offset = (~ipmask)&serverip;
-    if(offset < gDhcpServerIpNum)  //mark it in the bitmap
+    if(offset < CFG_DHCPD_IPNUM)  //mark it in the bitmap
     {
-    	bytes = offset/8;
-    	bits = offset%8;
-    	gDhcpServerIpBitmap[bytes] = 1<<bits;
+        bytes = offset/8;
+        bits = offset%8;
+        gDhcpServerIpBitmap[bytes] = 1<<bits;
     }
-    evttID= Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 1,\
-            (ptu32_t (*)(void))__DhcpServerMain,NULL, 0x800, "DHCPD");
-    if(evttID == CN_EVTT_ID_INVALID)
-    {
-    	goto EVTT_FAILED;
+    ret = taskcreate("DHCPD",0x800,CN_PRIO_RRS,__DhcpServerMain,NULL);
+    if (ret == false) {
+        debug_printf("dhcp","TFTPD:TASK CREATE ERR\n\r");
+        goto EXIT_TASK;
     }
-    eventID = Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
-    if(eventID == CN_EVENT_ID_INVALID)
-    {
-    	goto EVENT_FAILED;
-    }
+    ret = Sh_InstallCmd(gServiceDhcpd,gServiceDhcpdCmdRsc,CN_PINGDEBUG_NUM);
+    return ret;
 
-    result = Sh_InstallCmd(gServiceDhcpd,gServiceDhcpdCmdRsc,CN_PINGDEBUG_NUM);
-    return result;
-
-EVENT_FAILED:
-	Djy_EvttUnregist(evttID);
-	evttID = CN_EVTT_ID_INVALID;
-EVTT_FAILED:
-	free((void *)gDhcpServerIpBitmap);
-	gDhcpServerIpBitmap = NULL;
+EXIT_TASK:
+    net_free((void *)gDhcpServerIpBitmap);
+    gDhcpServerIpBitmap = NULL;
 BITMAP_FAILED:
-	return result;
+    return ret;
 }
 bool_t ServiceDhcpdInit(ptu32_t para)
 {

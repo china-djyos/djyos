@@ -57,17 +57,19 @@
 //   新版本号: V1.0.0
 //   修改说明: 创建文件
 //------------------------------------------------------
-#include "stdarg.h"
-#include "stdio.h"
-#include "string.h"
-#include "ctype.h"
-#include "stdint.h"
-#include "stddef.h"
-#include "stdio.h"
-#include "systime.h"
-#include "driver.h"
-#include "djyos.h"
-#include <djyfs/file.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <errno.h>
+#include <systime.h>
+#include <device.h>
+#include <djyos.h>
+#include <fs/file.h>
+#include "component_config_stdio.h"
+
 #define CN_BUF_LENGTH   0x40
 
 #define ZEROPAD     1           /* pad with zero */
@@ -82,76 +84,6 @@
 #define PRINT_TO_DIRECT         1   //直接输出到原始硬件，用于printk等。
 #define PRINT_TO_FILE_OR_DEV    2   //输出到文件/设备，例如stdout/stderr，file
 s32 skip_atoi(const char **s);
-
-//----输出一个字符到文件-------------------------------------------------------
-//功能：输出一个字符到文件，putc和fputc是等价的，搞笑的c标准
-//参数：ch，待输出的字符
-//      fp，输出目标文件或设备。
-//返回：正确输出则返回被输出的字符，错误则返回EOF
-//-----------------------------------------------------------------------------
-s32 putc(s32 ch_para, FILE *fp)     //putc = fputc
-{
-    char  ch;
-    
-    ch = (char)ch_para;
-    if (fp != NULL)
-    {
-        if (fp == StdNotInit)
-        {
-            if (PutStrDirect)
-            {
-                PutStrDirect((const char *)&ch,1);
-                return ch;
-            }
-            else
-                return EOF;
-
-        }
-        else
-        {
-            if(fwrite(&ch,1,1,fp) == 1)
-                return ch;
-            else
-                return EOF;
-        }
-    }
-    else
-        return EOF;
-}
-
-//----输出一个字符串到文件-------------------------------------------------------
-//功能：输出一个字符串到文件
-//参数：str，待输出的字符串
-//      fp，输出目标文件，如果是stdout或者stderr，则要判断是否设备。
-//返回：正确输出则返回一个非负值，错误则返回EOF
-//-----------------------------------------------------------------------------
-s32 fputs(const char *str, FILE *fp)
-{
-    s32 len;
-    if (fp != NULL)
-    {
-        len = strlen(str);
-        if (fp == StdNotInit)
-        {
-            if (PutStrDirect)
-            {
-                PutStrDirect(str,len);
-                return 1;
-            }
-            else
-                return EOF;
-        } 
-        else
-        {
-            if(fwrite(str,len,1,fp) == len)
-                return 1;
-            else
-                return EOF;
-        }
-    }
-    else
-        return EOF;
-}
 
 //----输出一个字符到stdout-----------------------------------------------------
 //功能：输出一个字符到stdout，stdout可以是设备，也可以是文件
@@ -731,7 +663,7 @@ u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,u32 
 {
     if(Position >= CN_BUF_LENGTH)
     {
-        fwrite(TempBuf,CN_BUF_LENGTH,1,(FILE*)Target);
+        fwrite(TempBuf, CN_BUF_LENGTH, 1, (FILE*)Target);
         Position = 1;
         *TempBuf = ch;
     }
@@ -1019,10 +951,11 @@ s32 vprintf (const char *fmt, va_list args)
     s32 i;
     char TempBuf[CN_BUF_LENGTH];
 
-    if (stdout == StdNotInit)
-        i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
+    // if (stdout == StdNotInit)
+    if(-1 == IsSTDIO(stdout))
+        i = __vsnprintf (TempBuf, (ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
-        i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE_OR_DEV,fmt, args);
+        i =  __vsnprintf (TempBuf, (ptu32_t)stdout, 0, PRINT_TO_FILE_OR_DEV, fmt, args);
     return i;
 }
 
@@ -1043,10 +976,11 @@ s32 printf (const char *fmt, ...)
 
     va_start (args, fmt);
 
-    if (stdout == StdNotInit)
+    // if (stdout == StdNotInit)
+    if(-1 == IsSTDIO(stdout))
         i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
     else
-        i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE_OR_DEV,fmt, args);
+        i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE_OR_DEV, fmt, args);
     va_end (args);
 
     return i;
@@ -1065,21 +999,17 @@ s32 sprintf(char *buf, const char *fmt, ...)
 
     va_start (args, fmt);
 
-    i = __vsnprintf (NULL,(ptu32_t)buf, CN_LIMIT_SINT32,PRINT_TO_STRING,fmt, args);
+    i = __vsnprintf (NULL,(ptu32_t)buf, CN_LIMIT_SINT32, PRINT_TO_STRING, fmt, args);
     va_end (args);
     return i;
 }
-#if 0
-s32 snprintf(char *buf,int n, const char *fmt, ...)//todo: 参数类型不对(与libc库不一致)
-#else
-s32 snprintf(char *buf,u32 n, const char *fmt, ...)
-#endif
+s32 snprintf(char *buf,size_t n, const char *fmt, ...)
 {
     va_list args;
     u32  i;
 
     va_start (args, fmt);
-    i = __vsnprintf (NULL,(ptu32_t)buf, n, PRINT_TO_STRING,fmt, args);
+    i = __vsnprintf (NULL,(ptu32_t)buf, n, PRINT_TO_STRING, fmt, args);
     va_end (args);
     return i;
 }
@@ -1101,8 +1031,9 @@ s32 fprintf(FILE *fp, const char *fmt, ...)
         return -1;
     }
     va_start (args, fmt);
-    if (fp == StdNotInit)
-        i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
+    // if (fp == StdNotInit)
+    if(-1 == IsSTDIO(fp))
+        i = __vsnprintf (TempBuf,(ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
         i = __vsnprintf (TempBuf,(ptu32_t)fp, 0, PRINT_TO_FILE_OR_DEV, fmt, args);
     va_end (args);
@@ -1123,7 +1054,7 @@ s32 printk (const char *fmt, ...)
     char TempBuf[CN_BUF_LENGTH];
     va_start (args, fmt);
 
-    i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
+    i = __vsnprintf (TempBuf, (ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     va_end (args);
 
     return i;

@@ -87,7 +87,7 @@ struct RectBitmap;
 #define CN_GKSC_CHANGE_WIN_AREA     0x00e   //移动窗口
 #define CN_GKSC_SYNC_SHOW           0x00f   //立即输出至显示器
 #define CN_GKSC_DSP_REFRESH         0x010   //重新刷新显示器
-#define CN_GKSC_SET_VISIBLE         0x011   //重新刷新显示器
+#define CN_GKSC_SET_VISIBLE         0x011   //设置窗口是否隐藏。
 
 //绘制命令组
 #define CN_GKSC_SET_PIXEL           0x100   //画点命令
@@ -102,22 +102,22 @@ struct RectBitmap;
 
 struct GkscParaCreateDesktop
 {
-    struct DisplayRsc *display;        //所属显示器
-    struct GkWinRsc *desktop;          //桌面窗口,由上层分配结构体
-    s32 width,height;           //桌面尺寸，若小于显示器尺寸则调整为显示器尺寸
-    u32 color;                          //创建桌面时填充的颜色
+    struct DisplayObj *display;     //所属显示器
+    struct GkWinObj *desktop;       //桌面窗口,由上层分配结构体
+    char *name;                     //桌面窗口的名字
+    s32 width,height;               //桌面尺寸，若小于显示器尺寸则调整为显示器尺寸
+    u32 color;                      //创建桌面时填充的颜色
     u32 buf_mode;    //定义缓冲模式，参见 CN_WINBUF_PARENT 族常量定义
-    //以下成员只在buf_mode=true时有效，否则忽略之。
+    //以下成员只在buf_mode=“有缓冲” 时有效，否则忽略之。
     u16 PixelFormat;            //像素格式
-    u16 rsv;            //保留用于4字节对齐
-    u32 BaseColor;        //灰度图基色(当pf_type == CN_SYS_PF_GRAY1 ~8)
+    u32 BaseColor;          //灰度图基色(当pf_type == CN_SYS_PF_GRAY1 ~8)
                             //pf_type取其他值时不需要此参数
 };
 struct GkscParaCreateGkwin
 {
-    struct GkWinRsc *parent_gkwin;   //新窗口的父窗口
-    struct GkWinRsc *gkwin;          //新窗口,由调用者分配结构体
-    struct GkWinRsc **result;        //用于返回结果
+    struct GkWinObj *parent_gkwin;   //新窗口的父窗口
+    struct GkWinObj *gkwin;          //新窗口,由调用者分配结构体
+    struct GkWinObj **result;        //用于返回结果
     s32 left,top,right,bottom;          //新窗口的位置，相对于父窗口的坐标
     u32 color;                          //创建窗口时填充的颜色
     u32 buf_mode;    //定义缓冲模式，参见 CN_WINBUF_PARENT 族常量定义
@@ -132,13 +132,13 @@ struct GkscParaCreateGkwin
 };
 struct GkscParaFillWin
 {
-    struct GkWinRsc *gkwin;         //绘制的目标窗口
+    struct GkWinObj *gkwin;         //绘制的目标窗口
     u32 color;                      //填充使用的颜色
 };
 
 struct GkscParaGradientFillWin
 {
-    struct GkWinRsc *gkwin;         //绘制的目标窗口
+    struct GkWinObj *gkwin;         //绘制的目标窗口
     struct Rectangle rect;          //待填充的矩形
     u32 Color0;                     //颜色0
     u32 Color1;                     //颜色1
@@ -150,8 +150,8 @@ struct GkscParaGradientFillWin
 //可设置显示用的rop2编码
 struct GkscParaDrawText
 {
-    struct GkWinRsc* gkwin;         //目标窗口
-    struct FontRsc *pFont;          //使用的字体,NULL表示用系统当前字体
+    struct GkWinObj* gkwin;         //目标窗口
+    struct FontObj *pFont;          //使用的字体,NULL表示用系统当前字体
     struct Charset *pCharset;       //使用的字符集,NULL表示用系统当前字符集
     s32 x, y;                       //显示位置，相对于gkwin
     s32 count;                      //要显示的字符数，-1则一直到串结束符。
@@ -160,14 +160,14 @@ struct GkscParaDrawText
 };
 struct GkscParaSetPixel
 {
-    struct GkWinRsc *gkwin;         //绘制的目标窗口
+    struct GkWinObj *gkwin;         //绘制的目标窗口
     s32 x,y;                        //点对应的坐标
     u32 color;                      //画点使用的颜色
     u32 Rop2Code;                   //二元光栅操作码
 };
 struct GkscParaDrawBitmapRop
 {
-    struct GkWinRsc *gkwin;         //绘制的目标窗口
+    struct GkWinObj *gkwin;         //绘制的目标窗口
     struct RectBitmap bitmap;       //待绘制的位图
     u32 HyalineColor;                   //透明色,与bitmap相同格式
     s32 x,y;                        //绘制位置的左上角坐标
@@ -175,14 +175,14 @@ struct GkscParaDrawBitmapRop
 };
 struct GkscParaLineto
 {
-    struct GkWinRsc *gkwin;         //绘制的目标窗口
+    struct GkWinObj *gkwin;         //绘制的目标窗口
     s32 x1,y1,x2,y2;                //目标直线的起点，终点坐标
     u32 color;                      //绘制直线使用的颜色
     u32 Rop2Code;                   //二元光栅操作码
 };
 struct GkscParaDrawCircle
 {
-    struct GkWinRsc *gkwin;         //绘制的目标窗口
+    struct GkWinObj *gkwin;         //绘制的目标窗口
     s32 x0,y0;                      //圆心坐标
     s32 r;                          //圆的半径
     u32 color;                      //画圆使用的颜色
@@ -190,50 +190,50 @@ struct GkscParaDrawCircle
 };
 struct GkscParaBezier
 {
-    struct GkWinRsc *gkwin;         //绘制的目标窗口
+    struct GkWinObj *gkwin;         //绘制的目标窗口
     float x1,y1,x2,y2,x3,y3,x4,y4;  //绘制Bezier曲线的四个控制点
     u32 color;                      //画Bezier曲线使用的颜色
     u32 Rop2Code;                   //二元光栅操作码
 };
 struct GkscParaAdoptWin
 {
-    struct GkWinRsc *gkwin;         //目标窗口
-    struct GkWinRsc *NewParent;     //新的父窗口
+    struct GkWinObj *gkwin;         //目标窗口
+    struct GkWinObj *NewParent;     //新的父窗口
 };
 struct GkscParaMoveWin
 {
-    struct GkWinRsc *gkwin;      //目标窗口
+    struct GkWinObj *gkwin;      //目标窗口
     s32 left,top;                   //目标窗口新位置的左上角坐标
 };
 struct GkscParaChangeWinArea
 {
-    struct GkWinRsc *gkwin;      //目标窗口
+    struct GkWinObj *gkwin;      //目标窗口
     s32 left,top,right,bottom;      //目标窗口新的坐标
 };
 struct GkscParaSetBoundMode
 {
-    struct GkWinRsc *gkwin;      //目标窗口
+    struct GkWinObj *gkwin;      //目标窗口
     u32 mode;                 //窗口边界模式，true为受限，false为不受限
 };
 struct GkscParaSetPrio
 {
-    struct GkWinRsc *gkwin;      //目标窗口
+    struct GkWinObj *gkwin;      //目标窗口
     u32 prio;                   //新的优先级
 };
 struct GkscParaSetVisible
 {
-    struct GkWinRsc *gkwin;      //目标窗口
-    u32 Visible;                 //新的优先级
+    struct GkWinObj *gkwin;      //目标窗口
+    u32 Visible;                 //1 = 可见，0=隐藏。
 };
 struct GkscParaSetRopCode
 {
-    struct GkWinRsc *gkwin;      //绘制的目标窗口
+    struct GkWinObj *gkwin;      //绘制的目标窗口
     struct RopGroup RopCode;     //新的光栅操作码
 };
 struct GkscParaSetHyalineColor
 {
-    struct GkWinRsc *gkwin;      //绘制的目标窗口
-    u32 HyalineColor;                   //要设置的透明色
+    struct GkWinObj *gkwin;      //绘制的目标窗口
+    u32 HyalineColor;            //要设置的透明色
 };
 
 #ifdef __cplusplus

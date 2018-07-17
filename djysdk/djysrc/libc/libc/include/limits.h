@@ -101,5 +101,6 @@
 #    define ULONG_LONG_MAX (LONG_LONG_MAX * 2ULL + 1)
 #   endif
 
+#define OPEN_MAX    CN_LIMIT_SINT32
 #endif   /* !_LIBC_LIMITS_H_ */
 

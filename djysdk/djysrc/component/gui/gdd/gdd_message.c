@@ -132,7 +132,7 @@ void __InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32_t param
 //参数：size: 异步消息缓冲区数量.
 //返回：消息队列指针.
 //------------------------------------------------------------------------------
-struct WinMsgQueueCB*   __GUI_CreateMsgQ(u32 size)
+struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size)
 {
     struct WinMsgQueueCB *pMsgQ=NULL;
     s32 i;

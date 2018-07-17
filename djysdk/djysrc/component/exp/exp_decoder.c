@@ -59,7 +59,7 @@
 #include "string.h"
 #include "list.h"
 #include "exp_decoder.h"
-
+#include "dbug.h"
 struct dListNode ExpDecoderListHead;
 // =============================================================================
 // 函数功能: 看该异常名字是否已经被注册,返回解析器结构,未被注册则返回NULL
@@ -103,8 +103,8 @@ bool_t  Exp_ThrowInfodecode(struct ExpThrowPara *parahead,u32 endian)
 
     if((parahead->DecoderName == NULL) || (strlen(parahead->DecoderName) == 0))
     {
-        printf("%s",parahead->ExpInfo);
-        printf("\n\r");
+        debug_printf("exp","%s",parahead->ExpInfo);
+        debug_printf("exp","\n\r");
         result = true;
     }
     else
@@ -116,12 +116,12 @@ bool_t  Exp_ThrowInfodecode(struct ExpThrowPara *parahead,u32 endian)
         }
         else                //DecoderName非空，但却找不到解析器
         {
-            printf("异常信息解析器未找到,显示16进制信息");
+            debug_printf("exp","异常信息解析器未找到,显示16进制信息");
             for(n = 0; n < parahead->ExpInfoLen; n++)
             {
-                printf("%x ",parahead->ExpInfo[n]);
+                debug_printf("exp","%x ",parahead->ExpInfo[n]);
                 if((n & 0xf) == 0)
-                    printf("\n\r");
+                    debug_printf("exp","\n\r");
             }
             result = false;
         }

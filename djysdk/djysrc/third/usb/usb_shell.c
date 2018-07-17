@@ -54,6 +54,7 @@
 #include <shell.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <djyos.h>
 #include "./stm32_usb_host_library/class/custom/inc/usbh_custom.h"
 #include "./stm32_usb_host_library/class/hub/inc/usbh_hub.h"
@@ -63,7 +64,7 @@
 //
 //
 //
-#define SPACE_LENGTH                    100
+#define SPACE_LENGTH                       100
 #define COMMAND_MAX                        10
 
 //
@@ -104,7 +105,10 @@ extern bool_t SH_USB_Log(char *pParam);
 static bool_t SH_USB_Debug(char *pParam);
 static bool_t SH_USB_Force(char *pParam);
 static u32 USBH_TouchPollThread(void);
-
+static void SH_USB_UpDate(char *pParam);
+extern s32 ModuleInstall_USB_IAP(u8 bArgC, ...);
+extern char *Sh_GetWord(char *buf,char **next);
+extern bool_t GetRunMode(void);
 //
 //
 //
@@ -174,6 +178,12 @@ static struct ShellCmdTab const sCommandTable[] =
     {
         "uf",
         SH_USB_Force,
+        "for debug",
+        "for debug"
+    },
+    {
+        "usbupdate",
+	    SH_USB_UpDate,
         "for debug",
         "for debug"
     },
@@ -1180,8 +1190,8 @@ static bool_t SH_USB_Debug(char *pParam)
 
     if(!strcmp(pParam, "iap"))
     {
-        extern u32 USB_IAP_Thread(void);
-        USB_IAP_Thread();
+//        extern u32 USB_IAP_Thread(void);
+//        USB_IAP_Thread();
     }
 
     if(!strncmp(pParam, "test ", 5))
@@ -1237,6 +1247,39 @@ static bool_t SH_USB_Debug(char *pParam)
     return (TRUE);
 }
 
+// ============================================================================
+// 功能：执行USB升级功能
+// 参数：pParam：目标文件名和升级功能参数，默认为升级完成后自动运行app。
+// 返回：
+// 备注：
+// ============================================================================
+static void SH_USB_UpDate(char *pParam)
+{
+    char *FileName,*NextParam,*WordTrail;
+    u32 dwOpt = 2;
+
+    if(pParam != NULL)
+    {
+        FileName = Sh_GetWord(pParam,&NextParam);
+        WordTrail = Sh_GetWord(NextParam,&NextParam);
+        if(WordTrail != NULL)
+        {
+    	    dwOpt = strtol(WordTrail, (char **)NULL, 0);
+        }
+        if(GetRunMode())
+        {
+	        ModuleInstall_USB_IAP(3,1,FileName,dwOpt);
+        }
+        else
+        {
+            printf("\r\nThis command is available only in the iboot mode\r\n.");
+        }
+    }
+    else
+    {
+        printf("\r\nPlease add the target file name after the shell command\r\n.");
+    }
+}
 
 // ============================================================================
 // 功能：
@@ -1300,3 +1343,4 @@ void USB_ShellInstall(void)
 
     Sh_InstallCmd(sCommandTable, spCommandSpace, commands);
 }
+

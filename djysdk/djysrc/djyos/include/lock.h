@@ -57,8 +57,8 @@
 #ifndef __semp_h__
 #define __semp_h__
 
-#include "object.h"
 #include "errno.h"
+#include "list.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,22 +71,24 @@ struct EventECB;
 //2、为可限量也可不限量的资源提供一致的代码，尤其是提供在运行时配置的可能性
 struct SemaphoreLCB
 {
-    struct  Object node;
+    struct dListNode List;
     u32 sync_order;
-    u32 lamps_limit;   //信号灯数量上限，cn_limit_uint32表示不限数量
-    u32 lamp_counter;  //可用信号灯数量。
+    s32 lamps_limit;   //信号灯数量上限，cn_limit_uint32表示不限数量
+    s32 lamp_counter;  //可用信号灯数量。
     struct EventECB *semp_sync;    //等候信号的事件队列
+    char name[8];
 };
 
 //互斥量是可以递归请求的，即同一个事件允许反复请求，但要求释放的次数和请求的次数
 //相同。即如果互斥量被一个事件连续请求三次，则要释放三次才算真正释放。
 struct MutexLCB
 {
-    struct Object node;
+    struct dListNode List;
     s32  enable;                        //0=可用，>0 = 被线程占用，<0 = 中断占用
     ufast_t  prio_bak;                  //优先级继承中备份原优先级
     struct EventECB *owner;         //占用互斥量的事件，若被中断占用，则无效
     struct EventECB *mutex_sync;    //等候互斥量的事件队列，优先级排队
+    char name[8];
 };
 
 //用于信号量和互斥量共享内存池
@@ -105,12 +107,12 @@ enum _LOCK_ERROR_CODE_
     EN_LOCK_BLOCK_IN_INT,           //中断ISR不允许阻塞
 };
 
-ptu32_t ModuleInstall_Lock1(ptu32_t para);
-ptu32_t ModuleInstall_Lock2(ptu32_t para);
-struct SemaphoreLCB *Lock_SempCreate(u32 lamps_limit,u32 init_lamp,
+ptu32_t ModuleInstall_Lock(void);
+struct SemaphoreLCB *Lock_SempCreate(s32 lamps_limit,s32 init_lamp,
                                         u32 sync_order,const char *name);
 struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
-                       u32 lamps_limit,u32 init_lamp,u32 sync_order,const char *name);
+                       s32 lamps_limit,s32 init_lamp,u32 sync_order,const char *name);
+void Lock_SempExpand(struct SemaphoreLCB *semp, s32 Num);
 void Lock_SempPost(struct SemaphoreLCB *semp);
 bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout);
 bool_t Lock_SempDelete_s(struct SemaphoreLCB *semp);

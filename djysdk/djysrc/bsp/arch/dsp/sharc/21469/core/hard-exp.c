@@ -59,7 +59,7 @@
 
 //#include "cpu_peri.h"
 
-//#include <driver/include/uart.h>
+//#include <device/include/uart.h>
 //#include "flash_s29glxxx.h"
 //#include "shell.h"
 

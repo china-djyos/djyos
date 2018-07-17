@@ -63,10 +63,71 @@
 #include "stdlib.h"
 #include "pool.h"
 #include <djyos.h>
-#include "core_config.h"
+#include "dbug.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-static struct MemCellPool *s_ptPooCtrl;  //管理内存池控制块本身的内存池
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
 
+//%$#@describe      ****组件描述开始
+//component name:"MemoryPool"   //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:必选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:none                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_MEMPOOL_LIMIT   //****检查参数是否已经配置好
+#warning    MemoryPool组件参数未配置，使用默认值
+//%$#@num,0,100
+#define CFG_MEMPOOL_LIMIT       10      //"内存池数量",允许建立10个内存池
+//%$#@enum,true,false
+//%$#@string,1,10
+//%$#@select
+//%$#@free
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+
+
+//空闲内存块构成双向循环链表。但初始化内存池时并不把内存加入链表，而是在释放时
+//才加入。
+//空闲链表节点，把free_list做成双向链表，可以增加程序的健壮性，如果是单向链表，
+//虽然可以实现功能，但是，如果重复释放一个已经释放的内存块，则可能导致破坏链表。
+//用双向链表，则很容易判断该结点是否已经在free_list中，如是，则不重复执行释放操
+//作，单向链表虽然可以用遍历的方法判断是否在free_list，但执行时间不确定，不符合
+//实时系统的要求。
+//用双向链表的后果是，单块内存至少两个指针长度，通常为8字节。
+struct MemCellFree
+{
+    struct MemCellFree *previous;
+    struct MemCellFree *next;
+};
+
+static struct dListNode s_tPoolHead; // 管理内存池控制块本身的内存池
+static struct Object *s_ptPoolObject;
+//static FILE *s_ptPoolFp;
+static struct MemCellPool *s_ptPoolCtrl; // 管理内存池控制块本身的内存池
+struct MemCellPool s_tObjectPool; // 管理对象控制块的内存池
+struct MemCellPool g_tObjPortPool; // 管理文件控制块的内存池
+
+ptu32_t Mb_PoolObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
 //----初始化固定块分配模块------------------------------------------------------
 //功能: 初始化操作系统的固定块内存分配模块.内存池控制块本身也是按照内存池的方式
 //      分配的,但是此时内存池组件还没有初始化完成,故需要手动创建用于内存池控制块
@@ -74,22 +135,73 @@ static struct MemCellPool *s_ptPooCtrl;  //管理内存池控制块本身的内存池
 //参数: 无.
 //返回: 1.
 //----------------------------------------------------------------------------
-ptu32_t Mb_ModuleInit(ptu32_t para)
+ptu32_t __InitMB(void)
 {
-    static struct MemCellPool cell_pool;
-    cell_pool.continue_pool = M_Malloc(gc_u32CfgMemPoolLimit * sizeof(struct MemCellPool),0);
-    if(cell_pool.continue_pool == NULL)
-        return 0;
-    cell_pool.cell_size = sizeof(struct MemCellPool);
-    cell_pool.free_list = NULL;
-    cell_pool.pool_offset = (ptu32_t)cell_pool.continue_pool;
-    cell_pool.pool_offset += gc_u32CfgMemPoolLimit * sizeof(struct MemCellPool);
-    s_ptPooCtrl = &cell_pool;
-    OBJ_AddTree(&cell_pool.memb_node,sizeof(struct MemCellPool),RSC_MEMPOOL,
-                    "固定块分配池");
-    Lock_SempCreate_s(&cell_pool.memb_semp,gc_u32CfgMemPoolLimit,
-                      gc_u32CfgMemPoolLimit,CN_BLOCK_FIFO,"固定块分配池");
-    return 1;
+    static struct MemCellPool CtrlPool;
+    static struct MemCellPool pool[CFG_MEMPOOL_LIMIT];
+    CtrlPool.continue_pool = pool;
+
+    CtrlPool.cell_size = sizeof(struct MemCellPool);
+    CtrlPool.free_list = NULL;
+    CtrlPool.pool_offset = (ptu32_t)CtrlPool.continue_pool;
+    CtrlPool.pool_offset += CFG_MEMPOOL_LIMIT * sizeof(struct MemCellPool);
+    CtrlPool.Name = "内存池控制块";
+    s_ptPoolCtrl = &CtrlPool;
+
+    //特别提示：因安装pool模块时，文件系统还没有安装完成，不能用正常的过程创建
+    //和打开MemPool文件。
+//  s_ptPoolObject = OBJ_SearchChild(OBJ_GetRoot(), "MemPool");
+//  OBJ_SetOps(s_ptPoolObject,Mb_PoolObjOps);
+
+//  s_ptPoolFp = OBJ_GetFirstFile(s_ptPoolObject);
+    dListInit(&s_tPoolHead);
+    dListInsertAfter(& s_tPoolHead, &CtrlPool.List);
+//  OBJ_SetPrivate(s_ptPoolObject,(ptu32_t)&s_tPoolHead);
+
+    Lock_SempCreate_s(&CtrlPool.memb_semp,CFG_MEMPOOL_LIMIT,
+                      CFG_MEMPOOL_LIMIT,CN_BLOCK_FIFO,"固定块分配池");
+    return (0);
+}
+
+// ============================================================================
+// 功能：安装MB文件系统
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+s32 __InstallMBFS(void)
+{
+    __mounto("MB", "/", (tagObjOps)Mb_PoolObjOps, (ptu32_t)&s_tPoolHead);
+    return (0);
+}
+
+//----内存池文件操作函数-------------------------------------------------------
+//功能：只实现了一个功能，即：列出全部内存池，以及当前内存池状态（空闲多少，
+//      总容量，块尺寸等）
+//参数：fp，好像没啥用
+//      cmd，命令码，只支持 CN_OBJ_CMD_SHOW
+//      para，无用
+//返回：true
+//-----------------------------------------------------------------------------
+ptu32_t Mb_PoolObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...)
+{
+    s32 result = 0;
+
+    switch(dwCMD)
+    {
+        case CN_OBJ_CMD_SHOW:
+        {
+            debug_printf("pool","unsupported operation.");
+            break;
+        }
+
+        default:
+        {
+            result = CN_OBJ_CMD_UNSUPPORT;
+            break;
+        }
+    }
+    return ((ptu32_t)result);
 }
 
 //----创建一个内存池-------------------------------------------------------
@@ -139,7 +251,7 @@ struct MemCellPool *Mb_CreatePool(void *pool_original,u32 init_capacital,
 #endif
 
     //分配一个内存池控制头
-    pool = (struct MemCellPool *)Mb_Malloc(s_ptPooCtrl,0);
+    pool = (struct MemCellPool *)Mb_Malloc(s_ptPoolCtrl,0);
     if(pool == NULL)
         return NULL;    //内存池控制头分配不成功
 
@@ -150,11 +262,13 @@ struct MemCellPool *Mb_CreatePool(void *pool_original,u32 init_capacital,
     pool->cell_size = cell_size;
     pool->cell_increment = increment;
     pool->cell_limit = limit;
+    pool->Name = name;
     pool->next_inc_pool = NULL;
-    OBJ_AddChild(&s_ptPooCtrl->memb_node,
-                &pool->memb_node,
-                sizeof(struct MemCellPool),
-                RSC_MEMPOOL,name);
+    dListInsertBefore(&s_ptPoolCtrl->List, &pool->List);
+//  OBJ_AddChild(&s_ptPoolCtrl->memb_node,
+//              &pool->memb_node,
+//              sizeof(struct MemCellPool),
+//              RSC_MEMPOOL,name);
     //init_capacital有可能是0
     Lock_SempCreate_s(&pool->memb_semp,init_capacital,init_capacital,
                         CN_BLOCK_FIFO,name);
@@ -191,11 +305,13 @@ struct MemCellPool *Mb_CreatePool_s(struct MemCellPool *pool,
     pool->cell_size = cell_size;
     pool->cell_increment = increment;
     pool->cell_limit = limit;
+    pool->Name = name;
     pool->next_inc_pool = NULL;
-    OBJ_AddChild(&s_ptPooCtrl->memb_node,
-                &pool->memb_node,
-                sizeof(struct MemCellPool),
-                RSC_MEMPOOL,name);
+    dListInsertBefore(&s_ptPoolCtrl->List, &pool->List);
+//  OBJ_AddChild(&s_ptPoolCtrl->memb_node,
+//              &pool->memb_node,
+//              sizeof(struct MemCellPool),
+//              RSC_MEMPOOL,name);
     Lock_SempCreate_s(&pool->memb_semp,init_capacital,init_capacital,
                             CN_BLOCK_FIFO,name);
     return pool;
@@ -220,9 +336,10 @@ bool_t Mb_DeletePool(struct MemCellPool *pool)
         free(inc_memory);
         inc_memory = temp;
     }
-    if(!OBJ_Del(&pool->memb_node))
-        return false;
-    Mb_Free(s_ptPooCtrl,pool);
+    dListRemove(&pool->List);
+//  if(!OBJ_Del(&pool->memb_node))
+//      return false;
+    Mb_Free(s_ptPoolCtrl,pool);
     return true;
 }
 
@@ -231,7 +348,7 @@ bool_t Mb_DeletePool(struct MemCellPool *pool)
 //参数: pool，内存池指针
 //返回: 无
 //-----------------------------------------------------------------------------
-bool_t Mb_DeletePool_r(struct MemCellPool *pool)
+bool_t Mb_DeletePool_s(struct MemCellPool *pool)
 {
     void *inc_memory,*temp;
     if(!Lock_SempDelete_s(&pool->memb_semp))
@@ -244,8 +361,9 @@ bool_t Mb_DeletePool_r(struct MemCellPool *pool)
         free(inc_memory);
         inc_memory = temp;
     }
-    if(!OBJ_Del(&pool->memb_node))
-        return false;
+    dListRemove(&pool->List);
+//  if(!OBJ_Del(&pool->memb_node))
+//      return false;
     return true;
 }
 
@@ -260,8 +378,7 @@ bool_t Mb_DeletePool_r(struct MemCellPool *pool)
 void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
 {
     void *result,*inc;
-    u32 limit,inc_size,inc_cell,capacity,frees;
-    char *name;
+    s32 inc_size,inc_cell;
     atom_low_t atom_low;
     if(pool == NULL)
         return NULL;
@@ -283,14 +400,7 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
                 //检查实际分配到的内存量
                 inc_size = M_CheckSize(inc) - align_up_sys(1);
                 inc_cell = inc_size/pool->cell_size;
-                capacity = Lock_SempQueryCapacital(&pool->memb_semp);
-                frees = Lock_SempQueryFree(&pool->memb_semp);
-                limit = capacity + inc_cell;
-                name = OBJ_Name((struct Object*)&pool->memb_semp);
-                Lock_SempDelete_s(&pool->memb_semp);      //删除原信号量
-                //按扩容后的容量重新申请信号量。
-                Lock_SempCreate_s(&pool->memb_semp,limit,frees+inc_cell-1,
-                                    CN_BLOCK_FIFO,name);
+                Lock_SempExpand(&pool->memb_semp, (inc_cell-1)); // 去掉当前需申请的一个
                 pool->continue_pool = (void*)((ptu32_t)inc + align_up_sys(1));
                 pool->pool_offset = (ptu32_t)pool->continue_pool + inc_cell*pool->cell_size;
                 //以下初始化增量表，该表用于标记动态增加的内存块，利于删除内存池

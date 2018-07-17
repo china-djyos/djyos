@@ -1,11 +1,26 @@
 #ifndef _UNISTD_H_
 #define _UNISTD_H_
 
+// UNIX STANARD
+
 #include <_ansi.h>
 #include <stddef.h>
-#include <sys\types.h>
+#include <sys/types.h>
 
-int _EXFUN(access,(const char *__path, int __amode ));
+extern char *optarg;            /* getopt(3) external variables */
+extern int optind, opterr, optopt;
+
+#define R_OK    4 // Test for read permission.
+#define W_OK    2 // Test for write permission.
+#define X_OK    1 // Test for execute (search) permission.
+#define F_OK    0 // Test for existence of file.
+
+/* Standard file descriptors.  */
+#define STDIN_FILENO  0 /* Standard input.  */
+#define STDOUT_FILENO 1 /* Standard output.  */
+#define STDERR_FILENO 2 /* Standard error output.  */
+
+int     _EXFUN(access,(const char *__path, int __amode ));
 unsigned  _EXFUN(alarm, (unsigned __secs ));
 int     _EXFUN(chdir, (const char *__path ));
 int     _EXFUN(chmod, (const char *__path, mode_t __mode ));
@@ -31,7 +46,7 @@ int _EXFUN(getpagesize, (void));
 int     _EXFUN(link, (const char *__path1, const char *__path2 ));
 int _EXFUN(nice, (int __nice_value ));
 off_t   _EXFUN(lseek, (int __fildes, off_t __offset, int __whence ));
-
+off_t   _EXFUN(tell, (int));
 int     _EXFUN(rmdir, (const char *__path ));
 
 unsigned _EXFUN(sleep, (unsigned int __seconds ));
@@ -42,9 +57,8 @@ int     _EXFUN(unlink, (const char *__path ));
 int     _EXFUN(usleep, (useconds_t __useconds));
 int     _EXFUN(vhangup, (void ));
 
-extern char *optarg;            /* getopt(3) external variables */
-extern int optind, opterr, optopt;
-int  getopt(int, char * const [], const char *);
+
+int     _EXFUN(getopt, (int, char * const [], const char *));
 extern int optreset;            /* getopt(3) external variable */
 
 
@@ -58,10 +72,6 @@ ssize_t _EXFUN(readlink, (const char *__restrict __path,
 int     _EXFUN(symlink, (const char *__name1, const char *__name2));
 
 
-//add by zqf, we must add the fileno for the io read and write for the stdio--TODO
-/* Standard file descriptors.  */
-#define STDIN_FILENO  0 /* Standard input.  */
-#define STDOUT_FILENO 1 /* Standard output.  */
-#define STDERR_FILENO 2 /* Standard error output.  */
+
 
 #endif /* _UNISTD_H_ */

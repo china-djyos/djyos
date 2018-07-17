@@ -63,6 +63,17 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
+//
+// IAP文件格式（头部）
+//
+struct headFormat {
+    u32 size;
+    u32 crc;
+    u32 reserved;
+    u32 signature;
+    char name[240];
+};
+
 enum _ENUM_RUN_MODE_
 {
 	EN_LOAD_FORM_DATA=0,

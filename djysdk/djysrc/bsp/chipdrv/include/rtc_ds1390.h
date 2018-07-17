@@ -57,38 +57,8 @@
 #ifndef _RTC_DS1390_H_
 #define _RTC_DS1390_H_
 
-#ifdef  CN_CFG_DJYOS_USED
-#define rtc_tm tm
 
-uint32_t rtc_time_get(struct rtc_tm *DateTime);
-bool_t rtc_update_time(struct rtc_tm *DateTime);
 ptu32_t ModuleInstall_RTC(ptu32_t para);
-#endif
-
-#ifdef  cfg_no_os_used
-#include "stdint.h"
-
-struct rtc_tm
-{
-    s32 tm_us;      // 微秒-取值区间[0,999999]
-    s32 tm_sec;     // 秒–取值区间为[0,59]
-    s32 tm_min;     // 分 - 取值区间为[0,59]
-    s32 tm_hour;    // 时 - 取值区间为[0,23]
-    s32 tm_mday;    // 一个月中的日期 - 取值区间为[1,31]
-    s32 tm_mon;     // 月份（从一月开始，0代表一月） - 取值区间为[0,11]
-    s32 tm_year;    // 年份，其值从1900开始
-    s32 tm_wday;    // 星期–取值区间为[0,6]，其中0代表星期天，1代表星期一，
-                    // 以此类推
-    s32 tm_yday;    // 从每年的1月1日开始的天数–取值区间为[0,365]，其中0代表
-                    //1月1日，1代表1月2日，以此类推
-    s32 tm_isdst;   // 夏令时标识符，实行夏令时的时候，tm_isdst为正。不实行
-                    //夏令时的进候，tm_isdst为0；不了解情况时，tm_isdst()为负。
-};
-
-uint32_t rtc_time_get(struct rtc_tm *DateTime);
-bool_t rtc_update_time(struct rtc_tm *DateTime);
-u32 rtc_init(void);
-#endif
 
 #endif
 

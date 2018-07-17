@@ -55,11 +55,11 @@
 //------------------------------------------------------
 #include "stdint.h"
 #include "stdio.h"
-#include "driver.h"
+//#include "driver.h"
 #include "IAP.h"
 #include "djyos.h"
 #include <cfg/Iboot_config.h>
-#include "verify.h"
+//#include "verify.h"
 #include <stdlib.h>
 #include "string.h"
 #include "cpu_peri.h"
@@ -67,15 +67,16 @@
 #include "IAP_Inner.h"
 #include <version.h>
 #include <board-config.h>
-
+#include "dbug.h"
 #if(CN_CPU_OPTIONAL_CACHE==1)
 #include "set-cache.h"
 #endif
+#include "dbug.h"
 
-extern struct IbootCtrl gc_ptIbootCtrl;
-extern struct AppInfo   gc_ptAppInfo;
+extern struct IbootCtrl *gc_ptIbootCtrl;
+extern struct AppInfo   *gc_ptAppInfo;
 extern const u8 g_IbootCRC;
-extern u32 gc_AppAddr;
+extern u32 *gc_AppAddr;
 extern char *DJY_IBOOT_VERSION;
 extern char *DJY_IBOOT_COMPILE_DATE;
 extern char *DJY_IBOOT_COMPILE_TIME;
@@ -86,7 +87,7 @@ const char bootflag[] = "RunIboot"; // 要弄成const，若是局部变量，编译器将其放在
 
 extern void Load_Preload(void);
 extern bool_t IAP_IsForceIboot(void);
-extern void __AppStart(void); // 这是在iboot.lds中定位的函数，在APP的lds文件中，确保了其指向 AppStart 函数
+extern void (*__AppStart)(void); // 这是在iboot.lds中定位的函数，在APP的lds文件中，确保了其指向 AppStart 函数
 
 static s32 __IBOOT_InitMessage(void);
 static s32 __IBOOT_PassMessage(void);
@@ -218,7 +219,7 @@ static u32 __IAP_crc32( char *buf, int len)
 //------------------------------------------------------------------
 static u32 __IAP_GetAPPStartAddr(void)
 {
-     return (u32)(&gc_ptAppInfo.RomStartAddr);
+     return (u32)(&gc_ptAppInfo->RomStartAddr);
 }
 
 //-----------------------------------------------------------------
@@ -228,7 +229,7 @@ static u32 __IAP_GetAPPStartAddr(void)
 //------------------------------------------------------------------
  static u32 __IAP_GetAPPSize(void)
 {
-    return (gc_ptIbootCtrl.AppSize);
+    return (gc_ptIbootCtrl->AppSize);
 }
 
 //-----------------------------------------------------------------
@@ -300,15 +301,15 @@ void IAP_SelectLoadProgam(void)
              //RomStartAddr是在app.bin中的
              //如果iboot的memory.lds中和APP的memory.lds中IbootSize定义不一致，
              //将直接运行Iboot，并且在Iboot启动后，shell中输出相应信息
-            if((u32)(&gc_AppAddr)==gc_ptAppInfo.RomStartAddr)
+            if((u32)(gc_AppAddr)==gc_ptAppInfo->RomStartAddr)
             {
-                if(gc_ptIbootCtrl.flag==CN_APP_CTRL_APP_FLAG)
+                if(gc_ptIbootCtrl->flag==CN_APP_CTRL_APP_FLAG)
                 {
                     //len是IAP下载后写入的。
                     //AppSize是包含在APP.bin中的
                     //如果下载文件不完整，if将不成立，强制运行Iboot
                     len=__IAP_GetAPPSize();
-                    if(gc_ptAppInfo.AppSize==len)
+                    if(gc_ptAppInfo->AppSize==len)
                     {
                         //有些高可靠性特别是航天应用中，需要校验flash中的代码
                         //是否被篡改。不要以为flash绝对安全，宇宙射线无处不在。
@@ -321,11 +322,11 @@ void IAP_SelectLoadProgam(void)
                             char *buf;
                             buf=(char *)addr;
                             crc=__IAP_crc32(buf,len);
-                            if(crc==gc_ptIbootCtrl.Iap_crc)
+                            if(crc==gc_ptIbootCtrl->Iap_crc)
                             {
                                 pg_IapVar.RunMode = CN_IAP_MODE_APP;
                                 __IBOOT_PassMessage();
-                                __AppStart();
+                                (*__AppStart)();
                             }
                             else
                             {
@@ -338,7 +339,7 @@ void IAP_SelectLoadProgam(void)
                         {
                             pg_IapVar.RunMode = CN_IAP_MODE_APP;
                             __IBOOT_PassMessage();
-                            __AppStart();
+                            (*__AppStart)();
                         }
                     }
                     else
@@ -348,11 +349,11 @@ void IAP_SelectLoadProgam(void)
                         Load_Preload();
                     }
                 }
-                else if(gc_ptIbootCtrl.flag==CN_APP_CTRL_DBG_FLAG)
+                else if(gc_ptIbootCtrl->flag==CN_APP_CTRL_DBG_FLAG)
                 {
                     pg_IapVar.RunMode = CN_IAP_MODE_APP;
                     __IBOOT_PassMessage();
-                    __AppStart();
+                    (*__AppStart)();
                 }
                 else
                 {
@@ -363,8 +364,8 @@ void IAP_SelectLoadProgam(void)
             }
             else
             {
-                if( (gc_ptAppInfo.RomStartAddr == 0) ||
-                        (gc_ptAppInfo.RomStartAddr == 0xFFFFFFFF))
+                if( (gc_ptAppInfo->RomStartAddr == 0) ||
+                        (gc_ptAppInfo->RomStartAddr == 0xFFFFFFFF))
                     pg_IapVar.IbootStatus=EN_FILE_NO_EXSIT_ERR;
                 else
                     pg_IapVar.IbootStatus=EN_lDS_MISMATCH;
@@ -429,7 +430,7 @@ s32 IAP_SetPath(char *pPath)
 
     if(strlen(pPath) > (sizeof(pg_IapVar.message.u.a2i.update.path)-1))
     {
-        printf("\r\nIAP : debug : cannot set too long path, <max:%d>",
+        debug_printf("IAP","cannot set too long path, <max:%d>",
                         (sizeof(pg_IapVar.message.u.a2i.update.path)-1));
         return (-1);
     }
@@ -447,9 +448,9 @@ s32 IAP_SetPath(char *pPath)
 // ============================================================================
 static s32 __IBOOT_PrintIbootVersion(void)
 {
-    printf("\r\nIBOOT VERSION : %s - %s - %s, %s", DJY_IBOOT_VERSION,
+    debug_printf("IAP","IBOOT VERSION : %s - %s - %s, %s", DJY_IBOOT_VERSION,
                 DJY_BOARD, DJY_IBOOT_COMPILE_DATE, DJY_IBOOT_COMPILE_TIME);
-    printf("\r\n");
+    debug_printf("IAP","\r\n");
 
     return (0);
 }
@@ -474,12 +475,12 @@ static s32 __IBOOT_Actions(u8 bArgc, ...)
 // ============================================================================
 s32 __DEFAULT_PrintIbootVersion(void)
 {
-    printf("\r\nIBOOT VERSION : %s - %s - %s, %s",
+    debug_printf("IAP","IBOOT VERSION : %s - %s - %s, %s",
                         pg_IapVar.message.u.i2a.version.pIBOOT,
                         pg_IapVar.message.u.i2a.version.pBOARD,
                         pg_IapVar.message.u.i2a.version.pIBOOT_COMPILE_DATE,
                         pg_IapVar.message.u.i2a.version.pIBOOT_COMPILE_TIME);
-    printf("\r\n");
+    debug_printf("IAP","\r\n");
 
     return (0);
 }
@@ -506,6 +507,18 @@ s32 IAP_PrintIbootVersion(void)
     return (res);
 }
 
+
+bool_t IAP_GetIbootVersion(tagMessage *IbootVer)
+{
+    if(IbootVer==NULL)
+    	return false;
+	IbootVer->u.i2a.version.pIBOOT=pg_IapVar.message.u.i2a.version.pIBOOT;
+	IbootVer->u.i2a.version.pBOARD=pg_IapVar.message.u.i2a.version.pBOARD;
+	IbootVer->u.i2a.version.pIBOOT_COMPILE_DATE=pg_IapVar.message.u.i2a.version.pIBOOT_COMPILE_DATE;
+	IbootVer->u.i2a.version.pIBOOT_COMPILE_TIME=pg_IapVar.message.u.i2a.version.pIBOOT_COMPILE_TIME;
+
+    return true;
+}
 // ============================================================================
 // 功能：将IBOOT版本信息传递给APP
 // 参数：

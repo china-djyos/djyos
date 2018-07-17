@@ -907,5 +907,6 @@
 				<F N="libm/test/ynf_vec.c"/>
 			</Folder>
 		</Folder>
+		<F N="component_config_clib.h"/>
 	</Files>
 </Project>

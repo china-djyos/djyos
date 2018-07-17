@@ -47,7 +47,10 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
+#include <arpa/inet.h>
 #include "dhcpLib.h"
+#include "dbug.h"
+
 
 void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para)
 {
@@ -140,15 +143,15 @@ void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para)
 }
 void showDhcpRequestMsg(tagDhcpRequestPara *para)
 {
-	printf("DHCPDISREQ:\n\r");
-	printf("          :operation type:%d\n\r",para->optype);
-	printf("          :message type  :%d\n\r",para->msgtype);
-	printf("          :request ipaddr:%s\n\r",inet_ntoa(*(struct in_addr*)&para->reqip));
-	printf("          :client mac    :%02X:%02X:%02X:%02X:%02X:%02X\n\r",\
-			para->clientmac[0],para->clientmac[1],para->clientmac[2],\
-			para->clientmac[3],para->clientmac[4],para->clientmac[5]);
-	printf("          :client transID:%d\n\r",para->transaction);
-	return;
+    debug_printf("dhcp","DHCPDISREQ:\n\r");
+    debug_printf("dhcp","          :operation type:%d\n\r",para->optype);
+    debug_printf("dhcp","          :message type  :%d\n\r",para->msgtype);
+    debug_printf("dhcp","          :request ipaddr:%s\n\r",inet_ntoa(*(struct in_addr*)&para->reqip));
+    debug_printf("dhcp","          :client mac    :%02X:%02X:%02X:%02X:%02X:%02X\n\r",\
+            para->clientmac[0],para->clientmac[1],para->clientmac[2],\
+            para->clientmac[3],para->clientmac[4],para->clientmac[5]);
+    debug_printf("dhcp","          :client transID:%d\n\r",para->transaction);
+    return;
 }
 
 bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg)
@@ -171,9 +174,9 @@ bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg)
     lenleft = 312;
     if(0 != memcmp(p,CN_DHCP_MAGICCOOKIE,4))
     {
-    	result = false;
-    	printf("%s:dhcp magic cookie error\n\r",__FUNCTION__);
-    	return result;
+        result = false;
+        debug_printf("dhcp","%s:dhcp magic cookie error\n\r",__FUNCTION__);
+        return result;
     }
 
     p += 4;
@@ -237,14 +240,14 @@ bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg)
                   lenleft = lenleft -sizeof(tagDhcpOpt)-item->len;
                   break;
             case domainName:
-            	  if(item->len >= CN_DHCP_STRLEN)
-            	  {
-            		  memcpy(para->domainname, item->data,CN_DHCP_STRLEN-1);
-            	  }
-            	  else
-            	  {
-            		  memcpy(para->domainname, item->data,item->len);
-            	  }
+                  if(item->len >= CN_DHCP_STRLEN)
+                  {
+                      memcpy(para->domainname, item->data,CN_DHCP_STRLEN-1);
+                  }
+                  else
+                  {
+                      memcpy(para->domainname, item->data,item->len);
+                  }
                   p += sizeof(tagDhcpOpt) + item->len;
                   lenleft = lenleft -sizeof(tagDhcpOpt)-item->len;
                   break;
@@ -263,26 +266,26 @@ bool_t pasteDhcpReplyMsg(tagDhcpReplyPara *para,tagDhcpMsg *msg)
 }
 void showDhcpReplyMsg(tagDhcpReplyPara *para)
 {
-	printf("DHCPOFFSERACK:\n\r");
-	printf("          :operation type:%d\n\r",para->optype);
-	printf("          :message   type:%d\n\r",para->msgtype);
-	printf("          :transaction id:%d\n\r",para->transaction);
-	printf("          :offer ipaddr  :%s\n\r",inet_ntoa(*(struct in_addr*)&para->offerip));
-	printf("          :dhcpservernxt :%s\n\r",inet_ntoa(*(struct in_addr*)&para->dhcpservernxt));
-	printf("          :relay agent   :%s\n\r",inet_ntoa(*(struct in_addr*)&para->relayagent));
-	printf("          :client mac    :%02X:%02X:%02X:%02X:%02X:%02X\n\r",\
-			para->clientmac[0],para->clientmac[1],para->clientmac[2],\
-			para->clientmac[3],para->clientmac[4],para->clientmac[5]);
-	printf("          :renew time    :%d(seconds)\n\r",para->renewtime);
-	printf("          :bind time     :%d(seconds)\n\r",para->bindtime);
-	printf("          :lease time    :%d(seconds)\n\r",para->leasetime);
-	printf("          :dhcp server   :%s\n\r",inet_ntoa(*(struct in_addr*)&para->dhcpserver));
-	printf("          :ip mask       :%s\n\r",inet_ntoa(*(struct in_addr*)&para->ipmask));
-	printf("          :router        :%s\n\r",inet_ntoa(*(struct in_addr*)&para->router));
-	printf("          :domain name   :%s\n\r",para->domainname);
-	printf("          :domain name s1:%s\n\r",inet_ntoa(*(struct in_addr*)&para->dns1));
-	printf("          :domain name s2:%s\n\r",inet_ntoa(*(struct in_addr*)&para->dns2));
-	return;
+    debug_printf("dhcp","DHCPOFFSERACK:\n\r");
+    debug_printf("dhcp","          :operation type:%d\n\r",para->optype);
+    debug_printf("dhcp","          :message   type:%d\n\r",para->msgtype);
+    debug_printf("dhcp","          :transaction id:%d\n\r",para->transaction);
+    debug_printf("dhcp","          :offer ipaddr  :%s\n\r",inet_ntoa(*(struct in_addr*)&para->offerip));
+    debug_printf("dhcp","          :dhcpservernxt :%s\n\r",inet_ntoa(*(struct in_addr*)&para->dhcpservernxt));
+    debug_printf("dhcp","          :relay agent   :%s\n\r",inet_ntoa(*(struct in_addr*)&para->relayagent));
+    debug_printf("dhcp","          :client mac    :%02X:%02X:%02X:%02X:%02X:%02X\n\r",\
+            para->clientmac[0],para->clientmac[1],para->clientmac[2],\
+            para->clientmac[3],para->clientmac[4],para->clientmac[5]);
+    debug_printf("dhcp","          :renew time    :%d(seconds)\n\r",para->renewtime);
+    debug_printf("dhcp","          :bind time     :%d(seconds)\n\r",para->bindtime);
+    debug_printf("dhcp","          :lease time    :%d(seconds)\n\r",para->leasetime);
+    debug_printf("dhcp","          :dhcp server   :%s\n\r",inet_ntoa(*(struct in_addr*)&para->dhcpserver));
+    debug_printf("dhcp","          :ip mask       :%s\n\r",inet_ntoa(*(struct in_addr*)&para->ipmask));
+    debug_printf("dhcp","          :router        :%s\n\r",inet_ntoa(*(struct in_addr*)&para->router));
+    debug_printf("dhcp","          :domain name   :%s\n\r",para->domainname);
+    debug_printf("dhcp","          :domain name s1:%s\n\r",inet_ntoa(*(struct in_addr*)&para->dns1));
+    debug_printf("dhcp","          :domain name s2:%s\n\r",inet_ntoa(*(struct in_addr*)&para->dns2));
+    return;
 }
 
 //paset the client request message
@@ -304,8 +307,8 @@ bool_t pasteDhcpRequestMsg(tagDhcpRequestPara *para,tagDhcpMsg *msg)
     lenleft = 312;
     if((0 != memcmp(p,CN_DHCP_MAGICCOOKIE,4))||(para->optype != DHCP_BOOTREQUEST))
     {
-    	result = false;
-    	return result;
+        result = false;
+        return result;
     }
 
     p += 4;

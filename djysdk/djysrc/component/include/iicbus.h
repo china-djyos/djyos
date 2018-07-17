@@ -140,7 +140,7 @@ struct IIC_Param
 //IIC总线器件结构体
 struct IIC_Device
 {
-    struct Object DevNode;
+    struct Object         *HostObj;                 //宿主对象
 
     u8 DevAddr;                 //七位的器件地址,最低的0~2bit可能是器件内部地址。
     u8 BitOfMemAddrInDevAddr;   //器件地址中内部地址所占比特位数
@@ -157,20 +157,20 @@ struct IICBuf
 //IIC总线控制块结构体,本模块可见
 struct IIC_CB
 {
-    struct Object        IIC_BusNode;               //总线资源节点
-    struct IICBuf         IIC_Buf;                   //缓冲区,用于异步发送
-    struct SemaphoreLCB * IIC_BusSemp;               //IIC总线保护信号量
-    struct SemaphoreLCB * IIC_BufSemp;               //简易缓冲区保护信号量
-    u16                    ErrorPopEvtt;                //出错处理事件的类型
-    u32                    Counter;                     //发送/接收计数器
-    u8                    *pBuf;                        //发送/接收缓冲区指针
-    u8                     Flag;                        //标记，按位，包括 读/方式和轮询/中断两种
-    ptu32_t                SpecificFlag;                //个性标记
-    WriteReadPoll          pWriteReadPoll;
-    WriteStartFunc         pGenerateWriteStart;
-    ReadStartFunc          pGenerateReadStart;
-    GenerateEndFunc        pGenerateEnd;
-    IICBusCtrlFunc         pBusCtrl;
+    struct Object           *HostObj;               //宿主对象
+    struct IICBuf           IIC_Buf;                //缓冲区,用于异步发送
+    struct SemaphoreLCB     *IIC_BusSemp;           //IIC总线保护信号量
+    struct SemaphoreLCB     *IIC_BufSemp;           //简易缓冲区保护信号量
+    u32                     Counter;                //发送/接收计数器
+    u16                     ErrorPopEvtt;           //出错处理事件的类型
+    u8                      *pBuf;                  //发送/接收缓冲区指针
+    u8                      Flag;                   //标记，按位，包括 读/方式和轮询/中断两种
+    ptu32_t                 SpecificFlag;           //个性标记
+    WriteReadPoll           pWriteReadPoll;
+    WriteStartFunc          pGenerateWriteStart;
+    ReadStartFunc           pGenerateReadStart;
+    GenerateEndFunc         pGenerateEnd;
+    IICBusCtrlFunc          pBusCtrl;
 };
 
 //定义BusCtrl()的参数cmd,0x80以下由系统定义，0x80以上用户定义
@@ -198,22 +198,16 @@ struct IIC_CB
 
 
 //IIC模块API函数
-struct Object *ModuleInstall_IICBus(ptu32_t para);
+bool_t ModuleInstall_IICBus(void);
 
 struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam);
-struct IIC_CB *IIC_BusAdd_s(struct IIC_CB *NewIIC,struct IIC_Param *NewIICParam);
 bool_t IIC_BusDelete(struct IIC_CB *DelIIC);
-bool_t IIC_BusDelete_s(struct IIC_CB *DelIIC);
 struct IIC_CB *IIC_BusFind(const char *BusName);
 
 struct IIC_Device *IIC_DevAdd(const char *BusName , const char *DevName, u8 DevAddr,
                                 u8 BitOfMaddrInDaddr, u8 BitOfMaddr);
-struct IIC_Device *IIC_DevAdd_s(struct IIC_Device *NewDev,const char *BusName,
-                                   const char *DevName, u8 DevAddr,
-                                   u8 BitOfMaddrInDaddr, u8 BitOfMaddr);
 bool_t IIC_DevDelete(struct IIC_Device *DelDev);
-bool_t IIC_DevDelete_s(struct IIC_Device *DelDev);
-struct IIC_Device *IIC_DevFind(const char *DevName);
+struct IIC_Device *IIC_DevFind(const char *BusName ,const char *DevName);
 
 
 s32  IIC_Write(struct IIC_Device *DelDev, u32 addr,u8 *buf,u32 len,

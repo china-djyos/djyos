@@ -50,20 +50,41 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
-#include "tcpipconfig.h"
+#include <shell.h>
+#include "dbug.h"
+#include "component_config_tcpip.h"
 
 #define CN_TCPIP_VERSION    "V1.2.0"
 #define CN_TCPIP_AUTHOR     "luost@sznari.com,zhangqf1314@163.com"
-bool_t TcpIpVersion(char *param)
+static bool_t __TcpIpVersion(char *param)
 {
-    printf("Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.\r\n");
-    printf("VERSION  :%s \r\n",CN_TCPIP_VERSION);
-    printf("TIME     :%s \r\n",__TIME__);
-    printf("DAT      :%s \r\n",__DATE__);
-    printf("SUBMIT2  :Any idea, please contact with %s \r\n",CN_TCPIP_AUTHOR);
-    printf("ChangeLog:\r\n");
-    printf("FUNCTIONS:/ETHERNET/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING\r\n");
+    debug_printf("tcpip","Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.\r\n");
+    debug_printf("tcpip","VERSION  :%s \r\n",CN_TCPIP_VERSION);
+    debug_printf("tcpip","TIME     :%s \r\n",__TIME__);
+    debug_printf("tcpip","DATE     :%s \r\n",__DATE__);
+    debug_printf("tcpip","SUBMIT2  :Any idea, please contact with %s \r\n",CN_TCPIP_AUTHOR);
+    debug_printf("tcpip","ChangeLog:\r\n");
+    debug_printf("tcpip","FUNCTIONS:/ETHERNET/PPP/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING\r\n");
     return true;
+}
+//install some shell command here
+static struct ShellCmdTab  gTCPIPDEBUG[] =
+{
+    {
+        "tcpipver",
+        __TcpIpVersion,
+        "usage:tcpipver",
+        "usage:tcpipver",
+    },
+};
+#define CN_TCPIPDEBUG_ITEMNUM  ((sizeof(gTCPIPDEBUG))/(sizeof(struct ShellCmdTab)))
+static struct ShellCmdRsc gTCPIPDEBUGCmdRsc[CN_TCPIPDEBUG_ITEMNUM];
+
+//we need a function to do the format result
+static void __LoadLog(const char *name,bool_t ret)
+{
+    debug_printf("tcpip","LOAD:%-12s------------%s\n\r",name,ret?"SUCCESS":"FAILURE");
+    return;
 }
 // =============================================================================
 // FUNCTION:this function used to initialize the tcpip stack
@@ -72,164 +93,157 @@ bool_t TcpIpVersion(char *param)
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-ptu32_t ModuleInstall_TcpIp(ptu32_t para)
+bool_t ModuleInstall_TcpIp(void)
 {
-    printf("*********DJY TCP/IP INIT START**********************\n\r");
-    printf("Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.\r\n");
-    printf("VERSION  :%s \r\n",CN_TCPIP_VERSION);
-    printf("TIME     :%s \r\n",__TIME__);
-    printf("DAT      :%s \r\n",__DATE__);
-	//do the package manage module initialize
-	extern bool_t PkgInit(void);
-	if(false == PkgInit())
-	{
-		printf("%s:#PKG  Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#PKG  Module-------------------OK\n\r",__FUNCTION__);
-	}
-	//do the link init
-	extern bool_t LinkInit(void);
-    if(false == LinkInit())
+    bool_t ret;
+    __TcpIpVersion(NULL);
+
+    extern bool_t OsArchInit();
+    ret = OsArchInit();
+    __LoadLog("OSARCH",ret);
+    if(false == ret)
     {
-        printf("%s:#LINK Module-------------------BAD\n\r",__FUNCTION__);
         goto TCPIP_INITERR;
     }
-    else
+    //do the package manage module initialize
+    extern bool_t PkgInit(void);
+    ret = PkgInit();
+    __LoadLog("PKG",ret);
+    if(false == ret)
     {
-        printf("%s:#LINK Module-------------------OK\n\r",__FUNCTION__);
+        goto TCPIP_INITERR;
     }
-	//do the rout initialize
-	extern bool_t RoutInit(void);
-	if(false == RoutInit())
-	{
-		printf("%s:#ROUT Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#ROUT Module-------------------OK\n\r",__FUNCTION__);
-	}
-	//do the arp initialize
-	extern bool_t ArpInit(void);
-	if(false == ArpInit())
-	{
-		printf("%s:#ARP  Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#ARP  Module-------------------OK\n\r",__FUNCTION__);
-	}
-	
-	//do the ip initialize
-	extern  bool_t IpInit(void);
-	if(false == IpInit())
-	{
-		printf("%s:#IP   Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#IP   Module-------------------OK\n\r",__FUNCTION__);
-	}
-	//do the transport layer initialize
-	extern bool_t TPLInit(ptu32_t para);
-	if(false == TPLInit((ptu32_t)0))
-	{
-		printf("%s:#TPL  Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#TPL  Module-------------------OK\n\r",__FUNCTION__);
-	}
+    //do the link init
+    extern bool_t LinkInit(void);
+    ret = LinkInit();
+    __LoadLog("LINK",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //FOR THE LINKER LAYER HAS BEEN INITIALIZED,SO ADD SOME LINKER METHOD HERE
+    extern bool_t LinkEthernetInit(void);
+    ret = LinkEthernetInit();
+    __LoadLog("LINKETERNET",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    extern bool_t LinkRawInit(void);
+    ret = LinkRawInit();
+    __LoadLog("LINKRAW",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //do the NETDEVICE LAYER initialize
+    extern bool_t NetDevInit(void);
+    ret = NetDevInit();
+    __LoadLog("NETDEV",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    extern bool_t RouterInit(void);
+    ret = RouterInit();
+    __LoadLog("ROUTER",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //DO THE LINKER PROTOCOL INITIALIZE
+    extern bool_t ArpInit(void);
+    ret = ArpInit();
+    __LoadLog("ARP",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
 
-	//do the socket interface initialize
-	extern bool_t SocketInit(ptu32_t para);
-	if(false == SocketInit((ptu32_t)0))
-	{
-		printf("%s:#SOCK Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#SOCK Module-------------------OK\n\r",__FUNCTION__);
-	}
-	//install the tcp protocol
-	extern bool_t TcpInit(ptu32_t para);
-	if(false == TcpInit((ptu32_t)0))
-	{
-		printf("%s:#TCP  Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#TCP  Module-------------------OK\n\r",__FUNCTION__);
-	}
-	//install the udp protocol
-	bool_t UdpInit(ptu32_t para);
-	if(false == UdpInit((ptu32_t)0))
-	{
-		printf("%s:#UDP  Module-------------------BAD",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#UDP  Module-------------------OK\n\r",__FUNCTION__);
-	}
-	//install the icmp protocol
-	extern bool_t IcmpInit(ptu32_t para);
-	if(false == IcmpInit((ptu32_t)0))
-	{
-		printf("%s:#ICMP Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#ICMP Module-------------------OK\n\r",__FUNCTION__);
-	}
-
-	//add the loop device
-	extern bool_t LoopInit(void);
-	if(false == LoopInit())
-	{
-		printf("%s:#LOOP Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#LOOP Module-------------------OK\n\r",__FUNCTION__);
-	}
-	//add the ppp module
-	extern bool_t PppInit(void);
-	if(gUsePpp&&(false == PppInit()))
-	{
-		printf("%s:#PPP Module-------------------BAD\n\r",__FUNCTION__);
-		goto TCPIP_INITERR;
-	}
-	else
-	{
-		printf("%s:#PPP Module-------------------OK\n\r",__FUNCTION__);
-	}
+    //do the ip initialize
+    extern  bool_t IpInit(void);
+    ret = IpInit();
+    __LoadLog("IP",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //do the transport layer initialize
+    extern bool_t TPLInit(void);
+    ret = TPLInit();
+    __LoadLog("TPL",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //do the socket interface initialize
+    extern bool_t SocketInit(void);
+    ret = SocketInit();
+    __LoadLog("SOCKET",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //install the tcp protocol
+#if CFG_TCP_ENABLE == true
+    extern bool_t TcpInit(void);
+    ret = TcpInit();
+    __LoadLog("TCP",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+#endif
+    //install the udp protocol
+#if CFG_UDP_ENABLE == true
+    extern bool_t UdpInit(void);
+    ret = UdpInit();
+    __LoadLog("UDP",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+#endif
+    //install the icmp protocol
+    extern bool_t IcmpInit(void);
+    ret = IcmpInit();
+    __LoadLog("ICMP",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //add the loop device
+    extern bool_t LoopInit(void);
+    ret = LoopInit();
+    __LoadLog("LOOPDEV",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+    //add the ppp module
+#if CN_PPP_ENABLE == true
+    extern bool_t PppInit(void);
+    ret = PppInit();
+    __LoadLog("PPP",ret);
+    if(false == ret)
+    {
+        goto TCPIP_INITERR;
+    }
+#endif
     //add the tcpip service
     extern bool_t ServiceInit(void);
-    if(false == ServiceInit())
+    ret = ServiceInit();
+    __LoadLog("SERVICE",ret);
+    if(false == ret)
     {
-        printf("%s:#APPS Module-------------------BAD\n\r",__FUNCTION__);
         goto TCPIP_INITERR;
     }
-    else
-    {
-        printf("%s:#APPS Module-------------------OK\n\r",__FUNCTION__);
-    }
-	printf("*********DJY TCP/IP INIT SUCCESS**********************\n\r");
-	return 0;
+    debug_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************\n\r");
+    Sh_InstallCmd(gTCPIPDEBUG,gTCPIPDEBUGCmdRsc,CN_TCPIPDEBUG_ITEMNUM);
+    return ret;
 
 TCPIP_INITERR:
-	printf("*********DJY TCP/IP INIT  FAILED**********************\n\r");
-	return -1;
+    debug_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************\n\r");
+    return ret;
 }
 

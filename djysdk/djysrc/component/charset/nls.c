@@ -66,8 +66,8 @@
 #include "nls.h"
 #include "locale.h"
 #include "string.h"
-#include <cfg/local_config.h>
-
+#include "dbug.h"
+#include "component_config_NlsCharset.h"
 //----获取区域字符编码---------------------------------------------------------
 //功能: 根据区域名称获取字符编码，"C"是默认编码的代号。
 //参数: 区域名称编码
@@ -79,7 +79,7 @@ struct Charset* Charset_NlsGetLocCharset(const char* loc)
 
     if(strcmp(loc, "C") == 0)
     {
-        encoding = Charset_NlsSearchCharset(gc_pCfgDefaultCharsetName);
+        encoding = Charset_NlsSearchCharset(CFG_LOCAL_CHARSET);
     }else
     {
         encoding = Charset_NlsSearchCharset(loc);
@@ -92,7 +92,7 @@ struct Charset* Charset_NlsGetLocCharset(const char* loc)
 //功能: 初始化NLS模块
 //返回: 1=成功，0=失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_CharsetNls(const char * para)
+void ModuleInstall_CharsetNls(const char * DefaultCharset)
 {
     struct Charset* encoding;
 
@@ -100,11 +100,11 @@ ptu32_t ModuleInstall_CharsetNls(const char * para)
     //loc = setlocale(LC_ALL, NULL);
 
     // 根据locale找出对应的字符编码资源
-    encoding = Charset_NlsGetLocCharset(para);
+    encoding = Charset_NlsGetLocCharset(DefaultCharset);
     Charset_NlsSetCurCharset(encoding);
 
-    printf("-ModuleInstall_CharsetNls\r\n");
+    debug_printf("nls","-ModuleInstall_CharsetNls\r\n");
 
-    return 1;
+    return;
 }
 

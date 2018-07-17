@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>stm32l433-empty</boardName>
+  <cpu>
+    <cpuName>stm32l433xx</cpuName>
+    <mianClk>10</mianClk>
+    <peripheral>emflash</peripheral>
+    <peripheral>iic</peripheral>
+    <peripheral>lowpwer</peripheral>
+    <peripheral>spi</peripheral>
+    <peripheral>timer</peripheral>
+    <peripheral>uart</peripheral>
+    <peripheral>wdt</peripheral>
+  </cpu>
+</board>

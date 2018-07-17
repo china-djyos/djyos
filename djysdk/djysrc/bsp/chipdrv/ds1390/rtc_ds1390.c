@@ -58,6 +58,48 @@
 #include "stdio.h"
 #include "rtc_ds1390.h"
 #include "board_config.h"
+#include "spibus.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    ModuleInstall_RTC(CFG_DS1390_BUS_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"rtc_ds1390"   //填写该组件的名字
+//parent:"SPIBUS"               //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件                                            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"spibus","time"           //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_DS1390_BUS_NAME   //****检查参数是否已经配置好
+#warning    rtc_ds1390组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+#define CFG_DS1390_BUS_NAME              "SPI0"            //"SPI总线名称",DS1390使用的SPI总线名称
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
 
 #define HexToBcd(x) ((((x) / 10) <<4) + ((x) % 10))            //将16进制转换成BCD码
 #define BcdToHex(x) ((((x) & 0xF0) >>4) * 10 + ((x) & 0x0F))   //将BCD码转换成16进制
@@ -70,8 +112,35 @@
 #define RTC_CMD_MONTH           (0x06)
 #define RTC_CMD_YEAR            (0x07)
 
-tagSpiConfig *rtc_spi_Config=NULL;
+static struct SPI_Device *sptDS1390Dev;
+#define DS1390_SPI_SPEED      (10*1000*1000)
+#define DS1390_SPI_TIMEOUT    (10*1000)
 
+
+static void _ds1390_cs_active(void)
+{
+    SPI_CsActive(sptDS1390Dev,DS1390_SPI_TIMEOUT);
+}
+static void _ds1390_cs_inactive(void)
+{
+    SPI_CsInactive(sptDS1390Dev);
+}
+static u32 _ds1390_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
+{
+    struct SPI_DataFrame data;
+    s32 result;
+
+    data.RecvBuf = rdata;
+    data.RecvLen = rlen;
+    data.RecvOff = slen;
+    data.SendBuf = sdata;
+    data.SendLen = slen;
+
+    result = SPI_Transfer(sptDS1390Dev,&data,true,DS1390_SPI_TIMEOUT);
+    if(result != CN_SPI_EXIT_NOERR)
+        return 0;
+    return 1;
+}
 //-----读RTC时钟---------------------------------------------------------------
 //功能：读RTC时钟模块的相应寄存器，如读秒、分、时、年、月、日等
 //参数：reg,相应的寄存器号，根据ds1390pdf文档可知，读命令与写命令相差0x80，即，
@@ -82,9 +151,10 @@ static unsigned char __rtc_read (unsigned char reg)
 {
     unsigned char ret;
 
-    Spi_ActiveCS(CFG_RTC_SPI_BUS,CFG_RTC_SPI_CS);
-    Spi_TxRx(CFG_RTC_SPI_BUS,&reg,1,&ret,1,1);
-    Spi_InActiveCS(CFG_RTC_SPI_BUS,CFG_RTC_SPI_CS);
+    _ds1390_cs_active();
+    _ds1390_TxRx(&reg,1,&ret,1);
+    _ds1390_cs_inactive();
+
     return (int)ret< 0 ? 0 : ret;
 }
 
@@ -102,9 +172,9 @@ static void __rtc_write (unsigned char reg, unsigned char val)
     dout[0] = 0x80 | reg;
     dout[1] = val;
 
-    Spi_ActiveCS(CFG_RTC_SPI_BUS,CFG_RTC_SPI_CS);
-    Spi_TxRx(CFG_RTC_SPI_BUS,dout,2,NULL,0,0);
-    Spi_InActiveCS(CFG_RTC_SPI_BUS,CFG_RTC_SPI_CS);
+    _ds1390_cs_active();
+    _ds1390_TxRx(dout,2,NULL,0);
+    _ds1390_cs_inactive();
 }
 
 //-----更新RTC时钟---------------------------------------------------------------
@@ -113,17 +183,9 @@ static void __rtc_write (unsigned char reg, unsigned char val)
 //参数：DateTime,rtc_tm结构类型的变量，里面存放着需更新RTC的时间信息
 //返回：无
 //-----------------------------------------------------------------------------
-uint32_t rtc_time_get(struct rtc_tm *DateTime)
+static bool_t rtc_time_get(struct tm *DateTime)
 {
     uint32_t sec, min, hour, mday, wday, mon, year;
-
-    //判断是否需要初始化SPI，以防module_init_rtc未被调用
-    if(!rtc_spi_Config)
-    {
-        rtc_spi_Config = &pg_spi_Config;
-        rtc_spi_Config->freq=CFG_RTC_SPI_SPEED;
-        Spi_Init(CFG_RTC_SPI_BUS,rtc_spi_Config);
-    }
 
     //从RTC读时间
     sec  = __rtc_read (RTC_CMD_SECONDS);
@@ -151,33 +213,30 @@ uint32_t rtc_time_get(struct rtc_tm *DateTime)
            DateTime->tm_sec);
 /*---------------------test use only----------------------*/
 
-    return 0;
+    return 1;
 }
 //-----更新RTC时钟---------------------------------------------------------------
 //功能：将年月日时分秒写入到RTC时钟，更新RTC，由于RTC芯片存放的时间信息是基于BCD
 //      编码格式，所以在写入时间前，需要将时间信息转化为相应的BCD格式
-//参数：DateTime,rtc_tm结构类型的变量，里面存放着需更新RTC的时间信息
+//参数：time,存放着需更新RTC的时间信息
 //返回：无
 //-----------------------------------------------------------------------------
-bool_t rtc_update_time(struct rtc_tm *DateTime)
+bool_t rtc_update_time(s64 time)
 {
-    //判断是否需要初始化SPI，以防module_init_rtc未被调用
-    if(!rtc_spi_Config)
-    {
-        rtc_spi_Config = &pg_spi_Config;
-        rtc_spi_Config->freq=CFG_RTC_SPI_SPEED;
-        Spi_Init(CFG_RTC_SPI_BUS,rtc_spi_Config);
-    }
+    struct tm DateTime;
 
-    __rtc_write (RTC_CMD_SECONDS,     HexToBcd (DateTime->tm_sec));
-    __rtc_write (RTC_CMD_MINUTES,     HexToBcd (DateTime->tm_min));
-    __rtc_write (RTC_CMD_HOURS,       HexToBcd (DateTime->tm_hour));
-    __rtc_write (RTC_CMD_DAY_OF_WEEK, HexToBcd (DateTime->tm_wday + 1));//星期几
-    __rtc_write (RTC_CMD_DATE_OF_MONTH, HexToBcd (DateTime->tm_mday));
-    __rtc_write (RTC_CMD_MONTH,       HexToBcd (DateTime->tm_mon));
-    __rtc_write (RTC_CMD_YEAR,        HexToBcd (DateTime->tm_year- 2000));
+    time = time/1000000;
+    Tm_LocalTime_r(&time,&DateTime);
 
-    return 1;
+    __rtc_write (RTC_CMD_SECONDS,     HexToBcd (DateTime.tm_sec));
+    __rtc_write (RTC_CMD_MINUTES,     HexToBcd (DateTime.tm_min));
+    __rtc_write (RTC_CMD_HOURS,       HexToBcd (DateTime.tm_hour));
+    __rtc_write (RTC_CMD_DAY_OF_WEEK, HexToBcd (DateTime.tm_wday + 1));//星期几
+    __rtc_write (RTC_CMD_DATE_OF_MONTH, HexToBcd (DateTime.tm_mday));
+    __rtc_write (RTC_CMD_MONTH,       HexToBcd (DateTime.tm_mon));
+    __rtc_write (RTC_CMD_YEAR,        HexToBcd (DateTime.tm_year- 2000));
+
+    return true;
 }
 
 //----初始化rtc实时时钟模块------------------------------------------------------
@@ -185,36 +244,32 @@ bool_t rtc_update_time(struct rtc_tm *DateTime)
 //参数：模块初始化函数没有参数
 //返回：true = 成功初始化，false = 初始化失败
 //-----------------------------------------------------------------------------
-u32 rtc_init(void)
+ptu32_t ModuleInstall_RTC(const char *pBusName)
 {
-    if(!rtc_spi_Config)
+    struct tm DateTime;
+
+    if(sptDS1390Dev = SPI_DevAdd(pBusName,"RTC_DS1390",0,8,\
+            SPI_MODE_0,SPI_SHIFT_MSB,DS1390_SPI_SPEED,false))
     {
-        rtc_spi_Config = &pg_spi_Config;
-        rtc_spi_Config->freq=CFG_RTC_SPI_SPEED;
-        Spi_Init(CFG_RTC_SPI_BUS,rtc_spi_Config);
+        SPI_BusCtrl(s_ptAT45_Dev,CN_SPI_SET_POLL,0,0);
     }
-/*---------------------test use only----------------------*/
-    struct rtc_tm time,gtime;
-    time.tm_sec    = 00;
-    time.tm_min    = 12;
-    time.tm_hour   = 16;
-    time.tm_mday   = 15;
-    time.tm_wday   = 2;
-    time.tm_mon    = 4;
-    time.tm_year   = 2014;
-    //rtc_update_time(&time);
-    rtc_time_get(&gtime);
-/*---------------------test use only----------------------*/
+    else
+    {
+        printf("\r\n: error  : spi device : DS1390 init failed.\n\r");
+        return false;
+    }
+
+    if(true == rtc_time_get(&DateTime))
+    {
+        tv.tv_sec  = rtc_time/1000000;
+        tv.tv_usec = rtc_time%1000000;
+
+        settimeofday(&tv,NULL);
+        if(!Rtc_RegisterDev(NULL,rtc_update_time))
+            return false;
+        else
+            return true;
+    }
+
     return 1;
 }
-
-#ifdef  CN_CFG_DJYOS_USED
-ptu32_t ModuleInstall_RTC(ptu32_t para)
-{
-    Tm_ConnectRtc(rtc_update_time,NULL);
-    rtc_init();
-    return 1;
-}
-#endif
-
-

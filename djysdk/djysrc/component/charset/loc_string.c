@@ -159,7 +159,7 @@ s32 mbslen  (const char* mbs, u32 n)
 char * mbstrchr( char const *mbs, char const *mbchar, s32 *count )
 {
     struct Charset* cur_enc;
-    char *result = mbs;
+    char *result = (char *)mbs;
     s32 len;
     s32 num = 0;
     if((mbs == NULL) || (mbchar == NULL) || (count == NULL) )
@@ -169,7 +169,7 @@ char * mbstrchr( char const *mbs, char const *mbchar, s32 *count )
         return 0;
     if(cur_enc->max_len == 1)
     {
-        result = strchr(mbs, mbchar);
+        result = strchr(mbs, *mbchar);
         if(result != NULL)
             num = (s32)(result - mbs);
     }
@@ -185,13 +185,13 @@ char * mbstrchr( char const *mbs, char const *mbchar, s32 *count )
             }
             else
             {
-                if(memcmp(result, mbchar, len) == 0)	//找到字符
+                if(memcmp(result, mbchar, len) == 0)    //找到字符
                 {
                     break;
                 }
                 else if(memcmp(result, "\0", cur_enc->EOC_Size) == 0) //没找到，串结束
                 {
-                	result = NULL;
+                    result = NULL;
                     break;
                 }
                 else

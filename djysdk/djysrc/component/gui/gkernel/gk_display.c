@@ -75,11 +75,11 @@
 //      name，显示器名，所指向的字符串内存区不能是局部变量
 //返回: true=成功初始化，false=失败
 //-----------------------------------------------------------------------------
-bool_t GK_InstallDisplay(struct DisplayRsc *display,const char *name)
+bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
 {
-    struct Object *rsc;
+    struct Object *Obj;
     struct RectBitmap *frame_bitmap;
-    struct GkWinRsc *frame_buffer;
+    struct GkWinObj *frame_buffer;
     u32 msk_size;
     if(display == NULL)
         return false;
@@ -138,11 +138,19 @@ bool_t GK_InstallDisplay(struct DisplayRsc *display,const char *name)
         frame_buffer->limit_right = frame_bitmap->width;
         frame_buffer->limit_bottom = frame_bitmap->height;
     }
-    rsc = OBJ_SearchTree("display");     //取显示器资源树
-    if(NULL != OBJ_AddChild(rsc,&display->node,sizeof(struct DisplayRsc),RSC_DISPLAY,name))
+    Obj = OBJ_SearchChild(OBJ_Root(), "display");     //取显示器目录
+    Obj = OBJ_AddChild(Obj, NULL, (ptu32_t)display, name);
+    if(NULL != Obj)
+    {
+        display->HostObj = Obj;
         return true;
+    }
     else
+    {
+        if(frame_buffer)
+            free(frame_buffer->changed_msk.bm_bits);
         return false;
+    }
 }
 
 //----安装镜像显示器-----------------------------------------------------------
@@ -151,12 +159,16 @@ bool_t GK_InstallDisplay(struct DisplayRsc *display,const char *name)
 //      name，显示器名，所指向的字符串内存区不能是局部变量
 //返回: true=成功初始化，false=失败
 //-----------------------------------------------------------------------------
-bool_t GK_InstallDisplayMirror(struct DisplayRsc *base_display,
-                                 struct DisplayRsc *mirror_display,char *name)
+bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
+                               struct DisplayObj *mirror_display,char *name)
 {
-    if(NULL != OBJ_AddChild(&base_display->node,&mirror_display->node,
-                            sizeof(struct DisplayRsc),RSC_DISPLAY,name))
+    struct Object *Obj;
+    Obj = OBJ_AddChild(base_display->HostObj, NULL, (ptu32_t)mirror_display,name);
+    if(NULL != Obj)
+    {
+        mirror_display->HostObj = Obj;
         return true;
+    }
     else
         return false;
 }
@@ -168,15 +180,15 @@ bool_t GK_InstallDisplayMirror(struct DisplayRsc *base_display,
 //-----------------------------------------------------------------------------
 bool_t GK_SetDefaultDisplay(const char *name)
 {
-    struct Object *rsc;
-    rsc = OBJ_SearchTree("display");     //取显示器资源树
-    rsc = OBJ_SearchChild(rsc,name);     //找到被操作的显示器资源
-    if(rsc == NULL)
+    struct Object *Obj;
+    Obj = OBJ_SearchChild(OBJ_Root(), "display");     //取显示器目录
+    Obj = OBJ_SearchChild(Obj,name);     //找到被操作的显示器对象
+    if(Obj == NULL)
     {
         return false;
     }else
     {
-        OBJ_MoveToHead(rsc);          //资源树中的队列头结点就是默认显示器
+        OBJ_MoveToHead(Obj);          //资源树中的队列头结点就是默认显示器
         return true;
     }
 }
@@ -186,7 +198,7 @@ bool_t GK_SetDefaultDisplay(const char *name)
 //参数: display，显示器指针
 //返回: draw_set指针
 //-----------------------------------------------------------------------------
-struct GkWinRsc *GK_GetRootWin(struct DisplayRsc *display)
+struct GkWinObj *GK_GetRootWin(struct DisplayObj *display)
 {
     return display->desktop;
 }
@@ -198,7 +210,7 @@ struct GkWinRsc *GK_GetRootWin(struct DisplayRsc *display)
 //      fbuf，缓冲区指针
 //返回: true=成功，false=失败，失败的原因只有一个:该显示驱动不是帧缓冲型
 //-----------------------------------------------------------------------------
-bool_t GK_SwitchFrameBuffer(struct DisplayRsc *display,
+bool_t GK_SwitchFrameBuffer(struct DisplayObj *display,
                               struct RectBitmap *fbuf)
 {
     return true;
@@ -209,7 +221,7 @@ bool_t GK_SwitchFrameBuffer(struct DisplayRsc *display,
 //参数: display，被操作的显示器
 //返回: 新frame buffer 指针，NULL=创建失败
 //-----------------------------------------------------------------------------
-struct RectBitmap *GK_CreateFrameBuffer(struct DisplayRsc *display)
+struct RectBitmap *GK_CreateFrameBuffer(struct DisplayObj *display)
 {
     return NULL;
 }

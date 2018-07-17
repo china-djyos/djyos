@@ -1,27 +1,60 @@
-/*
- * Copyright (c) 1990 The Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation,
- * advertising materials, and other materials related to such
- * distribution and use acknowledge that the software was developed
- * by the University of California, Berkeley.  The name of the
- * University may not be used to endorse or promote products derived
- * from this software without specific prior written permission.
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- *  @(#)stdio.h 5.3 (Berkeley) 3/15/86
- */
+//----------------------------------------------------
+// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
-/*
- * NB: to fit things in six character monocase externals, the
- * stdio code uses the prefix `__s' for stdio objects, typically
- * followed by a three-character attempt at a mnemonic.
- */
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//-----------------------------------------------------------------------------
+// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+//
+// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
+// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
+//
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
+//    及下述的免责声明。
+// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
+//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    的免责声明。
+
+// 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
+// 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
+// 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
+// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
+// 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
+// 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
+// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
+//-----------------------------------------------------------------------------
+//所属模块:内核模块
+//作者:  罗侍田.
+//版本：V1.0.0
+//文件描述: 消息系统相关的定义
+//其他说明:
+//修订历史:
+//2. ...
+//1. 日期: 2011-01-24
+//   作者:  罗侍田.
+//   新版本号: V1.0.0
+//   修改说明: 创建文件
+//------------------------------------------------------
+
 
 #ifndef _STDIO_H_
 #define _STDIO_H_
@@ -49,25 +82,31 @@
 //
 // 增加项
 //
-#include <djyfs/file.h>
-#include <djyfs/iofile.h>
+#include <fs/file.h>
 
+typedef struct LibcFile FILE;
+
+/**
+ * Standard file descriptors
+ */
 extern FILE *stdin;
-extern FILE *stderr;
 extern FILE *stdout;
-extern struct Object g_tStdNotInit;
+extern FILE *stderr;
+
 extern s32 (* PutStrDirect)(const char *buf,u32 len);
 extern char (* GetCharDirect)(void);
-s32 printk (const char *fmt, ...);
-void NULL_Func(void); 
-bool_t OpenStdin(const char *Name);
-bool_t OpenStdout(const char *Name);
-bool_t OpenStderr(const char *Name);
-#define StdNotInit ((FILE *)&g_tStdNotInit)
-#define fputc  putc
-#define fgetc  getc
 
-_BEGIN_STD_C
+//以下参数在初始化module时确定，运行中不可更改
+//如果定义了多stdin以及stdout跟随，则可以实现uart和Telnet均可以作为终端使用，且
+//根据用户的输入命令的设备自动切换。注意，设为跟随时，stdin必须是可读写的。
+#define CN_STDIO_STDOUT_FOLLOW      2       // stdout跟随stdin
+#define CN_STDIO_STDERR_FOLLOW      4       // stderr跟随stdin
+#define CN_STDIO_STDIN_MULTI        8       // 允许stdin多源，典型地是uart和telnet
+
+bool_t AddToStdin(s32 fd, bool_t LineEdit);
+bool_t DisableLineEdit(void);
+bool_t EnableLineEdit(void);
+s32 ModuleInstall_STDIO(u32 dwRunMode, const char *pIN, const char *pOUT, const char *pERR);
 
 //typedef __FILE FILE;
 
@@ -105,39 +144,45 @@ _BEGIN_STD_C
 /* _flags2 flags */
 #define __SWID  0x2000      /* true => stream orientation wide, false => byte, only valid if __SORD in _flags is true */
 
-/*
- * The following three definitions are for ANSI C, which took them
- * from System V, which stupidly took internal interface macros and
- * made them official arguments to setvbuf(), without renaming them.
- * Hence, these ugly _IOxxx names are *supposed* to appear in user code.
- *
- * Although these happen to match their counterparts above, the
- * implementation does not rely on that (so these could be renumbered).
- */
-#define _IOFBF  0       /* setvbuf should set fully buffered */
-#define _IOLBF  1       /* setvbuf should set line buffered */
-#define _IONBF  2       /* setvbuf should set unbuffered */
+
+/* Flags for the iobuf structure  */
+#define FP_IOREAD           0x0001      // currently reading
+#define FP_IOWRITE          0x0002      // currently writing
+#define FP_IOFLOW           0x0100      // 流动数据，例如串口，display等，不允许写缓冲
+#define FP_IORW             0x0080      // opened as "r+w"
+#define FP_BINARY           0x1000      // reading binary file
+#define FP_TEXT             0x2000      // reading text file
+
+#define FP_IOFBF            0x0000      // full buffered
+#define FP_IOLBF            0x0040      // line buffered
+#define FP_IONBF            0x0004      // not buffered
+
+#define FP_IOMYBUF          0x0008      // stdio malloc()'d buffer
+#define FP_IOEOF            0x0010      // EOF reached on read
+#define FP_IOERR            0x0020      // I/O error from system
+#define FP_IOSTRG           0x0040      // Strange or no file descriptor
+#define FP_IOAPPEND         0x0400      // Open with append
 
 #define EOF (-1)
 
 #ifdef __BUFSIZ__
-#define BUFSIZ      __BUFSIZ__
+#define FILEBUFSIZ      __BUFSIZ__
 #else
-#define BUFSIZ      1024
-#endif
-
-#ifdef __FOPEN_MAX__
-#define FOPEN_MAX   __FOPEN_MAX__
-#else
-#define FOPEN_MAX   20
+#define FILEBUFSIZ      1024
 #endif
 
 #ifdef __FILENAME_MAX__
 #define FILENAME_MAX    __FILENAME_MAX__
 #else
-#define FILENAME_MAX    1024
+#define FILENAME_MAX    255
 #endif
 
+/*
+ * The maximum size of name (including NUL) that will be put in the user
+ * supplied buffer caName for tmpnam.
+ * Inferred from the size of the static buffer returned by tmpnam
+ * when passed a NULL argument. May actually be smaller.
+ */
 #ifdef __L_tmpnam__
 #define L_tmpnam    __L_tmpnam__
 #else
@@ -180,20 +225,29 @@ _BEGIN_STD_C
 #endif
 #endif
 
+FILE *  _EXFUN(fopen, (const char *restrict, const char *restrict));
+int   _EXFUN(fclose, (FILE *));
+size_t   _EXFUN(fread, (void *restrict, size_t, size_t, FILE *restrict));
+size_t   _EXFUN(fwrite, (const void *restrict, size_t, size_t, FILE *restrict));
+int   _EXFUN(fseek, (FILE *, long, int));
+int   _EXFUN(fseeko, (FILE *, off_t, int));
+int   _EXFUN(remove, (const char *));
+FILE *  _EXFUN(freopen, (const char *restrict, const char *restrict, FILE *restrict));
+int   _EXFUN(vfprintf, (FILE *restrict, const char *restrict, va_list));
+int   _EXFUN(fprintf, (FILE *restrict, const char *restrict, ...));
+//s32 printk (const char *fmt, ...);
+//void NULL_Func(void);
+int   _EXFUN(fputc, (int, FILE *));
+int   _EXFUN(fgetc, (FILE *));
+
 FILE *  _EXFUN(tmpfile, (void));
 char *  _EXFUN(tmpnam, (char *));
-int _EXFUN(fclose, (FILE *));
-int _EXFUN(fflush, (FILE *));
-FILE *  _EXFUN(freopen, (const char *__restrict, const char *__restrict, FILE *__restrict));
 void    _EXFUN(setbuf, (FILE *__restrict, char *__restrict));
 int _EXFUN(setvbuf, (FILE *__restrict, char *__restrict, int, size_t));
-int _EXFUN(fprintf, (FILE *__restrict, const char *__restrict, ...)
-               _ATTRIBUTE ((__format__ (__printf__, 2, 3))));
 int _EXFUN(fscanf, (FILE *__restrict, const char *__restrict, ...)
                _ATTRIBUTE ((__format__ (__scanf__, 2, 3))));
 int _EXFUN(printf, (const char *__restrict, ...)
                _ATTRIBUTE ((__format__ (__printf__, 1, 2))));
-#define fdprintf(fd, fmt...) fprintf(HandleToVFile(fd), fmt)
 int _EXFUN(scanf, (const char *__restrict, ...)
                _ATTRIBUTE ((__format__ (__scanf__, 1, 2))));
 int _EXFUN(sscanf, (const char *__restrict, const char *__restrict, ...)
@@ -204,9 +258,7 @@ int _EXFUN(vprintf, (const char *, __VALIST)
                _ATTRIBUTE ((__format__ (__printf__, 1, 0))));
 int _EXFUN(vsprintf, (char *__restrict, const char *__restrict, __VALIST)
                _ATTRIBUTE ((__format__ (__printf__, 2, 0))));
-int _EXFUN(fgetc, (FILE *));
 char *  _EXFUN(fgets, (char *__restrict, int, FILE *__restrict));
-int _EXFUN(fputc, (int, FILE *));
 int _EXFUN(fputs, (const char *__restrict, FILE *__restrict));
 int _EXFUN(getc, (FILE *));
 int _EXFUN(getchar, (void));
@@ -215,30 +267,27 @@ int _EXFUN(putc, (int, FILE *));
 int _EXFUN(putchar, (int));
 int _EXFUN(puts, (const char *));
 int _EXFUN(ungetc, (int, FILE *));
-size_t  _EXFUN(fread, (_PTR __restrict, size_t _size, size_t _n, FILE *__restrict));
-size_t  _EXFUN(fwrite, (const _PTR __restrict , size_t _size, size_t _n, FILE *));
 //#ifdef _COMPILING_NEWLIB
 //int   _EXFUN(fgetpos, (FILE *, _fpos_t *));
 //#else
 //int   _EXFUN(fgetpos, (FILE *__restrict, fpos_t *__restrict));
 //#endif
-int _EXFUN(fseek, (FILE *, long, int));
 //#ifdef _COMPILING_NEWLIB
 //int   _EXFUN(fsetpos, (FILE *, const _fpos_t *));
 //#else
 //int   _EXFUN(fsetpos, (FILE *, const fpos_t *));
 //#endif
 long    _EXFUN(ftell, ( FILE *));
+off_t    _EXFUN(ftello, ( FILE *));
 void    _EXFUN(rewind, (FILE *));
 void    _EXFUN(clearerr, (FILE *));
 int _EXFUN(feof, (FILE *));
 int _EXFUN(ferror, (FILE *));
 void    _EXFUN(perror, (const char *));
 //#ifndef _REENT_ONLY
-FILE *  _EXFUN(fopen, (const char *__restrict _name, const char *__restrict _type));
 int _EXFUN(sprintf, (char *__restrict, const char *__restrict, ...)
                _ATTRIBUTE ((__format__ (__printf__, 2, 3))));
-int _EXFUN(remove, (const char *));
+
 //int   _EXFUN(rename, (const char *, const char *));
 //#ifdef _COMPILING_NEWLIB
 //int   _EXFUN(_rename, (const char *, const char *));
@@ -704,6 +753,6 @@ int _EXFUN(fpurge, (FILE *));
 //#define   getchar()   getc(stdin)
 //#define   putchar(x)  putc(x, stdout)
 
-_END_STD_C
 
 #endif /* _STDIO_H_ */
+

@@ -87,6 +87,7 @@
 #include "systime.h"
 #include "heap-in.h"
 #include "heap.h"
+#include "component_config_heap.h"
 extern void *pHeapList;             //在脚本中定义
 struct HeapCB *tg_pHeapList=NULL;   //堆链指针，系统中所有的堆被链接在一起。
 struct HeapCB *tg_pSysHeap=NULL;   //堆链指针，系统中所有的堆被链接在一起。
@@ -118,7 +119,7 @@ void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
 void    (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap);
-void *(*__MallocStack)(struct EventECB *pl_ecb,u32 size);
+void *  (*__MallocStack)(struct EventECB *pl_ecb,u32 size);
 ptu32_t (*M_FormatSizeHeap)(ptu32_t size,struct HeapCB *Heap);
 ptu32_t (*M_FormatSize)(ptu32_t size);
 ptu32_t (*M_GetMaxFreeBlockHeap)(struct HeapCB *Heap);
@@ -178,7 +179,7 @@ void __memHeapScan(void)
                 Cession->heap_top = (void*)(*(u32Offset+1));
                 Cession->last = (list_t *)(*u32Offset);
                 dListInit(Cession->last);
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+#if ((CFG_DYNAMIC_MEM == 1))
                 Cession->PageSize = *(u32Offset+2);
 #endif
                 if(n == CessionNum -1)
@@ -217,7 +218,7 @@ void __memHeapScan(void)
                     HeapTemp->AlignSize = AlignSize;
                 HeapTemp->HeapProperty = Property;
                 HeapTemp->HeapName = (char *)Offset;
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+#if ((CFG_DYNAMIC_MEM == 1))
                 HeapTemp->mem_sync = NULL;
 #endif
                 Cession->static_bottom = (void*)(*u32Offset);
@@ -225,7 +226,7 @@ void __memHeapScan(void)
                 Cession->heap_top = (void*)HeapTemp;
                 Cession->last = (list_t *)(*u32Offset);
                 dListInit(Cession->last);
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+#if ((CFG_DYNAMIC_MEM == 1))
                 Cession->PageSize = *(u32Offset+2);
 #endif
                 if(n == CessionNum -1)

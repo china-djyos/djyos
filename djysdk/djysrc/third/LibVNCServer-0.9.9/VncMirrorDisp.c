@@ -16,7 +16,7 @@
 #define vncmax(a,b)      (a>b?a:b)
 
 
-static struct DisplayRsc *ptVncDisplay = NULL;
+static struct DisplayObj *ptVncDisplay = NULL;
 static rfbScreenInfo* pgRfbScreen = NULL;
 
 // =============================================================================
@@ -180,8 +180,8 @@ bool_t __Bm2Screen(struct Rectangle *dst_rect,\
 bool_t VncDispInstall(rfbScreenInfo* rfbserver,const char *lcdname)
 {
     bool_t  result;
-    struct DisplayRsc *pBaseDisplay;
-    struct GkWinRsc   *desktop;
+    struct DisplayObj *pBaseDisplay;
+    struct GkWinObj   *desktop;
 
     result = false;
     desktop = GK_GetDesktop(lcdname);
@@ -194,13 +194,13 @@ bool_t VncDispInstall(rfbScreenInfo* rfbserver,const char *lcdname)
     {
         goto EXIT_PARAERR;
     }
-    ptVncDisplay=M_Malloc(sizeof(struct DisplayRsc),0);
+    ptVncDisplay=M_Malloc(sizeof(struct DisplayObj),0);
     if(NULL==ptVncDisplay)
     {
         printk("%s :No Mem For VncDisplay\n\r",__FUNCTION__);
         goto EXIT_VNCDISPLAYMEM;
     }
-    memset(ptVncDisplay,0,sizeof(struct DisplayRsc));
+    memset(ptVncDisplay,0,sizeof(struct DisplayObj));
 
     ptVncDisplay->pixel_format = pBaseDisplay->pixel_format;
     ptVncDisplay->width = pBaseDisplay->width;

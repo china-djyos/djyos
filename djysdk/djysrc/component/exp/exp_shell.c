@@ -60,6 +60,7 @@
 #include "exp_record.h"
 #include "shell.h"
 #include "systime.h"
+#include "dbug.h"
 bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara);
 
 extern char *Sh_GetWord(char *buf,char **next);
@@ -92,20 +93,20 @@ bool_t Exp_ShellBrowseAssignedRecord(char *param)
     result = Exp_RecordCheckLen(item_num, &item_len);
     if(false == result)
     {
-        printf("请指定正确的条目号\n\r");
+        debug_printf("shell","请指定正确的条目号\n\r");
         return true;
     }
 
     infomem = M_MallocLc(item_len, CN_TIMEOUT_FOREVER);
     if(NULL == infomem)
     {
-        printf("请指定正确的条目号\n\r");
+        debug_printf("shell","请指定正确的条目号\n\r");
         return true;
     }
 
     result = Exp_RecordGet(item_num,item_len,infomem, &recordpara);
     if(false == result)
-        printf("读取异常信息失败\n\r");
+        debug_printf("shell","读取异常信息失败\n\r");
     else
         Exp_InfoDecoder(&recordpara);
 
@@ -133,18 +134,18 @@ bool_t Exp_ShellBrowseRecordNum(char *param)
     result = Exp_RecordCheckNum(&expnum);
     if(true == result)
     {
-        printf("ShellSysExp:There has been 0x%08x Exp record!\n\r",expnum);
+        debug_printf("shell","ShellSysExp:There has been 0x%08x Exp record!\n\r",expnum);
         if(expnum > 0)
         {
-            printf("ShellSysExp:VALID NO.(1-%d)\n\r",expnum);
+            debug_printf("shell","ShellSysExp:VALID NO.(1-%d)\n\r",expnum);
         }
         else
         {
-            printf("There has been no exception record yet!\n\r");
+            debug_printf("shell","There has been no exception record yet!\n\r");
         }
     }
     else
-        printf("Get Exception Number Failed\n\r");
+        debug_printf("shell","Get Exception Number Failed\n\r");
     return result;
 }
 
@@ -164,11 +165,11 @@ bool_t Exp_ShellRecordClear(char *param)
 
     if(true == result)
     {
-        printf("\n\rShellSysExp:Clear SysExp info success!");
+        debug_printf("shell","ShellSysExp:Clear SysExp info success!");
     }
     else
     {
-        printf("\n\rShellSysExp:Clear SysExp info failed!");
+        debug_printf("shell","ShellSysExp:Clear SysExp info failed!");
     }
 
     return result;
@@ -209,12 +210,12 @@ bool_t Exp_ShellInit()
     bool_t result;
     if(Sh_InstallCmd(gtExpShellCmdTab,sgExpShellRsc,CN_EXPSHELL_NUM))
     {
-        printf("Install Exception Module Success\n\r");
+        info_printf("module","exception installed.");
         result = true;
     }
     else
     {
-        printf("Install Exception Module Failed\n\r");
+        error_printf("shell","exception installed failed<shell>.");
         result = false;
     }
     return result;

@@ -64,7 +64,7 @@ extern "C" {
 
 struct MemCellPool
 {
-    struct Object memb_node;    //资源结点,整个内存池将作为一个资源结点
+    struct dListNode List;
     void  *continue_pool;    //连续内存池首地址，使用它可以增加实时性。
     struct MemCellFree  *free_list;        //未分配块链表,单向,NULL结尾
     struct SemaphoreLCB memb_semp;
@@ -75,24 +75,11 @@ struct MemCellPool
                             //增不减的，即一旦从堆中申请了内存，是不释放的。
     u32 cell_limit;         //如果increment !=0，本成员限定该内存池的最大尺寸，
                             //单位为内存块数。
-    struct EventECB *cell_sync;   //同步队列。
+    char *Name;
     void * next_inc_pool;   //增量地址，用于记录本内存池运行过程中的增量，利于在
                             //删除内存池时释放之。
 };
 
-//空闲内存块构成双向循环链表。但初始化内存池时并不把内存加入链表，而是在释放时
-//才加入。
-//空闲链表节点，把free_list做成双向链表，可以增加程序的健壮性，如果是单向链表，
-//虽然可以实现功能，但是，如果重复释放一个已经释放的内存块，则可能导致破坏链表。
-//用双向链表，则很容易判断该结点是否已经在free_list中，如是，则不重复执行释放操
-//作，单向链表虽然可以用遍历的方法判断是否在free_list，但执行时间不确定，不符合
-//实时系统的要求。
-//用双向链表的后果是，单块内存至少两个指针长度，通常为8字节。
-struct MemCellFree
-{
-    struct MemCellFree *previous;
-    struct MemCellFree *next;
-};
 ptu32_t Mb_ModuleInit(ptu32_t para);
 struct MemCellPool *Mb_CreatePool(void *pool_original,u32 capacital,
                                 u32 cell_size,u32 increment,

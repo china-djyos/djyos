@@ -1,32 +1,32 @@
 //----------------------------------------------------
 // Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
-// 1. Redistributions of source code must retain the above copyright notice, 
+// 1. Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice, 
-//    this list of conditions and the following disclaimer in the documentation 
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 // LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 // CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 // SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 // Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
-// 
+//
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
-// 
+//
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
@@ -50,11 +50,54 @@
 // =============================================================================
 
 
-#if (CN_CFG_DJYBUS_IIC_BUS == 1)
+//#if (CN_CFG_DJYBUS_IIC_BUS == 1)
 #include "cpu_peri.h"
 #include "iicbus.h"
+#include <m24256_config.h>
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-#define E2ROM_Address                   (0x50)
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern ptu32_t M24256_ModuleInit(const char *BusName);
+//    M24256_ModuleInit(CFG_M24256_BUS_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"M24256"       //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"iicbus","lock"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_E2ROM_ADDR          //****检查参数是否已经配置好
+#warning    M24256组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,
+#define CFG_E2ROM_ADDR                   (0x50)      //"总线地址",EEPROM的IIC总线地址
+//%$#@string,1,20,
+#define CFG_M24256_BUS_NAME              "IIC0"     //"IIC总线",配置EEPROM使用的IIC总线名称
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+//#define CFG_E2ROM_ADDR                   (0x50)
 #define CN_E2ROM_MAX_SIZE               (0x40000)   //256K BYTES
 #define CN_E2ROM_PAGE_SIZE              (64)        // BYTE
 #define CN_E2ROM_MAX_PAGE               (CN_E2ROM_MAX_SIZE/CN_E2ROM_PAGE_SIZE)
@@ -76,9 +119,9 @@ u32 E2PROM_ReadData(u32 Addr,u8 *pDstBuf,u32 DstLen)
     u32 result = 0;
     if((Addr + DstLen > CN_E2ROM_MAX_SIZE) || (DstLen == 0))
         return result;
-    
+
     result = IIC_Read(&pg_E2ROM_Dev,Addr,pDstBuf,DstLen,CN_E2ROM_OP_TIMEOUT);
-    
+
     return result;
 }
 
@@ -94,7 +137,7 @@ u32 E2PROM_WriteByte(u32 Addr,u8 Value)
     if(Addr > CN_E2ROM_MAX_SIZE)
         return result;
     result = IIC_Write(&pg_E2ROM_Dev,Addr,&Value,1,true,CN_E2ROM_OP_TIMEOUT);
-    
+
     return result;
 }
 
@@ -110,14 +153,14 @@ u32 E2PROM_WriteByte(u32 Addr,u8 Value)
 u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
 {
     u32 Addr,result=0;
-    
+
     if((PageNo > CN_E2ROM_MAX_PAGE) || (SrcLen == 0)
             || (SrcLen > CN_E2ROM_PAGE_SIZE) || (NULL == pSrcBuf))
         return result;
-    
+
     Addr = PageNo * CN_E2ROM_PAGE_SIZE;
     result = IIC_Write(&pg_E2ROM_Dev,Addr,pSrcBuf,SrcLen,1,CN_E2ROM_OP_TIMEOUT);
-    
+
     Djy_EventDelay(CN_CHIP_WRITE_FINISHED_TIME);
     return result;
 }
@@ -127,18 +170,18 @@ u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
 // 参数：para，暂时没用到
 // 返回：true,正确;false,错误
 // =============================================================================
-ptu32_t M24256_ModuleInit(ptu32_t para)
+ptu32_t M24256_ModuleInit(const char *BusName)
 {
-    pg_E2ROM_Dev.DevAddr = E2ROM_Address;
+    pg_E2ROM_Dev.DevAddr = CFG_E2ROM_ADDR;
     pg_E2ROM_Dev.BitOfMemAddrInDevAddr = 0;
     pg_E2ROM_Dev.BitOfMemAddr = 16;
-    
-    IIC0_Init();
 
-    if(NULL == IIC_DevAdd_r("IIC0","IICDev_M24256",&pg_E2ROM_Dev))
+//    IIC0_Init();
+
+    if(NULL == IIC_DevAdd_r(BusName,"IICDev_M24256",&pg_E2ROM_Dev))
         return false;
     else
         return true;
 }
 
-#endif
+//#endif

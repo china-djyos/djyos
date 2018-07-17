@@ -48,8 +48,10 @@
 //-----------------------------------------------------------------------------
 
 #include <stdlib.h>
-#include <netdb.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include "../component_config_tcpip.h"
 
 //usage:use this data to storage the netdb errors
 int h_errno;
@@ -161,12 +163,12 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt)
         memcpy((void *)&addr,src,sizeof(addr));
         str = inet_ntoa(addr);
 
-		if((NULL != str)&&(cnt > (strlen(str)+1)))
-		{
-			memcpy((void*)dst,(void*)str,strlen(str)+1);
-			result = dst;
-		}
-	}
+        if((NULL != str)&&(cnt > (strlen(str)+1)))
+        {
+            memcpy((void*)dst,(void*)str,strlen(str)+1);
+            result = dst;
+        }
+    }
 
     return result;
 }
@@ -202,61 +204,53 @@ extern struct hostent*  DnsNameResolve(const char *name);
 static char gHostName[32] = "DJYOS_TERNIMAL";
 int  gethostname(char *name, int len)
 {
-	strcpy(name,gHostName);
-	return 0;
+    strcpy(name,gHostName);
+    return 0;
 }
 
 int sethostname(const char *name, size_t len)
 {
-	int ret = -1;
-	if((len > 0)&&(len <32)&&(NULL != name))
-	{
-		memset(gHostName,0,32);
-		strncpy(gHostName,name,31);
-		ret = 0;
-	}
-	return ret;
+    int ret = -1;
+    if((len > 0)&&(len <32)&&(NULL != name))
+    {
+        memset(gHostName,0,32);
+        strncpy(gHostName,name,31);
+        ret = 0;
+    }
+    return ret;
 }
 static struct hostent gHostEnt;
 static struct in_addr gHostAddr;
 static struct in_addr gLocalAddr;
 static void  *gHLAddr[3];
 
-#include "../rout.h"
 struct hostent *gethostbyname(const char *name)
 {
     struct hostent *ret;
     if((NULL == name)||(0 == strcmp(name,"localhost")))
     {
-    	gHostEnt.h_addrtype = AF_INET;
-    	gHostEnt.h_length = sizeof(struct in_addr);
-    	gHostEnt.h_name =(char *) name;
-    	inet_aton("127.0.0.1",&gLocalAddr);
-    	gHLAddr[0]=&gLocalAddr;
-    	gHLAddr[1]=&gHostAddr;
-    	gHLAddr[2] = NULL;
-    	gHostEnt.h_addr_list = (char **)&gHLAddr;
-    	ret = &gHostEnt;
+        gHostEnt.h_addrtype = AF_INET;
+        gHostEnt.h_length = sizeof(struct in_addr);
+        gHostEnt.h_name =(char *) name;
+        inet_aton("127.0.0.1",&gLocalAddr);
+        gHLAddr[0]=&gLocalAddr;
+        gHLAddr[1]=&gHostAddr;
+        gHLAddr[2] = NULL;
+        gHostEnt.h_addr_list = (char **)&gHLAddr;
+        ret = &gHostEnt;
     }
     else if(0==strcmp(name,gHostName))
     {
-    	tagRout *rout = RoutGetDefault(EN_IPV_4);
-    	if(NULL != rout)
-    	{
-        	gHostEnt.h_addrtype = AF_INET;
-        	gHostEnt.h_length = sizeof(struct in_addr);
-        	gHostEnt.h_name = (char *)name;
-        	gHostAddr.s_addr = rout->ipaddr.ipv4.ip;
-        	gHLAddr[0]=&gHostAddr;
-        	gHLAddr[1]=&gLocalAddr;
-        	gHLAddr[2] = NULL;
-        	gHostEnt.h_addr_list = (char **)&gHLAddr;
-        	ret = &gHostEnt;
-    	}
-    	else
-    	{
-    		ret = NULL;
-    	}
+
+        gHostEnt.h_addrtype = AF_INET;
+        gHostEnt.h_length = sizeof(struct in_addr);
+        gHostEnt.h_name = (char *)name;
+        gHostAddr.s_addr = INADDR_LOOPBACK;
+        gHLAddr[0]=&gHostAddr;
+        gHLAddr[1]=&gLocalAddr;
+        gHLAddr[2] = NULL;
+        gHostEnt.h_addr_list = (char **)&gHLAddr;
+        ret = &gHostEnt;
     }
     else
     {
@@ -273,121 +267,121 @@ struct hostent *gethostbyname(const char *name)
 //--TODO,should make a list for more than one address and port,but now only one
 int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result )
 {
-	int res = -1;
-	struct hostent     *host;
-	struct servent     *serve;
-	struct addrinfo    *answer;
-	struct sockaddr_in *addr;
-	const char         *protoname;
+    int res = -1;
+    struct hostent     *host;
+    struct servent     *serve;
+    struct addrinfo    *answer;
+    struct sockaddr_in *addr;
+    const char         *protoname;
 
-	answer= malloc(sizeof(struct addrinfo));
-	if(NULL == answer)
-	{
-		res = EAI_MEMORY;
-		goto EXIT_INFOMEM;
-	}
-	memset(answer,0,sizeof(struct addrinfo));
+    answer= net_malloc(sizeof(struct addrinfo));
+    if(NULL == answer)
+    {
+        res = EAI_MEMORY;
+        goto EXIT_INFOMEM;
+    }
+    memset(answer,0,sizeof(struct addrinfo));
 
-	addr =malloc(sizeof(struct sockaddr_in));
-	if(NULL == addr)
-	{
-		res = EAI_MEMORY;
-		goto EXIT_ADDRMEM;
-	}
-	memset(addr,0,sizeof(struct sockaddr_in));
+    addr =net_malloc(sizeof(struct sockaddr_in));
+    if(NULL == addr)
+    {
+        res = EAI_MEMORY;
+        goto EXIT_ADDRMEM;
+    }
+    memset(addr,0,sizeof(struct sockaddr_in));
 
 
-	if(((NULL == hostname)&&(NULL== service))||(NULL == result))
-	{
-		res = EAI_NONAME;
-		goto EXIT_PARAM;
-	}
-	if((NULL != hints)&&\
-	   (hints->ai_family != AF_INET)&&(hints->ai_family != AF_INET6)&&(hints->ai_family != AF_UNSPEC))
-	{
-		res = EAI_FAMILY;
-		goto EXIT_FAMILY;
-	}
-	if((NULL != hints)&&\
-		(hints->ai_socktype != SOCK_STREAM)&&(hints->ai_socktype != SOCK_DGRAM))
-	{
-		res = EAI_SOCKTYPE;
-		goto EXIT_SOCKTYPE;
-	}
-	//get the host
-	if(inet_aton(hostname,&addr->sin_addr) > 0)
-	{
-		answer->ai_family = AF_INET;
-		answer->ai_next = NULL;
-		answer->ai_addrlen = sizeof(struct sockaddr_in);
-		answer->ai_addr = (struct sockaddr*)addr;
-	}
-	else
-	{
-		host = gethostbyname(hostname);
-		if(NULL == host)
-		{
-			res = EAI_NODATA;
-			goto EXIT_GETFAIL;
-		}
+    if(((NULL == hostname)&&(NULL== service))||(NULL == result))
+    {
+        res = EAI_NONAME;
+        goto EXIT_PARAM;
+    }
+    if((NULL != hints)&&\
+       (hints->ai_family != AF_INET)&&(hints->ai_family != AF_INET6)&&(hints->ai_family != AF_UNSPEC))
+    {
+        res = EAI_FAMILY;
+        goto EXIT_FAMILY;
+    }
+    if((NULL != hints)&&\
+        (hints->ai_socktype != SOCK_STREAM)&&(hints->ai_socktype != SOCK_DGRAM))
+    {
+        res = EAI_SOCKTYPE;
+        goto EXIT_SOCKTYPE;
+    }
+    //get the host
+    if(inet_aton(hostname,&addr->sin_addr) > 0)
+    {
+        answer->ai_family = AF_INET;
+        answer->ai_next = NULL;
+        answer->ai_addrlen = sizeof(struct sockaddr_in);
+        answer->ai_addr = (struct sockaddr*)addr;
+    }
+    else
+    {
+        host = gethostbyname(hostname);
+        if(NULL == host)
+        {
+            res = EAI_NODATA;
+            goto EXIT_GETFAIL;
+        }
 
-		memcpy(&addr->sin_addr,host->h_addr_list[0],sizeof(addr->sin_addr));
-		addr->sin_family = AF_INET;
-		answer->ai_family = AF_INET;
-		answer->ai_next = NULL;
-		answer->ai_addrlen = sizeof(struct sockaddr_in);
-		answer->ai_addr = (struct sockaddr*)addr;
-	}
-	if(NULL != hints)
-	{
-		protoname = NULL;
-		if(hints->ai_socktype == SOCK_STREAM)
-		{
-			protoname = "tcp";
-		}
-		else
-		{
-			protoname = "udp";
-		}
-		addr->sin_family = hints->ai_family;
-		serve = getservbyname(service,protoname);
-		if(NULL == serve)
-		{
-			res = EAI_NODATA;
-			goto EXIT_GETFAIL;
-		}
-		addr->sin_port = (in_port_t)serve->s_port;
-		answer->ai_socktype = hints->ai_socktype;
-		answer->ai_protocol = hints->ai_protocol;
-	}
-	res = EAI_OK;
+        memcpy(&addr->sin_addr,host->h_addr_list[0],sizeof(addr->sin_addr));
+        addr->sin_family = AF_INET;
+        answer->ai_family = AF_INET;
+        answer->ai_next = NULL;
+        answer->ai_addrlen = sizeof(struct sockaddr_in);
+        answer->ai_addr = (struct sockaddr*)addr;
+    }
+    if(NULL != hints)
+    {
+        protoname = NULL;
+        if(hints->ai_socktype == SOCK_STREAM)
+        {
+            protoname = "tcp";
+        }
+        else
+        {
+            protoname = "udp";
+        }
+        addr->sin_family = hints->ai_family;
+        serve = getservbyname(service,protoname);
+        if((NULL != service)&&(NULL == serve))
+        {
+            res = EAI_NODATA;
+            goto EXIT_GETFAIL;
+        }
+        addr->sin_port = (in_port_t)serve->s_port;
+        answer->ai_socktype = hints->ai_socktype;
+        answer->ai_protocol = hints->ai_protocol;
+    }
+    res = EAI_OK;
 
-	*result = answer;
-	return res;
+    *result = answer;
+    return res;
 
 EXIT_GETFAIL:
 EXIT_SOCKTYPE:
 EXIT_FAMILY:
 EXIT_PARAM:
-	free(addr);
+    net_free(addr);
 EXIT_ADDRMEM:
-	free(answer);
+    net_free(answer);
 EXIT_INFOMEM:
-	h_errno = res;
-	return res;
+    h_errno = res;
+    return res;
 }
-//free the ai by getaddrinfo returned;
+//net_free the ai by getaddrinfo returned;
 void freeaddrinfo (struct addrinfo*ai)
 {
-	if(NULL != ai)
-	{
-		if(NULL != ai->ai_addr)
-		{
-			free(ai->ai_addr);
-		}
-		free(ai);
-	}
-	return;
+    if(NULL != ai)
+    {
+        if(NULL != ai->ai_addr)
+        {
+            net_free(ai->ai_addr);
+        }
+        net_free(ai);
+    }
+    return;
 }
 
 

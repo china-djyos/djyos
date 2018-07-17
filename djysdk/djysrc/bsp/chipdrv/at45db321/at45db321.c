@@ -62,6 +62,49 @@
 #include "board-config.h"
 #include "os.h"
 #include "systime.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern s32 ModuleInstall_AT45DB321E(u8 bArgC, ...);
+//    ModuleInstall_AT45DB321E(CFG_AT45_ARGC,CFG_AT45_BUSNAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"at45db321"    //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock","spibus","heap"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_AT45_ARGC           //****检查参数是否已经配置好
+#warning   at45db321组件参数未配置，使用默认值
+//%$#@num,0,100,
+#define CFG_AT45_ARGC                1  //"参数个数",AT45参数的个数
+//%$#@enum,512,528,
+#define CFG_AT45_PAGE_SIZE           528//"pagesize",配置AT45的页大小，默认为528
+//%$#@string,1,10,
+#define CFG_AT45_BUSNAME             "SPI0"//"SPI总线名称",AT45使用的总线名称
+//%$#@select
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 /*------------------------Time Symbol--------------------------------
 Symbol  Parameter                               Typ     Max     Units
@@ -119,12 +162,12 @@ tBE     Block Erase Time                        45      100     ms
 #define AT45_Status_Reg_Bit_PRTC        0x02    //1=En protect  0=Dis protect
 #define AT45_Status_Reg_Bit_PGSZ        0x01    //1=page size 512   0=page size 528
 
-#ifndef AT45_Page_Size
-//AT45_Page_Size默认值为528，如不使用默认值，请在config-prj.h中定义
-#define AT45_Page_Size      528
-#endif
+//#ifndef CFG_AT45_PAGE_SIZE
+////CFG_AT45_PAGE_SIZE默认值为528，如不使用默认值，请在config-prj.h中定义
+//#define CFG_AT45_PAGE_SIZE      528
+//#endif
 
-#define AT45_Block_Size     AT45_Page_Size*8
+#define AT45_Block_Size     CFG_AT45_PAGE_SIZE*8
 
 //buff num define
 #define AT45_Buff1  1
@@ -133,7 +176,7 @@ tBE     Block Erase Time                        45      100     ms
 #define vs_Erase    1
 #define no_Erase    2
 
-static struct SPI_Device s_AT45_Dev;
+static struct SPI_Device *s_ptAT45_Dev;
 u32 AT45_OP_TIMEOUT = 1800000; // 30分钟
 #define AT45_SPI_SPEED      (10*1000*1000)
 static bool_t sAT45Inited = false;
@@ -141,7 +184,7 @@ static bool_t sAT45Inited = false;
 //Command指令缓存区
 u8 _at45db321_Command[10]={0};
 //SPI FLASH数据缓存区
-u8 _at45db321_buff[AT45_Page_Size] = {0};
+u8 _at45db321_buff[CFG_AT45_PAGE_SIZE] = {0};
 //当前可用于写数据的Buff,代表另一Buff有可能正处于向FLASH写数据的阶段
 u8 _at45db321_Ready_Buff = AT45_Buff1;
 
@@ -156,11 +199,11 @@ u32 buff1_cnt=0,buff2_cnt=0;
 ---------------------test use only----------------------*/
 void _at45db321_cs_active(void)
 {
-    SPI_CsActive(&s_AT45_Dev, AT45_OP_TIMEOUT);
+    SPI_CsActive(s_ptAT45_Dev,AT45_OP_TIMEOUT);
 }
 void _at45db321_cs_inactive(void)
 {
-    SPI_CsInactive(&s_AT45_Dev);
+    SPI_CsInactive(s_ptAT45_Dev);
     Djy_DelayUs(20);
 }
 u32 _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
@@ -174,7 +217,7 @@ u32 _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
     data.SendBuf = sdata;
     data.SendLen = slen;
 
-    result = SPI_Transfer(&s_AT45_Dev,&data,true,AT45_OP_TIMEOUT);
+    result = SPI_Transfer(s_ptAT45_Dev,&data,true,AT45_OP_TIMEOUT);
     if(result != CN_SPI_EXIT_NOERR)
         return 0;
     return 1;
@@ -193,10 +236,10 @@ u32 _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
 //-----------------------------------------------------------------------------
 u32 _at45db321_Offset_Caculate(u32 Address)
 {
-#if AT45_Page_Size==512
-    return ( (Address%AT45_Page_Size)&0x1FF );
-#elif AT45_Page_Size==528
-    return ( (Address%AT45_Page_Size)&0x3FF );
+#if CFG_AT45_PAGE_SIZE==512
+    return ( (Address%CFG_AT45_PAGE_SIZE)&0x1FF );
+#elif CFG_AT45_PAGE_SIZE==528
+    return ( (Address%CFG_AT45_PAGE_SIZE)&0x3FF );
 #endif
 }
 
@@ -209,7 +252,7 @@ u32 _at45db321_Offset_Caculate(u32 Address)
 //-----------------------------------------------------------------------------
 u32 _at45db321_Page_Caculate(u32 Address)
 {
-    return (u32)( Address/AT45_Page_Size );
+    return (u32)( Address/CFG_AT45_PAGE_SIZE );
 }
 
 //----通过Page地址计算Block地址------------------------------------------------
@@ -233,7 +276,7 @@ u32 _at45db321_Block_Caculate(u32 page_addr)
 u32 _at45db321_Written_Caculate(u32 byte_offset_addr,u32 data_len)
 {
     u32 written_data_len;
-    written_data_len = AT45_Page_Size-byte_offset_addr;
+    written_data_len = CFG_AT45_PAGE_SIZE-byte_offset_addr;
     if( written_data_len>data_len )
         written_data_len = data_len;
     return written_data_len;
@@ -252,10 +295,10 @@ u32 _at45db321_Continuous_Array_Read(u32 page_addr,u32 byte_offset_addr,u8 *data
 {
     //array_addr
     _at45db321_Command[0] = AT45_Continous_Array_Read_HF;
-#if AT45_Page_Size==512
+#if CFG_AT45_PAGE_SIZE==512
     _at45db321_Command[1] = (page_addr>>7)&0xFF;
     _at45db321_Command[2] = ((page_addr<<1)|(byte_offset_addr>>8))&0xFF;
-#elif AT45_Page_Size==528
+#elif CFG_AT45_PAGE_SIZE==528
     _at45db321_Command[1] = (page_addr>>6)&0xFF;
     _at45db321_Command[2] = ((page_addr<<2)|(byte_offset_addr>>8))&0xFF;
 #endif
@@ -354,10 +397,10 @@ bool_t _at45db321_Page_to_Buff(u32 buff_num,u32 page_addr)
     {
         return 0;
     }
-#if AT45_Page_Size==512
+#if CFG_AT45_PAGE_SIZE==512
     _at45db321_Command[1] = (page_addr>>7)&0xFF;
     _at45db321_Command[2] = (page_addr<<1)&0xFF;
-#elif AT45_Page_Size==528
+#elif CFG_AT45_PAGE_SIZE==528
     _at45db321_Command[1] = (page_addr>>6)&0xFF;
     _at45db321_Command[2] = (page_addr<<2)&0xFF;
 #endif
@@ -409,10 +452,10 @@ bool_t _at45db321_Buff_to_Page(u32 buff_num,u32 page_addr,u32 With_Erase)
         return 0;
     }
 
-#if AT45_Page_Size==512
+#if CFG_AT45_PAGE_SIZE==512
     _at45db321_Command[1] = (page_addr>>7)&0xFF;
     _at45db321_Command[2] = (page_addr<<1)&0xFF;
-#elif AT45_Page_Size==528
+#elif CFG_AT45_PAGE_SIZE==528
     _at45db321_Command[1] = (page_addr>>6)&0xFF;
     _at45db321_Command[2] = (page_addr<<2)&0xFF;
 #endif
@@ -470,10 +513,10 @@ bool_t AT45_Page_Erase(u32 Address)
     page_addr = _at45db321_Page_Caculate(Address);
 
     _at45db321_Command[0] = AT45_Page_Erase_Cmd;
-#if AT45_Page_Size==512
+#if CFG_AT45_PAGE_SIZE==512
     _at45db321_Command[1] = (page_addr>>7)&0xFF;
     _at45db321_Command[2] = (page_addr<<1)&0xFF;
-#elif AT45_Page_Size==528
+#elif CFG_AT45_PAGE_SIZE==528
     _at45db321_Command[1] = (page_addr>>6)&0xFF;
     _at45db321_Command[2] = (page_addr<<2)&0xFF;
 #endif
@@ -485,7 +528,7 @@ bool_t AT45_Page_Erase(u32 Address)
 
     _at45db321_cs_inactive();
 
-	Djy_EventDelay(50000);
+    Djy_EventDelay(50000);
     Lock_MutexPost(pAT45_Lock);
     return true;
 }
@@ -520,7 +563,7 @@ bool_t AT45_Block_Erase(u32 Address)
 
     _at45db321_cs_inactive();
 
-	Djy_EventDelay(100000);
+    Djy_EventDelay(100000);
     Lock_MutexPost(pAT45_Lock);
 
     return true;
@@ -552,7 +595,7 @@ bool_t AT45_Chip_Erase(void)
 
     _at45db321_cs_inactive();
 
-	Djy_EventDelay(100000000);
+    Djy_EventDelay(100000000);
     Lock_MutexPost(pAT45_Lock);
 
     return true;
@@ -827,7 +870,7 @@ u32 AT45_FLASH_Read(u32 Address,u8 *data,u32 data_len)
 
     _at45db321_Continuous_Array_Read(page_addr,byte_offset_addr,data,data_len);
 
-	Djy_EventDelay(10000);
+    Djy_EventDelay(10000);
     Lock_MutexPost(pAT45_Lock);
 
     return data_len;
@@ -882,7 +925,7 @@ u32 _at45_flash_write(u32 Address,u8 *data,u32 data_len)
 
     //3.最后，完成写入操作
     //写入时，必须将flash中的数据读入到片内RAM，否则，将会将RAM中未确定的数据刷入到FLASH
-//  if((( byte_offset_addr != 0 )||( written_data_len != AT45_Page_Size ))&&(Erase_orNot == vs_Erase))
+//  if((( byte_offset_addr != 0 )||( written_data_len != CFG_AT45_PAGE_SIZE ))&&(Erase_orNot == vs_Erase))
     {//非整个Page的写入，擦除前需要保存
         _at45db321_Page_to_Buff(_at45db321_Ready_Buff,page_addr);
         if(false == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
@@ -925,7 +968,7 @@ u32 AT45_FLASH_Write(u32 Address,u8 *data,u32 data_len)
         data    += wsize;
         temp -= wsize;
     }
-	Djy_EventDelay(10000);
+    Djy_EventDelay(10000);
     Lock_MutexPost(pAT45_Lock);
     return data_len - temp;
 }
@@ -955,17 +998,14 @@ bool_t ModuleInstall_at45db321(char *pBusName)
     if(NULL == Lock_SempCreate_s(pAT45_Lock,1,1,CN_BLOCK_FIFO,"AT45 semp"))
         return false;
 
-    /* setup baud rate */
-    s_AT45_Dev.AutoCs = false;
-    s_AT45_Dev.CharLen = 8;
-    s_AT45_Dev.Cs = 0;
-    s_AT45_Dev.Freq = AT45_SPI_SPEED;
-    s_AT45_Dev.Mode = SPI_MODE_0;
-    s_AT45_Dev.ShiftDir = SPI_SHIFT_MSB;
-
-    if(NULL != SPI_DevAdd_s(&s_AT45_Dev, pBusName, name))
+    if(s_ptAT45_Dev = SPI_DevAdd(pBusName,name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false))
     {
-        SPI_BusCtrl(&s_AT45_Dev,CN_SPI_SET_POLL,0,0);
+        SPI_BusCtrl(s_ptAT45_Dev,CN_SPI_SET_POLL,0,0);
+    }
+    else
+    {
+        printf("\r\n: error  : device : AT45DB321E init failed.\n\r");
+        return false;
     }
 
     if(false == _at45db321_Check_ID())  //校验芯片ID
@@ -973,10 +1013,11 @@ bool_t ModuleInstall_at45db321(char *pBusName)
 
     if( !(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ) )//转换成512字节
     {
-        _at45db321_Binary_Page_Size_512();//不可逆，且需重启
+        _at45db321_Binary_Page_Size_512();//不可逆，且需重新上电
+        printf("\r\n: info  : device : AT45DB321 page size 改变，请重新上电\n\r");
     }
 
-    AT45_DevRegister(name, 4*1024, 0, &s_AT45_Dev);
+    AT45_DevRegister(name, 4*1024, 0, s_ptAT45_Dev);
     sAT45Inited = true;
     return sAT45Inited;
 }
@@ -1025,32 +1066,26 @@ s32 ModuleInstall_AT45DB321E(u8 bArgC, ...)
 
     if(((size[0]+size[1]+size[2]) > 1024) || (!bus))
     {
-        printf("\r\nMODULE INSTALL : error : bad parameters to install flash <at45db321e>.");
+        printf("\r\n: error : device : bad parameters for install flash <at45db321e>.");
         return (-1);
     }
 
     pAT45_Lock = Lock_MutexCreate("AT45 Lock");
     if(!pAT45_Lock)
     {
-        printf("\r\nMODULE INSTALL : error : cannot create AT45 flash lock.");
+        printf("\r\n: error : device : cannot create AT45 flash lock.");
         return (-1);
     }
 
-    s_AT45_Dev.AutoCs = FALSE;
-    s_AT45_Dev.CharLen = 8;
-    s_AT45_Dev.Cs = 0;
-    s_AT45_Dev.Freq = AT45_SPI_SPEED;
-    s_AT45_Dev.Mode = SPI_MODE_0;
-    s_AT45_Dev.ShiftDir = SPI_SHIFT_MSB;
-
-    if(SPI_DevAdd_s(&s_AT45_Dev, bus, name))
+    s_ptAT45_Dev = SPI_DevAdd(bus,name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
+    if(s_ptAT45_Dev != NULL)
     {
-        SPI_BusCtrl(&s_AT45_Dev, CN_SPI_SET_POLL, 0, 0);
+        SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
     }
 
     if(FALSE == _at45db321_Check_ID())  //校验芯片ID
     {
-        printf("\r\nMODULE INSTALL : error : bad ID check for <at45db321e>.");
+        printf("\r\n: error : device : bad ID check for <at45db321e>.");
         return (-1);
     }
 
@@ -1060,7 +1095,7 @@ s32 ModuleInstall_AT45DB321E(u8 bArgC, ...)
     sAT45Inited = TRUE;
 
     for(i = 0; i < partitions; i++)
-        __AT45_MakePartition(name, start[i], size[i], special[i], &s_AT45_Dev);
+        __AT45_MakePartition(name, start[i], size[i], special[i], s_ptAT45_Dev);
 
     return sAT45Inited;
 }

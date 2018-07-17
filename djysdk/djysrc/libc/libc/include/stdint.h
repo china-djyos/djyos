@@ -106,6 +106,7 @@ typedef volatile sint8_t  const vsc8;
 
 #define CN_LIMIT_UINT64         0xffffffffffffffff
 #define CN_LIMIT_UINT32         0xffffffff
+#define CN_LIMIT_UINT24			0xffffff
 #define CN_LIMIT_UINT16         0xffff
 #define CN_LIMIT_UINT8          0xff
 #define CN_LIMIT_SINT64         0x7fffffffffffffff

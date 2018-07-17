@@ -25,6 +25,62 @@
 #include "os.h"
 
 #include "Ax88796Byte.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern tagAx88796Pri *Ax88796Install(tagAx88796Para *para);
+//    tagAx88796Para Ax88796param;
+//    u8 Ax88796Mac[6]           = {0xaa,0xbb,0xcc,0xdd,0xee,0x02};
+//    Ax88796param.useirq         = CFG_AX88796_IRQ_USE;
+//    Ax88796param.loopcycle      = CFG_AX88796_LOOP_CYCLE;
+//    Ax88796param.irqno          = CFG_AX88796_IRQ_NO;
+//    Ax88796param.mac            = &Ax88796Mac;
+//    Ax88796param.name           = "phy_ax88796";
+//    Ax88796param.devbase        = CFG_AX88796_DEV_BASE;
+//    Ax88796param.stacksize      = CFG_AX88796_STACK_SIZE;
+//    Ax88796param.fnRstDealer    = NULL;       //需要具体情况去实现，此处暂时写为NULL
+//    Ax88796param.fnRcvDealer    = NULL;       //需要具体情况去实现，此处暂时写为NULL
+//    Ax88796Install(&Ax88796param);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"AX88796"      //填写该组件的名字
+//parent:"djyip"                //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock","tcpip","heap"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_AX88796_IRQ_USE     //****检查参数是否已经配置好
+#warning    AX88796组件参数未配置，使用默认值
+//%$#@num,1000,1000000,
+#define CFG_AX88796_LOOP_CYCLE                (1000*1000) //"looptime",配置循环读网卡接收的时间
+//%$#@enum,true,false,
+#define CFG_AX88796_IRQ_USE                   (1)         //"使用中断",AX88796是否使用中断
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#define CFG_AX88796_IRQ_NO                               //"配置使用的中断号",
+#define CFG_AX88796_DEV_BASE                             //"总线操作地址",
+#define CFG_AX88796_STACK_SIZE                           //"栈大小",
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 #define CN_DEV_MONITOR_CYCLE    (5*1000*mS)  //if 5s no pkg comes. reset the dev
 #define CN_TSND_TIMEWAIT        1000      //单位：us,发送最多最多等待时间

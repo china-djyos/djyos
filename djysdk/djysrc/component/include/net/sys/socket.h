@@ -66,57 +66,11 @@
 #include <os.h>
 #include <shell.h>
 #include <multiplex.h>
+//all the bsp driver needed is in netbdp.h
+#include <netbsp.h>
+//all the system function are supplied in osarch.h
+#include <osarch.h>
 
-//一个PKGLST在传输的过程中，当某个PKG拥有CN_PKLGLST_END标记或者NULL == partnext，即可认为
-//该PKGLST结束，该特性在发送的时候尤其明显
-#define CN_PKLGLST_END   (1<<0)
-//tagNetPkg的原理
-//bufsize在申请时指定，使用过程中一直不变;data一直指向buf的起始位置，保持不变
-//当向PKG写入数据时，offset不变，从buf的offset+datalen的地方开始写新数据，写完之后
-//                  datalen +=len(len为写入数据长度)
-//当从PKG读取数据时，从buf的offset开始cpy，cpy完成之后，
-//                  offset += len,datalen -= len(len为取出数据长度)
-typedef struct NetPkg
-{
-    struct NetPkg   *partnext;        //该组指针负责数据包在协议栈的传递
-    ptu32_t  private;   //used for the module who malloc the package
-    u8   level;         // PKG的大小等级
-    u8   pkgflag;       // PKG的后续扩展属性
-    u8   refers;        // 缓存的次数
-    u16  datalen;       // buf中的有效数据长度
-    u16  bufsize;       // buf的长度
-    u16  offset;        // 有效数据偏离buf的位置，offset之前的数据无效,当分拆数据或者数据对齐的时候很有用
-    u8   *buf;          // pkg的buf（数据缓存区）
-}tagNetPkg;
-
-bool_t     Pkg_SetAlignOffset(u16 alignsize);
-tagNetPkg *PkgMalloc(u16 bufsize,u8 flags);
-bool_t     PkgTryFreePart(tagNetPkg *pkg);
-bool_t     PkgTryFreeLst(tagNetPkg  *pkglst);
-bool_t     PkgTryFreeQ(tagNetPkg  *pkglst);
-bool_t     PkgCachedPart(tagNetPkg  *pkg);
-bool_t     PkgCachedLst(tagNetPkg   *pkglst);
-u16        PkgAlignSize(u16 size);
-#define    PKG_ISLISTEND(pkg)      (pkg->pkgflag&CN_PKLGLST_END)
-
-//used to defines the net device task
-#define CN_IPDEV_TCPOCHKSUM  (1<<0)
-#define CN_IPDEV_TCPICHKSUM  (1<<1)
-#define CN_IPDEV_UDPOCHKSUM  (1<<2)
-#define CN_IPDEV_UDPICHKSUM  (1<<3)
-#define CN_IPDEV_ICMPOCHKSUM (1<<4)
-#define CN_IPDEV_ICMPICHKSUM (1<<5)
-#define CN_IPDEV_IPOCHKSUM   (1<<6)
-#define CN_IPDEV_IPICHKSUM   (1<<7)
-#define CN_IPDEV_ALL         (0xFFFFFFFF)
-#define CN_IPDEV_NONE        (0X0)
-
-//enum the ip version
-typedef enum
-{
-	EN_IPV_4 =4,
-	EN_IPV_6 =6,
-}enum_ipv_t;
 
 /* Supported address families. */
 #define AF_UNSPEC       0
@@ -200,11 +154,11 @@ typedef enum
 
 
 // type
-#define SOCK_STREAM		1        // 可靠的双向字节流服务 - TCP
-#define SOCK_DGRAM		2        // 最好的运输层数据报服务 - UDP
+#define SOCK_STREAM     1        // 可靠的双向字节流服务 - TCP
+#define SOCK_DGRAM      2        // 最好的运输层数据报服务 - UDP
 #define SOCK_RAW        3        // 最好的网络层数据报服务 - ICMP IGMP 原始IP
 #define SOCK_RDW        4        // 可靠的数据报服务（未实现） - n/a
-#define SOCK_SEQPACKET	5        // 可靠的双向记录流服务 - n/a
+#define SOCK_SEQPACKET  5        // 可靠的双向记录流服务 - n/a
 
 //proto
 #define SOL_SOCKET       4
@@ -427,9 +381,9 @@ typedef struct TlayerProto
 struct Socket
 {
     //the following used by the proto
+    void                           *obj;     //used for the socket layqueue
     struct Socket                  *nxt;         //nxt node
     struct MutexLCB                *sync;         //used to protect the socket
-    struct MutexLCB                 syncmem;      //used for the sync mem
     tagTlayerProto                 *proto;        //protocol for the socket
     void                           *cb;           //the control node
     struct MultiplexObjectCB       *ioselect;     //used for the select;
@@ -456,9 +410,10 @@ struct linger
 #define CN_SOCKET_PORT_LIMIT     0xFFFF
 
 //the sock layer only supply the sock malloc and free
-tagSocket *SocketMalloc(void);
-bool_t     SocketFree(tagSocket *sock);
-
+tagSocket *socket_malloc(void);
+bool_t     socket_free(tagSocket *sock);
+bool_t     socket_setsatus(tagSocket *sock,u32 status);
+bool_t     socket_clrsatus(tagSocket *sock,u32 status);
 //FOR ALL THE APPLICATIONS, ONLY THE FOLLOWING INTERFACE COULD BE USED
 int socket(int family, int type, int protocol);
 int bind(int sockfd,struct sockaddr *addr, int addrlen);
@@ -563,28 +518,16 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 #ifndef FD_SETSIZE
 #define FD_SETSIZE     (10)    //the mac select num
 #endif
-enum __FCNTL_CMD
-{
-	F_SETFD = 0,
-	F_GETFD,
-	F_DUPFD,
-	F_DUPFD_CLOEXEC,
-	F_GETFL,
-	F_SETFL,
-};
 
 #include <unistd.h>
-extern int fcntl(int fd,int cmd,...);
-extern off_t lseek(int fd,off_t offset, int whence);
-
 //select.h
 #include <sys/time.h>
 #define CN_SELECT_MAXNUM      FD_SETSIZE
 #define CN_SELECT_TIMEDEFAULT 10
 typedef struct
 {
-	int  mode;
-	u32  fd[CN_SELECT_MAXNUM];
+    int  mode;
+    u32  fd[CN_SELECT_MAXNUM];
 }_types_fd_set;
 
 #define fd_set _types_fd_set
@@ -596,14 +539,10 @@ int FD_ZERO(fd_set *sets);
 
 int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
            struct timeval *timeout);
-int string2arg(int *argc, char *argv[],char *string);
-bool_t string2Mac(char *str,u8 *mac);  //string must be xx-xx-xx-xx-xx-xx style
-char* Mac2string(u8 *mac);
-
 ////////////////////////NETDEV DRIVER USED INTERFACE///////////////////////////////
 //ip address defines
 #ifndef INADDR_LOOPBACK
-#define INADDR_LOOPBACK     0x7f000001     //127.0.0.1
+#define INADDR_LOOPBACK   htonl(0x7f000001)
 #endif
 #define INADDR_ANY          0
 #define INADDR_NONE         0XFFFFFFFF
@@ -612,9 +551,8 @@ char* Mac2string(u8 *mac);
 #define INVALID_SOCKET      -1
 #define CN_IPADDR_LEN_V4     4
 #define CN_IPADDR_LEN_V6     16
-#define CN_MACADDR_LEN       6
 #define CN_IPADDR_ANY_V4     INADDR_ANY
-#define CN_MAC_BROAD         "\xff\xff\xff\xff\xff\xff"
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////I WANT TO REBUILD THE NEW LINK ROUT///////////////////
@@ -623,192 +561,28 @@ char* Mac2string(u8 *mac);
 #define TCPIP_DEBUG_DEC(x)     do{x--;}while(0)
 
 #define CN_TCPIP_NAMELEN      32    //IN THE TCP IP STACK ,THIS IS THE NAME LEN LIMIT
-typedef enum
-{
-    EN_NETDEV_SETNOPKG = 0,      //PARA IS NOT CARE
-	EN_NETDEV_SETBORAD,          //para is int,0 disable else enable
-	EN_NETDEV_SETPOINT,          //para is int,0 disable else enable
-	EN_NETDEV_SETMULTI,          //para is int,0 disable else enable
-	EN_NETDEV_SETRECV,           //para is int,0 disable else enable
-	EN_NETDEV_SETSEND,           //para is int,0 disable else enable
-    EN_NETDEV_SETMAC,            //para point to an buf which contains the mac
-                                 //driver must modify the dev struct mac at the same time
-	EN_NETDEV_SETMULTIMAC,       //para point to an buf which contains the mac
-	EN_NETDEV_GTETMAC,           //para point to an buf which used to contain the mac
-	EN_NETDEV_RESET,             //para must be true
-	EN_NETDEV_CMDLAST,           //which means the max command
-}enNetDevCmd;
 
-typedef enum
-{
-	EN_NETDEV_FRAME_BROAD = 0,
-	EN_NETDEV_FRAME_POINT,
-	EN_NETDEV_FRAME_MULTI,
-	EN_NETDEV_FRAME_LAST,
-}enNetDevFramType;
-
-typedef enum
-{
-	EN_NETDEV_FLOW_BROAD = EN_NETDEV_FRAME_BROAD,   //broad flow control type
-	EN_NETDEV_FLOW_POINT = EN_NETDEV_FRAME_POINT,   //multi flow control type
-	EN_NETDEV_FLOW_MULTI = EN_NETDEV_FRAME_MULTI,   //point flow control type
-	EN_NETDEV_FLOW_FRAME,                           //frame flow control type
-	EN_NETDEV_FLOW_LAST,
-}enNetDevFlowType;
-enNetDevFramType NetDevFrameType(u8 *buf,u16 len);
-//frame flow control,there are four independent counter control module,you could
-//each of them or all of them
-//****************************************************************************//
-//devname :the net device name
-//type    :the frame type, which defines by enNetDevFlowType
-//uflimit :the upper limit of the frame
-//lflimit :the lower limit of the frame
-//measuretime:during the time, if the flow is over, then triggle the corresponding event
-//enable :1 true while 0 false
-bool_t NetDevFlowSet(const char *devname,enNetDevFlowType type,\
-		             u32 llimit,u32 ulimit,u32 period,int enable);
-//handle:the device handle,returned by NetDevInstall
-//type  :the frame type has received
-bool_t NetDevFlowCounter(ptu32_t handle,enNetDevFramType type);
-
-typedef enum _EN_LINK_INTERFACE_TYPE
-{
-    EN_LINK_ETHERNET = 0,  //ethenet net device,ethernetII
-	EN_LINK_RAW,           //raw,just do the ip frames,no other link
-	EN_LINK_80211,
-    EN_LINK_LAST,
-}enLinkType;
-
-typedef enum
-{
-	EN_LINKPROTO_IPV4    = 0x0800,
-	EN_LINKPROTO_IPV6    = 0x86dd,
-	EN_LINKPROTO_ARP     = 0x0806,
-	EN_LINKPROTO_RARP    = 0x8035,
-	EN_LINKPROTO_RESBASE = 0x1000,
-}enLinkProto;
-
-//net device type
-//netdev snd module function
-//return means the data has put out or put into the net card buffer
-//pkg maybe an lst or not,you could use the PkgIsEnd to check
-//pkglen is fram len
-typedef bool_t (*fnIfSend)(ptu32_t dev,tagNetPkg *pkglst,u32 framlen,u32 netdevtask);
-//used to ctrl the dev or get the dev stat
-typedef bool_t (*fnIfCtrl)(ptu32_t dev,enNetDevCmd cmd,ptu32_t para);
-typedef struct NetDevPara
-{
-    const char                    *name;    //dev name
-    u8                             iftype;   //dev type
-    fnIfSend                       ifsend;   //dev snd function
-    fnIfCtrl                       ifctrl;   //dev ctrl or stat get fucntion
-    u32                            devfunc;  //dev hard function,such as tcp chksum
-    u16                            mtu;      //dev mtu
-    ptu32_t                        private;  //the dev driver use this to has its owner property
-    u8                             mac[CN_MACADDR_LEN];   //mac address
-}tagNetDevPara;  //we use the para to create an net device
-
-//usage:for the net device event
-//      all these event are edge-triggled
-typedef enum
-{
-	//THE OLD ONES ARE DEPRECATED
-	EN_NETDEVEVENT_LINKDOWN = 0, //which means the phy down or network cable is pullout
-	EN_NETDEVEVENT_LINKUP,       //which means the phy up or network cable has been inserted ok
-	EN_NETDEVEVENT_IPGET,        //which means has get ip from dhcp or ppp
-	EN_NETDEVEVENT_IPRELEASE,    //which means has release ip to dhcp or ppp down
-	EN_NETDEVEVENT_RESET,        //which means the dev has been reset for some reason
-	EN_NETDEVEVENT_BROAD_OVER,   //means the broad over
-	EN_NETDEVEVENT_BROAD_LACK,   //means the broad lack
-	EN_NETDEVEVENT_MULTI_OVER,   //means the multi over
-	EN_NETDEVEVENT_MULTI_LACK,   //means the multi lack,
-	EN_NETDEVEVENT_POINT_OVER,   //means the point over
-	EN_NETDEVEVENT_POINT_LACK,   //means the point lack,
-	EN_NETDEVEVENT_FLOW_OVER,    //means the FLOW over
-	EN_NETDEVEVENT_FLOW_LACK,    //means the FLOW lack,
-	EN_NETDEVEVENT_RESERVED,     //which means nothing
-}enNetDevEvent;
-//the following we be cut in the socket.h
-ptu32_t NetDevInstall(tagNetDevPara *para);          //return net dev handle, 0 failed
-ptu32_t NetDevHandle(const char *name);
-bool_t NetDevCtrl(const char *name,enNetDevCmd cmd, ptu32_t para);
-bool_t NetDevCtrlByHandle(ptu32_t handle,enNetDevCmd cmd, ptu32_t para);
-bool_t NetDevUninstall(const char *name);
-bool_t NetDevPrivate(ptu32_t handle);
-//link function that driver should use
-bool_t LinkPost(ptu32_t devhandle,tagNetPkg *pkg);
-//the hook function  module for the dev event
-//handle:which device has triggled the event
-//event :the message we has get
-typedef bool_t (*fnNetDevEventHook)(ptu32_t handle,enNetDevEvent event);
-//handle :the netdevice you install (returned by NetDevInstall)
-//devname:if the netdevice is NULL,then we use the devname to search the device
-//hook   :which used to deal the device message has been triggled
-bool_t NetDevRegisterEventHook(ptu32_t handle,const char *devname,fnNetDevEventHook hook);
-//handle :the netdevice you install (returned by NetDevInstall)
-//devname:if the netdevice is NULL,then we use the devname to search the device
-bool_t NetDevUnRegisterEventHook(ptu32_t handle,const char *devname);
-//handle :the netdevice you install (returned by NetDevInstall)
-//devname:if the netdevice is NULL,then we use the devname to search the device
-//event  :the message want to send to the device
-bool_t NetDevPostEvent(ptu32_t handle,const char *devname,enNetDevEvent event);
-//the user could use the following api to listen on more protocol or send specified frames
-typedef bool_t (*fnLinkProtoDealer)(ptu32_t devhandle,u16 proto,tagNetPkg *pkg);
-bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook, ptu32_t devhandle,u16 proto,const char *hookname);
-bool_t LinkUnRegisterRcvHook(fnLinkProtoDealer hook, ptu32_t devhandle,u16 proto,const char *hookname);
-bool_t LinkSendBufRaw(ptu32_t devhandle,u8 *buf,u32 len);
 
 //the user could use these function to create delete modify the rout
 //warning: ipaddr_t for ip, if ver is EN_IPV_4, then it is an u32 or an point
 //         to u32, if EN_IPV_6, it must be an u8*, and the len is CN_IPADDR_LEN_V6
 typedef ptu32_t   ipaddr_t;
-typedef struct
-{
-    u32 ip;
-    u32 dns;
-    u32 gatway;
-    u32 submask;
-    u32 broad;
-    u32 multi;
-    u32 dnsbak;
-}tagHostAddrV4;
-typedef struct
-{
-    u32 ip[4];
-    u32 dns[4];
-    u32 gatway[4];
-    u32 subnetmask[4];
-    u32 broad[4];
-}tagHostAddrV6;
-#define CN_ROUT_DHCP    (1<<0)  //use this bit to get ip address from the dhcp server
-#define CN_ROUT_NONE    (0)
-bool_t RoutCreate(const char *name,enum_ipv_t ver,void *netaddr,u32 pro);
-bool_t RoutDelete(const char *name,enum_ipv_t ver,ipaddr_t addr);
-bool_t RoutSet(const char *name,enum_ipv_t ver,ipaddr_t ipold,void *newaddr);
-bool_t RoutSetDefault(enum_ipv_t ver,ipaddr_t ip);
-bool_t RoutDns(enum_ipv_t ver, ipaddr_t ip);
-bool_t RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns);
+
+
+//bool_t RoutCreate(const char *name,enum_ipv_t ver,void *netaddr,u32 pro);
+//bool_t RoutDelete(const char *name,enum_ipv_t ver,ipaddr_t addr);
+//bool_t RoutSet(const char *name,enum_ipv_t ver,ipaddr_t ipold,void *newaddr);
+//bool_t RoutSetDefault(enum_ipv_t ver,ipaddr_t ip);
+//bool_t RoutDns(enum_ipv_t ver, ipaddr_t ip);
+//bool_t RoutSetDefaultAddr(enum_ipv_t ver,ipaddr_t ip,ipaddr_t mask,ipaddr_t gateway,ipaddr_t dns);
 //this function use to alloc an ip from the dhcp dynamicly
 bool_t DhcpAddClientTask(const char *name);
-//this is the tcpip stack main entry
-ptu32_t ModuleInstall_TcpIp(ptu32_t para);
 
 //used for the multicast
 #define MULTICAST_MASK     (htonl(0xf0000000))
 #define MULTICAST_FLAG     (htonl(0xe0000000))
 #define IN_MULTICAST(x)    (MULTICAST_MASK&x==MULTICAST_FLAG?true:false)
 #define IN6_IS_ADDR_MULTICAST(x) (*(u8 *)x==0xff?true:false)
-
-
-//add the mem here for the tcpip statistics for the internal call
-bool_t tcpipmemlog(const char *name,int size, int num);
-#define CN_LOCK_SIZE      (struct MutexLCB)
-
-//some string deal functions in the tcp ip
-char* Mac2string(u8 *mac);
-bool_t string2Mac(char *str,u8 *mac);
-int getargs(int argc, char *argv[],char *string);
-
 
 //ftp client interface
 //upload:put the local file(sfile) to the server(dfile)

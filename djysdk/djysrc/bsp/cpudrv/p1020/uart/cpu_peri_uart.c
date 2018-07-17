@@ -61,11 +61,69 @@
 #include "string.h"
 #include "stdio.h"
 
-#include <driver/include/uart.h>
+#include <device/include/uart.h>
 #include "cpu_peri_uart.h"
 
 #include "os.h"
 #include "int_hard.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
+//    #if CFG_UART0_ENABLE ==1
+//    ModuleInstall_UART(CN_UART0);
+//    #endif
+//
+//    #if CFG_UART1_ENABLE ==1
+//    ModuleInstall_UART(CN_UART1);
+//    #endif
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"cpu_peri_uart"                         //填写该组件的名字
+//parent:"uart"                                          //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件
+
+                                                         //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选
+
+                                                         //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                                             //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                                         //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"uart","devfile","heap"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                                         //选中该组件时，被依赖组件将强制选中，
+                                                         //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"                                  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                                         //选中该组件时，被依赖组件不会被强制选中，
+                                                         //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                                           //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                                         //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_UART0_SENDBUF_LEN   //****检查参数是否已经配置好
+#warning    cpu_peri_uart组件参数未配置，使用默认值
+//%$#@num,32,2048,
+#define CFG_UART0_SENDBUF_LEN            2048                 //"UART0发送环形缓冲区大小",
+#define CFG_UART0_RECVBUF_LEN            2048                 //"UART0接收环形缓冲区大小",
+
+#define CFG_UART1_SENDBUF_LEN            2048                 //"UART1发送环形缓冲区大小",
+#define CFG_UART1_RECVBUF_LEN            2048                 //"UART1接收环形缓冲区大小",
+//%$#@enum,true,false,
+#define CFG_UART0_ENABLE                 true                 //"是否配置使用UART0",
+#define CFG_UART1_ENABLE                 false                //"是否配置使用UART1",
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+// =============================================================================
 
 
 extern const char *gc_pCfgStdinName;    //标准输入设备
@@ -75,13 +133,13 @@ extern const char *gc_pCfgStderrName;   //标准错误输出设备
 #define CN_UART0_BASE   (cn_uart_baddr)
 #define CN_UART1_BASE   (cn_uart_baddr + 0x100)
 
-#define UART0_SendBufLen  2048
-#define UART0_RecvBufLen  2048
+//#define UART0_SendBufLen  2048
+//#define UART0_RecvBufLen  2048
 
-#define UART1_SendBufLen  2048
-#define UART1_RecvBufLen  2048
+//#define UART1_SendBufLen  2048
+//#define UART1_RecvBufLen  2048
 
-static struct UartCB *pUartCB[CN_UART_NUM];
+static struct Object *pUartCB[CN_UART_NUM];
 //用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
 //依此类推，1表示初始化，0表示未初始化
 static u8 sUartInited = 0;
@@ -205,13 +263,19 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 
     switch(cmd)
     {
-        case CN_UART_START:
+        case CN_DEV_CTRL_START:
             __UART_RxIntEnable(Reg);
             __UART_TxIntEnable(Reg);
             break;
-        case CN_UART_STOP:
+        case CN_DEV_CTRL_STOP:
             __UART_RxIntDisable(Reg);
             __UART_TxIntDisable(Reg);
+            break;
+        case CN_DEV_CTRL_SHUTDOWN:
+            break;
+        case CN_DEV_CTRL_SLEEP:
+            break;
+        case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
             __UART_BaudSet(Reg,data1);
@@ -303,7 +367,7 @@ u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
     __UART_TxIntDisable(Reg);
     if(__UART_TxTranEmpty(Reg))
     {
-        trans = UART_PortRead(pUartCB[port],ch,16,0);
+        trans = UART_PortRead(pUartCB[port],ch,16);
         for(num = 0; num < trans; num++)
         {
             (Reg)->URBR_THR_DLB = ch[num];
@@ -320,7 +384,7 @@ u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
 //-----------------------------------------------------------------------------
 uint32_t UART_ISR(ptu32_t IntLine)
 {
-    struct UartCB *UCB = NULL;
+    struct Object *UCB = NULL;
     tagUartReg *Reg;
     uint32_t recv_trans,num;
     uint8_t ch[20],IIR=0;
@@ -341,7 +405,7 @@ uint32_t UART_ISR(ptu32_t IntLine)
     {
         case 2:     //UTHR寄存器为空
         {
-            recv_trans = UART_PortRead(UCB,ch,16,0);
+            recv_trans = UART_PortRead(UCB,ch,16);
             for(num = 0; num < recv_trans; num++)
             {
                 Reg->URBR_THR_DLB = ch[num];
@@ -357,7 +421,7 @@ uint32_t UART_ISR(ptu32_t IntLine)
                 else
                     break;
             }
-            UART_PortWrite(UCB,ch,num,0);
+            UART_PortWrite(UCB,ch,num);
         }break;
         case 6:     //出错标志，停止位错误、帧错误、溢出错误等
         {
@@ -384,8 +448,8 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
         UART_Param.Name         = "UART0";
         UART_Param.Baud         = 115200;
         UART_Param.UartPortTag  = CN_UART0_BASE;
-        UART_Param.TxRingBufLen = UART0_SendBufLen;
-        UART_Param.RxRingBufLen = UART0_RecvBufLen;
+        UART_Param.TxRingBufLen = CFG_UART0_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART0_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
 //        UART_Param.DirectlySend = (UartDirectSend)__UART_SendDirectly;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
@@ -394,8 +458,8 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
         UART_Param.Name         = "UART1";
         UART_Param.Baud         = 115200;
         UART_Param.UartPortTag  = CN_UART1_BASE;
-        UART_Param.TxRingBufLen = UART1_SendBufLen;
-        UART_Param.RxRingBufLen = UART1_RecvBufLen;
+        UART_Param.TxRingBufLen = CFG_UART1_SENDBUF_LEN;
+        UART_Param.RxRingBufLen = CFG_UART1_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
 //        UART_Param.DirectlySend = (UartDirectSend)__UART_SendDirectly;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
@@ -467,7 +531,7 @@ void Stdio_KnlInOutInit(u32 para)
 {
     u32 TxDirectPort = 0;
     u32 RxDirectPort = 0;
-    
+
     if(!strcmp(gc_pCfgStdoutName,"/dev/UART0"))
     {
         PutStrDirectReg = (tagUartReg*)CN_UART0_BASE;

@@ -46,25 +46,28 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-
-#include <netdb.h>
+#include <shell.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include "dbug.h"
+#include "../../component_config_tcpip.h"
 
-#include "shell.h"
-#include "../../icmp.h"
+#include "../../common/icmp.h"
+
 
 #define CN_PING_DEFAULT_TIMEOUT   (1*1000*mS)   //1s
-#define CN_PING_WAIT_TIME         (5*1000*mS)
+#define CN_PING_WAIT_TIME         (1*1000*mS)
 #define CN_PING_DEFAULT_COUNTER   (4)
 #define CN_PING_DEFAULT_SIZE      (60)
 static void pingusage(void)
 {
-	printf("usage:\n\r\
+    debug_printf("ping","usage:\n\r\
 -l         length\n\r\
 -t         timeout\n\r\
 -n         times\n\r \
 -h         help\n\r");
-	return;
+    return;
 }
 // =============================================================================
 // FUNCTION:This function is used to do the ping echo
@@ -94,58 +97,58 @@ static bool_t pingshell(char *param)
     times = CN_PING_DEFAULT_COUNTER;
     waittime = CN_PING_DEFAULT_TIMEOUT;
 
-	argc = getargs(argc-1,&argv[1],param);
-	if(argc < 1)
-	{
-		pingusage();
-		return true;
-	}
-	else if(argc >1)
-	{
-		//do some set here
-		i =2;
-		argc++;
-		while(i<argc)
-		{
-			if(0 == strcmp(argv[i],"-l"))
-			{
-				i++;
-				if(i < argc)
-				{
-					len = strtol(argv[i],NULL,NULL);
-					i++;
-				}
-			}
-			else if(0 == strcmp(argv[i],"-n"))
-			{
-				i++;
-				if(i < argc)
-				{
-					times = strtol(argv[i],NULL,NULL);
-					i++;
-				}
-			}
-			else if(0 == strcmp(argv[i],"-t"))
-			{
-				i++;
-				if(i < argc)
-				{
-					waittime = strtol(argv[i],NULL,NULL);
-					waittime = waittime*1000*mS;
-					i++;
-				}
-			}
-			else if(0 == strcmp(argv[i],"-help"))
-			{
-				i++;
-				pingusage();
-			}
-			else
-			{
-				i++;
-			}
-		}
-	}
+    argc = getargs(argc-1,&argv[1],param);
+    if(argc < 1)
+    {
+        pingusage();
+        return true;
+    }
+    else if(argc >1)
+    {
+        //do some set here
+        i =2;
+        argc++;
+        while(i<argc)
+        {
+            if(0 == strcmp(argv[i],"-l"))
+            {
+                i++;
+                if(i < argc)
+                {
+                    len = strtol(argv[i],NULL,NULL);
+                    i++;
+                }
+            }
+            else if(0 == strcmp(argv[i],"-n"))
+            {
+                i++;
+                if(i < argc)
+                {
+                    times = strtol(argv[i],NULL,NULL);
+                    i++;
+                }
+            }
+            else if(0 == strcmp(argv[i],"-t"))
+            {
+                i++;
+                if(i < argc)
+                {
+                    waittime = strtol(argv[i],NULL,NULL);
+                    waittime = waittime*1000*mS;
+                    i++;
+                }
+            }
+            else if(0 == strcmp(argv[i],"-help"))
+            {
+                i++;
+                pingusage();
+            }
+            else
+            {
+                i++;
+            }
+        }
+    }
     if(0 == inet_aton(argv[1],&ipaddr))
     {
         //use the dns to get the ip
@@ -156,7 +159,7 @@ static bool_t pingshell(char *param)
         }
         else
         {
-            printf("%s:Unknown host:%s\n\r",__FUNCTION__,param);
+            debug_printf("ping","%s:Unknown host:%s\n\r",__FUNCTION__,param);
             return true;
         }
     }
@@ -165,13 +168,13 @@ static bool_t pingshell(char *param)
     u8 *buf;
     if(len < 32)
     {
-    	len = 32;
+        len = 32;
     }
     len = len -28;
-    buf = malloc(len);
+    buf = net_malloc(len);
     if(NULL == buf)
     {
-    	return true;
+        return true;
     }
     memset(buf,0x55,len);
     for(i = 0; i <times; i++)
@@ -181,17 +184,17 @@ static bool_t pingshell(char *param)
         {
             timeend = (u32)DjyGetSysTime();
             timeused = (u32)(timeend - timestart);
-            printf("0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+            debug_printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
             Djy_EventDelay(waittime);
             numrcv++;
         }
         else
         {
-            printf("0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+            debug_printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
         }
     }
-    printf("%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
-    free(buf);
+        debug_printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+    net_free(buf);
     return true;
 }
 
@@ -223,7 +226,7 @@ static bool_t pingshell(char *param)
 //    string2arg(&argc,argv,param);
 //    if(argc == 0)
 //    {
-//    	return false;
+//      return false;
 //    }
 //
 //    times = CN_PING_DEFAULT_COUNTER;
@@ -247,7 +250,7 @@ static bool_t pingshell(char *param)
 //        }
 //        else
 //        {
-//            printf("%s:Unknown host:%s\n\r",__FUNCTION__,param);
+//            debug_printf("ping","%s:Unknown host:%s\n\r",__FUNCTION__,param);
 //            return true;
 //        }
 //    }
@@ -261,16 +264,16 @@ static bool_t pingshell(char *param)
 //        {
 //            timeend = (u32)DjyGetSysTime();
 //            timeused = (u32)(timeend - timestart);
-//            printf("0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+//            debug_printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
 //            Djy_EventDelay(waittime);
 //            numrcv++;
 //        }
 //        else
 //        {
-//            printf("0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+//            debug_printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
 //        }
 //    }
-//    printf("%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+//    debug_printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
 //    return true;
 //}
 

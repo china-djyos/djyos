@@ -26,7 +26,7 @@
   *
   ******************************************************************************
   */
-
+#if 0 // DJYOS≤ª±‡“Î
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_template.h"
 
@@ -238,3 +238,4 @@ USBH_StatusTypeDef USBH_TEMPLATE_IOProcess (USBH_HandleTypeDef *phost)
 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+#endif // DJYOS≤ª±‡“Î

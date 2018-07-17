@@ -16,13 +16,16 @@ extern "C" {
 #define CN_KNL_NO_ERROR     (1<<24)         //系统调度起始错误号
 #define CN_FS_NO_ERROR      (2<<24)         //文件系统起始错误号
 #define CN_MEM_NO_ERROR     (3<<24)         //内存模块起始错误号
-#define CN_DRV_NO_ERROR     (4<<24)         //pan driver模块起始错误号
+#define CN_DEV_NO_ERROR     (4<<24)         //device模块起始错误号
 #define CN_WDT_NO_ERROR     (5<<24)         //wdt模块起始错误号
 #define CN_GK_NO_ERROR      (6<<24)         //gui kernel模块起始错误号
 #define CN_LOCK_NO_ERROR    (7<<24)         //锁模块起始错误号
 #define CN_CLOCK_NO_ERROR   (8<<24)         //时钟模块起始错误号
+#define CN_NET_NO_ERROR     (9<<24)         //网络模块起始错误号
 #define CN_NEWLIB_NO_ERROR  (255<<24)       //newlib库起始错误号。
 
+//newlib库的错误号，为了保持与开源软件的兼容，只要在这里定义的错误号能够覆盖的
+//错误，我们就使用它。没有覆盖的，实用djyos系统定义的。
 enum _NEWLIB_ERROR_CODE_
 {
     EN_NEWLIB_NO_ERROR = CN_NEWLIB_NO_ERROR,  //没有错误
@@ -184,6 +187,31 @@ enum _NEWLIB_ERROR_CODE_
 
     __ELASTERROR,        /* Users can add values starting here */
 };
+
+//
+// 文件系统出错代码，本enum常量从cn_fs_error开始依序增1.
+//
+enum _FS_ERROR_CODE_
+{
+    EN_FS_NO_ERROR = CN_FS_NO_ERROR,    //没有错误
+    EN_FS_NAME_INVALID_CHAR,            //名字含有非法字符
+    EN_FS_NAME_LEN_ERROR,               //名字长度错误
+    EN_FS_OBJECT_OPENED,                //对象已经打开
+    EN_FS_OBJECT_NONENTITY,             //对象不存在
+    EN_FS_OBJECT_READONLY,              //只读对象
+    EN_FS_FOLDER_UNBLANK,               //目录非空
+    EN_FS_CREAT_PTT_ERROR,              //建立分区错误
+    EN_FS_CREAT_ROOT_FOLDER_ERROR,      //建立根目录错误
+    EN_FS_FORMAT_PTT_ERROR,             //格式化错误
+    EN_FS_REMOVE_ERROR,                 //删除对象错误
+    EN_FS_PTT_ERROR,                    //删除分区错误
+    EN_FS_RENAME_ERROR,                 //对象改名错误
+    EN_FS_PTT_NAME_REPEAT,              //分区重名错误
+    EN_FS_PTT_NO_FORMATED,              //分区未格式化
+    EN_FS_READFILE_ERROR,               //读文件错误
+    EN_FS_READFILE_EOF                  //读文件到达文件结束
+};
+
 void Djy_SaveLastError(u32 ErrorCode);
 u32 Djy_GetLastError(void);
 //#define errno Djy_GetLastError()

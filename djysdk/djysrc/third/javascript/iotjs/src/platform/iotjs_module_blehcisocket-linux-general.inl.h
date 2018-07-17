@@ -39,7 +39,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
-#include <sys/ioctl.h>
+#include <sys/stropts.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>

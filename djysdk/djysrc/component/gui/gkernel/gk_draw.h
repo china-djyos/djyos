@@ -70,7 +70,7 @@ extern "C" {
 bool_t __GK_RopIsNeedDestination(struct RopGroup RopCode);
 u32 __GK_PointSect(s32 x,s32 y,struct Rectangle *limit);
 u32 __GK_OlineSectInter(struct Rectangle *limit,s32 *x1,s32 *y1,s32 *x2,s32 *y2);
-void __GK_DrawOline(struct GkWinRsc *gkwin,s32 x1,s32 y1,
+void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
                         s32 x2,s32 y2,u32 color,u32 rop2_code);
 void __GK_GetRgbBm(u16 PixelFormat,u32 color,u32 *a,u32 *r,
                                             u32 *g,u32 *b,ptu32_t ExColor);
@@ -83,40 +83,40 @@ void __GK_SetPixelRop2Bm(struct RectBitmap *bitmap,
 void __GK_CopyPixelBm(struct RectBitmap *dst_bitmap,
                                 struct RectBitmap *src_bitmap,
                                 s32 x_dst,s32 y_dst,s32 x_src,s32 y_src);
-void __GK_ShadingPixel(struct GkWinRsc *gkwin,s32 x,s32 y);
-void __GK_ShadingRect(struct GkWinRsc *gkwin,struct Rectangle *rect);
-void __GK_ShadingLine(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_ShadingPixel(struct GkWinObj *gkwin,s32 x,s32 y);
+void __GK_ShadingRect(struct GkWinObj *gkwin,struct Rectangle *rect);
+void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                      s32 x1,s32 y1,s32 x2,s32 y2);
-void __GK_ShadingClear(struct GkWinRsc *gkwin);
-void __GK_VlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_ShadingClear(struct GkWinObj *gkwin);
+void __GK_VlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                     s32 x1,s32 y1,s32 y2,u32 color,u32 rop2_code);
-void __GK_HlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_HlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                     s32 x1,s32 y1,s32 x2,u32 color,u32 rop2_code);
-void __GK_OlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                     s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 rop2_code);
-void __GK_LinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_LinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                 s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 rop2_code);
-void __GK_SetPixelScreen(struct DisplayRsc *display,s32 x,s32 y,
+void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
                         u32 color,u32 rop2_code);
-void __GK_LinetoScreen(struct DisplayRsc *display,struct Rectangle *limit,
+void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
                     s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 rop2_code);
-void __GK_BltBmToScreen(struct DisplayRsc *display,struct Rectangle *rect,
+void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
                         struct RectBitmap *bitmap,s32 x,s32 y);
 void __GK_FillRect(struct RectBitmap *dst_bitmap,
                      struct Rectangle *dst_rect,u32 color);
 void __GK_FillBm(struct RectBitmap *dst_bitmap,u32 color);
-void __GK_SetPixelsCircle(struct GkWinRsc *gkwin,struct Rectangle *limit,u32 r,
+void __GK_SetPixelsCircle(struct GkWinObj *gkwin,struct Rectangle *limit,u32 r,
                                 struct RectBitmap *bitmap,s32 x0,s32 y0,
                                 s32 x,s32 y,u32 color,u32 rop2_code);
-void __GK_DrawCircleBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_DrawCircleBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                         s32 x0,s32 y0,s32 r,u32 color,u32 rop2_code);
-void __GK_DrawCircleScreen(struct DisplayRsc *display,struct Rectangle *limit,
+void __GK_DrawCircleScreen(struct DisplayObj *display,struct Rectangle *limit,
                         s32 x0,s32 y0,s32 r,u32 color,u32 rop2_code);
 void __GK_DrawCircle(struct GkscParaDrawCircle *para);
-void __GK_BezierBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_BezierBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                     float x1,float y1,float x2,float y2,float x3,float y3,
                     float x4,float y4,u32 color,u32 rop2_code);
-void __GK_BezierScreen(struct DisplayRsc *display,struct Rectangle *limit,
+void __GK_BezierScreen(struct DisplayObj *display,struct Rectangle *limit,
                     float x1,float y1,float x2,float y2,float x3,float y3,
                     float x4,float y4,u32 color,u32 rop2_code);
 

@@ -60,10 +60,10 @@
 //------------------------------------------------------
 #include <stdint.h>
 #include <lock.h>
-#include    <gui/gkernel/gk_display.h>
+#include <gui/gkernel/gk_display.h>
 #include <hmi-input.h>
-#include    <gui/gdd/gdd_private.h>
-
+#include <gui/gdd/gdd_private.h>
+#include "dbug.h"
 static tpInputMsgQ sg_ptGddMsgQ;
 
 //-----------------------------------------------------------------------------
@@ -112,35 +112,20 @@ bool_t GDD_DeleteInputDev(const char *InputDevName)
 //参数：用于GDD的输入设备名列表。注意，非设计用于GDD的输入设备，不放在这里。
 //返回：true = 成功初始化，false =失败。
 //-----------------------------------------------------------------------------
-bool_t GDD_InputDevInit(const char *InputDevName[])
+bool_t GDD_InputDevInit(void)
 {
-    s32 i = 0;
-    if(InputDevName[0] == NULL)
-        return false;
     GDD_StartTimer(GDD_CreateTimer(GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
 
     sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20,"input_msg");
 
-    if(sg_ptGddMsgQ != NULL)
+    if(sg_ptGddMsgQ == NULL)
     {
-        if(InputDevName != NULL)
-        {
-            while(1)
-            {
-                if(InputDevName[i] == NULL)
-                {
-                    break;
-                }
-                GDD_AddInputDev((char*)InputDevName[i]);
-                i++;
-            }
-        }
-        return true;
+        debug_printf("gdd","create HmiInput Msgqueue error\n\r");
+        return false;
     }
     else
     {
-        printf("create HmiInput Msgqueue error\n\r");
-        return false;
+        return true;
     }
 }
 

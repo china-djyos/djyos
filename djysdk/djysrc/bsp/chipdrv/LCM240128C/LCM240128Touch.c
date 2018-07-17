@@ -63,8 +63,8 @@
 #include "spibus.h"
 #include "gkernel.h"
 #include "systime.h"
-#include <driver/flash/flash.h>
-#include <driver.h>
+#include <device/flash/flash.h>
+#include <device.h>
 //#include "at24c128b.h"
 #include "Touch.h"
 #define SPI_BUS_NAME           "SPI5"
@@ -98,86 +98,86 @@ static struct SPI_Device s_tgTouch_Dev;
 
 bool_t Touch_EraseAdjustVal(void)
 {
-	bool_t ret;
-	u8 i, wbuf[CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE];
-	for(i=0;i<(CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE);i++)
-	{
-		wbuf[i]=0xFF;
-	}
+    bool_t ret;
+    u8 i, wbuf[CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE];
+    for(i=0;i<(CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE);i++)
+    {
+        wbuf[i]=0xFF;
+    }
 
-	ret=AT24_WriteBytes(CN_EEPROM_TOUCH_ADJUST_ADDR,wbuf,\
-	        (CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE));
+    ret=AT24_WriteBytes(CN_EEPROM_TOUCH_ADJUST_ADDR,wbuf,\
+            (CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE));
 
-	if(!ret)
-	{
-	     printf("Erase touch  adjust val failed.\r\n");
-	     return false;
-	}
-	printf("Erase touch adjust val success.\r\n");
-	return true;
+    if(!ret)
+    {
+         printf("Erase touch  adjust val failed.\r\n");
+         return false;
+    }
+    printf("Erase touch adjust val success.\r\n");
+    return true;
 }
 
 
 void Touch_GetAdjustVal(void)
 {
-	s16 s_s16gXAdjustLeft,s_s16gXAdjustRight;
-	s16 s_s16gYAdjustTop,s_s16gYAdjustBottom;
-	u8 rbuf[CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE];
-	bool_t ret;
-	u16 tmp=0;
-	u8 i;
+    s16 s_s16gXAdjustLeft,s_s16gXAdjustRight;
+    s16 s_s16gYAdjustTop,s_s16gYAdjustBottom;
+    u8 rbuf[CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE];
+    bool_t ret;
+    u16 tmp=0;
+    u8 i;
 
-	ret=AT24_ReadBytes(CN_EEPROM_TOUCH_ADJUST_ADDR,rbuf\
-	                    ,(CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE));
-	if(!ret)
-	{
-		printf("Read touch adjust value failed.\r\n");
-		return;
-	}
-	for(i=0;i<8;i++)
-	{
-		if(rbuf[i]!=buf_flag[i])
-		{
-			printf("Touch write adjust value error.\r\n");
-			return;
-		}
+    ret=AT24_ReadBytes(CN_EEPROM_TOUCH_ADJUST_ADDR,rbuf\
+                        ,(CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE));
+    if(!ret)
+    {
+        printf("Read touch adjust value failed.\r\n");
+        return;
+    }
+    for(i=0;i<8;i++)
+    {
+        if(rbuf[i]!=buf_flag[i])
+        {
+            printf("Touch write adjust value error.\r\n");
+            return;
+        }
 
-	}
+    }
 
-	s_s16gXAdjustLeft=rbuf[8];
-	tmp=rbuf[9];
-	tmp=tmp<<8;
-	s_s16gXAdjustLeft|=tmp;
-	tmp=0;
+    s_s16gXAdjustLeft=rbuf[8];
+    tmp=rbuf[9];
+    tmp=tmp<<8;
+    s_s16gXAdjustLeft|=tmp;
+    tmp=0;
 
-	s_s16gYAdjustTop=rbuf[10];
-	tmp=rbuf[11];
-	tmp=tmp<<8;
-	s_s16gYAdjustTop|=tmp;
-	tmp=0;
+    s_s16gYAdjustTop=rbuf[10];
+    tmp=rbuf[11];
+    tmp=tmp<<8;
+    s_s16gYAdjustTop|=tmp;
+    tmp=0;
 
-	s_s16gXAdjustRight=rbuf[12];
-	tmp=rbuf[13];
-	tmp=tmp<<8;
-	s_s16gXAdjustRight|=tmp;
-	tmp=0;
+    s_s16gXAdjustRight=rbuf[12];
+    tmp=rbuf[13];
+    tmp=tmp<<8;
+    s_s16gXAdjustRight|=tmp;
+    tmp=0;
 
-	s_s16gYAdjustBottom=rbuf[14];
-	tmp=rbuf[15];
-	tmp=tmp<<8;
-	s_s16gYAdjustBottom|=tmp;
+    s_s16gYAdjustBottom=rbuf[14];
+    tmp=rbuf[15];
+    tmp=tmp<<8;
+    s_s16gYAdjustBottom|=tmp;
     printf("EEPROM:  ");
-	printf("x1=%d,y1=%d\n\r",s_s16gXAdjustLeft,s_s16gYAdjustTop);
-	printf("x2=%d,y2=%d\n\r",s_s16gXAdjustRight,s_s16gYAdjustBottom);
-	printf("RAM:  ");
-	printf("x1=%d,y1=%d\n\r",gs_XadjustLeft,gs_YadjustTop);
-	printf("x2=%d,y2=%d\n\r",gs_XadjustRight,gs_YadjustBottom);
+    printf("x1=%d,y1=%d\n\r",s_s16gXAdjustLeft,s_s16gYAdjustTop);
+    printf("x2=%d,y2=%d\n\r",s_s16gXAdjustRight,s_s16gYAdjustBottom);
+    printf("RAM:  ");
+    printf("x1=%d,y1=%d\n\r",gs_XadjustLeft,gs_YadjustTop);
+    printf("x2=%d,y2=%d\n\r",gs_XadjustRight,gs_YadjustBottom);
 }
 
 static bool_t gs_bTouchDbgFlg=false;
 void Touch_GetTouchPoint(void)
 {
-	gs_bTouchDbgFlg=true;
+    gs_bTouchDbgFlg=true;
 }
 
 // =============================================================================
@@ -210,8 +210,8 @@ static bool_t Touch_WriteAdjustValue(struct AdjustValue* pAdjustValue)
                 CN_TOUCH_ADJUST_SIZE+CN_TOUCH_FLAG_SIZE);
     if(!ret)
     {
-    	printf("Write touch adjust value failed.\r\n");
-    	return false;
+        printf("Write touch adjust value failed.\r\n");
+        return false;
     }
 
     return true;
@@ -360,30 +360,30 @@ static ptu32_t ScanTouch(void)
                 trans &= Touch_Touched( );
                 if(trans)
                 {
-                	if((gs_XadjustRight!=gs_XadjustLeft)&&(gs_YadjustBottom!=gs_YadjustTop))
-                	{
-						x = 200 * (s32)(x - gs_XadjustLeft)/(gs_XadjustRight - gs_XadjustLeft)+20;
-						y = 88 * (s32)(y - gs_YadjustTop)/(gs_YadjustBottom - gs_YadjustTop)+20;
+                    if((gs_XadjustRight!=gs_XadjustLeft)&&(gs_YadjustBottom!=gs_YadjustTop))
+                    {
+                        x = 200 * (s32)(x - gs_XadjustLeft)/(gs_XadjustRight - gs_XadjustLeft)+20;
+                        y = 88 * (s32)(y - gs_YadjustTop)/(gs_YadjustBottom - gs_YadjustTop)+20;
 
-						if( ( ( (xp -x)*(xp-x) + (yp-y)*(yp-y) ) >= 36) && (count >5 ) )
-						{
-							//如果连续触摸且两 次采样之间移动距离达到6个像素，说明是提笔过程中的误读,不处理
-						}
-						else
-						{
-							atom = Int_LowAtomStart( );
-							xp = x;
-							yp = y;
-							z = 1;
-							Int_LowAtomEnd(atom);
-							if(gs_bTouchDbgFlg==true)
-							{
-								printf("x=%d,y=%d\n\r",xp,yp);
-								gs_bTouchDbgFlg=false;
-							}
-						}
-						count = 5;
-                	}
+                        if( ( ( (xp -x)*(xp-x) + (yp-y)*(yp-y) ) >= 36) && (count >5 ) )
+                        {
+                            //如果连续触摸且两 次采样之间移动距离达到6个像素，说明是提笔过程中的误读,不处理
+                        }
+                        else
+                        {
+                            atom = Int_LowAtomStart( );
+                            xp = x;
+                            yp = y;
+                            z = 1;
+                            Int_LowAtomEnd(atom);
+                            if(gs_bTouchDbgFlg==true)
+                            {
+                                printf("x=%d,y=%d\n\r",xp,yp);
+                                gs_bTouchDbgFlg=false;
+                            }
+                        }
+                        count = 5;
+                    }
                 }
                 else
                     count = 0;
@@ -402,14 +402,14 @@ static ptu32_t ScanTouch(void)
     return 0;
 }
 
-static  void draw_cursor(struct GkWinRsc *desktop,int x,int y)
+static  void draw_cursor(struct GkWinObj *desktop,int x,int y)
 {
     GK_ApiLineto(desktop,x,y-9,x,y+9,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //上
     GK_ApiLineto(desktop,x-9,y,x+9,y,CN_COLOR_WHITE,CN_R2_COPYPEN,0);  //右
     GK_ApiSyncShow(1000*mS);
 }
 
-static  void clr_cursor(struct GkWinRsc *desktop,s32 x,s32 y)
+static  void clr_cursor(struct GkWinObj *desktop,s32 x,s32 y)
 {
     GK_ApiLineto(desktop,x,y-9,x,y+9,CN_COLOR_BLACK,CN_R2_COPYPEN,0); //上
     GK_ApiLineto(desktop,x-9,y,x+9,y,CN_COLOR_BLACK,CN_R2_COPYPEN,0);  //右
@@ -419,7 +419,7 @@ static  void clr_cursor(struct GkWinRsc *desktop,s32 x,s32 y)
 
 
 
-void touch_ratio_adjust(struct GkWinRsc *desktop)
+void touch_ratio_adjust(struct GkWinObj *desktop)
 {
     u32 loop;
     s32 tempx,tempy;
@@ -444,8 +444,8 @@ void touch_ratio_adjust(struct GkWinRsc *desktop)
                 rbuf,CN_TOUCH_FLAG_SIZE+CN_TOUCH_ADJUST_SIZE);
     if(!result)
     {
-    	printf("Read touch adjust value failed.\r\n");
-    	return;
+        printf("Read touch adjust value failed.\r\n");
+        return;
     }
 
     gs_XadjustLeft=rbuf[0+CN_TOUCH_FLAG_SIZE];
@@ -455,21 +455,21 @@ void touch_ratio_adjust(struct GkWinRsc *desktop)
     tmp=0;
 
     gs_YadjustTop=rbuf[2+CN_TOUCH_FLAG_SIZE];
-	tmp=rbuf[3+CN_TOUCH_FLAG_SIZE];
-	tmp=tmp<<8;
-	gs_YadjustTop|=tmp;
-	tmp=0;
+    tmp=rbuf[3+CN_TOUCH_FLAG_SIZE];
+    tmp=tmp<<8;
+    gs_YadjustTop|=tmp;
+    tmp=0;
 
-	gs_XadjustRight=rbuf[4+CN_TOUCH_FLAG_SIZE];
-	tmp=rbuf[5+CN_TOUCH_FLAG_SIZE];
-	tmp=tmp<<8;
-	gs_XadjustRight|=tmp;
-	tmp=0;
+    gs_XadjustRight=rbuf[4+CN_TOUCH_FLAG_SIZE];
+    tmp=rbuf[5+CN_TOUCH_FLAG_SIZE];
+    tmp=tmp<<8;
+    gs_XadjustRight|=tmp;
+    tmp=0;
 
-	gs_YadjustBottom=rbuf[6+CN_TOUCH_FLAG_SIZE];
-	tmp=rbuf[7+CN_TOUCH_FLAG_SIZE];
-	tmp=tmp<<8;
-	gs_YadjustBottom|=tmp;
+    gs_YadjustBottom=rbuf[6+CN_TOUCH_FLAG_SIZE];
+    tmp=rbuf[7+CN_TOUCH_FLAG_SIZE];
+    tmp=tmp<<8;
+    gs_YadjustBottom|=tmp;
 
     for(i=0;i<CN_TOUCH_FLAG_SIZE;i++)
     {
@@ -480,8 +480,8 @@ void touch_ratio_adjust(struct GkWinRsc *desktop)
     //先判断Flash中是否已存储有效的校准值   必须要校验
     if(i!=CN_TOUCH_FLAG_SIZE)
     {
-    	printf("\r\n");
-    	printf("LCM240128C TOUCH Adjust.");
+        printf("\r\n");
+        printf("LCM240128C TOUCH Adjust.");
         GK_ApiDrawText(desktop,NULL,NULL,40,20,
                         "触摸屏矫正 ",11,CN_COLOR_WHITE,CN_R2_COPYPEN,0);
         GK_ApiDrawText(desktop,NULL,NULL,40,40,
@@ -490,20 +490,20 @@ void touch_ratio_adjust(struct GkWinRsc *desktop)
 //        while(Touch_Touched() == false);
         for(j=0;j<20;j++)
         {
-        	if(Touch_Touched() == false)
-        	{
-        		printf(".");
-        		Djy_EventDelay(1000*mS);
-        	}
-        	else
-        	{
-        		break;
-        	}
+            if(Touch_Touched() == false)
+            {
+                printf(".");
+                Djy_EventDelay(1000*mS);
+            }
+            else
+            {
+                break;
+            }
         }
         if(j==20)
         {
-        	printf("\r\nLCM240128C TOUCH TIMEOUT,Adjust failed!!!\r\n");
-        	return;
+            printf("\r\nLCM240128C TOUCH TIMEOUT,Adjust failed!!!\r\n");
+            return;
         }
 
         Djy_EventDelay(100*mS);
@@ -559,22 +559,22 @@ void touch_ratio_adjust(struct GkWinRsc *desktop)
 
 //        while(Touch_Touched() == false);
         for(j=0;j<20;j++)
-		{
-			if(Touch_Touched() == false)
-			{
-				printf(".");
-				Djy_EventDelay(1000*mS);
-			}
-			else
-			{
-				break;
-			}
-		}
-		if(j==20)
-		{
-			printf("\r\nLCM240128C TOUCH TIMEOUT,Adjust failed.\r\n!!!\r\n");
-			return;
-		}
+        {
+            if(Touch_Touched() == false)
+            {
+                printf(".");
+                Djy_EventDelay(1000*mS);
+            }
+            else
+            {
+                break;
+            }
+        }
+        if(j==20)
+        {
+            printf("\r\nLCM240128C TOUCH TIMEOUT,Adjust failed.\r\n!!!\r\n");
+            return;
+        }
         Djy_EventDelay(100*mS);
         maxx=0;
         minx=65535;
@@ -629,8 +629,8 @@ void touch_ratio_adjust(struct GkWinRsc *desktop)
         //做容错处理
         if((s_s16gXAdjustLeft==s_s16gXAdjustRight)||(s_s16gYAdjustBottom==s_s16gYAdjustTop))
         {
-        	printf("TOUCH Adjust failed.TOUCH invalid.\r\n");
-        	return;
+            printf("TOUCH Adjust failed.TOUCH invalid.\r\n");
+            return;
         }
 
         result=Touch_WriteAdjustValue(pAdjustValue);
@@ -659,7 +659,7 @@ void touch_ratio_adjust(struct GkWinRsc *desktop)
 //      touch_dev_name:触摸屏设备名.
 //返回: 无
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_LCM240128Touch(struct GkWinRsc *desktop,const char *touch_dev_name)
+bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_dev_name)
 {
     static struct SingleTouchPrivate touch_dev;
     u16 evtt_id;
@@ -682,8 +682,8 @@ bool_t ModuleInstall_LCM240128Touch(struct GkWinRsc *desktop,const char *touch_d
     }
     else
     {
-    	printf("安装触摸屏SPI驱动出错\n\r");
-    	return false;
+        printf("安装触摸屏SPI驱动出错\n\r");
+        return false;
     }
 
     Touch_ReadXY(&tmp_x, &tmp_y);

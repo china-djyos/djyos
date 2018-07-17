@@ -55,7 +55,6 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include "stdint.h"
-#include "core_config.h"
 
 #if 0
 static struct DjyDevice * s_pPipeParentDevice;

@@ -63,15 +63,56 @@
 #include "hmi-input.h"
 #include "msgqueue.h"
 #include "djyos.h"
-#include "core_config.h"
+#include "dbug.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_HmiIn(void);
+//    ModuleInstall_HmiIn();      //初始化人机界面输入模块
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"HmiInput"               //填写该组件的名字
+//parent:"none"                           //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件                            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                                  //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                          //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                              //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                          //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"MsgQueue","gk"      //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                          //选中该组件时，被依赖组件将强制选中，
+                                          //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"                   //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                          //选中该组件时，被依赖组件不会被强制选中，
+                                          //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                            //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                          //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header                      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_HMIIN_DEV_LIMIT                //****检查参数是否已经配置好
+#warning    HmiInput组件参数未配置，使用默认值
+//%$#@num,0,100,
+#define CFG_HMIIN_DEV_LIMIT     2       //"name",人机交互输入设备数量，如键盘、鼠标等
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 //所有未设置焦点的输入设备，默认以此为焦点
 tpInputMsgQ tg_pDefaultFocusMsgQ = NULL;
-struct HMI_InputDeviceRsc *g_ptStdinDevice;
 struct MemCellPool *g_ptHmiInDevicePool;
+struct HMI_InputDeviceObj sg_ptStdinDeviceMem[CFG_HMIIN_DEV_LIMIT];
 s32 g_s32NextId = 0;       //每次安装输入设备时，以本变量为设备ID，然后本变量++
                             //删除设备，ID不收回。
-static struct HMI_InputDeviceRsc *s_ptHmiInDeviceRscTree;
+static struct Object *s_ptHmiInDeviceDir;
 tpInputMsgQ tg_pHmiInputMsgQ;    //  标准输入设备的消息队列
 
 //----初始化标准输入模块-------------------------------------------------------
@@ -81,29 +122,36 @@ tpInputMsgQ tg_pHmiInputMsgQ;    //  标准输入设备的消息队列
 //-----------------------------------------------------------------------------
 bool_t ModuleInstall_HmiIn(void)
 {
-    static struct HMI_InputDeviceRsc root;
+    static struct HMI_InputDeviceObj root;
+    struct HMI_InputDeviceObj *StdinDeviceMem;
 
     tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10,"StdInDev");
     if(tg_pHmiInputMsgQ == NULL)
-        return false;
-    g_ptStdinDevice = M_Malloc(gc_u32CfgStdinDeviceLimit
-                                * sizeof(struct HMI_InputDeviceRsc),0);
-    if(g_ptStdinDevice == NULL)
+        goto ExitMsgQ;
+    s_ptHmiInDeviceDir = OBJ_AddChild(OBJ_Root(), NULL,(ptu32_t) &root, "stdin input device");
+    if(s_ptHmiInDeviceDir == NULL)
     {
-        HmiIn_DeleteInputMsgQ(tg_pHmiInputMsgQ);
-        return false;
+        goto ExitDir;
     }
-    s_ptHmiInDeviceRscTree = (struct HMI_InputDeviceRsc *)
-                        OBJ_AddTree(&root.stdin_device_node,
-                        sizeof(struct HMI_InputDeviceRsc),RSC_STDIN_OUT,"stdin input device");
     //初始化设备控制块内存池
-    g_ptHmiInDevicePool = Mb_CreatePool((void*)g_ptStdinDevice,
-                                    gc_u32CfgStdinDeviceLimit,
-                                    sizeof(struct HMI_InputDeviceRsc),
-                                    2,10,
+    g_ptHmiInDevicePool = Mb_CreatePool((void*)sg_ptStdinDeviceMem,
+                                    CFG_HMIIN_DEV_LIMIT,
+                                    sizeof(struct HMI_InputDeviceObj),
+                                    0,0,
                                     "输入设备控制块内存池");
+    if(s_ptHmiInDeviceDir == NULL)
+    {
+        goto ExitPool;
+    }
     HmiIn_SetFocusDefault(tg_pHmiInputMsgQ);
     return true;
+
+ExitPool:
+    OBJ_Del(s_ptHmiInDeviceDir);
+ExitDir:
+    HmiIn_DeleteInputMsgQ(tg_pHmiInputMsgQ);
+ExitMsgQ:
+    return false;
 }
 
 //----安装输入设备-------------------------------------------------------------
@@ -114,9 +162,9 @@ bool_t ModuleInstall_HmiIn(void)
 s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_type,
                          void *myprivate)
 {
-    struct HMI_InputDeviceRsc *Djy_HmiIn;
+    struct HMI_InputDeviceObj *Djy_HmiIn;
 
-    if(OBJ_SearchChild(&s_ptHmiInDeviceRscTree->stdin_device_node,device_name))
+    if(OBJ_SearchChild(s_ptHmiInDeviceDir,device_name))
     {
         return -1;
     }
@@ -125,9 +173,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
         Djy_HmiIn = Mb_Malloc(g_ptHmiInDevicePool,0);
         if(Djy_HmiIn != NULL)
         {
-            OBJ_AddChild(&s_ptHmiInDeviceRscTree->stdin_device_node,
-                    &Djy_HmiIn->stdin_device_node,sizeof(struct HMI_InputDeviceRsc),
-                    RSC_STDIN_OUT,device_name);
+            OBJ_AddChild(s_ptHmiInDeviceDir, NULL, (ptu32_t)Djy_HmiIn, device_name);
             Djy_HmiIn->input_type = stdin_type;
             Djy_HmiIn->stdin_private = (ptu32_t)myprivate;
             Djy_HmiIn->input_counter = 0;
@@ -139,7 +185,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
         else
         {
             Djy_SaveLastError(EN_MEM_TRIED);
-            printf("内存不足\n\r");
+            debug_printf("hmi-input","function %s 内存不足\n\r", __FUNCTION__);
             return -1;
         }
 
@@ -179,12 +225,13 @@ bool_t HmiIn_DeleteInputMsgQ(tpInputMsgQ InputMsgQ)
 //----------------------------------------------------------------------------
 bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
 {
-    struct HMI_InputDeviceRsc *result;
+    struct HMI_InputDeviceObj *result;
+    struct Object *focus;
 
-    result = (struct HMI_InputDeviceRsc *)OBJ_SearchChild
-                    (&s_ptHmiInDeviceRscTree->stdin_device_node,device_name);
-    if(result != NULL)
+    focus = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
+    if(focus != NULL)
     {
+        result = (struct HMI_InputDeviceObj *)OBJ_Represent(focus);
         result->FocusMsgQ = FocusMsgQ;
         return true;
     }
@@ -201,12 +248,13 @@ bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
 //----------------------------------------------------------------------------
 enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name)
 {
-    struct HMI_InputDeviceRsc *InputDev;
+    struct HMI_InputDeviceObj *InputDev;
+    struct Object *input;
 
-    InputDev = (struct HMI_InputDeviceRsc *)OBJ_SearchChild
-                    (&s_ptHmiInDeviceRscTree->stdin_device_node,device_name);
-    if(InputDev != NULL)
+    input = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
+    if(input != NULL)
     {
+        InputDev = (struct HMI_InputDeviceObj *)OBJ_Represent(input);
         return InputDev->input_type;
     }
     else
@@ -247,7 +295,7 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //{
 //    //在这里遍历所有输入设备，即"input device"资源的子孙资源，设置他们的focus_evtt
 //    struct  Object  *current,*start,*target;
-//    start = &(s_ptHmiInDeviceRscTree->stdin_device_node);
+//    start = &(s_ptHmiInDeviceDir->stdin_device_node);
 //    current = start;
 //    while((target =
 //        OBJ_TraveScion(start,current))!=NULL)
@@ -269,27 +317,25 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //-----------------------------------------------------------------------------
 bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
 {
-    struct  Object  *current,*start,*target;
+    struct  Object  *current;
+    struct HMI_InputDeviceObj *InputDevice;
     struct InputDeviceMsg input_msg;
     tpInputMsgQ InputMsgQ;
 
-    msg_size = msg_size;        //消除编译器告警
-
-    start = &s_ptHmiInDeviceRscTree->stdin_device_node;
-    current = &s_ptHmiInDeviceRscTree->stdin_device_node;
+    current = s_ptHmiInDeviceDir;
 
     //在资源队列中查找stdin_id对应的输入设备
-    while((target = OBJ_TraveScion(start,current))!=NULL)
+    while((current = OBJ_TraveChild(s_ptHmiInDeviceDir, current)) != NULL)
     {
-        if(((struct HMI_InputDeviceRsc *)target)->device_id == stdin_id)
+        InputDevice = (struct HMI_InputDeviceObj *)OBJ_Represent(current);
+        if(InputDevice->device_id == stdin_id)
             break;
-        current = target;
     }
-    if(target == NULL)        //未找到输入设备
+    if(current == NULL)        //未找到输入设备
         return false;
 
-    InputMsgQ = ((struct HMI_InputDeviceRsc *)target)->FocusMsgQ;
-    ((struct HMI_InputDeviceRsc *)target)->input_counter++;
+    InputMsgQ = InputDevice->FocusMsgQ;
+    InputDevice->input_counter++;
     if(InputMsgQ == NULL)      //该设备的输入焦点未初始化
     {
         InputMsgQ = tg_pDefaultFocusMsgQ;      //取默认焦点(可能也未初始化)
@@ -298,8 +344,8 @@ bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
     if(InputMsgQ != NULL)
     {
         input_msg.input_data = *(union un_input_data *)msg_data;
-        input_msg.input_type = ((struct HMI_InputDeviceRsc *)target)->input_type;
-        input_msg.device_id = ((struct HMI_InputDeviceRsc *)target)->device_id;
+        input_msg.input_type = InputDevice->input_type;
+        input_msg.device_id = InputDevice->device_id;
         MsgQ_Send(InputMsgQ,(u8*)&input_msg,sizeof(struct InputDeviceMsg),
                     CN_TIMEOUT_FOREVER,CN_MSGQ_PRIO_NORMAL);
     }
@@ -339,15 +385,14 @@ bool_t HmiIn_ReadDefaultMsg(struct InputDeviceMsg *MsgBuf,u32 TimeOut)
 //-----------------------------------------------------------------------------
 bool_t HmiIn_UnInstallDevice(const char *device_name)
 {
-    struct  Object *temp;
-    struct HMI_InputDeviceRsc *Djy_HmiIn;
-    Djy_HmiIn = (struct HMI_InputDeviceRsc *)OBJ_SearchChild(
-                 &s_ptHmiInDeviceRscTree->stdin_device_node,device_name);
-    if(Djy_HmiIn == NULL)
+    struct  Object  *current;
+    struct HMI_InputDeviceObj *Djy_HmiIn;
+    current = OBJ_SearchChild(s_ptHmiInDeviceDir,device_name);
+    if(current == NULL)
         return false;
 
-    temp = &Djy_HmiIn->stdin_device_node;
-    if(OBJ_Del(temp) != NULL)
+    Djy_HmiIn = (struct HMI_InputDeviceObj *)OBJ_Represent(current);
+    if(!OBJ_Del(current))
     {
         Mb_Free(g_ptHmiInDevicePool,Djy_HmiIn);
         return true;

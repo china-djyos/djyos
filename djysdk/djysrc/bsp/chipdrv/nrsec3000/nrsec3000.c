@@ -50,14 +50,14 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-#include "Driver.h"
+
 #include <stdlib.h>
 #include "stdint.h"
 #include "stdio.h"
 #include "object.h"
 #include "lock.h"
 #include "stdlib.h"
-#include "driver.h"
+#include <device.h>
 #include "string.h"
 #include "djybus.h"
 #include "spibus.h"
@@ -65,10 +65,52 @@
 #include "djyos.h"
 #include "nrsec3000.h"
 #include "cpu_peri.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t NRSEC3000_Init(char *BusName);
+//    NRSEC3000_Init(CFG_NRSEC3000_BUS_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"NRSEC3000"    //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock","spibus"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_NRSEC3000_BUS_NAME  //****检查参数是否已经配置好
+#warning    NRSEC3000组件参数未配置，使用默认值
+//%$#@num,500000,50000000,
+#define CFG_NRSEC3000_SPI_SPEED      (20000*1000)           //"SPI总线速度"，配置总线通信速度
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#define CFG_NRSEC3000_BUS_NAME              ""              //"总线名称",NRSEC3000所在的SPI总线名称
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 static u32 s_NRSEC3000_Timeout = CN_TIMEOUT_FOREVER;
 static struct SPI_Device s_NRSEC3000_Dev;
-#define NRSEC3000_SPI_SPEED      (20000*1000)
+//#define CFG_NRSEC3000_SPI_SPEED      (20000*1000)
 
 
 
@@ -114,11 +156,11 @@ void Cmd_DelayMs(u8 cmd)
 {
 
     if(cmd==0xb3)
-    	Djy_EventDelay(1300);
+        Djy_EventDelay(1300);
     if(cmd==0xb4)
-    	Djy_EventDelay(2300);
+        Djy_EventDelay(2300);
     else
-    	Djy_EventDelay(30);
+        Djy_EventDelay(30);
 }
 
 /* =============================================================================
@@ -158,13 +200,13 @@ static u32 NRSEC3000_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
  =============================================================================*/
 u8 get_crc7(const u8* buff, u16 len)
 {
-	uint32_t j;
+    uint32_t j;
     u8 crc7_accum=0;
 
-	for(j=0;j<len;j++)
-	  {
-	    crc7_accum=crc7_table[(crc7_accum<<1)^buff[j]];
-		}
+    for(j=0;j<len;j++)
+      {
+        crc7_accum=crc7_table[(crc7_accum<<1)^buff[j]];
+        }
     return crc7_accum;
 }
 
@@ -175,40 +217,40 @@ u8 get_crc7(const u8* buff, u16 len)
  =============================================================================*/
 bool_t Receive_Response(u8 cmd)
 {
-	uint32_t i;
+    uint32_t i;
 
 
-	for (i=0;i<500;i++)
-	{
-		ptagEncryptionCtrl->RxBuffer[i]=0x00;
-	}
+    for (i=0;i<500;i++)
+    {
+        ptagEncryptionCtrl->RxBuffer[i]=0x00;
+    }
 
-	 for(i=0;i<500;i++)
-   	{
+     for(i=0;i<500;i++)
+    {
 
-		NRSEC3000_CsActive();//片选
-//	    for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//		Djy_EventDelay(10);
-		Djy_DelayUs(100);
-	    NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer1+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
+        NRSEC3000_CsActive();//片选
+//      for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+//      Djy_EventDelay(10);
+        Djy_DelayUs(100);
+        NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer1+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
 
-	    NRSEC3000_CsInActive();//非片选
-//		for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//	    Djy_EventDelay(10);
-	    Djy_DelayUs(100);
+        NRSEC3000_CsInActive();//非片选
+//      for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+//      Djy_EventDelay(10);
+        Djy_DelayUs(100);
 
 
 
-	    if((cmd==ptagEncryptionCtrl->RxBuffer[i])&&(i>5))
-	    {
+        if((cmd==ptagEncryptionCtrl->RxBuffer[i])&&(i>5))
+        {
           return 1;
-		}
+        }
 
-		if(i>=499)
-		{
+        if(i>=499)
+        {
          printf("!!!Error,加密模块未响应\r\n");
-		 return 0;
-		}
+         return 0;
+        }
     }
     return 0;
 }
@@ -226,19 +268,19 @@ bool_t Receive_Data(u8 cmd, u16 length,u16 *len)
 
    for(i=0;i<5000;i++)
    {
-	   NRSEC3000_CsActive();//片选
-//	   for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//	   Djy_EventDelay(10);
-	   Djy_DelayUs(100);
+       NRSEC3000_CsActive();//片选
+//     for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+//     Djy_EventDelay(10);
+       Djy_DelayUs(100);
 
-	   NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
+       NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
 
 
-	   NRSEC3000_CsInActive();//非片选
-//	   for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//	   Djy_EventDelay(10);
-	   Djy_DelayUs(100);
-	  if((200==i)&&(0xe0!=cmd))
+       NRSEC3000_CsInActive();//非片选
+//     for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+//     Djy_EventDelay(10);
+       Djy_DelayUs(100);
+      if((200==i)&&(0xe0!=cmd))
       Cmd_DelayMs(cmd);
 
       if((0x90==ptagEncryptionCtrl->RxBuffer[i-1])&&(0x00==ptagEncryptionCtrl->RxBuffer[i])&&(0xe0!=cmd))
@@ -271,49 +313,49 @@ bool_t Receive_Data(u8 cmd, u16 length,u16 *len)
 bool_t New_Receive_Data(u8 cmd, u16 length,u16 *len,u16 num)
 {
 
-	uint32_t i;
+    uint32_t i;
 
-	  for(i=0;i<num;i++)
-	  {
-		 NRSEC3000_CsActive();//片选
-		 Djy_DelayUs(100);
-		 NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
-		 NRSEC3000_CsInActive();//非片选
-		 Djy_DelayUs(100);
-	  }
-	 Djy_EventDelay(1000);
-	  for(i=num;;i++)
-	  {
-		 NRSEC3000_CsActive();//片选
-		 Djy_DelayUs(1000);
-		 NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+num,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
-		 NRSEC3000_CsInActive();//非片选
-		 Djy_DelayUs(1000);
+      for(i=0;i<num;i++)
+      {
+         NRSEC3000_CsActive();//片选
+         Djy_DelayUs(100);
+         NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
+         NRSEC3000_CsInActive();//非片选
+         Djy_DelayUs(100);
+      }
+     Djy_EventDelay(1000);
+      for(i=num;;i++)
+      {
+         NRSEC3000_CsActive();//片选
+         Djy_DelayUs(1000);
+         NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+num,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
+         NRSEC3000_CsInActive();//非片选
+         Djy_DelayUs(1000);
 
-		if( (0x90==ptagEncryptionCtrl->RxBuffer[i-1]) && (0x00==ptagEncryptionCtrl->RxBuffer[i]) )
-		     		 break;
-		 if(i==5000)
-		 {
-			return 0;
-		 }
-	  }
+        if( (0x90==ptagEncryptionCtrl->RxBuffer[i-1]) && (0x00==ptagEncryptionCtrl->RxBuffer[i]) )
+                     break;
+         if(i==5000)
+         {
+            return 0;
+         }
+      }
 
-	    for(i=0;i<5000;i++)
-	    {
-	       if((ptagEncryptionCtrl->RxBuffer[i]==cmd)&&(ptagEncryptionCtrl->RxBuffer[i+length+3]==0x90)&&(ptagEncryptionCtrl->RxBuffer[i+length+4]==0x00))
-	       {
-	    	    ptagEncryptionCtrl->len=i;
-	            return 1;
-	        }
+        for(i=0;i<5000;i++)
+        {
+           if((ptagEncryptionCtrl->RxBuffer[i]==cmd)&&(ptagEncryptionCtrl->RxBuffer[i+length+3]==0x90)&&(ptagEncryptionCtrl->RxBuffer[i+length+4]==0x00))
+           {
+                ptagEncryptionCtrl->len=i;
+                return 1;
+            }
 
-   		 if( (0x90==ptagEncryptionCtrl->RxBuffer[i-1]) && (0x00==ptagEncryptionCtrl->RxBuffer[i]) )
-   		 {
-   			 return 1;
-   		 }
+         if( (0x90==ptagEncryptionCtrl->RxBuffer[i-1]) && (0x00==ptagEncryptionCtrl->RxBuffer[i]) )
+         {
+             return 1;
+         }
 
-	    }
+        }
 
-	    return 0;
+        return 0;
 }
 
 
@@ -334,20 +376,20 @@ bool_t New_Receive_Data(u8 cmd, u16 length,u16 *len,u16 num)
  =============================================================================*/
 bool_t Import_SM1_Key()
 {
-	u32 i=0,j=0;
+    u32 i=0,j=0;
 
 //=============================================================================
 //填充发送缓冲区1里的内容，手册中的过程1、过程2，发送命令头和等待接收
     ptagEncryptionCtrl->TxBuffer1[0] = 0x80;
-	ptagEncryptionCtrl->TxBuffer1[1] = 0xd4;
-	ptagEncryptionCtrl->TxBuffer1[2] = 0x01;
-	ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
-	ptagEncryptionCtrl->TxBuffer1[4] = 0x10;
+    ptagEncryptionCtrl->TxBuffer1[1] = 0xd4;
+    ptagEncryptionCtrl->TxBuffer1[2] = 0x01;
+    ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
+    ptagEncryptionCtrl->TxBuffer1[4] = 0x10;
 
-	for(i=5;i<200;i++)
-	{
+    for(i=5;i<200;i++)
+    {
       ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
-	}
+    }
 
 //=============================================================================
 //填充发送缓冲区2里的内容，手册中的过程3、过程4，发送命令数据标志、key和crc
@@ -374,7 +416,7 @@ bool_t Import_SM1_Key()
 //将发送缓冲区1的内容送出去，等待接收到括号里写的d4
      if(Receive_Response(0xd4))
      {
-    	 Djy_EventDelay(1000);
+         Djy_EventDelay(1000);
            Receive_Data(0xd4, 0x80,&ptagEncryptionCtrl->len);
        }
 
@@ -385,18 +427,18 @@ bool_t Import_SM1_Key()
 //过程6开始，指令填充
 
      ptagEncryptionCtrl->TxBuffer1[0] = 0x80;
- 	 ptagEncryptionCtrl->TxBuffer1[1] = 0xd4;
- 	 ptagEncryptionCtrl->TxBuffer1[2] = 0x02;
- 	 ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
- 	 ptagEncryptionCtrl->TxBuffer1[4] = 0x10;
- 	 for(i=5;i<200;i++)
- 	 {
- 		 ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
- 	 }
+     ptagEncryptionCtrl->TxBuffer1[1] = 0xd4;
+     ptagEncryptionCtrl->TxBuffer1[2] = 0x02;
+     ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
+     ptagEncryptionCtrl->TxBuffer1[4] = 0x10;
+     for(i=5;i<200;i++)
+     {
+         ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
+     }
 
 //=============================================================================
 //过程8，数据填充
- 	 ptagEncryptionCtrl->TxBuffer2[0]=0x55;
+     ptagEncryptionCtrl->TxBuffer2[0]=0x55;
      for(j=1;j<=16;j++)
      {
          ptagEncryptionCtrl->TxBuffer2[j]= 0x00;
@@ -415,7 +457,7 @@ bool_t Import_SM1_Key()
        }
        if(Receive_Response(0xd4))
        {
-    	   Djy_EventDelay(1000);
+           Djy_EventDelay(1000);
              if(Receive_Data(0xd4, 0x80,&ptagEncryptionCtrl->len))
              return 1;
          }
@@ -434,17 +476,17 @@ bool_t Import_SM1_Key()
  =============================================================================*/
 bool_t Import_IV()
 {
-	uint32_t i,j;
+    uint32_t i,j;
 
     ptagEncryptionCtrl->TxBuffer1[0] = 0x80;
-	ptagEncryptionCtrl->TxBuffer1[1] = 0xd4;
-	ptagEncryptionCtrl->TxBuffer1[2] = 0x04;
-	ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
-	ptagEncryptionCtrl->TxBuffer1[4] = 0x10;
-	for(i=5;i<200;i++)
-	{
+    ptagEncryptionCtrl->TxBuffer1[1] = 0xd4;
+    ptagEncryptionCtrl->TxBuffer1[2] = 0x04;
+    ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
+    ptagEncryptionCtrl->TxBuffer1[4] = 0x10;
+    for(i=5;i<200;i++)
+    {
       ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
-	}
+    }
 
 //=============================================================================
 //过程3、4，数据填充,16字节的IV（为什么是十六个1？）
@@ -469,7 +511,7 @@ bool_t Import_IV()
 //发送指令和数据
       if(Receive_Response(0xd4))
       {
-    	  Djy_EventDelay(1000);
+          Djy_EventDelay(1000);
         if(Receive_Data(0xd4, 0x80,&ptagEncryptionCtrl->len))
                 return 1;
         }
@@ -520,7 +562,7 @@ bool_t SM1_Encrypt(u8 *Txbuffer,u16 InLenth)
 
       if(Receive_Response(0xe0))
       {
-    	  Djy_EventDelay(1000);
+          Djy_EventDelay(1000);
         if(Receive_Data(0xe0, InLenth+1,&ptagEncryptionCtrl->len))
         {
             memcpy(ptagEncryptionCtrl->SM1_EncryptNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+3,InLenth);
@@ -573,11 +615,11 @@ bool_t SM1_Decrypt(u8 *Txbuffer,u16 InLenth)
 
     if(Receive_Response(0xe0))
     {
-    	Djy_EventDelay(1000);
+        Djy_EventDelay(1000);
       if(Receive_Data(0xe0, InLenth+1,&ptagEncryptionCtrl->len))
       {
-    	  memcpy(ptagEncryptionCtrl->SM1_TrueNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+3,InLenth);
-    	  return 1;
+          memcpy(ptagEncryptionCtrl->SM1_TrueNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+3,InLenth);
+          return 1;
       }
 
     }
@@ -595,44 +637,44 @@ bool_t SM1_Decrypt(u8 *Txbuffer,u16 InLenth)
 bool_t Key_Product()
 {
     u8 spiTxBuf[500];
-	u8 spiRxBuf[500];
+    u8 spiRxBuf[500];
 
-	uint32_t i;
+    uint32_t i;
 
 
-	spiTxBuf[0] = 0x80;
-	spiTxBuf[1] = 0xb2;
-	spiTxBuf[2] = 0x00;
-	spiTxBuf[3] = 0x00;
-	spiTxBuf[4] = 0x00;
+    spiTxBuf[0] = 0x80;
+    spiTxBuf[1] = 0xb2;
+    spiTxBuf[2] = 0x00;
+    spiTxBuf[3] = 0x00;
+    spiTxBuf[4] = 0x00;
 
-	for (i=5;i<500;i++)
-	{
-		spiTxBuf[i]=0xaa;
-	}
-	for (i=0;i<500;i++)
-	{
-		spiRxBuf[i]=0;
-	}
+    for (i=5;i<500;i++)
+    {
+        spiTxBuf[i]=0xaa;
+    }
+    for (i=0;i<500;i++)
+    {
+        spiRxBuf[i]=0;
+    }
 
-	for (i=0;i<500;i++)
-	{
-		NRSEC3000_CsActive();//片选
-//	    for (byTmp1=0;byTmp1<30;byTmp1++) ; //延时
-		Djy_EventDelay(10);
-//		Djy_DelayUs(100);
-	    NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
+    for (i=0;i<500;i++)
+    {
+        NRSEC3000_CsActive();//片选
+//      for (byTmp1=0;byTmp1<30;byTmp1++) ; //延时
+        Djy_EventDelay(10);
+//      Djy_DelayUs(100);
+        NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
-	    NRSEC3000_CsInActive();//非片选
-//		for (byTmp1=0;byTmp1<30;byTmp1++) ; //延时
-	    Djy_EventDelay(10);
-//	    Djy_DelayUs(100);
-		if ((spiRxBuf[i]==0x00)&&(spiRxBuf[i-1]==0x90))
-		{
-			return 1;
-		}
-	}
-	return 0;
+        NRSEC3000_CsInActive();//非片选
+//      for (byTmp1=0;byTmp1<30;byTmp1++) ; //延时
+        Djy_EventDelay(10);
+//      Djy_DelayUs(100);
+        if ((spiRxBuf[i]==0x00)&&(spiRxBuf[i-1]==0x90))
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /* =============================================================================
@@ -660,46 +702,46 @@ bool_t Export_SM2_PublicKey(u8 p2)
 
    for(i=5;i<500;i++)
    {
-	   spiTxBuf[i] = 0xaa;
+       spiTxBuf[i] = 0xaa;
    }
 //输入缓冲区为CMD头+一堆0xaa
    for(i=0; i<500; i++)
    {
-	   spiRxBuf[i]=0;
+       spiRxBuf[i]=0;
    }
 
     for(i=0;i<500;i++)
-   	{
-		NRSEC3000_CsActive();//片选
-	    for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//		Djy_EventDelay(1000);
-	    NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
+    {
+        NRSEC3000_CsActive();//片选
+        for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+//      Djy_EventDelay(1000);
+        NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
-	    NRSEC3000_CsInActive();//非片选
-		for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
-//	    Djy_EventDelay(1000);
-  	}
+        NRSEC3000_CsInActive();//非片选
+        for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+//      Djy_EventDelay(1000);
+    }
 
     for(i=5;i<500;i++)
     {
        if((spiRxBuf[i]==0xb8)&&(spiRxBuf[i+64+3]==0x90))
        {
-    	   if(p2==0)
-    	   {
-    	     for(j=0; j<64; j++)
-    	     {
-    		    ptagEncryptionCtrl->SM2_00_PublicKey[j]=spiRxBuf[i+2];
-    			i++;
-    		 }
-    	   }
-    	   if(p2==1)
-    	   {
-  	         for(j=0; j<64; j++)
-  	         {
-  				ptagEncryptionCtrl->SM2_01_PublicKey[j]=spiRxBuf[i+2];
-  				i++;
-  			 }
-    	   }
+           if(p2==0)
+           {
+             for(j=0; j<64; j++)
+             {
+                ptagEncryptionCtrl->SM2_00_PublicKey[j]=spiRxBuf[i+2];
+                i++;
+             }
+           }
+           if(p2==1)
+           {
+             for(j=0; j<64; j++)
+             {
+                ptagEncryptionCtrl->SM2_01_PublicKey[j]=spiRxBuf[i+2];
+                i++;
+             }
+           }
         return 1;
         }
      }
@@ -718,72 +760,72 @@ bool_t Export_SM2_PublicKey(u8 p2)
  =============================================================================*/
 bool_t Export_SM2_PrivateKey(u8 p2)
 {
-	 u8 spiTxBuf[500];
-	 u8 spiRxBuf[500];
-	 uint32_t i,j;
-	 uint8_t byTmp1;
+     u8 spiTxBuf[500];
+     u8 spiRxBuf[500];
+     uint32_t i,j;
+     uint8_t byTmp1;
 
 
 
-	 spiTxBuf[0] = 0x80;
-	 spiTxBuf[1] = 0xb8;
-	 spiTxBuf[2] = 0x02;
-	 spiTxBuf[3] = p2;
-	 spiTxBuf[4] = 0x20;
+     spiTxBuf[0] = 0x80;
+     spiTxBuf[1] = 0xb8;
+     spiTxBuf[2] = 0x02;
+     spiTxBuf[3] = p2;
+     spiTxBuf[4] = 0x20;
 
-	 for(i=5;i<500;i++)
-	 {
-		 spiTxBuf[i] = 0xaa;
-	 }
+     for(i=5;i<500;i++)
+     {
+         spiTxBuf[i] = 0xaa;
+     }
 //输入缓冲区填充：CMD头+一堆0xaa
-	 for(i=0; i<500; i++)
-	 {
-		 spiRxBuf[i]=0;
-	 }
+     for(i=0; i<500; i++)
+     {
+         spiRxBuf[i]=0;
+     }
 
 
 
 //所有发送函数都一个样，拉片选，调用发送接收
-		  for(i=0;i<5;i++)
-		  {
-			 NRSEC3000_CsActive();//片选
-			 Djy_DelayUs(100);
-			 NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
-			 NRSEC3000_CsInActive();//非片选
-			 Djy_DelayUs(100);
-		  }
-		 Djy_EventDelay(1000);
-		  for(i=5;;i++)
-		  {
-			 NRSEC3000_CsActive();//片选
-			 Djy_DelayUs(1000);
-			 NRSEC3000_TxRx(spiTxBuf+5,1,spiRxBuf+i,1,0);
-			 NRSEC3000_CsInActive();//非片选
-			 Djy_DelayUs(1000);
+          for(i=0;i<5;i++)
+          {
+             NRSEC3000_CsActive();//片选
+             Djy_DelayUs(100);
+             NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
+             NRSEC3000_CsInActive();//非片选
+             Djy_DelayUs(100);
+          }
+         Djy_EventDelay(1000);
+          for(i=5;;i++)
+          {
+             NRSEC3000_CsActive();//片选
+             Djy_DelayUs(1000);
+             NRSEC3000_TxRx(spiTxBuf+5,1,spiRxBuf+i,1,0);
+             NRSEC3000_CsInActive();//非片选
+             Djy_DelayUs(1000);
 
-			if( (0x90==spiRxBuf[i-1]) && (0x00==spiRxBuf[i]) )
-			     		 break;
-			 if(i==500)
-			 {
-				return 0;
-			 }
-		  }
+            if( (0x90==spiRxBuf[i-1]) && (0x00==spiRxBuf[i]) )
+                         break;
+             if(i==500)
+             {
+                return 0;
+             }
+          }
 
 //数据处理，保存
-	  for(i=5;i<500;i++)
-	  {
-		 if((spiRxBuf[i]==0xb8)&&(spiRxBuf[i+32+3]==0x90))
-		 {
-		   for(j=0; j<32; j++)
-		   {
-			  ptagEncryptionCtrl->Client_PrivateKey[j]=spiRxBuf[i+2];
-			  i++;
-		   }
-		  return 1;
-		  }
-	   }
-	  printf("\r\n未读取到装置私钥%d\r\n",i);
-	  return 0;
+      for(i=5;i<500;i++)
+      {
+         if((spiRxBuf[i]==0xb8)&&(spiRxBuf[i+32+3]==0x90))
+         {
+           for(j=0; j<32; j++)
+           {
+              ptagEncryptionCtrl->Client_PrivateKey[j]=spiRxBuf[i+2];
+              i++;
+           }
+          return 1;
+          }
+       }
+      printf("\r\n未读取到装置私钥%d\r\n",i);
+      return 0;
 }
 
 /* =============================================================================
@@ -793,19 +835,19 @@ bool_t Export_SM2_PrivateKey(u8 p2)
  =============================================================================*/
 bool_t Import_SM2_PublicKey(u8 p2)
 {
-	uint32_t i,j;
+    uint32_t i,j;
 
     //导入SM2公钥，64字节
-	ptagEncryptionCtrl->TxBuffer1[0] = 0x80;
-	ptagEncryptionCtrl->TxBuffer1[1] = 0xba;
-	ptagEncryptionCtrl->TxBuffer1[2] = 0x01;
-	ptagEncryptionCtrl->TxBuffer1[3] = p2;
-	ptagEncryptionCtrl->TxBuffer1[4] = 0x40;
+    ptagEncryptionCtrl->TxBuffer1[0] = 0x80;
+    ptagEncryptionCtrl->TxBuffer1[1] = 0xba;
+    ptagEncryptionCtrl->TxBuffer1[2] = 0x01;
+    ptagEncryptionCtrl->TxBuffer1[3] = p2;
+    ptagEncryptionCtrl->TxBuffer1[4] = 0x40;
 
-	for(i=5;i<150;i++)
-	{
+    for(i=5;i<150;i++)
+    {
       ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
-	}
+    }
 //发送缓冲区1：包含了CMD头和一堆0xaa
 //发送缓冲区2：包含了标志位0x55+64字节公钥+crc+一堆0xaa
     ptagEncryptionCtrl->TxBuffer2[0]=0x55;
@@ -842,7 +884,7 @@ bool_t Import_SM2_PublicKey(u8 p2)
 
     if(Receive_Response(0xba))
     {
-    	 Djy_EventDelay(1000);
+         Djy_EventDelay(1000);
         if(Receive_Data(0xba, 0x80,&ptagEncryptionCtrl->len))
             return 1;
     }
@@ -858,19 +900,19 @@ bool_t Import_SM2_PublicKey(u8 p2)
  =============================================================================*/
 bool_t Import_SM2_PrivateKey(u8 p2)
 {
-	uint32_t i,j;
-	u8 pResult;
+    uint32_t i,j;
+    u8 pResult;
 
     ptagEncryptionCtrl->TxBuffer1[0] = 0x80;
-	ptagEncryptionCtrl->TxBuffer1[1] = 0xba;
-	ptagEncryptionCtrl->TxBuffer1[2] = 0x02;
-	ptagEncryptionCtrl->TxBuffer1[3] = p2;
-	ptagEncryptionCtrl->TxBuffer1[4] = 0x20;
+    ptagEncryptionCtrl->TxBuffer1[1] = 0xba;
+    ptagEncryptionCtrl->TxBuffer1[2] = 0x02;
+    ptagEncryptionCtrl->TxBuffer1[3] = p2;
+    ptagEncryptionCtrl->TxBuffer1[4] = 0x20;
 
-	for(i=5;i<200;i++)
-	{
+    for(i=5;i<200;i++)
+    {
       ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
-	}
+    }
 
 
     ptagEncryptionCtrl->TxBuffer2[0]=0x55;
@@ -895,9 +937,9 @@ bool_t Import_SM2_PrivateKey(u8 p2)
       pResult=Receive_Response(0xba);
       if(pResult)
       {
-    	  Djy_EventDelay(1000);
+          Djy_EventDelay(1000);
           if(Receive_Data(0xba, 0x80,&ptagEncryptionCtrl->len))
-        	  return 1;
+              return 1;
      }
        return 0;
 }
@@ -928,35 +970,35 @@ int NRSEC3000_sm3(u8 *Txbuffer,u16 Lenth, u8 *Rxbuffer)
 
    for(i=5;i<150;i++)
    {
-	spiTxBuf[i]=0xaa;
+    spiTxBuf[i]=0xaa;
    }
 
    for(i=0; i<150; i++)
 
    {
-	   spiRxBuf[i]=0;
+       spiRxBuf[i]=0;
    }
 
    for(i=0;i<150;i++)
    {
-	   NRSEC3000_CsActive();//片选
-	   Djy_DelayUs(1000); //延时
+       NRSEC3000_CsActive();//片选
+       Djy_DelayUs(1000); //延时
 
-	   NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
+       NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
-	   NRSEC3000_CsInActive();//非片选
-	   Djy_DelayUs(1000) ; //延时
+       NRSEC3000_CsInActive();//非片选
+       Djy_DelayUs(1000) ; //延时
 
-	   if((0xb5==spiRxBuf[i])&&(i>5))
-	   {
-		   break;
-	   }
+       if((0xb5==spiRxBuf[i])&&(i>5))
+       {
+           break;
+       }
 
-		if(i>=199)
-		{
+        if(i>=199)
+        {
          printf("!!!Error,加密模块未响应\r\n");
-		 return 0;
-		}
+         return 0;
+        }
 }
 
    spiTxBuf[0]=0x55;
@@ -979,13 +1021,13 @@ int NRSEC3000_sm3(u8 *Txbuffer,u16 Lenth, u8 *Rxbuffer)
 
    for(i=0;i<500;i++)
      {
-	   NRSEC3000_CsActive();//片选
-	   Djy_DelayUs(100); //延时
+       NRSEC3000_CsActive();//片选
+       Djy_DelayUs(100); //延时
 
-	   NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
+       NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
-	   NRSEC3000_CsInActive();//非片选
-	   Djy_DelayUs(100); //延时
+       NRSEC3000_CsInActive();//非片选
+       Djy_DelayUs(100); //延时
 
         if((0x90==spiRxBuf[i-1])&&(0x00==spiRxBuf[i]))
         {
@@ -1118,7 +1160,7 @@ bool_t SM2_Sign(u8 p2)
 
    for(i=0;i<32;i++)
    {
-	ptagEncryptionCtrl->TxBuffer2[1+i]=ptagEncryptionCtrl->Hash_Number[i];
+    ptagEncryptionCtrl->TxBuffer2[1+i]=ptagEncryptionCtrl->Hash_Number[i];
    }
 
    ptagEncryptionCtrl->TxBuffer2[33]=get_crc7(ptagEncryptionCtrl->TxBuffer2+1,32);
@@ -1137,11 +1179,11 @@ bool_t SM2_Sign(u8 p2)
    }
    if(Receive_Response(0xb4))
    {
-	   Djy_EventDelay(1000);
+       Djy_EventDelay(1000);
         if(New_Receive_Data(0xb4, 0x40,&ptagEncryptionCtrl->len,35))
         {
-        	memcpy(ptagEncryptionCtrl->sign,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,64);
-        	return 1;
+            memcpy(ptagEncryptionCtrl->sign,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,64);
+            return 1;
         }
 
     }
@@ -1156,19 +1198,19 @@ bool_t SM2_Sign(u8 p2)
  =============================================================================*/
 bool_t SM2_Sign_Verif(u8 p2)
 {
-	uint32_t i,j;
-	u8 pResult;
+    uint32_t i,j;
+    u8 pResult;
 
     ptagEncryptionCtrl->TxBuffer1[0] = 0x80;
-	ptagEncryptionCtrl->TxBuffer1[1] = 0xb6;
-	ptagEncryptionCtrl->TxBuffer1[2] = 0x00;
-	ptagEncryptionCtrl->TxBuffer1[3] = p2;
-	ptagEncryptionCtrl->TxBuffer1[4] = 0x60;
+    ptagEncryptionCtrl->TxBuffer1[1] = 0xb6;
+    ptagEncryptionCtrl->TxBuffer1[2] = 0x00;
+    ptagEncryptionCtrl->TxBuffer1[3] = p2;
+    ptagEncryptionCtrl->TxBuffer1[4] = 0x60;
 
-	for(i=5;i<200;i++)
-	{
+    for(i=5;i<200;i++)
+    {
       ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
-	}
+    }
 
 
     ptagEncryptionCtrl->TxBuffer2[0]=0x55;
@@ -1197,9 +1239,9 @@ bool_t SM2_Sign_Verif(u8 p2)
       pResult=Receive_Response(0xb6);
       if(pResult)
       {
-    	  Djy_EventDelay(1000);
+          Djy_EventDelay(1000);
           if(New_Receive_Data(0xba, 0x80,&ptagEncryptionCtrl->len,99))
-        	  return 1;
+              return 1;
      }
        return 0;
 }
@@ -1243,11 +1285,11 @@ bool_t SM2_Encrypt(u8 p2)
    }
    if(Receive_Response(0xb3))
    {
-	   //Djy_EventDelay(1000);
+       //Djy_EventDelay(1000);
         if(New_Receive_Data(0xb3, 0x80,&ptagEncryptionCtrl->len,35))
         {
-        	memcpy(ptagEncryptionCtrl->SM2_EncryptNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,128);
-        	 return 1;
+            memcpy(ptagEncryptionCtrl->SM2_EncryptNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,128);
+             return 1;
         }
 
     }
@@ -1295,11 +1337,11 @@ bool_t SM2_Decrypt(u8 p2)
   }
   if(Receive_Response(0xb3))
   {
-	  Djy_EventDelay(1000);
+      Djy_EventDelay(1000);
        if(New_Receive_Data(0xb3, 0x20,&ptagEncryptionCtrl->len,131))
        {
-       	memcpy(ptagEncryptionCtrl->SM2_TrueNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,32);
-       	 return 1;
+        memcpy(ptagEncryptionCtrl->SM2_TrueNumber,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,32);
+         return 1;
        }
     }
 
@@ -1353,42 +1395,42 @@ bool_t Cer_Request(char *byP3Info,u8 p3)
 
     if(Receive_Response(0xb7))
     {
-    	Djy_EventDelay(1000);
-    	for(i=0;i<5000;i++)
-   		{
-	 	   NRSEC3000_CsActive();//片选
-	 	  Djy_EventDelay(10);
-	 	   NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
+        Djy_EventDelay(1000);
+        for(i=0;i<5000;i++)
+        {
+           NRSEC3000_CsActive();//片选
+          Djy_EventDelay(10);
+           NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer2+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
 
-	 	   NRSEC3000_CsInActive();//非片选
-	 	  Djy_EventDelay(10);
-			if(70==i)
-				Djy_EventDelay(100);
+           NRSEC3000_CsInActive();//非片选
+          Djy_EventDelay(10);
+            if(70==i)
+                Djy_EventDelay(100);
 
-      		if((0x90==ptagEncryptionCtrl->RxBuffer[i-1])&&(0x00==ptagEncryptionCtrl->RxBuffer[i]))
-      		{
-        		break;
-      		}
-   		}
+            if((0x90==ptagEncryptionCtrl->RxBuffer[i-1])&&(0x00==ptagEncryptionCtrl->RxBuffer[i]))
+            {
+                break;
+            }
+        }
 
-    	for(i=(p3+2);i<5000;i++)
-    	{
-      	 	if(ptagEncryptionCtrl->RxBuffer[i]==0xb7)
-      	 	{
-            	Packet_Len=ptagEncryptionCtrl->RxBuffer[i+1];
-				Packet_Len=(Packet_Len<<8)+ptagEncryptionCtrl->RxBuffer[i+2];
+        for(i=(p3+2);i<5000;i++)
+        {
+            if(ptagEncryptionCtrl->RxBuffer[i]==0xb7)
+            {
+                Packet_Len=ptagEncryptionCtrl->RxBuffer[i+1];
+                Packet_Len=(Packet_Len<<8)+ptagEncryptionCtrl->RxBuffer[i+2];
                 ptagEncryptionCtrl->len = i;
                 printf("%x",Packet_Len);
-            	//*Rxbuff=(spiRxBuf+i+2);
-            	for(j=0;j<Packet_Len;j++)
-            	{
-            		ptagEncryptionCtrl->SM2_Certificate[j]=ptagEncryptionCtrl->RxBuffer[j+i+3];
-					printf("%x",ptagEncryptionCtrl->RxBuffer[j+i+3]);
-				}
+                //*Rxbuff=(spiRxBuf+i+2);
+                for(j=0;j<Packet_Len;j++)
+                {
+                    ptagEncryptionCtrl->SM2_Certificate[j]=ptagEncryptionCtrl->RxBuffer[j+i+3];
+                    printf("%x",ptagEncryptionCtrl->RxBuffer[j+i+3]);
+                }
 
-            	return 1;
-        	}
-     	}
+                return 1;
+            }
+        }
     }
     return 0;
 }
@@ -1424,25 +1466,25 @@ bool_t Random_Numer(u8 p3)
    }
 
     for(i=0;i<500;i++)
-   	{
- 	   NRSEC3000_CsActive();//片选
- 	   for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+    {
+       NRSEC3000_CsActive();//片选
+       for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
 
- 	   NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
+       NRSEC3000_TxRx(spiTxBuf+i,1,spiRxBuf+i,1,0);
 
- 	   NRSEC3000_CsInActive();//非片选
- 	   for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
+       NRSEC3000_CsInActive();//非片选
+       for (byTmp1=0;byTmp1<200;byTmp1++) ; //延时
 
-  	}
+    }
 
     for(i=5;i<500;i++)
     {
        if((spiRxBuf[i]==0x84)&&(spiRxBuf[i+p3+3]==0x90))
        {
-    	   for(j=0;j<p3;j++)
-    	   {
-    		   ptagEncryptionCtrl->Random[j]=(spiRxBuf[i+2+j]);
-    	   }
+           for(j=0;j<p3;j++)
+           {
+               ptagEncryptionCtrl->Random[j]=(spiRxBuf[i+2+j]);
+           }
 
         return 1;
         }
@@ -1460,50 +1502,50 @@ bool_t Random_Numer(u8 p3)
  =============================================================================*/
 u8 NRSEC3000_RdVersion()
 {
-	uint32_t i,j;
+    uint32_t i,j;
 
 
-	ptagEncryptionCtrl->TxBuffer1[0] = 0x00;
-	ptagEncryptionCtrl->TxBuffer1[1] = 0x5b;
-	ptagEncryptionCtrl->TxBuffer1[2] = 0x00;
-	ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
-	ptagEncryptionCtrl->TxBuffer1[4] = 0x40;
+    ptagEncryptionCtrl->TxBuffer1[0] = 0x00;
+    ptagEncryptionCtrl->TxBuffer1[1] = 0x5b;
+    ptagEncryptionCtrl->TxBuffer1[2] = 0x00;
+    ptagEncryptionCtrl->TxBuffer1[3] = 0x00;
+    ptagEncryptionCtrl->TxBuffer1[4] = 0x40;
 
-	for (i=5;i<150;i++)
-	{
-		ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
-	}
+    for (i=5;i<150;i++)
+    {
+        ptagEncryptionCtrl->TxBuffer1[i]=0xaa;
+    }
 
-		for (i=0;i<150;i++)
-		{
-			NRSEC3000_CsActive();//片选
-			Djy_DelayUs(100);
-			NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer1+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
-			NRSEC3000_CsInActive();//非片选
-			Djy_DelayUs(100);
+        for (i=0;i<150;i++)
+        {
+            NRSEC3000_CsActive();//片选
+            Djy_DelayUs(100);
+            NRSEC3000_TxRx(ptagEncryptionCtrl->TxBuffer1+i,1,ptagEncryptionCtrl->RxBuffer+i,1,0);
+            NRSEC3000_CsInActive();//非片选
+            Djy_DelayUs(100);
 
-			if((0x90==ptagEncryptionCtrl->RxBuffer[i-1])&&(0x00==ptagEncryptionCtrl->RxBuffer[i])&&(i>=5))
-			{
-			  break;
-			}
-		}
+            if((0x90==ptagEncryptionCtrl->RxBuffer[i-1])&&(0x00==ptagEncryptionCtrl->RxBuffer[i])&&(i>=5))
+            {
+              break;
+            }
+        }
 
-	for (i=5;i<150;i++)
-	{
-		if (ptagEncryptionCtrl->RxBuffer[i]==0x5b)
-		{
-			break;
-		}
-	}
+    for (i=5;i<150;i++)
+    {
+        if (ptagEncryptionCtrl->RxBuffer[i]==0x5b)
+        {
+            break;
+        }
+    }
 
     if (i==150)
     {
-    	return 0;
+        return 0;
     }
 
     for (j=0;j<64;j++)
     {
-    	ptagEncryptionCtrl->Version[j]=ptagEncryptionCtrl->RxBuffer[i+2+j];
+        ptagEncryptionCtrl->Version[j]=ptagEncryptionCtrl->RxBuffer[i+2+j];
     }
     return 1;
 }
@@ -1549,12 +1591,12 @@ bool_t Safety_Cert()
   }
   if(Receive_Response(0xb3))
   {
-	  Djy_EventDelay(1000);
+      Djy_EventDelay(1000);
 
        if(New_Receive_Data(0xb3, 0x92,&ptagEncryptionCtrl->len,35))
        {
-    	   memcpy(ptagEncryptionCtrl->Auth_Number,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,146);
-    	   return 1;
+           memcpy(ptagEncryptionCtrl->Auth_Number,ptagEncryptionCtrl->RxBuffer+ptagEncryptionCtrl->len+2,146);
+           return 1;
        }
 
     }
@@ -1570,17 +1612,17 @@ bool_t Safety_Cert()
 bool_t NRSEC3000_Init(char *BusName)
 {
 
-	s_NRSEC3000_Dev.AutoCs = false;
-	s_NRSEC3000_Dev.CharLen = 8;
-	s_NRSEC3000_Dev.Cs = 0;
-	s_NRSEC3000_Dev.Freq = NRSEC3000_SPI_SPEED;
-	s_NRSEC3000_Dev.Mode = SPI_MODE_3;
-	s_NRSEC3000_Dev.ShiftDir = SPI_SHIFT_MSB;
+    s_NRSEC3000_Dev.AutoCs = false;
+    s_NRSEC3000_Dev.CharLen = 8;
+    s_NRSEC3000_Dev.Cs = 0;
+    s_NRSEC3000_Dev.Freq = CFG_NRSEC3000_SPI_SPEED;
+    s_NRSEC3000_Dev.Mode = SPI_MODE_3;
+    s_NRSEC3000_Dev.ShiftDir = SPI_SHIFT_MSB;
 
     if(NULL != SPI_DevAdd_s(&s_NRSEC3000_Dev, BusName, "NRSEC3000"))
     {
         SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_POLL,0,0);
-        //SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_CLK,NRSEC3000_SPI_SPEED,0);
+        //SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_CLK,CFG_NRSEC3000_SPI_SPEED,0);
         return true;
     }
     return false;
@@ -1594,136 +1636,126 @@ void text(void)
        u8 sdata[10];
        u8 i;
 
-	   NRSEC3000_Init("SPI1");
+       NRSEC3000_Init("SPI1");
 
-//	   //是不是要有一个“预热”的阶段？每天早上都出问题，指令接收错误，然后不知道怎么的就突然好了
+//     //是不是要有一个“预热”的阶段？每天早上都出问题，指令接收错误，然后不知道怎么的就突然好了
 //     //时序的问题？是不是波形不对？
-	   for(i=0;i<1;i++)
-	   {
-		   sdata[i]=0xff;
-		   NRSEC3000_TxRx(sdata+i,1,sdata+5+i,1,0);
-	   }
+       for(i=0;i<1;i++)
+       {
+           sdata[i]=0xff;
+           NRSEC3000_TxRx(sdata+i,1,sdata+5+i,1,0);
+       }
 
 
 
-//	   sm3(unsigned char *in,int inl,unsigned char *out, unsigned char *pubkey, unsigned char *pucID, int idl);
+//     sm3(unsigned char *in,int inl,unsigned char *out, unsigned char *pubkey, unsigned char *pucID, int idl);
 
 
 
 
 
 //备注：片选下面的延时函数对采集数据影响很大，调高延时之后收到数据的速度快了,所以设计了新的数据接收函数
-//	   指令后面收到了两个无意义的数据，之前还是好好的……情况跟Export_SM2_PrivateKey(1)一样，但是什么都没动突然间又好了……
-//	   延时对数据的接收影响很大？
-//	   变量发送接收缓冲区定义的太大会导致异常，堆栈溢出
+//     指令后面收到了两个无意义的数据，之前还是好好的……情况跟Export_SM2_PrivateKey(1)一样，但是什么都没动突然间又好了……
+//     延时对数据的接收影响很大？
+//     变量发送接收缓冲区定义的太大会导致异常，堆栈溢出
 
-	   //以下测试过程后面的注释都是最开始写的，经过调试，基本都能够较好的实现功能
+       //以下测试过程后面的注释都是最开始写的，经过调试，基本都能够较好的实现功能
 
-	   //接下来要做的是把加密芯片结构体里面的参数名字弄清晰点，还有Import_IV和SM2_Encrypt发送缓冲区奇怪的赋值
+       //接下来要做的是把加密芯片结构体里面的参数名字弄清晰点，还有Import_IV和SM2_Encrypt发送缓冲区奇怪的赋值
 
-	   //唯一一个无法正常工作的是“导出私钥”功能，绞尽脑汁也想不出来为什么……
+       //唯一一个无法正常工作的是“导出私钥”功能，绞尽脑汁也想不出来为什么……
 
 
-//	   //======================================导入导出私钥测试======================================
-//	   	   Random_Numer(32);//测试了生成一个、五个随机数，可以实现
-//	   	   for(i=0;i<32;i++)
-//	   	   {
-//	   	   	ptagEncryptionCtrl->Client_PrivateKey[i]=ptagEncryptionCtrl->Random[i];
-//	   	   }
-//	   	   Import_SM2_PrivateKey(1);//花了八百多个0xaa才最终收到SW 0x90 0x00，虽然格式对的，感觉不是很好
+//     //======================================导入导出私钥测试======================================
+//         Random_Numer(32);//测试了生成一个、五个随机数，可以实现
+//         for(i=0;i<32;i++)
+//         {
+//          ptagEncryptionCtrl->Client_PrivateKey[i]=ptagEncryptionCtrl->Random[i];
+//         }
+//         Import_SM2_PrivateKey(1);//花了八百多个0xaa才最终收到SW 0x90 0x00，虽然格式对的，感觉不是很好
 //
-//	   	   Export_SM2_PrivateKey(1);//失败，连指令都没有正确反应，在读取时冒出0x6a和0x81两个数或者0x6e 0x00XXXXXXXXXXXXXXXXXXXXXXXXXX
-//	   //==========================================================================================
-//	   //==============================导入导出公钥测试==============================
-//	   	   Random_Numer(64);//测试了生成一个、五个随机数，可以实现
-//	   	   for(i=0;i<64;i++)
-//	   	   {
-//	   	   	ptagEncryptionCtrl->SM2_01_PublicKey[i]=ptagEncryptionCtrl->Random[i];
-//	   	   }
+//         Export_SM2_PrivateKey(1);//失败，连指令都没有正确反应，在读取时冒出0x6a和0x81两个数或者0x6e 0x00XXXXXXXXXXXXXXXXXXXXXXXXXX
+//     //==========================================================================================
+//     //==============================导入导出公钥测试==============================
+//         Random_Numer(64);//测试了生成一个、五个随机数，可以实现
+//         for(i=0;i<64;i++)
+//         {
+//          ptagEncryptionCtrl->SM2_01_PublicKey[i]=ptagEncryptionCtrl->Random[i];
+//         }
 //
-//	   	   Import_SM2_PublicKey(1);//花了一千多个0xaa才最终收到SW 0x90 0x00，虽然格式对的，感觉不是很好
+//         Import_SM2_PublicKey(1);//花了一千多个0xaa才最终收到SW 0x90 0x00，虽然格式对的，感觉不是很好
 //
-//	   	   Export_SM2_PublicKey(1);//应答数据格式正确，但对不对就不知道了
-//	   //==========================================================================
-//	   //=========================================SM1加密解密测试=========================================
-//	   	   Random_Numer(16);//测试了生成一个、五个随机数，可以实现
-//	   	   for(i=0;i<16;i++)
-//	   	   {
-//	   	   	ptagEncryptionCtrl->SM1_Key[i]=ptagEncryptionCtrl->Random[i];
-//	   	   }
-//	   	   Import_SM1_Key();//ok 指令发送很好，发送数据时最后收到了两个0xaa才收到SW 0x90 0x00
-//	   	   Import_IV();//ok 指令发送很好，发送数据时最后收到了两个0xaa才收到SW 0x90 0x00
-//	   	   Random_Numer(32);//测试了生成一个、五个随机数，可以实现
-//	   	   for(i=0;i<32;i++)
-//	   	   {
-//	   		ptagEncryptionCtrl->SM1_TrueNumber[i]=ptagEncryptionCtrl->Random[i];
-//	   	   }
+//         Export_SM2_PublicKey(1);//应答数据格式正确，但对不对就不知道了
+//     //==========================================================================
+//     //=========================================SM1加密解密测试=========================================
+//         Random_Numer(16);//测试了生成一个、五个随机数，可以实现
+//         for(i=0;i<16;i++)
+//         {
+//          ptagEncryptionCtrl->SM1_Key[i]=ptagEncryptionCtrl->Random[i];
+//         }
+//         Import_SM1_Key();//ok 指令发送很好，发送数据时最后收到了两个0xaa才收到SW 0x90 0x00
+//         Import_IV();//ok 指令发送很好，发送数据时最后收到了两个0xaa才收到SW 0x90 0x00
+//         Random_Numer(32);//测试了生成一个、五个随机数，可以实现
+//         for(i=0;i<32;i++)
+//         {
+//          ptagEncryptionCtrl->SM1_TrueNumber[i]=ptagEncryptionCtrl->Random[i];
+//         }
 //
-//	   	   SM1_Encrypt(ptagEncryptionCtrl->SM1_TrueNumber,32);//应答数据格式正确，但对不对就不知道了
+//         SM1_Encrypt(ptagEncryptionCtrl->SM1_TrueNumber,32);//应答数据格式正确，但对不对就不知道了
 //
-//	   	   SM1_Decrypt(ptagEncryptionCtrl->SM1_EncryptNumber,32);//应答数据格式正确，但对不对就不知道了
-//	   //================================================================================================
-//	   //==========================其他功能测试=============================================================
-//	   char   byP3Info[50]="C=CN,ST=jiangsu,L=nanjing,O=GDD,OU=nari,CN=test001";
-//	   	   Cer_Request(byP3Info,50);//把延时程序换成了Djy_EventDelay，收到了289个应答数据，不然用for循环延时就收不到数据
-//	   	   Random_Numer(16);//测试了生成一个、五个随机数，可以实现
-//	   	   NRSEC3000_RdVersion();//虽然经过了9个0xaa才读到数据，但是数据应该没问题
-//	   //==================================================================================================
-//	   //====================================SM2加密测试===============================================
-//	   	   SM2_Encrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故，等不到应答数据
-//	   	                  //经过3000多个0xaa才有反应，格式正确，基本可以认为与延时有关
-//	   	   SM2_Decrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故
-//	                       //经过3000多个0xaa才有反应，格式正确，基本可以认为与延时有关
-//	   //================================================================================================
-//	   //=========================================SM2加密测试============================================
-//	   	   Key_Product();//不明，可能和延时有关，Djy_EventDelay可以，但是也等了好久（30个0xaa）才收到SW 0x90 0x00，Djy_DelayUs和for循环就收不到正确的值。
-//	   	   Random_Numer(32);//测试了生成一个、五个随机数，可以实现
+//         SM1_Decrypt(ptagEncryptionCtrl->SM1_EncryptNumber,32);//应答数据格式正确，但对不对就不知道了
+//     //================================================================================================
+//     //==========================其他功能测试=============================================================
+//     char   byP3Info[50]="C=CN,ST=jiangsu,L=nanjing,O=GDD,OU=nari,CN=test001";
+//         Cer_Request(byP3Info,50);//把延时程序换成了Djy_EventDelay，收到了289个应答数据，不然用for循环延时就收不到数据
+//         Random_Numer(16);//测试了生成一个、五个随机数，可以实现
+//         NRSEC3000_RdVersion();//虽然经过了9个0xaa才读到数据，但是数据应该没问题
+//     //==================================================================================================
+//     //====================================SM2加密测试===============================================
+//         SM2_Encrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故，等不到应答数据
+//                        //经过3000多个0xaa才有反应，格式正确，基本可以认为与延时有关
+//         SM2_Decrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故
+//                         //经过3000多个0xaa才有反应，格式正确，基本可以认为与延时有关
+//     //================================================================================================
+//     //=========================================SM2加密测试============================================
+//         Key_Product();//不明，可能和延时有关，Djy_EventDelay可以，但是也等了好久（30个0xaa）才收到SW 0x90 0x00，Djy_DelayUs和for循环就收不到正确的值。
+//         Random_Numer(32);//测试了生成一个、五个随机数，可以实现
 //
-//	   	   for(i=0;i<32;i++)
-//	   	   {
-//	   		   ptagEncryptionCtrl->SM2_TrueNumber[i]=ptagEncryptionCtrl->Random[i];
-//	   	   }
-//	   	   SM2_Encrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故，等不到应答数据
+//         for(i=0;i<32;i++)
+//         {
+//             ptagEncryptionCtrl->SM2_TrueNumber[i]=ptagEncryptionCtrl->Random[i];
+//         }
+//         SM2_Encrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故，等不到应答数据
 //
-//	   	   SM2_Decrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故
-//	   	                  //格式正确
-//	   //================================================================================================
-//	   //====================================安全认证测试=============================================
+//         SM2_Decrypt(0);//指令发送出去了，但数据没有，会不会是因为全0的缘故
+//                        //格式正确
+//     //================================================================================================
+//     //====================================安全认证测试=============================================
 //
-//	   	   Random_Numer(32);//测试了生成一个、五个随机数，可以实现
+//         Random_Numer(32);//测试了生成一个、五个随机数，可以实现
 //
-//	   	   for(i=0;i<32;i++)
-//	   	   {
-//	   	   	ptagEncryptionCtrl->Auth[i]=ptagEncryptionCtrl->Random[i];
-//	   	   }
+//         for(i=0;i<32;i++)
+//         {
+//          ptagEncryptionCtrl->Auth[i]=ptagEncryptionCtrl->Random[i];
+//         }
 //
-//	   	   Safety_Cert();//指令可以收到，但是数据可能是安全认证因子值没有导致失败
-//	   //=============================================================================================
-//	   //====================================SM2签名验签测试=============================================
-//	       Random_Numer(32);
-//	       for(i=0;i<32;i++)
-//	       {
-//	    	   Txbuffer[i]=ptagEncryptionCtrl->Random[i];
-//	       }
-//	       NRSEC3000_sm3(Txbuffer,32,ptagEncryptionCtrl->Hash_Number);//sm3的hash功能格式正确
+//         Safety_Cert();//指令可以收到，但是数据可能是安全认证因子值没有导致失败
+//     //=============================================================================================
+//     //====================================SM2签名验签测试=============================================
+//         Random_Numer(32);
+//         for(i=0;i<32;i++)
+//         {
+//             Txbuffer[i]=ptagEncryptionCtrl->Random[i];
+//         }
+//         NRSEC3000_sm3(Txbuffer,32,ptagEncryptionCtrl->Hash_Number);//sm3的hash功能格式正确
 //
-//	   	   SM2_Sign(0);//指令可以收到，但是数据可能是Hash_Number值没有导致失败
-//	   	               //随便给了一组hash,经过2600多个0xaa才有反应，格式正确
+//         SM2_Sign(0);//指令可以收到，但是数据可能是Hash_Number值没有导致失败
+//                     //随便给了一组hash,经过2600多个0xaa才有反应，格式正确
 //
-//	   	   SM2_Sign_Verif(0);//指令可以收到，但是数据可能是Hash_Number值没有导致失败
-//	   	                     //随便给了一组hash,经过5900多个0xaa才有反应，格式正确
-//	   //==============================================================================================
+//         SM2_Sign_Verif(0);//指令可以收到，但是数据可能是Hash_Number值没有导致失败
+//                           //随便给了一组hash,经过5900多个0xaa才有反应，格式正确
+//     //==========================================================================================
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

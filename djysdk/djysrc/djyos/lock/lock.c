@@ -67,34 +67,84 @@
 #include "stddef.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "string.h"
 #include "int.h"
 #include "lock.h"
 #include "pool.h"
 #include "djyos.h"
 #include "object.h"
+#include "objfile.h"
 #include "systime.h"
-#include "core_config.h"
+#include "dbug.h"
 
-static struct Object *pg_semaphore_rsc=NULL;
-static struct Object  *pg_mutex_rsc=NULL;
-//说明： gc_u32CfgLockLimit 是用户配置的，由于用户并不知道操作系统需要用多少信号量，
-//      所以操作系统并不占用 gc_u32CfgLockLimit 指标，用户使用的信号量从
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"lock"         //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:必选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:none                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_LOCK_LIMIT   //****检查参数是否已经配置好
+#warning    lock组件参数未配置，使用默认值
+//%$#@num,0,100
+#define CFG_LOCK_LIMIT          40      //"锁的数量",定义锁的数量，包含信号量和互斥量
+//%$#@enum,true,false
+//%$#@string,1,10
+//%$#@select
+//%$#@free
+#endif
+//%$#@end configue  ****参数配置结束
+
+//@#$%component end configure
+
+
+static struct Object *s_ptMutexObject=NULL;
+static struct Object *s_ptSempObject=NULL;
+//说明： CFG_LOCK_LIMIT 是用户配置的，由于用户并不知道操作系统需要用多少信号量，
+//      所以操作系统并不占用 CFG_LOCK_LIMIT 指标，用户使用的信号量从
 //      tg_semp_pool定义的内存池中分配，操作系统使用的信号量自己定义，两不
 //      相关，如果用户企图调用 Lock_SempDelete 删除操作系统定义的信号量，将引起造成
 //      内存泄漏，而且相关操作系统资源也将失去信号量保护，后果不可预料
 //定义信号量结构初始内存池
 static union lock_MCB *g_ptLockMemBlock;
 struct MemCellPool *g_ptLockPool;  //信号量结构内存池头指针
-
-//这是在rsc模块中定义的，专供lock模块使用的一个函数
-struct Object *__Lock_RscAddLockTree(struct Object *Obj,
-                                u16 Size, const char *Name);
+//static struct SemaphoreLCB *s_tSempHead;
+//static struct MutexLCB *s_tMutexHead;
+static struct dListNode s_tSempHead = {&s_tSempHead, &s_tSempHead};
+static struct dListNode s_tMutexHead = {&s_tMutexHead, &s_tMutexHead};
+static tagOFile *s_ptSempFp;
+static tagOFile *s_ptMutexFp;
 
 extern void __Djy_EventReady(struct EventECB *event_ready);
-extern void __Djy_CutReadyEvent(struct EventECB *event);
 extern void __Djy_ResumeDelay(struct EventECB *delay_event);
 extern void __Djy_AddToDelay(u32 u32l_uS);
 extern void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
+
+void __Lock_ShowSemp(struct Object *fp);
+void __Lock_ShowMutex(struct Object *fp);
+ptu32_t Lock_SempObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
+ptu32_t Lock_MutexObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
 
 //----初始化锁模块模块step1----------------------------------------------------
 //功能：初始化信号量模块的第一步，此后可以调用除semp_create和mutex_create以外的
@@ -104,15 +154,15 @@ extern void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 time
 //参数：无
 //返回：1
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Lock1(ptu32_t para)
-{
-    static struct Object semp_root;
-    static struct Object mutex_root;
-    para = para;        //消除编译器告警
-    pg_semaphore_rsc = __Lock_RscAddLockTree(&semp_root,sizeof(struct Object),"semaphore");
-    pg_mutex_rsc = __Lock_RscAddLockTree(&mutex_root,sizeof(struct Object),"mutex");
-    return 1;
-}
+//ptu32_t ModuleInstall_Lock1(ptu32_t para)
+//{
+//    static struct Object semp_root;
+//    static struct Object mutex_root;
+//    para = para;        //消除编译器告警
+//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct Object),"semaphore");
+//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct Object),"mutex");
+//    return 1;
+//}
 
 //----初始化锁模块模块step2----------------------------------------------------
 //功能：初始化信号量模块的第二步，此后可以调用含semp_create和mutex_createe在内的
@@ -120,32 +170,66 @@ ptu32_t ModuleInstall_Lock1(ptu32_t para)
 //参数：无
 //返回：1
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Lock2(ptu32_t para)
+ptu32_t __InitLock(void)
 {
     static struct MemCellPool lock_pool;
-    g_ptLockMemBlock = M_Malloc(gc_u32CfgLockLimit* sizeof(union lock_MCB),0);
+
+    g_ptLockMemBlock = M_Malloc(CFG_LOCK_LIMIT* sizeof(union lock_MCB),0);
     if(g_ptLockMemBlock == NULL)
         return 0;
+
+    //特别提示：因安装lock模块时，文件系统还没有安装完成，不能用正常的过程创建
+    //和打开mutex和semaphore文件。
+//    s_ptSempObject = OBJ_SearchChild(OBJ_GetRoot( ), "semaphore");
+//    OBJ_SetOps(s_ptSempObject,Lock_SempObjOps);
+//  s_ptSempFp = OBJ_GetFirstFile(s_ptSempObject);
+#if 0
+    dListInit(&s_tSempHead);
+
+//    OBJ_SetPrivate(s_ptSempObject, (ptu32_t)&s_tSempHead);
+
+//    s_ptMutexObject = OBJ_SearchChild(OBJ_GetRoot( ), "mutex");
+//    OBJ_SetOps(s_ptMutexObject,Lock_MutexObjOps);
+//  s_ptMutexFp = OBJ_GetFirstFile(s_ptMutexObject);
+    dListInit(&s_tMutexHead);
+#endif
+//    OBJ_SetPrivate(s_ptMutexObject, (ptu32_t)&s_tMutexHead);
+
     //初始化锁控制块内存池
     g_ptLockPool = Mb_CreatePool_s( &lock_pool,
                                     (void*)g_ptLockMemBlock,
-                                    gc_u32CfgLockLimit,
+                                    CFG_LOCK_LIMIT,
                                     sizeof(union lock_MCB),
                                     0,0,
                                     "锁控制块池");
     return 1;
 }
 
+
+// ============================================================================
+// 功能：安装LOCK文件系统
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+s32 __InstallLockFS(void)
+{
+    __mounto("mutex", "/", (tagObjOps)Lock_MutexObjOps, (ptu32_t)&s_tMutexHead);
+    __mounto("semaphore", "/", (tagObjOps)Lock_SempObjOps, (ptu32_t)&s_tSempHead);
+    return (0);
+}
+
+
 //----创建一个信号量-----------------------------------------------------------
 //功能：建立一个信号量，以后就可以使用这个信号量了。信号量控制块从内存池中分配。
-//参数：semp_limit,信号灯的总数，cn_limit_uint32=有无限多的信号灯。
+//参数：semp_limit,信号灯的总数，-1=有无限多的信号灯。
 //      init_lamp,初始信号灯数量
 //      sync_order,被阻塞的事件排队顺序，取值为 CN_BLOCK_FIFO
 //          或 CN_BLOCK_PRIO，注意，互斥量总是以优先级排队。
 //      name，信号量的名字，所指向的字符串内存区不能是局部变量，可以是空
 //返回：新建立的信号量指针
 //-----------------------------------------------------------------------------
-struct SemaphoreLCB *Lock_SempCreate(u32 lamps_limit,u32 init_lamp,
+struct SemaphoreLCB *Lock_SempCreate(s32 lamps_limit,s32 init_lamp,
                                      u32 sync_order,const char *name)
 {
     struct SemaphoreLCB *semp;
@@ -158,9 +242,12 @@ struct SemaphoreLCB *Lock_SempCreate(u32 lamps_limit,u32 init_lamp,
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;
     semp->semp_sync = NULL;
-    //把新节点挂到信号量根节点下
-    OBJ_AddChild(pg_semaphore_rsc,&semp->node,
-                        sizeof(struct SemaphoreLCB),RSC_SEMP,name);
+    if(name != NULL)
+        strncpy(semp->name, name, 8);
+    //把新节点挂到信号量队列下
+    dListInsertAfter(&s_tSempHead, &semp->List);
+//  OBJ_AddChild(s_ptMutexObject,&semp->node,
+//                      sizeof(struct SemaphoreLCB),RSC_SEMP,name);
     return semp;
 }
 
@@ -170,7 +257,7 @@ struct SemaphoreLCB *Lock_SempCreate(u32 lamps_limit,u32 init_lamp,
 //      是使用静态定义的。应用程序配置cfg_locks_limit时，只需要考虑自己的需求就
 //      可以了。
 //参数：semp,目标信号量指针
-//      semp_limit,信号灯的总数，cn_limit_uint32=有无限多的信号灯。
+//      semp_limit,信号灯的总数，-1=有无限多的信号灯。
 //      init_lamp,初始信号灯数量
 //      sync_order,被阻塞的事件排队顺序，取值为 CN_BLOCK_FIFO
 //          或 CN_BLOCK_PRIO，注意，互斥量总是以优先级排队。
@@ -178,7 +265,7 @@ struct SemaphoreLCB *Lock_SempCreate(u32 lamps_limit,u32 init_lamp,
 //返回：新建立的信号量指针
 //-----------------------------------------------------------------------------
 struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
-                       u32 lamps_limit,u32 init_lamp,u32 sync_order,const char *name)
+                       s32 lamps_limit,s32 init_lamp,u32 sync_order,const char *name)
 {
     if(semp == NULL)
         return NULL;
@@ -186,9 +273,10 @@ struct SemaphoreLCB *Lock_SempCreate_s( struct SemaphoreLCB *semp,
     semp->lamps_limit = lamps_limit;
     semp->lamp_counter = init_lamp;
     semp->semp_sync = NULL;
-    //把新节点挂到信号量根节点下
-    OBJ_AddChild(pg_semaphore_rsc,&semp->node,
-                        sizeof(struct SemaphoreLCB),RSC_SEMP,name);
+    if(name != NULL)
+        strncpy(semp->name, name, 8);
+    //把新节点挂到信号量队列下
+    dListInsertAfter(&s_tSempHead, &semp->List);
 
     return semp;
 }
@@ -207,9 +295,9 @@ void Lock_SempPost(struct SemaphoreLCB *semp)
     Int_SaveAsynSignal();
     if(semp->semp_sync == NULL)     //等待队列空，点亮一盏信号灯
     {
-        if(semp->lamps_limit == CN_LIMIT_UINT32)        //信号灯数量不限
+        if(semp->lamps_limit == -1)        //信号灯数量不限
         {
-            if(semp->lamp_counter != CN_LIMIT_UINT32)   //信号灯数量未到上限
+            if(semp->lamp_counter != CN_LIMIT_SINT32)   //信号灯数量未到上限
                 semp->lamp_counter ++;                  //点亮一盏信号灯
         }else if(semp->lamp_counter < semp->lamps_limit )//信号灯数量未到上限
             semp->lamp_counter++;                       //点亮一盏信号灯
@@ -237,6 +325,70 @@ void Lock_SempPost(struct SemaphoreLCB *semp)
     Int_RestoreAsynSignal();
 }
 
+//----信号量扩容---------------------------------------------------------------
+//功能：增加信号量的容量，同时可用数量也相应增加
+//参数：semp，信号量指针
+//      Num，扩容的数量
+//返回：无
+//-----------------------------------------------------------------------------
+void Lock_SempExpand(struct SemaphoreLCB *semp, s32 Num)
+{
+    struct EventECB *event,*EventHead;
+    s32 BlockingNum = Num;
+
+    if((semp == NULL) || (Num <= 0) )
+        return;
+    Int_SaveAsynSignal();
+
+    if(semp->lamps_limit != -1)             //信号灯数量不限
+    {
+        if(CN_LIMIT_SINT32 - semp->lamps_limit >= Num)
+        {
+            semp->lamps_limit += Num;           //信号灯容量增加
+        }
+        else
+        {
+            BlockingNum = CN_LIMIT_SINT32 - semp->lamps_limit;
+            semp->lamps_limit = CN_LIMIT_SINT32;
+        }
+    }
+
+    if(semp->semp_sync != NULL)     //等待队列非空，优先点亮信号灯
+    {
+        EventHead = semp->semp_sync;
+        event = EventHead;
+        while(1)
+        {
+            if(event->multi_next == event)
+            {//队列中只剩下一个事件
+                semp->semp_sync = NULL;
+            }else
+            {//队列中有多个事件，取出队列头部的事件
+                semp->semp_sync = event->multi_next;
+                event->multi_next->multi_previous = event->multi_previous;
+                event->multi_previous->multi_next = event->multi_next;
+                event->multi_next = NULL;
+                event->multi_previous = NULL;
+            }
+            if(event->event_status & CN_STS_SYNC_TIMEOUT)
+                __Djy_ResumeDelay(event);    //如果事件在超时等待队列中，取出
+            event->wakeup_from = CN_STS_WAIT_SEMP;
+            event->event_status = CN_STS_EVENT_READY;
+            __Djy_EventReady(event);
+            BlockingNum--;
+            if((BlockingNum == 0) || (semp->semp_sync == NULL) )
+            {
+                break;
+            }
+        }
+    }
+    semp->lamp_counter += BlockingNum;              //点亮相应数量信号灯
+    if(semp->lamp_counter < 0 )
+        semp->lamp_counter = CN_LIMIT_SINT32;
+
+    Int_RestoreAsynSignal();
+}
+
 //----请求一盏信号灯-----------------------------------------------------------
 //功能：请求然后熄灭一盏信号灯，表示可用资源数减1。
 //参数：semp,信号量指针
@@ -250,7 +402,6 @@ void Lock_SempPost(struct SemaphoreLCB *semp)
 //-----------------------------------------------------------------------------
 bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
 {
-    struct EventECB *event;
     bool_t lamp,sch;
 
     if(semp == NULL)
@@ -260,7 +411,7 @@ bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
     }
     sch = Djy_QuerySch();
     Int_SaveAsynSignal();
-    if(semp->lamps_limit == CN_LIMIT_UINT32)   //本信号量有无限多信号灯
+    if(semp->lamps_limit == -1)   //本信号量有无限多信号灯
     {
         if(semp->lamp_counter != 0) //信号灯数量不为0
             semp->lamp_counter--;   //熄灭一盏信号灯
@@ -287,51 +438,6 @@ bool_t Lock_SempPend(struct SemaphoreLCB *semp,u32 timeout)
     }
 
     __Djy_AddRunningToBlock(&(semp->semp_sync),semp->sync_order,timeout,CN_STS_WAIT_SEMP);
-//  __Djy_CutReadyEvent(g_ptEventRunning);
-//  g_ptEventRunning->previous = NULL;
-//  g_ptEventRunning->next = NULL;
-//
-//  g_ptEventRunning->sync_head = &semp->semp_sync;
-//  if(semp->semp_sync == NULL)
-//  {//同步队列空,running事件自成双向循环链表
-//      g_ptEventRunning->multi_next = g_ptEventRunning;
-//      g_ptEventRunning->multi_previous = g_ptEventRunning;
-//      semp->semp_sync = g_ptEventRunning;
-//  }else
-//  {
-//      event = semp->semp_sync;
-//      if(semp->sync_order == CN_BLOCK_PRIO)   //同步队列按优先级排序
-//      {
-//          do
-//          { //找到一个优先级低于新事件的事件.
-//              if(event->prio <= g_ptEventRunning->prio)
-//                  event = event->multi_next;
-//              else
-//                  break;
-//          }while(event != semp->semp_sync);
-//          g_ptEventRunning->multi_next = event;
-//          g_ptEventRunning->multi_previous = event->multi_previous;
-//          event->multi_previous->multi_next = g_ptEventRunning;
-//          event->multi_previous = g_ptEventRunning;
-//          if(semp->semp_sync->prio > g_ptEventRunning->prio)
-//              semp->semp_sync = semp->semp_sync->multi_previous;
-//      }else                               //按先后顺序，新事件直接排在队尾
-//      {
-//          g_ptEventRunning->multi_next = event;
-//          g_ptEventRunning->multi_previous = event->multi_previous;
-//          event->multi_previous->multi_next = g_ptEventRunning;
-//          event->multi_previous = g_ptEventRunning;
-//      }
-//  }
-//  if(timeout != CN_TIMEOUT_FOREVER)
-//  {
-//      //事件状态设为等待信号量 +  超时
-//      g_ptEventRunning->event_status = CN_STS_WAIT_SEMP + CN_STS_SYNC_TIMEOUT;
-//      __Djy_AddToDelay(timeout);
-//  }else
-//  {
-//      g_ptEventRunning->event_status = CN_STS_WAIT_SEMP;  //事件状态设为等待信号量
-//  }
 
     Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
     //检查从哪里返回，是超时还是同步事件完成。
@@ -358,7 +464,7 @@ bool_t Lock_SempDelete_s(struct SemaphoreLCB *semp)
     Int_SaveAsynSignal();
     if(semp->semp_sync == NULL)     //没有事件在等待信号灯
     {
-        OBJ_Del(&semp->node);  //删除信号量结点
+        dListRemove(&semp->List);  //删除信号量结点
         result = true;
     }else
         result = false;
@@ -379,7 +485,7 @@ bool_t Lock_SempDelete(struct SemaphoreLCB *semp)
     Int_SaveAsynSignal();
     if(semp->semp_sync == NULL)     //没有事件在等待信号灯
     {
-        OBJ_Del(&semp->node);  //删除信号量结点
+        dListRemove(&semp->List);  //删除信号量结点
         Mb_Free(g_ptLockPool,semp); //释放内存
         result = true;
     }else
@@ -482,9 +588,13 @@ struct MutexLCB *Lock_MutexCreate(const char *name)
     mutex->mutex_sync = NULL;
 //  mutex->prio_bak = CN_PRIO_INVALID;
     mutex->owner = NULL;
+    if(name != NULL)
+        strncpy(mutex->name, name, 8);
+    //把新节点挂到互斥量队列下
+    dListInsertAfter(&s_tMutexHead, &mutex->List);
     //把新节点挂到信号量根节点下
-    OBJ_AddChild(pg_mutex_rsc,&mutex->node,
-                        sizeof(struct MutexLCB),RSC_MUTEX,name);
+//  OBJ_AddChild(s_ptSempObject,&mutex->node,
+//                      sizeof(struct MutexLCB),RSC_MUTEX,name);
     return mutex;
 }
 
@@ -505,9 +615,13 @@ struct MutexLCB *Lock_MutexCreate_s( struct MutexLCB *mutex,const char *name)
     mutex->mutex_sync = NULL;
 //  mutex->prio_bak = CN_PRIO_INVALID;
     mutex->owner = NULL;
+    if(name != NULL)
+        strncpy(mutex->name, name, 8);
+    //把新节点挂到互斥量队列下
+    dListInsertAfter(&s_tMutexHead, &mutex->List);
     //把新节点挂到信号量根节点下
-    OBJ_AddChild(pg_mutex_rsc,&mutex->node,
-                        sizeof(struct MutexLCB),RSC_MUTEX,name);
+//  OBJ_AddChild(s_ptSempObject,&mutex->node,
+//                      sizeof(struct MutexLCB),RSC_MUTEX,name);
     return mutex;
 }
 
@@ -725,7 +839,7 @@ bool_t Lock_MutexDelete_s(struct MutexLCB *mutex)
     Int_SaveAsynSignal();
     if(mutex->mutex_sync == NULL)     //没有事件在等待互斥量
     {
-        OBJ_Del(&mutex->node);  //删除互斥量结点
+        dListRemove(&mutex->List);  //删除互斥量结点
         result = true;
     }else
         result = false;
@@ -746,7 +860,7 @@ bool_t Lock_MutexDelete(struct MutexLCB *mutex)
     Int_SaveAsynSignal();
     if(mutex->mutex_sync == NULL)     //没有事件在等待互斥量
     {
-        OBJ_Del(&mutex->node);  //删除互斥量结点
+        dListRemove(&mutex->List);  //删除互斥量结点
         Mb_Free(g_ptLockPool,mutex); //释放内存
         result = true;
     }else
@@ -797,96 +911,149 @@ u16 Lock_MutexGetOwner(struct MutexLCB *mutex)
         return CN_EVENT_ID_INVALID;
 }
 
-void __Lock_ShowLock(void)
+void __Lock_ShowMutex(struct Object *fp)
 {
-    struct Object *current_node,*lock;
+    struct dListNode *current;
+    struct MutexLCB *Mutex;
     struct EventECB *pl_ecb;
-    char *Name;
-    current_node = OBJ_SearchTree("semaphore");
-    lock = current_node;
-    printf("信号量 semaphore 列表：\r\n");
-    printf("类型  信号数上限  可用信号数  阻塞事件  名字\r\n");
-    while(1)
-    {
-        current_node = OBJ_TraveScion(lock,current_node);
-        if(current_node == NULL)
-        {
-            break;
-        }
-        if(((struct SemaphoreLCB *)current_node)->sync_order
-                                        == CN_BLOCK_PRIO)
-        {
-            printf("prio  ");
-        }
-        else
-        {
-            printf("fifo  ");
-        }
-        printf("%8d    %8d    ",
-            ((struct SemaphoreLCB *)current_node)->lamps_limit,
-            ((struct SemaphoreLCB *)current_node)->lamp_counter);
-        pl_ecb = ((struct SemaphoreLCB *)current_node)->semp_sync;
-        if(pl_ecb)
-            printf("%05d     ",pl_ecb->event_id);
-        else
-            printf("无        ");
 
-        Name = OBJ_Name(current_node);
-        if(Name != NULL)
-        {
-            printf("%s\r\n", Name);
-        }else
-        {
-            printf("无名信号量\r\n");
-        }
-    }
-
-    current_node = OBJ_SearchTree("mutex");
-    lock = current_node;
-    printf("\n\r互斥量 mutex 列表：\r\n");
-    printf("状态  拥有者  原优先级  现优先级  阻塞事件  名字\r\n");
-    while(1)
+    debug_printf("lock","互斥量 mutex 列表：\r\n");
+    debug_printf("lock","状态  拥有者  原优先级  现优先级  阻塞事件  名字\r\n");
+    dListForEach(current, &s_tMutexHead)
     {
-        current_node = OBJ_TraveScion(lock,current_node);
-        if(current_node == NULL)
+        Mutex = dListEntry(current, struct MutexLCB,List);
+        if(Mutex->enable == 0)
         {
-            break;
-        }
-        if(((struct MutexLCB *)current_node)->enable == 0)
-        {
-            printf("可用                              ");
+            debug_printf("lock","可用                              ");
         }
         else
         {
-            printf("占用  ");
-            pl_ecb = ((struct MutexLCB *)current_node)->owner;
+            debug_printf("lock","占用  ");
+            pl_ecb = Mutex->owner;
             if(pl_ecb->prio_base != pl_ecb->prio)
             {
-                printf("%05d   %03d       ",pl_ecb->event_id,
+                debug_printf("lock","%05d   %03d       ",pl_ecb->event_id,
                         pl_ecb->prio_base);
-                printf("%03d       ",pl_ecb->prio);
+                debug_printf("lock","%03d       ",pl_ecb->prio);
             }
             else
             {
-                printf("%05d   未发生优先级继承    ",pl_ecb->event_id);
+                debug_printf("lock","%05d   未发生优先级继承    ",pl_ecb->event_id);
             }
         }
 
-        pl_ecb = ((struct MutexLCB *)current_node)->mutex_sync;
+        pl_ecb = Mutex->mutex_sync;
         if(pl_ecb)
-            printf("%05d     ",pl_ecb->event_id);
+            debug_printf("lock","%05d     ",pl_ecb->event_id);
         else
-            printf("无        ");
+            debug_printf("lock","无        ");
 
-        Name = OBJ_Name(current_node);
-        if(Name != NULL)
+        if(Mutex->name[0] != '\0')
         {
-            printf("%s\r\n", Name);
+            debug_printf("lock","%s\r\n", Mutex->name);
         }else
         {
-            printf("无名互斥量\r\n");
+            debug_printf("lock","无名互斥量\r\n");
         }
     }
-    printf("\n\r用户配置锁控制块总数:%d，空闲数: %d \r\n",
-            gc_u32CfgLockLimit,Mb_QueryFree(g_ptLockPool));
+            debug_printf("lock","信号量和互斥量总数:%d，空闲数: %d \r\n",
+            CFG_LOCK_LIMIT,Mb_QueryFree(g_ptLockPool));
 }
+
+//----互斥量文件操作函数-------------------------------------------------------
+//功能：只实现了一个功能，即：列出全部互斥量的参数和状态。
+//参数：Target，参考函数指针类型 fnObjOps 的定义
+//      cmd，命令码，只支持 CN_OBJ_CMD_SHOW
+//      para，无用
+//返回：true
+//-----------------------------------------------------------------------------
+ptu32_t Lock_MutexObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...)
+{
+    s32 result = 0;
+
+    switch(dwCMD)
+    {
+        case CN_OBJ_CMD_SHOW:
+        {
+            __Lock_ShowMutex((struct Object*)context);
+            break;
+        }
+
+        default:
+        {
+            result = CN_OBJ_CMD_UNSUPPORT;
+            break;
+        }
+    }
+
+    return ((ptu32_t)result);
+}
+
+void __Lock_ShowSemp(struct Object *fp)
+{
+    struct dListNode *current;
+    struct SemaphoreLCB *Semp;
+    struct EventECB *pl_ecb;
+
+    debug_printf("lock","信号量 semaphore 列表：\r\n");
+    debug_printf("lock","排序类型  信号数上限  可用信号数  阻塞事件  名字\r\n");
+    dListForEach(current, &s_tSempHead)
+    {
+        Semp = dListEntry(current, struct SemaphoreLCB,List);
+        if(Semp->sync_order == CN_BLOCK_PRIO)
+        {
+            debug_printf("lock","优先级  ");
+        }
+        else
+        {
+            debug_printf("lock","   fifo   ");
+        }
+            debug_printf("lock","%8d    %8d    ",Semp->lamps_limit,Semp->lamp_counter);
+        pl_ecb = Semp->semp_sync;
+        if(pl_ecb)
+            debug_printf("lock","%05d     ",pl_ecb->event_id);
+        else
+            debug_printf("lock","无        ");
+
+        if(Semp->name[0] != '\0')
+        {
+            debug_printf("lock","%s\r\n", Semp->name);
+        }
+        else
+        {
+            debug_printf("lock","无名信号量\r\n");
+        }
+    }
+    debug_printf("lock","\n\r信号量和互斥量总数:%d，空闲数: %d \r\n",\
+                    CFG_LOCK_LIMIT,Mb_QueryFree(g_ptLockPool));
+}
+
+//----信号量文件操作函数-------------------------------------------------------
+//功能：只实现了一个功能，即：列出全部信号量的参数和状态。
+//参数：Target，参考函数指针类型 fnObjOps 的定义
+//      cmd，命令码，只支持 CN_OBJ_CMD_SHOW
+//      para，无用
+//返回：true
+//-----------------------------------------------------------------------------
+ptu32_t Lock_SempObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...)
+{
+    s32 result = 0;
+
+    switch(dwCMD)
+    {
+        case CN_OBJ_CMD_SHOW:
+        {
+            __Lock_ShowSemp((struct Object*)context);
+            break;
+        }
+
+        default:
+        {
+            result = CN_OBJ_CMD_UNSUPPORT;
+            break;
+        }
+    }
+
+    return (ptu32_t)result;
+}
+

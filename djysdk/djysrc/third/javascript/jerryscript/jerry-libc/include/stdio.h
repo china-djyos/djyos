@@ -51,3 +51,4 @@ int fprintf (FILE *stream, const char *format, ...);
 }
 #endif /* __cplusplus */
 #endif /* !JERRY_LIBC_STDIO_H */
+

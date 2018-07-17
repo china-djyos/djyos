@@ -14,6 +14,56 @@
 #include "iicbus.h"
 #include "lock.h"
 #include "int_hard.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t IIC_Init(u8 iic_port);
+//    #if (CFG_IIC0_ENABLE == 1)
+//    IIC_Init(CN_IIC0);
+//    #endif
+//    #if (CFG_IIC1_ENABLE == 1)
+//    IIC_Init(CN_IIC1);
+//    #endif
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"cpu_peri_iic"  //填写该组件的名字
+//parent:"spibus"                //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                     //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                 //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"iicbus","int",           //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                 //选中该组件时，被依赖组件将强制选中，
+                                 //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                 //选中该组件时，被依赖组件不会被强制选中，
+                                 //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                   //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                 //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_IIC1_BUF_LEN         //****检查参数是否已经配置好
+#warning    cpu_peri_iic组件参数未配置，使用默认值
+//%$#@num,16,512,
+#define CFG_IIC0_BUF_LEN              128           //"IIC1缓冲区大小",
+#define CFG_IIC1_BUF_LEN              128           //"IIC2缓冲区大小",
+//%$#@enum,true,false,
+#define CFG_IIC0_ENABLE               false			//"是否配置使用IIC1",
+#define CFG_IIC1_ENABLE               false			//"是否配置使用IIC2",
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+// =============================================================================
 
 #define debug(x,...)
 #define CN_IIC_REGISTER_BADDR0  cn_i2c1_baddr
@@ -66,8 +116,8 @@
 static struct IIC_CB s_IIC0_CB;
 static struct IIC_CB s_IIC1_CB;
 
-#define IIC0_BUF_LEN  128
-#define IIC1_BUF_LEN  128
+//#define IIC0_BUF_LEN  128
+//#define IIC1_BUF_LEN  128
 
 struct IIC_IntParamSet
 {
@@ -593,12 +643,12 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
 // =============================================================================
 bool_t IIC0_Init(void)
 {
-    static u8 s_IIC0Buf[IIC0_BUF_LEN];
+    static u8 s_IIC0Buf[CFG_IIC0_BUF_LEN];
     struct IIC_Param IIC0_Config;
 
     IIC0_Config.BusName             = "IIC0";
     IIC0_Config.IICBuf              = (u8*)&s_IIC0Buf;
-    IIC0_Config.IICBufLen           = IIC0_BUF_LEN;
+    IIC0_Config.IICBufLen           = CFG_IIC0_BUF_LEN;
     IIC0_Config.SpecificFlag        = CN_IIC_REGISTER_BADDR0;
     IIC0_Config.pGenerateWriteStart = __IIC_GenerateWriteStart;
     IIC0_Config.pGenerateReadStart  = __IIC_GenerateReadStart;
@@ -624,12 +674,12 @@ bool_t IIC0_Init(void)
 // =============================================================================
 bool_t IIC1_Init(void)
 {
-    static u8 s_IIC1Buf[IIC1_BUF_LEN];
+    static u8 s_IIC1Buf[CFG_IIC1_BUF_LEN];
     struct IIC_Param IIC1_Config;
 
     IIC1_Config.BusName             = "IIC1";
     IIC1_Config.IICBuf              = (u8*)&s_IIC1Buf;
-    IIC1_Config.IICBufLen           = IIC0_BUF_LEN;
+    IIC1_Config.IICBufLen           = CFG_IIC1_BUF_LEN;
     IIC1_Config.SpecificFlag        = CN_IIC_REGISTER_BADDR1;
     IIC1_Config.pGenerateWriteStart = __IIC_GenerateWriteStart;
     IIC1_Config.pGenerateReadStart  = __IIC_GenerateReadStart;

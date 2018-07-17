@@ -68,10 +68,10 @@ typedef s64 (*fntSysTimeHard64)(void);
 
 void SysTimeConnect(fntSysTimeHard32 GetSysTime32,fntSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle);
-s64 DjyGetSysTime(void);
-s64 DjyGetSysTimeCycle(void);
+u64 DjyGetSysTime(void);
+u64 DjyGetSysTimeCycle(void);
 u32 DjyGetSysTimeFreq(void);
-s64 DjyGetSysTick(void);
+u64 DjyGetSysTimeBase(void);
 
 #ifdef __cplusplus
 }

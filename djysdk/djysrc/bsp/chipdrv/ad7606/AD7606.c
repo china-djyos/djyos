@@ -12,11 +12,52 @@
 #include "spibus.h"
 #include "cpu_peri.h"
 #include "iodefine.h"
-// =============================================================================
-#define AD7606_SSP_BAUD  10000000       //AD7606的SSP传输速度
-#define AD7606_SSP_TIMEOUT (5*1000)     //ad7606 超时配置为5mS
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-struct SPI_Device s_AD7606_Dev;
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t AD7606_Init(void);
+//    AD7606_Init();
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"ad7606"       //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"spibus","cpu_peri_gpio"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,500000,30000000,
+#define CFG_AD7606_SPEED        10000000//"speed",设置总线速度
+//%$#@num,1000,200000,
+#define CFG_AD7606_TIMEOUT      (5*1000)//"timeout",ad7606 超时配置
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+// =============================================================================
+//#define CFG_AD7606_SPEED  10000000       //AD7606的SSP传输速度
+//#define CFG_AD7606_TIMEOUT (5*1000)     //ad7606 超时配置为5mS
+
+struct SPI_Device *s_ptAD7606_Dev;
 
 // =============================================================================
 // 功能：AD7606与CPU接口函数，采用SPI通信，硬件注意拉高拉低片选
@@ -37,7 +78,7 @@ void __AD7606_SpiInterfalce(u8* wBuf,u16 wLen,u8* rBuf,u16 rLen)
     frame.SendLen = wLen;
 
     GPIO_SetToLow( ADCS_PORT, (1 << ADCS_PIN));     // 拉低片选信号
-    SPI_Transfer(&s_AD7606_Dev,&frame,1,AD7606_SSP_TIMEOUT);
+    SPI_Transfer(s_ptAD7606_Dev,&frame,1,CFG_AD7606_TIMEOUT);
     GPIO_SetToHigh( ADCS_PORT, (1 << ADCS_PIN));        // 拉高片选信号
 }
 // =============================================================================
@@ -45,21 +86,21 @@ void __AD7606_SpiInterfalce(u8* wBuf,u16 wLen,u8* rBuf,u16 rLen)
 // 参数：无
 // 返回：无
 // =============================================================================
-void AD7606_Init(void)
+bool_t AD7606_Init(void)
 {
     //设置AD7606是否采用过采样
     GPIO_CfgPinFunc(ADOS0_PORT,ADOS0_PIN,CN_GPIO_MODE_OD_PULLUP);
     GPIO_CfgPinFunc(ADOS1_PORT,ADOS1_PIN,CN_GPIO_MODE_OD_PULLUP);
     GPIO_CfgPinFunc(ADOS2_PORT,ADOS2_PIN,CN_GPIO_MODE_OD_PULLUP);
 
-	//关闭过采样，即000
-	GPIO_SetToOut(ADOS0_PORT,(1 << ADOS0_PIN));
-	GPIO_SetToOut(ADOS1_PORT,(1 << ADOS1_PIN));
-	GPIO_SetToOut(ADOS2_PORT,(1 << ADOS2_PIN));
+    //关闭过采样，即000
+    GPIO_SetToOut(ADOS0_PORT,(1 << ADOS0_PIN));
+    GPIO_SetToOut(ADOS1_PORT,(1 << ADOS1_PIN));
+    GPIO_SetToOut(ADOS2_PORT,(1 << ADOS2_PIN));
 
-	GPIO_SetToLow(ADOS2_PORT, (1 << ADOS2_PIN));
-	GPIO_SetToLow(ADOS1_PORT, (1 << ADOS1_PIN));
-	GPIO_SetToLow(ADOS0_PORT, (1 << ADOS0_PIN));
+    GPIO_SetToLow(ADOS2_PORT, (1 << ADOS2_PIN));
+    GPIO_SetToLow(ADOS1_PORT, (1 << ADOS1_PIN));
+    GPIO_SetToLow(ADOS0_PORT, (1 << ADOS0_PIN));
 
     //GPIO初始化，包括RST，SH，BUSY，并配置输入输出
     GPIO_CfgPinFunc(ADRST_PORT,ADRST_PIN,CN_GPIO_MODE_OD_PULLUP);
@@ -82,18 +123,16 @@ void AD7606_Init(void)
     GPIO_SetToOut(ADCS_PORT,(1 << ADCS_PIN));
 
     //SSP控制器初始化
-    s_AD7606_Dev.Cs = 1;
-    s_AD7606_Dev.AutoCs = false;
-    s_AD7606_Dev.CharLen = 8;
-    s_AD7606_Dev.Mode = SPI_MODE_3;
-    s_AD7606_Dev.ShiftDir = SPI_SHIFT_MSB;
-    s_AD7606_Dev.Freq = AD7606_SSP_BAUD;
-
-	if(NULL != SPI_DevAdd_s(&s_AD7606_Dev,"SSP0","SPI_Dev_AD7606"))
-	{
-		SPI_BusCtrl(&s_AD7606_Dev,CN_SPI_SET_POLL,0,0);
-		SPI_BusCtrl(&s_AD7606_Dev,CN_SPI_SET_CLK,AD7606_SSP_BAUD,0);
-	}
+    if(s_ptAD7606_Dev = SPI_DevAdd("SSP0","AD7606",1,8,SPI_MODE_3,SPI_SHIFT_MSB,CFG_AD7606_SPEED,false))
+    {
+        SPI_BusCtrl(s_ptAD7606_Dev,CN_SPI_SET_POLL,0,0);
+        return true;
+    }
+    else
+    {
+        printf("\r\n: error : device :AD7606 init failed.\n\r");
+        return false;
+    }
 }
 
 // =============================================================================
@@ -128,7 +167,7 @@ static bool_t _AD7606_ConvFinished(void)
     u32 timeout = 500;
     u32 data;
 
-	Djy_DelayUs(4);			//过采样的最大采样时间是315uS
+    Djy_DelayUs(4);         //过采样的最大采样时间是315uS
 
     while(1)
     {

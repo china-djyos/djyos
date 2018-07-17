@@ -738,7 +738,7 @@ ERROR_CODE WriteFlash( unsigned long ulAddr, unsigned short usValue )
     return NO_ERR;
 }
 
-/*--------------------------------djyfs-------------------------------------*/
+/*--------------------------------fs-------------------------------------*/
 
 void reset_norflash(void)
 {

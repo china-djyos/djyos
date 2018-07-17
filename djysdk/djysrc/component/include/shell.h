@@ -61,16 +61,15 @@ struct ShellCmdTab
 
 struct ShellCmdRsc
 {
-    struct Object cmd_node;
     bool_t (*shell_cmd_func)(char *buf);
     char *help_hint;        //∞Ô÷˙Ã· æ
     char *help_detailed;    //œÍœ∏∞Ô÷˙
 };
 bool_t Sh_InstallCmd(struct ShellCmdTab const *cmd_tab,
                     struct ShellCmdRsc *cmd_rsc,u32 cmd_num);
-ptu32_t ModuleInstall_Sh(ptu32_t para);
+bool_t ModuleInstall_Sh(void);
 void Sh_PrintWorkPathSet(void);
-u32 sh_uninstall_cmd_bytab(struct ShellCmdTab const *cmd_tab,u32 cmd_num);
+u32 Sh_UninstallCmdByTab(struct ShellCmdTab const *cmd_tab,u32 cmd_num);
 bool_t Sh_UninstallCmdByName(char *param);
 
 extern void (*fng_pPrintWorkPath)(void);

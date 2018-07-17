@@ -63,7 +63,7 @@
 #include  <gui/gdd/gdd_private.h>
 #include "font.h"
 #include    <gdd_widget.h>
-
+#include "dbug.h"
 static u8 gs_KeyBoardRowsDef=4;
 static u8 gs_KeyBoardColsDef=4;
 static u8 gs_KeySpaceDef=0;
@@ -209,62 +209,62 @@ static  bool_t VirKeyBoard_Paint(struct WindowMsg *pMsg)
     HighStart=gs_KeySpace;
     //
     key_hwnd[0]=CreateButton("1",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,\
-        LeftStart,HighStart,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_0,"1",NULL);
+        LeftStart,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_0,"1",NULL);
 
     key_hwnd[1]=CreateButton("2",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,\
-        LeftStart+gs_KeyWidth,HighStart,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_1,"2",NULL);
+        LeftStart+gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_1,"2",NULL);
 
     key_hwnd[2]=CreateButton("3",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,\
-        LeftStart+2*gs_KeyWidth,HighStart,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_2,"3",NULL);
+        LeftStart+2*gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_2,"3",NULL);
 
     key_hwnd[3]=CreateButton("x",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,\
-        LeftStart+3*gs_KeyWidth,HighStart,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_3,"x",NULL);
+        LeftStart+3*gs_KeyWidth,HighStart,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_3,"x",NULL);
 
 
 
     key_hwnd[4]=CreateButton("4",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart,
-        HighStart+gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_4,"4",NULL);
+        HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_4,"4",NULL);
 
     key_hwnd[5]=CreateButton("5",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+gs_KeyWidth,
-        HighStart+gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_5,"5",NULL);
+        HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_5,"5",NULL);
 
     key_hwnd[6]=CreateButton("6",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE, LeftStart+2*gs_KeyWidth,
-        HighStart+gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_6,"6",NULL);
+        HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_6,"6",NULL);
 
     key_hwnd[7]=CreateButton("¡Ì",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+3*gs_KeyWidth,
-        HighStart+gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_7,"¡Ì",NULL);
+        HighStart+gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_7,"¡Ì",NULL);
 
 
 
     key_hwnd[8]=CreateButton("7",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart,
-                 HighStart+2*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_8,"7",NULL);
+                 HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_8,"7",NULL);
 
     key_hwnd[9]=CreateButton("8",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+gs_KeyWidth,
-                 HighStart+2*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_9,"8",NULL);
+                 HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_9,"8",NULL);
 
     key_hwnd[10]=CreateButton("9",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+2*gs_KeyWidth,
-                 HighStart+2*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_10,"9",NULL);
+                 HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_10,"9",NULL);
 
     key_hwnd[11]=CreateButton("¡ü",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+3*gs_KeyWidth,
-                 HighStart+2*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_11,"¡ü",NULL);
+                 HighStart+2*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_11,"¡ü",NULL);
 
 
 
     key_hwnd[12]=CreateButton("0",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart,
-                     HighStart+3*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_12,"0",NULL);
+                     HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_12,"0",NULL);
 
     key_hwnd[13]=CreateButton(".",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+gs_KeyWidth,
-                 HighStart+3*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_13,".",NULL);
+                 HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_13,".",NULL);
 
     key_hwnd[14]=CreateButton("R",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+2*gs_KeyWidth,
-                 HighStart+3*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_14,"R",NULL);
+                 HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_14,"R",NULL);
 
     key_hwnd[15]=CreateButton("¡ý",WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE|BS_SIMPLE,LeftStart+3*gs_KeyWidth,
-                 HighStart+3*gs_KeyHeight,gs_KeyWidth,gs_KeyHeight,hwnd,ID_KEY_15,"¡ý",NULL);
+                 HighStart+3*gs_KeyHeight,gs_KeyWidth-1,gs_KeyHeight-1,hwnd,ID_KEY_15,"¡ý",NULL);
 
     if(key_hwnd[15]==NULL)
     {
-        printf("Create virtual keyboard failed.\r\n");
+        debug_printf("gdd","Create virtual keyboard failed.\r\n");
         return false;
     }
 

@@ -53,7 +53,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
+#include <sys/stropts.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>

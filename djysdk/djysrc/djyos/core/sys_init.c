@@ -55,16 +55,39 @@
 //   修改说明: 原始版本，本文件内容原来和加载器放在一起
 //------------------------------------------------------
 #include "stdint.h"
-#include "object.h"
-#include "lock.h"
-#include "pool.h"
-#include "driver.h"
-//#include "hard-exp.h"
 
-
-extern void __Djy_InitSys(void);
-extern void __Djy_StartOs(void);
+extern void __InitTimeBase(void);
+extern void __InitSys(void);
+extern ptu32_t __InitMB(void);
+extern void __StartOs(void);
+extern ptu32_t __InitLock(void);
+extern s32 __InitFileSystem(void);
+extern s32 __InstallLockFS(void);
+extern s32 __InstallDevFS(void);
+extern s32 __InstallMBFS(void);
 extern void Sys_ModuleInit(void);
+
+//----runtime初始化-----------------------------------------------------
+//功能：newlib中，构造函数的初始化被分为preinit_array和init_array两部分，后者是C++
+//      全局构造函数指针数组，前者无任何说明，不知何意。两者之间，调用了_init函数，该函数
+//      在gcc和newlib中均找不到具体实现，猜preinit_array和_int都是留给操作系统用的。
+//      DJYOS暂时用不到它们，先空着。
+//参数：无
+//返回：无
+//---------------------------------------------------------------------------
+void _init(void)
+{
+}
+
+//----runtime闭幕式-----------------------------------------------------
+//功能：newlib中调用fini_array中的函数指针后，调用了_fini函数，该函数在gcc和newlib中均
+//      找不到具体实现，猜是留给操作系统用的。DJYOS暂时用不到它们，先空着。
+//参数：无
+//返回：无
+//---------------------------------------------------------------------------
+void _fini(void)
+{
+}
 
 //----系统启动程序-----------------------------------------------------
 //功能：执行操作系统加载，模块(设备)初始化、用户初始化以及启动操作系统
@@ -73,15 +96,18 @@ extern void Sys_ModuleInit(void);
 //---------------------------------------------------------------------------
 void Sys_Start(void)
 {
-    __Djy_InitSys( );
-    ModuleInstall_OBJ(0);
-    ModuleInstall_Lock1(0);
-//    Rsc2_ModuleInit(0);
-    Mb_ModuleInit(0);
-    ModuleInstall_Lock2(0);
-
+    __InitTimeBase();
+    __InitSys( );
+    __InitMB();
+    // Mb_ModuleInit函数需要创建信号量，调用ModuleInstall_Lock之前，创建信号量是允许的，
+    // 但不能对其做Post和pend操作。而ModuleInstall_Lock需要创建内存池，则只能在调用
+    __InitLock();
+    __InitFileSystem();
+    __InstallLockFS();
+    __InstallMBFS();
+    __InstallDevFS();
     Sys_ModuleInit();
-    //黑客们注意,此两函数间不要企图插入什么代码,一切后果自负.
-    __Djy_StartOs();
+    // 黑客们注意,此两函数间不要企图插入什么代码,一切后果自负.
+    __StartOs();
 }
 

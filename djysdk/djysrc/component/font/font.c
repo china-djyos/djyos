@@ -62,28 +62,69 @@
 #include "stdint.h"
 #include "stdio.h"
 #include "object.h"
+#include "dbug.h"
 #include "../include/font/font.h"
-#include "../include/font/ascii8x8.h"
-#include "../include/font/ascii8x16.h"
-#include "../include/font/gb2312_16.h"
+#include "../include/font/font_ascii.h"
+#include "../include/font/font_gb2312.h"
+#include "../include/font/gb2312.h"
 #include "string.h"
-#include <cfg/local_config.h>
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-static struct FontRsc *s_ptCurFont;
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_Font(void);
+//    ModuleInstall_Font ( );
+//%$#@end initcode  ****初始化代码结束
 
+//%$#@describe      ****组件描述开始
+//component name:"font"         //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件               //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_FONT_DEFAULT   //****检查参数是否已经配置好
+#warning    font组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#define CFG_FONT_DEFAULT  CN_FONT_GB2312_SONG_16      //"默认字体",字体名在include/font目录中找
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+static struct FontObj *s_ptCurFont;
+struct Object *pFontRoot;
 
 //----获取字体资源-------------------------------------------------------------
 //功能: 根据字体名称获取字体资源，"C"是默认字体的代号。
 //参数: 字体名称
 //返回: 匹配的字体，若未有匹配编码，使用默认的ASCII编码
 //-----------------------------------------------------------------------------
-struct FontRsc* Font_GetLocFont(const char* font_name)
+struct FontObj* Font_GetLocFont(const char* font_name)
 {
-    struct FontRsc* font;
+    struct FontObj* font;
 
     if(strcmp(font_name, "C") == 0){
 
-        font = Font_SearchFont(gc_pCfgDefaultFontName);
+        font = Font_SearchFont(CFG_FONT_DEFAULT);
 
     }else
     {
@@ -99,40 +140,37 @@ struct FontRsc* Font_GetLocFont(const char* font_name)
 //      name，新增字体名
 //返回: true
 //-----------------------------------------------------------------------------
-bool_t Font_InstallFont(struct FontRsc *font,const char* name)
+bool_t Font_InstallFont(struct FontObj *font,const char* name)
 {
-    struct Object *rsc;
-    rsc = OBJ_SearchTree(CN_FONT_RSC_TREE);
-    if(rsc == NULL)
-        return false;       //字体资源根结点未创建
+    if(!pFontRoot)
+        return (FALSE);       //字体资源根结点未创建
 
-    OBJ_AddChild(rsc,&font->node,sizeof(struct FontRsc),RSC_FONT,name);
-    if(s_ptCurFont == NULL)
+    font->HostObj = OBJ_AddChild(pFontRoot, (tagObjOps)NULL, 0,name);
+    if(!font->HostObj)
+        return (FALSE);
+
+    if(!s_ptCurFont)
         s_ptCurFont = font;
 
-    return true;
+    return (TRUE);
 }
 
 //----字体驱动模块初始化-------------------------------------------------------
 //功能: 初始化字体驱动模块
 //参数: para: 无效
-//返回: 1=成功，0=失败
+//返回: true = 成功，false = 失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Font(ptu32_t para)
+bool_t ModuleInstall_Font(void)
 {
-    static struct Object font_root_rsc;    // 字体资源
-
-    s_ptCurFont = NULL;
-    // 添加字体资源根节点
-    if(OBJ_AddTree(&font_root_rsc,
-                   sizeof(struct Object),RSC_RSCNODE,
-                   CN_FONT_RSC_TREE))
+    pFontRoot = __mounto("font", "/", (tagObjOps)NULL, 0);
+    if(pFontRoot)
     {
-        return 1;
+        info_printf("module","font install ");
+        return true;
     }else
     {
-        printf("install font module fail\r\n");
-        return 0;
+        error_printf("module","font install failed");
+        return false;
     }
 }
 
@@ -140,7 +178,7 @@ ptu32_t ModuleInstall_Font(ptu32_t para)
 //功能: 获取当前使用的字体
 //返回: 当前字体
 //-----------------------------------------------------------------------------
-struct FontRsc* Font_GetCurFont(void)
+struct FontObj* Font_GetCurFont(void)
 {
     return s_ptCurFont;
 }
@@ -152,7 +190,7 @@ struct FontRsc* Font_GetCurFont(void)
 //返回: NULL，设定失败
 //      设定之前的字体。
 //-----------------------------------------------------------------------------
-struct FontRsc* Font_SetCurFont(struct FontRsc* font)
+struct FontObj* Font_SetCurFont(struct FontObj* font)
 {
     struct Object *rsc;
     char *Name;
@@ -161,11 +199,11 @@ struct FontRsc* Font_SetCurFont(struct FontRsc* font)
     rsc = OBJ_SearchTree(CN_FONT_RSC_TREE);
     if(rsc == NULL)
         return NULL;       //字体资源树未创建
-    Name = OBJ_Name(&font->node);
+    Name = OBJ_Name(&font->HostObj);
     rsc = OBJ_SearchChild(rsc,(const char*)Name);
     if(rsc != NULL)
     {
-        s_ptCurFont = (struct FontRsc*)rsc;
+        s_ptCurFont = (struct FontObj*)rsc;
     }
     return s_ptCurFont;
 }
@@ -176,7 +214,7 @@ struct FontRsc* Font_SetCurFont(struct FontRsc* font)
 //返回: NULL，无此字体资源
 //      要找的字体资源
 //-----------------------------------------------------------------------------
-struct FontRsc* Font_SearchFont(const char* name)
+struct FontObj* Font_SearchFont(const char* name)
 {
     struct Object *rsc;
 
@@ -184,7 +222,7 @@ struct FontRsc* Font_SearchFont(const char* name)
     if(rsc == NULL)
         return NULL;       //字体资源树未创建
 
-    return (struct FontRsc*)OBJ_SearchChild(rsc, name);
+    return (struct FontObj*)OBJ_SearchChild(rsc, name);
 }
 
 //----取字体点阵行高-----------------------------------------------------------
@@ -192,7 +230,7 @@ struct FontRsc* Font_SearchFont(const char* name)
 //参数: font, 被查询的字体.
 //返回: 该字库最高的那个字符的高度(像素值)
 //-----------------------------------------------------------------------------
-s32 Font_GetFontLineHeight(struct FontRsc* font)
+s32 Font_GetFontLineHeight(struct FontObj* font)
 {
     if(font == NULL)
         return 0;
@@ -204,7 +242,7 @@ s32 Font_GetFontLineHeight(struct FontRsc* font)
 //参数: font, 被查询的字体.
 //返回: 该字库最宽的那个字符的宽度(像素值)
 //-----------------------------------------------------------------------------
-s32 Font_GetFontLineWidth(struct FontRsc* font)
+s32 Font_GetFontLineWidth(struct FontObj* font)
 {
     if(font == NULL)
         return 0;
@@ -216,10 +254,9 @@ s32 Font_GetFontLineWidth(struct FontRsc* font)
 //参数: font, 被查询的字体.
 //返回: 字体属性字,font.c模块并不解析该属性字
 //-----------------------------------------------------------------------------
-s32 Font_GetFontAttr(struct FontRsc* font)
+s32 Font_GetFontAttr(struct FontObj* font)
 {
     if(font == NULL)
         return 0;
     return font->Attr;
 }
-

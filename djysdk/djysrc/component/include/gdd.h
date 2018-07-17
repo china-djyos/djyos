@@ -80,7 +80,7 @@ typedef const WCHAR* LPCWSTR;
 
 typedef struct WINDOW*  HWND;
 typedef struct DC*      HDC;
-typedef struct FontRsc*     HFONT;
+typedef struct FontObj*     HFONT;
 
 typedef struct PointCdn      POINT;
 typedef struct Rectangle     RECT;
@@ -316,7 +316,7 @@ typedef enum{
 #define WS_SHOW_CURSOR  (1<<23) //窗口光标是否显示
 #define WS_CAN_FOCUS    (1<<24) //窗口是否允许成为focus窗口
 
-#define WS_MAIN_WINDOW  (WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU)
+//#define WS_MAIN_WINDOW  (WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU)
 
 
 /*============================================================================*/
@@ -324,7 +324,7 @@ typedef enum{
 #define CN_WINDOW_ZPRIO_MOUSE       (-101)
 #define CN_WINDOW_ZPRIO_CURSOR      (-100)
 
-HDC     CreateDC(struct GkWinRsc *gk_win,const RECT *prc);
+HDC     CreateDC(struct GkWinObj *gk_win,const RECT *prc);
 bool_t    DeleteDC(HDC hdc);
 
 struct RopGroup SetRopCode(HDC hdc,struct RopGroup RopCode);
@@ -387,7 +387,7 @@ HWND    GetDesktopWindow(void);
 u32     GetWindowStyle(HWND hwnd);
 void*   GetWindowPrivateData(HWND hwnd);
 void    SetWindowPrivateData(HWND hwnd,void *data);
-HWND    InitGddDesktop(struct GkWinRsc *desktop);
+HWND    InitGddDesktop(struct GkWinObj *desktop);
 
 //DC操作函数
 HDC     GetWindowDC(HWND hwnd);
@@ -421,7 +421,7 @@ HWND GetWindowLast(HWND hwnd);
 char    *GetWindowText(HWND hwnd);
 HWND    GetDlgItem(HWND hwnd,u16 id);
 void    SetWindowText(HWND hwnd,const char *text,s32 max_len);
-HWND    GetWindowFromPoint(struct GkWinRsc *desktop, POINT *pt);
+HWND    GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt);
 
 //矩形和坐标操作函数
 bool_t    GetWindowRect(HWND hwnd,RECT *prc);
@@ -444,13 +444,13 @@ bool_t    ScreenToWindow(HWND hwnd,POINT *pt,s32 count);
 bool_t    WindowToScreen(HWND hwnd,POINT *pt,s32 count);
 
 /*===========================================================================*/
-void    ModuleInstall_GDD(struct GkWinRsc *desktop,const char *InputDevName[]);
+void    ModuleInstall_GDD(struct GkWinObj *desktop);
 
 u32     AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha);
 void    UpdateDisplay(u32 timeout);
 void GDD_WaitGuiAppExit(char *AppName);
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
-                      u32 MemSize, u32 WinBuf);
+                      u32 MemSize, u32 WinBuf,u32 Style);
 
 /*===========================================================================*/
 #include <gui\gdd_timer.h>

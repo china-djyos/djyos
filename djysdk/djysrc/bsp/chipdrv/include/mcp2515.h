@@ -65,10 +65,8 @@ extern "C"{
 
 
 /*  functions --------------------------------------------------------*/
-bool_t ModuleInstall_MCP2515(char *BusName);
-void MCP2515_Init(u8  baudrate);
-uint32_t MCP2515_ReadData(uint8_t* rxBuf,uint32_t len);
-uint32_t MCP2515_WriteData(uint8_t *txbuf,uint32_t len);
+bool_t ModuleInstall_MCP2515(char *BusName,u32  baudrate);
+void MCP2515_Init(void);
 
 
 

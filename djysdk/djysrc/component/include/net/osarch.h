@@ -53,6 +53,10 @@
 #define __OSARCH_H
 
 #include <os.h>
+
+//memory here
+void *net_malloc(int size);
+void net_free(void *mem);
 //mutex
 typedef struct MutexLCB*      mutex_t;
 mutex_t mutex_init(const char *name);
@@ -62,18 +66,34 @@ bool_t mutex_unlock(mutex_t mutex);
 void mutex_del(mutex_t mutex);
 //semphore
 typedef struct SemaphoreLCB*  semp_t;
-semp_t semp_init();
+semp_t semp_init(u32 limit,u32 value,const char *name);
 void   semp_del(semp_t);
 void   semp_reset(semp_t semp);
 bool_t semp_pend(semp_t semp);
 bool_t semp_pendtimeout(semp_t semp,unsigned int timeout);
 bool_t semp_post(semp_t semp);
 //task
-bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),ptu32_t para);
+bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),void* para);
 //some lib
 u32 get_random(void);
-
-
+//some string deal functions in the tcp ip
+char* mac2string(u8 *mac);
+bool_t string2mac(char *str,u8 *mac);
+int getargs(int argc, char *argv[],char *string);
+int string2arg(int *argc, const char *argv[],char *string);
+//we create some thing needed by the net stack
+//here we do a net ticker here,we could do it in a task
+//for it will consumed more time here,if use the timer,then it will be make the
+//timer system very very poor efficiency and poor imprecise,so we make a task here
+//we will call the  isr each time when the cycle comes
+typedef void (*fnNetTickIsr)(void);
+//cycle unit:ms
+//and the precise is depend on the netticker itself:could be configured
+//return the ticker handle,and you could get the ticks in the handle
+void* NetTickerIsrInstall(const char *name,fnNetTickIsr isr,int cycle);
+bool_t NetTickerIsrRemove(void *ticker);
+u32 NetTickerTicks(void *ticker);
+bool_t OsArchInit();
 #endif /* __OSARCH_H */
 
 

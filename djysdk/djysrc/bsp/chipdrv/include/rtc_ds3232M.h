@@ -53,7 +53,7 @@
 #ifndef __RTC_DS3232MZ_H__
 #define __RTC_DS3232MZ_H__
 
-#include "stdint.h"
+
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -61,7 +61,8 @@ extern "C"{
 #endif
 #endif /* __cplusplus */
 
-
+#include <time.h>
+#include <stdint.h>
 
 ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para);
 bool_t RTC_DS3232MZ_UpdateTime(struct tm *ptm);

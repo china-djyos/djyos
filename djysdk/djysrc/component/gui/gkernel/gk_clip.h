@@ -70,19 +70,19 @@ struct ClipRect * __GK_CombineClip_s(struct ClipRect *clipq);
 struct ClipRect * __GK_CombineClip(struct ClipRect *clipq);
 bool_t __GK_GetRectInts(struct Rectangle *rect1,struct Rectangle *rect2,
                      struct Rectangle *result);
-extern bool_t __GK_ScanNewVisibleClip(struct DisplayRsc *display);
-bool_t __GK_GetVisibleClip(struct DisplayRsc *display);
+extern bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display);
+bool_t __GK_GetVisibleClip(struct DisplayObj *display);
 struct ClipRect *  __GK_CopyClipLink(struct ClipRect *clip_link);
 void __GK_ClipLinkConnect(struct ClipRect **mlink,struct ClipRect *sub);
 void __GK_ClipConnect(struct ClipRect **clip_link,struct ClipRect *clip);
-struct ClipRect *__GK_GetChangedClip(struct GkWinRsc *gkwin);
+struct ClipRect *__GK_GetChangedClip(struct GkWinObj *gkwin);
 void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
                        struct ClipRect **diff,struct ClipRect **cutted);
-void __GK_GetNewClip(struct GkWinRsc *gkwin);
+void __GK_GetNewClip(struct GkWinObj *gkwin);
 struct ClipRect *__GK_GetClipLinkInts(struct ClipRect **srcclip,
                                              struct ClipRect *desclip);
-bool_t __GK_GetRedrawClipAll(struct DisplayRsc *display);
-void __GK_GetClipSection( struct GkWinRsc *z1,struct GkWinRsc *z2);
+bool_t __GK_GetRedrawClipAll(struct DisplayObj *display);
+void __GK_GetClipSection( struct GkWinObj *z1,struct GkWinObj *z2);
 
 #ifdef __cplusplus
 }

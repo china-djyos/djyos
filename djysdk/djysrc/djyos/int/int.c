@@ -81,6 +81,8 @@
 #include "int.h"
 #include "djyos.h"
 
+#include "component_config_int.h"
+
 struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1];
 struct IntMasterCtrl  tg_int_global;
 

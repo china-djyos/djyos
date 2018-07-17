@@ -77,7 +77,6 @@ struct KeyBoardPrivate
 };
 
 //º¯Êý¶¨Òå
-ptu32_t ModuleInstall_KeyBoard(ptu32_t para);
 s32 Keyboard_InstallDevice(char *keyboard_name,struct KeyBoardPrivate *keyboard_pr);
 
 #ifdef __cplusplus

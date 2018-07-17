@@ -67,6 +67,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "dbug.h"
 #include "../../../../djysrc/bsp/arch/arm/arm32_stdint.h"
 
 static bool_t Widget_SetFillColor(HWND hwnd,uint32_t color)
@@ -132,7 +133,7 @@ bool_t Widget_SetAttr(HWND hwnd,uint8_t attrid,ptu32_t param)
 {
 	 if(hwnd==NULL)
 	 {
-	    printf("Function:%s para invalid.\r\n",__FUNCTION__);
+	     debug_printf("gdd","Function:%s para invalid.\r\n",__FUNCTION__);
 	    return false;
 	 }
      switch(attrid)
@@ -166,8 +167,8 @@ bool_t Widget_GetAttr(HWND hwnd,uint8_t attrid,ptu32_t *param)
 {
 	 if(hwnd==NULL)
 	 {
-		printf("Function:%s para invalid.\r\n",__FUNCTION__);
-		return false;
+	     debug_printf("gdd","Function:%s para invalid.\r\n",__FUNCTION__);
+	     return false;
 	 }
 	 switch(attrid)
 	 {

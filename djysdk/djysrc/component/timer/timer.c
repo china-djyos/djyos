@@ -51,7 +51,6 @@
 // <版本号> <修改日期>, <修改人员>: <修改功能概述>
 // =============================================================================
 // 备注:该文件需要提供一个硬件定时器，需要一个不间断走时的64位定时器
-#include <cfg/misc_config.h>
 #include "board-config.h"
 #include "stdint.h"
 #include "stdio.h"
@@ -61,6 +60,49 @@
 
 #include "timer.h"
 #include "timer_hard.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_Timer(void);
+//    ModuleInstall_Timer();
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"timer"        //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"MsgQueue"         //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_TIMER_SOUCE   //****检查参数是否已经配置好
+#warning    timer组件参数未配置，使用默认值
+//%$#@num,0,100,
+#define CFG_TIMER_SOUCE     1       //"时钟源",1=由硬件计时器提供时钟源，0=由tick提供时钟源
+#define CFG_TIMERS_LIMIT    5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
 
 //timer的数据结构
 struct Timer
@@ -739,28 +781,21 @@ char *Timer_GetName(tagTimer* timer)
 // 输入参数：para,表示定时器模块使用硬件定时器还是tick做定时基准，取值为
 //              CN_TIMER_SOURCE_TICK或CN_TIMER_SOURCE_HARD
 // 输出参数：无
-// 返回值  ：0 成功  -1失败
+// 返回值  ：true = 成功  false =失败
 // =============================================================================
-ptu32_t ModuleInstall_Timer(ptu32_t para)
+bool_t ModuleInstall_Timer(void)
 {
+    static tagTimer ptTimerMem[CFG_TIMERS_LIMIT];
     u16 u16EvttId;
     u16 u16EventId;
     printk("Timer:Init Start....\n\r");
-    ptTimerMem = M_Malloc(gc_u32CfgTimerLimit * sizeof(tagTimer),\
-                              CN_TIMEOUT_FOREVER);
-    if(ptTimerMem == NULL)
-    {
-        goto EXIT_MEMFAILED;
-    }
-    ptTimerMemPool = Mb_CreatePool(ptTimerMem,gc_u32CfgTimerLimit,
+    ptTimerMemPool = Mb_CreatePool(ptTimerMem,CFG_TIMERS_LIMIT,
                                 sizeof(tagTimer),0,0,"Timer");
     if(NULL ==ptTimerMemPool)
     {
         goto EXIT_POOLFAILED;
     }
-    sbUsingHardTimer = (bool_t)para;
-    if(sbUsingHardTimer == CN_TIMER_SOURCE_HARD)
-    {
+#if CFG_TIMER_SOUCE == 1        //由硬件计时器提供时钟源
         //使用硬件定时器的时候才会使用该同步标记
         ptTimerQSync = Lock_MutexCreate("Timer");
         if(NULL == ptTimerQSync)
@@ -774,7 +809,7 @@ ptu32_t ModuleInstall_Timer(ptu32_t para)
             goto EXIT_TIMERFAILED;
         }
         s_u32TimerPrecision = 1E9/CN_CFG_MCLK;     //计算1000个CPU周期对应的uS数，取整
-        if(s_u32TimerPrecision == 0)               //主频可能超过1G
+        if(s_u32TimerPrecision == 0)               //如果主频超过1G
             s_u32TimerPrecision = 1;
         s_u32TimerFreq = s_u32TimerPrecision*CN_CFG_MCLK/1000000;    //取整后s_u32TimerPrecision uS对应的主频周期数
         s_u32Precision2Tclk = HardTimer_GetFreq(sgHardTimerDefault);
@@ -783,9 +818,8 @@ ptu32_t ModuleInstall_Timer(ptu32_t para)
         //使能定时器中断，但是没有使能定时器,坐等API的调用
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_ENINT,(ptu32_t)NULL);
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_SETRELOAD,(ptu32_t)false);
-    }
-    else
-    {
+#else   //CFG_TIMER_SOUCE == 1      由tick提供时钟源
+
         //建立通信用的消息队列
         ptTimerMsgQ = MsgQ_Create(CN_TIMERSOFT_MSGLEN, \
                                       sizeof(tagTimerMsg),CN_MSGQ_TYPE_FIFO);
@@ -816,10 +850,10 @@ ptu32_t ModuleInstall_Timer(ptu32_t para)
                 }
             }
         }
-    }
+#endif  //CFG_TIMER_SOUCE == 1
 
     printk("Timer:Init Success\n\r");
-    return 0;
+    return true;
 
 EXIT_TIMERFAILED:
     Mb_DeletePool(ptTimerMemPool);
@@ -827,5 +861,5 @@ EXIT_POOLFAILED:
     free(ptTimerMem);
 EXIT_MEMFAILED:
     printk("Timer:Init Failed\n\r");
-    return -1;
+    return false;
 }

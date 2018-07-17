@@ -63,33 +63,89 @@
 #include "stmpe811.h"
 #include "cpu_peri_iic.h"
 #include "iicbus.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    struct GkWinObj;
+//    extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop,\
+//      const char *touch_dev_name);
+//    extern struct GkWinObj *GK_GetDesktop(const char *display_name)；
+//    struct GkWinObj *stmpe811_desktop;
+//    stmpe811_desktop = GK_GetDesktop(CFG_STMPE811_DESKTOP_NAME);
+//    if(NULL == stmpe811_desktop)
+//    {
+//        printf("stmpe811_desktop Not Exist !\r\n");
+//    }
+//    else
+//    {
+//        ModuleInstall_Touch_Stmpe811(stmpe811_desktop,CFG_STMPE811_TOUCH_DEV_NAME);
+//    }
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"stmpe811"      //填写该组件的名字
+//parent:"touch"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件               //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"gk","rtc","lock","touch","iicbus", //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"gdd"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_TOUCH_DEV_NAME   //****检查参数是否已经配置好
+#warning    stmpe811组件参数未配置，使用默认值
+//%$#@num,0,100,
+//%$#@enum,100000,400000,
+#define CFG_CRT_CLK_FRE                 (100*1000)      //"IIC总线速度"，总线速度，单位Hz
+//%$#@enum,0x41,0x44,
+#define CFG_STMPE811_DEVADDR            0x41            //"设备地址"，IIC总线上的设备地址
+//%$#@string,1,30,
+#define CFG_STMPE811_TOUCH_DEV_NAME      "TOUCH_STMPE811"     //"触摸设备名称",触摸设备的名称
+#define CFG_STMPE811_DESKTOP_NAME  "LCD_DESKTOP_STMPE811"     //"触摸显示桌面",触摸屏所在桌面的名称
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 static struct ST_TouchAdjust tg_touch_adjust;
+static struct IIC_Device *s_ptCRT_Dev = NULL;//定义IICBUS架构下的IIC设备结构
 
-static struct IIC_Device *ps_CRT_Dev = NULL;//定义IICBUS架构下的IIC设备结构
 
-#define CRT_CLK_FRE         (100*1000)      //总线速度，单位Hz
-#define CRT_ADDRESS         0x49            //设备地址
-#define STMPE811_DEVADDR    0x41            /* 7-bit I2C address */
+//#define CRT_ADDRESS         0x49            //设备地址
+//#define CFG_STMPE811_DEVADDR    0x41            /* 7-bit I2C address */
 /* =============================================================================
  功能：stmpe811芯片初始化，初始化和加载设备到对应的IIC总线.
  参数：无
  返回：true,成功;false,失败
  =============================================================================*/
 
-static bool_t STMPE811_Init(void)
+static bool_t STMPE811_Init(char *BusName)
 {
 
-    static struct  IIC_Device s_CRT_Dev;
-    s_CRT_Dev.DevAddr=CRT_ADDRESS;
-    s_CRT_Dev.BitOfMemAddr=8;
-    s_CRT_Dev.BitOfMemAddrInDevAddr=0;
+//    static struct  IIC_Device s_CRT_Dev;
+//    s_CRT_Dev.DevAddr=CRT_ADDRESS;
+//    s_CRT_Dev.BitOfMemAddr=8;
+//    s_CRT_Dev.BitOfMemAddrInDevAddr=0;
 
-    if(NULL != IIC_DevAdd_s(&s_CRT_Dev,"IIC2","STMPE811",STMPE811_DEVADDR,7,23))
+    s_ptCRT_Dev = IIC_DevAdd(BusName,"STMPE811",CFG_STMPE811_DEVADDR,7,23);
+    if(s_ptCRT_Dev)
     {
-        ps_CRT_Dev = &s_CRT_Dev;
-        IIC_BusCtrl(ps_CRT_Dev,CN_IIC_SET_CLK,CRT_CLK_FRE,0);//设置时钟大小
-        IIC_BusCtrl(ps_CRT_Dev,CN_IIC_SET_INT,0,0);       //使用中断方式发送
+        IIC_BusCtrl(s_ptCRT_Dev,CN_IIC_SET_CLK,CFG_CRT_CLK_FRE,0);//设置时钟大小
+        IIC_BusCtrl(s_ptCRT_Dev,CN_IIC_SET_INT,0,0);       //使用中断方式发送
         return true;
     }
 
@@ -104,7 +160,7 @@ static u32 TS_Read ( u8 RegAddr, u8 num)
 {
 
    static u8 buf[4];
-   num = IIC_Read(ps_CRT_Dev,RegAddr,buf,num,0xffffffff);
+   num = IIC_Read(s_ptCRT_Dev,RegAddr,buf,num,0xffffffff);
     switch (num)
     {   case 1:
             return buf[0];
@@ -133,7 +189,7 @@ static  void TS_Write (u8 reg, u8 num, u32 val)
 {
     u8 buf[4];
     buf[0]=(u8)(val & 0x000000ff);
-    IIC_Write( ps_CRT_Dev , reg,buf,num, true,0xffffffff );
+    IIC_Write( s_ptCRT_Dev , reg,buf,num, true,0xffffffff );
 
 }
 //---------------------------------------------------------------------------
@@ -306,7 +362,7 @@ static ufast_t read_touch_stmpe811(struct SingleTouchMsg *touch_data)
 //参数: display_name,本触摸屏对应的显示器名(资源名)//用静态变量存储每次开机校准一次//
 //返回: 无
 //-----------------------------------------------------------------------------
-static void touch_ratio_adjust(struct GkWinRsc *desktop)
+static void touch_ratio_adjust(struct GkWinObj *desktop)
 {
     struct SingleTouchMsg touch_xyz0,touch_xyz1,touch_xyz2;
     FILE *touch_init;
@@ -422,11 +478,11 @@ static void touch_ratio_adjust(struct GkWinRsc *desktop)
 //参数: display_name,本触摸屏对应的显示器名(资源名)
 //返回: true,成功;false,失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinRsc *desktop,const char *touch_dev_name)
+ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop,const char *touch_dev_name)
 {
     static struct SingleTouchPrivate stmpe811;
 
-    if(!STMPE811_Init( ))//将器件挂到IIC2总线上
+    if(!STMPE811_Init("IIC2" ))//将器件挂到IIC2总线上
         return false;
     if(!touch_hard_init())//触摸屏初始化
          return false;
@@ -436,6 +492,3 @@ ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinRsc *desktop,const char *touch_
     Touch_InstallDevice(touch_dev_name,&stmpe811);//添加驱动到Touch
     return true;
 }
-
-
-

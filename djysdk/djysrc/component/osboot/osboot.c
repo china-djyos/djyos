@@ -69,49 +69,48 @@
 #include <shell.h>
 #include <exp.h>
 #include <osboot.h>
-
-
+#include "dbug.h"
+#include "../core/component_config_core.h"
 static char *pBootModeName[]={
-	"POWERDOWN",
-	"HARDRESET",
-	"SOFTRESET",
-	"REBOOT",
-	"RELOAD",
-	"NOIMPLEMENT",
-	"UNKNOWN",
+    "POWERDOWN",
+    "HARDRESET",
+    "SOFTRESET",
+    "REBOOT",
+    "RELOAD",
+    "NOIMPLEMENT",
+    "UNKNOWN",
 };
 //ÏµÍ³ÖØÆôÒÔ¼°Æô¶¯ºóµÄÒì³£ĞÅÏ¢ËÑ¼¯·ÖÎö
 typedef struct
 {
-	time_t   time;       //rtc time when boot
-	u32      modesoft;   //defines by enBootMode
-	u32      modehard;   //defines by enBootMode
+    time_t   time;       //rtc time when boot
+    u32      modesoft;   //defines by enBootMode
+    u32      modehard;   //defines by enBootMode
 }tagBootMode;
 static tagBootMode gBootMode;
 
 extern struct EventECB  *g_ptEventReady;      //¾ÍĞ÷¶ÓÁĞÍ·
 extern struct EventECB  *g_ptEventRunning;    //µ±Ç°ÕıÔÚÖ´ĞĞµÄÊÂ¼ş
 extern struct EventECB  *g_ptEventDelay;      //ÄÖÖÓÍ¬²½¶ÓÁĞ±íÍ·
-extern struct EventType *g_ptEvttTable;
-extern const u32 gc_u32CfgEvttLimit;       //×ÜÊÂ¼şÀàĞÍÊı
+extern struct EventType g_tEvttTable[];
 typedef struct
 {
-	u32                  dumpreason;
-	struct EventECB     *eventrunning;
-	struct EventECB     *eventready;
-	struct EventECB     *eventdelay;
-	struct ThreadVm     *eventvm;
-	bool_t   ecblegal;
-	bool_t   vmlegal;
-	struct EventECB  ecbRunning;  //if the pEventRunning is in the proper memory,then record it
-	struct ThreadVm  vm;          //if vm in proper mem, then record it
+    u32                  dumpreason;
+    struct EventECB     *eventrunning;
+    struct EventECB     *eventready;
+    struct EventECB     *eventdelay;
+    struct ThreadVm     *eventvm;
+    bool_t   ecblegal;
+    bool_t   vmlegal;
+    struct EventECB  ecbRunning;  //if the pEventRunning is in the proper memory,then record it
+    struct ThreadVm  vm;          //if vm in proper mem, then record it
 }tagSysDumpState;
 #define CN_ILLEGAL_BOOTNAME   "ILLEGALBOOT"
 
 //Ä¬ÈÏµÄÆô¶¯·½Ê½µÄ»ñÈ¡
 static enBootMode GetOsBootModeDefault(void)
 {
-	return EN_BOOT_UNKNOWN;
+    return EN_BOOT_UNKNOWN;
 }
 //¸Ã±äÁ¿ÓÃÓÚ´æ´¢Èí¼şÌá¹©µÄvm¿ÉÄÜÊ¹ÓÃµÄÄÚ´æ¿Õ¼ä
 static tagVmMemItem *pMemLegalTab;
@@ -121,116 +120,123 @@ static fnGetBootMode fnGetModeSoft = GetOsBootModeDefault;  //»ñÈ¡Æô¶¯±êÖ¾:Èí¼ş½
 //check if addr in mem:true in mem£¬ else not in mem
 static bool_t __AddrInMem(u8 *addr)
 {
-	bool_t result = false;
-	tagVmMemItem *item;
-	ptu32_t      start;
-	ptu32_t      end;
-	ptu32_t      value;
+    bool_t result = false;
+    tagVmMemItem *item;
+    ptu32_t      start;
+    ptu32_t      end;
+    ptu32_t      value;
 
-	if(NULL == pMemLegalTab)
-	{
-		return result;
-	}
-	item = pMemLegalTab;
-	value = (ptu32_t)addr;
-	while(NULL != item)
-	{
-		start = item->len;
-		end = start + item->len;
-		if((value >= start)&&((value <= end))) //in mem section
-		{
-			result = true;
-			break;
-		}
-		else
-		{
-			item = (tagVmMemItem*)((u8 *)item + sizeof(void *));
-		}
-	}
-	return result;
+    if(NULL == pMemLegalTab)
+    {
+        return result;
+    }
+    item = pMemLegalTab;
+    value = (ptu32_t)addr;
+    while(NULL != item)
+    {
+        start = item->len;
+        end = start + item->len;
+        if((value >= start)&&((value <= end))) //in mem section
+        {
+            result = true;
+            break;
+        }
+        else
+        {
+            item = (tagVmMemItem*)((u8 *)item + sizeof(void *));
+        }
+    }
+    return result;
 }
 //this function used to record the ecb and the stack
 bool_t ThrowOsBootInfo(enBootMode mode)
 {
-	tagSysDumpState dumpinfo;
+    tagSysDumpState dumpinfo;
     struct ExpThrowPara  parahead;
 
     u8  *srcstart;
     u8  *srcend;
 
-	memset(&dumpinfo,0,sizeof(dumpinfo));
-	dumpinfo.dumpreason = mode;
-	dumpinfo.eventready = g_ptEventReady;
-	dumpinfo.eventrunning = g_ptEventRunning;
-	dumpinfo.eventdelay = g_ptEventDelay;
-	//check if event running is correct,if correct then copy it
-	srcstart = (u8 *)dumpinfo.eventrunning;
-	srcend = srcstart + sizeof(struct EventECB);
-	if(__AddrInMem(srcstart)&&__AddrInMem(srcend))
-	{
-		memcpy(&dumpinfo.ecbRunning,dumpinfo.eventrunning,sizeof(struct EventECB));
-		dumpinfo.ecblegal = true;
-		//check if the running vm is correct,if correct then copy it
-		srcstart = (u8 *)dumpinfo.eventrunning->vm;
-		srcend = srcstart + sizeof(struct ThreadVm);
-		if(__AddrInMem(srcstart)&&__AddrInMem(srcend))
-		{
-			memcpy(&dumpinfo.vm,dumpinfo.eventrunning->vm,sizeof(struct ThreadVm));
-			dumpinfo.vmlegal = true;
-		}
-	}
+    memset(&dumpinfo,0,sizeof(dumpinfo));
+    dumpinfo.dumpreason = mode;
+    dumpinfo.eventready = g_ptEventReady;
+    dumpinfo.eventrunning = g_ptEventRunning;
+    dumpinfo.eventdelay = g_ptEventDelay;
+    //check if event running is correct,if correct then copy it
+    srcstart = (u8 *)dumpinfo.eventrunning;
+    srcend = srcstart + sizeof(struct EventECB);
+    if(__AddrInMem(srcstart)&&__AddrInMem(srcend))
+    {
+        memcpy(&dumpinfo.ecbRunning,dumpinfo.eventrunning,sizeof(struct EventECB));
+        dumpinfo.ecblegal = true;
+        //check if the running vm is correct,if correct then copy it
+        srcstart = (u8 *)dumpinfo.eventrunning->vm;
+        srcend = srcstart + sizeof(struct ThreadVm);
+        if(__AddrInMem(srcstart)&&__AddrInMem(srcend))
+        {
+            memcpy(&dumpinfo.vm,dumpinfo.eventrunning->vm,sizeof(struct ThreadVm));
+            dumpinfo.vmlegal = true;
+        }
+    }
     parahead.DecoderName = CN_ILLEGAL_BOOTNAME;
     parahead.ExpAction = EN_EXP_DEAL_RECORD;
     parahead.ExpInfo = (u8 *)&dumpinfo;
     parahead.ExpInfoLen = sizeof(dumpinfo);
     parahead.ExpType = CN_EXP_TYPE_SYS_START+11;
     Exp_Throw(&parahead);
-	return true;
+    return true;
 }
 
 
 static bool_t __CpuDumpDecoder(struct ExpThrowPara  *exppara,u32 endian)
 {
-	tagSysDumpState *dumpinfo;
-	struct EventECB *ecb;
-	struct ThreadVm *vm;
+    tagSysDumpState *dumpinfo;
+    struct EventECB *ecb;
+    struct ThreadVm *vm;
 
-	printf("DUMPHEAD:Decoder:%s Action:%d ExpLen:%d ExpType:%d Endian:%d\n\r",\
-			exppara->DecoderName,exppara->ExpAction,exppara->ExpInfoLen,exppara->ExpType,endian);
-	dumpinfo = (tagSysDumpState *)exppara->ExpInfo;
-	printf("DUMPINFO:Reason:%s EcbRun:0x%08x EcbReady:0x%08x EcbDelay:0x%08x\n\r",\
-			pBootModeName[dumpinfo->dumpreason],(u32)dumpinfo->eventrunning,\
-			(u32)dumpinfo->eventready,(u32)dumpinfo->eventdelay);
-	printf("EcbRunning:%s\n\r",dumpinfo->ecblegal?"LEGAL":"ILLEGAL");
-	if(dumpinfo->ecblegal)
-	{
-		ecb = &dumpinfo->ecbRunning;
-		printf("EcbPre:0X%08x EcbNxt:0x%08x EcbMpre:0x%08x EcbMnxt:0x%08x\n\r",\
-				(u32)ecb->previous,(u32)ecb->next,(u32)ecb->multi_previous,(u32)ecb->multi_next);
-		printf("EcbVmAddr:0x%08x\n\r",(u32)ecb->vm);
-		printf("Param1:0x%08x Param2:0x%08x\n\r",ecb->param1,ecb->param2);
-		printf("Sync:0x%08x SyncHead:0x%08x SyncCounter:0x%08x\n\r",(u32)ecb->sync,(u32)ecb->sync_head,ecb->sync_counter);
-		printf("EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartTime,ecb->consumed_time);
-		printf("ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_time_second,ecb->consumed_time_record);
-		printf("DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_tick,ecb->delay_end_tick);
-		printf("ErrNo:%d EventResult:0x%08x\n\r",ecb->error_no,ecb->event_result);
-		printf("WaitMemSize:%d\n\r",ecb->wait_mem_size);
-		printf("WakeupFrom:0x%08x Status:0x%08x\n\r",ecb->wakeup_from,ecb->event_status);
-		printf("Prior:%d\n\r",ecb->prio);
-		printf("EvttID:%d Name:%s\n\r",(ecb->evtt_id&(~CN_EVTT_ID_MASK)),\
-				(ecb->evtt_id&(~CN_EVTT_ID_MASK)) < gc_u32CfgEvttLimit?g_ptEvttTable[(ecb->evtt_id&(~CN_EVTT_ID_MASK))].evtt_name:"UNKNOWN");
+    debug_printf("osboot","DUMPHEAD:Decoder:%s Action:%d ExpLen:%d ExpType:%d Endian:%d\n\r",\
+            exppara->DecoderName,exppara->ExpAction,exppara->ExpInfoLen,exppara->ExpType,endian);
+    dumpinfo = (tagSysDumpState *)exppara->ExpInfo;
+    debug_printf("osboot","DUMPINFO:Reason:%s EcbRun:0x%08x EcbReady:0x%08x EcbDelay:0x%08x\n\r",\
+            pBootModeName[dumpinfo->dumpreason],(u32)dumpinfo->eventrunning,\
+            (u32)dumpinfo->eventready,(u32)dumpinfo->eventdelay);
+    debug_printf("osboot","EcbRunning:%s\n\r",dumpinfo->ecblegal?"LEGAL":"ILLEGAL");
+    if(dumpinfo->ecblegal)
+    {
+        ecb = &dumpinfo->ecbRunning;
+        debug_printf("osboot","EcbPre:0X%08x EcbNxt:0x%08x EcbMpre:0x%08x EcbMnxt:0x%08x\n\r",\
+                (u32)ecb->previous,(u32)ecb->next,(u32)ecb->multi_previous,(u32)ecb->multi_next);
+        debug_printf("osboot","EcbVmAddr:0x%08x\n\r",(u32)ecb->vm);
+        debug_printf("osboot","Param1:0x%08x Param2:0x%08x\n\r",ecb->param1,ecb->param2);
+        debug_printf("osboot","Sync:0x%08x SyncHead:0x%08x SyncCounter:0x%08x\n\r",(u32)ecb->sync,(u32)ecb->sync_head,ecb->sync_counter);
+#if CFG_OS_TINY == false
+        debug_printf("osboot","EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartCnt,ecb->consumed_cnt);
+        debug_printf("osboot","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_cnt_second,ecb->consumed_cnt_record);
+#endif  //CFG_OS_TINY == false
+        debug_printf("osboot","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_cnt,ecb->delay_end_cnt);
+        debug_printf("osboot","ErrNo:%d EventResult:0x%08x\n\r",ecb->error_no,ecb->event_result);
+        debug_printf("osboot","WaitMemSize:%d\n\r",ecb->wait_mem_size);
+        debug_printf("osboot","WakeupFrom:0x%08x Status:0x%08x\n\r",ecb->wakeup_from,ecb->event_status);
+        debug_printf("osboot","Prior:%d\n\r",ecb->prio);
+#if CFG_OS_TINY == false
+        debug_printf("osboot","EvttID:%d Name:%s\n\r",(ecb->evtt_id&(~CN_EVTT_ID_MASK)),\
+                (ecb->evtt_id&(~CN_EVTT_ID_MASK)) < CFG_EVENT_TYPE_LIMIT?\
+                        g_tEvttTable[(ecb->evtt_id&(~CN_EVTT_ID_MASK))].evtt_name:"unknown");
+#else
+        debug_printf("osboot","EvttID:%d Name:%s\n\r",(ecb->evtt_id&(~CN_EVTT_ID_MASK)),"unknown");
+#endif  //CFG_OS_TINY == false
 
-		printf("EventID:%d LocalMem:%d\n\r",ecb->event_id,ecb->local_memory);
-		printf("EcbStack:%s\n\r",dumpinfo->vmlegal?"LEGAL":"ILLEGAL");
+        debug_printf("osboot","EventID:%d LocalMem:%d\n\r",ecb->event_id,ecb->local_memory);
+        debug_printf("osboot","EcbStack:%s\n\r",dumpinfo->vmlegal?"LEGAL":"ILLEGAL");
 
-		if(dumpinfo->vmlegal)
-		{
-			vm = ecb->vm;
-			printf("Stack:0x%08x StackTop:0x%08x StackSize:%d Nxt:0x%08x HostVm:0x%08x\n\r",\
-					(u32)vm->stack,(u32)vm->stack_top,vm->stack_size,(u32)vm->next,(u32)vm->host_vm);
-		}
-	}
-	printf("DUMPEND\n\r");
+        if(dumpinfo->vmlegal)
+        {
+            vm = ecb->vm;
+            debug_printf("osboot","Stack:0x%08x StackTop:0x%08x StackSize:%d Nxt:0x%08x HostVm:0x%08x\n\r",\
+                    (u32)vm->stack,(u32)vm->stack_top,vm->stack_size,(u32)vm->next,(u32)vm->host_vm);
+        }
+    }
+    debug_printf("osboot","DUMPEND\n\r");
     return true;
 }
 
@@ -238,36 +244,36 @@ static bool_t __CpuDumpDecoder(struct ExpThrowPara  *exppara,u32 endian)
 #define CN_BOOTLOG_NAME   "OSBOOTLOG"
 static void __ShowBootMode(tagBootMode *bootmsg)
 {
-	time_t  logtime;
-	u32      bootreason;
-	logtime = bootmsg->time;
-	printf("BootTime:%s\n\r",ctime(&logtime));
-	//SOFT CHECK
-	bootreason = bootmsg->modesoft;
-	printf("BootMode(SoftCheck):%s\n\r",bootreason<EN_BOOT_LAST?pBootModeName[bootreason]:"UNKNOWN");
-	//HARD CHECK
-	bootreason = bootmsg->modehard;
-	printf("BootMode(HardCheck):%s\n\r",bootreason<EN_BOOT_LAST?pBootModeName[bootreason]:"UNKNOWN");
+    time_t  logtime;
+    u32      bootreason;
+    logtime = bootmsg->time;
+    debug_printf("osboot","BootTime:%s\n\r",ctime(&logtime));
+    //SOFT CHECK
+    bootreason = bootmsg->modesoft;
+    debug_printf("osboot","BootMode(SoftCheck):%s\n\r",bootreason<EN_BOOT_LAST?pBootModeName[bootreason]:"UNKNOWN");
+    //HARD CHECK
+    bootreason = bootmsg->modehard;
+    debug_printf("osboot","BootMode(HardCheck):%s\n\r",bootreason<EN_BOOT_LAST?pBootModeName[bootreason]:"UNKNOWN");
 }
 
 static bool_t __BootMsgShowShell(char *param)
 {
-	tagBootMode *msg;
+    tagBootMode *msg;
 
-	msg = &gBootMode;
-	__ShowBootMode(msg);
+    msg = &gBootMode;
+    __ShowBootMode(msg);
 
-	return true;
+    return true;
 }
 
 static bool_t __BootModeDecoder(struct ExpThrowPara *exppara,u32 endian)
 {
-	tagBootMode msg;
-	printf("DUMPHEAD:Decoder:%s Action:%d ExpLen:%d ExpType:%d Endian:%d\n\r",\
-			exppara->DecoderName,exppara->ExpAction,exppara->ExpInfoLen,exppara->ExpType,endian);
-	memcpy(&msg,exppara->ExpInfo,sizeof(msg));
-	__ShowBootMode(&msg);
-	return true;
+    tagBootMode msg;
+    debug_printf("osboot","DUMPHEAD:Decoder:%s Action:%d ExpLen:%d ExpType:%d Endian:%d\n\r",\
+            exppara->DecoderName,exppara->ExpAction,exppara->ExpInfoLen,exppara->ExpType,endian);
+    memcpy(&msg,exppara->ExpInfo,sizeof(msg));
+    __ShowBootMode(&msg);
+    return true;
 }
 
 
@@ -277,44 +283,44 @@ extern void reset(u32 key);
 extern void restart_system(u32 key);
 static bool_t rebootshell(char *param)
 {
-	u32 key = 0;
-	if(NULL != param)
-	{
-		key = strtoul(param,NULL,0);
-	}
+    u32 key = 0;
+    if(NULL != param)
+    {
+        key = strtoul(param,NULL,0);
+    }
 
-	reboot(key);
-	return true;
+    reboot(key);
+    return true;
 }
 
 static bool_t resetshell(char *param)
 {
-	u32 key = 0;
-	if(NULL != param)
-	{
-		key = strtoul(param,NULL,0);
-	}
-	reset(key);
-	return true;
+    u32 key = 0;
+    if(NULL != param)
+    {
+        key = strtoul(param,NULL,0);
+    }
+    reset(key);
+    return true;
 }
 
 static bool_t reloadshell(char *param)
 {
-	u32 key = 0;
-	if(NULL != param)
-	{
-		key = strtoul(param,NULL,0);
-	}
-	restart_system(key);
-	return true;
+    u32 key = 0;
+    if(NULL != param)
+    {
+        key = strtoul(param,NULL,0);
+    }
+    restart_system(key);
+    return true;
 }
 static bool_t bootaddressshell(char *param)
 {
-	u32 addr;
+    u32 addr;
     u32 InitCpu_Addr;
-	addr = strtoul(param,NULL,0);
+    addr = strtoul(param,NULL,0);
 
-	printf("%s:addr:0x%08x\n\r",__FUNCTION__,addr);
+    debug_printf("osboot","%s:addr:0x%08x\n\r",__FUNCTION__,addr);
     InitCpu_Addr = *(u32*)addr;
     ((void (*)(void))(InitCpu_Addr))();
 
@@ -325,33 +331,33 @@ static bool_t bootaddressshell(char *param)
 //cpu boot shell command
 struct ShellCmdTab  gBootShell[] =
 {
-	{
-		"reboot",
-		rebootshell,
-		"usage:reboot [key](if key is 0XAA55AA55 then will not record)",
-		"usage:reboot [key](if key is 0XAA55AA55 then will not record)",
-	},
-	{
-		"reset",
-		resetshell,
-		"usage:reset [key](if key is 0XAA55AA55 then will not record)",
-		"usage:reset [key](if key is 0XAA55AA55 then will not record)",
-	},
-	{
-		"restart",
-		reloadshell,
-		"usage:restart [key](if key is 0XAA55AA55 then will not record)",
-		"usage:restart [key](if key is 0XAA55AA55 then will not record)",
-	},
-	{
-		"bootaddress",
-		bootaddressshell,
-		"usage:bootaddress [address]",
-		"usage:bootaddress [address]",
-	},
+    {
+        "reboot",
+        rebootshell,
+        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
+        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
+    },
+    {
+        "reset",
+        resetshell,
+        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
+        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
+    },
+    {
+        "restart",
+        reloadshell,
+        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
+        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
+    },
+    {
+        "bootaddress",
+        bootaddressshell,
+        "usage:bootaddress [address]",
+        "usage:bootaddress [address]",
+    },
     {
         "bootmsg",
-		__BootMsgShowShell,
+        __BootMsgShowShell,
         "usage:bootmsg",
         "usage:bootmsg",
     },
@@ -364,58 +370,60 @@ static struct ShellCmdRsc gBootShellCmdRsc[CN_BOOTDEBUG_NUM];
 //use this function to analyze the boot mode
 static bool_t __OsBootModeLog(void)
 {
-	gBootMode.time = time(NULL);
-	//Í¨¹ıÓ²¼ş·ÖÎö
-	if(NULL != fnGetModeHard)
-	{
-		gBootMode.modehard = fnGetModeHard();
-	}
-	else
-	{
-		gBootMode.modehard = EN_BOOT_NOTIMPLEMENT;
-	}
-	//Í¨¹ıÈí¼ş·ÖÎö
-	if(NULL != fnGetModeSoft)
-	{
-		gBootMode.modesoft = fnGetModeSoft();
-	}
-	else
-	{
-		gBootMode.modesoft = EN_BOOT_NOTIMPLEMENT;
-	}
-	//record the boot message
+    gBootMode.time = time(NULL);
+    //Í¨¹ıÓ²¼ş·ÖÎö
+    if(NULL != fnGetModeHard)
+    {
+        gBootMode.modehard = fnGetModeHard();
+    }
+    else
+    {
+        gBootMode.modehard = EN_BOOT_NOTIMPLEMENT;
+    }
+    //Í¨¹ıÈí¼ş·ÖÎö
+    if(NULL != fnGetModeSoft)
+    {
+        gBootMode.modesoft = fnGetModeSoft();
+    }
+    else
+    {
+        gBootMode.modesoft = EN_BOOT_NOTIMPLEMENT;
+    }
+    //record the boot message
     struct ExpThrowPara  parahead;
     parahead.ExpAction = EN_EXP_DEAL_RECORD;
     parahead.DecoderName = CN_BOOTLOG_NAME;
     parahead.ExpInfo = (u8 *)&gBootMode;
     parahead.ExpInfoLen =sizeof(gBootMode);
-	parahead.ExpType = CN_EXP_TYPE_SYS_START+10;
-	Exp_Throw(&parahead);
-	return true;
+    parahead.ExpType = CN_EXP_TYPE_SYS_START+10;
+    Exp_Throw(&parahead);
+    return true;
 }
-//----°²×°ÏµÍ³Æô¶¯Ä£¿é-------------------------------------------------------------
+//----°²×°ÏµÍ³Æô¶¯Ä£¿é-----------------------------------------------------------
 //¹¦ÄÜ£º¸ÃÄ£¿éÓÃÓÚ·ÖÎöÏµÍ³Æô¶¯Ô­Òò£¬ÒÔ¼°¼ÇÂ¼ÏµÍ³·Ç·¨ÖØÆô×´Ì¬
-//²ÎÊı£ºtab,ÏµÍ³Õ»µÄ¿ÉÄÜÊ¹ÓÃÄÚ´æ·¶Î§£»getmodehardÓÃÓÚ»ñÈ¡Ó²¼şÆô¶¯Ä£Ê½£»getmodesoftÓÃÓÚ»ñÈ¡Èí¼şÆô¶¯Ä£Ê½
-//    log,Èç¹ûfalse,Ôò²»Ö´ĞĞ¼ÇÂ¼£¬·ñÔò±¾´ÎÆô¶¯½«»á¼ÇÂ¼
+//²ÎÊı£ºtab,ÏµÍ³Õ»µÄ¿ÉÄÜÊ¹ÓÃÄÚ´æ·¶Î§£»getmodehardÓÃÓÚ»ñÈ¡Ó²¼şÆô¶¯Ä£Ê½£»getmodesoftÓÃ
+//      ÓÚ»ñÈ¡Èí¼şÆô¶¯Ä£Ê½log,Èç¹ûfalse,Ôò²»Ö´ĞĞ¼ÇÂ¼£¬·ñÔò±¾´ÎÆô¶¯½«»á¼ÇÂ¼
 //·µ»Ø£º³É¹¦»òÕßÊ§°Ü
-//×¢:  ¸ÃÄ£¿é±¾ÉíºÍBSPÎŞ¹Ø£¬µ«ÊÇtab ÒÔ¼°»ñÈ¡Æô¶¯±êÖ¾ĞèÒªBSPµÄÖ§³Ö£»Ó²¼şÆô¶¯±êÖ¾µÄÒâË¼ÊÇºÜ¶àCPU±¾ÉíÓĞ¼Ä´æÆ÷¼ÇÂ¼Æô¶¯Ô­Òò
-//    Èí¼şÆô¶¯±êÖ¾ÊÇÀûÓÃRAMµÄÌØĞÔÓÉBSP portingµÄÊ±ºòÉè¼ÆµÄ¡£
+//×¢:  ¸ÃÄ£¿é±¾ÉíºÍBSPÎŞ¹Ø£¬µ«ÊÇtab ÒÔ¼°»ñÈ¡Æô¶¯±êÖ¾ĞèÒªBSPµÄÖ§³Ö£»Ó²¼şÆô¶¯±êÖ¾µÄÒâË¼
+//      ÊÇºÜ¶àCPU±¾ÉíÓĞ¼Ä´æÆ÷¼ÇÂ¼Æô¶¯Ô­Òò
+//      Èí¼şÆô¶¯±êÖ¾ÊÇÀûÓÃRAMµÄÌØĞÔÓÉBSP portingµÄÊ±ºòÉè¼ÆµÄ¡£
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode getmodehard,fnGetBootMode getmodesoft)
+bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode getmodehard,
+                            fnGetBootMode getmodesoft)
 {
     bool_t result;
     static struct ExpInfoDecoder dumpdecoder;
     static struct ExpInfoDecoder bootdecoder;
 
-	pMemLegalTab = tab;
-	if(NULL != getmodehard)
-	{
-		fnGetModeHard = getmodehard;
-	}
-	if(NULL != getmodesoft)
-	{
-		fnGetModeSoft = getmodesoft;
-	}
+    pMemLegalTab = tab;
+    if(NULL != getmodehard)
+    {
+        fnGetModeHard = getmodehard;
+    }
+    if(NULL != getmodesoft)
+    {
+        fnGetModeSoft = getmodesoft;
+    }
 
     memset(&dumpdecoder,0,sizeof(dumpdecoder));
     dumpdecoder.DecoderName = CN_ILLEGAL_BOOTNAME;

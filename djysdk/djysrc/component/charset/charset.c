@@ -47,112 +47,110 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
-//所属模块: 字符编码驱动
-//作者：mjh
+//所属模块: 字符集驱动
+//作者：lst
 //版本：V1.0.0
-//文件描述: 字符编码资源初始化
+//文件描述: 字符集资源初始化
 //其他说明:
 //修订历史:
 //    2. ...
 //    1. 日期:2011-05-17
-//       作者:mjh
+//       作者:lst
 //       新版本号：
 //       修改说明:初始版本
 //------------------------------------------------------
 #include "stdint.h"
 #include "object.h"
 #include "stdio.h"
-
+#include "dbug.h"
 #include "charset.h"
+#include "component_config_NlsCharset.h"
 
-static struct Charset *s_ptCurCharEncoding;    // 编码资源
-//----安装字符编码-------------------------------------------------------------
-//功能: 把新字符编码安装到系统资源队列中
-//参数: encoding，新增的字符编码资源指针
-//      name，新增字符编码名
+static struct Charset *s_ptCurCharset;      // 当前字符集
+static struct Object *s_ptCharsetDir;       // 字符集目录
+//----安装字符集-------------------------------------------------------------
+//功能: 把新字符集安装到字符集目录中
+//参数: encoding，新增的字符集指针
+//      name，新增字符集名
 //返回: true
 //-----------------------------------------------------------------------------
 bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name)
 {
-    struct Object *rsc;
-    rsc = OBJ_SearchTree(CN_CHAR_ENCODING_RSC_TREE);
-    if(rsc == NULL)
-        return false;       //字符资源根结点未创建
+    if(s_ptCharsetDir == NULL)
+        return false;       // 字符集目录未创建
 
-    OBJ_AddChild(rsc,&encoding->node,sizeof(struct Charset),RSC_CHARSET,name);
+    OBJ_AddChild(s_ptCharsetDir,NULL,(ptu32_t)encoding,name);
 
     return true;
 }
 
-//----字符编码模块初始化-------------------------------------------------------
-//功能: 初始化字符编码模块
+//----字符集模块初始化-------------------------------------------------------
+//功能: 初始化字符集管理模块
 //-----------------------------------------------------------------------------
 ptu32_t ModuleInstall_Charset(ptu32_t para)
 {
-    static struct Object encoding_root_rsc;    // 编码资源
-
-    s_ptCurCharEncoding = NULL;
-    // 添加字符编码资源根节点
-    if(OBJ_AddTree(&encoding_root_rsc,
-                            sizeof(struct Object),RSC_RSCNODE,
-                            CN_CHAR_ENCODING_RSC_TREE))
+    s_ptCurCharset = NULL;
+    // 创建字符集目录
+    s_ptCharsetDir = OBJ_AddChild(OBJ_Root(),NULL,0,CN_CHAR_ENCODING_RSC_TREE);
+    if(s_ptCharsetDir)
     {
         return 1;
     }else
     {
-        printf("install charset module fail\r\n");
+        debug_printf("charset","install charset module fail\r\n");
         return 0;
     }
 }
 
-//----获取当前字符编码---------------------------------------------------------
-//功能: 获取当前使用的字符编码
-//返回: 当前字符编码
+//----获取当前字符集---------------------------------------------------------
+//功能: 获取当前使用的字符集
+//返回: 当前字符集
 //-----------------------------------------------------------------------------
 struct Charset* Charset_NlsGetCurCharset(void)
 {
-    return s_ptCurCharEncoding;
+    return s_ptCurCharset;
 }
 
-//----设定当前字符编码---------------------------------------------------------
-//功能: 把新字符编码设为当前使用的字符编码,新字符编码必须事先安装到系统中，如果
-//      encoding资源未安装，本函数什么都不做，返回原来的当前字符编码
-//参数: encoding，指定的字符编码
+//----设定当前字符集---------------------------------------------------------
+//功能: 把新字符集设为当前使用的字符集,新字符集必须事先安装到系统中，如果
+//      encoding字符集未安装，本函数什么都不做，返回原来的当前字符集
+//参数: encoding，指定的字符集
 //返回: NULL，设定失败
-//      设定之前的字符编码
+//      设定之前的字符集
 //-----------------------------------------------------------------------------
 struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
 {
-    struct Object *rsc;
-    char *Name;
+    struct Object *Me;
     if(encoding == NULL)
         return NULL;
-    rsc = OBJ_SearchTree(CN_CHAR_ENCODING_RSC_TREE);
-    if(rsc == NULL)
-        return NULL;       //字符资源树未创建
-    Name = OBJ_Name(&encoding->node);
-    rsc = OBJ_SearchChild(rsc,(const char*)(Name));
-    if(rsc != NULL)
+    if(encoding == s_ptCurCharset)
+        return encoding;
+    if(s_ptCharsetDir == NULL)
+        return NULL;       //字符集目录未创建
+    Me = encoding->HostObj;
+    if(OBJ_IsParentChild( s_ptCharsetDir,Me))    //字符集确已安装到s_ptCharsetDir目录
     {
-        s_ptCurCharEncoding = (struct Charset*)rsc;
+        s_ptCurCharset = (struct Charset*)encoding;
     }
-    return s_ptCurCharEncoding;
+    return s_ptCurCharset;
 }
 
-//----搜索字符编码资源---------------------------------------------------------
-//功能: 根据名称搜索字符编码资源
-//参数: name，指定的字符编码名称
-//返回: NULL，无此编码资源
-//      要找的字符编码资源
+//----搜索字符集---------------------------------------------------------
+//功能: 根据名称搜索字符集
+//参数: name，指定的字符集名称
+//返回: 要找的字符集指针，NULL=无此字符集
+//
 //-----------------------------------------------------------------------------
 struct Charset* Charset_NlsSearchCharset(const char* name)
 {
-    struct Object *rsc;
-
-    rsc = OBJ_SearchTree(CN_CHAR_ENCODING_RSC_TREE);
-    if(rsc == NULL)
+    struct Object *CharsetObj;
+    if(s_ptCharsetDir == NULL)
         return NULL;       //字符资源树未创建
 
-    return (struct Charset*)OBJ_SearchChild(rsc,name);
+    CharsetObj = OBJ_SearchChild(s_ptCharsetDir,name);
+    if(CharsetObj != NULL)
+        return (struct Charset*)OBJ_Represent(CharsetObj);
+    else
+        return NULL;
 }
 

@@ -74,9 +74,9 @@ struct RectBitmap;
 #define CN_FONT_TYPE_DOT            1       // 点阵字体
 #define CN_FONT_TYPE_TRUETYPE       2       //矢量字体
 
-struct FontRsc
+struct FontObj
 {
-    struct  Object node;
+    struct  Object *HostObj;
 
     s32 MaxWidth;       //最宽字符的宽度,纵向显示时可用作为竖行宽
     s32 MaxHeight;      //最高字符的高度
@@ -99,16 +99,14 @@ struct FontRsc
     s32 (*GetCharHeight)(u32 CharCode);     //获取某字符高度
 };
 
-bool_t Font_InstallFont(struct FontRsc *font,const char *name);
+bool_t Font_InstallFont(struct FontObj *font,const char *name);
 
-ptu32_t ModuleInstall_Font(ptu32_t para);
-
-struct FontRsc* Font_GetCurFont(void);
-struct FontRsc* Font_SetCurFont(struct FontRsc* font);
-struct FontRsc* Font_SearchFont(const char* name);
-s32 Font_GetFontLineHeight(struct FontRsc* font);
-s32 Font_GetFontLineWidth(struct FontRsc* font);
-s32 Font_GetFontAttr(struct FontRsc* font);
+struct FontObj* Font_GetCurFont(void);
+struct FontObj* Font_SetCurFont(struct FontObj* font);
+struct FontObj* Font_SearchFont(const char* name);
+s32 Font_GetFontLineHeight(struct FontObj* font);
+s32 Font_GetFontLineWidth(struct FontObj* font);
+s32 Font_GetFontAttr(struct FontObj* font);
 
 #ifdef __cplusplus
 }

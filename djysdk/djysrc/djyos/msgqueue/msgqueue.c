@@ -66,19 +66,61 @@
 #include "lock.h"
 #include <djyos.h>
 #include "msgqueue.h"
-static struct Object s_tMsgQ_Node;
+#include "dbug.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_MsgQ(void);
+//    ModuleInstall_MsgQ ( );
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"MsgQueue"     //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100
+//%$#@enum,true,false
+//%$#@string,1,10
+//%$#@select
+//%$#@free
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+
+static struct Object *s_ptMsgQ_Dir;
 static struct MutexLCB s_tMsgQ_Mutex;
 
 //----初始化-------------------------------------------------------------------
 //功能: 初始化消息队列组件，添加消息队列根资源结点，初始化互斥量
 //参数: para，无意义
-//返回: 无意义
+//返回: true = 正确，false = 出错
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_MsgQ (ptu32_t para)
+bool_t ModuleInstall_MsgQ (void)
 {
-    OBJ_AddTree(&s_tMsgQ_Node,sizeof(struct Object),RSC_RSCNODE,"消息队列");
+    s_ptMsgQ_Dir = OBJ_AddChild(OBJ_Root(), NULL, 0, "消息队列目录");
+    if(s_ptMsgQ_Dir)
+        return false;
     Lock_MutexCreate_s(&s_tMsgQ_Mutex,"消息队列");
-    return 0;
+    return true;
 }
 
 //----创建一个消息队列---------------------------------------------------------
@@ -90,78 +132,50 @@ ptu32_t ModuleInstall_MsgQ (ptu32_t para)
 //          件被阻塞时的排队方式。
 //返回: 新创建的消息队列指针，失败则返回NULL.
 //-----------------------------------------------------------------------------
-struct MsgQueue *MsgQ_Create( u32 MaxMsgs,u32  MsgLength,u32 Options)
+struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
 {
     struct MsgQueue *MQ;
+    struct Object *MQ_Obj;
     //分配内存，同时分配消息队列控制块和存储消息的内存。
     MQ = M_Malloc(sizeof(struct MsgQueue)+MsgLength*MaxMsgs,0);
     if(MQ != NULL)
     {
-        OBJ_AddChild(&s_tMsgQ_Node,&MQ->MsgNode,sizeof(struct MsgQueue),
-                                              RSC_MSGQ,"消息队列");
-        if( (Options & CN_MSGQ_TYPE_MASK) == CN_MSGQ_TYPE_PRIO)
+        MQ_Obj = OBJ_AddChild(s_ptMsgQ_Dir, NULL, (ptu32_t)MQ, "消息队列");
+        if(MQ_Obj)
         {
-            Lock_SempCreate_s(&(MQ->MsgSendSemp),MaxMsgs,MaxMsgs,
-                                CN_BLOCK_PRIO,"消息队列");
-            Lock_SempCreate_s(&(MQ->MsgRecvSemp),MaxMsgs,0,
-                                CN_BLOCK_PRIO,"消息队列");
+            MQ->HostObj = MQ_Obj;
+            if( (Options & CN_MSGQ_TYPE_MASK) == CN_MSGQ_TYPE_PRIO)
+            {
+                Lock_SempCreate_s(&(MQ->MsgSendSemp),MaxMsgs,MaxMsgs,
+                                    CN_BLOCK_PRIO,"消息队列");
+                Lock_SempCreate_s(&(MQ->MsgRecvSemp),MaxMsgs,0,
+                                    CN_BLOCK_PRIO,"消息队列");
+            }
+            else
+            {
+                Lock_SempCreate_s(&(MQ->MsgSendSemp),MaxMsgs,MaxMsgs,
+                                    CN_BLOCK_FIFO,"消息队列");
+                Lock_SempCreate_s(&(MQ->MsgRecvSemp),MaxMsgs,0,
+                                    CN_BLOCK_FIFO,"消息队列");
+            }
+            MQ->MsgSize = MsgLength;
+            MQ->MsgUsed = 0;
+            MQ->ReadOffset = 0;
+            MQ->buf = (u8*)(MQ + 1);
         }
         else
         {
-            Lock_SempCreate_s(&(MQ->MsgSendSemp),MaxMsgs,MaxMsgs,
-                                CN_BLOCK_FIFO,"消息队列");
-            Lock_SempCreate_s(&(MQ->MsgRecvSemp),MaxMsgs,0,
-                                CN_BLOCK_FIFO,"消息队列");
+            free(MQ);
+            MQ = NULL;
+            error_printf("msgque","create failed(add to obj).");
         }
-        MQ->MsgSize = MsgLength;
-        MQ->MsgUsed = 0;
-        MQ->ReadOffset = 0;
-        MQ->buf = (u8*)(MQ + 1);
-    }
-    return MQ;
-}
-
-
-//----创建一个消息队列---------------------------------------------------------
-//功能: 创建消息队列，并初始化相关参数。消息队列控制块和保存消息的内存，都由用户
-//      提供并传入指针，消息队列删除后，也由用户负责回收。
-//参数: pMsgQ，用户提供的消息队列控制块指针
-//      MaxMsgs，队列的消息容量。
-//      MsgLength，单条消息最大尺寸。
-//      Options，选项，CN_MSGQ_TYPE_FIFO or CN_MSGQ_TYPE_PRIO，决定接收消息的事
-//          件被阻塞时的排队方式。
-//      buf，保存消息的内存块指针。
-//返回: 新创建的消息队列指针，失败则返回NULL.
-//-----------------------------------------------------------------------------
-struct MsgQueue *MsgQ_Create_s(struct MsgQueue *pMsgQ, u32 MaxMsgs,
-                               u32  MsgLength,u32 Options,void *buf)
-{
-    if((pMsgQ != NULL) && (buf != NULL))
-    {
-        OBJ_AddChild(&s_tMsgQ_Node,&pMsgQ->MsgNode,sizeof(struct MsgQueue),
-                                                 RSC_MSGQ,"消息队列");
-        if( (Options & CN_MSGQ_TYPE_MASK) == CN_MSGQ_TYPE_PRIO)
-        {
-            Lock_SempCreate_s(&(pMsgQ->MsgSendSemp),MaxMsgs,MaxMsgs,
-                                CN_BLOCK_PRIO,"消息队列");
-            Lock_SempCreate_s(&(pMsgQ->MsgRecvSemp),MaxMsgs,0,
-                                CN_BLOCK_PRIO,"消息队列");
-        }
-        else
-        {
-            Lock_SempCreate_s(&(pMsgQ->MsgSendSemp),MaxMsgs,MaxMsgs,
-                                CN_BLOCK_FIFO,"消息队列");
-            Lock_SempCreate_s(&(pMsgQ->MsgRecvSemp),MaxMsgs,0,
-                                CN_BLOCK_FIFO,"消息队列");
-        }
-        pMsgQ->MsgSize = MsgLength;
-        pMsgQ->MsgUsed = 0;
-        pMsgQ->ReadOffset = 0;
-        pMsgQ->buf = buf;
-        return pMsgQ;
     }
     else
-        return NULL;
+    {
+            error_printf("msgque","create failed(no space).");
+    }
+
+    return MQ;
 }
 
 //----删除消息队列-------------------------------------------------------------
@@ -184,7 +198,7 @@ bool_t MsgQ_Delete(struct MsgQueue *pMsgQ)
         }
         else
         {
-            OBJ_Del(&pMsgQ->MsgNode);          //删除信号量结点
+            OBJ_Del(pMsgQ->HostObj);          //删除信号量结点
             Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
             Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
             free(pMsgQ);
@@ -199,29 +213,6 @@ bool_t MsgQ_Delete(struct MsgQueue *pMsgQ)
     return result;
 }
 
-//----删除消息队列-------------------------------------------------------------
-//功能: 功能和MsgQ_Delete函数类似，用于删除由MsgQ_Create_s函数创建的消息队列
-//参数: pMsgQ，被删除的消息队列。
-//返回: true=成功删除，false=失败
-//-----------------------------------------------------------------------------
-bool_t MsgQ_Delete_s(struct MsgQueue *pMsgQ)
-{
-    bool_t result=false;
-    Lock_MutexPend(&s_tMsgQ_Mutex,CN_TIMEOUT_FOREVER);
-    if(pMsgQ != NULL)
-    {
-        if( !(Lock_SempCheckBlock(&(pMsgQ->MsgSendSemp))
-                || Lock_SempCheckBlock(&(pMsgQ->MsgRecvSemp)) ) )
-        {
-            OBJ_Del(&pMsgQ->MsgNode);          //删除信号量结点
-            Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
-            Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
-            result = true;
-        }
-    }
-    Lock_MutexPost(&s_tMsgQ_Mutex);
-    return result;
-}
 
 //----发送消息-----------------------------------------------------------------
 //功能: 发送一条消息到消息队列

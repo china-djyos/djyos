@@ -70,7 +70,7 @@ static bool_t DrawMenuLayerBox_V(struct menu_displaypara*  dispara)
     bool_t result=false;
     u8   num_item=0;
     struct Rectangle temp_rec={0,0,0,0};
-    struct GkWinRsc  *win;
+    struct GkWinObj  *win;
 
     win=dispara->CurWin;
     num_item=CalDisBettween2Menuitem(dispara->FVisualMenuitem, dispara->LVisualMenuitem)+1;
@@ -103,7 +103,7 @@ static bool_t DrawMenuLayerBox_V(struct menu_displaypara*  dispara)
     bool_t result=false;
     u8   num_item=0;
     struct Rectangle temp_rec={0,0,0,0};
-    struct GkWinRsc  *win;
+    struct GkWinObj  *win;
 
     win=dispara->CurWin;
     num_item=CalDisBettween2Menuitem(dispara->FVisualMenuitem, dispara->LVisualMenuitem)+1;
@@ -132,7 +132,7 @@ static bool_t DrawMenuLayerBox_3by3(struct menu_displaypara*  dispara)
  {
        bool_t result=false;
        struct Rectangle temp_rec={0,0,0,0};
-       struct GkWinRsc  *win;
+       struct GkWinObj  *win;
 
       win=dispara->CurWin;
       temp_rec.left=cn_space_margin/4;
@@ -196,7 +196,7 @@ static void  draw_win_text(struct draw_wintext_para *para,const char *text)//È·È
     s32 colortext; //×ÖÌåÑÕÉ«
     s32 colorback;  //±³¾°ÑÕÉ«  int k=0;
     s32  colorsize=32*16;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     u8       *colorbuf;//´æ´¢ÕûÌõ×Ö·û´®µÄÈİÁ¿
     struct GkscParaDrawBitmapRop bitmap_para;
     struct GkscParaDrawBitmapRop mpara;
@@ -559,9 +559,9 @@ struct menu_displaypara *exe_menuitemfunc(struct menu_displaypara *operatingDisp
    struct menu_item  *OperatingMenuitem=NULL;
    struct menu_displaypara  *pMainmenuDispara=NULL;
    struct menu_item  *FirstMenuitem=NULL;//Õû¸ö²Ëµ¥µÄµÚÒ»¸ö²Ëµ¥Ïî£¬ÓÃÓÚ»Ö¸´Ê±ÓÃ
-   struct GkWinRsc  *Appwin=NULL;
+   struct GkWinObj  *Appwin=NULL;
 
-   ptu32_t (*menu_init_function)(struct menu_item *FirstMenuitem, struct GkWinRsc *Appwin);
+   ptu32_t (*menu_init_function)(struct menu_item *FirstMenuitem, struct GkWinObj *Appwin);
 
    if(NULL==operatingDispara)
    {
@@ -623,7 +623,7 @@ void  my_draw_text(struct draw_wintext_para *para,const char *text)//È·ÈÏ
     struct GkscParaDrawBitmapRop bitmap_para;
     s32 len, src_len,size,size_bak;
     u32 wc;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     u8 buf[128],*dbuf;  //¶¨ÒåÒ»¸ö×ã¹»´æ32µãÕóºº×ÖµÄ»º³åÇø£¬Èç¹ûĞèÒªÏÔÊ¾µÄ×Ö·û
                         //³¬¹ı´ËµãÕó£¬¾ÍĞèÒª¶¯Ì¬·ÖÅä
 //ĞŞ¸ÄµÄ²¿·Ö
@@ -925,7 +925,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
     s32 colortext; //×ÖÌåÑÕÉ«
     s32 colorback;  //±³¾°ÑÕÉ«  int k=0;
     s32  colorsize=32*16;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     u8       *colorbuf;//´æ´¢ÕûÌõ×Ö·û´®µÄÈİÁ¿
     struct GkscParaDrawBitmapRop bitmap_para;
     struct GkscParaDrawBitmapRop mpara;
@@ -1043,7 +1043,7 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
 //  s32 colortext; //×ÖÌåÑÕÉ«
 //  s32 colorback;  //±³¾°ÑÕÉ«
 //  s32  colorsize=32*128;
-//    struct FontRsc* cur_font;
+//    struct FontObj* cur_font;
 //    u8       *colorbuf;//´æ´¢ÕûÌõ×Ö·û´®µÄÈİÁ¿
 //    struct GkscParaDrawBitmap bitmap_para;
 //    struct GkscParaDrawBitmap mpara;

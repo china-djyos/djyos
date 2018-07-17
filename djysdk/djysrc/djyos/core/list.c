@@ -64,27 +64,27 @@
 
 void dListInit(list_t *l)
 {
-        l->next = l->prev = l;
+    l->next = l->prev = l;
 }
 
 //在双向循环链表的loc位置后面插入node节点
 void dListInsertAfter(list_t *loc, list_t *node)
 {
-        loc->next->prev = node;
-        node->next = loc->next;
+    loc->next->prev = node;
+    node->next = loc->next;
 
-        loc->next = node;
-        node->prev = loc;
+    loc->next = node;
+    node->prev = loc;
 }
 
 //在双向循环链表的loc位置前面插入node节点
 void dListInsertBefore(list_t *loc, list_t *node)
 {
-        loc->prev->next = node;
-        node->prev = loc->prev;
+    loc->prev->next = node;
+    node->prev = loc->prev;
 
-        loc->prev = node;
-        node->next = loc;
+    loc->prev = node;
+    node->next = loc;
 }
 //取双向循环链表的loc位置前面节点
 list_t *dListGetBefore(list_t *loc)
@@ -100,31 +100,31 @@ list_t *dListGetAfter(list_t *loc)
 //在双向循环链表中移除node节点
 void dListRemove(list_t *node)
 {
-        node->next->prev = node->prev;
-        node->prev->next = node->next;
+    node->next->prev = node->prev;
+    node->prev->next = node->next;
 
-        node->next = node->prev = node;
+    node->next = node->prev = node;
 }
 
 s32 dListIsEmpty(const list_t *l)
 {
-        return l->next == l;
+    return l->next == l;
 }
 
 void sListInit(slist_t *l)
 {
-        l->next = l;
+    l->next = l;
 }
 
 void sListInsertAfter(slist_t *loc, slist_t *node)
 {
-        node->next = loc->next;
+    node->next = loc->next;
 
-        loc->next = node;
+    loc->next = node;
 }
 
 s32 sListIsEmpty(const slist_t *l)
 {
-        return l->next == l;
+    return l->next == l;
 }
 

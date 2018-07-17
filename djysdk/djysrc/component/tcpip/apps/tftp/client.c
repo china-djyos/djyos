@@ -46,9 +46,14 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-#include "tftplib.h"
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include "../../component_config_tcpip.h"
 
-#include "../../tcpipconfig.h"
+#include "tftplib.h"
+#include "dbug.h"
+
 
 static u16  gRemoteServerPort = CN_TFTP_SERVERPORT_DEFAULT;
 
@@ -70,7 +75,7 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
     }
     else
     {
-        printf("%s:unknow mode:%s\n\r",__FUNCTION__,mode);
+        debug_printf("tftp","%s:unknow mode:%s\n\r",__FUNCTION__,mode);
         return result;
     }
 
@@ -86,7 +91,7 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
     }
     else
     {
-        printf("%s:create client err:%s\n\r",__FUNCTION__,TftpErrMsg(errcode));
+        debug_printf("tftp","%s:create client err:%s\n\r",__FUNCTION__,TftpErrMsg(errcode));
     }
 
     return true;
@@ -97,7 +102,7 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
 bool_t TftpClientShell(char *param)
 {
     int argc =3;
-    char *argv[3];
+    const char *argv[3];
 
     string2arg(&argc,argv,param);
     if(argc == 3)
@@ -106,7 +111,7 @@ bool_t TftpClientShell(char *param)
     }
     else
     {
-        printf("%s:para err:argc:%d\n\r",__FUNCTION__,argc);
+        debug_printf("tftp","%s:para err:argc:%d\n\r",__FUNCTION__,argc);
     }
 
     return true;
@@ -129,7 +134,7 @@ struct ShellCmdTab  gServiceTftp[] =
     },
     {
         "tftppath",
-		TftpWorkSpaceShow,
+        TftpWorkSpaceShow,
         "usage:tftppath",
         "usage:tftppath",
     },
@@ -143,7 +148,7 @@ bool_t ServiceTftpInit(ptu32_t para)
 {
     bool_t result;
 
-    TftpSetWorkSpace((char *)pTftpWSDefault);
+    TftpSetWorkSpace((char *)CN_TFTP_PATHDEFAULT);
     result = Sh_InstallCmd(gServiceTftp,gServiceTftpCmdRsc,CN_TFTPDEBUG_NUM);
     result = TftpServerShell(NULL);
 

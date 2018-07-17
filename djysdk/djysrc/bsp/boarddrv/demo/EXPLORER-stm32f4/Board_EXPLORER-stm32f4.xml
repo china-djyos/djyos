@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>EXPLORER-stm32f4</boardName>
+  <cpu>
+    <cpuName>stm32f407zg</cpuName>
+    <mianClk>8</mianClk>
+    <chip>
+      <chipName>at24c02</chipName>
+    </chip>
+    <memory>
+      <type>RAM</type>
+      <startAddr>0x68000000</startAddr>
+      <size>0x100000</size>
+    </memory>
+    <peripheral>cpu_peri_emflash</peripheral>
+    <peripheral>cpu_peri_eth</peripheral>
+    <peripheral>cpu_peri_gpio</peripheral>
+    <peripheral>cpu_peri_iic</peripheral>
+    <peripheral>cpu_peri_lowpwer</peripheral>
+    <peripheral>cpu_peri_rtc</peripheral>
+    <peripheral>cpu_peri_sdio</peripheral>
+    <peripheral>cpu_peri_spi</peripheral>
+    <peripheral>cpu_peri_timer</peripheral>
+    <peripheral>cpu_peri_uart</peripheral>
+    <peripheral>cpu_peri_usb</peripheral>
+  </cpu>
+</board>

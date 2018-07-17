@@ -61,13 +61,14 @@
 //------------------------------------------------------
 #ifndef __GK_WIN_H__
 #define __GK_WIN_H__
-#include "errno.h"
-#include "ring.h"
+#include <errno.h>
+#include <ring.h>
+#include "gk_syscall.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct DisplayRsc;
+struct DisplayObj;
 
 //用户调用消息队列参数配置
 #define CN_USERCALL_MSGQ_SIZE   16  //用户调用消息队列容纳的最大消息数量
@@ -76,34 +77,34 @@ struct DisplayRsc;
 struct GkChunnel       //用户程序(通常是gui windows) 和 gui kernel的通信管道
 {
     struct RingBuf ring_syscall;         //gui 系统调用环形缓冲区
-    u8 *syscall_buf;                        //为系统调用环形缓冲区分配内存
+//  u8 *syscall_buf;                        //为系统调用环形缓冲区分配内存
 
     struct MutexLCB *syscall_mutex;      //互斥量,用于防止并发写
-    struct SemaphoreLCB *syscall_semp;   //信号量，写时如果缓冲区满则等候。
+//  struct SemaphoreLCB *syscall_semp;   //信号量，写时如果缓冲区满则等候。
 
     struct SemaphoreLCB *usercall_semp;  //信号量，写时如果缓冲区满则等候。
     struct MsgQueue *usercall_msgq;      //usercall消息队列
 
 };
 
-struct GkWinRsc *__GK_GetZsectionStart(struct GkWinRsc *gkwin);
-struct GkWinRsc *__GK_GetZsectionEnd(struct GkWinRsc *gkwin);
-struct GkWinRsc *__GK_CreateDesktop(struct GkscParaCreateDesktop *para);
-struct GkWinRsc *__GK_CreateWin(struct GkscParaCreateGkwin *para);
+struct GkWinObj *__GK_GetZsectionStart(struct GkWinObj *gkwin);
+struct GkWinObj *__GK_GetZsectionEnd(struct GkWinObj *gkwin);
+struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para);
+struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para);
 void __GK_AdoptWin(struct GkscParaAdoptWin *para);
 void __GK_MoveWin(struct GkscParaMoveWin *para);
-void __GK_SetBound(struct GkWinRsc *gkwin);
+void __GK_SetBound(struct GkWinObj *gkwin);
 void __GK_SetBoundMode(struct GkscParaSetBoundMode *para);
 void __GK_SetPrio(struct GkscParaSetPrio *para);
 bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para);
 void __GK_SetVisible(struct GkscParaSetVisible *para);
 bool_t __GK_SetHyalineColor(struct GkscParaSetHyalineColor *para);
-void __GK_SetDirectScreen(struct GkWinRsc *gkwin);
-void __GK_SetUnDirectScreen(struct GkWinRsc *gkwin);
-void __GK_DestroyWinChild(struct GkWinRsc *gkwin);
-void __GK_DestroyWin(struct GkWinRsc *gkwin);
+void __GK_SetDirectScreen(struct GkWinObj *gkwin);
+void __GK_SetUnDirectScreen(struct GkWinObj *gkwin);
+void __GK_DestroyWinChild(struct GkWinObj *gkwin);
+void __GK_DestroyWin(struct GkWinObj *gkwin);
 bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para);
-void __GK_OutputRedraw(struct DisplayRsc *display);
+void __GK_OutputRedraw(struct DisplayObj *display);
 u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                                                 void *param2,u16 size2);
 bool_t  __GK_PostUsercall(u16 usercall_id,void *pdata,u16 size);

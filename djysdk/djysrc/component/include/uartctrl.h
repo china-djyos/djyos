@@ -55,12 +55,14 @@
 //-----------------------------------------------------------------------------
 #ifndef __UARTCTRL_H__
 #define __UARTCTRL_H__
-#include "driver.h"
-#include "ring.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <device.h>
+#include <ring.h>
+
 // 串口波特率定义
 enum tagUartBaud
 {
@@ -123,36 +125,31 @@ struct COMParam
 #define CN_UART_HARD_COMM_ERR    (1<<18) //串口硬件通信错误
 
 //串口工作模式定义：
-#define CN_UART_POLL            0    //轮询式工作，无论硬件是按照232还是485
-                                     //连接，实际工作在一问一答的半双工状态
-#define CN_UART_GENERAL         1    //通用工作模式，能适应各种情况。
+#define CN_UART_GENERAL         0       //通用工作模式，能适应各种情况。
+#define CN_UART_POLL            1       //轮询式工作，无论硬件是按照232还是485
+                                        //连接，实际工作在一问一答的半双工状态
 
 //串口设备控制命令常数，用于uart_ctrl函数。
-#define CN_UART_START                 (CN_DRV_CTRL_USER+0 )  //启动串口
-#define CN_UART_STOP                  (CN_DRV_CTRL_USER+1 )  //停止串口
-#define CN_UART_SET_BAUD              (CN_DRV_CTRL_USER+2 )  //设置uartBaud.
-#define CN_UART_COM_SET               (CN_DRV_CTRL_USER+3 )  //设置串口参数
-#define CN_UART_HALF_DUPLEX_SEND      (CN_DRV_CTRL_USER+4 )  //发送数据
-#define CN_UART_HALF_DUPLEX_RECV      (CN_DRV_CTRL_USER+5 )  //接收数据
-//#define CN_UART_SETTO_HALF_DUPLEX     (CN_DRV_CTRL_USER+6 )  //设置为全双工方式
-//#define CN_UART_SETTO_ALL_DUPLEX      (CN_DRV_CTRL_USER+7 )  //设置为全双工方式
-#define CN_UART_COMPLETED_SEND        (CN_DRV_CTRL_USER+8 )  //完成发送工作
-#define CN_UART_RX_PAUSE              (CN_DRV_CTRL_USER+9 )  //暂停接收数据到缓冲区
-#define CN_UART_RX_RESUME             (CN_DRV_CTRL_USER+10)  //重新开始接收数据到缓冲区
-#define CN_UART_RX_OVERTIME           (CN_DRV_CTRL_USER+11)  //设置接收超时时间，毫秒数
-//#define CN_UART_RECV_SOFT_LEVEL       (CN_DRV_CTRL_USER+12)  //设置接收软件缓冲区触发水平
-#define CN_UART_SEND_SOFT_LEVEL       (CN_DRV_CTRL_USER+13)  //设置接收软件缓冲区触发水平
-#define CN_UART_RECV_HARD_LEVEL       (CN_DRV_CTRL_USER+14)  //设置接收fifo触发水平
-#define CN_UART_SEND_HARD_LEVEL       (CN_DRV_CTRL_USER+15)  //设置发送fifo触发水平
-#define CN_UART_RECV_ERROR_EVTT       (CN_DRV_CTRL_USER+16)  //设置错误弹出事件类型
-#define CN_UART_EN_RTS                (CN_DRV_CTRL_USER+17)  //使能rts流控
-#define CN_UART_DIS_RTS               (CN_DRV_CTRL_USER+18)  //禁止rts流控
-#define CN_UART_EN_CTS                (CN_DRV_CTRL_USER+19)  //使能cts流控
-#define CN_UART_DIS_CTS               (CN_DRV_CTRL_USER+20)  //禁止cts流控
-#define CN_UART_DMA_USED              (CN_DRV_CTRL_USER+21)  //使用dma传输
-#define CN_UART_DMA_UNUSED            (CN_DRV_CTRL_USER+22)  //禁止dma传输
-#define CN_UART_SEND_BUF              (CN_DRV_CTRL_USER+23)  //POLL模式下发送数据
-#define CN_UART_RECV_BUF              (CN_DRV_CTRL_USER+24)  //POLL模式下接收数据
+#define CN_UART_SET_BAUD              (CN_DEV_CTRL_USER+0 )  //设置uartBaud.
+#define CN_UART_COM_SET               (CN_DEV_CTRL_USER+1 )  //设置串口参数
+#define CN_UART_HALF_DUPLEX_SEND      (CN_DEV_CTRL_USER+2 )  //发送数据
+#define CN_UART_HALF_DUPLEX_RECV      (CN_DEV_CTRL_USER+3 )  //接收数据
+#define CN_UART_COMPLETED_SEND        (CN_DEV_CTRL_USER+4 )  //完成发送工作
+#define CN_UART_RX_PAUSE              (CN_DEV_CTRL_USER+5 )  //暂停接收数据到缓冲区
+#define CN_UART_RX_RESUME             (CN_DEV_CTRL_USER+6 )  //重新开始接收数据到缓冲区
+#define CN_UART_RX_OVERTIME           (CN_DEV_CTRL_USER+7 )  //设置接收超时时间，毫秒数
+#define CN_UART_SEND_SOFT_LEVEL       (CN_DEV_CTRL_USER+8 )  //设置接收软件缓冲区触发水平
+#define CN_UART_RECV_HARD_LEVEL       (CN_DEV_CTRL_USER+9 )  //设置接收fifo触发水平
+#define CN_UART_SEND_HARD_LEVEL       (CN_DEV_CTRL_USER+10)  //设置发送fifo触发水平
+#define CN_UART_RECV_ERROR_EVTT       (CN_DEV_CTRL_USER+11)  //设置错误弹出事件类型
+#define CN_UART_EN_RTS                (CN_DEV_CTRL_USER+12)  //使能rts流控
+#define CN_UART_DIS_RTS               (CN_DEV_CTRL_USER+13)  //禁止rts流控
+#define CN_UART_EN_CTS                (CN_DEV_CTRL_USER+14)  //使能cts流控
+#define CN_UART_DIS_CTS               (CN_DEV_CTRL_USER+15)  //禁止cts流控
+#define CN_UART_DMA_USED              (CN_DEV_CTRL_USER+16)  //使用dma传输
+#define CN_UART_DMA_UNUSED            (CN_DEV_CTRL_USER+17)  //禁止dma传输
+#define CN_UART_SEND_BUF              (CN_DEV_CTRL_USER+18)  //不经缓冲区直接发送
+#define CN_UART_RECV_BUF              (CN_DEV_CTRL_USER+19)  //不经缓冲区直接接收
 
 #ifdef __cplusplus
 }

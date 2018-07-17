@@ -46,18 +46,18 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
-
+#include "dbug.h"
 #include <os.h>
 
 #define CN_CPUMSG_MAGIC     0X1234
 #define CN_CPUMSG_ITEMNUM   16
 typedef struct
 {
-	const char     *msgname;
-	const u8       *msg;
-	u8              msglen;
-	u8              msgtype;
-	u16             magic;
+    const char     *msgname;
+    const u8       *msg;
+    u8              msglen;
+    u8              msgtype;
+    u16             magic;
 }tagCpuMsg;
 static tagCpuMsg gCpuMsgItem[CN_CPUMSG_ITEMNUM] DATA_BEFOREPRELOAD; //需要链接到逻辑很靠前的位置
 
@@ -72,23 +72,23 @@ static tagCpuMsg gCpuMsgItem[CN_CPUMSG_ITEMNUM] DATA_BEFOREPRELOAD; //需要链接到
 //---------------------------------------------------------------------------
 CODE_BEFOREPRELOAD bool_t LogCpuMsg(const char *msgname, const void *msg,u8 msglen, enCpuMsgType type)
 {
-	u8 i =0;
-	bool_t ret = false;
-	for(i =0;i<CN_CPUMSG_ITEMNUM;i++)
-	{
-		if(gCpuMsgItem[i].magic != CN_CPUMSG_MAGIC)
-		{
-			//no same item,so create one
-			gCpuMsgItem[i].msgname = msgname;
-			gCpuMsgItem[i].msg = msg;
-			gCpuMsgItem[i].msglen = msglen;
-			gCpuMsgItem[i].msgtype = type;
-			gCpuMsgItem[i].magic = CN_CPUMSG_MAGIC;
-			ret = true;
-			break;
-		}
-	}
-	return ret;
+    u8 i =0;
+    bool_t ret = false;
+    for(i =0;i<CN_CPUMSG_ITEMNUM;i++)
+    {
+        if(gCpuMsgItem[i].magic != CN_CPUMSG_MAGIC)
+        {
+            //no same item,so create one
+            gCpuMsgItem[i].msgname = msgname;
+            gCpuMsgItem[i].msg = msg;
+            gCpuMsgItem[i].msglen = msglen;
+            gCpuMsgItem[i].msgtype = type;
+            gCpuMsgItem[i].magic = CN_CPUMSG_MAGIC;
+            ret = true;
+            break;
+        }
+    }
+    return ret;
 }
 //----展示注册的CPU 信息------------------------------------------------------------
 //功能：执行该函数将展示注册的CPU硬件信息
@@ -97,84 +97,84 @@ CODE_BEFOREPRELOAD bool_t LogCpuMsg(const char *msgname, const void *msg,u8 msgl
 //------------------------------------------------------------------------------
 bool_t ShowCpuInfo(char *param)
 {
-	u8 i =0;
-	u8 num = 0;
-	tagCpuMsg *item;
-	u32  value;
-	u8   v8;
-	float point;
-	printf("CPUINFO:\n\r");
-	for(i =0;i<CN_CPUMSG_ITEMNUM;i++)
-	{
-		item = &gCpuMsgItem[i];
-		if(item->magic == CN_CPUMSG_MAGIC)
-		{
-			switch (item->msgtype)
-			{
-				case EN_CPU_MSGTYPE_SIZE:
-					value = 0;
-					memcpy(&value,item->msg,item->msglen);
-					if(value > 1024*1024)//MB
-					{
-						point = ((float)value)/(1024*1024);
-						printf("%-12s:%f MB \n\r",item->msgname,point);
-					}
-					else if(value > 1024)//KB
-					{
-						point = ((float)value)/(1024);
-						printf("%-12s:%f KB \n\r",item->msgname,point);
-					}
-					else
-					{
-						printf("%-12s:%d BYTES \n\r",item->msgname,value);
-					}
-					break;
-				case EN_CPU_MSGTYPE_FREQUENCY:
-					value = 0;
-					memcpy(&value,item->msg,item->msglen);
+    u8 i =0;
+    u8 num = 0;
+    tagCpuMsg *item;
+    u32  value;
+    u8   v8;
+    float point;
+    debug_printf("CPUINFO","\n\r");
+    for(i =0;i<CN_CPUMSG_ITEMNUM;i++)
+    {
+        item = &gCpuMsgItem[i];
+        if(item->magic == CN_CPUMSG_MAGIC)
+        {
+            switch (item->msgtype)
+            {
+            case EN_CPU_MSGTYPE_SIZE:
+                value = 0;
+                memcpy(&value,item->msg,item->msglen);
+                if(value > 1024*1024)//MB
+                {
+                    point = ((float)value)/(1024*1024);
+                    debug_printf("CPUINFO","%-12s:%f MB \n\r",item->msgname,point);
+                }
+                else if(value > 1024)//KB
+                {
+                    point = ((float)value)/(1024);
+                    debug_printf("CPUINFO","%-12s:%f KB \n\r",item->msgname,point);
+                }
+                else
+                {
+                    debug_printf("CPUINFO","%-12s:%d BYTES \n\r",item->msgname,value);
+                }
+                break;
+            case EN_CPU_MSGTYPE_FREQUENCY:
+                value = 0;
+                memcpy(&value,item->msg,item->msglen);
 
-					if(value > 1000*1000)//MHZ
-					{
-						point = ((float)value)/(1000*1000);
-						printf("%-12s:%f MHZ \n\r",item->msgname,point);
-					}
-					else if(value > 1024)//KHZ
-					{
-						point = ((float)value)/(1000);
-						printf("%-12s:%f KHZ \n\r",item->msgname,point);
-					}
-					else
-					{
-						printf("%-12s:%d HZ\n\r",item->msgname,value);
-					}
-					break;
-				case EN_CPU_MSGTYPE_STRING:
-					printf("%-12s:%s\n\r",item->msgname,item->msg);
-					break;
-				case EN_CPU_MSGTYPE_MULTIBYTES:
-					printf("%-12s:",item->msgname);
-					for(value = 0;value < item->msglen;value++)
-					{
-						v8 = *((u8 *)item->msg+value);
-						printf("%02x ",v8);
-					}
-					printf("\n\r");
-					break;
-				default:
-					break;
-			}
-			num++;
-		}
-	}
-	if(num ==0)
-	{
-		printf("CPUINFO:NO MESSAGE REGISTERED YET\n\r");
-	}
-	else
-	{
-		printf("CPUINFO:%d MESSAGES REGISTERED\n\r",num);
-	}
-	return true;
+                if(value > 1000*1000)//MHZ
+                {
+                            point = ((float)value)/(1000*1000);
+                            debug_printf("CPUINFO","%-12s:%f MHZ \n\r",item->msgname,point);
+                }
+                else if(value > 1024)//KHZ
+                {
+                    point = ((float)value)/(1000);
+                    debug_printf("CPUINFO","%-12s:%f KHZ \n\r",item->msgname,point);
+                }
+                else
+                {
+                    debug_printf("CPUINFO","%-12s:%d HZ\n\r",item->msgname,value);
+                }
+                break;
+            case EN_CPU_MSGTYPE_STRING:
+                debug_printf("CPUINFO","%-12s:%s\n\r",item->msgname,item->msg);
+                break;
+            case EN_CPU_MSGTYPE_MULTIBYTES:
+                debug_printf("CPUINFO","%-12s:",item->msgname);
+                for(value = 0;value < item->msglen;value++)
+                {
+                    v8 = *((u8 *)item->msg+value);
+                    debug_printf("CPUINFO","%02x ",v8);
+                }
+                printf("\n\r");
+                break;
+            default:
+                break;
+            }
+            num++;
+        }
+    }
+    if(num ==0)
+    {
+        debug_printf("CPUINFO","NO MESSAGE REGISTERED YET\n\r");
+    }
+    else
+        {
+        debug_printf("CPUINFO","%d MESSAGES REGISTERED\n\r",num);
+        }
+    return true;
 }
 
 //----获取注册的CPU 信息------------------------------------------------------------
@@ -184,29 +184,29 @@ bool_t ShowCpuInfo(char *param)
 //------------------------------------------------------------------------------
 s32  GetCpuInfo(const char *name,void *buf, u8 len)
 {
-	u8 i =0;
-	s32 ret = -1;
-	tagCpuMsg *item;
-	for(i =0;i<CN_CPUMSG_ITEMNUM;i++)
-	{
-		item = &gCpuMsgItem[i];
-		if((item->magic == CN_CPUMSG_MAGIC)&&(0 == strcmp(item->msgname,name)))
-		{
-			//hit it
-			if(len < item->msglen)
-			{
-				memcpy(buf,item->msg,len);
-				ret = 0;
-			}
-			else
-			{
-				memcpy(buf,item->msg,item->msglen);
-				ret = item->msglen;
-			}
-			break;
-		}
-	}
-	return ret;
+    u8 i =0;
+    s32 ret = -1;
+    tagCpuMsg *item;
+    for(i =0;i<CN_CPUMSG_ITEMNUM;i++)
+    {
+        item = &gCpuMsgItem[i];
+        if((item->magic == CN_CPUMSG_MAGIC)&&(0 == strcmp(item->msgname,name)))
+        {
+            //hit it
+            if(len < item->msglen)
+            {
+                memcpy(buf,item->msg,len);
+                ret = 0;
+            }
+                else
+                {
+                    memcpy(buf,item->msg,item->msglen);
+                    ret = item->msglen;
+                }
+            break;
+        }
+    }
+    return ret;
 }
 
 

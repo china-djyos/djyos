@@ -57,165 +57,159 @@
 // 程序修改记录(最新的放在最前面):
 // <版本号> <修改日期>, <修改人员>: <修改功能概述>
 // =============================================================================
-#include <sys/socket.h>
 
-#include "../../tcpipconfig.h"
+#include <device.h>
+#include <ring.h>
+#include <sys/socket.h>
+#include "dbug.h"
+
+#include "../../component_config_tcpip.h"
+
 
 //该版本为单任务版本
 #define CN_TELNET_SERVERPORT  23
 //which send a char string to the client,which specified by the setclientfocus
-#include <driver.h>
 #define CN_TELNET_DEVNAME  "telnet"
 #define CN_TELNET_PATH     "/dev/telnet"
-
-//为多客户端并发做的准备
-#define CN_TELNET_CLIENT_MAX   2
-#define CN_TELNET_USER_LEN     8
-typedef struct __TelnetClient
+//here we will create a virtual device as the terminal for the shell,the shell could
+//read or write the terminal
+#define CN_DEV_BUFLEN  64  //maybe enough for the client input
+typedef struct
 {
-	int   sock;
-	char  user[CN_TELNET_USER_LEN];
-	char  passwd[CN_TELNET_USER_LEN];
-}tagTelnetClient;
-static tagTelnetClient *pTelnetClientQ;
-struct  MutexLCB  *pTelnetClientSync = NULL;
+    struct RingBuf       *ring;
+    semp_t                rcvsync;     //the read task will pend here
+    int                   clientfd;    //which connect to the server
+    void                 *obj;         //which will be created by open
+}tagDevTelnetd;
+static tagDevTelnetd gDevTelnetd;
 
-//install the device as an stdout device
-static u32 __telnetWrite(ptu32_t tag,u8 *buf, u32 len,u32 offset, bool_t block,u32 timeout)
+//do the open
+static s32 __open(void *obj, u32 dwMode, u32 timeout)
 {
-    tagTelnetClient *client;
-    if(Lock_MutexPend(pTelnetClientSync,CN_TIMEOUT_FOREVER))
+    s32 ret =-1;
+    if(NULL == gDevTelnetd.obj)
     {
-        client = pTelnetClientQ;
-        if(NULL != client)
-        {
-            sendexact(client->sock,buf,len);
-        }
-        Lock_MutexPost(pTelnetClientSync);
+        gDevTelnetd.obj = obj;
+        ret = 0;
+    }
+    return ret;
+}
+static s32 __close(void *obj)
+{
+    s32 ret =-1;
+    if(NULL == gDevTelnetd.obj)
+    {
+        gDevTelnetd.obj = NULL;
+        ret = 0;
+    }
+    return ret;
+}
+//install the device as an io device
+static u32 __write(void *obj,u8 *buf, u32 len,u32 offset, bool_t block,u32 timeout)
+{
+    if(gDevTelnetd.clientfd >0)
+    {
+        sendexact(gDevTelnetd.clientfd,buf,len);
     }
     return len;
 }
-
-static u32 __telnetRead(ptu32_t tag,u8 *buf,u32 len,u32 offset,u32 timeout)
+static u32 __read(void *obj,u8 *buf,u32 len,u32 offset,u32 timeout)
 {
-    return 0;
+	u32 ret =0;
+	if(semp_pendtimeout(gDevTelnetd.rcvsync,timeout))
+	{
+		ret = Ring_Read(gDevTelnetd.ring,buf,len);
+		if(Ring_Check(gDevTelnetd.ring)) //still some data in the ring
+		{
+            semp_post(gDevTelnetd.rcvsync);
+            fcntl(ofno(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+		}
+		else
+		{
+            fcntl(ofno(gDevTelnetd.obj),F_CLREVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+		}
+	}
+    return ret;
 }
 
+#define CN_CLIENT_WELCOM   "Welcome TELNET FOR DJYOS\n\rENTER QUIT TO EXIT\n\r"
 
-
+#pragma pack(1)
 typedef struct
 {
-	FILE *stdinbak;
-	FILE *stderrbak;
-	FILE *stdoutbak;
-	FILE *intelnet;
-	FILE *outtelnet;
-	FILE *errtelnet;
-}tagTelnetStdio;
-static tagTelnetStdio gTelnetStdio;
+    u8 iac;
+    u8 code;
+    u8 opt;
+}tagNvtCmd;
+#pragma pack()
 
-static void __changeio2telnet(void)
-{
-	if(NULL != gTelnetStdio.intelnet)
-	{
-		stdin = gTelnetStdio.intelnet;
-	}
-	if(NULL != gTelnetStdio.outtelnet)
-	{
-		stdout = gTelnetStdio.outtelnet;
-	}
-	if(NULL != gTelnetStdio.errtelnet)
-	{
-		stderr = gTelnetStdio.errtelnet;
-	}
-}
-static void __changetelnet2io(void)
-{
-	if(NULL != gTelnetStdio.stdinbak)
-	{
-		stdin = gTelnetStdio.stdinbak;
-	}
-	if(NULL != gTelnetStdio.stdoutbak)
-	{
-		stdout = gTelnetStdio.stdoutbak;
-	}
-	if(NULL != gTelnetStdio.stderrbak)
-	{
-		stderr = gTelnetStdio.stderrbak;
-	}
-}
+#define CN_NVT_IAC   0XFF
+#define CN_NVT_DONT  0XFE
+#define CN_NVT_DO    0XFD
+#define CN_NVT_WONT  0XFC
+#define CN_NVT_WILL  0XFB
 
-#define CN_CLIENT_PREFIX   "DJYOS@:"
-#define CN_CLIENT_WELCOM   "Welcome TELNET FOR DJYOS\n\rENTER QUIT TO EXIT\n\r"
-#define CN_CLIENT_BUFLEN   64
-extern bool_t Sh_ExecCommand(char *buf);
+#define CN_NVT_OPT_ECHO    1
+#define CN_NVT_OPT_SGA     3   //suppress go ahead
+#define CN_NVT_OPT_STATUS  5
 
-void __telnetclientengine(tagTelnetClient  *client)
+
+static void __telnetclientengine(int sock)
 {
-    int sock;
-    int chars;  //how many chars in the buf
     char ch;
-    int  rcvlen;
-    u8   buf[CN_CLIENT_BUFLEN];
-    sock = client->sock;
-    sendexact(sock,CN_CLIENT_WELCOM,strlen(CN_CLIENT_WELCOM));
-    sendexact(sock,CN_CLIENT_PREFIX,strlen(CN_CLIENT_PREFIX));
-    chars = 0;
-    //切换IO口为telnet模式
-    __changeio2telnet();
-    while(1)
+    int  len;
+    u8  optbuf[15];
+    tagNvtCmd *opt;
+    //first we should send the nvt info to the client,tell them not do the echo
+    len = 0;
+    opt = (tagNvtCmd*)optbuf;
+    //will echo.
+    opt->iac = CN_NVT_IAC;
+    opt->code = CN_NVT_WILL;
+    opt->opt = CN_NVT_OPT_ECHO;
+    opt++;
+    len += sizeof(tagNvtCmd);
+
+    //dont echo
+    opt->iac = CN_NVT_IAC;
+    opt->code = CN_NVT_DONT;
+    opt->opt = CN_NVT_OPT_ECHO;
+    opt++;
+    len += sizeof(tagNvtCmd);
+    sendexact(sock,optbuf,len);
+    //rcv the code
+    do
     {
-        rcvlen = recv(sock,&ch,sizeof(ch),0);
-        if(rcvlen == sizeof(ch))
+        if(recvexact(sock,optbuf,sizeof(tagNvtCmd)))
         {
-            //now check each char to do something
-            if (ch == '\n') //换行符标识结束
+            opt = (tagNvtCmd*)optbuf;
+            if(opt->code != CN_NVT_IAC)
             {
-                buf[chars] = '\0';
-                if(chars > 0)
-                {
-                    if(0 == strcmp((const char *)buf,"quit"))
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        //exe the command
-                        Sh_ExecCommand((char *)buf);
-                    }
-                }
-                //输出标志符并复位buffer
-                sendexact(sock,CN_CLIENT_PREFIX,strlen(CN_CLIENT_PREFIX));
-                chars =0;
-            }
-            else if(ch == '\r')
-            {
-            	//忽略回车符号
-            }
-            else  //put the char in the buffer or move from the buf
-            {
-                if (ch == 8)    // Backspace
-                {
-                    if(chars > 0)
-                    {
-                        chars --;
-                    }
-                }
-                else
-                {
-                    if(chars < CN_CLIENT_BUFLEN-1) //the last one will be '\0'
-                    {
-                        buf[chars] = ch;
-                        chars++;
-                    }
-                    else
-                    {
-                        //exceed the buffer part ,will be ignored
-                    }
-                }
+                break;
             }
         }
-        else if(rcvlen == 0)
+        else
+        {
+            break;
+        }
+    }while(1);
+
+	Ring_Write(gDevTelnetd.ring,(u8 *)opt,sizeof(tagNvtCmd));
+	semp_post(gDevTelnetd.rcvsync);
+    fcntl(ofno(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+    //OK,now send info here
+    sendexact(sock,(u8 *)CN_CLIENT_WELCOM,strlen(CN_CLIENT_WELCOM));
+    gDevTelnetd.clientfd = sock;
+    while(1)
+    {
+        len = recv(sock,&ch,sizeof(ch),0);
+        if(len == sizeof(ch))
+        {
+        	Ring_Write(gDevTelnetd.ring,(u8 *)&ch,1);
+        	semp_post(gDevTelnetd.rcvsync);
+            fcntl(ofno(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+        }
+        else if(len == 0)
         {
             break;//bye bye
         }
@@ -224,9 +218,7 @@ void __telnetclientengine(tagTelnetClient  *client)
             //do nothing ,no data yet
         }
     }
-
-    //从telnet中恢复以前的IO
-    __changetelnet2io();
+    gDevTelnetd.clientfd = -1;
     return ;
 }
 // =============================================================================
@@ -242,25 +234,16 @@ static ptu32_t __telnetdmain(void)
     int sockserver = -1;
     int sockclient = -1;
     int sockopt = 1;
-    tagTelnetClient  *client;
 
-    //备份以前的IO
-    gTelnetStdio.stderrbak = stderr;
-    gTelnetStdio.stdinbak = stdin;
-    gTelnetStdio.stdoutbak = stdout;
-    //安装我们自己的 设备
-    if(NULL ==Driver_DeviceCreate(NULL,CN_TELNET_DEVNAME,NULL,NULL,__telnetWrite,__telnetRead,NULL,NULL,0))
+    //安装我们自己的 设备, TODO,这套接口作的有问题
+    if(-1==dev_add(NULL, CN_TELNET_DEVNAME,__open,__close,__write,__read,NULL,0))
     {
-    	printf("create dev:%s failed\n\r",CN_TELNET_DEVNAME);
+    	printf("\r\n: info : net    : create dev %s failed.",CN_TELNET_DEVNAME);
         return 0;
     }
-    //打开自己的设备
-    gTelnetStdio.outtelnet = fopen(CN_TELNET_PATH,"a");
-    if (gTelnetStdio.outtelnet == NULL)
-    {
-    	printf("open telnet:%s failed\n\r",CN_TELNET_PATH);
-        return 0;
-    }
+
+    add2listenset(CN_TELNET_PATH,true);//添加到设备输出
+
     sockserver = socket(AF_INET, SOCK_STREAM, 0);
     sa_server.sin_family = AF_INET;
     sa_server.sin_port = htons(CN_TELNET_SERVERPORT);
@@ -272,7 +255,7 @@ static ptu32_t __telnetdmain(void)
         return 0;
     }
 
-    if (listen(sockserver, CN_TELNET_CLIENT_MAX) != 0)
+    if (listen(sockserver, 1) != 0)
     {
         closesocket(sockserver);
         return 0;
@@ -280,85 +263,68 @@ static ptu32_t __telnetdmain(void)
     //here we accept all the client
     while(1)
     {
+ACCEPT_AGAIN:
         sockclient = accept(sockserver, NULL, 0);
 
         if(sockclient < 0)
         {
-            goto ACCEPT_ERR;
+            debug_printf("telnet","%s:accept err\n\r",__FUNCTION__);
+            goto ACCEPT_AGAIN;
         }
         sockopt= 1;
         if(0 != setsockopt(sockclient,IPPROTO_TCP,TCP_NODELAY,&sockopt,sizeof(sockopt)))
         {
-        	goto   KEEPALIVE_ERR;
+            debug_printf("telnet","%s:set nodelay err\n\r",__FUNCTION__);
+            closesocket(sockclient);
+            goto   ACCEPT_AGAIN;
         }
         sockopt =1;
         if(0 != setsockopt(sockclient,SOL_SOCKET,SO_KEEPALIVE,&sockopt,sizeof(sockopt)))
         {
-        	goto   KEEPALIVE_ERR;
+            debug_printf("telnet","%s:set keepalive err\n\r",__FUNCTION__);
+            closesocket(sockclient);
+            goto   ACCEPT_AGAIN;
         }
-        client = (tagTelnetClient *)malloc(sizeof(tagTelnetClient));
-        if(NULL == client)
-        {
-            goto CLIENT_MEM;
-        }
-        memset((void *)client,0,sizeof(tagTelnetClient));
-        client->sock = sockclient;
-        pTelnetClientQ = client;
-        __telnetclientengine(client);
-        pTelnetClientQ = NULL;
+        __telnetclientengine(sockclient);
         closesocket(sockclient);
-        free(client);
-        goto ACCEPT_AGAIN;
-CLIENT_MEM:
-        printf("%s:client memory malloc failed\n\r",__FUNCTION__);
-KEEPALIVE_ERR:
-        closesocket(sockclient);
-ACCEPT_ERR:
-        printf("%s:accept err\n\r",__FUNCTION__);
-ACCEPT_AGAIN:
-        printf("%s:accept complete\n\r",__FUNCTION__);
     }
     //anyway, could never reach here
     closesocket(sockserver);
     return 0;//never reach here
 }
 //THIS IS TELNET SERVER MODULE FUNCTION
-bool_t ServiceTelnetInit(ptu32_t para)
+bool_t ServiceInit_Telnetd(void)
 {
-    bool_t result;
-    u16    evttID;
-    u16    eventID;
-
-    result = false;
-    pTelnetClientSync = Lock_MutexCreate(NULL);
-    if(NULL == pTelnetClientSync)
+    bool_t ret = false;
+    memset(&gDevTelnetd,0,sizeof(gDevTelnetd));
+    gDevTelnetd.clientfd = -1;
+    gDevTelnetd.ring = Ring_Create(CN_DEV_BUFLEN);
+    if(NULL == gDevTelnetd.ring)
     {
-    	printf("%s:mutex create err\n\r",__FUNCTION__);
-        goto EXIT_MUTEX;
+        debug_printf("telnet","TELNETD RING CREATE FAILED\n\r");
+        goto EXIT_RING;
     }
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, gTelnetAcceptPrior, 0, 1,
-            __telnetdmain,NULL, gTelnetAcceptStack, "TELNETD");
-    if(evttID == CN_EVTT_ID_INVALID)
+    gDevTelnetd.rcvsync = semp_init(1,0,NULL);
+    if(NULL == gDevTelnetd.rcvsync)
     {
-    	printf("%s:evtt create err\n\r",__FUNCTION__);
-    	goto EXIT_EVTT;
+        debug_printf("telnet","TELNETD RING CREATE FAILED\n\r");
+        goto EXIT_SEMP;
     }
-    eventID = Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
-    if(eventID == CN_EVENT_ID_INVALID)
-    {
-    	printf("%s:event create err\n\r",__FUNCTION__);
-    	goto EXIT_EVENT;
+    ret = taskcreate("telnet",0x800,CN_PRIO_RRS,__telnetdmain,NULL);
+    if (ret == false) {
+        debug_printf("telnet","TFTPD:TASK CREATE ERR\n\r");
+        goto EXIT_TASK;
     }
-    return true;
 
+    return ret;
 
-EXIT_EVENT:
-	Djy_EvttUnregist(evttID);
-EXIT_EVTT:
-	Lock_MutexDelete(pTelnetClientSync);
-	pTelnetClientSync = NULL;
-EXIT_MUTEX:
-    return false;
+EXIT_TASK:
+    semp_del(gDevTelnetd.rcvsync);
+EXIT_SEMP:
+    Ring_Destroy(gDevTelnetd.ring);
+    gDevTelnetd.ring = NULL;
+EXIT_RING:
+    return ret;
 }
 
 

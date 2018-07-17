@@ -66,17 +66,15 @@
 #include "djyos.h"
 #include "shell.h"
 #include "exp.h"
-#include "core_config.h"
+#include "dbug.h"
+#include "component_config_core.h"
 
-
-extern struct EventECB *g_ptECB_Table;
-extern struct EventType *g_ptEvttTable;
+extern struct EventECB g_tECB_Table[];
+extern struct EventType g_tEvttTable[];
 extern struct EventECB  *s_ptEventFree; //空闲链表头,不排序
-extern s64 g_s64RunningStartTime;        //当前运行中事件的开始执行时间.
 
 void __M_ShowHeap(void);
 void __M_ShowHeapSpy(void);
-void __Lock_ShowLock(void);
 
 bool_t Sh_ShowEvent(char *param);
 bool_t Sh_ShowEvtt(char *param);
@@ -90,37 +88,43 @@ bool_t Sh_ShowEvent(char *param)
 {
     u16 pl_ecb;
     u32 time1,MemSize;
+    char *name;
 
     MemSize = 0;
-    printf("事件号  类型号  优先级 CPU  栈尺寸   类型名\n\r");
-    for(pl_ecb = 0; pl_ecb < gc_u32CfgEventLimit; pl_ecb++)
+    debug_printf("knlshell","事件号  类型号  优先级 CPU  栈尺寸   类型名\n\r");
+    for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
-        if(g_ptECB_Table[pl_ecb].previous !=
+        if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-            printf("%05d %05d     ",pl_ecb,g_ptECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
-            printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
-           // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
-            if(NULL == g_ptECB_Table[pl_ecb].vm)
+            debug_printf("knlshell","%05d %05d     ",pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
+            debug_printf("knlshell","%03d    ",g_tECB_Table[pl_ecb].prio);
+           // debug_printf("knlshell","%02d%%  %8x",time1,g_tECB_Table[pl_ecb].vm->stack_size);
+#if CFG_OS_TINY == false
+            time1 = g_tECB_Table[pl_ecb].consumed_cnt_second/10000;
+            name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+            time1 = 0;
+            name = "unkown";
+#endif  //CFG_OS_TINY == false
+            if(NULL == g_tECB_Table[pl_ecb].vm)
             {
-                printf("%02d%%  %08x %s",0,0,\
-                		g_ptEvttTable[g_ptECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name);            }
+                debug_printf("knlshell","%02d%%  %08x %s",0,0,name);
+            }
             else
             {
-                time1 = g_ptECB_Table[pl_ecb].consumed_time_second/10000;
-                printf("%02d%%  %08x %s",time1,g_ptECB_Table[pl_ecb].vm->stack_size,\
-                		g_ptEvttTable[g_ptECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name);
-                MemSize += g_ptECB_Table[pl_ecb].vm->stack_size;
+                debug_printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
+                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
             }
-            printf("\n\r");
+            debug_printf("knlshell","\n\r");
         }
         else
         {
-//          printf("%5d   空闲",pl_ecb);
+//          debug_printf("knlshell","%5d   空闲",pl_ecb);
         }
     }
-    printf("所有事件栈尺寸总计:           %08x\n\r",MemSize);
-    printf("允许的事件总数:              %d\n\r",gc_u32CfgEventLimit);
+    debug_printf("knlshell","所有事件栈尺寸总计:           %08x\n\r",MemSize);
+    debug_printf("knlshell","允许的事件总数:              %d\n\r",CFG_EVENT_LIMIT);
 
     return true;
 }
@@ -134,31 +138,34 @@ bool_t Sh_ShowEvtt(char *param)
 {
     u16 pl_ecb;
     u32 MemSize;
+    char *name;
     MemSize = 0;
-    printf("类型号  优先级 处理函数  栈需求   名字\n\r");
-    for(pl_ecb = 0; pl_ecb < gc_u32CfgEvttLimit; pl_ecb++)
+    debug_printf("knlshell","类型号  优先级 处理函数  栈需求   名字\n\r");
+    for(pl_ecb = 0; pl_ecb < CFG_EVENT_TYPE_LIMIT; pl_ecb++)
     {
-        if(g_ptEvttTable[pl_ecb].property.registered ==1)
+        if(g_tEvttTable[pl_ecb].property.registered ==1)
         {
-            MemSize += g_ptEvttTable[pl_ecb].stack_size;
-            printf("%05d   ",pl_ecb);
-            printf("%03d    ",g_ptEvttTable[pl_ecb].default_prio);
-            printf("%08x  %08x ",
-                        (ptu32_t)g_ptEvttTable[pl_ecb].thread_routine,
-                        g_ptEvttTable[pl_ecb].stack_size);
-            if(g_ptEvttTable[pl_ecb].evtt_name[0] != '\0')
-                printf("%s",g_ptEvttTable[pl_ecb].evtt_name);
-            else
-                printf("无名");
-            printf("\n\r");
+            MemSize += g_tEvttTable[pl_ecb].stack_size;
+            debug_printf("knlshell","%05d   ",pl_ecb);
+            debug_printf("knlshell","%03d    ",g_tEvttTable[pl_ecb].default_prio);
+            debug_printf("knlshell","%08x  %08x ",
+                        (ptu32_t)g_tEvttTable[pl_ecb].thread_routine,
+                        g_tEvttTable[pl_ecb].stack_size);
+#if CFG_OS_TINY == false
+            name = g_tEvttTable[pl_ecb].evtt_name;
+#else
+            name = "unkown";
+#endif  //CFG_OS_TINY == false
+            debug_printf("knlshell","%s",name);
+            debug_printf("knlshell","\n\r");
         }
         else
         {
-//          printf("%05d   空闲",pl_ecb);
+//          printf("knlshell","%05d   空闲",pl_ecb);
         }
     }
-    printf("所有类型栈需求总计:      %08x\n\r",MemSize);
-    printf("允许的事件类型总数:      %d\n\r",gc_u32CfgEvttLimit);
+    debug_printf("knlshell","所有类型栈需求总计:      %08x\n\r",MemSize);
+    debug_printf("knlshell","允许的事件类型总数:      %d\n\r",CFG_EVENT_TYPE_LIMIT);
     return true;
 }
 
@@ -172,25 +179,26 @@ bool_t Sh_ShowStack(char *param)
     u16 pl_ecb;
     u32 loop,StackSize,pads;
     u32 *stack;
+    char *name;
 
-    printf("事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名\n\r");
-    for(pl_ecb = 0; pl_ecb < gc_u32CfgEventLimit; pl_ecb++)
+    debug_printf("knlshell","事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名\n\r");
+    for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
 
-        if(g_ptECB_Table[pl_ecb].previous !=
+        if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-            printf("%05d  ",pl_ecb);
-            if(g_ptECB_Table[pl_ecb].vm)
-                printf("已分配 ");
+            debug_printf("knlshell","%05d  ",pl_ecb);
+            if(g_tECB_Table[pl_ecb].vm)
+                debug_printf("knlshell","已分配 ");
             else
             {
-                printf("未分配 ");
+                debug_printf("knlshell","未分配 ");
                 continue ;
             }
-            StackSize = g_ptECB_Table[pl_ecb].vm->stack_size;
+            StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
             pads = 0x64646464;
-            stack = (u32*)(&(g_ptECB_Table[pl_ecb].vm[1]));
+            stack = (u32*)(&(g_tECB_Table[pl_ecb].vm[1]));
             for(loop = 0; loop < (StackSize>>2)-1; loop++)
             {
                 if(stack[loop] != pads)
@@ -198,19 +206,24 @@ bool_t Sh_ShowStack(char *param)
                     break;
                 }
             }
-            printf("%08x %08x %08x %08x %s",
-                        (ptu32_t)(&g_ptECB_Table[pl_ecb].vm[1]),
-                        (ptu32_t)(g_ptECB_Table[pl_ecb].vm->stack),
+#if CFG_OS_TINY == false
+            name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+            name = "unkown";
+#endif  //CFG_OS_TINY == false
+            debug_printf("knlshell","%08x %08x %08x %08x %s",
+                        (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
+                        (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
                         StackSize,(loop<<2),
-                        g_ptEvttTable[g_ptECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name);
-            printf("\n\r");
+                        name);
+            debug_printf("knlshell","\n\r");
         }
         else
         {
-//            printf("%05d  空闲事件控制块",pl_ecb);
+//            debug_printf("knlshell","%05d  空闲事件控制块",pl_ecb);
         }
     }
-    printf("栈指针是最后一次上下文切换时保存的值\n\r");
+    debug_printf("knlshell","栈指针是最后一次上下文切换时保存的值\n\r");
 
     return true;
 }
@@ -247,17 +260,12 @@ struct ShellCmdTab const tg_ShellKernelCmdTbl[] =
         "显示系统中所有已经分配线程的事件的栈信息",
         NULL
     },
-    {
-        "lock",
-        (bool_t (*)(char*))__Lock_ShowLock,
-        "显示系统中所有信号量和互斥量的信息",
-        NULL
-    },
 };
 
 static struct ShellCmdRsc tg_ShellKernelCmd
                         [sizeof(tg_ShellKernelCmdTbl)/sizeof(struct ShellCmdTab)];
 
+#if CFG_OS_TINY == false
 ptu32_t Debug_Scan(void)
 {
     u32 pl_ecb;
@@ -265,17 +273,18 @@ ptu32_t Debug_Scan(void)
     while(1)
     {
 
-        for(pl_ecb = 0; pl_ecb < gc_u32CfgEventLimit; pl_ecb++)
+        for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
         {
-            g_ptECB_Table[pl_ecb].consumed_time_second =
-                              (u32)g_ptECB_Table[pl_ecb].consumed_time
-                            - g_ptECB_Table[pl_ecb].consumed_time_record;
-            g_ptECB_Table[pl_ecb].consumed_time_record =
-                            (u32)g_ptECB_Table[pl_ecb].consumed_time;
+            g_tECB_Table[pl_ecb].consumed_cnt_second =
+                              (u32)g_tECB_Table[pl_ecb].consumed_cnt
+                            - g_tECB_Table[pl_ecb].consumed_cnt_record;
+            g_tECB_Table[pl_ecb].consumed_cnt_record =
+                            (u32)g_tECB_Table[pl_ecb].consumed_cnt;
         }
         Djy_EventDelay(1000*mS);
     }
 }
+#endif  //CFG_OS_TINY == false
 
 //----初始化调试信息模块-------------------------------------------------------
 //功能: 创建调试信息事件类型并启动之
@@ -286,13 +295,15 @@ void ModuleInstall_DebugInfo(ptu32_t para)
 {
     u16 evtt_debug;
     para = para;        //消除编译器告警
+#if CFG_OS_TINY == false
     evtt_debug = Djy_EvttRegist(EN_CORRELATIVE,1,0,0,
                                  Debug_Scan,NULL,1024,"debug_info");
     if(evtt_debug == CN_EVTT_ID_INVALID)
         return;
+    Djy_EventPop(evtt_debug,NULL,0,0,0,0);
+#endif  //CFG_OS_TINY == false
     Sh_InstallCmd(tg_ShellKernelCmdTbl,tg_ShellKernelCmd,
             sizeof(tg_ShellKernelCmdTbl)/sizeof(struct ShellCmdTab));
-    Djy_EventPop(evtt_debug,NULL,0,0,0,0);
 }
 
 

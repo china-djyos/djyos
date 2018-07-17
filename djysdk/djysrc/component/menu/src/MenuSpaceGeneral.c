@@ -232,7 +232,7 @@ struct menu_item_space cal_textarea(const char *text, u32 count )
 
     s32 len, src_len,size_bak;
     u32 wc;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     struct GkscParaDrawBitmapRop bitmap_para;
     struct menu_item_space   result={0,0};
 
@@ -358,7 +358,7 @@ bool_t create_menudisparawin(struct menu_displaypara  *menudispara,struct Rectan
 
   bool_t result=false;
 
-  struct GkWinRsc  *parwin;
+  struct GkWinObj  *parwin;
 
   //参数检查
   if(NULL==menudispara)
@@ -398,7 +398,7 @@ bool_t create_menudisparawin(struct menu_displaypara  *menudispara,struct Rectan
     }
   }
      //分配窗口空间，如果分配不到，一切都是浮云
-  menudispara->CurWin=(struct GkWinRsc *)M_MallocLc(sizeof(struct GkWinRsc),0);
+  menudispara->CurWin=(struct GkWinObj *)M_MallocLc(sizeof(struct GkWinObj),0);
 
   if(NULL == menudispara->CurWin)
   {

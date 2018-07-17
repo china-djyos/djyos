@@ -1,3 +1,41 @@
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+//  extern void LS88e6060ShellCmdInit(void);
+//  extern ptu32_t LS88e6060Init(u16 vlan[6]);
+//  LS88e6060ShellCmdInit();
+//%$#@describe      ****组件描述开始
+//component name:"ls88e6060"    //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
 
 //IEEE defined Registers (8846060)
 #define PHY_BMCR        0x0   // Basic Mode Control Register
@@ -103,8 +141,8 @@
 #include <stdlib.h>
 
 //this function must be supplied by the mac device
-extern u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value);
-extern u8 GMAC_MdioW(u8 dev,u8 reg, u16 value);
+//extern u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value);
+//extern u8 GMAC_MdioW(u8 dev,u8 reg, u16 value);
 
 //initialize the vlan,you could call the vlan function to set
 static u16   gVlanInitialize[CN_DEV_NUM]=
@@ -112,6 +150,16 @@ static u16   gVlanInitialize[CN_DEV_NUM]=
 //which means.port 0,1,2,3,4could send frame to port 5, but fram could not
 //transmit between them;port 5 could snd fram to port 0,1,2,3,4
 
+
+__attribute__((weak))  u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value)
+{
+    return 0;
+}
+
+__attribute__((weak))  u8 GMAC_MdioW(u8 dev,u8 reg, u16 *value)
+{
+    return 0;
+}
 static u8 DevReset(u8 dev)
 {
     u32 timeout;
@@ -131,8 +179,8 @@ static u8 DevReset(u8 dev)
 
 static u8 VlanSet(u8 port)
 {
-	u8 dev;
-	dev = port + CN_SWITCH_DEVBASE;
+    u8 dev;
+    dev = port + CN_SWITCH_DEVBASE;
     GMAC_MdioW(dev, 0x06, gVlanInitialize[port]);
     return 0;
 }
@@ -267,18 +315,18 @@ static u8 PhyLinkConfig(u8 port)
     trytimes = 0;
     while(trytimes <CN_NEGOTIATION_TIMES)
     {
-    	GMAC_MdioR(dev, PHY_BMSR, &value);
-    	if(value &PHY_LINK_STATUS)
-    	{
-    		break;
-    	}
-    	else
-    	{
-    		if(0 == ((++trytimes)%10000))
-    		{
-    			printk(".");
-    		}
-    	}
+        GMAC_MdioR(dev, PHY_BMSR, &value);
+        if(value &PHY_LINK_STATUS)
+        {
+            break;
+        }
+        else
+        {
+            if(0 == ((++trytimes)%10000))
+            {
+                printk(".");
+            }
+        }
     }
     if(trytimes <CN_NEGOTIATION_TIMES)
     {
@@ -301,12 +349,12 @@ static u8 PhyLinkConfig(u8 port)
             // set RGMII for 10BaseT and half Duplex
             result = EN_LS_NEGOTIATION_10M_H;
         }
-    	printk("done--trytimes:0x%08x--speed:%s\n\r",trytimes,gNegotiateComment[result]);
+        printk("done--trytimes:0x%08x--speed:%s\n\r",trytimes,gNegotiateComment[result]);
 
     }
     else
     {
-    	printk("timeout--trytimes:0x%08x\n\r",trytimes);
+        printk("timeout--trytimes:0x%08x\n\r",trytimes);
     }
 
     return  result;
@@ -664,7 +712,7 @@ static bool_t DevDebugInstall(void)
 
 void LS88e6060ShellCmdInit(void)
 {
-	DevDebugInstall();
+    DevDebugInstall();
 }
 //this is the 88e6060  initialize
 ptu32_t LS88e6060Init(u16 vlan[6])
@@ -675,10 +723,10 @@ ptu32_t LS88e6060Init(u16 vlan[6])
     //check all the phy
     for(i =0; i< CN_DEV_NUM;i++)
     {
-    	if(i != (CN_DEV_NUM-1))
-    	{
-			PhyLinkConfig(i);
-    	}
+        if(i != (CN_DEV_NUM-1))
+        {
+            PhyLinkConfig(i);
+        }
         VlanSet(i);
     }
 

@@ -65,9 +65,50 @@
 #include <wdt_soft.h>
 #include <wdt_hal.h>
 #include <exp.h>
+#include "dbug.h"
 
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-#include "core_config.h"
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    ModuleInstall_Wdt();
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"wdt"          //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"MsgQueue","BlackBox"      //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_WDT_LIMIT   //****检查参数是否已经配置好
+#warning    wdt组件参数未配置，使用默认值
+//%$#@num,1,100,
+#define CFG_WDT_LIMIT           10      //"看门狗数量",允许养狗数量
+#define CFG_WDTMSG_LIMIT        3       //"消息队列长度"，操作看门狗的消息队列的最大长度
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
 
 #define CN_WDT_YIP_NEVER      CN_LIMIT_SINT64     //当timeout为该时间时表示该看门狗暂停状态
 #define CN_WDT_YIP_PRECISION  CN_CFG_TICK_US      //软件看门狗模块的精度
@@ -88,13 +129,12 @@ struct WdtExpInfo
 };
 
 //该模块使用的静态全局变量
-static struct MemCellPool         *ptWdtPool = NULL;             //看门狗内存池
-static tagWdt                     *ptWdtHead = NULL;             //看门狗队列头
-static tagWdt                     *ptWdtTail = NULL;             //看门狗队列尾
-static tagWdt                     *ptWdtHard = NULL;             //硬件看门狗对应的软件看门狗
-static bool_t (*fnWdtHardFeed)(void) = NULL;                     //硬件看门狗的喂狗方法
-#define CN_WDTMSG_LIMIT            0x20                          //看门狗消息队列的最大长度
-static struct MsgQueue            *ptWdtMsgBox = NULL;           //看门狗消息队列
+static struct MemCellPool         *ptWdtPool = NULL;    //看门狗内存池
+static tagWdt                     *ptWdtHead = NULL;    //看门狗队列头
+static tagWdt                     *ptWdtTail = NULL;    //看门狗队列尾
+static tagWdt                     *ptWdtHard = NULL;    //硬件看门狗对应的软件看门狗
+static bool_t (*fnWdtHardFeed)(void) = NULL;            //硬件看门狗的喂狗方法
+static struct MsgQueue            *ptWdtMsgBox = NULL;  //看门狗消息队列
 
 //看门狗狗叫的原因：
 //正常的看门狗不会叫，只有没有按时喂的狗才会叫；因此看门狗叫是因为没有按时喂
@@ -196,14 +236,14 @@ bool_t __Wdt_WdtExpInfoDecoder(struct ExpThrowPara  *WdtinfoHead,u32 endian)
     struct WdtExpInfo *wdtinfo = (struct WdtExpInfo *)WdtinfoHead->ExpInfo;
     wdt = &wdtinfo->wdt;
     __Wdt_SwapWdtInfoByEndian(wdt, endian);
-    printf("wdtinfo:name               :%s\n\r",    wdtinfo->wdtname);
-    printf("wdtinfo:Owner              :0x%04x\n\r",wdt->WdtOnwer);
-    printf("wdtinfo:Action             :%s\n\r",ExpActionName(wdt->action));
-    printf("wdtinfo:Cycle              :%d(us)\n\r",wdt->cycle);
-    printf("wdtinfo:Reason             :%s\n\r",WdtYipReasonName(wdt->timeoutreason));
-    printf("wdtinfo:OwnerTimeLevel     :0x%08x(us)\n\r",wdt->ExhaustLevelSet);
-    printf("wdtinfo:TimeoutForShedule  :0x%08x\n\r",wdt->shyiptimes);
-    printf("wdtinfo:SheduleTimeoutLimit:0x%08x\n\r",wdt->ExhaustLimit);
+    debug_printf("wdtinfo","name               :%s\n\r",    wdtinfo->wdtname);
+    debug_printf("wdtinfo","Owner              :0x%04x\n\r",wdt->WdtOnwer);
+    debug_printf("wdtinfo","Action             :%s\n\r",ExpActionName(wdt->action));
+    debug_printf("wdtinfo","Cycle              :%d(us)\n\r",wdt->cycle);
+    debug_printf("wdtinfo","Reason             :%s\n\r",WdtYipReasonName(wdt->timeoutreason));
+    debug_printf("wdtinfo","OwnerTimeLevel     :0x%08x(us)\n\r",wdt->ExhaustLevelSet);
+    debug_printf("wdtinfo","TimeoutForShedule  :0x%08x\n\r",wdt->shyiptimes);
+    debug_printf("wdtinfo","SheduleTimeoutLimit:0x%08x\n\r",wdt->ExhaustLimit);
     return true;
 }
 
@@ -346,7 +386,7 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
         {
             if(Djy_GetEventInfo(wdt->WdtOnwer, &eventinfo))
             {
-                wdt->runtime = eventinfo.consumed_time;
+                wdt->runtime = eventinfo.consumed_cnt;
             }
         }
         //清空连续狗叫成员
@@ -503,7 +543,7 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
 
     if( Djy_GetEventInfo((u16)wdt->WdtOnwer, &wdt_event_info))
     {
-        Tm_TimeRun = (u32)(wdt_event_info.consumed_time - wdt->runtime);
+        Tm_TimeRun = (u32)(wdt_event_info.consumed_cnt - wdt->runtime);
         if(Tm_TimeRun < wdt->ExhaustLevelSet) //运行时间不够
         {
             wdt->timeoutreason = EN_WDT_YIPFORSHEDULE;
@@ -514,7 +554,7 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
         {
             wdt->timeoutreason = EN_WDT_YIPFORLOGIC;
         }
-        wdt->runtime = wdt_event_info.consumed_time;
+        wdt->runtime = wdt_event_info.consumed_cnt;
     }
     else
     {
@@ -542,7 +582,7 @@ static void __Wdt_ScanWdtQueque(void)
 
         if((timenow + CN_WDT_YIP_PRECISION)>= wdt->deadtime) // the wdt has been timeout
         {
-//            printf("看门狗狗叫：%s\n\r",wdt->pname);
+//            debug_printf("WDT","看门狗狗叫：%s\n\r",wdt->pname);
             __Wdt_AnalyzeYipReason(wdt);
             if(NULL !=  wdt->fnhook)
             {
@@ -556,7 +596,7 @@ static void __Wdt_ScanWdtQueque(void)
             {
                 result = wdt->action;
             }
-            if((wdt->timeoutreason == EN_WDT_YIPFORSHEDULE) 
+            if((wdt->timeoutreason == EN_WDT_YIPFORSHEDULE)
                             && (wdt->shyiptimes < wdt->ExhaustLimit)) //在忍耐限度以内
             {
                 result = EN_EXP_DEAL_RECORD;
@@ -636,17 +676,17 @@ static ptu32_t Wdt_Service(void)
 #include <shell.h>
 static bool_t wdtshow(char *param)
 {
-	u8 i = 0;
-	tagWdt *wdt;
+    u8 i = 0;
+    tagWdt *wdt;
     wdt = ptWdtHead;
-    printf("WDT:\n\r");
-    printf("%-4s%-16s%-9s%-9s%-9s%-9s%-9s\n\r",
-    		"No","NAME","FUNCTION","ACTION","CYCLE","OWNER","DEADLINE");
+    debug_printf("WDT","\n\r");
+    debug_printf("WDT","%-4s%-16s%-9s%-9s%-9s%-9s%-9s\n\r",
+            "No","NAME","FUNCTION","ACTION","CYCLE","OWNER","DEADLINE");
     while(NULL != wdt)
     {
-    	printf("%-4d%-16s%-8x %-8x %-8x %-8x %llx\n\r",\
-    			i++	,wdt->pname,wdt->fnhook,wdt->action,wdt->cycle,wdt->WdtOnwer,wdt->deadtime);
-    	wdt = wdt->pnxt;
+        debug_printf("WDT","%-4d%-16s%-8x %-8x %-8x %-8x %llx\n\r",\
+                i++ ,wdt->pname,(ptu32_t)wdt->fnhook,wdt->action,wdt->cycle,wdt->WdtOnwer,wdt->deadtime);
+        wdt = wdt->pnxt;
     }
     return true;
 }
@@ -655,7 +695,7 @@ struct ShellCmdTab  gWdtDebug[] =
 {
     {
         "wdtshow",
-		wdtshow,
+        wdtshow,
         "usage:wdtshow",
         "usage:wdtshow",
     },
@@ -667,38 +707,35 @@ static struct ShellCmdRsc gWdtDebugCmdRsc[CN_WdtDebug_NUM];
 // 函数功能：看门狗模块的初始化
 // 输入参数：
 // 输出参数：
-// 返回值  ：1成功  0失败
+// 返回值  ：true = 成功  false = 失败
 // 说明    ：创建看门狗硬件对应的软看门狗。注册看门狗异常信息解析器
 // =============================================================================
-ptu32_t ModuleInstall_Wdt(ptu32_t para)
+bool_t ModuleInstall_Wdt(void)
 {
     static struct ExpInfoDecoder WdtDecoder;
+    static tagWdt wdtpoolbuf[CFG_WDT_LIMIT];
     bool_t  result_bool;
     u16     evttid;
-    void   *wdtpoolbuf;
 
-    wdtpoolbuf = M_Malloc(gc_u32CfgWdtLimit * sizeof(tagWdt),0);
-    if(wdtpoolbuf == NULL)
-        return 0;
-    ptWdtPool = Mb_CreatePool(wdtpoolbuf,gc_u32CfgWdtLimit,sizeof(tagWdt),0,0,"wdt pool");
+    ptWdtPool = Mb_CreatePool(wdtpoolbuf,CFG_WDT_LIMIT,sizeof(tagWdt),0,0,"wdt pool");
     //init the queue
     ptWdtHead = NULL;
     ptWdtTail = NULL;
     ptWdtHard = NULL;
 
     //create the msg box for the api to snd msg to the wdt service task
-    ptWdtMsgBox = MsgQ_Create(CN_WDTMSG_LIMIT,sizeof(tagWdtMsg),CN_MSGQ_TYPE_FIFO);
+    ptWdtMsgBox = MsgQ_Create(CFG_WDTMSG_LIMIT,sizeof(tagWdtMsg),CN_MSGQ_TYPE_FIFO);
 
     //create the main service
     evttid = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_WDT,0,0,Wdt_Service,
                                 NULL,0x400,"wdt service");
     if(evttid == CN_EVTT_ID_INVALID)
-        return 0;
+        return false;
     if( Djy_EventPop(evttid,NULL,0,0,0,0) == CN_EVENT_ID_INVALID)
     {
-        printf("WDT MODULE:POP SERVICE FAILED!\n\r");
+        debug_printf("WDT","POP SERVICE FAILED!\n\r");
         Djy_EvttUnregist(evttid);
-        return 0;
+        return false;
     }
 
     //create the soft wdt match the hard wdt
@@ -717,12 +754,12 @@ ptu32_t ModuleInstall_Wdt(ptu32_t para)
     WdtDecoder.DecoderName = CN_WDT_EXPDECODERNAME;
     if(false ==Exp_RegisterThrowInfoDecoder(&WdtDecoder))
     {
-        printf("WDT MODULE: Register Wdt Exp Decoder Failed!\n\r");
+        debug_printf("WDT","Register Wdt Exp Decoder Failed!\n\r");
     }
     Sh_InstallCmd(gWdtDebug,gWdtDebugCmdRsc,CN_WdtDebug_NUM);
 
-    printf("WDT MODULE:Init end ...\n\r");
-    return 1;
+    debug_printf("WDT","Init end ...\n\r");
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -749,7 +786,7 @@ ptu32_t ModuleInstall_Wdt(ptu32_t para)
 // =============================================================================
 tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
                    fnYipHook yiphook,
-                   enum EN_ExpAction yip_action, 
+                   enum EN_ExpAction yip_action,
                    u32 ExhaustLevelSet,
                    u32 ExhaustLimit)
 {
@@ -760,7 +797,7 @@ tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
     wdt = Mb_Malloc(ptWdtPool,0);
     if(NULL != wdt)
     {
-        result = Wdt_Create_s(wdt,dogname,yip_cycle,yiphook,yip_action, 
+        result = Wdt_Create_s(wdt,dogname,yip_cycle,yiphook,yip_action,
                               ExhaustLevelSet,ExhaustLimit);
         if(NULL == result)
         {
@@ -787,7 +824,7 @@ tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
 // =============================================================================
 tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
                      fnYipHook yiphook,
-                     enum EN_ExpAction yip_action, 
+                     enum EN_ExpAction yip_action,
                      u32 ExhaustLevelSet,
                      u32 ExhaustLimit)
 {

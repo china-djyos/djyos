@@ -73,17 +73,17 @@ extern "C" {
 //特别注意,根据硬件能力,有些级别在某些硬件下可能会重叠,例如在stm32的cortex-m系列
 //mcu中,L0和L1级是等同的(用户的回调函数可能不一样).
 //低功耗控制是高级功能,在编写回调函数前,必须非常了解自己的硬件系统.
-//L0.每次系统服务事件执行,执行栈检查后,进入最浅的休眠,一旦有中断,典型是tick中断,
+//L0.每次系统服务事件执行,不执行栈检查,进入最浅的休眠,一旦有中断,典型是tick中断,
 //   立即唤醒继续执行。
-//L1.每次系统服务事件执行,执行栈检查后,进入深度睡眠,保持所有内存,tick时钟正常运行,
+//L1.每次系统服务事件执行,不执行栈检查,进入深度睡眠,保持所有内存,tick时钟正常运行,
 //   一旦有中断,典型是tick中断,立即唤醒继续执行,唤醒所需时间可能长于L0。
 //   注:对许多CPU来说,L0和L1可能是相同的,但有些外设也许有区别
-//L2.每次系统服务事件执行,执行栈检查后,进入深度睡眠,保持内存,时钟停止,仅中断能
+//L2.每次系统服务事件执行,不执行栈检查,进入深度睡眠,保持内存,时钟停止,仅中断能
 //   唤醒CPU,唤醒后,处理中断,然后继续运行,直到下一次进入低功耗状态。
-//L3.每次系统服务事件执行,执行栈检查后,进入深度睡眠,内存掉电,时钟停止,CPU运行
+//L3.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,CPU运行
 //   状态保存到栈中,调用回调函数,把全部内存数据保存到非易失存储器中.复位唤醒
 //   CPU后,重新启动,把保存到非易失存储器中的内容恢复到RAM,然后继续运行。
-//L4.每次系统服务事件执行,执行栈检查后,进入深度睡眠,内存掉电,时钟停止,调用回调
+//L4.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,调用回调
 //   函数,把关键数据保存到非易失存储器中,中断唤醒CPU后,重新启动并加载运行。
 
 #define CN_SLEEP_NORMAL    0       //休眠方式:正常
@@ -118,7 +118,6 @@ bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel);    //返回true=成功,false=失败
 bool_t __LP_BSP_RestoreRamL3(void);     //返回true=成功恢复,false=失败
 //把RAM存储到非易失存储器中,L4级低功耗使用,如果返回false,系统将不进入休眠
 bool_t __LP_BSP_SaveRamL3(void);     //返回true=成功恢复,false=失败
-//从非易失存储器中恢复关键数据,L4级低功耗使用,如果本函数返回失败,系统按normal方式启动
 
 void __LP_BSP_EntrySleepL0(void);
 void __LP_BSP_EntrySleepL1(void);
@@ -140,9 +139,10 @@ u32 LP_EnableSleep(void);
 // 行,且休眠没有被禁止时,才会进入相应的休眠模式
 u32 LP_SetSleepLevel(u32 Level);
 u32 LP_GetSleepLevel(void);
+void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),\
+                u32 (*ExitSleepReCall)(u32 SleepLevel));
 //安装低功耗组件
-ptu32_t ModuleInstall_LowPower (u32 (*EntrySleepReCall)(u32 SleepLevel),
-                                u32 (*ExitSleepReCall)(u32 SleepLevel));
+void ModuleInstall_LowPower (void);
 
 #ifdef __cplusplus
 }

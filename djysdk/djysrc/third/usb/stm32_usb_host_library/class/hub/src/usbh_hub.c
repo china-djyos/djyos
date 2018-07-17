@@ -138,7 +138,7 @@ static USBH_StatusTypeDef __HUB_InterfaceInit (USBH_HandleTypeDef *pHost)
      hub->requestState = CMD_SEND;
 
      gHubThreatID = Djy_EvttRegist(EN_INDEPENDENCE, 200, 0, 4,
-                          USBH_HUB_Service, NULL, 0x400, "USB HUB service"); //
+                          USBH_HUB_Service, NULL, 0x800, "USB HUB service"); //
 
      hub->state = HUB_INIT;
 
@@ -443,6 +443,7 @@ static USBH_StatusTypeDef __HUB_Process (USBH_HandleTypeDef *pHost)
     case HUB_PORT_SCAN:
         while(1)
         {
+            Djy_EventDelay(200);
             res = HUB_StatusChange(pHost, hub->change.pStatus, hub->change.bBytes); // 获取HUB端口状态,判断端口是否发生了变化
             if((USBH_OK == res) && (hub->change.pStatus))
             {
@@ -508,6 +509,8 @@ static USBH_StatusTypeDef __HUB_SOFProcess (USBH_HandleTypeDef *pHost)
 
         if(port->processSOF)
             port->processSOF(port);
+        else
+            port->Timer ++;
     }
 
     return (USBH_OK); //

@@ -56,21 +56,66 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "object.h"
+#include "dbug.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-static struct Object tg_djybus_root;                //定义静态变量DjyBus的根结点
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_DjyBus(void);
+//    ModuleInstall_DjyBus ( );
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"djybus"       //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
+//@#$%component end configure
+
+
+static struct Object *s_ptDjybusDir;                //定义静态变量DjyBus的根结点
 // =============================================================================
 // 功能：建立并初始化DjyBus总线根节点，它是总线类型节点的父结点
 // 参数：para,无实际意义
 // 返回：true=成功, false=失败.
 // =============================================================================
-bool_t ModuleInstall_DjyBus (ptu32_t Para)
+bool_t ModuleInstall_DjyBus (void)
 {
     //在资源链表中建立一个根结点，所有建立的总线结点都挂在该结点上。
-    if(OBJ_AddTree(&tg_djybus_root,sizeof(struct  Object),RSC_RSCNODE,"DjyBus"))
+    s_ptDjybusDir = OBJ_AddChild(OBJ_Root(), NULL, 0, "DjyBus");
+    if(s_ptDjybusDir)
     {
-        printf("DjyBus Install Successed !\r\n");
+        info_printf("module","bus installed.");
         return true;
     }
+
+        error_printf("module","bus installation failed.");
     return false;
 }
 
@@ -84,39 +129,11 @@ struct Object * DjyBus_BusTypeAdd (const char* NewBusTypeName)
 {
     struct Object * NewBusType;
 
-    NewBusType = (struct Object *)M_Malloc(sizeof(struct Object),0);
-    if(NewBusType == NULL)
-        return NULL;
-
     //避免重复创建同名的总线类型
-    if(NULL != OBJ_SearchChild(&tg_djybus_root,NewBusTypeName))
+    if(NULL != OBJ_SearchChild(s_ptDjybusDir, NewBusTypeName))
         return NULL;
 
-    OBJ_AddChild(&tg_djybus_root,NewBusType,
-                sizeof(struct Object),RSC_RSCNODE,NewBusTypeName);
-
-    return NewBusType;
-}
-
-// =============================================================================
-// 功能：在DjyBus总线树结点上增加新的总线类型结点，新增总线类型结点是DjyBus的子结点,
-//       该函数带r，表示由调用者提供内存，即NewBusType由用户定义
-// 参数：NewBusTypeName,创建总线类型名称
-//       NewBusType,创建总线类型结点，用记定义
-// 返回：返回建立的资源结点指针，失败时返回NULL
-// =============================================================================
-struct Object * DjyBus_BusTypeAdd_s(struct Object * NewBusType,
-                                    const char* NewBusTypeName)
-{
-    if((NewBusType == NULL) && (NewBusTypeName == NULL))
-        return NULL;
-
-    //避免重复创建同名的总线类型
-    if(NULL != OBJ_SearchChild(&tg_djybus_root,NewBusTypeName))
-        return NULL;
-
-    OBJ_AddChild(&tg_djybus_root,NewBusType,
-                sizeof(struct Object),RSC_RSCNODE,NewBusTypeName);
+    NewBusType = OBJ_AddChild(s_ptDjybusDir, NULL, 0, NewBusTypeName);
 
     return NewBusType;
 }
@@ -130,33 +147,8 @@ struct Object * DjyBus_BusTypeAdd_s(struct Object * NewBusType,
 bool_t DjyBus_BusTypeDelete(struct Object * DelBusType)
 {
     bool_t result;
-    if(DelBusType == NULL)
-        return false;
 
-    if(NULL == OBJ_Del(DelBusType))
-    {
-        result = false;
-    }
-    else
-    {
-        free(DelBusType);
-        result = true;
-    }
-    return result;
-}
-
-// =============================================================================
-// 功能：删除DjyBus总线根结点上的一个总线类型结点,该类型结点不能有子结点
-// 参数：DelBusType,待删除的总线类型结点
-// 返回：TRUE,删除成功;false,删除失败
-// =============================================================================
-bool_t DjyBus_BusTypeDelete_s(struct Object * DelBusType)
-{
-    bool_t result;
-    if(DelBusType == NULL)
-        return false;
-
-    if(NULL == OBJ_Del(DelBusType))
+    if(OBJ_Del(DelBusType))
     {
         result = false;
     }
@@ -174,6 +166,6 @@ bool_t DjyBus_BusTypeDelete_s(struct Object * DelBusType)
 // =============================================================================
 struct Object * DjyBus_BusTypeFind(const char * BusTypeName)
 {
-    return OBJ_SearchChild(&tg_djybus_root,BusTypeName);
+    return OBJ_SearchChild(s_ptDjybusDir,BusTypeName);
 }
 

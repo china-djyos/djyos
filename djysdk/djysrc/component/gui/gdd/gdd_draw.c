@@ -139,7 +139,7 @@ void    UpdateDisplay(u32 timeout)
 /*============================================================================*/
 /*============================================================================*/
 
-void    __InitDC(DC *pdc,struct GkWinRsc *gk_win,HWND hwnd,s32 dc_type)
+void    __InitDC(DC *pdc,struct GkWinObj *gk_win,HWND hwnd,s32 dc_type)
 {
 
     pdc->pGkWin     =gk_win;
@@ -154,7 +154,7 @@ void    __InitDC(DC *pdc,struct GkWinRsc *gk_win,HWND hwnd,s32 dc_type)
     pdc->DrawColor  =hwnd->DrawColor;
     pdc->FillColor  =hwnd->FillColor;
     pdc->TextColor  =hwnd->TextColor;
-    pdc->SyncTime   =100*mS;
+    pdc->SyncTime   =0;
     //pdc->RopCode    =(struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
     pdc->RopCode=gk_win->RopCode;
 
@@ -666,7 +666,7 @@ static  s32 __GetTextWidth(HDC hdc,const char *text,s32 count)
 {
     s32 width;
     struct Charset *Set;
-    struct FontRsc *Font;
+    struct FontObj *Font;
     s32 len, loop;
     u32 wc;
 

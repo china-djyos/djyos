@@ -57,7 +57,7 @@
 #include <endian.h>
 #include <string.h>
 #include <sys/time.h>
-
+#include "dbug.h"
 #include <os.h>
 
 #include "exp_osstate.h"
@@ -135,7 +135,7 @@ bool_t  __Exp_OsStateInfoDecoder(ptu32_t infoaddr,u32 infolen,u32 endian)
     struct ExpOsState osstate;
     if((infoaddr == 0)||(infolen != (sizeof(s_tExpOsstateInfo))))
     {
-        printf("osstate:Invalid para or incomplete info!\n\r");
+        debug_printf("osstate","Invalid para or incomplete info!\n\r");
         result = false;
     }
     else
@@ -147,13 +147,13 @@ bool_t  __Exp_OsStateInfoDecoder(ptu32_t infoaddr,u32 infolen,u32 endian)
         }
         if(CN_EXP_OSSTATEINFO_MAGICNUMBER == osstate.magicnumber)
         {
-            printf("OSSTATE:运行事件：%d 所属类型：%d 系统运行时间：%s 类型名：%s\n\r",\
-            		osstate.eventrunning_id,osstate.evttrunning_id&(~CN_EVTT_ID_MASK), ctime(&osstate.exptime),osstate.evttrunningname);
+            debug_printf("osstate","OSSTATE:运行事件：%d 所属类型：%d 系统运行时间：%s 类型名：%s\n\r",\
+                    osstate.eventrunning_id,osstate.evttrunning_id&(~CN_EVTT_ID_MASK), ctime(&osstate.exptime),osstate.evttrunningname);
             result = true;
         }
         else
         {
-            printf("osstate:DESTROYED PACKAGE \n\r");
+            debug_printf("osstate","DESTROYED PACKAGE \n\r");
             result = false;
         }
     }

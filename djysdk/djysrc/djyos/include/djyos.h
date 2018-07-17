@@ -54,8 +54,8 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#ifndef __djyos_H__
-#define __djyos_H__
+#ifndef __DJYOS_H__
+#define __DJYOS_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,11 +71,19 @@ struct ThreadVm;
 struct EventECB;
 struct EventType;
 
-#define CN_BLOCK_FIFO          0       //按进入阻塞队列的先后顺序排队
-#define CN_BLOCK_PRIO          1       //按阻塞队列中事件的优先级排队
+#define CN_BLOCK_FIFO           0       //按进入阻塞队列的先后顺序排队
+#define CN_BLOCK_PRIO           1       //按阻塞队列中事件的优先级排队
 
+#define CN_RUNMODE_SI           0       //单进程单映像模式
+#define CN_RUNMODE_DLSP         1       //单进程动态加载映像模式
+#define CN_RUNMODE_MP           2       //多进程模式
+#define CN_RUNMODE_SMP          3       //对称多处理器模式
+#define CN_RUNMODE_AMP          4       //非对称多处理器模式
+
+#if 0
 // todo:这里命名为ContainerOf就报错
 #define Container(Ptr, Type, Member)  ((Type *)((char *)(Ptr)-(unsigned long)(&((Type *)0)->Member)))/* 引自Linux */
+#endif
 
 //无论事件还是事件类型id，都小于0x8000。0x8000以上的数有特殊用途，例如内存管理
 //模块中用来标识内存page的分配情况，具体见struct mem_global的index_event_id成员
@@ -131,8 +139,6 @@ struct ProcessVm       //进程
     u8  res;
 };
 
-#define CN_SAVE_CONTEXT_INT     1
-#define CN_SAVE_CONTEXT_NOINT   0
 //有mmu的机器上,地址分配:0~1G操作系统,1~2G进程共享区,2~4G进程私有空间.
 //特别注意:本结构要被汇编访问，其成员顺序不能改变，也不能随意增加成员
 struct ThreadVm          //线程数据结构
@@ -176,17 +182,7 @@ struct ThreadVm          //线程数据结构
 
 #define CN_BLOCK_PRIO_SORT      (u32)(1<<17)    //是否在优先级排序的阻塞队列中
 
-#define CN_DB_INFO_EVENT        0
-#define CN_DB_INFO_EVTT         1
-#define CN_DB_INFO_HEAP         2
-#define CN_DB_INFO_HEAPSPY      3
-#define CN_DB_INFO_STACK        4
-#define CN_DB_INFO_LOCK         5
-
-#define CN_PARA_LIMITED     32      //参数长度上限
-#define CN_CREAT_NEW_PARA   0x01    //1=为关联型事件创建新任务，0=覆盖旧任务
-#define CN_MALLOC_OVER_32   0x02    //1=参数超过cn_para_limited时，动态分配空间
-//说明:
+ //说明:
 //1、弹出事件时，如果携带参数，系统将创建参数控制块(tagParaPCB)记录该参数。
 //2、如果参数尺寸小于cn_para_limited，将直接copy到参数控制块的static_para成员中。
 //3、如果大于cn_para_limited，则视调用djy_event_pop函数时的para_options参数而定。
@@ -207,8 +203,8 @@ struct ThreadVm          //线程数据结构
 //};
 struct EventInfo
 {
-    s64    EventStartTime;      //事件发生时间，uS
-    s64    consumed_time;       //事件消耗的总时间
+    u64    EventStartCnt;      //事件发生时间，uS
+    u64    consumed_cnt;       //事件消耗的总时间
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
@@ -237,14 +233,14 @@ struct EventECB
     struct EventECB **sync_head;      //记住自己在哪一个同步队列中，以便超时
                                         //返回时从该同步队列取出事件
 
-    s64    EventStartTime;              //事件发生时间，uS
-    s64    consumed_time;               //事件消耗的总时间
-//#if(CN_CFG_DEBUG_INFO == 1)
-    u32    consumed_time_second;        //最近1秒消耗的时间
-    u32    consumed_time_record;        //上次整秒时，消耗的时间快照
-//#endif
-    s64    delay_start_tick;    //设定闹铃时间
-    s64    delay_end_tick;      //闹铃响时间
+#if CFG_OS_TINY == false
+    u64    EventStartCnt;              //事件发生时间，uS
+    u64    consumed_cnt;               //事件消耗的总时间
+    u32    consumed_cnt_second;        //最近1秒消耗的时间
+    u32    consumed_cnt_record;        //上次整秒时，消耗的时间快照
+#endif  //CFG_OS_TINY == false
+    u64    delay_start_cnt;    //设定闹铃时间
+    u64    delay_end_cnt;      //闹铃响时间
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
@@ -268,11 +264,6 @@ struct EventECB
                                 //不收回将导致内存泄漏.
 };
 
-
-
-//事件处理函数出错返回后的处理方案
-#define CN_EXIT_ACTION_STOP     0   //删除事件和线程
-#define CN_EXIT_ACTION_RESTART  1   //重新开始线程
 
 //事件属性定义表
 struct EvttStatus
@@ -318,9 +309,11 @@ struct EventType
     // SchType: EN_SWITCH_IN = 切入,EN_SWITCH_OUT=切离
     // event_id: 切入或切离的事件ID
     SchHookFunc SchHook;
+#if CFG_OS_TINY == false
     char evtt_name[32]; //事件类型允许没有名字，但只要有名字，就不允许同名
                         //如果一个类型只在模块内部使用，可以不用名字。
                         //如模块间需要交叉弹出事件，用名字访问。
+#endif  //CFG_OS_TINY == false
     //优先级小于0x80为紧急优先级,它影响线程的构建.类型优先级在初始化时设定,
     ufast_t     default_prio;       //事件类型优先级.不同于事件优先级,1~255,0非法.
     u16    events;     //分配的事件总数
@@ -348,7 +341,7 @@ extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
 
-void Djy_IsrTick(u32 inc_ticks);
+void Djy_IsrTimeBase(u32 inc_ticks);
 void Djy_SetRRS_Slice(u32 slices);
 u32 Djy_GetRRS_Slice(void);
 void Djy_CreateProcessVm(void);
@@ -361,6 +354,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
                         void *Stack,
                         u32 stack_size,
                         char *evtt_name);
+u32 Djy_GetRunMode(void);
 u16 Djy_GetEvttId(char *evtt_name);
 bool_t Djy_EvttUnregist(u16 evtt_id);
 bool_t Djy_QuerySch(void);
@@ -369,7 +363,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_RaiseTempPrio(u16 event_id);
 bool_t Djy_RestorePrio(void);
 u32 Djy_EventDelay(u32 u32l_uS);
-u32 Djy_EventDelayTo(s64 s64l_uS);
+u64 Djy_EventDelayTo(u64 s64l_uS);
 u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout);
 u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
 u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);
@@ -391,6 +385,7 @@ u16 Djy_MyEvttId(void);
 u16 Djy_MyEventId(void);
 void Djy_ApiStart(u32 api_no);
 void Djy_DelayUs(u32 time);
+struct EventECB *Djy_GetIdle(void);
 
 bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info);
 bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len);
@@ -399,4 +394,4 @@ bool_t Djy_RegisterHook(u16 EvttID,SchHookFunc HookFunc);
 #ifdef __cplusplus
 }
 #endif
-#endif //__djyos_H__
+#endif //__DJYOS_H__

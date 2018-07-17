@@ -72,12 +72,47 @@
 #include "version.h"
 #include "time.h"
 #include "systime.h"
+#include <ctype.h>
 
-bool_t  Sh_ResetCpu();
-bool_t  Sh_ResetCpuHot();
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-extern bool_t __erase_all_nand(char *param);
-bool_t Sh_ShowForCycle(char *param);
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_Sh(void);
+//    ModuleInstall_Sh();
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"shell"        //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件               //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"stdio"            //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
+
 bool_t Sh_ListRscSon(char *param);
 bool_t Sh_ListRscTree(char *param);
 void Sh_ListRscAll(void);
@@ -97,7 +132,6 @@ bool_t Sh_SetDate(char *param);
 bool_t Sh_SetTime(char *param);
 
 ptu32_t Sh_Service(void);
-ptu32_t ModuleInstall_Sh(ptu32_t para);
 
 void (*fng_pPrintWorkPath)(void) = NULL;
 bool_t (*fng_pCD_PTT)(const char *PTT_Name) = NULL;
@@ -119,12 +153,6 @@ struct ShellCmdTab const shell_cmd_table[] =
         "列出子资源",
         "格式: rsc_tree RscName,省略RscName则列出根资源"
     },
-//    {
-//        "speed",
-//        Sh_ShowForCycle,
-//        "测量for循环运行速度",
-//        NULL
-//    },
     {
         "d",
         Sh_ShowMemory,
@@ -162,12 +190,12 @@ struct ShellCmdTab const shell_cmd_table[] =
         NULL
     },
 
-	{
-		"settime",
-		Sh_SetTime,
-		"Diaplay or set current time",
-		"命令格式:settime year/month/day, hour:min:sec+Enter"
-	},
+    {
+        "settime",
+        Sh_SetTime,
+        "Diaplay or set current time",
+        "命令格式:settime year/month/day, hour:min:sec+Enter"
+    },
 
     {
         "uninstall-cmd",
@@ -177,7 +205,7 @@ struct ShellCmdTab const shell_cmd_table[] =
     },
     {
         "cpuinfo",
-		ShowCpuInfo,
+        ShowCpuInfo,
         "usage:cpuinfo:show the cpu",
         NULL
     },
@@ -185,7 +213,7 @@ struct ShellCmdTab const shell_cmd_table[] =
 
 static struct ShellCmdRsc tg_shell_cmd_rsc
                         [sizeof(shell_cmd_table)/sizeof(struct ShellCmdTab)];
-static struct Object cmd_list_node;
+static struct Object *s_ptShellCmdDir;
 
 //----当前工作路函数指针赋值-----------------------------------------------------
 //功能: 函数指针赋值，该指针指向获取当前工作路径的函数
@@ -197,36 +225,42 @@ void Sh_PrintWorkPathSet(void)
     fng_pPrintWorkPath = (void*)Sh_PrintWorkPath;
 }
 
+
+extern ptu32_t Sh_ServiceNew(void);
+
 //----调试模块初始化函数-------------------------------------------------------
 //功能: 初始化调试模块
 //参数: 无
-//返回: 1
+//返回: true = 成功，false = 失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Sh(ptu32_t para)
+bool_t ModuleInstall_Sh(void)
 {
     u16 shell_evtt;
     u32 loop;
-    para = para;        //消除编译器告警
     shell_evtt = Djy_EvttRegist(EN_CORRELATIVE,  //关联型事件
                                 CN_PRIO_REAL,       //默认优先级
                                 0,                  //线程保留数，关联型无效
                                 0,                  //线程上限，关联型无效
 //                                1,                  //参数队列长度上限
-                                Sh_Service,         //入口函数
+                                Sh_ServiceNew,         //入口函数
                                 NULL,               //由系统分配栈
                                 0x1000,             //栈尺寸
                                 "shell"             //事件类型名
                                 );
     if(shell_evtt == CN_EVTT_ID_INVALID)
         return false;
-    if(Djy_EventPop(shell_evtt,NULL,0,0,0,0)
-                        == CN_EVENT_ID_INVALID)
+    s_ptShellCmdDir = OBJ_AddChild(OBJ_Root(), NULL, 0, "shell cmd list");
+    if(s_ptShellCmdDir == NULL)
     {
         Djy_EvttUnregist(shell_evtt);
     }
-    OBJ_AddTree(&cmd_list_node,sizeof(struct Object),RSC_RSCNODE,"shell cmd list");
-    for(loop = 0;
-            loop<sizeof(shell_cmd_table)/sizeof(struct ShellCmdTab);loop++)
+    if(Djy_EventPop(shell_evtt,NULL,0,0,0,0) == CN_EVENT_ID_INVALID)
+    {
+        Djy_EvttUnregist(shell_evtt);
+        OBJ_Del(s_ptShellCmdDir);
+        return false;
+    }
+    for(loop = 0;loop<sizeof(shell_cmd_table)/sizeof(struct ShellCmdTab);loop++)
     {
         tg_shell_cmd_rsc[loop].shell_cmd_func
                                     = shell_cmd_table[loop].shell_cmd_func;
@@ -234,10 +268,10 @@ ptu32_t ModuleInstall_Sh(ptu32_t para)
                                     = shell_cmd_table[loop].help_hint;
         tg_shell_cmd_rsc[loop].help_detailed
                                     = shell_cmd_table[loop].help_detailed;
-        OBJ_AddChild(&cmd_list_node,&(tg_shell_cmd_rsc[loop].cmd_node),
-                    sizeof(struct ShellCmdRsc),RSC_SHELL_CMD,(const char*)(shell_cmd_table[loop].cmd));
+        OBJ_AddChild(s_ptShellCmdDir, NULL, (ptu32_t)&tg_shell_cmd_rsc[loop],
+                                (const char*)(shell_cmd_table[loop].cmd));
     }
-    return 1;
+    return true;
 }
 
 //----添加shell命令------------------------------------------------------------
@@ -261,13 +295,12 @@ bool_t Sh_InstallCmd(struct ShellCmdTab const *cmd_tab,
 
     for(loop = 0; loop < cmd_num;loop++)
     {
-        if(OBJ_SearchChild(&cmd_list_node,(const char*)(cmd_tab[loop].cmd)) == NULL)
+        if(OBJ_SearchChild(s_ptShellCmdDir,(const char*)(cmd_tab[loop].cmd)) == NULL)
         {
             cmd_rsc[loop].shell_cmd_func = cmd_tab[loop].shell_cmd_func;
             cmd_rsc[loop].help_hint = cmd_tab[loop].help_hint;
             cmd_rsc[loop].help_detailed = cmd_tab[loop].help_detailed;
-            OBJ_AddChild(&cmd_list_node,&(cmd_rsc[loop].cmd_node),
-                        sizeof(struct ShellCmdRsc),RSC_SHELL_CMD,(const char*)(cmd_tab[loop].cmd));
+            OBJ_AddChild(s_ptShellCmdDir, NULL, (ptu32_t)&cmd_rsc[loop],(const char*)(cmd_tab[loop].cmd));
         }
         else
         {
@@ -281,7 +314,7 @@ bool_t Sh_InstallCmd(struct ShellCmdTab const *cmd_tab,
 //参数: cmd_tab，命令表指针，可参照shell_cmd_table的方式定义,cmd_num，表的大小
 //返回: 成功卸载的个数
 //-----------------------------------------------------------------------------
-u32 sh_uninstall_cmd_bytab(struct ShellCmdTab const *cmd_tab,u32 cmd_num)
+u32 Sh_UninstallCmdByTab(struct ShellCmdTab const *cmd_tab,u32 cmd_num)
 {
     u32 loop;
     u32 result = 0;
@@ -291,7 +324,7 @@ u32 sh_uninstall_cmd_bytab(struct ShellCmdTab const *cmd_tab,u32 cmd_num)
 
     for(loop = 0; loop < cmd_num;loop++)
     {
-        tagShellCmdRsc = OBJ_SearchChild(&cmd_list_node,(const char*)(cmd_tab[loop].cmd));
+        tagShellCmdRsc = OBJ_SearchChild(s_ptShellCmdDir,(const char*)(cmd_tab[loop].cmd));
         if(NULL != tagShellCmdRsc)
         {
             OBJ_Del(tagShellCmdRsc);
@@ -310,7 +343,7 @@ bool_t Sh_UninstallCmdByName(char *param)
         return false;
     }
 
-    tagShellCmdRsc = OBJ_SearchChild(&cmd_list_node,(const char *)param);
+    tagShellCmdRsc = OBJ_SearchChild(s_ptShellCmdDir,(const char *)param);
     if(NULL != tagShellCmdRsc)
     {
         OBJ_Del(tagShellCmdRsc);
@@ -366,21 +399,6 @@ char *Sh_GetWord(char *buf,char **next)
     return buf;
 }
 
-//----显示for循环时间----------------------------------------------------------
-//功能: 显示一个for(;;)循环的执行时间，循环变量分别是8位、16位、32位。
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-//extern u32 g_u32CycleSpeed; //for(i=j;i>0;i--);每循环纳秒数*1.024
-//
-//bool_t Sh_ShowForCycle(char *para)
-//{
-//    para = para;        //消除编译器告警
-//    printf("空for循环执行时间: %dnS\r\n", g_u32CycleSpeed);
-//
-//    return true;
-//}
-
 //----显示子资源----------------------------------------------------------
 //功能: 按参数要求显示资源队列中资源的名字，若该资源名字为空，则显示"无名资源"
 //参数: 参数字符串，待列出的父资源名，省却则列出根结点下的资源
@@ -390,10 +408,12 @@ bool_t Sh_ListRscSon(char *param)
 {
     struct Object *rsc_tree;
     if(param == NULL)
-        rsc_tree = OBJ_SysRoot();
+    {
+        rsc_tree = OBJ_Root();
+    }
     else
     {
-        rsc_tree = OBJ_Search(OBJ_SysRoot(),(const char*)param);
+        rsc_tree = OBJ_Search(OBJ_Root(),(const char*)param);
         if(rsc_tree == NULL)
         {
             printf("没找到 %s 资源\r\n",param);
@@ -413,10 +433,10 @@ bool_t Sh_ListRscTree(char *param)
 {
     struct Object *rsc_tree;
     if(param == NULL)
-        rsc_tree = OBJ_SysRoot();
+        rsc_tree = OBJ_Root();
     else
     {
-        rsc_tree = OBJ_Search(OBJ_SysRoot(),(const char*)param);
+        rsc_tree = OBJ_Search(OBJ_Root(),(const char*)param);
         if(rsc_tree == NULL)
         {
             printf("没找到 %s 资源树\r\n",param);
@@ -444,7 +464,7 @@ void __Sh_ShowSon(struct Object *branche)
             break;
         }
 
-        Name = OBJ_Name(current_node);
+        Name = (char*)OBJ_Name(current_node);
         if(Name)
         {
             printf("  %s\r\n", Name);
@@ -477,11 +497,11 @@ void __Sh_ShowBranche(struct Object *branche)
             printf("\r\n");
             break;
         }
-        len = OBJ_GetLevel(current_node);
+        len = OBJ_Level(current_node);
         neg[len] = '\0';
         printf("%s", neg);
         neg[len] = '-';
-        Name = OBJ_Name(current_node);
+        Name = (char*)OBJ_Name(current_node);
         if(Name != NULL)
         {
             printf("%s\r\n", Name);
@@ -829,21 +849,22 @@ bool_t Sh_FillMemory(char *param)
 void Sh_CmdHelp(void)
 {
     struct ShellCmdRsc *current_cmd;
+    struct Object *CmdObj;
     printf("\r\n有关具体命令的详细信息，请输入help [命令名]\r\n");
     printf("\r\n");
-    current_cmd = (struct ShellCmdRsc *)&cmd_list_node;
+    CmdObj = (struct Object *)s_ptShellCmdDir;
     char *Name;
     while(1)
     {
-        current_cmd = (struct ShellCmdRsc *)
-                    OBJ_TraveScion(&cmd_list_node,(struct Object *)current_cmd);
-        if(current_cmd == NULL)
+        CmdObj = OBJ_TraveScion(s_ptShellCmdDir,CmdObj);
+        if(CmdObj == NULL)
         {
             break;
         }
         else
         {
-            Name = OBJ_Name(&current_cmd->cmd_node);
+            current_cmd = (struct ShellCmdRsc *)OBJ_Represent(CmdObj);
+            Name = (char*)OBJ_Name(CmdObj);
             if(current_cmd->help_hint != NULL)
             {
                 //todo: 前福查下，第一个%s应该是%-32s才对，下6行同
@@ -868,6 +889,7 @@ void Sh_CmdHelp(void)
 bool_t Sh_ListCmdHelp(char *param)
 {
     char *cmd,*next_param;
+    struct Object *CmdObj;
     bool_t result;
     struct ShellCmdRsc *help_cmd;
 
@@ -879,9 +901,10 @@ bool_t Sh_ListCmdHelp(char *param)
     else
     {
         cmd = Sh_GetWord(param,&next_param);
-        help_cmd = (struct ShellCmdRsc *)OBJ_SearchChild(&cmd_list_node,(const char*)cmd);
-        if(help_cmd != NULL)
+        CmdObj = OBJ_SearchChild(s_ptShellCmdDir,(const char*)cmd);
+        if(CmdObj != NULL)
         {
+            help_cmd = (struct ShellCmdRsc *)OBJ_Represent(CmdObj);
             if(help_cmd->help_detailed != NULL)
                 printf("%s",help_cmd->help_detailed);
             else
@@ -922,24 +945,24 @@ bool_t Sh_Date(char *param)
     if(strlen(buf) != 0)
     {
         memcpy(command,buf,10);
-		res = Tm_SetDateTimeStr(command);
-		switch (res)
-		{
-		case EN_CLOCK_YEAR_ERROR:
-			printf("年份错误。");
-			break;
-		case EN_CLOCK_MON_ERROR:
-			printf("月份错误。");
-			break;
-		case EN_CLOCK_DAY_ERROR:
-			printf("日期错误。");
-			break;
-		case EN_CLOCK_FMT_ERROR:
-			printf("格式错误。");
-			break;
-		default:
-			break;
-		}
+        res = Tm_SetDateTimeStr(command);
+        switch (res)
+        {
+        case EN_CLOCK_YEAR_ERROR:
+            printf("年份错误。");
+            break;
+        case EN_CLOCK_MON_ERROR:
+            printf("月份错误。");
+            break;
+        case EN_CLOCK_DAY_ERROR:
+            printf("日期错误。");
+            break;
+        case EN_CLOCK_FMT_ERROR:
+            printf("格式错误。");
+            break;
+        default:
+            break;
+        }
     }
 
     printf("\r\n");
@@ -963,24 +986,24 @@ bool_t Sh_Time(char *param)
     fgets(command+11,9,stdin);
     if(strlen(command+11) != 0)
     {
-    	res = Tm_SetDateTimeStr(command);
-		switch (res)
-		{
-		case EN_CLOCK_HOUR_ERROR:
-			printf("小时错误。");
-			break;
-		case EN_CLOCK_MIN_ERROR:
-			printf("分钟错误。");
-			break;
-		case EN_CLOCK_SEC_ERROR:
-			printf("秒钟错误。");
-			break;
-		case EN_CLOCK_FMT_ERROR:
-			printf("格式错误。");
-			break;
-		default:
-			break;
-		}
+        res = Tm_SetDateTimeStr(command);
+        switch (res)
+        {
+        case EN_CLOCK_HOUR_ERROR:
+            printf("小时错误。");
+            break;
+        case EN_CLOCK_MIN_ERROR:
+            printf("分钟错误。");
+            break;
+        case EN_CLOCK_SEC_ERROR:
+            printf("秒钟错误。");
+            break;
+        case EN_CLOCK_FMT_ERROR:
+            printf("格式错误。");
+            break;
+        default:
+            break;
+        }
     }
 
     printf("\r\n");
@@ -991,9 +1014,6 @@ bool_t Sh_Time(char *param)
 /*
  * 以下两个函数临时添加，用于通过网线在telnet终端修改日期和时间 by zhb20170313
  */
-
-
-
 bool_t Sh_SetTime(char *param)
 {
     s64 nowtime;
@@ -1007,33 +1027,33 @@ bool_t Sh_SetTime(char *param)
 
    if(param!=NULL)
    {
-	    memcpy(command,param,20);
-		res = Tm_SetDateTimeStr(command);
-		switch (res)
-		{
-		case EN_CLOCK_HOUR_ERROR:
-			printf("小时错误。");
-			break;
-		case EN_CLOCK_MIN_ERROR:
-			printf("分钟错误。");
-			break;
-		case EN_CLOCK_SEC_ERROR:
-			printf("秒钟错误。");
-			break;
-		case EN_CLOCK_FMT_ERROR:
-			printf("格式错误。");
-			break;
-		default:
-			break;
-		}
+        memcpy(command,param,20);
+        res = Tm_SetDateTimeStr(command);
+        switch (res)
+        {
+        case EN_CLOCK_HOUR_ERROR:
+            printf("小时错误。");
+            break;
+        case EN_CLOCK_MIN_ERROR:
+            printf("分钟错误。");
+            break;
+        case EN_CLOCK_SEC_ERROR:
+            printf("秒钟错误。");
+            break;
+        case EN_CLOCK_FMT_ERROR:
+            printf("格式错误。");
+            break;
+        default:
+            break;
+        }
 
-	    printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
+        printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
 
    }
    else
    {
-	   printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
-	   printf("\r\n输入新时间：");
+       printf("\r\n当前时间：%s %s",command, g_cTmWdays[dtm.tm_wday]);
+       printf("\r\n输入新时间：");
    }
 
    printf("\r\n");
@@ -1083,6 +1103,7 @@ bool_t Sh_ExecCommand(char *buf)
 {
     bool_t result = false;
     char *cmd,*next_param;
+    struct Object *CmdObj;
     struct ShellCmdRsc *exec_cmd;
     //串口限制读取255字符，在这里提示超长就行。
     if(strnlen(buf, CN_SHELL_CMD_LIMIT+1) > CN_SHELL_CMD_LIMIT)
@@ -1109,9 +1130,10 @@ bool_t Sh_ExecCommand(char *buf)
     }
     cmd = Sh_GetWord(buf,&next_param);
     strlwr(cmd);
-    exec_cmd = (struct ShellCmdRsc *)OBJ_SearchChild(&cmd_list_node,(const char*)cmd);
-    if(exec_cmd != NULL)
+    CmdObj = OBJ_SearchChild(s_ptShellCmdDir,(const char*)cmd);
+    if(CmdObj != NULL)
     {
+        exec_cmd = (struct ShellCmdRsc *)OBJ_Represent(CmdObj);
         result = exec_cmd->shell_cmd_func(next_param);
         if(result == false)
         {
@@ -1130,6 +1152,9 @@ bool_t Sh_ExecCommand(char *buf)
     }
     return result;
 }
+
+struct MultiplexSetsCB * sg_ptShellStdin;
+
 //----控制台服务函数-----------------------------------------------------------
 //功能: 返回console输入的字符，带console输入回车符时，执行命令。一次命令不得超过
 //      255字符。
@@ -1139,9 +1164,10 @@ bool_t Sh_ExecCommand(char *buf)
 ptu32_t Sh_Service(void)
 {
     char command[CN_SHELL_CMD_LIMIT+1];
+//    Multiplex_Create(1);
     printf("\n\r");
     if ((fng_pPrintWorkPath != NULL))
-        fng_pPrintWorkPath( );
+        fng_pPrintWorkPath();
     printf(">");
     while(1)
     {
@@ -1153,11 +1179,367 @@ ptu32_t Sh_Service(void)
             fgets(command,CN_SHELL_CMD_LIMIT+1,stdin);
             if(strlen(command) != 0)
                 Sh_ExecCommand(command);  //执行命令
+            printf("\n\r");
             if ((fng_pPrintWorkPath != NULL))
-                fng_pPrintWorkPath( );
+                fng_pPrintWorkPath();
             printf(">");
         }
     }
 }
 
+//because the stdin device could do no any more display work,so we must do all the
+//display jobs here
+//1,the telnet do the local display default,so it must do the nvt and not do the local echo
+//2,the uart terminal should do no any display works here
+//3,the keyboard should put all the information on the display
+//the nvt rules:
+//1,1B 5B 41 move the current cursor up
+//2,1B 5B 42 move the current cursor down
+//3,1B 5B 44 move the current cursor left
+//4,1B 5B 43 move the current cursor right
+//5,'\B' move the current cursor left
+//6,1B delete all the input and make the following code transfer
 
+//defines for the virtual key:0x1B + UKEY +VKEY
+#define CN_VK_NULL         (0x000000)    //NULL   CODE
+#define CN_VK_ARROWU       (0X41001B)    //UP     ARROW
+#define CN_VK_ARROWD       (0X42001B)    //DOWN   ARROW
+#define CN_VK_ARROWR       (0X43001B)    //RIGHT  ARROW
+#define CN_VK_ARROWL       (0X44001B)    //LEFT   ARROW
+#define CN_VK_LF           (0X00000D)    //ENTER
+#define CN_VK_CR           (0X00000A)    //NEW LINE
+#define CN_VK_TAB          (0X000009)    //TABLE
+#define CN_VK_BS           (0X000008)    //BACK SPACE
+#define CN_VK_ES           (0X00001B)    //ESPACE
+
+//i think each editor has its own meaning for the control character
+//the shell decode the control character as the following:
+//the executed command is the ring table,you could use the up and down key for the auto complete
+//up key:show the last command before the last command
+//down key:show the command after the last command
+
+//should read each character from the stdin,if '\n',then end the input here,do the command execute
+//if we get the control character, then decode it
+//because too much hook function will be executed here, and we don't know how deep the hook function is,so we just make the
+//memory resource file global
+#define CN_CMDLEN_MAX  64  //i don't think you could type more world than this,if not,maybe make user too tired
+#define CN_CMD_CACHE   8   //you could use the up and down key to execute the history command
+typedef struct
+{
+    char  curcmd[CN_CMDLEN_MAX];               //ended with '\0'
+    u8    curoffset;                           //point to the position to be edited,the current position to be written
+    char  tab[CN_CMD_CACHE][CN_CMDLEN_MAX];    //cache the history command
+    u8    taboffset;                           //point to which cache has been used
+}tagShellBuffer;
+static void putsbackspace(int times)
+{
+    char ch;
+    int i =0;
+    for(i =0;i<times;i++)
+    {
+        ch ='\b';  //move the cursor left
+        putc(ch,stdout);
+        ch =' ';   //space key
+        putc(ch,stdout);
+        ch ='\b';  //move the cursor left
+        putc(ch,stdout);
+    }
+}
+static void putsnxtspace(int times)
+{
+    char ch;
+    int i =0;
+    ch =' ';  //just put the space
+    for(i =0;i<times;i++)
+    {
+        putc(ch,stdout);
+    }
+}
+//absolutely,just put the right cursor,maybe different terminal has different right virtual key
+static void  movescursorright(int times,u32 vk)
+{
+    char ch;
+    int i =0;
+    for(i =0;i<times;i++)
+    {
+        ch = (char)(vk&0xff);
+        putc(ch,stdout);
+        ch = (char)((vk>>8)&0xff);
+        putc(ch,stdout);
+        ch = (char)((vk>>16)&0xff);
+        putc(ch,stdout);
+    }
+}
+//absolutely,just put the left cursor,maybe different terminal has different right virtual key
+static void  movescursoleft(int times)
+{
+    char ch ='\b';  //move the cursor left
+    int i =0;
+    for(i =0;i<times;i++)
+    {
+        putc(ch,stdout);
+    }
+}
+
+//we just do the buffer manager and semantic analysis
+//use the index to find the corresponding command here
+static const char *__matchcmd(const char *index)
+{
+    const char *ret =NULL;
+    struct Object *start;
+    struct Object *tmp;
+
+    start = OBJ_Child(s_ptShellCmdDir);
+    tmp = start;
+    do{
+        ret = strstr(OBJ_Name(tmp),index);
+        if(ret != NULL)
+        {
+            ret = OBJ_Name(tmp);
+            break;
+        }
+        tmp = OBJ_Next(tmp);
+    }while(tmp != start);
+    return ret;
+}
+//for the windows.the shell get the left rigt up down
+ptu32_t Sh_ServiceNew(void)
+{
+    u8    ch;
+    int   len;
+    u8    offset;
+    const char *cmdindex;
+    char *cwd;
+    u32   vk = CN_VK_NULL;    //used when we push back the right key
+    u32   vkmask = CN_VK_NULL;
+    tagShellBuffer cmdbuf;
+    s32 res;
+    memset(&cmdbuf,0,sizeof(cmdbuf));
+    {
+        char *cwd = getcwd(NULL,0);
+        printf("\n\r%s>", cwd);   //push the index character to the terminal
+        free(cwd);
+    }
+    while(1)
+    {
+        res = getc(stdin);
+        if(EOF == res)
+        {
+            Djy_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
+            continue;
+        }
+
+        ch = (u8)res;
+        if((ch == CN_VK_NULL)||(ch == 0xFF))
+        {
+            continue;   //NO CODE GET HERE
+        }
+
+        if((vk&0xFF) != 0)  //get the transfer code before
+        {
+            if(((vk>>8)&0xff) == CN_VK_NULL)  //this maybe the base code
+            {
+                vk|=(ch<<8); //get the base code
+                continue;    //continue to get the vk:three bytes to decode for the escape key
+            }
+            else  //this is the vk code
+            {
+                vk |= (ch <<16);
+                vkmask |= (ch <<16);
+            }
+        }
+        else
+        {
+            vkmask  = ch;
+        }
+        switch (vkmask)
+        {
+            case CN_VK_ARROWL:        //left,make the cursor moved left
+                if(cmdbuf.curoffset > 0)//if not,do nothing here
+                {
+                    cmdbuf.curoffset--;
+                    //push back the left cursor and make the terminal display know what has happened
+                    movescursoleft(1);
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_ARROWR:        //right,make the cursor moved right,if the buffer has the data
+                len = strlen(cmdbuf.curcmd);
+                if(cmdbuf.curoffset < len)
+                {
+                    cmdbuf.curoffset++;
+                    //push back the right cursor and make the terminal display know what has happened
+                    movescursorright(1,vk);
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_ARROWU:        //moves to the previous command
+                //first,we should clear what we has get,do the reset current command
+                //first moves to the left,then putsnxt to the next to the right,then back
+                len = strlen(cmdbuf.curcmd);
+                if(cmdbuf.curoffset < len)
+                {
+                    putsnxtspace(len - cmdbuf.curoffset);
+                    cmdbuf.curoffset = len;
+                }
+                putsbackspace(len);
+                memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                cmdbuf.curoffset = 0;
+                //then copy the previous command to current and echo all the info
+                offset = (cmdbuf.taboffset +CN_CMD_CACHE -1)%CN_CMD_CACHE;
+                strncpy(cmdbuf.curcmd,cmdbuf.tab[offset],CN_CMDLEN_MAX);
+                cmdbuf.taboffset = offset;
+                cmdbuf.curoffset = strlen(cmdbuf.curcmd);
+                //OK,now puts all the current character to the terminal
+                puts(cmdbuf.curcmd);
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_ARROWD:        //moves to the next command
+                //first,we should clear what we has get,do the reset current command
+                //first moves to the right,then backspace all the input
+                len = strlen(cmdbuf.curcmd);
+                if(cmdbuf.curoffset < len)
+                {
+                    putsnxtspace(len - cmdbuf.curoffset);
+                    cmdbuf.curoffset = len;
+                }
+                putsbackspace(len);
+                memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                cmdbuf.curoffset = 0;
+                //then copy the next command to current
+                offset = (cmdbuf.taboffset +CN_CMD_CACHE +1)%CN_CMD_CACHE;
+                strncpy(cmdbuf.curcmd,cmdbuf.tab[offset],CN_CMDLEN_MAX);
+                cmdbuf.taboffset = offset;
+                cmdbuf.curoffset = strlen(cmdbuf.curcmd);
+                //OK,now puts all the current character to the terminal
+                puts(cmdbuf.curcmd);
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_TAB:      //tab,should auto complete the command
+                //should search the command we has installed if some index has get
+                len = strlen(cmdbuf.curcmd);
+                if(len > 0)  //some index has get
+                {
+                    cmdindex = __matchcmd((const char*)cmdbuf.curcmd);
+                    if(NULL != cmdindex) //get the corresponding command here
+                    {
+                        //first,we should clear what we has get,do the reset current command
+                        //first moves to the right,then backspace all the input
+                        len = strlen(cmdbuf.curcmd);
+                        if(cmdbuf.curoffset < len)
+                        {
+                            putsnxtspace(len - cmdbuf.curoffset);
+                            cmdbuf.curoffset = len;
+                        }
+                        putsbackspace(len);
+                        memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                        cmdbuf.curoffset = 0;
+                        //then copy the command and puts the string here
+                        strncpy(cmdbuf.curcmd,cmdindex,CN_CMDLEN_MAX);
+                        cmdbuf.curoffset = strlen(cmdbuf.curcmd);
+                        //OK,now puts all the current character to the terminal
+                        puts(cmdbuf.curcmd);
+                    }
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_LF:      //execute the command here, and push the command to the history cache
+                if(strlen(cmdbuf.curcmd) != 0)
+                {
+                    printf("\n\r");
+                    //copy the current to the history cache if the current command is not none
+                    len = strlen(cmdbuf.curcmd);
+                    if(len > 0)
+                    {
+                        offset=cmdbuf.taboffset;
+                        memset(cmdbuf.tab[offset],0,CN_CMDLEN_MAX);
+                        strncpy(cmdbuf.tab[offset],cmdbuf.curcmd,CN_CMDLEN_MAX);
+                        offset = (offset +1)%CN_CMD_CACHE;
+                        cmdbuf.taboffset = offset;
+                    }
+                    Sh_ExecCommand(cmdbuf.curcmd);  //execute the command
+                    memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                    cmdbuf.curoffset = 0;
+                }
+                cwd = getcwd(NULL,0);
+                printf("\n\r%s>", cwd);   //push the index character to the terminal
+                free(cwd);
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_CR:      //execute the command here, and push the command to the history cache
+                if(strlen(cmdbuf.curcmd) != 0)
+                {
+                    printf("\n\r");
+                    //copy the current to the history cache if the current command is not none
+                    len = strlen(cmdbuf.curcmd);
+                    if(len > 0)
+                    {
+                        offset=cmdbuf.taboffset;
+                        memset(cmdbuf.tab[offset],0,CN_CMDLEN_MAX);
+                        strncpy(cmdbuf.tab[offset],cmdbuf.curcmd,CN_CMDLEN_MAX);
+                        offset = (offset +1)%CN_CMD_CACHE;
+                        cmdbuf.taboffset = offset;
+                    }
+                    Sh_ExecCommand(cmdbuf.curcmd);  //execute the command
+                    memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                    cmdbuf.curoffset = 0;
+                }
+                cwd = getcwd(NULL,0);
+                printf("\n\r%s>", cwd);   //push the index character to the terminal
+                free(cwd);
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_BS:      //should delete the current character,move all the following character 1 position to before
+                if(cmdbuf.curoffset >0)
+                {
+                    cmdbuf.curcmd[cmdbuf.curoffset] = 0;
+                    cmdbuf.curoffset--;
+                    putsbackspace(1);
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+            case CN_VK_ES:      //esc key,delete all the input here
+                len = strlen(cmdbuf.curcmd);
+                if(cmdbuf.curoffset < len)
+                {
+                    putsnxtspace(len - cmdbuf.curoffset);
+                    cmdbuf.curoffset = len;
+                }
+                putsbackspace(len);
+                memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                cmdbuf.curoffset = 0;
+                //this is also the transfer code
+                vk= CN_VK_ES;
+                vkmask = CN_VK_ES;
+                break;
+            default: //other control character will be ignored
+                //push the character to the buffer until its full and the '\n' comes
+                if((cmdbuf.curoffset <(CN_CMDLEN_MAX-1))&&(isprint((int)ch)))//the last will be'\0'
+                {
+                    cmdbuf.curcmd[cmdbuf.curoffset] = ch;
+                    cmdbuf.curoffset++;
+                    putc(ch,stdout);   //should do the echo
+                }
+                //flush the vk
+                vk = CN_VK_NULL;
+                vkmask = CN_VK_NULL;
+                break;
+        }
+    }
+}

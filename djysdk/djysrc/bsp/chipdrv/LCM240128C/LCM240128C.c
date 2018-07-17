@@ -35,7 +35,7 @@
 // |(ymax-1)*xmax,(ymax-1)*xmax+1------------ymax*xmax-1    右下角
 //\/
 
-struct DisplayRsc tg_lcd_display;
+struct DisplayObj tg_lcd_display;
 u16 *pg_frame_buffer;
 u8 *volatile CmdPort = (u8*)0x60000000;
 u8 *volatile DataPort = (u8*)0x60000001;
@@ -59,11 +59,11 @@ extern const Pin LCD_RST[1];
 
 u8 LCD_GetStatus(void)
 {
-	u8 s0,s1,s2;
-	s0 = *CmdPort;
-	s1 = *CmdPort;
-	s2 = *CmdPort;
-	return s0;
+    u8 s0,s1,s2;
+    s0 = *CmdPort;
+    s1 = *CmdPort;
+    s2 = *CmdPort;
+    return s0;
 }
 
 
@@ -123,10 +123,10 @@ void LCD_BackLight(bool_t OnOff)
 //-----------------------------------------------------------------------------
 void LCD_Reset(void)
 {
-	 PIO_Clear(LCD_RST);
-	 Djy_EventDelay(10*mS);
-	 PIO_Set(LCD_RST);
-	 Djy_EventDelay(50*mS);
+     PIO_Clear(LCD_RST);
+     Djy_EventDelay(10*mS);
+     PIO_Set(LCD_RST);
+     Djy_EventDelay(50*mS);
 }
 
 
@@ -163,7 +163,7 @@ void __lcd_power_enable(bool_t OnOff)
 //参数: disp，显示器指针
 //返回: true=成功，false=失败
 //-----------------------------------------------------------------------------
-bool_t __lcd_disp_ctrl(struct DisplayRsc *disp)
+bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 {
 
     return true;
@@ -382,31 +382,31 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
             *CmdPort = 0xad;                            // 开显示  启动灰度显示
 
             *CmdPort = 0xf4; *CmdPort = xstart/3;           // 设置操作窗口左边界
-		   *CmdPort = 0xf5; *CmdPort = (u8)dst_rect->top;  // 设置操作窗口上边界
-		   *CmdPort = 0xf6; *CmdPort = xend/3+1;             // 设置操作窗口右边界
-		   *CmdPort = 0xf7; *CmdPort = (u8)(dst_rect->bottom-1);  // 设置操作窗口下边界
-		   *CmdPort = 0xf8;                                // 设置窗口操作使能
-		   *CmdPort = xstart/3 & 0x0f;
-		   *CmdPort = 0x10|(xstart/3 >> 4);            // 设置起始列地址
+           *CmdPort = 0xf5; *CmdPort = (u8)dst_rect->top;  // 设置操作窗口上边界
+           *CmdPort = 0xf6; *CmdPort = xend/3+1;             // 设置操作窗口右边界
+           *CmdPort = 0xf7; *CmdPort = (u8)(dst_rect->bottom-1);  // 设置操作窗口下边界
+           *CmdPort = 0xf8;                                // 设置窗口操作使能
+           *CmdPort = xstart/3 & 0x0f;
+           *CmdPort = 0x10|(xstart/3 >> 4);            // 设置起始列地址
            *CmdPort = 0x60 + ((u8)dst_rect->top & 0x0f);
            *CmdPort = 0x70 + ((u8)(dst_rect->top)>> 4);// 设置起始行地址
-			offset = ysrc * src_bitmap->linebytes + realxsrc/2;
-	        Djy_DelayUs(1);
-	        PatchF7Bug_SetA0;
-			for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
-			{
-				for(loopx = 0; loopx < (xend-xstart+6)/2; loopx++ )
-				{
-					c = src_bitmap->bm_bits[offset+loopx];
-					*DataPort = c;
-				}
-				offset += src_bitmap->linebytes;
-			}
-		    PatchF7Bug_ClearA0;
-	        s0 = *CmdPort;
-	        s1 = *CmdPort;
-	        s2 = *CmdPort;
-		}
+            offset = ysrc * src_bitmap->linebytes + realxsrc/2;
+            Djy_DelayUs(1);
+            PatchF7Bug_SetA0;
+            for(loopy = 0; loopy < dst_rect->bottom - dst_rect->top; loopy++)
+            {
+                for(loopx = 0; loopx < (xend-xstart+6)/2; loopx++ )
+                {
+                    c = src_bitmap->bm_bits[offset+loopx];
+                    *DataPort = c;
+                }
+                offset += src_bitmap->linebytes;
+            }
+            PatchF7Bug_ClearA0;
+            s0 = *CmdPort;
+            s1 = *CmdPort;
+            s2 = *CmdPort;
+        }
     }
     else
     {
@@ -446,7 +446,7 @@ bool_t __lcd_get_rect_screen(struct Rectangle *rect,struct RectBitmap *dest)
 //-----------------------------------------------------------------------------
 ptu32_t ModuleInstall_LCM240128C(const char *ChipName)
 {
-    static struct GkWinRsc frame_win;
+    static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
 
     Djy_EventDelay(10*mS);

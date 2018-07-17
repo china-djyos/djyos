@@ -389,7 +389,7 @@ size_t strftime(  char *s, size_t max,   const char *format,
 
            case 's':
              {
-               len = snprintf(dest, chleft, "%d", mktime((  struct tm *)tm));
+               len = snprintf(dest, chleft, "%ld", mktime((  struct tm *)tm));
              }
              break;
 

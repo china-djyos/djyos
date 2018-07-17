@@ -60,6 +60,8 @@
 #include "stdint.h"
 #include "board-config.h"
 #include "lock.h"
+#include "component_config_heap.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -67,16 +69,16 @@ extern "C" {
 struct HeapCession
 {
     struct HeapCession *Next;
-    u8   *static_bottom;  //堆底指针，从准静态分配算起
-    u8   *heap_bottom;    //堆底指针，从块相联动态分配算起
-    u8   *heap_top;       //堆顶指针
-    list_t   *last;       //静态分配最后一块的链表地址指针。
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+    u8   *static_bottom;        //堆底指针，从准静态分配算起
+    u8   *heap_bottom;          //堆底指针，从块相联动态分配算起
+    u8   *heap_top;             //堆顶指针
+    list_t   *last;             //静态分配最后一块的链表地址指针。
+#if ((CFG_DYNAMIC_MEM == 1))
     u32    PageSize;
-    u32    ua_pages_num;    //总页数
-    u32    free_pages_num;  //空闲内存页数
-    u32    ua_block_max;    //最大内存块尺寸(字节数)
-    u32    ua_free_block_max; //空闲的最大内存块大小(字节数);
+    u32    ua_pages_num;        //总页数
+    u32    free_pages_num;      //空闲内存页数
+    u32    ua_block_max;        //最大内存块尺寸(字节数)
+    u32    ua_free_block_max;   //空闲的最大内存块大小(字节数);
     ufast_t     uf_grades;      //总阶数
 
     //以下3部分在初始化时从堆中划出。
@@ -91,11 +93,11 @@ struct HeapCession
     //4.单页全局内存:0xfffd,全局内存没有所属事件id,只需要知道内存大小
     //5.双(多)页全局内存:0xfffc+阶号.
     //6.空闲内存:0xfffb
-    u16    *index_event_id;
-    ufast_t     *p_classes;     //第二部分,各阶块空闲金字塔级数表
-    ucpu_t      ***ppp_bitmap;  //第三部分,指向"空闲金字塔位图指针的指针",
+    u16     *index_event_id;
+    ufast_t *p_classes;     //第二部分,各阶块空闲金字塔级数表
+    ucpu_t  ***ppp_bitmap;  //第三部分,指向"空闲金字塔位图指针的指针",
                                 //每级一个,指向该阶空闲金字塔的第一个指针
-#endif   //for #if ((CN_CFG_DYNAMIC_MEM == 1))
+#endif   //for #if ((CFG_DYNAMIC_MEM == 1))
 };
 
 struct HeapCB
@@ -108,13 +110,13 @@ struct HeapCB
                                 //途，在该heap上分配的内存，有特殊的对齐尺寸。
     u32  HeapProperty;          //0=通用堆,1=专用堆
     char *HeapName;
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+#if ((CFG_DYNAMIC_MEM == 1))
     struct MutexLCB HeapMutex;
     // 等待分配内存的事件链表,双向循环链表。
     // 无论是否支持动态分配,在准静态分配期间,指针无效.
     // 仅专用堆的指针有效,通用堆将用静态变量s_ptMemSync替代.
     struct EventECB *mem_sync;
-#endif   //for #if ((CN_CFG_DYNAMIC_MEM == 1))
+#endif   //for #if ((CFG_DYNAMIC_MEM == 1))
 } ;
 
 //用于把事件申请的局部内存块串起来，调用y_event_done函数时，据此回收内存。

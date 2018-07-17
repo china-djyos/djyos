@@ -64,6 +64,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "./include/ring.h"
+#include "component_config_buffer.h"
 
 //----建立环形缓冲区----------------------------------------------------------
 //功能: 建立环形缓冲区并初始化，使用这个函数之前，用户应该定义缓冲区内存块和

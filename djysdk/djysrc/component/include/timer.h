@@ -84,7 +84,7 @@ bool_t Timer_Delete(tagTimer* timer);
 bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, ptu32_t para);
 char *Timer_GetName(tagTimer* timer);
 ptu32_t Timer_GetTag(tagTimer* timer);
-ptu32_t ModuleInstall_Timer(ptu32_t para);
+bool_t ModuleInstall_Timer(void);
 
 #ifdef __cplusplus
 }

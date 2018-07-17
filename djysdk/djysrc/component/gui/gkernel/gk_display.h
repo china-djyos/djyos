@@ -260,9 +260,9 @@ struct DispDraw
     bool_t (*GetRectFromScreen)(struct Rectangle *rect,struct RectBitmap *dest);
 };
 
-struct DisplayRsc
+struct DisplayObj
 {
-    struct Object  node;  //注:镜像显示器作为子资源结点挂在这里
+    struct Object  *HostObj;//注:镜像显示器作为子资源结点挂在这里
     float xmm,ymm;          //用毫米表示的显示器尺寸
     s32   width,height;     //按像素表示的显示器尺寸
     u32   pixel_format;     //像素格式，在gk_win.h中定义
@@ -270,9 +270,9 @@ struct DisplayRsc
     //帧缓冲直接显示。有些cpu使用系统内存做显存，设计driver时，可将显存直接作为
     //帧缓冲用。true=显存与帧缓冲重合
     bool_t framebuf_direct;
-    struct GkWinRsc  *frame_buffer;  //本显示器的帧缓冲，以窗口管理
-    struct GkWinRsc  *desktop;       //本显示器的桌面
-    struct GkWinRsc *z_topmost;      //z轴最前端窗体指针
+    struct GkWinObj  *frame_buffer;  //本显示器的帧缓冲，以窗口管理
+    struct GkWinObj  *desktop;       //本显示器的桌面
+    struct GkWinObj *z_topmost;      //z轴最前端窗体指针
 
     //A、如果在系统堆上分配窗口缓冲，DisplayHeap可置为NULL。
     //B、如果要在专用的显存Heap上分配窗口缓存，显卡驱动可使指针DisplayHeap指向该
@@ -286,17 +286,17 @@ struct DisplayRsc
     //设定该显示器所有可以由用户设定的参数，比如分辨率和和色彩参数。函数的功能
     //不做统一规定，驱动程序的文档应该提供函数的使用说明。
     //利用本函数，可以提供类似windows中设置显示器属性的功能。
-    bool_t (*disp_ctrl)(struct DisplayRsc *disp);
+    bool_t (*disp_ctrl)(struct DisplayObj *disp);
 };
 
-bool_t GK_InstallDisplay(struct DisplayRsc *display,const char *name);
-bool_t GK_InstallDisplayMirror(struct DisplayRsc *base_display,
-                                 struct DisplayRsc *mirror_display,char *name);
+bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name);
+bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
+                                 struct DisplayObj *mirror_display,char *name);
 bool_t GK_SetDefaultDisplay(const char *name);
-struct GkWinRsc *GK_GetRootWin(struct DisplayRsc *display);
-bool_t GK_SwitchFrameBuffer(struct DisplayRsc *display,
+struct GkWinObj *GK_GetRootWin(struct DisplayObj *display);
+bool_t GK_SwitchFrameBuffer(struct DisplayObj *display,
                               struct RectBitmap *fbuf);
-struct RectBitmap *GK_CreateFrameBuffer(struct DisplayRsc *display);
+struct RectBitmap *GK_CreateFrameBuffer(struct DisplayObj *display);
 
 #ifdef __cplusplus
 }

@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include "dbug.h"
 
 #ifndef MAX_PATH
 #define MAX_PATH 256
@@ -132,46 +133,46 @@ void decode(FILE * fp_in, FILE * fp_out)
 }
 bool_t base64EncodeTest(void)
 {
-	const char *argv[]=
-	{
-		"zhangqf1314@163.com",
-		"zqf0123456",
-		"zhangqf@sznari.com",
-		"zqf@2012",
-	};
-	int argc= sizeof(argv)/sizeof(char *);
+    const char *argv[]=
+    {
+        "zhangqf1314@163.com",
+        "zqf0123456",
+        "zhangqf@sznari.com",
+        "zqf@2012",
+    };
+    int argc= sizeof(argv)/sizeof(char *);
 
-	u8 buf[64];
-	for(int i =0;i < argc;i++)
-	{
-		memset(buf,0,64);
-		printf("original:%s\n\r",argv[i]);
-		base64_encode((u8 *)argv[i],buf,strlen(argv[i]));
-		printf("encode:%s\n\r",(char *)buf);
-	}
-	return true;
+    u8 buf[64];
+    for(int i =0;i < argc;i++)
+    {
+        memset(buf,0,64);
+        debug_printf("base64","original:%s\n\r",argv[i]);
+        base64_encode((u8 *)argv[i],buf,strlen(argv[i]));
+        debug_printf("base64","encode:%s\n\r",(char *)buf);
+    }
+    return true;
 }
 
 bool_t base64DecodeTest(void)
 {
-	const char *argv[]=
-	{
-		"VXNlcm5hbWU6",
-		"emhhbmdxZg==",
-		"UGFzc3dvcmQ6",
-		"enFmQDIwMTI=",
-	};
-	int argc= sizeof(argv)/sizeof(char *);
+    const char *argv[]=
+    {
+        "VXNlcm5hbWU6",
+        "emhhbmdxZg==",
+        "UGFzc3dvcmQ6",
+        "enFmQDIwMTI=",
+    };
+    int argc= sizeof(argv)/sizeof(char *);
 
-	u8 buf[64];
-	for(int i =0;i < argc;i++)
-	{
-		memset(buf,0,64);
-		printf("original:%s\n\r",argv[i]);
-		base64_decode((u8 *)argv[i],buf);
-		printf("decode:%s\n\r",(char *)buf);
-	}
-	return true;
+    u8 buf[64];
+    for(int i =0;i < argc;i++)
+    {
+        memset(buf,0,64);
+        debug_printf("base64","original:%s\n\r",argv[i]);
+        base64_decode((u8 *)argv[i],buf);
+        debug_printf("base64","decode:%s\n\r",(char *)buf);
+    }
+    return true;
 }
 
 

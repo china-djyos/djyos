@@ -47,11 +47,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <cpu_peri.h>
-#include <driver/flash/flash.h>
-#include <driver.h>
+#include <device/flash/flash.h>
+#include <device.h>
 #include <spibus.h>
 #include <systime.h>
-#include <djyfs/efs/efs_port.h>
 
 struct FlashChip *pNOR;
 extern u32 AT45_OP_TIMEOUT;
@@ -113,12 +112,12 @@ s32 _IDCheck(void)
     return (0);    //Match SPI Flash ID successful
 }
 
-// =============================================================================
+// ============================================================================
 // 功能：查询操作是否完成
 // 参数：
 // 返回：成功（0）；失败（其他值）；
 // 备注：
-// =============================================================================
+// ============================================================================
 static s32 __AT45_Done(void)
 {
     struct SPI_DataFrame frame;
@@ -155,12 +154,12 @@ static s32 __AT45_Done(void)
     return (-2);
 }
 
-// =============================================================================
+// ============================================================================
 // 功能：写页
 // 参数：dwPage -- 页号；pBuf -- 数据缓冲；dwDummy -- 未使用；
 // 返回：实际写出数据字节数；
 // 备注：
-// =============================================================================
+// ============================================================================
 static s32 __AT45_PageWrite(u32 dwPage, u8 *pBuf, u32 dwDummy)
 {
     struct SPI_DataFrame frame;
@@ -188,7 +187,7 @@ static s32 __AT45_PageWrite(u32 dwPage, u8 *pBuf, u32 dwDummy)
         {
             if(!__AT45_Done())
                 break;
-            
+
             Djy_EventDelay(1000);
             wait--;
             if(!wait)
@@ -198,7 +197,7 @@ static s32 __AT45_PageWrite(u32 dwPage, u8 *pBuf, u32 dwDummy)
             }
         }
     }
-    
+
     if(FALSE == SPI_CsActive(pNOR->Descr.Nor.Port, AT45_OP_TIMEOUT))
     {
         Lock_MutexPost(pNOR->Lock);
@@ -246,12 +245,12 @@ static s32 __AT45_PageWrite(u32 dwPage, u8 *pBuf, u32 dwDummy)
     return (ret);
 }
 
-// =============================================================================
+// ============================================================================
 // 功能：读页
 // 参数：dwPage -- 页号；pBuf -- 数据缓冲；dwDummy -- 未使用；
 // 返回：实际读入数据字节数；
 // 备注：
-// =============================================================================
+// ============================================================================
 static s32 __AT45_PageRead(u32 dwPage, u8 *pBuf, u32 dwDummy)
 {
     struct SPI_DataFrame frame;
@@ -325,12 +324,12 @@ static s32 __AT45_PageRead(u32 dwPage, u8 *pBuf, u32 dwDummy)
     return (ret);
 }
 
-// =============================================================================
+// ============================================================================
 // 功能：擦除一块
 // 参数：dwBlock -- 块号；
 // 返回：成功（0）；失败（其他值）
 // 备注：
-// =============================================================================
+// ============================================================================
 static s32 __AT45_BlockErase(u32 dwBlock)
 {
     struct SPI_DataFrame frame;
@@ -396,12 +395,12 @@ static s32 __AT45_BlockErase(u32 dwBlock)
     return (res);
 }
 
-// =============================================================================
+// ============================================================================
 // 功能：查询页所在的块号，及其所在块的剩余页。
 // 参数：dwPage -- 页号；（从零计）pRemain -- 剩余页数；pBlock -- 块号；（从零计）
 // 返回：成功（0）；失败（-1）；
 // 备注：
-// =============================================================================
+// ============================================================================
 static s32 __AT45_PageToBlock(u32 dwPage, u32 *pRemain, u32 *pBlock)
 {
     if(!pRemain || !pBlock || (dwPage >= pNOR->dwTotalPages))
@@ -415,85 +414,57 @@ static s32 __AT45_PageToBlock(u32 dwPage, u32 *pRemain, u32 *pBlock)
     return (0);
 }
 
+#if 1 // 新接口
+#include "./device/unit_media.h"
 // ============================================================================
-// 功能：初始化SPI FLASH模块，校验芯片ID是否正确
+// 功能：
 // 参数：
-// 返回：成功初始化（0）；初始化失败（-1）；
-// 备注：逻辑待优化
+// 返回：
+// 备注：
 // ============================================================================
-extern tagdevEFS *pDevEFS;
-#if 0
-s32 AT45_DevRegister(char *name, u32 dwStartPage, u32 dwOptions, void *pPrivate)
+s32 urd_at45(s64 unit, void *data, struct uopt opt)
 {
-    struct FlashChip *flash;
-    u8 *buf;
-
-    buf = malloc(sizeof(*flash)+ 512 + sizeof(*pDevEFS));
-    if(!buf)
-    {
-        printf("\r\nNOR : error : memory out.\r\n");
-        return (-1);
-    }
-
-    memset(buf, 0x0, (sizeof(*flash)+ 512 + sizeof(*pDevEFS)));
-
-    flash = (struct FlashChip*)buf;
-    flash->Buf = buf + sizeof(*flash);
-    pDevEFS = (tagdevEFS*)(buf + sizeof(*flash) + 512);
-
-    flash->Lock = (void*)Lock_MutexCreate("Flash Lock");
-    if(!flash->Lock)
-    {
-        free(buf);
-        printf("\r\nNOR : error : cannot create lock.\r\n");
-        return (-1);
-    }
-
-    // AT45的sector比block大，而且sector的大小不一致。这里逻辑上就将sector等于page，
-    // 忽然sector,block最大。
-    flash->Descr.Nor.PortType = NOR_SPI;
-    flash->Descr.Nor.Port = pPrivate;
-    flash->Descr.Nor.BytesPerPage = 512;
-    flash->Descr.Nor.PagesPerSector = 1;
-    flash->Descr.Nor.SectorsPerBlk = 8;
-    flash->Descr.Nor.Blks = 1024;
-    flash->Descr.Nor.ReservedBlks = 0;
-    flash->dwPageBytes = 512;
-    flash->dwTotalPages = 8*1024;
-    flash->dwPagesReserved = dwStartPage;
-    flash->Ops.RdPage = __AT45_PageRead;
-    flash->Ops.WrPage = __AT45_PageWrite;
-    flash->Ops.ErsBlk = __AT45_BlockErase;
-    flash->Ops.PageToBlk = __AT45_PageToBlock;
-    pNOR = flash;
-
-    if(pDevEFS)
-    {
-        pDevEFS->EFS_IF_CheckBlockReady = __EFS_IF_CheckBlockReady;
-        pDevEFS->EFS_IF_Erase = __EFS_IF_Erase;
-        pDevEFS->EFS_IF_IsFragmentWritten = __EFS_IF_IsFragmentWritten;
-        pDevEFS->EFS_IF_ReadData = __EFS_IF_ReadData;
-        pDevEFS->EFS_IF_WriteData = __EFS_IF_WriteData;
-        pDevEFS->dwBlockBytes = 512 << 3;
-        pDevEFS->dwStart = dwStartPage >> 3;
-        if(dwStartPage & 0x7)
-            pDevEFS->dwStart += 1;
-
-        pDevEFS->dwTotal = 1024;
-    }
-
-    if(Driver_DeviceCreate(NULL, name, NULL, NULL, NULL, NULL, NULL, NULL, (ptu32_t)flash))
-    {
-        return (0);
-    }
-    else
-    {
-        printf("\r\nNOR : error : register device failed.\r\n");
-        return (-1);
-    }
-
+    return (__AT45_PageRead((u32)unit, (u8*)data, 0));
 }
-#else
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+s32 uwr_at45(s64 unit, void *data, struct uopt opt)
+{
+    return (__AT45_PageWrite((u32)unit, (u8*)data, 0));
+}
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+s32 uera_at45(s64 unit)
+{
+    u32 block;
+
+    block = unit / 8; // 一个块内有8个page
+
+    return (__AT45_BlockErase(block));
+}
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+s32 urq_at45(enum ucmd cmd, ptu32_t arg1, ptu32_t arg2, ...)
+{
+    return (-1);
+}
+#endif
+
 // ============================================================================
 // 功能：初始化SPI FLASH模块，校验芯片ID是否正确
 // 参数：pName -- 设备名；
@@ -599,7 +570,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         partition->Ops.ErsBlk = __AT45_BlockErase;
         partition->Ops.PageToBlk = __AT45_PageToBlock;
 
-        if(!Driver_DeviceCreate(NULL, name, NULL, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
+        if(!dev_add(NULL, name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
         {
             free(buf);
             printf("\r\nNOR : error : register device failed.\r\n");
@@ -607,6 +578,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         }
     }
 
+#if 0
     // 当前逻辑用于EFS
     if((!pDevEFS) && (2 == dwSpecial))
     {
@@ -641,7 +613,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         partition->Ops.ErsBlk = __AT45_BlockErase;
         partition->Ops.PageToBlk = __AT45_PageToBlock;
 
-        if(!Driver_DeviceCreate(NULL, name, NULL, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
+        if(!dev_add(NULL,name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
         {
             free(buf);
             printf("\r\nNOR : error : register device failed.\r\n");
@@ -656,10 +628,41 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         pDevEFS->dwStart = dwStart;
         pDevEFS->dwTotal = dwSize;
     }
+#else
+    if(2 == dwSpecial)
+    {
+        struct umedia *um;
+        struct uopt opt;
+
+        um = malloc(sizeof(struct umedia)+512);
+        if(!um)
+            return (-1);
+
+        opt.hecc = 0;
+        opt.main = 1;
+        opt.necc = 1;
+        opt.secc = 0;
+        opt.spare = 0;
+        um->asz = dwSize << 12;
+        um->esz = 12; // 4KB
+        um->usz = 9; // 512B;
+        um->merase = uera_at45;
+        um->mread = urd_at45;
+        um->mreq = urq_at45;
+        um->mwrite = uwr_at45;
+        um->opt = opt; // 驱动操作逻辑
+        um->type = nor;
+        um->ubuf = (u8*)um + sizeof(struct umedia);
+        um->ustart = dwStart * 8; // 起始unit号
+
+        return (um_add((const char*)name, um));
+    }
+#endif
 
     return (0);
 }
-#endif
+
+#if 0
 /******************************************************************************
                             简易文件系统函数接口
 ******************************************************************************/
@@ -720,7 +723,7 @@ static s32 __WriteFragment(u32 dwPage, u32 dwOffset, const u8 *pBuf, u32 dwSize)
         {
             if(!__AT45_Done())
                 break;
-            
+
             Djy_EventDelay(1000);
             wait--;
             if(!wait)
@@ -730,7 +733,7 @@ static s32 __WriteFragment(u32 dwPage, u32 dwOffset, const u8 *pBuf, u32 dwSize)
             }
         }
     }
-    
+
     if(FALSE == SPI_CsActive(pNOR->Descr.Nor.Port, AT45_OP_TIMEOUT))
     {
         Lock_MutexPost(pNOR->Lock);
@@ -1073,12 +1076,12 @@ bool_t __EFS_IF_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize)
     return (TRUE);
 }
 
-// =============================================================================
+// ============================================================================
 // 功能：本地测试逻辑
 // 参数：
 // 返回：
 // 备注：
-// =============================================================================
+// ============================================================================
 s32 TEST_Module_AT45(void)
 {
     u16 *buf, *check;
@@ -1366,3 +1369,6 @@ s32 TEST_Module_AT45(void)
     //while(1);
     return (0);
 }
+#endif
+
+

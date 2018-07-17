@@ -63,12 +63,10 @@
 #include <gui\gkernel\gk_display.h>
 #include    <gui/gdd/gdd_private.h>
 #include    <gui/gdd_timer.h>
-#include    <cfg/gui_config.h>
 #include "list.h"
+#include "component_config_gdd.h"
 
-
-
-extern HWND    InitGddDesktop(struct GkWinRsc *desktop);
+extern HWND    InitGddDesktop(struct GkWinObj *desktop);
 extern bool_t Cursor_Init(void);
 /*============================================================================*/
 
@@ -91,14 +89,14 @@ void    GDD_WindowInit(void);
 /*============================================================================*/
 
 ptu32_t GDD_TimerScan(void);
-bool_t GDD_InputDevInit(const char *InputDevName[]);
+bool_t GDD_InputDevInit(void);
 
 //----GDD主函数-----------------------------------------------------------------
 //描述: GDD服务执行函数,该函数不会返回.
 //参数：无
 //返回：无
 //------------------------------------------------------------------------------
-void    ModuleInstall_GDD(struct GkWinRsc *desktop,const char *InputDevName[])
+void ModuleInstall_GDD(struct GkWinObj *desktop)
 {
     u16 evtt;
     HWND pGddWin=NULL;
@@ -109,7 +107,7 @@ void    ModuleInstall_GDD(struct GkWinRsc *desktop,const char *InputDevName[])
     pGddWin=InitGddDesktop(desktop);
     GDD_WindowInit();
     GDD_TimerInit();
-    GDD_InputDevInit(InputDevName);
+    GDD_InputDevInit( );
     if(pGddWin != NULL)
     {
         if(Cursor_Init())
@@ -117,7 +115,7 @@ void    ModuleInstall_GDD(struct GkWinRsc *desktop,const char *InputDevName[])
     }
     ////gdd_input
     evtt = Djy_EvttRegist(  EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                          GDD_TimerScan, NULL,2048,"gdd input");
+                          GDD_TimerScan, NULL,2048,"gdd timer");
     if (evtt != CN_EVTT_ID_INVALID)
     {
         Djy_EventPop(evtt, NULL, 0, 0, 0, 0);

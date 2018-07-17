@@ -59,14 +59,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <os.h>
+#include "dbug.h"
 //add your own specified header here
 #include <sys/socket.h>
+#include <netbsp.h>
+#include "../common/link.h"
+#include "../common/netdev.h"
 
-#include "../linkhal.h"
-#include "../rout.h"
 //data flow in the loop
-//ipout->linkout->linkoutRAW->devoutraw->devinraw->LinkIn->linkInRaw->link2Ip
-
+//ipout->linkout->linkoutRAW->devout->devin->LinkInRaw->linkIn->link2Ip
 #define CN_LINKRAW_NAME   "RAW"
 //-----------------------------------------------------------------------------
 //功能:this is the link raw out function here
@@ -75,14 +76,15 @@
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOutRaw(tagRout *rout,tagNetPkg *pkg,u32 framlen,u32 devtask,u16 proto,enum_ipv_t ver,ipaddr_t ipdst)
+static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
+		u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
-	bool_t result = false;
-	if((NULL != rout)&&(proto == EN_LINKPROTO_IPV4))
+	bool_t ret = false;
+	if((NULL != iface)&&(proto == EN_LINKPROTO_IPV4))
 	{
-		result = LinkSendRaw(rout->dev,pkg,framlen,devtask);
+		ret = NetDevSend(iface,pkg,framlen,devtask);
 	}
-	return result;
+	return ret;
 }
 
 //-----------------------------------------------------------------------------
@@ -92,9 +94,9 @@ static bool_t __LinkOutRaw(tagRout *rout,tagNetPkg *pkg,u32 framlen,u32 devtask,
 //备注:
 //作者:zhangqf@上午9:18:35/2016年12月29日
 //-----------------------------------------------------------------------------
-bool_t  __LinkInRaw(tagNetDev * dev,tagNetPkg *pkg)
+static bool_t  __LinIn(void *iface,tagNetPkg *pkg)
 {
-	return Link2IP(dev,pkg,EN_LINKPROTO_IPV4);
+	return LinkPush(iface,pkg,EN_LINKPROTO_IPV4);
 }
 
 //-----------------------------------------------------------------------------
@@ -104,20 +106,18 @@ bool_t  __LinkInRaw(tagNetDev * dev,tagNetPkg *pkg)
 //备注:
 //作者:zhangqf@上午9:26:04/2016年12月29日
 //-----------------------------------------------------------------------------
-bool_t LinkRawInit(ptu32_t para)
+bool_t LinkRawInit(void)
 {
+	bool_t ret;
     //first we will register a loop link type to the link hal
     tagLinkOps   ops;
     memset(&(ops),0,sizeof(ops));
-    ops.linkin = __LinkInRaw;
-    ops.linkout =__LinkOutRaw;
-    if(false == LinkRegister(EN_LINK_RAW,CN_LINKRAW_NAME,&ops))
+    ops.linkin = __LinIn;
+    ops.linkout =__LinkOut;
+    ret = LinkRegister(EN_LINK_RAW,CN_LINKRAW_NAME,&ops);
+    if(ret == false)
     {
-    	goto EXIT_LINKRAW;
+        debug_printf("LINRAW","REGISTER ERR\n\r");
     }
-    //here means we are successful
-    return true;
-
-EXIT_LINKRAW:
-    return false;
+    return ret;
 }

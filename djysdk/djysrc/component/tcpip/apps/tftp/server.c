@@ -47,8 +47,11 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
+#include <sys/socket.h>
+#include "../../component_config_tcpip.h"
+
 #include "tftplib.h"
-#include "../../tcpipconfig.h"
+#include "dbug.h"
 
 static u16  gLocalSeverPort = CN_TFTP_SERVERPORT_DEFAULT; //could be specified the port
 
@@ -70,16 +73,16 @@ ptu32_t TftpServer(void)
     tagTftpClient      *client = NULL;
     u16                 errcode;
 
-    buf = malloc(CN_TFTPSERVER_BUFLEN);
+    buf = net_malloc(CN_TFTPSERVER_BUFLEN);
     if(NULL == buf)
     {
-        printf("%s:server buf malloc failed\n\r",__FUNCTION__);
+        debug_printf("tftp","%s:server buf net_malloc failed\n\r",__FUNCTION__);
         goto EXIT_BUF;
     }
     serverfd = socket(AF_INET,SOCK_DGRAM,0);
     if(serverfd < 0)
     {
-        printf("%s:socket failed\n\r",__FUNCTION__);
+        debug_printf("tftp","%s:socket failed\n\r",__FUNCTION__);
         goto EXIT_SOCKET;
     }
     addr.sin_family = AF_INET;
@@ -88,7 +91,7 @@ ptu32_t TftpServer(void)
     addrlen = sizeof(addr);
     if(0 != bind(serverfd,(struct sockaddr *)&addr,addrlen))
     {
-        printf("%s:bind failed\n\r",__FUNCTION__);
+        debug_printf("tftp","%s:bind failed\n\r",__FUNCTION__);
         goto EXIT_BIND;
     }
     //OK, NOW ALWAYS CHECK THE SERVER
@@ -139,40 +142,23 @@ EXIT_BIND:
     closesocket(serverfd);
     serverfd = -1;
 EXIT_SOCKET:
-    free(buf);
+    net_free(buf);
     buf = NULL;
 EXIT_BUF:
-    printf("%s:tftp server exit...\n\r",__FUNCTION__);
+        debug_printf("tftp","%s:tftp server exit...\n\r",__FUNCTION__);
 
     return 0;
 }
 
 bool_t TftpServerShell(char *param)
 {
-    u16 eventID;
-    u16 evttID;
 
-    evttID = Djy_EvttRegist(EN_CORRELATIVE, gTftpServerPrior, 0, 1,
-            TftpServer,NULL, gTftpServerStack, "TFTPD");
-    if(evttID == CN_EVTT_ID_INVALID)
-    {
-        printf("%s:Register tftpserver evtt failed\n\r",__FUNCTION__);
-
-        goto EXIT_TFTPSERVEREVTT;
+    bool_t ret;
+    ret = taskcreate("TFTPD",0x1000,CN_PRIO_RRS,TftpServer,NULL);
+    if (ret == false) {
+        debug_printf("tftp","TFTPD:TASK CREATE ERR\n\r");
     }
-    eventID = Djy_EventPop(evttID, NULL, 0, 0, 0, 0);
-    if(eventID == CN_EVENT_ID_INVALID)
-    {
-        printf("%s:Create tftpserver event failed\n\r",\
-                __FUNCTION__);
-        goto EXIT_TFTPSERVEREVENT;
-    }
-    return true;
-
-EXIT_TFTPSERVEREVENT:
-    Djy_EvttUnregist(evttID);
-EXIT_TFTPSERVEREVTT:
-    return false;
+    return ret;
 }
 
 

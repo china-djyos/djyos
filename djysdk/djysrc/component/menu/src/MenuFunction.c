@@ -99,8 +99,8 @@ void  CheckEquipment(struct menu_item *menuitem)//查看装置信息
     struct draw_wintext_para para;
 
     struct InputDeviceMsg *input_msg;
-    struct GkWinRsc  CheckWin_text;
-    struct GkWinRsc  *Appwin=NULL;
+    struct GkWinObj  CheckWin_text;
+    struct GkWinObj  *Appwin=NULL;
     char*   content="装置名称:/装置参数:/软件RCR :/工程日期:";
 
     if((NULL==menuitem)||(NULL==menuitem->myprivate))
@@ -108,7 +108,7 @@ void  CheckEquipment(struct menu_item *menuitem)//查看装置信息
        printf("Invalid parameter---CheckEquipment\n");
        return ;
     }
-    Appwin=(struct GkWinRsc*)(menuitem->myprivate);
+    Appwin=(struct GkWinObj*)(menuitem->myprivate);
 
     width=Appwin->right-Appwin->left;
     height=Appwin->bottom-Appwin->top;

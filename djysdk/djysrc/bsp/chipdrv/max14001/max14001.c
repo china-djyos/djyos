@@ -16,11 +16,47 @@
 #include "cpu_peri_gpio.h"
 //#include "Threshold.h"
 //#include "MAX14001Cfg.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    ModuleInstall_Max14001();
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"max14001"     //填写该组件的名字
+//parent:none               //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:none                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"spibus","lock"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 //static struct SemaphoreLCB Max_Semp;       //芯片互斥访问保护
 //static struct SPI_Device Max14001_Dev;   //SPI总线器件结构体
 //static bool_t sMaxInited = false;
-#define Max14001_TIMEOUT        (5*1000)     //Max14001 超时配置为5mS
+#define Max14001_TIMEOUT        (5*1000)     //Max14001 超时配置
 
 //extern  KI_Threshold    *WB7363_KI_CFG;
 //extern  SPI_Device_CFG  *WB7363_SPI_DEV;
@@ -273,7 +309,7 @@ void ADC_SAMPLE_UPDATA(void)
 {
     for(int i=0;i<18;i++)
     {
-    	MAX14001_ADC_BUFF[i]=Get_Data(COUT_GPIO_CFG[i],COUT_PIN_CFG[i]);
+        MAX14001_ADC_BUFF[i]=Get_Data(COUT_GPIO_CFG[i],COUT_PIN_CFG[i]);
     }
 }
 
@@ -304,46 +340,45 @@ bool_t ModuleInstall_Max14001(void)
 
     if(18==18)
     {
-    	for(u32 t=0;t<18;t++)
-		{
-		   THL_Value=WB7363_KI_THL_CFG[t];
-		   THU_Value=WB7363_KI_THU_CFG[t];
+        for(u32 t=0;t<18;t++)
+        {
+           THL_Value=WB7363_KI_THL_CFG[t];
+           THU_Value=WB7363_KI_THU_CFG[t];
 
-		   Max14001_Dev[t].AutoCs = WB7363_SPI_DEV_AUTOCS[t];       //非自动片选，发数据时通过自己手动片选
-		   Max14001_Dev[t].CharLen = WB7363_SPI_DEV_LEN[t];         //数据长度8位
-		   Max14001_Dev[t].Mode = WB7363_SPI_DEV_SPI_MODE[t];       //clk空闲为低电平第一个跳变沿采集/输出数据
-		   Max14001_Dev[t].ShiftDir = WB7363_SPI_DEV_SPI_SHIFT[t];  //低位优先，不同于其他芯片
-	       Max14001_Dev[t].Freq = WB7363_SPI_DEV_SPI_FREQ[t];       //速率
-	       Max14001_Dev[t].Cs = t%6 ;
+           Max14001_Dev[t].AutoCs = WB7363_SPI_DEV_AUTOCS[t];       //非自动片选，发数据时通过自己手动片选
+           Max14001_Dev[t].CharLen = WB7363_SPI_DEV_LEN[t];         //数据长度8位
+           Max14001_Dev[t].Mode = WB7363_SPI_DEV_SPI_MODE[t];       //clk空闲为低电平第一个跳变沿采集/输出数据
+           Max14001_Dev[t].ShiftDir = WB7363_SPI_DEV_SPI_SHIFT[t];  //低位优先，不同于其他芯片
+           Max14001_Dev[t].Freq = WB7363_SPI_DEV_SPI_FREQ[t];       //速率
+           Max14001_Dev[t].Cs = t%6 ;
 
-		   if((gNUM>=0)&&(gNUM<=5))
-		   {
-			     SPI_DevAdd_s(&Max14001_Dev[t],"SPI1",WB7363_SPI_DEV_SPI_NAME[t]);     //1-6 挂在SPI1下，器件名不能重名
-				 SPI_BusCtrl(&Max14001_Dev[t],CN_SPI_SET_POLL,0,0);
-				 Max14001_Config(THL_Value,THU_Value,Max14001_Dev[t]);
-		   }
+           if((gNUM>=0)&&(gNUM<=5))
+           {
+                 SPI_DevAdd_s(&Max14001_Dev[t],"SPI1",WB7363_SPI_DEV_SPI_NAME[t]);     //1-6 挂在SPI1下，器件名不能重名
+                 SPI_BusCtrl(&Max14001_Dev[t],CN_SPI_SET_POLL,0,0);
+                 Max14001_Config(THL_Value,THU_Value,Max14001_Dev[t]);
+           }
 
-		   if((gNUM>=6)&&(gNUM<=11))
-		   {
-			     SPI_DevAdd_s(&Max14001_Dev[t],"SPI2",WB7363_SPI_DEV_SPI_NAME[t]);     //6-12挂在SPI2下
-			     SPI_BusCtrl(&Max14001_Dev[t],CN_SPI_SET_POLL,0,0);
-			     Max14001_Config(THL_Value,THU_Value,Max14001_Dev[t]);
-		   }
+           if((gNUM>=6)&&(gNUM<=11))
+           {
+                 SPI_DevAdd_s(&Max14001_Dev[t],"SPI2",WB7363_SPI_DEV_SPI_NAME[t]);     //6-12挂在SPI2下
+                 SPI_BusCtrl(&Max14001_Dev[t],CN_SPI_SET_POLL,0,0);
+                 Max14001_Config(THL_Value,THU_Value,Max14001_Dev[t]);
+           }
 
-		   if((gNUM>=12)&&(gNUM<=17))
-		   {
-			     SPI_DevAdd_s(&Max14001_Dev[t],"SPI3",WB7363_SPI_DEV_SPI_NAME[t]);     //12-18挂在SPI3下
-			     SPI_BusCtrl(&Max14001_Dev[t],CN_SPI_SET_POLL,0,0);
-			     Max14001_Config(THL_Value,THU_Value,Max14001_Dev[t]);
-		   }
-		   gNUM++;
-		 }
-		 return true;
+           if((gNUM>=12)&&(gNUM<=17))
+           {
+                 SPI_DevAdd_s(&Max14001_Dev[t],"SPI3",WB7363_SPI_DEV_SPI_NAME[t]);     //12-18挂在SPI3下
+                 SPI_BusCtrl(&Max14001_Dev[t],CN_SPI_SET_POLL,0,0);
+                 Max14001_Config(THL_Value,THU_Value,Max14001_Dev[t]);
+           }
+           gNUM++;
+         }
+         return true;
     }
     else
     {
-    	printf("KI通道数与AD芯片数不一致\r\n");
-    	return false;
+        printf("KI通道数与AD芯片数不一致\r\n");
+        return false;
     }
 }
-

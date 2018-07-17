@@ -76,7 +76,7 @@ enum _MEM_ERROR_CODE_
 
 typedef struct HeapCB * pHeap_t;
 
-ptu32_t Heap_DynamicModuleInit(ptu32_t para);
+bool_t Heap_DynamicModuleInit(void);
 
 
 

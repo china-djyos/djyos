@@ -50,7 +50,7 @@
 
 #include <sys/socket.h>
 
-#define CN_DHCP_CLIENT_HOST       "DJYOS_CLIENT"
+#define CN_DHCP_CLIENT_HOST       "DJYOS"
 #define CN_DHCP_CLIENT_VENDOR     "DHCP_CV1.0"
 #define CN_DHCP_SERVER_HOST       "DJYOS_SERVER"
 #define CN_DHCP_SERVER_VENDOR     "DHCP_SV1.0"

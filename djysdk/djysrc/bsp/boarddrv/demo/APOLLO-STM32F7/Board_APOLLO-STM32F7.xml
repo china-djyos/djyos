@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>APOLLO-STM32F7</boardName>
+  <cpu>
+    <cpuName>stm32f76xxx</cpuName>
+    <mianClk>25</mianClk>
+    <rtcClk>32768</rtcClk>
+    <chip>
+    </chip>
+    <memory>
+      <type>RAM</type>
+      <startAddr>0xc0000000</startAddr>
+      <size>0x2000000</size>
+    </memory>
+    <peripheral>cpu_peri_bkpsram</peripheral>
+    <peripheral>cpu_peri_can</peripheral>
+    <peripheral>cpu_peri_emflash</peripheral>
+    <peripheral>cpu_peri_eth</peripheral>
+    <peripheral>cpu_peri_gpio</peripheral>
+    <peripheral>cpu_peri_iic</peripheral>
+    <peripheral>cpu_peri_lcd</peripheral>
+    <peripheral>cpu_peri_lowpwer</peripheral>
+    <peripheral>nand</peripheral>
+    <peripheral>cpu_peri_rtc</peripheral>
+    <peripheral>cpu_peri_sdmmc</peripheral>
+    <peripheral>cpu_peri_spi</peripheral>
+    <peripheral>cpu_peri_systime</peripheral>
+    <peripheral>cpu_peri_Temprate</peripheral>
+    <peripheral>cpu_peri_timer</peripheral>
+    <peripheral>cpu_peri_uart</peripheral>
+    <peripheral>usbh_conf</peripheral>
+  </cpu>
+</board>

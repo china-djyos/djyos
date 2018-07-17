@@ -54,6 +54,49 @@
 #include "stdint.h"
 #include "iicbus.h"
 #include "cpu_peri.h"
+#include <mma8451q_config.h>
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern ptu32_t MMA8541Q_ModuleInit(const char *BusName);
+//    MMA8541Q_ModuleInit(CFG_MMA_BUS_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"mma8451q"     //填写该组件的名字
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件                                            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock","iicbus"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_MMA_ADDRESS         //****检查参数是否已经配置好
+#warning   mma8451q组件参数未配置，使用默认值
+//%$#@num,0,100,
+#define CFG_MMA_ADDRESS                0x50      //"设备地址",IIC总线设备地址
+//%$#@enum,true,false,
+//%$#@string,1,10,
+#define CFG_MMA_BUS_NAME              "IIC0"    //"总线名称",mma8451使用的IIC总线名称
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 //寄存器定义（部分）
 #define F_STATUS        0x00
@@ -69,7 +112,7 @@
 static struct IIC_Device *ps_MMA_Dev = NULL;
 static u32 s_MMA_Timeout = CN_TIMEOUT_FOREVER;
 
-#define MMA_ADDRESS         0x50            //设备地址
+//#define CFG_MMA_ADDRESS         0x50            //设备地址
 #define MMA_CLK_FRE         (100*1000)      //总线速度，单位Hz
 
 // =============================================================================
@@ -189,7 +232,7 @@ u16 MMA8541Q_Z_Read(void)
 // 返回：true,成功;false,失败
 // =============================================================================
 
-ptu32_t MMA8541Q_ModuleInit(ptu32_t para)
+ptu32_t MMA8541Q_ModuleInit(const char *BusName)
 {
     bool_t result = false;
     static struct IIC_Device s_MMA_Dev;
@@ -197,12 +240,12 @@ ptu32_t MMA8541Q_ModuleInit(ptu32_t para)
 //  __MMA_GpioInit();
 
     //初始化IIC设备结构体
-    s_MMA_Dev.DevAddr                   = MMA_ADDRESS;
+    s_MMA_Dev.DevAddr                   = CFG_MMA_ADDRESS;
     s_MMA_Dev.BitOfMemAddr              = 8;
     s_MMA_Dev.BitOfMemAddrInDevAddr     = 0;
 
     //添加MMA8451到IIC0总线
-    if(NULL != IIC_DevAdd_r("IIC0","IIC_Dev_MMA8451Q",&s_MMA_Dev))
+    if(NULL != IIC_DevAdd_r(BusName,"IIC_Dev_MMA8451Q",&s_MMA_Dev))
     {
         ps_MMA_Dev = &s_MMA_Dev;
         IIC_BusCtrl(ps_MMA_Dev,CN_IIC_SET_CLK,MMA_CLK_FRE,0);
@@ -211,4 +254,3 @@ ptu32_t MMA8541Q_ModuleInit(ptu32_t para)
 
     return result;
 }
-

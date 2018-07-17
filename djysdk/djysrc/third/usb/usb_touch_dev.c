@@ -48,28 +48,29 @@
 //-----------------------------------------------------------------------------
 #include <stddef.h>
 #include <stdlib.h>
-#include <driver.h>
+#include <device.h>
 #include <stdio.h>
 #include "usb.h"
 
 
 extern s32 USBH_HID_TouchGetData(USBH_HandleTypeDef *pHost, u8 *pButton, u32 *pX, u32 *pY);
 USBH_HandleTypeDef *pTouch;
-struct DjyDevice *pDevTouch;
+static char *touchname = "usb touch";
 // ============================================================================
-// 功能：
+// 功能：读触摸屏设备文件
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-u32 _TOUCH_DriRead(ptu32_t pUSB, u8 *pBuf, u32 dwLen, u32 wdOffset, u32 dwTimeout)
+static s32 __TOUCH_DriRead(tagOFile *pUSB, u8 *data, u32 dwLen, u32 wdOffset, u32 dwTimeout)
 {
     s32 res;
+    u8 *pBuf = (u8*)data;
 
-    if((9 != dwLen) || (0 != wdOffset)) // 由于touch并非流媒体，每次读的大小读是固定的
+    if((9 != dwLen) || (0 != wdOffset) || (!pUSB)) // 由于touch并非流媒体，每次读的大小读是固定的
         return (0);
 
-    res = USBH_HID_TouchGetData((void*)pUSB, pBuf, (u32*)(pBuf+1), (u32*)(pBuf+5));
+    res = USBH_HID_TouchGetData((void*)devfiledtag(pUSB), pBuf, (u32*)(pBuf+1), (u32*)(pBuf+5));
     if(-1 == res)
         return (0);
 
@@ -77,7 +78,7 @@ u32 _TOUCH_DriRead(ptu32_t pUSB, u8 *pBuf, u32 dwLen, u32 wdOffset, u32 dwTimeou
 }
 
 // ============================================================================
-// 功能：
+// 功能：读触摸屏
 // 参数：
 // 返回：
 // 备注：
@@ -88,7 +89,7 @@ s32 TOUCH_DirectRead(u8 *pButton, u32 *pX, u32 *pY)
 
     if(!pTouch)
     {
-        USBH_UsrLog("USB module : error : touch device do not exist.\r\n");
+        USBH_UsrLog("\r\n: erro : usb    : touch device do not exist.\r\n");
         return (0);
     }
 
@@ -100,7 +101,7 @@ s32 TOUCH_DirectRead(u8 *pButton, u32 *pX, u32 *pY)
 }
 
 // ============================================================================
-// 功能：
+// 功能：触摸屏设备是否就绪
 // 参数：
 // 返回：0 -- 设备就绪； -1 -- 设备未就绪。
 // 备注：
@@ -111,45 +112,43 @@ s32 TOUCH_DeviceReady(void)
 }
 
 // ============================================================================
-// 功能：
+// 功能：注册触摸屏
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
 s32 USBH_ResigerDevTouch(void *pParam)
 {
-    static char *name = "usb touch";
 
-    pDevTouch = Driver_DeviceCreate(NULL, (const char*)name, NULL, NULL, NULL,
-            _TOUCH_DriRead, NULL, NULL, (ptu32_t)pParam);
-    if(pDevTouch)
+    if(dev_add(NULL, (const char*)touchname, NULL, NULL,NULL,
+            __TOUCH_DriRead, NULL, (ptu32_t)pParam))
     {
-        return (0); //
+        USBH_UsrLog("\r\n: erro : usb    : register touch device failed.");
+        return (-1); // register failure
     }
 
-    USBH_UsrLog("USB module : error : register touch device failed.\r\n");
-    return (-1); // register failure
+    return (0); // register failure
 }
 
 // ============================================================================
-// 功能：
+// 功能：注销触摸屏
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
 s32 USBH_UnResigerDevTouch(void)
 {
-    if(TRUE == Driver_DeleteDevice(pDevTouch))
+    if(dev_del(NULL, touchname))
     {
-        return (0); //
+        USBH_UsrLog("\r\n: erro : usb    : unregister touch device failed.\r\n");
+        return (-1); // register failure
     }
 
-    USBH_UsrLog("USB module : error : unregister touch device failed.\r\n");
-    return (-1); // register failure
+    return (0);
 }
 
 // ============================================================================
-// 功能：
+// 功能：设置触摸屏
 // 参数：
 // 返回：
 // 备注：
@@ -158,7 +157,7 @@ void USBH_SetTouch(void *pHost)
 {
     if((pTouch) || (!pHost))
     {
-        USBH_UsrLog("USB module : error : cannot set touch device.\r\n");
+        USBH_UsrLog("\r\n: erro : usb    : cannot set touch device.\r\n");
         return ;
     }
 
@@ -167,7 +166,7 @@ void USBH_SetTouch(void *pHost)
 }
 
 // ============================================================================
-// 功能：
+// 功能：重置触摸屏
 // 参数：
 // 返回：
 // 备注：

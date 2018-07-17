@@ -62,7 +62,7 @@
 
 #include    <gui/gdd/gdd_private.h>
 #include <gkernel.h>
-
+#include "dbug.h"
 /*
 typedef struct  __WNDCLASS  //窗口类数据结构
 {
@@ -74,7 +74,7 @@ typedef struct  __WNDCLASS  //窗口类数据结构
 */
 
 extern HWND g_CursorHwnd;         //光标窗口
-extern void GK_SetVisible(struct GkWinRsc *gkwin, u32 visible,u32 SyncTime);
+extern void GK_SetVisible(struct GkWinObj *gkwin, u32 visible,u32 SyncTime);
 /*============================================================================*/
 
 static  HWND HWND_Desktop=NULL;
@@ -129,7 +129,7 @@ void __HWND_Unlock(HWND hwnd)
 //参数：gkwin，gkwin指针
 //返回：gdd窗口句柄
 //---------------------------------------------------------------------------
-HWND GetGddHwnd(struct GkWinRsc *gkwin)
+HWND GetGddHwnd(struct GkWinObj *gkwin)
 {
     return (HWND)GK_GetUserTag(gkwin);
 }
@@ -578,9 +578,9 @@ HWND    GetDlgItem(HWND hwnd,u16 Id)
 //参数：pt:坐标点
 //返回：查找到的窗口句柄.
 //------------------------------------------------------------------------------
-HWND    GetWindowFromPoint(struct GkWinRsc *desktop, POINT *pt)
+HWND    GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt)
 {
-    struct GkWinRsc *GkWin;
+    struct GkWinObj *GkWin;
     if((NULL == desktop) || (NULL == pt))
         return NULL;
     if(__GDD_Lock( ))
@@ -742,7 +742,7 @@ static struct MsgTableLink  s_gDesktopMsgLink;
 //      pdata: 用户自定义附加数据.
 //返回：桌面窗口句柄.
 //------------------------------------------------------------------------------
-HWND    InitGddDesktop(struct GkWinRsc *desktop)
+HWND    InitGddDesktop(struct GkWinObj *desktop)
 {
     HWND pGddWin=NULL;
     u32 Style;
@@ -866,7 +866,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                      struct MsgTableLink *pUserMsgTableLink)
 {
     HWND pGddWin=NULL;
-    struct GkWinRsc *pGkWin=NULL;
+    struct GkWinObj *pGkWin=NULL;
     struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
 
     if(NULL==hParent)
@@ -876,10 +876,10 @@ HWND    CreateWindow(const char *Text,u32 Style,
 
     if(__HWND_Lock(hParent))
     {
-        pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinRsc),100*mS);
+        pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinObj),100*mS);
         if(NULL!=pGddWin)
         {
-            pGkWin = (struct GkWinRsc*)(pGddWin+1);
+            pGkWin = (struct GkWinObj*)(pGddWin+1);
 
             if(!GK_CreateWin(hParent->pGkWin, pGkWin,x,y,x+w,y+h,
                                 RGB(0,0,0), BufProperty, Text,
@@ -1047,7 +1047,7 @@ static  void    __OffsetWindow(HWND hwnd,s32 dx,s32 dy)
 {
     HWND wnd;
     RECT rc;
-    struct GkWinRsc *Ancestor, *Current;
+    struct GkWinObj *Ancestor, *Current;
 
     Ancestor = hwnd->pGkWin;
     Current = Ancestor;
@@ -1094,7 +1094,7 @@ bool_t    OffsetWindow(HWND hwnd,s32 dx,s32 dy)
 static void __MoveWindow(HWND hwnd,s32 x,s32 y)
 {
     HWND wnd;
-    struct GkWinRsc *Ancestor, *Current;
+    struct GkWinObj *Ancestor, *Current;
     struct Rectangle rc;
     s32 dx,dy;
     POINT point;
@@ -1150,11 +1150,11 @@ bool_t    IsWindowVisible(HWND hwnd)
 {
     bool_t res=FALSE;
 
-    if(__HWND_Lock(hwnd))
-    {
+//    if(__HWND_Lock(hwnd))
+//    {
         res = GK_IsWinVisible(hwnd->pGkWin);
-        __HWND_Unlock(hwnd);
-    }
+//        __HWND_Unlock(hwnd);
+//    }
     return res;
 }
 
@@ -1168,11 +1168,7 @@ void    __InvalidateWindow(HWND hwnd,bool_t bErase)
 {
     if(IsWindowVisible(hwnd))
     {
-        if(__HWND_Lock(hwnd))
-        {
             PostMessage(hwnd,MSG_PAINT,bErase,0);
-            __HWND_Unlock(hwnd);
-        }
     }
 }
 
@@ -1727,7 +1723,7 @@ void __ClearMainWindow(HWND hwnd)
 //返回：应用对应的主窗口句柄
 //-----------------------------------------------------------------------------
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
-                      u32 MemSize, u32 WinBuf)
+                      u32 MemSize, u32 WinBuf,u32 Style)
 {
     HWND result = NULL;
     RECT rc;
@@ -1737,7 +1733,7 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
     GetClientRect(GetDesktopWindow(),&rc);
 
     //创建主窗口，每个图形应用对应一个主窗口
-    result = CreateWindow(AppName, WS_MAIN_WINDOW | WS_CAN_FOCUS, rc.left, rc.top,
+    result = CreateWindow(AppName, WS_CAN_FOCUS|Style, rc.left, rc.top,
                                  RectW(&rc), RectH(&rc), NULL, 0x0000,
                                  WinBuf, NULL, MyMsgLink);
     if(result != NULL)
@@ -1771,7 +1767,7 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
 
     if(result == NULL)
     {
-        printf("Create APP main window failure\n\r");
+        debug_printf("gdd","Create APP main window failure\n\r");
     }
     return result;
 }

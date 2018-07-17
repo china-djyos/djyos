@@ -54,19 +54,63 @@
 #include "os.h"
 #include "iicbus.h"
 #include "cpu_peri.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    AT24_ModuleInit(CFG_AT24C02_BUS_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"at24c02a"      //填写该组件的名字
+//parent:"none"                  //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock","iicbus"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_AT24C_ADDRESS       //****检查参数是否已经配置好
+#warning    at24c02a组件参数未配置，使用默认值
+//%$#@num,0,0xFFFFFFFF,
+#define CFG_AT24_TIMEOUT           (-1)   //"超时时间",-1表示无穷
+//%$#@enum,0xA0,0xA2,0xA4,0xA6,0xA8,0xAC,0xAA,0xAE
+#define CFG_AT24C_ADDRESS            0xA0                //"设备地址",硬件配置AT24的IIC设备地址
+//%$#@enum,100000,400000
+#define CFG_AT24C_CLK_FRE           (100*1000)           //"总线速度",单位Hz
+//%$#@string,1,10,
+#define CFG_AT24C02_BUS_NAME         "I2C0"             //"name",
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
 
 // =============================================================================
 #define CN_AT24_CHIP_SIZE       (256)           //芯片大小256 Bytes
 #define CN_AT24_PAGE_SIZE       (8)             //芯片页大小8 Bytes
 #define CN_AT24_PAGE_SUM        (CN_AT24_CHIP_SIZE/CN_AT24_PAGE_SIZE)
 
-#define AT24C_ADDRESS           0x50            //设备地址
-#define AT24C_CLK_FRE           (100*1000)      //总线速度，单位Hz
-
+//#define CFG_AT24C_ADDRESS           0x50            //设备地址
+//#define CFG_AT24C_CLK_FRE           (100*1000)      //总线速度，单位Hz
+//#define CFG_AT24C_TIMEOUT             CN_TIMEOUT_FOREVER
 
 //定义IICBUS架构下的IIC设备结构
 static struct IIC_Device *ps_AT24_Dev = NULL;
-static u32 s_AT24_Timeout = CN_TIMEOUT_FOREVER;
+static u32 s_AT24_Timeout = CFG_AT24C_TIMEOUT;
 
 // =============================================================================
 // 功能：AT24芯片WP写保护引脚初始化，配置为低时，允许写，为高时，写保护
@@ -219,7 +263,7 @@ s16 AT24_ReadWord(u16 wAddr)
 // 参数：无
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t AT24_ModuleInit(void)
+bool_t AT24_ModuleInit(char *busname)
 {
     bool_t result = false;
     static struct IIC_Device s_AT24_Dev;
@@ -227,15 +271,15 @@ bool_t AT24_ModuleInit(void)
     __AT24_GpioInit();
 
     //初始化IIC设备结构体
-    s_AT24_Dev.DevAddr                  = AT24C_ADDRESS;
+    s_AT24_Dev.DevAddr                  = CFG_AT24C_ADDRESS;
     s_AT24_Dev.BitOfMemAddr             = 8;
     s_AT24_Dev.BitOfMemAddrInDevAddr    = 0;
 
     //添加AT24到IIC0总线
-    if(NULL != IIC_DevAdd_r("IIC0","IIC_Dev_AT24",&s_AT24_Dev))
+    if(NULL != IIC_DevAdd_r(busname,"IIC_Dev_AT24",&s_AT24_Dev))
     {
         ps_AT24_Dev = &s_AT24_Dev;
-        IIC_BusCtrl(ps_AT24_Dev,CN_IIC_SET_CLK,AT24C_CLK_FRE,0);
+        IIC_BusCtrl(ps_AT24_Dev,CN_IIC_SET_CLK,CFG_AT24C_CLK_FRE,0);
         IIC_BusCtrl(ps_AT24_Dev,CN_IIC_DMA_USED,0,0);
         result = true;
     }

@@ -65,7 +65,7 @@
 #include "string.h"
 #include "object.h"
 #include "gkernel.h"
-#include <gui/gkernel/gk_display.h>
+#include "gk_display.h"
 #include "gk_syscall.h"
 #include "gk_win.h"
 #include "gk_draw.h"
@@ -1252,10 +1252,15 @@ void __GK_CopyPixelRopBm(struct RectBitmap *dst_bitmap,
     }
     else if(RopCode.HyalineEn == 1)     //透明色使能
     {
+        //将HyalineColor由ERGB8888格式转换为本地格式
+        HyalineColor=GK_ConvertRGB24ToPF(src_bitmap->PixelFormat,HyalineColor);
+         //读取源位图中的颜色，未转换成ERGB8888
+        src_color = GK_GetPixelBm(src_bitmap,x_src,y_src);
+
         if(src_color != HyalineColor)
         {
             //将源位图颜色进行颜色格式转换，得到与目标位图颜色格式一致的颜色
-            src_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,src_color);
+            //src_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,src_color);
             //绘制像素
             __GK_SetPixelRop2Bm(dst_bitmap,x_dst,y_dst,src_color,CN_R2_COPYPEN);
         }
@@ -1357,7 +1362,7 @@ void __GK_CopyPixelBm(struct RectBitmap *dst_bitmap,
 void __GK_SetPixel(struct GkscParaSetPixel *para)
 {
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*pixelwin;
+    struct GkWinObj *fb_gkwin,*pixelwin;
     struct RectBitmap *bitmap;
     u32 pf_color;
     s32 offsetx,offsety;
@@ -1445,7 +1450,7 @@ void __GK_SetPixel(struct GkscParaSetPixel *para)
 //      x、y，目标像素对应的坐标
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_ShadingPixel(struct GkWinRsc *gkwin,s32 x,s32 y)
+void __GK_ShadingPixel(struct GkWinObj *gkwin,s32 x,s32 y)
 {
     s32 msk_x,msk_y;
     if(gkwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)   //已经全部着色
@@ -1468,7 +1473,7 @@ void __GK_ShadingPixel(struct GkWinRsc *gkwin,s32 x,s32 y)
 //返回: 无
 //说明: 内部函数，不检查坐标合法性，由调用者保证坐标的合法性
 //-----------------------------------------------------------------------------
-void __GK_ShadingRect(struct GkWinRsc *gkwin,struct Rectangle *rect)
+void __GK_ShadingRect(struct GkWinObj *gkwin,struct Rectangle *rect)
 {
     struct RectBitmap *bitmap;
     s32 x,y;
@@ -1508,7 +1513,7 @@ void __GK_ShadingRect(struct GkWinRsc *gkwin,struct Rectangle *rect)
 //      x1、y1、x2、y2， 起点、终点坐标
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_ShadingLine(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_ShadingLine(struct GkWinObj *gkwin,struct Rectangle *limit,
                      s32 x1,s32 y1,s32 x2,s32 y2)
 {
     if(gkwin->WinProperty.ChangeFlag == CN_GKWIN_CHANGE_ALL)   //已经全部着色
@@ -1691,7 +1696,7 @@ void __GK_ShadingLine(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //参数: gkwin，目标窗口指针
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_ShadingClear(struct GkWinRsc *gkwin)
+void __GK_ShadingClear(struct GkWinObj *gkwin)
 {
     u32 msk_size;
     if(gkwin->changed_msk.bm_bits)
@@ -1711,7 +1716,7 @@ void __GK_ShadingClear(struct GkWinRsc *gkwin)
 //返回: 无
 //说明: 采用的是Bresenham算法
 //-----------------------------------------------------------------------------
-void __GK_DrawOline(struct GkWinRsc *gkwin,s32 x1,s32 y1,
+void __GK_DrawOline(struct GkWinObj *gkwin,s32 x1,s32 y1,
                                         s32 x2,s32 y2,u32 color,u32 Rop2Code)
 {
     u32 pf_color;
@@ -1798,7 +1803,7 @@ void __GK_DrawOline(struct GkWinRsc *gkwin,s32 x1,s32 y1,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_VlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_VlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                      s32 x1,s32 y1,s32 y2,u32 color,u32 Rop2Code)
 {
     s32 y;
@@ -1857,7 +1862,7 @@ void __GK_VlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_HlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_HlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                      s32 x1,s32 y1,s32 x2,u32 color,u32 Rop2Code)
 {
     s32 x;
@@ -1915,7 +1920,7 @@ void __GK_HlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_OlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,//确认
+void __GK_OlinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,//确认
                        s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 Rop2Code)
 {
     s32 x,y;
@@ -2055,7 +2060,7 @@ void __GK_OlinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,//确认
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_LinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_LinetoBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                     s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 Rop2Code)
 {
     if(y1 == y2)        //绘水平线
@@ -2074,27 +2079,22 @@ void __GK_LinetoBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_SetPixelScreen(struct DisplayRsc *display,s32 x,s32 y,
+void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
                            u32 color,u32 Rop2Code)
 {
-    struct DisplayRsc *mirror,*current;
+// TODO: 检查逻辑
+    struct DisplayObj *MirrorDisplay;
+    struct Object *mirror,*current;
 
     display->draw.SetPixelToScreen(x,y,color,Rop2Code);//在screen上画点
-#if 0
-    mirror = (struct DisplayRsc *)display->node.Child;
-    if(mirror == NULL)      //没有镜像显示器，直接返回
-        return;
-#else
-    mirror = (struct DisplayRsc *)OBJ_Child(&display->node);
-#endif
+    mirror = display->HostObj;
 
-
-    current = mirror;
+    current = OBJ_Child(mirror);
     while(current != NULL)
     {
-        current->draw.SetPixelToScreen(x,y,color,Rop2Code);
-        current = (struct DisplayRsc *)OBJ_TraveScion(&mirror->node,
-                &current->node);
+        MirrorDisplay = (struct DisplayObj*)OBJ_Represent(current);
+        MirrorDisplay->draw.SetPixelToScreen(x,y,color,Rop2Code);
+        current = OBJ_TraveChild(mirror, current);
     }
 }
 
@@ -2107,10 +2107,11 @@ void __GK_SetPixelScreen(struct DisplayRsc *display,s32 x,s32 y,
 //      r2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_LinetoScreen(struct DisplayRsc *display,struct Rectangle *limit,
+void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
                    s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 Rop2Code)
 {
-    struct DisplayRsc *mirror,*current;
+    struct DisplayObj *MirrorDisplay;
+    struct Object *mirror,*current;
     s32 x,y,ax,ay,s1,s2,p,interchange,i;
 
     if(display->draw.LineToScreen(limit, x1, y1, x2, y2, color,Rop2Code))
@@ -2192,19 +2193,13 @@ void __GK_LinetoScreen(struct DisplayRsc *display,struct Rectangle *limit,
             }
         }
     }
-#if 0
-    mirror = (struct DisplayRsc *)display->node.child;
-#else
-    mirror = (struct DisplayRsc *)OBJ_Child(&display->node);
-#endif
-    if(mirror == NULL)      //没有镜像显示器，直接返回
-        return;
-    current = mirror;
+    mirror = display->HostObj;
+    current = OBJ_Child(mirror);
     while(current != NULL)
     {
-        current->draw.LineToScreen(limit, x1, y1, x2, y2, color,Rop2Code);
-        current = (struct DisplayRsc *)OBJ_TraveScion(&mirror->node,
-                &current->node);
+        MirrorDisplay = (struct DisplayObj*)OBJ_Represent(current);
+        MirrorDisplay->draw.LineToScreen(limit, x1, y1, x2, y2, color,Rop2Code);
+        current = OBJ_TraveChild(mirror,current);
     }
 }
 //----传送bitmap到screen-------------------------------------------------------
@@ -2215,7 +2210,7 @@ void __GK_LinetoScreen(struct DisplayRsc *display,struct Rectangle *limit,
 //      x、y，bitmap要传送部分左上角坐标
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_BltBmToScreen(struct DisplayRsc *display,struct Rectangle *rect,
+void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
                         struct RectBitmap *bitmap,s32 x,s32 y)
 {
     //todo :增加alpha1,2,4,8格式.
@@ -2224,7 +2219,8 @@ void __GK_BltBmToScreen(struct DisplayRsc *display,struct Rectangle *rect,
     u32 color;
     s32 x_bmap,y_bmap,x_rect,y_rect;
 
-    struct DisplayRsc *mirror,*current;
+    struct DisplayObj *MirrorDisplay;
+    struct Object *mirror,*current;
 
     if(display->draw.CopyBitmapToScreen(rect,bitmap,x,y))
     {
@@ -2266,19 +2262,13 @@ void __GK_BltBmToScreen(struct DisplayRsc *display,struct Rectangle *rect,
             y_bmap++;
         }
     }
-#if 0
-    mirror = (struct DisplayRsc *)display->node.child;
-#else
-    mirror = (struct DisplayRsc *)OBJ_Child(&display->node);
-#endif
-    if(mirror == NULL)      //没有镜像显示器，直接返回
-        return;
-    current = mirror;
+    mirror = display->HostObj;
+    current = OBJ_Child(mirror);
     while(current != NULL)
     {
-        current->draw.CopyBitmapToScreen(rect,bitmap,x,y);
-        current = (struct DisplayRsc *)OBJ_TraveScion(&mirror->node,
-                                                        &current->node);
+        MirrorDisplay = (struct DisplayObj*)OBJ_Represent(current);
+        MirrorDisplay->draw.CopyBitmapToScreen(rect,bitmap,x,y);
+        current = OBJ_TraveChild(mirror,current);
     }
 }
 
@@ -2743,7 +2733,7 @@ void __GK_FillBm(struct RectBitmap *dst_bitmap,u32 color)
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __gk_set_all_pixels_circle(struct GkWinRsc *gkwin,
+void __gk_set_all_pixels_circle(struct GkWinObj *gkwin,
                                 struct RectBitmap *bitmap,s32 x0,s32 y0,
                                 s32 x,s32 y,u32 color,u32 Rop2Code)
 {
@@ -2784,7 +2774,7 @@ void __gk_set_all_pixels_circle(struct GkWinRsc *gkwin,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __gk_pixel_sect_inter(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __gk_pixel_sect_inter(struct GkWinObj *gkwin,struct Rectangle *limit,
                                 struct RectBitmap *bitmap,s32 x,s32 y,
                                 u32 color,u32 Rop2Code)
 {
@@ -2809,7 +2799,7 @@ void __gk_pixel_sect_inter(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __gk_set_part_pixels_circle(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __gk_set_part_pixels_circle(struct GkWinObj *gkwin,struct Rectangle *limit,
                                 struct RectBitmap *bitmap,s32 x0,s32 y0,
                                 s32 x,s32 y,u32 color,u32 Rop2Code)
 {
@@ -2833,7 +2823,7 @@ void __gk_set_part_pixels_circle(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //返回: 无
 //说明: 使用中点画圆算法
 //-----------------------------------------------------------------------------
-void __GK_DrawCircleBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_DrawCircleBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                         s32 x0,s32 y0,s32 r,u32 color,u32 Rop2Code)
 {
     s32 x,y,e;
@@ -2915,7 +2905,7 @@ void __GK_DrawCircleBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __Gk_PixelSectInterScreen(struct DisplayRsc *display,
+void __Gk_PixelSectInterScreen(struct DisplayObj *display,
                                     struct Rectangle *limit,
                                     s32 x,s32 y,u32 color,u32 Rop2Code)
 {
@@ -2938,13 +2928,14 @@ void __Gk_PixelSectInterScreen(struct DisplayRsc *display,
 //返回: 无
 //使用中点画圆算法
 //-----------------------------------------------------------------------------
-void __GK_DrawCircleScreen(struct DisplayRsc *display,struct Rectangle *limit,
+void __GK_DrawCircleScreen(struct DisplayObj *display,struct Rectangle *limit,
                         s32 x0,s32 y0,s32 r,u32 color,u32 Rop2Code)//确认
 {
     s32 x,y,e;
     s32 left,right,top,bottom;
     u32 flag;
-    struct DisplayRsc *mirror,*current;
+    struct DisplayObj *MirrorDisplay;
+    struct Object *mirror,*current;
     struct DispDraw *mydraw;
 
     mydraw = &display->draw;
@@ -3026,30 +3017,25 @@ void __GK_DrawCircleScreen(struct DisplayRsc *display,struct Rectangle *limit,
         }
     }
     //镜像显示
-#if 0
-    mirror = (struct DisplayRsc *)display->node.child;
-#else
-    mirror = (struct DisplayRsc *)OBJ_Child(&display->node);
-#endif
-    if(mirror == NULL)      //没有镜像显示器，直接返回
-        return;
-    current = mirror;
+    mirror = display->HostObj;
+    current = OBJ_Child(mirror);
     while(current != NULL)
     {//存在镜像显示器
         x = 0;
         y = r;
+        MirrorDisplay = (struct DisplayObj*)OBJ_Represent(current);
         if(flag)
         {//整个圆都在limit内，利用圆的八分特性，只需要计算八分之一个圆的坐标
             while(x <= y)
             {
-                current->draw.SetPixelToScreen(x0+x,y0+y,color,Rop2Code);
-                current->draw.SetPixelToScreen(x0+x,y0-y,color,Rop2Code);
-                current->draw.SetPixelToScreen(x0-x,y0+y,color,Rop2Code);
-                current->draw.SetPixelToScreen(x0-x,y0-y,color,Rop2Code);
-                current->draw.SetPixelToScreen(x0+y,y0+x,color,Rop2Code);
-                current->draw.SetPixelToScreen(x0+y,y0-x,color,Rop2Code);
-                current->draw.SetPixelToScreen(x0-y,y0+x,color,Rop2Code);
-                current->draw.SetPixelToScreen(x0-y,y0-x,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0+x,y0+y,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0+x,y0-y,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0-x,y0+y,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0-x,y0-y,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0+y,y0+x,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0+y,y0-x,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0-y,y0+x,color,Rop2Code);
+                MirrorDisplay->draw.SetPixelToScreen(x0-y,y0-x,color,Rop2Code);
                 if(e < 0)
                     e += x*2+3;
                 else
@@ -3067,28 +3053,28 @@ void __GK_DrawCircleScreen(struct DisplayRsc *display,struct Rectangle *limit,
                 //只绘制在limit内的像素
                 if((x0+x >= limit->left)&&(x0+x < limit->right)
                         &&(y0+y >= limit->top)&&(y0+y < limit->bottom))
-                    current->draw.SetPixelToScreen(x0+x,y0+y,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0+x,y0+y,color,Rop2Code);
                 if((x0+x >= limit->left)&&(x0+x < limit->right)
                         &&(y0-y >= limit->top)&&(y0+y < limit->bottom))
-                    current->draw.SetPixelToScreen(x0+x,y0-y,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0+x,y0-y,color,Rop2Code);
                 if((x0-x >= limit->left)&&(x0-x < limit->right)
                         &&(y0+y >= limit->top)&&(y0+y < limit->bottom))
-                    current->draw.SetPixelToScreen(x0-x,y0+y,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0-x,y0+y,color,Rop2Code);
                 if((x0-x >= limit->left)&&(x0-x < limit->right)
                         &&(y0-y >= limit->top)&&(y0-y < limit->bottom))
-                    current->draw.SetPixelToScreen(x0-x,y0-y,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0-x,y0-y,color,Rop2Code);
                 if((x0+y >= limit->left)&&(x0+y < limit->right)
                         &&(y0+x >= limit->top)&&(y0+x < limit->bottom))
-                    current->draw.SetPixelToScreen(x0+y,y0+x,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0+y,y0+x,color,Rop2Code);
                 if((x0+y >= limit->left)&&(x0+y < limit->right)
                         &&(y0-x >= limit->top)&&(y0-x < limit->bottom))
-                    current->draw.SetPixelToScreen(x0+y,y0-x,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0+y,y0-x,color,Rop2Code);
                 if((x0-y >= limit->left)&&(x0-y < limit->right)
                         &&(y0+x >= limit->top)&&(y0+x < limit->bottom))
-                    current->draw.SetPixelToScreen(x0-y,y0+x,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0-y,y0+x,color,Rop2Code);
                 if((x0-y >= limit->left)&&(x0-y < limit->right)
                         &&(y0-x >= limit->top)&&(y0-x < limit->bottom))
-                    current->draw.SetPixelToScreen(x0-y,y0-x,color,Rop2Code);
+                    MirrorDisplay->draw.SetPixelToScreen(x0-y,y0-x,color,Rop2Code);
                 if(e < 0)
                     e += x*2+3;
                 else
@@ -3099,8 +3085,7 @@ void __GK_DrawCircleScreen(struct DisplayRsc *display,struct Rectangle *limit,
                 x++;
             }
         }
-        current = (struct DisplayRsc *)OBJ_TraveScion(&mirror->node,
-                        &current->node);
+        current = OBJ_TraveChild(mirror,current);
     }
 }
 //----画圆---------------------------------------------------------------------
@@ -3116,7 +3101,7 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
 {
     struct Rectangle limit;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*cirwin;
+    struct GkWinObj *fb_gkwin,*cirwin;
 //    struct DispDraw *my_draw_fun;
     s32 offsetx,offsety;
     if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
@@ -3181,7 +3166,7 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_BezierBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
+void __GK_BezierBm(struct GkWinObj *gkwin,struct Rectangle *limit,
                     float x1,float y1,float x2,float y2,float x3,float y3,
                     float x4,float y4,u32 color,u32 Rop2Code)
 {
@@ -3236,7 +3221,7 @@ void __GK_BezierBm(struct GkWinRsc *gkwin,struct Rectangle *limit,
 //      rop2_code，二元光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_BezierScreen(struct DisplayRsc *display,struct Rectangle *limit,
+void __GK_BezierScreen(struct DisplayObj *display,struct Rectangle *limit,
                     float x1,float y1,float x2,float y2,float x3,float y3,
                     float x4,float y4,u32 color,u32 Rop2Code)
 {
@@ -3295,7 +3280,7 @@ void __GK_Bezier(struct GkscParaBezier *para)
     s32 offsetx,offsety;
     struct Rectangle limit;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*bzrwin;
+    struct GkWinObj *fb_gkwin,*bzrwin;
 //    struct DispDraw *my_draw_fun;
     if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
         return;                                         //不执行操作
@@ -3360,7 +3345,7 @@ void __GK_Lineto(struct GkscParaLineto *para)
 {
     struct Rectangle limit;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*lintowin;
+    struct GkWinObj *fb_gkwin,*lintowin;
     struct DispDraw *my_draw_fun;
     s32 offsetx,offsety;
     if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
@@ -3455,9 +3440,9 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
     s32 dx,dy;
     struct Rectangle limit;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*lintoiewin;
+    struct GkWinObj *fb_gkwin,*lintoiewin;
     struct DispDraw *my_draw_fun;
-    struct DisplayRsc *display;
+    struct DisplayObj *display;
     s32 offsetx,offsety;
     if((para->Rop2Code == CN_R2_NOP) || (para->Rop2Code > CN_R2_LAST))
         return;                                         //不执行操作
@@ -3723,7 +3708,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
 void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
 {
     struct GkscParaDrawBitmapRop bitmap_para;
-    struct FontRsc* cur_font;
+    struct FontObj* cur_font;
     struct Charset* cur_enc;
     char *String = text;
     s32 len, char_num = 0,size,size_bak;
@@ -3833,16 +3818,17 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
     struct PointCdn InsOffset;
     struct Rectangle DstRect,SrcRect,InsRect;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*DstGkwin;
+    struct GkWinObj *fb_gkwin,*DstGkwin;
     struct RectBitmap *DstBitmap;
     struct RectBitmap *SrcBitmap;
-    struct DisplayRsc *display;
+    struct DisplayObj *display;
     DstGkwin = para->gkwin;
     display = DstGkwin->disp;
 
 //    HyalineColor = para->HyalineColor;
     DstBitmap = DstGkwin->wm_bitmap;
     SrcBitmap = &para->bitmap;
+    SrcBitmap->reversal=true;
     //待绘制的位图要绘制的位置相对于目标窗口的坐标
     SrcRect.left = 0;
     SrcRect.top = 0;
@@ -3870,12 +3856,12 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
     }
     if(DstRect.right > DstGkwin->limit_right)       //调整右边界在窗口内部
     {
-        SrcRect.right = DstRect.right - DstGkwin->limit_right;
+        SrcRect.right -= DstRect.right - DstGkwin->limit_right;
         DstRect.right = DstGkwin->limit_right;
     }
     if(DstRect.bottom > DstGkwin->limit_bottom )      //调整下边界在窗口内部
     {
-        SrcRect.bottom = DstRect.bottom - DstGkwin->limit_bottom;
+        SrcRect.bottom -= DstRect.bottom - DstGkwin->limit_bottom;
         DstRect.bottom = DstGkwin->limit_bottom;
     }
 
@@ -4287,13 +4273,13 @@ void __GK_GradientFillScreenRect(struct DispDraw *Draw,
 //返回: 无
 //特注: 本函数可能会修改Rect的成员，绝对不允许外部调用。
 //-----------------------------------------------------------------------------
-void __GK_FillPartWin(struct GkWinRsc *Gkwin,struct Rectangle *Rect,u32 Color)
+void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
 {
     struct RectBitmap *bitmap;
     struct Rectangle ins_rect;
     struct DispDraw *my_draw_fun;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin;
+    struct GkWinObj *fb_gkwin;
 
     bitmap = Gkwin->wm_bitmap;
     //待填充矩形要绘制的位置的坐标，相对于目标窗口
@@ -4349,7 +4335,8 @@ void __GK_FillPartWin(struct GkWinRsc *Gkwin,struct Rectangle *Rect,u32 Color)
         //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
         {
             do{
-                struct DisplayRsc *mirror,*current;
+                struct DisplayObj *MirrorDisplay;
+                struct Object *mirror,*current;
                 //只填充窗口可视域与要绘制的区域的交集
                 if(__GK_GetRectInts(&clip->rect,Rect,&ins_rect))
                 {
@@ -4360,22 +4347,19 @@ void __GK_FillPartWin(struct GkWinRsc *Gkwin,struct Rectangle *Rect,u32 Color)
                         __GK_GradientFillScreenRect(my_draw_fun,Rect,
                                     &ins_rect,Color,0,CN_FILLRECT_MODE_N);
                     }
-                    mirror = (struct DisplayRsc *)&Gkwin->disp->node;
-                    if(mirror == NULL)      //没有镜像显示器，直接返回
-                        return;
-                    current = mirror;
+                    mirror = Gkwin->disp->HostObj;
+                    current = OBJ_Child(mirror);
                     while(current != NULL)
                     {
+                        MirrorDisplay = (struct DisplayObj*)OBJ_Represent(current);
                         //硬件加速不支持填充位图，则用软件实现
-                        if(!current->draw.FillRectToScreen(Rect,&ins_rect,
+                        if(!MirrorDisplay->draw.FillRectToScreen(Rect,&ins_rect,
                                               Color,0,CN_FILLRECT_MODE_N))
                         {
-                            __GK_GradientFillScreenRect(&current->draw,Rect,
+                            __GK_GradientFillScreenRect(&MirrorDisplay->draw,Rect,
                                     &ins_rect,Color,0,CN_FILLRECT_MODE_N);
                         }
-                        current = (struct DisplayRsc *)OBJ_TraveScion(
-                                                        &mirror->node,
-                                                        &current->node);
+                        current = OBJ_TraveChild(mirror,current);
                     }
                 }
                 clip = clip->next;
@@ -4398,7 +4382,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
     struct Rectangle target,ins_rect,rc;
     struct DispDraw *my_draw_fun;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*fpwwin;
+    struct GkWinObj *fb_gkwin,*fpwwin;
     u32 Color0,Color1,Mode;
 
     fpwwin = para->gkwin;
@@ -4482,7 +4466,8 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
         //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
         {
             do{
-                struct DisplayRsc *mirror,*current;
+                struct DisplayObj *MirrorDisplay;
+                struct Object *mirror,*current;
                 //只填充窗口可视域与要绘制的区域的交集
                 if(__GK_GetRectInts(&clip->rect,&target,&ins_rect))
                 {
@@ -4493,20 +4478,18 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                         __GK_GradientFillScreenRect(my_draw_fun,&target,
                                                 &ins_rect,Color0,Color1,Mode);
                     }
-                    mirror = (struct DisplayRsc *)&fpwwin->disp->node;
-                    if(mirror == NULL)      //没有镜像显示器，直接返回
-                        return;
-                    current = mirror;
+                    mirror = fpwwin->disp->HostObj;
+                    current = OBJ_Child(mirror);
                     while(current != NULL)
                     {
-                        if(!current->draw.FillRectToScreen(&target,&ins_rect,
+                        MirrorDisplay = (struct DisplayObj*)OBJ_Represent(current);
+                        if(!MirrorDisplay->draw.FillRectToScreen(&target,&ins_rect,
                                                        Color0,Color1,Mode) );
                         {
-                            __GK_GradientFillScreenRect(&current->draw,&target,
+                            __GK_GradientFillScreenRect(&MirrorDisplay->draw,&target,
                                                 &ins_rect,Color0,Color1,Mode);
                         }
-                        current =(struct DisplayRsc *)OBJ_TraveScion(
-                                                &mirror->node,&current->node);
+                        current = OBJ_TraveChild(mirror,current);
                     }
                 }
                 clip = clip->next;
@@ -4526,7 +4509,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
 {
     struct Rectangle rect;
     struct ClipRect *clip;
-    struct GkWinRsc *fb_gkwin,*fpwin;
+    struct GkWinObj *fb_gkwin,*fpwin;
     struct RectBitmap *bitmap;
 
     struct DispDraw *my_draw_fun;
@@ -4537,78 +4520,76 @@ void __GK_FillWin(struct GkscParaFillWin *para)
     //说明有win buffer，且直接写屏属性为false
     if((bitmap!=NULL)&&(fpwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
     {
-    	rect.left = 0;
-		rect.top = 0;
-		rect.right = bitmap->width;
-		rect.bottom = bitmap->height;
-		//处理方法:在win buffer中绘图，标志changed_msk
-		if(!my_draw_fun->FillRectToBitmap(bitmap,&rect,&rect,para->color,
-										0,CN_FILLRECT_MODE_N))
-		{//硬件加速不支持填充位图，则用软件实现
-			__GK_FillBm(bitmap,para->color);
-		}
-		fpwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+        rect.left = 0;
+        rect.top = 0;
+        rect.right = bitmap->width;
+        rect.bottom = bitmap->height;
+        //处理方法:在win buffer中绘图，标志changed_msk
+        if(!my_draw_fun->FillRectToBitmap(bitmap,&rect,&rect,para->color,
+                                        0,CN_FILLRECT_MODE_N))
+        {//硬件加速不支持填充位图，则用软件实现
+            __GK_FillBm(bitmap,para->color);
+        }
+        fpwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
     }
     else
     {
-    	clip = fpwin->visible_clip;
-		if(clip == NULL)
-			return ;
-		fb_gkwin = fpwin->disp->frame_buffer;
-		bitmap = fb_gkwin->wm_bitmap;
-		rect.left = 0;
-		rect.top = 0;
-		rect.right = bitmap->width;
-		rect.bottom = bitmap->height;
-		//有frame buffer，且直接写屏属性为false
-		if((fb_gkwin != NULL) && (fpwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-		{   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
-			do{
-				//帧缓冲的坐标和clip中的坐标都是绝对坐标，无须变换
-				if(!my_draw_fun->FillRectToBitmap(bitmap,&rect,&clip->rect,
-											  para->color,0,CN_FILLRECT_MODE_N))
-				{//硬件加速不支持填充位图，则用软件实现
-					__GK_FillRect(bitmap,&clip->rect,para->color);
-				}
-				//标志填充区域的changed_msk
-				__GK_ShadingRect(fb_gkwin,&clip->rect);
-				clip = clip->next;
-			}while(clip != fpwin->visible_clip);
-		}else
-		//无win buffer，也无frame buffer，直接画在screen上
-		//直接写屏属性为true，不管有无缓冲区，都直接画在screen上
-		{
-			do{
-				struct DisplayRsc *mirror,*current;
-				if(!my_draw_fun->FillRectToScreen(&rect,&clip->rect,
-											para->color,0,CN_FILLRECT_MODE_N))
-				{
-					//硬件加速不支持填充screen上的矩形域，则用软件实现
-					__GK_GradientFillScreenRect(my_draw_fun,&rect,&clip->rect,
-											para->color,0,CN_FILLRECT_MODE_N);
-				}
-				mirror = (struct DisplayRsc *)&fpwin->disp->node;
-				if(mirror == NULL)      //没有镜像显示器，直接返回
-					continue;
-				current = mirror;
-				while(current != NULL)
-				{
-					if(!current->draw.FillRectToScreen(&rect,&clip->rect,
-											para->color,0,CN_FILLRECT_MODE_N))
-					{
-						//硬件加速不支持填充screen上的矩形域，则用软件实现
-						__GK_GradientFillScreenRect(&current->draw,&rect,
-													&clip->rect,
-													para->color,
-													0,CN_FILLRECT_MODE_N);
-					}
-					current = (struct DisplayRsc *)OBJ_TraveScion(
-														&mirror->node,
-														&current->node);
-				}
-				clip = clip->next;
-			}while(clip != fpwin->visible_clip);
-		}
+        clip = fpwin->visible_clip;
+        if(clip == NULL)
+            return ;
+        fb_gkwin = fpwin->disp->frame_buffer;
+        bitmap = fb_gkwin->wm_bitmap;
+        rect.left = 0;
+        rect.top = 0;
+        rect.right = bitmap->width;
+        rect.bottom = bitmap->height;
+        //有frame buffer，且直接写屏属性为false
+        if((fb_gkwin != NULL) && (fpwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+        {   //处理方法:在frame buffer中绘图，但只绘gkwin中的可视区域
+            do{
+                //帧缓冲的坐标和clip中的坐标都是绝对坐标，无须变换
+                if(!my_draw_fun->FillRectToBitmap(bitmap,&rect,&clip->rect,
+                                              para->color,0,CN_FILLRECT_MODE_N))
+                {//硬件加速不支持填充位图，则用软件实现
+                    __GK_FillRect(bitmap,&clip->rect,para->color);
+                }
+                //标志填充区域的changed_msk
+                __GK_ShadingRect(fb_gkwin,&clip->rect);
+                clip = clip->next;
+            }while(clip != fpwin->visible_clip);
+        }else
+        //无win buffer，也无frame buffer，直接画在screen上
+        //直接写屏属性为true，不管有无缓冲区，都直接画在screen上
+        {
+            do{
+                struct DisplayObj *MirrorDisplay;
+                struct Object *mirror,*current;
+                if(!my_draw_fun->FillRectToScreen(&rect,&clip->rect,
+                                            para->color,0,CN_FILLRECT_MODE_N))
+                {
+                    //硬件加速不支持填充screen上的矩形域，则用软件实现
+                    __GK_GradientFillScreenRect(my_draw_fun,&rect,&clip->rect,
+                                            para->color,0,CN_FILLRECT_MODE_N);
+                }
+                mirror = fpwin->disp->HostObj;
+                current = OBJ_Child(mirror);
+                while(current != NULL)
+                {
+                    MirrorDisplay = (struct DisplayObj*)OBJ_Represent(current);
+                    if(!MirrorDisplay->draw.FillRectToScreen(&rect,&clip->rect,
+                                            para->color,0,CN_FILLRECT_MODE_N))
+                    {
+                        //硬件加速不支持填充screen上的矩形域，则用软件实现
+                        __GK_GradientFillScreenRect(&MirrorDisplay->draw,&rect,
+                                                    &clip->rect,
+                                                    para->color,
+                                                    0,CN_FILLRECT_MODE_N);
+                    }
+                    current = OBJ_TraveChild(mirror,current);
+                }
+                clip = clip->next;
+            }while(clip != fpwin->visible_clip);
+        }
     }
 }
 

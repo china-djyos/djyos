@@ -79,10 +79,9 @@ extern "C" {
 #define CN_MULTIPLEX_SENSINGBIT_ERROR       (1<<2)  //对象出错
 
 //触发模式，利用SensingBit.24~31
-#define CN_MULTIPLEX_SENSINGBIT_AND          0      //SensingBit中全部置位才触发
-#define CN_MULTIPLEX_SENSINGBIT_OR          (1<<31) //SensingBit中有一个置位就触发
-#define CN_MULTIPLEX_SENSINGBIT_LT           0      //电平触发（Level）
-#define CN_MULTIPLEX_SENSINGBIT_ET          (1<<30) //边沿触发（Edge）
+#define CN_MULTIPLEX_SENSINGBIT_ONESHOT     (1<<28) //1=只监听一次事件，0=监听多次
+#define CN_MULTIPLEX_SENSINGBIT_OR          (1<<29) //1=SensingBit中有一个置位就触发，0=否则全部置位才触发
+#define CN_MULTIPLEX_SENSINGBIT_ET          (1<<30) //1=边沿触发（Edge），0=电平触发（Level）
 
 //多路复用对象是否actived，利用PendingBit.31
 #define CN_MULTIPLEX_OBJECT_ACTIVED         (1<<31) //1=object is actived
@@ -110,6 +109,7 @@ struct MultiplexObjectCB
     struct MultiplexObjectCB *NextSets; //横向单向链表，用于一个object被多个
                                         //MultiplexSets包含的情况
     struct MultiplexSetsCB *MySets;     //指向主控制块
+    s32 Fd;                             //被MultiplexSets等待的文件
     ptu32_t ObjectID;                   //被MultiplexSets等待的对象
     u32 ET_SaveBit;                     //保存 ET（边沿）触发的原状态。
     u32 PendingBit;                     //bit0~23：对象中已经触发的bit，
@@ -119,15 +119,10 @@ struct MultiplexObjectCB
                                         //CN_MULTIPLEX_SENSINGBIT_MODE定义
 };
 
-ptu32_t ModuleInstall_Multiplex(ptu32_t para);
 struct MultiplexSetsCB *Multiplex_Create(u32 ActiveLevel);
-bool_t Multiplex_AddObject(struct MultiplexSetsCB  *Sets,
-                    struct MultiplexObjectCB **ObjectHead,
-                    u32 ObjectStatus,ptu32_t ObjectID, u32 SensingBit);
-bool_t Multiplex_DelObject(struct MultiplexSetsCB  *Sets,
-               struct MultiplexObjectCB **ObjectHead);
-bool_t Multiplex_Set(struct MultiplexObjectCB *ObjectHead,u32 Status);
-ptu32_t Multiplex_Wait( struct MultiplexSetsCB *Sets,u32 *Status,u32 Timeout);
+bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit);
+bool_t Multiplex_DelObject(struct MultiplexSetsCB  *Sets,s32 Fd);
+s32 Multiplex_Wait( struct MultiplexSetsCB *Sets,u32 *Status,u32 Timeout);
 
 #ifdef __cplusplus
 }

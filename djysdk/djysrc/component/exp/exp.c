@@ -66,6 +66,8 @@
 #include "exp_hook.h"
 #include "exp_osstate.h"
 #include "Exp_Record.h"
+#include "dbug.h"
+#include "component_config_exp.h"
 
 const char *gExpActionName[EN_EXP_DEAL_LENTH] = {
     "IGNORE",
@@ -160,7 +162,7 @@ static enum EN_ExpDealResult  __Exp_ExecAction(u32 FinalAction,\
     result = Exp_Record(expinfo);
     if(result != EN_EXP_RESULT_SUCCESS)
     {
-    	printk("expresultdealer:RECORD FAILED!\n\r");
+        printk("expresultdealer:RECORD FAILED!\n\r");
     }
     switch (FinalAction)
     {
@@ -304,23 +306,23 @@ void  __Exp_HeadinfoSwapByEndian(struct ExpHeadInfo *headinfo)
 // =============================================================================
 bool_t __Exp_HeadinfoDecoder(struct ExpHeadInfo *headinfo)
 {
-    printf("exp_headinfo:magicnumber   :0x%08x\n\r",headinfo->magicnumber);
-    printf("exp_headinfo:record endian :%s\n\r",\
+    debug_printf("exp","exp_headinfo:magicnumber   :0x%08x\n\r",headinfo->magicnumber);
+    debug_printf("exp","exp_headinfo:record endian :%s\n\r",\
             headinfo->recordendian==CN_CFG_LITTLE_ENDIAN?"LittleEndian":"BigEndian");
-    printf("exp_headinfo:ExpType       :0x%08x\n\r",headinfo->ExpType);
-    printf("exp_headinfo:osstatevalid  :%s\n\r",\
+    debug_printf("exp","exp_headinfo:ExpType       :0x%08x\n\r",headinfo->ExpType);
+    debug_printf("exp","exp_headinfo:osstatevalid  :%s\n\r",\
             headinfo->osstatevalid==CN_EXP_PARTIALINFO_VALID?"Valid":"Invalid");
-    printf("exp_headinfo:osstateinfolen:%d Bytes\n\r",headinfo->osstateinfolen);
-    printf("exp_headinfo:hookinfo stat :%s\n\r",\
+    debug_printf("exp","exp_headinfo:osstateinfolen:%d Bytes\n\r",headinfo->osstateinfolen);
+    debug_printf("exp","exp_headinfo:hookinfo stat :%s\n\r",\
             headinfo->hookvalid==CN_EXP_PARTIALINFO_VALID?"Valid":"Invalid");
-    printf("exp_headinfo:hookinfolen   :%d Bytes\n\r",headinfo->hookinfolen);
-    printf("exp_headinfo:HookAction    :%s\n\r",ExpActionName(headinfo->HookAction));
-    printf("exp_headinfo:throwinfo stat:%s\n\r",\
+    debug_printf("exp","exp_headinfo:hookinfolen   :%d Bytes\n\r",headinfo->hookinfolen);
+    debug_printf("exp","exp_headinfo:HookAction    :%s\n\r",ExpActionName(headinfo->HookAction));
+    debug_printf("exp","exp_headinfo:throwinfo stat:%s\n\r",\
             headinfo->throwinfovalid==CN_EXP_PARTIALINFO_VALID?"Valid":"Invalid");
-    printf("exp_headinfo:throwinfolen  :%d Bytes\n\r",headinfo->throwinfolen);
-    printf("exp_headinfo:ThrowAction   :%s\n\r",ExpActionName(headinfo->ThrowAction));
-    printf("exp_headinfo:ExpAction     :%s\n\r",ExpActionName(headinfo->ExpAction));
-    printf("exp_headinfo:DecoderName   :%s\n\r",headinfo->decodername);
+    debug_printf("exp","exp_headinfo:throwinfolen  :%d Bytes\n\r",headinfo->throwinfolen);
+    debug_printf("exp","exp_headinfo:ThrowAction   :%s\n\r",ExpActionName(headinfo->ThrowAction));
+    debug_printf("exp","exp_headinfo:ExpAction     :%s\n\r",ExpActionName(headinfo->ExpAction));
+    debug_printf("exp","exp_headinfo:DecoderName   :%s\n\r",headinfo->decodername);
 
     return true;
 }
@@ -341,12 +343,12 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
     if(NULL == recordpara)
     {
         result = false;
-        printf("Exp_InfoDecoder:invalid parameter!\n\r");
+        debug_printf("exp","Exp_InfoDecoder:invalid parameter!\n\r");
     }
     else if(( 0 == recordpara->headinfoaddr ) || (sizeof(struct ExpHeadInfo) != recordpara->headinfolen))
     {
         result = false;
-        printf("Exp_InfoDecoder:incomplete exception headinfo!\n\r");
+        debug_printf("exp","Exp_InfoDecoder:incomplete exception headinfo!\n\r");
     }
     else
     {
@@ -361,7 +363,7 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
         }
         if(CN_EXP_HEADINFO_MAGICNUMBER != headinfo->magicnumber)
         {
-            printf("Exp_InfoDecoder:headinfo has been destroyed!\n\r");
+            debug_printf("exp","Exp_InfoDecoder:headinfo has been destroyed!\n\r");
             result = false;
         }
         else
@@ -376,7 +378,7 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
             //信息头解析
             if(recordpara->headinfolen != sizeof(struct ExpHeadInfo))
             {
-                printf("Exp_InfoDecoder:headinfo incomplete!\n\r");
+                debug_printf("exp","Exp_InfoDecoder:headinfo incomplete!\n\r");
             }
             else
             {
@@ -385,7 +387,7 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
             //OS状态解析,解析器自己判断包的数据是否被修改
             if(recordpara->osstateinfolen != headinfo->osstateinfolen)
             {
-                printf("Exp_InfoDecoder:osstateinfo incomplete!\n\r");
+                debug_printf("exp","Exp_InfoDecoder:osstateinfo incomplete!\n\r");
             }
             else
             {
@@ -395,7 +397,7 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
             //抛出异常解析,解析器自己判断包的长度是否完整，包的内容是否被破坏
             if(recordpara->throwinfolen != headinfo->throwinfolen)
             {
-                printf("Exp_InfoDecoder:throwinfo incomplete!\n\r");
+                debug_printf("exp","Exp_InfoDecoder:throwinfo incomplete!\n\r");
             }
             else
             {
@@ -404,7 +406,7 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
             //HOOK解析,解析器自己判断包的长度是否完整，包的内容是否被破坏
             if(recordpara->hookinfolen != headinfo->hookinfolen)
             {
-                printf("Exp_InfoDecoder:hookinfo incomplete!\n\r");
+                debug_printf("exp","Exp_InfoDecoder:hookinfo incomplete!\n\r");
             }
             else
             {
@@ -422,7 +424,7 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
 // 输出参数:无
 // 返回值  :ptu32_t 暂时无定义
 // =============================================================================
-ptu32_t ModuleInstall_Exp(ptu32_t para)
+void ModuleInstall_Exp(void)
 {
     extern bool_t Exp_ShellInit();
     Exp_ShellInit();
@@ -436,6 +438,6 @@ ptu32_t ModuleInstall_Exp(ptu32_t para)
     HardExp_InfoDecoderInit( );
     s_bExpMoDuleInitState = true;
 
-    return para;
+    return ;
 }
 

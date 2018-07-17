@@ -64,7 +64,7 @@
 #include <os.h>
 #include <shell.h>
 #include <exp.h>
-
+#include "dbug.h"
 #define CN_EXCEPTIONTEST_VERSION   "V1.0.0"
 //param,show how many times we should do
 #define CN_TEST_LENMAX   327   //A NUMBER NOT SO COMMON
@@ -89,45 +89,45 @@ static tagExpRecordTestConfig gTestConfig;
 static void __WelcomMsgShow(void)
 {
 	//output the test welcome messages;if you use it,it's my honor!
-	printf("****************EXCEPTIONRECORDERTESTVERSION******************\n\r");
-	printf("WELCOME TO EXCEPTION RECORDER TEST\n\r");
-	printf("VERSION:%s BUILDTIME:%s:%s\n\r",CN_EXCEPTIONTEST_VERSION,__DATE__,__TIME__);
-	printf("AUTHOR :%s:%s\n\r","Zhangqf","zhangqf1314@sznari.com");
-	printf("*************************************************************\n\r");
+	debug_printf("null","****************EXCEPTIONRECORDERTESTVERSION******************\n\r");
+	debug_printf("null","WELCOME TO EXCEPTION RECORDER TEST\n\r");
+	debug_printf("null","VERSION:%s BUILDTIME:%s:%s\n\r",CN_EXCEPTIONTEST_VERSION,__DATE__,__TIME__);
+	debug_printf("null","AUTHOR :%s:%s\n\r","Zhangqf","zhangqf1314@sznari.com");
+	debug_printf("null","*************************************************************\n\r");
 	return;
 }
 //show the configure messages
 static void __RecorderConfigShow()
 {
-	printf("****************EXCEPTIONRECORDERTESTCONFIG******************\n\r");
-	printf("FUNCTION:SCAN    :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordScan);
-	printf("FUNCTION:SAVE    :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordSave);
-	printf("FUNCTION:GET     :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordGet);
-	printf("FUNCTION:CLEAN   :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordClean);
-	printf("FUNCTION:CHECKNUM:0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordCheckNum);
-	printf("FUNCTION:CHECKLEN:0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordCheckLen);
-	printf("DEBUGMSG:%s\n\r",gTestConfig.debugmsg?"DEBUGON":"DEBUGOFF");
-	printf("TESTMODE:%s\n\r",gTestConfig.autotest?"AUTOTEST":"SHELLMANUAL");
-	printf("MAXLEN  :%d\n\r",gTestConfig.maxlen);
+	debug_printf("null","****************EXCEPTIONRECORDERTESTCONFIG******************\n\r");
+	debug_printf("null","FUNCTION:SCAN    :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordScan);
+	debug_printf("null","FUNCTION:SAVE    :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordSave);
+	debug_printf("null","FUNCTION:GET     :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordGet);
+	debug_printf("null","FUNCTION:CLEAN   :0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordClean);
+	debug_printf("null","FUNCTION:CHECKNUM:0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordCheckNum);
+	debug_printf("null","FUNCTION:CHECKLEN:0X%08X\n\r",(u32)gTestConfig.opt.fnExpRecordCheckLen);
+	debug_printf("null","DEBUGMSG:%s\n\r",gTestConfig.debugmsg?"DEBUGON":"DEBUGOFF");
+	debug_printf("null","TESTMODE:%s\n\r",gTestConfig.autotest?"AUTOTEST":"SHELLMANUAL");
+	debug_printf("null","MAXLEN  :%d\n\r",gTestConfig.maxlen);
 	//show the member we used
-	printf("RCVBUF  :0X%08X\n\r",(u32)gTestConfig.buf2rcv);
-	printf("SNDBUF  :0X%08X\n\r",(u32)gTestConfig.buf2snd);
-	printf("*************************************************************\n\r");
+	debug_printf("null","RCVBUF  :0X%08X\n\r",(u32)gTestConfig.buf2rcv);
+	debug_printf("null","SNDBUF  :0X%08X\n\r",(u32)gTestConfig.buf2snd);
+	debug_printf("null","*************************************************************\n\r");
 	return;
 }
 static void __TestTasksShow(u32 testtimes,u32 maxlen)
 {
-	printf("****************EXCEPTIONRECORDERTESTTASK********************\n\r");
-	printf("TESTTASK:TIMES:%d MSGLEN:%d(0 for random)\n\r",testtimes,maxlen);
-	printf("*************************************************************\n\r");
+	debug_printf("null","****************EXCEPTIONRECORDERTESTTASK********************\n\r");
+	debug_printf("null","TESTTASK:TIMES:%d MSGLEN:%d(0 for random)\n\r",testtimes,maxlen);
+	debug_printf("null","*************************************************************\n\r");
 	return;
 }
 static void __TestResultShow(bool_t ret)
 {
-	printf("*************************************************************\n\r");
-	printf("***********************%s*****************************\n\r",\
+	debug_printf("null","*************************************************************\n\r");
+	debug_printf("null","***********************%s*****************************\n\r",\
 			ret?"SUCCESS":"FAILURE");
-	printf("*************************************************************\n\r");
+	debug_printf("null","*************************************************************\n\r");
 	return;
 }
 static void __CounterLeftShow(const char *msg,s32 counter)
@@ -136,7 +136,7 @@ static void __CounterLeftShow(const char *msg,s32 counter)
 	printf("\r\n");
 	for(i = counter;i>0;i--)
 	{
-		printf("\r%s:%04d(seconds)",msg,i);
+		debug_printf("null","%s:%04d(seconds)",msg,i);
 		Djy_EventDelay(1000*mS);
 	}
 	printf("\r\n");
@@ -319,7 +319,7 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
 	u32 times = 0;
 	u32 savetimes = 0;
 
-	printf("Step1:TEST THE SAVE FUNCTION START\n\r");
+	debug_printf("null","Step1:TEST THE SAVE FUNCTION START\n\r");
 	ret = true;
 	times = 0;
 	while((times < timestotal)&&(ret))
@@ -343,11 +343,11 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
 		{
 			if(ret == false)
 			{
-				printf("\r     SAVE:%08d/%08d LEN:%08d ERR\n\r",times+1,timestotal,len);
+				debug_printf("null","SAVE:%08d/%08d LEN:%08d ERR\n\r",times+1,timestotal,len);
 			}
 			else
 			{
-				printf("\r     SAVE:%08d/%08d LEN:%08d OK",times+1,timestotal,len);
+				debug_printf("null","SAVE:%08d/%08d LEN:%08d OK",times+1,timestotal,len);
 			}
 		}
 
@@ -357,32 +357,32 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
 
 	if(times  == timestotal)
 	{
-		printf("\n\rStep1:SAVE FUNCTION WORKS OK\n\r");
+		debug_printf("null","Step1:SAVE FUNCTION WORKS OK\n\r");
 	}
 	else
 	{
-		printf("\n\rStep1:SAVE FUNCTION WORKS ERR,EXIT\n\r");
+		debug_printf("null","Step1:SAVE FUNCTION WORKS ERR,EXIT\n\r");
 		return ret;
 	}
 
-	printf("Step2:TEST THE CHECKNUM FUNCTION START\n\r");
+	debug_printf("null","Step2:TEST THE CHECKNUM FUNCTION START\n\r");
 	u32 msgnum;
 	ret = __MsgNum(&msgnum);
 	if(ret)
 	{
 		if(gTestConfig.debugmsg)
 		{
-			printf("Step2:MSGNUM:%d\n\r",msgnum);
+			debug_printf("null","Step2:MSGNUM:%d\n\r",msgnum);
 		}
-		printf("Step2:CHECKNUM FUNCTION WORKS OK\n\r");
+		debug_printf("null","Step2:CHECKNUM FUNCTION WORKS OK\n\r");
 	}
 	else
 	{
-		printf("Step2:CHECKNUM FUNCTION WORKS ERR,EXIT\n\r");
+		debug_printf("null","Step2:CHECKNUM FUNCTION WORKS ERR,EXIT\n\r");
 		return ret;
 	}
 
-	printf("Step3:TEST  CHECKLEN FUNCTION START\n\r");
+	debug_printf("null","Step3:TEST  CHECKLEN FUNCTION START\n\r");
 	u32 checktimes = 0;
 	u32 offset; //which measns the last one in the  length tab here
 	//checktimes should be the min between(savetimes msgnum CN_LEN)
@@ -413,11 +413,11 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
 		{
 			if(ret) //compare with the length tab here
 			{
-				printf("\r     LEN:%04d/%04d LEN:%04d OK",times+1,checktimes,len);
+				debug_printf("null","LEN:%04d/%04d LEN:%04d OK",times+1,checktimes,len);
 			}
 			else
 			{
-				printf("\r     LEN:%04d/%04d LEN:%04d ORILEN:%04d ERR\n\r",times+1,checktimes,len, gTestConfig.lentab[offset]);
+				debug_printf("null","LEN:%04d/%04d LEN:%04d ORILEN:%04d ERR\n\r",times+1,checktimes,len, gTestConfig.lentab[offset]);
 			}
 		}
 		offset++;
@@ -426,16 +426,16 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
 	}
 	if(ret)
 	{
-		printf("\n\rStep3:CHECKLEN FUNCTION WORKS OK\n\r");
+		debug_printf("null","Step3:CHECKLEN FUNCTION WORKS OK\n\r");
 	}
 	else
 	{
-		printf("\n\rStep3:CHECKLEN FUNCTION WORKS ERR,EXIT\n\r");
+		debug_printf("null","Step3:CHECKLEN FUNCTION WORKS ERR,EXIT\n\r");
 		return ret;
 	}
 
 	//check the msgget function
-	printf("Step4:TEST  CHECKLEN FUNCTION START\n\r");
+	debug_printf("null","Step4:TEST  CHECKLEN FUNCTION START\n\r");
 	checktimes = savetimes>msgnum?msgnum:savetimes;
 	checktimes = checktimes > CN_LEN_RECORDTAB?CN_LEN_RECORDTAB:checktimes;
 	offset =(savetimes-checktimes)%CN_LEN_RECORDTAB;
@@ -447,11 +447,11 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
 		ret = __MsgGet(times+msgnumoffset,len);
 		if(ret)
 		{
-			printf("\r     GET:%d/%d LEN:%d OK",times+1,checktimes,len);
+			debug_printf("null","GET:%d/%d LEN:%d OK",times+1,checktimes,len);
 		}
 		else
 		{
-			printf("\r     GET:%d/%d LEN:%d ERR\n\r",times+1,checktimes,len);
+			debug_printf("null","GET:%d/%d LEN:%d ERR\n\r",times+1,checktimes,len);
 		}
 		offset++;
 		times++;
@@ -459,15 +459,15 @@ static bool_t __RecordTestMain(u32 timestotal,u32 msglen)
 	}
 	if(ret)
 	{
-		printf("\n\rStep4:GET FUNCTION WORKS OK\n\r");
+		debug_printf("null","Step4:GET FUNCTION WORKS OK\n\r");
 	}
 	else
 	{
-		printf("\n\rStep4:GET FUNCTION WORKS ERR,EXIT\n\r");
+		debug_printf("null","Step4:GET FUNCTION WORKS ERR,EXIT\n\r");
 		return ret;
 	}
 
-	printf("RECORD TEST PASS!\n\r");
+	debug_printf("null","RECORD TEST PASS!\n\r");
 	return ret;
 }
 
@@ -480,7 +480,7 @@ static bool_t __RecordTest(u32 timestotal,u32 msglen)
 	__TestTasksShow(timestotal,msglen);
 	if(timestotal ==0)
 	{
-		printf("NO TEST NEED TO DO\n\r");
+		debug_printf("null","NO TEST NEED TO DO\n\r");
 	}
 	else
 	{
@@ -515,7 +515,7 @@ static bool_t __RecordTestShell(char *param)
 				}
 				else
 				{
-					printf("paras:test testtimes(>0) msglen(<=maxlen)\n\r");
+					debug_printf("null","paras:test testtimes(>0) msglen(<=maxlen)\n\r");
 				}
 			}
 			else if((0 == strcmp(argv[0],"func"))&&(argc >= 2))//argv[1]:scan/clean/save/get/checknum/checklen
@@ -526,44 +526,44 @@ static bool_t __RecordTestShell(char *param)
 				{
 					if(__MsgScan())
 					{
-						printf("Scan:OK\n\r");
+						debug_printf("null","Scan:OK\n\r");
 					}
 					else
 					{
-						printf("Scan:ERR\n\r");
+						debug_printf("null","Scan:ERR\n\r");
 					}
 				}
 				else if((0 == strcmp(argv[1],"clean"))&&(argc == 2))
 				{
 					if(__MsgClean())
 					{
-						printf("Clean:OK\n\r");
+						debug_printf("null","Clean:OK\n\r");
 					}
 					else
 					{
-						printf("Clean:ERR\n\r");
+						debug_printf("null","Clean:ERR\n\r");
 					}
 				}
 				else if((0 == strcmp(argv[1],"clean"))&&(argc == 2))
 				{
 					if(__MsgClean())
 					{
-						printf("Clean:OK\n\r");
+						debug_printf("null","Clean:OK\n\r");
 					}
 					else
 					{
-						printf("Clean:ERR\n\r");
+						debug_printf("null","Clean:ERR\n\r");
 					}
 				}
 				else if((0 == strcmp(argv[1],"num"))&&(argc == 2))
 				{
 					if(__MsgNum(&number))
 					{
-						printf("Num:%d OK\n\r",number);
+						debug_printf("null","Num:%d OK\n\r",number);
 					}
 					else
 					{
-						printf("Num:ERR\n\r");
+						debug_printf("null","Num:ERR\n\r");
 					}
 				}
 				else if((0 == strcmp(argv[1],"save"))&&(argc == 3))
@@ -571,11 +571,11 @@ static bool_t __RecordTestShell(char *param)
 					len = (u32)strtol(argv[2],NULL,0);
 					if(__MsgSave(len))
 					{
-						printf("Save:%d OK\n\r",len);
+						debug_printf("null","Save:%d OK\n\r",len);
 					}
 					else
 					{
-						printf("Save:%d ERR\n\r",len);
+						debug_printf("null","Save:%d ERR\n\r",len);
 					}
 				}
 				else if((0 == strcmp(argv[1],"get"))&&(argc == 4))
@@ -584,11 +584,11 @@ static bool_t __RecordTestShell(char *param)
 					len = (u32)strtol(argv[3],NULL,0);
 					if(__MsgGet(number,len))
 					{
-						printf("Get:%d Len:%d OK\n\r",number,len);
+						debug_printf("null","Get:%d Len:%d OK\n\r",number,len);
 					}
 					else
 					{
-						printf("Get:%d Len:%d ERR\n\r",number,len);
+						debug_printf("null","Get:%d Len:%d ERR\n\r",number,len);
 					}
 				}
 				else if((0 == strcmp(argv[1],"len"))&&(argc == 3))
@@ -596,32 +596,32 @@ static bool_t __RecordTestShell(char *param)
 					number = (u32)strtol(argv[2],NULL,0);
 					if(__MsgLen(number,&len))
 					{
-						printf("Len:%d:%d OK\n\r",number,len);
+						debug_printf("null","Len:%d:%d OK\n\r",number,len);
 					}
 					else
 					{
-						printf("Len:%d ERR\n\r",number);
+						debug_printf("null","Len:%d ERR\n\r",number);
 					}
 				}
 				else
 				{
-					printf("paras:subcmd:scan/clean/num/(get+number+len)/(save+len)/(len+number)\n\r");
+					debug_printf("null","paras:subcmd:scan/clean/num/(get+number+len)/(save+len)/(len+number)\n\r");
 				}
 			}
 			else
 			{
-				printf("paras:test/func subcmdpara\n\r");
+				debug_printf("null","paras:test/func subcmdpara\n\r");
 			}
 		}
 		else
 		{
-			printf("paras:subcmd(test/func)+subcmdpara\n\r");
+			debug_printf("null","paras:subcmd(test/func)+subcmdpara\n\r");
 		}
 	}
 	else  //show the config
 	{
 		__RecorderConfigShow();
-		printf("paras:subcmd(test/func)+subcmdpara\n\r");
+		debug_printf("null","paras:subcmd(test/func)+subcmdpara\n\r");
 	}
 
 	return true;
@@ -643,12 +643,12 @@ ptu32_t __RecordTestTask(void)
 	if(__RecordTest(times,0))
 	{
 		__CounterLeftShow("SYSTEM WILL RESET FOR ANOTHER TEST",10);
-		printf("\n\rRESET THE SYSTEM\n\r");
+		debug_printf("null","RESET THE SYSTEM\n\r");
 		reset(0xaa55aa55);
 	}
 	else
 	{
-		printf("\n\r THE TEST TASK WILL QUIT FOR FAILURE\n\r");
+		debug_printf("null","THE TEST TASK WILL QUIT FOR FAILURE\n\r");
 	}
 
 	return 0;
@@ -682,12 +682,12 @@ bool_t ModuleInstall_ExpRecordTest(struct ExpRecordOperate *opt,u32 maxlen,bool_
 	//check the operation
 	if(NULL == opt)
 	{
-		printf("CHECK:ERR :OPT NULL,WILL EXIT\n\r");
+		debug_printf("null","CHECK:ERR :OPT NULL,WILL EXIT\n\r");
 		return ret;
 	}
 	if(NULL == opt->fnExpRecordScan)
 	{
-		printf("CHECK:WARN:SCAN FUNCTION NULL,BUT CONTINUE\n\r");
+		debug_printf("null","CHECK:WARN:SCAN FUNCTION NULL,BUT CONTINUE\n\r");
 	}
 	else
 	{
@@ -695,27 +695,27 @@ bool_t ModuleInstall_ExpRecordTest(struct ExpRecordOperate *opt,u32 maxlen,bool_
 	}
 	if(NULL == opt->fnExpRecordSave)
 	{
-		printf("CHECK:ERR :MSGSAVE FUNCTION NULL,WILL EXITE\n\r");
+		debug_printf("null","CHECK:ERR :MSGSAVE FUNCTION NULL,WILL EXITE\n\r");
 		return ret;
 	}
 	if(NULL == opt->fnExpRecordGet)
 	{
-		printf("CHECK:ERR :MSGGET FUNCTION NULL,WILL EXITE\n\r");
+		debug_printf("null","CHECK:ERR :MSGGET FUNCTION NULL,WILL EXITE\n\r");
 		return ret;
 	}
 	if(NULL == opt->fnExpRecordCheckNum)
 	{
-		printf("CHECK:ERR :MSGCHECKNUM FUNCTION NULL,WILL EXITE\n\r");
+		debug_printf("null","CHECK:ERR :MSGCHECKNUM FUNCTION NULL,WILL EXITE\n\r");
 		return ret;
 	}
 	if(NULL == opt->fnExpRecordCheckLen)
 	{
-		printf("CHECK:ERR :MSGCHECKLEN FUNCTION NULL,WILL EXITE\n\r");
+		debug_printf("null","CHECK:ERR :MSGCHECKLEN FUNCTION NULL,WILL EXITE\n\r");
 		return ret;
 	}
 	if(NULL == opt->fnExpRecordClean)
 	{
-		printf("CHECK:WARN:MSGCLEAN FUNCTION NULL,BUT CONTINUE\n\r");
+		debug_printf("null","CHECK:WARN:MSGCLEAN FUNCTION NULL,BUT CONTINUE\n\r");
 	}
 	gTestConfig.opt = *opt;
 	if(0 == maxlen)
@@ -732,13 +732,13 @@ bool_t ModuleInstall_ExpRecordTest(struct ExpRecordOperate *opt,u32 maxlen,bool_
 	gTestConfig.buf2rcv = malloc(gTestConfig.maxlen);
 	if(NULL == gTestConfig.buf2rcv)
 	{
-		printf("ERR:RCVBUF MEM MALLOC ERR\n\r");
+		debug_printf("null","ERR:RCVBUF MEM MALLOC ERR\n\r");
 		return ret;
 	}
 	gTestConfig.buf2snd = malloc(gTestConfig.maxlen);
 	if(NULL == gTestConfig.buf2snd)
 	{
-		printf("ERR:SNDBUF MEM MALLOC ERR\n\r");
+		debug_printf("null","ERR:SNDBUF MEM MALLOC ERR\n\r");
 		return ret;
 	}
 	//here we'd better to initialize the send and receive buffer with random data

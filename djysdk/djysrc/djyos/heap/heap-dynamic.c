@@ -88,7 +88,8 @@
 #include "lock.h"
 #include "djyos.h"
 #include "stdio.h"
-
+#include "dbug.h"
+#include "component_config_heap.h"
 //常用常数定义
 //高n位为1，其余低位为0的常数
 #define CN_HIGH_1BIT_1      (0x80000000)
@@ -250,7 +251,6 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout);
 void  __M_FreeHeap(void * pl_mem,struct HeapCB *Heap);
 void *__M_MallocStack(struct EventECB *event, u32 size);
 
-ptu32_t Heap_DynamicModuleInit(ptu32_t para);
 void __M_ShowHeap(void);
 void __M_ShowHeapSpy(void);
 
@@ -264,6 +264,7 @@ struct HeapCB *M_FindHeap(const char *HeapName);
 ptu32_t __M_GetFreeMem(void);
 ptu32_t __M_GetFreeMemHeap(struct HeapCB *Heap);
 ptu32_t __M_CheckSize(void * mp);
+void __M_CheckSTackSync(void);
 
 extern void *  (*M_Malloc)(ptu32_t size,u32 timeout);
 extern void *  (*M_Realloc) (void *, ptu32_t NewSize,u32 timeout);
@@ -272,7 +273,7 @@ extern void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 extern void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
 extern void    (*M_FreeHeap)(void * pl_mem,struct HeapCB *Heap);
-extern void *(*__MallocStack)(struct EventECB *pl_ecb,u32 size);
+extern void *  (*__MallocStack)(struct EventECB *pl_ecb,u32 size);
 extern ptu32_t (*M_FormatSizeHeap)(ptu32_t size,struct HeapCB *Heap);
 extern ptu32_t (*M_FormatSize)(ptu32_t size);
 extern ptu32_t (*M_GetMaxFreeBlockHeap)(struct HeapCB *Heap);
@@ -324,12 +325,12 @@ void __M_ShowHeap(void)
     if(tg_pHeapList == NULL)
         return;
     Heap = tg_pHeapList;
-    printf("列出系统中所有的Heap\r\n\r\n");
+    debug_printf("heap","列出系统中所有的Heap\r\n\r\n");
     do
     {
-        printf("Heap name: %s，含 %d 个 Cessions\r\n",
+        debug_printf("heap","Heap name: %s，含 %d 个 Cessions\r\n",
                     Heap->HeapName,Heap->CessionNum);
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+#if ((CFG_DYNAMIC_MEM == 1))
         ECB = Heap->mem_sync;
         n = 0;
         if(ECB != NULL)
@@ -341,37 +342,37 @@ void __M_ShowHeap(void)
             }while(ECB != Heap->mem_sync);
         }
 #endif
-        printf("有 %d 个事件在阻塞等待本 Heap 分配内存\r\n\r\n",n);
+        debug_printf("heap","有 %d 个事件在阻塞等待本 Heap 分配内存\r\n\r\n",n);
         Cession = Heap->Cession;
         n = 0;
         m = 0;
         k = 0;
         while(Cession != NULL)
         {
-            printf("Cession %d:\r\n",n+1);
+            debug_printf("heap","Cession %d:\r\n",n+1);
 
-            printf("准静态分配空间:  0x%08x\r\n",
+            debug_printf("heap","准静态分配空间:  0x%08x\r\n",
                     (ptu32_t)(Cession->heap_bottom - Cession->static_bottom));
-#if ((CN_CFG_DYNAMIC_MEM == 1))
-            printf("动态分配空间:    0x%08x\r\n",
+#if ((CFG_DYNAMIC_MEM == 1))
+            debug_printf("heap","动态分配空间:    0x%08x\r\n",
                         Cession->ua_pages_num * Cession->PageSize);
 #endif
-            printf("静态起始地址:    0x%08x,    动态起始地址:  0x%08x\r\n",
+            debug_printf("heap","静态起始地址:    0x%08x,    动态起始地址:  0x%08x\r\n",
                         (ptu32_t)Cession->static_bottom,
                         (ptu32_t)Cession->heap_bottom);
-#if ((CN_CFG_DYNAMIC_MEM == 1))
-            printf("总页数:          %10d，   页尺寸:        0x%08x\n\r",
+#if ((CFG_DYNAMIC_MEM == 1))
+            debug_printf("heap","总页数:          %10d，   页尺寸:        0x%08x\n\r",
                         Cession->ua_pages_num,Cession->PageSize);
-            printf("空闲页数:        %10d，   空闲空间:      0x%08x\r\n",
+            debug_printf("heap","空闲页数:        %10d，   空闲空间:      0x%08x\r\n",
                         Cession->free_pages_num,
                         Cession->free_pages_num * Cession->PageSize);
-            printf("最大块尺寸:      0x%08x，   最大空闲块尺寸:0x%08x\r\n\r\n",
+            debug_printf("heap","最大块尺寸:      0x%08x，   最大空闲块尺寸:0x%08x\r\n\r\n",
                         Cession->ua_block_max,
                         Cession->ua_free_block_max);
 #else
-            printf("本cession空闲：  %08x\n\r",(ptu32_t)(Cession->heap_top - Cession->heap_bottom));
+            debug_printf("heap","本cession空闲：  %08x\n\r",(ptu32_t)(Cession->heap_top - Cession->heap_bottom));
 #endif
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+#if ((CFG_DYNAMIC_MEM == 1))
             m += Cession->ua_pages_num * Cession->PageSize;
             k += Cession->free_pages_num * Cession->PageSize;
 #else
@@ -382,9 +383,9 @@ void __M_ShowHeap(void)
         }
         if(n > 1)
         {
-            printf("%d个Cession总动态分配空间 %d bytes\r\n",n,m);
-            printf("%d个Cession总空闲内存     %d bytes\r\n",n,k);
-            printf("\r\n");
+            debug_printf("heap","%d个Cession总动态分配空间 %d bytes\r\n",n,m);
+            debug_printf("heap","%d个Cession总空闲内存     %d bytes\r\n",n,k);
+            debug_printf("heap","\r\n");
         }
         Heap = Heap->NextHeap;
     }while(Heap != tg_pHeapList);
@@ -400,20 +401,20 @@ void __M_ShowHeapSpy(void)
     if(tg_pHeapList == NULL)
         return;
     Heap = tg_pHeapList;
-    printf("列出所有Heap的分配情况\r\n");
+    debug_printf("heap","列出所有Heap的分配情况\r\n");
     do
     {
-        printf("\r\nHeap name: %s，含 %d 个 Cessions\r\n",
+        debug_printf("heap","Heap name: %s，含 %d 个 Cessions\r\n",
                     Heap->HeapName,Heap->CessionNum);
         Cession = Heap->Cession;
         n = 0;
         k = 0;
         while(Cession != NULL)
         {
-            printf("\r\nCession %d:\r\n",n+1);
-            printf("         页号           属性   尺寸       事件\r\n");
+            debug_printf("heap","Cession %d:\r\n",n+1);
+            debug_printf("heap","         页号           属性   尺寸       事件\r\n");
             m = 0;
-#if ((CN_CFG_DYNAMIC_MEM == 1))
+#if ((CFG_DYNAMIC_MEM == 1))
             pl_eid = Cession->index_event_id;
             while(m < Cession->ua_pages_num)
             {
@@ -421,23 +422,23 @@ void __M_ShowHeapSpy(void)
                 {
                     case CN_MEM_DOUBLE_PAGE_LOCAL:
                     {//双页局部分配,-1+id
-                        printf("%10d = %-10d 局部  0x%08x %05d\n\r", m, m + 1, Cession->PageSize*2,pl_eid[m + 1]);
+                        debug_printf("heap","%10d = %-10d 局部  0x%08x %05d\n\r", m, m + 1, Cession->PageSize*2,pl_eid[m + 1]);
                         m += 2;
                     }break;
                     case CN_MEM_MANY_PAGE_LOCAL:
                     {//多页局部分配:-2+id+阶号
-                        printf("%10d = %-10d 局部   0x%08x %05d\n\r",
+                        debug_printf("heap","%10d = %-10d 局部   0x%08x %05d\n\r",
                                     m,m+(1<<pl_eid[m+2])-1, Cession->PageSize*(1<<pl_eid[m+2]),pl_eid[m+1]);
                         m += 1<<pl_eid[m+2];
                     }break;
                     case CN_MEM_SINGLE_PAGE_GLOBAL:
                     {//单页全局内存:-3
-                        printf("%10d - %-10d 全局   0x%08x\n\r",m,m,Cession->PageSize);
+                        debug_printf("heap","%10d - %-10d 全局   0x%08x\n\r",m,m,Cession->PageSize);
                         m++;
                     }break;
                     case CN_MEM_MANY_PAGE_GLOBAL:
                     {//双(多)页全局内存:-4+阶号.
-                        printf("%10d - %-10d 全局   0x%08x\n\r",m,m+(1<<pl_eid[m+1])-1, Cession->PageSize*(1<<pl_eid[m+1]));
+                        debug_printf("heap","%10d - %-10d 全局   0x%08x\n\r",m,m+(1<<pl_eid[m+1])-1, Cession->PageSize*(1<<pl_eid[m+1]));
                         m += 1<<pl_eid[m+1];
                     }break;
                     case CN_MEM_FREE_PAGE:
@@ -447,12 +448,12 @@ void __M_ShowHeapSpy(void)
                             if(pl_eid[k] != CN_MEM_FREE_PAGE)
                                 break;
                         }
-                        printf("%10d ~ %-10d 空闲   0x%08x\n\r",m,k-1,Cession->PageSize*(k-m));
+                        debug_printf("heap","%10d ~ %-10d 空闲   0x%08x\n\r",m,k-1,Cession->PageSize*(k-m));
                         m = k;
                     }break;
                     default :
                     {
-                        printf("%10d = %-10d 局部   0x%08x %05d\n\r",m,m,Cession->PageSize,pl_eid[m]);
+                        debug_printf("heap","%10d = %-10d 局部   0x%08x %05d\n\r",m,m,Cession->PageSize,pl_eid[m]);
                         m++;
                     }break;
                 }
@@ -499,7 +500,7 @@ ptu32_t __M_CheckSize(void * mp)
                     return *temp;
                 }else                   //该指针在块相联动态分配区
                 {
-                #if ((CN_CFG_DYNAMIC_MEM == 1))
+                #if ((CFG_DYNAMIC_MEM == 1))
                     //计算释放的内存的页号
                     ua_pages_number=(ptu32_t)((u8*)mp - Cession->heap_bottom)
                                                 /Cession->PageSize;
@@ -968,7 +969,7 @@ void __M_CleanUp(uint16_t event_id)
 //      2.调用本函数前,只能能执行静态分配功能,不能执行动态分配功能.
 //      3.目前只适用于不带mmu的情况，带mmu特别是支持多进程的情况还没有想好。
 //-----------------------------------------------------------------------------
-ptu32_t Heap_DynamicModuleInit(ptu32_t para)
+bool_t Heap_DynamicModuleInit(void)
 {
     ptu32_t ua_temp,ua_temp1=0,ua_temp2,ua_temp3 = 0,ua_faction;
     ptu32_t ua_pages,ua_table_size=0;
@@ -980,7 +981,7 @@ ptu32_t Heap_DynamicModuleInit(ptu32_t para)
     struct HeapCession *Cession;
 
     if(tg_pHeapList == NULL)
-        return 0;
+        return false;
     Heap = tg_pHeapList;
     do
     {
@@ -1124,7 +1125,7 @@ ptu32_t Heap_DynamicModuleInit(ptu32_t para)
     M_GetFreeMemHeap = __M_GetFreeMemHeap;
     M_CheckSize = __M_CheckSize;
 
-    return 1;
+    return true;
 }
 
 //----从内存堆中分配内存-------------------------------------------------------
@@ -1174,7 +1175,7 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
             ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
             g_ptEventRunning->local_memory++;
 
-            //阅读以下条件句请结合struct HeapCession 中index_event_id的注释.
+            //阅读以下条件句请结合struct HeapCession中index_event_id的注释.
             pl_id = Cession->index_event_id;
             id = g_ptEventRunning->event_id;
             page = (ptu32_t)((u8*)ua_address-Cession->heap_bottom)/Cession->PageSize;
@@ -1298,7 +1299,7 @@ void __M_CheckSTackSync(void)
     return;
 }
 //----分配线程栈---------------------------------------------------------------
-//功能：与m_malloc_gbl相似，但要求在关异步信号的条件下调用，本函数仅提供给创建
+//功能：与 malloc 相似，但要求在关异步信号的条件下调用，本函数仅提供给创建
 //      线程函数__CreateThread使用
 //参数：size,欲分配的内存块尺寸
 //返回：分配的内存指针，NULL表示没有内存可以分配

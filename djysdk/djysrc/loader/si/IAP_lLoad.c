@@ -54,16 +54,17 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 
-#include "stdint.h"
-#include "stdio.h"
-#include "driver.h"
-#include "IAP.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <device.h>
+#include <stat.h>
+#include <dirent.h>
+#include <iap.h>
 #include "shell.h"
-#include "djyos.h"
+#include <djyos.h>
 #include <cfg/Iboot_config.h>
-#include "verify.h"
 #include <stdlib.h>
-#include "string.h"
+#include <string.h>
 #include "version.h"
 #include "cpu_peri.h"
 #include "cpu-optional.h"
@@ -72,6 +73,9 @@
 #include "set-cache.h"
 #endif
 #include <osboot.h>
+#include <device/flash/flash.h>
+#include "dbug.h"
+#include "newshell.h"
 
 extern const char *g_pcIbootDir;
 extern tagIapVar pg_IapVar;
@@ -79,6 +83,11 @@ extern struct AppInfo gc_ptAppInfo;
 extern u32 g_pAppCodeStartRamAddr;
 extern u32 g_pAppCodeEndRamAddr;
 extern struct IbootCtrl gc_ptIbootCtrl;
+extern const char *g_IbootUpdateName;
+extern const char *g_IbootUpdateFS;
+extern u32 gc_ptIbootSize;
+static struct SemaphoreLCB *ptUpdateIbootSemp;
+
 
 extern void reset(u32 key);
 extern bool_t IAP_IsRamIbootFlag(void);
@@ -88,14 +97,16 @@ extern bool_t IAP_IsForceIboot(void);
 extern void __AppStart(void); // 这是在iboot.lds中定位的函数，在APP的lds文件中，
                               // 确保了其指向 AppStart 函数
 
-bool_t Sh_RunIBoot(char *param);
+//bool_t Sh_RunIBoot(char *param);
 bool_t Sh_RunAPP(char *param);
 bool_t Sh_GetAPPInfor(char *param);
 bool_t Sh_GetStatus(char *param);
 bool_t Sh_GetRunMode(char *param);
-
-#define CN_VERSION_CHAR_LEN   100
-
+bool Sh_UpdateIboot(char *param);
+#define CN_VERSION_CHAR_LEN         100
+//#define RW_SIZE                       512
+ptu32_t __UpdateIboot(void);
+bool UpdateIbootFlag=false;
 // ============================================================================
 // 功能：
 // 参数：
@@ -168,6 +179,7 @@ u32 IAP_GetAPPCRC(void)
 {
     return (gc_ptIbootCtrl.Iap_crc);
 }
+ADD_TO_IN_SHELL  bool_t runiboot(char *param);
 
 // ============================================================================
 // 功能：
@@ -175,7 +187,8 @@ u32 IAP_GetAPPCRC(void)
 // 返回：
 // 备注：
 // ============================================================================
-bool_t  Sh_RunIBoot(char *param)
+ADD_TO_SHELL_HELP(runiboot,"切换到Iboot(仅在采取内存标示确定加载项目且APP有加载DJYOS shell模块时有效)");
+ADD_TO_IN_SHELL bool_t  runiboot(char *param)
 {
      pg_IapVar.IbootFlag[0]=0x52;   //R
      pg_IapVar.IbootFlag[1]=0x75;   //u
@@ -224,9 +237,47 @@ bool_t  Sh_RunAPP(char *param)
 // 返回：
 // 备注：
 // ============================================================================
+void Amend_IBootFlag_RunIBoot(void)
+{
+     pg_IapVar.IbootFlag[0]=0x52;   //R
+     pg_IapVar.IbootFlag[1]=0x75;   //u
+     pg_IapVar.IbootFlag[2]=0x6E;   //n
+     pg_IapVar.IbootFlag[3]=0x49;   //i
+     pg_IapVar.IbootFlag[4]=0x62;   //b
+     pg_IapVar.IbootFlag[5]=0x6F;   //o
+     pg_IapVar.IbootFlag[6]=0x6F;   //o
+     pg_IapVar.IbootFlag[7]=0x74;   //t
+     pg_IapVar.IbootFlag[8]=0x0;    // \0
+}
+
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+void Amend_IBootFlag_RunAPP(void)
+{
+    pg_IapVar.IbootFlag[0]=0x52;   //R
+    pg_IapVar.IbootFlag[1]=0x75;   //u
+    pg_IapVar.IbootFlag[2]=0x6E;   //n
+    pg_IapVar.IbootFlag[3]=0x41;   //a
+    pg_IapVar.IbootFlag[4]=0x50;   //p
+    pg_IapVar.IbootFlag[5]=0x50;   //p
+    pg_IapVar.IbootFlag[6]=0x00;   // \0
+    pg_IapVar.IbootFlag[7]=0x00;
+}
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
 void RunIboot(void)
 {
-    Sh_RunIBoot(NULL);
+	runiboot(NULL);
 }
 
 // ============================================================================
@@ -253,7 +304,7 @@ bool_t Sh_GetAPPInfor(char *param)
     size=gc_ptIbootCtrl.AppSize;
     crc32=gc_ptIbootCtrl.Iap_crc;
     filename=gc_ptIbootCtrl.filename;
-    printf("size:0x%08x,crc32:0x%08x,filename:%s.\r\n",size,crc32,filename);
+    debug_printf("IAP","size:0x%08x,crc32:0x%08x,filename:%s.\r\n",size,crc32,filename);
     return true;
 }
 
@@ -268,35 +319,35 @@ bool_t Sh_GetStatus(char *param)
     switch (pg_IapVar.IbootStatus)
     {
         case EN_NO_ERR:
-            printf("IAP status:No Err.\r\n");
+            debug_printf("IAP","IAP status:No Err.\r\n");
             break;
         case EN_FORCE_IBOOT:
-            printf("IAP status:Force Run Iboot.\r\n");
+            debug_printf("IAP","IAP status:Force Run Iboot.\r\n");
             break;
         case EN_RAM_IBOOT_FLAG:
-            printf("IAP status:RAM Iboot flag.\r\n");
+            debug_printf("IAP","IAP status:RAM Iboot flag.\r\n");
             break;
         case EN_LOAD_FROM_DATA_MODE:
-            printf("IAP status:Load from data mode.\r\n");
+            debug_printf("IAP","IAP status:Load from data mode.\r\n");
             break;
         case EN_CRC_ERR:
-            printf("IAP status:CRC Err.\r\n");
+            debug_printf("IAP","IAP status:CRC Err.\r\n");
             break;
         case EN_APP_FLAG_ERR:
-            printf("IAP status:APP Flag Err.\r\n");
+            debug_printf("IAP","IAP status:APP Flag Err.\r\n");
             break;
         case EN_FILE_NO_EXSIT_ERR:
-            printf("IAP Err:APP File Not Exist Err.\r\n");
+            debug_printf("IAP","IAP Err:APP File Not Exist Err.\r\n");
             break;
         case EN_FILE_SIZE_INVALID_ERR:
-            printf("IAP Err:APP File Size Invalid.\r\n");
+            debug_printf("IAP","IAP Err:APP File Size Invalid.\r\n");
             break;
         case EN_BIN_INCOMPLETED_ERR:
-            printf("IAP Err:APP File Not Completed.\r\n");
+            debug_printf("IAP","IAP Err:APP File Not Completed.\r\n");
             break;
         case EN_lDS_MISMATCH:
-            printf("IAP Err:Iboot/App Ids MisMatch，即gc_AppAddr 不等于RomStartAddr\r\n");
-            printf("可能的原因是iboot和APP的memory.lds中IbootSize定义不一致!\r\n");
+            debug_printf("IAP","IAP Err:Iboot/App Ids MisMatch，即gc_AppAddr 不等于RomStartAddr\r\n");
+            debug_printf("IAP","可能的原因是iboot和APP的memory.lds中IbootSize定义不一致!\r\n");
             break;
         default:
             break;
@@ -318,7 +369,7 @@ bool_t Sh_GetOSVersion(char *param)
    if(str!=NULL)
    {
        str=djyos_kernel_version;
-       printf("Version:%s.\r\n",str);
+       debug_printf("IAP","Version:%s.\r\n",str);
    }
    return true;
 }
@@ -330,18 +381,30 @@ bool_t Sh_GetOSVersion(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-bool_t Sh_GetRunMode(char *param)
+bool_t GetRunMode(void)
 {
     if(pg_IapVar.RunMode==CN_IAP_MODE_IBOOT)
     {
-           printf("Run Mode:Iboot.\r\n");
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool_t Sh_GetRunMode(char *param)
+{
+    if(GetRunMode())
+    {
+        debug_printf("IAP","Run Mode:Iboot.\r\n");
     }
     else
     {
 #if (DEBUG == 1)
-        printf("Run Mode:APP(debug).\r\n");
+        debug_printf("IAP","Run Mode:APP(debug).\r\n");
 #else
-        printf("Run Mode:APP(release).\r\n");
+        debug_printf("IAP","Run Mode:APP(release).\r\n");
 #endif
     }
     return true;
@@ -360,6 +423,27 @@ bool_t Sh_UpdateApp(char *param)
     return (TRUE);
 }
 
+// ============================================================================
+// 功能：升级Iboot
+// 参数：无
+// 返回：
+// 备注：
+// ============================================================================
+bool Sh_UpdateIboot(char *param)
+{
+   Lock_SempPost(ptUpdateIbootSemp);
+   return true;
+}
+
+bool IAP_UpdateIboot()
+{
+    return (Sh_UpdateIboot(0));
+}
+
+bool IAP_GetUpdateIbootStatus()
+{
+  return UpdateIbootFlag;
+}
 // ============================================================================
 // 功能：
 // 参数：
@@ -383,7 +467,7 @@ struct ShellCmdTab const shell_cmd_iap_table[]=
     {
         {
         "runiboot",
-        Sh_RunIBoot,
+		RunIboot,
         "切换到Iboot(仅在采取内存标示确定加载项目且APP有加载DJYOS shell模块时有效)",
         "COMMAND:runiboot+enter"
         },
@@ -431,10 +515,16 @@ struct ShellCmdTab const shell_cmd_iap_table[]=
         },
 
         {
-        "ibootver",
-        Sh_GetIbootVersion,
-        "Get Iboot version.",
-        "COMMAND:ibootver+enter"
+            "ibootver",
+            Sh_GetIbootVersion,
+            "Get Iboot version.",
+            "COMMAND:ibootver+enter"
+        },
+        {
+            "updateiboot",
+            Sh_UpdateIboot,
+            "Update Iboot.",
+            "COMMAND:updateiboot+enter",
         }
 };
 
@@ -446,7 +536,7 @@ struct ShellCmdTab const shell_cmd_iap_table[]=
 // ============================================================================
 #define CN_IAP_SHELL_NUM  sizeof(shell_cmd_iap_table)/sizeof(struct ShellCmdTab)
 static struct ShellCmdRsc tg_iap_shell_cmd_rsc[CN_IAP_SHELL_NUM];
-ptu32_t IAP_Shell_Module_Install(void)
+ptu32_t IAP_ShellInstall(void)
 {
     Sh_InstallCmd(shell_cmd_iap_table,tg_iap_shell_cmd_rsc,CN_IAP_SHELL_NUM);
     return 1;
@@ -460,10 +550,180 @@ ptu32_t IAP_Shell_Module_Install(void)
 // ============================================================================
 ptu32_t ModuleInstall_IAP(void)
 {
-    IAP_Shell_Module_Install();
-    printf("IAP ModuleInstall success.\r\n");
+    uint16_t evtt_id,event_id;
+    ptUpdateIbootSemp=Lock_SempCreate(1,0,CN_BLOCK_FIFO,"UpdateIbootSemp");
+    if(ptUpdateIbootSemp==NULL)
+    {
+        debug_printf("IAP","IAP ModuleInstall failed.\r\n");
+    }
+    evtt_id = Djy_EvttRegist(EN_CORRELATIVE,5,0,0,__UpdateIboot,
+              NULL,8192,"Update Iboot");
+    if(evtt_id!=CN_EVTT_ID_INVALID)
+    {
+       event_id=Djy_EventPop(evtt_id,NULL,0,0,0,0);
+    }
+    else
+    {
+        Djy_EvttUnregist(evtt_id);
+        debug_printf("IAP","Update Iboot evtt pop failed.\r\n");
+    }
+
+    IAP_ShellInstall();
+        info_printf("module","IAP installed.");
     return 0;
 }
+
+// ============================================================================
+// 功能：升级Iboot事件，
+// 参数：无。
+// 返回：1（无意义）。
+// 备注
+// ============================================================================
+ptu32_t __UpdateIboot(void)
+{
+    s32 Dev;
+    DIR *dir;
+    char *path;
+    struct FlashChip *Chip;
+    struct dirent *structDirent;
+    char *buf;
+    char buffer[256];
+    u8 found = 0;
+    struct stat sourceInfo;
+    s32 source = -1;
+    s32 res;
+    u32 Res;
+    u8 RootLen = strlen(g_IbootUpdateFS);
+    uint32_t dwPageBytes=0;
+    uint32_t dwPageNo=0;
+    u8 i=0;
+    u32 SectorEnd=0,Remains=0;
+    u32 k=0;
+
+    while(1)
+    {
+       Lock_SempPend(ptUpdateIbootSemp,CN_TIMEOUT_FOREVER);
+       UpdateIbootFlag=false;
+       dir=opendir(g_IbootUpdateFS);
+       if(dir)
+       {
+           while((structDirent = readdir(dir)) != NULL)
+           {
+              if(0 == strcmp(structDirent->d_name, g_IbootUpdateName))
+               {
+                  debug_printf("IAP","file \"%s\" will be programmed.\r\n",
+                            structDirent->d_name);
+                    found = 1;
+                    break;
+               }
+           }
+           if(!found)
+           {
+               debug_printf("IAP","file \"%s\" is not found.\r\n", g_IbootUpdateName);
+               goto END;
+           }
+           path = buffer;
+           strcpy(path, g_IbootUpdateFS);
+           strcpy(path+RootLen, "/");
+           strcpy(path+RootLen+1, structDirent->d_name);
+           source = open(path, O_RDONLY);
+           if(-1 == source)
+           {
+               debug_printf("IAP","cannot open source file \"%s\".\r\n", path);
+               goto END;
+           }
+           res = fstat(source, &sourceInfo);
+           if(res)
+           {
+               debug_printf("IAP","cannot statistics source file \"%s\".\r\n", path);
+               goto END;
+           }
+
+           // Dev = DevOpen("embedded flash", O_RDWR, CN_TIMEOUT_FOREVER);
+           // if(Dev==NULL)
+           Dev = open("dev/embedded flash", O_RDWR);
+           if(Dev==-1)
+           {
+               debug_printf("IAP","cannot open embedded flash.\r\n");
+              goto END;
+           }
+
+           //Chip=(struct FlashChip *)Dev_GetDevTag(Dev);
+           //if(Chip==NULL)
+           if(-1 == fcntl(Dev, F_GETDDTAG, &Chip))
+           {
+               goto END;
+           }
+           dwPageBytes=Chip->dwPageBytes;
+           buf=malloc(dwPageBytes);
+           if(buf==NULL)
+           {
+               debug_printf("IAP","memroy out.\r\n");
+               goto END;
+           }
+           dwPageNo=gc_ptIbootSize/dwPageBytes;
+           res=Chip->Ops.PageToBlk(dwPageNo,&Remains,&SectorEnd);
+           if(res==-1)
+           {
+               debug_printf("IAP","Calculate the flash sector failed.\r\n");
+               goto END;
+           }
+           dwPageNo=0;
+           for(i=0;i<SectorEnd;i++)
+           {
+               res=Chip->Ops.ErsBlk(i);
+               if(res==-1)
+               {
+                   debug_printf("IAP","Erase the sector failed.\r\n");
+                   goto END;
+               }
+           }
+           while(1)
+           {
+               res = read(source, buf, dwPageBytes);
+               if(!res)
+               {
+                   debug_printf("IAP","read source file error.\r\n");
+                    break; // 没有数据可读
+               }
+               sourceInfo.st_size -= res; // 剩余
+               if(res<dwPageBytes)
+               {
+                   for(k=res;k<dwPageBytes;k++)
+                   {
+                       buf[k]=0xFF;
+                   }
+               }
+               Res=Chip->Ops.WrPage(dwPageNo,buf,NO_ECC);
+               if((res !=Res)&&(Res!=dwPageBytes))
+               {
+                   debug_printf("IAP","write destination file error.\r\n");
+                    goto END;
+               }
+               dwPageNo++;
+               if(!sourceInfo.st_size)
+               {
+                   debug_printf("IAP","Iboot update success.\r\n");
+                   UpdateIbootFlag=true;
+                   goto END; // 全部读完
+               }
+
+           }
+
+    END:
+            closedir(dir);
+            if(-1 != source)
+            {
+                res = close(source);
+                if(res)
+                {
+                    debug_printf("IAP","close source file failed.\r\n");
+                }
+            }
+       }
+    }
+}
+
 
 // ============================================================================
 // 功能：从文件中加载APP并运行。(判断是否需要从文件系统中加载APP并执行)
@@ -561,6 +821,64 @@ LOAD_FILE_EXIT:
 
 
 
+
+// ============================================================================
+// 功能：通过模式一升级应用程序
+// 参数：pPath -- 文件所在路径
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+void UpdateApplication(void)
+{
+    bool_t doUpdate;
+    s32 res;
+    u8 doPrint = 1;
+    doUpdate = HAL_CheckUpdateFlag();
+    if(doUpdate)
+    {
+        if(doPrint)
+        {
+            debug_printf("IAP","APP need update(flag).");
+            doPrint = 0;
+        }
+
+        res = IAP_Update(2, IAP_GetMethod(), IAP_GetPath());
+        if(res != -1)
+        {
+            HAL_ClrUpdateFlag();
+            debug_printf("IAP","APP update succeed. Now going to running APP in 5 seconds.\r\n");
+            Djy_EventDelay(5000*mS);
+            RunApp();
+        }
+        else
+        {
+            debug_printf("IAP","APP update failed. will retry.");
+        }
+    }
+    else if(pg_IapVar.IbootStatus==EN_CRC_ERR)
+    {
+        if(doPrint)
+        {
+            debug_printf("IAP","APP need update(status).");
+            doPrint = 0;
+        }
+        res = IAP_Update(2, IAP_GetMethod(), IAP_GetPath());
+        if(res != -1)
+        {
+            debug_printf("IAP","APP update succeed. Now going to running APP in 5 seconds.\r\n");
+            Djy_EventDelay(5000*mS);
+            RunApp();
+        }
+        else
+        {
+            debug_printf("IAP","APP update failed. will retry.");
+        }
+    }
+    else
+    {
+
+    }
+}
 
 
 

@@ -54,125 +54,176 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#ifndef __rsc_h__
-#define __rsc_h__
+#ifndef __OBJECT_H__
+#define __OBJECT_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
+#include <list.h>
+#include <stdio.h>
 
-#define CN_RSC_NAME_LIMIT   255
+#define CN_OBJ_NAME_LIMIT   255
 
-typedef struct Object
-{
-    struct Object *Next,*Previous,*Parent,*Child;
-    u16  Size;      //包含node的数据结构的尺寸，用于调试
-    u16  Type;      //对象类型
-    u32  Inuse;     //使用计数
-    char *Name;     //资源名,当用于文件系统为文件名或目录名,用于设备是设备名
-                    //用于gui则是窗口名.
-}TagObject;
+//Target根据cmd不同，有两种可能，struct Object*，或struct ObjectPort*，在实现
+//时使用强制类型转换。
+//struct Object*：CN_OBJ_CMD_OPEN、CN_OBJ_CMD_SHOW、CN_OBJ_CMD_READDIR、
+//                CN_OBJ_CMD_DELETE、CN_OBJ_CMD_STAT
+//struct ObjectPort*：其他命令
 
-//
-// 文件系统使用
-//
-struct VCommon
-{
-    struct Object Obj;
-    void *Context; // 指向struct FileContext或struct VMount
-    char Name[];
-};
+//对于4个参数不够用的情况，para2有两种应对方案。
+//1、使用va_list *；2、用结构指针
+typedef ptu32_t (*fnObjOps)(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
+//不同命令参数含义：
+//-----------------CN_OBJ_CMD_OPEN---------------------------------
+//功能：打开文件（目录）
+// target：struct Object *，待打开的path中已经在Object队列中的最后一个Object
+// para1：path中target后的部分，可能是NULL。
+// para2：u64*，低32位是open调用的oflag参数，高32位仅当 cmd == O_CREAT 时有用，
+//        表示文件访问权限， S_ISUID 系列常数，stat.h中定义
+//-----------------CN_OBJ_CMD_READ---------------------------------
+//功能：读文件
+// target：struct ObjectPort * 类型，被读取的文件指针
+// para1：接收数据的 buf 指针。
+// para2：buf 的尺寸。
+//----------------CN_OBJ_CMD_WRITE---------------------------------
+//功能：写文件
+// target：struct ObjectPort * 类型，被写入的文件指针
+// para1：写入数据的 buf 指针。
+// para2：写入数据的长度。
+//----------------CN_OBJ_CMD_CLOSE---------------------------------
+//功能：关闭文件（目录）
+// target：struct ObjectPort * 类型，被关闭的文件指针
+// para1：无用。
+// para2：无用。
+//----------------CN_OBJ_CMD_SHOW----------------------------------
+//功能：显示文件（目录）内容，注意，目录的内容，不是子目录列表，可能是目录的说明，
+//      也可能是其他内容，由CN_OBJ_CMD_SHOW目录的实现者决定
+// target：struct Object * 类型，被显示的object指针
+// para1：显示参数。
+// para2：无用。
+//----------------CN_OBJ_CMD_SEEK----------------------------------
+//功能：移动文件指针
+// target：struct ObjectPort * 类型，被操作的文件指针
+// para1：off_t *，目标偏移量。
+// para2：偏移参考，SEEK_SET、SEEK_CUR、SEEK_END 之一。
 
-//文件系统的类型
-#define OB_MOUNT                (0x0800) // 安装类型
-#define OB_FILE                 (0x8000) // 文件类型
-#define OB_REG                  (0x9000) // 文件
-#define OB_DIR                  (0xA000) // 目录
-#define OB_LINK                 (0xC000) // 链接
+//对象操作命令定义，新增不能超过CN_OBJ_CMD_USER，否则整个系统需要重新编译。
+//16bit，fnObjOps长度参数cmd是32位数，其中高16位表示命令码所需的参数长度。
+//参数长度用于向内核态 copy 参数时使用，用户定义命令码时无须关心。
+#define CN_OBJ_CMD_OPEN             0   // 打开文件。(返回：正常：struct ObjectPort 指针；出错：NULL；)
+#define CN_OBJ_CMD_READ             1   // 读文件。(返回：读出的数据量；出错：-1。)
+#define CN_OBJ_CMD_WRITE            2   // 写文件。返回：写入的数据量，出错：-1
+#define CN_OBJ_CMD_CLOSE            3   // 关闭文件。返回：正常：0；文件类型错误：-2，其他错误：-1
+#define CN_OBJ_CMD_SHOW             4   // 返回：正常：0，出错：-1
+#define CN_OBJ_CMD_CRTL             5   // 控制文件；返回：由控制命令具体定义
+#define CN_OBJ_CMD_SEEK             6   // 重定位文件。(返回：正常：0，出错：-1)
+#define CN_OBJ_CMD_TELL             7   // 。(返回：正常：0；出错：-1)
+#define CN_OBJ_CMD_DELETE           8   // 删除文件。(返回：正常：0；出错：-1)
+#define CN_OBJ_CMD_STAT             9   // 返回：正常：0，出错：-1
+#define CN_OBJ_CMD_TRUNCATE         10  // 返回：正常：0，出错：-1
+#define CN_OBJ_CMD_READDIR          11  // 返回：正常：0，出错：-1，完成：1
+#define CN_OBJ_CMD_SYNC             12  // 返回：正常：0，出错：-1，完成：1
+#define CN_OBJ_CMD_MULTIPLEX_ADD    13  // 返回：正常：0，出错：-1，完成：1
+#define CN_OBJ_CMD_FILE_SPECIAL     14  // 返回：参看 CN_FILE_STATICDATA 等
+#define CN_OBJ_CMD_FSTAT            15  // 返回：正常：0，出错：-1
 
-//定义资源类型
-#define RSC_RSCNODE             0       //纯节点
-#define RSC_RSCV_TYPE           1       //保留类型
-#define RSC_DEVICE              2       //设备
-#define RSC_SEMP                3       //信号量
-#define RSC_MUTEX               4       //互斥量
-#define RSC_MSGQ                5       //消息队列
-#define RSC_MEMPOOL             6       //内存池
-#define RSC_SOFT_TIMER          7       //软定时器
-#define RSC_SOCKET              8       //socket
-#define RSC_NET_CARD            9        //网卡
-#define RSC_SPIBUS              10       //spi总线
-#define RSC_SPI_DEVICE          11       //spi器件
-#define RSC_IICBUS              12       //i2c总线
-#define RSC_IIC_DEVICE          13       //i2c器件
-#define RSC_STDIN_OUT           14       //标准输入或输出设备
-#define RSC_SHELL_CMD           15       //shell 命令
-#define RSC_DISPLAY             16       //显示器
-#define RSC_GKWIN               17       //内核窗口(显示)
-#define RSC_FILE                18       //文件或文件夹
-#define RSC_FILE_SYS            19       //文件系统(指整个文件系统)
-#define RSC_PTT                 20       //文件系统分区
-#define RSC_FFS_FLASH_CHIP      21       //用于flash文件系统的flash芯片
-#define RSC_EFS_NOR_CHIP        22       //用于easy nor文件系统的flash芯片
-#define RSC_CHARSET             23       //字符集
-#define RSC_FONT                24       //字体
+#define CN_OBJ_FCNTL_START          0x1000 // fcntl 命令组起始命令
+#define CN_OBJ_IOCTL_START          0x2000 // ioctl 命令组起始命令
+#define CN_OBJ_CMD_USER             0xF000 // 用户自定义命令起始值，由用户写的驱动程序解释，不同模块可以定义重复的值
+
+//建议（非强制）：遇到不支持的命令时 fnObjOps 函数返回值。
+#define CN_OBJ_CMD_UNSUPPORT        (-1)
 
 
-#define RSCTYPE_USER_BASE       0x80
-#define RSCTYPE_USER            (RSCTYPE_USER_BASE + 0)
+#define GROUP_POINT                 (1)
+#define TEMPORARY_POINT             (2)
+#define DIR_POINT                   (3)
+#define REG_POINT                   (4)
 
-ptu32_t ModuleInstall_OBJ(ptu32_t Para);
-//ptu32_t Rsc2_ModuleInit(ptu32_t para);
-void OBJ_Clean(struct Object *Obj);
-struct Object *OBJ_AddTree(struct Object *Obj, u16 Size, u16 RscType, const char *Name);
-struct Object *OBJ_AddToPrevious(struct Object *Obj,struct Object *NewObj,
-                                u16 Size, u16 RscType, const char *Name);
-struct Object *OBJ_AddToNext(struct Object *Obj,struct Object *NewObj,
-                             u16 Size, u16 RscType, const char *Name);
-struct Object *OBJ_AddChild(struct Object *Parent, struct Object *Child,
-                            u16 Size, u16 RscType, const char *Name);
-struct Object *OBJ_AddChildHead(struct Object *Parent, struct Object *Child,
-                                u16 Size, u16 RscType, const char *Name);
-struct Object *OBJ_InsertChild(struct Object *Parent, struct Object *New);
-bool_t OBJ_Displace(struct Object *Old, struct Object *New);
-struct Object *OBJ_DelBranch(struct Object *Branch);
-struct Object *OBJ_Del(struct  Object *Obj);
-bool_t OBJ_MoveToTree(struct Object *Parent,struct Object *Node);
-bool_t OBJ_MoveToLast(struct Object *Obj);
-bool_t OBJ_MoveToHead(struct Object *Obj);
-bool_t OBJ_MoveToNext(struct Object *Loc, struct Object *Obj);
-bool_t OBJ_MoveToPrevious(struct Object *Loc, struct Object *Obj);
-bool_t OBJ_RoundPrevious(struct Object *Parent);
-bool_t OBJ_RoundNext(struct Object *Parent);
-bool_t OBJ_Rename(struct Object *Obj, const char *NewName);
-struct Object *OBJ_GetTree(struct Object *Obj);
-struct Object *OBJ_SearchTree(const char *Name);
-struct Object *OBJ_SysRoot(void);
-char *OBJ_Name(struct Object *Obj);
-u16 OBJ_Size(struct Object *Obj);
-u16 OBJ_Type(struct Object *Obj);
-struct Object *OBJ_Parent(struct Object *Obj);
-struct Object *OBJ_Child(struct Object *Obj);
-struct Object *OBJ_Previous(struct Object *Obj);
-struct Object *OBJ_Next(struct Object *Obj);
-struct Object *OBJ_GetHead(struct Object *Obj);
-struct Object *OBJ_GetTwig(struct Object *Obj);
-u32 OBJ_GetLevel(struct Object *Obj);
-struct Object *OBJ_TraveChild(struct Object *Parent, struct Object *Child);
-struct Object *OBJ_TraveScion(struct Object *Ancestor, struct Object *Current);
-struct Object *OBJ_SearchSibling(struct Object *Brother, const char *Name);
-struct Object *OBJ_SearchChild(struct Object *Parent, const char *Name);
-struct Object *OBJ_SearchScion(struct Object *Ancestor, const char *Name);
-struct Object *OBJ_Search(struct Object *Start, const char *Path);
-u32 OBJ_Sequencing(struct Object *Obj);
-bool_t OBJ_IsLast(struct Object *Obj);
-bool_t OBJ_IsHead(struct Object *Obj);
-struct Object *__RootObj(void);
+typedef fnObjOps    tagObjOps;
+
+struct Object *OBJ_NewSanityChild(struct Object*, fnObjOps, ptu32_t, const char*);
+s32            OBJ_Del(struct Object*);
+s32            OBJ_SetOps(struct Object*, fnObjOps);
+s32            OBJ_SetRepresent(struct Object*, ptu32_t);
+void           OBJ_SetCurrent(struct Object*);
+struct Object *OBJ_AddToPrevious(struct Object*, fnObjOps, ptu32_t, const char*);
+struct Object *OBJ_AddToNext(struct Object*, fnObjOps, ptu32_t, const char*);
+struct Object *OBJ_AddChild(struct Object*, fnObjOps, ptu32_t, const char*);
+struct Object *OBJ_AddChildHead(struct Object*,fnObjOps, ptu32_t,const char*);
+struct Object *OBJ_InsertChild(struct Object*, struct Object*);
+struct Object *OBJ_TakeOutBranch(struct Object*);
+s32            OBJ_MoveToBranch(struct Object*,struct Object*);
+s32            OBJ_MoveToLast(struct Object*);
+s32            OBJ_MoveToHead(struct Object*);
+s32            OBJ_MoveToNext(struct Object*, struct Object*);
+s32            OBJ_MoveToPrevious(struct Object*, struct Object*);
+s32            OBJ_RoundPrevious(struct Object*);
+s32            OBJ_RoundNext(struct Object*);
+s32            OBJ_Rename(struct Object*, const char*);
+fnObjOps       OBJ_Ops(struct Object*);
+ptu32_t        OBJ_Represent(struct Object*);
+list_t        *OBJ_PortList(struct Object*);
+const char    *OBJ_Name(struct Object*);
+struct Object *OBJ_Parent(struct Object*);
+struct Object *OBJ_Child(struct Object*);
+struct Object *OBJ_Previous(struct Object*);
+struct Object *OBJ_Next(struct Object*);
+struct Object *OBJ_Head(struct Object*);
+struct Object *OBJ_Twig(struct Object*);
+u32            OBJ_Level(struct Object*);
+bool_t         OBJ_IsParentChild(struct Object*, struct Object*);
+bool_t         OBJ_IsLast(struct Object*);
+bool_t         OBJ_IsHead(struct Object*);
+struct Object *OBJ_TraveChild(struct Object*, struct Object*);
+struct Object *OBJ_TraveScion(struct Object*, struct Object*);
+struct Object *OBJ_SearchSibling(struct Object*, const char*);
+struct Object *OBJ_SearchChild(struct Object*, const char*);
+struct Object *OBJ_SearchScion(struct Object*, const char*);
+struct Object *OBJ_Search(struct Object*, const char*);
+u32            OBJ_Sequencing(struct Object*);
+struct Object *OBJ_NewSanityChild(struct Object*, fnObjOps, ptu32_t, const char*);
+struct Object *OBJ_Root(void);
+struct Object *OBJ_Current(void);
+s32            OBJ_IsRoot(struct Object*);
+struct Object *OBJ_MatchPath(const char*, char**, char**);
+struct Object *OBJ_BufferPath(struct Object*, char*);
+void           OBJ_UnBufferPath(struct Object*);
+s32            OBJ_NameSantiy(const char*);
+struct Object *OBJ_Restore(struct Object*);
+struct Object *OBJ_Replace(struct Object*);
+
+s32            __OBJ_Type(struct Object*);
+void           __OBJ_Free(struct Object*);
+s32            __OBJ_Del(struct Object*);
+void           __OBJ_Init(struct Object*);
+const char    *__OBJ_Name(struct Object*);
+fnObjOps       __OBJ_Ops(struct Object*);
+ptu32_t        __OBJ_Represent(struct Object*);
+struct Object *__OBJ_Parent(struct Object*);
+struct Object *__OBJ_Child(struct Object*);
+struct Object *__OBJ_Prev(struct Object *pObj);
+struct Object *__OBJ_Next(struct Object *pObj);
+s32            __OBJ_Link(struct Object*, list_t*);
+s32            __OBJ_LinksCheck(struct Object*, u32);
+s32            __OBJ_Protect(struct Object*);
+s32            __OBJ_Forbid(struct Object*);
+s32            __OBJ_IsProtected(struct Object*);
+s32            __OBJ_Release(struct Object*);
+s32            __OBJ_NameSantiy(const char*);
+void           __OBJ_SetRepresent(struct Object*, ptu32_t);
+void           __OBJ_SetName(struct Object*, const char*);
+void           __OBJ_SetOps(struct Object*, fnObjOps);
+s32            __OBJ_SetMountPoint(struct Object*);
+s32            __OBJ_ClearMountPoint(struct Object*);
+s32            __OBJ_InitSystem(void);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__rsc_h__
+#endif //__OBJECT_H__
 

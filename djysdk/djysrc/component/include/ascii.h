@@ -66,9 +66,6 @@
 extern "C" {
 #endif
 
-
-ptu32_t ModuleInstall_CharsetAscii(ptu32_t para);
-
 #ifdef __cplusplus
 }
 #endif

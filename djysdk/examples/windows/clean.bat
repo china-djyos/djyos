@@ -1,1 +1,0 @@
-del *.d *.o *.obj *.lst *.elf *.bin *.map *.bak *.sdf *.tlog/s

@@ -138,7 +138,7 @@ void  rfbInitServerSocket(rfbScreenInfoPtr rfbScreen)
     }
 
     rfbScreen->allFds = Multiplex_Create(1);
-    Socket_MultiplexAdd(rfbScreen->allFds,rfbScreen->listenSock,CN_SOCKET_IOACCEPT);
+    Multiplex_AddObject(rfbScreen->allFds,rfbScreen->listenSock,CN_SOCKET_IOACCEPT);
 }
 // =========================================================================
 // 函数功能:建立一个新的客户
@@ -236,11 +236,11 @@ int rfbCheckFds(rfbScreenInfoPtr rfbScreen,long usec)
             }
             else
             {
-                Socket_MultiplexAdd(rfbScreen->allFds,sock,CN_SOCKET_IOREAD);
+                Multiplex_AddObject(rfbScreen->allFds,sock,CN_SOCKET_IOREAD);
                 cl = rfbNewClient(rfbScreen,sock);
                 if(NULL == cl)
                 {
-                    Socket_MultiplexDel(rfbScreen->allFds,sock);
+                    Multiplex_DelObject(rfbScreen->allFds,sock);
                     closesocket(sock);
                 }
                 else

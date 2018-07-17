@@ -374,7 +374,7 @@ struct menu_item* SearchSubTernalMenuitem(struct menu_item * pMenuitem)
 {
 
    struct menu_item* result=NULL;
-   result=(struct menu_item *)OBJ_GetTwig((struct  Object *)pMenuitem);
+   result=(struct menu_item *)OBJ_Twig((struct  Object *)pMenuitem);
    return result;
 }
 
@@ -538,7 +538,7 @@ struct menu_item * GetBBmenuitem(struct menu_item  *menuitem)
 {
     struct menu_item   *result=NULL;
 
-    result=(struct menu_item *)OBJ_GetHead((struct Object *)menuitem);
+    result=(struct menu_item *)OBJ_Head((struct Object *)menuitem);
     return  result;
 }
 // =========================================================================

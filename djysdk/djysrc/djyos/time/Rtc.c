@@ -55,7 +55,7 @@
 #include "int.h"
 #include "systime.h"
 #include <sys/time.h>
-
+#include "component_config_time.h"
 static s64               sgRtcTimeSet;             //手动设置或者系统从RTC设备中读取的RTC时间
 static s64               sgRtcUpdateTime2SysTime;  //读取或者设置RTC时间时系统的运行时刻
 static fntRtc_GetTime    fnRtcGetTime = NULL;      //获取RTC设备RTC时间
