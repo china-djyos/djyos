@@ -1,0 +1,156 @@
+//----------------------------------------------------
+// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//-----------------------------------------------------------------------------
+// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+//
+// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
+// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
+//
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
+//    及下述的免责声明。
+// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
+//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    的免责声明。
+
+// 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
+// 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
+// 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
+// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
+// 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
+// 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
+// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
+//-----------------------------------------------------------------------------
+//所属模块:tcpip
+//作者：lst
+//版本：V1.0.0
+//文件描述:模块配置文件
+//其他说明:
+//修订历史:
+//2. ...
+//1. 日期: 2009-01-04
+//   作者: lst
+//   新版本号: V1.0.0
+//   修改说明: 原始版本
+//------------------------------------------------------
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//  extern bool_t ModuleInstall_TcpIp(void);
+//    ModuleInstall_TcpIp( );
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"tcpip"        //tcpip协议栈
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"lock","heap","devfile",             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_NETPKG_MEMSIZE   //****检查参数是否已经配置好
+#warning    tcpip组件参数未配置，使用默认值
+//%$#@num,,,
+#define     CFG_NETPKG_MEMSIZE          0x4000  //"数据包缓冲区尺寸"
+//*******************************ARP******************************************//
+#define     CFG_ARP_HASHLEN             32      //"ARP哈希表长度"，占用一个指针
+//*******************************TPL******************************************//
+#define     CFG_TPL_PROTONUM            5       //"支持的传输协议数"，占用一个 tagTplProtoItem 结构
+//*******************************UDP******************************************//
+//%$#@enum,true,false,
+#define     CFG_UDP_ENABLE              true    //"udp协议使能"
+//%$#@num,,,
+#define     CFG_UDP_CBNUM               10      //"UDP socket数限值"，占用一个 tagUdpCB 结构
+#define     CFG_UDP_HASHLEN             4       //"udp socket 哈希表长度"，占用一个指针
+//*******************************TCP******************************************//
+//%$#@enum,true,false,
+#define     CFG_TCP_ENABLE              true    //"tcp协议使能"
+#define     CFG_TCP_REORDER             true    //"TCP乱序重组使能",资源充足才打开
+//%$#@num,,,
+#define     CFG_TCP_CCBNUM              10      //"tcp 客户端数限值"，占一个 指针 和 tagCCB
+#define     CFG_TCP_SCBNUM              5       //"tcp 服务器数限值"，，占一个 指针 和 tagSCB
+//*******************************SOCKET***************************************//
+#define     CFG_SOCKET_NUM              10      //"socket数限值"，占一个 tagItem 结构
+//*******************************TELNET***************************************//
+//%$#@enum,true,false,
+#define     CFG_TELNET_ENABLE           true    //"telnet 使能"
+#define     CFG_TELNETD_ENABLE          true    //"telnet 服务器使能"
+#define     CFG_TELNETC_ENABLE          false   //"telnet 客户端使能"
+//*******************************FTP******************************************//
+#define     CFG_FTP_ENABLE              true    //"ftp 使能"
+#define     CFG_FTPD_ENABLE             true    //"ftp 服务器使能"
+#define     CFG_FTPC_ENABLE             false   //"ftp 客户端使能"
+
+//******************************TFTP******************************************//
+#define     CFG_TFTP_ENABLE             true    //"tftp 使能"
+#define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能"
+#define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
+#define     CN_TFTP_PATHDEFAULT       "/efs/"   //TFTP默认工作目录
+//*******************************DHCP SERVER**********************************//
+#define     CFG_DHCP_ENABLE             true    //"DHCP 使能"
+#define     CFG_DHCPD_ENABLE            false   //"DHCP 服务器使能"
+#define     CFG_DHCPC_ENABLE            true    //"DHCP 客户端使能"
+//%$#@num,,,
+#define     CFG_DHCP_RENEWTIME          3600    //"renew timer",秒数
+#define     CFG_DHCP_REBINDTIME         3600    //"rebind timer",秒数
+#define     CFG_DHCP_LEASETIME          3600    //"lease timer",秒数
+#define     CFG_DHCPD_IPNUM             0x40    //"IP池尺寸",64
+//%$#@string,7,32,
+#define     CFG_DHCPD_IPSTART           "192.168.0.2"    //"DHCP起始IP",
+#define     CFG_DHCPD_SERVERIP          "192.168.0.253"  //"DHCP SERVER IP"
+#define     CFG_DHCPD_ROUTERIP          "192.168.0.253"  //"DHCP ROUTER SERVER IP"
+#define     CFG_DHCPD_NETIP             "255.255.255.0"  //"DHCP MASK IP"
+#define     CFG_DHCPD_DNS               "192.168.0.253"  //"DHCP DNSSERVER IP"
+//%$#@string,1,32,
+#define     CFG_DHCPD_DOMAINNAME       ""               //"DHCP domain name"
+//*******************************PPP******************************************//
+#define     CN_PPP_ENABLE             1         //是否需要 ppp 协议
+//%$#@select
+#define CFG_MYCONFIG6           //"name",我的配置
+//%$#@free
+#define CFG_MYCONFIG7   CN_CONFIG           //我的配置
+#endif
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
+//@#$%component end configure
+
+
