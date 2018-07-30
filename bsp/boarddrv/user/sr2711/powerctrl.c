@@ -62,6 +62,7 @@
 #include "board-config.h"
 #include "powerctrl.h"
 #include "shell.h"
+#include "newshell.h"
 #include <stm32f7xx_hal_mmc.h>
 
 void Peri_LowPowerCfg(enum BoardPeriCode PeriIdx,bool_t Flag);
@@ -69,59 +70,59 @@ extern void ADC_LowPowerCfg(bool_t Flag);
 
 
 //**************************************************************************
-static void Sh_PeriStatus(void);
-static void Sh_SDRAM_PowerOn(void);
-static void Sh_SDRAM_PowerOff(void);
-static void Sh_EMMC_PowerOn(void);
-static void Sh_EMMC_PowerOff(void);
-static void Sh_EMAC_PowerOn(void);
-static void Sh_EMAC_PowerOff(void);
-static void Sh_IMAGE_PowerOn(void);
-static void Sh_IMAGE_PowerOff(void);
-static void Sh_CAMERA_PowerOn(void);
-static void Sh_CAMERA_PowerOff(void);
-static void Sh_30W_PowerOn(void);
-static void Sh_30W_PowerOff(void);
-static void Sh_10W_PowerOn(void);
-static void Sh_10W_PowerOff(void);
-static void Sh_SENSOR1_PowerOn(void);
-static void Sh_SENSOR1_PowerOff(void);
-static void Sh_SENSOR2_PowerOn(void);
-static void Sh_SENSOR2_PowerOff(void);
-static void Sh_SENSOR3_PowerOn(void);
-static void Sh_SENSOR3_PowerOff(void);
-static void Sh_SENSOR4_PowerOn(void);
-static void Sh_SENSOR4_PowerOff(void);
-static void Sh_SENSOR5_PowerOn(void);
-static void Sh_SENSOR5_PowerOff(void);
-static void Sh_SENSOR6_PowerOn(void);
-static void Sh_SENSOR6_PowerOff(void);
-static void Sh_SENSOR7_PowerOn(void);
-static void Sh_SENSOR7_PowerOff(void);
-static void Sh_SENSOR8_PowerOn(void);
-static void Sh_SENSOR8_PowerOff(void);
-static void Sh_SENSOR9_PowerOn(void);
-static void Sh_SENSOR9_PowerOff(void);
-static void Sh_SENSOR10_PowerOn(void);
-static void Sh_SENSOR10_PowerOff(void);
-static void Sh_SENSOR11_PowerOn(void);
-static void Sh_SENSOR11_PowerOff(void);
-static void Sh_SENSOR12_PowerOn(void);
-static void Sh_SENSOR12_PowerOff(void);
-static void Sh_SENSOR13_PowerOn(void);
-static void Sh_SENSOR13_PowerOff(void);
-static void Sh_RF1_PowerOn(void);
-static void Sh_RF1_PowerOff(void);
-static void Sh_RTC_PowerOn(void);
-static void Sh_RTC_PowerOff(void);
-static void Sh_ENCRYPTION_PowerOn(void);
-static void Sh_ENCRYPTION_PowerOff(void);
-static void Sh_RF2_PowerOn(void);
-static void Sh_RF2_PowerOff(void);
-static void Sh_BAT_PowerOn(void);
-static void Sh_BAT_PowerOff(void);
-static void Sh_5V_CheckPowerOn(void);
-static void Sh_5V_CheckPowerOff(void);
+//static void Sh_PeriStatus(void);
+//static void Sh_SDRAM_PowerOn(void);
+//static void Sh_SDRAM_PowerOff(void);
+//static void Sh_EMMC_PowerOn(void);
+//static void Sh_EMMC_PowerOff(void);
+//static void Sh_EMAC_PowerOn(void);
+//static void Sh_EMAC_PowerOff(void);
+//static void Sh_IMAGE_PowerOn(void);
+//static void Sh_IMAGE_PowerOff(void);
+//static void Sh_CAMERA_PowerOn(void);
+//static void Sh_CAMERA_PowerOff(void);
+//static void Sh_30W_PowerOn(void);
+//static void Sh_30W_PowerOff(void);
+//static void Sh_10W_PowerOn(void);
+//static void Sh_10W_PowerOff(void);
+//static void Sh_SENSOR1_PowerOn(void);
+//static void Sh_SENSOR1_PowerOff(void);
+//static void Sh_SENSOR2_PowerOn(void);
+//static void Sh_SENSOR2_PowerOff(void);
+//static void Sh_SENSOR3_PowerOn(void);
+//static void Sh_SENSOR3_PowerOff(void);
+//static void Sh_SENSOR4_PowerOn(void);
+//static void Sh_SENSOR4_PowerOff(void);
+//static void Sh_SENSOR5_PowerOn(void);
+//static void Sh_SENSOR5_PowerOff(void);
+//static void Sh_SENSOR6_PowerOn(void);
+//static void Sh_SENSOR6_PowerOff(void);
+//static void Sh_SENSOR7_PowerOn(void);
+//static void Sh_SENSOR7_PowerOff(void);
+//static void Sh_SENSOR8_PowerOn(void);
+//static void Sh_SENSOR8_PowerOff(void);
+//static void Sh_SENSOR9_PowerOn(void);
+//static void Sh_SENSOR9_PowerOff(void);
+//static void Sh_SENSOR10_PowerOn(void);
+//static void Sh_SENSOR10_PowerOff(void);
+//static void Sh_SENSOR11_PowerOn(void);
+//static void Sh_SENSOR11_PowerOff(void);
+//static void Sh_SENSOR12_PowerOn(void);
+//static void Sh_SENSOR12_PowerOff(void);
+//static void Sh_SENSOR13_PowerOn(void);
+//static void Sh_SENSOR13_PowerOff(void);
+//static void Sh_RF1_PowerOn(void);
+//static void Sh_RF1_PowerOff(void);
+//static void Sh_RTC_PowerOn(void);
+//static void Sh_RTC_PowerOff(void);
+//static void Sh_ENCRYPTION_PowerOn(void);
+//static void Sh_ENCRYPTION_PowerOff(void);
+//static void Sh_RF2_PowerOn(void);
+//static void Sh_RF2_PowerOff(void);
+//static void Sh_BAT_PowerOn(void);
+//static void Sh_BAT_PowerOff(void);
+//static void Sh_5V_CheckPowerOn(void);
+//static void Sh_5V_CheckPowerOff(void);
 
 static bool_t gs_PeriStaus[EN_PERI_END];
 static char * gs_PeriName[EN_PERI_END];
@@ -217,66 +218,66 @@ void Board_PowerCtrlInit(void)
 
 
 //**************************************************************************
-struct ShellCmdTab const shell_cmd_power_ctrl_table[]=
-{
-	{"perista",(bool_t(*)(char*))Sh_PeriStatus,    "板件所有外设状态",            NULL},
-	{"sdramon",(bool_t(*)(char*))Sh_SDRAM_PowerOn,   "使能SDRAM及电源",           NULL},
-	{"sdramoff",(bool_t(*)(char*))Sh_SDRAM_PowerOff, "禁能SDRAM及电源",           NULL},
-	{"emmcon",(bool_t(*)(char*))Sh_EMMC_PowerOn,     "使能EMMC及电源",            NULL},
-	{"emmcoff",(bool_t(*)(char*))Sh_EMMC_PowerOff,   "禁能EMMC及电源",            NULL},
-	{"emacron",(bool_t(*)(char*))Sh_EMAC_PowerOn,    "使能EMAC及电源",            NULL},
-	{"emacoff",(bool_t(*)(char*))Sh_EMAC_PowerOff,   "禁能EMAC及电源",            NULL},
-	{"imageon",(bool_t(*)(char*))Sh_IMAGE_PowerOn,   "使能模拟图像处理芯片电源及对应外设",NULL},
-	{"imageoff",(bool_t(*)(char*))Sh_IMAGE_PowerOff, "禁能模拟图像处理芯片电源及对应外设",NULL},
-	{"cameon",(bool_t(*)(char*))Sh_CAMERA_PowerOn,   "使能摄像头球机",             NULL},
-	{"cameoff",(bool_t(*)(char*))Sh_CAMERA_PowerOff, "禁能摄像头球机",             NULL},
-	{"30won",(bool_t(*)(char*))Sh_30W_PowerOn,       "开启30W电源",              NULL},
-	{"30woff",(bool_t(*)(char*))Sh_30W_PowerOff,     "断电30W电源",              NULL},
-	{"10won",(bool_t(*)(char*))Sh_10W_PowerOn,       "开启10W电源",              NULL},
-	{"10woff",(bool_t(*)(char*))Sh_10W_PowerOff,     "断电10W电源",              NULL},
-	{"sen1on",(bool_t(*)(char*))Sh_SENSOR1_PowerOn,  "使能传感器组1电源",           NULL},
-	{"sen1off",(bool_t(*)(char*))Sh_SENSOR1_PowerOff,"禁能传感器组1电源",           NULL},
-	{"sen2on",(bool_t(*)(char*))Sh_SENSOR2_PowerOn,  "使能传感器组2电源",           NULL},
-	{"sen2off",(bool_t(*)(char*))Sh_SENSOR2_PowerOff,"禁能传感器组2电源",           NULL},
-	{"sen3on",(bool_t(*)(char*))Sh_SENSOR3_PowerOn,  "使能传感器组3电源",           NULL},
-	{"sen3off",(bool_t(*)(char*))Sh_SENSOR3_PowerOff,"禁能传感器组3电源",           NULL},
-	{"sen4on",(bool_t(*)(char*))Sh_SENSOR4_PowerOn,  "使能传感器组4电源",           NULL},
-	{"sen4off",(bool_t(*)(char*))Sh_SENSOR4_PowerOff,"禁能传感器组4电源",           NULL},
-	{"sen5on",(bool_t(*)(char*))Sh_SENSOR5_PowerOn,  "使能传感器组5电源",           NULL},
-	{"sen5off",(bool_t(*)(char*))Sh_SENSOR5_PowerOff,"禁能传感器组5电源",           NULL},
-	{"sen6on",(bool_t(*)(char*))Sh_SENSOR6_PowerOn,  "使能传感器组6电源",           NULL},
-	{"sen6off",(bool_t(*)(char*))Sh_SENSOR6_PowerOff,"禁能传感器组6电源",           NULL},
-	{"sen7on",(bool_t(*)(char*))Sh_SENSOR7_PowerOn,  "使能传感器组7电源",           NULL},
-	{"sen7off",(bool_t(*)(char*))Sh_SENSOR7_PowerOff,"禁能传感器组7电源",           NULL},
-	{"sen8on",(bool_t(*)(char*))Sh_SENSOR8_PowerOn,  "使能传感器组8电源",           NULL},
-	{"sen8off",(bool_t(*)(char*))Sh_SENSOR8_PowerOff,"禁能传感器组8电源",           NULL},
-	{"sen9on",(bool_t(*)(char*))Sh_SENSOR9_PowerOn,  "使能传感器组9电源",           NULL},
-	{"sen9off",(bool_t(*)(char*))Sh_SENSOR9_PowerOff,"禁能传感器组9电源",           NULL},
-	{"sen10on",(bool_t(*)(char*))Sh_SENSOR10_PowerOn,  "使能传感器组10电源",        NULL},
-	{"sen10off",(bool_t(*)(char*))Sh_SENSOR10_PowerOff,"禁能传感器组10电源",        NULL},
-	{"sen11on",(bool_t(*)(char*))Sh_SENSOR11_PowerOn,  "使能传感器组11电源",        NULL},
-	{"sen11off",(bool_t(*)(char*))Sh_SENSOR11_PowerOff,"禁能传感器组11电源",        NULL},
-	{"sen12on",(bool_t(*)(char*))Sh_SENSOR12_PowerOn,  "使能传感器组12电源",        NULL},
-	{"sen12off",(bool_t(*)(char*))Sh_SENSOR12_PowerOff,"禁能传感器组12电源",        NULL},
-	{"sen13on",(bool_t(*)(char*))Sh_SENSOR13_PowerOn,  "使能传感器组13电源",        NULL},
-	{"sen13off",(bool_t(*)(char*))Sh_SENSOR13_PowerOff,"禁能传感器组13电源",        NULL},
-	{"rf1on",(bool_t(*)(char*))Sh_RF1_PowerOn,         "使能RF模块电源及对应外设",    NULL},
-	{"rf1off",(bool_t(*)(char*))Sh_RF1_PowerOff,       "禁能RF模块电源及对应外设",    NULL},
-	{"rtcon",(bool_t(*)(char*))Sh_RTC_PowerOn,         "使能RTC芯片及对应外设",      NULL},
-	{"rtcoff",(bool_t(*)(char*))Sh_RTC_PowerOff,       "禁能RTC芯片及对应外设",      NULL},
-	{"ecton",(bool_t(*)(char*))Sh_ENCRYPTION_PowerOn,  "使能加密芯片及对应外设",      NULL},
-	{"ectoff",(bool_t(*)(char*))Sh_ENCRYPTION_PowerOff,"禁能加密芯片及对应外设",      NULL},
-	{"rf2on",(bool_t(*)(char*))Sh_RF2_PowerOn,         "使能无线射频模块及对应外设",   NULL},
-	{"rf2off",(bool_t(*)(char*))Sh_RF2_PowerOff,       "禁能无线射频模块及对应外设",   NULL},
-	{"baton",(bool_t(*)(char*))Sh_BAT_PowerOn,     "使能电池采样及对应外设",          NULL},
-	{"batoff",(bool_t(*)(char*))Sh_BAT_PowerOff,    "禁能电池采样及对应外设",         NULL},
-	{"5vcheckon",(bool_t(*)(char*))Sh_5V_CheckPowerOn,  "使能5V自检采样及对应外设",   NULL},
-	{"5vcheckoff",(bool_t(*)(char*))Sh_5V_CheckPowerOff,"禁能5V自检采样及对应外设",   NULL},
-
-};
-//**************************************************************************
-#define CN_POWER_CTRL_SHELL_NUM  sizeof(shell_cmd_power_ctrl_table)/sizeof(struct ShellCmdTab)
-static struct ShellCmdRsc tg_power_ctrl_shell_cmd_rsc[CN_POWER_CTRL_SHELL_NUM];
+//struct ShellCmdTab const shell_cmd_power_ctrl_table[]=
+//{
+//	{"perista",(bool_t(*)(char*))Sh_PeriStatus,    "板件所有外设状态",            NULL},
+//	{"sdramon",(bool_t(*)(char*))Sh_SDRAM_PowerOn,   "使能SDRAM及电源",           NULL},
+//	{"sdramoff",(bool_t(*)(char*))Sh_SDRAM_PowerOff, "禁能SDRAM及电源",           NULL},
+//	{"emmcon",(bool_t(*)(char*))Sh_EMMC_PowerOn,     "使能EMMC及电源",            NULL},
+//	{"emmcoff",(bool_t(*)(char*))Sh_EMMC_PowerOff,   "禁能EMMC及电源",            NULL},
+//	{"emacron",(bool_t(*)(char*))Sh_EMAC_PowerOn,    "使能EMAC及电源",            NULL},
+//	{"emacoff",(bool_t(*)(char*))Sh_EMAC_PowerOff,   "禁能EMAC及电源",            NULL},
+//	{"imageon",(bool_t(*)(char*))Sh_IMAGE_PowerOn,   "使能模拟图像处理芯片电源及对应外设",NULL},
+//	{"imageoff",(bool_t(*)(char*))Sh_IMAGE_PowerOff, "禁能模拟图像处理芯片电源及对应外设",NULL},
+//	{"cameon",(bool_t(*)(char*))Sh_CAMERA_PowerOn,   "使能摄像头球机",             NULL},
+//	{"cameoff",(bool_t(*)(char*))Sh_CAMERA_PowerOff, "禁能摄像头球机",             NULL},
+//	{"30won",(bool_t(*)(char*))Sh_30W_PowerOn,       "开启30W电源",              NULL},
+//	{"30woff",(bool_t(*)(char*))Sh_30W_PowerOff,     "断电30W电源",              NULL},
+//	{"10won",(bool_t(*)(char*))Sh_10W_PowerOn,       "开启10W电源",              NULL},
+//	{"10woff",(bool_t(*)(char*))Sh_10W_PowerOff,     "断电10W电源",              NULL},
+//	{"sen1on",(bool_t(*)(char*))Sh_SENSOR1_PowerOn,  "使能传感器组1电源",           NULL},
+//	{"sen1off",(bool_t(*)(char*))Sh_SENSOR1_PowerOff,"禁能传感器组1电源",           NULL},
+//	{"sen2on",(bool_t(*)(char*))Sh_SENSOR2_PowerOn,  "使能传感器组2电源",           NULL},
+//	{"sen2off",(bool_t(*)(char*))Sh_SENSOR2_PowerOff,"禁能传感器组2电源",           NULL},
+//	{"sen3on",(bool_t(*)(char*))Sh_SENSOR3_PowerOn,  "使能传感器组3电源",           NULL},
+//	{"sen3off",(bool_t(*)(char*))Sh_SENSOR3_PowerOff,"禁能传感器组3电源",           NULL},
+//	{"sen4on",(bool_t(*)(char*))Sh_SENSOR4_PowerOn,  "使能传感器组4电源",           NULL},
+//	{"sen4off",(bool_t(*)(char*))Sh_SENSOR4_PowerOff,"禁能传感器组4电源",           NULL},
+//	{"sen5on",(bool_t(*)(char*))Sh_SENSOR5_PowerOn,  "使能传感器组5电源",           NULL},
+//	{"sen5off",(bool_t(*)(char*))Sh_SENSOR5_PowerOff,"禁能传感器组5电源",           NULL},
+//	{"sen6on",(bool_t(*)(char*))Sh_SENSOR6_PowerOn,  "使能传感器组6电源",           NULL},
+//	{"sen6off",(bool_t(*)(char*))Sh_SENSOR6_PowerOff,"禁能传感器组6电源",           NULL},
+//	{"sen7on",(bool_t(*)(char*))Sh_SENSOR7_PowerOn,  "使能传感器组7电源",           NULL},
+//	{"sen7off",(bool_t(*)(char*))Sh_SENSOR7_PowerOff,"禁能传感器组7电源",           NULL},
+//	{"sen8on",(bool_t(*)(char*))Sh_SENSOR8_PowerOn,  "使能传感器组8电源",           NULL},
+//	{"sen8off",(bool_t(*)(char*))Sh_SENSOR8_PowerOff,"禁能传感器组8电源",           NULL},
+//	{"sen9on",(bool_t(*)(char*))Sh_SENSOR9_PowerOn,  "使能传感器组9电源",           NULL},
+//	{"sen9off",(bool_t(*)(char*))Sh_SENSOR9_PowerOff,"禁能传感器组9电源",           NULL},
+//	{"sen10on",(bool_t(*)(char*))Sh_SENSOR10_PowerOn,  "使能传感器组10电源",        NULL},
+//	{"sen10off",(bool_t(*)(char*))Sh_SENSOR10_PowerOff,"禁能传感器组10电源",        NULL},
+//	{"sen11on",(bool_t(*)(char*))Sh_SENSOR11_PowerOn,  "使能传感器组11电源",        NULL},
+//	{"sen11off",(bool_t(*)(char*))Sh_SENSOR11_PowerOff,"禁能传感器组11电源",        NULL},
+//	{"sen12on",(bool_t(*)(char*))Sh_SENSOR12_PowerOn,  "使能传感器组12电源",        NULL},
+//	{"sen12off",(bool_t(*)(char*))Sh_SENSOR12_PowerOff,"禁能传感器组12电源",        NULL},
+//	{"sen13on",(bool_t(*)(char*))Sh_SENSOR13_PowerOn,  "使能传感器组13电源",        NULL},
+//	{"sen13off",(bool_t(*)(char*))Sh_SENSOR13_PowerOff,"禁能传感器组13电源",        NULL},
+//	{"rf1on",(bool_t(*)(char*))Sh_RF1_PowerOn,         "使能RF模块电源及对应外设",    NULL},
+//	{"rf1off",(bool_t(*)(char*))Sh_RF1_PowerOff,       "禁能RF模块电源及对应外设",    NULL},
+//	{"rtcon",(bool_t(*)(char*))Sh_RTC_PowerOn,         "使能RTC芯片及对应外设",      NULL},
+//	{"rtcoff",(bool_t(*)(char*))Sh_RTC_PowerOff,       "禁能RTC芯片及对应外设",      NULL},
+//	{"ecton",(bool_t(*)(char*))Sh_ENCRYPTION_PowerOn,  "使能加密芯片及对应外设",      NULL},
+//	{"ectoff",(bool_t(*)(char*))Sh_ENCRYPTION_PowerOff,"禁能加密芯片及对应外设",      NULL},
+//	{"rf2on",(bool_t(*)(char*))Sh_RF2_PowerOn,         "使能无线射频模块及对应外设",   NULL},
+//	{"rf2off",(bool_t(*)(char*))Sh_RF2_PowerOff,       "禁能无线射频模块及对应外设",   NULL},
+//	{"baton",(bool_t(*)(char*))Sh_BAT_PowerOn,     "使能电池采样及对应外设",          NULL},
+//	{"batoff",(bool_t(*)(char*))Sh_BAT_PowerOff,    "禁能电池采样及对应外设",         NULL},
+//	{"5vcheckon",(bool_t(*)(char*))Sh_5V_CheckPowerOn,  "使能5V自检采样及对应外设",   NULL},
+//	{"5vcheckoff",(bool_t(*)(char*))Sh_5V_CheckPowerOff,"禁能5V自检采样及对应外设",   NULL},
+//
+//};
+////**************************************************************************
+//#define CN_POWER_CTRL_SHELL_NUM  sizeof(shell_cmd_power_ctrl_table)/sizeof(struct ShellCmdTab)
+//static struct ShellCmdRsc tg_power_ctrl_shell_cmd_rsc[CN_POWER_CTRL_SHELL_NUM];
 
 
 
@@ -318,15 +319,17 @@ void Peri_NameInit(void)
 参数:无.
 返回值:1。
 *********************************************************************************/
-ptu32_t Power_Ctrl_Shell_Module_Install(void)
-{
-	Sh_InstallCmd(shell_cmd_power_ctrl_table,tg_power_ctrl_shell_cmd_rsc,CN_POWER_CTRL_SHELL_NUM);
-	return 1;
-}
+//ptu32_t Power_Ctrl_Shell_Module_Install(void)
+//{
+//	Sh_InstallCmd(shell_cmd_power_ctrl_table,tg_power_ctrl_shell_cmd_rsc,CN_POWER_CTRL_SHELL_NUM);
+//	return 1;
+//}
 
 
 //**************************************************************************
-static void Sh_PeriStatus(void)
+//static void Sh_PeriStatus(void)
+ADD_TO_SHELL_HELP(perista,"板件所有外设状态");
+ADD_TO_IN_SHELL  bool_t perista(void)
 {
 	u8 i;
 	printf("CPU MCLK(MHz):%d.\r\n",CN_CFG_MCLK/Mhz);
@@ -342,26 +345,36 @@ static void Sh_PeriStatus(void)
 	  }
    }
    printf("The end........................\r\n");
+   return true;
 }
 
 
 
 
-static void Sh_SDRAM_PowerOn(void)
+//static void Sh_SDRAM_PowerOn(void)
+ADD_TO_SHELL_HELP(sdramon,"使能SDRAM及电源");
+ADD_TO_IN_SHELL  bool_t sdramon(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SDRAM,true);
 	printf("SDRAM Power on.\r\n");
+	return true;
 
 }
-static void Sh_SDRAM_PowerOff(void)
+
+//static void Sh_SDRAM_PowerOff(void)
+ADD_TO_SHELL_HELP(sdramoff,"禁能SDRAM及电源");
+ADD_TO_IN_SHELL  bool_t sdramoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SDRAM,false);
 	printf("SDRAM Power off.\r\n");
+	return true;
 }
 
 
 
-static void Sh_EMMC_PowerOn(void)
+//static void Sh_EMMC_PowerOn(void)
+ADD_TO_SHELL_HELP(emmcon,"使能EMMC及电源");
+ADD_TO_IN_SHELL  bool_t emmcon(void)
 {
 	bool_t ret;
 	Peri_LowPowerCfg(EN_PERI_EMMC,true);
@@ -369,76 +382,111 @@ static void Sh_EMMC_PowerOn(void)
 	if(!ret)
 	{
 		printf("EMMC Power on failed.\r\n");
+		return true;
 	}
 	printf("EMMC Power on.\r\n");
+	return true;
 }
-static void Sh_EMMC_PowerOff(void)
+
+//static void Sh_EMMC_PowerOff(void)
+ADD_TO_SHELL_HELP(emmcoff,"禁能EMMC及电源");
+ADD_TO_IN_SHELL  bool_t emmcoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_EMMC,false);
 	printf("EMMC Power off.\r\n");
+	return true;
 }
 
 
 
 
 
-static void Sh_EMAC_PowerOn(void)
+//static void Sh_EMAC_PowerOn(void)
+ADD_TO_SHELL_HELP(emacron,"使能EMAC及电源");
+ADD_TO_IN_SHELL  bool_t emacron(void)
 {
 	Peri_LowPowerCfg(EN_PERI_EMAC,true);
 	MacReset(0);
 	printf("EMAC Power on.\r\n");
+	return true;
 }
-static void Sh_EMAC_PowerOff(void)
+
+//static void Sh_EMAC_PowerOff(void)
+ADD_TO_SHELL_HELP(emacoff,"禁能EMAC及电源");
+ADD_TO_IN_SHELL  bool_t emacoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_EMAC,false);
 	printf("EMAC Power off.\r\n");
+	return true;
 }
 
 
 
-static void Sh_IMAGE_PowerOn(void)
+//static void Sh_IMAGE_PowerOn(void)
+ADD_TO_SHELL_HELP(imageon,"使能模拟图像处理芯片电源及对应外设");
+ADD_TO_IN_SHELL  bool_t imageon(void)
 {
 	Peri_LowPowerCfg(EN_PERI_IMAGE_PROCESS,true);
 	printf("IMAGE Power on.\r\n");
+	return true;
 }
-static void Sh_IMAGE_PowerOff(void)
+
+//static void Sh_IMAGE_PowerOff(void)
+ADD_TO_SHELL_HELP(imageoff,"禁能模拟图像处理芯片电源及对应外设");
+ADD_TO_IN_SHELL bool_t imageoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_IMAGE_PROCESS,false);
 	printf("IMAGE Power off.\r\n");
-
+	return true;
 }
 
+cameon
 
-
-static void Sh_CAMERA_PowerOn(void)
+//static void Sh_CAMERA_PowerOn(void)
+ADD_TO_SHELL_HELP(cameon,"使能摄像头球机");
+ADD_TO_IN_SHELL  bool_t cameon(void)
 {
 	Peri_LowPowerCfg(EN_PERI_CAMERA_HEADER,true);
 	printf("CAMERA Power on.\r\n");
+	return true;
 }
-static void Sh_CAMERA_PowerOff(void)
+
+//static void Sh_CAMERA_PowerOff(void)
+ADD_TO_SHELL_HELP(cameoff,"禁能摄像头球机");
+ADD_TO_IN_SHELL bool_t cameoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_CAMERA_HEADER,false);
 	printf("CAMERA Power off.\r\n");
+	return true;
 }
 
 
-static void Sh_30W_PowerOn(void)
+//static void Sh_30W_PowerOn(void)
+ADD_TO_SHELL_HELP(on30w,"开启30W电源");
+ADD_TO_IN_SHELL bool_t on30w(void)
 {
 	Peri_LowPowerCfg(EN_PERI_30W_POWER,true);
 	extern void UART4_GpioInit(void);
 	UART4_GpioInit();
 	UART_HardInit(CN_UART4);
 	printf("30W Power on.\r\n");
+	return true;
 }
-static void Sh_30W_PowerOff(void)
+
+//static void Sh_30W_PowerOff(void)
+ADD_TO_SHELL_HELP(off30w,"断电30W电源");
+ADD_TO_IN_SHELL  bool_t off30w(void)
 {
 	Peri_LowPowerCfg(EN_PERI_30W_POWER,false);
 	printf("30W Power off.\r\n");
+	return true;
 }
 
 
 
-static void Sh_10W_PowerOn(void)
+//static void Sh_10W_PowerOn(void)
+ADD_TO_SHELL_HELP(on10w,"开启10W电源");
+ADD_TO_IN_SHELL bool_t on10w(void)
 {
 	Peri_LowPowerCfg(EN_PERI_10W_POWER,true);
 	extern void UART3_GpioInit(void);
@@ -448,223 +496,387 @@ static void Sh_10W_PowerOn(void)
 	UART_HardInit(CN_UART6);
 	UART_HardInit(CN_UART3);
 	printf("10W Power on.\r\n");
+	return true;
 }
-static void Sh_10W_PowerOff(void)
+
+//static void Sh_10W_PowerOff(void)
+ADD_TO_SHELL_HELP(off10w,"断电10W电源");
+ADD_TO_IN_SHELL bool_t off10w(void)
 {
 	Peri_LowPowerCfg(EN_PERI_10W_POWER,false);
 	printf("10W Power off.\r\n");
+	return true;
 }
 
 
 
-static void Sh_SENSOR1_PowerOn(void)
+//static void Sh_SENSOR1_PowerOn(void)
+ADD_TO_SHELL_HELP(sen1on,"使能传感器组1电源");
+ADD_TO_IN_SHELL bool_t sen1on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR1,true);
 	printf("Sensor1 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR1_PowerOff(void)
+
+//static void Sh_SENSOR1_PowerOff(void)
+ADD_TO_SHELL_HELP(sen1off,"禁能传感器组1电源");
+ ADD_TO_IN_SHELL bool_t sen1off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR1,false);
 	printf("Sensor1 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR2_PowerOn(void)
+//static void Sh_SENSOR2_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen2on,"使能传感器组2电源");
+ ADD_TO_IN_SHELL bool_t sen2on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR2,true);
 	printf("Sensor2 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR2_PowerOff(void)
+
+
+//static void Sh_SENSOR2_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen2off,"禁能传感器组2电源");
+ ADD_TO_IN_SHELL bool_t sen2off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR2,false);
 	printf("Sensor2 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR3_PowerOn(void)
+//static void Sh_SENSOR3_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen3on,"使能传感器组3电源");
+ ADD_TO_IN_SHELL bool_t sen3on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR3,true);
 	printf("Sensor3 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR3_PowerOff(void)
+
+//static void Sh_SENSOR3_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen3off,"禁能传感器组3电源");
+ ADD_TO_IN_SHELL bool_t sen3off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR3,false);
 	printf("Sensor3 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR4_PowerOn(void)
+//static void Sh_SENSOR4_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen4on,"使能传感器组4电源");
+ ADD_TO_IN_SHELL bool_t sen4on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR4,true);
 	printf("Sensor4 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR4_PowerOff(void)
+
+//static void Sh_SENSOR4_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen4off,"禁能传感器组4电源");
+ ADD_TO_IN_SHELL bool_t sen4off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR4,false);
 	printf("Sensor4 Power off.\r\n");
+	return true;
 }
-static void Sh_SENSOR5_PowerOn(void)
+
+//static void Sh_SENSOR5_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen5on,"使能传感器组5电源");
+ ADD_TO_IN_SHELL bool_t sen5on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR5,true);
 	printf("Sensor5 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR5_PowerOff(void)
+
+
+//static void Sh_SENSOR5_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen5off,"禁能传感器组5电源");
+ ADD_TO_IN_SHELL  bool_t sen5off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR5,false);
 	printf("Sensor5 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR6_PowerOn(void)
+//static void Sh_SENSOR6_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen6on,"使能传感器组6电源");
+
+ ADD_TO_IN_SHELL bool_t sen6on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR6,true);
 	printf("Sensor6 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR6_PowerOff(void)
+
+//static void Sh_SENSOR6_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen6off,"禁能传感器组6电源");
+
+ ADD_TO_IN_SHELL bool_t sen6off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR6,false);
 	printf("Sensor6 Power off.\r\n");
+	return true;
 }
-static void Sh_SENSOR7_PowerOn(void)
+
+//static void Sh_SENSOR7_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen7on,"使能传感器组7电源");
+
+ ADD_TO_IN_SHELL bool_t sen7on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR7,true);
 	printf("Sensor7 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR7_PowerOff(void)
+
+//static void Sh_SENSOR7_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen7off,"禁能传感器组7电源");
+
+ ADD_TO_IN_SHELL bool_t sen7off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR7,false);
 	printf("Sensor7 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR8_PowerOn(void)
+//static void Sh_SENSOR8_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen8on,"使能传感器组8电源");
+
+ ADD_TO_IN_SHELL bool_t sen8on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR8,true);
 	printf("Sensor8 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR8_PowerOff(void)
+
+//static void Sh_SENSOR8_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen8off,"禁能传感器组8电源");
+
+ ADD_TO_IN_SHELL bool_t sen8off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR8,false);
 	printf("Sensor8 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR9_PowerOn(void)
+//static void Sh_SENSOR9_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen9on,"使能传感器组9电源");
+
+ ADD_TO_IN_SHELL bool_t sen9on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR9,true);
 	printf("Sensor9 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR9_PowerOff(void)
+
+//static void Sh_SENSOR9_PowerOff(void)
+ ADD_TO_SHELL_HELP(sen9off,"禁能传感器组9电源");
+
+ ADD_TO_IN_SHELL bool_t sen9off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR9,false);
 	printf("Sensor9 Power off.\r\n");
+	return true;
 }
-static void Sh_SENSOR10_PowerOn(void)
+
+//static void Sh_SENSOR10_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen10on,"使能传感器组10电源");
+
+ ADD_TO_IN_SHELL bool_t sen10on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR10,true);
 	printf("Sensor10 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR10_PowerOff(void)
+
+//static void Sh_SENSOR10_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(sen10off,"禁能传感器组10电源");
+ ADD_TO_IN_SHELL  bool_t sen10off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR10,false);
 	printf("Sensor10 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR11_PowerOn(void)
+//static void Sh_SENSOR11_PowerOn(void)
+ ADD_TO_SHELL_HELP(sen11on,"使能传感器组11电源");
+
+ ADD_TO_IN_SHELL bool_t sen11on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR11,true);
 	printf("Sensor11 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR11_PowerOff(void)
+
+
+//static void Sh_SENSOR11_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(sen11off,"禁能传感器组11电源");
+ ADD_TO_IN_SHELL  bool_t sen11off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR11,false);
 	printf("Sensor11 Power off.\r\n");
+	return true;
 }
 
 
-static void Sh_SENSOR12_PowerOn(void)
+//static void Sh_SENSOR12_PowerOn(void)
+
+ ADD_TO_SHELL_HELP(sen12on,"使能传感器组12电源");
+ ADD_TO_IN_SHELL  bool_t sen12on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR12,true);
 	printf("Sensor12 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR12_PowerOff(void)
+//static void Sh_SENSOR12_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(sen12off,"禁能传感器组12电源");
+ ADD_TO_IN_SHELL  bool_t sen12off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR12,false);
 	printf("Sensor12 Power off.\r\n");
+	return true;
 }
 
-static void Sh_SENSOR13_PowerOn(void)
+//static void Sh_SENSOR13_PowerOn(void)
+
+ ADD_TO_SHELL_HELP(sen13on,"使能传感器组13电源");
+ ADD_TO_IN_SHELL  bool_t sen13on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR13,true);
 	printf("Sensor13 Power on.\r\n");
+	return true;
 }
-static void Sh_SENSOR13_PowerOff(void)
+//static void Sh_SENSOR13_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(sen13off,"禁能传感器组13电源");
+ ADD_TO_IN_SHELL  bool_t sen13off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_SENSOR13,false);
 	printf("Sensor13 Power off.\r\n");
+	return true;
 }
 
-static void Sh_RF1_PowerOn(void)
+//static void Sh_RF1_PowerOn(void)
+
+ ADD_TO_SHELL_HELP(rf1on,"使能RF模块电源及对应外设");
+ ADD_TO_IN_SHELL  bool_t rf1on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_RF1,true);
 	printf("RF1 Power on.\r\n");
+	return true;
 }
-static void Sh_RF1_PowerOff(void)
+//static void Sh_RF1_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(rf1off,"禁能RF模块电源及对应外设");
+ ADD_TO_IN_SHELL  bool_t rf1off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_RF1,false);
 	printf("RF1 Power off.\r\n");
+	return true;
 }
 
 
-static void Sh_RTC_PowerOn(void)
+//static void Sh_RTC_PowerOn(void)
+
+ ADD_TO_SHELL_HELP(rtcon,"使能RTC芯片及对应外设");
+ ADD_TO_IN_SHELL  bool_t rtcon(void)
 {
 	Peri_LowPowerCfg(EN_PERI_RTC,true);
 	printf("RTC Power on.\r\n");
+	return true;
 }
-static void Sh_RTC_PowerOff(void)
+//static void Sh_RTC_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(rtcoff,"禁能RTC芯片及对应外设");
+ ADD_TO_IN_SHELL  bool_t rtcoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_RTC,false);
 	printf("RTC Power off.\r\n");
+	return true;
 }
 
-static void Sh_ENCRYPTION_PowerOn(void)
+//static void Sh_ENCRYPTION_PowerOn(void)
+
+ ADD_TO_SHELL_HELP(ecton,"使能加密芯片及对应外设");
+ ADD_TO_IN_SHELL  bool_t ecton(void)
 {
 	Peri_LowPowerCfg(EN_PERI_ENCRYPTION,true);
 	printf("ENCRYPTION Power on.\r\n");
+	return true;
 }
-static void Sh_ENCRYPTION_PowerOff(void)
+//static void Sh_ENCRYPTION_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(ectoff,"禁能加密芯片及对应外设");
+ ADD_TO_IN_SHELL  bool_t ectoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_ENCRYPTION,false);
 	printf("ENCRYPTION Power off.\r\n");
+	return true;
 }
 
-static void Sh_RF2_PowerOn(void)
+//static void Sh_RF2_PowerOn(void)
+
+ ADD_TO_SHELL_HELP(rf2on,"使能无线射频模块及对应外设");
+ ADD_TO_IN_SHELL  bool_t rf2on(void)
 {
 	Peri_LowPowerCfg(EN_PERI_RF2,true);
 	printf("RF2 Power on.\r\n");
+	return true;
 }
-static void Sh_RF2_PowerOff(void)
+//static void Sh_RF2_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(rf2off,"禁能无线射频模块及对应外设");
+ ADD_TO_IN_SHELL  bool_t rf2off(void)
 {
 	Peri_LowPowerCfg(EN_PERI_RF2,false);
 	printf("RF2 Power off.\r\n");
+	return true;
 }
 
 
-static void Sh_BAT_PowerOn(void)
+//static void Sh_BAT_PowerOn(void)
+
+ ADD_TO_SHELL_HELP(baton,"使能电池采样及对应外设");
+ ADD_TO_IN_SHELL  bool_t baton(void)
 {
 	Peri_LowPowerCfg(EN_PERI_BATTERY_SAMPLE,true);
 	printf("BAT Power on.\r\n");
+	return true;
 
 }
-static void Sh_BAT_PowerOff(void)
+//static void Sh_BAT_PowerOff(void)
+
+ ADD_TO_SHELL_HELP(batoff,"禁能电池采样及对应外设");
+ ADD_TO_IN_SHELL  bool_t batoff(void)
 {
 	Peri_LowPowerCfg(EN_PERI_BATTERY_SAMPLE,false);
 	printf("BAT Power off.\r\n");
+	return true;
 }
 
-static void Sh_5V_CheckPowerOn(void)
+//static void Sh_5V_CheckPowerOn(void)
+
+ ADD_TO_SHELL_HELP(checkon5v,"使能5V自检采样及对应外设");
+ ADD_TO_IN_SHELL  bool_t checkon5v(void)
 {
 	Peri_LowPowerCfg(EN_PERI_5V_SAMPLE,true);
 	printf("5V_Check Power on.\r\n");
+	return true;
 }
-static void Sh_5V_CheckPowerOff(void)
+//static void Sh_5V_CheckPowerOff(void)
+
+ ADD_TO_SHELL_HELP(checkoff5v,"禁能5V自检采样及对应外设");
+ ADD_TO_IN_SHELL  bool_t checkoff5v(void)
 {
 	Peri_LowPowerCfg(EN_PERI_5V_SAMPLE,false);
 	printf("5V_Check Power off.\r\n");
+	return true;
 }
 
 
@@ -673,7 +885,7 @@ static void Sh_5V_CheckPowerOff(void)
 
 void Module_PeriCtrlInit(void)
 {
-	Power_Ctrl_Shell_Module_Install();
+//	Power_Ctrl_Shell_Module_Install();
 	Peri_NameInit();
 }
 

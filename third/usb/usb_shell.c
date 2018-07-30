@@ -60,7 +60,7 @@
 #include "./stm32_usb_host_library/class/hub/inc/usbh_hub.h"
 #include "./stm32_usb_host_library/class/hid/inc/usbh_hid_touch.h"
 #include "usb.h"
-
+#include "newshell.h"
 //
 //
 //
@@ -93,101 +93,101 @@ char *COMMAND_END = " \r";
 //
 //
 //
-static bool_t SH_USB_Send_AT(char *Param);
-static bool_t SH_USB_Reveive_AT(char *Param);
-static bool_t SH_USB_Send_MODEM(char *Param);
-static bool_t SH_USB_Reveive_MODEM(char *Param);
-static bool_t SH_USB_Send_DEBUG(char *Param);
-static bool_t SH_USB_Reveive_DEBUG(char *Param);
-static bool_t SH_USB_Send_DEBUG_Timeout(char *Param);
-static bool_t SH_USB_Reveive_DEBUG_Timeout(char *Param);
-extern bool_t SH_USB_Log(char *pParam);
-static bool_t SH_USB_Debug(char *pParam);
-static bool_t SH_USB_Force(char *pParam);
+//static bool_t SH_USB_Send_AT(char *Param);
+//static bool_t SH_USB_Reveive_AT(char *Param);
+//static bool_t SH_USB_Send_MODEM(char *Param);
+//static bool_t SH_USB_Reveive_MODEM(char *Param);
+//static bool_t SH_USB_Send_DEBUG(char *Param);
+//static bool_t SH_USB_Reveive_DEBUG(char *Param);
+//static bool_t SH_USB_Send_DEBUG_Timeout(char *Param);
+//static bool_t SH_USB_Reveive_DEBUG_Timeout(char *Param);
+//extern bool_t SH_USB_Log(char *pParam);
+//static bool_t SH_USB_Debug(char *pParam);
+//static bool_t SH_USB_Force(char *pParam);
 static u32 USBH_TouchPollThread(void);
-static void SH_USB_UpDate(char *pParam);
+//static void SH_USB_UpDate(char *pParam);
 extern s32 ModuleInstall_USB_IAP(u8 bArgC, ...);
 extern char *Sh_GetWord(char *buf,char **next);
 extern bool_t GetRunMode(void);
 //
 //
 //
-static struct ShellCmdRsc *spCommandSpace;
-static struct ShellCmdTab const sCommandTable[] =
-{
-    {
-        "uas",
-        SH_USB_Send_AT,
-        "for debug",
-        "for debug"
-    },
-    {
-        "uar",
-        SH_USB_Reveive_AT,
-        "for debug",
-        "for debug"
-    },
-    {
-        "ums",
-        SH_USB_Send_MODEM,
-        "for debug",
-        "for debug"
-    },
-    {
-        "umr",
-        SH_USB_Reveive_MODEM,
-        "for debug",
-        "for debug"
-    },
-    {
-        "uds",
-        SH_USB_Send_DEBUG,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udst",
-        SH_USB_Send_DEBUG_Timeout,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udr",
-        SH_USB_Reveive_DEBUG,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udrt",
-        SH_USB_Reveive_DEBUG_Timeout,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udiaggrab",
-        SH_USB_Log,
-        "for debug",
-        "for debug"
-    },
-    {
-        "ud",
-        SH_USB_Debug,
-        "for debug",
-        "for debug"
-    },
-    {
-        "uf",
-        SH_USB_Force,
-        "for debug",
-        "for debug"
-    },
-    {
-        "usbupdate",
-	    SH_USB_UpDate,
-        "for debug",
-        "for debug"
-    },
-};
+//static struct ShellCmdRsc *spCommandSpace;
+//static struct ShellCmdTab const sCommandTable[] =
+//{
+//    {
+//        "uas",
+//        SH_USB_Send_AT,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "uar",
+//        SH_USB_Reveive_AT,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "ums",
+//        SH_USB_Send_MODEM,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "umr",
+//        SH_USB_Reveive_MODEM,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "uds",
+//        SH_USB_Send_DEBUG,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "udst",
+//        SH_USB_Send_DEBUG_Timeout,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "udr",
+//        SH_USB_Reveive_DEBUG,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "udrt",
+//        SH_USB_Reveive_DEBUG_Timeout,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "udiaggrab",
+//        SH_USB_Log,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "ud",
+//        SH_USB_Debug,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "uf",
+//        SH_USB_Force,
+//        "for debug",
+//        "for debug"
+//    },
+//    {
+//        "usbupdate",
+//	    SH_USB_UpDate,
+//        "for debug",
+//        "for debug"
+//    },
+//};
 
 extern u32 CUSTOM_WriteAT(ptu32_t pUSB, u8 *pBuf, u32 dwLen, u32 dwOffset, bool_t dwBlock, u32 dwTimeout);
 extern u32 CUSTOM_ReadAT(ptu32_t pUSB, u8 *pBuf, u32 dwLen, u32 wdOffset, u32 dwTimeout);
@@ -245,7 +245,9 @@ s32 Sh_GetArgCopy(const char *pCommandLine, u8 bIndex, char *pArg, u8 bArgLen)
 // 返回：
 // 备注：
 // ============================================================================
-static bool_t SH_USB_Send_AT(char *pParam)
+//static bool_t SH_USB_Send_AT(char *pParam)
+ADD_TO_SHELL_HELP(uas,"SH_USB_Send_AT  for debug");
+ADD_TO_IN_SHELL static bool_t uas(char *pParam)
 {        
     char *command = shareBufferA;
     char *arg = shareBufferB;
@@ -307,7 +309,9 @@ static bool_t SH_USB_Send_AT(char *pParam)
 // 返回：
 // 备注：
 // ============================================================================
-static bool_t SH_USB_Reveive_AT(char *pParam)
+//static bool_t SH_USB_Reveive_AT(char *pParam)
+ADD_TO_SHELL_HELP(uar,"SH_USB_Reveive_AT  for debug");
+ADD_TO_IN_SHELL static bool_t uar(char *pParam)
 {
     USBH_HandleTypeDef *host;
     u32 len, i;
@@ -352,7 +356,9 @@ static bool_t SH_USB_Reveive_AT(char *pParam)
 // 返回：
 // 备注：
 // ============================================================================
-static bool_t SH_USB_Send_MODEM(char *pParam)
+//static bool_t SH_USB_Send_MODEM(char *pParam)
+ADD_TO_SHELL_HELP(ums,"SH_USB_Send_MODEM  for debug");
+ADD_TO_IN_SHELL static bool_t ums(char *pParam)
 {
     char *command = shareBufferA;
     char *arg = shareBufferB;
@@ -413,7 +419,9 @@ static bool_t SH_USB_Send_MODEM(char *pParam)
 // 返回：
 // 备注：
 // ============================================================================
-static bool_t SH_USB_Reveive_MODEM(char *pParam)
+//static bool_t SH_USB_Reveive_MODEM(char *pParam)
+ADD_TO_SHELL_HELP(umr,"SH_USB_Reveive_MODEM  for debug");
+ADD_TO_IN_SHELL static bool_t umr(char *pParam)
 {
     USBH_HandleTypeDef *host;
     u32 i, len;
@@ -456,9 +464,11 @@ static bool_t SH_USB_Reveive_MODEM(char *pParam)
 // 功能：
 // 参数：
 // 返回：
-// 备注： diaggrab.c使用
+// 备注： diaggrab.c使用uds
 // ============================================================================
-static bool_t SH_USB_Send_DEBUG(char *pParam)
+//static bool_t SH_USB_Send_DEBUG(char *pParam)
+ADD_TO_SHELL_HELP(uds,"SH_USB_Send_DEBUG  for debug");
+ADD_TO_IN_SHELL static bool_t uds(char *pParam)
 {
     u8 *command;
     u32 len;
@@ -544,7 +554,9 @@ static bool_t SH_USB_Send_DEBUG(char *pParam)
 // 返回：
 // 备注： diaggrab.c使用
 // ============================================================================
-static bool_t SH_USB_Send_DEBUG_Timeout(char *pParam)
+//static bool_t SH_USB_Send_DEBUG_Timeout(char *pParam)
+ADD_TO_SHELL_HELP(udst,"SH_USB_Send_DEBUG_Timeout  for debug");
+ADD_TO_IN_SHELL static bool_t udst(char *pParam)
 {
     u8 *command;
     u32 len;
@@ -629,7 +641,9 @@ static bool_t SH_USB_Send_DEBUG_Timeout(char *pParam)
 // 返回：
 // 备注： diaggrab.c使用
 // ============================================================================
-static bool_t SH_USB_Reveive_DEBUG(char *pParam)
+//static bool_t SH_USB_Reveive_DEBUG(char *pParam)
+ADD_TO_SHELL_HELP(udr,"SH_USB_Reveive_DEBUG  for debug");
+ADD_TO_IN_SHELL static bool_t udr(char *pParam)
 {
     u32 len, left;
     u32 i;
@@ -671,7 +685,9 @@ static bool_t SH_USB_Reveive_DEBUG(char *pParam)
 // 返回：
 // 备注：diaggrab.c使用
 // ============================================================================
-static bool_t SH_USB_Reveive_DEBUG_Timeout(char *pParam)
+//static bool_t SH_USB_Reveive_DEBUG_Timeout(char *pParam)
+ADD_TO_SHELL_HELP(udrt,"SH_USB_Reveive_DEBUG_Timeout  for debug");
+ADD_TO_IN_SHELL static bool_t udrt(char *pParam)
 {
     u32 len, left;
     u32 i;
@@ -713,7 +729,9 @@ static bool_t SH_USB_Reveive_DEBUG_Timeout(char *pParam)
 // 返回：
 // 备注： TODO： 功能尚未完全实现。命令格式 "uforce disconnect <devname>"
 // ============================================================================
-static bool_t SH_USB_Force(char *pParam)
+//static bool_t SH_USB_Force(char *pParam)
+ADD_TO_SHELL_HELP(uf,"SH_USB_Force  for debug");
+ADD_TO_IN_SHELL static bool_t uf(char *pParam)
 {
     USBH_HandleTypeDef *host;
     extern void USBH_Force(USBH_HandleTypeDef *pHost, u32 dwOps, void *pParams);
@@ -786,7 +804,9 @@ static bool_t SH_USB_Force(char *pParam)
 // 返回：
 // 备注：
 // ============================================================================
-static bool_t SH_USB_Debug(char *pParam)
+//static bool_t SH_USB_Debug(char *pParam)
+ADD_TO_SHELL_HELP(ud,"SH_USB_Debug for debug");
+ADD_TO_IN_SHELL static bool_t ud(char *pParam)
 {
     USBH_StatusTypeDef status;
     USBH_HandleTypeDef  *host;
@@ -1251,9 +1271,11 @@ static bool_t SH_USB_Debug(char *pParam)
 // 功能：执行USB升级功能
 // 参数：pParam：目标文件名和升级功能参数，默认为升级完成后自动运行app。
 // 返回：
-// 备注：
+// 备注：usbupdate
 // ============================================================================
-static void SH_USB_UpDate(char *pParam)
+//static void SH_USB_UpDate(char *pParam)
+ADD_TO_SHELL_HELP(usbupdate,"SH_USB_UpDate  for debug");
+ADD_TO_IN_SHELL static bool_t usbupdate(char *pParam)
 {
     char *FileName,*NextParam,*WordTrail;
     u32 dwOpt = 2;
@@ -1279,6 +1301,8 @@ static void SH_USB_UpDate(char *pParam)
     {
         printf("\r\nPlease add the target file name after the shell command\r\n.");
     }
+
+    return true;
 }
 
 // ============================================================================
@@ -1332,15 +1356,15 @@ u32 USBH_TouchPollThread(void)
 // 返回：
 // 备注：
 // ============================================================================
-void USB_ShellInstall(void)
-{
-    u32 commands;
-    commands = sizeof(sCommandTable) / sizeof(struct ShellCmdTab);
-
-    spCommandSpace = malloc(commands * sizeof(*spCommandSpace));
-    if(NULL == spCommandSpace)
-        return ;
-
-    Sh_InstallCmd(sCommandTable, spCommandSpace, commands);
-}
+//void USB_ShellInstall(void)
+//{
+//    u32 commands;
+//    commands = sizeof(sCommandTable) / sizeof(struct ShellCmdTab);
+//
+//    spCommandSpace = malloc(commands * sizeof(*spCommandSpace));
+//    if(NULL == spCommandSpace)
+//        return ;
+//
+//    Sh_InstallCmd(sCommandTable, spCommandSpace, commands);
+//}
 

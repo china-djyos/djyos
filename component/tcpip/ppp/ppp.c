@@ -68,7 +68,7 @@
 #include "iodev.h"
 #include "osarch.h"
 #include "ppp.h"
-
+#include "newshell.h"
 #include "../component_config_tcpip.h"
 
 #include "fcs.h"
@@ -1368,7 +1368,10 @@ static void __PppShow(tagPPP *ppp)
     debug_printf("PPP","TERREQUEST:%d  TIMEOUTNUM:%d\n\r",ppp->debug.termreq,ppp->debug.timerst);
 
 }
-static bool_t __PppShellCmd(char *param) {
+//static bool_t __PppShellCmd(char *param)
+ADD_TO_SHELL_HELP(ppp,"usage:ppp [subcmd subparam]/help");
+ADD_TO_IN_SHELL static bool_t ppp(char *param)
+{
     int argc = 4;
     const char*argv[4];
     if (NULL == param) {      //SHOW THE PPP USAGE
@@ -1400,16 +1403,16 @@ static bool_t __PppShellCmd(char *param) {
     return true;
 }
 
-struct ShellCmdTab gPppDebug[] = {
-        {
-                "ppp",
-                __PppShellCmd,
-                "usage:ppp [subcmd subparam]/help",
-                "usage:ppp [subcmd subparam]/help",
-        },
-};
-#define CN_PPPDEBUG_NUM  ((sizeof(gPppDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gPppDebugCmdRsc[CN_PPPDEBUG_NUM];
+//struct ShellCmdTab gPppDebug[] = {
+//        {
+//                "ppp",
+//                __PppShellCmd,
+//                "usage:ppp [subcmd subparam]/help",
+//                "usage:ppp [subcmd subparam]/help",
+//        },
+//};
+//#define CN_PPPDEBUG_NUM  ((sizeof(gPppDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gPppDebugCmdRsc[CN_PPPDEBUG_NUM];
 //this is the initialize function for the ppp module
 static u16 gPppEvttID = CN_EVTT_ID_INVALID;
 #define     CN_PPP_TASKSTACKSIZE      0x800     //the ppp task stack size
@@ -1419,17 +1422,18 @@ static u16 gPppEvttID = CN_EVTT_ID_INVALID;
 bool_t PppInit(void) {
     bool_t result = false;
     //initialize the at and io modem
-    extern bool_t PppIoInit(ptu32_t para);
-    PppIoInit(0);
-    extern bool_t PppAtInit(ptu32_t para);
-    PppAtInit(0);
+//    extern bool_t PppIoInit(ptu32_t para);
+//    PppIoInit(0);
+//    extern bool_t PppAtInit(ptu32_t para);
+//    PppAtInit(0);
     gPppEvttID = Djy_EvttRegist(EN_INDEPENDENCE, CN_PPP_TASKPRIOR, 0, CN_PPP_DEVLIMIT,
             __ClientMain, NULL, CN_PPP_TASKSTACKSIZE, "PPPCLIENT");
     if (gPppEvttID == CN_EVENT_ID_INVALID) {
         return result;
     }
     //install the debug shell for the system
-    result = Sh_InstallCmd(gPppDebug, gPppDebugCmdRsc, CN_PPPDEBUG_NUM);
+//    result = Sh_InstallCmd(gPppDebug, gPppDebugCmdRsc, CN_PPPDEBUG_NUM);
+    result = true;
     return result;
 }
 //add the device to the task list

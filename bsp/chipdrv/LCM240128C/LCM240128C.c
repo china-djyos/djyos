@@ -453,8 +453,8 @@ ptu32_t ModuleInstall_LCM240128C(const char *ChipName)
     LCD_BackLight(1);
     LCD_Reset();
     InitLCM240128C( );
-    extern ptu32_t LCD_Shell_Module_Install(void);
-    LCD_Shell_Module_Install();
+//    extern ptu32_t LCD_Shell_Module_Install(void);
+//    LCD_Shell_Module_Install();
 
     pg_frame_buffer = malloc(CN_LCD_XSIZE*CN_LCD_YSIZE/2);
     memset(pg_frame_buffer,0,CN_LCD_XSIZE*CN_LCD_YSIZE/2);

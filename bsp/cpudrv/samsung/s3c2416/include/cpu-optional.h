@@ -65,7 +65,6 @@ extern "C" {
 
 
 #define CN_CPU_OPTIONAL_FLOAT_HARD  0       //支持的浮点类型
-#define CN_CPU_OPTIONAL_FLOAT_SOFT  1
 #ifdef __cplusplus
 }
 #endif

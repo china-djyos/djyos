@@ -117,7 +117,7 @@ void Init_Cpu(void)
     }
 
 #ifdef USE_HAL_DRIVER
-    HAL_TickInit();
+    HAL_TickInit(TIM6);
 #endif
     while(false==SysClockInit());
 

@@ -59,23 +59,29 @@
 //   修改说明:
 //------------------------------------------------------
 #include "stdint.h"
+#include "stddef.h"
 #include "arch_feature.h"
-#include "cortexm0.h"
+#include "djyos.h"
+#include "int.h"
+//#include "core_cm0.h"
 #include "hard-exp.h"
 
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __Djy_ScheduleAsynSignal(void);
-extern u32 __Djy_GetTimeBaseReload(void);
+
 void (*user_systick)(u32 inc_ticks);
-void HardExp_SystickHandler(void);
-void HardExp_SvcHandler(void);
 
+struct SystickReg volatile * const pg_systick_reg
+                        = (struct SystickReg *)0xE000E010;
+struct ScbReg volatile * const pg_scb_reg
+                        = (struct ScbReg *)0xe000ed00;
 
-void HardExp_Init(void)
+bool_t HardExp_Init(void)
 {
     pg_scb_reg->pri12_15 |=0xff000000;    //systick设为最低优先级,=异步信号
     pg_scb_reg->pri8_11 |= 0xff000000;    //svc的优先级和异步信号相同。
+    return true;
 }
 void HardExp_ConnectNmi(void (*esr)(void))
 {

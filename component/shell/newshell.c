@@ -80,6 +80,13 @@
 #include "cpu-optional.h"
 
 
+#define CN_SHELL_CMD_LIMIT 255 //shell 命令串长度限制
+
+extern struct shellinfo p_shell_info;//p_shell_info 来自iboot.lds文件
+static struct shellinfo *r_shell_info=&p_shell_info;
+static struct ShellListTab Sh_List_head;
+struct MutexLCB * shell_lcb;
+
 //----添加新的shell函数表到shell中-------------------------------------------
 //功能: 加载app的时候像函数表中增加新的
 //参数: pLisTtab
@@ -472,9 +479,9 @@ static enum ParameterTypr Type_str2flag(char *word)
 //==================================================================
 static bool_t _AsmExecuteCmd(u8 num,Ex_shell_func fun)
 {
-	u8 i=0;
-    ParameterTab[PARAMETER_MAX];
-    ParameterFlagTab[PARAMETER_MAX];
+//	u8 i=0;
+//    ParameterTab[PARAMETER_MAX];
+//    ParameterFlagTab[PARAMETER_MAX];
 /*
     printf("num= %d \r\n",num);
     for(i=0;i<num;i++)
@@ -482,10 +489,10 @@ static bool_t _AsmExecuteCmd(u8 num,Ex_shell_func fun)
      printf(" ParameterFlagTab = %d  ParameterTab= %d \r\n",ParameterFlagTab[i],  ParameterTab[i]);
     }
 */
-#if (CN_CPU_OPTIONAL_FLOAT_HARD == 1)
+//#if (CN_CPU_OPTIONAL_FLOAT_HARD == 1)
     extern void __asm_ExecuteCmd(union Parameter *ptab,enum ParameterTypr *pflag,Ex_shell_func fun,u32 num);
     __asm_ExecuteCmd(ParameterTab,ParameterFlagTab,fun,num);
-#endif
+//#endif
     return true;
 }
 

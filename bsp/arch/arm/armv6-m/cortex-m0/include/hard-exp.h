@@ -83,7 +83,7 @@ extern "C" {
 #define CN_SYSVECT_PENDSV           14
 #define CN_SYSVECT_SYSTICK          15
 
-void HardExp_Init(void);
+bool_t HardExp_Init(void);
 void HardExp_ConnectNmi(void (*esr)(void));
 void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks));
 void HardExp_EsrTick(void);

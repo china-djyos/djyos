@@ -57,19 +57,24 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
+
+#include "align.h"
 #include "stdint.h"
 #include "board-config.h"
 #include "stdlib.h"
-#include "cortexm0.h"
+#include "int.h"
 #include "hard-exp.h"
-#include <board-config.h>
+#include "string.h"
+#include "arch_feature.h"
+#include "cpu.h"
+#include "djyos.h"
 
 void __start_systick(void);
-struct SystickReg volatile * const pg_systick_reg
-                        = (struct SystickReg *)0xE000E010;
+//struct SystickReg volatile * const pg_systick_reg
+ //                       = (struct SystickReg *)0xE000E010;
 
-struct ScbReg volatile * const pg_scb_reg
-                        = (struct ScbReg *)0xe000ed00;
+//struct ScbReg volatile * const pg_scb_reg
+//                        = (struct ScbReg *)0xe000ed00;
 
 #if	(!CN_CFG_USE_USERTIMER)
 #define	CN_CFG_SAVE_ASYN	(1U)
@@ -201,4 +206,35 @@ u64 __DjyGetSysTime(void)
     return time;
 }
 #endif
+extern void Init_Cpu(void);
+extern void Load_Preload(void);
+// =============================================================================
+// 功能：运行到选择系统运行方式前，对于M3/M4的CPU，即PC跳转到Init_CPU()
+// 参数：无
+// 返回：无
+// =============================================================================
+void reboot(void)
+{
+    u32 InitCpu_Addr;
+    InitCpu_Addr = *(u32*)0x00000004;
+    ((void (*)(void))(InitCpu_Addr))();
+}
+// =============================================================================
+// 功能：Reset硬件CPU，相当于上电重新启动，硬件软件都得到复位
+// 参数：无
+// 返回：无
+// =============================================================================
+void reset(void)
+{
+    pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
+}
+// =============================================================================
+// 功能：运行到CPU加载代码前，即pre_load()前
+// 参数：无
+// 返回：无
+// =============================================================================
+void restart_system(void)
+{
+    Load_Preload();
+}
 

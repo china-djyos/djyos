@@ -63,6 +63,7 @@
 #include "board-config.h"
 #include <time.h>
 #include "shell.h"
+#include "newshell.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -104,9 +105,9 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-ptu32_t RTC_Shell_Module_Install(void);
-void Sh_RTC_SetTime(char *param);
-void Sh_RTC_GetTime(void);
+//ptu32_t RTC_Shell_Module_Install(void);
+//void Sh_RTC_SetTime(char *param);
+//void Sh_RTC_GetTime(void);
 
 #define HexToBcd(x) ((((x) / 10) <<4) + ((x) % 10))            //将16进制转换成BCD码
 #define BcdToHex(x) ((((x) & 0xF0) >>4) * 10 + ((x) & 0x0F))   //将BCD码转换成16进制
@@ -541,7 +542,7 @@ ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
     tv.tv_usec = rtc_time%1000000;
 
     settimeofday(&tv,NULL);
-    RTC_Shell_Module_Install();
+//    RTC_Shell_Module_Install();
     //注册RTC时间
     if(!Rtc_RegisterDev(NULL,Rtc_SetTime))
         return false;
@@ -551,7 +552,9 @@ ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
 
 
 
-void Sh_RTC_SetTime(char *param)
+//void Sh_RTC_SetTime(char *param)
+ADD_TO_SHELL_HELP(rtcst,"设置RTC时间   格式:2017/08/20,21:00:00");
+ADD_TO_IN_SHELL bool_t rtcst(char *param)
 {
     char command[20];
     bool_t ret;
@@ -573,8 +576,13 @@ void Sh_RTC_SetTime(char *param)
          }
     }
 
+    return true;
+
 }
-void Sh_RTC_GetTime(void)
+
+//void Sh_RTC_GetTime(void)
+ADD_TO_SHELL_HELP(rtcgt,"获取RTC时间");
+ADD_TO_IN_SHELL bool_t rtcgt(void)
 {
     struct tm ptDateTime;
     bool_t ret;
@@ -589,21 +597,21 @@ void Sh_RTC_GetTime(void)
                 ptDateTime.tm_year, ptDateTime.tm_mon, ptDateTime.tm_mday,
                 ptDateTime.tm_hour, ptDateTime.tm_min,ptDateTime.tm_sec);
     }
-
+   return true;
 }
 
 //**************************************************************************
-struct ShellCmdTab const shell_cmd_rtc_table[]=
-{
-    {"rtcst",(bool_t(*)(char*))Sh_RTC_SetTime,   "设置RTC时间",   "格式:2017/08/20,21:00:00"},
-    {"rtcgt",(bool_t(*)(char*))Sh_RTC_GetTime,   "获取RTC时间",    NULL},
-};
-//**************************************************************************
-#define CN_RTC_SHELL_NUM  sizeof(shell_cmd_rtc_table)/sizeof(struct ShellCmdTab)
-static struct ShellCmdRsc tg_rtc_cmd_rsc[CN_RTC_SHELL_NUM];
+//struct ShellCmdTab const shell_cmd_rtc_table[]=
+//{
+//    {"rtcst",(bool_t(*)(char*))Sh_RTC_SetTime,   "设置RTC时间",   "格式:2017/08/20,21:00:00"},
+//    {"rtcgt",(bool_t(*)(char*))Sh_RTC_GetTime,   "获取RTC时间",    NULL},
+//};
+////**************************************************************************
+//#define CN_RTC_SHELL_NUM  sizeof(shell_cmd_rtc_table)/sizeof(struct ShellCmdTab)
+//static struct ShellCmdRsc tg_rtc_cmd_rsc[CN_RTC_SHELL_NUM];
 
-ptu32_t RTC_Shell_Module_Install(void)
-{
-    Sh_InstallCmd(shell_cmd_rtc_table,tg_rtc_cmd_rsc,CN_RTC_SHELL_NUM);
-    return 1;
-}
+//ptu32_t RTC_Shell_Module_Install(void)
+//{
+//    Sh_InstallCmd(shell_cmd_rtc_table,tg_rtc_cmd_rsc,CN_RTC_SHELL_NUM);
+//    return 1;
+//}

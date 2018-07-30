@@ -58,7 +58,8 @@
 
 #ifndef __CPU_H__
 #define __CPU_H__
-
+#include "stdint.h"
+#include "djyos.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

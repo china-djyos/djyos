@@ -96,13 +96,6 @@ extern FILE *stderr;
 extern s32 (* PutStrDirect)(const char *buf,u32 len);
 extern char (* GetCharDirect)(void);
 
-//以下参数在初始化module时确定，运行中不可更改
-//如果定义了多stdin以及stdout跟随，则可以实现uart和Telnet均可以作为终端使用，且
-//根据用户的输入命令的设备自动切换。注意，设为跟随时，stdin必须是可读写的。
-#define CN_STDIO_STDOUT_FOLLOW      2       // stdout跟随stdin
-#define CN_STDIO_STDERR_FOLLOW      4       // stderr跟随stdin
-#define CN_STDIO_STDIN_MULTI        8       // 允许stdin多源，典型地是uart和telnet
-
 bool_t AddToStdin(s32 fd, bool_t LineEdit);
 bool_t DisableLineEdit(void);
 bool_t EnableLineEdit(void);

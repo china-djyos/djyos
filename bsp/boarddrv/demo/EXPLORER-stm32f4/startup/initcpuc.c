@@ -115,7 +115,7 @@ void Init_Cpu(void)
     SysClockInit();
 
 #ifdef USE_HAL_DRIVER
-    HAL_TickInit();
+    HAL_TickInit(TIM6);
 #endif
 
     extern void SRAM_Init(void);

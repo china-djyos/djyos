@@ -681,15 +681,21 @@ char *fgets(char *buf, s32 n, FILE *stream)
        // TODO:
        // 忽略回车，以换行符结束，能兼容WINDOWS和LINUX格式文件。
        // MAC不用考虑，从 OSx开始已经兼容LINUX了。
-       if('\r' == ch)
+       if('\r' == ch || '\n' == ch)
        {
-           continue; // WINDOWS格式文本文件有 '\r'，跳过
+           if(i == 0)
+               continue; // WINDOWS格式文本文件有 '\r'，跳过
+           else
+           {
+               buf[i] = '\0';
+               break;
+           }
        }
-       else if('\n' == ch) // 遇换行符，输入结束
-       {
-           buf[i] = '\0';
-           break;
-       }
+//       else if('\n' == ch) // 遇换行符，输入结束
+//       {
+//           buf[i] = '\0';
+//           break;
+//       }
 
        buf[i] = ch;
    }

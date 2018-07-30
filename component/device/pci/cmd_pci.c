@@ -33,29 +33,30 @@
 #include "../include/pci.h"
 #include "shell.h"
 #include "dbug.h"
-bool_t sh_cmd_pcie(char *param);
-struct ShellCmdTab const pcie_cmd_table[] =
-{
-    {
-        "pcie",
-        sh_cmd_pcie,
-        "查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息",
-        "命令格式: pcie bus号（bus号省略则信息全打印）"
-    }
-};
-static struct ShellCmdRsc tg_pcie_cmd_rsc
-        [sizeof(pcie_cmd_table)/sizeof(struct ShellCmdTab)];
+#include "newshell.h"
+//bool_t sh_cmd_pcie(char *param);
+//struct ShellCmdTab const pcie_cmd_table[] =
+//{
+//    {
+//        "pcie",
+//        sh_cmd_pcie,
+//        "查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息",
+//        "命令格式: pcie bus号（bus号省略则信息全打印）"
+//    }
+//};
+//static struct ShellCmdRsc tg_pcie_cmd_rsc
+//        [sizeof(pcie_cmd_table)/sizeof(struct ShellCmdTab)];
 
 //----添加pcie shell 命令------------------------------------------------------
 //功能：添加pcie shell 命令
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
-void pcie_sh_install(void)
-{
-    Sh_InstallCmd(pcie_cmd_table,tg_pcie_cmd_rsc,
-                      sizeof(pcie_cmd_table)/sizeof(struct ShellCmdTab));
-}
+//void pcie_sh_install(void)
+//{
+//    Sh_InstallCmd(pcie_cmd_table,tg_pcie_cmd_rsc,
+//                      sizeof(pcie_cmd_table)/sizeof(struct ShellCmdTab));
+//}
 
 /*
  * Follows routines for the output of infos about devices on PCI bus.
@@ -327,7 +328,9 @@ void pci_header_show(pci_dev_t dev)
 //参数：param: 字符串
 //返回：true:  打印完成
 //----------------------------------------------------------
-bool_t sh_cmd_pcie(char *param)
+//bool_t sh_cmd_pcie(char *param)
+ADD_TO_SHELL_HELP(pcie,"查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息");
+ADD_TO_IN_SHELL bool_t pcie(char *param)
 {
     ptu32_t busno;
     char *next_param;

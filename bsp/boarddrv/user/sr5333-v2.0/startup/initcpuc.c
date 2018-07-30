@@ -118,7 +118,7 @@ void Init_Cpu(void)
     //系统时钟初始化Fsys=PLL=261MHZ   Fusb==48Mhz
 
 #ifdef USE_HAL_DRIVER
-    HAL_TickInit();
+    HAL_TickInit(TIM6);
 #endif
     while(false==SysClockInit());
 

@@ -660,7 +660,7 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
             {
                 goto __ERR_STDIO_SET;
             }
-
+            of_settimeout(of, CN_TIMEOUT_FOREVER);
             of_linko(of, obj);
             __stdio_lookup[0] = of;
             fp->fd = 0;
@@ -824,7 +824,6 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     {
         mode =  O_RDONLY;
     }
-
     inFD = open(in, mode);
     inname = (char*)in;
     res = __stdio_set(0, inFD, O_RDWR, CFG_STDIO_RUN_MODE);

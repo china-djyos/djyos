@@ -4,6 +4,8 @@
 #include <netdb.h>
 #include <sys/time.h>
 #include "dbug.h"
+#include "newshell.h"
+
 #include "../../component_config_tcpip.h"
 
 /** This is an example of a "SNTP" client (with socket API).
@@ -170,33 +172,35 @@ static void __SntpRequest()
     }
 }
 
-bool_t SntpTimeSyncShell(char *param)
+//bool_t SntpTimeSyncShell(char *param)
+ADD_TO_SHELL_HELP(sntp,"usage:sntp");
+ADD_TO_IN_SHELL bool_t sntp(char *param)
 {
     __SntpRequest();
     return true;
 }
 
-struct ShellCmdTab  gServiceSntp[] =
-{
-    {
-        "sntp",
-        SntpTimeSyncShell,
-        "usage:sntp",
-        NULL
-    }
-};
-
-#define CN_SNTPDEBUG_NUM  ((sizeof(gServiceSntp))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gServiceSntpCmdRsc[CN_SNTPDEBUG_NUM];
+//struct ShellCmdTab  gServiceSntp[] =
+//{
+//    {
+//        "sntp",
+//        SntpTimeSyncShell,
+//        "usage:sntp",
+//        NULL
+//    }
+//};
+//
+//#define CN_SNTPDEBUG_NUM  ((sizeof(gServiceSntp))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gServiceSntpCmdRsc[CN_SNTPDEBUG_NUM];
 
 //THIS IS SNTP MODULE FUNCTION
-bool_t ServiceSntpInit(ptu32_t para)
-{
-    bool_t result;
-
-    result = Sh_InstallCmd(gServiceSntp,gServiceSntpCmdRsc,CN_SNTPDEBUG_NUM);
-
-    return result;
-}
+//bool_t ServiceSntpInit(ptu32_t para)
+//{
+//    bool_t result;
+//
+//    result = Sh_InstallCmd(gServiceSntp,gServiceSntpCmdRsc,CN_SNTPDEBUG_NUM);
+//
+//    return result;
+//}
 
 

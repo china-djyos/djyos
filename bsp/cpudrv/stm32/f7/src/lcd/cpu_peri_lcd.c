@@ -59,14 +59,14 @@
 //  extern struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
 //        const char* HeapName);
 //  struct DisplayRsc *lcd;
-//  lcd = ModuleInstall_LCD(CFG_DISPLAY_LCD_NAME,CFG_LCD_HEAP_NAME);
+//  lcd = ModuleInstall_LCD(CFG_DISPLAY_NAME,CFG_LCD_HEAP_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_lcd"           //CPU内置LCD控制器驱动
 //parent:"gkernel"                        //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                           //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                                  //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp组件                       //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                             //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                           //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //grade:init                              //初始化时机，可选值：none，init，main。none表示无须初始化，
                                           //init表示在调用main之前，main表示在main函数中初始化
@@ -89,8 +89,8 @@
 #define CFG_LCD_YSIZE                   480 //"LCD竖直像素宽度",
 //%$#@enum,true,false,
 //%$#@string,1,32,
-#define CFG_DISPLAY_LCD_NAME            "LCD_F7"       //"显示器LCD名称",
-#define CFG_LCD_HEAP_NAME               "extern"    //"LCD使用堆名称",
+#define CFG_DISPLAY_NAME        "LCD_F7"    //"显示器LCD名称",
+#define CFG_LCD_HEAP_NAME       "extern"    //"LCD使用堆名称",
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif

@@ -68,8 +68,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_IICBus(void);
-//    ModuleInstall_IICBus ( );
+//    extern bool_t ModuleInstall_CANBus(void);
+//    ModuleInstall_CANBus ( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -122,7 +122,7 @@ void __CAN_BusPrintfStat(struct CANBusCB * CANBus);
 // 参数：para,无实际意义。
 // 返回：返回建立的资源结点指针，失败时返回NULL。
 // =============================================================================
-struct Object * ModuleInstall_CANBus(ptu32_t para)
+struct Object * ModuleInstall_CANBus()
 {
     uint16_t evtt_id;
     struct Object *CANBusType = NULL;

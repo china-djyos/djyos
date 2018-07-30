@@ -62,7 +62,7 @@
 #include "board-config.h"
 #include <stm32f7xx_hal_lptim.h>
 #include <shell.h>
-
+#include "newshell.h"
  LPTIM_HandleTypeDef             LptimHandle;
 static RCC_PeriphCLKInitTypeDef        RCC_PeriphCLKInitStruct;
 
@@ -73,12 +73,12 @@ static timer_isr LP_TimerIsr;
 static uint64_t gs_LpTimerCnt=0;
 
 
-static bool_t Sh_LpStart(char *param);
-static bool_t Sh_LpStop(char *param);
-static bool_t Sh_LpStat(char *param);
-static bool_t Sh_LpRst(char *param);
-static bool_t Sh_LpReadCounter(char *param);
-ptu32_t LP_TIM_Shell_Module_Install(void);
+//static bool_t Sh_LpStart(char *param);
+//static bool_t Sh_LpStop(char *param);
+//static bool_t Sh_LpStat(char *param);
+//static bool_t Sh_LpRst(char *param);
+//static bool_t Sh_LpReadCounter(char *param);
+//ptu32_t LP_TIM_Shell_Module_Install(void);
 void Lptimer_PreInit(void)
 {
 	LPTIM1->ARR = 0;
@@ -164,7 +164,7 @@ void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef *hlptim)
 //-------------------------------------------------------------------------
 bool_t LP_TimerInit(u32 (*isr)(u32 param))
 {
-	LP_TIM_Shell_Module_Install();
+//	LP_TIM_Shell_Module_Install();
 	LSI_ClockEnable();
 	 /* ### - 1 - Re-target the LSI to Clock the LPTIM Counter ################# */
 	  /* Select the LSI clock as LPTIM peripheral clock */
@@ -262,33 +262,35 @@ void LP_TimerSetReload(u16 period)
 }
 
 //**************************************************************************
-struct ShellCmdTab const shell_cmd_lptim_table[]=
-{
-	{"lpstart",(bool_t(*)(char*))Sh_LpStart,    "使能低功耗定时器",             NULL},
-	{"lpstat",(bool_t(*)(char*))Sh_LpStat,    "低功耗定时器中断计数",            NULL},
-	{"lpstop",(bool_t(*)(char*))Sh_LpStop,    "禁能低功耗定时器",              NULL},
-	{"lprst",(bool_t(*)(char*))Sh_LpRst,      "清零低功耗定时器中断计数",         NULL},
-	{"lpcnt",(bool_t(*)(char*))Sh_LpReadCounter, "当前计数值及自动重复加载值",     NULL},
-
-};
-//**************************************************************************
-#define CN_LP_TIM_SHELL_NUM  sizeof(shell_cmd_lptim_table)/sizeof(struct ShellCmdTab)
-static struct ShellCmdRsc tg_lp_tim_shell_cmd_rsc[CN_LP_TIM_SHELL_NUM];
+//struct ShellCmdTab const shell_cmd_lptim_table[]=
+//{
+//	{"lpstart",(bool_t(*)(char*))Sh_LpStart,    "使能低功耗定时器",             NULL},
+//	{"lpstat",(bool_t(*)(char*))Sh_LpStat,    "低功耗定时器中断计数",            NULL},
+//	{"lpstop",(bool_t(*)(char*))Sh_LpStop,    "禁能低功耗定时器",              NULL},
+//	{"lprst",(bool_t(*)(char*))Sh_LpRst,      "清零低功耗定时器中断计数",         NULL},
+//	{"lpcnt",(bool_t(*)(char*))Sh_LpReadCounter, "当前计数值及自动重复加载值",     NULL},
+//
+//};
+////**************************************************************************
+//#define CN_LP_TIM_SHELL_NUM  sizeof(shell_cmd_lptim_table)/sizeof(struct ShellCmdTab)
+//static struct ShellCmdRsc tg_lp_tim_shell_cmd_rsc[CN_LP_TIM_SHELL_NUM];
 
 /*******************************************************************************
 功能:CAN控制器操作shell模块
 参数:无.
 返回值:1。
 *********************************************************************************/
-ptu32_t LP_TIM_Shell_Module_Install(void)
-{
-	Sh_InstallCmd(shell_cmd_lptim_table,tg_lp_tim_shell_cmd_rsc,CN_LP_TIM_SHELL_NUM);
-	return 1;
-}
+//ptu32_t LP_TIM_Shell_Module_Install(void)
+//{
+//	Sh_InstallCmd(shell_cmd_lptim_table,tg_lp_tim_shell_cmd_rsc,CN_LP_TIM_SHELL_NUM);
+//	return 1;
+//}
 
 
 //**************************************************************************
-static bool_t Sh_LpStart(char *param)
+//static bool_t Sh_LpStart(char *param)
+ADD_TO_SHELL_HELP(lpstart,"使能低功耗定时器");
+ADD_TO_IN_SHELL static bool_t lpstart(char *param)
 {
 	char *word_Cycle,*word_trail,*next_param;
 	uint32_t byCycle;
@@ -306,14 +308,18 @@ static bool_t Sh_LpStart(char *param)
 	return true;
 }
 
-static bool_t Sh_LpStop(char *param)
+//static bool_t Sh_LpStop(char *param)
+ADD_TO_SHELL_HELP(lpstop,"禁能低功耗定时器");
+ADD_TO_IN_SHELL static bool_t lpstop(char *param)
 {
 	//LP_TimerStop();
     printf("LP_Tim stop.\r\n");
     return true;
 }
 
-static bool_t Sh_LpStat(char *param)
+//static bool_t Sh_LpStat(char *param)
+ADD_TO_SHELL_HELP(lpstat,"低功耗定时器中断计数");
+ADD_TO_IN_SHELL static bool_t lpstat(char *param)
 {
 	uint32_t data[2];//used to print the s64 type
 	memcpy(data,&gs_LpTimerCnt,sizeof(data));
@@ -321,13 +327,17 @@ static bool_t Sh_LpStat(char *param)
     return true;
 }
 
-static bool_t Sh_LpRst(char *param)
+//static bool_t Sh_LpRst(char *param)
+ADD_TO_SHELL_HELP(lprst,"清零低功耗定时器中断计数");
+ADD_TO_IN_SHELL static bool_t lprst(char *param)
 {
 	gs_LpTimerCnt=0;
     return true;
 }
 
-static bool_t Sh_LpReadCounter(char *param)
+//static bool_t Sh_LpReadCounter(char *param)
+ADD_TO_SHELL_HELP(lpcnt,"当前计数值及自动重复加载值");
+ADD_TO_IN_SHELL static bool_t lpcnt(char *param)
 {
 	uint32_t cnt,val;
 	cnt=HAL_LPTIM_ReadCounter(&LptimHandle);

@@ -37,7 +37,7 @@
 #define CFG_APP_FILENAME        ""              //CFG_APP_RUNMODE==EN_FORM_FILE，这里配置文件名
 #define CFG_IBOOT_VERSION       "V1.0.0"        //Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME   "iboot.bin"     //iboot更新文件名，此二配置，以后改掉
-#define CFG_IBOOT_UPDATE_PATH   "iboot.bin"     //iboot更新路径名，此二配置，以后改掉
+#define CFG_IBOOT_UPDATE_PATH   "\\"     //iboot更新路径名，此二配置，以后改掉
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 

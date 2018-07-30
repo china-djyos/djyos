@@ -368,8 +368,9 @@ void Lcd_BackLight_OnOff(u8 onoff)
 void Board_GpioInit(void)
 {
     bool_t ETH_RESE(void);
+#if 0
     ETH_RESE( );//Íø¿Ú¸´Î»
-
+#endif
     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
 //     PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
 //    PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));

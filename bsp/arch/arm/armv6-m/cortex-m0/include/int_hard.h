@@ -57,6 +57,7 @@
 #ifndef __INT_HARD_H__
 #define __INT_HARD_H__
 
+#include "arch_feature.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

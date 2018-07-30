@@ -65,7 +65,7 @@
 #include <shell.h>
 #include "iodev.h"
 #include "dbug.h"
-
+#include "newshell.h"
 typedef struct
 {
     u8  idebug;
@@ -200,7 +200,9 @@ bool_t iodevclose(int dev)
     return ret;
 }
 //usage:this function to set the sdev debug mode
-bool_t iodebugset(char *param)
+//bool_t iodebugset(char *param)
+ADD_TO_SHELL_HELP(iodebug,"usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]");
+ADD_TO_IN_SHELL bool_t iodebug(char *param)
 {
     const char *argv[2];
     int   argc=2;
@@ -222,17 +224,17 @@ bool_t iodebugset(char *param)
     return true;
 }
 
-struct ShellCmdTab  gIoDebugItem[] =
-{
-    {
-        "iodebug",
-        iodebugset,
-        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
-        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
-    },
-};
-#define CN_IoDebug_NUM  ((sizeof(gIoDebugItem))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gIoDebugCmdRsc[CN_IoDebug_NUM];
+//struct ShellCmdTab  gIoDebugItem[] =
+//{
+//    {
+//        "iodebug",
+//        iodebugset,
+//        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
+//        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
+//    },
+//};
+//#define CN_IoDebug_NUM  ((sizeof(gIoDebugItem))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gIoDebugCmdRsc[CN_IoDebug_NUM];
 //-----------------------------------------------------------------------------
 //功能:this is the ppp main function here
 //参数:
@@ -240,12 +242,12 @@ static struct ShellCmdRsc gIoDebugCmdRsc[CN_IoDebug_NUM];
 //备注:
 //作者:zhangqf@下午4:06:57/2017年1月5日
 //-----------------------------------------------------------------------------
-bool_t PppIoInit(ptu32_t para)
-{
-    bool_t result;
-    result = Sh_InstallCmd(gIoDebugItem,gIoDebugCmdRsc,CN_IoDebug_NUM);
-    return result;
-}
+//bool_t PppIoInit(ptu32_t para)
+//{
+//    bool_t result;
+//    result = Sh_InstallCmd(gIoDebugItem,gIoDebugCmdRsc,CN_IoDebug_NUM);
+//    return result;
+//}
 
 
 

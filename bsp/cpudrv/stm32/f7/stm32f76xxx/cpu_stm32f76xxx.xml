@@ -5,7 +5,7 @@
       <floatABI>hard</floatABI>
       <fpuType>fpv5-d16</fpuType>
       <memory>
-         <type>ROM</type>
+         <type>FLASH</type>
          <startAddr>0x08000000</startAddr>
          <size>1024k</size>
       </memory>

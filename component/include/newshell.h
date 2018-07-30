@@ -66,7 +66,7 @@
 extern "C" {
 #endif
 
-#define CN_SHELL_CMD_LIMIT 255 //shell 命令串长度限制
+
 
 //=============通用函数调用参数与返回值由shell根据输入字符串解析汇编实现=========//
 typedef void (*Ex_shell_func)(void);
@@ -120,13 +120,6 @@ struct ShellListTab
     struct shellinfo info;
 };
 
-//extern struct shellinfo *p_shell_info;
-
-extern struct shellinfo p_shell_info;
-static struct shellinfo *r_shell_info=&p_shell_info;
-
-static struct ShellListTab Sh_List_head;
-struct MutexLCB * shell_lcb;
 #define PARAMETER_MAX     (10)   //最大参数个数限制
 
 static union Parameter{

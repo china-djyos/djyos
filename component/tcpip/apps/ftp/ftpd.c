@@ -58,7 +58,7 @@
 #include "../../component_config_tcpip.h"
 #include "dbug.h"
 #include "ftp.h"
-
+#include "newshell.h"
 
 #define CN_FTP_SPORT         21    //THIS IS THE SERVER BIND PORT
 #define CN_FTP_ROOT          "/"   //USE THIS AS THE ROOT ABSOLUTE PATH
@@ -69,7 +69,9 @@
 static bool_t  gFtpdDebugSwitch = false;
 static tagFtpClient* pFtpClient = NULL;
 
-static bool_t __FtpdDebug(char *para)
+//static bool_t __FtpdDebug(char *para)
+ADD_TO_SHELL_HELP(ftpd,"usage:ftpd subcmd [subpara]");
+ADD_TO_IN_SHELL static bool_t ftpd(char *para)
 {
 
     int argc = 3;
@@ -946,17 +948,17 @@ SERVER_EXIT:
     return 0;
 }
 
-struct ShellCmdTab  gFtpdDebug[] =
-{
-    {
-        "ftpd",
-        __FtpdDebug,
-        "usage:ftpd subcmd [subpara]",
-        "usage:ftpd subcmd [subpara]",
-    }
-};
-#define CN_FtpdDebug_NUM  ((sizeof(gFtpdDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gFtpdDebugCmdRsc[CN_FtpdDebug_NUM];
+//struct ShellCmdTab  gFtpdDebug[] =
+//{
+//    {
+//        "ftpd",
+//        __FtpdDebug,
+//        "usage:ftpd subcmd [subpara]",
+//        "usage:ftpd subcmd [subpara]",
+//    }
+//};
+//#define CN_FtpdDebug_NUM  ((sizeof(gFtpdDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gFtpdDebugCmdRsc[CN_FtpdDebug_NUM];
 
 //THIS IS PING MODULE FUNCTION
 bool_t ServiceFtpdInit(ptu32_t para)
@@ -966,7 +968,7 @@ bool_t ServiceFtpdInit(ptu32_t para)
     if (ret == false) {
         error_printf("ftpd","FTPD:TASK CREATE ERR");
     }
-    Sh_InstallCmd(gFtpdDebug,gFtpdDebugCmdRsc,CN_FtpdDebug_NUM);
+//    Sh_InstallCmd(gFtpdDebug,gFtpdDebugCmdRsc,CN_FtpdDebug_NUM);
     return ret;
 }
 

@@ -58,6 +58,8 @@
 #include <stm32f7xx_hal_dma.h>
 #include "shell.h"
 
+#include "newshell.h"
+
 #define R_LEVEL_0      16517
 #define R_LEVEL_1      12698
 #define R_LEVEL_2      9857
@@ -86,35 +88,37 @@
 #define R_LEVEL_25      164
 
 
-static bool_t Sh_Get12V_Volt(char *param);
-static bool_t Sh_Get_Temp(char *param);
+//static bool_t Sh_Get12V_Volt(char *param);
+//static bool_t Sh_Get_Temp(char *param);
 
-struct ShellCmdTab const shell_cmd_adc_table[]=
-{
-		{"gtemp",Sh_Get_Temp,"获取板件温度",NULL},
-		{"gvolt",Sh_Get12V_Volt,"获取12V自检电压",NULL},
-};
-
-#define CN_ADC_SHELL_NUM  sizeof(shell_cmd_adc_table)/sizeof(struct ShellCmdTab)
-static struct ShellCmdRsc tg_adc_shell_cmd_rsc[CN_ADC_SHELL_NUM];
+//struct ShellCmdTab const shell_cmd_adc_table[]=
+//{
+//		{"gtemp",Sh_Get_Temp,"获取板件温度",NULL},
+//		{"gvolt",Sh_Get12V_Volt,"获取12V自检电压",NULL},
+//};
+//
+//#define CN_ADC_SHELL_NUM  sizeof(shell_cmd_adc_table)/sizeof(struct ShellCmdTab)
+//static struct ShellCmdRsc tg_adc_shell_cmd_rsc[CN_ADC_SHELL_NUM];
 
 /*******************************************************************************
 功能:CAN控制器操作shell模块
 参数:无.
 返回值:1。
 *********************************************************************************/
-ptu32_t ADC_Shell_Module_Install(void)
-{
-	Sh_InstallCmd(shell_cmd_adc_table,tg_adc_shell_cmd_rsc,CN_ADC_SHELL_NUM);
-	return 1;
-}
+//ptu32_t ADC_Shell_Module_Install(void)
+//{
+//	Sh_InstallCmd(shell_cmd_adc_table,tg_adc_shell_cmd_rsc,CN_ADC_SHELL_NUM);
+//	return 1;
+//}
 
 /*******************************************************************************
 功能:复位CAN控制器。
 参数:无。
 输出:无。
 *********************************************************************************/
-static bool_t Sh_Get12V_Volt(char *param)
+//static bool_t Sh_Get12V_Volt(char *param)
+ADD_TO_SHELL_HELP(gvolt,"获取12V自检电压");
+ADD_TO_IN_SHELL static bool_t gvolt(char *param)
 {
 	uint32_t val;
 	val=AD_GetVolt();
@@ -123,7 +127,9 @@ static bool_t Sh_Get12V_Volt(char *param)
 }
 
 
-static bool_t Sh_Get_Temp(char *param)
+//static bool_t Sh_Get_Temp(char *param)
+ADD_TO_SHELL_HELP(gtemp,"获取板件温度");
+ADD_TO_IN_SHELL static bool_t gtemp(char *param)
 {
 	uint32_t val;
 	val=AD_GetTemp();
@@ -175,7 +181,7 @@ void ADC_Init(void)
      {
         printf("ADC Config Channel failed.\r\n");
      }
-     ADC_Shell_Module_Install();
+//     ADC_Shell_Module_Install();
 }
 
 void __ConfigCh(uint8_t idx)

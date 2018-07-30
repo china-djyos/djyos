@@ -139,7 +139,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "newshell.h"
 //this function must be supplied by the mac device
 //extern u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value);
 //extern u8 GMAC_MdioW(u8 dev,u8 reg, u16 value);
@@ -369,7 +369,9 @@ const unsigned char  gPhyReg[]={
 const unsigned char gSwitchReg[]={0,3,4,6,0x0b,0x10,0x11};
 #define CN_SWITCH_SIZE   sizeof(gSwitchReg)
 
-static bool_t DevPhyRegPrint(char *param)
+//static bool_t DevPhyRegPrint(char *param)
+ADD_TO_SHELL_HELP(preg,"usage:print the phyregs");
+ADD_TO_IN_SHELL static bool_t preg(char *param)
 {
     int i =0;
     unsigned char     dev;
@@ -401,7 +403,9 @@ static bool_t DevPhyRegPrint(char *param)
     return true;
 }
 
-static bool_t DevSwitchRegPrint(char *param)
+//static bool_t DevSwitchRegPrint(char *param)
+ADD_TO_SHELL_HELP(sreg,"usage:print the switch regs");
+ADD_TO_IN_SHELL static bool_t sreg(char *param)
 {
     int i =0;
     unsigned char     dev;
@@ -431,7 +435,9 @@ static bool_t DevSwitchRegPrint(char *param)
     return true;
 }
 
-static bool_t DevSetPhyReg(char *param)
+//static bool_t DevSetPhyReg(char *param)
+ADD_TO_SHELL_HELP(setphy,"usage:set the phy regs:setphy +port +reg +value");
+ADD_TO_IN_SHELL static bool_t setphy(char *param)
 {
 
     u8 dev;
@@ -474,7 +480,9 @@ static bool_t DevSetPhyReg(char *param)
 
 }
 
-static bool_t DevSetSwitchReg(char *param)
+//static bool_t DevSetSwitchReg(char *param)
+ADD_TO_SHELL_HELP(setswitch,"usage:set the switch regs:setswitch +port +reg +value");
+ADD_TO_IN_SHELL static bool_t setswitch(char *param)
 {
 
     u8 dev;
@@ -518,7 +526,9 @@ static bool_t DevSetSwitchReg(char *param)
 }
 
 
-static bool_t DevSetPhyLoop(char *param)
+//static bool_t DevSetPhyLoop(char *param)
+ADD_TO_SHELL_HELP(phyloop,"usage:reset the phy loop::phyloop+port");
+ADD_TO_IN_SHELL static bool_t phyloop(char *param)
 {
     int argc;
     char *argv[2];
@@ -581,7 +591,9 @@ static bool_t DevSetPhyLoop(char *param)
 
     return true;
 }
-static bool_t DevResetCmd(char *param)
+//static bool_t DevResetCmd(char *param)
+ADD_TO_SHELL_HELP(phyreset,"usage:reset the dev:phyreset+port");
+ADD_TO_IN_SHELL static bool_t phyreset(char *param)
 {
     int argc;
     char *argv[2];
@@ -614,7 +626,9 @@ static bool_t DevResetCmd(char *param)
     return true;
 }
 
-static bool_t DevVlanSet(char *param)
+//static bool_t DevVlanSet(char *param)
+ADD_TO_SHELL_HELP(vlan,"usage:set the vlan map:vlan + port +value");
+ADD_TO_IN_SHELL static bool_t vlan(char *param)
 {
     int argc;
 
@@ -652,68 +666,68 @@ static bool_t DevVlanSet(char *param)
     return true;
 }
 
-static struct ShellCmdTab  gEthRawDebug[] =
-{
-    {
-        "preg",
-        DevPhyRegPrint,
-        "usage:print the phyregs",
-        NULL
-    },
-    {
-        "sreg",
-        DevSwitchRegPrint,
-        "usage:print the switch regs",
-        NULL
-    },
-    {
-        "setphy",
-        DevSetPhyReg,
-        "usage:set the phy regs:setphy +port +reg +value",
-        NULL
-    },
-    {
-        "setswitch",
-        DevSetSwitchReg,
-        "usage:set the switch regs:setswitch +port +reg +value",
-        NULL
-    },
+//static struct ShellCmdTab  gEthRawDebug[] =
+//{
+//    {
+//        "preg",
+//        DevPhyRegPrint,
+//        "usage:print the phyregs",
+//        NULL
+//    },
+//    {
+//        "sreg",
+//        DevSwitchRegPrint,
+//        "usage:print the switch regs",
+//        NULL
+//    },
+//    {
+//        "setphy",
+//        DevSetPhyReg,
+//        "usage:set the phy regs:setphy +port +reg +value",
+//        NULL
+//    },
+//    {
+//        "setswitch",
+//        DevSetSwitchReg,
+//        "usage:set the switch regs:setswitch +port +reg +value",
+//        NULL
+//    },
+//
+//    {
+//        "phyloop",
+//        DevSetPhyLoop,
+//        "usage:reset the phy loop::phyloop+port",
+//        NULL
+//    },
+//    {
+//        "phyreset",
+//        DevResetCmd,
+//        "usage:reset the dev:phyreset+port",
+//        NULL
+//    },
+//    {
+//        "vlan",
+//        DevVlanSet,
+//        "usage:set the vlan map:vlan + port +value",
+//        NULL
+//    }
+//};
+//
+//#define CN_GMAC_DEBUG_CMDNUM  ((sizeof(gEthRawDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gEthRawDebugCmdRsc[CN_GMAC_DEBUG_CMDNUM];
+//static bool_t DevDebugInstall(void)
+//{
+//    bool_t result;
+//
+//    result = Sh_InstallCmd(gEthRawDebug,gEthRawDebugCmdRsc,CN_GMAC_DEBUG_CMDNUM);
+//
+//    return result;
+//}
 
-    {
-        "phyloop",
-        DevSetPhyLoop,
-        "usage:reset the phy loop::phyloop+port",
-        NULL
-    },
-    {
-        "phyreset",
-        DevResetCmd,
-        "usage:reset the dev:phyreset+port",
-        NULL
-    },
-    {
-        "vlan",
-        DevVlanSet,
-        "usage:set the vlan map:vlan + port +value",
-        NULL
-    }
-};
-
-#define CN_GMAC_DEBUG_CMDNUM  ((sizeof(gEthRawDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gEthRawDebugCmdRsc[CN_GMAC_DEBUG_CMDNUM];
-static bool_t DevDebugInstall(void)
-{
-    bool_t result;
-
-    result = Sh_InstallCmd(gEthRawDebug,gEthRawDebugCmdRsc,CN_GMAC_DEBUG_CMDNUM);
-
-    return result;
-}
-
-void LS88e6060ShellCmdInit(void)
-{
-    DevDebugInstall();
-}
+//void LS88e6060ShellCmdInit(void)
+//{
+//    DevDebugInstall();
+//}
 //this is the 88e6060  initialize
 ptu32_t LS88e6060Init(u16 vlan[6])
 {
@@ -732,7 +746,7 @@ ptu32_t LS88e6060Init(u16 vlan[6])
 
     DevGIntSet();   //open the master interrupt
 //    printf("autoconfig!\n\r");
-    LS88e6060ShellCmdInit();
+//    LS88e6060ShellCmdInit();
     return 0;
 }
 

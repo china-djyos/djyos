@@ -13,6 +13,8 @@
 #include "int.h"
 
 #include <shell.h>
+
+#include "newshell.h"
 #include <sys/time.h>
 
 // BOARD WDT
@@ -58,8 +60,10 @@ bool_t BrdWdt_FeedDog(void)
     }
     return true;
 }
+//static bool_t wdttime(char *param)
 
-static bool_t wdttime(char *param)
+ADD_TO_SHELL_HELP(wdttime,"usage:wdttime");
+ADD_TO_IN_SHELL  bool_t wdttime(char *param)
 {
 
 	printf("WDT:CYCLE:%d ms MAX:%d.%d ms Min:%d.%d ms  lastime:%llx\n\r",\
@@ -67,7 +71,10 @@ static bool_t wdttime(char *param)
 	return true;
 }
 
-static bool_t wdtstop(char *param)
+//static bool_t wdtstop(char *param)
+
+ADD_TO_SHELL_HELP(wdtstop,"usage:wdtstop");
+ADD_TO_IN_SHELL  bool_t wdtstop(char *param)
 {
 	vu32 value = 0;
 	Int_SaveAsynSignal();
@@ -135,24 +142,24 @@ bool_t BrdBoot_FeedEnd(void)
 
 
 
-struct ShellCmdTab  gMax706Shell[] =
-{
-    {
-        "wdttime",
-		wdttime,
-        "usage:wdttime",
-        "usage:wdttime",
-    },
-    {
-        "wdtstop",
-		wdtstop,
-        "usage:wdtstop",
-        "usage:wdtstop",
-    },
-};
-
-#define CN_MAX706SHELL_NUM  ((sizeof(gMax706Shell))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gMax706CmdRsc[CN_MAX706SHELL_NUM];
+//struct ShellCmdTab  gMax706Shell[] =
+//{
+//    {
+//        "wdttime",
+//		wdttime,
+//        "usage:wdttime",
+//        "usage:wdttime",
+//    },
+//    {
+//        "wdtstop",
+//		wdtstop,
+//        "usage:wdtstop",
+//        "usage:wdtstop",
+//    },
+//};
+//
+//#define CN_MAX706SHELL_NUM  ((sizeof(gMax706Shell))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gMax706CmdRsc[CN_MAX706SHELL_NUM];
 
 // =============================================================================
 // 功能：板上看门狗芯片初始化
@@ -162,7 +169,7 @@ static struct ShellCmdRsc gMax706CmdRsc[CN_MAX706SHELL_NUM];
 void ModuleInstall_BrdWdt(void)
 {
 
-	Sh_InstallCmd(gMax706Shell,gMax706CmdRsc,CN_MAX706SHELL_NUM);
+//	Sh_InstallCmd(gMax706Shell,gMax706CmdRsc,CN_MAX706SHELL_NUM);
 	PIO_Configure(wdt_pin, PIO_LISTSIZE(wdt_pin));
 
     BrdWdt_FeedDog();

@@ -49,7 +49,7 @@
 #include <sys/socket.h>
 #include "tftplib.h"
 #include "dbug.h"
-
+#include "newshell.h"
 char  gTftpWorkSpace[CN_PATH_LENLIMIT];
 static char *gTftpErrMsg[] =
 {
@@ -86,7 +86,22 @@ bool_t TftpSetWorkSpace(char *path)
     }
     return true;
 }
-bool_t TftpWorkSpaceShow(char *param)
+
+//bool_t TftpSetWorkSpace(char *path)
+ADD_TO_SHELL_HELP(tftppathset,"usage:tftppathset workpath");
+ADD_TO_IN_SHELL bool_t tftppathset(char *path)
+{
+    if(NULL != path)
+    {
+        strncpy(gTftpWorkSpace,path,CN_PATH_LENLIMIT);
+        gTftpWorkSpace[CN_PATH_LENLIMIT-1] = '\0';
+    }
+    return true;
+}
+
+//bool_t TftpWorkSpaceShow(char *param)
+ADD_TO_SHELL_HELP(tftppath,"usage:tftppath");
+ADD_TO_IN_SHELL bool_t tftppath(char *param)
 {
     info_printf("tftp","%s:%s\n\r",__FUNCTION__,gTftpWorkSpace);
     return true;

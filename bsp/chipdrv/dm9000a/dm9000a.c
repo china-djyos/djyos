@@ -51,6 +51,7 @@
 #include <sys/socket.h>
 
 #include "dm9000a.h"
+#include "newshell.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -674,7 +675,9 @@ EVTT_FAILED:
 }
 
 static tagDm9000Dev *pDm9000;
-bool_t dm9000debuginfo(char* param)
+//bool_t dm9000debuginfo(char* param)
+ADD_TO_SHELL_HELP(dm9000,"dm9000 debug info");
+ADD_TO_IN_SHELL bool_t dm9000(char* param)
 {
     u8 rAddrH,rAddrL;
 
@@ -693,44 +696,48 @@ bool_t dm9000debuginfo(char* param)
     printf("DM9000 Read Addr High = 0x%02x , Low = 0x%02x \r\n",rAddrH,rAddrL);
     return 1;
 }
-
-bool_t dm9000reg(char *param)
+//bool_t dm9000reg(char *param)
+ADD_TO_SHELL_HELP(dm9000reg,"print dm9000 reg");
+ADD_TO_IN_SHELL bool_t dm9000reg(char *param)
 {
     __showDm9000Reg(pDm9000);
     return 1;
 }
-bool_t dm9000Reset(char *param)
+
+//bool_t dm9000Reset(char *param)
+ADD_TO_SHELL_HELP(dm9000reset,"reset dm9000");
+ADD_TO_IN_SHELL bool_t dm9000reset(char *param)
 {
     __dm9000HardInit(pDm9000);
     return 1;
 }
 
 #include <shell.h>
-static struct ShellCmdTab  gDm9000Debug[] =
-{
-    {
-        "dm9000",
-        dm9000debuginfo,
-        "dm9000 debug info",
-        NULL
-    },
-    {
-        "dm9000reg",
-        dm9000reg,
-        "print dm9000 reg",
-        NULL
-    },
-    {
-        "dm9000reset",
-        dm9000Reset,
-        "reset dm9000",
-        NULL
-    }
-};
-
-
-#define CN_DM9000DEBUG_NUM  ((sizeof(gDm9000Debug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gGdm9000DebugCmdRsc[CN_DM9000DEBUG_NUM];
+//static struct ShellCmdTab  gDm9000Debug[] =
+//{
+//    {
+//        "dm9000",
+//        dm9000debuginfo,
+//        "dm9000 debug info",
+//        NULL
+//    },
+//    {
+//        "dm9000reg",
+//        dm9000reg,
+//        "print dm9000 reg",
+//        NULL
+//    },
+//    {
+//        "dm9000reset",
+//        dm9000Reset,
+//        "reset dm9000",
+//        NULL
+//    }
+//};
+//
+//
+//#define CN_DM9000DEBUG_NUM  ((sizeof(gDm9000Debug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gGdm9000DebugCmdRsc[CN_DM9000DEBUG_NUM];
 
 
 //THIS FUNCTION USED BY USER TO INSTALL AN DM9000 DEV WITH THE SPECIFIED NAME AND MAC
@@ -778,7 +785,7 @@ bool_t Dm9000Install(tagDm9000Para *para)
     pDm9000 = dm9000;
     __showDm9000Reg(dm9000);
 
-    Sh_InstallCmd(gDm9000Debug,gGdm9000DebugCmdRsc,CN_DM9000DEBUG_NUM);
+//    Sh_InstallCmd(gDm9000Debug,gGdm9000DebugCmdRsc,CN_DM9000DEBUG_NUM);
     return res;
 
 

@@ -588,7 +588,7 @@ s32 ModuleInstall_USB(u8 bController)
     u16 thread;
     char id[2];
     char name[] = "USB #x stack service";
-    void USB_ShellInstall(void);
+//    void USB_ShellInstall(void);
 
     if(bController >= 10)
     {
@@ -599,7 +599,7 @@ s32 ModuleInstall_USB(u8 bController)
     itoa(bController, id, 10);
     memcpy(&name[5], id, 1); // 初始化线程名
 
-    USB_ShellInstall(); // USB 相关shell命令
+//    USB_ShellInstall(); // USB 相关shell命令
 
     USB_UserInstall(bController);
 
@@ -635,7 +635,7 @@ s32 ModuleInstall_USB(u8 bController)
 #if 0
     extern void USBH_LL_Register(u8 bController);
 #endif
-    extern void USB_ShellInstall(void);
+//    extern void USB_ShellInstall(void);
 
 #if 0
     host = USBH_HostHandle(bController);
@@ -657,7 +657,7 @@ s32 ModuleInstall_USB(u8 bController)
     USBH_Init(host, USBH_UserProcess, bController); // 初始化
 #endif
 #endif
-    USB_ShellInstall(); // install USB shell command
+//    USB_ShellInstall(); // install USB shell command
 
 //    USBH_RegisterDevCUSTOM();
     USBH_ResigerDevMSC();

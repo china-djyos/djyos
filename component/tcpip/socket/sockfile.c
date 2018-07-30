@@ -53,6 +53,7 @@
 #include <os.h>
 #include <osarch.h>
 #include "dbug.h"
+#include "newshell.h"
 //------------------this file system should implement this--------------------//
 //1,malloc a sockobject for us, anything sockobject has been done
 //2,free a sockobject,anything sockobject contacted should been closed
@@ -175,7 +176,9 @@ bool_t sockobj_clrstatus(void *obj,u32 status)
 
 //show all the sockfile fd
 
-static bool_t __sockobj_shell(char *param)
+//static bool_t __sockobj_shell(char *param)
+ADD_TO_SHELL_HELP(sockfile,"usage:sockfile [-a]");
+ADD_TO_IN_SHELL static bool_t sockfile(char *param)
 {
     //first show the statistics
     info_printf("sockfile","TABLEN:%d USED:%d ITEMSIZE:%d TABADDR:0X%08X",\
@@ -201,18 +204,18 @@ static bool_t __sockobj_shell(char *param)
 }
 
 
-struct ShellCmdTab  gSOCKFILEDEBUG[] =
-{
-    {
-        "sockfile",
-		__sockobj_shell,
-        "usage:sockfile [-a]",
-        "usage:sockfile [-a]"
-    }
-};
-
-#define CN_SOCKFILEDEBUG_NUM  ((sizeof(gSOCKFILEDEBUG))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gSOCKFILEDEBUGCmdRsc[CN_SOCKFILEDEBUG_NUM];
+//struct ShellCmdTab  gSOCKFILEDEBUG[] =
+//{
+//    {
+//        "sockfile",
+//		__sockobj_shell,
+//        "usage:sockfile [-a]",
+//        "usage:sockfile [-a]"
+//    }
+//};
+//
+//#define CN_SOCKFILEDEBUG_NUM  ((sizeof(gSOCKFILEDEBUG))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gSOCKFILEDEBUGCmdRsc[CN_SOCKFILEDEBUG_NUM];
 
 //do the sockfile initialize here
 bool_t sockobj_init(u32 num)
@@ -233,7 +236,8 @@ bool_t sockobj_init(u32 num)
         error_printf("sockfile","%s:TABERR",__FUNCTION__);
         goto EXIT_TABLOCK;
     }
-    ret = Sh_InstallCmd(gSOCKFILEDEBUG,gSOCKFILEDEBUGCmdRsc,CN_SOCKFILEDEBUG_NUM);
+//    ret = Sh_InstallCmd(gSOCKFILEDEBUG,gSOCKFILEDEBUGCmdRsc,CN_SOCKFILEDEBUG_NUM);
+    ret = true;
     return ret;
 
 EXIT_TABLOCK:

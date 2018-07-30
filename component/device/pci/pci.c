@@ -1209,7 +1209,7 @@ void pcie_sh_install(void);
 //-----------------------------------------------------------------------------
 ptu32_t module_init_pcie(void)
 {
-    pcie_sh_install( );
+//    pcie_sh_install( );
     return true;
 }
 

@@ -48,6 +48,7 @@
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
 #include "dbug.h"
+#include "newshell.h"
 #include "../component_config_tcpip.h"
 //attention than the biggest buffer is 8192,if you need more, please contact the author
 //we will add some
@@ -343,7 +344,9 @@ bool_t PkgCachedLst(tagNetPkg   *pkglst)
 // RETURN     :true
 // DESCRIPTION:
 // =============================================================================
-bool_t PkgMemShow(char *param)
+//bool_t PkgMemShow(char *param)
+ADD_TO_SHELL_HELP(pkgmem,"usage:pkgmem,  show the pkg module statistics");
+ADD_TO_IN_SHELL bool_t pkgmem(char *param)
 {
     int i =0;
     debug_printf("pkg","PkgMem:HdrSize:%d\n\r",CN_PKG_HDRSIZE);
@@ -358,18 +361,18 @@ bool_t PkgMemShow(char *param)
     return true;
 }
 
-struct ShellCmdTab  gPkgDebug[] =
-{
-    {
-        "pkgmem",
-        PkgMemShow,
-        "usage:pkgmem",
-        "show the pkg module statistics"
-    },
-};
-
-#define CN_PKGDEBUG_ITEMNUM  ((sizeof(gPkgDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gPkgDebugCmdRsc[CN_PKGDEBUG_ITEMNUM];
+//struct ShellCmdTab  gPkgDebug[] =
+//{
+//    {
+//        "pkgmem",
+//        PkgMemShow,
+//        "usage:pkgmem",
+//        "show the pkg module statistics"
+//    },
+//};
+//
+//#define CN_PKGDEBUG_ITEMNUM  ((sizeof(gPkgDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gPkgDebugCmdRsc[CN_PKGDEBUG_ITEMNUM];
 // =============================================================================
 // FUNCTION:this function is used to initialize the package memory
 // PARA  IN:
@@ -394,16 +397,17 @@ bool_t PkgInit(void)
         error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
         goto EXIT_MEM;
     }
-    result = Sh_InstallCmd(gPkgDebug,gPkgDebugCmdRsc,CN_PKGDEBUG_ITEMNUM);
-    if(false == result)
-    {
-        error_printf("pkg","%s:install memory command failed\r\n",__FUNCTION__);
-        goto EXIT_CMD;
-    }
+//    result = Sh_InstallCmd(gPkgDebug,gPkgDebugCmdRsc,CN_PKGDEBUG_ITEMNUM);
+//    if(false == result)
+//    {
+//        error_printf("pkg","%s:install memory command failed\r\n",__FUNCTION__);
+//        goto EXIT_CMD;
+//    }
+    result = true;
     return result;
-EXIT_CMD:
-    free((void *)pPkgMemSrc);
-    pPkgMemSrc = NULL;
+//EXIT_CMD:
+//    free((void *)pPkgMemSrc);
+//    pPkgMemSrc = NULL;
 EXIT_MEM:
     Lock_MutexDelete_s(pPkgQueLock);
     pPkgQueLock = NULL;

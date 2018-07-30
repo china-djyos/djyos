@@ -66,7 +66,7 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t ModuleInstall_SPI(u8 port);
 //    #if CFG_SPI1_ENABLE==1
-//    ModuleInstall_SPI(CN_SPI1)
+//    ModuleInstall_SPI(CN_SPI1);
 //    #endif
 //
 //    #if CFG_SPI2_ENABLE==1
@@ -638,7 +638,7 @@ bool_t SPI_Initialize(u8 port)
 //返回: -1 -- 失败; 0 -- 成功;
 //备注:
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_SPIPort(u8 Port)
+s32 ModuleInstall_SPI(u8 Port)
 {
     if(CN_SPI1 != Port) // 板件只支持到SPI1
         return (-1);

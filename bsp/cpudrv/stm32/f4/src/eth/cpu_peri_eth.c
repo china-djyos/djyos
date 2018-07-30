@@ -764,72 +764,72 @@ ADD_TO_IN_SHELL bool_t macsnddis(char *param)
 }
 
 #include <shell.h>
-static struct ShellCmdTab  gMacDebug[] =
-{
-    {
-        "mac",
-        macdebuginfo,
-        "usage:gmac",
-        NULL
-    },
-    {
-        "macreg",
-        MacReg,
-        "usage:MacReg",
-        NULL
-    },
+//static struct ShellCmdTab  gMacDebug[] =
+//{
 //    {
-//        "macpost",
-//        gmacpost,
-//        "usage:gmacpost",
+//        "mac",
+//        macdebuginfo,
+//        "usage:gmac",
 //        NULL
 //    },
 //    {
-//        "macrcvbd",
-//        gmacrcvbdcheck,
-//        "usage:gmacrcvbd",
+//        "macreg",
+//        MacReg,
+//        "usage:MacReg",
+//        NULL
+//    },
+////    {
+////        "macpost",
+////        gmacpost,
+////        "usage:gmacpost",
+////        NULL
+////    },
+////    {
+////        "macrcvbd",
+////        gmacrcvbdcheck,
+////        "usage:gmacrcvbd",
+////        NULL
+////    },
+////    {
+////        "macsndbd",
+////        gmacsndbdcheck,
+////        "usage:gmacsndbd",
+////        NULL
+////    },
+//    {
+//        "macreset",
+//        MacReset,
+//        "usage:reset gmac",
+//        NULL
+//    },
+////    {
+////        "macdelay",
+////        MacDelay,
+////        "usage:MacDelay",
+////        NULL
+////    },
+////    {
+////        "macsndbdclear",
+////        MacSndBDClear,
+////        "usage:MacSndBdClear + ndnum",
+////        NULL
+////    }
+//    {
+//        "macsnden",
+//        MacSndEn,
+//        "usage:MacSndEn",
 //        NULL
 //    },
 //    {
-//        "macsndbd",
-//        gmacsndbdcheck,
-//        "usage:gmacsndbd",
+//        "macsnddis",
+//        MacSndDis,
+//        "usage:MacSndDis",
 //        NULL
 //    },
-    {
-        "macreset",
-        MacReset,
-        "usage:reset gmac",
-        NULL
-    },
-//    {
-//        "macdelay",
-//        MacDelay,
-//        "usage:MacDelay",
-//        NULL
-//    },
-//    {
-//        "macsndbdclear",
-//        MacSndBDClear,
-//        "usage:MacSndBdClear + ndnum",
-//        NULL
-//    }
-    {
-        "macsnden",
-        MacSndEn,
-        "usage:MacSndEn",
-        NULL
-    },
-    {
-        "macsnddis",
-        MacSndDis,
-        "usage:MacSndDis",
-        NULL
-    },
-};
-
-#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
+//};
+//
+//#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para

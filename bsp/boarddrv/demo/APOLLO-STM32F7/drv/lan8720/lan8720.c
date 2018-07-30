@@ -17,7 +17,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"lan8720"      /RMII接口的10/100M PHY
+//component name:"lan8720"      //RMII接口的10/100M PHY
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，

@@ -5,7 +5,7 @@
       <floatABI>default</floatABI>
       <fpuType>default</fpuType>
       <memory>
-         <type>ROM</type>
+         <type>FLASH</type>
          <startAddr>0x08000000</startAddr>
          <size>512k</size>
       </memory>

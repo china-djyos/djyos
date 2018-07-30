@@ -13,9 +13,9 @@
 #include "cpu_peri.h"
 #include "wdt_hal.h"
 #include "shell.h"
-
-static bool_t Sh_WwdgCounter(char *param);
-ptu32_t Wwdg_Shell_Module_Install(void);
+#include "newshell.h"
+//static bool_t Sh_WwdgCounter(char *param);
+//ptu32_t Wwdg_Shell_Module_Install(void);
 
 // BOARD WDT
 // =============================================================================
@@ -32,7 +32,9 @@ static bool_t bLoadEndFlag=false;
 
 
 
-static bool_t Sh_WwdgCounter(char *param)
+//static bool_t Sh_WwdgCounter(char *param)
+ADD_TO_SHELL_HELP(wdgc,"看门狗喂狗次数");
+ADD_TO_IN_SHELL static bool_t wdgc(char *param)
 {
 	uint32_t data[2];//used to print the s64 type
 	memcpy(data,&FeedCnt2,sizeof(data));
@@ -42,24 +44,24 @@ static bool_t Sh_WwdgCounter(char *param)
 }
 
 //**************************************************************************
-struct ShellCmdTab const shell_cmd_wwdg_table[]=
-{
-	{"wdgc",(bool_t(*)(char*))Sh_WwdgCounter,    "看门狗喂狗次数",     NULL},
-};
-//**************************************************************************
-#define CN_WWDG_SHELL_NUM  sizeof(shell_cmd_wwdg_table)/sizeof(struct ShellCmdTab)
-static struct ShellCmdRsc tg_wwdg_shell_cmd_rsc[CN_WWDG_SHELL_NUM];
+//struct ShellCmdTab const shell_cmd_wwdg_table[]=
+//{
+//	{"wdgc",(bool_t(*)(char*))Sh_WwdgCounter,    "看门狗喂狗次数",     NULL},
+//};
+////**************************************************************************
+//#define CN_WWDG_SHELL_NUM  sizeof(shell_cmd_wwdg_table)/sizeof(struct ShellCmdTab)
+//static struct ShellCmdRsc tg_wwdg_shell_cmd_rsc[CN_WWDG_SHELL_NUM];
 
 /*******************************************************************************
 功能:IWDG模块shell命令加载
 参数:无.
 返回值:1。
 *********************************************************************************/
-ptu32_t Wwdg_Shell_Module_Install(void)
-{
-	Sh_InstallCmd(shell_cmd_wwdg_table,tg_wwdg_shell_cmd_rsc,CN_WWDG_SHELL_NUM);
-	return 1;
-}
+//ptu32_t Wwdg_Shell_Module_Install(void)
+//{
+//	Sh_InstallCmd(shell_cmd_wwdg_table,tg_wwdg_shell_cmd_rsc,CN_WWDG_SHELL_NUM);
+//	return 1;
+//}
 
 // =============================================================================
 // 功能：板上看门狗喂狗函数,max706的喂狗时间是1.6s,根据手册，喂狗是边沿触发
@@ -168,7 +170,7 @@ void ModuleInstall_BrdWdt(void)
 	WWDG_Init();
     WdtHal_RegisterWdtChip("Wdt_IWDG",WDT_FEED_CYCLE,BrdWdt_FeedDog,\
     		BrdBoot_FeedStart,BrdBoot_FeedEnd);
-    Wwdg_Shell_Module_Install();
+//    Wwdg_Shell_Module_Install();
 }
 
 

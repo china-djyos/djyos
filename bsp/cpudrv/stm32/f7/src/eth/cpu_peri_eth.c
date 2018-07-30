@@ -15,7 +15,7 @@
 #include <board-config.h>
 #include <sys/socket.h>
 #include <netbsp.h>
-
+#include "newshell.h"
 #include "stm32f7xx_hal.h"
 #include "stm32f7xx_hal_eth.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -680,7 +680,10 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 
 
 //show the gmac status
-bool_t macdebuginfo(char *param)
+//bool_t macdebuginfo(char *param)
+ADD_TO_SHELL_HELP(mac,"usage:gmac");
+ADD_TO_IN_SHELL bool_t mac(char *param)
+
 {
     s64  time;
     u32  timeS;
@@ -727,7 +730,9 @@ bool_t macdebuginfo(char *param)
 }
 
 #define CN_GMAC_REG_BASE   ((u32)ETH)
-bool_t MacReg(char *param)
+//bool_t MacReg(char *param)
+ADD_TO_SHELL_HELP(macreg,"usage:MacReg");
+ADD_TO_IN_SHELL bool_t macreg(char *param)
 {
     vu32    i;
     vu32   *addr;
@@ -821,7 +826,19 @@ bool_t MacReset(char *param)
     return true;
 }
 
-bool_t MacSndEn(char *param)
+//bool_t MacReset(char *param)
+ADD_TO_SHELL_HELP(macreset,"usage:reset gmac");
+ADD_TO_IN_SHELL bool_t macreset(char *param)
+{
+    tagMacDriver   *pDrive = &gMacDriver;
+
+    __MacReset(pDrive);
+    return true;
+}
+
+//bool_t MacSndEn(char *param)
+ADD_TO_SHELL_HELP(macsnden,"usage:MacSndEn");
+ADD_TO_IN_SHELL bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -834,7 +851,9 @@ bool_t MacSndEn(char *param)
     }
     return true;
 }
-bool_t MacSndDis(char *param)
+//bool_t MacSndDis(char *param)
+ADD_TO_SHELL_HELP(macsnddis,"usage:MacSndDis");
+ADD_TO_IN_SHELL bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -847,7 +866,9 @@ bool_t MacSndDis(char *param)
     return true;
 }
 
-bool_t MacAddrFilterEn(char *param)
+//bool_t MacAddrFilterEn(char *param)
+ADD_TO_SHELL_HELP(macfilten,"usage:MacAddrEn, don't receive all frame(MAC filter)");
+ADD_TO_IN_SHELL bool_t macfilten(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -855,7 +876,9 @@ bool_t MacAddrFilterEn(char *param)
     MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,1);//开通地址过滤功能
     return true;
 }
-bool_t MacAddrFilterDis(char *param)
+//bool_t MacAddrFilterDis(char *param)
+ADD_TO_SHELL_HELP(macfiltdis,"usage:MacAddrDis, receive all frame(don't care MAC filter)");
+ADD_TO_IN_SHELL bool_t macfiltdis(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -865,84 +888,84 @@ bool_t MacAddrFilterDis(char *param)
 }
 
 #include <shell.h>
-static struct ShellCmdTab  gMacDebug[] =
-{
-    {
-        "mac",
-        macdebuginfo,
-        "usage:gmac",
-        NULL
-    },
-    {
-        "macreg",
-        MacReg,
-        "usage:MacReg",
-        NULL
-    },
+//static struct ShellCmdTab  gMacDebug[] =
+//{
 //    {
-//        "macpost",
-//        gmacpost,
-//        "usage:gmacpost",
+//        "mac",
+//        macdebuginfo,
+//        "usage:gmac",
 //        NULL
 //    },
 //    {
-//        "macrcvbd",
-//        gmacrcvbdcheck,
-//        "usage:gmacrcvbd",
+//        "macreg",
+//        MacReg,
+//        "usage:MacReg",
+//        NULL
+//    },
+////    {
+////        "macpost",
+////        gmacpost,
+////        "usage:gmacpost",
+////        NULL
+////    },
+////    {
+////        "macrcvbd",
+////        gmacrcvbdcheck,
+////        "usage:gmacrcvbd",
+////        NULL
+////    },
+////    {
+////        "macsndbd",
+////        gmacsndbdcheck,
+////        "usage:gmacsndbd",
+////        NULL
+////    },
+//    {
+//        "macreset",
+//        MacReset,
+//        "usage:reset gmac",
+//        NULL
+//    },
+////    {
+////        "macdelay",
+////        MacDelay,
+////        "usage:MacDelay",
+////        NULL
+////    },
+////    {
+////        "macsndbdclear",
+////        MacSndBDClear,
+////        "usage:MacSndBdClear + ndnum",
+////        NULL
+////    }
+//    {
+//        "macsnden",
+//        MacSndEn,
+//        "usage:MacSndEn",
 //        NULL
 //    },
 //    {
-//        "macsndbd",
-//        gmacsndbdcheck,
-//        "usage:gmacsndbd",
-//        NULL
-//    },
-    {
-        "macreset",
-        MacReset,
-        "usage:reset gmac",
-        NULL
-    },
-//    {
-//        "macdelay",
-//        MacDelay,
-//        "usage:MacDelay",
+//        "macsnddis",
+//        MacSndDis,
+//        "usage:MacSndDis",
 //        NULL
 //    },
 //    {
-//        "macsndbdclear",
-//        MacSndBDClear,
-//        "usage:MacSndBdClear + ndnum",
+//        "macfilten",
+//        MacAddrFilterEn,
+//        "usage:MacAddrEn, don't receive all frame(MAC filter)",
 //        NULL
-//    }
-    {
-        "macsnden",
-        MacSndEn,
-        "usage:MacSndEn",
-        NULL
-    },
-    {
-        "macsnddis",
-        MacSndDis,
-        "usage:MacSndDis",
-        NULL
-    },
-    {
-        "macfilten",
-        MacAddrFilterEn,
-        "usage:MacAddrEn, don't receive all frame(MAC filter)",
-        NULL
-    },
-    {
-        "macfiltdis",
-        MacAddrFilterDis,
-        "usage:MacAddrDis, receive all frame(don't care MAC filter)",
-        NULL
-    },
-};
-
-#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
+//    },
+//    {
+//        "macfiltdis",
+//        MacAddrFilterDis,
+//        "usage:MacAddrDis, receive all frame(don't care MAC filter)",
+//        NULL
+//    },
+//};
+//
+//#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -1027,7 +1050,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_IsrConnect(CN_INT_LINE_ETH,ETH_IntHandler);
         Int_ContactLine(CN_INT_LINE_ETH);
     }
-    Sh_InstallCmd(gMacDebug,gMacDebugCmdRsc,CN_GMACDEBUG_NUM);
+//    Sh_InstallCmd(gMacDebug,gMacDebugCmdRsc,CN_GMACDEBUG_NUM);
     printf("%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

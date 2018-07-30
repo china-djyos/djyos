@@ -29,7 +29,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"gdd"                      //图形装饰平台
+//component name:"gdd"                      //填写该组件的名字
 //parent:"none"                             //填写该组件的父组件名字，none表示没有父组件
 //attribute:核心组件                         //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                               //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -55,9 +55,9 @@
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度
 //%$#@enum,true,false,
 //%$#@string,1,256,
-#define CFG_DISPLAY_NAME        " "          //"显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
-#define CFG_DESKTOP_NAME        " "          //"桌面名",须与bsp中显示器驱动模块配置的桌面名字相同
-#define CFG_INPUTDEV_NAME       " "          //"输入设备名称",使用bsp中输入设备所配置的名字，多输入设备的话，每个设备间用逗号隔开
+#define CFG_DISPLAY_NAME        " "         //"显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
+#define CFG_DESKTOP_NAME        " "         //"桌面名"
+#define CFG_INPUTDEV_NAME       " "         //"输入设备名称",使用bsp中输入设备所配置的名字，多输入设备的话，每个设备间用逗号隔开
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #define CFG_DESKTOP_FORMAT      CN_SYS_PF_RGB565    //"像素格式",桌面窗口像素格式，常数在gkernel.h中定义，一般使用与显示器相同颜色

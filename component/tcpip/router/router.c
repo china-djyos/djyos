@@ -55,6 +55,7 @@
 #include <arpa/inet.h>
 #include <netbsp.h>
 #include "dbug.h"
+#include "newshell.h"
 #include "../common/router.h"
 #include "../common/netdev.h"
 //introduction:
@@ -196,7 +197,9 @@ typedef enum
 }enRoutOperation;
 
 //usage:rout -a/d/p(action) -v(4/6) -i ifname -n net -h host -g gateway
-static bool_t __RoutShell(char *param)
+//static bool_t __RoutShell(char *param)
+ADD_TO_SHELL_HELP(rout,"usage:rout");
+ADD_TO_IN_SHELL static bool_t rout(char *param)
 {
 	enum_ipv_t ver = EN_IPV_4;
 	enRoutOperation  opt = enRoutOperation_print;
@@ -344,17 +347,17 @@ static bool_t __RoutShell(char *param)
 
 	return true;
 }
-static struct ShellCmdTab  gRoutDebug[] =
-{
-    {
-        "rout",
-		__RoutShell,
-        "usage:rout",
-        "usage:rout",
-    },
-};
-#define CN_ROUTDEBUG_NUM  ((sizeof(gRoutDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gRoutDebugCmdRsc[CN_ROUTDEBUG_NUM];
+//static struct ShellCmdTab  gRoutDebug[] =
+//{
+//    {
+//        "rout",
+//		__RoutShell,
+//        "usage:rout",
+//        "usage:rout",
+//    },
+//};
+//#define CN_ROUTDEBUG_NUM  ((sizeof(gRoutDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gRoutDebugCmdRsc[CN_ROUTDEBUG_NUM];
 //this is the router controller
 bool_t RouterInit(void)
 {
@@ -367,7 +370,8 @@ bool_t RouterInit(void)
 	}
 	else
 	{
-	    ret = Sh_InstallCmd(gRoutDebug,gRoutDebugCmdRsc,CN_ROUTDEBUG_NUM);
+//	    ret = Sh_InstallCmd(gRoutDebug,gRoutDebugCmdRsc,CN_ROUTDEBUG_NUM);
+	    ret = true;
 	}
 	return ret;
 }

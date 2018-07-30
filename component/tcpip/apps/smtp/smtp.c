@@ -15,7 +15,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include "dbug.h"
-
+#include "newshell.h"
 //base64 encode and decode
 extern char * base64_encode( const unsigned char * bindata, char * base64, int binlength );
 extern int base64_decode( const char * base64, unsigned char * bindata );
@@ -753,7 +753,9 @@ typedef struct
 }tagListCtrl;
 
 //-h host -s server -u user -p passwd -to to -from from -topic topic -m msg
-bool_t sendemail(char *param)
+//bool_t sendemail(char *param)
+ADD_TO_SHELL_HELP(smtp,"usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]");
+ADD_TO_IN_SHELL bool_t smtp(char *param)
 {
     const char *host ="DJYOS_BOARD";
     const char *server = NULL;
@@ -765,12 +767,12 @@ bool_t sendemail(char *param)
     const char *html="<html><body>"\
         "<p><img src=\"http://www.djyos.com/wp-content/themes/wpressmonster/images/logo.png\"></p><br/>"\
         "<h1>hello,djyos users.</h1>"\
-        "<h4>濡傛灉浣犺兘鏀跺埌杩欏皝淇★紝閭ｇ湡鏄お濂戒簡锛屽洜涓鸿繖灏佷俊鏉ヨ嚜浜巇jyos鐨剆mtp</h4>"\
-        "<h4>鐗规�у涓嬶細鏀寔鍙戦�佸浜猴紝鏀寔鎶勯�佸浜猴紝涔熸敮鎸佸瘑閫佸浜猴紝褰撶劧涔熸敮鎸佸涓檮浠讹紝杩樻敮鎸乭tml,杩欏皝淇″氨鏄痟tml鏍煎紡锛�</h4>"\
-        "<h4>璇︽儏鍙傝�僺mtp.c鏂囦欢锛屾爤绌洪棿锛氭甯告枃鏈椂1KB宸﹀彸锛涘彂閫侀檮浠跺湪2KB宸﹀彸锛岃鍔″繀棰勭暀瓒冲绌洪棿</h4>"\
-        "<h4>浣跨敤鏂规硶锛氳皟鐢╯mtp_open鑾峰彇鍙ユ焺锛屼娇鐢╯mtp_configure閰嶇疆鎵�瑕佸彂閫佸唴瀹癸紝璋冪敤smtp_send鍙戦�侀偖浠讹紝璋冪敤smtp_close鍏抽棴鍙ユ焺</h4>"\
-        "<h4>鍙互浣跨敤瀹冩潵鍙戦�佷竴灏侀偖浠舵潵鎶ュ憡褰撳墠鐨勮繍琛岀姸鎬侊紝杩欏浜庢嫹鏈烘潵璇存槸涓笉閿欑殑涓绘剰</h4>"\
-        "<h1>娆㈣繋浣跨敤</h1>"\
+        "<h4>婵″倹鐏夋担鐘哄厴閺�璺哄煂鏉╂瑥鐨濇穱鈽呯礉闁絿婀￠弰顖氥亰婵傛垝绨￠敍灞芥礈娑撻缚绻栫亸浣蜂繆閺夈儴鍤滄禍宸噅yos閻ㄥ墕mtp</h4>"\
+        "<h4>閻楄锟窖冾洤娑撳绱伴弨顖涘瘮閸欐垿锟戒礁顦挎禍鐚寸礉閺�顖涘瘮閹跺嫰锟戒礁顦挎禍鐚寸礉娑旂喐鏁幐浣哥槕闁礁顦挎禍鐚寸礉瑜版挾鍔ф稊鐔告暜閹镐礁顦挎稉顏堟娴犺绱濇潻妯绘暜閹镐弓tml,鏉╂瑥鐨濇穱鈥虫皑閺勭棢tml閺嶇厧绱￠敍锟�</h4>"\
+        "<h4>鐠囷附鍎忛崣鍌濓拷鍍簃tp.c閺傚洣娆㈤敍灞剧垽缁屾椽妫块敍姘劀鐢憡鏋冮張顒佹1KB瀹革箑褰搁敍娑樺絺闁線妾禒璺烘躬2KB瀹革箑褰搁敍宀冾嚞閸斺�崇箑妫板嫮鏆�鐡掑啿顧勭粚娲？</h4>"\
+        "<h4>娴ｈ法鏁ら弬瑙勭《閿涙俺鐨熼悽鈺痬tp_open閼惧嘲褰囬崣銉︾労閿涘奔濞囬悽鈺痬tp_configure闁板秶鐤嗛幍锟界憰浣稿絺闁礁鍞寸�圭櫢绱濈拫鍐暏smtp_send閸欐垿锟戒線鍋栨禒璁圭礉鐠嬪啰鏁mtp_close閸忔娊妫撮崣銉︾労</h4>"\
+        "<h4>閸欘垯浜掓担璺ㄦ暏鐎瑰啯娼甸崣鎴︼拷浣风鐏忎線鍋栨禒鑸垫降閹躲儱鎲¤ぐ鎾冲閻ㄥ嫯绻嶇悰宀�濮搁幀渚婄礉鏉╂瑥顕禍搴㈠閺堢儤娼电拠瀛樻Ц娑擃亙绗夐柨娆戞畱娑撶粯鍓�</h4>"\
+        "<h1>濞嗐垼绻嬫担璺ㄦ暏</h1>"\
         "</body></html>";
     const char *inl = NULL;
     tagListCtrl *listto;
@@ -915,7 +917,9 @@ bool_t sendemail(char *param)
     return true;
 }
 
-static bool_t base64encodeshell(char *param)
+//static bool_t base64encodeshell(char *param)
+ADD_TO_SHELL_HELP(enbase64file,"enbase64file srcfile dstfile");
+ADD_TO_IN_SHELL static bool_t enbase64file(char *param)
 {
     const char *srcfile;
     const char *dstfile;
@@ -970,31 +974,31 @@ static bool_t base64encodeshell(char *param)
 
 
 
-static struct ShellCmdTab  gSmtpClientDebug[] =
-{
-    {
-        "enbase64file",
-        base64encodeshell,
-        "enbase64file srcfile dstfile",
-        NULL
-    },
-    {
-        "smtp",
-        sendemail,
-        "usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]",
-        NULL
-    },
-};
-#define CN_SmtpClientDebug_NUM  ((sizeof(gSmtpClientDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gSmtpClientDebugCmdRsc[CN_SmtpClientDebug_NUM];
+//static struct ShellCmdTab  gSmtpClientDebug[] =
+//{
+//    {
+//        "enbase64file",
+//        base64encodeshell,
+//        "enbase64file srcfile dstfile",
+//        NULL
+//    },
+//    {
+//        "smtp",
+//        sendemail,
+//        "usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]",
+//        NULL
+//    },
+//};
+//#define CN_SmtpClientDebug_NUM  ((sizeof(gSmtpClientDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gSmtpClientDebugCmdRsc[CN_SmtpClientDebug_NUM];
 // =============================================================================
-// 閿熸枻鎷烽敓鏉帮綇鎷穉dd the SmtpClient debug to the system
-// 閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷穚ara
-// 閿熸枻鎷烽敓鏂ゆ嫹鍊�  閿熸枻鎷穞rue閿熺即鐧告嫹  false澶遍敓鏉扳槄鎷�
+// 闁跨喐鏋婚幏鐑芥晸閺夊府缍囬幏绌塪d the SmtpClient debug to the system
+// 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归柨鐔告灮閹风ara
+// 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归崐锟�  闁跨喐鏋婚幏绌瀝ue闁跨喓鍗抽惂鍛婂  false婢堕亶鏁撻弶鎵虫閹凤拷
 // =============================================================================
-bool_t ServiceSmtpClient()
-{
-    Sh_InstallCmd(gSmtpClientDebug,gSmtpClientDebugCmdRsc,CN_SmtpClientDebug_NUM);
-    return true;
-}
+//bool_t ServiceSmtpClient()
+//{
+//    Sh_InstallCmd(gSmtpClientDebug,gSmtpClientDebugCmdRsc,CN_SmtpClientDebug_NUM);
+//    return true;
+//}
 

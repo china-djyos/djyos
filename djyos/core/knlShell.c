@@ -89,7 +89,7 @@ ADD_TO_SHELL_HELP(event,"显示事件表");
 ADD_TO_IN_SHELL bool_t event(char *param)
 {
     u16 pl_ecb;
-    u32 time1,MemSize;
+    u32 time1,MemSize,StackSize;
     char *name;
 
     MemSize = 0;
@@ -99,8 +99,8 @@ ADD_TO_IN_SHELL bool_t event(char *param)
         if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-            debug_printf("knlshell","%05d %05d     ",pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
-            debug_printf("knlshell","%03d    ",g_tECB_Table[pl_ecb].prio);
+//            debug_printf("knlshell","%05d %05d     ",pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
+//            debug_printf("knlshell","%03d    ",g_tECB_Table[pl_ecb].prio);
            // debug_printf("knlshell","%02d%%  %8x",time1,g_tECB_Table[pl_ecb].vm->stack_size);
 #if CFG_OS_TINY == false
             time1 = g_tECB_Table[pl_ecb].consumed_cnt_second/10000;
@@ -111,14 +111,23 @@ ADD_TO_IN_SHELL bool_t event(char *param)
 #endif  //CFG_OS_TINY == false
             if(NULL == g_tECB_Table[pl_ecb].vm)
             {
-                debug_printf("knlshell","%02d%%  %08x %s",0,0,name);
+//                debug_printf("knlshell","%02d%%  %08x %s",0,0,name);
+            	StackSize = 0;
             }
             else
             {
-                debug_printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
-                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
+            	StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+//                debug_printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
+//                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
             }
-            debug_printf("knlshell","\n\r");
+//            debug_printf("knlshell","\n\r");
+
+            debug_printf("knlshell","%05d   %05d   %03d    %02d%%  %08x %s",\
+            		pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
+					g_tECB_Table[pl_ecb].prio,time1,\
+					g_tECB_Table[pl_ecb].vm->stack_size,name);
+
+            MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
         }
         else
         {
@@ -149,19 +158,23 @@ ADD_TO_IN_SHELL bool_t evtt(char *param)
     {
         if(g_tEvttTable[pl_ecb].property.registered ==1)
         {
-            MemSize += g_tEvttTable[pl_ecb].stack_size;
-            debug_printf("knlshell","%05d   ",pl_ecb);
-            debug_printf("knlshell","%03d    ",g_tEvttTable[pl_ecb].default_prio);
-            debug_printf("knlshell","%08x  %08x ",
-                        (ptu32_t)g_tEvttTable[pl_ecb].thread_routine,
-                        g_tEvttTable[pl_ecb].stack_size);
 #if CFG_OS_TINY == false
             name = g_tEvttTable[pl_ecb].evtt_name;
 #else
             name = "unkown";
-#endif  //CFG_OS_TINY == false
-            debug_printf("knlshell","%s",name);
-            debug_printf("knlshell","\n\r");
+#endif  //CFG_OS_TINY == 0
+            MemSize += g_tEvttTable[pl_ecb].stack_size;
+            debug_printf("knlshell","%05d   %03d    %08x  %08x %s",pl_ecb,\
+            		g_tEvttTable[pl_ecb].default_prio,\
+					(ptu32_t)g_tEvttTable[pl_ecb].thread_routine,\
+					g_tEvttTable[pl_ecb].stack_size,\
+					name);
+//            debug_printf("knlshell","%03d    ",g_tEvttTable[pl_ecb].default_prio);
+//            debug_printf("knlshell","%08x  %08x ",
+//                        (ptu32_t)g_tEvttTable[pl_ecb].thread_routine,
+//                        g_tEvttTable[pl_ecb].stack_size);
+//            debug_printf("knlshell","%s",name);
+//            debug_printf("knlshell","\n\r");
         }
         else
         {

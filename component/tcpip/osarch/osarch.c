@@ -52,6 +52,7 @@
 #include <shell.h>
 #include <osarch.h>
 #include "dbug.h"
+#include "newshell.h"
 #include "../component_config_tcpip.h"
 
 
@@ -450,7 +451,9 @@ static ptu32_t __NetTickerTask(void)
 }
 
 //this is the nettick shell function:use it for the debug
-static bool_t  __NetTickShell(char *param)
+//static bool_t  __NetTickShell(char *param)
+ADD_TO_SHELL_HELP(netticker,"usage:netticker");
+ADD_TO_IN_SHELL static bool_t  netticker(char *param)
 {
     bool_t ret = true;
     tagTickerItem *item;
@@ -479,7 +482,9 @@ static bool_t  __NetTickShell(char *param)
 }
 
 //show the tcpip memory consumed
-static bool_t __tcpipmem(char *para)
+//static bool_t __tcpipmem(char *para)
+ADD_TO_SHELL_HELP(tcpipmem,"usage:tcpipmem");
+ADD_TO_IN_SHELL static bool_t tcpipmem(char *para)
 {
     debug_printf("osarch","MEMNEED  :%-8d Bytes\n\r",gOsCB.mem);
     debug_printf("osarch","TASKSTACK:%-8d Bytes\n\r",gOsCB.stack);
@@ -540,23 +545,23 @@ void OsPrintSplit(char c,int num)
 
 //////////////////////////////OSARCH SERVICE///////////////////////////////////
 //shell tab here
-static const struct ShellCmdTab  gOSARCHDebug[] =
-{
-    {
-        "netticker",
-        __NetTickShell,
-        "usage:netticker",
-        "usage:netticker",
-    },
-    {
-        "tcpipmem",
-        __tcpipmem,
-        "usage:tcpipmem",
-        "usage:tcpipmem",
-    },
-};
-#define CN_OSARCHDebug_NUM  ((sizeof(gOSARCHDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gOSARCHDebugCmdRsc[CN_OSARCHDebug_NUM];
+//static const struct ShellCmdTab  gOSARCHDebug[] =
+//{
+//    {
+//        "netticker",
+//        __NetTickShell,
+//        "usage:netticker",
+//        "usage:netticker",
+//    },
+//    {
+//        "tcpipmem",
+//        __tcpipmem,
+//        "usage:tcpipmem",
+//        "usage:tcpipmem",
+//    },
+//};
+//#define CN_OSARCHDebug_NUM  ((sizeof(gOSARCHDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gOSARCHDebugCmdRsc[CN_OSARCHDebug_NUM];
 bool_t OsArchInit()
 {
     bool_t ret = false;
@@ -566,11 +571,11 @@ bool_t OsArchInit()
     {
         error_printf("osarch","NETTICKER INIT ERR\n\r");
     }
-    ret = Sh_InstallCmd(gOSARCHDebug,gOSARCHDebugCmdRsc,CN_OSARCHDebug_NUM);
-    if(ret == false)
-    {
-        error_printf("osarch","CMD INSTALL ERR\n\r");
-    }
+//    ret = Sh_InstallCmd(gOSARCHDebug,gOSARCHDebugCmdRsc,CN_OSARCHDebug_NUM);
+//    if(ret == false)
+//    {
+//        error_printf("osarch","CMD INSTALL ERR\n\r");
+//    }
     return ret;
 }
 

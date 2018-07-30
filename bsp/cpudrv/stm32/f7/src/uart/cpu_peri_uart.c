@@ -71,31 +71,40 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t ModuleInstall_UART(u32 serial_no);
-//    #if(CFG_UART1_ENABLE==true)
-//    ModuleInstall_UART(CN_UART1)；
+//    extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
+//
+//    #if CFG_UART1_ENABLE ==1
+//    ModuleInstall_UART(CN_UART1);
 //    #endif
-//    #if( CFG_UART2_ENABLE==true)
-//    if(0 == ModuleInstall_UART(CN_UART2);
+//
+//    #if CFG_UART2_ENABLE ==1
+//    ModuleInstall_UART(CN_UART2);
 //    #endif
-//    #if(CFG_UART3_ENABLE==true);
+//
+//    #if CFG_UART3_ENABLE ==1
 //    ModuleInstall_UART(CN_UART3);
 //    #endif
-//    #if(CFG_UART4_ENABLE==true)
+//
+//    #if CFG_UART4_ENABLE ==1
 //    ModuleInstall_UART(CN_UART4);
 //    #endif
-//    #if( CFG_UART5_ENABLE==true)
+//
+//    #if CFG_UART5_ENABLE ==1
 //    ModuleInstall_UART(CN_UART5);
 //    #endif
-//    #if( CFG_UART6_ENABLE==true)
+//
+//    #if CFG_UART6_ENABLE ==1
 //    ModuleInstall_UART(CN_UART6);
 //    #endif
-//    #if( CFG_UART7_ENABLE==true)
+//
+//    #if CFG_UART7_ENABLE ==1
 //    ModuleInstall_UART(CN_UART7);
 //    #endif
-//    #if( CFG_UART8_ENABLE==true)
+//
+//    #if CFG_UART8_ENABLE ==1
 //    ModuleInstall_UART(CN_UART8);
 //    #endif
+
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

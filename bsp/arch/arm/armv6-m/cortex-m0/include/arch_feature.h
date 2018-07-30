@@ -71,11 +71,6 @@ extern "C" {
 #include "..\..\..\cortex-m.h"
 #include "..\..\..\armv6m.h"
 
-//存储器大小端的配置
-#define CN_CFG_LITTLE_ENDIAN       0
-#define CN_CFG_BIG_ENDIAN          1
-#define CN_CFG_BYTE_ORDER          CN_CFG_LITTLE_ENDIAN
-
 //cpu版本号
 #define CN_M0_REVISION_R0P0   0x410cc600
 #define CN_M0_REVISION_R0P1   0x410cc601

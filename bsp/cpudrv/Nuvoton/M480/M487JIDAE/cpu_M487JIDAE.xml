@@ -9,12 +9,12 @@
       <memory>
          <type>FLASH</type>
          <startAddr>0</startAddr>
-         <size>512</size>
+         <size>512k</size>
       </memory>
       <memory>
          <type>RAM</type>
          <startAddr>0x20000000</startAddr>
-         <size>160</size>
+         <size>160k</size>
       </memory>
    </core>
 </cpu>

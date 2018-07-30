@@ -57,10 +57,10 @@
 
 extern bool_t ServiceDhcpcInit(ptu32_t para);
 extern bool_t ServiceDhcpdInit(ptu32_t para);
-extern bool_t ServiceDnsInit(ptu32_t para);
+//extern bool_t ServiceDnsInit(ptu32_t para);
 extern bool_t ServiceFtpInit(ptu32_t para);
-extern bool_t ServicePingInit(ptu32_t para);
-extern bool_t ServiceSntpInit(ptu32_t para);
+//extern bool_t ServicePingInit(ptu32_t para);
+//extern bool_t ServiceSntpInit(ptu32_t para);
 extern bool_t ServiceInit_Telnetd(void);
 extern bool_t ServiceTftpInit(ptu32_t para);
 
@@ -79,26 +79,26 @@ bool_t ServiceInit(void)
         error_printf("tcpip","###err: service dhcpd failed");
         result = false;
     }
-    if(false == ServiceDnsInit(0))
-    {
-        error_printf("tcpip","###err: service dns failed");
-        result = false;
-    }
+//    if(false == ServiceDnsInit(0))
+//    {
+//        error_printf("tcpip","###err: service dns failed");
+//        result = false;
+//    }
     if((CFG_FTP_ENABLE)&&(false == ServiceFtpInit(0)))
     {
     	error_printf("tcpip","###err: service ftp failed");
         result = false;
     }
-    if(false == ServicePingInit(0))
-    {
-        error_printf("tcpip","###err: service ping failed");
-        result = false;
-    }
-    if(false == ServiceSntpInit(0))
-    {
-        error_printf("tcpip","###err: service sntp failed");
-        result = false;
-    }
+//    if(false == ServicePingInit(0))
+//    {
+//        error_printf("tcpip","###err: service ping failed");
+//        result = false;
+//    }
+//    if(false == ServiceSntpInit(0))
+//    {
+//        error_printf("tcpip","###err: service sntp failed");
+//        result = false;
+//    }
     if((CFG_TELNET_ENABLE)&&(false == ServiceInit_Telnetd()))
     {
         error_printf("tcpip","###err: service telnet failed\n\r");

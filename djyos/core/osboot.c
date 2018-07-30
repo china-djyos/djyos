@@ -257,7 +257,7 @@ static void __ShowBootMode(tagBootMode *bootmsg)
 
 //static bool_t __BootMsgShowShell(char *param)
 ADD_TO_SHELL_HELP(bootmsg,"usage:bootmsg");
-ADD_TO_IN_SHELL static bool_t bootmsg(char *param)
+ADD_TO_IN_SHELL bool_t bootmsg(char *param)
 {
     tagBootMode *msg;
 
@@ -283,8 +283,8 @@ extern void reboot(u32 key);
 extern void reset(u32 key);
 extern void restart_system(u32 key);
 //static bool_t rebootshell(char *param)
-ADD_TO_SHELL_HELP(reboot,"usage:reboot [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_IN_SHELL static bool_t reboot(char *param)
+ADD_TO_SHELL_HELP(rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_IN_SHELL bool_t rebootshell(char *param)
 {
     u32 key = 0;
     if(NULL != param)
@@ -296,8 +296,8 @@ ADD_TO_IN_SHELL static bool_t reboot(char *param)
     return true;
 }
 //static bool_t resetshell(char *param)
-ADD_TO_SHELL_HELP(reset,"usage:reset [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_IN_SHELL static bool_t reset(char *param)
+ADD_TO_SHELL_HELP(resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_IN_SHELL bool_t resetshell(char *param)
 {
     u32 key = 0;
     if(NULL != param)
@@ -309,7 +309,7 @@ ADD_TO_IN_SHELL static bool_t reset(char *param)
 }
 //static bool_t reloadshell(char *param)
 ADD_TO_SHELL_HELP(restart,"usage:restart [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_IN_SHELL static bool_t restart(char *param)
+ADD_TO_IN_SHELL bool_t restart(char *param)
 {
     u32 key = 0;
     if(NULL != param)
@@ -322,7 +322,7 @@ ADD_TO_IN_SHELL static bool_t restart(char *param)
 
 //static bool_t bootaddressshell(char *param)
 ADD_TO_SHELL_HELP(bootaddress,"usage:bootaddress [address]");
-ADD_TO_IN_SHELL static bool_t bootaddress(char *param)
+ADD_TO_IN_SHELL bool_t bootaddress(char *param)
 {
     u32 addr;
     u32 InitCpu_Addr;

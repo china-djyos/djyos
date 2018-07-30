@@ -56,6 +56,7 @@
 #include "board-config.h"
 #include "gmac_interface.h"
 #include "dbug.h"
+#include "newshell.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -817,7 +818,9 @@ static u8 gTxBuffer[1600];
 static u32 gSndbdDelay[CN_MAC_MAXDELAY+1];
 static u32 gSndbdTimeoutTotal = 0;
 
-static bool_t MacDelay(char *param)
+//static bool_t MacDelay(char *param)
+ADD_TO_SHELL_HELP(macdelay,"usage:MacDelay");
+ADD_TO_IN_SHELL static bool_t macdelay(char *param)
 {
     debug_printf("gmac","gmac","%-10s%-10s%10d\n\r","Item","Cnt(HEX)",gSndbdTimeoutTotal);
     u32 i = 0;
@@ -828,7 +831,9 @@ static bool_t MacDelay(char *param)
     return true;
 }
 
-static bool_t MacSndBDClear(char *param)
+//static bool_t MacSndBDClear(char *param)
+ADD_TO_SHELL_HELP(macsndbdclear,"usage:MacSndBdClear + ndnum");
+ADD_TO_IN_SHELL static bool_t macsndbdclear(char *param)
 {
     vu16  bdnum;
     tagMacDriver      *pDrive;
@@ -852,21 +857,30 @@ static bool_t MacSndBDClear(char *param)
     }
     return true;
 }
-static bool_t MacSndHalt(char *param)
+
+//static bool_t MacSndHalt(char *param)
+ADD_TO_SHELL_HELP(macsndhalt,"usage:MacSndHalt");
+ADD_TO_IN_SHELL static bool_t macsndhalt(char *param)
 {
     GMAC_TransmissionHalt(GMAC);
     return true;
 }
-static bool_t MacSndStart(char *param)
+
+
+//static bool_t MacSndStart(char *param)
+ADD_TO_SHELL_HELP(macsndstart,"usage:MacSndStart");
+ADD_TO_IN_SHELL static bool_t macsndstart(char *param)
 {
     GMAC_TransmissionStart(GMAC);
     return true;
 }
-static bool_t MacSndEn(char *param)
+
+
+//static bool_t MacSndEn(char *param)
+ADD_TO_SHELL_HELP(macsnden,"usage:MacSndEn");
+ADD_TO_IN_SHELL static bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
-
-
     pDrive = &gMacDriver;
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
     {
@@ -876,7 +890,11 @@ static bool_t MacSndEn(char *param)
     }
     return true;
 }
-static bool_t MacSndDis(char *param)
+
+
+//static bool_t MacSndDis(char *param)
+ADD_TO_SHELL_HELP(macsnddis,"usage:MacSndDis");
+ADD_TO_IN_SHELL static bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -1143,7 +1161,9 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 
 
 //for shell to do the restart
-bool_t GmacReset(char *param)
+//bool_t GmacReset(char *param)
+ADD_TO_SHELL_HELP(macreset,"usage:reset gmac");
+ADD_TO_IN_SHELL bool_t macreset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
 
@@ -1152,7 +1172,9 @@ bool_t GmacReset(char *param)
 }
 
 //show the gmac status
-bool_t gmacdebuginfo(char *param)
+//bool_t gmacdebuginfo(char *param)
+ADD_TO_SHELL_HELP(mac,"usage:gmac");
+ADD_TO_IN_SHELL bool_t mac(char *param)
 {
     s64  time;
     u32  timeS;
@@ -1193,7 +1215,9 @@ bool_t gmacdebuginfo(char *param)
 //show the gmac reg
 #define CN_GMAC_REG_BASE   0X40050000
 #define CN_GMAC_SHOW_NUM   0x20
-bool_t gmacreg(char *param)
+//bool_t gmacreg(char *param)
+ADD_TO_SHELL_HELP(macreg,"usage:gmacreg");
+ADD_TO_IN_SHELL bool_t macreg(char *param)
 {
     vu32    i;
     vu32   *addr;
@@ -1211,7 +1235,9 @@ bool_t gmacreg(char *param)
     return true;
 }
 //post the receive semp
-bool_t  gmacpost(char *param)
+//bool_t  gmacpost(char *param)
+ADD_TO_SHELL_HELP(macpost,"usage:gmacpost");
+ADD_TO_IN_SHELL bool_t  macpost(char *param)
 {
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
@@ -1224,7 +1250,9 @@ bool_t  gmacpost(char *param)
     return true;
 }
 //check the receive bd
-bool_t gmacrcvbdcheck(char *param)
+//bool_t gmacrcvbdcheck(char *param)
+ADD_TO_SHELL_HELP(macrcvbd,"usage:gmacrcvbd");
+ADD_TO_IN_SHELL bool_t macrcvbd(char *param)
 {
     tagQueue          *que;
     tagRcvBD          *pRcvBD;
@@ -1274,7 +1302,9 @@ bool_t gmacrcvbdcheck(char *param)
     return true;
 }
 //check the receive bd
-bool_t gmacsndbdcheck(char *param)
+//bool_t gmacsndbdcheck(char *param)
+ADD_TO_SHELL_HELP(macsndbd,"usage:gmacsndbd");
+ADD_TO_IN_SHELL bool_t macsndbd(char *param)
 {
     tagQueue          *que;
     tagSndBD          *pSndBD;
@@ -1330,85 +1360,85 @@ bool_t gmacsndbdcheck(char *param)
 }
 
 #include <shell.h>
-static struct ShellCmdTab  gGmacDebug[] =
-{
-    {
-        "mac",
-        gmacdebuginfo,
-        "usage:gmac",
-        NULL
-    },
-    {
-        "macreg",
-        gmacreg,
-        "usage:gmacreg",
-        NULL
-    },
-    {
-        "macpost",
-        gmacpost,
-        "usage:gmacpost",
-        NULL
-    },
-    {
-        "macrcvbd",
-        gmacrcvbdcheck,
-        "usage:gmacrcvbd",
-        NULL
-    },
-    {
-        "macsndbd",
-        gmacsndbdcheck,
-        "usage:gmacsndbd",
-        NULL
-    },
-    {
-        "macreset",
-        GmacReset,
-        "usage:reset gmac",
-        NULL
-    },
-    {
-        "macdelay",
-        MacDelay,
-        "usage:MacDelay",
-        NULL
-    },
-    {
-        "macsndbdclear",
-        MacSndBDClear,
-        "usage:MacSndBdClear + ndnum",
-        NULL
-    },
-    {
-        "macsndhalt",
-        MacSndHalt,
-        "usage:MacSndHalt",
-        NULL
-    },
-    {
-        "macsndstart",
-        MacSndStart,
-        "usage:MacSndStart",
-        NULL
-    },
-    {
-        "macsnden",
-        MacSndEn,
-        "usage:MacSndEn",
-        NULL
-    },
-    {
-        "macsnddis",
-        MacSndDis,
-        "usage:MacSndDis",
-        NULL
-    },
-};
-
-
-#define CN_GMACDEBUG_NUM  ((sizeof(gGmacDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gGmacDebugCmdRsc[CN_GMACDEBUG_NUM];
+//static struct ShellCmdTab  gGmacDebug[] =
+//{
+//    {
+//        "mac",
+//        gmacdebuginfo,
+//        "usage:gmac",
+//        NULL
+//    },
+//    {
+//        "macreg",
+//        gmacreg,
+//        "usage:gmacreg",
+//        NULL
+//    },
+//    {
+//        "macpost",
+//        gmacpost,
+//        "usage:gmacpost",
+//        NULL
+//    },
+//    {
+//        "macrcvbd",
+//        gmacrcvbdcheck,
+//        "usage:gmacrcvbd",
+//        NULL
+//    },
+//    {
+//        "macsndbd",
+//        gmacsndbdcheck,
+//        "usage:gmacsndbd",
+//        NULL
+//    },
+//    {
+//        "macreset",
+//        GmacReset,
+//        "usage:reset gmac",
+//        NULL
+//    },
+//    {
+//        "macdelay",
+//        MacDelay,
+//        "usage:MacDelay",
+//        NULL
+//    },
+//    {
+//        "macsndbdclear",
+//        MacSndBDClear,
+//        "usage:MacSndBdClear + ndnum",
+//        NULL
+//    },
+//    {
+//        "macsndhalt",
+//        MacSndHalt,
+//        "usage:MacSndHalt",
+//        NULL
+//    },
+//    {
+//        "macsndstart",
+//        MacSndStart,
+//        "usage:MacSndStart",
+//        NULL
+//    },
+//    {
+//        "macsnden",
+//        MacSndEn,
+//        "usage:MacSndEn",
+//        NULL
+//    },
+//    {
+//        "macsnddis",
+//        MacSndDis,
+//        "usage:MacSndDis",
+//        NULL
+//    },
+//};
+//
+//
+//#define CN_GMACDEBUG_NUM  ((sizeof(gGmacDebug))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gGmacDebugCmdRsc[CN_GMACDEBUG_NUM];
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -1517,7 +1547,7 @@ bool_t ModuleInstall_GMAC(const char *devname, u8 *mac,\
         Int_IsrConnect(CN_INT_LINE_GMAC,GMAC_IntHandler);
         Int_ContactLine(CN_INT_LINE_GMAC);
     }
-    Sh_InstallCmd(gGmacDebug,gGmacDebugCmdRsc,CN_GMACDEBUG_NUM);
+//    Sh_InstallCmd(gGmacDebug,gGmacDebugCmdRsc,CN_GMACDEBUG_NUM);
     debug_printf("gmac","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

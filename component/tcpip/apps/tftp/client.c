@@ -53,7 +53,7 @@
 
 #include "tftplib.h"
 #include "dbug.h"
-
+#include "newshell.h"
 
 static u16  gRemoteServerPort = CN_TFTP_SERVERPORT_DEFAULT;
 
@@ -99,7 +99,9 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
 
 
 //use it as:tftp serverip filename
-bool_t TftpClientShell(char *param)
+//bool_t TftpClientShell(char *param)
+ADD_TO_SHELL_HELP(tftp,"usage:tftp get/put hostname filename");
+ADD_TO_IN_SHELL bool_t tftp(char *param)
 {
     int argc =3;
     const char *argv[3];
@@ -118,30 +120,30 @@ bool_t TftpClientShell(char *param)
 }
 
 extern bool_t TftpServerShell(char *param);
-struct ShellCmdTab  gServiceTftp[] =
-{
-    {
-        "tftp",
-        TftpClientShell,
-        "usage:tftp get/put hostname filename",
-        "usage:tftp get/put hostname filename",
-    },
-    {
-        "tftppathset",
-        TftpSetWorkSpace,
-        "usage:tftppathset workpath",
-        "usage:tftppathset workpath",
-    },
-    {
-        "tftppath",
-        TftpWorkSpaceShow,
-        "usage:tftppath",
-        "usage:tftppath",
-    },
-};
-
-#define CN_TFTPDEBUG_NUM  ((sizeof(gServiceTftp))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gServiceTftpCmdRsc[CN_TFTPDEBUG_NUM];
+//struct ShellCmdTab  gServiceTftp[] =
+//{
+//    {
+//        "tftp",
+//        TftpClientShell,
+//        "usage:tftp get/put hostname filename",
+//        "usage:tftp get/put hostname filename",
+//    },
+//    {
+//        "tftppathset",
+//        TftpSetWorkSpace,
+//        "usage:tftppathset workpath",
+//        "usage:tftppathset workpath",
+//    },
+//    {
+//        "tftppath",
+//        TftpWorkSpaceShow,
+//        "usage:tftppath",
+//        "usage:tftppath",
+//    },
+//};
+//
+//#define CN_TFTPDEBUG_NUM  ((sizeof(gServiceTftp))/(sizeof(struct ShellCmdTab)))
+//static struct ShellCmdRsc gServiceTftpCmdRsc[CN_TFTPDEBUG_NUM];
 
 //THIS IS PING MODULE FUNCTION
 bool_t ServiceTftpInit(ptu32_t para)
@@ -149,7 +151,7 @@ bool_t ServiceTftpInit(ptu32_t para)
     bool_t result;
 
     TftpSetWorkSpace((char *)CN_TFTP_PATHDEFAULT);
-    result = Sh_InstallCmd(gServiceTftp,gServiceTftpCmdRsc,CN_TFTPDEBUG_NUM);
+//    result = Sh_InstallCmd(gServiceTftp,gServiceTftpCmdRsc,CN_TFTPDEBUG_NUM);
     result = TftpServerShell(NULL);
 
     return result;
