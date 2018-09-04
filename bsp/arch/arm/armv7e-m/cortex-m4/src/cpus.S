@@ -293,6 +293,16 @@ __asm_delay_cycle:
     b       __asm_delay_cycle
 end:
     bx      lr
+
+        .text
+.align 2
+.global __asm_bl_fun
+.thumb
+.thumb_func
+__asm_bl_fun:
+	mov   pc ,r0
+	bx    lr
+
 .end
 
 

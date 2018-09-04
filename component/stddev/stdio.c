@@ -62,7 +62,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <objfile.h>
+#include <objhandle.h>
 #include <object.h>
 #include <device.h>
 #include <systime.h>
@@ -73,41 +73,39 @@
 s32 (* PutStrDirect)(const char *buf,u32 len);
 char (* GetCharDirect)(void);
 
-static struct MultiplexSetsCB *stdin_multiplexset;
-static const FILE __stdio_uninit = {
-    .fd = -1, // 表示未初始化；
+static struct MultiplexSetsCB *stdin_multiplexset; // in的侦听集；
+static FILE __stdio_filestruct[3] = {
+        {
+            .fd = -1, // 表示未初始化；
+        },
+        {
+            .fd = -1, // 表示未初始化；
+        },
+        {
+            .fd = -1, // 表示未初始化；
+        },
 };
 
 //
 // STDIO文件信息
 //
-static struct __stdio_file{
-    struct __portBasic basic;
+static struct __stdio{
     u32 runmode; // 初始化时配置的运行模式；
     union {
         s32 direct; // 非跟随模式下的文件指向;
         s32 *follow; // 跟随模式下的文件指向，其实际指向的是STDIN的dwDirect;
     }fd;
-}__stdio_files[3];
+}__stdio_in_out_err[3];
 
 //
 // 0、1、2三个文件的查询表；
 //
-static tagOFile *__stdio_lookup[3];
+static struct objhandle *__stdio_lookup[3];
 
-//FILE *stdin  = (FILE*)&__stdio_uninit;
-//FILE *stderr = (FILE*)&__stdio_uninit;
-//FILE *stdout = (FILE*)&__stdio_uninit;
-FILE *stdin  = NULL;
-FILE *stderr = NULL;
-FILE *stdout = NULL;
+FILE *stdin  = (FILE*)&__stdio_filestruct[0];
+FILE *stderr = (FILE*)&__stdio_filestruct[1];
+FILE *stdout = (FILE*)&__stdio_filestruct[2];
 
-#if 0
-struct __STDIO_Context{
-    u32 dwMode; //
-    u32 direct;
-};
-#endif
 // ============================================================================
 // 功能：
 // 参数：
@@ -125,20 +123,20 @@ s32 skip_atoi(const char **s)
 }
 
 // ============================================================================
-// 功能：写STDIO文件；
-// 参数：of -- STDIO文件；
+// 功能：写STDIO；
+// 参数：hdl -- STDIO对象句柄；
 //      data -- 写数据；
 //      size -- 写数据大小；
 // 返回：实际写出大小；
 // 备注：
 // ============================================================================
-static s32 __stdio_filewrite(tagOFile *of, u8 *data, u32 size)
+static s32 __stdio_write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    struct __stdio_file *stdio;
+    struct __stdio *stdio;
     s32 fd;
     s32 res = 0;
 
-    stdio = dListEntry(of_basic(of), struct __stdio_file, basic);
+    stdio = (struct __stdio*)handle_val(hdl);
     if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
     {
         fd = *(stdio->fd.follow); // 当前文件处于跟随模式
@@ -155,22 +153,22 @@ static s32 __stdio_filewrite(tagOFile *of, u8 *data, u32 size)
 }
 
 // ============================================================================
-// 功能：读STDIO文件；
-// 参数：of -- STDIO文件；
+// 功能：读STDIO；
+// 参数：hdl -- STDIO对象句柄；
 //      data -- 读缓存；
 //      size -- 读数据大小；
 // 返回：实际读入大小；
 // 备注：
 // ============================================================================
-static s32 __stdio_fileread(tagOFile *of, u8 *buf, u32 size)
+static s32 __stdio_read(struct objhandle *hdl, u8 *buf, u32 size)
 {
-    struct __stdio_file *stdio;
+    struct __stdio *stdio;
     s32 fd, res = 0;
 
-    stdio = dListEntry(of_basic(of), struct __stdio_file, basic);
+    stdio = (struct __stdio*)handle_val(hdl);
     if(stdio->runmode&CN_STDIO_STDIN_MULTI) // 只有标准输入文件存在多源
     {
-        fd = Multiplex_Wait(stdin_multiplexset, NULL, of_timeout(of)); // timeout是forever
+        fd = Multiplex_Wait(stdin_multiplexset, NULL, handle_timeout(hdl)); // timeout是forever
         if(fd >= 0)
             stdio->fd.direct = fd;
         else
@@ -192,90 +190,90 @@ static s32 __stdio_fileread(tagOFile *of, u8 *buf, u32 size)
 }
 
 // ============================================================================
-// 功能：打开STDIO文件；
-// 参数：obj -- STDIO文件对象；
+// 功能：打开STDIO；
+// 参数：ob -- STDIO对象；
 //      mode -- 打开模式；
-// 返回：
+// 返回：成功（STDIO对象句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-static tagOFile *__stdio_fileopen(struct Object *obj, u32 mode)
+static struct objhandle *__stdio_open(struct obj *ob, u32 mode)
 {
-    struct __stdio_file *stdio;
-    tagOFile *of;
+    struct __stdio *stdio;
+    struct objhandle *hdl;
     s32 fd, res;
     u32 timeout = 0;
 
-    if(testdirectory(mode))
+    if(test_directory(mode))
     {
-        if(GROUP_POINT != __OBJ_Type(obj))
+        if(!obj_isset(ob))
             return (NULL); // 只有针对"stdio"目录的操作才是允许的
     }
     else
     {
-        stdio = dListEntry(of_basiclinko(obj), struct __stdio_file, basic);
+        stdio = (struct __stdio*)obj_val(ob);
         if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
             fd = *stdio->fd.follow;
         else
             fd = stdio->fd.direct;
 
-        res = fcntl(fd, F_OF_GETTIMEOUT, &timeout);
+        res = fcntl(fd, F_SETTIMEOUT, &timeout);
         if(res)
             return (NULL); // 无法访问所定向的文件；
     }
 
-    of = of_new();
-    if(of)
+    hdl = handle_new();
+    if(hdl)
     {
-        of_init(of, NULL, mode, 0);
+        handle_init(hdl, NULL, mode, 0);
         if(timeout)
-            of_settimeout(of, timeout);
+            handle_settimeout(hdl, timeout);
     }
 
-    return (of);
+    return (hdl);
 }
 
 // ============================================================================
 // 功能：关闭STDIO；
-// 参数：
-// 返回：
+// 参数：hdl -- STDIO对象句柄；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __stdio_fileclose(tagOFile *of)
+static s32 __stdio_close(struct objhandle *hdl)
 {
-    if(of==__stdio_lookup[0])
+    if(hdl==__stdio_lookup[0])
     {
         __stdio_lookup[0] = NULL;
         warning_printf("stdio","\"in\"(0) is closed.");
     }
-    else if(of==__stdio_lookup[1])
+    else if(hdl==__stdio_lookup[1])
     {
         __stdio_lookup[1] = NULL;
         warning_printf("stdio","\"out\"(1) is closed.");
     }
-    else if(of==__stdio_lookup[2])
+    else if(hdl==__stdio_lookup[2])
     {
         __stdio_lookup[2] = NULL;
         warning_printf("stdio","\"err\"(2) is closed.");
     }
 
-    return (of_free(of));
+    return (handle_free(hdl));
 }
 
 // ============================================================================
 // 功能：STDIO重定向；
-// 参数：of -- 文件上下文；
+// 参数：hdl -- STDIO对象句柄；
 //      fd -- 新定向的文件；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __stdio_fileredirect(tagOFile *of, u32 fd)
+static s32 __stdio_redirect(struct objhandle *hdl, s32 fd)
 {
-    struct __stdio_file *stdio;
+    struct __stdio *stdio;
 
-    if(isdirectory(of))
+    if(isdirectory(hdl))
         return (-1); // 只有STDIO是目录，但其不允许重新定向；
 
-    stdio = dListEntry(of_basic(of), struct __stdio_file, basic);
+    stdio = (struct __stdio*)handle_val(hdl);
     if(!(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW)))
         close(stdio->fd.direct); // 非跟随模式时，尝试关闭旧的定向文件；
 
@@ -289,22 +287,21 @@ static s32 __stdio_fileredirect(tagOFile *of, u32 fd)
 
 // ============================================================================
 // 功能：STDIN复用集操作；
-// 参数：of -- STDIO文件上下文；
+// 参数：hdl -- STDIO对象句柄；
 //      acts -- 添加（1）；删除（0）；
 //      fd -- 文件；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 __stdio_filemulti(tagOFile *of, u32 acts, u32 fd)
+s32 __stdio_multi(struct objhandle *hdl, u32 acts, s32 fd)
 {
-    struct __stdio_file *stdio;
+    struct __stdio *stdio;
     s32 res = -1;
 
-    if(isdirectory(of))
+    if(isdirectory(hdl))
         return (-1); // 只有STDIO是目录，但其不允许操作复用集；
 
-    stdio = dListEntry(of_basic(of), struct __stdio_file, basic);
-
+    stdio = (struct __stdio*)handle_val(hdl);
     if((!(stdio->runmode & CN_STDIO_STDIN_MULTI))&&(!stdin_multiplexset));
         return (-1); // 只有输入才存在多路复用集；
 
@@ -333,24 +330,24 @@ s32 __stdio_filemulti(tagOFile *of, u32 acts, u32 fd)
 #if 0
 // ============================================================================
 // 功能：STDIN的TAG操作；
-// 参数：of -- STDIO文件上下文；
+// 参数：hdl -- STDIO对象句柄；
 //      acts -- 设置（1）；清除（0）；
 //      flags -- TAG位；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 __stdio_tag(tagOFile *of, u32 acts, u32 flags)
+s32 __stdio_tag(struct objhandle *hdl, u32 acts, u32 flags)
 {
     s32 res = 0;
 
     switch (acts)
     {
         case 1:
-                of->tag |= flags;
+                hdl->tag |= flags;
                 break;
 
         case 0:
-                of->tag &= ~flags;
+                hdl->tag &= ~flags;
                 break;
 
         default:
@@ -363,44 +360,47 @@ s32 __stdio_tag(tagOFile *of, u32 acts, u32 flags)
 #endif
 
 // ============================================================================
-// 功能：查询stdio文件状态
-// 参数：
+// 功能：查询stdio状态；
+// 参数：ob -- stdio对象；
+//      data -- stdio状态；
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __stdio_filestat(struct Object *obj, struct stat *stat)
+static s32 __stdio_stat(struct obj *ob, struct stat *data)
 {
-    memset(stat, 0x0, sizeof(*stat));
-    if(GROUP_POINT == __OBJ_Type(obj))
-        stat->st_mode = S_IFDIR;
+    memset(data, 0x0, sizeof(*stat));
+    if(obj_isset(ob))
+        data->st_mode = S_IFDIR;
     else
-        stat->st_mode = S_IFREG;
+        data->st_mode = S_IFREG;
 
     return (0);
 }
 
 // ============================================================================
 // 功能：STDIO timeout操作
-// 参数：
+// 参数：hdl -- stdio对象句柄；
+//      act -- 1 设置时间；0 获取时间；
+//      timeout -- 时间；
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __stdio_filetimeout(tagOFile *of, u32 acts, u32 *timeout)
+static s32 __stdio_timeout(struct objhandle *hdl, u32 acts, u32 *timeout)
 {
-    struct __stdio_file *stdio;
+    struct __stdio *stdio;
     s32 fd, res = 0;
 
-    if(isdirectory(of))
+    if(isdirectory(hdl))
     {
         // 只有STDIO是目录
         if(1 == acts)
-            of_settimeout(of, *timeout);
+            handle_settimeout(hdl, *timeout);
         else
-            *timeout = of_timeout(of);
+            *timeout = handle_timeout(hdl);
     }
     else
     {
-        stdio = dListEntry(of_basic(of), struct __stdio_file, basic);
+        stdio = (struct __stdio*)handle_val(hdl);
         if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
             fd = *stdio->fd.follow;
         else
@@ -409,13 +409,13 @@ static s32 __stdio_filetimeout(tagOFile *of, u32 acts, u32 *timeout)
         switch (acts)
         {
             case 1:
-                    res = fcntl(fd,  F_OF_SETTIMEOUT, *timeout);
+                    res = fcntl(fd,  F_SETTIMEOUT, *timeout); // 设置被定向文件的timeout
                     if(!res)
-                        of_settimeout(of, *timeout);
+                        handle_settimeout(hdl, *timeout);
                     break;
 
             case 0:
-                    res = fcntl(fd,  F_OF_GETTIMEOUT, timeout);
+                    res = fcntl(fd,  F_GETTIMEOUT, timeout);
                     break;
 
             default:
@@ -428,21 +428,21 @@ static s32 __stdio_filetimeout(tagOFile *of, u32 acts, u32 *timeout)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
+// 功能：stdio对象集合（类）操作集
+// 参数：见enum objops说明；
+// 返回：见enum objops说明；
 // 备注：
 // ============================================================================
-static s32 __stdio_fileops(u32 dwCMD, ptu32_t context, ptu32_t args,  ...)
+static ptu32_t __stdio_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
 {
     va_list list;
 
-    switch(dwCMD)
+    switch(ops)
     {
-        case CN_OBJ_CMD_OPEN:
+        case OBJOPEN:
         {
             char *notExist;
-            struct Object *obj = (struct Object*)context;
+            struct obj *ob = (struct obj*)o_hdl;
             u32 mode = (u32)args;
 
             va_start(list, args);
@@ -452,140 +452,165 @@ static s32 __stdio_fileops(u32 dwCMD, ptu32_t context, ptu32_t args,  ...)
             if(notExist)
                 return (-1);
 
-            return ((ptu32_t)__stdio_fileopen(obj, mode));
+            return ((ptu32_t)__stdio_open(ob, mode));
         }
 
-        case CN_OBJ_CMD_CLOSE:
+        case OBJCLOSE:
         {
-            tagOFile *of = (tagOFile*)context;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
 
-            return ((ptu32_t)__stdio_fileclose(of));
+            return ((ptu32_t)__stdio_close(hdl));
         }
 
-        case CN_OBJ_CMD_READDIR:
+        case OBJCHILDS:
         {
-            return(-1); //
+            return(-1); // 读目录项；
         }
 
-        case CN_OBJ_CMD_DELETE:
+        case OBJDEL:
         {
             return (-1); // STDIO文件不允许删除；
         }
 
-        case CN_OBJ_CMD_SEEK:
+        case OBJSEEK:
         {
             return (-1);
         }
 
-        case CN_OBJ_CMD_WRITE:
+        case OBJWRITE:
         {
-            tagOFile *of;
+            struct objhandle *hdl;
             u8 *buf;
             u32 len;
 
-            of = (tagOFile *)context;
+            hdl = (struct objhandle *)o_hdl;
             buf = (u8*)args;
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
-
-            return((ptu32_t)__stdio_filewrite(of, buf, len));
+            return((ptu32_t)__stdio_write(hdl, buf, len));
         }
 
-        case CN_OBJ_CMD_READ:
+        case OBJREAD:
         {
-            tagOFile *of;
+            struct objhandle *hdl;
             u8 *buf;
             u32 len;
 
-            of = (tagOFile *)context;
+            hdl = (struct objhandle *)o_hdl;
             buf = (u8*)args;
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
-
-            return((ptu32_t)__stdio_fileread(of, buf, len));
+            return((ptu32_t)__stdio_read(hdl, buf, len));
         }
 
-        case CN_OBJ_CMD_STAT:
+        case OBJSTAT:
         {
-            char *notExist;
-            struct Object *obj = (struct Object*)context;
+            char *path;
+            struct obj *ob = (struct obj*)o_hdl;
             struct stat *info = (struct stat*)args;
 
             va_start(list, args);
-            notExist = (char*)va_arg(list, u32);
+            path = (char*)va_arg(list, u32);
             va_end(list);
+            if(path&&('\0'!=*path))
+                return (-1); // 对象不存在；
 
-            if(notExist)
-                return (-1);
-
-            return ((ptu32_t)__stdio_filestat(obj, info));
+            return ((ptu32_t)__stdio_stat(ob, info));
         }
 
-        case CN_OBJ_FCNTL_START + F_OF_SETTIMEOUT:
+        case OBJCTL:
         {
-            tagOFile *of = (tagOFile*)context;
-            u32 timeout = (u32)args;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            u32 cmd = args;
+            va_start(list, args);
+            switch(cmd)
+            {
+                case F_SETTIMEOUT:
+                {
+                    u32 *timeout = (u32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_timeout(hdl, 1, timeout));
+                }
 
-            return ((ptu32_t)__stdio_filetimeout(of, 1, &timeout));
+                case F_GETTIMEOUT:
+                    break;
+
+                case F_STDIO_MULTI_ADD:
+                {
+                    s32 *fd = (s32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_multi(hdl, 1, *fd));
+                }
+
+                case F_STDIO_MULTI_DEL:
+                {
+                    s32 *fd = (s32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_multi(hdl, 0, *fd));
+                }
+
+                case F_STDIO_REDRIECT:
+                {
+                    s32 *fd = (s32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_redirect(hdl, *fd));
+                }
+
+                default : break;
+            }
         }
 
-        case CN_OBJ_FCNTL_START + F_OF_GETTIMEOUT:
+        case OBJIOCTL:
         {
-            tagOFile *of = (tagOFile*)context;
-            u32 *timeout = (u32*)args;
-
-            return ((ptu32_t)__stdio_filetimeout(of, 1, timeout));
+            break;
         }
 
 #if 0
         case (CN_OBJ_FCNTL_START + F_OF_SETTAG):
         {
-            tagOFile *of = (tagOFile*)context;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             ptu32_t tag = (ptu32_t)args;
 
-            return ((ptu32_t)__stdio_tag(of, 1, tag));
+            return ((ptu32_t)__stdio_tag(hdl, 1, tag));
         }
 
         case (CN_OBJ_FCNTL_START + F_OF_CLRTAG):
         {
-            tagOFile *of = (tagOFile*)context;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             ptu32_t tag = (ptu32_t)args;
 
-            return ((ptu32_t)__stdio_tag(of, 0, tag));
+            return ((ptu32_t)__stdio_tag(hdl, 0, tag));
         }
 #endif
 
+#if 0
         case (CN_OBJ_FCNTL_START + F_STDIO_MULTI_ADD):
         {
-            tagOFile *of = (tagOFile*)context;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             u32 add = (u32)args;
 
-            return ((ptu32_t)__stdio_filemulti(of, 1, add));
+            return ((ptu32_t)__stdio_multi(hdl, 1, add));
         }
 
         case (CN_OBJ_FCNTL_START + F_STDIO_MULTI_DEL):
         {
-            tagOFile *of = (tagOFile*)context;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             u32 del = (u32)args;
 
-            return ((ptu32_t)__stdio_filemulti(of, 0, del));
+            return ((ptu32_t)__stdio_multi(hdl, 0, del));
         }
 
         case (CN_OBJ_FCNTL_START + F_STDIO_REDRIECT):
         {
-            tagOFile *of = (tagOFile*)context;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             u32 fd = (u32)args;
 
-            return ((ptu32_t)__stdio_fileredirect(of, fd));
+            return ((ptu32_t)__stdio_redirect(hdl, fd));
         }
-
+#endif
         default:
             break;
     }
 
-    return (CN_OBJ_CMD_UNSUPPORT);
+    return (-1);
 }
 
 // ============================================================================
@@ -601,32 +626,28 @@ static s32 __stdio_fileops(u32 dwCMD, ptu32_t context, ptu32_t args,  ...)
 static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
 {
     char *notfound;
-    struct Object *obj;
+    struct obj *ob;
     struct stat info;
     s32 res;
     FILE *fp;
-    tagOFile *of = NULL;
-    extern s32 __FBNew(FILE *stream);
-    extern void __FBDel(FILE *stream);
+    struct objhandle *hdl = NULL;
+    extern s32 __filebuf_new(FILE *stream);
+    extern void __filebuf_del(FILE *stream);
 
     res = fstat(fd, &info);
     if(res)
         return (-1);
 
-    fp = malloc(sizeof(*fp));
-    if(!fp)
-        return (-1);
-
-    memset(fp, 0x0, sizeof(*fp));
+    fp = (FILE*)&__stdio_filestruct[type];
     fp->unget = EOF;
     if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISBF(info.st_mode)))
     {
-        res = __FBNew(fp);
+        res = __filebuf_new(fp);
         if(res)
             goto __ERR_STDIO_SET;
     }
 
-    fcntl(fd, F_OF_SETTIMEOUT, CN_TIMEOUT_FOREVER); // 将所定向的设备设置为forver（阻塞式）；
+    fcntl(fd, F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // 将所定向的设备设置为forver（阻塞式）；
     switch(type)
     {
         case 0 :
@@ -649,70 +670,72 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
                 }
             }
 
-            obj = OBJ_MatchPath("/stdio/in", &notfound, NULL);
+            ob = obj_matchpath("/stdio/in", &notfound, NULL);
             if(notfound)
             {
                 goto __ERR_STDIO_SET;
             }
 
-            of = __stdio_fileopen(obj, mode);
-            if(!of)
+            hdl = handle_new();
+            if(!hdl)
             {
                 goto __ERR_STDIO_SET;
             }
-            of_settimeout(of, CN_TIMEOUT_FOREVER);
-            of_linko(of, obj);
-            __stdio_lookup[0] = of;
-            fp->fd = 0;
-            stdin = fp;
-            __stdio_files[0].fd.direct = fd;
 
+            handle_init(hdl, ob, mode, 0);
+            handle_linkobj(hdl, ob);
+            __stdio_lookup[0] = hdl;
+            stdin->fd = 0;
+            __stdio_in_out_err[0].fd.direct = fd;
             break;
         }
 
         case 1 :
         {
-            obj = OBJ_MatchPath("/stdio/out", &notfound, NULL);
+            ob = obj_matchpath("/stdio/out", &notfound, NULL);
             if(notfound)
             {
                 goto __ERR_STDIO_SET;
             }
-            of = __stdio_fileopen(obj, mode);
-            if(!of)
+
+            hdl = handle_new();
+            if(!hdl)
             {
                 goto __ERR_STDIO_SET;
             }
 
-            of_linko(of, obj);
-            __stdio_lookup[1] = of;
-            fp->fd = 1;
-            stdout = fp;
+            handle_init(hdl, ob, mode, 0);
+            handle_linkobj(hdl, ob);
+            __stdio_lookup[1] = hdl;
+            stdout->fd = 1;
             if(runmode & CN_STDIO_STDOUT_FOLLOW)
-                __stdio_files[1].fd.follow = &(__stdio_files[0].fd.direct);
+                __stdio_in_out_err[1].fd.follow = &(__stdio_in_out_err[0].fd.direct);
             else
-                __stdio_files[1].fd.direct = fd;
+                __stdio_in_out_err[1].fd.direct = fd;
 
             break;
         }
 
         case 2 :
         {
-            obj = OBJ_MatchPath("/stdio/err", &notfound, NULL);
+            ob = obj_matchpath("/stdio/err", &notfound, NULL);
             if(notfound)
                 goto __ERR_STDIO_SET;
 
-            of = __stdio_fileopen(obj, mode);
-            if(!of)
+            hdl = handle_new();
+            if(!hdl)
+            {
                 goto __ERR_STDIO_SET;
+            }
 
-            of_linko(of, obj);
-            __stdio_lookup[2] = of;
-            fp->fd = 2;
-            stderr = fp;
+            handle_init(hdl, ob, mode, 0);
+            handle_linkobj(hdl, ob);
+            __stdio_lookup[2] = hdl;
+            stderr->fd = 2;
             if(runmode & CN_STDIO_STDERR_FOLLOW)
-                __stdio_files[2].fd.follow = &(__stdio_files[0].fd.direct);
+                __stdio_in_out_err[2].fd.follow = &(__stdio_in_out_err[0].fd.direct);
             else
-                __stdio_files[2].fd.direct = fd;
+                __stdio_in_out_err[2].fd.direct = fd;
 
             break;
         }
@@ -725,10 +748,10 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
 
 __ERR_STDIO_SET:
 
-    __FBDel(fp);
+    __filebuf_del(fp);
     free(fp);
-    if(of)
-        __stdio_fileclose(of);
+    if(hdl)
+        __stdio_close(hdl);
 
     return (-1);
 }
@@ -751,43 +774,42 @@ static void __stdio_destory(void)
 // ============================================================================
 static s32 __stdio_build(u32 runmode)
 {
-    struct Object *root;
+    struct obj *stdio_root;
     u8 i;
 
-    root = __mounto("stdio", "/", (tagObjOps)__stdio_fileops, 0);
-    if(!root)
+    stdio_root = obj_newchild_set(objsys_root(), "stdio", __stdio_ops, 0, O_RDWR);
+    if(!stdio_root)
         return (-1);
 
     // 建立和初始化in、out和err三个文件
     for(i = 0; i < 3; i++)
     {
-        __stdio_files[i].fd.direct = -1;
-        __stdio_files[i].runmode = 0;
-        of_initbasic(&__stdio_files[i].basic, O_RDWR);
+        __stdio_in_out_err[i].fd.direct = -1;
+        __stdio_in_out_err[i].runmode = 0;
     }
 
     if(runmode & CN_STDIO_STDIN_MULTI)
-        __stdio_files[0].runmode |= CN_STDIO_STDIN_MULTI; // STDIN是多路复用模式；
+        __stdio_in_out_err[0].runmode |= CN_STDIO_STDIN_MULTI; // STDIN是多路复用模式；
 
     if(runmode & (CN_STDIO_STDOUT_FOLLOW))
     {
-        __stdio_files[1].runmode |= CN_STDIO_STDOUT_FOLLOW; // STDOUT跟随STDIN指向
-        __stdio_files[1].fd.follow = &__stdio_files[0].fd.direct;
+        __stdio_in_out_err[1].runmode |= CN_STDIO_STDOUT_FOLLOW; // STDOUT跟随STDIN指向
+        __stdio_in_out_err[1].fd.follow = &__stdio_in_out_err[0].fd.direct;
     }
 
     if(runmode & CN_STDIO_STDERR_FOLLOW)
     {
-        __stdio_files[2].runmode |= CN_STDIO_STDERR_FOLLOW; // STDERR跟随STDIN指向
-        __stdio_files[2].fd.follow = &__stdio_files[0].fd.direct;
+        __stdio_in_out_err[2].runmode |= CN_STDIO_STDERR_FOLLOW; // STDERR跟随STDIN指向
+        __stdio_in_out_err[2].fd.follow = &__stdio_in_out_err[0].fd.direct;
     }
 
-    if(-1 == of_virtualize(root, &__stdio_files[0].basic, "in"))
+    if(!obj_newchild(stdio_root, NULL, O_RDWR, (ptu32_t)(&__stdio_in_out_err[0]), "in"))
         return (-1);
 
-    if(-1 == of_virtualize(root, &__stdio_files[1].basic, "out"))
+    if(!obj_newchild(stdio_root, NULL, O_RDWR, (ptu32_t)(&__stdio_in_out_err[1]), "out"))
         return (-1);
 
-    if(-1 == of_virtualize(root, &__stdio_files[2].basic, "err"))
+    if(!obj_newchild(stdio_root, NULL, O_RDWR, (ptu32_t)(&__stdio_in_out_err[2]), "err"))
         return (-1);
 
     return (0);
@@ -805,7 +827,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
 {
     char *inname, *outname, *errname;
     s32 res, inFD, fd;
-    u32 mode;
+    u32 mode, runmode = CFG_STDIO_RUN_MODE;
 
     res = __stdio_build(CFG_STDIO_RUN_MODE);
     if(res)
@@ -815,7 +837,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
 
     // STDIN初始化
-    if(CFG_STDIO_RUN_MODE & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
+    if(runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
     {
         // STDOUT或STDERR只要有一个跟随STDIN，STDIN都必须以可读写的模式打开。
         mode = O_RDWR | O_APPEND;
@@ -824,9 +846,10 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     {
         mode =  O_RDONLY;
     }
+
     inFD = open(in, mode);
     inname = (char*)in;
-    res = __stdio_set(0, inFD, O_RDWR, CFG_STDIO_RUN_MODE);
+    res = __stdio_set(0, inFD, O_RDWR, runmode);
     if(res)
     {
         debug_printf("module","STDIO install failed(\"in\" cannot set).");
@@ -834,7 +857,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
 
      // STDOUT 初始化
-    if (CFG_STDIO_RUN_MODE & CN_STDIO_STDOUT_FOLLOW)
+    if (runmode & CN_STDIO_STDOUT_FOLLOW)
     {
         outname = inname; // STDOUT 跟随 STDIN，使用的是同一个文件；
         fd = inFD;
@@ -845,7 +868,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
         outname = (char*)out;
     }
 
-    res = __stdio_set(1, fd, (O_RDWR | O_APPEND), CFG_STDIO_RUN_MODE);
+    res = __stdio_set(1, fd, (O_RDWR | O_APPEND), runmode);
     if(res)
     {
         debug_printf("module","STDIO install failed(\"out\" cannot set).");
@@ -853,7 +876,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
 
     // STDERR初始化
-    if (CFG_STDIO_RUN_MODE & CN_STDIO_STDERR_FOLLOW)
+    if (runmode & CN_STDIO_STDERR_FOLLOW)
     {
         errname = inname; // STDOUT 跟随 STDIN，使用的是同一个文件；
         fd = inFD;
@@ -864,7 +887,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
         errname = (char*)err;
     }
 
-    res = __stdio_set(2, fd, (O_RDWR | O_APPEND), CFG_STDIO_RUN_MODE);
+    res = __stdio_set(2, fd, (O_RDWR | O_APPEND), runmode);
     if(res)
     {
         debug_printf("module","STDIO install failed(\"err\" cannot set).");
@@ -880,81 +903,26 @@ __INSTALL_STDIO_ERR:
 }
 
 // ============================================================================
-// 功能：测试是否是未初始化的STDIO；
-// 参数：stream -- STDIO文件流；
-// 返回：是（1）；不是（0）；未初始化的STDIO（-1）；
-// 备注：
-// ============================================================================
-s32 IsSTDIO(FILE* stream)
-{
-    if(!stream)
-        return (0); // 非法参数
-
-    if(-1 == stream->fd)
-        return (-1); // 未初始化的STDIO文件流
-
-    if((0 == stream->fd) || (1 == stream->fd) || (2 == stream->fd))
-        return (1); // 是STDIO文件流
-
-    return (0); // 不是STDIO文件流
-}
-
-// ============================================================================
 // 功能：获取标准IO（in、out和err）的文件信息；
-// 参数：type -- 标准IO类型，0（输入），1（输出），2（错误输出）；
+// 参数：fd -- 标准IO类型，0（输入），1（输出），2（错误输出）；
 // 返回：标准IO的文件信息；
 // 备注：因为"stdin"等的结构中的fd（文件号）被人为改变成了0等，
 //      这会导致读写时找不到其原始的上下文；此处的查找表示为了保存这个上下文；
 // ============================================================================
-tagOFile *STDIO_Get(u32 type)
+struct objhandle *fd2stdio(s32 fd)
 {
-    tagOFile *of;
+    struct objhandle *hdl;
 
-    switch(type)
+    switch(fd)
     {
-        case 0: of = __stdio_lookup[0]; break;
-        case 1: of = __stdio_lookup[1]; break;
-        case 2: of = __stdio_lookup[2]; break;
-        default:of = NULL; break;
+        case 0: hdl = __stdio_lookup[0]; break;
+        case 1: hdl = __stdio_lookup[1]; break;
+        case 2: hdl = __stdio_lookup[2]; break;
+        default:hdl = NULL; break;
     }
 
-    return (of);
+    return (hdl);
 }
-
-#if 0
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-s32 STDIO_Redirect(FILE *stream, u32 fd)
-{
-    s32 res = 0;
-
-    switch(stream->fd)
-    {
-        case 0 :
-                __stdio_files[0].fd.direct = fd;
-                break;
-        case 1 :
-                __stdio_files[1].fd.direct = fd;
-                if(__stdio_files[1].runmode & CN_STDIO_STDOUT_FOLLOW)
-                    __stdio_files[1].runmode &= (~CN_STDIO_STDOUT_FOLLOW);
-                break;
-        case 2 :
-                __stdio_files[2].fd.direct = fd;
-                if(__stdio_files[1].runmode & CN_STDIO_STDERR_FOLLOW)
-                    __stdio_files[1].runmode &= (~CN_STDIO_STDERR_FOLLOW);
-                break;
-        default:
-                res = -1;
-                break;
-    }
-
-    return (res);
-}
-#endif
 
 // ============================================================================
 // 功能：将一个文件加入到标准输入的侦听集；

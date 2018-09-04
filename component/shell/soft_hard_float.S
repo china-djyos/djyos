@@ -12,8 +12,8 @@
 @      pflag，参数类型列表
 @      old_vm，被复位线程的控制块指针
 @返回:  无
-@函数原型:extern void __asm_ExecuteCmd(union Parameter *ptab,
-@   	enum ParameterTypr *pflag,Ex_shell_func fun,u32 num);
+@函数原型:extern void __asm_ExecuteCmd(union param *ptab,
+@   	enum param_typr *pflag,Ex_shell_func fun,u32 num);
 @-----------------------------------------------------------------------------
 */
 
@@ -655,8 +655,8 @@ call_fun:
 @      pflag，参数类型列表
 @      old_vm，被复位线程的控制块指针
 @返回:  无
-@函数原型:extern void __asm_ExecuteCmd(union Parameter *ptab,
-@   	enum ParameterTypr *pflag,Ex_shell_func fun,u32 num);
+@函数原型:extern void __asm_ExecuteCmd(union param *ptab,
+@   	enum param_typr *pflag,Ex_shell_func fun,u32 num);
 @-----------------------------------------------------------------------------
 */
 

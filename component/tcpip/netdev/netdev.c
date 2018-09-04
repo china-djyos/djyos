@@ -50,7 +50,7 @@
 #include <netbsp.h>
 #include <osarch.h>
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
 #include "../component_config_tcpip.h"
 
 #include "../common/link.h"
@@ -550,7 +550,7 @@ void * NetDevPrivate(void *iface)
 //netdev shell here
 //static bool_t __IfconfigShell(char *param)
 ADD_TO_SHELL_HELP(ifconfig,"usage:ifconfig");
-ADD_TO_IN_SHELL static bool_t ifconfig(char *param)
+ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
 {
     int i = 0;
     tagNetDev *iface;
@@ -573,17 +573,19 @@ ADD_TO_IN_SHELL static bool_t ifconfig(char *param)
     OsPrintSplit('*',100);
     return true;
 }
-//struct ShellCmdTab  gIfaceDebug[] =
-//{
-//    {
-//        "ifconfig",
-//        __IfconfigShell,
-//        "usage:ifconfig",
-//        "usage:ifconfig",
-//    },
-//};
-//#define CN_IfaceDebug_NUM  ((sizeof(gIfaceDebug))/(sizeof(struct ShellCmdTab)))
+
+struct shell_debug  gIfaceDebug[] =
+{
+    {
+        "ifconfig",
+        ifconfig,
+        "usage:ifconfig",
+        "usage:ifconfig",
+    },
+};
+#define CN_IfaceDebug_NUM  ((sizeof(gIfaceDebug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gIfaceDebugCmdRsc[CN_IfaceDebug_NUM];
+
 // =============================================================================
 // FUNCTION   :this is the rout module initialize function
 // PARAMS IN  :
@@ -600,17 +602,19 @@ bool_t NetDevInit(void)
     {
         goto EXIT_MUTEX;
     }
-//    ret = Sh_InstallCmd(gIfaceDebug,gIfaceDebugCmdRsc,CN_IfaceDebug_NUM);
-//    if(false == ret)
-//    {
-//        goto EXIT_ROUTCMD;
-//    }
+
+    if(CN_IfaceDebug_NUM!=shell_debug_add(gIfaceDebug, CN_IfaceDebug_NUM))
+    {
+        goto EXIT_ROUTCMD;
+    }
+
     ret = true;
     return ret;
 
-//EXIT_ROUTCMD:
-//    mutex_del(gIfaceCB.lock);
-//    gIfaceCB.lock = NULL;
+EXIT_ROUTCMD:
+    mutex_del(gIfaceCB.lock);
+    gIfaceCB.lock = NULL;
+
 EXIT_MUTEX:
     ret = false;
     return ret;

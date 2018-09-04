@@ -102,7 +102,7 @@ extern "C" {
 
 bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin);
 bool_t IIC_Init(u8 iic_port);
-
+bool_t ModuleInstall_IIC(ptu32_t port);
 #ifdef __cplusplus
 }
 #endif

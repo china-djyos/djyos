@@ -57,21 +57,24 @@
 #ifndef __SYSTIME_H__
 #define __SYSTIME_H__
 #include "stdint.h"
+#include "board-config.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 typedef u32 (*fntSysTimeHard32)(void);
-typedef s64 (*fntSysTimeHard64)(void);
+typedef u64 (*fntSysTimeHard64)(void);
 
 #define CN_TIMEOUT_FOREVER  0xffffffff  //无限延时
 #define mS      1000    //系统时间单位是微秒，想用ms就得*1000
 
 void SysTimeConnect(fntSysTimeHard32 GetSysTime32,fntSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle);
-u64 DjyGetSysTime(void);
-u64 DjyGetSysTimeCycle(void);
+s64 DjyGetSysTime(void);
+s64 DjyGetSysTimeCycle(void);
 u32 DjyGetSysTimeFreq(void);
-u64 DjyGetSysTimeBase(void);
+#if (!CN_USE_TICKLESS_MODE)
+s64 DjyGetSysTick(void);
+#endif
 
 #ifdef __cplusplus
 }

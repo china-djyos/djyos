@@ -55,7 +55,7 @@
 #include <ctype.h>
 #include "./usb.h"
 #include "./stm32_usb_host_library/class/custom/inc/usbh_custom.h"
-#include "newshell.h"
+
 #define RW_SIZE                 512
 #define LINE_MAX                1280
 
@@ -85,9 +85,7 @@ static u32 USB_LogThread(void);
 // 返回:
 // 备注:
 // ============================================================================
-//bool_t SH_USB_Log(const char *pParam)
-ADD_TO_SHELL_HELP(udiaggrab,"SH_USB_Log  for debug");
-ADD_TO_IN_SHELL bool_t udiaggrab(const char *pParam)
+bool_t SH_USB_Log(const char *pParam)
 {
     if(!pParam)
         return (FALSE);

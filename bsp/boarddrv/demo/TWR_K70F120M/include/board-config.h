@@ -68,8 +68,6 @@ extern "C" {
 
 #define DJY_BOARD        "TWR_K70F120M"
 
-#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。*
-
 //FslKxx系列有部分支持MPU或FPU，故不能统一在cpu-optional.h中声明
 #define CN_CPU_OPTIONAL_MPU         1       //是否支持mpu
 #define CN_CPU_OPTIONAL_FPU         1       //是否支持fpu
@@ -83,8 +81,22 @@ extern "C" {
 
 #define CN_CFG_FCLK CN_CFG_MCLK  //cm4自由运行外设时钟
 
-#define	CN_CFG_USE_USERTIMER		(0U)//是否使用LPTIMER作为系统时钟
-#define CN_CFG_TIME_BASE_HZ			CN_CFG_MCLK//(8000U)
+/*____以下定义tick参数____*/
+#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
+#define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
+#define CN_USE_TICKLESS_MODE    (0U)
+#if (!CN_USE_TICKLESS_MODE)
+#define CN_CFG_FINE_US 0x0000222  //1/120M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
+#define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
+#else
+#define CN_CFG_USE_USERTIMER        (0U)//是否使用LPTIMER作为系统时钟
+#define CN_CFG_TIME_BASE_HZ         CN_CFG_MCLK//(32000U)//(8000U)
+#if (!CN_CFG_USE_USERTIMER)
+#define CN_CFG_USE_BYPASSTIMER      (0U)//0表示不使用旁路定时器，1表示使用旁路定时器
+#else
+#define CN_CFG_USERTIMER_PRESC      (1U)//若不使用SYSTICK定时器，需指定用户定时器的分频数
+#endif
+#endif
 
 #define CN_CFG_DDR_USED    1
 

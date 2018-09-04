@@ -99,7 +99,7 @@
 //@#$%component end configure
 
 
-static struct Object *s_ptDjybusDir;                //定义静态变量DjyBus的根结点
+static struct obj *s_ptDjybusDir;                //定义静态变量DjyBus的根结点
 // =============================================================================
 // 功能：建立并初始化DjyBus总线根节点，它是总线类型节点的父结点
 // 参数：para,无实际意义
@@ -108,7 +108,7 @@ static struct Object *s_ptDjybusDir;                //定义静态变量DjyBus的根结点
 bool_t ModuleInstall_DjyBus (void)
 {
     //在资源链表中建立一个根结点，所有建立的总线结点都挂在该结点上。
-    s_ptDjybusDir = OBJ_AddChild(OBJ_Root(), NULL, 0, "DjyBus");
+    s_ptDjybusDir = obj_newchild(objsys_root(), (fnObjOps)-1, 0, 0,"DjyBus");
     if(s_ptDjybusDir)
     {
         info_printf("module","bus installed.");
@@ -125,15 +125,15 @@ bool_t ModuleInstall_DjyBus (void)
 // 参数：NewBusTypeName,总线类型名称
 // 返回：返回建立的资源结点指针，失败时返回NULL
 // =============================================================================
-struct Object * DjyBus_BusTypeAdd (const char* NewBusTypeName)
+struct obj * DjyBus_BusTypeAdd (const char* NewBusTypeName)
 {
-    struct Object * NewBusType;
+    struct obj * NewBusType;
 
     //避免重复创建同名的总线类型
-    if(NULL != OBJ_SearchChild(s_ptDjybusDir, NewBusTypeName))
+    if(NULL != obj_search_child(s_ptDjybusDir, NewBusTypeName))
         return NULL;
 
-    NewBusType = OBJ_AddChild(s_ptDjybusDir, NULL, 0, NewBusTypeName);
+    NewBusType = obj_newchild(s_ptDjybusDir, (fnObjOps)-1, 0, 0, NewBusTypeName);
 
     return NewBusType;
 }
@@ -144,11 +144,11 @@ struct Object * DjyBus_BusTypeAdd (const char* NewBusTypeName)
 // 参数：DelBusType,待删除的总线类型结点
 // 返回：TRUE,删除成功;false,删除失败
 // =============================================================================
-bool_t DjyBus_BusTypeDelete(struct Object * DelBusType)
+bool_t DjyBus_BusTypeDelete(struct obj * DelBusType)
 {
     bool_t result;
 
-    if(OBJ_Del(DelBusType))
+    if(obj_del(DelBusType))
     {
         result = false;
     }
@@ -164,8 +164,8 @@ bool_t DjyBus_BusTypeDelete(struct Object * DelBusType)
 // 参数：BusTypeName,待查找的总线类型结点名称
 // 返回：结点指针，NULL时查找失败
 // =============================================================================
-struct Object * DjyBus_BusTypeFind(const char * BusTypeName)
+struct obj * DjyBus_BusTypeFind(const char * BusTypeName)
 {
-    return OBJ_SearchChild(s_ptDjybusDir,BusTypeName);
+    return obj_search_child(s_ptDjybusDir,BusTypeName);
 }
 

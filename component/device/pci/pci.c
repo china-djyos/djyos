@@ -69,6 +69,7 @@
 #include "../include/pci.h"
 #include <stdio.h>
 #include "dbug.h"
+#include <shell.h>
 #define max(x, y)    (((x) < (y)) ? (y) : (x))
 #define min(x, y)    (((x) < (y)) ? (x) : (y))
 
@@ -1209,7 +1210,8 @@ void pcie_sh_install(void);
 //-----------------------------------------------------------------------------
 ptu32_t module_init_pcie(void)
 {
-//    pcie_sh_install( );
+
+    pcie_sh_install( );
     return true;
 }
 

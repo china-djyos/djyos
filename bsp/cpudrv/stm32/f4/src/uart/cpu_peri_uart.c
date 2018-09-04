@@ -536,7 +536,8 @@ u32 __UART_DMA_SendStart(u32 port)
         break;
     }
     DmaSendBuf = pUART_DmaSendBuf[port];
-    if(true == __uart_dma_timeout(s_UART_DmaSending[port]))
+//    if(true == __uart_dma_timeout(s_UART_DmaSending[port]))
+	if(true == s_UART_DmaSending[port])
         return 0;
     num = UART_PortRead(pUartCB[port],DmaSendBuf,DmaSendBufLen);
     addr = (u32)DmaSendBuf;

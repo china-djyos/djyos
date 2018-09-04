@@ -59,7 +59,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
-#include "newshell.h"
 #include <os.h>
 #include <exp.h>
 #include <shell.h>
@@ -792,18 +791,17 @@ ADD_TO_IN_SHELL bool_t linemem(char *param)
 	return true;
 }
 
-//struct ShellCmdTab  gLineMemDebug[] =
-//{
-//    {
-//		"linemem",
-//		__LineMemShell,
-//        "usage:linemem [item/state/byte](default state)",
-//        "usage:linemem [item/state/byte](default state)",
-//    },
-//};
-//#define CN_LineMemDebug_NUM  ((sizeof(gLineMemDebug))/(sizeof(struct ShellCmdTab)))
+struct shell_debug  gLineMemDebug[] =
+{
+    {
+		"linemem",
+		linemem,
+        "usage:linemem [item/state/byte](default state)",
+        "usage:linemem [item/state/byte](default state)",
+    },
+};
+#define CN_LineMemDebug_NUM  ((sizeof(gLineMemDebug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gLineMemDebugCmdRsc[CN_LineMemDebug_NUM];
-//
 
 // =============================================================================
 // º¯Êý¹¦ÄÜ:Line Mem for the Exception Record Configure
@@ -847,12 +845,13 @@ bool_t LineMemExpRecord_Config(tagExpLowLevelOpt *lopt,u16 memsize)
 	    debug_printf("null","%s:register recorder failed\r\n",__FUNCTION__);
 	    return ret;
 	}
-//	ret = Sh_InstallCmd(gLineMemDebug,gLineMemDebugCmdRsc,CN_LineMemDebug_NUM);
-//	if(false == ret)
-//	{
-//	    debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
-//	    return ret;
-//	}
+
+	if(CN_LineMemDebug_NUM==shell_debug_add(gLineMemDebug, CN_LineMemDebug_NUM))
+	{
+	    debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
+	    return (FALSE);
+	}
+
 	return ret;
 }
 // =============================================================================
@@ -900,12 +899,13 @@ bool_t LineMemExpRecord_ConfigTest(tagExpLowLevelOpt *lopt,u16 memsize,u32 maxle
 	    debug_printf("null","%s:register recorder failed\r\n",__FUNCTION__);
 	    return ret;
 	}
-//	ret = Sh_InstallCmd(gLineMemDebug,gLineMemDebugCmdRsc,CN_LineMemDebug_NUM);
-//	if(false == ret)
-//	{
-//	    debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
-//	    return ret;
-//	}
+
+	if(CN_LineMemDebug_NUM==shell_debug_add(gLineMemDebug, CN_LineMemDebug_NUM))
+	{
+	    debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
+		return (FALSE);
+	}
+
 	return ret;
 }
 

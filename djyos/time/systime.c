@@ -62,12 +62,14 @@
 #include "atomic.h"
 #include "int.h"
 #include "systime.h"
-#include "board-config.h"
 #include "component_config_time.h"
 
+#if	(CN_USE_TICKLESS_MODE) 
 extern u64 __DjyGetSysTime(void);
-extern u32 __Djy_GetTimeBaseCnt(void);
-extern u32 __Djy_GetTimeBaseReload(void);
+#else
+s64 __DjyGetSysTime(void);
+extern s64  g_s64OsTicks;               //操作系统运行ticks数
+#endif
 static fntSysTimeHard32  fnSysTimeHard32 = NULL;
 static fntSysTimeHard64  fnSysTimeHard64 = NULL;
 static u32 s_u32SysTimeFreq = 1000000;  //系统时钟的输入时钟频率
@@ -103,14 +105,14 @@ void SysTimeConnect(fntSysTimeHard32 GetSysTime32,fntSysTimeHard64 GetSysTime64,
 // 输出参数：
 // 返回值  ：获取的系统运行时间，uS
 // =============================================================================
-u64 DjyGetSysTime(void)
+s64 DjyGetSysTime(void)
 {
     u32 CurrentTime;
     s64 s64sysTimeMajorBak;
     atom_low_t atom;
 
     if((fnSysTimeHard32 == NULL) && (fnSysTimeHard64 == NULL))
-        return __DjyGetSysTime();
+        return (s64)__DjyGetSysTime();
     else if(fnSysTimeHard32 != NULL)
     {
         atom = Int_LowAtomStart();
@@ -121,11 +123,16 @@ u64 DjyGetSysTime(void)
         s64sysTimeMajorBak = s_s64sysTimeMajor;
         Int_LowAtomEnd(atom);
         //从计数值计算uS数
-        return (s64sysTimeMajorBak+CurrentTime)*1000000/s_u32SysTimeFreq;
+        //return (s64sysTimeMajorBak+CurrentTime)*1000000/s_u32SysTimeFreq;
+        return ((s64)((s64sysTimeMajorBak+CurrentTime)/ s_u32SysTimeFreq) *1000000 +
+                (((s64)((s64sysTimeMajorBak+CurrentTime)% s_u32SysTimeFreq) *1000000)/ s_u32SysTimeFreq));
     }
     else
     {
-        return fnSysTimeHard64( ) *1000000 / s_u32SysTimeFreq;
+        //return fnSysTimeHard64( ) *1000000 / s_u32SysTimeFreq;
+        s64 temp = (s64)fnSysTimeHard64( );
+        return ((s64)(temp/ s_u32SysTimeFreq) *1000000 +
+                        (((s64)(temp% s_u32SysTimeFreq) *1000000)/ s_u32SysTimeFreq));
     }
 }
 
@@ -136,14 +143,14 @@ u64 DjyGetSysTime(void)
 // 输出参数：
 // 返回值  ：获取的系统运行时间，周期数
 // =============================================================================
-u64 DjyGetSysTimeCycle(void)
+s64 DjyGetSysTimeCycle(void)
 {
     u32 CurrentTime;
-    u64 s64sysTimeMajorBak;
+    s64 s64sysTimeMajorBak;
     atom_low_t atom;
 
     if((fnSysTimeHard32 == NULL) && (fnSysTimeHard64 == NULL))
-        return __DjyGetSysTime();
+        return (s64)__DjyGetSysTime();
     else if(fnSysTimeHard32 != NULL)
     {
         atom = Int_LowAtomStart();
@@ -198,8 +205,23 @@ u32 DjyGetSysTimeFreq(void)
 //参数：无
 //返回：当前时钟
 //-----------------------------------------------------------------------------
-u64 DjyGetSysTimeBase(void)
+#if	(!CN_USE_TICKLESS_MODE)
+s64 DjyGetSysTick(void)
 {
-	return __DjyGetSysTime();
+    s64 time;
+#if (64 > CN_CPU_BITS)
+    //若处理器字长不是64位,需要多个周期才能读取os_ticks,该过程不能被时钟中断打断.
+    atom_low_t atom_low;
+    atom_low = Int_LowAtomStart();
+#endif
+
+    time = g_s64OsTicks;
+
+#if (64 > CN_CPU_BITS)
+    //若处理器字长不是64位,需要多个周期才能读取os_ticks,该过程不能被时钟中断打断.
+    Int_LowAtomEnd(atom_low);
+#endif
+    return time;
 }
+#endif
 

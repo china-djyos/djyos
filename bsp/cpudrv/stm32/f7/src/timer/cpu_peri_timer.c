@@ -59,6 +59,7 @@
 #include "cpu.h"
 #include "cpu_peri_int_line.h"
 #include "timer_hard.h"
+#include "board-config.h"
 // =============================================================================
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -67,7 +68,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t ModuleInstall_HardTimer(void);
-//    true != ModuleInstall_HardTimer( )；
+//    ModuleInstall_HardTimer();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -128,8 +129,15 @@ struct STM32TimerHandle
     u32     timerstate;       //定时器标识
     fntTimerIsr UserIsr;            //用户中断响应函数
 };
+
+//当开了辅助定时器的时候会使用TIM5做辅助定时器
+#if	CN_CFG_USE_BYPASSTIMER
+#define CN_STM32TIMER_NUM   (EN_STM32TIMER_2 +1)//(EN_STM32TIMER_5 +1)
+#define CN_STM32TIMER_MAX    EN_STM32TIMER_2//EN_STM32TIMER_5
+#else
 #define CN_STM32TIMER_NUM   (EN_STM32TIMER_5 +1)
 #define CN_STM32TIMER_MAX    EN_STM32TIMER_5
+#endif
 
 static struct STM32TimerHandle  stgTimerHandle[CN_STM32TIMER_NUM];
 
@@ -140,7 +148,9 @@ static u32  gs_dwSTM32TimerBitmap;  //对于定时器这种东西，一般的不会很多，32个应
 //timer0..timern的irq
 static u32 sgHaltimerIrq[CN_STM32TIMER_NUM]={
                                             CN_INT_LINE_TIM2,
+#if	(!CN_CFG_USE_BYPASSTIMER)
                                             CN_INT_LINE_TIM5
+#endif
                                             };
 //获取32位数第一个0bit位置(从高位到低位算起)
 u8 __STM32Timer_GetFirstZeroBit(u32 para)

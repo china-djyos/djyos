@@ -249,5 +249,67 @@ __asm_reset_cpu_hot:
     movs     r0,#0
     mov     pc,r0
 
+/*
+@----指令操作实现延时函数-------------------------------------------------------
+@功能:  指令延时
+@参数:  timeCoreClock。时间所对应的内核时钟数
+@返回:  无
+@函数原型:  void __asm_delay_us(u64 timeCoreClock)@
+@-----------------------------------------------------------------------------
+*/
+@.text
+@.align 2
+@.global __asm_delay_us
+@.thumb
+@.thumb_func
+@__asm_delay_us:
+@	subs    r0 ,#6      /*减去运算的周期数*/
+@	lsr     r0 ,r0, #0  /*每次循环2个机械周期 每个机械周期 1个内核时钟*/
+@ loop:
+@	subs    r0 ,#1
+@    bne     loop
+@    cmp     r1,#0
+@    beq     end
+@	subs    r1 ,#1
+@	ldr     r0 ,=0xffffffff
+@	b       __asm_delay_us
+@end:
+@	bx      lr
 
+
+/*
+@----指令操作实现延时函数-------------------------------------------------------
+@功能:  指令延时
+@参数:  timeCoreClock。时间所对应的内核时钟数
+@返回:  无
+@函数原型:  void __asm_delay_cycle(u64 timeCoreClock)
+@-----------------------------------------------------------------------------
+*/
+.text
+.align 2
+.global __asm_delay_cycle
+.thumb
+.thumb_func
+__asm_delay_cycle:
+@	subs    r0 ,#6      /*减去运算的周期数*/
+@	lsr     r0 ,r0, #0  /*每次循环2个机械周期 每个机械周期 1个内核时钟*/
+ loop:
+	subs    r0 ,#1
+    bne     loop
+    cmp     r1,#0
+    beq     end
+	subs    r1 ,#1
+	ldr     r0 ,=0xffffffff
+	b       __asm_delay_cycle
+end:
+	bx      lr
+
+.text
+.align 2
+.global __asm_bl_fun
+.thumb
+.thumb_func
+__asm_bl_fun:
+	mov   pc ,r0
+	bx    lr
 .end

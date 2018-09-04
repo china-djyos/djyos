@@ -89,7 +89,7 @@
 #include "djyos.h"
 #include "stdio.h"
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
 
 #include "component_config_heap.h"
 //常用常数定义
@@ -327,7 +327,8 @@ ADD_TO_IN_SHELL bool_t heap(void)
     u32 n,m,k;
 
     if(tg_pHeapList == NULL)
-        return;
+        return (FALSE);
+
     Heap = tg_pHeapList;
     debug_printf("heap","列出系统中所有的Heap\r\n\r\n");
     do
@@ -406,7 +407,8 @@ ADD_TO_IN_SHELL bool_t heap_spy(void)
     u32 n,m,k;
 
     if(tg_pHeapList == NULL)
-        return;
+        return (TRUE);
+
     Heap = tg_pHeapList;
     debug_printf("heap","列出所有Heap的分配情况\r\n");
     do

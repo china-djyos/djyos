@@ -85,6 +85,15 @@
 #define PRINT_TO_FILE_OR_DEV    2   //输出到文件/设备，例如stdout/stderr，file
 s32 skip_atoi(const char **s);
 
+
+// ============================================================================
+// 功能：测试是否是有效的的文件流；
+// 参数：stream -- 文件流；
+// 返回：是（1）；不是（0）；
+// 备注：
+// ============================================================================
+extern s32 isvalid(FILE* stream);
+
 //----输出一个字符到stdout-----------------------------------------------------
 //功能：输出一个字符到stdout，stdout可以是设备，也可以是文件
 //参数：ch ，待输出的字符
@@ -952,7 +961,7 @@ s32 vprintf (const char *fmt, va_list args)
     char TempBuf[CN_BUF_LENGTH];
 
     // if (stdout == StdNotInit)
-    if(-1 == IsSTDIO(stdout))
+    if(!isvalid(stdout))
         i = __vsnprintf (TempBuf, (ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
         i =  __vsnprintf (TempBuf, (ptu32_t)stdout, 0, PRINT_TO_FILE_OR_DEV, fmt, args);
@@ -968,7 +977,7 @@ s32 vprintf (const char *fmt, va_list args)
 //      阶段请使用该打印函数，谢谢合作，在特殊情况下，希望直接输出，可使用
 //      djy_printk函数。
 //-----------------------------------------------------------------------------
-s32 printf (const char *fmt, ...)
+s32 printf(const char *fmt, ...)
 {
     va_list args;
     u32  i;
@@ -977,7 +986,7 @@ s32 printf (const char *fmt, ...)
     va_start (args, fmt);
 
     // if (stdout == StdNotInit)
-    if(-1 == IsSTDIO(stdout))
+    if(!isvalid(stdout))
         i = __vsnprintf (TempBuf,(ptu32_t)NULL,0,PRINT_TO_DIRECT, fmt, args);
     else
         i =  __vsnprintf (TempBuf,(ptu32_t)stdout, 0,PRINT_TO_FILE_OR_DEV, fmt, args);
@@ -1032,7 +1041,7 @@ s32 fprintf(FILE *fp, const char *fmt, ...)
     }
     va_start (args, fmt);
     // if (fp == StdNotInit)
-    if(-1 == IsSTDIO(fp))
+    if(!isvalid(fp))
         i = __vsnprintf (TempBuf,(ptu32_t)NULL, 0, PRINT_TO_DIRECT, fmt, args);
     else
         i = __vsnprintf (TempBuf,(ptu32_t)fp, 0, PRINT_TO_FILE_OR_DEV, fmt, args);

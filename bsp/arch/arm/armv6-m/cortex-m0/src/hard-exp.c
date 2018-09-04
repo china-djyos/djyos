@@ -59,23 +59,32 @@
 //   修改说明:
 //------------------------------------------------------
 #include "stdint.h"
+#include "stddef.h"
 #include "arch_feature.h"
-#include "cortexm0.h"
+#include "djyos.h"
+#include "int.h"
+//#include "core_cm0.h"
 #include "hard-exp.h"
+#include "board-config.h"
 
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __Djy_ScheduleAsynSignal(void);
-extern u32 __Djy_GetTimeBaseReload(void);
+#if	(CN_USE_TICKLESS_MODE) 
+extern 	 u32 __Djy_GetTimeBaseReload(void);
+#endif
 void (*user_systick)(u32 inc_ticks);
-void HardExp_SystickHandler(void);
-void HardExp_SvcHandler(void);
 
+struct SystickReg volatile * const pg_systick_reg
+                        = (struct SystickReg *)0xE000E010;
+struct ScbReg volatile * const pg_scb_reg
+                        = (struct ScbReg *)0xe000ed00;
 
-void HardExp_Init(void)
+bool_t HardExp_Init(void)
 {
     pg_scb_reg->pri12_15 |=0xff000000;    //systick设为最低优先级,=异步信号
     pg_scb_reg->pri8_11 |= 0xff000000;    //svc的优先级和异步信号相同。
+    return true;
 }
 void HardExp_ConnectNmi(void (*esr)(void))
 {
@@ -88,16 +97,21 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 
 void HardExp_EsrTick(void)
 {
-	u32 tick=0;
+#if	(CN_USE_TICKLESS_MODE)
+    u32 tick=0;
+#endif
     if((pg_systick_reg->ctrl & bm_systick_ctrl_tickint) == 0)
         return;
     g_bScheduleEnable = false;
 //    tg_int_global.en_asyn_signal = false;
 //    tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal++;
+#if	(CN_USE_TICKLESS_MODE)
     tick=__Djy_GetTimeBaseReload();
     user_systick(tick);
-
+#else
+    user_systick(1);
+#endif
     tg_int_global.nest_asyn_signal--;
 //    tg_int_global.en_asyn_signal = true;
 //    tg_int_global.en_asyn_signal_counter = 0;

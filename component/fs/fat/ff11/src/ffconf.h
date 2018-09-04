@@ -148,7 +148,7 @@
 
 
 #define _STR_VOLUME_ID  1
-#define _VOLUME_STRS    "RAM","NAND","CF","SD", "USB MSC", "EMMC" /* "vol"号从0-x，需大写 */
+#define _VOLUME_STRS    "RAM","NAND","CF","SD", "MSC", "EMMC" /* "vol"号从0-x，需大写 */
 /* _STR_VOLUME_ID option switches string volume ID feature.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each

@@ -46,13 +46,12 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
 #include <dirent.h>
-#include "dbug.h"
 #include "../filesystems.h"
-#include "component_config_elf.h"
 
 extern s32 e_install(tagFSC *super, u32 flags, void *data);
-extern ptu32_t e_operations(u32 cmd, ptu32_t cx, ptu32_t args,  ...);
+extern ptu32_t e_operations(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...);
 
 //
 // IAP文件系统类型
@@ -66,47 +65,47 @@ static tagFST typeEFS = {
 };
 
 // ============================================================================
-// 功能：安装IAP文件系统
-// 参数：pDir -- 安装目录；pDev -- 安装设备；
+// 功能：安装EASY文件系统
+// 参数：target -- 安装目录；source -- 安装设备；opt -- 安装选项； config -- 特殊逻辑；
 // 返回：失败(-1)； 成功(0)。
 // 备注:
 // ============================================================================
-s32 ModuleInstall_EFS(const char *dir, const char *dev, u32 opt, void *config)
+s32 ModuleInstall_EFS(const char *target, const char *source, u32 opt, void *config)
 {
     s32 res;
-    char *path = "/efs"; // 默认安装目录
+    const char *dpath = "/efs"; // 默认安装目录
 
-    if(dir)
-        path = (char*)dir;
+    if(!target)
+        target = dpath;
 
-    if(!dev)
+    if(!source)
     {
-        error_printf("module","cannot install \"EFS\"<dev is not specified>.");
+        printf("\r\n: erro : module : cannot install \"EFS\"<source is not specified>.");
         return (-1); // 失败;
     }
 
-    res = FS_Register(&typeEFS);
-    if(res)
+    res = regfs(&typeEFS);
+    if(-1==res)
     {
-        debug_printf("module","cannot register \"EFS\"<file system type>.");
+        printf("\r\n: dbug : module : cannot register \"EFS\"<file system type>.");
         return (-1); // 失败;
     }
 
-    res = mkdir(path, S_IRWXU); // 创建安装目录
+    res = mkdir(target, S_IRWXU); // 创建安装目录
     if(-1 == res)
     {
-        debug_printf("module","mount \"IAP\" failed, cannot create \"%s\"<group point>.", path);
+        printf("\r\n: dbug : module : mount \"IAP\" failed, cannot create \"%s\"<group point>.", target);
         return (-1);
     }
 
-    res = FS_Mount(dev, path, "EFS", opt, config);
+    res = mountfs(source, target, "EFS", opt, config);
     if(res < 0)
     {
-        debug_printf("module","mount \"%s\" failed, cannot install.", "EFS");
-        remove(path);
+        printf("\r\n: dbug : module : mount \"%s\" failed, cannot install.", "EFS");
+        remove(target);
         return (-1);
     }
 
-    info_printf("module","file system \"%s\" installed on \"%s\".", "EFS", dev);
+    printf("\r\n: info  : module : file system \"%s\" installed on \"%s\".", "EFS", source);
     return (0);
 }

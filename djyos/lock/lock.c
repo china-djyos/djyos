@@ -73,7 +73,7 @@
 #include "pool.h"
 #include "djyos.h"
 #include "object.h"
-#include "objfile.h"
+#include "objhandle.h"
 #include "systime.h"
 #include "dbug.h"
 
@@ -119,8 +119,8 @@
 //@#$%component end configure
 
 
-static struct Object *s_ptMutexObject=NULL;
-static struct Object *s_ptSempObject=NULL;
+static struct obj *s_ptMutexObject=NULL;
+static struct obj *s_ptSempObject=NULL;
 //说明： CFG_LOCK_LIMIT 是用户配置的，由于用户并不知道操作系统需要用多少信号量，
 //      所以操作系统并不占用 CFG_LOCK_LIMIT 指标，用户使用的信号量从
 //      tg_semp_pool定义的内存池中分配，操作系统使用的信号量自己定义，两不
@@ -133,18 +133,18 @@ struct MemCellPool *g_ptLockPool;  //信号量结构内存池头指针
 //static struct MutexLCB *s_tMutexHead;
 static struct dListNode s_tSempHead = {&s_tSempHead, &s_tSempHead};
 static struct dListNode s_tMutexHead = {&s_tMutexHead, &s_tMutexHead};
-static tagOFile *s_ptSempFp;
-static tagOFile *s_ptMutexFp;
+static struct objhandle *s_ptSempFp;
+static struct objhandle *s_ptMutexFp;
 
 extern void __Djy_EventReady(struct EventECB *event_ready);
 extern void __Djy_ResumeDelay(struct EventECB *delay_event);
 extern void __Djy_AddToDelay(u32 u32l_uS);
 extern void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
 
-void __Lock_ShowSemp(struct Object *fp);
-void __Lock_ShowMutex(struct Object *fp);
-ptu32_t Lock_SempObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
-ptu32_t Lock_MutexObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
+void __Lock_ShowSemp(struct obj *fp);
+void __Lock_ShowMutex(struct obj *fp);
+ptu32_t Lock_SempObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...);
+ptu32_t Lock_MutexObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...);
 
 //----初始化锁模块模块step1----------------------------------------------------
 //功能：初始化信号量模块的第一步，此后可以调用除semp_create和mutex_create以外的
@@ -156,11 +156,11 @@ ptu32_t Lock_MutexObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
 //-----------------------------------------------------------------------------
 //ptu32_t ModuleInstall_Lock1(ptu32_t para)
 //{
-//    static struct Object semp_root;
-//    static struct Object mutex_root;
+//    static struct obj semp_root;
+//    static struct obj mutex_root;
 //    para = para;        //消除编译器告警
-//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct Object),"semaphore");
-//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct Object),"mutex");
+//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct obj),"semaphore");
+//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct obj),"mutex");
 //    return 1;
 //}
 
@@ -180,7 +180,7 @@ ptu32_t __InitLock(void)
 
     //特别提示：因安装lock模块时，文件系统还没有安装完成，不能用正常的过程创建
     //和打开mutex和semaphore文件。
-//    s_ptSempObject = OBJ_SearchChild(OBJ_GetRoot( ), "semaphore");
+//    s_ptSempObject = obj_search_child(OBJ_GetRoot( ), "semaphore");
 //    OBJ_SetOps(s_ptSempObject,Lock_SempObjOps);
 //  s_ptSempFp = OBJ_GetFirstFile(s_ptSempObject);
 #if 0
@@ -188,7 +188,7 @@ ptu32_t __InitLock(void)
 
 //    OBJ_SetPrivate(s_ptSempObject, (ptu32_t)&s_tSempHead);
 
-//    s_ptMutexObject = OBJ_SearchChild(OBJ_GetRoot( ), "mutex");
+//    s_ptMutexObject = obj_search_child(OBJ_GetRoot( ), "mutex");
 //    OBJ_SetOps(s_ptMutexObject,Lock_MutexObjOps);
 //  s_ptMutexFp = OBJ_GetFirstFile(s_ptMutexObject);
     dListInit(&s_tMutexHead);
@@ -200,7 +200,7 @@ ptu32_t __InitLock(void)
                                     (void*)g_ptLockMemBlock,
                                     CFG_LOCK_LIMIT,
                                     sizeof(union lock_MCB),
-                                    0,0,
+                                    16, 16384,
                                     "锁控制块池");
     return 1;
 }
@@ -212,10 +212,14 @@ ptu32_t __InitLock(void)
 // 返回：
 // 备注：
 // ============================================================================
-s32 __InstallLockFS(void)
+s32 mount_lock_system(void)
 {
-    __mounto("mutex", "/", (tagObjOps)Lock_MutexObjOps, (ptu32_t)&s_tMutexHead);
-    __mounto("semaphore", "/", (tagObjOps)Lock_SempObjOps, (ptu32_t)&s_tSempHead);
+    if(!obj_newchild_set(objsys_root(), "mutex", (fnObjOps)Lock_MutexObjOps, 0, O_RDWR))
+        return (-1);
+
+    if(!obj_newchild_set(objsys_root(), "semaphore", (fnObjOps)Lock_SempObjOps, 0, O_RDWR))
+        return (-1);
+
     return (0);
 }
 
@@ -911,7 +915,7 @@ u16 Lock_MutexGetOwner(struct MutexLCB *mutex)
         return CN_EVENT_ID_INVALID;
 }
 
-void __Lock_ShowMutex(struct Object *fp)
+void __Lock_ShowMutex(struct obj *fp)
 {
     struct dListNode *current;
     struct MutexLCB *Mutex;
@@ -967,21 +971,23 @@ void __Lock_ShowMutex(struct Object *fp)
 //      para，无用
 //返回：true
 //-----------------------------------------------------------------------------
-ptu32_t Lock_MutexObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...)
+ptu32_t Lock_MutexObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...)
 {
     s32 result = 0;
 
-    switch(dwCMD)
+    switch(ops)
     {
+#if 0
         case CN_OBJ_CMD_SHOW:
         {
-            __Lock_ShowMutex((struct Object*)context);
+            __Lock_ShowMutex((struct obj*)context);
             break;
         }
+#endif
 
         default:
         {
-            result = CN_OBJ_CMD_UNSUPPORT;
+            result = OBJUNSUPPORTED;
             break;
         }
     }
@@ -989,7 +995,7 @@ ptu32_t Lock_MutexObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...)
     return ((ptu32_t)result);
 }
 
-void __Lock_ShowSemp(struct Object *fp)
+void __Lock_ShowSemp(struct obj *fp)
 {
     struct dListNode *current;
     struct SemaphoreLCB *Semp;
@@ -1035,21 +1041,22 @@ void __Lock_ShowSemp(struct Object *fp)
 //      para，无用
 //返回：true
 //-----------------------------------------------------------------------------
-ptu32_t Lock_SempObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...)
+ptu32_t Lock_SempObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...)
 {
     s32 result = 0;
 
-    switch(dwCMD)
+    switch(ops)
     {
+#if 0
         case CN_OBJ_CMD_SHOW:
         {
-            __Lock_ShowSemp((struct Object*)context);
+            __Lock_ShowSemp((struct obj*)context);
             break;
         }
-
+#endif
         default:
         {
-            result = CN_OBJ_CMD_UNSUPPORT;
+            result = OBJUNSUPPORTED;
             break;
         }
     }

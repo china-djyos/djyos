@@ -59,7 +59,7 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-static struct Object *s_ptSPIBusType;
+static struct obj *s_ptSPIBusType;
 
 #define CN_SPI_FLAG_POLL        (1<<0)          //轮询中断方式标记
 // =============================================================================
@@ -72,12 +72,12 @@ bool_t ModuleInstall_SPIBus(void)
     s_ptSPIBusType = DjyBus_BusTypeAdd("SPIBus");
     if(NULL != s_ptSPIBusType)
     {
-        info_printf("bus","type SPI addition succeeded.");
+        info_printf("bus","spi bus install successful.");
         return true;
     }
     else
     {
-        error_printf("bus","type SPI addition failed.");
+        error_printf("bus","spi bus install failed.");
         return false;
     }
 }
@@ -89,13 +89,13 @@ bool_t ModuleInstall_SPIBus(void)
 // =============================================================================
 struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
 {
-    struct Object *SpiDev;
+    struct obj *SpiDev;
     struct SPI_CB *NewSPI;
     if(NULL == NewSPIParam)
         goto exit_from_param;
 
     //避免重复建立同名的SPI总线
-    if(NULL != OBJ_SearchChild(s_ptSPIBusType,(const char*)(NewSPIParam->BusName)))
+    if(NULL != obj_search_child(s_ptSPIBusType,(const char*)(NewSPIParam->BusName)))
         goto exit_from_readd;
 
     NewSPI = (struct SPI_CB *)M_Malloc(sizeof(struct SPI_CB),0);
@@ -103,7 +103,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
         goto exit_from_malloc;
 
     //将总线结点挂接到总线类型结点的子结点
-    SpiDev = OBJ_AddChild(s_ptSPIBusType, NULL, (ptu32_t)NewSPI,(const char*)(NewSPIParam->BusName));
+    SpiDev = obj_newchild(s_ptSPIBusType, (fnObjOps)-1, 0,(ptu32_t)NewSPI,(const char*)(NewSPIParam->BusName));
     if(SpiDev == NULL)
         goto exit_from_add_node;
 
@@ -130,19 +130,19 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
     NewSPI->SPI_Buf.MaxLen   = NewSPIParam->SPIBufLen;
     NewSPI->SPI_Buf.Offset   = 0;
 
-    info_printf("bus","%s(spi) added.", NewSPIParam->BusName);
+    info_printf("spibus","%s added.", NewSPIParam->BusName);
     return NewSPI;
 
 exit_from_spi_buf_semp:
     Lock_SempDelete(NewSPI->SPI_BusSemp);
 exit_from_spi_bus_semp:
-    OBJ_Del(SpiDev);
+    obj_del(SpiDev);
 exit_from_add_node:
     free(NewSPI);
 exit_from_malloc:
 exit_from_readd:
 exit_from_param:
-    error_printf("bus","%s(spi) add failed.", NewSPIParam->BusName);
+    error_printf("spibus","%s add failed.", NewSPIParam->BusName);
     return NULL;
 }
 
@@ -157,7 +157,7 @@ bool_t SPI_BusDelete(struct SPI_CB *DelSPI)
     bool_t result;
     if(NULL == DelSPI)
         return false;
-    if(OBJ_Del(DelSPI->HostObj))
+    if(obj_del(DelSPI->HostObj))
     {
         result = false;
     }
@@ -177,11 +177,11 @@ bool_t SPI_BusDelete(struct SPI_CB *DelSPI)
 // =============================================================================
 struct SPI_CB *SPI_BusFind(const char *BusName)
 {
-    struct Object *SPI_BusObj;
-    SPI_BusObj = OBJ_SearchChild(s_ptSPIBusType,BusName);
+    struct obj *SPI_BusObj;
+    SPI_BusObj = obj_search_child(s_ptSPIBusType,BusName);
     if(SPI_BusObj)
     {
-        return (struct SPI_CB *)OBJ_Represent(SPI_BusObj);
+        return (struct SPI_CB *)obj_val(SPI_BusObj);
     }
     else
         return NULL;
@@ -204,7 +204,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
 {
     struct SPI_CB     *SPI;
     struct SPI_Device *NewDev;
-    struct Object *NewIicObj;
+    struct obj *NewIicObj;
     tagSpiConfig spicfg;
 
     //查询是否该总线存在
@@ -213,7 +213,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
         return NULL;
 
     //避免建立同名的SPI器件
-    if(NULL != OBJ_SearchChild(s_ptSPIBusType, DevName))
+    if(NULL != obj_search_child(s_ptSPIBusType, DevName))
         return NULL;
 
     //为新的器件结点动态分配内存
@@ -223,7 +223,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
 
     //为新结点初始化
     NewDev->Cs  = cs;
-    NewDev->HostObj = OBJ_AddChild(SPI->HostObj, NULL, (ptu32_t)NewDev, DevName);
+    NewDev->HostObj = obj_newchild(SPI->HostObj, (fnObjOps)-1, 0,(ptu32_t)NewDev,  DevName);
     if(!NewDev->HostObj)
     {
         free(NewDev);
@@ -248,7 +248,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
         SPI_BusCtrl(NewDev,CN_SPI_CS_CONFIG,(ptu32_t)&spicfg,(ptu32_t)cs);
     }
 
-    info_printf("device","%s(%s) added.", DevName, BusName);
+    info_printf("spibus","device \"%s\" added to \"%s\".", DevName, BusName);
     return NewDev;
 }
 
@@ -263,7 +263,7 @@ bool_t SPI_DevDelete(struct SPI_Device *DelDev)
     if(NULL == DelDev)
         return false;
 
-    if(OBJ_Del(DelDev->HostObj))
+    if(obj_del(DelDev->HostObj))
     {
         result = false;
     }
@@ -286,7 +286,7 @@ bool_t SPI_DevDelete_s(struct SPI_Device *DelDev)
     if(NULL == DelDev)
         return false;
 
-    if(OBJ_Del(DelDev->HostObj))
+    if(obj_del(DelDev->HostObj))
     {
         result = false;
     }
@@ -305,7 +305,7 @@ bool_t SPI_DevDelete_s(struct SPI_Device *DelDev)
 // =============================================================================
 struct SPI_Device *SPI_DevFind(const char *BusName ,const char *DevName)
 {
-    struct Object *SPI_DevObj;
+    struct obj *SPI_DevObj;
     struct SPI_CB *SPI_Bus;
 
     SPI_Bus = SPI_BusFind(BusName);
@@ -313,9 +313,9 @@ struct SPI_Device *SPI_DevFind(const char *BusName ,const char *DevName)
         return NULL;
 
     //通过SPI类型结点，向下搜索后代结点
-    SPI_DevObj = OBJ_SearchChild(SPI_Bus->HostObj, DevName);
+    SPI_DevObj = obj_search_child(SPI_Bus->HostObj, DevName);
     if(SPI_DevObj)
-        return ((struct SPI_Device*)OBJ_Represent(SPI_DevObj));
+        return ((struct SPI_Device*)obj_val(SPI_DevObj));
     else
         return NULL;
 }
@@ -335,7 +335,7 @@ bool_t SPI_CsActive(struct SPI_Device *Dev,u32 timeout)
     if(NULL == Dev)
         return false;
 
-    SPI = (struct SPI_CB *)OBJ_Represent(OBJ_Parent(Dev->HostObj));
+    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));
     if(NULL == SPI)
         return false;
 
@@ -398,7 +398,7 @@ bool_t SPI_CsInactive(struct SPI_Device *Dev)
     if(NULL == Dev)
         return false;
 
-    SPI = (struct SPI_CB *)OBJ_Represent(OBJ_Parent(Dev->HostObj));
+    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));
     if(NULL == SPI)
         return false;
 
@@ -448,7 +448,7 @@ s32 SPI_Transfer(struct SPI_Device *Dev,struct SPI_DataFrame *spidata,
     if(NULL == Dev)
         return CN_SPI_EXIT_PARAM_ERR;
 
-    SPI = (struct SPI_CB *)OBJ_Represent(OBJ_Parent(Dev->HostObj));//查找该器件属于哪条总线
+    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));//查找该器件属于哪条总线
     if(NULL == SPI)
         return CN_SPI_EXIT_PARAM_ERR;
 
@@ -662,7 +662,7 @@ s32 SPI_BusCtrl(struct SPI_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
     if(NULL == Dev)
         return -1;
 
-    SPI = (struct SPI_CB *)OBJ_Represent(OBJ_Parent(Dev->HostObj));
+    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));
     if(NULL == SPI)
         return -1;
 

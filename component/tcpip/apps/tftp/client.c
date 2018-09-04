@@ -53,7 +53,7 @@
 
 #include "tftplib.h"
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
 
 static u16  gRemoteServerPort = CN_TFTP_SERVERPORT_DEFAULT;
 
@@ -120,29 +120,30 @@ ADD_TO_IN_SHELL bool_t tftp(char *param)
 }
 
 extern bool_t TftpServerShell(char *param);
-//struct ShellCmdTab  gServiceTftp[] =
-//{
-//    {
-//        "tftp",
-//        TftpClientShell,
-//        "usage:tftp get/put hostname filename",
-//        "usage:tftp get/put hostname filename",
-//    },
-//    {
-//        "tftppathset",
-//        TftpSetWorkSpace,
-//        "usage:tftppathset workpath",
-//        "usage:tftppathset workpath",
-//    },
-//    {
-//        "tftppath",
-//        TftpWorkSpaceShow,
-//        "usage:tftppath",
-//        "usage:tftppath",
-//    },
-//};
-//
-//#define CN_TFTPDEBUG_NUM  ((sizeof(gServiceTftp))/(sizeof(struct ShellCmdTab)))
+
+struct shell_debug  gServiceTftp[] =
+{
+    {
+        "tftp",
+        tftp,
+        "usage:tftp get/put hostname filename",
+        "usage:tftp get/put hostname filename",
+    },
+    {
+        "tftppathset",
+        tftppathset,
+        "usage:tftppathset workpath",
+        "usage:tftppathset workpath",
+    },
+    {
+        "tftppath",
+        tftppath,
+        "usage:tftppath",
+        "usage:tftppath",
+    },
+};
+
+#define CN_TFTPDEBUG_NUM  ((sizeof(gServiceTftp))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gServiceTftpCmdRsc[CN_TFTPDEBUG_NUM];
 
 //THIS IS PING MODULE FUNCTION
@@ -150,8 +151,10 @@ bool_t ServiceTftpInit(ptu32_t para)
 {
     bool_t result;
 
-    TftpSetWorkSpace((char *)CN_TFTP_PATHDEFAULT);
-//    result = Sh_InstallCmd(gServiceTftp,gServiceTftpCmdRsc,CN_TFTPDEBUG_NUM);
+    tftppathset((char *)CN_TFTP_PATHDEFAULT);
+
+    shell_debug_add(gServiceTftp, CN_TFTPDEBUG_NUM);
+
     result = TftpServerShell(NULL);
 
     return result;

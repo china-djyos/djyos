@@ -114,7 +114,7 @@ USBH_StatusTypeDef USBH_HID_TouchInit(USBH_HandleTypeDef *pHost)
         pButton = &button;
         pAxisX = &axisX;
         pAxisY = &axisY;
-        USBH_UsrLog ("USB #%04x stack service : error : HID touch device do not support, try the default configuration.", pHost->id);
+        printf("\r\n: erro : usbs%02x : HID touch device do not support, try the default configuration.", pHost->id);
         res = USBH_NOT_SUPPORTED;
     }
 
@@ -240,7 +240,7 @@ s32 USBH_HID_TouchManualSync(USBH_HandleTypeDef *pHost)
             }
             else if(USBH_URB_STALL == res)
             {
-                USBH_UsrLog ("USB #%04x stack service : error : HID touch sync stalled.", pHost->id);
+                printf("\r\n: erro : usbs%02x : HID touch sync stalled.", pHost->id);
                 return (-1);
             }
         }
@@ -251,7 +251,7 @@ s32 USBH_HID_TouchManualSync(USBH_HandleTypeDef *pHost)
             if((pHost->Timer - handle->timer) > handle->poll) // 校验逻辑，防止第一次读时间过长
             {
                 time = DjyGetSysTime() - time;
-                USBH_UsrLog ("USB #%04x stack service : error : HID touch sync out of time <%d.us>.", pHost->id, (u32)time);
+                printf("\r\n: erro : usbs%02x : HID touch sync out of time(%d.us).", pHost->id, (u32)time);
                 retrys = 10; // 再多尝试一次
             }
 

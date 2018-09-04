@@ -68,22 +68,23 @@
 #include "exp.h"
 #include "dbug.h"
 #include "component_config_core.h"
-#include "newshell.h"
+
 extern struct EventECB g_tECB_Table[];
 extern struct EventType g_tEvttTable[];
 extern struct EventECB  *s_ptEventFree; //空闲链表头,不排序
 
 //void __M_ShowHeap(void);
 //void __M_ShowHeapSpy(void);
+bool_t event(char *param);
+bool_t evtt(char *param);
+bool_t stack(char *param);
 
-//bool_t Sh_ShowEvent(char *param);
-//bool_t Sh_ShowEvtt(char *param);
-//bool_t Sh_ShowStack(char *param);
-//----显示事件表---------------------------------------------------------------
-//功能: 显示事件列表
-//参数: 无
-//返回: true
-//-----------------------------------------------------------------------------
+// ============================================================================
+// 功能：显示事件列表
+// 参数：无
+// 返回：
+// 备注：
+// ============================================================================
 //bool_t Sh_ShowEvent(char *param)
 ADD_TO_SHELL_HELP(event,"显示事件表");
 ADD_TO_IN_SHELL bool_t event(char *param)
@@ -93,17 +94,21 @@ ADD_TO_IN_SHELL bool_t event(char *param)
     char *name;
 
     MemSize = 0;
-    debug_printf("knlshell","事件号  类型号  优先级 CPU  栈尺寸   类型名\n\r");
+    printf("事件号  类型号  优先级 CPU  栈尺寸   类型名");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
         if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-//            debug_printf("knlshell","%05d %05d     ",pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
-//            debug_printf("knlshell","%03d    ",g_tECB_Table[pl_ecb].prio);
-           // debug_printf("knlshell","%02d%%  %8x",time1,g_tECB_Table[pl_ecb].vm->stack_size);
+            // printf("%05d %05d     ",pl_ecb,g_ptECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
+            // printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
+            // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
 #if CFG_OS_TINY == false
-            time1 = g_tECB_Table[pl_ecb].consumed_cnt_second/10000;
+#if	(CN_USE_TICKLESS_MODE) 
+            time1 = g_tECB_Table[pl_ecb].consumed_cnt_second/(CN_CFG_TIME_BASE_HZ/100);
+#else
+            time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
+#endif
             name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
 #else
             time1 = 0;
@@ -111,40 +116,41 @@ ADD_TO_IN_SHELL bool_t event(char *param)
 #endif  //CFG_OS_TINY == false
             if(NULL == g_tECB_Table[pl_ecb].vm)
             {
-//                debug_printf("knlshell","%02d%%  %08x %s",0,0,name);
-            	StackSize = 0;
+//                printf("knlshell","%02d%%  %08x %s",0,0,name);
+                StackSize = 0;
             }
             else
             {
-            	StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
-//                debug_printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
+                StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+//                printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
 //                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
             }
-//            debug_printf("knlshell","\n\r");
+//            printf("knlshell","\n\r");
 
-            debug_printf("knlshell","%05d   %05d   %03d    %02d%%  %08x %s",\
-            		pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
-					g_tECB_Table[pl_ecb].prio,time1,\
-					g_tECB_Table[pl_ecb].vm->stack_size,name);
+            printf("\r\n%05d   %05d   %03d    %02d%%  %08x %s",\
+                   pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
+                    g_tECB_Table[pl_ecb].prio,time1,\
+                    g_tECB_Table[pl_ecb].vm->stack_size,name);
 
             MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
         }
         else
         {
-//          debug_printf("knlshell","%5d   空闲",pl_ecb);
+//          printf("knlshell","%5d   空闲",pl_ecb);
         }
     }
-    debug_printf("knlshell","所有事件栈尺寸总计:           %08x\n\r",MemSize);
-    debug_printf("knlshell","允许的事件总数:              %d\n\r",CFG_EVENT_LIMIT);
 
+    printf("\r\n所有事件栈尺寸总计:         %08x", MemSize);
+    printf("\r\n允许的事件总数:             %d", CFG_EVENT_LIMIT);
     return true;
 }
 
-//----显示事件类型表-----------------------------------------------------------
-//功能: 显示事件类型列表
-//参数: 无
-//返回: true
-//-----------------------------------------------------------------------------
+// ============================================================================
+// 功能：显示事件类型列表
+// 参数：无
+// 返回：
+// 备注：
+// ============================================================================
 //bool_t Sh_ShowEvtt(char *param)
 ADD_TO_SHELL_HELP(evtt,"显示事件类型表");
 ADD_TO_IN_SHELL bool_t evtt(char *param)
@@ -153,7 +159,7 @@ ADD_TO_IN_SHELL bool_t evtt(char *param)
     u32 MemSize;
     char *name;
     MemSize = 0;
-    debug_printf("knlshell","类型号  优先级 处理函数  栈需求   名字\n\r");
+    printf("类型号  优先级 处理函数  栈需求   名字\r\n");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_TYPE_LIMIT; pl_ecb++)
     {
         if(g_tEvttTable[pl_ecb].property.registered ==1)
@@ -164,35 +170,36 @@ ADD_TO_IN_SHELL bool_t evtt(char *param)
             name = "unkown";
 #endif  //CFG_OS_TINY == 0
             MemSize += g_tEvttTable[pl_ecb].stack_size;
-            debug_printf("knlshell","%05d   %03d    %08x  %08x %s",pl_ecb,\
-            		g_tEvttTable[pl_ecb].default_prio,\
-					(ptu32_t)g_tEvttTable[pl_ecb].thread_routine,\
-					g_tEvttTable[pl_ecb].stack_size,\
-					name);
-//            debug_printf("knlshell","%03d    ",g_tEvttTable[pl_ecb].default_prio);
-//            debug_printf("knlshell","%08x  %08x ",
+            printf("%05d   %03d    %08x  %08x %s",pl_ecb,\
+                    g_tEvttTable[pl_ecb].default_prio,\
+                    (ptu32_t)g_tEvttTable[pl_ecb].thread_routine,\
+                    g_tEvttTable[pl_ecb].stack_size,\
+                    name);
+//            printf("knlshell","%03d    ",g_tEvttTable[pl_ecb].default_prio);
+//            printf("knlshell","%08x  %08x ",
 //                        (ptu32_t)g_tEvttTable[pl_ecb].thread_routine,
 //                        g_tEvttTable[pl_ecb].stack_size);
-//            debug_printf("knlshell","%s",name);
-//            debug_printf("knlshell","\n\r");
+//            printf("knlshell","%s",name);
+            printf("\r\n");
         }
         else
         {
-//          printf("knlshell","%05d   空闲",pl_ecb);
+//          printf("%05d   空闲",pl_ecb);
         }
     }
-    debug_printf("knlshell","所有类型栈需求总计:      %08x\n\r",MemSize);
-    debug_printf("knlshell","允许的事件类型总数:      %d\n\r",CFG_EVENT_TYPE_LIMIT);
-    return true;
+
+    printf("所有类型栈需求总计:      %08x",MemSize);
+    printf("\r\n允许的事件类型总数:      %d",CFG_EVENT_TYPE_LIMIT);
+    return (TRUE);
 }
 
-//----显示栈使用情况-----------------------------------------------------------
-//功能: 显示系统中所有已经分配线程的事件的栈信息
-//参数: 无
-//返回: true
-//-----------------------------------------------------------------------------
+// ============================================================================
+// 功能：显示系统中所有已经分配线程的事件的栈信息
+// 参数：无
+// 返回：
+// 备注：
+// ============================================================================
 //bool_t Sh_ShowStack(char *param)
-
 ADD_TO_SHELL_HELP(stack,"显示系统中所有已经分配线程的事件的栈信息");
 ADD_TO_IN_SHELL bool_t stack(char *param)
 {
@@ -201,19 +208,19 @@ ADD_TO_IN_SHELL bool_t stack(char *param)
     u32 *stack;
     char *name;
 
-    debug_printf("knlshell","事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名\n\r");
+    printf("\r\n事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
 
         if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
-            debug_printf("knlshell","%05d  ",pl_ecb);
+            printf("%05d  ",pl_ecb);
             if(g_tECB_Table[pl_ecb].vm)
-                debug_printf("knlshell","已分配 ");
+                printf("已分配 ");
             else
             {
-                debug_printf("knlshell","未分配 ");
+                printf("未分配 ");
                 continue ;
             }
             StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
@@ -231,37 +238,43 @@ ADD_TO_IN_SHELL bool_t stack(char *param)
 #else
             name = "unkown";
 #endif  //CFG_OS_TINY == false
-            debug_printf("knlshell","%08x %08x %08x %08x %s",
+            printf("%08x %08x %08x %08x %s",
                         (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
                         (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
                         StackSize,(loop<<2),
                         name);
-            debug_printf("knlshell","\n\r");
+            printf("\n\r");
         }
         else
         {
-//            debug_printf("knlshell","%05d  空闲事件控制块",pl_ecb);
+//            printf("knlshell","%05d  空闲事件控制块",pl_ecb);
         }
     }
-    debug_printf("knlshell","栈指针是最后一次上下文切换时保存的值\n\r");
 
-    return true;
+    printf("栈指针是最后一次上下文切换时保存的值");
+    return (TRUE);
 }
 
-//struct ShellCmdTab const tg_ShellKernelCmdTbl[] =
-//{
-//   {
-//        "event",
-//        Sh_ShowEvent,
-//        "显示事件表",
-//        NULL
-//    },
-//    {
-//        "evtt",
-//        Sh_ShowEvtt,
-//        "显示事件类型表",
-//        NULL
-//    },
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+struct shell_debug const tg_ShellKernelCmdTbl[] =
+{
+   {
+        "event",
+        event,
+        "显示事件表",
+        NULL
+    },
+    {
+        "evtt",
+        evtt,
+        "显示事件类型表",
+        NULL
+    },
 //    {
 //        "heap",
 //        (bool_t (*)(char*))__M_ShowHeap,
@@ -274,17 +287,23 @@ ADD_TO_IN_SHELL bool_t stack(char *param)
 //        "显示动态内存详细分配情况",
 //        NULL
 //    },
-//    {
-//        "stack",
-//        (bool_t (*)(char*))Sh_ShowStack,
-//        "显示系统中所有已经分配线程的事件的栈信息",
-//        NULL
-//    },
-//};
-//
-//static struct ShellCmdRsc tg_ShellKernelCmd
-//                        [sizeof(tg_ShellKernelCmdTbl)/sizeof(struct ShellCmdTab)];
+    {
+        "stack",
+        (bool_t (*)(char*))stack,
+        "显示系统中所有已经分配线程的事件的栈信息",
+        NULL
+    },
+};
 
+//static struct ShellCmdRsc tg_ShellKernelCmd
+//                        [sizeof(tg_ShellKernelCmdTbl)/sizeof(struct shell_debug)];
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
 #if CFG_OS_TINY == false
 ptu32_t Debug_Scan(void)
 {
@@ -295,22 +314,94 @@ ptu32_t Debug_Scan(void)
 
         for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
         {
+#if	(CN_USE_TICKLESS_MODE) 
             g_tECB_Table[pl_ecb].consumed_cnt_second =
                               (u32)g_tECB_Table[pl_ecb].consumed_cnt
                             - g_tECB_Table[pl_ecb].consumed_cnt_record;
             g_tECB_Table[pl_ecb].consumed_cnt_record =
                             (u32)g_tECB_Table[pl_ecb].consumed_cnt;
+#else
+            g_tECB_Table[pl_ecb].consumed_time_second =
+                              (u32)g_tECB_Table[pl_ecb].consumed_time
+                            - g_tECB_Table[pl_ecb].consumed_time_record;
+            g_tECB_Table[pl_ecb].consumed_time_record =
+                            (u32)g_tECB_Table[pl_ecb].consumed_time;
+#endif
         }
         Djy_EventDelay(1000*mS);
     }
 }
 #endif  //CFG_OS_TINY == false
 
-//----初始化调试信息模块-------------------------------------------------------
-//功能: 创建调试信息事件类型并启动之
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
+// ============================================================================
+// 功能：统计一定内事件运行占用率
+// 参数：无；
+// 返回：无；
+// 备注：
+// ============================================================================
+ptu32_t kernel_spy(void)
+{
+#if CFG_OS_TINY == false
+    u32 pl_ecb;
+    u32 cycle;
+
+    Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
+    while(1)
+    {
+
+        for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
+        {
+#if	(CN_USE_TICKLESS_MODE) 
+            g_tECB_Table[pl_ecb].consumed_cnt_second =
+                              (u32)g_tECB_Table[pl_ecb].consumed_cnt
+                            - g_tECB_Table[pl_ecb].consumed_cnt_record;
+            g_tECB_Table[pl_ecb].consumed_cnt_record =
+                            (u32)g_tECB_Table[pl_ecb].consumed_cnt;
+#else
+           g_tECB_Table[pl_ecb].consumed_time_second =
+                              (u32)g_tECB_Table[pl_ecb].consumed_time
+                            - g_tECB_Table[pl_ecb].consumed_time_record;
+           g_tECB_Table[pl_ecb].consumed_time_record =
+                            (u32)g_tECB_Table[pl_ecb].consumed_time;
+#endif
+        }
+
+        Djy_EventDelay(cycle*mS); // 延时1秒；
+    }
+#endif
+}
+
+// ============================================================================
+// 功能：kernel shell命令的调试模式
+// 参数：
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+s32 kernel_command(void)
+{
+    u16 res;
+    s32 commands = sizeof(tg_ShellKernelCmdTbl)/sizeof(struct shell_debug);
+    u32 cycle = 1000; // 1s时间，监测周期
+
+    if(commands!=shell_debug_add(tg_ShellKernelCmdTbl, commands))
+        return (-1);
+
+    res = Djy_EvttRegist(EN_CORRELATIVE, 1, 0, 0,
+                        kernel_spy, NULL, 1024, "kernel spy");
+    if(res==CN_EVTT_ID_INVALID)
+        return(-1);
+
+    Djy_EventPop(res, NULL, 0, (ptu32_t)cycle, 0, 0);
+    return (0);
+}
+
+#if 0
+// ============================================================================
+// 功能：初始化调试信息模块，创建调试信息事件类型并启动之
+// 参数：无
+// 返回：无
+// 备注：
+// ============================================================================
 void ModuleInstall_DebugInfo(ptu32_t para)
 {
     u16 evtt_debug;
@@ -322,8 +413,6 @@ void ModuleInstall_DebugInfo(ptu32_t para)
         return;
     Djy_EventPop(evtt_debug,NULL,0,0,0,0);
 #endif  //CFG_OS_TINY == false
-//    Sh_InstallCmd(tg_ShellKernelCmdTbl,tg_ShellKernelCmd,
-//            sizeof(tg_ShellKernelCmdTbl)/sizeof(struct ShellCmdTab));
 }
-
+#endif
 

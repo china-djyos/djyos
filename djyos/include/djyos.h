@@ -64,6 +64,7 @@ extern "C" {
 #include "stddef.h"
 #include "errno.h"
 #include "arch_feature.h"
+#include "board-config.h"
 //结构类型声明,来自其他文件定义的结构
 struct SemaphoreLCB;
 //结构类型声明,本文件定义的结构
@@ -203,8 +204,13 @@ struct ThreadVm          //线程数据结构
 //};
 struct EventInfo
 {
+#if	(CN_USE_TICKLESS_MODE)  
     u64    EventStartCnt;      //事件发生时间，uS
     u64    consumed_cnt;       //事件消耗的总时间
+#else
+    s64    EventStartTime;      //事件发生时间，uS
+    s64    consumed_time;       //事件消耗的总时间
+#endif
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
@@ -234,13 +240,25 @@ struct EventECB
                                         //返回时从该同步队列取出事件
 
 #if CFG_OS_TINY == false
+#if	(CN_USE_TICKLESS_MODE)  
     u64    EventStartCnt;              //事件发生时间，uS
     u64    consumed_cnt;               //事件消耗的总时间
     u32    consumed_cnt_second;        //最近1秒消耗的时间
     u32    consumed_cnt_record;        //上次整秒时，消耗的时间快照
+#else
+    s64    EventStartTime;              //事件发生时间，uS
+    s64    consumed_time;               //事件消耗的总时间
+	u32    consumed_time_second;        //最近1秒消耗的时间
+    u32    consumed_time_record;        //上次整秒时，消耗的时间快照
+#endif
 #endif  //CFG_OS_TINY == false
+#if	(CN_USE_TICKLESS_MODE)  
     u64    delay_start_cnt;    //设定闹铃时间
     u64    delay_end_cnt;      //闹铃响时间
+#else
+    s64    delay_start_tick;    //设定闹铃时间
+    s64    delay_end_tick;      //闹铃响时间
+#endif
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
@@ -340,8 +358,11 @@ struct EventType
 extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
-
+#if	(CN_USE_TICKLESS_MODE)  
 void Djy_IsrTimeBase(u32 inc_ticks);
+#else
+void Djy_IsrTick(u32 inc_ticks);
+#endif
 void Djy_SetRRS_Slice(u32 slices);
 u32 Djy_GetRRS_Slice(void);
 void Djy_CreateProcessVm(void);
@@ -363,7 +384,11 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_RaiseTempPrio(u16 event_id);
 bool_t Djy_RestorePrio(void);
 u32 Djy_EventDelay(u32 u32l_uS);
+#if	(CN_USE_TICKLESS_MODE) 
 u64 Djy_EventDelayTo(u64 s64l_uS);
+#else
+u32 Djy_EventDelayTo(s64 s64l_uS);
+#endif
 u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout);
 u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
 u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);

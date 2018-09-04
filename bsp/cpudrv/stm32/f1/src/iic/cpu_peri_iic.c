@@ -74,7 +74,7 @@
 //
 //    #if CFG_I2C2_ENABLE==1
 //    extern bool_t IIC2_Init(void);
-//    ( IIC2_Init();
+//    IIC2_Init();
 //    #endif
 //%$#@end initcode  ****初始化代码结束
 
@@ -838,7 +838,7 @@ bool_t IIC1_Init(void)
     __IIC_GpioConfig(CN_IIC1);
     __IIC_IntConfig(CN_INT_LINE_I2C1_EV,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd_s(&s_IIC1_CB,&IIC1_Config))
+    if(NULL == IIC_BusAdd(&IIC1_Config))
         return 0;
     return 1;
 }
@@ -871,7 +871,7 @@ bool_t IIC2_Init(void)
         return 0;
     __IIC_IntConfig(CN_INT_LINE_I2C2_EV,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd_s(&s_IIC2_CB,&IIC2_Config))
+    if(NULL == IIC_BusAdd(&IIC2_Config))
         return 0;
     return 1;
 }

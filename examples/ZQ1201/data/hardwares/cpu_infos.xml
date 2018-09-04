@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<cpus>
+   <cpu>ATSAM4E16xx</cpu>
+   <cpu>ATSAMV70xxx</cpu>
+   <cpu>imxrt1052</cpu>
+   <cpu>M487JIDAE</cpu>
+   <cpu>s3c2416</cpu>
+   <cpu>stm32f103xx</cpu>
+   <cpu>stm32f103zg</cpu>
+   <cpu>stm32f303xx</cpu>
+   <cpu>stm32f3xxx</cpu>
+   <cpu>stm32f407zg</cpu>
+   <cpu>stm32f746zg</cpu>
+   <cpu>stm32f756ig</cpu>
+   <cpu>stm32f767ii</cpu>
+   <cpu>stm32f76xxx</cpu>
+   <cpu>stm32h743ig</cpu>
+   <cpu>stm32l433xx</cpu>
+   <cpu>stm32l475xx</cpu>
+   <cpu>stm32l476rg</cpu>
+   <cpu>stm32l496</cpu>
+   <cpu>ZQ1201</cpu>
+</cpus>

@@ -66,7 +66,8 @@
 #include <wdt_hal.h>
 #include <exp.h>
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
+#include "board-config.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -387,7 +388,11 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
         {
             if(Djy_GetEventInfo(wdt->WdtOnwer, &eventinfo))
             {
+#if	(CN_USE_TICKLESS_MODE)
                 wdt->runtime = eventinfo.consumed_cnt;
+#else
+	            wdt->runtime = eventinfo.consumed_time;
+#endif
             }
         }
         //清空连续狗叫成员
@@ -544,7 +549,11 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
 
     if( Djy_GetEventInfo((u16)wdt->WdtOnwer, &wdt_event_info))
     {
+#if	(CN_USE_TICKLESS_MODE)
         Tm_TimeRun = (u32)(wdt_event_info.consumed_cnt - wdt->runtime);
+#else
+        Tm_TimeRun = (u32)(wdt_event_info.consumed_time - wdt->runtime);
+#endif
         if(Tm_TimeRun < wdt->ExhaustLevelSet) //运行时间不够
         {
             wdt->timeoutreason = EN_WDT_YIPFORSHEDULE;
@@ -555,7 +564,11 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
         {
             wdt->timeoutreason = EN_WDT_YIPFORLOGIC;
         }
+#if	(CN_USE_TICKLESS_MODE)
         wdt->runtime = wdt_event_info.consumed_cnt;
+#else
+        wdt->runtime = wdt_event_info.consumed_time; 
+#endif
     }
     else
     {
@@ -674,11 +687,10 @@ static ptu32_t Wdt_Service(void)
     return 1; //if no exp, this could not be reached
 }
 
-#include <shell.h>
 //static bool_t wdtshow(char *param)
 
 ADD_TO_SHELL_HELP(wdtshow,"usage:wdtshow");
-ADD_TO_IN_SHELL static bool_t wdtshow(char *param)
+ADD_TO_IN_SHELL  bool_t wdtshow(char *param)
 {
     u8 i = 0;
     tagWdt *wdt;
@@ -695,7 +707,7 @@ ADD_TO_IN_SHELL static bool_t wdtshow(char *param)
     return true;
 }
 
-struct ShellCmdTab  gWdtDebug[] =
+struct shell_debug  gWdtDebug[] =
 {
     {
         "wdtshow",
@@ -704,8 +716,8 @@ struct ShellCmdTab  gWdtDebug[] =
         "usage:wdtshow",
     },
 };
-#define CN_WdtDebug_NUM  ((sizeof(gWdtDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gWdtDebugCmdRsc[CN_WdtDebug_NUM];
+#define CN_WdtDebug_NUM  ((sizeof(gWdtDebug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gWdtDebugCmdRsc[CN_WdtDebug_NUM];
 
 // =============================================================================
 // 函数功能：看门狗模块的初始化
@@ -760,8 +772,8 @@ bool_t ModuleInstall_Wdt(void)
     {
         debug_printf("WDT","Register Wdt Exp Decoder Failed!\n\r");
     }
-//    Sh_InstallCmd(gWdtDebug,gWdtDebugCmdRsc,CN_WdtDebug_NUM);
 
+    shell_debug_add(gWdtDebug, CN_WdtDebug_NUM);
     debug_printf("WDT","Init end ...\n\r");
     return true;
 }

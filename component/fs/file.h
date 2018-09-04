@@ -53,7 +53,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <objfile.h>
+#include <objhandle.h>
 #include <djyos.h>
 
 struct __buf

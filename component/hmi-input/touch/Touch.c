@@ -111,18 +111,21 @@ ptu32_t Touch_Scan(void)
 {
     struct HMI_InputDeviceObj *TouchObj,*StdinObj;
     struct SingleTouchPrivate *touch_pr;
+    struct obj *ob;
     struct SingleTouchMsg touch_temp = {0,0,0,0,0};
 
-    StdinObj = (struct HMI_InputDeviceObj *)OBJ_SearchChild(OBJ_Root(),"stdin input device");
+    ob = obj_search_child(objsys_root(),"stdin input device");
+    StdinObj = (struct HMI_InputDeviceObj *)obj_val(ob);
     while(1)
     {
         TouchObj = StdinObj;
         while(1)
         {
-            TouchObj = (struct HMI_InputDeviceObj*)
-                            OBJ_TraveScion(StdinObj->HostObj,TouchObj->HostObj);
+            ob = obj_foreach_scion(StdinObj->HostObj,TouchObj->HostObj);
+            TouchObj = (struct HMI_InputDeviceObj*)obj_val(ob);
             if(TouchObj == NULL)
                 break;
+
             if(TouchObj->input_type != EN_HMIIN_SINGLE_TOUCH)
                 continue;
             touch_pr = (struct SingleTouchPrivate*)TouchObj->stdin_private;
@@ -132,7 +135,7 @@ ptu32_t Touch_Scan(void)
                     ||(touch_temp.y != touch_pr->touch_loc.y)
                     ||(touch_temp.z != touch_pr->touch_loc.z))
                 {
-                    touch_temp.time = DjyGetSysTimeBase();
+                    touch_temp.time = DjyGetSysTime();
                     HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp,
                                                         sizeof(touch_temp));
                     touch_pr->touch_loc = touch_temp;
@@ -143,7 +146,7 @@ ptu32_t Touch_Scan(void)
             {
                 if(touch_pr->status == true)
                 {
-                    touch_pr->touch_loc.time = DjyGetSysTimeBase();
+                    touch_pr->touch_loc.time = DjyGetSysTime();
                     touch_pr->touch_loc.z = 0;
                     HmiIn_InputMsg(TouchObj->device_id,
                                     (u8*)&touch_pr->touch_loc,
@@ -174,7 +177,7 @@ s32 Touch_InstallDevice(char *touch_name,struct SingleTouchPrivate *touch_pr)
 bool_t ModuleInstall_Touch(void)
 {
     s16 touch_scan_evtt;
-    if(!OBJ_SearchChild(OBJ_Root( ),"stdin input device"))      //标准输入设备未初始化
+    if(!obj_search_child(objsys_root( ),"stdin input device"))      //标准输入设备未初始化
         return false;
     touch_scan_evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
                             Touch_Scan,NULL,2048,"touch");

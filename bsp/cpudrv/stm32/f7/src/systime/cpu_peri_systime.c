@@ -52,6 +52,7 @@
 
 #include "cpu_peri.h"
 #include "systime.h"
+#include "board-config.h"
 // =============================================================================
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -60,7 +61,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t MoudleInit_Systime(ptu32_t para);
-//    MoudleInit_Systime(0)；
+//    MoudleInit_Systime(0);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -138,11 +139,14 @@ static void SysTime_TcConfig(void)
 // =============================================================================
 bool_t MoudleInit_Systime(ptu32_t para)
 {
+    /*当使用TICKLESS模式时不能注册以下函数*/
+#if (!CN_USE_TICKLESS_MODE)
     //初始化TC控制器
     SysTime_TcConfig();
 
     //注册系统时钟函数
     SysTimeConnect(Systime_GetTime,NULL,1000000,SYSTIME_CYCLE);
+#endif
     return true;
 }
 

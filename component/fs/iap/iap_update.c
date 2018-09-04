@@ -252,7 +252,7 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
         return (-1);
     }
 
-    res = fcntl(fd, F_GETDDTAG, &flash);
+    res = fcntl(fd, F_SETDDRV, &flash);
     if(-1 == res)
     {
         error_printf("iap","device has no tag(%s).", pDevPath);
@@ -361,6 +361,11 @@ __ERROR_OIU:
 //      参数1 -- method;
 //      method为1，表示通过文件系统方式升级，则参数2表示文件路径。
 //      method为2，表示通过设备升级，参数2表示设备路径(这个是旧逻辑，此设备上安装的是IAP)
+//      method为3，表示通过U盘升级，参数2表示新的文件名
+//      参数2 -- param2：目标文件路径
+//      参数3 -- dwOpt：只有在method为3时有效。
+//      USB升级功能：bit1(表示iboot60秒没检测到U盘的话会重启)；bit2(表示升级完成后自动运行APP)。
+//      默认：opt为3
 // 返回：0 -- 成功； 其他 -- 失败；
 // 备注：TODO:将所有升级逻辑到类到此函数
 // ============================================================================
@@ -368,8 +373,13 @@ s32 IAP_Update(u8 bArgC, ...)
 {
     u32 param2 = (u32)NULL, method = -1;
     s32 res = -1;
+    u32 opt = 3;
     u8 i;
     va_list ap;
+
+    extern u32 __UpdateThroughUSB(char *filename, u32 parameter);
+    extern void USB_IAP_StatusInit(void);
+
 
     va_start(ap, bArgC);
     for(i = 0; i < bArgC; i++)
@@ -378,6 +388,7 @@ s32 IAP_Update(u8 bArgC, ...)
         {
             case 0 : method = va_arg(ap, u32); break;
             case 1 : param2 = va_arg(ap, u32); break;
+            case 2 : opt = va_arg(ap, u32); break;
             default: break;
         }
     }
@@ -387,12 +398,15 @@ s32 IAP_Update(u8 bArgC, ...)
     {
         case 1 : res = __UpdateThroughFS((char*)param2); break;
         case 2 : res = OBSOLETE_IAP_Update((char*)param2);break;
+        case 3 :
+            USB_IAP_StatusInit();
+            res = __UpdateThroughUSB((char*)param2, opt);break;
         default: break;
     }
 
     if(res)
     {
-        info_printf("IAP","update failed.<method:%xH><path:%s>", method, (char*)param2);
+        info_printf("IAP","update failed(method:%xH)(path:%s)", method, (char*)param2);
     }
     else
     {

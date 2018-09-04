@@ -74,7 +74,6 @@
 #include <osboot.h>
 #include <device/flash/flash.h>
 #include "dbug.h"
-#include "newshell.h"
 #include "component_config_loader.h"
 
 extern tagIapVar pg_IapVar;
@@ -413,7 +412,7 @@ bool_t GetRunMode(void)
     }
 }
 //bool_t Sh_GetRunMode(char *param)
-ADD_TO_SHELL_HELP(iapmode,"获取当前运行模式(Iboot or APP)");
+ADD_TO_SHELL_HELP(iapmode,"获取当前运行模式(iboot or app)");
 ADD_TO_IN_SHELL bool_t iapmode(char *param)
 {
     if(GetRunMode())
@@ -438,7 +437,7 @@ ADD_TO_IN_SHELL bool_t iapmode(char *param)
 // 备注：
 // ============================================================================
 //bool_t Sh_UpdateApp(char *param)
-ADD_TO_SHELL_HELP(updateapp,"Update app");
+ADD_TO_SHELL_HELP(updateapp,"update application");
 ADD_TO_IN_SHELL bool_t updateapp(char *param)
 {
     HAL_SetUpdateFlag();
@@ -480,10 +479,10 @@ bool IAP_GetUpdateIbootStatus()
 // 备注：
 // ============================================================================
 //bool_t Sh_GetIbootVersion(char *pDummy)
-ADD_TO_SHELL_HELP(ibootver,"Get Iboot version.");
-ADD_TO_IN_SHELL bool_t ibootver(char *pDummy)
+ADD_TO_SHELL_HELP(ibootver,"get iboot version.");
+ADD_TO_IN_SHELL bool_t ibootver(char *dummy)
 {
-    pDummy = pDummy;
+    dummy = dummy;
     IAP_PrintIbootVersion();
     return (TRUE);
 }
@@ -494,70 +493,70 @@ ADD_TO_IN_SHELL bool_t ibootver(char *pDummy)
 // 返回：
 // 备注：
 // ============================================================================
-//struct ShellCmdTab const shell_cmd_iap_table[]=
-//    {
-//        {
-//        "runiboot",
-//        RunIboot,
-//        "切换到Iboot(仅在采取内存标示确定加载项目且APP有加载DJYOS shell模块时有效)",
-//        "COMMAND:runiboot+enter"
-//        },
-//
-//        {
-//        "runapp",
-//        Sh_RunAPP,
-//        "直接运行APP(仅在采取内存标示确定加载项目时有效)",
-//        "COMMAND:runapp+enter"
-//        },
-//
-//        {
-//        "appinfo",
-//        Sh_GetAPPInfor,
-//        "获取升级bin文件信息",
-//        "COMMAND:appinfo+enter"
-//        },
-//
-//        {
-//        "iapstatus",
-//        Sh_GetStatus,
-//        "获取Iboot状态信息",
-//        "COMMAND:iapstatus+enter"
-//        },
-//#if 0
-//        {
-//        "iapver",
-//        Sh_GetIAPVersion,
-//        "获取IAP版本信息",
-//        "COMMAND:iapver+enter"
-//        },
-//#endif
-//        {
-//        "iapmode",
-//        Sh_GetRunMode,
-//        "获取当前运行模式(Iboot or APP)",
-//        "COMMAND:iapmode+enter"
-//        },
-//
-//        {
-//        "updateapp",
-//        Sh_UpdateApp,
-//        "Update app.",
-//        "COMMAND:updateapp+enter"
-//        },
-//
-//        {
-//            "ibootver",
-//            Sh_GetIbootVersion,
-//            "Get Iboot version.",
-//            "COMMAND:ibootver+enter"
-//        },
-//        {
-//            "updateiboot",
-//            Sh_UpdateIboot,
-//            "Update Iboot.",
-//            "COMMAND:updateiboot+enter",
-//        }
-//};
+struct shell_debug const shell_cmd_iap_table[]=
+    {
+        {
+        "runiboot",
+        runiboot,
+        "切换到Iboot(仅在采取内存标示确定加载项目且APP有加载DJYOS shell模块时有效)",
+        "COMMAND:runiboot+enter"
+        },
+
+        {
+        "runapp",
+        runapp,
+        "直接运行APP(仅在采取内存标示确定加载项目时有效)",
+        "COMMAND:runapp+enter"
+        },
+
+        {
+        "appinfo",
+        appinfo,
+        "获取升级bin文件信息",
+        "COMMAND:appinfo+enter"
+        },
+
+        {
+        "iapstatus",
+        iapstatus,
+        "获取Iboot状态信息",
+        "COMMAND:iapstatus+enter"
+        },
+#if 0
+        {
+        "iapver",
+        Sh_GetIAPVersion,
+        "获取IAP版本信息",
+        "COMMAND:iapver+enter"
+        },
+#endif
+        {
+        "iapmode",
+        iapmode,
+        "获取当前运行模式(Iboot or APP)",
+        "COMMAND:iapmode+enter"
+        },
+
+        {
+        "updateapp",
+        updateapp,
+        "Update app.",
+        "COMMAND:updateapp+enter"
+        },
+
+        {
+            "ibootver",
+            ibootver,
+            "Get Iboot version.",
+            "COMMAND:ibootver+enter"
+        },
+        {
+            "updateiboot",
+            updateiboot,
+            "Update Iboot.",
+            "COMMAND:updateiboot+enter",
+        }
+};
 
 // ============================================================================
 // 功能：安装SHELL命令
@@ -565,13 +564,13 @@ ADD_TO_IN_SHELL bool_t ibootver(char *pDummy)
 // 返回：1（无意义）。
 // 备注
 // ============================================================================
-//#define CN_IAP_SHELL_NUM  sizeof(shell_cmd_iap_table)/sizeof(struct ShellCmdTab)
+#define CN_IAP_SHELL_NUM  sizeof(shell_cmd_iap_table)/sizeof(struct shell_debug)
 //static struct ShellCmdRsc tg_iap_shell_cmd_rsc[CN_IAP_SHELL_NUM];
-//ptu32_t IAP_ShellInstall(void)
-//{
-//    Sh_InstallCmd(shell_cmd_iap_table,tg_iap_shell_cmd_rsc,CN_IAP_SHELL_NUM);
-//    return 1;
-//}
+ptu32_t IAP_ShellInstall(void)
+{
+    shell_debug_add(shell_cmd_iap_table, CN_IAP_SHELL_NUM);
+    return 1;
+}
 
 // ============================================================================
 // 功能：安装IAP组件。
@@ -681,7 +680,7 @@ ptu32_t __UpdateIboot(void)
 
            //Chip=(struct FlashChip *)Dev_GetDevTag(Dev);
            //if(Chip==NULL)
-           if(-1 == fcntl(Dev, F_GETDDTAG, &Chip))
+           if(-1 == fcntl(Dev, F_GETDDRV, &Chip))
            {
                goto END;
            }

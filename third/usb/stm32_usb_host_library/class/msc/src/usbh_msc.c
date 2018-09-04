@@ -163,8 +163,8 @@ static USBH_StatusTypeDef USBH_MSC_InterfaceInit (USBH_HandleTypeDef *phost)
   
   if(interface == 0xFF) /* Not Valid Interface */
   {
-    USBH_DbgLog ("Cannot Find the interface for %s class.", phost->pActiveClass->Name);
-    status = USBH_FAIL;      
+    printf("\r\n: warn : usbs%02x : cannot find the interface for %s class.", phost->id, phost->pActiveClass->Name);
+    status = USBH_FAIL;
   }
   else
   {
@@ -307,7 +307,7 @@ static USBH_StatusTypeDef USBH_MSC_ClassRequest(USBH_HandleTypeDef *phost)
     if(status == USBH_OK)
     {
       MSC_Handle->max_lun = (uint8_t )(MSC_Handle->max_lun) + 1;
-      USBH_UsrLog ("Number of supported LUN: %u\r\n", (int32_t)(MSC_Handle->max_lun));
+      printf("\r\n: info : usbs%02x : device supported number of LUN: %u", phost->id, (int32_t)(MSC_Handle->max_lun));
       
       for(i = 0; i < MSC_Handle->max_lun; i++)
       {
@@ -340,241 +340,260 @@ static USBH_StatusTypeDef USBH_MSC_ClassRequest(USBH_HandleTypeDef *phost)
   */
 static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
 {
-  MSC_HandleTypeDef *MSC_Handle =  (MSC_HandleTypeDef *) phost->pActiveClass->pData;
-  USBH_StatusTypeDef error = USBH_BUSY ;
-  USBH_StatusTypeDef scsi_status = USBH_BUSY ;  
-  USBH_StatusTypeDef ready_status = USBH_BUSY ;
-  
-  switch (MSC_Handle->state)
-  {
-  case MSC_INIT:
+    MSC_HandleTypeDef *MSC_Handle =  (MSC_HandleTypeDef *) phost->pActiveClass->pData;
+    USBH_StatusTypeDef error = USBH_BUSY ;
+    USBH_StatusTypeDef scsi_status = USBH_BUSY ;
+    USBH_StatusTypeDef ready_status = USBH_BUSY ;
     
-    if(MSC_Handle->current_lun < MSC_Handle->max_lun)
+    switch (MSC_Handle->state)
     {
-
-      MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_NOT_READY;
-      /* Switch MSC REQ state machine */
-      switch (MSC_Handle->unit[MSC_Handle->current_lun].state)
-      {
-      case MSC_INIT:
-        USBH_UsrLog ("LUN #%d: \r\n", MSC_Handle->current_lun);
-        MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_READ_INQUIRY; //
-        MSC_Handle->timer = phost->Timer; // 初始化为USB core的时间
-        s_ReStart = 1;
-        Retry = 0;
-        
-      case MSC_READ_INQUIRY:
-        scsi_status = USBH_MSC_SCSI_Inquiry(phost, MSC_Handle->current_lun, &MSC_Handle->unit[MSC_Handle->current_lun].inquiry);
-
-        if( scsi_status == USBH_OK)
+        case MSC_INIT:
         {
-          USBH_UsrLog ("Inquiry Vendor  : %s\r\n", MSC_Handle->unit[MSC_Handle->current_lun].inquiry.vendor_id);
-          USBH_UsrLog ("Inquiry Product : %s\r\n", MSC_Handle->unit[MSC_Handle->current_lun].inquiry.product_id);
-          USBH_UsrLog ("Inquiry Version : %s\r\n", MSC_Handle->unit[MSC_Handle->current_lun].inquiry.revision_id);
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_TEST_UNIT_READY;
-        }
-
-        if( scsi_status == USBH_FAIL)
-        {
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_REQUEST_SENSE; // TODO
-        }
-        else if(scsi_status == USBH_UNRECOVERED_ERROR)
-        {
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
-          MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
-          USBH_DbgLog("MSC Device unrecoverable error When \"MSC_READ_INQUIRY\"");
-        }
-        else if(scsi_status == USBH_BUSY)
-        {
-          // USBH_DbgLog("MSC Device busy When \"MSC_READ_INQUIRY\""); // TODO
-          // USBH_Delay(1000);
-        }
-
-        break;    
-        
-      case MSC_TEST_UNIT_READY:
-        ready_status = USBH_MSC_SCSI_TestUnitReady(phost, MSC_Handle->current_lun);
-
-        if( ready_status == USBH_OK) // LUN is ready
-        {
-          if( MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state != USBH_OK)
-          {
-            MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 1;
-            USBH_UsrLog ("MSC Device ready");
-          }
-          else
-          {
-            MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 0;
-          }
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_READ_CAPACITY10;
-          MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_OK;
-          MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state = USBH_OK;
-        }
-
-        if( ready_status == USBH_FAIL)
-        {
-          /* Media not ready, so try to check again during 10s */
-          if( MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state != USBH_FAIL)
-          {
-            MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 1;
-            USBH_UsrLog ("MSC Device NOT ready\r\n");
-          }
-          else
-          {
-            MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 0;
-            // USBH_DbgLog("MSC Device NOT ready, Prev ready state is failed");
-          }         
-
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_REQUEST_SENSE; // TODO
-          MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_NOT_READY;
-          MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state = USBH_FAIL;
-        }
-        else if(ready_status == USBH_UNRECOVERED_ERROR)
-        {
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
-          MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
-          USBH_DbgLog("MSC Device unrecovereable error When \"MSC_TEST_UNIT_READY\"");
-        }
-        else if(ready_status == USBH_BUSY)
-        {
-          //USBH_DbgLog("MSC Device busy When \"MSC_TEST_UNIT_READY\""); // TODO
-          //USBH_Delay(1000); //
-        }
-        else if(USBH_TIMEOUT == ready_status)
-        {
-            USBH_DbgLog("MSC： \"MSC_TEST_UNIT_READY\" timeout retry");
-        }
-        break;
-        
-      case MSC_READ_CAPACITY10:   
-        scsi_status = USBH_MSC_SCSI_ReadCapacity(phost,MSC_Handle->current_lun, &MSC_Handle->unit[MSC_Handle->current_lun].capacity) ;
-
-        if(scsi_status == USBH_OK)
-        {
-          if(MSC_Handle->unit[MSC_Handle->current_lun].state_changed == 1)
-          {
-            USBH_UsrLog ("MSC Device capacity : %u Bytes\r\n", \
-              (int32_t)(MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_nbr * MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_size));
-            USBH_UsrLog ("Block number : %u\r\n", (int32_t)(MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_nbr));
-            USBH_UsrLog ("Block Size   : %u\r\n", (int32_t)(MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_size));
-          }
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
-          MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_OK;
-          MSC_Handle->current_lun++;
-        }
-        else if( scsi_status == USBH_FAIL)
-        {
-          // USBH_DbgLog("Read Capacity Failed."); // TODO :
-          USBH_UsrLog("Read Capacity Failed.\r\n");
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_REQUEST_SENSE;
-        }
-        else if(scsi_status == USBH_UNRECOVERED_ERROR)
-        {
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
-          MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
-          USBH_DbgLog("MSC Device unrecoverable error When \"MSC_READ_CAPACITY10\"\r\n");
-        }
-        else if(scsi_status == USBH_BUSY)
-        {
-            USBH_Delay(100);
-        }
-        break;
-        
-      case MSC_REQUEST_SENSE:
-        scsi_status = USBH_MSC_SCSI_RequestSense(phost,  MSC_Handle->current_lun, &MSC_Handle->unit[MSC_Handle->current_lun].sense);
-
-        if( scsi_status == USBH_OK)
-        {
-          if((MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_UNIT_ATTENTION) ||
-             (MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_NOT_READY) ||
-             (MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_NO_SENSE) || // TODO
-             (MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_VENDOR_SPECIFIC)) // TODO
-          {
-            
-            if(s_ReStart)
+            if(MSC_Handle->current_lun < MSC_Handle->max_lun)
             {
-              s_ReStart = 0;
-              s_StTime = DjyGetSysTime();
+                MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_NOT_READY;
+                /* Switch MSC REQ state machine */
+                switch (MSC_Handle->unit[MSC_Handle->current_lun].state)
+                {
+                    case MSC_INIT:
+                    {
+                        printf("\r\n                  LUN #%d:", MSC_Handle->current_lun);
+                        MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_READ_INQUIRY; //
+                        MSC_Handle->timer = phost->Timer; // 初始化为USB core的时间
+                        s_ReStart = 1;
+                        Retry = 0;
+                    }
+
+                    case MSC_READ_INQUIRY:
+                    {
+                        scsi_status = USBH_MSC_SCSI_Inquiry(phost, MSC_Handle->current_lun, &MSC_Handle->unit[MSC_Handle->current_lun].inquiry);
+
+                        if( scsi_status == USBH_OK)
+                        {
+                            printf("\r\n                  Inquiry Vendor  : %s(%02x)", MSC_Handle->unit[MSC_Handle->current_lun].inquiry.vendor_id, phost->id);
+                            printf("\r\n                  Inquiry Product : %s(%02x)", MSC_Handle->unit[MSC_Handle->current_lun].inquiry.product_id, phost->id);
+                            printf("\r\n                  Inquiry Version : %s(%02x)", MSC_Handle->unit[MSC_Handle->current_lun].inquiry.revision_id, phost->id);
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_TEST_UNIT_READY;
+                        }
+
+                        if( scsi_status == USBH_FAIL)
+                        {
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_REQUEST_SENSE; // TODO
+                        }
+                        else if(scsi_status == USBH_UNRECOVERED_ERROR)
+                        {
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
+                            MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
+                            printf("\r\n: erro : usbs%02x : device unrecoverable error when \"MSC_READ_INQUIRY\"", phost->id);
+                        }
+                        else if(scsi_status == USBH_BUSY)
+                        {
+                            // USBH_DbgLog("MSC Device busy When \"MSC_READ_INQUIRY\""); // TODO
+                            // USBH_Delay(1000);
+                        }
+
+                        break;
+                    }
+
+                    case MSC_TEST_UNIT_READY:
+                    {
+                        ready_status = USBH_MSC_SCSI_TestUnitReady(phost, MSC_Handle->current_lun);
+
+                        if( ready_status == USBH_OK) // LUN is ready
+                        {
+                            if( MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state != USBH_OK)
+                            {
+                                MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 1;
+                                // printf("\r\n: info : usbs%02x : device ready", phost->id);
+                            }
+                            else
+                            {
+                                MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 0;
+                            }
+
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_READ_CAPACITY10;
+                            MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_OK;
+                            MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state = USBH_OK;
+                        }
+
+                        if( ready_status == USBH_FAIL)
+                        {
+                            /* Media not ready, so try to check again during 10s */
+                            if( MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state != USBH_FAIL)
+                            {
+                                MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 1;
+                                printf("\r\n: erro : usbs%02x : device not ready", phost->id);
+                            }
+                            else
+                            {
+                                MSC_Handle->unit[MSC_Handle->current_lun].state_changed = 0;
+                                // USBH_DbgLog("MSC Device NOT ready, Prev ready state is failed");
+                            }
+
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_REQUEST_SENSE; // TODO
+                            MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_NOT_READY;
+                            MSC_Handle->unit[MSC_Handle->current_lun].prev_ready_state = USBH_FAIL;
+                        }
+                        else if(ready_status == USBH_UNRECOVERED_ERROR)
+                        {
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
+                            MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
+                            printf("\r\n: erro : usbs%02x : device unrecoverable error when \"MSC_TEST_UNIT_READY\"", phost->id);
+                        }
+                        else if(ready_status == USBH_BUSY)
+                        {
+                            //USBH_DbgLog("MSC Device busy When \"MSC_TEST_UNIT_READY\""); // TODO
+                            //USBH_Delay(1000); //
+                        }
+                        else if(USBH_TIMEOUT == ready_status)
+                        {
+                            printf("\r\n: erro : usbs%02x : \"MSC_TEST_UNIT_READY\" state timeout retry", phost->id);
+                        }
+
+                        break;
+                    }
+
+                    case MSC_READ_CAPACITY10:
+                    {
+                        scsi_status = USBH_MSC_SCSI_ReadCapacity(phost,MSC_Handle->current_lun, &MSC_Handle->unit[MSC_Handle->current_lun].capacity) ;
+
+                        if(scsi_status == USBH_OK)
+                        {
+                            if(MSC_Handle->unit[MSC_Handle->current_lun].state_changed == 1)
+                            {
+                                printf("\r\n                  MSC Device capacity : %u Bytes(%02x)", \
+                                (int32_t)(MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_nbr * MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_size), phost->id);
+                                printf("\r\n                  Block number : %u(%02x)", (int32_t)(MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_nbr), phost->id);
+                                printf("\r\n                  Block Size   : %u(%02x)", (int32_t)(MSC_Handle->unit[MSC_Handle->current_lun].capacity.block_size), phost->id);
+                            }
+
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
+                            MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_OK;
+                            MSC_Handle->current_lun++;
+                        }
+                        else if( scsi_status == USBH_FAIL)
+                        {
+                            // USBH_DbgLog("Read Capacity Failed."); // TODO :
+                            printf("\r\n: erro : usbs%02x : read device capacity failed", phost->id);
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_REQUEST_SENSE;
+                        }
+                        else if(scsi_status == USBH_UNRECOVERED_ERROR)
+                        {
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
+                            MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
+                            printf("\r\n: erro : usbs%02x : MSC device unrecoverable error When \"MSC_READ_CAPACITY10\"", phost->id);
+                        }
+                        else if(scsi_status == USBH_BUSY)
+                        {
+                            USBH_Delay(100);
+                        }
+                        break;
+                    }
+
+                    case MSC_REQUEST_SENSE:
+                    {
+                        scsi_status = USBH_MSC_SCSI_RequestSense(phost,  MSC_Handle->current_lun, &MSC_Handle->unit[MSC_Handle->current_lun].sense);
+
+                        if( scsi_status == USBH_OK)
+                        {
+                            if((MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_UNIT_ATTENTION) ||
+                               (MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_NOT_READY) ||
+                               (MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_NO_SENSE) || // TODO
+                               (MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_VENDOR_SPECIFIC)) // TODO
+                            {
+                                if(s_ReStart)
+                                {
+                                    s_ReStart = 0;
+                                    s_StTime = DjyGetSysTime();
+                                }
+
+                                s_EdTime = DjyGetSysTime();
+                                s_TimeElapsed = (u64)(s_EdTime - s_StTime);
+                                // if((phost->Timer - MSC_Handle->timer) < 10000) // 此处为FS的SOF的周期(1ms)
+                                if(((phost->Timer - MSC_Handle->timer) < MSC_TEST_UNIT_READY_TIMEOUT) || // 此处为HS的SOF的周期(125us)
+                                   (s_TimeElapsed < 10000000)) //|| (s_TimeElapsed < 10000000)) // 至少10s,SOF的计数好像不准
+                                {
+
+                                    MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_TEST_UNIT_READY;
+                                    USBH_Delay(100);
+                                    break;
+                                }
+                            }
+
+                            printf("\r\n                    Sense Key  : %x(%02x)", phost->id, MSC_Handle->unit[MSC_Handle->current_lun].sense.key);
+                            printf("\r\n                    Additional Sense Code : %x(%02x)", phost->id, MSC_Handle->unit[MSC_Handle->current_lun].sense.asc);
+                            printf("\r\n                    Additional Sense Code Qualifier: %x(%02x)", phost->id, MSC_Handle->unit[MSC_Handle->current_lun].sense.ascq);
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE; // TODO
+                            MSC_Handle->current_lun++;
+                        }
+
+                        if( scsi_status == USBH_FAIL)
+                        {
+                            if(Retry++ < 10)
+                            {
+                                printf("\r\n: info : usbs%02x : deevice NOT ready, retry %d times\r\n", phost->id, Retry);
+                                USBH_Delay(1000*Retry);
+                                break;
+                            }
+
+                            printf("\r\n: erro : usbs%02x : device(MSC) not ready\r\n", phost->id);
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_UNRECOVERED_ERROR;
+                        }
+                        else if(scsi_status == USBH_UNRECOVERED_ERROR)
+                        {
+                            MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
+                            MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
+                            printf("\r\n: erro : usbs%02x : device(MSC) unrecoverable error When \"MSC_REQUEST_SENSE\"\r\n", phost->id);
+                        }
+                        else if(scsi_status == USBH_BUSY)
+                        {
+                            //USBH_DbgLog("MSC Device busy When \"MSC_REQUEST_SENSE\""); // TODO
+                            USBH_Delay(1000);
+                        }
+                        break;
+                    }
+
+                    case MSC_UNRECOVERED_ERROR:
+                    {
+                        MSC_Handle->current_lun++;
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+
+                #if (USBH_USE_OS == 1)
+                    osMessagePut ( phost->os_event, USBH_CLASS_EVENT, 0);
+                #endif
+            }
+            else
+            {
+                MSC_Handle->current_lun = 0;
+                MSC_Handle->state = MSC_IDLE;
+                #if (USBH_USE_OS == 1)
+                osMessagePut ( phost->os_event, USBH_CLASS_EVENT, 0);
+                #endif
+                printf("\r\n: info : usbs%02x : class MSC go into idle state", phost->id); // TODO:
+                phost->pUser(phost, HOST_USER_CLASS_ACTIVE); // 调用用户程序
+                phost->pActiveClass->ClassState = USBH_OK;
             }
 
-            s_EdTime = DjyGetSysTime();
-            s_TimeElapsed = (u64)(s_EdTime - s_StTime);
-            // if((phost->Timer - MSC_Handle->timer) < 10000) // 此处为FS的SOF的周期(1ms)
-            if(((phost->Timer - MSC_Handle->timer) < MSC_TEST_UNIT_READY_TIMEOUT) || // 此处为HS的SOF的周期(125us)
-                (s_TimeElapsed < 10000000)) //|| (s_TimeElapsed < 10000000)) // 至少10s,SOF的计数好像不准
-            {
-
-              MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_TEST_UNIT_READY;
-              USBH_Delay(100);
-              break;
-            }        
-          }
-          
-          USBH_UsrLog ("Sense Key  : %x\r\n", MSC_Handle->unit[MSC_Handle->current_lun].sense.key);
-          USBH_UsrLog ("Additional Sense Code : %x\r\n", MSC_Handle->unit[MSC_Handle->current_lun].sense.asc);
-          USBH_UsrLog ("Additional Sense Code Qualifier: %x\r\n", MSC_Handle->unit[MSC_Handle->current_lun].sense.ascq);
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE; // TODO
-          MSC_Handle->current_lun++;
+            break;
         }
 
-        if( scsi_status == USBH_FAIL)
+        case MSC_IDLE:
         {
-          if(Retry++ < 10)
-          {
-              USBH_DbgLog("MSC Device NOT ready, retry %d times\r\n", Retry);
-              USBH_Delay(1000*Retry);
-              break;
-          }
-          USBH_UsrLog ("MSC Device NOT ready\r\n");
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_UNRECOVERED_ERROR; 
+            error = USBH_OK;
+            Djy_EventDelay(1000000); // 1s跑一次
+            break;
         }
-        else if(scsi_status == USBH_UNRECOVERED_ERROR)
-        {
-          MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_IDLE;
-          MSC_Handle->unit[MSC_Handle->current_lun].error = MSC_ERROR;
-          USBH_DbgLog("MSC Device unrecoverable error When \"MSC_REQUEST_SENSE\"\r\n");
-        }
-        else if(scsi_status == USBH_BUSY)
-        {
-          //USBH_DbgLog("MSC Device busy When \"MSC_REQUEST_SENSE\""); // TODO
-          USBH_Delay(1000);
-        }
-        break;  
-    
-      case MSC_UNRECOVERED_ERROR: 
-        MSC_Handle->current_lun++;
-        break;  
         
-      default:
-        break;
-      }
-      
-#if (USBH_USE_OS == 1)
-    osMessagePut ( phost->os_event, USBH_CLASS_EVENT, 0);
-#endif       
+        default:
+            break;
     }
-    else
-    {
-      MSC_Handle->current_lun = 0;
-      MSC_Handle->state = MSC_IDLE;
-#if (USBH_USE_OS == 1)
-      osMessagePut ( phost->os_event, USBH_CLASS_EVENT, 0);
-#endif 
-      USBH_DbgLog("MSC class go into idle state"); // TODO:
-      phost->pUser(phost, HOST_USER_CLASS_ACTIVE); // 调用用户程序
-      phost->pActiveClass->ClassState = USBH_OK;
-    }
-    break;
-
-  case MSC_IDLE:
-    error = USBH_OK;  
-    Djy_EventDelay(1000000); // 1s跑一次
-    break;
     
-  default:
-    break; 
-  }
-  return error;
+    return error;
 }
 
 

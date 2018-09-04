@@ -51,7 +51,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <list.h>
-#include <objfile.h>
+#include <object.h>
+#include <objhandle.h>
+#include <stdio.h>
 #include "filesystems.h"
 #include "dbug.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -108,7 +110,7 @@ struct filesystem{
 // 返回：文件系统类型；未找到（NULL）；
 // 备注：
 // ============================================================================
-tagFST *FS_Find(const char *pType)
+static tagFST *__findtype(const char *pType)
 {
     list_t *cur;
     struct filesystem *fs;
@@ -123,7 +125,6 @@ tagFST *FS_Find(const char *pType)
     dListForEach(cur, &pFileSystemTypes->list)
     {
         fs = dListEntry(cur, struct filesystem, list);
-
         if(!strcmp(fs->pType->pType, pType))
         {
             return (fs->pType);
@@ -136,27 +137,27 @@ tagFST *FS_Find(const char *pType)
 // ============================================================================
 // 功能：新的文件系统类型注册。
 // 参数：pType -- 新的文件系统类型。
-// 返回：成功（0）；失败（-1）。
+// 返回：成功（0）；失败（-1）。已注册（1）；
 // 备注：
 // ============================================================================
-s32 FS_Register(tagFST *pType)
+s32 regfs(tagFST *type)
 {
-    struct filesystem *new;
+    struct filesystem *newt;
 
-    if(FS_Find(pType->pType))
-        return (-1);
+    if(__findtype(type->pType))
+        return (1);
 
-    new = malloc(sizeof(*new));
-    new->pType = pType;
+    newt = malloc(sizeof(*newt));
+    newt->pType = type;
 
     if(!pFileSystemTypes)
     {
-        dListInit(&(new->list));
-        pFileSystemTypes = new;
+        dListInit(&(newt->list));
+        pFileSystemTypes = newt;
     }
     else
     {
-        dListInsertAfter(&(pFileSystemTypes->list), &(new->list));
+        dListInsertAfter(&(pFileSystemTypes->list), &(newt->list));
     }
 
     return (0);
@@ -164,108 +165,106 @@ s32 FS_Register(tagFST *pType)
 
 // ============================================================================
 // 功能：新的文件系统安装
-// 参数：pSource -- 将要挂上的文件系统，通常是一个设备名；
-//      pTarget -- 文件系统所要挂载的目标对象（目录）；
-//      pType -- 文件系统类型；
-//      dwFlags -- 文件系统读写访问标志；
-//      pData -- 文件系统特有参数；
+// 参数：source -- 将要挂上的文件系统，通常是一个设备名；
+//      target -- 文件系统所要挂载的目标对象（目录）；
+//      type -- 文件系统类型；
+//      flags -- 文件系统读写访问标志；
+//      data -- 文件系统特有参数；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 FS_Mount(const char *pSource, const char *pTarget, const char *pType, u32 dwFlags, void *data)
+s32 mountfs(const char *source, const char *target, const char *type, u32 opt, void *data)
 {
-    tagFST *type;
+    tagFST *fstype;
     tagFSC *super;
-    struct Object *source, *target, *temp;
+    struct obj *srco, *targeto, *tmpo;
     s32 res;
     char *notfind;
 
-    type = FS_Find(pType);
-    if(!type)
+    fstype = __findtype(type);
+    if(!fstype)
     {
-        debug_printf("FS","mount failed. cannot find \"%s\"<type>.", pType);
+        debug_printf("fs","mount failed(cannot find type \"%s\")", type);
         return (-1);
     }
 
-    source = OBJ_MatchPath(pSource, &notfind, 0);
+    srco = obj_matchpath(source, &notfind, 0);
     if(notfind)
     {
         // 未找到设备
-        debug_printf("FS","mount failed. cannot find \"%s\"<device>.", pSource);
+        debug_printf("fs","mount failed(cannot find device \"%s\").", source);
         return (-1);
     }
 
-    target = OBJ_MatchPath(pTarget, &notfind, 0);
+    targeto = obj_matchpath(target, &notfind, 0);
     if(notfind)
     {
 #if 0
         // 未找到安装点
-        target = OBJ_BufferPath(target, notfind); // 建立安装点
+        targeto = obj_buildpath(targeto, notfind); // 建立安装点
 #else
         return (-1); // 安装点必须准备好。
 #endif
     }
     else
     {
-        // 目标节点已存在，判断其是否是目录
-        res = __OBJ_Type(target);
-        if((DIR_POINT == res) || (GROUP_POINT == res))
+        if(obj_testset(targeto)) // 对象上可否创建集合
         {
-            temp = target;
-            target = OBJ_Replace(temp); // 原来的节点被新的替代。
-            if(!target)
+            tmpo = targeto;
+            targeto = obj_replacebyset(tmpo, 0, 0); // 原来的对象被对象集合（新的文件类型集合）替代。
+            if(!targeto)
             {
-                debug_printf("FS","mount failed. cannot mount on the \"%s\"<target replace>.", pTarget);
+                debug_printf("fs","mount failed(cannot target replace the \"%s\").", target);
                 return (-1);
             }
-
-            __OBJ_SetMountPoint(temp); // 将原节点设置为安装点，防止其关闭时被释放（针对第三方的文件系统），因为恢复时仍需要。
         }
         else
         {
-            debug_printf("FS","mount failed. cannot mount on the \"%s\"<target type>.", pTarget);
+            debug_printf("fs","mount failed(cannot mount on the \"%s\" for wrong target type).", target);
             return (-1);
         }
 
     }
 
     super = malloc(sizeof(*super));
-    super->pTarget = target;
-    super->pDev = source;
-    __OBJ_SetRepresent(target, (ptu32_t)super);
-    __OBJ_SetOps(super->pTarget, type->fileOps);
-    res = type->install(super, dwFlags, data);
+    super->pTarget = targeto;
+    super->pDev = srco;
+    obj_setval(targeto, (ptu32_t)super); // 设置对象的内容；（本对象是集合）
+    obj_setops(targeto, fstype->fileOps); // 设置对象方法；（本对象是集合）
+    res = fstype->install(super, opt, data);
     if(res)
     {
          // 安装失败
-        temp = OBJ_Restore(super->pTarget);
-        __OBJ_ClearMountPoint(temp); //
+        tmpo = obj_destoryset(super->pTarget);
         free(super);
         return (-1);
     }
 
     // if(!DJYFS_PATH_BUFFER)
-
-
-
     return (0);
-
 }
 
 // ============================================================================
-// 功能：
-// 参数：
+// 功能：获取文件系统对象（集合点）的管理体
+// 参数：ob -- 文件系统对象集合；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-void *FS_Core(struct Object *pObj)
+void *corefs(struct obj *ob)
 {
     tagFSC *super;
 
-    if(!pObj)
+    if(!ob)
         return (NULL);
 
-    super = (tagFSC *)__OBJ_Represent(pObj);
+    if(!obj_isset(ob)) // 对象不是集合点；
+    {
+        ob = obj_set(ob); // 获取对象集合；
+        if((!ob)&&(!obj_isset(ob)))
+            return (NULL); // 不是集合或者不存在；
+    }
+
+    super = (tagFSC *)obj_val(ob);
     if(!super)
         return (NULL);
 

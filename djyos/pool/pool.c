@@ -121,13 +121,13 @@ struct MemCellFree
 };
 
 static struct dListNode s_tPoolHead; // 管理内存池控制块本身的内存池
-static struct Object *s_ptPoolObject;
+//static struct obj *s_ptPoolObject;
 //static FILE *s_ptPoolFp;
 static struct MemCellPool *s_ptPoolCtrl; // 管理内存池控制块本身的内存池
 struct MemCellPool s_tObjectPool; // 管理对象控制块的内存池
 struct MemCellPool g_tObjPortPool; // 管理文件控制块的内存池
 
-ptu32_t Mb_PoolObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
+ptu32_t Mb_PoolObjOps(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...);
 //----初始化固定块分配模块------------------------------------------------------
 //功能: 初始化操作系统的固定块内存分配模块.内存池控制块本身也是按照内存池的方式
 //      分配的,但是此时内存池组件还没有初始化完成,故需要手动创建用于内存池控制块
@@ -169,35 +169,39 @@ ptu32_t __InitMB(void)
 // 返回：
 // 备注：
 // ============================================================================
-s32 __InstallMBFS(void)
+s32 mount_mb_system(void)
 {
-    __mounto("MB", "/", (tagObjOps)Mb_PoolObjOps, (ptu32_t)&s_tPoolHead);
-    return (0);
+    if(obj_newchild_set(objsys_root(), "memory pool", Mb_PoolObjOps, 0, O_RDWR))
+        return (0);
+
+    return (-1);
 }
 
 //----内存池文件操作函数-------------------------------------------------------
 //功能：只实现了一个功能，即：列出全部内存池，以及当前内存池状态（空闲多少，
 //      总容量，块尺寸等）
-//参数：fp，好像没啥用
-//      cmd，命令码，只支持 CN_OBJ_CMD_SHOW
+//参数：ops，命令码，
 //      para，无用
 //返回：true
 //-----------------------------------------------------------------------------
-ptu32_t Mb_PoolObjOps(u32 dwCMD, ptu32_t context, ptu32_t args, ...)
+ptu32_t Mb_PoolObjOps(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...)
 {
     s32 result = 0;
+    args = args;
 
-    switch(dwCMD)
+    switch(ops)
     {
+#if 0
         case CN_OBJ_CMD_SHOW:
         {
-            debug_printf("pool","unsupported operation.");
+            printf("\r\nMB : debug : unsupported operation.");
             break;
         }
+#endif
 
         default:
         {
-            result = CN_OBJ_CMD_UNSUPPORT;
+            result = OBJUNSUPPORTED;
             break;
         }
     }
@@ -337,7 +341,7 @@ bool_t Mb_DeletePool(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!OBJ_Del(&pool->memb_node))
+//  if(!obj_del(&pool->memb_node))
 //      return false;
     Mb_Free(s_ptPoolCtrl,pool);
     return true;
@@ -362,7 +366,7 @@ bool_t Mb_DeletePool_s(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!OBJ_Del(&pool->memb_node))
+//  if(!obj_del(&pool->memb_node))
 //      return false;
     return true;
 }
@@ -400,7 +404,8 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
                 //检查实际分配到的内存量
                 inc_size = M_CheckSize(inc) - align_up_sys(1);
                 inc_cell = inc_size/pool->cell_size;
-                Lock_SempExpand(&pool->memb_semp, (inc_cell-1)); // 去掉当前需申请的一个
+                Lock_SempExpand(&pool->memb_semp, inc_cell);
+                Lock_SempPend(&pool->memb_semp,0); // 去掉当前需申请的一个
                 pool->continue_pool = (void*)((ptu32_t)inc + align_up_sys(1));
                 pool->pool_offset = (ptu32_t)pool->continue_pool + inc_cell*pool->cell_size;
                 //以下初始化增量表，该表用于标记动态增加的内存块，利于删除内存池

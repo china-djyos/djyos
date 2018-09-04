@@ -20,6 +20,7 @@
 #include "os.h"
 #include "board-config.h"
 #include <gui/gkernel/gk_display.h>
+#include <shell.h>
 
 //坐标系说明,描述了显存偏移地址与屏上像素点的坐标映射关系,注意单色和灰度显示器
 //每字节可能包含不止一个像素点,图中没有加以区分.
@@ -453,8 +454,10 @@ ptu32_t ModuleInstall_LCM240128C(const char *ChipName)
     LCD_BackLight(1);
     LCD_Reset();
     InitLCM240128C( );
-//    extern ptu32_t LCD_Shell_Module_Install(void);
-//    LCD_Shell_Module_Install();
+    {
+    extern ptu32_t LCD_Shell_Module_Install(void);
+    LCD_Shell_Module_Install();
+    }
 
     pg_frame_buffer = malloc(CN_LCD_XSIZE*CN_LCD_YSIZE/2);
     memset(pg_frame_buffer,0,CN_LCD_XSIZE*CN_LCD_YSIZE/2);

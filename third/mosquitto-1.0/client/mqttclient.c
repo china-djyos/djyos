@@ -822,7 +822,7 @@ static struct ShellCmdTab  gMosquittoCmd[] =
 };
 
 #define CN_Mosquitto_CMDNUM  ((sizeof(gMosquittoCmd))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gMosquittoCmdRsc[CN_Mosquitto_CMDNUM];
+//static struct ShellCmdRsc gMosquittoCmdRsc[CN_Mosquitto_CMDNUM];
 
 //work flow:mqttservicestart->add mqtt device ->configure the device->enable the device
 //usage:use this function to do the mqtt  module initialize
@@ -836,7 +836,7 @@ int mqttserviceinit(void)
     }
     else
     {
-        result = Sh_InstallCmd(gMosquittoCmd,gMosquittoCmdRsc,CN_Mosquitto_CMDNUM);
+        result = shell_debug_add(gMosquittoCmd, CN_Mosquitto_CMDNUM);
     }
     return result;
 }

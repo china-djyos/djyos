@@ -63,8 +63,8 @@
 extern "C"{
 #endif
 
-struct stat;
-s32 stat(const char *fullname,struct stat *fp_buf);
+//struct stat;
+//s32 stat(const char *fullname,struct stat *fp_buf);
 
 #ifdef __cplusplus
 }

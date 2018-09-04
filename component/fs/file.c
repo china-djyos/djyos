@@ -55,22 +55,25 @@
 #include <fcntl.h>
 #include <stat.h>
 #include <unistd.h>
-//#include <djyos.h>
-//#include <systime.h>
-//#include <object.h>
-//#include <objfile.h>
 #include "file.h"
 #include "dbug.h"
 
 #define CFILE_BUFFER_SIZ            512
 
 // ============================================================================
-// 功能：测试是否为STDIO；
-// 参数：stream -- STDIO文件流；
-// 返回：是（1）；不是（0）；未初始化的STDIO（-1）；
-// 备注：STDIO模块提供的函数；
+// 功能：测试是否是有效的的文件流；
+// 参数：stream -- 文件流；
+// 返回：是（1）；不是（0）；
+// 备注：
 // ============================================================================
-extern s32 IsSTDIO(FILE *stream);
+s32 isvalid(FILE* stream)
+{
+    if((!stream) // 非法参数
+       ||(-1==stream->fd)) // 未初始化的STDIO文件流
+        return (0);
+
+    return (1);
+}
 
 // ============================================================================
 // 功能：新建文件缓冲；
@@ -78,9 +81,12 @@ extern s32 IsSTDIO(FILE *stream);
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 __FBNew(FILE *stream)
+s32 __filebuf_new(FILE *stream)
 {
     struct __buf *buf;
+
+    if(stream->buf)
+        return (-1);
 
     buf = malloc(sizeof(*buf)+CFILE_BUFFER_SIZ);
     if(!buf)
@@ -90,6 +96,7 @@ s32 __FBNew(FILE *stream)
 
     buf->prefetched = buf->movs = buf->data = (u8*)buf + sizeof(*buf);
     buf->size = CFILE_BUFFER_SIZ;
+    stream->buf = buf;
     return (0);
 }
 
@@ -99,7 +106,7 @@ s32 __FBNew(FILE *stream)
 // 返回：
 // 备注：
 // ============================================================================
-void __FBDel(FILE *stream)
+void __filebuf_del(FILE *stream)
 {
     if(stream->buf)
     {
@@ -114,7 +121,7 @@ void __FBDel(FILE *stream)
 // 返回：缓冲空闲量；
 // 备注：
 // ============================================================================
-s32 __FBFrees(FILE *stream)
+s32 __filebuf_frees(FILE *stream)
 {
     return (stream->buf->size - (stream->buf->movs - stream->buf->data));
 }
@@ -125,7 +132,7 @@ s32 __FBFrees(FILE *stream)
 // 返回：
 // 备注：
 // ============================================================================
-s32 __FBPrefetched(FILE *stream)
+s32 __filebuf_fetched(FILE *stream)
 {
     return (stream->buf->prefetched - stream->buf->movs);
 }
@@ -136,7 +143,7 @@ s32 __FBPrefetched(FILE *stream)
 // 返回：文件流预读的量；
 // 备注：
 // ============================================================================
-s32 __FBMark(FILE *stream)
+s32 __filebuf_mark(FILE *stream)
 {
     return (stream->buf->prefetched - stream->buf->data);
 }
@@ -147,7 +154,7 @@ s32 __FBMark(FILE *stream)
 // 返回：已缓存的量；
 // 备注：
 // ============================================================================
-s32 __FBUsed(FILE*stream)
+s32 __filebuf_used(FILE*stream)
 {
     return (stream->buf->movs - stream->buf->data);
 }
@@ -158,7 +165,7 @@ s32 __FBUsed(FILE*stream)
 // 返回：不存在缓冲（NULL）；存在缓冲（缓冲空间）；
 // 备注：
 // ============================================================================
-s32 __HasFB(FILE*stream)
+s32 __isfilebufed(FILE*stream)
 {
     return ((s32)stream->buf);
 }
@@ -171,7 +178,7 @@ s32 __HasFB(FILE*stream)
 // 返回：成功（0）； 失败（-1）;
 // 备注：
 // ============================================================================
-s32 __Transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
+s32 __transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
 {
     bool_t WhileContinue = true;
 
@@ -246,23 +253,23 @@ s32 fflush(FILE *stream)
 {
     s32 res, buffed;
     u8 *src, *des;
-    u32 i;
+    s32 i;
     off_t offset;
 
     if(!stream)
         return (EOF); // C库上是更新所有的stream
 
-    if(-1 == IsSTDIO(stream))
-    {
-        return (EOF);
-    }
+//    if(-1 == IsSTDIO(stream))
+//    {
+//        return (EOF);
+//    }
 
-    if(__HasFB(stream))
+    if(__isfilebufed(stream))
     {
-        buffed = __FBUsed(stream);
+        buffed = __filebuf_used(stream);
         if(buffed)
         {
-            offset = -__FBMark(stream);
+            offset = -__filebuf_mark(stream);
             offset = lseek(stream->fd, offset, SEEK_CUR); // 将预读的空间置回；
             if(-1 == offset)
                 return (EOF);
@@ -306,7 +313,7 @@ FILE *fopen(const char *filename, const char *mode)
     if((!filename) || (!mode) || ('\0' == *filename))
         return (NULL);
 
-    res = __Transform(mode, &flags, &cflags);
+    res = __transform(mode, &flags, &cflags);
     if(res)
     {
         debug_printf("clib","\"fopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
@@ -343,7 +350,7 @@ FILE *fopen(const char *filename, const char *mode)
 
     if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISBF(info.st_mode)))
     {
-        res = __FBNew(stream);
+        res = __filebuf_new(stream);
         if(res)
         {
             debug_printf("clib","\"fopen\" (%s) failed<memory out", filename);
@@ -380,8 +387,8 @@ int fclose(FILE *stream)
     if(!stream)
         return (-1);
 
-    if(IsSTDIO(stream))
-        return (-1); // STDIO文件不允许关闭；
+//    if(IsSTDIO(stream))
+//        return (-1); // STDIO文件不允许关闭；
 
     if(EOF==fflush(stream))
     {
@@ -395,8 +402,8 @@ int fclose(FILE *stream)
         return (-1);
     }
 
-    if(__HasFB(stream))
-        __FBDel(stream);
+    if(__isfilebufed(stream))
+        __filebuf_del(stream);
 
     free(stream);
 
@@ -422,6 +429,7 @@ FILE *tmpfile(void)
 // ============================================================================
 char *tmpname(char *s)
 {
+    s = s;
     return (NULL);
 }
 
@@ -476,7 +484,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         i = 1;
     }
 
-    if(-1 == IsSTDIO(stream)) // 文件流是未初始化的STDIO
+    if(!isvalid(stream)) // 文件流是未初始化的STDIO
     {
         if(GetCharDirect) // 函数已注册；（TODO:这个逻辑不应该防止这里实现）
         {
@@ -500,14 +508,14 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         }
     }
 
-    if(!__HasFB(stream))
+    if(!__isfilebufed(stream))
     {
         res = read(stream->fd, buf, all);
     }
     else
     {
 
-        if(all <= __FBPrefetched(stream))
+        if(all <= __filebuf_fetched(stream))
         {
             // 已预读的文件足够本次读
             memcpy(buf, stream->buf->movs, all);
@@ -572,7 +580,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
     if(EOF != stream->unget)
         stream->unget = EOF; // 抛弃掉ungetc的内容
 
-    if(-1 == IsSTDIO(stream))
+    if(!isvalid(stream)) // TODO
     {
         if(PutStrDirect) // 函数已注册；
         {
@@ -582,7 +590,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
         return (count);
     }
 
-    if(!__HasFB(stream))
+    if(!__isfilebufed(stream))
     {
         res = write(stream->fd, buf, all);
         if(-1!=res)
@@ -593,7 +601,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
     else
     {
         tmp = stream->pos;
-        frees = __FBFrees(stream);;
+        frees = __filebuf_frees(stream);;
         while(1)
         {
             if(frees > rest)
@@ -606,7 +614,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
                 stream->buf->prefetched = stream->buf->pMov;
 #endif
 
-            if(__FBFrees(stream))
+            if(__filebuf_frees(stream))
             {
                 res = all;
                 break; // 全部正常写入
@@ -681,21 +689,15 @@ char *fgets(char *buf, s32 n, FILE *stream)
        // TODO:
        // 忽略回车，以换行符结束，能兼容WINDOWS和LINUX格式文件。
        // MAC不用考虑，从 OSx开始已经兼容LINUX了。
-       if('\r' == ch || '\n' == ch)
+       if('\r' == ch)
        {
-           if(i == 0)
-               continue; // WINDOWS格式文本文件有 '\r'，跳过
-           else
-           {
-               buf[i] = '\0';
-               break;
-           }
+           continue; // WINDOWS格式文本文件有 '\r'，跳过
        }
-//       else if('\n' == ch) // 遇换行符，输入结束
-//       {
-//           buf[i] = '\0';
-//           break;
-//       }
+       else if('\n' == ch) // 遇换行符，输入结束
+       {
+           buf[i] = '\0';
+           break;
+       }
 
        buf[i] = ch;
    }
@@ -760,12 +762,12 @@ int fseeko(FILE *stream, off_t offset, int whence)
     if(EOF != stream->unget)
         stream->unget = EOF;
 
-    if(-1 == IsSTDIO(stream))
-    {
-        return (EOF);
-    }
+//    if(-1 == IsSTDIO(stream))
+//    {
+//        return (EOF);
+//    }
 
-    if(!__HasFB(stream))
+    if(!__isfilebufed(stream))
     {
         offset = lseek(stream->fd, offset, whence);
         if(-1 == offset)
@@ -803,8 +805,8 @@ int fseeko(FILE *stream, off_t offset, int whence)
 
         case SEEK_CUR:
         {
-            if(((offset < 0) && ((__FBUsed(stream) + offset) >= 0)) ||
-               ((offset > 0) && (__FBPrefetched(stream) - offset >= 0)))
+            if(((offset < 0) && ((__filebuf_used(stream) + offset) >= 0)) ||
+               ((offset > 0) && (__filebuf_fetched(stream) - offset >= 0)))
             {
                 // 偏置量在缓存内部移动；
                 stream->buf->movs += offset;
@@ -848,8 +850,7 @@ int fseek(FILE *stream, long offset, int whence)
 
     if(sizeof(off_t) != sizeof(long))
     {
-        debug_printf("clib","the size of \"off_t\" is not equal to the size of \"long\".");
-        return (EOF); // TODO
+        return ((int)fseeko(stream, (off_t)(offset&(0x00000000FFFFFFFF)), whence));
     }
 
     return (fseeko(stream, (off_t)offset, whence));
@@ -861,13 +862,13 @@ int fseek(FILE *stream, long offset, int whence)
 // 返回：成功（文件号）；出错（-1）
 // 备注：POSIX
 // ============================================================================
-s32 fileno(FILE *stream)
+int fileno(FILE *stream)
 {
     if(!stream)
         return (-1);
 
-    if(-1 != IsSTDIO(stream))
-        return (-1);
+//    if(-1 != IsSTDIO(stream))
+//        return (-1);
 
     return (stream->fd);
 }
@@ -883,8 +884,8 @@ off_t ftello(FILE *stream)
     if(!stream)
         return (-1);
 
-    if(-1 != IsSTDIO(stream))
-        return (-1);
+//    if(-1 != IsSTDIO(stream))
+//        return (-1);
 
     return (stream->pos);
 }
@@ -958,7 +959,7 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
     if((!filename) || (!mode) || ('\0' == *filename))
         return (NULL);
 
-    res = __Transform(mode, &flags, &cflags);
+    res = __transform(mode, &flags, &cflags);
     if(res)
     {
         debug_printf("clib","\"freopen\" (%s) failed<bad \"mode\" = %s>", filename, mode);
@@ -990,12 +991,12 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
     if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISBF(info.st_mode)))
     {
         if(!stream->buf)
-            __FBNew(stream);
+            __filebuf_new(stream);
     }
     else
     {
         if(stream->buf)
-            __FBDel(stream);
+            __filebuf_del(stream);
     }
 
     stream->flags = info.st_mode; // 新的flag

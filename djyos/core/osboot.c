@@ -70,7 +70,7 @@
 #include <exp.h>
 #include <osboot.h>
 #include "dbug.h"
-#include "newshell.h"
+#include "board-config.h"
 #include "component_config_core.h"
 static char *pBootModeName[]={
     "POWERDOWN",
@@ -209,10 +209,19 @@ static bool_t __CpuDumpDecoder(struct ExpThrowPara  *exppara,u32 endian)
         debug_printf("osboot","Param1:0x%08x Param2:0x%08x\n\r",ecb->param1,ecb->param2);
         debug_printf("osboot","Sync:0x%08x SyncHead:0x%08x SyncCounter:0x%08x\n\r",(u32)ecb->sync,(u32)ecb->sync_head,ecb->sync_counter);
 #if CFG_OS_TINY == false
+#if	(CN_USE_TICKLESS_MODE)  
         debug_printf("osboot","EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartCnt,ecb->consumed_cnt);
         debug_printf("osboot","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_cnt_second,ecb->consumed_cnt_record);
+#else
+        debug_printf("osboot","EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartTime,ecb->consumed_time);
+        debug_printf("osboot","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_time_record,ecb->consumed_time_record);
+#endif
 #endif  //CFG_OS_TINY == false
+#if	(CN_USE_TICKLESS_MODE) 
         debug_printf("osboot","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_cnt,ecb->delay_end_cnt);
+#else
+        debug_printf("osboot","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_tick,ecb->delay_end_tick);
+#endif
         debug_printf("osboot","ErrNo:%d EventResult:0x%08x\n\r",ecb->error_no,ecb->event_result);
         debug_printf("osboot","WaitMemSize:%d\n\r",ecb->wait_mem_size);
         debug_printf("osboot","WakeupFrom:0x%08x Status:0x%08x\n\r",ecb->wakeup_from,ecb->event_status);
@@ -335,45 +344,43 @@ ADD_TO_IN_SHELL bool_t bootaddress(char *param)
     return true;
 }
 
+//cpu boot shell command
+struct shell_debug  gBootShell[] =
+{
+    {
+        "reboot",
+        rebootshell,
+        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
+        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
+    },
+    {
+        "reset",
+        resetshell,
+        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
+        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
+    },
+    {
+        "restart",
+        restart,
+        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
+        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
+    },
+    {
+        "bootaddress",
+        bootaddress,
+        "usage:bootaddress [address]",
+        "usage:bootaddress [address]",
+    },
+    {
+        "bootmsg",
+        bootmsg,
+        "usage:bootmsg",
+        "usage:bootmsg",
+    },
+};
 
-////cpu boot shell command
-//struct ShellCmdTab  gBootShell[] =
-//{
-//    {
-//        "reboot",
-//        rebootshell,
-//        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
-//        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
-//    },
-//    {
-//        "reset",
-//        resetshell,
-//        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
-//        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
-//    },
-//    {
-//        "restart",
-//        reloadshell,
-//        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
-//        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
-//    },
-//    {
-//        "bootaddress",
-//        bootaddressshell,
-//        "usage:bootaddress [address]",
-//        "usage:bootaddress [address]",
-//    },
-//    {
-//        "bootmsg",
-//        __BootMsgShowShell,
-//        "usage:bootmsg",
-//        "usage:bootmsg",
-//    },
-//};
-//
-//#define CN_BOOTDEBUG_NUM  ((sizeof(gBootShell))/(sizeof(struct ShellCmdTab)))
+#define CN_BOOTDEBUG_NUM  ((sizeof(gBootShell))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gBootShellCmdRsc[CN_BOOTDEBUG_NUM];
-
 
 //use this function to analyze the boot mode
 static bool_t __OsBootModeLog(void)
@@ -445,7 +452,9 @@ bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode getmodehard,
 
     //记录系统启动状态
     __OsBootModeLog();
-//    result = Sh_InsstallCmd(gBootShell,gBootShellCmdRsc,CN_BOOTDEBUG_NUM);
+    if(CN_BOOTDEBUG_NUM==shell_debug_add(gBootShell, CN_BOOTDEBUG_NUM))
+        return (FALSE);
+
     return result;
 
 }

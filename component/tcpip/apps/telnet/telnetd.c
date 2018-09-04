@@ -122,11 +122,11 @@ static u32 __read(void *obj,u8 *buf,u32 len,u32 offset,u32 timeout)
 		if(Ring_Check(gDevTelnetd.ring)) //still some data in the ring
 		{
             semp_post(gDevTelnetd.rcvsync);
-            fcntl(ofno(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(hande2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
 		}
 		else
 		{
-            fcntl(ofno(gDevTelnetd.obj),F_CLREVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(hande2fd(gDevTelnetd.obj),F_CLREVENT,CN_MULTIPLEX_SENSINGBIT_READ);
 		}
 	}
     return ret;
@@ -196,7 +196,7 @@ static void __telnetclientengine(int sock)
 
 	Ring_Write(gDevTelnetd.ring,(u8 *)opt,sizeof(tagNvtCmd));
 	semp_post(gDevTelnetd.rcvsync);
-    fcntl(ofno(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+    fcntl(hande2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
     //OK,now send info here
     sendexact(sock,(u8 *)CN_CLIENT_WELCOM,strlen(CN_CLIENT_WELCOM));
     gDevTelnetd.clientfd = sock;
@@ -207,7 +207,7 @@ static void __telnetclientengine(int sock)
         {
         	Ring_Write(gDevTelnetd.ring,(u8 *)&ch,1);
         	semp_post(gDevTelnetd.rcvsync);
-            fcntl(ofno(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(hande2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else if(len == 0)
         {

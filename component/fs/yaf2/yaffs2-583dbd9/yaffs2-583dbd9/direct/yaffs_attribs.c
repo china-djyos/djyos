@@ -10,7 +10,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#if 0 // DJYOS≤ª±‡“Î
 #if 0
 #include "yaffs_attribs.h"
 #else
@@ -108,4 +107,3 @@ static Y_LOFF_T yaffs_get_file_size(struct yaffs_obj *obj)
 		return 0;
 	}
 }
-#endif // DJYOS≤ª±‡“Î

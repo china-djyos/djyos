@@ -51,18 +51,19 @@
 #include <string.h>
 #include <fcntl.h>
 #include <misc.h>
+#include <stdarg.h>
 #include <systime.h>
 #include <lock.h>
 #include <dirent.h>
-#include <objfile.h>
-#include "dbug.h"
-#include <device/unit_media.h>
+#include <objhandle.h>
+#include <stdio.h>
+#include <device/include/unit_media.h>
 #include "../filesystems.h"
 //
 //
 //
 #define ESIG_LEN                20
-#define ESIGN                   "  easy file system  "
+#define ESIGN                   "easy file system v0" // 包括结束符是20个字节
 #define SYS_LOOPS               6
 #define SYS_TMP                 ((u64)-1)
 #define BUFLEN                  (252) // 文件缓存大小
@@ -142,7 +143,8 @@ struct __loc{
 // 接入文件系统结构
 //
 struct __efile{
-    struct __portBasic basic; // 接入文件系统用
+//    struct __portBasic basic; // 接入文件系统用
+    u32 flags; // 文件控制标志位；
     s64 size;
     struct __loc *loc; // 文件所在位置；即idx的偏置；
 };
@@ -165,6 +167,22 @@ struct __scanlogic{
         goodsys,
     }stat;
     u32 age;
+};
+
+enum locmove{
+    position,
+    direct,
+};
+
+struct __dentry{
+    char *name;
+    struct __dentry *nxt;
+};
+
+struct __dentrys{
+    u32 items;
+    u32 scans;
+    struct __dentry *item;
 };
 
 // ============================================================================
@@ -204,7 +222,6 @@ static s32 __llread(struct __ecore *core, s64 units, void *buf)
     opt.necc = 1;
     opt.main = 1;
     units = core->media->ustart + units;
-
     res = core->media->mread(units, (u8*)buf, opt);
     if(res != (1<<core->media->usz))
         return (-1);
@@ -228,7 +245,6 @@ static s32 __llwrite(struct __ecore *core, s64 units, void *buf)
     opt.necc = 1;
     opt.main = 1;
     units = core->media->ustart + units;
-
     res = core->media->mwrite(units, (u8*)buf, opt);
     if(res != (1<<core->media->usz))
         return (-1);
@@ -248,24 +264,27 @@ static s32 __llerase(struct __ecore *core, s64 units, s64 size)
 {
     s32 res = -1;
     s64 erases;
+    struct uesz sz;
 
+    sz.unit = 1;
+    sz.block = 0;
     erases = 1 << (core->media->esz - core->media->usz); // 可擦除空间所含有的unit数量
     if((size % erases) || (units % erases))
     {
-        warning_printf("efs","not aligned area will be erased(%d, %d)", (u32)units, (u32)size); // 擦除的数据并没有对齐，可能存在问题
+        printf("\r\n: warn : efs    : not aligned area will be erased(%d, %d)", (u32)units, (u32)size); // 擦除的数据并没有对齐，可能存在问题
     }
 
     while(size > 0)
     {
-        res = core->media->merase(units);
-        if(res)
-            break;
+        res = core->media->merase(units, sz);
+        if(-1 == res)
+            return (-1);
 
         units += erases;
         size -= erases;
     }
 
-    return (res);
+    return (0);
 }
 
 // ============================================================================
@@ -297,7 +316,7 @@ static s32 __fix(struct __ecore *core, void *data, u32 len, u32 *ecc)
 
     if(hamming_verify_256x(buf, 256, ((const u8*)ecc)))
     {
-        // error_printf("efs","data ecc error.");
+        // printf("\r\n: erro : efs    : data ecc error.");
         return (-1);
     }
 
@@ -355,7 +374,7 @@ static struct __loc *__addloc(struct __loc **list, u32 loc, u32 order, u8 sort)
     nloc = (struct __loc*)malloc(sizeof(struct __loc));
     if(!nloc)
     {
-        error_printf("efs","add location failed(memory out).");
+        printf("\r\n: error: efs    : add location failed(memory out).");
         return (NULL);
     }
 
@@ -410,37 +429,52 @@ static struct __loc *__addloc(struct __loc **list, u32 loc, u32 order, u8 sort)
 
 // ============================================================================
 // 功能：查找offset对应的loc区域；
-// 参数：offset -- 文件的位置；-1表示获取文件尾部；
+// 参数：core -- 文件系统；
+//      offset -- 文件的位置；-1表示获取文件尾部；
 // 返回：成功（offset对应的loc区）；失败（NULL）；
 // 备注：head必须在调用逻辑保证；
 // ============================================================================
-static struct __loc *__getloc(struct __ecore *core, struct __loc *head, s64 offset)
+static struct __loc *__getloc(enum locmove movon, struct __ecore *core, struct __loc *loc, s64 offset)
 {
     list_t *ret;
     s32 movs;
     struct __loc *cloc;
     s64 eccesz;
 
-    if(-1 == offset)
+    if(position==movon)
     {
-        ret = dListGetBefore(&(head->list));
-    }
-    else
-    {
-        eccesz = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内的ECC数据量；
-        eccesz = (core->fsz << core->media->usz) - (core->fsz * eccesz); // 除去ECC数据的文件空间大小；
-        movs = offset / eccesz;
-        ret = &(head->list);
-        while(movs--)
+        if(-1 == offset)
         {
-            ret = dListGetAfter(ret);
-            if(ret == &(head->list))
+            ret = dListGetBefore(&(loc->list));
+        }
+        else
+        {
+            eccesz = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内的ECC数据量；
+            eccesz = (core->fsz << core->media->usz) - (core->fsz * eccesz); // 除去ECC数据的文件空间大小；
+            movs = offset / eccesz;
+            ret = &(loc->list);
+            while(movs--)
             {
-                if((!movs)&&(!(offset%eccesz))) // 文件位置正好在文件尾部，且此时尺寸正好与文件空间对齐；
-                    ret = dListGetBefore(&(head->list));
-                else
-                    return (NULL);
+                ret = dListGetAfter(ret);
+                if(ret == &(loc->list))
+                {
+                    if((!movs)&&(!(offset%eccesz))) // 文件位置正好在文件尾部，且此时尺寸正好与文件空间对齐；
+                        ret = dListGetBefore(&(loc->list));
+                    else
+                        return (NULL);
+                }
             }
+        }
+    }
+    else if(direct==movon)
+    {
+        if(offset<0)
+        {
+            ret = dListGetBefore(&(loc->list));
+        }
+        else
+        {
+            ret = dListGetAfter(&(loc->list));
         }
     }
 
@@ -506,7 +540,6 @@ static inline void __e_structfile(struct __ecore *core, struct __efstruct *file,
 // ============================================================================
 static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *name)
 {
-    list_t *nxt;
     s64 units;
     u8 delsub = 0;
     u8 found;
@@ -517,7 +550,7 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
     sub = *loc;
     if(1!=sub->order) // 文件序号不以1位开头，表示文件数据丢失了
     {
-        warning_printf("efs","file (%s)'s location is not sanity, the 1 to %d has lost", name,
+        printf("\r\n: warn : efs    : file (%s)'s location is not sanity, the 1 to %d has lost", name,
                 (sub->order));
 
         while(sub)
@@ -532,14 +565,12 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
     //           sub         sub        sub     sub
     do
     {   // __SUB_LOC_SCAN:
-        nxt = dListGetAfter(&(sub->list));
-        nloc = dListEntry(nxt, struct __loc, list);
-
+        nloc = __getloc(direct, core, sub, 1);
         if((nloc->order==sub->order)&&(nloc!=(*loc))) // sub中存在order相同的loc，需要详细甄别sub中每个成员
         {
             if(one2one)
             {
-                warning_printf("efs","file (%s)'s location is not sanity(sub order %d should be single).",
+                printf("\r\n: warn : efs    : file (%s)'s location is not sanity(sub order %d should be single).",
                        name, sub->order);
                 one2one = 0;
                 // TODO
@@ -548,7 +579,7 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
             units = core->serial * core->ssz + core->finfo + sub->loc;
             if(__llread(core, units, core->ebuf)) // 文件信息
             {
-                debug_printf("efs","file (%s)'s location is not sanity, info (%d) can not read",
+                printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, info (%d) can not read",
                        name, sub->loc);
                 found = 0;
                 delsub = 1;
@@ -586,7 +617,7 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
                     units = core->serial * core->ssz + core->finfo + nloc->loc;
                     if(__llread(core, units, core->ebuf)) // 文件信息
                     {
-                        debug_printf("efs","file (%s)'s location is not sanity, info (%d) can not read",
+                        printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, info (%d) can not read",
                                name, nloc->loc);
                         nloc = __delloc(nloc, 1); // 删除当前，并返回后一个成员；
                         continue;
@@ -605,6 +636,7 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
                         }
 
                         found = 1;
+                        nloc = __getloc(direct, core, nloc, 1);
                     }
                 }
             }
@@ -616,7 +648,7 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
             units = core->serial * core->ssz + core->finfo + sub->loc;
             if(__llread(core, units, core->ebuf)) // 文件信息
             {
-                debug_printf("efs","file (%s)'s location is not sanity, info (%d) can not read",
+                printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, info (%d) can not read",
                        name, sub->loc);
                 delsub = 1;
                 found = 0;
@@ -635,16 +667,14 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
                     else
                     {
                         one2one = 1; // 只要一组sub里面不再后同号order,后续的就不应该再有同号（逻辑上）；
-                        nxt = dListGetAfter(&(sub->list));
-                        nloc = dListEntry(nxt, struct __loc, list);
+                        // nloc = __getloc(direct, core, nloc, 1);
                         found = 1;
                     }
                 }
                 else
                 {
                     one2one = 1; // 只要一组sub里面不再后同号order,后续的就不应该再有同号（逻辑上）；
-                    nxt = dListGetAfter(&(sub->list));
-                    nloc = dListEntry(nxt, struct __loc, list);
+                    // nloc = __getloc(direct, core, nloc, 1);
                     found = 1;
                 }
             }
@@ -652,14 +682,17 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
         else // one2one = 1 (非第一个)
         {
             found = 1; // 不作检查了（检查太多影响效率）
-            nxt = dListGetAfter(&(sub->list));
-            nloc = dListEntry(nxt, struct __loc, list);
+            // nloc = __getloc(direct, core, nloc, 1);
         }
 
         if(found) // sub中找到文件需要的loc
         {
             if(delsub) // 删除sub后，sub应该指向的是这组sub中文件对应的loc
             {
+                delsub = 0;
+                if(nloc==sub)
+                    nloc = __getloc(direct, core, nloc, 1);
+
                 if(sub==*loc) // 第一组sub
                 {
                     sub = __delloc(sub, 1);
@@ -679,7 +712,7 @@ static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *
             }
             else // 不符合sub的order逻辑；
             {
-                debug_printf("efs","file (%s)'s location is not sanity, %d to %d has lost.",
+                printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, %d to %d has lost.",
                         name, sub->order, nloc->order);
                 #if 1
                 while(nloc!=(*loc)) // 删除后续链表
@@ -734,7 +767,7 @@ static void __key(const char *name, u8 *key)
 
     if(len > 3)
     {
-        offset = len - (len -3) - 1;
+        offset = len - 3;
         len = 3; //
     }
     else
@@ -844,7 +877,7 @@ static s32 __e_recycle(struct __ecore *core)
     idxbit = malloc(sizes);
     if(!idxbit)
     {
-        warning_printf("efs","recycle failed(memory out).");
+        printf("\r\n: warn : efs    : recycle failed(memory out).");
         return (-1);
     }
 
@@ -859,15 +892,16 @@ __RETRY_RECYCLE:
 
     if(new == core->serial)
     {
-        error_printf("efs","recycle failed(cannot erase all the rest).");
+        printf("\r\n: erro : efs    : recycle failed(cannot erase all the rest).");
         free(idxbit);
+        __unlock(core);
         return (-1); // 新区全部尝试完，文件系统不能再用了；
     }
 
     units = new * core->ssz;
     if(__llerase(core, units, core->ssz)) // 格式化下一个系统区，作为新区域；
     {
-        warning_printf("efs","recycle(cannot erase %d).", new);
+        printf("\r\n: warn : efs    : recycle(cannot erase %d).", new);
         goto __RETRY_RECYCLE;
     }
 
@@ -877,7 +911,7 @@ __RETRY_RECYCLE:
     res = __llread(core, units, core->ebuf);
     if(res)
     {
-        error_printf("efs","recycle cannot read system area.");
+        printf("\r\n: erro : efs    : recycle cannot read system area.");
         // 读失败没有关系，可以自己构建；
     }
 
@@ -885,7 +919,7 @@ __RETRY_RECYCLE:
     estruct->status = SYS_UPDATING;
     if(res || __fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc))) // 系统头部存在问题，直接构建；
     {
-        debug_printf("efs","recycle (bad estruct).");
+        printf("\r\n: dbug : efs    : recycle (bad estruct).");
         memset(estruct, 0xFF, (1<<core->media->usz));
         memcpy(estruct->signature, ESIGN, ESIG_LEN);
         estruct->age = 0xFFFFFFFF; // 当头部被破坏时的专用age；
@@ -907,7 +941,7 @@ __RETRY_RECYCLE:
     res = __llwrite(core, units, estruct);
     if(res)
     {
-        warning_printf("efs","recycle %d cannot write.", new);
+        printf("\r\n: warn : efs    : recycle %d cannot write.", new);
         goto __RETRY_RECYCLE;
     }
 
@@ -920,8 +954,9 @@ __RETRY_RECYCLE:
             res = __llread(core, units, core->ebuf);
             if(res)
             {
-                error_printf("efs","recycle(cannot read backup).");
+                printf("\r\n: erro : efs    : recycle(cannot read backup).");
                 free(idxbit);
+                __unlock(core);
                 return (-1);
             }
 
@@ -951,7 +986,7 @@ __RETRY_RECYCLE:
             res = __llwrite(core, units, core->ebuf);
             if(res) // 将idx更新到新区；
             {
-                error_printf("efs","recycle %d cannot write new idx table.", new);
+                printf("\r\n: erro : efs    : recycle %d cannot write new idx table.", new);
                 goto __RETRY_RECYCLE;
             }
         }
@@ -971,14 +1006,14 @@ __RETRY_RECYCLE:
         res = __llread(core, units, core->ebuf);
         if(res)
         {
-            error_printf("efs","recycle cannot read old file space %d's info.", i);
+            printf("\r\n: erro : efs    : recycle cannot read old file space %d's info.", i);
             continue;
         }
 
         __e_structfile(core, &fstruct, core->ebuf);
         if(__fix(core, fstruct.name.n, core->nsz, fstruct.name.e)) // 不知道原文件名长，使用最大范围；
         {
-            debug_printf("efs","recycle old file info %d's name maybe corrupted(%s).", i, fstruct.name.n);
+            printf("\r\n: dbug : efs    : recycle old file info %d's name maybe corrupted(%s).", i, fstruct.name.n);
         }
 
         for(k=0, j=0; j<sizes; j++)
@@ -1009,7 +1044,7 @@ __RETRY_RECYCLE:
             j--; // 最后一个size记录；
             if(__fix(core, &(fstruct.size[j].s), sizeof(fstruct.size[j].s), &(fstruct.size[j].e)))
             {
-                warning_printf("efs","recycle old file info %d's size of maybe corrupted.", i);
+                printf("\r\n: warn : efs    : recycle old file info %d's size of maybe corrupted.", i);
             }
 
             fstruct.size[0].s = fstruct.size[j].s; // 将size记录到第一个位置；
@@ -1019,13 +1054,13 @@ __RETRY_RECYCLE:
         else
         {
             // size记录位置全为空闲；
-            warning_printf("efs","recycle old file info %d's size is not exist.", i);
+            printf("\r\n: warn : efs    : recycle old file info %d's size is not exist.", i);
         }
 
         units = new * core->ssz + core->finfo + i; // 将文件信息更新到新区；
         if(__llwrite(core, units, core->ebuf))
         {
-            error_printf("efs","recycle cannot write new file info %d.", i);
+            printf("\r\n: erro : efs    : recycle cannot write new file info %d.", i);
             goto __RETRY_RECYCLE;
         }
     }
@@ -1036,23 +1071,24 @@ __RETRY_RECYCLE:
     res = __llread(core, units, estruct);
     if(res)
     {
-        error_printf("efs","recycle %d cannot read new system area to finish.", new);
+        printf("\r\n: erro : efs    : recycle %d cannot read new system area to finish.", new);
     }
 
     if(__fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc))) // 系统头部存在问题,尝试下一个区域；
     {
-        error_printf("efs","recycle %d new system area has corrupted to finish.", new);
+        printf("\r\n: erro : efs    : recycle %d new system area has corrupted to finish.", new);
     }
 
     estruct->status = SYS_UPDATED;
     res = __llwrite(core, units, estruct);
     if(res)
     {
-        error_printf("efs","recycle %d cannot write new system area to finish.", new);
+        printf("\r\n: erro : efs    : recycle %d cannot write new system area to finish.", new);
     }
 
-    info_printf("efs","recycle successfully, use %d.", new);
+    printf("\r\n: info : efs    : recycle successfully, use %d.", new);
     core->serial = new;
+    __unlock(core);
     return (0);
 }
 
@@ -1091,7 +1127,7 @@ static s32 __e_markidx(struct __ecore *core, s32 loc, char *name, u32 order)
     memcpy((core->ebuf + idxs), &idx, sizeof(struct __eidx));
     if(__llwrite(core, (core->serial*core->ssz+units), core->ebuf))
     {
-        debug_printf("efs","mark idx failed, try recycle.");
+        printf("\r\n: dbug : efs    : mark idx failed, try recycle.");
         if(__e_recycle(core)) // 写失败，尝试回收，换一个系统区；
             return (-1);
 
@@ -1127,7 +1163,7 @@ static s32 __e_recovery(struct __ecore *core)
     res = __llread(media, backup, buf);
     if(res)
     {
-        error_printf("efs","recovery<cannot read>.");
+        printf("\r\n: erro : efs    : recovery<cannot read>.");
         return (-1);
     }
 
@@ -1148,7 +1184,7 @@ static s32 __e_recovery(struct __ecore *core)
     res = __llread(media, sys, media->sizeu, media->buf);
     if(res)
     {
-        error_printf("efs","recovery<cannot read>.");
+        printf("\r\n: erro : efs    : recovery<cannot read>.");
         return (-1);
     }
 
@@ -1159,7 +1195,7 @@ static s32 __e_recovery(struct __ecore *core)
             res = __llerase(media, sys, core->ssz*2);
             if(res)
             {
-                error_printf("efs","recovery<cannot erase>.");
+                printf("\r\n: erro : efs    : recovery<cannot erase>.");
                 return (-1);
             }
         }
@@ -1168,7 +1204,7 @@ static s32 __e_recovery(struct __ecore *core)
     res = __llwrite(media, sys, estruct);
     if(res)
     {
-        error_printf("efs","recovery<cannot write>.");
+        printf("\r\n: erro : efs    : recovery<cannot write>.");
         return (-1);
     }
 
@@ -1200,7 +1236,7 @@ static s32 __e_scan(struct __ecore *core)
     {
         if(__llread(core, (core->ssz*i), estruct))
         {
-            error_printf("efs","scan in loop %d(cannot read).", i);
+            printf("\r\n: erro : efs    : scan in loop %d(cannot read).", i);
             scan[i].stat = badsys;
             continue;
         }
@@ -1220,13 +1256,13 @@ static s32 __e_scan(struct __ecore *core)
             // 检验数据正确性；
             __fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc));
             if((estruct->range != (core->media->asz)) ||
-               (!strcmp(estruct->signature, ESIGN)) ||
+               (strcmp(estruct->signature, ESIGN)) ||
                (estruct->files != core->fmax) ||
                (estruct->status != SYS_UPDATED))
             {
                 // 存在不一致
                 if((estruct->range == (core->media->asz)) ||
-                   (strcmp(estruct->signature, ESIGN)) ||
+                   (!strcmp(estruct->signature, ESIGN)) ||
                    (estruct->files == core->fmax) ||
                    (estruct->status == SYS_UPDATED))
                 {
@@ -1262,7 +1298,7 @@ static s32 __e_scan(struct __ecore *core)
                 }
                 else if(eldest == scan[i].age)
                 {
-                    error_printf("efs","scan in loop %d(unknow logic, two eldest age).", i);
+                    printf("\r\n: erro : efs    : scan in loop %d(unknow logic, two eldest age).", i);
                     return (-1);
                 }
             }
@@ -1300,7 +1336,7 @@ static s32 __e_build(struct __ecore *core)
     s64 offset = 0;
 
     // 只格式化系统区
-    info_printf("efs","new system is building...");
+    printf("\r\n: info : efs    : new system is building...");
     erases = core->ssz * SYS_LOOPS;
     esz = (1 << (core->media->esz - core->media->usz)) << 1; // 一次擦除的unit数量；
     while(erases)
@@ -1313,15 +1349,15 @@ static s32 __e_build(struct __ecore *core)
         res = __llerase(core, offset, once);
         if(res)
         {
-            error_printf("efs","new system build failed(cannot format).");
+            printf("\r\n: erro : efs    : new system build failed(cannot format).");
             return (-1);
         }
 
         switch(i)
         {
-            case 0 : debug_printf("efs","\b\b\b.  ");i = 1;break;
-            case 1 : debug_printf("efs","\b\b\b.. ");i = 2;break;
-            case 2 : debug_printf("efs","\b\b\b...");i = 0;break;
+            case 0 : printf("\b\b\b.  ");i = 1;break;
+            case 1 : printf("\b\b\b.. ");i = 2;break;
+            case 2 : printf("\b\b\b...");i = 0;break;
             default: break;
         }
 
@@ -1329,7 +1365,7 @@ static s32 __e_build(struct __ecore *core)
         offset += once;
     }
 
-    debug_printf("efs","\b\b\b\b\b\b\b\b\b\b\bformated.");
+    printf("\b\b\b\b\b\b\b\b\b\b\bformated.");
     // 建立系统结构
     memset(core->ebuf, 0xFF, (1<<core->media->usz));
     estruct = (struct __ecstruct*)core->ebuf;
@@ -1350,18 +1386,18 @@ static s32 __e_build(struct __ecore *core)
         }
 
         // 失败，尝试下一个，把这个擦除
-        warning_printf("efs","new system can not write in sys loop %d.", i);
+        printf("\r\n: warn : efs    : new system can not write in sys loop %d.", i);
         res = __llerase(core, (i*core->ssz), core->ssz);
         if(res)
         {
-        	error_printf("efs","new system build failed in sys loop %d(erase).", i);
+            printf("\r\n: erro : efs    : new system build failed in sys loop %d(erase).", i);
             return (-1);
         }
     }
 
     if(SYS_LOOPS == i)
     {
-        error_printf("efs","new system build failed(no valid sys loop).");
+        printf("\r\n: erro : efs    : new system build failed(no valid sys loop).");
         return (-1);
     }
 
@@ -1392,7 +1428,7 @@ __RETRY_LOOKUPFREE:
             units = core->serial * core->ssz + 1 + i / idxs;
             if(__llread(core, units, core->ebuf))
             {
-                error_printf("efs","lookup free failed(read).");
+                printf("\r\n: erro : efs    : lookup free failed(read).");
                 i = idxs + i - 1; // 减一是为是了照顾for逻辑
                 continue; // 读idx表失败，尝试下一个表
             }
@@ -1418,7 +1454,7 @@ __RETRY_LOOKUPFREE:
    if(!recycle &&  (-1 == freeloc)) // 没有空闲了，尝试回收；
    {
        recycle = 1;
-       debug_printf("efs","lookup free failed, no space, try recycle.");
+       printf("\r\n: dbug : efs    : lookup free failed, no space, try recycle.");
        if(!__e_recycle(core))
            goto __RETRY_LOOKUPFREE; // 成功回收后，再尝试获取空闲idx
    }
@@ -1433,21 +1469,26 @@ __RETRY_LOOKUPFREE:
 // 返回：
 // 备注：
 // ============================================================================
-static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *loc, char *name, struct Object *obj)
+static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *loc, char *name, struct obj *ob)
 {
     struct __efstruct fstruct;
     s64 units, size;
     s32 res, szmax, i;
     u32 ecc;
     struct __efile *file;
+    struct obj *find;
     struct __loc *eloc = loc;
 
-    eloc = __getloc(core, loc, -1); // 获取文件最末尾的位置
+    find = obj_search_child(ob, name); // 先在对象系统中查找
+    if(find)
+        return ((struct __efile*)obj_val(find));
+
+    eloc = __getloc(position, core, loc, -1); // 获取文件最末尾的位置
     units = (core->ssz * core->serial) + (core->finfo + eloc->loc);
     res = __llread(core, units, core->ebuf); // 文件信息
     if(res)
     {
-        error_printf("efs","cache file failed(cannot read info %d).", eloc->loc);
+        printf("\r\n: erro : efs    : cache file failed(cannot read info %d).", eloc->loc);
         return (NULL);
     }
 
@@ -1458,7 +1499,7 @@ static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *
         __fix(core, fstruct.name.n, (strlen(name)+1), &ecc);
         if(strcmp(name, fstruct.name.n))
         {
-            error_printf("efs","file name is corrupted(\"%s\" != \"%s\").", fstruct.name.n, name);
+            printf("\r\n: error : efs    : file name is corrupted(\"%s\" != \"%s\").", fstruct.name.n, name);
             return (NULL); // 名字不匹配
         }
     }
@@ -1482,7 +1523,7 @@ static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *
             size = fstruct.size[i].s;
             if(__fix(core, &(fstruct.size[i].s), sizeof(fstruct.size[i].s), &(fstruct.size[i].e)))
             {
-                warning_printf("efs","file \"%s\"'s size maybe corrupted.", name);
+                printf("\r\n: warn : efs    : file \"%s\"'s size maybe corrupted.", name);
             }
 
             if(fstruct.size[i].s != size) // 获取backup失败，使用与name同一个区；
@@ -1491,24 +1532,21 @@ static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *
     }
     else // 无有效size
     {
-        error_printf("efs","file \"%s\"'s size maybe corrupted(no data).", name);
+        printf("\r\n: erro : efs    : file \"%s\"'s size maybe corrupted(no data).", name);
         fstruct.size[0].s = 0;
     }
 
     file = malloc(sizeof(*file));
     if(!file)
     {
-        error_printf("efs","cache file \"%s\" failed(memory out).", name);
+        printf("\r\n: erro : efs    : cache file \"%s\" failed(memory out).", name);
         return (NULL);
     }
 
     file->loc = loc;
-    file->size = fstruct.size[i].s;
-    of_initbasic(&file->basic, O_RDWR);
-    res = of_virtualize(obj, &file->basic, name);
-    if(res)
+    if(!obj_newchild(ob, NULL, O_RDWR, (ptu32_t)file, name))
     {
-        error_printf("efs","cache file \"%s\" failed(virtual).", name);
+        printf("\r\n: erro : efs    : cache file \"%s\" failed(virtual).", name);
         free(file);
         return (NULL);
     }
@@ -1576,7 +1614,7 @@ static s32 __e_allocfile(struct __ecore *core, u32 *loc, const char *name, u32 o
             *loc = __e_lookupfree(core); // 获取一个可用区域
             if(-1 == *loc)
             {
-                error_printf("efs","allocate file \"%s\"(no space).", name);
+                printf("\r\n: erro : efs    : allocate file \"%s\"(no space).", name);
                 return (-1);
             }
         }
@@ -1594,11 +1632,11 @@ static s32 __e_allocfile(struct __ecore *core, u32 *loc, const char *name, u32 o
 // 参数：core -- 文件系统控制；
 //      loc -- 文件位置；
 //      name -- 文件名；
-//      obj -- 文件缓存节点；
+//      ob -- 文件缓存节点；
 // 返回：成功（文件结构）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct __efile *__e_newfile(struct __ecore *core, u32 loc, char *name, struct Object *obj)
+static struct __efile *__e_newfile(struct __ecore *core, u32 loc, char *name, struct obj *ob)
 {
     s32 res;
     struct __efile *file;
@@ -1606,24 +1644,22 @@ static struct __efile *__e_newfile(struct __ecore *core, u32 loc, char *name, st
     res = __e_allocfile(core, &loc, name, 1);
     if(res)
     {
-        error_printf("efs","new file \"%s\" failed(create).", name);
+        printf("\r\n: erro : efs    : new file \"%s\" failed(create).", name);
         return (NULL);
     }
 
     file = malloc(sizeof(*file));
     if(!file)
     {
-        error_printf("efs","new file \"%s\"(memory out).", name);
+        printf("\r\n: erro : efs    : new file \"%s\"(memory out).", name);
         return (NULL);
     }
 
     file->loc = __addloc(NULL, loc, 1, 0);
     file->size = 0;
-    of_initbasic(&file->basic, O_RDWR);
-    res = of_virtualize(obj, &file->basic, name);
-    if(res)
+    if(!obj_newchild(ob, NULL, O_RDWR, (ptu32_t)file, name))
     {
-        error_printf("efs","new file \"%s\"(virtual).", name);
+        printf("\r\n: erro : efs    : new file \"%s\"(virtual).", name);
         free(file);
         return (NULL);
     }
@@ -1636,10 +1672,11 @@ static struct __efile *__e_newfile(struct __ecore *core, u32 loc, char *name, st
 // 参数：core -- 文件系统控制；
 //      file -- 文件；
 //      size -- 更新的尺寸；
+//      name -- 文件名；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size)
+static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size, const char *name)
 {
     s64 units, dels;
     struct __efstruct fstruct;
@@ -1651,8 +1688,8 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
         return (0); // file size只会在本函数内发生变更
 
     __lock(core);
-    eloc = __getloc(core, file->loc, -1);
-    if(size < file->size) // 尺寸减少
+    eloc = __getloc(position, core, file->loc, -1);
+    if(size<file->size) // 尺寸减少
     {
         eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
         ecce = core->fsz * eccu; // 一个文件空间内被ECC占用掉的空间；
@@ -1668,7 +1705,7 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
                 // 从最后一个区域开始删除文件内容（索引）
                 if(__e_markidx(core, eloc->loc, NULL, 0))
                 {
-                    warning_printf("efs","update file size has problem(shrink).");
+                    printf("\r\n: warn : efs    : update file size has problem(shrink).");
                 }
 
                 eloc = __delloc(eloc, -1);
@@ -1681,17 +1718,17 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
         loc = __e_lookupfree(core);
         if(-1 == loc)
         {
-            warning_printf("efs","update file size has problem(no space).");
+            printf("\r\n: warn : efs    : update file size has problem(no space).");
             file->loc = NULL;
             file->size = 0;
             __unlock(core);
             return (-1);
         }
 
-        res = __e_allocfile(core, &loc, __OBJ_Name(basic2obj(&(file->basic))), 1);
+        res = __e_allocfile(core, &loc, name, 1);
         if(res)
         {
-            warning_printf("efs","update file size has problem(cannot allocate).");
+            printf("\r\n: warn : efs    : update file size has problem(cannot allocate).");
             file->loc = NULL;
             file->size = 0;
             __unlock(core);
@@ -1701,7 +1738,7 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
         eloc = __addloc(NULL, loc, 1, 0);
         if(!eloc)
         {
-            warning_printf("efs","update file size has problem(no memory).");
+            printf("\r\n: warn : efs    : update file size has problem(no memory).");
             file->loc = NULL;
             file->size = 0;
             __unlock(core);
@@ -1717,7 +1754,7 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
         res = __llread(core, units, core->ebuf); // 文件信息
         if(res)
         {
-            error_printf("efs","cannot update file size(read).");
+            printf("\r\n: erro : efs    : cannot update file size(read).");
             __unlock(core);
             return (-1);
         }
@@ -1734,11 +1771,11 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
 
         if(szmax == i) // size空间写满，进行回收
         {
-            debug_printf("efs","file size full, try recycle.");
+            printf("\r\n: dbug : efs    : file size full, try recycle.");
             res = __e_recycle(core);
             if(res)
             {
-                error_printf("efs","cannot update file size(recycle).");
+                printf("\r\n: erro : efs    : cannot update file size(recycle).");
                 __unlock(core);
                 return (-1);
             }
@@ -1780,10 +1817,10 @@ static s32 __e_destroyfile(struct __ecore *core, struct __loc *loc)
     struct __loc *eloc;
 
     idxmax = (1 << core->media->usz) / sizeof(struct __eidx); // 一个unit内可存放idx的数量
-    eloc = __getloc(core, loc, -1);
+    eloc = __getloc(position, core, loc, -1);
     if(!eloc)
     {
-        error_printf("efs","destroy file(no location).");
+        printf("\r\n: erro : efs    : destroy file(no location).");
         return (-1);
     }
 
@@ -1796,7 +1833,7 @@ static s32 __e_destroyfile(struct __ecore *core, struct __loc *loc)
             res = __llread(core, units, core->ebuf); // 索引表
             if(res)
             {
-                error_printf("efs","destroy file(read idx).");
+                printf("\r\n: erro : efs    : destroy file(read idx).");
                 return (-1);
             }
         }
@@ -1833,7 +1870,7 @@ static s32 __e_destroyfile(struct __ecore *core, struct __loc *loc)
             res = __llwrite(core, units, core->ebuf);
             if(res)
             {
-                error_printf("efs","destroy file \"%s\"(write).", (char*)core->ebuf);
+                printf("\r\n: erro : efs    : destroy file \"%s\"(write).", (char*)core->ebuf);
                 return (-1);
             }
         }
@@ -1844,25 +1881,25 @@ static s32 __e_destroyfile(struct __ecore *core, struct __loc *loc)
 
 // ============================================================================
 // 功能：文件同步；
-// 参数：of -- 文件上下文；
+// 参数：hdl -- 内部句柄；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __e_sync(tagOFile *of)
+static s32 __e_sync(struct objhandle *hdl)
 {
     s64 units, sz;
     s32 bufsmax, bufc, bufo, eccu;
     struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext*)of_context(of);
-    struct __ecore *core = (struct __ecore*)of_core(of);
-    struct __efile *file = dListEntry(of_basic(of), struct __efile, basic);
+    struct __econtext *cx = (struct __econtext*)handle_context(hdl);
+    struct __ecore *core = (struct __ecore*)handle2sys(hdl);
+    struct __efile *file = (struct __efile *)handle_val(hdl);
 
     if(!cx->dirty)
         return (0); // 没有需要更新的数据
 
     if((cx->pos+cx->wpos)>file->size) // 同步的时候，只有文件尺寸扩大才会更新文件尺寸
     {
-        if(__e_updatefilesz(core, file, cx->pos+cx->wpos))
+        if(__e_updatefilesz(core, file, cx->pos+cx->wpos, handle_name(hdl)))
             return (-1);
     }
 
@@ -1872,12 +1909,12 @@ static s32 __e_sync(tagOFile *of)
         if(sz<file->size) // 文件的当前位置不能小于文件大小(预留了缓冲余量)
         {
             // 目前不支持改写
-            error_printf("efs","\"%s\" write failed(do not support rewrite beyond buffer size).", of_name(of));
+            printf("\r\n: erro : efs    : \"%s\" write failed(do not support rewrite beyond buffer size).", handle_name(hdl));
             return (-1);
         }
 
         eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
-        eloc = __getloc(core, file->loc, (cx->pos+cx->wpos));
+        eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos));
         units = (core->ssz*SYS_LOOPS) + (core->fsz * eloc->loc);
         units += (cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz; // 此时cx->pos逻辑上是保证wbuf对齐的；
         bufsmax = 1 << (core->media->usz - BUFBITS); // 一个unit内有多少个buffer区；
@@ -1914,7 +1951,7 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
     size = strlen(name);
     if(size >= core->nsz)
     {
-        error_printf("efs","lookup failed(file name \"%s\" is illegal).", name);
+        printf("\r\n: erro : efs    : lookup failed(file name \"%s\" is illegal).", name);
         return (-1);
     }
 
@@ -1928,7 +1965,7 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
             units = core->serial * core->ssz + 1 + (i / idxs);
             if(__llread(core, units, core->ebuf)) // 索引表
             {
-                error_printf("efs","lookup has problem(can not read %d).", i);
+                printf("\r\n: erro : efs    : lookup has problem(can not read %d).", i);
                 i += idxs;
                 continue; // 查询下一个索引表
             }
@@ -1942,7 +1979,8 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
             // 匹配成功
             if(!__addloc(&hloc, i, idx->order, 1))
             {
-                error_printf("efs","lookup failed(memory out).");
+                printf("\r\n: erro : efs    : lookup failed(memory out).");
+                __unlock(core);
                 return (-1); //
             }
         }
@@ -1952,7 +1990,7 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
         }
         else if(-1 == res)
         {
-            warning_printf("efs","lookup idx %d is corrupted.", i);
+            printf("\r\n: warn : efs    : lookup idx %d is corrupted.", i);
         }
 
         idx++;
@@ -1975,42 +2013,46 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
 
 // ============================================================================
 // 功能：打开文件；
-// 参数：obj -- 文件节点；
+// 参数：ob -- 文件节点；
 //      flags -- 文件打开方式；
 //      uncached -- 文件未缓存；
 // 返回：成功（文件上下文）；失败（NULL）；
 // 备注：
 // ============================================================================
-static tagOFile *__e_open(struct Object *obj, u32 flags, char *uncached)
+static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
 {
     s32 res, bufs, eccu;
     struct __loc *loc;
     s64 units;
     struct __efile *file;
     struct __econtext *cx;
-    tagOFile *of;
-    struct __ecore *core = (struct __ecore*)FS_Core(obj);
+    struct objhandle *hdl;
+    struct __ecore *core = (struct __ecore*)corefs(ob);
 
-    if(testdirectory(flags)) // 目录逻辑
+    if(test_directory(flags)) // 目录逻辑
     {
         if(uncached) // EFS不支持目录逻辑
         {
-            debug_printf("efs","do not support directory.");
+            printf("\r\n : dbug  : efs    : do not support directory.");
             return (NULL);
         }
         else
         {
-            if(GROUP_POINT != __OBJ_Type(obj)) // 确认打开的目录是安装点
+            if(!obj_isset(ob)) // 确认打开的目录是安装点
                 return (NULL);
         }
     }
     else // 文件的逻辑
     {
+        __lock(core);
         if(!uncached)
         {
             // 文件已缓存，但要确认不是安装点
-            if(GROUP_POINT == __OBJ_Type(obj))
+            if(obj_isset(ob))
+            {
+                __unlock(core);
                 return (NULL);
+            }
         }
         else
         {
@@ -2018,58 +2060,65 @@ static tagOFile *__e_open(struct Object *obj, u32 flags, char *uncached)
             res = __e_lookupfile(core, uncached, &loc);
             if(-1 == res)
             {
-                error_printf("efs","open failed(look up).");
+                printf("\r\n : erro : efs    : open failed(look up).");
+                __unlock(core);
                 return (NULL);
             }
             else if(!res) // 文件已存在
             {
-                if(testonlycreat(flags)) // 已存在，但只要求新建；
+                if(test_onlycreat(flags)) // 已存在，但只要求新建；
                 {
-                    debug_printf("efs","open \"%s\" failed(already exist).", uncached);
+                    printf("\r\n : dbug : efs    : open \"%s\" failed(already exist).", uncached);
+                    __unlock(core);
                     return (NULL);
                 }
 
-                file = __e_cachefile(core, loc, uncached, obj);
+                file = __e_cachefile(core, loc, uncached, ob);
                 if(!file)
                 {
                     while(loc)
                         loc = __delloc(loc, 1);
 
-                    debug_printf("efs","open \"%s\" failed(cache in).", uncached);
+                    printf("\r\n : dbug : efs    : open \"%s\" failed(cache in).", uncached);
+                    __unlock(core);
                     return (NULL);
                 }
             }
             else // 文件不存在
             {
-                if(!testcreat(flags)) // 文件不存在，但不要求新建；
+                if(!test_creat(flags)) // 文件不存在，但不要求新建；
                 {
-                    debug_printf("efs","open \"%s\" failed(do not exist).", uncached);
+                    printf("\r\n : dbug : efs    : open \"%s\" failed(do not exist).", uncached);
+                    __unlock(core);
                     return (NULL);
                 }
                 else
                 {
                     if(-2 == res) // 没有空闲
                     {
-                        debug_printf("efs","open failed, no space, try recycle.");
+                        printf("\r\n: dbug : efs    : open failed, no space, try recycle.");
                         res = __e_recycle(core); // 尝试回收；
                         if(!res)
                         {
-                            debug_printf("efs","open \"%s\" failed(recycle).", uncached);
+                            printf("\r\n : dbug : efs    : open \"%s\" failed(recycle).", uncached);
+                            __unlock(core);
                             return (NULL);
                         }
 
                         res = __e_lookupfree(core); // 再尝试获取空闲
                         if(-1 == res)
                         {
-                            debug_printf("efs","open \"%s\" failed(no space).", uncached);
+                            printf("\r\n : dbug : efs    : open \"%s\" failed(no space).", uncached);
+                            __unlock(core);
                             return (NULL);
                         }
                     }
 
-                    file = __e_newfile(core, (res-1), uncached, obj); // 新建文件
+                    file = __e_newfile(core, (res-1), uncached, ob); // 新建文件
                     if(!file)
                     {
-                        error_printf("efs","open \"%s\" failed(cannot create).", uncached);
+                        printf("\r\n : erro : efs    : open \"%s\" failed(cannot create).", uncached);
+                        __unlock(core);
                         return (NULL);
                     }
                 }
@@ -2079,7 +2128,8 @@ static tagOFile *__e_open(struct Object *obj, u32 flags, char *uncached)
         cx = (struct __econtext*)malloc(sizeof(*cx)); // 文件上下文
         if(!cx)
         {
-            error_printf("efs","open \"%s\" failed(memory out).", uncached);
+            printf("\r\n : erro : efs    : open \"%s\" failed(memory out).", uncached);
+            __unlock(core);
             return (NULL);
         }
 
@@ -2087,43 +2137,50 @@ static tagOFile *__e_open(struct Object *obj, u32 flags, char *uncached)
         cx->pos = 0;
         cx->wpos = 0;
         cx->dirty = 0;
-        if(testtrunc(flags))
+        if(test_trunc(flags))
         {
-            if(!uncached)
+            if(!uncached) // 文件已缓存
             {
-                file = dListEntry(of_basiclinko(obj), struct __efile, basic);
-                if(isondutyo(obj))
-                    warning_printf("efs","truncate file \"%s\" while others are using.", __OBJ_Name(obj));
+                if(obj_isonduty(ob))
+                    printf("\r\n : warn : efs    : truncate file \"%s\" while others are using.", obj_name(ob));
+
+                file = (struct __efile*)obj_val(ob);
             }
 
             if(file->size)
             {
-                res = __e_updatefilesz(core, file, 0); // 文件内容清空，尺寸变为0
+                if(uncached)
+                    res = __e_updatefilesz(core, file, 0, uncached); // 文件内容清空，尺寸变为0
+                else
+                    res = __e_updatefilesz(core, file, 0, obj_name(ob)); // 文件内容清空，尺寸变为0
+
                 if(res)
                 {
                     free(cx);
+                    __unlock(core);
                     return (NULL);
                 }
             }
         }
 
-        if(testappend(flags))
+        if(test_append(flags))
         {
             if(!uncached)
-                file = dListEntry(of_basiclinko(obj), struct __efile, basic);
+                //file = dListEntry(of_basiclinko(ob), struct __efile, basic);
+                file = (struct __efile*)obj_val(ob);
 
             cx->pos = file->size;
             if(cx->pos % BUFLEN)
             {
                 // 最后一部分数据不对齐，将其缓存到buf；
                 eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间
-                loc = __getloc(core, file->loc, -1);
+                loc = __getloc(position, core, file->loc, -1);
                 units = (core->ssz * SYS_LOOPS) + (loc->loc * core->fsz) + ((cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz);
                 res = __llread(core, units, core->ebuf); // 文件内容
                 if(res)
                 {
-                    error_printf("efs","file \"%s\" cannot read for buffer.", (char*)(__OBJ_Name(basic2obj(&(file->basic)))));
                     free(cx);
+                    __unlock(core);
                     return (NULL);
                 }
 
@@ -2131,42 +2188,44 @@ static tagOFile *__e_open(struct Object *obj, u32 flags, char *uncached)
                 bufs = (cx->pos / BUFLEN) % bufs; // 在一个unit内的需要缓冲的位置
                 cx->wpos = cx->pos % BUFLEN; // 需要缓冲的量；
                 cx->pos -= cx->wpos;
-                memcpy(cx->wbuf, (core->ebuf+bufs*BUFLEN), cx->wpos);
+                memcpy(cx->wbuf, (core->ebuf+(bufs<<BUFBITS)), cx->wpos);
             }
         }
     }
 
-    of = of_new();
-    if(!of)
+    hdl = handle_new();
+    if(!hdl)
     {
-        error_printf("efs","open failed(memory out).");
+        printf("\r\n : erro : efs    : open failed(memory out).");
+        __unlock(core);
         return (NULL);
     }
 
-    of_init(of, NULL, flags, (ptu32_t)cx);
-    return (of);
+    handle_init(hdl, NULL, flags, (ptu32_t)cx);
+    __unlock(core);
+    return (hdl);
 }
 
 // ============================================================================
 // 功能：关闭文件；
-// 参数：of -- 文件上下文；
+// 参数：hdl -- 内部句柄；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __e_close(tagOFile *of)
+static s32 __e_close(struct objhandle *hdl)
 {
-    struct __econtext *cx = (struct __econtext*)of_context(of);
-    struct __ecore *core = (struct __ecore*)of_core(of);
+    struct __econtext *cx = (struct __econtext*)handle_context(hdl);
+    struct __ecore *core = (struct __ecore*)handle2sys(hdl);
     struct __efile *file;
-    struct Object *nxt, *head;
+    struct obj *nxt, *head;
     struct __loc *eloc;
 
     __lock(core);
     if(cx) // 文件；
     {
-        if(__e_sync(of))
+        if(__e_sync(hdl))
         {
-            error_printf("efs","\"%s\" close failed(sync).", of_name(of));
+            printf("\r\n : erro : efs    : \"%s\" close failed(sync).", handle_name(hdl));
         }
 
         free(cx); // TODO: 这里并没有释放文件缓存，下次打开时，就不用再次查找文件了；
@@ -2174,37 +2233,36 @@ static s32 __e_close(tagOFile *of)
     else // 目录；
     {
         // 关闭目录时，把目录下未使用却已缓存的文件释放掉；
-        core = (struct __ecore*)of_core(of);
         while(1)
         {
-            head = OBJ_Child(of_o(of));
+            head = obj_child(handle2obj(hdl));
             if(!head)
                 break;
 
-            if(!isondutyo(head))
+            if(!obj_isonduty(head))
             {
-                file = dListEntry(of_basiclinko(head), struct __efile, basic);
-                eloc = __getloc(core, file->loc, -1);
+                file = (struct __efile*)obj_val(head);
+                eloc = __getloc(position, core, file->loc, -1);
                 while(eloc)
                     eloc = __delloc(eloc, -1);
 
                 free(file);
-                OBJ_Del(head);
+                obj_del(head);
             }
             else
             {
-                nxt = OBJ_Next(head);
+                nxt = obj_next(head);
                 while(nxt != head)
                 {
-                    if(!isondutyo(nxt))
+                    if(!obj_isonduty(nxt))
                     {
-                        file = dListEntry(of_basiclinko(head), struct __efile, basic);
-                        eloc = __getloc(core, file->loc, -1);
+                        file = (struct __efile*)obj_val(head);
+                        eloc = __getloc(position, core, file->loc, -1);
                         while(eloc)
                             eloc = __delloc(eloc, -1);
 
                         free(file);
-                        OBJ_Del(head);
+                        obj_del(head);
                     }
                 }
             }
@@ -2212,30 +2270,29 @@ static s32 __e_close(tagOFile *of)
     }
 
     __unlock(core);
-    of_free(of);
-
+    handle_free(hdl);
     return (0);
 }
 
 // ============================================================================
-// 功能：写文件
-// 参数：of -- 文件上下文；
+// 功能：写文件；
+// 参数：hdl -- 内部句柄；
 //      data -- 数据；
 //      len -- 数据长度；
 // 返回：实际写入的字节数；
 // 备注：
 // ============================================================================
-static s32 __e_write(tagOFile *of, u8 *data, u32 len)
+static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
 {
     s64 units;
     s32 sz, szc,  updatesz = 0;
     u32 loc, bufsmax, bufc, bufo, bufs = 0, all = len, ecc, ecce, eccu;
     struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext *)of_context(of);
-    struct __ecore *core = (struct __ecore*)of_core(of);
-    struct __efile *file = dListEntry(of_basic(of), struct __efile, basic);
+    struct __econtext *cx = (struct __econtext *)handle_context(hdl);
+    struct __ecore *core = (struct __ecore*)handle2sys(hdl);
+    struct __efile *file = handle_val(hdl);;
 
-    if(isappend(of)) // 追加模式下的lseek引起文件位置回溯是无效的；
+    if(isappend(hdl)) // 追加模式下的lseek引起文件位置回溯是无效的；
     {
         if((cx->pos+cx->wpos)<file->size)
         {
@@ -2248,7 +2305,7 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
     sz = (cx->pos - (cx->pos % BUFLEN)) + BUFLEN;
     if(sz<file->size)
     {
-        error_printf("efs","\"%s\" write failed(do not support rewrite beyond buffer).", of_name(of));
+        printf("\r\n: erro : efs    : \"%s\" write failed(do not support rewrite beyond buffer).", handle_name(hdl));
         return (0);
     }
 
@@ -2256,16 +2313,16 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
     ecce = core->fsz * eccu; // 一个文件空间内被ECC占用掉的空间；
     bufsmax = 1 << (core->media->usz - BUFBITS); // 一个unit内有多少个buffer区；
     __lock(core);
-    eloc = __getloc(core, file->loc, (cx->pos+cx->wpos+1)); // 获取文件位置；(+1的逻辑，是防止当前位置正好在边界，那么此时需要申请空间)
+    eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos+1)); // 获取文件位置；(+1的逻辑，是防止当前位置正好在边界，那么此时需要申请空间)
     if(!eloc)
     {
         // 文件位置不存在，是由于seek引起的空洞，即逻辑上是依靠seek是无法拓展文件尺寸的，必须结合写的动作；因此在写时才会申请空间；
         // 另外，文件上次一次写入时，正好是在文件空间的结束位置。在写完成时，不会拓展文件空间，在下一次写时拓展；
-        eloc = __getloc(core, file->loc, -1); // 获取文件实际末尾；
+        eloc = __getloc(position, core, file->loc, -1); // 获取文件实际末尾；
         sz =  cx->pos + cx->wpos -  (eloc->order * ((core->fsz << core->media->usz) - ecce)); // 相差空间的尺寸；
         if(sz<0)
         {
-            error_printf("efs","\"%s\" write failed(unknown, %ld, %d).", of_name(of), (long)cx->pos, (u32)cx->wpos);
+            printf("\r\n: erro : efs    : \"%s\" write failed(unknown, %ld, %d).", handle_name(hdl), (long)cx->pos, (u32)cx->wpos);
             __unlock(core);
             return (0);
         }
@@ -2288,14 +2345,14 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
             loc = __e_lookupfree(core);
             if(-1==loc)
             {
-                error_printf("efs","\"%s\" write failed(no space).", of_name(of));
+                printf("\r\n: erro : efs    : \"%s\" write failed(no space).", handle_name(hdl));
                 __unlock(core);
                 return (0);
             }
 
-            if(__e_allocfile(core, &loc, of_name(of), eloc->order+1))
+            if(__e_allocfile(core, &loc, handle_name(hdl), eloc->order+1))
             {
-                error_printf("efs","\"%s\" write failed(no space).", of_name(of));
+                printf("\r\n: erro : efs    : \"%s\" write failed(no space).", handle_name(hdl));
                 __unlock(core);
                 return (0);
             }
@@ -2303,7 +2360,7 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
             eloc = __addloc(&eloc, loc, eloc->order+1, 0);
             if(!eloc)
             {
-                error_printf("efs","\"%s\" write failed(memory out).", of_name(of));
+                printf("\r\n: erro : efs    : \"%s\" write failed(memory out).", handle_name(hdl));
                 __unlock(core);
                 return (0);
             }
@@ -2320,7 +2377,7 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
             units = (core->ssz * core->serial) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz);
             if(__llread(core, units, core->ebuf))
             {
-                error_printf("efs","\"%s\" write failed(read back).", of_name(of));
+                printf("\r\n: erro : efs    : \"%s\" write failed(read back).", handle_name(hdl));
                 __unlock(core);
                 return (0);
             }
@@ -2332,7 +2389,7 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
                 if(__fix(core, core->ebuf+bufo, BUFLEN, (u32*)(core->ebuf+ bufo + BUFLEN)))
                 {
                     if(0xFFFFFFFF != *((u32*)(core->ebuf+bufo+BUFLEN)))
-                        warning_printf("efs","\"%s\"'s data may corrupted(%ld).", of_name(of), (long)cx->pos);
+                        printf("\r\n: warn : efs    : \"%s\"'s data may corrupted(%ld).", handle_name(hdl), (long)cx->pos);
                 }
             }
 
@@ -2382,9 +2439,9 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
                 {
                     if((cx->pos+cx->wpos+updatesz)>file->size) // 只有文件尺寸扩大才会更新尺寸；
                     {
-                        if(__e_updatefilesz(core, file, (cx->pos+updatesz))) // 此时cx->pos是对齐的；
+                        if(__e_updatefilesz(core, file, (cx->pos+updatesz), handle_name(hdl))) // 此时cx->pos是对齐的；
                         {
-                            error_printf("efs","write failed(update file size).");
+                            printf("\r\n: erro : efs    : write failed(update file size).");
                             goto __ERROR_WR;
                         }
 
@@ -2407,12 +2464,12 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
                     units = (core->ssz * SYS_LOOPS) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz);
                     if(__llwrite(core, units, core->ebuf))
                     {
-                        error_printf("efs","write failed.");
+                        printf("\r\n: erro : efs    : write failed.");
                         cx->pos -= bufs * BUFLEN; // 失败，退回缓冲在ebuf的数据；
                         if(!updatesz) // 文件尺寸在上面发生变更，但实际写入的尺寸不对；
                         {
-                            if(__e_updatefilesz(core, file, cx->pos))
-                                error_printf("efs","write failed(update file size after write failed).");
+                            if(__e_updatefilesz(core, file, cx->pos, handle_name(hdl)))
+                                printf("\r\n: erro : efs    : write failed(update file size after write failed).");
                         }
 
                         if(bufs) // 本次写入失败时，ebuf有多个wbuf缓冲，将第一个数据放在缓冲，其他的抛弃；
@@ -2427,7 +2484,7 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
                     }
 
                     bufs = 0;
-                    if(len>BUFLEN)
+                    if(len>=BUFLEN)
                         memset(core->ebuf, 0xFF, (1 << core->media->usz)); // 缓存已刷入，重置缓存；
                 }
 
@@ -2444,20 +2501,20 @@ static s32 __e_write(tagOFile *of, u8 *data, u32 len)
             loc = __e_lookupfree(core);
             if(-1==loc)
             {
-                error_printf("efs","write failed(no space).");
+                printf("\r\n: erro : efs    : write failed(no space).");
                 goto __ERROR_WR;
             }
 
-            if(__e_allocfile(core, &loc, of_name(of), eloc->order+1))
+            if(__e_allocfile(core, &loc, handle_name(hdl), eloc->order+1))
             {
-                error_printf("efs","write failed(allocate file space).");
+                printf("\r\n: erro : efs    : write failed(allocate file space).");
                 goto __ERROR_WR;
             }
 
             eloc = __addloc(&eloc, loc, (eloc->order+1), 0);
             if(!eloc)
             {
-                error_printf("efs","write failed(memory out).");
+                printf("\r\n: erro : efs    : write failed(memory out).");
                 goto __ERROR_WR;
             }
         }
@@ -2471,25 +2528,29 @@ __ERROR_WR:
 
 // ============================================================================
 // 功能：读文件
-// 参数：of -- 文件上下文；
+// 参数：hdl -- 内部句柄；
 //      data -- 数据；
 //      len -- 数据长度；
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __e_read(tagOFile *of, u8 *data, u32 len)
+static s32 __e_read(struct objhandle *hdl, u8 *data, u32 len)
 {
     s64 units;
     s16 rebuf;
     u32 rdsz = 0, sz, szu, movs;
     u32 bufsmax, bufc, eccu, ecce;
     struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext *)of_context(of);
-    struct __ecore *core = (struct __ecore*)of_core(of);
-    struct __efile *file = dListEntry(of_basic(of), struct __efile, basic);
+    struct __econtext *cx = (struct __econtext *)handle_context(hdl);
+    struct __ecore *core = (struct __ecore*)handle2sys(hdl);
+    struct __efile *file = handle_val(hdl);
 
+    __lock(core);
     if((cx->pos+cx->wpos)>=file->size)
+    {
+    	__unlock(core);
         return (0); // 当前文件无内容可读；
+    }
 
     if(len>(file->size-cx->pos-cx->wpos)) // 读越界了；
         len = file->size - cx->pos - cx->wpos;
@@ -2500,12 +2561,18 @@ static s32 __e_read(tagOFile *of, u8 *data, u32 len)
     rebuf = (cx->pos + cx->wpos + len) % BUFLEN; // 计算读完后，结尾不对齐的部分，读完后需将从data缓存到wbuf；
     if((cx->wpos)&&((cx->wpos+len)>=BUFLEN)) // 存在缓冲，同时读数据会超出缓冲范围，则先将数据刷下去；
     {
-        if(__e_sync(of))
+        if(__e_sync(hdl))
         {
-            warning_printf("efs","\"%s\"'s read(sync).", of_name(of));
+            printf("\r\n: warn : efs   : \"%s\"'s read(sync).", handle_name(hdl));
         }
 
         memset(cx->wbuf, 0xFF, BUFLEN);
+    }
+
+    if(BUFLEN==cx->wpos) // wbuf已满，将wpos置空；
+    {
+        cx->wpos = 0;
+        cx->pos += BUFLEN;
     }
 
     do // 按文件空间尺寸，分批读入data空间
@@ -2517,13 +2584,15 @@ static s32 __e_read(tagOFile *of, u8 *data, u32 len)
             sz = len; // 小于一个文件空间内的数据量
 
         len -= sz;
-        eloc = __getloc(core, file->loc, (cx->pos+cx->wpos)); // 文件位置;
-        units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc) + (((cx->pos / ((1 << core->media->usz)- eccu))) % core->fsz);
+        eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos)); // 文件位置;
+        units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc)
+                + (((cx->pos / ((1 << core->media->usz)- eccu))) % core->fsz); // 当前位置所在的unit
         do // 按文件空间尺寸对齐，一次循环读一个unit；
         {
             if(__llread(core, units++, core->ebuf)) // 文件内容；
             {
-                debug_printf("efs","\"%s\"'s read failed(%ld).", of_name(of), (long)(cx->pos));
+                printf("\r\n: dbug : efs    : \"%s\"'s read failed(%ld).", handle_name(hdl), (long)(cx->pos));
+                __unlock(core);
                 return (rdsz);
             }
 
@@ -2547,7 +2616,7 @@ static s32 __e_read(tagOFile *of, u8 *data, u32 len)
                     if(__fix(core, (core->ebuf+(bufc<<BUFBITS)), BUFLEN, (u32*)(core->ebuf+(bufc<<BUFBITS)+BUFLEN)))
                     {
                         if(0xFFFFFFFF != *((u32*)(core->ebuf+(bufc<<BUFBITS)+BUFLEN)))
-                            warning_printf("efs","\"%s\"'s data may corrupted(%ld).", of_name(of), (long)(cx->pos));
+                            printf("\r\n: warn : efs    : \"%s\"'s data may corrupted(%ld).", handle_name(hdl), (long)(cx->pos));
                     }
                 }
 
@@ -2559,6 +2628,12 @@ static s32 __e_read(tagOFile *of, u8 *data, u32 len)
                 {
                     cx->wpos = 0; // 读超过wbuf范围，将wpos置空；
                     cx->pos += BUFLEN;
+                }
+
+                if((szu)&&(bufc==bufsmax))
+                {
+                    printf("\r\n: erro : efs    : \"%s\"'s read failed(%ld, bad logic).", handle_name(hdl), (long)(cx->pos));
+                    return (rdsz);
                 }
             }
             while(szu); // unit尺寸内的循环，一次大小为BUFLEN；
@@ -2576,25 +2651,26 @@ static s32 __e_read(tagOFile *of, u8 *data, u32 len)
         cx->wpos += rebuf;
     }
 
+    __unlock(core);
     return (rdsz);
 }
 
 // ============================================================================
 // 功能：文件重定位；
-// 参数：of -- 文件上下文；
+// 参数：hdl -- 内部句柄；
 //      offset -- 文件新位置；
 //      whence -- 文件新位置的基准；
-// 返回：
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __e_seek(tagOFile *of, s64 *offset, s32 whence)
+static s32 __e_seek(struct objhandle *hdl, s64 *offset, s32 whence)
 {
     s64 movs = *offset, npos, units;
     s32 bufo, bufsmax, eccu;
     struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext *)of_context(of);
-    struct __ecore *core = (struct __ecore*)of_core(of);
-    struct __efile *file = dListEntry(of_basic(of), struct __efile, basic);
+    struct __econtext *cx = (struct __econtext *)handle_context(hdl);
+    struct __ecore *core = (struct __ecore*)handle2sys(hdl);
+    struct __efile *file = handle_val(hdl);
 
     eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间
     switch(whence)
@@ -2617,7 +2693,7 @@ static s32 __e_seek(tagOFile *of, s64 *offset, s32 whence)
             npos = cx->pos + cx->wpos + movs; // 新位置
             if(npos<0)
             {
-                error_printf("efs","seek failed(out of range).");
+                printf("\r\n: erro : efs    : seek failed(out of range).");
                 return (-1);
             }
 
@@ -2626,9 +2702,9 @@ static s32 __e_seek(tagOFile *of, s64 *offset, s32 whence)
                 if((((movs>0)&&((movs-(BUFLEN-cx->wpos))>0)) || // 向前移动，且超过wbuf空间；
                    (((movs<0)&&(cx->wpos+movs)<0)))) // 向后移动，且超过wbuf空间；
                 {
-                    if(__e_sync(of)) // 将缓存数据刷入介质
+                    if(__e_sync(hdl)) // 将缓存数据刷入介质
                     {
-                        error_printf("efs","seek failed(sync).");
+                        printf("\r\n: erro : efs    : seek failed(sync).");
                         return (-1);
                     }
 
@@ -2645,11 +2721,11 @@ static s32 __e_seek(tagOFile *of, s64 *offset, s32 whence)
                 }
                 else if(npos%BUFLEN)
                 {
-                    eloc = __getloc(core, file->loc, npos);
+                    eloc = __getloc(position, core, file->loc, npos);
                     units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc) + ((npos / ((1 << core->media->usz) - eccu)) % core->fsz);
                     if(__llread(core, units, core->ebuf))
                     {
-                        error_printf("efs","\"%s\"'s data cannot read(%ld).", of_name(of), (long)npos);
+                        printf("\r\n: erro : efs    : \"%s\"'s data cannot read(%ld).", handle_name(hdl), (long)npos);
                         return (-1);
                     }
 
@@ -2660,7 +2736,7 @@ static s32 __e_seek(tagOFile *of, s64 *offset, s32 whence)
                         // 数据是存在ECC数据的，则先校验修复
                         if(__fix(core, (core->ebuf+bufo), BUFLEN, (u32*)(core->ebuf+bufo+BUFLEN)))
                         {
-                            warning_printf("efs","\"%s\"'s data has corrupted(%ld).", of_name(of), (long)npos);
+                            printf("\r\n: warn : efs    : \"%s\"'s data has corrupted(%ld).", handle_name(hdl), (long)npos);
                         }
                     }
 
@@ -2697,61 +2773,71 @@ static s32 __e_seek(tagOFile *of, s64 *offset, s32 whence)
 
 // ============================================================================
 // 功能：删除文件
-// 参数：obj -- 文件对象；
+// 参数：ob -- 文件对象；
 // 返回：成功（0）；失败（-1）；
 // 备注：未考虑互斥；当pName为NULL时，表示文件正在被使用；
 // ============================================================================
-static s32 __e_remove(struct Object *obj, char *uncached)
+static s32 __e_remove(struct obj *ob, char *uncached)
 {
     struct __loc *loc;
-    struct __efile *file = NULL;
-    struct __ecore *core = (struct __ecore*)FS_Core(obj);
+    struct __efile *cached = NULL;
+    struct __ecore *core = (struct __ecore*)corefs(ob);
 
+    __lock(core);
     if(uncached)
     {
         if(__e_lookupfile(core, uncached, &loc))
+        {
+            __unlock(core);
             return (-1);
+        }
     }
     else
     {
         // 文件已缓存
-        file = dListEntry(of_basiclinko(obj), struct __efile, basic);
-        loc = file->loc;
+        // cached = dListEntry(of_basiclinko(ob), struct __efile, basic);
+        struct __efile *cached = (struct __efile *)obj_val(ob);
+        loc = cached->loc;
     }
 
     if(__e_destroyfile(core, loc))
     {
-        debug_printf("efs","cannot delete file info.");
-        return (-1);
+        printf("\r\n: dbug : efs    : cannot delete file info.");
+        {
+            __unlock(core);
+            return (-1);
+        }
     }
 
-    if(file)
+    if(cached)
     {
-        of_unlinkbasic(&file->basic);
-        free(file);
+        //of_unlinkbasic(&file->basic);
+        obj_setval(ob, 0);
+        free(cached);
     }
 
+    __unlock(core);
     return (0);
 }
 
 // ============================================================================
 // 功能：查询文件；
-// 参数：obj -- 文件节点；
+// 参数：ob -- 文件节点；
 //      data -- 文件信息；
-//      uncached -- 文件未缓存；
+//      uncached -- 未缓存文件名；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __e_stat(struct Object *obj, struct stat *data, char *uncached)
+static s32 __e_stat(struct obj *ob, struct stat *data, char *uncached)
 {
     s32 res;
     struct __loc *loc;
     struct __efile *file;
-    struct __ecore *core = (struct __ecore*)FS_Core(obj);
+    struct __ecore *core = (struct __ecore*)corefs(ob);
 
-    if(GROUP_POINT == __OBJ_Type(obj))
+    if((!uncached)&&(obj_isset(ob)))
     {
-        data->st_size = 0;
+        data->st_size = 0; // 安装点；
         data->st_mode = S_IFDIR;
     }
     else
@@ -2764,7 +2850,7 @@ static s32 __e_stat(struct Object *obj, struct stat *data, char *uncached)
                 return (-1); // 文件不存在
             }
 
-            file = __e_cachefile(core, loc, uncached, obj);
+            file = __e_cachefile(core, loc, uncached, ob);
             if(!file)
             {
                 return (-1); // 文件不可读
@@ -2772,7 +2858,8 @@ static s32 __e_stat(struct Object *obj, struct stat *data, char *uncached)
         }
         else // 文件已存在；
         {
-            file = dListEntry(of_basiclinko(obj), struct __efile, basic);
+            //file = dListEntry(of_basiclinko(ob), struct __efile, basic);
+            file = (struct __efile*)obj_val(ob);
         }
 
         data->st_size = (off_t)file->size;
@@ -2783,14 +2870,201 @@ static s32 __e_stat(struct Object *obj, struct stat *data, char *uncached)
 }
 
 // ============================================================================
-// 功能：读目录项；
-// 参数：
+// 功能：检查目录项是否已缓存，未缓存则缓存目录项；
+// 参数：dentrys -- 目录项缓存体；
+//      name -- 目录项名；
+// 返回：成功（1）；失败（0）；
+// 备注：
+// ============================================================================
+static s32 __checkdentry(struct __dentrys *dentrys, char *name)
+{
+    struct __dentry *uncached, *last, *cur;
+
+    last = cur = dentrys->item;
+    while(cur)
+    {
+        if(!strcmp(cur->name, name))
+            return (0); // name已存在于链表
+
+        last = cur;
+        cur = cur->nxt;
+    }
+
+    uncached = malloc(strlen(name)+5);
+    strcpy(uncached->name, name);
+    uncached->nxt = NULL;
+    if(last)
+        last->nxt = uncached;
+    else
+        dentrys->item = uncached;
+
+    dentrys->items++;
+    return (1);
+}
+
+// ============================================================================
+// 功能：缓存目录项；
+// 参数：core -- 文件系统管理；
+//      dentrys -- 目录项缓存体；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __e_readdentry(tagOFile *directory, struct dirent *dentry)
+static s32 __cachedentry(struct __ecore *core, struct __dentrys *dentrys)
 {
-    return (-1);
+    struct __efstruct fstruct;
+    s32 idxs, i, j, news;
+    struct __eidx *idx;
+    s64 units;
+
+    idxs = (1 << core->media->usz) / sizeof(*idx); // 一个unit中能存放多少个idx
+    __lock(core);
+    do
+    {
+        if(dentrys->scans >= core->fmax)
+        {
+            __unlock(core);
+            return (-1); // 已全部遍历完；
+        }
+
+        units = core->serial * core->ssz + 1 + (dentrys->scans / idxs);
+        if(idxs>(core->fmax-dentrys->scans))
+            idxs = core->fmax - dentrys->scans; //
+
+        if(__llread(core, units, core->ebuf)) // 索引表
+        {
+            printf("\r\n: erro : efs    : lookup has problem(can not read %d).", i);
+            i += idxs;
+            continue; // 查询下一个索引表
+        }
+
+        idx = (struct __eidx *)core->ebuf;
+        for(i=0; i<idxs; i++)
+        {
+            for(j=0; j<sizeof(*idx); j++)
+            {
+                if(0xFF!=((u8*)idx)[i])
+                    break;
+            }
+
+            if(j!=sizeof(*idx))
+            {
+                for(j=0; j<sizeof(*idx); j++)
+                {
+                    if(0x0!=((u8*)idx)[i])
+                        break;
+                }
+            }
+
+            if(j!=sizeof(*idx))
+            {
+                units = core->serial * core->ssz + core->finfo + i;
+                if(__llread(core, units, core->ebuf)) // 文件信息
+                {
+                    printf("\r\n: erro : efs    : file's info (%d) can not read", i);
+                }
+
+                __e_structfile(core, &fstruct, core->ebuf);
+                if(__checkdentry(dentrys, fstruct.name.n))
+                    news++;
+            }
+
+            idx++;
+        }
+
+        dentrys->scans += idxs; // 已遍历的
+    }while(!news);
+
+    __unlock(core);
+    return (0);
+}
+
+// ============================================================================
+// 功能：获取目录项；
+// 参数：core -- 文件系统管理结构体；
+//      dentrys -- 目录项缓存体；
+//      offset -- 当前读取目录项位置；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+static char *__getdentry(struct __ecore *core, struct __dentrys *dentrys, u32 offset)
+{
+    u32 i;
+    struct __dentry *current = dentrys->item;
+
+    if(offset>dentrys->items)
+    {
+        if(__cachedentry(core, dentrys))
+            return (NULL);
+    }
+
+    for(i=0; i<offset; i++)
+        current = current->nxt;
+
+    return (current->name);
+}
+
+// ============================================================================
+// 功能：释放缓存目录项；
+// 参数：dentrys -- 目录项缓存体；
+// 返回：
+// 备注：
+// ============================================================================
+static void __uncachedentry(struct __dentrys *dentrys)
+{
+    struct __dentry *release, *current;
+
+    if(!dentrys)
+        return;
+
+    current = dentrys->item;
+    while(current)
+    {
+        release = current;
+        current = current->nxt;
+        free(release);
+    }
+
+    free(dentrys);
+}
+
+// ============================================================================
+// 功能：读目录项；
+// 参数：
+// 返回：全部读完（1）；失败（-1）；读了一项（0）；
+// 备注：
+// ============================================================================
+static s32 __e_readdentry(struct objhandle *directory, struct dirent *dentry)
+{
+    struct __ecore *core = (struct __ecore*)handle2sys(directory);
+    struct __dentrys *dentrys = (struct __dentrys *)(dentry->d_ino);
+    char *name;
+
+    if(!dentry->d_ino)
+    {
+        dentrys = (struct __dentrys *)malloc(sizeof(struct __dentrys));
+        if(dentrys)
+        {
+            printf("\r\n: erro : efs    : memory out when read dir \"%s\".", handle_name(directory));
+            return (-1);
+        }
+
+        dentry->d_ino = (long)dentrys;
+    }
+    else
+    {
+        dentrys = (struct __dentrys *)(dentry->d_ino);
+    }
+
+    name = __getdentry(core, dentrys, (u32)dentry->d_off);
+    if(!name)
+    {
+        __uncachedentry(dentrys); // 全部读完，释放
+        return (1);
+    }
+
+    strcpy(dentry->d_name, name);
+    dentry->d_type = DIRENT_IS_REG;
+    return (0);
 }
 
 // ============================================================================
@@ -2799,98 +3073,102 @@ static s32 __e_readdentry(tagOFile *directory, struct dirent *dentry)
 // 返回：根据各命令要求
 // 备注：
 // ============================================================================
-ptu32_t e_operations(u32 cmd, ptu32_t oof, ptu32_t args,  ...)
+ptu32_t e_operations(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
 {
     va_list list;
 
-    switch(cmd)
+    switch(ops)
     {
-        case CN_OBJ_CMD_OPEN:
+        case OBJOPEN:
         {
             char *uncached;
-            struct Object *obj = (struct Object*)oof;
+            struct obj *ob = (struct obj*)o_hdl;
             u32 flags = (u32)args;
 
             va_start(list, args);
             uncached = (char*)va_arg(list, u32);
             va_end(list);
-            return ((ptu32_t)__e_open(obj, flags, uncached));
+            return ((ptu32_t)__e_open(ob, flags, uncached));
         }
 
-        case CN_OBJ_CMD_CLOSE:
+        case OBJCLOSE:
         {
-            tagOFile *of = (tagOFile*)oof;
-            return ((ptu32_t)__e_close(of));
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            return ((ptu32_t)__e_close(hdl));
         }
 
-        case CN_OBJ_CMD_READDIR:
+        case OBJCHILDS:
         {
-            tagOFile *of = (tagOFile*)oof;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             struct dirent *ret = (struct dirent *)args;
 
-            return((ptu32_t)__e_readdentry(of, ret));
+            return((ptu32_t)__e_readdentry(hdl, ret));
         }
 
-        case CN_OBJ_CMD_READ:
+        case OBJREAD:
         {
             u32 len;
-            tagOFile *of = (tagOFile*)oof;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             u8 *buf = (u8*)args;
 
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
-            return((ptu32_t)__e_read(of, buf, len));
+            return((ptu32_t)__e_read(hdl, buf, len));
         }
 
-        case CN_OBJ_CMD_WRITE:
+        case OBJWRITE:
         {
             u32 len;
-            tagOFile *of = (tagOFile*)oof;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             u8 *buf = (u8*)args;
 
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
-            return((ptu32_t)__e_write(of, buf, len));
+            return((ptu32_t)__e_write(hdl, buf, len));
         }
 
-        case CN_OBJ_CMD_DELETE:
+        case OBJDEL:
         {
 
-            struct Object *obj = (struct Object*)oof;
+            struct obj *ob = (struct obj*)o_hdl;
             char *uncached = (char*)args;
 
-            return ((ptu32_t)__e_remove(obj, uncached));
+            return ((ptu32_t)__e_remove(ob, uncached));
         }
 
-        case CN_OBJ_CMD_SEEK:
+        case OBJSEEK:
         {
             s32 whence;
-            tagOFile *of = (tagOFile *)oof;
+            struct objhandle *hdl = (struct objhandle *)o_hdl;
             s64 *offset = (s64*)args;
 
             va_start(list, args);
             whence = (s32)va_arg(list, u32);
             va_end(list);
-            return((ptu32_t)__e_seek(of, offset, whence));
+            return((ptu32_t)__e_seek(hdl, offset, whence));
         }
 
-        case CN_OBJ_CMD_STAT:
+        case OBJSTAT:
         {
-            struct stat *data;
-            struct Object *obj = (struct Object*)oof;
-            char *uncached = (char*)args;
+            struct stat *data = (struct stat*)args;
+            struct obj *ob = (struct obj*)o_hdl;
+            char *uncache;
 
             va_start(list, args);
-            data = (struct stat*)va_arg(list, u32);
+            uncache = (char *)va_arg(list, u32);
             va_end(list);
-            return ((ptu32_t)__e_stat(obj, data, uncached));
+
+            if(uncache&&('\0'==*uncache))
+                uncache = NULL;
+
+            return ((ptu32_t)__e_stat(ob, data, uncache));
         }
 
         default:
         {
-            debug_printf("efs","do not support this operation now.");
+            printf("\r\n: dbug : efs    : do not support this operation now.");
             break;
         }
     }
@@ -2901,12 +3179,12 @@ ptu32_t e_operations(u32 cmd, ptu32_t oof, ptu32_t args,  ...)
 // ============================================================================
 // 功能：安装文件系统；
 // 参数：super -- 文件系统结构；
-//      flags -- 安装方式；
+//      opts -- 安装方式；
 //      config -- 文件系统配置；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 e_install(tagFSC *super, u32 flags, void *config)
+s32 e_install(tagFSC *super, u32 opts, void *config)
 {
     struct umedia *media;
     struct __ecore *core;
@@ -2916,11 +3194,11 @@ s32 e_install(tagFSC *super, u32 flags, void *config)
 //    char *lock = "efs0";
 //    installs++;
 
-    media = (struct umedia*)dev_dtago(super->pDev);
+    media = (struct umedia*)devo2drv(super->pDev);
     core = malloc(sizeof(*core) + (1 << media->usz));
     if(!core)
     {
-        error_printf("efs","install failed(memory out).");
+        printf("\r\n: erro : efs    : install failed(memory out).");
         return (-1);
     }
 
@@ -2929,13 +3207,13 @@ s32 e_install(tagFSC *super, u32 flags, void *config)
     if(!core->mutex)
     {
         free(core);
-        error_printf("efs","install failed(cannot create lock).");
+        printf("\r\n: erro : efs    : install failed(cannot create lock).");
         return (-1);
     }
 
     core->media = media;
     core->ebuf = (u8*)core + sizeof(*core);
-    if(media->usz > 9)
+    if(media->usz>9)
     {
         core->nsz = 256;
     }
@@ -2944,18 +3222,18 @@ s32 e_install(tagFSC *super, u32 flags, void *config)
         core->nsz = 128; // units尺寸小于512bytes时，名字长度缩小为128；
     }
 
-    if(fileblock & ((1<<media->esz)-1)) // fileblock按可擦除大小对齐
+    if(fileblock&((1<<media->esz)-1)) // fileblock按可擦除大小对齐
     {
-        info_printf("efs","single file space's range expand from %d to ", fileblock);
+        printf("\r\n: info : efs    : single file space's range expand from %d to ", fileblock);
         fileblock -= fileblock & ((1 << media->esz) - 1); // 剔除不对齐
         fileblock += 1 << media->esz; // 总体增加一个可擦除空间，对齐了
-        debug_printf("efs","%d.", fileblock);
+        printf("%d.", fileblock);
     }
 
     core->fsz = fileblock >> media->usz; // 单文件的容量，unit为单位；
     core->fmax = media->asz / fileblock; // 预估文件数
     tmp = (1 << media->usz) / sizeof(struct __eidx); // 单个unit能存放的索引数
-    if(core->fmax % tmp) // 索引空间按单个unit对齐操作
+    if(core->fmax%tmp) // 索引空间按单个unit对齐操作
     {
         idxs = core->fmax / tmp + 1; // 索引空间需占用的unit数，unit为单位；
     }
@@ -2967,7 +3245,7 @@ s32 e_install(tagFSC *super, u32 flags, void *config)
     core->finfo = 1 + idxs; // 文件信息的偏置，unit为单位;
     sys = 1 + idxs + core->fmax; // 预估系统空间大小（系统信息+索引+文件信息）,unit为单位
     tmp = ((1 << media->esz) >> media->usz); // 可擦除空间转为unit单位；
-    if(sys % tmp) // 系统尺寸按可擦除大小对齐,unit为单位
+    if(sys%tmp) // 系统尺寸按可擦除大小对齐,unit为单位
     {
         sys = (sys - sys % tmp) + tmp;
     }
@@ -2977,7 +3255,7 @@ s32 e_install(tagFSC *super, u32 flags, void *config)
     tmp = (media->asz - ((core->fmax * core->fsz) << media->usz)); // 预估系统可用空间的剩余空间
     tmp = tmp & (0xFFFFFFFF - ((1 << media->esz) -1)); // 预估系统可用空间的剩余空间, 可擦除对齐
     tmp = tmp >> media->usz; // // 预估系统可用空间的剩余空间，unit为单位
-    if(tmp < sys) // 预估的系统空间不够，从文件空间里获取
+    if(tmp<sys) // 预估的系统空间不够，从文件空间里获取
     {
         i = 1;
         while(1)
@@ -2989,13 +3267,20 @@ s32 e_install(tagFSC *super, u32 flags, void *config)
         }
     }
 
-    core->fmax -= i; // 实际文件数量；
-    res = __e_scan(core);
-    if(1 == res)
+    if(core->fmax<=i)
     {
-        if(!(flags & INSTALL_CREAT))
+        printf("\r\n: erro : efs    : file system cannot create for bad logic.");
+        free(core);
+        return (-1);
+    }
+
+    core->fmax -= i; // 实际文件数量；(减掉系统空间需要的空间)
+    res = __e_scan(core);
+    if(1==res)
+    {
+        if(!(opts&INSTALL_CREAT))
         {
-            error_printf("efs","file system does not exist, but no create.");
+            printf("\r\n: erro : efs    : file system does not exist, but no create.");
             free(core);
             return (-1);
         }
@@ -3003,14 +3288,14 @@ s32 e_install(tagFSC *super, u32 flags, void *config)
         res = __e_build(core); // 建立efs文件系统；
         if(res)
         {
-            error_printf("efs","file system does not exist, and cannot create.");
+            printf("\r\n: erro : efs    : file system does not exist, and cannot create.");
             free(core);
             return (-1);
         }
     }
     else if (-1 == res)
     {
-        error_printf("efs","file system has corrupted.");
+        printf("\r\n: erro : efs    : file system has corrupted.");
         free(core);
         return (-1);
     }

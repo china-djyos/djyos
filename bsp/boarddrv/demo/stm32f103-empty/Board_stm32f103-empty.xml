@@ -2,7 +2,7 @@
 <board>
   <boardName>stm32f103-empty</boardName>
   <cpu>
-    <cpuName>stm32f103xx</cpuName>
+    <cpuName>stm32f103xe</cpuName>
     <mianClk>7812</mianClk>
     <chip>
       <chipName>at24c02</chipName>

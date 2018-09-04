@@ -235,7 +235,7 @@ void HID_ReportParse(u8 *pReport, u16 dwLen)
     u8 size;
     u8 tag;
 
-
+    printf("\r\n: info :  : touch report.");
     for(i = 0; i < dwLen; i++)
     {
         type = HID_ITEM_TYPE(pReport[i]);
@@ -243,74 +243,73 @@ void HID_ReportParse(u8 *pReport, u16 dwLen)
 
         if(HID_ITEM_MAIN == type)
         {
-            USBH_UsrLog("<MIAN  :");
+            printf("\r\n            <MIAN  :");
             switch (tag)
             {
-                case HID_MAIN_INPUT :             USBH_UsrLog("INPUT>           "); break;
-                case HID_MAIN_OUTPUT :            USBH_UsrLog("OUTPUT>          "); break;
-                case HID_MAIN_FEATURE :           USBH_UsrLog("FEATURE>         "); break;
-                case HID_MAIN_COLLECTION :        USBH_UsrLog("COLLECTION>      "); break;
-                case HID_MAIN_END_COLLECTION :    USBH_UsrLog("END COLLECTION>  "); break;
-                default :                         USBH_UsrLog("UNKONWN>         "); break;
+                case HID_MAIN_INPUT :             printf("INPUT>           "); break;
+                case HID_MAIN_OUTPUT :            printf("OUTPUT>          "); break;
+                case HID_MAIN_FEATURE :           printf("FEATURE>         "); break;
+                case HID_MAIN_COLLECTION :        printf("COLLECTION>      "); break;
+                case HID_MAIN_END_COLLECTION :    printf("END COLLECTION>  "); break;
+                default :                         printf("UNKONWN>         "); break;
             }
         }
         else if(HID_ITEM_GLOBAL == type)
         {
-            USBH_UsrLog("<GLOBAL:");
+            printf("\r\n           <GLOBAL:");
             switch (tag)
             {
-                case HID_GLOBAL_USAGE_PAGE :      USBH_UsrLog("USAGE PAGE>      "); break;
-                case HID_GLOBAL_LOGICAL_MIN :     USBH_UsrLog("LOGICAL MIN>     "); break;
-                case HID_GLOBAL_LOGICAL_MAX :     USBH_UsrLog("LOGICAL MAX>     "); break;
-                case HID_GLOBAL_PHYSICAL_MIN :    USBH_UsrLog("PHYSICAL MIN>    "); break;
-                case HID_GLOBAL_PHYSICAL_MAX :    USBH_UsrLog("PHYSICAL MAX>    "); break;
-                case HID_GLOBAL_UNIT_EXPONENT :   USBH_UsrLog("UNIT EXPONENT>   "); break;
-                case HID_GLOBAL_UNIT :            USBH_UsrLog("UNIT>            "); break;
-                case HID_GLOBAL_REPORT_SIZE :     USBH_UsrLog("REPORT SIZE>     "); break;
-                case HID_GLOBAL_REPORT_ID :       USBH_UsrLog("REPORT ID>       "); break;
-                case HID_GLOBAL_REPORT_COUNT :    USBH_UsrLog("REPORT COUNT>    "); break;
-                case HID_GLOBAL_PUSH :            USBH_UsrLog("PUSH>            "); break;
-                case HID_GLOBAL_POP :             USBH_UsrLog("POP>             "); break;
-                default :                         USBH_UsrLog("UNKONWN>         "); break;
+                case HID_GLOBAL_USAGE_PAGE :      printf("USAGE PAGE>      "); break;
+                case HID_GLOBAL_LOGICAL_MIN :     printf("LOGICAL MIN>     "); break;
+                case HID_GLOBAL_LOGICAL_MAX :     printf("LOGICAL MAX>     "); break;
+                case HID_GLOBAL_PHYSICAL_MIN :    printf("PHYSICAL MIN>    "); break;
+                case HID_GLOBAL_PHYSICAL_MAX :    printf("PHYSICAL MAX>    "); break;
+                case HID_GLOBAL_UNIT_EXPONENT :   printf("UNIT EXPONENT>   "); break;
+                case HID_GLOBAL_UNIT :            printf("UNIT>            "); break;
+                case HID_GLOBAL_REPORT_SIZE :     printf("REPORT SIZE>     "); break;
+                case HID_GLOBAL_REPORT_ID :       printf("REPORT ID>       "); break;
+                case HID_GLOBAL_REPORT_COUNT :    printf("REPORT COUNT>    "); break;
+                case HID_GLOBAL_PUSH :            printf("PUSH>            "); break;
+                case HID_GLOBAL_POP :             printf("POP>             "); break;
+                default :                         printf("UNKONWN>         "); break;
             }
         }
         else if(HID_ITEM_LOCAL == type)
         {
-            USBH_UsrLog("<LOCAL :");
+            printf("\r\n             <LOCAL :");
             switch (tag)
             {
-                case HID_LOCAL_USAGE :            USBH_UsrLog("USAGE>           "); break;
-                case HID_LOCAL_USAGE_MIN :        USBH_UsrLog("USAGE_MIN>       "); break;
-                case HID_LOCAL_USAGE_MAX :        USBH_UsrLog("LOGICAL MAX>     "); break;
-                case HID_LOCAL_DESIGNATOR_INDEX : USBH_UsrLog("DESIGNATOR INDEX>"); break;
-                case HID_LOCAL_DESIGNATOR_MIN :   USBH_UsrLog("DESIGNATOR MIN>  "); break;
-                case HID_LOCAL_DESIGNATOR_MAX :   USBH_UsrLog("DESIGNATOR MAX>  "); break;
-                case HID_LOCAL_STRING_INDEX :     USBH_UsrLog("STRING INDEX>    "); break;
-                case HID_LOCAL_STRING_MIN :       USBH_UsrLog("STRING MIN>      "); break;
-                case HID_LOCAL_STRING_MAX :       USBH_UsrLog("STRING MAX>      "); break;
-                case HID_LOCAL_DELIMITER :        USBH_UsrLog("DELIMITER>       "); break;
-                default :                         USBH_UsrLog("UNKONWN>         "); break;
+                case HID_LOCAL_USAGE :            printf("USAGE>           "); break;
+                case HID_LOCAL_USAGE_MIN :        printf("USAGE_MIN>       "); break;
+                case HID_LOCAL_USAGE_MAX :        printf("LOGICAL MAX>     "); break;
+                case HID_LOCAL_DESIGNATOR_INDEX : printf("DESIGNATOR INDEX>"); break;
+                case HID_LOCAL_DESIGNATOR_MIN :   printf("DESIGNATOR MIN>  "); break;
+                case HID_LOCAL_DESIGNATOR_MAX :   printf("DESIGNATOR MAX>  "); break;
+                case HID_LOCAL_STRING_INDEX :     printf("STRING INDEX>    "); break;
+                case HID_LOCAL_STRING_MIN :       printf("STRING MIN>      "); break;
+                case HID_LOCAL_STRING_MAX :       printf("STRING MAX>      "); break;
+                case HID_LOCAL_DELIMITER :        printf("DELIMITER>       "); break;
+                default :                         printf("UNKONWN>         "); break;
             }
         }
         else
         {
-            USBH_UsrLog("<UNKOWN>");
+            printf("\r\n              <UNKOWN>");
             continue;
         }
 
         size = HID_ITEM_SIZE(pReport[i]);
         if(size)
         {
-            USBH_UsrLog(" <SIZE:%d>", size);
-
-            USBH_UsrLog(" <VAL:");
+            printf("\r\n              <SIZE:%d>", size);
+            printf("\r\n              <VAL:");
             for(j = 0; j < size; j++)
             {
-                USBH_UsrLog("%02x", pReport[++i]);
+                printf("%02x", pReport[++i]);
             }
-            USBH_UsrLog(">");
+            printf(">");
         }
-        USBH_UsrLog("\r\n");
+        printf("\r\n");
     }
 
 }

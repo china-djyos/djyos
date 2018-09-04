@@ -15,7 +15,6 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include "dbug.h"
-#include "newshell.h"
 //base64 encode and decode
 extern char * base64_encode( const unsigned char * bindata, char * base64, int binlength );
 extern int base64_decode( const char * base64, unsigned char * bindata );
@@ -919,7 +918,7 @@ ADD_TO_IN_SHELL bool_t smtp(char *param)
 
 //static bool_t base64encodeshell(char *param)
 ADD_TO_SHELL_HELP(enbase64file,"enbase64file srcfile dstfile");
-ADD_TO_IN_SHELL static bool_t enbase64file(char *param)
+ADD_TO_IN_SHELL  bool_t enbase64file(char *param)
 {
     const char *srcfile;
     const char *dstfile;
@@ -971,34 +970,31 @@ ADD_TO_IN_SHELL static bool_t enbase64file(char *param)
 
 }
 
-
-
-
-//static struct ShellCmdTab  gSmtpClientDebug[] =
-//{
-//    {
-//        "enbase64file",
-//        base64encodeshell,
-//        "enbase64file srcfile dstfile",
-//        NULL
-//    },
-//    {
-//        "smtp",
-//        sendemail,
-//        "usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]",
-//        NULL
-//    },
-//};
-//#define CN_SmtpClientDebug_NUM  ((sizeof(gSmtpClientDebug))/(sizeof(struct ShellCmdTab)))
+static struct shell_debug  gSmtpClientDebug[] =
+{
+    {
+        "enbase64file",
+        enbase64file,
+        "enbase64file srcfile dstfile",
+        NULL
+    },
+    {
+        "smtp",
+        smtp,
+        "usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]",
+        NULL
+    },
+};
+#define CN_SmtpClientDebug_NUM  ((sizeof(gSmtpClientDebug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gSmtpClientDebugCmdRsc[CN_SmtpClientDebug_NUM];
 // =============================================================================
 // 闁跨喐鏋婚幏鐑芥晸閺夊府缍囬幏绌塪d the SmtpClient debug to the system
 // 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归柨鐔告灮閹风ara
 // 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归崐锟�  闁跨喐鏋婚幏绌瀝ue闁跨喓鍗抽惂鍛婂  false婢堕亶鏁撻弶鎵虫閹凤拷
 // =============================================================================
-//bool_t ServiceSmtpClient()
-//{
-//    Sh_InstallCmd(gSmtpClientDebug,gSmtpClientDebugCmdRsc,CN_SmtpClientDebug_NUM);
-//    return true;
-//}
+bool_t ServiceSmtpClient()
+{
+    shell_debug_add(gSmtpClientDebug, CN_SmtpClientDebug_NUM);
+    return true;
+}
 

@@ -564,7 +564,7 @@ void DMA_Disable(DMA_Stream_TypeDef *DMA_Streamx);
 void DMA_ClearIntFlag(DMA_Stream_TypeDef *DMA_Streamx);
 void DMA_IntEnable(DMA_Stream_TypeDef *DMA_Streamx,u8 SrcInt);
 void DMA_IntDisable(DMA_Stream_TypeDef *DMA_Streamx,u8 SrcInt);
-
+void DMA_SetIntModeComplete(DMA_Stream_TypeDef *DMA_Streamx);
 
 #ifdef __cplusplus
 }

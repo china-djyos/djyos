@@ -47,13 +47,13 @@
 //%$#@num,100000,5000000,
 #define CFG_MAX3_SPI_SPEED                 (200*1000)//"时钟速度"，配置max31865所使用的spi总线速度
 //%$#@num,100000,0xFFFFFFFF,
-#define CFG_MAX3_TIMEOUT                   CN_TIMEOUT_FOREVER//"超时时间"，即等待超时间
 //%$#@enum,MAX31865_CONTINOUS_MODE,MAX31865_SINGLE_MODE,
 #define CFG_MAX31865_SAM_MODE              MAX31865_CONTINOUS_MODE   //"采样模式",连续采样或单次采样
 //%$#@string,1,10,
 #define CFG_MAX31865_BUS_NAME              "SPI0"       //"SPI总线",MAX31865所使用SPI总线名称
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+#define CFG_MAX3_TIMEOUT                   CN_TIMEOUT_FOREVER//"超时时间"，即等待超时间
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure

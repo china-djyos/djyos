@@ -68,13 +68,11 @@ extern struct IntMasterCtrl  tg_int_global;          //¶¨Òå²¢³õÊ¼»¯×ÜÖĞ¶Ï¿ØÖÆ½á¹
 extern void __Djy_ScheduleAsynSignal(void);
 void __Djy_EventReady(struct EventECB *event_ready);
 
-struct IntReg volatile * const pg_int_reg
-                        = (struct IntReg *)0xe000e100;
+struct nvic_reg volatile * const pg_nvic_reg
+                        = (struct nvic_reg *)0xe000e100;
 
 
 u32 (*vector_table[CN_INT_LINE_LAST+1])(ufast_t tagIntLine);
-void __start_asyn_signal(void);
-void __start_real(void);
 void __Int_EngineAll(ufast_t ufl_line);
 u32 __start_int(ufast_t tagIntLine);
 void __int_set_prio(ufast_t ufl_line,u32 prio);
@@ -112,14 +110,14 @@ void Int_ContactAsynSignal(void)
 //-----------------------------------------------------------------------------
 void Int_CutAsynSignal(void)
 {
-        //INTMSKÖĞÒì²½ĞÅºÅÇÒÖĞ¶ÏÏß±»Ê¹ÄÜµÄÎ»±»Çå0
-        atom_high_t high;
-        high = Int_HighAtomStart();
-        // ĞèÒªÍ¬Ê±²Ù×÷Á½¸ö¼Ä´æÆ÷setenaºÍctrl,²»¾ßÔ­×ÓĞÔ,¹ÊĞèÒªÓÃÔ­×Ó²Ù×÷°ü¹ü
-        pg_nvic_reg->clrena = (~tg_int_global.property_bitmap[0])
-                             & tg_int_global.enable_bitmap[0];
-        pg_systick_reg->ctrl &= ~((u32)bm_systick_ctrl_tickint);
-        Int_HighAtomEnd(high);
+	//INTMSKÖĞÒì²½ĞÅºÅÇÒÖĞ¶ÏÏß±»Ê¹ÄÜµÄÎ»±»Çå0
+	atom_high_t high;
+	high = Int_HighAtomStart();
+	// ĞèÒªÍ¬Ê±²Ù×÷Á½¸ö¼Ä´æÆ÷setenaºÍctrl,²»¾ßÔ­×ÓĞÔ,¹ÊĞèÒªÓÃÔ­×Ó²Ù×÷°ü¹ü
+	pg_nvic_reg->clrena = (~tg_int_global.property_bitmap[0])
+						 & tg_int_global.enable_bitmap[0];
+	pg_systick_reg->ctrl &= ~((u32)bm_systick_ctrl_tickint);
+	Int_HighAtomEnd(high);
 }
 
 //----½ÓÍ¨×ÜÖĞ¶Ï¿ª¹Ø-----------------------------------------------------------
@@ -154,7 +152,7 @@ void Int_CutTrunk(void)
             "cpsid  i \n\t"
     );
 }
-
+#if 0
 //----½øÈë¸ß¼¶Ô­×Ó²Ù×÷---------------------------------------------------------
 //¹¦ÄÜ£º¶Áµ±Ç°×ÜÖĞ¶Ï×´Ì¬£¬È»ºó½ûÖ¹×ÜÖĞ¶Ï¡£¸ß¼¶Ô­×Ó²Ù×÷ÊÇÖ¸ÆÚ¼ä²»ÈİĞíÈÎºÎÔ­Òò
 //      ´ò¶ÏµÄ²Ù×÷¡£
@@ -196,7 +194,7 @@ void Int_HighAtomEnd(atom_high_t high)
             :"r"(high)
     );
 }
-
+#endif
 //----½øÈëµÍ¼¶Ô­×Ó²Ù×÷---------------------------------------------------------
 //¹¦ÄÜ£º¶ÁÈ¡µ±Ç°Òì²½ĞÅºÅ¿ª¹Ø×´Ì¬£¬È»ºó½ûÖ¹Òì²½ĞÅºÅ¡£µÍ¼¶¼¶Ô­×Ó²Ù×÷¿ÉÓÃÀ´·ÀÖ¹ÁÙ½ç
 //      Êı¾İµÄ²¢·¢·ÃÎÊ£¬µ«¿ÉÄÜ»á±»ÊµÊ±ÖĞ¶Ï´ò¶Ï¡£
@@ -513,6 +511,8 @@ void Int_Init(void)
 //    tg_int_global.en_trunk = true;
     tg_int_global.en_trunk_counter = 0;     //×ÜÖĞ¶Ï¼ÆÊı
     Int_ContactTrunk();                 //½ÓÍ¨×ÜÖĞ¶Ï¿ª¹Ø
+
+    cm_cpsie_f();						//½ÓÍ¨Òì³£¿ª¹Ø
 }
 
 //----×ÜÖĞ¶ÏÒıÇæ---------------------------------------------------------------
@@ -605,7 +605,7 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
         __Djy_EventReady(event);   //°Ñ¸ÃÊÂ¼ş·Åµ½ready¶ÓÁĞ
         ptIntLine->sync_event = NULL;   //½â³ıÍ¬²½
     }
-    if(ptIntLine->my_evtt_id != CN_INVALID_EVTT_ID)
+    if(ptIntLine->my_evtt_id != CN_EVTT_ID_INVALID)
     {
         Djy_EventPop(ptIntLine->my_evtt_id,
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);

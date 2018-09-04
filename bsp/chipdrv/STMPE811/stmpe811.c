@@ -72,7 +72,7 @@
 //    struct GkWinObj;
 //    extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop,\
 //      const char *touch_dev_name);
-//    extern struct GkWinObj *GK_GetDesktop(const char *display_name)；
+//    extern struct GkWinObj *GK_GetDesktop(const char *display_name);
 //    struct GkWinObj *stmpe811_desktop;
 //    stmpe811_desktop = GK_GetDesktop(CFG_STMPE811_DESKTOP_NAME);
 //    if(NULL == stmpe811_desktop)
@@ -145,7 +145,7 @@ static bool_t STMPE811_Init(char *BusName)
     if(s_ptCRT_Dev)
     {
         IIC_BusCtrl(s_ptCRT_Dev,CN_IIC_SET_CLK,CFG_CRT_CLK_FRE,0);//设置时钟大小
-        IIC_BusCtrl(s_ptCRT_Dev,CN_IIC_SET_INT,0,0);       //使用中断方式发送
+        IIC_BusCtrl(s_ptCRT_Dev,CN_IIC_SET_POLL,0,0);       //使用中断方式发送
         return true;
     }
 
@@ -365,18 +365,18 @@ static ufast_t read_touch_stmpe811(struct SingleTouchMsg *touch_data)
 static void touch_ratio_adjust(struct GkWinObj *desktop)
 {
     struct SingleTouchMsg touch_xyz0,touch_xyz1,touch_xyz2;
-    FILE *touch_init;
+//    FILE *touch_init;
     s32 limit_left,limit_top,limit_right,limit_bottom;
 
     u8 sta;
 
-    if((touch_init = fopen("sys:\\touch_init.dat","r")) != NULL)
-    {
-
-        fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
-        while(1);// added by jzl for test!
-    }
-    else
+//    if((touch_init = fopen("/sys/touch_init.dat","r")) != NULL)
+//    {
+//
+//        fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+//        while(1);// added by jzl for test!
+//    }
+//    else
     {
         limit_left = desktop->limit_left;
         limit_top = desktop->limit_top;
@@ -387,9 +387,9 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
     //    GK_SetPrio(desktop,-1,CN_GK_SYNC);
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
-                       "触摸屏矫正", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "touch", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
-                       "请准确点击十字交叉点", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "TOUCH", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
         GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
@@ -416,9 +416,9 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
-                       "触摸屏矫正", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "touch", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
-                       "再次准确点击十字交叉点", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "TOUCH", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,limit_right-40,limit_bottom-20,
                       limit_right,limit_bottom-20,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
@@ -463,14 +463,14 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
         tg_touch_adjust.ratio_y = ((touch_xyz1.y - touch_xyz0.y)<<16)
                         /(limit_bottom- limit_top-40);
         tg_touch_adjust.offset_y= (touch_xyz0.y<<16) - 20*tg_touch_adjust.ratio_y;
-        GK_FillWin(desktop,CN_COLOR_BLUE,0);
+        GK_FillWin(desktop,CN_COLOR_GREEN,0);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
     //    GK_DestroyWin(desktop);
-        touch_init = fopen("sys:\\touch_init.dat","w+");
-        if(touch_init)
-            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+//        touch_init = fopen("/sys/touch_init.dat","w+");
+//        if(touch_init)
+//            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
     }
-    fclose(touch_init);
+//    fclose(touch_init);
 
 }
 //----初始化触摸屏模块---------------------------------------------------------

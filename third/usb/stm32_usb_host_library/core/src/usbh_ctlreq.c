@@ -235,7 +235,7 @@ USBH_StatusTypeDef USBH_GetDescriptor(USBH_HandleTypeDef *phost,
         {
             phost->dwTimeout = 0;
             phost->RequestState = CMD_SEND;
-            USBH_UsrLog("USB #%04x stack service: get description timeout.\r\n", phost->id);
+            printf("\r\n: warn : usbs%02x : get description timeout.", phost->id);
         }
     }
     else
@@ -277,7 +277,7 @@ USBH_StatusTypeDef USBH_SetAddress(USBH_HandleTypeDef *phost,
         {
             phost->dwTimeout = 0;
             phost->RequestState = CMD_SEND;
-            USBH_UsrLog("USB #%04x stack service: set address timeout.\r\n", phost->id);
+            printf("\r\n: warn : usbs%02x : set address timeout.", phost->id);
         }
     }
     else
@@ -317,7 +317,7 @@ USBH_StatusTypeDef USBH_SetCfg(USBH_HandleTypeDef *phost,
         {
             phost->dwTimeout = 0;
             phost->RequestState = CMD_SEND;
-            USBH_UsrLog("USB #%04x stack service: set configuration timeout.\r\n", phost->id);
+            printf("\r\n: warn : usbs%02x : set configuration timeout.", phost->id);
         }
     }
     else
@@ -358,7 +358,7 @@ USBH_StatusTypeDef USBH_SetInterface(USBH_HandleTypeDef *phost,
         {
             phost->dwTimeout = 0;
             phost->RequestState = CMD_SEND;
-            USBH_UsrLog("USB #%04x stack service: set interface timeout.\r\n", phost->id);
+            printf("\r\n: warn : usbs%02x : set interface timeout.", phost->id);
         }
     }
     else
@@ -402,7 +402,7 @@ USBH_StatusTypeDef USBH_ClrFeature(USBH_HandleTypeDef *phost,
           {
               phost->dwTimeout = 0;
               phost->RequestState = CMD_SEND;
-              USBH_UsrLog("USB #%04x stack service: clear feature timeout.\r\n", phost->id);
+              printf("\r\n: warn : usbs%02x : clear feature timeout.\r\n", phost->id);
           }
       }
       else

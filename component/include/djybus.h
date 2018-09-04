@@ -54,9 +54,9 @@
 
 
 //djybusÄ£¿é³õÊ¼»¯
-struct Object * DjyBus_BusTypeAdd (const char* NewBusTypeName);
-bool_t            DjyBus_BusTypeDelete(struct Object * DelBusType);
-struct Object * DjyBus_BusTypeFind(const char * BusTypeName);
+struct obj *DjyBus_BusTypeAdd (const char *NewBusTypeName);
+bool_t DjyBus_BusTypeDelete(struct obj *DelBusType);
+struct obj *DjyBus_BusTypeFind(const char *BusTypeName);
 
 
 #endif

@@ -53,27 +53,27 @@
 #include <math.h>
 #include <stdlib.h>
 #include <device.h>
+#include <dirent.h>
 #include <djyos.h>
 #include <list.h>
 #include <stdarg.h>
 #include <iap.h>
-#include "iap_fs.h"
-#include "dbug.h"
+#include <device/include/unit_media.h>
+#include <stdio.h>
 #include "../filesystems.h"
-#include "component_config_iap.h"
 
 //
 // 底层接口函数
 //
-extern s32 LowLevelWrite(void *LowLevel, u8 *Buf, u32 Bytes, u32 Addr);
-extern s32 LowLevelRead(void *LowLevel, u8 *Buf, u32 Bytes, u32 Addr);
-extern s32 LowLevelErase(void *LowLevel, u32 Bytes, u32 Addr);
-extern void *LowLevelInit(void *pDev, u32 *pBase, u32 *pBufSize);
-extern void LowLevelDeInit(void *LowLevel);
-extern u32 LowLevelCRC32(void *LowLevel, u32 Offset, u32 Len);
+extern s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 addr);
+extern s32 __ll_read(void *ll, u8 *data, u32 bytes, u32 addr);
+extern s32 __ll_erase(void *LowLevel, u32 Bytes, u32 Addr);
+//extern void *LowLevelInit(void *pDev, u32 *pBase, u32 *pBufSize);
+//extern void LowLevelDeInit(void *LowLevel);
+//extern u32 LowLevelCRC32(void *LowLevel, u32 Offset, u32 Len);
 
-static s32 __iap_fs_install(tagFSC *pSuper, u32 flags, void *pData);
-static ptu32_t __iap_file_operations(u32 cmd, ptu32_t oof, ptu32_t args,  ...);
+static s32 __iap_fs_install(tagFSC *super, u32 opt, void *config);
+static ptu32_t __iap_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...);
 //
 //
 //
@@ -92,13 +92,13 @@ static ptu32_t __iap_file_operations(u32 cmd, ptu32_t oof, ptu32_t args,  ...);
 // IAP文件状态
 #define IAP_TEMPORARY                   ((u32)0x1)
 #define IAP_UPDATING                    ((u32)0x2)
-#define IAP_UPDATED                 ((u32)0x3)
+#define IAP_UPDATED                     ((u32)0x3)
 
 //
 // IAP文件系统类型
 //
 tagFST typeIAP = {
-        __iap_file_operations,
+        __iap_ops,
         __iap_fs_install,
         NULL,
         NULL,
@@ -109,32 +109,31 @@ tagFST typeIAP = {
 // IAP文件信息
 //
 struct __ifile{
-    struct __portBasic basic; // 接入文件系统用
-//  char *pName; // 这个信息放置于object
-    u32 dwBase; // 缓存时，文件内容的偏置。
-    u32 dwSize; // 文件大小
-    u32 dwStatus; // 文件状态；
-    struct MutexLCB *pLock; // 文件锁；
+//  char *name; // 这个信息放置于object
+    u32 cxbase; // 文件实际内容的偏置（文件头部信息存放于开始，存在一个偏置）。
+    u32 sz; // 文件大小
+    u32 status; // 文件状态；
+    struct MutexLCB *lock; // 文件锁；
 };
 
 //
-// IAP文件上下文
+// IAP文件上下文，缓存未考虑预读逻辑，即只针对写进行了缓存，读未考虑缓存；
 //
 struct __icontext{
-    u32 dwCur; // 文件的当前位置是dwCur+buffer已缓存部分；
-    u8 *pBufSt; // 缓存边界，起始；
-    u8 *pBufMov; // 已缓存；
-    u8 *pBufEd; // 缓冲边界，结束；
+    u32 pos; // 文件的当前位置；
+    s16 bufed; // 存在于缓存中的数据；
+    u8 *buf; // 是物理的一个缓存，逻辑上是对齐的；
 };
 
 //
 // IAP文件系统管理信息
 //
-struct __icore {
-    void *pVol; // 文件系统底层抽象，volume；
-    u32 dwBufferSize; // 当大于零时，表示存在缓冲。原因，对于小数据量的多次写入会造成内部自带ECC的设备的ECC错误
-    u32 dwBase; // 文件系统在volume中的偏置
-    struct Object *pRoot; // IAP文件系统接入DJYFS的文件对象；
+struct __icore{
+    void *vol; // 文件系统底层抽象，volume；
+    s16 bufsz; // 当大于零时，表示存在缓冲。需要原因，对于小数据量的多次写入会造成内部自带ECC的设备的ECC错误
+    u32 inhead; // 文件的一个区域内容是头部+部分内容，大小为bufsz；inhead这部分为部分内容的大小；
+    struct obj *root; // IAP文件系统接入的文件系统的根；
+    struct MutexLCB *lock; // 系统锁；
 };
 
 // ============================================================================
@@ -160,27 +159,26 @@ struct __ifile *__decodefilehead(struct headFormat *head, struct __ifile *file)
 
     if(i == FILE_HEAD_SIZE)
     {
-        info_printf("iapfs","invalid file, empty(head is all 0xFF).");
+        printf("\r\n: info : iapfs  : invalid file, empty(head is all 0xFF).");
         return (NULL); // 全FF数据，无效，表示没有文件
     }
 
     if((S_APP_UPDATE_DONE != head->signature) &&
        (S_APP_DEBUG != head->signature)) // debug模式的程序标签
     {
-        error_printf("iapfs","invalid file, signature<%xH> is bad.", head->signature);
+        printf("\r\n: erro : iapfs  : invalid file, signature(%xH) is bad.", head->signature);
         return (NULL); // 格式错误
     }
 
     len = strlen(head->name) + 1;
     if(FILE_NAME_MAX_LEN < len)
     {
-        error_printf("iapfs","too long file name<%d>, limitation<%d>.", len, FILE_NAME_MAX_LEN);
+        printf("\r\n: erro : iapfs  : too long file name(%d), limitation(%d).", len, FILE_NAME_MAX_LEN);
         return (NULL);
     }
 
-    file->dwSize = head->size;
-    file->dwStatus = IAP_UPDATED;
-
+    file->sz = head->size;
+    file->status = IAP_UPDATED;
     return (file);
 }
 
@@ -191,9 +189,31 @@ struct __ifile *__decodefilehead(struct headFormat *head, struct __ifile *file)
 // 返回：文件的CRC32值；
 // 备注：
 // ============================================================================
-static u32 __crc(struct __icore *core, struct __ifile *file)
+static inline u32 __crc(struct __icore *core, struct __ifile *file)
 {
-    return (LowLevelCRC32(core->pVol, file->dwBase, file->dwSize));
+    return (__ll_crc32(core->vol, file->cxbase, file->sz));
+}
+
+// ============================================================================
+// 功能：文件上锁
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+static inline void __lock(struct __icore *core)
+{
+    Lock_MutexPend(core->lock, CN_TIMEOUT_FOREVER);
+}
+
+// ============================================================================
+// 功能：文件解锁
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+static inline void __unlock(struct __icore *core)
+{
+    Lock_MutexPost(core->lock);
 }
 
 // ============================================================================
@@ -212,17 +232,16 @@ static struct __ifile *__newfile(struct __icore *core)
         return (NULL);
 
     memset(file, 0x0, size);
-    file->pLock = Lock_MutexCreate(NULL);
-    if(!file->pLock)
-    {
-        free(file);
-        return (NULL);
-    }
+//    file->lock = Lock_MutexCreate(NULL);
+//    if(!file->lock)
+//    {
+//        free(file);
+//        return (NULL);
+//    }
 
-    file->dwBase = core->dwBase + FILE_HEAD_SIZE;
-    of_initbasic(&file->basic, O_RDWR);
-    file->dwStatus = IAP_TEMPORARY;
-
+    file->cxbase = FILE_HEAD_SIZE;
+    //handle_initbasic(&file->basic, O_RDWR);
+    file->status = IAP_TEMPORARY;
     return (file);
 }
 
@@ -232,9 +251,9 @@ static struct __ifile *__newfile(struct __icore *core)
 // 返回：文件头部位置偏置
 // 备注：
 // ============================================================================
-u32 __locatefilehead(struct __ifile *file)
+static inline u32 __locatefilehead(struct __ifile *file)
 {
-    return (file->dwBase - FILE_HEAD_SIZE);
+    return (file->cxbase - FILE_HEAD_SIZE);
 }
 
 // ============================================================================
@@ -246,50 +265,38 @@ u32 __locatefilehead(struct __ifile *file)
 // ============================================================================
 s32 __formatfilehead(struct __icore *core, struct __ifile *file)
 {
-    s32 res;
-    u32 base;
+    u32 base = 0;
 
     if(file)
         base = __locatefilehead(file);
-    else
-        base = core->dwBase;
 
-    res = LowLevelErase(core->pVol, FILE_HEAD_SIZE, base);
-    if(FILE_HEAD_SIZE != res)
-        return (-1);
-
-    return (0);
+   return (__ll_erase(core->vol, FILE_HEAD_SIZE, base));
 }
 
 // ============================================================================
 // 功能：建立文件格式（头部）
 // 参数：core -- IAP文件系统信息；
 //      file -- IAP文件；
-//      pName -- IAP文件名；
+//      name -- IAP文件名；
 // 返回：失败（-1）；成功（0）。
 // 备注：
 // ============================================================================
-s32 __makefilehead(struct __icore *core, struct __ifile *file, const char *pName)
+s32 __makefilehead(struct __icore *core, struct __ifile *file, const char *name)
 {
-    s32 res;
     struct headFormat head;
 
-    head.size = file->dwSize;
-    strcpy(head.name, pName);
+    head.size = file->sz;
+    strcpy(head.name, name);
     head.signature = S_APP_UPDATE_DONE;
     head.reserved = -1;
     head.crc = __crc(core, file);
 
-    res = LowLevelWrite(core->pVol, (u8*)&head, FILE_HEAD_SIZE,
-            __locatefilehead(file));
-    if(FILE_HEAD_SIZE != res)
+    if(-1==__ll_write(core->vol, (u8*)&head, FILE_HEAD_SIZE, __locatefilehead(file)))
         return (-1);
 
-    file->dwStatus = IAP_UPDATED;
-
+    file->status = IAP_UPDATED;
     return (0);
 }
-
 
 // ============================================================================
 // 功能：扫描IAP文件
@@ -303,8 +310,8 @@ static s32 __scanfiles(struct __icore *core)
     struct headFormat structFileHead;
     struct __ifile *file;
 
-    res = LowLevelRead(core->pVol, (u8*)&structFileHead, FILE_HEAD_SIZE, core->dwBase);
-    if(res != FILE_HEAD_SIZE)
+    res = __ll_read(core->vol, (u8*)&structFileHead, FILE_HEAD_SIZE, 0);
+    if(res)
         return (-1);
 
     // 当前只有一个文件
@@ -312,19 +319,19 @@ static s32 __scanfiles(struct __icore *core)
     if(NULL == __decodefilehead(&structFileHead, file))
     {
 #if 0
-        info_printf("IAP","format the disk, please wait    ");
+        printf("IAP : info : format the disk, please wait    ");
         Res = LowLevelFormat(s_ptIAP_Core->vol); // 不存在有效文件，为保险起见，格式化整个vol
         if(Res)
         {
-            info_printf("iapfs","\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-            info_printf("iapfs","                 ");
-            info_printf("iapfs","\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b erro.\r\n");
+            printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+            printf("                 ");
+            printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b erro.\r\n");
             return (-1);
         }
 
-        info_printf("iapfs","\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-        info_printf("iapfs","                 ");
-        info_printf("iapfs","\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b successfully.\r\n");
+        printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+        printf("                 ");
+        printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b successfully.\r\n");
 #else
         // 当前逻辑不在上电检索文件的时候格式整个空间,而只格式一个头部。
         // 必须要这个逻辑，因为在升级过程的中断，往往是头部不存在，而后续有内容。而第一次写入时，并不想照顾这个逻辑。
@@ -333,17 +340,16 @@ static s32 __scanfiles(struct __icore *core)
         return (res); // 当前系统已无文件，后续逻辑不执行
     }
 
-
     // 将内容接入文件系统
-    res = of_virtualize(core->pRoot, &file->basic, structFileHead.name);
-    if(res)
+//    res = of_virtualize(core->root, &file->basic, structFileHead.name);
+//    if(res)
+    if(!obj_newchild(core->root, NULL, O_RDWR, (ptu32_t)file, structFileHead.name))
     {
         free(file);
         return (-1);
     }
 
-    info_printf("iapfs","valid file, name<%s>, size<%dKB>.", structFileHead.name, (file->dwSize>>10));
-
+    printf("\r\n: info : iapfs  : valid file found, name(%s), size(%dKB).", structFileHead.name, (file->sz>>10));
     return (0);
 }
 
@@ -355,11 +361,11 @@ static s32 __scanfiles(struct __icore *core)
 // ============================================================================
 static void __freefile(struct __ifile *file)
 {
-    if(file == IAP_UPDATING)
+    if(file->status == IAP_UPDATING)
         return;
 
-    of_unlinkbasic(&file->basic);
-    Lock_MutexDelete(file->pLock);
+//    of_unlinkbasic(&file->basic);
+//    Lock_MutexDelete(file->lock);
     free(file);
 }
 
@@ -372,10 +378,7 @@ static void __freefile(struct __ifile *file)
 // ============================================================================
 static s32 __delfile(struct __icore *core, struct __ifile *file)
 {
-    s32 res;
-
-    res = LowLevelErase(core->pVol, FILE_HEAD_SIZE, __locatefilehead(file));
-    if(FILE_HEAD_SIZE != res)
+    if(__ll_erase(core->vol, FILE_HEAD_SIZE, __locatefilehead(file)))
         return (-1);
 
     __freefile(file);
@@ -390,18 +393,20 @@ static s32 __delfile(struct __icore *core, struct __ifile *file)
 // ============================================================================
 static struct __icontext *__newcontext(struct __icore *core)
 {
-    struct __icontext *context;
+    struct __icontext *cx;
 
-    context = malloc(sizeof(*context) + core->dwBufferSize);
-    if(!context)
+    cx = malloc(sizeof(*cx) + core->bufsz);
+    if(!cx)
         return (NULL);
 
-    context->dwCur = 0;
-    context->pBufSt = (u8*)context + sizeof(*context);
-    context->pBufMov = context->pBufSt;
-    context->pBufEd = context->pBufSt + core->dwBufferSize;
-
-    return (context);
+    cx->pos = 0;
+//    cx->bufs = (u8*)cx + sizeof(*cx);
+//    cx->bufc = cx->bufs;
+//    cx->bufe = cx->bufs + core->bufsz;
+    cx->buf = (u8*)cx + sizeof(*cx);
+    memset(cx->buf, 0xFF, core->bufsz);
+    cx->bufed = 0;
+    return (cx);
 }
 
 // ============================================================================
@@ -417,530 +422,583 @@ void __freecontext(struct __icontext *pContext)
 
 // ============================================================================
 // 功能：打开文件
-// 参数：pObj -- 文件对象；
-//      dwFlags -- 文件操作标志位；
-//      pNew -- 需新建的文件名称；
+// 参数：ob -- 文件对象；
+//      flags -- 文件操作标志位；
+//      uncached -- 需新建的文件名称；
 // 返回：成功（IAP文件上下文）；失败（NULL）；
 // 备注：
 // ============================================================================
-static tagOFile *__iap_open(struct Object *pObj, u32 dwFlags, char *pNew)
+static struct objhandle *__iap_open(struct obj *ob, u32 flags, char *uncached)
 {
-    tagOFile *of;
+    s32 size;
+    struct objhandle *hdl;
+    struct obj *tmp;
     struct __ifile *file = NULL;
-    struct __icontext *context = NULL;
-    struct __icore *core = (struct __icore*)FS_Core(pObj);
+    struct __icontext *cx = NULL;
+    struct __icore *core = (struct __icore*)corefs(ob);
 
-    if(GROUP_POINT == __OBJ_Type(pObj))
+    __lock(core);
+    if((!uncached)&&(obj_isset(ob))) // 根目录
     {
-        if(!testdirectory(dwFlags))
+        if(!test_directory(flags))
+        {
+            __unlock(core);
             return (NULL);
+        }
     }
 
-    if(testdirectory(dwFlags)) // 目录逻辑
+    if(test_directory(flags)) // 目录逻辑
     {
-        if(pNew)// 不支持新建目录
+        if(uncached)// 不支持新建目录
         {
-            info_printf("iapfs","do not support create directory.");
+            printf("\r\n: info : iapfs  : do not support create directory.");
+            __unlock(core);
             return (NULL);
         }
     }
     else // 文件的逻辑
     {
-        if(pNew) // 文件不存在，需要新建
+        if(uncached) // 文件不存在，需要新建。（文件都是已缓存的）
         {
-            if(!testcreat(dwFlags))
+            if(!test_creat(flags))
             {
+                __unlock(core);
                 return (NULL); // 打开操作中无新建要求，则返回不存在；
+            }
+
+            // 判断iap文件系统是不是已经有文件了，如果存在是否正在使用；
+            tmp = obj_child(core->root);
+            if(tmp)
+            {
+                if(obj_isquoted(tmp))
+                {
+                    printf("\r\n: info : iapfs  : cannot create new for old are using.");
+                    __unlock(core);
+                    return (NULL);
+                }
+
+                if(obj_del(tmp))
+                {
+                    printf("\r\n: info : iapfs  : cannot create new for old cannot delete.");
+                    __unlock(core);
+                    return (NULL);
+                }
             }
 
             file = __newfile(core);
             if(!file)
             {
+                __unlock(core);
                 return (NULL);
             }
 
             __formatfilehead(core, file);
-            if(of_virtualize(pObj, &file->basic, pNew)) // IAP文件，链入文件系统
+#if 0
+            if(of_virtualize(ob, &file->basic, uncached)) // IAP文件，链入文件系统
                 return (NULL);
+#else
+            if(!obj_newchild(core->root, NULL, O_RDWR, (ptu32_t)file, uncached))
+            {
+                __unlock(core);
+                return (NULL);
+            }
+#endif
         }
         else // 文件已存在
         {
-            if(testonlycreat(dwFlags))
+            if(test_onlycreat(flags))
             {
+                __unlock(core);
                 return (NULL); // 必须新建逻辑，但文件已存在
             }
 
-            file = dListEntry(of_basiclinko(pObj), struct __ifile, basic);
-            if(testtrunc(dwFlags))
+            file = (struct __ifile*)obj_val(ob);
+            if(test_trunc(flags))
             {
                 if(-1 == __formatfilehead(core, file))
                 {
+                    __unlock(core);
                     return (NULL);
                 }
 
-                file->dwSize = 0;
-                file->dwStatus = IAP_UPDATING;
+                file->sz = 0;
+                file->status = IAP_UPDATING;
             }
         }
 
-        context = __newcontext(core);
-        if(!context)
+        cx = __newcontext(core);
+        if(!cx)
         {
-            if(pNew)
+            if(uncached)
                 __freefile(file); // 释放掉上面创建的
 
+            __unlock(core);
             return (NULL);
         }
 
-        if(testappend(dwFlags))
+        if(test_append(flags))
         {
-            context->dwCur = file->dwSize;
+            cx->pos = file->sz;
+        }
+
+        // 预缓存逻辑
+        if(cx->pos<core->inhead)
+        {
+            size = core->inhead;
+        }
+        else
+        {
+            size = core->bufsz;
+        }
+
+        if(__ll_read(core->vol, cx->buf, size, (cx->pos+file->cxbase)))
+        {
+            if(uncached)
+                __freefile(file); // 释放掉上面创建的
+
+            __unlock(core);
+            return (NULL);
         }
     }
 
-    of = of_new();
-    if(!of)
+    hdl = handle_new();
+    if(!hdl)
     {
-        __freecontext(context);
-        if(pNew)
+        __freecontext(cx);
+        if(uncached)
             __freefile(file); // 释放掉上面创建的
     }
 
-    of_init(of, NULL, dwFlags, (ptu32_t)context);
-
-    return (of);
+    handle_init(hdl, NULL, flags, (ptu32_t)cx);
+    __unlock(core);
+    return (hdl);
 }
 
 // ============================================================================
 // 功能：关闭文件
-// 参数：of -- 由open打开的IAP文件上下文；
+// 参数：hdl -- IAP文件对象句柄；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __iap_close(tagOFile *of)
+static s32 __iap_close(struct objhandle *hdl)
 {
-    s32 res, offset, todos;
+    s32 size;
     struct __icore *core;
     struct __ifile *file;
-    struct __icontext *context = (struct __icontext*)of_context(of);
+    struct __icontext *cx = (struct __icontext*)handle_context(hdl);
 
-    if(context) // NULL时表示目录
+    if(cx) // NULL时表示目录
     {
-        core = (struct __icore*)of_core(of);
-        file = dListEntry(of_basic(of), struct __ifile, basic);
-        Lock_MutexPend(file->pLock, CN_TIMEOUT_FOREVER);
-
-        if(IAP_UPDATED != file->dwStatus) // 数据存在写入操作或者文件是新建的
+        core = (struct __icore*)handle2sys(hdl);
+        file = (struct __ifile*)handle_val(hdl);
+        __lock(core);
+        if(IAP_UPDATED != file->status) // 数据存在写入操作或者文件是新建的
         {
-            if(context->pBufMov != context->pBufSt)
+            if(cx->bufed)
             {
-                todos = context->pBufMov - context->pBufSt;
-                offset = context->dwCur + file->dwBase;
-                res = LowLevelWrite(core->pVol, context->pBufSt, todos, offset);
-                if(res != todos)
+                if(cx->pos<=core->inhead)
+                    size = core->inhead;
+                else
+                    size = core->bufsz;
+
+                if(-1==__ll_write(core->vol, cx->buf, size, (cx->pos-cx->bufed+file->cxbase)))
                 {
-                    Lock_MutexPost(file->pLock);
+                    __unlock(core);
                     return (-1);
                 }
             }
 
-            if(!iscontender(of)) // 最后一个文件使用者关闭文件时，才会设置文件头
+            if(!iscontender(hdl)) // 最后一个文件使用者关闭文件时，才会设置文件头
             {
-                res = __makefilehead(core, file, of_name(of)); // 文件关闭时，建立文件头
-                if(res)
+                if(__makefilehead(core, file, handle_name(hdl)))
                 {
-                    Lock_MutexPost(file->pLock);
+                    __unlock(core);
                     return (-1);
                 }
             }
         }
 
-        Lock_MutexPost(file->pLock);
+        __unlock(core);
     }
 
-    __freecontext(context);
-    of_free(of);
+    __freecontext(cx);
+    handle_free(hdl);
     return (0);
 }
 
 // ============================================================================
 // 功能：写文件
-// 参数：of -- 由open打开的IAP文件上下文；
-//      buf -- 需写入数据的空间；
+// 参数：hdl -- IAP文件对象句柄；
+//      data -- 需写入数据的空间；
 //      size -- 需写入数据的大小；
 // 返回：实际写入的字节数；
 // 备注：
 // ============================================================================
-static s32 __iap_write(tagOFile *of, u8 *buf, u32 size)
+static s32 __iap_write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 offset, todos, buffers, wren = 0, frees, res = 0;
-    struct __icontext *context = (struct __icontext *)of_context(of);
-    struct __icore *core = (struct __icore*)of_core(of);
-    struct __ifile *file = dListEntry(of_basic(of), struct __ifile, basic);
+    s32 pos, once, free, res, left = size;
+    struct __icontext *cx = (struct __icontext *)handle_context(hdl);
+    struct __icore *core = (struct __icore*)handle2sys(hdl);
+    struct __ifile *file = (struct __ifile*)handle_val(hdl);
 
-    Lock_MutexPend(file->pLock, CN_TIMEOUT_FOREVER);
-    buffers = context->pBufMov - context->pBufSt;
-    if(((context->dwCur + buffers) < file->dwSize) || (IAP_UPDATED == file->dwStatus))
+    __lock(core);
+    while(left)
     {
-        info_printf("iapfs","writing the written area is unpredictable.");
-    }
-
-    while(1)
-    {
-        if(context->dwCur < (core->dwBufferSize - file->dwBase))
-        {
-            todos = context->dwCur % (core->dwBufferSize - file->dwBase); // 考虑了缓存对齐
-            todos = frees = (context->pBufEd - context->pBufMov - file->dwBase) - todos; // 缓冲中的剩余空间,去除第一页的文件头
-        }
+        once = left;
+        if(cx->pos<core->inhead)
+            free = core->inhead - cx->bufed; // 在开始的区域中，文件头部占据了固定空间；
         else
+            free = core->bufsz - cx->bufed;
+
+        if(once>free)
+            once = free;
+#if 0
+        // 数据校验，已写入的数据不可改写；
+        for(i=0; i<once; i++)
         {
-            todos = (context->dwCur - file->dwBase) % core->dwBufferSize; // 考虑了缓存对齐
-            todos = frees = context->pBufEd - context->pBufMov - todos; // 缓冲中的剩余空间
+            if((0xFF!=cx->buf[cx->bufed+i])&&(cx->buf[cx->bufed+i]!=data[i]))
+            {
+                printf("\r\n: erro : iapfs  : write the written area is no supported.");
+                return (size-left);
+            }
+        }
+#endif
+        memcpy(cx->buf+cx->bufed, data, once);
+        cx->bufed += once;
+        if((cx->bufed==core->bufsz) || // 缓冲已满，刷入
+           ((cx->bufed==core->inhead)&&((cx->pos<core->inhead)))) // 文件头部占据了固定空间，此情况也满（对齐）
+        {
+            pos = cx->pos - (cx->bufed - once) + file->cxbase; // 当前位置写入时的位置，缓存对齐了的；
+            res = __ll_write(core->vol, cx->buf, cx->bufed, pos);// 此时bufed的大小为bufsz或者inhead；
+            if(-1==res) // 写错误；
+            {
+                break;
+            }
+            else if(-2==res) // 将要没有可写空间，删除一些；
+            {
+                if(__ll_erase(core->vol, core->bufsz, (pos+cx->bufed+1)))// '+1'表示下一个要写的空间地址；
+                    break;
+            }
+
+            // 缓存重置，将后续的缓存预取进来（第一个head区域是不会在这里需要缓存的）
+            if(__ll_read(core->vol, cx->buf, core->bufsz, pos+cx->bufed))
+                break;
+
+            cx->bufed = 0;
         }
 
-        if(size < frees)
-            todos = size;
-
-        memcpy(context->pBufMov , buf, todos);
-        context->pBufMov += todos;
-        if(size < frees)
-            break;
-
-        // 缓冲已满，刷入
-        offset = context->dwCur + file->dwBase;
-        buffers = context->pBufMov - context->pBufSt;
-        res = LowLevelWrite(core->pVol, context->pBufSt, buffers, offset);
-        if(res != buffers)
-        {
-            todos = 0; // 当全部写入失败处理；
-            break;
-        }
-
-        // 缓冲重置
-        context->pBufMov = context->pBufSt;
-        memset(context->pBufSt, 0xFF, core->dwBufferSize);
-        wren += todos;
-        size -= todos;
-        buf += todos;
-        context->dwCur += buffers;
+        left -= once;
+        data += once;
+        cx->pos += once;
     }
 
-    wren += todos;
-    buffers = context->pBufMov - context->pBufSt;
-    if(file->dwSize < (context->dwCur + buffers))
-        file->dwSize = context->dwCur + buffers;
+    if(file->sz<cx->pos)
+        file->sz = cx->pos;
 
-    if((wren) && (IAP_UPDATING != file->dwStatus))
-        file->dwStatus = IAP_UPDATING; // 文件数据发生变改变
+    if((IAP_UPDATING!=file->status)&&(left!=size))
+        file->status = IAP_UPDATING; // 文件数据发生变改变
 
-    Lock_MutexPost(file->pLock);
-
-    return (wren);
+    __unlock(core);
+    return (size-left);
 }
 
 // ============================================================================
 // 功能：读文件
-// 参数：of -- 由open打开的IAP文件上下文；
-//      buf -- 需读出数据的存放空间；
+// 参数：hdl -- IAP文件对象句柄；
+//      data -- 需读出数据的存放空间；
 //      size -- 需读出数据的大小；
 // 返回：实际读出的单元数；
 // 备注：
 // ============================================================================
-static s32 __IAP_Read(tagOFile *of, u8 *buf, u32 size)
+static s32 __iap_read(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 buffers, res, offset, unalign, frees;
-    struct __ifile *file = dListEntry(of_basic(of), struct __ifile, basic);
-    struct __icontext *context = (struct __icontext*)of_context(of);
-    struct __icore *core = (struct __icore*)of_core(of);
+    s32 pos, once, left = size;
+    struct __icontext *cx = (struct __icontext*)handle_context(hdl);
+    struct __icore *core = (struct __icore*)handle2sys(hdl);
+    struct __ifile *file = (struct __ifile*)handle_val(hdl);
 
-    Lock_MutexPend(file->pLock, CN_TIMEOUT_FOREVER);
-    buffers = context->pBufMov - context->pBufSt;
-    if((context->dwCur + buffers + size) > file->dwSize)
-    {
-        size = file->dwSize - (context->dwCur + buffers); // 读越界了
-    }
+    __lock(core);
+    if((cx->pos+size)>file->sz)
+        size = file->sz - cx->pos; // 不能读越界
 
-    if(context->dwCur < (core->dwBufferSize - file->dwBase))
-    {
-        unalign = context->dwCur % (core->dwBufferSize - file->dwBase); // 考虑了缓存对齐
-        frees = context->pBufEd - context->pBufMov - file->dwBase - unalign; // 文件头放置在最开始的地方，需要预留空间
-    }
+    if(cx->pos<core->inhead)
+        once = core->inhead - cx->bufed; // 在开始的区域中，文件头部占据了固定空间；
     else
+        once = core->bufsz - cx->bufed;
+
+    if(once>size)
     {
-        unalign = (context->dwCur - file->dwBase) % core->dwBufferSize; // 考虑了缓存对齐
-        frees = context->pBufEd - context->pBufMov - unalign;
+        // 这里会存在一个隐患，就是读的数据可能和介质中的不一样，
+        // 不执行这个逻辑，效率就差，而且在ecc上可能会有麻烦；
+        memcpy(data, cx->buf+cx->bufed, size);
+        cx->pos += size;
+        cx->bufed += size;
+        return (size);
     }
 
-    if(frees < size)
+    // 缓冲的剩余空间容纳不了回读的数据，则先将数据刷下去，再回读。
+    pos = cx->pos - cx->bufed + file->cxbase; // 缓存对齐
+    if(-1==__ll_write(core->vol, cx->buf, (cx->bufed+once), pos)) // 缓存整体写
     {
-        // 缓冲的剩余空间容纳不了回读的数据，则先将数据刷下去，再回读。回读后，将不对其的数据存入缓冲；
-        if(buffers)
+        __unlock(core);
+        return (0); // 缓存数据刷入失败；
+    }
+
+    memcpy(data, cx->buf+cx->bufed, once); // 将缓存上数据线提取出来；
+    cx->pos += once; // 此后pos逻辑上是缓存对齐的；
+    left -= once;
+    data += once;
+    cx->bufed += once;
+    while(left)
+    {
+        cx->bufed = 0;
+        if(__ll_read(core->vol, cx->buf, core->bufsz, cx->pos+file->cxbase))
         {
-            offset = context->dwCur + file->dwBase;
-            res = LowLevelWrite(core->pVol, context->pBufSt, buffers, offset);
-            if(res != buffers)
-            {
-                // 缓冲数据刷入失败；
-                Lock_MutexPost(file->pLock);
-                return (0);
-            }
+            __unlock(core);
+            return (size - left); // 缓存数据刷入失败；
         }
 
-        // 从当前位置把数据读回
-        offset = context->dwCur + buffers + file->dwBase;
-        res = LowLevelRead(core->pVol, buf, size, offset);
-        if(res)
-        {
-            if(buffers)
-            {
-                // 不放在上面，为了防止读失败；从而保证了缓存的对齐逻辑；
-                context->pBufMov = context->pBufSt; // 缓冲全部刷入，重置到缓冲头。
-                memset(context->pBufSt, 0xFF, core->dwBufferSize);
-            }
+        if(left>core->bufsz)
+            once = core->bufsz;
+        else
+            once = left;
 
-            // 把不对齐的部分放入缓冲，从而保证dwCur是缓冲对齐的
-            offset = context->dwCur + buffers + res; // 读后的位置
-            buffers = core->dwBufferSize - file->dwBase; // 考虑了含有头部的可缓存大小的对齐逻辑
-            if(offset > buffers)
-                unalign = (offset - buffers) % core->dwBufferSize;
-            else
-                unalign = offset % buffers;
-
-            context->dwCur = offset - unalign;
-            memcpy(context->pBufMov, (buf + res - unalign), unalign);
-            context->pBufMov += unalign;
-        }
-    }
-    else
-    {
-        // 缓冲的剩余空间足够，回读后，将数据也存入缓冲；
-        offset = context->pBufMov - context->pBufSt;
-        offset += context->dwCur + file->dwBase;
-        res = LowLevelRead(core->pVol, buf, size, offset);
-        memcpy(context->pBufMov, buf, res);
-        context->pBufMov += res;
+        memcpy(data, cx->buf, once);
+        data += once;
+        cx->bufed += once;
+        left -= once;
+        cx->pos += once;
     }
 
-    Lock_MutexPost(file->pLock);
-    return (res);
+    __unlock(core);
+    return (size);
 }
 
 // ============================================================================
-// 功能：设置文件当前位置
-// 参数：of -- 由open打开的IAP文件上下文；
-//      pOffset -- 移动位置的量；
-//      dwWhence -- 移动位置的起点；
+// 功能：设置文件当前位置；
+// 参数：hdl -- IAP文件对象句柄；
+//      offset -- 移动位置的量；
+//      whence -- 移动位置的起点；
 // 返回：成功（0，*pOffset指向新的当前位置）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __iap_seek(tagOFile *of, s64 *pOffset, s32 dwWhence)
+static s32 __iap_seek(struct objhandle *hdl, s64 *offset, s32 whence)
 {
-    struct __icontext *context;
+    struct __icontext *cx;
     struct __ifile *file;
     struct __icore *core;
-    s32 todos, res, offset, pos, unalign;
-    u32 bufUsed, bufFree;
-    s64 moves = *pOffset;
+    s32  npos, movs, pos;
 
-    if(isdirectory(of))
+#if 0 // 应该由上级逻辑判断
+    if(isdirectory(hdl))
     {
-        info_printf("iapfs","cannot seek directory.");
+        printf("\r\n: dbug : iapfs  : cannot seek directory.");
         return (-1);
     }
+#endif
 
-    core = of_core(of);
-    context = (struct __icontext*)of_context(of);
-    file = dListEntry(of_basic(of), struct __ifile, basic);
-
-    Lock_MutexPend(file->pLock, CN_TIMEOUT_FOREVER);
-    switch(dwWhence)
+    core = handle2sys(hdl);
+    cx = (struct __icontext*)handle_context(hdl);
+    //file = dListEntry(of_basic(hdl), struct __ifile, basic);
+    file = (struct __ifile*)handle_val(hdl);
+    __lock(core);
+    switch(whence)
     {
-        case SEEK_END:
+        case SEEK_END: // 转为从头SEEK逻辑
         {
-            moves = file->dwSize + offset; // 转为从头SEEK逻辑
+            *offset = file->sz + *offset;
+            if(*offset<0)
+                *offset = 0; // 新位置越界了
         }
 
-        case SEEK_SET:
+        case SEEK_SET: // 转为当前位置的SEEK的逻辑
         {
-            // 转为当前位置的SEEK的逻辑
-            moves = offset - (context->dwCur + (context->pBufMov - context->pBufSt));
+            *offset = *offset - cx->pos;
+            if((*offset+cx->pos)<0)
+                *offset = cx->pos; // 新位置越界了
         }
 
         case SEEK_CUR:
         {
-            todos = context->pBufMov - context->pBufSt;
-            pos = context->dwCur + todos + moves; // 新位置
-            if(pos < 0)
-                pos = 0; // 越界了
+            npos = *offset + cx->pos;
+            if(npos<0)
+                npos = 0;
 
-            // 新位置在缓存范围内，不需要将缓冲刷下去，先计算缓存边界（这里考了到缓存的对齐）
-            if(context->dwCur <= (core->dwBufferSize - file->dwBase))
+            *offset = npos;
+            // 如果是在缓存范围内的移动，则直接返回；
+            movs = npos - cx->pos; // 移动的方向；
+            if(movs<0)
             {
-                bufUsed = context->pBufMov - context->pBufSt;
-                unalign = context->dwCur % (core->dwBufferSize - file->dwBase);
-                bufFree = context->pBufEd - context->pBufMov - file->dwBase - unalign;
+                if((movs+cx->bufed)>=0)
+                {
+                    cx->bufed += movs;
+                    cx->pos = npos;
+                    return (0);
+                }
+            }
+            else if(movs>0)
+            {
+                if((movs+cx->bufed)<core->bufsz)
+                {
+                    cx->bufed += movs;
+                    cx->pos = npos;
+                    return (0);
+                }
+            }
+            else // 不需要移动；
+            {
+                return (0);
+            }
+
+            // 如果超出在缓存范围内的移动，将缓存刷入介质
+            pos = cx->pos - cx->bufed + file->cxbase;
+            if(cx->pos<core->inhead)
+            {
+                if(-1==__ll_write(core->vol, cx->buf, core->inhead, pos))
+                    return (-1);
             }
             else
             {
-                bufUsed = context->pBufMov - context->pBufSt;
-                unalign = (context->dwCur - file->dwBase) % core->dwBufferSize;
-                bufFree = context->pBufEd - context->pBufMov - unalign;
+                if(-1==__ll_write(core->vol, cx->buf, core->bufsz, pos))
+                    return (-1);
             }
 
-            offset = context->dwCur + file->dwBase;
-            if((offset >= 0) && ((bufFree - offset) <= 0)) // 新位置在缓冲范围内，向后seek;
+            cx->bufed = 0;
+            // 缓存新的位置
+            if(npos<core->inhead)
             {
-                res = LowLevelRead(core->pVol, context->pBufMov, offset, offset);
-                context->pBufMov += res;
-                if(res != offset)
-                {
-                    res = -1;
-                    break;
-                }
+                if(__ll_read(core->vol, cx->buf, core->inhead, file->cxbase))
+                    return (-1);
+
+                cx->bufed = npos;
             }
-            else if((offset < 0) && ((offset + bufUsed) >= 0)) // 新位置在缓冲范围内， 向前seek
+            else
             {
-                context->pBufMov += offset;
-                memset(context->pBufMov, 0xFF, (-offset));
-            }
-            else // 新位置不在缓存范围内，缓冲数据需先刷下去,再更新
-            {
-                todos = context->pBufMov - context->pBufSt;
-                if(todos)
-                {
-                    res = LowLevelWrite(core->pVol, context->pBufSt, todos, offset);
-                    if(res != todos)
-                    {
-                        // 缓冲数据刷入失败；
-                        res = -1;
-                        break;
-                    }
+                pos = npos - (npos + file->cxbase) % core->bufsz + file->cxbase;
+                if(__ll_read(core->vol, cx->buf, core->bufsz, pos))
+                    return (-1);
 
-                    context->pBufMov = context->pBufSt; // 缓冲重置
-                    memset(context->pBufSt, 0xFF, core->dwBufferSize);
-                }
-
-                context->dwCur = pos;
-                // 缓冲不对齐的部分
-                if(pos <= (core->dwBufferSize - file->dwBase))
-                    unalign = pos % (core->dwBufferSize - file->dwBase);
-                else
-                    unalign = pos % core->dwBufferSize;
-
-                if(unalign)
-                {
-                    context->dwCur -= unalign;
-                    offset = context->dwCur + file->dwBase;
-                    res = LowLevelRead(core->pVol, context->pBufSt, unalign, offset);
-                    context->pBufMov += res;
-                    if(res != todos)
-                    {
-                        res = -1;
-                        break;
-                    }
-                }
+                cx->bufed = (npos - core->inhead) % core->bufsz;
             }
 
-            *pOffset = context->dwCur + (context->pBufMov - context->pBufSt);
-            res = 0;
-            break;
+            cx->pos = npos;
+            return (0);
         }
 
         default:
         {
-            res = -1;
             break;
         }
     }
 
-    return (res);
+    return (-1);
 }
 
 // ============================================================================
-// 功能：删除文件
-// 参数：pObj -- IAP文件对象；
+// 功能：删除文件；
+// 参数：ob -- IAP文件对象；
 // 返回：成功（0）；失败（-1）；
 // 备注：未考虑互斥；当pName为NULL时，表示文件正在被使用；
 // ============================================================================
-static s32 __iap_remove(struct Object *pObj)
+static s32 __iap_remove(struct obj *ob)
 {
     struct __ifile *file;
     struct __icore *core;
 
-    core = (struct __icore *)FS_Core(pObj);
-    file = dListEntry(of_basiclinko(pObj), struct __ifile, basic);
-
+    core = (struct __icore *)corefs(ob);
+    file = (struct __ifile*)obj_val(ob);
     return (__delfile(core, file));
-
 }
 
 // ============================================================================
-// 功能: 文件查询
-// 参数:
-// 返回: 成功（0）；失败（-1）；
-// 备注:
+// 功能：文件查询
+// 参数：ob -- IAP文件对象；
+// 返回：成功（0）；失败（-1）；
+// 备注：
 // ============================================================================
-static s32 __iap_stat(struct Object *obj, struct stat *data)
+static s32 __iap_stat(struct obj *ob, struct stat *data)
 {
-    struct __ifile *file = dListEntry(of_basiclinko(obj), struct __ifile, basic);
+    struct __ifile *file;
 
-    if(GROUP_POINT != __OBJ_Type(obj))
-    {
-        data->st_size = file->dwSize;
-        data->st_mode = S_IFREG;
-    }
-    else
+    //if(GROUP_POINT != __OBJ_Type(ob))
+    if(obj_isset(ob))
     {
         data->st_size = 0;
         data->st_mode = S_IFDIR;
     }
+    else
+    {
+        file = (struct __ifile*)obj_val(ob);
+        data->st_size = file->sz;
+        data->st_mode = S_IFREG;
+    }
+
     return (0);
 }
 
 // ============================================================================
-// 功能:
-// 参数:
-// 返回:
-// 备注:
+// 功能：读IAP文件系统目录项；
+// 参数：hdl -- IAP文件对象句柄；
+//      dentry -- 目录项；
+// 返回：全部读完（1）；失败（-1）；读了一项（0）；
+// 备注：
 // ============================================================================
-static s32 __iap_readdentry(tagOFile *pDirectory, struct dirent *pDirent)
+static s32 __iap_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
-   ;
+    struct obj *ob = handle2obj(hdl);
+
+    ob = obj_child(ob);
+    if((ob)&&(dentry->d_ino!=(long)ob))
+    {
+        dentry->d_ino = (long)ob;
+        strcpy(dentry->d_name, obj_name(ob));
+        dentry->d_type = DIRENT_IS_REG;
+    }
+
+    return (1);
 }
 
 // ============================================================================
 // 功能：安装IAP文件系统
-// 参数：pSuper -- 文件系统管理信息；
-//      dwFlags -- 安装逻辑标志位；
-//      pData -- 自定义数据；
+// 参数：super -- 文件系统管理信息；
+//      opt -- 安装逻辑标志位；
+//      config -- 自定义数据；
 // 返回：成功(0)； 失败(-1)。
 // 备注：
 // ============================================================================
-static s32 __iap_fs_install(tagFSC *pSuper, u32 dwFlags, void *pData)
+static s32 __iap_fs_install(tagFSC *super, u32 opt, void *config)
 {
     s32 res;
-    u32 base;
-    u32 size;
     struct __icore *core;
+    struct umedia *um;
+    extern u32 gc_pAppRange; // 来自于LDS定义
+    extern u32 gc_pAppOffset; // 来自于LDS定义
 
     core = malloc(sizeof(*core));
     if(!core)
     {
-        error_printf("iapfs","install failed<memory out>.");
+        printf("\r\n: erro : iapfs  : install failed(memory out).");
         return (-1);
     }
 
     memset(core, 0x0, sizeof(*core));
-    core->pVol = LowLevelInit((void*)dev_dtago(pSuper->pDev), &base, &size);
-    if(NULL == core->pVol)
+    um = (struct umedia*)devo2drv(super->pDev);
+    if(!um)
     {
         free(core);
         return (-1);
     }
 
-    core->dwBase = base;
-    core->dwBufferSize = size;
-    core->pRoot = pSuper->pTarget;
+    core->vol = (void*)um;
+    core->bufsz = 1 << um->usz; // iap文件系统文件的缓存大小依据unit的尺寸；
+    if(core->bufsz<FILE_HEAD_SIZE)
+    {
+        free(core);
+        return (-1);
+    }
+
+    core->inhead = core->bufsz - FILE_HEAD_SIZE;
+    core->root = super->pTarget;
     res = __scanfiles(core); // 扫描已存在文件
     if(res)
     {
@@ -948,8 +1006,14 @@ static s32 __iap_fs_install(tagFSC *pSuper, u32 dwFlags, void *pData)
         return (-1);
     }
 
-    pSuper->pCore = (void*)core;
+    core->lock = Lock_MutexCreate("iap fs");
+    if(!core->lock)
+    {
+        free(core);
+        return (-1);
+    }
 
+    super->pCore = (void*)core;
     return (0);
 }
 
@@ -959,109 +1023,109 @@ static s32 __iap_fs_install(tagFSC *pSuper, u32 dwFlags, void *pData)
 // 返回：标准逻辑，查看接口说明；
 // 备注:
 // ============================================================================
-static ptu32_t __iap_file_operations(u32 cmd, ptu32_t oof, ptu32_t args,  ...)
+static ptu32_t __iap_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
 {
     va_list list;
 
-    switch(cmd)
+    switch(ops)
     {
-        case CN_OBJ_CMD_OPEN:
+        case OBJOPEN:
         {
             char *new;
-            struct Object *obj = (struct Object*)oof;
+            struct obj *ob = (struct obj*)o_hdl;
             u32 flags = (u32)args;
 
             va_start(list, args);
             new = (char*)va_arg(list, u32);
             va_end(list);
 
-            return ((ptu32_t)__iap_open(obj, flags, new));
+            return ((ptu32_t)__iap_open(ob, flags, new));
         }
 
-        case CN_OBJ_CMD_CLOSE:
+        case OBJCLOSE:
         {
-            tagOFile *of = (tagOFile*)oof;
-            return ((ptu32_t)__iap_close(of));
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            return ((ptu32_t)__iap_close(hdl));
         }
 
-        case CN_OBJ_CMD_READDIR:
+        case OBJCHILDS:
         {
-            tagOFile *of = (tagOFile*)oof;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             struct dirent *ret = (struct dirent *)args;
 
-            return((ptu32_t)__iap_readdentry(of, ret));
+            return((ptu32_t)__iap_readdentry(hdl, ret));
         }
 
-        case CN_OBJ_CMD_READ:
+        case OBJREAD:
         {
             u32 len;
-            tagOFile *of = (tagOFile*)oof;
-            u8 *buf = (u8*)args;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            u8 *data = (u8*)args;
 
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
 
-            return((ptu32_t)__IAP_Read(of, buf, len));
+            return((ptu32_t)__iap_read(hdl, data, len));
         }
 
-        case CN_OBJ_CMD_WRITE:
+        case OBJWRITE:
         {
             u32 len;
-            tagOFile *of = (tagOFile*)oof;
-            u8 *buf = (u8*)args;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            u8 *data = (u8*)args;
 
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
 
-            return((ptu32_t)__iap_write(of, buf, len));
+            return((ptu32_t)__iap_write(hdl, data, len));
         }
 
-        case CN_OBJ_CMD_DELETE:
+        case OBJDEL:
         {
 
-            struct Object *obj = (struct Object*)oof;
+            struct obj *ob = (struct obj*)o_hdl;
             char *notExist = (char*)args;
 
             if(notExist)
                 return ((ptu32_t)-1);
 
-            return ((ptu32_t)__iap_remove(obj));
+            return ((ptu32_t)__iap_remove(ob));
         }
 
-        case CN_OBJ_CMD_SEEK:
+        case OBJSEEK:
         {
             s32 whence;
-            tagOFile *of = (tagOFile *)oof;
+            struct objhandle *hdl = (struct objhandle *)o_hdl;
             s64 *offset = (s64*)args;
-
 
             va_start(list, args);
             whence = (s32)va_arg(list, u32);
             va_end(list);
 
-            return((ptu32_t)__iap_seek(of, offset, whence));
+            return((ptu32_t)__iap_seek(hdl, offset, whence));
         }
 
-        case CN_OBJ_CMD_STAT:
+        case OBJSTAT:
         {
-            struct stat *data;
-            struct Object *obj = (struct Object*)oof;
-            u32 notfound = (u32)args;
-
-            if(notfound)
-                return (-1); // 查询的文件不存在；
+            struct stat *data = (struct stat*)args;
+            struct obj *ob = (struct obj*)o_hdl;
+            char *path;
 
             va_start(list, args);
-            data = (struct stat*)args;
+            path = (char*)args;
             va_end(list);
-            return ((ptu32_t)__iap_stat(obj, data));
+
+            if(path&&('\0'!=*path))
+                return (-1); // 查询的文件不存在；
+
+            return ((ptu32_t)__iap_stat(ob, data));
         }
 
         default:
         {
-            debug_printf("iapfs","do not support this operation now.");
+            printf("\r\n: dbug : iapfs  : do not support this operation now.");
             break;
         }
     }
@@ -1071,47 +1135,47 @@ static ptu32_t __iap_file_operations(u32 cmd, ptu32_t oof, ptu32_t args,  ...)
 
 // ============================================================================
 // 功能：安装IAP文件系统
-// 参数：pDir -- 安装目录；pDev -- 安装设备；
+// 参数：target -- 安装目录；pDev -- 安装设备；
 // 返回：失败(-1)； 成功(0)。
 // 备注:
 // ============================================================================
-s32 ModuleInstall_IAP_FS(const char *pDir, const char *pDevPath)
+s32 ModuleInstall_IAP_FS(const char *target, const char *source, u32 opt)
 {
-    s32 res, fd;
-    char *path = "/iboot"; // 默认安装目录
-    char *dev = "/dev/embedded flash";
+    s32 res;
+    const char *dpath = "/iboot"; // 默认安装目录
 
-    if(pDir)
-        path = (char*)pDir;
+    if(target)
+        target = dpath;
 
-    if(pDevPath)
-        dev = (char*)pDevPath;
-
-    res = FS_Register(&typeIAP);
-    if(res)
+    if(!source)
     {
-        error_printf("iapfs","cannot register \"IAP\"<file system type>.");
+        printf("\r\n: dbug : module : cannot register \"IAP\"(no source).");
+        return (-1);
+    }
+
+    res = regfs(&typeIAP);
+    if(-1==res)
+    {
+        printf("\r\n: dbug : module : cannot register \"IAP\"(file system type).");
         return (-1); // 失败;
     }
 
-    fd = open(path, O_DIRECTORY | O_CREAT | O_EXCL | O_RDWR, 0); // 创建目录
-    if(-1 == fd)
+    res = mkdir(target, S_IRWXU); // 创建安装目录 // 创建目录
+    if(-1==res)
     {
-        error_printf("iapfs","mount \"IAP\" failed, cannot create \"%s\"<mount point>.", path);
+        printf("\r\n: dbug : module : mount \"IAP\" failed, cannot create \"%s\"(target).", target);
         return (-1);
     }
 
-    res = FS_Mount(dev, path, "IAP", 0, 0);
-    if(res < 0)
+    res = mountfs(source, target, "IAP", 0, 0);
+    if(res<0)
     {
-        error_printf("iapfs","mount \"IAP\" failed, cannot install.");
-        close(fd);
-        remove(path);
+        printf("\r\n: dbug : module : mount \"IAP\" failed, cannot install.");
+        remove(target);
         return (-1);
     }
 
-    close(fd);
-    info_printf("iapfs","file system \"IAP\" installed on \"%s\".", dev);
+    printf("\r\n: info : module : file system \"IAP\" installed on \"%s\".", source);
     return (0);
 }
 

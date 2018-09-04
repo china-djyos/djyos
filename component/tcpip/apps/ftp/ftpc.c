@@ -63,7 +63,6 @@
 
 #include "ftp.h"
 #include "dbug.h"
-#include "newshell.h"
 //make the string ip to net address
 static bool_t  __String2Ip(const char *string,struct in_addr *addr)
 {
@@ -909,7 +908,7 @@ static bool_t __FtpcTest(int argc,const char *argv[])
 }
 //static bool_t __FtpcDebug(char *param)
 ADD_TO_SHELL_HELP(ftpc,"usage:ftpc subcmd [subpara]");
-ADD_TO_IN_SHELL static bool_t ftpc(char *param)
+ADD_TO_IN_SHELL  bool_t ftpc(char *param)
 {
     int len ;
     int argc =10;
@@ -1278,27 +1277,27 @@ EXIT_MEM:
 
 
 
-//static struct ShellCmdTab  gFtpClientDebugCmd[] =
-//{
-//    {
-//        "ftpc",
-//        __FtpcDebug,
-//        "usage:ftpc subcmd [subpara]",
-//        "usage:ftpc subcmd [subpara]",
-//    },
-//};
-//#define CN_FtpClientDebug_NUM  ((sizeof(gFtpClientDebugCmd))/(sizeof(struct ShellCmdTab)))
+static struct shell_debug  gFtpClientDebugCmd[] =
+{
+    {
+        "ftpc",
+        ftpc,
+        "usage:ftpc subcmd [subpara]",
+        "usage:ftpc subcmd [subpara]",
+    },
+};
+#define CN_FtpClientDebug_NUM  ((sizeof(gFtpClientDebugCmd))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gFtpClientDebugCmdRsc[CN_FtpClientDebug_NUM];
 // =============================================================================
 // 功能：add the ftpclient debug to the system
 // 参数：para
 // 返回值  ：true成功  false失败。
 // =============================================================================
-//bool_t ServiceFtpcInit(ptu32_t para)
-//{
-//    Sh_InstallCmd(gFtpClientDebugCmd,gFtpClientDebugCmdRsc,CN_FtpClientDebug_NUM);
-//    return true;
-//}
+bool_t ServiceFtpcInit(ptu32_t para)
+{
+    shell_debug_add(gFtpClientDebugCmd, CN_FtpClientDebug_NUM);
+    return true;
+}
 
 
 

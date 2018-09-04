@@ -73,7 +73,7 @@
 //    #endif
 //
 //    #if CFG_UART1_ENABLE ==1
-//    if( ModuleInstall_UART(CN_UART1);
+//    ModuleInstall_UART(CN_UART1);
 //    #endif
 //
 //    #if CFG_UART2_ENABLE ==1
@@ -93,7 +93,7 @@
 //    #endif
 //
 //    #if CFG_USART1_ENABLE ==1
-//    if( ModuleInstall_UART(CN_USART1);
+//    ModuleInstall_UART(CN_USART1);
 //    #endif
 //
 //    #if CFG_USART2_ENABLE ==1
@@ -542,7 +542,7 @@ void UART_DmaRxIntIsr(uint32_t channel, UartDma* pArg)
 {
     UartChannel *pUartRx;
 
-    static struct Object *UCB;
+    static struct obj *UCB;
     uint8_t *puart_dma_recv_buf;
     uint32_t num,Port;
     uint32_t len,UartDmaRcvLen;
@@ -597,7 +597,7 @@ void UART_DmaTxIntIsr(uint32_t channel, UartDma* pArg)
 {
     UartChannel *pUartTx;
 
-    static struct Object *UCB;
+    static struct obj *UCB;
     volatile tagUartReg *Reg;
     uint8_t *puart_dma_send_buf;
     uint32_t num,Port;
@@ -874,7 +874,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
 {
     u8 Port,num;
-    struct Object *UCB;
+    struct obj *UCB;
     UartDma *pUartd;
     u8 *UartDmaSendBuf;
 

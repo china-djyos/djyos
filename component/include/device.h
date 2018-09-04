@@ -60,10 +60,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include <fcntl.h>
 #include <errno.h>
 #include <object.h>
-#include <objfile.h>
+#include <objhandle.h>
 #include <multiplex.h>
 
 // 泛设备模块出错代码，本enum常量从enum_drv_no_error开始依序增1.
@@ -89,63 +89,62 @@ enum _DRV_ERROR_CODE_
  #error "O_DRAW" duplicate definition!
 #endif
 
-//常用设备控制命令
-#define CN_DEV_CTRL_START           (CN_OBJ_CMD_USER+0)      // 启动设备，有些能控制电源的设备需要
-#define CN_DEV_CTRL_STOP            (CN_OBJ_CMD_USER+1)      // 启动设备，有些能控制电源的设备需要
-#define CN_DEV_CTRL_SHUTDOWN        (CN_OBJ_CMD_USER+2)      // 关闭电源,断电前需要特定处理的设备需要
-#define CN_DEV_CTRL_SLEEP           (CN_OBJ_CMD_USER+3)      // 设备进入低功耗状态,用于电源管理
-#define CN_DEV_CTRL_RESUME          (CN_OBJ_CMD_USER+4)      // 设备恢复,从低功耗状态唤醒
-#define CN_DEV_CTRL_CHECK           (CN_OBJ_CMD_USER+5)      // 检查设备状态
-#define CN_DEV_CTRL_SET_FUNC        (CN_OBJ_CMD_USER+6)      // 设置有输入/输出/错误时回调函数
-#define CN_DEV_CTRL_BLOCK_BUFFER    (CN_OBJ_CMD_USER+7)      // Write的完成条件是发送到缓冲区
-#define CN_DEV_CTRL_BLOCK_COPLETE   (CN_OBJ_CMD_USER+8)      // Write的完成条件是传输完成
-#define CN_DEV_CTRL_USER            (CN_OBJ_CMD_USER+256)    //自定义的设备控制命令，从0x100开始
+//常用设备控制命令（为了与旧代码兼容）
+#define CN_DEV_CTRL_START           (F_DSTART)              // 启动设备，有些能控制电源的设备需要
+#define CN_DEV_CTRL_STOP            (F_DSTOP)               // 启动设备，有些能控制电源的设备需要
+#define CN_DEV_CTRL_SHUTDOWN        (F_DSHUTDOWN)           // 关闭电源,断电前需要特定处理的设备需要
+#define CN_DEV_CTRL_SLEEP           (F_DSLEEP)              // 设备进入低功耗状态,用于电源管理
+#define CN_DEV_CTRL_RESUME          (F_DRESUME)             // 设备恢复,从低功耗状态唤醒
+#define CN_DEV_CTRL_CHECK           (F_DCHECK)              // 检查设备状态
+#define CN_DEV_CTRL_SET_FUNC        (F_DHOOK)               // 设置有输入/输出/错误时回调函数
+#define CN_DEV_CTRL_BLOCK_BUFFER    (F_DBLOCK_BUFFER)       // Write的完成条件是发送到缓冲区
+#define CN_DEV_CTRL_BLOCK_COPLETE   (F_DBLOCK_COPLETE)      // Write的完成条件是传输完成
+
+//#define CN_DEV_CTRL_USER            (CN_OBJ_CMD_USER+256)    //自定义的设备控制命令，从0x100开始
 //用户定义控制命令常数，请从0x80开始，例如:
 //#define CN_XXX_CTRL_MYCMD1        (CN_DEV_CTRL_USER+0)
 //#define CN_XXX_CTRL_MYCMD2        (CN_DEV_CTRL_USER+1)
 
 //操纵设备时，通过这些指针，间接调用设备驱动提供的函数。
-
 //打开设备，如设备无须打开即可工作，置空即可
-typedef s32 (*fntDevOpen)(tagOFile *of, u32 mode, u32 timeout);
+typedef s32 (*fntDevOpen)(struct objhandle *of, u32 mode, u32 timeout);
 //关闭设备，如果设备部需要关闭操作，置空即可
-typedef s32 (*fntDevClose)(tagOFile *of);
+typedef s32 (*fntDevClose)(struct objhandle *of);
 //返回值:成功写入的字节数。
 //以串口为例，如果调用dev_WriteDevice时BlockOption = CN_BLOCK_BUFFER，则返回值表
 //示函数返回时成功写入到设备缓冲区的数据量，并不确定是否已经从物理串口传输出去了。
 //如果BlockOption = CN_BLOCK_COMPLETE，则能确保传输完成才返回。
 //这个特性对485通信特别有用，因为RS485需要控制收发切换，
-typedef s32 (*fntDevWrite)(tagOFile *of, u8 *data, u32 size, u32 offset, u32 timeout);
+typedef s32 (*fntDevWrite)(struct objhandle *of, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值:成功读取的字节数
-typedef s32 (*fntDevRead) (tagOFile *of, u8 *data, u32 size, u32 offset, u32 timeout);
+typedef s32 (*fntDevRead) (struct objhandle *of, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值:收到不支持的命令，返回-1，0表示成功执行，其他返回值的含义自定
-typedef s32 (*fntDevCntl) (tagOFile *of, u32 cmd, ptu32_t data1, ptu32_t data2);
+typedef s32 (*fntDevCntl) (struct objhandle *of, u32 cmd, ptu32_t data1, ptu32_t data2);
 
-s32            DevOpen(const char *name, s32 flags,u32 timeout);
-s32            DevClose(s32 handle);
-s32            DevRead(s32 handle, void *buf, u32 len, u32 offset, u32 timeout);
-s32            DevWrite(s32 handle, void *buf, u32 len, u32 offset, u32 timeout);
-s32            DevCntl(s32 handle, u32 cmd, ptu32_t data1, ptu32_t data2);
 
-s32            israw(tagOFile *pOF);
-s32            isbc(u32 flags);
-const char    *dev_nameo(struct Object *devo);
-struct Object *dev_grpaddo(char *name);
-s32            dev_grpadd(char *name);
-s32            dev_grpdelo(struct Object *grp);
-s32            dev_grpdel(char *name);
-struct Object *dev_addo(struct Object *grp, const char *name,
-                        fntDevOpen dopen, fntDevClose dclose,
-                        fntDevWrite dwrite, fntDevRead dread,
-                        fntDevCntl dcntl, ptu32_t dtag);
-s32            dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
-                       fntDevWrite dwrite, fntDevRead dread,
-                       fntDevCntl dcntl, ptu32_t dtag);
-s32            dev_delo(struct Object *devo);
-s32            dev_del(const char *grp, const char *name);
-ptu32_t        devfileutag(tagOFile *of);
-ptu32_t        devfiledtag(tagOFile *of);
 
+s32 israw(struct objhandle *hdl);
+s32 isbc(u32 flags);
+const char *devo2name(struct obj *devo);
+ptu32_t devo2drv(struct obj *devo);
+struct obj *dev_group_addo(char *name);
+s32 dev_group_add(char *name);
+s32 dev_group_delo(struct obj *grp);
+s32 dev_group_del(char *name);
+struct obj *dev_addo(struct obj *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
+                     fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag);
+s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
+            fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag);
+s32 dev_delo(struct obj *devo);
+s32 dev_del(const char *grp, const char *name);
+ptu32_t dev2usr(struct objhandle *hdl);
+ptu32_t dev2drv(struct objhandle *hdl);
+
+s32 DevOpen(const char *name, s32 flags,u32 timeout);
+s32 DevClose(s32 handle);
+s32 DevRead(s32 handle, void *buf, u32 len, u32 offset, u32 timeout);
+s32 DevWrite(s32 handle, void *buf, u32 len, u32 offset, u32 timeout);
+s32 DevCntl(s32 handle, u32 cmd, ptu32_t data1, ptu32_t data2);
 #ifdef __cplusplus
 }
 #endif

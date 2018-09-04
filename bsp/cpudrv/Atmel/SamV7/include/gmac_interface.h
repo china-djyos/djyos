@@ -87,7 +87,7 @@
  *----------------------------------------------------------------------------*/
 
 #include <stdint.h>
-#include <samv7/samv71.h>
+#include <samv71.h>
 
 #ifdef __cplusplus
  extern "C" {

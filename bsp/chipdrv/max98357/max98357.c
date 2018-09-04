@@ -61,7 +61,6 @@
 #include <stm32f7xx_hal.h>
 #include <stm32f7xx_hal_i2s.h>
 #include "shell.h"
-#include "newshell.h"
 #include "msgqueue.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -148,9 +147,10 @@ static uint8_t gs_srcbuf[CN_SINGLE_READ_LEN];
 
 void I2S_DMA_TX_CallBack2();
 void I2S_DMA_TX_CallBack1();
-//ptu32_t MAX98357_Shell_Module_Install(void);
-//static bool_t Sh_AudioStart(char *param);
-//static bool_t Sh_AudioStop(char *param);
+
+ptu32_t MAX98357_Shell_Module_Install(void);
+static bool_t audiop(char *param);
+static bool_t audios(char *param);
 
 u32 fillnum=CN_SINGLE_READ_LEN;            //填充进缓冲区的数据大小
 
@@ -488,7 +488,7 @@ ptu32_t ModuleInstall_MAX98357(void)
     uint16_t evtt_id,event_id;
     I2S_ModeConfig();
     I2Sx_TX_DMA_Init();
-//    MAX98357_Shell_Module_Install();
+    MAX98357_Shell_Module_Install();
     gs_ptMax98357MsgQ=MsgQ_Create(1,1,CN_MSGQ_TYPE_FIFO);
     if(gs_ptMax98357MsgQ==NULL)
         return false;
@@ -507,13 +507,13 @@ ptu32_t ModuleInstall_MAX98357(void)
 }
 
 //**************************************************************************
-//struct ShellCmdTab const shell_cmd_max98357_table[]=
-//{
-//    {"audiop",(bool_t(*)(char*))Sh_AudioStart,    "播放音频文件",          NULL},
-//    {"audios",(bool_t(*)(char*))Sh_AudioStop,    "停止播放音频文件",         NULL},
-//};
-////**************************************************************************
-//#define CN_MAX98357_SHELL_NUM  sizeof(shell_cmd_max98357_table)/sizeof(struct ShellCmdTab)
+struct shell_debug const shell_cmd_max98357_table[]=
+{
+    {"audiop",(bool_t(*)(char*))audiop,    "播放音频文件",          NULL},
+    {"audios",(bool_t(*)(char*))audios,    "停止播放音频文件",         NULL},
+};
+//**************************************************************************
+#define CN_MAX98357_SHELL_NUM  sizeof(shell_cmd_max98357_table)/sizeof(struct shell_debug)
 //static struct ShellCmdRsc tg_max98357_shell_cmd_rsc[CN_MAX98357_SHELL_NUM];
 
 /*******************************************************************************
@@ -521,12 +521,11 @@ ptu32_t ModuleInstall_MAX98357(void)
 参数:无.
 返回值:1。
 *********************************************************************************/
-//ptu32_t MAX98357_Shell_Module_Install(void)
-//{
-//    Sh_InstallCmd(shell_cmd_max98357_table,tg_max98357_shell_cmd_rsc,CN_MAX98357_SHELL_NUM);
-//    return 1;
-//}
-
+ptu32_t MAX98357_Shell_Module_Install(void)
+{
+    shell_debug_add(shell_cmd_max98357_table, CN_MAX98357_SHELL_NUM);
+    return 1;
+}
 
 /*******************************************************************************
 功能:CAN控制器操作shell模块
@@ -535,7 +534,7 @@ ptu32_t ModuleInstall_MAX98357(void)
 *********************************************************************************/
 //static bool_t Sh_AudioStart(char *param)
 ADD_TO_SHELL_HELP(audiop,"播放音频文件");
-ADD_TO_IN_SHELL static bool_t audiop(char *param)
+ADD_TO_IN_SHELL  bool_t audiop(char *param)
 {
     bool_t ret;
     if(param==NULL)
@@ -554,7 +553,7 @@ ADD_TO_IN_SHELL static bool_t audiop(char *param)
 *********************************************************************************/
 //static bool_t Sh_AudioStop(char *param)
 ADD_TO_SHELL_HELP(audios,"停止播放音频文件");
-ADD_TO_IN_SHELL static bool_t audios(char *param)
+ADD_TO_IN_SHELL  bool_t audios(char *param)
 {
     I2S_PlayStop();
     return true;

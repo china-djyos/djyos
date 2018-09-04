@@ -2245,7 +2245,7 @@ static bool_t  ppprwshell(char *param)
 	return result;
 }
 //usage:this is the ppp cmd for the os shell
-struct ShellCmdTab  gPppDebug[] =
+struct shell_debug  gPppDebug[] =
 {
 	{
 		"ppp",
@@ -2285,8 +2285,8 @@ struct ShellCmdTab  gPppDebug[] =
 	}
 
 };
-#define CN_PPPDEBUG_NUM  ((sizeof(gPppDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gPppDebugCmdRsc[CN_PPPDEBUG_NUM];
+#define CN_PPPDEBUG_NUM  ((sizeof(gPppDebug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gPppDebugCmdRsc[CN_PPPDEBUG_NUM];
 //-----------------------------------------------------------------------------
 //功能:this is the ppp main function here
 //参数:
@@ -2315,8 +2315,10 @@ bool_t PppInit(void)
     	return result;
     }
 	//install the debug shell for the system
-	result = Sh_InstallCmd(gPppDebug,gPppDebugCmdRsc,CN_PPPDEBUG_NUM);
-    return result;
+	if(CN_PPPDEBUG_NUM==shell_debug_add(gPppDebug, CN_PPPDEBUG_NUM))
+	    return (TRUE);
+	    
+    return (FALSE);
 }
 //add the device to the task list
 static bool_t __PppAddTask(tagPppCtrl  *ppp)

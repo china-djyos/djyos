@@ -435,14 +435,14 @@ s32 FATDirRead(struct FileContext *pFileCt, struct Dirent *pContent)
 #include <device.h>
 #include <djyos.h>
 #include <dirent.h>
-#include <objfile.h>
+#include <objhandle.h>
 #include "./drivers/fat_drivers.h"
 #include "../ff11/src/ff.h"
 #include "../../file.h"
 #include <fs/filesystems.h>
-#include "dbug.h"
-static ptu32_t __fat_operations(u32 dwCMD, ptu32_t context, ptu32_t args, ...);
-static s32 __fat_install(tagFSC *pSuper, u32 opt, void *pData);
+
+static ptu32_t __fat_operations(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...);
+static s32 __fat_install(tagFSC *super, u32 opt, void *pData);
 
 tagFST typeFAT = {
         __fat_operations,
@@ -458,7 +458,7 @@ tagFST typeFAT = {
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __fat_install(tagFSC *pSuper, u32 opt, void *pData)
+static s32 __fat_install(tagFSC *super, u32 opt, void *data)
 {
     const char *name;
     char *volume, *temp;
@@ -467,16 +467,17 @@ static s32 __fat_install(tagFSC *pSuper, u32 opt, void *pData)
     FRESULT res;
     u32 immediately = 1;
 
-    name = dev_nameo(pSuper->pDev);
+    data = data;
+    name = devo2name(super->pDev);
     temp = volume = malloc(strlen(name)+2);
     sprintf(volume, "%s:", name);
 
     volumeNum = get_ldnumber((const char**)&temp); // 需要ffconf.h中定义"_VOLUME_STRS"
     if (volumeNum < 0)
     {
-        debug_printf("FAT FS","mount failed, can not find the predefined volume (%s).", volume);
+        printf("\r\n: debug : fatfs : mount failed, can not find the predefined volume (%s).", volume);
         free(volume);
-        return (-1); //
+        return (-1);
     }
 
     structFAT = malloc(sizeof(FATFS));
@@ -486,7 +487,7 @@ static s32 __fat_install(tagFSC *pSuper, u32 opt, void *pData)
         return (-1);
     }
 
-    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(dev_dtago(pSuper->pDev))))
+    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(devo2drv(super->pDev))))
     {
         free(volume);
         return (-1); // 安装驱动失败
@@ -506,65 +507,70 @@ static s32 __fat_install(tagFSC *pSuper, u32 opt, void *pData)
         return (-1);
     }
 
-    pSuper->pCore = (void*)volume;
-
+    super->pCore = (void*)volume;
     return (0);
-
 }
 
 // ============================================================================
-// 功能：
+// 功能：将系统的flags逻辑转非FAT的mode逻辑
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-static u8 __DecodeFlags(u32 dwFlags)
+static u8 __deflags(u32 flags)
 {
     u8 mode = 0;
 
-    if(testcreat(dwFlags))
+    if(test_creat(flags))
     {
-        if(testonlycreat(dwFlags))
+        if(test_onlycreat(flags))
             mode |= FA_CREATE_NEW;
         else
             mode |= FA_OPEN_ALWAYS;
     }
+    else
+    {
+        mode |= FA_OPEN_ALWAYS;
+    }
 
-    if(testreadable(dwFlags))
+    if(test_readable(flags))
         mode |= FA_READ;
 
-    if(testwriteable(dwFlags))
+    if(test_writeable(flags))
         mode |= FA_WRITE;
-
-
 
     return (mode);
 }
 
 // ============================================================================
 // 功能：打开FAT的文件或目录；
-// 参数：pObj -- FAT文件对象(可能不是需要打开的文件)；
-//      dwFlags -- 文件标记；
-//      pPath -- 文件路径；
+// 参数：ob -- FAT文件对象(可能不是需要打开的文件)；
+//      flags -- 文件标记；
+//      full -- 文件路径；
 // 返回：成功（FAT文件）；失败（NULL）;
 // 备注：
 // ============================================================================
-static tagOFile *__fat_open(struct Object *pObj, u32 dwFlags, char *pPath)
+static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
 {
     char *path;
     void *context;
     u8 mode;
-    tagOFile *new = NULL;
+    struct objhandle *hdl = NULL;
     FRESULT res = FR_OK;
-    char *volume = (char*)FS_Core(pObj);
+    char *volume = (char*)corefs(ob);
 
-    path = malloc(strlen(volume) + strlen(pPath) + 1);
-    sprintf(path,"%s%s", volume, pPath);
-    mode = __DecodeFlags(dwFlags);
+    if(!volume)
+        return (NULL);
 
+    if(!full)
+        full = "/"; // 根目录
+
+    path = malloc(strlen(volume) + strlen(full) + 1);
+    sprintf(path,"%s%s", volume, full);
+    mode = __deflags(flags);
     do
     {
-        if(testdirectory(dwFlags))// 目录操作逻辑
+        if(test_directory(flags))// 目录操作逻辑
         {
             context = malloc(sizeof(_DIR));
             if(mode & FA_OPEN_ALWAYS) //  打开或新建，则先尝试打开
@@ -604,27 +610,27 @@ static tagOFile *__fat_open(struct Object *pObj, u32 dwFlags, char *pPath)
     }
     else
     {
-        new = of_new();
-        if(new)
-            of_init(new, NULL, dwFlags, (ptu32_t)context);
+        hdl = handle_new();
+        if(hdl)
+            handle_init(hdl, NULL, flags, (ptu32_t)context);
     }
 
     free(path);
-    return (new);
+    return (hdl);
 }
 
 // ============================================================================
 // 功能：关闭打开的FAT文件；
-// 参数：pOF -- FAT文件；
+// 参数：hdl -- 内部句柄；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __fat_close(tagOFile *pOF)
+static s32 __fat_close(struct objhandle *hdl)
 {
     FRESULT res;
-    void *context = (void*)of_context(pOF);
+    void *context = (void*)handle_context(hdl);
 
-    if(isdirectory(pOF))
+    if(isdirectory(hdl))
     {
         res = f_closedir((_DIR*)context);
     }
@@ -637,27 +643,27 @@ static s32 __fat_close(tagOFile *pOF)
         return (-1);
 
     free(context);
-    of_free(pOF);
+    handle_free(hdl);
     return (0);
 }
 
 // ============================================================================
 // 功能：
-// 参数：
+// 参数：hdl -- 内部句柄；
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __fat_seek(tagOFile *pOF, s64 qwOffset, s32 dwWhence)
+static s32 __fat_seek(struct objhandle *hdl, s64 *offset, s32 whence)
 {
     DWORD position;
     FRESULT res;
-    FIL *context = (FIL*)of_context(pOF);
+    FIL *context = (FIL*)handle_context(hdl);
 
-    switch(dwWhence)
+    switch(whence)
     {
-        case SEEK_SET: position = qwOffset;break;
-        case SEEK_CUR: position = qwOffset + context->fptr;break;
-        case SEEK_END: position = qwOffset + context->fsize; break;
+        case SEEK_SET: position = *offset;break;
+        case SEEK_CUR: position = *offset + context->fptr;break;
+        case SEEK_END: position = *offset + context->fsize; break;
         default: return (-1);
     }
 
@@ -665,26 +671,27 @@ static s32 __fat_seek(tagOFile *pOF, s64 qwOffset, s32 dwWhence)
     if(FR_OK != res)
         return (-1);
 
+    *offset = position;
     return (0);
 }
 
 // ============================================================================
 // 功能：
-// 参数：
+// 参数：ob -- 安装点对象；
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __fat_remove(struct Object *pObj, char *pPath)
+static s32 __fat_remove(struct obj *ob, char *full)
 {
     FRESULT res;
     char *path;
-    char *volume = (char*)FS_Core(pObj);
+    char *volume = (char*)corefs(ob);
 
-    path = malloc(strlen(volume) + strlen(pPath) + 1);
+    path = malloc(strlen(volume) + strlen(full) + 1);
     if(!path)
         return (-1);
 
-    sprintf(path,  "%s%s", (char*)volume, pPath);
+    sprintf(path,  "%s%s", (char*)volume, full);
     res = f_unlink(path);
     free(path);
     if(FR_OK != res)
@@ -695,53 +702,51 @@ static s32 __fat_remove(struct Object *pObj, char *pPath)
 
 // ============================================================================
 // 功能：写FAT文件
-// 参数：pOF -- FAT文件；
-//      pBuf -- 需写入数据；
-//      dwSize -- 需写入数据的数量；
+// 参数：hdhdl -- 内部句柄；l -- FAT文件；
+//      buf -- 需写入数据；
+//      size -- 需写入数据的数量；
 // 返回：实际写入的数据的数量；
 // 备注：
 // ============================================================================
-static s32 __fat_write(tagOFile *pOF, u8 *pBuf, u32 dwSize)
+static s32 __fat_write(struct objhandle *hdl, u8 *buf, u32 size)
 {
     s32 writen = 0;
-    FIL *context = (FIL*)of_context(pOF);
+    FIL *context = (FIL*)handle_context(hdl);
 
-    f_write(context, pBuf, dwSize, (u32*)(&writen));
-
+    f_write(context, buf, size, (u32*)(&writen));
     return (writen);
 }
 
 // ============================================================================
 // 功能：读FAT文件
-// 参数：pOF -- FAT文件；
-//      pBuf -- 需读出数据的缓存；
-//      dwSize -- 需读出数据的数量；
+// 参数：hdl -- 内部句柄；
+//      buf -- 需读出数据的缓存；
+//      size -- 需读出数据的数量；
 // 返回：实际读出的数据的数量。
 // 备注：
 // ============================================================================
-static s32 __fat_read(tagOFile *pOF, u8 *pBuf, u32 dwSize)
+static s32 __fat_read(struct objhandle *hdl, u8 *buf, u32 size)
 {
     s32 read = 0;
-    FIL *context = (FIL*)of_context(pOF);
+    FIL *context = (FIL*)handle_context(hdl);
 
-    f_read(context, pBuf, dwSize, (u32*)(&read));
-
+    f_read(context, buf, size, (u32*)(&read));
     return (read);
 }
 
 // ============================================================================
 // 功能：读FAT目录项
-// 参数：pOF -- 目录上下文；
-//      pDirent -- 目录项；
+// 参数：hdl -- 内部句柄；
+//      dentry -- 目录项；
 // 返回：全部读完（1）；失败（-1）；读了一项（0）；
 // 备注：
 // ============================================================================
-static s32 __fat_readdentry(tagOFile *pOF, struct dirent *pDirent)
+static s32 __fat_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
     FILINFO info;
     char lfname[256];
     FRESULT res;
-    _DIR *context = (_DIR*)pOF->context;
+    _DIR *context = (_DIR*)handle_context(hdl);
 
     memset(lfname, 0x0, 256);
     info.lfname = lfname;
@@ -750,23 +755,90 @@ static s32 __fat_readdentry(tagOFile *pOF, struct dirent *pDirent)
     if(FR_OK !=res)
         return (-1);
 
-    if(0 == info.fname[0]) // TODO，是不是应该通过返回值
+    if(0==info.fname[0]) // TODO，是不是应该通过返回值
         return (1); // 全部已经读完
 
-    if(0x7E == info.fname[6]) //
+    if(('~'==info.fname[6])||('~'==info.fname[3])) // 通过文件名中的'~'去区分，[3]可能是个BUG
     {
-        strcpy(pDirent->d_name, info.lfname); // 长文件名
+        strcpy(dentry->d_name, info.lfname); // 长文件名
     }
     else
     {
-        strcpy(pDirent->d_name, info.fname); // 8.3文件名
+        strcpy(dentry->d_name, info.fname); // 8.3文件名
     }
 
     switch(info.fattrib & 0x30)
     {
-        case AM_ARC: pDirent->d_type = DIRENT_IS_REG; break;
-        case AM_DIR: pDirent->d_type = DIRENT_IS_DIR; break;
-        default: pDirent->d_type = DIRENT_IS_REG;
+        case AM_ARC: dentry->d_type = DIRENT_IS_REG; break;
+        case AM_DIR: dentry->d_type = DIRENT_IS_DIR; break;
+        default: dentry->d_type = DIRENT_IS_REG;
+    }
+
+    return (0);
+}
+
+// ============================================================================
+// 功能：文件查询
+// 参数：ob -- FAT文件对象；
+//      data -- 文件信息；
+//      path -- 未缓存文件路径；
+//      cached -- 已缓存文件的内部句柄
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+static s32 __fat_stat(struct obj *ob, struct stat *data, char *fullpath, struct objhandle *cached)
+{
+    FILINFO fatstat = {0};// 要初始化，否则源程序会跑飞；
+
+    if(!cached) // 文件对象未缓存，依靠路径查询文件；
+    {
+        char *path, *root;
+
+        root = (char*)corefs(ob);
+        if(!root)
+            return (-1);
+
+        if(*fullpath=='\0')
+        {
+            // 根目录目前访问不了,直接处理
+            data->st_size = 0;
+            data->st_mode = S_IFDIR;
+            return (0);
+        }
+
+        path = malloc(strlen(root)+strlen(fullpath)+1);
+        if(!path)
+            return (-1);
+
+        sprintf(path, "%s%s", root, fullpath);
+        if(FR_OK != f_stat(path, &fatstat))
+        {
+            free(path);
+            return (-1);
+        }
+
+        memset(data, 0x0, sizeof(*data));
+        data->st_size = fatstat.fsize;
+        if(fatstat.fattrib & AM_DIR)// 目录
+            data->st_mode = S_IFDIR;
+        else if(fatstat.fattrib & AM_ARC)// 文档
+            data->st_mode = S_IFREG;
+
+        free(path);
+    }
+    else // 文件对象已缓存，依靠文件上下文查询；
+    {
+        if(isdirectory(cached))
+        {
+            data->st_size = 0;
+            data->st_mode = S_IFDIR;
+        }
+        else
+        {
+            FIL *fatcx = (FIL*)handle_context(cached);
+            data->st_size = fatcx->fsize;
+            data->st_mode = S_IFREG;
+        }
     }
 
     return (0);
@@ -778,88 +850,89 @@ static s32 __fat_readdentry(tagOFile *pOF, struct dirent *pDirent)
 // 返回：
 // 备注：
 // ============================================================================
-static ptu32_t __fat_operations(u32 dwCMD, ptu32_t context, ptu32_t args,  ...)
+static ptu32_t __fat_operations(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
 {
     va_list list;
 
-    switch(dwCMD)
+    switch(ops)
     {
-        case CN_OBJ_CMD_OPEN:
+        case OBJOPEN:
         {
-            struct Object *obj = (struct Object*)context;
+            struct obj *ob = (struct obj*)o_hdl;
             u32 flags = (u32)args;
             u32 discard;
             char *full;
 
             va_start(list, args);
             discard = va_arg(list, u32);
+            discard = va_arg(list, u32);
             full = (char*)va_arg(list, u32);
             va_end(list);
+            discard = discard; // 去报警
 
-            return ((ptu32_t)__fat_open(obj, flags, full));
+            return ((ptu32_t)__fat_open(ob, flags, full));
         }
 
-        case CN_OBJ_CMD_CLOSE:
+        case OBJCLOSE:
         {
-            tagOFile *of = (tagOFile*)context;
-            return ((ptu32_t)__fat_close(of));
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            return ((ptu32_t)__fat_close(hdl));
         }
 
-        case CN_OBJ_CMD_READDIR:
+        case OBJCHILDS:
         {
-            tagOFile *of = (tagOFile*)context;
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
             struct dirent *ret = (struct dirent *)args;
 
-            return((ptu32_t)__fat_readdentry(of, ret));
+            return((ptu32_t)__fat_readdentry(hdl, ret));
         }
 
-        case CN_OBJ_CMD_READ:
+        case OBJREAD:
         {
-            tagOFile *of;
+            struct objhandle *hdl;
             u8 *buf;
             u32 len;
 
-            of = (tagOFile *)context;
+            hdl = (struct objhandle *)o_hdl;
             buf = (u8*)args;
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
 
-            return((ptu32_t)__fat_read(of, buf, len));
+            return((ptu32_t)__fat_read(hdl, buf, len));
         }
 
-        case CN_OBJ_CMD_WRITE:
+        case OBJWRITE:
         {
-            tagOFile *of;
+            struct objhandle *hdl;
             u8 *buf;
             u32 len;
 
-            of = (tagOFile *)context;
+            hdl = (struct objhandle *)o_hdl;
             buf = (u8*)args;
             va_start(list, args);
             len = va_arg(list, u32);
             va_end(list);
 
-            return((ptu32_t)__fat_write(of, buf, len));
+            return((ptu32_t)__fat_write(hdl, buf, len));
         }
 
-        case CN_OBJ_CMD_DELETE:
+        case OBJDEL:
         {
             char *path;
-            struct Object *obj = (struct Object*)context;
-            char *discard = (char *)args;
+            struct obj *ob = (struct obj*)o_hdl;
 
             va_start(list, args);
             path = (char *)va_arg(list, u32);
             va_end(list);
 
-            return ((ptu32_t)__fat_remove(obj, path));
+            return ((ptu32_t)__fat_remove(ob, path));
         }
 
-        case CN_OBJ_CMD_SEEK:
+        case OBJSEEK:
         {
             s32 whence;
-            tagOFile *of = (tagOFile *)context;
+            struct objhandle *hdl = (struct objhandle *)o_hdl;
             s64 *offset = (s64*)args;
 
 
@@ -867,12 +940,34 @@ static ptu32_t __fat_operations(u32 dwCMD, ptu32_t context, ptu32_t args,  ...)
             whence = (s32)va_arg(list, u32);
             va_end(list);
 
-            return((ptu32_t)__fat_seek(of, offset, whence));
+            return((ptu32_t)__fat_seek(hdl, offset, whence));
+        }
+
+        case OBJSTAT:
+        {
+            char *path;
+            struct stat *data = (struct stat*)args;
+            struct obj *ob = (struct obj*)o_hdl;
+            struct objhandle *cached = NULL;
+
+            va_start(list, args);
+            path = (char *)va_arg(list, u32);
+            if(path)
+            {
+                path = (char *)va_arg(list, u32); // 获取全路径；
+            }
+            else
+            {
+                cached = (struct objhandle*)va_arg(list, u32); // 获取已缓存文件的对象句柄；
+            }
+
+            va_end(list);
+            return ((ptu32_t)__fat_stat(ob, data, path, cached));
         }
 
         default:
         {
-        debug_printf("module","TODO  do not support this operation now.");
+            printf("\r\n: debug : fatfs  : do not support this operation now.");
             break;
         }
     }
@@ -893,39 +988,39 @@ s32 ModuleInstall_FAT(const char *dir, const char *dev, u32 opt)
     char *mountpoint = "/fat";
 
     if(dir)
-        mountpoint = dir;
+        mountpoint = (char*)dir;
 
-    if(NULL == dev)
+    if(NULL==dev)
     {
-        debug_printf("module","bad parameters, \"FAT\" file system installation is failed.");
+        printf("\r\n: dbug : module : bad parameters, \"FAT\" file system installation is failed.");
         return (-1);
     }
 
-    res = FS_Register(&typeFAT);
-    if(res)
+    res = regfs(&typeFAT);
+    if(-1==res)
     {
-        debug_printf("module","cannot register \"FAT\"<file system type>.");
+        printf("\r\n: dbug : module : cannot register \"FAT\"<file system type>.");
         return (-1); // 失败;
     }
 
     fd = open(mountpoint, O_DIRECTORY | O_CREAT | O_EXCL | O_RDWR, 0); // 创建/fat目录
     if(-1 == fd)
     {
-        debug_printf("module","mount \"FAT\" failed, cannot create \"fat\"(mount point).");
+        printf("\r\n: dbug : module : mount \"FAT\" failed, cannot create \"fat\"(mount point).");
         return (-1);// 失败;
     }
 
 
-    res = FS_Mount(dev, mountpoint, "FAT", opt, NULL);
+    res = mountfs(dev, mountpoint, "FAT", opt, NULL);
     if(res < 0)
     {
-        debug_printf("module","mount \"FAT\" failed, cannot install.");
+        printf("\r\n: dbug : module : mount \"FAT\" failed, cannot install.");
         close(fd);
         remove("/fat");
         return (-1);// 失败
     }
 
     close(fd);
-    info_printf("module","file system \"FAT\" installed on \"%s\".", dev);
+    printf("\r\n: info : module : file system \"FAT\" installed on \"%s\".", dev);
     return (0);
 }

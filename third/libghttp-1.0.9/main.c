@@ -204,7 +204,7 @@ bool_t IeShell(char *param)
 #include <shell.h>
 #include <os.h>
 
-struct ShellCmdTab  gServiceUrl[] =
+struct shell_debug  gServiceUrl[] =
 {
     {
         "ie",
@@ -214,8 +214,8 @@ struct ShellCmdTab  gServiceUrl[] =
     },
 };
 
-#define CN_URLDEBUG_NUM  ((sizeof(gServiceUrl))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gServiceUrlCmdRsc[CN_URLDEBUG_NUM];
+#define CN_URLDEBUG_NUM  ((sizeof(gServiceUrl))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gServiceUrlCmdRsc[CN_URLDEBUG_NUM];
 
 //usage:use this function to add the url debug to the kernel
 int Ghttp_main(int argc, char *argv[])
@@ -225,7 +225,7 @@ int Ghttp_main(int argc, char *argv[])
     {
     	return -1;
     }
-    Sh_InstallCmd(gServiceUrl,gServiceUrlCmdRsc,CN_URLDEBUG_NUM);
+    shell_debug_add(gServiceUrl, CN_URLDEBUG_NUM);
 	return 0;
 }
 

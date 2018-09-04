@@ -74,7 +74,7 @@ extern "C" {
 #include "cpu_peri_nand.h"
 #include "cpu_peri_eth.h"
 
-
+#include "stm32f7xx_hal_tim.h"
 #define InLowPower      0
 #define OutLowPower     1
 /*

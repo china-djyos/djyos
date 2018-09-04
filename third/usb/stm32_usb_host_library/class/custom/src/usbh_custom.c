@@ -737,7 +737,7 @@ USBH_StatusTypeDef USBH_CUSTOM_ClearRemoteWakeupFeature(USBH_HandleTypeDef *pHos
         {
             pHost->dwTimeout = 0;
             pHost->RequestState = CMD_SEND;
-            USBH_UsrLog("USB #%04x stack service : error : clear remote wake up feature timeout", pHost->id);
+            printf("\r\n : erro : usbs%02x : clear remote wake up feature(timeout).", pHost->id);
             status = USBH_TIMEOUT;
         }
     }
@@ -1334,7 +1334,7 @@ static USBH_StatusTypeDef __AT_ProcessReception(USBH_HandleTypeDef *pHost, uint8
             rlen = USBH_Fetch(chandle->AT_Interface.InPipe, *pRxData, *pRxDataLength);
             if(rlen > length)
             {
-                USBH_UsrLog("\r\ncustom at channel bug\r\n"); // 正常逻辑不进入,因为此时都是同步
+                printf("\r\n : erro : usbsv%d : custom at channel(unknown)."); // 正常逻辑不进入,因为此时都是同步
             }
             // if(((*pRxDataLength - length) > 0) && (length > chandle->AT_Interface.InEpSize)) // TODO，第二个条件不知道什么意思
             if(*pRxDataLength > length)
@@ -1573,7 +1573,7 @@ static USBH_StatusTypeDef __MODEM_ProcessReception(USBH_HandleTypeDef *pHost, ui
             rlen = USBH_Fetch(chandle->MODEM_Interface.InPipe, *pRxData, *pRxDataLength);
             if(rlen > length)
             {
-                USBH_UsrLog("\r\ncustom modem channel bug\r\n"); // 正常逻辑不进入,因为此时都是同步
+                printf("\r\n : erro : usbs%02x : custom modem channel(unknown).", pHost->id); // 正常逻辑不进入,因为此时都是同步
             }
             // if(((*pRxDataLength - length) > 0) && (length > chandle->MODEM_Interface.InEpSize)) // TODO，第二个条件不知道什么意思
             if(*pRxDataLength > length)
@@ -1810,7 +1810,7 @@ static USBH_StatusTypeDef __DEBUG_ProcessReception(USBH_HandleTypeDef *pHost, ui
             rlen = USBH_Fetch(chandle->DEBUG_Interface.InPipe, *pRxData, *pRxDataLength);
             if(rlen > length)
             {
-                USBH_UsrLog("\r\ncustom at channel bug\r\n"); // 正常逻辑不进入,因为此时都是同步
+                printf("\r\n : erro : usbsv%d : custom at channel(unknown)."); // 正常逻辑不进入,因为此时都是同步
             }
             
             // if(((*pRxDataLength - length) > 0) && (length > chandle->AT_Interface.InEpSize)) // TODO，第二个条件不知道什么意思

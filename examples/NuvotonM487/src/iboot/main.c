@@ -92,14 +92,10 @@ void LED_Init(void)
 
 ptu32_t djy_main(void)
 {
-    extern void Sh_GetStatus(char *param);
-    extern void Sh_GetRunMode(char *param);
-    Sh_GetRunMode(NULL);
-    Sh_GetStatus(NULL);
     LED_Init();
     while(1)
     {
-        Djy_EventDelay(5000*mS);
+        Djy_EventDelay(5000*1000);
     }
     return 0;
 }

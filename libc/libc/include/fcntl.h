@@ -177,7 +177,6 @@ extern "C" {
 #define _O_NOINHERIT    O_NOINHERIT
 #endif      //for defined (_WIN32) || defined (__CYGWIN__)
 
-
 /* XXX close on exec request; must match UF_EXCLOSE in user.h */
 #define FD_CLOEXEC  1   /* posix */
 
@@ -196,29 +195,42 @@ extern "C" {
 #define F_RDLCK             11                  // read lock
 #define F_WRLCK             12                  // write lock
 #define F_UNLCK             13                  // remove lock(s)G
-#define F_SETREPRESENT      14                  // 设置文件的表示；
-#define F_GETREPRESENT      15                  // 获取文件的表示；
 
-#define F_OF                100                 // 文件系统私有命令；
-#define F_OF_GET            (F_OF+1)            // 获取文件的描述；
-#define F_OF_SETCONTEXT     (F_OF+2)            // 设置文件的私有上下文；
-#define F_OF_GETCONTEXT     (F_OF+3)            // 获取文件的私有上下文；
-#define F_SETEVENT          (F_OF+4)            // 设置文件的多路复用逻辑；
-#define F_CLREVENT          (F_OF+5)            // 清除文件的多路复用逻辑；
-#define F_OF_GETTIMEOUT     (F_OF+6)            // 设置同步IO阻塞的最长时间
-#define F_OF_SETTIMEOUT     (F_OF+7)            // 设置同步IO阻塞的最长时间
-#define F_OF_CLRTAG         (F_OF+8)            // 清除文件TAG
-#define F_OF_SETTAG         (F_OF+9)            // 设置文件TAG
+//fcntl 函数的命令码，以下是私有规定的部分
+#define F_LOCAL             (512)               // 文件系统私有命令；
+#define F_GETPORT           (F_LOCAL+1)         // 获取文件的内部文件句柄；
+#define F_SETCONTEXT        (F_LOCAL+2)         // 设置文件的私有上下文；
+#define F_GETCONTEXT        (F_LOCAL+3)         // 获取文件的私有上下文；
+#define F_SETEVENT          (F_LOCAL+4)         // 设置文件的多路复用逻辑；
+#define F_CLREVENT          (F_LOCAL+5)         // 清除文件的多路复用逻辑；
+#define F_SETTIMEOUT        (F_LOCAL+6)         // 设置同步IO阻塞的最长时间；
+#define F_GETTIMEOUT        (F_LOCAL+7)         // 获取同步IO阻塞的最长时间；
+#define F_GETTAG            (F_LOCAL+8)         // 获取文件标签；
+#define F_SETTAG            (F_LOCAL+9)         // 设置文件标签；
+#define F_GETFILE           (F_LOCAL+11)        // 获取文件的结构信息；
 
-#define F_MODULE            (200)               // 各模块的私有命令，不同文件系统的命令值可以相同；
-#define F_STDIO_REDRIECT    (F_MODULE)          // STDIO重定向
-#define F_STDIO_MULTI_ADD   (F_MODULE+1)        // 添加新的文件到STDIN多路复用集
-#define F_STDIO_MULTI_DEL   (F_MODULE+2)        // 将文件从STDIN多路复用集删除
-
-#define F_SETDDTAG           (F_MODULE)
-#define F_GETDDTAG           (F_MODULE+1)
-#define F_SETDUTAG           (F_MODULE+2)
-#define F_GETDUTAG           (F_MODULE+3)
+#define F_MODULE            (1024)              // 各模块的私有命令，不同模块系统的命令值可以相同；
+// STDIO模块
+#define F_STDIO_M           (F_MODULE)
+#define F_STDIO_REDRIECT    (F_STDIO_M)         // STDIO重定向
+#define F_STDIO_MULTI_ADD   (F_STDIO_M+1)       // 添加新的文件到STDIN多路复用集
+#define F_STDIO_MULTI_DEL   (F_STDIO_M+2)       // 将文件从STDIN多路复用集删除
+// 设备模块；
+#define F_DEV_M             (F_MODULE)
+#define F_SETDDRV           (F_DEV_M)           // 设置设备驱动标签；
+#define F_GETDDRV           (F_DEV_M+1)         // 获取设备的驱动标签；
+#define F_SETDTAG           (F_DEV_M+2)         // 设置设备的用户标签；
+#define F_GETDTAG           (F_DEV_M+3)         // 获取设备的用户标签；
+#define F_DSTART            (F_DEV_M+4)         // 启动设备，有些能控制电源的设备需要
+#define F_DSTOP             (F_DEV_M+5)         // 启动设备，有些能控制电源的设备需要
+#define F_DSHUTDOWN         (F_DEV_M+6)         // 关闭电源,断电前需要特定处理的设备需要
+#define F_DSLEEP            (F_DEV_M+7)         // 设备进入低功耗状态,用于电源管理
+#define F_DRESUME           (F_DEV_M+8)         // 设备恢复,从低功耗状态唤醒
+#define F_DCHECK            (F_DEV_M+9)         // 检查设备状态
+#define F_DHOOK             (F_DEV_M+10)        // 设置有输入/输出/错误时回调函数
+#define F_DBLOCK_BUFFER     (F_DEV_M+11)        // Write的完成条件是发送到缓冲区
+#define F_DBLOCK_COPLETE    (F_DEV_M+12)        // Write的完成条件是传输完成
+#define F_DEV_DRV           (F_DEV_M+256)       // 设备驱动命令集，不同设备的驱动可以相同；
 
 #if 0
 #define CN_FILE_STATICDATA  (1<<0)              // 文件用于存储静态数据

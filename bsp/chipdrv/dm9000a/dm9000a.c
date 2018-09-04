@@ -51,7 +51,7 @@
 #include <sys/socket.h>
 
 #include "dm9000a.h"
-#include "newshell.h"
+#include <shell.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -712,33 +712,31 @@ ADD_TO_IN_SHELL bool_t dm9000reset(char *param)
     return 1;
 }
 
-#include <shell.h>
-//static struct ShellCmdTab  gDm9000Debug[] =
-//{
-//    {
-//        "dm9000",
-//        dm9000debuginfo,
-//        "dm9000 debug info",
-//        NULL
-//    },
-//    {
-//        "dm9000reg",
-//        dm9000reg,
-//        "print dm9000 reg",
-//        NULL
-//    },
-//    {
-//        "dm9000reset",
-//        dm9000Reset,
-//        "reset dm9000",
-//        NULL
-//    }
-//};
-//
-//
-//#define CN_DM9000DEBUG_NUM  ((sizeof(gDm9000Debug))/(sizeof(struct ShellCmdTab)))
-//static struct ShellCmdRsc gGdm9000DebugCmdRsc[CN_DM9000DEBUG_NUM];
+static struct shell_debug  gDm9000Debug[] =
+{
+    {
+        "dm9000",
+        dm9000,
+        "dm9000 debug info",
+        NULL
+    },
+    {
+        "dm9000reg",
+        dm9000reg,
+        "print dm9000 reg",
+        NULL
+    },
+    {
+        "dm9000reset",
+        dm9000reset,
+        "reset dm9000",
+        NULL
+    }
+};
 
+
+#define CN_DM9000DEBUG_NUM  ((sizeof(gDm9000Debug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gGdm9000DebugCmdRsc[CN_DM9000DEBUG_NUM];
 
 //THIS FUNCTION USED BY USER TO INSTALL AN DM9000 DEV WITH THE SPECIFIED NAME AND MAC
 bool_t Dm9000Install(tagDm9000Para *para)
@@ -784,8 +782,7 @@ bool_t Dm9000Install(tagDm9000Para *para)
     DM9000_DBG("%s:ISNTALL DM9000 DEV SUCCESS\n\r",__FUNCTION__);
     pDm9000 = dm9000;
     __showDm9000Reg(dm9000);
-
-//    Sh_InstallCmd(gDm9000Debug,gGdm9000DebugCmdRsc,CN_DM9000DEBUG_NUM);
+    shell_debug_add(gDm9000Debug, CN_DM9000DEBUG_NUM);
     return res;
 
 

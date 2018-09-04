@@ -186,7 +186,7 @@ struct CanDev
 //CAN总线控制块结构体,本模块可见
 struct CANBusCB
 {
-    struct Object          *CAN_BusNode;      //总线资源节点
+    struct obj          *CAN_BusNode;      //总线资源节点
     struct SemaphoreLCB    *CAN_BusSemp;     //CANBUS保护信号量,用于控制并发访问
     char                   *BusName;         //CANBUS名称，与CAN控制器名称保持一致
     CanBaudRateDef         BaudRate;         //通信波特率
@@ -204,7 +204,7 @@ struct CANBusCB
  // 参数：para,无实际意义。
  // 返回：返回建立的资源结点指针，失败时返回NULL。
  // =============================================================================
-struct Object * ModuleInstall_CANBus(ptu32_t para);
+struct obj * ModuleInstall_CANBus();
 // =============================================================================
 // 功能：添加CAN总线到CAN总线类型节点下，每个CAN控制器对应一条CAN总线。
 // 参数：pNewCanDev,CAN Dev结构体指针。

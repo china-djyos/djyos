@@ -202,8 +202,8 @@ static uint16_t USBH_GetFreePipe (USBH_HandleTypeDef *phost)
         }
     }
 
-    USBH_UsrLog("USB #%xh statck: no free pipes\r\n", phost->id);
-    return 0xFFFF;
+    printf("\r\n: warn : usbs%02x :  no free pipes\r\n", phost->id);
+    return (0xFFFF);
 }
 /**
 * @}

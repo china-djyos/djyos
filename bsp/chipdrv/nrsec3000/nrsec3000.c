@@ -1618,8 +1618,8 @@ bool_t NRSEC3000_Init(char *BusName)
     s_NRSEC3000_Dev.Freq = CFG_NRSEC3000_SPI_SPEED;
     s_NRSEC3000_Dev.Mode = SPI_MODE_3;
     s_NRSEC3000_Dev.ShiftDir = SPI_SHIFT_MSB;
-
-    if(NULL != SPI_DevAdd_s(&s_NRSEC3000_Dev, BusName, "NRSEC3000"))
+    if(NULL != SPI_DevAdd(BusName,"NRSEC3000",0,8,SPI_MODE_3,SPI_SHIFT_MSB,CFG_NRSEC3000_SPI_SPEED,false))
+    //if(NULL != SPI_DevAdd_s(&s_NRSEC3000_Dev, BusName, "NRSEC3000"))
     {
         SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_POLL,0,0);
         //SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_CLK,CFG_NRSEC3000_SPI_SPEED,0);

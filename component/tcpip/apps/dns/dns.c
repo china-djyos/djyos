@@ -50,7 +50,7 @@
 #include <sys/socket.h>
 #include <netbsp.h>
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
 enum __DNS_OPCODE
 {
     DNS_OPCODE_STANDQUERY = 0,
@@ -406,8 +406,8 @@ EXIT_DNSMAIN:
 
 
 //bool_t DnsNameResolveShell(char *param)
-ADD_TO_SHELL_HELP(gethostbyname,"usage:gethostbyname hostname");
-ADD_TO_IN_SHELL bool_t gethostbyname(char *param)
+ADD_TO_SHELL_HELP(netgethostbyname,"usage:netgethostbyname hostname");
+ADD_TO_IN_SHELL bool_t netgethostbyname(char *param)
 {
     bool_t result = true;
     char *name;
@@ -451,26 +451,25 @@ ADD_TO_IN_SHELL bool_t gethostbyname(char *param)
 
 
 
-//struct ShellCmdTab  gServiceDns[] =
-//{
-//    {
-//        "gethostbyname",
-//        DnsNameResolveShell,
-//        "usage:gethostbyname hostname",
-//        "usage:gethostbyname hostname",
-//    }
-//};
-//
-//#define CN_DNSDEBUG_NUM  ((sizeof(gServiceDns))/(sizeof(struct ShellCmdTab)))
+struct shell_debug  gServiceDns[] =
+{
+    {
+        "gethostbyname",
+        netgethostbyname,
+        "usage:gethostbyname hostname",
+        "usage:gethostbyname hostname",
+    }
+};
+
+#define CN_DNSDEBUG_NUM  ((sizeof(gServiceDns))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gServiceDnsCmdRsc[CN_DNSDEBUG_NUM];
 
 //THIS IS DNS MODULE FUNCTION
-//bool_t ServiceDnsInit(ptu32_t para)
-//{
-//    bool_t result;
-//
-//    result = Sh_InstallCmd(gServiceDns,gServiceDnsCmdRsc,CN_DNSDEBUG_NUM);
-//
-//    return result;
-//}
+bool_t ServiceDnsInit(ptu32_t para)
+{
+    if(CN_DNSDEBUG_NUM==shell_debug_add(gServiceDns, CN_DNSDEBUG_NUM))
+        return (TRUE);
+
+    return (FALSE);
+}
 

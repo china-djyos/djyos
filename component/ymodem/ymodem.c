@@ -66,7 +66,6 @@
 #include "shell.h"
 #include <misc.h>
 #include "dbug.h"
-#include "newshell.h"
 #include "ymodem.h"
 #include <cfg/ymodemcfg.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -118,27 +117,27 @@
 #define CN_YMODEM_PKGBUF_SIZE           (1029)
 #define CN_YMODEM_NAME_LENGTH           (256)
 
-struct ShellCmdTab const ymodem_cmd_table[] =
+struct shell_debug const ymodem_cmd_table[] =
 {
     {
         "downloadym",
-        Ymodem_DownloadFile,
+        downloadym,
         "下载文件",
         "命令格式: download"
     },
     {
         "uploadym",
-        Ymodem_UploadFile,
+        uploadym,
         "上传文件",
         "命令格式: upload 文件名"
     }
 };
 
-static struct ShellCmdRsc tg_ymodem_cmd_rsc
-                        [sizeof(ymodem_cmd_table)/sizeof(struct ShellCmdTab)];
-static struct DjyDevice *s_ptYmodemDevice;
-
+//static struct ShellCmdRsc tg_ymodem_cmd_rsc
+//                        [sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)];
+//static struct DjyDevice *s_ptYmodemDevice;
 static tagYmodem *pYmodem = NULL;
+
 //----ymodem模型初始化---------------------------------------
 //功能: ymodem下载文件模块接口函数，在module_trim中调用
 //参数: 无
@@ -159,8 +158,10 @@ bool_t ModuleInstall_Ymodem(void)
         if(NULL != pYmodem->pYmodemMutex)
         {
             pYmodem->Path = NULL;
-//            if(Sh_InstallCmd(ymodem_cmd_table,tg_ymodem_cmd_rsc,
-//                    sizeof(ymodem_cmd_table)/sizeof(struct ShellCmdTab)))
+
+            if(sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)
+               ==shell_debug_add(ymodem_cmd_table,
+                                 sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)))
                 return true;
         }
         else
@@ -839,7 +840,7 @@ ADD_TO_IN_SHELL bool_t uploadym(char *Param)
     }
     Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
 
-    FileName = (char *)Sh_GetWord(Param, &NextParam);
+    FileName = (char *)shell_inputs(Param, &NextParam);
     if(NULL == FileName)
     {
         Ret = YMODEM_PARAM_ERR;

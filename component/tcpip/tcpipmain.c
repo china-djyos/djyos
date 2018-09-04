@@ -52,41 +52,42 @@
 #include <stdio.h>
 #include <shell.h>
 #include "dbug.h"
-#include "newshell.h"
 #include "component_config_tcpip.h"
 
 #define CN_TCPIP_VERSION    "V1.2.0"
 #define CN_TCPIP_AUTHOR     "luost@sznari.com,zhangqf1314@163.com"
 //static bool_t __TcpIpVersion(char *param)
 ADD_TO_SHELL_HELP(tcpipver,"usage:tcpipver");
-ADD_TO_IN_SHELL static bool_t tcpipver(char *param)
+ADD_TO_IN_SHELL  bool_t tcpipver(char *param)
 {
-    info_printf("tcpip","Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.\r\n");
-    info_printf("tcpip","VERSION  :%s \r\n",CN_TCPIP_VERSION);
-    info_printf("tcpip","TIME     :%s \r\n",__TIME__);
-    info_printf("tcpip","DATE     :%s \r\n",__DATE__);
-    info_printf("tcpip","SUBMIT2  :Any idea, please contact with %s \r\n",CN_TCPIP_AUTHOR);
-    info_printf("tcpip","ChangeLog:\r\n");
-    info_printf("tcpip","FUNCTIONS:/ETHERNET/PPP/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING\r\n");
+    param = param;
+    info_printf("tcpip","Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.");
+    info_printf("tcpip","VERSION  :%s ",CN_TCPIP_VERSION);
+    info_printf("tcpip","TIME     :%s ",__TIME__);
+    info_printf("tcpip","DATE     :%s ",__DATE__);
+    info_printf("tcpip","SUBMIT2  :Any idea, please contact with us");
+    info_printf("tcpip","ChangeLog:");
+    info_printf("tcpip","FUNCTIONS:/ETHERNET/PPP/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING");
     return true;
 }
+
 //install some shell command here
-//static struct ShellCmdTab  gTCPIPDEBUG[] =
-//{
-//    {
-//        "tcpipver",
-//        __TcpIpVersion,
-//        "usage:tcpipver",
-//        "usage:tcpipver",
-//    },
-//};
-//#define CN_TCPIPDEBUG_ITEMNUM  ((sizeof(gTCPIPDEBUG))/(sizeof(struct ShellCmdTab)))
+static struct shell_debug  gTCPIPDEBUG[] =
+{
+    {
+        "tcpipver",
+        tcpipver,
+        "usage:tcpipver",
+        "usage:tcpipver",
+    },
+};
+#define CN_TCPIPDEBUG_ITEMNUM  ((sizeof(gTCPIPDEBUG))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gTCPIPDEBUGCmdRsc[CN_TCPIPDEBUG_ITEMNUM];
 
 //we need a function to do the format result
 static void __LoadLog(const char *name,bool_t ret)
 {
-    info_printf("tcpip","LOAD:%-12s------------%s\n\r",name,ret?"SUCCESS":"FAILURE");
+    info_printf("tcpip","LOAD:%-12s------------%s",name,ret?"SUCCESS":"FAILURE");
     return;
 }
 // =============================================================================
@@ -100,6 +101,19 @@ bool_t ModuleInstall_TcpIp(void)
 {
     bool_t ret;
     tcpipver(NULL);
+    u8 enable_tcp = 0, enable_udp = 0, enable_ppp = 0;
+
+#if CFG_TCP_ENABLE == true
+    enable_tcp = 1;
+#endif
+
+#if CFG_UDP_ENABLE == true
+    enable_udp = 1;
+#endif
+
+#if CN_PPP_ENABLE == true
+    enable_ppp = 1;
+#endif
 
     extern bool_t OsArchInit();
     ret = OsArchInit();
@@ -188,25 +202,29 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //install the tcp protocol
-#if CFG_TCP_ENABLE == true
-    extern bool_t TcpInit(void);
-    ret = TcpInit();
-    __LoadLog("TCP",ret);
-    if(false == ret)
+    if(enable_tcp)
     {
-        goto TCPIP_INITERR;
+        extern bool_t TcpInit(void);
+        ret = TcpInit();
+        __LoadLog("TCP",ret);
+        if(false == ret)
+        {
+            goto TCPIP_INITERR;
+        }
     }
-#endif
+
     //install the udp protocol
-#if CFG_UDP_ENABLE == true
-    extern bool_t UdpInit(void);
-    ret = UdpInit();
-    __LoadLog("UDP",ret);
-    if(false == ret)
+    if(enable_udp)
     {
-        goto TCPIP_INITERR;
+        extern bool_t UdpInit(void);
+        ret = UdpInit();
+        __LoadLog("UDP",ret);
+        if(false == ret)
+        {
+            goto TCPIP_INITERR;
+        }
     }
-#endif
+
     //install the icmp protocol
     extern bool_t IcmpInit(void);
     ret = IcmpInit();
@@ -224,15 +242,16 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //add the ppp module
-#if CN_PPP_ENABLE == true
-    extern bool_t PppInit(void);
-    ret = PppInit();
-    __LoadLog("PPP",ret);
-    if(false == ret)
+    if(enable_ppp)
     {
-        goto TCPIP_INITERR;
+        extern bool_t PppInit(void);
+        ret = PppInit();
+        __LoadLog("PPP",ret);
+        if(false == ret)
+        {
+            goto TCPIP_INITERR;
+        }
     }
-#endif
     //add the tcpip service
     extern bool_t ServiceInit(void);
     ret = ServiceInit();
@@ -241,8 +260,9 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-    info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************\n\r");
-//    Sh_InstallCmd(gTCPIPDEBUG,gTCPIPDEBUGCmdRsc,CN_TCPIPDEBUG_ITEMNUM);
+    info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************");
+
+    shell_debug_add(gTCPIPDEBUG, CN_TCPIPDEBUG_ITEMNUM);
     return ret;
 
 TCPIP_INITERR:

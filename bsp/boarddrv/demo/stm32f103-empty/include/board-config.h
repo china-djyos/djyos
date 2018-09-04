@@ -68,8 +68,6 @@ extern "C" {
 
 #define DJY_BOARD   "QH_1"
 
-#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
-
 //与时钟振荡器相关的配置,本组配置
 #define Mhz 1000000
 #define CN_CFG_MCLK (72*Mhz)  //主频，内核要用，必须定义
@@ -79,8 +77,22 @@ extern "C" {
 #define CN_CFG_PCLK1 (CN_CFG_MCLK/2)  //低速外设时钟
 #define CN_CFG_EXTCLK 8000000  //外部时钟=8M
 
-#define	CN_CFG_USE_USERTIMER		(0U)//是否使用LPTIMER作为系统时钟
-#define CN_CFG_TIME_BASE_HZ			CN_CFG_MCLK//(8000U)
+/*____以下定义tick参数____*/
+#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
+#define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
+#define CN_USE_TICKLESS_MODE    (0U)
+#if (!CN_USE_TICKLESS_MODE)
+#define CN_CFG_FINE_US 0x0000038e  //1/72M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
+#define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数，单位Hz。
+#else
+#define CN_CFG_USE_USERTIMER        (0U)//是否使用LPTIMER作为系统时钟
+#define CN_CFG_TIME_BASE_HZ         CN_CFG_MCLK//(32000U)//(8000U)
+#if (!CN_CFG_USE_USERTIMER)
+#define CN_CFG_USE_BYPASSTIMER      (0U)//0表示不使用旁路定时器，1表示使用旁路定时器
+#else
+#define CN_CFG_USERTIMER_PRESC      (1U)//若不使用SYSTICK定时器，需指定用户定时器的分频数
+#endif
+#endif
 
 //CPU架构相关配置,可选才在这里配置,例如大小端,是可选的,在这里配置,
 //而CPU字长固定,故字长在BSP的arch_feature.h文件中定义

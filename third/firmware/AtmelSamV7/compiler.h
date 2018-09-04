@@ -34,7 +34,7 @@
 /*
  * Peripherals registers definitions
  */
-#include "include/samv7/samv71.h"
+#include <samv71.h>
 
 
 //_____ D E C L A R A T I O N S ____________________________________________

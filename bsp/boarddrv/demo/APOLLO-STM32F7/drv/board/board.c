@@ -56,8 +56,6 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern void Board_GpioInit(void);
 //    Board_GpioInit();
-//    extern void ModuleInstall_InitNet( );
-//    ModuleInstall_InitNet( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

@@ -58,7 +58,7 @@
 #include "stddef.h"
 #include "systime.h"
 #include "object.h"
-#include "objfile.h"
+#include "objhandle.h"
 #include "pool.h"
 #include "lock.h"
 #include <djyos.h>
@@ -77,7 +77,7 @@
 //component name:"multiplex"    //多路复用
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:必选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
                                 //init表示在调用main之前，main表示在main函数中初始化
@@ -221,20 +221,20 @@ struct MultiplexSetsCB* Multiplex_Create(u32 ActiveLevel)
 //-----------------------------------------------------------------------------
 bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
 {
-    tagOFile *Kfp;
+    struct objhandle *Kfp;
     struct MultiplexObjectCB *temp;
     struct MultiplexObjectCB **TargetQ;
     u32 InitStatus;
     bool_t repeat = false;
     bool_t IsActived = 0;
 
-    Kfp = of(Fd);
+    Kfp = fd2handle(Fd);
     if ((NULL == Sets) || (NULL == Kfp) )
         return false;
 
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    temp = of_mulitplex(Kfp);
-    InitStatus = of_access(Kfp);
+    temp = handle_multiplex(Kfp);
+    InitStatus = handle_multievents(Kfp);
     //循环检查一个Object是否重复加入同一个MultiplexSets
     //如果ObjectHead=NULL,检查结果是不重复，后续处理能够正确运行。
     while (temp != NULL)
@@ -292,8 +292,8 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
             }
             //同一个对象被多个MultiplexSets包含，用NextSets链接。
             //NextSets是单向链表，新对象插入链表头部
-            temp->NextSets = of_mulitplex(Kfp);
-            of_setmulitplex(Kfp, temp);
+            temp->NextSets = handle_multiplex(Kfp);
+            handle_setmultiplex(Kfp, temp);
             Lock_MutexPost(&MultiplexMutex);
             if (IsActived)
             {
@@ -326,14 +326,14 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
 //-----------------------------------------------------------------------------
 bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
 {
-    tagOFile *Kfp;
+    struct objhandle *Kfp;
     struct MultiplexObjectCB *Object,*following;
 
-    Kfp = of(Fd);
+    Kfp = fd2handle(Fd);
     if ((Sets == NULL) || (Kfp == NULL))
         return false;
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = of_mulitplex(Kfp);
+    Object = handle_multiplex(Kfp);
     following = NULL;
     while (Object != NULL)
     {       //查找被删除的对象控制块
@@ -387,7 +387,7 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
             }
         }
         if(following == NULL)       // Fd是链表头
-            of_setmulitplex(Kfp, Object->NextSets);
+            handle_setmultiplex(Kfp, Object->NextSets);
         else
             following->NextSets = Object->NextSets;
         Mb_Free(g_ptMultiplexObjectPool, Object);
@@ -404,17 +404,17 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
 //-----------------------------------------------------------------------------
 bool_t __Multiplex_Set(s32 Fd, u32 Status)
 {
-    tagOFile *Kfp;
+    struct objhandle *Kfp;
     struct MultiplexObjectCB *Object;
     struct MultiplexSetsCB *Sets;
     u32 Sensing, Type, NewPendsing,MaskPending;
     u32 OldPend;
     bool_t ActivedFlag;
-    Kfp = of(Fd);
+    Kfp = fd2handle(Fd);
     if (Kfp == NULL)
         return false;
 //  Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = of_mulitplex(Kfp);
+    Object = handle_multiplex(Kfp);
     while (Object != NULL)
     {
         Int_SaveAsynSignal();

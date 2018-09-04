@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <cpu>
-   <cpuName>zq1201</cpuName>
+   <cpuName>ZQ1201</cpuName>
    <core id="1">
-      <floatABI>soft</floatABI>
-      <fpuType></fpuType>
+      <fpuType>default</fpuType>
       <memory>
-         <type>ROM</type>
+         <type>FLASH</type>
          <startAddr>0x00000000</startAddr>
          <size>512k</size>
       </memory>
@@ -20,8 +19,9 @@
          <size>32k</size>
       </memory>
       <memory>
-      	<type>RAM</type>
-      	<startAddr>0x02000000</startAddr>
-      	<size>0x00400000</size></memory>
+         <type>RAM</type>
+         <startAddr>0x02000000</startAddr>
+         <size>4096k</size>
+      </memory>
    </core>
 </cpu>

@@ -61,7 +61,7 @@ extern "C" {
 
 //包含外设所需的头文件
 #include "os.h"
-#include <samv7/samv71.h>
+#include <samv71.h>
 #include "board-config.h"
 #include "cpu_peri_int_line.h"
 //#include "cpu_peri_pmc.h"

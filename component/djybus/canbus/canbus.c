@@ -60,7 +60,6 @@
 #include "msgqueue.h"
 #include "ring.h"
 #include "shell.h"
-#include "newshell.h"
 #include "dbug.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -103,11 +102,10 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+bool_t cbstat(char *param);
+ptu32_t CAN_BusShellInstall(void);
 
-//static void Sh_CAN_BusStat(char *param);
-
-
-static struct Object *s_ptCANBusType;
+static struct obj *s_ptCANBusType;
 static struct MsgQueue * gs_ptCanSndMsgQ;
 static uint8_t CAN_BusSndStack[0x1000];
 #define CN_CAN_BUS_MSGQ_LEN        18
@@ -115,17 +113,16 @@ static uint8_t CAN_BusSndStack[0x1000];
 #define CN_CAN_BUS_PRINTF_PREFIX     "          "
 
 ptu32_t __CANBus_SndTask(void);
-ptu32_t CAN_BusShellInstall(void);
 void __CAN_BusPrintfStat(struct CANBusCB * CANBus);
 // =============================================================================
 // 功能：将CAN总线类型结点挂接到DjyBus根结点。
 // 参数：para,无实际意义。
 // 返回：返回建立的资源结点指针，失败时返回NULL。
 // =============================================================================
-struct Object * ModuleInstall_CANBus()
+struct obj * ModuleInstall_CANBus()
 {
     uint16_t evtt_id;
-    struct Object *CANBusType = NULL;
+    struct obj *CANBusType = NULL;
     CANBusType = DjyBus_BusTypeAdd("CANBusType");
     if(CANBusType==NULL)
     {
@@ -155,7 +152,9 @@ struct Object * ModuleInstall_CANBus()
         debug_printf("CANBUS","Type Added Failed!\r\n");
         return NULL;
     }
-//    CAN_BusShellInstall();
+
+    CAN_BusShellInstall();
+
     return CANBusType;
 }
 
@@ -171,13 +170,15 @@ struct CANBusCB *CAN_BusAdd(struct CanDev *pNewCanDev)
     if(NULL == pNewCanDev)
         goto exit_from_param;
     //避免重复建立同名的CAN总线
-    if(NULL != OBJ_SearchChild(s_ptCANBusType,pNewCanDev->ChipName))
+    if(NULL != obj_search_child(s_ptCANBusType,pNewCanDev->ChipName))
         goto exit_from_readd;
     NewCAN = (struct CANBusCB *)M_Malloc(sizeof(struct CANBusCB),0);
     if(NewCAN == NULL)
         goto exit_from_malloc;
     //将总线结点挂接到总线类型结点的子结点
-    OBJ_AddChild(s_ptCANBusType,NULL,(ptu32_t)NewCAN,pNewCanDev->ChipName);
+    //OBJ_AddChild(s_ptCANBusType,NULL,(ptu32_t)NewCAN,pNewCanDev->ChipName);
+    NewCAN = obj_newchild(s_ptCANBusType, (fnObjOps)-1, 0, (ptu32_t)NewCAN,
+                                    (const char*)(pNewCanDev->ChipName));
     if(&NewCAN->CAN_BusNode == NULL)
         goto exit_from_add_node;
     //创建总线信号量
@@ -212,7 +213,7 @@ exit_from_can_bus_ring_buf:
 exit_from_can_bus_ring:
     free(&NewCAN->CAN_BusSemp);
 exit_from_can_bus_semp:
-    OBJ_Del(&NewCAN->CAN_BusNode);
+    obj_del(&NewCAN->CAN_BusNode);
 exit_from_add_node:
     free(NewCAN);
 exit_from_malloc:
@@ -290,7 +291,7 @@ bool_t CAN_BusDelete(struct CANBusCB *DelCAN)
     bool_t result;
     if(NULL == DelCAN)
          return false;
-    if(NULL == OBJ_Del(&DelCAN->CAN_BusNode))
+    if(obj_del(&DelCAN->CAN_BusNode))
         result = false;
     else
     {
@@ -310,7 +311,7 @@ bool_t CAN_BusDelete_s(struct CANBusCB *DelCAN)
     bool_t result;
     if(NULL == DelCAN)
         return false;
-    if(NULL == OBJ_Del(&DelCAN->CAN_BusNode))
+    if(obj_del(&DelCAN->CAN_BusNode))
         result = false;
     else
     {
@@ -328,7 +329,7 @@ struct CANBusCB* CAN_BusFind(char *BusName)
 {
     if(BusName==NULL)
         return NULL;
-    return (struct CANBusCB*)OBJ_SearchChild(s_ptCANBusType,BusName);
+    return (struct CANBusCB*)obj_search_child(s_ptCANBusType,BusName);
 }
 
 
@@ -623,32 +624,31 @@ void CAN_BusGetStat(struct CANBusCB * CANBus,CanStatDef *CanStat)
 }
 
 
-//struct ShellCmdTab const shell_cmd_can_bus_table[]=
-//{
-//    {
-//            "cbstat",
-//            (bool_t(*)(char*))Sh_CAN_BusStat,
-//            "复位CAN控制器",
-//            "COMMAND:canrst+CAN控制器编号+enter"
-//    },
-//
-//};
-//
-//#define CN_CAN_BUS_SHELL_NUM  sizeof(shell_cmd_can_bus_table)/sizeof(struct ShellCmdTab)
+struct shell_debug const shell_cmd_can_bus_table[]=
+{
+    {
+            "cbstat",
+            (bool_t(*)(char*))cbstat,
+            "复位CAN控制器",
+            "COMMAND:canrst+CAN控制器编号+enter"
+    },
+
+};
+
+#define CN_CAN_BUS_SHELL_NUM  sizeof(shell_cmd_can_bus_table)/sizeof(struct shell_debug)
 //static struct ShellCmdRsc tg_can_bus_shell_cmd_rsc[CN_CAN_BUS_SHELL_NUM];
-//
+
 
 /*******************************************************************************
 功能:CANBUS shell模块加载
 参数:无.
 返回值:1。
 *********************************************************************************/
-//ptu32_t CAN_BusShellInstall(void)
-//{
-//    Sh_InstallCmd(shell_cmd_can_bus_table,tg_can_bus_shell_cmd_rsc,CN_CAN_BUS_SHELL_NUM);
-//    return 1;
-//}
-
+ptu32_t CAN_BusShellInstall(void)
+{
+    shell_debug_add(shell_cmd_can_bus_table, CN_CAN_BUS_SHELL_NUM);
+    return 1;
+}
 
 /*******************************************************************************
 功能:遍历CANBUS总线类型下所有CANBUS总线，依次将各CANBUS统计信息在stdout输出.
@@ -660,9 +660,9 @@ void CAN_BusGetStat(struct CANBusCB * CANBus,CanStatDef *CanStat)
 ADD_TO_SHELL_HELP(cbstat,"COMMAND:canrst+CAN控制器编号+enter");
 ADD_TO_IN_SHELL bool_t cbstat(char *param)
 {
-    struct Object *Object=NULL;
+    struct obj *Object=NULL;
     struct CANBusCB * CANBus;
-    Object=OBJ_TraveChild(s_ptCANBusType,s_ptCANBusType);
+    Object=obj_foreach_child(s_ptCANBusType,s_ptCANBusType);
     if(Object==NULL)
     {
         debug_printf("CANBUS","NO CANBUS Added.\r\n");
@@ -672,7 +672,7 @@ ADD_TO_IN_SHELL bool_t cbstat(char *param)
     {
         CANBus=(struct CANBusCB *)Object;
         __CAN_BusPrintfStat(CANBus);
-        Object=OBJ_TraveChild(s_ptCANBusType,Object);
+        Object=obj_foreach_child(s_ptCANBusType,Object);
     }while(Object!=NULL);
    return true;
 }

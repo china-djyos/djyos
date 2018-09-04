@@ -64,8 +64,6 @@
 #include "stdio.h"
 #include "dbug.h"
 
-#include "newshell.h"
-
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -459,42 +457,43 @@ void MCAN_GetRxDedBuffer(const MCan_ConfigType * mcanConfig,uint8_t buffer,\
 uint32_t MCAN_GetRxFifoBuffer(const MCan_ConfigType * mcanConfig,\
         MCan_FifoType fifo,Mailbox64Type * pRxMailbox );
 static void  __MCANIntInit(void);
-//void Sh_CAN_Reset(void);
-//void Sh_CAN_Stat(void);
-//void Sh_Read_CAN_Reg(void);
-//void Sh_CAN_Pkg(void);
+
+void canrst(void);
+void canstat(void);
+void canreg(void);
+void canpkg(void);
 
 
-//struct ShellCmdTab const shell_cmd_can_table[]=
-//{
-//    {
-//            "canrst",
-//            Sh_CAN_Reset,
-//            "复位CAN控制器",
-//            "COMMAND:canrst+enter"
-//    },
-//    {
-//            "canstat",
-//            Sh_CAN_Stat,
-//            "CAN通信统计",
-//            "COMMAND:canstat+enter"
-//    },
-//    {
-//            "canreg",
-//            Sh_Read_CAN_Reg,
-//            "读取CAN寄存器值",
-//            "COMMAND:canreg+enter"
-//    },
-//    {
-//            "canpkg",
-//            Sh_CAN_Pkg,
-//            "获取CAN最近10次发送/接收报文内容",
-//            "COMMAND:canpkg+enter"
-//    }
-//
-//};
-//
-//#define CN_CAN_SHELL_NUM  sizeof(shell_cmd_can_table)/sizeof(struct ShellCmdTab)
+struct shell_debug const shell_cmd_can_table[]=
+{
+    {
+            "canrst",
+            canrst,
+            "复位CAN控制器",
+            "COMMAND:canrst+enter"
+    },
+    {
+            "canstat",
+            canstat,
+            "CAN通信统计",
+            "COMMAND:canstat+enter"
+    },
+    {
+            "canreg",
+            canreg,
+            "读取CAN寄存器值",
+            "COMMAND:canreg+enter"
+    },
+    {
+            "canpkg",
+            canpkg,
+            "获取CAN最近10次发送/接收报文内容",
+            "COMMAND:canpkg+enter"
+    }
+
+};
+
+#define CN_CAN_SHELL_NUM  sizeof(shell_cmd_can_table)/sizeof(struct shell_debug)
 //static struct ShellCmdRsc tg_can_shell_cmd_rsc[CN_CAN_SHELL_NUM];
 
 
@@ -503,11 +502,11 @@ static void  __MCANIntInit(void);
 参数:无.
 返回值:1。
 *********************************************************************************/
-//ptu32_t MCAN_Shell_Module_Install(void)
-//{
-//    Sh_InstallCmd(shell_cmd_can_table,tg_can_shell_cmd_rsc,CN_CAN_SHELL_NUM);
-//    return 1;
-//}
+ptu32_t MCAN_Shell_Module_Install(void)
+{
+    shell_debug_add(shell_cmd_can_table, CN_CAN_SHELL_NUM);
+    return 1;
+}
 
 /*******************************************************************************
 功能:复位CAN控制器。
@@ -1572,7 +1571,7 @@ bool_t ModuleInstall_CAN(void)
     Ring_Init(gs_RxRingBuf,gs_RxRingBuf->buf,CN_CAN_RX_BUF_SIZE);
     //CAN寄存器初始化(包括设置波特率等)
     MCAN_Init(&mcan1Config);
-//    MCAN_Shell_Module_Install();
+    MCAN_Shell_Module_Install();
     evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,__Can_Monitor,
               CAN_MonitorStack,sizeof(CAN_MonitorStack),"CAN Monitor function");
     if(evtt!=CN_EVTT_ID_INVALID)

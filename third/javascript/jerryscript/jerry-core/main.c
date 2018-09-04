@@ -369,7 +369,7 @@ bool_t jerryTest1 (char *param)
 #include <os.h>
 #include <shell.h>
 
-struct ShellCmdTab  gJsJerryScriptDebug[] =
+struct shell_debug  gJsJerryScriptDebug[] =
 {
     {
         "jerrytest",
@@ -378,8 +378,8 @@ struct ShellCmdTab  gJsJerryScriptDebug[] =
         "usage:jerrytest",
     },
 };
-#define CN_JsJerryScriptDebug_NUM  ((sizeof(gJsJerryScriptDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gJsJerryScriptDebugCmdRsc[CN_JsJerryScriptDebug_NUM];
+#define CN_JsJerryScriptDebug_NUM  ((sizeof(gJsJerryScriptDebug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gJsJerryScriptDebugCmdRsc[CN_JsJerryScriptDebug_NUM];
 // =============================================================================
 // FUNCTION:this is duktape install function
 // PARA  IN:
@@ -389,7 +389,7 @@ static struct ShellCmdRsc gJsJerryScriptDebugCmdRsc[CN_JsJerryScriptDebug_NUM];
 // =============================================================================
 int JerryScript_main(int argc, char *argv[])
 {
-    Sh_InstallCmd(gJsJerryScriptDebug,gJsJerryScriptDebugCmdRsc,CN_JsJerryScriptDebug_NUM);
+    shell_debug_add(gJsJerryScriptDebug, CN_JsJerryScriptDebug_NUM);
     printf("Jerry Installed\n\r");
     return 0;
 }

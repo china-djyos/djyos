@@ -78,14 +78,14 @@ enum _STDIN_INPUT_TYPE_
 //键盘消息数据结构
 struct KeyBoardMsg
 {
-    u32 time;              //按键事件发生时间,ticks数
+    s64 time;              //按键事件发生时间,US数
     u8 key_value[2];       //键值,每个键由2部分组成
 };
 
 //2维鼠标数据结构，即目前最常用的鼠标
 struct Mouse2D_Msg
 {
-    u32 time;                       //鼠标事件发生时间,ticks数
+    s64 time;                       //鼠标事件发生时间,US数
     //指明鼠标事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
     struct DisplayObj *display;
     s32 x,y;                        //表示鼠标指针位置
@@ -95,7 +95,7 @@ struct Mouse2D_Msg
 //3维鼠标数据结构
 struct Mouse3D_Msg
 {
-    u32 time;                       //按键事件发生时间,ticks数
+    s64 time;                       //按键事件发生时间,US数
     //指明鼠标事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
     struct DisplayObj *display;
     s32 x,y,z;                      //表示鼠标指针位置
@@ -105,7 +105,7 @@ struct Mouse3D_Msg
 //单点触摸屏，即最常用的触摸屏
 struct SingleTouchMsg
 {
-    u32 time;              //按键事件发生时间,ticks数
+    s64 time;              //按键事件发生时间,US数
     //指明触摸事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
     struct DisplayObj *display;
     s32 x,y,z;  //x,y表示触摸位置，z>0标志触摸压力，0标志未触摸
@@ -114,13 +114,13 @@ struct SingleTouchMsg
 //多点触摸屏
 struct MultiTouchMsg
 {
-    u32 time;              //按键事件发生时间,ticks数
+    s64 time;              //按键事件发生时间,US数
 };
 
 //区域触摸屏，表示被触摸的是一个区域。
 struct AreaTouchMsg
 {
-    u32 time;              //按键事件发生时间,ticks数
+    s64 time;              //按键事件发生时间,US数
 };
 
 union un_input_data
@@ -142,7 +142,7 @@ struct InputDeviceMsg
 
 struct HMI_InputDeviceObj
 {
-    struct Object *HostObj;
+    struct obj *HostObj;
     enum _STDIN_INPUT_TYPE_ input_type;   //输入设备类型
     s32 device_id;                      //输入设备id
     u32 input_counter;                  //本输入设备累计输入了多少消息

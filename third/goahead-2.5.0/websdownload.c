@@ -287,7 +287,7 @@ static bool_t WebsUpdate(char *param)
 
 
 #include "shell.h"
-static struct ShellCmdTab  gWebsDownload[] =
+static struct shell_debug gWebsDownload[] =
 {
     {
         "setserver",
@@ -328,8 +328,8 @@ static struct ShellCmdTab  gWebsDownload[] =
     }
 };
 
-#define CN_WEBSDOWNLOAD_CMDNUM  ((sizeof(gWebsDownload))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gWebsDownloadRsc[CN_WEBSDOWNLOAD_CMDNUM];
+#define CN_WEBSDOWNLOAD_CMDNUM  ((sizeof(gWebsDownload))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gWebsDownloadRsc[CN_WEBSDOWNLOAD_CMDNUM];
 bool_t ModuleInstall_WebsDownload(void)
 {
     bool_t result = false;
@@ -340,7 +340,7 @@ bool_t ModuleInstall_WebsDownload(void)
         return result;
     }
 
-    result = Sh_InstallCmd(gWebsDownload,gWebsDownloadRsc,CN_WEBSDOWNLOAD_CMDNUM);
+    shell_debug_add(gWebsDownload, CN_WEBSDOWNLOAD_CMDNUM);
 
     return result;
 }

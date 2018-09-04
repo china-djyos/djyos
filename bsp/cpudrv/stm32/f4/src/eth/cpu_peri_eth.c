@@ -15,7 +15,7 @@
 #include <cpu_peri.h>
 #include <board-config.h>
 #include "dbug.h"
-#include "newshell.h"
+#include "shell.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_eth.h"
 
@@ -763,73 +763,73 @@ ADD_TO_IN_SHELL bool_t macsnddis(char *param)
     return true;
 }
 
-#include <shell.h>
-//static struct ShellCmdTab  gMacDebug[] =
-//{
+static struct shell_debug  gMacDebug[] =
+{
+    {
+        "mac",
+        mac,
+        "usage:mac",
+        NULL
+    },
+    {
+        "macreg",
+        macreg,
+        "usage:macreg",
+        NULL
+    },
 //    {
-//        "mac",
-//        macdebuginfo,
-//        "usage:gmac",
+//        "macpost",
+//        gmacpost,
+//        "usage:gmacpost",
 //        NULL
 //    },
 //    {
-//        "macreg",
-//        MacReg,
-//        "usage:MacReg",
-//        NULL
-//    },
-////    {
-////        "macpost",
-////        gmacpost,
-////        "usage:gmacpost",
-////        NULL
-////    },
-////    {
-////        "macrcvbd",
-////        gmacrcvbdcheck,
-////        "usage:gmacrcvbd",
-////        NULL
-////    },
-////    {
-////        "macsndbd",
-////        gmacsndbdcheck,
-////        "usage:gmacsndbd",
-////        NULL
-////    },
-//    {
-//        "macreset",
-//        MacReset,
-//        "usage:reset gmac",
-//        NULL
-//    },
-////    {
-////        "macdelay",
-////        MacDelay,
-////        "usage:MacDelay",
-////        NULL
-////    },
-////    {
-////        "macsndbdclear",
-////        MacSndBDClear,
-////        "usage:MacSndBdClear + ndnum",
-////        NULL
-////    }
-//    {
-//        "macsnden",
-//        MacSndEn,
-//        "usage:MacSndEn",
+//        "macrcvbd",
+//        gmacrcvbdcheck,
+//        "usage:gmacrcvbd",
 //        NULL
 //    },
 //    {
-//        "macsnddis",
-//        MacSndDis,
-//        "usage:MacSndDis",
+//        "macsndbd",
+//        gmacsndbdcheck,
+//        "usage:gmacsndbd",
 //        NULL
 //    },
-//};
-//
-//#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
+    {
+        "macreset",
+        macreset,
+        "usage:reset gmac",
+        NULL
+    },
+//    {
+//        "macdelay",
+//        MacDelay,
+//        "usage:MacDelay",
+//        NULL
+//    },
+//    {
+//        "macsndbdclear",
+//        MacSndBDClear,
+//        "usage:MacSndBdClear + ndnum",
+//        NULL
+//    }
+    {
+        "macsnden",
+        macsnden,
+        "usage:macsnden",
+        NULL
+    },
+    {
+        "macsnddis",
+        macsnddis,
+        "usage:macsnddis",
+        NULL
+    },
+};
+
+#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
+
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -919,7 +919,8 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_IsrConnect(CN_INT_LINE_ETH,ETH_IntHandler);
         Int_ContactLine(CN_INT_LINE_ETH);
     }
-//    Sh_InstallCmd(gMacDebug,gMacDebugCmdRsc,CN_GMACDEBUG_NUM);
+
+    shell_debug_add(gMacDebug, CN_GMACDEBUG_NUM);
     info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

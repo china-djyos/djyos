@@ -60,7 +60,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    s32 ModuleInstall_YAF2(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS, CFG_ECC)
+//    extern s32 ModuleInstall_YAF2(const char *target, const char *source, u32 dwOpt, void *data);
+//    s32 ModuleInstall_YAF2(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS, CFG_ECC);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

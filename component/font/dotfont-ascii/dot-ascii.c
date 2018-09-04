@@ -71,77 +71,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    #if CFG_ASCII_8X8 == 1
-//    extern bool_t ModuleInstall_FontAscii8x8(void);
-//    ModuleInstall_FontAscii8x8( );
-//    #endif      //CFG_ASCII_8X8 == 1
-//    #if CFG_ASCII_6X12 == 1
-//    extern bool_t ModuleInstall_FontAscii6x12(void);
-//    ModuleInstall_FontAscii6x12( );
-//    #endif      //CFG_ASCII_6X12 == 1
-//
-//    #if CFG_ASCII_8X16_SONG == 1
-//    extern bool_t ModuleInstall_FontAscii8x16(void);
-//    ModuleInstall_FontAscii8x16( );
-//    #endif      //CFG_ASCII_8X16_SONG == 1
-//    #if CFG_ASCII_8X16_YUAN == 1
-//    extern bool_t ModuleInstall_FontAscii8x16yuan(void);
-//    ModuleInstall_FontAscii8x16yuan( );
-//    #endif      //CFG_ASCII_8X16_YUAN == 1
-//    #if CFG_ASCII_8X16_KAI == 1
-//    extern bool_t ModuleInstall_FontAscii8x16kai(void);
-//    ModuleInstall_FontAscii8x16kai( );
-//    #endif      //CFG_ASCII_8X16_KAI == 1
-//    #if CFG_ASCII_8X16_HEI == 1
-//    extern bool_t ModuleInstall_FontAscii8x16hei(void);
-//    ModuleInstall_FontAscii8x16hei( );
-//    #endif      //CFG_ASCII_8X16_HEI == 1
-//    #if CFG_ASCII_8X16_FANG == 1
-//    extern bool_t ModuleInstall_FontAscii8x16fang(void);
-//    ModuleInstall_FontAscii8x16fang( );
-//    #endif      //CFG_ASCII_8X16_FANG == 1
-//
-//    #if CFG_ASCII_12X24_SONG == 1
-//    extern bool_t ModuleInstall_FontAscii12x24(void);
-//    ModuleInstall_FontAscii12x24( );
-//    #endif      //CFG_ASCII_12X24_SONG == 1
-//    #if CFG_ASCII_12X24_YUAN == 1
-//    extern bool_t ModuleInstall_FontAscii12x24yuan(void);
-//    ModuleInstall_FontAscii12x24yuan( );
-//    #endif      //CFG_ASCII_12X24_YUAN == 1
-//    #if CFG_ASCII_12X24_KAI == 1
-//    extern bool_t ModuleInstall_FontAscii12x24kai(void);
-//    ModuleInstall_FontAscii12x24kai( );
-//    #endif      //CFG_ASCII_12X24_KAI == 1
-//    #if CFG_ASCII_12X24_HEI == 1
-//    extern bool_t ModuleInstall_FontAscii12x24hei(void);
-//    ModuleInstall_FontAscii12x24hei( );
-//    #endif      //CFG_ASCII_12X24_HEI == 1
-//    #if CFG_ASCII_12X24_FANG == 1
-//    extern bool_t ModuleInstall_FontAscii12x24fang(void);
-//    ModuleInstall_FontAscii12x24fang( );
-//    #endif      //CFG_ASCII_12X24_FANG == 1
-//
-//    #if CFG_ASCII_16X32_SONG == 1
-//    extern bool_t ModuleInstall_FontAscii16x32(void);
-//    ModuleInstall_FontAscii16x32( );
-//    #endif      //CFG_ASCII_16X32_SONG == 1
-//    #if CFG_ASCII_16X32_YUAN == 1
-//    extern bool_t ModuleInstall_FontAscii16x32yuan(void);
-//    ModuleInstall_FontAscii16x32yuan( );
-//    #endif      //CFG_ASCII_16X32_YUAN == 1
-//    #if CFG_ASCII_16X32_KAI == 1
-//    extern bool_t ModuleInstall_FontAscii16x32kai(void);
-//    ModuleInstall_FontAscii16x32kai( );
-//    #endif      //CFG_ASCII_16X32_KAI == 1
-//    #if CFG_ASCII_16X32_HEI == 1
-//    extern bool_t ModuleInstall_FontAscii16x32hei(void);
-//    ModuleInstall_FontAscii16x32hei( );
-//    #endif      //CFG_ASCII_16X32_HEI == 1
-//    #if CFG_ASCII_16X32_FANG == 1
-//    extern bool_t ModuleInstall_FontAscii16x32fang(void);
-//    ModuleInstall_FontAscii16x32fang( );
-//    #endif      //CFG_ASCII_16X32_FANG == 1
+//	extern void ModuleInstall_FontAscii(void);
+//	ModuleInstall_FontAscii();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -796,4 +727,78 @@ bool_t ModuleInstall_FontAscii16x32(void)
 
 #endif      //CFG_ASCII_16X32_FANG == 1
 
+
+void ModuleInstall_FontAscii(void)
+{
+#if CFG_ASCII_8X8 == 1
+	extern bool_t ModuleInstall_FontAscii8x8(void);
+	ModuleInstall_FontAscii8x8( );
+#endif		//CFG_ASCII_8X8 == 1
+#if CFG_ASCII_6X12 == 1
+	extern bool_t ModuleInstall_FontAscii6x12(void);
+	ModuleInstall_FontAscii6x12( );
+#endif		//CFG_ASCII_6X12 == 1
+#if CFG_ASCII_8X16_SONG == 1
+	extern bool_t ModuleInstall_FontAscii8x16(void);
+	ModuleInstall_FontAscii8x16( );
+#endif		//CFG_ASCII_8X16_SONG == 1
+#if CFG_ASCII_8X16_YUAN == 1
+	extern bool_t ModuleInstall_FontAscii8x16yuan(void);
+	ModuleInstall_FontAscii8x16yuan( );
+#endif		//CFG_ASCII_8X16_YUAN == 1
+#if CFG_ASCII_8X16_KAI == 1
+	extern bool_t ModuleInstall_FontAscii8x16kai(void);
+	ModuleInstall_FontAscii8x16kai( );
+#endif		//CFG_ASCII_8X16_KAI == 1
+#if CFG_ASCII_8X16_HEI == 1
+	extern bool_t ModuleInstall_FontAscii8x16hei(void);
+	ModuleInstall_FontAscii8x16hei( );
+#endif		//CFG_ASCII_8X16_HEI == 1
+#if CFG_ASCII_8X16_FANG == 1
+	extern bool_t ModuleInstall_FontAscii8x16fang(void);
+	ModuleInstall_FontAscii8x16fang( );
+#endif		//CFG_ASCII_8X16_FANG == 1
+#if CFG_ASCII_12X24_SONG == 1
+	extern bool_t ModuleInstall_FontAscii12x24(void);
+	ModuleInstall_FontAscii12x24( );
+#endif		//CFG_ASCII_12X24_SONG == 1
+#if CFG_ASCII_12X24_YUAN == 1
+	extern bool_t ModuleInstall_FontAscii12x24yuan(void);
+	ModuleInstall_FontAscii12x24yuan( );
+#endif		//CFG_ASCII_12X24_YUAN == 1
+#if CFG_ASCII_12X24_KAI == 1
+	extern bool_t ModuleInstall_FontAscii12x24kai(void);
+	ModuleInstall_FontAscii12x24kai( );
+#endif		//CFG_ASCII_12X24_KAI == 1
+#if CFG_ASCII_12X24_HEI == 1
+	extern bool_t ModuleInstall_FontAscii12x24hei(void);
+	ModuleInstall_FontAscii12x24hei( );
+#endif		//CFG_ASCII_12X24_HEI == 1
+#if CFG_ASCII_12X24_FANG == 1
+	extern bool_t ModuleInstall_FontAscii12x24fang(void);
+	ModuleInstall_FontAscii12x24fang( );
+#endif		//CFG_ASCII_12X24_FANG == 1
+#if CFG_ASCII_16X32_SONG == 1
+	extern bool_t ModuleInstall_FontAscii16x32(void);
+	ModuleInstall_FontAscii16x32( );
+#endif		//CFG_ASCII_16X32_SONG == 1
+#if CFG_ASCII_16X32_YUAN == 1
+	extern bool_t ModuleInstall_FontAscii16x32yuan(void);
+	ModuleInstall_FontAscii16x32yuan( );
+#endif		//CFG_ASCII_16X32_YUAN == 1
+#if CFG_ASCII_16X32_KAI == 1
+	extern bool_t ModuleInstall_FontAscii16x32kai(void);
+	ModuleInstall_FontAscii16x32kai( );
+#endif		//CFG_ASCII_16X32_KAI == 1
+#if CFG_ASCII_16X32_HEI == 1
+	extern bool_t ModuleInstall_FontAscii16x32hei(void);
+	ModuleInstall_FontAscii16x32hei( );
+#endif		//CFG_ASCII_16X32_HEI == 1
+#if CFG_ASCII_16X32_FANG == 1
+	extern bool_t ModuleInstall_FontAscii16x32fang(void);
+	ModuleInstall_FontAscii16x32fang( );
+#endif		//CFG_ASCII_16X32_FANG == 1
+
+
+}
 

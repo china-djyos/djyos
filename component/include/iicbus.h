@@ -140,7 +140,7 @@ struct IIC_Param
 //IIC总线器件结构体
 struct IIC_Device
 {
-    struct Object         *HostObj;                 //宿主对象
+    struct obj         *HostObj;                 //宿主对象
 
     u8 DevAddr;                 //七位的器件地址,最低的0~2bit可能是器件内部地址。
     u8 BitOfMemAddrInDevAddr;   //器件地址中内部地址所占比特位数
@@ -157,7 +157,7 @@ struct IICBuf
 //IIC总线控制块结构体,本模块可见
 struct IIC_CB
 {
-    struct Object           *HostObj;               //宿主对象
+    struct obj           *HostObj;               //宿主对象
     struct IICBuf           IIC_Buf;                //缓冲区,用于异步发送
     struct SemaphoreLCB     *IIC_BusSemp;           //IIC总线保护信号量
     struct SemaphoreLCB     *IIC_BufSemp;           //简易缓冲区保护信号量

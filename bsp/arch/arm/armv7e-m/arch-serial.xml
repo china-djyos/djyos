@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Families>
+    <family>/cortex-m4</family>
+    <family>/cortex-m7</family>
+</Families>

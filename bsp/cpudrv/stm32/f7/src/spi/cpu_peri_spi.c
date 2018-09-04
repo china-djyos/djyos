@@ -63,23 +63,23 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    bool_t SPI_Init(u8 SPI_port);
-//    #if (cpu_peri_spi1==true)
-//    SPI_Init(CN_SPI1);
+//    #if CFG_SPI1_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI1);
 //    #endif
-//    #if( cpu_peri_spi2==true)
-//    SPI_Init(CN_SPI2)
+//    #if CFG_SPI2_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI2)
 //    #endif
-//    #if( cpu_peri_spi3==true)
-//    SPI_Init(CN_SPI3);
+//    #if CFG_SPI3_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI3);
 //    #endif
-//    #if( cpu_peri_spi4==true)
-//    SPI_Init(CN_SPI4);
+//    #if CFG_SPI4_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI4);
 //    #endif
-//    #if (cpu_peri_spi5==true)
-//    SPI_Init(CN_SPI5);
+//    #if CFG_SPI5_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI5);
 //    #endif
-//    #if(cpu_peri_spi6==true)
-//    SPI_Init(CN_SPI6);
+//    #if CFG_SPI6_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI6);
 //    #endif
 
 //%$#@end initcode  ****初始化代码结束

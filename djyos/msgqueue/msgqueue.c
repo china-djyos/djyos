@@ -106,7 +106,7 @@
 //@#$%component end configure
 
 
-static struct Object *s_ptMsgQ_Dir;
+static struct obj *s_ptMsgQ_Dir;
 static struct MutexLCB s_tMsgQ_Mutex;
 
 //----初始化-------------------------------------------------------------------
@@ -116,11 +116,15 @@ static struct MutexLCB s_tMsgQ_Mutex;
 //-----------------------------------------------------------------------------
 bool_t ModuleInstall_MsgQ (void)
 {
-    s_ptMsgQ_Dir = OBJ_AddChild(OBJ_Root(), NULL, 0, "消息队列目录");
-    if(s_ptMsgQ_Dir)
-        return false;
-    Lock_MutexCreate_s(&s_tMsgQ_Mutex,"消息队列");
-    return true;
+    s_ptMsgQ_Dir = obj_newchild_set(objsys_root(), "message queue", (fnObjOps)-1, 0, 0 );
+    if(!s_ptMsgQ_Dir)
+    {
+        error_printf("module","message queue");
+        return (FALSE);
+    }
+
+    Lock_MutexCreate_s(&s_tMsgQ_Mutex, "消息队列");
+    return (TRUE);
 }
 
 //----创建一个消息队列---------------------------------------------------------
@@ -135,12 +139,12 @@ bool_t ModuleInstall_MsgQ (void)
 struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
 {
     struct MsgQueue *MQ;
-    struct Object *MQ_Obj;
+    struct obj *MQ_Obj;
     //分配内存，同时分配消息队列控制块和存储消息的内存。
     MQ = M_Malloc(sizeof(struct MsgQueue)+MsgLength*MaxMsgs,0);
     if(MQ != NULL)
     {
-        MQ_Obj = OBJ_AddChild(s_ptMsgQ_Dir, NULL, (ptu32_t)MQ, "消息队列");
+        MQ_Obj = obj_newchild(s_ptMsgQ_Dir, (fnObjOps)-1, 0, (ptu32_t)MQ, NULL);
         if(MQ_Obj)
         {
             MQ->HostObj = MQ_Obj;
@@ -198,7 +202,7 @@ bool_t MsgQ_Delete(struct MsgQueue *pMsgQ)
         }
         else
         {
-            OBJ_Del(pMsgQ->HostObj);          //删除信号量结点
+            obj_del(pMsgQ->HostObj);          //删除信号量结点
             Lock_SempDelete_s(&(pMsgQ->MsgSendSemp));
             Lock_SempDelete_s(&(pMsgQ->MsgRecvSemp));
             free(pMsgQ);

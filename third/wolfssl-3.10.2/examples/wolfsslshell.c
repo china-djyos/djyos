@@ -159,7 +159,7 @@ static bool_t __CryptStart(char *param)
 }
 
 #include <shell.h>
-static struct ShellCmdTab  gWolfSSLDebugCmd[] =
+static struct shell_debug  gWolfSSLDebugCmd[] =
 {
     {
         "wolfclient",
@@ -181,16 +181,15 @@ static struct ShellCmdTab  gWolfSSLDebugCmd[] =
     },
 };
 
-#define CN_WolfSSLDebug_CMDNUM  ((sizeof(gWolfSSLDebugCmd))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gWolfSSLDebugCmdRsc[CN_WolfSSLDebug_CMDNUM];
+#define CN_WolfSSLDebug_CMDNUM  ((sizeof(gWolfSSLDebugCmd))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gWolfSSLDebugCmdRsc[CN_WolfSSLDebug_CMDNUM];
 
 int WolfSSL(void)
 {
-    bool_t result = false;
-
     //add some debug info for the mqtt app
-    result = Sh_InstallCmd(gWolfSSLDebugCmd,gWolfSSLDebugCmdRsc,CN_WolfSSLDebug_CMDNUM);
+    if(CN_WolfSSLDebug_CMDNUM==shell_debug_add(gWolfSSLDebugCmd, CN_WolfSSLDebug_CMDNUM))
+        return (TRUE);
 
-    return result;
+    return (FALSE);
 }
 

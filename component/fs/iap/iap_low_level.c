@@ -49,280 +49,139 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <math.h>
 #include <misc.h>
 #include <systime.h>
-#include <lock.h>
-#include "dbug.h"
-#include <device/flash/flash.h>
-
-struct __LowLevel{
-    u32 StartPage;
-    u32 EndPage;
-    u32 PageBytes;
-    u32 EraseBytes;
-    s32 (*WritePage)(u32 PageNo, u8 *Data, u32 Flags);
-    s32 (*ReadPage)(u32 PageNo, u8 *Data, u32 Flags);
-    s32 (*Erase)(u32 dwSector); // 也可以是block
-    s32 (*GetSector)(u32 dwPage, u32 *pRemain, u32 *pSector); // 也可以是block
-    struct MutexLCB *Lock;
-    u8 *Buf;
-//    u8 bCRC;
-};
-
-extern u32 gc_pAppRange; // 来自于LDS定义
-extern u32 gc_pAppOffset; // 来自于LDS定义
-// ============================================================================
-// 功能：IAP的volume初始化
-// 参数：pDev -- flash设备
-//      pBase -- 返回IAP在volume的偏置。
-// 返回：IAP的volume
-// 备注：TODO: 进一步完善配置校验
-// ============================================================================
-void *LowLevelInit(void *pDev, u32 *pBase, u32 *pBufSize)
-{
-    struct __LowLevel *LowLevel;
-    u32 left;
-    struct FlashChip *flash = (struct FlashChip*)pDev;
-    u32 capacity = gc_pAppRange; // IAP空间在FLASH的大小
-    u32 offset = gc_pAppOffset; // IAP空间在FLASH的起始偏置(地址)
-    u32 round = 0;
-
-    if(F_ALIEN == flash->Type)
-    {
-        if(offset < flash->Descr.Embd.MappedStAddr)
-        {
-            error_printf("iapfs","low level offset is wrong.");
-            return (NULL);
-        }
-
-        offset = offset - flash->Descr.Embd.MappedStAddr;
-    }
-    else
-    {
-        offset = 0;
-    }
-
-    if(offset % flash->dwPageBytes) // 地址页对齐校验
-    {
-        error_printf("iapfs","low level offset should be a page size rounded.");
-        return (NULL);
-    }
-
-    offset = offset / flash->dwPageBytes; // 将地址转成页序号，即起始页
-    if(offset < flash->dwPagesReserved)
-    {
-        offset = flash->dwPagesReserved;
-    }
-
-    left = flash->dwTotalPages - offset; // TODO:这里的逻辑要改掉
-
-    if(capacity % flash->dwPageBytes)
-        round    = 1; // 容量页对齐
-
-    capacity = capacity / flash->dwPageBytes - round; // 转换为页号
-    if(!capacity || (capacity > left ))
-    {
-        info_printf("iapfs","the settings of range (%xH) is not available, adjust to (%xH).",
-                capacity, left);
-        capacity = left;
-    }
-
-    LowLevel = malloc(sizeof(struct __LowLevel));
-    if(!LowLevel)
-        return (NULL);
-
-    LowLevel->StartPage = offset;
-    LowLevel->EndPage = capacity + offset - 1; // 页号从零计
-    LowLevel->PageBytes = flash->dwPageBytes;
-    LowLevel->WritePage = flash->Ops.WrPage;
-    LowLevel->ReadPage = flash->Ops.RdPage;
-    LowLevel->Erase = flash->Ops.ErsBlk;
-    LowLevel->GetSector = flash->Ops.PageToBlk;
-#if 0
-    if(F_ALIEN == flash->Type)
-    {
-        LowLevel->bCRC = 1;
-    }
-    else
-    {
-        LowLevel->bCRC = 0;
-    }
-#endif
-    if(flash->Lock)
-    {
-        LowLevel->Lock = (struct MutexLCB*)flash->Lock;
-    }
-    else
-    {
-        free(LowLevel);
-        return (NULL); // 失败，驱动必须提供互斥锁
-    }
-
-        
-    if(flash->Buf)
-    {
-        LowLevel->Buf = flash->Buf;
-    }
-    else
-    {
-        free(LowLevel);
-        return (NULL); // 失败，驱动必须提供缓冲
-    }    
-
-    *pBase = 0; //
-    *pBufSize = flash->dwPageBytes;
-    info_printf("iapfs"," ");
-    if(F_ALIEN == flash->Type)
-    {
-        info_printf("iapfs","embedded flash");
-    }
-    else if(F_NOR == flash->Type)
-    {
-        info_printf("iapfs","nor flash");
-    }
-    else if(F_NAND == flash->Type)
-    {
-        info_printf("iapfs","nand flash");
-    }
-    else
-    {
-        info_printf("iapfs","unknown");
-    }
-
-    info_printf("iapfs","%d bytes/page", LowLevel->PageBytes);
-    info_printf("iapfs","ranges %d pages(from page no.%d to %d).", (LowLevel->EndPage-LowLevel->StartPage),
-            LowLevel->StartPage, LowLevel->EndPage);
-
-    return ((void*)LowLevel);
-}
-
-// ============================================================================
-// 功能：IAP的volume卸载
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-void LowLevelDeInit(void *LowLevel)
-{
-    free(LowLevel);
-}
-
-// ============================================================================
-// 功能：页偏置
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static u32 __PageFix(struct __LowLevel *LowLevel, u32 PageNo)
-{
-    return (PageNo + LowLevel->StartPage);
-}
+#include <device/flash/flash.h> // will be obsolete
+#include <device/include/unit_media.h>
 
 // ============================================================================
 // 功能：写数据
-// 参数：LowLevel -- IAP的volume
-//      Buf -- 数据缓冲
-//        Bytes -- 写字节数
-//        Addr -- 数据地址
-// 返回：实际写入的字节数
-// 备注：
+// 参数：ll -- IAP的volume
+//      data -- 数据缓冲
+//      bytes -- 写字节数，不会超过一个缓存大小；
+//      pos -- 数据地址
+// 返回：成功（0）；失败（-1）；将要没有可写空间（-2）；
+// 备注：当写到最后一个unit时，会尝试擦除
 // ============================================================================
-s32 LowLevelWrite(void *pLowLevel, u8 *pBuf, u32 dwBytes, u32 dwAddr)
+s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
 {
-    u32 i,j, page, offset, bytesToWr, once, remain, sector;
-    s32 ret;
-    struct __LowLevel *LL = (struct __LowLevel *)pLowLevel;
-    u8 *data = (u8*)pBuf;
+    struct umedia *um = (struct umedia *)ll;
+    u32 j, offset, once, more;
+    s32 left;
+    s64 unit;
 
-    bytesToWr = dwBytes;
-    Lock_MutexPend(LL->Lock, CN_TIMEOUT_FOREVER);
-    page = dwAddr / LL->PageBytes;
-    page = __PageFix(LL, page);
-    offset = dwAddr % LL->PageBytes;
-    while(bytesToWr > 0)
+    left = bytes;
+    unit = (pos >> um->usz) + um->ustart;
+    offset = pos & ((1 << um->usz)-1); // unit内偏移
+    um->mreq(lock, CN_TIMEOUT_FOREVER);
+    while(left>0)
     {
+#if 0
         // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
         // (page+1)用于防止格式化了不属于IAP的空间
-        LL->GetSector(page, &remain, &sector);
-        if((!remain) && ((page+1) < LL->EndPage))
-            LL->Erase(sector+1); // 不管有没有擦除成功，因为如果后续写入的话，会有回读校验
-
-        once = MIN((LL->PageBytes - offset), bytesToWr);
-        if(once != LL->PageBytes)
+        um->mreq(remain, (ptu32_t)&more, &unit);
+        if(!more)
         {
-            ret = LL->ReadPage(page, LL->Buf, NO_ECC);
-            if(!ret)
-                goto __WRITE_FAILURE; //
-
-            // 做简单的检查
-            for(i = offset, j = 0; i < (offset + once); i++, j++)
+            // +1是表示当前unit的后面一个
+            if(((unit-um->ustart+1)<<um->usz)<um->asz)
             {
-                if((0xFF != LL->Buf[i]) && (LL->Buf[i] != data[j]))
+                struct uesz sz = {0};
+                sz.unit = 1;
+                um->merase(unit+1, sz); // 不管有没有擦除成功，因为如果后续写入的话，会有回读校验
+            }
+        }
+#endif
+        if(um->mread(unit, um->ubuf, um->opt))
+        {
+            um->mreq(unlock, 0); //
+            return (-1);
+        }
+
+        once = 1<<um->usz;
+        if(left<(s32)once)
+            once = left;
+
+        for(j=0; j<(once); j++)
+        {
+            if(um->ubuf[j+offset]!=data[j])
+            {
+                if(0xFF!=um->ubuf[j+offset])
                 {
-                    error_printf("iapfs","data (%xH)(in flash, page:%xH, offset:%xH) cannot be rewrote to (%xH) for safety.",
-                             LL->Buf[i], page, i, data[j]);
-                    goto __WRITE_FAILURE; //
+                    um->mreq(unlock, 0);
+                    return (-1);
                 }
             }
         }
 
-        memcpy((LL->Buf + offset), data, once);
-        ret = LL->WritePage(page, LL->Buf, NO_ECC);
-        if(ret != LL->PageBytes)
-            goto __WRITE_FAILURE;
+        memcpy((um->ubuf + offset), data, once);
+        if(um->mwrite(unit, um->ubuf, um->opt))
+        {
+            um->mreq(unlock, 0);
+            return (-1);
+        }
 
-        bytesToWr -= once;
+        left -= once;
         offset = 0;
-        page++;
         data += once;
+        if(left)
+            unit++;
     }
 
-__WRITE_FAILURE:
-    Lock_MutexPost(LL->Lock);    
-    
-    return ((s32)(dwBytes - bytesToWr));
+    // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
+    // (page+1)用于防止格式化了不属于IAP的空间
+    um->mreq(remain, (ptu32_t)&more, &unit);
+    if(!more)
+    {
+        // +1是表示当前unit的后面一个
+        if(((unit-um->ustart+1)<<um->usz)<um->asz)
+        {
+            return (-2);
+        }
+    }
+
+    um->mreq(unlock, 0); //
+    return (0);
 }
 
 // ============================================================================
 // 功能：读数据
-// 参数：LowLevel -- IAP的volume
-//       Buf -- 数据缓冲
-//       Bytes -- 读字节数
-//        Addr -- 数据地址
-// 返回：实际读到的字节数
-// 备注：
+// 参数：ll -- IAP的volume
+//      data -- 数据缓冲
+//      bytes -- 读字节数
+//      pos -- 数据地址
+// 返回：成功（0）；失败（-1）；
+// 备注：单次也就只会读一个unit，目前
 // ============================================================================
-s32 LowLevelRead(void *LowLevel, u8 *Buf, u32 Bytes, u32 Addr)
+s32 __ll_read(void *ll, u8 *data, u32 bytes, u32 pos)
 {
-    s32 Ret;
-    u32 PageNo, Offset;
-    u32 LenToRd, OnceToRd;
-    struct __LowLevel *LL = (struct __LowLevel *)LowLevel;
-    u8 *DataBuf = (u8*)Buf;
+    struct umedia *um = (struct umedia *)ll;
+    s64 unit;
+    u32 offset;
+    s32 left = bytes, once;
 
-    LenToRd = Bytes;
-    Lock_MutexPend(LL->Lock, CN_TIMEOUT_FOREVER);
-    PageNo = Addr / LL->PageBytes;
-    PageNo = __PageFix(LL, PageNo);
-    Offset = Addr % LL->PageBytes;
-    while(LenToRd > 0)
+    unit = (pos >> um->usz) + um->ustart;
+    offset = pos & ((1 << um->usz) - 1); // unit内偏移
+    um->mreq(lock, CN_TIMEOUT_FOREVER);
+    while(left>0)
     {
-        OnceToRd = MIN((LL->PageBytes - Offset), LenToRd);
-        Ret = LL->ReadPage(PageNo, LL->Buf, NO_ECC);
-        if(!Ret)
-            goto FAILURE; //
+        once = MIN(((1 << um->usz) - offset), left);
+        if(um->mread(unit, um->ubuf, um->opt))
+        {
+            um->mreq(unlock, 0); //
+            return (-1);
+        }
 
-        memcpy(DataBuf, (LL->Buf + Offset), OnceToRd);
-        LenToRd -= OnceToRd;
-        Offset = 0;
-        PageNo++;
-        DataBuf += OnceToRd;
+        memcpy(data, (um->ubuf + offset), once);
+        left -= once;
+        offset = 0;
+        unit++;
+        data += once;
     }
 
-FAILURE:
-    Lock_MutexPost(LL->Lock);
-    return((s32)(Bytes - LenToRd));
+    um->mreq(unlock, 0); //
+    return (0);
 }
 
 // ============================================================================
@@ -330,91 +189,43 @@ FAILURE:
 // 参数：pLowLevel -- IAP的volume
 //       dwBytes -- 字节数
 //       dwAddr -- 数据地址
-// 返回：实际写入的字节数
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 LowLevelErase(void *pLowLevel, u32 dwBytes, u32 dwAddr)
+s32 __ll_erase(void *ll, u32 bytes, u32 pos)
 {
-    s32 res;
-    u32 pageNo;
-    u32 remain;
-    u32 sectorNo;
-    u32 offset;
-    u32 bytesLeft = dwBytes;
-    struct __LowLevel *LL = (struct __LowLevel *)pLowLevel;
-    
-    Lock_MutexPend(LL->Lock, CN_TIMEOUT_FOREVER);
-    offset = dwAddr % LL->PageBytes;
-    while(bytesLeft)
+    struct umedia *um = (struct umedia *)ll;
+    struct uesz esz = {0};
+    s64 unit;
+    u32 erases, offset;
+    s32 left = bytes;
+
+    esz.unit = 1;
+    unit = (pos >> um->usz) + um->ustart;
+    offset = pos & ((1 << um->usz)-1); // unit内偏移
+    um->mreq(lock, CN_TIMEOUT_FOREVER);
+    while(left>0)
     {
-        pageNo = dwAddr / LL->PageBytes;
-        pageNo = __PageFix(LL, pageNo);
-        LL->GetSector(pageNo, &remain, &sectorNo);
-        res = LL->Erase(sectorNo);
-        if(res)
+        if(um->mreq(remain, (ptu32_t)&erases, (ptu32_t)&unit))
         {
-            error_printf("iapfs","erase sector %d failed.", sectorNo);
-            break;
+            printf("\r\n: erro : iapfs  : erase unit %lld failed, cannot get remain.", unit);
+            return (-1);
         }
-            
-        if(bytesLeft < (remain) * LL->PageBytes)
-            bytesLeft = 0;
-        else    
-            bytesLeft -= ((remain) * LL->PageBytes - offset);
-        
-        dwAddr += (remain * LL->PageBytes - offset);
+
+        if(um->merase(unit, esz))
+        {
+            printf("\r\n: erro : iapfs  : erase unit %lld failed, with erases %d.", unit, erases);
+            return (-1);
+        }
+
+        erases++; // 擦除增一，表示包括当前的unit
+        left -= ((erases << um->usz) - offset);
+        unit += erases;
         offset = 0;
     }
-    Lock_MutexPost(LL->Lock);
-    return (dwBytes - bytesLeft);
+
+    return (0);
 }
-
-// ============================================================================
-// 功能：格式化IAP的volume空间
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-s32 LowLevelFormat(void *pLowLevel)
-{
-    s32 res;
-    u32 page;
-    u32 pagesLeft;
-    u32 remain;
-    u32 sector;
-    u8 advance = 0;
-    struct __LowLevel *LL = (struct __LowLevel *)pLowLevel;
-
-    pagesLeft = LL->EndPage - LL->StartPage + 1; // 页号从零计
-    page = LL->StartPage;
-    Lock_MutexPend(LL->Lock, CN_TIMEOUT_FOREVER);
-    while(pagesLeft)
-    {
-        LL->GetSector(page, &remain, &sector);
-        res = LL->Erase(sector);
-        if(res)
-            break;
-
-        if(pagesLeft < (remain))
-            pagesLeft = 0;
-        else
-            pagesLeft -= (remain);
-
-        page += remain;
-
-        switch(advance)
-        {
-        case 0 : info_printf("iapfs","\b\b\b.  ");advance = 1;break;
-        case 1 : info_printf("iapfs","\b\b\b.. ");advance = 2;break;
-        case 2 : info_printf("iapfs","\b\b\b...");advance = 0;break;
-        default: break;
-        }
-    }
-    Lock_MutexPost(LL->Lock);
-
-    return(res);
-}
-
 
 // ============================================================================
 // 功能：计算一段数据的CRC
@@ -422,40 +233,34 @@ s32 LowLevelFormat(void *pLowLevel)
 // 返回：
 // 备注：
 // ============================================================================
-u32 LowLevelCRC32(void *LowLevel, u32 dwOffset, u32 dwLen)
+u32 __ll_crc32(void *ll, u32 pos, u32 len)
 {
-    u32 offset;
-    s32 res;
-    u32 crc;
-    u32 pageNo;
-    u32 once;
-    u8 *data = NULL;
-    u32 bytesLeft = dwLen;
-    struct __LowLevel *LL = (struct __LowLevel *)LowLevel;
+    struct umedia *um = (struct umedia *)ll;
+    u32 crc, once, offset;
+    s64 unit;
+    s32 left = len, res = 0;
 
-    Lock_MutexPend(LL->Lock, CN_TIMEOUT_FOREVER);
     crc32init(&crc);
-    pageNo = dwOffset / LL->PageBytes;
-    pageNo = __PageFix(LL, pageNo);
-    offset = dwOffset % LL->PageBytes;
-    while(bytesLeft > 0)
+    unit = (pos >> um->usz) + um->ustart;
+    offset = pos & ((1 << um->usz)-1); // unit内偏移
+    while(left)
     {
-        once = MIN((LL->PageBytes - offset), bytesLeft);
-        res = LL->ReadPage(pageNo, LL->Buf, NO_ECC);
-        if(!res)
+        once = MIN(((1 << um->usz) - offset), left);
+        res = um->mread(unit, um->ubuf, um->opt);
+        if(res)
         {
-            error_printf("iapfs","read page %d failed.", pageNo);
-            goto FAILURE; //
+            crc32exit(&crc);
+            printf("\r\n: erro : iapfs  : read unit %lld failed when crc.", unit);
+            return (-1);
         }
-        data = LL->Buf + offset;
-        crc32run(&crc, data, once);
-        bytesLeft -= once;
-        offset = 0;
-        pageNo++;
-    }
-    crc32exit(&crc);
 
-FAILURE:
-    Lock_MutexPost(LL->Lock);
+        crc32run(&crc, um->ubuf+offset, once);
+        left -= once;
+        offset = 0;
+        unit ++;
+    }
+
+    crc32exit(&crc);
+    um->mreq(unlock, 0); //
     return (crc);
 }

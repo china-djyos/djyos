@@ -65,6 +65,84 @@
 #include <silan_syscfg.h>
 #include <silan_uart.h>
 
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
+//
+//    #if CFG_UART1_ENABLE ==1
+//    ModuleInstall_UART(CN_UART1);
+//    #endif
+//
+//    #if CFG_UART2_ENABLE ==1
+//    ModuleInstall_UART(CN_UART2);
+//    #endif
+//
+//    #if CFG_UART3_ENABLE ==1
+//    ModuleInstall_UART(CN_UART3);
+//    #endif
+//
+//    #if CFG_UART4_ENABLE ==1
+//    ModuleInstall_UART(CN_UART4);
+//    #endif
+
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"cpu_peri_uart"    //CPU的uart外设驱动
+//parent:"uart"                     //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件                 //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                      //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                   //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                       //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                   //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"uart","int","cpu_peri_gpio","cpu_peri_dma"  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                   //选中该组件时，被依赖组件将强制选中，
+                                   //如果依赖多个组件，则依次列出
+//weakdependence:"none"            //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                   //选中该组件时，被依赖组件不会被强制选中，
+                                   //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                     //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                   //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_UART1_ENABLE
+#warning    cpu_peri_uart  组件参数未配置
+//%$#@num,0,512,
+#define CFG_UART1_SENDBUF_LEN       64      //"UART1发送环形缓冲区大小",
+#define CFG_UART1_RECVBUF_LEN       64      //"UART1接收环形缓冲区大小",
+#define CFG_UART1_DMABUF_LEN        64      //"UART1 DMA环形缓冲区大小",
+
+#define CFG_UART2_SENDBUF_LEN       64      //"UART2发送环形缓冲区大小",
+#define CFG_UART2_RECVBUF_LEN       64      //"UART2接收环形缓冲区大小",
+#define CFG_UART2_DMABUF_LEN        64      //"UART2 DMA环形缓冲区大小",
+
+#define CFG_UART3_SENDBUF_LEN       64      //"UART3发送环形缓冲区大小",
+#define CFG_UART3_RECVBUF_LEN       64      //"UART3接收环形缓冲区大小",
+#define CFG_UART3_DMABUF_LEN        64      //"UART3 DMA环形缓冲区大小",
+
+#define CFG_UART4_SENDBUF_LEN       64      //"UART4发送环形缓冲区大小",
+#define CFG_UART4_RECVBUF_LEN       64      //"UART4接收环形缓冲区大小",
+#define CFG_UART4_DMABUF_LEN        64      //"UART4 DMA环形缓冲区大小",
+//%$#@enum,true,false
+#define CFG_UART1_ENABLE           true        //"是否使用UART1",
+#define CFG_UART2_ENABLE           true       //"是否使用UART2",
+#define CFG_UART3_ENABLE           false       //"是否使用UART3",
+#define CFG_UART4_ENABLE           false       //"是否使用UART4",
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+//@#$%component end configure
+// =============================================================================
 
 typedef struct __UART_REG
 {
@@ -108,8 +186,8 @@ static const u8 sUartFifo[]={
 };
 // =============================================================================
 
-#define UART_SndBufLen    256
-#define UART_RxBufLen	  256
+u16 UART_SndBufLen;
+u16 UART_RxBufLen;
 
 static u32 TxByteTime;                    //正常发送一个字节所需要的时间
 static u32 TxDirectPort;                  //用于printk发送的串口号
@@ -341,7 +419,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 		if(__UART_TxFIFO_Empty(Reg))
 		{
 			__UART_TxIntEnable(Reg,0);
-			len = UART_PortRead(pUartCB[port],fifo,sUartFifo[port],0);
+			len = UART_PortRead(pUartCB[port],fifo,64);
 			for(i = 0; i < len; i++)
 			{
 				Reg->DR = fifo[i];
@@ -375,12 +453,12 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
     {
         switch(cmd)
         {
-        case CN_UART_START:
-        	__UART_Enable(Reg,1);
-        	break;
-        case CN_UART_STOP:
-        	__UART_Enable(Reg,0);
-            break;
+//        case CN_UART_START:
+//        	__UART_Enable(Reg,1);
+//        	break;
+//        case CN_UART_STOP:
+//        	__UART_Enable(Reg,0);
+//            break;
         case CN_UART_SET_BAUD:
         	__UART_BaudSet(Reg,port,data1);
         	break;
@@ -447,7 +525,7 @@ u32 UART_ISR(ptu32_t port)
 			}
 			if(num > 0)
 			{
-				if(num != UART_PortWrite(pUartCB[port],fifo,num,0))
+				if(num != UART_PortWrite(pUartCB[port],fifo,num))
 				{
 					UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
 					printk("uart idle over!\r\n");
@@ -461,7 +539,7 @@ u32 UART_ISR(ptu32_t port)
 			num = 0;
 			while(!(Reg->FR & UART_FR_TXFF))
 			{
-				if(0 != UART_PortRead(pUartCB[port],&fifo[0],1,0))
+				if(0 != UART_PortRead(pUartCB[port],&fifo[0],1))
 				{
 					Reg->DR = fifo[0];
 				}
@@ -513,6 +591,27 @@ ptu32_t ModuleInstall_UART(u32 port)
 	bool_t Ret = false;
     struct UartParam UART_Param;
 
+    switch(port)
+    {
+        case CN_UART1:
+            UART_SndBufLen = CFG_UART1_SENDBUF_LEN;
+            UART_RxBufLen  = CFG_UART1_RECVBUF_LEN;
+            break;
+        case CN_UART2:
+            UART_SndBufLen = CFG_UART2_SENDBUF_LEN;
+            UART_RxBufLen  = CFG_UART2_RECVBUF_LEN;
+            break;
+        case CN_UART3:
+            UART_SndBufLen = CFG_UART3_SENDBUF_LEN;
+            UART_RxBufLen  = CFG_UART3_RECVBUF_LEN;
+            break;
+        case CN_UART4:
+            UART_SndBufLen = CFG_UART4_SENDBUF_LEN;
+            UART_RxBufLen  = CFG_UART4_RECVBUF_LEN;
+            break;
+        deault:printk("ModuleInstall_UART:port Err\r\n");break;
+    }
+
     if(port < CN_UART_NUM)
     {
 		UART_Param.Name         = sUartName[port];
@@ -523,7 +622,7 @@ ptu32_t ModuleInstall_UART(u32 port)
 		UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
 		UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
 
-		pUartCB[port] = UART_InstallPort(&UART_Param);
+		pUartCB[port] = UART_InstallGeneral(&UART_Param);
 		if( pUartCB[port] != NULL)
 		{
 			__UART_HardInit(port);				//硬件初始化
@@ -596,21 +695,21 @@ char Uart_GetCharDirect(void)
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
-void Stdio_KnlInOutInit(u32 para)
+void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
 {
-    if(!strcmp(gc_pCfgStdoutName,"/dev/UART1"))
+    if(!strcmp(StdioOut,"/dev/UART1"))
     {
         TxDirectPort = CN_UART1;
     }
-    else if(!strcmp(gc_pCfgStdoutName,"/dev/UART2"))
+    else if(!strcmp(StdioOut,"/dev/UART2"))
     {
         TxDirectPort = CN_UART2;
     }
-    else if(!strcmp(gc_pCfgStdoutName,"/dev/UART3"))
+    else if(!strcmp(StdioOut,"/dev/UART3"))
     {
         TxDirectPort = CN_UART3;
     }
-    else if(!strcmp(gc_pCfgStdoutName,"/dev/UART4"))
+    else if(!strcmp(StdioOut,"/dev/UART4"))
     {
         TxDirectPort = CN_UART4;
     }
@@ -619,26 +718,27 @@ void Stdio_KnlInOutInit(u32 para)
         PutStrDirect = NULL ;
     }
 
-    if(PutStrDirect != NULL)
+    //if(PutStrDirect != NULL)
+    if(TxDirectPort >= 0)
     {
         __UART_HardInit(TxDirectPort);
         TxByteTime = 95;      //初始化默认115200，发送一个byte是87uS,+10%容限
         PutStrDirect = Uart_PutStrDirect;
     }
 
-    if(!strcmp(gc_pCfgStdinName,"/dev/UART1"))
+    if(!strcmp(StdioIn,"/dev/UART1"))
     {
         RxDirectPort = CN_UART1;
     }
-    else if(!strcmp(gc_pCfgStdinName,"/dev/UART2"))
+    else if(!strcmp(StdioIn,"/dev/UART2"))
     {
         RxDirectPort = CN_UART2;
     }
-    else if(!strcmp(gc_pCfgStdinName,"/dev/UART3"))
+    else if(!strcmp(StdioIn,"/dev/UART3"))
     {
         RxDirectPort = CN_UART3;
     }
-    else if(!strcmp(gc_pCfgStdinName,"/dev/UART4"))
+    else if(!strcmp(StdioIn,"/dev/UART4"))
     {
         RxDirectPort = CN_UART4;
     }
@@ -647,7 +747,8 @@ void Stdio_KnlInOutInit(u32 para)
         GetCharDirect = NULL ;
     }
 
-    if(GetCharDirect != NULL)
+   // if(GetCharDirect != NULL)
+    if(RxDirectPort >= 0)
     {
         if(TxDirectPort != RxDirectPort)
             __UART_HardInit(RxDirectPort);

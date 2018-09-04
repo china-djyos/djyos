@@ -88,7 +88,9 @@ extern void HardExp_BusfaultHandler(void);
 extern   uint32_t   msp_top[ ];
 extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
+#if	(CN_USE_TICKLESS_MODE) 
 extern 	 u32 __Djy_GetTimeBaseReload(void);
+#endif
 bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian);
 struct SystickReg volatile * const pg_systick_reg
                         = (struct SystickReg *)0xE000E010;
@@ -172,15 +174,19 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 // =============================================================================
 void Exp_SystickTickHandler(void)
 {
-	u32 tick=0;
+#if	(CN_USE_TICKLESS_MODE)
+    u32 tick=0;
+#endif
     g_bScheduleEnable = false;
 //    tg_int_global.en_asyn_signal = false;
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
-
+#if	(CN_USE_TICKLESS_MODE)
     tick=__Djy_GetTimeBaseReload();
     user_systick(tick);
-
+#else
+    user_systick(1);
+#endif
     tg_int_global.nest_asyn_signal = 0;
 //    tg_int_global.en_asyn_signal = true;
     tg_int_global.en_asyn_signal_counter = 0;

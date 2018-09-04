@@ -4,7 +4,7 @@
 #include <netdb.h>
 #include <sys/time.h>
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
 
 #include "../../component_config_tcpip.h"
 
@@ -180,27 +180,26 @@ ADD_TO_IN_SHELL bool_t sntp(char *param)
     return true;
 }
 
-//struct ShellCmdTab  gServiceSntp[] =
-//{
-//    {
-//        "sntp",
-//        SntpTimeSyncShell,
-//        "usage:sntp",
-//        NULL
-//    }
-//};
-//
-//#define CN_SNTPDEBUG_NUM  ((sizeof(gServiceSntp))/(sizeof(struct ShellCmdTab)))
+struct shell_debug  gServiceSntp[] =
+{
+    {
+        "sntp",
+        sntp,
+        "usage:sntp",
+        NULL
+    }
+};
+
+#define CN_SNTPDEBUG_NUM  ((sizeof(gServiceSntp))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gServiceSntpCmdRsc[CN_SNTPDEBUG_NUM];
 
 //THIS IS SNTP MODULE FUNCTION
-//bool_t ServiceSntpInit(ptu32_t para)
-//{
-//    bool_t result;
-//
-//    result = Sh_InstallCmd(gServiceSntp,gServiceSntpCmdRsc,CN_SNTPDEBUG_NUM);
-//
-//    return result;
-//}
+bool_t ServiceSntpInit(ptu32_t para)
+{
+    if(CN_SNTPDEBUG_NUM==shell_debug_add(gServiceSntp, CN_SNTPDEBUG_NUM))
+        return (TRUE);
+
+    return (FALSE);
+}
 
 

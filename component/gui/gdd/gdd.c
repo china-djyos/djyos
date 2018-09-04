@@ -60,7 +60,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include "stdint.h"
-#include <gui\gkernel\gk_display.h>
+#include <gui/gkernel/gk_display.h>
 #include    <gui/gdd/gdd_private.h>
 #include    <gui/gdd_timer.h>
 #include "list.h"
@@ -121,5 +121,25 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
         Djy_EventPop(evtt, NULL, 0, 0, 0, 0);
     }
 
+}
+
+void ModuleInstall_Gdd_AND_Desktop(void)
+{
+    struct GkWinObj;
+    struct GkWinObj *desktop;
+    desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
+                            CFG_DESKTOP_WIDTH,CFG_DESKTOP_HEIGHT,
+                            CFG_FILL_COLOR,CN_WINBUF_PARENT,
+                            CFG_DESKTOP_FORMAT,CFG_GRAY_BASE_COLOR);
+    if(desktop == NULL)
+    {
+        printf("创建桌面出错");
+        while( 1 );             //初始化时出错，死循环即可
+    }
+    else
+    {
+        ModuleInstall_GDD(desktop);
+        GDD_AddInputDev(CFG_INPUTDEV_NAME);
+    }
 }
 /*============================================================================*/

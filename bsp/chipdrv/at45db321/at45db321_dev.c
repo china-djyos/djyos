@@ -48,11 +48,13 @@
 #include <stdlib.h>
 #include <cpu_peri.h>
 #include <device/flash/flash.h>
+#include <device/include/unit_media.h>
 #include <device.h>
 #include <spibus.h>
 #include <systime.h>
 
 struct FlashChip *pNOR;
+struct NorDescr *nordescription;
 extern u32 AT45_OP_TIMEOUT;
 u32 __EFS_IF_WriteData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
 u32 __EFS_IF_ReadData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
@@ -382,13 +384,14 @@ static s32 __AT45_BlockErase(u32 dwBlock)
         // 最大延时100ms,期间查询50次
         do
         {
+            Djy_EventDelay(2000);// 延时切出.2ms
+            res = __AT45_Done();
             if(!res)
             {
-                Djy_EventDelay(50000);// 延时切出.50ms
-                res = __AT45_Done();
+                break;
             }
         }
-        while(++timeout > 50);
+        while(++timeout<50);
     }
 
     Lock_MutexPost(pNOR->Lock);
@@ -415,53 +418,134 @@ static s32 __AT45_PageToBlock(u32 dwPage, u32 *pRemain, u32 *pBlock)
 }
 
 #if 1 // 新接口
-#include "./device/unit_media.h"
+#include <device/include/unit_media.h>
 // ============================================================================
-// 功能：
+// 功能：读AT45
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-s32 urd_at45(s64 unit, void *data, struct uopt opt)
+s32 __at45_read(s64 unit, void *data, struct uopt opt)
 {
     return (__AT45_PageRead((u32)unit, (u8*)data, 0));
 }
 
 // ============================================================================
-// 功能：
+// 功能：写AT45
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-s32 uwr_at45(s64 unit, void *data, struct uopt opt)
+s32 __at45_write(s64 unit, void *data, struct uopt opt)
 {
     return (__AT45_PageWrite((u32)unit, (u8*)data, 0));
 }
 
 // ============================================================================
-// 功能：
-// 参数：
+// 功能：差AT45的页或块
+// 参数：unit -- 页或者块；
+//      sz -- 页或者块；
 // 返回：
 // 备注：
 // ============================================================================
-s32 uera_at45(s64 unit)
+s32 __at45_erase(s64 unit, struct uesz sz)
 {
     u32 block;
 
-    block = unit / 8; // 一个块内有8个page
+    if(sz.unit)
+        block = unit / 8; // 一个块内有8个page
+    else if (sz.block)
+        block = (u32)unit;
 
     return (__AT45_BlockErase(block));
 }
 
 // ============================================================================
-// 功能：
-// 参数：
+// 功能：at45命令
+// 参数：cmd -- 命令；
+//      args -- 可变参，命令参数；
 // 返回：
 // 备注：
 // ============================================================================
-s32 urq_at45(enum ucmd cmd, ptu32_t arg1, ptu32_t arg2, ...)
+s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
 {
-    return (-1);
+    s32 res = 0;
+
+    switch(cmd)
+    {
+        case whichblock:
+        {
+            va_list list;
+            u32 *block;
+            s64 *unit;
+
+            block = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+            *block = *unit / nordescription->SectorsPerBlk;
+            break;
+        }
+
+        case totalblocks:
+        {
+            // args = &blocks
+            *((u32*)args) =  nordescription->Blks;
+            break;
+        }
+
+        case blockunits:
+        {
+            // args = &units
+            *((u32*)args) = nordescription->SectorsPerBlk;
+            break;
+        }
+
+        case unitbytes:
+        {
+            // args = &bytes
+            *((u32*)args) = nordescription->BytesPerPage;
+            break;
+        }
+
+        case format:
+        {
+            va_list list;
+            u32 start, end;
+            struct uesz *sz;
+
+            start = (u32)args;
+            va_start(list, args);
+            end = va_arg(list, u32);
+            sz = (struct uesz*)va_arg(list, u32);
+            va_end(list);
+
+            if(!sz->block)
+                return (-1);
+
+            if(-1==end)
+                end = nordescription->Blks;
+            else if (start)
+                end += start;
+
+            do
+            {
+                if(__at45_erase((s64)--end, *sz))
+                {
+                    res = -1;
+                    break;
+                }
+            }
+            while(end!=start);
+
+            break;
+        }
+
+        case checkbad: break; // 检查坏块
+        default: res = -1; break;
+    }
+
+    return (res);
 }
 #endif
 
@@ -481,7 +565,6 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
     u8 *buf;
     char *name;
 
-    number ++;
     if(0 == dwSize)
     {
         return (0); // 不做处理
@@ -490,19 +573,18 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
     name = malloc(strlen(pName) + 16);
     if(!name)
     {
-        printf("\r\nNOR : error : memory out.\r\n");
+        printf("\r\n: erro : device : memory out.\r\n");
         return (-1);
     }
 
-    sprintf(name, "%s%s", pName, " partition ");
-    itoa(number, (name+strlen(pName)+11), 10);
-
+    sprintf(name, "%s%s", pName, " part ");
+    itoa(number++, (name+strlen(name)), 10);
     if(!pNOR)
     {
         buf = malloc(sizeof(*flash)+ 512);
         if(!buf)
         {
-            printf("\r\nNOR : error : memory out.\r\n");
+            printf("\r\n: erro : device : memory out.\r\n");
             return (-1);
         }
 
@@ -513,7 +595,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         if(!flash->Lock)
         {
             free(buf);
-            printf("\r\nNOR : error : cannot create lock.\r\n");
+            printf("\r\n: erro : device : cannot create lock.\r\n");
             return (-1);
         }
 
@@ -535,6 +617,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         flash->Ops.ErsBlk = __AT45_BlockErase;
         flash->Ops.PageToBlk = __AT45_PageToBlock;
         pNOR = flash;
+        nordescription = &(flash->Descr.Nor);
     }
 
     //
@@ -543,7 +626,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         buf = malloc(sizeof(*partition)+ 512);
         if(!buf)
         {
-            printf("\r\nNOR : error : memory out.\r\n");
+            printf("\r\n: erro : device : memory out.\r\n");
             return (-1);
         }
 
@@ -573,7 +656,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         if(!dev_add(NULL, name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
         {
             free(buf);
-            printf("\r\nNOR : error : register device failed.\r\n");
+            printf("\r\n: erro : device : register AT45db321 failed.");
             return (-1);
         }
     }
@@ -613,7 +696,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         partition->Ops.ErsBlk = __AT45_BlockErase;
         partition->Ops.PageToBlk = __AT45_PageToBlock;
 
-        if(!dev_add(NULL,name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
+        if(!DevAdd(name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
         {
             free(buf);
             printf("\r\nNOR : error : register device failed.\r\n");
@@ -646,10 +729,10 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         um->asz = dwSize << 12;
         um->esz = 12; // 4KB
         um->usz = 9; // 512B;
-        um->merase = uera_at45;
-        um->mread = urd_at45;
-        um->mreq = urq_at45;
-        um->mwrite = uwr_at45;
+        um->merase = __at45_erase;
+        um->mread = __at45_read;
+        um->mreq = __at45_req;
+        um->mwrite = __at45_write;
         um->opt = opt; // 驱动操作逻辑
         um->type = nor;
         um->ubuf = (u8*)um + sizeof(struct umedia);

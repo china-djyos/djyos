@@ -14,7 +14,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include "stdint.h"
-#include "cpu_peri_tsec.h"
+//#include "cpu_peri_tsec.h"
 #include "phy_88e1512.h"
 #include "stdio.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -33,7 +33,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //grade:none                    //初始化时机，可选值：none，init，main。none表示无须初始化，
                                 //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"cpu_peri_tsec"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），

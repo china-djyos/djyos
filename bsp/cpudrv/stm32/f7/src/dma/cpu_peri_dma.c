@@ -190,7 +190,11 @@ u32 DMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u8 chx,u32 par,bool_t MultiBuffer
 
     return true;
 }
-
+void DMA_SetIntModeComplete(DMA_Stream_TypeDef *DMA_Streamx)
+{
+    DMA_Streamx->CR &=~(3<<3);
+    DMA_Streamx->CR |=(1<<4);
+}
 // =============================================================================
 // 功能：开启一次DMA传输
 // 参数：DMA_Streamx:DMA数据流,DMA1_Stream0~7/DMA2_Stream0~7

@@ -100,7 +100,7 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-static struct Object *s_ptIICBusType;
+static struct obj *s_ptIICBusType;
 
 //ICB的成员FLAG的位标记
 #define CN_IIC_FLAG_R    (1<<0)         //读写标志位
@@ -116,12 +116,12 @@ bool_t ModuleInstall_IICBus(void)
     s_ptIICBusType = DjyBus_BusTypeAdd("IICBus");
     if(NULL != s_ptIICBusType)
     {
-        info_printf("bus","type IIC addition succeeded.");
+        info_printf("bus","i2c installed successful.");
         return true;
     }
     else
     {
-        error_printf("bus","type IIC addition failed.\r\n");
+        error_printf("bus","i2c installed failed.");
         return false;
     }
 
@@ -134,13 +134,13 @@ bool_t ModuleInstall_IICBus(void)
 // =============================================================================
 struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
 {
-    struct Object *IICDev;
+    struct obj *IICDev;
     struct IIC_CB *NewIIC;
     if(NULL == NewIICParam)
         goto exit_from_param;
 
     //避免重复建立同名的IIC总线
-    if(NULL != OBJ_SearchChild(s_ptIICBusType,(const char*)(NewIICParam->BusName)))
+    if(NULL != obj_search_child(s_ptIICBusType,(const char*)(NewIICParam->BusName)))
         goto exit_from_readd;
 
     NewIIC = (struct IIC_CB *)M_Malloc(sizeof(struct IIC_CB),0);
@@ -148,7 +148,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
         goto exit_from_malloc;
 
     //将总线结点挂接到总线类型结点的子结点
-    IICDev = OBJ_AddChild(s_ptIICBusType, NULL, (ptu32_t)NewIIC,
+    IICDev = obj_newchild(s_ptIICBusType, (fnObjOps)-1, 0, (ptu32_t)NewIIC,
                                     (const char*)(NewIICParam->BusName));
     if(IICDev == NULL)
         goto exit_from_add_node;
@@ -178,20 +178,20 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
     //标志初始化，包括 读写标志和轮询中断方式
     NewIIC->Flag =0;
 
-    info_printf("bus","%s(iic type) added.",NewIICParam->BusName);
+    info_printf("i2cbus","%s added.",NewIICParam->BusName);
 
     return NewIIC;
 
 exit_from_iic_buf_semp:
     Lock_SempDelete(NewIIC->IIC_BusSemp);
 exit_from_iic_bus_semp:
-    OBJ_Del(NewIIC->HostObj);
+    obj_del(NewIIC->HostObj);
 exit_from_add_node:
     free(NewIIC);
 exit_from_malloc:
 exit_from_readd:
 exit_from_param:
-    error_printf("bus","%s(iic) add failed.",NewIICParam->BusName);
+    error_printf("i2cbus","%s add failed.",NewIICParam->BusName);
     return NULL;
 }
 
@@ -206,7 +206,7 @@ bool_t IIC_BusDelete(struct IIC_CB *DelIIC)
     bool_t result;
     if(NULL == DelIIC)
         return false;
-    if(OBJ_Del(DelIIC->HostObj))
+    if(obj_del(DelIIC->HostObj))
     {
         result = false;
     }
@@ -225,10 +225,10 @@ bool_t IIC_BusDelete(struct IIC_CB *DelIIC)
 // =============================================================================
 struct IIC_CB *IIC_BusFind(const char *BusName)
 {
-    struct Object *IIC_Obj;
-    IIC_Obj = OBJ_SearchChild(s_ptIICBusType,BusName);
+    struct obj *IIC_Obj;
+    IIC_Obj = obj_search_child(s_ptIICBusType,BusName);
     if(IIC_Obj)
-        return (struct IIC_CB *)OBJ_Represent(IIC_Obj);
+        return (struct IIC_CB *)obj_val(IIC_Obj);
     else
         return NULL;
 }
@@ -254,7 +254,7 @@ struct IIC_Device *IIC_DevAdd(const char *BusName ,const char *DevName, u8 DevAd
         return NULL;
 
     //避免建立同名的IIC器件
-    if(NULL != OBJ_SearchChild(IIC->HostObj, DevName))
+    if(NULL != obj_search_child(IIC->HostObj, DevName))
         return NULL;
 
     //为新的器件结点动态分配内存
@@ -266,14 +266,14 @@ struct IIC_Device *IIC_DevAdd(const char *BusName ,const char *DevName, u8 DevAd
     NewDev->DevAddr              = DevAddr;
     NewDev->BitOfMemAddrInDevAddr = BitOfMaddrInDaddr;
     NewDev->BitOfMemAddr          = BitOfMaddr;
-    NewDev->HostObj = OBJ_AddChild(IIC->HostObj, NULL, (ptu32_t)NewDev, DevName);
+    NewDev->HostObj = obj_newchild(IIC->HostObj, (fnObjOps)-1, 0, (ptu32_t)NewDev, DevName);
     if(NewDev->HostObj == NULL)
     {
         free(NewDev);
         return NULL;
     }
 
-    info_printf("device","%s(%s) added.", DevName, BusName);
+    info_printf("i2cbus","device \"%s\" added to \"%s\"", DevName, BusName);
     return NewDev;
 }
 
@@ -288,7 +288,7 @@ bool_t IIC_DevDelete(struct IIC_Device *DelDev)
     if(NULL == DelDev)
         return false;
 
-    if(OBJ_Del(DelDev->HostObj))
+    if(obj_del(DelDev->HostObj))
     {
         result = false;
     }
@@ -308,7 +308,7 @@ bool_t IIC_DevDelete(struct IIC_Device *DelDev)
 // =============================================================================
 struct IIC_Device *IIC_DevFind(const char *BusName ,const char *DevName)
 {
-    struct Object *IIC_DevObj;
+    struct obj *IIC_DevObj;
     struct IIC_CB *IIC_Bus;
 
     IIC_Bus = IIC_BusFind(BusName);
@@ -316,9 +316,9 @@ struct IIC_Device *IIC_DevFind(const char *BusName ,const char *DevName)
         return NULL;
 
     //通过IIC类型结点，向下搜索后代结点
-    IIC_DevObj = OBJ_SearchChild(IIC_Bus->HostObj, DevName);
+    IIC_DevObj = obj_search_child(IIC_Bus->HostObj, DevName);
     if(IIC_DevObj)
-        return (struct IIC_Device *)OBJ_Represent(IIC_DevObj);
+        return (struct IIC_Device *)obj_val(IIC_DevObj);
     else
         return NULL;
 }
@@ -349,7 +349,7 @@ s32  IIC_Write(struct IIC_Device *Dev, u32 addr,u8 *buf,u32 len,
 
     base_time = (u32)DjyGetSysTime();
     //查找该器件属于哪条总线
-    IIC = (struct IIC_CB*)OBJ_Represent(OBJ_Parent(Dev->HostObj));
+    IIC = (struct IIC_CB*)obj_val(obj_parent(Dev->HostObj));
     if(NULL == IIC)
         return CN_IIC_EXIT_PARAM_ERR;
     //需要等待总线空闲
@@ -479,7 +479,7 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
 
     base_time = (u32)DjyGetSysTime();
     //查找该器件属于哪条总线
-    IIC = (struct IIC_CB *)OBJ_Represent(OBJ_Parent(Dev->HostObj));
+    IIC = (struct IIC_CB *)obj_val(obj_parent(Dev->HostObj));
     if(NULL == IIC)
         return CN_IIC_EXIT_PARAM_ERR;
 
@@ -635,7 +635,7 @@ s32 IIC_BusCtrl(struct IIC_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
     if(NULL == Dev)
         return -1;
 
-    IIC = (struct IIC_CB *)OBJ_Represent(OBJ_Parent(Dev->HostObj));
+    IIC = (struct IIC_CB *)obj_val(obj_parent(Dev->HostObj));
     if(NULL == IIC)
         return -1;
 

@@ -63,16 +63,26 @@ extern u32 SystemCoreClock;
 extern struct IntMasterCtrl  tg_int_global;          //?¨ò?2￠3?ê??ˉ×ü?D???????á11
 extern void __Djy_ScheduleAsynSignal(void);
 static void __DjyIsrTimeBase(u32 param);
-#define CN_TIME_ROUNDING    (32768U)//??éá??è?μ??μ
-#define TIME_GLUE           (CN_CFG_TIME_BASE_HZ>Mhz ? (CN_CFG_TIME_BASE_HZ/Mhz) : \
-                            ((Mhz%CN_CFG_TIME_BASE_HZ==0) ? (Mhz/CN_CFG_TIME_BASE_HZ) :((float)Mhz/CN_CFG_TIME_BASE_HZ)))
-#define FAST_TIME_GLUE      ((1<<16)/TIME_GLUE)
-#define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(100*TIME_GLUE):\
-                            (TIME_GLUE>=100)?(2*TIME_GLUE):((4+(100/TIME_GLUE))*TIME_GLUE))
+#define	CN_TIME_ROUNDING	(32768U)//四舍五入的值
+#define TIME_GLUE           (0x1E849CU)
+#define FAST_TIME_GLUE      (0x863U)
+#define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(100*TIME_GLUE):((200*CN_CFG_TIME_BASE_HZ)/Mhz))
 static u64 g_time_base_tick=0;
+extern void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks));
+
+static void Null_Tick(u32 inc_ticks)
+{
+    return;
+}
 
 void __InitTimeBase(void)
 {
+    HardExp_ConnectSystick(Null_Tick);
+    pg_systick_reg->ctrl &=   ~((1<<bo_systick_ctrl_enable)    //使能
+	                            |(1<<bo_systick_ctrl_tickint)   //允许产生中断
+	                            |(1<<bo_systick_ctrl_clksource));//用内核时钟
+    pg_systick_reg->reload = 0;
+    pg_systick_reg->current = 0;
     Lptimer1_PreInit();
 }
 
@@ -114,9 +124,20 @@ u32 __Djy_GetTimeBaseReload(void)
 
 u64 __Djy_TimeBaseUsToCnt(u64 us)
 {
-    return ((CN_CFG_TIME_BASE_HZ>Mhz)?
+    u64 temp = 0;
+    temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
             (us*TIME_GLUE):
-            ((u64)(us*FAST_TIME_GLUE + CN_TIME_ROUNDING))>>16);
+            ((us*FAST_TIME_GLUE + CN_TIME_ROUNDING))>>16);
+    if( temp < TIME_BASE_MIN_GAP )
+        temp = TIME_BASE_MIN_GAP;
+    return temp;
+}
+
+u32 __Djy_TimeBaseCntToUs(u64 cnt)
+{
+    return ((CN_CFG_TIME_BASE_HZ>Mhz)?
+            (cnt/(u32)TIME_GLUE):
+            (u32)(((u64)(cnt*TIME_GLUE))>>16));
 }
 
 u64 __Djy_GetTimeBaseCnt(u32 cnt)
@@ -126,49 +147,50 @@ u64 __Djy_GetTimeBaseCnt(u32 cnt)
 
 u64 __DjyGetSysCnt(void)
 {
-    return (g_time_base_tick + __Djy_GetTimeBaseRealCnt());
+    u64 temp = 0;
+    atom_low_t atom_low;
+    atom_low = Int_LowAtomStart();
+    temp = g_time_base_tick + __Djy_GetTimeBaseRealCnt();
+    Int_LowAtomEnd(atom_low);
+	return temp;
 }
 
 u64 __DjyGetSysTime(void)
 {
     u64 time;
     u64 temp=0;
-    atom_low_t atom_low;
-
-    atom_low = Int_LowAtomStart();
     temp = __DjyGetSysCnt();
     time = ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (temp/(u32)TIME_GLUE)://?aà???óD°ì·¨￡????ü?±?óê1ó?3y·¨￡?·??ò??òyè?à????ó2?￡?2??üèYèì  --chj
-            (temp*TIME_GLUE));
-    Int_LowAtomEnd(atom_low);
+    		(temp/(u32)TIME_GLUE)://这里没有办法，只能直接使用除法，否则将引入累计误差，不能容忍	--chj
+			((u64)(temp*TIME_GLUE))>>16);
     return time;
 }
 
 static void __DjyIsrTimeBase(u32 param)
 {
-    u8 flag = 0;
-    u32 tick=0;
-    g_bScheduleEnable = false;
-    tg_int_global.en_asyn_signal_counter = 1;
-    tg_int_global.nest_asyn_signal = 1;
-    flag = Lptimer1_ClearISR();
-    switch(flag)
-    {
-        case CN_LPTIMER_NONE:
-            break;
-        case CN_LPTIMER_RELOAD:
-            g_time_base_tick += CN_LIMIT_UINT16;
-            break;
-        case CN_LPTIMER_CMP:
-            tick=__Djy_GetTimeBaseRealCnt();
-            Djy_IsrTimeBase(tick);
-            break;
-        case CN_LPTIMER_RELOAD_AND_CMP:
-            g_time_base_tick += CN_LIMIT_UINT16;
-            tick=__Djy_GetTimeBaseRealCnt();
-            Djy_IsrTimeBase(tick);
-            break;
-    }
+	u8 flag = 0;
+	u32 tick=0;
+	g_bScheduleEnable = false;
+	tg_int_global.en_asyn_signal_counter = 1;
+	tg_int_global.nest_asyn_signal = 1;
+	flag = Lptimer1_ClearISR();
+	switch(flag)
+	{
+		case CN_LPTIMER_NONE:
+			break;
+		case CN_LPTIMER_RELOAD:
+			g_time_base_tick += CN_LIMIT_UINT16;
+			break;
+		case CN_LPTIMER_CMP:
+			tick=__Djy_GetTimeBaseRealCnt();
+			Djy_IsrTimeBase(tick);
+			break;
+		case CN_LPTIMER_RELOAD_AND_CMP:
+			g_time_base_tick += CN_LIMIT_UINT16;
+			//tick=__Djy_GetTimeBaseRealCnt();
+			Djy_IsrTimeBase(0);
+			break;
+	}
 
     tg_int_global.nest_asyn_signal = 0;
     tg_int_global.en_asyn_signal_counter = 0;

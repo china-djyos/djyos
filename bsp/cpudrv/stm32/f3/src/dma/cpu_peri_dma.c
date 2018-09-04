@@ -232,6 +232,11 @@ void DMA_Enable(DMA_Channel_TypeDef *DMA_Channelx,u32 mar,u16 ndtr)   //OK
 
     DMA_Channelx->CCR|= (1<<0);     //开启DMA传输
 }
+bool_t DMA_SetIntModeComplete(DMA_Channel_TypeDef *DMA_Channelx)
+{
+    DMA_Channelx->CCR |=(1<<4);
+    return true;
+}
 
 // =============================================================================
 // 功能：禁止使用相应的DMA流

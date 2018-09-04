@@ -169,28 +169,28 @@ static USBH_StatusTypeDef USBH_HID_InterfaceInit (USBH_HandleTypeDef *phost)
     // Decode Bootclass Protocol: Mouse、 Keyboard or touch
     if(phost->device.CfgDesc.Itf_Desc[phost->device.current_interface].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
     {
-        USBH_UsrLog ("KeyBoard device found!");
+        printf("\r\n: info : usbs%02x : keyboard device found!", phost->id);
         HID_Handle->Init =  USBH_HID_KeybdInit;
         HID_Handle->DeInit =  NULL;
         res = USBH_SetHostName(phost, "keyboard");
     }
     else if(phost->device.CfgDesc.Itf_Desc[phost->device.current_interface].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)
     {
-        USBH_UsrLog ("Mouse device found!");
+        printf("\r\n: info : usbs%02x : mouse device found!", phost->id);
         HID_Handle->Init =  USBH_HID_MouseInit;
         HID_Handle->DeInit =  NULL;
         res = USBH_SetHostName(phost, "mouse");
     }
     else if(phost->device.CfgDesc.Itf_Desc[phost->device.current_interface].bInterfaceProtocol  == 0x0)
     {
-        USBH_UsrLog ("Touch device found!");
+        printf("\r\n: info : usbs%02x : touch device found!", phost->id);
         HID_Handle->Init =  USBH_HID_TouchInit;
         HID_Handle->DeInit =  USBH_HID_TouchDeInit;
         res = USBH_SetHostName(phost, "touch");
     }
     else
     {
-        USBH_UsrLog ("Protocol not supported.");
+        printf("\r\n: warn : usbs%02x : Protocol not supported.", phost->id);
         free(phost->pActiveClass->pData);
         phost->pActiveClass->pData = NULL;
         return (USBH_FAIL);
@@ -198,7 +198,7 @@ static USBH_StatusTypeDef USBH_HID_InterfaceInit (USBH_HandleTypeDef *phost)
 
     if(res)
     {
-        USBH_UsrLog ("USB #%xh stack : error : HID interface init.", (phost->id & 0xFF));
+        printf("\r\n: erro : usbs%02x : HID interface init.", phost->id);
         free(phost->pActiveClass->pData);
         phost->pActiveClass->pData = NULL;
         return (USBH_FAIL);
@@ -456,19 +456,19 @@ static USBH_StatusTypeDef USBH_HID_Process(USBH_HandleTypeDef *phost)
                 fifo_write(&HID_Handle->fifo, HID_Handle->pData, HID_Handle->length); // 将数据写入FIFO
                 {
 #if 0
-                    USBH_UsrLog("%x ", HID_Handle->pData[0]);
-                    USBH_UsrLog("%x ", HID_Handle->pData[2]);
-                    USBH_UsrLog("%x ", HID_Handle->pData[1]);
-                    USBH_UsrLog("%x ", HID_Handle->pData[4]);
-                    USBH_UsrLog("%x ", HID_Handle->pData[3]);
+                    printf("%x ", HID_Handle->pData[0]);
+                    printf("%x ", HID_Handle->pData[2]);
+                    printf("%x ", HID_Handle->pData[1]);
+                    printf("%x ", HID_Handle->pData[4]);
+                    printf("%x ", HID_Handle->pData[3]);
 #else
                     for(i = 0; i < 20; i++)
                     {
-                        USBH_UsrLog("%02x ", HID_Handle->pData[i]);
+                        printf("%02x ", HID_Handle->pData[i]);
                     }
 #endif
                 }
-                USBH_UsrLog("\r\n");
+                printf("\r\n");
                 HID_Handle->DataReady = 1;
                 USBH_HID_EventCallback(phost);
                 #if (USBH_USE_OS == 1)

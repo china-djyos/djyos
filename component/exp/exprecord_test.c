@@ -66,8 +66,6 @@
 #include <exp.h>
 #include "dbug.h"
 
-#include "newshell.h"
-
 #define CN_EXCEPTIONTEST_VERSION   "V1.0.0"
 //param,show how many times we should do
 #define CN_TEST_LENMAX   327   //A NUMBER NOT SO COMMON
@@ -658,17 +656,19 @@ ptu32_t __RecordTestTask(void)
 
 	return 0;
 }
-//struct ShellCmdTab  gRECORDTEST[] =
-//{
-//	{
-//		"exprtest",
-//		__RecordTestShell,
-//		"usage:exprtest [test/func] [subcmdparas]",
-//		"usage:exprtest [test/func] [subcmdparas]",
-//	},
-//};
-//#define CN_RECORDTEST_NUM  ((sizeof(gRECORDTEST))/(sizeof(struct ShellCmdTab)))
+
+struct shell_debug  gRECORDTEST[] =
+{
+	{
+		"exprtest",
+		exprtest,
+		"usage:exprtest [test/func] [subcmdparas]",
+		"usage:exprtest [test/func] [subcmdparas]",
+	},
+};
+#define CN_RECORDTEST_NUM  ((sizeof(gRECORDTEST))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gRECORDTESTCmdRsc[CN_RECORDTEST_NUM];
+
 // =============================================================================
 // 函数功能:板件异常记录存储测试机，开发的异常存储方案可以使用该函数进行初步的测试，看是否能够满足存储需求
 // 输入参数：opt，异常存储操作接口
@@ -760,9 +760,11 @@ bool_t ModuleInstall_ExpRecordTest(struct ExpRecordOperate *opt,u32 maxlen,bool_
 		data = (u8)(u32)rand();
 		gTestConfig.buf2rcv[i]=data;
 	}
+
 	//install the shell command here
-//	ret = Sh_InstallCmd(gRECORDTEST,gRECORDTESTCmdRsc,CN_RECORDTEST_NUM);
-	ret = true;
+	if(CN_RECORDTEST_NUM==shell_debug_add(gRECORDTEST, CN_RECORDTEST_NUM))
+	    ret = true;
+
 	//if auto test,we will make a task here to do the test
 	if(gTestConfig.autotest)
 	{

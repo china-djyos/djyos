@@ -76,7 +76,7 @@ struct RectBitmap;
 
 struct FontObj
 {
-    struct  Object *HostObj;
+    struct obj *HostObj;
 
     s32 MaxWidth;       //最宽字符的宽度,纵向显示时可用作为竖行宽
     s32 MaxHeight;      //最高字符的高度

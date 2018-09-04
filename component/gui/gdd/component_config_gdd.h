@@ -4,28 +4,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    struct GkWinObj;
-//    extern void    ModuleInstall_GDD(struct GkWinObj *desktop);
-//    extern struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
-//                                      const char *DesktopName,
-//                                      s32 width,s32 height,u32 color,
-//                                      u32 buf_mode,u16 PixelFormat,
-//                                      u32 BaseColor);
-//    struct GkWinObj *desktop;
-//    desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
-//                                CFG_DESKTOP_WIDTH,CFG_DESKTOP_HEIGHT,
-//                                CFG_FILL_COLOR,CN_WINBUF_PARENT,
-//                                CFG_DESKTOP_FORMAT,CFG_GRAY_BASE_COLOR);
-//    if(desktop == NULL)
-//    {
-//        printf("创建桌面出错");
-//        while( 1 );             //初始化时出错，死循环即可
-//    }
-//    else
-//    {
-//        ModuleInstall_GDD(desktop);
-//        GDD_AddInputDev(CFG_INPUTDEV_NAME);
-//    }
+//    extern void ModuleInstall_Gdd_AND_Desktop(void);
+//    ModuleInstall_Gdd_AND_Desktop();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -50,7 +30,7 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_DESKTOP_WIDTH        //****检查参数是否已经配置好
 #warning    gdd组件参数未配置，使用默认值
-//%$#@num,0,100,
+//%$#@num,0,800,
 #define CFG_DESKTOP_WIDTH       0           //"桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度
 //%$#@enum,true,false,

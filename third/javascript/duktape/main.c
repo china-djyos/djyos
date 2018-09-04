@@ -171,7 +171,7 @@ int duktest2(char *param) {
 #include <os.h>
 #include <shell.h>
 
-struct ShellCmdTab  gJsDukTapeDebug[] =
+struct shell_debug  gJsDukTapeDebug[] =
 {
     {
         "duktape",
@@ -192,8 +192,8 @@ struct ShellCmdTab  gJsDukTapeDebug[] =
         "usage:duktest2",
     },
 };
-#define CN_JsDukTapeDebug_NUM  ((sizeof(gJsDukTapeDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gJsDukTapeDebugCmdRsc[CN_JsDukTapeDebug_NUM];
+#define CN_JsDukTapeDebug_NUM  ((sizeof(gJsDukTapeDebug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gJsDukTapeDebugCmdRsc[CN_JsDukTapeDebug_NUM];
 
 // =============================================================================
 // FUNCTION:this is duktape install function
@@ -204,7 +204,7 @@ static struct ShellCmdRsc gJsDukTapeDebugCmdRsc[CN_JsDukTapeDebug_NUM];
 // =============================================================================
 int Duktape_main(int argc, char *argv[])
 {
-    Sh_InstallCmd(gJsDukTapeDebug,gJsDukTapeDebugCmdRsc,CN_JsDukTapeDebug_NUM);
+    shell_debug_add(gJsDukTapeDebug, CN_JsDukTapeDebug_NUM);
     printf("###300KB ROM and 1KB RAM need, and the stack must be more than 10KB\n\r");
     return 0;
 }

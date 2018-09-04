@@ -57,6 +57,60 @@
 #include "spibus.h"
 
 // =============================================================================
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    bool_t SPI_Init(u8 SPI_port);
+//    #if CFG_SPI1_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI1);
+//    #endif
+//    #if CFG_SPI2_ENABLE==1
+//    ModuleInstall_SPI(CN_SPI2)
+//    #endif
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"cpu_peri_spi" //SPI总线驱动
+//parent:"spibus"               //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                  //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"spibus","cpu_peri_gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_SPI_BUF_LEN
+#warning    cpu_peri_spi 组件参数未配置，使用默认值
+//%$#@num,32,512,
+#define CFG_SPI_BUF_LEN               128       //"SPI缓冲区大小",
+//%$#@enum,true,false,
+#define CFG_SPI1_ENABLE               false     //"是否使用SPI1",
+#define CFG_SPI2_ENABLE               false     //"是否使用SPI2",
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+//@#$%component end configure
+
+// =============================================================================
+
+
+// =============================================================================
 typedef struct _SPI_CTRL_
 {
 	vu32 SPISR;
@@ -125,20 +179,49 @@ static void __Spi_IntDisable(volatile tagSpiReg *Reg)
 // =============================================================================
 static void __Spi_SetClk(volatile tagSpiReg *tpSPI,u32 spisck)
 {
-    u32 temp,i;
-    if(tpSPI == NULL)
-        return;
+	   u32 temp,i;
+	    if(tpSPI == NULL)
+	        return;
 
-    temp = CN_CFG_SYSCLK / spisck;
-
-    for(i = 0; i < 5; i++)
+    switch(spisck)
     {
-    	if(temp <= (1<<i))
-    		break;
-    }
+        //系统主频下来80M 进行分频
+         case CN_SPI_SPEEK_40M:                  //2分频 000
+             tpSPI->SPICR &= ~((3<<3) | (1<<8));//先清0,系统频率二分频直接设置清0设置000
+             break;
 
-    tpSPI->SPICR &= ~((3<<3) | (1<<8));
-    tpSPI->SPICR |= ((i&3) << 3) | ((i>>2) << 8);
+         case CN_SPI_SPEEK_20M:       		     //4分频 010
+             tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
+             tpSPI->SPICR |= 0x2 << 3;
+             break;
+         case CN_SPI_SPEEK_10M:   		     //8分频 011
+             tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
+             tpSPI->SPICR |= 0x3 << 3;
+             break;
+
+         case CN_SPI_SPEEK_5M:                  //16分频 100
+             tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
+             tpSPI->SPICR |= 0x1 << 8;
+             break;
+
+         case CN_SPI_SPEEK_2_5M:                //32分频 101
+             tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
+             tpSPI->SPICR |= (0x1 << 8) | (0x1 << 3) ;
+             break;
+         case CN_SPI_SPEEK_13_33M:              //6分频  110
+             tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
+             tpSPI->SPICR |=(0x1 << 8)|(0x2 <<3);
+             break;
+
+         case CN_SPI_SPEEK_6_67M:              //12 分频 111
+             tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
+             tpSPI->SPICR |=(0x1 << 8)|(0x3 <<3);
+             break;
+         default:
+             printk("spisck arg set err\r\n");
+             tpSPI->SPICR &= ~((3<<3) | (1<<8));//先清0,系统频率二分频直接设置清0设置000
+             break;
+    }
 }
 
 // =============================================================================
@@ -285,20 +368,13 @@ static s32 __Spi_BusCtrl(tagSpiReg *Reg,u32 cmd,ptu32_t data1,ptu32_t data2)
 
 static u32 __Spi_Write(tagSpiReg *Reg,u8 Data)
 {
-	while(!(Reg->SPISR & (1<<3))) 			//xmit empty
-	{
+	while(!(Reg->SPISR & (1<<3))); 			//xmit empty
 
-	}
 	Reg->SPITR1 = Data;
 	Reg->SPICR |= (1<<5);					//start
-	while(!(Reg->SPISR & (1<<7)))			//done
-	{
+	while(!(Reg->SPISR & (1<<7)))	;		//done
 
-	}
-	while(!(Reg->SPISR & (1<<2)))			//rcv full
-	{
-
-	}
+	while(!(Reg->SPISR & (1<<2)))	;		//rcv full
 
 	return (u32)(Reg->SPIRR1);
 }

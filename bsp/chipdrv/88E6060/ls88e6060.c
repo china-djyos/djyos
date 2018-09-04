@@ -1,13 +1,14 @@
+#include <shell.h>
+
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//%$#@end initcode  ****初始化代码结束
-//  extern void LS88e6060ShellCmdInit(void);
 //  extern ptu32_t LS88e6060Init(u16 vlan[6]);
 //  LS88e6060ShellCmdInit();
+//%$#@end initcode  ****初始化代码结束
 //%$#@describe      ****组件描述开始
 //component name:"ls88e6060"    //5口交换机驱动
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
@@ -139,7 +140,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "newshell.h"
 //this function must be supplied by the mac device
 //extern u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value);
 //extern u8 GMAC_MdioW(u8 dev,u8 reg, u16 value);
@@ -371,7 +371,7 @@ const unsigned char gSwitchReg[]={0,3,4,6,0x0b,0x10,0x11};
 
 //static bool_t DevPhyRegPrint(char *param)
 ADD_TO_SHELL_HELP(preg,"usage:print the phyregs");
-ADD_TO_IN_SHELL static bool_t preg(char *param)
+ADD_TO_IN_SHELL  bool_t preg(char *param)
 {
     int i =0;
     unsigned char     dev;
@@ -405,7 +405,7 @@ ADD_TO_IN_SHELL static bool_t preg(char *param)
 
 //static bool_t DevSwitchRegPrint(char *param)
 ADD_TO_SHELL_HELP(sreg,"usage:print the switch regs");
-ADD_TO_IN_SHELL static bool_t sreg(char *param)
+ADD_TO_IN_SHELL  bool_t sreg(char *param)
 {
     int i =0;
     unsigned char     dev;
@@ -437,7 +437,7 @@ ADD_TO_IN_SHELL static bool_t sreg(char *param)
 
 //static bool_t DevSetPhyReg(char *param)
 ADD_TO_SHELL_HELP(setphy,"usage:set the phy regs:setphy +port +reg +value");
-ADD_TO_IN_SHELL static bool_t setphy(char *param)
+ADD_TO_IN_SHELL  bool_t setphy(char *param)
 {
 
     u8 dev;
@@ -482,7 +482,7 @@ ADD_TO_IN_SHELL static bool_t setphy(char *param)
 
 //static bool_t DevSetSwitchReg(char *param)
 ADD_TO_SHELL_HELP(setswitch,"usage:set the switch regs:setswitch +port +reg +value");
-ADD_TO_IN_SHELL static bool_t setswitch(char *param)
+ADD_TO_IN_SHELL  bool_t setswitch(char *param)
 {
 
     u8 dev;
@@ -528,7 +528,7 @@ ADD_TO_IN_SHELL static bool_t setswitch(char *param)
 
 //static bool_t DevSetPhyLoop(char *param)
 ADD_TO_SHELL_HELP(phyloop,"usage:reset the phy loop::phyloop+port");
-ADD_TO_IN_SHELL static bool_t phyloop(char *param)
+ADD_TO_IN_SHELL  bool_t phyloop(char *param)
 {
     int argc;
     char *argv[2];
@@ -593,7 +593,7 @@ ADD_TO_IN_SHELL static bool_t phyloop(char *param)
 }
 //static bool_t DevResetCmd(char *param)
 ADD_TO_SHELL_HELP(phyreset,"usage:reset the dev:phyreset+port");
-ADD_TO_IN_SHELL static bool_t phyreset(char *param)
+ADD_TO_IN_SHELL  bool_t phyreset(char *param)
 {
     int argc;
     char *argv[2];
@@ -628,7 +628,7 @@ ADD_TO_IN_SHELL static bool_t phyreset(char *param)
 
 //static bool_t DevVlanSet(char *param)
 ADD_TO_SHELL_HELP(vlan,"usage:set the vlan map:vlan + port +value");
-ADD_TO_IN_SHELL static bool_t vlan(char *param)
+ADD_TO_IN_SHELL  bool_t vlan(char *param)
 {
     int argc;
 
@@ -666,68 +666,68 @@ ADD_TO_IN_SHELL static bool_t vlan(char *param)
     return true;
 }
 
-//static struct ShellCmdTab  gEthRawDebug[] =
-//{
-//    {
-//        "preg",
-//        DevPhyRegPrint,
-//        "usage:print the phyregs",
-//        NULL
-//    },
-//    {
-//        "sreg",
-//        DevSwitchRegPrint,
-//        "usage:print the switch regs",
-//        NULL
-//    },
-//    {
-//        "setphy",
-//        DevSetPhyReg,
-//        "usage:set the phy regs:setphy +port +reg +value",
-//        NULL
-//    },
-//    {
-//        "setswitch",
-//        DevSetSwitchReg,
-//        "usage:set the switch regs:setswitch +port +reg +value",
-//        NULL
-//    },
-//
-//    {
-//        "phyloop",
-//        DevSetPhyLoop,
-//        "usage:reset the phy loop::phyloop+port",
-//        NULL
-//    },
-//    {
-//        "phyreset",
-//        DevResetCmd,
-//        "usage:reset the dev:phyreset+port",
-//        NULL
-//    },
-//    {
-//        "vlan",
-//        DevVlanSet,
-//        "usage:set the vlan map:vlan + port +value",
-//        NULL
-//    }
-//};
-//
-//#define CN_GMAC_DEBUG_CMDNUM  ((sizeof(gEthRawDebug))/(sizeof(struct ShellCmdTab)))
-//static struct ShellCmdRsc gEthRawDebugCmdRsc[CN_GMAC_DEBUG_CMDNUM];
-//static bool_t DevDebugInstall(void)
-//{
-//    bool_t result;
-//
-//    result = Sh_InstallCmd(gEthRawDebug,gEthRawDebugCmdRsc,CN_GMAC_DEBUG_CMDNUM);
-//
-//    return result;
-//}
+static struct shell_debug  gEthRawDebug[] =
+{
+    {
+        "preg",
+        preg,
+        "usage:print the phyregs",
+        NULL
+    },
+    {
+        "sreg",
+        sreg,
+        "usage:print the switch regs",
+        NULL
+    },
+    {
+        "setphy",
+        setphy,
+        "usage:set the phy regs:setphy +port +reg +value",
+        NULL
+    },
+    {
+        "setswitch",
+        setswitch,
+        "usage:set the switch regs:setswitch +port +reg +value",
+        NULL
+    },
 
-//void LS88e6060ShellCmdInit(void)
-//{
-//    DevDebugInstall();
-//}
+    {
+        "phyloop",
+        phyloop,
+        "usage:reset the phy loop::phyloop+port",
+        NULL
+    },
+    {
+        "phyreset",
+        phyreset,
+        "usage:reset the dev:phyreset+port",
+        NULL
+    },
+    {
+        "vlan",
+        vlan,
+        "usage:set the vlan map:vlan + port +value",
+        NULL
+    }
+};
+
+#define CN_GMAC_DEBUG_CMDNUM  ((sizeof(gEthRawDebug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gEthRawDebugCmdRsc[CN_GMAC_DEBUG_CMDNUM];
+static bool_t DevDebugInstall(void)
+{
+    if(CN_GMAC_DEBUG_CMDNUM==shell_debug_add(gEthRawDebug, CN_GMAC_DEBUG_CMDNUM))
+        return (TRUE);
+
+    return FALSE;
+}
+
+void LS88e6060ShellCmdInit(void)
+{
+    DevDebugInstall();
+}
+
 //this is the 88e6060  initialize
 ptu32_t LS88e6060Init(u16 vlan[6])
 {
@@ -746,7 +746,8 @@ ptu32_t LS88e6060Init(u16 vlan[6])
 
     DevGIntSet();   //open the master interrupt
 //    printf("autoconfig!\n\r");
-//    LS88e6060ShellCmdInit();
+
+    LS88e6060ShellCmdInit();
     return 0;
 }
 

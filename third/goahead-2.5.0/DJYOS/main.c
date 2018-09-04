@@ -224,7 +224,7 @@ bool_t GoAheadStart(char *para)
 
 #include "shell.h"
 
-static struct ShellCmdTab  gGoAheadCmd[] =
+static struct shell_debug  gGoAheadCmd[] =
 {
     {
         "goaheadstart",
@@ -234,13 +234,13 @@ static struct ShellCmdTab  gGoAheadCmd[] =
     }
 };
 
-#define CN_GOAHEAD_CMDNUM  ((sizeof(gGoAheadCmd))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gGoAheadCmdRsc[CN_GOAHEAD_CMDNUM];
+#define CN_GOAHEAD_CMDNUM  ((sizeof(gGoAheadCmd))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gGoAheadCmdRsc[CN_GOAHEAD_CMDNUM];
 int Goahead_main(int argc, char *argv[])
 {
     bool_t result;
 
-    result = Sh_InstallCmd(gGoAheadCmd,gGoAheadCmdRsc,CN_GOAHEAD_CMDNUM);
+    result = shell_debug_add(gGoAheadCmd, CN_GOAHEAD_CMDNUM);
 
     return result;
 }

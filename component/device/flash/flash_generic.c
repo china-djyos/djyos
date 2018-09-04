@@ -49,18 +49,23 @@
 
 #include <stddef.h>
 #include <endian.h>
-#include "flash.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include "../include/unit_media.h"
+#include "flash.h" // will be obsolete
 #include "dbug.h"
 
 // ============================================================================
 // 功能：解析NAND FLASH的ONFI参数页。
-// 参数：pRaw -- NandParamterPage
-//       pONFI -- Nand描述结构体
-//       bLittle -- NandParamterPage的格式,"1"表示32位小端。
+// 参数：data -- NandParamterPage
+//      onfi -- Nand描述结构体
+//      little -- NandParamterPage的格式,"1"表示32位小端。
 // 返回：成功(0); 失败(-1);
 // 备注：参数页的具体数据结构,要看注意下NAND FLASH的参数手册
 // ============================================================================
-s32 DecodeONFI(const char *pRaw, struct NandDescr *pONFI, u8 bLittle)
+s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
 {
     u8 i;
     u32 offset;
@@ -69,35 +74,38 @@ s32 DecodeONFI(const char *pRaw, struct NandDescr *pONFI, u8 bLittle)
  
     // ONFI标记
     offset = 0;
-    if(bLittle)
+    if(little)
     {
         *(u32 *)signature = swapl(*(u32 *)signature);
     }
     for (i = 0; i < 4; i++)
     {
-        if (signature[i] != (char)pRaw[offset+i])
+        if (signature[i] != (char)data[offset+i])
+        {
+            printf("\r\n: info : device : flash's ONFI is unavailable\r\n");
             return (-1); // 标记内容不符要求
+        }
     }
  
     // ONFI版本号
     offset = 4;
     for (i = 0; i < 4; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
     
-    if(bLittle)
-        pONFI->Revision = (u16)swapl(*(u32 *)temp);
+    if(little)
+        onfi->Revision = (u16)swapl(*(u32 *)temp);
     else
-        pONFI->Revision = (u16)(*(u32 *)temp);
+        onfi->Revision = (u16)(*(u32 *)temp);
  
     // Device Manufacturer
     offset = 32;
     for (i = 0; i < 12; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
-    if(bLittle)
+    if(little)
     {
         for (i = 0; i < 3; i++)
         {
@@ -106,17 +114,17 @@ s32 DecodeONFI(const char *pRaw, struct NandDescr *pONFI, u8 bLittle)
     }
     for (i = 0; i < 12; i++)
     {
-        pONFI->Manufacturer[i] = (char)temp[i];
+        onfi->Manufacturer[i] = (char)temp[i];
     }
-    pONFI->Manufacturer[i] = '\0';
+    onfi->Manufacturer[i] = '\0';
  
     // Device Model
     offset = 44;
     for (i = 0; i < 20; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
-    if(bLittle)
+    if(little)
     {
         for (i = 0; i < 5; i++)
         {
@@ -125,116 +133,115 @@ s32 DecodeONFI(const char *pRaw, struct NandDescr *pONFI, u8 bLittle)
     }
     for (i = 0; i < 20; i++)
     {
-        pONFI->DeviceModel[i] = (char)temp[i];
+        onfi->DeviceModel[i] = (char)temp[i];
     }
-    pONFI->DeviceModel[i] = '\0';
+    onfi->DeviceModel[i] = '\0';
  
     // Number of data bytes per page
     offset = 80;
     for (i = 0; i < 4; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
-    if(bLittle)
+    if(little)
     {
-        pONFI->BytesPerPage = swapl(*(u32 *)temp);
+        onfi->BytesPerPage = swapl(*(u32 *)temp);
     }
     else
     {
-        pONFI->BytesPerPage = *(u32 *)temp;
+        onfi->BytesPerPage = *(u32 *)temp;
     }
  
     // Number of spare bytes per page
     offset = 84;
     for (i = 0; i < 4; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
-    if(bLittle)
+    if(little)
     {
-        pONFI->OOB_Size = swapl(*(u32 *)temp);
+        onfi->OOB_Size = swapl(*(u32 *)temp);
     }
     else
     {
-        pONFI->OOB_Size = *(u32 *)temp;
+        onfi->OOB_Size = *(u32 *)temp;
     }
  
     // Number of pages per block
     offset = 92;
     for (i = 0; i < 4; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
-    if(bLittle)
+    if(little)
     {
-        pONFI->PagesPerBlk = swapl(*(u32 *)temp);
+        onfi->PagesPerBlk = swapl(*(u32 *)temp);
     }
     else
     {
-        pONFI->PagesPerBlk = *(u32 *)temp;
+        onfi->PagesPerBlk = *(u32 *)temp;
     }
  
     // Number of blocks per LUN
     offset = 96;
     for (i = 0; i < 4; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
-    if(bLittle)
+    if(little)
     {
-        pONFI->BlksPerLUN = swapl(*(u32 *)temp);
+        onfi->BlksPerLUN = swapl(*(u32 *)temp);
     }
     else
     {
-        pONFI->BlksPerLUN = *(u32 *)temp;
+        onfi->BlksPerLUN = *(u32 *)temp;
     }
  
     // Number of LUNs
     offset = 100;
     for (i = 0; i < 4; i++)
     {
-        temp[i] = (u8)pRaw[offset+i];
+        temp[i] = (u8)data[offset+i];
     }
-    if(bLittle)
+    if(little)
     {
-        pONFI->LUNs = (u8)swapl(*(u32 *)temp);
+        onfi->LUNs = (u8)swapl(*(u32 *)temp);
     }
     else
     {
-        pONFI->LUNs = (u8)(*(u32 *)temp);
+        onfi->LUNs = (u8)(*(u32 *)temp);
     }
  
  #if 0
     // Guaranteed valid block at the beginning of target
     for (i = 0; i < 4; i++)
     {
-        temp[i] = (u8)pRaw[104+i];
+        temp[i] = (u8)data[104+i];
     }
     *(u32 *)temp = swapl(*(u32 *)temp);
-    pONFI->SafeBlkNo = temp[3];
+    onfi->SafeBlkNo = temp[3];
  #endif
  
-    debug_printf("flash","\r\n");
-    debug_printf("flash","FLASH's ONFI :\r\n");
-    debug_printf("flash","    device's manufacturer is \"%s\"\r\n", pONFI->Manufacturer);
-    debug_printf("flash","    device's model is %s\r\n", pONFI->DeviceModel);
-    debug_printf("flash","    device's details, %d LUNs, %d blocks/LUN, %d pages/block, %d bytes/page, %d bytes/OOB.",
-           pONFI->LUNs, pONFI->BlksPerLUN, pONFI->PagesPerBlk, pONFI->BytesPerPage, pONFI->OOB_Size);
-    debug_printf("flash","\r\n\r\n");
+    printf("\r\n");
+    printf(": info : device : flash's ONFI >>>>\r\n");
+    printf("                  manufacturer is %s\r\n", onfi->Manufacturer);
+    printf("                  model is %s\r\n", onfi->DeviceModel);
+    printf("                  details (%d LUNs; %d blocks/LUN; %d pages/block; %d bytes/page; %d bytes/OOB",
+           onfi->LUNs, onfi->BlksPerLUN, onfi->PagesPerBlk, onfi->BytesPerPage, onfi->OOB_Size);
 
  #if 0
-//    TraceDrv(FLASH_TRACE_DEBUG, "Guaranteed block:0x%x\r\n", pONFI->SafeBlkNo );
-    debug_printf("flash","Guaranteed block:0x%x\r\n", pONFI->SafeBlkNo);
+   printf(";guaranteed %d blocks", onfi->SafeBlkNo );
  #endif
- 
+   printf(").");
     return (0);
 }
 
+#if 1
 // ============================================================================
 // 功能： 擦除整颗芯片(保留块除外)
 // 参数：
 // 返回： >=0 -- 存在的坏块数；-1 -- 失败;
-// 备注：
+// 备注：will be obsolete；
 // ============================================================================
 s32 EarseWholeChip(struct FlashChip *Chip)
 {
@@ -293,37 +300,277 @@ s32 EarseWholeChip(struct FlashChip *Chip)
     }
     return (BadBlks);
 }
+#endif
+
+// ============================================================================
+// 功能：检索坏块，并建立坏块表
+// 参数：req -- unit media请求；
+//      table -- 坏块表；
+// 返回：
+// 备注：
+// ============================================================================
+#define BAD_BLOCK_TAG           "bad blocks table"
+s32 nandscanbads( __um_req req, u32 **table)
+{
+    u32 i, blocks;
+    u32 tmp[128]; // 预估有128个坏块；
+    u8 bads = 0;
+
+    if(req(totalblocks, (ptu32_t)&blocks))
+        return (-1);
+
+    for(i = 0; i < blocks; i++)
+    {
+        if(1 == req(checkbad, i)) // 是坏块
+        {
+            tmp[bads] = i;
+            bads++;
+            if(bads>128)
+            {
+                printf("\r\n: dbug : device : too much bad blocks for nand.");
+                return (-1);
+            }
+        }
+    }
+
+    *table = malloc((bads << 2) + 4);
+    if(!(*table))
+    {
+        printf("\r\n: dbug : device : no memory for bad blocks table.");
+        return (-1);
+    }
+
+    **table = bads; // 开始用于记录bad数量
+    memcpy((u8*)(*table+1), tmp, bads<<2);
+    return (0);
+}
+
+// ============================================================================
+// 功能：页是否是有效坏块表；
+// 参数：badtable -- 坏块表；
+// 返回：是（1）；否（0）；
+// 备注：
+// ============================================================================
+s32 nandvalidbads(u32 *badtable)
+{
+    if(strcmp((char*)badtable, BAD_BLOCK_TAG))
+        return (0);
+
+    return (1);
+}
+// ============================================================================
+// 功能：建立坏块表
+// 参数：req -- 请求；
+// 返回：成功（坏块表）；失败（NULL）；
+// 备注：
+// ============================================================================
+u32 *nandbuildbads(__um_req req)
+{
+    u8 *tmp, *badcount;
+    s32 res;
+    u32 *table, bytes;
+
+    if(!req)
+        return (NULL);
+
+    if(req(unitbytes, (ptu32_t)&bytes))
+        return (NULL);
+
+    tmp = malloc(bytes);
+    if(!tmp)
+        return (NULL);
+
+    res = req(getbads, (ptu32_t)&tmp);
+    if(-1==res)
+    {
+        free(tmp);
+        return (NULL);
+    }
+
+    if(strcmp(BAD_BLOCK_TAG, (char*)tmp)) // 查看坏块表标签
+    {
+        if(nandscanbads(req, &table))
+        {
+            table = NULL;
+        }
+        else
+        {
+            strcpy((char*)tmp, BAD_BLOCK_TAG);
+            memcpy((tmp+(strlen(BAD_BLOCK_TAG)+4)), table, ((table[0]+1)<<2)); //
+            if(req(savebads, (ptu32_t)tmp))
+                printf("\r\n: dbug : device : bad block table save failed for nand.");
+        }
+    }
+    else
+    {
+        badcount = (tmp + strlen(BAD_BLOCK_TAG) + 4);
+        bytes = (*((u32*)badcount) + 1) << 2;
+        table = malloc(bytes);
+        if(table)
+            memcpy(table, badcount, bytes);
+    }
+
+    free(tmp);
+    return (table);
+}
+
+// ============================================================================
+// 功能：获取无坏块情况下的块号；
+// 参数：badtable -- 坏块表；
+//      block -- 块号；
+//      req -- 请求；
+// 返回：
+// 备注：
+// ============================================================================
+void nandbadfreeblock(u32 *badtable, u32 *block, __um_req req)
+{
+    u32 i, count = badtable[0];
+
+    if(!req || !badtable || !block)
+        return;
+
+    for(i = 1; i <= count; i++)
+    {
+        if(*block >= badtable[i])
+        {
+            *block += 1;
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
+// ============================================================================
+// 功能：获取无坏块情况下的unit号；
+// 参数：badtable -- 坏块表；
+//      unit -- unit号；
+//      req -- 请求；
+// 返回：
+// 备注：
+// ============================================================================
+void nandbadfreeunit(u32 *badtable, u32 *unit, __um_req req)
+{
+    u32 i, block = 0, count = badtable[0], movs = 0, units = 0;
+
+    if(!req || !badtable || !unit)
+        return;
+
+    req(whichblock, (ptu32_t)&block, *unit);
+    for(i = 1; i <= count; i++)
+    {
+        if(block >= badtable[i])
+        {
+            block += 1;
+            req(blockunits, (ptu32_t)&units, block);
+            movs += units;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    *unit += movs;
+}
+
 #if 0
 // ============================================================================
-// 功能：
-// 参数：
+// 功能：NAND分区初始化；
+// 参数：bstart -- 起始块；
+//      bcount -- 块数；
+//      doformat -- 格式化；
 // 返回：
 // 备注：
 // ============================================================================
-u32 __FLASH_Write(tagOFile *devFile, u8 *pBuf, u32 dwLen, u32 dwTimeout)
+__attribute__((weak)) s32 __nand_part_init(u32 bstart, u32 bcount, u32 doformat)
 {
-    return (0);
+    bstart = bstart;
+    bcount = bcount;
+    doformat = doformat;
+    return (-1);
+}
+
+
+// ============================================================================
+// 功能：embaed分区初始化；
+// 参数：bstart -- 起始块；
+//      bcount -- 块数；
+//      doformat -- 格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+__attribute__((weak)) s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
+{
+    bstart = bstart;
+    bcount = bcount;
+    doformat = doformat;
+    return (-1);
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
+// 功能：在NAND FLASH上安装分区；
+// 参数： parts -- 分区数；
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-u32 __FLASH_Read(tagOFile *devFile, u8 *pBuf, u32 dwLen, u32 dwTimeout)
+s32 ModuleInstall_PART_ON_NAND(u8 parts, ...)
 {
-    return (0);
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
+
+    va_start(list, parts);
+    for(part=0; part<parts; part++)
+    {
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(__nand_part_init(startblock, blocks, doformat))
+        {
+
+            res = -1;
+            break;
+        }
+    }
+
+    va_end(list);
+    return (res);
 }
 
+
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
+// 功能：在EMBEDED FLASH上安装分区；
+// 参数：parts -- 分区数；
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 FLASH_Register(char *name)
+s32 ModuleInstall_PART_ON_EMBEDED(u8 parts, ...)
 {
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
 
+    va_start(list, parts);
+    for(part=0; part<parts; part++)
+    {
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(__embed_part_init(startblock, blocks, doformat))
+        {
+            res = -1;
+            break;
+        }
+    }
+
+    va_end(list);
+    return (res);
 }
 #endif
+

@@ -62,15 +62,15 @@ static char *touchname = "usb touch";
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __TOUCH_DriRead(tagOFile *pUSB, u8 *data, u32 dwLen, u32 wdOffset, u32 dwTimeout)
+static s32 __TOUCH_DriRead(struct objhandle *pUSB, u8 *data, u32 dwLen, u32 wdOffset, u32 dwTimeout)
 {
     s32 res;
-    u8 *pBuf = (u8*)data;
+    u8 *pBuf = data;
 
     if((9 != dwLen) || (0 != wdOffset) || (!pUSB)) // 由于touch并非流媒体，每次读的大小读是固定的
         return (0);
 
-    res = USBH_HID_TouchGetData((void*)devfiledtag(pUSB), pBuf, (u32*)(pBuf+1), (u32*)(pBuf+5));
+    res = USBH_HID_TouchGetData((void*)dev2drv(pUSB), pBuf, (u32*)(pBuf+1), (u32*)(pBuf+5));
     if(-1 == res)
         return (0);
 
@@ -89,7 +89,7 @@ s32 TOUCH_DirectRead(u8 *pButton, u32 *pX, u32 *pY)
 
     if(!pTouch)
     {
-        USBH_UsrLog("\r\n: erro : usb    : touch device do not exist.\r\n");
+        printf("\r\n: erro : usb    : touch device do not exist.");
         return (0);
     }
 
@@ -123,7 +123,7 @@ s32 USBH_ResigerDevTouch(void *pParam)
     if(dev_add(NULL, (const char*)touchname, NULL, NULL,NULL,
             __TOUCH_DriRead, NULL, (ptu32_t)pParam))
     {
-        USBH_UsrLog("\r\n: erro : usb    : register touch device failed.");
+        printf("\r\n: erro : usb    : register touch device failed.");
         return (-1); // register failure
     }
 
@@ -140,7 +140,7 @@ s32 USBH_UnResigerDevTouch(void)
 {
     if(dev_del(NULL, touchname))
     {
-        USBH_UsrLog("\r\n: erro : usb    : unregister touch device failed.\r\n");
+        printf("\r\n: erro : usb    : unregister touch device failed.\r\n");
         return (-1); // register failure
     }
 
@@ -157,7 +157,7 @@ void USBH_SetTouch(void *pHost)
 {
     if((pTouch) || (!pHost))
     {
-        USBH_UsrLog("\r\n: erro : usb    : cannot set touch device.\r\n");
+        printf("\r\n: erro : usb    : cannot set touch device.\r\n");
         return ;
     }
 

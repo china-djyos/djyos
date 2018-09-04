@@ -67,7 +67,7 @@
 #include "component_config_NlsCharset.h"
 
 static struct Charset *s_ptCurCharset;      // 当前字符集
-static struct Object *s_ptCharsetDir;       // 字符集目录
+static struct obj *s_ptCharsetDir;       // 字符集目录
 //----安装字符集-------------------------------------------------------------
 //功能: 把新字符集安装到字符集目录中
 //参数: encoding，新增的字符集指针
@@ -77,11 +77,18 @@ static struct Object *s_ptCharsetDir;       // 字符集目录
 bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name)
 {
     if(s_ptCharsetDir == NULL)
-        return false;       // 字符集目录未创建
+        return (FALSE);       // 字符集目录未创建
 
-    OBJ_AddChild(s_ptCharsetDir,NULL,(ptu32_t)encoding,name);
+    encoding->HostObj = obj_newchild(s_ptCharsetDir,(fnObjOps)-1,0,(ptu32_t)encoding,name);
+    if(!encoding->HostObj)
+    {
+        return (FALSE);
+    }
 
-    return true;
+	if(!s_ptCurCharset)
+		s_ptCurCharset = encoding;
+	
+	return (TRUE);
 }
 
 //----字符集模块初始化-------------------------------------------------------
@@ -91,7 +98,7 @@ ptu32_t ModuleInstall_Charset(ptu32_t para)
 {
     s_ptCurCharset = NULL;
     // 创建字符集目录
-    s_ptCharsetDir = OBJ_AddChild(OBJ_Root(),NULL,0,CN_CHAR_ENCODING_RSC_TREE);
+    s_ptCharsetDir = obj_newchild(objsys_root(),(fnObjOps)-1,0,0,CN_CHAR_ENCODING_RSC_TREE);
     if(s_ptCharsetDir)
     {
         return 1;
@@ -120,7 +127,7 @@ struct Charset* Charset_NlsGetCurCharset(void)
 //-----------------------------------------------------------------------------
 struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
 {
-    struct Object *Me;
+    struct obj *Me;
     if(encoding == NULL)
         return NULL;
     if(encoding == s_ptCurCharset)
@@ -128,7 +135,7 @@ struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
     if(s_ptCharsetDir == NULL)
         return NULL;       //字符集目录未创建
     Me = encoding->HostObj;
-    if(OBJ_IsParentChild( s_ptCharsetDir,Me))    //字符集确已安装到s_ptCharsetDir目录
+    if(s_ptCharsetDir==obj_parent(Me)) // 字符集确已安装到s_ptCharsetDir目录
     {
         s_ptCurCharset = (struct Charset*)encoding;
     }
@@ -143,13 +150,13 @@ struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
 //-----------------------------------------------------------------------------
 struct Charset* Charset_NlsSearchCharset(const char* name)
 {
-    struct Object *CharsetObj;
+    struct obj *CharsetObj;
     if(s_ptCharsetDir == NULL)
         return NULL;       //字符资源树未创建
 
-    CharsetObj = OBJ_SearchChild(s_ptCharsetDir,name);
+    CharsetObj = obj_search_child(s_ptCharsetDir,name);
     if(CharsetObj != NULL)
-        return (struct Charset*)OBJ_Represent(CharsetObj);
+        return (struct Charset*)obj_val(CharsetObj);
     else
         return NULL;
 }

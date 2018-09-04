@@ -49,7 +49,7 @@
 
 #include <sys/socket.h>
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
 #include "../component_config_tcpip.h"
 
 #include "../common/ip.h"
@@ -421,7 +421,7 @@ ADD_TO_IN_SHELL bool_t ipv4(char *param)
     return true;
 }
 //install some shell command here
-//static struct ShellCmdTab  gIpV4Debug[] =
+//static struct shell_debug  gIpV4Debug[] =
 //{
 //    {
 //        "ipv4",
@@ -430,13 +430,13 @@ ADD_TO_IN_SHELL bool_t ipv4(char *param)
 //        "usage:ipv4",
 //    },
 //};
-//#define CN_IpV4Debug_ITEMNUM  ((sizeof(gIpV4Debug))/(sizeof(struct ShellCmdTab)))
+//#define CN_IpV4Debug_ITEMNUM  ((sizeof(gIpV4Debug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gIpV4DebugCmdRsc[CN_IpV4Debug_ITEMNUM];
 //use this function to deal the ipv4 initialize
 //bool_t  Ipv4Init(void)
 //{
 //    bool_t ret;
-//    ret = Sh_InstallCmd(gIpV4Debug,gIpV4DebugCmdRsc,CN_IpV4Debug_ITEMNUM);
+//    ret = shell_debug_add(gIpV4Debug,g CN_IpV4Debug_ITEMNUM);
 //    return ret;
 //}
 

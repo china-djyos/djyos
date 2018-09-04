@@ -61,10 +61,9 @@
 #include "shell.h"
 #include "systime.h"
 #include "dbug.h"
-#include "newshell.h"
+
 bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara);
 
-extern char *Sh_GetWord(char *buf,char **next);
 // =============================================================================
 // 函数功能：Exp_ShellBrowseAssignedRecord
 //           shell查看指定条目的异常信息
@@ -90,7 +89,7 @@ ADD_TO_IN_SHELL bool_t expi(char *param)
         goto browse_end;
     }
 
-    word = Sh_GetWord(param,&next_param);
+    word = shell_inputs(param,&next_param);
     item_num = strtol(word, (char **)NULL, 0);
 
     result = Exp_RecordCheckLen(item_num, &item_len);
@@ -182,28 +181,29 @@ ADD_TO_IN_SHELL bool_t expc(char *param)
 
     return result;
 }
-//struct ShellCmdTab  gtExpShellCmdTab[] =
-//{
-//    {
-//        "expi",
-//        Exp_ShellBrowseAssignedRecord,
-//        "browse the specified exception item",
-//        "expi item\n\r"
-//    },
-//    {
-//        "expn",
-//        Exp_ShellBrowseRecordNum,
-//        "browse the exception number",
-//        "expn"
-//    },
-//    {
-//        "expc",
-//        Exp_ShellRecordClear,
-//        "clear all the exception item",
-//        "expc"
-//    }
-//};
-//#define CN_EXPSHELL_NUM  ((sizeof(gtExpShellCmdTab))/(sizeof(struct ShellCmdTab)))
+
+struct shell_debug  gtExpShellCmdTab[] =
+{
+    {
+        "expi",
+        expi,
+        "browse the specified exception item",
+        "expi item\n\r"
+    },
+    {
+        "expn",
+        expn,
+        "browse the exception number",
+        "expn"
+    },
+    {
+        "expc",
+        expc,
+        "clear all the exception item",
+        "expc"
+    }
+};
+#define CN_EXPSHELL_NUM  ((sizeof(gtExpShellCmdTab))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc sgExpShellRsc[CN_EXPSHELL_NUM];
 // =============================================================================
 // 函数功能：Exp_ShellInit
@@ -213,19 +213,19 @@ ADD_TO_IN_SHELL bool_t expc(char *param)
 // 返回值  ：true成功  false失败
 // 说明    ：
 // =============================================================================
-//bool_t Exp_ShellInit()
-//{
-//    bool_t result;
-//    if(Sh_InstallCmd(gtExpShellCmdTab,sgExpShellRsc,CN_EXPSHELL_NUM))
-//    {
-//        info_printf("module","exception installed.");
-//        result = true;
-//    }
-//    else
-//    {
-//        error_printf("shell","exception installed failed<shell>.");
-//        result = false;
-//    }
-//    return result;
-//}
+bool_t Exp_ShellInit()
+{
+    bool_t result;
+    if(CN_EXPSHELL_NUM==shell_debug_add(gtExpShellCmdTab, CN_EXPSHELL_NUM))
+    {
+        info_printf("module","exception installed.");
+        result = true;
+    }
+    else
+    {
+        error_printf("module","exception installed failed(shell).");
+        result = false;
+    }
+    return result;
+}
 

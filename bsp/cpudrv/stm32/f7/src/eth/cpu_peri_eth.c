@@ -15,21 +15,20 @@
 #include <board-config.h>
 #include <sys/socket.h>
 #include <netbsp.h>
-#include "newshell.h"
+#include "shell.h"
 #include "stm32f7xx_hal.h"
 #include "stm32f7xx_hal_eth.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
-//%$#@end initcode  ****初始化代码结束
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //  extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
 //                          bool_t loop,u32 loopcycle,\
 //                          bool_t (*rcvHook)(u8 *buf, u16 len));
-//   static u8 mac_addr[]={CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2\
-                            CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5};
-//   ModuleInstall_ETH(CFG_ETH_DEV_NAME,mac_addr,CFG_ETH_LOOP_ENABLE,\
-//                                  CFG_ETH_LOOP_CYCLE,NULL);
+//   static u8 mac_addr[]={CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5};
+//   ModuleInstall_ETH(CFG_ETH_DEV_NAME,mac_addr,CFG_ETH_LOOP_ENABLE,CFG_ETH_LOOP_CYCLE,NULL);
+//%$#@end initcode  ****初始化代码结束
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_eth" //CPU的mac驱动
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
@@ -887,85 +886,85 @@ ADD_TO_IN_SHELL bool_t macfiltdis(char *param)
     return true;
 }
 
-#include <shell.h>
-//static struct ShellCmdTab  gMacDebug[] =
-//{
+static struct shell_debug  gMacDebug[] =
+{
+    {
+        "mac",
+        mac,
+        "usage:mac",
+        NULL
+    },
+    {
+        "macreg",
+        macreg,
+        "usage:macreg",
+        NULL
+    },
 //    {
-//        "mac",
-//        macdebuginfo,
-//        "usage:gmac",
+//        "macpost",
+//        gmacpost,
+//        "usage:gmacpost",
 //        NULL
 //    },
 //    {
-//        "macreg",
-//        MacReg,
-//        "usage:MacReg",
-//        NULL
-//    },
-////    {
-////        "macpost",
-////        gmacpost,
-////        "usage:gmacpost",
-////        NULL
-////    },
-////    {
-////        "macrcvbd",
-////        gmacrcvbdcheck,
-////        "usage:gmacrcvbd",
-////        NULL
-////    },
-////    {
-////        "macsndbd",
-////        gmacsndbdcheck,
-////        "usage:gmacsndbd",
-////        NULL
-////    },
-//    {
-//        "macreset",
-//        MacReset,
-//        "usage:reset gmac",
-//        NULL
-//    },
-////    {
-////        "macdelay",
-////        MacDelay,
-////        "usage:MacDelay",
-////        NULL
-////    },
-////    {
-////        "macsndbdclear",
-////        MacSndBDClear,
-////        "usage:MacSndBdClear + ndnum",
-////        NULL
-////    }
-//    {
-//        "macsnden",
-//        MacSndEn,
-//        "usage:MacSndEn",
+//        "macrcvbd",
+//        gmacrcvbdcheck,
+//        "usage:gmacrcvbd",
 //        NULL
 //    },
 //    {
-//        "macsnddis",
-//        MacSndDis,
-//        "usage:MacSndDis",
+//        "macsndbd",
+//        gmacsndbdcheck,
+//        "usage:gmacsndbd",
+//        NULL
+//    },
+    {
+        "macreset",
+        macreset,
+        "usage:reset gmac",
+        NULL
+    },
+//    {
+//        "macdelay",
+//        MacDelay,
+//        "usage:MacDelay",
 //        NULL
 //    },
 //    {
-//        "macfilten",
-//        MacAddrFilterEn,
-//        "usage:MacAddrEn, don't receive all frame(MAC filter)",
+//        "macsndbdclear",
+//        MacSndBDClear,
+//        "usage:MacSndBdClear + ndnum",
 //        NULL
-//    },
-//    {
-//        "macfiltdis",
-//        MacAddrFilterDis,
-//        "usage:MacAddrDis, receive all frame(don't care MAC filter)",
-//        NULL
-//    },
-//};
-//
-//#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
+//    }
+    {
+        "macsnden",
+        macsnden,
+        "usage:macsnden",
+        NULL
+    },
+    {
+        "macsnddis",
+        macsnddis,
+        "usage:macsnddis",
+        NULL
+    },
+    {
+        "macfilten",
+        macfilten,
+        "usage:MacAddrEn, don't receive all frame(MAC filter)",
+        NULL
+    },
+    {
+        "macfiltdis",
+        macfiltdis,
+        "usage:MacAddrDis, receive all frame(don't care MAC filter)",
+        NULL
+    },
+};
+
+#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
+
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -1050,7 +1049,8 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_IsrConnect(CN_INT_LINE_ETH,ETH_IntHandler);
         Int_ContactLine(CN_INT_LINE_ETH);
     }
-//    Sh_InstallCmd(gMacDebug,gMacDebugCmdRsc,CN_GMACDEBUG_NUM);
+
+    shell_debug_add(gMacDebug, CN_GMACDEBUG_NUM);
     printf("%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

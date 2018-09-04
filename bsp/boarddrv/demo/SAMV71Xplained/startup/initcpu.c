@@ -60,7 +60,7 @@
 #include "cpu_peri.h"
 #include "hard-exp.h"
 #include "arch_feature.h"
-#include <samv7/samv71.h>
+#include <samv71.h>
 #include "core_cmFunc.h"
 #include "iap.h"
 #include "cpu_peri.h"

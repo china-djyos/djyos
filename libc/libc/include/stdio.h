@@ -100,6 +100,7 @@ bool_t AddToStdin(s32 fd, bool_t LineEdit);
 bool_t DisableLineEdit(void);
 bool_t EnableLineEdit(void);
 s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
+bool_t IsInitedStdio(FILE* stream);
 
 
 //typedef __FILE FILE;

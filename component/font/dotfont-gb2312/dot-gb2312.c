@@ -75,73 +75,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    #if CFG_GB2312_12_SONG != zk_disable
-//    extern bool_t ModuleInstall_FontGB23126x12(void);
-//    ModuleInstall_FontGB23126x12( );
-//    #endif      //CFG_GB2312_12 != zk_disable
-//
-//    #if CFG_GB2312_16_SONG != zk_disable
-//    extern bool_t ModuleInstall_FontGB23128x16(void);
-//    ModuleInstall_FontGB23128x16( );
-//    #endif      //CFG_GB2312_16_SONG != zk_disable
-//    #if CFG_GB2312_16_YUAN != zk_disable
-//    extern bool_t ModuleInstall_FontGB23128x16yuan(void);
-//    ModuleInstall_FontGB23128x16yuan( );
-//    #endif      //CFG_GB2312_16_YUAN != zk_disable
-//    #if CFG_GB2312_16_KAI != zk_disable
-//    extern bool_t ModuleInstall_FontGB23128x16kai(void);
-//    ModuleInstall_FontGB23128x16kai( );
-//    #endif      //CFG_GB2312_16_KAI != zk_disable
-//    #if CFG_GB2312_16_HEI != zk_disable
-//    extern bool_t ModuleInstall_FontGB23128x16hei(void);
-//    ModuleInstall_FontGB23128x16hei( );
-//    #endif      //CFG_GB2312_16_HEI != zk_disable
-//    #if CFG_GB2312_16_FANG != zk_disable
-//    extern bool_t ModuleInstall_FontGB23128x16fang(void);
-//    ModuleInstall_FontGB23128x16fang( );
-//    #endif      //CFG_GB2312_16_FANG != zk_disable
-//
-//    #if CFG_GB2312_24_SONG != zk_disable
-//    extern bool_t ModuleInstall_FontGB231212x24(void);
-//    ModuleInstall_FontGB231212x24( );
-//    #endif      //CFG_GB2312_24_SONG != zk_disable
-//    #if CFG_GB2312_24_YUAN != zk_disable
-//    extern bool_t ModuleInstall_FontGB231212x24yuan(void);
-//    ModuleInstall_FontGB231212x24yuan( );
-//    #endif      //CFG_GB2312_24_YUAN != zk_disable
-//    #if CFG_GB2312_24_KAI != zk_disable
-//    extern bool_t ModuleInstall_FontGB231212x24kai(void);
-//    ModuleInstall_FontGB231212x24kai( );
-//    #endif      //CFG_GB2312_24_KAI != zk_disable
-//    #if CFG_GB2312_24_HEI != zk_disable
-//    extern bool_t ModuleInstall_FontGB231212x24hei(void);
-//    ModuleInstall_FontGB231212x24hei( );
-//    #endif      //CFG_GB2312_24_HEI != zk_disable
-//    #if CFG_GB2312_24_FANG != zk_disable
-//    extern bool_t ModuleInstall_FontGB231212x24fang(void);
-//    ModuleInstall_FontGB231212x24fang( );
-//    #endif      //CFG_GB2312_24_FANG != zk_disable
-//
-//    #if CFG_GB2312_32_SONG != zk_disable
-//    extern bool_t ModuleInstall_FontGB231216x32(void);
-//    ModuleInstall_FontGB231216x32( );
-//    #endif      //CFG_GB2312_32_SONG != zk_disable
-//    #if CFG_GB2312_32_YUAN != zk_disable
-//    extern bool_t ModuleInstall_FontGB231216x32yuan(void);
-//    ModuleInstall_FontGB231216x32yuan( );
-//    #endif      //CFG_GB2312_32_YUAN != zk_disable
-//    #if CFG_GB2312_32_KAI != zk_disable
-//    extern bool_t ModuleInstall_FontGB231216x32kai(void);
-//    ModuleInstall_FontGB231216x32kai( );
-//    #endif      //CFG_GB2312_32_KAI != zk_disable
-//    #if CFG_GB2312_32_HEI != zk_disable
-//    extern bool_t ModuleInstall_FontGB231216x32hei(void);
-//    ModuleInstall_FontGB231216x32hei( );
-//    #endif      //CFG_GB2312_32_HEI != zk_disable
-//    #if CFG_GB2312_32_FANG != zk_disable
-//    extern bool_t ModuleInstall_FontGB231216x32fang(void);
-//    ModuleInstall_FontGB231216x32fang( );
-//    #endif      //CFG_GB2312_32_FANG != zk_disable
+//  extern void ModuleInstall_FontGB2312(void);
+//  ModuleInstall_FontGB2312();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -3353,3 +3288,54 @@ bool_t ModuleInstall_FontGb2312_32_Yuan(void)
 
 #endif      //CFG_GB2312_32_YUAN != zk_disable
 
+void ModuleInstall_FontGB2312(void)
+{
+    #if CFG_GB2312_12_SONG != zk_disable
+    ModuleInstall_FontGb2312_12_Song( );
+    #endif      //CFG_GB2312_12 != zk_disable
+    #if CFG_GB2312_16_SONG != zk_disable
+    ModuleInstall_FontGb2312_16_Song( );
+    #endif      //CFG_GB2312_16_SONG != zk_disable
+    #if CFG_GB2312_16_YUAN != zk_disable
+    ModuleInstall_FontGb2312_16_Yuan( );
+    #endif      //CFG_GB2312_16_YUAN != zk_disable
+    #if CFG_GB2312_16_KAI != zk_disable
+    ModuleInstall_FontGb2312_16_Kai( );
+    #endif      //CFG_GB2312_16_KAI != zk_disable
+    #if CFG_GB2312_16_HEI != zk_disable
+    ModuleInstall_FontGb2312_16_Hei( );
+    #endif      //CFG_GB2312_16_HEI != zk_disable
+    #if CFG_GB2312_16_FANG != zk_disable
+    ModuleInstall_FontGb2312_16_Fang( );
+    #endif      //CFG_GB2312_16_FANG != zk_disable
+    #if CFG_GB2312_24_SONG != zk_disable
+    ModuleInstall_FontGb2312_24_Song( );
+    #endif      //CFG_GB2312_24_SONG != zk_disable
+    #if CFG_GB2312_24_YUAN != zk_disable
+    ModuleInstall_FontGb2312_24_Yuan( );
+    #endif      //CFG_GB2312_24_YUAN != zk_disable
+    #if CFG_GB2312_24_KAI != zk_disable
+    ModuleInstall_FontGb2312_24_Kai( );
+    #endif      //CFG_GB2312_24_KAI != zk_disable
+    #if CFG_GB2312_24_HEI != zk_disable
+    ModuleInstall_FontGb2312_24_Hei( );
+    #endif      //CFG_GB2312_24_HEI != zk_disable
+    #if CFG_GB2312_24_FANG != zk_disable
+    ModuleInstall_FontGb2312_24_Fang( );
+    #endif      //CFG_GB2312_24_FANG != zk_disable
+    #if CFG_GB2312_32_SONG != zk_disable
+    ModuleInstall_FontGb2312_32_Song( );
+    #endif      //CFG_GB2312_32_SONG != zk_disable
+    #if CFG_GB2312_32_YUAN != zk_disable
+    ModuleInstall_FontGb2312_32_Yuan( );
+    #endif      //CFG_GB2312_32_YUAN != zk_disable
+    #if CFG_GB2312_32_KAI != zk_disable
+    ModuleInstall_FontGb2312_32_Kai( );
+    #endif      //CFG_GB2312_32_KAI != zk_disable
+    #if CFG_GB2312_32_HEI != zk_disable
+    ModuleInstall_FontGb2312_32_Hei( );
+    #endif      //CFG_GB2312_32_HEI != zk_disable
+    #if CFG_GB2312_32_FANG != zk_disable
+    ModuleInstall_FontGb2312_32_Fang( );
+    #endif      //CFG_GB2312_32_FANG != zk_disable
+}

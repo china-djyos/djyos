@@ -87,10 +87,14 @@ const char bootflag[] = "RunIboot"; // 要弄成const，若是局部变量，编译器将其放在
 extern void Load_Preload(void);
 extern bool_t IAP_IsForceIboot(void);
 extern void (*__AppStart)(void); // 这是在iboot.lds中定位的函数，在APP的lds文件中，确保了其指向 AppStart 函数
+//extern void __AppStart(void);  // 旧版本
+
 
 static s32 __IBOOT_InitMessage(void);
 static s32 __IBOOT_PassMessage(void);
 static s32 __IBOOT_Actions(u8 bArgc, ...);
+
+extern void _asm_bl_fun(u32 fun_addr);
 
 // ============================================================================
 // 功能：
@@ -325,7 +329,8 @@ void IAP_SelectLoadProgam(void)
                             {
                                 pg_IapVar.RunMode = CN_IAP_MODE_APP;
                                 __IBOOT_PassMessage();
-                                (*__AppStart)();
+                                __asm_bl_fun(*__AppStart);
+                                // (*__AppStart)(); // 直接跳转出现了问题（用上面的替代）
                             }
                             else
                             {
@@ -338,7 +343,8 @@ void IAP_SelectLoadProgam(void)
                         {
                             pg_IapVar.RunMode = CN_IAP_MODE_APP;
                             __IBOOT_PassMessage();
-                            (*__AppStart)();
+                            __asm_bl_fun(*__AppStart);
+                            // (*__AppStart)(); // 直接跳转出现了问题（用上面的替代）
                         }
 #endif      //for (CFG_IBOOT_CRC==EN_USE_APP_CRC)
                     }
@@ -353,7 +359,8 @@ void IAP_SelectLoadProgam(void)
                 {
                     pg_IapVar.RunMode = CN_IAP_MODE_APP;
                     __IBOOT_PassMessage();
-                    (*__AppStart)();
+                    __asm_bl_fun(*__AppStart);
+                    // (*__AppStart)(); // 直接跳转出现了问题（用上面的替代）
                 }
                 else
                 {

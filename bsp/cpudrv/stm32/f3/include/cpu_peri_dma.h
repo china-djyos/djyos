@@ -582,6 +582,7 @@ extern struct DMA_StChannelReg volatile * const pg_dma2_channel5_reg;
 // DMAÇý¶¯API
 u32 DMA_Config(DMA_Channel_TypeDef *DMA_Channelx,u32 par,u32 mar,
         u8 dir,u8 msize,u8 psize,u16 ndtr);
+bool_t DMA_SetIntModeComplete(DMA_Channel_TypeDef *DMA_Channelx);
 void DMA_Enable(DMA_Channel_TypeDef *DMA_Channelx,u32 mar,u16 ndtr);
 void DMA_Disable(DMA_Channel_TypeDef *DMA_Channelx);
 void DMA_ClearIntFlag(DMA_Channel_TypeDef *DMA_Channelx);

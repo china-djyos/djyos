@@ -222,7 +222,7 @@ static bool_t mosquittoconfig(char *param)
 
 #include <os.h>
 #include <shell.h>
-static struct ShellCmdTab  gMosquittoCmd[] =
+static struct shell_debug gMosquittoCmd[] =
 {
     {
         "sub",
@@ -244,13 +244,13 @@ static struct ShellCmdTab  gMosquittoCmd[] =
     },
 };
 
-#define CN_Mosquitto_CMDNUM  ((sizeof(gMosquittoCmd))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gMosquittoCmdRsc[CN_Mosquitto_CMDNUM];
+#define CN_Mosquitto_CMDNUM  ((sizeof(gMosquittoCmd))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gMosquittoCmdRsc[CN_Mosquitto_CMDNUM];
 int Mosquitto_main(int argc, char *argv[])
 {
     bool_t result;
 
-    result = Sh_InstallCmd(gMosquittoCmd,gMosquittoCmdRsc,CN_Mosquitto_CMDNUM);
+    result = shell_debug_add(gMosquittoCmd, CN_Mosquitto_CMDNUM);
 
     return result;
 }

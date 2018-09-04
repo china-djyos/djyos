@@ -1273,7 +1273,8 @@ bool_t ModuleInstall_MCP2515(char *BusName,u32  baudrate)
     s_MCP2515_Dev.Mode = SPI_MODE_0;
     s_MCP2515_Dev.ShiftDir = SPI_SHIFT_MSB;
 
-    if(NULL != SPI_DevAdd_s(&s_MCP2515_Dev,BusName,"MCP2515"))
+    //if(NULL != SPI_DevAdd_s(&s_MCP2515_Dev,BusName,"MCP2515"))
+    if(NULL != SPI_DevAdd(BusName,"MCP2515",0,8,SPI_MODE_0,SPI_SHIFT_MSB,MCP2515_SPI_SPEED,false))
     {
         SPI_BusCtrl(&s_MCP2515_Dev,CN_SPI_SET_POLL,0,0);
         sMCP2515Inited=true;

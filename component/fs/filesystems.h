@@ -55,19 +55,18 @@ extern "C" {
 #endif
 
 #include <object.h>
-#include <objfile.h>
+#include <objhandle.h>
 
 typedef struct __filesystemCore
 {
-    struct Object *pTarget; // 挂载点
-    struct Object *pDev; // 文件系统设备
+    struct obj *pTarget; // 挂载点
+    struct obj *pDev; // 文件系统设备
     void *pCore; // 具体的文件系统控制信息
-
 } tagFSC;
 
 typedef struct __filesystemType
 {
-    ptu32_t (*fileOps)(u32 CMD, ptu32_t context, ptu32_t args, ...);
+    ptu32_t (*fileOps)(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...);
     s32 (*install)(tagFSC *pCore, u32 dwOpt, void *data);
     s32 (*uninstall)();
     s32 (*format)();
@@ -80,9 +79,9 @@ typedef struct __filesystemType
 #define INSTALL_CREAT                   (0x4) // 文件系统不存在时，则新建
 #define INSTALL_READONLY                (0x8) // 文件系统只读
 
-s32 FS_Register(tagFST *pType);
-s32 FS_Mount(const char *pSource, const char *pTarget, const char *pType, u32 dwFlags, void *data);
-void *FS_Core(struct Object *pObj);
+s32 regfs(tagFST *type);
+s32 mountfs(const char *source, const char *target, const char *type, u32 flags, void *data);
+void *corefs(struct obj *ob);
 #ifdef __cplusplus
 }
 #endif

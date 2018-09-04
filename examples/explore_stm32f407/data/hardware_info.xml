@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<hardware>
+   <baord>EXPLORER-stm32f4</baord>
+   <cpu>stm32f407xx</cpu>
+</hardware>

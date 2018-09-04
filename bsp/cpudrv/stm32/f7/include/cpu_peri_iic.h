@@ -54,7 +54,9 @@
 extern "C" {
 #endif
 
-#define tagI2cReg I2C_TypeDef
+
+#include <stdint.h>
+
 //IIC控制器编号宏定义
 #define CN_IIC1     0
 #define CN_IIC2     1
@@ -62,31 +64,9 @@ extern "C" {
 #define CN_IIC4     3
 #define CN_IIC_NUM  4
 
-//时钟宏定义
-#define CN_IIC_SPEED_50KHZ       (50*1000)
-#define CN_IIC_SPEED_100KHZ      (100*1000)
-#define CN_IIC_SPEED_200KHZ      (200*1000)
-#define CN_IIC_SPEED_300KHZ      (300*1000)
-#define CN_IIC_SPEED_400KHZ      (400*1000)
-
-//定义总线等待超时时间
-#ifndef CONFIG_I2C_MBB_TIMEOUT
-#define CONFIG_I2C_MBB_TIMEOUT	1000
-#endif
-
-//定义读写超时时间
-#ifndef CONFIG_I2C_TIMEOUT
-#define CONFIG_I2C_TIMEOUT	100
-#endif
-
-
-//============bit define===========================//
-
-bool_t IIC_LowPowerConfig(u8 iic_port,u8 flag);
-
-bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin);
 bool_t IIC_Init(u8 iic_port);
-
+bool_t ModuleInstall_IIC(ptu32_t port);
+bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin);
 #ifdef __cplusplus
 }
 #endif

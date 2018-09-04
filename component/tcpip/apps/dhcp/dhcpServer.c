@@ -51,8 +51,6 @@
 #include <netdb.h>
 #include "dhcpLib.h"
 #include "dbug.h"
-
-#include "newshell.h"
 #include <stdio.h>
 #include <shell.h>
 #include "../../component_config_tcpip.h"
@@ -368,17 +366,19 @@ ptu32_t __DhcpServerMain(void)
     }
     return 0;
 }
-//struct ShellCmdTab  gServiceDhcpd[] =
-//{
-//    {
-//        "dhcpdclient",
-//        showDhcpClient,
-//        "usage:dhcpdclient:show all the client",
-//        "usage:dhcpdclient:show all the client",
-//    }
-//};
-//#define CN_PINGDEBUG_NUM  ((sizeof(gServiceDhcpd))/(sizeof(struct ShellCmdTab)))
+
+struct shell_debug  gServiceDhcpd[] =
+{
+    {
+        "dhcpdclient",
+        dhcpdclient,
+        "usage:dhcpdclient:show all the client",
+        "usage:dhcpdclient:show all the client",
+    }
+};
+#define CN_PINGDEBUG_NUM  ((sizeof(gServiceDhcpd))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gServiceDhcpdCmdRsc[CN_PINGDEBUG_NUM];
+
 //this is main dhcp client module
 bool_t  ModuleInstall_DhcpServer(ptu32_t para)
 {
@@ -413,7 +413,8 @@ bool_t  ModuleInstall_DhcpServer(ptu32_t para)
         debug_printf("dhcp","TFTPD:TASK CREATE ERR\n\r");
         goto EXIT_TASK;
     }
-//    ret = Sh_InstallCmd(gServiceDhcpd,gServiceDhcpdCmdRsc,CN_PINGDEBUG_NUM);
+
+    shell_debug_add(gServiceDhcpd, CN_PINGDEBUG_NUM);
     return ret;
 
 EXIT_TASK:

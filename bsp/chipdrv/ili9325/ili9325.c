@@ -99,7 +99,7 @@
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_ILI9325_DISPLAY_NAME              "lcdili9325"    //"显示器名称",配置液晶显示的名称
-#define CFG_ILI9325_HEAP_NAME                 "exterm"        //"驱动使用堆名",配置液晶驱动所使用的堆名称
+#define CFG_ILI9325_HEAP_NAME                 "extram"        //"驱动使用堆名",配置液晶驱动所使用的堆名称
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif

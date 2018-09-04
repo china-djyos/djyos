@@ -58,7 +58,7 @@
 #include "../../component_config_tcpip.h"
 #include "dbug.h"
 #include "ftp.h"
-#include "newshell.h"
+#include <shell.h>
 
 #define CN_FTP_SPORT         21    //THIS IS THE SERVER BIND PORT
 #define CN_FTP_ROOT          "/"   //USE THIS AS THE ROOT ABSOLUTE PATH
@@ -71,7 +71,7 @@ static tagFtpClient* pFtpClient = NULL;
 
 //static bool_t __FtpdDebug(char *para)
 ADD_TO_SHELL_HELP(ftpd,"usage:ftpd subcmd [subpara]");
-ADD_TO_IN_SHELL static bool_t ftpd(char *para)
+ADD_TO_IN_SHELL  bool_t ftpd(char *para)
 {
 
     int argc = 3;
@@ -416,10 +416,14 @@ static int __CmdListDeal(tagFtpClient* client,char *details)
                     {
                         if (s.st_mode & S_IFDIR)
                             client->datalen = snprintf((char *)client->buf,client->buflen,\
-                                    "drw-r--r-- 1 admin admin %d Jan 1 2000 %s\r\n", 0, entry->d_name);
+                                    "drw-r--r-- 1 admin admin %lld Jan 1 2000 %s\r\n", s.st_size, entry->d_name);
                         else
                             client->datalen = snprintf((char *)client->buf,client->buflen,\
-                                    "-rw-r--r-- 1 admin admin %d Jan 1 2000 %s\r\n",  s.st_size, entry->d_name);
+                                    "-rw-r--r-- 1 admin admin %lld Jan 1 2000 %s\r\n",  s.st_size, entry->d_name);
+                    }
+                    else
+                    {
+                        continue;
                     }
                 }
                 else
@@ -948,16 +952,16 @@ SERVER_EXIT:
     return 0;
 }
 
-//struct ShellCmdTab  gFtpdDebug[] =
-//{
-//    {
-//        "ftpd",
-//        __FtpdDebug,
-//        "usage:ftpd subcmd [subpara]",
-//        "usage:ftpd subcmd [subpara]",
-//    }
-//};
-//#define CN_FtpdDebug_NUM  ((sizeof(gFtpdDebug))/(sizeof(struct ShellCmdTab)))
+struct shell_debug  gFtpdDebug[] =
+{
+    {
+        "ftpd",
+        ftpd,
+        "usage:ftpd subcmd [subpara]",
+        "usage:ftpd subcmd [subpara]",
+    }
+};
+#define CN_FtpdDebug_NUM  ((sizeof(gFtpdDebug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gFtpdDebugCmdRsc[CN_FtpdDebug_NUM];
 
 //THIS IS PING MODULE FUNCTION
@@ -968,9 +972,9 @@ bool_t ServiceFtpdInit(ptu32_t para)
     if (ret == false) {
         error_printf("ftpd","FTPD:TASK CREATE ERR");
     }
-//    Sh_InstallCmd(gFtpdDebug,gFtpdDebugCmdRsc,CN_FtpdDebug_NUM);
+
+    shell_debug_add(gFtpdDebug, CN_FtpdDebug_NUM);
     return ret;
 }
-
 
 

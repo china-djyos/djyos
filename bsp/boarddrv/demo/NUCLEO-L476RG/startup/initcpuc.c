@@ -114,7 +114,7 @@ void Init_Cpu(void)
     extern void SysClockInit(void);
     SysClockInit();
 #ifdef USE_HAL_DRIVER
-    HAL_TickInit(TIM6);
+    HAL_TickInit();
 #endif
     __LP_BSP_HardInit();
     IAP_SelectLoadProgam();

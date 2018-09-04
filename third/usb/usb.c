@@ -49,6 +49,8 @@
 
 #include <stdio.h>
 #include <lock.h>
+#include <dbug.h>
+#include <device.h>
 #include "./stm32_usb_host_library/core/inc/usbh_core.h"
 #include "./stm32_usb_host_library/class/msc/inc/usbh_msc.h"
 #include "./stm32_usb_host_library/class/cdc/inc/usbh_cdc.h"
@@ -310,7 +312,7 @@ u32 USB_ServiceThread(void)
     host = USBH_NewHost(name);
     if(!host)
     {
-        USBH_UsrLog("\r\nUSB #%04x stack service : error : quit! cannot new host.\r\n", host->id);
+        printf("\r\n: erro : usbs%02x : quit! cannot get new host.", host->id);
         return (0);
     }
 
@@ -325,7 +327,7 @@ u32 USB_ServiceThread(void)
 
     USBH_Start(host); // 启动USB接口；开中断，VBUS上电
 
-    USBH_UsrLog("\r\nUSB #%04x stack service : info : start to run...\r\n", host->id);
+    printf("\r\n: info : usbs%02x : start to run...", host->id);
 
     USB_DeviceReset(id, 0);
 
@@ -347,7 +349,7 @@ u32 USB_ServiceThread(void)
             }
             else if(comsumed > 60000000) // 60秒
             {
-                USBH_UsrLog("\r\nUSB #%04x stack service : info : no device <not attach>, try reset \r\n", host->id);
+                printf("\r\n: info : usbs%02x : no device attach, will reset device.", host->id);
                 USB_DeviceReset(id, 0);
                 time = DjyGetSysTime();
             }
@@ -371,7 +373,7 @@ u32 USB_ServiceThread(void)
                     host->pActiveClass = NULL;
                 }
 
-                USBH_UsrLog("\r\nUSB #%04x stack service : info : no device <not ready>, try reset \r\n", host->id);
+                printf("\r\n: erro : usbs%02x : no device ready, will reset device.", host->id);
                 USB_DeviceReset(id, 0);
                 time = DjyGetSysTime();
             }
@@ -390,23 +392,23 @@ static void USBH_UserProcess(USBH_HandleTypeDef *pHost, u8 bID)
     switch(bID)
     {
         case HOST_USER_SELECT_CONFIGURATION:
-            USBH_UsrLog ("\r\nUserProcess:host user select configuration.");
+            printf("\r\n: info : usbs%02x : host user select configuration hook.", pHost->id);
             break;
 
         case HOST_USER_DISCONNECTION:
-            USBH_UsrLog ("\r\nUserProcess:host user disconnection.");
+            printf("\r\n: info : usbs%02x : host user disconnection hook.", pHost->id);
             break;
 
         case HOST_USER_CLASS_SELECTED:
-            USBH_UsrLog ("\r\nUserProcess:host user class selected.");
+            printf("\r\n: info : usbs%02x : host user class selected hook.", pHost->id);
             break;
 
         case HOST_USER_CLASS_ACTIVE:
-            USBH_UsrLog ("\r\nUserProcess:host user class active.");
+            printf("\r\n: info : usbs%02x : host user class active hook.", pHost->id);
             break;
 
         case HOST_USER_CONNECTION:
-            USBH_UsrLog ("\r\nUserProcess:host user connection");
+            printf("\r\n: info : usbs%02x : host user connection hook.", pHost->id);
             break;
 
         default:
@@ -457,7 +459,7 @@ void USBH_Force(USBH_HandleTypeDef *pHost, u32 dwOps, void *pParams)
     {
         res = USBH_LL_Disconnect(pHost);
         if(USBH_OK != res)
-            USBH_UsrLog("USB Module : error : cannot disconnect the host.");
+            printf("\r\n: erro : usbs%02x : cannot disconnect the device from host.");
 
         return ;
     }
@@ -467,7 +469,7 @@ void USBH_Force(USBH_HandleTypeDef *pHost, u32 dwOps, void *pParams)
         u32 parameters;
         if(!pParams)
         {
-            USBH_UsrLog("USB Module : error : force changing state, parameters error.");
+            printf("\r\n: warn : usbs%02x : force changing state failed(parameters error).");
             return;
         }
 
@@ -579,39 +581,45 @@ s32 USBH_Resume(USBH_HandleTypeDef *pHost)
 
 // ============================================================================
 // 功能：
-// 参数： bController, 1 -- HS; 2 -- FS
+// 参数： controller -- 根据用户配置
 // 返回： "0" -- 成功; "-1" -- 失败;
-// 备注： #1控制器用于MSC设备， #2控制器用于无线模块设备.这个与板件以及CPU有一定关系。
+// 备注：
 // ============================================================================
-s32 ModuleInstall_USB(u8 bController)
+s32 ModuleInstall_USB(u8 controller)
 {
     u16 thread;
     char id[2];
     char name[] = "USB #x stack service";
-//    void USB_ShellInstall(void);
+    void USB_ShellInstall(void);
 
-    if(bController >= 10)
+    if(controller >= 10)
     {
-        USBH_UsrLog("USB Module : error : too big ID <%d>.", bController);
+        error_printf("usb", "too big ID(%d) for usb controller.", controller);
         return (-1);
     }
 
-    itoa(bController, id, 10);
+    if(dev_group_add("usb"))
+    {
+        error_printf("usb", "cannot create \"usb\" group.");
+        return (-1);
+    }
+
+    itoa(controller, id, 10);
     memcpy(&name[5], id, 1); // 初始化线程名
 
-//    USB_ShellInstall(); // USB 相关shell命令
+    USB_ShellInstall(); // USB 相关shell命令
 
-    USB_UserInstall(bController);
+    USB_UserInstall(controller);
 
     thread = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
                             USB_ServiceThread, NULL, 0x2000, name);
     if(CN_EVTT_ID_INVALID != thread)
     {
-        Djy_EventPop(thread, NULL, 0, bController, 0, 0);
+        Djy_EventPop(thread, NULL, 0, controller, 0, 0);
         return (0);
     }
 
-    USBH_UsrLog("USB Module : error : %s cannot establish.\r\n", name);
+    error_printf("usb", "%s cannot establish.", name);
     return (-1);
 
 }
@@ -635,7 +643,7 @@ s32 ModuleInstall_USB(u8 bController)
 #if 0
     extern void USBH_LL_Register(u8 bController);
 #endif
-//    extern void USB_ShellInstall(void);
+    extern void USB_ShellInstall(void);
 
 #if 0
     host = USBH_HostHandle(bController);
@@ -657,7 +665,7 @@ s32 ModuleInstall_USB(u8 bController)
     USBH_Init(host, USBH_UserProcess, bController); // 初始化
 #endif
 #endif
-//    USB_ShellInstall(); // install USB shell command
+    USB_ShellInstall(); // install USB shell command
 
 //    USBH_RegisterDevCUSTOM();
     USBH_ResigerDevMSC();

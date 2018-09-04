@@ -1,32 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component>
+  <buffer>true</buffer>
   <NlsCharset>false</NlsCharset>
   <ascii_charset>false</ascii_charset>
   <gb2312_charset>false</gb2312_charset>
   <utf8_charset>false</utf8_charset>
   <dbug>true</dbug>
   <DevFile>true</DevFile>
+  <flash>true</flash>
   <uart>true</uart>
-  <djybus>false</djybus>
   <canbus>false</canbus>
-  <iicbus>false</iicbus>
   <ioiicbus>false</ioiicbus>
+  <iicbus>false</iicbus>
   <spibus>false</spibus>
-  <exp>true</exp>
-  <font>false</font>
+  <djybus>false</djybus>
+  <blackbox>true</blackbox>
   <ascii_font>false</ascii_font>
-  <gb2312_font>false</gb2312_font>
-  <filesystem>true</filesystem>
+  <gb2312_dot>false</gb2312_dot>
+  <font>false</font>
   <easyfilesystem>false</easyfilesystem>
-  <fatfilesystem>false</fatfilesystem>
+  <fatfilesystem>true</fatfilesystem>
   <IAP>true</IAP>
   <yaf2filesystem>false</yaf2filesystem>
+  <filesystem>true</filesystem>
   <gdd>false</gdd>
   <gkernel>false</gkernel>
-  <HmiInput>false</HmiInput>
   <keyboard>false</keyboard>
   <mouse>false</mouse>
   <touch>false</touch>
+  <HmiInput>false</HmiInput>
   <isbus_host>false</isbus_host>
   <isbus_slave>false</isbus_slave>
   <lowpower>false</lowpower>
@@ -39,12 +41,13 @@
   <ymodem>false</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>
+  <int>true</int>
   <lock>true</lock>
   <MsgQueue>true</MsgQueue>
   <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
-  <NuvotonM487>true</NuvotonM487>
+  <board>true</board>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
@@ -74,7 +77,7 @@
   <stm32usb>false</stm32usb>
   <wolfssl>false</wolfssl>
   <zlib>false</zlib>
-  <C库>true</C库>
+  <Clib>true</Clib>
   <cpu_peri_dma>true</cpu_peri_dma>
   <cpu_peri_uart>true</cpu_peri_uart>
 </component>

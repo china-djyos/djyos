@@ -426,11 +426,11 @@ static USBH_StatusTypeDef __HUB_Process (USBH_HandleTypeDef *pHost)
     case HUB_INIT:
         if(USBH_FAIL == __HUB_Init(pHost))
         {
-            USBH_UsrLog("\r\nUSB #%04x stack service : info : HUB init failed.", pHost->id);
+            printf("\r\n: warn : usbs%02x : hub init failed.", pHost->id);
             break;
         }
 
-        USBH_UsrLog("\r\nUSB #%04x stack service : info : HUB init success.", pHost->id);
+        printf("\r\n: info : usbs%02x : hub init success.", pHost->id);
         pHost->pActiveClass->ClassState = USBH_OK;
         hub->state = HUB_PORT_SCAN;
         break;
@@ -447,7 +447,7 @@ static USBH_StatusTypeDef __HUB_Process (USBH_HandleTypeDef *pHost)
             res = HUB_StatusChange(pHost, hub->change.pStatus, hub->change.bBytes); // 获取HUB端口状态,判断端口是否发生了变化
             if((USBH_OK == res) && (hub->change.pStatus))
             {
-                USBH_UsrLog("\r\nUSB #%04x stack service : info : hub's status changed, <%xH>.", pHost->id, *(hub->change.pStatus));
+                printf("\r\n: info : usbs%02x : hub's status changed(%xH).", pHost->id, *(hub->change.pStatus));
                 hub->state = HUB_PORT_CHANGE;
                 break;
             }
@@ -544,7 +544,7 @@ USBH_StatusTypeDef USBH_HUB_GetDescriptor(USBH_HandleTypeDef *pHost, u8 *pBuf, u
         {
             pHost->dwTimeout = 0;
             pHost->RequestState = CMD_SEND;
-            USBH_UsrLog("\r\nUSB #%04x stack service : error : get hub descriptor timeout", pHost->id);
+            printf("\r\n: warn : usbs%02x : get hub descriptor timeout", pHost->id);
             status = USBH_TIMEOUT;
         }
     }
@@ -704,7 +704,7 @@ USBH_StatusTypeDef USBH_HUB_ClearPortFeature(USBH_HandleTypeDef *pHost, u16 wPor
         {
             pHost->dwTimeout = 0;
             pHost->RequestState = CMD_SEND;
-            USBH_UsrLog("\r\nUSB #%04x stack service : error : clear port feature timeout.", pHost->id);
+            printf("\r\n: warn : usbs%02x : clear port feature timeout.", pHost->id);
             status = USBH_TIMEOUT;
         }
     }
@@ -784,7 +784,7 @@ USBH_StatusTypeDef USBH_HUB_ClearHubFeature(USBH_HandleTypeDef *pHost, u16 wFeat
         {
             pHost->dwTimeout = 0;
             pHost->RequestState = CMD_SEND;
-            USBH_UsrLog("\r\nUSB #%04x stack service : error : clear hub feature timeout.", pHost->id);
+            printf("\r\n: warn : usbs%02x : clear hub feature timeout.", pHost->id);
             status = USBH_TIMEOUT;
         }
     }
@@ -907,7 +907,7 @@ static USBH_StatusTypeDef __HUB_Init(USBH_HandleTypeDef *pHost)
         }
         else if(USBH_TIMEOUT == status)
         {
-            USBH_UsrLog("\r\nUSB #%04x stack service : info : get descriptor time out", pHost->id);
+            printf("\r\n: erro : usbs%02x : get hub's descriptor time out", pHost->id);
             return (USBH_FAIL);
         }
     }
@@ -922,7 +922,7 @@ static USBH_StatusTypeDef __HUB_Init(USBH_HandleTypeDef *pHost)
         }
         else if(USBH_TIMEOUT == status)
         {
-            USBH_UsrLog("\r\nUSB #%04x stack service : info : get descriptor time out", pHost->id);
+            printf("\r\n: erro : usbs%02x : get hub's descriptor time out", pHost->id);
             return (USBH_FAIL);
         }
     }
@@ -931,7 +931,7 @@ static USBH_StatusTypeDef __HUB_Init(USBH_HandleTypeDef *pHost)
     space = malloc(size);
     if(!space)
     {
-        USBH_UsrLog("\r\nUSB #%04x stack service : info : memory out", pHost->id);
+        printf("\r\n: erro : usbs%02x : memory out", pHost->id);
         return (USBH_FAIL);
     }
 
@@ -947,7 +947,7 @@ static USBH_StatusTypeDef __HUB_Init(USBH_HandleTypeDef *pHost)
     if(!hub->change.pStatus)
     {
         free(space);
-        USBH_UsrLog("\r\nUSB #%04x stack service : info : memory out", pHost->id);
+        printf("\r\n: erro : usbs%02x : memory out", pHost->id);
         return (USBH_FAIL);
     }
 
@@ -966,7 +966,7 @@ static USBH_StatusTypeDef __HUB_Init(USBH_HandleTypeDef *pHost)
             }
             else if(USBH_TIMEOUT == status)
             {
-                USBH_UsrLog("\r\nUSB #%04x stack service : info : clear port <%d> power time out", pHost->id, i);
+                printf("\r\n: info : usbs%02x : clear port <%d> power time out", pHost->id, i);
                 return (USBH_FAIL);
             }
         }
@@ -985,7 +985,7 @@ static USBH_StatusTypeDef __HUB_Init(USBH_HandleTypeDef *pHost)
             }
             else if(USBH_TIMEOUT == status)
             {
-                USBH_UsrLog("\r\nUSB #%04x stack service : info : enable port <%d> power time out", pHost->id, i);
+                printf("\r\n: info : usbs%02x : enable port <%d> power time out", pHost->id, i);
                 return (USBH_FAIL);
             }
         }

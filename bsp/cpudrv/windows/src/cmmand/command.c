@@ -26,7 +26,7 @@
 #define cmd_buf_len  1024
 
 HANDLE win32_scanf;
-struct Object * sg_ptCmdDev;
+struct obj * sg_ptCmdDev;
 
 char cmd_ptcl_recv_buf[cmd_buf_len];
 //static struct DjyDevice * pg_cmd_hdl;

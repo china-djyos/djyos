@@ -42,39 +42,137 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+
 #ifndef __SHELL_H__
 #define __SHELL_H__
-#include "object.h"
+
+#include <stdint.h>
+#include <errno.h>
+#include <types.h>
+#include <stddef.h>
+#include <list.h>
+#include "shell_debug.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define CN_SHELL_CMD_LIMIT 255 //shell 命令串长度限制
+//=============通用函数调用参数与返回值由shell根据输入字符串解析汇编实现=========//
+typedef void (*Ex_shell_func)(void);
+//=============内部函数参数为字符串由函数本身解析参数========================//
+typedef bool_t (*in_shell_func)(char *param);
 
-struct ShellCmdTab
+struct shellinfo
 {
-    char *cmd;              //命令串
-    bool_t (*shell_cmd_func)(char *buf);  //执行函数
-    char *help_hint;        //帮助提示
-    char *help_detailed;    //详细帮助
+   const char *In_funTab_start; //
+   const char *In_funTab_end; //
+   const char *Ex_funTab_start;
+   const char *Ex_funTab_end;
+   const char *dataTab_start;
+   const char *dataTab_end;
 };
 
-struct ShellCmdRsc
+struct shell_list
 {
-    bool_t (*shell_cmd_func)(char *buf);
-    char *help_hint;        //帮助提示
-    char *help_detailed;    //详细帮助
+    list_t list;
+    struct shellinfo info;
 };
-bool_t Sh_InstallCmd(struct ShellCmdTab const *cmd_tab,
-                    struct ShellCmdRsc *cmd_rsc,u32 cmd_num);
-bool_t ModuleInstall_Sh(void);
-void Sh_PrintWorkPathSet(void);
-u32 Sh_UninstallCmdByTab(struct ShellCmdTab const *cmd_tab,u32 cmd_num);
-bool_t Sh_UninstallCmdByName(char *param);
 
-extern void (*fng_pPrintWorkPath)(void);
-extern bool_t (*fng_pCD_PTT)(const char *PTT_Name);
+enum param_typr
+{
+    flag_u8,
+    flag_u16,
+    flag_u32,
+    flag_u64,
+    flag_s8,
+    flag_s16,
+    flag_s32,
+    flag_s64,
+    flag_b,
+    flag_f,
+    flag_d,
+    flag_c,
+    flag_str,
+    flag_error
+};
 
+union param{
+    u8 data_u8;
+    u16 data_u16;
+    u32 data_u32;
+    u64 data_u64;
+    s8  data_s8;
+    s16 data_s16;
+    s32 data_s32;
+    s64 data_s64;
+    bool_t data_b;
+    float data_f;
+    double data_d;
+    char data_c;
+    char *data_pc;
+};
+
+struct dataclass
+{
+    char  *datastring; // 参数对应的字符串如 "100";
+    enum param_typr datatype; // 命令对应的类型
+};
+
+struct inshell_func
+{
+    const char *const fun_name; //内部shell函数名字
+    const in_shell_func const fun_addr;//内部函数地址
+    const char **const help;//帮助信息
+};
+
+struct exshell_func
+{
+    const char *const fun_name; // 普通shell名字
+    const void * const fun_addr; //
+};
+
+struct data_struct
+{
+    const char *const data_name;
+    void *const data;
+};
+
+enum commandtype
+{
+    Sh_Cmdtype_Fun,
+    Sh_CmdtypeFun,
+    Sh_Cmdtype_Date
+};
+
+struct commandclass
+{
+    char *cmdname; // 命令对应的名字
+    enum commandtype cmdtype; // 命令对应的类型
+    void *cmdaddr; // 命令对应的地址
+    char *cmdhelp;
+};
+
+#define PARAMETER_MAX     (10)   //最大参数个数限制
+#define ADD_TO_IN_SHELL  __attribute__((section(".in_shell_cmd")))
+#define ADD_TO_EX_SHELL   __attribute__((section(".ex_shell_cmd")))
+#define ADD_TO_SHELL_HELP(cmdname,help)  __attribute__((section(".in_shell_cmd_help"))) \
+                                         const char *cmdname##_help = help
+
+// ============================================================================
+// 功能：从shell的输入参数（字符串）中，提取出一个参数；
+// 参数：input -- shell输入参数；
+//      next -- 后续参数；
+// 返回：剔除的输入参数；
+// 备注：参数之间依靠空格作为分隔符；
+//      提取出的参数，已将后面的分隔符换成串结束符'\0；
+//      input的原始数据已发生变化；
+// ============================================================================
+char *shell_inputs(char *input, char **next);
+
+bool_t shell_add(struct shell_list *pLisTtab);
+bool_t shell_del(struct shell_list *pLisTtab);
+
+ptu32_t ModuleInstall_NewSh(ptu32_t para);
 #ifdef __cplusplus
 }
 #endif

@@ -64,7 +64,7 @@
 #include <string.h>
 
 #include <os.h>
-#include <shell.h>
+//#include <shell.h>
 #include <multiplex.h>
 //all the bsp driver needed is in netbdp.h
 #include <netbsp.h>

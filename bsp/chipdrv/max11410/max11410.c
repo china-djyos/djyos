@@ -16,7 +16,6 @@
 #include "max11410.h"
 #include "math.h"
 #include "shell.h"
-#include "newshell.h"
 
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -24,6 +23,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//	 extern bool_t ModuleInstall_Max11410(char *BusName);
 //    ModuleInstall_Max11410(CFG_MAX11410_BUS_NAME);
 //%$#@end initcode  ****初始化代码结束
 
@@ -236,17 +236,16 @@ float Max11410_TemperatureGet(u8 temp_x)
 //参数：
 //返回：
 //=============================================================================
-extern char *NewSh_GetWord(char *buf,char **next);
 //static bool_t Max11410_shell(char *param)
 
 ADD_TO_SHELL_HELP(pt,"测温度芯片相关命令   pt info 获取max11410的工作状态  .  pt get x  获取“x”通道的温度值 x = 1,2... ");
-ADD_TO_IN_SHELL static bool_t pt(char *param)
+ADD_TO_IN_SHELL  bool_t pt(char *param)
 {
     ptu32_t ch;
     char *word,*next_param;
     float temp;
 
-    word = NewSh_GetWord(param,&next_param);
+    word = shell_inputs(param,&next_param);
 
     if(0==strcmp(word,"info"))
     {
@@ -265,7 +264,7 @@ ADD_TO_IN_SHELL static bool_t pt(char *param)
     }
     else if(0==strcmp(word,"get"))
     {
-        word = NewSh_GetWord(next_param,&next_param);
+        word = shell_inputs(next_param,&next_param);
         ch = strtoul(word, (char **)NULL, 0);
         temp =  Max11410_TemperatureGet(ch);
         if (temp == TEMP_ERROR)
@@ -286,18 +285,18 @@ ADD_TO_IN_SHELL static bool_t pt(char *param)
 参数:无.
 返回值:1。
 *********************************************************************************/
-//static struct ShellCmdTab const shell_cmd_max11410_table[]=
-//{
-//    {
-//            "pt",
-//            Max11410_shell,
-//            "测温度芯片相关命令",
-//            "pt info      获取max11410的工作状态  . \n\r"
-//            "pt get x  获取“x”通道的温度值 x = 1,2... \n\r"
-//    }
-//};
-//
-//#define CN_MAX11410_SHELL_NUM  sizeof(shell_cmd_max11410_table)/sizeof(struct ShellCmdTab)
+static struct shell_debug const shell_cmd_max11410_table[]=
+{
+    {
+            "pt",
+            pt,
+            "测温度芯片相关命令",
+            "pt info      获取max11410的工作状态  . \n\r"
+            "pt get x  获取“x”通道的温度值 x = 1,2... \n\r"
+    }
+};
+
+#define CN_MAX11410_SHELL_NUM  sizeof(shell_cmd_max11410_table)/sizeof(struct shell_debug)
 //static struct ShellCmdRsc tg_max11410_shell_cmd_rsc[CN_MAX11410_SHELL_NUM];
 
 /*******************************************************************************
@@ -305,11 +304,11 @@ ADD_TO_IN_SHELL static bool_t pt(char *param)
 参数:无.
 返回值:1。
 *********************************************************************************/
-//static ptu32_t Shell_Module_Install(void)
-//{
-//    Sh_InstallCmd(shell_cmd_max11410_table,tg_max11410_shell_cmd_rsc,CN_MAX11410_SHELL_NUM);
-//    return 1;
-//}
+static ptu32_t Shell_Module_Install(void)
+{
+    shell_debug_add(shell_cmd_max11410_table, CN_MAX11410_SHELL_NUM);
+    return 1;
+}
 
 //=============================================================================
 //功能：初始化Max11410芯片，若采用连续读模式，则配置其模式为连续采样
@@ -325,8 +324,8 @@ bool_t ModuleInstall_Max11410(char *BusName)
 
     if(Max11410_Init(&config) ==false)
         return false;
-//    Shell_Module_Install();
 
+    Shell_Module_Install();
     if(s_ptMax_Dev = SPI_DevAdd(BusName,"MAX11410",0,8,SPI_MODE_0,SPI_SHIFT_MSB,Max_SPI_SPEED,false))
     {
         SPI_BusCtrl(s_ptMax_Dev,CN_SPI_SET_POLL,0,0);

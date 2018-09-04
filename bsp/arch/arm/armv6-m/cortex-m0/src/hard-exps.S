@@ -59,30 +59,31 @@
 .cpu            cortex-m0
 .fpu            softvfp
 .thumb
-.file   "exceptions.S"
+.file   "hard-exps.S"
 
+.extern  Int_ContactAsynSignal
 //因异步信号使能才允许调度，故上下文切换中恢复异步信号寄存器等同于使能异步信号
 .macro restore_asyn_signal_reg
     bl Int_ContactAsynSignal
 .endm
 
 /**** 栈大小配置 ****/
-.section        .stack.msp, "aw", %note
-.align          3
-        .space  0x300
+@.section        .stack.msp, "aw", %note
+@.align          3
+@        .space  0x300
 
-.extern  Exp_EsrTick
-.extern  Int_ContactAsynSignal
+.extern  HardExp_EsrTick
+
 
 /**** 异常向量表 ****/
 .section    .isr_vector, "ax", %progbits
 .align          3
 .global         isr_vector
 isr_vector:
-        .word   msp_top
-        .word   Init_Cpu
-        .word   HardExp_NmiHandler
-        .word   HardExp_HardfaultHandler
+    .word   msp_top
+    .word   Init_Cpu
+    .word   HardExp_NmiHandler
+    .word   HardExp_HardfaultHandler
     .word   0                         @ Reserved
     .word   0                         @ Reserved
     .word   0                         @ Reserved
@@ -169,7 +170,7 @@ HardExp_SystickHandler:
     mov     r3,r10
     mov     r4,r11
     stmia   r0!,{r1-r4}         @保护寄存器,调用tick异常可能引起线程切换。
-    bl      Exp_EsrTick
+    bl      HardExp_EsrTick
     pop     {r0,r1}
     mov     lr,r1
     mrs     r0,psp

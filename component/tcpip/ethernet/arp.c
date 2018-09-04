@@ -53,7 +53,7 @@
 #include "dbug.h"
 
 #include "arp.h"
-#include "newshell.h"
+#include <shell.h>
 #include "../component_config_tcpip.h"
 
 #include "../common/netdev.h"
@@ -660,17 +660,16 @@ ADD_TO_IN_SHELL  bool_t arp(char *param)
     return ret;
 }
 
-
-//struct ShellCmdTab  gArpDebug[] =
-//{
-//    {
-//        "arp",
-//        __ArpShell,
-//        "usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]",
-//        "usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]",
-//    },
-//};
-//#define CN_ARPDEBUG_NUM  ((sizeof(gArpDebug))/(sizeof(struct ShellCmdTab)))
+struct shell_debug  gArpDebug[] =
+{
+    {
+        "arp",
+        arp,
+        "usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]",
+        "usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]",
+    },
+};
+#define CN_ARPDEBUG_NUM  ((sizeof(gArpDebug))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gArpDebugCmdRsc[CN_ARPDEBUG_NUM];
 
 // =============================================================================
@@ -700,13 +699,13 @@ bool_t ArpInit(void)
     LinkPushRegister(EN_LINKPROTO_ARP,__ArpPush);
     //also need to register the ticker to the netticker queue
     NetTickerIsrInstall("ARPTICKER",__ArpTicker,30*1000); //30 SECOND
-//    ret = Sh_InstallCmd(gArpDebug,gArpDebugCmdRsc,CN_ARPDEBUG_NUM);
-//    if(ret == false)
-//    {
-//        debug_printf("arp","SHELLCMD CREATE ERR\n\r");
-//        goto EXIT_SHELLCMD;
-//    }
-//    return ret;
+
+    if(CN_ARPDEBUG_NUM!=shell_debug_add(gArpDebug, CN_ARPDEBUG_NUM))
+    {
+        debug_printf("arp","SHELLCMD CREATE ERR\n\r");
+        goto EXIT_SHELLCMD;
+    }
+
     return true;
  EXIT_SHELLCMD:
     net_free((void *)gArpCB.hashtab);

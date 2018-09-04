@@ -52,23 +52,47 @@
 #include <djyos.h>
 #include <wdt_soft.h>
 #include <dirent.h>
-#include "dbug.h"
+#include <stdlib.h>
+#include <osboot.h>
+
 #define RW_SIZE                      512
 #define APPLICATION_FILE_NAME        "PRS-7573.bin"
 
 typedef enum{
     INIT = 0,
+    RUN,
     DONE,
     ERROR
 }USB_IAP_STATUS;
 
 static USB_IAP_STATUS gRunningStatus;
+static u32 dwDeamonInspect;
+#define __IAP_USB_BUFFER_SIZE                         (1024*8)
+//extern void USB_UDiskReset(void);
+extern void Amend_IBootFlag_RunIBoot(void);
+extern void Amend_IBootFlag_RunAPP(void);
+extern enBootMode GetBootMethodSoft(void);
+extern s32 MSC_DeviceReady(u8 bID);
+extern bool_t  Sh_RunAPP(char *param);
+extern bool_t HAL_ClrUpdateFlag(void);
+extern bool_t HAL_SetUpdateFlag(void);
+extern bool_t HAL_ClrUpdateFlag(void);
+extern void RunIboot(void);
+extern void reset(u32 key);
+extern s32 IAP_SetMethod(u32 dwMethod);
+extern s32 IAP_SetPath(char *pPath);
+extern u32 IAP_GetMethod(void);
+extern char *IAP_GetPath(void);
+const tagVmMemItem *gMemTab[]={
+    {0x20000000,(512-32)*1024},\
+    NULL,\
+};
 
 // ============================================================================
 // 功能： 灯亮
 // 参数：
 // 返回：
-// 备注： 由驱动实现
+// 备注： 由驱动实现,TODO,改为fcntl逻辑；
 // ============================================================================
 __attribute__((weak)) void USB_IAP_TurnOnLED(void)
 {
@@ -79,9 +103,21 @@ __attribute__((weak)) void USB_IAP_TurnOnLED(void)
 // 功能： 灯灭
 // 参数：
 // 返回：
-// 备注： 由驱动实现
+// 备注： 由驱动实现,TODO,改为fcntl逻辑；
 // ============================================================================
 __attribute__((weak)) void USB_IAP_TurnOffLED(void)
+{
+    ;
+}
+
+
+// ============================================================================
+// 功能： 灯灭
+// 参数：
+// 返回：
+// 备注： 由驱动实现,TODO,改为fcntl逻辑；
+// ============================================================================
+__attribute__((weak)) void USB_UDiskReset(void)
 {
     ;
 }
@@ -99,6 +135,11 @@ u32 USB_IAP_StatusDeamon(struct Wdt *reg)
     switch(gRunningStatus)
     {
     case INIT:
+            USB_IAP_TurnOffLED();
+
+            break;
+
+    case RUN:
             // 500微秒周期进行亮灭
             if(toggle)
             {
@@ -111,6 +152,13 @@ u32 USB_IAP_StatusDeamon(struct Wdt *reg)
                 USB_IAP_TurnOffLED();
             }
 
+            if(dwDeamonInspect++ > 20)
+            {
+                dwDeamonInspect = 0;
+                printf("\r\nIAP : DEAMON : unknown state during USB update, reset all.\r\n");
+                Djy_EventDelay(1000000);
+                reset(CN_BOOT_LEGALKEY);
+            }
             break;
 
     case DONE:
@@ -129,7 +177,25 @@ u32 USB_IAP_StatusDeamon(struct Wdt *reg)
             else if(toggle < 10) toggle = 0;
 
             toggle++;
-
+//          必须大于10秒，因为在升级过程中，拔掉U盘的话，USB协议栈里会等10秒钟来给电容放电，需要等这个时间过了USB才能重新进入IDLE状态。
+//          所以这里等10秒，等USB协议栈里的10秒延时过了之后，再来重启HUB。
+//          如果没大于10秒，就重启HUB的话，那么在HUB掉电的时候，中断检测到HUB断开后，USB协议栈还在等待那10秒的电容放电，
+//          USB协议栈还没来得及把USB模块进入IDLE状态，而这时HUB上电的话，中断检测到端口状态发生变化，进行连接。但是USB模块的状态还是disconnected
+//          状态，未进入IDLE状态。这时连接HUB会失败。所以需要第二次重启HUB才能重启成功。
+            if(dwDeamonInspect++ > 20)
+            {
+                dwDeamonInspect = 0;
+                if(!MSC_DeviceReady(0))
+                {
+                    printf("\r\nIAP : DEAMON : unknown state during USB update, reset all.\r\n");
+                    Djy_EventDelay(1000000);
+                    USB_UDiskReset();
+                }
+                else
+                {
+                    printf("\r\nIAP : DEAMON : Enter the error state and do not detect the usb drive.\r\n");
+                }
+            }
             break;
     default:
         break;
@@ -149,11 +215,11 @@ void USB_IAP_StatusInit(void)
 
     if(!Wdt_Create("usb iap status", 500000, USB_IAP_StatusDeamon, EN_EXP_DEAL_IGNORE, 0, 0))
     {
-        error_printf("iapusb","status initial failed\r\n");
+        printf("\r\n: erro : iapusb : status initial failed\r\n");
         gRunningStatus = ERROR;
         do
         {
-            USB_IAP_StatusDeamon(NULL);
+            USB_IAP_StatusDeamon(NULL);   //这里最好别加死循环吧，万一狗没申请成功，程序就死在这里了
 
         }while(1);
     }
@@ -166,24 +232,32 @@ void USB_IAP_StatusInit(void)
 // 返回：
 // 备注：
 // ============================================================================
-u32 USB_IAP_Thread(void)
+s32 __UpdateThroughUSB(char *pAPP, u32 dwOpt)
 {
     DIR *dir;
+    u8 updatestate = 1;
     struct dirent *structDirent;
     char *path;
-    char buffer[RW_SIZE];
+    char *buffer;
+    u32 bit[2];
     s32 res;
-    u32 willReset;
     struct stat sourceInfo;
     u8 i = 0;
     u8 found = 0;
     s32 source = -1;
     s32 destination = -1;
-    char *program = APPLICATION_FILE_NAME;
-    extern s32 MSC_DeviceReady(u8 bID);
-    extern bool_t  Sh_RunAPP(char *param);
+    u32 resetflag = 0;
+    char *program = pAPP;
 
-    Djy_GetEventPara((ptu32_t*)&willReset, NULL);
+    u32 dbgCount = 0;
+
+    for(i=0; i<2; i++)
+    {
+        bit[i] = dwOpt & 0x1;
+        dwOpt = dwOpt >> 1;
+    }
+
+    gRunningStatus = INIT;
 
     do{
         if(!MSC_DeviceReady(0))
@@ -191,31 +265,44 @@ u32 USB_IAP_Thread(void)
 
         Djy_EventDelay(1000000); // 1s跑一次
 
-        if((willReset) && (++i > 30))
+        if((bit[0]) && (++i > 60))
         {
-            info_printf("iapusb","no U disk was found, switch to application mode in 10 seconds.\r\n\r\n\r\n\r\n\r\n");
-            Djy_EventDelay(10000000); // 延时10s，以保证打印能输出
-            Sh_RunAPP(NULL);
-            return (0); // 未检测到USB设备
+            if(resetflag)
+            {
+                printf("\r\n: info : iapusb : no U disk was found, switch to application mode in 10 seconds.\r\n\r\n\r\n\r\n\r\n");
+                Djy_EventDelay(10000000); // 延时10s，以保证打印能输出
+                reset(CN_BOOT_LEGALKEY);
+                return (-1); // 未检测到USB设备
+            }
+            resetflag = 1;
+            i = 0;
+            USB_UDiskReset();
         }
     }while(1);
 
+    buffer = malloc(__IAP_USB_BUFFER_SIZE);
+    if(!buffer)
+    {
+        printf("\r\nIAP : USB : memory out.");
+        return (-1);
+    }
 
-    USB_IAP_StatusInit();
-
+    gRunningStatus = RUN;
+    dwDeamonInspect = 0;
     dir = opendir("/fat");
     if(!dir)
     {
-        info_printf("iapusb","directory \"fat\" is not exist! maybe \"FAT\" is not installed!\r\n");
+        printf("\r\n: info : iapusb : directory \"fat\" is not exist! maybe \"FAT\" is not installed!\r\n");
         gRunningStatus = ERROR;
         return (-1);
     }
 
+    dwDeamonInspect = 0;
     while((structDirent = readdir(dir)) != NULL)
     {
         if(0 == strcmp(structDirent->d_name, program))
         {
-            info_printf("iapusb","file \"%s\" will be programmed.",
+            printf("\r\n: info : iapusb : file \"%s\" will be programmed.",
                     structDirent->d_name);
             found = 1;
             break;
@@ -224,76 +311,105 @@ u32 USB_IAP_Thread(void)
 
     if(!found)
     {
-        info_printf("iapusb","file \"%s\" is not found.", program);
+        printf("\r\n: info : iapusb : file \"%s\" is not found.", program);
         gRunningStatus = ERROR;
-        goto END;
+        updatestate = 0;
+        goto __UPGRADE_ERROR;
     }
 
     path = buffer;
     strcpy(path, "/fat/");
     strcpy(path+5, structDirent->d_name);
+    dwDeamonInspect = 0;
     source = open(path, O_RDONLY);
     if(-1 == source)
     {
-        info_printf("iapusb","cannot open source file \"%s\".", path);
+        printf("\r\n: info : iapusb : cannot open source file \"%s\".", path);
         gRunningStatus = ERROR;
-        goto END;
+        updatestate = 0;
+        goto __UPGRADE_ERROR;
     }
 
+    dwDeamonInspect = 0;
     res = fstat(source, &sourceInfo);
     if(res)
     {
-        info_printf("iapusb","cannot statistics source file \"%s\".", path);
+        printf("\r\n: info : iapusb : cannot statistics source file \"%s\".", path);
         gRunningStatus = ERROR;
-        goto END;
+        updatestate = 0;
+        goto __UPGRADE_ERROR;
     }
 
     strcpy(path, "/iboot/");
     strcpy(path+7, structDirent->d_name);
+    dwDeamonInspect = 0;
     destination = open(path, O_RDWR | O_CREAT);
     if(-1 == destination)
     {
-        info_printf("iapusb","cannot open destination file \"%s\"!", path);
+        printf("\r\n: info : iapusb : cannot open destination file \"%s\"!", path);
         gRunningStatus = ERROR;
-        goto END;
+        updatestate = 0;
+        goto __UPGRADE_ERROR;
     }
 
+    printf("\r\nIAP : USB : application is updating   ");
     while(1)
     {
-        res = read(source, buffer, RW_SIZE);
+        dwDeamonInspect = 0;
+        dbgCount++;
+        if(9 == dbgCount)
+        {
+            Djy_EventDelay(1000);
+        }
+
+        res = read(source, buffer, __IAP_USB_BUFFER_SIZE);
         if((!res) || (-1 == res))
         {
-            info_printf("iapusb","read source file error.");
+            printf("\b\b\b error<read source, %d>.", dbgCount);
+            dwDeamonInspect = 0;
             gRunningStatus = ERROR;
+            updatestate = 0;
             break; // 没有数据可读
         }
 
         sourceInfo.st_size -= res; // 剩余
 
+        dwDeamonInspect = 0;
         if(res != write(destination, buffer, res))
         {
-            info_printf("iapusb","write destination file error.");
+            printf("\b\b\b error<write destination>.");
             gRunningStatus = ERROR;
+            updatestate = 0;
             break;
         }
 
         if(!sourceInfo.st_size)
         {
-            info_printf("iapusb","application update succeed.");
+            printf("\b\b\b\b\b\bed successfully.");
             gRunningStatus = DONE;
+            HAL_ClrUpdateFlag();
             break; // 全部读完
         }
+
+        switch(i)
+        {
+        case 0 : printf("\b\b\b.  "); i = 1; break;
+        case 1 : printf("\b\b\b.. "); i = 2; break;
+        case 2 : printf("\b\b\b..."); i = 0; break;
+        default: i = 0;break;
+        }
+
     }
 
-END:
+__UPGRADE_ERROR:
     closedir(dir);
-    info_printf("iapusb","thread exit ...");
+    printf("\r\n: info : iapusb : thread exit ...");
     if(-1 != source)
     {
         res = close(source);
         if(res)
         {
-            info_printf("iapusb","close source file failed.");
+            printf("\r\n: info : iapusb : close source file failed.");
         }
     }
 
@@ -302,51 +418,185 @@ END:
         res = close(destination);
         if(res)
         {
-            info_printf("iapusb","close destination file failed.");
+            printf("\r\n: info : iapusb : close destination file failed.");
         }
     }
 
-    debug_printf("iapusb","\r\n");
-    return (0);
+    printf("\r\n");
+
+    if((bit[1]) && (gRunningStatus == DONE))
+    {
+        printf("\r\nIAP : USB : application update succeed, switch to application mode in 10 seconds.\r\n\r\n\r\n\r\n\r\n");
+        Djy_EventDelay(10000000); // 延时10s，以保证打印能输出
+        Sh_RunAPP(NULL);
+        return (0); // 未检测到USB设备
+    }
+    if(updatestate)
+    {
+        return (0);
+    }
+    else
+    {
+        return (-1);
+    }
 }
 
 // ============================================================================
-// 功能：自动通过U盘升级逻辑
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+void UpdateThroughUSB_T(void)
+{
+    char *file;
+    u32 bits;
+
+    Djy_GetEventPara((ptu32_t*)&file, (ptu32_t*)&bits);
+
+    __UpdateThroughUSB(file, bits);
+}
+
+// ============================================================================
+// 功能：监视U盘是否插上，如果插上而且U盘里有升级文件则把IbootFlag修改为Runiboot,否则IbootFlag为Runapp
+//     并且把升级的方式和目标文件名传输给Iboot
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+void __SniffUSB(char *pFile,u32 dwOpt)
+{
+    DIR *dir;
+    u8 UDisk_Flag = 1;
+    u32 methodBackup;
+    char *pathBackup;
+    struct dirent *structDirent;
+    char *program = pFile;
+
+    methodBackup = IAP_GetMethod();
+    pathBackup = IAP_GetPath();
+    HAL_ClrUpdateFlag();
+    while(1)
+    {
+        if((UDisk_Flag == 1) && (!MSC_DeviceReady(0)))
+        {
+            Amend_IBootFlag_RunAPP();
+            dir = opendir("/fat");
+            if(!dir)
+            {
+                printf("USB : directory \"fat\" is not exist! maybe \"FAT\" is not installed!\r\n");
+            }
+
+            while((!MSC_DeviceReady(0)) && (structDirent = readdir(dir)) != NULL)
+            {
+                if(0 == strcmp(structDirent->d_name, program))
+                {
+                    HAL_SetUpdateFlag();
+                    IAP_SetMethod(3);
+                    IAP_SetPath(pFile);
+                    UDisk_Flag = 0;
+                    if(dwOpt == 1)
+                    {
+                        ModuleInstall_OsBoot(gMemTab,NULL,GetBootMethodSoft);
+                        Amend_IBootFlag_RunIBoot();
+                        printf("\r\nIf you need to upgrade, please enter \"reset 0xaa55aa55\".\r\n");
+                    }
+                    else
+                    {
+                        RunIboot();
+                    }
+
+                    break;
+                }
+            }
+
+        }
+
+        if((UDisk_Flag == 0) && (MSC_DeviceReady(0) != 0))
+        {
+            // 没有执行升级逻辑，则将升级状态复原。
+            Amend_IBootFlag_RunAPP();
+            HAL_ClrUpdateFlag();
+            IAP_SetMethod(methodBackup);
+            IAP_SetPath(pathBackup);
+            UDisk_Flag = 1;
+        }
+
+        Djy_EventDelay(1000000);
+    }
+}
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+void SniffUSB_T(void)
+{
+    char *file;
+    u32 bits;
+
+    Djy_GetEventPara((ptu32_t*)&file, (ptu32_t*)&bits);
+
+    __SniffUSB(file,bits);
+}
+
+// ============================================================================
+// 功能：安装U盘升级功能
 // 参数：bArgC -- 参数个数；
-//      第一个参数 -- 升级逻辑（1， 没有检测到USB，延时一段时间后复位；0，没有检测到USB，也不复位）。
-// 返回： "0" -- 成功; "-1" -- 失败;
+//     第1个参数 -- 功能选项（1， USB升级；0，USB监视）。
+//     第2个参数 -- 升级或监视的文件名；
+//     第3个参数 -- USB监视功能：1(表示需要手动输入命令才执行升级)；0（表示不需要手动输入命令，当插上U盘后会自动执行升级）；
+//              USB升级功能：bit1(表示iboot60秒没检测到U盘的话会重启)；bit2(表示升级完成后自动运行APP)；
+// 返回： 成功（0）; 失败（-1）;
 // 备注：
 // ============================================================================
 s32 ModuleInstall_USB_IAP(u8 bArgC, ...)
 {
+    u8 i;
     u16 thread;
     va_list ap;
-    u32 logic = 0;
-    u8 i;
-
-    if(bArgC > 1)
-    {
-        info_printf("module","illegal parameters (%s).", __FUNCTION__);
-    }
+    u32 arg = 0, func = 0;
+    char *file = NULL;
+    const char *func0 = "IAP: sniff USB";
+    const char *func1 = "IAP: update through USB";
 
     va_start(ap, bArgC);
     for(i = 0; i < bArgC; i++)
     {
         switch(i)
         {
-            case 0: logic = va_arg(ap, u32); break;
+            case 0: func = va_arg(ap, u32);break;
+            case 1: file = (char*)va_arg(ap, u32);break;
+            case 2: arg = va_arg(ap, u32);break;
             default: break;
         }
     }
     va_end(ap);
 
-
-    thread = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                    USB_IAP_Thread, NULL, 0x1000, "USB IAP service");
-    if(thread != CN_EVTT_ID_INVALID)
+    if(0 == func)
     {
-        Djy_EventPop(thread, NULL, 0, logic, 0, 0);
-        return (0);
+        thread = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                SniffUSB_T, NULL, 0x1000, (char*)func0);
+
+        if(thread != CN_EVTT_ID_INVALID)
+        {
+            Djy_EventPop(thread, NULL, 0, (ptu32_t)file, arg, 0);
+            return (0);
+        }
+    }
+    else if(1 == func)
+    {
+        USB_IAP_StatusInit();
+        thread = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                UpdateThroughUSB_T, NULL, 0x1000, (char*)func1);
+
+        if(thread != CN_EVTT_ID_INVALID)
+        {
+            Djy_EventPop(thread, NULL, 0, (ptu32_t)file, arg, 0);
+            return (0);
+        }
     }
 
     return (-1);

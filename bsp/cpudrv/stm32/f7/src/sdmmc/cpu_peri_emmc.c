@@ -61,7 +61,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //  extern s32 ModuleInstall_MMC(u32 dwArgC, ...);
-//  if(0!=ModuleInstall_MMC(CFG_EMMC_ARGC,CFG_EMMC_NAME,CFG_EMMC_OPTION,CFG_EMMC_SPEED)
+//  if(0 != ModuleInstall_MMC(CFG_EMMC_ARGC,CFG_EMMC_NAME,CFG_EMMC_OPTION,CFG_EMMC_SPEED))
 //  {
 //      printf("cpu_peri_emmc init error ！！");
 //      while(1);
@@ -441,7 +441,7 @@ s32 ModuleInstall_MMC(u32 dwArgC, ...)
     }
 
     res = dev_add(NULL, (const char*)name, NULL, NULL, NULL, NULL,NULL, ((ptu32_t)&MMC_Drv));
-    if(!res)
+    if(res)
     {
         printk("\r\nMODULE : INSTALL : \"%s\" initialization failed.\r\n", name);
         return (-1); // 失败

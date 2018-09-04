@@ -71,6 +71,9 @@ extern "C" {
 #include "..\..\..\cortex-m.h"
 #include "..\..\..\armv7m.h"
 
+//cpu版本号
+#define CN_M7_REVISION_R0P0   0x411FC270
+
 //保存上下文所需的栈空间最大值
 //16=通用寄存器，+cpsr-SP；32=浮点寄存器；2=浮点标志+对齐开销
 #define CN_CONTEXT_LIMIT        (16+32+2)*4

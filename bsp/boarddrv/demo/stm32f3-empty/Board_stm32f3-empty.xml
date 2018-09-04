@@ -2,7 +2,7 @@
 <board>
   <boardName>stm32f3-empty</boardName>
   <cpu>
-    <cpuName>stm32f3xxx</cpuName>
+    <cpuName>stm32f303xc</cpuName>
     <mianClk>8</mianClk>
     <chip>
       <chipName>at24c128b</chipName>

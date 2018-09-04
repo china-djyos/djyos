@@ -53,7 +53,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <object.h>
+#include <stddef.h>
 
 #define DIRENT_IS_REG                   (0)
 #define DIRENT_IS_DIR                   (1)
@@ -62,11 +62,11 @@ extern "C" {
 
 struct dirent
 {
-    long d_ino; // inode number 索引节点号,用于存在object指针
+    long d_ino; // inode number 索引节点号,用于存在不同文件系统索引逻辑
     off_t d_off; // offset to this dirent 在目录文件中的偏移
     unsigned short d_reclen; // length of this d_name 文件名长
     unsigned char d_type; // the type of d_name 文件类型
-    char d_name [CN_OBJ_NAME_LIMIT+1]; // 文件名，最长255字符
+    char d_name [256]; // 文件名，最长255字符
 };
 
 

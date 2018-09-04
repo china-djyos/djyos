@@ -102,7 +102,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_K9F1208_HEAP_NAME   "exterm"       //"heapname",配置k9f1208分配堆的名称
+#define CFG_K9F1208_HEAP_NAME   "extram"       //"heapname",配置k9f1208分配堆的名称
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
@@ -1267,7 +1267,7 @@ void __read_sector_and_oob(u32 sector,u8 *data)
 //参数: 无
 //返回: 1= 成功，0=失败
 //-----------------------------------------------------------------------------
-struct ShellCmdTab const ShellNandCmdTab[] =
+struct shell_debug const ShellNandCmdTab[] =
 {
     {
         "chip-erase",
@@ -1277,8 +1277,8 @@ struct ShellCmdTab const ShellNandCmdTab[] =
     },
 };
 
-static struct ShellCmdRsc tg_NandCmdRsc
-                        [sizeof(ShellNandCmdTab)/sizeof(struct ShellCmdTab)];
+//static struct ShellCmdRsc tg_NandCmdRsc
+//                        [sizeof(ShellNandCmdTab)/sizeof(struct shell_debug)];
 ptu32_t module_init_fs_k9f1208xxx(const char *FlashHeapName)
 {
     struct nand_chip_id chip_id;
@@ -1316,8 +1316,8 @@ ptu32_t module_init_fs_k9f1208xxx(const char *FlashHeapName)
     tg_samsung_nand.restore_PCRB = restore_PCRB_nand;
     if(DFFSD_InstallChip(&tg_samsung_nand,name,cn_reserve_blocks))
     {
-         Sh_InstallCmd(ShellNandCmdTab,tg_NandCmdRsc,
-            sizeof(ShellNandCmdTab)/sizeof(struct ShellCmdTab));
+        shell_debug_add(ShellNandCmdTab,
+            sizeof(ShellNandCmdTab)/sizeof(struct shell_debug));
          return 1;
     }
     else

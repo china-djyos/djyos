@@ -60,6 +60,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern s32 ModuleInstall_FAT(const char *dir, const char *dev, u32 opt);
 //    ModuleInstall_FAT(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS);
 //%$#@end initcode  ****初始化代码结束
 

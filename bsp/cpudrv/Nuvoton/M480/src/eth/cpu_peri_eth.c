@@ -699,7 +699,7 @@ bool_t MacSndDis(char *param)
 }
 
 #include <shell.h>
-static struct ShellCmdTab  gMacDebug[] =
+static struct shell_debug  gMacDebug[] =
 {
     {
         "mac",
@@ -763,8 +763,8 @@ static struct ShellCmdTab  gMacDebug[] =
     },
 };
 
-#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
+#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -848,7 +848,8 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_IsrConnect(CN_INT_LINE_ETH,ETH_IntHandler);
         Int_ContactLine(CN_INT_LINE_ETH);
     }
-    Sh_InstallCmd(gMacDebug,gMacDebugCmdRsc,CN_GMACDEBUG_NUM);
+
+    shell_debug_add(gMacDebug, CN_GMACDEBUG_NUM);
     printf("%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

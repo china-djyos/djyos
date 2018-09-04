@@ -55,7 +55,7 @@
 #include "endian.h"
 #include "exp.h"
 #include "hard-exp.h"
-#include "shell.h"
+#include <shell.h>
 
 //#include "cpu_peri.h"
 
@@ -88,7 +88,6 @@ extern exp_stack_end;       // The end of the exception stack
 *******************************************************************/
 
 extern void __asm_exp_init(void);
-extern bool_t Sh_InstallCmd(struct ShellCmdTab const *cmd_tab,struct ShellCmdRsc *cmd_rsc, u32 cmd_num);
 extern void __asm_software_reset(void);
 
 extern bool_t g_bScheduleEnable;
@@ -119,7 +118,7 @@ bool_t Sh_RestartSystem(char *param);
 
 
 //异常shell扩展命令
-struct ShellCmdTab const shell_cmd_reset_table[]=
+struct shell_debug const shell_cmd_reset_table[]=
 {
 
     {
@@ -147,8 +146,8 @@ struct ShellCmdTab const shell_cmd_reset_table[]=
 
 };
 
-#define cn_reset_shell_num  sizeof(shell_cmd_reset_table)/sizeof(struct ShellCmdTab)
-static struct ShellCmdRsc tg_reset_shell_cmd_rsc[cn_reset_shell_num];
+#define cn_reset_shell_num  sizeof(shell_cmd_reset_table)/sizeof(struct shell_debug)
+//static struct ShellCmdRsc tg_reset_shell_cmd_rsc[cn_reset_shell_num];
 
 
 //定义各种异常向量名字
@@ -815,7 +814,7 @@ bool_t HardExp_InfoDecoderInit(void)
 ptu32_t module_exp_shell_init(ptu32_t para)
 {
     para=para;
-    Sh_InstallCmd(shell_cmd_reset_table,tg_reset_shell_cmd_rsc,cn_reset_shell_num);
+    shell_debug_add(shell_cmd_reset_table, cn_reset_shell_num);
     return 1;
 }
 
@@ -850,7 +849,7 @@ bool_t Sh_Reboot(char *param)
   u32 flag;
    char *word_addr,*next_param;
     //提取参数
-    word_addr = Sh_GetWord(param,&next_param);
+    word_addr = shell_inputs(param,&next_param);
     if(word_addr == NULL)
     {
         printf("\r\n格式错误，正确格式是：\r\n异常条目\r\n");

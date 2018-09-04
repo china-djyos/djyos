@@ -2,7 +2,7 @@
 <board>
   <boardName>APOLLO-STM32F7</boardName>
   <cpu>
-    <cpuName>stm32f76xxx</cpuName>
+    <cpuName>stm32f767xx</cpuName>
     <mianClk>25</mianClk>
     <rtcClk>32768</rtcClk>
     <chip>

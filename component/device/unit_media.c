@@ -49,12 +49,47 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <objfile.h>
+#include <objhandle.h>
 #include <systime.h>
 #include <device.h>
 #include <string.h>
-#include "unit_media.h"
-#include "dbug.h"
+#include <stdio.h>
+#include <dbug.h>
+#include "./include/unit_media.h"
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"unit media"        //模块名
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
+                                //init表示在调用main之前，main表示在main函数中初始化
+//dependence:"stdio"            //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
 struct umcontext{
     struct uopt opt;
     s64 offset;
@@ -87,13 +122,13 @@ static void __um_stats(enum ustatstype type)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __um_open(tagOFile *of, u32 mode, u32 timeout)
+static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
 {
     struct umcontext *mc;
     struct umedia *media;
 
     timeout = timeout;
-    media = (struct umedia*)devfiledtag(of);
+    media = (struct umedia*)dev2drv(hdl);
     mc = (struct umcontext*)malloc(sizeof(struct umcontext));
     if(!mc)
         return (-1);
@@ -101,10 +136,9 @@ static s32 __um_open(tagOFile *of, u32 mode, u32 timeout)
     memset(mc, 0x0, sizeof(struct umcontext));
     mc->opt= media->opt;
 
-    of_setcontext(of, (ptu32_t)mc);
+    handle_linkcontext(hdl, (ptu32_t)mc);
     return (0);
 }
-
 
 // ============================================================================
 // 功能：关闭unit media设备文件;
@@ -112,9 +146,9 @@ static s32 __um_open(tagOFile *of, u32 mode, u32 timeout)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __um_close(tagOFile *of)
+static s32 __um_close(struct objhandle *hdl)
 {
-    struct umcontext *mc = (struct umcontext*)of_context(of);
+    struct umcontext *mc = (struct umcontext*)handle_context(hdl);
 
     free(mc);
     return (0);
@@ -126,7 +160,7 @@ static s32 __um_close(tagOFile *of)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __um_write(tagOFile *of, u8 *data, u32 len, u32 offset, u32 timeout)
+static s32 __um_write(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 timeout)
 {
     s32 res, ret, page;
     s64 pos;
@@ -135,19 +169,19 @@ static s32 __um_write(tagOFile *of, u8 *data, u32 len, u32 offset, u32 timeout)
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)devfiledtag(of);
-    mc = (struct umcontext*)(of);
+    media = (struct umedia*)dev2drv(hdl);
+    mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;
 
-    if(israw(of))
+    if(israw(hdl))
         pos = offset & (0xFFFFFFFF);
     else
         pos = mc->offset + offset;
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->start + media->size))
 //    {
-//        error_printf("device","write out of range<%s>.", of_name(of));
+//        error_printf("device","write out of range<%s>.", handle_name(hdl));
 //        debug_printf("device","range from <%l> to <%l>.", media->start, (media->start+media->size));
 //        return (0);
 //    }
@@ -180,7 +214,6 @@ static s32 __um_write(tagOFile *of, u8 *data, u32 len, u32 offset, u32 timeout)
     len -= unaligns;
     buf += unaligns;
     page ++;
-
     while(len >= media->asz)
     {
         ret =  media->mwrite(page, buf, mc->opt);
@@ -224,7 +257,7 @@ __ERR_W:
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __um_read(tagOFile *of, u8 *data, u32 len, u32 offset, u32 timeout)
+static s32 __um_read(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 timeout)
 {
     s32 res, ret, page;
     s64 pos;
@@ -233,19 +266,19 @@ static s32 __um_read(tagOFile *of, u8 *data, u32 len, u32 offset, u32 timeout)
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)devfiledtag(of);
-    mc = (struct umcontext*)(of);
+    media = (struct umedia*)dev2drv(hdl);
+    mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;
 
-    if(israw(of))
+    if(israw(hdl))
         pos = offset & (0xFFFFFFFF);
     else
         pos = mc->offset + offset;
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->ustart + media->size))
 //    {
-//        error_printf("device","read out of range<%s>.", of_name(of));
+//        error_printf("device","read out of range<%s>.", handle_name(hdl));
 //        debug_printf("device","range from <%l> to <%l>.", media->start, (media->start+media->size));
 //        return (0);
 //    }
@@ -310,7 +343,7 @@ __ERR_R:
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __um_cntl(tagOFile *of, u32 cmd, ptu32_t arg1, ptu32_t arg2)
+static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 {
     return (0);
 }
@@ -319,20 +352,20 @@ static s32 __um_cntl(tagOFile *of, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 // 功能：建立unit media设备类；
 // 参数：
 // 返回：
-// 备注：
+// 备注：只会调用一次；
 // ============================================================================
-static inline struct Object *__isbuild(void)
+static inline struct obj *__isbuild(void)
 {
     static u8 inited = 0;
-    static struct Object *mm;
+    static struct obj *mm;
 
     if(inited)
         return (mm);
 
-    mm = dev_grpaddo("unit media");
+    mm = dev_group_addo("unit media");
     if(!mm)
     {
-        error_printf("device","cannot build \"memory media\".");
+        printf("\r\n: erro : device : cannot build \"unit media\".");
         return (NULL);
     }
 
@@ -342,13 +375,14 @@ static inline struct Object *__isbuild(void)
 
 // ============================================================================
 // 功能：添加unit media设备;
-// 参数：
-// 返回：
+// 参数：name -- unit media名；
+//      media -- 控制接口；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
 s32 um_add(const char *name, struct umedia *media)
 {
-    struct Object *mmo;
+    struct obj *mmo;
 
     mmo = __isbuild();
     if(!mmo)
@@ -365,3 +399,42 @@ s32 um_add(const char *name, struct umedia *media)
     return (-1);
 }
 
+// ============================================================================
+// 功能：在某个设备上安装Unit Media
+// 参数： um_init -- 设备驱动函数；
+//      parts -- 分区数；
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
+                            u8 parts, ...)
+{
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
+
+    if(!dev_init)
+    {
+        error_printf("device","cannot add unit-media(no driver).");
+        return (-1);
+    }
+
+    va_start(list, parts);
+    for(part=0; part<parts; part++)
+    {
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(dev_init(startblock, blocks, doformat))
+        {
+            error_printf("device","cannot add unit-media(driver error).");
+            res = -1;
+            break;
+        }
+    }
+
+    va_end(list);
+    return (res);
+}

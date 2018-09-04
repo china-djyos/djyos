@@ -62,10 +62,9 @@
 //add your own specified header here
 #include <sys/socket.h>
 #include <device.h>
-#include <shell.h>
 #include "iodev.h"
 #include "dbug.h"
-#include "newshell.h"
+#include <shell.h>
 typedef struct
 {
     u8  idebug;
@@ -84,8 +83,12 @@ static tagIoDebug  gIoDebug = {
 //-----------------------------------------------------------------------------
 int iodevopen(const char *name)
 {
-    int ret = -1;
+    int ret;
+
     ret = DevOpen(name,O_RDWR,0);
+    if(-1==ret)
+        return (0);
+
     return ret;
 }
 //#define CN_UART_RT_TIMEOUT (10*mS)
@@ -224,16 +227,16 @@ ADD_TO_IN_SHELL bool_t iodebug(char *param)
     return true;
 }
 
-//struct ShellCmdTab  gIoDebugItem[] =
-//{
-//    {
-//        "iodebug",
-//        iodebugset,
-//        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
-//        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
-//    },
-//};
-//#define CN_IoDebug_NUM  ((sizeof(gIoDebugItem))/(sizeof(struct ShellCmdTab)))
+struct shell_debug  gIoDebugItem[] =
+{
+    {
+        "iodebug",
+        iodebug,
+        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
+        "usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]",
+    },
+};
+#define CN_IoDebug_NUM  ((sizeof(gIoDebugItem))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gIoDebugCmdRsc[CN_IoDebug_NUM];
 //-----------------------------------------------------------------------------
 //功能:this is the ppp main function here
@@ -242,12 +245,13 @@ ADD_TO_IN_SHELL bool_t iodebug(char *param)
 //备注:
 //作者:zhangqf@下午4:06:57/2017年1月5日
 //-----------------------------------------------------------------------------
-//bool_t PppIoInit(ptu32_t para)
-//{
-//    bool_t result;
-//    result = Sh_InstallCmd(gIoDebugItem,gIoDebugCmdRsc,CN_IoDebug_NUM);
-//    return result;
-//}
+bool_t PppIoInit(ptu32_t para)
+{
+    if(CN_IoDebug_NUM==shell_debug_add(gIoDebugItem, CN_IoDebug_NUM))
+        return (TRUE);
+
+    return (FALSE);
+}
 
 
 

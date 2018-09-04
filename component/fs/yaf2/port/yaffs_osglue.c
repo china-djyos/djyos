@@ -163,6 +163,6 @@ void yaffsfs_OSInitialisation(void)
 //-----------------------------------------------------------------------------
 void yaffs_bug_fn(const char *file_name, int line_no)
 {
-	debug_printf("yaffs","yaffs bug detected %s:%d\n",file_name, line_no);
+	debug_printf("yaf2","yaffs bug detected %s:%d\n",file_name, line_no);
     assert(0);
 }

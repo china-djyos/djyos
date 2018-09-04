@@ -59,9 +59,8 @@ extern "C" {
 #include "nor.h"
 #include "nand.h"
 #include "embedded_flash.h"
-#include "ecc_sw.h"
 #include "flash_trace.h"
-
+#include "ecc_sw.h"
 
 //
 // Flags
@@ -126,10 +125,6 @@ struct FlashChip{
 //
 //
 //
-s32 ModuleInstall_NAND(const char *ChipName, u32 Flags, u16 StartBlk);
-s32 ModuleInstall_NOR(const char *ChipName, u32 Flags, u8 StartBlk);
-s32 DecodeONFI(const char *pRaw, struct NandDescr *pONFI, u8 bLittle);
-s32 EarseWholeChip(struct FlashChip *Chip);
 
 #ifdef __cplusplus
 }

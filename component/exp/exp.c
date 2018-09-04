@@ -68,6 +68,7 @@
 #include "Exp_Record.h"
 #include "dbug.h"
 #include "component_config_exp.h"
+#include <shell.h>
 
 const char *gExpActionName[EN_EXP_DEAL_LENTH] = {
     "IGNORE",
@@ -426,8 +427,10 @@ bool_t  Exp_InfoDecoder(struct ExpRecordPara *recordpara)
 // =============================================================================
 void ModuleInstall_Exp(void)
 {
+
     extern bool_t Exp_ShellInit();
-//    Exp_ShellInit();
+    Exp_ShellInit();
+
     dListInit(&ExpDecoderListHead);
 
     // 初始化硬件异常信息解析函数,这里要特别说明一下,本着谁抛出异常谁解析的原则,

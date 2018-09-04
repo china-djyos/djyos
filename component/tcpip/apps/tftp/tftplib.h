@@ -145,8 +145,8 @@ int CreateClient(char *filename,char *mode,u16 reqmod,struct sockaddr_in *netadd
 bool_t DeleteClient(tagTftpClient *client);
 int TftpTransEngine(tagTftpClient *client);
 
-bool_t TftpWorkSpaceShow(char *param);
-bool_t TftpSetWorkSpace(char *path);
+bool_t tftppath(char *param);
+bool_t tftppathset(char *path);
 
 
 

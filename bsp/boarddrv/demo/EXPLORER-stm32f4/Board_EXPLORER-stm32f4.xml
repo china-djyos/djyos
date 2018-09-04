@@ -2,7 +2,7 @@
 <board>
   <boardName>EXPLORER-stm32f4</boardName>
   <cpu>
-    <cpuName>stm32f407zg</cpuName>
+    <cpuName>stm32f407xx</cpuName>
     <mianClk>8</mianClk>
     <chip>
       <chipName>at24c02</chipName>

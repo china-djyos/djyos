@@ -81,7 +81,7 @@ extern "C" {
 /* 多字节字符编码资源 */
 struct Charset
 {
-    struct Object *HostObj;
+    struct obj *HostObj;
     u16 max_len;        // 单个字符的最大字节数
     u16 EOC_Size;       // 字符串结束符的字节数
 

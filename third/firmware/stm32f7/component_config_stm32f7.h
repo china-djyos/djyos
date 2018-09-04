@@ -29,7 +29,7 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 //%$#@string,1,16
-//%$#@select,1
+//%$#@select,2
 //#define     STM32F722xx         //只能选一个
 //#define     STM32F723xx
 //#define     STM32F732xx
@@ -42,6 +42,7 @@
 //#define     STM32F769xx
 //#define     STM32F777xx
 //#define     STM32F779xx
+#define     USE_HAL_DRIVER
 //%$#@free
 //#endif
 //%$#@end configue  ****参数配置结束

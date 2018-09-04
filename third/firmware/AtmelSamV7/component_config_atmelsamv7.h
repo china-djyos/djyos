@@ -29,13 +29,44 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 //%$#@string,1,16
-//%$#@select
+//%$#@select,1
+//#defined __SAMV71J19__          //只能选中其中一个
+//#defined __SAMV71J20__
+//#defined __SAMV71J21__
+//#defined __SAMV71N19__
+//#defined __SAMV71N20__
+//#defined __SAMV71N21__
+//#defined __SAMV71Q19__
+//#defined __SAMV71Q20__
+//#defined __SAMV71Q21__
 //%$#@free
 //#endif
 //%$#@end configue  ****参数配置结束
 //%$#@exclude
+//../source/gmac.c
+//../source/gmacd.c
+//../source/iso7816_4.c
+//../source/mcan.c
+//../source/mcid_dma.c
+//../source/pio_capture.c
+//../source/pio_it.c
+//../source/pio.c
+//../source/qspi_dma.c
+//../source/qspi.c
+//../source/sdramc.c
+//../source/smc.c
+//../source/twi.c
+//../source/twid.c
+//../source/uart_dma.c
+//../source/uart.c
+//../source/usart_dma.c
+//../source/usart.c
+//../source/xdma_hardware_interface.c
+//../source/xdmac.c
+//../source/xdmad.c
 //%$#@end exclude
 //%$#@include path
+//..;..\include;
 //..;..\include\samv7;
 //%$#@end include path
 

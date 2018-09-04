@@ -619,7 +619,7 @@ bool_t MacReset(char *param)
 }
 
 #include <shell.h>
-static struct ShellCmdTab  gMacDebug[] =
+static struct shell_debug gMacDebug[] =
 {
     {
         "mac",
@@ -683,8 +683,8 @@ static struct ShellCmdTab  gMacDebug[] =
 //    },
 };
 
-#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
+#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct shell_debug)))
+//static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
 
  u32 ETH_IntHandler(ufast_t IntLine)
 {
@@ -797,7 +797,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_RestoreAsynLine(CN_INT_LINE_ENET);
     }
 
-    Sh_InstallCmd(gMacDebug,gMacDebugCmdRsc,CN_GMACDEBUG_NUM);
+    shell_debug_add(gMacDebug, CN_GMACDEBUG_NUM);
     debug_printf("%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

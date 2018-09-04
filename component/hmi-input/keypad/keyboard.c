@@ -71,7 +71,6 @@
 #include "object.h"
 #include "hmi-input.h"
 #include "systime.h"
-
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -121,7 +120,7 @@ ptu32_t KeyBoard_Scan(void);
 bool_t ModuleInstall_KeyBoard(void)
 {
     s16 evtt_key;
-    if(!OBJ_SearchChild(OBJ_Root( ),"stdin input device"))   //标准输入设备未初始化
+    if(!obj_search_child(objsys_root(),"stdin input device"))   //标准输入设备未初始化
         return false;
     evtt_key = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
                                     KeyBoard_Scan,NULL,512,"keyboard");
@@ -169,14 +168,14 @@ ptu32_t KeyBoard_Scan(void)
     struct KeyBoardMsg key_msg;
     u32 keyvalue;
 
-    StdinObj = (struct HMI_InputDeviceObj *)OBJ_SearchChild(OBJ_Root(),"stdin input device");
+    StdinObj = (struct HMI_InputDeviceObj *)obj_search_child(objsys_root(),"stdin input device");
     while(1)
     {
         KeyboardObj = StdinObj;
         while(1)
         {
             KeyboardObj = (struct HMI_InputDeviceObj*)
-                OBJ_TraveScion(StdinObj->HostObj,KeyboardObj->HostObj);
+                obj_foreach_scion(StdinObj->HostObj,KeyboardObj->HostObj);
             if(KeyboardObj == NULL)
                 break;
             if(KeyboardObj->input_type != EN_HMIIN_KEYBOARD)
@@ -215,8 +214,7 @@ ptu32_t KeyBoard_Scan(void)
                         && (key_byte[2] != key)
                         && (key_byte[3] != key) )
                     {
-
-                        key_msg.time = DjyGetSysTimeBase();
+                        key_msg.time = DjyGetSysTime();
                         key_msg.key_value[1] = 0;
                         key_msg.key_value[0] = key;
                         HmiIn_InputMsg(KeyboardObj->device_id,
@@ -241,7 +239,7 @@ ptu32_t KeyBoard_Scan(void)
                         && (key_byte[3] != key) )
                     {
 
-                        key_msg.time = DjyGetSysTimeBase();
+                        key_msg.time = DjyGetSysTime();
                         key_msg.key_value[1] = CN_BREAK_CODE;
                         key_msg.key_value[0] = key;
                         HmiIn_InputMsg(KeyboardObj->device_id,

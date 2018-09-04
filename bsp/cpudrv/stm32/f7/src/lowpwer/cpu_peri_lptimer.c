@@ -56,6 +56,7 @@
 #include "int.h"
 #include "board-config.h"
 
+#if (CN_USE_TICKLESS_MODE)
 static u16 g_lptimer_reload = 0;
 static u16 g_lptimer_pre_cnt = 0;
 void Lptimer1_ClearAllInt(void)
@@ -74,28 +75,51 @@ u8 Lptimer1_ClearISR(void)
 	if(LPTIM1->ISR & LPTIM_ISR_CMPM)
 	{
 		if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+		{
+		    LPTIM1->ICR |= LPTIM_ICR_ARRMCF | LPTIM_ICR_CMPMCF;
 			temp =  CN_LPTIMER_RELOAD_AND_CMP;
+		}
 		else
+		{
+		    LPTIM1->ICR |= LPTIM_ICR_CMPMCF;
 			temp =  CN_LPTIMER_CMP;
+		}
 	}
 	else
 	{
 		if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+		{
+		    LPTIM1->ICR |= LPTIM_ICR_ARRMCF;
 			temp =  CN_LPTIMER_RELOAD;
+		}
 		else
+		{
+		    LPTIM1->ICR = 0x7f;
 			temp =  CN_LPTIMER_NONE;
+		}
 	}
-	Lptimer1_ClearAllInt();
+	//Lptimer1_ClearAllInt();
 	return temp;
 }
 
 void Lptimer1_set_period(u16 period)
 {
-	while(LPTIM1->CNT==g_lptimer_pre_cnt);
-	g_lptimer_pre_cnt = LPTIM1->CNT;
-	LPTIM1->CMP = (period + g_lptimer_pre_cnt > CN_LIMIT_UINT16) ? \
+    u16 temp = 0;
+    u16 temp1=0,temp2=1;
+    while(temp1!=temp2)
+    {
+        temp1 = LPTIM1->CNT;
+        temp2 = LPTIM1->CNT;
+    }
+
+	g_lptimer_pre_cnt = temp1;
+	temp = (period + g_lptimer_pre_cnt > (CN_LIMIT_UINT16)) ? \
 			(period + g_lptimer_pre_cnt - CN_LIMIT_UINT16) : (period + g_lptimer_pre_cnt);
+	if((LPTIM1->ISR & LPTIM_ISR_CMPOK))
+	    LPTIM1->ICR |= (LPTIM_ICR_CMPOKCF);
+    LPTIM1->CMP = temp;
 	g_lptimer_reload = period;
+	while(!(LPTIM1->ISR & LPTIM_ISR_CMPOK));
 }
 
 u16 Lptimer1_read_reload(void)
@@ -105,7 +129,15 @@ u16 Lptimer1_read_reload(void)
 
 u16 Lptimer1_read_cnt(void)
 {
-	return LPTIM1->CNT;
+    u16 temp1=0,temp2=1;
+    while(temp1!=temp2)
+    {
+        temp1 = LPTIM1->CNT;
+        temp2 = LPTIM1->CNT;
+    }
+    if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+        return (CN_LIMIT_UINT16 + temp1);
+	return temp1;
 }
 
 void Lptimer1_PreInit(void)
@@ -124,7 +156,7 @@ void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
 	switch(presc)
 	{
 		case 1:
-			presc = LPTIM_CFGR_PRESC;
+			presc = (0x00 << (LPTIM_CFGR_PRESC_Pos));
 			break;
 		case 2:
 			presc = LPTIM_CFGR_PRESC_0;
@@ -149,7 +181,9 @@ void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
     RCC_PeriphCLKInitStruct.Lptim1ClockSelection = RCC_LPTIM1CLKSOURCE_LSI;
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphCLKInitStruct);
 
-	LPTIM1->CFGR = presc; // 4分频
+	__HAL_RCC_LPTIM1_CLK_ENABLE();
+	
+	LPTIM1->CFGR = presc; // 分频
 	LPTIM1->IER = LPTIM_IER_CMPMIE | LPTIM_IER_ARRMIE; // 开定时器中断
 
 	Int_Register(CN_INT_LINE_LPTIM1);
@@ -168,3 +202,4 @@ void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
 	LPTIM1->CR |= LPTIM_CR_CNTSTRT;
 	while(LPTIM1->CNT==0);
 }
+#endif

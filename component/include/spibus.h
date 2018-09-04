@@ -36,7 +36,7 @@ struct SPI_Param
 //SPI总线器件结构体
 struct SPI_Device
 {
-    struct Object *HostObj;
+    struct obj *HostObj;
     u8 Cs;                                  //片选信号
     bool_t AutoCs;                          //自动片选
     u8 CharLen;                             //数据长度
@@ -63,7 +63,7 @@ struct SPI_Buf
 //SPI总线控制块结构体,本模块可见
 struct SPI_CB
 {
-    struct Object           *HostObj;              //宿主对象
+    struct obj           *HostObj;              //宿主对象
     struct SPI_Buf          SPI_Buf;               //缓冲区,用于异步发送
     struct SemaphoreLCB     *SPI_BusSemp;           //SPI总线保护信号量
     struct SemaphoreLCB     *SPI_BlockSemp;         //简易缓冲区保护信号量
