@@ -58,6 +58,8 @@
 #include "cpu_peri_clock.h"
 #include "sdram.h"
 
+#include "evkbimxrt1050_hyper_config.h"
+#include "fsl_flexspi_nor_boot.h"
 //#include "cpu-optional.h"
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
@@ -74,6 +76,8 @@ extern void __set_CONTROL(uint32_t control);
 extern void Load_Preload(void);
 
 extern void IAP_SelectLoadProgam(void);
+
+extern const flexspi_nor_config_t hyperflash_config;
 
 struct ScbReg volatile * const startup_scb_reg
                         = (struct ScbReg *)0xe000ed00;
@@ -100,6 +104,9 @@ const u32 gc_u32StartupExpTable[4] __attribute__ ((section(".StartupExpTbl")))=
 
 void Init_Cpu(void)
 {
+    flexspi_nor_config_t temp = hyperflash_config;
+    temp = *(&temp);
+
 	__set_PSP((uint32_t)msp_top);
 	__set_PRIMASK(1);
 	__set_FAULTMASK(1);

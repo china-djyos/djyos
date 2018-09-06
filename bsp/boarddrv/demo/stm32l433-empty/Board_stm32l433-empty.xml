@@ -3,7 +3,7 @@
   <boardName>stm32l433-empty</boardName>
   <cpu>
     <cpuName>stm32l433xx</cpuName>
-    <mianClk>10</mianClk>
+    <mianClk>10.0</mianClk>
     <peripheral>emflash</peripheral>
     <peripheral>iic</peripheral>
     <peripheral>lowpwer</peripheral>

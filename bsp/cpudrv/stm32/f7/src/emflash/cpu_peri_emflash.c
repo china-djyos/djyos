@@ -85,18 +85,16 @@
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 
 //%$#@num,0,100,
-
-//%$#@enum,0,1,2,3,4,..,100
-#define CFG_PARTS   0     //分区数
-//%$#@enum_config
-#define CFG_PART_START      //分区起始
-#define CFG_PART_SIZE       //分区大小
-#define CFG_PART_OPTION     //分区选项
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #define CFG_EMBEDED     __embed_part_init    //"驱动初始化"
-
+//%$#@object_num,0,1,2,3,4,..,100
+#define CFG_PARTS   0     //分区数
+//%$#@object_para,
+#define CFG_PART_START      //分区起始
+#define CFG_PART_SIZE       //分区大小
+#define CFG_PART_OPTION     //分区选项
 //%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表

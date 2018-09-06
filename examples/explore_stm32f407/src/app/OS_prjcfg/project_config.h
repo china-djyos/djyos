@@ -68,6 +68,6 @@
 #define CFG_MOUNT_POINT         ""      //FAT文件系统安装目录
 #define CFG_MOUNT_DEV           ""      //FAT文件系统所在设备路径
 //******************************* Core Clock ******************************************//
-#define  CFG_CORE_MCLK                   (168*Mhz)         //主频，内核要用，必须定义
+#define  CFG_CORE_MCLK                   (8*Mhz)         //主频，内核要用，必须定义
 
 #endif

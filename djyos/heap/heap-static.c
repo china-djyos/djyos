@@ -258,7 +258,7 @@ ptu32_t Heap_StaticModuleInit(ptu32_t para)
 
     M_Malloc = __M_StaticMalloc;
     M_Realloc = __M_StaticRealloc;
-    free = __M_StaticFree;
+    M_Free = __M_StaticFree;
     M_MallocHeap = __M_StaticMallocHeap;
     M_MallocLc = __M_StaticMalloc;
     M_MallocLcHeap = __M_StaticMallocHeap;

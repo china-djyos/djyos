@@ -14,7 +14,6 @@
    <cpu>stm32f756ig</cpu>
    <cpu>stm32f767ii</cpu>
    <cpu>stm32f76xxx</cpu>
-   <cpu>stm32l433xx</cpu>
    <cpu>stm32h743ig</cpu>
    <cpu>stm32l433xx</cpu>
    <cpu>stm32l475xx</cpu>

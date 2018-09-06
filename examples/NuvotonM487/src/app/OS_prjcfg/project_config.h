@@ -32,6 +32,6 @@
 #define CFG_IBOOT_UPDATE_NAME   "iboot.bin"       // iboot更新文件名，此二配置，以后改掉
 #define CFG_IBOOT_UPDATE_PATH   "\\"       // iboot更新路径名，此二配置，以后改掉
 //******************************* Core Clock ******************************************//
-#define  CFG_CORE_MCLK                   (192*Mhz)         //主频，内核要用，必须定义
+#define  CFG_CORE_MCLK                   (12*Mhz)         //主频，内核要用，必须定义
 
 #endif

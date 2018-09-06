@@ -68,17 +68,17 @@ extern "C" {
 
 #define InLowPower      0
 #define OutLowPower     1
-/*
+
 //#include "cpu_peri_pmc.h"
 #include "cpu_peri_uart.h"
-#include "cpu_peri_pio.h"
-#include <cpu_peri_twi.h>
-#include "cpu_peri_spi.h"
-#include "cpu_peri_tc.h"
-#include "cpu_peri_gmac.h"
-#include <cpu_peri_bksram.h>
-#include "qspi.h"
-*/
+#include "cpu_peri_iic.h"
+//#include "cpu_peri_pio.h"
+//#include <cpu_peri_twi.h>
+//#include "cpu_peri_spi.h"
+//#include "cpu_peri_tc.h"
+//#include "cpu_peri_gmac.h"
+//#include <cpu_peri_bksram.h>
+//#include "qspi.h"
 
 #define memory_barrier() __DMB();
 

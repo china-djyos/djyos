@@ -760,8 +760,10 @@ bool_t ModuleInstall_HardTimer(void)
                                                 //如果定时器中断属性设为实时中断，则用户实现的中断服务函数ISR中必须清
                                                 //中断，且不能调用任何系统服务；如果设定为异步信号，则
                                                 //无须清中断，且允许调用全部系统调用。
-        tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE;   //自动重装使能
-        tg_TIMER_Reg[i]->CR1 |= ~(TIM_CR1_DIR); //计数器递增计数
+        //tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE;   //自动重装使能
+        tg_TIMER_Reg[i]->CR1 &=~ TIM_CR1_ARPE;   //自动重装使能
+        //tg_TIMER_Reg[i]->CR1 |= ~(TIM_CR1_DIR); //计数器递增计数
+        tg_TIMER_Reg[i]->CR1 &=  ~TIM_CR1_DIR;    //计数器递增计数
         tg_TIMER_Reg[i]->DIER |= TIM_DIER_UIE;  //使能更新中断
         tg_TIMER_Reg[i]->PSC = 0;    //分频系数为零，不分频，CK_CNT=CK_PSC频率，1/84M=1uS,84MHZ=84 000 000
                                                              //1s=1000ms  1ms=1000us

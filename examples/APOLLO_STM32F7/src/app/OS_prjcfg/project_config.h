@@ -86,6 +86,6 @@
 #define     CFG_UART7_ENABLE                 false             //
 #define     CFG_UART8_ENABLE                 false             //
 //******************************* Core Clock ******************************************//
-#define  CFG_CORE_MCLK                   (216*Mhz)         //主频，内核要用，必须定义
+#define  CFG_CORE_MCLK                   (25*Mhz)         //主频，内核要用，必须定义
 
 #endif

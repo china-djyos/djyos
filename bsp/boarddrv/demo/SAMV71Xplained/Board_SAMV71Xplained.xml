@@ -3,7 +3,7 @@
   <boardName>SAMV71Xplained</boardName>
   <cpu>
     <cpuName>ATSAMV70xxx</cpuName>
-    <mianClk>300.0</mianClk>
+    <mianClk>10.0</mianClk>
     <chip>
       <chipName>at24c02</chipName>
     </chip>

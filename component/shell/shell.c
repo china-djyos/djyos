@@ -874,7 +874,7 @@ static ptu32_t __shell_service(void)
     extern s32 shell_default(void);
 
     Djy_GetEventPara((ptu32_t*)(&param_mode), NULL); // 获取运行模式
-    param_mode = mode;
+    mode = param_mode;
     shell_default(); // 基本的shell命令；
     memset(&cmdbuf,0,sizeof(cmdbuf));
     cwd = getcwd(NULL,0);

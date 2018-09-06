@@ -270,7 +270,7 @@ void __M_CheckSTackSync(void);
 
 extern void *  (*M_Malloc)(ptu32_t size,u32 timeout);
 extern void *  (*M_Realloc) (void *, ptu32_t NewSize,u32 timeout);
-extern void  (*free)(void * pl_mem);
+extern void  (*M_Free)(void * pl_mem);
 extern void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 extern void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
@@ -1121,7 +1121,7 @@ bool_t Heap_DynamicModuleInit(void)
 
     M_Malloc = __M_Malloc;
     M_Realloc = __M_Realloc;
-    free = __M_Free;
+    M_Free = __M_Free;
     M_MallocHeap = __M_MallocHeap;
     M_MallocLc = __M_MallocLc;
     M_MallocLcHeap = __M_MallocLcHeap;

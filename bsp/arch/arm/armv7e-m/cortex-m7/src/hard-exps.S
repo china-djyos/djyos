@@ -289,24 +289,24 @@ HardExp_SvcHandler:
 //svc为0时，本svc_handler无须保存现场，因为在进入时已经将现场保存了或无须保存现场，请参见
 //cpus.S__asm_start_thread外的函数，sp已经更新为new_vm的栈；
 //svc为1时，表示的是线程之间的切换，因此需保存现场，对应__asm_start_thread
-    PUSH    {LR}
+    PUSH    {R1,LR}
     restore_asyn_signal_reg
-    POP     {LR}
+    POP     {R1,LR}
     TST     LR,#0x4             /* 测试EXC_RETURN的比特2 */
     ITE     EQ                  /* 如果为0 */
     MRSEQ   R0,MSP              /* 则使用的是主堆栈，故把MSP的值取出 */
     MRSNE   R0,PSP              /* 否则, 使用的是进程堆栈，故把PSP的值取出 */
 
     TST     R14, #0x10          /* 测试EXC_RETURN的比特4 */
-    ITE      EQ                  /* 如果为0 */
-    MOVEQ   R3,#104            /* fpu 上调指针值为（8+18）*4*/
+    ITE     EQ                  /* 如果为0 */
+    MOVEQ   R3,#104             /* fpu 上调指针值为（8+18）*4*/
     MOVNE   R3,#32              /*NO FPU*/
 
     LDR     R2,[R0,#24]         /* 从栈中读取PC的值 */
     LDRB    R2,[R2,#-2]         /* 从SVC指令中读取立即数放到R2 */
     CMP     R2,#1               /* svc号为 1,只有一号SVC才需要压栈 */
     ITTEE   EQ
-    LDREQ   R2,[R0]             /* 计算new_vm栈顶，并暂存在R2*/
+    LDREQ   R2,[R0]             /* 从线程数据结构中读new_vm栈顶，并暂存在R2*/
     LDREQ   R2,[R2]
     ADDNE   R2,R0,R3
     BNE     svc_switch          /* 目前只支持0号svc调用 */
@@ -315,7 +315,7 @@ HardExp_SvcHandler:
     IT      EQ                  /* 如果为0 */
     VSTMDBEQ R0!,{S16-S31}      /* 手动压栈FPU寄存器 */
     STMFD   R0!,{R4-R11}        /* 手动压栈内核寄存器，压栈R14是为了下次切入时查询是否需pop FPU寄存器 */
-    SUB     R0,R0,#4
+    SUB     R0,R0,#4            /* 填充，为了8字节对齐 */
     STMFD   R0!,{R14}
 
     STR     R0, [R1]            /* 保存老线程到old_vm->stack */
