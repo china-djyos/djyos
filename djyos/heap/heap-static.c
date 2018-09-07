@@ -114,7 +114,7 @@ ptu32_t __M_StaticCheckSize(void * mp);
 
 void *  (*M_Malloc)(ptu32_t size,u32 timeout);
 void *  (*M_Realloc) (void *, ptu32_t NewSize,u32 timeout);
-void    (*free)(void * pl_mem);
+void    (*M_Free)(void * pl_mem);
 void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);

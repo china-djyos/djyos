@@ -885,6 +885,7 @@ void __M_WaitMemoryStack(struct EventECB *event,u32 size)
     event->wait_mem_size = size;
     pl_event = s_ptGenMemSync;     //获取内存等待表指针
     event->sync_head = &s_ptGenMemSync;
+    __Djy_CutReadyEvent(event);
     if(pl_event == NULL)            //等待队列空
     {
         event->next = NULL;

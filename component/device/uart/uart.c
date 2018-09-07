@@ -418,12 +418,12 @@ u32 UART_PortRead(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen)
 // 返回：0，错误；1，正确
 // 备注：
 // ============================================================================
-u32 UART_ErrHandle(void *pUCB, u32 dwErrNo)
+u32 UART_ErrHandle(struct UartGeneralCB *pUGCB, u32 dwErrNo)
 {
-    if(!pUCB)
+    if(!pUGCB)
         return (0);
 
-    obj_set_handles_multievent((struct obj *)pUCB, dwErrNo);
+    obj_set_handles_multievent(pUGCB->Host, dwErrNo);
     return (1);
 }
 
