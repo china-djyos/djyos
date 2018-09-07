@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <boards>
    <board>sr1208</board>
+   <board>sr1263</board>
    <board>sr2711</board>
    <board>sr3252</board>
    <board>sr5261</board>
@@ -17,4 +18,5 @@
    <board>stm32f3-empty</board>
    <board>stm32l433-empty</board>
    <board>stm32l475-empty</board>
+   <board>ZQ1201</board>
 </boards>

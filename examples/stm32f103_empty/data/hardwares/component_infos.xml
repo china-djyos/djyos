@@ -120,14 +120,13 @@
    <component>/third/wolfssl-3.10.2/component_config_wolfssl.h</component>
    <component>/third/zlib-1.2.8/component_config_zlib.h</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/dma/cpu_peri_dma.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/emflash/cpu_peri_emflash.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/gpio/cpu_peri_gpio.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/lowpower/stm32f1x_lowppwer.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/rtc/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/uart/cpu_peri_uart.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/wdt/cpu_peri_wdt.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xx/../src/../../src/cpu_peri_hal.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/emflash/cpu_peri_emflash.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/gpio/cpu_peri_gpio.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/lowpower/stm32f1x_lowppwer.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/wdt/cpu_peri_wdt.c</component>
 </components>

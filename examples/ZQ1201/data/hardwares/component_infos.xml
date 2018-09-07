@@ -96,7 +96,6 @@
    <component>/third/firmware/lpc17xx/component_config_lpc17xx.h</component>
    <component>/third/firmware/NuvotonM480/component_config_NuvotonM480.h</component>
    <component>/third/firmware/Sharc21469/component_config_Sharc21469.h</component>
-   <component>/third/firmware/sldrv/component_config_zq12xx.h</component>
    <component>/third/firmware/stm32f1/component_config_stm32f1.h</component>
    <component>/third/firmware/stm32f3/component_config_stm32f3.h</component>
    <component>/third/firmware/stm32f4/component_config_stm32f4.h</component>
@@ -117,9 +116,4 @@
    <component>/third/wolfssl-3.10.2/component_config_wolfssl.h</component>
    <component>/third/zlib-1.2.8/component_config_zlib.h</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/ZQ/ZQ12xx/ZQ1201/../src/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/ZQ/ZQ12xx/ZQ1201/../src/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/ZQ/ZQ12xx/ZQ1201/../src/cpu_peri_spi.c</component>
-   <component>/bsp/cpudrv/ZQ/ZQ12xx/ZQ1201/../src/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/ZQ/ZQ12xx/ZQ1201/../src/cpu_peri_uart.c</component>
 </components>

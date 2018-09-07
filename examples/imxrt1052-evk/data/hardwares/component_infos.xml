@@ -47,6 +47,7 @@
    <component>/djyos/object/component_config_objfile.h</component>
    <component>/djyos/pool/pool.c</component>
    <component>/djyos/time/component_config_time.h</component>
+   <component>/bsp/boarddrv/demo/imxrt1052-evk/drv/board/board.c</component>
    <component>/bsp/chipdrv/39vf160/39vfxxx.c</component>
    <component>/bsp/chipdrv/88E1512/phy_88e1512.c</component>
    <component>/bsp/chipdrv/88E6060/ls88e6060.c</component>

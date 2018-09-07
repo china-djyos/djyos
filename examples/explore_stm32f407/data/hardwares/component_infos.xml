@@ -117,18 +117,16 @@
    <component>/third/wolfssl-3.10.2/component_config_wolfssl.h</component>
    <component>/third/zlib-1.2.8/component_config_zlib.h</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/cpu_peri.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/dma/cpu_peri_dma.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/emflash/cpu_peri_emflash.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/eth/cpu_peri_eth.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/gpio/cpu_peri_gpio.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/lowpower/stm32f4xx_lowpower.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/rtc/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/sdio/sdio_sdcard.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/spi/cpu_peri_spi.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/uart/cpu_peri_uart.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/usb/usbh_conf.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407zg/../src/../../src/cpu_peri_hal.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/emflash/cpu_peri_emflash.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/eth/cpu_peri_eth.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/gpio/cpu_peri_gpio.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/lowpower/stm32f4xx_lowpower.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/sdio/sdio_sdcard.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/spi/cpu_peri_spi.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/usb/usbh_conf.c</component>
 </components>
