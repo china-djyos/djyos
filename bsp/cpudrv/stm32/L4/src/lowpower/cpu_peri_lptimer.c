@@ -61,45 +61,45 @@ static u16 g_lptimer_reload = 0;
 static u16 g_lptimer_pre_cnt = 0;
 void Lptimer1_ClearAllInt(void)
 {
-	LPTIM1->ICR = 0x7f;
+    LPTIM1->ICR = 0x7f;
 }
 
 bool_t Lptimer1_GetIntFlag(void)
 {
-	return ((LPTIM1->ISR&LPTIM_ISR_CMPM) ? true : false);
+    return ((LPTIM1->ISR&LPTIM_ISR_CMPM) ? true : false);
 }
 
 u8 Lptimer1_ClearISR(void)
 {
-	u8 temp = CN_LPTIMER_NONE;
-	if(LPTIM1->ISR & LPTIM_ISR_CMPM)
-	{
-		if(LPTIM1->ISR & LPTIM_ISR_ARRM)
-		{
-		    LPTIM1->ICR |= LPTIM_ICR_ARRMCF | LPTIM_ICR_CMPMCF;
-			temp =  CN_LPTIMER_RELOAD_AND_CMP;
-		}
-		else
-		{
-		    LPTIM1->ICR |= LPTIM_ICR_CMPMCF;
-			temp =  CN_LPTIMER_CMP;
-		}
-	}
-	else
-	{
-		if(LPTIM1->ISR & LPTIM_ISR_ARRM)
-		{
-		    LPTIM1->ICR |= LPTIM_ICR_ARRMCF;
-			temp =  CN_LPTIMER_RELOAD;
-		}
-		else
-		{
-		    LPTIM1->ICR = 0x7f;
-			temp =  CN_LPTIMER_NONE;
-		}
-	}
-	//Lptimer1_ClearAllInt();
-	return temp;
+    u8 temp = CN_LPTIMER_NONE;
+    if(LPTIM1->ISR & LPTIM_ISR_CMPM)
+    {
+        if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+        {
+            LPTIM1->ICR |= LPTIM_ICR_ARRMCF | LPTIM_ICR_CMPMCF;
+            temp =  CN_LPTIMER_RELOAD_AND_CMP;
+        }
+        else
+        {
+            LPTIM1->ICR |= LPTIM_ICR_CMPMCF;
+            temp =  CN_LPTIMER_CMP;
+        }
+    }
+    else
+    {
+        if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+        {
+            LPTIM1->ICR |= LPTIM_ICR_ARRMCF;
+            temp =  CN_LPTIMER_RELOAD;
+        }
+        else
+        {
+            LPTIM1->ICR = 0x7f;
+            temp =  CN_LPTIMER_NONE;
+        }
+    }
+    //Lptimer1_ClearAllInt();
+    return temp;
 }
 
 void Lptimer1_set_period(u16 period)
@@ -112,19 +112,19 @@ void Lptimer1_set_period(u16 period)
         temp2 = LPTIM1->CNT;
     }
 
-	g_lptimer_pre_cnt = temp1;
-	temp = (period + g_lptimer_pre_cnt > (CN_LIMIT_UINT16)) ? \
-			(period + g_lptimer_pre_cnt - CN_LIMIT_UINT16) : (period + g_lptimer_pre_cnt);
-	if((LPTIM1->ISR & LPTIM_ISR_CMPOK))
-	    LPTIM1->ICR |= (LPTIM_ICR_CMPOKCF);
+    g_lptimer_pre_cnt = temp1;
+    temp = (period + g_lptimer_pre_cnt > (CN_LIMIT_UINT16)) ? \
+            (period + g_lptimer_pre_cnt - CN_LIMIT_UINT16) : (period + g_lptimer_pre_cnt);
+    if((LPTIM1->ISR & LPTIM_ISR_CMPOK))
+        LPTIM1->ICR |= (LPTIM_ICR_CMPOKCF);
     LPTIM1->CMP = temp;
-	g_lptimer_reload = period;
-	while(!(LPTIM1->ISR & LPTIM_ISR_CMPOK));
+    g_lptimer_reload = period;
+    while(!(LPTIM1->ISR & LPTIM_ISR_CMPOK));
 }
 
 u16 Lptimer1_read_reload(void)
 {
-	return g_lptimer_reload;
+    return g_lptimer_reload;
 }
 
 u16 Lptimer1_read_cnt(void)
@@ -137,60 +137,60 @@ u16 Lptimer1_read_cnt(void)
     }
     if(LPTIM1->ISR & LPTIM_ISR_ARRM)
         return (CN_LIMIT_UINT16 + temp1);
-	return temp1;
+    return temp1;
 }
 
 void Lptimer1_PreInit(void)
 {
-	g_lptimer_reload = 0;
-	g_lptimer_pre_cnt = 0;
+    g_lptimer_reload = 0;
+    g_lptimer_pre_cnt = 0;
 }
 
 void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
 {
-	u32 presc=0;
-	presc = 32768/CN_CFG_TIME_BASE_HZ;
-	switch(presc)
-	{
-		case 1:
-			presc = (0x00 << (LPTIM_CFGR_PRESC_Pos));
-			break;
-		case 2:
-			presc = LPTIM_CFGR_PRESC_0;
-			break;
-		case 4:
-			presc = LPTIM_CFGR_PRESC_1;
-			break;
-		case 8:
-			presc = (0x03 << (LPTIM_CFGR_PRESC_Pos));
-			//presc = LPTIM_CFGR_PRESC_2;
-			break;
-		default:
-			return;
-	}
+    u32 presc=0;
+    presc = 32768/CN_CFG_TIME_BASE_HZ;
+    switch(presc)
+    {
+        case 1:
+            presc = (0x00 << (LPTIM_CFGR_PRESC_Pos));
+            break;
+        case 2:
+            presc = LPTIM_CFGR_PRESC_0;
+            break;
+        case 4:
+            presc = LPTIM_CFGR_PRESC_1;
+            break;
+        case 8:
+            presc = (0x03 << (LPTIM_CFGR_PRESC_Pos));
+            //presc = LPTIM_CFGR_PRESC_2;
+            break;
+        default:
+            return;
+    }
 
-	RCC->APB1ENR1 = RCC_APB1ENR1_LPTIM1EN | RCC_APB1ENR1_PWREN;
-//	RCC->CSR |= RCC_CSR_LSION; // 开LSI
-//	while ((RCC->CSR & RCC_CSR_LSIRDY) == 0); // 等待LSI稳定
-	RCC->CCIPR = RCC_CCIPR_LPTIM1SEL; // LPTIM1时钟选LSI
+    RCC->APB1ENR1 = RCC_APB1ENR1_LPTIM1EN | RCC_APB1ENR1_PWREN;
+//  RCC->CSR |= RCC_CSR_LSION; // 开LSI
+//  while ((RCC->CSR & RCC_CSR_LSIRDY) == 0); // 等待LSI稳定
+    RCC->CCIPR = RCC_CCIPR_LPTIM1SEL; // LPTIM1时钟选LSI
 
-	LPTIM1->CFGR = presc; // 4分频
-	LPTIM1->IER = LPTIM_IER_CMPMIE | LPTIM_IER_ARRMIE; // 开定时器中断
+    LPTIM1->CFGR = presc; // 4分频
+    LPTIM1->IER = LPTIM_IER_CMPMIE | LPTIM_IER_ARRMIE; // 开定时器中断
 
-	Int_Register(CN_INT_LINE_LPTIM1);
-	Int_SetClearType(CN_INT_LINE_LPTIM1,CN_INT_CLEAR_AUTO);
-	Int_IsrConnect(CN_INT_LINE_LPTIM1,isr);
-	Int_SettoAsynSignal(CN_INT_LINE_LPTIM1);
-	Int_ClearLine(CN_INT_LINE_LPTIM1);
-	Int_RestoreAsynLine(CN_INT_LINE_LPTIM1);
+    Int_Register(CN_INT_LINE_LPTIM1);
+    Int_SetClearType(CN_INT_LINE_LPTIM1,CN_INT_CLEAR_AUTO);
+    Int_IsrConnect(CN_INT_LINE_LPTIM1,isr);
+    Int_SettoAsynSignal(CN_INT_LINE_LPTIM1);
+    Int_ClearLine(CN_INT_LINE_LPTIM1);
+    Int_RestoreAsynLine(CN_INT_LINE_LPTIM1);
 
-	Lptimer1_ClearAllInt();
-	LPTIM1->CR = LPTIM_CR_ENABLE; // 打开LPTIM, 但暂不开始计时
-	LPTIM1->ARR = period;
-	LPTIM1->CMP = period;
-	g_lptimer_reload = period;
-	g_lptimer_pre_cnt = 0;
-	LPTIM1->CR |= LPTIM_CR_CNTSTRT;
-	while(LPTIM1->CNT==0);
+    Lptimer1_ClearAllInt();
+    LPTIM1->CR = LPTIM_CR_ENABLE; // 打开LPTIM, 但暂不开始计时
+    LPTIM1->ARR = period;
+    LPTIM1->CMP = period;
+    g_lptimer_reload = period;
+    g_lptimer_pre_cnt = 0;
+    LPTIM1->CR |= LPTIM_CR_CNTSTRT;
+    while(LPTIM1->CNT==0);
 }
 #endif

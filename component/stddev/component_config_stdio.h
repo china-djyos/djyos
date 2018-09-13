@@ -43,9 +43,9 @@
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #define CFG_STDIO_RUN_MODE            (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW) //"STDIO模式",
-#define CFG_STDIO_IN_NAME              ""//"输入设备名",
-#define CFG_STDIO_OUT_NAME             ""//"输出设备名",
-#define CFG_STDIO_ERR_NAME             ""//"err输出设备名",
+#define CFG_STDIO_IN_NAME              "/dev/UART1"//"输入设备名",
+#define CFG_STDIO_OUT_NAME             "/dev/UART1"//"输出设备名",
+#define CFG_STDIO_ERR_NAME             "/dev/UART1"//"err输出设备名",
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure

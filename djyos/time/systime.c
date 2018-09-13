@@ -64,7 +64,7 @@
 #include "systime.h"
 #include "component_config_time.h"
 
-#if	(CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE) 
 extern u64 __DjyGetSysTime(void);
 #else
 s64 __DjyGetSysTime(void);
@@ -205,7 +205,7 @@ u32 DjyGetSysTimeFreq(void)
 //参数：无
 //返回：当前时钟
 //-----------------------------------------------------------------------------
-#if	(!CN_USE_TICKLESS_MODE)
+#if (!CN_USE_TICKLESS_MODE)
 s64 DjyGetSysTick(void)
 {
     s64 time;

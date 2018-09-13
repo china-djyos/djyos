@@ -40,7 +40,7 @@
 //#define STM32F102xB
 //#define STM32F103x6
 //#define STM32F103xB
-//#define STM32F103xE
+#define STM32F103xE
 //#define STM32F103xG
 //#define STM32F105xC
 //#define STM32F107xC

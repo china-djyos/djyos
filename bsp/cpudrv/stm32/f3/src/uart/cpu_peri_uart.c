@@ -73,28 +73,23 @@
 //    extern ptu32_t ModuleInstall_UART(u32 serial_no,u32 SendBufLen, u32 RecvBufLen,u8 mode);
 //
 //    #if CFG_UART1_ENABLE ==1
-//    ModuleInstall_UART(CN_UART1,CFG_UART1_SENDBUF_LEN,CFG_UART1_RECVBUF_LEN,\
-//      CFG_UART1_MODE);
+//    ModuleInstall_UART(CN_UART1,CFG_UART1_SENDBUF_LEN,CFG_UART1_RECVBUF_LEN,CFG_UART1_MODE);
 //    #endif
 //
-//    CFG_UART2_ENABLE ==1
-//    ModuleInstall_UART(CN_UART2,CFG_UART2_SENDBUF_LEN,CFG_UART2_RECVBUF_LEN,\
-//      CFG_UART2_MODE);
+//    #if CFG_UART2_ENABLE ==1
+//    ModuleInstall_UART(CN_UART2,CFG_UART2_SENDBUF_LEN,CFG_UART2_RECVBUF_LEN,CFG_UART2_MODE);
 //    #endif
 //
 //    #if CFG_UART3_ENABLE ==1
-//    ModuleInstall_UART(CN_UART3,CFG_UART3_SENDBUF_LEN,CFG_UART3_RECVBUF_LEN,\
-//      CFG_UART3_MODE);
+//    ModuleInstall_UART(CN_UART3,CFG_UART3_SENDBUF_LEN,CFG_UART3_RECVBUF_LEN,CFG_UART3_MODE);
 //    #endif
 //
 //    #if CFG_UART4_ENABLE ==1
-//    ModuleInstall_UART(CN_UART4,CFG_UART4_SENDBUF_LEN,CFG_UART4_RECVBUF_LEN,\
-//      CFG_UART4_MODE);
+//    ModuleInstall_UART(CN_UART4,CFG_UART4_SENDBUF_LEN,CFG_UART4_RECVBUF_LEN,CFG_UART4_MODE);
 //    #endif
 //
 //    #if CFG_UART5_ENABLE ==1
-//    ModuleInstall_UART(CN_UART5,CFG_UART5_SENDBUF_LEN,CFG_UART5_RECVBUF_LEN,\
-//      CFG_UART5_MODE);
+//    ModuleInstall_UART(CN_UART5,CFG_UART5_SENDBUF_LEN,CFG_UART5_RECVBUF_LEN,CFG_UART5_MODE);
 //    #endif
 //%$#@end initcode  ****初始化代码结束
 
@@ -106,7 +101,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
                                 //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"devfile","uart","heap","cpu_peri_dma"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"devfile","uart","heap","cpu_peri_dma","stm32f3"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -139,11 +134,11 @@
 #define CFG_UART5_RECVBUF_LEN            32                 //"UART5接收环形缓冲区大小",
 #define CFG_UART5_DMABUF_LEN             32                 //"UART5 DMA缓冲区大小",
 //%$#@enum,true,false,
-#define CFG_UART1_MODE                   CN_UART_POLL       //"UART1模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART2_MODE                   CN_UART_POLL       //"UART2模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART3_MODE                   CN_UART_POLL       //"UART3模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART4_MODE                   CN_UART_POLL       //"UART4模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART5_MODE                   CN_UART_POLL       //"UART5模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART1_MODE                   1       			//"UART1模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART2_MODE                   1       			//"UART2模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART3_MODE                   1       			//"UART3模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART4_MODE                   1       			//"UART4模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART5_MODE                   1       			//"UART5模式",CN_UART_POLL or CN_UART_GENERAL
 //%$#@enum,true,false,
 #define CFG_UART1_ENABLE                 true               //"是否配置使用UART1",
 #define CFG_UART2_ENABLE                 false              //"是否配置使用UART2",

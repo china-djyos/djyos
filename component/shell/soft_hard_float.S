@@ -1,5 +1,5 @@
-#include "cpu-optional.h"
-#if (CN_CPU_OPTIONAL_FLOAT_HARD == 1)
+#include "arm32_feature.h"
+#if (__FPU_USED == 1)
 
 .syntax		unified
 .cpu		cortex-m7
@@ -641,7 +641,7 @@ call_fun:
 
 
 
-#if (CN_CPU_OPTIONAL_FLOAT_SOFT == 1)
+#if (__FPU_USED == 0)
 
 
 .syntax		unified

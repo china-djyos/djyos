@@ -300,8 +300,8 @@ end:
 .thumb
 .thumb_func
 __asm_bl_fun:
-	mov   pc ,r0
-	bx    lr
+    mov   pc ,r0
+    bx    lr
 
 .end
 

@@ -16,5 +16,5 @@
    <cpu>stm32l433xx</cpu>
    <cpu>stm32l475xx</cpu>
    <cpu>stm32l476xx</cpu>
-   <cpu>ZQ1201</cpu>
+   <cpu>zq1201</cpu>
 </cpus>

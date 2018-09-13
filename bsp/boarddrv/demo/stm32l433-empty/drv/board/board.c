@@ -35,7 +35,7 @@
 //component name:"stm32l433_demo_board"      //板件特性配置
 //parent:"none"                              //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp组件                          //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:必选                                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                              //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //grade:init                                 //初始化时机，可选值：none，init，main。none表示无须初始化，
                                              //init表示在调用main之前，main表示在main函数中初始化
@@ -65,7 +65,7 @@ extern u32 SystemCoreClock;
 extern struct IntMasterCtrl  tg_int_global;          //?¨ò?2￠3?ê??ˉ×ü?D???????á11
 extern void __Djy_ScheduleAsynSignal(void);
 static void __DjyIsrTimeBase(u32 param);
-#define	CN_TIME_ROUNDING	(32768U)//四舍五入的值
+#define CN_TIME_ROUNDING    (32768U)//四舍五入的值
 #define TIME_GLUE           (0x1E849CU)
 #define FAST_TIME_GLUE      (0x863U)
 #define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(100*TIME_GLUE):((200*CN_CFG_TIME_BASE_HZ)/Mhz))
@@ -81,8 +81,8 @@ void __InitTimeBase(void)
 {
     HardExp_ConnectSystick(Null_Tick);
     pg_systick_reg->ctrl &=   ~((1<<bo_systick_ctrl_enable)    //使能
-	                            |(1<<bo_systick_ctrl_tickint)   //允许产生中断
-	                            |(1<<bo_systick_ctrl_clksource));//用内核时钟
+                                |(1<<bo_systick_ctrl_tickint)   //允许产生中断
+                                |(1<<bo_systick_ctrl_clksource));//用内核时钟
     pg_systick_reg->reload = 0;
     pg_systick_reg->current = 0;
     Lptimer1_PreInit();
@@ -154,7 +154,7 @@ u64 __DjyGetSysCnt(void)
     atom_low = Int_LowAtomStart();
     temp = g_time_base_tick + __Djy_GetTimeBaseRealCnt();
     Int_LowAtomEnd(atom_low);
-	return temp;
+    return temp;
 }
 
 u64 __DjyGetSysTime(void)
@@ -163,36 +163,36 @@ u64 __DjyGetSysTime(void)
     u64 temp=0;
     temp = __DjyGetSysCnt();
     time = ((CN_CFG_TIME_BASE_HZ>Mhz)?
-    		(temp/(u32)TIME_GLUE)://这里没有办法，只能直接使用除法，否则将引入累计误差，不能容忍	--chj
-			((u64)(temp*TIME_GLUE))>>16);
+            (temp/(u32)TIME_GLUE)://这里没有办法，只能直接使用除法，否则将引入累计误差，不能容忍  --chj
+            ((u64)(temp*TIME_GLUE))>>16);
     return time;
 }
 
 static void __DjyIsrTimeBase(u32 param)
 {
-	u8 flag = 0;
-	u32 tick=0;
-	g_bScheduleEnable = false;
-	tg_int_global.en_asyn_signal_counter = 1;
-	tg_int_global.nest_asyn_signal = 1;
-	flag = Lptimer1_ClearISR();
-	switch(flag)
-	{
-		case CN_LPTIMER_NONE:
-			break;
-		case CN_LPTIMER_RELOAD:
-			g_time_base_tick += CN_LIMIT_UINT16;
-			break;
-		case CN_LPTIMER_CMP:
-			tick=__Djy_GetTimeBaseRealCnt();
-			Djy_IsrTimeBase(tick);
-			break;
-		case CN_LPTIMER_RELOAD_AND_CMP:
-			g_time_base_tick += CN_LIMIT_UINT16;
-			//tick=__Djy_GetTimeBaseRealCnt();
-			Djy_IsrTimeBase(0);
-			break;
-	}
+    u8 flag = 0;
+    u32 tick=0;
+    g_bScheduleEnable = false;
+    tg_int_global.en_asyn_signal_counter = 1;
+    tg_int_global.nest_asyn_signal = 1;
+    flag = Lptimer1_ClearISR();
+    switch(flag)
+    {
+        case CN_LPTIMER_NONE:
+            break;
+        case CN_LPTIMER_RELOAD:
+            g_time_base_tick += CN_LIMIT_UINT16;
+            break;
+        case CN_LPTIMER_CMP:
+            tick=__Djy_GetTimeBaseRealCnt();
+            Djy_IsrTimeBase(tick);
+            break;
+        case CN_LPTIMER_RELOAD_AND_CMP:
+            g_time_base_tick += CN_LIMIT_UINT16;
+            //tick=__Djy_GetTimeBaseRealCnt();
+            Djy_IsrTimeBase(0);
+            break;
+    }
 
     tg_int_global.nest_asyn_signal = 0;
     tg_int_global.en_asyn_signal_counter = 0;

@@ -29,9 +29,10 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 //%$#@string,1,16
-//%$#@select,1
-//#define STM32H743xx         //只能选中其中一个
+//%$#@select,2
+#define STM32H743xx         //只能选中其中一个
 //#define STM32H753xx
+#define USE_HAL_DRIVER
 //%$#@free
 //#endif
 //%$#@end configue  ****参数配置结束

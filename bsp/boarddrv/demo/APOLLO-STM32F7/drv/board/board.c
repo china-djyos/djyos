@@ -62,7 +62,7 @@
 //component name:"boardinit"    //板件特性配置
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:必选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
                                 //init表示在调用main之前，main表示在main函数中初始化

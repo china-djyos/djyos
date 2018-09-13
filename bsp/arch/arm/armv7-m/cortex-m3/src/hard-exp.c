@@ -82,8 +82,8 @@ extern void HardExp_BusfaultHandler(void);
 extern   uint32_t   msp_top[ ];
 extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
-#if	(CN_USE_TICKLESS_MODE) 
-extern 	 u32 __Djy_GetTimeBaseReload(void);
+#if (CN_USE_TICKLESS_MODE) 
+extern   u32 __Djy_GetTimeBaseReload(void);
 #endif
 bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian);
 
@@ -169,14 +169,14 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 // =============================================================================
 void Exp_SystickTickHandler(void)
 {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     u32 tick=0;
 #endif
     g_bScheduleEnable = false;
 //    tg_int_global.en_asyn_signal = false;
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     tick=__Djy_GetTimeBaseReload();
     user_systick(tick);
 #else
@@ -617,30 +617,30 @@ bool_t  HardExp_Analysis(struct ExpThrowPara *parahead, u32 endian)
                 }
                 //EXP FAULT 信息解析
                 printk("异常时CPU寄存器值:\n\r");
-				printk("R0 :0X%08x R1 :0x%08x R2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
-				printk("R3 :0X%08x R4 :0x%08x R5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
-				printk("R6 :0X%08x R7 :0x%08x R8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
-				printk("R9 :0X%08x R10:0x%08x R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
-				printk("R12:0X%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
-				printk("SP :0X%08x LR :0x%08x PC :0x%08x  XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp,\
-																	   mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
-																	   mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
-																	   mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
-				printk("NVIC Exception Registers:\n\r");
+                printk("R0 :0X%08x R1 :0x%08x R2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
+                printk("R3 :0X%08x R4 :0x%08x R5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
+                printk("R6 :0X%08x R7 :0x%08x R8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
+                printk("R9 :0X%08x R10:0x%08x R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
+                printk("R12:0X%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
+                printk("SP :0X%08x LR :0x%08x PC :0x%08x  XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp,\
+                                                                       mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
+                                                                       mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
+                                                                       mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
+                printk("NVIC Exception Registers:\n\r");
                 printk("BFAR:0x%08x MMAR:0x%08x MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfar,\
-                											 	 mycpuinfo->NvicInfo.mmar,\
-																 mycpuinfo->NvicInfo.mfsr);
+                                                                 mycpuinfo->NvicInfo.mmar,\
+                                                                 mycpuinfo->NvicInfo.mfsr);
                 printk("HFSR:0x%08x DFSR:0x%08x BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.hfsr,\
-                                								 mycpuinfo->NvicInfo.dfsr,\
-                												 mycpuinfo->NvicInfo.bfsr);
+                                                                 mycpuinfo->NvicInfo.dfsr,\
+                                                                 mycpuinfo->NvicInfo.bfsr);
                 printk("UFSR:0x%04x\n\r",mycpuinfo->NvicInfo.ufsr);
 
                 result = true;
@@ -714,29 +714,29 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
                 //EXP FAULT 信息解析
                 printf("异常时CPU寄存器值:\n\r");
                 printf("R0 :0X%08x R1 :0x%08x R2 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r0,\
-                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r1,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r2);
                 printf("R3 :0X%08x R4 :0x%08x R5 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r3,\
-                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r4,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r5);
                 printf("R6 :0X%08x R7 :0x%08x R8 :0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r6,\
-                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r7,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r8);
                 printf("R9 :0X%08x R10:0x%08x R11:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r9,\
-                		                                      mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
-															  mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r10,\
+                                                              mycpuinfo->ExpRegInfo.CoreInfo.ger_r11);
                 printf("R12:0X%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.ger_r12);
                 printf("SP :0X%08x LR :0x%08x PC :0x%08x  XPSR:0x%08x\n\r",mycpuinfo->ExpRegInfo.CoreInfo.spr_sp,\
-                		                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
-						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
-						                                               mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
+                                                                       mycpuinfo->ExpRegInfo.CoreInfo.spr_lr,\
+                                                                       mycpuinfo->ExpRegInfo.CoreInfo.spr_pc,\
+                                                                       mycpuinfo->ExpRegInfo.CoreInfo.spr_xpsr);
                 printf("NVIC Exception Registers:\n\r");
                 printf("BFAR:0x%08x MMAR:0x%08x MFSR:0x%02x\n\r",mycpuinfo->NvicInfo.bfar,\
-                											 	 mycpuinfo->NvicInfo.mmar,\
-																 mycpuinfo->NvicInfo.mfsr);
+                                                                 mycpuinfo->NvicInfo.mmar,\
+                                                                 mycpuinfo->NvicInfo.mfsr);
                 printf("HFSR:0x%08x DFSR:0x%08x BFSR:0x%02x\n\r",mycpuinfo->NvicInfo.hfsr,\
-                                								 mycpuinfo->NvicInfo.dfsr,\
-                												 mycpuinfo->NvicInfo.bfsr);
+                                                                 mycpuinfo->NvicInfo.dfsr,\
+                                                                 mycpuinfo->NvicInfo.bfsr);
                 printf("UFSR:0x%04x\n\r",mycpuinfo->NvicInfo.ufsr);
             }
             else

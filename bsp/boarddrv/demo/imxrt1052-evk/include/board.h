@@ -63,32 +63,32 @@
 extern "C" {
 #endif
 
-/*ENET	config*/
-#define	KSZ8081_PHY_ADDR		(0x02U)
+/*ENET  config*/
+#define KSZ8081_PHY_ADDR        (0x02U)
 
 /*LCD Config*/
 /* Display. */
-#define LCD_DISP_GPIO 			GPIO1
-#define LCD_DISP_GPIO_PIN 		(2U)
+#define LCD_DISP_GPIO           GPIO1
+#define LCD_DISP_GPIO_PIN       (2U)
 /* Back light. */
-#define LCD_BL_GPIO 			GPIO2
-#define LCD_BL_GPIO_PIN 		(31U)
+#define LCD_BL_GPIO             GPIO2
+#define LCD_BL_GPIO_PIN         (31U)
 
-#define CN_LCD_YSIZE 			(272U)	/* LCD PIXEL HEIGHT*/
-#define CN_LCD_XSIZE 			(480U)	/* LCD PIXEL WIDTH */
+#define CN_LCD_YSIZE            (272U)  /* LCD PIXEL HEIGHT*/
+#define CN_LCD_XSIZE            (480U)  /* LCD PIXEL WIDTH */
 
-#define LCD_HSW 				41U
-#define LCD_HFP 				4U
-#define LCD_HBP 				8U
-#define LCD_VSW 				10U
-#define LCD_VFP 				4U
-#define LCD_VBP 				2U
+#define LCD_HSW                 41U
+#define LCD_HFP                 4U
+#define LCD_HBP                 8U
+#define LCD_VSW                 10U
+#define LCD_VFP                 4U
+#define LCD_VBP                 2U
 
-#define	LCD_RGB_MODE			CN_SYS_PF_RGB565
+#define LCD_RGB_MODE            CN_SYS_PF_RGB565
 
 /*´¥ÃþÆÁÐ¾Æ¬½Ó¿ÚIO*/
-#define	FT5406_INT_GPIO			GPIO1
-#define	FT5406_INT_GPIO_PIN		(11U)
+#define FT5406_INT_GPIO         GPIO1
+#define FT5406_INT_GPIO_PIN     (11U)
 
 /*º¯Êý*/
 extern void BOARD_ConfigMPU(void);

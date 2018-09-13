@@ -32,7 +32,7 @@
 //%$#@select,1
 //#define STM32F405xx             //只能选中其中一个
 //#define STM32F415xx
-//#define STM32F407xx
+#define STM32F407xx
 //#define STM32F417xx
 //#define STM32F427xx
 //#define STM32F437xx

@@ -35,9 +35,9 @@
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度
 //%$#@enum,true,false,
 //%$#@string,1,256,
-#define CFG_DISPLAY_NAME        " "         //"显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
-#define CFG_DESKTOP_NAME        " "         //"桌面名"
-#define CFG_INPUTDEV_NAME       " "         //"输入设备名称",使用bsp中输入设备所配置的名字，多输入设备的话，每个设备间用逗号隔开
+#define CFG_DISPLAY_NAME        "DISPLAY_NAME"         //"显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
+#define CFG_DESKTOP_NAME        "DESKTOP_NAME"         //"桌面名"
+#define CFG_INPUTDEV_NAME       "INPUTDEV_NAME"         //"输入设备名称",使用bsp中输入设备所配置的名字，多输入设备的话，每个设备间用逗号隔开
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #define CFG_DESKTOP_FORMAT      CN_SYS_PF_RGB565    //"像素格式",桌面窗口像素格式，常数在gkernel.h中定义，一般使用与显示器相同颜色

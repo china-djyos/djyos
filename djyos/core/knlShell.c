@@ -104,7 +104,7 @@ ADD_TO_IN_SHELL bool_t event(char *param)
             // printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
             // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
 #if CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE) 
             time1 = g_tECB_Table[pl_ecb].consumed_cnt_second/(CN_CFG_TIME_BASE_HZ/100);
 #else
             time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
@@ -314,7 +314,7 @@ ptu32_t Debug_Scan(void)
 
         for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
         {
-#if	(CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE) 
             g_tECB_Table[pl_ecb].consumed_cnt_second =
                               (u32)g_tECB_Table[pl_ecb].consumed_cnt
                             - g_tECB_Table[pl_ecb].consumed_cnt_record;
@@ -351,7 +351,7 @@ ptu32_t kernel_spy(void)
 
         for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
         {
-#if	(CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE) 
             g_tECB_Table[pl_ecb].consumed_cnt_second =
                               (u32)g_tECB_Table[pl_ecb].consumed_cnt
                             - g_tECB_Table[pl_ecb].consumed_cnt_record;

@@ -6,7 +6,7 @@
       <arch>armv7e-m</arch>
       <family>cortex-m7</family>
       <floatABI>hard</floatABI>
-      <fpuType>default</fpuType>
+      <fpuType>fpv5-d16</fpuType>
       <resetAddr>0x60000000</resetAddr>
       <memory>
          <type>RAM</type>

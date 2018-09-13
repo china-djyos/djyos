@@ -56,7 +56,7 @@
 extern void Hello_Word(void);
 ptu32_t djy_main(void)
 {
-    //Hello_Word();
+    Hello_Word();
 	while(1)
 	{
 //		printf("hello world!\r\n");

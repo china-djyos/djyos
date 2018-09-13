@@ -71,13 +71,13 @@
 
 // void __start_systick(void);
 
-#if	(CN_USE_TICKLESS_MODE)
-#if	(!CN_CFG_USE_USERTIMER)
-#define	CN_CFG_SAVE_ASYN	(0U)
-#define	CN_TIME_ROUNDING	(32768U)//四舍五入的值
-#define TIME_GLUE			(CN_CFG_TIME_BASE_HZ>Mhz ? (CN_CFG_TIME_BASE_HZ/Mhz) : (Mhz/CN_CFG_TIME_BASE_HZ))
-							//((Mhz%CN_CFG_TIME_BASE_HZ==0) ? (Mhz/CN_CFG_TIME_BASE_HZ) :((float)Mhz/CN_CFG_TIME_BASE_HZ)))
-#define FAST_TIME_GLUE		((1<<16)/TIME_GLUE)
+#if (CN_USE_TICKLESS_MODE)
+#if (!CN_CFG_USE_USERTIMER)
+#define CN_CFG_SAVE_ASYN    (0U)
+#define CN_TIME_ROUNDING    (32768U)//四舍五入的值
+#define TIME_GLUE           (CN_CFG_TIME_BASE_HZ>Mhz ? (CN_CFG_TIME_BASE_HZ/Mhz) : (Mhz/CN_CFG_TIME_BASE_HZ))
+                            //((Mhz%CN_CFG_TIME_BASE_HZ==0) ? (Mhz/CN_CFG_TIME_BASE_HZ) :((float)Mhz/CN_CFG_TIME_BASE_HZ)))
+#define FAST_TIME_GLUE      ((1<<16)/TIME_GLUE)
 #define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(500*TIME_GLUE):((500*CN_CFG_TIME_BASE_HZ)/Mhz))
 #define NOTINT_FLAG             (0U)
 #define GETSYSCNT_FLAG          (1U)
@@ -113,8 +113,8 @@ void __DjyStartTimeBase(void)
     Bypass_TimerInit();
 #endif
     pg_systick_reg->ctrl =   (1<<bo_systick_ctrl_enable)    //使能
-	                            |(1<<bo_systick_ctrl_tickint)   //允许产生中断
-	                            |(1<<bo_systick_ctrl_clksource);//用内核时钟
+                                |(1<<bo_systick_ctrl_tickint)   //允许产生中断
+                                |(1<<bo_systick_ctrl_clksource);//用内核时钟
 }
 
 u32 __Djy_GetDelayMaxCnt(void)
@@ -129,17 +129,17 @@ u32 __Djy_GetTimeBaseGap(void)
 
 void __Djy_SetTimeBaseCnt(u32 cnt)
 {
-    u32	temp_reload = 0;
+    u32 temp_reload = 0;
     u32 temp_cur = 0;
     if((cnt>CN_LIMIT_UINT24) || (cnt==0) || (bg_reload_flag == GETSYSCNT_FLAG))
     {
-		//理论上不可能出现此事件
-	    return;
+        //理论上不可能出现此事件
+        return;
     }
     if( bg_reload_flag != NOTINT_FLAG )
-	    temp_reload = pg_systick_reg->reload;
+        temp_reload = pg_systick_reg->reload;
     else
-	    temp_reload = g_time_base_reload;
+        temp_reload = g_time_base_reload;
     if(pg_systick_reg->current < TIME_BASE_MIN_GAP)
         return;
 //    pg_systick_reg->reload = cnt;
@@ -163,7 +163,7 @@ void __Djy_SetTimeBaseCnt(u32 cnt)
 //        g_time_base_tick = g_per_cur;
     bg_reload_flag = NOTINT_FLAG;
     g_time_base_reload = cnt;
-#if	CN_CFG_SAVE_ASYN
+#if CN_CFG_SAVE_ASYN
     pg_systick_reg->reload = CN_LIMIT_UINT24;
 #endif
 }
@@ -211,7 +211,7 @@ u64 __Djy_GetTimeBaseCnt(u32 cnt)
 u64 __DjyGetSysCnt(void)
 {
     u32 cnt2=0;
-	u64 temp = 0;
+    u64 temp = 0;
     atom_low_t atom_low;
     atom_low = Int_LowAtomStart();
     cnt2 = pg_systick_reg->current;
@@ -256,8 +256,8 @@ u64 __DjyGetSysTime(void)
 //    atom_low = Int_LowAtomStart();
     temp = __DjyGetSysCnt();
     time = ((CN_CFG_TIME_BASE_HZ>Mhz)?
-    		(temp/(u32)TIME_GLUE):
-    		((u64)(temp*TIME_GLUE))>>16);
+            (temp/(u32)TIME_GLUE):
+            ((u64)(temp*TIME_GLUE))>>16);
     //Int_LowAtomEnd(atom_low);
     return time;
 }

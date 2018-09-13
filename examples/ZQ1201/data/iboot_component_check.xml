@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component>
   <buffer>true</buffer>
-  <NlsCharset>false</NlsCharset>
   <ascii_charset>false</ascii_charset>
   <gb2312_charset>false</gb2312_charset>
   <utf8_charset>false</utf8_charset>
+  <NlsCharset>false</NlsCharset>
   <dbug>true</dbug>
-  <DevFile>true</DevFile>
   <flash>true</flash>
   <uart>true</uart>
+  <DevFile>true</DevFile>
   <canbus>false</canbus>
   <ioiicbus>false</ioiicbus>
   <iicbus>true</iicbus>
@@ -22,14 +22,14 @@
   <fatfilesystem>false</fatfilesystem>
   <IAP>false</IAP>
   <yaf2filesystem>false</yaf2filesystem>
-  <filesystem>false</filesystem>
+  <filesystem>true</filesystem>
   <gdd>false</gdd>
   <gkernel>false</gkernel>
   <keyboard>false</keyboard>
   <mouse>false</mouse>
   <touch>false</touch>
   <HmiInput>false</HmiInput>
-  <isbus_host>true</isbus_host>
+  <isbus_host>false</isbus_host>
   <isbus_slave>false</isbus_slave>
   <lowpower>false</lowpower>
   <multiplex>true</multiplex>
@@ -37,7 +37,7 @@
   <stdio>true</stdio>
   <tcpip>false</tcpip>
   <timer>true</timer>
-  <wdt>false</wdt>
+  <wdt>true</wdt>
   <ymodem>false</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>
@@ -47,6 +47,7 @@
   <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
+  <board>true</board>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
@@ -57,7 +58,7 @@
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
   <Sharc21469>false</Sharc21469>
-  <zq12xx>true</zq12xx>
+  <sldrv>true</sldrv>
   <stm32f1>false</stm32f1>
   <stm32f3>false</stm32f3>
   <stm32f4>false</stm32f4>
@@ -66,7 +67,7 @@
   <stm32L4>false</stm32L4>
   <goahead250>false</goahead250>
   <duktape>false</duktape>
-  <imxrt1052>false</imxrt1052>
+  <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
   <libghttp>false</libghttp>
   <vncserver>false</vncserver>
@@ -82,5 +83,5 @@
   <cpu_peri_rtc>false</cpu_peri_rtc>
   <cpu_peri_spi>false</cpu_peri_spi>
   <cpu_peri_timer>false</cpu_peri_timer>
-  <cpu_peri_uart>false</cpu_peri_uart>
+  <cpu_peri_uart>true</cpu_peri_uart>
 </component>

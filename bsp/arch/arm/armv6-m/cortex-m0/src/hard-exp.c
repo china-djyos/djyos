@@ -70,8 +70,8 @@
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __Djy_ScheduleAsynSignal(void);
-#if	(CN_USE_TICKLESS_MODE) 
-extern 	 u32 __Djy_GetTimeBaseReload(void);
+#if (CN_USE_TICKLESS_MODE) 
+extern   u32 __Djy_GetTimeBaseReload(void);
 #endif
 void (*user_systick)(u32 inc_ticks);
 
@@ -97,7 +97,7 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 
 void HardExp_EsrTick(void)
 {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     u32 tick=0;
 #endif
     if((pg_systick_reg->ctrl & bm_systick_ctrl_tickint) == 0)
@@ -106,7 +106,7 @@ void HardExp_EsrTick(void)
 //    tg_int_global.en_asyn_signal = false;
 //    tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal++;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     tick=__Djy_GetTimeBaseReload();
     user_systick(tick);
 #else

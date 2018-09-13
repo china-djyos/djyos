@@ -38,7 +38,7 @@
 //#define     STM32F746xx
 //#define     STM32F745xx
 //#define     STM32F765xx
-//#define     STM32F767xx
+#define     STM32F767xx
 //#define     STM32F769xx
 //#define     STM32F777xx
 //#define     STM32F779xx

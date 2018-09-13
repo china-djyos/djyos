@@ -94,6 +94,13 @@ extern "C" {
 #endif
 #endif
 
+//通过编译器产生的符号来确定
+#if defined (__VFP_FP__) && !defined(__SOFTFP__) && !defined (__FPU_USED)
+	#define __FPU_USED       1U
+#else
+	#define __FPU_USED       0U
+#endif
+
 #ifdef __cplusplus
 }
 #endif

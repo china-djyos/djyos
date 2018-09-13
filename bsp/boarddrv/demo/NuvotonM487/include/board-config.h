@@ -68,10 +68,6 @@ extern "C" {
 
 #define DJY_BOARD       "NUVOTON-M487JIDE"
 
-//FslKxx系列有部分支持MPU或FPU，故不能统一在cpu-optional.h中声明
-#define CN_CPU_OPTIONAL_MPU         1       //是否支持mpu
-#define CN_CPU_OPTIONAL_FPU         1       //是否支持fpu
-
 #define Mhz             1000000
 #define CN_CFG_MCLK     (192*Mhz)           //主频，内核要用，必须定义
 #define CN_CFG_FCLK     CN_CFG_MCLK

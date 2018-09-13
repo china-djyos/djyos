@@ -77,7 +77,7 @@ void Led_Goggle(void)
     silan_io_toggle(CTRL_LED2);
 }
 
-#include <uart.h>
+#include <device/include/uart.h>
 
 void uartTest(void)
 {
@@ -169,12 +169,12 @@ ptu32_t djy_main(void)
     testWatDog();
     testADC();
     printf("%x\r\n",*p);
-	while(1)
-	{
-	    Led_Goggle();
-	    get_AD_Dat();
-		printf("hello world!\r\n");
-		Djy_EventDelay(100*mS);
-	}
-	return 0;
+    while(1)
+    {
+        Led_Goggle();
+        get_AD_Dat();
+        printf("hello world!\r\n");
+        Djy_EventDelay(100*mS);
+    }
+    return 0;
 }

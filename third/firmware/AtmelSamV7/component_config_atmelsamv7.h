@@ -38,7 +38,7 @@
 //#defined __SAMV71N21__
 //#defined __SAMV71Q19__
 //#defined __SAMV71Q20__
-//#defined __SAMV71Q21__
+#defined __SAMV71Q21__
 //%$#@free
 //#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø

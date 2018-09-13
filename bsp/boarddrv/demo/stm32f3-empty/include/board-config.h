@@ -68,10 +68,6 @@ extern "C" {
 
 #define DJY_BOARD       "STM32F3-DEMO"
 
-//F3系列支持mpu,fpu
-#define CN_CPU_OPTIONAL_MPU         1       //是否支持mpu
-#define CN_CPU_OPTIONAL_FPU         1       //是否支持fpu
-
 #define Mhz             1000000
 #define CN_CFG_MCLK     (72*Mhz)     //主频，内核要用，必须定义
 #define CN_CFG_FCLK     CN_CFG_MCLK

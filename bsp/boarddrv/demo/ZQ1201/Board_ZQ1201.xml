@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <board>
-  <boardName>ZQ1201</boardName>
+  <boardName>zq1201</boardName>
   <cpu>
-    <cpuName>ZQ1201</cpuName>
+    <cpuName>zq1201</cpuName>
     <mianClk>12.0</mianClk>
     <peripheral>cpu_peri_iic</peripheral>
     <peripheral>cpu_peri_rtc</peripheral>

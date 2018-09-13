@@ -107,15 +107,15 @@ void Init_Cpu(void)
     flexspi_nor_config_t temp = hyperflash_config;
     temp = *(&temp);
 
-	__set_PSP((uint32_t)msp_top);
-	__set_PRIMASK(1);
-	__set_FAULTMASK(1);
-	__set_CONTROL(0);
+    __set_PSP((uint32_t)msp_top);
+    __set_PRIMASK(1);
+    __set_FAULTMASK(1);
+    __set_CONTROL(0);
 
-	SystemInit();
-	BOARD_ConfigMPU();
-	ClockInit();
-	Sdram_SemcInit();
+    SystemInit();
+    BOARD_ConfigMPU();
+    ClockInit();
+    Sdram_SemcInit();
     IAP_SelectLoadProgam();
 
 }
@@ -129,9 +129,9 @@ extern void Load_Preload(void);
 //-----------------------------------------------------------------
 void AppStart(void)
 {
-	__set_MSP((uint32_t)msp_top);
-	__set_PSP((uint32_t)msp_top);
-	Load_Preload();
+    __set_MSP((uint32_t)msp_top);
+    __set_PSP((uint32_t)msp_top);
+    Load_Preload();
 }
 
 //-----------------------------------------------------------------

@@ -34,7 +34,13 @@
 //#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
+//../CMSIS
+//../cmsis_drivers
+//../utilities
 //%$#@end exclude
 //%$#@include path
-//..;
+//..;..\drivers;
+//..;..\xip;
+//..;..\CMSIS\Include;
+//..;..\utilities;
 //%$#@end include path

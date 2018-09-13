@@ -160,6 +160,7 @@ char * itoa(s32 d, char *buf, s32 scale);
 
 extern void *(*M_Malloc)(ptu32_t size,u32 timeout);
 extern void *(*M_Realloc) (void *, ptu32_t,u32 timeout);
+extern void  (*M_Free)(void * pl_mem);
 extern void *(*M_MallocHeap)(ptu32_t size,pHeap_t Heap,u32 timeout);
 extern void *(*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *(*M_MallocLcHeap)(ptu32_t size,pHeap_t Heap, u32 timeout);

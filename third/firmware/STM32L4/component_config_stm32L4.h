@@ -39,7 +39,7 @@
 //#define STM32L452xx
 //#define STM32L462xx
 //#define STM32L471xx
-//#define STM32L475xx
+#define STM32L475xx
 //#define STM32L476xx
 //#define STM32L485xx
 //#define STM32L486xx

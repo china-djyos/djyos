@@ -136,8 +136,8 @@ bool_t ModuleInstall_HmiIn(void)
     root.HostObj = s_ptHmiInDeviceDir;
     //初始化设备控制块内存池
     StdinDeviceMem = M_Malloc(sizeof( struct HMI_InputDeviceObj),0);
-	if(StdinDeviceMem == NULL)
-	{
+    if(StdinDeviceMem == NULL)
+    {
         goto ExitDir;
     }
     g_ptHmiInDevicePool = Mb_CreatePool((void*)StdinDeviceMem,

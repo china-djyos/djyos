@@ -204,7 +204,7 @@ struct ThreadVm          //线程数据结构
 //};
 struct EventInfo
 {
-#if	(CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)  
     u64    EventStartCnt;      //事件发生时间，uS
     u64    consumed_cnt;       //事件消耗的总时间
 #else
@@ -240,7 +240,7 @@ struct EventECB
                                         //返回时从该同步队列取出事件
 
 #if CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)  
     u64    EventStartCnt;              //事件发生时间，uS
     u64    consumed_cnt;               //事件消耗的总时间
     u32    consumed_cnt_second;        //最近1秒消耗的时间
@@ -248,11 +248,11 @@ struct EventECB
 #else
     s64    EventStartTime;              //事件发生时间，uS
     s64    consumed_time;               //事件消耗的总时间
-	u32    consumed_time_second;        //最近1秒消耗的时间
+    u32    consumed_time_second;        //最近1秒消耗的时间
     u32    consumed_time_record;        //上次整秒时，消耗的时间快照
 #endif
 #endif  //CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)  
     u64    delay_start_cnt;    //设定闹铃时间
     u64    delay_end_cnt;      //闹铃响时间
 #else
@@ -358,7 +358,7 @@ struct EventType
 extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
-#if	(CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)  
 void Djy_IsrTimeBase(u32 inc_ticks);
 #else
 void Djy_IsrTick(u32 inc_ticks);
@@ -384,7 +384,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_RaiseTempPrio(u16 event_id);
 bool_t Djy_RestorePrio(void);
 u32 Djy_EventDelay(u32 u32l_uS);
-#if	(CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE) 
 u64 Djy_EventDelayTo(u64 s64l_uS);
 #else
 u32 Djy_EventDelayTo(s64 s64l_uS);

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <cpu>
-   <cpuName>ZQ1201</cpuName>
+   <cpuName>zq1201</cpuName>
    <core id="1">
+      <floatABI>default</floatABI>
       <fpuType>default</fpuType>
       <memory>
          <type>FLASH</type>
@@ -14,7 +15,7 @@
          <size>16k</size>
       </memory>
       <memory>
-         <type>RAM</type>
+         <type>FLASH</type>
          <startAddr>0x20000000</startAddr>
          <size>32k</size>
       </memory>

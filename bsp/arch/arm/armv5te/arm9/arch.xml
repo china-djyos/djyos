@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arch>
+    <family>arm9</family>
+    <compile-option>
+        <mcpu>arm9</mcpu>
+    </compile-option>
+    <vendor-option>
+        <fpu-type>fpv4-sp-d16</fpu-type>
+    </vendor-option>
+</arch>

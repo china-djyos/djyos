@@ -69,7 +69,7 @@
 #endif
 //#define VECT_TAB_SRAM
 #define VECT_TAB_OFFSET  0x0
-
+#include "arm32_feature.h"
 extern   uint32_t   msp_top[ ];
 extern void __set_PSP(uint32_t topOfProcStack);
 extern void __set_PRIMASK(uint32_t priMask);
@@ -108,7 +108,7 @@ void Init_Cpu(void)
 	__set_FAULTMASK(1);
 	__set_CONTROL(0);
 
-    #if (CN_CPU_OPTIONAL_FPU == 1)
+    #if (__FPU_USED == 1)
         startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //Ê¹ÄÜFPU
         startup_scb_reg->FPCCR = (1UL << 31);                //¹Ø±Õlazy stacking
     #endif

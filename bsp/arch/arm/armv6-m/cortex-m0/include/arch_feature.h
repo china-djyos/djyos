@@ -65,7 +65,7 @@
 extern "C" {
 #endif
 
-#include "..\..\..\..\arm32_feature.h"
+#include "arm32_feature.h"
 #include "board-config.h"   //在startup目录下对应板件目录中,须在工程配置中加入 -I
 #include "arch_stdint.h"
 #include "..\..\..\cortex-m.h"

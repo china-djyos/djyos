@@ -63,6 +63,7 @@
 #include "core_cmFunc.h"
 #include "cpu-optional.h"
 #include "core_cm7.h"
+#include "arm32_feature.h"
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
 #endif
@@ -107,7 +108,7 @@ void Init_Cpu(void)
 	__set_FAULTMASK(1);
 	__set_CONTROL(0);
 
-    #if (CN_CPU_OPTIONAL_FPU == 1)
+    #if (__FPU_USED == 1)
         startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //Ê¹ÄÜFPU
         startup_scb_reg->FPCCR = (1UL << 31);                //¹Ø±Õlazy stacking
     #endif

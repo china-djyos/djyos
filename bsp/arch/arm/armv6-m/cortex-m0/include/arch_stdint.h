@@ -65,7 +65,7 @@
 extern "C" {
 #endif
 
-#include "..\..\..\..\arm32_stdint.h"
+#include "arm32_stdint.h"
 
 
 #ifdef __cplusplus

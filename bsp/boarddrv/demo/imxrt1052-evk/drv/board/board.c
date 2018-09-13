@@ -54,7 +54,7 @@
 //component name:"board"     //板件特性驱动
 //parent:"none"                       //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp组件                   //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                         //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:必选                         //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //grade:init                          //初始化时机，可选值：none，init，main。none表示无须初始化，
                                       //init表示在调用main之前，main表示在main函数中初始化
@@ -193,51 +193,51 @@ void BOARD_ConfigMPU(void)
 
 void Board_FT5406_Int_Gpio(void)
 {
-	gpio_pin_config_t pin_config =
-	{
-		kGPIO_DigitalInput, 0,
-	};
+    gpio_pin_config_t pin_config =
+    {
+        kGPIO_DigitalInput, 0,
+    };
 
-	IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B0_11_GPIO1_IO11, 0U);
-	GPIO_PinInit(GPIO1, 11, &pin_config);
+    IOMUXC_SetPinMux(IOMUXC_GPIO_AD_B0_11_GPIO1_IO11, 0U);
+    GPIO_PinInit(GPIO1, 11, &pin_config);
 }
 
 void Board_ETH_Gpio_Init(void)
 {
-	gpio_pin_config_t gpio_config = {kGPIO_DigitalOutput, 0, kGPIO_NoIntmode};
-	
-	IOMUXC_SetPinMux(
+    gpio_pin_config_t gpio_config = {kGPIO_DigitalOutput, 0, kGPIO_NoIntmode};
+    
+    IOMUXC_SetPinMux(
       IOMUXC_GPIO_B1_04_ENET_RX_DATA00,       /* GPIO_B1_04 is configured as ENET_RX_DATA00 */
       0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_B1_05_ENET_RX_DATA01,       /* GPIO_B1_05 is configured as ENET_RX_DATA01 */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_B1_06_ENET_RX_EN,           /* GPIO_B1_06 is configured as ENET_RX_EN */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_B1_07_ENET_TX_DATA00,       /* GPIO_B1_07 is configured as ENET_TX_DATA00 */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_B1_08_ENET_TX_DATA01,       /* GPIO_B1_08 is configured as ENET_TX_DATA01 */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_B1_09_ENET_TX_EN,           /* GPIO_B1_09 is configured as ENET_TX_EN */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_B1_10_ENET_REF_CLK,         /* GPIO_B1_10 is configured as ENET_REF_CLK */
-		  1U);                                    /* Software Input On Field: Force input path of pad GPIO_B1_10 */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_B1_11_ENET_RX_ER,           /* GPIO_B1_11 is configured as ENET_RX_ER */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_EMC_40_ENET_MDC,            /* GPIO_EMC_40 is configured as ENET_MDC */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_EMC_41_ENET_MDIO,           /* GPIO_EMC_41 is configured as ENET_MDIO */
-		  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	
-	IOMUXC_SetPinConfig(
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_05_ENET_RX_DATA01,       /* GPIO_B1_05 is configured as ENET_RX_DATA01 */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_06_ENET_RX_EN,           /* GPIO_B1_06 is configured as ENET_RX_EN */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_07_ENET_TX_DATA00,       /* GPIO_B1_07 is configured as ENET_TX_DATA00 */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_08_ENET_TX_DATA01,       /* GPIO_B1_08 is configured as ENET_TX_DATA01 */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_09_ENET_TX_EN,           /* GPIO_B1_09 is configured as ENET_TX_EN */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_10_ENET_REF_CLK,         /* GPIO_B1_10 is configured as ENET_REF_CLK */
+          1U);                                    /* Software Input On Field: Force input path of pad GPIO_B1_10 */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_11_ENET_RX_ER,           /* GPIO_B1_11 is configured as ENET_RX_ER */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_EMC_40_ENET_MDC,            /* GPIO_EMC_40 is configured as ENET_MDC */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_EMC_41_ENET_MDIO,           /* GPIO_EMC_41 is configured as ENET_MDIO */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    
+    IOMUXC_SetPinConfig(
       IOMUXC_GPIO_B1_04_ENET_RX_DATA00,       /* GPIO_B1_04 PAD functional properties : */
       0xB0E9u);                               /* Slew Rate Field: Fast Slew Rate
                                                  Drive Strength Field: R0/5
@@ -338,28 +338,28 @@ void Board_ETH_Gpio_Init(void)
                                                  Pull Up / Down Config. Field: 100K Ohm Pull Up
                                                  Hyst. Enable Field: Hysteresis Disabled */
 
-	
-	IOMUXC_EnableMode(IOMUXC_GPR, kIOMUXC_GPR_ENET1TxClkOutputDir, true);
+    
+    IOMUXC_EnableMode(IOMUXC_GPR, kIOMUXC_GPR_ENET1TxClkOutputDir, true);
 
-	GPIO_PinInit(GPIO1, 9, &gpio_config);
-	GPIO_PinInit(GPIO1, 10, &gpio_config);
-	/* pull up the ENET_INT before RESET. */
-	GPIO_WritePinOutput(GPIO1, 10, 1);
-	GPIO_WritePinOutput(GPIO1, 9, 0);
-	Djy_EventDelay(1*mS);
-	GPIO_WritePinOutput(GPIO1, 9, 1);
+    GPIO_PinInit(GPIO1, 9, &gpio_config);
+    GPIO_PinInit(GPIO1, 10, &gpio_config);
+    /* pull up the ENET_INT before RESET. */
+    GPIO_WritePinOutput(GPIO1, 10, 1);
+    GPIO_WritePinOutput(GPIO1, 9, 0);
+    Djy_EventDelay(1*mS);
+    GPIO_WritePinOutput(GPIO1, 9, 1);
 }
 
 void Board_UART_Gpio_Init(void)
 {
-	IOMUXC_SetPinMux(
+    IOMUXC_SetPinMux(
       IOMUXC_GPIO_AD_B0_12_LPUART1_TX,        /* GPIO_AD_B0_12 is configured as LPUART1_TX */
       0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
+    IOMUXC_SetPinMux(
       IOMUXC_GPIO_AD_B0_13_LPUART1_RX,        /* GPIO_AD_B0_13 is configured as LPUART1_RX */
       0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	  
-	IOMUXC_SetPinConfig(
+      
+    IOMUXC_SetPinConfig(
       IOMUXC_GPIO_AD_B0_12_LPUART1_TX,        /* GPIO_AD_B0_12 PAD functional properties : */
       0x10B0u);                               /* Slew Rate Field: Slow Slew Rate
                                                  Drive Strength Field: R0/6
@@ -369,7 +369,7 @@ void Board_UART_Gpio_Init(void)
                                                  Pull / Keep Select Field: Keeper
                                                  Pull Up / Down Config. Field: 100K Ohm Pull Down
                                                  Hyst. Enable Field: Hysteresis Disabled */
-	IOMUXC_SetPinConfig(
+    IOMUXC_SetPinConfig(
       IOMUXC_GPIO_AD_B0_13_LPUART1_RX,        /* GPIO_AD_B0_13 PAD functional properties : */
       0x10B0u);                               /* Slew Rate Field: Slow Slew Rate
                                                  Drive Strength Field: R0/6
@@ -383,337 +383,337 @@ void Board_UART_Gpio_Init(void)
 
 void Board_IIC_Gpio_Init(void)
 {
-	IOMUXC_SetPinMux(
-			      IOMUXC_GPIO_AD_B1_00_LPI2C1_SCL,        /* GPIO_AD_B1_00 is configured as LPI2C1_SCL */
-			      1U);                                    /* Software Input On Field: Force input path of pad GPIO_AD_B1_00 */
-	IOMUXC_SetPinMux(
-		  IOMUXC_GPIO_AD_B1_01_LPI2C1_SDA,        /* GPIO_AD_B1_01 is configured as LPI2C1_SDA */
-		  1U);                                    /* Software Input On Field: Force input path of pad GPIO_AD_B1_01 */
+    IOMUXC_SetPinMux(
+                  IOMUXC_GPIO_AD_B1_00_LPI2C1_SCL,        /* GPIO_AD_B1_00 is configured as LPI2C1_SCL */
+                  1U);                                    /* Software Input On Field: Force input path of pad GPIO_AD_B1_00 */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_AD_B1_01_LPI2C1_SDA,        /* GPIO_AD_B1_01 is configured as LPI2C1_SDA */
+          1U);                                    /* Software Input On Field: Force input path of pad GPIO_AD_B1_01 */
 
-	IOMUXC_SetPinConfig(
-		IOMUXC_GPIO_AD_B1_00_LPI2C1_SCL,        /* GPIO_AD_B1_00 PAD functional properties : */
-		0xD8B0u);                               /* Slew Rate Field: Slow Slew Rate
-												   Drive Strength Field: R0/6
-												   Speed Field: medium(100MHz)
-												   Open Drain Enable Field: Open Drain Enabled
-												   Pull / Keep Enable Field: Pull/Keeper Enabled
-												   Pull / Keep Select Field: Keeper
-												   Pull Up / Down Config. Field: 22K Ohm Pull Up
-												   Hyst. Enable Field: Hysteresis Disabled */
-	IOMUXC_SetPinConfig(
-		IOMUXC_GPIO_AD_B1_01_LPI2C1_SDA,        /* GPIO_AD_B1_01 PAD functional properties : */
-		0xD8B0u);                               /* Slew Rate Field: Slow Slew Rate
-												   Drive Strength Field: R0/6
-												   Speed Field: medium(100MHz)
-												   Open Drain Enable Field: Open Drain Enabled
-												   Pull / Keep Enable Field: Pull/Keeper Enabled
-												   Pull / Keep Select Field: Keeper
-												   Pull Up / Down Config. Field: 22K Ohm Pull Up
-												   Hyst. Enable Field: Hysteresis Disabled */
+    IOMUXC_SetPinConfig(
+        IOMUXC_GPIO_AD_B1_00_LPI2C1_SCL,        /* GPIO_AD_B1_00 PAD functional properties : */
+        0xD8B0u);                               /* Slew Rate Field: Slow Slew Rate
+                                                   Drive Strength Field: R0/6
+                                                   Speed Field: medium(100MHz)
+                                                   Open Drain Enable Field: Open Drain Enabled
+                                                   Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                   Pull / Keep Select Field: Keeper
+                                                   Pull Up / Down Config. Field: 22K Ohm Pull Up
+                                                   Hyst. Enable Field: Hysteresis Disabled */
+    IOMUXC_SetPinConfig(
+        IOMUXC_GPIO_AD_B1_01_LPI2C1_SDA,        /* GPIO_AD_B1_01 PAD functional properties : */
+        0xD8B0u);                               /* Slew Rate Field: Slow Slew Rate
+                                                   Drive Strength Field: R0/6
+                                                   Speed Field: medium(100MHz)
+                                                   Open Drain Enable Field: Open Drain Enabled
+                                                   Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                   Pull / Keep Select Field: Keeper
+                                                   Pull Up / Down Config. Field: 22K Ohm Pull Up
+                                                   Hyst. Enable Field: Hysteresis Disabled */
 }
 
 void Board_LCD_Gpio_Init(void)
 {
-	IOMUXC_SetPinMux(
-	      IOMUXC_GPIO_AD_B0_02_GPIO1_IO02,        /* GPIO_AD_B0_02 is configured as GPIO1_IO02 */
-	      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_AD_B0_02_GPIO1_IO02,        /* GPIO_AD_B0_02 is configured as GPIO1_IO02 */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
 
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_00_LCD_CLK,              /* GPIO_B0_00 is configured as LCD_CLK */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_01_LCD_ENABLE,           /* GPIO_B0_01 is configured as LCD_ENABLE */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_02_LCD_HSYNC,            /* GPIO_B0_02 is configured as LCD_HSYNC */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_03_LCD_VSYNC,            /* GPIO_B0_03 is configured as LCD_VSYNC */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_04_LCD_DATA00,           /* GPIO_B0_04 is configured as LCD_DATA00 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_05_LCD_DATA01,           /* GPIO_B0_05 is configured as LCD_DATA01 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_06_LCD_DATA02,           /* GPIO_B0_06 is configured as LCD_DATA02 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_07_LCD_DATA03,           /* GPIO_B0_07 is configured as LCD_DATA03 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_08_LCD_DATA04,           /* GPIO_B0_08 is configured as LCD_DATA04 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_09_LCD_DATA05,           /* GPIO_B0_09 is configured as LCD_DATA05 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_10_LCD_DATA06,           /* GPIO_B0_10 is configured as LCD_DATA06 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_11_LCD_DATA07,           /* GPIO_B0_11 is configured as LCD_DATA07 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_12_LCD_DATA08,           /* GPIO_B0_12 is configured as LCD_DATA08 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_13_LCD_DATA09,           /* GPIO_B0_13 is configured as LCD_DATA09 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_14_LCD_DATA10,           /* GPIO_B0_14 is configured as LCD_DATA10 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B0_15_LCD_DATA11,           /* GPIO_B0_15 is configured as LCD_DATA11 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B1_00_LCD_DATA12,           /* GPIO_B1_00 is configured as LCD_DATA12 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B1_01_LCD_DATA13,           /* GPIO_B1_01 is configured as LCD_DATA13 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B1_02_LCD_DATA14,           /* GPIO_B1_02 is configured as LCD_DATA14 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
-	IOMUXC_SetPinMux(
-	  IOMUXC_GPIO_B1_03_LCD_DATA15,           /* GPIO_B1_03 is configured as LCD_DATA15 */
-	  0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_00_LCD_CLK,              /* GPIO_B0_00 is configured as LCD_CLK */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_01_LCD_ENABLE,           /* GPIO_B0_01 is configured as LCD_ENABLE */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_02_LCD_HSYNC,            /* GPIO_B0_02 is configured as LCD_HSYNC */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_03_LCD_VSYNC,            /* GPIO_B0_03 is configured as LCD_VSYNC */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_04_LCD_DATA00,           /* GPIO_B0_04 is configured as LCD_DATA00 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_05_LCD_DATA01,           /* GPIO_B0_05 is configured as LCD_DATA01 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_06_LCD_DATA02,           /* GPIO_B0_06 is configured as LCD_DATA02 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_07_LCD_DATA03,           /* GPIO_B0_07 is configured as LCD_DATA03 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_08_LCD_DATA04,           /* GPIO_B0_08 is configured as LCD_DATA04 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_09_LCD_DATA05,           /* GPIO_B0_09 is configured as LCD_DATA05 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_10_LCD_DATA06,           /* GPIO_B0_10 is configured as LCD_DATA06 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_11_LCD_DATA07,           /* GPIO_B0_11 is configured as LCD_DATA07 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_12_LCD_DATA08,           /* GPIO_B0_12 is configured as LCD_DATA08 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_13_LCD_DATA09,           /* GPIO_B0_13 is configured as LCD_DATA09 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_14_LCD_DATA10,           /* GPIO_B0_14 is configured as LCD_DATA10 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B0_15_LCD_DATA11,           /* GPIO_B0_15 is configured as LCD_DATA11 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B1_00_LCD_DATA12,           /* GPIO_B1_00 is configured as LCD_DATA12 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B1_01_LCD_DATA13,           /* GPIO_B1_01 is configured as LCD_DATA13 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B1_02_LCD_DATA14,           /* GPIO_B1_02 is configured as LCD_DATA14 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+      IOMUXC_GPIO_B1_03_LCD_DATA15,           /* GPIO_B1_03 is configured as LCD_DATA15 */
+      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
 
-	IOMUXC_SetPinMux(
-	      IOMUXC_GPIO_B1_15_GPIO2_IO31,           /* GPIO_B1_15 is configured as GPIO2_IO31 */
-	      0U);                                    /* Software Input On Field: Input Path is determined by functionality */
+    IOMUXC_SetPinMux(
+          IOMUXC_GPIO_B1_15_GPIO2_IO31,           /* GPIO_B1_15 is configured as GPIO2_IO31 */
+          0U);                                    /* Software Input On Field: Input Path is determined by functionality */
 
-	IOMUXC_SetPinConfig(
-	      IOMUXC_GPIO_AD_B0_02_GPIO1_IO02,        /* GPIO_AD_B0_02 PAD functional properties : */
-	      0x10B0u);                               /* Slew Rate Field: Slow Slew Rate
-	                                                 Drive Strength Field: R0/6
-	                                                 Speed Field: medium(100MHz)
-	                                                 Open Drain Enable Field: Open Drain Disabled
-	                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
-	                                                 Pull / Keep Select Field: Keeper
-	                                                 Pull Up / Down Config. Field: 100K Ohm Pull Down
-	                                                 Hyst. Enable Field: Hysteresis Disabled */
+    IOMUXC_SetPinConfig(
+          IOMUXC_GPIO_AD_B0_02_GPIO1_IO02,        /* GPIO_AD_B0_02 PAD functional properties : */
+          0x10B0u);                               /* Slew Rate Field: Slow Slew Rate
+                                                     Drive Strength Field: R0/6
+                                                     Speed Field: medium(100MHz)
+                                                     Open Drain Enable Field: Open Drain Disabled
+                                                     Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                     Pull / Keep Select Field: Keeper
+                                                     Pull Up / Down Config. Field: 100K Ohm Pull Down
+                                                     Hyst. Enable Field: Hysteresis Disabled */
 
-	IOMUXC_SetPinConfig(
-	      IOMUXC_GPIO_B0_00_LCD_CLK,              /* GPIO_B0_00 PAD functional properties : */
-	      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-	                                                 Drive Strength Field: R0/6
-	                                                 Speed Field: medium(100MHz)
-	                                                 Open Drain Enable Field: Open Drain Disabled
-	                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
-	                                                 Pull / Keep Select Field: Pull
-	                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
-	                                                 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_01_LCD_ENABLE,           /* GPIO_B0_01 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_02_LCD_HSYNC,            /* GPIO_B0_02 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_03_LCD_VSYNC,            /* GPIO_B0_03 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_04_LCD_DATA00,           /* GPIO_B0_04 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_05_LCD_DATA01,           /* GPIO_B0_05 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_06_LCD_DATA02,           /* GPIO_B0_06 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_07_LCD_DATA03,           /* GPIO_B0_07 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_08_LCD_DATA04,           /* GPIO_B0_08 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_09_LCD_DATA05,           /* GPIO_B0_09 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_10_LCD_DATA06,           /* GPIO_B0_10 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_11_LCD_DATA07,           /* GPIO_B0_11 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_12_LCD_DATA08,           /* GPIO_B0_12 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_13_LCD_DATA09,           /* GPIO_B0_13 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_14_LCD_DATA10,           /* GPIO_B0_14 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B0_15_LCD_DATA11,           /* GPIO_B0_15 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B1_00_LCD_DATA12,           /* GPIO_B1_00 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B1_01_LCD_DATA13,           /* GPIO_B1_01 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B1_02_LCD_DATA14,           /* GPIO_B1_02 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	  IOMUXC_GPIO_B1_03_LCD_DATA15,           /* GPIO_B1_03 PAD functional properties : */
-	  0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
-												 Drive Strength Field: R0/6
-												 Speed Field: medium(100MHz)
-												 Open Drain Enable Field: Open Drain Disabled
-												 Pull / Keep Enable Field: Pull/Keeper Enabled
-												 Pull / Keep Select Field: Pull
-												 Pull Up / Down Config. Field: 100K Ohm Pull Up
-												 Hyst. Enable Field: Hysteresis Enabled */
-	IOMUXC_SetPinConfig(
-	      IOMUXC_GPIO_B1_15_GPIO2_IO31,           /* GPIO_B1_15 PAD functional properties : */
-	      0x10B0u);                               /* Slew Rate Field: Slow Slew Rate
-	                                                 Drive Strength Field: R0/6
-	                                                 Speed Field: medium(100MHz)
-	                                                 Open Drain Enable Field: Open Drain Disabled
-	                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
-	                                                 Pull / Keep Select Field: Keeper
-	                                                 Pull Up / Down Config. Field: 100K Ohm Pull Down
-	                                                 Hyst. Enable Field: Hysteresis Disabled */
+    IOMUXC_SetPinConfig(
+          IOMUXC_GPIO_B0_00_LCD_CLK,              /* GPIO_B0_00 PAD functional properties : */
+          0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                     Drive Strength Field: R0/6
+                                                     Speed Field: medium(100MHz)
+                                                     Open Drain Enable Field: Open Drain Disabled
+                                                     Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                     Pull / Keep Select Field: Pull
+                                                     Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                     Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_01_LCD_ENABLE,           /* GPIO_B0_01 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_02_LCD_HSYNC,            /* GPIO_B0_02 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_03_LCD_VSYNC,            /* GPIO_B0_03 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_04_LCD_DATA00,           /* GPIO_B0_04 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_05_LCD_DATA01,           /* GPIO_B0_05 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_06_LCD_DATA02,           /* GPIO_B0_06 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_07_LCD_DATA03,           /* GPIO_B0_07 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_08_LCD_DATA04,           /* GPIO_B0_08 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_09_LCD_DATA05,           /* GPIO_B0_09 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_10_LCD_DATA06,           /* GPIO_B0_10 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_11_LCD_DATA07,           /* GPIO_B0_11 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_12_LCD_DATA08,           /* GPIO_B0_12 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_13_LCD_DATA09,           /* GPIO_B0_13 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_14_LCD_DATA10,           /* GPIO_B0_14 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B0_15_LCD_DATA11,           /* GPIO_B0_15 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B1_00_LCD_DATA12,           /* GPIO_B1_00 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B1_01_LCD_DATA13,           /* GPIO_B1_01 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B1_02_LCD_DATA14,           /* GPIO_B1_02 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+      IOMUXC_GPIO_B1_03_LCD_DATA15,           /* GPIO_B1_03 PAD functional properties : */
+      0x01B0B0u);                             /* Slew Rate Field: Slow Slew Rate
+                                                 Drive Strength Field: R0/6
+                                                 Speed Field: medium(100MHz)
+                                                 Open Drain Enable Field: Open Drain Disabled
+                                                 Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                 Pull / Keep Select Field: Pull
+                                                 Pull Up / Down Config. Field: 100K Ohm Pull Up
+                                                 Hyst. Enable Field: Hysteresis Enabled */
+    IOMUXC_SetPinConfig(
+          IOMUXC_GPIO_B1_15_GPIO2_IO31,           /* GPIO_B1_15 PAD functional properties : */
+          0x10B0u);                               /* Slew Rate Field: Slow Slew Rate
+                                                     Drive Strength Field: R0/6
+                                                     Speed Field: medium(100MHz)
+                                                     Open Drain Enable Field: Open Drain Disabled
+                                                     Pull / Keep Enable Field: Pull/Keeper Enabled
+                                                     Pull / Keep Select Field: Keeper
+                                                     Pull Up / Down Config. Field: 100K Ohm Pull Down
+                                                     Hyst. Enable Field: Hysteresis Disabled */
 }
 
 void Board_SPI_Gpio_Init(void)
 {
-	IOMUXC_SetPinMux   (IOMUXC_GPIO_SD_B0_00_LPSPI1_SCK, 0U);
-	IOMUXC_SetPinConfig(IOMUXC_GPIO_SD_B0_00_LPSPI1_SCK, 0x10B0u);
-	IOMUXC_SetPinMux   (IOMUXC_GPIO_SD_B0_02_LPSPI1_SDO, 0U);
-	IOMUXC_SetPinConfig(IOMUXC_GPIO_SD_B0_02_LPSPI1_SDO, 0x10B0u);
-	IOMUXC_SetPinMux   (IOMUXC_GPIO_SD_B0_03_LPSPI1_SDI, 0U);
-	IOMUXC_SetPinConfig(IOMUXC_GPIO_SD_B0_03_LPSPI1_SDI, 0x10B0u);
+    IOMUXC_SetPinMux   (IOMUXC_GPIO_SD_B0_00_LPSPI1_SCK, 0U);
+    IOMUXC_SetPinConfig(IOMUXC_GPIO_SD_B0_00_LPSPI1_SCK, 0x10B0u);
+    IOMUXC_SetPinMux   (IOMUXC_GPIO_SD_B0_02_LPSPI1_SDO, 0U);
+    IOMUXC_SetPinConfig(IOMUXC_GPIO_SD_B0_02_LPSPI1_SDO, 0x10B0u);
+    IOMUXC_SetPinMux   (IOMUXC_GPIO_SD_B0_03_LPSPI1_SDI, 0U);
+    IOMUXC_SetPinConfig(IOMUXC_GPIO_SD_B0_03_LPSPI1_SDI, 0x10B0u);
 }
 
 /* FUNCTION ************************************************************************************************************
@@ -753,8 +753,8 @@ void Board_GpioInit(void) {
                                                  Hyst. Enable Field: Hysteresis Disabled */
     Board_ETH_Gpio_Init();
     Board_IIC_Gpio_Init();
-	Board_UART_Gpio_Init();
-	Board_LCD_Gpio_Init();
-	Board_SPI_Gpio_Init();
+    Board_UART_Gpio_Init();
+    Board_LCD_Gpio_Init();
+    Board_SPI_Gpio_Init();
 }
 

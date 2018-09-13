@@ -131,7 +131,7 @@ struct STM32TimerHandle
 };
 
 //当开了辅助定时器的时候会使用TIM5做辅助定时器
-#if	CN_CFG_USE_BYPASSTIMER
+#if CN_CFG_USE_BYPASSTIMER
 #define CN_STM32TIMER_NUM   (EN_STM32TIMER_2 +1)//(EN_STM32TIMER_5 +1)
 #define CN_STM32TIMER_MAX    EN_STM32TIMER_2//EN_STM32TIMER_5
 #else
@@ -148,7 +148,7 @@ static u32  gs_dwSTM32TimerBitmap;  //对于定时器这种东西，一般的不会很多，32个应
 //timer0..timern的irq
 static u32 sgHaltimerIrq[CN_STM32TIMER_NUM]={
                                             CN_INT_LINE_TIM2,
-#if	(!CN_CFG_USE_BYPASSTIMER)
+#if (!CN_CFG_USE_BYPASSTIMER)
                                             CN_INT_LINE_TIM5
 #endif
                                             };

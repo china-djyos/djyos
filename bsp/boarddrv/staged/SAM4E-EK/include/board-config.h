@@ -71,10 +71,6 @@ extern "C" {
 #define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。*
 #define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
 
-//FslKxx系列有部分支持MPU或FPU，故不能统一在cpu-optional.h中声明
-#define CN_CPU_OPTIONAL_MPU         0       //是否支持mpu
-#define CN_CPU_OPTIONAL_FPU         1       //是否支持fpu
-
 #define Mhz 1000000
 #define CN_CFG_MCLK (120*Mhz)  //主频
 #define CN_CFG_FCLK CN_CFG_MCLK  //cm4自由运行外设时钟
