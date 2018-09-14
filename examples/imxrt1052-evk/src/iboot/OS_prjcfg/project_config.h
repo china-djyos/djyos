@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__

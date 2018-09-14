@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<projectDescription>
-	<name>imxrt1053-evk</name>
-	<comment></comment>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><projectDescription>
+	<name>imxrt1052-evk</name>
+	<comment/>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -25,36 +24,6 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
 	<linkedResources>
-		<link>
-			<name>src/iboot/Touch.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/component/hmi-input/touch/Touch.c</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/ft5406.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/bsp/chipdrv/ft5406/ft5406.c</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/gk_api.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/component/gui/gkernel/gk_api.c</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/gk_win.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/component/gui/gkernel/gk_win.c</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/initcpuc.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/bsp/boarddrv/demo/imxrt1052-evk/startup/initcpuc.c</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/shell.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/component/shell/shell.c</locationURI>
-		</link>
 		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>

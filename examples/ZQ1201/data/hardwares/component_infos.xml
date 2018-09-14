@@ -118,4 +118,9 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
+   <component>/bsp/cpudrv/zq/zq12xx/zq1201/../src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/zq/zq12xx/zq1201/../src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/zq/zq12xx/zq1201/../src/spi/cpu_peri_spi.c</component>
+   <component>/bsp/cpudrv/zq/zq12xx/zq1201/../src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/zq/zq12xx/zq1201/../src/uart/cpu_peri_uart.c</component>
 </components>

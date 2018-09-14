@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><projectDescription>
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
 	<name>zq1201</name>
-	<comment/>
+	<comment></comment>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -24,6 +25,16 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
 	<linkedResources>
+		<link>
+			<name>src/iboot/cpus.S</name>
+			<type>1</type>
+			<locationURI>DJYOS_SRC_LOCATION/bsp/arch/arm/armv6-m/cortex-m0/src/cpus.S</locationURI>
+		</link>
+		<link>
+			<name>src/iboot/soft_hard_float.S</name>
+			<type>1</type>
+			<locationURI>DJYOS_SRC_LOCATION/component/shell/soft_hard_float.S</locationURI>
+		</link>
 		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>

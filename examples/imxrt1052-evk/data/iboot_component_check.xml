@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component>
   <buffer>true</buffer>
-  <NlsCharset>true</NlsCharset>
   <ascii_charset>false</ascii_charset>
   <gb2312_charset>true</gb2312_charset>
   <utf8_charset>false</utf8_charset>
+  <NlsCharset>true</NlsCharset>
   <dbug>true</dbug>
-  <DevFile>true</DevFile>
   <flash>true</flash>
   <uart>true</uart>
+  <DevFile>true</DevFile>
   <canbus>false</canbus>
   <ioiicbus>false</ioiicbus>
   <iicbus>true</iicbus>
@@ -19,8 +19,8 @@
   <gb2312_dot>true</gb2312_dot>
   <font>true</font>
   <easyfilesystem>false</easyfilesystem>
-  <fatfilesystem>true</fatfilesystem>
-  <IAP>true</IAP>
+  <fatfilesystem>false</fatfilesystem>
+  <IAP>false</IAP>
   <yaf2filesystem>false</yaf2filesystem>
   <filesystem>true</filesystem>
   <gdd>true</gdd>
@@ -58,6 +58,7 @@
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
   <Sharc21469>false</Sharc21469>
+  <sldrv>false</sldrv>
   <stm32f1>false</stm32f1>
   <stm32f3>false</stm32f3>
   <stm32f4>false</stm32f4>
@@ -66,7 +67,7 @@
   <stm32L4>false</stm32L4>
   <goahead250>false</goahead250>
   <duktape>false</duktape>
-  <imxrt1052>true</imxrt1052>
+  <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
   <libghttp>false</libghttp>
   <vncserver>false</vncserver>

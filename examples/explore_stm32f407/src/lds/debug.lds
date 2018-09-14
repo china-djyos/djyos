@@ -30,6 +30,7 @@ SECTIONS
         LONG(pProgRomEnd - gc_AppSize + 4); /* APP的bin文件大小 */
         . = ALIGN(256);
         gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
+        __AppStart = .;
     }>InnerFlash
     
     /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
@@ -259,6 +260,48 @@ SECTIONS
     rom_prog_end :
     {
        . = ALIGN(0x04);
+        pProgRomEnd = .;
+    }>InnerFlash 
+    
+        r_In_shell_rROM1_lROM1 :
+	{
+        . = ALIGN(0x08);
+        in_shell_command_exe = .;
+        KEEP(* (.in_shell_cmd))
+ 	}>InnerFlash
+    
+     r_In_shell_cmdhelp_rROM1_lROM1 :
+	{
+        in_shell_command_help = .;
+        LONG(0x12345678)
+        KEEP(* (.in_shell_cmd_help))
+ 	}>InnerFlash
+ 	
+    r_Ex_shell_rROM1_lROM1 :
+	{
+        ex_shell_command_exe = .;
+        LONG(0x12345678)
+        KEEP(* (.ex_shell_cmd))
+    
+ 	}>InnerFlash
+
+
+
+ Shell_Info :
+    {
+        . = ALIGN(0x08);
+        p_shell_info = .;
+
+        LONG(0xffffffff) /* _shell_fun_tab_start 内部函数表的起始地址*/
+        LONG(0xffffffff) /*_shell_fun_tab_end  内部函数表的结束地址*/
+
+        LONG(0xffffffff) /*shell_fun_tab_start 普通函数表的起始地址*/
+        LONG(0xffffffff) /*shell_fun_tab_end  普通函数表的结束地址*/
+
+        LONG(0xffffffff)  /*shell_var_tab_start 变量表的起始地址*/
+        LONG(0xffffffff) /*shell_var_tab_start变量表的结束地址*/
+       
+        LONG(.)
         pProgRomEnd = .;
     }>InnerFlash 
 }
