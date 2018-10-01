@@ -3,6 +3,7 @@
 #include "silan_uart_regs.h"
 #include "silan_printf.h"
 #include "silan_pmu.h"
+#include "silan_m0_cache.h"
 
 static void cache_clear(void)
 {
@@ -94,3 +95,66 @@ void m0_cache_init(u8 operation,u8 if_lock,u32 lock_addr,u32 len)
 		}
 
 }
+
+
+/*add 2018/9/27 */
+
+void silan_m0_cache_init(uint32_t cache_area, uint8_t statistics)
+{
+	cache_clear();
+	cache_area_sel(cache_area);
+	
+	if(statistics)
+		cache_statistics_enable();
+	else
+		cache_statistics_disable();
+}
+
+void silan_m0_cache_lock(uint32_t lock_addr, uint32_t len)
+{
+	if(len<=0xff)
+		cache_lock_code(lock_addr,len);
+	else if(len<=0x1fe){
+		cache_lock_code(lock_addr,0xff);
+		cache_lock_code(lock_addr+16*255,len-0xff);
+	}else {
+		cache_lock_code(lock_addr,0xff);
+		cache_lock_code(lock_addr+16*255,0xff);
+		cache_lock_code(lock_addr+16*255*2,len-0x1fe);
+	}
+}
+
+void silan_m0_cache_unlock(uint32_t lock_addr, uint32_t len, uint8_t unvalid)
+{
+	if(len<=0xff)
+		cache_unlock_code(lock_addr,len, unvalid);
+	else if(len<=0x1fe){
+		cache_unlock_code(lock_addr,0xff, unvalid);
+		cache_unlock_code(lock_addr+16*255,len-0xff, unvalid);
+	}else {
+		cache_unlock_code(lock_addr,0xff, unvalid);
+		cache_unlock_code(lock_addr+16*255,0xff, unvalid);
+		cache_unlock_code(lock_addr+16*255*2,len-0x1fe, unvalid);
+	}
+}
+
+void silan_m0_cache_enable(void)
+{
+	SL_DBGLOG("m0 cache enable");
+	cache_enable();
+}
+
+void silan_m0_cache_disable(void)
+{
+	cache_disable();
+}
+
+void silan_m0_cache_clear(void)
+{
+    cache_clear();
+}
+
+
+
+
+

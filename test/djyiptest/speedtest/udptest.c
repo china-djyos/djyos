@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -55,9 +55,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#define UDP_PKG_BUF_LEN (1024)					//数据包长度
-static char byMsgBuf[UDP_PKG_BUF_LEN];			//缓冲区
-static int iMsgCnt = 0;							//接收数据计数器
+#define UDP_PKG_BUF_LEN (1024)                  //数据包长度
+static char byMsgBuf[UDP_PKG_BUF_LEN];          //缓冲区
+static int iMsgCnt = 0;                         //接收数据计数器
 
 ptu32_t __Udp_ServerTast( void )
 {
@@ -77,7 +77,7 @@ ptu32_t __Udp_ServerTast( void )
             return -1;
         }
 
-		iMsgCnt += iMsgLen;
+        iMsgCnt += iMsgLen;
      }
 
     closesocket (sFd);
@@ -88,16 +88,16 @@ ptu32_t __Udp_ServerTast( void )
 // =============================================================================
 // 功能：服务器端调用，启动UDP流量测试，该任务会阻塞测试UDP数据包的速度，并打印到输出端
 // 参数：SvrIP：服务器IP地址字符串,例如"192.168.0.179"
-//		svrPort：UDP服务器接收的端口号，例如5000
+//      svrPort：UDP服务器接收的端口号，例如5000
 // 返回：正常不返回，若返回-1，则出错。
 // =============================================================================
 int Udp_SvrStart( char* SvrIP,short SvrPort )
 {
-	short evtt;
+    short evtt;
     struct sockaddr_in  tServerAddr;
     int                 sockAddrSize;
     int                 sFd;
-    int 				rcvLast;
+    int                 rcvLast;
 
     /* set up the local address */
     sockAddrSize = sizeof (struct sockaddr_in);
@@ -122,43 +122,43 @@ int Udp_SvrStart( char* SvrIP,short SvrPort )
     }
 
     evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS - 20,0,0,
-    							__Udp_ServerTast,NULL,4096, "UDP_SVR_Event");
+                                __Udp_ServerTast,NULL,4096, "UDP_SVR_Event");
 
     if(evtt == CN_EVTT_ID_INVALID)
     {
-    	closesocket (sFd);
-    	return -1;
+        closesocket (sFd);
+        return -1;
     }
 
     Djy_EventPop(evtt,NULL,0,(ptu32_t)sFd,0,0);
     printf("UDP Server Start Receive Packet!\r\n");
-	while(1)
-	{
-		rcvLast = iMsgCnt;
-		Djy_EventDelay(1000*mS);
-		printf("UDP Server Receive Speed = %d bytes/s.\r\n",iMsgCnt-rcvLast);
-	}
+    while(1)
+    {
+        rcvLast = iMsgCnt;
+        Djy_EventDelay(1000*mS);
+        printf("UDP Server Receive Speed = %d bytes/s.\r\n",iMsgCnt-rcvLast);
+    }
 
-	return 1;
+    return 1;
 }
 
 
 // =============================================================================
 // 功能：客户端调用，一直启动UDP发送数据包，一直发送，(注意IP地址与MAC与服务器不能一样)
 // 参数：SvrIP：服务器端IP地址字符串,例如"192.168.0.179"
-//		svrPort：服务器端接收的端口号，例如5000
+//      svrPort：服务器端接收的端口号，例如5000
 //      pDlyUs：发送一个数据包的延时，例如0，或者100(增加延时参数防止某些网上接收太快会死)
 // 返回：正常不返回，若返回-1，则出错。
 // =============================================================================
 int Udp_ClientSend( char *SvrIP,short SvrPort, int pDlyUs )
 {
-	int 				sockfd;
-    struct sockaddr_in 	tServerAddr;
-    int             	sockAddrSize;
-    int             	iMsgLen;
+    int                 sockfd;
+    struct sockaddr_in  tServerAddr;
+    int                 sockAddrSize;
+    int                 iMsgLen;
 
     if(NULL == SvrIP)
-    	return -1;
+        return -1;
 
     /* set up the remote address */
     sockAddrSize = sizeof (struct sockaddr_in);
@@ -179,16 +179,16 @@ int Udp_ClientSend( char *SvrIP,short SvrPort, int pDlyUs )
     printf("UDP Client Start Send Packet!\r\n");
     while(1)
     {
-    	byMsgBuf[0] = byMsgBuf[0] + 1;
-    	Djy_DelayUs(pDlyUs);
-    	iMsgLen = sendto(sockfd, byMsgBuf, UDP_PKG_BUF_LEN, 0,
-				(struct sockaddr *)&tServerAddr, sockAddrSize);
-    	if(-1 == iMsgLen)
-    	{
-    		printf("UDP Client sendto error!\r\n");
-    		closesocket (sockfd);
-    		return -1;
-    	}
+        byMsgBuf[0] = byMsgBuf[0] + 1;
+        Djy_DelayUs(pDlyUs);
+        iMsgLen = sendto(sockfd, byMsgBuf, UDP_PKG_BUF_LEN, 0,
+                (struct sockaddr *)&tServerAddr, sockAddrSize);
+        if(-1 == iMsgLen)
+        {
+            printf("UDP Client sendto error!\r\n");
+            closesocket (sockfd);
+            return -1;
+        }
     }
 
     closesocket (sockfd);

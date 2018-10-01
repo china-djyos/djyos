@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -56,46 +56,46 @@
  //------------------------------------------------------
 
 
-.fpu	softvfp
-.file	"initcpu.S"
+.fpu    softvfp
+.file   "initcpu.S"
 
 #include "arm_mode_s_file.h"
 #include "initcpu.h"
 
 //// DRAM Register Address
-#define BANKCFG 	0x48000000	//DRAM configuration
-#define BANKCON1 	0x48000004	//DRAM control
-#define BANKCON2 	0x48000008	//DRAM timing control
-#define BANKCON3	0x4800000C	//DRAM (E)MRS
-#define REFRESH 	0x48000010	//DRAM refresh control
-#define TIMEOUT 	0x48000014	//Write Buffer Time out control
+#define BANKCFG     0x48000000  //DRAM configuration
+#define BANKCON1    0x48000004  //DRAM control
+#define BANKCON2    0x48000008  //DRAM timing control
+#define BANKCON3    0x4800000C  //DRAM (E)MRS
+#define REFRESH     0x48000010  //DRAM refresh control
+#define TIMEOUT     0x48000014  //Write Buffer Time out control
 
-#define	WTCON   	0x53000000
-#define	GPKCON		0x560000E0	//Configure the pins of portttt K
+#define WTCON       0x53000000
+#define GPKCON      0x560000E0  //Configure the pins of portttt K
 
-#define	LOCKCON0	0x4C000000  //MPLL lock time conut
-#define	LOCKCON1	0x4C000004  //EPLL lock time count
-#define	MPLLCON		0x4C000010  //MPLL configuration
-#define	EPLLCON		0x4C000018  //EPLL configuration
-#define	CLKSRC		0x4C000020  //Clock source control
-#define	CLKDIV0		0x4C000024  //Clock divider ratio control
-#define	CLKDIV1     0x4C000028  //Clock divider ratio control
-#define	HCLKCON     0x4C000030  //HCLK enable
-#define	PCLKCON     0x4C000034  //PCLK enable
-#define	SCLKCON     0x4C000038  //Special clock enable
+#define LOCKCON0    0x4C000000  //MPLL lock time conut
+#define LOCKCON1    0x4C000004  //EPLL lock time count
+#define MPLLCON     0x4C000010  //MPLL configuration
+#define EPLLCON     0x4C000018  //EPLL configuration
+#define CLKSRC      0x4C000020  //Clock source control
+#define CLKDIV0     0x4C000024  //Clock divider ratio control
+#define CLKDIV1     0x4C000028  //Clock divider ratio control
+#define HCLKCON     0x4C000030  //HCLK enable
+#define PCLKCON     0x4C000034  //PCLK enable
+#define SCLKCON     0x4C000038  //Special clock enable
 
 .section .text._start, "ax", %progbits
 .align  2
 .global _start
-_start: 
-     
+_start:
+
     ldr     r0,=R1_I|R1_C       //禁止MMU,使能I-Cahce.
     mcr     p15, 0, r0, c1, c0, 0
-    
+
     mov     r0,#0
     mcr     p15,0,r0,c7,c7,0    //Invalidate I+D Cache
     mcr     p15,0,r0,c8,c7,0    //Invalidate I+D TLB
-        
+
     mrs     r0, cpsr                //取CPSR
     bic     r0, r0, #SF_MODEMASK    //清模式位
     orr     r1, r0, #(SF_SVCMODE|SF_IRQ_BIT|SF_FIQ_BIT) //设置为管理态，并禁止中断
@@ -114,30 +114,30 @@ _start:
     bcc     BootFromNandFlash
     cmp     r0,r2
     bcs     BootFromNandFlash
-  	
+
     ////初始化MMU
-    ldr		r0,=R1_I
+    ldr     r0,=R1_I
     mcr     p15, 0, r0, c1, c0, 0
 
     ldr     sp,=usr_top
-    bl		MMU_Init
+    bl      MMU_Init
 
-    ldr		r0,=R1_M|R1_I|R1_C|R1_V
+    ldr     r0,=R1_M|R1_I|R1_C|R1_V
     mcr     p15, 0, r0, c1, c0, 0
-	nop
-	nop
-	nop
-	nop
-	ldr		r0,=0xFFFF0000
-	ldr		r1,=isr_vector
-	ldr		r2,=isr_vector_end
+    nop
+    nop
+    nop
+    nop
+    ldr     r0,=0xFFFF0000
+    ldr     r1,=isr_vector
+    ldr     r2,=isr_vector_end
 copy_isr_table:
-	ldmia	r1!,{r4-r7}
-	stmia	r0!,{r4-r7}
-	cmp		r1,r2
-	bcc		copy_isr_table
-	nop
-	nop
+    ldmia   r1!,{r4-r7}
+    stmia   r0!,{r4-r7}
+    cmp     r1,r2
+    bcc     copy_isr_table
+    nop
+    nop
 
    //// 初始化栈指针
     mov     r1,#SF_UNDEFMODE|SF_IRQ_BIT|SF_FIQ_BIT
@@ -172,9 +172,9 @@ copy_isr_table:
     nop
     nop
     bl      Load_Preload
-	nop
-	nop
-	b	.
+    nop
+    nop
+    b   .
 
 .section .text.AppStart, "ax", %progbits
 .align  2

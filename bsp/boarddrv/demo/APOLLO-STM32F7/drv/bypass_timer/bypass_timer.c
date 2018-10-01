@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -47,80 +47,80 @@
 
 static u64 g_bypass_timer_cnt = 0;
 
-static u32	Bypadd_Timer_Int(ptu32_t handle)
+static u32  Bypadd_Timer_Int(ptu32_t handle)
 {
-	static u8 fi = 0;
-	TIM5->SR = 0;//清中断标志
-	if(fi!=0)
-		g_bypass_timer_cnt += 1080000000;
-	fi = 1;
+    static u8 fi = 0;
+    TIM5->SR = 0;//清中断标志
+    if(fi!=0)
+        g_bypass_timer_cnt += 1080000000;
+    fi = 1;
     return 0;
 }
 
 u64 Bypass_GetCnt(void)
 {
-	static u32 temp_per = 0;
-	static u32 temp = 0;
+    static u32 temp_per = 0;
+    static u32 temp = 0;
 
-	if(TIM5->ARR==0)
-		return 0;
+    if(TIM5->ARR==0)
+        return 0;
 
-	if(temp_per==0 && temp==0)
-	{
-		temp = TIM5->CNT;
-		temp_per = temp;
-		return (g_bypass_timer_cnt + TIM5->ARR - TIM5->CNT);
-	}
-	else
-	{
-		temp = TIM5->CNT;
-		if( temp_per < temp)
-		{
-			temp_per = temp;
-			g_bypass_timer_cnt += 1080000000;
-			return (g_bypass_timer_cnt + TIM5->ARR - TIM5->CNT);
-		}
-		else
-		{
-			temp_per = temp;
-			return (g_bypass_timer_cnt + TIM5->ARR - TIM5->CNT);
-		}
-	}
+    if(temp_per==0 && temp==0)
+    {
+        temp = TIM5->CNT;
+        temp_per = temp;
+        return (g_bypass_timer_cnt + TIM5->ARR - TIM5->CNT);
+    }
+    else
+    {
+        temp = TIM5->CNT;
+        if( temp_per < temp)
+        {
+            temp_per = temp;
+            g_bypass_timer_cnt += 1080000000;
+            return (g_bypass_timer_cnt + TIM5->ARR - TIM5->CNT);
+        }
+        else
+        {
+            temp_per = temp;
+            return (g_bypass_timer_cnt + TIM5->ARR - TIM5->CNT);
+        }
+    }
 }
 
 u64 Bypass_Cnt_to_Systick(void)
 {
-	return (Bypass_GetCnt()<<1);
-	//return (Bypass_GetCnt()/108)*(CN_CFG_TIME_BASE_HZ/Mhz);
+    return (Bypass_GetCnt()<<1);
+    //return (Bypass_GetCnt()/108)*(CN_CFG_TIME_BASE_HZ/Mhz);
 }
 
 void Bypass_Timer_PerInit(void)
 {
-	g_bypass_timer_cnt = 0;
-	TIM5->ARR = 0;
-	TIM5->CNT = 0;
+    g_bypass_timer_cnt = 0;
+    TIM5->ARR = 0;
+    TIM5->CNT = 0;
 }
 
 void Bypass_TimerInit(void)
 {
-	RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
-	TIM5->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
-	//TIM5->CR1 &= ~(TIM_CR1_DIR);
-	TIM5->CR1 |= TIM_CR1_ARPE | TIM_CR1_DIR;//自动重装
+    RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
+    TIM5->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
+    //TIM5->CR1 &= ~(TIM_CR1_DIR);
+    TIM5->CR1 |= TIM_CR1_ARPE | TIM_CR1_DIR;//自动重装
 
-	//TIM5->DIER |= TIM_DIER_UIE;//使能更新中断
-	TIM5->PSC = 0;//分频系数 为零 不分频(1/108)1uS
-	TIM5->ARR = 1080000000;//定时器预装初值:10S
+    //TIM5->DIER |= TIM_DIER_UIE;//使能更新中断
+    TIM5->PSC = 0;//分频系数 为零 不分频(1/108)1uS
+    TIM5->ARR = 1080000000;//定时器预装初值:10S
 
-//	Int_Register(CN_INT_LINE_TIM5);
-//	Int_SetClearType(CN_INT_LINE_TIM5,CN_INT_CLEAR_AUTO);
-//	Int_IsrConnect(CN_INT_LINE_TIM5,Bypadd_Timer_Int);
-//	Int_SettoAsynSignal(CN_INT_LINE_TIM5);
-//	Int_ClearLine(CN_INT_LINE_TIM5);
-//	Int_RestoreAsynLine(CN_INT_LINE_TIM5);
+//  Int_Register(CN_INT_LINE_TIM5);
+//  Int_SetClearType(CN_INT_LINE_TIM5,CN_INT_CLEAR_AUTO);
+//  Int_IsrConnect(CN_INT_LINE_TIM5,Bypadd_Timer_Int);
+//  Int_SettoAsynSignal(CN_INT_LINE_TIM5);
+//  Int_ClearLine(CN_INT_LINE_TIM5);
+//  Int_RestoreAsynLine(CN_INT_LINE_TIM5);
 
-	//TIM5->CNT = 0;
-	TIM5->SR = 0;//清中断标志
-	TIM5->CR1 |= TIM_CR1_CEN;
+    //TIM5->CNT = 0;
+    TIM5->SR = 0;//清中断标志
+    TIM5->CR1 |= TIM_CR1_CEN;
 }
 

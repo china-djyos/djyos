@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -78,8 +78,8 @@
 //attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"timer","int",       //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
@@ -104,21 +104,21 @@
 
 typedef struct _TIMER
 {
-	vu32 COUNTER;
-	vu32 COMPARE;
-	vu32 CONTROL;
-	vu32 CLKSEL;
+    vu32 COUNTER;
+    vu32 COMPARE;
+    vu32 CONTROL;
+    vu32 CLKSEL;
 }tagTimerReg;
 
 static tagTimerReg volatile * const tg_TIMER_Reg[] = {
-                                    (tagTimerReg *)0x41860000,		//TIMER1
-                                    (tagTimerReg *)0x41860010,		//TIMER2
-									};
+                                    (tagTimerReg *)0x41860000,      //TIMER1
+                                    (tagTimerReg *)0x41860010,      //TIMER2
+                                    };
 
 enum ENUM_CPU_TIMER
 {
     EN_CPU_TIMER_1=0,
-	EN_CPU_TIMER_2
+    EN_CPU_TIMER_2
 };
 
 //#define CN_TIMER_DIV     (CN_CFG_PCLK1/1000000)
@@ -148,7 +148,7 @@ static u32  gs_dwCPUTimerBitmap;  //对于定时器这种东西，一般的不会很多，32个应该
 #define CN_CPUTIMER_BITMAP_MSK  (0x80000000)  //最高位为1，依次右移即可
 
 //timer0..timern的irq
-static u8 spTimerIrqOffset[CN_CPUTIMER_NUM]={	0,1  };
+static u8 spTimerIrqOffset[CN_CPUTIMER_NUM]={   0,1  };
 
 #define TIMER_IRQ_ENABLE_ADDR                (0x42030000+0x620)
 #define TIMER_IRQ_STA_ADDR                      (0x42030000+0x520)
@@ -183,8 +183,8 @@ bool_t __CPUTimer_PauseCount(struct CPUTimerHandle  *timer)
         }
         else
         {
-            tg_TIMER_Reg[timerno]->CONTROL = 0;			//停止计数器，关中断
-            tg_TIMER_Reg[timerno]->COUNTER = 0;			//清计数器
+            tg_TIMER_Reg[timerno]->CONTROL = 0;         //停止计数器，关中断
+            tg_TIMER_Reg[timerno]->COUNTER = 0;         //清计数器
             timer->timerstate = (timer->timerstate)&(~CN_TIMER_ENCOUNT);
             return true;
         }
@@ -216,7 +216,7 @@ bool_t __CPUTimer_StartCount(struct CPUTimerHandle  *timer)
         {
             tg_TIMER_Reg[timerno]->COUNTER    = 0;
             tg_TIMER_Reg[timerno]->CONTROL &= ~(1 << 1);               //清中断标识
-            tg_TIMER_Reg[timerno]->CONTROL    = (1<<0)|(1<<2);		//timer and int
+            tg_TIMER_Reg[timerno]->CONTROL    = (1<<0)|(1<<2);      //timer and int
             timer->timerstate = (timer->timerstate)| (CN_TIMER_ENCOUNT);
 
             return true;
@@ -273,7 +273,7 @@ bool_t  __CPUTimer_SetCycle(struct CPUTimerHandle  *timer, u32 cycle)
 // =============================================================================
 bool_t  __CPUTimer_SetAutoReload(struct CPUTimerHandle  *timer, bool_t autoreload)
 {
-	return true;		//reload every time
+    return true;        //reload every time
 }
 
 //-----------------------------------------------------------------------------
@@ -289,11 +289,11 @@ u32 __CPUTimer_isr(ptu32_t TimerHandle)
 //    timerno = ((struct CPUTimerHandle  *)TimerHandle)->timerno;
     if( ( ( (u32*) TIMER_IRQ_STA_ADDR )[0] )  & (1<< spTimerIrqOffset[0]))
     {
-    	timerno = 0;
+        timerno = 0;
     }
     else if( ( ( (u32*) TIMER_IRQ_STA_ADDR )[0] )  & (1<< spTimerIrqOffset[1]))
     {
-    	timerno = 1;
+        timerno = 1;
     }
 
     ( (u32*) TIMER_IRQ_STA_ADDR )[0] &= ~(1 << spTimerIrqOffset[timerno] );
@@ -340,13 +340,13 @@ ptu32_t __CPUTimer_Alloc(fntTimerIsr timerisr)
         return 0;
     }
 
-    irqline = CN_INT_LINE_TIMER;		
+    irqline = CN_INT_LINE_TIMER;
     timer = &stgTimerHandle[timerno];
     timer->cycle = 0;
-    timer->timerno = timerno;                  
-    timer->irqline = irqline;                       
+    timer->timerno = timerno;
+    timer->irqline = irqline;
     timer->timerstate = CN_TIMER_ENUSE;
-//    timer->UserIsr=timerisr;                      
+//    timer->UserIsr=timerisr;
     gtUsrTimerHandle [timerno]= timerisr;
 
     //好了，中断号和定时器号码都有了，该干嘛就干嘛了。
@@ -363,12 +363,12 @@ ptu32_t __CPUTimer_Alloc(fntTimerIsr timerisr)
 //
 //    Int_SetClearType(irqline,CN_INT_CLEAR_USER);
 //    Int_SetIsrPara(irqline,(ptu32_t)timer);
-//    
+//
 //    Int_IsrConnect(irqline, __CPUTimer_isr);
-    
-    timerhandle = (ptu32_t)timer;         
 
-    return timerhandle; 
+    timerhandle = (ptu32_t)timer;
+
+    return timerhandle;
 }
 
 
@@ -449,7 +449,7 @@ bool_t  __CPUTimer_SetIntPro(struct CPUTimerHandle  *timer, bool_t real_prior)
 //        return false;
 //    }
 
-	return false;
+    return false;
 }
 
 // =============================================================================
@@ -486,7 +486,7 @@ bool_t  __CPUTimer_DisInt(struct CPUTimerHandle  *timer)
 {
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
-    	*(u32*)TIMER_IRQ_ENABLE_ADDR &= ~(1<<spTimerIrqOffset[timer->timerno]);
+        *(u32*)TIMER_IRQ_ENABLE_ADDR &= ~(1<<spTimerIrqOffset[timer->timerno]);
         timer->timerstate = (timer->timerstate)&(~CN_TIMER_ENINT);
         return Int_CutLine(timer->irqline);
     }
@@ -719,14 +719,14 @@ bool_t ModuleInstall_HardTimer(void)
 
     for(i=0;i<CN_CPUTIMER_NUM;i++)
     {
-        tg_TIMER_Reg[i]->CONTROL = 0; 			//禁止TIMER
-        tg_TIMER_Reg[i]->COUNTER = 0;			//计数器清0
+        tg_TIMER_Reg[i]->CONTROL = 0;           //禁止TIMER
+        tg_TIMER_Reg[i]->COUNTER = 0;           //计数器清0
         tg_TIMER_Reg[i]->COMPARE = 0xFFFFFFFF;
-        tg_TIMER_Reg[i]->CLKSEL  = 7;			//时钟源为80M，128分频
+        tg_TIMER_Reg[i]->CLKSEL  = 7;           //时钟源为80M，128分频
     }
 
     //由原先分配定时器的移动到这里
-     irqline = CN_INT_LINE_TIMER;		//对已经分配得到的stgTimerHandle 进行初始化
+     irqline = CN_INT_LINE_TIMER;       //对已经分配得到的stgTimerHandle 进行初始化
     //设置定时器中断,先结束掉该中断所有的关联相关内容
       Int_Register(irqline);
       Int_CutLine(irqline);

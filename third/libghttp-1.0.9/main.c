@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -121,7 +121,7 @@ static u16 gIeEvttID;
 
 int IeTask(void)
 {
-	char *url;
+    char *url;
     char *uri;
     ghttp_request *request = NULL;
     ghttp_status status;
@@ -130,49 +130,49 @@ int IeTask(void)
 
     while(1)
     {
-    	Djy_WaitEvttPop(gIeEvttID,NULL,CN_TIMEOUT_FOREVER);
-    	Djy_GetEventPara(&url,NULL);
-    	if(NULL == url)
-    	{
-    		goto ONECE_MORE;
-    	}
+        Djy_WaitEvttPop(gIeEvttID,NULL,CN_TIMEOUT_FOREVER);
+        Djy_GetEventPara(&url,NULL);
+        if(NULL == url)
+        {
+            goto ONECE_MORE;
+        }
 
-		uri = url;
-	    request = ghttp_request_new();
-	    if(NULL == request)
-	    {
-	    	printf("%s:create request failed\n\r",__FUNCTION__);
-    		goto ONECE_MORE;
-	    }
-	    if(ghttp_set_uri(request, uri) == -1)
-	    {
-	    	printf("%s:set uri failed\n\r",__FUNCTION__);
-    		goto CLEAN_REQUEST;
-	    }
-	    if(ghttp_set_type(request, ghttp_type_get) == -1)
-	    {
-	    	printf("%s:set type failed\n\r",__FUNCTION__);
-    		goto CLEAN_REQUEST;
-	    }
-	    ghttp_prepare(request);
-	    status = ghttp_process(request);
-	    if(status == ghttp_error)
-	    {
-	    	printf("%s:process failed\n\r",__FUNCTION__);
-    		goto CLEAN_REQUEST;
-	    }
-	    /* OK, done */
-	    printf("Status code -> %d\n", ghttp_status_code(request));
-	    bytes_read = ghttp_get_body_len(request);
-	    printf("BodyLen:%d\n\r",bytes_read);
-		buf = ghttp_get_body(request);
-		printf("%s\n",buf);
+        uri = url;
+        request = ghttp_request_new();
+        if(NULL == request)
+        {
+            printf("%s:create request failed\n\r",__FUNCTION__);
+            goto ONECE_MORE;
+        }
+        if(ghttp_set_uri(request, uri) == -1)
+        {
+            printf("%s:set uri failed\n\r",__FUNCTION__);
+            goto CLEAN_REQUEST;
+        }
+        if(ghttp_set_type(request, ghttp_type_get) == -1)
+        {
+            printf("%s:set type failed\n\r",__FUNCTION__);
+            goto CLEAN_REQUEST;
+        }
+        ghttp_prepare(request);
+        status = ghttp_process(request);
+        if(status == ghttp_error)
+        {
+            printf("%s:process failed\n\r",__FUNCTION__);
+            goto CLEAN_REQUEST;
+        }
+        /* OK, done */
+        printf("Status code -> %d\n", ghttp_status_code(request));
+        bytes_read = ghttp_get_body_len(request);
+        printf("BodyLen:%d\n\r",bytes_read);
+        buf = ghttp_get_body(request);
+        printf("%s\n",buf);
 
 CLEAN_REQUEST:
-		ghttp_clean(request);
-		ghttp_request_destroy(request);
+        ghttp_clean(request);
+        ghttp_request_destroy(request);
 ONECE_MORE:
- 	 	printf("%s:once more!\n\r",__FUNCTION__);
+        printf("%s:once more!\n\r",__FUNCTION__);
 
     }
     return 0;
@@ -181,23 +181,23 @@ ONECE_MORE:
 //ptu32_t IeTask(void)
 //{
 //
-//	int result = 0;
-//	result = UrlGet();
-//	printk("IeResult:%d\n\r",result);
-//	return 0;
+//  int result = 0;
+//  result = UrlGet();
+//  printk("IeResult:%d\n\r",result);
+//  return 0;
 //}
 
 
 
 bool_t IeShell(char *param)
 {
-	if(NULL != param)
-	{
-		Djy_EventPop(gIeEvttID, NULL, 0, param, 0, 0);
+    if(NULL != param)
+    {
+        Djy_EventPop(gIeEvttID, NULL, 0, param, 0, 0);
 
-		Djy_EventDelay(1000*mS);
-	}
-	return true;
+        Djy_EventDelay(1000*mS);
+    }
+    return true;
 }
 
 
@@ -208,7 +208,7 @@ struct shell_debug  gServiceUrl[] =
 {
     {
         "ie",
-		IeShell,
+        IeShell,
         "usage:ie",
         "usage:ie + http://host:port/dir?param",
     },
@@ -220,13 +220,13 @@ struct shell_debug  gServiceUrl[] =
 //usage:use this function to add the url debug to the kernel
 int Ghttp_main(int argc, char *argv[])
 {
-	gIeEvttID = Djy_EvttRegist(EN_CORRELATIVE, 200, 0, 1,IeTask,NULL, 0X2000,"ie");
+    gIeEvttID = Djy_EvttRegist(EN_CORRELATIVE, 200, 0, 1,IeTask,NULL, 0X2000,"ie");
     if(gIeEvttID == CN_EVTT_ID_INVALID)
     {
-    	return -1;
+        return -1;
     }
     shell_debug_add(gServiceUrl, CN_URLDEBUG_NUM);
-	return 0;
+    return 0;
 }
 
 

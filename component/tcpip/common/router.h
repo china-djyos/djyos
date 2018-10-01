@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -61,13 +61,13 @@
 //NULL FOR FAILED
 typedef enum
 {
-	EN_IPTYPE_V4_UNKOWN = 0,
-	EN_IPTYPE_V4_ANY,   //0.0.0.0
-	EN_IPTYPE_V4_HOST,  //127.0.0.1
-	EN_IPTYPE_V4_LOCAL, //the other ip you configure or get dynamic
-	EN_IPTYPE_V4_BROAD, //such as 192.168.0.255 or 255.255.255.255
-	EN_IPTYPE_V4_SUBNET, //in the subnet
-	EN_IPTYPE_V4_MULTI,
+    EN_IPTYPE_V4_UNKOWN = 0,
+    EN_IPTYPE_V4_ANY,   //0.0.0.0
+    EN_IPTYPE_V4_HOST,  //127.0.0.1
+    EN_IPTYPE_V4_LOCAL, //the other ip you configure or get dynamic
+    EN_IPTYPE_V4_BROAD, //such as 192.168.0.255 or 255.255.255.255
+    EN_IPTYPE_V4_SUBNET, //in the subnet
+    EN_IPTYPE_V4_MULTI,
 }enIPTYPE;
 
 
@@ -77,13 +77,13 @@ bool_t RouterInit(void);
 //so we make this one
 typedef struct
 {
-	enum_ipv_t ver;  //you must supply this when do the matcher
-	enIPTYPE   type; //we will return the result
-	void     *iface; //if you need this
-	void     *dst;   //this structure depends on the ver:ipv4 ipv6
-	void     *hop;   //this structure depends on the ver:ipv4 ipv6
-	void     *host;  //this structure depends on the ver:ipv4 ipv6
-	u16       mtu;   //you need this do the fragment
+    enum_ipv_t ver;  //you must supply this when do the matcher
+    enIPTYPE   type; //we will return the result
+    void     *iface; //if you need this
+    void     *dst;   //this structure depends on the ver:ipv4 ipv6
+    void     *hop;   //this structure depends on the ver:ipv4 ipv6
+    void     *host;  //this structure depends on the ver:ipv4 ipv6
+    u16       mtu;   //you need this do the fragment
 }tagRoutLink; //you could use this structure to storage the message need in the external
 //you could do the decision on the type,if UNKNOWN,which means we could resolve this
 //if need more function,you could extend it this structure -- TODO,zhangqf

@@ -1,32 +1,32 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
-// 1. Redistributions of source code must retain the above copyright notice, 
+// 1. Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice, 
-//    this list of conditions and the following disclaimer in the documentation 
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 // LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 // CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 // SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
-// 
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+//
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
-// 
+//
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
@@ -114,15 +114,15 @@ _asm_get_tick:
 ___asm_reset_thread:
    //首先将本汇编函数使用到的寄存器入栈保护
     modify(I7,-2);
-    R1=I2; 
+    R1=I2;
     DM(1,I7)=R1;
     R1=I13;
     DM(0,I7)=R1;
-    I4=R8;     //根据ADSP21469参数传递规则，R8=stack                     	
-    R2=DM(M6,I4);I2=R2;		//取虚拟机栈顶指针  根据虚拟机结构，第二个元素为存储栈顶指针
+    I4=R8;     //根据ADSP21469参数传递规则，R8=stack
+    R2=DM(M6,I4);I2=R2;     //取虚拟机栈顶指针  根据虚拟机结构，第二个元素为存储栈顶指针
     //取得虚拟机栈顶指针后，即按照线程栈结构依次对栈中各个位置初始化
-    R2=___Djy_VmEngine;	//取虚拟机引擎指针
-    modify(I2,-130);			//先申请栈空间
+    R2=___Djy_VmEngine; //取虚拟机引擎指针
+    modify(I2,-130);            //先申请栈空间
     DM(130,I2)=R2;          //_djy_vm_engine入口作为PC地址，将PC地址存入软件栈，线程栈第一个位置存储PC
    // save r1, r2, i2, i13 at first
     DM(129,I2)=R1;
@@ -130,7 +130,7 @@ ___asm_reset_thread:
     R1=I2;
     DM(127,I2)=R1;
     DM(126,I2)=I13;
-    R1=I6; 
+    R1=I6;
     DM(125,I2)=R1;
   // Save STKYx USTAT1-4
    MODE2=0x42000027;
@@ -141,29 +141,29 @@ ___asm_reset_thread:
    STKYx=0x05400000;     //处理器上电后MODE2及STKYx的默认值
    nop;
    nop;
-    R1=STKYx; 
+    R1=STKYx;
     DM(122,I2)=R1;
     STKYy=0x5400000;
     nop;
     nop;
     R1=STKYy;
     DM(121,I2)=R1;
-    R1 = USTAT1; 
+    R1 = USTAT1;
     DM(120,I2)=R1;
-    R1 = USTAT2; 
+    R1 = USTAT2;
     DM(119,I2)=R1;
-    R1 = USTAT3; 
+    R1 = USTAT3;
     DM(118,I2)=R1;
-    R1 = USTAT4; 
+    R1 = USTAT4;
     DM(117,I2)=R1;
-    
+
        // Save and zero all the relevant L registers
         R1=L0; DM(116,I2)=R1;
         R1=L1; DM(115,I2)=R1;
         R1=L2; DM(114,I2)=R1;
         R1=L3; DM(113,I2)=R1;
         R1=L5; DM(112,I2)=R1;
-        
+
         DM(111,I2)=L8;
         DM(110,I2)=L9;
         DM(109,I2)=L10;
@@ -171,7 +171,7 @@ ___asm_reset_thread:
         DM(107,I2)=L13;
         DM(106,I2)=L14;
         DM(105,I2)=L15;
-      
+
         L0=0;
         L1=0;
         L2=0;
@@ -186,7 +186,7 @@ ___asm_reset_thread:
         L13=0;
         L14=0;
         L15=0;
-        
+
        // Save PX registers
        DM(104,I2)=PX1;
        DM(103,I2)=PX2;
@@ -201,13 +201,13 @@ ___asm_reset_thread:
         PX=R9; DM(92,I2)=PX1;DM(91,I2)=PX2;
         PX=R11;DM(90,I2)=PX1;DM(89,I2)=PX2;
         PX=R12;DM(88,I2)=PX1;DM(87,I2)=PX2;
-		// R1\R2 saved below        
+        // R1\R2 saved below
        DM(86,I2)=R5;
        DM(85,I2)=R6;
-	   DM(84,I2)=R10;
+       DM(84,I2)=R10;
        DM(83,I2)=R13;
        DM(82,I2)=R14;
-       DM(81,I2)=R15;	 
+       DM(81,I2)=R15;
 // Save all of the Sregs. We can't do these saves and restores in
 // SIMD mode in case the stack is in external memory.
 // Note that on 2116x and above, we no longer save MODE1 and ASTAT
@@ -217,7 +217,7 @@ ___asm_reset_thread:
         PX=S9; DM(76,I2)=PX1;DM(75,I2)=PX2;
         PX=S11;DM(74,I2)=PX1;DM(73,I2)=PX2;
         PX=S12;DM(72,I2)=PX1;DM(71,I2)=PX2;
-        
+
         DM(70,I2)=S1;
         DM(69,I2)=S2;
         DM(68,I2)=S3;
@@ -229,7 +229,7 @@ ___asm_reset_thread:
         DM(62,I2)=S13;
         DM(61,I2)=S14;
         DM(60,I2)=S15;
-        
+
         BIT SET MODE1 RND32;
         nop;nop;
 
@@ -243,7 +243,7 @@ ___asm_reset_thread:
         DM(57,I2)=R1;
         R1=M3;
         DM(56,I2)=R1;
-       
+
 // Save the relevant DAG2 M registers - M8-11. M12 is saved later, M13-15
 // are constant.
         DM(55,I2)=M8;
@@ -260,14 +260,14 @@ ___asm_reset_thread:
         DM(49,I2)=R1;
         R1=I5;
         DM(48,I2)=R1;
-        
+
         DM(47,I2)=I8;
         DM(46,I2)=I9;
         DM(45,I2)=I10;
         DM(44,I2)=I11;
         DM(43,I2)=I14;
-        DM(42,I2)=I15; 
-       
+        DM(42,I2)=I15;
+
 // Save the scratch DAG registers on the stack.
         DM(41,I2)=pm_ptr;   // save i12
         DM(40,I2)=pm_bse;   // save b12
@@ -278,40 +278,40 @@ ___asm_reset_thread:
         DM(37,I2)=R0;        // save i4
         R0=dm_bse;
         DM(36,I2)=R0;        // save b4
-        R0=dm_mdf; 
+        R0=dm_mdf;
         DM(35,I2)=R0;        // save m4
         R0=dm_lnt;
         DM(34,I2)=R0;        // save l4
-            
+
         //save B registers
-        R1=B0;   DM(33,I2)=R0;   
-        R1=B1;   DM(32,I2)=R0;   
-        R1=B2;   DM(31,I2)=R0;   
-        R1=B3;   DM(30,I2)=R0;   
-        R1=B5;   DM(29,I2)=R0;   
-        
-        DM(28,I2)=B8; 
-        DM(27,I2)=B9; 
+        R1=B0;   DM(33,I2)=R0;
+        R1=B1;   DM(32,I2)=R0;
+        R1=B2;   DM(31,I2)=R0;
+        R1=B3;   DM(30,I2)=R0;
+        R1=B5;   DM(29,I2)=R0;
+
+        DM(28,I2)=B8;
+        DM(27,I2)=B9;
         DM(26,I2)=B10;
         DM(25,I2)=B11;
         DM(24,I2)=B13;
         DM(23,I2)=B14;
         DM(22,I2)=B15;
-            
-      
+
+
  // 至此上下文中通用寄存器区复位完毕，接下来将硬件栈中ASTAT寄存器复位到上电状态
-       
- 		//初始化PC STACK在线程栈中值
+
+        //初始化PC STACK在线程栈中值
         R2=0;
         DM(9,I2)=R2;   //PC stack此时为空
- 		//初始化STATUS STACK在线程栈中值
-        R1=MODE1;      
+        //初始化STATUS STACK在线程栈中值
+        R1=MODE1;
         R2=0x00001000;  //全局中断使能位置0
         R2=NOT R2;
         R2=R1 and R2;
-	R1=0x00000800;  //中断嵌套使能位置1
-	R2=R1 or R2;
-        R1=0x04fc;		//以免第二套寄存器是使能的，引发BUG
+    R1=0x00000800;  //中断嵌套使能位置1
+    R2=R1 or R2;
+        R1=0x04fc;      //以免第二套寄存器是使能的，引发BUG
         R1=NOT R1;
         R2=R1 and R2;
         DM(8,I2)=R2;
@@ -336,15 +336,15 @@ ___asm_reset_thread:
         DM(2,I2)=R2;   //Loop Counter  CURLCNTR
         R2=1;
         DM(1,I2)=R2;   //loop stack 此时压入初始化值并将status number置1
-       
+
        I4=R8;
        R2=I2;
        DM(I4,M5)=R2;   //将i7当前的位置也即vm的当前指针保存到R8所在的地址处，也即vm的栈底被更新
-    
+
     //恢复进入本函数后压栈的寄存器
     R1=DM(0,I7);  I13=R1;
-    R1=DM(1,I7); I2=R1;    
-    alter(2);  
+    R1=DM(1,I7); I2=R1;
+    alter(2);
       FETCH_RETURN
       RETURN (DB);
       rframe;
@@ -369,22 +369,22 @@ ___asm_reset_thread:
 .global ___asm_reset_switch;
 ___asm_reset_switch:
 
-    bit clr MODE1 0x1000;		// Disable int
+    bit clr MODE1 0x1000;       // Disable int
        I4=R12;                   //根据ADSP21469参数传递规则，R12=old_vm
        R2=DM(M6,I4);             //取老虚拟机栈顶指针
        I7=R2;
        R2=___Djy_VmEngine;
 
-    modify(I7,-130);			//先申请栈空间
+    modify(I7,-130);            //先申请栈空间
     DM(130,I7)=R2;          //_djy_vm_engine入口作为PC地址，将PC地址存入软件栈，线程栈第一个位置存储PC
-    
+
    // save r1, r2, i2, i13 at first
     DM(129,I7)=R1;
     DM(128,I7)=R2;
     R1=I2;
     DM(127,I7)=R1;
     DM(126,I7)=I13;
-    R1=I6; 
+    R1=I6;
     DM(125,I7)=R1;
   // Save STKYx USTAT1-4
    MODE2=0x42000027;
@@ -395,22 +395,22 @@ ___asm_reset_switch:
    STKYx=0x05400000;     //处理器上电后MODE2及STKYx的默认值
    nop;
    nop;
-    R1=STKYx; 
+    R1=STKYx;
     DM(122,I7)=R1;
     STKYy=0x5400000;
     nop;
     nop;
     R1=STKYy;
     DM(121,I7)=R1;
-    R1 = USTAT1; 
+    R1 = USTAT1;
     DM(122,I7)=R1;
-    R1 = USTAT2; 
+    R1 = USTAT2;
     DM(120,I7)=R1;
-    R1 = USTAT3; 
+    R1 = USTAT3;
     DM(118,I7)=R1;
-    R1 = USTAT4; 
+    R1 = USTAT4;
     DM(117,I7)=R1;
-    
+
        // Save and zero all the relevant L registers
         R1=L0; DM(116,I7)=R1;
         R1=L1; DM(115,I7)=R1;
@@ -438,7 +438,7 @@ ___asm_reset_switch:
         L13=0;
         L14=0;
         L15=0;
-        
+
        // Save PX registers
        DM(104,I7)=PX1;
        DM(103,I7)=PX2;
@@ -453,13 +453,13 @@ ___asm_reset_switch:
         PX=R9; DM(92,I7)=PX1;DM(91,I7)=PX2;
         PX=R11;DM(90,I7)=PX1;DM(89,I7)=PX2;
         PX=R12;DM(88,I7)=PX1;DM(87,I7)=PX2;
-		// R1\R2 saved below        
+        // R1\R2 saved below
        DM(86,I7)=R5;
        DM(85,I7)=R6;
-	   DM(84,I7)=R10;
+       DM(84,I7)=R10;
        DM(83,I7)=R13;
        DM(82,I7)=R14;
-       DM(81,I7)=R15;	 
+       DM(81,I7)=R15;
 // Save all of the Sregs. We can't do these saves and restores in
 // SIMD mode in case the stack is in external memory.
 // Note that on 2116x and above, we no longer save MODE1 and ASTAT
@@ -469,7 +469,7 @@ ___asm_reset_switch:
         PX=S9; DM(76,I7)=PX1;DM(75,I7)=PX2;
         PX=S11;DM(74,I7)=PX1;DM(73,I7)=PX2;
         PX=S12;DM(72,I7)=PX1;DM(71,I7)=PX2;
-        
+
         DM(70,I7)=S1;
         DM(69,I7)=S2;
         DM(68,I7)=S3;
@@ -481,7 +481,7 @@ ___asm_reset_switch:
         DM(62,I7)=S13;
         DM(61,I7)=S14;
         DM(60,I7)=S15;
-        
+
         BIT SET MODE1 RND32;
         nop;nop;
 
@@ -495,7 +495,7 @@ ___asm_reset_switch:
         DM(57,I7)=R1;
         R1=M3;
         DM(56,I7)=R1;
-       
+
 // Save the relevant DAG2 M registers - M8-11. M12 is saved later, M13-15
 // are constant.
         DM(55,I7)=M8;
@@ -512,14 +512,14 @@ ___asm_reset_switch:
         DM(49,I7)=R1;
         R1=I5;
         DM(48,I7)=R1;
-        
+
         DM(47,I7)=I8;
         DM(46,I7)=I9;
         DM(45,I7)=I10;
         DM(44,I7)=I11;
         DM(43,I7)=I14;
-        DM(42,I7)=I15; 
-       
+        DM(42,I7)=I15;
+
 // Save the scratch DAG registers on the stack.
         DM(41,I7)=pm_ptr;   // save i12
         DM(40,I7)=pm_bse;   // save b12
@@ -530,40 +530,40 @@ ___asm_reset_switch:
         DM(37,I7)=R0;        // save i4
         R0=dm_bse;
         DM(36,I7)=R0;        // save b4
-        R0=dm_mdf; 
+        R0=dm_mdf;
         DM(35,I7)=R0;        // save m4
         R0=dm_lnt;
         DM(34,I7)=R0;        // save l4
-            
+
         //save B registers
-        R1=B0;   DM(33,I7)=R0;   
-        R1=B1;   DM(32,I7)=R0;   
-        R1=B2;   DM(31,I7)=R0;   
-        R1=B3;   DM(30,I7)=R0;   
-        R1=B5;   DM(29,I7)=R0;   
-        
-        DM(28,I7)=B8; 
-        DM(27,I7)=B9; 
+        R1=B0;   DM(33,I7)=R0;
+        R1=B1;   DM(32,I7)=R0;
+        R1=B2;   DM(31,I7)=R0;
+        R1=B3;   DM(30,I7)=R0;
+        R1=B5;   DM(29,I7)=R0;
+
+        DM(28,I7)=B8;
+        DM(27,I7)=B9;
         DM(26,I7)=B10;
         DM(25,I7)=B11;
         DM(24,I7)=B13;
         DM(23,I7)=B14;
         DM(22,I7)=B15;
-            
-      
+
+
  // 至此上下文中通用寄存器区复位完毕，接下来将硬件栈中ASTAT寄存器复位到上电状态
-       
- 		//初始化PC STACK在线程栈中值
+
+        //初始化PC STACK在线程栈中值
         R2=0;
         DM(9,I7)=R2;   //PC stack此时为空
- 		//初始化STATUS STACK在线程栈中值
-        R1=MODE1;      
+        //初始化STATUS STACK在线程栈中值
+        R1=MODE1;
         R2=0x00001000;  //全局中断使能位置0
         R2=NOT R2;
         R2=R1 and R2;
-	R1=0x00000800;  //中断嵌套使能位置1
-	R2=R1 or R2;
-        R1=0x04fc;		//以免第二套寄存器是使能的，引发BUG
+    R1=0x00000800;  //中断嵌套使能位置1
+    R2=R1 or R2;
+        R1=0x04fc;      //以免第二套寄存器是使能的，引发BUG
         R1=NOT R1;
         R2=R1 and R2;
         DM(8,I7)=R2;
@@ -589,14 +589,14 @@ ___asm_reset_switch:
         R2=1;
         DM(1,I7)=R2;   //loop stack 此时压入初始化值并将status number置1
 
-        //至此旧线程复位完成    
+        //至此旧线程复位完成
        I4=R12;
        R2=I7;
-       DM(I4,M5)=R2;          //将I7当前的位置也即vm的当前指针保存到R12所在的地址处，也即vm的栈底被更新 
+       DM(I4,M5)=R2;          //将I7当前的位置也即vm的当前指针保存到R12所在的地址处，也即vm的栈底被更新
 
       //开始切换新线程，将新线程上下文恢复
        I4=R8;                  //R8传递 new vm结构体首地址，也即new vm->stack
-       I12=I4;        
+       I12=I4;
        R2=DM(M6,I4);     //取虚拟机栈顶指针  根据虚拟机结构，第二个元素为存储栈顶指针
     //接下来要取vm结构体中stack_size这个变量 vm->stack_size这个成员在vm结构体中第4个位置
       R0=I4;
@@ -611,9 +611,9 @@ ___asm_reset_switch:
       I4=I12;
       R2=DM(M5,I4);
       I7=R2;
-      B6=B7;		//一定不要忘记了
+      B6=B7;        //一定不要忘记了
       L6=L7;
-       
+
     //开始调用C函数int_half_enable_asyn_signal,在调用C函数之前需完成两步预备动作
       R2=I6;
       I6=I7;
@@ -621,65 +621,65 @@ ___asm_reset_switch:
      JUMP(M13,I12)(DB);
      DM(I7,M7)=R2;
      DM(I7,M7)=PC;
- //首先恢复硬件栈中内容,开始弹硬件栈	
-	R0=DM(1,I7);
-	modify(I7,1);					//取R0，计算LOOP栈长度
-	R0 = R0 - 1;
-	IF EQ JUMP (.restore_loop_end_reset_switch);			//if R0==0,jump
+ //首先恢复硬件栈中内容,开始弹硬件栈
+    R0=DM(1,I7);
+    modify(I7,1);                   //取R0，计算LOOP栈长度
+    R0 = R0 - 1;
+    IF EQ JUMP (.restore_loop_end_reset_switch);            //if R0==0,jump
 .restore_loop_start_reset_switch:
     R2=DM(1,I7); CURLCNTR = R2;
-	R2=DM(2,I7); LADDR = R2;
-	R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);
-	push loop;
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_loop_start_reset_switch);
+    R2=DM(2,I7); LADDR = R2;
+    R2=DM(3,I7); LCNTR = R2;
+    modify(I7,3);
+    push loop;
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_loop_start_reset_switch);
 .restore_loop_end_reset_switch:
     R2=DM(1,I7); CURLCNTR = R2;
-	R2=DM(2,I7); LADDR = R2;
-	R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);        //loop出栈结束，status出栈开始
-	R0=DM(1,I7);         //取R0，计算STATUS栈长度
-	modify(I7,1); 				
-	R0 = R0 - 1;
-	IF EQ JUMP (.restore_sts_end_reset_switch);			//if R0==0,jump
+    R2=DM(2,I7); LADDR = R2;
+    R2=DM(3,I7); LCNTR = R2;
+    modify(I7,3);        //loop出栈结束，status出栈开始
+    R0=DM(1,I7);         //取R0，计算STATUS栈长度
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF EQ JUMP (.restore_sts_end_reset_switch);         //if R0==0,jump
 .restore_sts_start_reset_switch:
-///	R2=DM(1,I7);
+/// R2=DM(1,I7);
     R2=DM(2,I7);  ASTAT = R2;
     nop;nop;
     R2=DM(3,I7);  MODE1 = R2;
     nop;nop;
-    modify(I7,3); 	
-	push sts;
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_sts_start_reset_switch);
+    modify(I7,3);
+    push sts;
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_sts_start_reset_switch);
 .restore_sts_end_reset_switch:
-///	R2=DM(1,I7);
+/// R2=DM(1,I7);
     R2=DM(2,I7);  ASTAT = R2;
     nop;nop;
     R2=DM(3,I7);  MODE1 = R2;
     nop;nop;
-    modify(I7,3); 	
-	//status出栈结束，pc出栈开始
-	R0=DM(1,I7);  //取R0，计算PC栈长度
-	modify(I7,1); 				
-	R0 = PASS R0;
-	IF EQ JUMP (.restore_pc_end_reset_switch);			//if R0==0,jump
+    modify(I7,3);
+    //status出栈结束，pc出栈开始
+    R0=DM(1,I7);  //取R0，计算PC栈长度
+    modify(I7,1);
+    R0 = PASS R0;
+    IF EQ JUMP (.restore_pc_end_reset_switch);          //if R0==0,jump
 .restore_pc_start_reset_switch:
-	push pcstk;
-	R2=DM(1,I7); PCSTK = R2;
-    modify(I7,1); 
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_pc_start_reset_switch);
+    push pcstk;
+    R2=DM(1,I7); PCSTK = R2;
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_pc_start_reset_switch);
 .restore_pc_end_reset_switch:
-	nop;
+    nop;
 //至此，弹硬件栈结束,下面开始恢复寄存器值
     call ___restore_all_regs;  //通用寄存器出栈
     I12=DM(1,I7);
-    modify(I7,1); 
+    modify(I7,1);
     JUMP(M13,I12)(db);
      nop;
-     bit set MODE1 0x1000;		// Enable int
+     bit set MODE1 0x1000;      // Enable int
 .___asm_reset_switch.end:
 
 /*
@@ -709,10 +709,10 @@ __asm_start_thread:
 .global ___asm_turnto_context;
 ___asm_turnto_context:
 
-    bit clr MODE1 0x1000;		// Disable int
-    
+    bit clr MODE1 0x1000;       // Disable int
+
     I4=R4;            //R4传递 new vm结构体首地址，也即new vm->stack
-    I12=I4;        
+    I12=I4;
     R2=DM(M6,I4);     //取虚拟机栈顶指针  根据虚拟机结构，第二个元素为存储栈顶指针
     //接下来要取vm结构体中stack_size这个变量 vm->stack_size这个成员在vm结构体中第4个位置
     R0=I4;
@@ -727,7 +727,7 @@ ___asm_turnto_context:
     I4=I12;
     R2=DM(M5,I4);
     I7=R2;
-      B6=B7;		//一定不要忘记了
+      B6=B7;        //一定不要忘记了
       L6=L7;
     //开始调用C函数int_half_enable_asyn_signal,在调用C函数之前需完成两步预备动作
     R2=I6;
@@ -736,67 +736,67 @@ ___asm_turnto_context:
     JUMP(M13,I12)(DB);
      DM(I7,M7)=R2;
      DM(I7,M7)=PC;
-   //首先恢复硬件栈中内容,开始弹硬件栈：注意，此时的硬件栈都已经为空了	
-	R0=DM(1,I7);
-	modify(I7,1);					//取R0，计算LOOP栈长度
-	R0 = R0 - 1;
-	IF EQ JUMP (.restore_loop_end_turnto);			//if R0==0,jump
+   //首先恢复硬件栈中内容,开始弹硬件栈：注意，此时的硬件栈都已经为空了
+    R0=DM(1,I7);
+    modify(I7,1);                   //取R0，计算LOOP栈长度
+    R0 = R0 - 1;
+    IF EQ JUMP (.restore_loop_end_turnto);          //if R0==0,jump
 .restore_loop_start_turnto:
-	R2=DM(1,I7); CURLCNTR = R2;
-	R2=DM(2,I7); LADDR = R2;
-	R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);
-	push loop;
-	R0 = R0 - 1;
-	IF NE JUMP(.restore_loop_start_turnto);
+    R2=DM(1,I7); CURLCNTR = R2;
+    R2=DM(2,I7); LADDR = R2;
+    R2=DM(3,I7); LCNTR = R2;
+    modify(I7,3);
+    push loop;
+    R0 = R0 - 1;
+    IF NE JUMP(.restore_loop_start_turnto);
 .restore_loop_end_turnto:
-	R2=DM(1,I7); CURLCNTR = R2;
-	R2=DM(2,I7); LADDR = R2;
-	R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);        //loop出栈结束，status出栈开始
-	R0=DM(1,I7);         //取R0，计算STATUS栈长度
-	modify(I7,1); 				
-	R0 = R0 - 1;
-	IF EQ JUMP (.restore_sts_end_turnto);			//if R0==0,jump
+    R2=DM(1,I7); CURLCNTR = R2;
+    R2=DM(2,I7); LADDR = R2;
+    R2=DM(3,I7); LCNTR = R2;
+    modify(I7,3);        //loop出栈结束，status出栈开始
+    R0=DM(1,I7);         //取R0，计算STATUS栈长度
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF EQ JUMP (.restore_sts_end_turnto);           //if R0==0,jump
 .restore_sts_start_turnto:
-	R2=DM(1,I7);
+    R2=DM(1,I7);
     R2=DM(2,I7);  ASTAT = R2;
     nop;nop;
     R2=DM(3,I7);  MODE1 = R2;
     nop;nop;
-    modify(I7,3); 	
-	push sts;
-	R0 = R0 - 1;
-	IF NE JUMP  (.restore_sts_start_turnto);
+    modify(I7,3);
+    push sts;
+    R0 = R0 - 1;
+    IF NE JUMP  (.restore_sts_start_turnto);
 .restore_sts_end_turnto:
     R2=DM(1,I7);
     R2=DM(2,I7);  ASTAT = R2;
     nop;nop;
-	R2=DM(3,I7);
-	R1=0x00001000;R1=NOT R1;R2=R2 and R1;//注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
-//	R1=0x000004fc;R1=NOT R1;R2=R2 and R1;//当程序在asyn ISR中注册时，会发生异常，所以这里清理一下
-	MODE1 = R2;					
-	nop;nop;
-	modify(I7,3); 	
-	R0=DM(1,I7);  //status出栈结束，pc出栈开始取R0，计算PC栈长度
-	modify(I7,1); 				
-	R0 = PASS R0;
-	IF EQ JUMP (.restore_pc_end_turnto);			//if R0==0,jump
+    R2=DM(3,I7);
+    R1=0x00001000;R1=NOT R1;R2=R2 and R1;//注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
+//  R1=0x000004fc;R1=NOT R1;R2=R2 and R1;//当程序在asyn ISR中注册时，会发生异常，所以这里清理一下
+    MODE1 = R2;
+    nop;nop;
+    modify(I7,3);
+    R0=DM(1,I7);  //status出栈结束，pc出栈开始取R0，计算PC栈长度
+    modify(I7,1);
+    R0 = PASS R0;
+    IF EQ JUMP (.restore_pc_end_turnto);            //if R0==0,jump
 .restore_pc_start_turnto:
-	push pcstk;
-	R2=DM(1,I7); PCSTK = R2;
-    modify(I7,1); 
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_pc_start_turnto);
+    push pcstk;
+    R2=DM(1,I7); PCSTK = R2;
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_pc_start_turnto);
 .restore_pc_end_turnto:
-	nop;
+    nop;
 //至此，弹硬件栈结束,下面开始恢复寄存器值
     call ___restore_all_regs;  //通用寄存器出栈
       I12=DM(1,I7);
-      modify(I7,1); 
-      
-      
-  
+      modify(I7,1);
+
+
+
       //测试SOVFI异常对系统影响
       /* push loop;
        push loop;
@@ -806,19 +806,19 @@ ___asm_turnto_context:
        push loop;
        //loop stack已满，再压即会溢出
        push loop;*/
-       
-       
-       
-       
-       
-       
-       
-       
-       
+
+
+
+
+
+
+
+
+
       JUMP(M13,I12)(db);
       nop;
-      bit set MODE1 0x1000;		// Enable int
-   
+      bit set MODE1 0x1000;     // Enable int
+
 .___asm_turnto_context.end:
 
 /*
@@ -828,7 +828,7 @@ ___asm_turnto_context:
 @参数:  old_sp，旧上下文的栈指针的指针，即&vm->stack。无需提供旧上下文栈指针，
 @               sp寄存器的当前值就是
 @返回:  无
-@函数原型: 
+@函数原型:
 void __asm_switch_context(struct  tagThreadVm *new_vm,struct  tagThreadVm *old_vm)
 @-----------------------------------------------------------------------------
 */
@@ -836,64 +836,64 @@ void __asm_switch_context(struct  tagThreadVm *new_vm,struct  tagThreadVm *old_v
 .global ___asm_switch_context;
 ___asm_switch_context:
 
-    bit clr MODE1 0x1000;		// Disable int
-      
-	R0=DM(M7,I6);
-	DM(I7,M7)=R0;              //首先将旧线程返回地址保存到上下文的PC位置处
+    bit clr MODE1 0x1000;       // Disable int
+
+    R0=DM(M7,I6);
+    DM(I7,M7)=R0;              //首先将旧线程返回地址保存到上下文的PC位置处
     call ___backup_all_regs;    //通用寄存器压栈
     //开始将硬件栈内容压入线程虚拟机
-	R0 = pcstkp;
-	BIT TST STKYx 0x00400000;
-	IF TF JUMP (PC, .save_pc_end_switch_content);
-.save_pc_start_switch_content:					//若pcstkp！=0，则依次读pc，并入栈
-	DM(I7,M7)=pcstk;
-	pop pcstk;
-	BIT TST STKYx 0x00400000;
-	IF NOT TF JUMP (PC, .save_pc_start_switch_content);
-.save_pc_end_switch_content:					
-	DM(I7,M7)=R0;    //将R0=pcstkp入栈，在出栈时需根据此值判定循环次数					
-	//pc入栈结束，status入栈开始
-	R0 = 1;
-	R2 = MODE1;  DM(I7,M7)=R2;			//存当前MODE1、ASTATx、ASTATy
-	R2 = ASTAT;  DM(I7,M7)=R2; 
-	R2 = 0x00000000; DM(I7,M7)=R2;
-	BIT TST STKYx 0x01000000;
-	IF TF JUMP (PC, .save_sts_end_switch_content);
+    R0 = pcstkp;
+    BIT TST STKYx 0x00400000;
+    IF TF JUMP (PC, .save_pc_end_switch_content);
+.save_pc_start_switch_content:                  //若pcstkp！=0，则依次读pc，并入栈
+    DM(I7,M7)=pcstk;
+    pop pcstk;
+    BIT TST STKYx 0x00400000;
+    IF NOT TF JUMP (PC, .save_pc_start_switch_content);
+.save_pc_end_switch_content:
+    DM(I7,M7)=R0;    //将R0=pcstkp入栈，在出栈时需根据此值判定循环次数
+    //pc入栈结束，status入栈开始
+    R0 = 1;
+    R2 = MODE1;  DM(I7,M7)=R2;          //存当前MODE1、ASTATx、ASTATy
+    R2 = ASTAT;  DM(I7,M7)=R2;
+    R2 = 0x00000000; DM(I7,M7)=R2;
+    BIT TST STKYx 0x01000000;
+    IF TF JUMP (PC, .save_sts_end_switch_content);
 .save_sts_start_switch_content:
-	pop sts;					//出硬件栈
-	R2 = MODE1;DM(I7,M7)=R2;			//存MODE1、ASTATx、ASTATy
-//	BIT CLR MODE1 0x1000;		//注意，未免发生意外，此处将全局中断关闭，在退出本函数时打开
-	R2 = ASTAT;DM(I7,M7)=R2;
-	R2 = 0x00000000; DM(I7,M7)=R2;
-	R0 = R0 + 1;
-	BIT TST STKYx 0x01000000;
-	IF NOT TF JUMP (PC, .save_sts_start_switch_content);
-.save_sts_end_switch_content:					
-    DM(I7,M7)=R0;   //将R0入栈，在出栈时需根据此值判定循环次数				
-	//status入栈结束，loop入栈开始
-	R0 = 1;
-	DM(I7,M7)=LCNTR;    // Save loop counter
-	DM(I7,M7)=LADDR;    // Save loop address
-	DM(I7,M7)=CURLCNTR; // Save current counter       	
-	BIT TST STKYx 0x04000000;
-	IF TF JUMP (PC, .save_loop_end_switch_content);
+    pop sts;                    //出硬件栈
+    R2 = MODE1;DM(I7,M7)=R2;            //存MODE1、ASTATx、ASTATy
+//  BIT CLR MODE1 0x1000;       //注意，未免发生意外，此处将全局中断关闭，在退出本函数时打开
+    R2 = ASTAT;DM(I7,M7)=R2;
+    R2 = 0x00000000; DM(I7,M7)=R2;
+    R0 = R0 + 1;
+    BIT TST STKYx 0x01000000;
+    IF NOT TF JUMP (PC, .save_sts_start_switch_content);
+.save_sts_end_switch_content:
+    DM(I7,M7)=R0;   //将R0入栈，在出栈时需根据此值判定循环次数
+    //status入栈结束，loop入栈开始
+    R0 = 1;
+    DM(I7,M7)=LCNTR;    // Save loop counter
+    DM(I7,M7)=LADDR;    // Save loop address
+    DM(I7,M7)=CURLCNTR; // Save current counter
+    BIT TST STKYx 0x04000000;
+    IF TF JUMP (PC, .save_loop_end_switch_content);
 .save_loop_start_switch_content:
-	pop loop;
-	DM(I7,M7)=LCNTR;    // Save loop counter
-	DM(I7,M7)=LADDR;    // Save loop address
-	DM(I7,M7)=CURLCNTR; // Save current counter  
-	R0 = R0 + 1;
-	BIT TST STKYx 0x04000000;
-	IF NOT TF JUMP (PC, .save_loop_start_switch_content);
-.save_loop_end_switch_content:					//loop入栈结束
-	put(R0);					//将R0入栈，在出栈时需根据此值判定循环次数
+    pop loop;
+    DM(I7,M7)=LCNTR;    // Save loop counter
+    DM(I7,M7)=LADDR;    // Save loop address
+    DM(I7,M7)=CURLCNTR; // Save current counter
+    R0 = R0 + 1;
+    BIT TST STKYx 0x04000000;
+    IF NOT TF JUMP (PC, .save_loop_start_switch_content);
+.save_loop_end_switch_content:                  //loop入栈结束
+    put(R0);                    //将R0入栈，在出栈时需根据此值判定循环次数
 //至此，存硬件栈结束,所有压栈操作完成
     R1=I7;
     I4=R8;
     DM(M5,I4)=R1;      //将old_vm的当前栈指针I7存入到R8所指的地址中
     //至此，旧线程上下文已经被保存，接下来开始切入到新线程
     I4=R4;            //R4传递 new vm结构体首地址，也即new vm->stack
-    I12=I4;        
+    I12=I4;
     R2=DM(M6,I4);     //取虚拟机栈顶指针  根据虚拟机结构，第二个元素为存储栈顶指针
     //接下来要取vm结构体中stack_size这个变量 vm->stack_size这个成员在vm结构体中第4个位置
     R0=I4;
@@ -908,7 +908,7 @@ ___asm_switch_context:
     I4=I12;
     R2=DM(M5,I4);
     I7=R2;
-    B6=B7;		//一定不要忘记了
+    B6=B7;      //一定不要忘记了
     L6=L7;
     //开始调用C函数int_half_enable_asyn_signal,在调用C函数之前需完成两步预备动作
     R2=I6;
@@ -917,76 +917,76 @@ ___asm_switch_context:
     JUMP(M13,I12)(DB);
     DM(I7,M7)=R2;
     DM(I7,M7)=PC;
-   //首先恢复硬件栈中内容,开始弹硬件栈：注意，此时的硬件栈都已经为空了	
+   //首先恢复硬件栈中内容,开始弹硬件栈：注意，此时的硬件栈都已经为空了
     R0=DM(1,I7);
-	modify(I7,1);					//取R0，计算LOOP栈长度
-	R0 = R0 - 1;
-	IF EQ JUMP  (.restore_loop_end_switch_content);			//if R0==0,jump
+    modify(I7,1);                   //取R0，计算LOOP栈长度
+    R0 = R0 - 1;
+    IF EQ JUMP  (.restore_loop_end_switch_content);         //if R0==0,jump
 .restore_loop_start_switch_content:
     R2=DM(1,I7); CURLCNTR = R2;
-	R2=DM(2,I7); LADDR = R2;
-	R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);
-	push loop;
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_loop_start_switch_content);
+    R2=DM(2,I7); LADDR = R2;
+    R2=DM(3,I7); LCNTR = R2;
+    modify(I7,3);
+    push loop;
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_loop_start_switch_content);
 .restore_loop_end_switch_content:
-	R2=DM(1,I7); CURLCNTR = R2;
-	R2=DM(2,I7); LADDR = R2;
-	R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);        //loop出栈结束，status出栈开始
-	R0=DM(1,I7);         //取R0，计算STATUS栈长度
-	modify(I7,1); 				
-	R0 = R0 - 1;
-	IF EQ JUMP (.restore_sts_end_switch_content);			//if R0==0,jump
+    R2=DM(1,I7); CURLCNTR = R2;
+    R2=DM(2,I7); LADDR = R2;
+    R2=DM(3,I7); LCNTR = R2;
+    modify(I7,3);        //loop出栈结束，status出栈开始
+    R0=DM(1,I7);         //取R0，计算STATUS栈长度
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF EQ JUMP (.restore_sts_end_switch_content);           //if R0==0,jump
 .restore_sts_start_switch_content:
     R2=DM(1,I7);
     R2=DM(2,I7);  ASTAT = R2;
     nop;nop;
     R2=DM(3,I7);  MODE1 = R2;
     nop;nop;
-    modify(I7,3); 	
-	push sts;
-	R0 = R0 - 1;
-	IF NE JUMP  (.restore_sts_start_switch_content);
+    modify(I7,3);
+    push sts;
+    R0 = R0 - 1;
+    IF NE JUMP  (.restore_sts_start_switch_content);
 .restore_sts_end_switch_content:
     R2=DM(1,I7);
     R2=DM(2,I7);  ASTAT = R2;
     nop;nop;
-	R2=DM(3,I7);
-	R1=0x00001000;R1=NOT R1;R2=R2 and R1;//注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
-//	R1=0x000004fc;R1=NOT R1;R2=R2 and R1;//当程序在asyn ISR中注册时，会发生异常，所以这里清理一下
-	MODE1 = R2;					
-	nop;nop;
-	modify(I7,3); 	
-	R0=DM(1,I7);  //status出栈结束，pc出栈开始取R0，计算PC栈长度
-	modify(I7,1); 				
-	R0 = PASS R0;
-	IF EQ JUMP (.restore_pc_end_switch_content);			//if R0==0,jump
+    R2=DM(3,I7);
+    R1=0x00001000;R1=NOT R1;R2=R2 and R1;//注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
+//  R1=0x000004fc;R1=NOT R1;R2=R2 and R1;//当程序在asyn ISR中注册时，会发生异常，所以这里清理一下
+    MODE1 = R2;
+    nop;nop;
+    modify(I7,3);
+    R0=DM(1,I7);  //status出栈结束，pc出栈开始取R0，计算PC栈长度
+    modify(I7,1);
+    R0 = PASS R0;
+    IF EQ JUMP (.restore_pc_end_switch_content);            //if R0==0,jump
 .restore_pc_start_switch_content:
-	push pcstk;
-	R2=DM(1,I7); PCSTK = R2;
-    modify(I7,1); 
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_pc_start_switch_content);
+    push pcstk;
+    R2=DM(1,I7); PCSTK = R2;
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_pc_start_switch_content);
 .restore_pc_end_switch_content:
-	nop;
+    nop;
 //至此，弹硬件栈结束,下面开始恢复寄存器值
       //在这里，我们需要将之前save的asyn恢复
       //注意，总中断必须在此关闭，在退出本函数时打开
-      bit clr MODE1 0x1000;		// Disable int
+      bit clr MODE1 0x1000;     // Disable int
       CJUMP _Int_ContactAsynSignal(DB);
       DM(I7,M7)=R2;
       DM(I7,M7)=PC;
       call ___restore_all_regs;  //通用寄存器出栈
       DM(-1,I7)=I12;            // Save I12
-      I12=DM(1,I7);			
+      I12=DM(1,I7);
       modify(I7,1);
       pop sts;
       JUMP(M13,I12)(db);
       //I12=DM(-1,I7);
-      I12=DM(-2,I7);			// Restore I12   //20140114改动
-      bit set MODE1 0x1000;		// Enable int
+      I12=DM(-2,I7);            // Restore I12   //20140114改动
+      bit set MODE1 0x1000;     // Enable int
 .___asm_switch_context.end:
 
 
@@ -1021,90 +1021,90 @@ ___asm_start_thread:
 .section/pm seg_pmco;
 .global ___asm_switch_context_int;
 ___asm_switch_context_int:
-	
-	bit clr MODE1 0x1000;	// 
+
+    bit clr MODE1 0x1000;   //
     nop;nop;
-	bit clr MODE1 0x04fc;	// Disable second register
+    bit clr MODE1 0x04fc;   // Disable second register
     nop;nop;
 
 //初始化栈指针
-//	no need here
+//  no need here
 
 //将PC返回值压栈
-   DM(I7,M7)=pcstk;				//
+   DM(I7,M7)=pcstk;             //
 //通用寄存器压栈(含MODE2,USTAT1-4)
-	call ___backup_all_regs;    
+    call ___backup_all_regs;
 //开始压硬件栈
-	pop pcstk;					//清理掉进中断时push的一次pc值
-	R0 = pcstkp;
-	BIT TST STKYx 0x00400000;
-	IF TF JUMP (PC, .save_pc_end);
+    pop pcstk;                  //清理掉进中断时push的一次pc值
+    R0 = pcstkp;
+    BIT TST STKYx 0x00400000;
+    IF TF JUMP (PC, .save_pc_end);
 .save_pc_start:
-    DM(I7,M7)=pcstk;	//若pcstkp！=0，则依次读pc，并入栈
-	pop pcstk;
-	BIT TST STKYx 0x00400000;
-	IF NOT TF JUMP (PC, .save_pc_start);
-.save_pc_end:					
-	DM(I7,M7)=R0;   //将R0=pcstkp入栈，在出栈时需根据此值判定循环次数				
-	R0 = 1;       //pc入栈结束，status入栈开始
-//	pop sts;
-	R2 = MODE1;					//存当前MODE1、ASTATx、ASTATy
-	R1=0x00001000;R2=R2 or R1;
-	DM(I7,M7)=R2;
-	R2 = ASTAT;  DM(I7,M7)=R2; 
-	R2 = 0x00000000; DM(I7,M7)=R2; 
-	BIT TST STKYx 0x01000000;
-	IF TF JUMP (PC, .save_sts_end);
+    DM(I7,M7)=pcstk;    //若pcstkp！=0，则依次读pc，并入栈
+    pop pcstk;
+    BIT TST STKYx 0x00400000;
+    IF NOT TF JUMP (PC, .save_pc_start);
+.save_pc_end:
+    DM(I7,M7)=R0;   //将R0=pcstkp入栈，在出栈时需根据此值判定循环次数
+    R0 = 1;       //pc入栈结束，status入栈开始
+//  pop sts;
+    R2 = MODE1;                 //存当前MODE1、ASTATx、ASTATy
+    R1=0x00001000;R2=R2 or R1;
+    DM(I7,M7)=R2;
+    R2 = ASTAT;  DM(I7,M7)=R2;
+    R2 = 0x00000000; DM(I7,M7)=R2;
+    BIT TST STKYx 0x01000000;
+    IF TF JUMP (PC, .save_sts_end);
 .save_sts_start:
-	pop sts;					//出硬件栈
-	R2 = MODE1;   DM(I7,M7)=R2; 			//存MODE1、ASTATx、ASTATy
-	BIT CLR MODE1 0x1000;		//注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
-	R2 = ASTAT;DM(I7,M7)=R2; 
-	R2 = 0x00000000; DM(I7,M7)=R2; 
-	R0 = R0 + 1;
-	BIT TST STKYx 0x01000000;
-	IF NOT TF JUMP (PC, .save_sts_start);
-.save_sts_end:					
-	DM(I7,M7)=R0;  	//将R0入栈，在出栈时需根据此值判定循环次数				
-	//status入栈结束，loop入栈开始
-	R0 = 1;
-	DM(I7,M7)=LCNTR;
-	DM(I7,M7)=LADDR;
-	DM(I7,M7)=CURLCNTR;
-	BIT TST STKYx 0x04000000;
-	IF TF JUMP (PC, .save_loop_end);
+    pop sts;                    //出硬件栈
+    R2 = MODE1;   DM(I7,M7)=R2;             //存MODE1、ASTATx、ASTATy
+    BIT CLR MODE1 0x1000;       //注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
+    R2 = ASTAT;DM(I7,M7)=R2;
+    R2 = 0x00000000; DM(I7,M7)=R2;
+    R0 = R0 + 1;
+    BIT TST STKYx 0x01000000;
+    IF NOT TF JUMP (PC, .save_sts_start);
+.save_sts_end:
+    DM(I7,M7)=R0;   //将R0入栈，在出栈时需根据此值判定循环次数
+    //status入栈结束，loop入栈开始
+    R0 = 1;
+    DM(I7,M7)=LCNTR;
+    DM(I7,M7)=LADDR;
+    DM(I7,M7)=CURLCNTR;
+    BIT TST STKYx 0x04000000;
+    IF TF JUMP (PC, .save_loop_end);
 .save_loop_start:
-	pop loop;
-	DM(I7,M7)=LCNTR;
-	DM(I7,M7)=LADDR;
-	DM(I7,M7)=CURLCNTR;
-	R0 = R0 + 1;
-	BIT TST STKYx 0x04000000;
-	IF NOT TF JUMP (PC, .save_loop_start);
-.save_loop_end:					//loop入栈结束
-	DM(I7,M7)=R0;					//将R0入栈，在出栈时需根据此值判定循环次数
+    pop loop;
+    DM(I7,M7)=LCNTR;
+    DM(I7,M7)=LADDR;
+    DM(I7,M7)=CURLCNTR;
+    R0 = R0 + 1;
+    BIT TST STKYx 0x04000000;
+    IF NOT TF JUMP (PC, .save_loop_start);
+.save_loop_end:                 //loop入栈结束
+    DM(I7,M7)=R0;                   //将R0入栈，在出栈时需根据此值判定循环次数
 //至此，存硬件栈结束,所有压栈操作完成
     R1=I7;
 //注意，对于中断中的线程切换而言，因为参数是通过第二套寄存器传递进来的，
 //因此，这里必须重新使能第二套寄存器的R0-R8，来获取new vm值，然后再还原
-	bit set MODE1 0x0080;	// Enable second R0-R7 register
+    bit set MODE1 0x0080;   // Enable second R0-R7 register
     nop;nop;
     I4=R8;            //R4传递 new vm结构体首地址，也即new vm->stack
-	bit clr MODE1 0x0080;	// Disable second R0-R7 register
+    bit clr MODE1 0x0080;   // Disable second R0-R7 register
     nop;nop;
     DM(M5,I4)=R1;      //将old_vm的当前栈指针I7存入到R8所指的地址中
 //至此，旧线程上下文已经被保存，接下来开始切入到新线程
-    
+
 //初始化栈指针
 //注意，对于中断中的线程切换而言，因为参数是通过第二套寄存器传递进来的，
 //因此，这里必须重新使能第二套寄存器的R8-R15，来获取new vm值，然后再还原
-	bit set MODE1 0x0400;	// Enable second R8-R15 register
+    bit set MODE1 0x0400;   // Enable second R8-R15 register
     nop;nop;
     I4=R4;            //R8传递 old vm结构体首地址，也即old vm->stack
-	bit clr MODE1 0x0400;	// Disable second R8-R15 register
+    bit clr MODE1 0x0400;   // Disable second R8-R15 register
     nop;nop;
-    
-    I12=I4;        
+
+    I12=I4;
     R2=DM(M6,I4);     //取虚拟机栈顶指针  根据虚拟机结构，第二个元素为存储栈顶指针
     //接下来要取vm结构体中stack_size这个变量 vm->stack_size这个成员在vm结构体中第4个位置
     R0=I4;
@@ -1119,9 +1119,9 @@ ___asm_switch_context_int:
     I4=I12;
     R2=DM(M5,I4);
     I7=R2;
-      B6=B7;		//一定不要忘记了
+      B6=B7;        //一定不要忘记了
       L6=L7;
-  
+
 /*    //开始调用C函数int_half_enable_asyn_signal,在调用C函数之前需完成两步预备动作
     R2=I6;
     I6=I7;
@@ -1129,78 +1129,78 @@ ___asm_switch_context_int:
     JUMP(M13,I12)(DB);
     DM(I7,M7)=R2;
     DM(I7,M7)=PC;
-	*/
-//开始弹硬件栈：注意，此时的硬件栈都已经为空了	
-	R0=DM(1,I7);    //取R0，计算LOOP栈长度
+    */
+//开始弹硬件栈：注意，此时的硬件栈都已经为空了
+    R0=DM(1,I7);    //取R0，计算LOOP栈长度
     modify(I7,1);
-	R0 = R0 - 1;
-	IF EQ JUMP (.restore_loop_end);			//if R0==0,jump
+    R0 = R0 - 1;
+    IF EQ JUMP (.restore_loop_end);         //if R0==0,jump
 .restore_loop_start:
     R2=DM(1,I7); CURLCNTR = R2;
     R2=DM(2,I7); LADDR = R2;
     R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);
-	push loop;
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_loop_start);
+    modify(I7,3);
+    push loop;
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_loop_start);
 .restore_loop_end:
-	R2=DM(1,I7); CURLCNTR = R2;
+    R2=DM(1,I7); CURLCNTR = R2;
     R2=DM(2,I7); LADDR = R2;
     R2=DM(3,I7); LCNTR = R2;
-	modify(I7,3);
-	//loop出栈结束，status出栈开始
-	R0=DM(1,I7);    //取R0，计算STATUS栈长度
-	modify(I7,1);				
-	R0 = R0 - 1;
-	IF EQ JUMP (.restore_sts_end);			//if R0==0,jump
+    modify(I7,3);
+    //loop出栈结束，status出栈开始
+    R0=DM(1,I7);    //取R0，计算STATUS栈长度
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF EQ JUMP (.restore_sts_end);          //if R0==0,jump
 .restore_sts_start:
     R2=DM(2,I7); ASTAT = R2;
     nop;nop;
     R2=DM(3,I7); MODE1= R2;
     nop;nop;
-	modify(I7,3);
-	push sts;
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_sts_start);
+    modify(I7,3);
+    push sts;
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_sts_start);
 .restore_sts_end:
     R2=DM(2,I7); ASTAT = R2;
-	nop;nop;
-	R2=DM(3,I7);
-	R1=0x00001000;R1=NOT R1;R2=R2 and R1;//注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
-	R1=0x000004fc;R1=NOT R1;R2=R2 and R1;//当程序在asyn ISR中注册时，会发生异常，所以这里清理一下
-	MODE1 = R2;					
-	nop;nop;
-	modify(I7,3);    //ignore 1 . reserve				
-	//status出栈结束，pc出栈开始
-	R0=DM(1,I7);    //取R0，计算PC栈长度
+    nop;nop;
+    R2=DM(3,I7);
+    R1=0x00001000;R1=NOT R1;R2=R2 and R1;//注意，未免发生意外，此处将全局中断关闭，在退出中断时打开
+    R1=0x000004fc;R1=NOT R1;R2=R2 and R1;//当程序在asyn ISR中注册时，会发生异常，所以这里清理一下
+    MODE1 = R2;
+    nop;nop;
+    modify(I7,3);    //ignore 1 . reserve
+    //status出栈结束，pc出栈开始
+    R0=DM(1,I7);    //取R0，计算PC栈长度
     modify(I7,1);
-	R0 = PASS R0;
-	IF EQ JUMP (.restore_pc_end);			//if R0==0,jump
+    R0 = PASS R0;
+    IF EQ JUMP (.restore_pc_end);           //if R0==0,jump
 .restore_pc_start:
-	push pcstk;
-	R2=DM(1,I7); pcstk=R2;
-	modify(I7,1);
-	R0 = R0 - 1;
-	IF NE JUMP (.restore_pc_start);
+    push pcstk;
+    R2=DM(1,I7); pcstk=R2;
+    modify(I7,1);
+    R0 = R0 - 1;
+    IF NE JUMP (.restore_pc_start);
 .restore_pc_end:
-	nop;
+    nop;
 //至此，弹硬件栈结束,下面开始恢复寄存器值
 //在这里，我们不需要重新使能asyn
 //通用寄存器出栈(含MODE2,USTAT1-4)
-	call ___restore_all_regs;
-	
-	//伪造进中断时PCSTK的状态
-	push pcstk;
-	pcstk=DM(1,I7);
-	modify(I7,1);
-	//至此，所有偷梁换柱工作完成，可以返回了
-	bit set MODE1 0x04fc;	// Enable second register
+    call ___restore_all_regs;
+
+    //伪造进中断时PCSTK的状态
+    push pcstk;
+    pcstk=DM(1,I7);
+    modify(I7,1);
+    //至此，所有偷梁换柱工作完成，可以返回了
+    bit set MODE1 0x04fc;   // Enable second register
     nop;nop;
-    
+
     I12=DM(M7, I6);
     JUMP (M14,I12)(DB);
     rframe;
     nop;
-    
+
 
 .___asm_switch_context_int.end:

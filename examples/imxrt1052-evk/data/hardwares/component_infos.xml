@@ -118,11 +118,11 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/imxrt/1050/imxrt1052/../src/clock/cpu_peri_clock.c</component>
-   <component>/bsp/cpudrv/imxrt/1050/imxrt1052/../src/eth/cpu_peri_eth.c</component>
-   <component>/bsp/cpudrv/imxrt/1050/imxrt1052/../src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/imxrt/1050/imxrt1052/../src/lcd/cpu_peri_lcd.c</component>
-   <component>/bsp/cpudrv/imxrt/1050/imxrt1052/../src/spi/cpu_peri_spi.c</component>
-   <component>/bsp/cpudrv/imxrt/1050/imxrt1052/../src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/imxrt/1050/imxrt1052/../src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/imxrt/1050/src/clock/cpu_peri_clock.c</component>
+   <component>/bsp/cpudrv/imxrt/1050/src/eth/cpu_peri_eth.c</component>
+   <component>/bsp/cpudrv/imxrt/1050/src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/imxrt/1050/src/lcd/cpu_peri_lcd.c</component>
+   <component>/bsp/cpudrv/imxrt/1050/src/spi/cpu_peri_spi.c</component>
+   <component>/bsp/cpudrv/imxrt/1050/src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/imxrt/1050/src/uart/cpu_peri_uart.c</component>
 </components>

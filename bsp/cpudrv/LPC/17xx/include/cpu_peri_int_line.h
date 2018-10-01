@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -63,7 +63,7 @@
 extern "C" {
 #endif
 
-#define CN_INT_LINE_WDT       		 0        //!< Watchdog Timer Interrupt                         */
+#define CN_INT_LINE_WDT              0        //!< Watchdog Timer Interrupt                         */
 #define CN_INT_LINE_TIMER0           1        //!< Timer0 Interrupt                                 */
 #define CN_INT_LINE_TIMER1           2        //!< Timer1 Interrupt                                 */
 #define CN_INT_LINE_TIMER2           3        //!< Timer2 Interrupt                                 */
@@ -96,7 +96,7 @@ extern "C" {
 #define CN_INT_LINE_MCPWM            30       //!< Motor Control PWM Interrupt                      */
 #define CN_INT_LINE_QEI              31       //!< Quadrature Encoder Interface Interrupt           */
 #define CN_INT_LINE_PLL1             32       //!< PLL1 Lock (USB PLL) Interrupt                    */
-#define CN_INT_LINE_USBActivity      33       //!< USB Activity Interrupt 						  */
+#define CN_INT_LINE_USBActivity      33       //!< USB Activity Interrupt                         */
 #define CN_INT_LINE_CANActivity      34       //!< CAN Activity Interrupt
 #define CN_INT_LINE_LAST             34
 

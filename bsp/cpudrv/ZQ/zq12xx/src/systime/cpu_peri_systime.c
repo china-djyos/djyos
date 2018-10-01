@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -59,7 +59,7 @@
 
 #define SYSTIME_FRE      (CN_CFG_TIMER_CLK/128)
 #define SYSTIME_CYCLE    (0xFFFFFFFF) //周期为最大，即0xFFFF,最大T= SYSTIME_FRE * 0xFFFF
-#define SYS_TIM  		 TIMER4_BASE	//sys用到的定时器
+#define SYS_TIM          TIMER4_BASE    //sys用到的定时器
 
 
 
@@ -82,7 +82,7 @@ static void SysTime_Config(void)
 {
     silan_timer_disable(SYS_TIM);
     silan_timer_count(SYS_TIM, 0);
-    silan_timer_sel(SYS_TIM,7);	//128分频,时钟源为80M，32位定时器
+    silan_timer_sel(SYS_TIM,7); //128分频,时钟源为80M，32位定时器
     silan_timer_start(SYS_TIM);
 }
 // =============================================================================
@@ -93,9 +93,9 @@ static void SysTime_Config(void)
 bool_t MoudleInit_Systime(ptu32_t para)
 {
     //初始化TC控制器
-	SysTime_Config();
+    SysTime_Config();
 
-	//注册系统时钟函数
+    //注册系统时钟函数
     SysTimeConnect(Systime_GetTime,NULL,SYSTIME_FRE,SYSTIME_CYCLE);
     return true;
 }

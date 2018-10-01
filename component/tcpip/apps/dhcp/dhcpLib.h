@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -83,69 +83,69 @@
 /* DHCP option and value (cf. RFC1533) */
 enum
 {
-	padOption                 =   0,
-	subnetMask                =   1,
-	timerOffset               =   2,
-	routersOnSubnet           =   3,
-	timeServer                =   4,
-	nameServer                =   5,
-	dns                       =   6,
-	logServer                 =   7,
-	cookieServer              =   8,
-	lprServer                 =   9,
-	impressServer             =   10,
-	resourceLocationServer    =   11,
-	hostName                  =   12,
-	bootFileSize              =   13,
-	meritDumpFile             =   14,
-	domainName                =   15,
-	swapServer                =   16,
-	rootPath                  =   17,
-	extentionsPath            =   18,
-	IPforwarding              =   19,
-	nonLocalSourceRouting     =   20,
-	policyFilter              =   21,
-	maxDgramReasmSize         =   22,
-	defaultIPTTL              =   23,
-	pathMTUagingTimeout       =   24,
-	pathMTUplateauTable       =   25,
-	ifMTU                     =   26,
-	allSubnetsLocal           =   27,
-	broadcastAddr             =   28,
-	performMaskDiscovery      =   29,
-	maskSupplier              =   30,
-	performRouterDiscovery    =   31,
-	routerSolicitationAddr    =   32,
-	staticRoute               =   33,
-	trailerEncapsulation      =   34,
-	arpCacheTimeout           =   35,
-	ethernetEncapsulation     =   36,
-	tcpDefaultTTL             =   37,
-	tcpKeepaliveInterval      =   38,
-	tcpKeepaliveGarbage       =   39,
-	nisDomainName             =   40,
-	nisServers                =   41,
-	ntpServers                =   42,
-	vendorSpecificInfo        =   43,
-	netBIOSnameServer         =   44,
-	netBIOSdgramDistServer    =   45,
-	netBIOSnodeType           =   46,
-	netBIOSscope              =   47,
-	xFontServer               =   48,
-	xDisplayManager           =   49,
-	dhcpRequestedIPaddr       =   50,
-	dhcpIPaddrLeaseTime       =   51,
-	dhcpOptionOverload        =   52,
-	dhcpMessageType           =   53,
-	dhcpServerIdentifier      =   54,
-	dhcpParamRequest          =   55,
-	dhcpMsg                   =   56,
-	dhcpMaxMsgSize            =   57,
-	dhcpRenewTime             =   58,
-	dhcpRebindTime            =   59,
-	dhcpClassIdentifier       =   60,
-	dhcpClientIdentifier      =   61,
-	endOption                 =   255
+    padOption                 =   0,
+    subnetMask                =   1,
+    timerOffset               =   2,
+    routersOnSubnet           =   3,
+    timeServer                =   4,
+    nameServer                =   5,
+    dns                       =   6,
+    logServer                 =   7,
+    cookieServer              =   8,
+    lprServer                 =   9,
+    impressServer             =   10,
+    resourceLocationServer    =   11,
+    hostName                  =   12,
+    bootFileSize              =   13,
+    meritDumpFile             =   14,
+    domainName                =   15,
+    swapServer                =   16,
+    rootPath                  =   17,
+    extentionsPath            =   18,
+    IPforwarding              =   19,
+    nonLocalSourceRouting     =   20,
+    policyFilter              =   21,
+    maxDgramReasmSize         =   22,
+    defaultIPTTL              =   23,
+    pathMTUagingTimeout       =   24,
+    pathMTUplateauTable       =   25,
+    ifMTU                     =   26,
+    allSubnetsLocal           =   27,
+    broadcastAddr             =   28,
+    performMaskDiscovery      =   29,
+    maskSupplier              =   30,
+    performRouterDiscovery    =   31,
+    routerSolicitationAddr    =   32,
+    staticRoute               =   33,
+    trailerEncapsulation      =   34,
+    arpCacheTimeout           =   35,
+    ethernetEncapsulation     =   36,
+    tcpDefaultTTL             =   37,
+    tcpKeepaliveInterval      =   38,
+    tcpKeepaliveGarbage       =   39,
+    nisDomainName             =   40,
+    nisServers                =   41,
+    ntpServers                =   42,
+    vendorSpecificInfo        =   43,
+    netBIOSnameServer         =   44,
+    netBIOSdgramDistServer    =   45,
+    netBIOSnodeType           =   46,
+    netBIOSscope              =   47,
+    xFontServer               =   48,
+    xDisplayManager           =   49,
+    dhcpRequestedIPaddr       =   50,
+    dhcpIPaddrLeaseTime       =   51,
+    dhcpOptionOverload        =   52,
+    dhcpMessageType           =   53,
+    dhcpServerIdentifier      =   54,
+    dhcpParamRequest          =   55,
+    dhcpMsg                   =   56,
+    dhcpMaxMsgSize            =   57,
+    dhcpRenewTime             =   58,
+    dhcpRebindTime            =   59,
+    dhcpClassIdentifier       =   60,
+    dhcpClientIdentifier      =   61,
+    endOption                 =   255
 };
 
 #pragma pack(1)
@@ -183,32 +183,32 @@ typedef struct
 //used for the discover and request message
 typedef struct
 {
-	u8   optype;
-	u8   msgtype;
-	u32  reqip;
-	u32  dhcpserver;
-	u8   clientmac[CN_MACADDR_LEN];
-	u32  transaction;
+    u8   optype;
+    u8   msgtype;
+    u32  reqip;
+    u32  dhcpserver;
+    u8   clientmac[CN_MACADDR_LEN];
+    u32  transaction;
 }tagDhcpRequestPara;
 //used for the offer and ack message
 typedef struct
 {
-	u8   optype;
-	u8   msgtype;
-	u32  transaction;
-	u32  offerip;
-	u32  dhcpservernxt;
-	u32  relayagent;
-	u8   clientmac[CN_MACADDR_LEN];
-	u32  renewtime;
-	u32  bindtime;
-	u32  leasetime;
-	u32  dhcpserver;
-	u32  ipmask;
-	u32  router;
-	char domainname[CN_DHCP_STRLEN];
-	u32  dns1;
-	u32  dns2;
+    u8   optype;
+    u8   msgtype;
+    u32  transaction;
+    u32  offerip;
+    u32  dhcpservernxt;
+    u32  relayagent;
+    u8   clientmac[CN_MACADDR_LEN];
+    u32  renewtime;
+    u32  bindtime;
+    u32  leasetime;
+    u32  dhcpserver;
+    u32  ipmask;
+    u32  router;
+    char domainname[CN_DHCP_STRLEN];
+    u32  dns1;
+    u32  dns2;
 }tagDhcpReplyPara;
 
 

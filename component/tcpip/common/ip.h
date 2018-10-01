@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -52,14 +52,14 @@
 #include <sys/socket.h>
 typedef union
 {
-	struct in_addr ipv4;
-	struct in6_addr ipv6;
+    struct in_addr ipv4;
+    struct in6_addr ipv6;
 }__tagIpAddr;
 typedef struct
 {
-	enum_ipv_t  ver;
-	__tagIpAddr src;
-	__tagIpAddr dst;
+    enum_ipv_t  ver;
+    __tagIpAddr src;
+    __tagIpAddr dst;
 }tagIpAddr;
 typedef bool_t (*fnIpProto)( tagIpAddr *addr,tagNetPkg *pkglst,u32 devfunc);
 bool_t IpInstallProto(const char *name,u8 proto,fnIpProto handler);
@@ -68,7 +68,7 @@ u16    IpChksumSoft16(void *buf,int len,u16 chksum, bool_t done);
 void   IpPkgChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum);
 void   IpPkgLstChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum);
 bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkg,\
-		      u16 translen,u8 proto,u32  devtask, u16 *chksum);
+              u16 translen,u8 proto,u32  devtask, u16 *chksum);
 bool_t IpSnd(tagIpAddr *addr,tagNetPkg *pkg,u16 translen,u8 proto,u32  devtask, u16 *chksum);
 
 #endif

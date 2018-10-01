@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -63,40 +63,40 @@ extern "C" {
 
 struct atmel_pmc_reg     //复位和时钟控制寄存器 at 0x40021000
 {
-	  vu32 PMC_SCER;      /**< \brief (Pmc Offset: 0x0000) System Clock Enable Register */
-	  vu32 PMC_SCDR;      /**< \brief (Pmc Offset: 0x0004) System Clock Disable Register */
-	  vu32 PMC_SCSR;      /**< \brief (Pmc Offset: 0x0008) System Clock Status Register */
-	  vu32 Reserved1[1];
-	  vu32 PMC_PCER0;     /**< \brief (Pmc Offset: 0x0010) Peripheral Clock Enable Register 0 */
-	  vu32 PMC_PCDR0;     /**< \brief (Pmc Offset: 0x0014) Peripheral Clock Disable Register 0 */
-	  vu32 PMC_PCSR0;     /**< \brief (Pmc Offset: 0x0018) Peripheral Clock Status Register 0 */
-	  vu32 Reserved2[1];
-	  vu32 CKGR_MOR;      /**< \brief (Pmc Offset: 0x0020) Main Oscillator Register */
-	  vu32 CKGR_MCFR;     /**< \brief (Pmc Offset: 0x0024) Main Clock Frequency Register */
-	  vu32 CKGR_PLLAR;    /**< \brief (Pmc Offset: 0x0028) PLLA Register */
-	  vu32 CKGR_PLLBR;    /**< \brief (Pmc Offset: 0x002C) PLLB Register */
-	  vu32 PMC_MCKR;      /**< \brief (Pmc Offset: 0x0030) Master Clock Register */
-	  vu32 Reserved3[1];
-	  vu32 PMC_USB;       /**< \brief (Pmc Offset: 0x0038) USB Clock Register */
-	  vu32 Reserved4[1];
-	  vu32 PMC_PCK[3];    /**< \brief (Pmc Offset: 0x0040) Programmable Clock 0 Register */
-	  vu32 Reserved5[5];
-	  vu32 PMC_IER;       /**< \brief (Pmc Offset: 0x0060) Interrupt Enable Register */
-	  vu32 PMC_IDR;       /**< \brief (Pmc Offset: 0x0064) Interrupt Disable Register */
-	  vu32 PMC_SR;        /**< \brief (Pmc Offset: 0x0068) Status Register */
-	  vu32 PMC_IMR;       /**< \brief (Pmc Offset: 0x006C) Interrupt Mask Register */
-	  vu32 PMC_FSMR;      /**< \brief (Pmc Offset: 0x0070) Fast Startup Mode Register */
-	  vu32 PMC_FSPR;      /**< \brief (Pmc Offset: 0x0074) Fast Startup Polarity Register */
-	  vu32 PMC_FOCR;      /**< \brief (Pmc Offset: 0x0078) Fault Output Clear Register */
-	  vu32 Reserved6[26];
-	  vu32 PMC_WPMR;      /**< \brief (Pmc Offset: 0x00E4) Write Protect Mode Register */
-	  vu32 PMC_WPSR;      /**< \brief (Pmc Offset: 0x00E8) Write Protect Status Register */
-	  vu32 Reserved7[5];
-	  vu32 PMC_PCER1;     /**< \brief (Pmc Offset: 0x0100) Peripheral Clock Enable Register 1 */
-	  vu32 PMC_PCDR1;     /**< \brief (Pmc Offset: 0x0104) Peripheral Clock Disable Register 1 */
-	  vu32 PMC_PCSR1;     /**< \brief (Pmc Offset: 0x0108) Peripheral Clock Status Register 1 */
-	  vu32 Reserved8[1];
-	  vu32 PMC_OCR;       /**< \brief (Pmc Offset: 0x0110) Oscillator Calibration Register */
+      vu32 PMC_SCER;      /**< \brief (Pmc Offset: 0x0000) System Clock Enable Register */
+      vu32 PMC_SCDR;      /**< \brief (Pmc Offset: 0x0004) System Clock Disable Register */
+      vu32 PMC_SCSR;      /**< \brief (Pmc Offset: 0x0008) System Clock Status Register */
+      vu32 Reserved1[1];
+      vu32 PMC_PCER0;     /**< \brief (Pmc Offset: 0x0010) Peripheral Clock Enable Register 0 */
+      vu32 PMC_PCDR0;     /**< \brief (Pmc Offset: 0x0014) Peripheral Clock Disable Register 0 */
+      vu32 PMC_PCSR0;     /**< \brief (Pmc Offset: 0x0018) Peripheral Clock Status Register 0 */
+      vu32 Reserved2[1];
+      vu32 CKGR_MOR;      /**< \brief (Pmc Offset: 0x0020) Main Oscillator Register */
+      vu32 CKGR_MCFR;     /**< \brief (Pmc Offset: 0x0024) Main Clock Frequency Register */
+      vu32 CKGR_PLLAR;    /**< \brief (Pmc Offset: 0x0028) PLLA Register */
+      vu32 CKGR_PLLBR;    /**< \brief (Pmc Offset: 0x002C) PLLB Register */
+      vu32 PMC_MCKR;      /**< \brief (Pmc Offset: 0x0030) Master Clock Register */
+      vu32 Reserved3[1];
+      vu32 PMC_USB;       /**< \brief (Pmc Offset: 0x0038) USB Clock Register */
+      vu32 Reserved4[1];
+      vu32 PMC_PCK[3];    /**< \brief (Pmc Offset: 0x0040) Programmable Clock 0 Register */
+      vu32 Reserved5[5];
+      vu32 PMC_IER;       /**< \brief (Pmc Offset: 0x0060) Interrupt Enable Register */
+      vu32 PMC_IDR;       /**< \brief (Pmc Offset: 0x0064) Interrupt Disable Register */
+      vu32 PMC_SR;        /**< \brief (Pmc Offset: 0x0068) Status Register */
+      vu32 PMC_IMR;       /**< \brief (Pmc Offset: 0x006C) Interrupt Mask Register */
+      vu32 PMC_FSMR;      /**< \brief (Pmc Offset: 0x0070) Fast Startup Mode Register */
+      vu32 PMC_FSPR;      /**< \brief (Pmc Offset: 0x0074) Fast Startup Polarity Register */
+      vu32 PMC_FOCR;      /**< \brief (Pmc Offset: 0x0078) Fault Output Clear Register */
+      vu32 Reserved6[26];
+      vu32 PMC_WPMR;      /**< \brief (Pmc Offset: 0x00E4) Write Protect Mode Register */
+      vu32 PMC_WPSR;      /**< \brief (Pmc Offset: 0x00E8) Write Protect Status Register */
+      vu32 Reserved7[5];
+      vu32 PMC_PCER1;     /**< \brief (Pmc Offset: 0x0100) Peripheral Clock Enable Register 1 */
+      vu32 PMC_PCDR1;     /**< \brief (Pmc Offset: 0x0104) Peripheral Clock Disable Register 1 */
+      vu32 PMC_PCSR1;     /**< \brief (Pmc Offset: 0x0108) Peripheral Clock Status Register 1 */
+      vu32 Reserved8[1];
+      vu32 PMC_OCR;       /**< \brief (Pmc Offset: 0x0110) Oscillator Calibration Register */
 };
 
 

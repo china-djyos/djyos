@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 深圳鹏瑞软件有限公司 All Rights Reserved
+// Copyright (C) 2012-2020 都江堰操作系统开源团队 All Rights Reserved
 // 模块描述: 软看门狗实现
 // 模块版本: V1.00
 // 创建人员: zhangqf_cyg
@@ -64,7 +64,7 @@
 #include <os.h>
 #include <wdt_soft.h>
 #include <wdt_hal.h>
-#include <exp.h>
+#include <blackbox.h>
 #include "dbug.h"
 #include <shell.h>
 #include "board-config.h"
@@ -84,8 +84,8 @@
 //attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"MsgQueue","BlackBox"      //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
@@ -126,7 +126,7 @@ typedef struct
 //看门狗异常信息组织结构
 struct WdtExpInfo
 {
-    char       wdtname[CN_EXP_NAMELEN_LIMIT];    //异常的看门狗的名字
+    char       wdtname[CN_BLACKBOX_NAMELEN_LIMIT];    //异常的看门狗的名字
     tagWdt     wdt;                              //异常的看门狗
 };
 
@@ -183,19 +183,19 @@ const char *WdtYipReasonName(enum __EN_WDTYIP  yipreason)
 // 说明    ：主要是搜集WDT异常时的信息，该函数仅限内部调用，当发现看门狗异常并且需要处理该
 //        异常的时候调用该函数
 // =============================================================================
-enum EN_ExpAction __Wdt_TrowWdtExp(enum EN_ExpAction WdtAction,
+enum EN_BlackBoxAction __Wdt_TrowWdtExp(enum EN_BlackBoxAction WdtAction,
                                             tagWdt *wdt)
 {
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     struct WdtExpInfo wdtexp;
     wdtexp.wdt = *wdt;
-    memcpy(wdtexp.wdtname,wdt->pname,CN_EXP_NAMELEN_LIMIT);
+    memcpy(wdtexp.wdtname,wdt->pname,CN_BLACKBOX_NAMELEN_LIMIT);
     parahead.DecoderName = CN_WDT_EXPDECODERNAME;
-    parahead.ExpAction = WdtAction;
-    parahead.ExpInfo = (u8 *)&wdtexp;
-    parahead.ExpInfoLen = sizeof(wdtexp);
-    parahead.ExpType = CN_EXP_TYPE_WDT;
-    return Exp_Throw(&parahead);
+    parahead.BlackBoxAction = WdtAction;
+    parahead.BlackBoxInfo = (u8 *)&wdtexp;
+    parahead.BlackBoxInfoLen = sizeof(wdtexp);
+    parahead.BlackBoxType = CN_BLACKBOX_TYPE_WDT;
+    return BlackBox_Recorder(&parahead);
 }
 
 // =============================================================================
@@ -232,15 +232,15 @@ void __Wdt_SwapWdtInfoByEndian(tagWdt *wdt, u32 endian)
 // 返回值  ：
 // 说明    ：注册异常解析器的时候会将该异常解析器注册进去
 // =============================================================================
-bool_t __Wdt_WdtExpInfoDecoder(struct ExpThrowPara  *WdtinfoHead,u32 endian)
+bool_t __Wdt_WdtExpInfoDecoder(struct BlackBoxThrowPara  *WdtinfoHead,u32 endian)
 {
     tagWdt  *wdt;
-    struct WdtExpInfo *wdtinfo = (struct WdtExpInfo *)WdtinfoHead->ExpInfo;
+    struct WdtExpInfo *wdtinfo = (struct WdtExpInfo *)WdtinfoHead->BlackBoxInfo;
     wdt = &wdtinfo->wdt;
     __Wdt_SwapWdtInfoByEndian(wdt, endian);
     debug_printf("wdtinfo","name               :%s\n\r",    wdtinfo->wdtname);
     debug_printf("wdtinfo","Owner              :0x%04x\n\r",wdt->WdtOnwer);
-    debug_printf("wdtinfo","Action             :%s\n\r",ExpActionName(wdt->action));
+    debug_printf("wdtinfo","Action             :%s\n\r",BlackBoxActionName(wdt->action));
     debug_printf("wdtinfo","Cycle              :%d(us)\n\r",wdt->cycle);
     debug_printf("wdtinfo","Reason             :%s\n\r",WdtYipReasonName(wdt->timeoutreason));
     debug_printf("wdtinfo","OwnerTimeLevel     :0x%08x(us)\n\r",wdt->ExhaustLevelSet);
@@ -263,7 +263,7 @@ static u32 __Wdt_HardWdtYipHook(tagWdt *wdt)
     {
         fnWdtHardFeed();
     }
-    return EN_EXP_DEAL_IGNORE;
+    return EN_BLACKBOX_DEAL_IGNORE;
 }
 // =============================================================================
 // 函数功能：将看门狗添加进队列中，该看门狗已经设置好了deadline时间
@@ -388,10 +388,10 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
         {
             if(Djy_GetEventInfo(wdt->WdtOnwer, &eventinfo))
             {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
                 wdt->runtime = eventinfo.consumed_cnt;
 #else
-	            wdt->runtime = eventinfo.consumed_time;
+                wdt->runtime = eventinfo.consumed_time;
 #endif
             }
         }
@@ -516,11 +516,11 @@ static void __Wdt_DealMsg(tagWdtMsg *msg)
 // 返回值  ：
 // 说明    ：只有需要记录或者重启的动作才会真正的抛出异常
 // =============================================================================
-static void __Wdt_DealWdtYipResult(enum EN_ExpAction result, tagWdt *wdt)
+static void __Wdt_DealWdtYipResult(enum EN_BlackBoxAction result, tagWdt *wdt)
 {
     //befor we do the wdt exception, we'd better feed the hard wdt to avoid
     //reseting during the dealing
-    if(result > EN_EXP_DEAL_DEFAULT)
+    if(result > EN_BLACKBOX_DEAL_DEFAULT)
     {
         __Wdt_HardWdtYipHook(NULL);
         __Wdt_TrowWdtExp(result,wdt);
@@ -549,7 +549,7 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
 
     if( Djy_GetEventInfo((u16)wdt->WdtOnwer, &wdt_event_info))
     {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         Tm_TimeRun = (u32)(wdt_event_info.consumed_cnt - wdt->runtime);
 #else
         Tm_TimeRun = (u32)(wdt_event_info.consumed_time - wdt->runtime);
@@ -564,10 +564,10 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
         {
             wdt->timeoutreason = EN_WDT_YIPFORLOGIC;
         }
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         wdt->runtime = wdt_event_info.consumed_cnt;
 #else
-        wdt->runtime = wdt_event_info.consumed_time; 
+        wdt->runtime = wdt_event_info.consumed_time;
 #endif
     }
     else
@@ -586,7 +586,7 @@ static void __Wdt_AnalyzeYipReason(tagWdt *wdt)
 static void __Wdt_ScanWdtQueque(void)
 {
     s64             timenow;
-    enum EN_ExpAction result;
+    enum EN_BlackBoxAction result;
     tagWdt          *wdt;
 
     wdt = ptWdtHead;
@@ -601,7 +601,7 @@ static void __Wdt_ScanWdtQueque(void)
             if(NULL !=  wdt->fnhook)
             {
                 result = wdt->fnhook(wdt);//尽情的叫吧，少年
-                if(result == EN_EXP_DEAL_DEFAULT)
+                if(result == EN_BLACKBOX_DEAL_DEFAULT)
                 {
                     result = wdt->action;
                 }
@@ -613,7 +613,7 @@ static void __Wdt_ScanWdtQueque(void)
             if((wdt->timeoutreason == EN_WDT_YIPFORSHEDULE)
                             && (wdt->shyiptimes < wdt->ExhaustLimit)) //在忍耐限度以内
             {
-                result = EN_EXP_DEAL_RECORD;
+                result = EN_BLACKBOX_DEAL_RECORD;
             }
             //this wdt should be relocate in the queue
             __Wdt_DealWdtYipResult(result,wdt);
@@ -728,7 +728,7 @@ struct shell_debug  gWdtDebug[] =
 // =============================================================================
 bool_t ModuleInstall_Wdt(void)
 {
-    static struct ExpInfoDecoder WdtDecoder;
+    static struct BlackBoxInfoDecoder WdtDecoder;
     static tagWdt wdtpoolbuf[CFG_WDT_LIMIT];
     bool_t  result_bool;
     u16     evttid;
@@ -763,12 +763,12 @@ bool_t ModuleInstall_Wdt(void)
         ptWdtHard = Wdt_Create(hardpara.wdtchip_name,\
                                hardpara.wdtchip_cycle,\
                                __Wdt_HardWdtYipHook,\
-                               EN_EXP_DEAL_IGNORE, 0,0);
+                               EN_BLACKBOX_DEAL_IGNORE, 0,0);
     }
 
     WdtDecoder.MyDecoder = __Wdt_WdtExpInfoDecoder;
     WdtDecoder.DecoderName = CN_WDT_EXPDECODERNAME;
-    if(false ==Exp_RegisterThrowInfoDecoder(&WdtDecoder))
+    if(false ==BlackBox_RegisterThrowInfoDecoder(&WdtDecoder))
     {
         debug_printf("WDT","Register Wdt Exp Decoder Failed!\n\r");
     }
@@ -796,13 +796,13 @@ bool_t ModuleInstall_Wdt(void)
 //          ExhaustLimit，参看 tagWdt 中ExhaustLimit的说明
 // 输出参数：
 // 返回值  ：创建的虚拟看门狗，NULL表示失败
-// 说明    ：务必保证看门狗善后函数返回值的定义符合标准，见enum _EN_EXP_DEAL_TYPE
+// 说明    ：务必保证看门狗善后函数返回值的定义符合标准，见enum _EN_BLACKBOX_DEAL_TYPE
 //           的声明（exp_api.h文件）
 //           创建的看门狗若成功，则下次狗叫时间为当前时间+yip_cycle=time
 // =============================================================================
 tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
                    fnYipHook yiphook,
-                   enum EN_ExpAction yip_action,
+                   enum EN_BlackBoxAction yip_action,
                    u32 ExhaustLevelSet,
                    u32 ExhaustLimit)
 {
@@ -834,13 +834,13 @@ tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
 //          ExhaustLimit，参看 tagWdt 中ExhaustLimit的说明
 // 输出参数：
 // 返回值  ：创建的虚拟看门狗，NULL表示失败
-// 说明    ：务必保证看门狗善后函数返回值的定义符合标准，见enum _EN_EXP_DEAL_TYPE
+// 说明    ：务必保证看门狗善后函数返回值的定义符合标准，见enum _EN_BLACKBOX_DEAL_TYPE
 //           的声明（exp_api.h文件）
 //           创建的看门狗若成功，则下次狗叫时间为当前时间+yip_cycle
 // =============================================================================
 tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
                      fnYipHook yiphook,
-                     enum EN_ExpAction yip_action,
+                     enum EN_BlackBoxAction yip_action,
                      u32 ExhaustLevelSet,
                      u32 ExhaustLimit)
 {

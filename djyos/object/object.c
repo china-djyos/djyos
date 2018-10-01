@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -1342,7 +1342,7 @@ struct obj *obj_newprev(struct obj *loc, fnObjOps ops, u32 rights,
 
         if(loc->parent)
         {
-            if(!obj_search_child(loc->parent, name))
+            if(obj_search_child(loc->parent, name))
               return (NULL); // child已经存在；
         }
 
@@ -1479,6 +1479,7 @@ struct obj *obj_newnext(struct obj *loc, fnObjOps ops, u32 rights,
 
     next->name = (char *)name;
     next->seton = (struct obj*)-1; // 默认对象之上不允许建立对象集合；
+    dListInit(&next->handles);
     if(loc->parent)
         next->set = loc->parent->set;
     else

@@ -7,6 +7,33 @@
 
 #include "silan_types.h"
 
+typedef union io_attr {
+    /** raw data */
+    char d8;
+    /** bits def */
+    struct {
+        unsigned func:3;
+        unsigned ds:2;
+#define IO_ATTR_DS_2mA     0
+#define IO_ATTR_DS_4mA     1
+#define IO_ATTR_DS_8mA     2
+#define IO_ATTR_DS_24mA    3
+
+        unsigned ren:1;
+#define IO_ATTR_PULL_EN    0
+#define IO_ATTR_PULL_DIS   1
+
+        unsigned ie:1;
+#define IO_ATTR_INPUT_EN   1
+#define IO_ATTR_INPUT_DIS  0
+
+        unsigned sr:1;
+#define IO_ATTR_SR_LS      0
+#define IO_ATTR_SR_HS      1
+
+    } __attribute__((packed)) b;
+} __attribute__((packed)) io_attr_t;
+
 #define    IO_CONFIG_PA0         0
 #define    IO_CONFIG_PA1         1
 #define    IO_CONFIG_PA2         2

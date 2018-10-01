@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -204,7 +204,7 @@ struct ThreadVm          //线程数据结构
 //};
 struct EventInfo
 {
-#if (CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)
     u64    EventStartCnt;      //事件发生时间，uS
     u64    consumed_cnt;       //事件消耗的总时间
 #else
@@ -229,18 +229,18 @@ struct EventECB
     //   的O(1)算法。
     struct EventECB *multi_next,*multi_previous;      //条件同步队列
     struct ThreadVm  *vm;               //处理本事件的线程指针
-    ptu32_t param1,param2;                  //事件参数,只保存最后一次弹出传入的参数
+    ptu32_t param1,param2;              //事件参数,只保存最后一次弹出传入的参数
 //    struct ParaPCB *para_high_prio;   //高优先级参数队列
 //    struct ParaPCB *para_low_prio;    //低优先级参数队列
 //    struct ParaPCB *para_current;     //当前将要或正在处理的参数。
-    struct EventECB *sync;            //同步于本事件的队列，当本事件完成后，
+    struct EventECB *sync;              //同步于本事件的队列，当本事件完成后，
                                         //激活队列中的事件
                                         //与参数同步不一样，参数同步是弹出时用的
-    struct EventECB **sync_head;      //记住自己在哪一个同步队列中，以便超时
+    struct EventECB **sync_head;        //记住自己在哪一个同步队列中，以便超时
                                         //返回时从该同步队列取出事件
 
 #if CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)
     u64    EventStartCnt;              //事件发生时间，uS
     u64    consumed_cnt;               //事件消耗的总时间
     u32    consumed_cnt_second;        //最近1秒消耗的时间
@@ -252,7 +252,7 @@ struct EventECB
     u32    consumed_time_record;        //上次整秒时，消耗的时间快照
 #endif
 #endif  //CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)
     u64    delay_start_cnt;    //设定闹铃时间
     u64    delay_end_cnt;      //闹铃响时间
 #else
@@ -272,9 +272,9 @@ struct EventECB
 //  ufast_t  prio_new;       //优先级备份，用于修改处于阻塞态的事件优先级时，
                                 //暂存新优先级。
 
-    u16    evtt_id;             //事件类型id，0~32767
+    u16    evtt_id;             //事件类型id，0~16383
     u16    sync_counter;        //同步计数
-//    u16    paras;               //事件消息队列当前长度
+//    u16    paras;             //事件消息队列当前长度
 
     //事件id范围:0~32767(CN_EVENT_ID_LIMIT)
     u16    event_id;            //事件序列编号,等同于事件在事件块数组中的偏移位置
@@ -358,7 +358,7 @@ struct EventType
 extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
-#if (CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)
 void Djy_IsrTimeBase(u32 inc_ticks);
 #else
 void Djy_IsrTick(u32 inc_ticks);
@@ -384,7 +384,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_RaiseTempPrio(u16 event_id);
 bool_t Djy_RestorePrio(void);
 u32 Djy_EventDelay(u32 u32l_uS);
-#if (CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE)
 u64 Djy_EventDelayTo(u64 s64l_uS);
 #else
 u32 Djy_EventDelayTo(s64 s64l_uS);
@@ -392,7 +392,7 @@ u32 Djy_EventDelayTo(s64 s64l_uS);
 u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout);
 u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
 u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);
-u16 Djy_EventPop(  u16  evtt_id,
+u16 Djy_EventPop(  u16  hybrid_id,
                     u32 *pop_result,
                     u32 timeout,
                     ptu32_t PopPrarm1,

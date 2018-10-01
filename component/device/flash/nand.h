@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -67,40 +67,40 @@ extern "C" {
 #define BLOCK_ERASE_CMD_BYTE2               (0xD0)
 #define ID_READ_CMD_BYTE                    (0x90)
 #define STATUS_READ_CMD_BYTE                (0x70)
-#define PARAMETER_PAGE_READ_CMD_BYTE		(0xEC)
+#define PARAMETER_PAGE_READ_CMD_BYTE        (0xEC)
 #define RESET_CMD_BYTE                      (0xFF)
 
-// 
+//
 // @brief  NAND设备信息
-// 
+//
 struct NandDescr{
-    u16      Type;              		// 是否支持ONFI
-#define ONFI                    		((u16)0x0001)
-#define RAW                     		((u16)0x0000)
-    u16      Revision;          		// ONFI版本号
-    char     Manufacturer[13];  		// 芯片制造商
-    char     DeviceModel[21];   		// 芯片型号
-    u16      OOB_Size;          		// Out Of Band空间尺寸,字节为单位
-    u32      BytesPerPage;      		// 页中包含的字节数
-    u32      PagesPerBlk;       		// 块中包含的页数
-    u32      BlksPerLUN;        		// LUN中包含的块数
-    u8       LUNs;              		// LUN数量
+    u16      Type;                      // 是否支持ONFI
+#define ONFI                            ((u16)0x0001)
+#define RAW                             ((u16)0x0000)
+    u16      Revision;                  // ONFI版本号
+    char     Manufacturer[13];          // 芯片制造商
+    char     DeviceModel[21];           // 芯片型号
+    u16      OOB_Size;                  // Out Of Band空间尺寸,字节为单位
+    u32      BytesPerPage;              // 页中包含的字节数
+    u32      PagesPerBlk;               // 块中包含的页数
+    u32      BlksPerLUN;                // LUN中包含的块数
+    u8       LUNs;                      // LUN数量
 #if 0
-    u8       SafeBlkNo;         		// 厂商确保有用的块号
+    u8       SafeBlkNo;                 // 厂商确保有用的块号
 #endif
-    u8       BadMarkOffset;     		// 坏块标记在spare中的偏置,数组方式计位
-    u16		 ReservedBlks;				// 保留的块数，从第0块开始计算
-    u8       Controller;        		// NAND控制器属性见下面
-#define NO_ECC_SUPPORTED        		((u8)0x0)
-#define HW_ECC_SUPPORTED        		((u8)0x1)
-#define SW_ECC_SUPPORTED        		((u8)0x2)
+    u8       BadMarkOffset;             // 坏块标记在spare中的偏置,数组方式计位
+    u16      ReservedBlks;              // 保留的块数，从第0块开始计算
+    u8       Controller;                // NAND控制器属性见下面
+#define NO_ECC_SUPPORTED                ((u8)0x0)
+#define HW_ECC_SUPPORTED                ((u8)0x1)
+#define SW_ECC_SUPPORTED                ((u8)0x2)
 };
 //
 //
 //
 struct NandSpecialOps{
-	s32 (*ChkBlk)(u32 BlkNo); 			// 检查块是否已坏
-	s32 (*MrkBad)(u32 BlkNo); 			// 标记坏块
+    s32 (*ChkBlk)(u32 BlkNo);           // 检查块是否已坏
+    s32 (*MrkBad)(u32 BlkNo);           // 标记坏块
 };
 #ifdef __cplusplus
 }

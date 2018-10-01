@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -56,13 +56,14 @@
 //------------------------------------------------------
 #include "stdint.h"
 #include "hard-exp.h"
-#include "exp.h"
+#include "blackbox.h"
 #include "stdio.h"
 #include "endian.h"
 #include "cpu_peri.h"
 #include "int.h"
 #include "djyos.h"
-bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian);
+#include "dbug.h"
+bool_t  HardExp_Decoder(struct BlackBoxThrowPara *parahead, u32 endian);
 
 // =============================================================================
 // 函数功能：此部分主要用来处理处理器的通用异常信息和NVIC的部分带有异常信息的寄存器
@@ -72,7 +73,7 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian);
 // 输出参数：无
 // 返回值  : true成功, false失败
 // =============================================================================
-bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
+bool_t  HardExp_Decoder(struct BlackBoxThrowPara *parahead, u32 endian)
 {
     bool_t result = false;
     struct SysExceptionInfo  *mycpuinfo;
@@ -85,7 +86,7 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
     }
     else
     {
-        if((sizeof(struct SysExceptionInfo))== parahead->ExpInfoLen)//看看包是否完整
+        if((sizeof(struct SysExceptionInfo))== parahead->BlackBoxInfoLen)//看看包是否完整
         {   /*
             //基本算是完整包，慢慢解析吧
             mycpuinfo = (struct SysExceptionInfo *)(parahead->para);
@@ -156,11 +157,11 @@ bool_t  HardExp_Decoder(struct ExpThrowPara *parahead, u32 endian)
 // =============================================================================
 bool_t HardExp_InfoDecoderInit(void)
 {
-    static struct ExpInfoDecoder HardExpDecoder;
+    static struct BlackBoxInfoDecoder HardExpDecoder;
     bool_t result;
     HardExpDecoder.MyDecoder = HardExp_Decoder;
     HardExpDecoder.DecoderName = CN_HARDEXP_DECODERNAME;
-    result = Exp_RegisterThrowInfoDecoder(&HardExpDecoder);
+    result = BlackBox_RegisterThrowInfoDecoder(&HardExpDecoder);
 
     return result;
 }

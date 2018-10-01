@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -331,7 +331,7 @@ void __Respond(char *pRespond)
                     if(0x0F == (i & 0x0F))
                     {
                         USBH_UsrLog("\r\n"); // 打印16个，添加一次换行
-                    }   
+                    }
                 }
 
                 if(!left) // 可能还有数据，继续尝试
@@ -408,7 +408,7 @@ static void UploadLog(void)
     {
         USBH_UsrLog("\r\nLOG SERVICE: close log error\r\n");
     }
-    
+
     USBH_UsrLog("\r\nLOG SERVICE: log upload exist\r\n");
 }
 
@@ -475,7 +475,7 @@ static s32 DownloadConfig(void)
                 {
                     USBH_UsrLog("\r\nLOG SERVICE: line buffer overflow <j: 0x%x>\r\n", j); // 容错打印
                 }
-                
+
                 if(strstr(line, "pkt rsp"))
                     next = RESPOND;
 

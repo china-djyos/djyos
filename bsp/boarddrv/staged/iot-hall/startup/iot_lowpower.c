@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -74,40 +74,40 @@ extern   uint32_t   msp_top[ ];
 //主存储区为2K/Page
 static void LP_RamFlashErase(void)
 {
-	u8 page;
-	u32 addr;
+    u8 page;
+    u32 addr;
 
-	for(page = 255; page > 255-32; page--)
-	{
-		addr = page*0x800 + 0x08000000;
-		FLASH_Unlock();
-//		FLASH_ErasePage(addr);todo
-	}
+    for(page = 255; page > 255-32; page--)
+    {
+        addr = page*0x800 + 0x08000000;
+        FLASH_Unlock();
+//      FLASH_ErasePage(addr);todo
+    }
 }
 
 static u32 LP_RamFlashProgram(u32 addr,u32 *buf,u32 len)
 {
-	u32 i;
-	FLASH_Unlock();
-	for(i = 0; i < len; i++)
-	{
-		FLASH_ProgramWord(addr+4*i,buf[i]);
-	}
+    u32 i;
+    FLASH_Unlock();
+    for(i = 0; i < len; i++)
+    {
+        FLASH_ProgramWord(addr+4*i,buf[i]);
+    }
 
-	return len;
+    return len;
 }
 
 static u32 LP_RamFlashRead(u32 addr,u32 *buf,u32 len)
 {
-	u32 i,temp;
+    u32 i,temp;
 
-	for(i = 0; i < len; )
-	{
-		temp = *(u32*)(addr+4*i);
-		buf[i] = temp;
-		i++;
-	}
-	return len;
+    for(i = 0; i < len; )
+    {
+        temp = *(u32*)(addr+4*i);
+        buf[i] = temp;
+        i++;
+    }
+    return len;
 }
 //----恢复RAM------------------------------------------------------------------
 //功能: 从非易失存储器中恢复RAM的内容,以便从进入低功耗处继续运行程序,仅用于L3级
@@ -117,24 +117,24 @@ static u32 LP_RamFlashRead(u32 addr,u32 *buf,u32 len)
 //-----------------------------------------------------------------------------
 bool_t __LP_BSP_RestoreRamL3(void)
 {
-	u32 i,temp;
-	u32 RamAddr,FlashAddr,len;
+    u32 i,temp;
+    u32 RamAddr,FlashAddr,len;
 
-	//内部SRAM分成三部分
-	//1.0x20000000 ~ msp_top-100 ,需恢复
-	//2.msp_top-100 ~ msp_top ,不能恢复，因为此时读flash程序正在使用
-	//3.msp_top - 0x20004000, 需恢复
-	RamAddr = 0x20000000;
-	FlashAddr =  224*0x800 + 0x08000000;
-	len = ((uint32_t)msp_top-CN_LP_STACK_SIZE - 0x20000000)/4;
+    //内部SRAM分成三部分
+    //1.0x20000000 ~ msp_top-100 ,需恢复
+    //2.msp_top-100 ~ msp_top ,不能恢复，因为此时读flash程序正在使用
+    //3.msp_top - 0x20004000, 需恢复
+    RamAddr = 0x20000000;
+    FlashAddr =  224*0x800 + 0x08000000;
+    len = ((uint32_t)msp_top-CN_LP_STACK_SIZE - 0x20000000)/4;
 
-	LP_RamFlashRead(FlashAddr,RamAddr,len);
+    LP_RamFlashRead(FlashAddr,RamAddr,len);
 
-	RamAddr = (uint32_t)msp_top;
-	FlashAddr = FlashAddr +len*4 + CN_LP_STACK_SIZE;
-	len = (64*1024 - ((uint32_t)msp_top - 0x20000000))/4;
+    RamAddr = (uint32_t)msp_top;
+    FlashAddr = FlashAddr +len*4 + CN_LP_STACK_SIZE;
+    len = (64*1024 - ((uint32_t)msp_top - 0x20000000))/4;
 
-	LP_RamFlashRead(FlashAddr,RamAddr,len);
+    LP_RamFlashRead(FlashAddr,RamAddr,len);
 
     return true;
 }
@@ -148,15 +148,15 @@ bool_t __LP_BSP_RestoreRamL3(void)
 //-----------------------------------------------------------------------------
 bool_t __LP_BSP_SaveRamL3(void)
 {
-	u32 i,RamAddr,FlashAddr,len;
+    u32 i,RamAddr,FlashAddr,len;
 
-	RamAddr = 0x20000000;
-	FlashAddr =  224*0x800 + 0x08000000;
-	len = 64*1024/4;
+    RamAddr = 0x20000000;
+    FlashAddr =  224*0x800 + 0x08000000;
+    len = 64*1024/4;
 
-	LP_RamFlashErase();
+    LP_RamFlashErase();
 
-	LP_RamFlashProgram(FlashAddr,(u32*)RamAddr,len);
+    LP_RamFlashProgram(FlashAddr,(u32*)RamAddr,len);
 
    return true;
 }

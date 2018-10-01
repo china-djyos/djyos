@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -66,12 +66,12 @@ extern "C" {
 
 //定义总线等待超时时间
 #ifndef CONFIG_I2C_MBB_TIMEOUT
-#define CONFIG_I2C_MBB_TIMEOUT	10000
+#define CONFIG_I2C_MBB_TIMEOUT  10000
 #endif
 
 //定义读写超时时间
 #ifndef CONFIG_I2C_TIMEOUT
-#define CONFIG_I2C_TIMEOUT	1000
+#define CONFIG_I2C_TIMEOUT  1000
 #endif
 
 //定义读写操作比特位
@@ -84,24 +84,24 @@ extern "C" {
 
 typedef struct I2C_StReg
 {
-	  __IO uint16_t CR1;
-	  uint16_t  RESERVED0;
-	  __IO uint16_t CR2;
-	  uint16_t  RESERVED1;
-	  __IO uint16_t OAR1;
-	  uint16_t  RESERVED2;
-	  __IO uint16_t OAR2;
-	  uint16_t  RESERVED3;
-	  __IO uint16_t DR;
-	  uint16_t  RESERVED4;
-	  __IO uint16_t SR1;
-	  uint16_t  RESERVED5;
-	  __IO uint16_t SR2;
-	  uint16_t  RESERVED6;
-	  __IO uint16_t CCR;
-	  uint16_t  RESERVED7;
-	  __IO uint16_t TRISE;
-	  uint16_t  RESERVED8;
+      __IO uint16_t CR1;
+      uint16_t  RESERVED0;
+      __IO uint16_t CR2;
+      uint16_t  RESERVED1;
+      __IO uint16_t OAR1;
+      uint16_t  RESERVED2;
+      __IO uint16_t OAR2;
+      uint16_t  RESERVED3;
+      __IO uint16_t DR;
+      uint16_t  RESERVED4;
+      __IO uint16_t SR1;
+      uint16_t  RESERVED5;
+      __IO uint16_t SR2;
+      uint16_t  RESERVED6;
+      __IO uint16_t CCR;
+      uint16_t  RESERVED7;
+      __IO uint16_t TRISE;
+      uint16_t  RESERVED8;
 }tagI2CReg;
 
 

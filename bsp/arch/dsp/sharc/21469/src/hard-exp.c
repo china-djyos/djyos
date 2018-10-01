@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -303,7 +303,7 @@ enum EN_ExpAction Exp_General(u32 major,u32 minor,u32 exp_len)
         majorname = s_pcMajorExpNameTab[major];
         printk("This exception is invalid!\n\r");
         //无需CORE 信息和PERI信息
-        result = EN_EXP_DEAL_RESET;
+        result = EN_BLACKBOX_DEAL_RESET;
     }
     else
     {
@@ -315,34 +315,34 @@ enum EN_ExpAction Exp_General(u32 major,u32 minor,u32 exp_len)
      switch (major)
      {
       case EN_SYSEXP_MAJOR_IICDI:
-      result=EN_EXP_DEAL_RECORD;
+      result=EN_BLACKBOX_DEAL_RECORD;
       break;
       case EN_SYSEXP_MAJOR_SOVFI:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
       case EN_SYSEXP_MAJOR_SPERRI:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
       case EN_SYSEXP_MAJOR_CB7I:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
       case EN_SYSEXP_MAJOR_CB15I:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
       case EN_SYSEXP_MAJOR_FIXI:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
       case EN_SYSEXP_MAJOR_FLTOI:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
       case EN_SYSEXP_MAJOR_FLTUI:   //FLTUI异常只需记录，不需要复位。
-      result=EN_EXP_DEAL_RECORD;
+      result=EN_BLACKBOX_DEAL_RECORD;
       break;
       case EN_SYSEXP_MAJOR_FLTII:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
       default:
-      result=EN_EXP_DEAL_RESTART;
+      result=EN_BLACKBOX_DEAL_RESTART;
       break;
 
      }

@@ -1,32 +1,32 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
-// 1. Redistributions of source code must retain the above copyright notice, 
+// 1. Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice, 
-//    this list of conditions and the following disclaimer in the documentation 
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 // LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 // CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 // SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
-// 
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+//
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
-// 
+//
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
@@ -61,14 +61,14 @@
 .SECTION/PM     seg_ldr;    // the kernel must reside in a single input_section
 
 _load_application_parallel:
-    
-	call USER_INIT;        //0x8c005 of 48-bit word
+
+    call USER_INIT;        //0x8c005 of 48-bit word
 
     LIRPTL = 0;
     IMASK = 0;             // mask all interrupts since this code executes from within
     IRPTL = 0;             // clear any latched interrupts.
     BIT SET MODE1 IRPTEN;  //Enable global interrupts.
-    
+
     ustat1 = dm(DMAC0);
     bit clr ustat1 DEN;
     dm(DMAC0) = ustat1;    // disable DMA for external port 0
@@ -81,11 +81,11 @@ _load_application_parallel:
     R11=DM(SYSCTL);        // Read current SYSCTL setting
     R12=PASS R11;          // Hold Initial SYSCTL setting => restored in final init
     I4=SYSCTL;
-    
-     
-    
+
+
+
     BIT SET LIRPTL EP0IMSK ;  // Enables external port0 interrupt
- 
+
 // ==========================  READ_BOOT_INFO  ================================
 // Read in section header (3 words that contain Data TAG, ADDRESS and COUNT)
 // Places TAG in R8, Count in R2, and Destination Address in R3.  This code also
@@ -148,7 +148,7 @@ READ_THREEx32:
 
 READ_ONEx32:
     DM(ICEP0)=M14;        //Internal DMA count = one 32-bit word
-   
+
     DM(ECEP0)=M14;        //External DMA count = one 32-bit words
 
     DM(IMEP0)=M14;        // Internal DMA modify = 1
@@ -156,7 +156,7 @@ READ_ONEx32:
     USTAT1=0x92003;       // 0x92003, 0x92004, 0x92005 2-col = 0x8c002, 0x8c003 3-col
     DM(IIEP0)=USTAT1;     // Setup DMA destination address.
 
-        
+
     ustat1 = dm(DMAC0);
     bit set ustat1 DEN;
     dm(DMAC0) = ustat1;        // enable DMA for external port 0
@@ -167,7 +167,7 @@ READ_ONEx32:
     //---------------------------------------------------------
 
     ustat1 = 0;
-    
+
     dm(DMAC0) = ustat1;        // disables DMA for external port 0
 
 
@@ -316,9 +316,9 @@ ZERO_EXT8:
 ZERO_EXT16:
       JUMP ZERO_LDATA;       // Initilalizing the external memory with zero is same as initializing the internal memory with zero for external port
 
- 
 
-   
+
+
 //==============================================================================
 
 //==============================  INIT_EXT =====================================
@@ -335,14 +335,14 @@ INIT_EXT16:
 MULTI_PROC:
 // R0 = dm(SYSTAT);     //  reads the system status register to get the ID pin status
 // R1 = fext R0 by 8:3; //  Extracts the id no defined by the ID pins
-// btst R2 by R1;       // tests the multiprocessor header value with extracted ID value 
+// btst R2 by R1;       // tests the multiprocessor header value with extracted ID value
 // if not sz JUMP READ_BOOT_INFO;
  nop;nop;nop;nop;
  R0 = dm(EIEP0);
 // R0 = R0 + R3;       // add the offset from the multiprocessor tag to the register
  nop;
  dm(EIEP0) = R0;     // Modify the index register based on the offset
- JUMP READ_BOOT_INFO; 
+ JUMP READ_BOOT_INFO;
 //============================ FINAL_INIT ======================================
 // This code is the very last piece run in the kernel.  It is self-modifying
 // code.  It uses a DMA to overwrite itself; initializing the 256 instructions
@@ -371,7 +371,7 @@ final_init:
     R2=0x180;   DM(ECEP0)=R2; // Load external count
                 DM(EMEP0)=M6; // Set to increment external prt
                 DM(IMEP0)=M6; // Set to increment internal ptr
-    
+
     //---- Enable EP0I interrupt ------------------------------------------------
     FLUSH CACHE;            // Remove any kernel instr's from cache
 
@@ -418,7 +418,7 @@ final_init:
 //
 //      The loader has also placed a NOP at location 0x8c003, opcode 0x000000000000
 //      Locations 0x8c000 - 0x8c004 are reserved and should never be used in any user
-//      application. Because of this, the two locations used in final init are never 
+//      application. Because of this, the two locations used in final init are never
 //      restored to the value set forth in the executable generated by the tools.
 //
 //
@@ -437,7 +437,7 @@ final_init:
 //
 // 6) We manually changed this top-of-loop address to 0x90003 and the bottom
 //      of the loop to 8c004, and so to conclude the kernel, the DSP executes the instructions at 0x8c003 and
-//      0x8c004  
+//      0x8c004
 //      *again*.
 //
 // 7) Now, there's a new instruction at 0x8c004: "PM(0,I8)=PX;".  This
@@ -451,32 +451,32 @@ final_init:
 
 //==============================  USER_INIT  ===================================
 // This space is provided for the user to insert code. This is only required
-// when a system requires a custom configuration for the DSP.  
+// when a system requires a custom configuration for the DSP.
 //------------------------------------------------------------------------------
 
                 /**** INSERT CUSTOM CONFIGURATION CODE HERE****/
 
 USER_INIT:
 
-		ustat1 = 0xF1;
-		dm(EPCTL)=ustat1;
-		
-		ustat1=0x5C1;
-//		ustat1=0xDDFC9;
-		dm(AMICTL1)=ustat1;
-			
- 		r0=0x00000;			//start addr of Monitor_version
-		R1=release_reboot;
-		COMP(R1,R4);
-		IF NE JUMP _start_addr_load;
-		r0=0x80000;			//start addr of Release_version
-_start_addr_load:
- 		r0=lshift r0 by -2; 
- 		r1=0x4000180;
- 		r0=r0 or r1;
- 		dm(EIEP0)=r0;
+        ustat1 = 0xF1;
+        dm(EPCTL)=ustat1;
 
-	rts;
+        ustat1=0x5C1;
+//      ustat1=0xDDFC9;
+        dm(AMICTL1)=ustat1;
+
+        r0=0x00000;         //start addr of Monitor_version
+        R1=release_reboot;
+        COMP(R1,R4);
+        IF NE JUMP _start_addr_load;
+        r0=0x80000;         //start addr of Release_version
+_start_addr_load:
+        r0=lshift r0 by -2;
+        r1=0x4000180;
+        r0=r0 or r1;
+        dm(EIEP0)=r0;
+
+    rts;
 //==============================================================================
 
 .global ___second_stage_reboot;
@@ -485,44 +485,44 @@ _start_addr_load:
 
 ___second_stage_reboot:
 
-	DM(-1,I7)=R1;
-	R1=monitor_reboot;
-	COMP(R1,R4);
-	IF EQ JUMP _start_second_stage_reboot;
-	nop;
-	R1=release_reboot;
-	COMP(R1,R4);
-	IF EQ JUMP _start_second_stage_reboot;
-	nop;
-	R1=cn_int_line_IRQ1I;
-	COMP(R1,R4);
-	IF NE JUMP _abort_second_stage_reboot;
-	R1=0x6000;
-	lcntr=R1, do _irp1_reboot_delay until lce;	//消除杂波干扰
+    DM(-1,I7)=R1;
+    R1=monitor_reboot;
+    COMP(R1,R4);
+    IF EQ JUMP _start_second_stage_reboot;
+    nop;
+    R1=release_reboot;
+    COMP(R1,R4);
+    IF EQ JUMP _start_second_stage_reboot;
+    nop;
+    R1=cn_int_line_IRQ1I;
+    COMP(R1,R4);
+    IF NE JUMP _abort_second_stage_reboot;
+    R1=0x6000;
+    lcntr=R1, do _irp1_reboot_delay until lce;  //消除杂波干扰
 _irp1_reboot_delay: nop;
-	If FLAG1_IN JUMP _start_second_stage_reboot;
-	
+    If FLAG1_IN JUMP _start_second_stage_reboot;
+
 _abort_second_stage_reboot:
-	R1=DM(-1,I7);	//restore R1
-	R4=DM(0,I7);	//restore R4
-	rti;
+    R1=DM(-1,I7);   //restore R1
+    R4=DM(0,I7);    //restore R4
+    rti;
 
 _start_second_stage_reboot:
-	BIT CLR IMASK real_mask_imask;	  // MASK all the real ints
-	nop;nop;
-	BIT CLR LIRPTL real_mask_lirptl;  // MASK all the real ints
-	nop;nop;
+    BIT CLR IMASK real_mask_imask;    // MASK all the real ints
+    nop;nop;
+    BIT CLR LIRPTL real_mask_lirptl;  // MASK all the real ints
+    nop;nop;
     BIT CLR IMASKP 0xffffffff;
     nop;nop;
     BIT CLR LIRPTL 0xfff00000;
     nop;nop;
-    R0=0x0B3E;					// 此处的3个DM指令，用于改写seg_rth段IVT表中P9I中断向量处的代码为RTI指令，
-    dm(0x1240f2)=R0;			// 以使second_stage_reboot正常执行。新的代码会重新覆盖此处
+    R0=0x0B3E;                  // 此处的3个DM指令，用于改写seg_rth段IVT表中P9I中断向量处的代码为RTI指令，
+    dm(0x1240f2)=R0;            // 以使second_stage_reboot正常执行。新的代码会重新覆盖此处
     R0=0x0;
     dm(0x1240f1)=R0;
     R0=0x0;
     dm(0x1240f0)=R0;
     nop;nop;
-	jump _load_application_parallel;
+    jump _load_application_parallel;
 
 .___second_stage_reboot.end:

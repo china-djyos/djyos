@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -62,7 +62,7 @@
 #define CN_TIMEOUT  (20*1000)
 #define tagSpiReg SPI_T
 static tagSpiReg volatile * const tg_SpiReg[] = {(tagSpiReg *)SPI0_BASE,
-												 (tagSpiReg *)SPI1_BASE,
+                                                 (tagSpiReg *)SPI1_BASE,
                                                  (tagSpiReg *)SPI2_BASE,
                                                  (tagSpiReg *)SPI3_BASE};
 
@@ -100,12 +100,12 @@ struct SPI_IntParamSet IntParamset3;
 static void __SPI_IntEnable(volatile tagSpiReg *Reg,u32 IntSrc)
 {
     //Reg->CR2 |= IntSrc;
-	Reg->FIFOCTL |= IntSrc;
+    Reg->FIFOCTL |= IntSrc;
 }
 static void __SPI_IntDisable(volatile tagSpiReg *Reg,u32 IntSrc)
 {
     //Reg->CR2 &= ~IntSrc;
-	Reg->FIFOCTL &= ~IntSrc;
+    Reg->FIFOCTL &= ~IntSrc;
 }
 #if 0
 // =============================================================================
@@ -214,16 +214,16 @@ static void __SPI_HardConfig(u32 BaseAddr)
     /* Disable I2S mode */
     Reg->I2SCTL &= ~SPI_I2SCTL_I2SEN_Msk;
 
-    Reg->CLKDIV = 0U;							//配置SPI输出时钟频率
+    Reg->CLKDIV = 0U;                           //配置SPI输出时钟频率
 
-    Reg->SSCTL = SPI_SS_ACTIVE_LOW | SPI_SS;	//关闭自动从机选择功能，设置片选信号低电平有效
-    											//使能从机片选信号，激活片外从机设备
+    Reg->SSCTL = SPI_SS_ACTIVE_LOW | SPI_SS;    //关闭自动从机选择功能，设置片选信号低电平有效
+                                                //使能从机片选信号，激活片外从机设备
 
-    temp |= SPI_MASTER;   						//SPI主机,配置MSB传输优先
-    temp |= SPI_CTL_TXNEG_Msk;  				//配置SPI空闲状态为低电平,时钟下沿传输数据,时钟上沿锁存数据
-    temp |= (8 << SPI_CTL_DWIDTH_Pos);  		//设置8位数据格式
-    temp |= SPI_CTL_SPIEN_Msk;  				//使能SPI
-    Reg->CTL = temp ;                   		// 设置CTL
+    temp |= SPI_MASTER;                         //SPI主机,配置MSB传输优先
+    temp |= SPI_CTL_TXNEG_Msk;                  //配置SPI空闲状态为低电平,时钟下沿传输数据,时钟上沿锁存数据
+    temp |= (8 << SPI_CTL_DWIDTH_Pos);          //设置8位数据格式
+    temp |= SPI_CTL_SPIEN_Msk;                  //使能SPI
+    Reg->CTL = temp ;                           // 设置CTL
 }
 
 // =============================================================================
@@ -349,7 +349,7 @@ static bool_t __SPI_TxRxPoll(tagSpiReg *Reg,u8 *srcAddr,u32 wrSize,
     if( (!srcAddr) || ((rdSize != 0) && (!destAddr)))
         return false;
 
-    Reg->CTL |= SPI_CTL_SPIEN_Msk;  			  //spi使能
+    Reg->CTL |= SPI_CTL_SPIEN_Msk;                //spi使能
     len_limit = MAX(wrSize, rdSize + recvoff);
     for (i=0;i<len_limit;i++)
     {
@@ -406,7 +406,7 @@ static bool_t __SPI_TransferTxRx(tagSpiReg *Reg,u32 sendlen,u32 recvlen,
     Param->RecvOffset  = recvoff;
 
     __SPI_IntEnable(Reg,SPI_FIFOCTL_TXTHIEN_Msk); //发送缓冲区空中断使能
-    Reg->CTL |= SPI_CTL_SPIEN_Msk;  			  //spi使能
+    Reg->CTL |= SPI_CTL_SPIEN_Msk;                //spi使能
 
     return true;
 }

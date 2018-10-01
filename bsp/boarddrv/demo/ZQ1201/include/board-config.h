@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -76,7 +76,7 @@ extern "C" {
 #define CN_CFG_FCLK CN_CFG_MCLK  //cm3自由运行外设时钟
 //#define CN_CFG_AHBCLK CN_CFG_MCLK  //总线时钟
 //#define CN_CFG_PCLK2 CN_CFG_MCLK  //高速外设时钟
-//#define CN_CFG_PCLK1 (CN_CFG_MCLK/2)  //低速外设时钟		//todo
+//#define CN_CFG_PCLK1 (CN_CFG_MCLK/2)  //低速外设时钟      //todo
 #define CN_CFG_EXTCLK 12000000  //外部时钟=8M
 
 /*____以下定义tick参数____*/

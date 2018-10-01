@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -60,21 +60,21 @@
 typedef void (*TwiCallback)( uint8_t, void* ) ;
 typedef struct
 {
-	uint8_t *pBuff;				// Pointer to the Buffer.
-	uint32_t BuffSize;			//Buff size in bytes.
-	uint32_t ChNum;				//Dma channel num.
-	TwiCallback callback;		//Callback function invoked at the end of transfer.
-	void *pArgument;			//Callback arguments.
-	volatile uint8_t sempaphore;//flag to indicate the current transfer.
+    uint8_t *pBuff;             // Pointer to the Buffer.
+    uint32_t BuffSize;          //Buff size in bytes.
+    uint32_t ChNum;             //Dma channel num.
+    TwiCallback callback;       //Callback function invoked at the end of transfer.
+    void *pArgument;            //Callback arguments.
+    volatile uint8_t sempaphore;//flag to indicate the current transfer.
 } TwiChannel ;
 
 typedef struct
 {
-	uint8_t TwiId ;
-	Twihs* pTwihsHw ;
-	sXdmad* pXdmad;				// Pointer to DMA driver
-	TwiChannel *pRxChannel ;	//Current Rx channel
-	TwiChannel *pTxChannel ;	//Current tx channel
+    uint8_t TwiId ;
+    Twihs* pTwihsHw ;
+    sXdmad* pXdmad;             // Pointer to DMA driver
+    TwiChannel *pRxChannel ;    //Current Rx channel
+    TwiChannel *pTxChannel ;    //Current tx channel
 } TwiDma;
 
 

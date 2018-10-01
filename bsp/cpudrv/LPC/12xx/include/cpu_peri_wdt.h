@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -69,13 +69,13 @@ extern "C" {
 /* Public Macros -------------------------------------------------------------- */
 /** @defgroup WDT_Public_Macros
  * @{
- */ 
+ */
 
 
-/** @defgroup WDT_Clock_Selection 
+/** @defgroup WDT_Clock_Selection
   * @{
   */
-typedef uint8_t WDT_CLKSEL_OPT; 
+typedef uint8_t WDT_CLKSEL_OPT;
 #define WDT_CLKSEL_IRCOSC  ((uint8_t) 0x00)   /* Clock source:iRC osc.(default)*/
 #define WDT_CLKSEL_WDOSC   ((uint8_t) 0x01)   /* Clock source:watchdog osc.  */
 
@@ -85,10 +85,10 @@ typedef uint8_t WDT_CLKSEL_OPT;
  * @}
  */
 
-/** @defgroup WDT_Mode 
+/** @defgroup WDT_Mode
   * @{
   */
-typedef uint8_t WDT_MODE_OPT; 
+typedef uint8_t WDT_MODE_OPT;
 #define WDT_MODE_INT_ONLY  ((uint8_t) 0x00)  /* generate interrupt only */
 #define WDT_MODE_RESET     ((uint8_t) 0x01)  /* generate interrupt & reset MCU*/
 
@@ -99,7 +99,7 @@ typedef uint8_t WDT_MODE_OPT;
  */
 
 
-/** @defgroup WDT_TimeOut_Option 
+/** @defgroup WDT_TimeOut_Option
   * @{
   */
 typedef uint8_t  WDT_TIMEOUT_OPT;
@@ -107,19 +107,19 @@ typedef uint8_t  WDT_TIMEOUT_OPT;
 #define WDT_TIMEOUT_TICKVAL  ((uint8_t) 0x00)  /* timeout in absolute value */
 #define WDT_TIMEOUT_USVAL    ((uint8_t) 0x01)  /* timeout in microsecond value*/
 
-#define PARAM_WDT_TIMEOUT_OPT(OPT)	(( OPT == WDT_TIMEOUT_TICKVAL)|| \
-					( OPT == WDT_TIMEOUT_USVAL))
+#define PARAM_WDT_TIMEOUT_OPT(OPT)  (( OPT == WDT_TIMEOUT_TICKVAL)|| \
+                    ( OPT == WDT_TIMEOUT_USVAL))
 
 /**
  * @}
  */
 
 /* Define divider index for microsecond ( us ) */
-#define WDT_US_INDEX	((u32)(1000000))
+#define WDT_US_INDEX    ((u32)(1000000))
 /* WDT Time out minimum value */
-#define WDT_TIMEOUT_MIN	((u32)(0xFF))
+#define WDT_TIMEOUT_MIN ((u32)(0xFF))
 /* WDT Time out maximum value */
-#define WDT_TIMEOUT_MAX	((u32)(0x00FFFFFF))
+#define WDT_TIMEOUT_MAX ((u32)(0x00FFFFFF))
 /* WDT constant register default value */
 #define WDT_WDTC_DEFAULTVALUE  ((u32)(0x00FFFF))
 
@@ -130,9 +130,9 @@ struct st_wdt_reg
     vu32 TC;                     /*!< Offset: 0x004 Watchdog timer constant register (R/W) */
     vu32 FEED;                   /*!< Offset: 0x008 Watchdog feed sequence register ( /W) */
     vu32 TV;                     /*!< Offset: 0x00C Watchdog timer value register (R/ ) */
-    vu32 WDCLKSEL;               /*!< Offset: 0x010 Watchdog clock source selectuin register (R/W ) */ 
+    vu32 WDCLKSEL;               /*!< Offset: 0x010 Watchdog clock source selectuin register (R/W ) */
     vu32 WARNINT;                /*!< Offset: 0x014 Watchdog Warning Interrupt compare value register (R/W ) */
-    vu32 WINDOW;                 /*!< Offset: 0x018 Watchdog Window compare value register (R/W ) */  
+    vu32 WINDOW;                 /*!< Offset: 0x018 Watchdog Window compare value register (R/W ) */
 } ;
 
 

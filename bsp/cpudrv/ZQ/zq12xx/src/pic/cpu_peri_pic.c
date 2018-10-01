@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
@@ -21,7 +21,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -56,154 +56,154 @@
 
 typedef struct _PIC_TYPE_
 {
-	struct _PIC_TYPE_ *Next;
-	u32 IntLine;
-	u32 IntSub;
-	u32 *IntEn;
-	u32 *IntSts;
-	u32 (*isr)(ptu32_t);
+    struct _PIC_TYPE_ *Next;
+    u32 IntLine;
+    u32 IntSub;
+    u32 *IntEn;
+    u32 *IntSts;
+    u32 (*isr)(ptu32_t);
 }tagPic;
 
 tagPic *sPicHead = NULL;
 
 static void Pic_NodeInsert(tagPic *node)
 {
-	tagPic *temp = sPicHead;
-	while(temp->Next != NULL)
-	{
-		temp = temp->Next;
-	}
-	temp->Next = node;
-	node->Next = NULL;
+    tagPic *temp = sPicHead;
+    while(temp->Next != NULL)
+    {
+        temp = temp->Next;
+    }
+    temp->Next = node;
+    node->Next = NULL;
 }
 
 static tagPic* Pic_FindLineNode(tagPic *pic,u8 intline)
 {
-	tagPic *temp = pic;
-	while(temp != NULL)
-	{
-		if(temp->IntLine == intline)
-		{
-			break;
-		}
-		else
-		{
-			temp = temp->Next;
-		}
-	}
-	return temp;
+    tagPic *temp = pic;
+    while(temp != NULL)
+    {
+        if(temp->IntLine == intline)
+        {
+            break;
+        }
+        else
+        {
+            temp = temp->Next;
+        }
+    }
+    return temp;
 }
 static tagPic* Pic_FindSubInt(tagPic *pic,u8 intline,u8 subint)
 {
-	tagPic *temp = pic;
-	while(temp != NULL)
-	{
-		if((temp->IntLine == intline) && \
-				(temp->IntSub == subint))
-		{
-			break;
-		}
-		else
-		{
-			temp = temp->Next;
-		}
-	}
-	return temp;
+    tagPic *temp = pic;
+    while(temp != NULL)
+    {
+        if((temp->IntLine == intline) && \
+                (temp->IntSub == subint))
+        {
+            break;
+        }
+        else
+        {
+            temp = temp->Next;
+        }
+    }
+    return temp;
 }
 
 static bool_t Pic_IsrHandle(u8 intline)
 {
-	tagPic *pic;
+    tagPic *pic;
 
-	pic = sPicHead;
-	while(1)
-	{
-		pic = Pic_FindLineNode(pic,intline);
-		if(pic == NULL)
-		{
-			break;
-		}
+    pic = sPicHead;
+    while(1)
+    {
+        pic = Pic_FindLineNode(pic,intline);
+        if(pic == NULL)
+        {
+            break;
+        }
 
-		if(*(pic->IntSts) & (1<<pic->IntSub))
-		{
-			pic->isr(pic->IntSub);
-		}
-		pic = pic->Next;
-	}
+        if(*(pic->IntSts) & (1<<pic->IntSub))
+        {
+            pic->isr(pic->IntSub);
+        }
+        pic = pic->Next;
+    }
 
-	return true;
+    return true;
 }
 bool_t Pic_IntRegister(u8 intline,u8 subint,u32* EnAddr,\
-						u32* StsAddr,u32 (*isr)(ptu32_t))
+                        u32* StsAddr,u32 (*isr)(ptu32_t))
 {
-	bool_t Ret = false;
-	tagPic *pic,*temp;
+    bool_t Ret = false;
+    tagPic *pic,*temp;
 
-	if(NULL == isr)
-	{
-		return false;
-	}
+    if(NULL == isr)
+    {
+        return false;
+    }
 
-	temp = Pic_FindLineNode(sPicHead,intline);
-	if(NULL == temp)
-	{
-		Int_Register(intline);
-		Int_SetClearType(intline,CN_INT_CLEAR_AUTO);
-		Int_IsrConnect(intline,Pic_IsrHandle);
-		Int_SettoAsynSignal(intline);
-		Int_ClearLine(intline);
-		Int_RestoreAsynLine(intline);
-	}
+    temp = Pic_FindLineNode(sPicHead,intline);
+    if(NULL == temp)
+    {
+        Int_Register(intline);
+        Int_SetClearType(intline,CN_INT_CLEAR_AUTO);
+        Int_IsrConnect(intline,Pic_IsrHandle);
+        Int_SettoAsynSignal(intline);
+        Int_ClearLine(intline);
+        Int_RestoreAsynLine(intline);
+    }
 
-	pic = malloc(sizeof(tagPic));
-	if(NULL != pic)
-	{
-		pic->IntLine = intline;
-		pic->IntSub  = subint;
-		pic->IntEn   = EnAddr;
-		pic->IntSts  = StsAddr;
-		pic->isr     = isr;
-		pic->Next    = NULL;
+    pic = malloc(sizeof(tagPic));
+    if(NULL != pic)
+    {
+        pic->IntLine = intline;
+        pic->IntSub  = subint;
+        pic->IntEn   = EnAddr;
+        pic->IntSts  = StsAddr;
+        pic->isr     = isr;
+        pic->Next    = NULL;
 
-		if(sPicHead == NULL)
-		{
-			sPicHead = pic;
-		}
-		else
-		{
-			Pic_NodeInsert(pic);
-		}
-		Ret = true;
-	}
-	return true;
+        if(sPicHead == NULL)
+        {
+            sPicHead = pic;
+        }
+        else
+        {
+            Pic_NodeInsert(pic);
+        }
+        Ret = true;
+    }
+    return true;
 }
 
 bool_t Pic_IntEnable(u8 intline,u8 subint)
 {
-	bool_t Ret = false;
-	tagPic *pic;
+    bool_t Ret = false;
+    tagPic *pic;
 
-	pic = Pic_FindSubInt(sPicHead,intline,subint);
-	if(NULL != pic)
-	{
-		*(pic->IntEn) |= 1<<subint;
-		Ret = true;
-	}
-	return Ret;
+    pic = Pic_FindSubInt(sPicHead,intline,subint);
+    if(NULL != pic)
+    {
+        *(pic->IntEn) |= 1<<subint;
+        Ret = true;
+    }
+    return Ret;
 }
 
 bool_t Pic_IntDisable(u8 intline,u8 subint)
 {
-	bool_t Ret = false;
-	tagPic *pic;
+    bool_t Ret = false;
+    tagPic *pic;
 
-	pic = Pic_FindSubInt(sPicHead,intline,subint);
-	if(NULL != pic)
-	{
-		*(pic->IntEn) &= ~(1<<subint);
-		Ret = true;
-	}
-	return Ret;
+    pic = Pic_FindSubInt(sPicHead,intline,subint);
+    if(NULL != pic)
+    {
+        *(pic->IntEn) &= ~(1<<subint);
+        Ret = true;
+    }
+    return Ret;
 }
 
 

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -134,7 +134,7 @@
 #include "pool.h"
 #include "systime.h"
 #include "djyos.h"
-#include "exp.h"
+#include "blackbox.h"
 #include "dbug.h"
 
 #include "lowpower.h"
@@ -288,7 +288,7 @@ void Djy_SetStackCheckLevel(u32 Level)
 //-----------------------------------------------------------------------------
 bool_t __Djy_CheckStack(s16 event_id)
 {
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     struct ThreadVm *Vm;
     char StackExp[128];
     u32 loop;
@@ -323,7 +323,7 @@ bool_t __Djy_CheckStack(s16 event_id)
         {
             Vm->stack_used = &stack[loop];  //记录新的已用指针
             parahead.DecoderName = NULL;
-            parahead.ExpAction = EN_EXP_DEAL_RESTART;
+            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RESTART;
 #if CFG_OS_TINY == false
             name = g_tEvttTable[g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
 #else
@@ -333,11 +333,11 @@ bool_t __Djy_CheckStack(s16 event_id)
                                 (ptu32_t)stack,Vm->stack_size,loop<<2,
                                 event_id, g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK),
                                 name);
-            parahead.ExpInfo = (u8*)StackExp;
-            parahead.ExpInfoLen = sizeof(StackExp);
-            parahead.ExpType = CN_EXP_TYPE_STACK_OVER;
+            parahead.BlackBoxInfo = (u8*)StackExp;
+            parahead.BlackBoxInfoLen = sizeof(StackExp);
+            parahead.BlackBoxType = CN_BLACKBOX_TYPE_STACK_OVER;
             printk("%s\n\r",StackExp);
-            Exp_Throw(&parahead);
+            BlackBox_Recorder(&parahead);
         }
     }
     else
@@ -442,9 +442,9 @@ void __Djy_SetIntTime(u64* Cur,u64* NextDelay,u64* NextRRS,u8 evt)
         //    if( ((NextInt==*NextDelay) && (*NextDelay<=*NextRRS)) || \
         //            ((NextInt==*NextRRS) && (*NextRRS<=*NextDelay)) )
         //      return;
-        //    NextInt=(*NextDelay>*NextRRS)?*NextRRS:*NextDelay;
-        //    break;
-            return;
+            NextInt=(*NextDelay>*NextRRS)?*NextRRS:*NextDelay;
+            break;
+        //    return;
     }
     //当systick中断已经到了，但是系统却已经关闭了中断的情况下，
     //有可能会出现NextIntUs<*CurUs的情况，有可能会在DJY_SELECT_EVENT_TO_RUN
@@ -1036,7 +1036,6 @@ void __Djy_ScheduleAsynSignal(void)
 //      default_prio，本事件类型的默认优先级。
 //      vpus_res，系统繁忙时为本类型事件保留的线程数量，
 //      vpus_limit，本类型事件所能拥有的线程数量的最大值
-//      para_limit, 参数队列长度限制，以保护参数池不被撑破
 //      thread_routine，线程入口函数(事件处理函数)
 //      Stack，用户为处理事件的线程分配的栈，NULL表示从heap中分配栈。如果事件是
 //              EN_INDEPENDENCE类型，且有多条事件并行处理导致需要为该类型创建多
@@ -1058,7 +1057,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
                        u32 StackSize,
                        char *evtt_name)
 {
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     char ExpStr[64] = "事件类型控制块耗尽: ";
     u16 i,evtt_offset;
 
@@ -1069,19 +1068,19 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
         return CN_EVTT_ID_INVALID;
     }
     Int_SaveAsynSignal();      //禁止调度也就是禁止异步事件
-    //查找空闲的事件控制块
+    //查找空闲的事件类型控制块
     for(evtt_offset=0; evtt_offset<CFG_EVENT_TYPE_LIMIT; evtt_offset++)
         if( g_tEvttTable[evtt_offset].property.registered ==0)
             break;
     if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //没有空闲事件控制块
     {
         parahead.DecoderName = NULL;
-        parahead.ExpAction = EN_EXP_DEAL_RECORD;
+        parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
         strcat(ExpStr,evtt_name);
-        parahead.ExpInfo = (u8*)ExpStr;
-        parahead.ExpInfoLen = sizeof(ExpStr);
-        parahead.ExpType = CN_EXP_TYPE_ETCB_EXHAUSTED;
-        Exp_Throw(&parahead);
+        parahead.BlackBoxInfo = (u8*)ExpStr;
+        parahead.BlackBoxInfoLen = sizeof(ExpStr);
+        parahead.BlackBoxType = CN_BLACKBOX_TYPE_ETCB_EXHAUSTED;
+        BlackBox_Recorder(&parahead);
         Djy_SaveLastError(EN_KNL_ETCB_EXHAUSTED);
         info_printf("djyos","没有空闲事件控制块: %s\n\r",evtt_name);
         Int_RestoreAsynSignal();
@@ -1093,7 +1092,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
         {
             if(g_tEvttTable[i].property.registered == 1)
             {
-                if(strcmp(g_tEvttTable[i].evtt_name,evtt_name) == 0)
+                if(strncmp(g_tEvttTable[i].evtt_name,evtt_name,31) == 0)
                 {
                     Djy_SaveLastError(EN_KNL_EVTT_HOMONYMY);
                     info_printf("djyos","事件类型重名: %s\n\r",evtt_name);
@@ -1148,14 +1147,14 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //            if(g_tEvttTable[evtt_offset].my_free_vm == NULL)
 //            {//内存不足，不能创建线程
 //                parahead.DecoderName = NULL;
-//                parahead.ExpAction = EN_EXP_DEAL_RECORD;
+//                parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
 //                ExpStr[0] = '\0';
 //                strcat(ExpStr,"登记事件类型时内存不足: ");
 //                strcat(ExpStr,evtt_name);
-//                parahead.ExpInfo = (u8*)ExpStr;
-//                parahead.ExpInfoLen = sizeof(ExpStr);
-//                parahead.ExpType = CN_EXP_TYPE_MEM_EVTT;
-//                Exp_Throw(&parahead);
+//                parahead.BlackBoxInfo = (u8*)ExpStr;
+//                parahead.BlackBoxInfoLen = sizeof(ExpStr);
+//                parahead.BlackBoxType = CN_BLACKBOX_TYPE_MEM_EVTT;
+//                BlackBox_Recorder(&parahead);
 //                Djy_SaveLastError(EN_MEM_TRIED);
 //                info_printf("djyos","%s\n\r",evtt_name);
 //                Int_RestoreAsynSignal();
@@ -2479,7 +2478,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
                     ptu32_t PopPrarm2,
                     ufast_t prio)
 {
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     char ExpStr[32];
     struct EventECB *pl_ecb;
     struct EventType *pl_evtt;
@@ -2622,27 +2621,27 @@ u16 Djy_EventPop(   u16  hybrid_id,
         if(s_ptEventFree==NULL)            //没有空闲的事件控制块
         {
             parahead.DecoderName = NULL;
-            parahead.ExpAction = EN_EXP_DEAL_RECORD;
+            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
             itoa(hybrid_id,ExpStr,16);
             strcat(ExpStr,": 分配不到事件控制块");
-            parahead.ExpInfo = (u8*)ExpStr;
-            parahead.ExpInfoLen = sizeof(ExpStr);
-            parahead.ExpType = CN_EXP_TYPE_ECB_EXHAUSTED;
-            Exp_Throw(&parahead);
+            parahead.BlackBoxInfo = (u8*)ExpStr;
+            parahead.BlackBoxInfoLen = sizeof(ExpStr);
+            parahead.BlackBoxType = CN_BLACKBOX_TYPE_ECB_EXHAUSTED;
+            BlackBox_Recorder(&parahead);
             Djy_SaveLastError(EN_KNL_ECB_EXHAUSTED);
             if(pop_result != NULL)
                 *pop_result = (u32)EN_KNL_ECB_EXHAUSTED;
             return_result = CN_EVENT_ID_INVALID;
             goto end_pop;
-        }else if((pl_evtt->property.correlative == EN_INDEPENDENCE)
-                && ((pl_evtt->vpus)> pl_evtt->vpus_limit))
-        {
-            Djy_SaveLastError(EN_KNL_VPU_OVER);
-            return_result = CN_EVENT_ID_INVALID;
-            if(pop_result != NULL)
-                *pop_result = (u32)EN_KNL_VPU_OVER;
-            return_result = CN_EVENT_ID_INVALID;
-            goto end_pop;
+//      }else if((pl_evtt->property.correlative == EN_INDEPENDENCE)
+//              && ((pl_evtt->vpus)> pl_evtt->vpus_limit))
+//      {
+//          Djy_SaveLastError(EN_KNL_VPU_OVER);
+//          return_result = CN_EVENT_ID_INVALID;
+//          if(pop_result != NULL)
+//              *pop_result = (u32)EN_KNL_VPU_OVER;
+//          return_result = CN_EVENT_ID_INVALID;
+//          goto end_pop;
         }else                       //有空闲事件控制块
         {
             pl_ecb = s_ptEventFree;         //从空闲链表中提取一个事件控制块
@@ -2725,7 +2724,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
 
     }
     //设定了超时时间，将重新调度
-    //否则进入事件同步队列，事件处理函数自然返回或异常退出才解除阻塞
+    //running事件将进入新事件的同步队列，事件处理函数自然返回或异常退出才解除阻塞
     pl_evtt->pop_times++;
     if(timeout != 0)
     {
@@ -3002,18 +3001,18 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     struct EventECB *pl_ecb;
     struct EventType *pl_evtt;
     struct EventECB *pl_ecb_temp;
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     char ExpStr[32];
     ucpu_t  vm_final = CN_DELETE;
 
     parahead.DecoderName = NULL;
-    parahead.ExpAction = EN_EXP_DEAL_RECORD;
+    parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
     itoa(event->event_id,ExpStr,16);
     strcat(ExpStr,"事件处理意外结束");
-    parahead.ExpInfo = (u8*)ExpStr;
-    parahead.ExpInfoLen = sizeof(ExpStr);
-    parahead.ExpType = CN_EXP_TYPE_EVENT_EXIT;
-    Exp_Throw(&parahead);
+    parahead.BlackBoxInfo = (u8*)ExpStr;
+    parahead.BlackBoxInfoLen = sizeof(ExpStr);
+    parahead.BlackBoxType = CN_BLACKBOX_TYPE_EVENT_EXIT;
+    BlackBox_Recorder(&parahead);
     //此处不用int_save_asyn_signal函数，可以在应用程序有bug，没有成对调用
     //int_save_asyn_signal和int_restore_asyn_signal的情况下，确保错误到此为止。
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.

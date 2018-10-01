@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -58,50 +58,50 @@
 #include "ELBC.h"
 
 const tagTlbConfig tgTlbConfig[] = {
-	//ddr
+    //ddr
     SET_TLB_ENTRY(1, CN_DDR_ADDR_64MB_V0, CN_DDR_ADDR_64MB_V0,
-				MAS3_SX|MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
-				0, 0, BOOKE_PAGESZ_64M, 1),	//DDR WILL BE WRITE THROUGH
-	SET_TLB_ENTRY(1, CN_DDR_ADDR_64MB_V1, CN_DDR_ADDR_64MB_V1,
-				MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
-				0, 1, BOOKE_PAGESZ_64M, 1),	//DDR WILL BE WRITE THROUGH	
-	SET_TLB_ENTRY(1, CN_DDR_ADDR_64MB_V2, CN_DDR_ADDR_64MB_V2,
-				MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
-				0, 2, BOOKE_PAGESZ_64M, 1),	//DDR WILL BE WRITE THROUGH
-	SET_TLB_ENTRY(1, CN_DDR_ADDR_64MB_V3, CN_DDR_ADDR_64MB_V3,
-				MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
-				0, 3, BOOKE_PAGESZ_64M, 1),	//DDR WILL BE WRITE THROUGH	
-				
-	SET_TLB_ENTRY(1, CN_DDR_ADDR_256MB_V1, CN_DDR_ADDR_256MB_V1,
-				MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
-				0, 4, BOOKE_PAGESZ_256M, 1),	//DDR WILL BE WRITE THROUGH	
-	SET_TLB_ENTRY(1, CN_DDR_ADDR_256MB_V2, CN_DDR_ADDR_256MB_V2,
-				MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
-				0, 5, BOOKE_PAGESZ_256M, 1),	//DDR WILL BE WRITE THROUGH
-	SET_TLB_ENTRY(1, CN_DDR_ADDR_256MB_V3, CN_DDR_ADDR_256MB_V3,
-				MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
-				0, 6, BOOKE_PAGESZ_256M, 1),	//DDR WILL BE WRITE THROUGH	
-	//other device route			
-				
-	//ccsr
-	SET_TLB_ENTRY(1, CN_CCSR_NEWADDR_V, CN_CCSR_NEWADDR_PL,
-				MAS3_SW|MAS3_SR, MAS2_I | MAS2_G|MAS2_M,
-			    0, 12, BOOKE_PAGESZ_1M, 1),
-	//nor flash  16MB
-	SET_TLB_ENTRY(1, CN_NORFLASH_ADDR_V, CN_NORFLASH_ADDR_P,
-			    MAS3_SX|MAS3_SW|MAS3_SR,MAS2_I|MAS2_G|MAS2_M,
-				0, 13, BOOKE_PAGESZ_16M, 1),
+                MAS3_SX|MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
+                0, 0, BOOKE_PAGESZ_64M, 1), //DDR WILL BE WRITE THROUGH
+    SET_TLB_ENTRY(1, CN_DDR_ADDR_64MB_V1, CN_DDR_ADDR_64MB_V1,
+                MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
+                0, 1, BOOKE_PAGESZ_64M, 1), //DDR WILL BE WRITE THROUGH
+    SET_TLB_ENTRY(1, CN_DDR_ADDR_64MB_V2, CN_DDR_ADDR_64MB_V2,
+                MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
+                0, 2, BOOKE_PAGESZ_64M, 1), //DDR WILL BE WRITE THROUGH
+    SET_TLB_ENTRY(1, CN_DDR_ADDR_64MB_V3, CN_DDR_ADDR_64MB_V3,
+                MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
+                0, 3, BOOKE_PAGESZ_64M, 1), //DDR WILL BE WRITE THROUGH
+
+    SET_TLB_ENTRY(1, CN_DDR_ADDR_256MB_V1, CN_DDR_ADDR_256MB_V1,
+                MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
+                0, 4, BOOKE_PAGESZ_256M, 1),    //DDR WILL BE WRITE THROUGH
+    SET_TLB_ENTRY(1, CN_DDR_ADDR_256MB_V2, CN_DDR_ADDR_256MB_V2,
+                MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
+                0, 5, BOOKE_PAGESZ_256M, 1),    //DDR WILL BE WRITE THROUGH
+    SET_TLB_ENTRY(1, CN_DDR_ADDR_256MB_V3, CN_DDR_ADDR_256MB_V3,
+                MAS3_SW|MAS3_SR, MAS2_W | MAS2_G |MAS2_M,
+                0, 6, BOOKE_PAGESZ_256M, 1),    //DDR WILL BE WRITE THROUGH
+    //other device route
+
+    //ccsr
+    SET_TLB_ENTRY(1, CN_CCSR_NEWADDR_V, CN_CCSR_NEWADDR_PL,
+                MAS3_SW|MAS3_SR, MAS2_I | MAS2_G|MAS2_M,
+                0, 12, BOOKE_PAGESZ_1M, 1),
+    //nor flash  16MB
+    SET_TLB_ENTRY(1, CN_NORFLASH_ADDR_V, CN_NORFLASH_ADDR_P,
+                MAS3_SX|MAS3_SW|MAS3_SR,MAS2_I|MAS2_G|MAS2_M,
+                0, 13, BOOKE_PAGESZ_16M, 1),
     //nand flash
-	SET_TLB_ENTRY(1, CN_NANDFLASH_ADDR_V, CN_NANDFLASH_ADDR_P,
-			    MAS3_SX|MAS3_SW|MAS3_SR,  MAS2_I |MAS2_G|MAS2_M,
-				0, 14, BOOKE_PAGESZ_4K, 1),
+    SET_TLB_ENTRY(1, CN_NANDFLASH_ADDR_V, CN_NANDFLASH_ADDR_P,
+                MAS3_SX|MAS3_SW|MAS3_SR,  MAS2_I |MAS2_G|MAS2_M,
+                0, 14, BOOKE_PAGESZ_4K, 1),
 };
 const int gTlbCfgItem = ARRAY_SIZE(tgTlbConfig);
 //LAW config
 //0x00000000--0x3fffffff     1GB reserved for the mem
 const tagLawConfig tgLawConfig[] = {
-	//DDR
-	{0x00000000,0x80F0001d},	
+    //DDR
+    {0x00000000,0x80F0001d},
     //ELBC
     {0x000fe000,0x80400018},
 };
@@ -131,22 +131,22 @@ const int gElbcCfgItem = ARRAY_SIZE(tgLawConfig);
 */
 void Cache_InitL2(void)
 {
-	u32 value;
-	u32 *addr;
-	
-	addr = (u32 *)CN_CACHEL2_L2CTL;
-	value = *(u32 *)(addr);
-	
-	value = CN_CACHEL2_L2CTL_L2E;
-	*(u32 *)(addr)= value;
-	
-	value |= CN_CACHEL2_L2CTL_L2I;
-	*(u32 *)(addr)= value;
+    u32 value;
+    u32 *addr;
 
-	while(value & CN_CACHEL2_L2CTL_L2I)
-	{
-		value = *(u32 *)(addr);
-	}
-	return;
+    addr = (u32 *)CN_CACHEL2_L2CTL;
+    value = *(u32 *)(addr);
+
+    value = CN_CACHEL2_L2CTL_L2E;
+    *(u32 *)(addr)= value;
+
+    value |= CN_CACHEL2_L2CTL_L2I;
+    *(u32 *)(addr)= value;
+
+    while(value & CN_CACHEL2_L2CTL_L2I)
+    {
+        value = *(u32 *)(addr);
+    }
+    return;
 }
 

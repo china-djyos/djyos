@@ -21,7 +21,7 @@ extern void GDD_Demo_Progressbar(void);
 #include <gui/gdd/gdd_private.h>
 #include <widget/gdd_button.h>
 
-#include "../../../../djysrc/bsp/arch/arm/arm32_stdint.h"
+#include "arm32_stdint.h"
 
 
 static u16 test_id;
@@ -40,6 +40,7 @@ static const struct Test_tab
         {"Progressbar" ,GDD_Demo_Progressbar},
         {"Exit"        ,NULL                },
 };
+
 
 static ptu32_t HmiCreate(struct WindowMsg *pMsg)
 {
@@ -63,6 +64,7 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     GetClientRect(hwnd,&rc0);
     SetRect(&rc,RectW(&rc0)/(m*3+1),RectH(&rc0)/(n*3+1),\
             (2*RectW(&rc0))/(m*3+1),(2*RectH(&rc0))/(n*3+1));
+    OffsetRect(&rc,0, RectH(&rc)/3);
     num = 0;
     for(j=0;j<n;j++)
     {
@@ -100,17 +102,12 @@ static ptu32_t HmiNotify(struct WindowMsg *pMsg)
     return true;
 }
 
-//窗口关闭消息处理函数
-static ptu32_t HmiClose(struct WindowMsg *pMsg)
-{
-    return true;
-}
+
 //消息处理函数表
 static struct MsgProcTable s_gTestMsgTable[] =
 {
     {MSG_CREATE,HmiCreate},
     {MSG_NOTIFY,HmiNotify},
-    {MSG_CLOSE,HmiClose}
 };
 
 static struct MsgTableLink  s_gTestMsgLink;
@@ -118,7 +115,7 @@ static void CreateTestGui(void)
 {
     s_gTestMsgLink.MsgNum = sizeof(s_gTestMsgTable) / sizeof(struct MsgProcTable);
     s_gTestMsgLink.myTable = (struct MsgProcTable *)&s_gTestMsgTable;
-    GDD_CreateGuiApp("Gdd Test", &s_gTestMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_CreateGuiApp("Gdd Test", &s_gTestMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
     GDD_WaitGuiAppExit("Gdd Test");
 }
 

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -96,10 +96,10 @@ void *__M_StaticMallocHeap(ptu32_t size,struct HeapCB *Heap,u32 Timeout);
 void *__M_StaticMalloc(ptu32_t size,u32 timeout);
 void __M_StaticFreeHeap(void *pl_mem,struct HeapCB *Heap);
 void __M_StaticFree(void *pl_mem);
-void *__M_StaticRealloc(void *, ptu32_t NewSize,u32 timeout);
+void *__M_StaticRealloc(void *, ptu32_t NewSize);
 void *__M_StaticMallocStack(struct EventECB *event, u32 size);
 
-ptu32_t Heap_StaticModuleInit(ptu32_t para);
+void Heap_StaticModuleInit(void);
 
 ptu32_t __M_StaticFormatSizeHeap(ptu32_t size,struct HeapCB *Heap);
 ptu32_t __M_StaticFormatSize(ptu32_t size);
@@ -113,7 +113,7 @@ ptu32_t __M_StaticGetFreeMemHeap(struct HeapCB *Heap);
 ptu32_t __M_StaticCheckSize(void * mp);
 
 void *  (*M_Malloc)(ptu32_t size,u32 timeout);
-void *  (*M_Realloc) (void *, ptu32_t NewSize,u32 timeout);
+void *  (*M_Realloc) (void *, ptu32_t NewSize);
 void    (*M_Free)(void * pl_mem);
 void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
@@ -252,7 +252,7 @@ void __memHeapScan(void)
 //      2.软件启动后首先调用本函数,启动静态分配功能,此后还不具备动态分配功能.
 //      3.由配置工具确保堆不重名，这里不做检查。
 //-----------------------------------------------------------------------------
-ptu32_t Heap_StaticModuleInit(ptu32_t para)
+void Heap_StaticModuleInit(void)
 {
     __memHeapScan();
 
@@ -271,8 +271,6 @@ ptu32_t Heap_StaticModuleInit(ptu32_t para)
     M_GetFreeMem = __M_StaticGetFreeMem;
     M_GetFreeMemHeap = __M_StaticGetFreeMemHeap;
     M_CheckSize = __M_StaticCheckSize;
-
-    return 1;
 }
 
 //----准静态内存分配-----------------------------------------------------------
@@ -421,7 +419,7 @@ void *__M_StaticMalloc(ptu32_t size,u32 timeout)
 //   说明: 优先对参数NewSize的判断逻辑
 //   作者: 季兆林
 //-----------------------------------------------------------------------------
-void *__M_StaticRealloc(void *p, ptu32_t NewSize,u32 Timeout)
+void *__M_StaticRealloc(void *p, ptu32_t NewSize)
 {
     ptu32_t OldSize;
     void *NewP = NULL;

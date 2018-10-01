@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>sr7363</boardName>
+  <cpu>
+    <cpuName>stm32f303xc</cpuName>
+    <mianClk>8.0</mianClk>
+    <chip>
+      <chipName>at24c128b</chipName>
+    </chip>
+    <chip>
+      <chipName>max14001</chipName>
+    </chip>
+    <peripheral>cpu_peri_adc</peripheral>
+    <peripheral>cpu_peri_dma</peripheral>
+    <peripheral>cpu_peri_gpio</peripheral>
+    <peripheral>cpu_peri_iic</peripheral>
+    <peripheral>cpu_peri_spi</peripheral>
+    <peripheral>cpu_peri_systime</peripheral>
+    <peripheral>cpu_peri_timer</peripheral>
+    <peripheral>cpu_peri_uart</peripheral>
+    <peripheral>cpu_peri_hal</peripheral>
+  </cpu>
+</board>

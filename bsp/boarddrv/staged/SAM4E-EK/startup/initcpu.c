@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -54,7 +54,7 @@
 //   作者: lst
 //   新版本号：V1.0.0
 //   修改说明: 本版是初版,用于验证目的
-//		下一版需增加判断时钟是否已经起振的代码
+//      下一版需增加判断时钟是否已经起振的代码
 //------------------------------------------------------
 #include "stdint.h"
 #include "cpu_peri.h"
@@ -97,14 +97,14 @@ const u32 gc_u32StartupExpTable[256] __attribute__ ((section(".StartupExpTbl")))
 
 void Init_Cpu(void)
 {
-	__set_PSP((uint32_t)msp_top);
-	__set_PRIMASK(1);
-	__set_FAULTMASK(1);
-	__set_CONTROL(0);
+    __set_PSP((uint32_t)msp_top);
+    __set_PRIMASK(1);
+    __set_FAULTMASK(1);
+    __set_CONTROL(0);
 
-    #if (__FPU_USED  == 1)
-	startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //使能FPU
-	startup_scb_reg->FPCCR = (1UL << 31);                //关闭lazy stacking
+    #if (_D_FPU_USED  == 1)
+    startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //使能FPU
+    startup_scb_reg->FPCCR = (1UL << 31);                //关闭lazy stacking
     #endif
     switch(startup_scb_reg->CPUID)
     {
@@ -118,7 +118,7 @@ void Init_Cpu(void)
     void System_ClkInit(void);
     System_ClkInit();
 
-	IAP_SelectLoadProgam();
+    IAP_SelectLoadProgam();
 }
 
 extern void Load_Preload(void);
@@ -130,9 +130,9 @@ extern void Load_Preload(void);
 //-----------------------------------------------------------------
 void AppStart(void)
 {
-	__set_MSP((uint32_t)msp_top);
-	__set_PSP((uint32_t)msp_top);
-	Load_Preload();
+    __set_MSP((uint32_t)msp_top);
+    __set_PSP((uint32_t)msp_top);
+    Load_Preload();
 }
 
 #define EEFC_FMR_Val    0x00000500      // 0x00000000
@@ -155,85 +155,85 @@ void AppStart(void)
 
 void System_ClkInit(void)
 {
-	EFC->EEFC_FMR = EEFC_FMR_Val;
+    EFC->EEFC_FMR = EEFC_FMR_Val;
 
-	PMC->PMC_WPMR = 0x504D4300;                 /* Disable write protect             */
+    PMC->PMC_WPMR = 0x504D4300;                 /* Disable write protect             */
 
-	/* before we change the clocksetup we switch Master Clock Source
+    /* before we change the clocksetup we switch Master Clock Source
      to MAIN_CLK and set prescaler to one
-	 */
-	PMC->PMC_MCKR = (PMC->PMC_MCKR & ~PMC_MCKR_CSS_Msk) | PMC_MCKR_CSS_MAIN_CLK;
-	while (!(PMC->PMC_SR & PMC_SR_MCKRDY));     /* Wait for MCKRDY                   */
+     */
+    PMC->PMC_MCKR = (PMC->PMC_MCKR & ~PMC_MCKR_CSS_Msk) | PMC_MCKR_CSS_MAIN_CLK;
+    while (!(PMC->PMC_SR & PMC_SR_MCKRDY));     /* Wait for MCKRDY                   */
 
-	PMC->PMC_MCKR = (PMC->PMC_MCKR & ~ PMC_MCKR_PRES_Msk) | PMC_MCKR_PRES_CLK_1;
-	while (!(PMC->PMC_SR & PMC_SR_MCKRDY));     /* Wait for MCKRDY                   */
+    PMC->PMC_MCKR = (PMC->PMC_MCKR & ~ PMC_MCKR_PRES_Msk) | PMC_MCKR_PRES_CLK_1;
+    while (!(PMC->PMC_SR & PMC_SR_MCKRDY));     /* Wait for MCKRDY                   */
 
 #if (CKGR_MOR_Val & (CKGR_MOR_MOSCRCEN | CKGR_MOR_MOSCXTEN))    /* If MOSCRCEN/MOSCXTEN set  */
-	PMC->CKGR_MOR  = ((PMC->CKGR_MOR &  CKGR_MOR_MOSCSEL)    |    /* Keep the current MOSCSEL  */
+    PMC->CKGR_MOR  = ((PMC->CKGR_MOR &  CKGR_MOR_MOSCSEL)    |    /* Keep the current MOSCSEL  */
                     (CKGR_MOR_Val  & ~CKGR_MOR_MOSCSEL)    |    /* Set value except MOSCSEL  */
                     (CKGR_MOR_MOSCRCEN | CKGR_MOR_MOSCXTEN)|    /* and enable bothe OSCs     */
                     (CKGR_MOR_KEY(0x37))                      );
 #if (CKGR_MOR_Val & CKGR_MOR_MOSCRCEN)
-	while (!(PMC->PMC_SR & PMC_SR_MOSCRCS));   /* Wait for MOSCRCS                   */
+    while (!(PMC->PMC_SR & PMC_SR_MOSCRCS));   /* Wait for MOSCRCS                   */
 #endif
 #if (CKGR_MOR_Val & CKGR_MOR_MOSCXTEN)
-	while (!(PMC->PMC_SR & PMC_SR_MOSCXTS));   /* Wait for MOSCXTS                   */
+    while (!(PMC->PMC_SR & PMC_SR_MOSCXTS));   /* Wait for MOSCXTS                   */
 #endif
-	PMC->CKGR_MOR  =  ((CKGR_MOR_Val      ) |  /* set the desired selection          */
+    PMC->CKGR_MOR  =  ((CKGR_MOR_Val      ) |  /* set the desired selection          */
                      (CKGR_MOR_KEY(0x37))  );
-	while (!(PMC->PMC_SR & PMC_SR_MOSCSELS));  /* Wait for MOSCSELS                  */
+    while (!(PMC->PMC_SR & PMC_SR_MOSCSELS));  /* Wait for MOSCSELS                  */
 #endif
 
   /* write PLLBDIV2, PLLADIV2 */
-	PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~(PMC_MCKR_PLLADIV2)) |
+    PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~(PMC_MCKR_PLLADIV2)) |
                    (PMC_MCKR_Val  &  (PMC_MCKR_PLLADIV2))  );
-	while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                    */
+    while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                    */
 
 #if (CKGR_PLLAR_Val & CKGR_PLLAR_MULA_Msk)   /* If PLL is activated                */
-	PMC->CKGR_PLLAR = (CKGR_PLLAR_Val | CKGR_PLLAR_ONE);
-	while (!(PMC->PMC_SR & PMC_SR_LOCKA));     /* Wait for LOCKA                     */
+    PMC->CKGR_PLLAR = (CKGR_PLLAR_Val | CKGR_PLLAR_ONE);
+    while (!(PMC->PMC_SR & PMC_SR_LOCKA));     /* Wait for LOCKA                     */
 #endif
 
-	if ((PMC_MCKR_Val & PMC_MCKR_CSS_Msk) >= 2)
-	{
-		/* Write PRES field only                                                       */
-		PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_PRES_Msk) |
+    if ((PMC_MCKR_Val & PMC_MCKR_CSS_Msk) >= 2)
+    {
+        /* Write PRES field only                                                       */
+        PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_PRES_Msk) |
                      (PMC_MCKR_Val  &  PMC_MCKR_PRES_Msk)  );
-		while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
+        while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
 
-		/* Write CSS field only                                                        */
-		PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_CSS_Msk) |
+        /* Write CSS field only                                                        */
+        PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_CSS_Msk) |
                      (PMC_MCKR_Val  &  PMC_MCKR_CSS_Msk)  );
-		while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
-	}
-	else
-	{
-		/* Write CSS field only                                                        */
-		PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_CSS_Msk) |
+        while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
+    }
+    else
+    {
+        /* Write CSS field only                                                        */
+        PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_CSS_Msk) |
                      (PMC_MCKR_Val  &  PMC_MCKR_CSS_Msk)  );
-		while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
+        while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
 
-		/* Write PRES field only                                                       */
-		PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_PRES_Msk) |
+        /* Write PRES field only                                                       */
+        PMC->PMC_MCKR = ((PMC->PMC_MCKR & ~PMC_MCKR_PRES_Msk) |
                      (PMC_MCKR_Val  &  PMC_MCKR_PRES_Msk)  );
-		while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
-	}
+        while (!(PMC->PMC_SR & PMC_SR_MCKRDY));    /* Wait for MCKRDY                  */
+    }
 
-	PMC->PMC_SCER  = PMC_SCER_Val;
-	PMC->PMC_PCER0 = PMC_PCER0_Val;
-	PMC->PMC_PCER1 = PMC_PCER1_Val;
+    PMC->PMC_SCER  = PMC_SCER_Val;
+    PMC->PMC_PCER0 = PMC_PCER0_Val;
+    PMC->PMC_PCER1 = PMC_PCER1_Val;
 
 #if (PMC_SCER_Val & PMC_SCER_PCK0)
-	PMC->PMC_PCK[0] = PMC_PCK0_Val;            /* Write PCK0                         */
-	while (!(PMC->PMC_SR & PMC_SR_PCKRDY0));   /* Wait for PCKRDY0                   */
+    PMC->PMC_PCK[0] = PMC_PCK0_Val;            /* Write PCK0                         */
+    while (!(PMC->PMC_SR & PMC_SR_PCKRDY0));   /* Wait for PCKRDY0                   */
 #endif
 #if (PMC_SCER_Val & PMC_SCER_PCK1)
-	PMC->PMC_PCK[1] = PMC_PCK1_Val;            /* Write PCK1                         */
-	while (!(PMC->PMC_SR & PMC_SR_PCKRDY1));   /* Wait for PCKRDY1                   */
+    PMC->PMC_PCK[1] = PMC_PCK1_Val;            /* Write PCK1                         */
+    while (!(PMC->PMC_SR & PMC_SR_PCKRDY1));   /* Wait for PCKRDY1                   */
 #endif
 #if (PMC_SCER_Val & PMC_SCER_PCK2)
-	PMC->PMC_PCK[2] = PMC_PCK2_Val;            /* Write PCK2                         */
-	while (!(PMC->PMC_SR & PMC_SR_PCKRDY2));   /* Wait for PCKRDY2                   */
+    PMC->PMC_PCK[2] = PMC_PCK2_Val;            /* Write PCK2                         */
+    while (!(PMC->PMC_SR & PMC_SR_PCKRDY2));   /* Wait for PCKRDY2                   */
 #endif
 
 

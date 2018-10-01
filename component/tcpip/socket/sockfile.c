@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -65,16 +65,16 @@
 //////////////////////////WE WILL DO A EASY ONE HERE////////////////////////////
 typedef struct
 {
-	u32   flag;
-	u32   status;
-	void *context;
+    u32   flag;
+    u32   status;
+    void *context;
 }tagItem;
 typedef struct
 {
-	tagItem *tab;
-	u32      tablen;
-	mutex_t  lock;   //used to protect the tab
-	u32      used;   //how many item has been used
+    tagItem *tab;
+    u32      tablen;
+    mutex_t  lock;   //used to protect the tab
+    u32      used;   //how many item has been used
 }tagSockFileCB;
 static tagSockFileCB  gSockFileCB;   //all the control member here
 
@@ -82,95 +82,95 @@ static tagSockFileCB  gSockFileCB;   //all the control member here
 #define CN_SOCKFILE_BASEFD    (0X10000)
 void *sockobj_malloc(void *cb)
 {
-	void *ret = NULL;
-	tagItem *tmp;
-	int i = 0;
-	if(mutex_lock(gSockFileCB.lock))
-	{
-		for(i =0;i <gSockFileCB.tablen;i++)
-		{
-			tmp = &gSockFileCB.tab[i];
-			if(0==(tmp->flag &CN_SOCKFILE_BUSY))
-			{
-				tmp->flag =CN_SOCKFILE_BUSY;
-				ret = tmp;
-				gSockFileCB.used++;
-				break;
-			}
-		}
-		mutex_unlock(gSockFileCB.lock);
-	}
-	return ret;
+    void *ret = NULL;
+    tagItem *tmp;
+    int i = 0;
+    if(mutex_lock(gSockFileCB.lock))
+    {
+        for(i =0;i <gSockFileCB.tablen;i++)
+        {
+            tmp = &gSockFileCB.tab[i];
+            if(0==(tmp->flag &CN_SOCKFILE_BUSY))
+            {
+                tmp->flag =CN_SOCKFILE_BUSY;
+                ret = tmp;
+                gSockFileCB.used++;
+                break;
+            }
+        }
+        mutex_unlock(gSockFileCB.lock);
+    }
+    return ret;
 }
 void  sockobj_free(void *cb,void *obj)
 {
-	tagItem *tmp;
-	tmp = obj;
-	if(mutex_lock(gSockFileCB.lock))
-	{
-		memset(tmp,0,sizeof(tagItem));
-		gSockFileCB.used--;
-		mutex_unlock(gSockFileCB.lock);
-	}
-	return;
+    tagItem *tmp;
+    tmp = obj;
+    if(mutex_lock(gSockFileCB.lock))
+    {
+        memset(tmp,0,sizeof(tagItem));
+        gSockFileCB.used--;
+        mutex_unlock(gSockFileCB.lock);
+    }
+    return;
 }
 bool_t sockobj_setcontext(void *obj,void *context)
 {
-	tagItem *tmp;
-	tmp = obj;
-	tmp->context = context;
-	return true;
+    tagItem *tmp;
+    tmp = obj;
+    tmp->context = context;
+    return true;
 }
 void *sockobj_getcontext(void *obj)
 {
-	void *ret = NULL;
-	if(NULL != obj)
-	{
-		ret = ((tagItem *)obj)->context;
-	}
-	return ret;
+    void *ret = NULL;
+    if(NULL != obj)
+    {
+        ret = ((tagItem *)obj)->context;
+    }
+    return ret;
 }
 void * sockobj_obj(int fd)
 {
-	void *ret = NULL;
-	int off;
-	off = fd- CN_SOCKFILE_BASEFD;
-	if((off >= 0)&&(off < gSockFileCB.tablen))
-	{
-		ret = &gSockFileCB.tab[off];
-	}
-	return ret;
+    void *ret = NULL;
+    int off;
+    off = fd- CN_SOCKFILE_BASEFD;
+    if((off >= 0)&&(off < gSockFileCB.tablen))
+    {
+        ret = &gSockFileCB.tab[off];
+    }
+    return ret;
 }
 int sockobj_fd(void *obj)
 {
-	int ret = -1;
-	tagItem *tmp;
-	int      off;
-	tmp = obj;
-	off = tmp-gSockFileCB.tab;
-	if((off >=0)&&(off < gSockFileCB.tablen))
-	{
-		ret = CN_SOCKFILE_BASEFD+off;
-	}
-	return ret;
+    int ret = -1;
+    tagItem *tmp;
+    int      off;
+    tmp = obj;
+    off = tmp-gSockFileCB.tab;
+    if((off >=0)&&(off < gSockFileCB.tablen))
+    {
+        ret = CN_SOCKFILE_BASEFD+off;
+    }
+    return ret;
 }
 bool_t sockobj_setstatus(void *obj,u32 status)
 {
-	bool_t ret = true;
+    bool_t ret = true;
 
-	tagItem *tmp;
-	tmp = obj;
-	tmp->status |= status;
-	return ret;
+    tagItem *tmp;
+    tmp = obj;
+    tmp->status |= status;
+    return ret;
 }
 bool_t sockobj_clrstatus(void *obj,u32 status)
 {
-	bool_t ret = true;
+    bool_t ret = true;
 
-	tagItem *tmp;
-	tmp = obj;
-	tmp->status &= (~status);
-	return ret;
+    tagItem *tmp;
+    tmp = obj;
+    tmp->status &= (~status);
+    return ret;
 }
 
 

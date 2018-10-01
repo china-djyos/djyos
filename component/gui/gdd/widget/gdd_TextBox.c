@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -686,16 +686,16 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
         return false;
     hdc =BeginPaint(hwnd);
     if(NULL==hdc)
-    	return false;
-	//由于TextBox只能显示单行信息,因此先判断一下字符串是否包含多行,若为多行,则
-	//只显示第一行信息,其他行信息直接忽略.
-	if(!pTB->IsMultiLines)
-	{
-		str=hwnd->Text;
-		ret=__GetValidStrInfo(str,&count,NULL);
-		if(!ret)
-			return false;
-	}
+        return false;
+    //由于TextBox只能显示单行信息,因此先判断一下字符串是否包含多行,若为多行,则
+    //只显示第一行信息,其他行信息直接忽略.
+    if(!pTB->IsMultiLines)
+    {
+        str=hwnd->Text;
+        ret=__GetValidStrInfo(str,&count,NULL);
+        if(!ret)
+            return false;
+    }
 
 
    GetClientRect(hwnd,&rc);
@@ -706,30 +706,30 @@ static  bool_t TextBox_Paint(struct WindowMsg *pMsg)
    FillRect(hdc,&rc);
    if(hwnd->Style&WS_BORDER)
    {
-	  if(hwnd->Style&BORDER_FIXED3D)
-	  {
-		 SetDrawColor(hdc,RGB(173,173,173));
-		 DrawLine(hdc,0,0,0,RectH(&rc)-1); //L
-		 SetDrawColor(hdc,RGB(234,234,234));
-		 DrawLine(hdc,0,0,RectW(&rc)-1,0);   //U
-		 DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
-		 DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
-	  }
-	  else
-	  {
-		 SetDrawColor(hdc,RGB(169,169,169));
-		 DrawLine(hdc,0,0,0,RectH(&rc)-1); //L
-		 DrawLine(hdc,0,0,RectW(&rc)-1,0);   //U
-		 DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
-		 DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
-	  }
-	}
+      if(hwnd->Style&BORDER_FIXED3D)
+      {
+         SetDrawColor(hdc,RGB(173,173,173));
+         DrawLine(hdc,0,0,0,RectH(&rc)-1); //L
+         SetDrawColor(hdc,RGB(234,234,234));
+         DrawLine(hdc,0,0,RectW(&rc)-1,0);   //U
+         DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
+         DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
+      }
+      else
+      {
+         SetDrawColor(hdc,RGB(169,169,169));
+         DrawLine(hdc,0,0,0,RectH(&rc)-1); //L
+         DrawLine(hdc,0,0,RectW(&rc)-1,0);   //U
+         DrawLine(hdc,RectW(&rc)-1,0,RectW(&rc)-1,RectH(&rc)-1); //R
+         DrawLine(hdc,0,RectH(&rc)-1,RectW(&rc)-1,RectH(&rc)-1); //D
+      }
+    }
 
-//	SetTextColor(hdc,RGB(1,1,1));
+//  SetTextColor(hdc,RGB(1,1,1));
     Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,&color);
     SetTextColor(hdc,color);
-	DrawText(hdc,str,count,&rc,DT_VCENTER|DT_LEFT);
-	EndPaint(hwnd,hdc);
+    DrawText(hdc,str,count,&rc,DT_VCENTER|DT_LEFT);
+    EndPaint(hwnd,hdc);
 
     return true;
 }

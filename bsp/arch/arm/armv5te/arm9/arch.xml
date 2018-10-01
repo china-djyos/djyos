@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <arch>
-    <family>arm9</family>
+    <archname>arm9</archname>
     <compile-option>
         <mcpu>arm9</mcpu>
     </compile-option>

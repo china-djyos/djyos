@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component>
   <buffer>true</buffer>
-  <NlsCharset>false</NlsCharset>
   <ascii_charset>false</ascii_charset>
   <gb2312_charset>false</gb2312_charset>
   <utf8_charset>false</utf8_charset>
+  <NlsCharset>false</NlsCharset>
   <dbug>true</dbug>
-  <DevFile>true</DevFile>
   <flash>true</flash>
   <uart>true</uart>
+  <DevFile>true</DevFile>
   <canbus>false</canbus>
   <ioiicbus>false</ioiicbus>
   <iicbus>false</iicbus>
@@ -19,8 +19,8 @@
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
   <easyfilesystem>false</easyfilesystem>
-  <fatfilesystem>true</fatfilesystem>
-  <IAP>true</IAP>
+  <fatfilesystem>false</fatfilesystem>
+  <IAP>false</IAP>
   <yaf2filesystem>false</yaf2filesystem>
   <filesystem>true</filesystem>
   <gdd>false</gdd>
@@ -36,17 +36,18 @@
   <shell>true</shell>
   <stdio>true</stdio>
   <tcpip>false</tcpip>
-  <timer>true</timer>
+  <timer>false</timer>
   <wdt>false</wdt>
   <ymodem>false</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>
   <int>true</int>
   <lock>true</lock>
-  <MsgQueue>true</MsgQueue>
+  <MsgQueue>false</MsgQueue>
   <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
+  <board>true</board>
   <dm9000a-brd>false</dm9000a-brd>
   <ili9325-brd>false</ili9325-brd>
   <key_hard>false</key_hard>
@@ -61,6 +62,7 @@
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
   <Sharc21469>false</Sharc21469>
+  <sldrv>false</sldrv>
   <stm32f1>true</stm32f1>
   <stm32f3>false</stm32f3>
   <stm32f4>false</stm32f4>
@@ -69,7 +71,7 @@
   <stm32L4>false</stm32L4>
   <goahead250>false</goahead250>
   <duktape>false</duktape>
-  <imxrt1052>false</imxrt1052>
+  <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
   <libghttp>false</libghttp>
   <vncserver>false</vncserver>
@@ -84,7 +86,7 @@
   <at24c02>false</at24c02>
   <ili9325>false</ili9325>
   <stmpe811>false</stmpe811>
-  <cpu_peri_dma>true</cpu_peri_dma>
+  <cpu_peri_dma>false</cpu_peri_dma>
   <cpu_peri_emflash>false</cpu_peri_emflash>
   <cpu_peri_gpio>true</cpu_peri_gpio>
   <cpu_peri_iic>false</cpu_peri_iic>
@@ -93,5 +95,4 @@
   <cpu_peri_timer>false</cpu_peri_timer>
   <cpu_peri_uart>true</cpu_peri_uart>
   <cpu_peri_wdt>false</cpu_peri_wdt>
-  <cpu_peri_hal>true</cpu_peri_hal>
 </component>

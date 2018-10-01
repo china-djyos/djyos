@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -64,49 +64,49 @@ extern "C" {
 #endif
 
 //GPIO设置专用宏定义
-#define GPIO_MODE_IN    	0		//普通输入模式
-#define GPIO_MODE_OUT		1		//普通输出模式
-#define GPIO_MODE_AF		2		//AF功能模式
-#define GPIO_MODE_AIN		3		//模拟输入模式
+#define GPIO_MODE_IN        0       //普通输入模式
+#define GPIO_MODE_OUT       1       //普通输出模式
+#define GPIO_MODE_AF        2       //AF功能模式
+#define GPIO_MODE_AIN       3       //模拟输入模式
 
 #define GPIO_SPEED_L        0       //GPIO速度LOW(00,10为低速，01为中，11为高)
 #define GPIO_SPEED_M        1       //GPIO速度MEDIUM
 #define GPIO_SPEED_H        2       //GPIO速度High
 #define GPIO_SPEED_VH       3       //GPIO速度very high
 
-#define GPIO_PUPD_NONE		0		//不带上下拉
-#define GPIO_PUPD_PU		1		//上拉
-#define GPIO_PUPD_PD		2		//下拉
-#define GPIO_PUPD_RES		3		//保留
+#define GPIO_PUPD_NONE      0       //不带上下拉
+#define GPIO_PUPD_PU        1       //上拉
+#define GPIO_PUPD_PD        2       //下拉
+#define GPIO_PUPD_RES       3       //保留
 
-#define GPIO_OTYPE_PP		0		//推挽输出
-#define GPIO_OTYPE_OD		1		//开漏输出
+#define GPIO_OTYPE_PP       0       //推挽输出
+#define GPIO_OTYPE_OD       1       //开漏输出
 
 //GPIO端口设置,(f3:A-F)
-#define GPIO_A 				0
-#define GPIO_B 				1
-#define GPIO_C				2
-#define GPIO_D 				3
-#define GPIO_E 				4
-#define GPIO_F 				5
+#define GPIO_A              0
+#define GPIO_B              1
+#define GPIO_C              2
+#define GPIO_D              3
+#define GPIO_E              4
+#define GPIO_F              5
 
 //GPIO引脚定义
-#define PIN0				(1<<0)
-#define PIN1				(1<<1)
-#define PIN2				(1<<2)
-#define PIN3				(1<<3)
-#define PIN4				(1<<4)
-#define PIN5				(1<<5)
-#define PIN6				(1<<6)
-#define PIN7				(1<<7)
-#define PIN8				(1<<8)
-#define PIN9				(1<<9)
-#define PIN10				(1<<10)
-#define PIN11				(1<<11)
-#define PIN12				(1<<12)
-#define PIN13				(1<<13)
-#define PIN14				(1<<14)
-#define PIN15				(1<<15)
+#define PIN0                (1<<0)
+#define PIN1                (1<<1)
+#define PIN2                (1<<2)
+#define PIN3                (1<<3)
+#define PIN4                (1<<4)
+#define PIN5                (1<<5)
+#define PIN6                (1<<6)
+#define PIN7                (1<<7)
+#define PIN8                (1<<8)
+#define PIN9                (1<<9)
+#define PIN10               (1<<10)
+#define PIN11               (1<<11)
+#define PIN12               (1<<12)
+#define PIN13               (1<<13)
+#define PIN14               (1<<14)
+#define PIN15               (1<<15)
 
 #define GPIO_Lock            (0)
 #define GPIO_UnLockr          (1)
@@ -151,7 +151,7 @@ typedef struct PIN
 #define PIO_LISTSIZE(pPins)    (sizeof(pPins) / sizeof( Pin))
 
 bool_t GPIO_CfgPinFunc(u32 port,u32 Msk,u32 Mode,
-						u32 OutType,u32 OutSpeed,u32 PUPD);
+                        u32 OutType,u32 OutSpeed,u32 PUPD);
 u32 GPIO_AFSet(u32 port,u32 pinnum,u32 af_no);
 u32 GPIO_GetData(u32 port);
 void GPIO_OutData(u32 port,u32 data);

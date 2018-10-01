@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -50,45 +50,45 @@
 #ifndef __FTP_H
 #define __FTP_H
 
-#define CN_FILEREBOOT                 110	//新文件指示器上的重启标记
-#define CN_SERVERREADYTIME            120	//服务器准备就绪的时间（分钟数）
-#define CN_OPENDATACONNECTION125      125	//打开数据连接，开始传输
-#define CN_OPENCONNECTION             150	//打开连接
-#define CN_CMDSUCCESS                 200	//成功
-#define CN_CMDFAILED                  202	//命令没有执行
-#define CN_SYSSTAT                    211	//系统状态回复
-#define CN_DIRSTAT                    212	//目录状态回复
-#define CN_FILESTAT                   213	//文件状态回复
-#define CN_HELPSTAT                   214	//帮助信息回复
-#define CN_SYSTYPE                    215	//系统类型回复
-#define CN_SERVERREADY                220	//服务就绪
-#define CN_LOGOUT                     221	//退出网络
-#define CN_OPENDATACONNECTION225      225	//打开数据连接
-#define CN_CLOSEDATACONNECTION        226	//结束数据连接
-#define CN_ENTERPASSIVE               227	//进入被动模式（IP 地址、ID 端口）
-#define CN_LOGIN                      230	//登录因特网
-#define CN_FILECOMPLETE               250	//文件行为完成
-#define CN_PATHBUILD                  257	//路径名建立
-#define CN_NEEDPASS                   331	//要求密码
-#define CN_NEEDUSER                   332	//要求帐号
-#define CN_FILEPAUSE                  350	//文件行为暂停
-#define CN_SERVERCLOSE                421	//服务关闭
-#define CN_OPENDATACONNECTIONFAILED   425	//无法打开数据连接
-#define CN_CLOSECONNECTION            426	//结束连接
-#define CN_FILENOTVALID               450	//文件不可用
-#define CN_LOCALERR                   451	//遇到本地错误
-#define CN_SPACENOTENOUGH             452	//磁盘空间不足
-#define CN_CMDINVALID                 500	//无效命令
-#define CN_PARAERR                    501	//错误参数
-#define CN_CMDNOTEXE                  502	//命令没有执行
-#define CN_CMDORDERERR                503	//错误指令序列
-#define CN_CMDPARAINVALID             504	//无效命令参数
-#define CN_NOLOG                      530	//未登录网络
-#define CN_STRNEEDUSER                532	//存储文件需要帐号
-#define CN_FILEINVALID                550	//文件不可用
-#define CN_UNKOWNPAGE                 551	//不知道的页类型
-#define CN_EXCEEDSTORAGED             552	//超过存储分配
-#define CN_FILENAMEDENI               553	//文件名不允许
+#define CN_FILEREBOOT                 110   //新文件指示器上的重启标记
+#define CN_SERVERREADYTIME            120   //服务器准备就绪的时间（分钟数）
+#define CN_OPENDATACONNECTION125      125   //打开数据连接，开始传输
+#define CN_OPENCONNECTION             150   //打开连接
+#define CN_CMDSUCCESS                 200   //成功
+#define CN_CMDFAILED                  202   //命令没有执行
+#define CN_SYSSTAT                    211   //系统状态回复
+#define CN_DIRSTAT                    212   //目录状态回复
+#define CN_FILESTAT                   213   //文件状态回复
+#define CN_HELPSTAT                   214   //帮助信息回复
+#define CN_SYSTYPE                    215   //系统类型回复
+#define CN_SERVERREADY                220   //服务就绪
+#define CN_LOGOUT                     221   //退出网络
+#define CN_OPENDATACONNECTION225      225   //打开数据连接
+#define CN_CLOSEDATACONNECTION        226   //结束数据连接
+#define CN_ENTERPASSIVE               227   //进入被动模式（IP 地址、ID 端口）
+#define CN_LOGIN                      230   //登录因特网
+#define CN_FILECOMPLETE               250   //文件行为完成
+#define CN_PATHBUILD                  257   //路径名建立
+#define CN_NEEDPASS                   331   //要求密码
+#define CN_NEEDUSER                   332   //要求帐号
+#define CN_FILEPAUSE                  350   //文件行为暂停
+#define CN_SERVERCLOSE                421   //服务关闭
+#define CN_OPENDATACONNECTIONFAILED   425   //无法打开数据连接
+#define CN_CLOSECONNECTION            426   //结束连接
+#define CN_FILENOTVALID               450   //文件不可用
+#define CN_LOCALERR                   451   //遇到本地错误
+#define CN_SPACENOTENOUGH             452   //磁盘空间不足
+#define CN_CMDINVALID                 500   //无效命令
+#define CN_PARAERR                    501   //错误参数
+#define CN_CMDNOTEXE                  502   //命令没有执行
+#define CN_CMDORDERERR                503   //错误指令序列
+#define CN_CMDPARAINVALID             504   //无效命令参数
+#define CN_NOLOG                      530   //未登录网络
+#define CN_STRNEEDUSER                532   //存储文件需要帐号
+#define CN_FILEINVALID                550   //文件不可用
+#define CN_UNKOWNPAGE                 551   //不知道的页类型
+#define CN_EXCEEDSTORAGED             552   //超过存储分配
+#define CN_FILENAMEDENI               553   //文件名不允许
 #define CN_RESPONSCODEEERR            0     //no response code get
 #define CN_SNDCMDERR                  -1    //send the command err
 
@@ -100,14 +100,14 @@
 
 typedef enum
 {
-	EN_FTP_STAT_OK = 0,  //NO ERR here
-	EN_FTP_STAT_RCVERR,  //RECV ERR
-	EN_FTP_STAT_SNDERR,  //SND ERR
-	EN_FTP_STAT_CONERR,  //CONNECT ERR
-	EN_FTP_STAT_OPENERR, //OPEN FILE ERR
-	EN_FTP_STAT_READERR, //READ ERR
-	EN_FTP_STAT_WRITEERR,//WRITE ERR
-	EN_FTP_STAT_CMDERR,  //COMMAND ERR
+    EN_FTP_STAT_OK = 0,  //NO ERR here
+    EN_FTP_STAT_RCVERR,  //RECV ERR
+    EN_FTP_STAT_SNDERR,  //SND ERR
+    EN_FTP_STAT_CONERR,  //CONNECT ERR
+    EN_FTP_STAT_OPENERR, //OPEN FILE ERR
+    EN_FTP_STAT_READERR, //READ ERR
+    EN_FTP_STAT_WRITEERR,//WRITE ERR
+    EN_FTP_STAT_CMDERR,  //COMMAND ERR
 }enFtpErrCode;
 
 //define for the client data structure
@@ -120,36 +120,36 @@ typedef enum
 //define the structure for the control channel
 typedef struct
 {
-	int             s;      //control socket
-	struct in_addr  ipaddr; //net bytes
-	u16             port;   //net bytes
+    int             s;      //control socket
+    struct in_addr  ipaddr; //net bytes
+    u16             port;   //net bytes
 }tagChannelCtrl;            //control channel
 //define the structure for the data channel
 typedef struct
 {
-	bool_t ispasv;          //which means pasv or port mode
-	struct in_addr  ipaddr; //net bytes
-	u16             port;   //net bytes
-	int             slisten; //port socket(return by listen)
-	int             saccept; //port socket(return by accept)
-	int             sconnect;//pasv socket(return by connect)
-	char            type;    //type mode
+    bool_t ispasv;          //which means pasv or port mode
+    struct in_addr  ipaddr; //net bytes
+    u16             port;   //net bytes
+    int             slisten; //port socket(return by listen)
+    int             saccept; //port socket(return by accept)
+    int             sconnect;//pasv socket(return by connect)
+    char            type;    //type mode
 }tagChannelData;//data channel
 //define the structure for the ftp client controller
 typedef struct __FtpClient
 {
-	struct __FtpClient *nxt;
-	tagChannelCtrl cchannel;
-	tagChannelData dchannel;
-	char         ipadr[CN_FTP_NAMELEN];      //server address
-	char         user[CN_FTP_NAMELEN];       //user
-	char         passwd[CN_FTP_NAMELEN];     //passwd
-	char         port[CN_FTP_NAMELEN];       //port
-	char         curdir[CN_PATH_LENGTH];     //store the current directory
-	u8           buf[CN_FTPCLIENT_BUFLEN]  ; //used for the send and recv buffer
-	int          buflen;     //which means how long the buffer is
-	int          datalen;    //which means how many data in the buffer
-	int          errcode;    //which means the last state
+    struct __FtpClient *nxt;
+    tagChannelCtrl cchannel;
+    tagChannelData dchannel;
+    char         ipadr[CN_FTP_NAMELEN];      //server address
+    char         user[CN_FTP_NAMELEN];       //user
+    char         passwd[CN_FTP_NAMELEN];     //passwd
+    char         port[CN_FTP_NAMELEN];       //port
+    char         curdir[CN_PATH_LENGTH];     //store the current directory
+    u8           buf[CN_FTPCLIENT_BUFLEN]  ; //used for the send and recv buffer
+    int          buflen;     //which means how long the buffer is
+    int          datalen;    //which means how many data in the buffer
+    int          errcode;    //which means the last state
 }tagFtpClient;
 void FtpShowClient(tagFtpClient *client);
 int FtpRcvLine(int sock,u8 *buf,int len);

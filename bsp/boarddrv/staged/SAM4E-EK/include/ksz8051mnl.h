@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -159,11 +159,11 @@
 /* ----------------------------------------------------------------------------- */
 
 typedef struct _GMacb {
-	/* The retry & timeout settings */
-	unsigned int retryMax;
+    /* The retry & timeout settings */
+    unsigned int retryMax;
 
-	/* PHY address ( pre-defined by pins on reset ) */
-	unsigned char phyAddress;
+    /* PHY address ( pre-defined by pins on reset ) */
+    unsigned char phyAddress;
 } GMacb, *pGMacb;
 
 /* ------------------------------------------------------------------------------ */
@@ -180,7 +180,7 @@ unsigned char ksz8051mnl_reset_phy(GMacb *pMacb);
 unsigned char ksz8051mnl_init_phy(GMacb *pMacb, unsigned int mck);
 unsigned char ksz8051mnl_auto_negotiate(GMacb *pMacb);
 uint8_t ksz8051mnl_set_link(GMacb *pMacb, uint8_t uc_phy_addr,
-		uint8_t uc_apply_setting_flag);
+        uint8_t uc_apply_setting_flag);
 
 #endif /* #ifndef _MII_DEFINE_H */
 

@@ -47,6 +47,7 @@
    <component>/djyos/object/component_config_objfile.h</component>
    <component>/djyos/pool/pool.c</component>
    <component>/djyos/time/component_config_time.h</component>
+   <component>/bsp/boarddrv/demo/stm32f103-empty/drv/board/board.c</component>
    <component>/bsp/boarddrv/demo/stm32f103-empty/drv/dm9000a-brd/dm9000a-brd.c</component>
    <component>/bsp/boarddrv/demo/stm32f103-empty/drv/ili9325-brd/ili9325-brd.c</component>
    <component>/bsp/boarddrv/demo/stm32f103-empty/drv/key_hard/key_hard.c</component>
@@ -121,13 +122,13 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/dma/cpu_peri_dma.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/emflash/cpu_peri_emflash.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/gpio/cpu_peri_gpio.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/lowpower/stm32f1x_lowppwer.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/rtc/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/uart/cpu_peri_uart.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/wdt/cpu_peri_wdt.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/emflash/cpu_peri_emflash.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/gpio/cpu_peri_gpio.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/lowpower/stm32f1x_lowppwer.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/wdt/cpu_peri_wdt.c</component>
 </components>

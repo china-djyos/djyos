@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -67,30 +67,30 @@ static const Pin USART1_Pin[] = {
 };
 
 static const Pin GMAC_Pin[] = {
-	    {PIO_PD14A_GRXCK, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD0A_GTXCK, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD1A_GTXEN, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD16A_GTX3, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD15A_GTX2, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD3A_GTX1, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD2A_GTX0, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD12A_GRX3, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD11A_GRX2, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD6A_GRX0, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD5A_GRX0, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD7A_GRXER, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD4A_GCRSDV, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD10A_GCRS, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD13A_GCOL, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD8A_GMDC, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD9A_GMDIO, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
-	    {PIO_PD10A_GCRS, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD14A_GRXCK, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD0A_GTXCK, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD1A_GTXEN, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD16A_GTX3, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD15A_GTX2, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD3A_GTX1, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD2A_GTX0, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD12A_GRX3, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD11A_GRX2, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD6A_GRX0, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD5A_GRX0, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD7A_GRXER, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD4A_GCRSDV, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD10A_GCRS, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD13A_GCOL, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD8A_GMDC, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD9A_GMDIO, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
+        {PIO_PD10A_GCRS, PIOD, ID_PIOD, PIO_PERIPH_A, PIO_DEFAULT},
 
-		{PIO_PD28, PIOD, ID_PIOD, PIO_INPUT, PIO_PULLUP},
+        {PIO_PD28, PIOD, ID_PIOD, PIO_INPUT, PIO_PULLUP},
 };
 
 static const Pin Phy_Interrupt_Pin[] = {
-		{PIO_PD28, PIOD, ID_PIOD, PIO_INPUT,    PIO_IT_LOW_LEVEL}
+        {PIO_PD28, PIOD, ID_PIOD, PIO_INPUT,    PIO_IT_LOW_LEVEL}
 };
 
 // =============================================================================
@@ -102,14 +102,14 @@ static const Pin Phy_Interrupt_Pin[] = {
 // =============================================================================
 bool_t Board_UartGpioInit(u8 SerialNo)
 {
-	PMC_EnablePeripheral(ID_PIOA);
+    PMC_EnablePeripheral(ID_PIOA);
     switch(SerialNo)
     {
     case CN_UART0:
-    	PIO_Configure(DBGU_Pin,PIO_LISTSIZE(DBGU_Pin));
+        PIO_Configure(DBGU_Pin,PIO_LISTSIZE(DBGU_Pin));
         break;
     case CN_USART1:
-    	PIO_Configure(USART1_Pin,PIO_LISTSIZE(USART1_Pin));
+        PIO_Configure(USART1_Pin,PIO_LISTSIZE(USART1_Pin));
         break;
     default:
         return false;
@@ -144,12 +144,12 @@ void Board_UartHalfDuplexRecv(u8 SerialNo)
 // =============================================================================
 void Board_PhyIoInit(void)
 {
-	PMC_EnablePeripheral(ID_PIOD);
-	PIO_Configure(GMAC_Pin,PIO_LISTSIZE(GMAC_Pin));
+    PMC_EnablePeripheral(ID_PIOD);
+    PIO_Configure(GMAC_Pin,PIO_LISTSIZE(GMAC_Pin));
 
-	//PHY 中断输入引脚
-	extern void GMAC_PhyIntHandler(const Pin* pPin);
-	PIO_InitInterrupts(Phy_Interrupt_Pin);
-	PIO_ConfigureIt(Phy_Interrupt_Pin,GMAC_PhyIntHandler);
-	PIO_EnableIt(Phy_Interrupt_Pin);
+    //PHY 中断输入引脚
+    extern void GMAC_PhyIntHandler(const Pin* pPin);
+    PIO_InitInterrupts(Phy_Interrupt_Pin);
+    PIO_ConfigureIt(Phy_Interrupt_Pin,GMAC_PhyIntHandler);
+    PIO_EnableIt(Phy_Interrupt_Pin);
 }

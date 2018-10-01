@@ -136,7 +136,7 @@ void    GDD_Demo_Qrcode(void)
 {
     s_gQrcodeDemoMsgLink.MsgNum = sizeof(s_gQrcodeMsgTable) / sizeof(struct MsgProcTable);
     s_gQrcodeDemoMsgLink.myTable = (struct MsgProcTable *)&s_gQrcodeMsgTable;
-    GDD_CreateGuiApp("ЖўЮЌТы", &s_gQrcodeDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_CreateGuiApp("ЖўЮЌТы", &s_gQrcodeDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
     GDD_WaitGuiAppExit("ЖўЮЌТы");
 
 }

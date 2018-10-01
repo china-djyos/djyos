@@ -5,7 +5,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1640031649513198590" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1680118009225325950" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>
@@ -16,7 +16,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1640031649513198590" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1680118009225325950" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>
@@ -27,7 +27,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1732784609361288190" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1692840734291821950" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>
@@ -38,7 +38,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1668367191626118078" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1751990557396213182" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>
@@ -49,7 +49,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1678070330668075966" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1704222580111001022" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>
@@ -60,7 +60,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1668367191626118078" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1751990557396213182" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>
@@ -71,7 +71,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1681189257563970750" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1692840734291821950" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>
@@ -82,7 +82,7 @@
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
 			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1749440373591575678" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1704222580111001022" id="ilg.gnuarmeclipse.managedbuild.cross.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings Cross ARM" parameter="${COMMAND} ${FLAGS} ${cross_toolchain_flags} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
 				<language-scope id="org.eclipse.cdt.core.gcc"/>
 				<language-scope id="org.eclipse.cdt.core.g++"/>
 			</provider>

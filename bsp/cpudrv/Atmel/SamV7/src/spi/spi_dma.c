@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -58,15 +58,15 @@
 
 static void SPID_CacheInvalid(SpiDma *pSpid)
 {
-	u32 addr,size;
+    u32 addr,size;
 
-	addr = (u32)(pSpid->pTxChannel->pBuff);
-	size = pSpid->pTxChannel->BuffSize;
-	SCB_CleanInvalidateDCache_by_Addr((u32*)addr,size);
+    addr = (u32)(pSpid->pTxChannel->pBuff);
+    size = pSpid->pTxChannel->BuffSize;
+    SCB_CleanInvalidateDCache_by_Addr((u32*)addr,size);
 
-	addr = (u32)(pSpid->pRxChannel->pBuff);
-	size = pSpid->pRxChannel->BuffSize;
-	SCB_CleanInvalidateDCache_by_Addr((u32*)addr,size);
+    addr = (u32)(pSpid->pRxChannel->pBuff);
+    size = pSpid->pRxChannel->BuffSize;
+    SCB_CleanInvalidateDCache_by_Addr((u32*)addr,size);
 }
 // =============================================================================
 // 功能：配置的DMA回调函数，若TwiChannel中未设置回调函数，则默认调用此函数
@@ -76,18 +76,18 @@ static void SPID_CacheInvalid(SpiDma *pSpid)
 // =============================================================================
 static void SPID_RxTx_Cb(uint32_t channel, SpiDma* pArg)
 {
-	if ( (channel != pArg->pRxChannel->ChNum)
-			&& (channel != pArg->pTxChannel->ChNum) )
-		return;
+    if ( (channel != pArg->pRxChannel->ChNum)
+            && (channel != pArg->pTxChannel->ChNum) )
+        return;
 
-	/* Release the DMA channels */
-	XDMAD_FreeChannel(pArg->pXdmad, pArg->pRxChannel->ChNum);
-	XDMAD_FreeChannel(pArg->pXdmad, pArg->pTxChannel->ChNum);
+    /* Release the DMA channels */
+    XDMAD_FreeChannel(pArg->pXdmad, pArg->pRxChannel->ChNum);
+    XDMAD_FreeChannel(pArg->pXdmad, pArg->pTxChannel->ChNum);
 
-	SPID_CacheInvalid(pArg);
-//	SCB_CleanInvalidateDCache();
-	/* Release the dataflash semaphore */
-	pArg->sempaphore = 1;
+    SPID_CacheInvalid(pArg);
+//  SCB_CleanInvalidateDCache();
+    /* Release the dataflash semaphore */
+    pArg->sempaphore = 1;
 }
 
 // =============================================================================
@@ -98,81 +98,81 @@ static void SPID_RxTx_Cb(uint32_t channel, SpiDma* pArg)
 // =============================================================================
 static uint8_t __Spid_LinkListConfig(SpiDma *pSpid)
 {
-	sXdmadCfg xdmadRxCfg,xdmadTxCfg;
-	uint32_t xdmaCndc, xdmaInt;
-	uint32_t spiId;
-	if ((unsigned int)pSpid->pSpiReg == (unsigned int)SPI0 ) spiId = ID_SPI0;
-	if ((unsigned int)pSpid->pSpiReg == (unsigned int)SPI1 ) spiId = ID_SPI1;
+    sXdmadCfg xdmadRxCfg,xdmadTxCfg;
+    uint32_t xdmaCndc, xdmaInt;
+    uint32_t spiId;
+    if ((unsigned int)pSpid->pSpiReg == (unsigned int)SPI0 ) spiId = ID_SPI0;
+    if ((unsigned int)pSpid->pSpiReg == (unsigned int)SPI1 ) spiId = ID_SPI1;
 
-	/* Setup TX  */
+    /* Setup TX  */
 
-	xdmadTxCfg.mbr_sa = (uint32_t)pSpid->pTxChannel->pBuff;
+    xdmadTxCfg.mbr_sa = (uint32_t)pSpid->pTxChannel->pBuff;
 
-	xdmadTxCfg.mbr_da = (uint32_t)&pSpid->pSpiReg->SPI_TDR;
+    xdmadTxCfg.mbr_da = (uint32_t)&pSpid->pSpiReg->SPI_TDR;
 
-	xdmadTxCfg.mbr_ubc =  XDMA_UBC_NVIEW_NDV0 |
-		XDMA_UBC_NDE_FETCH_DIS|
-		XDMA_UBC_NSEN_UPDATED | pSpid->pTxChannel->BuffSize;
+    xdmadTxCfg.mbr_ubc =  XDMA_UBC_NVIEW_NDV0 |
+        XDMA_UBC_NDE_FETCH_DIS|
+        XDMA_UBC_NSEN_UPDATED | pSpid->pTxChannel->BuffSize;
 
-	xdmadTxCfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN |
-		XDMAC_CC_MBSIZE_SINGLE |
-		XDMAC_CC_DSYNC_MEM2PER |
-		XDMAC_CC_CSIZE_CHK_1 |
-		XDMAC_CC_DWIDTH_BYTE|
-		XDMAC_CC_SIF_AHB_IF0 |
-		XDMAC_CC_DIF_AHB_IF1 |
-		XDMAC_CC_SAM_INCREMENTED_AM |
-		XDMAC_CC_DAM_FIXED_AM |
-		XDMAC_CC_PERID(XDMAIF_Get_ChannelNumber(  spiId, XDMAD_TRANSFER_TX ));
-
-
-	xdmadTxCfg.mbr_bc = 0;
-	xdmadTxCfg.mbr_sus = 0;
-	xdmadTxCfg.mbr_dus =0;
-
-	/* Setup RX Link List */
-
-	xdmadRxCfg.mbr_ubc = XDMA_UBC_NVIEW_NDV0 |
-		XDMA_UBC_NDE_FETCH_DIS|
-		XDMA_UBC_NDEN_UPDATED | pSpid->pRxChannel->BuffSize;
-
-	xdmadRxCfg.mbr_da = (uint32_t)pSpid->pRxChannel->pBuff;
-
-	xdmadRxCfg.mbr_sa = (uint32_t)&pSpid->pSpiReg->SPI_RDR;
-	xdmadRxCfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN |
-		XDMAC_CC_MBSIZE_SINGLE |
-		XDMAC_CC_DSYNC_PER2MEM |
-		XDMAC_CC_CSIZE_CHK_1 |
-		XDMAC_CC_DWIDTH_BYTE|
-		XDMAC_CC_SIF_AHB_IF1 |
-		XDMAC_CC_DIF_AHB_IF0 |
-		XDMAC_CC_SAM_FIXED_AM |
-		XDMAC_CC_DAM_INCREMENTED_AM |
-		XDMAC_CC_PERID(XDMAIF_Get_ChannelNumber(  spiId, XDMAD_TRANSFER_RX ));
+    xdmadTxCfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN |
+        XDMAC_CC_MBSIZE_SINGLE |
+        XDMAC_CC_DSYNC_MEM2PER |
+        XDMAC_CC_CSIZE_CHK_1 |
+        XDMAC_CC_DWIDTH_BYTE|
+        XDMAC_CC_SIF_AHB_IF0 |
+        XDMAC_CC_DIF_AHB_IF1 |
+        XDMAC_CC_SAM_INCREMENTED_AM |
+        XDMAC_CC_DAM_FIXED_AM |
+        XDMAC_CC_PERID(XDMAIF_Get_ChannelNumber(  spiId, XDMAD_TRANSFER_TX ));
 
 
-	xdmadRxCfg.mbr_bc = 0;
-	xdmadRxCfg.mbr_sus = 0;
-	xdmadRxCfg.mbr_dus =0;
+    xdmadTxCfg.mbr_bc = 0;
+    xdmadTxCfg.mbr_sus = 0;
+    xdmadTxCfg.mbr_dus =0;
 
-	xdmaCndc = 0;
+    /* Setup RX Link List */
 
-	/* Put all interrupts on for non LLI list setup of DMA */
-	  xdmaInt =  (XDMAC_CIE_BIE   |
-				   XDMAC_CIE_DIE   |
-				   XDMAC_CIE_FIE   |
-				   XDMAC_CIE_RBIE  |
-				   XDMAC_CIE_WBIE  |
-				   XDMAC_CIE_ROIE);
+    xdmadRxCfg.mbr_ubc = XDMA_UBC_NVIEW_NDV0 |
+        XDMA_UBC_NDE_FETCH_DIS|
+        XDMA_UBC_NDEN_UPDATED | pSpid->pRxChannel->BuffSize;
 
-	if (XDMAD_ConfigureTransfer( pSpid->pXdmad, pSpid->pRxChannel->ChNum,
-			&xdmadRxCfg, xdmaCndc, 0, xdmaInt))
-		return SPID_ERROR;
+    xdmadRxCfg.mbr_da = (uint32_t)pSpid->pRxChannel->pBuff;
 
-	if (XDMAD_ConfigureTransfer( pSpid->pXdmad, pSpid->pTxChannel->ChNum,
-			&xdmadTxCfg, xdmaCndc, 0, xdmaInt))
-		return SPID_ERROR;
-	return 0;
+    xdmadRxCfg.mbr_sa = (uint32_t)&pSpid->pSpiReg->SPI_RDR;
+    xdmadRxCfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN |
+        XDMAC_CC_MBSIZE_SINGLE |
+        XDMAC_CC_DSYNC_PER2MEM |
+        XDMAC_CC_CSIZE_CHK_1 |
+        XDMAC_CC_DWIDTH_BYTE|
+        XDMAC_CC_SIF_AHB_IF1 |
+        XDMAC_CC_DIF_AHB_IF0 |
+        XDMAC_CC_SAM_FIXED_AM |
+        XDMAC_CC_DAM_INCREMENTED_AM |
+        XDMAC_CC_PERID(XDMAIF_Get_ChannelNumber(  spiId, XDMAD_TRANSFER_RX ));
+
+
+    xdmadRxCfg.mbr_bc = 0;
+    xdmadRxCfg.mbr_sus = 0;
+    xdmadRxCfg.mbr_dus =0;
+
+    xdmaCndc = 0;
+
+    /* Put all interrupts on for non LLI list setup of DMA */
+      xdmaInt =  (XDMAC_CIE_BIE   |
+                   XDMAC_CIE_DIE   |
+                   XDMAC_CIE_FIE   |
+                   XDMAC_CIE_RBIE  |
+                   XDMAC_CIE_WBIE  |
+                   XDMAC_CIE_ROIE);
+
+    if (XDMAD_ConfigureTransfer( pSpid->pXdmad, pSpid->pRxChannel->ChNum,
+            &xdmadRxCfg, xdmaCndc, 0, xdmaInt))
+        return SPID_ERROR;
+
+    if (XDMAD_ConfigureTransfer( pSpid->pXdmad, pSpid->pTxChannel->ChNum,
+            &xdmadTxCfg, xdmaCndc, 0, xdmaInt))
+        return SPID_ERROR;
+    return 0;
 }
 
 // =============================================================================
@@ -182,58 +182,58 @@ static uint8_t __Spid_LinkListConfig(SpiDma *pSpid)
 // =============================================================================
 static uint8_t __Spid_ChannelConfig(SpiDma *pSpid)
 {
-	uint32_t spiDmaTxChannel,spiDmaRxChannel;
-	/* Driver initialize */
-	XDMAD_Initialize(  pSpid->pXdmad, 0 );
+    uint32_t spiDmaTxChannel,spiDmaRxChannel;
+    /* Driver initialize */
+    XDMAD_Initialize(  pSpid->pXdmad, 0 );
 
-//	XDMAD_FreeChannel( pSpid->pXdmad, spiDmaTxChannel);
-//	XDMAD_FreeChannel( pSpid->pXdmad, spiDmaRxChannel);
+//  XDMAD_FreeChannel( pSpid->pXdmad, spiDmaTxChannel);
+//  XDMAD_FreeChannel( pSpid->pXdmad, spiDmaRxChannel);
 
-	/* Allocate a DMA channel for SPI0/1 TX. */
-	spiDmaTxChannel = XDMAD_AllocateChannel( pSpid->pXdmad,
-			XDMAD_TRANSFER_MEMORY, pSpid->SpiId);
-	if ( spiDmaTxChannel == XDMAD_ALLOC_FAILED ) {
-		return SPID_ERROR;
-	}
-	/* Allocate a DMA channel for SPI0/1 RX. */
-	spiDmaRxChannel =
-		XDMAD_AllocateChannel( pSpid->pXdmad, pSpid->SpiId, XDMAD_TRANSFER_MEMORY);
-	if ( spiDmaRxChannel == XDMAD_ALLOC_FAILED ) {
-		return SPID_ERROR;
-	}
+    /* Allocate a DMA channel for SPI0/1 TX. */
+    spiDmaTxChannel = XDMAD_AllocateChannel( pSpid->pXdmad,
+            XDMAD_TRANSFER_MEMORY, pSpid->SpiId);
+    if ( spiDmaTxChannel == XDMAD_ALLOC_FAILED ) {
+        return SPID_ERROR;
+    }
+    /* Allocate a DMA channel for SPI0/1 RX. */
+    spiDmaRxChannel =
+        XDMAD_AllocateChannel( pSpid->pXdmad, pSpid->SpiId, XDMAD_TRANSFER_MEMORY);
+    if ( spiDmaRxChannel == XDMAD_ALLOC_FAILED ) {
+        return SPID_ERROR;
+    }
 
-	/* Setup callbacks for SPI0/1 RX */
-	if(pSpid->pRxChannel->callback == NULL)
-	{
-		XDMAD_SetCallback(pSpid->pXdmad, spiDmaRxChannel,
-			(XdmadTransferCallback)SPID_RxTx_Cb, pSpid);
-	}
-	else
-	{
-		XDMAD_SetCallback(pSpid->pXdmad, spiDmaRxChannel,
-			(XdmadTransferCallback)pSpid->pRxChannel->callback, pSpid);
-	}
+    /* Setup callbacks for SPI0/1 RX */
+    if(pSpid->pRxChannel->callback == NULL)
+    {
+        XDMAD_SetCallback(pSpid->pXdmad, spiDmaRxChannel,
+            (XdmadTransferCallback)SPID_RxTx_Cb, pSpid);
+    }
+    else
+    {
+        XDMAD_SetCallback(pSpid->pXdmad, spiDmaRxChannel,
+            (XdmadTransferCallback)pSpid->pRxChannel->callback, pSpid);
+    }
 
-	if (XDMAD_PrepareChannel( pSpid->pXdmad, spiDmaRxChannel ))
-		return SPID_ERROR;
+    if (XDMAD_PrepareChannel( pSpid->pXdmad, spiDmaRxChannel ))
+        return SPID_ERROR;
 
-	/* Setup callbacks for SPI0/1 TX (ignored) */
-	if(pSpid->pTxChannel->callback == NULL)
-	{
-		XDMAD_SetCallback(pSpid->pXdmad, spiDmaTxChannel,
-				(XdmadTransferCallback)SPID_RxTx_Cb, pSpid);
-	}
-	else
-	{
-		XDMAD_SetCallback(pSpid->pXdmad, spiDmaTxChannel,
-			(XdmadTransferCallback)pSpid->pTxChannel->callback, pSpid);
-	}
-	if ( XDMAD_PrepareChannel( pSpid->pXdmad, spiDmaTxChannel ))
-		return SPID_ERROR;
+    /* Setup callbacks for SPI0/1 TX (ignored) */
+    if(pSpid->pTxChannel->callback == NULL)
+    {
+        XDMAD_SetCallback(pSpid->pXdmad, spiDmaTxChannel,
+                (XdmadTransferCallback)SPID_RxTx_Cb, pSpid);
+    }
+    else
+    {
+        XDMAD_SetCallback(pSpid->pXdmad, spiDmaTxChannel,
+            (XdmadTransferCallback)pSpid->pTxChannel->callback, pSpid);
+    }
+    if ( XDMAD_PrepareChannel( pSpid->pXdmad, spiDmaTxChannel ))
+        return SPID_ERROR;
 
-	pSpid->pRxChannel->ChNum = spiDmaRxChannel;
-	pSpid->pTxChannel->ChNum = spiDmaTxChannel;
-	return 0;
+    pSpid->pRxChannel->ChNum = spiDmaRxChannel;
+    pSpid->pTxChannel->ChNum = spiDmaTxChannel;
+    return 0;
 }
 
 // =============================================================================
@@ -243,8 +243,8 @@ static uint8_t __Spid_ChannelConfig(SpiDma *pSpid)
 // =============================================================================
 void SPID_DmaIntEnable(Xdmac *pXdmac,u8 iChannel,u32 IntEn)
 {
-	XDMAC_DisableChannelIt (pXdmac, iChannel, 0xFF);
-	XDMAC_EnableChannelIt (pXdmac,iChannel, IntEn );
+    XDMAC_DisableChannelIt (pXdmac, iChannel, 0xFF);
+    XDMAC_EnableChannelIt (pXdmac,iChannel, IntEn );
 }
 
 // =============================================================================
@@ -254,7 +254,7 @@ void SPID_DmaIntEnable(Xdmac *pXdmac,u8 iChannel,u32 IntEn)
 // =============================================================================
 void SPID_DmaIntDisable(Xdmac *pXdmac,u8 iChannel)
 {
-	XDMAC_DisableChannelIt (pXdmac, iChannel, 0xFF);
+    XDMAC_DisableChannelIt (pXdmac, iChannel, 0xFF);
 }
 
 // =============================================================================
@@ -265,20 +265,20 @@ void SPID_DmaIntDisable(Xdmac *pXdmac,u8 iChannel)
 uint32_t SPID_Configure(SpiDma *pSpid)
 {
 
-	if(__Spid_ChannelConfig(pSpid))
-		return SPID_ERROR_LOCK;
+    if(__Spid_ChannelConfig(pSpid))
+        return SPID_ERROR_LOCK;
 
-	if(__Spid_LinkListConfig(pSpid))
-		return SPID_ERROR_LOCK;
+    if(__Spid_LinkListConfig(pSpid))
+        return SPID_ERROR_LOCK;
 
-	return 0;
+    return 0;
 }
 
 void SPID_FastConfig(Xdmac *pXdmac,u8 iChannel,u32 sa,u32 da,u32 len)
 {
-	XDMAC_SetSourceAddr(pXdmac, iChannel, sa);
-	XDMAC_SetDestinationAddr(pXdmac, iChannel, da);
-	XDMAC_SetMicroblockControl(pXdmac, iChannel, len);
+    XDMAC_SetSourceAddr(pXdmac, iChannel, sa);
+    XDMAC_SetDestinationAddr(pXdmac, iChannel, da);
+    XDMAC_SetMicroblockControl(pXdmac, iChannel, len);
 }
 
 // =============================================================================
@@ -288,19 +288,19 @@ void SPID_FastConfig(Xdmac *pXdmac,u8 iChannel,u32 sa,u32 da,u32 len)
 // =============================================================================
 uint32_t SPID_RxTxStart(SpiDma *pSpid)
 {
-	SPID_CacheInvalid(pSpid);
-//	SCB_CleanInvalidateDCache();
-	pSpid->sempaphore = 0;
-	__DMB();
+    SPID_CacheInvalid(pSpid);
+//  SCB_CleanInvalidateDCache();
+    pSpid->sempaphore = 0;
+    __DMB();
 
-	/* Start DMA 0(RX) && 1(TX) */
-	if (XDMAD_StartTransfer( pSpid->pXdmad, pSpid->pRxChannel->ChNum ))
-		return SPID_ERROR_LOCK;
+    /* Start DMA 0(RX) && 1(TX) */
+    if (XDMAD_StartTransfer( pSpid->pXdmad, pSpid->pRxChannel->ChNum ))
+        return SPID_ERROR_LOCK;
 
-	if (XDMAD_StartTransfer( pSpid->pXdmad, pSpid->pTxChannel->ChNum ))
-		return SPID_ERROR_LOCK;
+    if (XDMAD_StartTransfer( pSpid->pXdmad, pSpid->pTxChannel->ChNum ))
+        return SPID_ERROR_LOCK;
 
-	return 0;
+    return 0;
 }
 
 // =============================================================================
@@ -310,20 +310,20 @@ uint32_t SPID_RxTxStart(SpiDma *pSpid)
 // =============================================================================
 uint32_t SPID_RxTxPause( SpiDma *pSpid)
 {
-	SPID_CacheInvalid(pSpid);
+    SPID_CacheInvalid(pSpid);
 
-	assert(pSpid);
+    assert(pSpid);
 
-	pSpid->sempaphore=1;
-	__DMB();
-	/* Start DMA 0(RX) && 1(TX) */
-	if (XDMAD_StopTransfer( pSpid->pXdmad, pSpid->pRxChannel->ChNum ))
-		return SPID_ERROR_LOCK;
+    pSpid->sempaphore=1;
+    __DMB();
+    /* Start DMA 0(RX) && 1(TX) */
+    if (XDMAD_StopTransfer( pSpid->pXdmad, pSpid->pRxChannel->ChNum ))
+        return SPID_ERROR_LOCK;
 
-	if (XDMAD_StopTransfer( pSpid->pXdmad, pSpid->pTxChannel->ChNum ))
-		return SPID_ERROR_LOCK;
+    if (XDMAD_StopTransfer( pSpid->pXdmad, pSpid->pTxChannel->ChNum ))
+        return SPID_ERROR_LOCK;
 
-	return 0;
+    return 0;
 }
 
 // =============================================================================
@@ -333,30 +333,30 @@ uint32_t SPID_RxTxPause( SpiDma *pSpid)
 // =============================================================================
 uint32_t SPID_DisableDma(SpiDma* pSpi)
 {
-	/* Disable the SPI Peripheral */
-	PMC_DisablePeripheral ( pSpi->SpiId );
+    /* Disable the SPI Peripheral */
+    PMC_DisablePeripheral ( pSpi->SpiId );
 
-	XDMAD_StopTransfer(pSpi->pXdmad, pSpi->pRxChannel->ChNum);
-	XDMAD_StopTransfer(pSpi->pXdmad, pSpi->pTxChannel->ChNum);
+    XDMAD_StopTransfer(pSpi->pXdmad, pSpi->pRxChannel->ChNum);
+    XDMAD_StopTransfer(pSpi->pXdmad, pSpi->pTxChannel->ChNum);
 
-	XDMAD_SetCallback(pSpi->pXdmad,pSpi->pRxChannel->ChNum,NULL,NULL);
-	XDMAD_SetCallback(pSpi->pXdmad,pSpi->pTxChannel->ChNum,NULL,NULL);
+    XDMAD_SetCallback(pSpi->pXdmad,pSpi->pRxChannel->ChNum,NULL,NULL);
+    XDMAD_SetCallback(pSpi->pXdmad,pSpi->pTxChannel->ChNum,NULL,NULL);
 
-	if(XDMAD_FreeChannel( pSpi->pXdmad, pSpi->pRxChannel->ChNum) != XDMAD_OK)
-	{
-		return SPID_ERROR;
-	}
+    if(XDMAD_FreeChannel( pSpi->pXdmad, pSpi->pRxChannel->ChNum) != XDMAD_OK)
+    {
+        return SPID_ERROR;
+    }
 
-	memory_barrier();
+    memory_barrier();
 
-	SPID_CacheInvalid(pSpi);
-//	SCB_CleanInvalidateDCache();
-	/* Release the dataflash semaphore */
-	pSpi->sempaphore = 1;
+    SPID_CacheInvalid(pSpi);
+//  SCB_CleanInvalidateDCache();
+    /* Release the dataflash semaphore */
+    pSpi->sempaphore = 1;
 
-	/* Invoke the callback associated with the current command */
-	pSpi->pRxChannel->callback = NULL;
-	pSpi->pTxChannel->callback = NULL;
+    /* Invoke the callback associated with the current command */
+    pSpi->pRxChannel->callback = NULL;
+    pSpi->pTxChannel->callback = NULL;
 
-	return 0;
+    return 0;
 }

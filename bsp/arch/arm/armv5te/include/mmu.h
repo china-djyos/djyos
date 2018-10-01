@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -103,15 +103,15 @@ extern u32 mmu_page_table[];
 #define DOMAIN_NO_CHECK         3
 
 //Cache + Buffer
-#define	NCNB	0
-#define	NCB		1
-#define	CNB		2
-#define	CB		3
+#define NCNB    0
+#define NCB     1
+#define CNB     2
+#define CB      3
 
 // 段属性
-#define	SECTION_ATTR_FAULT	(0)
+#define SECTION_ATTR_FAULT  (0)
 #define SECTION_ATTR(ap, domain, cache_buffer) \
-        				(ap << 10) | (domain << 5) | (1 << 4) | (cache_buffer << 2) | (1 << 1) | (0 << 0)
+                        (ap << 10) | (domain << 5) | (1 << 4) | (cache_buffer << 2) | (1 << 1) | (0 << 0)
 
 ////////////////////////////////////
 
@@ -126,7 +126,7 @@ void MMU_InvalidateTlbsAll(void);
 void MMU_SetSectionsBase(u32 *base);
 void MMU_SetDomainAccess(u32 authorization);
 void MMU_Disable(void);
-void MMU_Enable(void); 
+void MMU_Enable(void);
 
 #ifdef __cplusplus
 }

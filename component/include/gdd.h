@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -153,7 +153,9 @@ struct MsgProcTable
 // LinkNext == NULL才结束处理。
 struct MsgTableLink
 {
-    struct MsgTableLink *LinkPrev,*LinkNext;
+    struct MsgTableLink *LinkPrev;
+    struct MsgTableLink **pLinkNext;
+    struct MsgTableLink *LinkAdd;
 //    list_t TableLink;
     struct MsgProcTable *myTable;
     u32 MsgNum;
@@ -209,8 +211,8 @@ typedef enum{
 //        找，直到窗口系统默认，最后执行自己。
 #define MSG_CONTROL_MSK         0xff000000      //消息控制域掩码
 #define MSG_ADOPT_MSK           0x80000000      //消息处理继承方式掩码
-#define MSG_ADOPT_NONE          0x00000000
-#define MSG_ADOPT_NORMAL        0x80000000
+#define MSG_ADOPT_NONE          0x00000000      //不继承父类
+#define MSG_ADOPT_NORMAL        0x80000000      //继承父类处理方法
 
 #define MSG_BODY_MASK           0xffffff        //消息体掩码
 // 通用窗口消息定义
@@ -415,6 +417,7 @@ bool_t    EnableWindow(HWND hwnd,bool_t bEnable);
 HWND    Gdd_GetWindowParent(HWND hwnd);
 HWND GetWindowChild(HWND hwnd);
 HWND GetWindowPrevious(HWND hwnd);
+HWND __GetWindowTwig(HWND hwnd);
 HWND GetWindowNext(HWND hwnd);
 HWND GetWindowFirst(HWND hwnd);
 HWND GetWindowLast(HWND hwnd);

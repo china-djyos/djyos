@@ -125,22 +125,22 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/bkpsram/cpu_peri_bkpsram.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/can/cpu_peri_can.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/dma/cpu_peri_dma.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/emflash/cpu_peri_emflash.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/eth/cpu_peri_eth.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/gpio/cpu_peri_gpio.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/lcd/cpu_peri_lcd.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/lowpwer/cpu_peri_lowpower.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/nand/cpu_peri_nand.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/rtc/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/sdmmc/cpu_peri_emmc.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/spi/cpu_peri_spi.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/systime/cpu_peri_systime.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/Temprate/cpu_peri_Temprate.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/uart/cpu_peri_uart.c</component>
-   <component>/bsp/cpudrv/stm32/f7/stm32f767xx/../src/usb/usbh_conf.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/bkpsram/cpu_peri_bkpsram.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/can/cpu_peri_can.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/emflash/cpu_peri_emflash.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/eth/cpu_peri_eth.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/gpio/cpu_peri_gpio.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/lcd/cpu_peri_lcd.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/lowpwer/cpu_peri_lowpower.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/nand/cpu_peri_nand.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/sdmmc/cpu_peri_emmc.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/spi/cpu_peri_spi.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/systime/cpu_peri_systime.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/Temprate/cpu_peri_Temprate.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/usb/usbh_conf.c</component>
 </components>

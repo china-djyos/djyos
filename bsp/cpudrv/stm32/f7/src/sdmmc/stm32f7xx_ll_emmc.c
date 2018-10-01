@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -56,38 +56,38 @@ extern HAL_StatusTypeDef SDMMC_ConfigData(SDMMC_TypeDef *SDMMCx, SDMMC_DataInitT
 // ============================================================================
 u32 EMMC_CMD_Switch(MMC_HandleTypeDef *pHmmc, u32 dwArg)
 {
-	u32 res;
-	u32 response;
-	u32 count;
+    u32 res;
+    u32 response;
+    u32 count;
 
-	res = SDMMC_CmdSwitch(pHmmc->Instance, dwArg);
-	if(HAL_MMC_ERROR_NONE != res)
-	{
-		return (-1);
-	}
+    res = SDMMC_CmdSwitch(pHmmc->Instance, dwArg);
+    if(HAL_MMC_ERROR_NONE != res)
+    {
+        return (-1);
+    }
 
-	// 等待DAT0释放
+    // 等待DAT0释放
 
-	while(1)
-	{
-		Djy_EventDelay(10);
-		if(count++ == SDMMC_MAX_TRIAL)
-		{
-			return (-1);
-		}
+    while(1)
+    {
+        Djy_EventDelay(10);
+        if(count++ == SDMMC_MAX_TRIAL)
+        {
+            return (-1);
+        }
 
-		res = SDMMC_CmdSendStatus(pHmmc->Instance, (u32)(pHmmc->MmcCard.RelCardAdd << 16));
-		if(HAL_MMC_ERROR_NONE != res)
-		{
-			return (-1);
-		}
+        res = SDMMC_CmdSendStatus(pHmmc->Instance, (u32)(pHmmc->MmcCard.RelCardAdd << 16));
+        if(HAL_MMC_ERROR_NONE != res)
+        {
+            return (-1);
+        }
 
-		response = SDMMC_GetResponse(pHmmc->Instance, SDMMC_RESP1);
-		if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
-			break;
-	}
+        response = SDMMC_GetResponse(pHmmc->Instance, SDMMC_RESP1);
+        if((response & 1 << 8) && ((response & (0xF << 9)) != (0x7 << 9)))
+            break;
+    }
 
-	return (0);
+    return (0);
 }
 // ============================================================================
 // 功能：设置器件位宽
@@ -97,41 +97,41 @@ u32 EMMC_CMD_Switch(MMC_HandleTypeDef *pHmmc, u32 dwArg)
 // ============================================================================
 u32 EMMC_CMD_SwitchBusWidth(MMC_HandleTypeDef *pHmmc, u8 bWidth, u8 bDual)
 {
-	u32 res;
-	u32 argument = 0;
-	u8 index = 183;
-	u8 value = 0;
+    u32 res;
+    u32 argument = 0;
+    u8 index = 183;
+    u8 value = 0;
 
-	switch(bWidth)
-	{
-		case 1:
+    switch(bWidth)
+    {
+        case 1:
 
-			value = 0;
-			break;
+            value = 0;
+            break;
 
-		case 4:
+        case 4:
 
-			if(bDual)
-				value = 5;
-			else
-				value = 1;
-			break;
+            if(bDual)
+                value = 5;
+            else
+                value = 1;
+            break;
 
-		case 8:
+        case 8:
 
-			if(bDual)
-				value = 6;
-			else
-				value = 2;
-			break;
+            if(bDual)
+                value = 6;
+            else
+                value = 2;
+            break;
 
-		default:
-			break;
-	}
+        default:
+            break;
+    }
 
-	argument = ((3 << 24) | (index << 16) | (value << 8));
-	res = EMMC_CMD_Switch(pHmmc, argument);
-	return (res);
+    argument = ((3 << 24) | (index << 16) | (value << 8));
+    res = EMMC_CMD_Switch(pHmmc, argument);
+    return (res);
 }
 // ============================================================================
 // 功能：设置器件高速模式
@@ -141,15 +141,15 @@ u32 EMMC_CMD_SwitchBusWidth(MMC_HandleTypeDef *pHmmc, u8 bWidth, u8 bDual)
 // ============================================================================
 u32 EMMC_CMD_SwitchToHighSpeed(MMC_HandleTypeDef *pHmmc)
 {
-	u32 res;
-	u32 argument = 0;
-	u8 index = 185;
-	u8 value = 1;
+    u32 res;
+    u32 argument = 0;
+    u8 index = 185;
+    u8 value = 1;
 
-	argument = ((3 << 24) | (index << 16) | (value << 8));
+    argument = ((3 << 24) | (index << 16) | (value << 8));
 
-	res = EMMC_CMD_Switch(pHmmc, argument);
-	return (res);
+    res = EMMC_CMD_Switch(pHmmc, argument);
+    return (res);
 }
 
 // ============================================================================
@@ -160,88 +160,88 @@ u32 EMMC_CMD_SwitchToHighSpeed(MMC_HandleTypeDef *pHmmc)
 // ============================================================================
 u32 EMMC_CMD_SendECSD(MMC_HandleTypeDef *pHmmc, u8 *pECSD, u32 dwTimeout)
 {
-	SDMMC_CmdInitTypeDef cmdInit;
-	SDMMC_DataInitTypeDef config;
-	u32 res;
-	u32 *buf = (u32*)pECSD;
-	u32 count = 0;
-	u32 bytes = 0;
-	s64 tickStart = DjyGetSysTime();
+    SDMMC_CmdInitTypeDef cmdInit;
+    SDMMC_DataInitTypeDef config;
+    u32 res;
+    u32 *buf = (u32*)pECSD;
+    u32 count = 0;
+    u32 bytes = 0;
+    s64 tickStart = DjyGetSysTime();
 
-	if((!pHmmc) || (!pECSD))
-		return (-1);
+    if((!pHmmc) || (!pECSD))
+        return (-1);
 #if 0
-	res = SDMMC_CmdBlockLength(pHmmc->Instance, BLOCKSIZE); // Set Block Size for Card
-	if(res != HAL_MMC_ERROR_NONE)
-	{
-		return (-1);
-	}
+    res = SDMMC_CmdBlockLength(pHmmc->Instance, BLOCKSIZE); // Set Block Size for Card
+    if(res != HAL_MMC_ERROR_NONE)
+    {
+        return (-1);
+    }
 #endif
 
-	pHmmc->Instance->DCTRL = 0; // TODO
-	config.DataTimeOut   = SDMMC_DATATIMEOUT;
-	config.DataLength    = 512;
-	config.DataBlockSize = SDMMC_DATABLOCK_SIZE_512B;
-	config.TransferDir   = SDMMC_TRANSFER_DIR_TO_SDMMC;
-	config.TransferMode  = SDMMC_TRANSFER_MODE_BLOCK;
-	config.DPSM          = SDMMC_DPSM_ENABLE;
-	SDMMC_ConfigData(pHmmc->Instance, &config);
-  
-	// Send CMD SEND_EXT_CSD
-	cmdInit.Argument         = 0;
-	cmdInit.CmdIndex         = SDMMC_CMD_HS_SEND_EXT_CSD;
-	cmdInit.Response         = SDMMC_RESPONSE_SHORT;
-	cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
-	cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
-	SDMMC_SendCommand(pHmmc->Instance, &cmdInit);
-	
-	// Poll on SDMMC flags
-	while(1)
-	{
-		if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_RXOVERR | SDMMC_FLAG_DCRCFAIL))// | SDMMC_FLAG_DTIMEOUT))
-		{
-			// u32 watch = pHmmc->Instance->STA; // 测试点
-			return (1);
-		}
+    pHmmc->Instance->DCTRL = 0; // TODO
+    config.DataTimeOut   = SDMMC_DATATIMEOUT;
+    config.DataLength    = 512;
+    config.DataBlockSize = SDMMC_DATABLOCK_SIZE_512B;
+    config.TransferDir   = SDMMC_TRANSFER_DIR_TO_SDMMC;
+    config.TransferMode  = SDMMC_TRANSFER_MODE_BLOCK;
+    config.DPSM          = SDMMC_DPSM_ENABLE;
+    SDMMC_ConfigData(pHmmc->Instance, &config);
 
-		if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_RXFIFOHF)) // FIFO里面至少有8*4字节
-		{
-			for(count = 0; count < 8; count++)
-			{
-				*(buf + count) = SDMMC_ReadFIFO(pHmmc->Instance);
-			}
-			buf += 8;
-			bytes += 32;
-		}
-		else if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_RXDAVL))
-		{
-			*(buf) = SDMMC_ReadFIFO(pHmmc->Instance);
-			buf += 1;
-			bytes +=4;
-		}
-		else if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_DATAEND))
-		{
-			break; // 数据已读完
-		}
+    // Send CMD SEND_EXT_CSD
+    cmdInit.Argument         = 0;
+    cmdInit.CmdIndex         = SDMMC_CMD_HS_SEND_EXT_CSD;
+    cmdInit.Response         = SDMMC_RESPONSE_SHORT;
+    cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
+    cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
+    SDMMC_SendCommand(pHmmc->Instance, &cmdInit);
 
-		if((-1 != dwTimeout) && ((u32)(DjyGetSysTime() - tickStart) >=  dwTimeout))
-		{
-			__HAL_MMC_CLEAR_FLAG(pHmmc, SDMMC_STATIC_FLAGS);
-			pHmmc->ErrorCode |= HAL_MMC_ERROR_TIMEOUT;
-			pHmmc->State= HAL_MMC_STATE_READY;
-			return (-1);
-		}
+    // Poll on SDMMC flags
+    while(1)
+    {
+        if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_RXOVERR | SDMMC_FLAG_DCRCFAIL))// | SDMMC_FLAG_DTIMEOUT))
+        {
+            // u32 watch = pHmmc->Instance->STA; // 测试点
+            return (1);
+        }
 
-	}
+        if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_RXFIFOHF)) // FIFO里面至少有8*4字节
+        {
+            for(count = 0; count < 8; count++)
+            {
+                *(buf + count) = SDMMC_ReadFIFO(pHmmc->Instance);
+            }
+            buf += 8;
+            bytes += 32;
+        }
+        else if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_RXDAVL))
+        {
+            *(buf) = SDMMC_ReadFIFO(pHmmc->Instance);
+            buf += 1;
+            bytes +=4;
+        }
+        else if(__HAL_MMC_GET_FLAG(pHmmc, SDMMC_FLAG_DATAEND))
+        {
+            break; // 数据已读完
+        }
 
-	// Check for error conditions
-	res = SDMMC_GetCmdResp1(pHmmc->Instance, SDMMC_CMD_HS_SEND_EXT_CSD, SDMMC_CMDTIMEOUT);
-	if(res != HAL_MMC_ERROR_NONE)
-	{
-		return (-1);
-	}
+        if((-1 != dwTimeout) && ((u32)(DjyGetSysTime() - tickStart) >=  dwTimeout))
+        {
+            __HAL_MMC_CLEAR_FLAG(pHmmc, SDMMC_STATIC_FLAGS);
+            pHmmc->ErrorCode |= HAL_MMC_ERROR_TIMEOUT;
+            pHmmc->State= HAL_MMC_STATE_READY;
+            return (-1);
+        }
 
-	return (bytes);
+    }
+
+    // Check for error conditions
+    res = SDMMC_GetCmdResp1(pHmmc->Instance, SDMMC_CMD_HS_SEND_EXT_CSD, SDMMC_CMDTIMEOUT);
+    if(res != HAL_MMC_ERROR_NONE)
+    {
+        return (-1);
+    }
+
+    return (bytes);
 }
 
 // ============================================================================
@@ -252,21 +252,21 @@ u32 EMMC_CMD_SendECSD(MMC_HandleTypeDef *pHmmc, u8 *pECSD, u32 dwTimeout)
 // ============================================================================
 u32 EMMC_CMD_SetRelAddr(SDMMC_TypeDef *SDMMCx, u16 wRCA)
 {
-	SDMMC_CmdInitTypeDef  cmdInit;
-	u32 res = SDMMC_ERROR_NONE;
+    SDMMC_CmdInitTypeDef  cmdInit;
+    u32 res = SDMMC_ERROR_NONE;
 
-	/* Send CMD3 SD_CMD_SET_REL_ADDR */
-	cmdInit.Argument         = (u32)(wRCA<<16);
-	cmdInit.CmdIndex         = SDMMC_CMD_SET_REL_ADDR;
-	cmdInit.Response         = SDMMC_RESPONSE_SHORT;
-	cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
-	cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
-	SDMMC_SendCommand(SDMMCx, &cmdInit);
+    /* Send CMD3 SD_CMD_SET_REL_ADDR */
+    cmdInit.Argument         = (u32)(wRCA<<16);
+    cmdInit.CmdIndex         = SDMMC_CMD_SET_REL_ADDR;
+    cmdInit.Response         = SDMMC_RESPONSE_SHORT;
+    cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
+    cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
+    SDMMC_SendCommand(SDMMCx, &cmdInit);
 
-	/* Check for error conditions */
-	res = SDMMC_GetCmdResp1(SDMMCx, SDMMC_CMD_SET_REL_ADDR, SDMMC_CMDTIMEOUT);
+    /* Check for error conditions */
+    res = SDMMC_GetCmdResp1(SDMMCx, SDMMC_CMD_SET_REL_ADDR, SDMMC_CMDTIMEOUT);
 
-	return res;
+    return res;
 }
 
 // ============================================================================
@@ -277,21 +277,21 @@ u32 EMMC_CMD_SetRelAddr(SDMMC_TypeDef *SDMMCx, u16 wRCA)
 // ============================================================================
 u32 EMMC_CMD_Sleep(SDMMC_TypeDef *SDMMCx, u32 dwRCA)
 {
-	SDMMC_CmdInitTypeDef  cmdInit;
-	u32 res = SDMMC_ERROR_NONE;
+    SDMMC_CmdInitTypeDef  cmdInit;
+    u32 res = SDMMC_ERROR_NONE;
 
-	/* Send CMD3 SD_CMD_SET_REL_ADDR */
-	cmdInit.Argument         = (u32)(((dwRCA << 16) & 0xFFFF0000) | 0x8000);
-	cmdInit.CmdIndex         = SDMMC_CMD_SDMMC_SEN_OP_COND;
-	cmdInit.Response         = SDMMC_RESPONSE_SHORT;
-	cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
-	cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
-	SDMMC_SendCommand(SDMMCx, &cmdInit);
+    /* Send CMD3 SD_CMD_SET_REL_ADDR */
+    cmdInit.Argument         = (u32)(((dwRCA << 16) & 0xFFFF0000) | 0x8000);
+    cmdInit.CmdIndex         = SDMMC_CMD_SDMMC_SEN_OP_COND;
+    cmdInit.Response         = SDMMC_RESPONSE_SHORT;
+    cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
+    cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
+    SDMMC_SendCommand(SDMMCx, &cmdInit);
 
-	/* Check for error conditions */
-	res = SDMMC_GetCmdResp1(SDMMCx, SDMMC_CMD_SDMMC_SEN_OP_COND, SDMMC_CMDTIMEOUT);
+    /* Check for error conditions */
+    res = SDMMC_GetCmdResp1(SDMMCx, SDMMC_CMD_SDMMC_SEN_OP_COND, SDMMC_CMDTIMEOUT);
 
-	return res;
+    return res;
 }
 
 // ============================================================================
@@ -302,19 +302,19 @@ u32 EMMC_CMD_Sleep(SDMMC_TypeDef *SDMMCx, u32 dwRCA)
 // ============================================================================
 u32 EMMC_CMD_Awake(SDMMC_TypeDef *SDMMCx, u32 dwRCA)
 {
-	SDMMC_CmdInitTypeDef  cmdInit;
-	u32 res = SDMMC_ERROR_NONE;
+    SDMMC_CmdInitTypeDef  cmdInit;
+    u32 res = SDMMC_ERROR_NONE;
 
-	/* Send CMD3 SD_CMD_SET_REL_ADDR */
-	cmdInit.Argument         = (u32)((dwRCA << 16) & 0xFFFF0000);
-	cmdInit.CmdIndex         = SDMMC_CMD_SDMMC_SEN_OP_COND;
-	cmdInit.Response         = SDMMC_RESPONSE_SHORT;
-	cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
-	cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
-	SDMMC_SendCommand(SDMMCx, &cmdInit);
+    /* Send CMD3 SD_CMD_SET_REL_ADDR */
+    cmdInit.Argument         = (u32)((dwRCA << 16) & 0xFFFF0000);
+    cmdInit.CmdIndex         = SDMMC_CMD_SDMMC_SEN_OP_COND;
+    cmdInit.Response         = SDMMC_RESPONSE_SHORT;
+    cmdInit.WaitForInterrupt = SDMMC_WAIT_NO;
+    cmdInit.CPSM             = SDMMC_CPSM_ENABLE;
+    SDMMC_SendCommand(SDMMCx, &cmdInit);
 
-	/* Check for error conditions */
-	res = SDMMC_GetCmdResp1(SDMMCx, SDMMC_CMD_SDMMC_SEN_OP_COND, SDMMC_CMDTIMEOUT);
+    /* Check for error conditions */
+    res = SDMMC_GetCmdResp1(SDMMCx, SDMMC_CMD_SDMMC_SEN_OP_COND, SDMMC_CMDTIMEOUT);
 
-	return res;
+    return res;
 }

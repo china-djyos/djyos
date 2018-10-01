@@ -32,9 +32,9 @@
 //attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"time","int",               //该组件的依赖组件名（可以是none，表示无依赖组件），
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"time","int",      //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -59,25 +59,25 @@
 #if 0
 typedef struct _RTC_
 {
-	vu32 TIMER;
-	vu32 TMCON;
-	vu32 CLKOUT_CON;
-	vu32 WEEK_ALARM;
-	vu32 DAY_ALARM;
-	vu32 HOUR_ALARM;
-	vu32 MIN_ALARM;
-	vu32 YEARL;
-	vu32 MON;
-	vu32 WEEK;
-	vu32 DAY;
-	vu32 HOUR;
-	vu32 MIN;
-	vu32 SEC;
-	vu32 YEARH;
-	vu32 RTC_CS0;
-	vu32 RTC_CS1;
-	vu32 SCOUNTERLOADH;
-	vu32 SCOUNTERLOADL;
+    vu32 TIMER;
+    vu32 TMCON;
+    vu32 CLKOUT_CON;
+    vu32 WEEK_ALARM;
+    vu32 DAY_ALARM;
+    vu32 HOUR_ALARM;
+    vu32 MIN_ALARM;
+    vu32 YEARL;
+    vu32 MON;
+    vu32 WEEK;
+    vu32 DAY;
+    vu32 HOUR;
+    vu32 MIN;
+    vu32 SEC;
+    vu32 YEARH;
+    vu32 RTC_CS0;
+    vu32 RTC_CS1;
+    vu32 SCOUNTERLOADH;
+    vu32 SCOUNTERLOADL;
 }tagRTCReg;
 
 #endif
@@ -126,26 +126,26 @@ static bool_t Rtc_SetTime(s64 time)
     time = time/1000000;
     Tm_LocalTime_r(&time,&dtm);
 
-	rtccs0 = silan_rtc_reg_get(0x13c);
-	silan_rtc_reg_set(0x13C,rtccs0 | (1<<5));//暂时关闭时钟
+    rtccs0 = silan_rtc_reg_get(0x13c);
+    silan_rtc_reg_set(0x13C,rtccs0 | (1<<5));//暂时关闭时钟
 
-	silan_rtc_reg_set(0x134,(u8)(HexToBcd(dtm.tm_sec)));
-	silan_rtc_reg_set(0x130,(u8)(HexToBcd(dtm.tm_min)));
-	silan_rtc_reg_set(0x12C,(u8)(HexToBcd(dtm.tm_hour)));
+    silan_rtc_reg_set(0x134,(u8)(HexToBcd(dtm.tm_sec)));
+    silan_rtc_reg_set(0x130,(u8)(HexToBcd(dtm.tm_min)));
+    silan_rtc_reg_set(0x12C,(u8)(HexToBcd(dtm.tm_hour)));
 
-	silan_rtc_reg_set(0x128,(u8)(HexToBcd(dtm.tm_mday)));
-	silan_rtc_reg_set(0x120,(u8)(HexToBcd(dtm.tm_mon)));
+    silan_rtc_reg_set(0x128,(u8)(HexToBcd(dtm.tm_mday)));
+    silan_rtc_reg_set(0x120,(u8)(HexToBcd(dtm.tm_mon)));
 
-	year = (u8)(dtm.tm_year % 100);
-	silan_rtc_reg_set(0x11C,(u8)(HexToBcd(year)));
-	year = (dtm.tm_year/100);
-	silan_rtc_reg_set(0x138,(u8)(HexToBcd(year)));
+    year = (u8)(dtm.tm_year % 100);
+    silan_rtc_reg_set(0x11C,(u8)(HexToBcd(year)));
+    year = (dtm.tm_year/100);
+    silan_rtc_reg_set(0x138,(u8)(HexToBcd(year)));
 
-	silan_rtc_reg_set(0x124,(u8)(HexToBcd(dtm.tm_wday)));
+    silan_rtc_reg_set(0x124,(u8)(HexToBcd(dtm.tm_wday)));
 
-	silan_rtc_reg_set(0x13C,rtccs0);//暂时关闭时钟
+    silan_rtc_reg_set(0x13C,rtccs0);//暂时关闭时钟
 
-	return true;
+    return true;
 }
 
 // =============================================================================
@@ -156,8 +156,8 @@ static bool_t Rtc_SetTime(s64 time)
 // =============================================================================
 static bool_t RTC_Configuration(void)
 {
-	silan_rtc_init();
-	return true;
+    silan_rtc_init();
+    return true;
 }
 // =============================================================================
 // 功能：RTC时间注册及初始化
@@ -169,7 +169,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
     s64 rtc_time;
     struct timeval tv;
 
-	RTC_Configuration();    //配置RTC
+    RTC_Configuration();    //配置RTC
 
     Rtc_GetTime(&rtc_time);  //从RTC设备中读取RTC时间，单位是us,
                              //读取的值放到&rtc_time中

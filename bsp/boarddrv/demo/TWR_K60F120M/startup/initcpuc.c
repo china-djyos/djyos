@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -97,7 +97,7 @@ const u32 gc_u32StartupExpTable[256] __attribute__ ((section(".StartupExpTbl")))
 //和Ezport不能访问，需要修改Flash中的内容，只能将整片擦除。因此，在调试阶段，先将锁
 //定功能禁止，即往FTFE_FSEC[SEC]段写成10（二进制），00、01、11表示锁定
 const u8 u8g_security_code[3072] __attribute__ ((section(".KiSecurityCode")))
-						   = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+                           = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
                                0x00,0x00,0xFF,0xFF,0x02,0x00,0x00,0x00};
 
 void Init_Cpu(void)
@@ -107,7 +107,7 @@ void Init_Cpu(void)
     __set_FAULTMASK(1);
     __set_CONTROL(0);
 
-    #if (__FPU_USED == 1)
+    #if (_D_FPU_USED == 1)
     startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //使能FPU
     startup_scb_reg->FPCCR = (1UL << 31);                //关闭lazy stacking
     #endif
@@ -141,9 +141,9 @@ extern void Load_Preload(void);
 //-----------------------------------------------------------------
 void AppStart(void)
 {
-	__set_MSP((uint32_t)msp_top);
-	__set_PSP((uint32_t)msp_top);
-	Load_Preload();
+    __set_MSP((uint32_t)msp_top);
+    __set_PSP((uint32_t)msp_top);
+    Load_Preload();
 }
 
 //-----------------------------------------------------------------

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -55,11 +55,11 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#define TCP_PKG_BUF_LEN (1024)					//数据包长度
-static char byMsgBuf[TCP_PKG_BUF_LEN];			//缓冲区
-static int iMsgCnt = 0;							//接收数据计数器
+#define TCP_PKG_BUF_LEN (1024)                  //数据包长度
+static char byMsgBuf[TCP_PKG_BUF_LEN];          //缓冲区
+static int iMsgCnt = 0;                         //接收数据计数器
 
-#define TCP_PORT	(5000)
+#define TCP_PORT    (5000)
 
 ptu32_t __Tcp_ServerTast( void )
 {
@@ -70,7 +70,7 @@ ptu32_t __Tcp_ServerTast( void )
     while(1)
     {
         iMsgLen = recv( sFd, byMsgBuf, TCP_PKG_BUF_LEN, 0);
-		iMsgCnt += iMsgLen;
+        iMsgCnt += iMsgLen;
      }
 
     closesocket (sFd);
@@ -81,16 +81,16 @@ ptu32_t __Tcp_ServerTast( void )
 // =============================================================================
 // 功能：服务器端调用，启动UDP流量测试，该任务会阻塞测试UDP数据包的速度，并打印到输出端
 // 参数：SvrIP：服务器IP地址字符串,例如"192.168.0.179"
-//		svrPort：UDP服务器接收的端口号，例如5000
+//      svrPort：UDP服务器接收的端口号，例如5000
 // 返回：正常不返回，若返回-1，则出错。
 // =============================================================================
 int Tcp_SvrStart(void)
 {
-	short evtt;
+    short evtt;
     struct sockaddr_in  tServerAddr,tClientAddr;
     int                 sockAddrSize;
     int                 sockFd,sFd;
-    int 				rcvLast;
+    int                 rcvLast;
 
     sockAddrSize = sizeof (struct sockaddr_in);
     memset ((char *) &tServerAddr,0, sockAddrSize);
@@ -113,7 +113,7 @@ int Tcp_SvrStart(void)
 
     if( listen( sockFd, 10 ) == -1 )
     {
-    	printf("TCP listen error!\r\n");
+        printf("TCP listen error!\r\n");
         closesocket( sockFd );
         return -1;
     }
@@ -121,51 +121,51 @@ int Tcp_SvrStart(void)
     sFd = accept( sockFd, (struct sockaddr*)&tClientAddr, &sockAddrSize );
     if( sFd == -1)
     {
-    	printf("TCP accept error!\r\n");
-    	closesocket( sockFd );
-    	return -1;
+        printf("TCP accept error!\r\n");
+        closesocket( sockFd );
+        return -1;
     }
 
     evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS - 20,0,0,
-    							__Tcp_ServerTast,NULL,4096, "TCP_SVR_Event");
+                                __Tcp_ServerTast,NULL,4096, "TCP_SVR_Event");
 
     if(evtt == CN_EVTT_ID_INVALID)
     {
-    	closesocket (sockFd);
-    	printf("TCP Create Evtt Error!\r\n");
-    	return -1;
+        closesocket (sockFd);
+        printf("TCP Create Evtt Error!\r\n");
+        return -1;
     }
 
     Djy_EventPop(evtt,NULL,0,(ptu32_t)sFd,0,0);
     printf("TCP Server Start Receive Packet!\r\n");
-	while(1)
-	{
-		rcvLast = iMsgCnt;
-		Djy_EventDelay(1000*mS);
-		printf("TCP Server Receive Speed = %d bytes/s.\r\n",iMsgCnt-rcvLast);
-	}
+    while(1)
+    {
+        rcvLast = iMsgCnt;
+        Djy_EventDelay(1000*mS);
+        printf("TCP Server Receive Speed = %d bytes/s.\r\n",iMsgCnt-rcvLast);
+    }
 
-	return 1;
+    return 1;
 }
 
 
 // =============================================================================
 // 功能：客户端调用，一直启动UDP发送数据包，一直发送，(注意IP地址与MAC与服务器不能一样)
 // 参数：SvrIP：服务器端IP地址字符串,例如"192.168.0.179"
-//		svrPort：服务器端接收的端口号，例如5000
+//      svrPort：服务器端接收的端口号，例如5000
 //      pDlyUs：发送一个数据包的延时，例如0，或者100(增加延时参数防止某些网上接收太快会死)
 // 返回：正常不返回，若返回-1，则出错。
 // =============================================================================
 int Tcp_ClientSend( char *SvrIP,short SvrPort)
 {
-	int 				sockfd;
-    struct sockaddr_in 	tServerAddr;
-    int             	sockAddrSize;
-    int 				sockopt;
-    int             	iMsgLen;
+    int                 sockfd;
+    struct sockaddr_in  tServerAddr;
+    int                 sockAddrSize;
+    int                 sockopt;
+    int                 iMsgLen;
 
     if(NULL == SvrIP)
-    	return -1;
+        return -1;
 
     sockAddrSize = sizeof (struct sockaddr_in);
     memset ((char *) &tServerAddr,0, sockAddrSize);
@@ -182,14 +182,14 @@ int Tcp_ClientSend( char *SvrIP,short SvrPort)
     sockopt = 1;
     if( 0 != setsockopt( sockfd, IPPROTO_TCP, TCP_NODELAY, (void*)&sockopt, sizeof( int ) ) )
     {
-    	printf("tcp set socket opt 'TCP_NODELAY' failed!\r\n");
+        printf("tcp set socket opt 'TCP_NODELAY' failed!\r\n");
         return -1;
     }
     sockopt = 1;
     if( 0 != setsockopt( sockfd, SOL_SOCKET, SO_KEEPALIVE, (void*)&sockopt, sizeof( int ) ) )
     {
-    	printf("tcp set socket opt 'SO_KEEPALIVE' failed!\r\n");
-    	return -1;
+        printf("tcp set socket opt 'SO_KEEPALIVE' failed!\r\n");
+        return -1;
     }
 
     if( (connect(sockfd,(struct sockaddr *)&tServerAddr,sockAddrSize)) == -1)
@@ -203,11 +203,11 @@ int Tcp_ClientSend( char *SvrIP,short SvrPort)
     printf("TCP Client Start Send Packet!\r\n");
     while(1)
     {
-    	byMsgBuf[0] = byMsgBuf[0] + 1;
-//    	iMsgLen =  (int)(drand48() * TCP_PKG_BUF_LEN);
-    	iMsgLen = send(sockfd, byMsgBuf, TCP_PKG_BUF_LEN, 0);
-    	if(iMsgLen)
-    		iMsgLen = send(sockfd, byMsgBuf, iMsgLen, 0);
+        byMsgBuf[0] = byMsgBuf[0] + 1;
+//      iMsgLen =  (int)(drand48() * TCP_PKG_BUF_LEN);
+        iMsgLen = send(sockfd, byMsgBuf, TCP_PKG_BUF_LEN, 0);
+        if(iMsgLen)
+            iMsgLen = send(sockfd, byMsgBuf, iMsgLen, 0);
     }
 
     closesocket (sockfd);

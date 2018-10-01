@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -81,11 +81,11 @@ typedef struct _WatDog_{
 
 //注册看门狗名称
 static char* pgWatDogName[1] = {
-	"zqM0WatDog1",
+    "zqM0WatDog1",
 };
 
 static tagWatDogReg* WatReg[1] = {
-	(tagWatDogReg*)BASE_WDT_ADDR,
+    (tagWatDogReg*)BASE_WDT_ADDR,
 };
 
 //watDog lock reg
@@ -93,11 +93,11 @@ typedef struct _WatDog_Lock_{
     vu32 WDOGLOCK;
 }tagWatDogLock;
 
-#define WDT_LOCK_ADDR	(BASE_WDT_ADDR + 0xC00)
+#define WDT_LOCK_ADDR   (BASE_WDT_ADDR + 0xC00)
 
 static tagWatDogLock* WatLockReg[1] = {
-	
-	(tagWatDogLock*)WDT_LOCK_ADDR,
+
+    (tagWatDogLock*)WDT_LOCK_ADDR,
 };
 
 
@@ -113,28 +113,28 @@ void WDT_Start(void)
     tagWatDogLock *LockReg = NULL;
     u32 tmp;
     printk("start watDog\r\n");
-    
-    Reg 	= (tagWatDogReg  *)WatReg[0];
-    LockReg	= (tagWatDogLock *)WatLockReg[0];
-    
+
+    Reg     = (tagWatDogReg  *)WatReg[0];
+    LockReg = (tagWatDogLock *)WatLockReg[0];
+
     //first to open the lock
     LockReg->WDOGLOCK = 0x1ACCE551;
-    
-    //enable counter and interrupt 
-    Reg->WDOGCONTROL |= (1<<0); 
-    
+
+    //enable counter and interrupt
+    Reg->WDOGCONTROL |= (1<<0);
+
     //enable reset
     Reg->WDOGCONTROL |= (1<< 1);
-    
+
     //read diable again
     LockReg->WDOGLOCK = 0x38;
     tmp = LockReg->WDOGLOCK;
     printk("WDT_Start: %d\r\n",tmp);
     //wait for lock again
     //while(!(tmp & 0x00000001 == 0x00000001));
-    
+
     printk("start dog:%x\r\n",Reg->WDOGVALUE);
-    
+
 }
 
 // =============================================================================
@@ -160,34 +160,34 @@ bool_t WDT_WdtFeed(void)
     tagWatDogLock *LockReg = NULL;
     u32 tmp = 0;
     u32 setVal;
-    
+
     if(setVal == 0){
-   
-    	setVal  = 0xffffffff;
+
+        setVal  = 0xffffffff;
     }
-    
-    //first open the lock and then to write 
+
+    //first open the lock and then to write
     LockReg->WDOGLOCK = 0x1ACCE551;
     printk("feed dog %x\r\n",LockReg->WDOGLOCK);
-    
-    Reg 	= WatReg[0];
-    LockReg	= WatLockReg[0];
-    
+
+    Reg     = WatReg[0];
+    LockReg = WatLockReg[0];
+
     printk("WDT FEED!\r\n");
-    
+
     //reset the reload value
     Reg->WDOGLOAD   = setVal;
-    
-    //write anything to clear int flag 
+
+    //write anything to clear int flag
     Reg->WDOGINTCLR = 0x38;
     //read diable again
     tmp = LockReg->WDOGLOCK;
     //wait for lock again
     //while(!(tmp & 0x00000001 == 0x00000001));
-    
+
     printk("feed dog %x\r\n",setVal);
     printk("---->%d\r\n",tmp);
-    
+
     return true;
 }
 
@@ -195,8 +195,8 @@ bool_t WDT_WdtFeed(void)
 //定义函数指针分别对应注册不同的看门狗
 
 fnWdtChip_Feed g_WatDogFeedHandle[1]= {
-	
-	(fnWdtChip_Feed)WDT_WdtFeed,
+
+    (fnWdtChip_Feed)WDT_WdtFeed,
 };
 
 
@@ -213,34 +213,34 @@ static void WDT_HardInit(void)
     tagWatDogReg  *Reg     = NULL;
     tagWatDogLock *LockReg = NULL;
     u32 tmp;
-    
+
     //enable watDog clock
     CTR_REG2 |= (1<<26);
     //enable watDog to reset system
     SYS_CTR2 |= (1<<28);
-    
+
     //disable all the WatDog
- 
-    Reg 	 =   WatReg[0];
+
+    Reg      =   WatReg[0];
     LockReg  =   WatLockReg[0];
-    	
-    //first open the lock and then to write 
+
+    //first open the lock and then to write
     LockReg->WDOGLOCK = 0x1ACCE551;
-   	
+
     Reg->WDOGLOAD = 0x00000f00;
     printk("WatDog%d WDT_HardInit set wdtLoad %x\r\n",WatDogCnt,Reg->WDOGLOAD);
     printk("WatDog%d WDT_HardInit current watDog count value %x\r\n",WatDogCnt,Reg->WDOGVALUE);
-   	
+
     //diable watdog
     Reg->WDOGCONTROL &= ~((1<<0) | (1<<1));
-   	
+
     //read diable again
     LockReg->WDOGLOCK = 0x38;
     tmp = LockReg->WDOGLOCK;
     //wait for lock again
     while(!(tmp & 0x00000001 == 0x00000001));
     printk("WatDog%d WDT_HardInit: %d\r\n",WatDogCnt,tmp);
-    
+
 }
 
 // =============================================================================
@@ -252,9 +252,9 @@ static void WDT_HardInit(void)
 bool_t WatDog_Install(void)
 {
     bool_t regResult;
-    
+
     WDT_HardInit();
- 
+
     regResult = WdtHal_RegisterWdtChip(pgWatDogName[0],CN_WDT_WDTCYCLE,g_WatDogFeedHandle[0],NULL,NULL);
 
    return regResult;

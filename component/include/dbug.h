@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -76,7 +76,7 @@ extern u32 debuglevel;
 #define debug_printf(module,fmt, ...) do{\
 if (debuglevel >= (CN_DEBUG)) \
 {\
-	printf("\r\n: dbug : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n: dbug : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
 }\
 }while (0)
 
@@ -84,7 +84,7 @@ if (debuglevel >= (CN_DEBUG)) \
 #define info_printf(module, fmt, ...) do{\
 if (debuglevel >= CN_INFO) \
 {\
-	printf("\r\n: info : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n: info : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
 } \
 }while (0)
 
@@ -97,9 +97,9 @@ do{ if (debuglevel >= (CN_NOTICE)) printf("\r\n: note : %-6.6s : "fmt"", module,
 #define warning_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_WARNING)) \
 {\
-	printf("\r\n: warn : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-	printf("\r\n         FILE: %s", __FILE__); \
-	printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\n: warn : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n         FILE: %s", __FILE__); \
+    printf("\r\n         LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -108,9 +108,9 @@ if (debuglevel >= (CN_WARNING)) \
 #define error_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_ERR)) \
 {\
-	printf("\r\n: erro : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-	printf("\r\n         FILE: %s", __FILE__); \
-	printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\n: erro : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n         FILE: %s", __FILE__); \
+    printf("\r\n         LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -118,9 +118,9 @@ if (debuglevel >= (CN_ERR)) \
 #define critical_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_CRIT)) \
 {\
-	printf("\r\n: crit : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-	printf("\r\n         FILE: %s", __FILE__); \
-	printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\n: crit : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n         FILE: %s", __FILE__); \
+    printf("\r\n         LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -128,9 +128,9 @@ if (debuglevel >= (CN_CRIT)) \
 #define alert_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_ALERT)) \
 {\
-	printf("\r\n: alet : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-	printf("\r\n         FILE: %s", __FILE__); \
-	printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\n: alet : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n         FILE: %s", __FILE__); \
+    printf("\r\n         LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -138,9 +138,9 @@ if (debuglevel >= (CN_ALERT)) \
 #define emergency_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_EMERG)) \
 {\
-	printf("\r\n: emer : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-	printf("\r\n         FILE: %s", __FILE__); \
-	printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\n: emer : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n         FILE: %s", __FILE__); \
+    printf("\r\n         LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 

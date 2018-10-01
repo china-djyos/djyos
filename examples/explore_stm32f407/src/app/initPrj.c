@@ -10,10 +10,6 @@ extern ptu32_t djy_main(void);
 
 ptu32_t __djy_main(void)
 {
-	extern s32 ModuleInstall_STDIO(const char *in, \
-	const char *out, const char *err);
-	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
-
 	djy_main();
 	return 0;
 }
@@ -30,8 +26,8 @@ void Sys_ModuleInit(void)
 	extern s32 ModuleInstall_Shell(ptu32_t para);
 	ModuleInstall_Shell(0);
 
-	extern void ModuleInstall_Exp(void);
-	ModuleInstall_Exp( );
+    extern void ModuleInstall_BlackBox(void);
+    ModuleInstall_BlackBox();
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -56,13 +52,8 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART6);
 	#endif
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
-	
-
-	extern s32 ModuleInstall_FAT(const char *dir, const char *dev, u32 opt);
-	ModuleInstall_FAT(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS);
+	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
+	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");

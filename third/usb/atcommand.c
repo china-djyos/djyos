@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -192,7 +192,7 @@ s32 SignalStrength(u8 bArgC, ...)
     u8 i;
     s32 strength;
     u32 good = 0;
-    
+
     va_start(ap, bArgC);
     for(i = 0; i < bArgC; i++)
     {
@@ -203,10 +203,10 @@ s32 SignalStrength(u8 bArgC, ...)
         }
     }
     va_end(ap);
-    
+
     if(!name)
         name = (char*)defaultName;
-        
+
     // handle = (void*)DevOpen(name, O_RDWR, 0);
     // if(!handle)
     handle = (void*)open(name, O_RDWR);
@@ -214,8 +214,8 @@ s32 SignalStrength(u8 bArgC, ...)
     {
         LOCAL_PRINT("AT : error : \"%s\" does not exist.\r\n", name);
         return (-1);
-    }   
-    
+    }
+
     memset(command, 0x0, sizeof(command));
     memset(response, 0x0, sizeof(response));
     strcat(command, AT_COMMANDS[0]);
@@ -229,7 +229,7 @@ s32 SignalStrength(u8 bArgC, ...)
         close(handle);
         return (-1);
     }
-    
+
     if(__GetResponse(handle, AT_COMMANDS[0], response, sizeof(response)))
     {
         // Driver_CloseDevice(handle);

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
@@ -21,7 +21,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -61,28 +61,29 @@
 //#include "silan_types.h"
 #include "silan_syscfg.h"
 #include "silan_iomux.h"
+#include "silan_iomux.h"
 
 //Reg define
 typedef struct
 {
-	vu32  PWMPSC;    //0x00
-	vu32  PWM0D;      //0x04
-	vu32  PWM1D;     //0x08
-	vu32  PWM2D;     //0x0c
-	vu32  PWM3D;     //0x10
-	vu32  PWM4D;     //0x14
-	vu32  PWM5D;  	 //0x18
-	vu32  PWM6D;		 //0x1c
-	vu32  PWM7D;		 //0x20
-	vu32  PWMP01;	 //0x24
-	vu32  PWMP23;	 //0x28
-	vu32  PWMP45;	 //0x2c
-	vu32  PWMP67;	 //0x30
-	vu32  PWMCON;	 //0x34
+    vu32  PWMPSC;    //0x00
+    vu32  PWM0D;      //0x04
+    vu32  PWM1D;     //0x08
+    vu32  PWM2D;     //0x0c
+    vu32  PWM3D;     //0x10
+    vu32  PWM4D;     //0x14
+    vu32  PWM5D;     //0x18
+    vu32  PWM6D;         //0x1c
+    vu32  PWM7D;         //0x20
+    vu32  PWMP01;    //0x24
+    vu32  PWMP23;    //0x28
+    vu32  PWMP45;    //0x2c
+    vu32  PWMP67;    //0x30
+    vu32  PWMCON;    //0x34
 }tagPWMReg;
 
-#define CN_PWM_CHANNEL_START	     ( CN_PWM_CHANNEL0 )
-#define CN_PWM_CHANNEL_END		 ( CN_PWM_CHANNEL7 )
+#define CN_PWM_CHANNEL_START     ( CN_PWM_CHANNEL0 )
+#define CN_PWM_CHANNEL_END       ( CN_PWM_CHANNEL7 )
 
 //channel number select
 #define CHANNEL_NUM_GET(channelNum)     (1<< (channelNum+4) )
@@ -92,149 +93,197 @@ typedef struct
 
 static tagPWMReg volatile *const sPWMReg = (tagPWMReg*) BASE_PWM_ADDR;
 
-//通道使能选择
-static void __CPU_PWM_ChannelOpen(u8 channelNum,u8 onOff)
+// =============================================================================
+//功能: 打开对应的通道
+//参数：
+//返回：无
+// =============================================================================
+static void __CPU_PWM_ChannelOpen(u8 channelNum)
 {
-	if(onOff == EN_CHANNEL_ON)
-	{
-		sPWMReg->PWMCON  |= CHANNEL_NUM_GET(channelNum);
-		return ;
-	}else if(onOff == EN_CHANNEL_OFF){
-
-		sPWMReg->PWMCON  &= ~(CHANNEL_NUM_GET(channelNum));
-		return ;
-	}
-
-	printk("__CPU_PWM_ChannelOpen func argc onOff Err\r\n");
+    sPWMReg->PWMCON  |= CHANNEL_NUM_GET(channelNum);
+    return ;
 }
 
-static void __CPU_PWM_ChannelParaSet(u8 channelNum,u32 para)
+// =============================================================================
+//功能: 设置占空比
+//参数：
+//返回：无
+// =============================================================================
+
+static void __CPU_PWM_ChannelDutySet(u8 channelNum,u32 para)
 {
-	switch(channelNum)
-	{
-			case CN_PWM_CHANNEL0: sPWMReg->PWM0D = (para-1);break;
-			case CN_PWM_CHANNEL1: sPWMReg->PWM1D = (para-1);break;
-			case CN_PWM_CHANNEL2: sPWMReg->PWM2D = (para-1);break;
-			case CN_PWM_CHANNEL3: sPWMReg->PWM3D = (para-1);break;
-			case CN_PWM_CHANNEL4: sPWMReg->PWM4D = (para-1);break;
-			case CN_PWM_CHANNEL5: sPWMReg->PWM5D = (para-1);break;
-			case CN_PWM_CHANNEL6: sPWMReg->PWM6D = (para-1);break;
-			case CN_PWM_CHANNEL7: sPWMReg->PWM7D = (para-1);break;
-			default:printk("__CPU_ChannelParaSet func arg channelNum Err\r\n");
-			return;
-	}
+    switch(channelNum)
+    {
+            case CN_PWM_CHANNEL0: sPWMReg->PWM0D = (para-1);break;
+            case CN_PWM_CHANNEL1: sPWMReg->PWM1D = (para-1);break;
+            case CN_PWM_CHANNEL2: sPWMReg->PWM2D = (para-1);break;
+            case CN_PWM_CHANNEL3: sPWMReg->PWM3D = (para-1);break;
+            case CN_PWM_CHANNEL4: sPWMReg->PWM4D = (para-1);break;
+            case CN_PWM_CHANNEL5: sPWMReg->PWM5D = (para-1);break;
+            case CN_PWM_CHANNEL6: sPWMReg->PWM6D = (para-1);break;
+            case CN_PWM_CHANNEL7: sPWMReg->PWM7D = (para-1);break;
+            default:printk("__CPU_ChannelParaSet func arg channelNum Err\r\n");
+            return;
+    }
 
 }
+
+// =============================================================================
+//功能: 设置占空比周期
+//参数：
+//返回：无
+// =============================================================================
 
 static void __CPU_PWM_ChannelPeriodSet(u8 channelNum,u32 para)
 {
-	u8 channelSet;
-	channelSet = (u8)(channelNum/2);
+    u8 channelSet;
+    channelSet = (u8)(channelNum/2);
 
     switch(channelSet)
     {
-			case CN_PWM_CHANNEL0: sPWMReg->PWMP01 = (para-1);break;
-			case CN_PWM_CHANNEL1: sPWMReg->PWMP23 = (para-1);break;
-			case CN_PWM_CHANNEL2: sPWMReg->PWMP45 = (para-1);break;
-			case CN_PWM_CHANNEL3: sPWMReg->PWMP67 = (para-1);break;
-			default:printk("__CPU_ChannelPeriodSet func arg channelNum Err\r\n");
-			return;
+        case CN_PWM_CHANNEL0:
+             sPWMReg->PWMP01 = (para-1);
+             break;
+        case CN_PWM_CHANNEL1:
+             sPWMReg->PWMP23 = (para-1);
+             break;
+        case CN_PWM_CHANNEL2:
+             sPWMReg->PWMP45 = (para-1);
+             break;
+        case CN_PWM_CHANNEL3:
+             sPWMReg->PWMP67 = (para-1);
+             break;
+        default:printk("__CPU_ChannelPeriodSet func arg channelNum Err\r\n");
+        return;
     }
 }
 
+// =============================================================================
+//功能: PWM 预分频设置
+//参数： preDiv 分频值0~255
+//返回：无
+// =============================================================================
+
 static void __CPU_PWM_PreDivSet(u8 preDiv)
 {
-	sPWMReg->PWMPSC = preDiv -1;
+    sPWMReg->PWMPSC = preDiv -1;
 }
 
-static void __CPU_PWM_IO_Config(u32 io, u32 x_para, u32 x_period,u8 onOff)
+// =============================================================================
+//功能: PWM 时钟源以及分配选择配置
+//参数：
+//返回：无
+// =============================================================================
+
+static void __CPU_PWM_ClkConfig(u8 clkSelect,u8 onOff)
 {
-		u32 ioNumber =  io;
 
-		ioNumber = ioNumber % 8; 								//make sure to be :0~7
+    if(clkSelect > EN_PWM_RCL_CLK_DIV2)
+    {
+        printk("__CPU_PWM_ClkConfig clkSelect Err\r\n");
+        return;
+    }
 
-		if(x_para == 0 || x_period == 0)
-		{
-			printk("__CPU_PWM_IO_Config func arg x_para or x_period Err\r\n");
-			return;
-		}else{
-
-			__CPU_PWM_ChannelParaSet(ioNumber,x_para);
-			__CPU_PWM_ChannelPeriodSet(ioNumber,x_period);
-			__CPU_PWM_ChannelOpen(ioNumber,onOff);
-			if(onOff == EN_CHANNEL_ON)
-				silan_io_func_config(ioNumber, IO_FUNC_PWM);
-		}
-
+    silan_pwm_cclk_config(clkSelect, onOff);
 }
 
-//app 调用 set pwm channel number
-void appPWM_ChannelOpen(u8 channelNum,u8 onOff)
+// =============================================================================
+//功能: 配置IO驱动能力
+//参数：pin:具备配置为pwm 输出的管脚号 drvLevel 驱动电流
+//
+//返回：无
+// =============================================================================
+
+static void __CPU_ConfigIODrvLevel(u32 pin,u32 drvLevel)
 {
-	if(onOff == EN_CHANNEL_OFF || onOff ==  EN_CHANNEL_ON)
-	{
-		if(channelNum >=CN_PWM_CHANNEL_START  && channelNum <= CN_PWM_CHANNEL_END)
-		{
-			__CPU_PWM_ChannelOpen(channelNum,onOff);
-		}
-		else{
-			  printk("appPWM_ChannelOpen func arg channelNum Err\r\n");
-			  return;
-		}
-	}else{
-
-          printk("appPWM_ChannelOpen func arg onOff Err\r\n");
-          return;
-	}
+    silan_io_driver_config(pin,drvLevel);
 }
 
-//app 调用
-void appPWM_ChannelParaSet(u8 channelNum,u32 para)
+
+// =============================================================================
+//功能: 配置IO驱动能力
+//参数：pin:具备配置为pwm 输出的管脚号 drvLevel 驱动电流
+//
+//返回：无
+// =============================================================================
+
+static void __CPU_PWM_IO_Config(u32 io, u32 x_para, u32 x_period)
 {
-	 if(channelNum >=CN_PWM_CHANNEL_START  && channelNum <= CN_PWM_CHANNEL_END)
-	 {
-		 __CPU_PWM_ChannelParaSet(channelNum,para);
-	 }
-	else{
-			  printk("appPWM_ChannelOpen func arg channelNum Err\r\n");
-			  return;
-	 }
+    u32 channelNo =  io;
+    channelNo = channelNo % 8;                          //管脚对应的通道号
+
+    if(x_para == 0 || x_period == 0)
+    {
+        printk("__CPU_PWM_IO_Config func arg x_para or x_period Err\r\n");
+        return;
+    }else
+    {
+        __CPU_PWM_ChannelDutySet  (channelNo,x_para);   //设置 占空比
+
+        __CPU_PWM_ChannelPeriodSet(channelNo,x_period); //设置周期
+
+        __CPU_PWM_ChannelOpen(channelNo);         //打开对应的PWM 通道
+
+        silan_io_func_config(io, IO_FUNC_PWM);          //启动PWM复用功能
+    }
 
 }
 
-//app 调用
-void appPWM_ChannelPeriodSet(u8 channelNum,u32 para)
+
+// =============================================================================
+//功能: PWM 模块安装
+//进行对该模块的一些默认初始化
+//
+//返回：无
+// =============================================================================
+
+#define CN_DEFAULT_PRE (60)
+
+void PWM_ModuleInstall(void)
 {
-	if(channelNum >= CN_PWM_CHANNEL_START || channelNum <= 	CN_PWM_CHANNEL_END)
-	{
-		__CPU_PWM_ChannelPeriodSet(channelNum,para);
-	}else{
-        printk("appPWM_ChannelPeriodSet Func channelNum Err\r\n");
-        return ;
-	}
-
+    __CPU_PWM_ClkConfig(EN_PWM_PLL_REF_CLK_DIV2,EN_PWM_CLK_ON);//默认设置PWM时钟源以及分频系数
+    __CPU_PWM_PreDivSet(CN_DEFAULT_PRE);                       //设置默认预分频为60
+    //配置默认输出管脚,以及对应的驱动能力
+    __CPU_ConfigIODrvLevel(IO_CONFIG_PB8,EN_IO_DRV_8MS);
+    __CPU_PWM_IO_Config(IO_CONFIG_PB8, 5, 100);
 }
 
+// =============================================================================
+//功能: PWM 模块安装
+//进行对该模块的一些默认初始化
+//
+//返回：无
+// =============================================================================
 
-//app 调用
-void appPWM_ChannelPreDivSet(u32 preDiv)
+bool_t PWM_Ctrl(u32 cmd,u32 para1,u32 para2,u32 para3)
 {
-	u32 tmpPreDiv;
-	tmpPreDiv = preDiv;
+    bool_t ret = false;
 
-	//暂时不做其他处理，若参数过大只取前面8byte
-	if(preDiv > 256)
-	{
-		printk("appPWM_ChannelPreDivSet Func arg para out of range\r\n");
-	}
-	CPU_PWM_PreDivSet(tmpPreDiv& 0xff);
+    switch(cmd)
+    {
+        case EN_PWM_PRE_DIV_SET:
+            if(para1 > 255)
+            {
+                printk("para1 out of range\r\n");
+                ret = false ;
+            }else
+                __CPU_PWM_PreDivSet((u8)para1);
+            break;
+        case EN_PWM_CLK_SET:
+            __CPU_PWM_ClkConfig((u8)para1,(u8) para2);
+            break;
+        case EN_IO_DRV_SET:
+            __CPU_ConfigIODrvLevel(para1,para2);
+            break;
+        case EN_PWM_PARA:
+            __CPU_PWM_IO_Config(para1, para2, para3);
+            break;
+        default:;break;
+    }
 
+    return ret;
 }
 
-void appPWM_IO_Config(u32 io, u32 x_para, u32 x_period,u8 onOff)
-{
-	 __CPU_PWM_IO_Config(io,x_para,  x_period,onOff);
-}
 
 
 

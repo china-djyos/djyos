@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -67,115 +67,115 @@ extern "C" {
  *------------------------------------------------------------------------------*/
 typedef struct MailboxInfoTag
 {
-	uint32_t   id;
-	uint32_t   length;
-	uint32_t   timestamp;
+    uint32_t   id;
+    uint32_t   length;
+    uint32_t   timestamp;
 } MailboxInfoType;
 
 
 typedef struct MailBox8Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[8];
+    MailboxInfoType info;
+    uint8_t         data[8];
 } Mailbox8Type;
 
 typedef struct MailBox12Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[12];
+    MailboxInfoType info;
+    uint8_t         data[12];
 } Mailbox12Type;
 
 typedef struct MailBox16Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[16];
+    MailboxInfoType info;
+    uint8_t         data[16];
 } Mailbox16Type;
 
 typedef struct MailBox20Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[20];
+    MailboxInfoType info;
+    uint8_t         data[20];
 } Mailbox20Type;
 
 typedef struct MailBox24Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[24];
+    MailboxInfoType info;
+    uint8_t         data[24];
 } Mailbox24Type;
 
 typedef struct MailBox32Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[32];
+    MailboxInfoType info;
+    uint8_t         data[32];
 } Mailbox32ype;
 
 typedef struct MailBox48Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[48];
+    MailboxInfoType info;
+    uint8_t         data[48];
 } Mailbox48Type;
 
 typedef struct MailBox64Tag
 {
-	MailboxInfoType info;
-	uint8_t         data[64];
+    MailboxInfoType info;
+    uint8_t         data[64];
 } Mailbox64Type;
 
 
 
 typedef struct MCan_MsgRamPntrsTag
 {
-	uint32_t * pStdFilts;
-	uint32_t * pExtFilts;
-	uint32_t * pRxFifo0;
-	uint32_t * pRxFifo1;
-	uint32_t * pRxDedBuf;
-	uint32_t * pTxEvtFifo;
-	uint32_t * pTxDedBuf;
-	uint32_t * pTxFifoQ;
+    uint32_t * pStdFilts;
+    uint32_t * pExtFilts;
+    uint32_t * pRxFifo0;
+    uint32_t * pRxFifo1;
+    uint32_t * pRxDedBuf;
+    uint32_t * pTxEvtFifo;
+    uint32_t * pTxDedBuf;
+    uint32_t * pTxFifoQ;
 } MCan_MsgRamPntrs;
 
 typedef struct MCan_ConfigTag
 {
-	Mcan            * pMCan;
-	uint32_t          bitTiming;
-	uint32_t          fastBitTiming;
-	uint32_t          nmbrStdFilts;
-	uint32_t          nmbrExtFilts;
-	uint32_t          nmbrFifo0Elmts;
-	uint32_t          nmbrFifo1Elmts;
-	uint32_t          nmbrRxDedBufElmts;
-	uint32_t          nmbrTxEvtFifoElmts;
-	uint32_t          nmbrTxDedBufElmts;
-	uint32_t          nmbrTxFifoQElmts;
-	uint32_t          rxFifo0ElmtSize;
-	uint32_t          rxFifo1ElmtSize;
-	uint32_t          rxBufElmtSize;
-	// Element sizes and data sizes (encoded element size)
-	uint32_t          txBufElmtSize;
-	// Element size and data size (encoded element size)
-	MCan_MsgRamPntrs  msgRam;
+    Mcan            * pMCan;
+    uint32_t          bitTiming;
+    uint32_t          fastBitTiming;
+    uint32_t          nmbrStdFilts;
+    uint32_t          nmbrExtFilts;
+    uint32_t          nmbrFifo0Elmts;
+    uint32_t          nmbrFifo1Elmts;
+    uint32_t          nmbrRxDedBufElmts;
+    uint32_t          nmbrTxEvtFifoElmts;
+    uint32_t          nmbrTxDedBufElmts;
+    uint32_t          nmbrTxFifoQElmts;
+    uint32_t          rxFifo0ElmtSize;
+    uint32_t          rxFifo1ElmtSize;
+    uint32_t          rxBufElmtSize;
+    // Element sizes and data sizes (encoded element size)
+    uint32_t          txBufElmtSize;
+    // Element size and data size (encoded element size)
+    MCan_MsgRamPntrs  msgRam;
 } MCan_ConfigType;
 
 extern const MCan_ConfigType mcan0Config;
 extern const MCan_ConfigType mcan1Config;
 
 //__STATIC_INLINE uint32_t MCAN_IsTxComplete(
-//	const MCan_ConfigType * mcanConfig )
+//  const MCan_ConfigType * mcanConfig )
 //{
-//	Mcan * mcan = mcanConfig->pMCan;
-//	return ( mcan->MCAN_IR & MCAN_IR_TC );
+//  Mcan * mcan = mcanConfig->pMCan;
+//  return ( mcan->MCAN_IR & MCAN_IR_TC );
 //}
 
 //__STATIC_INLINE void MCAN_ClearTxComplete(
-//	const MCan_ConfigType * mcanConfig )
+//  const MCan_ConfigType * mcanConfig )
 //{
-//	Mcan * mcan = mcanConfig->pMCan;
-//	mcan->MCAN_IR = MCAN_IR_TC;
+//  Mcan * mcan = mcanConfig->pMCan;
+//  mcan->MCAN_IR = MCAN_IR_TC;
 //}
 
 __STATIC_INLINE uint32_t MCAN_IsMessageStoredToRxDedBuffer(
-	const MCan_ConfigType * mcanConfig )
+    const MCan_ConfigType * mcanConfig )
 {
   Mcan * mcan = mcanConfig->pMCan;
 
@@ -183,38 +183,38 @@ __STATIC_INLINE uint32_t MCAN_IsMessageStoredToRxDedBuffer(
 }
 
 __STATIC_INLINE void MCAN_ClearMessageStoredToRxBuffer(
-	const MCan_ConfigType * mcanConfig )
+    const MCan_ConfigType * mcanConfig )
 {
-	Mcan * mcan = mcanConfig->pMCan;
-	mcan->MCAN_IR = MCAN_IR_DRX;
+    Mcan * mcan = mcanConfig->pMCan;
+    mcan->MCAN_IR = MCAN_IR_DRX;
 }
 
 __STATIC_INLINE uint32_t MCAN_IsMessageStoredToRxFifo0(
-	const MCan_ConfigType * mcanConfig )
+    const MCan_ConfigType * mcanConfig )
 {
-	Mcan * mcan = mcanConfig->pMCan;
-	return ( mcan->MCAN_IR & MCAN_IR_RF0N );
+    Mcan * mcan = mcanConfig->pMCan;
+    return ( mcan->MCAN_IR & MCAN_IR_RF0N );
 }
 
 __STATIC_INLINE void MCAN_ClearMessageStoredToRxFifo0(
-	const MCan_ConfigType * mcanConfig )
+    const MCan_ConfigType * mcanConfig )
 {
-	Mcan * mcan = mcanConfig->pMCan;
-	mcan->MCAN_IR = MCAN_IR_RF0N;
+    Mcan * mcan = mcanConfig->pMCan;
+    mcan->MCAN_IR = MCAN_IR_RF0N;
 }
 
 __STATIC_INLINE uint32_t MCAN_IsMessageStoredToRxFifo1(
-	const MCan_ConfigType * mcanConfig )
+    const MCan_ConfigType * mcanConfig )
 {
-	Mcan * mcan = mcanConfig->pMCan;
-	return ( mcan->MCAN_IR & MCAN_IR_RF1N );
+    Mcan * mcan = mcanConfig->pMCan;
+    return ( mcan->MCAN_IR & MCAN_IR_RF1N );
 }
 
 __STATIC_INLINE void MCAN_ClearMessageStoredToRxFifo1(
-	const MCan_ConfigType * mcanConfig )
+    const MCan_ConfigType * mcanConfig )
 {
-	Mcan * mcan = mcanConfig->pMCan;
-	mcan->MCAN_IR = MCAN_IR_RF1N;
+    Mcan * mcan = mcanConfig->pMCan;
+    mcan->MCAN_IR = MCAN_IR_RF1N;
 }
 
 
@@ -227,7 +227,7 @@ __STATIC_INLINE void MCAN_ClearMessageStoredToRxFifo1(
 #define MCAN_PROG_CLK_PRESCALER       30  /* /1 to /256 */
 #define MCAN_PROG_CLK_SELECT          PMC_PCK_CSS_MCK
 #define MCAN_PROG_CLK_FREQ_HZ \
-		( (float) 150000000 / (float) MCAN_PROG_CLK_PRESCALER )
+        ( (float) 150000000 / (float) MCAN_PROG_CLK_PRESCALER )
 
 #define MCAN1_BIT_RATE_BPS            125000
 #define MCAN1_PROP_SEG                2

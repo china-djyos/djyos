@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -54,6 +54,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages);
 //    ModuleInstall_EmbededFlash(CFG_FLASH_CHIP_NAME,CFG_FLASH_FLAG,CFG_FLASH_RES);
 //%$#@end initcode  ****初始化代码结束
 
@@ -63,8 +64,8 @@
 //attribute:bsp组件                                  //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                                        //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                                         //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                                     //init表示在调用main之前，main表示在main函数中初始化
+//init time:early                                  //初始化时机，可选值：early，medium，later。
+                                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"iap","int","devfile","heap","lock"     //该组件的依赖组件名（可以是none，表示无依赖组件），
                                                      //选中该组件时，被依赖组件将强制选中，
                                                      //如果依赖多个组件，则依次列出，用“,”分隔

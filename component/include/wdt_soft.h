@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -59,7 +59,7 @@ extern "C" {
 #endif
 
 #include "stdint.h"
-#include "exp.h"
+#include "blackbox.h"
 
 struct Wdt;
 typedef u32 (* fnYipHook)(struct Wdt *wdt);
@@ -70,7 +70,7 @@ typedef struct Wdt
     struct Wdt *pnxt;        //双向不循环链表指针-后
     char            *pname;       //看门狗名字，指向静态或者常量字符串
     fnYipHook       fnhook;       //狗叫善后钩子函数
-    enum EN_ExpAction action;       //狗叫动作
+    enum EN_BlackBoxAction action;       //狗叫动作
     u32             cycle;        //看门狗周期，单位：微秒
     s16             WdtOnwer;     //看门狗所属事件ID
     s64             deadtime;     //看门狗喂狗截止时间，到此时间还不喂，则狗叫，单位：微秒
@@ -116,12 +116,12 @@ enum _EN_WDT_CMD
 ptu32_t ModuleInstall_Wdt(void);
 tagWdt *Wdt_Create(char *dogname,u32 yip_cycle,\
                    fnYipHook yiphook,
-                   enum EN_ExpAction yip_action,
+                   enum EN_BlackBoxAction yip_action,
                    u32 ExhaustLevelSet,
                    u32 ExhaustLimit);
 tagWdt *Wdt_Create_s(tagWdt *wdt, char *dogname,u32 yip_cycle,
                      fnYipHook yiphook,
-                     enum EN_ExpAction yip_action,
+                     enum EN_BlackBoxAction yip_action,
                      u32 ExhaustLevelSet,
                      u32 ExhaustLimit);
 bool_t Wdt_Delete(tagWdt *wdt);

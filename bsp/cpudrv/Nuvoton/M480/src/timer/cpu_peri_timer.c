@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -78,7 +78,7 @@ static tagTimerReg volatile * const tg_TIMER_Reg[] = {
 enum ENUM_STM32_TIMER
 {
     EN_STM32TIMER_2=0,//按顺序赋值
-	EN_STM32TIMER_5   //EN_STM32TIMER_5为1，EN_STM32TIMER_5下再增加一个则为2
+    EN_STM32TIMER_5   //EN_STM32TIMER_5为1，EN_STM32TIMER_5下再增加一个则为2
 };
 
 //各个定时器芯片的定时器应该有自己的句柄
@@ -127,13 +127,13 @@ u8 __STM32Timer_GetFirstZeroBit(u32 para)
 bool_t __STM32Timer_Time2Counter(u64 time, u64 *counter)
 {
 
-	u64 counter_1=time*84;
-	*counter = counter_1 > CN_PIT_MAX_COUNTER ? CN_PIT_MAX_COUNTER : counter_1;
+    u64 counter_1=time*84;
+    *counter = counter_1 > CN_PIT_MAX_COUNTER ? CN_PIT_MAX_COUNTER : counter_1;
 
     if(*counter == counter_1)
         return true;
 
-	return false;
+    return false;
 
 }
 // =============================================================================
@@ -145,7 +145,7 @@ bool_t __STM32Timer_Time2Counter(u64 time, u64 *counter)
 // =============================================================================
 bool_t __STM32Timer_Counter2Time(u64 counter,u64 *time)
 {
-	u32 time_1=counter/84;
+    u32 time_1=counter/84;
     if(time_1 > CN_PIT_MAX_TIME_US)
     {
         *time = CN_PIT_MAX_TIME_US;

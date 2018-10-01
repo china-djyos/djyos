@@ -118,16 +118,16 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/dma/cpu_peri_dma.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/emflash/cpu_peri_emflash.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/eth/cpu_peri_eth.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/gpio/cpu_peri_gpio.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/lowpower/stm32f4xx_lowpower.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/rtc/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/sdio/sdio_sdcard.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/spi/cpu_peri_spi.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/uart/cpu_peri_uart.c</component>
-   <component>/bsp/cpudrv/stm32/f4/stm32f407xx/../src/usb/usbh_conf.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/emflash/cpu_peri_emflash.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/eth/cpu_peri_eth.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/gpio/cpu_peri_gpio.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/lowpower/stm32f4xx_lowpower.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/sdio/sdio_sdcard.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/spi/cpu_peri_spi.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/usb/usbh_conf.c</component>
 </components>

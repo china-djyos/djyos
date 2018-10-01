@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,16 +42,16 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//========================================================  
+//========================================================
 // 文件模块说明: 系统控制寄存器定义
-// 文件版本: v1.00                                          
-// 开发人员: lst                                            
-// 创建时间: 2011.06.01                                     
-// Copyright(c) 2011-2011  深圳鹏瑞软件有限公司             
-//========================================================  
-// 程序修改记录(最新的放在最前面):                            
-//  <版本号> <修改日期>, <修改人员>: <修改功能概述>            
-//========================================================  
+// 文件版本: v1.00
+// 开发人员: lst
+// 创建时间: 2011.06.01
+// Copyright(c) 2011-2011  都江堰操作系统开源团队
+//========================================================
+// 程序修改记录(最新的放在最前面):
+//  <版本号> <修改日期>, <修改人员>: <修改功能概述>
+//========================================================
 //例如：
 // V1.02 2004-07-14, 张三: 接收函数增加对报文长度有效性校核
 
@@ -64,9 +64,9 @@ extern "C" {
 
 struct st_sysctrl_reg
 {
-    vu32 flashcfg;               // flash accelerator module           
+    vu32 flashcfg;               // flash accelerator module
     u32 reserved0[31];
-    vu32 pll0con;                // clocking and power control         
+    vu32 pll0con;                // clocking and power control
     vu32 pll0cfg;
     vu32 pll0stat;
     vu32 pll0feed;
@@ -83,21 +83,21 @@ struct st_sysctrl_reg
     vu32 usbclkcfg;
     vu32 clksrcsel;
     u32 reserved4[12];
-    vu32 extint;                 // external interrupts                
+    vu32 extint;                 // external interrupts
     u32 reserved5;
     vu32 extmode;
     vu32 extpolar;
     u32 reserved6[12];
-    vu32 rsid;                   // reset                              
+    vu32 rsid;                   // reset
     u32 reserved7[7];
-    vu32 scs;                    // syscon miscellaneous registers     
-    vu32 irctrim;                // clock dividers                     
+    vu32 scs;                    // syscon miscellaneous registers
+    vu32 irctrim;                // clock dividers
     vu32 pclksel0;
     vu32 pclksel1;
     u32 reserved8[4];
-    vu32 usbintst;               // usb device/otg interrupt register  
+    vu32 usbintst;               // usb device/otg interrupt register
     u32 reserved9;
-    vu32 clkoutcfg;              // clock output configuration         
+    vu32 clkoutcfg;              // clock output configuration
  };
 
 #ifdef __cplusplus

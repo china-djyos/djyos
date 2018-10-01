@@ -1,13 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<projectDescription>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><projectDescription>
 	<name>NuvotonM487</name>
-	<comment></comment>
+	<comment/>
 	<projects>
 	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>full,incremental,</triggers>
+			<triggers>clean,full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>

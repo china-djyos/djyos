@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -51,35 +51,35 @@
 //------------------------------------------------------------------------------
 void testCpuInfo(void)
 {
-	static u32 cpuinclk = 26*1000*1000;
-	static u32 periclk=100*1000*1000;
-	static u32 cpuclk=216*1000*1000;
-	static u32 tick = 100;
-	static u8 cpumagic[8] ={0x1,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
-	static u8 ethmac[6]={0x01,0x02,0x03,0x04,0x05,0x1};
-	static const char *cpuver="1.2.0";
-	static const char *corever="m7-1-2";
-	static u32 cachelsize = 128*1024;
-	static u32 cacheline  = 32;
-	static u32 ramsize  = 367*1024;
-	static u32 romsize = 2*1024*1024;
+    static u32 cpuinclk = 26*1000*1000;
+    static u32 periclk=100*1000*1000;
+    static u32 cpuclk=216*1000*1000;
+    static u32 tick = 100;
+    static u8 cpumagic[8] ={0x1,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+    static u8 ethmac[6]={0x01,0x02,0x03,0x04,0x05,0x1};
+    static const char *cpuver="1.2.0";
+    static const char *corever="m7-1-2";
+    static u32 cachelsize = 128*1024;
+    static u32 cacheline  = 32;
+    static u32 ramsize  = 367*1024;
+    static u32 romsize = 2*1024*1024;
 
 
-	LogCpuMsg("CLKIN",&cpuinclk,sizeof(cpuinclk),EN_CPU_MSGTYPE_FREQUENCY);
-	LogCpuMsg("PERICLK",&periclk,sizeof(periclk),EN_CPU_MSGTYPE_FREQUENCY);
-	LogCpuMsg("CPUCLK",&cpuclk,sizeof(cpuclk),EN_CPU_MSGTYPE_FREQUENCY);
-	LogCpuMsg("TICK",&tick,sizeof(tick),EN_CPU_MSGTYPE_FREQUENCY);
+    LogCpuMsg("CLKIN",&cpuinclk,sizeof(cpuinclk),EN_CPU_MSGTYPE_FREQUENCY);
+    LogCpuMsg("PERICLK",&periclk,sizeof(periclk),EN_CPU_MSGTYPE_FREQUENCY);
+    LogCpuMsg("CPUCLK",&cpuclk,sizeof(cpuclk),EN_CPU_MSGTYPE_FREQUENCY);
+    LogCpuMsg("TICK",&tick,sizeof(tick),EN_CPU_MSGTYPE_FREQUENCY);
 
-	LogCpuMsg("CPUSIG",&cpumagic,sizeof(cpumagic),EN_CPU_MSGTYPE_MULTIBYTES);
-	LogCpuMsg("CPUVER",cpuver,strlen(cpuver),EN_CPU_MSGTYPE_STRING);
-	LogCpuMsg("COREVER",corever,strlen(corever),EN_CPU_MSGTYPE_STRING);
+    LogCpuMsg("CPUSIG",&cpumagic,sizeof(cpumagic),EN_CPU_MSGTYPE_MULTIBYTES);
+    LogCpuMsg("CPUVER",cpuver,strlen(cpuver),EN_CPU_MSGTYPE_STRING);
+    LogCpuMsg("COREVER",corever,strlen(corever),EN_CPU_MSGTYPE_STRING);
 
-	LogCpuMsg("CACHESIZE",&cachelsize,sizeof(cachelsize),EN_CPU_MSGTYPE_SIZE);
-	LogCpuMsg("CACHELINE",&cacheline,sizeof(cacheline),EN_CPU_MSGTYPE_SIZE);
-	LogCpuMsg("RAMSIZE",&ramsize,sizeof(ramsize),EN_CPU_MSGTYPE_SIZE);
-	LogCpuMsg("ROMSIZE",&romsize,sizeof(romsize),EN_CPU_MSGTYPE_SIZE);
+    LogCpuMsg("CACHESIZE",&cachelsize,sizeof(cachelsize),EN_CPU_MSGTYPE_SIZE);
+    LogCpuMsg("CACHELINE",&cacheline,sizeof(cacheline),EN_CPU_MSGTYPE_SIZE);
+    LogCpuMsg("RAMSIZE",&ramsize,sizeof(ramsize),EN_CPU_MSGTYPE_SIZE);
+    LogCpuMsg("ROMSIZE",&romsize,sizeof(romsize),EN_CPU_MSGTYPE_SIZE);
 
-	return ;
+    return ;
 }
 
 

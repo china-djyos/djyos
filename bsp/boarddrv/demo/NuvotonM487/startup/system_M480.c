@@ -83,7 +83,7 @@ void SystemInit (void)
 
 
     /* FPU settings ------------------------------------------------------------*/
-#if (__FPU_PRESENT == 1U) && (__FPU_USED == 1U)
+#if (__FPU_PRESENT == 1U) && (_D_FPU_USED == 1U)
     SCB->CPACR |= ((3UL << 10*2) |                 /* set CP10 Full Access */
                    (3UL << 11*2)  );               /* set CP11 Full Access */
 #endif

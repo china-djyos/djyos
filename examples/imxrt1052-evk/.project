@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><projectDescription>
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
 	<name>imxrt1052-evk</name>
-	<comment/>
+	<comment></comment>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -24,6 +25,11 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
 	<linkedResources>
+		<link>
+			<name>src/iboot/gdd_test</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/test/gdd_test</locationURI>
+		</link>
 		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>

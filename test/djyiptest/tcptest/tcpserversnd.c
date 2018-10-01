@@ -1,34 +1,34 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
-// 1. Redistributions of source code must retain the above copyright notice, 
+// 1. Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice, 
-//    this list of conditions and the following disclaimer in the documentation 
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 // 3. As a constituent part of djyos,do not transplant it to other software
 //    without specific prior written permission.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 // LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 // CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 // SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
-// 
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+//
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
-// 
+//
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
@@ -160,7 +160,7 @@ bool_t TcpServer_Snd(void)
 //          {
 //              printk("Client:set client sndbuf trigerlevel failed!\n\r");
 //          }
-            
+
             sndbuf = M_Malloc(CN_SNDBUF_LEN,CN_TIMEOUT_FOREVER);
             for(i = 0; i <CN_SNDBUF_LEN; i++)
             {
@@ -196,7 +196,7 @@ bool_t TcpServer_Snd(void)
 bool_t TcpServer_SndTask(char *param)
 {
    u16   evtt_id = CN_EVTT_ID_INVALID;
-   evtt_id = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-1, 0, 1, 
+   evtt_id = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS-1, 0, 1,
         (ptu32_t (*)(void))TcpServer_Snd,NULL, 0x1000, "TcpServer_Snd");
     if (evtt_id != CN_EVTT_ID_INVALID)
     {

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -76,6 +76,10 @@ static  s32 _get_button_type(HWND hwnd)
 //参数：pMsg，消息指针
 //返回：固定true
 //-----------------------------------------------------------------------------
+static  bool_t ButtonCreate(struct WindowMsg *pMsg)
+{
+    return true;
+}
 static  bool_t ButtonPaint(struct WindowMsg *pMsg)
 {
     HWND hwnd;
@@ -89,32 +93,32 @@ static  bool_t ButtonPaint(struct WindowMsg *pMsg)
         return false;
     hdc =BeginPaint(hwnd);
     if(hdc==NULL)
-    	return false;
-	GetClientRect(hwnd,&rc);
+        return false;
+    GetClientRect(hwnd,&rc);
     Widget_GetAttr(hwnd,ENUM_WIDGET_FILL_COLOR,&color);
-	SetFillColor(hdc,color);
-	FillRect(hdc,&rc);
-	if(hwnd->Style&WS_DISABLE)
-	{
-		FillRect(hdc,&rc);
-		OffsetRect(&rc,1,1);
-	}
-	else if(hwnd->Style&BS_PUSHED)
-	{
-		SetTextColor(hdc,RGB(255,255,255));
+    SetFillColor(hdc,color);
+    FillRect(hdc,&rc);
+    if(hwnd->Style&WS_DISABLE)
+    {
+        FillRect(hdc,&rc);
+        OffsetRect(&rc,1,1);
+    }
+    else if(hwnd->Style&BS_PUSHED)
+    {
+        SetTextColor(hdc,RGB(255,255,255));
 
-		SetFillColor(hdc,RGB(0,0,0));
-		FillRect(hdc,&rc);
-		OffsetRect(&rc,1,1);
-	}
-	else
-	{
-		switch(hwnd->Style&BS_SURFACE_MASK)
-		{
-			case    BS_NICE:
-			  GradientFillRect(hdc,&rc,
-						RGB(210,210,210),RGB(150,150,150),CN_FILLRECT_MODE_UD);
-				break;
+        SetFillColor(hdc,RGB(0,0,0));
+        FillRect(hdc,&rc);
+        OffsetRect(&rc,1,1);
+    }
+    else
+    {
+        switch(hwnd->Style&BS_SURFACE_MASK)
+        {
+            case    BS_NICE:
+              GradientFillRect(hdc,&rc,
+                        RGB(210,210,210),RGB(150,150,150),CN_FILLRECT_MODE_UD);
+                break;
 
                 case    BS_SIMPLE:
                     SetDrawColor(hdc,CN_COLOR_BLACK);
@@ -140,15 +144,15 @@ static  bool_t ButtonPaint(struct WindowMsg *pMsg)
 
         }
 
-	Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,&color);
+    Widget_GetAttr(hwnd,ENUM_WIDGET_TEXT_COLOR,&color);
 
-	SetTextColor(hdc,color);
+    SetTextColor(hdc,color);
 
-	DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_CENTER);
+    DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_CENTER);
 
-	UpdateDisplay(0);
+    UpdateDisplay(0);
 
-	EndPaint(hwnd,hdc);
+    EndPaint(hwnd,hdc);
 
     return true;
 }
@@ -228,38 +232,39 @@ static  bool_t Button_Up(struct WindowMsg *pMsg)
 
 static bool_t Button_Move(struct WindowMsg *pMsg)
 {
-	HWND hwnd;
-	if(pMsg==NULL)
-		return false;
-	hwnd=pMsg->hwnd;
-	if(hwnd==NULL)
-		return false;
+    HWND hwnd;
+    if(pMsg==NULL)
+        return false;
+    hwnd=pMsg->hwnd;
+    if(hwnd==NULL)
+        return false;
 
-	if(pMsg->Code==MSG_NCTOUCH_MOVE)
-	{
-		switch(_get_button_type(hwnd))
-	    {
-		        case    BS_NORMAL:
-		            hwnd->Style &= ~BS_PUSHED;
-		            InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除
-		            break;
-		        case BS_HOLD:
-		        	break;
-	    }
-	}
-	return true;
+    if(pMsg->Code==MSG_NCTOUCH_MOVE)
+    {
+        switch(_get_button_type(hwnd))
+        {
+                case    BS_NORMAL:
+                    hwnd->Style &= ~BS_PUSHED;
+                    InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除
+                    break;
+                case BS_HOLD:
+                    break;
+        }
+    }
+    return true;
 }
 
 //默认按钮消息处理函数表，处理用户函数表中没有处理的消息。
 static struct MsgProcTable s_gButtonMsgProcTable[] =
 {
+    {MSG_CREATE,ButtonCreate},
     {MSG_LBUTTON_DOWN,Button_Down},
     {MSG_LBUTTON_UP,Button_Up},
     {MSG_PAINT,ButtonPaint},
     {MSG_TOUCH_DOWN,Button_Down},
     {MSG_TOUCH_UP,Button_Up},
-	{MSG_TOUCH_MOVE,Button_Move},
-	{MSG_NCTOUCH_MOVE,Button_Move},
+    {MSG_TOUCH_MOVE,Button_Move},
+    {MSG_NCTOUCH_MOVE,Button_Move},
 };
 
 static struct MsgTableLink  s_gButtonMsgLink;

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -518,7 +518,7 @@ u32 Ring_SearchStr(struct RingBuf *ring, char *string,u32 str_len)
 // ============================================================================
 u32 Ring_Capacity2(struct RingBuf *ring)
 {
-	return (ring->max_len - ring->len);
+    return (ring->max_len - ring->len);
 }
 
 // ============================================================================
@@ -529,21 +529,21 @@ u32 Ring_Capacity2(struct RingBuf *ring)
 // ============================================================================
 struct RingBuf *Ring_Create(u32 dwLen)
 {
-	u8 *buf;
-	struct RingBuf *ring;
+    u8 *buf;
+    struct RingBuf *ring;
 
-	ring = malloc(sizeof(*ring)+dwLen);
-	if(!ring)
-		return (NULL);
+    ring = malloc(sizeof(*ring)+dwLen);
+    if(!ring)
+        return (NULL);
 
-	buf = (u8*)ring + sizeof(*ring);
-	ring->buf = buf;
-	ring->max_len = dwLen;
-	ring->offset_write = 0;
-	ring->offset_read = 0;
-	ring->len = 0;
+    buf = (u8*)ring + sizeof(*ring);
+    ring->buf = buf;
+    ring->max_len = dwLen;
+    ring->offset_write = 0;
+    ring->offset_read = 0;
+    ring->len = 0;
 
-	return (ring);
+    return (ring);
 }
 
 // ============================================================================
@@ -554,10 +554,10 @@ struct RingBuf *Ring_Create(u32 dwLen)
 // ============================================================================
 s32 Ring_Destroy(struct RingBuf *pRing)
 {
-	if(!pRing)
-		return (-1);
+    if(!pRing)
+        return (-1);
 
-	free(pRing);
-	pRing = NULL;
-	return (0);
+    free(pRing);
+    pRing = NULL;
+    return (0);
 }

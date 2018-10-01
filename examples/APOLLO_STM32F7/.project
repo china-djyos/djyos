@@ -26,11 +26,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/app/board.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board/board.c</locationURI>
-		</link>
-		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>
 			<locationURI>DJYOS_SRC_LOCATION/bsp</locationURI>

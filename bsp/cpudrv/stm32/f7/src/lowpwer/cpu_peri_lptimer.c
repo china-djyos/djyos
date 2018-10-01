@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -115,8 +115,7 @@ void Lptimer1_set_period(u16 period)
     g_lptimer_pre_cnt = temp1;
     temp = (period + g_lptimer_pre_cnt > (CN_LIMIT_UINT16)) ? \
             (period + g_lptimer_pre_cnt - CN_LIMIT_UINT16) : (period + g_lptimer_pre_cnt);
-    if((LPTIM1->ISR & LPTIM_ISR_CMPOK))
-        LPTIM1->ICR |= (LPTIM_ICR_CMPOKCF);
+    LPTIM1->ICR |= (LPTIM_ICR_CMPOKCF | LPTIM_ICR_CMPMCF);
     LPTIM1->CMP = temp;
     g_lptimer_reload = period;
     while(!(LPTIM1->ISR & LPTIM_ISR_CMPOK));
@@ -182,7 +181,7 @@ void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphCLKInitStruct);
 
     __HAL_RCC_LPTIM1_CLK_ENABLE();
-    
+
     LPTIM1->CFGR = presc; // 分频
     LPTIM1->IER = LPTIM_IER_CMPMIE | LPTIM_IER_ARRMIE; // 开定时器中断
 
@@ -197,6 +196,7 @@ void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
     LPTIM1->CR = LPTIM_CR_ENABLE; // 打开LPTIM, 但暂不开始计时
     LPTIM1->ARR = period;
     LPTIM1->CMP = period;
+    Lptimer1_ClearAllInt();
     g_lptimer_reload = period;
     g_lptimer_pre_cnt = 0;
     LPTIM1->CR |= LPTIM_CR_CNTSTRT;

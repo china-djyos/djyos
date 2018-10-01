@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
@@ -21,7 +21,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -73,8 +73,8 @@
 //attribute:bsp组件                 //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                       //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                        //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                    //init表示在调用main之前，main表示在main函数中初始化
+//init time:early              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus","int","lock"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
                                     //如果依赖多个组件，则依次列出，用“,”分隔
@@ -116,47 +116,47 @@
 
 typedef struct _IIC_CTRL_
 {
-	vu32 IC_CON;
-	vu32 IC_TAR;
-	vu32 IC_SAR;
-	vu32 IC_HS_MADDR;
-	vu32 IC_DATA_CMD;
-	vu32 IC_SS_SCL_HCNT;
-	vu32 IC_SS_SCL_LCNT;
-	vu32 IC_FS_SCL_HCNT;
-	vu32 IC_FS_SCL_LCNT;
-	vu32 IC_HS_SCL_HCNT;
-	vu32 IC_HS_SCL_LCNT;
-	vu32 IC_INTR_STAT;
-	vu32 IC_INTR_MASK;
-	vu32 IC_RAW_INTR_STAT;
-	vu32 IC_RX_TL;
-	vu32 IC_TX_TL;
-	vu32 IC_CLR_INTR;
-	vu32 IC_CLR_RX_UNDER;
-	vu32 IC_CLR_RX_OVER;
-	vu32 IC_CLR_TX_OVER;
-	vu32 IC_CLR_RD_REQ;
-	vu32 IC_CLR_TX_ABRT;
-	vu32 IC_CLR_RX_DONE;
-	vu32 IC_CLR_ACTIVITY;
-	vu32 IC_CLR_STOP_DET;
-	vu32 IC_CLR_START_DET;
-	vu32 IC_CLR_GEN_CALL;
-	vu32 IC_ENABLE;
-	vu32 IC_STATUS;
-	vu32 IC_TXFLR;
-	vu32 IC_RXFLR;
-	vu32 IC_REV0;
-	vu32 IC_TX_ABRT_SOURCE;
-	vu32 IC_REV1;
-	vu32 IC_DMA_CR;
-	vu32 IC_DMA_TDLR;
-	vu32 IC_DMA_RDLR;
-//	vu32 IC_REV[];
-//	vu32 IC_COMP_PARAM_1;
-//	vu32 IC_COMP_VERSION;
-//	vu32 IC_COMP_TYPE;
+    vu32 IC_CON;
+    vu32 IC_TAR;
+    vu32 IC_SAR;
+    vu32 IC_HS_MADDR;
+    vu32 IC_DATA_CMD;
+    vu32 IC_SS_SCL_HCNT;
+    vu32 IC_SS_SCL_LCNT;
+    vu32 IC_FS_SCL_HCNT;
+    vu32 IC_FS_SCL_LCNT;
+    vu32 IC_HS_SCL_HCNT;
+    vu32 IC_HS_SCL_LCNT;
+    vu32 IC_INTR_STAT;
+    vu32 IC_INTR_MASK;
+    vu32 IC_RAW_INTR_STAT;
+    vu32 IC_RX_TL;
+    vu32 IC_TX_TL;
+    vu32 IC_CLR_INTR;
+    vu32 IC_CLR_RX_UNDER;
+    vu32 IC_CLR_RX_OVER;
+    vu32 IC_CLR_TX_OVER;
+    vu32 IC_CLR_RD_REQ;
+    vu32 IC_CLR_TX_ABRT;
+    vu32 IC_CLR_RX_DONE;
+    vu32 IC_CLR_ACTIVITY;
+    vu32 IC_CLR_STOP_DET;
+    vu32 IC_CLR_START_DET;
+    vu32 IC_CLR_GEN_CALL;
+    vu32 IC_ENABLE;
+    vu32 IC_STATUS;
+    vu32 IC_TXFLR;
+    vu32 IC_RXFLR;
+    vu32 IC_REV0;
+    vu32 IC_TX_ABRT_SOURCE;
+    vu32 IC_REV1;
+    vu32 IC_DMA_CR;
+    vu32 IC_DMA_TDLR;
+    vu32 IC_DMA_RDLR;
+//  vu32 IC_REV[];
+//  vu32 IC_COMP_PARAM_1;
+//  vu32 IC_COMP_VERSION;
+//  vu32 IC_COMP_TYPE;
 }tagI2CReg;
 // =============================================================================
 #define CN_IIC1_BASE        (0x41050000)//无符号地址
@@ -181,7 +181,7 @@ static struct IIC_IntParamSet IntParamset2;
 #define I2C_INTR_EN_MCU4    (0x42030000 + 0x610)
 #define I2C_INTR_STS_MCU4   (0x42030000 + 0x510)
 
-#define I2C1_INTR_SUB		6
+#define I2C1_INTR_SUB       6
 #define I2C2_INTR_SUB       7
 
 static int __iic_wait_addr(volatile tagI2CReg *dev, int write)
@@ -443,9 +443,9 @@ static bool_t __IIC_DefaultConfig(u8 IIC_NO)
 // =============================================================================
 static void __IIC_IntConfig(u32 subint,u32 (*isr)(ptu32_t))
 {
-	u8 IntLine = CN_INT_LINE_I2C;
+    u8 IntLine = CN_INT_LINE_I2C;
 
-	Pic_IntRegister(IntLine,subint,I2C_INTR_EN_MCU4,I2C_INTR_STS_MCU4,isr);
+    Pic_IntRegister(IntLine,subint,I2C_INTR_EN_MCU4,I2C_INTR_STS_MCU4,isr);
 }
 
 // =============================================================================

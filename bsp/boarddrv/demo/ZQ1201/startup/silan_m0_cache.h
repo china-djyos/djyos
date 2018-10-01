@@ -29,5 +29,13 @@ extern void ex_spi_crc_enable(u32 addr);
 
 //void cache_spi_cmd_sel()__attribute__((section("cachelock")));
 
+//add by huzb
+extern void silan_m0_cache_lock(uint32_t lock_addr, uint32_t len);
+extern void silan_m0_cache_unlock(uint32_t lock_addr, uint32_t len, uint8_t unvalid);
+extern void silan_m0_cache_enable(void);
+extern void silan_m0_cache_disable(void);
+extern void silan_m0_cache_clear(void);
+extern void silan_m0_cache_init(uint32_t cache_area, uint8_t statistics);
+
 #endif
 

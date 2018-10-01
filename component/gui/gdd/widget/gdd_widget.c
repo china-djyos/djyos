@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -68,25 +68,25 @@
 #include <stdio.h>
 #include <string.h>
 #include "dbug.h"
-#include "../../../../djysrc/bsp/arch/arm/arm32_stdint.h"
+#include "arm32_stdint.h"
 
 static bool_t Widget_SetFillColor(HWND hwnd,uint32_t color)
 {
-	SetWindowFillColor(hwnd,color);
-	InvalidateWindow(hwnd,true);
-	return true;
+    SetWindowFillColor(hwnd,color);
+    InvalidateWindow(hwnd,true);
+    return true;
 }
 
 static bool_t Widget_GetFillColor(HWND hwnd,uint32_t *pcolor)
 {
-	return (GetWindowFillColor(hwnd,pcolor));
+    return (GetWindowFillColor(hwnd,pcolor));
 }
 
 static bool_t Widget_SetHyalineColor(HWND hwnd,uint32_t color)
 {
-	SetWindowHyalineColor(hwnd,color);
-	InvalidateWindow(hwnd,true);
-	return true;
+    SetWindowHyalineColor(hwnd,color);
+    InvalidateWindow(hwnd,true);
+    return true;
 }
 
 static bool_t Widget_GetHyalineColor(HWND hwnd,uint32_t *pcolor)
@@ -97,28 +97,28 @@ static bool_t Widget_GetHyalineColor(HWND hwnd,uint32_t *pcolor)
 
 static bool_t Widget_SetTextColor(HWND hwnd,uint32_t color)
 {
-	SetWindowTextColor(hwnd,color);
-	InvalidateWindow(hwnd,true);
-	return true;
+    SetWindowTextColor(hwnd,color);
+    InvalidateWindow(hwnd,true);
+    return true;
 }
 
 static bool_t Widget_GetTextColor(HWND hwnd,uint32_t *pcolor)
 {
-	return (GetWindowTextColor(hwnd,pcolor));
+    return (GetWindowTextColor(hwnd,pcolor));
 }
 
 static bool_t Widget_SetRopCode(HWND hwnd,struct RopGroup *ptRopCode)
 {
-	struct RopGroup RopCode;
-	memcpy(&RopCode,ptRopCode,sizeof(struct RopGroup));
-	SetWindowRopCode(hwnd,RopCode);
-	InvalidateWindow(hwnd,true);
-	return true;
+    struct RopGroup RopCode;
+    memcpy(&RopCode,ptRopCode,sizeof(struct RopGroup));
+    SetWindowRopCode(hwnd,RopCode);
+    InvalidateWindow(hwnd,true);
+    return true;
 }
 
 static bool_t Widget_EnableHyalineColor(HWND hwnd)
 {
-	struct RopGroup RopCode={0, 0, 0, CN_R2_COPYPEN, 0, 1, 0};
+    struct RopGroup RopCode={0, 0, 0, CN_R2_COPYPEN, 0, 1, 0};
     return (Widget_SetRopCode(hwnd,&RopCode));
 }
 
@@ -131,33 +131,33 @@ static bool_t Widget_EnableHyalineColor(HWND hwnd)
 //---------------------------------------------------------------------------
 bool_t Widget_SetAttr(HWND hwnd,uint8_t attrid,ptu32_t param)
 {
-	 if(hwnd==NULL)
-	 {
-	     debug_printf("gdd","Function:%s para invalid.\r\n",__FUNCTION__);
-	    return false;
-	 }
+     if(hwnd==NULL)
+     {
+         debug_printf("gdd","Function:%s para invalid.\r\n",__FUNCTION__);
+        return false;
+     }
      switch(attrid)
      {
-	   case ENUM_WIDGET_FILL_COLOR:
-		   Widget_SetFillColor(hwnd,param);
-		   break;
-	   case ENUM_WIDGET_DRAW_COLOR:
-//		   Button_SetDrawColor(hwnd,param);
-		   break;
-	   case ENUM_WIDGET_TEXT_COLOR:
-		   Widget_SetTextColor(hwnd,param);
-		   break;
-	   case ENUM_WIDGET_HYALINE_COLOR:
-		   Widget_SetHyalineColor(hwnd,param);
-		   break;
-	   case ENUM_WIDGET_ROP_CODE:
-		   Widget_SetRopCode(hwnd,(struct RopGroup *)param);
-		   break;
-	   case ENUM_WIDGET_ENABLE_HYALINE:
-		   Widget_EnableHyalineColor(hwnd);
-		   break;
-	   default:
-		  break;
+       case ENUM_WIDGET_FILL_COLOR:
+           Widget_SetFillColor(hwnd,param);
+           break;
+       case ENUM_WIDGET_DRAW_COLOR:
+//         Button_SetDrawColor(hwnd,param);
+           break;
+       case ENUM_WIDGET_TEXT_COLOR:
+           Widget_SetTextColor(hwnd,param);
+           break;
+       case ENUM_WIDGET_HYALINE_COLOR:
+           Widget_SetHyalineColor(hwnd,param);
+           break;
+       case ENUM_WIDGET_ROP_CODE:
+           Widget_SetRopCode(hwnd,(struct RopGroup *)param);
+           break;
+       case ENUM_WIDGET_ENABLE_HYALINE:
+           Widget_EnableHyalineColor(hwnd);
+           break;
+       default:
+          break;
 
      }
      return true;
@@ -165,34 +165,34 @@ bool_t Widget_SetAttr(HWND hwnd,uint8_t attrid,ptu32_t param)
 
 bool_t Widget_GetAttr(HWND hwnd,uint8_t attrid,ptu32_t *param)
 {
-	 if(hwnd==NULL)
-	 {
-	     debug_printf("gdd","Function:%s para invalid.\r\n",__FUNCTION__);
-	     return false;
-	 }
-	 switch(attrid)
-	 {
-	   case ENUM_WIDGET_FILL_COLOR:
-		   Widget_GetFillColor(hwnd,(u32)param);
-		   break;
-	   case ENUM_WIDGET_TEXT_COLOR:
-		   Widget_GetTextColor(hwnd,(u32)param);
-		   break;
-//	   case ENUM_WIDGET_DRAW_COLOR:
-////		   Button_SetDrawColor(hwnd,param);
-//		   break;
-//	   case ENUM_WIDGET_HYALINE_COLOR:
-//		   Widget_SetHyalineColor(hwnd,param);
-//		   break;
-//	   case ENUM_WIDGET_ROP_CODE:
-//		   Widget_SetRopCode(hwnd,(struct RopGroup *)param);
-//		   break;
-//	   case ENUM_WIDGET_ENABLE_HYALINE:
-//		   Widget_EnableHyalineColor(hwnd);
-//		   break;
-	   default:
-		  break;
+     if(hwnd==NULL)
+     {
+         debug_printf("gdd","Function:%s para invalid.\r\n",__FUNCTION__);
+         return false;
+     }
+     switch(attrid)
+     {
+       case ENUM_WIDGET_FILL_COLOR:
+           Widget_GetFillColor(hwnd,(u32)param);
+           break;
+       case ENUM_WIDGET_TEXT_COLOR:
+           Widget_GetTextColor(hwnd,(u32)param);
+           break;
+//     case ENUM_WIDGET_DRAW_COLOR:
+////           Button_SetDrawColor(hwnd,param);
+//         break;
+//     case ENUM_WIDGET_HYALINE_COLOR:
+//         Widget_SetHyalineColor(hwnd,param);
+//         break;
+//     case ENUM_WIDGET_ROP_CODE:
+//         Widget_SetRopCode(hwnd,(struct RopGroup *)param);
+//         break;
+//     case ENUM_WIDGET_ENABLE_HYALINE:
+//         Widget_EnableHyalineColor(hwnd);
+//         break;
+       default:
+          break;
 
-	 }
-	 return true;
+     }
+     return true;
 }

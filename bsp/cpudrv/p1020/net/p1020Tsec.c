@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 深圳鹏瑞软件有限公司 All Rights Reserved
+// Copyright (C) 2012-2020 都江堰操作系统开源团队 All Rights Reserved
 // 模块描述: p1020Tsec.c:
 // 模块版本: V1.00
 // 创建人员: Zqf
@@ -793,7 +793,7 @@ bool_t __TsecSnd(tagNetDev *netdev,tagNetPkg * plst, u32 netdevtask)
             txbdtab->txbd[cursndbd].status = status;
             //free the old pkg and set it to the new pkg for the bdtab
             txbdtab->txpkg[cursndbd] = pkg;
-            PkgCachedPart(pkg); 
+            PkgCachedPart(pkg);
             pkg = pkgnxt;
             cursndbd = (cursndbd +1)%CN_TXBD_NUM;
         }
@@ -844,7 +844,7 @@ bool_t __TsecSnd(tagNetDev *netdev,tagNetPkg * plst, u32 netdevtask)
             txbdtab->txbd[cursndbd].status = status;
             //free the old pkg and set it to the new pkg for the bdtab
             txbdtab->txpkg[cursndbd] = pkg;
-            PkgCachedPart(pkg); 
+            PkgCachedPart(pkg);
             pkg = pkgnxt;
             cursndbd = (cursndbd +1)%CN_TXBD_NUM;
         }
@@ -896,7 +896,7 @@ bool_t __TsecSnd(tagNetDev *netdev,tagNetPkg * plst, u32 netdevtask)
             txbdtab->txbd[cursndbd].status = status;
             //free the old pkg and set it to the new pkg for the bdtab
             txbdtab->txpkg[cursndbd] = pkg;
-            PkgCachedPart(pkg); 
+            PkgCachedPart(pkg);
             pkg = pkgnxt;
             cursndbd = (cursndbd +1)%CN_TXBD_NUM;
             status = TXBD_READY;
@@ -1084,10 +1084,10 @@ bool_t ModuleInstall_Tsec(ptu32_t para)
     bool_t result;
     u8  devno;
     tagNetDevPara   devpara;
-    
+
     result = false;
     devno = para;
-   
+
     sgTsecTcpIpFcb.status = CN_FCB_IP|CN_FCB_TUP|CN_FCB_CIP|CN_FCB_CTU;
     sgTsecTcpIpFcb.l3os = 14;
     sgTsecTcpIpFcb.l4os = 20;
@@ -1110,13 +1110,13 @@ bool_t ModuleInstall_Tsec(ptu32_t para)
             {
                 //communicate the driver isr with interrupt
                 //rcv interrupt
-                Int_Register(sgTsecIrqNo[devno][0]); 
+                Int_Register(sgTsecIrqNo[devno][0]);
                 Int_IsrConnect(sgTsecIrqNo[devno][0],__TsecRcvIsr);
                 Int_SettoAsynSignal(sgTsecIrqNo[devno][0]);
                 Int_SetLineTrigerType(sgTsecIrqNo[devno][0],EN_INT_TRIGER_HIGHLEVEL);
                 Int_ContactLine(sgTsecIrqNo[devno][0]);
                 //snd interrupt
-                Int_Register(sgTsecIrqNo[devno][1]); 
+                Int_Register(sgTsecIrqNo[devno][1]);
                 Int_IsrConnect(sgTsecIrqNo[devno][1],__TsecSndIsr);
                 Int_SettoAsynSignal(sgTsecIrqNo[devno][1]);
                 Int_SetLineTrigerType(sgTsecIrqNo[devno][1],EN_INT_TRIGER_HIGHLEVEL);

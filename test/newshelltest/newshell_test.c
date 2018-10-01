@@ -228,7 +228,7 @@ void test_fun27(u32 num1,u32 num2,u32 num3,u32 num4,u64 num5,u32 num6,u32 num7,u
 //======================被调用函数测试====================================
 static bool_t AsmExecuteCmd (u8 num, void* fun)
 {
-#if (__FPU_USED == 1)
+#if (_D_FPU_USED == 1)
 	extern void __asm_ExecuteCmd(union Parameter *ptab,enum ParameterTypr *pflag,void* fun,u32 num);
     __asm_ExecuteCmd (ParameterTab,ParameterFlagTab,fun,num);
 #endif

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -1253,14 +1253,14 @@ void __GK_CopyPixelRopBm(struct RectBitmap *dst_bitmap,
     else if(RopCode.HyalineEn == 1)     //透明色使能
     {
         //将HyalineColor由ERGB8888格式转换为本地格式
-        HyalineColor=GK_ConvertRGB24ToPF(src_bitmap->PixelFormat,HyalineColor);
-         //读取源位图中的颜色，未转换成ERGB8888
-        src_color = GK_GetPixelBm(src_bitmap,x_src,y_src);
+//        HyalineColor=GK_ConvertRGB24ToPF(src_bitmap->PixelFormat,HyalineColor);
+//         //读取源位图中的颜色，未转换成ERGB8888
+//        src_color = GK_GetPixelBm(src_bitmap,x_src,y_src);
 
         if(src_color != HyalineColor)
         {
             //将源位图颜色进行颜色格式转换，得到与目标位图颜色格式一致的颜色
-            //src_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,src_color);
+            src_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,src_color);
             //绘制像素
             __GK_SetPixelRop2Bm(dst_bitmap,x_dst,y_dst,src_color,CN_R2_COPYPEN);
         }
@@ -3710,7 +3710,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
     struct GkscParaDrawBitmapRop bitmap_para;
     struct FontObj* cur_font;
     struct Charset* cur_enc;
-    char *String = text;
+    const char *String = text;
     s32 len, char_num = 0,size,size_bak;
     u32 wc;
     u8 buf[128],*dbuf;  //定义一个足够存32点阵汉字的缓冲区，如果需要显示的字符

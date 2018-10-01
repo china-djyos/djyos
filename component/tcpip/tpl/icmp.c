@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -86,7 +86,7 @@ enum _EN_ICMP_TYPE
     EN_ICMP_ADDRMSKREQUEST = 17,
     EN_ICMP_ADDRMSKREPLY,
 };
-#define CN_ICMP_ECHOREPLY_CODE           0    //PING REPLY CODE 
+#define CN_ICMP_ECHOREPLY_CODE           0    //PING REPLY CODE
 #define CN_ICMP_ECHOREQUEST_CODE         0    //PING REQUEST CODE
 
 
@@ -120,8 +120,8 @@ static struct MutexLCB         sgIcmpTaskSync;    //icmp queue sync
 // 说明    :
 // =============================================================================
 bool_t __Icmp_TaskAdd(tagIcmpTask *task)
-{   
-	task->sync = semp_init(1,0,NULL);
+{
+    task->sync = semp_init(1,0,NULL);
     if(mutex_lock(&sgIcmpTaskSync))
     {
         //create the semp sync
@@ -150,7 +150,7 @@ bool_t __Icmp_TaskAdd(tagIcmpTask *task)
 // 说明    :
 // =============================================================================
 bool_t __Icmp_TaskDel(tagIcmpTask *task)
-{   
+{
     if(mutex_lock(&sgIcmpTaskSync))
     {
         if(task == pgIcmpTaskLst)
@@ -201,7 +201,7 @@ void __Icmp_TaskEchoActive(u32 ipsrc, u32 ipdst,u8 type, u8 code,tagNetPkg *pkg)
     tagIcmpTask         *tmp;
     tagIcmpTaskEcho     *taskdata;
     tagIcmpHdrEcho      *echodata;
-    
+
     if(mutex_lock(&sgIcmpTaskSync))
     {
         tmp = pgIcmpTaskLst;
@@ -232,7 +232,7 @@ void __Icmp_TaskEchoActive(u32 ipsrc, u32 ipdst,u8 type, u8 code,tagNetPkg *pkg)
 //           data, additionnal data
 //           len, additionnal data len
 // 输出参数：
-// 返回值  ：true , request success while false timeout 
+// 返回值  ：true , request success while false timeout
 // 说明    :
 // =============================================================================
 bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
@@ -245,7 +245,7 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
     tagIcmpHdrEcho       *icmppkgecho;
     tagIcmpTask          icmptask;
     tagIcmpTaskEcho      icmptaskecho;
-    
+
     result = false;
     if((NULL != data)&&(len > 0)&&(ipdst != INADDR_ANY))
     {
@@ -260,11 +260,11 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
             icmppkg = (tagIcmpHdr *)(sndpkg->buf + sndpkg->offset);
             icmppkg->type = EN_ICMP_ECHOREQUEST;
             icmppkg->code = CN_ICMP_ECHOREQUEST_CODE;
-            icmppkg->chksum = 0;    
+            icmppkg->chksum = 0;
             icmppkgecho = (tagIcmpHdrEcho *)(&icmppkg->data[0]);
             icmppkgecho->seqno = htons(seqno);
             icmppkgecho->taskid = htons(Djy_MyEvttId());
-            memcpy(&icmppkgecho->data[0], data, len);   
+            memcpy(&icmppkgecho->data[0], data, len);
             //combin the task
             icmptaskecho.ipdst = ipdst;
             icmptaskecho.seqno = icmppkgecho->seqno;
@@ -272,14 +272,14 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
             icmptask.type = EN_ICMP_ECHOREPLY;       //we expect the reply
             icmptask.code = CN_ICMP_ECHOREPLY_CODE;
             icmptask.data = (u8 *)&icmptaskecho;
-            __Icmp_TaskAdd(&icmptask);          
-            //ok, the pkg has been commpletted. now we snd it 
+            __Icmp_TaskAdd(&icmptask);
+            //ok, the pkg has been commpletted. now we snd it
             IpSend(EN_IPV_4,(ptu32_t)INADDR_ANY,(ptu32_t)ipdst,sndpkg,pkglen,IPPROTO_ICMP,\
                     CN_IPDEV_ICMPOCHKSUM,&icmppkg->chksum);
             PkgTryFreePart(sndpkg);
             //just wait for the echo, if false, it must be timeout
             result = semp_pendtimeout(icmptask.sync, timeout);
-            __Icmp_TaskDel(&icmptask);  
+            __Icmp_TaskDel(&icmptask);
         }
     }
 
@@ -296,7 +296,7 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
 //        info, the info buf ptr
 //        infolen, the len of the info
 // 输出参数：
-// 返回值  ：true , snd success while false failed 
+// 返回值  ：true , snd success while false failed
 // 说明    :
 // =============================================================================
 bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen)
@@ -314,7 +314,7 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
     {
         pkg2snd->datalen = pkglen;
         pkg2snd->partnext = NULL;
-        
+
         hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
         hdr->type = type;
         hdr->code = code;
@@ -322,12 +322,12 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
         src = info;
         dst = &hdr->data[0];
         memcpy(dst, src, infolen);
-        
+
         result = IpSend(EN_IPV_4,(ptu32_t)ipdst,(ptu32_t)ipsrc,pkg2snd,pkg2snd->datalen,IPPROTO_ICMP,\
                 CN_IPDEV_ICMPOCHKSUM,&hdr->chksum);
         PkgTryFreePart(pkg2snd);
     }
-    
+
     return result;
 }
 
@@ -342,13 +342,13 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
 // 输出参数：
 // 返回值  ：true succees while false failed
 // 说明    :Find any task in the queue,if any the set it,otherwise do nothing
-//       anyway, net_free the pkg in 
+//       anyway, net_free the pkg in
 // =============================================================================
 bool_t __Icmp_EchoReply(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkg)
-{   
+{
     u8 type;
     u8 code;
-    
+
     type = hdr->type;
     code = hdr->code;
 
@@ -364,7 +364,7 @@ bool_t __Icmp_EchoReply(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkg)
 //          code, icmp code
 //          pkg, info for the specified type and code
 // 输出参数：
-// 返回值  ：true , request success while false timeout 
+// 返回值  ：true , request success while false timeout
 // 说明    :--todo, CPY PROCESS MAYBE TOO OLD
 // =============================================================================
 bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkglst)
@@ -406,7 +406,7 @@ bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkglst
             pkg2snd->datalen += pkglen;
             pkg = pkg->partnext;
         }
-        
+
         hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
         result = IpSend(EN_IPV_4,(ptu32_t)ipdst,(ptu32_t)ipsrc,pkg2snd,pkg2snd->datalen,IPPROTO_ICMP,\
                 CN_IPDEV_ICMPOCHKSUM,&hdr->chksum);
@@ -464,20 +464,20 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, u32 devfunc)
 
 static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, u32 devfunc)
 {
-	bool_t result = false;
-	enum_ipv_t  ver;
-	u32 ipsrc;
-	u32 ipdst;
-	if((NULL != addr)&&(NULL != pkglst))
-	{
-		ver = addr->ver;
-		if(ver == EN_IPV_4)
-		{
-			ipsrc = addr->src.ipv4.s_addr;
-			ipdst = addr->dst.ipv4.s_addr;
-			result = __rcvdealv4(ipsrc,ipdst,pkglst,devfunc);
-		}
-	}
+    bool_t result = false;
+    enum_ipv_t  ver;
+    u32 ipsrc;
+    u32 ipdst;
+    if((NULL != addr)&&(NULL != pkglst))
+    {
+        ver = addr->ver;
+        if(ver == EN_IPV_4)
+        {
+            ipsrc = addr->src.ipv4.s_addr;
+            ipdst = addr->dst.ipv4.s_addr;
+            result = __rcvdealv4(ipsrc,ipdst,pkglst,devfunc);
+        }
+    }
     return result;
 }
 // =============================================================================

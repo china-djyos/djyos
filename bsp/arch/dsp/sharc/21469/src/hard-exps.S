@@ -1,32 +1,32 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
-// 1. Redistributions of source code must retain the above copyright notice, 
+// 1. Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice, 
-//    this list of conditions and the following disclaimer in the documentation 
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 // LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 // CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 // SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
-// 
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+//
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
-// 
+//
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
@@ -105,67 +105,67 @@
 .EXTERN ___second_stage_reboot;
 
 #define  Monitor_reboot \
-   bit clr MODE1 0x1000;            	/* Disable interrupt  	       */ \
-   NOP;               					/* Save R2					   */ \
-   JUMP ___second_stage_reboot;		/* jmp to finish setting up    */ \
-   NOP;           						/* Base of int table           */
-   
+   bit clr MODE1 0x1000;                /* Disable interrupt           */ \
+   NOP;                                 /* Save R2                     */ \
+   JUMP ___second_stage_reboot;     /* jmp to finish setting up    */ \
+   NOP;                                 /* Base of int table           */
+
 #define  REAL_INT(irp) \
-   bit clr MODE1 0x1000;            	/* Disable interrupt  	       */ \
-   JUMP ___real_interrupt_handler(DB);	/* jmp to finish setting up    */ \
-   DM(0,I7)=R2;               			/* Save R2					   */ \
-   R2=irp;           					/* Base of int table           */
-   
+   bit clr MODE1 0x1000;                /* Disable interrupt           */ \
+   JUMP ___real_interrupt_handler(DB);  /* jmp to finish setting up    */ \
+   DM(0,I7)=R2;                         /* Save R2                     */ \
+   R2=irp;                              /* Base of int table           */
+
 #define  PUSH_INT(irp) \
-   bit set MODE1 0x04fc;    	        /* REG Mode Change     	       */ \
-   JUMP ___push_interrupt(DB);  	    /* jmp to finish setting up    */ \
-   bit clr MODE1 0x1000;       			/* must Disable int            */ \
-   R2=irp;           					/* Base of int table           */
-   
+   bit set MODE1 0x04fc;                /* REG Mode Change             */ \
+   JUMP ___push_interrupt(DB);          /* jmp to finish setting up    */ \
+   bit clr MODE1 0x1000;                /* must Disable int            */ \
+   R2=irp;                              /* Base of int table           */
+
 #define  NOP_INT(irp) \
-   bit set MODE1 0x04fc;         	    /* REG Mode Change     	       */ \
-   JUMP ___nop_interrupt(DB);    	    /* jmp to finish setting up    */ \
-   bit clr MODE1 0x1000;       			/* must Disable int            */ \
-   R2=irp;           				    /* Base of int table           */
-    
+   bit set MODE1 0x04fc;                /* REG Mode Change             */ \
+   JUMP ___nop_interrupt(DB);           /* jmp to finish setting up    */ \
+   bit clr MODE1 0x1000;                /* must Disable int            */ \
+   R2=irp;                              /* Base of int table           */
+
 #define  Memory_EXCEPTION(irp) \
-   NOP;                        		    /* nop    					   */ \
-   JUMP ___sys_general_exception(DB);     			/* nop    		   */ \
-   NOP;            					    /* nop    					   */ \
-   R2=irp;           					    /* nop           */ 
- 
-   
+   NOP;                                 /* nop                         */ \
+   JUMP ___sys_general_exception(DB);               /* nop             */ \
+   NOP;                                 /* nop                         */ \
+   R2=irp;                                  /* nop           */
+
+
 #define  HardStack_EXCEPTION(irp) \
-   NOP;                        		    /* nop    					   */ \
-   JUMP ___sys_HardStack_exception(DB);     			/* nop    		   */ \
-   NOP;            					    /* nop    					   */ \
-   R2=irp;           					    /* nop           */    
-   
+   NOP;                                 /* nop                         */ \
+   JUMP ___sys_HardStack_exception(DB);                 /* nop             */ \
+   NOP;                                 /* nop                         */ \
+   R2=irp;                                  /* nop           */
+
 #define  COMP_EXCEPTION(irp) \
-   NOP;                        		    /* nop    					   */ \
-   JUMP ___sys_COMP_exception(DB);     			/* nop    		   */ \
-   NOP;            					    /* nop    					   */ \
-   R2=irp;           					    /* nop           */    
-   
+   NOP;                                 /* nop                         */ \
+   JUMP ___sys_COMP_exception(DB);              /* nop             */ \
+   NOP;                                 /* nop                         */ \
+   R2=irp;                                  /* nop           */
+
 #define  SPORT_EXCEPTION(irp) \
-   NOP;                        		    /* nop    					   */ \
-   JUMP ___sys_SPORT_exception(DB);     			/* nop    		   */ \
-   NOP;            					    /* nop    					   */ \
-   R2=irp;           					    /* nop           */    
+   NOP;                                 /* nop                         */ \
+   JUMP ___sys_SPORT_exception(DB);                 /* nop             */ \
+   NOP;                                 /* nop                         */ \
+   R2=irp;                                  /* nop           */
 
 #define  EXCEPTION(irp) \
-   NOP;                        		    /* nop    					   */ \
-   JUMP ___lib_prog_term;     			/* nop    					   */ \
-   NOP;            					    /* nop    					   */ \
-   NOP;           					    /* nop    					   */ 
-   
+   NOP;                                 /* nop                         */ \
+   JUMP ___lib_prog_term;               /* nop                         */ \
+   NOP;                                 /* nop                         */ \
+   NOP;                                 /* nop                         */
+
 #define RESERVED_INTERRUPT NOP;NOP;NOP;NOP
 
 // The default interrupt vector code is defined in section seg_rth
 #if defined (__SHORT_WORD_CODE__)
 // This code has to be mapped to a normal word section so make sure
 // that happens even when building with -swc or default options.
-.SECTION/PM/NW         seg_rth;     
+.SECTION/PM/NW         seg_rth;
 #else
 // Otherwise we don't need any section specifier
 .SECTION/PM            seg_rth;
@@ -190,7 +190,7 @@ SPERRI:       SPORT_EXCEPTION(cn_int_line_SPERRI); // SPORT Error interrupt
 BKPI:         EXCEPTION(cn_int_line_BKPI);      // Hardware breakpoint interrupt
 
             RESERVED_INTERRUPT;
-              
+
 IRQ2I:        REAL_INT(cn_int_line_IRQ2I);
 
 IRQ1I:        Monitor_reboot;
@@ -236,7 +236,7 @@ P17I:         PUSH_INT(cn_int_line_P17I);      // Peripheral interrupt 17
 P18I:         PUSH_INT(cn_int_line_TWII);      // Peripheral interrupt 18
 
 CB7I:         Memory_EXCEPTION(cn_int_line_CB7I);  // C run-time stack overflow
-                                     
+
 CB15I:        Memory_EXCEPTION(cn_int_line_CB15I);     // circular buffer #15 overflow
 
 TMZLI:        NOP_INT(cn_int_line_TMZLI);      // low priority timer
@@ -267,7 +267,7 @@ SFT3I:        PUSH_INT(cn_int_line_SFT3I);
 
 #endif /* _ADI_THREADS */
 
-___lib_start:        
+___lib_start:
             CALL ___lib_setup_c;            /* Setup C runtime model */
 
 #ifdef __cplusplus
@@ -305,7 +305,7 @@ _lib_call_ctors_exit:
 #endif // __cplusplus
 
 #ifdef PROFILER_SUPPORT
-	 // Profiler support
+     // Profiler support
          r2 = i6;
          i6 = i7;
          JUMP  monstartup (DB);
@@ -340,7 +340,7 @@ _lib_call_ctors_exit:
 #endif
 .___lib_start.end:
 
-___lib_prog_term:    
+___lib_prog_term:
             IDLE;
             JUMP ___lib_prog_term;        // Stay put
 .___lib_prog_term.end:

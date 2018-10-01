@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -77,8 +77,8 @@
 //attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                  //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:early              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"spibus","cpu_peri_gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
@@ -113,14 +113,14 @@
 // =============================================================================
 typedef struct _SPI_CTRL_
 {
-	vu32 SPISR;
-	vu32 SPICR;
-	vu32 SPISSR;
-	vu32 REV0;
-	vu32 SPITR;
-	vu32 SPIRR;
-	vu32 SPITR1;
-	vu32 SPIRR1;
+    vu32 SPISR;
+    vu32 SPICR;
+    vu32 SPISSR;
+    vu32 REV0;
+    vu32 SPITR;
+    vu32 SPIRR;
+    vu32 SPITR1;
+    vu32 SPIRR1;
 }tagSpiReg;
 
 #define CN_SPI1_BASE        (0x41040000+0x80)
@@ -152,7 +152,7 @@ static struct SPI_CB *spSpiCb[CN_SPI_NUM];
 // =============================================================================
 __attribute__((weak)) bool_t Board_SpiCsCtrl(u8 port,u8 cs,u8 en)
 {
-	return true;	//accomplished in board.c if needed
+    return true;    //accomplished in board.c if needed
 }
 // =============================================================================
 // 功能: 中断使能和失能函数
@@ -179,9 +179,9 @@ static void __Spi_IntDisable(volatile tagSpiReg *Reg)
 // =============================================================================
 static void __Spi_SetClk(volatile tagSpiReg *tpSPI,u32 spisck)
 {
-	   u32 temp,i;
-	    if(tpSPI == NULL)
-	        return;
+       u32 temp,i;
+        if(tpSPI == NULL)
+            return;
 
     switch(spisck)
     {
@@ -190,11 +190,11 @@ static void __Spi_SetClk(volatile tagSpiReg *tpSPI,u32 spisck)
              tpSPI->SPICR &= ~((3<<3) | (1<<8));//先清0,系统频率二分频直接设置清0设置000
              break;
 
-         case CN_SPI_SPEEK_20M:       		     //4分频 010
+         case CN_SPI_SPEEK_20M:                  //4分频 010
              tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
              tpSPI->SPICR |= 0x2 << 3;
              break;
-         case CN_SPI_SPEEK_10M:   		     //8分频 011
+         case CN_SPI_SPEEK_10M:              //8分频 011
              tpSPI->SPICR &= ~((3<<3) | (1<<8)); //先清0
              tpSPI->SPICR |= 0x3 << 3;
              break;
@@ -275,12 +275,12 @@ static void __Spi_HardDefaultSet(u8 port)
     else
         return;
 
-    Reg->SPICR 		= 0;
-    __Spi_SetClk(Reg,5000*000);				//默认设置为5M
-    Reg->SPICR      |= (1<<27);				//FLUSH FIFO
-    Reg->SPICR      |= (1<<28) | (1<<29);	//FIFO EN
-    Reg->SPICR      |= (8<<15);				//8bits,others default
-    Reg->SPICR      |= (7<<24);				//DISABLE CS
+    Reg->SPICR      = 0;
+    __Spi_SetClk(Reg,5000*000);             //默认设置为5M
+    Reg->SPICR      |= (1<<27);             //FLUSH FIFO
+    Reg->SPICR      |= (1<<28) | (1<<29);   //FIFO EN
+    Reg->SPICR      |= (8<<15);             //8bits,others default
+    Reg->SPICR      |= (7<<24);             //DISABLE CS
 }
 
 // =============================================================================
@@ -296,13 +296,13 @@ static bool_t __Spi_BusCsActive(tagSpiReg *Reg, u8 cs)
 
     if((u32)Reg != CN_SPI1_BASE)
     {
-    	port = CN_SPI2;
+        port = CN_SPI2;
     }
 
     if(cs < 4)
     {
-    	Reg->SPICR |= (7<<24);
-    	Reg->SPICR &= ~(1<<cs);
+        Reg->SPICR |= (7<<24);
+        Reg->SPICR &= ~(1<<cs);
     }
 
     Board_SpiCsCtrl(port,cs,1);
@@ -322,12 +322,12 @@ static bool_t __Spi_BusCsInActive(tagSpiReg *Reg, u8 cs)
 
     if((u32)Reg != CN_SPI1_BASE)
     {
-    	port = CN_SPI2;
+        port = CN_SPI2;
     }
 
     if(cs < 4)
     {
-    	Reg->SPICR |= (7<<24);
+        Reg->SPICR |= (7<<24);
     }
 
     Board_SpiCsCtrl(port,cs,0);
@@ -368,15 +368,15 @@ static s32 __Spi_BusCtrl(tagSpiReg *Reg,u32 cmd,ptu32_t data1,ptu32_t data2)
 
 static u32 __Spi_Write(tagSpiReg *Reg,u8 Data)
 {
-	while(!(Reg->SPISR & (1<<3))); 			//xmit empty
+    while(!(Reg->SPISR & (1<<3)));          //xmit empty
 
-	Reg->SPITR1 = Data;
-	Reg->SPICR |= (1<<5);					//start
-	while(!(Reg->SPISR & (1<<7)))	;		//done
+    Reg->SPITR1 = Data;
+    Reg->SPICR |= (1<<5);                   //start
+    while(!(Reg->SPISR & (1<<7)))   ;       //done
 
-	while(!(Reg->SPISR & (1<<2)))	;		//rcv full
+    while(!(Reg->SPISR & (1<<2)))   ;       //rcv full
 
-	return (u32)(Reg->SPIRR1);
+    return (u32)(Reg->SPIRR1);
 }
 // =============================================================================
 // 功能：轮询方式spi读写数据，接收偏移此处作了简化处理，直接认为与sendlen相同，即发送
@@ -400,12 +400,12 @@ static bool_t __Spi_TxRxPoll(tagSpiReg *Reg,u8* srcAddr,u32 wrSize,
     len_limit = (wrSize > (rdSize + recvoff))? wrSize:(rdSize + recvoff);
 
     __Spi_IntDisable(Reg);
-    Reg->SPICR |= (1<<7);				//ENABLE SPI
+    Reg->SPICR |= (1<<7);               //ENABLE SPI
     while(!(Reg->SPISR & (1<<17)))     //RXFIFO NOT EMPTY
     {
-        i = Reg->SPIRR;            		//读空FIFO
+        i = Reg->SPIRR;                 //读空FIFO
     }
-    Reg->SPICR |= (1<<28)|(1<<29);		//FIFO NOT NEEDED
+    Reg->SPICR |= (1<<28)|(1<<29);      //FIFO NOT NEEDED
 
     for (i=0;i<len_limit;)
     {
@@ -415,15 +415,15 @@ static bool_t __Spi_TxRxPoll(tagSpiReg *Reg,u8* srcAddr,u32 wrSize,
         }
         else if((i>=wrSize)&&(i<len_limit))
         {
-        	data = __Spi_Write(Reg,0);
+            data = __Spi_Write(Reg,0);
         }
         if((destAddr) && (i>=recvoff) )
         {
             destAddr[i-recvoff] = (u8)data;
         }
     }
-    Reg->SPICR &= ~(1<<5);					//disable start
-    Reg->SPICR &= ~(1<<7);					//disable spi
+    Reg->SPICR &= ~(1<<5);                  //disable start
+    Reg->SPICR &= ~(1<<7);                  //disable spi
     return true;
 }
 // =============================================================================
@@ -440,8 +440,8 @@ static bool_t __Spi_TxRxPoll(tagSpiReg *Reg,u8* srcAddr,u32 wrSize,
 static bool_t __Spi_TransferTxRx(tagSpiReg *Reg,u32 sendlen,u32 recvlen,
                                 u32 recvoff)
 {
-	u8 i,ch;
-	struct SPI_CB *SPI_SCB;
+    u8 i,ch;
+    struct SPI_CB *SPI_SCB;
     struct SPI_IntParamSet *Param=NULL;
 
     if((u32)Reg == CN_SPI1_BASE)
@@ -457,11 +457,11 @@ static bool_t __Spi_TransferTxRx(tagSpiReg *Reg,u32 sendlen,u32 recvlen,
     }
 
     __Spi_IntDisable(Reg);
-    Reg->SPICR |= (1<<7);					//ENABLE SPI
-    Reg->SPICR &= ~((1<<28)|(1<<29));		//FIFO ENABLE
-    while(!(Reg->SPISR & (1<<17)))     		//RXFIFO NOT EMPTY
+    Reg->SPICR |= (1<<7);                   //ENABLE SPI
+    Reg->SPICR &= ~((1<<28)|(1<<29));       //FIFO ENABLE
+    while(!(Reg->SPISR & (1<<17)))          //RXFIFO NOT EMPTY
     {
-        i = Reg->SPIRR;            		//读空FIFO
+        i = Reg->SPIRR;                 //读空FIFO
     }
 
     Param->SendDataLen = sendlen;
@@ -471,15 +471,15 @@ static bool_t __Spi_TransferTxRx(tagSpiReg *Reg,u32 sendlen,u32 recvlen,
     sendlen = (sendlen > CN_FIFO_LEN)?CN_FIFO_LEN:sendlen;
     for(i = 0; i < sendlen; i++)
     {
-    	if(SPI_PortRead(SPI_SCB,&ch,1))
-    		Reg->SPITR = ch;
-    	else
-    		break;
+        if(SPI_PortRead(SPI_SCB,&ch,1))
+            Reg->SPITR = ch;
+        else
+            break;
     }
 
     Param->SendDataLen -= sendlen;
 
-    Reg->SPICR |= (1<<5);					//START
+    Reg->SPICR |= (1<<5);                   //START
     __Spi_IntEnable(Reg);
 
     return true;
@@ -520,61 +520,61 @@ u32 Spi_ISR(ptu32_t IntLine)
         return 0;
     }
 
-	if(param->RecvDataLen > 0)
-	{
-		while(!(Reg->SPISR & (1<<17)))			//RXFIFO_EMPTY
-		{
-			ch[0] = Reg->SPIRR;
-			if(param->RecvOffset > 0)
-				param->RecvOffset--;
-			else
-			{
-				if(param->RecvDataLen > 0)
-				{
-					SPI_PortWrite(SPI_SCB,ch,1);
-					param->RecvDataLen--;
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-	}
+    if(param->RecvDataLen > 0)
+    {
+        while(!(Reg->SPISR & (1<<17)))          //RXFIFO_EMPTY
+        {
+            ch[0] = Reg->SPIRR;
+            if(param->RecvOffset > 0)
+                param->RecvOffset--;
+            else
+            {
+                if(param->RecvDataLen > 0)
+                {
+                    SPI_PortWrite(SPI_SCB,ch,1);
+                    param->RecvDataLen--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
 
-	if((param->SendDataLen > 0) || (param->RecvDataLen > 0))
-	{
-		if(Reg->SPISR & (1<<25))        			//TXFIFO_EMPTY
-		{
-			trans = SPI_PortRead(SPI_SCB,ch,32);
-			if(trans >0)
-			{
-				for(i = 0; i < trans; i++)
-				{
-					Reg->SPITR = ch[i];
-				}
-				param->SendDataLen -= trans;
-			}
-			else
-			{
-				trans = (param->RecvDataLen > 32)?32:param->RecvDataLen;
-				for(i = 0; i < trans; i++)
-				{
-					Reg->SPITR = 0x00;
-				}
-			}
-		}
-	}
+    if((param->SendDataLen > 0) || (param->RecvDataLen > 0))
+    {
+        if(Reg->SPISR & (1<<25))                    //TXFIFO_EMPTY
+        {
+            trans = SPI_PortRead(SPI_SCB,ch,32);
+            if(trans >0)
+            {
+                for(i = 0; i < trans; i++)
+                {
+                    Reg->SPITR = ch[i];
+                }
+                param->SendDataLen -= trans;
+            }
+            else
+            {
+                trans = (param->RecvDataLen > 32)?32:param->RecvDataLen;
+                for(i = 0; i < trans; i++)
+                {
+                    Reg->SPITR = 0x00;
+                }
+            }
+        }
+    }
 
     if(param->SendDataLen + param->RecvDataLen == 0)
     {
         __Spi_IntDisable(Reg);
-        Reg->SPICR &= ~(1<<5);					//disable start
-        Reg->SPICR &= ~(1<<7);					//disable spi
+        Reg->SPICR &= ~(1<<5);                  //disable start
+        Reg->SPICR &= ~(1<<7);                  //disable spi
     }
     else
     {
-    	Reg->SPICR |= (1<<5);					//start
+        Reg->SPICR |= (1<<5);                   //start
     }
 
     return 0;
@@ -591,11 +591,11 @@ static void __Spi_IntConfig(u8 port)
 
     if(port == CN_SPI1)
     {
-    	*(u32*)SPI_INTR_EN_MCU4 |= (1<<4);
+        *(u32*)SPI_INTR_EN_MCU4 |= (1<<4);
     }
     else
     {
-    	*(u32*)SPI_INTR_EN_MCU4 |= (1<<5);
+        *(u32*)SPI_INTR_EN_MCU4 |= (1<<5);
     }
     //中断线的初始化
     Int_Register(IntLine);

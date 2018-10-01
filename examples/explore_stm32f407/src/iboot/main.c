@@ -1,6 +1,6 @@
 
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -23,7 +23,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -51,74 +51,14 @@
  */
 
 #include "stdint.h"
-#include "cpu_peri.h"
-#include "systime.h"
 #include "stddef.h"
-
-//初始化PF9和PF10为输出口.并使能这两个口的时钟
-//LED IO初始化
-#define DS0     0
-#define DS1     1
-u32 led_mask[] = {1UL << 9, 1UL << 10};
-void LED_On (unsigned int num);
-void LED_Off (unsigned int num);
-
-// =============================================================================
-// 功能: LED TEST
-// 参数:无
-// 返回: 无
-// =============================================================================
-ptu32_t Led_Test(void)
-{
-    while(1)
-    {
-        Djy_EventDelay(500*mS);
-        LED_On(DS0);
-        LED_Off(DS1);
-        Djy_EventDelay(500*mS);
-        LED_Off(DS0);
-        LED_On(DS1);
-    }
-    return 0;
-}
-
-
-void LED_Init(void)
-{
-    u16 evtt_led;
-    RCC->AHB1ENR|=1<<5;//使能PORTF时钟
-    GPIOF->MODER    &= ~((3UL << 2*9) | (3UL << 2*10));
-    GPIOF->MODER    |=  ((1UL << 2*9) | (1UL << 2*10));
-    GPIOF->OTYPER   &= ~((1UL << 2*9) | (1UL << 2*10));
-    GPIOF->OSPEEDR  &= ~((3UL << 2*9) | (3UL << 2*10));
-    GPIOF->OSPEEDR  |=  ((2UL << 2*9) | (2UL << 2*10));
-    GPIOF->PUPDR    &= ~((3UL << 2*9) | (3UL << 2*10));
-    GPIOF->PUPDR    |=  ((1UL << 2*9) | (1UL << 2*10));
-    evtt_led = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
-                                Led_Test,NULL,1000,"Led_Test");
-    //事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
-    if(evtt_led!=CN_EVTT_ID_INVALID)
-        Djy_EventPop(evtt_led,NULL,0,NULL,0,0);
-}
-
-
-void LED_On (unsigned int num)
-{
-    GPIOF->BSRR = led_mask[num];
-}
-void LED_Off (unsigned int num)
-{
-    GPIOF->BSRR = led_mask[num]<<16;
-}
 
 ptu32_t djy_main(void)
 {
-    LED_Init();
     while(1)
     {
-        Djy_EventDelay(5000*mS);
+        printf("hello world!\r\n");
+        Djy_EventDelay(1000*1000);
     }
     return 0;
 }
-
-

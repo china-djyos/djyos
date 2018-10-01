@@ -1,32 +1,32 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
-// 1. Redistributions of source code must retain the above copyright notice, 
+// 1. Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice, 
-//    this list of conditions and the following disclaimer in the documentation 
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 // LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 // CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 // SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
-// 
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+//
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
-// 
+//
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
@@ -51,7 +51,7 @@
 //1. 日期:2014-4-25
 //   作者:  朱海兵.
 //   新版本号：1.0.0
-//   修改说明: 
+//   修改说明:
 //------------------------------------------------------
 #ifndef __CPU_PERI_LINKPORT_H__
 #define __CPU_PERI_LINKPORT_H__
@@ -66,17 +66,17 @@ extern "C" {
 
 typedef struct         //offset
 {
-    vu32 rLCTL;       		//0x00
-    vu32 rLSTAT;      		//0x01
+    vu32 rLCTL;             //0x00
+    vu32 rLSTAT;            //0x01
     vu32 RESERVED0;
-    vu32 rLSTAT_SHADOW;		//0x03
+    vu32 rLSTAT_SHADOW;     //0x03
     vu32 RESERVED1[4];
-    vu32 rTXLB;       		//0x08
-    vu32 rRXLB;       		//0x09
-    vu32 rRXLB_OUT_SHADOW;	//0x0A
-    vu32 rRXLB_IN_SHADOW;	//0x0B
-    vu32 rTXLB_OUT_SHADOW;	//0x0C
-    vu32 rTXLB_IN_SHADOW;	//0x0D
+    vu32 rTXLB;             //0x08
+    vu32 rRXLB;             //0x09
+    vu32 rRXLB_OUT_SHADOW;  //0x0A
+    vu32 rRXLB_IN_SHADOW;   //0x0B
+    vu32 rTXLB_OUT_SHADOW;  //0x0C
+    vu32 rTXLB_IN_SHADOW;   //0x0D
 }tag_LinkPortReg;
 
 
@@ -97,19 +97,19 @@ typedef enum
 
 typedef struct         //offset
 {
-    u32 rIILB;				//0x00
-    u32 rIMLB;				//0x01
-    u32 rCLB;				//0x02
-    u32 rCPLB;				//0x03
+    u32 rIILB;              //0x00
+    u32 rIMLB;              //0x01
+    u32 rCLB;               //0x02
+    u32 rCPLB;              //0x03
 }tag_DMA_LinkPortReg;
 
 
 struct t_LinkPortChainedDMA_TCB
 {
-	int CPLB;
-	int CLB;
-	int IMLB;
-	int IILB;
+    int CPLB;
+    int CLB;
+    int IMLB;
+    int IILB;
 };
 
 

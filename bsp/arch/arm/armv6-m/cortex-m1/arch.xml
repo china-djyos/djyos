@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<arch>
-    <family>cortex-m1</family>
-    <compile-option>
-        <mcpu>cortex-m1</mcpu>
-    </compile-option>
-</arch>

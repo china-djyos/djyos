@@ -26,10 +26,10 @@ static struct   {
     u32 bk_color;
 }DrawText_Color_Tbl[6]={
 
-         {RGB(255,0,0),RGB(255,0,0),RGB(0,0,0)},
-         {RGB(0,255,0),RGB(0,255,0),RGB(0,0,0)},
-         {RGB(0,160,255),RGB(0,160,255),RGB(0,0,0)},
-         {RGB(255,255,0),RGB(255,255,0),RGB(0,0,0)},
+         {RGB(255,0,0),RGB(255,0,255),RGB(88,88,88)},
+         {RGB(0,255,0),RGB(0,255,255),RGB(0,88,0)},
+         {RGB(0,160,255),RGB(255,160,255),RGB(0,0,88)},
+         {RGB(255,255,0),RGB(255,0,0),RGB(88,0,0)},
 };
 
 static  int cfg_idx=0;
@@ -70,16 +70,16 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     ClientToScreen(hwnd,(POINT *)&rc0,2);
     y=20+rc0.top;
     x=128+8;
-    CreateButton("运行",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_START_1,NULL,NULL);
-    CreateButton("运行",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_START_2,NULL,NULL);
-    CreateButton("运行",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_START_3,NULL,NULL);
-    CreateButton("运行",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_START_4,NULL,NULL);
+    CreateButton("run1",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_START_1,NULL,NULL);
+    CreateButton("run2",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_START_2,NULL,NULL);
+    CreateButton("run3",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_START_3,NULL,NULL);
+    CreateButton("run4",WS_CHILD|BS_HOLD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_START_4,NULL,NULL);
 
     x=128+8+49;
-    CreateButton("清零",WS_CHILD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_CLR_1,NULL,NULL);
-    CreateButton("清零",WS_CHILD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_CLR_2,NULL,NULL);
-    CreateButton("清零",WS_CHILD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_CLR_3,NULL,NULL);
-    CreateButton("清零",WS_CHILD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_CLR_4,NULL,NULL);
+    CreateButton("reset1",WS_CHILD|WS_VISIBLE,x,y+0*28,45,24,hwnd,ID_CLR_1,NULL,NULL);
+    CreateButton("reset2",WS_CHILD|WS_VISIBLE,x,y+1*28,45,24,hwnd,ID_CLR_2,NULL,NULL);
+    CreateButton("reset3",WS_CHILD|WS_VISIBLE,x,y+2*28,45,24,hwnd,ID_CLR_3,NULL,NULL);
+    CreateButton("reset4",WS_CHILD|WS_VISIBLE,x,y+3*28,45,24,hwnd,ID_CLR_4,NULL,NULL);
 
     GDD_CreateTimer(hwnd,0,timer_interval[0]);
     GDD_CreateTimer(hwnd,1,timer_interval[1]);
@@ -180,7 +180,7 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
         SetTextColor(hdc,DrawText_Color_Tbl[i].text_color);
         SetDrawColor(hdc,DrawText_Color_Tbl[i].bd_color);
         SetFillColor(hdc,DrawText_Color_Tbl[i].bk_color);
-        sprintf(wbuf," 定时器%d: %d",i+1,timer_count[i]);
+        sprintf(wbuf," time %d: %d",i+1,timer_count[i]);
 
         if(timer_run[i]!=FALSE)
         {
@@ -222,6 +222,6 @@ void    GDD_Demo_Timer(void)
 {
     s_gTimerDemoMsgLink.MsgNum = sizeof(s_gTimerMsgTable) / sizeof(struct MsgProcTable);
     s_gTimerDemoMsgLink.myTable = (struct MsgProcTable *)&s_gTimerMsgTable;
-    GDD_CreateGuiApp("Timer", &s_gTimerDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_CreateGuiApp("Timer", &s_gTimerDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
     GDD_WaitGuiAppExit("Timer");
 }

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -84,7 +84,7 @@
 #include "font.h"
 #include "math.h"
 #include "string.h"
-//#include "gui_config.h"
+#include "object.h"
 #include "loc_string.h"
 //#include "gkernel_config.h"
 #include "component_config_gk.h"
@@ -119,7 +119,8 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr);
 // 2、z_prio成员影响win在其兄弟结点中的位置，越小越前端
 // 3、z_prio一般设为0，<=0均遮盖父窗口，若>0则被父窗口遮盖
 
-char draw_chunnel_buf[CFG_GKERNEL_CMD_DEEP];
+u8 draw_chunnel_buf[CFG_GKERNEL_CMD_DEEP];
+u8 writh_chunnel_buf[CFG_GKERNEL_CMD_DEEP];
 //----初始化gui模块---------------------------------------------------------
 //功能: 初始化gui模块，在资源队列中增加必要的资源结点
 //参数: 模块初始化函数，没有参数
@@ -130,7 +131,7 @@ bool_t ModuleInstall_GK(void)
     s_ptDisplayDir = obj_newchild(objsys_root(), (fnObjOps)-1, 0, 0, "display");
     s_ptWindowDir = obj_newchild(objsys_root(), (fnObjOps)-1, 0, 0, "gkwindow");
 
-    Ring_Init(&g_tGkChunnel.ring_syscall,draw_chunnel_buf,CFG_GKERNEL_CMD_DEEP);
+    Ring_Init(&g_tGkChunnel.ring_syscall,(u8 *)writh_chunnel_buf,CFG_GKERNEL_CMD_DEEP);
 
     g_tGkChunnel.syscall_mutex = Lock_MutexCreate("gui chunnel to gk mutex");
 //  g_tGkChunnel.syscall_semp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gui chunnel to gk semp");
@@ -704,6 +705,8 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     {
         NewWindow = obj_newchild(parent->HostObj, (fnObjOps)-1, 0, (ptu32_t)gkwin,
                                     (const char*)(gkwin->win_name));
+        if(NewWindow == NULL)
+            return NULL;
         gkwin->HostObj = NewWindow;
         //以下4句在z轴中把win插入父节点的前端
         gkwin->z_back = parent;
@@ -733,17 +736,20 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
         {//同级窗口中存在和gkwin的prio相等的窗口
 //            NewWindow = OBJ_AddToPrevious(target_section->HostObj, NULL, (ptu32_t)gkwin,
 //                                             (const char *)(gkwin->win_name));
-            NewWindow = obj_newchild(target_section->HostObj, (fnObjOps)-1, 0, (ptu32_t)gkwin,
+            move_end = __GK_GetZsectionEnd(target_section);
+            NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, 0, (ptu32_t)gkwin,
                                      (const char *)(gkwin->win_name));
+            if(NewWindow == NULL)
+                return NULL;
             gkwin->HostObj = NewWindow;
             if(obj_ishead(target_section->HostObj))
                 obj_child_move2prev(parent->HostObj);
             //获取target_section和其子窗口所在z轴段的结束窗口(最前端)
             //新窗口插入到它的前端
-            move_end = __GK_GetZsectionEnd(target_section);
             if(move_end == display->z_topmost)
                 display->z_topmost = gkwin;
             //插到目标窗口前端
+
             gkwin->z_back = move_end;
             gkwin->z_top = move_end->z_top;
             move_end->z_top->z_back = gkwin;
@@ -758,6 +764,8 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
 //                                                (const char *)(gkwin->win_name));
                 NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, 0, (ptu32_t)gkwin,
                                          (const char *)(gkwin->win_name));
+                if(NewWindow == NULL)
+                    return NULL;
             }
             else    //同级窗口优先级均高于新窗口(prio = 0)
             {
@@ -766,12 +774,14 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
 //                                            (const char*)(gkwin->win_name));
                 NewWindow = obj_newnext(target_section->HostObj, (fnObjOps)-1, 0, (ptu32_t )gkwin,
                                             (const char*)(gkwin->win_name));
+                if(NewWindow == NULL)
+                    return NULL;
             }
             gkwin->HostObj = NewWindow;
             //新创建的窗口gkwin优先级为0，无论同级窗口优先级均如何分布，新
             //窗口肯定在父窗口前端
             if(parent == display->z_topmost)
-                display->z_topmost = para->gkwin;
+                display->z_topmost = gkwin;
             //插到目标窗口前端
             gkwin->z_back = parent;
             gkwin->z_top = parent->z_top;
@@ -1001,10 +1011,14 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
         //跨越parent
         NowWin = (struct GkWinObj *)obj_val(point);
         if( (NowWin->WinProperty.Zprio > 0) && (gkwin->WinProperty.Zprio <= 0) )
-            Ztarget = parent;       //父窗口在插入点和gkwin之间
+            Ztarget = (struct GkWinObj *)parent;       //父窗口在插入点和gkwin之间
         else
             Ztarget = __GK_GetZsectionEnd( NowWin );
     }
+    foremost->z_top->z_back = last->z_back;
+    last->z_back->z_top = foremost->z_top;
+    //当 Ztarget->z_top==foremos==lastt时这样操作会出错
+    //改为先移除在插入
     Ztarget->z_top->z_back = foremost;
     foremost->z_top = Ztarget->z_top;
     Ztarget->z_top = last;
@@ -1269,14 +1283,14 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
     while(1)
     {   //查找同级窗口中和优先级等于para->prio的的窗口，扫描以z轴为对象
         //扫描顺序:从z轴段前端向后端进行扫描，只扫兄弟窗口，不扫子窗口
-        if(target_section->WinProperty.Zprio >= para->prio)
+        if(target_section->WinProperty.Zprio >= (s32)para->prio)
             break;
         //扫描目标窗口所在z轴段最后一窗口，终止跳出
         if(target_section == section_start)
             break;
         target_section = (struct GkWinObj *)obj_val(obj_next(target_section->HostObj));
     }
-    if(target_section->WinProperty.Zprio >= para->prio)
+    if(target_section->WinProperty.Zprio >= (s32)para->prio)
     {   // 找到gkwin同级窗口中优先级低于或等于新prio的窗口
         if((target_section == gkwin)
             || (target_section == (struct GkWinObj *)obj_val(obj_next(gkwin->HostObj))))
@@ -1806,7 +1820,7 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                                                 void *param2,u16 size2)
 {
     u16 completed = 0;
-    u8 buf[2];
+    u8 buf[4];
     u32 base_time,rel_timeout = sync_time;
     base_time = (u32)DjyGetSysTime();
     //管道访问互斥，用于多个上层应用并发调用之间的互斥
@@ -1835,7 +1849,10 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
         }
         buf[0] = (u8)command;
         buf[1] = (u8)(command>>8);
-        completed = Ring_Write(&g_tGkChunnel.ring_syscall,buf,2);
+        buf[2] = (u8)((size1+size2)&0xff);
+        buf[3] = (u8)(((size1+size2)>>8)&0xff);
+
+        completed = Ring_Write(&g_tGkChunnel.ring_syscall,buf,4);
         if(size1 != 0)
             completed += Ring_Write(&g_tGkChunnel.ring_syscall,param1,size1);
         if(size2 != 0)
@@ -1860,15 +1877,15 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                 Lock_SempPend(g_ptGkServerSync,rel_timeout);
                 Djy_SetEventPrio(g_u16GkServerEvent, 249);
             }
-//          Lock_MutexPend(g_ptGkServerSync,sync_time);
-//          Lock_MutexPost(g_ptGkServerSync);
         }
     }
     else
     {
-        Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
+        completed =  Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
                                         CFG_GKERNEL_CMD_DEEP);
-        __ExecOneCommand(command,draw_chunnel_buf+2);
+        if(completed!=2+size2+size2)
+            printf("__GK_SyscallChunnel :test error \n\r");
+        __ExecOneCommand(command,(u8 *)draw_chunnel_buf+4);
     }
     Lock_MutexPost(g_tGkChunnel.syscall_mutex);    //管道访问互斥解除
     return completed;
@@ -1984,8 +2001,9 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
             memcpy(&para,ParaAddr,
                     sizeof(struct GkscParaDrawText));
             result = sizeof(struct GkscParaDrawText);
-            __GK_DrawText(&para,(char*)ParaAddr+result,&len);
-            result += len+ GetEOC_Size(para.pCharset);
+            ParaAddr+=result;
+            __GK_DrawText(&para,(char*)ParaAddr,&len);
+            result += strlen((char*)ParaAddr)+ GetEOC_Size(para.pCharset);
         }break;
         case CN_GKSC_SET_HYALINE_COLOR:
         {
@@ -2144,10 +2162,12 @@ ptu32_t __GK_UsercallServer(void)
 //参数: 无
 //返回: 无
 //-----------------------------------------------------------------------------
+
 ptu32_t __GK_Server(void)
 {
     u16 command;
-    u32 num,offset;
+    u16 len;
+    u32 num,offset,size;
 //    Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
 //  Djy_SetEventPrio(249);
     while(1)
@@ -2156,7 +2176,6 @@ ptu32_t __GK_Server(void)
         //命令，不存在半条命令的可能。
         num = Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
                                         CFG_GKERNEL_CMD_DEEP);
-
         if(num == 0)
         {
             //所有命令均执行完后，检查有没有win buffer需要刷到screen上
@@ -2177,12 +2196,16 @@ ptu32_t __GK_Server(void)
         {
             //由于管道中的数据可能不对齐，故必须把数据copy出来，不能直接用指针
             //指向或强制类型转换
+            len =   draw_chunnel_buf[offset+2] + ((u16)draw_chunnel_buf[offset+3]<<8);
             command = draw_chunnel_buf[offset] + ((u16)draw_chunnel_buf[offset+1]<<8);
             //sizeof(u16)不可用2替代，在cn_byte_bits>=16的机器上，sizeof(u16)=1.
-            offset += sizeof(u16);
+            offset += sizeof(u32);
 //            sync_draw = draw_chunnel_buf[offset];
 //            offset += 1;
-            offset += __ExecOneCommand(command,draw_chunnel_buf + offset);
+            size= __ExecOneCommand(command,(u8 *)draw_chunnel_buf + offset);
+            if(len != size)
+                debug_printf("gui kernel","命令长度出错\n\r");
+            offset +=len;
         }   //for while(num != offset)
     }   //for while(1)
 

@@ -118,6 +118,6 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/Nuvoton/M480/M487JIDAE/../src/dma/cpu_peri_dma.c</component>
-   <component>/bsp/cpudrv/Nuvoton/M480/M487JIDAE/../src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/Nuvoton/M480/src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/Nuvoton/M480/src/uart/cpu_peri_uart.c</component>
 </components>

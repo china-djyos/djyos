@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018,Open source team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -72,9 +72,9 @@
 
 #define WTCON   0x53000000
 
-.cpu	arm920t
-.fpu	softvfp
-.file	"initcpu.S"
+.cpu    arm920t
+.fpu    softvfp
+.file   "initcpu.S"
 
 #include "arm_mode_s_file.h"
 .section .text._start, "ax", %progbits
@@ -85,43 +85,43 @@ _start:        /* 复位向量地址 */
     mrs     r0, cpsr                  /* 取CPSR */
     bic     r0, r0, #SF_MODEMASK   /* 清模式位 */
     orr     r1, r0, #(SF_SVCMODE|SF_IRQ_BIT|SF_FIQ_BIT)    /* 设置为管理态，并禁止中断 */
-	msr		cpsr,r1
+    msr     cpsr,r1
 
     ldr     r0,=WTCON           /* 禁止看门狗 */
     ldr     r1,=0x0
     str     r1,[r0]
 
-    ldr		r0,=R1_I|R1_C|R1_V
+    ldr     r0,=R1_I|R1_C|R1_V
     mcr     p15, 0, r0, c1, c0, 0
-	
-    ldr		sp,=0x40000400 /*SDRAM还不能使用，临时使用内部SRAM作为Stack.*/
-	
-    bl		Init_CpuClk
+
+    ldr     sp,=0x40000400 /*SDRAM还不能使用，临时使用内部SRAM作为Stack.*/
+
+    bl      Init_CpuClk
     bl      Mem_BusInit
 
-    ldr		r0,=R1_I
+    ldr     r0,=R1_I
     mcr     p15, 0, r0, c1, c0, 0
-    
-    ldr     sp, =usr_top	
-       
-    bl		MMU_Init
 
-    ldr		r0,=R1_M|R1_I|R1_C|R1_V
+    ldr     sp, =usr_top
+
+    bl      MMU_Init
+
+    ldr     r0,=R1_M|R1_I|R1_C|R1_V
     mcr     p15, 0, r0, c1, c0, 0
-	nop
-	nop
-	nop
-	nop
-	ldr		r0,=0xFFFF0000
-	ldr		r1,=isr_vector
-	ldr		r2,=isr_vector_end
+    nop
+    nop
+    nop
+    nop
+    ldr     r0,=0xFFFF0000
+    ldr     r1,=isr_vector
+    ldr     r2,=isr_vector_end
 copy_isr:
-	ldmia	r1!,{r4-r7}
-	stmia	r0!,{r4-r7}
-	cmp		r1,r2
-	bcc		copy_isr
-	nop
-	nop
+    ldmia   r1!,{r4-r7}
+    stmia   r0!,{r4-r7}
+    cmp     r1,r2
+    bcc     copy_isr
+    nop
+    nop
     //// 初始化栈指针
     mov     r1,#SF_UNDEFMODE|SF_IRQ_BIT|SF_FIQ_BIT
     msr     cpsr_cxsf,r1        //UndefMode
