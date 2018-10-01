@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <components>
+   <component>/component/blackbox/component_config_blackbox.h</component>
    <component>/component/buffer/component_config_buffer.h</component>
    <component>/component/charset/ascii/ascii.c</component>
    <component>/component/charset/gb2312/gb2312.c</component>
@@ -14,7 +15,6 @@
    <component>/component/djybus/iicbus/iicbus.c</component>
    <component>/component/djybus/spibus/spibus.c</component>
    <component>/component/djybus/djybus.c</component>
-   <component>/component/exp/component_config_exp.h</component>
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>
    <component>/component/font/font.c</component>
