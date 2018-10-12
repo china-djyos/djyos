@@ -27,8 +27,11 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-//	extern void ModuleInstall_Exp(void);
-//	ModuleInstall_Exp( );
+	//extern void ModuleInstall_BlackBox(void);
+	//ModuleInstall_BlackBox( );
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -47,8 +50,6 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
 
 	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_Timer(void);

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -103,7 +103,7 @@
 #define CN_E2ROM_MAX_PAGE               (CN_E2ROM_MAX_SIZE/CN_E2ROM_PAGE_SIZE)
 
 #define CN_CHIP_WRITE_FINISHED_TIME            (6*mS)
-static struct IIC_Device pg_E2ROM_Dev;
+static struct IIC_Device *pg_E2ROM_Dev;
 #define CN_E2ROM_OP_TIMEOUT             CN_TIMEOUT_FOREVER//2000*mS
 
 
@@ -120,7 +120,7 @@ u32 E2PROM_ReadData(u32 Addr,u8 *pDstBuf,u32 DstLen)
     if((Addr + DstLen > CN_E2ROM_MAX_SIZE) || (DstLen == 0))
         return result;
 
-    result = IIC_Read(&pg_E2ROM_Dev,Addr,pDstBuf,DstLen,CN_E2ROM_OP_TIMEOUT);
+    result = IIC_Read(pg_E2ROM_Dev,Addr,pDstBuf,DstLen,CN_E2ROM_OP_TIMEOUT);
 
     return result;
 }
@@ -136,7 +136,7 @@ u32 E2PROM_WriteByte(u32 Addr,u8 Value)
     u32 result = 0;
     if(Addr > CN_E2ROM_MAX_SIZE)
         return result;
-    result = IIC_Write(&pg_E2ROM_Dev,Addr,&Value,1,true,CN_E2ROM_OP_TIMEOUT);
+    result = IIC_Write(pg_E2ROM_Dev,Addr,&Value,1,true,CN_E2ROM_OP_TIMEOUT);
 
     return result;
 }
@@ -159,7 +159,7 @@ u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
         return result;
 
     Addr = PageNo * CN_E2ROM_PAGE_SIZE;
-    result = IIC_Write(&pg_E2ROM_Dev,Addr,pSrcBuf,SrcLen,1,CN_E2ROM_OP_TIMEOUT);
+    result = IIC_Write(pg_E2ROM_Dev,Addr,pSrcBuf,SrcLen,1,CN_E2ROM_OP_TIMEOUT);
 
     Djy_EventDelay(CN_CHIP_WRITE_FINISHED_TIME);
     return result;
@@ -172,16 +172,13 @@ u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
 // =============================================================================
 ptu32_t M24256_ModuleInit(const char *BusName)
 {
-    pg_E2ROM_Dev.DevAddr = CFG_E2ROM_ADDR;
-    pg_E2ROM_Dev.BitOfMemAddrInDevAddr = 0;
-    pg_E2ROM_Dev.BitOfMemAddr = 16;
 
 //    IIC0_Init();
 
-    if(NULL == IIC_DevAdd_r(BusName,"IICDev_M24256",&pg_E2ROM_Dev))
-        return false;
-    else
+    if(pg_E2ROM_Dev = IIC_DevAdd(BusName,"IICDev_M24256",CFG_E2ROM_ADDR,0,16))
         return true;
+    else
+        return false;
 }
 
 //#endif

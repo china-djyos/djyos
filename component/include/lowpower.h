@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -94,14 +94,8 @@ extern "C" {
 #define CN_SLEEP_L3        4       //休眠方式:L3
 #define CN_SLEEP_L4        5       //休眠方式:L4
 
-struct LowPowerCtrl
-{
-    u32 SleepLevel;                             //当前低功耗级别
-    u32 DisableCounter;     //禁止低功耗次数计数,0才可以进入L1及以上级别低功耗
-    u32 (*EntrySleepReCall)(u32 SleepLevel);      //进入低功耗状态前的回调函数
-    u32 (*ExitSleepReCall)(u32 SleepLevel);       //从低功耗状态唤醒后的回调函数
+struct LowPowerCtrl;
 
-};
 //以下函数须在bsp中实现,根据具体硬件,如果该函数跟板有关,则在bsp\boarddrv中实现,
 //如果跟cpu有关,则在bsp\cpudrv目录提供,移植新系统时灵活处置.
 //跟低功耗相关的硬件初始化

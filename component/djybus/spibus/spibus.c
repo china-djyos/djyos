@@ -62,6 +62,47 @@
 static struct obj *s_ptSPIBusType;
 
 #define CN_SPI_FLAG_POLL        (1<<0)          //轮询中断方式标记
+
+//SPI总线器件结构体
+struct SPI_Device
+{
+    struct obj *HostObj;
+    u8 Cs;                                  //片选信号
+    bool_t AutoCs;                          //自动片选
+    u8 CharLen;                             //数据长度
+    u8 Mode;                                //模式选择
+    u8 ShiftDir;                            //MSB or LSB
+    u32 Freq;                               //速度,Hz
+};
+
+
+struct SPI_Buf
+{
+    u32    Offset;         //缓冲区指针,指向下一次读的位置
+    u32    MaxLen;        //缓冲区最大长度,元素个数.
+    u8     *pBuf;             //缓冲区指针,用户自己保证所开辟的缓冲区是否与设定
+};
+//SPI总线控制块结构体,本模块可见
+struct SPI_CB
+{
+    struct obj           *HostObj;              //宿主对象
+    struct SPI_Buf          SPI_Buf;               //缓冲区,用于异步发送
+    struct SemaphoreLCB     *SPI_BusSemp;           //SPI总线保护信号量
+    struct SemaphoreLCB     *SPI_BlockSemp;         //简易缓冲区保护信号量
+    struct SPI_DataFrame    Frame;
+    struct SPI_Device       *CurrentDev;           //占有当前总线的设备
+    u16                     ErrorPopEvtt;       //出错处理事件的类型
+    bool_t                  MultiCsReg;         //是否具有多套CS寄存器
+    u8                      BlockOption;        //当前总线操作是否阻塞
+    u8                      Flag;               //轮询中断标记
+    ptu32_t                 SpecificFlag;       //个性标记
+    TransferFunc            pTransferTxRx;
+    TransferPoll            pTransferPoll;
+    CsActiveFunc            pCsActive;
+    CsInActiveFunc          pCsInActive;
+    SPIBusCtrlFunc          pBusCtrl;
+};
+
 // =============================================================================
 // 功能：将SPI总线类型结点挂接到DjyBus根结点
 // 参数：无
@@ -181,7 +222,7 @@ struct SPI_CB *SPI_BusFind(const char *BusName)
     SPI_BusObj = obj_search_child(s_ptSPIBusType,BusName);
     if(SPI_BusObj)
     {
-        return (struct SPI_CB *)obj_val(SPI_BusObj);
+        return (struct SPI_CB *)obj_GetPrivate(SPI_BusObj);
     }
     else
         return NULL;
@@ -315,7 +356,7 @@ struct SPI_Device *SPI_DevFind(const char *BusName ,const char *DevName)
     //通过SPI类型结点，向下搜索后代结点
     SPI_DevObj = obj_search_child(SPI_Bus->HostObj, DevName);
     if(SPI_DevObj)
-        return ((struct SPI_Device*)obj_val(SPI_DevObj));
+        return ((struct SPI_Device*)obj_GetPrivate(SPI_DevObj));
     else
         return NULL;
 }
@@ -335,7 +376,7 @@ bool_t SPI_CsActive(struct SPI_Device *Dev,u32 timeout)
     if(NULL == Dev)
         return false;
 
-    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));
+    SPI = (struct SPI_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));
     if(NULL == SPI)
         return false;
 
@@ -398,7 +439,7 @@ bool_t SPI_CsInactive(struct SPI_Device *Dev)
     if(NULL == Dev)
         return false;
 
-    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));
+    SPI = (struct SPI_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));
     if(NULL == SPI)
         return false;
 
@@ -448,7 +489,7 @@ s32 SPI_Transfer(struct SPI_Device *Dev,struct SPI_DataFrame *spidata,
     if(NULL == Dev)
         return CN_SPI_EXIT_PARAM_ERR;
 
-    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));//查找该器件属于哪条总线
+    SPI = (struct SPI_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));//查找该器件属于哪条总线
     if(NULL == SPI)
         return CN_SPI_EXIT_PARAM_ERR;
 
@@ -662,7 +703,7 @@ s32 SPI_BusCtrl(struct SPI_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
     if(NULL == Dev)
         return -1;
 
-    SPI = (struct SPI_CB *)obj_val(obj_parent(Dev->HostObj));
+    SPI = (struct SPI_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));
     if(NULL == SPI)
         return -1;
 

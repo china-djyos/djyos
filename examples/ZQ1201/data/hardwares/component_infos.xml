@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <components>
+   <component>/component/blackbox/component_config_blackbox.h</component>
    <component>/component/buffer/component_config_buffer.h</component>
    <component>/component/charset/ascii/ascii.c</component>
    <component>/component/charset/gb2312/gb2312.c</component>
@@ -14,7 +15,6 @@
    <component>/component/djybus/iicbus/iicbus.c</component>
    <component>/component/djybus/spibus/spibus.c</component>
    <component>/component/djybus/djybus.c</component>
-   <component>/component/exp/component_config_exp.h</component>
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>
    <component>/component/font/font.c</component>
@@ -58,6 +58,7 @@
    <component>/third/firmware/lpc17xx/component_config_lpc17xx.h</component>
    <component>/third/firmware/NuvotonM480/component_config_NuvotonM480.h</component>
    <component>/third/firmware/Sharc21469/component_config_Sharc21469.h</component>
+   <component>/third/firmware/silan/component_config_silan.h</component>
    <component>/third/firmware/sldrv/component_config_sldrv.h</component>
    <component>/third/firmware/stm32f1/component_config_stm32f1.h</component>
    <component>/third/firmware/stm32f3/component_config_stm32f3.h</component>
@@ -118,9 +119,9 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/zq/zq12xx/src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/zq/zq12xx/src/rtc/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/zq/zq12xx/src/spi/cpu_peri_spi.c</component>
-   <component>/bsp/cpudrv/zq/zq12xx/src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/zq/zq12xx/src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/ZQ/zq12xx/src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/ZQ/zq12xx/src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/ZQ/zq12xx/src/spi/cpu_peri_spi.c</component>
+   <component>/bsp/cpudrv/ZQ/zq12xx/src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/ZQ/zq12xx/src/uart/cpu_peri_uart.c</component>
 </components>

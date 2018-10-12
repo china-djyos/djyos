@@ -21,7 +21,7 @@ extern void GDD_Demo_Progressbar(void);
 #include <gui/gdd/gdd_private.h>
 #include <widget/gdd_button.h>
 
-#include "arm32_stdint.h"
+//#include "arm32_stdint.h"
 
 
 static u16 test_id;

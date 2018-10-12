@@ -29,13 +29,15 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 //%$#@string,1,16
-//%$#@select,2
+//%$#@select,1
+#define     USE_HAL_DRIVER          //是否使用hal库
+//%$#@select,1
 //#define STM32F301x8             //只能选中其中一个
 //#define STM32F302x8
 //#define STM32F302xC
 //#define STM32F302xE
 //#define STM32F303x8
-#define STM32F303xC
+//#define STM32F303xC
 //#define STM32F303xE
 //#define STM32F373xC
 //#define STM32F334x8
@@ -44,7 +46,6 @@
 //#define STM32F358xx
 //#define STM32F378xx
 //#define STM32F398xx
-#define USE_HAL_DRIVER
 //%$#@free
 //#endif
 //%$#@end configue  ****参数配置结束

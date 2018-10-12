@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -1481,7 +1481,7 @@ static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *
 
     find = obj_search_child(ob, name); // 先在对象系统中查找
     if(find)
-        return ((struct __efile*)obj_val(find));
+        return ((struct __efile*)obj_GetPrivate(find));
 
     eloc = __getloc(position, core, loc, -1); // 获取文件最末尾的位置
     units = (core->ssz * core->serial) + (core->finfo + eloc->loc);
@@ -2144,7 +2144,7 @@ static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
                 if(obj_isonduty(ob))
                     printf("\r\n : warn : efs    : truncate file \"%s\" while others are using.", obj_name(ob));
 
-                file = (struct __efile*)obj_val(ob);
+                file = (struct __efile*)obj_GetPrivate(ob);
             }
 
             if(file->size)
@@ -2167,7 +2167,7 @@ static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
         {
             if(!uncached)
                 //file = dListEntry(of_basiclinko(ob), struct __efile, basic);
-                file = (struct __efile*)obj_val(ob);
+                file = (struct __efile*)obj_GetPrivate(ob);
 
             cx->pos = file->size;
             if(cx->pos % BUFLEN)
@@ -2241,7 +2241,7 @@ static s32 __e_close(struct objhandle *hdl)
 
             if(!obj_isonduty(head))
             {
-                file = (struct __efile*)obj_val(head);
+                file = (struct __efile*)obj_GetPrivate(head);
                 eloc = __getloc(position, core, file->loc, -1);
                 while(eloc)
                     eloc = __delloc(eloc, -1);
@@ -2256,7 +2256,7 @@ static s32 __e_close(struct objhandle *hdl)
                 {
                     if(!obj_isonduty(nxt))
                     {
-                        file = (struct __efile*)obj_val(head);
+                        file = (struct __efile*)obj_GetPrivate(head);
                         eloc = __getloc(position, core, file->loc, -1);
                         while(eloc)
                             eloc = __delloc(eloc, -1);
@@ -2796,7 +2796,7 @@ static s32 __e_remove(struct obj *ob, char *uncached)
     {
         // 文件已缓存
         // cached = dListEntry(of_basiclinko(ob), struct __efile, basic);
-        struct __efile *cached = (struct __efile *)obj_val(ob);
+        struct __efile *cached = (struct __efile *)obj_GetPrivate(ob);
         loc = cached->loc;
     }
 
@@ -2859,7 +2859,7 @@ static s32 __e_stat(struct obj *ob, struct stat *data, char *uncached)
         else // 文件已存在；
         {
             //file = dListEntry(of_basiclinko(ob), struct __efile, basic);
-            file = (struct __efile*)obj_val(ob);
+            file = (struct __efile*)obj_GetPrivate(ob);
         }
 
         data->st_size = (off_t)file->size;

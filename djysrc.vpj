@@ -299,7 +299,6 @@
 								<F N="bsp/arch/arm/armv5te/arm9/src/int_hard.c"/>
 								<F N="bsp/arch/arm/armv5te/arm9/src/ints.S"/>
 							</Folder>
-							<F N="bsp/arch/arm/armv5te/arm9/arch.xml"/>
 						</Folder>
 						<Folder Name="include">
 							<F N="bsp/arch/arm/armv5te/include/arch_stdint.h"/>
@@ -313,10 +312,8 @@
 							<F N="bsp/arch/arm/armv5te/src/hard-exps.S"/>
 							<F N="bsp/arch/arm/armv5te/src/mmu.c"/>
 							<F N="bsp/arch/arm/armv5te/src/mmucache.S"/>
-							<F N="bsp/arch/arm/armv5te/src/ReadMe.TXT"/>
 							<F N="bsp/arch/arm/armv5te/src/set-cache.c"/>
 						</Folder>
-						<F N="bsp/arch/arm/armv5te/arch-series.xml"/>
 					</Folder>
 					<Folder Name="cortex-m">
 						<Folder Name="armv6-m">
@@ -324,7 +321,6 @@
 								<Folder Name="include">
 									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/include/arch_feature.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/include/arch_stdint.h"/>
-									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/include/armv6m.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/include/cpu.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/include/hard-exp.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/include/int_hard.h"/>
@@ -337,22 +333,14 @@
 									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/src/int_hard.c"/>
 									<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/src/ints.S"/>
 								</Folder>
-								<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0/arch.xml"/>
 							</Folder>
-							<Folder Name="cortex-m0+">
-								<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m0+/arch.xml"/>
-							</Folder>
-							<Folder Name="cortex-m1">
-								<F N="bsp/arch/arm/cortex-m/armv6-m/cortex-m1/arch.xml"/>
-							</Folder>
-							<F N="bsp/arch/arm/cortex-m/armv6-m/arch-series.xml"/>
+							<F N="bsp/arch/arm/cortex-m/armv6-m/armv6m.h"/>
 						</Folder>
 						<Folder Name="armv7-m">
 							<Folder Name="cortex-m3">
 								<Folder Name="include">
 									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/include/arch_feature.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/include/arch_stdint.h"/>
-									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/include/armv7m.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/include/cpu.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/include/hard-exp.h"/>
 									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/include/int_hard.h"/>
@@ -365,22 +353,19 @@
 									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/src/int_hard.c"/>
 									<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/src/ints.S"/>
 								</Folder>
-								<F N="bsp/arch/arm/cortex-m/armv7-m/cortex-m3/arch.xml"/>
 							</Folder>
-							<F N="bsp/arch/arm/cortex-m/armv7-m/arch-series.xml"/>
+							<F N="bsp/arch/arm/cortex-m/armv7-m/armv7m.h"/>
 						</Folder>
 						<Folder Name="armv7e-m">
 							<Folder Name="cortex-m4">
 								<Folder Name="src">
 									<F N="bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/src/cortex-m4.S"/>
 								</Folder>
-								<F N="bsp/arch/arm/cortex-m/armv7e-m/cortex-m4/arch.xml"/>
 							</Folder>
 							<Folder Name="cortex-m7">
 								<Folder Name="src">
 									<F N="bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/src/cortex-m7.S"/>
 								</Folder>
-								<F N="bsp/arch/arm/cortex-m/armv7e-m/cortex-m7/arch.xml"/>
 							</Folder>
 							<Folder Name="include">
 								<F N="bsp/arch/arm/cortex-m/armv7e-m/include/arch_feature.h"/>
@@ -398,7 +383,6 @@
 								<F N="bsp/arch/arm/cortex-m/armv7e-m/src/int_hard.c"/>
 								<F N="bsp/arch/arm/cortex-m/armv7e-m/src/ints.S"/>
 							</Folder>
-							<F N="bsp/arch/arm/cortex-m/armv7e-m/arch-series.xml"/>
 						</Folder>
 						<Folder Name="include">
 							<F N="bsp/arch/arm/cortex-m/include/cortex-m.h"/>
@@ -408,7 +392,6 @@
 						<F N="bsp/arch/arm/include/arm32_feature.h"/>
 						<F N="bsp/arch/arm/include/arm32_stdint.h"/>
 					</Folder>
-					<F N="bsp/arch/arm/arch-series.xml"/>
 				</Folder>
 				<Folder Name="ck">
 					<Folder Name="ck803s">
@@ -569,18 +552,11 @@
 							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/include/ctiic.h"/>
 							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/demo/APOLLO-STM32F7/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/APOLLO-STM32F7/Board_APOLLO-STM32F7.xml"/>
 					</Folder>
 					<Folder Name="EXPLORER-stm32f4">
 						<Folder Name="drv">
@@ -593,17 +569,10 @@
 							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/include/board.h"/>
 							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/include/stm32f4xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/EXPLORER-stm32f4/Board_EXPLORER-stm32f4.xml"/>
 					</Folder>
 					<Folder Name="imxrt1052-evk">
 						<Folder Name="drv">
@@ -619,14 +588,9 @@
 							<F N="bsp/boarddrv/demo/imxrt1052-evk/include/board.h"/>
 							<F N="bsp/boarddrv/demo/imxrt1052-evk/include/sdram.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/imxrt1052-evk/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/imxrt1052-evk/lds/memory.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/imxrt1052-evk/startup/initcpuc.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/imxrt1052-evk/Board_imxrt1052-evk.xml"/>
 					</Folder>
 					<Folder Name="mcb1700">
 						<Folder Name="drv">
@@ -659,18 +623,11 @@
 							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/include/board.h"/>
 							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/NUCLEO-F746ZG/Board_NUCLEO-F746ZG.xml"/>
 					</Folder>
 					<Folder Name="NUCLEO-L476RG">
 						<Folder Name="drv">
@@ -683,19 +640,12 @@
 							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/include/board.h"/>
 							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/include/stm32l4xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/startup/stm32l4xx_hal_conf.h"/>
 							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/startup/sysinit.c"/>
 							<F N="bsp/boarddrv/demo/NUCLEO-L476RG/startup/system_stm32l4xx.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/NUCLEO-L476RG/Board_NUCLEO-L476RG.xml"/>
 					</Folder>
 					<Folder Name="NuvotonM487">
 						<Folder Name="drv">
@@ -707,24 +657,14 @@
 							<F N="bsp/boarddrv/demo/NuvotonM487/include/board-config.h"/>
 							<F N="bsp/boarddrv/demo/NuvotonM487/include/board.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/NuvotonM487/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/NuvotonM487/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/NuvotonM487/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/NuvotonM487/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/NuvotonM487/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/NuvotonM487/startup/sysinit.c"/>
 							<F N="bsp/boarddrv/demo/NuvotonM487/startup/system_M480.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/NuvotonM487/Board_NuvotonM487.xml"/>
 					</Folder>
 					<Folder Name="qh_1">
 						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/demo/qh_1/drv/board/board.c"/>
-							</Folder>
 							<Folder Name="dm9000a-brd">
 								<F N="bsp/boarddrv/demo/qh_1/drv/dm9000a-brd/dm9000a-brd.c"/>
 							</Folder>
@@ -745,18 +685,11 @@
 							<F N="bsp/boarddrv/demo/qh_1/include/ili9325-brd.h"/>
 							<F N="bsp/boarddrv/demo/qh_1/include/stm32f1xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/qh_1/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/qh_1/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/qh_1/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/qh_1/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/qh_1/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/qh_1/startup/SRAM.c"/>
 							<F N="bsp/boarddrv/demo/qh_1/startup/SRAM.h"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/qh_1/Board_qh_1.xml"/>
 					</Folder>
 					<Folder Name="SAMV71Xplained">
 						<Folder Name="drv">
@@ -773,24 +706,14 @@
 							<F N="bsp/boarddrv/demo/SAMV71Xplained/include/ksz8061.h"/>
 							<F N="bsp/boarddrv/demo/SAMV71Xplained/include/mt29f1g.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/SAMV71Xplained/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/SAMV71Xplained/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/SAMV71Xplained/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/SAMV71Xplained/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/SAMV71Xplained/startup/initcpu.c"/>
 							<F N="bsp/boarddrv/demo/SAMV71Xplained/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/demo/SAMV71Xplained/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/SAMV71Xplained/Board_SAMV71Xplained.xml"/>
 					</Folder>
 					<Folder Name="stm32f103-empty">
 						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/demo/stm32f103-empty/drv/board/board.c"/>
-							</Folder>
 							<Folder Name="dm9000a-brd">
 								<F N="bsp/boarddrv/demo/stm32f103-empty/drv/dm9000a-brd/dm9000a-brd.c"/>
 							</Folder>
@@ -811,18 +734,11 @@
 							<F N="bsp/boarddrv/demo/stm32f103-empty/include/ili9325-brd.h"/>
 							<F N="bsp/boarddrv/demo/stm32f103-empty/include/stm32f1xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/stm32f103-empty/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/stm32f103-empty/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/stm32f103-empty/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/stm32f103-empty/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/stm32f103-empty/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/stm32f103-empty/startup/SRAM.c"/>
 							<F N="bsp/boarddrv/demo/stm32f103-empty/startup/SRAM.h"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/stm32f103-empty/Board_stm32f103-empty.xml"/>
 					</Folder>
 					<Folder Name="stm32f3-empty">
 						<Folder Name="drv">
@@ -835,15 +751,10 @@
 							<F N="bsp/boarddrv/demo/stm32f3-empty/include/board.h"/>
 							<F N="bsp/boarddrv/demo/stm32f3-empty/include/stm32f3xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/stm32f3-empty/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/stm32f3-empty/lds/memory.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/stm32f3-empty/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/stm32f3-empty/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/stm32f3-empty/Board_stm32f3-empty.xml"/>
 					</Folder>
 					<Folder Name="STM32F756G-EVAL2">
 						<Folder Name="drv">
@@ -859,18 +770,11 @@
 							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/include/board.h"/>
 							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/STM32F756G-EVAL2/Board_STM32F756G-EVAL2.xml"/>
 					</Folder>
 					<Folder Name="STM32H743I-EVAL">
 						<Folder Name="drv">
@@ -883,18 +787,11 @@
 							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/include/board.h"/>
 							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/include/stm32h7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/demo/STM32H743I-EVAL/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/STM32H743I-EVAL/Board_STM32H743I-EVAL.xml"/>
 					</Folder>
 					<Folder Name="stm32l433-empty">
 						<Folder Name="drv">
@@ -909,17 +806,12 @@
 							<F N="bsp/boarddrv/demo/stm32l433-empty/include/board-config.h"/>
 							<F N="bsp/boarddrv/demo/stm32l433-empty/include/stm32l4xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/stm32l433-empty/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/stm32l433-empty/lds/memory.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/stm32l433-empty/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/stm32l433-empty/startup/stm32l4xx_hal_conf.h"/>
 							<F N="bsp/boarddrv/demo/stm32l433-empty/startup/sysinit.c"/>
 							<F N="bsp/boarddrv/demo/stm32l433-empty/startup/system_stm32l4xx.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/stm32l433-empty/Board_stm32l433-empty.xml"/>
 					</Folder>
 					<Folder Name="stm32l475-empty">
 						<Folder Name="drv">
@@ -935,19 +827,12 @@
 							<F N="bsp/boarddrv/demo/stm32l475-empty/include/board.h"/>
 							<F N="bsp/boarddrv/demo/stm32l475-empty/include/stm32l4xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/stm32l475-empty/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/stm32l475-empty/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/stm32l475-empty/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/stm32l475-empty/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/stm32l475-empty/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/demo/stm32l475-empty/startup/stm32l4xx_hal_conf.h"/>
 							<F N="bsp/boarddrv/demo/stm32l475-empty/startup/sysinit.c"/>
 							<F N="bsp/boarddrv/demo/stm32l475-empty/startup/system_stm32l4xx.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/stm32l475-empty/Board_stm32l475-empty.xml"/>
 					</Folder>
 					<Folder Name="tq2416">
 						<Folder Name="drv">
@@ -1004,15 +889,6 @@
 						</Folder>
 						<Folder Name="include">
 							<F N="bsp/boarddrv/demo/ZQ1201/include/board-config.h"/>
-							<F N="bsp/boarddrv/demo/ZQ1201/include/silan_core_m0.h"/>
-							<F N="bsp/boarddrv/demo/ZQ1201/include/silan_m0_cache.h"/>
-							<F N="bsp/boarddrv/demo/ZQ1201/include/silan_m0_cache_regs.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/demo/ZQ1201/lds/debug.lds"/>
-							<F N="bsp/boarddrv/demo/ZQ1201/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/demo/ZQ1201/lds/memory.lds"/>
-							<F N="bsp/boarddrv/demo/ZQ1201/lds/release.lds"/>
 						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/demo/ZQ1201/startup/initcpuc.c"/>
@@ -1021,7 +897,6 @@
 							<F N="bsp/boarddrv/demo/ZQ1201/startup/silan_m0_cache.h"/>
 							<F N="bsp/boarddrv/demo/ZQ1201/startup/silan_m0_cache_regs.h"/>
 						</Folder>
-						<F N="bsp/boarddrv/demo/ZQ1201/Board_ZQ1201.xml"/>
 					</Folder>
 					<Folder Name="ZQ1201-ck">
 						<Folder Name="drv">
@@ -1098,7 +973,6 @@
 					<Folder Name="windows">
 						<F N="bsp/boarddrv/staged/windows/board-config.h"/>
 					</Folder>
-					<F N="bsp/boarddrv/staged/目录说明.txt"/>
 				</Folder>
 				<Folder Name="user">
 					<Folder Name="sr1208">
@@ -1116,18 +990,11 @@
 							<F N="bsp/boarddrv/user/sr1208/include/max706.h"/>
 							<F N="bsp/boarddrv/user/sr1208/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr1208/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr1208/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr1208/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr1208/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr1208/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr1208/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/user/sr1208/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr1208/Board_sr1208.xml"/>
 					</Folder>
 					<Folder Name="SR1210">
 						<Folder Name="startup">
@@ -1157,19 +1024,12 @@
 							<F N="bsp/boarddrv/user/sr1263/include/stm32l4xx_hal_conf.h"/>
 							<F N="bsp/boarddrv/user/sr1263/include/timer.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr1263/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr1263/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr1263/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr1263/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr1263/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr1263/startup/stm32l4xx_hal_conf.h"/>
 							<F N="bsp/boarddrv/user/sr1263/startup/sysinit.c"/>
 							<F N="bsp/boarddrv/user/sr1263/startup/system_stm32l4xx.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr1263/Board_sr1263.xml"/>
 					</Folder>
 					<Folder Name="sr1266">
 						<Folder Name="drv">
@@ -1194,19 +1054,12 @@
 							<F N="bsp/boarddrv/user/sr1266/include/pwm_sr1266.h"/>
 							<F N="bsp/boarddrv/user/sr1266/include/stm32l4xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr1266/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr1266/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr1266/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr1266/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr1266/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr1266/startup/stm32l4xx_hal_conf.h"/>
 							<F N="bsp/boarddrv/user/sr1266/startup/sysinit.c"/>
 							<F N="bsp/boarddrv/user/sr1266/startup/system_stm32l4xx.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr1266/Board_sr1266.xml"/>
 					</Folder>
 					<Folder Name="sr2711">
 						<Folder Name="drv">
@@ -1266,18 +1119,11 @@
 							<F N="bsp/boarddrv/user/sr2711/include/powerctrl.h"/>
 							<F N="bsp/boarddrv/user/sr2711/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr2711/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr2711/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr2711/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr2711/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr2711/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr2711/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/user/sr2711/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr2711/Board_sr2711.xml"/>
 					</Folder>
 					<Folder Name="sr3200">
 						<Folder Name="drv">
@@ -1321,18 +1167,11 @@
 							<F N="bsp/boarddrv/user/sr3252/include/board.h"/>
 							<F N="bsp/boarddrv/user/sr3252/include/flashdrv.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr3252/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr3252/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr3252/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr3252/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr3252/startup/initcpu.c"/>
 							<F N="bsp/boarddrv/user/sr3252/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/user/sr3252/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr3252/Board_sr3252.xml"/>
 					</Folder>
 					<Folder Name="sr5190">
 						<Folder Name="include">
@@ -1390,16 +1229,11 @@
 							<F N="bsp/boarddrv/user/sr5261/include/pwm.h"/>
 							<F N="bsp/boarddrv/user/sr5261/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr5261/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr5261/lds/memory.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr5261/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr5261/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/user/sr5261/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr5261/Board_sr5261.xml"/>
 					</Folder>
 					<Folder Name="sr5333-v2.0">
 						<Folder Name="drv">
@@ -1444,18 +1278,11 @@
 							<F N="bsp/boarddrv/user/sr5333-v2.0/include/pwm.h"/>
 							<F N="bsp/boarddrv/user/sr5333-v2.0/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr5333-v2.0/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr5333-v2.0/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/user/sr5333-v2.0/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr5333-v2.0/Board_sr5333-v2.0.xml"/>
 					</Folder>
 					<Folder Name="sr5335">
 						<Folder Name="drv">
@@ -1507,18 +1334,11 @@
 							<F N="bsp/boarddrv/user/sr5335/include/pwm.h"/>
 							<F N="bsp/boarddrv/user/sr5335/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr5335/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr5335/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr5335/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr5335/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr5335/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr5335/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/user/sr5335/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr5335/Board_sr5335.xml"/>
 					</Folder>
 					<Folder Name="sr7363">
 						<Folder Name="drv">
@@ -1531,15 +1351,10 @@
 							<F N="bsp/boarddrv/user/sr7363/include/board.h"/>
 							<F N="bsp/boarddrv/user/sr7363/include/stm32f3xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr7363/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr7363/lds/memory.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr7363/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/sr7363/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/sr7363/Board_sr7363.xml"/>
 					</Folder>
 					<Folder Name="ST1003-Z-V1.0">
 						<Folder Name="drv">
@@ -1552,17 +1367,10 @@
 							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/include/board.h"/>
 							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/include/stm32f4xx_hal_conf.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/startup/initcpuc.c"/>
 							<F N="bsp/boarddrv/user/ST1003-Z-V1.0/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/ST1003-Z-V1.0/Board_st1003-z-v1.0.xml"/>
 					</Folder>
 					<Folder Name="ty82xx">
 						<Folder Name="drv">
@@ -1580,18 +1388,11 @@
 							<F N="bsp/boarddrv/user/ty82xx/include/board-config.h"/>
 							<F N="bsp/boarddrv/user/ty82xx/include/board.h"/>
 						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/ty82xx/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/ty82xx/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/ty82xx/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/ty82xx/lds/release.lds"/>
-						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/ty82xx/startup/initcpu.c"/>
 							<F N="bsp/boarddrv/user/ty82xx/startup/set-cache.c"/>
 							<F N="bsp/boarddrv/user/ty82xx/startup/sysinit.c"/>
 						</Folder>
-						<F N="bsp/boarddrv/user/ty82xx/Board_ty82xx.xml"/>
 					</Folder>
 					<Folder Name="wb7290">
 						<Folder Name="drv">
@@ -1667,7 +1468,6 @@
 						</Folder>
 					</Folder>
 				</Folder>
-				<F N="bsp/boarddrv/用户创建板件说明.txt"/>
 			</Folder>
 			<Folder Name="chipdrv">
 				<Folder Name="39vf160">
@@ -1925,9 +1725,6 @@
 			<Folder Name="cpudrv">
 				<Folder Name="Atmel">
 					<Folder Name="Sam4e">
-						<Folder Name="ATSAM4E16xx">
-							<F N="bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx/cpu_ATSAM4E16xx.xml"/>
-						</Folder>
 						<Folder Name="include">
 							<F N="bsp/cpudrv/Atmel/Sam4e/include/cpu-optional.h"/>
 							<F N="bsp/cpudrv/Atmel/Sam4e/include/cpu_peri.h"/>
@@ -1969,7 +1766,6 @@
 								<F N="bsp/cpudrv/Atmel/Sam4e/src/uart/cpu_peri_uart.c"/>
 							</Folder>
 						</Folder>
-						<F N="bsp/cpudrv/Atmel/Sam4e/cpu_group_AtmelSam4e.xml"/>
 					</Folder>
 					<Folder Name="Sam4s">
 						<Folder Name="include">
@@ -2011,9 +1807,6 @@
 						</Folder>
 					</Folder>
 					<Folder Name="SamV7">
-						<Folder Name="ATSAMV70xxx">
-							<F N="bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx/cpu_ATSAMV70xxx.xml"/>
-						</Folder>
 						<Folder Name="include">
 							<F N="bsp/cpudrv/Atmel/SamV7/include/cpu-optional.h"/>
 							<F N="bsp/cpudrv/Atmel/SamV7/include/cpu_peri.h"/>
@@ -2093,9 +1886,7 @@
 								<F N="bsp/cpudrv/Atmel/SamV7/src/xdma/xdmad.c"/>
 							</Folder>
 						</Folder>
-						<F N="bsp/cpudrv/Atmel/SamV7/cpu_group_AtmelSamV7.xml"/>
 					</Folder>
-					<F N="bsp/cpudrv/Atmel/cpu_group_Atmel.xml"/>
 				</Folder>
 				<Folder Name="FslKxx">
 					<Folder Name="include">
@@ -2154,9 +1945,6 @@
 				</Folder>
 				<Folder Name="imxrt">
 					<Folder Name="1050">
-						<Folder Name="imxrt1052">
-							<F N="bsp/cpudrv/imxrt/1050/imxrt1052/cpu_imxrt1052.xml"/>
-						</Folder>
 						<Folder Name="include">
 							<F N="bsp/cpudrv/imxrt/1050/include/cpu-optional.h"/>
 							<F N="bsp/cpudrv/imxrt/1050/include/cpu_peri.h"/>
@@ -2192,7 +1980,6 @@
 								<F N="bsp/cpudrv/imxrt/1050/src/uart/cpu_peri_uart.c"/>
 							</Folder>
 						</Folder>
-						<F N="bsp/cpudrv/imxrt/1050/cpu_group_imxrt1050.xml"/>
 					</Folder>
 				</Folder>
 				<Folder Name="LPC">
@@ -2276,9 +2063,6 @@
 							<F N="bsp/cpudrv/Nuvoton/M480/include/cpu_peri_spi.h"/>
 							<F N="bsp/cpudrv/Nuvoton/M480/include/cpu_peri_uart.h"/>
 						</Folder>
-						<Folder Name="M487JIDAE">
-							<F N="bsp/cpudrv/Nuvoton/M480/M487JIDAE/cpu_M487JIDAE.xml"/>
-						</Folder>
 						<Folder Name="src">
 							<Folder Name="dma">
 								<F N="bsp/cpudrv/Nuvoton/M480/src/dma/cpu_peri_dma.c"/>
@@ -2312,9 +2096,7 @@
 							</Folder>
 							<F N="bsp/cpudrv/Nuvoton/M480/src/cpu_peri.c"/>
 						</Folder>
-						<F N="bsp/cpudrv/Nuvoton/M480/cpu_group_NuvotonM480.xml"/>
 					</Folder>
-					<F N="bsp/cpudrv/Nuvoton/cpu_group_Nuvoton.xml"/>
 				</Folder>
 				<Folder Name="omapl138">
 					<Folder Name="include">
@@ -2513,7 +2295,6 @@
 								<F N="bsp/cpudrv/samsung/s3c2416/src/wdt/cpu_peri_wdt.c"/>
 							</Folder>
 						</Folder>
-						<F N="bsp/cpudrv/samsung/s3c2416/cpu_s3c2416.xml"/>
 					</Folder>
 					<Folder Name="s3c2440">
 						<Folder Name="include">
@@ -2566,7 +2347,6 @@
 							<F N="bsp/cpudrv/samsung/s3c2440/src/cpu_peri.c"/>
 						</Folder>
 					</Folder>
-					<F N="bsp/cpudrv/samsung/cpu_group_samsung.xml"/>
 				</Folder>
 				<Folder Name="Sharc21469">
 					<Folder Name="include">
@@ -2667,13 +2447,6 @@
 							</Folder>
 							<F N="bsp/cpudrv/stm32/f1/src/cpu_peri.c"/>
 						</Folder>
-						<Folder Name="stm32f103xe">
-							<F N="bsp/cpudrv/stm32/f1/stm32f103xe/cpu_stm32f103xe.xml"/>
-						</Folder>
-						<Folder Name="stm32f103xg">
-							<F N="bsp/cpudrv/stm32/f1/stm32f103xg/cpu_stm32f103xg.xml"/>
-						</Folder>
-						<F N="bsp/cpudrv/stm32/f1/cpu_group_stm32f1.xml"/>
 					</Folder>
 					<Folder Name="f3">
 						<Folder Name="include">
@@ -2712,10 +2485,6 @@
 								<F N="bsp/cpudrv/stm32/f3/src/uart/cpu_peri_uart.c"/>
 							</Folder>
 						</Folder>
-						<Folder Name="stm32f303xc">
-							<F N="bsp/cpudrv/stm32/f3/stm32f303xc/cpu_stm32f303xc.xml"/>
-						</Folder>
-						<F N="bsp/cpudrv/stm32/f3/cpu_group_stm32f3.xml"/>
 					</Folder>
 					<Folder Name="f4">
 						<Folder Name="include">
@@ -2772,10 +2541,6 @@
 							</Folder>
 							<F N="bsp/cpudrv/stm32/f4/src/cpu_peri.c"/>
 						</Folder>
-						<Folder Name="stm32f407xx">
-							<F N="bsp/cpudrv/stm32/f4/stm32f407xx/cpu_stm32f407xx.xml"/>
-						</Folder>
-						<F N="bsp/cpudrv/stm32/f4/cpu_group_stm32f4.xml"/>
 					</Folder>
 					<Folder Name="f7">
 						<Folder Name="include">
@@ -2859,16 +2624,6 @@
 								<F N="bsp/cpudrv/stm32/f7/src/usb/usbh_conf.c"/>
 							</Folder>
 						</Folder>
-						<Folder Name="stm32f746xx">
-							<F N="bsp/cpudrv/stm32/f7/stm32f746xx/cpu_stm32f746xx.xml"/>
-						</Folder>
-						<Folder Name="stm32f756xx">
-							<F N="bsp/cpudrv/stm32/f7/stm32f756xx/cpu_stm32f756xx.xml"/>
-						</Folder>
-						<Folder Name="stm32f767xx">
-							<F N="bsp/cpudrv/stm32/f7/stm32f767xx/cpu_stm32f767xx.xml"/>
-						</Folder>
-						<F N="bsp/cpudrv/stm32/f7/cpu_group_stm32f7.xml"/>
 					</Folder>
 					<Folder Name="h7">
 						<Folder Name="include">
@@ -2883,10 +2638,6 @@
 								<F N="bsp/cpudrv/stm32/h7/src/uart/cpu_peri_uart.c"/>
 							</Folder>
 						</Folder>
-						<Folder Name="stm32h743xx">
-							<F N="bsp/cpudrv/stm32/h7/stm32h743xx/cpu_stm32h743xx.xml"/>
-						</Folder>
-						<F N="bsp/cpudrv/stm32/h7/cpu_group_stm32h7.xml"/>
 					</Folder>
 					<Folder Name="L4">
 						<Folder Name="include">
@@ -2927,21 +2678,10 @@
 								<F N="bsp/cpudrv/stm32/L4/src/wwdg/cpu_peri_wwdg.c"/>
 							</Folder>
 						</Folder>
-						<Folder Name="stm32l433xx">
-							<F N="bsp/cpudrv/stm32/L4/stm32l433xx/cpu_stm32l433xx.xml"/>
-						</Folder>
-						<Folder Name="stm32l475xx">
-							<F N="bsp/cpudrv/stm32/L4/stm32l475xx/cpu_stm32l475xx.xml"/>
-						</Folder>
-						<Folder Name="stm32l476xx">
-							<F N="bsp/cpudrv/stm32/L4/stm32l476xx/cpu_stm32l476xx.xml"/>
-						</Folder>
-						<F N="bsp/cpudrv/stm32/L4/cpu_group_stm32L4.xml"/>
 					</Folder>
 					<Folder Name="src">
 						<F N="bsp/cpudrv/stm32/src/cpu_peri_hal.c"/>
 					</Folder>
-					<F N="bsp/cpudrv/stm32/cpu_group_stm32.xml"/>
 				</Folder>
 				<Folder Name="windows">
 					<Folder Name="include">
@@ -2988,10 +2728,6 @@
 							<Folder Name="iic">
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/iic/cpu_peri_iic.c"/>
 							</Folder>
-							<Folder Name="norflash">
-								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.c"/>
-								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.h"/>
-							</Folder>
 							<Folder Name="pic">
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/pic/cpu_peri_pic.c"/>
 							</Folder>
@@ -3017,14 +2753,8 @@
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/wat/cpu_peri_wat.c"/>
 							</Folder>
 						</Folder>
-						<Folder Name="zq1201">
-							<F N="bsp/cpudrv/ZQ/zq12xx/zq1201/cpu_zq1201.xml"/>
-						</Folder>
-						<F N="bsp/cpudrv/ZQ/zq12xx/cpu_group_zq12xx.xml"/>
 					</Folder>
-					<F N="bsp/cpudrv/ZQ/cpu_group_ZQ.xml"/>
 				</Folder>
-				<F N="bsp/cpudrv/readme.txt"/>
 			</Folder>
 		</Folder>
 		<Folder Name="component">
@@ -3042,7 +2772,7 @@
 				<F N="component/blackbox/blackbox_shell.h"/>
 				<F N="component/blackbox/blackboxrecord_linemem.c"/>
 				<F N="component/blackbox/blackboxrecord_test.c"/>
-				<F N="component/blackbox/component_config_blackbox.h"/>
+				<F N="component/blackbox/component_config_exp.h"/>
 			</Folder>
 			<Folder Name="buffer">
 				<F N="component/buffer/component_config_buffer.h"/>
@@ -3183,13 +2913,11 @@
 								<F N="component/fs/fat/ff11/src/option/syscall.c"/>
 								<F N="component/fs/fat/ff11/src/option/unicode.c"/>
 							</Folder>
-							<F N="component/fs/fat/ff11/src/00readme.txt"/>
 							<F N="component/fs/fat/ff11/src/diskio.c"/>
 							<F N="component/fs/fat/ff11/src/diskio.h"/>
 							<F N="component/fs/fat/ff11/src/ff.c"/>
 							<F N="component/fs/fat/ff11/src/ff.h"/>
 							<F N="component/fs/fat/ff11/src/ffconf.h"/>
-							<F N="component/fs/fat/ff11/src/history.txt"/>
 							<F N="component/fs/fat/ff11/src/integer.h"/>
 						</Folder>
 					</Folder>
@@ -3226,36 +2954,14 @@
 								<Folder Name="test-framework">
 									<Folder Name="basic-tests">
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/basic-tests/dtest.c"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/basic-tests/Makefile"/>
 									</Folder>
 									<Folder Name="python">
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/examples.py"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/Makefile"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/README.txt"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/README_yaffs_browser_py.txt"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/README_yaffs_import_py.txt"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/yaffs_browser.py"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/yaffs_importer.py"/>
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/yaffs_python_helper.c"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/python/yaffsfs.py"/>
 									</Folder>
 									<Folder Name="tests">
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/fuzzer.c"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/init_fw_update_test_m18.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/init_fw_update_test_nand.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/init_fw_update_test_nor.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/launch_tests.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/Makefile"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/manage_m18_test.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/manage_nand_test.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/manage_nor_test.sh"/>
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/nor_stress.c"/>
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/nor_stress.h"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/README"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/run_fuzz_test_nand.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/run_fw_update_test_m18.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/run_fw_update_test_nand.sh"/>
-										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/run_fw_update_test_nor.sh"/>
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/yaffs_fsx.c"/>
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/yaffs_fsx.h"/>
 										<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/tests/yaffs_test.c"/>
@@ -3264,12 +2970,8 @@
 										<Folder Name="handle_tests">
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/handle_tests/handle_test.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/handle_tests/handle_test.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/handle_tests/Makefile"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/handle_tests/README.txt"/>
 										</Folder>
 										<Folder Name="is_yaffs_working_tests">
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/is_yaffs_working_tests/Makefile"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/is_yaffs_working_tests/README.txt"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/is_yaffs_working_tests/test_1_yaffs_mount.c"/>
 										</Folder>
 										<Folder Name="linux_tests">
@@ -3277,16 +2979,12 @@
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/linux_tests/lib.h"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/linux_tests/linux_test.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/linux_tests/linux_test.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/linux_tests/Makefile"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/linux_tests/README.txt"/>
 										</Folder>
 										<Folder Name="quick_tests">
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/lib.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/lib.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/Makefile"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/quick_tests.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/quick_tests.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/README.txt"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/test_yaffs_access.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/test_yaffs_access.h"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/quick_tests/test_yaffs_access_EACCES.c"/>
@@ -3717,18 +3415,14 @@
 										<Folder Name="stress_tester">
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/error_handler.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/error_handler.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/Makefile"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/message_buffer.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/message_buffer.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/README.txt"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/yaffs_tester.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/stress_tester/yaffs_tester.h"/>
 										</Folder>
 										<Folder Name="threading">
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/threading/lib.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/threading/lib.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/threading/Makefile"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/threading/README.txt"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/threading/test_a.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/threading/test_a.h"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/threading/test_b.c"/>
@@ -3749,10 +3443,8 @@
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/linux_test_unlink.h"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/linux_test_write.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/linux_test_write.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/Makefile"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/mirror_tests.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/mirror_tests.h"/>
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/README.txt"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/yaffs_test_open.c"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/yaffs_test_open.h"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/yaffs_test_truncate.c"/>
@@ -3763,7 +3455,6 @@
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/timothy_tests/yaffs_and_linux_mirror_tests/yaffs_test_write.h"/>
 										</Folder>
 									</Folder>
-									<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/FrameworkRules.mk"/>
 									<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/nand_chip.h"/>
 									<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/nand_store.h"/>
 									<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework/nanddrv.c"/>
@@ -3802,7 +3493,6 @@
 									</Folder>
 									<Folder Name="fs">
 										<Folder Name="yaffs2">
-											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot/fs/yaffs2/Makefile"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot/fs/yaffs2/stdio.h"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot/fs/yaffs2/stdlib.h"/>
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot/fs/yaffs2/string.h"/>
@@ -3814,10 +3504,7 @@
 											<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot/fs/yaffs2/yaffs_uboot_glue.h"/>
 										</Folder>
 									</Folder>
-									<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot/patch-u-boot.sh"/>
 								</Folder>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/handle_common.sh"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/README.txt"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/yaffs_attribs.c"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/yaffs_error.c"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/yaffs_flashif.h"/>
@@ -3835,42 +3522,23 @@
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/direct/yportenv.h"/>
 							</Folder>
 							<Folder Name="linux-tests">
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/initnandsim"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/Makefile"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/mkdirtree"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/mkfiles"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/mount_cycling.sh"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/plot_data.sh"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/stress_test.sh"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/verifybigsparse.c"/>
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/write_test.sh"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/writebigsparse.c"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests/xattrtest.c"/>
 							</Folder>
 							<Folder Name="mtdemul">
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul/Makefile"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul/nandemul2k.c"/>
 							</Folder>
 							<Folder Name="patches">
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/patches/README.txt"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/patches/yaffs_linux_allocator.c"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/patches/yaffs_mtdif2.c"/>
 							</Folder>
 							<Folder Name="utils">
-								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/utils/Makefile"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/utils/mkyaffs2image.c"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/utils/mkyaffsimage.c"/>
 								<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/utils/yutilsenv.h"/>
 							</Folder>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/.gitignore"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/Kconfig_multi"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/Kconfig_single"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/Makefile"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/Makefile.kernel"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/moduleconfig.h"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/patch-ker.sh"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/README-linux"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/README-linux-patch"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_allocator.c"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_allocator.h"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c"/>
@@ -3911,13 +3579,10 @@
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_yaffs1.h"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_yaffs2.c"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_yaffs2.h"/>
-							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yportenv.h.exclude"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yportenv_multi.h"/>
 							<F N="component/fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yportenv_single.h"/>
 						</Folder>
-						<F N="component/fs/yaf2/yaffs2-583dbd9/pax_global_header"/>
 					</Folder>
-					<F N="component/fs/yaf2/!!readme.txt"/>
 					<F N="component/fs/yaf2/component_config_yaf2.h"/>
 				</Folder>
 				<F N="component/fs/file.c"/>
@@ -4025,7 +3690,6 @@
 					<F N="component/include/net/osarch.h"/>
 					<F N="component/include/net/pthread.h"/>
 					<F N="component/include/net/pwd.h"/>
-					<F N="component/include/net/readme.txt"/>
 				</Folder>
 				<Folder Name="widget">
 					<F N="component/include/widget/gdd_button.h"/>
@@ -4174,7 +3838,6 @@
 						<F N="component/tcpip/apps/sntp/sntp.c"/>
 					</Folder>
 					<Folder Name="telnet">
-						<F N="component/tcpip/apps/telnet/telnet.c.multi"/>
 						<F N="component/tcpip/apps/telnet/telnetd.c"/>
 					</Folder>
 					<Folder Name="tftp">
@@ -4231,14 +3894,9 @@
 					<F N="component/tcpip/ppp/iodev.h"/>
 					<F N="component/tcpip/ppp/ppp.c"/>
 					<F N="component/tcpip/ppp/ppp.h"/>
-					<F N="component/tcpip/ppp/PPP.txt"/>
-					<F N="component/tcpip/ppp/ppp_old.bak"/>
-					<F N="component/tcpip/ppp/pppExample.c.txt"/>
-					<F N="component/tcpip/ppp/ppp测试报文.txt"/>
 				</Folder>
 				<Folder Name="router">
 					<F N="component/tcpip/router/router.c"/>
-					<F N="component/tcpip/router/routerdemo.c.txt"/>
 				</Folder>
 				<Folder Name="socket">
 					<F N="component/tcpip/socket/sock.c"/>
@@ -4252,7 +3910,6 @@
 					<F N="component/tcpip/tpl/udp.c"/>
 				</Folder>
 				<F N="component/tcpip/component_config_tcpip.h"/>
-				<F N="component/tcpip/tcpip.docx"/>
 				<F N="component/tcpip/tcpipmain.c"/>
 			</Folder>
 			<Folder Name="timer">
@@ -4334,23 +3991,6 @@
 		</Folder>
 		<Folder Name="examples">
 			<Folder Name="APOLLO_STM32F7">
-				<Folder Name=".settings">
-					<F N="examples/APOLLO_STM32F7/.settings/language.settings.xml"/>
-					<F N="examples/APOLLO_STM32F7/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/APOLLO_STM32F7/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/APOLLO_STM32F7/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/APOLLO_STM32F7/.settings/org.eclipse.cdt.ui.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/APOLLO_STM32F7/data/hardwares/board_infos.xml"/>
-						<F N="examples/APOLLO_STM32F7/data/hardwares/component_infos.xml"/>
-						<F N="examples/APOLLO_STM32F7/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/APOLLO_STM32F7/data/app_component_check.xml"/>
-					<F N="examples/APOLLO_STM32F7/data/hardware_info.xml"/>
-					<F N="examples/APOLLO_STM32F7/data/iboot_component_check.xml"/>
-				</Folder>
 				<Folder Name="src">
 					<Folder Name="app">
 						<Folder Name="critical">
@@ -4379,27 +4019,8 @@
 						<F N="examples/APOLLO_STM32F7/src/lds/release.lds"/>
 					</Folder>
 				</Folder>
-				<F N="examples/APOLLO_STM32F7/.cproject"/>
-				<F N="examples/APOLLO_STM32F7/.project"/>
 			</Folder>
 			<Folder Name="explore_stm32f407">
-				<Folder Name=".settings">
-					<F N="examples/explore_stm32f407/.settings/language.settings.xml"/>
-					<F N="examples/explore_stm32f407/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/explore_stm32f407/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/explore_stm32f407/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/explore_stm32f407/.settings/org.eclipse.cdt.ui.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/explore_stm32f407/data/hardwares/board_infos.xml"/>
-						<F N="examples/explore_stm32f407/data/hardwares/component_infos.xml"/>
-						<F N="examples/explore_stm32f407/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/explore_stm32f407/data/app_component_check.xml"/>
-					<F N="examples/explore_stm32f407/data/hardware_info.xml"/>
-					<F N="examples/explore_stm32f407/data/iboot_component_check.xml"/>
-				</Folder>
 				<Folder Name="src">
 					<Folder Name="app">
 						<Folder Name="critical">
@@ -4428,26 +4049,8 @@
 						<F N="examples/explore_stm32f407/src/lds/release.lds"/>
 					</Folder>
 				</Folder>
-				<F N="examples/explore_stm32f407/.cproject"/>
-				<F N="examples/explore_stm32f407/.project"/>
 			</Folder>
 			<Folder Name="imxrt1052-evk">
-				<Folder Name=".settings">
-					<F N="examples/imxrt1052-evk/.settings/language.settings.xml"/>
-					<F N="examples/imxrt1052-evk/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/imxrt1052-evk/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/imxrt1052-evk/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/imxrt1052-evk/.settings/org.eclipse.cdt.ui.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/imxrt1052-evk/data/hardwares/board_infos.xml"/>
-						<F N="examples/imxrt1052-evk/data/hardwares/component_infos.xml"/>
-						<F N="examples/imxrt1052-evk/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/imxrt1052-evk/data/hardware_info.xml"/>
-					<F N="examples/imxrt1052-evk/data/iboot_component_check.xml"/>
-				</Folder>
 				<Folder Name="src">
 					<Folder Name="iboot">
 						<Folder Name="critical">
@@ -4464,26 +4067,8 @@
 						<F N="examples/imxrt1052-evk/src/lds/memory.lds"/>
 					</Folder>
 				</Folder>
-				<F N="examples/imxrt1052-evk/.cproject"/>
-				<F N="examples/imxrt1052-evk/.project"/>
 			</Folder>
 			<Folder Name="NuvotonM487">
-				<Folder Name=".settings">
-					<F N="examples/NuvotonM487/.settings/language.settings.xml"/>
-					<F N="examples/NuvotonM487/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/NuvotonM487/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/NuvotonM487/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/NuvotonM487/.settings/org.eclipse.cdt.ui.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/NuvotonM487/data/hardwares/board_infos.xml"/>
-						<F N="examples/NuvotonM487/data/hardwares/component_infos.xml"/>
-						<F N="examples/NuvotonM487/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/NuvotonM487/data/hardware_info.xml"/>
-					<F N="examples/NuvotonM487/data/iboot_component_check.xml"/>
-				</Folder>
 				<Folder Name="src">
 					<Folder Name="iboot">
 						<Folder Name="critical">
@@ -4500,26 +4085,8 @@
 						<F N="examples/NuvotonM487/src/lds/memory.lds"/>
 					</Folder>
 				</Folder>
-				<F N="examples/NuvotonM487/.cproject"/>
-				<F N="examples/NuvotonM487/.project"/>
 			</Folder>
 			<Folder Name="qh_1">
-				<Folder Name=".settings">
-					<F N="examples/qh_1/.settings/language.settings.xml"/>
-					<F N="examples/qh_1/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/qh_1/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/qh_1/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/qh_1/.settings/org.eclipse.cdt.ui.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/qh_1/data/hardwares/board_infos.xml"/>
-						<F N="examples/qh_1/data/hardwares/component_infos.xml"/>
-						<F N="examples/qh_1/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/qh_1/data/hardware_info.xml"/>
-					<F N="examples/qh_1/data/iboot_component_check.xml"/>
-				</Folder>
 				<Folder Name="src">
 					<Folder Name="iboot">
 						<Folder Name="critical">
@@ -4538,26 +4105,8 @@
 						<F N="examples/qh_1/src/lds/release.lds"/>
 					</Folder>
 				</Folder>
-				<F N="examples/qh_1/.cproject"/>
-				<F N="examples/qh_1/.project"/>
 			</Folder>
 			<Folder Name="stm32f103_empty">
-				<Folder Name=".settings">
-					<F N="examples/stm32f103_empty/.settings/language.settings.xml"/>
-					<F N="examples/stm32f103_empty/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/stm32f103_empty/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/stm32f103_empty/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/stm32f103_empty/.settings/org.eclipse.cdt.ui.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/stm32f103_empty/data/hardwares/board_infos.xml"/>
-						<F N="examples/stm32f103_empty/data/hardwares/component_infos.xml"/>
-						<F N="examples/stm32f103_empty/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/stm32f103_empty/data/hardware_info.xml"/>
-					<F N="examples/stm32f103_empty/data/iboot_component_check.xml"/>
-				</Folder>
 				<Folder Name="src">
 					<Folder Name="iboot">
 						<Folder Name="critical">
@@ -4570,44 +4119,13 @@
 						<F N="examples/stm32f103_empty/src/iboot/main.c"/>
 					</Folder>
 					<Folder Name="lds">
-						<F N="examples/stm32f103_empty/src/lds/debug.lds"/>
 						<F N="examples/stm32f103_empty/src/lds/iboot.lds"/>
 						<F N="examples/stm32f103_empty/src/lds/memory.lds"/>
-						<F N="examples/stm32f103_empty/src/lds/release.lds"/>
 					</Folder>
 				</Folder>
-				<F N="examples/stm32f103_empty/.cproject"/>
-				<F N="examples/stm32f103_empty/.project"/>
 			</Folder>
 			<Folder Name="ZQ1201">
-				<Folder Name=".settings">
-					<F N="examples/ZQ1201/.settings/language.settings.xml"/>
-					<F N="examples/ZQ1201/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/ZQ1201/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/ZQ1201/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/ZQ1201/.settings/org.eclipse.cdt.ui.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/ZQ1201/data/hardwares/board_infos.xml"/>
-						<F N="examples/ZQ1201/data/hardwares/component_infos.xml"/>
-						<F N="examples/ZQ1201/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/ZQ1201/data/app_component_check.xml"/>
-					<F N="examples/ZQ1201/data/hardware_info.xml"/>
-					<F N="examples/ZQ1201/data/iboot_component_check.xml"/>
-				</Folder>
 				<Folder Name="src">
-					<Folder Name="app">
-						<Folder Name="critical">
-							<F N="examples/ZQ1201/src/app/critical/critical.c"/>
-						</Folder>
-						<Folder Name="OS_prjcfg">
-							<F N="examples/ZQ1201/src/app/OS_prjcfg/project_config.h"/>
-						</Folder>
-						<F N="examples/ZQ1201/src/app/initPrj.c"/>
-						<F N="examples/ZQ1201/src/app/main.c"/>
-					</Folder>
 					<Folder Name="iboot">
 						<Folder Name="critical">
 							<F N="examples/ZQ1201/src/iboot/critical/critical.c"/>
@@ -4619,52 +4137,10 @@
 						<F N="examples/ZQ1201/src/iboot/main.c"/>
 					</Folder>
 					<Folder Name="lds">
-						<F N="examples/ZQ1201/src/lds/debug.lds"/>
 						<F N="examples/ZQ1201/src/lds/iboot.lds"/>
 						<F N="examples/ZQ1201/src/lds/memory.lds"/>
-						<F N="examples/ZQ1201/src/lds/release.lds"/>
 					</Folder>
 				</Folder>
-				<F N="examples/ZQ1201/.cproject"/>
-				<F N="examples/ZQ1201/.project"/>
-			</Folder>
-			<Folder Name="ZQ1201-ck">
-				<Folder Name=".settings">
-					<F N="examples/ZQ1201-ck/.settings/language.settings.xml"/>
-					<F N="examples/ZQ1201-ck/.settings/org.eclipse.cdt.codan.core.prefs"/>
-					<F N="examples/ZQ1201-ck/.settings/org.eclipse.cdt.core.prefs"/>
-					<F N="examples/ZQ1201-ck/.settings/org.eclipse.cdt.managedbuilder.core.prefs"/>
-					<F N="examples/ZQ1201-ck/.settings/org.eclipse.cdt.ui.prefs"/>
-					<F N="examples/ZQ1201-ck/.settings/org.eclipse.core.resources.prefs"/>
-				</Folder>
-				<Folder Name="data">
-					<Folder Name="hardwares">
-						<F N="examples/ZQ1201-ck/data/hardwares/board_infos.xml"/>
-						<F N="examples/ZQ1201-ck/data/hardwares/component_infos.xml"/>
-						<F N="examples/ZQ1201-ck/data/hardwares/cpu_infos.xml"/>
-					</Folder>
-					<F N="examples/ZQ1201-ck/data/app_component_check.xml"/>
-					<F N="examples/ZQ1201-ck/data/hardware_info.xml"/>
-					<F N="examples/ZQ1201-ck/data/iboot_component_check.xml"/>
-				</Folder>
-				<Folder Name="src">
-					<Folder Name="iboot">
-						<Folder Name="critical">
-							<F N="examples/ZQ1201-ck/src/iboot/critical/critical.c"/>
-						</Folder>
-						<Folder Name="tmp">
-							<F N="examples/ZQ1201-ck/src/iboot/tmp/int.c"/>
-						</Folder>
-						<F N="examples/ZQ1201-ck/src/iboot/main.c"/>
-						<F N="examples/ZQ1201-ck/src/iboot/module-trim.c"/>
-					</Folder>
-					<Folder Name="lds">
-						<F N="examples/ZQ1201-ck/src/lds/iboot.ld"/>
-						<F N="examples/ZQ1201-ck/src/lds/memory.ld"/>
-					</Folder>
-				</Folder>
-				<F N="examples/ZQ1201-ck/.cproject"/>
-				<F N="examples/ZQ1201-ck/.project"/>
 			</Folder>
 		</Folder>
 		<Folder Name="libc">
@@ -4777,7 +4253,6 @@
 					<F N="libc/libc/linux/signal.c"/>
 					<F N="libc/libc/linux/unimplement.c"/>
 					<F N="libc/libc/linux/wait.c"/>
-					<F N="libc/libc/linux/文件夹说明.txt"/>
 				</Folder>
 				<Folder Name="locale">
 					<F N="libc/libc/locale/fix_grouping.c"/>
@@ -4788,7 +4263,6 @@
 					<F N="libc/libc/locale/lnumeric.c"/>
 					<F N="libc/libc/locale/lnumeric.h"/>
 					<F N="libc/libc/locale/locale.c"/>
-					<F N="libc/libc/locale/nl_langinfo.3"/>
 					<F N="libc/libc/locale/nl_langinfo.c"/>
 					<F N="libc/libc/locale/setlocale.h"/>
 					<F N="libc/libc/locale/timelocal.c"/>
@@ -4818,7 +4292,6 @@
 					<F N="libc/libc/posix/collate.c"/>
 					<F N="libc/libc/posix/collate.h"/>
 					<F N="libc/libc/posix/collcmp.c"/>
-					<F N="libc/libc/posix/COPYRIGHT"/>
 					<F N="libc/libc/posix/creat.c"/>
 					<F N="libc/libc/posix/engine.c"/>
 					<F N="libc/libc/posix/execl.c"/>
@@ -4827,9 +4300,7 @@
 					<F N="libc/libc/posix/execv.c"/>
 					<F N="libc/libc/posix/execve.c"/>
 					<F N="libc/libc/posix/execvp.c"/>
-					<F N="libc/libc/posix/fnmatch.3"/>
 					<F N="libc/libc/posix/fnmatch.c"/>
-					<F N="libc/libc/posix/glob.3"/>
 					<F N="libc/libc/posix/glob.c"/>
 					<F N="libc/libc/posix/isatty.c"/>
 					<F N="libc/libc/posix/namespace.h"/>
@@ -4839,7 +4310,6 @@
 					<F N="libc/libc/posix/readdir_r.c"/>
 					<F N="libc/libc/posix/regcomp.c"/>
 					<F N="libc/libc/posix/regerror.c"/>
-					<F N="libc/libc/posix/regex.3"/>
 					<F N="libc/libc/posix/regex2.h"/>
 					<F N="libc/libc/posix/regexec.c"/>
 					<F N="libc/libc/posix/regfree.c"/>
@@ -4869,7 +4339,6 @@
 					<F N="libc/libc/search/hash_func.c"/>
 					<F N="libc/libc/search/hash_log2.c"/>
 					<F N="libc/libc/search/hash_page.c"/>
-					<F N="libc/libc/search/hcreate.3"/>
 					<F N="libc/libc/search/hcreate.c"/>
 					<F N="libc/libc/search/hcreate_r.c"/>
 					<F N="libc/libc/search/page.h"/>
@@ -4877,7 +4346,6 @@
 					<F N="libc/libc/search/tdelete.c"/>
 					<F N="libc/libc/search/tdestroy.c"/>
 					<F N="libc/libc/search/tfind.c"/>
-					<F N="libc/libc/search/tsearch.3"/>
 					<F N="libc/libc/search/tsearch.c"/>
 					<F N="libc/libc/search/twalk.c"/>
 				</Folder>
@@ -4977,7 +4445,6 @@
 					<F N="libc/libc/string/strdup.c"/>
 					<F N="libc/libc/string/strerror.c"/>
 					<F N="libc/libc/string/strerror_r.c"/>
-					<F N="libc/libc/string/strings.tex"/>
 					<F N="libc/libc/string/strlcat.c"/>
 					<F N="libc/libc/string/strlcpy.c"/>
 					<F N="libc/libc/string/strlen.c"/>
@@ -5021,7 +4488,6 @@
 					<F N="libc/libc/string/wcsspn.c"/>
 					<F N="libc/libc/string/wcsstr.c"/>
 					<F N="libc/libc/string/wcstok.c"/>
-					<F N="libc/libc/string/wcstrings.tex"/>
 					<F N="libc/libc/string/wcswidth.c"/>
 					<F N="libc/libc/string/wcsxfrm.c"/>
 					<F N="libc/libc/string/wcwidth.c"/>
@@ -5042,7 +4508,6 @@
 					<F N="libc/libc/time/tzset_r.c"/>
 					<F N="libc/libc/time/tzvars.c"/>
 					<F N="libc/libc/time/wcsftime.c"/>
-					<F N="libc/libc/time/好多文件哪里去了.txt"/>
 				</Folder>
 			</Folder>
 			<Folder Name="libm">
@@ -5208,7 +4673,6 @@
 					<F N="libc/libm/complex/cimagf.c"/>
 					<F N="libc/libm/complex/clog.c"/>
 					<F N="libc/libm/complex/clogf.c"/>
-					<F N="libc/libm/complex/complex.tex"/>
 					<F N="libc/libm/complex/conj.c"/>
 					<F N="libc/libm/complex/conjf.c"/>
 					<F N="libc/libm/complex/cpow.c"/>
@@ -5230,7 +4694,6 @@
 				</Folder>
 				<Folder Name="machine">
 					<Folder Name="arm">
-						<F N="libc/libm/machine/arm/configure"/>
 						<F N="libc/libm/machine/arm/s_ceil.c"/>
 						<F N="libc/libm/machine/arm/s_floor.c"/>
 						<F N="libc/libm/machine/arm/s_nearbyint.c"/>
@@ -5300,7 +4763,6 @@
 					<F N="libc/libm/math/kf_rem_pio2.c"/>
 					<F N="libc/libm/math/kf_sin.c"/>
 					<F N="libc/libm/math/kf_tan.c"/>
-					<F N="libc/libm/math/math.tex"/>
 					<F N="libc/libm/math/s_asinh.c"/>
 					<F N="libc/libm/math/s_atan.c"/>
 					<F N="libc/libm/math/s_ceil.c"/>
@@ -5465,7 +4927,6 @@
 				</Folder>
 			</Folder>
 			<F N="libc/component_config_clib.h"/>
-			<F N="libc/newlib2.10-djyos.vpj"/>
 		</Folder>
 		<Folder Name="loader">
 			<Folder Name="si">

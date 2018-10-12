@@ -1,5 +1,5 @@
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_eth.c
 // 模块描述: GMAC模块底层硬件驱动，为DJYIP的协议栈特定的驱动
 // 模块版本: V1.00
@@ -33,24 +33,24 @@ typedef struct
     vu32  rcvPkgTimes;              //rcv package times
     vu32  sndTimes;                 //the snd times counter
     vu32  sndOkTimes;               //the send success counter
-    vu32  sndnobdCnt;             	//not enough bd rings
-    vu32  sndPkgTooLongCnt;			//snd pkg too long ounter
+    vu32  sndnobdCnt;               //not enough bd rings
+    vu32  sndPkgTooLongCnt;         //snd pkg too long ounter
     vu32  sndInts;                  //the send ints counter
     vu32  rxTaskRun;                //the rx task run counter
     vu32  rsttimes;                 //the reset counter
-    vu32  nopkgCnts;				//the no pkg free
+    vu32  nopkgCnts;                //the no pkg free
 }tagMacDebug;
 
 ETH_HandleTypeDef sEthHandle;
 typedef struct
 {
     //os member
-    struct SemaphoreLCB   	*rcvsync;          //activate the receive task
-    struct MutexLCB       	*protect;          //protect the device
-    ptu32_t                	devhandle;        //returned by the tcpip stack
-    char                   	devname[CN_DEVNAME_LEN];
+    struct SemaphoreLCB     *rcvsync;          //activate the receive task
+    struct MutexLCB         *protect;          //protect the device
+    ptu32_t                 devhandle;        //returned by the tcpip stack
+    char                    devname[CN_DEVNAME_LEN];
     //hardware
-    ETH_HandleTypeDef 		*EthHandle;
+    ETH_HandleTypeDef       *EthHandle;
     //which used to descript the device or control the device
     struct devstat
     {
@@ -62,8 +62,8 @@ typedef struct
     }macstat;
     u8            macaddr[CN_MACADDR_LEN];    //storage the mac address
     //dev method
-    vu32 loop:1;      	  //1 use the loop mode while 0 interrupt mode
-    vu32 loopcycle:31;	  //unit:ms
+    vu32 loop:1;          //1 use the loop mode while 0 interrupt mode
+    vu32 loopcycle:31;    //unit:ms
     fnRcvDeal     fnrcvhook;                  //rcv hook function
     tagMacDebug   debuginfo;                  //debug info
 }tagMacDriver;
@@ -72,23 +72,23 @@ static tagMacDriver  gMacDriver;
 #ifdef __GNUC__
 
 //define the descriptors and buffers
-#define EthRxDescs		8
-#define EthTxDescs		8
-#define EthRxBufSize	1524
-#define EthTxBufSize	1524
+#define EthRxDescs      8
+#define EthTxDescs      8
+#define EthRxBufSize    1524
+#define EthTxBufSize    1524
 ETH_DMADescTypeDef  DMARxDscrTab[EthRxDescs];
 ETH_DMADescTypeDef  DMATxDscrTab[EthTxDescs];
 
 u8 Rx_Buff[EthRxDescs][EthRxBufSize];
 u8 Tx_Buff[EthTxDescs][EthTxBufSize];
 #endif
-static u8 gTxBuffer[EthRxBufSize];		//for sending copy frame
+static u8 gTxBuffer[EthRxBufSize];      //for sending copy frame
 extern bool_t Board_EthGpioInit(void);
 
 // HAL库中调用了该函数
 void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
 {
- 	  __HAL_RCC_ETH_CLK_ENABLE();
+      __HAL_RCC_ETH_CLK_ENABLE();
 }
 
 static void __macbitsset(vu32 *reg,u32 bits)
@@ -110,26 +110,26 @@ static void __macbitsclear(vu32 *reg,u32 bits)
 
 static void ETH_HardDrvInit(tagMacDriver *pDrive)
 {
-	ETH_HandleTypeDef *heth;
+    ETH_HandleTypeDef *heth;
 
-	heth = pDrive->EthHandle;
+    heth = pDrive->EthHandle;
 
-	// configure ethernet peripheral (GPIOs, clocks, MAC, DMA)
-	HAL_ETH_Init(heth);
+    // configure ethernet peripheral (GPIOs, clocks, MAC, DMA)
+    HAL_ETH_Init(heth);
 
-	// Initialize Tx/Rx Descriptors list: Chain Mode
-	HAL_ETH_DMATxDescListInit(heth, DMATxDscrTab, &Tx_Buff[0][0], EthTxDescs);
-	HAL_ETH_DMARxDescListInit(heth, DMARxDscrTab, &Rx_Buff[0][0], EthRxDescs);
+    // Initialize Tx/Rx Descriptors list: Chain Mode
+    HAL_ETH_DMATxDescListInit(heth, DMATxDscrTab, &Tx_Buff[0][0], EthTxDescs);
+    HAL_ETH_DMARxDescListInit(heth, DMARxDscrTab, &Rx_Buff[0][0], EthRxDescs);
 
-	/* Enable MAC and DMA transmission and reception */
-	HAL_ETH_Start(heth);
+    /* Enable MAC and DMA transmission and reception */
+    HAL_ETH_Start(heth);
 }
 
 static void __MacReset(tagMacDriver *pDrive)
 {
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
     {
-    	ETH_HardDrvInit(pDrive);
+        ETH_HardDrvInit(pDrive);
         pDrive->debuginfo.rsttimes++;
         Lock_MutexPost(pDrive->protect);
     }
@@ -138,71 +138,71 @@ static void __MacReset(tagMacDriver *pDrive)
 
 static tagNetPkg *__MacRcv(ptu32_t devhandle)
 {
-	tagNetPkg         *pkg = NULL;
+    tagNetPkg         *pkg = NULL;
     tagMacDriver      *pDrive;
-	ETH_HandleTypeDef *EthHandle;
-	volatile ETH_DMADescTypeDef *dmarxdesc;
-	u16 CopyBytes,len;
+    ETH_HandleTypeDef *EthHandle;
+    volatile ETH_DMADescTypeDef *dmarxdesc;
+    u16 CopyBytes,len;
     u8   *dst,*src;
 
     pDrive = &gMacDriver;
     EthHandle = pDrive->EthHandle;
-	// get received frame
-	if(HAL_ETH_GetReceivedFrame_IT(EthHandle) != HAL_OK)
-		return NULL;
+    // get received frame
+    if(HAL_ETH_GetReceivedFrame_IT(EthHandle) != HAL_OK)
+        return NULL;
 
-	len = EthHandle->RxFrameInfos.length;
-	CopyBytes = len;
+    len = EthHandle->RxFrameInfos.length;
+    CopyBytes = len;
 
-	if(len > 0)
-	{
-		pkg = PkgMalloc(len,CN_PKLGLST_END);
-		if(NULL == pkg)
-			pDrive->debuginfo.nopkgCnts++;
-	}
+    if(len > 0)
+    {
+        pkg = PkgMalloc(len,CN_PKLGLST_END);
+        if(NULL == pkg)
+            pDrive->debuginfo.nopkgCnts++;
+    }
 
-	if(NULL != pkg)
-	{
-		dmarxdesc = EthHandle->RxFrameInfos.FSRxDesc;
-		dst = (u8 *)(pkg->buf +pkg->offset);
-		src = (u8 *)EthHandle->RxFrameInfos.buffer;
-		while(CopyBytes > EthRxBufSize)
-		{
-			memcpy( dst, src, EthRxBufSize);
-			CopyBytes -= EthRxBufSize;
-			dst += EthRxBufSize;
+    if(NULL != pkg)
+    {
+        dmarxdesc = EthHandle->RxFrameInfos.FSRxDesc;
+        dst = (u8 *)(pkg->buf +pkg->offset);
+        src = (u8 *)EthHandle->RxFrameInfos.buffer;
+        while(CopyBytes > EthRxBufSize)
+        {
+            memcpy( dst, src, EthRxBufSize);
+            CopyBytes -= EthRxBufSize;
+            dst += EthRxBufSize;
 
-			dmarxdesc->Status |= ETH_DMARXDESC_OWN;		//release Des to DMA
-			dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
-			src = (u8 *)(dmarxdesc->Buffer1Addr);
-		}
-		memcpy( dst, src, CopyBytes);
-		dmarxdesc->Status |= ETH_DMARXDESC_OWN;
+            dmarxdesc->Status |= ETH_DMARXDESC_OWN;     //release Des to DMA
+            dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
+            src = (u8 *)(dmarxdesc->Buffer1Addr);
+        }
+        memcpy( dst, src, CopyBytes);
+        dmarxdesc->Status |= ETH_DMARXDESC_OWN;
 
-		pkg->datalen = len;
-		EthHandle->RxFrameInfos.SegCount =0;
-	}
+        pkg->datalen = len;
+        EthHandle->RxFrameInfos.SegCount =0;
+    }
 
-	// When Rx Buffer unavailable flag is set: clear it and resume reception
-	if ((EthHandle->Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)
-	{
-		// Clear RBUS ETHERNET DMA flag
-		EthHandle->Instance->DMASR = ETH_DMASR_RBUS;
-		// Resume DMA reception
-		EthHandle->Instance->DMARPDR = 0;
+    // When Rx Buffer unavailable flag is set: clear it and resume reception
+    if ((EthHandle->Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)
+    {
+        // Clear RBUS ETHERNET DMA flag
+        EthHandle->Instance->DMASR = ETH_DMASR_RBUS;
+        // Resume DMA reception
+        EthHandle->Instance->DMARPDR = 0;
 
-		pDrive->debuginfo.rxoverInts++;
-	}
+        pDrive->debuginfo.rxoverInts++;
+    }
 
-	return pkg;
+    return pkg;
 }
 
 static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
-	ETH_HandleTypeDef *EthHandle;
-	ETH_DMADescTypeDef *DmaTxDesc;
+    ETH_HandleTypeDef *EthHandle;
+    ETH_DMADescTypeDef *DmaTxDesc;
     tagNetPkg         *tmppkg;
     u8                *dst,*src;
     u16                len=0;
@@ -216,12 +216,12 @@ static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask
 
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
     {
-    	DmaTxDesc = pDrive->EthHandle->TxDesc;
+        DmaTxDesc = pDrive->EthHandle->TxDesc;
         //Is this buffer available? If not, goto error
         if((DmaTxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET)
         {
-        	pDrive->debuginfo.sndnobdCnt ++;
-        	goto NODESCERROR;
+            pDrive->debuginfo.sndnobdCnt ++;
+            goto NODESCERROR;
         }
 
         //copy datas to static frame buffer
@@ -246,35 +246,35 @@ static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask
 
         if(len < EthTxBufSize)
         {
-        	src = &gTxBuffer[0];
-        	dst = (u8 *)(EthHandle->TxDesc->Buffer1Addr);
-        	memcpy( dst,src ,len );
-        	// Point to next descriptor
-        	DmaTxDesc = (ETH_DMADescTypeDef *)(DmaTxDesc->Buffer2NextDescAddr);
-        	//Prepare transmit descriptors to give to DMA
-        	if(HAL_OK == HAL_ETH_TransmitFrame(EthHandle, len))
-        	{
-        		pDrive->debuginfo.sndOkTimes++;
-        		result = true;
-        	}
+            src = &gTxBuffer[0];
+            dst = (u8 *)(EthHandle->TxDesc->Buffer1Addr);
+            memcpy( dst,src ,len );
+            // Point to next descriptor
+            DmaTxDesc = (ETH_DMADescTypeDef *)(DmaTxDesc->Buffer2NextDescAddr);
+            //Prepare transmit descriptors to give to DMA
+            if(HAL_OK == HAL_ETH_TransmitFrame(EthHandle, len))
+            {
+                pDrive->debuginfo.sndOkTimes++;
+                result = true;
+            }
         }
         else
         {
-        	pDrive->debuginfo.sndPkgTooLongCnt++;
+            pDrive->debuginfo.sndPkgTooLongCnt++;
         }
 
 NODESCERROR:
-		// When Transmit Underflow flag is set, clear it and issue a Transmit
-		//Poll Demand to resume transmission
-		if ((EthHandle->Instance->DMASR & ETH_DMASR_TUS) != (uint32_t)RESET)
-		{
-			// Clear TUS ETHERNET DMA flag
-			EthHandle->Instance->DMASR = ETH_DMASR_TUS;
+        // When Transmit Underflow flag is set, clear it and issue a Transmit
+        //Poll Demand to resume transmission
+        if ((EthHandle->Instance->DMASR & ETH_DMASR_TUS) != (uint32_t)RESET)
+        {
+            // Clear TUS ETHERNET DMA flag
+            EthHandle->Instance->DMASR = ETH_DMASR_TUS;
 
-			//Resume DMA transmission
-			EthHandle->Instance->DMATPDR = 0;
-		}
-    	Lock_MutexPost(pDrive->protect);
+            //Resume DMA transmission
+            EthHandle->Instance->DMATPDR = 0;
+        }
+        Lock_MutexPost(pDrive->protect);
     }
 
     return result;
@@ -313,29 +313,29 @@ u32 ETH_IntHandler(ufast_t IntLine)
     pDrive->debuginfo.Ints++;
     if (__HAL_ETH_DMA_GET_FLAG(EthHandle, ETH_DMA_FLAG_R))
     {
-    	pDrive->debuginfo.rcvInts++;
-    	Lock_SempPost(pDrive->rcvsync);
-    	__HAL_ETH_DMA_CLEAR_IT(EthHandle, ETH_DMA_IT_R);	//Clear the Eth DMA Rx IT pending bits
-    	EthHandle->State = HAL_ETH_STATE_READY;			    //Set HAL State to Ready
-    	__HAL_UNLOCK(EthHandle);
+        pDrive->debuginfo.rcvInts++;
+        Lock_SempPost(pDrive->rcvsync);
+        __HAL_ETH_DMA_CLEAR_IT(EthHandle, ETH_DMA_IT_R);    //Clear the Eth DMA Rx IT pending bits
+        EthHandle->State = HAL_ETH_STATE_READY;             //Set HAL State to Ready
+        __HAL_UNLOCK(EthHandle);
     }
     else if (__HAL_ETH_DMA_GET_FLAG(EthHandle, ETH_DMA_FLAG_T))
     {
-    	pDrive->debuginfo.sndInts++;
-    	__HAL_ETH_DMA_CLEAR_IT(EthHandle, ETH_DMA_IT_T);	//Clear the Eth DMA Tx IT pending bits
-    	EthHandle->State = HAL_ETH_STATE_READY;			    //Set HAL State to Ready
-    	__HAL_UNLOCK(EthHandle);
+        pDrive->debuginfo.sndInts++;
+        __HAL_ETH_DMA_CLEAR_IT(EthHandle, ETH_DMA_IT_T);    //Clear the Eth DMA Tx IT pending bits
+        EthHandle->State = HAL_ETH_STATE_READY;             //Set HAL State to Ready
+        __HAL_UNLOCK(EthHandle);
     }
 
     __HAL_ETH_DMA_CLEAR_IT(EthHandle, ETH_DMA_IT_NIS);
 
     if(__HAL_ETH_DMA_GET_FLAG(EthHandle, ETH_DMA_FLAG_AIS))
     {
-    	pDrive->debuginfo.dmaerr++;
-		__HAL_ETH_DMA_CLEAR_IT(EthHandle, ETH_DMA_FLAG_AIS);
-		EthHandle->State = HAL_ETH_STATE_READY;
+        pDrive->debuginfo.dmaerr++;
+        __HAL_ETH_DMA_CLEAR_IT(EthHandle, ETH_DMA_FLAG_AIS);
+        EthHandle->State = HAL_ETH_STATE_READY;
 
-		__HAL_UNLOCK(EthHandle);
+        __HAL_UNLOCK(EthHandle);
     }
     return 0;
 }
@@ -354,7 +354,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
             case EN_NETDEV_SETNOPKG:
                 if(para)
                 {
-                	ETH_HardDrvInit(pDrive);
+                    ETH_HardDrvInit(pDrive);
                     pDrive->debuginfo.rsttimes++;
                 }
                 result = true;
@@ -377,49 +377,49 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
             case EN_NETDEV_SETPOINT:
                 if(para)
                 {
-                	__macbitsclear(&pDrive->EthHandle->Instance->MACFFR,
-                			ETH_MACFFR_HU);//绝对单播模式
+                    __macbitsclear(&pDrive->EthHandle->Instance->MACFFR,
+                            ETH_MACFFR_HU);//绝对单播模式
                 }
                 else
                 {
-                	__macbitsset(&pDrive->EthHandle->Instance->MACFFR,
-                			ETH_MACFFR_HU);//散列单播模式
+                    __macbitsset(&pDrive->EthHandle->Instance->MACFFR,
+                            ETH_MACFFR_HU);//散列单播模式
                 }
                 result = true;
                 break;
             case EN_NETDEV_SETMULTI:
-				if(para)
-				{
-				   __macbitsset(&pDrive->EthHandle->Instance->MACFFR,
-						   ETH_MACFFR_PAM);//pass all multicast
-				}
-				else
-				{
-					__macbitsclear(&pDrive->EthHandle->Instance->MACFFR,
-							ETH_MACFFR_PAM);//multicast filt
-				}
-			   result = true;
+                if(para)
+                {
+                   __macbitsset(&pDrive->EthHandle->Instance->MACFFR,
+                           ETH_MACFFR_PAM);//pass all multicast
+                }
+                else
+                {
+                    __macbitsclear(&pDrive->EthHandle->Instance->MACFFR,
+                            ETH_MACFFR_PAM);//multicast filt
+                }
+               result = true;
                 break;
             case EN_NETDEV_SETRECV:
                 if(para)
                 {
-//                	HAL_ETH_StartReceive(pDrive->EthHandle);
+//                  HAL_ETH_StartReceive(pDrive->EthHandle);
                 }
                 else
                 {
-//                	HAL_ETH_StopReceive(pDrive->EthHandle);
+//                  HAL_ETH_StopReceive(pDrive->EthHandle);
                 }
                 result = true;
                 break;
             case EN_NETDEV_SETSEND:
-            	if(para)
-            	{
-            		HAL_ETH_Start(pDrive->EthHandle);
-            	}
-            	else
-            	{
-            		HAL_ETH_Stop(pDrive->EthHandle);
-            	}
+                if(para)
+                {
+                    HAL_ETH_Start(pDrive->EthHandle);
+                }
+                else
+                {
+                    HAL_ETH_Stop(pDrive->EthHandle);
+                }
                 break;
             case EN_NETDEV_SETMAC:
                 memcpy(pDrive->macaddr,(u8 *)para, CN_MACADDR_LEN);
@@ -439,7 +439,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
             case EN_NETDEV_RESET:
                 if(para)
                 {
-                	ETH_HardDrvInit(pDrive);
+                    ETH_HardDrvInit(pDrive);
                     pDrive->debuginfo.rsttimes++;
                     result = true;
                 }
@@ -480,9 +480,9 @@ static ptu32_t __MacRcvTask(void)
             }
             if(NULL != pkg)
             {
-            	//maybe we have another method like the hardware
-            	NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
-            	//you could alse use the soft method
+                //maybe we have another method like the hardware
+                NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+                //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
                     rawbuf = pkg->buf + pkg->offset;
@@ -498,8 +498,8 @@ static ptu32_t __MacRcvTask(void)
             }
             else
             {
-            	  //here we still use the counter to do the time state check
-            	  NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+                  //here we still use the counter to do the time state check
+                  NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -551,12 +551,12 @@ bool_t macdebuginfo(char *param)
     printf("*********MAC DEBUG INFO***********\n\r");
     if(pDrive->loop)
     {
-    	printf("loop/int      :loop\n\r");
-    	printf("loopcycle     :%d mS\n\r",pDrive->loopcycle);
+        printf("loop/int      :loop\n\r");
+        printf("loopcycle     :%d mS\n\r",pDrive->loopcycle);
     }
     else
     {
-    	printf("loop/int      :int\n\r");
+        printf("loop/int      :int\n\r");
     }
 
     printf("EthInts       :%d\n\r",pDrive->debuginfo.Ints);
@@ -627,16 +627,16 @@ bool_t MacReg(char *param)
     printf("%08x  %08x\n\r",(u32)addr,value);
     addr = (u32 *)(CN_GMAC_REG_BASE + 0x168);
     value =*addr;
-    printf("%08x  %08x	Transmitted good frames \n\r",(u32)addr,value);
+    printf("%08x  %08x  Transmitted good frames \n\r",(u32)addr,value);
     addr = (u32 *)(CN_GMAC_REG_BASE + 0x194);
     value =*addr;
-    printf("%08x  %08x	Receive frames with CRC error\n\r",(u32)addr,value);
+    printf("%08x  %08x  Receive frames with CRC error\n\r",(u32)addr,value);
     addr = (u32 *)(CN_GMAC_REG_BASE + 0x198);
     value =*addr;
-    printf("%08x  %08x	Receive frames with alignment error\n\r",(u32)addr,value);
+    printf("%08x  %08x  Receive frames with alignment error\n\r",(u32)addr,value);
     addr = (u32 *)(CN_GMAC_REG_BASE + 0x1C4);
     value =*addr;
-    printf("%08x  %08x	Received good unicast frames\n\r",(u32)addr,value);
+    printf("%08x  %08x  Received good unicast frames\n\r",(u32)addr,value);
 
     printf("ETH_DMA Register Below:\r\n");
     printf("%-10s%-10s\n\r",\
@@ -648,15 +648,15 @@ bool_t MacReg(char *param)
         value =*addr;
         if((u32)addr == CN_GMAC_REG_BASE + 0x101c)
         {
-        	printf("%08x  %08x	ETH_DMAIER Register\n\r",(u32)addr,value);
+            printf("%08x  %08x  ETH_DMAIER Register\n\r",(u32)addr,value);
         }
         else if((u32)addr == CN_GMAC_REG_BASE + 0x1020)
         {
-        	printf("%08x  %08x 	Missed frames and buffer overflow counter\n\r",(u32)addr,value);
+            printf("%08x  %08x  Missed frames and buffer overflow counter\n\r",(u32)addr,value);
         }
         else
         {
-        	printf("%08x  %08x\n\r",(u32)addr,value);
+            printf("%08x  %08x\n\r",(u32)addr,value);
         }
         addr++;
     }
@@ -680,7 +680,7 @@ bool_t MacSndEn(char *param)
     pDrive = &gMacDriver;
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
     {
-    	HAL_ETH_Start(pDrive->EthHandle);
+        HAL_ETH_Start(pDrive->EthHandle);
         Lock_MutexPost(pDrive->protect);
     }
     return true;
@@ -692,7 +692,7 @@ bool_t MacSndDis(char *param)
     pDrive = &gMacDriver;
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
     {
-    	HAL_ETH_Stop(pDrive->EthHandle);
+        HAL_ETH_Stop(pDrive->EthHandle);
         Lock_MutexPost(pDrive->protect);
     }
     return true;
@@ -788,24 +788,24 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     pDrive->loopcycle = loopcycle;
     pDrive->fnrcvhook = rcvHook;
     //set the work mode and speed
-    pDrive->macstat.pm = 0;       	//primmiscuous mode:= 1,no MAC addr filte
+    pDrive->macstat.pm = 0;         //primmiscuous mode:= 1,no MAC addr filte
     pDrive->macstat.duplex = 1;    //duplex full
     pDrive->macstat.speed = 1;     //100 Mb
     pDrive->macstat.bfd = 0;       //broadcast frames disable
     pDrive->macstat.mii = 0;       //use RMII mode
 
     pDrive->EthHandle = &sEthHandle;
-	pDrive->EthHandle->Instance = ETH;
-	pDrive->EthHandle->Init.MACAddr = macaddress;
-	pDrive->EthHandle->Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
-	pDrive->EthHandle->Init.Speed = ETH_SPEED_100M;
-	pDrive->EthHandle->Init.DuplexMode = ETH_MODE_FULLDUPLEX;
-	pDrive->EthHandle->Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
-	pDrive->EthHandle->Init.RxMode = ETH_RXINTERRUPT_MODE;
-	pDrive->EthHandle->Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;//ETH_CHECKSUM_BY_SOFTWARE;
-	pDrive->EthHandle->Init.PhyAddress = 0x00;//not used;
+    pDrive->EthHandle->Instance = ETH;
+    pDrive->EthHandle->Init.MACAddr = macaddress;
+    pDrive->EthHandle->Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
+    pDrive->EthHandle->Init.Speed = ETH_SPEED_100M;
+    pDrive->EthHandle->Init.DuplexMode = ETH_MODE_FULLDUPLEX;
+    pDrive->EthHandle->Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
+    pDrive->EthHandle->Init.RxMode = ETH_RXINTERRUPT_MODE;
+    pDrive->EthHandle->Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;//ETH_CHECKSUM_BY_SOFTWARE;
+    pDrive->EthHandle->Init.PhyAddress = 0x00;//not used;
 
-	ETH_HardDrvInit(pDrive);
+    ETH_HardDrvInit(pDrive);
 
     //all the configuration has set in the pDrive now,we need some sys assistant
     //application some semphore and mutex
@@ -869,23 +869,23 @@ RCVSYNC_FAILED:
 
 u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value)
 {
-	u32 rValue;
-	tagMacDriver   *pDrive = &gMacDriver;
-	pDrive->EthHandle->Init.PhyAddress = dev;
+    u32 rValue;
+    tagMacDriver   *pDrive = &gMacDriver;
+    pDrive->EthHandle->Init.PhyAddress = dev;
 
-	if(HAL_OK != HAL_ETH_ReadPHYRegister(pDrive->EthHandle,reg,&rValue))
-		return 0;
-	*value = (u16)rValue;
-	return 1;
+    if(HAL_OK != HAL_ETH_ReadPHYRegister(pDrive->EthHandle,reg,&rValue))
+        return 0;
+    *value = (u16)rValue;
+    return 1;
 }
 u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
 {
-	tagMacDriver   *pDrive = &gMacDriver;
-	pDrive->EthHandle->Init.PhyAddress = dev;
+    tagMacDriver   *pDrive = &gMacDriver;
+    pDrive->EthHandle->Init.PhyAddress = dev;
 
-	if(HAL_OK != HAL_ETH_WritePHYRegister(pDrive->EthHandle,reg,value))
-		return 0;
-	return 1;
+    if(HAL_OK != HAL_ETH_WritePHYRegister(pDrive->EthHandle,reg,value))
+        return 0;
+    return 1;
 }
 
 #endif

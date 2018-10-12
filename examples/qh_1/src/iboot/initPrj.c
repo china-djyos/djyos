@@ -27,8 +27,20 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-    extern void ModuleInstall_BlackBox(void);
-    ModuleInstall_BlackBox();
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
+
+	extern bool_t ModuleInstall_DjyBus(void);
+	ModuleInstall_DjyBus ( );
+
+	extern bool_t ModuleInstall_IICBus(void);
+	ModuleInstall_IICBus ( );
+
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -49,18 +61,6 @@ void Sys_ModuleInit(void)
 	#if CFG_UART5_ENABLE ==1
 	ModuleInstall_UART(CN_UART5);
 	#endif
-
-	extern bool_t ModuleInstall_DjyBus(void);
-	ModuleInstall_DjyBus ( );
-
-	extern bool_t ModuleInstall_IICBus(void);
-	ModuleInstall_IICBus ( );
-
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
-
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
 
 	#if CFG_I2C1_ENABLE==1
 	extern bool_t IIC1_Init(void);
@@ -102,11 +102,11 @@ void Sys_ModuleInit(void)
 	ModuleInstall_ili9325(CFG_ILI9325_DISPLAY_NAME,CFG_ILI9325_HEAP_NAME);
 
 	//-------------------later-------------------------//
-	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
-	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
-
 	extern void ModuleInstall_Gdd_AND_Desktop(void);
 	ModuleInstall_Gdd_AND_Desktop();
+
+	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
+	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 
 	struct GkWinObj;
 	extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop,\

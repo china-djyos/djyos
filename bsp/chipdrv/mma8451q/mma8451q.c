@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：MMA8451Q.c
 // 模块描述: 加速度传感器驱动，采用的是IIC的接口
 // 模块版本: V1.00
@@ -235,19 +235,12 @@ u16 MMA8541Q_Z_Read(void)
 ptu32_t MMA8541Q_ModuleInit(const char *BusName)
 {
     bool_t result = false;
-    static struct IIC_Device s_MMA_Dev;
     //GPIO初始化，SDA、SCL已经在IIC中初始化了，此处只需初始化WP即可
 //  __MMA_GpioInit();
 
-    //初始化IIC设备结构体
-    s_MMA_Dev.DevAddr                   = CFG_MMA_ADDRESS;
-    s_MMA_Dev.BitOfMemAddr              = 8;
-    s_MMA_Dev.BitOfMemAddrInDevAddr     = 0;
-
     //添加MMA8451到IIC0总线
-    if(NULL != IIC_DevAdd_r(BusName,"IIC_Dev_MMA8451Q",&s_MMA_Dev))
+    if(ps_MMA_Dev = IIC_DevAdd(BusName,"IIC_Dev_MMA8451Q",CFG_MMA_ADDRESS,0,8))
     {
-        ps_MMA_Dev = &s_MMA_Dev;
         IIC_BusCtrl(ps_MMA_Dev,CN_IIC_SET_CLK,MMA_CLK_FRE,0);
         result = true;
     }

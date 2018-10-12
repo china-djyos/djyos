@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -66,7 +66,7 @@ extern "C" {
 #include <objhandle.h>
 #include <multiplex.h>
 
-// 泛设备模块出错代码，本enum常量从enum_drv_no_error开始依序增1.
+// 设备模块出错代码，本enum常量从enum_drv_no_error开始依序增1.
 enum _DRV_ERROR_CODE_
 {
     EN_DRV_NO_ERROR = CN_DEV_NO_ERROR, //没有错误
@@ -137,8 +137,10 @@ s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dcl
             fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag);
 s32 dev_delo(struct obj *devo);
 s32 dev_del(const char *grp, const char *name);
-ptu32_t dev2usr(struct objhandle *hdl);
-ptu32_t dev2drv(struct objhandle *hdl);
+void dev_SetDrvTag(s32 fd,ptu32_t DrvTag);
+ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag);
+ptu32_t dev_GetUserTag(s32 fd);
+ptu32_t dev_GetDrvTag(s32 fd);
 
 s32 DevOpen(const char *name, s32 flags,u32 timeout);
 s32 DevClose(s32 handle);

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -99,6 +99,42 @@
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
+
+//IIC总线器件结构体
+struct IIC_Device
+{
+    struct obj         *HostObj;                 //宿主对象
+
+    u8 DevAddr;                 //七位的器件地址,最低的0~2bit可能是器件内部地址。
+    u8 BitOfMemAddrInDevAddr;   //器件地址中内部地址所占比特位数
+    u8 BitOfMemAddr;            //器件内部地址寻址总bit数，包含了BitOfMemAddrInDevAddr
+};
+
+//IIC缓冲区结构体
+struct IICBuf
+{
+    u32    Offset;              //缓冲区指针,指向下一次读的位置
+    u32    MaxLen;              //缓冲区最大长度,元素个数.
+    u8     *pBuf;               //缓冲区指针,用户自己保证所开辟的缓冲区是否与设定
+};
+//IIC总线控制块结构体,本模块可见
+struct IIC_CB
+{
+    struct obj           *HostObj;               //宿主对象
+    struct IICBuf           IIC_Buf;                //缓冲区,用于异步发送
+    struct SemaphoreLCB     *IIC_BusSemp;           //IIC总线保护信号量
+    struct SemaphoreLCB     *IIC_BufSemp;           //简易缓冲区保护信号量
+    u32                     Counter;                //发送/接收计数器
+    u16                     ErrorPopEvtt;           //出错处理事件的类型
+    u8                      *pBuf;                  //发送/接收缓冲区指针
+    u8                      Flag;                   //标记，按位，包括 读/方式和轮询/中断两种
+    ptu32_t                 SpecificFlag;           //个性标记
+    WriteReadPoll           pWriteReadPoll;
+    WriteStartFunc          pGenerateWriteStart;
+    ReadStartFunc           pGenerateReadStart;
+    GenerateEndFunc         pGenerateEnd;
+    IICBusCtrlFunc          pBusCtrl;
+};
 
 static struct obj *s_ptIICBusType;
 
@@ -228,7 +264,7 @@ struct IIC_CB *IIC_BusFind(const char *BusName)
     struct obj *IIC_Obj;
     IIC_Obj = obj_search_child(s_ptIICBusType,BusName);
     if(IIC_Obj)
-        return (struct IIC_CB *)obj_val(IIC_Obj);
+        return (struct IIC_CB *)obj_GetPrivate(IIC_Obj);
     else
         return NULL;
 }
@@ -318,7 +354,7 @@ struct IIC_Device *IIC_DevFind(const char *BusName ,const char *DevName)
     //通过IIC类型结点，向下搜索后代结点
     IIC_DevObj = obj_search_child(IIC_Bus->HostObj, DevName);
     if(IIC_DevObj)
-        return (struct IIC_Device *)obj_val(IIC_DevObj);
+        return (struct IIC_Device *)obj_GetPrivate(IIC_DevObj);
     else
         return NULL;
 }
@@ -349,7 +385,7 @@ s32  IIC_Write(struct IIC_Device *Dev, u32 addr,u8 *buf,u32 len,
 
     base_time = (u32)DjyGetSysTime();
     //查找该器件属于哪条总线
-    IIC = (struct IIC_CB*)obj_val(obj_parent(Dev->HostObj));
+    IIC = (struct IIC_CB*)obj_GetPrivate(obj_parent(Dev->HostObj));
     if(NULL == IIC)
         return CN_IIC_EXIT_PARAM_ERR;
     //需要等待总线空闲
@@ -479,7 +515,7 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
 
     base_time = (u32)DjyGetSysTime();
     //查找该器件属于哪条总线
-    IIC = (struct IIC_CB *)obj_val(obj_parent(Dev->HostObj));
+    IIC = (struct IIC_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));
     if(NULL == IIC)
         return CN_IIC_EXIT_PARAM_ERR;
 
@@ -635,7 +671,7 @@ s32 IIC_BusCtrl(struct IIC_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
     if(NULL == Dev)
         return -1;
 
-    IIC = (struct IIC_CB *)obj_val(obj_parent(Dev->HostObj));
+    IIC = (struct IIC_CB *)obj_GetPrivate(obj_parent(Dev->HostObj));
     if(NULL == IIC)
         return -1;
 

@@ -29,12 +29,16 @@ SECTIONS
         msp_top = ALIGN(0x08);
    }>RAM1 
 
-    text_startup_rROM_lROM :
+    vectorTab :
     {
         . = ALIGN(0x08);
          isr_vector_tab_start = .;
         KEEP(*(.isr_vector .isr_vector.*))
          isr_vector_tab_end = .;
+    }>VerctorFlash
+    
+    text_startup_rROM_lROM :
+    {
         KEEP(*os_Iboot_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*))
         KEEP(*os_Iboot_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
         KEEP(*os_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
@@ -56,6 +60,21 @@ SECTIONS
         *os_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
     }>Flash
 
+	QSpi_Flash :
+    {
+        Lock_Cache_Add_Start = .;
+        KEEP(*os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*))
+        Lock_Cache_Add_End = .;
+    
+    }>Flash 
+    
+    M0BootRisc :
+    {
+        Risc_Boot_Addr_Start = .;
+        LONG(34996480)
+        Risc_Boot_Addr_End   = .;
+    }>M0BootRiscFlash
+    
     text_sysload_rROM_lROM :
     {
         . = ALIGN(0x08);
@@ -306,6 +325,14 @@ SECTIONS
         LONG(.)
         pProgRomEnd = .;
     }>Flash 
-
+ /*   
+    QSpi_Flash:
+    {
+        Lock_Cache_Add_Start = .;
+        *os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*)
+        Lock_Cache_Add_End = .;
+    
+    }>Flash 
+*/
 }
 /**** The End ****/

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：nrsec3000.c
 // 模块描述: 加密芯片nrsec3000模块驱动
 // 模块版本: V1.10
@@ -109,7 +109,7 @@
 //@#$%component end configure
 
 static u32 s_NRSEC3000_Timeout = CN_TIMEOUT_FOREVER;
-static struct SPI_Device s_NRSEC3000_Dev;
+static struct SPI_Device *s_ptNRSEC3000_Dev;
 //#define CFG_NRSEC3000_SPI_SPEED      (20000*1000)
 
 
@@ -170,11 +170,11 @@ void Cmd_DelayMs(u8 cmd)
  =============================================================================*/
 static void NRSEC3000_CsActive(void)
 {
-    SPI_CsActive(&s_NRSEC3000_Dev,s_NRSEC3000_Timeout);
+    SPI_CsActive(s_ptNRSEC3000_Dev,s_NRSEC3000_Timeout);
 }
 static void NRSEC3000_CsInActive(void)
 {
-    SPI_CsInactive(&s_NRSEC3000_Dev);
+    SPI_CsInactive(s_ptNRSEC3000_Dev);
 }
 static u32 NRSEC3000_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
 {
@@ -187,7 +187,7 @@ static u32 NRSEC3000_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
     data.SendBuf = sdata;
     data.SendLen = slen;
 
-    result = SPI_Transfer(&s_NRSEC3000_Dev,&data,true,s_NRSEC3000_Timeout);
+    result = SPI_Transfer(s_ptNRSEC3000_Dev,&data,true,s_NRSEC3000_Timeout);
     if(result != CN_SPI_EXIT_NOERR)
         return 0;
     return 1;
@@ -1611,18 +1611,12 @@ bool_t Safety_Cert()
 
 bool_t NRSEC3000_Init(char *BusName)
 {
-
-    s_NRSEC3000_Dev.AutoCs = false;
-    s_NRSEC3000_Dev.CharLen = 8;
-    s_NRSEC3000_Dev.Cs = 0;
-    s_NRSEC3000_Dev.Freq = CFG_NRSEC3000_SPI_SPEED;
-    s_NRSEC3000_Dev.Mode = SPI_MODE_3;
-    s_NRSEC3000_Dev.ShiftDir = SPI_SHIFT_MSB;
-    if(NULL != SPI_DevAdd(BusName,"NRSEC3000",0,8,SPI_MODE_3,SPI_SHIFT_MSB,CFG_NRSEC3000_SPI_SPEED,false))
-    //if(NULL != SPI_DevAdd_s(&s_NRSEC3000_Dev, BusName, "NRSEC3000"))
+    s_ptNRSEC3000_Dev = SPI_DevAdd(BusName,"NRSEC3000",0,8,SPI_MODE_3,
+                            SPI_SHIFT_MSB,CFG_NRSEC3000_SPI_SPEED,false);
+    if(NULL != s_ptNRSEC3000_Dev)
     {
-        SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_POLL,0,0);
-        //SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_CLK,CFG_NRSEC3000_SPI_SPEED,0);
+        SPI_BusCtrl(s_ptNRSEC3000_Dev,CN_SPI_SET_POLL,0,0);
+        //SPI_BusCtrl(s_ptNRSEC3000_Dev,CN_SPI_SET_CLK,CFG_NRSEC3000_SPI_SPEED,0);
         return true;
     }
     return false;

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -61,13 +61,7 @@
 extern "C" {
 #endif
 
-struct LineBuf
-{
-    ucpu_t    current;      //缓冲区中的字节数/当前指针
-    ucpu_t    limit;        //缓冲区最大长度,元素个数.
-    u8   *buf;              //缓冲区指针,用户自己保证所开辟的缓冲区是否与设定
-                            //参数一致,djyos不做检查.
-};
+struct LineBuf;
 
 void Line_Init(struct LineBuf *line, u8 *buf, u32 len);
 u32 Line_Capacity(struct LineBuf *line);

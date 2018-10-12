@@ -113,8 +113,8 @@
 #define I2C_SR_SRW                  (1<<2)//I2C中断标志位
 #define I2C_SR_MIF                  (1<<1)//I2C仲裁丢失
 #define I2C_SR_RXAK                 (1<<0)//I2C接收到ACK信号
-static struct IIC_CB s_IIC0_CB;
-static struct IIC_CB s_IIC1_CB;
+static struct IIC_CB *s_ptIIC0_CB;
+static struct IIC_CB *s_ptIIC1_CB;
 
 //#define IIC0_BUF_LEN  128
 //#define IIC1_BUF_LEN  128
@@ -551,7 +551,7 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
 
     if(CHKBIT(reg->I2CSR, I2C_SR_MIF))//iic1中断
     {
-        ICB = &s_IIC0_CB;
+        ICB = s_ptIIC0_CB;
         IntParam = &IntParamset0;
     }
     else
@@ -559,7 +559,7 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
         reg = (tagI2CReg*)CN_IIC_REGISTER_BADDR1;
         if(CHKBIT(reg->I2CSR, I2C_SR_MIF))//iic2中断
         {
-            ICB = &s_IIC1_CB;
+            ICB = s_ptIIC1_CB;
             IntParam = &IntParamset1;
         }
         else
@@ -658,9 +658,10 @@ bool_t IIC0_Init(void)
     __IIC_HardDefaultSet(CN_IIC_REGISTER_BADDR0);
     __IIC_IntConfig(cn_int_line_iic_controllers,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd_r(&IIC0_Config,&s_IIC0_CB))
+    if(s_ptIIC0_CB = IIC_BusAdd(&IIC0_Config))
+        return 1;
+    else
         return 0;
-    return 1;
 }
 
 // =============================================================================
@@ -689,9 +690,10 @@ bool_t IIC1_Init(void)
     __IIC_HardDefaultSet(CN_IIC_REGISTER_BADDR0);
     __IIC_IntConfig(cn_int_line_iic_controllers,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd_r(&IIC1_Config,&s_IIC1_CB))
+    if(s_ptIIC1_CB = IIC_BusAdd(&IIC1_Config))
+        return 1;
+    else
         return 0;
-    return 1;
 }
 
 

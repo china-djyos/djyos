@@ -26,4 +26,5 @@
    <board>stm32l433-empty</board>
    <board>stm32l475-empty</board>
    <board>zq1201</board>
+   <board>zq1201_ck</board>
 </boards>

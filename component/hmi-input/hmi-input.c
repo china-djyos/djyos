@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -245,7 +245,7 @@ bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
     focus = obj_search_child(s_ptHmiInDeviceDir,device_name);
     if(focus != NULL)
     {
-        result = (struct HMI_InputDeviceObj *)obj_val(focus);
+        result = (struct HMI_InputDeviceObj *)obj_GetPrivate(focus);
         result->FocusMsgQ = FocusMsgQ;
         return true;
     }
@@ -268,7 +268,7 @@ enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name)
     input = obj_search_child(s_ptHmiInDeviceDir,device_name);
     if(input != NULL)
     {
-        InputDev = (struct HMI_InputDeviceObj *)obj_val(input);
+        InputDev = (struct HMI_InputDeviceObj *)obj_GetPrivate(input);
         return InputDev->input_type;
     }
     else
@@ -341,7 +341,7 @@ bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
     //在资源队列中查找stdin_id对应的输入设备
     while((current = obj_foreach_child(s_ptHmiInDeviceDir, current)) != NULL)
     {
-        InputDevice = (struct HMI_InputDeviceObj *)obj_val(current);
+        InputDevice = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
         if(InputDevice->device_id == stdin_id)
             break;
     }
@@ -405,7 +405,7 @@ bool_t HmiIn_UnInstallDevice(const char *device_name)
     if(current == NULL)
         return false;
 
-    Djy_HmiIn = (struct HMI_InputDeviceObj *)obj_val(current);
+    Djy_HmiIn = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
     if(!obj_del(current))
     {
         Mb_Free(g_ptHmiInDevicePool,Djy_HmiIn);

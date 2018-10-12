@@ -32,8 +32,8 @@ typedef void (*Slave_FntProtocolError) (struct Slave_ISBUSPort  *Port , u32 Erro
 
 bool_t Slave_ModuleInstall_InSerial(u32 StackSize);
 
-struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(struct DjyDevice *dev,\
-		                                                     Slave_FntProtocolError fnError,u32 Timeout);
+struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(s32 dev,\
+                                    Slave_FntProtocolError fnError,u32 Timeout);
 
 struct Slave_FunctionSocket *Slave_ISBUS_RegistProtocol(struct Slave_ISBUSPort *Port, u8 Protocol,
                                                            u16 MaxRecvLen,u16 MaxSendLen, Slave_FntProtocolProcess fn);

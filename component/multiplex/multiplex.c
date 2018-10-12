@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -77,7 +77,7 @@
 //component name:"multiplex"    //多路复用
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:必选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
@@ -101,6 +101,36 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+
+struct MultiplexSetsCB
+{
+    struct MultiplexObjectCB *ObjectQ;   // 指向未触发的对象链表
+    struct MultiplexObjectCB *ActiveQ;   // 指向已触发的对象链表
+    u32 ObjectSum;          // 对象集中包含的对象数。
+    u32 ActiveLevel;        // 触发水平，被触发对象数量达到ActiveLevel，将触发
+                            // 对象集，大于ObjectSum 表示全触发
+    u32 Actived;            // 已经触发的对象数
+    bool_t SetsActived;     // 对象集是否已经触发。
+    struct SemaphoreLCB Lock;       // 等待Sets被触发用的锁。
+};
+
+struct MultiplexObjectCB
+{
+    struct MultiplexObjectCB *NextObject;//纵向双向链表，用于连接一个MultiplexSets
+                                         //包含的多个object
+    struct MultiplexObjectCB *PreObject;
+    struct MultiplexObjectCB *NextSets; //横向单向链表，用于一个object被多个
+                                        //MultiplexSets包含的情况
+    struct MultiplexSetsCB *MySets;     //指向主控制块
+    s32 Fd;                             //被MultiplexSets等待的文件
+    ptu32_t ObjectID;                   //被MultiplexSets等待的对象
+    u32 ET_SaveBit;                     //保存 ET（边沿）触发的原状态。
+    u32 PendingBit;                     //bit0~23：对象中已经触发的bit，
+                                        //bit31：1=对象已激活。
+    u32 SensingBit;                     //bit0~23：敏感位标志
+                                        //bit24~31表示敏感位检测类型，参见
+                                        //CN_MULTIPLEX_SENSINGBIT_MODE定义
+};
 
 static struct MemCellPool *g_ptMultiplexSetsPool;
 static struct MemCellPool *g_ptMultiplexObjectPool;
@@ -228,7 +258,7 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
     bool_t repeat = false;
     bool_t IsActived = 0;
 
-    Kfp = fd2handle(Fd);
+    Kfp = fd2Handle(Fd);
     if ((NULL == Sets) || (NULL == Kfp) )
         return false;
 
@@ -329,7 +359,7 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
     struct objhandle *Kfp;
     struct MultiplexObjectCB *Object,*following;
 
-    Kfp = fd2handle(Fd);
+    Kfp = fd2Handle(Fd);
     if ((Sets == NULL) || (Kfp == NULL))
         return false;
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
@@ -410,7 +440,7 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
     u32 Sensing, Type, NewPendsing,MaskPending;
     u32 OldPend;
     bool_t ActivedFlag;
-    Kfp = fd2handle(Fd);
+    Kfp = fd2Handle(Fd);
     if (Kfp == NULL)
         return false;
 //  Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);

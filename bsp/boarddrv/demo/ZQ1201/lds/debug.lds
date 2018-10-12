@@ -29,16 +29,20 @@ SECTIONS
         msp_top = ALIGN(0x08);
    }>RAM1 
 
-    text_startup_rROM_lROM :
+    vectorTab :
     {
         . = ALIGN(0x08);
          isr_vector_tab_start = .;
         KEEP(*(.isr_vector .isr_vector.*))
          isr_vector_tab_end = .;
-        KEEP(*os_Iboot_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*))
-        KEEP(*os_Iboot_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
-        KEEP(*os_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
-        KEEP(*os_Iboot_Debug.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
+    }>VerctorFlash
+    
+    text_startup_rROM_lROM :
+    {
+        KEEP(*libos_App_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_App_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_App_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_App_Debug.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
         KEEP(*board/ZQ1201/src/OS_prjcfg/Iboot_config.o (.text .text.* .rodata .rodata.*))
     }>Flash
 
@@ -46,16 +50,31 @@ SECTIONS
     {
         . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-        *os_Iboot_Debug.a:loader.o (.text .text.* .rodata .rodata.*)
-        *os_Iboot_Debug.a:int_hard.o (.text .text.* .rodata .rodata.*)
-        *os_Iboot_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *os_Iboot_Debug.a:int.o (.text .text.* .rodata .rodata.*)
-        *os_Iboot_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
+        *libos_App_Debug.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_App_Debug.a:int_hard.o (.text .text.* .rodata .rodata.*)
+        *libos_App_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_App_Debug.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_App_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
         *board/ZQ1201/src/critical/*.o (.text .text.* .rodata .rodata.*)
-        *os_Iboot_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *os_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_App_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_App_Debug.a:list.o (.text .text.* .rodata .rodata.*)
     }>Flash
 
+	QSpi_Flash :
+    {
+        Lock_Cache_Add_Start = .;
+        KEEP(*os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*))
+        Lock_Cache_Add_End = .;
+    
+    }>Flash 
+    
+    M0BootRisc :
+    {
+        Risc_Boot_Addr_Start = .;
+        LONG(34996480)
+        Risc_Boot_Addr_End   = .;
+    }>M0BootRiscFlash
+    
     text_sysload_rROM_lROM :
     {
         . = ALIGN(0x08);
@@ -66,15 +85,15 @@ SECTIONS
     rw_preload_rExtRam_lROM :
     {
         . = ALIGN(0x08);
-        *os_Iboot_Debug.a:loader.o (.data .data.*)
-        *os_Iboot_Debug.a:int_hard.o (.data .data.*)
-        KEEP(*os_Iboot_Debug.a:hard-exps.o (.data .data.*))
-        *os_Iboot_Debug.a:hard-exp.o (.data .data.*)
-        *os_Iboot_Debug.a:int.o (.data .data.*)
-        *os_Iboot_Debug.a:ints.o (.data .data.*)
+        *libos_App_Debug.a:loader.o (.data .data.*)
+        *libos_App_Debug.a:int_hard.o (.data .data.*)
+        KEEP(*libos_App_Debug.a:hard-exps.o (.data .data.*))
+        *libos_App_Debug.a:hard-exp.o (.data .data.*)
+        *libos_App_Debug.a:int.o (.data .data.*)
+        *libos_App_Debug.a:ints.o (.data .data.*)
         *board/ZQ1201/src/critical/*.o (.data .data.*)
-        *os_Iboot_Debug.a:heap-static.o (.data .data.*)
-        *os_Iboot_Debug.a:list.o (.data .data.*)
+        *libos_App_Debug.a:heap-static.o (.data .data.*)
+        *libos_App_Debug.a:list.o (.data .data.*)
     }>ExtRam AT>Flash
 
     /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
@@ -85,15 +104,15 @@ SECTIONS
         . = ALIGN(0x100);
         /*KEEP(* (.table.exceptions .table.exceptions.*))*/
         /*KEEP(* (.table.vectors .table.vectors.*))*/
-        *os_Iboot_Debug.a:loader.o (.bss .bss.* COMMON)
-        *os_Iboot_Debug.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*os_Iboot_Debug.a:hard-exps.o (.bss .bss.* COMMON))
-        *os_Iboot_Debug.a:hard-exp.o (.bss .bss.* COMMON)
-        *os_Iboot_Debug.a:int.o (.bss .bss.* COMMON)
-        *os_Iboot_Debug.a:ints.o (.bss .bss.* COMMON)
+        *libos_App_Debug.a:loader.o (.bss .bss.* COMMON)
+        *libos_App_Debug.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_App_Debug.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_App_Debug.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_App_Debug.a:int.o (.bss .bss.* COMMON)
+        *libos_App_Debug.a:ints.o (.bss .bss.* COMMON)
         *board/ZQ1201/src/critical/*.o (.bss .bss.* COMMON)
-        *os_Iboot_Debug.a:heap-static.o (.bss .bss.* COMMON)
-        *os_Iboot_Debug.a:list.o (.bss .bss.* COMMON)
+        *libos_App_Debug.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_App_Debug.a:list.o (.bss .bss.* COMMON)
     }>ExtRam
 
     rw_sysload_rExtRam_lROM :
@@ -306,6 +325,14 @@ SECTIONS
         LONG(.)
         pProgRomEnd = .;
     }>Flash 
-
+ /*   
+    QSpi_Flash:
+    {
+        Lock_Cache_Add_Start = .;
+        *os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*)
+        Lock_Cache_Add_End = .;
+    
+    }>Flash 
+*/
 }
 /**** The End ****/

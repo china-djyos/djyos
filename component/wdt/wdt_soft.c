@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 都江堰操作系统开源团队 All Rights Reserved
+
 // 模块描述: 软看门狗实现
 // 模块版本: V1.00
 // 创建人员: zhangqf_cyg
@@ -113,7 +113,38 @@
 
 
 #define CN_WDT_YIP_NEVER      CN_LIMIT_SINT64     //当timeout为该时间时表示该看门狗暂停状态
-#define CN_WDT_YIP_PRECISION  CN_CFG_TICK_US      //软件看门狗模块的精度
+#define CN_WDT_YIP_PRECISION  CN_CFG_TICK_US      //软件看门狗模块的狗叫时间精度
+
+struct Wdt;
+typedef u32 (* fnYipHook)(struct Wdt *wdt);
+//the struct of the wdt
+typedef struct Wdt
+{
+    struct Wdt *ppre;        //双向不循环链表指针-前
+    struct Wdt *pnxt;        //双向不循环链表指针-后
+    char            *pname;       //看门狗名字，指向静态或者常量字符串
+    fnYipHook       fnhook;       //狗叫善后钩子函数
+    enum EN_BlackBoxAction action;       //狗叫动作
+    u32             cycle;        //看门狗周期，单位：微秒
+    s16             WdtOnwer;     //看门狗所属事件ID
+    s64             deadtime;     //看门狗喂狗截止时间，到此时间还不喂，则狗叫，单位：微秒
+    s64             runtime;      //上次操作看门狗时看门狗所属任务的运行时间，单位：微秒
+    u32             timeoutreason;     //看门狗狗叫原因
+    u16             shyiptimes;        //调度原因引起的看门狗狗叫次数   ，单位：次
+    //用于分辨狗叫原因，如果发生看门狗溢出，在该狗叫周期内，若当事件执行时间大于
+    //ExhaustLevelSet（uS）,则判定为逻辑错误，即被监控代码有时间运行却不喂狗；若
+    //事件执行时间小于ExhaustLevelSet（uS），则判定为调度问题，例如高优先级事件
+    //或者中断长时间占用CPU，导致被监控代码没有机会执行。
+    u32             ExhaustLevelSet;
+    //因ExhaustLevelSet而导致狗叫的容忍次数。如果因ExhaustLevelSet而导致狗叫，
+    //说明狗叫并非被监控代码的逻辑错误引起，可以用本函数设定容许次数，，超过
+    //该限制则执行fnhook，否则不执行。
+    //本参数可用于容许IO延迟，具体如下：
+    //1、假定被监视代码正常时1秒必定会执行一次，则cycle可设为1.2S(留点余量）
+    //2、但被监控代码在某特定条件下（if语句），有执行IO操作，该IO操作可能耗时
+    //   5秒。则可在执行IO操作前，把ExhaustLimit设为5（用EN_WDTCMD_SETSCHLEVEL命令）
+    u32             ExhaustLimit;
+}tagWdt;
 
 //软件看门狗的消息类型
 typedef struct

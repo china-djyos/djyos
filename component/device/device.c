@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -93,8 +93,8 @@ struct __device
     fntDevWrite dWrite; //
     fntDevRead dRead; //
     fntDevCntl dCntl; //
-    ptu32_t drv; // 本设备驱动的数据，在创建设备时，参数传入
-    ptu32_t usr; // 用户特征数据，用户使用过程中设置
+    ptu32_t DrvTag;        // 本设备驱动程序设置的标签
+    ptu32_t UserTag;       // 应用程序设置的标签
 };
 
 // ============================================================================
@@ -147,7 +147,7 @@ struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
         return (NULL);
 
     handle_init(devfile, ob, flags, 0);
-    dev = (struct __device*)obj_val(ob);
+    dev = (struct __device*)obj_GetPrivate(ob);
     if(dev)
     {
         if(dev->dOpen)
@@ -275,13 +275,13 @@ static s32 __devdentry(struct objhandle *hdl, struct dirent *dentry)
 // 参数：hdl -- 设备对象句柄；
 //      cmd -- 控制命令；
 //      arg0， arg0 -- 命令参数；
-// 返回：
+// 返回：由具体命令决定
 // 备注：
 // ============================================================================
 static s32 __devcntl(struct objhandle *hdl, u32 cmd, ptu32_t arg0, ptu32_t arg1)
 {
     struct __device *dev;
-    s32 care = 0, res = 0, ret = -1;
+    s32 ret = 0;
 
     switch(cmd)
     {
@@ -298,31 +298,39 @@ static s32 __devcntl(struct objhandle *hdl, u32 cmd, ptu32_t arg0, ptu32_t arg1)
             break;
         }
 
-        case F_GETDDRV:
+        case F_GETDRVTAG:
         {
             ptu32_t *drv = (ptu32_t*)arg0;
-            *drv = dev2drv(hdl);
+            *drv = dev_GetDrvTag(handle2obj(hdl));
             break;
         }
 
-        case F_GETDTAG:
+        case F_GETUSERTAG:
         {
             ptu32_t *usr = (ptu32_t*)arg0;
-            *usr = dev2usr(hdl);
+            *usr = dev_GetUserTag(handle2obj(hdl));
             break;
         }
 
-        default:break;
+        case F_SETDRVTAG:
+        {
+            dev_SetDrvTag(handle2obj(hdl),arg0);
+            break;
+        }
+
+        case F_SETUSERTAG:
+        {
+            dev_SetUserTag(handle2obj(hdl),arg0);
+            break;
+        }
+
+        default:
+            dev = (struct __device*)handle_val(hdl);
+            if(dev && dev->dCntl)
+                ret = dev->dCntl(hdl, cmd, arg0, arg1);
     }
 
-    dev = (struct __device*)handle_val(hdl);
-    if(dev && dev->dCntl)
-        ret = dev->dCntl(hdl, cmd, arg0, arg1);
-
-    if(care) // 是否在意dCntl的返回值
-        res = ret;
-
-    return (res);
+    return (ret);
 }
 
 // ============================================================================
@@ -337,7 +345,7 @@ s32 __devstat(struct obj *ob, struct stat *data)
     struct __device *dev;
 
     memset(data, 0x0, sizeof(*data));
-    dev = (struct __device*)obj_val(ob);
+    dev = (struct __device*)obj_GetPrivate(ob);
     if(dev)
     {
         // TODO：当完成FLASH等块设备抽象后，利用basic逻辑完善块设备逻辑；
@@ -482,19 +490,63 @@ static s32 __isdev(struct obj *dev)
 }
 
 // ============================================================================
+// 功能：设置设备的驱动标签；
+// 参数：hdl -- 设备对象句柄；
+// 返回：驱动标签；
+// 备注：
+// ============================================================================
+void dev_SetDrvTag(s32 fd,ptu32_t DrvTag)
+{
+    struct __device *dev;
+    struct objhandle *hdl;
+
+    if(fd >= 0)
+    {
+        hdl = fd2Handle(fd);
+        dev = (struct __device *)handle_val(hdl);
+        dev->DrvTag = DrvTag;
+    }
+
+    return ;
+}
+
+// ============================================================================
+// 功能：设置设备的用户标签
+// 参数：hdl -- 设备对象句柄；
+// 返回：用户标签
+// 备注：
+// ============================================================================
+ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag)
+{
+    struct __device *dev;
+    struct objhandle *hdl;
+
+    if(fd >= 0)
+    {
+        hdl = fd2Handle(fd);
+        dev = (struct __device *)handle_val(hdl);
+        dev->UserTag = UserTag;
+    }
+
+    return (0);
+}
+
+// ============================================================================
 // 功能：获取设备的驱动标签；
 // 参数：hdl -- 设备对象句柄；
 // 返回：驱动标签；
 // 备注：
 // ============================================================================
-ptu32_t dev2drv(struct objhandle *hdl)
+ptu32_t dev_GetDrvTag(s32 fd)
 {
     struct __device *dev;
+    struct objhandle *hdl;
 
-    if(hdl)
+    if(fd >= 0)
     {
+        hdl = fd2Handle(fd);
         dev = (struct __device *)handle_val(hdl);
-        return (dev->drv);
+        return (dev->DrvTag);
     }
 
     return (0);
@@ -506,14 +558,16 @@ ptu32_t dev2drv(struct objhandle *hdl)
 // 返回：用户标签
 // 备注：
 // ============================================================================
-ptu32_t dev2usr(struct objhandle *hdl)
+ptu32_t dev_GetUserTag(s32 fd)
 {
     struct __device *dev;
+    struct objhandle *hdl;
 
-    if(hdl)
+    if(fd >= 0)
     {
+        hdl = fd2Handle(fd);
         dev = (struct __device *)handle_val(hdl);
-        return (dev->usr);
+        return (dev->UserTag);
     }
 
     return (0);
@@ -685,7 +739,7 @@ s32 dev_group_del(char *name)
 inline struct obj *dev_addo(struct obj *grpo, const char *name,
                                fntDevOpen dopen, fntDevClose dclose,
                                fntDevWrite dwrite, fntDevRead dread,
-                               fntDevCntl dcntl, ptu32_t dtag)
+                               fntDevCntl dcntl, ptu32_t DrvTag)
 {
 #if 0
     struct device *device;
@@ -756,7 +810,7 @@ inline struct obj *dev_addo(struct obj *grpo, const char *name,
     dev->dCntl = dcntl;
     dev->dRead = dread;
     dev->dWrite = dwrite;
-    dev->drv = dtag;
+    dev->DrvTag = DrvTag;
     return (devo);
 #endif
 }
@@ -832,7 +886,7 @@ inline s32 dev_delo(struct obj *devo)
         return (-1);
 
     // TODO：增加删除设备控制；
-    Mb_Free(__dev_struct_pool, (void*)obj_val(devo));
+    Mb_Free(__dev_struct_pool, (void*)obj_GetPrivate(devo));
     obj_del(devo);
     return (0);
 }
@@ -905,9 +959,9 @@ ptu32_t devo2drv(struct obj *devo)
     if((!devo)||(!__isdev(devo)))
         return (0);
 
-    dev = (struct __device*)obj_val(devo);
+    dev = (struct __device*)obj_GetPrivate(devo);
     if(dev)
-        return (dev->drv);
+        return (dev->DrvTag);
 
     return (0);
 }
@@ -1002,7 +1056,7 @@ s32 DevOpen(const char *name, s32 flags, u32 timeout)
     if(!devfile)
         return (-1);
 
-    return hande2fd(devfile);
+    return Hande2fd(devfile);
 }
 
 // ============================================================================
@@ -1020,7 +1074,7 @@ s32 DevClose(s32 handle)
     struct obj *ob;
     s32 Mode;
 
-    devFile = fd2handle( dwFD );
+    devFile = fd2Handle( dwFD );
     if(devFile == NULL)
         return false;
     ob = handle2obj(devFile);
@@ -1043,7 +1097,7 @@ s32 DevClose(s32 handle)
     s32 res;
     struct objhandle *devfile;
 
-    devfile = fd2handle(handle);
+    devfile = fd2Handle(handle);
     if(!devfile)
         return (-1);
 
@@ -1077,7 +1131,7 @@ s32 DevRead(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
     if((!len) || (!buf))
         return (0);
 
-    devfile = fd2handle(handle);
+    devfile = fd2Handle(handle);
     if(!devfile)
         return (0);
 
@@ -1108,7 +1162,7 @@ s32 DevWrite(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
     if((!len) || (!buf))
         return (0);
 
-    devfile = fd2handle(handle);
+    devfile = fd2Handle(handle);
     if(!devfile)
         return (0);
 
@@ -1133,7 +1187,7 @@ s32 DevCntl(s32 dwFD, u32 dwCmd, ptu32_t data1, ptu32_t data2)
     struct __device *dev;
     struct objhandle *devfile;
 
-    devfile = fd2handle(dwFD);
+    devfile = fd2Handle(dwFD);
     if(!devfile)
         return (-1);
 

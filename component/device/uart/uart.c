@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -115,6 +115,8 @@ struct UartGeneralCB
     ptu32_t UartPortTag;                       //串口标签
     UartStartSend StartSend;
     UartControl UartCtrl;
+    struct MutexLCB *ReadMutex;        //互斥量,控制设备独占式读访问
+    struct MutexLCB *WriteMutex;       //互斥量,控制设备独占式写访问
     struct RingBuf SendRingBuf;                //环形发送缓冲区.
     struct RingBuf RecvRingBuf;                //环形接收缓冲区.
     struct SemaphoreLCB *SendRingBufSemp;      //发送缓冲区信号量
@@ -134,6 +136,8 @@ struct UartPollCB
     struct SemaphoreLCB *BlockingSemp;              //阻塞信号量
 //  struct MultiplexObjectCB * pMultiplexUart;      //多路复用目标对象头指针
     u32 Baud;                                       //串口当前波特率
+    struct MutexLCB *ReadMutex;        //互斥量,控制设备独占式读访问
+    struct MutexLCB *WriteMutex;       //互斥量,控制设备独占式写访问
     ptu32_t UartPortTag;                            //串口标签
     UartSendPkg SendPkg;
     UartControl UartCtrl;
@@ -153,25 +157,26 @@ s32 UART_Poll_Ctrl(struct objhandle* hdl,u32 cmd,ptu32_t data1,ptu32_t data2);
 // 功能：串口设备open函数。打开串口设备时的回调函数，使文件上下文指向串口对象对应的串口控制块。
 //      串口设备文件，是安装串口时创建的，本函数不负责创建文件。
 // 参数：Fp，待操作的串口文件指针
-//      Mode，打开模式
+//      Mode，打开模式，O_RDONLY、O_WRONLY、O_RDWR
 //      timeout，超时时间。
 // 返回：0=success，-1=error
-// 备注：
+// 备注：O_RDONLY、O_WRONLY、O_RDWR 须符合POSIX（2016）的最新定义
 // ============================================================================
 s32 UART_Open(struct objhandle *hdl, u32 Mode, u32 timeout)
 {
     struct UartGeneralCB *UGCB;
+    bool_t res = false;
 
     if(hdl == NULL)
         return (-1);
 
 #if 0
-    Fd = hande2fd( hdl );
+    Fd = Hande2fd( hdl );
 //  UartObj = KF_GetHostObject(hdl);
 //  Dev = (struct DjyDevice *)OBJ_Represent(UartObj);
     UGCB = (struct UartGeneralCB *)Dev_GetDevTag(Fd);
 #else
-    UGCB = (struct UartGeneralCB *)dev2drv(hdl);
+    UGCB = (struct UartGeneralCB *)dev_GetDrvTag(hdl);
 #endif
     handle_linkcontext(hdl, (ptu32_t)UGCB);  //Fd上下文指向串口控制块struct UartGeneralCB
     if( ! Ring_IsEmpty(&UGCB->RecvRingBuf))
@@ -230,8 +235,8 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
     buf = (uint8_t*)src_buf;
     base_time = (u32)DjyGetSysTime();
 
-//  if(Lock_MutexPend(UCB->WriteMutex,timeout)==false)
-//      return completed;
+    if(Lock_MutexPend(UGCB->WriteMutex,timeout)==false)
+        return completed;
 
     while(1)
     {
@@ -269,7 +274,7 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
         obj_unset_handles_multievent(UartObj, CN_MULTIPLEX_SENSINGBIT_WRITE);
     }
 
-//  Lock_MutexPost(UCB->WriteMutex);
+    Lock_MutexPost(UGCB->WriteMutex);
     return completed;
 }
 
@@ -299,9 +304,11 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
     if(hdl == NULL)
         return 0;
 
-//    Fd = hande2fd(hdl);
+//    Fd = Hande2fd(hdl);
     UGCB = (struct UartGeneralCB *)handle_context(hdl);
 
+    if(Lock_MutexPend(UGCB->ReadMutex,timeout)==false)
+        return 0;
     if(Ring_IsEmpty(&UGCB->RecvRingBuf))    //缓冲区空，等待接收信号量
     {
         Lock_SempPend(UGCB->RecvRingBufSemp,timeout);
@@ -331,7 +338,7 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
         }
     }
 
-//  Lock_MutexPost(UCB->ReadMutex);
+    Lock_MutexPost(UGCB->ReadMutex);
     return completed;
 }
 
@@ -523,12 +530,12 @@ s32 UART_Poll_Open(struct objhandle *hdl, u32 Mode,u32 timeout)
     if(hdl == NULL)
         return (-1);
 #if 0
-    Fd = hande2fd( hdl );
+    Fd = Hande2fd( hdl );
 //  UartObj = KF_GetHostObject(hdl);
 //  Dev = (struct DjyDevice *)OBJ_Represent(UartObj);
     UPCB = (struct UartPollCB *)Dev_GetDevTag(Fd);
 #else
-    UPCB = (struct UartPollCB*)dev2drv(hdl);
+    UPCB = (struct UartPollCB*)dev_GetDrvTag(hdl);
 #endif
     handle_linkcontext(hdl,(ptu32_t)UPCB);  //Fd上下文指向串口控制块struct UartGeneralCB
     if(UPCB->RecvLen != 0)
@@ -588,8 +595,8 @@ s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u
     offset = offset;
     UPCB = (struct UartPollCB *)handle_context(hdl);
 
-//  if(Lock_MutexPend(UCB->ReadMutex,timeout)==false)
-//      return completed;
+    if(Lock_MutexPend(UPCB->ReadMutex,timeout)==false)
+        return 0;
 //   Lock_SempPend(UPCB->RecvRingBufSemp,timeout);
     Int_CutTrunk();
     if(UPCB->RecvLen <= len)
@@ -606,7 +613,7 @@ s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u
     UPCB->UartCtrl(UPCB->UartPortTag,CN_UART_RECV_BUF,(u32)dst_buf,RcvLen);
 
 #if 0
-    ClrFdAccessStatus(hande2fd(hdl), CN_MULTIPLEX_SENSINGBIT_READ);
+    ClrFdAccessStatus(Hande2fd(hdl), CN_MULTIPLEX_SENSINGBIT_READ);
 #else
     handle_unset_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
 #endif
@@ -615,7 +622,7 @@ s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u
 
     if(ErrorFlag)
         UART_Poll_PortRead(UPCB);
-//  Lock_MutexPost(UCB->ReadMutex);
+    Lock_MutexPost(UPCB->ReadMutex);
     return ((s32)RcvLen);
 }
 
@@ -866,20 +873,20 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
         goto exit_from_recv_buf_semp;
 
     // 为设备创建互斥量，提供设备的互斥访问
-    uart_mutexR = Lock_MutexCreate("uart receive mutex");
-    if(uart_mutexR == NULL)
-        goto exit_from_mutexR;
+//  uart_mutexR = Lock_MutexCreate("uart receive mutex");
+//  if(uart_mutexR == NULL)
+//      goto exit_from_mutexR;
+//
+//  uart_mutexT = Lock_MutexCreate("uart send mutex");
+//  if(uart_mutexT == NULL)
+//      goto exit_from_mutexT;
 
-    uart_mutexT = Lock_MutexCreate("uart send mutex");
-    if(uart_mutexT == NULL)
-        goto exit_from_mutexT;
-
-//  UCB->WriteMutex = Lock_MutexCreate("UART_WriteMutex");
-//  if( NULL == UCB->WriteMutex)
-//      goto exit_from_mutexWite;
-//  UCB->ReadMutex  = Lock_MutexCreate("UART_ReadMutex");
-//  if(NULL == UCB->ReadMutex)
-//      goto exit_from_mutexRead;
+    UGCB->WriteMutex = Lock_MutexCreate("UART_WriteMutex");
+    if( NULL == UGCB->WriteMutex)
+        goto exit_from_mutexWite;
+    UGCB->ReadMutex  = Lock_MutexCreate("UART_ReadMutex");
+    if(NULL == UGCB->ReadMutex)
+        goto exit_from_mutexRead;
 
     UGCB->SendRingTrigLevel  = (Param->TxRingBufLen)>>2;  //默认缓冲触发水平为1/16
 //    UCB->RecvRingTrigLevel  = (Param->RxRingBufLen)>>4;
@@ -911,14 +918,14 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
 
     //如果出现错误，则释放创建的资源，并返回空指针
 exit_from_add_device:
-//    Lock_MutexDelete(UCB->ReadMutex);
-//exit_from_mutexRead:
-//    Lock_MutexDelete(UCB->WriteMutex);
-//exit_from_mutexWite:
-    Lock_MutexDelete(uart_mutexT);
-exit_from_mutexT:
-    Lock_MutexDelete(uart_mutexR);
-exit_from_mutexR:
+    Lock_MutexDelete(UGCB->ReadMutex);
+exit_from_mutexRead:
+    Lock_MutexDelete(UGCB->WriteMutex);
+exit_from_mutexWite:
+//    Lock_MutexDelete(uart_mutexT);
+//exit_from_mutexT:
+//    Lock_MutexDelete(uart_mutexR);
+//exit_from_mutexR:
     Lock_SempDelete(UGCB->RecvRingBufSemp);
 exit_from_recv_buf_semp:
     Lock_SempDelete(UGCB->SendRingBufSemp);

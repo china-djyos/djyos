@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -127,7 +127,7 @@
 #define I2C_WRITE_BIT 0
 
 
-static struct IIC_CB s_IIC0_CB;
+static struct IIC_CB *s_ptIIC0_CB;
 
 //缓存区大小限制：2-254.
 //SHARC21469作为主机发送时，理论上不对发送数据长度做限制；
@@ -594,7 +594,7 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
     u32 irptl_temp=*rTWIIRPTL;//read IRPTL
 
     reg = (tagI2CReg*)CN_IIC_REGISTER_BADDR0;
-    ICB=&s_IIC0_CB;
+    ICB=s_ptIIC0_CB;
     IntParam=&IntParamset0;
 
         //MASTER TX\RX COMPLETE
@@ -801,11 +801,12 @@ bool_t IIC0_Init(void)
     __IIC_HardDefaultSet(CN_IIC_REGISTER_BADDR0);
     __IIC_IntConfig(cn_int_line_TWII,__IIC_ISR);
 
-    if(NULL==IIC_BusAdd_r(&IIC0_Config,&s_IIC0_CB))
+    if(s_ptIIC0_CB = IIC_BusAdd(&IIC0_Config))
     {
-        return 0;
+        return 1;
     }
-    return 1;
+    else
+        return 0;
 
 }
 

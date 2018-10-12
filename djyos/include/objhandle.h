@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -70,14 +70,14 @@ extern "C" {
 // 分配struct objhandle结构。
 
 struct objhandle{
-    list_t list; // 同该关联对象的对象句柄链表；
-    u32 flags; // 当前文件操作标志；
-    struct obj *obj; // 关联的对象
+    list_t list;        //句柄所关联的对象的句柄链表；
+    u32 flags;          // 当前文件操作标志；
+    struct obj *obj;    // 关联的对象
     u32 timeout; // 同步访问的timeout，单位us，不超过1.19小时；
-    struct MultiplexObjectCB * mphead; // 多路复用目标对象头指针；
-    u32 mevents; // 对象的当前访问状态，如可读，可写等。24bit，高8位无效，可用于多路复用；
-    ptu32_t tag; // 用户关联标签，由用户设定该标签用途；
-    ptu32_t context; // 关联的内容；
+    struct MultiplexObjectCB * pMultiplexHead; // 多路复用目标对象头指针；
+    u32 MultiplexEvents; // 对象的当前访问状态，如可读，可写等。24bit，高8位无效，可用于多路复用；
+    ptu32_t tag;        //用户标签，由用户设定该标签用途；
+    ptu32_t context;    // handle访问上下文
 };
 
 // ============================================================================
@@ -86,7 +86,7 @@ struct objhandle{
 // 返回：成功（文件描述符）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 hande2fd(struct objhandle *hdl);
+s32 Hande2fd(struct objhandle *hdl);
 
 // ============================================================================
 // 功能：文件描述符转对象句柄
@@ -94,7 +94,7 @@ s32 hande2fd(struct objhandle *hdl);
 // 返回：成功（对象句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct objhandle *fd2handle(s32 fd);
+struct objhandle *fd2Handle(s32 fd);
 
 // ============================================================================
 // 功能：是否目录标志；

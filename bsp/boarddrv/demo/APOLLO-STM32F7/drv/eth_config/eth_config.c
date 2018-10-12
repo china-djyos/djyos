@@ -43,8 +43,6 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-#include "../../../../djysrc/bsp/arch/arm/arm32_stdint.h"
-
 #define SDA_IN()  {GPIOH->MODER&=~(3<<(5*2));GPIOH->MODER|=0<<5*2;} //PH5输入模式
 #define SDA_OUT() {GPIOH->MODER&=~(3<<(5*2));GPIOH->MODER|=1<<5*2;} //PH5输出模式
 //IO操作

@@ -28,14 +28,15 @@ void Sys_ModuleInit(void)
 	extern s32 ModuleInstall_Shell(ptu32_t para);
 	ModuleInstall_Shell(0);
 
+	//-------------------early-------------------------//
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
+
 	extern bool_t ModuleInstall_DjyBus(void);
 	ModuleInstall_DjyBus ( );
 
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
-
-    extern void ModuleInstall_BlackBox(void);
-    ModuleInstall_BlackBox();
 
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
@@ -86,6 +87,7 @@ void Sys_ModuleInit(void)
 	IIC_Init(CN_IIC4);
 	#endif
 
+	//-------------------medium-------------------------//
 	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
 	ModuleInstall_Charset(0);
 	extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
@@ -113,6 +115,7 @@ void Sys_ModuleInit(void)
 	const char* HeapName);
 	ModuleInstall_LCD(CFG_LCD_DISPLAY_NAME,CFG_LCD_HEAP_NAME);
 
+	//-------------------later-------------------------//
 	extern void ModuleInstall_Gdd_AND_Desktop(void);
 	ModuleInstall_Gdd_AND_Desktop();
 

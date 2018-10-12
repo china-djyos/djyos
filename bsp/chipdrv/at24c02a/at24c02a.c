@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：at24c02a.c
 // 模块描述: EEPROM芯片驱动，调用了IICBUS总线驱动模型
 // 模块版本: V1.00
@@ -267,19 +267,13 @@ s16 AT24_ReadWord(u16 wAddr)
 bool_t AT24_ModuleInit(char *busname)
 {
     bool_t result = false;
-    static struct IIC_Device s_AT24_Dev;
     //GPIO初始化，SDA、SCL已经在IIC中初始化了，此处只需初始化WP即可
     __AT24_GpioInit();
 
-    //初始化IIC设备结构体
-    s_AT24_Dev.DevAddr                  = CFG_AT24C_ADDRESS;
-    s_AT24_Dev.BitOfMemAddr             = 8;
-    s_AT24_Dev.BitOfMemAddrInDevAddr    = 0;
-
     //添加AT24到IIC0总线
-    if(NULL != IIC_DevAdd_r(busname,"IIC_Dev_AT24",&s_AT24_Dev))
+    ps_AT24_Dev = IIC_DevAdd(busname,"IIC_Dev_AT24",CFG_AT24C_ADDRESS,0,8)
+    if(NULL != ps_AT24_Dev)
     {
-        ps_AT24_Dev = &s_AT24_Dev;
         IIC_BusCtrl(ps_AT24_Dev,CN_IIC_SET_CLK,CFG_AT24C_CLK_FRE,0);
         IIC_BusCtrl(ps_AT24_Dev,CN_IIC_DMA_USED,0,0);
         result = true;

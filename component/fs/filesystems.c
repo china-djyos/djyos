@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -68,7 +68,7 @@
 //component name:"filesystem"   //文件系统组件
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:核心组件            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:必选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:none                //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
@@ -264,7 +264,7 @@ void *corefs(struct obj *ob)
             return (NULL); // 不是集合或者不存在；
     }
 
-    super = (tagFSC *)obj_val(ob);
+    super = (tagFSC *)obj_GetPrivate(ob);
     if(!super)
         return (NULL);
 

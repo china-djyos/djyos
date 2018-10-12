@@ -217,10 +217,10 @@ extern "C" {
 #define F_STDIO_MULTI_DEL   (F_STDIO_M+2)       // 将文件从STDIN多路复用集删除
 // 设备模块；
 #define F_DEV_M             (F_MODULE)
-#define F_SETDDRV           (F_DEV_M)           // 设置设备驱动标签；
-#define F_GETDDRV           (F_DEV_M+1)         // 获取设备的驱动标签；
-#define F_SETDTAG           (F_DEV_M+2)         // 设置设备的用户标签；
-#define F_GETDTAG           (F_DEV_M+3)         // 获取设备的用户标签；
+#define F_SETDRVTAG         (F_DEV_M)           // 设置设备驱动标签；
+#define F_GETDRVTAG         (F_DEV_M+1)         // 获取设备的驱动标签；
+#define F_SETUSERTAG        (F_DEV_M+2)         // 设置设备的用户标签；
+#define F_GETUSERTAG        (F_DEV_M+3)         // 获取设备的用户标签；
 #define F_DSTART            (F_DEV_M+4)         // 启动设备，有些能控制电源的设备需要
 #define F_DSTOP             (F_DEV_M+5)         // 启动设备，有些能控制电源的设备需要
 #define F_DSHUTDOWN         (F_DEV_M+6)         // 关闭电源,断电前需要特定处理的设备需要

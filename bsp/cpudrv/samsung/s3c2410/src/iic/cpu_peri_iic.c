@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_iic.c
 // 模块描述: IIC模块底层硬件驱动，寄存器级别的操作
 // 模块版本: V1.00
@@ -115,7 +115,7 @@ struct IIC_IntParamSet
 };
 
 //定义静态变量
-static struct IIC_CB s_tIIC0_CB;
+static struct IIC_CB *s_ptIIC0_CB;
 //#define CFG_IIC0_BUF_LEN        128
 static u8 s_IIC0Buf[CFG_IIC0_BUF_LEN];
 static struct IIC_IntParamSet IntParamset0;
@@ -484,7 +484,7 @@ static u32 __IIC_ISR(ufast_t IntLine)
     u8 ch;
     if(IntLine != CN_INT_LINE_IIC)
         return 0;
-    ICB = &s_tIIC0_CB;
+    ICB = s_ptIIC0_CB;
     IntParam = &IntParamset0;
     reg = (tagI2CReg *)CN_IIC_REGISTER_BADDR0;
 
@@ -560,8 +560,9 @@ bool_t ModuleInstall_IIC(u8 port)
     __IIC_HardConfig(CN_IIC_REGISTER_BADDR0,0);
     __IIC_IntConfig(CN_INT_LINE_IIC,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd_r(&IIC0_Config,&s_tIIC0_CB))
+    if(s_ptIIC0_CB == IIC_BusAdd(&IIC0_Config))
+        return 1;
+    else
         return 0;
-    return 1;
 }
 

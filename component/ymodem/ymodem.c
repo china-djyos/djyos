@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018,Open source team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源团队所有。著作权人保留一切权利。
+// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -117,6 +117,73 @@
 #define CN_YMODEM_PKGBUF_SIZE           (1029)
 #define CN_YMODEM_NAME_LENGTH           (256)
 
+// YMODEM命令
+#define CN_YMODEM_SOH     1         //128字节起始符
+#define CN_YMODEM_STX     2         //1028字节起始符
+#define CN_YMODEM_EOT     4
+#define CN_YMODEM_ACK     6
+#define CN_YMODEM_NAK     0x15
+#define CN_YMODEM_C       0x43          //大写字母C
+#define CN_YMODEM_CAN     0x18
+
+// YMODEM数据包长度
+#define CN_YMODEM_SOH_SIZE  128        //SOH数据包大小为128字节
+#define CN_YMODEM_STX_SIZE  1024       //STX数据包大小为1024
+
+typedef enum
+{
+     YMODEM_OK= 0,              //正常返回
+     YMODEM_PARAM_ERR,          //参数错误
+     YMODEM_FILE_ERR,           //文件操作错误
+     YMODEM_TIMEOUT,            //超时返回
+     YMODEM_MEM_ERR,            //内存不够
+     YMODEM_CAN_TRANS,          //取消传输
+     YMODEM_MEDIA_ERR,          //硬件错误
+     YMODEM_UNKNOW_ERR
+}YMRESULT;
+
+typedef enum
+{
+    ENUM_YMODEM_STA_INFO = 0x80,        //YMODEM信息包
+    ENUM_YMODEM_STA_SOH,                //128字节的数据包
+    ENUM_YMODEM_STA_STX,                //1024字节的数据包
+    ENUM_YMODEM_STA_EOT,                //结束符
+    ENUM_YMODEM_STA_ZERO,               //全ZERO包
+}YMSTATUS;
+
+typedef enum
+{
+    YMODEM_FILE_NOOPS= 0xF0,            //无文件操作
+    YMODEM_FILE_OPEN ,                  //打开文件标记
+    YMODEM_FILE_WRITE,                  //写文件标记
+    YMODEM_FILE_READ,                   //读文件标记
+    YMODEM_FILE_STAT,
+    YMODEM_FILE_CLOSE,                  //关闭文件标记
+}YMFILEOPS;
+
+
+typedef struct __Ymodem
+{
+    FILE    *File;                      //file ptr for file op
+    const char    *Path;                //文件所在的路径（未含文件名）
+    char    *FileName;                  //文件名称
+    struct MutexLCB *pYmodemMutex;      //互斥访问
+    YMFILEOPS FileOps;                  //文件操作
+    u32     FileSize;                   //当前传输文件大小
+    u32     FileCnt;                    //写入文件大小计数
+    u32     PkgNo;                      //包号
+    u32     PkgSize;                    //当前包长度
+    s64     StartTime;                  //start time
+    u32     TimeOut;                    //time out
+    YMSTATUS Status;                    //ymodem status
+    u8      *FileBuf;                   //file buf
+    u32     FileBufCnt;                 //文件缓冲区大小计数
+    u8      *PkgBuf;
+    u32     PkgBufCnt;                  //PKG大小计数
+}tagYmodem;
+
+bool_t uploadym(char *Param);
+bool_t downloadym(char *Param);
 struct shell_debug const ymodem_cmd_table[] =
 {
     {
@@ -634,7 +701,7 @@ ADD_TO_IN_SHELL bool_t downloadym(char *Param)
 
     //等待主机发送数据，超时返回
     debug_printf("MODULE","下载倒计时：     ");
-    fcntl(fileno(stdin), F_OF_SETTIMEOUT, 1000*mS); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
+    fcntl(fileno(stdin), F_SETTIMEOUT, 1000*mS); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
     while((pYmodem->PkgBuf[0] = getchar( ) )== EOF)
     {
         if (CntOver++ < 60)
@@ -659,7 +726,7 @@ YMODEM_EXIT:
         free(pYmodem->FileBuf);
     if( NULL != pYmodem->PkgBuf)
         free(pYmodem->PkgBuf);
-    fcntl(fileno(stdin), F_OF_SETTIMEOUT, CN_TIMEOUT_FOREVER); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
+    fcntl(fileno(stdin), F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
 
     Lock_MutexPost(pYmodem->pYmodemMutex);
     if(Ret != YMODEM_OK)                        //打印输出信息
@@ -878,7 +945,7 @@ ADD_TO_IN_SHELL bool_t uploadym(char *Param)
     }
 
     debug_printf("MODULE","上传倒计时：     ");
-    fcntl(fileno(stdin), F_OF_SETTIMEOUT, 1000*mS); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
+    fcntl(fileno(stdin), F_SETTIMEOUT, 1000*mS); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
     while((pYmodem->PkgBuf[0] = getchar( ) )== EOF)//等待主机发送数据，超时返回
     {
         if (CntOver++ < 60)
@@ -905,7 +972,7 @@ YMODEM_EXIT:
         free(pYmodem->FileBuf);
     if( NULL != pYmodem->PkgBuf)
         free(pYmodem->PkgBuf);
-    fcntl(fileno(stdin), F_OF_SETTIMEOUT, CN_TIMEOUT_FOREVER); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
+    fcntl(fileno(stdin), F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
 
     Lock_MutexPost(pYmodem->pYmodemMutex);
     if(Ret != YMODEM_OK)                        //打印输出信息

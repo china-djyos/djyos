@@ -1,5 +1,5 @@
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_enet.c
 // 模块描述: ENET模块的初始化的操作，包含PHY初始化和MII初始化
 // 模块版本: V1.00
@@ -42,41 +42,41 @@
 
 typedef struct
 {
-	uint16_t status;	/* control and status */
-	uint16_t length;	/* transfer length */
-	uint8_t  *data;	    /* buffer address */
+    uint16_t status;    /* control and status */
+    uint16_t length;    /* transfer length */
+    uint8_t  *data;     /* buffer address */
 } NBUF;
 
 //For Freescale ARM Architecture(NBUF_LITTLE_ENDIAN)
 // ----------------------------------------------------------------------
 // TX Buffer Descriptor Bit Definitions
 // ----------------------------------------------------------------------
-#define TX_BD_R			0x0080
-#define TX_BD_TO1		0x0040
-#define TX_BD_W			0x0020
-#define TX_BD_TO2		0x0010
-#define TX_BD_L			0x0008
-#define TX_BD_TC		0x0004
-#define TX_BD_ABC		0x0002
+#define TX_BD_R         0x0080
+#define TX_BD_TO1       0x0040
+#define TX_BD_W         0x0020
+#define TX_BD_TO2       0x0010
+#define TX_BD_L         0x0008
+#define TX_BD_TC        0x0004
+#define TX_BD_ABC       0x0002
 
 // ----------------------------------------------------------------------
 // RX Buffer Descriptor Bit Definitions
 // ----------------------------------------------------------------------
 
 // Offset 0 flags - status: Big Endian
-#define RX_BD_E			0x0080
-#define RX_BD_R01		0x0040
-#define RX_BD_W			0x0020
-#define RX_BD_R02		0x0010
-#define RX_BD_L			0x0008
-#define RX_BD_M			0x0001
-#define RX_BD_BC		0x8000
-#define RX_BD_MC		0x4000
-#define RX_BD_LG		0x2000
-#define RX_BD_NO		0x1000
-#define RX_BD_CR		0x0400
-#define RX_BD_OV		0x0200
-#define RX_BD_TR		0x0100
+#define RX_BD_E         0x0080
+#define RX_BD_R01       0x0040
+#define RX_BD_W         0x0020
+#define RX_BD_R02       0x0010
+#define RX_BD_L         0x0008
+#define RX_BD_M         0x0001
+#define RX_BD_BC        0x8000
+#define RX_BD_MC        0x4000
+#define RX_BD_LG        0x2000
+#define RX_BD_NO        0x1000
+#define RX_BD_CR        0x0400
+#define RX_BD_OV        0x0200
+#define RX_BD_TR        0x0100
 
 
 // =============================================================================
@@ -210,46 +210,46 @@ typedef struct
 /********INTERFACE**********/
 typedef enum
 {
-	MAC_MII,
-	MAC_RMII,
+    MAC_MII,
+    MAC_RMII,
 } ENET_INTERFACE;
 /********AUTONEG**********/
 typedef enum
 {
-	AUTONEG_ON,
-	AUTONEG_OFF
+    AUTONEG_ON,
+    AUTONEG_OFF
 } ENET_AUTONEG;
 /********SPEED**********/
 typedef enum
 {
-	MII_10BASET,
-	MII_100BASET
+    MII_10BASET,
+    MII_100BASET
 } ENET_SPEED;
 /********DUPLEX**********/
 /* MII Duplex Settings */
 typedef enum
 {
-	MII_HDX,		/*!< half-duplex */
-	MII_FDX			/*!< full-duplex */
+    MII_HDX,        /*!< half-duplex */
+    MII_FDX         /*!< full-duplex */
 } ENET_DUPLEX;
 /********LOOPBACK**********/
 typedef enum
 {
-	INTERNAL_LOOPBACK,
-	EXTERNAL_LOOPBACK,
-	NO_LOOPBACK
+    INTERNAL_LOOPBACK,
+    EXTERNAL_LOOPBACK,
+    NO_LOOPBACK
 } ENET_LOOPBACK;
 /********EXTERNAL**********/
 typedef enum
 {
-	EXTERNAL_NONE,
-	EXTERNAL_YES
+    EXTERNAL_NONE,
+    EXTERNAL_YES
 } ENET_EXTERNAL_CONN;
 
 /* FEC Configuration Parameters */
 typedef struct
 {
-  const char *      name;			 /* enet name */
+  const char *      name;            /* enet name */
   ENET_INTERFACE      interface;     /* Transceiver mode  */
   ENET_AUTONEG        neg;           /* FEC autoneg */
   ENET_SPEED          speed;         /* Ethernet Speed           */

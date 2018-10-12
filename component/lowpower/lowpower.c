@@ -44,6 +44,14 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+struct LowPowerCtrl
+{
+    u32 SleepLevel;                             //当前低功耗级别
+    u32 DisableCounter;     //禁止低功耗次数计数,0才可以进入L1及以上级别低功耗
+    u32 (*EntrySleepReCall)(u32 SleepLevel);      //进入低功耗状态前的回调函数
+    u32 (*ExitSleepReCall)(u32 SleepLevel);       //从低功耗状态唤醒后的回调函数
+
+};
 
 struct LowPowerCtrl g_tLowPower;
 

@@ -84,7 +84,7 @@ struct Slave_ISBUSPort
 {
     struct Slave_ISBUSPort *Next;           //组成单向链表，末端指向NULL
     struct Slave_FunctionSocket *SocketHead;//组成单向循环链表，Head指向当前接收的功能号值
-    struct DjyDevice *SerialDevice;         //对应的设备指针
+    s32 SerialDevice;         //对应的设备指针
     Slave_FntProtocolError fnError;         //出错对应的回调函数
     u32 ErrorPkgs;                          //累计错误数
     u32 ErrorLast;                          //最后一次错误号
@@ -438,8 +438,8 @@ bool_t Slave_ModuleInstall_InSerial(u32 StackSize)
 //                操作系统tick间隔限制。0xffffffff（-1）代表不设超时。
 // 返回值：  通信插口指针
 // ============================================================================
-struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(struct DjyDevice *dev,\
-                                                     Slave_FntProtocolError fnError,u32 Timeout)
+struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(s32 dev,\
+                               Slave_FntProtocolError fnError,u32 Timeout)
 {
     struct Slave_ISBUSPort *Port;
     if(dev == NULL)
@@ -475,14 +475,14 @@ struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(struct DjyDevice *dev,\
         Port->SendP = sizeof(struct Slave_ISBUSProtocol);  //发送偏移量为协议头
         Port->MTC_Address = CN_INS_MULTICAST;
 //        Driver_SetUserTag(dev, (ptu32_t)Port);
-        Dev_SetUserTag(dev, (ptu32_t)Port);
+        dev_SetUserTag(dev, (ptu32_t)Port);
 //        Driver_MultiplexAdd(Slave_sg_ptMultiplexPort, &dev, 1,
 //                                               CN_MULTIPLEX_SENSINGBIT_READ
 //                                            |  CN_MULTIPLEX_SENSINGBIT_WRITE
 //                                            |  CN_MULTIPLEX_SENSINGBIT_ERROR
 //                                            |  CN_MULTIPLEX_SENSINGBIT_ET
 //                                            |  CN_MULTIPLEX_SENSINGBIT_OR    );
-        Multiplex_AddObject(Slave_sg_ptMultiplexPort,  1,
+        Multiplex_AddObject(Slave_sg_ptMultiplexPort,  dev,
                                                CN_MULTIPLEX_SENSINGBIT_READ
                                             |  CN_MULTIPLEX_SENSINGBIT_WRITE
                                             |  CN_MULTIPLEX_SENSINGBIT_ERROR

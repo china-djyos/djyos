@@ -26,8 +26,9 @@ void Sys_ModuleInit(void)
 	extern s32 ModuleInstall_Shell(ptu32_t para);
 	ModuleInstall_Shell(0);
 
-    extern void ModuleInstall_BlackBox(void);
-    ModuleInstall_BlackBox();
+	//-------------------early-------------------------//
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -52,6 +53,8 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART6);
 	#endif
 
+	//-------------------medium-------------------------//
+	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 

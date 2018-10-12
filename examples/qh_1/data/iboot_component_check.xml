@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component>
+  <blackbox>true</blackbox>
   <buffer>true</buffer>
   <ascii_charset>true</ascii_charset>
   <gb2312_charset>false</gb2312_charset>
@@ -14,7 +15,6 @@
   <iicbus>true</iicbus>
   <spibus>false</spibus>
   <djybus>true</djybus>
-  <blackbox>true</blackbox>
   <ascii_font>true</ascii_font>
   <gb2312_dot>false</gb2312_dot>
   <font>true</font>
@@ -62,6 +62,7 @@
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
   <Sharc21469>false</Sharc21469>
+  <silan>false</silan>
   <sldrv>false</sldrv>
   <stm32f1>true</stm32f1>
   <stm32f3>false</stm32f3>
