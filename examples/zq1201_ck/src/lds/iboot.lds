@@ -71,6 +71,7 @@ SECTIONS
         *ints.o (.data .data.*)
         *heap-static.o (.data .data.*)
         *list.o (.data .data.*)
+        *cpu_peri_isr.o (.data .data.*)
 		. = ALIGN(0x08);
     }>RAM_SDRAM AT>ROM_SDRAM
 	
@@ -87,6 +88,7 @@ SECTIONS
         *ints.o (.bss .bss.* COMMON)
         *heap-static.o (.bss .bss.* COMMON)
         *list.o (.bss .bss.* COMMON)
+        *cpu_peri_isr.o (.bss .bss.* COMMON)
     }>RAM_SDRAM
 	
 	rw_sysload_rRAM1_lIbootRom :

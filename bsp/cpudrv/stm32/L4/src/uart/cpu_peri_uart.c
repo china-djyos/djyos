@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -100,34 +100,34 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_uart"                        //CPU的uart外设驱动
-//parent:"uart"                                         //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                                     //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                                           //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                                       //初始化时机，可选值：early，medium，later。
-                                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"devfile","lock","uart","stm32L4","heap"     //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                         //选中该组件时，被依赖组件将强制选中，
-                                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"                                  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                                         //选中该组件时，被依赖组件不会被强制选中，
-                                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                                           //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                         //如果依赖多个组件，则依次列出，用“,”分隔
+//component name:"cpu_peri_uart"//CPU的uart外设驱动
+//parent:"uart"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","lock","uart","heap"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_UART_SENDBUF_LEN   //****检查参数是否已经配置好
+#ifndef CFG_UART_SENDBUF_LEN    //****检查参数是否已经配置好
 #warning    cpu_peri_uart组件参数未配置，使用默认值
 //%$#@num,32,512,
 #define CFG_UART_SENDBUF_LEN     (256)          //"串口发送环形缓冲区大小",
 #define CFG_UART_RECVBUF_LEN     (256)          //"串口接收环形缓冲区大小",
 //%$#@enum,true,false,
-#define CFG_UART1_ENABLE         true           //"是否使用USART1",
-#define CFG_UART2_ENABLE         false          //"是否使用USART2",
-#define CFG_UART3_ENABLE         false          //"是否使用USART3",
+#define CFG_USART1_ENABLE         true           //"是否使用USART1",
+#define CFG_USART2_ENABLE         false          //"是否使用USART2",
+#define CFG_USART3_ENABLE         false          //"是否使用USART3",
 #define CFG_UART4_ENABLE         false          //"是否使用UART4",
 #define CFG_UART5_ENABLE         false          //"是否使用UART5",
 #define CFG_LPUART1_ENABLE       false          //"是否使用LPUART1",
@@ -867,7 +867,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         PutStrDirect = NULL ;
     }
 
-    if(PutStrDirect != NULL)
+    if(PutStrDirect == NULL)
     {
         PutStrDirectH = phuart[TxDirectPort];
         __UART_HardInit(TxDirectPort);
@@ -904,7 +904,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         GetCharDirect = NULL ;
     }
 
-    if(GetCharDirect != NULL)
+    if(GetCharDirect == NULL)
     {
         GetCharDirectH = phuart[RxDirectPort];
         if(TxDirectPort != RxDirectPort)

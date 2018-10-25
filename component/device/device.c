@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -98,10 +98,10 @@ struct __device
 };
 
 // ============================================================================
-// 功能：是否Block Complete操作
+// 功能：是否为写完成返回操作
 // 参数：flags -- 文件使用标志；
-// 返回：目录（1）；非目录（0）；
-// 备注：用于设备的操作模式
+// 返回：（1）写完成返回；（0）非写完成返回；
+// 备注：用于判断设备的操作模式
 // ============================================================================
 inline s32 isbc(u32 flags)
 {
@@ -112,10 +112,10 @@ inline s32 isbc(u32 flags)
 }
 
 // ============================================================================
-// 功能：是否RAW操作
-// 参数：flags -- 文件使用标志；
-// 返回：目录（1）；非目录（0）；非法（-1）；
-// 备注：用于设备的操作模式
+// 功能：是否裸操作，不考虑文件属性
+// 参数：had -- 被判断设备对象的句柄；
+// 返回：-1 参数错误 1具有RAW属性 0不具有RAW属性
+// 备注：用于判断设备的操作模式
 // ============================================================================
 inline s32 israw(struct objhandle *hdl)
 {
@@ -136,7 +136,7 @@ inline s32 israw(struct objhandle *hdl)
 // 返回：成功（设备对象句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
+static struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
 {
     struct objhandle *devfile;
     struct __device *dev;
@@ -301,26 +301,26 @@ static s32 __devcntl(struct objhandle *hdl, u32 cmd, ptu32_t arg0, ptu32_t arg1)
         case F_GETDRVTAG:
         {
             ptu32_t *drv = (ptu32_t*)arg0;
-            *drv = dev_GetDrvTag(handle2obj(hdl));
+            *drv = dev_GetDrvTag(Handle2fd(hdl));
             break;
         }
 
         case F_GETUSERTAG:
         {
             ptu32_t *usr = (ptu32_t*)arg0;
-            *usr = dev_GetUserTag(handle2obj(hdl));
+            *usr = dev_GetUserTag(Handle2fd(hdl));
             break;
         }
 
         case F_SETDRVTAG:
         {
-            dev_SetDrvTag(handle2obj(hdl),arg0);
+            dev_SetDrvTag(Handle2fd(hdl),arg0);
             break;
         }
 
         case F_SETUSERTAG:
         {
-            dev_SetUserTag(handle2obj(hdl),arg0);
+            dev_SetUserTag(Handle2fd(hdl),arg0);
             break;
         }
 
@@ -340,7 +340,7 @@ static s32 __devcntl(struct objhandle *hdl, u32 cmd, ptu32_t arg0, ptu32_t arg1)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 __devstat(struct obj *ob, struct stat *data)
+static s32 __devstat(struct obj *ob, struct stat *data)
 {
     struct __device *dev;
 
@@ -369,7 +369,7 @@ s32 __devstat(struct obj *ob, struct stat *data)
 // 返回：
 // 备注：
 // ============================================================================
-static ptu32_t __devfileoperations(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...)
+static ptu32_t Dev_DevObjOps(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...)
 {
     va_list list;
 
@@ -491,8 +491,9 @@ static s32 __isdev(struct obj *dev)
 
 // ============================================================================
 // 功能：设置设备的驱动标签；
-// 参数：hdl -- 设备对象句柄；
-// 返回：驱动标签；
+// 参数：fd -- 设备文件描述符；
+//       DrvTag --设备的驱动标签；
+// 返回：
 // 备注：
 // ============================================================================
 void dev_SetDrvTag(s32 fd,ptu32_t DrvTag)
@@ -512,7 +513,8 @@ void dev_SetDrvTag(s32 fd,ptu32_t DrvTag)
 
 // ============================================================================
 // 功能：设置设备的用户标签
-// 参数：hdl -- 设备对象句柄；
+// 参数：：fd -- 设备文件描述符；
+//         DrvTag --设备的用户标签；
 // 返回：用户标签
 // 备注：
 // ============================================================================
@@ -533,7 +535,7 @@ ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag)
 
 // ============================================================================
 // 功能：获取设备的驱动标签；
-// 参数：hdl -- 设备对象句柄；
+// 参数：fd -- 设备文件描述符；
 // 返回：驱动标签；
 // 备注：
 // ============================================================================
@@ -554,7 +556,7 @@ ptu32_t dev_GetDrvTag(s32 fd)
 
 // ============================================================================
 // 功能：获取设备的用户标签
-// 参数：hdl -- 设备对象句柄；
+// 参数：fd -- 设备文件描述符；
 // 返回：用户标签
 // 备注：
 // ============================================================================
@@ -600,7 +602,7 @@ inline struct obj *dev_group_addo(char *name)
 #else
     struct obj *ob;
 
-    ob = obj_newchild(__dev_sys_root, __devfileoperations, O_RDWR, 0, name);
+    ob = obj_newchild(__dev_sys_root, Dev_DevObjOps, O_RDWR, 0, name);
     if(!ob)
         return (NULL);
 
@@ -681,7 +683,7 @@ inline s32 dev_group_delo(struct obj *grp)
 
 // ============================================================================
 // 功能：删除设备子类
-// 参数：grp -- 设备子类名；
+// 参数：name -- 设备子类名；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
@@ -731,7 +733,7 @@ s32 dev_group_del(char *name)
 
 // ============================================================================
 // 功能：添加一个设备到其设备类；
-// 参数：grp -- 设备子类；为NULL，则表示其是devcie的子类；
+// 参数：grp -- 设备子类；为NULL，则表示其是dev的子类；
 //      name -- 设备名；
 // 返回：成功（设备对象）；失败（NULL）；
 // 备注：
@@ -818,7 +820,7 @@ inline struct obj *dev_addo(struct obj *grpo, const char *name,
 // ============================================================================
 // 功能：添加一个设备到其设备类；
 // 参数：grp -- 设备类；
-//      name -- 设备名；
+//       name -- 设备名；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
@@ -967,9 +969,9 @@ ptu32_t devo2drv(struct obj *devo)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
+// 功能：获取设备对象的名字
+// 参数：devo -- 设备对象指针
+// 返回：设备对象的名字
 // 备注：
 // ============================================================================
 inline const char *devo2name(struct obj *devo)
@@ -1015,7 +1017,7 @@ s32 mount_device_system(void)
     }
 
     Lock_MutexCreate_s(&__dev_sys_lock, "dev");
-    __dev_sys_root = obj_newchild_set(objsys_root(), "dev", __devfileoperations, 0, O_RDWR);
+    __dev_sys_root = obj_newchild_set(objsys_root(), "dev", Dev_DevObjOps, 0, O_RDWR);
     if(!__dev_sys_root)
     {
         debug_printf("device","cannot install device file system(mount).");
@@ -1035,7 +1037,7 @@ s32 mount_device_system(void)
 //      flags,设备打开模式,D_RDONLY,D_WRONLY,D_RDWR中的一个
 //      timeout，超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
 //          超时返回。非0值将被向上调整为CN_CFG_TICK_US的整数倍
-// 返回：成功打开设备返回设备句柄,否则返回-1.
+// 返回：成功打开设备返回描述符,否则返回-1.
 // 备注：O_RDONLY、O_WRONLY、O_RDWR 须符合POSIX（2016）的最新定义
 // ============================================================================
 s32 DevOpen(const char *name, s32 flags, u32 timeout)
@@ -1056,17 +1058,17 @@ s32 DevOpen(const char *name, s32 flags, u32 timeout)
     if(!devfile)
         return (-1);
 
-    return Hande2fd(devfile);
+    return Handle2fd(devfile);
 }
 
 // ============================================================================
 // 功能：关闭设备，由于设备受互斥量保护，故只有设备拥有者(即打开设备的事件)才能关
 //      闭设备，这是由互斥量的特点决定的。
-// 参数：dwFD -- 设备文件句柄
+// 参数：fd -- 设备文件描述符
 // 返回：成功（TRUE）；失败（FALSE）；
 // 备注：
 // ============================================================================
-s32 DevClose(s32 handle)
+s32 DevClose(s32 fd)
 {
 #if 0
     struct __device * dev;
@@ -1097,7 +1099,7 @@ s32 DevClose(s32 handle)
     s32 res;
     struct objhandle *devfile;
 
-    devfile = fd2Handle(handle);
+    devfile = fd2Handle(fd);
     if(!devfile)
         return (-1);
 
@@ -1112,18 +1114,17 @@ s32 DevClose(s32 handle)
 
 // ============================================================================
 // 功能：从设备读取数据.
-// 参数：dev,设备指针
-//      pBuf,用于接收数据的缓冲区，其容量必须不小于len。buf的容量无法检查。
-//      dwLen,buf的容量，接收数据将不大于它，须小于buf的实际容量。
-//      offset,读取位置在设备中的偏移，对于流设备(例如串口)来说，通常是0.
-//      timeout，超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
+// 参数：fd -- 设备描述符
+//       buf -- 用于接收数据的缓冲区，其容量必须不小于len。buf的容量无法检查。
+//       offset -- 读取位置在设备中的偏移，对于流设备(例如串口)来说，通常是0.
+//       timeout -- 超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
 //          超时返回。非0值将被向上调整为CN_CFG_TICK_US的整数倍
 //      以上参数，driver模型只是如实传送给具体设备，设备开发者也可以不遵守上述
 //      规定。
 // 返回：实际读到的数据量；
 // 备注：
 // ============================================================================
-s32 DevRead(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
+s32 DevRead(s32 fd, void *buf, u32 len, u32 offset, u32 timeout)
 {
     struct __device *dev;
     struct objhandle *devfile;
@@ -1131,7 +1132,7 @@ s32 DevRead(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
     if((!len) || (!buf))
         return (0);
 
-    devfile = fd2Handle(handle);
+    devfile = fd2Handle(fd);
     if(!devfile)
         return (0);
 
@@ -1145,16 +1146,16 @@ s32 DevRead(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
 
 // ============================================================================
 // 功能：把数据写入设备.
-// 参数：dwFD -- 设备指针
-//      pBuf -- 待发送数据的缓冲区。
-//      dwLen -- 发送的数据量
-//      dwOffset -- 写入位置在设备中的偏移，对于流设备(例如串口)来说，通常是0.
-//      timeout -- 超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
+// 参数：fd -- 设备描述符
+//       buf -- 待发送数据的缓冲区。
+//       len -- 发送的数据量
+//       offset -- 写入位置在设备中的偏移，对于流设备(例如串口)来说，通常是0.
+//       timeout -- 超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
 //          超时返回。非0值将被向上调整为CN_CFG_TICK_US的整数倍
 // 返回：实际写出的数据量；
 // 备注：
 // ============================================================================
-s32 DevWrite(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
+s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout)
 {
     struct __device * dev;
     struct objhandle *devfile;
@@ -1162,7 +1163,7 @@ s32 DevWrite(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
     if((!len) || (!buf))
         return (0);
 
-    devfile = fd2Handle(handle);
+    devfile = fd2Handle(fd);
     if(!devfile)
         return (0);
 
@@ -1175,19 +1176,19 @@ s32 DevWrite(s32 handle, void *buf, u32 len, u32 offset, u32 timeout)
 
 // ============================================================================
 // 功能：控制设备.
-// 参数：dwFD,设备指针
-//      dwCmd,命令号，driver.h中预定义了一些命令，以及用户命令的使用规则，可参阅
+// 参数：fd -- 设备指针
+//       dwCmd -- 命令号，driver.h中预定义了一些命令，以及用户命令的使用规则，可参阅
 //          常量CN_DEV_CTRL_START定义附近代码。
-//      data1，data2,控制命令所需要的参数，由设备开发者定义
+//       data1，data2 -- 控制命令所需要的参数，由设备开发者定义
 // 返回：-1表示参数检查出错，其他值由设备开发者定义
 // 备注：
 // ============================================================================
-s32 DevCntl(s32 dwFD, u32 dwCmd, ptu32_t data1, ptu32_t data2)
+s32 DevCntl(s32 fd, u32 dwCmd, ptu32_t data1, ptu32_t data2)
 {
     struct __device *dev;
     struct objhandle *devfile;
 
-    devfile = fd2Handle(dwFD);
+    devfile = fd2Handle(fd);
     if(!devfile)
         return (-1);
 

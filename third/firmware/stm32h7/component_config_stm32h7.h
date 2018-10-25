@@ -7,8 +7,8 @@
 //%$#@describe      ****组件描述开始
 //component name:"stm32h7"      //原创固件库
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:第三方组件          //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:third               //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:none                //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
@@ -29,9 +29,8 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 //%$#@string,1,16
-//%$#@select,1
+//%$#@select,2
 #define     USE_HAL_DRIVER          //是否使用hal库
-//%$#@select,1
 //#define STM32H743xx         //只能选中其中一个
 //#define STM32H753xx
 //%$#@free

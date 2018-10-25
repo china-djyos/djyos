@@ -43,15 +43,17 @@
   <heap>true</heap>
   <int>true</int>
   <lock>true</lock>
-  <MsgQueue>false</MsgQueue>
+  <MsgQueue>true</MsgQueue>
   <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
+  <board>true</board>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
   <atsam4s>false</atsam4s>
   <atsamv7>false</atsamv7>
+  <csky>true</csky>
   <imxrt1052>false</imxrt1052>
   <lpc12xx>false</lpc12xx>
   <lpc17xx>false</lpc17xx>
@@ -79,5 +81,6 @@
   <wolfssl>false</wolfssl>
   <zlib>false</zlib>
   <Clib>true</Clib>
+  <cpu_peri_isr>true</cpu_peri_isr>
   <cpu_peri_uart>true</cpu_peri_uart>
 </component>

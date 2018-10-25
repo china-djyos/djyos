@@ -18,11 +18,11 @@
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>
    <component>/component/font/font.c</component>
-   <component>/component/fs/efs/component_config_elf.h</component>
+   <component>/component/fs/efs/component_config_efs.h</component>
    <component>/component/fs/fat/component_config_fat.h</component>
    <component>/component/fs/iap/component_config_iap.h</component>
    <component>/component/fs/yaf2/component_config_yaf2.h</component>
-   <component>/component/fs/filesystems.c</component>
+   <component>/component/fs/component_config_fs.h</component>
    <component>/component/gui/gdd/component_config_gdd.h</component>
    <component>/component/gui/gkernel/component_config_gk.h</component>
    <component>/component/hmi-input/keypad/keyboard.c</component>
@@ -53,6 +53,7 @@
    <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
    <component>/third/firmware/AtmelSam4s/component_config_atmelsam4s.h</component>
    <component>/third/firmware/AtmelSamV7/component_config_atmelsamv7.h</component>
+   <component>/third/firmware/csky/component_config_csky.h</component>
    <component>/third/firmware/imxrt1052/component_config_imxrt1052.h</component>
    <component>/third/firmware/lpc12xx/component_config_lpc12xx.h</component>
    <component>/third/firmware/lpc17xx/component_config_lpc17xx.h</component>
@@ -119,5 +120,6 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
+   <component>/bsp/cpudrv/ZQ/zq12xx-ck/src/int/cpu_peri_isr.c</component>
    <component>/bsp/cpudrv/ZQ/zq12xx-ck/src/uart/cpu_peri_uart.c</component>
 </components>

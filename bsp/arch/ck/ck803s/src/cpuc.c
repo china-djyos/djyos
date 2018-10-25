@@ -42,21 +42,21 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+// =============================================================================
 #include "core_ck803.h"
 #include "arch_feature.h"
-#include "silan_irq.h"
 #include "align.h"
 #include "int.h"
 #include "stdint.h"
 #include "djyos.h"
 #include "hard-exp.h"
 #include "board-config.h"
-#include "cpu_peri_int_line.h"
+#include "cpu_peri.h"
 
 #if (CN_USE_TICKLESS_MODE)
 #if (!CN_CFG_USE_USERTIMER)
 #define CN_CFG_SAVE_ASYN    (0U)
-#define CN_TIME_ROUNDING    (32768U)//閸ユ稖鍨楁禍鏂垮弳閻ㄥ嫬锟�
+#define CN_TIME_ROUNDING    (32768U)//闁搞儲绋栭崹妤佺閺傚灝寮抽柣銊ュ閿燂拷
 #define TIME_GLUE           (CN_CFG_TIME_BASE_HZ>Mhz ? (CN_CFG_TIME_BASE_HZ/Mhz) : (Mhz/CN_CFG_TIME_BASE_HZ))
 #define FAST_TIME_GLUE      ((1<<16)/TIME_GLUE)
 #define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(500*TIME_GLUE):((500*CN_CFG_TIME_BASE_HZ)/Mhz))
@@ -126,7 +126,7 @@ void __Djy_SetTimeBaseCnt(u32 cnt)
     u32 temp_cur = 0;
     if((cnt>CN_LIMIT_UINT24) || (cnt==0) || (bg_reload_flag == GETSYSCNT_FLAG))
     {
-        //閻炲棜顔戞稉濠佺瑝閸欘垵鍏橀崙铏瑰箛濮濄倓绨ㄦ禒锟�        return;
+        //闁荤偛妫滈鎴炵▔婵犱胶鐟濋柛娆樺灥閸忔﹢宕欓搹鐟扮疀婵縿鍊撶花銊︾閿燂拷        return;
     }
     if( bg_reload_flag != NOTINT_FLAG )
         temp_reload = CORET->LOAD;
@@ -140,7 +140,7 @@ void __Djy_SetTimeBaseCnt(u32 cnt)
 #endif
     CORET->LOAD = cnt;
     temp_cur = CORET->VAL;
-    CORET->VAL = cnt;//閸愭獑urrent鐎靛嫬鐡ㄩ崳銊ョ杽闂勫懍绗傛导姘▏閸忓爼鍣哥憗鍛版祰reload閸婏拷
+    CORET->VAL = cnt;//闁告劖鐛憉rrent閻庨潧瀚悺銊╁闯閵娿儳鏉介梻鍕噸缁楀倹瀵煎顐⑩枏闁稿繐鐖奸崳鍝ユ啑閸涚増绁皉eload闁稿鎷�
 #if (!CN_CFG_USE_BYPASSTIMER)
     if(temp_reload > temp_cur )
             g_time_base_tick += temp_reload - temp_cur;
@@ -264,7 +264,7 @@ u64 __DjyGetSysTime(void)
 }
 #endif
 #else
-extern s64  g_s64OsTicks;             //閹垮秳缍旂化鑽ょ埠鏉╂劘顢憈icks閺侊拷
+extern s64  g_s64OsTicks;             //闁瑰灝绉崇紞鏃傚寲閼姐倗鍩犻弶鈺傚姌椤㈡唸icks闁轰緤鎷�
 extern void Init_Cpu(void);
 extern void Load_Preload(void);
 __attribute__((weak)) void __InitTimeBase(void)
@@ -281,12 +281,14 @@ __attribute__((weak)) void __DjyInitTick(void)
 
     csi_vic_enable_irq(PIC_IRQID_CTIMER);
 
-    Int_Register(CN_INT_LINE_CORET);
-    Int_SetClearType(CN_INT_LINE_CORET,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(CN_INT_LINE_CORET,Exp_SystickTickHandler);
-    Int_SettoAsynSignal(CN_INT_LINE_CORET);
-    Int_ClearLine(CN_INT_LINE_CORET);
-    Int_RestoreAsynLine(CN_INT_LINE_CORET);
+//    Int_Register(CN_INT_LINE_CORET);
+//    Int_SetClearType(CN_INT_LINE_CORET,CN_INT_CLEAR_AUTO);
+//    Int_IsrConnect(CN_INT_LINE_CORET,Exp_SystickTickHandler);
+//    Int_SettoAsynSignal(CN_INT_LINE_CORET);
+//    Int_ClearLine(CN_INT_LINE_CORET);
+//    Int_RestoreAsynLine(CN_INT_LINE_CORET);
+
+    djybsp_isr_hdl_register(CN_INT_LINE_CORET,0,Exp_SystickTickHandler,CN_INT_LINE_CORET);
 }
 
 __attribute__((weak)) s64 __DjyGetSysTime(void)

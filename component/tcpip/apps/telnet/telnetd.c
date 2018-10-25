@@ -25,7 +25,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -122,11 +122,11 @@ static u32 __read(void *obj,u8 *buf,u32 len,u32 offset,u32 timeout)
         if(Ring_Check(gDevTelnetd.ring)) //still some data in the ring
         {
             semp_post(gDevTelnetd.rcvsync);
-            fcntl(Hande2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(Handle2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else
         {
-            fcntl(Hande2fd(gDevTelnetd.obj),F_CLREVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(Handle2fd(gDevTelnetd.obj),F_CLREVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
     }
     return ret;
@@ -196,7 +196,7 @@ static void __telnetclientengine(int sock)
 
     Ring_Write(gDevTelnetd.ring,(u8 *)opt,sizeof(tagNvtCmd));
     semp_post(gDevTelnetd.rcvsync);
-    fcntl(Hande2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+    fcntl(Handle2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
     //OK,now send info here
     sendexact(sock,(u8 *)CN_CLIENT_WELCOM,strlen(CN_CLIENT_WELCOM));
     gDevTelnetd.clientfd = sock;
@@ -207,7 +207,7 @@ static void __telnetclientengine(int sock)
         {
             Ring_Write(gDevTelnetd.ring,(u8 *)&ch,1);
             semp_post(gDevTelnetd.rcvsync);
-            fcntl(Hande2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(Handle2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else if(len == 0)
         {

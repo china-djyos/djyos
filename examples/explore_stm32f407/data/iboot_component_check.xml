@@ -47,12 +47,13 @@
   <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
-  <explorer_board>true</explorer_board>
+  <board>true</board>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
   <atsam4s>false</atsam4s>
   <atsamv7>false</atsamv7>
+  <csky>false</csky>
   <imxrt1052>false</imxrt1052>
   <lpc12xx>false</lpc12xx>
   <lpc17xx>false</lpc17xx>

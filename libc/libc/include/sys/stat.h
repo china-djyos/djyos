@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -63,7 +63,7 @@
 extern "C"{
 #endif
 
-//方便第三方移植，内部逻辑未实现
+//方便第三方移植，内部逻辑未实现，对应struct stat的st_mode成员的0-11bit
 //open 调用的第三个参数
 #define   S_ISUID    0004000   //set-user-ID bit
 #define   S_ISGID    0002000   //set-group-ID bit (see below)
@@ -108,7 +108,7 @@ struct stat
 #define S_ISLNK(x)      ((x&S_IFMT)==S_IFLNK?true:false) // symbolic link?  (Not in POSIX.1-1996.)
 #define S_ISSOCK(x)     ((x&S_IFMT)==S_IFSOCK?true:false) // socket?  (Not in POSIX.1-1996.)
 // 私有定义
-#define S_ISBF(x)       ((x&S_IFMT)==__S_IBUF?true:false) // 表示可以作为C文件可以作缓冲；
+#define S_ISFLOW(x)       ((x&S_IFMT)==S_IFFLOW?true:false) // 表示可以作为C文件可以作缓冲；
 
 int   _EXFUN(stat, (const char *restrict, struct stat *restrict));
 int   _EXFUN(fstat, (int, struct stat *restrict));

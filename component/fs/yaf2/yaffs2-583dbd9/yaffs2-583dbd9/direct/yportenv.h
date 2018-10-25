@@ -18,13 +18,13 @@
 #define __YPORTENV_H__
 /* ÒÆÖ²Ìí¼Ó */
 #include "../../../port/config.h"
-
+#include <stdint.h>
 /* Definition of types */
 #ifdef CONFIG_YAFFS_DEFINES_TYPES
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-typedef signed int s32;
+//typedef unsigned char u8;
+//typedef unsigned short u16;
+//typedef unsigned int u32;
+//typedef signed int s32;
 #endif
 
 

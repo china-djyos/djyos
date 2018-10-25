@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -114,7 +114,6 @@ typedef s32 (*fntDevClose)(struct objhandle *of);
 //以串口为例，如果调用dev_WriteDevice时BlockOption = CN_BLOCK_BUFFER，则返回值表
 //示函数返回时成功写入到设备缓冲区的数据量，并不确定是否已经从物理串口传输出去了。
 //如果BlockOption = CN_BLOCK_COMPLETE，则能确保传输完成才返回。
-//这个特性对485通信特别有用，因为RS485需要控制收发切换，
 typedef s32 (*fntDevWrite)(struct objhandle *of, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值:成功读取的字节数
 typedef s32 (*fntDevRead) (struct objhandle *of, u8 *data, u32 size, u32 offset, u32 timeout);
@@ -143,10 +142,10 @@ ptu32_t dev_GetUserTag(s32 fd);
 ptu32_t dev_GetDrvTag(s32 fd);
 
 s32 DevOpen(const char *name, s32 flags,u32 timeout);
-s32 DevClose(s32 handle);
-s32 DevRead(s32 handle, void *buf, u32 len, u32 offset, u32 timeout);
-s32 DevWrite(s32 handle, void *buf, u32 len, u32 offset, u32 timeout);
-s32 DevCntl(s32 handle, u32 cmd, ptu32_t data1, ptu32_t data2);
+s32 DevClose(s32 fd);
+s32 DevRead(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
+s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
+s32 DevCntl(s32 fd, u32 cmd, ptu32_t data1, ptu32_t data2);
 #ifdef __cplusplus
 }
 #endif

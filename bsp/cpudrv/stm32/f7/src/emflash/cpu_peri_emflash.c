@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -66,12 +66,12 @@
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_emflash"     //片内flash读写
 //parent:"iap"                          //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                      //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                            //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                      //初始化时机，可选值：early，medium，later。
+//init time:early                       //初始化时机，可选值：early，medium，later。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"iap","devfile","lock","stm32f7", //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"iap","devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
 //weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -85,16 +85,15 @@
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 
 //%$#@num,0,100,
-//%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
-//%$#@free,
-#define CFG_EMBEDED     __embed_part_init    //"驱动初始化"
-//%$#@object_num,0,1,2,3,4,..,100
+//%$#@enum,0,1,2,3,4,..,100
 #define CFG_PARTS   0     //分区数
-//%$#@object_para,
+//%$#@enum_config
 #define CFG_PART_START      //分区起始
 #define CFG_PART_SIZE       //分区大小
 #define CFG_PART_OPTION     //分区选项
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
 //%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表

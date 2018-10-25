@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -140,10 +140,10 @@ bool_t IsInitedStdio(FILE* stream);
 #define __SWID  0x2000      /* true => stream orientation wide, false => byte, only valid if __SORD in _flags is true */
 
 
-/* Flags for the iobuf structure  */
+// 定义缓冲文件系统操作的标志
 #define FP_IOREAD           0x0001      // currently reading
 #define FP_IOWRITE          0x0002      // currently writing
-#define FP_IOFLOW           0x0100      // 流动数据，例如串口，display等，不允许写缓冲
+//#define FP_IOFLOW           0x0100      // 流动数据，例如串口，display等，不允许写缓冲
 #define FP_IORW             0x0080      // opened as "r+w"
 #define FP_BINARY           0x1000      // reading binary file
 #define FP_TEXT             0x2000      // reading text file

@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -81,8 +81,8 @@
 //%$#@describe      ****组件描述开始
 //component name:"wdt"          //系统看门狗组件
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
@@ -115,10 +115,10 @@
 #define CN_WDT_YIP_NEVER      CN_LIMIT_SINT64     //当timeout为该时间时表示该看门狗暂停状态
 #define CN_WDT_YIP_PRECISION  CN_CFG_TICK_US      //软件看门狗模块的狗叫时间精度
 
-struct Wdt;
-typedef u32 (* fnYipHook)(struct Wdt *wdt);
+//struct Wdt;
+//typedef u32 (* fnYipHook)(struct Wdt *wdt);
 //the struct of the wdt
-typedef struct Wdt
+struct Wdt
 {
     struct Wdt *ppre;        //双向不循环链表指针-前
     struct Wdt *pnxt;        //双向不循环链表指针-后
@@ -144,7 +144,7 @@ typedef struct Wdt
     //2、但被监控代码在某特定条件下（if语句），有执行IO操作，该IO操作可能耗时
     //   5秒。则可在执行IO操作前，把ExhaustLimit设为5（用EN_WDTCMD_SETSCHLEVEL命令）
     u32             ExhaustLimit;
-}tagWdt;
+};
 
 //软件看门狗的消息类型
 typedef struct

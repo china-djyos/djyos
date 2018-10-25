@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -79,8 +79,8 @@
 //%$#@describe      ****组件描述开始
 //component name:"uart"         //uart设备系统
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:none                //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
@@ -171,12 +171,12 @@ s32 UART_Open(struct objhandle *hdl, u32 Mode, u32 timeout)
         return (-1);
 
 #if 0
-    Fd = Hande2fd( hdl );
+    Fd = Handle2fd( hdl );
 //  UartObj = KF_GetHostObject(hdl);
 //  Dev = (struct DjyDevice *)OBJ_Represent(UartObj);
     UGCB = (struct UartGeneralCB *)Dev_GetDevTag(Fd);
 #else
-    UGCB = (struct UartGeneralCB *)dev_GetDrvTag(hdl);
+    UGCB = (struct UartGeneralCB *)dev_GetDrvTag(Handle2fd(hdl));
 #endif
     handle_linkcontext(hdl, (ptu32_t)UGCB);  //Fd上下文指向串口控制块struct UartGeneralCB
     if( ! Ring_IsEmpty(&UGCB->RecvRingBuf))
@@ -304,7 +304,7 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
     if(hdl == NULL)
         return 0;
 
-//    Fd = Hande2fd(hdl);
+//    Fd = Handle2fd(hdl);
     UGCB = (struct UartGeneralCB *)handle_context(hdl);
 
     if(Lock_MutexPend(UGCB->ReadMutex,timeout)==false)
@@ -530,12 +530,12 @@ s32 UART_Poll_Open(struct objhandle *hdl, u32 Mode,u32 timeout)
     if(hdl == NULL)
         return (-1);
 #if 0
-    Fd = Hande2fd( hdl );
+    Fd = Handle2fd( hdl );
 //  UartObj = KF_GetHostObject(hdl);
 //  Dev = (struct DjyDevice *)OBJ_Represent(UartObj);
     UPCB = (struct UartPollCB *)Dev_GetDevTag(Fd);
 #else
-    UPCB = (struct UartPollCB*)dev_GetDrvTag(hdl);
+    UPCB = (struct UartPollCB*)dev_GetDrvTag(Handle2fd(hdl));
 #endif
     handle_linkcontext(hdl,(ptu32_t)UPCB);  //Fd上下文指向串口控制块struct UartGeneralCB
     if(UPCB->RecvLen != 0)
@@ -613,7 +613,7 @@ s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u
     UPCB->UartCtrl(UPCB->UartPortTag,CN_UART_RECV_BUF,(u32)dst_buf,RcvLen);
 
 #if 0
-    ClrFdAccessStatus(Hande2fd(hdl), CN_MULTIPLEX_SENSINGBIT_READ);
+    ClrFdAccessStatus(Handle2fd(hdl), CN_MULTIPLEX_SENSINGBIT_READ);
 #else
     handle_unset_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
 #endif

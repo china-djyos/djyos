@@ -59,7 +59,7 @@
 	<variableList>
 		<variable>
 			<name>DJYOS_SRC_LOCATION</name>
-			<value>$%7BPARENT-2-PROJECT_LOC%7D</value>
+			<value>$%7BPARENT-1-ECLIPSE_HOME%7D/djysrc</value>
 		</variable>
 	</variableList>
 </projectDescription>

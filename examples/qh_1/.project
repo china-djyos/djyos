@@ -64,7 +64,7 @@
 	<variableList>
 		<variable>
 			<name>DJYOS_SRC_LOCATION</name>
-			<value>file:/D:/DIDE/djysrc</value>
+			<value>$%7BPARENT-1-ECLIPSE_HOME%7D/djysrc</value>
 		</variable>
 	</variableList>
 </projectDescription>

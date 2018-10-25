@@ -6,11 +6,6 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
-#include "cpu_peri_uart.h"
-#include "djyos.h"
-#include "stdio.h"
-#include "shell.h"
-#include "board.h"
 extern ptu32_t djy_main(void);
 
 ptu32_t __djy_main(void)
@@ -23,6 +18,7 @@ void Sys_ModuleInit(void)
 {
 	uint16_t evtt_main;
 
+	extern void Board_GpioInit(void);
 	Board_GpioInit();
 
 	extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
@@ -34,10 +30,25 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
 
+	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
+	#if CFG_UART1_ENABLE ==1
+	ModuleInstall_UART(CN_UART1);
+	#endif
+	#if CFG_UART2_ENABLE ==1
 	ModuleInstall_UART(CN_UART2);
+	#endif
+	#if CFG_UART3_ENABLE ==1
+	ModuleInstall_UART(CN_UART3);
+	#endif
+	#if CFG_UART4_ENABLE ==1
+	ModuleInstall_UART(CN_UART4);
+	#endif
 
 	//-------------------medium-------------------------//
 	//-------------------later-------------------------//

@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -154,7 +154,7 @@ s32 objsys_init(void)
 // 返回：成功（文件描述符）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 Hande2fd(struct objhandle *hdl)
+s32 Handle2fd(struct objhandle *hdl)
 {
     if(!hdl)
         return (-1);
@@ -684,7 +684,7 @@ inline void handle_set_multievent(struct objhandle *hdl, u32 events)
         check = hdl->MultiplexEvents;
         hdl->MultiplexEvents |= events;
         if(check!=hdl->MultiplexEvents)
-            __Multiplex_Set(Hande2fd(hdl), hdl->MultiplexEvents);
+            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
 }
 
@@ -705,7 +705,7 @@ inline void handle_unset_multievent(struct objhandle *hdl, u32 events)
         check = hdl->MultiplexEvents;
         hdl->MultiplexEvents &= ~events;
         if(check != hdl->MultiplexEvents)
-            __Multiplex_Set(Hande2fd(hdl), hdl->MultiplexEvents);
+            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
 }
 
@@ -734,7 +734,7 @@ s32 handle_multievent_setall(list_t* all, u32 events)
         MultiplexEvents = hdl->MultiplexEvents;
         hdl->MultiplexEvents |= events;
         if(MultiplexEvents!=hdl->MultiplexEvents)
-            __Multiplex_Set(Hande2fd(hdl), hdl->MultiplexEvents);
+            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
     __unlock_handle_sys();
     return (0);
@@ -765,7 +765,7 @@ s32 handle_multievent_unsetall(list_t *all, u32 events)
         MultiplexEvents = hdl->MultiplexEvents;
         hdl->MultiplexEvents &= ~events;
         if(MultiplexEvents != hdl->MultiplexEvents)
-            __Multiplex_Set(Hande2fd(hdl),hdl->MultiplexEvents);
+            __Multiplex_Set(Handle2fd(hdl),hdl->MultiplexEvents);
     }
 
     __unlock_handle_sys();
@@ -850,7 +850,7 @@ int open(const char *pathname, int flags, ...)
 #endif
 
     hdl = __open((char*)pathname, flags, 0);
-    return (Hande2fd(hdl));
+    return (Handle2fd(hdl));
 }
 
 // ============================================================================

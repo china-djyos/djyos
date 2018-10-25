@@ -282,7 +282,7 @@ int silan_pic_request(pic_irq_t id, int subid, hdl_t hdl)
 	else {
 		SL_LOG("Normal   id = %d", id);
 		SL_LOG("hdl 		= %p", hdl);
-		err = int_pic_port_request(id, hdl);
+		//err = int_pic_port_request(id, hdl);
 		if (err) {
 			SL_DBGLOG("request irq failed. (pic port, %d)", err);
 			return err;
@@ -367,12 +367,12 @@ void silan_pic_init()
 	memset(misc_hdl,  0, TIMER_HDL_NUM * sizeof(hdl_t));
 
 	// Register second-level interrupt
-	int_pic_port_request(PIC_IRQID_SPDIF, (void *)pic_hdl_spdif);
-	int_pic_port_request(PIC_IRQID_SDMAC, (void *)pic_hdl_sdmac);
-	int_pic_port_request(PIC_IRQID_ADMAC, (void *)pic_hdl_admac);
-	int_pic_port_request(PIC_IRQID_GPIO1, (void *)pic_hdl_gpio1);
-	int_pic_port_request(PIC_IRQID_GPIO2, (void *)pic_hdl_gpio2);
-	int_pic_port_request(PIC_IRQID_MISC,  (void *)pic_hdl_misc);
-	int_pic_port_request(PIC_IRQID_PMU,   (void *)pic_hdl_pmu);
-	int_pic_port_request(PIC_IRQID_TIMER, (void *)pic_hdl_timer);
+//	int_pic_port_request(PIC_IRQID_SPDIF, (void *)pic_hdl_spdif);
+//	int_pic_port_request(PIC_IRQID_SDMAC, (void *)pic_hdl_sdmac);
+//	int_pic_port_request(PIC_IRQID_ADMAC, (void *)pic_hdl_admac);
+//	int_pic_port_request(PIC_IRQID_GPIO1, (void *)pic_hdl_gpio1);
+//	int_pic_port_request(PIC_IRQID_GPIO2, (void *)pic_hdl_gpio2);
+//	int_pic_port_request(PIC_IRQID_MISC,  (void *)pic_hdl_misc);
+//	int_pic_port_request(PIC_IRQID_PMU,   (void *)pic_hdl_pmu);
+//	int_pic_port_request(PIC_IRQID_TIMER, (void *)pic_hdl_timer);
 }

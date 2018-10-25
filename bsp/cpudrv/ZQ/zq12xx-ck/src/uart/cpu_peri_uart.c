@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -86,29 +86,28 @@
 //    #if CFG_UART4_ENABLE ==1
 //    ModuleInstall_UART(CN_UART4);
 //    #endif
-
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_uart"    //CPU的uart外设驱动
-//parent:"uart"                     //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                 //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                      //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                   //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                       //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                   //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"uart","int","cpu_peri_gpio","cpu_peri_dma"  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                   //选中该组件时，被依赖组件将强制选中，
-                                   //如果依赖多个组件，则依次列出
-//weakdependence:"none"            //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                   //选中该组件时，被依赖组件不会被强制选中，
-                                   //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                     //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                   //如果依赖多个组件，则依次列出
+//component name:"cpu_peri_uart"                   //CPU的uart外设驱动
+//parent:"uart"                                    //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件                                //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                                      //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early                                //初始化时机，可选值：early，medium，later。
+                                                  //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","lock","uart","heap","cpu_peri_dma","slian","cpu_peri_isr"      //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                                  //选中该组件时，被依赖组件将强制选中，
+                                                  //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"                           //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                                  //选中该组件时，被依赖组件不会被强制选中，
+                                                  //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                                    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                                  //如果依赖多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-//%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_UART1_ENABLE
 #warning    cpu_peri_uart  组件参数未配置
 //%$#@num,0,512,
@@ -162,9 +161,6 @@ typedef struct __UART_REG
     vu32 ICR;
     vu32 DMACR;
 }tagUartReg;
-
-#define UART_INTR_EN_MCU4    (0x42030000 + 0x610)
-#define UART_INTR_STS_MCU4   (0x42030000 + 0x510)
 
 extern const char *gc_pCfgStdinName;    //标准输入设备
 extern const char *gc_pCfgStdoutName;   //标准输出设备
@@ -363,34 +359,27 @@ static bool_t __UART_TxFIFO_Empty(tagUartReg *Reg)
 // =============================================================================
 static void __UART_IntInit(u32 port)
 {
-    u32 IntLine;
+    int IntLine = 0;
 
     switch(port)
     {
         case CN_UART1:
-            IntLine = CN_INT_LINE_MISC_UART1;
+            IntLine = CN_SUBID_MISC_UART1;
             break;
         case CN_UART2:
-            IntLine = CN_INT_LINE_MISC_UART2;
+            IntLine = CN_SUBID_MISC_UART2;
             break;
         case CN_UART3:
-            IntLine = CN_INT_LINE_MISC_UART3;
+            IntLine = CN_SUBID_MISC_UART3;
             break;
         case CN_UART4:
-            IntLine = CN_INT_LINE_MISC_UART4;
+            IntLine = CN_SUBID_MISC_UART4;
             break;
+        default:
+            return;
     }
-    //IntLine = CN_INT_LINE_UART;
 
-    *(u32*)UART_INTR_EN_MCU4 |= (1<<port);
-
-    Int_Register(IntLine);
-    Int_SetClearType(IntLine,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(IntLine,UART_ISR);
-    Int_SetIsrPara(IntLine,port);
-    Int_SettoAsynSignal(IntLine);
-    Int_ClearLine(IntLine);
-    Int_RestoreAsynLine(IntLine);
+    djybsp_isr_hdl_register(CN_INT_LINE_MISC,IntLine,UART_ISR,0);
 }
 // =============================================================================
 // 功能: 硬件参数配置和寄存器的初始化，包括波特率、停止位、校验位、数据位，默认情况下:
@@ -507,83 +496,70 @@ u32 UART_ISR(ptu32_t port)
     tagUartReg volatile *Reg;
     u8 fifo[64];
 
-    status = (*(u32*)UART_INTR_STS_MCU4);
-
-    for(port = 0; port < CN_UART4;port++)
+    Reg = sUartReg[port];
+    if( (Reg->RIS & (1<<4)) || (Reg->RIS & (1 << 6)))   //rx or idle int
     {
-        if(status & (1<<port))
+        Reg->ICR |= (1<<4)|(1<<6);
+        num = 0;
+        while(!(Reg->FR & UART_FR_RXFE))
         {
-            break;
+            if(num<sUartFifo[port])
+            {
+                fifo[num++] = (u8)(Reg->DR);
+            }
+            else
+            {
+                break;
+            }
+        }
+        if(num > 0)
+        {
+            if(num != UART_PortWrite(pUartCB[port],fifo,num))
+            {
+                UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+                printk("uart idle over!\r\n");
+            }
         }
     }
 
-    if(port < CN_UART_NUM)
+    if(Reg->RIS & (1<<5))                   //tx int
     {
-        Reg = sUartReg[port];
-        if( (Reg->RIS & (1<<4)) || (Reg->RIS & (1 << 6)))   //rx or idle int
+        Reg->ICR |= (1<<5);
+        num = 0;
+        while(!(Reg->FR & UART_FR_TXFF))
         {
-            Reg->ICR |= (1<<4)|(1<<6);
-            num = 0;
-            while(!(Reg->FR & UART_FR_RXFE))
+            if(0 != UART_PortRead(pUartCB[port],&fifo[0],1))
             {
-                if(num<sUartFifo[port])
-                {
-                    fifo[num++] = (u8)(Reg->DR);
-                }
-                else
-                {
-                    break;
-                }
+                Reg->DR = fifo[0];
             }
-            if(num > 0)
+            else
             {
-                if(num != UART_PortWrite(pUartCB[port],fifo,num))
-                {
-                    UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-                    printk("uart idle over!\r\n");
-                }
+                break;
             }
         }
+    }
 
-        if(Reg->RIS & (1<<5))                   //tx int
+    if(Reg->RIS & (0xF << 7))   //hard error int
+    {
+        if(Reg->RIS & (1<<7))   //frame error
         {
-            Reg->ICR |= (1<<5);
-            num = 0;
-            while(!(Reg->FR & UART_FR_TXFF))
-            {
-                if(0 != UART_PortRead(pUartCB[port],&fifo[0],1))
-                {
-                    Reg->DR = fifo[0];
-                }
-                else
-                {
-                    break;
-                }
-            }
+            printf("uart frame error!\r\n");
+            Reg->ICR |= (1<<7);
         }
-
-        if(Reg->RIS & (0xF << 7))   //hard error int
+        if(Reg->RIS & (1<<8))   //parity error
         {
-            if(Reg->RIS & (1<<7))   //frame error
-            {
-                printf("uart frame error!\r\n");
-                Reg->ICR |= (1<<7);
-            }
-            if(Reg->RIS & (1<<8))   //parity error
-            {
-                printf("uart parity error!\r\n");
-                Reg->ICR |= (1<<8);
-            }
-            if(Reg->RIS & (1<<9))   //BE
-            {
-                printf("uart be error!\r\n");
-                Reg->ICR |= (1<<9);
-            }
-            if(Reg->RIS & (1<<10))  //over error
-            {
-                printf("uart over error!\r\n");
-                Reg->ICR |= (1<<10);
-            }
+            printf("uart parity error!\r\n");
+            Reg->ICR |= (1<<8);
+        }
+        if(Reg->RIS & (1<<9))   //BE
+        {
+            printf("uart be error!\r\n");
+            Reg->ICR |= (1<<9);
+        }
+        if(Reg->RIS & (1<<10))  //over error
+        {
+            printf("uart over error!\r\n");
+            Reg->ICR |= (1<<10);
         }
     }
     return 1;

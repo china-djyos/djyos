@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -81,12 +81,12 @@
 //%$#@describe      ****组件描述开始
 //component name:"ymodem"        //ymodem
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:核心组件            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"devfile","djyfs","lock"         //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"devfile","djyfs","lock","stdio"         //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -106,7 +106,8 @@
 #define     CFG_YMODEM_PKG_TIMEOUT  (15*1000*1000)  //"包间隔超时时间",微秒
 #define     CFG_YMODEM_TIMEOUT      (300*1000*1000) //"ymodem传输总超时时间",微秒
 //%$#@enum,true,false,
-//%$#@string,1,10,
+//%$#@string,1,128,
+#define     CFG_YMODEM_DEVNAME      "std"           //"ymodem传输设备，std表示使用标准输入输出设备"
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
@@ -154,7 +155,8 @@ typedef enum
 typedef enum
 {
     YMODEM_FILE_NOOPS= 0xF0,            //无文件操作
-    YMODEM_FILE_OPEN ,                  //打开文件标记
+    YMODEM_FILE_OPENW ,                 //打开文件用于写
+    YMODEM_FILE_OPENR ,                 //打开文件用于读
     YMODEM_FILE_WRITE,                  //写文件标记
     YMODEM_FILE_READ,                   //读文件标记
     YMODEM_FILE_STAT,
@@ -165,10 +167,10 @@ typedef enum
 typedef struct __Ymodem
 {
     FILE    *File;                      //file ptr for file op
-    const char    *Path;                //文件所在的路径（未含文件名）
+//  const char    *Path;                //文件所在的路径（未含文件名）
     char    *FileName;                  //文件名称
     struct MutexLCB *pYmodemMutex;      //互斥访问
-    YMFILEOPS FileOps;                  //文件操作
+//  YMFILEOPS FileOps;                  //文件操作
     u32     FileSize;                   //当前传输文件大小
     u32     FileCnt;                    //写入文件大小计数
     u32     PkgNo;                      //包号
@@ -204,14 +206,26 @@ struct shell_debug const ymodem_cmd_table[] =
 //                        [sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)];
 //static struct DjyDevice *s_ptYmodemDevice;
 static tagYmodem *pYmodem = NULL;
+static s32 s_s32gYmodemDevIn,s_s32gYmodemDevOut;
 
 //----ymodem模型初始化---------------------------------------
 //功能: ymodem下载文件模块接口函数，在module_trim中调用
 //参数: 无
-//返回: 无
+//返回: 出错则返回false
 //-----------------------------------------------------------
 bool_t ModuleInstall_Ymodem(void)
 {
+    if(strcmp(CFG_YMODEM_DEVNAME, "std") == 0)
+    {
+        s_s32gYmodemDevIn = STDIN_FILENO;
+        s_s32gYmodemDevOut = STDOUT_FILENO;
+    }
+    else
+    {
+        s_s32gYmodemDevIn = s_s32gYmodemDevOut = open(CFG_YMODEM_DEVNAME, O_RDWR);
+        if(s_s32gYmodemDevIn == -1)
+            return false;
+    }
     pYmodem = (tagYmodem *)malloc(sizeof(tagYmodem));
     if(NULL != pYmodem)
     {
@@ -221,10 +235,11 @@ bool_t ModuleInstall_Ymodem(void)
             free(pYmodem);
             return false;
         }
+        strcpy(pYmodem->FileName, "/iboot/");
         pYmodem->pYmodemMutex = Lock_MutexCreate("YMODEM_MUTEX");
         if(NULL != pYmodem->pYmodemMutex)
         {
-            pYmodem->Path = NULL;
+//          pYmodem->Path = NULL;
 
             if(sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)
                ==shell_debug_add(ymodem_cmd_table,
@@ -242,6 +257,37 @@ bool_t ModuleInstall_Ymodem(void)
     return false;
 }
 
+//----获取下载数据-------------------------------------------
+//功能：从数据通道接收一包数据
+//参数：
+//返回：
+//备注：串口驱动阻塞机制变更，这里逻辑不变，即没有读到len长度时，
+//     会一直等待timeout
+//-----------------------------------------------------------
+static u32 __Ymodem_Gets(u8 *buf,u32 len)
+{
+    u32 res, bytesToGet = len;
+    s64 end, log;
+
+    log = DjyGetSysTime();
+    end = log + (s64)CFG_YMODEM_PKG_TIMEOUT;
+
+    while(1)
+    {
+        res = read(s_s32gYmodemDevIn, buf, bytesToGet);
+        bytesToGet -= res;
+        if(!bytesToGet)
+            break;
+
+        if(DjyGetSysTime() > end)
+            break;
+
+        buf += res;
+    }
+
+    return (len - bytesToGet);
+}
+
 // ============================================================================
 // 功能：配置ymodem下载文件的绝对路径，该函数选择性调用，
 //      1.若应用需要变更下载路径，则不调用该函数，通过其他方式（如shell）修改路径;
@@ -253,14 +299,26 @@ bool_t ModuleInstall_Ymodem(void)
 bool_t Ymodem_PathSet(const char *Path)
 {
     bool_t Ret = false;
+    u32 len;
 
-    if( (pYmodem != NULL) && (NULL != Path) )
+    if( NULL != Path )
     {
-        Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
-        pYmodem->Path = Path;
-
-        Lock_MutexPost(pYmodem->pYmodemMutex);
-        Ret = true;
+        len = strlen(Path);
+        // -2是因为Path最后一个字符不是'/'，需要补足
+        if(len < CN_YMODEM_NAME_LENGTH - 2)
+        {
+            Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
+    //      pYmodem->Path = Path;
+            strcpy(pYmodem->FileName, Path);
+            //最后一个字符不是'/'或'\\'，需要补上
+            if((pYmodem->FileName[len-1] != '/') && (pYmodem->FileName[len-1] != '\\'))
+            {
+                pYmodem->FileName[len] = '/';
+                pYmodem->FileName[len] = '\0';
+            }
+            Lock_MutexPost(pYmodem->pYmodemMutex);
+            Ret = true;
+        }
     }
     return Ret;
 }
@@ -310,9 +368,9 @@ static char *__Ymodem_GetWord(char *buf,char **next)
 //-----------------------------------------------------------
 static void __Ymodem_CancelTrans(void)
 {
-    putchar(CN_YMODEM_CAN);
-    putchar(CN_YMODEM_CAN);
-    putchar(CN_YMODEM_CAN);
+    putc(CN_YMODEM_CAN, s_s32gYmodemDevOut);
+    putc(CN_YMODEM_CAN, s_s32gYmodemDevOut);
+    putc(CN_YMODEM_CAN, s_s32gYmodemDevOut);
 }
 
 //------校验ymodem数据包-------------------------------------
@@ -327,7 +385,7 @@ static bool_t __Ymodem_PackCheck(u8* buf, u32 pack_len)
     u16 checksum,check;
     if((buf[1] + buf[2]) != 0xff)               //校验包号正反码
     {
-        putchar(CN_YMODEM_NAK);                    //应答nak，请求重发
+        putc(CN_YMODEM_NAK, s_s32gYmodemDevOut);     //应答nak，请求重发
         return false;
     }
     checksum = crc16(buf+3, pack_len);
@@ -341,7 +399,7 @@ static bool_t __Ymodem_PackCheck(u8* buf, u32 pack_len)
     }
     if(checksum != check)    //CRC校验错误
     {
-        putchar(CN_YMODEM_NAK);                    //应答nak，请求重发
+        putc(CN_YMODEM_NAK, s_s32gYmodemDevOut);                    //应答nak，请求重发
         return false;
     }
 
@@ -374,7 +432,7 @@ static YMRESULT __Ymodem_GetPkg(tagYmodem *ym)
 
     if(ym->PkgBufCnt == 0)
     {
-        if(1 != __Ymodem_Get(ym->PkgBuf) )
+        if(1 != read(s_s32gYmodemDevIn, ym->PkgBuf, 1))
             Ret = YMODEM_TIMEOUT;
     }
 
@@ -401,7 +459,7 @@ static YMRESULT __Ymodem_GetPkg(tagYmodem *ym)
 
     if(ym->PkgSize > 1)
     {
-        bytes = __Ymodem_Gets(ym->PkgBuf + 1,ym->PkgSize + 4,CFG_YMODEM_PKG_TIMEOUT);
+        bytes = __Ymodem_Gets(ym->PkgBuf + 1,ym->PkgSize + 4);
         if(bytes != ym->PkgSize + 4)
             Ret = YMODEM_TIMEOUT;
     }
@@ -409,33 +467,22 @@ static YMRESULT __Ymodem_GetPkg(tagYmodem *ym)
     return Ret;
 }
 
-static bool_t __Ymodem_FilePathMerge(char *dst,const char *path,char *name)
+static bool_t __Ymodem_FilePathMerge(char *name)
 {
     u32 PathLen,NameLen;
 
     if(NULL != name)
     {
-        PathLen = strlen(path);
+        PathLen = strlen(pYmodem->FileName);
         NameLen = strlen(name);
-        if( NULL != path )
+        if(PathLen + NameLen + 1 < CN_YMODEM_NAME_LENGTH)
         {
-            if(PathLen + NameLen + 1 < CN_YMODEM_NAME_LENGTH)
-            {
-                strcpy(dst,path);
-                dst[PathLen] = '/';
-                strcpy(dst + PathLen + 1,name);
-                dst[PathLen + NameLen + 1] = '\0';
-                return true;
-            }
-        }
-        else
-        {
-            strcpy(dst,name);
-            dst[NameLen] = '\0';
+            strcpy(pYmodem->FileName+PathLen,name);
             return true;
         }
+        else
+            return false;
     }
-    return false;
 }
 static bool_t __Ymodem_InfoPkg(tagYmodem *ym)
 {
@@ -444,10 +491,10 @@ static bool_t __Ymodem_InfoPkg(tagYmodem *ym)
     FileName = __Ymodem_GetWord((char*)&ym->PkgBuf[3],&NextParam);
     strFileSize = __Ymodem_GetWord(NextParam,&NextParam);
 
-    if(__Ymodem_FilePathMerge(ym->FileName,ym->Path,FileName))
+    if(__Ymodem_FilePathMerge(FileName))
     {
         ym->FileSize = strtol(strFileSize, (char **)NULL, 0);
-        ym->FileOps = YMODEM_FILE_OPEN;
+//        ym->FileOps = YMODEM_FILE_OPEN;
         ym->Status = CN_YMODEM_SOH;
         ym->PkgNo = 1;
         return true;
@@ -474,26 +521,26 @@ static bool_t __Ymodem_IsZeroPkg(tagYmodem *ym)
 }
 
 
-static YMRESULT __Ymodem_FileOps(tagYmodem *ym, u8 flag)
+static YMRESULT __Ymodem_FileOps(tagYmodem *ym, YMFILEOPS cmd)
 {
     YMRESULT Ret = YMODEM_OK;
     struct stat FpInfo;
     u32 FileOpsLen;
 
     //对文件进行操作
-    switch(ym->FileOps)
+    switch(cmd)
     {
-    case YMODEM_FILE_OPEN:
-        if(flag)
+    case YMODEM_FILE_OPENW:
+        ym->File = fopen(ym->FileName,"w+");        //打开文件，不存在则创建
+        putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);
+        putc(CN_YMODEM_C, s_s32gYmodemDevOut);
+        if(ym->File == NULL)
         {
-            ym->File = fopen(ym->FileName,"w+");        //打开文件，不存在则创建
-            putchar(CN_YMODEM_ACK);
-            putchar(CN_YMODEM_C);
+            Ret = YMODEM_FILE_ERR;
         }
-        else
-        {
-            ym->File = fopen(ym->FileName,"r");     //打开文件，不存在则创建
-        }
+        break;
+    case YMODEM_FILE_OPENR:
+        ym->File = fopen(ym->FileName,"r");         //打开文件
         if(ym->File == NULL)
         {
             Ret = YMODEM_FILE_ERR;
@@ -516,7 +563,7 @@ static YMRESULT __Ymodem_FileOps(tagYmodem *ym, u8 flag)
             }
             ym->FileCnt += FileOpsLen;
         }
-        putchar(CN_YMODEM_ACK);
+        putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);
         break;
     case YMODEM_FILE_READ:
         memset(ym->PkgBuf,0x00,CN_YMODEM_STX_SIZE);
@@ -550,7 +597,7 @@ static YMRESULT __Ymodem_FileOps(tagYmodem *ym, u8 flag)
     default:
         break;
     }
-    ym->FileOps = YMODEM_FILE_NOOPS;
+//  ym->FileOps = YMODEM_FILE_NOOPS;
     return Ret;
 }
 
@@ -583,17 +630,19 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
             if(ym->Status == ENUM_YMODEM_STA_INFO)          //info pkg
             {
                 __Ymodem_InfoPkg(ym);
+                Ret = __Ymodem_FileOps(ym, YMODEM_FILE_OPENW);
             }
             else if(ym->Status == CN_YMODEM_EOT)
             {
                 if(__Ymodem_IsZeroPkg(ym))
                 {
-                    putchar(CN_YMODEM_ACK);//全零包，所有传输结束
+                    putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);//全零包，所有传输结束
                     goto YMODEM_RECVEXIT;
                 }
                 else
                 {
                     __Ymodem_InfoPkg(ym);       //继续传下一个文件
+                    Ret = __Ymodem_FileOps(ym, YMODEM_FILE_OPENW);
                 }
             }
             else                            //收到128字节大小的数据包
@@ -601,11 +650,11 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
                 if(ym->PkgBuf[1] == (ym->PkgNo & 0xff))
                 {
                     ym->PkgNo ++;
-                    ym->FileOps = YMODEM_FILE_WRITE;
+                    Ret = __Ymodem_FileOps(ym,YMODEM_FILE_WRITE);
                 }
                 else
                 {
-                    putchar(CN_YMODEM_NAK);    //包号错误，需重传
+                    putc(CN_YMODEM_NAK, s_s32gYmodemDevOut);    //包号错误，需重传
                 }
                 ym->Status = CN_YMODEM_SOH;
             }
@@ -616,24 +665,24 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
             if(ym->PkgBuf[1] == (ym->PkgNo & 0xff))
             {
                 ym->PkgNo ++;
-                ym->FileOps = YMODEM_FILE_WRITE;
+                Ret = __Ymodem_FileOps(ym,YMODEM_FILE_WRITE);
             }
             else
             {
-                putchar(CN_YMODEM_NAK);//包号错误，需重传
+                putc(CN_YMODEM_NAK, s_s32gYmodemDevOut);//包号错误，需重传
             }
             ym->Status = CN_YMODEM_STX;
             break;
         case CN_YMODEM_EOT:
             if( (ym->Status == CN_YMODEM_SOH) || (ym->Status == CN_YMODEM_STX)) //  第一个EOT
             {
-                putchar(CN_YMODEM_NAK);                         //接收到结束符，回复ACK
+                putc(CN_YMODEM_NAK, s_s32gYmodemDevOut); //接收到结束符，回复ACK
                 ym->Status = CN_YMODEM_EOT;
             }
             else if(ym->Status == CN_YMODEM_EOT)
             {
-                putchar(CN_YMODEM_ACK);                         //接收到结束符，回复ACK
-                putchar(CN_YMODEM_C);                           //接收到结束符，回复C
+                putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);                         //接收到结束符，回复ACK
+                putc(CN_YMODEM_C, s_s32gYmodemDevOut);                           //接收到结束符，回复C
             }
             break;
         case CN_YMODEM_CAN:
@@ -646,7 +695,6 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
         }
         ym->PkgBufCnt = 0;
 
-        Ret = __Ymodem_FileOps(ym,1);
         if(Ret != YMODEM_OK)            //可能情况 1.case 2.file ops
         {
             __Ymodem_CancelTrans();
@@ -654,8 +702,7 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
         }
     }
 YMODEM_RECVEXIT:
-    ym->FileOps = YMODEM_FILE_CLOSE;
-    __Ymodem_FileOps(ym,1);                 //close file
+    __Ymodem_FileOps(ym,YMODEM_FILE_CLOSE);                 //close file
     return Ret;
 }
 
@@ -679,7 +726,7 @@ ADD_TO_IN_SHELL bool_t downloadym(char *Param)
     Lock_MutexPend(pYmodem->pYmodemMutex,CN_TIMEOUT_FOREVER);
 
     pYmodem->File   = NULL;
-    pYmodem->FileOps  = YMODEM_FILE_NOOPS;
+//  pYmodem->FileOps  = YMODEM_FILE_NOOPS;
     pYmodem->FileSize = 0;
     pYmodem->FileCnt  = 0;
     pYmodem->PkgNo    = 0;
@@ -697,16 +744,16 @@ ADD_TO_IN_SHELL bool_t downloadym(char *Param)
         goto YMODEM_EXIT;
     }
 
-    putchar(CN_YMODEM_C);
+    putc(CN_YMODEM_C, s_s32gYmodemDevOut);
 
     //等待主机发送数据，超时返回
     debug_printf("MODULE","下载倒计时：     ");
-    fcntl(fileno(stdin), F_SETTIMEOUT, 1000*mS); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
-    while((pYmodem->PkgBuf[0] = getchar( ) )== EOF)
+    fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, 1000*mS);
+    while((pYmodem->PkgBuf[0] = getc( s_s32gYmodemDevIn ) )== EOF)
     {
         if (CntOver++ < 60)
         {
-            putchar(CN_YMODEM_C); //超时则重新发送C
+            putc(CN_YMODEM_C, s_s32gYmodemDevOut); //超时则重新发送C
             debug_printf("MODULE","\b\b\b\b\b%2dS ",60-CntOver);
             continue;
         }
@@ -719,6 +766,7 @@ ADD_TO_IN_SHELL bool_t downloadym(char *Param)
 
     pYmodem->PkgBufCnt = 1;
     pYmodem->StartTime = DjyGetSysTime();
+    fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CFG_YMODEM_PKG_TIMEOUT);
     Ret = __Ymodem_ReceiveProcess(pYmodem);
 
 YMODEM_EXIT:
@@ -726,7 +774,7 @@ YMODEM_EXIT:
         free(pYmodem->FileBuf);
     if( NULL != pYmodem->PkgBuf)
         free(pYmodem->PkgBuf);
-    fcntl(fileno(stdin), F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
+    fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CN_TIMEOUT_FOREVER); //如果是stdin，恢复超时参数
 
     Lock_MutexPost(pYmodem->pYmodemMutex);
     if(Ret != YMODEM_OK)                        //打印输出信息
@@ -818,7 +866,8 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
             else if(ym->PkgNo == 1)     //发送第一包
             {
                 ym->Status = ENUM_YMODEM_STA_SOH;
-                ym->FileOps = YMODEM_FILE_READ;
+                Ret = __Ymodem_FileOps(ym,YMODEM_FILE_READ);
+//              ym->FileOps = YMODEM_FILE_READ;
                 ym->PkgNo ++;
             }
             else if(ym->Status == CN_YMODEM_EOT)
@@ -849,7 +898,7 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
             }
             else if(ym->FileCnt >= ym->FileSize)
             {
-                putchar(CN_YMODEM_EOT);
+                putc(CN_YMODEM_EOT, s_s32gYmodemDevOut);
                 ym->Status = CN_YMODEM_EOT;
                 continue;
             }
@@ -857,7 +906,8 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
             {
                 ym->PkgNo ++;
                 ym->Status = ENUM_YMODEM_STA_STX;
-                ym->FileOps = YMODEM_FILE_READ;
+                Ret = __Ymodem_FileOps(ym,YMODEM_FILE_READ);
+//              ym->FileOps = YMODEM_FILE_READ;
             }
             break;
         default:
@@ -866,7 +916,7 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
         }
 
         ym->PkgBufCnt = 0;
-        Ret = __Ymodem_FileOps(ym,0);
+//      Ret = __Ymodem_FileOps(ym,0);
         if(Ret == YMODEM_OK)
         {
             temp = fwrite(ym->PkgBuf,1,ym->PkgSize + 5,stdout);
@@ -913,9 +963,9 @@ ADD_TO_IN_SHELL bool_t uploadym(char *Param)
         Ret = YMODEM_PARAM_ERR;
         goto YMODEM_EXIT;
     }
-    __Ymodem_FilePathMerge(pYmodem->FileName,pYmodem->Path,FileName);
+    __Ymodem_FilePathMerge(FileName);
     pYmodem->File   = NULL;
-    pYmodem->FileOps  = YMODEM_FILE_OPEN;
+//  pYmodem->FileOps  = YMODEM_FILE_OPEN;
     pYmodem->FileSize = 0;
     pYmodem->FileCnt  = 0;
     pYmodem->PkgNo    = 0;
@@ -932,21 +982,21 @@ ADD_TO_IN_SHELL bool_t uploadym(char *Param)
         Ret = YMODEM_MEM_ERR;
         goto YMODEM_EXIT;
     }
-    Ret = __Ymodem_FileOps(pYmodem,0);          //open the file,must be exist
+    Ret = __Ymodem_FileOps(pYmodem, YMODEM_FILE_OPENR);          //open the file,must be exist
     if(Ret != YMODEM_OK)
     {
         goto YMODEM_EXIT;
     }
-    pYmodem->FileOps  = YMODEM_FILE_STAT;
-    Ret = __Ymodem_FileOps(pYmodem,0);          //GET THE FILE SIZE
+//  pYmodem->FileOps  = YMODEM_FILE_STAT;
+    Ret = __Ymodem_FileOps(pYmodem,YMODEM_FILE_STAT);          //GET THE FILE SIZE
     if(Ret != YMODEM_OK)
     {
         goto YMODEM_EXIT;
     }
 
     debug_printf("MODULE","上传倒计时：     ");
-    fcntl(fileno(stdin), F_SETTIMEOUT, 1000*mS); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
-    while((pYmodem->PkgBuf[0] = getchar( ) )== EOF)//等待主机发送数据，超时返回
+    fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, 1000*mS);
+    while((pYmodem->PkgBuf[0] = getc(s_s32gYmodemDevIn)) == EOF) //等待主机发送数据，超时返回
     {
         if (CntOver++ < 60)
         {
@@ -962,17 +1012,18 @@ ADD_TO_IN_SHELL bool_t uploadym(char *Param)
 
     pYmodem->PkgBufCnt = 1;
     pYmodem->StartTime = DjyGetSysTime();
+    fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CFG_YMODEM_PKG_TIMEOUT);
     Ret = __Ymodem_SendProcess(pYmodem);
 
-    pYmodem->FileOps = YMODEM_FILE_CLOSE;       //关闭文件
-    __Ymodem_FileOps(pYmodem,0);
+//  pYmodem->FileOps = YMODEM_FILE_CLOSE;       //关闭文件
+    __Ymodem_FileOps(pYmodem,YMODEM_FILE_CLOSE);
 
 YMODEM_EXIT:
     if( NULL != pYmodem->FileBuf)
         free(pYmodem->FileBuf);
     if( NULL != pYmodem->PkgBuf)
         free(pYmodem->PkgBuf);
-    fcntl(fileno(stdin), F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // TODO: 最好不好改变stdio的参数，再一次打开STDIN也可以
+    fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, CN_TIMEOUT_FOREVER);
 
     Lock_MutexPost(pYmodem->pYmodemMutex);
     if(Ret != YMODEM_OK)                        //打印输出信息

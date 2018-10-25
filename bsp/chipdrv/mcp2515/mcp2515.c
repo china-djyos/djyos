@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -77,10 +77,10 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"mcp2515"               //填写该组件的名字
-//parent:"none"                          //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                     //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                           //选填“必选、可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//component name:"mcp2515"              //填写该组件的名字
+//parent:"none"                         //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp组件                                           //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
+//select:可选                                                       //选填“必选、可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，IDE裁剪界面中不显示
 //init time:medium                      //初始化时机，可选值：none，init，main。none表示无须初始化，
                                         //init表示在调用main之前，main表示在main函数中初始化

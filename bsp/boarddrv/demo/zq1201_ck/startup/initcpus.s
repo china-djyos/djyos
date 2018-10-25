@@ -90,7 +90,6 @@ __Vectors_Tbl:
     .long   __start_asyn_signal    /*  default interrupt entry  */
     .long   __start_asyn_signal    /*  default interrupt entry  */
     .long   __start_asyn_signal      /*  default interrupt entry  */
-#endif
 
     .size    __Vectors_Tbl, . - __Vectors_Tbl
 

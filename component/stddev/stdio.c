@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -640,7 +640,7 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
 
     fp = (FILE*)&__stdio_filestruct[type];
     fp->unget = EOF;
-    if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISBF(info.st_mode)))
+    if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISFLOW(info.st_mode)))
     {
         res = __filebuf_new(fp);
         if(res)
