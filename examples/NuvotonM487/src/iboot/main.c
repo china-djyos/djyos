@@ -49,7 +49,7 @@
  *  Created on: 2014-5-28
  *      Author: Administrator
  */
-
+#include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 

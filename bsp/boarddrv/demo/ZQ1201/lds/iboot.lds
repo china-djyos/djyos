@@ -43,7 +43,6 @@ SECTIONS
         KEEP(*libos_Iboot_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot_Debug.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
-        KEEP(*board/ZQ1201/src/OS_prjcfg/Iboot_config.o (.text .text.* .rodata .rodata.*))
     }>Flash
 
     text_preload_rROM_lROM :
@@ -55,7 +54,7 @@ SECTIONS
         *libos_Iboot_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:int.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
-        *board/ZQ1201/src/critical/*.o (.text .text.* .rodata .rodata.*)
+        *src/iboot/critical/*.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
     }>Flash
@@ -91,7 +90,7 @@ SECTIONS
         *libos_Iboot_Debug.a:hard-exp.o (.data .data.*)
         *libos_Iboot_Debug.a:int.o (.data .data.*)
         *libos_Iboot_Debug.a:ints.o (.data .data.*)
-        *board/ZQ1201/src/critical/*.o (.data .data.*)
+        *src/iboot/critical/*.o (.data .data.*)
         *libos_Iboot_Debug.a:heap-static.o (.data .data.*)
         *libos_Iboot_Debug.a:list.o (.data .data.*)
     }>ExtRam AT>Flash
@@ -102,15 +101,17 @@ SECTIONS
     zi_preload_rExtRam_lExtRam (NOLOAD) :
     {
         . = ALIGN(0x100);
-        /*KEEP(* (.table.exceptions .table.exceptions.*))*/
-        /*KEEP(* (.table.vectors .table.vectors.*))*/
+        Remap_Int_Start = . ;
+        KEEP(* (.table.exceptions .table.exceptions.*))
+        KEEP(* (.table.vectors .table.vectors.*))
+        Remap_Int_End = . ;
         *libos_Iboot_Debug.a:loader.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:int_hard.o (.bss .bss.* COMMON)
         KEEP(*libos_Iboot_Debug.a:hard-exps.o (.bss .bss.* COMMON))
         *libos_Iboot_Debug.a:hard-exp.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:int.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:ints.o (.bss .bss.* COMMON)
-        *board/ZQ1201/src/critical/*.o (.bss .bss.* COMMON)
+        *src/iboot/critical/*.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:heap-static.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:list.o (.bss .bss.* COMMON)
     }>ExtRam
@@ -208,7 +209,7 @@ SECTIONS
         LONG(sys_heap_top)          /*第一段地址上限（不含），须符合对齐要求*/
         LONG(32)                    /*第一段页尺寸=32bytes*/
         LONG(msp_bottom)            /*第二段基址，回收初始化栈，须符合对齐要求*/
-        LONG(msp_top - 1024)        /*第二段地址上限（不含），384是留给中断使用的，须符合对齐要求*/
+        LONG(msp_top - (1024+512))  /*第二段地址上限（不含），1024+512是留给中断使用的，须符合对齐要求*/
         LONG(24)                    /*第二段页尺寸=24bytes*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0x79)                  /*'y'*/
@@ -249,10 +250,11 @@ SECTIONS
 		. = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
     }>Flash
+    
 
     Iboot_Info :
     {
-        gc_ptFlashOffset = .;
+        gc_ptFlashOffset = .;     /* 为了访问下面四个字节 */
         LONG(FlashOffset)
 
         gc_ptFlashRange = .;
@@ -266,7 +268,7 @@ SECTIONS
     App_Info :
     {
         . = ALIGN(0x08);
-        gc_pAppOffset = .;          /* APP空间偏置 */
+        gc_pAppOffset = .;          /* APP空间偏置  为了访问下面四个字节 */
         LONG(FlashOffset + IbootSize)
         gc_pAppRange = .;           /* APP空间范围 */
         LONG(FlashRange - IbootSize)
@@ -282,14 +284,13 @@ SECTIONS
         gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
         LONG( restore + IbootSize + 256)
         . += 256;
-        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
+        gc_AppAddr = .;             /*函数指针变量，该标号 ->指向APP的起始地址  为的是访问下面long的数值,下面数值地址即为app 入口函数地址*/
         LONG( restore + IbootSize + 256 + 256)
-        __AppStart = .;           /*函数指针变量，指向APP的Preload函数*/
+        __AppStart = .;           /*函数指针变量，指向APP的Preload函数  该标号 ->指向APP的起始地址  为的是访问下面long的数值,下面数值地址即为app 入口函数地址*/
         LONG( restore + IbootSize + 256 + 256)
     }>Flash
     
-    
-       r_In_shell_rROM1_lROM1 :
+        r_In_shell_rROM1_lROM1 :
 	{
    		 . = ALIGN(0x08);
    		 KEEP(* (.in_shell_cmd))
@@ -324,7 +325,8 @@ SECTIONS
        
         LONG(.)
         pProgRomEnd = .;
-    }>Flash 
+    }>Flash
+    
  /*   
     QSpi_Flash:
     {

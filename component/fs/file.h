@@ -56,6 +56,8 @@ extern "C" {
 #include <objhandle.h>
 #include <djyos.h>
 
+
+#ifndef __CUSTOM_FILE_H__
 struct __buf
 {
     u8 *data; // 当前缓冲空间；
@@ -72,6 +74,7 @@ struct LibcFile
     off_t pos; // 文件当前位置；
     s32 unget;
 };
+#endif
 
 #ifdef __cplusplus
 }

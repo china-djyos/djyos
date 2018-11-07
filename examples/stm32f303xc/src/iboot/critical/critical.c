@@ -9,8 +9,6 @@
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
-// 3. As a constituent part of djyos,do not transplant it to other software
-//    without specific prior written permission.
 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,16 +24,14 @@
 //-----------------------------------------------------------------------------
 // Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
-// 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
+// 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
 //
-// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、此三条件表列，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
-//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    于散播包装中的媒介方式，重制上述之版权宣告、此三条件表列，以及下述
 //    的免责声明。
-// 3. 本软件作为都江堰操作系统的组成部分，未获事前取得的书面许可，不允许移植到非
-//    都江堰操作系统环境下运行。
 
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
 // 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
@@ -46,14 +42,47 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//author:zhangqf
-//date  :下午12:48:55/2017年2月19日
-//usage :
-//-----------------------------------------------------------------------------
+//所属模块:安全钩子
+//作者：lst
+//版本：V1.0.0
+//文件描述:安全钩子是必须在开机后尽可能快地执行的部分代码
+//其他说明:
+//修订历史:
+//2. ...
+//1. 日期: 2009-01-04
+//   作者: lst
+//   新版本号: V1.0.0
+//   修改说明: 原始版本
+//------------------------------------------------------
+#include "cpu_peri.h"
 
-#ifndef HDE34131C_CB25_45F5_80EC_823D717D76C7
-#define HDE34131C_CB25_45F5_80EC_823D717D76C7
+//----配置全部IO口--------------------------------------------------------------
+//功能：除必须的外，全部配置成初始态，各功能口由相应的功能模块自行定义。
+//参数：无
+//返回：无
+//------------------------------------------------------------------------------
+void gpio_init(void)
+{
+}
 
+void critical(void)
+{
+//#if 0 //ARM版本认为程序加载过程无误
+//    //定时器初始化
+//#if(CN_CFG_SYSTIMER == 1)
+//    extern void Timer_ModuleInit(void);
+//    Timer_ModuleInit();
+//#endif
+//#if(CN_CFG_WDT == 1)
+//  //  初始化硬件看门狗
+//  extern bool_t WDT_FslInit(u32 setcycle);
+//  WDT_FslInit(1000);
+//
+//  // 看门狗组件HAL喂狗
+//  //  开启中断并注册相关的服务函数
+//  bool_t WdtHal_BootStart(u32 bootfeedtimes);
+//  WdtHal_BootStart(20);
+//#endif
+//#endif
+}
 
-
-#endif /* HDE34131C_CB25_45F5_80EC_823D717D76C7 */

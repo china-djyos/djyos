@@ -52,25 +52,25 @@ SECTIONS
     text_startup_rAppRom_lAppRom :
     {
        . = ALIGN(0x08);
-        KEEP(*liblibOS_APOLLO-STM32F7_o0.a:initcpuc.o (.text.AppStart))
-        KEEP(*liblibOS_APOLLO-STM32F7_o0.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot_Debug.a:initcpuc.o (.text.AppStart))
+        KEEP(*libos_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
     }>InnerFlash
 
     text_preload_rAppRom_lAppRom :
     {
        . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-        *liblibOS_APOLLO-STM32F7_o0.a:loader.o (.text .text.* .rodata .rodata.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:int_hard.o (.text .text.* .rodata .rodata.*) 
-        *liblibOS_APOLLO-STM32F7_o0.a:set-cache.o (.text .text.* .rodata .rodata.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:mpu.o (.text .text.* .rodata .rodata.*)       
-        KEEP(*liblibOS_APOLLO-STM32F7_o0.a:hard-exps.o (.text .text.* .rodata .rodata.*)) 
-        *liblibOS_APOLLO-STM32F7_o0.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:int.o (.text .text.* .rodata .rodata.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:ints.o (.text .text.* .rodata .rodata.*)
-        *src/user/critical/*.o (.text .text.* .rodata .rodata.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot_Debug.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot_Debug.a:int_hard.o (.text .text.* .rodata .rodata.*) 
+        *libos_Iboot_Debug.a:set-cache.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot_Debug.a:mpu.o (.text .text.* .rodata .rodata.*)       
+        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*)) 
+        *libos_Iboot_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot_Debug.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
+        *src/app/critical/*.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
     }>InnerFlash
     
     text_sysload_rAppRom_lAppRom :
@@ -83,15 +83,15 @@ SECTIONS
     rw_preload_rRAM1_lAppRom :
     {
        . = ALIGN(0x08);
-        *liblibOS_APOLLO-STM32F7_o0.a:loader.o (.data .data.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:int_hard.o (.data .data.*)
-        KEEP(*liblibOS_APOLLO-STM32F7_o0.a:hard-exps.o (.data .data.*))
-        *liblibOS_APOLLO-STM32F7_o0.a:hard-exp.o (.data .data.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:int.o (.data .data.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:ints.o (.data .data.*)
-        *src/user/critical/*.o (.data .data.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:heap-static.o (.data .data.*)
-        *liblibOS_APOLLO-STM32F7_o0.a:list.o (.data .data.*)
+        *libos_Iboot_Debug.a:loader.o (.data .data.*)
+        *libos_Iboot_Debug.a:int_hard.o (.data .data.*)
+        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.data .data.*))
+        *libos_Iboot_Debug.a:hard-exp.o (.data .data.*)
+        *libos_Iboot_Debug.a:int.o (.data .data.*)
+        *libos_Iboot_Debug.a:ints.o (.data .data.*)
+        *src/app/critical/*.o (.data .data.*)
+        *libos_Iboot_Debug.a:heap-static.o (.data .data.*)
+        *libos_Iboot_Debug.a:list.o (.data .data.*)
     }>RAM1 AT>InnerFlash
         
     rw_nocache_rRAM1_lRAM1 (NOLOAD) :
@@ -108,15 +108,15 @@ SECTIONS
        . = ALIGN(0x200);
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
-        *liblibOS_APOLLO-STM32F7_o0.a:loader.o (.bss .bss.* COMMON)
-        *liblibOS_APOLLO-STM32F7_o0.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*liblibOS_APOLLO-STM32F7_o0.a:hard-exps.o (.bss .bss.* COMMON))
-        *liblibOS_APOLLO-STM32F7_o0.a:hard-exp.o (.bss .bss.* COMMON)
-        *liblibOS_APOLLO-STM32F7_o0.a:int.o (.bss .bss.* COMMON)
-        *liblibOS_APOLLO-STM32F7_o0.a:ints.o (.bss .bss.* COMMON)
-        *src/user/critical/*.o (.bss .bss.* COMMON)
-        *liblibOS_APOLLO-STM32F7_o0.a:heap-static.o (.bss .bss.* COMMON)
-        *liblibOS_APOLLO-STM32F7_o0.a:list.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:loader.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_Iboot_Debug.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:int.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:ints.o (.bss .bss.* COMMON)
+        *src/app/critical/*.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:list.o (.bss .bss.* COMMON)
     }>RAM1
 
      rw_sysload_rRAM1_lAppRom :
@@ -127,9 +127,9 @@ SECTIONS
     zi_sysload_rextram_lextram (NOLOAD) :
     {
         . = ALIGN(0x08);        
-        *liblibOS_APOLLO-STM32F7_o0.a:gk_draw.o (.bss .bss.* COMMON)
-        *liblibOS_APOLLO-STM32F7_o0.a:gk_clip.o (.bss .bss.* COMMON)
-        *liblibOS_APOLLO-STM32F7_o0.a:gk_win.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:gk_draw.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:gk_clip.o (.bss .bss.* COMMON)
+        *libos_Iboot_Debug.a:gk_win.o (.bss .bss.* COMMON)
     }>extram
 
     zi_sysload_rRAM1_lRAM1 (NOLOAD) :

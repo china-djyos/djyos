@@ -16,6 +16,9 @@
 
 #ifndef __YPORTENV_H__
 #define __YPORTENV_H__
+
+#include "errno.h"
+
 /* ÒÆÖ²Ìí¼Ó */
 #include "../../../port/config.h"
 #include <stdint.h>
@@ -164,7 +167,7 @@ struct iattr {
 #endif
 
 #ifndef ENOENT
-#define ENOENT  2
+#define ENOENT 2
 #endif
 
 #ifndef ENOSPC

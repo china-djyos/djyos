@@ -67,6 +67,15 @@
 #include "hard-exp.h"
 #include "board-config.h"
 #include "dbug.h"
+
+//异常向量表的外部声名
+extern void HardExp_SystickHandler(void);
+extern void HardExp_SvcHandler(void);
+extern   uint32_t   msp_top[ ];
+extern   void Init_Cpu(void);
+extern   void HardExp_HardfaultHandler(void);
+extern   void HardExp_NmiHandler(void);
+
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __Djy_ScheduleAsynSignal(void);
@@ -80,10 +89,30 @@ struct SystickReg volatile * const pg_systick_reg
 struct ScbReg volatile * const pg_scb_reg
                         = (struct ScbReg *)0xe000ed00;
 
+u32 g_u32ExpTable[16] __attribute__((section(".table.exceptions")));
+
 bool_t HardExp_Init(void)
 {
     pg_scb_reg->pri12_15 |=0xff000000;    //systick设为最低优先级,=异步信号
     pg_scb_reg->pri8_11 |= 0xff000000;    //svc的优先级和异步信号相同。
+    /*二级页表初始化*/
+    g_u32ExpTable[0]                            = (uint32_t)msp_top;
+    g_u32ExpTable[CN_SYSVECT_RESET]             = (uint32_t)Init_Cpu;
+    g_u32ExpTable[CN_SYSVECT_NMI]               = (uint32_t) HardExp_NmiHandler;
+    g_u32ExpTable[CN_SYSVECT_HARD_FAULT]        = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[CN_SYSVECT_MEMMANAGE_FAULT]   = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[CN_SYSVECT_BUS_FAULT]         = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[CN_SYSVECT_USAGE_FAULT]       = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[7]                            = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[8]                            = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[9]                            = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[10]                           = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[CN_SYSVECT_SVC]               = (u32)HardExp_SvcHandler;
+    g_u32ExpTable[CN_SYSVECT_DEBUG]             = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[13]                           = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[CN_SYSVECT_PENDSV]            = (uint32_t) HardExp_HardfaultHandler;
+    g_u32ExpTable[CN_SYSVECT_SYSTICK]           = (u32)HardExp_SystickHandler;
+
     return true;
 }
 void HardExp_ConnectNmi(void (*esr)(void))

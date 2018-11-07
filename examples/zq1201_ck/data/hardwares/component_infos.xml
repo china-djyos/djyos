@@ -121,5 +121,6 @@
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
    <component>/bsp/cpudrv/ZQ/zq12xx-ck/src/int/cpu_peri_isr.c</component>
+   <component>/bsp/cpudrv/ZQ/zq12xx-ck/src/timer/cpu_peri_timer.c</component>
    <component>/bsp/cpudrv/ZQ/zq12xx-ck/src/uart/cpu_peri_uart.c</component>
 </components>

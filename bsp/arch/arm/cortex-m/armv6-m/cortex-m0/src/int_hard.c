@@ -72,7 +72,7 @@ struct nvic_reg volatile * const pg_nvic_reg
                         = (struct nvic_reg *)0xe000e100;
 
 
-u32 (*vector_table[CN_INT_LINE_LAST+1])(ufast_t tagIntLine);
+u32 (*vector_table[CN_INT_LINE_LAST+1])(ufast_t tagIntLine) __attribute__((section(".table.vectors")));
 void __Int_EngineAll(ufast_t ufl_line);
 u32 __start_int(ufast_t tagIntLine);
 void __int_set_prio(ufast_t ufl_line,u32 prio);

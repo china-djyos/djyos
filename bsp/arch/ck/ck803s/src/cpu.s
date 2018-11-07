@@ -166,4 +166,9 @@ carry:
 end:
     rts
 */
+.global __asm_bl_fun
+.type   __asm_bl_fun, %function
+__asm_bl_fun:
+    jsr   r0
+    rts
 .end

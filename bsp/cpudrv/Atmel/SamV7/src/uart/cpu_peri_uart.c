@@ -135,7 +135,7 @@
 #define CFG_UART3_ENABLE         false          //"是否配置UART3",
 #define CFG_UART4_ENABLE         false          //"是否配置UART4",
 #define CFG_USART0_ENABLE        false          //"是否配置USART0",
-#define CFG_USART1_ENABLE        false         //"是否配置USART1",
+#define CFG_USART1_ENABLE        false          //"是否配置USART1",
 #define CFG_USART2_ENABLE        false          //"是否配置USART2",
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件

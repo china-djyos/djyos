@@ -79,23 +79,24 @@
 .section    .isr_vector, "ax", %progbits
 .align          3
 .global         isr_vector
+.global         g_u32ExpTable
 isr_vector:
     .word   msp_top
     .word   Init_Cpu
-    .word   HardExp_NmiHandler
-    .word   HardExp_HardfaultHandler
-    .word   0                         @ Reserved
-    .word   0                         @ Reserved
-    .word   0                         @ Reserved
-    .word   0                         @ Reserved
-    .word   0                         @ Reserved
-    .word   0                         @ Reserved
-    .word   0                         @ Reserved
-    .word   HardExp_SvcHandler        @ SVCall Handler
-    .word   0                         @ Reserved
-    .word   0                         @ Reserved
-    .word   0                         @ PendSV Handler
-    .word   HardExp_SystickHandler    @ SysTick Handler
+    .word   Remap_HardExp_NmiHandler       @HardExp_NmiHandler
+    .word   Remap_HardExp_HardfaultHandler @HardExp_HardfaultHandler
+    .word   0                               @ Reserved
+    .word   0                               @ Reserved
+    .word   0                               @ Reserved
+    .word   0                               @ Reserved
+    .word   0                               @ Reserved
+    .word   0                               @ Reserved
+    .word   0                               @ Reserved
+    .word   Remap_HardExp_SvcHandler       @ SVCall Handler
+    .word   0                               @ Reserved
+    .word   0                               @ Reserved
+    .word   0                               @ PendSV Handler
+    .word   Remap_HardExp_SystickHandler   @ SysTick Handler
 
     @ External Interrupts
     .word     __start_int_0           @ 0
@@ -142,14 +143,69 @@ isr_vector:
 default_handler:
         b               default_handler
 
+.text
+.align 2
+.global gener_sys_ExpHander
+.thumb
+.thumb_func
+gener_sys_ExpHander:
+ push    {r0,lr}
+    restore_asyn_signal_reg
+    pop     {r0,r1}
+    mov     lr,r1
+    movs    r0,#4
+    TST     r1,r0             @测试EXC_RETURN的比特2
+    bne     isne_usual
+    MRS     R0,MSP            @则使用的是主栈，故把MSP的值取出
+    beq     iseq_usual
+isne_usual:
+    MRS   R0,PSP              @否则, 使用的是线程栈，故把MSP的值取出
+iseq_usual:
+    LDR     R1,[R0,#24]       @从栈中读取PC的值
+    subs    r1,r1,#2
+    LDRB    R1,[R1]           @从SVC指令中读取立即数放到R1
+    cmp     r1,#0
+    bne     svc_error_usual   @目前只支持0号svc调用
+    adds     r0,#32           @0号调用用于上下文切换，调整psp指针
+    ldmfd   r0!,{r4-r7}       @手工弹出r4-r11
+    ldmfd   r0!,{r2,r3}
+    mov     r8,r2
+    mov     r9,r3
+    ldmfd   r0!,{r2,r3}
+    mov     r10,r2
+    mov     r11,r3
+    msr     psp,r0            @psp指向待切入的上下文
+svc_error_usual:                    @直接返回
+    bx      lr                @返回，实际弹出的将是待切入上下文
+
+
+
+.text
+.align 2
 .global HardExp_NmiHandler
-.thumb_set HardExp_NmiHandler, default_handler
+.thumb
+.thumb_func
+HardExp_NmiHandler:
+  push    {r0,lr}               @r0只是为了满足栈指针8字节对齐的填充物
+  movs    r0,#0              @取异常号
+  ldr     r1,=(gener_sys_ExpHander)
+  ldr     r1,[r1]
+  blx     r1
+  pop     {r0,pc}
 
+
+.text
+.align 2
 .global HardExp_HardfaultHandler
-.thumb_set HardExp_HardfaultHandler, default_handler
-
-
-
+.thumb
+.thumb_func
+HardExp_HardfaultHandler:
+  push    {r0,lr}               @r0只是为了满足栈指针8字节对齐的填充物
+  movs    r0,#0              @取异常号
+  ldr     r1,=(gener_sys_ExpHander)
+  ldr     r1,[r1]
+  blx     r1
+  pop     {r0,pc}
 
 
 .text
@@ -218,5 +274,60 @@ iseq:
     msr     psp,r0              @psp指向待切入的上下文
 svc_error:                       @直接返回
     bx      lr                  @返回，实际弹出的将是待切入上下文
+
+/**** M0没有重定向中断向量功能，这里实现二级页表跳转实现****/
+.text
+.align 2
+.global Remap_HardExp_NmiHandler
+.thumb
+.thumb_func
+Remap_HardExp_NmiHandler:
+        push    {r0,lr}             @r0只是为了满足栈指针8字节对齐的填充物
+        movs    r0,#0              @取异常号
+        ldr     r1,=(g_u32ExpTable + 2*4)
+        ldr     r1,[r1]
+        blx     r1
+        pop     {r0,pc}
+
+
+.text
+.align 2
+.global Remap_HardExp_HardfaultHandler
+.thumb
+.thumb_func
+Remap_HardExp_HardfaultHandler:
+        push    {r0,lr}            @r0只是为了满足栈指针8字节对齐的填充物
+        movs    r0,#0              @取异常号
+        ldr     r1,=(g_u32ExpTable + 3*4)
+        ldr     r1,[r1]
+        blx     r1
+        pop     {r0,pc}
+
+
+.text
+.align 2
+.global Remap_HardExp_SvcHandler
+.thumb
+.thumb_func
+Remap_HardExp_SvcHandler:
+        push    {r0,lr}            @r0只是为了满足栈指针8字节对齐的填充物
+        movs    r0,#0              @取异常号
+        ldr     r1,=(g_u32ExpTable + 11*4)
+        ldr     r1,[r1]
+        blx     r1
+        pop     {r0,pc}
+
+.text
+.align 2
+.global Remap_HardExp_SystickHandler
+.thumb
+.thumb_func
+Remap_HardExp_SystickHandler:
+        push    {r0,lr}            @r0只是为了满足栈指针8字节对齐的填充物
+        movs    r0,#0              @取异常号
+        ldr     r1,=(g_u32ExpTable + 15*4)
+        ldr     r1,[r1]
+        blx     r1
+        pop     {r0,pc}
 
 .end

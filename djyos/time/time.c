@@ -683,7 +683,7 @@ time_t time(time_t *t)
     return Tm_Time(t);
 }
 
-int gettimeofday(struct timeval *tv, struct timezone *tz)
+int gettimeofday(struct timeval *tv, void *tz)
 {
     int result = -1;
 

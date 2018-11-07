@@ -57,6 +57,8 @@
 #ifndef __STAT_H__
 #define __STAT_H__
 
+#include "_ansi.h"
+#include "cdefs.h"
 #include <stdint.h>
 #include <types.h>
 #ifdef __cplusplus
@@ -110,9 +112,9 @@ struct stat
 // 私有定义
 #define S_ISFLOW(x)       ((x&S_IFMT)==S_IFFLOW?true:false) // 表示可以作为C文件可以作缓冲；
 
-int   _EXFUN(stat, (const char *restrict, struct stat *restrict));
-int   _EXFUN(fstat, (int, struct stat *restrict));
-int   _EXFUN(lstat, (const char *restrict, struct stat *restrict));
+int   _EXFUN(stat, (const char *__restrict, struct stat *__restrict));
+int   _EXFUN(fstat, (int, struct stat *__restrict));
+int   _EXFUN(lstat, (const char *__restrict, struct stat *__restrict));
 
 #ifdef __cplusplus
 }

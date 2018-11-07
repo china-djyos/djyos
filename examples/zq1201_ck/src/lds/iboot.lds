@@ -180,6 +180,21 @@ SECTIONS
         LONG(0)                     /*结束标志*/
     }>ROM_SDRAM
     
+    Iboot_AppInfo :
+    {
+       /* . = restore + IbootSize;*/
+        gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
+        LONG( 0x02200000)
+        . += 256;
+        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
+        LONG( 0x02200000 + 256)
+        . += 256;
+        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
+        LONG( 0x02200000 + 256 + 256)
+        __AppStart = .;           /*函数指针变量，指向APP的Preload函数*/
+        LONG( 0x02200000 + 256 + 256)
+    }>ROM_SDRAM
+
     Shell_Info :
     {
         . = ALIGN(0x08);

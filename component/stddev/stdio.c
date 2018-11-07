@@ -54,6 +54,7 @@
 //   新版本号: V1.0.0
 //   修改说明: 创建文件
 //------------------------------------------------------
+#include <stat.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <stddef.h>

@@ -1,5 +1,6 @@
 
 .import CK_Trap0ISR
+.import IAP_SelectLoadProgam
 .import exp_status_handler
 .import __start_asyn_signal
 .import msp_top
@@ -105,6 +106,20 @@ Init_Cpu:
     lrw      a1, msp_top
     mov      sp, a1
     
+    jbsr    IAP_SelectLoadProgam
+
+    .section .text.AppStart
+    .align   1
+    .globl   AppStart
+    .type    AppStart, %function
+AppStart:
+    lrw      r0, 0x80000000
+
+    mtcr     r0, psr
+
+    lrw      a1, msp_top
+    mov      sp, a1
+
     jbsr    Init_Cpuc
 
 .text

@@ -29,8 +29,7 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 //%$#@string,1,16
-//%$#@select,2
-//#define     USE_HAL_DRIVER          //是否使用hal库
+//%$#@select,1
 //#define STM32F405xx             //只能选中其中一个
 //#define STM32F415xx
 //#define STM32F407xx

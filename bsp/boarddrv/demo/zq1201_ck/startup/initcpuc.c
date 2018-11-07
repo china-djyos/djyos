@@ -14,6 +14,18 @@ void Init_Cpuc(void)
     Load_Preload();
 }
 
+void IAP_GpioPinInit(void)
+{
+
+}
+
+bool_t IAP_IsForceIboot(void)
+{
+    return false;
+}
+
+
+
 void epc_test(uint32_t r_epc)
 {
     if(r_epc>=0x021e0100)

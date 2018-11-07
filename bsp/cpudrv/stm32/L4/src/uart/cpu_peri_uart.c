@@ -155,12 +155,12 @@ typedef struct
 }tagUartCfg;
 
 static const tagUartCfg sUartCfg[CN_UART_NUM] = {
-{"UART1",(tagUartReg volatile *)USART1_BASE,CN_INT_LINE_USART1,CN_INT_LINE_DMA1_CH5,CN_INT_LINE_DMA1_CH4,DMA_REQUEST_2,DMA1_Channel5,DMA1_Channel4},
-{"UART2",(tagUartReg volatile *)USART2_BASE,CN_INT_LINE_USART2,CN_INT_LINE_DMA1_CH6,CN_INT_LINE_DMA1_CH7,DMA_REQUEST_2,DMA1_Channel6,DMA1_Channel7},
-{"UART3",(tagUartReg volatile *)USART3_BASE,CN_INT_LINE_USART3,CN_INT_LINE_DMA1_CH3,CN_INT_LINE_DMA1_CH2,DMA_REQUEST_2,DMA1_Channel3,DMA1_Channel2},
+{"USART1",(tagUartReg volatile *)USART1_BASE,CN_INT_LINE_USART1,CN_INT_LINE_DMA1_CH5,CN_INT_LINE_DMA1_CH4,DMA_REQUEST_2,DMA1_Channel5,DMA1_Channel4},
+{"USART2",(tagUartReg volatile *)USART2_BASE,CN_INT_LINE_USART2,CN_INT_LINE_DMA1_CH6,CN_INT_LINE_DMA1_CH7,DMA_REQUEST_2,DMA1_Channel6,DMA1_Channel7},
+{"USART3",(tagUartReg volatile *)USART3_BASE,CN_INT_LINE_USART3,CN_INT_LINE_DMA1_CH3,CN_INT_LINE_DMA1_CH2,DMA_REQUEST_2,DMA1_Channel3,DMA1_Channel2},
 {"UART4",(tagUartReg volatile *)UART4_BASE,CN_INT_LINE_UART4,CN_INT_LINE_DMA2_CH5,CN_INT_LINE_DMA2_CH3,DMA_REQUEST_2,DMA2_Channel5,DMA2_Channel3},
 {"UART5",(tagUartReg volatile *)UART5_BASE,CN_INT_LINE_UART5,CN_INT_LINE_DMA2_CH2,CN_INT_LINE_DMA2_CH1,DMA_REQUEST_2,DMA2_Channel2,DMA2_Channel1},
-{"UART6",(tagUartReg volatile *)LPUART1_BASE,CN_INT_LINE_LPUART1,CN_INT_LINE_DMA2_CH7,CN_INT_LINE_DMA2_CH6,DMA_REQUEST_4,DMA2_Channel7,DMA2_Channel6}
+{"LPUART1",(tagUartReg volatile *)LPUART1_BASE,CN_INT_LINE_LPUART1,CN_INT_LINE_DMA2_CH7,CN_INT_LINE_DMA2_CH6,DMA_REQUEST_4,DMA2_Channel7,DMA2_Channel6}
 };
 // =============================================================================
 
@@ -841,35 +841,42 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     if(!strcmp(StdioOut,"/dev/USART1"))
     {
         TxDirectPort = CN_USART1;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/USART2"))
     {
         TxDirectPort = CN_USART2;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/USART3"))
     {
         TxDirectPort = CN_USART3;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART4"))
     {
         TxDirectPort = CN_UART4;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART5"))
     {
         TxDirectPort = CN_UART5;
+        PutStrDirectH = phuart[TxDirectPort];
     }
-    else if(!strcmp(StdioOut,"/dev/UART6"))
+    else if(!strcmp(StdioOut,"/dev/LPUART1"))
     {
         TxDirectPort = CN_LPUART1;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else
     {
-        PutStrDirect = NULL ;
+//        PutStrDirect = NULL ;
+        PutStrDirectH = NULL;
     }
 
-    if(PutStrDirect == NULL)
+    if(PutStrDirectH != NULL)
     {
-        PutStrDirectH = phuart[TxDirectPort];
+//        PutStrDirectH = phuart[TxDirectPort];
         __UART_HardInit(TxDirectPort);
         TxByteTime = 95;      //初始化默认115200，发送一个byte是87uS,+10%容限
         PutStrDirect = Uart_PutStrDirect;
@@ -878,35 +885,41 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     if(!strcmp(StdioIn,"/dev/USART1"))
     {
         RxDirectPort = CN_USART1;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/USART2"))
     {
         RxDirectPort = CN_USART2;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/USART3"))
     {
-        RxDirectPort = CN_USART2;
+        RxDirectPort = CN_USART3;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART4"))
     {
         RxDirectPort = CN_UART4;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART5"))
     {
         RxDirectPort = CN_UART5;
+        GetCharDirectH = phuart[RxDirectPort];
     }
-    else if(!strcmp(StdioIn,"/dev/UART6"))
+    else if(!strcmp(StdioIn,"/dev/LPUART1"))
     {
         RxDirectPort = CN_LPUART1;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else
     {
-        GetCharDirect = NULL ;
+        GetCharDirectH = NULL ;
     }
 
-    if(GetCharDirect == NULL)
+    if(GetCharDirectH != NULL)
     {
-        GetCharDirectH = phuart[RxDirectPort];
+//        GetCharDirectH = phuart[RxDirectPort];
         if(TxDirectPort != RxDirectPort)
             __UART_HardInit(RxDirectPort);
         GetCharDirect = Uart_GetCharDirect;
