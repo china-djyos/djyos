@@ -239,7 +239,7 @@ static void djyMemFree(void *pPrior){
 static void *djyMemRealloc(void *pPrior, int nBytes){
 //  free(pPrior);
 //  return M_MallocLc(nBytes,CN_TIMEOUT_FOREVER);
-    return M_Realloc(pPrior,nBytes,CN_TIMEOUT_FOREVER);
+    return M_Realloc(pPrior,nBytes);
 }
 
 /*

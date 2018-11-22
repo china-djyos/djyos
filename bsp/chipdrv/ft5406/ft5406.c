@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：ft5406.c
 // 模块描述: 触摸屏芯片ft5406的驱动
 // 模块版本: V1.00
@@ -64,25 +64,26 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,\
-//                   char *touch_dev_name )
+//  extern bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,char *touch_dev_name);
 //  struct GkWinObj *ptouchdesktop;
-//  ptouchdesktop = GK_GetDesktop(CFG_FT5406_DESKTOP_NAME);
+//  ptouchdesktop = GK_GetDesktop(CFG_DISPLAY_NAME);
 //  if(false == ModuleInstall_FT5406(CFG_FT5406_BUS_NAME,ptouchdesktop,CFG_FT5406_TOUCH_NAME))
 //  {
 //      printf("FT5406 Install Failed!\r\n");
 //      while(1);
 //  }
+//  extern bool_t GDD_AddInputDev(const char *InputDevName);
+//  GDD_AddInputDev(CFG_INPUTDEV_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"ft5406"      //iic接口的触摸屏
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:later               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","iicbus","gdd","file","gkernel","touch"    //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
@@ -214,20 +215,20 @@ static bool_t FT5406_Init(void)
             goto FT5406_INIT_FALSE;
 
         id=TOUCH_POINT_GET_ID(touch_data.TOUCH);
-        debug_printf("Touch FT5406 Init success,id:%02X",id);
+        printf("Touch FT5406 Init success,id:%02X",id);
         result = *(&result);    //消除警告
         return true;
     }
 
 FT5406_INIT_FALSE:
-debug_printf("Touch FT5406 Init ERROR.FILE:%s,LINE:%d\r\n",__FILE__,__LINE__);
+    printf("Touch FT5406 Init ERROR.FILE:%s,LINE:%d\r\n",__FILE__,__LINE__);
     return false;
 }
 
 //扫描触摸屏(采用查询方式)
 //参数:touch_data：,存储XYZ值
 //返回值:是否有触摸
-// 1=触摸笔按下，2=触摸笔提起,0:没有触摸
+// 1=触摸笔按下，0 触摸笔提起
 static ufast_t FT5406_Scan(struct SingleTouchMsg *touch_data)
 {
     ft5406_touch_data_t data;
@@ -271,10 +272,6 @@ static ufast_t FT5406_Scan(struct SingleTouchMsg *touch_data)
         touch_event = TOUCH_POINT_GET_EVENT(data.TOUCH);
         if(touch_event==kTouch_Down)
             return 1;
-        else if(touch_event==kTouch_Up)
-                return 2;
-        else
-            return 0;
     }
     return 0;
 }
@@ -303,22 +300,23 @@ bool_t Touch_Adjust(struct GkWinObj *desktop,struct ST_TouchAdjust* touch_adjust
         limit_bottom = desktop->limit_bottom;
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
+
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
-                       "触摸屏矫正", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "触摸屏矫正", 21, CN_COLOR_RED, CN_R2_COPYPEN, 0);
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
-                       "请准确点击十字交叉点", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "请准确点击十字交叉点", 21, CN_COLOR_RED, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
         GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
 
         while(FT5406_Scan(&touch_xyz0)!=1);//等待触摸
-        debug_printf("采集坐标1:(%d,%d)\n\r",touch_xyz0.x,touch_xyz0.y);
+        printf("采集坐标1:(%d,%d)\n\r",touch_xyz0.x,touch_xyz0.y);
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
-                       "触摸屏矫正", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "触摸屏矫正", 21, CN_COLOR_RED, CN_R2_COPYPEN, 0);
         GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
-                       "再次准确点击十字交叉点", 21, CN_COLOR_BLACK, CN_R2_COPYPEN, 0);
+                       "再次准确点击十字交叉点", 21, CN_COLOR_RED, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,limit_right-40,limit_bottom-20,
                       limit_right,limit_bottom-20,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
@@ -328,7 +326,7 @@ bool_t Touch_Adjust(struct GkWinObj *desktop,struct ST_TouchAdjust* touch_adjust
         GK_SyncShow(CN_TIMEOUT_FOREVER);
 
         while(FT5406_Scan(&touch_xyz1)!=1);//等待触摸
-        debug_printf("采集坐标2:(%d,%d)\n\r",touch_xyz1.x,touch_xyz1.y);
+        printf("采集坐标2:(%d,%d)\n\r",touch_xyz1.x,touch_xyz1.y);
 
         GK_FillWin(desktop,CN_COLOR_GREEN,0);
         touch_adjust->ratio_x = ((touch_xyz1.x - touch_xyz0.x)<<16)
@@ -353,8 +351,7 @@ bool_t Touch_Adjust(struct GkWinObj *desktop,struct ST_TouchAdjust* touch_adjust
 // 参数：无
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,\
-                     char *touch_dev_name )
+bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,char *touch_dev_name )
 {
     bool_t result = false;
     static struct IIC_Device* s_FT5406_Dev;
@@ -368,13 +365,13 @@ bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,\
         if(!result)
             return false;
 
-        FT5406.read_touch = FT5406_Scan;//读触摸点的坐标函数
-        FT5406.touch_loc.display = NULL;     //NULL表示用默认桌面
-        result=Touch_InstallDevice(touch_dev_name,&FT5406);//添加驱动到Touch
+        result=Touch_Adjust(desktop,&tg_touch_adjust);
         if(!result)
             return false;
 
-        result=Touch_Adjust(desktop,&tg_touch_adjust);
+        FT5406.read_touch = FT5406_Scan;//读触摸点的坐标函数
+        FT5406.touch_loc.display = NULL;     //NULL表示用默认桌面
+        result=Touch_InstallDevice(touch_dev_name,&FT5406);//添加驱动到Touch
         if(!result)
             return false;
 

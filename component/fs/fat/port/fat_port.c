@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -55,9 +55,9 @@ extern char *PathCopy(const char *Root, const char *RelPath, char(*Rebuild)(char
 
 //-----------------------------------------------------------------------------
 //功能:
-//参数: 
+//参数:
 //返回: 非NULL -- 成功; NULL -- 失败;
-//备注: 
+//备注:
 //-----------------------------------------------------------------------------
 struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
 {
@@ -66,11 +66,11 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
     struct FileBuf *Buf;
     FRESULT Res = FR_OK;
     u8 LocalMode = 0;
-    
+
     // 先排除不支持功能
     if((Mode & M_APPEND) || (Mode & M_LINK))
         return (NULL);// 当前不支持的模式,(Mode & M_TRUNCATE)还没有处理
-    
+
     LocalPath = PathCopy(Root, Path, NULL);// todo:考虑放入虚拟层
 
     FileCt = AllocContext();
@@ -84,22 +84,22 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
     {
         LocalMode |= FA_READ;
         FileCt->Property |= P_READ;
-    }    
-    
+    }
+
     if(Mode & M_WRITE)
     {
         LocalMode |= FA_WRITE;
         FileCt->Property |= P_WRITE;
-    }    
-    
+    }
+
     if(Mode & M_CREATE)
     {
         if((Mode & M_OPEN))
             LocalMode |= FA_OPEN_ALWAYS;// 如果文件不存在,则创建一个再打开.如此便能保证fopen打开一次性打开一个已存在文件
         else
-            LocalMode |= FA_CREATE_NEW;    
-    }    
-    
+            LocalMode |= FA_CREATE_NEW;
+    }
+
     if(!(Mode & M_TYPE))// 参数未指定，则两个都要尝试下
         Mode |= M_REG | M_DIR;
 
@@ -107,9 +107,9 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
     {
         FIL *NewFile = malloc(sizeof(FIL));
         if(NewFile)
-        {    
+        {
             Res = f_open(NewFile, LocalPath, LocalMode);// 打开文件
-            if((FR_OK == Res) || 
+            if((FR_OK == Res) ||
                ((FR_EXIST == Res) && (Mode & M_OPEN)))//打开已存在文件
             {
                 if(0 == AllocFileBuf(&Buf, 0)) // 为文件创建缓冲区
@@ -131,13 +131,13 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
             }
             // 打开文件失败
             free(NewFile);
-        }    
+        }
     }
-    
+
     if(Mode & M_DIR)// 打开目录
     {
         _DIR *NewDir;
-        
+
         if(LocalMode & FA_CREATE_NEW)// 需创建，先试图创建目录
         {
             Res = f_mkdir(LocalPath);
@@ -160,7 +160,7 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
             }
         }
     }
-    
+
     // 失败
     FreeContext(FileCt);
     return (NULL);
@@ -168,14 +168,14 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
 }
 //-----------------------------------------------------------------------------
 //功能:
-//参数: 
+//参数:
 //返回: 0 -- 成功; -2 -- 失败;
-//备注: 
+//备注:
 //-----------------------------------------------------------------------------
 s32 FATClose(struct FileContext *FileCt)
 {
     FRESULT Res;
-    
+
     switch(FileCt->Property & P_TYPE)
     {
         case P_REG:
@@ -200,41 +200,41 @@ s32 FATClose(struct FileContext *FileCt)
         default:
             return (-2);// 失败
     }
-    
+
     free(FileCt->Private);// 释放"FIL"或"_DIR"
     FreeContext(FileCt);
     return (0);
-    
+
 }
 //-----------------------------------------------------------------------------
 //功能:
-//参数: 
+//参数:
 //返回: 0 -- 成功; -3 -- 失败;
-//备注: 
+//备注:
 //-----------------------------------------------------------------------------
 s32 FATSync(struct FileContext *FileCt)
 {
     FRESULT Res;
     FIL *File = (FIL*)(FileCt->Private);
-    
+
     Res = f_sync(File);
     if (FR_OK != Res)
         return (-3);
-        
+
     return (0);
 }
 //-----------------------------------------------------------------------------
 //功能:
-//参数: 
+//参数:
 //返回: 0 -- 成功; -1 -- 操作失败; -2 -- 参数错误;
-//备注: 
+//备注:
 //-----------------------------------------------------------------------------
 s32 FATSeek(struct FileContext *FileCt, s64 Offset, int Whence)
 {
     FRESULT Res;
     DWORD NewPos;
     FIL *File = (FIL*)FileCt->Private;
-    
+
     switch(Whence)
     {
         case V_SEEK_SET: NewPos = Offset;break;
@@ -242,7 +242,7 @@ s32 FATSeek(struct FileContext *FileCt, s64 Offset, int Whence)
         case V_SEEK_END: NewPos = Offset + File->fsize; break;
         default: return (-2);// 参数错误
     }
-    
+
     Res = f_lseek(File, NewPos);
     if (FR_OK != Res)
         return (-1);
@@ -250,52 +250,52 @@ s32 FATSeek(struct FileContext *FileCt, s64 Offset, int Whence)
 }
 //-----------------------------------------------------------------------------
 //功能:
-//参数: 
-//返回: 
-//备注: 
+//参数:
+//返回:
+//备注:
 //-----------------------------------------------------------------------------
 s32 FATDelete(const char *Path, const char *Root)
 {
     FRESULT Res;
     char *LocalPath = PathCopy(Root, Path, NULL);
-    
+
     Res = f_unlink(LocalPath);
     if(FR_OK != Res)
         return (-3);
-    return (0);    
+    return (0);
 }
 //-----------------------------------------------------------------------------
 //功能:
-//参数: 
+//参数:
 //返回: !0 -- 成功; 0 -- 失败;
-//备注: 
+//备注:
 //-----------------------------------------------------------------------------
 s32 FATWrite(const void *Buf, u32 Size, u32 Nmemb, struct FileContext *FileCt)
 {
 
     u32 Result;
-    FIL *File = (FIL*)FileCt->Private;    
+    FIL *File = (FIL*)FileCt->Private;
     u32 Length = Size * Nmemb;
-    
+
     f_write(File, Buf, Length, &Result);
-    
+
     return((s32)Result);
 }
 //-----------------------------------------------------------------------------
 //功能:
-//参数: 
+//参数:
 //返回: !0 -- 成功; 0 -- 失败;
-//备注: 
+//备注:
 //-----------------------------------------------------------------------------
 s32 FATRead(void *Buf, u32 Size, u32 Nmemb, struct FileContext *FileCt)
 {
 
     u32 Result;
-    FIL *File = (FIL*)FileCt->Private;    
+    FIL *File = (FIL*)FileCt->Private;
     u32 Length = Size * Nmemb;
-    
+
     f_read(File, Buf, Length, &Result);
-    
+
     return((s32)Result);
 }
 //-----------------------------------------------------------------------------
@@ -396,7 +396,7 @@ s32 FATDirRead(struct FileContext *pFileCt, struct Dirent *pContent)
     res = f_readdir(dir, &info);
     if(FR_OK !=res)
         return (-3);
-        
+
     if(0 == info.fname[0])
         return (1);
 

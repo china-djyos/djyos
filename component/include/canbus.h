@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -60,9 +60,9 @@ extern "C" {
 // CAN总线常用波特率.
 typedef enum {
     EN_CAN_BUS_BAUD_5K = 5,                     //    5 Kbps (0)
-	EN_CAN_BUS_BAUD_10K=10,                        //   10 Kbps (1)
-	EN_CAN_BUS_BAUD_20K=20,                        //   20 Kbps (2)
-	EN_CAN_BUS_BAUD_40K=40,                        //   40 Kbps (3)
+    EN_CAN_BUS_BAUD_10K=10,                        //   10 Kbps (1)
+    EN_CAN_BUS_BAUD_20K=20,                        //   20 Kbps (2)
+    EN_CAN_BUS_BAUD_40K=40,                        //   40 Kbps (3)
     EN_CAN_BUS_BAUD_50K=50,                        //   50 Kbps (4)
     EN_CAN_BUS_BAUD_80K=80,                        //   80 Kbps (5)
     EN_CAN_BUS_BAUD_100K=100,                     //   100 Kbps (6)
@@ -80,80 +80,80 @@ typedef enum {
 //CAN控制操作码
 typedef enum CAN_CTRL_CMD
 {
-	EN_CAN_BUS_RESET=0,                   //复位CAN控制器
-	EN_CAN_BUS_SET_BAUDRATE,              //设置CAN通信波特率
-	EN_CAN_BUS_GET_BAUDRATE,              //获取CAN通信波特率
-	EN_CAN_BUS_SET_FILTER,                //设置CAN滤波属性
-	EN_CAN_BUS_GET_FILTER,                //获取CAN滤波属性
+    EN_CAN_BUS_RESET=0,                   //复位CAN控制器
+    EN_CAN_BUS_SET_BAUDRATE,              //设置CAN通信波特率
+    EN_CAN_BUS_GET_BAUDRATE,              //获取CAN通信波特率
+    EN_CAN_BUS_SET_FILTER,                //设置CAN滤波属性
+    EN_CAN_BUS_GET_FILTER,                //获取CAN滤波属性
 }CanCtrlCmd;
 
 //CAN发送模式
 typedef enum CAN_SEND_MODE
 {
-	EN_CAN_BUS_SEND_ASYN_MODE=0,    //异步发送
-	EN_CAN_BUS_SEND_SYN_MODE,       //同步发送
+    EN_CAN_BUS_SEND_ASYN_MODE=0,    //异步发送
+    EN_CAN_BUS_SEND_SYN_MODE,       //同步发送
 }CanSendMode;
 
 //CAN报文类型
 typedef enum
 {
-	EN_CAN_BUS_STD=(unsigned char)(0x00),
-	EN_CAN_BUS_RTR=(unsigned char)(0x40),
-	EN_CAN_BUS_EXD=(unsigned char)(0x80)
+    EN_CAN_BUS_STD=(unsigned char)(0x00),
+    EN_CAN_BUS_RTR=(unsigned char)(0x40),
+    EN_CAN_BUS_EXD=(unsigned char)(0x80)
 }CanFrameType;
 
 //CAN总线错误类型
 typedef enum
 {
-	EN_CAN_BUS_BUS_OFF_ERR=0,           //总线关闭
-	EN_CAN_BUS_CRC_ERR,                 //CRC错误
-	EN_CAN_BUS_BIT_ERR,                 //位错误,包括显性位错误和阴性位错误
+    EN_CAN_BUS_BUS_OFF_ERR=0,           //总线关闭
+    EN_CAN_BUS_CRC_ERR,                 //CRC错误
+    EN_CAN_BUS_BIT_ERR,                 //位错误,包括显性位错误和阴性位错误
     EN_CAN_BUS_STUFF_ERR,               //填充错误
-	EN_CAN_BUS_FORMAT_ERR,              //帧格式错误
-	EN_CAN_BUS_ACK_ERR,                 //确认错误
-	EN_CAN_BUS_LOSS_ARB_ERR,            //仲裁失利
-	EN_CAN_BUS_SEND_BAD,                //发送失败
-	EN_CAN_BUS_RST_FAILED,              //复位失败
+    EN_CAN_BUS_FORMAT_ERR,              //帧格式错误
+    EN_CAN_BUS_ACK_ERR,                 //确认错误
+    EN_CAN_BUS_LOSS_ARB_ERR,            //仲裁失利
+    EN_CAN_BUS_SEND_BAD,                //发送失败
+    EN_CAN_BUS_RST_FAILED,              //复位失败
 }CanErrType;
 
 
 //CAN总线错误统计
 typedef struct
 {
-	uint64_t BusOffErrCnt;    //总线关闭错误计数器
-	uint64_t CrcErrCnt;       //CRC错误计数器
-	uint64_t BitErrCnt;       //位错误计数器
-	uint64_t StuErrCnt;       //填充错误计数器
-	uint64_t FormatErrCnt;    //格式错误计数器
-	uint64_t ACKErrCnt;       //ACK错误计数器
-	uint64_t LossArbCnt;      //仲裁失利计数器
+    uint64_t BusOffErrCnt;    //总线关闭错误计数器
+    uint64_t CrcErrCnt;       //CRC错误计数器
+    uint64_t BitErrCnt;       //位错误计数器
+    uint64_t StuErrCnt;       //填充错误计数器
+    uint64_t FormatErrCnt;    //格式错误计数器
+    uint64_t ACKErrCnt;       //ACK错误计数器
+    uint64_t LossArbCnt;      //仲裁失利计数器
 }CanErrStatDef;
 
 
 //CANBUS数据统计
 typedef struct
 {
-	uint64_t AppSndCnt;          //CANBUS上层发送CAN报文帧数
-	uint64_t HardSndCnt;         //CAN控制器成功发送CAN报文帧数
-	uint64_t HardRcvCnt;         //CAN控制器接收CAN报文帧数
-	uint64_t AppRcvCnt;          //CANBUS上层接收CAN报文帧数
-	uint64_t SendSempTimeoutCnt; //CANBUS发送报文时pend信号量超时
-	uint64_t RecvSempTimeoutCnt; //CANBUS接收报文时pend信号量超时
-	uint64_t LostSendFrameCnt;   //CANBUS由于发送缓冲区满丢失CAN报文帧数
-	uint64_t LostRecvFrameCnt;   //CANBUS由于接收缓冲区满丢失CAN报文帧数
-	uint64_t SndPkgBadCnt;       //CAN控制器发送失败次数，这里指CAN控制器未成功将报文发送到总线
-	uint64_t RstFailedCnt;       //CAN控制器复位失败次数
-	CanErrStatDef CanErrStat;    //CAN错误计数
+    uint64_t AppSndCnt;          //CANBUS上层发送CAN报文帧数
+    uint64_t HardSndCnt;         //CAN控制器成功发送CAN报文帧数
+    uint64_t HardRcvCnt;         //CAN控制器接收CAN报文帧数
+    uint64_t AppRcvCnt;          //CANBUS上层接收CAN报文帧数
+    uint64_t SendSempTimeoutCnt; //CANBUS发送报文时pend信号量超时
+    uint64_t RecvSempTimeoutCnt; //CANBUS接收报文时pend信号量超时
+    uint64_t LostSendFrameCnt;   //CANBUS由于发送缓冲区满丢失CAN报文帧数
+    uint64_t LostRecvFrameCnt;   //CANBUS由于接收缓冲区满丢失CAN报文帧数
+    uint64_t SndPkgBadCnt;       //CAN控制器发送失败次数，这里指CAN控制器未成功将报文发送到总线
+    uint64_t RstFailedCnt;       //CAN控制器复位失败次数
+    CanErrStatDef CanErrStat;    //CAN错误计数
 }CanStatDef;
 
 
 #pragma pack(1)
 typedef struct CAN_Frame
 {
-	CanFrameType Type;  //CAN帧数据类型，CANBUS支持CAN2.0A及CAN2.0B，即支持标准帧，扩展帧及远程帧三类。
-	uint8_t DLC;        //CAN帧有效数据字节数.
-	uint32_t Id;        //CAN帧Id，如果是标准帧，则Id为11位；若是扩展帧则为29位。不论是标准帧还是扩展帧均按LSB格式。
-	uint8_t Data[8];    //CAN帧的有效数据缓冲区，一帧CAN报文最大有效字节数为8.
+    CanFrameType Type;  //CAN帧数据类型，CANBUS支持CAN2.0A及CAN2.0B，即支持标准帧，扩展帧及远程帧三类。
+    uint8_t DLC;        //CAN帧有效数据字节数.
+    uint32_t Id;        //CAN帧Id，如果是标准帧，则Id为11位；若是扩展帧则为29位。不论是标准帧还是扩展帧均按LSB格式。
+    uint8_t Data[8];    //CAN帧的有效数据缓冲区，一帧CAN报文最大有效字节数为8.
 }CanFarmeDef;
 #pragma pack()
 

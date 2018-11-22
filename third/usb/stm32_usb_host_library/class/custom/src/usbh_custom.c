@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -330,7 +330,7 @@ static void __ReleasePipe(void *pPipe)
   * @retval USBH status
   */
 static USBH_StatusTypeDef USBH_CUSTOM_InterfaceInit (USBH_HandleTypeDef *pHost)
-{    
+{
     uint8_t interfaceIndex, endpoints;
     CUSTOM_HandleTypeDef *chandle;
     CUSTOM_InterfaceTypedef *interface;
@@ -757,7 +757,7 @@ USBH_StatusTypeDef USBH_CUSTOM_ClearRemoteWakeupFeature(USBH_HandleTypeDef *pHos
   * @retval USBH status
   */
 static USBH_StatusTypeDef USBH_CUSTOM_ClassRequest (USBH_HandleTypeDef *pHost)
-{   
+{
     USBH_StatusTypeDef status = USBH_OK;
 
     // 去除远程唤醒功能
@@ -775,7 +775,7 @@ static USBH_StatusTypeDef USBH_CUSTOM_ClassRequest (USBH_HandleTypeDef *pHost)
 
 /**
   * @brief  USBH_CUSTOM_Process
-  *         The function is for managing state machine for CDC data transfers 
+  *         The function is for managing state machine for CDC data transfers
   * @param  pHost: Host handle
   * @retval USBH status
   */
@@ -803,7 +803,7 @@ static USBH_StatusTypeDef USBH_CUSTOM_Process (USBH_HandleTypeDef *pHost)
 
 /**
   * @brief  USBH_CUSTOM_SOFProcess
-  *         The function is for managing SOF callback 
+  *         The function is for managing SOF callback
   * @param  pHost: Host handle
   * @retval USBH status
   */
@@ -811,18 +811,18 @@ static USBH_StatusTypeDef USBH_CUSTOM_SOFProcess (USBH_HandleTypeDef *pHost)
 {
     return USBH_OK;
 }
-                                   
-  
+
+
 /**
-  * @brief  USBH_CDC_Stop 
-  *         Stop current CDC Transmission 
+  * @brief  USBH_CDC_Stop
+  *         Stop current CDC Transmission
   * @param  pHost: Host handle
   * @retval USBH status
   */
 USBH_StatusTypeDef  USBH_CUSTOM_Stop (USBH_HandleTypeDef *pHost)
 {
   CUSTOM_HandleTypeDef *chandle =  (CUSTOM_HandleTypeDef*) pHost->pActiveClass->pData;
-  
+
   if(pHost->gState == HOST_CLASS)
   {
     chandle->eState = CUSTOM_IDLE;
@@ -846,7 +846,7 @@ USBH_StatusTypeDef  USBH_CUSTOM_Stop (USBH_HandleTypeDef *pHost)
         USBH_ClosePipe(pHost, chandle->MODEM_Interface.OutPipe);
   }
 
-  return USBH_OK;  
+  return USBH_OK;
 }
 
 // ============================================================================
@@ -933,7 +933,7 @@ USBH_StatusTypeDef  USBH_CUSTOM_AT_Receive (USBH_HandleTypeDef *pHost, uint8_t *
     }
 
     return status;
-} 
+}
 
 // ============================================================================
 //功能：
@@ -1812,7 +1812,7 @@ static USBH_StatusTypeDef __DEBUG_ProcessReception(USBH_HandleTypeDef *pHost, ui
             {
                 printf("\r\n : erro : usbsv%d : custom at channel(unknown)."); // 正常逻辑不进入,因为此时都是同步
             }
-            
+
             // if(((*pRxDataLength - length) > 0) && (length > chandle->AT_Interface.InEpSize)) // TODO，第二个条件不知道什么意思
             if(*pRxDataLength > length)
             {
@@ -1850,7 +1850,7 @@ void __attribute((weak)) USBH_CUSTOM_AT_TransmitCallback(USBH_HandleTypeDef *pHo
 {
 ;
 }
-  
+
 // ============================================================================
 //功能： The function informs user that data have been received
 //参数：

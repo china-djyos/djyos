@@ -30,13 +30,13 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"isbus_slave"     //嵌入式串行通信从机端
-//parent:"none"                    //填写该组件的父组件名字，none表示没有父组件
-//attribute:核心组件               //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//component name:"isbus_slave"  //嵌入式串行通信从机端
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"devfile","lock","multiplex",         //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
@@ -84,7 +84,7 @@ struct Slave_ISBUSPort
 {
     struct Slave_ISBUSPort *Next;           //组成单向链表，末端指向NULL
     struct Slave_FunctionSocket *SocketHead;//组成单向循环链表，Head指向当前接收的功能号值
-    struct DjyDevice *SerialDevice;         //对应的设备指针
+    s32 SerialDevice;         //对应的设备指针
     Slave_FntProtocolError fnError;         //出错对应的回调函数
     u32 ErrorPkgs;                          //累计错误数
     u32 ErrorLast;                          //最后一次错误号
@@ -438,8 +438,8 @@ bool_t Slave_ModuleInstall_InSerial(u32 StackSize)
 //                操作系统tick间隔限制。0xffffffff（-1）代表不设超时。
 // 返回值：  通信插口指针
 // ============================================================================
-struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(struct DjyDevice *dev,\
-                                                     Slave_FntProtocolError fnError,u32 Timeout)
+struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(s32 dev,\
+                               Slave_FntProtocolError fnError,u32 Timeout)
 {
     struct Slave_ISBUSPort *Port;
     if(dev == NULL)
@@ -475,14 +475,14 @@ struct Slave_ISBUSPort *Slave_ISBUS_RegistPort(struct DjyDevice *dev,\
         Port->SendP = sizeof(struct Slave_ISBUSProtocol);  //发送偏移量为协议头
         Port->MTC_Address = CN_INS_MULTICAST;
 //        Driver_SetUserTag(dev, (ptu32_t)Port);
-        Dev_SetUserTag(dev, (ptu32_t)Port);
+        dev_SetUserTag(dev, (ptu32_t)Port);
 //        Driver_MultiplexAdd(Slave_sg_ptMultiplexPort, &dev, 1,
 //                                               CN_MULTIPLEX_SENSINGBIT_READ
 //                                            |  CN_MULTIPLEX_SENSINGBIT_WRITE
 //                                            |  CN_MULTIPLEX_SENSINGBIT_ERROR
 //                                            |  CN_MULTIPLEX_SENSINGBIT_ET
 //                                            |  CN_MULTIPLEX_SENSINGBIT_OR    );
-        Multiplex_AddObject(Slave_sg_ptMultiplexPort,  1,
+        Multiplex_AddObject(Slave_sg_ptMultiplexPort,  dev,
                                                CN_MULTIPLEX_SENSINGBIT_READ
                                             |  CN_MULTIPLEX_SENSINGBIT_WRITE
                                             |  CN_MULTIPLEX_SENSINGBIT_ERROR

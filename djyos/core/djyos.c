@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 Öø×÷È¨ÓÉÉîÛÚÅôÈğÈí¼şÓĞÏŞ¹«Ë¾ËùÓĞ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇĞÈ¨Àû¡£
+// Copyright (c) 2018£¬Öø×÷È¨ÓÉ¶¼½­Ñß²Ù×÷ÏµÍ³¿ªÔ´¿ª·¢ÍÅ¶ÓËùÓĞ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇĞÈ¨Àû¡£
 //
 // Õâ·İÊÚÈ¨Ìõ¿î£¬ÔÚÊ¹ÓÃÕß·ûºÏÏÂÁĞÌõ¼şµÄÇéĞÎÏÂ£¬ÊÚÓèÊ¹ÓÃÕßÊ¹ÓÃ¼°ÔÙÉ¢²¥±¾
 // Èí¼ş°ü×°Ô­Ê¼Âë¼°¶ş½øÎ»¿ÉÖ´ĞĞĞÎÊ½µÄÈ¨Àû£¬ÎŞÂÛ´Ë°ü×°ÊÇ·ñ¾­¸Ä×÷½ÔÈ»£º
@@ -134,7 +134,7 @@
 #include "pool.h"
 #include "systime.h"
 #include "djyos.h"
-#include "exp.h"
+#include "blackbox.h"
 #include "dbug.h"
 
 #include "lowpower.h"
@@ -142,7 +142,7 @@
 #include "../heap/component_config_heap.h"
 ptu32_t __Djy_Service(void);
 
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
 enum __Djy_TickEvent{
     ISR_TICK_DELAY_TOO_LONG,
     EVENT_DELAY,
@@ -162,7 +162,7 @@ struct EventType g_tEvttTable[CFG_EVENT_TYPE_LIMIT];
 struct EventECB  *s_ptEventFree; //¿ÕÏĞÁ´±íÍ·,²»ÅÅĞò
 //static struct ParaPCB  *s_ptParaFree; //¿ÕÏĞÁ´±íÍ·,²»ÅÅĞò
 //ÂÖ×ªµ÷¶ÈÊ±¼äÆ¬£¬0±íÊ¾½ûÖ¹ÂÖ×ªµ÷¶È£¬Ä¬ÈÏ1£¬RRS = "round robin scheduling"ËõĞ´¡£
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
 static u64 s_u64RRS_Slice = (CN_CFG_TIME_BASE_HZ/100);//µ¥Î»£ºUS
 #else
 static u32 s_u32RRS_Slice = 1;
@@ -171,7 +171,7 @@ static u32 s_u32StackCheckLevel = 10;      //Õ»±¨¾¯Ë®Æ½£¬°Ù·ÖÊı
 struct EventECB  *g_ptEventReady;      //¾ÍĞ÷¶ÓÁĞÍ·
 struct EventECB  *g_ptEventRunning;    //µ±Ç°ÕıÔÚÖ´ĞĞµÄÊÂ¼ş
 struct EventECB  *g_ptEventDelay;      //ÄÖÖÓÍ¬²½¶ÓÁĞ±íÍ·
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
 u64 g_s64RunningStartCnt;        //µ±Ç°ÔËĞĞÖĞÊÂ¼şµÄ¿ªÊ¼Ö´ĞĞÊ±¼ä.
 u64  g_s64OsTimeCnt=0;            //²Ù×÷ÏµÍ³ÔËĞĞticks
 u64  g_s64OsNextDelayCnt=CN_LIMIT_UINT64;        //ÏÂÒ»´ÎTICKÖĞ¶ÏµÄÊ±¼ä,µ¥Î»£ºUS
@@ -188,7 +188,7 @@ u32 (*g_fnEntryLowPower)(struct ThreadVm *vm) = NULL;  //½øÈëµÍ¹¦ºÄ×´Ì¬µÄº¯ÊıÖ¸Õ
 void __Djy_SelectEventToRun(void);
 void __Djy_EventReady(struct EventECB *event_ready);
 void __Djy_ResumeDelay(struct EventECB *delay_event);
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
 extern void __DjyStartTimeBase(void);
 extern void __Djy_SetTimeBaseCnt(u32 cnt);
 extern u64 __Djy_GetTimeBaseCnt(u32 cnt);
@@ -288,7 +288,7 @@ void Djy_SetStackCheckLevel(u32 Level)
 //-----------------------------------------------------------------------------
 bool_t __Djy_CheckStack(s16 event_id)
 {
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     struct ThreadVm *Vm;
     char StackExp[128];
     u32 loop;
@@ -323,7 +323,7 @@ bool_t __Djy_CheckStack(s16 event_id)
         {
             Vm->stack_used = &stack[loop];  //¼ÇÂ¼ĞÂµÄÒÑÓÃÖ¸Õë
             parahead.DecoderName = NULL;
-            parahead.ExpAction = EN_EXP_DEAL_RESTART;
+            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RESTART;
 #if CFG_OS_TINY == false
             name = g_tEvttTable[g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
 #else
@@ -333,11 +333,11 @@ bool_t __Djy_CheckStack(s16 event_id)
                                 (ptu32_t)stack,Vm->stack_size,loop<<2,
                                 event_id, g_tECB_Table[event_id].evtt_id&(~CN_EVTT_ID_MASK),
                                 name);
-            parahead.ExpInfo = (u8*)StackExp;
-            parahead.ExpInfoLen = sizeof(StackExp);
-            parahead.ExpType = CN_EXP_TYPE_STACK_OVER;
+            parahead.BlackBoxInfo = (u8*)StackExp;
+            parahead.BlackBoxInfoLen = sizeof(StackExp);
+            parahead.BlackBoxType = CN_BLACKBOX_TYPE_STACK_OVER;
             printk("%s\n\r",StackExp);
-            Exp_Throw(&parahead);
+            BlackBox_Recorder(&parahead);
         }
     }
     else
@@ -347,7 +347,7 @@ bool_t __Djy_CheckStack(s16 event_id)
     return result;
 }
 
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
 //----ÉèÖÃÏµÍ³µÎ´ğÖĞ¶ÏÊ±¼ä-----------------------------------------------------------------
 //¹¦ÄÜ£º¸ù¾İÏµÍ³ÏÖÔÚµÄ×´Ì¬ÉèÖÃÏµÍ³µÎ´ğ¹¤×÷Ä£Ê½ÒÔ¼°ÖĞ¶ÏÊÂ¼ş.
 //²ÎÊı£ºCurUs,µ±Ç°Ê±¼ä
@@ -442,9 +442,9 @@ void __Djy_SetIntTime(u64* Cur,u64* NextDelay,u64* NextRRS,u8 evt)
         //    if( ((NextInt==*NextDelay) && (*NextDelay<=*NextRRS)) || \
         //            ((NextInt==*NextRRS) && (*NextRRS<=*NextDelay)) )
         //      return;
-        //    NextInt=(*NextDelay>*NextRRS)?*NextRRS:*NextDelay;
-        //    break;
-            return;
+            NextInt=(*NextDelay>*NextRRS)?*NextRRS:*NextDelay;
+            break;
+        //    return;
     }
     //µ±systickÖĞ¶ÏÒÑ¾­µ½ÁË£¬µ«ÊÇÏµÍ³È´ÒÑ¾­¹Ø±ÕÁËÖĞ¶ÏµÄÇé¿öÏÂ£¬
     //ÓĞ¿ÉÄÜ»á³öÏÖNextIntUs<*CurUsµÄÇé¿ö£¬ÓĞ¿ÉÄÜ»áÔÚDJY_SELECT_EVENT_TO_RUN
@@ -471,14 +471,14 @@ void __Djy_SetIntTime(u64* Cur,u64* NextDelay,u64* NextRRS,u8 evt)
 //·µ»Ø£ºÎŞ
 //-----------------------------------------------------------------------------
 void __DjyMaintainSysTime(void);
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
 void  Djy_IsrTimeBase(u32 inc_ticks)
 #else
 void  Djy_IsrTick(u32 inc_ticks)
 #endif
 {
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     u32 event=0;
 
     g_s64OsTimeCnt=__Djy_GetTimeBaseCnt(inc_ticks);
@@ -487,7 +487,7 @@ void  Djy_IsrTick(u32 inc_ticks)
 #endif
     //ÓÃÓÚÎ¬»¤ÏµÍ³Ê±ÖÓÔË×ª£¬Ê¹¶ÁÏµÍ³Ê±¼äµÄ¼ä¸ô£¬Ğ¡ÓÚÓ²¼ş¶¨Ê±Æ÷Ñ­»·ÖÜÆÚ¡£
     __DjyMaintainSysTime( );
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     if(inc_ticks==__Djy_GetDelayMaxCnt() && \
             g_s64OsTimeCnt<=(g_s64OsNextDelayCnt - __Djy_GetTimeBaseGap()) && \
             g_s64OsTimeCnt<=(g_s64OsNextRRSCnt - __Djy_GetTimeBaseGap()) )
@@ -501,7 +501,7 @@ void  Djy_IsrTick(u32 inc_ticks)
         pl_ecb = g_ptEventDelay;
         while(1)
         {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             if(pl_ecb->delay_end_cnt < g_s64OsTimeCnt+__Djy_GetTimeBaseGap()) //Ä¬ÈÏ64Î»ticks²»»áÒç³ö
 #else
             if(pl_ecb->delay_end_tick <= g_s64OsTicks) //Ä¬ÈÏ64Î»ticks²»»áÒç³ö
@@ -543,7 +543,7 @@ void  Djy_IsrTick(u32 inc_ticks)
                 {
                     g_ptEventDelay = NULL;
                     __Djy_EventReady(pl_ecb);
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
                     event++;
                     g_s64OsNextDelayCnt = CN_LIMIT_UINT64;
 #endif
@@ -555,7 +555,7 @@ void  Djy_IsrTick(u32 inc_ticks)
                     pl_ecb->previous->next = pl_ecb->next;
                     __Djy_EventReady(pl_ecb);
                     pl_ecb = g_ptEventDelay;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
                     event++;
                     g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
 #endif
@@ -568,16 +568,16 @@ void  Djy_IsrTick(u32 inc_ticks)
     //ÏÂÃæ´¦ÀíÊ±¼äÆ¬ÂÖ×ªµ÷¶È.
     //ÒòÔÚ¿ªÒì²½ĞÅºÅ(ÔÊĞíµ÷¶È)²Å¿ÉÄÜ½øÈë__djy_isr_tick£¬¼´Ê¹ÒòÄÖÖÓÏìµ¼ÖÂĞÂÊÂ¼ş¼Ó
     //Èë£¬pg_event_runningÒ²±Ø¶¨ÔÚÓÅÏÈ¼¶µ¥µ÷¶ÓÁĞÖĞ£¬µ«¿ÉÄÜ²»µÈÓÚpg_event_ready
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     if(s_u64RRS_Slice != 0)      //ÔÊĞíÂÖ×ªµ÷¶È
 #else
-	if(s_u32RRS_Slice != 0)      //ÔÊĞíÂÖ×ªµ÷¶È
+    if(s_u32RRS_Slice != 0)      //ÔÊĞíÂÖ×ªµ÷¶È
 #endif
     {
         if( (g_ptEventRunning->prio == g_ptEventRunning->next->prio)
                     &&(g_ptEventRunning != g_ptEventRunning->next) )
         {//¸ÃÓÅÏÈ¼¶ÓĞ¶à¸öÊÂ¼ş£¬¿´ÂÖ×ªÊ±¼äÊÇ·ñµ½
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             if(g_s64OsNextRRSCnt < g_s64OsTimeCnt+__Djy_GetTimeBaseGap()) //Ê±¼äÆ¬ÓÃÍê
 #else
             if((u32)g_s64OsTicks % s_u32RRS_Slice == 0) //Ê±¼äÆ¬ÓÃÍê
@@ -611,20 +611,20 @@ void  Djy_IsrTick(u32 inc_ticks)
                 g_ptEventRunning->next = pl_ecbn;
                 pl_ecbn->previous->next = g_ptEventRunning;
                 pl_ecbn->previous = g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
                 g_s64OsNextRRSCnt = CN_LIMIT_UINT64;
                 event++;
 #endif
             }
         }
     }
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     if(event!=0)
         __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,ISR_TICK_HANDLE);
     else
         __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,SET_INT_TICK_DEFAULT);
-#endif    
-	return;
+#endif
+    return;
 }
 
 void Djy_SaveLastError(u32 ErrorCode)
@@ -724,7 +724,7 @@ void Djy_SetRRS_Slice(u32 slices)
     //Èô´¦ÀíÆ÷×Ö³¤£¼32Î»,ĞèÒª¶à¸öÖÜÆÚ²ÅÄÜ¸üĞÂu32g_RRS_slice,¸Ã¹ı³Ì²»ÄÜ±»Ê±ÖÓÖĞ¶Ï´ò¶Ï.
     atom_low = Int_LowAtomStart( );   //±¾º¯Êı¶Ô²»ÄÜÇ¶Ì×µ÷ÓÃ
 #endif
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     s_u64RRS_Slice = __Djy_TimeBaseUsToCnt((u64)slices);
 #else
     s_u32RRS_Slice =(slices + CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
@@ -749,19 +749,19 @@ u32 Djy_GetRRS_Slice(void)
     //´¦ÀíÆ÷×Ö³¤£¼32Î»,ĞèÒª¶à¸öÖÜÆÚ²ÅÄÜ¶ÁÈ¡u32g_RRS_slice,¸Ã¹ı³Ì²»ÄÜ±»Ê±ÖÓÖĞ¶Ï´ò¶Ï.
     atom_low = Int_LowAtomStart( );   //±¾º¯Êı¶Ô²»ÄÜÇ¶Ì×µ÷ÓÃ
 #endif
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
             ((s_u64RRS_Slice*Mhz + (CN_CFG_TIME_BASE_HZ/2) )/CN_CFG_TIME_BASE_HZ):
             (s_u64RRS_Slice*((Mhz + (CN_CFG_TIME_BASE_HZ/2))/CN_CFG_TIME_BASE_HZ)));
 #else
     temp = s_u32RRS_Slice;
-#endif			
+#endif
 #if (64 > CN_CPU_BITS)
     //´¦ÀíÆ÷×Ö³¤£¼32Î»,ĞèÒª¶à¸öÖÜÆÚ²ÅÄÜ¶ÁÈ¡u32g_RRS_slice,¸Ã¹ı³Ì²»ÄÜ±»Ê±ÖÓÖĞ¶Ï´ò¶Ï.
     Int_LowAtomEnd( atom_low );
 #endif
 
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     return temp;
 #else
     return temp * CN_CFG_TICK_US;
@@ -853,7 +853,7 @@ void __Djy_SelectEventToRun(void)
     struct ThreadVm *vm;
     // struct EventType *pl_evtt;  //±»²Ù×÷µÄÊÂ¼şµÄÀàĞÍÖ¸Õë
     struct EventType *pl_evtt;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     u32 temp=0;
 #endif
     while(g_ptEventReady->vm == NULL)
@@ -870,6 +870,7 @@ void __Djy_SelectEventToRun(void)
             vm = __CreateThread(pl_evtt,&(g_ptEventReady->wait_mem_size));
             if(vm == NULL)                  //´´½¨Ïß³ÌÊ§°Ü
             {
+                __Djy_CutReadyEvent(g_ptEventRunning);          //´Óready¶ÓÁĞÈ¡³ö
             }else                                           //³É¹¦´´½¨Ïß³Ì
             {
                 g_ptEventReady->vm = vm;
@@ -878,7 +879,7 @@ void __Djy_SelectEventToRun(void)
             }
         }
     }
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     if(s_u64RRS_Slice==0)
         return;
     if(g_ptEventReady->prio==g_ptEventReady->next->prio \
@@ -936,7 +937,7 @@ void Djy_CreateProcessVm(void)
 bool_t __Djy_Schedule(void)
 {
     struct EventECB *event;
-#if	(!CN_USE_TICKLESS_MODE)
+#if (!CN_USE_TICKLESS_MODE)
     u32 time;
 #endif
 
@@ -948,20 +949,20 @@ bool_t __Djy_Schedule(void)
     {//µ±runningÊÂ¼şÈÔÔÚready¶ÓÁĞÖĞ,ÇÒÄÚ´æ²»×ãÒÔ½¨Á¢ĞÂÏß³ÌÊ±,¿ÉÄÜ»á³öÏÖÓÅÏÈ
      //¼¶¸ßÓÚrunningµÄÊÂ¼şÈ«²¿½øÈëÄÚ´æµÈ´ı¶ÓÁĞµÄ¿ÉÄÜ.´ËÊ±Ö´ĞĞelse×Ó¾ä.
         event = g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         g_s64OsTimeCnt = __DjyGetSysCnt();
 #else
         time = (u32)DjyGetSysTime();
 #endif
 #if CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         event->consumed_cnt += g_s64OsTimeCnt - g_s64RunningStartCnt;
 #else
         event->consumed_time += time - g_s64RunningStartTime;
         g_s64RunningStartTime = time;
 #endif
 #endif  //CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         g_s64RunningStartCnt = g_s64OsTimeCnt;
 #endif
         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
@@ -991,7 +992,7 @@ bool_t __Djy_Schedule(void)
 void __Djy_ScheduleAsynSignal(void)
 {
     struct EventECB *event;
-#if	(!CN_USE_TICKLESS_MODE)
+#if (!CN_USE_TICKLESS_MODE)
     u32 time;
 #endif
 
@@ -1000,20 +1001,20 @@ void __Djy_ScheduleAsynSignal(void)
     {//µ±runningÊÂ¼şÈÔÔÚready¶ÓÁĞÖĞ,ÇÒÄÚ´æ²»×ãÒÔ½¨Á¢ĞÂÏß³ÌÊ±,¿ÉÄÜ»á³öÏÖÓÅÏÈ
      //¼¶¸ßÓÚrunningµÄÊÂ¼şÈ«²¿½øÈëÄÚ´æµÈ´ı¶ÓÁĞµÄ¿ÉÄÜ.´ËÊ±Ö´ĞĞelse×Ó¾ä.
          event=g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
          g_s64OsTimeCnt = __DjyGetSysCnt();
 #else
          time = (u32)DjyGetSysTime();
 #endif
 #if CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
          event->consumed_cnt += g_s64OsTimeCnt - g_s64RunningStartCnt;
 #else
          event->consumed_time += time - g_s64RunningStartTime;
          g_s64RunningStartTime = time;
 #endif
 #endif  //CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
          g_s64RunningStartCnt = g_s64OsTimeCnt;
 #endif
          g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
@@ -1035,7 +1036,6 @@ void __Djy_ScheduleAsynSignal(void)
 //      default_prio£¬±¾ÊÂ¼şÀàĞÍµÄÄ¬ÈÏÓÅÏÈ¼¶¡£
 //      vpus_res£¬ÏµÍ³·±Ã¦Ê±Îª±¾ÀàĞÍÊÂ¼ş±£ÁôµÄÏß³ÌÊıÁ¿£¬
 //      vpus_limit£¬±¾ÀàĞÍÊÂ¼şËùÄÜÓµÓĞµÄÏß³ÌÊıÁ¿µÄ×î´óÖµ
-//      para_limit, ²ÎÊı¶ÓÁĞ³¤¶ÈÏŞÖÆ£¬ÒÔ±£»¤²ÎÊı³Ø²»±»³ÅÆÆ
 //      thread_routine£¬Ïß³ÌÈë¿Úº¯Êı(ÊÂ¼ş´¦Àíº¯Êı)
 //      Stack£¬ÓÃ»§Îª´¦ÀíÊÂ¼şµÄÏß³Ì·ÖÅäµÄÕ»£¬NULL±íÊ¾´ÓheapÖĞ·ÖÅäÕ»¡£Èç¹ûÊÂ¼şÊÇ
 //              EN_INDEPENDENCEÀàĞÍ£¬ÇÒÓĞ¶àÌõÊÂ¼ş²¢ĞĞ´¦Àíµ¼ÖÂĞèÒªÎª¸ÃÀàĞÍ´´½¨¶à
@@ -1057,7 +1057,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
                        u32 StackSize,
                        char *evtt_name)
 {
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     char ExpStr[64] = "ÊÂ¼şÀàĞÍ¿ØÖÆ¿éºÄ¾¡: ";
     u16 i,evtt_offset;
 
@@ -1068,19 +1068,19 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
         return CN_EVTT_ID_INVALID;
     }
     Int_SaveAsynSignal();      //½ûÖ¹µ÷¶ÈÒ²¾ÍÊÇ½ûÖ¹Òì²½ÊÂ¼ş
-    //²éÕÒ¿ÕÏĞµÄÊÂ¼ş¿ØÖÆ¿é
+    //²éÕÒ¿ÕÏĞµÄÊÂ¼şÀàĞÍ¿ØÖÆ¿é
     for(evtt_offset=0; evtt_offset<CFG_EVENT_TYPE_LIMIT; evtt_offset++)
         if( g_tEvttTable[evtt_offset].property.registered ==0)
             break;
     if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //Ã»ÓĞ¿ÕÏĞÊÂ¼ş¿ØÖÆ¿é
     {
         parahead.DecoderName = NULL;
-        parahead.ExpAction = EN_EXP_DEAL_RECORD;
+        parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
         strcat(ExpStr,evtt_name);
-        parahead.ExpInfo = (u8*)ExpStr;
-        parahead.ExpInfoLen = sizeof(ExpStr);
-        parahead.ExpType = CN_EXP_TYPE_ETCB_EXHAUSTED;
-        Exp_Throw(&parahead);
+        parahead.BlackBoxInfo = (u8*)ExpStr;
+        parahead.BlackBoxInfoLen = sizeof(ExpStr);
+        parahead.BlackBoxType = CN_BLACKBOX_TYPE_ETCB_EXHAUSTED;
+        BlackBox_Recorder(&parahead);
         Djy_SaveLastError(EN_KNL_ETCB_EXHAUSTED);
         info_printf("djyos","Ã»ÓĞ¿ÕÏĞÊÂ¼ş¿ØÖÆ¿é: %s\n\r",evtt_name);
         Int_RestoreAsynSignal();
@@ -1092,7 +1092,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
         {
             if(g_tEvttTable[i].property.registered == 1)
             {
-                if(strcmp(g_tEvttTable[i].evtt_name,evtt_name) == 0)
+                if(strncmp(g_tEvttTable[i].evtt_name,evtt_name,31) == 0)
                 {
                     Djy_SaveLastError(EN_KNL_EVTT_HOMONYMY);
                     info_printf("djyos","ÊÂ¼şÀàĞÍÖØÃû: %s\n\r",evtt_name);
@@ -1147,14 +1147,14 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //            if(g_tEvttTable[evtt_offset].my_free_vm == NULL)
 //            {//ÄÚ´æ²»×ã£¬²»ÄÜ´´½¨Ïß³Ì
 //                parahead.DecoderName = NULL;
-//                parahead.ExpAction = EN_EXP_DEAL_RECORD;
+//                parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
 //                ExpStr[0] = '\0';
 //                strcat(ExpStr,"µÇ¼ÇÊÂ¼şÀàĞÍÊ±ÄÚ´æ²»×ã: ");
 //                strcat(ExpStr,evtt_name);
-//                parahead.ExpInfo = (u8*)ExpStr;
-//                parahead.ExpInfoLen = sizeof(ExpStr);
-//                parahead.ExpType = CN_EXP_TYPE_MEM_EVTT;
-//                Exp_Throw(&parahead);
+//                parahead.BlackBoxInfo = (u8*)ExpStr;
+//                parahead.BlackBoxInfoLen = sizeof(ExpStr);
+//                parahead.BlackBoxType = CN_BLACKBOX_TYPE_MEM_EVTT;
+//                BlackBox_Recorder(&parahead);
 //                Djy_SaveLastError(EN_MEM_TRIED);
 //                info_printf("djyos","%s\n\r",evtt_name);
 //                Int_RestoreAsynSignal();
@@ -1517,7 +1517,7 @@ void __Djy_EventReady(struct EventECB *event_ready)
 //-----------------------------------------------------------------------------
 void __Djy_ResumeDelay(struct EventECB *delay_event)
 {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     g_s64OsTimeCnt = __DjyGetSysCnt();
     if(g_ptEventDelay->next == g_ptEventDelay)  //¶ÓÁĞÖĞÖ»ÓĞÒ»¸öÊÂ¼ş
     {
@@ -1527,24 +1527,24 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
     }
 #else
     if(g_ptEventDelay->next == g_ptEventDelay)  //¶ÓÁĞÖĞÖ»ÓĞÒ»¸öÊÂ¼ş
-	    g_ptEventDelay = NULL;
+        g_ptEventDelay = NULL;
 #endif
     else
     {
         if(delay_event == g_ptEventDelay)
         {
             g_ptEventDelay = g_ptEventDelay->next;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
             __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,RESUME_DELAY);
 #endif
-		}
+        }
         delay_event->next->previous = delay_event->previous;
         delay_event->previous->next = delay_event->next;
     }
     delay_event->next = NULL;
     delay_event->previous = NULL;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     delay_event->delay_end_cnt = g_s64OsTimeCnt;
 #else
     delay_event->delay_end_tick = DjyGetSysTick();
@@ -1565,7 +1565,7 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
 void __Djy_AddToDelay(u32 u32l_uS)
 {
     struct EventECB * event;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     g_ptEventRunning->delay_start_cnt = __DjyGetSysCnt(); //ÊÂ¼şÑÓÊ±¿ªÊ¼Ê±¼ä
     g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt + \
                                                 __Djy_TimeBaseUsToCnt(u32l_uS); //ÄÖÁåÊ±¼ä
@@ -1580,16 +1580,16 @@ void __Djy_AddToDelay(u32 u32l_uS)
         g_ptEventRunning->next = g_ptEventRunning;
         g_ptEventRunning->previous = g_ptEventRunning;
         g_ptEventDelay=g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
         __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
 #endif
-	}else
+    }else
     {
         event = g_ptEventDelay;
         do
         {//±¾Ñ­»·ÕÒµ½µÚÒ»¸öÊ£ÓàÑÓÊ±Ê±¼ä´óÓÚĞÂÑÓÊ±ÊÂ¼şµÄÊÂ¼ş.
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
 #else
             if(event->delay_end_tick <= g_ptEventRunning->delay_end_tick)
@@ -1609,7 +1609,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
         g_ptEventRunning->previous = event->previous;
         event->previous->next = g_ptEventRunning;
         event->previous = g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         if(g_ptEventDelay->delay_end_cnt > g_ptEventRunning->delay_end_cnt)
             //ĞÂÊÂ¼şÑÓÊ±Ğ¡ÓÚÔ­¶ÓÁĞÖĞµÄ×îĞ¡ÑÓÊ±.
         {
@@ -1620,7 +1620,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
 #else
         if(g_ptEventDelay->delay_end_tick > g_ptEventRunning->delay_end_tick)
             //ĞÂÊÂ¼şÑÓÊ±Ğ¡ÓÚÔ­¶ÓÁĞÖĞµÄ×îĞ¡ÑÓÊ±.
-			g_ptEventDelay = g_ptEventRunning;
+            g_ptEventDelay = g_ptEventRunning;
 #endif
     }
 }
@@ -1955,13 +1955,13 @@ u32 Djy_EventDelay(u32 u32l_uS)
         if((g_ptEventRunning->prio == g_ptEventRunning->next->prio)
                     && (g_ptEventRunning != g_ptEventRunning->next)   )
         {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             g_ptEventRunning->delay_start_cnt = __DjyGetSysCnt();//ÄÖÁåÊ±¼ä
 #else
             g_ptEventRunning->delay_start_tick = DjyGetSysTick();//ÄÖÁåÊ±¼ä
 #endif
-            __Djy_CutReadyEvent(g_ptEventRunning);      //´ÓÍ¬²½¶ÓÁĞÈ¡³ö
-            __Djy_EventReady(g_ptEventRunning);            //·Å»ØÍ¬²½¶ÓÁĞÎ²²¿
+            __Djy_CutReadyEvent(g_ptEventRunning);          //´Óready¶ÓÁĞÈ¡³ö
+            __Djy_EventReady(g_ptEventRunning);             //·Å»ØÍ¬²½¶ÓÁĞÎ²²¿
         }else
         {
             Int_RestoreAsynSignal();
@@ -1969,7 +1969,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
         }
     }else
     {
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         g_ptEventRunning->delay_start_cnt =__DjyGetSysCnt();//Éè¶¨ÄÖÁåµÄÊ±¼ä
         g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt +   \
                                                 __Djy_TimeBaseUsToCnt((u64)u32l_uS);//ÄÖÁåÊ±¼ä
@@ -1988,16 +1988,16 @@ u32 Djy_EventDelay(u32 u32l_uS)
             g_ptEventRunning->next = g_ptEventRunning;
             g_ptEventRunning->previous = g_ptEventRunning;
             g_ptEventDelay=g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
             __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
 #endif
-		}else
+        }else
         {
             event = g_ptEventDelay;
             do
             {//±¾Ñ­»·ÕÒµ½µÚÒ»¸öÄÖÁåÊ±¼äÍíÓÚĞÂÊÂ¼şµÄÊÂ¼ş.
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
                 if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
 #else
                 if(event->delay_end_tick <= g_ptEventRunning->delay_end_tick)
@@ -2014,7 +2014,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
             g_ptEventRunning->previous = event->previous;
             event->previous->next = g_ptEventRunning;
             event->previous = g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             if(g_ptEventDelay->delay_end_cnt >g_ptEventRunning->delay_end_cnt)
 #else
             if(g_ptEventDelay->delay_end_tick >g_ptEventRunning->delay_end_tick)
@@ -2022,15 +2022,15 @@ u32 Djy_EventDelay(u32 u32l_uS)
                 //ĞÂÊÂ¼şÑÓÊ±Ğ¡ÓÚÔ­¶ÓÁĞÖĞµÄ×îĞ¡ÑÓÊ±.
             {
                 g_ptEventDelay = g_ptEventRunning;
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
                 g_s64OsNextDelayCnt = g_ptEventDelay->delay_end_cnt;
                 __Djy_SetIntTime(&g_s64OsTimeCnt,&g_s64OsNextDelayCnt,&g_s64OsNextRRSCnt,EVENT_DELAY);
 #endif
-			}
+            }
         }
     }
     Int_RestoreAsynSignal();
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     us_return = __Djy_TimeBaseCntToUs((__DjyGetSysCnt() - g_ptEventRunning->delay_start_cnt));
 #else
     us_return = (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
@@ -2045,7 +2045,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
 //±¸×¢£ºÑÓÊ±¶ÓÁĞÎªË«ÏòÑ­»·Á´±í
 //add by lst in 20130922
 //-----------------------------------------------------------------------------
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
 u64 Djy_EventDelayTo(u64 u64l_uS)
 {
     struct EventECB * event;
@@ -2478,7 +2478,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
                     ptu32_t PopPrarm2,
                     ufast_t prio)
 {
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     char ExpStr[32];
     struct EventECB *pl_ecb;
     struct EventType *pl_evtt;
@@ -2621,27 +2621,27 @@ u16 Djy_EventPop(   u16  hybrid_id,
         if(s_ptEventFree==NULL)            //Ã»ÓĞ¿ÕÏĞµÄÊÂ¼ş¿ØÖÆ¿é
         {
             parahead.DecoderName = NULL;
-            parahead.ExpAction = EN_EXP_DEAL_RECORD;
+            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
             itoa(hybrid_id,ExpStr,16);
             strcat(ExpStr,": ·ÖÅä²»µ½ÊÂ¼ş¿ØÖÆ¿é");
-            parahead.ExpInfo = (u8*)ExpStr;
-            parahead.ExpInfoLen = sizeof(ExpStr);
-            parahead.ExpType = CN_EXP_TYPE_ECB_EXHAUSTED;
-            Exp_Throw(&parahead);
+            parahead.BlackBoxInfo = (u8*)ExpStr;
+            parahead.BlackBoxInfoLen = sizeof(ExpStr);
+            parahead.BlackBoxType = CN_BLACKBOX_TYPE_ECB_EXHAUSTED;
+            BlackBox_Recorder(&parahead);
             Djy_SaveLastError(EN_KNL_ECB_EXHAUSTED);
             if(pop_result != NULL)
                 *pop_result = (u32)EN_KNL_ECB_EXHAUSTED;
             return_result = CN_EVENT_ID_INVALID;
             goto end_pop;
-        }else if((pl_evtt->property.correlative == EN_INDEPENDENCE)
-                && ((pl_evtt->vpus)> pl_evtt->vpus_limit))
-        {
-            Djy_SaveLastError(EN_KNL_VPU_OVER);
-            return_result = CN_EVENT_ID_INVALID;
-            if(pop_result != NULL)
-                *pop_result = (u32)EN_KNL_VPU_OVER;
-            return_result = CN_EVENT_ID_INVALID;
-            goto end_pop;
+//      }else if((pl_evtt->property.correlative == EN_INDEPENDENCE)
+//              && ((pl_evtt->vpus)> pl_evtt->vpus_limit))
+//      {
+//          Djy_SaveLastError(EN_KNL_VPU_OVER);
+//          return_result = CN_EVENT_ID_INVALID;
+//          if(pop_result != NULL)
+//              *pop_result = (u32)EN_KNL_VPU_OVER;
+//          return_result = CN_EVENT_ID_INVALID;
+//          goto end_pop;
         }else                       //ÓĞ¿ÕÏĞÊÂ¼ş¿ØÖÆ¿é
         {
             pl_ecb = s_ptEventFree;         //´Ó¿ÕÏĞÁ´±íÖĞÌáÈ¡Ò»¸öÊÂ¼ş¿ØÖÆ¿é
@@ -2659,7 +2659,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
             pl_ecb->sync_head = NULL;
 
 #if CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             pl_ecb->EventStartCnt = __DjyGetSysCnt();   //ÊÂ¼ş·¢ÉúÊ±¼ä
             pl_ecb->consumed_cnt = 0;
             pl_ecb->consumed_cnt_second = 0;
@@ -2667,11 +2667,11 @@ u16 Djy_EventPop(   u16  hybrid_id,
 #else
             pl_ecb->EventStartTime = DjyGetSysTime();   //ÊÂ¼ş·¢ÉúÊ±¼ä
             pl_ecb->consumed_time = 0;
-			pl_ecb->consumed_time_second = 0;
+            pl_ecb->consumed_time_second = 0;
             pl_ecb->consumed_time_record = 0;
 #endif
 #endif  //CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
             pl_ecb->delay_start_cnt = 0;
             pl_ecb->delay_end_cnt = 0;
 #else
@@ -2724,7 +2724,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
 
     }
     //Éè¶¨ÁË³¬Ê±Ê±¼ä£¬½«ÖØĞÂµ÷¶È
-    //·ñÔò½øÈëÊÂ¼şÍ¬²½¶ÓÁĞ£¬ÊÂ¼ş´¦Àíº¯Êı×ÔÈ»·µ»Ø»òÒì³£ÍË³ö²Å½â³ı×èÈû
+    //runningÊÂ¼ş½«½øÈëĞÂÊÂ¼şµÄÍ¬²½¶ÓÁĞ£¬ÊÂ¼ş´¦Àíº¯Êı×ÔÈ»·µ»Ø»òÒì³£ÍË³ö²Å½â³ı×èÈû
     pl_evtt->pop_times++;
     if(timeout != 0)
     {
@@ -2835,7 +2835,7 @@ void __StartOs(void)
 {
     //±¾¾äÎªÈİ´íĞÔÖÊ£¬ÒÔ·ÀÓÃ»§Ä£¿é³õÊ¼»¯¹ı³ÌÖĞÃ»ÓĞ³É¶Ôµ÷ÓÃÒì²½ĞÅºÅÊ¹ÄÜÓë½ûÖ¹º¯Êı
     __Int_ResetAsynSignal();
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
     __DjyStartTimeBase();
 #else
     __DjyInitTick();
@@ -3001,18 +3001,18 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     struct EventECB *pl_ecb;
     struct EventType *pl_evtt;
     struct EventECB *pl_ecb_temp;
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
     char ExpStr[32];
     ucpu_t  vm_final = CN_DELETE;
 
     parahead.DecoderName = NULL;
-    parahead.ExpAction = EN_EXP_DEAL_RECORD;
+    parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
     itoa(event->event_id,ExpStr,16);
     strcat(ExpStr,"ÊÂ¼ş´¦ÀíÒâÍâ½áÊø");
-    parahead.ExpInfo = (u8*)ExpStr;
-    parahead.ExpInfoLen = sizeof(ExpStr);
-    parahead.ExpType = CN_EXP_TYPE_EVENT_EXIT;
-    Exp_Throw(&parahead);
+    parahead.BlackBoxInfo = (u8*)ExpStr;
+    parahead.BlackBoxInfoLen = sizeof(ExpStr);
+    parahead.BlackBoxType = CN_BLACKBOX_TYPE_EVENT_EXIT;
+    BlackBox_Recorder(&parahead);
     //´Ë´¦²»ÓÃint_save_asyn_signalº¯Êı£¬¿ÉÒÔÔÚÓ¦ÓÃ³ÌĞòÓĞbug£¬Ã»ÓĞ³É¶Ôµ÷ÓÃ
     //int_save_asyn_signalºÍint_restore_asyn_signalµÄÇé¿öÏÂ£¬È·±£´íÎóµ½´ËÎªÖ¹¡£
     __Int_ResetAsynSignal();  //Ö±µ½__vm_engineº¯Êı²ÅÔÙ´Î´ò¿ª.
@@ -3175,7 +3175,7 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-#if	(CN_USE_TICKLESS_MODE)
+#if (CN_USE_TICKLESS_MODE)
         g_s64RunningStartCnt = __DjyGetSysCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
@@ -3192,8 +3192,8 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 
             g_ptEventRunning=g_ptEventReady;
             g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-#if	(CN_USE_TICKLESS_MODE)            
-			g_s64RunningStartCnt = __DjyGetSysCnt();
+#if (CN_USE_TICKLESS_MODE)
+            g_s64RunningStartCnt = __DjyGetSysCnt();
 #else
             g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3207,8 +3207,8 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 //        pl_ecb = g_ptEventRunning;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-#if	(CN_USE_TICKLESS_MODE)       
-		g_s64RunningStartCnt = __DjyGetSysCnt();
+#if (CN_USE_TICKLESS_MODE)
+        g_s64RunningStartCnt = __DjyGetSysCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3451,8 +3451,8 @@ void Djy_EventComplete(ptu32_t result)
         pl_evtt->vpus--;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-#if	(CN_USE_TICKLESS_MODE)  
-		g_s64RunningStartCnt = __DjyGetSysCnt();
+#if (CN_USE_TICKLESS_MODE)
+        g_s64RunningStartCnt = __DjyGetSysCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3467,8 +3467,8 @@ void Djy_EventComplete(ptu32_t result)
             pl_evtt->SchHook(EN_SWITCH_OUT);
             g_ptEventRunning = g_ptEventReady;
             g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-#if	(CN_USE_TICKLESS_MODE) 
-			g_s64RunningStartCnt = __DjyGetSysCnt();
+#if (CN_USE_TICKLESS_MODE)
+            g_s64RunningStartCnt = __DjyGetSysCnt();
 #else
             g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3482,8 +3482,8 @@ void Djy_EventComplete(ptu32_t result)
 //        pl_ecb = g_ptEventRunning;
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
-#if	(CN_USE_TICKLESS_MODE) 
-		g_s64RunningStartCnt = __DjyGetSysCnt();
+#if (CN_USE_TICKLESS_MODE)
+        g_s64RunningStartCnt = __DjyGetSysCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3519,12 +3519,12 @@ bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info)
         event = &g_tECB_Table[id];
         info->error_no = event->error_no;
 #if CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE)
         info->consumed_cnt = event->consumed_cnt;
         info->EventStartCnt = event->EventStartCnt;
 #else
         info->consumed_time = event->consumed_time;
-		info->EventStartTime = event->EventStartTime;
+        info->EventStartTime = event->EventStartTime;
 #endif
 #endif  //CFG_OS_TINY == false
         return true;

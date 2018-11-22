@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -57,8 +57,8 @@
 #include <unistd.h>
 #include "file.h"
 #include "dbug.h"
+#include "component_config_fs.h"
 
-#define CFILE_BUFFER_SIZ            512
 
 // ============================================================================
 // 功能：测试是否是有效的的文件流；
@@ -88,14 +88,14 @@ s32 __filebuf_new(FILE *stream)
     if(stream->buf)
         return (-1);
 
-    buf = malloc(sizeof(*buf)+CFILE_BUFFER_SIZ);
+    buf = malloc(sizeof(*buf)+CFG_CLIB_BUFFERSIZE);
     if(!buf)
     {
         return (-1);
     }
 
     buf->prefetched = buf->movs = buf->data = (u8*)buf + sizeof(*buf);
-    buf->size = CFILE_BUFFER_SIZ;
+    buf->size = CFG_CLIB_BUFFERSIZE;
     stream->buf = buf;
     return (0);
 }
@@ -347,8 +347,10 @@ FILE *fopen(const char *filename, const char *mode)
     }
 
     memset(stream, 0, sizeof(FILE));
-
-    if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISBF(info.st_mode)))
+    //单进程模式下，不存在内核态用户态间切换，c库不做buf，也不怎么影响效率。
+    //流式数据文件不能写缓冲，如果不能读，亦不需要buf。
+    if((Djy_GetRunMode( ) < CN_RUNMODE_MP )
+            || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
     {
         res = __filebuf_new(stream);
         if(res)
@@ -988,7 +990,10 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
 
     fflush(stream);
 
-    if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISBF(info.st_mode)))
+    //单进程模式下，不存在内核态用户态间切换，c库不做buf，也不怎么影响效率。
+    //流式数据文件不能写缓冲，如果不能读，亦不需要buf。
+    if((Djy_GetRunMode( ) < CN_RUNMODE_MP )
+            || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
     {
         if(!stream->buf)
             __filebuf_new(stream);

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -67,7 +67,7 @@
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
 #endif
-
+#include "arm32_feature.h"
 #include "core_cm4.h"
 
 extern   uint32_t   msp_top[ ];
@@ -103,7 +103,7 @@ void Init_Cpu(void)
     __set_FAULTMASK(1);
     __set_CONTROL(0);
 
-    #if (CN_CPU_OPTIONAL_FPU == 1)
+    #if (_D_FPU_USED == 1)
     startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //使能FPU
     startup_scb_reg->FPCCR = (1UL << 31);                //关闭lazy stacking
     #endif
@@ -127,9 +127,9 @@ void Init_Cpu(void)
 extern void Load_Preload(void);
 void AppStart(void)
 {
-	__set_MSP((uint32_t)msp_top);
-	__set_PSP((uint32_t)msp_top);
-	Load_Preload();
+    __set_MSP((uint32_t)msp_top);
+    __set_PSP((uint32_t)msp_top);
+    Load_Preload();
 }
 
 //-----------------------------------------------------------------
@@ -141,20 +141,20 @@ void AppStart(void)
 //-----------------------------------------------------------------
 void IAP_GpioPinInit(void)
 {
-	/*
-	u32 i;
+    /*
+    u32 i;
 
-	RCC->AHB1ENR|=1<<4;//使能PORTB时钟		KEY0(PE4)
-	GPIOE->MODER    &= ~(3UL << 2*4);
-	GPIOE->MODER    |=  (0UL << 2*4);		//MODE_IN
-	GPIOE->PUPDR    &= ~(3UL << 2*4);
-	GPIOE->PUPDR    |=  (1UL << 2*4);		//PULL UP
+    RCC->AHB1ENR|=1<<4;//使能PORTB时钟      KEY0(PE4)
+    GPIOE->MODER    &= ~(3UL << 2*4);
+    GPIOE->MODER    |=  (0UL << 2*4);       //MODE_IN
+    GPIOE->PUPDR    &= ~(3UL << 2*4);
+    GPIOE->PUPDR    |=  (1UL << 2*4);       //PULL UP
 
-	for(i = 600*1000;i>0;i--)				//初始化后延时一小段时间
-	{
+    for(i = 600*1000;i>0;i--)               //初始化后延时一小段时间
+    {
 
-	}
-	*/
+    }
+    */
 }
 
 //-----------------------------------------------------------------
@@ -172,7 +172,7 @@ void IAP_GpioPinInit(void)
 //-----------------------------------------------------------------
 bool_t IAP_IsForceIboot(void)
 {
-	/*
+    /*
     u32 flag;
     IAP_GpioPinInit( );
     flag=GPIOE->IDR&(1<<4);

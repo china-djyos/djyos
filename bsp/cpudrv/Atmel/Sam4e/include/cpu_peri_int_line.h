@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -63,7 +63,7 @@ extern "C" {
 
 #define CN_INT_LINE_SUPC                (0x00)
 #define CN_INT_LINE_RSTC                (0x01)
-#define CN_INT_LINE_RTC         	    (0x02)
+#define CN_INT_LINE_RTC                 (0x02)
 #define CN_INT_LINE_RTT                 (0x03)
 #define CN_INT_LINE_WDT_RSWDT           (0x04)
 #define CN_INT_LINE_PMC                 (0x05)
@@ -71,43 +71,43 @@ extern "C" {
 #define CN_INT_LINE_UART0               (0x07)
 #define CN_INT_LINE_SMC                 (0x08)
 #define CN_INT_LINE_PIOA               (0x09)
-#define CN_INT_LINE_PIOB     			(0x0A)
-#define CN_INT_LINE_PIOC			    (0x0B)
-#define CN_INT_LINE_PIOD			    (0x0C)
-#define CN_INT_LINE_PIOE			    (0x0D)
-#define CN_INT_LINE_USART0			    (0x0E)
-#define CN_INT_LINE_USART1			    (0x0F)
+#define CN_INT_LINE_PIOB                (0x0A)
+#define CN_INT_LINE_PIOC                (0x0B)
+#define CN_INT_LINE_PIOD                (0x0C)
+#define CN_INT_LINE_PIOE                (0x0D)
+#define CN_INT_LINE_USART0              (0x0E)
+#define CN_INT_LINE_USART1              (0x0F)
 #define CN_INT_LINE_HSMCI               (0X10)
 #define CN_INT_LINE_TWI0                (0X11)
-#define CN_INT_LINE_TWI1				(0x12)
-#define CN_INT_LINE_SPI					(0x13)
-#define CN_INT_LINE_DMAC			    (0x14)
-#define CN_INT_LINE_TC0					(0x15)
-#define CN_INT_LINE_TC1					(0x16)
-#define CN_INT_LINE_TC2					(0x17)
-#define CN_INT_LINE_TC3					(0x18)
-#define CN_INT_LINE_TC4					(0x19)
-#define CN_INT_LINE_TC5					(0x1a)
-#define CN_INT_LINE_TC6					(0x1b)
-#define CN_INT_LINE_TC7					(0x1c)
-#define CN_INT_LINE_TC8				    (0x1d)
-#define CN_INT_LINE_AFEC0				(0x1e)
-#define CN_INT_LINE_AFEC1				(0x1f)
-#define CN_INT_LINE_DACC				(0x20)
-#define CN_INT_LINE_ACC				    (0x21)
-#define CN_INT_LINE_ARM				    (0x22)
-#define CN_INT_LINE_UDP				    (0x23)
-#define CN_INT_LINE_PWM				    (0x24)
-#define CN_INT_LINE_CAN0				(0x25)
-#define CN_INT_LINE_CAN1				(0x26)
-#define CN_INT_LINE_AES				    (0x27)
-#define CN_INT_LINE_RES0				(0x28)
-#define CN_INT_LINE_RES1				(0x29)
-#define CN_INT_LINE_RES2				(0x2A)
-#define CN_INT_LINE_RES3				(0x2B)
-#define CN_INT_LINE_GMAC				(0x2C)
-#define CN_INT_LINE_UART1				(0x2D)
-#define CN_INT_LINE_RES4				(0x2E)
+#define CN_INT_LINE_TWI1                (0x12)
+#define CN_INT_LINE_SPI                 (0x13)
+#define CN_INT_LINE_DMAC                (0x14)
+#define CN_INT_LINE_TC0                 (0x15)
+#define CN_INT_LINE_TC1                 (0x16)
+#define CN_INT_LINE_TC2                 (0x17)
+#define CN_INT_LINE_TC3                 (0x18)
+#define CN_INT_LINE_TC4                 (0x19)
+#define CN_INT_LINE_TC5                 (0x1a)
+#define CN_INT_LINE_TC6                 (0x1b)
+#define CN_INT_LINE_TC7                 (0x1c)
+#define CN_INT_LINE_TC8                 (0x1d)
+#define CN_INT_LINE_AFEC0               (0x1e)
+#define CN_INT_LINE_AFEC1               (0x1f)
+#define CN_INT_LINE_DACC                (0x20)
+#define CN_INT_LINE_ACC                 (0x21)
+#define CN_INT_LINE_ARM                 (0x22)
+#define CN_INT_LINE_UDP                 (0x23)
+#define CN_INT_LINE_PWM                 (0x24)
+#define CN_INT_LINE_CAN0                (0x25)
+#define CN_INT_LINE_CAN1                (0x26)
+#define CN_INT_LINE_AES                 (0x27)
+#define CN_INT_LINE_RES0                (0x28)
+#define CN_INT_LINE_RES1                (0x29)
+#define CN_INT_LINE_RES2                (0x2A)
+#define CN_INT_LINE_RES3                (0x2B)
+#define CN_INT_LINE_GMAC                (0x2C)
+#define CN_INT_LINE_UART1               (0x2D)
+#define CN_INT_LINE_RES4                (0x2E)
 
 #define CN_INT_LINE_LAST                (0x2E)
 

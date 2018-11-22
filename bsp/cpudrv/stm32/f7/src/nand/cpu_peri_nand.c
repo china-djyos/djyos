@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -65,21 +65,19 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//{
-//extern s32 __nand_part_init(u32 bstart, u32 bcount, u32 doformat);
-//ModuleInstall_UnitMedia(__nand_part_init, CFG_PARTS, ...);
-//}
+//    extern s32 __nand_part_init(u32 bstart, u32 bcount, u32 doformat);
+//    ModuleInstall_UnitMedia(__nand_part_init, CFG_PARTS, ...);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_nand"   //CPU的nand驱动
-//parent:"devfile"                //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件               //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                    //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//component name:"cpu_peri_nand"//CPU的nand驱动
+//parent:"devfile"              //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"cpu_peri_gpio","devfile","djyfs"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","djyfs"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -128,8 +126,9 @@
 
 static struct NandDescr *__nandescription; // NAND器件描述
 static void ResetNand(void);
-static s32 StatusOfNand(void);
+//static s32 StatusOfNand(void);
 static bool_t WaitNandReady(void);
+static u8 NAND_WaitForReady(void);
 
 static NAND_HandleTypeDef NAND_Handler;    //NAND FLASH句柄
 
@@ -193,7 +192,6 @@ u32  NAND_ECC_verify(u8* buf,u32 bakecc,u32 rdecc)
 static s32 stm32f7_SpareProgram(u32 PageNo, const u8 *Data)
 {
     u32 i;
-    s32 Ret;
     u32 SpareOffset = __nandescription->BytesPerPage;
 
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=PAGE_PROGRAM_CMD_BYTE1;
@@ -208,24 +206,26 @@ static s32 stm32f7_SpareProgram(u32 PageNo, const u8 *Data)
         *(vu8*)NAND_ADDRESS=*(vu8*)Data++;
 
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=PAGE_PROGRAM_CMD_BYTE2; // 写入Main数据完成
-    WaitNandReady();//时序要求
-    Ret = StatusOfNand();
-    if(Ret)
-        return (-2);
 
+    Djy_DelayUs(200);
+    if(NAND_WaitForReady()!=NSTA_READY)
+    {
+        return (-2);
+    }
     return (__nandescription->OOB_Size);
 }
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
-//输出: ">0" -- 读成功; "-2" -- 写失败;
+//输出: ">0" -- 读成功; "-2" -- 读失败; "-3" -- nand没准备好
 //返回:
 //-----------------------------------------------------------------------------
 static s32 stm32f7_SpareRead(u32 PageNo, u8 *Data)
 {
-    u8 i;
-    s32 Ret;
+    u8 i,tolerate = 0;
     u32 SpareOffset = __nandescription->BytesPerPage;
+
+again:
 
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE1);
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8) SpareOffset&0xff);
@@ -234,14 +234,23 @@ static s32 stm32f7_SpareRead(u32 PageNo, u8 *Data)
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)((PageNo>>8&0xff)));
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)(PageNo>>16&0xff));
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE2);
-    WaitNandReady();// 时序要求
+    if(WaitNandReady() == false)//时序要求
+    {
+        if(tolerate < 3)
+        {
+            tolerate++;
+            goto again;
+        }
+        return (-3);
+    }
 
     for(i = 0; i < __nandescription->OOB_Size; i++)
         Data[i] = (*(vu8*)NAND_ADDRESS);
 
-    Ret = StatusOfNand();
-    if(Ret)
+    if(NAND_WaitForReady()!=NSTA_READY)
+    {
         return (-2);
+    }
 
     return (__nandescription->OOB_Size);
 }
@@ -280,8 +289,8 @@ s32  stm32f7_PageProgram(u32 PageNo, u8 *Data, u32 Flags)
 {
 
     u32 i, EccOffset,ECC_DATE;
-    s32 Ret;
     u8 *Spare;
+    u32 *Buf = (u32 *)Data;
     Spare = (u8*)Data + __nandescription->BytesPerPage;// 注意：这里是基于驱动都有统一的缓冲块逻辑
     EccOffset = __nandescription->OOB_Size - s_u8SizeofHammingCode;// 4个字节(1-bit ECC校验)
     switch (Flags & MASK_ECC)
@@ -303,23 +312,23 @@ s32  stm32f7_PageProgram(u32 PageNo, u8 *Data, u32 Flags)
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=(u8)((PageNo>>16)&0xff);
     Djy_DelayUs(1);
 
-    for(i = 0; i < __nandescription->BytesPerPage; i++)
-        *(vu8*)NAND_ADDRESS=*(vu8*)Data++;
+    for(i = 0; i < __nandescription->BytesPerPage >> 2; i++)
+        *(vu32*)NAND_ADDRESS=*(vu32*)Buf++;
 
     if(HW_ECC & Flags)
     {
+        while(!(NAND_Handler.Instance->SR & (1 << 6)));
         HAL_NAND_GetECC(&NAND_Handler,&ECC_DATE,1000);
         HAL_NAND_ECC_Disable(&NAND_Handler);
         *(u32*)(Spare + EccOffset)=ECC_DATE;
     }
 
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=PAGE_PROGRAM_CMD_BYTE2;// 写入Main数据完成
-    WaitNandReady();// 时序要求
 
-    Ret = StatusOfNand();
-    if(Ret)
+    if(NAND_WaitForReady()!=NSTA_READY)
+    {
         return (-2);
-
+    }
     if (!((SPARE_REQ & Flags) || (HW_ECC & Flags)))
         return (__nandescription->BytesPerPage);// 只写页,结束退出
 
@@ -339,17 +348,18 @@ s32  stm32f7_PageProgram(u32 PageNo, u8 *Data, u32 Flags)
 //      "-1" -- 输入参数错误;
 //      "-2" -- 读失败;
 //      "-3" -- ECC纠错失败;
+//      "-4" -- nand没准备好
 //备注: 不管读写是否正确，都将数据回传
 //-----------------------------------------------------------------------------
 s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags)
 {
     //逻辑:
     //
-    u32 i;
-    s32 Ret;
+    u32 i,tolerate = 0;
     u8 *Spare;
     u32 EccRet, EccOffset;
     u32 ECCval;
+    u32 *Buf = (u32 *)Data;
 
     switch (Flags & MASK_ECC)
     {
@@ -363,6 +373,7 @@ s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags)
         default : return (-1);
     }
     u32 SpareOffset=0;
+again:
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE1);
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8) SpareOffset&0xff);
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)((SpareOffset>>8)&0xff));
@@ -370,15 +381,25 @@ s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags)
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)((PageNo>>8&0xff)));
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)(PageNo>>16&0xff));
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE2);
-    WaitNandReady();// 时序要求
+    if(WaitNandReady() == false)// 时序要求
+    {
+        if(tolerate < 3)
+        {
+            tolerate++;
+            goto again;
+        }
+        return (-4);
+    }
 
-    for(i = 0; i < __nandescription->BytesPerPage; i++)
-        Data[i] = (*(vu8*)NAND_ADDRESS);
+    for(i = 0; i < __nandescription->BytesPerPage >> 2; i++)
+        *(vu32*)Buf++ = (*(vu32*)NAND_ADDRESS);
 
-    Ret = StatusOfNand();
-    if(Ret)
+
+    if(NAND_WaitForReady()!=NSTA_READY)
+    {
+
         return (-2);
-
+    }
     if (!((SPARE_REQ & Flags) || (HW_ECC & Flags)))
         return (__nandescription->BytesPerPage);// 只读页,结束退出
 
@@ -386,6 +407,7 @@ s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags)
     EccOffset = __nandescription->BytesPerPage + __nandescription->OOB_Size - s_u8SizeofHammingCode;
     if(HW_ECC & Flags)
     {
+       while(!(NAND_Handler.Instance->SR & (1 << 6)));
        HAL_NAND_GetECC(&NAND_Handler,&ECCval,1000);
        HAL_NAND_ECC_Disable(&NAND_Handler);
     }
@@ -432,15 +454,20 @@ s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags)
 //-----------------------------------------------------------------------------
 s32 stm32f7_BlockErase(u32 BlkNo)
 {
-    s32 Ret;
+
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(BLOCK_ERASE_CMD_BYTE1);
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)((BlkNo << 6)&0xff));// 3个地址周期表示的是页号
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)((BlkNo >> 2)&0xff));
     *(vu8*)(NAND_ADDRESS|NAND_ADDR)=((u8)((BlkNo >> 10)&0xff));
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(BLOCK_ERASE_CMD_BYTE2);
-    WaitNandReady();
-    Ret = StatusOfNand();
-    return (Ret);
+
+    Djy_EventDelay( 2*mS );
+    if(NAND_WaitForReady()!=NSTA_READY)
+    {
+        return (-1);    //成功
+    }
+
+    return (0);    //成功
 }
 
 //-----------------------------------------------------------------------------
@@ -455,7 +482,7 @@ s32 stm32f7_BlockErase(u32 BlkNo)
 static s32 stm32f7_BadChk(u32 BlkNo)
 {
     u8 *Spare, i;
-    s32 Ret = 0;
+    s32 Ret = 0,ReadState = 0;
     u32 PageNo = BlkNo * __nandescription->PagesPerBlk;
 
     Spare = malloc (__nandescription->OOB_Size);
@@ -464,7 +491,8 @@ static s32 stm32f7_BadChk(u32 BlkNo)
 
     for (i = 0; i < 2; i++)// 只判断每块的首两页
     {
-        if(-2 == stm32f7_SpareRead(PageNo + i, Spare))
+        ReadState = stm32f7_SpareRead(PageNo + i, Spare);
+        if((ReadState == -2) || (ReadState == -3))
         {
             Ret = -3;
             break;
@@ -605,18 +633,18 @@ static bool_t  stm32f7_NAND_ControllerConfig(void)
     NAND_Handler.Init.MemoryDataWidth=FMC_NAND_PCC_MEM_BUS_WIDTH_8; //8位数据宽度
     NAND_Handler.Init.EccComputation=FMC_NAND_ECC_ENABLE;           //禁止ECC
     NAND_Handler.Init.ECCPageSize=FMC_NAND_ECC_PAGE_SIZE_2048BYTE;  //ECC页大小为2048字节
-    NAND_Handler.Init.TCLRSetupTime=10;//设置TCLR(tCLR=CLE到RE的延时)=(TCLR+TSET+2)*THCLK,THCLK=1/180M=4.6ns
-    NAND_Handler.Init.TARSetupTime=10; //设置TAR(tAR=ALE到RE的延时)=(TAR+TSET+1)*THCLK,THCLK=1/180M=4.6n。
+    NAND_Handler.Init.TCLRSetupTime=7;//设置TCLR(tCLR=CLE到RE的延时)=(TCLR+TSET+2)*THCLK,THCLK=1/180M=4.6ns
+    NAND_Handler.Init.TARSetupTime=7; //设置TAR(tAR=ALE到RE的延时)=(TAR+TSET+1)*THCLK,THCLK=1/180M=4.6n。
 
-    ComSpaceTiming.SetupTime=10;         //建立时间
-    ComSpaceTiming.WaitSetupTime=10;    //等待时间
-    ComSpaceTiming.HoldSetupTime=10;    //保持时间
-    ComSpaceTiming.HiZSetupTime=10;     //高阻态时间
+    ComSpaceTiming.SetupTime=3;         //建立时间
+    ComSpaceTiming.WaitSetupTime=4;    //等待时间
+    ComSpaceTiming.HoldSetupTime=3;    //保持时间
+    ComSpaceTiming.HiZSetupTime=3;     //高阻态时间
 
-    AttSpaceTiming.SetupTime=10;         //建立时间
-    AttSpaceTiming.WaitSetupTime=10;    //等待时间
-    AttSpaceTiming.HoldSetupTime=10;    //保持时间
-    AttSpaceTiming.HiZSetupTime=10;     //高阻态时间
+    AttSpaceTiming.SetupTime=3;         //建立时间
+    AttSpaceTiming.WaitSetupTime=4;    //等待时间
+    AttSpaceTiming.HoldSetupTime=3;    //保持时间
+    AttSpaceTiming.HiZSetupTime=3;     //高阻态时间
 
     HAL_NAND_Init(&NAND_Handler,&ComSpaceTiming,&AttSpaceTiming);
     NAND_Reset();                       //复位NAND
@@ -643,8 +671,9 @@ static bool_t  stm32f7_NAND_ControllerConfig(void)
 static void ResetNand(void)
 {
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(RESET_CMD_BYTE);
-    WaitNandReady();
+    WaitNandReady();        //这里没有做nand是否准备好的判断，因为目前的使用没有问题，所以没有加上判断。要加判断得改函数接口
 }
+#if 0
 //-----------------------------------------------------------------------------
 //功能: 检查NAND操作是否出错
 //参数:
@@ -663,6 +692,7 @@ static s32 StatusOfNand(void)
 
     return(0);
 }
+#endif
 //-----------------------------------------------------------------------------
 //功能: 等待RB引脚为某个电瓶
 //参数:
@@ -672,11 +702,11 @@ static s32 StatusOfNand(void)
 
 static u8 NAND_WaitRB(vu8 rb)
 {
-    vu16 time=0;
-    while(time<10000)
+    vu32 time=0;
+    while(time<30000)
     {
-        time++;
         if(NAND_RB==rb)return 0;
+        time++;
     }
     return 1;
 }
@@ -815,7 +845,6 @@ bool_t NandFlash_Ready(void)
 static s32 __WriteFragment(u32 PageNo, u32 Offset, const u8 *Buf, u32 Size)
 {
     u32 i;
-    s32 Ret;
 
     *(vu8*)(NAND_ADDRESS|NAND_CMD) = PAGE_PROGRAM_CMD_BYTE1;
 
@@ -830,10 +859,10 @@ static s32 __WriteFragment(u32 PageNo, u32 Offset, const u8 *Buf, u32 Size)
     *(vu8*)(NAND_ADDRESS|NAND_CMD) = PAGE_PROGRAM_CMD_BYTE2;
 
     Djy_EventDelay(700);// 切出
-    WaitNandReady();// 时序要求
-    Ret = StatusOfNand();
-    if(Ret)
+    if(NAND_WaitForReady()!=NSTA_READY)
+    {
         return (-2);
+    }
     return (Size);
 }
 
@@ -845,10 +874,9 @@ static s32 __WriteFragment(u32 PageNo, u32 Offset, const u8 *Buf, u32 Size)
 //-----------------------------------------------------------------------------
 static s32 __ReadFragment(u32 PageNo, u32 Offset, u8 *Buf, u32 Size)
 {
-    u32 i;
-    s32 Ret;
+    u32 i,tolerate;
 
-    WaitNandReady();
+again:
 
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE1);
     *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (Offset);
@@ -858,15 +886,23 @@ static s32 __ReadFragment(u32 PageNo, u32 Offset, u8 *Buf, u32 Size)
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE2);
 
     Djy_EventDelay(25);
-    WaitNandReady(); // 时序要求
+    if(WaitNandReady() == false)//时序要求
+    {
+        if(tolerate < 3)
+        {
+            tolerate++;
+            goto again;
+        }
+        return (-3);
+    }
 
     for(i = 0; i < Size; i++)
         Buf[i] = (*(vu8*)NAND_ADDRESS);
 
-    Ret = StatusOfNand();
-
-    if(Ret)
+    if(NAND_WaitForReady()!=NSTA_READY)
+    {
         return (-2);
+    }
 
     return (Size);
 }

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -62,23 +62,23 @@ extern "C" {
 //包含外设所需的头文件
 #include "os.h"
 #include "MIMXRT1052.h"
-#ifdef	CPU_PERI_GPIO_USED
+#ifdef  CPU_PERI_GPIO_USED
 #include "fsl_gpio.h"
 #endif
 
 #define InLowPower      0
 #define OutLowPower     1
-/*
+
 //#include "cpu_peri_pmc.h"
 #include "cpu_peri_uart.h"
-#include "cpu_peri_pio.h"
-#include <cpu_peri_twi.h>
-#include "cpu_peri_spi.h"
-#include "cpu_peri_tc.h"
-#include "cpu_peri_gmac.h"
-#include <cpu_peri_bksram.h>
-#include "qspi.h"
-*/
+#include "cpu_peri_iic.h"
+//#include "cpu_peri_pio.h"
+//#include <cpu_peri_twi.h>
+//#include "cpu_peri_spi.h"
+//#include "cpu_peri_tc.h"
+//#include "cpu_peri_gmac.h"
+//#include <cpu_peri_bksram.h>
+//#include "qspi.h"
 
 #define memory_barrier() __DMB();
 

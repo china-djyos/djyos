@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -276,10 +276,10 @@ static inline s32 __checkname(const char *name)
 // 返回：对象的值；
 // 备注：
 // ============================================================================
-inline ptu32_t obj_val(struct obj *ob)
+inline ptu32_t obj_GetPrivate(struct obj *ob)
 {
     if(ob)
-        return (ob->val);
+        return (ob->ObjPrivate);
 
     return (0);
 }
@@ -492,10 +492,10 @@ u32 obj_order(struct obj *ob)
 // 返回：无；
 // 备注：
 // ============================================================================
-inline void obj_setval(struct obj *ob, ptu32_t represent)
+inline void obj_setval(struct obj *ob, ptu32_t Private)
 {
     if(ob)
-        ob->val = represent;
+        ob->ObjPrivate = Private;
 }
 
 // ============================================================================
@@ -657,7 +657,7 @@ inline s32 obj_isquoted(struct obj *ob)
 inline s32 obj_istmp(struct obj *ob)
 {
     if((!obj_isset(ob)) // 不是对象集合点；
-       &&(!ob->val)) // 对象无内容；
+       &&(!ob->ObjPrivate)) // 对象无内容；
         return (1);
 
     return (0);
@@ -1163,7 +1163,7 @@ s32 obj_releasepath(struct obj *start)
 // 返回：成功（对象集合）；失败（NULL）；
 // 备注：对象被新对象（集合点）代替后，就会从对象树上消失；正常的接口就不会查找到它；
 // ============================================================================
-struct obj *obj_replacebyset(struct obj *ob, fnObjOps ops, ptu32_t val)
+struct obj *obj_replacebyset(struct obj *ob, fnObjOps ops, ptu32_t ObjPrivate)
 {
     struct obj *setob, *baseob;
     u8 i = 0;
@@ -1219,7 +1219,7 @@ struct obj *obj_replacebyset(struct obj *ob, fnObjOps ops, ptu32_t val)
         else
             setob->ops = (fnObjOps)__objsys_default_ops;
 
-        setob->val = val;
+        setob->ObjPrivate = ObjPrivate;
         setob->set = setob;
     }
     else
@@ -1342,7 +1342,7 @@ struct obj *obj_newprev(struct obj *loc, fnObjOps ops, u32 rights,
 
         if(loc->parent)
         {
-            if(!obj_search_child(loc->parent, name))
+            if(obj_search_child(loc->parent, name))
               return (NULL); // child已经存在；
         }
 
@@ -1369,7 +1369,7 @@ struct obj *obj_newprev(struct obj *loc, fnObjOps ops, u32 rights,
 
     prev->parent = loc->parent;
     prev->child = NULL;
-    prev->val = represent;
+    prev->ObjPrivate = represent;
     if(ops)
     {
         if(-1==(s32)ops)
@@ -1456,7 +1456,7 @@ struct obj *obj_newnext(struct obj *loc, fnObjOps ops, u32 rights,
 
     next->parent = loc->parent;
     next->child = NULL;
-    next->val = represent;
+    next->ObjPrivate = represent;
     if(ops)
     {
         if(-1==(s32)ops)
@@ -1479,6 +1479,7 @@ struct obj *obj_newnext(struct obj *loc, fnObjOps ops, u32 rights,
 
     next->name = (char *)name;
     next->seton = (struct obj*)-1; // 默认对象之上不允许建立对象集合；
+    dListInit(&next->handles);
     if(loc->parent)
         next->set = loc->parent->set;
     else
@@ -1501,7 +1502,7 @@ struct obj *obj_newnext(struct obj *loc, fnObjOps ops, u32 rights,
 // 备注：新建的子对象，放置在子对象链的末尾；
 // ============================================================================
 struct obj *obj_newchild(struct obj *parent, fnObjOps ops, u32 rights,
-                            ptu32_t represent, const char *name)
+                            ptu32_t ObjPrivate, const char *name)
 {
     struct obj *child;
     char *cname;
@@ -1540,10 +1541,10 @@ struct obj *obj_newchild(struct obj *parent, fnObjOps ops, u32 rights,
 
     child->parent = parent;
     child->child = NULL;
-    if(represent)
-        child->val = represent;
-    else
-        child->val = parent->val;
+//  if(represent)
+        child->ObjPrivate = ObjPrivate;
+//  else
+//      child->ObjPrivate = parent->ObjPrivate;
 
     if(ops)
     {
@@ -1589,7 +1590,7 @@ struct obj *obj_newchild(struct obj *parent, fnObjOps ops, u32 rights,
 // 备注：
 // ============================================================================
 struct obj *obj_newhead(struct obj *loc, fnObjOps ops, u32 rights,
-                           ptu32_t represent, const char *name)
+                           ptu32_t ObjPrivate, const char *name)
 {
     struct obj *head;
     char *cname;
@@ -1631,7 +1632,7 @@ struct obj *obj_newhead(struct obj *loc, fnObjOps ops, u32 rights,
 
     head->parent = loc->parent;
     head->child = NULL;
-    head->val = represent;
+    head->ObjPrivate = ObjPrivate;
     if(ops)
     {
         if(-1==(s32)ops)
@@ -2397,7 +2398,7 @@ __SEARCH_DONE:
 // 备注：
 // ============================================================================
 struct obj *obj_newchild_set(struct obj *parent, const char *name, fnObjOps ops,
-                             ptu32_t represent, u32 rights)
+                             ptu32_t ObjPrivate, u32 rights)
 {
     struct obj *child_set;
     char *cname;
@@ -2436,7 +2437,7 @@ struct obj *obj_newchild_set(struct obj *parent, const char *name, fnObjOps ops,
 
     child_set->parent = parent;
     child_set->child = NULL;
-    child_set->val = represent;
+    child_set->ObjPrivate = ObjPrivate;
     if(ops)
     {
         if(-1==(s32)ops)

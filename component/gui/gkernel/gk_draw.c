@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -1253,14 +1253,14 @@ void __GK_CopyPixelRopBm(struct RectBitmap *dst_bitmap,
     else if(RopCode.HyalineEn == 1)     //透明色使能
     {
         //将HyalineColor由ERGB8888格式转换为本地格式
-        HyalineColor=GK_ConvertRGB24ToPF(src_bitmap->PixelFormat,HyalineColor);
-         //读取源位图中的颜色，未转换成ERGB8888
-        src_color = GK_GetPixelBm(src_bitmap,x_src,y_src);
+//        HyalineColor=GK_ConvertRGB24ToPF(src_bitmap->PixelFormat,HyalineColor);
+//         //读取源位图中的颜色，未转换成ERGB8888
+//        src_color = GK_GetPixelBm(src_bitmap,x_src,y_src);
 
         if(src_color != HyalineColor)
         {
             //将源位图颜色进行颜色格式转换，得到与目标位图颜色格式一致的颜色
-            //src_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,src_color);
+            src_color = GK_ConvertRGB24ToPF(dst_bitmap->PixelFormat,src_color);
             //绘制像素
             __GK_SetPixelRop2Bm(dst_bitmap,x_dst,y_dst,src_color,CN_R2_COPYPEN);
         }
@@ -2092,7 +2092,7 @@ void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
     current = obj_child(mirror);
     while(current != NULL)
     {
-        MirrorDisplay = (struct DisplayObj*)obj_val(current);
+        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
         MirrorDisplay->draw.SetPixelToScreen(x,y,color,Rop2Code);
         current = obj_foreach_child(mirror, current);
     }
@@ -2197,7 +2197,7 @@ void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
     current = obj_child(mirror);
     while(current != NULL)
     {
-        MirrorDisplay = (struct DisplayObj*)obj_val(current);
+        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
         MirrorDisplay->draw.LineToScreen(limit, x1, y1, x2, y2, color,Rop2Code);
         current = obj_foreach_child(mirror,current);
     }
@@ -2266,7 +2266,7 @@ void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
     current = obj_child(mirror);
     while(current != NULL)
     {
-        MirrorDisplay = (struct DisplayObj*)obj_val(current);
+        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
         MirrorDisplay->draw.CopyBitmapToScreen(rect,bitmap,x,y);
         current = obj_foreach_child(mirror,current);
     }
@@ -3023,7 +3023,7 @@ void __GK_DrawCircleScreen(struct DisplayObj *display,struct Rectangle *limit,
     {//存在镜像显示器
         x = 0;
         y = r;
-        MirrorDisplay = (struct DisplayObj*)obj_val(current);
+        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
         if(flag)
         {//整个圆都在limit内，利用圆的八分特性，只需要计算八分之一个圆的坐标
             while(x <= y)
@@ -3710,7 +3710,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
     struct GkscParaDrawBitmapRop bitmap_para;
     struct FontObj* cur_font;
     struct Charset* cur_enc;
-    char *String = text;
+    const char *String = text;
     s32 len, char_num = 0,size,size_bak;
     u32 wc;
     u8 buf[128],*dbuf;  //定义一个足够存32点阵汉字的缓冲区，如果需要显示的字符
@@ -4351,7 +4351,7 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
                     current = obj_child(mirror);
                     while(current != NULL)
                     {
-                        MirrorDisplay = (struct DisplayObj*)obj_val(current);
+                        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
                         //硬件加速不支持填充位图，则用软件实现
                         if(!MirrorDisplay->draw.FillRectToScreen(Rect,&ins_rect,
                                               Color,0,CN_FILLRECT_MODE_N))
@@ -4482,7 +4482,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
                     current = obj_child(mirror);
                     while(current != NULL)
                     {
-                        MirrorDisplay = (struct DisplayObj*)obj_val(current);
+                        MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
                         if(!MirrorDisplay->draw.FillRectToScreen(&target,&ins_rect,
                                                        Color0,Color1,Mode) );
                         {
@@ -4575,7 +4575,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
                 current = obj_child(mirror);
                 while(current != NULL)
                 {
-                    MirrorDisplay = (struct DisplayObj*)obj_val(current);
+                    MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
                     if(!MirrorDisplay->draw.FillRectToScreen(&rect,&clip->rect,
                                             para->color,0,CN_FILLRECT_MODE_N))
                     {

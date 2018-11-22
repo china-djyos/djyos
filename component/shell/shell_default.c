@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -662,7 +662,7 @@ static void __debug_help_all(void)
         else
         {
             //current = (struct ShellCmdRsc *)obj_val(shell_ob);
-            current = (struct __shell_debug*)obj_val(shell_ob);
+            current = (struct __shell_debug*)obj_GetPrivate(shell_ob);
             Name = (char*)obj_name(shell_ob);
             if(current->help_hint != NULL)
             {
@@ -704,7 +704,7 @@ bool_t debug_help(char *param)
         if(shell_ob != NULL)
         {
             //shell = (struct ShellCmdRsc *)obj_val(shell_ob);
-            shell = (struct __shell_debug*)obj_val(shell_ob);
+            shell = (struct __shell_debug*)obj_GetPrivate(shell_ob);
             if(shell->help_detailed != NULL)
                 printf("%s",shell->help_detailed);
             else

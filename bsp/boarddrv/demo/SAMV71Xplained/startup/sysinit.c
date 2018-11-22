@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -60,10 +60,10 @@
 /* Clock Settings (300MHz HCLK, 150MHz MCK)=> PRESC = 1, MDIV = 2 */
 #define SYS_BOARD_OSCOUNT   (CKGR_MOR_MOSCXTST(0x8U))
 #define SYS_BOARD_PLLAR     (CKGR_PLLAR_ONE | CKGR_PLLAR_MULA(0x18U) | \
-				CKGR_PLLAR_PLLACOUNT(0x3fU) | CKGR_PLLAR_DIVA(0x1U))
+                CKGR_PLLAR_PLLACOUNT(0x3fU) | CKGR_PLLAR_DIVA(0x1U))
 
 #define SYS_BOARD_MCKR      (PMC_MCKR_PRES_CLK_1 | PMC_MCKR_CSS_PLLA_CLK \
-				| PMC_MCKR_MDIV_PCK_DIV2)
+                | PMC_MCKR_MDIV_PCK_DIV2)
 
 // SDRAM寮曡剼瀹氫箟
 /** List of all SDRAM pin definitions. */
@@ -85,9 +85,9 @@
 #define PIN_SDRAM_BA0     {0x00100000, PIOA, ID_PIOA, PIO_PERIPH_C, PIO_DEFAULT}
 
 #define BOARD_SDRAM_PINS PIN_SDRAM_D0_7, PIN_SDRAM_D8_13 , PIN_SDRAM_D14_15,\
-		PIN_SDRAM_A0_9, PIN_SDRAM_SDA10, PIN_SDRAM_BA0, \
-		PIN_SDRAM_CAS, PIN_SDRAM_RAS, PIN_SDRAM_SDCKE,PIN_SDRAM_SDCK,\
-		PIN_SDRAM_SDSC,PIN_SDRAM_NBS0 ,PIN_SDRAM_NBS1,PIN_SDRAM_SDWE
+        PIN_SDRAM_A0_9, PIN_SDRAM_SDA10, PIN_SDRAM_BA0, \
+        PIN_SDRAM_CAS, PIN_SDRAM_RAS, PIN_SDRAM_SDCKE,PIN_SDRAM_SDCK,\
+        PIN_SDRAM_SDSC,PIN_SDRAM_NBS0 ,PIN_SDRAM_NBS1,PIN_SDRAM_SDWE
 
 #define memory_sync()        __DSB();__ISB();
 // =============================================================================
@@ -99,109 +99,109 @@
 // =============================================================================
 void SDRAM_Init( void )
 {
-	const Pin pinsSdram[] = {BOARD_SDRAM_PINS};
-	volatile uint32_t i;
-	volatile uint8_t *pSdram = (uint8_t *) SDRAM_CS_ADDR;
+    const Pin pinsSdram[] = {BOARD_SDRAM_PINS};
+    volatile uint32_t i;
+    volatile uint8_t *pSdram = (uint8_t *) SDRAM_CS_ADDR;
 
-	/* Configure PIO */
-	PIO_Configure(pinsSdram, PIO_LISTSIZE(pinsSdram));
-	PMC_EnablePeripheral(ID_SDRAMC);
-	MATRIX->CCFG_SMCNFCS = CCFG_SMCNFCS_SDRAMEN;
+    /* Configure PIO */
+    PIO_Configure(pinsSdram, PIO_LISTSIZE(pinsSdram));
+    PMC_EnablePeripheral(ID_SDRAMC);
+    MATRIX->CCFG_SMCNFCS = CCFG_SMCNFCS_SDRAMEN;
 
-	/* 1. SDRAM features must be set in the configuration register:
-	asynchronous timings (TRC, TRAS, etc.), number of columns, rows,
-	CAS latency, and the data bus width. */
-	SDRAMC->SDRAMC_CR =
-		  SDRAMC_CR_NC_COL8      // 8 column bits
-		| SDRAMC_CR_NR_ROW11     // 12 row bits (4K)
-		| SDRAMC_CR_CAS_LATENCY3 // CAS Latency 3
-		| SDRAMC_CR_NB_BANK2     // 2 banks
-		| SDRAMC_CR_DBW          // 16 bit
-		| SDRAMC_CR_TWR(4)
-		| SDRAMC_CR_TRC_TRFC(11) // 63ns   min
-		| SDRAMC_CR_TRP(5)       // Command period (PRE to ACT) 21 ns min
-		| SDRAMC_CR_TRCD(5)      // Active Command to read/Write Command delay time 21ns min
-		| SDRAMC_CR_TRAS(8)      // Command period (ACT to PRE)  42ns min
-		| SDRAMC_CR_TXSR(13U);   // Exit self-refresh to active time  70ns Min
+    /* 1. SDRAM features must be set in the configuration register:
+    asynchronous timings (TRC, TRAS, etc.), number of columns, rows,
+    CAS latency, and the data bus width. */
+    SDRAMC->SDRAMC_CR =
+          SDRAMC_CR_NC_COL8      // 8 column bits
+        | SDRAMC_CR_NR_ROW11     // 12 row bits (4K)
+        | SDRAMC_CR_CAS_LATENCY3 // CAS Latency 3
+        | SDRAMC_CR_NB_BANK2     // 2 banks
+        | SDRAMC_CR_DBW          // 16 bit
+        | SDRAMC_CR_TWR(4)
+        | SDRAMC_CR_TRC_TRFC(11) // 63ns   min
+        | SDRAMC_CR_TRP(5)       // Command period (PRE to ACT) 21 ns min
+        | SDRAMC_CR_TRCD(5)      // Active Command to read/Write Command delay time 21ns min
+        | SDRAMC_CR_TRAS(8)      // Command period (ACT to PRE)  42ns min
+        | SDRAMC_CR_TXSR(13U);   // Exit self-refresh to active time  70ns Min
 
-	/* 2. For mobile SDRAM, temperature-compensated self refresh (TCSR), drive
-	strength (DS) and partial array self refresh (PASR) must be set in the
-	Low Power Register. */
+    /* 2. For mobile SDRAM, temperature-compensated self refresh (TCSR), drive
+    strength (DS) and partial array self refresh (PASR) must be set in the
+    Low Power Register. */
 
-	/* 3. The SDRAM memory type must be set in the Memory Device Register.*/
-	SDRAMC->SDRAMC_MDR = SDRAMC_MDR_MD_SDRAM;
+    /* 3. The SDRAM memory type must be set in the Memory Device Register.*/
+    SDRAMC->SDRAMC_MDR = SDRAMC_MDR_MD_SDRAM;
 
-	/* 4. A minimum pause of 200 娄脤s is provided to precede any signal toggle.*/
-	for (i = 0; i < 100000; i++);
+    /* 4. A minimum pause of 200 娄脤s is provided to precede any signal toggle.*/
+    for (i = 0; i < 100000; i++);
 
-	/* 5. (1)A NOP command is issued to the SDRAM devices. The application must
-	set Mode to 1 in the Mode Register and perform a write access to
-	any SDRAM address.*/
-	SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_NOP;
-	*pSdram = 0;
-	for (i = 0; i < 100000; i++);
-	/* 6. An All Banks Precharge command is issued to the SDRAM devices.
-	The application must set Mode to 2 in the Mode Register and perform a write
-	access to any SDRAM address. */
-	SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_ALLBANKS_PRECHARGE;
-	*pSdram = 0;
-	for (i = 0; i < 100000; i++);
-	/* 7. Eight auto-refresh (CBR) cycles are provided. The application must
-	set the Mode to 4 in the Mode Register and perform a write access to any
-	SDRAM location eight times.*/
-	for (i = 0 ; i< 8; i++) {
-		SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_AUTO_REFRESH;
-		*pSdram = 0;
-	}
-	for (i = 0; i < 100000; i++);
-	/*8. A Mode Register set (MRS) cycle is issued to program the parameters of
-	the SDRAM devices, in particular CAS latency and burst length. The
-	application must set Mode to 3 in the Mode Register and perform a write
-	access to the SDRAM. The write address must be chosen so that BA[1:0]
-	are set to 0. For example, with a 16-bit 128 MB SDRAM (12 rows, 9 columns,
-	4 banks) bank address, the SDRAM write access should be done at the address
-	0x70000000.*/
-	SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_LOAD_MODEREG;
-	*pSdram = 0;
+    /* 5. (1)A NOP command is issued to the SDRAM devices. The application must
+    set Mode to 1 in the Mode Register and perform a write access to
+    any SDRAM address.*/
+    SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_NOP;
+    *pSdram = 0;
+    for (i = 0; i < 100000; i++);
+    /* 6. An All Banks Precharge command is issued to the SDRAM devices.
+    The application must set Mode to 2 in the Mode Register and perform a write
+    access to any SDRAM address. */
+    SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_ALLBANKS_PRECHARGE;
+    *pSdram = 0;
+    for (i = 0; i < 100000; i++);
+    /* 7. Eight auto-refresh (CBR) cycles are provided. The application must
+    set the Mode to 4 in the Mode Register and perform a write access to any
+    SDRAM location eight times.*/
+    for (i = 0 ; i< 8; i++) {
+        SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_AUTO_REFRESH;
+        *pSdram = 0;
+    }
+    for (i = 0; i < 100000; i++);
+    /*8. A Mode Register set (MRS) cycle is issued to program the parameters of
+    the SDRAM devices, in particular CAS latency and burst length. The
+    application must set Mode to 3 in the Mode Register and perform a write
+    access to the SDRAM. The write address must be chosen so that BA[1:0]
+    are set to 0. For example, with a 16-bit 128 MB SDRAM (12 rows, 9 columns,
+    4 banks) bank address, the SDRAM write access should be done at the address
+    0x70000000.*/
+    SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_LOAD_MODEREG;
+    *pSdram = 0;
 
-	for (i = 0; i < 100000; i++);
-	/*9. For mobile SDRAM initialization, an Extended Mode Register set (EMRS)
-	cycle is issued to program the SDRAM parameters (TCSR, PASR, DS). The
-	application must set Mode to 5 in the Mode Register and perform a write
-	access to the SDRAM. The write address must be chosen so that BA[1] or BA[0]
-	are set to 1.
-	For example, with a 16-bit 128 MB SDRAM, (12 rows, 9 columns, 4 banks) bank
-	address the SDRAM write access should be done at the address 0x70800000 or
-	0x70400000. */
-	//SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_EXT_LOAD_MODEREG;
-	// *((uint8_t *)(pSdram + SDRAM_BA0)) = 0;
+    for (i = 0; i < 100000; i++);
+    /*9. For mobile SDRAM initialization, an Extended Mode Register set (EMRS)
+    cycle is issued to program the SDRAM parameters (TCSR, PASR, DS). The
+    application must set Mode to 5 in the Mode Register and perform a write
+    access to the SDRAM. The write address must be chosen so that BA[1] or BA[0]
+    are set to 1.
+    For example, with a 16-bit 128 MB SDRAM, (12 rows, 9 columns, 4 banks) bank
+    address the SDRAM write access should be done at the address 0x70800000 or
+    0x70400000. */
+    //SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_EXT_LOAD_MODEREG;
+    // *((uint8_t *)(pSdram + SDRAM_BA0)) = 0;
 
-	/* 10. The application must go into Normal Mode, setting Mode to 0 in the
-	Mode Register and performing a write access at any location in the SDRAM. */
-	SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_NORMAL;
-	*pSdram = 0;
-	for (i = 0; i < 100000; i++);
-	/* 11. Write the refresh rate into the count field in the SDRAMC Refresh
-	Timer register. (Refresh rate = delay between refresh cycles).
-	The SDRAM device requires a refresh every 15.625 娄脤s or 7.81 娄脤s.
-	With a 100 MHz frequency, the Refresh Timer Counter Register must be set
-	with the value 1562(15.625 娄脤s x 100 MHz) or 781(7.81 娄脤s x 100 MHz). */
-	// For IS42S16100E, 2048 refresh cycle every 32ms, every 15.625 娄脤s
-	/* ((32 x 10(^-3))/2048) x150 x (10^6) */
-	SDRAMC->SDRAMC_TR = 2343; ;
-	SDRAMC->SDRAMC_CFR1 |= SDRAMC_CFR1_UNAL;
-	/* After initialization, the SDRAM devices are fully functional. */
+    /* 10. The application must go into Normal Mode, setting Mode to 0 in the
+    Mode Register and performing a write access at any location in the SDRAM. */
+    SDRAMC->SDRAMC_MR = SDRAMC_MR_MODE_NORMAL;
+    *pSdram = 0;
+    for (i = 0; i < 100000; i++);
+    /* 11. Write the refresh rate into the count field in the SDRAMC Refresh
+    Timer register. (Refresh rate = delay between refresh cycles).
+    The SDRAM device requires a refresh every 15.625 娄脤s or 7.81 娄脤s.
+    With a 100 MHz frequency, the Refresh Timer Counter Register must be set
+    with the value 1562(15.625 娄脤s x 100 MHz) or 781(7.81 娄脤s x 100 MHz). */
+    // For IS42S16100E, 2048 refresh cycle every 32ms, every 15.625 娄脤s
+    /* ((32 x 10(^-3))/2048) x150 x (10^6) */
+    SDRAMC->SDRAMC_TR = 2343; ;
+    SDRAMC->SDRAMC_CFR1 |= SDRAMC_CFR1_UNAL;
+    /* After initialization, the SDRAM devices are fully functional. */
 }
 
 void TCM_Disable(void)
 {
 
-	__DSB();
-	__ISB();
-	SCB->ITCMCR &= ~(uint32_t)SCB_ITCMCR_EN_Msk;
-	SCB->DTCMCR &= ~(uint32_t)SCB_ITCMCR_EN_Msk;
-	__DSB();
-	__ISB();
+    __DSB();
+    __ISB();
+    SCB->ITCMCR &= ~(uint32_t)SCB_ITCMCR_EN_Msk;
+    SCB->DTCMCR &= ~(uint32_t)SCB_ITCMCR_EN_Msk;
+    __DSB();
+    __ISB();
 }
 
 // =============================================================================
@@ -211,79 +211,79 @@ void TCM_Disable(void)
 // =============================================================================
 void SysClk_Init(void)
 {
-	uint32_t read_MOR;
+    uint32_t read_MOR;
 
-	EFC->EEFC_FCR = (EEFC_FCR_FKEY_PASSWD | EEFC_FCR_FCMD_CGPB | EEFC_FCR_FARG(8));
-	EFC->EEFC_FCR = (EEFC_FCR_FKEY_PASSWD | EEFC_FCR_FCMD_CGPB | EEFC_FCR_FARG(7));
+    EFC->EEFC_FCR = (EEFC_FCR_FKEY_PASSWD | EEFC_FCR_FCMD_CGPB | EEFC_FCR_FARG(8));
+    EFC->EEFC_FCR = (EEFC_FCR_FKEY_PASSWD | EEFC_FCR_FCMD_CGPB | EEFC_FCR_FARG(7));
 
-	TCM_Disable();
+    TCM_Disable();
 
-	/* Set FWS according to SYS_BOARD_MCKR configuration */
-	EFC->EEFC_FMR = EEFC_FMR_FWS(5);
+    /* Set FWS according to SYS_BOARD_MCKR configuration */
+    EFC->EEFC_FMR = EEFC_FMR_FWS(5);
 
-	 /* Before switching MAIN OSC on external crystal : enable it and don't
-	 * disable at the same time RC OSC in case of if MAIN OSC is still using RC
-	 * OSC
-	 */
+     /* Before switching MAIN OSC on external crystal : enable it and don't
+     * disable at the same time RC OSC in case of if MAIN OSC is still using RC
+     * OSC
+     */
 
-	read_MOR = PMC->CKGR_MOR;
-	 /* enable external crystal - enable RC OSC */
-	read_MOR |= (CKGR_MOR_KEY_PASSWD |CKGR_MOR_XT32KFME);
-	PMC->CKGR_MOR = read_MOR;
+    read_MOR = PMC->CKGR_MOR;
+     /* enable external crystal - enable RC OSC */
+    read_MOR |= (CKGR_MOR_KEY_PASSWD |CKGR_MOR_XT32KFME);
+    PMC->CKGR_MOR = read_MOR;
 
-	/* Select XTAL 32k instead of internal slow RC 32k for slow clock */
-	if ( (SUPC->SUPC_SR & SUPC_SR_OSCSEL) != SUPC_SR_OSCSEL_CRYST )
-	{
-		SUPC->SUPC_CR = SUPC_CR_KEY_PASSWD | SUPC_CR_XTALSEL_CRYSTAL_SEL;
+    /* Select XTAL 32k instead of internal slow RC 32k for slow clock */
+    if ( (SUPC->SUPC_SR & SUPC_SR_OSCSEL) != SUPC_SR_OSCSEL_CRYST )
+    {
+        SUPC->SUPC_CR = SUPC_CR_KEY_PASSWD | SUPC_CR_XTALSEL_CRYSTAL_SEL;
 
-		while( !(SUPC->SUPC_SR & SUPC_SR_OSCSEL) );
-	}
+        while( !(SUPC->SUPC_SR & SUPC_SR_OSCSEL) );
+    }
 
-	/* Initialize main oscillator */
-	if ( !(PMC->CKGR_MOR & CKGR_MOR_MOSCSEL) )
-	{
-	  PMC->CKGR_MOR = CKGR_MOR_KEY_PASSWD | SYS_BOARD_OSCOUNT
-					| CKGR_MOR_MOSCRCEN | CKGR_MOR_MOSCXTEN;
+    /* Initialize main oscillator */
+    if ( !(PMC->CKGR_MOR & CKGR_MOR_MOSCSEL) )
+    {
+      PMC->CKGR_MOR = CKGR_MOR_KEY_PASSWD | SYS_BOARD_OSCOUNT
+                    | CKGR_MOR_MOSCRCEN | CKGR_MOR_MOSCXTEN;
 
-	  while ( !(PMC->PMC_SR & PMC_SR_MOSCXTS) )
-	  {
-	  }
-	}
+      while ( !(PMC->PMC_SR & PMC_SR_MOSCXTS) )
+      {
+      }
+    }
 
-	/* Switch to 3-20MHz Xtal oscillator */
-	PMC->CKGR_MOR = CKGR_MOR_KEY_PASSWD | SYS_BOARD_OSCOUNT
-					| CKGR_MOR_MOSCRCEN | CKGR_MOR_MOSCXTEN | CKGR_MOR_MOSCSEL;
+    /* Switch to 3-20MHz Xtal oscillator */
+    PMC->CKGR_MOR = CKGR_MOR_KEY_PASSWD | SYS_BOARD_OSCOUNT
+                    | CKGR_MOR_MOSCRCEN | CKGR_MOR_MOSCXTEN | CKGR_MOR_MOSCSEL;
 
-	while ( !(PMC->PMC_SR & PMC_SR_MOSCSELS) )
-	{
-	}
+    while ( !(PMC->PMC_SR & PMC_SR_MOSCSELS) )
+    {
+    }
 
-	PMC->PMC_MCKR = (PMC->PMC_MCKR & ~(uint32_t)PMC_MCKR_CSS_Msk)
-					| PMC_MCKR_CSS_MAIN_CLK;
+    PMC->PMC_MCKR = (PMC->PMC_MCKR & ~(uint32_t)PMC_MCKR_CSS_Msk)
+                    | PMC_MCKR_CSS_MAIN_CLK;
 
-	while ( !(PMC->PMC_SR & PMC_SR_MCKRDY) )
-	{
-	}
+    while ( !(PMC->PMC_SR & PMC_SR_MCKRDY) )
+    {
+    }
 
-	/* Initialize PLLA */
-	PMC->CKGR_PLLAR = SYS_BOARD_PLLAR;
-	while ( !(PMC->PMC_SR & PMC_SR_LOCKA) )
-	{
-	}
+    /* Initialize PLLA */
+    PMC->CKGR_PLLAR = SYS_BOARD_PLLAR;
+    while ( !(PMC->PMC_SR & PMC_SR_LOCKA) )
+    {
+    }
 
-	/* Switch to main clock */
-	PMC->PMC_MCKR = (SYS_BOARD_MCKR & ~PMC_MCKR_CSS_Msk) | PMC_MCKR_CSS_MAIN_CLK;
-	while ( !(PMC->PMC_SR & PMC_SR_MCKRDY) )
-	{
-	}
+    /* Switch to main clock */
+    PMC->PMC_MCKR = (SYS_BOARD_MCKR & ~PMC_MCKR_CSS_Msk) | PMC_MCKR_CSS_MAIN_CLK;
+    while ( !(PMC->PMC_SR & PMC_SR_MCKRDY) )
+    {
+    }
 
-	/* Switch to PLLA */
-	PMC->PMC_MCKR = SYS_BOARD_MCKR;
-	while ( !(PMC->PMC_SR & PMC_SR_MCKRDY) )
-	{
-	}
+    /* Switch to PLLA */
+    PMC->PMC_MCKR = SYS_BOARD_MCKR;
+    while ( !(PMC->PMC_SR & PMC_SR_MCKRDY) )
+    {
+    }
 
-//	SystemCoreClock = CHIP_FREQ_CPU_MAX;
+//  SystemCoreClock = CHIP_FREQ_CPU_MAX;
 }
 
 

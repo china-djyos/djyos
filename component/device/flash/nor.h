@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -60,21 +60,21 @@ extern "C" {
 // NOR器件基本描述
 //
 struct NorDescr{
-	u16 BytesPerPage; 					// 页的字节数
-	u16 PagesPerSector;         		// sector的页数
-	u16 SectorsPerBlk; 			    	// 最小块大小
-	u16 Blks; 						    // 最小块总数
-	u8 ReservedBlks; 			    	// 保留块数
-	u8 PortType; 						// Nor接口类型
-#define NOR_CFI	    (0x0)				// 并口
-#define NOR_SPI  	(0x1)				// SPI串口
-	void *Port; 						// 指向DJYBUS接口
+    u16 BytesPerPage;                   // 页的字节数
+    u16 PagesPerSector;                 // sector的页数
+    u16 SectorsPerBlk;                  // 最小块大小
+    u16 Blks;                           // 最小块总数
+    u8 ReservedBlks;                    // 保留块数
+    u8 PortType;                        // Nor接口类型
+#define NOR_CFI     (0x0)               // 并口
+#define NOR_SPI     (0x1)               // SPI串口
+    void *Port;                         // 指向DJYBUS接口
 };
 //
 //
 //
 struct NorSpecialOps{
-	s32 (*ErsChip)(void); 				// 擦除器件
+    s32 (*ErsChip)(void);               // 擦除器件
 };
 #ifdef __cplusplus
 }

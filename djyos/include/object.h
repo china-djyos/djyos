@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -205,7 +205,7 @@ enum objops{
 
 
 
-//Target根据cmd不同，有两种可能，struct obj*，或struct ObjectPort*，在实现
+//Target根据cmd不同，有两种可能，struct obj*，或struct objhandle*，在实现
 //时使用强制类型转换。
 //struct obj*：CN_OBJ_CMD_OPEN、CN_OBJ_CMD_SHOW、CN_OBJ_CMD_READDIR、
 //                CN_OBJ_CMD_DELETE、CN_OBJ_CMD_STAT
@@ -292,15 +292,15 @@ union __rights{
 struct obj
 {
     char *name; // 对象名；当用于文件系统为文件名或目录名，用于设备是设备名，用于gui则是窗口名；
-    ptu32_t val; // 对象的值；即对象所表示的实体；
-    fnObjOps ops; // 对象方法；即对象的操作；
+    ptu32_t ObjPrivate;    // 对象私有数据；可以指向描述对象的结构；
+    fnObjOps ops;          // 对象方法；即对象的操作；
     union __rights rights; // 对象权限管理；
     list_t handles; // 对象句柄链表；对象被用户引用，系统会给用户分配一个句柄；被IO系统引用时，指向port链表；
     struct obj *prev,*next, *parent, *child; // 对象关系；构建对象树；
     struct obj *seton; // 对象关系；某个新的对象集合(类)建立于某个旧对象之上，形成一个闭环单向链；
                        // 当具体文件系统被mount到某对象；原节点在这里备份，以备unmount时恢复旧对象。
                        // -1被作为特别用处，表示该对象之上不可建立新的对象集合（类）；
-    struct obj *set; // 对象关系；集合点（类）；如果对象本身就是对象集合（类），则指向自己；其他则指向对象的集合点（类）；
+    struct obj *set;   // 对象关系；集合点（类）；如果对象本身就是对象集合（类），则指向自己；其他则指向对象的集合点（类）；
 };
 
 
@@ -321,7 +321,7 @@ struct obj *obj_set(struct obj *ob);
 // 返回：对象的值；
 // 备注：
 // ============================================================================
-ptu32_t obj_val(struct obj *ob);
+ptu32_t obj_GetPrivate(struct obj *ob);
 
 // ============================================================================
 // 功能：设置对象的值；
@@ -330,7 +330,7 @@ ptu32_t obj_val(struct obj *ob);
 // 返回：无；
 // 备注：
 // ============================================================================
-void obj_setval(struct obj *ob, ptu32_t represent);
+void obj_setval(struct obj *ob, ptu32_t Private);
 
 // ============================================================================
 // 功能：获取对象操作；

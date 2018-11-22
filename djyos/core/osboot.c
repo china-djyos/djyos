@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -67,7 +67,7 @@
 
 #include <os.h>
 #include <shell.h>
-#include <exp.h>
+#include <blackbox.h>
 #include <osboot.h>
 #include "dbug.h"
 #include "board-config.h"
@@ -151,7 +151,7 @@ static bool_t __AddrInMem(u8 *addr)
 bool_t ThrowOsBootInfo(enBootMode mode)
 {
     tagSysDumpState dumpinfo;
-    struct ExpThrowPara  parahead;
+    struct BlackBoxThrowPara  parahead;
 
     u8  *srcstart;
     u8  *srcend;
@@ -178,24 +178,24 @@ bool_t ThrowOsBootInfo(enBootMode mode)
         }
     }
     parahead.DecoderName = CN_ILLEGAL_BOOTNAME;
-    parahead.ExpAction = EN_EXP_DEAL_RECORD;
-    parahead.ExpInfo = (u8 *)&dumpinfo;
-    parahead.ExpInfoLen = sizeof(dumpinfo);
-    parahead.ExpType = CN_EXP_TYPE_SYS_START+11;
-    Exp_Throw(&parahead);
+    parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
+    parahead.BlackBoxInfo = (u8 *)&dumpinfo;
+    parahead.BlackBoxInfoLen = sizeof(dumpinfo);
+    parahead.BlackBoxType = CN_BLACKBOX_TYPE_SYS_START+11;
+    BlackBox_Recorder(&parahead);
     return true;
 }
 
 
-static bool_t __CpuDumpDecoder(struct ExpThrowPara  *exppara,u32 endian)
+static bool_t __CpuDumpDecoder(struct BlackBoxThrowPara  *exppara,u32 endian)
 {
     tagSysDumpState *dumpinfo;
     struct EventECB *ecb;
     struct ThreadVm *vm;
 
-    debug_printf("osboot","DUMPHEAD:Decoder:%s Action:%d ExpLen:%d ExpType:%d Endian:%d\n\r",\
-            exppara->DecoderName,exppara->ExpAction,exppara->ExpInfoLen,exppara->ExpType,endian);
-    dumpinfo = (tagSysDumpState *)exppara->ExpInfo;
+    debug_printf("osboot","DUMPHEAD:Decoder:%s Action:%d BlackBoxLen:%d BlackBoxType:%d Endian:%d\n\r",\
+            exppara->DecoderName,exppara->BlackBoxAction,exppara->BlackBoxInfoLen,exppara->BlackBoxType,endian);
+    dumpinfo = (tagSysDumpState *)exppara->BlackBoxInfo;
     debug_printf("osboot","DUMPINFO:Reason:%s EcbRun:0x%08x EcbReady:0x%08x EcbDelay:0x%08x\n\r",\
             pBootModeName[dumpinfo->dumpreason],(u32)dumpinfo->eventrunning,\
             (u32)dumpinfo->eventready,(u32)dumpinfo->eventdelay);
@@ -209,7 +209,7 @@ static bool_t __CpuDumpDecoder(struct ExpThrowPara  *exppara,u32 endian)
         debug_printf("osboot","Param1:0x%08x Param2:0x%08x\n\r",ecb->param1,ecb->param2);
         debug_printf("osboot","Sync:0x%08x SyncHead:0x%08x SyncCounter:0x%08x\n\r",(u32)ecb->sync,(u32)ecb->sync_head,ecb->sync_counter);
 #if CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE)  
+#if (CN_USE_TICKLESS_MODE)
         debug_printf("osboot","EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartCnt,ecb->consumed_cnt);
         debug_printf("osboot","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_cnt_second,ecb->consumed_cnt_record);
 #else
@@ -217,7 +217,7 @@ static bool_t __CpuDumpDecoder(struct ExpThrowPara  *exppara,u32 endian)
         debug_printf("osboot","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_time_record,ecb->consumed_time_record);
 #endif
 #endif  //CFG_OS_TINY == false
-#if	(CN_USE_TICKLESS_MODE) 
+#if (CN_USE_TICKLESS_MODE)
         debug_printf("osboot","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_cnt,ecb->delay_end_cnt);
 #else
         debug_printf("osboot","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_tick,ecb->delay_end_tick);
@@ -276,12 +276,12 @@ ADD_TO_IN_SHELL bool_t bootmsg(char *param)
     return true;
 }
 
-static bool_t __BootModeDecoder(struct ExpThrowPara *exppara,u32 endian)
+static bool_t __BootModeDecoder(struct BlackBoxThrowPara *exppara,u32 endian)
 {
     tagBootMode msg;
-    debug_printf("osboot","DUMPHEAD:Decoder:%s Action:%d ExpLen:%d ExpType:%d Endian:%d\n\r",\
-            exppara->DecoderName,exppara->ExpAction,exppara->ExpInfoLen,exppara->ExpType,endian);
-    memcpy(&msg,exppara->ExpInfo,sizeof(msg));
+    debug_printf("osboot","DUMPHEAD:Decoder:%s Action:%d BlackBoxLen:%d BlackBoxType:%d Endian:%d\n\r",\
+            exppara->DecoderName,exppara->BlackBoxAction,exppara->BlackBoxInfoLen,exppara->BlackBoxType,endian);
+    memcpy(&msg,exppara->BlackBoxInfo,sizeof(msg));
     __ShowBootMode(&msg);
     return true;
 }
@@ -405,13 +405,13 @@ static bool_t __OsBootModeLog(void)
         gBootMode.modesoft = EN_BOOT_NOTIMPLEMENT;
     }
     //record the boot message
-    struct ExpThrowPara  parahead;
-    parahead.ExpAction = EN_EXP_DEAL_RECORD;
+    struct BlackBoxThrowPara  parahead;
+    parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
     parahead.DecoderName = CN_BOOTLOG_NAME;
-    parahead.ExpInfo = (u8 *)&gBootMode;
-    parahead.ExpInfoLen =sizeof(gBootMode);
-    parahead.ExpType = CN_EXP_TYPE_SYS_START+10;
-    Exp_Throw(&parahead);
+    parahead.BlackBoxInfo = (u8 *)&gBootMode;
+    parahead.BlackBoxInfoLen =sizeof(gBootMode);
+    parahead.BlackBoxType = CN_BLACKBOX_TYPE_SYS_START+10;
+    BlackBox_Recorder(&parahead);
     return true;
 }
 //----安装系统启动模块-----------------------------------------------------------
@@ -427,8 +427,8 @@ bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode getmodehard,
                             fnGetBootMode getmodesoft)
 {
     bool_t result=true;
-    static struct ExpInfoDecoder dumpdecoder;
-    static struct ExpInfoDecoder bootdecoder;
+    static struct BlackBoxInfoDecoder dumpdecoder;
+    static struct BlackBoxInfoDecoder bootdecoder;
 
     pMemLegalTab = tab;
     if(NULL != getmodehard)
@@ -443,12 +443,12 @@ bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode getmodehard,
     memset(&dumpdecoder,0,sizeof(dumpdecoder));
     dumpdecoder.DecoderName = CN_ILLEGAL_BOOTNAME;
     dumpdecoder.MyDecoder = __CpuDumpDecoder;
-    Exp_RegisterThrowInfoDecoder(&dumpdecoder);
+    BlackBox_RegisterThrowInfoDecoder(&dumpdecoder);
 
     memset(&bootdecoder,0,sizeof(bootdecoder));
     bootdecoder.DecoderName = CN_BOOTLOG_NAME;
     bootdecoder.MyDecoder = __BootModeDecoder;
-    Exp_RegisterThrowInfoDecoder(&bootdecoder);
+    BlackBox_RegisterThrowInfoDecoder(&bootdecoder);
 
     //记录系统启动状态
     __OsBootModeLog();

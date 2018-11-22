@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -54,7 +54,7 @@
 //   作者: lst
 //   新版本号：V1.0.0
 //   修改说明: 本版是初版,用于验证目的
-//		下一版需增加判断时钟是否已经起振的代码
+//      下一版需增加判断时钟是否已经起振的代码
 //------------------------------------------------------
 #include "stdint.h"
 #include "cpu_peri.h"
@@ -64,6 +64,7 @@
 #include "core_cmFunc.h"
 #include "cpu-optional.h"
 #include "core_cm7.h"
+#include "arm32_feature.h"
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
 #endif
@@ -103,12 +104,12 @@ const u32 gc_u32StartupExpTable[4] __attribute__ ((section(".StartupExpTbl")))=
 };
 void Init_Cpu(void)
 {
-	__set_PSP((uint32_t)msp_top);
-	__set_PRIMASK(1);
-	__set_FAULTMASK(1);
-	__set_CONTROL(0);
+    __set_PSP((uint32_t)msp_top);
+    __set_PRIMASK(1);
+    __set_FAULTMASK(1);
+    __set_CONTROL(0);
 
-    #if (CN_CPU_OPTIONAL_FPU == 1)
+    #if (_D_FPU_USED == 1)
         startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //使能FPU
         startup_scb_reg->FPCCR = (1UL << 31);                //关闭lazy stacking
     #endif
@@ -122,11 +123,11 @@ void Init_Cpu(void)
     while(false==SysClockInit());
 
     extern void SRAM_Init(void);
-    SRAM_Init();		//片外RAM 初始化
+    SRAM_Init();        //片外RAM 初始化
 
 #if (CN_CPU_OPTIONAL_CACHE == 1)
-	SCB_EnableICache();			//指令、数据cache使能
-	SCB_EnableDCache();
+    SCB_EnableICache();         //指令、数据cache使能
+    SCB_EnableDCache();
 #endif
     IAP_SelectLoadProgam();
 }
@@ -140,9 +141,9 @@ extern void Load_Preload(void);
 //-----------------------------------------------------------------
 void AppStart(void)
 {
-	__set_MSP((uint32_t)msp_top);
-	__set_PSP((uint32_t)msp_top);
-	Load_Preload();
+    __set_MSP((uint32_t)msp_top);
+    __set_PSP((uint32_t)msp_top);
+    Load_Preload();
 }
 
 //-----------------------------------------------------------------

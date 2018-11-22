@@ -1,5 +1,5 @@
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_nfc.c
 // 模块描述: NFC模块的底层函数，主要初始化NFC模块，并操作NFC控制器读取数据等
 // 模块版本: V1.00
@@ -12,12 +12,12 @@
 
 // 若没有对NFC进行配置，则使用默认配置
 #ifndef NFC_CONFIG
-#define NFC_CE 			NFC_CE0			// 片选使用CE0
-#define DATA_WIDTH 		NFC_16BIT		// 数据宽度16比特
-#define NFCDIV          0x05			// 时钟分频
-#define NFCFRAC         0x00			// 时钟分频
-#define PAGE_SIZE 		PAGE_2K			// 页大小
-#define ECC_SIZE  		PAGE_64			// ECC大小
+#define NFC_CE          NFC_CE0         // 片选使用CE0
+#define DATA_WIDTH      NFC_16BIT       // 数据宽度16比特
+#define NFCDIV          0x05            // 时钟分频
+#define NFCFRAC         0x00            // 时钟分频
+#define PAGE_SIZE       PAGE_2K         // 页大小
+#define ECC_SIZE        PAGE_64         // ECC大小
 #endif
 
 #define NFC_BASE_PTR NFC_BASE
@@ -64,40 +64,40 @@ void NFC_ModuleInit(void)
 
     if (DATA_WIDTH == NFC_16BIT)
     {
-    	NFC->CFG |= NFC_CFG_BITWIDTH_MASK;
+        NFC->CFG |= NFC_CFG_BITWIDTH_MASK;
 
         PORTB->PCR[20] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA15 pad */
-    	PORTB->PCR[21] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA14 pad */
-    	PORTB->PCR[22] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA13 pad */
-    	PORTB->PCR[23] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA12 pad */
-    	PORTC->PCR[0] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA11 pad */
-    	PORTC->PCR[1] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA10 pad */
-    	PORTC->PCR[2] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA9 pad */
-    	PORTC->PCR[4] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA8 pad */
-    	PORTC->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA7 pad */
-    	PORTC->PCR[6] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA6 pad */
-    	PORTC->PCR[7] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA5 pad */
-    	PORTC->PCR[8] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA4 pad */
-    	PORTC->PCR[9] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA3 pad */
-    	PORTC->PCR[10] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA2 pad */
-    	PORTD->PCR[4] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA1 pad */
-    	PORTD->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA0 pad */
+        PORTB->PCR[21] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA14 pad */
+        PORTB->PCR[22] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA13 pad */
+        PORTB->PCR[23] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA12 pad */
+        PORTC->PCR[0] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA11 pad */
+        PORTC->PCR[1] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA10 pad */
+        PORTC->PCR[2] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA9 pad */
+        PORTC->PCR[4] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA8 pad */
+        PORTC->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA7 pad */
+        PORTC->PCR[6] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA6 pad */
+        PORTC->PCR[7] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA5 pad */
+        PORTC->PCR[8] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA4 pad */
+        PORTC->PCR[9] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA3 pad */
+        PORTC->PCR[10] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA2 pad */
+        PORTD->PCR[4] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA1 pad */
+        PORTD->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA0 pad */
 
         /* Set the sector size in the NFC to match the memory */
         NFC->SECSZ = (PAGE_SIZE|(ECC_SIZE+1));
     }
     else /* (DATA_WIDTH == NFC_8BIT) */
     {
-    	NFC->CFG &= ~NFC_CFG_BITWIDTH_MASK;
+        NFC->CFG &= ~NFC_CFG_BITWIDTH_MASK;
 
-    	PORTC->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA7 pad */
-    	PORTC->PCR[6] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA6 pad */
-    	PORTC->PCR[7] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA5 pad */
-    	PORTC->PCR[8] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA4 pad */
-    	PORTC->PCR[9] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA3 pad */
-    	PORTC->PCR[10] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA2 pad */
-    	PORTD->PCR[4] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA1 pad */
-    	PORTD->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA0 pad */
+        PORTC->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA7 pad */
+        PORTC->PCR[6] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA6 pad */
+        PORTC->PCR[7] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA5 pad */
+        PORTC->PCR[8] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA4 pad */
+        PORTC->PCR[9] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA3 pad */
+        PORTC->PCR[10] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA2 pad */
+        PORTD->PCR[4] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA1 pad */
+        PORTD->PCR[5] = PORT_PCR_MUX(5) | PORT_PCR_DSE_MASK; /* Enable the NFC_DATA0 pad */
 
         /* Set the sector size in the NFC to match the memory */
         NFC->SECSZ = (PAGE_SIZE | ECC_SIZE);
@@ -128,7 +128,7 @@ void NFC_ModuleInit(void)
 // =============================================================================
 bool_t NFC_OptionCompleted(void)
 {
-	return !(NFC->CMD2 & NFC_CMD2_BUSY_START_MASK);
+    return !(NFC->CMD2 & NFC_CMD2_BUSY_START_MASK);
 }
 
 // =============================================================================
@@ -215,11 +215,11 @@ void NFC_FlashIDRead(u8 FlashBufNo, u32* FlashID0, u32* FlashID1)
     /* Load the flash ID values into fls_id0 and fls_id1 */
     if(FlashID0 != NULL)
     {
-    	*((u32 *)(FlashID0)) = NFC->SR1;
+        *((u32 *)(FlashID0)) = NFC->SR1;
     }
     if(FlashID1 != NULL)
     {
-    	*((u32 *)(FlashID1)) = NFC->SR2;
+        *((u32 *)(FlashID1)) = NFC->SR2;
     }
 }
 
@@ -405,14 +405,14 @@ void NFC_PageRead(u8 FlashBufNo, u32 RowAddr, u16 ColAddr)
 // =============================================================================
 u32 NFC_ReadBuffer(u8* pDstBuf,u32 offset,u32 len)
 {
-	u32 result = 0;
-	if(len > 0)
-	{
-		memcpy(pDstBuf,(u8 *)(NFC_BASE_PTR+offset),len);
-		result = len;
-	}
+    u32 result = 0;
+    if(len > 0)
+    {
+        memcpy(pDstBuf,(u8 *)(NFC_BASE_PTR+offset),len);
+        result = len;
+    }
 
-	return result;
+    return result;
 }
 
 // =============================================================================
@@ -425,14 +425,14 @@ u32 NFC_ReadBuffer(u8* pDstBuf,u32 offset,u32 len)
 // =============================================================================
 u32 NFC_WriteBuffer(u8* pSrcBuf,u32 offset,u32 len)
 {
-	u32 result = 0;
-	if(len > 0)
-	{
-		memcpy((u8 *)(NFC_BASE_PTR+offset),pSrcBuf,len);
-		result = len;
-	}
+    u32 result = 0;
+    if(len > 0)
+    {
+        memcpy((u8 *)(NFC_BASE_PTR+offset),pSrcBuf,len);
+        result = len;
+    }
 
-	return result;
+    return result;
 }
 
 

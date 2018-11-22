@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -67,12 +67,12 @@
 //%$#@describe      ****组件描述开始
 //component name:"M24256"       //iic接口的eeprom
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"iicbus","lock"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"iicbus","lock","cpu_peri_iic"    //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -103,7 +103,7 @@
 #define CN_E2ROM_MAX_PAGE               (CN_E2ROM_MAX_SIZE/CN_E2ROM_PAGE_SIZE)
 
 #define CN_CHIP_WRITE_FINISHED_TIME            (6*mS)
-static struct IIC_Device pg_E2ROM_Dev;
+static struct IIC_Device *pg_E2ROM_Dev;
 #define CN_E2ROM_OP_TIMEOUT             CN_TIMEOUT_FOREVER//2000*mS
 
 
@@ -120,7 +120,7 @@ u32 E2PROM_ReadData(u32 Addr,u8 *pDstBuf,u32 DstLen)
     if((Addr + DstLen > CN_E2ROM_MAX_SIZE) || (DstLen == 0))
         return result;
 
-    result = IIC_Read(&pg_E2ROM_Dev,Addr,pDstBuf,DstLen,CN_E2ROM_OP_TIMEOUT);
+    result = IIC_Read(pg_E2ROM_Dev,Addr,pDstBuf,DstLen,CN_E2ROM_OP_TIMEOUT);
 
     return result;
 }
@@ -136,7 +136,7 @@ u32 E2PROM_WriteByte(u32 Addr,u8 Value)
     u32 result = 0;
     if(Addr > CN_E2ROM_MAX_SIZE)
         return result;
-    result = IIC_Write(&pg_E2ROM_Dev,Addr,&Value,1,true,CN_E2ROM_OP_TIMEOUT);
+    result = IIC_Write(pg_E2ROM_Dev,Addr,&Value,1,true,CN_E2ROM_OP_TIMEOUT);
 
     return result;
 }
@@ -159,7 +159,7 @@ u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
         return result;
 
     Addr = PageNo * CN_E2ROM_PAGE_SIZE;
-    result = IIC_Write(&pg_E2ROM_Dev,Addr,pSrcBuf,SrcLen,1,CN_E2ROM_OP_TIMEOUT);
+    result = IIC_Write(pg_E2ROM_Dev,Addr,pSrcBuf,SrcLen,1,CN_E2ROM_OP_TIMEOUT);
 
     Djy_EventDelay(CN_CHIP_WRITE_FINISHED_TIME);
     return result;
@@ -172,16 +172,13 @@ u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
 // =============================================================================
 ptu32_t M24256_ModuleInit(const char *BusName)
 {
-    pg_E2ROM_Dev.DevAddr = CFG_E2ROM_ADDR;
-    pg_E2ROM_Dev.BitOfMemAddrInDevAddr = 0;
-    pg_E2ROM_Dev.BitOfMemAddr = 16;
 
 //    IIC0_Init();
 
-    if(NULL == IIC_DevAdd_r(BusName,"IICDev_M24256",&pg_E2ROM_Dev))
-        return false;
-    else
+    if(pg_E2ROM_Dev = IIC_DevAdd(BusName,"IICDev_M24256",CFG_E2ROM_ADDR,0,16))
         return true;
+    else
+        return false;
 }
 
 //#endif

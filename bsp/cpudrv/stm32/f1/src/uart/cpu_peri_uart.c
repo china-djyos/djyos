@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_uart.c
 // 模块描述: DJYOS串口模块的底层驱动部分，主要实现寄存器级别的操作，如中断等
 // 模块版本: V1.10
@@ -90,21 +90,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_uart"                //CPU的uart外设驱动
-//parent:"uart"                                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                                //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"devfile","lock","uart","heap","cpu_peri_gpio"      //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                //选中该组件时，被依赖组件将强制选中，
-                                                //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"                         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                                //选中该组件时，被依赖组件不会被强制选中，
-                                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                //如果依赖多个组件，则依次列出，用“,”分隔
+//component name:"cpu_peri_uart"//CPU的uart外设驱动
+//parent:"uart"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","lock","uart","heap"      //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -438,54 +438,6 @@ static void __UART_BaudSet(tagUartReg volatile *Reg,u32 port,u32 baud)
 }
 
 // =============================================================================
-// 功能: 设置对应UART的IO口，包括时钟和IO配置
-// 参数: SerialNo,串口号
-// 返回: 无
-// =============================================================================
-static void __UART_GpioConfig(u8 SerialNo)
-{
-    //初始化IO端口位uart功能
-    //Ports  :  GPA10 GPA9 GPA8 GPA7 GPA6 GPA5 GPA4 GPA3 GPA2 GPA1 GPA0
-    //Signal :   RXD1 TXD1  xx   xx   xx   xx   xx   xx   xx   xx   xx
-    switch(SerialNo)
-    {
-    case CN_UART1:
-        bb_rcc_apb2enr_uart1en = 1;     //uart1时钟使能
-        GPIO_PowerOn(CN_GPIO_A);
-        GPIO_CfgPinFunc(CN_GPIO_A,9,CN_GPIO_MODE_PERI_OUT_PP_10Mhz);
-        GPIO_CfgPinFunc(CN_GPIO_A,10,CN_GPIO_MODE_IN_FLOATING);
-        break;
-    case CN_UART2:
-        bb_rcc_apb1enr_uart2en = 1;     //uart2时钟使能
-        GPIO_PowerOn(CN_GPIO_A);
-        GPIO_CfgPinFunc(CN_GPIO_A,2,CN_GPIO_MODE_PERI_OUT_PP_10Mhz);
-        GPIO_CfgPinFunc(CN_GPIO_A,3,CN_GPIO_MODE_IN_FLOATING);
-        break;
-    case CN_UART3:
-        bb_rcc_apb1enr_uart3en = 1;     //uart3时钟使能
-        GPIO_PowerOn(CN_GPIO_B);
-        GPIO_CfgPinFunc(CN_GPIO_B,10,CN_GPIO_MODE_PERI_OUT_PP_10Mhz);
-        GPIO_CfgPinFunc(CN_GPIO_B,11,CN_GPIO_MODE_IN_FLOATING);
-        break;
-    case CN_UART4:
-        bb_rcc_apb1enr_uart4en = 1;     //uart4时钟使能
-        GPIO_PowerOn(CN_GPIO_C);
-        GPIO_CfgPinFunc(CN_GPIO_C,10,CN_GPIO_MODE_PERI_OUT_PP_10Mhz);
-        GPIO_CfgPinFunc(CN_GPIO_C,11,CN_GPIO_MODE_IN_FLOATING);
-        break;
-    case CN_UART5:
-        bb_rcc_apb1enr_uart5en = 1;    //uart5时钟使能
-        GPIO_PowerOn(CN_GPIO_C);
-        GPIO_PowerOn(CN_GPIO_D);
-        GPIO_CfgPinFunc(CN_GPIO_C,12,CN_GPIO_MODE_PERI_OUT_PP_10Mhz);
-        GPIO_CfgPinFunc(CN_GPIO_D,2,CN_GPIO_MODE_IN_FLOATING);
-        break;
-    default:
-        break;
-    }
-}
-
-// =============================================================================
 // 功能: 对串口传输参数配置，包括波特率、奇偶校验、数据位、停止位
 // 参数:  Reg,被操作的寄存器组指针
 //        port,串口号
@@ -633,7 +585,6 @@ static void __UART_HardInit(u8 SerialNo)
 {
     if(SerialNo > CN_UART5)
         return;
-    __UART_GpioConfig(SerialNo);
     //系统初始化时已经使中断处于禁止状态，无需再禁止和清除中断。
    //初始化uart硬件控制数据结构
     tg_UART_Reg[SerialNo]->CR1 = 0x20ac;
@@ -674,7 +625,7 @@ u32 __UART_DMA_SendStart(u32 port)
     {
     case CN_UART1:
 //        if(true == __uart_dma_timeout(UART1_DMA_SENDING))
-		if(true == UART1_DMA_SENDING)
+        if(true == UART1_DMA_SENDING)
             break;
         num = UART_PortRead(pUartCB[CN_UART1],UART1_DmaSendBuf,CFG_UART1_DMABUF_LEN);
         if(UART1_FIRST_DMA_SEND)
@@ -699,7 +650,7 @@ u32 __UART_DMA_SendStart(u32 port)
         break;
     case 2:
 //        if(true == __uart_dma_timeout(UART2_DMA_SENDING))
-		if(true == UART2_DMA_SENDING)
+        if(true == UART2_DMA_SENDING)
             break;
         num = UART_PortRead(pUartCB[CN_UART2],UART2_DmaSendBuf,CFG_UART2_DMABUF_LEN);
         if(UART2_FIRST_DMA_SEND)
@@ -724,7 +675,7 @@ u32 __UART_DMA_SendStart(u32 port)
         break;
     case 3:
 //        if(true == __uart_dma_timeout(UART3_DMA_SENDING))
-		if(true == UART3_DMA_SENDING)
+        if(true == UART3_DMA_SENDING)
             break;
         num = UART_PortRead(pUartCB[CN_UART3],(u8*)UART3_DmaSendBuf,CFG_UART3_DMABUF_LEN);
         if(UART3_FIRST_DMA_SEND)

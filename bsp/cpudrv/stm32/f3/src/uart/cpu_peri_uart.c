@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_uart.c
 // 模块描述: DJYOS串口模块的底层驱动部分，主要实现寄存器级别的操作，如中断等
 // 模块版本: V1.10
@@ -73,39 +73,34 @@
 //    extern ptu32_t ModuleInstall_UART(u32 serial_no,u32 SendBufLen, u32 RecvBufLen,u8 mode);
 //
 //    #if CFG_UART1_ENABLE ==1
-//    ModuleInstall_UART(CN_UART1,CFG_UART1_SENDBUF_LEN,CFG_UART1_RECVBUF_LEN,\
-//      CFG_UART1_MODE);
+//    ModuleInstall_UART(CN_UART1,CFG_UART1_SENDBUF_LEN,CFG_UART1_RECVBUF_LEN,CFG_UART1_MODE);
 //    #endif
 //
-//    CFG_UART2_ENABLE ==1
-//    ModuleInstall_UART(CN_UART2,CFG_UART2_SENDBUF_LEN,CFG_UART2_RECVBUF_LEN,\
-//      CFG_UART2_MODE);
+//    #if CFG_UART2_ENABLE ==1
+//    ModuleInstall_UART(CN_UART2,CFG_UART2_SENDBUF_LEN,CFG_UART2_RECVBUF_LEN,CFG_UART2_MODE);
 //    #endif
 //
 //    #if CFG_UART3_ENABLE ==1
-//    ModuleInstall_UART(CN_UART3,CFG_UART3_SENDBUF_LEN,CFG_UART3_RECVBUF_LEN,\
-//      CFG_UART3_MODE);
+//    ModuleInstall_UART(CN_UART3,CFG_UART3_SENDBUF_LEN,CFG_UART3_RECVBUF_LEN,CFG_UART3_MODE);
 //    #endif
 //
 //    #if CFG_UART4_ENABLE ==1
-//    ModuleInstall_UART(CN_UART4,CFG_UART4_SENDBUF_LEN,CFG_UART4_RECVBUF_LEN,\
-//      CFG_UART4_MODE);
+//    ModuleInstall_UART(CN_UART4,CFG_UART4_SENDBUF_LEN,CFG_UART4_RECVBUF_LEN,CFG_UART4_MODE);
 //    #endif
 //
 //    #if CFG_UART5_ENABLE ==1
-//    ModuleInstall_UART(CN_UART5,CFG_UART5_SENDBUF_LEN,CFG_UART5_RECVBUF_LEN,\
-//      CFG_UART5_MODE);
+//    ModuleInstall_UART(CN_UART5,CFG_UART5_SENDBUF_LEN,CFG_UART5_RECVBUF_LEN,CFG_UART5_MODE);
 //    #endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_uart" //CPU的uart外设驱动
 //parent:"uart"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"devfile","uart","heap","cpu_peri_dma"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
@@ -139,11 +134,11 @@
 #define CFG_UART5_RECVBUF_LEN            32                 //"UART5接收环形缓冲区大小",
 #define CFG_UART5_DMABUF_LEN             32                 //"UART5 DMA缓冲区大小",
 //%$#@enum,true,false,
-#define CFG_UART1_MODE                   CN_UART_POLL       //"UART1模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART2_MODE                   CN_UART_POLL       //"UART2模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART3_MODE                   CN_UART_POLL       //"UART3模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART4_MODE                   CN_UART_POLL       //"UART4模式",CN_UART_POLL or CN_UART_GENERAL
-#define CFG_UART5_MODE                   CN_UART_POLL       //"UART5模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART1_MODE                   1                  //"UART1模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART2_MODE                   1                  //"UART2模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART3_MODE                   1                  //"UART3模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART4_MODE                   1                  //"UART4模式",CN_UART_POLL or CN_UART_GENERAL
+#define CFG_UART5_MODE                   1                  //"UART5模式",CN_UART_POLL or CN_UART_GENERAL
 //%$#@enum,true,false,
 #define CFG_UART1_ENABLE                 true               //"是否配置使用UART1",
 #define CFG_UART2_ENABLE                 false              //"是否配置使用UART2",
@@ -633,7 +628,7 @@ u32 __UART_DMA_SendStart(u32 port)     //uart5没有对应DMA
 
     DmaSendBuf = pUART_DmaSendBuf[port];
 //    if(true == __uart_dma_timeout(s_UART_DmaSending[port]))
-	if(true ==s_UART_DmaSending[port])
+    if(true ==s_UART_DmaSending[port])
         return 0;
     num = UART_PortRead(pUartCB[port],DmaSendBuf,DmaSendBufLen);
     addr = (u32)DmaSendBuf;

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -61,41 +61,41 @@ extern "C" {
 //
 
 // CardDescription.Type值
-#define MMC			((u8)0)
-#define SDIO		((u8)1)
-#define SDSC		((u8)2)
-#define SDHC		((u8)3)
-#define SDXC		((u8)4)
-								
+#define MMC         ((u8)0)
+#define SDIO        ((u8)1)
+#define SDSC        ((u8)2)
+#define SDHC        ((u8)3)
+#define SDXC        ((u8)4)
+
 // CardDescription.SpecVer值
-#define V1			((u8)0) 	// Version 1.0 and 1.01
-#define V1_1		((u8)1) 	// Version 1.10
-#define V2			((u8)2) 	// Version 2.00
-#define V3			((u8)3) 	// Version 3.0X
-#define V4			((u8)4) 	// Version 4.XX
-#define UNKNOWN		((u8)255) 	// 未知,出错了
-								
+#define V1          ((u8)0)     // Version 1.0 and 1.01
+#define V1_1        ((u8)1)     // Version 1.10
+#define V2          ((u8)2)     // Version 2.00
+#define V3          ((u8)3)     // Version 3.0X
+#define V4          ((u8)4)     // Version 4.XX
+#define UNKNOWN     ((u8)255)   // 未知,出错了
+
 // CardDescription.State值
-#define IDLE		((u8)0)
-#define IDENT		((u8)1)
-#define STANDBY		((u8)2)
-#define TRANSFER	((u8)3)
-#define PROGRAM		((u8)4)
+#define IDLE        ((u8)0)
+#define IDENT       ((u8)1)
+#define STANDBY     ((u8)2)
+#define TRANSFER    ((u8)3)
+#define PROGRAM     ((u8)4)
 
 struct CardDescription{
-	u8 Type;					// 卡的类型
-	u8 SpecVer;					// Physical Layer Specification Version
-	u8 State;					// 卡的当前状态
-	u8 TransSpeed;				// 最大传输速度(0x32 = 25MBit/s)
-	u32 CSize;					// 容量(byte为单位)
-	u8 ReadBlLen;				// 块大小,2次方
-	u8 ReadBlPartial;			// 最小读写量(0:块为单位,1:Byte为单位)
-	u8 CSizeMult;				// todo: 这个参数可能无太多实际用途
-	u8 BusWidth;				//
-	u8 DataStatusAfterErases;	// 块被擦除后的状态，为1或0
-	u16 RCA;					// 器件的相对地址
-	u16 BlkLenSettings;			// 实际读写块大小,与器件和控制器都相关,2次方
-	u64 CapacityInBytes;		// 块容量, 字节为单位.
+    u8 Type;                    // 卡的类型
+    u8 SpecVer;                 // Physical Layer Specification Version
+    u8 State;                   // 卡的当前状态
+    u8 TransSpeed;              // 最大传输速度(0x32 = 25MBit/s)
+    u32 CSize;                  // 容量(byte为单位)
+    u8 ReadBlLen;               // 块大小,2次方
+    u8 ReadBlPartial;           // 最小读写量(0:块为单位,1:Byte为单位)
+    u8 CSizeMult;               // todo: 这个参数可能无太多实际用途
+    u8 BusWidth;                //
+    u8 DataStatusAfterErases;   // 块被擦除后的状态，为1或0
+    u16 RCA;                    // 器件的相对地址
+    u16 BlkLenSettings;         // 实际读写块大小,与器件和控制器都相关,2次方
+    u64 CapacityInBytes;        // 块容量, 字节为单位.
 };
 
 #ifdef __cplusplus

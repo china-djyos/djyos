@@ -1,5 +1,5 @@
 // ---------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：ksz8051.c
 // 模块描述: PHY芯片驱动部分头文件相关的定义
 // 模块版本: V1.00
@@ -139,12 +139,12 @@
 
 typedef struct _GMacb
 {
-	/**< Driver */
-	sGmacd *pGmacd;
-	/** The retry & timeout settings */
-	uint32_t retryMax;
-	/** PHY address ( pre-defined by pins on reset ) */
-	uint8_t phyAddress;
+    /**< Driver */
+    sGmacd *pGmacd;
+    /** The retry & timeout settings */
+    uint32_t retryMax;
+    /** PHY address ( pre-defined by pins on reset ) */
+    uint8_t phyAddress;
 } GMacb;
 
 /*---------------------------------------------------------------------------
@@ -155,13 +155,13 @@ extern void GMACB_SetupTimeout(GMacb *pMacb, uint32_t toMax);
 extern void GMACB_Init(GMacb *pMacb, sGmacd *pGmacd, uint8_t phyAddress);
 
 extern uint8_t GMACB_InitPhy(
-				GMacb *pMacb,
-				uint32_t mck
-//				const Pin *pResetPins,
-//				uint32_t nbResetPins,
-//				const Pin *pEmacPins,
-//				uint32_t nbEmacPins
-				);
+                GMacb *pMacb,
+                uint32_t mck
+//              const Pin *pResetPins,
+//              uint32_t nbResetPins,
+//              const Pin *pEmacPins,
+//              uint32_t nbEmacPins
+                );
 
 extern uint8_t GMACB_AutoNegotiate(GMacb *pMacb);
 

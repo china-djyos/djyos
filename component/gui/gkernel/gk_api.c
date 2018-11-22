@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -103,9 +103,9 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     desktop = malloc(sizeof(struct GkWinObj));
     if((NULL == DisplayObject) || (NULL == desktop))
         return result;
-    para.display = obj_val(DisplayObject);
+    para.display = (struct DisplayObj *)obj_GetPrivate(DisplayObject);
     para.desktop = desktop;
-    para.name = DesktopName;
+    para.name = (char *)DesktopName;
     para.width = width;
     para.height = height;
     para.color = color;
@@ -131,7 +131,7 @@ struct GkWinObj *GK_GetDesktop(const char *display_name)
         DispObj = obj_search_child(DispObj,display_name);
         if(DispObj != NULL)
         {
-            display = (struct DisplayObj *)obj_val(DispObj);
+            display = (struct DisplayObj *)obj_GetPrivate(DispObj);
         }
     }
     if(display != NULL)
@@ -560,7 +560,7 @@ struct GkWinObj* GK_GetTwig(struct GkWinObj *Ancestor)
     if(NULL == Ancestor)
         return NULL;
     result = obj_twig(Ancestor->HostObj);
-    return (struct GkWinObj*)obj_val(result);
+    return (struct GkWinObj*)obj_GetPrivate(result);
 }
 
 //---遍历后代窗口--------------------------------------------------------------
@@ -576,7 +576,7 @@ struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Curren
     if((NULL == Ancestor) || (NULL == Current))
         return NULL;
     result = obj_foreach_scion(Ancestor->HostObj, Current->HostObj);
-    return (struct GkWinObj*)obj_val(result);
+    return (struct GkWinObj*)obj_GetPrivate(result);
 }
 
 //---遍历子窗口--------------------------------------------------------------
@@ -592,7 +592,7 @@ struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current)
     if((NULL == Parent) || (NULL == Current))
         return NULL;
     result = obj_foreach_child(Parent->HostObj, Current->HostObj);
-    return (struct GkWinObj*)obj_val(result);
+    return (struct GkWinObj*)obj_GetPrivate(result);
 }
 
 //----过继窗口-----------------------------------------------------------------
@@ -840,7 +840,7 @@ void GK_SetUserTag(struct GkWinObj *gkwin,void *Tag)
 struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj*)obj_val(obj_parent(gkwin->HostObj));
+        return (struct GkWinObj*)obj_GetPrivate(obj_parent(gkwin->HostObj));
     else
         return NULL;
 }
@@ -852,7 +852,7 @@ struct GkWinObj *GK_GetParentWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetChildWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_val(obj_child(gkwin->HostObj));
+        return (struct GkWinObj *)obj_GetPrivate(obj_child(gkwin->HostObj));
     else
         return NULL;
 }
@@ -865,7 +865,7 @@ struct GkWinObj *GK_GetChildWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_val(obj_prev(gkwin->HostObj));
+        return (struct GkWinObj *)obj_GetPrivate(obj_prev(gkwin->HostObj));
     else
         return NULL;
 }
@@ -878,7 +878,7 @@ struct GkWinObj *GK_GetPreviousWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_val(obj_next(gkwin->HostObj));
+        return (struct GkWinObj *)obj_GetPrivate(obj_next(gkwin->HostObj));
     else
         return NULL;
 }
@@ -891,7 +891,7 @@ struct GkWinObj *GK_GetNextWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_val(obj_head(gkwin->HostObj));
+        return (struct GkWinObj *)obj_GetPrivate(obj_head(gkwin->HostObj));
     else
         return NULL;
 }
@@ -904,7 +904,7 @@ struct GkWinObj *GK_GetFirstWin(struct GkWinObj *gkwin)
 struct GkWinObj *GK_GetLastWin(struct GkWinObj *gkwin)
 {
     if(gkwin != NULL)
-        return (struct GkWinObj *)obj_val(obj_twig(gkwin->HostObj));
+        return (struct GkWinObj *)obj_GetPrivate(obj_twig(gkwin->HostObj));
     else
         return NULL;
 }

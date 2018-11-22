@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -125,12 +125,11 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
 
 void ModuleInstall_Gdd_AND_Desktop(void)
 {
-    struct GkWinObj;
     struct GkWinObj *desktop;
     desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
-                            CFG_DESKTOP_WIDTH,CFG_DESKTOP_HEIGHT,
-                            CFG_FILL_COLOR,CN_WINBUF_PARENT,
-                            CFG_DESKTOP_FORMAT,CFG_GRAY_BASE_COLOR);
+                            (s32)CFG_DESKTOP_WIDTH,(s32)CFG_DESKTOP_HEIGHT,
+                            (u32)CFG_FILL_COLOR,(u32)CN_WINBUF_PARENT,
+                            (u16)CFG_DESKTOP_FORMAT,(u32)CFG_GRAY_BASE_COLOR);
     if(desktop == NULL)
     {
         printf("创建桌面出错");
@@ -139,7 +138,6 @@ void ModuleInstall_Gdd_AND_Desktop(void)
     else
     {
         ModuleInstall_GDD(desktop);
-        GDD_AddInputDev(CFG_INPUTDEV_NAME);
     }
 }
 /*============================================================================*/

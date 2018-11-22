@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014 SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms with or without
 // modification are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -179,7 +179,7 @@ extern "C" {
 #define  CN_INT_LINE_PWM1_2                          104     /*!< CAN3 TX Interrupt                                                 */
 #define  CN_INT_LINE_PWM1_3                         105     /*!< CAN3 RX0 Interrupt                                                */
 #define  CN_INT_LINE_PWM1_FAULT                         106     /*!< CAN3 RX1 Interrupt                                                */
-#define  CN_INT_LINE_RESERVED123                         107     /*!< CAN3 SCE Interrupt   			*/
+#define  CN_INT_LINE_RESERVED123                         107     /*!< CAN3 SCE Interrupt            */
 #define  CN_INT_LINE_FLEXSPI                           108     /*!< LP TIM1 interrupt                                                 */
 #define  CN_INT_LINE_SEMC                              109     /*!< HDMI-CEC global Interrupt                                         */
 #define  CN_INT_LINE_USDHC1                          110     /*!< I2C4 Event Interrupt                                              */

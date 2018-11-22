@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -49,20 +49,20 @@
 //该定义用于检查堆栈使用的内存是否是合法地址
 typedef struct
 {
-	const u8   *start;
-	const u32   len;
+    const u8   *start;
+    const u32   len;
 }tagVmMemItem;
 //该定义用于定义了我们的启动模式
 typedef enum
 {
-	EN_BOOT_POWERDOWN = 0,//WHICH MEANS BOOT FROM POWER DOWN
-	EN_BOOT_HRST,         //WHICH MEANS BOOT FROM EXTERNAL HARD RESET BUT POWERON
-	EN_BOOT_SRST,         //WHICH MEANS BOOT FROM INTERNAL SOFT RESET
-	EN_BOOT_REBOOT,       //WHICH MEANS BOOT FROM SOFT REBOOT
-	EN_BOOT_RELOAD,       //WHICH MEANS BOOT FROM RELOAD
-	EN_BOOT_UNKNOWN,      //WHICH MEANS BOOT FROM UNKNOWN REASON
-	EN_BOOT_NOTIMPLEMENT, //WHICH MEANS BOOT BSP NOT IMPLEMENT
-	EN_BOOT_LAST,
+    EN_BOOT_POWERDOWN = 0,//WHICH MEANS BOOT FROM POWER DOWN
+    EN_BOOT_HRST,         //WHICH MEANS BOOT FROM EXTERNAL HARD RESET BUT POWERON
+    EN_BOOT_SRST,         //WHICH MEANS BOOT FROM INTERNAL SOFT RESET
+    EN_BOOT_REBOOT,       //WHICH MEANS BOOT FROM SOFT REBOOT
+    EN_BOOT_RELOAD,       //WHICH MEANS BOOT FROM RELOAD
+    EN_BOOT_UNKNOWN,      //WHICH MEANS BOOT FROM UNKNOWN REASON
+    EN_BOOT_NOTIMPLEMENT, //WHICH MEANS BOOT BSP NOT IMPLEMENT
+    EN_BOOT_LAST,
 }enBootMode;
 
 #define CN_BOOT_LEGALKEY   0XAA55AA55  //调用reboot、reset、reload传输该key，不会记录，否则会作为异常记录

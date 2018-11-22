@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>zq1201_ck</boardName>
+  <cpu>
+    <cpuName>zq1201_ck</cpuName>
+    <mianClk>12.0</mianClk>
+    <peripheral>cpu_peri_uart</peripheral>
+  </cpu>
+</board>

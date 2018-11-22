@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<cpu>
-   <core id="1">
-      <arch>armv6-m</arch>
-      <family>cortex-m0</family>
-   </core>
-</cpu>

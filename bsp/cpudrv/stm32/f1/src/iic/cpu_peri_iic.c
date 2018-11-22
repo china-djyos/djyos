@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
@@ -21,7 +21,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,7 +42,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_iic.c
 // 模块描述: IIC模块底层硬件驱动，寄存器级别的操作
 // 模块版本: V1.00
@@ -52,7 +52,7 @@
 #include "cpu_peri_gpio.h"
 #include "djyos.h"
 #include "stdint.h"
-#include "arm32_stdint.h"
+//#include "arm32_stdint.h"
 #include "stdio.h"
 #include "cpu_peri.h"
 #include "iicbus.h"
@@ -79,13 +79,13 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_iic"      //CPU的iic总线驱动
-//parent:"iicbus"                    //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                  //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                        //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//component name:"cpu_peri_iic"     //CPU的iic总线驱动
+//parent:"iicbus"                   //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                        //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                    //init表示在调用main之前，main表示在main函数中初始化
+//init time:early                   //初始化时机，可选值：early，medium，later。
+                                    //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus","int","lock", //该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
                                     //如果依赖多个组件，则依次列出，用“,”分隔
@@ -117,8 +117,8 @@
 #define CN_IIC1_BASE        (0x40005400u)//无符号地址
 #define CN_IIC2_BASE        (0x40005800u)//无符号地址
 
-static struct IIC_CB s_IIC1_CB;
-static struct IIC_CB s_IIC2_CB;
+static struct IIC_CB *s_ptIIC1_CB;
+static struct IIC_CB *s_ptIIC2_CB;
 
 //#define CFG_I2C1_BUF_LEN  128
 //#define CFG_I2C2_BUF_LEN  128
@@ -736,12 +736,12 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
     {
         case CN_INT_LINE_I2C1_EV:
                 reg = (tagI2CReg*)CN_IIC1_BASE;
-                ICB = &s_IIC1_CB;
+                ICB = s_ptIIC1_CB;
                 IntParam = &IntParamset0;
                 break;
         case CN_INT_LINE_I2C2_EV:
                 reg = (tagI2CReg*)CN_IIC2_BASE;
-                ICB = &s_IIC2_CB;
+                ICB = s_ptIIC2_CB;
                 IntParam = &IntParamset1;
                 break;
         default:
@@ -838,9 +838,10 @@ bool_t IIC1_Init(void)
     __IIC_GpioConfig(CN_IIC1);
     __IIC_IntConfig(CN_INT_LINE_I2C1_EV,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd(&IIC1_Config))
+    if(s_ptIIC1_CB = IIC_BusAdd(&IIC1_Config))
+        return 1;
+    else
         return 0;
-    return 1;
 }
 
 // =============================================================================
@@ -871,8 +872,9 @@ bool_t IIC2_Init(void)
         return 0;
     __IIC_IntConfig(CN_INT_LINE_I2C2_EV,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd(&IIC2_Config))
+    if(s_ptIIC2_CB = IIC_BusAdd(&IIC2_Config))
+        return 1;
+    else
         return 0;
-    return 1;
 }
 

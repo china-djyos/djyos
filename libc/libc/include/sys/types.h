@@ -26,7 +26,7 @@ typedef long int __loff_t;
 #endif
 
 
-typedef unsigned int in_addr_t;
+//typedef unsigned int in_addr_t;
 
 #ifndef bool
 #define bool int

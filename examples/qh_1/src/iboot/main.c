@@ -1,6 +1,6 @@
 
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -23,7 +23,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -53,59 +53,15 @@
 #include "stdint.h"
 #include "stddef.h"
 
-#include "cpu_peri.h"
-
-//LDE define
-#define LED1_ON   GPIO_SettoLow(CN_GPIO_C, (1<<9))
-#define LED1_OFF  GPIO_SettoHigh(CN_GPIO_C,  (1<<9))
-#define LED2_ON   GPIO_SettoLow(CN_GPIO_C, (1<<8))
-#define LED2_OFF  GPIO_SettoHigh(CN_GPIO_C,  (1<<8))
-#define LED3_ON   GPIO_SettoLow(CN_GPIO_C, (1<<4))
-#define LED3_OFF  GPIO_SettoHigh(CN_GPIO_C,  (1<<4))
-#define LED4_ON   GPIO_SettoLow(CN_GPIO_C, (1<<6))
-#define LED4_OFF  GPIO_SettoHigh(CN_GPIO_C,  (1<<6))
-
-//----LED_init-----------------------------------------------------------------
-//功能：使能gpio端口设置引脚模式
-//参数：void
-//返回：void
-//-----------------------------------------------------------------------------
-void led_init(void)
-{
-    GPIO_PowerOn(CN_GPIO_C);
-    GPIO_CfgPinFunc(CN_GPIO_C, 6, CN_GPIO_MODE_GPIO_OUT_PP_2Mhz);
-    GPIO_CfgPinFunc(CN_GPIO_C, 4, CN_GPIO_MODE_GPIO_OUT_PP_2Mhz);
-    GPIO_CfgPinFunc(CN_GPIO_C, 8, CN_GPIO_MODE_GPIO_OUT_PP_2Mhz);
-    GPIO_CfgPinFunc(CN_GPIO_C, 9, CN_GPIO_MODE_GPIO_OUT_PP_2Mhz);
-    LED1_OFF; LED2_OFF; LED3_OFF; LED4_OFF;
-}
-
 ptu32_t djy_main(void)
 {
-    led_init();
-//    Hello_Word();
+    void gdd_test(void);
+    gdd_test( );
     while(1)
     {
-        Djy_EventDelay(500*1000);
-        LED1_ON;
-        LED2_OFF;
-        LED3_OFF;
-        LED4_OFF;
-        Djy_EventDelay(500*1000);
-        LED1_OFF;
-        LED2_ON;
-        LED3_OFF;
-        LED4_OFF;
-        Djy_EventDelay(500*1000);
-        LED1_OFF;
-        LED2_OFF;
-        LED3_ON;
-        LED4_OFF;
-        Djy_EventDelay(500*1000);
-        LED1_OFF;
-        LED2_OFF;
-        LED3_OFF;
-        LED4_ON;
+//      printf("hello world!\r\n");
+        Djy_EventDelay(1000*1000);
     }
+
     return 0;
 }

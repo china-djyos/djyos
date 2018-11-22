@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -71,18 +71,18 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//	extern void ModuleInstall_FontAscii(void);
-//	ModuleInstall_FontAscii();
+//  extern void ModuleInstall_FontAscii(void);
+//  ModuleInstall_FontAscii();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"ascii_font"   //ascii字体
 //parent:"font"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:核心组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"font"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
@@ -731,73 +731,73 @@ bool_t ModuleInstall_FontAscii16x32(void)
 void ModuleInstall_FontAscii(void)
 {
 #if CFG_ASCII_8X8 == 1
-	extern bool_t ModuleInstall_FontAscii8x8(void);
-	ModuleInstall_FontAscii8x8( );
-#endif		//CFG_ASCII_8X8 == 1
+    extern bool_t ModuleInstall_FontAscii8x8(void);
+    ModuleInstall_FontAscii8x8( );
+#endif      //CFG_ASCII_8X8 == 1
 #if CFG_ASCII_6X12 == 1
-	extern bool_t ModuleInstall_FontAscii6x12(void);
-	ModuleInstall_FontAscii6x12( );
-#endif		//CFG_ASCII_6X12 == 1
+    extern bool_t ModuleInstall_FontAscii6x12(void);
+    ModuleInstall_FontAscii6x12( );
+#endif      //CFG_ASCII_6X12 == 1
 #if CFG_ASCII_8X16_SONG == 1
-	extern bool_t ModuleInstall_FontAscii8x16(void);
-	ModuleInstall_FontAscii8x16( );
-#endif		//CFG_ASCII_8X16_SONG == 1
+    extern bool_t ModuleInstall_FontAscii8x16(void);
+    ModuleInstall_FontAscii8x16( );
+#endif      //CFG_ASCII_8X16_SONG == 1
 #if CFG_ASCII_8X16_YUAN == 1
-	extern bool_t ModuleInstall_FontAscii8x16yuan(void);
-	ModuleInstall_FontAscii8x16yuan( );
-#endif		//CFG_ASCII_8X16_YUAN == 1
+    extern bool_t ModuleInstall_FontAscii8x16yuan(void);
+    ModuleInstall_FontAscii8x16yuan( );
+#endif      //CFG_ASCII_8X16_YUAN == 1
 #if CFG_ASCII_8X16_KAI == 1
-	extern bool_t ModuleInstall_FontAscii8x16kai(void);
-	ModuleInstall_FontAscii8x16kai( );
-#endif		//CFG_ASCII_8X16_KAI == 1
+    extern bool_t ModuleInstall_FontAscii8x16kai(void);
+    ModuleInstall_FontAscii8x16kai( );
+#endif      //CFG_ASCII_8X16_KAI == 1
 #if CFG_ASCII_8X16_HEI == 1
-	extern bool_t ModuleInstall_FontAscii8x16hei(void);
-	ModuleInstall_FontAscii8x16hei( );
-#endif		//CFG_ASCII_8X16_HEI == 1
+    extern bool_t ModuleInstall_FontAscii8x16hei(void);
+    ModuleInstall_FontAscii8x16hei( );
+#endif      //CFG_ASCII_8X16_HEI == 1
 #if CFG_ASCII_8X16_FANG == 1
-	extern bool_t ModuleInstall_FontAscii8x16fang(void);
-	ModuleInstall_FontAscii8x16fang( );
-#endif		//CFG_ASCII_8X16_FANG == 1
+    extern bool_t ModuleInstall_FontAscii8x16fang(void);
+    ModuleInstall_FontAscii8x16fang( );
+#endif      //CFG_ASCII_8X16_FANG == 1
 #if CFG_ASCII_12X24_SONG == 1
-	extern bool_t ModuleInstall_FontAscii12x24(void);
-	ModuleInstall_FontAscii12x24( );
-#endif		//CFG_ASCII_12X24_SONG == 1
+    extern bool_t ModuleInstall_FontAscii12x24(void);
+    ModuleInstall_FontAscii12x24( );
+#endif      //CFG_ASCII_12X24_SONG == 1
 #if CFG_ASCII_12X24_YUAN == 1
-	extern bool_t ModuleInstall_FontAscii12x24yuan(void);
-	ModuleInstall_FontAscii12x24yuan( );
-#endif		//CFG_ASCII_12X24_YUAN == 1
+    extern bool_t ModuleInstall_FontAscii12x24yuan(void);
+    ModuleInstall_FontAscii12x24yuan( );
+#endif      //CFG_ASCII_12X24_YUAN == 1
 #if CFG_ASCII_12X24_KAI == 1
-	extern bool_t ModuleInstall_FontAscii12x24kai(void);
-	ModuleInstall_FontAscii12x24kai( );
-#endif		//CFG_ASCII_12X24_KAI == 1
+    extern bool_t ModuleInstall_FontAscii12x24kai(void);
+    ModuleInstall_FontAscii12x24kai( );
+#endif      //CFG_ASCII_12X24_KAI == 1
 #if CFG_ASCII_12X24_HEI == 1
-	extern bool_t ModuleInstall_FontAscii12x24hei(void);
-	ModuleInstall_FontAscii12x24hei( );
-#endif		//CFG_ASCII_12X24_HEI == 1
+    extern bool_t ModuleInstall_FontAscii12x24hei(void);
+    ModuleInstall_FontAscii12x24hei( );
+#endif      //CFG_ASCII_12X24_HEI == 1
 #if CFG_ASCII_12X24_FANG == 1
-	extern bool_t ModuleInstall_FontAscii12x24fang(void);
-	ModuleInstall_FontAscii12x24fang( );
-#endif		//CFG_ASCII_12X24_FANG == 1
+    extern bool_t ModuleInstall_FontAscii12x24fang(void);
+    ModuleInstall_FontAscii12x24fang( );
+#endif      //CFG_ASCII_12X24_FANG == 1
 #if CFG_ASCII_16X32_SONG == 1
-	extern bool_t ModuleInstall_FontAscii16x32(void);
-	ModuleInstall_FontAscii16x32( );
-#endif		//CFG_ASCII_16X32_SONG == 1
+    extern bool_t ModuleInstall_FontAscii16x32(void);
+    ModuleInstall_FontAscii16x32( );
+#endif      //CFG_ASCII_16X32_SONG == 1
 #if CFG_ASCII_16X32_YUAN == 1
-	extern bool_t ModuleInstall_FontAscii16x32yuan(void);
-	ModuleInstall_FontAscii16x32yuan( );
-#endif		//CFG_ASCII_16X32_YUAN == 1
+    extern bool_t ModuleInstall_FontAscii16x32yuan(void);
+    ModuleInstall_FontAscii16x32yuan( );
+#endif      //CFG_ASCII_16X32_YUAN == 1
 #if CFG_ASCII_16X32_KAI == 1
-	extern bool_t ModuleInstall_FontAscii16x32kai(void);
-	ModuleInstall_FontAscii16x32kai( );
-#endif		//CFG_ASCII_16X32_KAI == 1
+    extern bool_t ModuleInstall_FontAscii16x32kai(void);
+    ModuleInstall_FontAscii16x32kai( );
+#endif      //CFG_ASCII_16X32_KAI == 1
 #if CFG_ASCII_16X32_HEI == 1
-	extern bool_t ModuleInstall_FontAscii16x32hei(void);
-	ModuleInstall_FontAscii16x32hei( );
-#endif		//CFG_ASCII_16X32_HEI == 1
+    extern bool_t ModuleInstall_FontAscii16x32hei(void);
+    ModuleInstall_FontAscii16x32hei( );
+#endif      //CFG_ASCII_16X32_HEI == 1
 #if CFG_ASCII_16X32_FANG == 1
-	extern bool_t ModuleInstall_FontAscii16x32fang(void);
-	ModuleInstall_FontAscii16x32fang( );
-#endif		//CFG_ASCII_16X32_FANG == 1
+    extern bool_t ModuleInstall_FontAscii16x32fang(void);
+    ModuleInstall_FontAscii16x32fang( );
+#endif      //CFG_ASCII_16X32_FANG == 1
 
 
 }

@@ -33,18 +33,6 @@ struct SPI_Param
     SPIBusCtrlFunc  pBusCtrl;               //控制函数
 };
 
-//SPI总线器件结构体
-struct SPI_Device
-{
-    struct obj *HostObj;
-    u8 Cs;                                  //片选信号
-    bool_t AutoCs;                          //自动片选
-    u8 CharLen;                             //数据长度
-    u8 Mode;                                //模式选择
-    u8 ShiftDir;                            //MSB or LSB
-    u32 Freq;                               //速度,Hz
-};
-
 struct SPI_DataFrame
 {
     u8* SendBuf;        //发送数据指针
@@ -53,34 +41,6 @@ struct SPI_DataFrame
     u32 RecvLen;        //接收数据长度，字节
     u32 RecvOff;        //接收数据偏移
 };
-
-struct SPI_Buf
-{
-    u32    Offset;         //缓冲区指针,指向下一次读的位置
-    u32    MaxLen;        //缓冲区最大长度,元素个数.
-    u8     *pBuf;             //缓冲区指针,用户自己保证所开辟的缓冲区是否与设定
-};
-//SPI总线控制块结构体,本模块可见
-struct SPI_CB
-{
-    struct obj           *HostObj;              //宿主对象
-    struct SPI_Buf          SPI_Buf;               //缓冲区,用于异步发送
-    struct SemaphoreLCB     *SPI_BusSemp;           //SPI总线保护信号量
-    struct SemaphoreLCB     *SPI_BlockSemp;         //简易缓冲区保护信号量
-    struct SPI_DataFrame    Frame;
-    struct SPI_Device       *CurrentDev;           //占有当前总线的设备
-    u16                     ErrorPopEvtt;       //出错处理事件的类型
-    bool_t                  MultiCsReg;         //是否具有多套CS寄存器
-    u8                      BlockOption;        //当前总线操作是否阻塞
-    u8                      Flag;               //轮询中断标记
-    ptu32_t                 SpecificFlag;       //个性标记
-    TransferFunc            pTransferTxRx;
-    TransferPoll            pTransferPoll;
-    CsActiveFunc            pCsActive;
-    CsInActiveFunc          pCsInActive;
-    SPIBusCtrlFunc          pBusCtrl;
-};
-
 
 // SPI mode flags
 #define SPI_CPHA    0x01            /* clock phase */

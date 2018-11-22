@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -71,7 +71,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     u32 offset;
     u8 temp[20] = {0};
     char signature[4] = {'O', 'N', 'F', 'I'}; // 用于识别是否是ONFI数据
- 
+
     // ONFI标记
     offset = 0;
     if(little)
@@ -86,19 +86,19 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
             return (-1); // 标记内容不符要求
         }
     }
- 
+
     // ONFI版本号
     offset = 4;
     for (i = 0; i < 4; i++)
     {
         temp[i] = (u8)data[offset+i];
     }
-    
+
     if(little)
         onfi->Revision = (u16)swapl(*(u32 *)temp);
     else
         onfi->Revision = (u16)(*(u32 *)temp);
- 
+
     // Device Manufacturer
     offset = 32;
     for (i = 0; i < 12; i++)
@@ -117,7 +117,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
         onfi->Manufacturer[i] = (char)temp[i];
     }
     onfi->Manufacturer[i] = '\0';
- 
+
     // Device Model
     offset = 44;
     for (i = 0; i < 20; i++)
@@ -136,7 +136,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
         onfi->DeviceModel[i] = (char)temp[i];
     }
     onfi->DeviceModel[i] = '\0';
- 
+
     // Number of data bytes per page
     offset = 80;
     for (i = 0; i < 4; i++)
@@ -151,7 +151,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     {
         onfi->BytesPerPage = *(u32 *)temp;
     }
- 
+
     // Number of spare bytes per page
     offset = 84;
     for (i = 0; i < 4; i++)
@@ -166,7 +166,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     {
         onfi->OOB_Size = *(u32 *)temp;
     }
- 
+
     // Number of pages per block
     offset = 92;
     for (i = 0; i < 4; i++)
@@ -181,7 +181,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     {
         onfi->PagesPerBlk = *(u32 *)temp;
     }
- 
+
     // Number of blocks per LUN
     offset = 96;
     for (i = 0; i < 4; i++)
@@ -196,7 +196,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     {
         onfi->BlksPerLUN = *(u32 *)temp;
     }
- 
+
     // Number of LUNs
     offset = 100;
     for (i = 0; i < 4; i++)
@@ -211,7 +211,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     {
         onfi->LUNs = (u8)(*(u32 *)temp);
     }
- 
+
  #if 0
     // Guaranteed valid block at the beginning of target
     for (i = 0; i < 4; i++)
@@ -221,7 +221,7 @@ s32 deonfi(const char *data, struct NandDescr *onfi, u8 little)
     *(u32 *)temp = swapl(*(u32 *)temp);
     onfi->SafeBlkNo = temp[3];
  #endif
- 
+
     printf("\r\n");
     printf(": info : device : flash's ONFI >>>>\r\n");
     printf("                  manufacturer is %s\r\n", onfi->Manufacturer);

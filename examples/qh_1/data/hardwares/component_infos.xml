@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <components>
+   <component>/component/blackbox/component_config_blackbox.h</component>
    <component>/component/buffer/component_config_buffer.h</component>
-   <component>/component/charset/component_config_NlsCharset.h</component>
    <component>/component/charset/ascii/ascii.c</component>
    <component>/component/charset/gb2312/gb2312.c</component>
    <component>/component/charset/utf8/utf8.c</component>
+   <component>/component/charset/component_config_NlsCharset.h</component>
    <component>/component/dbug/dbug.c</component>
-   <component>/component/device/component_config_devfile.h</component>
    <component>/component/device/flash/component_config_flash.h</component>
    <component>/component/device/uart/uart.c</component>
+   <component>/component/device/component_config_devfile.h</component>
    <component>/component/djybus/canbus/canbus.c</component>
    <component>/component/djybus/iicbus/ioiicbus/IoIicBus.c</component>
    <component>/component/djybus/iicbus/iicbus.c</component>
    <component>/component/djybus/spibus/spibus.c</component>
    <component>/component/djybus/djybus.c</component>
-   <component>/component/exp/component_config_exp.h</component>
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>
    <component>/component/font/font.c</component>
-   <component>/component/fs/efs/component_config_elf.h</component>
+   <component>/component/fs/efs/component_config_efs.h</component>
    <component>/component/fs/fat/component_config_fat.h</component>
    <component>/component/fs/iap/component_config_iap.h</component>
    <component>/component/fs/yaf2/component_config_yaf2.h</component>
-   <component>/component/fs/filesystems.c</component>
+   <component>/component/fs/component_config_fs.h</component>
    <component>/component/gui/gdd/component_config_gdd.h</component>
    <component>/component/gui/gkernel/component_config_gk.h</component>
    <component>/component/hmi-input/keypad/keyboard.c</component>
@@ -47,10 +47,43 @@
    <component>/djyos/object/component_config_objfile.h</component>
    <component>/djyos/pool/pool.c</component>
    <component>/djyos/time/component_config_time.h</component>
+   <component>/bsp/boarddrv/demo/qh_1/drv/board/board.c</component>
    <component>/bsp/boarddrv/demo/qh_1/drv/dm9000a-brd/dm9000a-brd.c</component>
    <component>/bsp/boarddrv/demo/qh_1/drv/ili9325-brd/ili9325-brd.c</component>
    <component>/bsp/boarddrv/demo/qh_1/drv/key_hard/key_hard.c</component>
    <component>/bsp/boarddrv/demo/qh_1/drv/qh_1_lowpower/qh_1_lowpower.c</component>
+   <component>/loader/si/component_config_loader.h</component>
+   <component>/third/cjson-code-73/component_config_cjson.h</component>
+   <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
+   <component>/third/firmware/AtmelSam4s/component_config_atmelsam4s.h</component>
+   <component>/third/firmware/AtmelSamV7/component_config_atmelsamv7.h</component>
+   <component>/third/firmware/csky/component_config_csky.h</component>
+   <component>/third/firmware/imxrt1052/component_config_imxrt1052.h</component>
+   <component>/third/firmware/lpc12xx/component_config_lpc12xx.h</component>
+   <component>/third/firmware/lpc17xx/component_config_lpc17xx.h</component>
+   <component>/third/firmware/NuvotonM480/component_config_NuvotonM480.h</component>
+   <component>/third/firmware/Sharc21469/component_config_Sharc21469.h</component>
+   <component>/third/firmware/silan/component_config_silan.h</component>
+   <component>/third/firmware/sldrv/component_config_sldrv.h</component>
+   <component>/third/firmware/stm32f1/component_config_stm32f1.h</component>
+   <component>/third/firmware/stm32f3/component_config_stm32f3.h</component>
+   <component>/third/firmware/stm32f4/component_config_stm32f4.h</component>
+   <component>/third/firmware/stm32f7/component_config_stm32f7.h</component>
+   <component>/third/firmware/stm32h7/component_config_stm32h7.h</component>
+   <component>/third/firmware/STM32L4/component_config_stm32L4.h</component>
+   <component>/third/goahead-2.5.0/component_config_goahead250.h</component>
+   <component>/third/javascript/duktape/component_config_duktape.h</component>
+   <component>/third/javascript/iotjs/component_config_iotjs.h</component>
+   <component>/third/javascript/jerryscript/component_config_jerryscript.h</component>
+   <component>/third/libghttp-1.0.9/component_config_libghttp.h</component>
+   <component>/third/LibVNCServer-0.9.9/component_config_vncserver.h</component>
+   <component>/third/lua-5.1.4/component_config_lua.h</component>
+   <component>/third/mosquitto-1.0/component_config_mosquitto.h</component>
+   <component>/third/qrencode/component_config_qrencode.h</component>
+   <component>/third/sqlite3/component_config_sqlite3.h</component>
+   <component>/third/usb/component_config_stusb.h</component>
+   <component>/third/wolfssl-3.10.2/component_config_wolfssl.h</component>
+   <component>/third/zlib-1.2.8/component_config_zlib.h</component>
    <component>/bsp/chipdrv/39vf160/39vfxxx.c</component>
    <component>/bsp/chipdrv/88E1512/phy_88e1512.c</component>
    <component>/bsp/chipdrv/88E6060/ls88e6060.c</component>
@@ -90,44 +123,14 @@
    <component>/bsp/chipdrv/STMPE811/stmpe811.c</component>
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
-   <component>/loader/si/component_config_loader.h</component>
-   <component>/third/cjson-code-73/component_config_cjson.h</component>
-   <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
-   <component>/third/firmware/AtmelSam4s/component_config_atmelsam4s.h</component>
-   <component>/third/firmware/AtmelSamV7/component_config_atmelsamv7.h</component>
-   <component>/third/firmware/imxrt1052/component_config_imxrt1052.h</component>
-   <component>/third/firmware/lpc12xx/component_config_lpc12xx.h</component>
-   <component>/third/firmware/lpc17xx/component_config_lpc17xx.h</component>
-   <component>/third/firmware/NuvotonM480/component_config_NuvotonM480.h</component>
-   <component>/third/firmware/Sharc21469/component_config_Sharc21469.h</component>
-   <component>/third/firmware/stm32f1/component_config_stm32f1.h</component>
-   <component>/third/firmware/stm32f3/component_config_stm32f3.h</component>
-   <component>/third/firmware/stm32f4/component_config_stm32f4.h</component>
-   <component>/third/firmware/stm32f7/component_config_stm32f7.h</component>
-   <component>/third/firmware/stm32h7/component_config_stm32h7.h</component>
-   <component>/third/firmware/STM32L4/component_config_stm32L4.h</component>
-   <component>/third/goahead-2.5.0/component_config_goahead250.h</component>
-   <component>/third/javascript/duktape/component_config_duktape.h</component>
-   <component>/third/javascript/iotjs/component_config_iotjs.h</component>
-   <component>/third/javascript/jerryscript/component_config_jerryscript.h</component>
-   <component>/third/libghttp-1.0.9/component_config_libghttp.h</component>
-   <component>/third/LibVNCServer-0.9.9/component_config_vncserver.h</component>
-   <component>/third/lua-5.1.4/component_config_lua.h</component>
-   <component>/third/mosquitto-1.0/component_config_mosquitto.h</component>
-   <component>/third/qrencode/component_config_qrencode.h</component>
-   <component>/third/sqlite3/component_config_sqlite3.h</component>
-   <component>/third/usb/component_config_stusb.h</component>
-   <component>/third/wolfssl-3.10.2/component_config_wolfssl.h</component>
-   <component>/third/zlib-1.2.8/component_config_zlib.h</component>
    <component>/libc/component_config_clib.h</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/dma/cpu_peri_dma.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/emflash/cpu_peri_emflash.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/gpio/cpu_peri_gpio.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/iic/cpu_peri_iic.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/lowpower/stm32f1x_lowppwer.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/rtc/cpu_peri_rtc.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/timer/cpu_peri_timer.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/uart/cpu_peri_uart.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/wdt/cpu_peri_wdt.c</component>
-   <component>/bsp/cpudrv/stm32/f1/stm32f103xe/../src/../../src/cpu_peri_hal.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/emflash/cpu_peri_emflash.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/gpio/cpu_peri_gpio.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/lowpower/stm32f1x_lowppwer.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/rtc/cpu_peri_rtc.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/timer/cpu_peri_timer.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/uart/cpu_peri_uart.c</component>
+   <component>/bsp/cpudrv/stm32/f1/src/wdt/cpu_peri_wdt.c</component>
 </components>

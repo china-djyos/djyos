@@ -328,6 +328,6 @@ void    GDD_Demo_ZigBee(void)
 {
     s_gZigbeeDemoMsgLink.MsgNum = sizeof(s_gZigbeeMsgTable) / sizeof(struct MsgProcTable);
     s_gZigbeeDemoMsgLink.myTable = (struct MsgProcTable *)&s_gZigbeeMsgTable;
-    GDD_CreateGuiApp("Zigbee", &s_gZigbeeDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_CreateGuiApp("Zigbee", &s_gZigbeeDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
     GDD_WaitGuiAppExit("Zigbee");
 }

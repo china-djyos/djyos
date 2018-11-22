@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 // -----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：sysinit.c
 // 模块描述: CPU时钟的初始化和片内片外RAM等的初始化
 // 模块版本: V1.00
@@ -83,236 +83,236 @@ extern uint32_t gc_ptNoCacheRamSize;
 // =============================================================================
 void Cache_config( void )
 {
-	uint32_t dwRegionBaseAddr;
-	uint32_t dwRegionAttr;
+    uint32_t dwRegionBaseAddr;
+    uint32_t dwRegionAttr;
 
-	memory_barrier();
+    memory_barrier();
 /***************************************************
-	ITCM memory region --- Normal
-	START_Addr:-  0x00000000UL
-	END_Addr:-    0x00400000UL
+    ITCM memory region --- Normal
+    START_Addr:-  0x00000000UL
+    END_Addr:-    0x00400000UL
 ****************************************************/
-	dwRegionBaseAddr =
-		ITCM_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_DEFAULT_ITCM_REGION;        // 1
+    dwRegionBaseAddr =
+        ITCM_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_DEFAULT_ITCM_REGION;        // 1
 
-	dwRegionAttr =
-		MPU_AP_PRIVILEGED_READ_WRITE |
-		MPU_REGION_EXECUTE_NEVER |
-		MPU_CalMPURegionSize(ITCM_END_ADDRESS - ITCM_START_ADDRESS) |
-		MPU_REGION_ENABLE;
+    dwRegionAttr =
+        MPU_AP_PRIVILEGED_READ_WRITE |
+        MPU_REGION_EXECUTE_NEVER |
+        MPU_CalMPURegionSize(ITCM_END_ADDRESS - ITCM_START_ADDRESS) |
+        MPU_REGION_ENABLE;
 
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
-
-/****************************************************
-	Internal flash memory region --- Normal read-only
-	(update to Strongly ordered in write accesses)
-	START_Addr:-  0x00400000UL
-	END_Addr:-    0x00600000UL
-******************************************************/
-
-	dwRegionBaseAddr =
-		IFLASH_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_DEFAULT_IFLASH_REGION;      //2
-
-	dwRegionAttr =
-		MPU_AP_READONLY |
-		INNER_NORMAL_WB_NWA_TYPE( NON_SHAREABLE ) |
-		MPU_CalMPURegionSize(IFLASH_END_ADDRESS - IFLASH_START_ADDRESS) |
-		MPU_REGION_ENABLE;
-
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
 
 /****************************************************
-	DTCM memory region --- Normal
-	START_Addr:-  0x20000000L
-	END_Addr:-    0x20400000UL
+    Internal flash memory region --- Normal read-only
+    (update to Strongly ordered in write accesses)
+    START_Addr:-  0x00400000UL
+    END_Addr:-    0x00600000UL
 ******************************************************/
 
-	/* DTCM memory region */
-	dwRegionBaseAddr =
-		DTCM_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_DEFAULT_DTCM_REGION;         //3
+    dwRegionBaseAddr =
+        IFLASH_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_DEFAULT_IFLASH_REGION;      //2
 
-	dwRegionAttr =
-		MPU_AP_PRIVILEGED_READ_WRITE |
-		MPU_REGION_EXECUTE_NEVER |
-		MPU_CalMPURegionSize(DTCM_END_ADDRESS - DTCM_START_ADDRESS) |
-		MPU_REGION_ENABLE;
+    dwRegionAttr =
+        MPU_AP_READONLY |
+        INNER_NORMAL_WB_NWA_TYPE( NON_SHAREABLE ) |
+        MPU_CalMPURegionSize(IFLASH_END_ADDRESS - IFLASH_START_ADDRESS) |
+        MPU_REGION_ENABLE;
 
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
 
 /****************************************************
-	SRAM Cacheable memory region --- Normal
-	START_Addr:-  0x20400000UL
-	END_Addr:-    0x2043FFFFUL
+    DTCM memory region --- Normal
+    START_Addr:-  0x20000000L
+    END_Addr:-    0x20400000UL
 ******************************************************/
-	/* SRAM memory  region */
 
-	if(gc_ptCacheRam1Size)
-	{
-		dwRegionBaseAddr =
-			SRAM_START_ADDRESS |
-			MPU_REGION_VALID |
-			MPU_DEFAULT_SRAM_REGION_1;         //4
+    /* DTCM memory region */
+    dwRegionBaseAddr =
+        DTCM_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_DEFAULT_DTCM_REGION;         //3
 
-		dwRegionAttr =
-			MPU_AP_FULL_ACCESS    |
-			MPU_REGION_EXECUTE_NEVER |
-			INNER_NORMAL_WB_NWA_TYPE( NON_SHAREABLE ) |
-			MPU_CalMPURegionSize(gc_ptCacheRam1Size - 1) |
-			MPU_REGION_ENABLE;
+    dwRegionAttr =
+        MPU_AP_PRIVILEGED_READ_WRITE |
+        MPU_REGION_EXECUTE_NEVER |
+        MPU_CalMPURegionSize(DTCM_END_ADDRESS - DTCM_START_ADDRESS) |
+        MPU_REGION_ENABLE;
 
-		MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
-	}
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
 
 /****************************************************
-	Internal SRAM second partition memory region --- Normal
-	START_Addr:-  0x20440000UL
-	END_Addr:-    0x2045FFFFUL
+    SRAM Cacheable memory region --- Normal
+    START_Addr:-  0x20400000UL
+    END_Addr:-    0x2043FFFFUL
 ******************************************************/
-	/* SRAM memory region */
-	if(gc_ptCacheRam2Size)
-	{
-		dwRegionBaseAddr =
-			(SRAM_START_ADDRESS + gc_ptCacheRam1Size) |
-			MPU_REGION_VALID |
-			MPU_DEFAULT_SRAM_REGION_2;         //5
+    /* SRAM memory  region */
 
-		dwRegionAttr =
-			MPU_AP_FULL_ACCESS    |
-			MPU_REGION_EXECUTE_NEVER |
-			INNER_NORMAL_WB_NWA_TYPE( NON_SHAREABLE ) |
-			MPU_CalMPURegionSize(gc_ptCacheRam2Size - 1) |
-			MPU_REGION_ENABLE;
+    if(gc_ptCacheRam1Size)
+    {
+        dwRegionBaseAddr =
+            SRAM_START_ADDRESS |
+            MPU_REGION_VALID |
+            MPU_DEFAULT_SRAM_REGION_1;         //4
 
-		MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
-	}
+        dwRegionAttr =
+            MPU_AP_FULL_ACCESS    |
+            MPU_REGION_EXECUTE_NEVER |
+            INNER_NORMAL_WB_NWA_TYPE( NON_SHAREABLE ) |
+            MPU_CalMPURegionSize(gc_ptCacheRam1Size - 1) |
+            MPU_REGION_ENABLE;
 
-	if(gc_ptNoCacheRamSize)
-	{
-		dwRegionBaseAddr =
-			(SRAM_START_ADDRESS + gc_ptCacheRam1Size + gc_ptCacheRam2Size) |
-			MPU_REGION_VALID |
-			MPU_NOCACHE_SRAM_REGION_NUM;          //11
-
-		dwRegionAttr =
-			MPU_AP_FULL_ACCESS    |
-			MPU_REGION_EXECUTE_NEVER |
-			INNER_OUTER_NORMAL_NOCACHE_TYPE( SHAREABLE ) |
-			MPU_CalMPURegionSize(gc_ptNoCacheRamSize - 1) |
-			MPU_REGION_ENABLE;
-
-		MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
-	}
+        MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+    }
 
 /****************************************************
-	Peripheral memory region --- DEVICE Shareable
-	START_Addr:-  0x40000000UL
-	END_Addr:-    0x5FFFFFFFUL
+    Internal SRAM second partition memory region --- Normal
+    START_Addr:-  0x20440000UL
+    END_Addr:-    0x2045FFFFUL
 ******************************************************/
-	dwRegionBaseAddr =
-		PERIPHERALS_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_PERIPHERALS_REGION;          //6
+    /* SRAM memory region */
+    if(gc_ptCacheRam2Size)
+    {
+        dwRegionBaseAddr =
+            (SRAM_START_ADDRESS + gc_ptCacheRam1Size) |
+            MPU_REGION_VALID |
+            MPU_DEFAULT_SRAM_REGION_2;         //5
 
-	dwRegionAttr = MPU_AP_FULL_ACCESS |
-		MPU_REGION_EXECUTE_NEVER |
-		SHAREABLE_DEVICE_TYPE |
-		MPU_CalMPURegionSize(PERIPHERALS_END_ADDRESS - PERIPHERALS_START_ADDRESS)
-		|MPU_REGION_ENABLE;
+        dwRegionAttr =
+            MPU_AP_FULL_ACCESS    |
+            MPU_REGION_EXECUTE_NEVER |
+            INNER_NORMAL_WB_NWA_TYPE( NON_SHAREABLE ) |
+            MPU_CalMPURegionSize(gc_ptCacheRam2Size - 1) |
+            MPU_REGION_ENABLE;
 
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+        MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+    }
 
+    if(gc_ptNoCacheRamSize)
+    {
+        dwRegionBaseAddr =
+            (SRAM_START_ADDRESS + gc_ptCacheRam1Size + gc_ptCacheRam2Size) |
+            MPU_REGION_VALID |
+            MPU_NOCACHE_SRAM_REGION_NUM;          //11
+
+        dwRegionAttr =
+            MPU_AP_FULL_ACCESS    |
+            MPU_REGION_EXECUTE_NEVER |
+            INNER_OUTER_NORMAL_NOCACHE_TYPE( SHAREABLE ) |
+            MPU_CalMPURegionSize(gc_ptNoCacheRamSize - 1) |
+            MPU_REGION_ENABLE;
+
+        MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+    }
 
 /****************************************************
-	External EBI memory  memory region --- Strongly Ordered
-	START_Addr:-  0x60000000UL
-	END_Addr:-    0x6FFFFFFFUL
+    Peripheral memory region --- DEVICE Shareable
+    START_Addr:-  0x40000000UL
+    END_Addr:-    0x5FFFFFFFUL
 ******************************************************/
-	dwRegionBaseAddr =
-		EXT_EBI_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_EXT_EBI_REGION;
+    dwRegionBaseAddr =
+        PERIPHERALS_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_PERIPHERALS_REGION;          //6
 
-	dwRegionAttr =
-		MPU_AP_FULL_ACCESS |
-		MPU_REGION_EXECUTE_NEVER |
-		/* External memory Must be defined with 'Device' or 'Strongly Ordered'
-		attribute for write accesses (AXI) */
-		STRONGLY_ORDERED_SHAREABLE_TYPE |
-		MPU_CalMPURegionSize(EXT_EBI_END_ADDRESS - EXT_EBI_START_ADDRESS) |
-		MPU_REGION_ENABLE;
+    dwRegionAttr = MPU_AP_FULL_ACCESS |
+        MPU_REGION_EXECUTE_NEVER |
+        SHAREABLE_DEVICE_TYPE |
+        MPU_CalMPURegionSize(PERIPHERALS_END_ADDRESS - PERIPHERALS_START_ADDRESS)
+        |MPU_REGION_ENABLE;
 
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
-/****************************************************
-	SDRAM Cacheable memory region --- Normal
-	START_Addr:-  0x70000000UL
-	END_Addr:-    0x7FFFFFFFUL
-******************************************************/
-	dwRegionBaseAddr =
-		SDRAM_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_DEFAULT_SDRAM_REGION;        //7
-
-	dwRegionAttr =
-		MPU_AP_FULL_ACCESS    |
-		MPU_REGION_EXECUTE_NEVER |
-		//INNER_NORMAL_WB_NWA_TYPE( SHAREABLE ) |
-		INNER_NORMAL_NOCACHE_TYPE(NON_SHAREABLE)|
-		MPU_CalMPURegionSize(SDRAM_END_ADDRESS - SDRAM_START_ADDRESS) |
-		MPU_REGION_ENABLE;
-
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
-/****************************************************
-	QSPI memory region --- Strongly ordered
-	START_Addr:-  0x80000000UL
-	END_Addr:-    0x9FFFFFFFUL
-******************************************************/
-	dwRegionBaseAddr =
-		QSPI_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_QSPIMEM_REGION;              //8
-
-	dwRegionAttr =
-		MPU_AP_FULL_ACCESS |
-		MPU_REGION_EXECUTE_NEVER |
-		STRONGLY_ORDERED_SHAREABLE_TYPE |
-		MPU_CalMPURegionSize(QSPI_END_ADDRESS - QSPI_START_ADDRESS) |
-		MPU_REGION_ENABLE;
-
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
 
 
 /****************************************************
-	USB RAM Memory region --- Device
-	START_Addr:-  0xA0100000UL
-	END_Addr:-    0xA01FFFFFUL
+    External EBI memory  memory region --- Strongly Ordered
+    START_Addr:-  0x60000000UL
+    END_Addr:-    0x6FFFFFFFUL
 ******************************************************/
-	dwRegionBaseAddr =
-		USBHSRAM_START_ADDRESS |
-		MPU_REGION_VALID |
-		MPU_USBHSRAM_REGION;              //9
+    dwRegionBaseAddr =
+        EXT_EBI_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_EXT_EBI_REGION;
 
-	dwRegionAttr =
-		MPU_AP_FULL_ACCESS |
-		MPU_REGION_EXECUTE_NEVER |
-		SHAREABLE_DEVICE_TYPE |
-		MPU_CalMPURegionSize(USBHSRAM_END_ADDRESS - USBHSRAM_START_ADDRESS) |
-		MPU_REGION_ENABLE;
+    dwRegionAttr =
+        MPU_AP_FULL_ACCESS |
+        MPU_REGION_EXECUTE_NEVER |
+        /* External memory Must be defined with 'Device' or 'Strongly Ordered'
+        attribute for write accesses (AXI) */
+        STRONGLY_ORDERED_SHAREABLE_TYPE |
+        MPU_CalMPURegionSize(EXT_EBI_END_ADDRESS - EXT_EBI_START_ADDRESS) |
+        MPU_REGION_ENABLE;
 
-	MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
-	/* Enable the memory management fault , Bus Fault, Usage Fault exception */
-	SCB->SHCSR |= (SCB_SHCSR_MEMFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk
-					| SCB_SHCSR_USGFAULTENA_Msk);
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+/****************************************************
+    SDRAM Cacheable memory region --- Normal
+    START_Addr:-  0x70000000UL
+    END_Addr:-    0x7FFFFFFFUL
+******************************************************/
+    dwRegionBaseAddr =
+        SDRAM_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_DEFAULT_SDRAM_REGION;        //7
 
-	/* Enable the MPU region */
-	MPU_Enable( MPU_ENABLE | MPU_PRIVDEFENA);
+    dwRegionAttr =
+        MPU_AP_FULL_ACCESS    |
+        MPU_REGION_EXECUTE_NEVER |
+        //INNER_NORMAL_WB_NWA_TYPE( SHAREABLE ) |
+        INNER_NORMAL_NOCACHE_TYPE(NON_SHAREABLE)|
+        MPU_CalMPURegionSize(SDRAM_END_ADDRESS - SDRAM_START_ADDRESS) |
+        MPU_REGION_ENABLE;
 
-	memory_sync();
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+/****************************************************
+    QSPI memory region --- Strongly ordered
+    START_Addr:-  0x80000000UL
+    END_Addr:-    0x9FFFFFFFUL
+******************************************************/
+    dwRegionBaseAddr =
+        QSPI_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_QSPIMEM_REGION;              //8
+
+    dwRegionAttr =
+        MPU_AP_FULL_ACCESS |
+        MPU_REGION_EXECUTE_NEVER |
+        STRONGLY_ORDERED_SHAREABLE_TYPE |
+        MPU_CalMPURegionSize(QSPI_END_ADDRESS - QSPI_START_ADDRESS) |
+        MPU_REGION_ENABLE;
+
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+
+
+/****************************************************
+    USB RAM Memory region --- Device
+    START_Addr:-  0xA0100000UL
+    END_Addr:-    0xA01FFFFFUL
+******************************************************/
+    dwRegionBaseAddr =
+        USBHSRAM_START_ADDRESS |
+        MPU_REGION_VALID |
+        MPU_USBHSRAM_REGION;              //9
+
+    dwRegionAttr =
+        MPU_AP_FULL_ACCESS |
+        MPU_REGION_EXECUTE_NEVER |
+        SHAREABLE_DEVICE_TYPE |
+        MPU_CalMPURegionSize(USBHSRAM_END_ADDRESS - USBHSRAM_START_ADDRESS) |
+        MPU_REGION_ENABLE;
+
+    MPU_SetRegion( dwRegionBaseAddr, dwRegionAttr);
+    /* Enable the memory management fault , Bus Fault, Usage Fault exception */
+    SCB->SHCSR |= (SCB_SHCSR_MEMFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk
+                    | SCB_SHCSR_USGFAULTENA_Msk);
+
+    /* Enable the MPU region */
+    MPU_Enable( MPU_ENABLE | MPU_PRIVDEFENA);
+
+    memory_sync();
 }
 
 

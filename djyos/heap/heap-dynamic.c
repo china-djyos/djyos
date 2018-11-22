@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -246,7 +246,7 @@ extern struct HeapCB *tg_pSysHeap;   //堆链指针，系统中所有的堆被链接在一起。
 
 void *__M_Malloc(ptu32_t size,u32 timeout);
 void  __M_Free(void * pl_mem);
-void *__M_Realloc(void *, ptu32_t NewSize,u32 timeout);
+void *__M_Realloc(void *, ptu32_t NewSize);
 void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 void *__M_MallocLc(ptu32_t size,u32 timeout);
 void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout);
@@ -269,8 +269,8 @@ ptu32_t __M_CheckSize(void * mp);
 void __M_CheckSTackSync(void);
 
 extern void *  (*M_Malloc)(ptu32_t size,u32 timeout);
-extern void *  (*M_Realloc) (void *, ptu32_t NewSize,u32 timeout);
-extern void  (*free)(void * pl_mem);
+extern void *  (*M_Realloc) (void *, ptu32_t NewSize);
+extern void  (*M_Free)(void * pl_mem);
 extern void *  (*M_MallocHeap)(ptu32_t size,struct HeapCB *Heap,u32 timeout);
 extern void *  (*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *  (*M_MallocLcHeap)(ptu32_t size,struct HeapCB *Heap, u32 timeout);
@@ -885,6 +885,7 @@ void __M_WaitMemoryStack(struct EventECB *event,u32 size)
     event->wait_mem_size = size;
     pl_event = s_ptGenMemSync;     //获取内存等待表指针
     event->sync_head = &s_ptGenMemSync;
+    __Djy_CutReadyEvent(event);
     if(pl_event == NULL)            //等待队列空
     {
         event->next = NULL;
@@ -1121,7 +1122,7 @@ bool_t Heap_DynamicModuleInit(void)
 
     M_Malloc = __M_Malloc;
     M_Realloc = __M_Realloc;
-    free = __M_Free;
+    M_Free = __M_Free;
     M_MallocHeap = __M_MallocHeap;
     M_MallocLc = __M_MallocLc;
     M_MallocLcHeap = __M_MallocLcHeap;
@@ -1523,7 +1524,7 @@ void *__M_MallocBlock(ufast_t grade,struct HeapCession *Cession)
 //   说明: 优先对参数NewSize的判断逻辑
 //   作者: 季兆林
 //-----------------------------------------------------------------------------
-void *__M_Realloc(void *p, ptu32_t NewSize,u32 Timeout)
+void *__M_Realloc(void *p, ptu32_t NewSize)
 {
     ptu32_t OldSize;
     void *NewP = NULL;

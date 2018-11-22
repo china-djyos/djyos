@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -85,85 +85,85 @@ static duk_ret_t native_adder(duk_context *ctx) {
 
 char *TextLine[]=
 {
-	"print(\'2+3=\' + adder(2, 3));",
-	"print(\'Hello world from the Js\');",
-	"var a = 5;",
-	"var b = 6;",
-	"var c = 7;",
-	"print(\'a=\'+a);",
-	"print(\'b=\'+b);",
-	"c = a+b;"
-	"print(\'c=a+b=\'+c);"
+    "print(\'2+3=\' + adder(2, 3));",
+    "print(\'Hello world from the Js\');",
+    "var a = 5;",
+    "var b = 6;",
+    "var c = 7;",
+    "print(\'a=\'+a);",
+    "print(\'b=\'+b);",
+    "c = a+b;"
+    "print(\'c=a+b=\'+c);"
 };
 
 #define CN_TEXT_SIZE    (sizeof(TextLine)/(sizeof(char *)))
 
 bool_t DukTapeShell(char *param)
 {
-	char buf[CN_BUFLEN];
-	duk_context *ctx = duk_create_heap_default();
-	if(NULL == ctx)
-	{
-		printf("%s:ctx create error\n\r",__FUNCTION__);
-		goto EXIT_SHELL;
-	}
-	printf("js engine start!,if you want to exit,please input:%s\n\r",JS_QUIT);
-	//add some function
-	duk_push_c_function(ctx, native_print, 1 /*nargs*/);
-	duk_put_global_string(ctx, "print");
-	duk_push_c_function(ctx, native_adder, DUK_VARARGS);
-	duk_put_global_string(ctx, "adder");
-	//make a eval
-//	duk_eval_string(ctx, "print('Hello world from the duktape!');");
+    char buf[CN_BUFLEN];
+    duk_context *ctx = duk_create_heap_default();
+    if(NULL == ctx)
+    {
+        printf("%s:ctx create error\n\r",__FUNCTION__);
+        goto EXIT_SHELL;
+    }
+    printf("js engine start!,if you want to exit,please input:%s\n\r",JS_QUIT);
+    //add some function
+    duk_push_c_function(ctx, native_print, 1 /*nargs*/);
+    duk_put_global_string(ctx, "print");
+    duk_push_c_function(ctx, native_adder, DUK_VARARGS);
+    duk_put_global_string(ctx, "adder");
+    //make a eval
+//  duk_eval_string(ctx, "print('Hello world from the duktape!');");
 
-	int i =0;
-	for(i = 0; i <CN_TEXT_SIZE;i++)
-	{
-		duk_eval_string(ctx,TextLine[i]);
-	}
-	while(1)
-	{
-		memset(buf,0,CN_BUFLEN);
-		gets(buf);
-		if(strlen(buf) > 0)
-		{
-			//do the process
-			if(0 == strcmp(buf,JS_QUIT))
-			{
-				break;
-			}
-			else
-			{
-				duk_eval_string(ctx,buf);
-			}
-		}
-	}
-	duk_destroy_heap(ctx);
-	printf("js engine stop!\n\r");
+    int i =0;
+    for(i = 0; i <CN_TEXT_SIZE;i++)
+    {
+        duk_eval_string(ctx,TextLine[i]);
+    }
+    while(1)
+    {
+        memset(buf,0,CN_BUFLEN);
+        gets(buf);
+        if(strlen(buf) > 0)
+        {
+            //do the process
+            if(0 == strcmp(buf,JS_QUIT))
+            {
+                break;
+            }
+            else
+            {
+                duk_eval_string(ctx,buf);
+            }
+        }
+    }
+    duk_destroy_heap(ctx);
+    printf("js engine stop!\n\r");
 EXIT_SHELL:
-	return true;
+    return true;
 }
 
 static duk_context  *gMyCtx = NULL;
 
 int duktest1(char *param) {
 
-	if(NULL == gMyCtx)
-	{
-		gMyCtx = duk_create_heap_default();
-	}
-	duk_eval_string(gMyCtx, "1+2");
-	printf("1+2=%d\n", (int) duk_get_int(gMyCtx, -1));
-	return 0;
+    if(NULL == gMyCtx)
+    {
+        gMyCtx = duk_create_heap_default();
+    }
+    duk_eval_string(gMyCtx, "1+2");
+    printf("1+2=%d\n", (int) duk_get_int(gMyCtx, -1));
+    return 0;
 }
 
 int duktest2(char *param) {
-	if(NULL != gMyCtx)
-	{
-		duk_destroy_heap(gMyCtx);
-		gMyCtx = NULL;
-	}
-	return 0;
+    if(NULL != gMyCtx)
+    {
+        duk_destroy_heap(gMyCtx);
+        gMyCtx = NULL;
+    }
+    return 0;
 }
 #include <stdint.h>
 #include <stddef.h>
@@ -175,19 +175,19 @@ struct shell_debug  gJsDukTapeDebug[] =
 {
     {
         "duktape",
-		DukTapeShell,
+        DukTapeShell,
         "usage:duktape",
         "usage:duktape",
     },
     {
         "duktest1",
-		duktest1,
+        duktest1,
         "usage:duktest1",
         "usage:duktest1",
     },
     {
         "duktest2",
-		duktest2,
+        duktest2,
         "usage:duktest2",
         "usage:duktest2",
     },

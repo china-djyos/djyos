@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：LCM240128dbg.c
 // 模块描述:  LCM240128调试信息
 // 模块版本: V1.00
@@ -84,42 +84,42 @@ extern u8 LCD_GetStatus(void);
 
 struct shell_debug const shell_cmd_lcd_table[]=
 {
-	{
-			"lcdrst",
-			lcdrst,
-			"reset lcd",
-			"COMMAND:lcdrst+enter"
-	},
-	{
-			"lcdbl",
-			lcdbl,
-			"On/Off lcd back light",
-			"COMMAND:lcdbl+1/0(1:On 0:Off)+enter"
-	},
-	{
-			"lcdsta",
-			lcdsta,
-			"get lcd status",
-			"COMMAND:lcdsta+enter"
-	},
-	{
-			"gtav",
-			gtav,
-			"get touch lcd adjust val",
-			"COMMAND:gtav+enter"
-	},
-	{
-			"etav",
-			etav,
-			"erase touch lcd adjust val",
-			"COMMAND:etav+enter"
-	},
-	{
-			"gtp",
-			gtp,
-			"get the location of touch point",
-			"COMMAND:gtp+enter"
-	}
+    {
+            "lcdrst",
+            lcdrst,
+            "reset lcd",
+            "COMMAND:lcdrst+enter"
+    },
+    {
+            "lcdbl",
+            lcdbl,
+            "On/Off lcd back light",
+            "COMMAND:lcdbl+1/0(1:On 0:Off)+enter"
+    },
+    {
+            "lcdsta",
+            lcdsta,
+            "get lcd status",
+            "COMMAND:lcdsta+enter"
+    },
+    {
+            "gtav",
+            gtav,
+            "get touch lcd adjust val",
+            "COMMAND:gtav+enter"
+    },
+    {
+            "etav",
+            etav,
+            "erase touch lcd adjust val",
+            "COMMAND:etav+enter"
+    },
+    {
+            "gtp",
+            gtp,
+            "get the location of touch point",
+            "COMMAND:gtp+enter"
+    }
 };
 
 #define CN_LCD_SHELL_NUM  sizeof(shell_cmd_lcd_table)/sizeof(struct shell_debug)
@@ -134,7 +134,7 @@ struct shell_debug const shell_cmd_lcd_table[]=
 ptu32_t LCD_Shell_Module_Install(void)
 {
     shell_debug_add(shell_cmd_lcd_table, CN_LCD_SHELL_NUM);
-	return 1;
+    return 1;
 }
 
 
@@ -142,9 +142,9 @@ ptu32_t LCD_Shell_Module_Install(void)
 ADD_TO_SHELL_HELP(lcdrst,"reset lcd  COMMAND:lcdrst+enter");
 ADD_TO_IN_SHELL  bool_t lcdrst(void)
 {
-	LCD_Reset();
-	InitLCM240128C( );
-	return true;
+    LCD_Reset();
+    InitLCM240128C( );
+    return true;
 }
 
 //static void Sh_LCD_Status(void)
@@ -160,50 +160,50 @@ ADD_TO_IN_SHELL  bool_t lcdsta(void)
 ADD_TO_SHELL_HELP(lcdbl,"On/Off lcd back light  COMMAND:lcdbl+1/0(1:On 0:Off)+enter");
 ADD_TO_IN_SHELL  bool_t lcdbl(char *param)
 {
-	char *word_OnOff,*word_trail,*next_param;
-	uint8_t byOnOff;
-	//提取1个参数
-	extern char *shell_inputs(char *buf,char **next);
-	word_OnOff = shell_inputs(param,&next_param);
-	word_trail = shell_inputs(next_param,&next_param);
-	if((word_OnOff == NULL)||(word_trail != NULL))
-	{
-	  printf("\r\n格式错误，正确格式是：\r\n>d 1:Light LCD/0:Off Light.\r\n");
-	  return false;
-	}
-	byOnOff = strtol(word_OnOff, (char **)NULL, 0);
-	if(byOnOff==1)
-	{
-		LCD_BackLight(1);
-	}
-	else if(byOnOff==0)
-	{
-		LCD_BackLight(0);
-	}
-	else
-	{
-		printf("Para is invalid,1:Light LCD/0:Off Light.\r\n");
-	}
-	return true;
+    char *word_OnOff,*word_trail,*next_param;
+    uint8_t byOnOff;
+    //提取1个参数
+    extern char *shell_inputs(char *buf,char **next);
+    word_OnOff = shell_inputs(param,&next_param);
+    word_trail = shell_inputs(next_param,&next_param);
+    if((word_OnOff == NULL)||(word_trail != NULL))
+    {
+      printf("\r\n格式错误，正确格式是：\r\n>d 1:Light LCD/0:Off Light.\r\n");
+      return false;
+    }
+    byOnOff = strtol(word_OnOff, (char **)NULL, 0);
+    if(byOnOff==1)
+    {
+        LCD_BackLight(1);
+    }
+    else if(byOnOff==0)
+    {
+        LCD_BackLight(0);
+    }
+    else
+    {
+        printf("Para is invalid,1:Light LCD/0:Off Light.\r\n");
+    }
+    return true;
 }
 //static void Sh_Get_AdjustVal(void)
 ADD_TO_SHELL_HELP(gtav,"get touch lcd adjust val  COMMAND:gtav+enter");
 ADD_TO_IN_SHELL  bool_t gtav(void)
 {
-	Touch_GetAdjustVal();
-	return true;
+    Touch_GetAdjustVal();
+    return true;
 }
 //static void Sh_Earse_AdjustVal(void)
 ADD_TO_SHELL_HELP(etav,"erase touch lcd adjust val  COMMAND:etav+enter");
 ADD_TO_IN_SHELL  bool_t etav(void)
 {
-	Touch_EraseAdjustVal();
-	return true;
+    Touch_EraseAdjustVal();
+    return true;
 }
 //static void Sh_Get_TouchPoint(void)
 ADD_TO_SHELL_HELP(gtp,"get the location of touch point  COMMAND:gtp+enter");
 ADD_TO_IN_SHELL  bool_t gtp(void)
 {
-	Touch_GetTouchPoint();
-	return true;
+    Touch_GetTouchPoint();
+    return true;
 }

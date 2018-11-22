@@ -3,7 +3,7 @@
   <boardName>imxrt1052-evk</boardName>
   <cpu>
     <cpuName>imxrt1052</cpuName>
-    <mianClk>600</mianClk>
+    <mianClk>24.0</mianClk>
     <chip>
       <chipName>ft5406</chipName>
     </chip>

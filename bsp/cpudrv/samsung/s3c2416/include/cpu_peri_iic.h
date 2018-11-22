@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -73,9 +73,9 @@ typedef struct
   vu32 IICLC;
 }tagI2CReg;
 
-#define CN_IIC_ADDR_OFFSET  0x01		//最低位为读写标志
-#define CN_IIC_WRITE_BIT    0x00		//读标志为0
-#define CN_IIC_READ_BIT     0x01		//写标志为1
+#define CN_IIC_ADDR_OFFSET  0x01        //最低位为读写标志
+#define CN_IIC_WRITE_BIT    0x00        //读标志为0
+#define CN_IIC_READ_BIT     0x01        //写标志为1
 
 #define IICCON_ACKEN_MASK   ( 1 << 7)
 #define IICCON_IICLK_MASK   ( 1 << 6)
@@ -84,7 +84,7 @@ typedef struct
 #define IICCON_TXCLK_OFFSET (0)
 #define IICCON_TXCLK(x)     ((x & 0xF) << IICCON_TXCLK_OFFSET)
 
-#define IICCON_MS_OFFSET 	(6)
+#define IICCON_MS_OFFSET    (6)
 #define IICSTAT_MS(x)       ((x & 0x3) << IICCON_MS_OFFSET)
 #define IICSTAT_MS_SR_MODE  (0 << IICCON_MS_OFFSET)
 #define IICSTAT_MS_ST_MODE  (1 << IICCON_MS_OFFSET)
@@ -93,7 +93,7 @@ typedef struct
 #define IICSTAT_ACK_MASK    (1 << 0)
 #define IICSTAT_START_STOP_MASK (1 << 5)
 #define IICSTAT_TXRXEN_MASK (1 << 4)
-#define IICSTAT_BSY_MASK			0x20
+#define IICSTAT_BSY_MASK            0x20
 
 #define CN_IIC_CLK_100K     (100*1000)
 bool_t ModuleInstall_IIC(u8 port);

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arch>
+    <archname>cortex-m7</archname>
+    <compile-option>
+        <mcpu>cortex-m7</mcpu>
+    </compile-option>
+    <vendor-option>
+        <fpu-type>fpv4-sp-d16</fpu-type>
+    </vendor-option>
+</arch>

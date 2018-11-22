@@ -63,7 +63,7 @@ static ptu32_t HmiClose(struct WindowMsg *pMsg)
 //消息处理函数表
 static struct MsgProcTable s_gHelloMsgTable[] =
 {
-    {MSG_CREATE,HmiCreate},         //定时器消息
+    {MSG_CREATE,HmiCreate},         //创建消息
     {MSG_NOTIFY,HmiNotify},         //子控件发来的通知消息
     {MSG_PAINT,HmiPaint},           //绘制消息
     {MSG_CLOSE,HmiClose}      //窗口关闭消息
@@ -75,7 +75,7 @@ void Hello_Word(void)
 {
     s_gHelloDemoMsgLink.MsgNum = sizeof(s_gHelloMsgTable) / sizeof(struct MsgProcTable);
     s_gHelloDemoMsgLink.myTable = (struct MsgProcTable *)&s_gHelloMsgTable;
-    GDD_CreateGuiApp("hello World", &s_gHelloDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_CreateGuiApp("hello World", &s_gHelloDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
     GDD_WaitGuiAppExit("hello World");
 }
 

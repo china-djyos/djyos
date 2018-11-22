@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -75,13 +75,13 @@
 // =============================================================================
 void SysClockInit(void)
 {
-	/*---------------------------------------------------------------------------------------------------------*/
-	/* Init System Clock																						 */
-	/*---------------------------------------------------------------------------------------------------------*/
-	/* Unlock protected registers */
-	SYS_UnlockReg();
+    /*---------------------------------------------------------------------------------------------------------*/
+    /* Init System Clock                                                                                         */
+    /*---------------------------------------------------------------------------------------------------------*/
+    /* Unlock protected registers */
+    SYS_UnlockReg();
 
-	/* Set access cycle for CPU @ 192MHz */
+    /* Set access cycle for CPU @ 192MHz */
     FMC->CYCCTL = (FMC->CYCCTL & ~FMC_CYCCTL_CYCLE_Msk) | (8 << FMC_CYCCTL_CYCLE_Pos);
     /* Configure power down bias, must set 1 before entering power down mode.
        So set it at the very beginning */
@@ -113,8 +113,8 @@ void SysClockInit(void)
     CLK_SetCoreClock(192000000);
     CLK->PCLKDIV = (CLK_PCLKDIV_PCLK0DIV2 | CLK_PCLKDIV_PCLK1DIV2); // PCLK divider set 2
 
-	/* Lock protected registers */
-	SYS_LockReg();
+    /* Lock protected registers */
+    SYS_LockReg();
 }
 
 // =============================================================================
@@ -133,53 +133,53 @@ void SRAM_Init(void)
 #if 0 //def USE_HAL_DRIVER
 uint32_t HAL_GetTick(void)
 {
-	static u32 sTick = 0,sTickLast = 0;
-	u16 TimCnt;
+    static u32 sTick = 0,sTickLast = 0;
+    u16 TimCnt;
 
-	TIM_HandleTypeDef TimHandle;
+    TIM_HandleTypeDef TimHandle;
 
-	TimHandle.Instance = TIM6;
-	TimCnt = (__HAL_TIM_GET_COUNTER(&TimHandle))&0xFFFF;//0.5ms
+    TimHandle.Instance = TIM6;
+    TimCnt = (__HAL_TIM_GET_COUNTER(&TimHandle))&0xFFFF;//0.5ms
 
-	if( sTickLast > TimCnt)
-	{
-		sTick += 32768;
-	}
-	sTickLast = TimCnt;
+    if( sTickLast > TimCnt)
+    {
+        sTick += 32768;
+    }
+    sTickLast = TimCnt;
 
-	return (sTick + (TimCnt >> 1));
+    return (sTick + (TimCnt >> 1));
 }
 void HAL_SuspendTick(void)
 {
-	TIM_HandleTypeDef TimHandle;
-	TimHandle.Instance = TIM6;
-	HAL_TIM_Base_Stop(&TimHandle);
+    TIM_HandleTypeDef TimHandle;
+    TimHandle.Instance = TIM6;
+    HAL_TIM_Base_Stop(&TimHandle);
 }
 void HAL_ResumeTick(void)
 {
-	TIM_HandleTypeDef TimHandle;
-	TimHandle.Instance = TIM6;
-	HAL_TIM_Base_Start(&TimHandle);
+    TIM_HandleTypeDef TimHandle;
+    TimHandle.Instance = TIM6;
+    HAL_TIM_Base_Start(&TimHandle);
 }
 
 
 //此处用TIM6
 void HAL_TickInit(void)
 {
-	u32 uwPrescalerValue;
-	TIM_HandleTypeDef TimHandle;
+    u32 uwPrescalerValue;
+    TIM_HandleTypeDef TimHandle;
 
-	__HAL_RCC_TIM6_CLK_ENABLE();
+    __HAL_RCC_TIM6_CLK_ENABLE();
 
-	uwPrescalerValue = ((CN_CFG_MCLK/4) / 1000) - 1;	//Counter Clock = 2K
-	TimHandle.Instance = TIM6;
-	TimHandle.Init.Period        = 0xFFFF;
-	TimHandle.Init.Prescaler     = uwPrescalerValue;
-	TimHandle.Init.ClockDivision = 0;
-	TimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
+    uwPrescalerValue = ((CN_CFG_MCLK/4) / 1000) - 1;    //Counter Clock = 2K
+    TimHandle.Instance = TIM6;
+    TimHandle.Init.Period        = 0xFFFF;
+    TimHandle.Init.Prescaler     = uwPrescalerValue;
+    TimHandle.Init.ClockDivision = 0;
+    TimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
 
-	HAL_TIM_Base_DeInit(&TimHandle);
-	HAL_TIM_Base_Init(&TimHandle);
-	HAL_TIM_Base_Start(&TimHandle);
+    HAL_TIM_Base_DeInit(&TimHandle);
+    HAL_TIM_Base_Init(&TimHandle);
+    HAL_TIM_Base_Start(&TimHandle);
 }
 #endif

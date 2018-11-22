@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -77,12 +77,12 @@
 //%$#@describe      ****组件描述开始
 //component name:"HmiInput"               //人机界面输入接口
 //parent:"none"                           //填写该组件的父组件名字，none表示没有父组件
-//attribute:核心组件                       //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                              //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:system                        //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                        //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                           //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                              //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                          //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"MsgQueue","gkernel"        //该组件的依赖组件名（可以是none，表示无依赖组件），
+//init time:medium                        //初始化时机，可选值：early，medium，later。
+                                          //表示初始化时间，分别是早期、中期、后期
+//dependence:"MsgQueue","gkernel"         //该组件的依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件将强制选中，
                                           //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                   //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -136,8 +136,8 @@ bool_t ModuleInstall_HmiIn(void)
     root.HostObj = s_ptHmiInDeviceDir;
     //初始化设备控制块内存池
     StdinDeviceMem = M_Malloc(sizeof( struct HMI_InputDeviceObj),0);
-	if(StdinDeviceMem == NULL)
-	{
+    if(StdinDeviceMem == NULL)
+    {
         goto ExitDir;
     }
     g_ptHmiInDevicePool = Mb_CreatePool((void*)StdinDeviceMem,
@@ -178,7 +178,8 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
     }
     else
     {
-        Djy_HmiIn = Mb_Malloc(g_ptHmiInDevicePool,0);
+//        Djy_HmiIn = Mb_Malloc(g_ptHmiInDevicePool,0);
+        Djy_HmiIn = M_Malloc(sizeof(struct HMI_InputDeviceObj),0);
         if(Djy_HmiIn != NULL)
         {
             Djy_HmiIn->HostObj = obj_newchild(s_ptHmiInDeviceDir, (fnObjOps)-1, 0, (ptu32_t)Djy_HmiIn, device_name);
@@ -244,7 +245,7 @@ bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
     focus = obj_search_child(s_ptHmiInDeviceDir,device_name);
     if(focus != NULL)
     {
-        result = (struct HMI_InputDeviceObj *)obj_val(focus);
+        result = (struct HMI_InputDeviceObj *)obj_GetPrivate(focus);
         result->FocusMsgQ = FocusMsgQ;
         return true;
     }
@@ -267,7 +268,7 @@ enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name)
     input = obj_search_child(s_ptHmiInDeviceDir,device_name);
     if(input != NULL)
     {
-        InputDev = (struct HMI_InputDeviceObj *)obj_val(input);
+        InputDev = (struct HMI_InputDeviceObj *)obj_GetPrivate(input);
         return InputDev->input_type;
     }
     else
@@ -340,7 +341,7 @@ bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
     //在资源队列中查找stdin_id对应的输入设备
     while((current = obj_foreach_child(s_ptHmiInDeviceDir, current)) != NULL)
     {
-        InputDevice = (struct HMI_InputDeviceObj *)obj_val(current);
+        InputDevice = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
         if(InputDevice->device_id == stdin_id)
             break;
     }
@@ -404,7 +405,7 @@ bool_t HmiIn_UnInstallDevice(const char *device_name)
     if(current == NULL)
         return false;
 
-    Djy_HmiIn = (struct HMI_InputDeviceObj *)obj_val(current);
+    Djy_HmiIn = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
     if(!obj_del(current))
     {
         Mb_Free(g_ptHmiInDevicePool,Djy_HmiIn);

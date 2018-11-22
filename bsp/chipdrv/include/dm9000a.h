@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -294,24 +294,24 @@ extern "C" {
 #define DM9KS_PID_L 0x2A
 #define DM9KS_PID_H 0x2B
 
-#define EPCR_EPOS_PHY		(1<<3)
-#define EPCR_EPOS_EE		(0<<3)
-#define EPCR_ERPRR		(1<<2)
-#define EPCR_ERPRW		(1<<1)
-#define EPCR_ERRE		(1<<0)
+#define EPCR_EPOS_PHY       (1<<3)
+#define EPCR_EPOS_EE        (0<<3)
+#define EPCR_ERPRR      (1<<2)
+#define EPCR_ERPRW      (1<<1)
+#define EPCR_ERRE       (1<<0)
 
-#define FCTR_HWOT(ot)	(( ot & 0xf ) << 4 )
-#define FCTR_LWOT(ot)	( ot & 0xf )
+#define FCTR_HWOT(ot)   (( ot & 0xf ) << 4 )
+#define FCTR_LWOT(ot)   ( ot & 0xf )
 
-#define BPTR_BPHW(x)	((x) << 4)
-#define BPTR_JPT_200US		(0x07)
-#define BPTR_JPT_600US		(0x0f)
+#define BPTR_BPHW(x)    ((x) << 4)
+#define BPTR_JPT_200US      (0x07)
+#define BPTR_JPT_600US      (0x0f)
 
 
 typedef struct Dm9000Para
 {
-	char *devname;
-	u8   *mac;
+    char *devname;
+    u8   *mac;
     u16 irqno;
     bool_t (*clearextint)(u32 irqno);
     u16 *cmdaddr;

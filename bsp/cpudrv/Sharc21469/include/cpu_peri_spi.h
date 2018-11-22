@@ -1,32 +1,32 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
-// 1. Redistributions of source code must retain the above copyright notice, 
+// 1. Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice, 
-//    this list of conditions and the following disclaimer in the documentation 
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 // LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 // CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 // SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
-// 
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+//
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
-// 
+//
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
@@ -63,13 +63,13 @@ extern "C" {
 
 typedef struct
 {
-  vu32 rSPICTL;        	// 0x0000
+  vu32 rSPICTL;         // 0x0000
   vu32 rSPIFLG;          // 0x0001
   vu32 rSPISTAT;         // 0x0002
-  vu32 rTXSPI;         	// 0x0003
-  vu32 rRXSPI;         	// 0x0004
+  vu32 rTXSPI;          // 0x0003
+  vu32 rRXSPI;          // 0x0004
   vu32 rSPIBAUD;         // 0x0005
-  vu32 rRXSPI_SHADOW;	// 0x0006
+  vu32 rRXSPI_SHADOW;   // 0x0006
   vu32 RESERVED0[128];
   vu32 rIISPI;        // 0x0000
   vu32 rIMSPI;        // 0x0001
@@ -78,9 +78,9 @@ typedef struct
   vu32 rSPIDMAC;      // 0x0004
 }tag_SpiReg;
 
-#define g_ptSpi0Reg	(volatile tag_SpiReg *)cn_spi1_baddr
-#define g_ptSpi1Reg	(volatile tag_SpiReg *)cn_spi2_baddr
- 
+#define g_ptSpi0Reg (volatile tag_SpiReg *)cn_spi1_baddr
+#define g_ptSpi1Reg (volatile tag_SpiReg *)cn_spi2_baddr
+
 //-----------------------------------------------------------------------------
 // Public Typedefs
 //-----------------------------------------------------------------------------
@@ -107,22 +107,22 @@ typedef enum
 
 typedef struct
 {
-   tagSpiMode tagMode;			//Slave or Master 
-   tagSpiShiftDir tagShiftDir;	//msb or lsb
-   u8 polarity;					//Clock Polarity
-   u8 phase;					//Clock Phase
-   u32 freq;					//SPI BAUD
-   u8 char_len;					//word length
+   tagSpiMode tagMode;          //Slave or Master
+   tagSpiShiftDir tagShiftDir;  //msb or lsb
+   u8 polarity;                 //Clock Polarity
+   u8 phase;                    //Clock Phase
+   u32 freq;                    //SPI BAUD
+   u8 char_len;                 //word length
 } tagSpiConfig;
 
-extern tagSpiConfig	pg_spi_Config;
+extern tagSpiConfig pg_spi_Config;
 
 bool_t Spi_Init(volatile tag_SpiReg * tpSpi, tagSpiConfig *tagpInConfig);
 bool_t Spi_ActiveCS(volatile tag_SpiReg * tpSpi,ufast_t ufCsNo);
 bool_t Spi_InActiveCS(volatile tag_SpiReg * tpSpi,ufast_t ufCsNo);
 u32 Spi_TxRx(volatile tag_SpiReg * const tpSpi,u8 *u8pSrc,u32 u32SrcLen,
                 u8 *u8pDst,u32 u32DstLen,u32 u32DstOffset);
-                
+
 #ifdef __cplusplus
 }
 #endif

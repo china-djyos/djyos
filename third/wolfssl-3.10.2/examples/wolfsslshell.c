@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -62,9 +62,9 @@ extern int wolfcrypt_test(void* args);
 extern int server_test(void* args);
 typedef struct func_args
 {
-	int    argc;
-	char** argv;
-	int    return_code;
+    int    argc;
+    char** argv;
+    int    return_code;
 } func_args;
 
 static u16 gClientEvttID = CN_EVTT_ID_INVALID;
@@ -72,90 +72,90 @@ static u16 gServerEvttID = CN_EVTT_ID_INVALID;
 static u16 gCryptEvttID = CN_EVTT_ID_INVALID;
 static ptu32_t clienttask(void)
 {
-	const char *argv[]={"clienttask",};
-	struct func_args arg;
-	while(1)
-	{
-		arg.argc = 1;
-		arg.argv = argv;
-		client_test(&arg);
-		Djy_WaitEvttPop(gClientEvttID,NULL,CN_TIMEOUT_FOREVER);
-	}
+    const char *argv[]={"clienttask",};
+    struct func_args arg;
+    while(1)
+    {
+        arg.argc = 1;
+        arg.argv = argv;
+        client_test(&arg);
+        Djy_WaitEvttPop(gClientEvttID,NULL,CN_TIMEOUT_FOREVER);
+    }
 
-	return 0;
+    return 0;
 }
 static ptu32_t servertask(void)
 {
-	const char *argv[]={"servertask",};
-	struct func_args arg;
-	while(1)
-	{
-		arg.argc = 1;
-		arg.argv = argv;
-//		server_test(&arg);
-		Djy_WaitEvttPop(gServerEvttID,NULL,CN_TIMEOUT_FOREVER);
-	}
+    const char *argv[]={"servertask",};
+    struct func_args arg;
+    while(1)
+    {
+        arg.argc = 1;
+        arg.argv = argv;
+//      server_test(&arg);
+        Djy_WaitEvttPop(gServerEvttID,NULL,CN_TIMEOUT_FOREVER);
+    }
 
-	return 0;
+    return 0;
 }
 
 
 static ptu32_t  crypttask(void)
 {
-	func_args funcarg;
-	wolfcrypt_test(&funcarg);
+    func_args funcarg;
+    wolfcrypt_test(&funcarg);
 
-	const char *argv[]={"crypttask",};
-	struct func_args arg;
-	while(1)
-	{
-		arg.argc = 1;
-		arg.argv = argv;
-		server_test(&arg);
-		Djy_WaitEvttPop(gCryptEvttID,NULL,CN_TIMEOUT_FOREVER);
-	}
+    const char *argv[]={"crypttask",};
+    struct func_args arg;
+    while(1)
+    {
+        arg.argc = 1;
+        arg.argv = argv;
+        server_test(&arg);
+        Djy_WaitEvttPop(gCryptEvttID,NULL,CN_TIMEOUT_FOREVER);
+    }
 
-	return 0;
+    return 0;
 }
 
 
 static bool_t __ClientStart(char *param)
 {
-	if(gClientEvttID == CN_EVTT_ID_INVALID)
-	{
-		gClientEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,clienttask,NULL,0x4000,"sslclient");
-	}
-	if(gClientEvttID != CN_EVTT_ID_INVALID)
-	{
-		Djy_EventPop(gClientEvttID,NULL,0,NULL,NULL,0);
-	}
-	return true;
+    if(gClientEvttID == CN_EVTT_ID_INVALID)
+    {
+        gClientEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,clienttask,NULL,0x4000,"sslclient");
+    }
+    if(gClientEvttID != CN_EVTT_ID_INVALID)
+    {
+        Djy_EventPop(gClientEvttID,NULL,0,NULL,NULL,0);
+    }
+    return true;
 }
 
 static bool_t __ServerStart(char *param)
 {
-	if(gServerEvttID == CN_EVTT_ID_INVALID)
-	{
-		gServerEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,servertask,NULL,0x1000,"sslserver");
-	}
-	if(gServerEvttID != CN_EVTT_ID_INVALID)
-	{
-		Djy_EventPop(gServerEvttID,NULL,0,NULL,NULL,0);
-	}
-	return true;
+    if(gServerEvttID == CN_EVTT_ID_INVALID)
+    {
+        gServerEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,servertask,NULL,0x1000,"sslserver");
+    }
+    if(gServerEvttID != CN_EVTT_ID_INVALID)
+    {
+        Djy_EventPop(gServerEvttID,NULL,0,NULL,NULL,0);
+    }
+    return true;
 }
 
 static bool_t __CryptStart(char *param)
 {
-	if(gCryptEvttID == CN_EVTT_ID_INVALID)
-	{
-		gCryptEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,crypttask,NULL,0x2000,"sslclient");
-	}
-	if(gCryptEvttID != CN_EVTT_ID_INVALID)
-	{
-		Djy_EventPop(gCryptEvttID,NULL,0,NULL,NULL,0);
-	}
-	return true;
+    if(gCryptEvttID == CN_EVTT_ID_INVALID)
+    {
+        gCryptEvttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,crypttask,NULL,0x2000,"sslclient");
+    }
+    if(gCryptEvttID != CN_EVTT_ID_INVALID)
+    {
+        Djy_EventPop(gCryptEvttID,NULL,0,NULL,NULL,0);
+    }
+    return true;
 }
 
 #include <shell.h>
@@ -163,19 +163,19 @@ static struct shell_debug  gWolfSSLDebugCmd[] =
 {
     {
         "wolfclient",
-		__ClientStart,
+        __ClientStart,
         "usage:wolfclient",
         "usage:wolfclient"
     },
     {
         "wolfserver",
-		__ServerStart,
+        __ServerStart,
         "usage:wolfserver",
         "usage:wolfserver"
     },
     {
         "wolfcypt",
-		__CryptStart,
+        __CryptStart,
         "usage:wolfcypt",
         "usage:wolfcypt"
     },

@@ -244,6 +244,6 @@ void    GDD_Demo_Progressbar(void)
 {
     s_gProcessbarDemoMsgLink.MsgNum = sizeof(s_gProcessbarMsgTable) / sizeof(struct MsgProcTable);
     s_gProcessbarDemoMsgLink.myTable = (struct MsgProcTable *)&s_gProcessbarMsgTable;
-    GDD_CreateGuiApp("processbar", &s_gProcessbarDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_CreateGuiApp("processbar", &s_gProcessbarDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
     GDD_WaitGuiAppExit("processbar");
 }

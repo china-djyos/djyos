@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -91,30 +91,30 @@ const u8 data16[]={0x7E,0xFF,0x03,0x80,0x21,0x01,0x04,0x00,0x16,0x03,0x06,0x0A,0
 const u8 data17[]={0x7E,0xFF,0x03,0x80,0x21,0x02,0x04,0x00,0x16,0x03,0x06,0x0A,0xC3,0x6C,0x90,0x81,0x06,0xDD,0xB3,0x26,0x07,0x83,0x06,0x78,0xC4,0xA5,0x07,0x87,0x4D,0x7E};
 typedef struct
 {
-	u8*data;
-	u16 len;
+    u8*data;
+    u16 len;
 }tagTestFrame;
 const tagTestFrame  gTestData[]={
-		//lcp
-		{data1,sizeof(data1)},\
-		{data2,sizeof(data2)},\
-		{data3,sizeof(data3)},\
-		{data4,sizeof(data4)},\
-		{data5,sizeof(data5)},\
-		{data6,sizeof(data6)},\
-		{data7,sizeof(data7)},\
-		{data8,sizeof(data8)},\
-		{data9,sizeof(data9)},\
-		//pap
-		{data10,sizeof(data10)},\
-		{data11,sizeof(data11)},\
-		//ipcp
-		{data12,sizeof(data12)},\
-		{data13,sizeof(data13)},\
-		{data14,sizeof(data14)},\
-		{data15,sizeof(data15)},\
-		{data16,sizeof(data16)},\
-		{data17,sizeof(data17)},\
+        //lcp
+        {data1,sizeof(data1)},\
+        {data2,sizeof(data2)},\
+        {data3,sizeof(data3)},\
+        {data4,sizeof(data4)},\
+        {data5,sizeof(data5)},\
+        {data6,sizeof(data6)},\
+        {data7,sizeof(data7)},\
+        {data8,sizeof(data8)},\
+        {data9,sizeof(data9)},\
+        //pap
+        {data10,sizeof(data10)},\
+        {data11,sizeof(data11)},\
+        //ipcp
+        {data12,sizeof(data12)},\
+        {data13,sizeof(data13)},\
+        {data14,sizeof(data14)},\
+        {data15,sizeof(data15)},\
+        {data16,sizeof(data16)},\
+        {data17,sizeof(data17)},\
 };
 #define CN_TEST_FRAME_NUM   (sizeof(gTestData)/sizeof(tagTestFrame))
 
@@ -123,8 +123,8 @@ const tagTestFrame  gTestData[]={
 static int gDebugMode = 1; //0, no debug info;1,print char;2,print hex
 bool_t DebugModeSet(int level)
 {
-	gDebugMode = level;
-	return true;
+    gDebugMode = level;
+    return true;
 }
 
 
@@ -137,17 +137,17 @@ bool_t DebugModeSet(int level)
 //-----------------------------------------------------------------------------
 ptu32_t sio_open(const char *name)
 {
-	ptu32_t result = 0;
-	result = (ptu32_t)Driver_OpenDevice(name,O_RDWR,0);
-	if(0 == result)
-	{
-		printf("%s:open %s failed\n\r",__FUNCTION__,name);
-	}
-	else
-	{
-		printf("%s:open %s success\n\r",__FUNCTION__,name);
-	}
-	return result;
+    ptu32_t result = 0;
+    result = (ptu32_t)Driver_OpenDevice(name,O_RDWR,0);
+    if(0 == result)
+    {
+        printf("%s:open %s failed\n\r",__FUNCTION__,name);
+    }
+    else
+    {
+        printf("%s:open %s success\n\r",__FUNCTION__,name);
+    }
+    return result;
 }
 #define CN_UART_RT_TIMEOUT (1000*mS)
 //-----------------------------------------------------------------------------
@@ -159,43 +159,43 @@ ptu32_t sio_open(const char *name)
 //-----------------------------------------------------------------------------
 int sio_read(ptu32_t dev,u8 *buf,u16 buflen,u32 timeout)
 {
-	static u8 gPrintEnd = 0;
+    static u8 gPrintEnd = 0;
 
-	int i = 0;
-	int len = 0;
-	len = Driver_ReadDevice((struct DjyDevice *)dev,buf,buflen,0,timeout);
-	if(gDebugMode)
-	{
-		if(len > 0)
-		{
-			gPrintEnd = 1;
-			//print all the data
-			time_t printtime;
-			printtime = time(NULL);
-			printf("[read:%s]",ctime(&printtime));
-			for(i = 0;i < len;i++)
-			{
-				if(gDebugMode == 1)
-				{
-					printf("%c",buf[i]);
-				}
-				else if(gDebugMode ==2)
-				{
-					printf("%02x ",buf[i]);
-				}
-			}
-		}
-		else
-		{
-			//maybe timeout
-			if(gPrintEnd)
-			{
-				printf("\n\r");
-				gPrintEnd = 0;
-			}
-		}
-	}
-	return len;
+    int i = 0;
+    int len = 0;
+    len = Driver_ReadDevice((struct DjyDevice *)dev,buf,buflen,0,timeout);
+    if(gDebugMode)
+    {
+        if(len > 0)
+        {
+            gPrintEnd = 1;
+            //print all the data
+            time_t printtime;
+            printtime = time(NULL);
+            printf("[read:%s]",ctime(&printtime));
+            for(i = 0;i < len;i++)
+            {
+                if(gDebugMode == 1)
+                {
+                    printf("%c",buf[i]);
+                }
+                else if(gDebugMode ==2)
+                {
+                    printf("%02x ",buf[i]);
+                }
+            }
+        }
+        else
+        {
+            //maybe timeout
+            if(gPrintEnd)
+            {
+                printf("\n\r");
+                gPrintEnd = 0;
+            }
+        }
+    }
+    return len;
 }
 
 
@@ -208,26 +208,26 @@ int sio_read(ptu32_t dev,u8 *buf,u16 buflen,u32 timeout)
 //-----------------------------------------------------------------------------
 int sio_write(ptu32_t dev,u8 *buf,u16 len)
 {
-	if(gDebugMode)
-	{
-		time_t printtime;
-		printtime = time(NULL);
-		printf("[send:%s]",ctime(&printtime));
-		for(u16 i=0;i <len;i++)
-		{
-			if(gDebugMode == 1)
-			{
-				printf("%c",buf[i]);
-			}
-			else if(gDebugMode ==2)
-			{
-				printf("%02x ",buf[i]);
-			}
-		}
-		printf("\n\r");
-	}
-	Driver_WriteDevice((struct DjyDevice *)dev,buf,len,0,CN_BLOCK_BUFFER,CN_UART_RT_TIMEOUT);
-	return len;
+    if(gDebugMode)
+    {
+        time_t printtime;
+        printtime = time(NULL);
+        printf("[send:%s]",ctime(&printtime));
+        for(u16 i=0;i <len;i++)
+        {
+            if(gDebugMode == 1)
+            {
+                printf("%c",buf[i]);
+            }
+            else if(gDebugMode ==2)
+            {
+                printf("%02x ",buf[i]);
+            }
+        }
+        printf("\n\r");
+    }
+    Driver_WriteDevice((struct DjyDevice *)dev,buf,len,0,CN_BLOCK_BUFFER,CN_UART_RT_TIMEOUT);
+    return len;
 }
 //-----------------------------------------------------------------------------
 //功能:use this function to close the sio device
@@ -238,7 +238,7 @@ int sio_write(ptu32_t dev,u8 *buf,u16 len)
 //-----------------------------------------------------------------------------
 bool_t sio_close(ptu32_t dev)
 {
-	return true;
+    return true;
 }
 
 

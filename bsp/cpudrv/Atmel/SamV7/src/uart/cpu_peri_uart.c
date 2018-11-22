@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_uart.c
 // 模块描述: UART模块底层硬件驱动，寄存器级别的操作
 // 模块版本: V1.00
@@ -104,12 +104,12 @@
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_uart"    //CPU的uart外设驱动
 //parent:"uart"                     //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                 //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                       //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                        //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                    //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"devfile","lock","uart","xdma","AtmelSamV7","heap"  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//init time:early                   //初始化时机，可选值：early，medium，later。
+                                    //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","lock","uart","xdma","heap"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //选中该组件时，被依赖组件将强制选中，
                                     //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"             //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -135,7 +135,7 @@
 #define CFG_UART3_ENABLE         false          //"是否配置UART3",
 #define CFG_UART4_ENABLE         false          //"是否配置UART4",
 #define CFG_USART0_ENABLE        false          //"是否配置USART0",
-#define CFG_USART1_ENABLE        false         //"是否配置USART1",
+#define CFG_USART1_ENABLE        false          //"是否配置USART1",
 #define CFG_USART2_ENABLE        false          //"是否配置USART2",
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件

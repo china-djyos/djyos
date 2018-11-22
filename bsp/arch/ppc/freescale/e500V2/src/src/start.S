@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -139,7 +139,7 @@
     tlbwe
     isync
     .endm
-    
+
 .globl __E500V2_START
 __E500V2_START:
     //do some basic register init
@@ -153,15 +153,15 @@ __E500V2_START:
     mtxer r3
     //clear all the exp flags
     mfspr   r3,dbsr
-    mtspr   dbsr,r3  
+    mtspr   dbsr,r3
     isync
     mfspr   r3, tsr
-    mtspr   tsr, r3   
+    mtspr   tsr, r3
     isync
 
     lis    r3, 0x0000
     mtspr  hid0, r3
-    li  r0,(HID1_ASTME|HID1_ABE)@l  
+    li  r0,(HID1_ASTME|HID1_ABE)@l
     mtspr   hid1,r0
     isync
     /* Enable Branch Prediction ,*/
@@ -176,10 +176,10 @@ __E500V2_START:
     or      r3, r3, r0
     mtspr   bucsr,r3
     isync
-    
+
 //now do the ccsr set and set the tlb
     bl  nexti       /* Find our address */
-nexti: 
+nexti:
     mflr    r1      /* R1 = our PC */
     li      r2, 0
     mtspr   MAS6, r2    /* Assume the current PID and AS are 0 */
@@ -252,10 +252,10 @@ nexti:
 
 2:  cmpw    r3, r4
     blt 1b
-    
+
 //setup the ccsr
-//when poweron, the ccsr is at 0xff700000, which makes the last space divided, 
-//so we move it to another space to make the last space integrated 
+//when poweron, the ccsr is at 0xff700000, which makes the last space divided,
+//so we move it to another space to make the last space integrated
 ccsr_setup:
 //beofore we access the ccsr,we must create the tlb map it first
 //map to the old phys
@@ -263,16 +263,16 @@ ccsr_setup:
         0, BOOKE_PAGESZ_4K, \
         CN_CCSR_TESTADDR, MAS2_I|MAS2_G, \
         CN_CCSR_RESETADDR, MAS3_SW|MAS3_SR, \
-        0, r3 /* The default CCSR address is always a 32-bit number */        
+        0, r3 /* The default CCSR address is always a 32-bit number */
 //chk wheather the old phys has the ccsr
     lis     r0, CN_CCSR_RESETADDR@h
     ori     r0, r0, CN_CCSR_RESETADDR@l
     lis     r4, CN_CCSR_TESTADDR@h
-    ori     r4, r4, CN_CCSR_TESTADDR@l   
+    ori     r4, r4, CN_CCSR_TESTADDR@l
     lwz     r3, 0(r4)        /* CCSRBAR, shifted right by 12 */
     slwi    r3, r3, 12
     cmpl    0, r0, r3
-//if the phys don't has the ccsr as we expect, we just hange here  
+//if the phys don't has the ccsr as we expect, we just hange here
 ccsr_chkfailed:
     bne    ccsr_chkfailed
 //ok, now we move the old ccsr addr to new one
@@ -292,7 +292,7 @@ ccsr_chkfailed:
     isync
 //the ccsr has been set successful, so we must delete the tlb we create for the test
     delete_tlb0_entry 0, CN_CCSR_TESTADDR, MAS2_I|MAS2_G, r3
-    
+
 //we will create all the tlb item in the space 1, so we must first create some
 //tlb item that covers for the code txt and program stack for the code run in space1
 //CCSR(14)  TEMPSTACK()  TEXTCODE(15)
@@ -303,7 +303,7 @@ MMUSETUP_FORSPACE1:
         CN_CCSR_NEWADDR_V, MAS2_I|MAS2_G, \
         CN_CCSR_NEWADDR_PL, MAS3_SW|MAS3_SR, \
         CN_CCSR_NEWADDR_PH, r3
-//CREATE THE TXTCODE FOR SPACE1--tlb1 --15        
+//CREATE THE TXTCODE FOR SPACE1--tlb1 --15
     create_tlb0_entry 1, \
         1, BOOKE_PAGESZ_4K, \
         CN_BOOT_ADDR4K, MAS2_G, \
@@ -326,7 +326,7 @@ MMUSETUP_FORSPACE1:
     rfi
 /////////THE SPACE 1 RUNNING CODE///////////////
 RUNNING_INSPACE1:
-//make the l1 dcache as the stack 
+//make the l1 dcache as the stack
     li  r0,cn_l1csrn_cfi
     mtspr   l1csr0,r0   /* invalidate d-cache */
     mtspr   l1csr1,r0   /* invalidate i-cache */
@@ -365,11 +365,11 @@ RUNNING_INSPACE1:
     mfspr   r3,l1csr0
     andi.   r1,r3,cn_l1csrn_ce@l
     beq 2b
-    
-    
+
+
     /* lock l1d cahche as the sram */
     lis r3,CN_SRAM_STACK@h
-    ori r3,r3,CN_SRAM_STACK@l   
+    ori r3,r3,CN_SRAM_STACK@l
     lis  r2, CN_SRAM_STACK_SIZE@h
     ori  r2, r2, CN_SRAM_STACK_SIZE@l
     srwi r2, r2, L1_CACHE_SHIFT
@@ -393,21 +393,21 @@ RUNNING_INSPACE1:
 STACKSETUP_FAILED:
     bne  STACKSETUP_FAILED
 
-//the cache for sram test success, so we will setup the stack 
+//the cache for sram test success, so we will setup the stack
 //must be 16 aligned and be an decrement empty stack
     lis   r3,CN_SRAM_STACK@h
     ori   r3,r3,CN_SRAM_STACK@l
     addi  r3,r3,0xff0
     lis   r0,0
-    stw   r0,0(r3)    
-    stw   r0,+4(r3)   
-    mr    r1,r3  
+    stw   r0,0(r3)
+    stw   r0,+4(r3)
+    mr    r1,r3
 //OK, now we could run in C mode, because we have setup for the c environment
     lis   r3, RoutSetUpAsm@h
     ori   r3, r3, RoutSetUpAsm@l
     mtlr  r3
     blr
-   
+
 .end
 /*************************file end**********************************/
 

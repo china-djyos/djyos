@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>zq1201</boardName>
+  <cpu>
+    <cpuName>zq1201</cpuName>
+    <mianClk>12.0</mianClk>
+    <peripheral>cpu_peri_iic</peripheral>
+    <peripheral>cpu_peri_rtc</peripheral>
+    <peripheral>cpu_peri_spi</peripheral>
+    <peripheral>cpu_peri_timer</peripheral>
+    <peripheral>cpu_peri_uart</peripheral>
+  </cpu>
+</board>

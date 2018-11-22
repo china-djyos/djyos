@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_uart.c
 // 模块描述: DJYOS串口模块的底层驱动部分，主要实现寄存器级别的操作，如中断等
 // 模块版本: V1.10
@@ -100,34 +100,34 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_uart"                        //CPU的uart外设驱动
-//parent:"uart"                                         //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                                     //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                                           //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                                             //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                                         //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"devfile","lock","uart","stm32l4","heap"     //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                         //选中该组件时，被依赖组件将强制选中，
-                                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"                                  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                                         //选中该组件时，被依赖组件不会被强制选中，
-                                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                                           //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                         //如果依赖多个组件，则依次列出，用“,”分隔
+//component name:"cpu_peri_uart"//CPU的uart外设驱动
+//parent:"uart"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","lock","uart","heap"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_UART_SENDBUF_LEN   //****检查参数是否已经配置好
+#ifndef CFG_UART_SENDBUF_LEN    //****检查参数是否已经配置好
 #warning    cpu_peri_uart组件参数未配置，使用默认值
 //%$#@num,32,512,
 #define CFG_UART_SENDBUF_LEN     (256)          //"串口发送环形缓冲区大小",
 #define CFG_UART_RECVBUF_LEN     (256)          //"串口接收环形缓冲区大小",
 //%$#@enum,true,false,
-#define CFG_UART1_ENABLE         true           //"是否使用USART1",
-#define CFG_UART2_ENABLE         false          //"是否使用USART2",
-#define CFG_UART3_ENABLE         false          //"是否使用USART3",
+#define CFG_USART1_ENABLE         true           //"是否使用USART1",
+#define CFG_USART2_ENABLE         false          //"是否使用USART2",
+#define CFG_USART3_ENABLE         false          //"是否使用USART3",
 #define CFG_UART4_ENABLE         false          //"是否使用UART4",
 #define CFG_UART5_ENABLE         false          //"是否使用UART5",
 #define CFG_LPUART1_ENABLE       false          //"是否使用LPUART1",
@@ -155,12 +155,12 @@ typedef struct
 }tagUartCfg;
 
 static const tagUartCfg sUartCfg[CN_UART_NUM] = {
-{"UART1",(tagUartReg volatile *)USART1_BASE,CN_INT_LINE_USART1,CN_INT_LINE_DMA1_CH5,CN_INT_LINE_DMA1_CH4,DMA_REQUEST_2,DMA1_Channel5,DMA1_Channel4},
-{"UART2",(tagUartReg volatile *)USART2_BASE,CN_INT_LINE_USART2,CN_INT_LINE_DMA1_CH6,CN_INT_LINE_DMA1_CH7,DMA_REQUEST_2,DMA1_Channel6,DMA1_Channel7},
-{"UART3",(tagUartReg volatile *)USART3_BASE,CN_INT_LINE_USART3,CN_INT_LINE_DMA1_CH3,CN_INT_LINE_DMA1_CH2,DMA_REQUEST_2,DMA1_Channel3,DMA1_Channel2},
+{"USART1",(tagUartReg volatile *)USART1_BASE,CN_INT_LINE_USART1,CN_INT_LINE_DMA1_CH5,CN_INT_LINE_DMA1_CH4,DMA_REQUEST_2,DMA1_Channel5,DMA1_Channel4},
+{"USART2",(tagUartReg volatile *)USART2_BASE,CN_INT_LINE_USART2,CN_INT_LINE_DMA1_CH6,CN_INT_LINE_DMA1_CH7,DMA_REQUEST_2,DMA1_Channel6,DMA1_Channel7},
+{"USART3",(tagUartReg volatile *)USART3_BASE,CN_INT_LINE_USART3,CN_INT_LINE_DMA1_CH3,CN_INT_LINE_DMA1_CH2,DMA_REQUEST_2,DMA1_Channel3,DMA1_Channel2},
 {"UART4",(tagUartReg volatile *)UART4_BASE,CN_INT_LINE_UART4,CN_INT_LINE_DMA2_CH5,CN_INT_LINE_DMA2_CH3,DMA_REQUEST_2,DMA2_Channel5,DMA2_Channel3},
 {"UART5",(tagUartReg volatile *)UART5_BASE,CN_INT_LINE_UART5,CN_INT_LINE_DMA2_CH2,CN_INT_LINE_DMA2_CH1,DMA_REQUEST_2,DMA2_Channel2,DMA2_Channel1},
-{"UART6",(tagUartReg volatile *)LPUART1_BASE,CN_INT_LINE_LPUART1,CN_INT_LINE_DMA2_CH7,CN_INT_LINE_DMA2_CH6,DMA_REQUEST_4,DMA2_Channel7,DMA2_Channel6}
+{"LPUART1",(tagUartReg volatile *)LPUART1_BASE,CN_INT_LINE_LPUART1,CN_INT_LINE_DMA2_CH7,CN_INT_LINE_DMA2_CH6,DMA_REQUEST_4,DMA2_Channel7,DMA2_Channel6}
 };
 // =============================================================================
 
@@ -841,35 +841,42 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     if(!strcmp(StdioOut,"/dev/USART1"))
     {
         TxDirectPort = CN_USART1;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/USART2"))
     {
         TxDirectPort = CN_USART2;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/USART3"))
     {
         TxDirectPort = CN_USART3;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART4"))
     {
         TxDirectPort = CN_UART4;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART5"))
     {
         TxDirectPort = CN_UART5;
+        PutStrDirectH = phuart[TxDirectPort];
     }
-    else if(!strcmp(StdioOut,"/dev/UART6"))
+    else if(!strcmp(StdioOut,"/dev/LPUART1"))
     {
         TxDirectPort = CN_LPUART1;
+        PutStrDirectH = phuart[TxDirectPort];
     }
     else
     {
-        PutStrDirect = NULL ;
+//        PutStrDirect = NULL ;
+        PutStrDirectH = NULL;
     }
 
-    if(PutStrDirect != NULL)
+    if(PutStrDirectH != NULL)
     {
-        PutStrDirectH = phuart[TxDirectPort];
+//        PutStrDirectH = phuart[TxDirectPort];
         __UART_HardInit(TxDirectPort);
         TxByteTime = 95;      //初始化默认115200，发送一个byte是87uS,+10%容限
         PutStrDirect = Uart_PutStrDirect;
@@ -878,35 +885,41 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     if(!strcmp(StdioIn,"/dev/USART1"))
     {
         RxDirectPort = CN_USART1;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/USART2"))
     {
         RxDirectPort = CN_USART2;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/USART3"))
     {
-        RxDirectPort = CN_USART2;
+        RxDirectPort = CN_USART3;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART4"))
     {
         RxDirectPort = CN_UART4;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART5"))
     {
         RxDirectPort = CN_UART5;
+        GetCharDirectH = phuart[RxDirectPort];
     }
-    else if(!strcmp(StdioIn,"/dev/UART6"))
+    else if(!strcmp(StdioIn,"/dev/LPUART1"))
     {
         RxDirectPort = CN_LPUART1;
+        GetCharDirectH = phuart[RxDirectPort];
     }
     else
     {
-        GetCharDirect = NULL ;
+        GetCharDirectH = NULL ;
     }
 
-    if(GetCharDirect != NULL)
+    if(GetCharDirectH != NULL)
     {
-        GetCharDirectH = phuart[RxDirectPort];
+//        GetCharDirectH = phuart[RxDirectPort];
         if(TxDirectPort != RxDirectPort)
             __UART_HardInit(RxDirectPort);
         GetCharDirect = Uart_GetCharDirect;

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_gmac.h
 // 模块描述: GMAC模块的初始化的操作，包含PHY初始化和MII初始化
 //           按DJYOS的以太网协议实现要求实现的网卡底层驱动
@@ -80,21 +80,21 @@
 
 typedef struct _GmacStats
 {
-	/* TX errors */
-	unsigned int tx_packets;   /* Total Number of packets sent */
-	unsigned int tx_comp;      /* Packet complete */
-	unsigned int tx_errors;    /* TX errors ( Retry Limit Exceed ) */
-	unsigned int collisions;   /* Collision */
-	unsigned int tx_exausts;   /* Buffer exhausted */
-	unsigned int tx_underruns; /* Under Run, not able to read from memory */
-	unsigned int tx_hresp;          /* HRESP Not OK */
-	unsigned int tx_latecollisions; /* Late Collision Occurred */
-	/* RX errors */
-	unsigned int rx_packets;   /* Total Number of packets RX */
-	unsigned int rx_comp;      /* Total Number of packets RX */
-	unsigned int rx_eof;       /* No EOF error */
-	unsigned int rx_ovrs;      /* Over Run, not able to store to memory */
-	unsigned int rx_bnas;      /* Buffer is not available */
+    /* TX errors */
+    unsigned int tx_packets;   /* Total Number of packets sent */
+    unsigned int tx_comp;      /* Packet complete */
+    unsigned int tx_errors;    /* TX errors ( Retry Limit Exceed ) */
+    unsigned int collisions;   /* Collision */
+    unsigned int tx_exausts;   /* Buffer exhausted */
+    unsigned int tx_underruns; /* Under Run, not able to read from memory */
+    unsigned int tx_hresp;          /* HRESP Not OK */
+    unsigned int tx_latecollisions; /* Late Collision Occurred */
+    /* RX errors */
+    unsigned int rx_packets;   /* Total Number of packets RX */
+    unsigned int rx_comp;      /* Total Number of packets RX */
+    unsigned int rx_eof;       /* No EOF error */
+    unsigned int rx_ovrs;      /* Over Run, not able to store to memory */
+    unsigned int rx_bnas;      /* Buffer is not available */
 } GmacStats, *PGmacStats;
 
 /* Callback used by send function */
@@ -182,13 +182,13 @@ typedef void (*GMAC_WakeupCallback)(void);
  */
 typedef enum
 {
-	GMAC_OK = 0,         /* Operation OK */
-	GMAC_TIMEOUT = 1,    /* Operation timeout */
-	GMAC_TX_BUSY,        /* TX in progress */
-	GMAC_RX_NULL,        /* No data received */
-	GMAC_SIZE_TOO_SMALL, /* Buffer size not enough */
-	GMAC_PARAM,          /* Parameter error, TX packet invalid or RX size too small */
-	GMAC_INVALID = 0xFF, /* Invalid */
+    GMAC_OK = 0,         /* Operation OK */
+    GMAC_TIMEOUT = 1,    /* Operation timeout */
+    GMAC_TX_BUSY,        /* TX in progress */
+    GMAC_RX_NULL,        /* No data received */
+    GMAC_SIZE_TOO_SMALL, /* Buffer size not enough */
+    GMAC_PARAM,          /* Parameter error, TX packet invalid or RX size too small */
+    GMAC_INVALID = 0xFF, /* Invalid */
 } gmac_status_t;
 
 
@@ -196,65 +196,65 @@ typedef enum
 /* Receive buffer descriptor struct */
 typedef struct gmac_rx_descriptor
 {
-	union gmac_rx_addr
-	{
-		uint32_t val;
-		struct gmac_rx_addr_bm
-		{
-			uint32_t b_ownership : 1, /* User clear, GMAC sets this to 1 once it has
-			                           *successfully written a frame to memory */
-					b_wrap : 1, /* Marks last descriptor in receive buffer */
-					addr_dw : 30; /* Address in number of DW */
-		} bm;
-	} addr; /* Address, Wrap & Ownership */
-	union gmac_rx_status
-	{
-		uint32_t val;
-		struct gmac_rx_status_bm
-		{
-			uint32_t len:12,       /* Length of frame including FCS */
-			offset:2,              /* Receive buffer offset,  bits 13:12 of frame length for jumbo frame */
-			b_sof:1,               /* Start of frame */
-			b_eof:1,               /* End of frame */
-			b_cfi:1,               /* Concatenation Format Indicator */
-			vlan_priority:3,       /* VLAN priority (if VLAN detected) */
-			b_priority_detected:1, /* Priority tag detected */
-			b_vlan_detected:1,     /* VLAN tag detected */
-			b_type_id_match:1,     /* Type ID match */
-			b_addr4match:1,        /* Address register 4 match */
-			b_addr3match:1,        /* Address register 3 match */
-			b_addr2match:1,        /* Address register 2 match */
-			b_addr1match:1,        /* Address register 1 match */
-			reserved:1,
-			b_ext_addr_match:1,    /* External address match */
-			b_uni_hash_match:1,    /* Unicast hash match */
-			b_multi_hash_match:1,  /* Multicast hash match */
-			b_boardcast_detect:1;  /* Global broadcast address detected */
-		} bm;
-	} status;
+    union gmac_rx_addr
+    {
+        uint32_t val;
+        struct gmac_rx_addr_bm
+        {
+            uint32_t b_ownership : 1, /* User clear, GMAC sets this to 1 once it has
+                                       *successfully written a frame to memory */
+                    b_wrap : 1, /* Marks last descriptor in receive buffer */
+                    addr_dw : 30; /* Address in number of DW */
+        } bm;
+    } addr; /* Address, Wrap & Ownership */
+    union gmac_rx_status
+    {
+        uint32_t val;
+        struct gmac_rx_status_bm
+        {
+            uint32_t len:12,       /* Length of frame including FCS */
+            offset:2,              /* Receive buffer offset,  bits 13:12 of frame length for jumbo frame */
+            b_sof:1,               /* Start of frame */
+            b_eof:1,               /* End of frame */
+            b_cfi:1,               /* Concatenation Format Indicator */
+            vlan_priority:3,       /* VLAN priority (if VLAN detected) */
+            b_priority_detected:1, /* Priority tag detected */
+            b_vlan_detected:1,     /* VLAN tag detected */
+            b_type_id_match:1,     /* Type ID match */
+            b_addr4match:1,        /* Address register 4 match */
+            b_addr3match:1,        /* Address register 3 match */
+            b_addr2match:1,        /* Address register 2 match */
+            b_addr1match:1,        /* Address register 1 match */
+            reserved:1,
+            b_ext_addr_match:1,    /* External address match */
+            b_uni_hash_match:1,    /* Unicast hash match */
+            b_multi_hash_match:1,  /* Multicast hash match */
+            b_boardcast_detect:1;  /* Global broadcast address detected */
+        } bm;
+    } status;
 } __attribute__ ((packed, aligned(8))) gmac_rx_descriptor_t; /* GCC */
 
 /* Transmit buffer descriptor struct */
 typedef struct gmac_tx_descriptor
 {
-	uint32_t addr;
-	union gmac_tx_status
-	{
-		uint32_t val;
-		struct gmac_tx_status_bm
-		{
-			uint32_t len:11, /* Length of buffer */
-			reserved:4,
-			b_last_buffer:1, /* Last buffer (in the current frame) */
-			b_no_crc:1,      /* No CRC */
-			reserved1:10,
-			b_exhausted:1,   /* Buffer exhausted in mid frame */
-			b_underrun:1,    /* Transmit underrun */
-			b_error:1,       /* Retry limit exceeded, error detected */
-			b_wrap:1,        /* Marks last descriptor in TD list */
-			b_used:1;        /* User clear, GMAC sets this to 1 once a frame has been successfully transmitted */
-		} bm;
-	} status;
+    uint32_t addr;
+    union gmac_tx_status
+    {
+        uint32_t val;
+        struct gmac_tx_status_bm
+        {
+            uint32_t len:11, /* Length of buffer */
+            reserved:4,
+            b_last_buffer:1, /* Last buffer (in the current frame) */
+            b_no_crc:1,      /* No CRC */
+            reserved1:10,
+            b_exhausted:1,   /* Buffer exhausted in mid frame */
+            b_underrun:1,    /* Transmit underrun */
+            b_error:1,       /* Retry limit exceeded, error detected */
+            b_wrap:1,        /* Marks last descriptor in TD list */
+            b_used:1;        /* User clear, GMAC sets this to 1 once a frame has been successfully transmitted */
+        } bm;
+    } status;
 } __attribute__ ((packed, aligned(8))) gmac_tx_descriptor_t; /* GCC */
 
 
@@ -262,68 +262,68 @@ typedef struct gmac_tx_descriptor
  * GMAC driver structure.
  */
 //typedef struct gmac_device {
-//	/* Pointer to HW register base */
-//	Gmac *p_hw;
+//  /* Pointer to HW register base */
+//  Gmac *p_hw;
 //
-//	/*
-//	 * Pointer to allocated TX buffer.
-//	 * Section 3.6 of AMBA 2.0 spec states that burst should not cross
-//	 * 1K Boundaries.
-//	 * Receive buffer manager writes are burst of 2 words => 3 lsb bits
-//	 * of the address shall be set to 0.
-//	 */
-//	uint8_t *p_tx_buffer;
-//	/* Pointer to allocated RX buffer */
-//	uint8_t *p_rx_buffer;
-//	/* Pointer to Rx TDs (must be 8-byte aligned) */
-//	gmac_rx_descriptor_t *p_rx_dscr;
-//	/* Pointer to Tx TDs (must be 8-byte aligned) */
-//	gmac_tx_descriptor_t *p_tx_dscr;
-//	/* Optional callback to be invoked once a frame has been received */
-//	gmac_dev_tx_cb_t func_rx_cb;
-//	/* Optional callback to be invoked once several TDs have been released */
-//	gmac_dev_wakeup_cb_t func_wakeup_cb;
-//	/* Optional callback list to be invoked once TD has been processed */
-//	gmac_dev_tx_cb_t *func_tx_cb_list;
-//	/* RX TD list size */
-//	uint16_t us_rx_list_size;
-//	/* RX index for current processing TD */
-//	uint16_t us_rx_idx;
-//	/* TX TD list size */
-//	uint16_t us_tx_list_size;
-//	/* Circular buffer head pointer by upper layer (buffer to be sent) */
-//	uint16_t us_tx_head;
-//	/* Circular buffer tail pointer incremented by handlers (buffer sent) */
-//	uint16_t us_tx_tail;
+//  /*
+//   * Pointer to allocated TX buffer.
+//   * Section 3.6 of AMBA 2.0 spec states that burst should not cross
+//   * 1K Boundaries.
+//   * Receive buffer manager writes are burst of 2 words => 3 lsb bits
+//   * of the address shall be set to 0.
+//   */
+//  uint8_t *p_tx_buffer;
+//  /* Pointer to allocated RX buffer */
+//  uint8_t *p_rx_buffer;
+//  /* Pointer to Rx TDs (must be 8-byte aligned) */
+//  gmac_rx_descriptor_t *p_rx_dscr;
+//  /* Pointer to Tx TDs (must be 8-byte aligned) */
+//  gmac_tx_descriptor_t *p_tx_dscr;
+//  /* Optional callback to be invoked once a frame has been received */
+//  gmac_dev_tx_cb_t func_rx_cb;
+//  /* Optional callback to be invoked once several TDs have been released */
+//  gmac_dev_wakeup_cb_t func_wakeup_cb;
+//  /* Optional callback list to be invoked once TD has been processed */
+//  gmac_dev_tx_cb_t *func_tx_cb_list;
+//  /* RX TD list size */
+//  uint16_t us_rx_list_size;
+//  /* RX index for current processing TD */
+//  uint16_t us_rx_idx;
+//  /* TX TD list size */
+//  uint16_t us_tx_list_size;
+//  /* Circular buffer head pointer by upper layer (buffer to be sent) */
+//  uint16_t us_tx_head;
+//  /* Circular buffer tail pointer incremented by handlers (buffer sent) */
+//  uint16_t us_tx_tail;
 //
-//	/* Number of free TD before wakeup callback is invoked */
-//	uint8_t uc_wakeup_threshold;
+//  /* Number of free TD before wakeup callback is invoked */
+//  uint8_t uc_wakeup_threshold;
 //} gmac_device_t;
 
 
 /* Descriptors for RX (required aligned by 8) */
 typedef struct
 {
-	volatile gmac_rx_descriptor_t td[GRX_BUFFERS];
-//	GMAC_RxCallback rxCb; /* Callback function to be invoked once a frame
-//	                       * has been received */
-	unsigned short idx;
+    volatile gmac_rx_descriptor_t td[GRX_BUFFERS];
+//  GMAC_RxCallback rxCb; /* Callback function to be invoked once a frame
+//                         * has been received */
+    unsigned short idx;
 } GRxTd;
 
 /* Descriptors for TX (required aligned by 8) */
 typedef struct
 {
-	volatile gmac_tx_descriptor_t td[GTX_BUFFERS];
-	GMAC_TxCallback txCb[GTX_BUFFERS]; /* Callback function to be invoked
-	                                    * once TD has been processed */
-//	GMAC_WakeupCallback wakeupCb;   /* Callback function to be invoked
-//	                                 * once several TD have been released */
-	unsigned short wakeupThreshold; /* Number of free TD before wakeupCb
-	                                 * is invoked */
-	unsigned short head;       /* Circular buffer head pointer incremented
-	                            * by the upper layer (buffer to be sent) */
-	unsigned short tail;       /* Circular buffer head pointer incremented
-	                            * by the IT handler (buffer sent) */
+    volatile gmac_tx_descriptor_t td[GTX_BUFFERS];
+    GMAC_TxCallback txCb[GTX_BUFFERS]; /* Callback function to be invoked
+                                        * once TD has been processed */
+//  GMAC_WakeupCallback wakeupCb;   /* Callback function to be invoked
+//                                   * once several TD have been released */
+    unsigned short wakeupThreshold; /* Number of free TD before wakeupCb
+                                     * is invoked */
+    unsigned short head;       /* Circular buffer head pointer incremented
+                                * by the upper layer (buffer to be sent) */
+    unsigned short tail;       /* Circular buffer head pointer incremented
+                                * by the IT handler (buffer sent) */
 } GTxTd;
 
 
@@ -337,7 +337,7 @@ typedef struct
  */
 static inline void gmac_network_control(Gmac *p_gmac, uint32_t ul_ncr)
 {
-	p_gmac->GMAC_NCR = ul_ncr;
+    p_gmac->GMAC_NCR = ul_ncr;
 }
 
 /*
@@ -348,7 +348,7 @@ static inline void gmac_network_control(Gmac *p_gmac, uint32_t ul_ncr)
 
 static inline uint32_t gmac_get_network_control(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_NCR;
+    return p_gmac->GMAC_NCR;
 }
 
 /*
@@ -359,11 +359,11 @@ static inline uint32_t gmac_get_network_control(Gmac *p_gmac)
  */
 static inline void gmac_enable_receive(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCR |= GMAC_NCR_RXEN;
-	} else {
-		p_gmac->GMAC_NCR &= ~GMAC_NCR_RXEN;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCR |= GMAC_NCR_RXEN;
+    } else {
+        p_gmac->GMAC_NCR &= ~GMAC_NCR_RXEN;
+    }
 }
 
 /*
@@ -374,11 +374,11 @@ static inline void gmac_enable_receive(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_transmit(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCR |= GMAC_NCR_TXEN;
-	} else {
-		p_gmac->GMAC_NCR &= ~GMAC_NCR_TXEN;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCR |= GMAC_NCR_TXEN;
+    } else {
+        p_gmac->GMAC_NCR &= ~GMAC_NCR_TXEN;
+    }
 }
 
 /*
@@ -389,11 +389,11 @@ static inline void gmac_enable_transmit(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_management(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCR |= GMAC_NCR_MPE;
-	} else {
-		p_gmac->GMAC_NCR &= ~GMAC_NCR_MPE;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCR |= GMAC_NCR_MPE;
+    } else {
+        p_gmac->GMAC_NCR &= ~GMAC_NCR_MPE;
+    }
 }
 
 /*
@@ -403,7 +403,7 @@ static inline void gmac_enable_management(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_clear_statistics(Gmac *p_gmac)
 {
-	p_gmac->GMAC_NCR |= GMAC_NCR_CLRSTAT;
+    p_gmac->GMAC_NCR |= GMAC_NCR_CLRSTAT;
 }
 
 /*
@@ -413,7 +413,7 @@ static inline void gmac_clear_statistics(Gmac *p_gmac)
  */
 static inline void gmac_increase_statistics(Gmac *p_gmac)
 {
-	p_gmac->GMAC_NCR |= GMAC_NCR_INCSTAT;
+    p_gmac->GMAC_NCR |= GMAC_NCR_INCSTAT;
 }
 
 /*
@@ -424,13 +424,13 @@ static inline void gmac_increase_statistics(Gmac *p_gmac)
  *                    enable it.
  */
 static inline void gmac_enable_statistics_write(Gmac *p_gmac,
-		uint8_t uc_enable)
+        uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCR |= GMAC_NCR_WESTAT;
-	} else {
-		p_gmac->GMAC_NCR &= ~GMAC_NCR_WESTAT;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCR |= GMAC_NCR_WESTAT;
+    } else {
+        p_gmac->GMAC_NCR &= ~GMAC_NCR_WESTAT;
+    }
 }
 
 /*
@@ -441,11 +441,11 @@ static inline void gmac_enable_statistics_write(Gmac *p_gmac,
  */
 static inline void gmac_enable_back_pressure(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCR |= GMAC_NCR_BP;
-	} else {
-		p_gmac->GMAC_NCR &= ~GMAC_NCR_BP;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCR |= GMAC_NCR_BP;
+    } else {
+        p_gmac->GMAC_NCR &= ~GMAC_NCR_BP;
+    }
 }
 
 /*
@@ -455,7 +455,7 @@ static inline void gmac_enable_back_pressure(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_start_transmission(Gmac *p_gmac)
 {
-	p_gmac->GMAC_NCR |= GMAC_NCR_TSTART;
+    p_gmac->GMAC_NCR |= GMAC_NCR_TSTART;
 }
 
 /*
@@ -465,7 +465,7 @@ static inline void gmac_start_transmission(Gmac *p_gmac)
  */
 static inline void gmac_halt_transmission(Gmac *p_gmac)
 {
-	p_gmac->GMAC_NCR |= GMAC_NCR_THALT;
+    p_gmac->GMAC_NCR |= GMAC_NCR_THALT;
 }
 
 /*
@@ -476,7 +476,7 @@ static inline void gmac_halt_transmission(Gmac *p_gmac)
  */
 static inline void gmac_set_configure(Gmac *p_gmac, uint32_t ul_cfg)
 {
-	p_gmac->GMAC_NCFGR = ul_cfg;
+    p_gmac->GMAC_NCFGR = ul_cfg;
 }
 
 /*
@@ -488,7 +488,7 @@ static inline void gmac_set_configure(Gmac *p_gmac, uint32_t ul_cfg)
  */
 static inline uint32_t gmac_get_configure(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_NCFGR;
+    return p_gmac->GMAC_NCFGR;
 }
 
 /*
@@ -499,11 +499,11 @@ static inline uint32_t gmac_get_configure(Gmac *p_gmac)
  */
 static inline void gmac_set_speed(Gmac *p_gmac, uint8_t uc_speed)
 {
-	if (uc_speed) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_SPD;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_SPD;
-	}
+    if (uc_speed) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_SPD;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_SPD;
+    }
 }
 
 /*
@@ -514,11 +514,11 @@ static inline void gmac_set_speed(Gmac *p_gmac, uint8_t uc_speed)
  */
 static inline void gmac_enable_full_duplex(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_FD;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_FD;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_FD;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_FD;
+    }
 }
 
 /*
@@ -529,11 +529,11 @@ static inline void gmac_enable_full_duplex(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_copy_all(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_CAF;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_CAF;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_CAF;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_CAF;
+    }
 }
 
 /*
@@ -544,11 +544,11 @@ static inline void gmac_enable_copy_all(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_jumbo_frames(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_JFRAME;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_JFRAME;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_JFRAME;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_JFRAME;
+    }
 }
 
 /*
@@ -559,11 +559,11 @@ static inline void gmac_enable_jumbo_frames(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_disable_broadcast(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_NBC;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_NBC;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_NBC;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_NBC;
+    }
 }
 
 /*
@@ -574,11 +574,11 @@ static inline void gmac_disable_broadcast(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_multicast_hash(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_UNIHEN;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_UNIHEN;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_UNIHEN;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_UNIHEN;
+    }
 }
 
 /*
@@ -589,11 +589,11 @@ static inline void gmac_enable_multicast_hash(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_big_frame(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_MAXFS;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_MAXFS;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_MAXFS;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_MAXFS;
+    }
 }
 
 /*
@@ -606,27 +606,27 @@ static inline void gmac_enable_big_frame(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline uint8_t gmac_set_clock(Gmac *p_gmac, uint32_t ul_mck)
 {
-	uint32_t ul_clk;
+    uint32_t ul_clk;
 
-	if (ul_mck > GMAC_CLOCK_SPEED_540MHZ) {
-		return GMAC_INVALID;
-	} else if (ul_mck > GMAC_CLOCK_SPEED_160MHZ) {
-		ul_clk = GMAC_NCFGR_CLK_MCK_96;
-	} else if (ul_mck > GMAC_CLOCK_SPEED_120MHZ) {
-		ul_clk = GMAC_NCFGR_CLK_MCK_64;
-	} else if (ul_mck > GMAC_CLOCK_SPEED_80MHZ) {
-		ul_clk = GMAC_NCFGR_CLK_MCK_48;
-	} else if (ul_mck > GMAC_CLOCK_SPEED_40MHZ) {
-		ul_clk = GMAC_NCFGR_CLK_MCK_32;
-	} else if (ul_mck > GMAC_CLOCK_SPEED_20MHZ) {
-		ul_clk = GMAC_NCFGR_CLK_MCK_16;
-	} else {
-		ul_clk = GMAC_NCFGR_CLK_MCK_8;
-	}
+    if (ul_mck > GMAC_CLOCK_SPEED_540MHZ) {
+        return GMAC_INVALID;
+    } else if (ul_mck > GMAC_CLOCK_SPEED_160MHZ) {
+        ul_clk = GMAC_NCFGR_CLK_MCK_96;
+    } else if (ul_mck > GMAC_CLOCK_SPEED_120MHZ) {
+        ul_clk = GMAC_NCFGR_CLK_MCK_64;
+    } else if (ul_mck > GMAC_CLOCK_SPEED_80MHZ) {
+        ul_clk = GMAC_NCFGR_CLK_MCK_48;
+    } else if (ul_mck > GMAC_CLOCK_SPEED_40MHZ) {
+        ul_clk = GMAC_NCFGR_CLK_MCK_32;
+    } else if (ul_mck > GMAC_CLOCK_SPEED_20MHZ) {
+        ul_clk = GMAC_NCFGR_CLK_MCK_16;
+    } else {
+        ul_clk = GMAC_NCFGR_CLK_MCK_8;
+    }
 
-	p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_CLK_Msk;
-	p_gmac->GMAC_NCFGR |= ul_clk;
-	return GMAC_OK;
+    p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_CLK_Msk;
+    p_gmac->GMAC_NCFGR |= ul_clk;
+    return GMAC_OK;
 }
 
 /*
@@ -637,11 +637,11 @@ static inline uint8_t gmac_set_clock(Gmac *p_gmac, uint32_t ul_mck)
  */
 static inline void gmac_enable_retry_test(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_RTY;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_RTY;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_RTY;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_RTY;
+    }
 }
 
 /*
@@ -652,11 +652,11 @@ static inline void gmac_enable_retry_test(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_pause_frame(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_PEN;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_PEN;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_PEN;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_PEN;
+    }
 }
 
 /*
@@ -666,8 +666,8 @@ static inline void gmac_enable_pause_frame(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_set_rx_buffer_offset(Gmac *p_gmac, uint8_t uc_offset)
 {
-	p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_RXBUFO_Msk;
-	p_gmac->GMAC_NCFGR |= GMAC_NCFGR_RXBUFO(uc_offset);
+    p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_RXBUFO_Msk;
+    p_gmac->GMAC_NCFGR |= GMAC_NCFGR_RXBUFO(uc_offset);
 }
 
 /*
@@ -679,11 +679,11 @@ static inline void gmac_set_rx_buffer_offset(Gmac *p_gmac, uint8_t uc_offset)
  */
 static inline void gmac_enable_rx_length_check(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_LFERD;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_LFERD;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_LFERD;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_LFERD;
+    }
 }
 
 /*
@@ -695,11 +695,11 @@ static inline void gmac_enable_rx_length_check(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_discard_fcs(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_RFCS;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_RFCS;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_RFCS;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_RFCS;
+    }
 }
 
 /*
@@ -712,11 +712,11 @@ static inline void gmac_enable_discard_fcs(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_efrhd(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_EFRHD;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_EFRHD;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_EFRHD;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_EFRHD;
+    }
 }
 
 /*
@@ -727,11 +727,11 @@ static inline void gmac_enable_efrhd(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline void gmac_enable_ignore_rx_fcs(Gmac *p_gmac, uint8_t uc_enable)
 {
-	if (uc_enable) {
-		p_gmac->GMAC_NCFGR |= GMAC_NCFGR_IRXFCS;
-	} else {
-		p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_IRXFCS;
-	}
+    if (uc_enable) {
+        p_gmac->GMAC_NCFGR |= GMAC_NCFGR_IRXFCS;
+    } else {
+        p_gmac->GMAC_NCFGR &= ~GMAC_NCFGR_IRXFCS;
+    }
 }
 
 /*
@@ -743,7 +743,7 @@ static inline void gmac_enable_ignore_rx_fcs(Gmac *p_gmac, uint8_t uc_enable)
  */
 static inline uint32_t gmac_get_status(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_NSR;
+    return p_gmac->GMAC_NSR;
 }
 
 /*
@@ -755,7 +755,7 @@ static inline uint32_t gmac_get_status(Gmac *p_gmac)
  */
 static inline uint8_t gmac_get_MDIO(Gmac *p_gmac)
 {
-	return ((p_gmac->GMAC_NSR & GMAC_NSR_MDIO) > 0);
+    return ((p_gmac->GMAC_NSR & GMAC_NSR_MDIO) > 0);
 }
 
 /*
@@ -767,7 +767,7 @@ static inline uint8_t gmac_get_MDIO(Gmac *p_gmac)
  */
 static inline uint8_t gmac_is_phy_idle(Gmac *p_gmac)
 {
-	return ((p_gmac->GMAC_NSR & GMAC_NSR_IDLE) > 0);
+    return ((p_gmac->GMAC_NSR & GMAC_NSR_IDLE) > 0);
 }
 
 /*
@@ -779,7 +779,7 @@ static inline uint8_t gmac_is_phy_idle(Gmac *p_gmac)
  */
 static inline uint32_t gmac_get_tx_status(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_TSR;
+    return p_gmac->GMAC_TSR;
 }
 
 /*
@@ -790,7 +790,7 @@ static inline uint32_t gmac_get_tx_status(Gmac *p_gmac)
  */
 static inline void gmac_clear_tx_status(Gmac *p_gmac, uint32_t ul_status)
 {
-	p_gmac->GMAC_TSR = ul_status;
+    p_gmac->GMAC_TSR = ul_status;
 }
 
 /*
@@ -800,7 +800,7 @@ static inline void gmac_clear_tx_status(Gmac *p_gmac, uint32_t ul_status)
  */
 static inline uint32_t gmac_get_rx_status(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_RSR;
+    return p_gmac->GMAC_RSR;
 }
 
 /*
@@ -811,7 +811,7 @@ static inline uint32_t gmac_get_rx_status(Gmac *p_gmac)
  */
 static inline void gmac_clear_rx_status(Gmac *p_gmac, uint32_t ul_status)
 {
-	p_gmac->GMAC_RSR = ul_status;
+    p_gmac->GMAC_RSR = ul_status;
 }
 
 /*
@@ -822,7 +822,7 @@ static inline void gmac_clear_rx_status(Gmac *p_gmac, uint32_t ul_status)
  */
 static inline void gmac_set_rx_queue(Gmac *p_gmac, uint32_t ul_addr)
 {
-	p_gmac->GMAC_RBQB = GMAC_RBQB_ADDR_Msk & ul_addr;
+    p_gmac->GMAC_RBQB = GMAC_RBQB_ADDR_Msk & ul_addr;
 }
 
 /*
@@ -834,7 +834,7 @@ static inline void gmac_set_rx_queue(Gmac *p_gmac, uint32_t ul_addr)
  */
 static inline uint32_t gmac_get_rx_queue(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_RBQB;
+    return p_gmac->GMAC_RBQB;
 }
 
 /*
@@ -845,7 +845,7 @@ static inline uint32_t gmac_get_rx_queue(Gmac *p_gmac)
  */
 static inline void gmac_set_tx_queue(Gmac *p_gmac, uint32_t ul_addr)
 {
-	p_gmac->GMAC_TBQB = GMAC_TBQB_ADDR_Msk & ul_addr;
+    p_gmac->GMAC_TBQB = GMAC_TBQB_ADDR_Msk & ul_addr;
 }
 
 /*
@@ -857,7 +857,7 @@ static inline void gmac_set_tx_queue(Gmac *p_gmac, uint32_t ul_addr)
  */
 static inline uint32_t gmac_get_tx_queue(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_TBQB;
+    return p_gmac->GMAC_TBQB;
 }
 
 /*
@@ -868,7 +868,7 @@ static inline uint32_t gmac_get_tx_queue(Gmac *p_gmac)
  */
 static inline void gmac_enable_interrupt(Gmac *p_gmac, uint32_t ul_source)
 {
-	p_gmac->GMAC_IER = ul_source;
+    p_gmac->GMAC_IER = ul_source;
 }
 
 /*
@@ -879,7 +879,7 @@ static inline void gmac_enable_interrupt(Gmac *p_gmac, uint32_t ul_source)
  */
 static inline void gmac_disable_interrupt(Gmac *p_gmac, uint32_t ul_source)
 {
-	p_gmac->GMAC_IDR = ul_source;
+    p_gmac->GMAC_IDR = ul_source;
 }
 
 /*
@@ -891,7 +891,7 @@ static inline void gmac_disable_interrupt(Gmac *p_gmac, uint32_t ul_source)
  */
 static inline uint32_t gmac_get_interrupt_status(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_ISR;
+    return p_gmac->GMAC_ISR;
 }
 
 /*
@@ -903,7 +903,7 @@ static inline uint32_t gmac_get_interrupt_status(Gmac *p_gmac)
  */
 static inline uint32_t gmac_get_interrupt_mask(Gmac *p_gmac)
 {
-	return p_gmac->GMAC_IMR;
+    return p_gmac->GMAC_IMR;
 }
 
 /*
@@ -916,20 +916,20 @@ static inline uint32_t gmac_get_interrupt_mask(Gmac *p_gmac)
  * \param us_data   Data to be performed, write only.
  */
 static inline void gmac_maintain_phy(Gmac *p_gmac,
-		uint8_t uc_phy_addr, uint8_t uc_reg_addr, uint8_t uc_rw,
-		uint16_t us_data)
+        uint8_t uc_phy_addr, uint8_t uc_reg_addr, uint8_t uc_rw,
+        uint16_t us_data)
 {
-	/* Wait until bus idle */
-	while ((p_gmac->GMAC_NSR & GMAC_NSR_IDLE) == 0) {
-	}
-	/* Write maintain register */
-	p_gmac->GMAC_MAN = GMAC_MAN_WTN(GMAC_MAN_CODE_VALUE)
-			| GMAC_MAN_CLTTO
-			| GMAC_MAN_PHYA(uc_phy_addr)
-			| GMAC_MAN_REGA(uc_reg_addr)
-			| GMAC_MAN_OP((uc_rw ? GMAC_MAN_RW_TYPE :
-			  GMAC_MAN_READ_ONLY))
-			| GMAC_MAN_DATA(us_data);
+    /* Wait until bus idle */
+    while ((p_gmac->GMAC_NSR & GMAC_NSR_IDLE) == 0) {
+    }
+    /* Write maintain register */
+    p_gmac->GMAC_MAN = GMAC_MAN_WTN(GMAC_MAN_CODE_VALUE)
+            | GMAC_MAN_CLTTO
+            | GMAC_MAN_PHYA(uc_phy_addr)
+            | GMAC_MAN_REGA(uc_reg_addr)
+            | GMAC_MAN_OP((uc_rw ? GMAC_MAN_RW_TYPE :
+              GMAC_MAN_READ_ONLY))
+            | GMAC_MAN_DATA(us_data);
 }
 
 /*
@@ -941,11 +941,11 @@ static inline void gmac_maintain_phy(Gmac *p_gmac,
  */
 static inline uint16_t gmac_get_phy_data(Gmac *p_gmac)
 {
-	/* Wait until bus idle */
-	while ((p_gmac->GMAC_NSR & GMAC_NSR_IDLE) == 0) {
-	}
-	/* Return data */
-	return (uint16_t)(p_gmac->GMAC_MAN & GMAC_MAN_DATA_Msk);
+    /* Wait until bus idle */
+    while ((p_gmac->GMAC_NSR & GMAC_NSR_IDLE) == 0) {
+    }
+    /* Return data */
+    return (uint16_t)(p_gmac->GMAC_MAN & GMAC_MAN_DATA_Msk);
 }
 
 /*
@@ -956,10 +956,10 @@ static inline uint16_t gmac_get_phy_data(Gmac *p_gmac)
  */
 static inline void gmac_set_pause_time(Gmac *p_gmac, uint16_t us_pause_time)
 {
-//	printf("ERROR"); /* Read only now.... */
-	while (1) {
-	}
-	/* p_gmac->GMAC_RPQ = us_pause_time; */
+//  printf("ERROR"); /* Read only now.... */
+    while (1) {
+    }
+    /* p_gmac->GMAC_RPQ = us_pause_time; */
 }
 
 /*
@@ -970,10 +970,10 @@ static inline void gmac_set_pause_time(Gmac *p_gmac, uint16_t us_pause_time)
  * \param ul_hash_bottom   Hash bottom.
  */
 static inline void gmac_set_hash(Gmac *p_gmac, uint32_t ul_hash_top,
-		uint32_t ul_hash_bottom)
+        uint32_t ul_hash_bottom)
 {
-	p_gmac->GMAC_HRB = ul_hash_bottom;
-	p_gmac->GMAC_HRT = ul_hash_top;
+    p_gmac->GMAC_HRB = ul_hash_bottom;
+    p_gmac->GMAC_HRT = ul_hash_top;
 }
 
 /*
@@ -984,8 +984,8 @@ static inline void gmac_set_hash(Gmac *p_gmac, uint32_t ul_hash_top,
  */
 static inline void gmac_set_hash64(Gmac *p_gmac, uint64_t ull_hash)
 {
-	p_gmac->GMAC_HRB = (uint32_t)ull_hash;
-	p_gmac->GMAC_HRT = (uint32_t)(ull_hash >> 32);
+    p_gmac->GMAC_HRB = (uint32_t)ull_hash;
+    p_gmac->GMAC_HRT = (uint32_t)(ull_hash >> 32);
 }
 
 /*
@@ -996,14 +996,14 @@ static inline void gmac_set_hash64(Gmac *p_gmac, uint64_t ull_hash)
  * \param p_mac_addr  GMAC address.
  */
 static inline void gmac_set_address(Gmac *p_gmac, uint8_t uc_index,
-		uint8_t *p_mac_addr)
+        uint8_t *p_mac_addr)
 {
-	p_gmac->GMAC_SA[uc_index].GMAC_SAB = (p_mac_addr[3] << 24)
-			| (p_mac_addr[2] << 16)
-			| (p_mac_addr[1] << 8)
-			| (p_mac_addr[0]);
-	p_gmac->GMAC_SA[uc_index].GMAC_SAT = (p_mac_addr[5] << 8)
-			| (p_mac_addr[4]);
+    p_gmac->GMAC_SA[uc_index].GMAC_SAB = (p_mac_addr[3] << 24)
+            | (p_mac_addr[2] << 16)
+            | (p_mac_addr[1] << 8)
+            | (p_mac_addr[0]);
+    p_gmac->GMAC_SA[uc_index].GMAC_SAT = (p_mac_addr[5] << 8)
+            | (p_mac_addr[4]);
 }
 
 /*
@@ -1015,10 +1015,10 @@ static inline void gmac_set_address(Gmac *p_gmac, uint8_t uc_index,
  * \param ul_mac_bottom  GMAC bottom address.
  */
 static inline void gmac_set_address32(Gmac *p_gmac, uint8_t uc_index,
-		uint32_t ul_mac_top, uint32_t ul_mac_bottom)
+        uint32_t ul_mac_top, uint32_t ul_mac_bottom)
 {
-	p_gmac->GMAC_SA[uc_index].GMAC_SAB = ul_mac_bottom;
-	p_gmac->GMAC_SA[uc_index].GMAC_SAT = ul_mac_top;
+    p_gmac->GMAC_SA[uc_index].GMAC_SAB = ul_mac_bottom;
+    p_gmac->GMAC_SA[uc_index].GMAC_SAT = ul_mac_top;
 }
 
 /*
@@ -1029,10 +1029,10 @@ static inline void gmac_set_address32(Gmac *p_gmac, uint8_t uc_index,
  * \param ull_mac  64-bit GMAC address.
  */
 static inline void gmac_set_address64(Gmac *p_gmac, uint8_t uc_index,
-		uint64_t ull_mac)
+        uint64_t ull_mac)
 {
-	p_gmac->GMAC_SA[uc_index].GMAC_SAB = (uint32_t)ull_mac;
-	p_gmac->GMAC_SA[uc_index].GMAC_SAT = (uint32_t)(ull_mac >> 32);
+    p_gmac->GMAC_SA[uc_index].GMAC_SAB = (uint32_t)ull_mac;
+    p_gmac->GMAC_SA[uc_index].GMAC_SAT = (uint32_t)(ull_mac >> 32);
 }
 
 /*
@@ -1043,13 +1043,13 @@ static inline void gmac_set_address64(Gmac *p_gmac, uint8_t uc_index,
  */
 static inline void gmac_enable_rmii(Gmac *p_gmac, uint8_t uc_enable)
 {
-//	if (uc_enable) {
-		/* RGMII mode is selected */
-		p_gmac->GMAC_UR |= GMAC_UR_RMIIMII;
-//	} else {
-//		/* GMII/MII mode is selected */
-//		p_gmac->GMAC_UR &= ~GMAC_UR_RMIIMII;
-//	}
+//  if (uc_enable) {
+        /* RGMII mode is selected */
+        p_gmac->GMAC_UR |= GMAC_UR_RMIIMII;
+//  } else {
+//      /* GMII/MII mode is selected */
+//      p_gmac->GMAC_UR &= ~GMAC_UR_RMIIMII;
+//  }
 }
 
 /*
@@ -1059,13 +1059,13 @@ static inline void gmac_enable_rmii(Gmac *p_gmac, uint8_t uc_enable)
  * \param uc_enable   0 to disable transceiver input clock, else to enable it.
  */
 static inline void gmac_enable_transceiver_clock(Gmac *p_gmac,
-		uint8_t uc_enable)
+        uint8_t uc_enable)
 {
-	/*	if (uc_enable) { */
-	/*		p_gmac->GMAC_UR |= GMAC_USRIO_CLKEN; */
-	/*	} else { */
-	/*		p_gmac->GMAC_UR &= ~GMAC_USRIO_CLKEN; */
-	/*	} */
+    /*  if (uc_enable) { */
+    /*      p_gmac->GMAC_UR |= GMAC_USRIO_CLKEN; */
+    /*  } else { */
+    /*      p_gmac->GMAC_UR &= ~GMAC_USRIO_CLKEN; */
+    /*  } */
 }
 
 
@@ -1074,7 +1074,7 @@ u32 GMAC_ReadPhy(u32 PhyAddress, u32 Address, u32 *pValue,u32 retry);
 void GMAC_MdioEnable(void);
 void GMAC_MdioDisable(void);
 void GMAC_EnableMIii(void);
-#endif 	/* __CPU_PERI_GMAC_H__ */
+#endif  /* __CPU_PERI_GMAC_H__ */
 
 
 

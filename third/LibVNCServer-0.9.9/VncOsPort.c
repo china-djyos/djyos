@@ -1,5 +1,5 @@
 // =======================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 模块描述: VNCServer
 // 模块版本: V1.00(初始化版本)
 // 文件名     ：thread.c
@@ -25,16 +25,16 @@
 // =============================================================================
 bool_t  TaskCreate(ptu32_t (*task)(void),void *arg,const char *name)
 {
-	bool_t result = false;
+    bool_t result = false;
     u16 threadID;
     threadID = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
-    						  task,NULL,0x400,name);
+                              task,NULL,0x400,name);
     if(threadID != CN_EVTT_ID_INVALID)
     {
-    	if(CN_EVENT_ID_INVALID != Djy_EventPop(threadID,NULL,0,arg,0,0))
-    	{
-    		result = true;
-    	}
+        if(CN_EVENT_ID_INVALID != Djy_EventPop(threadID,NULL,0,arg,0,0))
+        {
+            result = true;
+        }
     }
     return result;
 }

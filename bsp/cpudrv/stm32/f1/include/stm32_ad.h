@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -47,14 +47,14 @@
 #define STM32_AD_H_
 
 
-#define PowerAD_GPIOA7        	GPIO_Pin_7
-#define GmAD_GPIOC5        	    GPIO_Pin_5
-#define ShiDuAD_GPIOF6        	    GPIO_Pin_6
-#define ShiDuH_GPIOG13        	    GPIO_Pin_13
-#define ShiDuL_GPIOG14        	    GPIO_Pin_14
+#define PowerAD_GPIOA7          GPIO_Pin_7
+#define GmAD_GPIOC5             GPIO_Pin_5
+#define ShiDuAD_GPIOF6              GPIO_Pin_6
+#define ShiDuH_GPIOG13              GPIO_Pin_13
+#define ShiDuL_GPIOG14              GPIO_Pin_14
 
-#define b_ShiDu_H 		*((volatile unsigned long *) (PERIPH_BB_BASE + (GPIOG_BASE-PERIPH_BASE)*8*4 + 0x0C*8*4 + 13*4))				//GPIOG_ODR13
-#define b_ShiDu_L 		*((volatile unsigned long *) (PERIPH_BB_BASE + (GPIOG_BASE-PERIPH_BASE)*8*4 + 0x0C*8*4 + 14*4))				//GPIOG_ODR14
+#define b_ShiDu_H       *((volatile unsigned long *) (PERIPH_BB_BASE + (GPIOG_BASE-PERIPH_BASE)*8*4 + 0x0C*8*4 + 13*4))             //GPIOG_ODR13
+#define b_ShiDu_L       *((volatile unsigned long *) (PERIPH_BB_BASE + (GPIOG_BASE-PERIPH_BASE)*8*4 + 0x0C*8*4 + 14*4))             //GPIOG_ODR14
 
 
 extern void ad_init(void);

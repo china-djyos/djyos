@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -58,6 +58,8 @@
 #include "cpu_peri_clock.h"
 #include "sdram.h"
 
+#include "evkbimxrt1050_hyper_config.h"
+#include "fsl_flexspi_nor_boot.h"
 //#include "cpu-optional.h"
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
@@ -74,6 +76,8 @@ extern void __set_CONTROL(uint32_t control);
 extern void Load_Preload(void);
 
 extern void IAP_SelectLoadProgam(void);
+
+extern const flexspi_nor_config_t hyperflash_config;
 
 struct ScbReg volatile * const startup_scb_reg
                         = (struct ScbReg *)0xe000ed00;
@@ -100,15 +104,18 @@ const u32 gc_u32StartupExpTable[4] __attribute__ ((section(".StartupExpTbl")))=
 
 void Init_Cpu(void)
 {
-	__set_PSP((uint32_t)msp_top);
-	__set_PRIMASK(1);
-	__set_FAULTMASK(1);
-	__set_CONTROL(0);
+    flexspi_nor_config_t temp = hyperflash_config;
+    temp = *(&temp);
 
-	SystemInit();
-	BOARD_ConfigMPU();
-	ClockInit();
-	Sdram_SemcInit();
+    __set_PSP((uint32_t)msp_top);
+    __set_PRIMASK(1);
+    __set_FAULTMASK(1);
+    __set_CONTROL(0);
+
+    SystemInit();
+    BOARD_ConfigMPU();
+    ClockInit();
+    //Sdram_SemcInit();
     IAP_SelectLoadProgam();
 
 }
@@ -122,9 +129,9 @@ extern void Load_Preload(void);
 //-----------------------------------------------------------------
 void AppStart(void)
 {
-	__set_MSP((uint32_t)msp_top);
-	__set_PSP((uint32_t)msp_top);
-	Load_Preload();
+    __set_MSP((uint32_t)msp_top);
+    __set_PSP((uint32_t)msp_top);
+    Load_Preload();
 }
 
 //-----------------------------------------------------------------

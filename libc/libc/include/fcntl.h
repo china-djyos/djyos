@@ -104,7 +104,15 @@ extern "C" {
  #warning "O_CLOEXEC" duplicate definition!
 #endif
 
-// stat查询，解释为Specification，特性
+//djyos增加的定义，仅用于设备文件
+#ifndef S_BLOCK_COMPLETE
+ #define S_BLOCK_COMPLETE           0x80000000      //Write的完成条件是传输完成
+                                                    //否则写入buffer即算完成
+#else
+ #warning "S_BLOCK_COMPLETE" duplicate definition!
+#endif
+
+// stat查询，对应struct stat的st_mode成员的12-15bit
 #ifndef S_IFMT
  #define S_IFMT                     0x0000F000      //(00170000)// 1111-0000-0000-0000 文件类型屏蔽位
 #else
@@ -145,10 +153,10 @@ extern "C" {
 #else
  #warning "S_IFIFO" duplicate definition!
 #endif
-#ifndef __S_IBUF // 私有定义，表示文件允许在用户态下进行缓存
- #define __S_IBUF                   0x00003000      // 表示可以作为C文件可以作缓冲；
+#ifndef S_IFFLOW                                    //djyos增加定义，文件是个数据
+ #define S_IFFLOW                   0x00003000      //流此类文件一般不允许写缓冲
 #else
- #error "__S_IBUF" duplicate definition!
+ #error "S_IFFLOW" duplicate definition!
 #endif
 
 /* For machines which care - */
@@ -217,10 +225,10 @@ extern "C" {
 #define F_STDIO_MULTI_DEL   (F_STDIO_M+2)       // 将文件从STDIN多路复用集删除
 // 设备模块；
 #define F_DEV_M             (F_MODULE)
-#define F_SETDDRV           (F_DEV_M)           // 设置设备驱动标签；
-#define F_GETDDRV           (F_DEV_M+1)         // 获取设备的驱动标签；
-#define F_SETDTAG           (F_DEV_M+2)         // 设置设备的用户标签；
-#define F_GETDTAG           (F_DEV_M+3)         // 获取设备的用户标签；
+#define F_SETDRVTAG         (F_DEV_M)           // 设置设备驱动标签；
+#define F_GETDRVTAG         (F_DEV_M+1)         // 获取设备的驱动标签；
+#define F_SETUSERTAG        (F_DEV_M+2)         // 设置设备的用户标签；
+#define F_GETUSERTAG        (F_DEV_M+3)         // 获取设备的用户标签；
 #define F_DSTART            (F_DEV_M+4)         // 启动设备，有些能控制电源的设备需要
 #define F_DSTOP             (F_DEV_M+5)         // 启动设备，有些能控制电源的设备需要
 #define F_DSHUTDOWN         (F_DEV_M+6)         // 关闭电源,断电前需要特定处理的设备需要

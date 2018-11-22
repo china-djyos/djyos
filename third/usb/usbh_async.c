@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -79,8 +79,8 @@ static tagChannel *__FindChannel(u8 bPipe)
     {
         if(!channel)
             return (NULL); // 结束，未找到
-            
-        if(bPipe == channel->bPipe)    
+
+        if(bPipe == channel->bPipe)
             return (channel); // 找到
 
         channel = channel->pNext;
@@ -97,11 +97,11 @@ static tagChannel *__FindChannel(u8 bPipe)
 //-----------------------------------------------------------------------------
 static void __AddChannel(tagChannel * channel)
 {
-    
+
     if(!pChannels)
     {
         pChannels = channel; // 队列本身为空，则将本成员作为第一个
-    }    
+    }
     else
     {
         // 将本成员插入第一个的后面
@@ -125,17 +125,17 @@ static tagChannel *__DelChannel(u8 bPipe)
     {
         if(!channel)
             return (NULL); // 结束，未找到
-            
-        if(bPipe == channel->bPipe)    
+
+        if(bPipe == channel->bPipe)
         {
             if(pre)
                 pre->pNext = channel->pNext; // 将本成员从队列中剔除
             else
                 pChannels = channel->pNext; // 本成员是队列中第一个
-                
-            return (channel); 
-        }    
-        
+
+            return (channel);
+        }
+
         pre = channel;
         channel = channel->pNext;
     }
@@ -156,18 +156,18 @@ static tagChannel *__CreateChannel(u8 bPipe)
     struct RingBuf *ring = NULL;
     u8 *space = NULL;
     struct SemaphoreLCB *semp = NULL;
-    
+
     size = sizeof(tagChannel);
     res = malloc(size);
     if(!res)
         goto FAIL;
-        
-    memset(res, 0x0, size);    
-    
+
+    memset(res, 0x0, size);
+
     ring = malloc(sizeof(struct RingBuf));
     if(!ring)
         goto FAIL;
-        
+
     space = malloc(BUFFER_SIZE);
     if(!space)
         goto FAIL;
@@ -180,19 +180,19 @@ static tagChannel *__CreateChannel(u8 bPipe)
     res->pChannel = ring;
     res->bPipe = bPipe;
     res->pSemp = semp;
-    
+
     return (res);
-    
+
 FAIL:
-    if(res) 
+    if(res)
         free(res);
-    
-    if(ring) 
+
+    if(ring)
         free(ring);
-    
-    if(space) 
+
+    if(space)
         free(space);
-    
+
     if(semp)
         Lock_SempDelete(semp);
 
@@ -206,15 +206,15 @@ FAIL:
 //备注:
 //-----------------------------------------------------------------------------
 static void __DestroyChannel(tagChannel *pChannel)
-{    
+{
     if(pChannel->pChannel)
     {
         if(pChannel->pChannel->buf)
             free(pChannel->pChannel->buf);
-            
+
         free(pChannel->pChannel);
     }
-    
+
     Lock_SempDelete(pChannel->pSemp);
     free(pChannel);
 }
@@ -228,17 +228,17 @@ static void __DestroyChannel(tagChannel *pChannel)
 s32 USBH_OpenAsync(USBH_HandleTypeDef *pHost, u8 bPipe)
 {
     tagChannel *channel;
-    
+
     channel = __FindChannel(bPipe);
     if(channel)
         return (0); // pipe已经存在
-    
+
     channel = __CreateChannel(bPipe);
     if(!channel)
         return (-1);
-    
+
     __AddChannel(channel);
-    
+
     USBH_LL_EnAsync(pHost, bPipe);
     return (0);
 }
@@ -255,9 +255,9 @@ s32 USBH_CloseAsync(USBH_HandleTypeDef *pHost, u8 bPipe)
     channel = __DelChannel(bPipe);
     if(!channel)
         return (0); // pipe不存在
-        
+
     USBH_LL_DisAsync(pHost, bPipe);
-    __DestroyChannel(channel);    
+    __DestroyChannel(channel);
     return (0);
 }
 
@@ -271,17 +271,17 @@ void USBH_Store(u8 bPipe, u8 *pData, u32 dwLen)
 {
     tagChannel *channel;
     u32 res;
-    
+
     channel = __FindChannel(bPipe);
     if(!channel)
         return; // pipe不存在
-        
+
     res = Ring_Write(channel->pChannel, pData, dwLen);
     if(res != dwLen)
     {
         USBH_UsrLog("\r\nUSB Module : error : channel %d buffer overflow.\r\n", bPipe);
     }
-    
+
     Lock_SempPost(channel->pSemp); // 存在数据，设置信号
 }
 
@@ -295,7 +295,7 @@ u32 USBH_Fetch(u8 bPipe, u8 *pBuffer, u32 dwLen)
 {
     u32 len;
     tagChannel *channel;
-    
+
     channel = __FindChannel(bPipe);
     if(!channel)
         return (0); // pipe不存在

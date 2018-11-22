@@ -37,8 +37,8 @@ c/cpp文件则包含component_config_myname.h文件即可。
 //attribute:用户组件            //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
 //select:可选                   //选填“必选、可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，IDE裁剪界面中不显示
-//grade:none                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:none                //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
@@ -54,13 +54,13 @@ c/cpp文件则包含component_config_myname.h文件即可。
 DJYOS自有模块的参数配置一律使用有参数值格式：
 #define     CFG_PARAM   value       //"name",参数的注释
 只有第三方组件，允许使用无参数值格式：
-#define     CFG_PARAM                   //"name",参数的注释
+#define     CFG_PARAM               //"name",参数的注释
 其中"name"是显示在IDE图形配置界面中的名字，与真正的注释用逗号隔开。
 在第一个参数配置前，加入了一段代码：
 #ifndef ANY_PARAM
-#warning    “name”组件参数未配置，使用默认值
+#warning    “example”组件参数未配置，使用默认值
 ANY_PARAM是本模块配置的任一参数。
-这样写的好处是，即使用户没有配置，组件也能正常编译、阅读，并且能够给出警告，避免了传统开源软件必须结合makefile和configure这些天书式的文件才能正常阅读的毛病。
+这样写的好处是，即使用户没有配置，组件也能正常编译、阅读，并且能够给出警告，增强了可读性，避免了传统开源软件必须结合makefile和configure这些天书式的文件才能读懂的毛病。
 各参数自身的属性，使用标签加以说明，IDE的图形配置界面中，将据此做规则检查，各标签说明如下：
 //%$#@target = header/cmdline   ————header=配置结果放在头文件中；cmdline=配置结果放在编译命令行参数中。cmdline仅用于第三方开源软件，DJYOS自有组件不允许用
 //%$#@num,0,100,                ————配置项是数值，随后是最小值，最大值，用逗号分隔，留空则不限值
@@ -68,8 +68,8 @@ ANY_PARAM是本模块配置的任一参数。
 //%$#@string,1,10,              ————配置项是字符串，紧跟着串长度最小值，最大值，空则不限长度
 //%$#@select,                   ————IDE中设置勾选框，不注释掉为默认不勾选，否则默认勾选，勾选的将定义一个无值参数。只用于第三方组件，不允许自有组件使用。
 //%$#@free,                     ————自由配置，IDE不做规则检查
-//%$#@object_num,0,1,2,..,100	————配置object的数量，紧跟着罗列出全部可选值,与object_para绑定，选择此项中任意一值时，object_para项要做出动态增加与减少
-//%$#@object_para,				————配置每个object的参数，与object_num绑定，目前必须以上组件参数配置块的最后
+//%$#@object_num,0,1,2,..,100   ————配置object的数量，紧跟着罗列出全部可选值,与object_para绑定，选择此项中任意一值时，object_para项要做出动态增加与减少
+//%$#@object_para,              ————配置每个object的参数，与object_num绑定，目前必须以上组件参数配置块的最后
 
 5、被排除的文件
 

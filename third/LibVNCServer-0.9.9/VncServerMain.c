@@ -1,5 +1,5 @@
 // =======================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 模块描述: VNCServer
 // 模块版本: V1.00(初始化版本)
 // 文件名     ：VNCSERVER.c
@@ -89,12 +89,12 @@ int VncServer_Main(const char *lcdname)
     pgRfbServerScreen=M_Malloc(sizeof(rfbScreenInfo),0);
     if(NULL==pgRfbServerScreen)
     {
-    	printk("%s :No Mem For pgRfbServerScreen\n\r",__FUNCTION__);
+        printk("%s :No Mem For pgRfbServerScreen\n\r",__FUNCTION__);
         goto EXIT_NOMEMFORSCREEN;
     }
     else
     {
-    	memset((void *)pgRfbServerScreen, 0, sizeof(rfbScreenInfo));
+        memset((void *)pgRfbServerScreen, 0, sizeof(rfbScreenInfo));
     }
     rfbDefaultScreenInit(pgRfbServerScreen);
 
@@ -102,23 +102,23 @@ int VncServer_Main(const char *lcdname)
     extern bool_t VncDispInstall(rfbScreenInfo* rfbserver,const char *lcdname);
     if(false == VncDispInstall(pgRfbServerScreen,lcdname))
     {
-    	printk("%s :VncDisplay　Init Failed\n\r",__FUNCTION__);
-    	goto EXIT_DISPLAYFAILED;
+        printk("%s :VncDisplay　Init Failed\n\r",__FUNCTION__);
+        goto EXIT_DISPLAYFAILED;
     }
     //创建检测物理端口任?
     ret=TaskCreate(ClientListenTask,pgRfbServerScreen,"VncServerListen");
     if(false == ret)
     {
-    	printk("%s :CreateListenTask Failed\n\r",__FUNCTION__);
+        printk("%s :CreateListenTask Failed\n\r",__FUNCTION__);
         goto CLIENTLISTENTASK_FAILED;
     }
-	printk("%s :INIT SUCCESS\n\r",__FUNCTION__);
+    printk("%s :INIT SUCCESS\n\r",__FUNCTION__);
     return  0;
 //失败以后，应该等待子线程结束
 CLIENTLISTENTASK_FAILED:
 EXIT_DISPLAYFAILED:
-	free(pgRfbServerScreen);
-	pgRfbServerScreen = NULL;
+    free(pgRfbServerScreen);
+    pgRfbServerScreen = NULL;
 EXIT_NOMEMFORSCREEN:
     printk("%s:INIT FAILED!\n\r",__FUNCTION__);
     return -1;

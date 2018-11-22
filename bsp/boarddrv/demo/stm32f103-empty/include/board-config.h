@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -116,7 +116,7 @@ extern "C" {
 //#define STM32F102xB     //STM32F102C8, STM32F102R8, STM32F102CB and STM32F102RB
 //#define STM32F103x6     //STM32F103C4, STM32F103R4, STM32F103T4, STM32F103C6, STM32F103R6 and STM32F103T6
 //#define STM32F103xB     //STM32F103C8, STM32F103R8, STM32F103T8, STM32F103V8, STM32F103CB, STM32F103RB, STM32F103TB and STM32F103VB
-#define STM32F103xE     //STM32F103RC, STM32F103VC, STM32F103ZC, STM32F103RD, STM32F103VD, STM32F103ZD, STM32F103RE, STM32F103VE and STM32F103ZE
+//#define STM32F103xE     //STM32F103RC, STM32F103VC, STM32F103ZC, STM32F103RD, STM32F103VD, STM32F103ZD, STM32F103RE, STM32F103VE and STM32F103ZE
 //#define STM32F103xG     //STM32F103RF, STM32F103VF, STM32F103ZF, STM32F103RG, STM32F103VG and STM32F103ZG
 //#define STM32F105xC     //STM32F105R8, STM32F105V8, STM32F105RB, STM32F105VB, STM32F105RC and STM32F105VC
 //#define STM32F107xC     //STM32F107RB, STM32F107VB, STM32F107RC and STM32F107VC
@@ -127,7 +127,7 @@ extern "C" {
 //#define STM32F10X_LD_VL   //!< STM32F10X_LD_VL: STM32 Low density Value Line devices
 //#define STM32F10X_MD      //!< STM32F10X_MD: STM32 Medium density devices
 //#define STM32F10X_MD_VL   //!< STM32F10X_MD_VL: STM32 Medium density Value Line devices
-#define STM32F10X_HD      //!< STM32F10X_HD: STM32 High density devices
+//#define STM32F10X_HD      //!< STM32F10X_HD: STM32 High density devices
 //#define STM32F10X_HD_VL   //!< STM32F10X_HD_VL: STM32 High density value line devices
 //#define STM32F10X_XL      //!< STM32F10X_XL: STM32 XL-density devices
 //#define STM32F10X_CL      //!< STM32F10X_CL: STM32 Connectivity line devices

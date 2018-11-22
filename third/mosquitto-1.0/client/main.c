@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -75,85 +75,85 @@ static  char Message[CN_NAME_LIMIT]      ="Hello New World!";
 
 ptu32_t subtask(void)
 {
-	char *argv[]={
-		FuncName,
-		"-h",
-		Host,
-	   "-p",
-		Port,
-		"-u",
-		User,
-		"-P",
-		Passwd,
-		"-t",
-		Topic,
-		"-i",
-		ClientSID,
-		"-d",
-	};
-	int argc = (sizeof(argv))/(sizeof(char *));
-	printf("start\n\r");
+    char *argv[]={
+        FuncName,
+        "-h",
+        Host,
+       "-p",
+        Port,
+        "-u",
+        User,
+        "-P",
+        Passwd,
+        "-t",
+        Topic,
+        "-i",
+        ClientSID,
+        "-d",
+    };
+    int argc = (sizeof(argv))/(sizeof(char *));
+    printf("start\n\r");
 
-	Submain(argc,argv);
-	return 0;
+    Submain(argc,argv);
+    return 0;
 }
 
 bool_t subshell(char *param)
 {
-	pthread_create(NULL,NULL,subtask,NULL);
-	return true;
+    pthread_create(NULL,NULL,subtask,NULL);
+    return true;
 }
 ptu32_t pubtask(void)
 {
-	char *argv[]={
-		FuncName,
-		"-d",
-		"-h",
-		Host,
-	   "-p",
-		Port,
-		"-u",
-		User,
-		"-P",
-		Passwd,
-		"-t",
-		Topic,
-		"-i",
-		ClientPID,
-		"-m",
-		Message,
-	};
-	int argc = (sizeof(argv))/(sizeof(char *));
-	Pubmain(argc,argv);
-	return true;
+    char *argv[]={
+        FuncName,
+        "-d",
+        "-h",
+        Host,
+       "-p",
+        Port,
+        "-u",
+        User,
+        "-P",
+        Passwd,
+        "-t",
+        Topic,
+        "-i",
+        ClientPID,
+        "-m",
+        Message,
+    };
+    int argc = (sizeof(argv))/(sizeof(char *));
+    Pubmain(argc,argv);
+    return true;
 }
 bool_t pubshell(char *param)
 {
-	static u16 evttID = CN_EVTT_ID_INVALID;
-	if(NULL != param)
-	{
-		strncpy(Message,param,CN_NAME_LIMIT);
-	}
+    static u16 evttID = CN_EVTT_ID_INVALID;
+    if(NULL != param)
+    {
+        strncpy(Message,param,CN_NAME_LIMIT);
+    }
 
-	if(evttID == CN_EVENT_ID_INVALID)
-	{
-		evttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,pubtask,NULL,0x2000,"PUBTASK");
-	}
-	Djy_EventPop(evttID,NULL,0,NULL,NULL,0);
-	return true;
+    if(evttID == CN_EVENT_ID_INVALID)
+    {
+        evttID = Djy_EvttRegist(EN_CORRELATIVE,200,1,1,pubtask,NULL,0x2000,"PUBTASK");
+    }
+    Djy_EventPop(evttID,NULL,0,NULL,NULL,0);
+    return true;
 }
 
 #include <getopt.h>
 static bool_t mosquittoconfig(char *param)
 {
-	int    argc = 10;
-	char  *argv[10];
+    int    argc = 10;
+    char  *argv[10];
 
-	if(NULL!=param)
-	{
-		string2arg(&argc,&argv[1],param);
-		argc++;
-		argv[0] = __FUNCTION__;
+    if(NULL!=param)
+    {
+        string2arg(&argc,&argv[1],param);
+        argc++;
+        argv[0] = __FUNCTION__;
         int ch;
         opterr = 0;
         while ((ch = getopt(argc,argv,"h:p:u:P:t:i:I:m:"))!=-1)
@@ -165,33 +165,33 @@ static bool_t mosquittoconfig(char *param)
                                 strncpy(Host,optarg,CN_NAME_LIMIT);
                                 break;
                         case 'p':
-								memset(Port,0,CN_NAME_LIMIT);
-								strncpy(Port,optarg,CN_NAME_LIMIT);
-								break;
+                                memset(Port,0,CN_NAME_LIMIT);
+                                strncpy(Port,optarg,CN_NAME_LIMIT);
+                                break;
                         case 'u':
-								memset(User,0,CN_NAME_LIMIT);
-								strncpy(User,optarg,CN_NAME_LIMIT);
-								break;
+                                memset(User,0,CN_NAME_LIMIT);
+                                strncpy(User,optarg,CN_NAME_LIMIT);
+                                break;
                         case 'P':
-								memset(Passwd,0,CN_NAME_LIMIT);
-								strncpy(Passwd,optarg,CN_NAME_LIMIT);
-								break;
+                                memset(Passwd,0,CN_NAME_LIMIT);
+                                strncpy(Passwd,optarg,CN_NAME_LIMIT);
+                                break;
                         case 't':
-								memset(Topic,0,CN_NAME_LIMIT);
-								strncpy(Topic,optarg,CN_NAME_LIMIT);
-								break;
+                                memset(Topic,0,CN_NAME_LIMIT);
+                                strncpy(Topic,optarg,CN_NAME_LIMIT);
+                                break;
                         case 'i':
-								memset(ClientPID,0,CN_NAME_LIMIT);
-								strncpy(ClientPID,optarg,CN_NAME_LIMIT);
-								break;
+                                memset(ClientPID,0,CN_NAME_LIMIT);
+                                strncpy(ClientPID,optarg,CN_NAME_LIMIT);
+                                break;
                         case 'I':
-								memset(ClientSID,0,CN_NAME_LIMIT);
-								strncpy(ClientSID,optarg,CN_NAME_LIMIT);
-								break;
+                                memset(ClientSID,0,CN_NAME_LIMIT);
+                                strncpy(ClientSID,optarg,CN_NAME_LIMIT);
+                                break;
                         case 'm':
-								memset(Message,0,CN_NAME_LIMIT);
-								strncpy(Message,optarg,CN_NAME_LIMIT);
-								break;
+                                memset(Message,0,CN_NAME_LIMIT);
+                                strncpy(Message,optarg,CN_NAME_LIMIT);
+                                break;
                         default:
                                 printf("other option :%c\n",ch);
                 }
@@ -201,21 +201,21 @@ static bool_t mosquittoconfig(char *param)
         optind = 0;
         opterr = 0;
         optopt = '?';
-	}
-	else
-	{
-		//print all the config status
-		printf("mosquittpconfig:\n\r");
-		printf("host :%s\n\r",Host);
-		printf("port :%s\n\r",Port);
-		printf("user :%s\n\r",User);
-		printf("pass :%s\n\r",Passwd);
-		printf("csid :%s\n\r",ClientSID);
-		printf("cpid :%s\n\r",ClientPID);
-		printf("topic:%s\n\r",Topic);
-		printf("messg:%s\n\r",Message);
-	}
-	return true;
+    }
+    else
+    {
+        //print all the config status
+        printf("mosquittpconfig:\n\r");
+        printf("host :%s\n\r",Host);
+        printf("port :%s\n\r",Port);
+        printf("user :%s\n\r",User);
+        printf("pass :%s\n\r",Passwd);
+        printf("csid :%s\n\r",ClientSID);
+        printf("cpid :%s\n\r",ClientPID);
+        printf("topic:%s\n\r",Topic);
+        printf("messg:%s\n\r",Message);
+    }
+    return true;
 }
 
 
@@ -226,19 +226,19 @@ static struct shell_debug gMosquittoCmd[] =
 {
     {
         "sub",
-		subshell,
+        subshell,
         "usage:sub",
         "usage:sub"
     },
     {
         "pub",
-		pubshell,
+        pubshell,
         "usage:pub [message]",
         "usage:pub [message]"
     },
     {
         "moscfg",
-		mosquittoconfig,
+        mosquittoconfig,
         "usage:moscfg -h[host] -p[port] -u[user] -P[passwd] -I[subID] -i[pubid] -t[topic] -m[message]",
         "usage:moscfg config the environment"
     },

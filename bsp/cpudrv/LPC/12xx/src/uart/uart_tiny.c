@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -158,7 +158,7 @@ ptu32_t module_init_uart0(ptu32_t para)
                 uart0_drv_recv_buf,
                 uart0_buf_len);
 
-    Int_Register(cn_int_line_uart0); 
+    Int_Register(cn_int_line_uart0);
     Int_IsrConnect(cn_int_line_uart0,__uart0_int);
     Int_SettoAsynSignal(cn_int_line_uart0);
 
@@ -426,17 +426,17 @@ ptu32_t module_init_uart1(ptu32_t para)
 
     pg_inuse_line_buf = &uart1_line_buf1;
 
-    Int_Register(cn_int_line_uart1); 
+    Int_Register(cn_int_line_uart1);
     Int_IsrConnect(cn_int_line_uart1,__uart1_int);
     Int_SettoReal(cn_int_line_uart1);
 
-    Int_Register(cn_int_line_wakeup1); 
+    Int_Register(cn_int_line_wakeup1);
     Int_IsrConnect(cn_int_line_wakeup1,__uart1_rx);
     Int_SettoAsynSignal(cn_int_line_wakeup1);
     Int_RestoreAsynLine(cn_int_line_wakeup1);
 
 
-    Int_Register(cn_int_line_wakeup2); 
+    Int_Register(cn_int_line_wakeup2);
     Int_IsrConnect(cn_int_line_wakeup2,__uart1_tx);
     Int_SettoAsynSignal(cn_int_line_wakeup2);
     Int_RestoreAsynLine(cn_int_line_wakeup2);

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：cpu_peri_spi.c
 // 模块描述: SPI模块底层硬件驱动模块
 // 模块版本:
@@ -79,11 +79,11 @@
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_spi" //SPI总线驱动
 //parent:"spibus"               //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
 //dependence:"spibus","int","time","lock"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
@@ -127,15 +127,15 @@ struct SPI_IntParamSet
 //定义SPI控制块和中断静态量
 //#define CFG_SPI_BUF_LEN              128
 //#define CFG_SPI_DMA_BUF_LEN          128
-static struct SPI_CB s_Spi1_CB;
+static struct SPI_CB *s_ptSpi1_CB;
 static u8 s_Spi1_Buf[CFG_SPI_BUF_LEN];
 struct SPI_IntParamSet IntParamset1;
 
-static struct SPI_CB s_Spi2_CB;
+static struct SPI_CB *s_ptSpi2_CB;
 static u8 s_Spi2_Buf[CFG_SPI_BUF_LEN];
 struct SPI_IntParamSet IntParamset2;
 
-static struct SPI_CB s_Spi3_CB;
+static struct SPI_CB *s_ptSpi3_CB;
 static u8 s_Spi3_Buf[CFG_SPI_BUF_LEN];
 struct SPI_IntParamSet IntParamset3;
 
@@ -608,19 +608,19 @@ u32 SPI_ISR(ptu32_t IntLine)
 
     if(IntLine == CN_INT_LINE_SPI1)
     {
-        pSCB = &s_Spi1_CB;
+        pSCB = s_ptSpi1_CB;
         Reg = (tagSpiReg *)tg_SpiReg[CN_SPI1];
         param = &IntParamset1;
     }
     else if(IntLine == CN_INT_LINE_SPI2)
     {
-        pSCB = &s_Spi2_CB;
+        pSCB = s_ptSpi2_CB;
         Reg = (tagSpiReg *)tg_SpiReg[CN_SPI2];
         param = &IntParamset2;
     }
     else if(IntLine == CN_INT_LINE_SPI3)
     {
-        pSCB = &s_Spi3_CB;
+        pSCB = s_ptSpi3_CB;
         Reg = (tagSpiReg *)tg_SpiReg[CN_SPI3];
         param = &IntParamset3;
     }
@@ -738,7 +738,7 @@ bool_t SPI_LowPowerConfig(u8 port,u8 flag)
 bool_t SPI_Initialize(u8 port)
 {
     struct SPI_Param SPI_Config;
-    struct SPI_CB *pSpiCB = NULL;
+    struct SPI_CB **pSpiCB = NULL;
     u8 IntLine;
 
     switch(port)
@@ -747,19 +747,19 @@ bool_t SPI_Initialize(u8 port)
         SPI_Config.BusName          = "SPI1";
         SPI_Config.SPIBuf           = (u8*)&s_Spi1_Buf;
         IntLine = CN_INT_LINE_SPI1;
-        pSpiCB = &s_Spi1_CB;
+        *pSpiCB = s_pt&Spi1_CB;
         break;
     case CN_SPI2:
         SPI_Config.BusName          = "SPI2";
         SPI_Config.SPIBuf           = (u8*)&s_Spi2_Buf;
         IntLine = CN_INT_LINE_SPI2;
-        pSpiCB = &s_Spi2_CB;
+        *pSpiCB = &s_ptSpi2_CB;
         break;
     case CN_SPI3:
         SPI_Config.BusName          = "SPI3";
         SPI_Config.SPIBuf           = (u8*)&s_Spi3_Buf;
         IntLine = CN_INT_LINE_SPI3;
-        pSpiCB = &s_Spi3_CB;
+        *pSpiCB = &s_ptSpi3_CB;
         break;
     default:
         return (0);
@@ -773,14 +773,14 @@ bool_t SPI_Initialize(u8 port)
     SPI_Config.pCsInActive      = (CsInActiveFunc)__SPI_BusCsInActive;
     SPI_Config.pBusCtrl         = (SPIBusCtrlFunc)__SPI_BusCtrl;
 
-    if(NULL == SPI_BusAdd_s(pSpiCB, &SPI_Config)) // 将SPI端口添加到SPI总线
-        return (0); // 失败
-
     __SPI_HardConfig((u32)SPI_Config.SpecificFlag); // SPI寄存器设置
 
     __SPI_IntConfig(IntLine); // 注册中断
 
-    return (1); // 成功
+    if(*pSpiCB = SPI_BusAdd(&SPI_Config)) // 将SPI端口添加到SPI总线
+        return (1);
+    else
+        return (0);
 }
 //-----------------------------------------------------------------------------
 //功能: 安装SPI端口

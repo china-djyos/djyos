@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -53,38 +53,38 @@
 #define CPU_PERI_PORT_H_
 
 //宏定义：port口
-#define PORT_PORT_A     		0
-#define PORT_PORT_B     		1
-#define PORT_PORT_C     		2
-#define PORT_PORT_D     		3
-#define PORT_PORT_E     		4
-#define PORT_PORT_F     		5
-#define PORT_PORT_MAX     		5
+#define PORT_PORT_A             0
+#define PORT_PORT_B             1
+#define PORT_PORT_C             2
+#define PORT_PORT_D             3
+#define PORT_PORT_E             4
+#define PORT_PORT_F             5
+#define PORT_PORT_MAX           5
 
 //宏定义：引脚号
-#define PORT_PIN(x)				x
-#define PORT_PIN_MAX			31
+#define PORT_PIN(x)             x
+#define PORT_PIN_MAX            31
 
 //宏定义：引脚多功能利用选择
-#define PORT_PINMUX_ALTDIS		0	//Analog
+#define PORT_PINMUX_ALTDIS      0   //Analog
 #define PORT_PINMUX_GPIO        1
-#define PORT_PINMUX_ALT2        2	//chip specific
-#define PORT_PINMUX_ALT3        3	//chip specific
-#define PORT_PINMUX_ALT4        4	//chip specific
-#define PORT_PINMUX_ALT5        5	//chip specific
-#define PORT_PINMUX_ALT6        6	//chip specific
-#define PORT_PINMUX_ALT7        7	//chip specific / JTAG / NMI
+#define PORT_PINMUX_ALT2        2   //chip specific
+#define PORT_PINMUX_ALT3        3   //chip specific
+#define PORT_PINMUX_ALT4        4   //chip specific
+#define PORT_PINMUX_ALT5        5   //chip specific
+#define PORT_PINMUX_ALT6        6   //chip specific
+#define PORT_PINMUX_ALT7        7   //chip specific / JTAG / NMI
 
 //宏定义：定义中断触发边沿
-#define IQC_INTDMA_DISABLE      0	//禁止中断/DMA请求
-#define IQC_DMA_RISING_EDGE		1	//DMA请求上升沿触发
-#define IQC_DMA_FALING_EDGE     2	//DMA请求下降沿触发
-#define IQC_DMA_EIGHER_EDGE     3	//DMA请求任何边沿触发
-#define IQC_INT_LEVEL_LOW		8	//INT水平低电平触发
-#define IQC_INT_RISING_EDGE     9	//INT上升沿触发
-#define IQC_INT_FALING_EDGE     10	//INT下降沿触发
-#define IQC_INT_EIGHER_EDGE     11	//INT任何边沿触发
-#define IQC_INT_LEVEL_HIGH      12	//INT水平高电平触发
+#define IQC_INTDMA_DISABLE      0   //禁止中断/DMA请求
+#define IQC_DMA_RISING_EDGE     1   //DMA请求上升沿触发
+#define IQC_DMA_FALING_EDGE     2   //DMA请求下降沿触发
+#define IQC_DMA_EIGHER_EDGE     3   //DMA请求任何边沿触发
+#define IQC_INT_LEVEL_LOW       8   //INT水平低电平触发
+#define IQC_INT_RISING_EDGE     9   //INT上升沿触发
+#define IQC_INT_FALING_EDGE     10  //INT下降沿触发
+#define IQC_INT_EIGHER_EDGE     11  //INT任何边沿触发
+#define IQC_INT_LEVEL_HIGH      12  //INT水平高电平触发
 
 //宏定义：内部上下拉
 #define PORT_PULL_NONE          0

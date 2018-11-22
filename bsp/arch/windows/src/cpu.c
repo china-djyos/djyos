@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -71,6 +71,7 @@
 #include "arch_feature.h"
 #include "cpu.h"
 #include "djyos.h"
+#include "dbug.h"
 //#pragma comment(lib,"Winmm.lib")
 //#pragma comment (lib,"ntdll_32.lib")       // Copy From DDK  64位系统改为ntdll_64.lib
 
@@ -97,8 +98,6 @@ extern u32  g_s64OsTicks;             //操作系统运行ticks数
 u32 g_u32CycleSpeed = 100; //for(i=j;i>0;i--);每循环纳秒数*1.024
 u32 g_u32HundreUsfor = (1024<<7)/g_u32CycleSpeed;
 s64 s64g_freq;
-extern struct EventECB  *g_ptEventReady;      //就绪队列头
-extern struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
 u8 DjyosHeap[0x1000000];   //16M内存
 u32 WINAPI win_engine( LPVOID lpParameter );
 
@@ -118,7 +117,7 @@ u32 switch_context(ptu32_t line)
     return 0;
 }
 
-ptu32_t Heap_StaticModuleInit(ptu32_t para);
+void Heap_StaticModuleInit(void);
 void Sys_Start(void);
 
 void main(int argc, char *argv[])
@@ -139,7 +138,7 @@ void main(int argc, char *argv[])
     pHeapList.name[4] = '\0';
 //  a = CreateDirectory(_TEXT("fs"),NULL);
 //  a = CreateDirectory(_TEXT("fs\\sys"),NULL);
-    Heap_StaticModuleInit(0);
+    Heap_StaticModuleInit();
     Int_Init();
     QueryPerformanceFrequency(&litmp);
     s64g_freq = litmp.QuadPart;

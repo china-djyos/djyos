@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>stm32f103_demo</name>
+	<name>stm32f103_empty</name>
 	<comment></comment>
 	<projects>
 	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>full,incremental,</triggers>
+			<triggers>clean,full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -59,7 +59,7 @@
 	<variableList>
 		<variable>
 			<name>DJYOS_SRC_LOCATION</name>
-			<value>file:/D:/DIDE/djysrc</value>
+			<value>$%7BPARENT-1-ECLIPSE_HOME%7D/djysrc</value>
 		</variable>
 	</variableList>
 </projectDescription>

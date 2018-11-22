@@ -208,6 +208,6 @@ void    GDD_Demo_Listbox(void)
 {
     s_gListboxDemoMsgLink.MsgNum = sizeof(s_gListboxMsgTable) / sizeof(struct MsgProcTable);
     s_gListboxDemoMsgLink.myTable = (struct MsgProcTable *)&s_gListboxMsgTable;
-    GDD_CreateGuiApp("Listbox", &s_gListboxDemoMsgLink, 0x800, CN_WINBUF_PARENT);
+    GDD_CreateGuiApp("Listbox", &s_gListboxDemoMsgLink, 0x800, CN_WINBUF_PARENT,WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU);
     GDD_WaitGuiAppExit("Listbox");
 }

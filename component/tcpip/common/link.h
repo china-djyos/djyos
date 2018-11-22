@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -72,19 +72,19 @@
 typedef bool_t (*fnLinkIn)(void *iface,tagNetPkg *pkg); //pkg is the link frame
 //the tcpip stack use this function to pass the package to the hard device
 typedef bool_t (*fnLinkOut)(void *iface,tagNetPkg *pkglst,u32 framlen,u32 devtask,u16 proto,\
-							enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);//pkg is the ip frame
+                            enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);//pkg is the ip frame
 //this function is used do some command from the upper protocols;
 typedef bool_t (*fnLinkIo)(void *dev,u32 cmd,u32 para);
 typedef struct
 {
-	fnLinkIn     linkin;
-	fnLinkOut    linkout;
-	fnLinkIo     linkio;
+    fnLinkIn     linkin;
+    fnLinkOut    linkout;
+    fnLinkIo     linkio;
 }tagLinkOps;
 bool_t LinkRegister(enLinkType type,const char *name,tagLinkOps *ops);
 bool_t LinkUnRegister(enLinkType type,const char *name,tagLinkOps *ops);
 bool_t LinkSend(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
-		enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);
+        enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);
 void  *LinkFindOps(enLinkType type);
 const char *LinkTypeName(enLinkType type);
 bool_t LinkInit(void);

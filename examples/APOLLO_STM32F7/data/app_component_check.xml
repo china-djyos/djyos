@@ -1,32 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component>
-  <NlsCharset>false</NlsCharset>
+  <blackbox>true</blackbox>
+  <buffer>true</buffer>
   <ascii_charset>false</ascii_charset>
   <gb2312_charset>false</gb2312_charset>
   <utf8_charset>false</utf8_charset>
+  <NlsCharset>false</NlsCharset>
   <dbug>true</dbug>
-  <DevFile>true</DevFile>
+  <flash>true</flash>
   <uart>true</uart>
-  <djybus>false</djybus>
+  <DevFile>true</DevFile>
   <canbus>false</canbus>
-  <iicbus>false</iicbus>
   <ioiicbus>false</ioiicbus>
+  <iicbus>false</iicbus>
   <spibus>false</spibus>
-  <blackbox>true</blackbox>
-  <font>false</font>
+  <djybus>false</djybus>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>
-  <filesystem>true</filesystem>
+  <font>false</font>
   <easyfilesystem>false</easyfilesystem>
   <fatfilesystem>false</fatfilesystem>
-  <IAP>true</IAP>
+  <IAP>false</IAP>
   <yaf2filesystem>false</yaf2filesystem>
+  <filesystem>true</filesystem>
   <gdd>false</gdd>
   <gkernel>false</gkernel>
-  <HmiInput>false</HmiInput>
   <keyboard>false</keyboard>
   <mouse>false</mouse>
   <touch>false</touch>
+  <HmiInput>false</HmiInput>
   <isbus_host>false</isbus_host>
   <isbus_slave>false</isbus_slave>
   <lowpower>false</lowpower>
@@ -39,13 +41,14 @@
   <ymodem>false</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>
+  <int>true</int>
   <lock>true</lock>
-  <MsgQueue>true</MsgQueue>
+  <MsgQueue>false</MsgQueue>
   <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
-  <netconfig>false</netconfig>
   <boardinit>true</boardinit>
+  <netconfig>false</netconfig>
   <ctiic>false</ctiic>
   <PCF8574>false</PCF8574>
   <FT5X26>false</FT5X26>
@@ -62,6 +65,8 @@
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
   <Sharc21469>false</Sharc21469>
+  <silan>false</silan>
+  <sldrv>false</sldrv>
   <stm32f1>false</stm32f1>
   <stm32f3>false</stm32f3>
   <stm32f4>false</stm32f4>
@@ -70,7 +75,7 @@
   <stm32L4>false</stm32L4>
   <goahead250>false</goahead250>
   <duktape>false</duktape>
-  <imxrt1052>false</imxrt1052>
+  <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
   <libghttp>false</libghttp>
   <vncserver>false</vncserver>
@@ -83,7 +88,7 @@
   <zlib>false</zlib>
   <Clib>true</Clib>
   <cpu_peri_bksram>false</cpu_peri_bksram>
-  <cpu_peri_can>true</cpu_peri_can>
+  <cpu_peri_can>false</cpu_peri_can>
   <cpu_peri_dma>true</cpu_peri_dma>
   <cpu_peri_emflash>false</cpu_peri_emflash>
   <cpu_peri_eth>false</cpu_peri_eth>

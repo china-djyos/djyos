@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>NUCLEO-L476RG</boardName>
+  <cpu>
+    <cpuName>stm32l476xx</cpuName>
+    <mianClk>10.0</mianClk>
+    <chip>
+      <chipName>at24c02</chipName>
+    </chip>
+    <peripheral>cpu_peri_emflash</peripheral>
+    <peripheral>cpu_peri_iic</peripheral>
+    <peripheral>cpu_peri_lowpower</peripheral>
+    <peripheral>cpu_peri_spi</peripheral>
+    <peripheral>cpu_peri_systime</peripheral>
+    <peripheral>cpu_peri_timer</peripheral>
+    <peripheral>cpu_peri_uart</peripheral>
+    <peripheral>cpu_peri_wwdg</peripheral>
+    <peripheral>cpu_peri_hal</peripheral>
+  </cpu>
+</board>

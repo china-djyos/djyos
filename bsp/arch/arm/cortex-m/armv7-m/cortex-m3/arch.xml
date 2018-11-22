@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arch>
+    <archname>cortex-m3</archname>
+    <compile-option>
+        <mcpu>cortex-m3</mcpu>
+    </compile-option>
+</arch>

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：nrsec3000.c
 // 模块描述: 加密芯片nrsec3000模块驱动
 // 模块版本: V1.10
@@ -78,12 +78,12 @@
 //%$#@describe      ****组件描述开始
 //component name:"NRSEC3000"    //spi接口的国密2芯片
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件             //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                   //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                    //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"lock","spibus"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"lock","spibus","cpu_peri_spi"    //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -109,7 +109,7 @@
 //@#$%component end configure
 
 static u32 s_NRSEC3000_Timeout = CN_TIMEOUT_FOREVER;
-static struct SPI_Device s_NRSEC3000_Dev;
+static struct SPI_Device *s_ptNRSEC3000_Dev;
 //#define CFG_NRSEC3000_SPI_SPEED      (20000*1000)
 
 
@@ -170,11 +170,11 @@ void Cmd_DelayMs(u8 cmd)
  =============================================================================*/
 static void NRSEC3000_CsActive(void)
 {
-    SPI_CsActive(&s_NRSEC3000_Dev,s_NRSEC3000_Timeout);
+    SPI_CsActive(s_ptNRSEC3000_Dev,s_NRSEC3000_Timeout);
 }
 static void NRSEC3000_CsInActive(void)
 {
-    SPI_CsInactive(&s_NRSEC3000_Dev);
+    SPI_CsInactive(s_ptNRSEC3000_Dev);
 }
 static u32 NRSEC3000_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
 {
@@ -187,7 +187,7 @@ static u32 NRSEC3000_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
     data.SendBuf = sdata;
     data.SendLen = slen;
 
-    result = SPI_Transfer(&s_NRSEC3000_Dev,&data,true,s_NRSEC3000_Timeout);
+    result = SPI_Transfer(s_ptNRSEC3000_Dev,&data,true,s_NRSEC3000_Timeout);
     if(result != CN_SPI_EXIT_NOERR)
         return 0;
     return 1;
@@ -1611,18 +1611,12 @@ bool_t Safety_Cert()
 
 bool_t NRSEC3000_Init(char *BusName)
 {
-
-    s_NRSEC3000_Dev.AutoCs = false;
-    s_NRSEC3000_Dev.CharLen = 8;
-    s_NRSEC3000_Dev.Cs = 0;
-    s_NRSEC3000_Dev.Freq = CFG_NRSEC3000_SPI_SPEED;
-    s_NRSEC3000_Dev.Mode = SPI_MODE_3;
-    s_NRSEC3000_Dev.ShiftDir = SPI_SHIFT_MSB;
-    if(NULL != SPI_DevAdd(BusName,"NRSEC3000",0,8,SPI_MODE_3,SPI_SHIFT_MSB,CFG_NRSEC3000_SPI_SPEED,false))
-    //if(NULL != SPI_DevAdd_s(&s_NRSEC3000_Dev, BusName, "NRSEC3000"))
+    s_ptNRSEC3000_Dev = SPI_DevAdd(BusName,"NRSEC3000",0,8,SPI_MODE_3,
+                            SPI_SHIFT_MSB,CFG_NRSEC3000_SPI_SPEED,false);
+    if(NULL != s_ptNRSEC3000_Dev)
     {
-        SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_POLL,0,0);
-        //SPI_BusCtrl(&s_NRSEC3000_Dev,CN_SPI_SET_CLK,CFG_NRSEC3000_SPI_SPEED,0);
+        SPI_BusCtrl(s_ptNRSEC3000_Dev,CN_SPI_SET_POLL,0,0);
+        //SPI_BusCtrl(s_ptNRSEC3000_Dev,CN_SPI_SET_CLK,CFG_NRSEC3000_SPI_SPEED,0);
         return true;
     }
     return false;

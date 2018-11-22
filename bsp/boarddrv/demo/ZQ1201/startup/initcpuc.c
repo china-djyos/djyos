@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -104,50 +104,50 @@ void Startup_Hardfault(void)
 #include <silan_sdram.h>
 static void SystemInit(void)
 {
-	silan_pmu_wdt_reset_disable();
-	silan_dsp_ldo_config(LDO_OUT_12V);
-	silan_pwr_iso_disable();
+    silan_pmu_wdt_reset_disable();
+    silan_dsp_ldo_config(LDO_OUT_12V);
+    silan_pwr_iso_disable();
 
-	silan_vlsp_cclk_config(CLK_ON);
-	silan_soc_ldo_config(LDO_OUT_12V);
+    silan_vlsp_cclk_config(CLK_ON);
+    silan_soc_ldo_config(LDO_OUT_12V);
 
-	silan_dsp_dcache_cfg(DCACHE_MODE_DC);
+    silan_dsp_dcache_cfg(DCACHE_MODE_DC);
 
-	// LQFP64 Close MCU DEBUG
-	//silan_mcu_debug_close();
-	silan_risc_debug_close();
-	silan_dsp_debug_close();
+    // LQFP64 Close MCU DEBUG
+    //silan_mcu_debug_close();
+    silan_risc_debug_close();
+    silan_dsp_debug_close();
 }
 
 static void ResetInit(void)
 {
     silan_audiopll_init();
-	silan_syspll_init(SYSPLL_SSCG_OFF);
-	silan_sysclk_change(SYSCLK_FROM_PLL, SYSPLL_160M);
-	silan_timer_cclk_config(TIMER_CCLK_CLKSYS_DIV2, CLK_ON);
+    silan_syspll_init(SYSPLL_SSCG_OFF);
+    silan_sysclk_change(SYSCLK_FROM_PLL, SYSPLL_160M);
+    silan_timer_cclk_config(TIMER_CCLK_CLKSYS_DIV2, CLK_ON);
 
-//	iomux_init();
+//  iomux_init();
 
-//	silan_module_clkon(CLK_UART2, CLK_ON);
-///	silan_uart_sys_init(UART_2, BAUDRATE_115200);
+//  silan_module_clkon(CLK_UART2, CLK_ON);
+/// silan_uart_sys_init(UART_2, BAUDRATE_115200);
 
-//	SL_LOG("\n\n\n");
-//	SL_LOG("CLK_SYS = %dM", get_sysclk_val_settled()/1000000);
+//  SL_LOG("\n\n\n");
+//  SL_LOG("CLK_SYS = %dM", get_sysclk_val_settled()/1000000);
 
-//	m0_cache_init(CACHE_ENABLE, 0, 0, 0);
-//	m0_cache_init(CACHE_DISABLE, 0, 0, 0);
-//	cache_spi_cmd_sel(SF_CMD_FRD);
+//  m0_cache_init(CACHE_ENABLE, 0, 0, 0);
+//  m0_cache_init(CACHE_DISABLE, 0, 0, 0);
+//  cache_spi_cmd_sel(SF_CMD_FRD);
 
-	silan_mcu_cclksel(MCU_CCLK_DIV2);
+    silan_mcu_cclksel(MCU_CCLK_DIV2);
 
-//	int5ms_f = 0;
-//	int1s_f = 0;
-	silan_pic_init();
+//  int5ms_f = 0;
+//  int1s_f = 0;
+    silan_pic_init();
 }
 
 static void SDRAM_Init(void)
 {
-	silan_sdram_init();
+    silan_sdram_init();
 }
 void Init_Cpu(void)
 {
@@ -158,7 +158,7 @@ void Init_Cpu(void)
     SystemInit();
     ResetInit();
 
-	SDRAM_Init();
+    SDRAM_Init();
     IAP_SelectLoadProgam();
 }
 

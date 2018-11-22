@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -154,7 +154,7 @@ s32 objsys_init(void)
 // 返回：成功（文件描述符）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 hande2fd(struct objhandle *hdl)
+s32 Handle2fd(struct objhandle *hdl)
 {
     if(!hdl)
         return (-1);
@@ -168,7 +168,7 @@ s32 hande2fd(struct objhandle *hdl)
 // 返回：成功（对象句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-inline struct objhandle *fd2handle(s32 fd)
+struct objhandle *fd2Handle(s32 fd)
 {
     extern struct objhandle *fd2stdio(s32 fd);
 
@@ -404,6 +404,8 @@ inline s32 handle_free(struct objhandle *hdl)
 // ============================================================================
 inline void handle_init(struct objhandle *hdl, struct obj *ob, u32 flags, ptu32_t context)
 {
+    memset(hdl, 0, sizeof(struct objhandle));
+    hdl->timeout = CN_TIMEOUT_FOREVER;
     hdl->obj = ob;
     hdl->context = context;
     hdl->flags = flags;
@@ -459,7 +461,7 @@ inline void handle_linkcontext(struct objhandle *hdl, ptu32_t context)
 inline void *handle_val(struct objhandle *hdl)
 {
     if(hdl&&hdl->obj)
-        return ((void*)obj_val(hdl->obj));
+        return ((void*)obj_GetPrivate(hdl->obj));
 
     return (NULL);
 }
@@ -503,7 +505,7 @@ s32 handle_linkobj(struct objhandle *hdl, struct obj *ob)
 inline struct MultiplexObjectCB *handle_multiplex(struct objhandle *hdl)
 {
     if(hdl)
-        return (hdl->mphead);
+        return (hdl->pMultiplexHead);
 
     return (NULL);
 }
@@ -518,7 +520,7 @@ inline struct MultiplexObjectCB *handle_multiplex(struct objhandle *hdl)
 inline void handle_setmultiplex(struct objhandle *hdl, struct MultiplexObjectCB *cb)
 {
     if(hdl)
-        hdl->mphead = cb;
+        hdl->pMultiplexHead = cb;
 }
 
 // ============================================================================
@@ -660,7 +662,7 @@ void hdl2objrflag(struct objhandle *hdl, u32 flags)
 inline u32 handle_multievents(struct objhandle *hdl)
 {
     if(hdl)
-        return (hdl->mevents);
+        return (hdl->MultiplexEvents);
 
     return (0);
 }
@@ -679,10 +681,10 @@ inline void handle_set_multievent(struct objhandle *hdl, u32 events)
 
     if(hdl)
     {
-        check = hdl->mevents;
-        hdl->mevents |= events;
-        if(check!=hdl->mevents)
-            __Multiplex_Set(hande2fd(hdl), hdl->mevents);
+        check = hdl->MultiplexEvents;
+        hdl->MultiplexEvents |= events;
+        if(check!=hdl->MultiplexEvents)
+            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
 }
 
@@ -700,10 +702,10 @@ inline void handle_unset_multievent(struct objhandle *hdl, u32 events)
 
     if(hdl)
     {
-        check = hdl->mevents;
-        hdl->mevents &= ~events;
-        if(check != hdl->mevents)
-            __Multiplex_Set(hande2fd(hdl), hdl->mevents);
+        check = hdl->MultiplexEvents;
+        hdl->MultiplexEvents &= ~events;
+        if(check != hdl->MultiplexEvents)
+            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
 }
 
@@ -717,7 +719,7 @@ inline void handle_unset_multievent(struct objhandle *hdl, u32 events)
 s32 handle_multievent_setall(list_t* all, u32 events)
 {
     struct objhandle *hdl;
-    u32 mevents;
+    u32 MultiplexEvents;
     list_t *head, *cur;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 
@@ -729,10 +731,10 @@ s32 handle_multievent_setall(list_t* all, u32 events)
     dListForEach(cur, head)
     {
         hdl = dListEntry(cur, struct objhandle, list);
-        mevents = hdl->mevents;
-        hdl->mevents |= events;
-        if(mevents!=hdl->mevents)
-            __Multiplex_Set(hande2fd(hdl), hdl->mevents);
+        MultiplexEvents = hdl->MultiplexEvents;
+        hdl->MultiplexEvents |= events;
+        if(MultiplexEvents!=hdl->MultiplexEvents)
+            __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
     __unlock_handle_sys();
     return (0);
@@ -748,7 +750,7 @@ s32 handle_multievent_setall(list_t* all, u32 events)
 s32 handle_multievent_unsetall(list_t *all, u32 events)
 {
     struct objhandle *hdl;
-    u32 mevents;
+    u32 MultiplexEvents;
     list_t *head, *cur;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 
@@ -760,10 +762,10 @@ s32 handle_multievent_unsetall(list_t *all, u32 events)
     dListForEach(cur, head)
     {
         hdl = dListEntry(cur, struct objhandle, list);
-        mevents = hdl->mevents;
-        hdl->mevents &= ~events;
-        if(mevents != hdl->mevents)
-            __Multiplex_Set(hande2fd(hdl),hdl->mevents);
+        MultiplexEvents = hdl->MultiplexEvents;
+        hdl->MultiplexEvents &= ~events;
+        if(MultiplexEvents != hdl->MultiplexEvents)
+            __Multiplex_Set(Handle2fd(hdl),hdl->MultiplexEvents);
     }
 
     __unlock_handle_sys();
@@ -848,7 +850,7 @@ int open(const char *pathname, int flags, ...)
 #endif
 
     hdl = __open((char*)pathname, flags, 0);
-    return (hande2fd(hdl));
+    return (Handle2fd(hdl));
 }
 
 // ============================================================================
@@ -861,7 +863,7 @@ int close(int fd)
 {
     struct objhandle *hdl;
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
@@ -923,7 +925,7 @@ ssize_t read(int fd, void *buf, size_t size)
     if(0 == size)
         return (0);
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
@@ -954,7 +956,7 @@ ssize_t write(int fd, const void *buf, size_t count)
     if(0 == count)
         return (0);
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
@@ -985,7 +987,7 @@ off_t lseek(int fd, off_t offset, int whence)
     if((SEEK_SET == whence) && (offset < 0))
         return (-1); // 错误的逻辑
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
@@ -1010,7 +1012,7 @@ int fsync(int fd)
     struct objhandle *hdl;
     s32 res;
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
     {
         errno = EBADF; // 参数错误
@@ -1033,7 +1035,7 @@ off_t tell(int fd)
     s64 offset;
     s32 res;
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
     {
         errno = EBADF; // 参数错误
@@ -1062,7 +1064,7 @@ int fstat(int fd, struct stat *buf)
     if(NULL == buf)
         return(-1);
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
@@ -1117,7 +1119,7 @@ int ftruncate(int fd, off_t length)
     if(0 == length)
         return (0);
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
@@ -1342,7 +1344,7 @@ int fcntl(int fd, int cmd, ...)
     va_list args;
     s32 res = -1;
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
@@ -1406,7 +1408,7 @@ int ioctl(int fd, int cmd, ...)
     u32 arg_linux;
     s32 res = -1;
 
-    hdl = fd2handle(fd);
+    hdl = fd2Handle(fd);
     if(!hdl)
         return (0);
 
@@ -1797,7 +1799,7 @@ static struct objhandle *__rf_open(struct obj *ob, u32 flags, char *name)
         if(!test_onlycreat(flags))
             return (NULL); // 逻辑上不合要求；必须创建，但已存在；
 
-        file = (struct __ramfile*)obj_val(ob);
+        file = (struct __ramfile*)obj_GetPrivate(ob);
         if(test_regular(flags)) // 打开文件；
         {
             if(file->type!=RAM_REG)
@@ -1880,7 +1882,7 @@ static s32 __rf_close(struct objhandle *hdl)
 // ============================================================================
 static s32 __rf_remove(struct obj *ob)
 {
-    struct __ramfile *file = (struct __ramfile*)obj_val(ob);
+    struct __ramfile *file = (struct __ramfile*)obj_GetPrivate(ob);
 
     if(RAM_REG==file->type)
     {
@@ -2080,7 +2082,7 @@ static s32 __rf_readdentry(struct objhandle *hdl, struct dirent *dentry)
             return (1); // 全部读完；
     }
 
-    if(!obj_val(ob))
+    if(!obj_GetPrivate(ob))
         dentry->d_type = DIRENT_IS_DIR;
     else
         dentry->d_type = DIRENT_IS_REG;
@@ -2099,7 +2101,7 @@ static s32 __rf_readdentry(struct objhandle *hdl, struct dirent *dentry)
 // ============================================================================
 static s32 __rf_stat(struct obj *ob, struct stat *data)
 {
-    struct __ramfile *file = (struct __ramfile*)obj_val(ob);
+    struct __ramfile *file = (struct __ramfile*)obj_GetPrivate(ob);
     struct __ramreg *reg;
 
     if(RAM_REG==file->type) // 文件

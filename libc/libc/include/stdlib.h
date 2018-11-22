@@ -159,8 +159,8 @@ extern long double strtold (const char *__restrict, char **__restrict);
 char * itoa(s32 d, char *buf, s32 scale);
 
 extern void *(*M_Malloc)(ptu32_t size,u32 timeout);
-extern void *(*M_Realloc) (void *, ptu32_t,u32 timeout);
-extern void  (*free)(void * pl_mem);
+extern void *(*M_Realloc) (void *, ptu32_t NewSize);
+extern void  (*M_Free)(void * pl_mem);
 extern void *(*M_MallocHeap)(ptu32_t size,pHeap_t Heap,u32 timeout);
 extern void *(*M_MallocLc)(ptu32_t size,u32 timeout);
 extern void *(*M_MallocLcHeap)(ptu32_t size,pHeap_t Heap, u32 timeout);
@@ -176,8 +176,9 @@ extern ptu32_t (*M_GetFreeMem)(void);
 extern ptu32_t (*M_GetFreeMemHeap)(pHeap_t Heap);
 extern ptu32_t (*M_CheckSize)(void * mp);
 
+#define free(x) M_Free(x)
 #define malloc(x) M_Malloc(x,0)
-#define realloc(p,size) M_Realloc(p,size,0)
+#define realloc(p,size) M_Realloc(p,size)
 #define malloc_usable_size(ptr) M_CheckSize(ptr)
 
 extern void * calloc (ptu32_t, ptu32_t);

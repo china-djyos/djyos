@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：board.c
 // 模块描述: 板件相关部分初始化或配置等
 // 模块版本: V1.00
@@ -56,6 +56,44 @@
 #include "cpu_peri.h"
 
 #include <silan_iomux.h>
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_myname.h****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern void Board_GpioInit(void);
+//    Board_GpioInit();
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"board"       //板件特性驱动
+//parent:"none"                             //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                             //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:required                           //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                            //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early                           //初始化时机，可选值：early，medium，later。
+                                            //表示初始化时间，分别是早期、中期、后期
+//dependence:"kernel","sldrv","cpu_peri_gpio"                 //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                            //选中该组件时，被依赖组件将强制选中，
+                                            //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"                     //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                            //选中该组件时，被依赖组件不会被强制选中，
+                                            //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                              //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                            //如果依赖多个组件，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header                       //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+// =============================================================================
 // =============================================================================
 // 功能：根据具体的板件配置串口的GPIO的引脚功能，这是与板件相关，所以该函数放在该文件，CPU
 //      串口驱动直接调用该函数来初始化串口的GPIO引脚
@@ -65,8 +103,8 @@
 // =============================================================================
 bool_t Board_GpioInit(u8 SerialNo)
 {
-	silan_io_func_config(IO_CONFIG_PA4, PA4_FUNC_UART2);
-	silan_io_func_config(IO_CONFIG_PA5, PA5_FUNC_UART2);
+    silan_io_func_config(IO_CONFIG_PA4, PA4_FUNC_UART2);
+    silan_io_func_config(IO_CONFIG_PA5, PA5_FUNC_UART2);
     return true;
 }
 

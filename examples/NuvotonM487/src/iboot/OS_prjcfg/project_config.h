@@ -7,17 +7,17 @@
 
 #include "stdint.h"
 
-//*******************************  Configure DevFile  ******************************************//
-#define CFG_DEVFILE_LIMIT       10        // "设备数量",定义设备数量
-//*******************************  Configure heap  ******************************************//
-#define CFG_DYNAMIC_MEM true    // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
 //*******************************  Configure lock  ******************************************//
 #define CFG_LOCK_LIMIT          40        // "锁的数量",定义锁的数量，包含信号量和互斥量
+//*******************************  Configure heap  ******************************************//
+#define CFG_DYNAMIC_MEM true    // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
+//*******************************  Configure DevFile  ******************************************//
+#define CFG_DEVFILE_LIMIT       10        // "设备数量",定义设备数量
 //*******************************  Configure stdio  ******************************************//
-#define     CFG_STDIO_RUN_MODE               (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW)  // "STDIO模式",
-#define     CFG_STDIO_IN_NAME                "/dev/UART0"        // "输入设备名",
-#define     CFG_STDIO_OUT_NAME               "/dev/UART0"        // "输出设备名",
-#define     CFG_STDIO_ERR_NAME               "/dev/UART0"        // "err输出设备名",
+#define CFG_STDIO_RUN_MODE            (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW)   // "STDIO模式",
+#define CFG_STDIO_IN_NAME              "/dev/UART1"  // "输入设备名",
+#define CFG_STDIO_OUT_NAME             "/dev/UART1"  // "输出设备名",
+#define CFG_STDIO_ERR_NAME             "/dev/UART1"  // "err输出设备名",
 //*******************************  Configure cpu_peri_uart  ******************************************//
 #define CFG_UART0_SENDBUF_LEN            32                   // "UART1发送环形缓冲区大小",
 #define CFG_UART0_RECVBUF_LEN            32                   // "UART1接收环形缓冲区大小",
@@ -61,10 +61,6 @@
 #define CFG_IBOOT_VERSION       "V1.0.0"          // Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME   "iboot.bin"       // iboot更新文件名，此二配置，以后改掉
 #define CFG_IBOOT_UPDATE_PATH   "\\"       // iboot更新路径名，此二配置，以后改掉
-//*******************************  Configure fatfilesystem  ******************************************//
-#define CFG_OPTIONS             0       //FAT文件系统文件安装逻辑
-#define CFG_MOUNT_POINT         ""      //FAT文件系统安装目录
-#define CFG_MOUNT_DEV           ""      //FAT文件系统所在设备路径
 //******************************* Core Clock ******************************************//
 #define  CFG_CORE_MCLK                   (192*Mhz)         //主频，内核要用，必须定义
 

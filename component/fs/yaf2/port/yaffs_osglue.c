@@ -22,7 +22,10 @@
 #include "../yaffs2-583dbd9/yaffs2-583dbd9/yaffs_trace.h"
 #include <assert.h>
 
+
 #include <errno.h>
+#include <heap.h>
+#include <systime.h>
 #include <unistd.h>
 #include "dbug.h"
 // DJYOS相关

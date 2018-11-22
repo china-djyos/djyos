@@ -32,12 +32,12 @@
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_iic"  //CPU的iic总线驱动
 //parent:"iicbus"                //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件              //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                    //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//attribute:bsp                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//grade:init                     //初始化时机，可选值：none，init，main。none表示无须初始化，
-                                 //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"iicbus","int",           //该组件的依赖组件名（可以是none，表示无依赖组件），
+//init time:medium               //初始化时机，可选值：early，medium，later。
+                                 //表示初始化时间，分别是早期、中期、后期
+//dependence:"iicbus","int",     //该组件的依赖组件名（可以是none，表示无依赖组件），
                                  //选中该组件时，被依赖组件将强制选中，
                                  //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -113,8 +113,8 @@
 #define I2C_SR_SRW                  (1<<2)//I2C中断标志位
 #define I2C_SR_MIF                  (1<<1)//I2C仲裁丢失
 #define I2C_SR_RXAK                 (1<<0)//I2C接收到ACK信号
-static struct IIC_CB s_IIC0_CB;
-static struct IIC_CB s_IIC1_CB;
+static struct IIC_CB *s_ptIIC0_CB;
+static struct IIC_CB *s_ptIIC1_CB;
 
 //#define IIC0_BUF_LEN  128
 //#define IIC1_BUF_LEN  128
@@ -551,7 +551,7 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
 
     if(CHKBIT(reg->I2CSR, I2C_SR_MIF))//iic1中断
     {
-        ICB = &s_IIC0_CB;
+        ICB = s_ptIIC0_CB;
         IntParam = &IntParamset0;
     }
     else
@@ -559,7 +559,7 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
         reg = (tagI2CReg*)CN_IIC_REGISTER_BADDR1;
         if(CHKBIT(reg->I2CSR, I2C_SR_MIF))//iic2中断
         {
-            ICB = &s_IIC1_CB;
+            ICB = s_ptIIC1_CB;
             IntParam = &IntParamset1;
         }
         else
@@ -658,9 +658,10 @@ bool_t IIC0_Init(void)
     __IIC_HardDefaultSet(CN_IIC_REGISTER_BADDR0);
     __IIC_IntConfig(cn_int_line_iic_controllers,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd_r(&IIC0_Config,&s_IIC0_CB))
+    if(s_ptIIC0_CB = IIC_BusAdd(&IIC0_Config))
+        return 1;
+    else
         return 0;
-    return 1;
 }
 
 // =============================================================================
@@ -689,9 +690,10 @@ bool_t IIC1_Init(void)
     __IIC_HardDefaultSet(CN_IIC_REGISTER_BADDR0);
     __IIC_IntConfig(cn_int_line_iic_controllers,__IIC_ISR);
 
-    if(NULL == IIC_BusAdd_r(&IIC1_Config,&s_IIC1_CB))
+    if(s_ptIIC1_CB = IIC_BusAdd(&IIC1_Config))
+        return 1;
+    else
         return 0;
-    return 1;
 }
 
 

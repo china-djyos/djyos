@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -57,24 +57,24 @@
 #include "cpu_peri.h"
 bool_t devEvent(ptu32_t handle,enNetDevEvent event)
 {
-	switch(event)
-	{
-		case EN_NETDEVEVENT_LINKDOWN:
-			printf("ppp dev link down");
-			break;
-		case EN_NETDEVEVENT_LINKUP:
-			printf("ppp dev up");
-			break;
-		case EN_NETDEVEVENT_IPGET:
-			printf("ppp dev IP GET");
-			break;
-		case EN_NETDEVEVENT_IPRELEASE:
-			printf("ppp dev IP RELEASE");
-			break;
-		default:
-			break;
-	}
-	return true;
+    switch(event)
+    {
+        case EN_NETDEVEVENT_LINKDOWN:
+            printf("ppp dev link down");
+            break;
+        case EN_NETDEVEVENT_LINKUP:
+            printf("ppp dev up");
+            break;
+        case EN_NETDEVEVENT_IPGET:
+            printf("ppp dev IP GET");
+            break;
+        case EN_NETDEVEVENT_IPRELEASE:
+            printf("ppp dev IP RELEASE");
+            break;
+        default:
+            break;
+    }
+    return true;
 }
 
 static bool_t gTcpOK = true;  //my own tcp condition
@@ -91,22 +91,22 @@ bool_t pppStart(void)
     extern bool_t AtDial(char *devname,char *apn);
     extern bool_t ModemReset(void);
     extern bool_t PppDevAdd(char *netdev,char *iodev,const char *user,const char *passwd,const char *apn,\
-    		         bool_t (*fnModemReset)(void),bool_t (*fnModemAtregnet)(char *devname,char *apn),\
-    				 fnNetDevEventHook eventhook);
+                     bool_t (*fnModemReset)(void),bool_t (*fnModemAtregnet)(char *devname,char *apn),\
+                     fnNetDevEventHook eventhook);
     //if you want to auto check the simcard and apn,please set the APN to NULL
     PppDevAdd(netdevname,iodevname,"cyg","zhangqf",NULL,ModemReset,AtDial,NULL);
     AtDefaultDevSet(atdevname);
     int times=40;
     while(1)
     {
-      	//fisrt we should check the usb dev up
-		printf("wait the usb dev up \n\r");
-		while(0 != CUSTOM_DeviceReady())    //wait for the usb to be ready
-		{
-			printf(".");
-			Djy_EventDelay(1000*mS);
-		}
-		printf("done\n\r");
+        //fisrt we should check the usb dev up
+        printf("wait the usb dev up \n\r");
+        while(0 != CUSTOM_DeviceReady())    //wait for the usb to be ready
+        {
+            printf(".");
+            Djy_EventDelay(1000*mS);
+        }
+        printf("done\n\r");
         //start the ppp dial
         extern bool_t PppDevLinkStart(char *pppdevname);
         PppDevLinkStart(netdevname);
@@ -120,17 +120,17 @@ bool_t pppStart(void)
          //add here if the ppp ok,create tcp connection
         if(PppDevLinkIsOk(netdevname))
         {
-        	//create the tcp connection here
-        	printf("do my net create job here\n\r");
+            //create the tcp connection here
+            printf("do my net create job here\n\r");
         }
 
         //check if the ppp ok
         while(PppDevLinkIsOk(netdevname)&&gTcpOK)
         {
             //test for 100s the redial
-        	sleep(1);//we will stay in the ppp mode 100 seconds and then redial
+            sleep(1);//we will stay in the ppp mode 100 seconds and then redial
         }
-    	printf("ppp dial failed\n\r");
+        printf("ppp dial failed\n\r");
         //if not ok then stop and reset it
         //stop the ppp dial
         extern bool_t PppDevLinkStop(char *pppdevname);

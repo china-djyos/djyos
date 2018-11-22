@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -71,11 +71,11 @@ typedef struct         //offset
     vu32 UART_IER;      //中断使能寄存器
     vu32 UART_IDR;      //中断除能寄存器
     vu32 UART_IMR;      //中断模式寄存器
-    vu32 UART_SR;		//状态突破口
-    vu32 UART_RHR;		//接收保持寄存器
-    vu32 UART_THR;		//发送保持寄存器
-    vu32 UART_BRGR;		//波特率真产生寄存器
-    vu32 US_RTOR;		//接收超时寄存器
+    vu32 UART_SR;       //状态突破口
+    vu32 UART_RHR;      //接收保持寄存器
+    vu32 UART_THR;      //发送保持寄存器
+    vu32 UART_BRGR;     //波特率真产生寄存器
+    vu32 US_RTOR;       //接收超时寄存器
     vu32 US_TTGR;
 //    vu32 Reserved1[55];
 //    vu32 UART_RPR;      /**< \brief (Uart Offset: 0x100) Receive Pointer Register */

@@ -7,7 +7,7 @@
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
+			<triggers>full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -25,11 +25,6 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
 	<linkedResources>
-		<link>
-			<name>src/app/board.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board/board.c</locationURI>
-		</link>
 		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>
@@ -64,7 +59,7 @@
 	<variableList>
 		<variable>
 			<name>DJYOS_SRC_LOCATION</name>
-			<value>file:/D:/DIDE/djysrc</value>
+			<value>$%7BPARENT-1-ECLIPSE_HOME%7D/djysrc</value>
 		</variable>
 	</variableList>
 </projectDescription>

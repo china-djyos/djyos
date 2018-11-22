@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -61,29 +61,7 @@
 extern "C" {
 #endif
 
-//管道控制块
-//当读管道时，如果管道中没有足够的数据量，将阻塞在信号量中，写入数据时使管道中的
-//数据量超过level，则立即释放信号量。
-//写管道时，如果写满了，将阻塞在信号量中，读管道使得管道中的数据量低于level时，
-//将释放信号量。
-//管道是单线程组件，
-
-//特别注意:管道可能死锁，程序员应该自己注意不要发生死锁。死锁条件为:
-//1、请求从管道读的数据量超过管道长度，管道写满后将阻塞，因为读数据量一直得不到
-//   满足，故阻塞将持续下去。
-//2、整体模式下，请求的数据量超过(管道长度-最后一次整体写入数据量)，将出现和1一
-//   样的效果。
- struct PipePCB
-{
-    struct RingBuf pipe_buf;               //环形发送缓冲区.
-    struct SemaphoreLCB *pipe_write_semp;  //写缓冲区锁
-    struct SemaphoreLCB *pipe_read_semp;   //读缓冲区锁
-    u32    write_level;                     //写触发水平
-    u32    read_level;                      //读触发水平
-    bool_t whole_mode;          //整体模式，true=确保每次写入完整记录，比如要写
-                                //入10个字节，但pipe_buf中只有9个空位时，将阻塞
-                                //false=先写入9个，然后阻塞
-};
+struct PipePCB;
 
 #define pipe_open_write(name,timeout)       Driver_DevOpenLeft(name,timeout)
 #define pipe_open_read(name,timeout)        Driver_DevOpenRight(name,timeout)

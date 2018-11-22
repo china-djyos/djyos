@@ -1,7 +1,7 @@
 /****************************************************
  *  Automatically-generated file. Do not edit!	*
  ****************************************************/
-
+#include "djyos.h"
 #include "project_config.h"
 #include "stdint.h"
 #include "stddef.h"
@@ -10,10 +10,6 @@ extern ptu32_t djy_main(void);
 
 ptu32_t __djy_main(void)
 {
-//	extern s32 ModuleInstall_STDIO(const char *in, \
-//	const char *out, const char *err);
-//	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
-
 	djy_main();
 	return 0;
 }
@@ -27,21 +23,15 @@ void Sys_ModuleInit(void)
 
 	extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
 	Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
-
 	extern s32 ModuleInstall_Shell(ptu32_t para);
 	ModuleInstall_Shell(0);
 
-	extern void ModuleInstall_Exp(void);
-	ModuleInstall_Exp( );
-
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
+	//-------------------early-------------------------//
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
-
-    extern bool_t ModuleInstall_MsgQ(void);
-    ModuleInstall_MsgQ ( );
 
 	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
 	#if CFG_UART0_ENABLE ==1
@@ -62,9 +52,11 @@ void Sys_ModuleInit(void)
 	#if CFG_UART5_ENABLE ==1
 	ModuleInstall_UART(CN_UART5);
 	#endif
-	
-//	extern s32 ModuleInstall_FAT(const char *dir, const char *dev, u32 opt);
-//	ModuleInstall_FAT(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS);
+
+	//-------------------medium-------------------------//
+	//-------------------later-------------------------//
+	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
+	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");

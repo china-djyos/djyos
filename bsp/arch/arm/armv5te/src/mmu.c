@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -57,7 +57,7 @@
 //      va_start: 虚拟地址(必须是1MB地址对齐).
 //      pa_start: 物理地址(必须是1MB地址对齐).
 //      sec_count: 需要映射的段数量.
-//		attr: 段属性.
+//      attr: 段属性.
 // C B   写通型cache         写回型cache         可选型cache
 // 0 0   禁cache，禁写缓冲   禁cache，禁写缓冲   禁cache，禁写缓冲
 // 0 1   禁cache，开写缓冲   禁cache，开写缓冲   禁cache，开写缓冲
@@ -68,16 +68,16 @@
 
 void MMU_MapSection(u32 *tt_base,u32 va_start,u32 pa_start,u32 sec_count,u32 attr)
 {
-	u32 *page_tbl;
+    u32 *page_tbl;
     int i;
 
     page_tbl  = (u32 *)tt_base;
     page_tbl += (va_start>>20);
- 	pa_start  = pa_start>>20;
+    pa_start  = pa_start>>20;
 
     for(i=0;i<sec_count;i++)
     {
-   		page_tbl[i]	=((pa_start+i)<<20) | (attr);
+        page_tbl[i] =((pa_start+i)<<20) | (attr);
     }
 
 }

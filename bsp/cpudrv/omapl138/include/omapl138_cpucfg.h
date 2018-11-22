@@ -1,6 +1,6 @@
 
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -23,7 +23,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -49,10 +49,10 @@
  * 文件版本: v1.00                                               *
  * 开发人员: lst                                                 *
  * 创建时间: 2011.06.01                                          *
- * Copyright(c) 2011-2011  深圳鹏瑞软件有限公司                  *
+
  *========================================================       *
- * 程序修改记录(最新的放在最前面):							     *
- *  <版本号> <修改日期>, <修改人员>: <修改功能概述>				 *
+ * 程序修改记录(最新的放在最前面):                               *
+ *  <版本号> <修改日期>, <修改人员>: <修改功能概述>              *
  *========================================================       *
 * 例如：
 *  V1.02 2004-07-14, 张三: 接收函数增加对报文长度有效性校核
@@ -67,7 +67,7 @@ extern "C" {
 #endif
 
 //at 0x01c14000
-typedef struct 
+typedef struct
 {
    vu32 REVID;            // 0x0000
    vu32 RSVD0;            // 0x0004
@@ -98,7 +98,7 @@ typedef struct
 }tagSysconfig0Reg;
 
 //at 0x01e2c000
-typedef struct 
+typedef struct
 {
     vu32 VTPIO_CTL;
     vu32 DDR_SLEW;
@@ -365,9 +365,9 @@ typedef struct
 #define CN_W_STROBE_OFFSET      (20)
 #define CN_W_SETUP_MASK         (0x3C000000)
 #define CN_W_SETUP_OFFSET       (26)
-#define CN_EW_MASK       	    (0x40000000)
+#define CN_EW_MASK              (0x40000000)
 #define CN_EW_OFFSET            (30)
-#define CN_SS_MASK       	    (0x80000000)
+#define CN_SS_MASK              (0x80000000)
 #define CN_SS_OFFSET            (31)
 #define CN_MAX_EXT_WAIT_MASK    (0x000000FF)
 #define CN_MAX_EXT_WAIT_OFFSET  (0)
@@ -380,7 +380,7 @@ enum ModulePower
 void Cpucfg_EnableLPSC(u8 module);
 void Cpucfg_DisableLPSC(u8 module);
 void config_pll1(u32 pllm, u32 postdiv, u32 plldiv1, u32 plldiv2, u32 plldiv3);
-void config_pll0(u32 clkmode, u32 prediv, u32 pllm, u32 postdiv, 
+void config_pll0(u32 clkmode, u32 prediv, u32 pllm, u32 postdiv,
                 u32 plldiv1, u32 plldiv3, u32 plldiv7);
 void Cpucfg_EmifaInit(void);
 

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -43,7 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
-// Copyright (C) 2012-2020 长园继保自动化有限公司 All Rights Reserved
+
 // 文件名     ：crtouch.c
 // 模块描述: 触摸芯片CRTOUCH驱动
 // 模块版本: V1.10
@@ -94,7 +94,7 @@ static  s16 gs_XadjustLeft=0,gs_XadjustRight=0;
 static  s16 gs_YadjustTop=0,gs_YadjustBottom=0;
 
 //定义SPIBUS架构下的SPI设备结构
-static struct SPI_Device s_tgTouch_Dev;
+static struct SPI_Device *s_ptTouch_Dev;
 
 bool_t Touch_EraseAdjustVal(void)
 {
@@ -243,7 +243,7 @@ static bool_t Touch_ReadXY(s16 *X, s16 *Y)
     data.RecvOff = 1;
     //读4个采样点的值
     PIO_Clear(SpiCs);
-    SPI_Transfer(&s_tgTouch_Dev, &data, true, CN_TIMEOUT_FOREVER);
+    SPI_Transfer(s_ptTouch_Dev, &data, true, CN_TIMEOUT_FOREVER);
     Djy_EventDelay(1000);
     PIO_Set(SpiCs);
 
@@ -254,14 +254,14 @@ static bool_t Touch_ReadXY(s16 *X, s16 *Y)
     data.RecvBuf = xybuf;
     data.RecvLen = 2;
     data.RecvOff = 1;
-    result = SPI_Transfer(&s_tgTouch_Dev, &data, true, CN_TIMEOUT_FOREVER);
+    result = SPI_Transfer(s_ptTouch_Dev, &data, true, CN_TIMEOUT_FOREVER);
 
     data.SendBuf = xybuf+2;
     data.SendLen = 1;
     data.RecvBuf = xybuf+2;
     data.RecvLen = 2;
     data.RecvOff = 1;
-    result = SPI_Transfer(&s_tgTouch_Dev, &data, true, CN_TIMEOUT_FOREVER);
+    result = SPI_Transfer(s_ptTouch_Dev, &data, true, CN_TIMEOUT_FOREVER);
 #endif
     //丢弃第一个采样点（不准），去除后面3个采样点，并提取最大最小值
     for(loop = 1;loop<4;loop++)
@@ -669,16 +669,12 @@ bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_d
     PIO_Set(SpiCs);
     Djy_EventDelay(100*mS);
 
-    s_tgTouch_Dev.AutoCs = false;
-    s_tgTouch_Dev.CharLen = 8;
-    s_tgTouch_Dev.Cs = 0;
-    s_tgTouch_Dev.Freq = 500000;   //修改byzhb20170325   原来是1M改为500k，触摸点在边缘时不准。
-    s_tgTouch_Dev.Mode = SPI_MODE_0;
-    s_tgTouch_Dev.ShiftDir = SPI_SHIFT_MSB;
-
-    if(NULL != SPI_DevAdd_s(&s_tgTouch_Dev,SPI_BUS_NAME,touch_dev_name))
+    //修改byzhb20170325   原来是1M改为500k，触摸点在边缘时不准。
+    s_ptTouch_Dev = SPI_DevAdd(SPI_BUS_NAME,touch_dev_name,0,8,SPI_MODE_0,
+                                SPI_SHIFT_MSB,500000,false)
+    if(NULL != s_ptTouch_Dev)
     {
-        SPI_BusCtrl(&s_tgTouch_Dev,CN_SPI_SET_POLL,0,0);
+        SPI_BusCtrl(s_ptTouch_Dev,CN_SPI_SET_POLL,0,0);
     }
     else
     {
