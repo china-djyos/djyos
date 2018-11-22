@@ -5,6 +5,8 @@
 #ifndef __SILAN_ERRNO_H__
 #define __SILAN_ERRNO_H__
 
+#include <errno.h>
+
 enum {
 	ENONE_S             =  0,  /* No Error */
 	EERROR_S            =  1,  /* Default error */
@@ -20,5 +22,7 @@ enum {
 	EACCES_S            = 11,  /* Permission denied */
 	ENOENT_S            = 12,  /* No such file or directory */
 };
+
+
 
 #endif  //__SILAN_ERRNO_H__

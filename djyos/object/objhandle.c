@@ -678,7 +678,7 @@ inline void handle_set_multievent(struct objhandle *hdl, u32 events)
 {
     u32 check;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
-
+    Int_SaveAsynSignal();
     if(hdl)
     {
         check = hdl->MultiplexEvents;
@@ -686,6 +686,7 @@ inline void handle_set_multievent(struct objhandle *hdl, u32 events)
         if(check!=hdl->MultiplexEvents)
             __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
+    Int_RestoreAsynSignal();
 }
 
 // ============================================================================
@@ -699,7 +700,7 @@ inline void handle_unset_multievent(struct objhandle *hdl, u32 events)
 {
     u32 check;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
-
+    Int_SaveAsynSignal();
     if(hdl)
     {
         check = hdl->MultiplexEvents;
@@ -707,6 +708,7 @@ inline void handle_unset_multievent(struct objhandle *hdl, u32 events)
         if(check != hdl->MultiplexEvents)
             __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
+    Int_RestoreAsynSignal();
 }
 
 // ============================================================================
@@ -726,7 +728,7 @@ s32 handle_multievent_setall(list_t* all, u32 events)
     if(!all)
         return (-1);
 
-    __lock_handle_sys();
+    Int_SaveAsynSignal();
     head = all; // head是不需要设置的；
     dListForEach(cur, head)
     {
@@ -736,7 +738,7 @@ s32 handle_multievent_setall(list_t* all, u32 events)
         if(MultiplexEvents!=hdl->MultiplexEvents)
             __Multiplex_Set(Handle2fd(hdl), hdl->MultiplexEvents);
     }
-    __unlock_handle_sys();
+    Int_RestoreAsynSignal();
     return (0);
 }
 
@@ -757,7 +759,7 @@ s32 handle_multievent_unsetall(list_t *all, u32 events)
     if(!all)
         return (-1);
 
-    __lock_handle_sys();
+    Int_SaveAsynSignal();
     head = all; // 头部是不需要设置的；
     dListForEach(cur, head)
     {
@@ -768,7 +770,7 @@ s32 handle_multievent_unsetall(list_t *all, u32 events)
             __Multiplex_Set(Handle2fd(hdl),hdl->MultiplexEvents);
     }
 
-    __unlock_handle_sys();
+    Int_RestoreAsynSignal();
     return (0);
 }
 

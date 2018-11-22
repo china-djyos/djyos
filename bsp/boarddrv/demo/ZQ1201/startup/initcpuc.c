@@ -134,11 +134,11 @@ static void ResetInit(void)
 //  SL_LOG("\n\n\n");
 //  SL_LOG("CLK_SYS = %dM", get_sysclk_val_settled()/1000000);
 
-//  m0_cache_init(CACHE_ENABLE, 0, 0, 0);
+    m0_cache_init(CACHE_ENABLE, 0, 0, 0);
 //  m0_cache_init(CACHE_DISABLE, 0, 0, 0);
 //  cache_spi_cmd_sel(SF_CMD_FRD);
 
-    silan_mcu_cclksel(MCU_CCLK_DIV2);
+    silan_mcu_cclksel(MCU_CCLK_DIV1);
 
 //  int5ms_f = 0;
 //  int1s_f = 0;

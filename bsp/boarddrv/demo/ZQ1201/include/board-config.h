@@ -71,7 +71,7 @@ extern "C" {
 //与时钟振荡器相关的配置,本组配置
 #define Mhz 1000000
 #define CN_CFG_SYSCLK (160*Mhz)
-#define CN_CFG_MCLK   (80*Mhz)  //主频，内核要用，必须定义
+#define CN_CFG_MCLK   (160*Mhz)  //主频，内核要用，必须定义
 #define CN_CFG_TIMER_CLK  (80*Mhz)
 #define CN_CFG_FCLK CN_CFG_MCLK  //cm3自由运行外设时钟
 //#define CN_CFG_AHBCLK CN_CFG_MCLK  //总线时钟
@@ -84,7 +84,7 @@ extern "C" {
 #define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
 #define CN_USE_TICKLESS_MODE    (0U)
 #if (!CN_USE_TICKLESS_MODE)
-#define CN_CFG_FINE_US 0x00000333  //1/80M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
+#define CN_CFG_FINE_US 0x00000199  //1/160M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
 #define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数，单位Hz。
 #else
 #define CN_CFG_USE_USERTIMER        (0U)//是否使用LPTIMER作为系统时钟

@@ -899,6 +899,7 @@ static bool_t __PapDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
     }
     return true;
 }
+static u32 ModemIP;
 //when we got a ppp frame, we use this function to deal it
 //we should know which proto and the data and datalen we got
 static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
@@ -929,6 +930,7 @@ static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
             opt = (tagOH *)item->buf;
             memcpy(&v32,opt->v,sizeof(v32));
             ppp->dnsaddr = v32;
+            ModemIP=ppp->ipaddr;
 //            RoutSetDefaultAddr(EN_IPV_4, ppp->ipaddr, 0xFFFFFFFF, ppp->ipaddr,ppp->dnsaddr);
             //turn to another state
             tagHostAddrV4 addr;
@@ -977,6 +979,23 @@ static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
     }
     return true;
 }
+//usage:this function used for the ModemIP Get
+char *Get_ModemIP(void)
+{
+    char *addr_str;
+    struct in_addr addr;
+    if(ModemIP == 0)
+   {
+        printf("There is currently no IP, and the dialing may not be successful");
+        return NULL;
+    }
+    addr.s_addr = ModemIP;
+
+    addr_str = inet_ntoa(addr);
+
+    return addr_str;
+}
+
 //usage:use this function to deal the receive message here
 static void __FrameDeal(tagPPP *ppp, u16 proto, tagCH *ch, u8 *data, u16 len) {
     //we receive a message from the peer, we should deal it carefully
