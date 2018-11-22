@@ -187,7 +187,6 @@ svc_error_usual:                    @直接返回
 .thumb_func
 HardExp_NmiHandler:
   push    {r0,lr}               @r0只是为了满足栈指针8字节对齐的填充物
-  movs    r0,#0              @取异常号
   ldr     r1,=(gener_sys_ExpHander)
   ldr     r1,[r1]
   blx     r1
@@ -201,7 +200,6 @@ HardExp_NmiHandler:
 .thumb_func
 HardExp_HardfaultHandler:
   push    {r0,lr}               @r0只是为了满足栈指针8字节对齐的填充物
-  movs    r0,#0              @取异常号
   ldr     r1,=(gener_sys_ExpHander)
   ldr     r1,[r1]
   blx     r1
@@ -283,7 +281,6 @@ svc_error:                       @直接返回
 .thumb_func
 Remap_HardExp_NmiHandler:
         push    {r0,lr}             @r0只是为了满足栈指针8字节对齐的填充物
-        movs    r0,#0              @取异常号
         ldr     r1,=(g_u32ExpTable + 2*4)
         ldr     r1,[r1]
         blx     r1
@@ -297,7 +294,6 @@ Remap_HardExp_NmiHandler:
 .thumb_func
 Remap_HardExp_HardfaultHandler:
         push    {r0,lr}            @r0只是为了满足栈指针8字节对齐的填充物
-        movs    r0,#0              @取异常号
         ldr     r1,=(g_u32ExpTable + 3*4)
         ldr     r1,[r1]
         blx     r1
@@ -311,7 +307,6 @@ Remap_HardExp_HardfaultHandler:
 .thumb_func
 Remap_HardExp_SvcHandler:
         push    {r0,lr}            @r0只是为了满足栈指针8字节对齐的填充物
-        movs    r0,#0              @取异常号
         ldr     r1,=(g_u32ExpTable + 11*4)
         ldr     r1,[r1]
         blx     r1
@@ -324,7 +319,6 @@ Remap_HardExp_SvcHandler:
 .thumb_func
 Remap_HardExp_SystickHandler:
         push    {r0,lr}            @r0只是为了满足栈指针8字节对齐的填充物
-        movs    r0,#0              @取异常号
         ldr     r1,=(g_u32ExpTable + 15*4)
         ldr     r1,[r1]
         blx     r1

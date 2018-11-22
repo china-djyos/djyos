@@ -502,6 +502,12 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
             Int_RestoreAsynSignal();
             Lock_SempPost(&Sets->Lock);
         }
+        else if((ActivedFlag == false) && (true == Sets->SetsActived))
+        {
+            Sets->SetsActived = ActivedFlag;
+            Lock_SempPend(&Sets->Lock,0);
+            Int_RestoreAsynSignal();
+        }
         else
         {
             Sets->SetsActived = ActivedFlag;
