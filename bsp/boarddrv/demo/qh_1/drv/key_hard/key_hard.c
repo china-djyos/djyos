@@ -103,7 +103,6 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-bool_t key_hard_init(void);
 u32 keyboard_scan(void);
 //----初始化键盘模块-----------------------------------------------------------
 //功能: 初始化一个由windows的键盘和按钮模拟的键盘，该键盘供8个键。
@@ -121,22 +120,6 @@ ptu32_t ModuleInstall_KeyBoardHard(ptu32_t para)
     windows_keyboard.key_now = 0;
     Keyboard_InstallDevice("keyboard driver",&windows_keyboard);
     return 1;
-}
-
-
-//----初始化键盘硬件-----------------------------------------------------------
-//功能: 如题，初始化后才能扫描键盘
-//参数: 无
-//返回: 无
-//----------------------------------------------------------------------------
-bool_t key_hard_init(void)
-{
-    GPIO_PowerOn(CN_GPIO_C);
-    GPIO_CfgPinFunc(CN_GPIO_C,10,CN_GPIO_MODE_IN_PULLUP);
-    GPIO_CfgPinFunc(CN_GPIO_C,11,CN_GPIO_MODE_IN_PULLUP);
-    GPIO_CfgPinFunc(CN_GPIO_C,12,CN_GPIO_MODE_IN_PULLUP);
-    GPIO_CfgPinFunc(CN_GPIO_C,13,CN_GPIO_MODE_IN_PULLUP);
-    return true;
 }
 
 //----键盘硬件扫描------------------------------------------------------------

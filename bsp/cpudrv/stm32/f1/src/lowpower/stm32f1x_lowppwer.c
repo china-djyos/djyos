@@ -103,6 +103,9 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+extern   uint32_t   msp_top[ ];
+#define  CN_LP_STACK_SIZE  0x100
+
 #define Stm32SleepModel4    0x789a
 
 //----初始化低功耗硬件--------------------------------------------------------
@@ -215,5 +218,157 @@ void __LP_BSP_EntrySleepL3(void)
 void __LP_BSP_EntrySleepL4(void)
 {
     HAL_PWR_EnterSTANDBYMode( );
+}
+
+//64K的片内RAM保存在flash主存储区的64k范围内
+//主存储区为2K/Page
+static void LP_RamFlashErase(void)
+{
+    u8 page;
+    u32 addr;
+    u32 PAGEError = 0;//存储出错类型
+    static FLASH_EraseInitTypeDef EraseInitStruct;
+
+    EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
+    EraseInitStruct.NbPages     = 1;
+    HAL_FLASH_Unlock();
+    for(page = 255; page > 255-32; page--)
+    {
+        addr = page*0x800 + 0x08000000;
+        EraseInitStruct.PageAddress = addr;
+
+        HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError);
+    }
+    HAL_FLASH_Lock();
+}
+
+static u32 LP_RamFlashProgram(u32 addr,u32 *buf,u32 len)
+{
+    u32 i;
+    HAL_FLASH_Unlock();
+    for(i = 0; i < len; i++)
+    {
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, addr+4*i, buf[i]);
+    }
+    HAL_FLASH_Unlock();
+    return len;
+}
+
+static u32 LP_RamFlashRead(u32 addr,u32 *buf,u32 len)
+{
+    u32 i,temp;
+
+    for(i = 0; i < len; )
+    {
+        temp = *(u32*)(addr+4*i);
+        buf[i] = temp;
+        i++;
+    }
+    return len;
+}
+//----恢复RAM------------------------------------------------------------------
+//功能: 从非易失存储器中恢复RAM的内容,以便从进入低功耗处继续运行程序,仅用于L3级
+//      低功耗.如果板件不打算支持L3级低功耗,本函数可直接返回false.
+//参数: 无
+//返回: true=成功恢复,false=失败
+//-----------------------------------------------------------------------------
+bool_t __LP_BSP_RestoreRamL3(void)
+{
+    u32 FlashAddr,len;
+    u32 *RamAddr;
+//  ModuleInit_K9f1208();       //init
+//  for(i = 0; i < 256; i++)
+//  {
+//     NandFlash_Read(4096-300+i,0,0x60000000+0x4000*i,0x4000);
+//  }
+//
+//  //内部SRAM分成三部分
+//  //1.0x20000000 ~ msp_top-100 ,需恢复
+//  //2.msp_top-100 ~ msp_top ,不能恢复，因为此时读flash程序正在使用
+//  //3.msp_top - 0x20004000, 需恢复
+//  temp = ((uint32_t)msp_top-CN_LP_STACK_SIZE - 0x20000000)/(uint32_t)0x4000;
+//  for(i = 0; i < temp; i++)
+//  {
+//     NandFlash_Read(4096-4+i,0,0x20000000+0x4000*i,0x4000);
+//  }
+//  temp = ((uint32_t)msp_top-CN_LP_STACK_SIZE - 0x20000000)%0x4000;
+//  NandFlash_Read(4096-4+i,0,0x20000000+0x4000*i,temp);
+//
+//  //两种情况：1.msp~msp-100处于一个block; 2.处于两个block
+//  if((uint32_t)msp_top/0x4000 == ((uint32_t)msp_top-CN_LP_STACK_SIZE)/0x4000)
+//      NandFlash_Read(4096-4+i,temp+CN_LP_STACK_SIZE,
+//              temp+0x20000000+0x4000*i+CN_LP_STACK_SIZE,0x4000-CN_LP_STACK_SIZE-temp);
+//  else
+//  {
+//      i++;
+//      temp = ((uint32_t)msp_top- 0x20000000)%0x4000;
+//      NandFlash_Read(4096-4+i,temp,0x20000000+0x4000*i+temp,0x4000-temp);
+//  }
+//
+//  i++;
+//
+//  //读出剩余部分
+//  for(; i <4 ; i++)
+//  {
+//      NandFlash_Read(4096-4+i,temp,0x20000000+0x4000*i+CN_LP_STACK_SIZE,0x4000);
+//  }
+
+    //内部SRAM分成三部分
+    //1.0x20000000 ~ msp_top-100 ,需恢复
+    //2.msp_top-100 ~ msp_top ,不能恢复，因为此时读flash程序正在使用
+    //3.msp_top - 0x20004000, 需恢复
+    RamAddr = (u32*)0x20000000;
+    FlashAddr =  224*0x800 + 0x08000000;
+    len = ((uint32_t)msp_top-CN_LP_STACK_SIZE - 0x20000000)/4;
+
+    LP_RamFlashRead(FlashAddr,RamAddr,len);
+
+    RamAddr = (u32 *)msp_top;
+    FlashAddr = FlashAddr +len*4 + CN_LP_STACK_SIZE;
+    len = (64*1024 - ((uint32_t)msp_top - 0x20000000))/4;
+
+    LP_RamFlashRead(FlashAddr,RamAddr,len);
+
+    return true;
+}
+
+//----备份RAM------------------------------------------------------------------
+//功能: 进入L3级低功耗前,把RAM的内容保存到非易失存储器中,以便退出低功耗状态时,
+//      恢复内存并从程序中断处继续运行.如果板件不打算支持L3级低功耗,本函数可
+//      直接返回false.
+//参数: 无
+//返回: true=成功恢复,false=失败
+//-----------------------------------------------------------------------------
+bool_t __LP_BSP_SaveRamL3(void)
+{
+    u32 RamAddr,FlashAddr,len;
+   //将现场缓存中的数据保存到flash
+//   if(ModuleInit_K9f1208())
+//   {
+//     i = 300;
+//     while(i--)
+//     {
+//         NandFlash_Erase(4096-i);
+//     }
+//     for(i = 0; i < 256; i++)
+//     {
+//         NandFlash_Write(4096-300+i,0,0x60000000+0x4000*i,0x4000);
+//     }
+//     for(i = 0; i < 4; i++)
+//     {
+//         NandFlash_Write(4096-4+i,0,0x20000000+0x4000*i,0x4000);
+//     }
+//   }
+//   else
+//     return false;
+    RamAddr = 0x20000000;
+    FlashAddr =  224*0x800 + 0x08000000;
+    len = 64*1024/4;
+
+    LP_RamFlashErase();
+
+    LP_RamFlashProgram(FlashAddr,(u32*)RamAddr,len);
+
+   return true;
 }
 

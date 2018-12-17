@@ -27,7 +27,7 @@
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_IBOOT_VERSION
-#warning stdio模块未配置，使用默认配置
+#warning Iboot模块未配置，使用默认配置
 //%$#@num,0,100,
 //%$#@enum,EN_FORM_FILE,EN_DIRECT_RUN,
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，

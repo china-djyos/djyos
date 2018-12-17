@@ -506,34 +506,13 @@ ptu32_t ModuleInstall_MAX98357(void)
     return 1;
 }
 
-//**************************************************************************
-struct shell_debug const shell_cmd_max98357_table[]=
-{
-    {"audiop",(bool_t(*)(char*))audiop,    "播放音频文件",          NULL},
-    {"audios",(bool_t(*)(char*))audios,    "停止播放音频文件",         NULL},
-};
-//**************************************************************************
-#define CN_MAX98357_SHELL_NUM  sizeof(shell_cmd_max98357_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_max98357_shell_cmd_rsc[CN_MAX98357_SHELL_NUM];
-
-/*******************************************************************************
-功能:CAN控制器操作shell模块
-参数:无.
-返回值:1。
-*********************************************************************************/
-ptu32_t MAX98357_Shell_Module_Install(void)
-{
-    shell_debug_add(shell_cmd_max98357_table, CN_MAX98357_SHELL_NUM);
-    return 1;
-}
-
 /*******************************************************************************
 功能:CAN控制器操作shell模块
 参数:无.
 返回值:1。
 *********************************************************************************/
 //static bool_t Sh_AudioStart(char *param)
-ADD_TO_SHELL_HELP(audiop,"播放音频文件");
+ADD_TO_IN_SHELL_HELP(audiop,"播放音频文件");
 ADD_TO_IN_SHELL  bool_t audiop(char *param)
 {
     bool_t ret;
@@ -552,7 +531,7 @@ ADD_TO_IN_SHELL  bool_t audiop(char *param)
 返回值:1。
 *********************************************************************************/
 //static bool_t Sh_AudioStop(char *param)
-ADD_TO_SHELL_HELP(audios,"停止播放音频文件");
+ADD_TO_IN_SHELL_HELP(audios,"停止播放音频文件");
 ADD_TO_IN_SHELL  bool_t audios(char *param)
 {
     I2S_PlayStop();

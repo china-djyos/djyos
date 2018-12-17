@@ -57,97 +57,142 @@
 #include "board-config.h"
 
 #if (CN_USE_TICKLESS_MODE)
-static u16 g_lptimer_reload = 0;
-static u16 g_lptimer_pre_cnt = 0;
-void Lptimer1_ClearAllInt(void)
+#if CN_CFG_USE_USERTIMER
+#define DJYBSP_LPTIMER_NUM      (1U)
+static LPTIM_TypeDef *djybsp_lptimer_reg[DJYBSP_LPTIMER_NUM] = {LPTIM1};
+
+#define DJYLPTIMER_DEBUG   (0U)
+#if     DJYLPTIMER_DEBUG
+struct djylptimer_debug_t{
+    uint16_t pre_cnt;
+    uint16_t pre_cmp;
+}djylptimer_debug={
+   0,
+   0,
+};
+#endif
+
+// =============================================================================
+// 功能：清理所有中断标志位
+// 参数：要清理的定时器号
+// 返回：无
+// =============================================================================
+void djybsp_lptimer_clear_all_isr_flag(uint8_t id)
 {
-    LPTIM1->ICR = 0x7f;
+    djybsp_lptimer_reg[id]->ICR = 0x7f;
 }
 
-bool_t Lptimer1_GetIntFlag(void)
+// =============================================================================
+// 功能：清理对应的中断标志位
+// 参数：要清理的定时器号
+// 返回：无
+// =============================================================================
+uint8_t djybsp_lptimer_clear_isr_flag(uint8_t id)
 {
-    return ((LPTIM1->ISR&LPTIM_ISR_CMPM) ? true : false);
-}
-
-u8 Lptimer1_ClearISR(void)
-{
-    u8 temp = CN_LPTIMER_NONE;
-    if(LPTIM1->ISR & LPTIM_ISR_CMPM)
+    uint8_t temp = CN_LPTIMER_NONE;
+    if(djybsp_lptimer_reg[id]->ISR & LPTIM_ISR_CMPM)
     {
-        if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+        if(djybsp_lptimer_reg[id]->ISR & LPTIM_ISR_ARRM)
         {
-            LPTIM1->ICR |= LPTIM_ICR_ARRMCF | LPTIM_ICR_CMPMCF;
+            djybsp_lptimer_reg[id]->ICR |= LPTIM_ICR_ARRMCF | LPTIM_ICR_CMPMCF;
             temp =  CN_LPTIMER_RELOAD_AND_CMP;
         }
         else
         {
-            LPTIM1->ICR |= LPTIM_ICR_CMPMCF;
+            djybsp_lptimer_reg[id]->ICR |= LPTIM_ICR_CMPMCF;
             temp =  CN_LPTIMER_CMP;
         }
     }
     else
     {
-        if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+        if(djybsp_lptimer_reg[id]->ISR & LPTIM_ISR_ARRM)
         {
-            LPTIM1->ICR |= LPTIM_ICR_ARRMCF;
+            djybsp_lptimer_reg[id]->ICR |= LPTIM_ICR_ARRMCF;
             temp =  CN_LPTIMER_RELOAD;
         }
         else
         {
-            LPTIM1->ICR = 0x7f;
+            djybsp_lptimer_reg[id]->ICR = 0x7f;
             temp =  CN_LPTIMER_NONE;
         }
     }
-    //Lptimer1_ClearAllInt();
     return temp;
 }
 
-void Lptimer1_set_period(u16 period)
+// =============================================================================
+// 功能：获取中断标志位
+// 参数：定时器号
+// 返回：无
+// =============================================================================
+bool_t djybsp_lptimer_get_isr_flag(uint8_t id)
 {
-    u16 temp = 0;
-    u16 temp1=0,temp2=1;
-    while(temp1!=temp2)
-    {
-        temp1 = LPTIM1->CNT;
-        temp2 = LPTIM1->CNT;
-    }
-
-    g_lptimer_pre_cnt = temp1;
-    temp = (period + g_lptimer_pre_cnt > (CN_LIMIT_UINT16)) ? \
-            (period + g_lptimer_pre_cnt - CN_LIMIT_UINT16) : (period + g_lptimer_pre_cnt);
-    LPTIM1->ICR |= (LPTIM_ICR_CMPOKCF | LPTIM_ICR_CMPMCF);
-    LPTIM1->CMP = temp;
-    g_lptimer_reload = period;
-    while(!(LPTIM1->ISR & LPTIM_ISR_CMPOK));
+    return ((djybsp_lptimer_reg[id]->ISR&LPTIM_ISR_CMPM) ? true : false);
 }
 
-u16 Lptimer1_read_reload(void)
+// =============================================================================
+// 功能：设置定时器重装载值
+// 参数：id:定时器号,period:需要设置的值
+// 返回：无
+// =============================================================================
+void djybsp_lptimer_set_reload(uint8_t id,uint16_t period)
 {
-    return g_lptimer_reload;
-}
-
-u16 Lptimer1_read_cnt(void)
-{
-    u16 temp1=0,temp2=1;
+    uint16_t temp = 0;
+    uint16_t temp1=0,temp2=1;
     while(temp1!=temp2)
     {
-        temp1 = LPTIM1->CNT;
-        temp2 = LPTIM1->CNT;
+        temp1 = djybsp_lptimer_reg[id]->CNT;
+        temp2 = djybsp_lptimer_reg[id]->CNT;
     }
-    if(LPTIM1->ISR & LPTIM_ISR_ARRM)
+#if     DJYLPTIMER_DEBUG
+    djylptimer_debug.pre_cnt = temp1;
+#endif
+    temp = (period + temp1 > (CN_LIMIT_UINT16)) ? \
+            (period + temp1 - CN_LIMIT_UINT16) : (period + temp1);
+    djybsp_lptimer_reg[id]->ICR |= (LPTIM_ICR_CMPOKCF | LPTIM_ICR_CMPMCF);
+    djybsp_lptimer_reg[id]->CMP = temp;
+#if     DJYLPTIMER_DEBUG
+    djylptimer_debug.pre_cmp = temp;
+#endif
+    while(!(djybsp_lptimer_reg[id]->ISR & LPTIM_ISR_CMPOK));
+}
+
+// =============================================================================
+// 功能：读取定时器的cnt值
+// 参数：定时器号
+// 返回：无
+// =============================================================================
+uint16_t djybsp_lptimer_read_cnt(uint8_t id)
+{
+    uint16_t temp1=0,temp2=1;
+    while(temp1!=temp2)
+    {
+        temp1 = djybsp_lptimer_reg[id]->CNT;
+        temp2 = djybsp_lptimer_reg[id]->CNT;
+    }
+    if(djybsp_lptimer_reg[id]->ISR & LPTIM_ISR_ARRM)
         return (CN_LIMIT_UINT16 + temp1);
     return temp1;
 }
 
-void Lptimer1_PreInit(void)
+// =============================================================================
+// 功能：定时器预初始化函数，有各种标志位的化可以在这里面清，系统起来以后会调用
+// 参数：定时器号
+// 返回：无
+// =============================================================================
+void djybsp_lptimer_preinit(uint8_t id)
 {
-    g_lptimer_reload = 0;
-    g_lptimer_pre_cnt = 0;
 }
 
-void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
+// =============================================================================
+// 功能：定时器初始化函数
+// 参数：id:定时器号,reload:重装载值，isr:中断函数
+// 返回：无
+// =============================================================================
+void djybsp_lptimer_init(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t param))
 {
-    u32 presc=0;
+    uint32_t presc=0;
+    uint32_t int_line = 0;
+
     presc = 32768/CN_CFG_TIME_BASE_HZ;
     switch(presc)
     {
@@ -167,30 +212,35 @@ void Lptimer1_Init(u16 period,void (*isr)(ptu32_t param))
         default:
             return;
     }
+    switch(id)
+    {
+        case 0:
+            RCC->APB1ENR1 = RCC_APB1ENR1_LPTIM1EN | RCC_APB1ENR1_PWREN;
+            RCC->CCIPR = RCC_CCIPR_LPTIM1SEL; // LPTIM1时钟选LSI
+            int_line = CN_INT_LINE_LPTIM1;
+            break;
+        default:
+            return;
+    }
 
-    RCC->APB1ENR1 = RCC_APB1ENR1_LPTIM1EN | RCC_APB1ENR1_PWREN;
-//  RCC->CSR |= RCC_CSR_LSION; // 开LSI
-//  while ((RCC->CSR & RCC_CSR_LSIRDY) == 0); // 等待LSI稳定
-    RCC->CCIPR = RCC_CCIPR_LPTIM1SEL; // LPTIM1时钟选LSI
+    djybsp_lptimer_reg[id]->CFGR = presc; // 4分频
+    djybsp_lptimer_reg[id]->IER = LPTIM_IER_CMPMIE | LPTIM_IER_ARRMIE; // 开定时器中断
 
-    LPTIM1->CFGR = presc; // 4分频
-    LPTIM1->IER = LPTIM_IER_CMPMIE | LPTIM_IER_ARRMIE; // 开定时器中断
+    Int_Register(int_line);
+    Int_SetClearType(int_line,CN_INT_CLEAR_AUTO);
+    Int_IsrConnect(int_line,isr);
+    Int_SettoAsynSignal(int_line);
+    Int_ClearLine(int_line);
+    Int_RestoreAsynLine(int_line);
 
-    Int_Register(CN_INT_LINE_LPTIM1);
-    Int_SetClearType(CN_INT_LINE_LPTIM1,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(CN_INT_LINE_LPTIM1,isr);
-    Int_SettoAsynSignal(CN_INT_LINE_LPTIM1);
-    Int_ClearLine(CN_INT_LINE_LPTIM1);
-    Int_RestoreAsynLine(CN_INT_LINE_LPTIM1);
+    djybsp_lptimer_reg[id]->CR = LPTIM_CR_ENABLE; // 打开LPTIM, 但暂不开始计时
+    djybsp_lptimer_reg[id]->ARR = reload;
+    djybsp_lptimer_reg[id]->CMP = reload;
+    djybsp_lptimer_clear_all_isr_flag(id);
+    djybsp_lptimer_reg[id]->CR |= LPTIM_CR_CNTSTRT;
+    while(djybsp_lptimer_reg[id]->CNT==0);
 
-    Lptimer1_ClearAllInt();
-    LPTIM1->CR = LPTIM_CR_ENABLE; // 打开LPTIM, 但暂不开始计时
-    LPTIM1->ARR = period;
-    LPTIM1->CMP = period;
-    Lptimer1_ClearAllInt();
-    g_lptimer_reload = period;
-    g_lptimer_pre_cnt = 0;
-    LPTIM1->CR |= LPTIM_CR_CNTSTRT;
-    while(LPTIM1->CNT==0);
 }
 #endif
+#endif
+

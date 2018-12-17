@@ -60,161 +60,6 @@
 //@#$%component end configure
 
 extern u32 SystemCoreClock;
-
-#if CN_CFG_USE_USERTIMER
-extern struct IntMasterCtrl  tg_int_global;          //?¨ò?2￠3?ê??ˉ×ü?D???????á11
-extern void __Djy_ScheduleAsynSignal(void);
-static void __DjyIsrTimeBase(u32 param);
-#define CN_TIME_ROUNDING    (32768U)//四舍五入的值
-#define TIME_GLUE           (0x1E849CU)
-#define FAST_TIME_GLUE      (0x863U)
-#define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(100*TIME_GLUE):((200*CN_CFG_TIME_BASE_HZ)/Mhz))
-static u64 g_time_base_tick=0;
-static u64 g_per_sys_cnt = 0;
-extern void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks));
-
-static void Null_Tick(u32 inc_ticks)
-{
-    return;
-}
-
-void __InitTimeBase(void)
-{
-    HardExp_ConnectSystick(Null_Tick);
-    pg_systick_reg->ctrl &=   ~((1<<bo_systick_ctrl_enable)    //使能
-                                |(1<<bo_systick_ctrl_tickint)   //允许产生中断
-                                |(1<<bo_systick_ctrl_clksource));//用内核时钟
-    pg_systick_reg->reload = 0;
-    pg_systick_reg->current = 0;
-    Lptimer1_PreInit();
-}
-
-void __DjyStartTimeBase(void)
-{
-    Lptimer1_Init(CN_LIMIT_UINT16,__DjyIsrTimeBase);
-}
-
-//??è??éò??¨ê±μ?×?′ó?μ
-u32 __Djy_GetDelayMaxCnt(void)
-{
-    return (CN_LIMIT_UINT16>>1);
-}
-
-u32 __Djy_GetTimeBaseGap(void)
-{
-    return TIME_BASE_MIN_GAP;
-}
-
-void __Djy_SetTimeBaseCnt(u32 cnt)
-{
-    if(cnt>CN_LIMIT_UINT16 || cnt==0)
-    {
-        //àí??é?2??é?ü3???′?ê??t
-        return;
-    }
-    Lptimer1_set_period((u16)cnt);
-}
-
-static u32 __Djy_GetTimeBaseRealCnt(void)
-{
-    return Lptimer1_read_cnt();
-}
-
-u32 __Djy_GetTimeBaseReload(void)
-{
-    return Lptimer1_read_reload();
-}
-
-u64 __Djy_TimeBaseUsToCnt(u64 us)
-{
-    u64 temp = 0;
-    temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (us*TIME_GLUE):
-            ((us*FAST_TIME_GLUE + CN_TIME_ROUNDING))>>16);
-    if( temp < TIME_BASE_MIN_GAP )
-        temp = TIME_BASE_MIN_GAP;
-    return temp;
-}
-
-u32 __Djy_TimeBaseCntToUs(u64 cnt)
-{
-    return ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (cnt/(u32)TIME_GLUE):
-            (u32)(((u64)(cnt*TIME_GLUE))>>16));
-}
-
-u64 __Djy_GetTimeBaseCnt(u32 cnt)
-{
-    return (g_time_base_tick + cnt);
-}
-
-u64 __DjyGetSysCnt(void)
-{
-    u64 temp = 0;
-    atom_low_t atom_low;
-    atom_low = Int_LowAtomStart();
-    temp = g_time_base_tick + __Djy_GetTimeBaseRealCnt();
-    if(temp < g_per_sys_cnt)
-    {
-        temp += CN_LIMIT_UINT16;
-    }
-    else
-        g_per_sys_cnt = temp;
-    Int_LowAtomEnd(atom_low);
-    return temp;
-}
-
-u64 __DjyGetSysTime(void)
-{
-    u64 time;
-    u64 temp=0;
-    temp = __DjyGetSysCnt();
-    time = ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (temp/(u32)TIME_GLUE)://这里没有办法，只能直接使用除法，否则将引入累计误差，不能容忍  --chj
-            ((u64)(temp*TIME_GLUE))>>16);
-    return time;
-}
-
-static void __DjyIsrTimeBase(u32 param)
-{
-    u8 flag = 0;
-    u32 tick=0;
-    g_bScheduleEnable = false;
-    tg_int_global.en_asyn_signal_counter = 1;
-    tg_int_global.nest_asyn_signal = 1;
-    flag = Lptimer1_ClearISR();
-    switch(flag)
-    {
-        case CN_LPTIMER_NONE:
-            break;
-        case CN_LPTIMER_RELOAD:
-            g_time_base_tick += CN_LIMIT_UINT16;
-            g_per_sys_cnt = g_time_base_tick;
-            break;
-        case CN_LPTIMER_CMP:
-            tick=__Djy_GetTimeBaseRealCnt();
-            g_per_sys_cnt = g_time_base_tick + tick;
-            Djy_IsrTimeBase(tick);
-            break;
-        case CN_LPTIMER_RELOAD_AND_CMP:
-            g_time_base_tick += CN_LIMIT_UINT16;
-            g_per_sys_cnt = g_time_base_tick;
-            //tick=__Djy_GetTimeBaseRealCnt();
-            Djy_IsrTimeBase(0);
-            break;
-    }
-
-    tg_int_global.nest_asyn_signal = 0;
-    tg_int_global.en_asyn_signal_counter = 0;
-    if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //?′DD?D???úμ÷?è
-    g_bScheduleEnable = true;
-}
-
-#endif
-
-
-
 void Board_GpioInit(void)
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
@@ -299,3 +144,191 @@ void Wdt_FeedDog(void)
 {
     HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
 }
+
+#if (CN_USE_TICKLESS_MODE)
+#if CN_CFG_USE_USERTIMER
+#include "cpu_peri_lptimer.h"
+#include "tickless.h"
+extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
+extern void __Djy_ScheduleAsynSignal(void);
+static uint32_t djybsp_user_timer_isr_handle(uint32_t param);
+#define TIME_GLUE           CN_CFG_FINE_US
+#define FAST_TIME_GLUE      CN_CFG_FINE_HZ
+#define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(CN_CFG_TIME_PRECISION*TIME_GLUE): \
+                                    ((CN_CFG_TIME_PRECISION*CN_CFG_TIME_BASE_HZ)/Mhz))
+extern void HardExp_ConnectSystick(void (*tick)(uint32_t inc_ticks));
+
+struct djybsp_user_timer_tickless_t
+{
+    uint32_t reload_value;
+    uint64_t cnt_before;
+    uint64_t total_cnt;
+}static djybsp_user_timer;
+
+static void Null_Tick(uint32_t inc_ticks)
+{
+    inc_ticks = *(&inc_ticks);
+    return;
+}
+
+static void djybsp_user_timer_reset(void)
+{
+    HardExp_ConnectSystick(Null_Tick);
+    pg_systick_reg->ctrl &=   ~((1<<bo_systick_ctrl_enable)
+                                |(1<<bo_systick_ctrl_tickint)
+                                |(1<<bo_systick_ctrl_clksource));
+    pg_systick_reg->reload = 0;
+    pg_systick_reg->current = 0;
+    djybsp_user_timer.reload_value = 0;
+    djybsp_user_timer.cnt_before = 0;
+    djybsp_user_timer.total_cnt = 0;
+    /*以上几行是为了兼容旧版本的IBOOT，因为旧版本的IBOOT里面使用了lptimer定时器，打开了该定时器，所以这里要关掉*/
+    djybsp_lptimer_preinit(0);
+}
+
+static void djybsp_user_timer_start(void)
+{
+    djybsp_lptimer_init(0,CN_LIMIT_UINT16,djybsp_user_timer_isr_handle);
+    djybsp_user_timer.reload_value = CN_LIMIT_UINT16;
+}
+
+static uint32_t djybsp_user_timer_get_cnt_max(void)
+{
+    return (CN_LIMIT_UINT16>>1);
+}
+
+static uint32_t djybsp_user_timer_get_cnt_min(void)
+{
+    return TIME_BASE_MIN_GAP;
+}
+
+static void djybsp_user_timer_set_reload(uint32_t cnt)
+{
+    if(cnt>djybsp_user_timer_get_cnt_max() || cnt==0)
+    {
+        //理论上不可能出现此事件
+        return;
+    }
+    djybsp_lptimer_set_reload(0,(uint16_t)cnt);
+    djybsp_user_timer.reload_value = cnt;
+}
+
+static uint32_t djybsp_user_timer_read_cnt(void)
+{
+    return djybsp_lptimer_read_cnt(0);
+}
+
+static uint32_t djybsp_user_timer_get_reload(void)
+{
+    return (djybsp_user_timer.reload_value);
+}
+
+static uint64_t djybsp_user_timer_refresh_total_cnt(uint32_t cnt)
+{
+    return (djybsp_user_timer.total_cnt + cnt);
+}
+
+static uint64_t djybsp_user_timer_get_total_cnt(void)
+{
+    uint64_t temp = 0;
+    atom_low_t atom_low;
+    atom_low = Int_LowAtomStart();
+    temp = djybsp_user_timer.total_cnt + djybsp_lptimer_read_cnt(0);
+    if(temp < djybsp_user_timer.cnt_before)
+    {
+        temp += CN_LIMIT_UINT16;
+    }
+    else
+        djybsp_user_timer.cnt_before = temp;
+    Int_LowAtomEnd(atom_low);
+    return temp;
+}
+
+static uint64_t djybsp_user_timer_us_to_cnt(uint64_t us)
+{
+    uint64_t temp = 0;
+    temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
+            (us*TIME_GLUE):
+            ((us*FAST_TIME_GLUE + 32768))>>16);
+    if( temp < TIME_BASE_MIN_GAP )
+        temp = TIME_BASE_MIN_GAP;
+    return temp;
+}
+
+static uint64_t djybsp_user_timer_cnt_to_us(u64 cnt)
+{
+    return ((CN_CFG_TIME_BASE_HZ>Mhz)?
+            (cnt/(uint32_t)TIME_GLUE):
+            ((uint64_t)(cnt*TIME_GLUE))>>16);
+}
+
+static struct djytickless_op_t djyticklss_user_timer_op =
+{
+    .get_cnt_max = djybsp_user_timer_get_cnt_max,
+    .get_cnt_min = djybsp_user_timer_get_cnt_min,
+    .get_reload =  djybsp_user_timer_get_reload,
+    .refresh_total_cnt = djybsp_user_timer_refresh_total_cnt,
+    .get_total_cnt = djybsp_user_timer_get_total_cnt,
+    .us_to_cnt = djybsp_user_timer_us_to_cnt,
+    .cnt_to_us = djybsp_user_timer_cnt_to_us,
+    .reset = djybsp_user_timer_reset,
+    .start = djybsp_user_timer_start,
+    .set_reload = djybsp_user_timer_set_reload,
+};
+
+void djytickless_user_timer_register_op(struct djytickless_op_t **op)
+{
+    *op = &djyticklss_user_timer_op;
+}
+
+static uint32_t djybsp_user_timer_isr_handle(uint32_t param)
+{
+    uint32_t flag = 0;
+    uint32_t cnt = 0;
+    g_bScheduleEnable = false;
+    param = *(&param);
+    tg_int_global.en_asyn_signal_counter = 1;
+    tg_int_global.nest_asyn_signal = 1;
+    flag = djybsp_lptimer_clear_isr_flag(0);
+    switch(flag)
+    {
+        case CN_LPTIMER_NONE:
+            break;
+        case CN_LPTIMER_RELOAD:
+            djybsp_user_timer.total_cnt += CN_LIMIT_UINT16;
+            djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt;
+            break;
+        case CN_LPTIMER_CMP:
+            cnt = djybsp_user_timer_read_cnt();
+            if(djybsp_user_timer.cnt_before > (djybsp_user_timer.total_cnt + cnt))
+                djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt + cnt + CN_LIMIT_UINT16;
+            else
+                djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt + cnt;
+            Djy_IsrTimeBase(djybsp_user_timer.cnt_before - djybsp_user_timer.total_cnt);
+            break;
+        case CN_LPTIMER_RELOAD_AND_CMP:
+            djybsp_user_timer.total_cnt += CN_LIMIT_UINT16;
+            djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt;
+            Djy_IsrTimeBase(0);
+            break;
+    }
+
+    tg_int_global.nest_asyn_signal = 0;
+    tg_int_global.en_asyn_signal_counter = 0;
+    if(g_ptEventReady != g_ptEventRunning)
+        __Djy_ScheduleAsynSignal();       //执行中断内调度
+    g_bScheduleEnable = true;
+    return 0;
+}
+
+///////////////////////////////////////////////djy-api start//////////////////////////////////
+/*只需重写__InitTimeBase函数就足够了*/
+void __InitTimeBase(void)
+{
+    djytickless_register_op(&djyticklss_user_timer_op);
+    djytickless_reset();
+}
+
+///////////////////////////////////////////////djy-api end//////////////////////////////////
+#endif
+#endif

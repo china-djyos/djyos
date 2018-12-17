@@ -128,7 +128,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
     struct umedia *media;
 
     timeout = timeout;
-    media = (struct umedia*)dev_GetDrvTag(hdl);
+    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)malloc(sizeof(struct umcontext));
     if(!mc)
         return (-1);
@@ -169,7 +169,7 @@ static s32 __um_write(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)dev_GetDrvTag(hdl);
+    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;
@@ -266,7 +266,7 @@ static s32 __um_read(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 t
     struct umedia *media;
     struct umcontext *mc;
 
-    media = (struct umedia*)dev_GetDrvTag(hdl);
+    media = (struct umedia*)dev_GetDrvTag(Handle2fd(hdl));
     mc = (struct umcontext*)(hdl);
     dbuf = media->ubuf;
     buf = (u8*)data;

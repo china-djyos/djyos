@@ -59,8 +59,6 @@
 ptu32_t ModuleInstall_ili9325(const char *DisplayName,const char* HeapName);
 void lcd_display_on(void);
 void lcd_display_off(void);
-void lcd_backlight_on(void);
-void lcd_backlight_off(void);
 
 #endif//__LCD_ILI9325_H__·ÀÖ¹ÖØ¸´°üº¬
 

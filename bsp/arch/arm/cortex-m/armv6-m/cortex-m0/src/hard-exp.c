@@ -66,6 +66,9 @@
 //#include "core_cm0.h"
 #include "hard-exp.h"
 #include "board-config.h"
+#if (CN_USE_TICKLESS_MODE)
+#include "tickless.h"
+#endif
 #include "dbug.h"
 
 //异常向量表的外部声名
@@ -79,9 +82,6 @@ extern   void HardExp_NmiHandler(void);
 extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __Djy_ScheduleAsynSignal(void);
-#if (CN_USE_TICKLESS_MODE)
-extern   u32 __Djy_GetTimeBaseReload(void);
-#endif
 void (*user_systick)(u32 inc_ticks);
 
 struct SystickReg volatile * const pg_systick_reg
@@ -136,7 +136,7 @@ void HardExp_EsrTick(void)
 //    tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal++;
 #if (CN_USE_TICKLESS_MODE)
-    tick=__Djy_GetTimeBaseReload();
+    tick = djytickless_get_reload();
     user_systick(tick);
 #else
     user_systick(1);
@@ -147,4 +147,16 @@ void HardExp_EsrTick(void)
     if(g_ptEventReady != g_ptEventRunning)
         __Djy_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;
+}
+
+
+//异常处理
+
+void Exp_HardHandle(u32 spValue ,u8 intNum,u32 pcVal)
+{
+    printk("当前异常号为:%u",intNum);
+    printk("PC:%x\r\n",pcVal);
+    printk("Sp:%x\r\n",spValue);
+
+    while(1);
 }

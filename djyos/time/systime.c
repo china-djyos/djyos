@@ -64,10 +64,8 @@
 #include "systime.h"
 #include "component_config_time.h"
 
-#if (CN_USE_TICKLESS_MODE)
 extern u64 __DjyGetSysTime(void);
-#else
-s64 __DjyGetSysTime(void);
+#if (!CN_USE_TICKLESS_MODE)
 extern s64  g_s64OsTicks;               //操作系统运行ticks数
 #endif
 static fntSysTimeHard32  fnSysTimeHard32 = NULL;

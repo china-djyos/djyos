@@ -1541,10 +1541,10 @@ struct obj *obj_newchild(struct obj *parent, fnObjOps ops, u32 rights,
 
     child->parent = parent;
     child->child = NULL;
-//  if(represent)
+    if(ObjPrivate)
         child->ObjPrivate = ObjPrivate;
-//  else
-//      child->ObjPrivate = parent->ObjPrivate;
+    else
+        child->ObjPrivate = parent->ObjPrivate;
 
     if(ops)
     {

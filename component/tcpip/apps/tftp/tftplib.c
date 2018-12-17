@@ -88,7 +88,7 @@ char *TftpErrMsg(u16 errcode)
 //}
 
 //bool_t TftpSetWorkSpace(char *path)
-ADD_TO_SHELL_HELP(tftppathset,"usage:tftppathset workpath");
+ADD_TO_IN_SHELL_HELP(tftppathset,"usage:tftppathset workpath");
 ADD_TO_IN_SHELL bool_t tftppathset(char *path)
 {
     if(NULL != path)
@@ -100,7 +100,7 @@ ADD_TO_IN_SHELL bool_t tftppathset(char *path)
 }
 
 //bool_t TftpWorkSpaceShow(char *param)
-ADD_TO_SHELL_HELP(tftppath,"usage:tftppath");
+ADD_TO_IN_SHELL_HELP(tftppath,"usage:tftppath");
 ADD_TO_IN_SHELL bool_t tftppath(char *param)
 {
     info_printf("tftp","%s:%s\n\r",__FUNCTION__,gTftpWorkSpace);

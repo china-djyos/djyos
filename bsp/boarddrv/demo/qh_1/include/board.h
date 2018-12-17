@@ -46,19 +46,21 @@
 #ifndef __BOARD__H__
 #define __BOARD__H__
 
-#include "./include/ili9325-brd.h"
+#include "board-config.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define LCD_ON_GPIOF10          GPIO_Pin_10
+#define LCD_RST_GPIOG8          GPIO_Pin_8
+#define LCD_CS_GPIOG10          GPIO_Pin_10
 
-ptu32_t ModuleInstall_KeyBoardHard(ptu32_t para);
+#define LCD_CMD     (*(volatile u16*)  0x68000000)
+#define LCD_DATA    (*(volatile u16*)  0x68000002)
+
+void __lcd_reset(void);
+void __Lcd_BoardConfig( void );
+void lcd_backlight_on(void);
+void lcd_backlight_off(void);
 bool_t key_hard_init(void);
-u32 keyboard_scan(void);
 
-#ifdef __cplusplus
-}
-#endif
 #endif
 
 

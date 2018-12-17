@@ -482,7 +482,7 @@ static bool_t __LinkTypeShell(void)
 
 //static bool_t __LinkShell(char *param)
 
-ADD_TO_SHELL_HELP(net_link,"usage:net_link [-t (show types)]/[-h (show hooks)]");
+ADD_TO_IN_SHELL_HELP(net_link,"usage:net_link [-t (show types)]/[-h (show hooks)]");
 ADD_TO_IN_SHELL bool_t net_link(char *param)
 {
     bool_t ret = true;
@@ -502,17 +502,7 @@ ADD_TO_IN_SHELL bool_t net_link(char *param)
 }
 
 //usage:this data used for the debug here
-struct shell_debug  gLinkDebug[] =
-{
-    {
-        "link",
-        net_link,
-        "usage:link [-t (show types)]/[-h (show hooks)]",
-        "usage:link [-t (show types)]/[-h (show hooks)]",
-    },
-};
-#define CN_LinkDebug_NUM  ((sizeof(gLinkDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gLinkDebugCmdRsc[CN_LinkDebug_NUM];
+
 
 // =============================================================================
 // FUNCTION   :this is the link module initialize function
@@ -526,7 +516,6 @@ bool_t LinkInit(void)
     //the gLinkHook module must be initialized
     memset((void *)&gRcvHookCB,0,sizeof(gRcvHookCB));
     gRcvHookCB.lock = mutex_init(NULL);
-    shell_debug_add(gLinkDebug, CN_LinkDebug_NUM);
     return true;
 }
 

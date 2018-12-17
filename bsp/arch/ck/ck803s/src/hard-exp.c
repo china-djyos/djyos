@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,7 +42,6 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// =============================================================================
 #include "stdio.h"
 #include "djyos.h"
 #include "int.h"
@@ -51,18 +50,18 @@
 #include "silan_irq.h"
 
 #include "board-config.h"
+#if (CN_USE_TICKLESS_MODE)
+#include "tickless.h"
+#endif
 
 #undef  VIC_TSPR
 #define VIC_TSPR  0xE000EC10
 
-extern struct IntMasterCtrl  tg_int_global;          //闁诲氦顫夐惌顔剧不閻旇偐宓侀悹鍝勬惈閻忋儱鈹戦纰卞剰閻庡灚鐓￠獮锟介悹浣哥枃閸橆剟鏌￠崒銈呭箺閻㈩垰鐖煎畷姘跺礈娴ｇ儤灏濋梺鍝勵儜閹凤拷
+extern struct IntMasterCtrl  tg_int_global;          //闂佽姘﹂～澶愭儗椤斿墽涓嶉柣鏃囧亹瀹撲線鎮归崫鍕儓闁诲繈鍎遍埞鎴︻敊绾板崬鍓伴柣搴＄仛閻擄繝鐛敓浠嬫偣娴ｅ摜鏋冮柛姗嗗墴閺岋繝宕掗妶鍛闁汇埄鍨伴悥鐓庣暦濮樿泛绀堝ù锝囧劋鐏忔繈姊洪崫鍕靛劀闁瑰嚖鎷�
 extern void __Djy_ScheduleAsynSignal(void);
 extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
 extern   void CK_Trap0ISR(void);
-#if (CN_USE_TICKLESS_MODE)
-extern   u32 __Djy_GetTimeBaseReload(void);
-#endif
 extern u32 __Vectors_Tbl[];
 
 void (*user_systick)(u32 inc_ticks);
@@ -79,7 +78,7 @@ static void __Exp_TableSet(void)
     csi_dcache_enable();
     csi_icache_enable();
 
-    //*((uint32_t*)VIC_TSPR) = 0xb00;/*婵炴挻鑹鹃鍥煝閸忚偐鈻斿┑鐘插閻ｉ亶鏌涚�ｎ偆顣茬痪顓炵埣閺佸秶浠﹂幆褜鏉归梺鍛婂姇婵傛梻绮崒姘肩亯闁靛牆鎳愬Σ鎴︽倵濞戞顏勨枍閹烘绀冩繛鍡樺灦缁茶菐閸ャ劎绠橀柡鍡嫹/
+    //*((uint32_t*)VIC_TSPR) = 0xb00;/*濠电偞鎸婚懝楣冾敄閸ヮ剙鐓濋柛蹇氬亹閳绘柨鈹戦悩鎻掝仾闁伙綁浜堕弻娑氾拷锝庡亞椤ｈ尙鐥鐐靛煟闁轰礁绉舵禒锕傚箚瑜滈弶褰掓⒑閸涘﹤濮囧┑鍌涙⒒缁參宕掑鑲╀函闂侀潧鐗嗛幊鎰ｉ幋锔藉�垫繛鎴烆仾椤忓嫧鏋嶉柟鐑橆殔缁�鍐╃箾閸℃ê鐏︾紒鑼额嚙鑿愰柛銉ｅ妿缁犳﹢鏌￠崱顓熷/
 
 }
 
@@ -101,7 +100,7 @@ void Exp_SystickTickHandler(void)
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
 #if (CN_USE_TICKLESS_MODE)
-    tick=__Djy_GetTimeBaseReload();
+    tick = djytickless_get_reload();
     user_systick(tick);
 #else
     user_systick(1);
@@ -110,7 +109,7 @@ void Exp_SystickTickHandler(void)
 //    tg_int_global.en_asyn_signal = true;
     tg_int_global.en_asyn_signal_counter = 0;
 //  if(g_ptEventReady != g_ptEventRunning)
-//      __Djy_ScheduleAsynSignal();       //闂佸湱鐟抽崱鈺傛杸婵炴垶鎼╅崢浠嬪蓟閸ヮ剙绀冮柛娑欏濞堝爼骞栨潏鐐
+//      __Djy_ScheduleAsynSignal();       //闂備礁婀遍悷鎶藉幢閳哄倹鏉稿┑鐐村灦閹尖晠宕㈡禒瀣摕闁搞儺鍓欑粈鍐煕濞戞瑥顥嬫繛鍫濈埣楠炴牗娼忛悙顒�顏�
     g_bScheduleEnable = true;
 }
 

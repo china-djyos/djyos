@@ -103,7 +103,6 @@
 //@#$%component end configure
 
 bool_t cbstat(char *param);
-ptu32_t CAN_BusShellInstall(void);
 
 static struct obj *s_ptCANBusType;
 static struct MsgQueue * gs_ptCanSndMsgQ;
@@ -153,7 +152,6 @@ struct obj * ModuleInstall_CANBus()
         return NULL;
     }
 
-    CAN_BusShellInstall();
 
     return CANBusType;
 }
@@ -624,32 +622,6 @@ void CAN_BusGetStat(struct CANBusCB * CANBus,CanStatDef *CanStat)
 }
 
 
-struct shell_debug const shell_cmd_can_bus_table[]=
-{
-    {
-            "cbstat",
-            (bool_t(*)(char*))cbstat,
-            "复位CAN控制器",
-            "COMMAND:canrst+CAN控制器编号+enter"
-    },
-
-};
-
-#define CN_CAN_BUS_SHELL_NUM  sizeof(shell_cmd_can_bus_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_can_bus_shell_cmd_rsc[CN_CAN_BUS_SHELL_NUM];
-
-
-/*******************************************************************************
-功能:CANBUS shell模块加载
-参数:无.
-返回值:1。
-*********************************************************************************/
-ptu32_t CAN_BusShellInstall(void)
-{
-    shell_debug_add(shell_cmd_can_bus_table, CN_CAN_BUS_SHELL_NUM);
-    return 1;
-}
-
 /*******************************************************************************
 功能:遍历CANBUS总线类型下所有CANBUS总线，依次将各CANBUS统计信息在stdout输出.
 参数:无。
@@ -657,7 +629,7 @@ ptu32_t CAN_BusShellInstall(void)
 *********************************************************************************/
 //static void Sh_CAN_BusStat(char *param)
 
-ADD_TO_SHELL_HELP(cbstat,"COMMAND:canrst+CAN控制器编号+enter");
+ADD_TO_IN_SHELL_HELP(cbstat,"COMMAND:canrst+CAN控制器编号+enter");
 ADD_TO_IN_SHELL bool_t cbstat(char *param)
 {
     struct obj *Object=NULL;

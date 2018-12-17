@@ -246,83 +246,13 @@ static void CAN_ISR_Handler(ptu32_t IntLine);
 bool_t CAN_Hard_Init(uint8_t byCanNo,uint32_t baudrate,tagCanFilterPara \
         * pFilterConfPara);
 
-bool_t canrst(char *param);
-bool_t canstat(char *param);
-bool_t canreg(char *param);
-bool_t canf(char *param);
-bool_t canb(char *param);
-bool_t cands(char *param);
-bool_t candc(char *param);
-struct shell_debug const shell_cmd_can_table[]=
-{
-    {
-            "canrst",
-            (bool_t(*)(char*))canrst,
-            "复位CAN控制器",
-            "COMMAND:canrst+CAN控制器编号+enter"
-    },
-    {
-            "canstat",
-            (bool_t(*)(char*))canstat,
-            "CAN通信统计",
-            "COMMAND:canstat+enter"
-    },
-    {
-            "canreg",
-            (bool_t(*)(char*))canreg,
-            "读取CAN寄存器值",
-            "COMMAND:canreg+enter"
-    },
-    {
-            "canf",
-            (bool_t(*)(char*))canf,
-            "配置CAN过滤器",
-            "COMMAND:canf+CAN控制器编号+配置参数列表+enter"
-    },
-
-    {
-            "canb",
-            (bool_t(*)(char*))canb,
-            "设置CAN控制器波特率",
-            "COMMAND:cansb+CAN控制器编号+波特率值+enter"
-    },
-    {
-            "cands",
-            (bool_t(*)(char*))cands,
-            "设置CAN调试标识符",
-            "COMMAND:cands+enter"
-    },
-    {
-            "candc",
-            (bool_t(*)(char*))candc,
-            "清CAN调试标识符",
-            "COMMAND:candc+enter"
-    },
-
-};
-
-#define CN_CAN_SHELL_NUM  sizeof(shell_cmd_can_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_can_shell_cmd_rsc[CN_CAN_SHELL_NUM];
-
-
-/*******************************************************************************
-功能:CAN控制器操作shell模块
-参数:无.
-返回值:1。
-*********************************************************************************/
-ptu32_t CAN_Shell_Module_Install(void)
-{
-    shell_debug_add(shell_cmd_can_table, CN_CAN_SHELL_NUM);
-    return 1;
-}
-
 /*******************************************************************************
 功能:复位CAN控制器。
 参数:无。
 输出:无。
 *********************************************************************************/
 //static bool_t Sh_CAN_Reset(char *param)
-ADD_TO_SHELL_HELP(canrst,"复位CAN控制器   COMMAND:canrst+CAN控制器编号+enter  ");
+ADD_TO_IN_SHELL_HELP(canrst,"复位CAN控制器   COMMAND:canrst+CAN控制器编号+enter  ");
 ADD_TO_IN_SHELL  bool_t canrst(char *param)
 {
     char *word_ChipNum,*word_trail,*next_param;
@@ -358,7 +288,7 @@ ADD_TO_IN_SHELL  bool_t canrst(char *param)
 输出:无。
 *********************************************************************************/
 //static void Sh_CAN_Stat(char *param)
-ADD_TO_SHELL_HELP(canstat,"CAN通信统计    COMMAND:canstat+enter");
+ADD_TO_IN_SHELL_HELP(canstat,"CAN通信统计    COMMAND:canstat+enter");
 ADD_TO_IN_SHELL  bool_t canstat(char *param)
 {
    uint32_t data[2];//used to print the s64 type
@@ -419,7 +349,7 @@ ADD_TO_IN_SHELL  bool_t canstat(char *param)
 输出:无。
 *********************************************************************************/
 //static void Sh_Read_CAN_Reg(char *param)
-ADD_TO_SHELL_HELP(canreg,"读取CAN寄存器值   COMMAND:canreg+enter");
+ADD_TO_IN_SHELL_HELP(canreg,"读取CAN寄存器值   COMMAND:canreg+enter");
 ADD_TO_IN_SHELL  bool_t canreg(char *param)
 {
       vu32 Reg;
@@ -464,7 +394,7 @@ ADD_TO_IN_SHELL  bool_t canreg(char *param)
 返回:true--初始化成功，false--初始化失败。
 ******************************************************************************/
 //static bool_t Sh_CAN_SetFilter(char *param)
-ADD_TO_SHELL_HELP(canf,"配置CAN过滤器   COMMAND:canf+CAN控制器编号+配置参数列表+enter");
+ADD_TO_IN_SHELL_HELP(canf,"配置CAN过滤器   COMMAND:canf+CAN控制器编号+配置参数列表+enter");
 ADD_TO_IN_SHELL  bool_t canf(char *param)
 {
     char *word_ChipNum,*word_FilterIdHigh,*word_FilterIdLow,*word_FilterMaskIdHigh,*word_FilterMaskIdLow;
@@ -516,7 +446,7 @@ ADD_TO_IN_SHELL  bool_t canf(char *param)
 返回:true--设置成功，false--设置失败。
 ******************************************************************************/
 //static void Sh_CAN_Set_BaudRate(char *param)
-ADD_TO_SHELL_HELP(canb,"设置CAN控制器波特率   COMMAND:cansb+CAN控制器编号+波特率值+enter");
+ADD_TO_IN_SHELL_HELP(canb,"设置CAN控制器波特率   COMMAND:cansb+CAN控制器编号+波特率值+enter");
 ADD_TO_IN_SHELL  bool_t canb(char *param)
 {
     char *word_ChipNum,*word_BaudRate,*word_trail,*next_param;
@@ -555,7 +485,7 @@ ADD_TO_IN_SHELL  bool_t canb(char *param)
 返回:无。
 ******************************************************************************/
 //static void Sh_CAN_Set_DebugFlag(char *param)
-ADD_TO_SHELL_HELP(cands,"设置CAN调试标识符   COMMAND:cands+enter");
+ADD_TO_IN_SHELL_HELP(cands,"设置CAN调试标识符   COMMAND:cands+enter");
 ADD_TO_IN_SHELL  bool_t cands(char *param)
 {
     gs_CanDebugFlag=true;
@@ -568,7 +498,7 @@ ADD_TO_IN_SHELL  bool_t cands(char *param)
 返回:无。
 ******************************************************************************/
 //static void Sh_CAN_Clear_DebugFlag(char *param)
-ADD_TO_SHELL_HELP(candc,"清CAN调试标识符   COMMAND:candc+enter");
+ADD_TO_IN_SHELL_HELP(candc,"清CAN调试标识符   COMMAND:candc+enter");
 ADD_TO_IN_SHELL  bool_t candc(char *param)
 {
     gs_CanDebugFlag=false;
@@ -1574,7 +1504,6 @@ bool_t CAN_Main(uint8_t baudrate)
     gs_ptCanSndMsgQ=MsgQ_Create(CN_CAN_MSGQ_NUM,CN_CAN_MSGQ_LEN,CN_MSGQ_TYPE_FIFO);
     if(gs_ptCanSndMsgQ==NULL)
         return false;
-    CAN_Shell_Module_Install();
     evtt_id = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,__Can_Monitor,
               CAN_MonitorStack,sizeof(CAN_MonitorStack),"CAN Monitor function");
     if(evtt_id!=CN_EVTT_ID_INVALID)

@@ -70,6 +70,7 @@
 #endif
 
 #include "core_cm7.h"
+#include "project_config.h"
 
 extern   uint32_t   msp_top[ ];
 extern void __set_PSP(uint32_t topOfProcStack);
@@ -125,7 +126,11 @@ void Init_Cpu(void)
     SCB_EnableDCache();
 #endif
 
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
 extern void Load_Preload(void);

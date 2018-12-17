@@ -70,7 +70,7 @@ static s32 __TOUCH_DriRead(struct objhandle *pUSB, u8 *data, u32 dwLen, u32 wdOf
     if((9 != dwLen) || (0 != wdOffset) || (!pUSB)) // 由于touch并非流媒体，每次读的大小读是固定的
         return (0);
 
-    res = USBH_HID_TouchGetData((void*)dev_GetDrvTag(pUSB), pBuf, (u32*)(pBuf+1), (u32*)(pBuf+5));
+    res = USBH_HID_TouchGetData((void*)dev_GetDrvTag(Handle2fd(pUSB)), pBuf, (u32*)(pBuf+1), (u32*)(pBuf+5));
     if(-1 == res)
         return (0);
 

@@ -53,6 +53,23 @@
 #include "dbug.h"
 #include <device/include/unit_media.h>
 
+//为了调试 方便，这里面 Debug 版本也设置可以通过终端下载
+
+#define CN_APP_DEBUG  (true)
+
+//当前链路状态
+
+typedef enum EN_LINK_STATUS{
+    EN_DOWN_APP_DEBUG_MODE = 0x00,  //下载APP debug模式
+    EN_DOWN_APP_RELEASE_MODE,       //release 模式
+    EN_DOWN_RISC_MODE,              //下载CK模式
+    EN_DOWN_DSP_MODE,               //下载DSP模式
+
+}EN_LinkStatus;
+
+EN_LinkStatus en_gStaus = EN_DOWN_APP_DEBUG_MODE;
+
+
 /*对于app 而言第129块对应-〉0x40800
  *Risc的加载地址为：0x100000
  *若是升级Risc,那么写地址应对应0x100000：g_Map_Add_Start = 0x100000 - 0x40800
@@ -183,8 +200,10 @@ static void enterFlashOperaterMode(void)
 {
     u32 optStartAddr, Remain, optAddrLen;
 
-    restored = pic_get_enable();
-    pic_clr_enable(restored);
+//    restored = pic_get_enable();
+//    pic_clr_enable(restored);
+    atom_high_t high_atom;                      //原子操作
+    high_atom =Int_HighAtomStart();
 
     silan_m0_cache_disable();
     silan_m0_cache_clear();
@@ -196,6 +215,8 @@ static void enterFlashOperaterMode(void)
     silan_m0_cache_lock(optStartAddr, optAddrLen);
 
     silan_m0_cache_enable();
+
+    Int_HighAtomEnd(high_atom);
 
     iap_norflash_init();
 }
@@ -213,6 +234,9 @@ static void exitFlashOperaterMode(void)
 
     u32 optStartAddr, Remain, optAddrLen;
 
+    atom_high_t high_atom;                      //原子操作
+    high_atom =Int_HighAtomStart();
+
     optStartAddr =    ((u32) &Lock_Cache_Add_Start) & 0xFFFFFFF0;
     Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
     optAddrLen   =    ((((u32) &Lock_Cache_Add_End) - ((u32) &Lock_Cache_Add_Start)) + Remain + M0_CACHE_LINE_SIZE - 1) / M0_CACHE_LINE_SIZE;
@@ -220,7 +244,9 @@ static void exitFlashOperaterMode(void)
     silan_m0_cache_unlock(optStartAddr, optAddrLen, 0);
 
     pic_set_enable(restored);
+    silan_m0_cache_enable();
 
+    Int_HighAtomEnd(high_atom);
 }
 
 
@@ -264,7 +290,20 @@ static s32 Flash_SectorEarse(u32 SectorNo)
 static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 {
     u32 datLen;
-    u32 DatAddr = (Page-1) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
+    u32 DatAddr;
+
+    if(en_gStaus == EN_DOWN_APP_DEBUG_MODE || \
+       en_gStaus == EN_DOWN_RISC_MODE || \
+       en_gStaus == EN_DOWN_DSP_MODE)//App 下载
+    {
+
+        DatAddr = (Page-1) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
+
+    }else//app rease
+    {
+        DatAddr = Page * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
+    }
+
     u32 DatToWrite = 0;
 
     atom_high_t high_atom;                      //原子操作
@@ -294,7 +333,16 @@ s32 Flash_PageRead(u32 PageNo, u8 *Data, u32 Flags)
     u32 readDatNo;
     u32 loop;
 
-    ptReadAddr   = (u8*)((PageNo-1) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start);
+    if(en_gStaus == EN_DOWN_APP_DEBUG_MODE || \
+           en_gStaus == EN_DOWN_RISC_MODE || \
+           en_gStaus == EN_DOWN_DSP_MODE)//App 下载
+    {
+        ptReadAddr   = (u8*)((PageNo - 1) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start);
+    }else
+    {
+        ptReadAddr   = (u8*)(PageNo * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start);
+    }
+
     readDatNo    = sp_tFlashDesrc->BytesPerPage;
 
     if(Data)
@@ -789,6 +837,12 @@ ADD_TO_IN_SHELL bool_t downapp(char *Param)
 
     g_Map_Add_Start = 0;
     PrepareForDownLoad(CN_REASE_APP_START,CN_REASE_APP_LEN);
+    if(CN_APP_DEBUG)
+    {
+        en_gStaus = EN_DOWN_APP_DEBUG_MODE;
+    }else
+        en_gStaus = EN_DOWN_APP_RELEASE_MODE;
+
     downloadym(NULL);
 }
 
@@ -799,6 +853,7 @@ ADD_TO_IN_SHELL bool_t downrisc(char *Param)
     g_Map_Add_Start = 0x100000 - 0x40800;
 
     PrepareForDownLoad(CN_REASE_RISC_START,CN_REASE_RISC_LEN);
+    en_gStaus = EN_DOWN_RISC_MODE;
     downloadym(NULL);
 }
 
@@ -808,6 +863,7 @@ ADD_TO_IN_SHELL bool_t downdsp(char *Param)
     g_Map_Add_Start = 0x100000 + 0x80000 - 0x40800;
     //下载前先擦除
     PrepareForDownLoad(CN_REASE_DSP_START,CN_REASE_DSP_LEN);
+    en_gStaus = EN_DOWN_DSP_MODE;
     downloadym(NULL);
 }
 

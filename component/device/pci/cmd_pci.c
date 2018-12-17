@@ -35,16 +35,7 @@
 #include "dbug.h"
 
 
-bool_t pcie(char *param);
-struct shell_debug const pcie_cmd_table[] =
-{
-    {
-        "pcie",
-        pcie,
-        "查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息",
-        "命令格式: pcie bus号（bus号省略则信息全打印）"
-    }
-};
+
 //static struct ShellCmdRsc tg_pcie_cmd_rsc
 //        [sizeof(pcie_cmd_table)/sizeof(struct shell_debug)];
 
@@ -53,11 +44,6 @@ struct shell_debug const pcie_cmd_table[] =
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
-void pcie_sh_install(void)
-{
-    shell_debug_add(pcie_cmd_table,
-                      sizeof(pcie_cmd_table)/sizeof(struct shell_debug));
-}
 
 /*
  * Follows routines for the output of infos about devices on PCI bus.
@@ -330,7 +316,7 @@ void pci_header_show(pci_dev_t dev)
 //返回：true:  打印完成
 //----------------------------------------------------------
 //bool_t sh_cmd_pcie(char *param)
-ADD_TO_SHELL_HELP(pcie,"查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息");
+ADD_TO_IN_SHELL_HELP(pcie,"查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息");
 ADD_TO_IN_SHELL bool_t pcie(char *param)
 {
     ptu32_t busno;

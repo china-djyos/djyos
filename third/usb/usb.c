@@ -588,6 +588,7 @@ s32 USBH_Resume(USBH_HandleTypeDef *pHost)
 s32 ModuleInstall_USB(u8 controller)
 {
     u16 thread;
+    static char dev_usb = 0;
     char id[2];
     char name[] = "USB #x stack service";
     void USB_ShellInstall(void);
@@ -597,13 +598,15 @@ s32 ModuleInstall_USB(u8 controller)
         error_printf("usb", "too big ID(%d) for usb controller.", controller);
         return (-1);
     }
-
-    if(dev_group_add("usb"))
+    if(dev_usb == 0)
     {
-        error_printf("usb", "cannot create \"usb\" group.");
-        return (-1);
+        if(dev_group_add("usb"))
+        {
+            error_printf("usb", "cannot create \"usb\" group.");
+            return (-1);
+        }
+        dev_usb = 1;
     }
-
     itoa(controller, id, 10);
     memcpy(&name[5], id, 1); // 初始化线程名
 

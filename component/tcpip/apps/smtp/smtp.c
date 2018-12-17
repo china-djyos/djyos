@@ -1,4 +1,4 @@
-
+﻿
 #include <sys/socket.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -753,7 +753,7 @@ typedef struct
 
 //-h host -s server -u user -p passwd -to to -from from -topic topic -m msg
 //bool_t sendemail(char *param)
-ADD_TO_SHELL_HELP(smtp,"usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]");
+ADD_TO_IN_SHELL_HELP(smtp,"usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]");
 ADD_TO_IN_SHELL bool_t smtp(char *param)
 {
     const char *host ="DJYOS_BOARD";
@@ -766,12 +766,12 @@ ADD_TO_IN_SHELL bool_t smtp(char *param)
     const char *html="<html><body>"\
         "<p><img src=\"http://www.djyos.com/wp-content/themes/wpressmonster/images/logo.png\"></p><br/>"\
         "<h1>hello,djyos users.</h1>"\
-        "<h4>婵″倹鐏夋担鐘哄厴閺�璺哄煂鏉╂瑥鐨濇穱鈽呯礉闁絿婀￠弰顖氥亰婵傛垝绨￠敍灞芥礈娑撻缚绻栫亸浣蜂繆閺夈儴鍤滄禍宸噅yos閻ㄥ墕mtp</h4>"\
-        "<h4>閻楄锟窖冾洤娑撳绱伴弨顖涘瘮閸欐垿锟戒礁顦挎禍鐚寸礉閺�顖涘瘮閹跺嫰锟戒礁顦挎禍鐚寸礉娑旂喐鏁幐浣哥槕闁礁顦挎禍鐚寸礉瑜版挾鍔ф稊鐔告暜閹镐礁顦挎稉顏堟娴犺绱濇潻妯绘暜閹镐弓tml,鏉╂瑥鐨濇穱鈥虫皑閺勭棢tml閺嶇厧绱￠敍锟�</h4>"\
-        "<h4>鐠囷附鍎忛崣鍌濓拷鍍簃tp.c閺傚洣娆㈤敍灞剧垽缁屾椽妫块敍姘劀鐢憡鏋冮張顒佹1KB瀹革箑褰搁敍娑樺絺闁線妾禒璺烘躬2KB瀹革箑褰搁敍宀冾嚞閸斺�崇箑妫板嫮鏆�鐡掑啿顧勭粚娲？</h4>"\
-        "<h4>娴ｈ法鏁ら弬瑙勭《閿涙俺鐨熼悽鈺痬tp_open閼惧嘲褰囬崣銉︾労閿涘奔濞囬悽鈺痬tp_configure闁板秶鐤嗛幍锟界憰浣稿絺闁礁鍞寸�圭櫢绱濈拫鍐暏smtp_send閸欐垿锟戒線鍋栨禒璁圭礉鐠嬪啰鏁mtp_close閸忔娊妫撮崣銉︾労</h4>"\
-        "<h4>閸欘垯浜掓担璺ㄦ暏鐎瑰啯娼甸崣鎴︼拷浣风鐏忎線鍋栨禒鑸垫降閹躲儱鎲¤ぐ鎾冲閻ㄥ嫯绻嶇悰宀�濮搁幀渚婄礉鏉╂瑥顕禍搴㈠閺堢儤娼电拠瀛樻Ц娑擃亙绗夐柨娆戞畱娑撶粯鍓�</h4>"\
-        "<h1>濞嗐垼绻嬫担璺ㄦ暏</h1>"\
+        "<h4>婵犵锟藉啿锟藉綊鎮樻径瀣闁绘ê鎼崢鎾煛閿熺晫鎹勯崫鍕帓闁哄鏅滈悷銉╂儍濠靛洨鈹嶉柍钘夋噽缁?澶愭⒑椤撱劎鎮兼繝锟介敓鐘插強妞ゆ牗鍝庢禍鏉库攽閸屾稑鐏婄紒顭掔節閺佸秶浠﹂懞銉ь槶婵炴垶鎹囩紓姘辨崲閺嶎偂鐒婂ù锝堟腹缁诲棝鏌℃径鍫濆姤闁搞倖绮嶇粋宥咁啅閸ｅ巸os闂佹眹鍔屾晶鏄簍p</h4>"\
+        "<h4>闂佺粯顨夐～澶愭晸缁愭牕鍠氬ú銈呪槈閹炬剚鍎滅紒鍙樺嵆瀵劑顢涘☉妯兼Х闂佸憡鐟﹂崹鍧楁晸閹存帞顦︽い锔藉缁傚秹鎮?靛摜顦梺鐚存嫹妞ゆ牗绋戦惁顕?鏌熺捄鍝勵伃闁跨喐鍨濈粈渚?藝閹稿海顩查柣姘嚟缁?澶娾槈閺冨倸鏋戦柡渚囧櫍楠炴劖鎷呴崫銉︻潥闂備緡鍋傜粈渚?藝閹稿海顩查柣姘嚟缁?澶屾喐閻楀牊灏甸柛鏂炲嫮鈻曢柣鏂挎啞閺嗘粓鏌熼梹鎰槮妞わ附瀵х粙澶愵敂閸噥锟藉秴霉閻樹警鍟囩紒杈ㄧ箖濞艰螣缂佹ɑ娈伴梺褰掓櫜瀵悤ml,闁哄鏅滈悷銉╂儍濠靛洨鈹嶉柍銉ㄦ珪閻ㄦ垿鏌￠崟顓燂紓tml闂佸搫绉堕崢褏妲愰敓鐘虫櫖闁跨噦鎷?</h4>"\
+        "<h4>闁荤姴娴勯梽鍕磿韫囨稑鐭楅柛灞剧箰閹风兘宕撶花鍍紁.c闂佸搫鍊稿ú锝呪枎閵忋倖鏅悘鐐插⒔閸ㄧ晫绱掔仦鐐仢婵☆偄娼￠弫宥咁潩椤撗冨Η闁汇埄鍨伴幉锟犲几閸愵喖瀚夋い鎺嶇劍椤︼拷1KB閻庡綊娼荤粻鎴ｃ亹閹间焦鏅繛鎴灻徊娲⒑椤愶紕绐旀俊缁㈠枟缁傛帞鎹勯悜妯垮惈2KB閻庡綊娼荤粻鎴ｃ亹閹间焦鏅?癸拷閸愭儳娈查梺鍛婃煛閿熻棄纾粻鎴澪涢弶鍨伀闁哄棴鎷烽柣鈩冨笒閸熷潡篓閸曨厾鐭氭繛宸簼閿涳拷</h4>"\
+        "<h4>婵炶揪缍?濞夋洟寮妶澶婃閻熸瑥瀚妴濠囨煥濞戞瑤浜㈤柣銊у枛閹粙鍩￠惀鐟僷_open闂佸吋鍎抽崲鑼躲亹閸ヮ剙鐭楅柕澶涘閸旀挳鏌ㄥ☉妯侯殭濠电偛娲幃浠嬪煛閻ョ憙p_configure闂備焦婢樼粔鍫曟偪閸℃稑绠ラ柨鐔烘櫕閹茬増鎷呯粙璺ㄥ矝闂備緡鍋傜粈渚?宕?甸潻鎷烽崷顓燁仧缂佽鲸绻勯幏顐﹀礃椤忓懏娈mtp_send闂佸憡鐟﹂崹鍧楁晸閹存帞绐旈柛瀣墬缁傛帞鎷嬮崷顓狀槷闁荤姴顑呴崯浼村极椤︽獡tp_close闂佺绻戞繛濠偽涢幘顔肩煑闁靛濡囬崝锟?</h4>"\
+        "<h4>闂佸憡鐟崹顖涚閹烘挻濯撮悹鎭掑妽閺嗗繘鎮楅悷鏉挎殲婵炶偐鏁诲畷锝夊箣閿斿吋瀚瑰ù锝夘棑椤忛亶鎮樿箛搴ｇ獢闁稿鐗楃粋鎺楁嚋閸偊妾烽梺纭呯堪閸庨亶骞夐檱閵囨劙骞橀崘宸瀫闂佹眹鍔岀?氼垳鎹㈠鍥ㄥ仒鐎癸拷閿熻姤鎱ㄩ幖浣哥畱濞撴艾锕︾粈澶愬级閳哄倻鎳冩い鏇ㄥ枟缁傚秵鎯旈姀鐙?浼撻梺鍝勭墢閸庛倕顭囬悽鍨珰閻庢稒蓱绗戞繛鎴炴惄娴滄瑧绮径鎰叆婵炲棙鍨堕悾鍗炩槈閹惧墎甯涢柛鎿勬嫹</h4>"\
+        "<h1>濠电偛妫庨崹鑲╂崲鐎ｎ偅濯撮悹鎭掑妽閺嗭拷</h1>"\
         "</body></html>";
     const char *inl = NULL;
     tagListCtrl *listto;
@@ -917,7 +917,7 @@ ADD_TO_IN_SHELL bool_t smtp(char *param)
 }
 
 //static bool_t base64encodeshell(char *param)
-ADD_TO_SHELL_HELP(enbase64file,"enbase64file srcfile dstfile");
+ADD_TO_IN_SHELL_HELP(enbase64file,"enbase64file srcfile dstfile");
 ADD_TO_IN_SHELL  bool_t enbase64file(char *param)
 {
     const char *srcfile;
@@ -970,31 +970,14 @@ ADD_TO_IN_SHELL  bool_t enbase64file(char *param)
 
 }
 
-static struct shell_debug  gSmtpClientDebug[] =
-{
-    {
-        "enbase64file",
-        enbase64file,
-        "enbase64file srcfile dstfile",
-        NULL
-    },
-    {
-        "smtp",
-        smtp,
-        "usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]",
-        NULL
-    },
-};
-#define CN_SmtpClientDebug_NUM  ((sizeof(gSmtpClientDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gSmtpClientDebugCmdRsc[CN_SmtpClientDebug_NUM];
+
 // =============================================================================
-// 闁跨喐鏋婚幏鐑芥晸閺夊府缍囬幏绌塪d the SmtpClient debug to the system
-// 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归柨鐔告灮閹风ara
-// 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归崐锟�  闁跨喐鏋婚幏绌瀝ue闁跨喓鍗抽惂鍛婂  false婢堕亶鏁撻弶鎵虫閹凤拷
+// 闂備浇娉曢崰鎰板几婵犳艾绠柣鎴ｅГ閺呮悂鏌℃径濠傜盎缂傚秴娲獮蹇曠矚婵夌専 the SmtpClient debug to the system
+// 闂備浇娉曢崰鎰板几婵犳艾绠柣鎴ｅГ閺呮悂鏌￠崒妯猴拷鏍拷姘秺閺屻劑鎮㈤崨濠勪紕闂佸綊顥撻…绌塺a
+// 闂備浇娉曢崰鎰板几婵犳艾绠柣鎴ｅГ閺呮悂鏌￠崒妯猴拷鏍拷姘秺瀹曟劙鏁撻敓锟?  闂備浇娉曢崰鎰板几婵犳艾绠紒宀?锟芥几e闂備浇娉曢崰鎾诲础閹惰姤鍎岄柛娑橈工椤忥拷  false婵犮垹鐖兼禍鍫曞极閹捐绾ч柟浣冩珪椤鏌熼崙銈嗗
 // =============================================================================
 bool_t ServiceSmtpClient()
 {
-    shell_debug_add(gSmtpClientDebug, CN_SmtpClientDebug_NUM);
     return true;
 }
 

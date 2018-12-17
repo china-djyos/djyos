@@ -46,8 +46,10 @@
 
 #include "stdint.h"
 #include "stddef.h"
-#include "cpu_peri_gpio.h"
-#include "cpu_peri_iic.h"
+//#include "cpu_peri_gpio.h"
+//#include "cpu_peri_iic.h"
+#include "IoIicBus.h"
+#include "board.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -114,11 +116,11 @@ static const Pin uart3_pin[] = {
 //        {GPIO_D,PIN8,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
 //        {GPIO_D,PIN8,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
 
-        {GPIO_C,PIN10,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
-        {GPIO_C,PIN11,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
+//        {GPIO_C,PIN10,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
+//        {GPIO_C,PIN11,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
 
-//        {GPIO_B,PIN10,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
-//        {GPIO_B,PIN11,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
+        {GPIO_B,PIN10,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
+        {GPIO_B,PIN11,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
 };
 
 
@@ -261,8 +263,6 @@ static const Pin FmcNandPins[] = {
     {GPIO_E,PIN10,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE,AF12},
 };
 
-
-
 void FT5206_RST(bool_t flag)
 {
     if(flag)
@@ -356,6 +356,46 @@ void Lcd_BackLight_OnOff(u8 onoff)
      GPIO_SettoLow(GPIO_B,PIN5);
 
 }
+
+//电容触摸芯片IIC接口初始化
+void Board_FT5X26_Int_Gpio(void)
+{
+    GPIO_PowerOn(GPIO_H);
+    GPIO_PowerOn(GPIO_I);
+    GPIO_CfgPinFunc(GPIO_H,PIN6 ,GPIO_MODE_OUT,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_PU);
+    GPIO_CfgPinFunc(GPIO_I,PIN3 ,GPIO_MODE_OUT,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_PU);
+
+    GPIO_CfgPinFunc(GPIO_H,PIN7 ,GPIO_MODE_IN,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_PU);
+    GPIO_CfgPinFunc(GPIO_I,PIN8 ,GPIO_MODE_OUT,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_PU);
+
+}
+
+void Board_FT5X26_RST(void)
+{
+    FT_RST(0);    //复位
+    Djy_DelayUs(20*mS);
+    FT_RST(1);   //释放复位
+    Djy_DelayUs(50*mS);
+}
+
+u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
+{
+    switch(IO)
+    {
+    case scl_set_High : CT_IIC_SCL(1); break;
+    case scl_set_Low  : CT_IIC_SCL(0); break;
+    case scl_set_out  : CT_SCL_OUT();  break;
+    case sda_set_High : CT_IIC_SDA(1); break;
+    case sda_get      : return CT_READ_SDA;
+    case sda_set_Low  : CT_IIC_SDA(0); break;
+    case sda_set_out  : CT_SDA_OUT();  break;
+    case sda_set_in   : CT_SDA_IN();   break;
+    default:
+        break;
+    }
+    return 0;
+}
+
 // =============================================================================
 // 功能：Board_GpioInit板上所有用到的GPIO初始化
 //    在这里将所有可能用到的复用模式的gpio定义在这里需要用取消注释即可
@@ -371,9 +411,9 @@ void Board_GpioInit(void)
 #endif
     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
 //     PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
-//    PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));
+    PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));
 //     PIO_Configure(uart8_pin, PIO_LISTSIZE(uart8_pin));
-     PIO_Configure(SDMMC_Pins, PIO_LISTSIZE(SDMMC_Pins));
+//     PIO_Configure(SDMMC_Pins, PIO_LISTSIZE(SDMMC_Pins));
 
 //=====================IIC GPIO初始化===================================//
 //对于没有片选和使能引脚的IIC从器件当CPU复位发生在IIC读的过程中就有可能发生总线被占死如：qh_1的stmpe811
@@ -381,19 +421,24 @@ void Board_GpioInit(void)
 //        IIC_Busfree(GPIO_B,PIN9,PIN8);//iic1
 //        PIO_Configure(iic1_pin, PIO_LISTSIZE(iic1_pin));   //IIC
 
-    PIO_Configure(iic2_pin, PIO_LISTSIZE(iic2_pin));      //IIC
-    PIO_Configure(Ft_pin, PIO_LISTSIZE(Ft_pin));      //IIC
+//    PIO_Configure(iic2_pin, PIO_LISTSIZE(iic2_pin));      //IIC
+//    PIO_Configure(Ft_pin, PIO_LISTSIZE(Ft_pin));      //IIC
 
 //    IIC_Busfree(GPIO_H,PIN8,PIN7);
 //    IIC_Busfree(GPIO_H,PIN12,PIN11);
 //I/O模拟IIC 触摸屏用到
-    PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
-    PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));  //ETH RMII
-    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
+//    PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
+//    PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));  //ETH RMII
+//    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
     LCD_PinInit();
 }
 
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
 {
     return true;
+}
+//NANDFLASH的R/B引脚状态获取
+unsigned char  NAND_RB_Get(void)
+{
+    return PIO_Get(&FmcNandPins[0]);
 }

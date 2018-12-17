@@ -80,7 +80,7 @@ typedef struct  DhcpClient
 
 static tagDhcpClient   *pDhcpClientQ;
 //bool_t showDhcpClient(char *param)
-ADD_TO_SHELL_HELP(dhcpdclient,"usage:dhcpdclient:show all the client");
+ADD_TO_IN_SHELL_HELP(dhcpdclient,"usage:dhcpdclient:show all the client");
 ADD_TO_IN_SHELL  bool_t dhcpdclient(char *param)
 {
     tagDhcpClient *client;
@@ -367,18 +367,6 @@ ptu32_t __DhcpServerMain(void)
     return 0;
 }
 
-struct shell_debug  gServiceDhcpd[] =
-{
-    {
-        "dhcpdclient",
-        dhcpdclient,
-        "usage:dhcpdclient:show all the client",
-        "usage:dhcpdclient:show all the client",
-    }
-};
-#define CN_PINGDEBUG_NUM  ((sizeof(gServiceDhcpd))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gServiceDhcpdCmdRsc[CN_PINGDEBUG_NUM];
-
 //this is main dhcp client module
 bool_t  ModuleInstall_DhcpServer(ptu32_t para)
 {
@@ -414,7 +402,6 @@ bool_t  ModuleInstall_DhcpServer(ptu32_t para)
         goto EXIT_TASK;
     }
 
-    shell_debug_add(gServiceDhcpd, CN_PINGDEBUG_NUM);
     return ret;
 
 EXIT_TASK:

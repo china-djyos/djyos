@@ -3,10 +3,13 @@
   <boardName>APOLLO-STM32F7</boardName>
   <cpu>
     <cpuName>stm32f767xx</cpuName>
-    <mianClk>25</mianClk>
-    <rtcClk>32768</rtcClk>
+    <mianClk>25.0</mianClk>
+    <rtcClk>32768.0</rtcClk>
     <chip>
-	<chipName>88e6060</chipName>
+      <chipName>88e6060</chipName>
+    </chip>
+    <chip>
+      <chipName>ft5x26</chipName>
     </chip>
     <memory>
       <type>RAM</type>

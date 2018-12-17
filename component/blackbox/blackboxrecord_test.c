@@ -494,7 +494,7 @@ static bool_t __RecordTest(u32 timestotal,u32 msglen)
 
 //you could use this function to add one messages -t times -l maxlenth
 //static bool_t __RecordTestShell(char *param)
-ADD_TO_SHELL_HELP(blackboxrtest,"usage:blackboxrtest [test/func] [subcmdparas]");
+ADD_TO_IN_SHELL_HELP(blackboxrtest,"usage:blackboxrtest [test/func] [subcmdparas]");
 ADD_TO_IN_SHELL bool_t blackboxrtest(char *param)
 {
     int argc = 8;
@@ -657,17 +657,7 @@ ptu32_t __RecordTestTask(void)
     return 0;
 }
 
-struct shell_debug  gRECORDTEST[] =
-{
-    {
-        "blackboxrtest",
-        blackboxrtest,
-        "usage:blackboxrtest [test/func] [subcmdparas]",
-        "usage:blackboxrtest [test/func] [subcmdparas]",
-    },
-};
-#define CN_RECORDTEST_NUM  ((sizeof(gRECORDTEST))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gRECORDTESTCmdRsc[CN_RECORDTEST_NUM];
+
 
 // =============================================================================
 // 函数功能:板件异常记录存储测试机，开发的异常存储方案可以使用该函数进行初步的测试，看是否能够满足存储需求
@@ -762,8 +752,7 @@ bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 ma
     }
 
     //install the shell command here
-    if(CN_RECORDTEST_NUM==shell_debug_add(gRECORDTEST, CN_RECORDTEST_NUM))
-        ret = true;
+    ret = true;
 
     //if auto test,we will make a task here to do the test
     if(gTestConfig.autotest)

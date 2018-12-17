@@ -720,7 +720,7 @@ static ptu32_t Wdt_Service(void)
 
 //static bool_t wdtshow(char *param)
 
-ADD_TO_SHELL_HELP(wdtshow,"usage:wdtshow");
+ADD_TO_IN_SHELL_HELP(wdtshow,"usage:wdtshow");
 ADD_TO_IN_SHELL  bool_t wdtshow(char *param)
 {
     u8 i = 0;
@@ -738,17 +738,7 @@ ADD_TO_IN_SHELL  bool_t wdtshow(char *param)
     return true;
 }
 
-struct shell_debug  gWdtDebug[] =
-{
-    {
-        "wdtshow",
-        wdtshow,
-        "usage:wdtshow",
-        "usage:wdtshow",
-    },
-};
-#define CN_WdtDebug_NUM  ((sizeof(gWdtDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gWdtDebugCmdRsc[CN_WdtDebug_NUM];
+
 
 // =============================================================================
 // 函数功能：看门狗模块的初始化
@@ -804,7 +794,6 @@ bool_t ModuleInstall_Wdt(void)
         debug_printf("WDT","Register Wdt Exp Decoder Failed!\n\r");
     }
 
-    shell_debug_add(gWdtDebug, CN_WdtDebug_NUM);
     debug_printf("WDT","Init end ...\n\r");
     return true;
 }

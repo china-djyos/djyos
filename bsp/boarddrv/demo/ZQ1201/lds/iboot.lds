@@ -39,6 +39,7 @@ SECTIONS
     
     text_startup_rROM_lROM :
     {
+    	. = ALIGN(0x08);
         KEEP(*libos_Iboot_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
@@ -61,8 +62,10 @@ SECTIONS
 
 	QSpi_Flash :
     {
+    	. = ALIGN(0x04);
         Lock_Cache_Add_Start = .;
         KEEP(*os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*))
+         . = ALIGN(0x04);
         Lock_Cache_Add_End = .;
     
     }>Flash 
@@ -209,7 +212,7 @@ SECTIONS
         LONG(sys_heap_top)          /*第一段地址上限（不含），须符合对齐要求*/
         LONG(32)                    /*第一段页尺寸=32bytes*/
         LONG(msp_bottom)            /*第二段基址，回收初始化栈，须符合对齐要求*/
-        LONG(msp_top - (1024+512))  /*第二段地址上限（不含），1024+512是留给中断使用的，须符合对齐要求*/
+        LONG(msp_top - (1024+512))  /*第二段地址上限（不含），1024+1024是留给中断使用的，须符合对齐要求*/
         LONG(24)                    /*第二段页尺寸=24bytes*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0x79)                  /*'y'*/
@@ -254,6 +257,7 @@ SECTIONS
 
     Iboot_Info :
     {
+        . = ALIGN(0x04);
         gc_ptFlashOffset = .;     /* 为了访问下面四个字节 */
         LONG(FlashOffset)
 
@@ -277,12 +281,13 @@ SECTIONS
   
     Iboot_AppInfo :
     {
+       . = ALIGN(0x04);
        /* . = restore + IbootSize;*/
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
         LONG( restore + IbootSize)
-        . += 256;
+        . += 256;                   /*这里加256 */
         gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
-        LONG( restore + IbootSize + 256)
+        LONG(restore + IbootSize + 256)/*这里指向 dbg rease 中  App gc_ptAppInfo -> 0x40900 gc_ptAppInfo = 0x40900*/
         . += 256;
         gc_AppAddr = .;             /*函数指针变量，该标号 ->指向APP的起始地址  为的是访问下面long的数值,下面数值地址即为app 入口函数地址*/
         LONG( restore + IbootSize + 256 + 256)
@@ -290,42 +295,37 @@ SECTIONS
         LONG( restore + IbootSize + 256 + 256)
     }>Flash
     
-        r_In_shell_rROM1_lROM1 :
+    r_In_shell_section :
 	{
    		 . = ALIGN(0x08);
    		 KEEP(* (.in_shell_cmd))
- 	}>Flash
-    
-     r_In_shell_cmdhelp_rROM1_lROM1 :
-	{
-   		
-   		 KEEP(* (.in_shell_cmd_help))
+   		 KEEP(* (.in_shell_data))
  	}>Flash
  	
- 	r_Ex_shell_rROM1_lROM1 :
+    r_Ex_shell_section :
 	{
-
  	     KEEP(* (.ex_shell_cmd))
-    
+ 	     KEEP(* (.ex_shell_data))
+ 	      . = ALIGN(0x08);
  	}>Flash
-    
-    Shell_Info :
+	r_In_shell_help_section :
+	{
+ 	     KEEP(* (.in_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>Flash
+ 	
+	r_Ex_shell_help_section :
+	{
+ 	     KEEP(* (.ex_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>Flash
+ 	
+ 	Shell_Info :
     {
-        . = ALIGN(0x08);
         p_shell_info = .;
-
-        LONG(0xffffffff) /* _shell_fun_tab_start 内部函数表的起始地址*/
-        LONG(0xffffffff) /*_shell_fun_tab_end  内部函数表的结束地址*/
-
-        LONG(0xffffffff) /*shell_fun_tab_start 普通函数表的起始地址*/
-        LONG(0xffffffff) /*shell_fun_tab_end  普通函数表的结束地址*/
-
-        LONG(0xffffffff)  /*shell_var_tab_start 变量表的起始地址*/
-        LONG(0xffffffff) /*shell_var_tab_start变量表的结束地址*/
-       
-        LONG(.)
-        pProgRomEnd = .;
-    }>Flash
+        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
+    }>Flash 
     
  /*   
     QSpi_Flash:

@@ -549,7 +549,7 @@ void * NetDevPrivate(void *iface)
 
 //netdev shell here
 //static bool_t __IfconfigShell(char *param)
-ADD_TO_SHELL_HELP(ifconfig,"usage:ifconfig");
+ADD_TO_IN_SHELL_HELP(ifconfig,"usage:ifconfig");
 ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
 {
     int i = 0;
@@ -573,19 +573,6 @@ ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
     OsPrintSplit('*',100);
     return true;
 }
-
-struct shell_debug  gIfaceDebug[] =
-{
-    {
-        "ifconfig",
-        ifconfig,
-        "usage:ifconfig",
-        "usage:ifconfig",
-    },
-};
-#define CN_IfaceDebug_NUM  ((sizeof(gIfaceDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gIfaceDebugCmdRsc[CN_IfaceDebug_NUM];
-
 // =============================================================================
 // FUNCTION   :this is the rout module initialize function
 // PARAMS IN  :
@@ -601,11 +588,6 @@ bool_t NetDevInit(void)
     if(NULL == gIfaceCB.lock)
     {
         goto EXIT_MUTEX;
-    }
-
-    if(CN_IfaceDebug_NUM!=shell_debug_add(gIfaceDebug, CN_IfaceDebug_NUM))
-    {
-        goto EXIT_ROUTCMD;
     }
 
     ret = true;

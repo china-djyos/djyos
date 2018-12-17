@@ -303,10 +303,46 @@ s32 EarseWholeChip(struct FlashChip *Chip)
 #endif
 
 // ============================================================================
+// 坏块信息结构
+// ============================================================================
+// 标签          "bad blocks table" // 12字节
+// 坏块数                                                  // 4字节
+// 第一个坏块号                                      // 4字节
+// 第二个坏块号                                      // 4字节
+// 等等
+// 最多128个坏块
+//
+
+// ============================================================================
+// 功能：打印坏块信息
+// 参数：req -- unit media请求；
+//      table -- 坏块表；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+static void __print_bads(u32 *table)
+{
+    u32 i;
+
+    printf("\r\n: info : device : bad blocks information:");
+    printf("\r\n                  bad block nums %d", *table);
+
+    for(i=0; i<*table; i++)
+    {
+        if(!(i%8))
+            printf("\r\n                  ");
+
+        printf("[%03d]", table[i+1]);
+    }
+
+    printf("\r\n");
+}
+
+// ============================================================================
 // 功能：检索坏块，并建立坏块表
 // 参数：req -- unit media请求；
 //      table -- 坏块表；
-// 返回：
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
 #define BAD_BLOCK_TAG           "bad blocks table"
@@ -327,7 +363,7 @@ s32 nandscanbads( __um_req req, u32 **table)
             bads++;
             if(bads>128)
             {
-                printf("\r\n: dbug : device : too much bad blocks for nand.");
+                info_printf("device", "too much bad blocks for nand.");
                 return (-1);
             }
         }
@@ -336,17 +372,18 @@ s32 nandscanbads( __um_req req, u32 **table)
     *table = malloc((bads << 2) + 4);
     if(!(*table))
     {
-        printf("\r\n: dbug : device : no memory for bad blocks table.");
+        error_printf("device", "no memory for bad blocks table.");
         return (-1);
     }
 
     **table = bads; // 开始用于记录bad数量
     memcpy((u8*)(*table+1), tmp, bads<<2);
+    __print_bads(*table);
     return (0);
 }
 
 // ============================================================================
-// 功能：页是否是有效坏块表；
+// 功能：是否是有效坏块表；
 // 参数：badtable -- 坏块表；
 // 返回：是（1）；否（0）；
 // 备注：
@@ -380,28 +417,32 @@ u32 *nandbuildbads(__um_req req)
     if(!tmp)
         return (NULL);
 
-    res = req(getbads, (ptu32_t)&tmp);
+    res = req(getbads, (ptu32_t)&tmp); // 获取坏块表
     if(-1==res)
     {
+        // 获取失败；
         free(tmp);
         return (NULL);
     }
 
-    if(strcmp(BAD_BLOCK_TAG, (char*)tmp)) // 查看坏块表标签
+    // 查看坏块表是否正常（有标签才是正常的坏块表）
+    if(strcmp(BAD_BLOCK_TAG, (char*)tmp)) // 不正常，建立坏块表
     {
+
         if(nandscanbads(req, &table))
         {
             table = NULL;
         }
         else
         {
+            // 给坏块表增加标签，并写入nand
             strcpy((char*)tmp, BAD_BLOCK_TAG);
             memcpy((tmp+(strlen(BAD_BLOCK_TAG)+4)), table, ((table[0]+1)<<2)); //
-            if(req(savebads, (ptu32_t)tmp))
-                printf("\r\n: dbug : device : bad block table save failed for nand.");
+            if(req(savebads, (ptu32_t)tmp)) // 保存坏块表
+                debug_printf("device", "bad block table save failed for nand.");
         }
     }
-    else
+    else // 正常， 提取出坏块表，防止在内存；
     {
         badcount = (tmp + strlen(BAD_BLOCK_TAG) + 4);
         bytes = (*((u32*)badcount) + 1) << 2;
@@ -415,11 +456,11 @@ u32 *nandbuildbads(__um_req req)
 }
 
 // ============================================================================
-// 功能：获取无坏块情况下的块号；
+// 功能：获取屏蔽坏块后的块号；
 // 参数：badtable -- 坏块表；
 //      block -- 块号；
 //      req -- 请求；
-// 返回：
+// 返回：无；
 // 备注：
 // ============================================================================
 void nandbadfreeblock(u32 *badtable, u32 *block, __um_req req)
@@ -443,14 +484,14 @@ void nandbadfreeblock(u32 *badtable, u32 *block, __um_req req)
 }
 
 // ============================================================================
-// 功能：获取无坏块情况下的unit号；
+// 功能：获取屏蔽坏块情况下的unit号；
 // 参数：badtable -- 坏块表；
 //      unit -- unit号；
 //      req -- 请求；
-// 返回：
+// 返回：无；
 // 备注：
 // ============================================================================
-void nandbadfreeunit(u32 *badtable, u32 *unit, __um_req req)
+void nandbadfreeunit(u32 *badtable, s64 *unit, __um_req req)
 {
     u32 i, block = 0, count = badtable[0], movs = 0, units = 0;
 

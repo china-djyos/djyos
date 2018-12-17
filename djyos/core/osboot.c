@@ -265,7 +265,7 @@ static void __ShowBootMode(tagBootMode *bootmsg)
 }
 
 //static bool_t __BootMsgShowShell(char *param)
-ADD_TO_SHELL_HELP(bootmsg,"usage:bootmsg");
+ADD_TO_IN_SHELL_HELP(bootmsg,"usage:bootmsg");
 ADD_TO_IN_SHELL bool_t bootmsg(char *param)
 {
     tagBootMode *msg;
@@ -292,7 +292,7 @@ extern void reboot(u32 key);
 extern void reset(u32 key);
 extern void restart_system(u32 key);
 //static bool_t rebootshell(char *param)
-ADD_TO_SHELL_HELP(rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_IN_SHELL_HELP(rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
 ADD_TO_IN_SHELL bool_t rebootshell(char *param)
 {
     u32 key = 0;
@@ -305,7 +305,7 @@ ADD_TO_IN_SHELL bool_t rebootshell(char *param)
     return true;
 }
 //static bool_t resetshell(char *param)
-ADD_TO_SHELL_HELP(resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_IN_SHELL_HELP(resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
 ADD_TO_IN_SHELL bool_t resetshell(char *param)
 {
     u32 key = 0;
@@ -317,7 +317,7 @@ ADD_TO_IN_SHELL bool_t resetshell(char *param)
     return true;
 }
 //static bool_t reloadshell(char *param)
-ADD_TO_SHELL_HELP(restart,"usage:restart [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_IN_SHELL_HELP(restart,"usage:restart [key](if key is 0XAA55AA55 then will not record)");
 ADD_TO_IN_SHELL bool_t restart(char *param)
 {
     u32 key = 0;
@@ -330,7 +330,7 @@ ADD_TO_IN_SHELL bool_t restart(char *param)
 }
 
 //static bool_t bootaddressshell(char *param)
-ADD_TO_SHELL_HELP(bootaddress,"usage:bootaddress [address]");
+ADD_TO_IN_SHELL_HELP(bootaddress,"usage:bootaddress [address]");
 ADD_TO_IN_SHELL bool_t bootaddress(char *param)
 {
     u32 addr;
@@ -344,43 +344,6 @@ ADD_TO_IN_SHELL bool_t bootaddress(char *param)
     return true;
 }
 
-//cpu boot shell command
-struct shell_debug  gBootShell[] =
-{
-    {
-        "reboot",
-        rebootshell,
-        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
-        "usage:reboot [key](if key is 0XAA55AA55 then will not record)",
-    },
-    {
-        "reset",
-        resetshell,
-        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
-        "usage:reset [key](if key is 0XAA55AA55 then will not record)",
-    },
-    {
-        "restart",
-        restart,
-        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
-        "usage:restart [key](if key is 0XAA55AA55 then will not record)",
-    },
-    {
-        "bootaddress",
-        bootaddress,
-        "usage:bootaddress [address]",
-        "usage:bootaddress [address]",
-    },
-    {
-        "bootmsg",
-        bootmsg,
-        "usage:bootmsg",
-        "usage:bootmsg",
-    },
-};
-
-#define CN_BOOTDEBUG_NUM  ((sizeof(gBootShell))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gBootShellCmdRsc[CN_BOOTDEBUG_NUM];
 
 //use this function to analyze the boot mode
 static bool_t __OsBootModeLog(void)
@@ -452,9 +415,6 @@ bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode getmodehard,
 
     //记录系统启动状态
     __OsBootModeLog();
-    if(CN_BOOTDEBUG_NUM==shell_debug_add(gBootShell, CN_BOOTDEBUG_NUM))
-        return (FALSE);
-
     return result;
 
 }

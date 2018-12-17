@@ -403,7 +403,7 @@ bool_t IpV4Process(tagNetPkg *pkg,void *dev)
 //static bool_t _V4Show(char *param)
 
 
-ADD_TO_SHELL_HELP(ipv4,"usage:ipv4");
+ADD_TO_IN_SHELL_HELP(ipv4,"usage:ipv4");
 ADD_TO_IN_SHELL bool_t ipv4(char *param)
 {
     debug_printf("IPV4","IPV4 STATISTICS:\n\r");

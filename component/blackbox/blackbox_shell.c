@@ -73,7 +73,7 @@ bool_t  BlackBox_InfoDecoder(struct BlackBoxRecordPara *recordpara);
 // 说明    ：
 // =============================================================================
 //bool_t BlackBox_ShellBrowseAssignedRecord(char *param)
-ADD_TO_SHELL_HELP(blackboxi,"browse the specified exception item");
+ADD_TO_IN_SHELL_HELP(blackboxi,"browse the specified exception item");
 ADD_TO_IN_SHELL bool_t blackboxi(char *param)
 {
     bool_t   result;
@@ -128,7 +128,7 @@ browse_end:
 // 说明    ：
 // =============================================================================
 //bool_t BlackBox_ShellBrowseRecordNum(char *param)
-ADD_TO_SHELL_HELP(blackboxn,"browse the exception number");
+ADD_TO_IN_SHELL_HELP(blackboxn,"browse the exception number");
 ADD_TO_IN_SHELL bool_t blackboxn(char *param)
 {
     bool_t  result;
@@ -163,7 +163,7 @@ ADD_TO_IN_SHELL bool_t blackboxn(char *param)
 // =============================================================================
 //bool_t BlackBox_ShellRecordClear(char *param)
 
-ADD_TO_SHELL_HELP(blackboxc,"clear all the exception item");
+ADD_TO_IN_SHELL_HELP(blackboxc,"clear all the exception item");
 ADD_TO_IN_SHELL bool_t blackboxc(char *param)
 {
     bool_t  result;
@@ -182,29 +182,6 @@ ADD_TO_IN_SHELL bool_t blackboxc(char *param)
     return result;
 }
 
-struct shell_debug  gtBlackBoxShellCmdTab[] =
-{
-    {
-        "blackboxi",
-        blackboxi,
-        "browse the specified exception item",
-        "blackboxi item\n\r"
-    },
-    {
-        "blackboxn",
-        blackboxn,
-        "browse the exception number",
-        "blackboxn"
-    },
-    {
-        "blackboxc",
-        blackboxc,
-        "clear all the exception item",
-        "blackboxc"
-    }
-};
-#define CN_BLACKBOXSHELL_NUM  ((sizeof(gtBlackBoxShellCmdTab))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc sgBlackBoxShellRsc[CN_BLACKBOXSHELL_NUM];
 // =============================================================================
 // 函数功能：BlackBox_ShellInit
 //          blackboxshell模块初始化
@@ -215,17 +192,6 @@ struct shell_debug  gtBlackBoxShellCmdTab[] =
 // =============================================================================
 bool_t BlackBox_ShellInit()
 {
-    bool_t result;
-    if(CN_BLACKBOXSHELL_NUM==shell_debug_add(gtBlackBoxShellCmdTab, CN_BLACKBOXSHELL_NUM))
-    {
-        info_printf("module","exception installed.");
-        result = true;
-    }
-    else
-    {
-        error_printf("module","exception installed failed(shell).");
-        result = false;
-    }
-    return result;
+    return true;
 }
 

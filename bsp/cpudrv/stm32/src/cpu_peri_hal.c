@@ -40,15 +40,11 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header              //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_STM32_HAL_TIMER   //****检查参数是否已经配置好
-#warning    hal库补丁模块参数未配置，使用默认值
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#define CFG_STM32_HAL_TIMER     TIM6//"HAL库使用的定时器",配置HAL库使用的定时器
-#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 

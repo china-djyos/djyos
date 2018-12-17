@@ -48,21 +48,21 @@
 #include <time.h>
 #include <systime.h>
 #include "../include/shell.h"
-
-extern struct shell_list shells_list;
-
+#if (1)
 // ============================================================================
 // 功能：显示os的版本
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-ADD_TO_SHELL_HELP(ver,"显示os的版本");
+ADD_TO_IN_SHELL_HELP(ver,"显示os的版本");
 ADD_TO_IN_SHELL bool_t ver(char *param)
 {
-    param = param;
     printf("\r\n%s\r\n", djyos_kernel_version);
+    if(param)
+        return true;
     return true;
+
 }
 
 // ============================================================================
@@ -71,7 +71,7 @@ ADD_TO_IN_SHELL bool_t ver(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-ADD_TO_SHELL_HELP(date,"显示或者设置日期");
+ADD_TO_IN_SHELL_HELP(date,"显示或者设置日期");
 ADD_TO_IN_SHELL bool_t date(char *param)
 {
     s64 nowtime;
@@ -121,7 +121,7 @@ ADD_TO_IN_SHELL bool_t date(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-ADD_TO_SHELL_HELP(time,"显示当前时间或者设置输入新时间");
+ADD_TO_IN_SHELL_HELP(time,"显示当前时间或者设置输入新时间");
 ADD_TO_IN_SHELL bool_t __time(char *param)
 {
     s64 nowtime;
@@ -173,7 +173,7 @@ ADD_TO_IN_SHELL bool_t __time(char *param)
 // 返回：true=正常显示，false=错误
 // 备注：
 // ============================================================================
-ADD_TO_SHELL_HELP(d,"读取内存里的数据,命令格式:d 地址 单元数 每单元字节数");
+ADD_TO_IN_SHELL_HELP(d,"读取内存里的数据,命令格式:d 地址 单元数 每单元字节数");
 ADD_TO_IN_SHELL bool_t d(char *param)
 {
     ptu32_t addr;
@@ -398,7 +398,7 @@ ADD_TO_IN_SHELL bool_t d(char *param)
 // 返回：true=正常显示，false=错误
 // 备注：
 // ============================================================================
-ADD_TO_SHELL_HELP(f,"写数据到内存,命令格式：f 起始地址  单元数 每单元字节数 填充内容");
+ADD_TO_IN_SHELL_HELP(f,"写数据到内存,命令格式：f 起始地址  单元数 每单元字节数 填充内容");
 ADD_TO_IN_SHELL bool_t f(char *param)
 {
     ptu32_t addr;
@@ -498,314 +498,4 @@ ADD_TO_IN_SHELL bool_t f(char *param)
     return true;
 }
 
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(dis_exshell,"显示外部shell函数");
-ADD_TO_IN_SHELL bool_t dis_exshell(void)
-{
-    bool_t i,Ex_shell_num;
-    struct exshell_func *ptfuntab;
-    struct shell_list *p_Sh_List;
-
-    p_Sh_List = &shells_list;
-    ptfuntab = (struct exshell_func *)p_Sh_List->info.Ex_funTab_start;
-    Ex_shell_num = (p_Sh_List->info.Ex_funTab_end - p_Sh_List->info.Ex_funTab_start)/sizeof(struct exshell_func);
-
-    printf("\r\n以下是所有的外部shell函数命令,共有 %d个\r\n",Ex_shell_num);
-    printf("外部shell函数格式为：命令名  类型1 参数1 类型2 参数2 类型3 参数3...\r\n");
-    printf("\r\n");
-
-    for(i=0;i<Ex_shell_num;i++)
-    {
-       printf("%s", ptfuntab[i].fun_name);
-        printf("\r\n");
-    }
-    printf("\r\n");
-
-    return true;
-}
-
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(dis_globlvar,"显示全局变量");
-ADD_TO_IN_SHELL bool_t dis_globlvar(void)
-{
-    bool_t i,Global_Var_num;
-    struct data_struct *ptDatetab;
-    struct shell_list *p_Sh_List;
-
-    p_Sh_List = &shells_list;
-    ptDatetab = (struct data_struct *)p_Sh_List->info.dataTab_start;
-    Global_Var_num = (p_Sh_List->info.dataTab_end - p_Sh_List->info.dataTab_start)/sizeof(struct data_struct);
-
-    printf("\r\n以下是所有的全局变量,共有%d个\r\n",Global_Var_num);
-    printf("显示全局变量值的格式：  DataName 类型\r\n");
-    printf("更改全局变量值的格式：  DataName = 类型 num  \r\n");
-    printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d/""/'' \r\n");
-    printf("\r\n");
-
-
-    for(i=0;i<Global_Var_num;i++)
-    {
-
-//       printf("%-24s%x", ptDatetab[i].data_name,ptDatetab[i].data);
-       printf("%s", ptDatetab[i].data_name);
-       printf("\r\n");
-    }
-    printf("\r\n");
-    return true;
-}
-
-// ============================================================================
-// 功能：显示所有命令的帮组信息
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static bool_t __help_all(void)
-{
-    bool_t i,in_shell_num;
-    struct inshell_func *pt_funTab;
-    struct shell_list *p_Sh_List;
-
-    p_Sh_List = &shells_list;
-    printf("\r\n有关具体命令的详细信息，请输入help [命令名]\r\n");
-    printf("\r\n");
-
-    pt_funTab = (struct inshell_func *)p_Sh_List->info.In_funTab_start;
-    in_shell_num = (p_Sh_List->info.In_funTab_end - p_Sh_List->info.In_funTab_start)/sizeof(struct inshell_func);
-
-    for(i=0;i<in_shell_num;i++)
-    {
-
-        if(pt_funTab[i].help != NULL)
-               printf("%-24s%s", pt_funTab[i].fun_name, *pt_funTab[i].help);
-           else
-             printf("%-24s没有提供简要帮助信息", pt_funTab[i].fun_name);
-
-        printf("\r\n");
-    }
-    printf("\r\n\r\n");
-    return true;
-}
-
-// ============================================================================
-// 功能：显示文件系统命令帮助
-// 参数：param -- 参数字符串，含义:
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(help,"显示帮助信息");
-ADD_TO_IN_SHELL bool_t help(char *param)
-{
-
-    char *cmd,*next_param;
-    struct commandclass cmd_class;
-    extern bool_t __search_cmd(struct commandclass *cmdclass);
-
-    if(param == NULL)
-    {
-        __help_all();
-    }
-    else
-    {
-       cmd = shell_inputs(param,&next_param);
-       cmd_class.cmdname = cmd;
-       if(__search_cmd(&cmd_class) == FALSE)
-       {
-           printf("命令 %s不存在 ,不存在帮助信息 !! \n\r",cmd);
-           return (TRUE);
-       }
-
-       if(cmd_class.cmdhelp != NULL)
-           printf("\r\n%s\r\n",cmd_class.cmdhelp);
-       else
-           printf("没有提供详细帮助信息");
-
-       printf("\r\n");
-    }
-
-    return (TRUE);
-}
-
-//----显示帮助-----------------------------------------------------------------
-//功能：显示帮助信息
-//参数：无
-//返回：无
-//-----------------------------------------------------------------------------
-extern struct obj *shell_debug_set;
-static void __debug_help_all(void)
-{
-    struct __shell_debug *current;
-    struct obj *shell_ob;
-
-
-    printf("\r\n有关具体命令的详细信息，请输入help [命令名]\r\n");
-    printf("\r\n");
-    shell_ob = (struct obj *)shell_debug_set;
-    char *Name;
-    while(1)
-    {
-        shell_ob = obj_foreach_scion(shell_debug_set,shell_ob);
-        if(shell_ob == NULL)
-        {
-            break;
-        }
-        else
-        {
-            //current = (struct ShellCmdRsc *)obj_val(shell_ob);
-            current = (struct __shell_debug*)obj_GetPrivate(shell_ob);
-            Name = (char*)obj_name(shell_ob);
-            if(current->help_hint != NULL)
-            {
-                //todo：前福查下，第一个%s应该是%-32s才对，下6行同
-                printf("%-24s%s", Name, current->help_hint);
-
-            }
-            else
-            {
-                printf("%-24s没有提供简要帮助信息", Name);
-            }
-        }
-        printf("\r\n");
-    }
-}
-
-// ============================================================================
-// 功能：显示SHELL命令帮助(debug模式下)
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-bool_t debug_help(char *param)
-{
-    char *cmd,*next_param;
-    struct obj *shell_ob;
-    bool_t result;
-    struct  __shell_debug *shell;
-
-    if(param == NULL)
-    {
-        __debug_help_all();
-        result = true;
-    }
-    else
-    {
-        cmd = shell_inputs(param,&next_param);
-        shell_ob = obj_search_child(shell_debug_set,(const char*)cmd);
-        if(shell_ob != NULL)
-        {
-            //shell = (struct ShellCmdRsc *)obj_val(shell_ob);
-            shell = (struct __shell_debug*)obj_GetPrivate(shell_ob);
-            if(shell->help_detailed != NULL)
-                printf("%s",shell->help_detailed);
-            else
-                printf("没有提供详细帮助信息");
-            printf("\r\n");
-            result = true;
-        }else
-        {
-            printf("无效命令名\r\n");
-            result = FALSE;
-        }
-    }
-    return result;
-}
-
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-//内置命令表, 包含系统自带的命令
-struct shell_debug const shell_default_debug[] =
-{
-
-    {
-        "d",
-        d,
-        "读取内存里的数据",
-        "命令格式:d 地址 单元数 每单元字节数"
-    },
-    {
-        "f",
-        f,
-        "写数据到内存",
-        "命令格式：f 起始地址  单元数 每单元字节数 填充内容"
-    },
-    {
-        "help",
-        debug_help,
-        "DJYOS的命令帮助信息",
-        NULL
-    },
-    {
-        "ver",
-        ver,
-        "显示djyos的版本",
-        NULL
-    },
-    {
-        "date",
-        date,
-        "显示或者设置日期",
-        NULL
-    },
-    {
-        "time",
-        __time,
-        "显示当前时间或者设置输入新时间",
-        NULL
-    },
-
-//    {
-//        "settime",
-//        Sh_SetTime,
-//        "Diaplay or set current time",
-//        "命令格式:settime year/month/day, hour:min:sec+Enter"
-//    },
-
-//    {
-//        "uninstall-cmd",
-//        Sh_UninstallCmdByName,
-//        "删除shell命令--用名字",
-//        NULL
-//    },
-
-//    {
-//        "cpuinfo",
-//        ShowCpuInfo,
-//        "usage:cpuinfo:show the cpu",
-//        NULL
-//    },
-};
-
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：实际添加了的命令数量；
-// 备注：
-// ============================================================================
-
-s32 shell_default(void)
-{
-    s32 commands;
-    commands = sizeof(shell_default_debug) / sizeof(struct shell_debug);
-
-    if(commands!=shell_debug_add(shell_default_debug, commands))
-        return (-1);
-
-    if(kernel_command())
-        return (-1);
-
-    return (0);
-}
+#endif

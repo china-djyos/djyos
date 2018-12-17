@@ -72,7 +72,7 @@ static char pAtDevName[32]; //use this var to storage the at command device
 //作者:zhangqf@上午10:17:31/2017年3月23日
 //-----------------------------------------------------------------------------
 //bool_t  AtDefaultDevSet(char *name)
-ADD_TO_SHELL_HELP(atdevset,"usage:atdevset devname");
+ADD_TO_IN_SHELL_HELP(atdevset,"usage:atdevset devname");
 ADD_TO_IN_SHELL bool_t  atdevset(char *name)
 {
     if(NULL != name)
@@ -89,7 +89,7 @@ const char *AtDevGetDefault(void)
 }
 
 //bool_t AtDefaultDevGetShell(char *para)
-ADD_TO_SHELL_HELP(atdevget,"usage:atdevget");
+ADD_TO_IN_SHELL_HELP(atdevget,"usage:atdevget");
 ADD_TO_IN_SHELL bool_t atdevget(char *para)
 {
     debug_printf("ATCOMMANDDEV","%s\n\r",AtDevGetDefault());
@@ -254,7 +254,7 @@ u8 gAtRcvBuf[CN_AT_LEN];
 //作者:zhangqf@上午10:54:07/2017年3月23日
 //-----------------------------------------------------------------------------
 //bool_t AtCmdShell(char *cmd)
-ADD_TO_SHELL_HELP(atcmd,"usage:atcmd command");
+ADD_TO_IN_SHELL_HELP(atcmd,"usage:atcmd command");
 ADD_TO_IN_SHELL bool_t atcmd(char *cmd)
 {
     int result;
@@ -748,7 +748,7 @@ bool_t AtDial(char *devname,char *apn)
     return result;
 }
 //static bool_t  AtDialShell(char *param)
-ADD_TO_SHELL_HELP(atdial,"usage:atdial devname apn");
+ADD_TO_IN_SHELL_HELP(atdial,"usage:atdial devname apn");
 ADD_TO_IN_SHELL  bool_t  atdial(char *param)
 {
     bool_t result = false;
@@ -801,7 +801,7 @@ int AtGetSignal(const char *atdev)
     return result;
 }
 //static bool_t AtGetSignalShell(char *param)
-ADD_TO_SHELL_HELP(atsignal,"usage:atsignal [devname](if not supplied, will use the default)");
+ADD_TO_IN_SHELL_HELP(atsignal,"usage:atsignal [devname](if not supplied, will use the default)");
 ADD_TO_IN_SHELL  bool_t atsignal(char *param)
 {
     const char *atdev;
@@ -826,42 +826,6 @@ ADD_TO_IN_SHELL  bool_t atsignal(char *param)
     return true;
 }
 
-//usage:this is used for the at debeug
-struct shell_debug  gAtDebugItem[] =
-{
-    {
-        "atcmd",
-        atcmd,
-        "usage:atcmd command",
-        "usage:atcmd command",
-    },
-    {
-        "atdevset",
-        atdevset,
-        "usage:atdevset devname",
-        "usage:atdevset devname",
-    },
-    {
-        "atdevget",
-        atdevget,
-        "usage:atdevget",
-        "usage:atdevset",
-    },
-    {
-        "atdial",
-        atdial,
-        "usage:atdial devname apn",
-        "usage:atdial devname apn",
-    },
-    {
-        "atsignal",
-        atsignal,
-        "usage:atsignal [devname](if not supplied, will use the default)",
-        "usage:atsignal [devname](if not supplied, will use the default)",
-    }
-};
-#define CN_AtDebug_NUM  ((sizeof(gAtDebugItem))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gAtDebugCmdRsc[CN_AtDebug_NUM];
 //-----------------------------------------------------------------------------
 //功能:this is the ppp main function here
 //参数:
@@ -871,10 +835,7 @@ struct shell_debug  gAtDebugItem[] =
 //-----------------------------------------------------------------------------
 bool_t PppAtInit(ptu32_t para)
 {
-    if(CN_AtDebug_NUM==shell_debug_add(gAtDebugItem, CN_AtDebug_NUM))
-        return (TRUE);
-
-    return (FALSE);
+     return (TRUE);
 }
 
 

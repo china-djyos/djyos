@@ -100,7 +100,7 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
 
 //use it as:tftp serverip filename
 //bool_t TftpClientShell(char *param)
-ADD_TO_SHELL_HELP(tftp,"usage:tftp get/put hostname filename");
+ADD_TO_IN_SHELL_HELP(tftp,"usage:tftp get/put hostname filename");
 ADD_TO_IN_SHELL bool_t tftp(char *param)
 {
     int argc =3;
@@ -119,33 +119,6 @@ ADD_TO_IN_SHELL bool_t tftp(char *param)
     return true;
 }
 
-extern bool_t TftpServerShell(char *param);
-
-struct shell_debug  gServiceTftp[] =
-{
-    {
-        "tftp",
-        tftp,
-        "usage:tftp get/put hostname filename",
-        "usage:tftp get/put hostname filename",
-    },
-    {
-        "tftppathset",
-        tftppathset,
-        "usage:tftppathset workpath",
-        "usage:tftppathset workpath",
-    },
-    {
-        "tftppath",
-        tftppath,
-        "usage:tftppath",
-        "usage:tftppath",
-    },
-};
-
-#define CN_TFTPDEBUG_NUM  ((sizeof(gServiceTftp))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gServiceTftpCmdRsc[CN_TFTPDEBUG_NUM];
-
 //THIS IS PING MODULE FUNCTION
 bool_t ServiceTftpInit(ptu32_t para)
 {
@@ -153,7 +126,6 @@ bool_t ServiceTftpInit(ptu32_t para)
 
     tftppathset((char *)CN_TFTP_PATHDEFAULT);
 
-    shell_debug_add(gServiceTftp, CN_TFTPDEBUG_NUM);
 
     result = TftpServerShell(NULL);
 

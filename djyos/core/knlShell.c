@@ -86,7 +86,7 @@ bool_t stack(char *param);
 // 备注：
 // ============================================================================
 //bool_t Sh_ShowEvent(char *param)
-ADD_TO_SHELL_HELP(event,"显示事件表");
+ADD_TO_IN_SHELL_HELP(event,"显示事件表");
 ADD_TO_IN_SHELL bool_t event(char *param)
 {
     u16 pl_ecb;
@@ -152,7 +152,7 @@ ADD_TO_IN_SHELL bool_t event(char *param)
 // 备注：
 // ============================================================================
 //bool_t Sh_ShowEvtt(char *param)
-ADD_TO_SHELL_HELP(evtt,"显示事件类型表");
+ADD_TO_IN_SHELL_HELP(evtt,"显示事件类型表");
 ADD_TO_IN_SHELL bool_t evtt(char *param)
 {
     u16 pl_ecb;
@@ -200,7 +200,7 @@ ADD_TO_IN_SHELL bool_t evtt(char *param)
 // 备注：
 // ============================================================================
 //bool_t Sh_ShowStack(char *param)
-ADD_TO_SHELL_HELP(stack,"显示系统中所有已经分配线程的事件的栈信息");
+ADD_TO_IN_SHELL_HELP(stack,"显示系统中所有已经分配线程的事件的栈信息");
 ADD_TO_IN_SHELL bool_t stack(char *param)
 {
     u16 pl_ecb;
@@ -254,49 +254,6 @@ ADD_TO_IN_SHELL bool_t stack(char *param)
     printf("栈指针是最后一次上下文切换时保存的值");
     return (TRUE);
 }
-
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-struct shell_debug const tg_ShellKernelCmdTbl[] =
-{
-   {
-        "event",
-        event,
-        "显示事件表",
-        NULL
-    },
-    {
-        "evtt",
-        evtt,
-        "显示事件类型表",
-        NULL
-    },
-//    {
-//        "heap",
-//        (bool_t (*)(char*))__M_ShowHeap,
-//        "显示堆使用情况",
-//        NULL
-//    },
-//    {
-//        "heap-spy",
-//        (bool_t (*)(char*))__M_ShowHeapSpy,
-//        "显示动态内存详细分配情况",
-//        NULL
-//    },
-    {
-        "stack",
-        (bool_t (*)(char*))stack,
-        "显示系统中所有已经分配线程的事件的栈信息",
-        NULL
-    },
-};
-
-//static struct ShellCmdRsc tg_ShellKernelCmd
-//                        [sizeof(tg_ShellKernelCmdTbl)/sizeof(struct shell_debug)];
 
 // ============================================================================
 // 功能：
@@ -380,11 +337,9 @@ ptu32_t kernel_spy(void)
 s32 kernel_command(void)
 {
     u16 res;
-    s32 commands = sizeof(tg_ShellKernelCmdTbl)/sizeof(struct shell_debug);
+
     u32 cycle = 1000; // 1s时间，监测周期
 
-    if(commands!=shell_debug_add(tg_ShellKernelCmdTbl, commands))
-        return (-1);
 
     res = Djy_EvttRegist(EN_CORRELATIVE, 1, 0, 0,
                         kernel_spy, NULL, 1024, "kernel spy");

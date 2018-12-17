@@ -451,7 +451,7 @@ static ptu32_t __NetTickerTask(void)
 
 //this is the nettick shell function:use it for the debug
 //static bool_t  __NetTickShell(char *param)
-ADD_TO_SHELL_HELP(netticker,"usage:netticker");
+ADD_TO_IN_SHELL_HELP(netticker,"usage:netticker");
 ADD_TO_IN_SHELL  bool_t  netticker(char *param)
 {
     bool_t ret = true;
@@ -482,7 +482,7 @@ ADD_TO_IN_SHELL  bool_t  netticker(char *param)
 
 //show the tcpip memory consumed
 //static bool_t __tcpipmem(char *para)
-ADD_TO_SHELL_HELP(tcpipmem,"usage:tcpipmem");
+ADD_TO_IN_SHELL_HELP(tcpipmem,"usage:tcpipmem");
 ADD_TO_IN_SHELL  bool_t tcpipmem(char *para)
 {
     debug_printf("osarch","MEMNEED  :%-8d Bytes\n\r",gOsCB.mem);
@@ -543,24 +543,7 @@ void OsPrintSplit(char c,int num)
 
 
 //////////////////////////////OSARCH SERVICE///////////////////////////////////
-//shell tab here
-static const struct shell_debug  gOSARCHDebug[] =
-{
-    {
-        "netticker",
-        netticker,
-        "usage:netticker",
-        "usage:netticker",
-    },
-    {
-        "tcpipmem",
-        tcpipmem,
-        "usage:tcpipmem",
-        "usage:tcpipmem",
-    },
-};
-#define CN_OSARCHDebug_NUM  ((sizeof(gOSARCHDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gOSARCHDebugCmdRsc[CN_OSARCHDebug_NUM];
+
 
 bool_t OsArchInit()
 {
@@ -572,11 +555,7 @@ bool_t OsArchInit()
         error_printf("osarch","NETTICKER INIT ERR\n\r");
     }
 
-    if(CN_OSARCHDebug_NUM!=shell_debug_add(gOSARCHDebug, CN_OSARCHDebug_NUM))
-    {
-        error_printf("osarch","CMD INSTALL ERR\n\r");
-        ret = FALSE;
-    }
+
 
     return ret;
 }

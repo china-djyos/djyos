@@ -11,7 +11,7 @@ SECTIONS
     /*切勿在填充section内填写数据（例如LONG( . + 256)），否则生成的bin文件中会包含此段*/
     Iboot_IbootFill :        
     {
-        gc_IbootStart = .;
+        gc_IbootStart = .;          /*0x800 + 256*1024 = 0x40800*/
         . += IbootSize;             /*该地址需保证256字节对齐*/
     }>Flash
 	
@@ -23,14 +23,14 @@ SECTIONS
         LONG(0xffffffff)            /*rev*/
         LONG(0x00676264)            /* "dbg",调试标志，Iboot遇到此标志不检查APP正确性*/
 
-        . = ALIGN(256);             /*使得该地址符合256地址对齐,不够补够  0x40500 + 256 = 0x40600*/     
-        gc_ptAppInfo = .;           /*0x40600*/
-        LONG( . + 256);             /*存储4字节long 数据*/
+        . = ALIGN(256);             /*使得该地址符合256地址对齐,不够补够  0x40500 + 256 = 0x40900*/     
+        gc_ptAppInfo = .;           /*0x40900*/
+        LONG( . + 256);             /*存储4字节long 数据 0x40a00*/
         gc_AppSize = .;             /*ROM区 存储APP的bin文件大小  0x40604*/
-        LONG(pProgRomEnd - gc_AppSize + 4); /* APP的bin文件大小  gc_AppSize 标号为了访问 存储4字节long 数据 */
+        LONG(0); /* APP的bin文件大小  gc_AppSize 标号为了访问 存储4字节long 数据 */
         . = ALIGN(256);             /*使得下一地址256对齐*/
-        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址  0x40600 + 256 = 0x40700*/
-        __AppStart = .;
+        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址  0x40800 + 256 = 0x41000*/
+        __AppStart = .;           
     }>Flash
     
 
@@ -277,49 +277,38 @@ SECTIONS
         
     }>Flash
     
-             r_In_shell_rROM1_lROM1 :
+    r_In_shell_section :
 	{
    		 . = ALIGN(0x08);
    		 KEEP(* (.in_shell_cmd))
- 	}>Flash
-    
-     r_In_shell_cmdhelp_rROM1_lROM1 :
-	{
-   		
-   		 KEEP(* (.in_shell_cmd_help))
- 	}>Flash
+   		 KEEP(* (.in_shell_data))
+ 	}>InnerFlash
  	
- 	r_Ex_shell_rROM1_lROM1 :
+    r_Ex_shell_section :
 	{
-
  	     KEEP(* (.ex_shell_cmd))
-    
- 	}>Flash
-    
-    Shell_Info :
+ 	     KEEP(* (.ex_shell_data))
+ 	      . = ALIGN(0x08);
+ 	}>InnerFlash
+	r_In_shell_help_section :
+	{
+ 	     KEEP(* (.in_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>InnerFlash
+ 	
+	r_Ex_shell_help_section :
+	{
+ 	     KEEP(* (.ex_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>InnerFlash
+ 	
+ 	Shell_Info :
     {
-        . = ALIGN(0x08);
         p_shell_info = .;
-
-        LONG(0xffffffff) /* _shell_fun_tab_start 内部函数表的起始地址*/
-        LONG(0xffffffff) /*_shell_fun_tab_end  内部函数表的结束地址*/
-
-        LONG(0xffffffff) /*shell_fun_tab_start 普通函数表的起始地址*/
-        LONG(0xffffffff) /*shell_fun_tab_end  普通函数表的结束地址*/
-
-        LONG(0xffffffff)  /*shell_var_tab_start 变量表的起始地址*/
-        LONG(0xffffffff) /*shell_var_tab_start变量表的结束地址*/
-       
-        LONG(.)
-        pProgRomEnd = .;
-    }>Flash
-    
-    
-    rom_prog_end :
-    {
-       . = ALIGN(0x04);
-        pProgRomEnd = .;
-    }>Flash 
+        LONG(gc_ptIbootCtrl) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG( LENGTH(InnerFlash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
+        
+    }>InnerFlash 
 }
 /**** The End ****/
     

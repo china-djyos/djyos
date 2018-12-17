@@ -186,25 +186,7 @@ typedef struct __Ymodem
 
 bool_t uploadym(char *Param);
 bool_t downloadym(char *Param);
-struct shell_debug const ymodem_cmd_table[] =
-{
-    {
-        "downloadym",
-        downloadym,
-        "下载文件",
-        "命令格式: download"
-    },
-    {
-        "uploadym",
-        uploadym,
-        "上传文件",
-        "命令格式: upload 文件名"
-    }
-};
 
-//static struct ShellCmdRsc tg_ymodem_cmd_rsc
-//                        [sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)];
-//static struct DjyDevice *s_ptYmodemDevice;
 static tagYmodem *pYmodem = NULL;
 static s32 s_s32gYmodemDevIn,s_s32gYmodemDevOut;
 
@@ -241,9 +223,7 @@ bool_t ModuleInstall_Ymodem(void)
         {
 //          pYmodem->Path = NULL;
 
-            if(sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)
-               ==shell_debug_add(ymodem_cmd_table,
-                                 sizeof(ymodem_cmd_table)/sizeof(struct shell_debug)))
+
                 return true;
         }
         else
@@ -368,9 +348,11 @@ static char *__Ymodem_GetWord(char *buf,char **next)
 //-----------------------------------------------------------
 static void __Ymodem_CancelTrans(void)
 {
-    putc(CN_YMODEM_CAN, s_s32gYmodemDevOut);
-    putc(CN_YMODEM_CAN, s_s32gYmodemDevOut);
-    putc(CN_YMODEM_CAN, s_s32gYmodemDevOut);
+      u8 buf[1];
+      buf[0] = CN_YMODEM_CAN;
+      write(s_s32gYmodemDevOut,buf,1);
+      write(s_s32gYmodemDevOut,buf,1);
+      write(s_s32gYmodemDevOut,buf,1);
 }
 
 //------校验ymodem数据包-------------------------------------
@@ -473,7 +455,7 @@ static bool_t __Ymodem_FilePathMerge(char *name)
 
     if(NULL != name)
     {
-        PathLen = strlen(pYmodem->FileName);
+        PathLen = strlen("/iboot/");
         NameLen = strlen(name);
         if(PathLen + NameLen + 1 < CN_YMODEM_NAME_LENGTH)
         {
@@ -483,6 +465,7 @@ static bool_t __Ymodem_FilePathMerge(char *name)
         else
             return false;
     }
+    return false;
 }
 static bool_t __Ymodem_InfoPkg(tagYmodem *ym)
 {
@@ -526,14 +509,16 @@ static YMRESULT __Ymodem_FileOps(tagYmodem *ym, YMFILEOPS cmd)
     YMRESULT Ret = YMODEM_OK;
     struct stat FpInfo;
     u32 FileOpsLen;
-
+    uint8_t temp = 0;
     //对文件进行操作
     switch(cmd)
     {
     case YMODEM_FILE_OPENW:
         ym->File = fopen(ym->FileName,"w+");        //打开文件，不存在则创建
-        putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);
-        putc(CN_YMODEM_C, s_s32gYmodemDevOut);
+        temp = CN_YMODEM_ACK;
+        write(s_s32gYmodemDevOut,&temp,1);
+        temp = CN_YMODEM_C;
+        write(s_s32gYmodemDevOut,&temp,1);
         if(ym->File == NULL)
         {
             Ret = YMODEM_FILE_ERR;
@@ -557,13 +542,14 @@ static YMRESULT __Ymodem_FileOps(tagYmodem *ym, YMFILEOPS cmd)
             else
                 FileOpsLen = ym->FileBufCnt;
             ym->FileBufCnt = 0;
-            if(FileOpsLen != fwrite(ym->FileBuf,FileOpsLen,1,ym->File))
+            if(1 != fwrite(ym->FileBuf,FileOpsLen,1,ym->File))
             {
                 Ret = YMODEM_FILE_ERR;
             }
             ym->FileCnt += FileOpsLen;
         }
-        putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);
+        temp = CN_YMODEM_ACK;
+        write(s_s32gYmodemDevOut,&temp,1);
         break;
     case YMODEM_FILE_READ:
         memset(ym->PkgBuf,0x00,CN_YMODEM_STX_SIZE);
@@ -605,6 +591,7 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
 {
     YMRESULT Ret = YMODEM_OK;
     s64 CurrentTime;
+    char buffer[1];
 
     while(1)
     {
@@ -636,7 +623,8 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
             {
                 if(__Ymodem_IsZeroPkg(ym))
                 {
-                    putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);//全零包，所有传输结束
+                    buffer[0] = CN_YMODEM_ACK;
+                    write(s_s32gYmodemDevOut,buffer,1);
                     goto YMODEM_RECVEXIT;
                 }
                 else
@@ -654,7 +642,8 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
                 }
                 else
                 {
-                    putc(CN_YMODEM_NAK, s_s32gYmodemDevOut);    //包号错误，需重传
+                    buffer[0] = CN_YMODEM_NAK;
+                    write(s_s32gYmodemDevOut,buffer,1);
                 }
                 ym->Status = CN_YMODEM_SOH;
             }
@@ -669,20 +658,24 @@ static YMRESULT __Ymodem_ReceiveProcess(tagYmodem *ym)
             }
             else
             {
-                putc(CN_YMODEM_NAK, s_s32gYmodemDevOut);//包号错误，需重传
+                buffer[0] = CN_YMODEM_NAK;
+                write(s_s32gYmodemDevOut,buffer,1);
             }
             ym->Status = CN_YMODEM_STX;
             break;
         case CN_YMODEM_EOT:
             if( (ym->Status == CN_YMODEM_SOH) || (ym->Status == CN_YMODEM_STX)) //  第一个EOT
             {
-                putc(CN_YMODEM_NAK, s_s32gYmodemDevOut); //接收到结束符，回复ACK
+                buffer[0] = CN_YMODEM_NAK;
+                write(s_s32gYmodemDevOut,buffer,1);
                 ym->Status = CN_YMODEM_EOT;
             }
             else if(ym->Status == CN_YMODEM_EOT)
             {
-                putc(CN_YMODEM_ACK, s_s32gYmodemDevOut);                         //接收到结束符，回复ACK
-                putc(CN_YMODEM_C, s_s32gYmodemDevOut);                           //接收到结束符，回复C
+                buffer[0] = CN_YMODEM_ACK;
+                write(s_s32gYmodemDevOut,buffer,1);
+                buffer[0] = CN_YMODEM_C;
+                write(s_s32gYmodemDevOut,buffer,1);
             }
             break;
         case CN_YMODEM_CAN:
@@ -712,11 +705,13 @@ YMODEM_RECVEXIT:
 // 返回：true,下载成功，否则，失败
 // ============================================================================
 //bool_t Ymodem_DownloadFile(char *Param)
-ADD_TO_SHELL_HELP(downloadym,"下载文件    命令格式: download");
+ADD_TO_IN_SHELL_HELP(downloadym,"下载文件    命令格式: download");
 ADD_TO_IN_SHELL bool_t downloadym(char *Param)
 {
     YMRESULT Ret = YMODEM_OK;
     u32 CntOver = 0;
+    char RetRead;
+    char C_buffer[1];
 
     if(NULL == pYmodem)
     {
@@ -744,16 +739,21 @@ ADD_TO_IN_SHELL bool_t downloadym(char *Param)
         goto YMODEM_EXIT;
     }
 
-    putc(CN_YMODEM_C, s_s32gYmodemDevOut);
+    memset(pYmodem->FileBuf,0,(CFG_YMODEM_BUF_NUM + 1)*1024);
+    memset(pYmodem->PkgBuf, 0, CN_YMODEM_PKGBUF_SIZE);
+
+    C_buffer[0] = CN_YMODEM_C;
+    write(s_s32gYmodemDevOut,C_buffer,1);
 
     //等待主机发送数据，超时返回
     debug_printf("MODULE","下载倒计时：     ");
     fcntl(s_s32gYmodemDevIn, F_SETTIMEOUT, 1000*mS);
-    while((pYmodem->PkgBuf[0] = getc( s_s32gYmodemDevIn ) )== EOF)
+    while((RetRead = read(s_s32gYmodemDevIn,&pYmodem->PkgBuf[0],1) )== 0)//getc( s_s32gYmodemDevIn )
     {
         if (CntOver++ < 60)
         {
-            putc(CN_YMODEM_C, s_s32gYmodemDevOut); //超时则重新发送C
+            C_buffer[0] = CN_YMODEM_C;
+            write(s_s32gYmodemDevOut,C_buffer,1);//超时则重新发送C
             debug_printf("MODULE","\b\b\b\b\b%2dS ",60-CntOver);
             continue;
         }
@@ -820,6 +820,8 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
     s32 ch;
     u32 temp;
     char *FileName;
+	u8 tmpDat;
+	u8 RetRead;
 
     while(1)
     {
@@ -827,7 +829,7 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
         {
             Cmd[0] = ym->PkgBuf[0];
         }
-        else if((ch = getchar( )) == EOF)
+        else if((RetRead = read(s_s32gYmodemDevIn,&tmpDat,1))== 0)
         {
             Ret = YMODEM_TIMEOUT;
             __Ymodem_CancelTrans();
@@ -898,7 +900,9 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
             }
             else if(ym->FileCnt >= ym->FileSize)
             {
-                putc(CN_YMODEM_EOT, s_s32gYmodemDevOut);
+                //putc(CN_YMODEM_EOT, s_s32gYmodemDevOut);
+                u8 ym_EofVal = CN_YMODEM_EOT;
+                write(s_s32gYmodemDevOut,&ym_EofVal,1);
                 ym->Status = CN_YMODEM_EOT;
                 continue;
             }
@@ -943,7 +947,7 @@ YMODEM_SENDEXIT:
 // 返回：true,上载成功，否则，失败
 // ============================================================================
 //bool_t Ymodem_UploadFile(char *Param)
-ADD_TO_SHELL_HELP(uploadym,"上传文件    命令格式: upload 文件名");
+ADD_TO_IN_SHELL_HELP(uploadym,"上传文件    命令格式: upload 文件名\n\r");
 ADD_TO_IN_SHELL bool_t uploadym(char *Param)
 {
     YMRESULT Ret = YMODEM_OK;

@@ -46,11 +46,25 @@
 #ifndef __BOARD__H__
 #define __BOARD__H__
 
-#include "./include/ctiic.h"
+//#include "./include/ctiic.h"
+#include "cpu_peri.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//IO方向设置
+#define CT_SCL_OUT() {GPIOH->MODER&=~(6<<(6*2));GPIOH->MODER|=1<<6*2;}  //PI3输出模式
+#define CT_SDA_IN()  {GPIOI->MODER&=~(3<<(3*2));GPIOI->MODER|=0<<3*2;}  //PI3输入模式
+#define CT_SDA_OUT() {GPIOI->MODER&=~(3<<(3*2));GPIOI->MODER|=1<<3*2;}  //PI3输出模式
+//IO操作函数
+#define CT_IIC_SCL(n) (n?GPIO_SettoHigh(GPIO_H,PIN6):GPIO_SettoLow(GPIO_H,PIN6))//SCL
+#define CT_IIC_SDA(n) (n?GPIO_SettoHigh(GPIO_I,PIN3):GPIO_SettoLow(GPIO_I,PIN3))//SDA
+#define CT_READ_SDA   (GPIO_GetData(GPIO_I)&PIN3)//输入SDA
+
+/*触摸屏芯片接口IO*/
+#define FT_RST(n)  (n?GPIO_SettoHigh(GPIO_I,PIN8):GPIO_SettoLow(GPIO_I,PIN8))
+#define FT_INT      (GPIO_GetData(GPIO_H)&PIN7)
 
 void Board_GpioInit(void);
 void FT5206_RST(bool_t flag);
@@ -60,31 +74,35 @@ void LCD_PinInit(void );
 void Lcd_BackLight_OnOff(u8 onoff);
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 
-void IIC_pcf8574_Init(void);
-void IIC_Start(void);
-void IIC_Stop(void);
-u8 IIC_Wait_Ack(void);
-void IIC_Ack(void);
-void IIC_NAck(void);
-void IIC_Send_Byte(u8 txd);
-u8 IIC_Read_Byte(unsigned char ack);
-void PCF8574_WriteOneByte(u8 DataToWrite);
-u8 PCF8574_Init(void);
-u8 PCF8574_ReadOneByte(void);
-void PCF8574_WriteBit(u8 bit,u8 sta);
-u8 PCF8574_ReadBit(u8 bit);
-bool_t ETH_RESE(void);
+//void IIC_pcf8574_Init(void);
+//void IIC_Start(void);
+//void IIC_Stop(void);
+//u8 IIC_Wait_Ack(void);
+//void IIC_Ack(void);
+//void IIC_NAck(void);
+//void IIC_Send_Byte(u8 txd);
+//u8 IIC_Read_Byte(unsigned char ack);
+//void PCF8574_WriteOneByte(u8 DataToWrite);
+//u8 PCF8574_Init(void);
+//u8 PCF8574_ReadOneByte(void);
+//void PCF8574_WriteBit(u8 bit,u8 sta);
+//u8 PCF8574_ReadBit(u8 bit);
+//bool_t ETH_RESE(void);
 
-bool_t ModuleInstall_Touch_FT5206(struct GkWinObj *desktop,\
-        const char *touch_dev_name );
+//bool_t ModuleInstall_Touch_FT5206(struct GkWinObj *desktop,\
+//        const char *touch_dev_name );
+//
+//bool_t ModuleInstall_Keyboard(const char *dev_name);
+//u32 keyboard_scan(void);
+//
+//bool_t lan8720Init(void);
+//
+//bool_t Ltdc_Lcd_Config(struct LCD_ConFig *lcd);
 
-bool_t ModuleInstall_Keyboard(const char *dev_name);
-u32 keyboard_scan(void);
-
-bool_t lan8720Init(void);
-
-bool_t Ltdc_Lcd_Config(struct LCD_ConFig *lcd);
-
+void Board_FT5X26_Int_Gpio(void);
+void Board_FT5X26_RST(void);
+u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
+unsigned char  NAND_RB_Get(void);
 #ifdef __cplusplus
 }
 #endif
