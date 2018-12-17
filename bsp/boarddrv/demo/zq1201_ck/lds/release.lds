@@ -237,6 +237,7 @@ SECTIONS
         p_shell_info = .;
         LONG(gc_ptIbootCtrl) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG( LENGTH(ROM2_SDRAM)) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
-       
+        LONG(.)
+        pProgRomEnd = .;
     }>ROM2_SDRAM 
 }
