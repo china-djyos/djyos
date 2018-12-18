@@ -1388,7 +1388,7 @@ static void __PppShow(tagPPP *ppp)
 
 }
 //static bool_t __PppShellCmd(char *param)
-ADD_TO_SHELL_HELP(ppp,"usage:ppp [subcmd subparam]/help");
+ADD_TO_IN_SHELL_HELP(ppp,"usage:ppp [subcmd subparam]/help");
 ADD_TO_IN_SHELL  bool_t ppp(char *param)
 {
     int argc = 4;
@@ -1422,17 +1422,6 @@ ADD_TO_IN_SHELL  bool_t ppp(char *param)
     return true;
 }
 
-struct shell_debug gPppDebug[] = {
-        {
-                "ppp",
-                ppp,
-                "usage:ppp [subcmd subparam]/help",
-                "usage:ppp [subcmd subparam]/help",
-        },
-};
-#define CN_PPPDEBUG_NUM  ((sizeof(gPppDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gPppDebugCmdRsc[CN_PPPDEBUG_NUM];
-
 //this is the initialize function for the ppp module
 static u16 gPppEvttID = CN_EVTT_ID_INVALID;
 #define     CN_PPP_TASKSTACKSIZE      0x800     //the ppp task stack size
@@ -1453,7 +1442,6 @@ bool_t PppInit(void) {
     }
 
     //install the debug shell for the system
-    if(CN_PPPDEBUG_NUM==shell_debug_add(gPppDebug, CN_PPPDEBUG_NUM))
         return (TRUE);
 
     return result;

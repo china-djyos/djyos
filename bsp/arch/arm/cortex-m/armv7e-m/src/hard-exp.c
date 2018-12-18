@@ -75,6 +75,9 @@
 #include "djyos.h"
 #include "dbug.h"
 #include "board-config.h"
+#if (CN_USE_TICKLESS_MODE)
+#include "tickless.h"
+#endif
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __Djy_ScheduleAsynSignal(void);
 
@@ -88,9 +91,6 @@ extern void HardExp_BusfaultHandler(void);
 extern   uint32_t   msp_top[ ];
 extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
-#if (CN_USE_TICKLESS_MODE)
-extern   u32 __Djy_GetTimeBaseReload(void);
-#endif
 bool_t  HardExp_Analysis(struct BlackBoxThrowPara *parahead, u32 endian);
 struct SystickReg volatile * const pg_systick_reg
                         = (struct SystickReg *)0xE000E010;
@@ -182,7 +182,7 @@ void Exp_SystickTickHandler(void)
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
 #if (CN_USE_TICKLESS_MODE)
-    tick=__Djy_GetTimeBaseReload();
+    tick = djytickless_get_reload();
     user_systick(tick);
 #else
     user_systick(1);

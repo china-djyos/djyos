@@ -100,6 +100,7 @@
    <component>/bsp/chipdrv/ds3232mz/rtc_ds3232M.c</component>
    <component>/bsp/chipdrv/fram/fram_fm24cl64b.c</component>
    <component>/bsp/chipdrv/ft5406/ft5406.c</component>
+   <component>/bsp/chipdrv/ft5x26/FT5X26.c</component>
    <component>/bsp/chipdrv/ili9325/ili9325.c</component>
    <component>/bsp/chipdrv/k9f1208xxx/k9f1208xxx.c</component>
    <component>/bsp/chipdrv/ksz8081rnb/imxrt1052-evk/fsl_phy.c</component>

@@ -81,8 +81,8 @@ extern "C" {
 #define CN_CFG_EXTCLK   (10*Mhz)             //外部时钟=10M
 
 /*____以下定义tick参数____*/
-#define CN_CFG_TICK_US 10000  //tick间隔，以us为单位。
-#define CN_CFG_TICK_HZ 100  //内核时钟频率，单位为hz。
+#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
+#define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
 #define CN_USE_TICKLESS_MODE    (0U)
 #if (!CN_USE_TICKLESS_MODE)
 #if (CN_CFG_MCLK == 80*Mhz)
@@ -94,12 +94,16 @@ extern "C" {
 #endif
 #define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
 #else
-#define CN_CFG_USE_USERTIMER        (0U)//(1U)//是否使用LPTIMER作为系统时钟
+#define CN_CFG_USE_USERTIMER        (0U)//是否使用LPTIMER作为系统时钟
 #define CN_CFG_TIME_BASE_HZ         CN_CFG_MCLK//(32768U)//(8000U)
 #if (!CN_CFG_USE_USERTIMER)
 #define CN_CFG_USE_BYPASSTIMER      (0U)//0表示不使用旁路定时器，1表示使用旁路定时器
+#define CN_CFG_TIME_PRECISION       (500U)/*精度单位：US*/
 #else
 #define CN_CFG_USERTIMER_PRESC      (1U)//若不使用SYSTICK定时器，需指定用户定时器的分频数
+#define CN_CFG_FINE_US (0x1E849CU)  //1/32768,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
+#define CN_CFG_FINE_HZ (0x863U)  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
+#define CN_CFG_TIME_PRECISION       (200U)/*精度单位：US*/
 #endif
 #endif
 

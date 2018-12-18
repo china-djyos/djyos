@@ -70,7 +70,7 @@ static bool_t  gFtpdDebugSwitch = false;
 static tagFtpClient* pFtpClient = NULL;
 
 //static bool_t __FtpdDebug(char *para)
-ADD_TO_SHELL_HELP(ftpd,"usage:ftpd subcmd [subpara]");
+ADD_TO_IN_SHELL_HELP(ftpd,"usage:ftpd subcmd [subpara]");
 ADD_TO_IN_SHELL  bool_t ftpd(char *para)
 {
 
@@ -952,18 +952,6 @@ SERVER_EXIT:
     return 0;
 }
 
-struct shell_debug  gFtpdDebug[] =
-{
-    {
-        "ftpd",
-        ftpd,
-        "usage:ftpd subcmd [subpara]",
-        "usage:ftpd subcmd [subpara]",
-    }
-};
-#define CN_FtpdDebug_NUM  ((sizeof(gFtpdDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gFtpdDebugCmdRsc[CN_FtpdDebug_NUM];
-
 //THIS IS PING MODULE FUNCTION
 bool_t ServiceFtpdInit(ptu32_t para)
 {
@@ -973,7 +961,6 @@ bool_t ServiceFtpdInit(ptu32_t para)
         error_printf("ftpd","FTPD:TASK CREATE ERR");
     }
 
-    shell_debug_add(gFtpdDebug, CN_FtpdDebug_NUM);
     return ret;
 }
 

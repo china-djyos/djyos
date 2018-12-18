@@ -290,6 +290,9 @@ s32 fflush(FILE *stream)
                 stream->buf->prefetched = stream->buf->movs;
                 return (EOF);
             }
+            else
+                stream->buf->movs=stream->buf->data;
+
         }
     }
 
@@ -306,7 +309,7 @@ s32 fflush(FILE *stream)
 FILE *fopen(const char *filename, const char *mode)
 {
     FILE *stream;
-    s32 flags, cflags;
+    s32 flags=0, cflags=0;
     s32 fd, res;
     struct stat info;
 
@@ -603,12 +606,11 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
     else
     {
         tmp = stream->pos;
-        frees = __filebuf_frees(stream);;
+        frees = __filebuf_frees(stream);
         while(1)
         {
             if(frees > rest)
                 frees = rest;
-
             memcpy(stream->buf->movs, buf, frees);
             stream->buf->movs += frees;
 #if 0
@@ -628,7 +630,9 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
                 res = stream->pos - tmp; // 实际写入的数据数
                 break;
             }
-
+            memset(stream->buf->data, 0xff, stream->buf->size);
+//            stream->buf->movs -= stream->buf->size;
+            stream->pos += stream->buf->size;
             rest -= frees;
             buf += frees;
             frees = stream->buf->size;
@@ -637,6 +641,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
 
     return (res/size);
 }
+
 
 // ============================================================================
 // 功能：从文件输入一个字符，getc和fgetc是等价的，搞笑的c标准。

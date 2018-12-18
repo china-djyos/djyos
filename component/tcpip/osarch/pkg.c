@@ -345,7 +345,7 @@ bool_t PkgCachedLst(tagNetPkg   *pkglst)
 // DESCRIPTION:
 // =============================================================================
 //bool_t PkgMemShow(char *param)
-ADD_TO_SHELL_HELP(pkgmem,"usage:pkgmem,  show the pkg module statistics");
+ADD_TO_IN_SHELL_HELP(pkgmem,"usage:pkgmem,  show the pkg module statistics");
 ADD_TO_IN_SHELL bool_t pkgmem(char *param)
 {
     int i =0;
@@ -360,19 +360,6 @@ ADD_TO_IN_SHELL bool_t pkgmem(char *param)
     }
     return true;
 }
-
-struct shell_debug  gPkgDebug[] =
-{
-    {
-        "pkgmem",
-        pkgmem,
-        "usage:pkgmem",
-        "show the pkg module statistics"
-    },
-};
-
-#define CN_PKGDEBUG_ITEMNUM  ((sizeof(gPkgDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gPkgDebugCmdRsc[CN_PKGDEBUG_ITEMNUM];
 
 // =============================================================================
 // FUNCTION:this function is used to initialize the package memory
@@ -399,12 +386,6 @@ bool_t PkgInit(void)
         goto EXIT_MEM;
     }
 
-    if(CN_PKGDEBUG_ITEMNUM!=shell_debug_add(gPkgDebug, CN_PKGDEBUG_ITEMNUM))
-    {
-        error_printf("pkg","%s:install memory command failed\r\n",__FUNCTION__);
-        result = false;
-        goto EXIT_CMD;
-    }
 
     result = true;
     return result;

@@ -8,24 +8,24 @@ SECTIONS
 { 
     
     /*地址填充区域，Release版本下载起始地址实质上是0x0040 0000 + IbootSize + 256*/
-    /*因此在此处填充section内，将InnerFlash地址偏移，使生成的bin文件起始地址为0x00440100*/
+    /*因此在此处填充section内，将Flash地址偏移，使生成的bin文件起始地址为0x00440100*/
     /*切勿在填充section内填写数据（例如LONG( . + 256)），否则生成的bin文件中会包含此段*/
     Iboot_IbootFill :        
     {
-        gc_IbootStart = .;
-        . += IbootSize;  
+        gc_IbootStart = .;          
+        . += IbootSize;      		 /*0x40800*/
     }>Flash
     
     Iboot_AppFill :
     {
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
-        LONG(0xffffffff)
-        . = ALIGN(256);
+        . += 256;
+   
     }>Flash
             
 	Iboot_AppInfo :
     {       
-        gc_ptAppInfo = .; 
+        gc_ptAppInfo = .;           /*确保这个地址为iboot中指向的0x40900 iboot的 gc_ptAppInfo 指向*/
         LONG( . + 256);
         gc_AppSize = .;             /*ROM区 存储APP的bin文件大小 */
         LONG(pProgRomEnd - gc_AppSize + 4); /* APP的bin文件大小 */   
@@ -277,48 +277,37 @@ SECTIONS
         
     }>Flash
     
-    r_In_shell_rROM1_lROM1 :
+    r_In_shell_section :
 	{
    		 . = ALIGN(0x08);
    		 KEEP(* (.in_shell_cmd))
- 	}>Flash
-    
-     r_In_shell_cmdhelp_rROM1_lROM1 :
-	{
-   		
-   		 KEEP(* (.in_shell_cmd_help))
+   		 KEEP(* (.in_shell_data))
  	}>Flash
  	
- 	r_Ex_shell_rROM1_lROM1 :
+    r_Ex_shell_section :
 	{
-
  	     KEEP(* (.ex_shell_cmd))
-    
+ 	     KEEP(* (.ex_shell_data))
+ 	      . = ALIGN(0x08);
  	}>Flash
-    
-    Shell_Info :
+	r_In_shell_help_section :
+	{
+ 	     KEEP(* (.in_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>Flash
+ 	
+	r_Ex_shell_help_section :
+	{
+ 	     KEEP(* (.ex_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>Flash
+ 	
+ 	Shell_Info :
     {
-        . = ALIGN(0x08);
         p_shell_info = .;
-
-        LONG(0xffffffff) /* _shell_fun_tab_start 内部函数表的起始地址*/
-        LONG(0xffffffff) /*_shell_fun_tab_end  内部函数表的结束地址*/
-
-        LONG(0xffffffff) /*shell_fun_tab_start 普通函数表的起始地址*/
-        LONG(0xffffffff) /*shell_fun_tab_end  普通函数表的结束地址*/
-
-        LONG(0xffffffff)  /*shell_var_tab_start 变量表的起始地址*/
-        LONG(0xffffffff) /*shell_var_tab_start变量表的结束地址*/
-       
-        LONG(.)
-        pProgRomEnd = .;
-    }>Flash
-    
-    
-    rom_prog_end :
-    {
-       . = ALIGN(0x04);
-        pProgRomEnd = .;
+        LONG(gc_ptIbootCtrl) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG( LENGTH(Flash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
+        
     }>Flash 
 }
 /**** The End ****/

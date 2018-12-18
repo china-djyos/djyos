@@ -109,8 +109,8 @@
 //@#$%component end configure
 
 
-
-#define NAND_RB                ((GPIO_GetData(GPIO_D)&PIN6)>>6) //NAND Flash的闲/忙引脚
+//R/B引脚的状态获取放到了对应板件的board.c中
+//#define NAND_RB                ((GPIO_GetData(GPIO_D)&PIN6)>>6) //NAND Flash的闲/忙引脚
 #define NAND_ADDRESS            0X80000000  //nand flash的访问地址,接NCE3,地址为:0X8000 0000
 #define NAND_CMD                1<<16       //发送命令
 #define NAND_ADDR               1<<17       //发送地址
@@ -671,7 +671,7 @@ static bool_t  stm32f7_NAND_ControllerConfig(void)
 static void ResetNand(void)
 {
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(RESET_CMD_BYTE);
-    WaitNandReady();        //这里没有做nand是否准备好的判断，因为目前的使用没有问题，所以没有加上判断。要加判断得改函数接口
+    while(WaitNandReady() == false);
 }
 #if 0
 //-----------------------------------------------------------------------------
@@ -705,7 +705,7 @@ static u8 NAND_WaitRB(vu8 rb)
     vu32 time=0;
     while(time<30000)
     {
-        if(NAND_RB==rb)return 0;
+        if(NAND_RB_Get() == rb)return 0;
         time++;
     }
     return 1;
@@ -822,7 +822,7 @@ bool_t NandFlash_Ready(void)
 }
 
 
-
+#if 0
 
 /******************************************************************************
                          简易文件系统函数
@@ -1371,7 +1371,7 @@ void ChipRawTest(void)
     ContinuityTest(Chip);
     while(1);
 }
-
+#endif
 #endif
 
 #if 1 // 新接口

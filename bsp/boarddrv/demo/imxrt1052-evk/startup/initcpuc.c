@@ -61,6 +61,8 @@
 #include "evkbimxrt1050_hyper_config.h"
 #include "fsl_flexspi_nor_boot.h"
 //#include "cpu-optional.h"
+#include "project_config.h"
+
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
 #endif
@@ -116,7 +118,11 @@ void Init_Cpu(void)
     BOARD_ConfigMPU();
     ClockInit();
     //Sdram_SemcInit();
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 
 }
 

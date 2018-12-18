@@ -73,7 +73,7 @@
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                     //初始化时机，可选值：early，medium，later。
                                       //表示初始化时间，分别是早期、中期、后期
-//dependence:"kernel","stm32f1","cpu_peri_gpio","cpu_peri_lowpower","qh_1_lowpower"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"kernel","stm32f1","cpu_peri_gpio","cpu_peri_lowpower"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件将强制选中，
                                       //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -92,6 +92,46 @@
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
+
+void __lcd_reset(void)
+{
+    GPIO_SettoLow(CN_GPIO_G,0x100);
+    Djy_DelayUs(5000);
+    GPIO_SettoHigh(CN_GPIO_G,0x100);
+}
+
+void lcd_backlight_on(void)
+{
+    GPIO_SettoLow(CN_GPIO_F,0x400);
+}
+
+void lcd_backlight_off(void)
+{
+    GPIO_SettoHigh(CN_GPIO_F,0x400);
+}
+
+void __Lcd_BoardConfig( void )
+{
+    GPIO_PowerOn(CN_GPIO_F);
+    GPIO_PowerOn(CN_GPIO_G);
+    GPIO_CfgPinFunc(CN_GPIO_F,10,CN_GPIO_MODE_GPIO_OUT_OD_2Mhz);
+    GPIO_CfgPinFunc(CN_GPIO_G,8,CN_GPIO_MODE_GPIO_OUT_PP_2Mhz);
+}
+
+//----初始化键盘硬件-----------------------------------------------------------
+//功能: 如题，初始化后才能扫描键盘
+//参数: 无
+//返回: 无
+//----------------------------------------------------------------------------
+bool_t key_hard_init(void)
+{
+    GPIO_PowerOn(CN_GPIO_C);
+    GPIO_CfgPinFunc(CN_GPIO_C,10,CN_GPIO_MODE_IN_PULLUP);
+    GPIO_CfgPinFunc(CN_GPIO_C,11,CN_GPIO_MODE_IN_PULLUP);
+    GPIO_CfgPinFunc(CN_GPIO_C,12,CN_GPIO_MODE_IN_PULLUP);
+    GPIO_CfgPinFunc(CN_GPIO_C,13,CN_GPIO_MODE_IN_PULLUP);
+    return true;
+}
 
 // =============================================================================
 // 功能：根据具体的板件配置串口的GPIO的引脚功能，这是与板件相关，所以该函数放在该文件，CPU

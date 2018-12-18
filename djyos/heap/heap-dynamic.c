@@ -318,7 +318,7 @@ struct HeapCB *M_FindHeap(const char *HeapName)
 }
 
 //void __M_ShowHeap(void)
-ADD_TO_SHELL_HELP(heap,"显示堆使用情况");
+ADD_TO_IN_SHELL_HELP(heap,"显示堆使用情况");
 ADD_TO_IN_SHELL bool_t heap(void)
 {
     struct HeapCB *Heap;
@@ -398,7 +398,7 @@ ADD_TO_IN_SHELL bool_t heap(void)
 }
 
 //void __M_ShowHeapSpy(void)
-ADD_TO_SHELL_HELP(heap_spy,"显示动态内存详细分配情况");
+ADD_TO_IN_SHELL_HELP(heap_spy,"显示动态内存详细分配情况");
 ADD_TO_IN_SHELL bool_t heap_spy(void)
 {
     struct HeapCB *Heap;

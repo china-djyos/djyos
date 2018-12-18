@@ -177,7 +177,7 @@ bool_t sockobj_clrstatus(void *obj,u32 status)
 //show all the sockfile fd
 
 //static bool_t __sockobj_shell(char *param)
-ADD_TO_SHELL_HELP(sockfile,"usage:sockfile [-a]");
+ADD_TO_IN_SHELL_HELP(sockfile,"usage:sockfile [-a]");
 ADD_TO_IN_SHELL  bool_t sockfile(char *param)
 {
     //first show the statistics
@@ -203,19 +203,6 @@ ADD_TO_IN_SHELL  bool_t sockfile(char *param)
     return true;
 }
 
-struct shell_debug  gSOCKFILEDEBUG[] =
-{
-    {
-        "sockfile",
-        sockfile,
-        "usage:sockfile [-a]",
-        "usage:sockfile [-a]"
-    }
-};
-
-#define CN_SOCKFILEDEBUG_NUM  ((sizeof(gSOCKFILEDEBUG))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gSOCKFILEDEBUGCmdRsc[CN_SOCKFILEDEBUG_NUM];
-
 //do the sockfile initialize here
 bool_t sockobj_init(u32 num)
 {
@@ -236,7 +223,6 @@ bool_t sockobj_init(u32 num)
         goto EXIT_TABLOCK;
     }
 
-    if(CN_SOCKFILEDEBUG_NUM==shell_debug_add(gSOCKFILEDEBUG, CN_SOCKFILEDEBUG_NUM))
         return (TRUE);
 
 EXIT_TABLOCK:

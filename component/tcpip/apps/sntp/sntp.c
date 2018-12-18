@@ -173,33 +173,18 @@ static void __SntpRequest()
 }
 
 //bool_t SntpTimeSyncShell(char *param)
-ADD_TO_SHELL_HELP(sntp,"usage:sntp");
+ADD_TO_IN_SHELL_HELP(sntp,"usage:sntp");
 ADD_TO_IN_SHELL bool_t sntp(char *param)
 {
     __SntpRequest();
     return true;
 }
 
-struct shell_debug  gServiceSntp[] =
-{
-    {
-        "sntp",
-        sntp,
-        "usage:sntp",
-        NULL
-    }
-};
-
-#define CN_SNTPDEBUG_NUM  ((sizeof(gServiceSntp))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gServiceSntpCmdRsc[CN_SNTPDEBUG_NUM];
 
 //THIS IS SNTP MODULE FUNCTION
 bool_t ServiceSntpInit(ptu32_t para)
 {
-    if(CN_SNTPDEBUG_NUM==shell_debug_add(gServiceSntp, CN_SNTPDEBUG_NUM))
         return (TRUE);
-
-    return (FALSE);
 }
 
 

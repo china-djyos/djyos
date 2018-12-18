@@ -48,10 +48,7 @@
    <component>/djyos/pool/pool.c</component>
    <component>/djyos/time/component_config_time.h</component>
    <component>/bsp/boarddrv/demo/qh_1/drv/board/board.c</component>
-   <component>/bsp/boarddrv/demo/qh_1/drv/dm9000a-brd/dm9000a-brd.c</component>
-   <component>/bsp/boarddrv/demo/qh_1/drv/ili9325-brd/ili9325-brd.c</component>
    <component>/bsp/boarddrv/demo/qh_1/drv/key_hard/key_hard.c</component>
-   <component>/bsp/boarddrv/demo/qh_1/drv/qh_1_lowpower/qh_1_lowpower.c</component>
    <component>/loader/si/component_config_loader.h</component>
    <component>/third/cjson-code-73/component_config_cjson.h</component>
    <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
@@ -104,6 +101,7 @@
    <component>/bsp/chipdrv/ds3232mz/rtc_ds3232M.c</component>
    <component>/bsp/chipdrv/fram/fram_fm24cl64b.c</component>
    <component>/bsp/chipdrv/ft5406/ft5406.c</component>
+   <component>/bsp/chipdrv/ft5x26/FT5X26.c</component>
    <component>/bsp/chipdrv/ili9325/ili9325.c</component>
    <component>/bsp/chipdrv/k9f1208xxx/k9f1208xxx.c</component>
    <component>/bsp/chipdrv/ksz8081rnb/imxrt1052-evk/fsl_phy.c</component>

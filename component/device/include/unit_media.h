@@ -131,7 +131,7 @@ s32 nandscanbads(__um_req req, u32 **table);
 s32 nandvalidbads(u32 *badtable);
 u32 *nandbuildbads(s32 (*um_req)(enum ucmd cmd, ptu32_t args, ...));
 void nandbadfreeblock(u32 *badtable, u32 *block, s32 (*um_req)(enum ucmd cmd, ptu32_t args, ...));
-void nandbadfreeunit(u32 *badtable, u32 *unit, s32 (*um_req)(enum ucmd cmd, ptu32_t args, ...));
+void nandbadfreeunit(u32 *badtable, s64 *unit, __um_req req);
 
 s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat), u8 parts, ...);
 

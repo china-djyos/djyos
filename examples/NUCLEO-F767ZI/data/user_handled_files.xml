@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><IncludeFiles>
+  
+<file>/bsp/boarddrv/demo/NUCLEO-F767ZI</file><file>/bsp/boarddrv/demo/NUCLEO-F767ZI/drv/board/board.c</file><file>/bsp/boarddrv/demo/NUCLEO-F767ZI/drv/board</file></IncludeFiles>

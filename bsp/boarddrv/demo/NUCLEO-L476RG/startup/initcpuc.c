@@ -63,6 +63,7 @@
 #include "arch_feature.h"
 #include "stm32L4xx.h"
 #include "core_cmFunc.h"
+#include "project_config.h"
 
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
@@ -117,7 +118,12 @@ void Init_Cpu(void)
     HAL_TickInit();
 #endif
     __LP_BSP_HardInit();
+
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
 extern void Load_Preload(void);

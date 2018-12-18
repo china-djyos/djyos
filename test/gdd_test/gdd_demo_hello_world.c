@@ -17,9 +17,9 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
     GetClientRect(hwnd,&rc0);
    //创建一个按钮。
     CreateButton("关闭",     //按钮名
-    WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
-    RectW(&rc0)-64,RectH(&rc0)-28,60,24,    //按钮位置和大小
-    hwnd,ID_CLOSE,NULL,NULL);    //按钮所属的父窗口，ID,附加数据
+                 WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
+                 RectW(&rc0)-64,RectH(&rc0)-28,60,24,    //按钮位置和大小
+                 hwnd,ID_CLOSE,NULL,NULL);   //按钮所属的父窗口，ID,附加数据
     return true;
 }
 

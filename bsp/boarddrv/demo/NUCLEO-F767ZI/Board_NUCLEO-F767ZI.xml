@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>NUCLEO-F767ZI</boardName>
+  <cpu>
+    <cpuName>stm32f767xx</cpuName>
+    <mianClk>25.0</mianClk>
+    <rtcClk>32768.0</rtcClk>
+    <memory>
+     </memory>
+    <peripheral>cpu_peri_bksram</peripheral>
+    <peripheral>cpu_peri_dma</peripheral>
+    <peripheral>cpu_peri_emflash</peripheral>
+    <peripheral>cpu_peri_eth</peripheral>
+    <peripheral>cpu_peri_gpio</peripheral>
+    <peripheral>cpu_peri_iic</peripheral>
+    <peripheral>cpu_peri_lowpower</peripheral>
+    <peripheral>cpu_peri_rtc</peripheral>
+    <peripheral>cpu_peri_spi</peripheral>
+    <peripheral>cpu_peri_systime</peripheral>
+    <peripheral>cpu_peri_Temprate</peripheral>
+    <peripheral>cpu_peri_timer</peripheral>
+    <peripheral>cpu_peri_uart</peripheral>
+    <peripheral>usbh_conf</peripheral>
+    <peripheral>cpu_peri_hal</peripheral>
+  </cpu>
+</board>

@@ -1,7 +1,7 @@
 /****************************************************
  *  Automatically-generated file. Do not edit!	*
  ****************************************************/
-#include "djyos.h"
+
 #include "project_config.h"
 #include "stdint.h"
 #include "stddef.h"

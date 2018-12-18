@@ -82,7 +82,7 @@
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"iicbus"           //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -97,7 +97,7 @@
 //%$#@configue      ****参数配置开始
 //%$#@target = header      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,
-//#define IO_IIC_USER_TAG      0    //用户自己的标签用作在回调用户提供的IO控制函数的第二个参数
+#define IO_IIC_USER_TAG      0    //用户自己的标签用作在回调用户提供的IO控制函数的第二个参数
 //%$#@string,1,32,
 #define IO_IIC_BUS_NAME "IoIic"  //该IIC总线的名字
 //%$#select,        ***定义无值的宏，仅用于第三方组件

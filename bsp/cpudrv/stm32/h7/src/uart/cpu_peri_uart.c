@@ -818,7 +818,7 @@ ptu32_t ModuleInstall_UART(u32 port)
 {
     struct UartParam UART_Param;
 
-    if(port < CN_UART_NUM)
+    if(port >= CN_UART_NUM)
         return false;
     UART_Param.Name         = sUartCfg[port].Name;
     UART_Param.UartPortTag  = (ptu32_t)port;
@@ -888,35 +888,42 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     if(!strcmp(StdioOut,"/dev/UART1"))
     {
         TxDirectPort = CN_UART1;
+        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART2"))
     {
         TxDirectPort = CN_UART2;
+        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART3"))
     {
         TxDirectPort = CN_UART3;
+        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART4"))
     {
         TxDirectPort = CN_UART4;
+        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART5"))
     {
         TxDirectPort = CN_UART5;
+        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else if(!strcmp(StdioOut,"/dev/UART6"))
     {
         TxDirectPort = CN_UART6;
+        PutStrDirectH = &sHuart[TxDirectPort];
     }
     else
     {
-        PutStrDirect = NULL ;
+//        PutStrDirect = NULL ;
+        PutStrDirectH = NULL;
     }
 
-    if(PutStrDirect != NULL)
+    if(PutStrDirectH != NULL)
     {
-        PutStrDirectH = &sHuart[TxDirectPort];
+//        PutStrDirectH = &sHuart[TxDirectPort];
         __UART_HardInit(TxDirectPort);
         TxByteTime = 95;      //初始化默认115200，发送一个byte是87uS,+10%容限
         PutStrDirect = Uart_PutStrDirect;
@@ -925,35 +932,42 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     if(!strcmp(StdioIn,"/dev/UART1"))
     {
         RxDirectPort = CN_UART1;
+        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART2"))
     {
         RxDirectPort = CN_UART2;
+        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART3"))
     {
         RxDirectPort = CN_UART3;
+        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART4"))
     {
         RxDirectPort = CN_UART4;
+        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART5"))
     {
         RxDirectPort = CN_UART5;
+        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else if(!strcmp(StdioIn,"/dev/UART6"))
     {
         RxDirectPort = CN_UART6;
+        GetCharDirectH = &sHuart[RxDirectPort];
     }
     else
     {
-        GetCharDirect = NULL ;
+//        GetCharDirect = NULL ;
+        GetCharDirectH = NULL;
     }
 
-    if(GetCharDirect != NULL)
+    if(GetCharDirectH != NULL)
     {
-        GetCharDirectH = &sHuart[RxDirectPort];
+//        GetCharDirectH = &sHuart[RxDirectPort];
         if(TxDirectPort != RxDirectPort)
             __UART_HardInit(RxDirectPort);
         GetCharDirect = Uart_GetCharDirect;

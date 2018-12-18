@@ -183,7 +183,7 @@ u32 IAP_GetAPPCRC(void)
 // 返回：
 // 备注：
 // ============================================================================
-ADD_TO_SHELL_HELP(runiboot,"切换到Iboot(仅在采取内存标示确定加载项目且APP有加载DJYOS shell模块时有效)");
+ADD_TO_IN_SHELL_HELP(runiboot,"切换到Iboot(仅在采取内存标示确定加载项目且APP有加载DJYOS shell模块时有效)");
 ADD_TO_IN_SHELL bool_t  runiboot(char *param)
 {
      pg_IapVar.IbootFlag[0]=0x52;   //R
@@ -227,7 +227,7 @@ bool_t  Sh_RunAPP(char *param)
     return true;
 }
 
-ADD_TO_SHELL_HELP(runapp,"直接运行APP(仅在采取内存标示确定加载项目时有效)");
+ADD_TO_IN_SHELL_HELP(runapp,"直接运行APP(仅在采取内存标示确定加载项目时有效)");
 ADD_TO_IN_SHELL bool_t  runapp(char *param)
 {
     pg_IapVar.IbootFlag[0]=0x52;   //R
@@ -313,7 +313,7 @@ void RunApp(void)
 // 备注：
 // ============================================================================
 //bool_t Sh_GetAPPInfor(char *param)
-ADD_TO_SHELL_HELP(appinfo,"获取升级bin文件信息");
+ADD_TO_IN_SHELL_HELP(appinfo,"获取升级bin文件信息");
 ADD_TO_IN_SHELL bool_t appinfo(char *param)
 {
     u32 size,crc32;
@@ -332,7 +332,7 @@ ADD_TO_IN_SHELL bool_t appinfo(char *param)
 // 备注：
 // ============================================================================
 //bool_t Sh_GetStatus(char *param)
-ADD_TO_SHELL_HELP(iapstatus,"获取Iboot状态信息");
+ADD_TO_IN_SHELL_HELP(iapstatus,"获取Iboot状态信息");
 ADD_TO_IN_SHELL bool_t iapstatus(char *param)
 {
     switch (pg_IapVar.IbootStatus)
@@ -412,7 +412,7 @@ bool_t GetRunMode(void)
     }
 }
 //bool_t Sh_GetRunMode(char *param)
-ADD_TO_SHELL_HELP(iapmode,"获取当前运行模式(iboot or app)");
+ADD_TO_IN_SHELL_HELP(iapmode,"获取当前运行模式(iboot or app)");
 ADD_TO_IN_SHELL bool_t iapmode(char *param)
 {
     if(GetRunMode())
@@ -437,7 +437,7 @@ ADD_TO_IN_SHELL bool_t iapmode(char *param)
 // 备注：
 // ============================================================================
 //bool_t Sh_UpdateApp(char *param)
-ADD_TO_SHELL_HELP(updateapp,"update application");
+ADD_TO_IN_SHELL_HELP(updateapp,"update application");
 ADD_TO_IN_SHELL bool_t updateapp(char *param)
 {
     HAL_SetUpdateFlag();
@@ -456,7 +456,7 @@ bool Sh_UpdateIboot(char *param)
    Lock_SempPost(ptUpdateIbootSemp);
    return true;
 }
-ADD_TO_SHELL_HELP(updateiboot,"Update Iboot.");
+ADD_TO_IN_SHELL_HELP(updateiboot,"Update Iboot.");
 ADD_TO_IN_SHELL bool updateiboot(char *param)
 {
    Lock_SempPost(ptUpdateIbootSemp);
@@ -479,7 +479,7 @@ bool IAP_GetUpdateIbootStatus()
 // 备注：
 // ============================================================================
 //bool_t Sh_GetIbootVersion(char *pDummy)
-ADD_TO_SHELL_HELP(ibootver,"get iboot version.");
+ADD_TO_IN_SHELL_HELP(ibootver,"get iboot version.");
 ADD_TO_IN_SHELL bool_t ibootver(char *dummy)
 {
     dummy = dummy;
@@ -487,90 +487,8 @@ ADD_TO_IN_SHELL bool_t ibootver(char *dummy)
     return (TRUE);
 }
 
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-struct shell_debug const shell_cmd_iap_table[]=
-    {
-        {
-        "runiboot",
-        runiboot,
-        "切换到Iboot(仅在采取内存标示确定加载项目且APP有加载DJYOS shell模块时有效)",
-        "COMMAND:runiboot+enter"
-        },
 
-        {
-        "runapp",
-        runapp,
-        "直接运行APP(仅在采取内存标示确定加载项目时有效)",
-        "COMMAND:runapp+enter"
-        },
 
-        {
-        "appinfo",
-        appinfo,
-        "获取升级bin文件信息",
-        "COMMAND:appinfo+enter"
-        },
-
-        {
-        "iapstatus",
-        iapstatus,
-        "获取Iboot状态信息",
-        "COMMAND:iapstatus+enter"
-        },
-#if 0
-        {
-        "iapver",
-        Sh_GetIAPVersion,
-        "获取IAP版本信息",
-        "COMMAND:iapver+enter"
-        },
-#endif
-        {
-        "iapmode",
-        iapmode,
-        "获取当前运行模式(Iboot or APP)",
-        "COMMAND:iapmode+enter"
-        },
-
-        {
-        "updateapp",
-        updateapp,
-        "Update app.",
-        "COMMAND:updateapp+enter"
-        },
-
-        {
-            "ibootver",
-            ibootver,
-            "Get Iboot version.",
-            "COMMAND:ibootver+enter"
-        },
-        {
-            "updateiboot",
-            updateiboot,
-            "Update Iboot.",
-            "COMMAND:updateiboot+enter",
-        }
-};
-
-// ============================================================================
-// 功能：安装SHELL命令
-// 参数：无。
-// 返回：1（无意义）。
-// 备注
-// ============================================================================
-#define CN_IAP_SHELL_NUM  sizeof(shell_cmd_iap_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_iap_shell_cmd_rsc[CN_IAP_SHELL_NUM];
-ptu32_t IAP_ShellInstall(void)
-{
-    shell_debug_add(shell_cmd_iap_table, CN_IAP_SHELL_NUM);
-    return 1;
-}
 
 // ============================================================================
 // 功能：安装IAP组件。
@@ -598,8 +516,7 @@ ptu32_t ModuleInstall_IAP(void)
         debug_printf("IAP","Update Iboot evtt pop failed.\r\n");
     }
 
-//    IAP_ShellInstall();
-        info_printf("module","IAP installed.");
+
     return 0;
 }
 

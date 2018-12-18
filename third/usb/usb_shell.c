@@ -51,7 +51,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include <shell_debug.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <fcntl.h>
@@ -112,81 +111,6 @@ extern bool_t GetRunMode(void);
 //
 //
 //
-static struct shell_debug const sCommandTable[] =
-{
-    {
-        "uas",
-        SH_USB_Send_AT,
-        "for debug",
-        "for debug"
-    },
-    {
-        "uar",
-        SH_USB_Reveive_AT,
-        "for debug",
-        "for debug"
-    },
-    {
-        "ums",
-        SH_USB_Send_MODEM,
-        "for debug",
-        "for debug"
-    },
-    {
-        "umr",
-        SH_USB_Reveive_MODEM,
-        "for debug",
-        "for debug"
-    },
-    {
-        "uds",
-        SH_USB_Send_DEBUG,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udst",
-        SH_USB_Send_DEBUG_Timeout,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udr",
-        SH_USB_Reveive_DEBUG,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udrt",
-        SH_USB_Reveive_DEBUG_Timeout,
-        "for debug",
-        "for debug"
-    },
-    {
-        "udiaggrab",
-        SH_USB_Log,
-        "for debug",
-        "for debug"
-    },
-    {
-        "ud",
-        SH_USB_Debug,
-        "for debug",
-        "for debug"
-    },
-    {
-        "uf",
-        SH_USB_Force,
-        "for debug",
-        "for debug"
-    },
-    {
-        "usbupdate",
-        SH_USB_UpDate,
-        "for debug",
-        "for debug"
-    },
-};
 
 extern u32 CUSTOM_WriteAT(ptu32_t pUSB, u8 *pBuf, u32 dwLen, u32 dwOffset, bool_t dwBlock, u32 dwTimeout);
 extern u32 CUSTOM_ReadAT(ptu32_t pUSB, u8 *pBuf, u32 dwLen, u32 wdOffset, u32 dwTimeout);
@@ -1333,20 +1257,6 @@ u32 USBH_TouchPollThread(void)
 // ============================================================================
 void USB_ShellInstall(void)
 {
-#if 0
-    s32 commands;
-    commands = sizeof(sCommandTable) / sizeof(struct shell_debug);
 
-    spCommandSpace = malloc(commands * sizeof(*spCommandSpace));
-    if(NULL == spCommandSpace)
-        return ;
-
-    shell_debug_add(sCommandTable, spCommandSpace, commands);
-#else
-    s32 commands;
-    commands = sizeof(sCommandTable) / sizeof(struct shell_debug);
-
-    shell_debug_add(sCommandTable, commands);
-#endif
 }
 

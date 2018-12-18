@@ -1,5 +1,9 @@
 //----------------------------------------------------
+<<<<<<< HEAD
 // Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+=======
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+>>>>>>> master
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +26,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
+<<<<<<< HEAD
 // Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+=======
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+>>>>>>> master
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -48,7 +56,11 @@
  *  Created on: 2014-5-28
  *      Author: huzb
  */
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> master
 #include "silan_types.h"
 #include "silan_syscfg.h"
 #include "silan_syscfg_regs.h"
@@ -79,14 +91,22 @@ enum EN_DspBootMedia
 // 功能:copy
 // 参数：
 // 返回：
+<<<<<<< HEAD
 // 备注： 
+=======
+// 备注：
+>>>>>>> master
 // ============================================================================
 void codesCopy(u8* dst,u8* scr,u32 len)
 {
     u32 tmpLen   = 0;
     u8  *optDst  = NULL;
     u8  *optScr  = NULL;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> master
     if(dst == NULL || scr == NULL || len == 0)
     {
         printf("arg err\r\n");
@@ -98,6 +118,7 @@ void codesCopy(u8* dst,u8* scr,u32 len)
         optDst = dst;
         optScr = scr;
     }
+<<<<<<< HEAD
     
     while(tmpLen)
     {
@@ -106,6 +127,16 @@ void codesCopy(u8* dst,u8* scr,u32 len)
     }
     printk("code Copy Over\r\n");
     
+=======
+
+    while(tmpLen)
+    {
+        *optDst++ = *optScr++;
+        tmpLen--;
+    }
+    printk("code Copy Over\r\n");
+
+>>>>>>> master
     return;
 }
 
@@ -113,7 +144,11 @@ void codesCopy(u8* dst,u8* scr,u32 len)
 // 功能：M0 核启动Risc 核
 // 参数：
 // 返回：
+<<<<<<< HEAD
 // 备注： 
+=======
+// 备注：
+>>>>>>> master
 // ============================================================================
 
 void M0BootRisc(void)
@@ -121,16 +156,27 @@ void M0BootRisc(void)
     int  inst;
     int  tmpSts;
     u32  *resetAddr = NULL;
+<<<<<<< HEAD
     
    // silan_risc_reset();
    // __REG32(SILAN_SYSCFG_REG11) &= ~(0x1);
     
+=======
+
+   // silan_risc_reset();
+   // __REG32(SILAN_SYSCFG_REG11) &= ~(0x1);
+
+>>>>>>> master
     //codesCopy((u8*)CN_RISC_RUN_ADDR,(u8*)CN_RISC_FLASH_ADDR,CN_RISC_CODE_LEN);
     memcpy((uint8_t *) (CN_RISC_RUN_ADDR & 0xFFFFF000), (char *)CN_RISC_FLASH_ADDR, CN_RISC_CODE_LEN);
 
     inst    = (*(volatile u32*)(CN_RISC_RESET_ADDR));
     tmpSts  = (inst & 0xFF000000) >> 24;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> master
     u8 iLoop;
     for(iLoop = 0; iLoop < 10;iLoop++)
     printk("risc isbooting ,please wait...\r\n");
@@ -141,10 +187,17 @@ void M0BootRisc(void)
     }
     else
     {
+<<<<<<< HEAD
     	printk("risc boot failed\r\n");
     	return;
     }
     
+=======
+        printk("risc boot failed\r\n");
+        return;
+    }
+
+>>>>>>> master
 //    silan_risc_unreset();
     __REG32(SILAN_SYSCFG_REG11) |= (0x1);
 
@@ -155,13 +208,18 @@ void M0BootRisc(void)
 // 功能：M0 核启动Dsp核
 // 参数：
 // 返回：
+<<<<<<< HEAD
 // 备注： 
+=======
+// 备注：
+>>>>>>> master
 // ============================================================================
 
 void M0BootDsp(u32 bootMedia)
 {
      volatile u32*dspLoadAddr = NULL;
      u32 inst;
+<<<<<<< HEAD
      
      dspLoadAddr = (volatile u32*)CN_DSP_LOAD_ADDR;
      inst 	     = (*(volatile u32*)(dspLoadAddr));
@@ -194,19 +252,61 @@ void M0BootDsp(u32 bootMedia)
     {
 	    printk("dsp boot failed\r\n");
 	    return;
+=======
+
+     dspLoadAddr = (volatile u32*)CN_DSP_LOAD_ADDR;
+     inst        = (*(volatile u32*)(dspLoadAddr));
+
+     if(bootMedia == EN_BOOT_FROM_SDRAM)
+     {
+         if(inst == 0x0000AF02)
+         {
+             memcpy((uint8_t *)CN_DSP_RUN_ADDR, (char *)CN_DSP_LOAD_ADDR, CN_DSP_CODE_LEN);
+         }
+         else
+         {
+             printk("no code\r\n");
+             return;
+         }
+     }
+
+     if(bootMedia == EN_BOOT_FROM_SDRAM)
+    __REG32(SILAN_SYSCFG_SOC0) |=  (0x1<<1);
+     else
+    __REG32(SILAN_SYSCFG_SOC0) &= ~(0x1<<1);
+
+    inst =  __REG32(0x02000000);
+
+    if(inst == 0x0000AF02)
+    {
+        printk("dsp boot successs\r\n");
+    }
+    else
+    {
+        printk("dsp boot failed\r\n");
+        return;
+>>>>>>> master
     }
 
 
     //silan_dsp_unreset();
     __REG32(SILAN_SYSCFG_REG11) |= (0x1<<2);
+<<<<<<< HEAD
      
+=======
+
+>>>>>>> master
 }
 
 // ============================================================================
 // 功能：M0 核启动Risc核
 // 参数：
 // 返回：
+<<<<<<< HEAD
 // 备注： 
+=======
+// 备注：
+>>>>>>> master
 // ============================================================================
 
 void M0RebootRisc(void)
@@ -219,7 +319,11 @@ void M0RebootRisc(void)
 // 功能：M0 核启动Dsp核
 // 参数：
 // 返回：
+<<<<<<< HEAD
 // 备注： 
+=======
+// 备注：
+>>>>>>> master
 // ============================================================================
 
 void M0RebootDsp(void)

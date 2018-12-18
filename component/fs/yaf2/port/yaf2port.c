@@ -495,7 +495,7 @@ static s32 __yaf2close(struct objhandle *hdl)
 
     if(isdirectory(hdl))
     {
-        res = yaffs_closedir((yaffs_DIR*)hdl);
+        res = yaffs_closedir((yaffs_DIR*)yafcx);
     }
     else
     {

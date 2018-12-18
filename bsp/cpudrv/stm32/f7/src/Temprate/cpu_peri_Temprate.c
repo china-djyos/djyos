@@ -63,7 +63,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern  bool_t Temprate_Init(void);
-//    Temprate_Init( )；
+//    Temprate_Init( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

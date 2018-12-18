@@ -154,7 +154,7 @@ struct MsgProcTable
 struct MsgTableLink
 {
     struct MsgTableLink *LinkPrev;
-    struct MsgTableLink **pLinkNext;
+    struct MsgTableLink **pLinkNext;    //消息处理函数继承时，备份链表用。
     struct MsgTableLink *LinkAdd;
 //    list_t TableLink;
     struct MsgProcTable *myTable;

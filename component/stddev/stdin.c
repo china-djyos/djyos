@@ -210,10 +210,12 @@ s64 __sc_strtoll(ptu32_t Source,char (*__GetChar)(ptu32_t Source,s32 *Offset),s3
 //参数：无
 //返回：输入的字符，错误则返回EOF
 //-----------------------------------------------------------------------------
+#ifndef getchar
 s32 getchar( void )
 {
     return getc(stdin);//todo:stdio.h已经宏实现
 }
+#endif
 
 //----从stdin输入一个字符串----------------------------------------------------
 //功能：从stdin输入一个字符串，stdin可以是设备，也可以是文件，甚至可以NULL（原始

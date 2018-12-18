@@ -60,7 +60,7 @@
 
 #include "gkernel.h"
 #include <gui/gkernel/gk_display.h>
-#include "ili9325-brd.h"
+#include "board.h"
 #include "ili9325.h"
 #include "djyos.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -106,19 +106,35 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#define cn_coordinates      1      //0=正常坐标，1=翻转坐标，即原点=(239,319)
+
+#define cn_lcd_line_size        (CN_LCD_XSIZE<<1)
+#define cn_frame_buffer_size    (cn_lcd_line_size * CN_LCD_YSIZE)
+#define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
+
+#define __ili9325_write_cmd(cmd)   (LCD_CMD=cmd)
+#define __ili9325_write_data(data) (LCD_DATA=data)
+#define __ili9325_read_data(void)  (LCD_DATA)
+
 u8 u8g_frame_buffer[cn_frame_buffer_size];
 struct DisplayObj tg_lcd_display;
 
-// 要求在boarddrv目录的ili9325-brd.h中,提供以下函数或者宏的声明,
-// 可参考qh_1板件.
-// 特别注意，如果板子有多块ili9325，则要像dm9000a.c那样，使用函数指针来实现，
-// 详情参考dm900a.h中的struct Dm9000aBrd结构
-// __ili9325_write_cmd(cmd)
-// __ili9325_write_data(data)
-// __ili9325_read_data(void)
-// __ili9325_read_reg(void);
-// __ili9325_write_reg(u32 reg_index, u32 data);
-
+/*---------------------------------------------------------------------------
+功能：  读lcd内部0x00寄存器
+---------------------------------------------------------------------------*/
+u32 __ili9325_read_reg(void)
+{
+    LCD_CMD=0x0000;
+    return LCD_DATA;
+}
+/*---------------------------------------------------------------------------
+功能：  写lcd内部寄存器
+---------------------------------------------------------------------------*/
+void __ili9325_write_reg(u32 reg_index, u32 data)
+{
+    LCD_CMD=reg_index;
+    LCD_DATA=data;
+}
 
 /*---------------------------------------------------------------------------
 功能：  设置一个像素

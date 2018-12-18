@@ -78,7 +78,7 @@ static void pingusage(void)
 // INSTRUCT:
 // =============================================================================
 //static bool_t pingshell(char *param)
-ADD_TO_SHELL_HELP(ping,"usage:ping hostname [options/-help]");
+ADD_TO_IN_SHELL_HELP(ping,"usage:ping hostname [options/-help]");
 ADD_TO_IN_SHELL  bool_t ping(char *param)
 {
     u32 i;
@@ -279,25 +279,11 @@ ADD_TO_IN_SHELL  bool_t ping(char *param)
 //    return true;
 //}
 
-struct shell_debug  gServicePing[] =
-{
-    {
-        "ping",
-        ping,
-        "usage:ping hostname [options/-help]",
-        "usage:ping hostname [options/-help]",
-    }
-};
 
-#define CN_PINGDEBUG_NUM  ((sizeof(gServicePing))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gServicePingCmdRsc[CN_PINGDEBUG_NUM];
 
 //THIS IS PING MODULE FUNCTION
 bool_t ServicePingInit(ptu32_t para)
 {
-    if(CN_PINGDEBUG_NUM==shell_debug_add(gServicePing, CN_PINGDEBUG_NUM))
         return (TRUE);
-
-    return (FALSE);
 }
 

@@ -57,7 +57,7 @@
 #define CN_TCPIP_VERSION    "V1.2.0"
 #define CN_TCPIP_AUTHOR     "luost@sznari.com,zhangqf1314@163.com"
 //static bool_t __TcpIpVersion(char *param)
-ADD_TO_SHELL_HELP(tcpipver,"usage:tcpipver");
+ADD_TO_IN_SHELL_HELP(tcpipver,"usage:tcpipver");
 ADD_TO_IN_SHELL  bool_t tcpipver(char *param)
 {
     param = param;
@@ -71,18 +71,7 @@ ADD_TO_IN_SHELL  bool_t tcpipver(char *param)
     return true;
 }
 
-//install some shell command here
-static struct shell_debug  gTCPIPDEBUG[] =
-{
-    {
-        "tcpipver",
-        tcpipver,
-        "usage:tcpipver",
-        "usage:tcpipver",
-    },
-};
-#define CN_TCPIPDEBUG_ITEMNUM  ((sizeof(gTCPIPDEBUG))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gTCPIPDEBUGCmdRsc[CN_TCPIPDEBUG_ITEMNUM];
+
 
 //we need a function to do the format result
 static void __LoadLog(const char *name,bool_t ret)
@@ -262,7 +251,6 @@ bool_t ModuleInstall_TcpIp(void)
     }
     info_printf("tcpip","*********DJY TCP/IP INIT SUCCESS**********************");
 
-    shell_debug_add(gTCPIPDEBUG, CN_TCPIPDEBUG_ITEMNUM);
     return ret;
 
 TCPIP_INITERR:

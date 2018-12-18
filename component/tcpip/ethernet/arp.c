@@ -586,7 +586,7 @@ typedef enum
 }tagItemAction;
 
 //static bool_t __ArpShell(char *param)
-ADD_TO_SHELL_HELP(arp,"usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]");
+ADD_TO_IN_SHELL_HELP(arp,"usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]");
 ADD_TO_IN_SHELL  bool_t arp(char *param)
 {
     bool_t ret = true;
@@ -660,18 +660,6 @@ ADD_TO_IN_SHELL  bool_t arp(char *param)
     return ret;
 }
 
-struct shell_debug  gArpDebug[] =
-{
-    {
-        "arp",
-        arp,
-        "usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]",
-        "usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]",
-    },
-};
-#define CN_ARPDEBUG_NUM  ((sizeof(gArpDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gArpDebugCmdRsc[CN_ARPDEBUG_NUM];
-
 // =============================================================================
 // FUNCTION:this is the arp module init function
 // PARA  IN:
@@ -700,11 +688,6 @@ bool_t ArpInit(void)
     //also need to register the ticker to the netticker queue
     NetTickerIsrInstall("ARPTICKER",__ArpTicker,30*1000); //30 SECOND
 
-    if(CN_ARPDEBUG_NUM!=shell_debug_add(gArpDebug, CN_ARPDEBUG_NUM))
-    {
-        debug_printf("arp","SHELLCMD CREATE ERR\n\r");
-        goto EXIT_SHELLCMD;
-    }
 
     return true;
  EXIT_SHELLCMD:

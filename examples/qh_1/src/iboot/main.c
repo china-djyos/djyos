@@ -59,7 +59,7 @@ ptu32_t djy_main(void)
     gdd_test( );
     while(1)
     {
-//      printf("hello world!\r\n");
+        printf("hello world!\r\n");
         Djy_EventDelay(1000*1000);
     }
 

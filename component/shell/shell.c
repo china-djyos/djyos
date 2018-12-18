@@ -65,21 +65,18 @@
 //   新版本号：
 //   修改说明: 修改为查找符号表实现shell，
 //------------------------------------------------------
+
 #include <stdint.h>
+#include <dbug.h>
+#include <djyos.h>
+#include <lock.h>
+#include <shell.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <djyos.h>
-#include <shell.h>
-#include <version.h>
-#include <time.h>
 #include <systime.h>
-#include <list.h>
-#include <dbug.h>
-#include <lock.h>
-#include "cpu-optional.h"
+#include <unistd.h>
 
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
@@ -119,18 +116,80 @@
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
-#define CN_SHELL_CMD_LIMIT 255 // shell 命令串长度限制
 
-extern struct shellinfo p_shell_info; // p_shell_info 来自iboot.lds文件
-static struct shellinfo *r_shell_info = &p_shell_info;
-static struct MutexLCB *__shell_mutex;
-struct shell_list shells_list;
+//=============通用函数调用参数与返回值由shell根据输入字符串解析汇编实现=========//
+typedef void (*Ex_shell_func)(void);
+//=============内部函数参数为字符串由函数本身解析参数========================//
+typedef bool_t (*in_shell_func)(char *param);
 
-enum __shell_mode
+enum param_typr
 {
-    dbug = 1,
-    normal
+    flag_u8,
+    flag_u16,
+    flag_u32,
+    flag_u64,
+    flag_s8,
+    flag_s16,
+    flag_s32,
+    flag_s64,
+    flag_b,
+    flag_f,
+    flag_d,
+    flag_c,
+    flag_str,
+    flag_error
 };
+
+union param{
+    u8 data_u8;
+    u16 data_u16;
+    u32 data_u32;
+    u64 data_u64;
+    s8  data_s8;
+    s16 data_s16;
+    s32 data_s32;
+    s64 data_s64;
+    bool_t data_b;
+    float data_f;
+    double data_d;
+    char data_c;
+    char *data_pc;
+};
+
+struct dataclass
+{
+    char  *datastring; // 参数对应的字符串如 "100";
+    enum param_typr datatype; // 命令对应的类型
+};
+
+enum commandtype
+{
+    Sh_Cmdtype_Fun,
+    Sh_CmdtypeFun,
+    Sh_Cmdtype_Date
+};
+
+
+struct sh_cmd_Tab
+{
+    char * const cmdname;
+    void * cmdaddr;
+    #define    SH_CMDTYPE_INFUN         0   //内部sh函数
+    #define    SH_CMDTYPE_INDATA        1   //内部sh数据
+    #define    SH_CMDTYPE_INFUN_HELP    2   //内部函数帮助信息
+    #define    SH_CMDTYPE_EXFUN         3   //外部函数
+    #define    SH_CMDTYPE_EXDATA        4   //外部sh数据
+    #define    SH_CMDTYPE_EXFUN_HELP    5   //外部函数数据帮助细信息
+    #define    SH_CMDTYPE_DATE          6   //全局数据
+    #define    SH_CMDTYPE_FUN           7   //全局函数
+    int   cmdtype;
+};
+
+
+#define CN_SHELL_CMD_LIMIT 255 // shell 命令串长度限制
+extern struct shellinfo p_shell_info; // p_shell_info 来自iboot.lds文件
+static struct MutexLCB *__shell_mutex;//shell执行的互斥
+struct shell_list shells_list;
 
 static union param ParameterTab[PARAMETER_MAX];
 static enum param_typr ParameterFlagTab[PARAMETER_MAX];
@@ -196,7 +255,6 @@ char *shell_inputs(char *input, char **next)
         }
         i++;
     }
-
     i++;
     while(input[i] != 0)
     {
@@ -222,122 +280,33 @@ char *shell_inputs(char *input, char **next)
 // 返回：
 // 备注：
 // ============================================================================
-static bool_t __find(struct shell_list *p_Sh_List, struct commandclass *cmdclass)
+static  struct sh_cmd_Tab * __find(struct shell_list *p_Sh_List, const char *name)
 {
-    //二分法搜索
-    u32 i=0;
-    s32 left = 0;//定义left有符号类型
-    s32 right;//定义right 有符号类型
-    u32 mid;//定义right
-    int strflag;
+    struct sh_cmd_Tab *pcmdtab = (struct sh_cmd_Tab *)p_Sh_List->info.sh_Tab_start;
+    u32 left = 0;
+    u32 right = (p_Sh_List->info.sh_Tab_end-p_Sh_List->info.sh_Tab_start)/sizeof(struct sh_cmd_Tab)-1;
+    u32  mid = left + (right - left) / 2;;
 
-    struct inshell_func *pt_funTab;
-    struct exshell_func  *ptfuntab;
-    struct data_struct *ptDatetab;
-//--------------查内部函数表-----------------------------------
-    pt_funTab = (struct inshell_func *)p_Sh_List->info.In_funTab_start;
-    left = 0;
-    right = (p_Sh_List->info.In_funTab_end - p_Sh_List->info.In_funTab_start)/sizeof(struct inshell_func);
-    /*
-    for(i=0;i<right;i++)
-    printf("_fun_name %d =  %s _fun_addr= %x   help_addr= %x   *help_addr=%x \r\n  ",i,pt_funTab[i].fun_name,pt_funTab[i].fun_addr,pt_funTab[i].help,*pt_funTab[i].help);
-    printf("\r\n");
-    */
-    right=right-1;
-    while(left<=right) //在while循环中直到有一个条件结束搜索
+    while( left < right)
     {
-        mid = (left+right)/2;
-        strflag = strcmp(pt_funTab[mid].fun_name , cmdclass->cmdname);
-        if(strflag<0)
+        int strflag = strcmp(pcmdtab[mid].cmdname, name);
+        if( strflag < 0 )
         {
-            left = mid+1;
+            left = mid + 1;
         }
-        else if(strflag>0)
+        else if(strflag > 0 )
         {
-            right = mid-1;
-            if(right==-1)
+            right = mid;
+        }
+        else
+        {
             break;
         }
-        else if(strflag == 0)
-        {
-            cmdclass->cmdaddr = pt_funTab[mid].fun_addr;
-            cmdclass->cmdtype = Sh_Cmdtype_Fun;
-            if(pt_funTab[mid].help==0)
-                cmdclass->cmdhelp=NULL;
-            else
-                cmdclass->cmdhelp=*pt_funTab[mid].help;
-            break;
-        }
-
+        mid =  (right + left)/2;
     }
-    if(strflag == 0)
-        return true;
-
-
-//--------------查外部函数表-----------------------------------
-    ptfuntab = (struct exshell_func *)p_Sh_List->info.Ex_funTab_start;
-    left = 0;
-    right = (p_Sh_List->info.Ex_funTab_end - p_Sh_List->info.Ex_funTab_start)/sizeof(struct exshell_func);
-/*
-    for(i=0;i<right;i++)
-printf("fun_name %d =  %s   addr= %x\r\n  ",i,ptfuntab[i].fun_name,ptfuntab[i].fun_addr);
-    printf("\r\n");
-*/
-    right=right-1;
-    while(left<=right) //在while循环中直到有一个条件结束搜索
-    {
-        mid = (left+right)/2;
-        strflag = strcmp(ptfuntab[mid].fun_name , cmdclass->cmdname);
-        if(strflag<0)
-        {
-            left = mid+1;
-        }else if(strflag>0)
-        {
-            right = mid-1;
-            if(right==-1)
-            break;
-        }else if(strflag == 0)
-        {
-            cmdclass->cmdaddr = (void *)ptfuntab[mid].fun_addr;
-            cmdclass->cmdtype = Sh_CmdtypeFun;
-            cmdclass->cmdhelp=NULL;
-            break;
-        }
-    }
-    if(strflag == 0)
-        return true;
-
-//--------------查变量表-----------------------------------
-    ptDatetab = (struct data_struct *)p_Sh_List->info.dataTab_start;
-    left = 0;
-    right = (p_Sh_List->info.dataTab_end - p_Sh_List->info.dataTab_start)/sizeof(struct data_struct);
-    right=right-1;
-    while(left<=right) //在while循环中直到有一个条件结束搜索
-    {
-        mid = (left+right)/2;
-        strflag = strcmp(ptDatetab[mid].data_name, cmdclass->cmdname);
-        if(strflag<0)
-        {
-            left = mid+1;
-        }
-        else if(strflag>0)
-        {
-            right = mid-1;
-            if(right==-1)
-            break;
-        }
-        else if(strflag == 0)
-        {
-            cmdclass->cmdaddr = ptDatetab[mid].data;
-            cmdclass->cmdtype = Sh_Cmdtype_Date;
-            cmdclass->cmdhelp=NULL;
-            break;
-        }
-    }
-    if(strflag == 0)
-        return true;
-
-    return false;
+    if(strcmp(pcmdtab[mid].cmdname, name)==0)
+        return &pcmdtab[mid];
+    return NULL;
 }
 
 // ============================================================================
@@ -346,27 +315,27 @@ printf("fun_name %d =  %s   addr= %x\r\n  ",i,ptfuntab[i].fun_name,ptfuntab[i].f
 // 返回：
 // 备注：
 // ============================================================================
-bool_t __search_cmd(struct commandclass *cmdclass)
+static struct sh_cmd_Tab * __search_cmd(const char *cmdname)
 {
     bool_t flag = false;
     struct shell_list *p_Sh_List;
     list_t *loc;
-    u8 i;
+    struct sh_cmd_Tab * sh_cmd;
+
 
     p_Sh_List = &shells_list;
     do{
-
-        if(true == __find(p_Sh_List,cmdclass))
+        sh_cmd = __find(p_Sh_List,cmdname);
+        if(sh_cmd != NULL)
         {
            flag =true;
            break;
         }
-
         loc = dListGetAfter(&(p_Sh_List->list));
-//        p_Sh_List = Container(loc, struct shell_list, list);//todo hemin modify for compiler
-
-    }while(&shells_list != p_Sh_List);
-    return flag;
+    }while(loc != &p_Sh_List->list);
+    if(flag)
+        return sh_cmd;
+    return NULL;
 }
 
 // ============================================================================
@@ -378,8 +347,6 @@ bool_t __search_cmd(struct commandclass *cmdclass)
 // ============================================================================
 static bool_t __variable_assignment(struct dataclass *data_class,union param *DataAddr)
 {
-    union param Data;
-
     switch (data_class->datatype)
     {
          case flag_c   :
@@ -422,7 +389,8 @@ static bool_t __variable_assignment(struct dataclass *data_class,union param *Da
              DataAddr->data_d = atoff(data_class->datastring);
              break;
          case flag_str  :
-             strcpy(DataAddr->data_pc,data_class->datastring);//TODO 字符串拷贝过多容易出现越界 '\'未做转义字符检查。
+             //TODO 字符串拷贝过多容易出现越界 '\'未做转义字符检查。
+             strcpy(DataAddr->data_pc,data_class->datastring);
              break;                    //不支持终端修改字符串
          default:     return false;
     }
@@ -442,7 +410,6 @@ static bool_t __show_data(struct dataclass *data_class,union param *DataAddr)
     switch (data_class->datatype)
     {
          case flag_c   :
-//           printf("%d \n\r",*(char*)DataAddr);
              printf("%d \n\r",DataAddr->data_c);
              break;
          case flag_u8  :
@@ -455,7 +422,6 @@ static bool_t __show_data(struct dataclass *data_class,union param *DataAddr)
              printf("%d \n\r",*(u32*)DataAddr);
              break;
          case flag_u64 :
- //           printf("%d \n\r",*(u64*)DataAddr);
               printf("%d \n\r",DataAddr->data_u64);
              break;
          case flag_s8  :
@@ -483,9 +449,6 @@ static bool_t __show_data(struct dataclass *data_class,union param *DataAddr)
 
              break;
          case flag_str :
-//   printf("(char*)DataAddr:%x   (char*)DataAddr str： %s\r\n\r\n",(char*)DataAddr,(char*)DataAddr);
-//   printf(" DataAddr->data_pc: %x   DataAddr->data_pc str: %s\r\n\r\n",DataAddr->data_pc,DataAddr->data_pc);
-//           printf("%s \r\n",(char*)DataAddr);     // 支持打印：char test1[]="hello";   不支持打印：char*p="hello";
              printf("%s \r\n",DataAddr->data_pc);   //不支持打印：char test1[]="hello";   支持打印：char*p="hello";
              break;
          default:     return false;
@@ -543,86 +506,128 @@ static enum param_typr __str2type(char *word)
 // ============================================================================
 static bool_t __asm_execute(u8 num,Ex_shell_func fun)
 {
-//  u8 i=0;
-//    ParameterTab[PARAMETER_MAX];
-//    ParameterFlagTab[PARAMETER_MAX];
-/*
-    printf("num= %d \r\n",num);
-    for(i=0;i<num;i++)
-    {
-     printf(" ParameterFlagTab = %d  ParameterTab= %d \r\n",ParameterFlagTab[i],  ParameterTab[i]);
-    }
-*/
-//#if (CN_CPU_OPTIONAL_FLOAT_HARD == 1)
     extern void __asm_ExecuteCmd(union param *ptab,enum param_typr *pflag,Ex_shell_func fun,u32 num);
     __asm_ExecuteCmd(ParameterTab,ParameterFlagTab,fun,num);
-//#endif
     return true;
 }
 
+ADD_TO_IN_SHELL_HELP(help,"帮助信息格式 :help [cmd]\n\r");
+ADD_TO_IN_SHELL bool_t help(char *param)
+{
+    bool_t flag = true;
+    struct shell_list *p_Sh_List;
+    p_Sh_List = &shells_list;
+    u32 cnt=0;
+    char *type;
+    do{
+        struct sh_cmd_Tab *pcmdtab = (struct sh_cmd_Tab *)p_Sh_List->info.sh_Tab_start;
+        u32 cmdnum = (p_Sh_List->info.sh_Tab_end-p_Sh_List->info.sh_Tab_start)/sizeof(struct sh_cmd_Tab);
+
+        for(u32 i=0;i<cmdnum;i++)
+        {
+           switch (pcmdtab[i].cmdtype)
+           {
+                case  SH_CMDTYPE_INFUN     :  type =  "IN_FUN";      break;
+                case  SH_CMDTYPE_INDATA    :  type =  "IN_DATA";     break;
+                case  SH_CMDTYPE_INFUN_HELP:  type =  "IN_FUN_HELP"; break;
+                case  SH_CMDTYPE_EXFUN     :  type =  "EX_FUN";      break;
+                case  SH_CMDTYPE_EXDATA    :  type =  "EX_DATA";     break;
+                case  SH_CMDTYPE_EXFUN_HELP:  type =  "EX_FUN_HELP"; break;
+                case  SH_CMDTYPE_DATE      :  type =  "GLOBAL_DATA"; break;
+                case  SH_CMDTYPE_FUN       :  type =  "GLOBAL_FUN";  break;
+                default:type = "TYPE_ERROR";   break;
+            }
+           if((pcmdtab[i].cmdtype == SH_CMDTYPE_INFUN_HELP) || (pcmdtab[i].cmdtype ==SH_CMDTYPE_EXFUN_HELP))
+               continue;
+           printf("%3d : %-12s  ",i+cnt,type);
+           printf("%-20s", pcmdtab[i].cmdname);
+
+           char helpname[CN_SHELL_CMD_LIMIT] = DJYSH_HELP_NAME;
+           strcat(helpname, pcmdtab[i].cmdname);
+           struct sh_cmd_Tab * help_cmd = __find(p_Sh_List, helpname);
+           if(help_cmd==NULL)
+               printf("NO HELP \n\r");
+           else
+           {
+               if((help_cmd->cmdtype == SH_CMDTYPE_INFUN_HELP) || (help_cmd->cmdtype ==SH_CMDTYPE_EXFUN_HELP))
+                   printf("help cmd: help %-20s\n\r ", pcmdtab[i].cmdname);
+               else
+                   printf("NO HELP \n\r");
+           }
+        }
+        cnt+=cmdnum;
+        p_Sh_List = (struct shell_list*)dListGetAfter(&(p_Sh_List->list));
+    }while(&shells_list.list != &p_Sh_List->list);
+
+    if(param)//消除告警
+        return flag;
+    return flag;
+}
 // ============================================================================
 // 功能：分析并执行控制台命令
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-bool_t shell_exec_command(char *buf)
+static bool_t shell_exec_command(char *buf)
 {
     bool_t result = false;
-    char *cmd,*next_param,*word,*wordbak;
+    char *cmdname,*next_param,*word,*wordbak;
     u8 i;
-    struct commandclass cmd_class;
     struct dataclass data_class;
-    in_shell_func cmd_fun;
+    in_shell_func inshfun;
 
+    char helpname[CN_SHELL_CMD_LIMIT] = DJYSH_HELP_NAME;
     //串口限制读取255字符，在这里提示超长就行。
     if(strnlen(buf, CN_SHELL_CMD_LIMIT+1) > CN_SHELL_CMD_LIMIT)
     {
         printf("输入字符串太长\r\n");
     }
 
-    cmd = shell_inputs(buf, &next_param);//提取函数或者变量名
-    cmd_class.cmdname=cmd;
+    cmdname = shell_inputs(buf, &next_param);//提取函数或者变量名
 
-    if(__search_cmd(&cmd_class) == false)
+    if(strcmp("help",cmdname)==0)//如果是帮助信息则拼接成新的名字
     {
-        printf("命令 %s 不存在  !! \n\r",cmd);
+        word = shell_inputs(next_param,&next_param);
+        if(word != NULL)
+        {
+            strcat(helpname,word);
+            cmdname = helpname;
+        }
+    }
+
+    struct sh_cmd_Tab * sh_sym= __search_cmd(cmdname);
+    if(sh_sym == NULL)
+    {
+        printf("命令 %s 不存在  !! \n\r",cmdname);
         return false;
     }
-/*
-   printf("----------1-----------\r\n");
-   printf("cmd_class.cmdname =  %s\r\n",cmd_class.cmdname);
-   printf("cmd_class.cmdaddr =  %x\r\n",cmd_class.cmdaddr);
-   printf("cmd_class.cmdtype =  %d\r\n",cmd_class.cmdtype);
-   printf("cmdclass->cmdhelp =  %s\r\n",cmd_class.cmdhelp);
-   printf("----------2-----------\r\n");
 
-*/
-    switch (cmd_class.cmdtype)
+    switch (sh_sym->cmdtype)
     {
-        case Sh_Cmdtype_Fun:  //内部函数直接将字符串传递给函数由函数自己解析
-            cmd_fun = (in_shell_func) cmd_class.cmdaddr;
-            result = cmd_fun(next_param);
-
+        case SH_CMDTYPE_INFUN:  //内部函数直接将字符串传递给函数由函数自己解析
+            inshfun = (in_shell_func)sh_sym->cmdaddr;
+            result = inshfun(next_param);
             if(result == false)
             {
                     printf("shell 内部函数执行错误 ！！\n\r");
             }
             break;
 
-        case Sh_CmdtypeFun:  //普通shell函数  TODO 补全参数为字符串的解析
-            for(i=0;i<PARAMETER_MAX;i++)
+        case SH_CMDTYPE_FUN:  //普通shell函数
+        case SH_CMDTYPE_EXFUN:// 外部shell函数
+            for(i=1;i<PARAMETER_MAX;i++)
             {
                 word = shell_inputs(next_param,&next_param);
                 if(word != NULL)
-                    ParameterFlagTab[i] = __str2type(word);
+                    ParameterFlagTab[i-1] = __str2type(word);
                 else
                 {
                     printf("shell 函数缺少参数类型 ！！\n\r");
                     printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d\n\r");
                     break;
                 }
-                if(ParameterFlagTab[i] == flag_error)
+                if(ParameterFlagTab[i-1] == flag_error)
                 {
                     printf("shell 函数参数类型错误 ！！\n\r");
                     printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d\n\r");
@@ -633,8 +638,8 @@ bool_t shell_exec_command(char *buf)
                 if(word != NULL)
                 {
                     data_class.datastring = word;
-                    data_class.datatype = ParameterFlagTab[i];
-                    __variable_assignment(&data_class,&ParameterTab[i]);
+                    data_class.datatype = ParameterFlagTab[i-1];
+                    __variable_assignment(&data_class,&ParameterTab[i-1]);
                 }
                 else
                 {
@@ -642,38 +647,26 @@ bool_t shell_exec_command(char *buf)
                     printf("shell函数格式为：命令名  类型1 参数1 类型2 参数2 类型3 参数3...\r\n");
                     return false;
                 }
-                if(next_param==NULL)
-                {
-                    if(i==0)
 
-                    {
-                       i=1; //为了当只有一个形参时，不要执行下面的return false;
+                if(next_param==NULL)
                        break;
-                    }
-                    else
-                    {
-                        i=i+1;
-                        break;
-                    }
-                }
                 else if((next_param!=NULL)&&(i==(PARAMETER_MAX-1)))
                 {
                      i=i+2; //要执行下面的return false;
                      break;
                 }
             }
-
-            if((i > PARAMETER_MAX) || (i == 0))
-                {
-                    if(i > PARAMETER_MAX)
-                         printf("形参数量最多10个，不能超过10个\r\n");
-                    return false;
-                }
-
-            result = __asm_execute(i,(Ex_shell_func)cmd_class.cmdaddr);
+            if((i == PARAMETER_MAX) )
+            {
+                 printf("形参数量最多10个，不能超过10个\r\n");
+                 return false;
+            }
+            result = __asm_execute(i,(Ex_shell_func)sh_sym->cmdaddr);
             break;
 
-        case Sh_Cmdtype_Date:   //变量判断变量类型并赋值或打印 todo 补全参数为字符串的解析
+        case SH_CMDTYPE_INDATA:
+        case SH_CMDTYPE_EXDATA:
+        case SH_CMDTYPE_DATE:
             word = shell_inputs(next_param,&next_param);
             if(word == NULL)
             {
@@ -701,7 +694,7 @@ bool_t shell_exec_command(char *buf)
                     return false;
                 }
                 data_class.datastring = wordbak;
-                result = __variable_assignment(&data_class,(union param *)cmd_class.cmdaddr);
+                result = __variable_assignment(&data_class,sh_sym->cmdaddr);
             }else
             {
                 data_class.datatype = __str2type(word);
@@ -711,56 +704,18 @@ bool_t shell_exec_command(char *buf)
                     printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d/""/''\r\n");
                     return false;
                 }
-
-
-
-                result = __show_data(&data_class,(union param *)cmd_class.cmdaddr);
+                result = __show_data(&data_class,(union param *)sh_sym->cmdaddr);
             }
             break;
-
+        case SH_CMDTYPE_INFUN_HELP:
+        case SH_CMDTYPE_EXFUN_HELP:
+            printf("%s",*(char**)sh_sym->cmdaddr);
+            break;
         default : break;
     }
 
     return result;
 }
-
-#if 0
-//----控制台服务函数-----------------------------------------------------------
-//功能: 返回console输入的字符，带console输入回车符时，执行命令。一次命令不得超过
-//      255字符。
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-static ptu32_t Sh_Service(void)
-{
-    char command[CN_SHELL_CMD_LIMIT+1];
-    printf("\n\r");
-    if ((fng_pPrintWorkPath != NULL))
-        fng_pPrintWorkPath( );
-    printf(">");
-    while(1)
-    {
-        if(stdin == NULL)
-            Djy_EventDelay(1000*mS);
-        else
-        {
-            //不能用不安全的gets
-            fgets(command,CN_SHELL_CMD_LIMIT+1,stdin);
-            if(strlen(command) != 0)
-            {
-                if(Lock_MutexPend(__shell_mutex,CN_TIMEOUT_FOREVER))
-                {
-                    shell_exec_command(command);  //执行命令
-                    Lock_MutexPost(__shell_mutex);
-                }
-            }
-            if ((fng_pPrintWorkPath != NULL))
-                fng_pPrintWorkPath( );
-            printf(">");
-        }
-    }
-}
-#endif
 
 //because the stdin device could do no any more display work,so we must do all the
 //display jobs here
@@ -856,279 +811,263 @@ static void  movescursoleft(int times)
     }
 }
 
-//for the windows.the shell get the left rigt up down
-static ptu32_t __shell_service(void)
+//-----------------------------------------------------------------------------
+//功能: 返回console输入的字符，带console输入回车符时，执行命令。一次命令不得超过
+//      255字符。
+//参数: 无
+//返回: 无
+//-----------------------------------------------------------------------------
+static ptu32_t Sh_Service(void)
 {
     u8 ch;
-    int len;
-    u8 offset;
-    const char *cmdindex;
-    char *cwd;
-    u32 vk = CN_VK_NULL;    //used when we push back the right key
-    u32 vkmask = CN_VK_NULL;
-    tagShellBuffer cmdbuf;
-    s32 res;
-    enum __shell_mode mode;
-    ptu32_t param;
-    ptu32_t param_mode;
-    extern s32 shell_default(void);
+     int len;
+     u8 offset;
+     const char *cmdindex;
+     char *cwd;
+     u32 vk = CN_VK_NULL;    //used when we push back the right key
+     u32 vkmask = CN_VK_NULL;
+     tagShellBuffer cmdbuf;
+     s32 res;
 
-    Djy_GetEventPara((ptu32_t*)(&param_mode), NULL); // 获取运行模式
-    mode = param_mode;
-    shell_default(); // 基本的shell命令；
-    memset(&cmdbuf,0,sizeof(cmdbuf));
-    cwd = getcwd(NULL,0);
-    printf("\n\r%s>", cwd);   //push the index character to the terminal
-    free(cwd);
+     memset(&cmdbuf,0,sizeof(cmdbuf));
+     cwd = getcwd(NULL,0);
+     printf("\n\r%s>", cwd);   //push the index character to the terminal
+     free(cwd);
 
-    while(1)
-    {
-        res = getc(stdin);
-        if(EOF == res)
-        {
-            Djy_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
-            continue;
-        }
+     while(1)
+     {
+         res = getc(stdin);
+         if(EOF == res)
+         {
+             Djy_EventDelay(1000); // 获取数据错误或者end of file，延时1ms再继续（防止出现死循环现象，导致其他线程卡死）。
+             continue;
+         }
 
-        ch = (u8)res;
-        if((ch == CN_VK_NULL)||(ch == 0xFF))
-        {
-            continue;   //NO CODE GET HERE
-        }
+         ch = (u8)res;
+         if((ch == CN_VK_NULL)||(ch == 0xFF))
+         {
+             continue;   //NO CODE GET HERE
+         }
 
-        if((vk&0xFF) != 0)  //get the transfer code before
-        {
-            if(((vk>>8)&0xff) == CN_VK_NULL)  //this maybe the base code
-            {
-                vk|=(ch<<8); //get the base code
-                continue;    //continue to get the vk:three bytes to decode for the escape key
-            }
-            else  //this is the vk code
-            {
-                vk |= (ch <<16);
-                vkmask |= (ch <<16);
-            }
-        }
-        else
-        {
-            vkmask  = ch;
-        }
-        switch (vkmask)
-        {
-            case CN_VK_ARROWL:        //left,make the cursor moved left
-                if(cmdbuf.curoffset > 0)//if not,do nothing here
-                {
-                    cmdbuf.curoffset--;
-                    //push back the left cursor and make the terminal display know what has happened
-                    movescursoleft(1);
-                }
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_ARROWR:        //right,make the cursor moved right,if the buffer has the data
-                len = strlen(cmdbuf.curcmd);
-                if(cmdbuf.curoffset < len)
-                {
-                    cmdbuf.curoffset++;
-                    //push back the right cursor and make the terminal display know what has happened
-                    movescursorright(1,vk);
-                }
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_ARROWU:        //moves to the previous command
-                //first,we should clear what we has get,do the reset current command
-                //first moves to the left,then putsnxt to the next to the right,then back
-                len = strlen(cmdbuf.curcmd);
-                if(cmdbuf.curoffset < len)
-                {
-                    putsnxtspace(len - cmdbuf.curoffset);
-                    cmdbuf.curoffset = len;
-                }
-                putsbackspace(len);
-                memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
-                cmdbuf.curoffset = 0;
-                //then copy the previous command to current and echo all the info
-                offset = (cmdbuf.taboffset +CN_CMD_CACHE -1)%CN_CMD_CACHE;
-                strncpy(cmdbuf.curcmd,cmdbuf.tab[offset],CN_CMDLEN_MAX);
-                cmdbuf.taboffset = offset;
-                cmdbuf.curoffset = strlen(cmdbuf.curcmd);
-                //OK,now puts all the current character to the terminal
-                puts(cmdbuf.curcmd);
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_ARROWD:        //moves to the next command
-                //first,we should clear what we has get,do the reset current command
-                //first moves to the right,then backspace all the input
-                len = strlen(cmdbuf.curcmd);
-                if(cmdbuf.curoffset < len)
-                {
-                    putsnxtspace(len - cmdbuf.curoffset);
-                    cmdbuf.curoffset = len;
-                }
-                putsbackspace(len);
-                memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
-                cmdbuf.curoffset = 0;
-                //then copy the next command to current
-                offset = (cmdbuf.taboffset +CN_CMD_CACHE +1)%CN_CMD_CACHE;
-                strncpy(cmdbuf.curcmd,cmdbuf.tab[offset],CN_CMDLEN_MAX);
-                cmdbuf.taboffset = offset;
-                cmdbuf.curoffset = strlen(cmdbuf.curcmd);
-                //OK,now puts all the current character to the terminal
-                puts(cmdbuf.curcmd);
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_TAB: // tab,should auto complete the command TODO:未实现；
-                //should search the command we has installed if some index has get
-                len = strlen(cmdbuf.curcmd);
-                if(len > 0)  //some index has get
-                {
-                    if(dbug==mode)
-                    {
-                        //we just do the buffer manager and semantic analysis
-                        //use the index to find the corresponding command here
-                        extern const char *__match_debug_cmd(const char *index);
+         if((vk&0xFF) != 0)  //get the transfer code before
+         {
+             if(((vk>>8)&0xff) == CN_VK_NULL)  //this maybe the base code
+             {
+                 vk|=(ch<<8); //get the base code
+                 continue;    //continue to get the vk:three bytes to decode for the escape key
+             }
+             else  //this is the vk code
+             {
+                 vk |= (ch <<16);
+                 vkmask |= (ch <<16);
+             }
+         }
+         else
+         {
+             vkmask  = ch;
+         }
+         switch (vkmask)
+         {
+             case CN_VK_ARROWL:        //left,make the cursor moved left
+                 if(cmdbuf.curoffset > 0)//if not,do nothing here
+                 {
+                     cmdbuf.curoffset--;
+                     //push back the left cursor and make the terminal display know what has happened
+                     movescursoleft(1);
+                 }
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_ARROWR:        //right,make the cursor moved right,if the buffer has the data
+                 len = strlen(cmdbuf.curcmd);
+                 if(cmdbuf.curoffset < len)
+                 {
+                     cmdbuf.curoffset++;
+                     //push back the right cursor and make the terminal display know what has happened
+                     movescursorright(1,vk);
+                 }
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_ARROWU:        //moves to the previous command
+                 //first,we should clear what we has get,do the reset current command
+                 //first moves to the left,then putsnxt to the next to the right,then back
+                 len = strlen(cmdbuf.curcmd);
+                 if(cmdbuf.curoffset < len)
+                 {
+                     putsnxtspace(len - cmdbuf.curoffset);
+                     cmdbuf.curoffset = len;
+                 }
+                 putsbackspace(len);
+                 memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                 cmdbuf.curoffset = 0;
+                 //then copy the previous command to current and echo all the info
+                 offset = (cmdbuf.taboffset +CN_CMD_CACHE -1)%CN_CMD_CACHE;
+                 strncpy(cmdbuf.curcmd,cmdbuf.tab[offset],CN_CMDLEN_MAX);
+                 cmdbuf.taboffset = offset;
+                 cmdbuf.curoffset = strlen(cmdbuf.curcmd);
+                 //OK,now puts all the current character to the terminal
+                 puts(cmdbuf.curcmd);
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_ARROWD:        //moves to the next command
+                 //first,we should clear what we has get,do the reset current command
+                 //first moves to the right,then backspace all the input
+                 len = strlen(cmdbuf.curcmd);
+                 if(cmdbuf.curoffset < len)
+                 {
+                     putsnxtspace(len - cmdbuf.curoffset);
+                     cmdbuf.curoffset = len;
+                 }
+                 putsbackspace(len);
+                 memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                 cmdbuf.curoffset = 0;
+                 //then copy the next command to current
+                 offset = (cmdbuf.taboffset +CN_CMD_CACHE +1)%CN_CMD_CACHE;
+                 strncpy(cmdbuf.curcmd,cmdbuf.tab[offset],CN_CMDLEN_MAX);
+                 cmdbuf.taboffset = offset;
+                 cmdbuf.curoffset = strlen(cmdbuf.curcmd);
+                 //OK,now puts all the current character to the terminal
+                 puts(cmdbuf.curcmd);
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_TAB: // tab,should auto complete the command TODO:未实现；
+                 //should search the command we has installed if some index has get
+                 len = strlen(cmdbuf.curcmd);
+                 if(len > 0)  //some index has get
+                 {
 
-                        cmdindex = __match_debug_cmd((const char*)cmdbuf.curcmd);
-                    }
-                    else
-                    {
-                        cmdindex = NULL; // 功能待实现；
-                    }
+                     {
+                         cmdindex = NULL; // 功能待实现；
+                     }
 
-                    if(NULL != cmdindex) //get the corresponding command here
-                    {
-                        //first,we should clear what we has get,do the reset current command
-                        //first moves to the right,then backspace all the input
-                        len = strlen(cmdbuf.curcmd);
-                        if(cmdbuf.curoffset < len)
-                        {
-                            putsnxtspace(len - cmdbuf.curoffset);
-                            cmdbuf.curoffset = len;
-                        }
-                        putsbackspace(len);
-                        memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
-                        cmdbuf.curoffset = 0;
-                        //then copy the command and puts the string here
-                        strncpy(cmdbuf.curcmd,cmdindex,CN_CMDLEN_MAX);
-                        cmdbuf.curoffset = strlen(cmdbuf.curcmd);
-                        //OK,now puts all the current character to the terminal
-                        puts(cmdbuf.curcmd);
-                    }
-                }
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_LF:      //execute the command here, and push the command to the history cache
-                if(strlen(cmdbuf.curcmd) != 0)
-                {
-                    printf("\n\r");
-                    //copy the current to the history cache if the current command is not none
-                    len = strlen(cmdbuf.curcmd);
-                    if(len > 0)
-                    {
-                        offset=cmdbuf.taboffset;
-                        memset(cmdbuf.tab[offset],0,CN_CMDLEN_MAX);
-                        strncpy(cmdbuf.tab[offset],cmdbuf.curcmd,CN_CMDLEN_MAX);
-                        offset = (offset +1)%CN_CMD_CACHE;
-                        cmdbuf.taboffset = offset;
-                    }
+                     if(NULL != cmdindex) //get the corresponding command here
+                     {
+                         //first,we should clear what we has get,do the reset current command
+                         //first moves to the right,then backspace all the input
+                         len = strlen(cmdbuf.curcmd);
+                         if(cmdbuf.curoffset < len)
+                         {
+                             putsnxtspace(len - cmdbuf.curoffset);
+                             cmdbuf.curoffset = len;
+                         }
+                         putsbackspace(len);
+                         memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                         cmdbuf.curoffset = 0;
+                         //then copy the command and puts the string here
+                         strncpy(cmdbuf.curcmd,cmdindex,CN_CMDLEN_MAX);
+                         cmdbuf.curoffset = strlen(cmdbuf.curcmd);
+                         //OK,now puts all the current character to the terminal
+                         puts(cmdbuf.curcmd);
+                     }
+                 }
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_LF:      //execute the command here, and push the command to the history cache
+                 if(strlen(cmdbuf.curcmd) != 0)
+                 {
+                     printf("\n\r");
+                     //copy the current to the history cache if the current command is not none
+                     len = strlen(cmdbuf.curcmd);
+                     if(len > 0)
+                     {
+                         offset=cmdbuf.taboffset;
+                         memset(cmdbuf.tab[offset],0,CN_CMDLEN_MAX);
+                         strncpy(cmdbuf.tab[offset],cmdbuf.curcmd,CN_CMDLEN_MAX);
+                         offset = (offset +1)%CN_CMD_CACHE;
+                         cmdbuf.taboffset = offset;
+                     }
 
-                    //execute the command
-                    if(dbug==mode)
-                        shell_debug_execute(cmdbuf.curcmd);
-                    else
-                        shell_exec_command(cmdbuf.curcmd);
+                     //execute the command
+                     shell_exec_command(cmdbuf.curcmd);
 
-                    memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
-                    cmdbuf.curoffset = 0;
-                }
-                cwd = getcwd(NULL,0);
-                printf("\n\r%s>", cwd);   //push the index character to the terminal
-                free(cwd);
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_CR:      //execute the command here, and push the command to the history cache
-                if(strlen(cmdbuf.curcmd) != 0)
-                {
-                    printf("\n\r");
-                    //copy the current to the history cache if the current command is not none
-                    len = strlen(cmdbuf.curcmd);
-                    if(len > 0)
-                    {
-                        offset=cmdbuf.taboffset;
-                        memset(cmdbuf.tab[offset],0,CN_CMDLEN_MAX);
-                        strncpy(cmdbuf.tab[offset],cmdbuf.curcmd,CN_CMDLEN_MAX);
-                        offset = (offset +1)%CN_CMD_CACHE;
-                        cmdbuf.taboffset = offset;
-                    }
+                     memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                     cmdbuf.curoffset = 0;
+                 }
+                 cwd = getcwd(NULL,0);
+                 printf("\n\r%s>", cwd);   //push the index character to the terminal
+                 free(cwd);
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_CR:      //execute the command here, and push the command to the history cache
+                 if(strlen(cmdbuf.curcmd) != 0)
+                 {
+                     printf("\n\r");
+                     //copy the current to the history cache if the current command is not none
+                     len = strlen(cmdbuf.curcmd);
+                     if(len > 0)
+                     {
+                         offset=cmdbuf.taboffset;
+                         memset(cmdbuf.tab[offset],0,CN_CMDLEN_MAX);
+                         strncpy(cmdbuf.tab[offset],cmdbuf.curcmd,CN_CMDLEN_MAX);
+                         offset = (offset +1)%CN_CMD_CACHE;
+                         cmdbuf.taboffset = offset;
+                     }
 
-                    //execute the command
-                    if(dbug==mode)
-                        shell_debug_execute(cmdbuf.curcmd);
-                    else
-                        shell_exec_command(cmdbuf.curcmd);
+                     //execute the command
+                     shell_exec_command(cmdbuf.curcmd);
 
-                    memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
-                    cmdbuf.curoffset = 0;
-                }
-                cwd = getcwd(NULL,0);
-                printf("\n\r%s>", cwd);   //push the index character to the terminal
-                free(cwd);
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_BS:      //should delete the current character,move all the following character 1 position to before
-                if(cmdbuf.curoffset >0)
-                {
-                    cmdbuf.curcmd[cmdbuf.curoffset] = 0;
-                    cmdbuf.curoffset--;
-                    putsbackspace(1);
-                }
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-            case CN_VK_ES:      //esc key,delete all the input here
-                len = strlen(cmdbuf.curcmd);
-                if(cmdbuf.curoffset < len)
-                {
-                    putsnxtspace(len - cmdbuf.curoffset);
-                    cmdbuf.curoffset = len;
-                }
-                putsbackspace(len);
-                memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
-                cmdbuf.curoffset = 0;
-                //this is also the transfer code
-                vk= CN_VK_ES;
-                vkmask = CN_VK_ES;
-                break;
-            default: //other control character will be ignored
-                //push the character to the buffer until its full and the '\n' comes
-                if((cmdbuf.curoffset <(CN_CMDLEN_MAX-1))&&(isprint((int)ch)))//the last will be'\0'
-                {
-                    cmdbuf.curcmd[cmdbuf.curoffset] = ch;
-                    cmdbuf.curoffset++;
-                    putc(ch,stdout);   //should do the echo
-                }
-                //flush the vk
-                vk = CN_VK_NULL;
-                vkmask = CN_VK_NULL;
-                break;
-        }
-    }
+                     memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                     cmdbuf.curoffset = 0;
+                 }
+                 cwd = getcwd(NULL,0);
+                 printf("\n\r%s>", cwd);   //push the index character to the terminal
+                 free(cwd);
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_BS:      //should delete the current character,move all the following character 1 position to before
+                 if(cmdbuf.curoffset >0)
+                 {
+                     cmdbuf.curcmd[cmdbuf.curoffset] = 0;
+                     cmdbuf.curoffset--;
+                     putsbackspace(1);
+                 }
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+             case CN_VK_ES:      //esc key,delete all the input here
+                 len = strlen(cmdbuf.curcmd);
+                 if(cmdbuf.curoffset < len)
+                 {
+                     putsnxtspace(len - cmdbuf.curoffset);
+                     cmdbuf.curoffset = len;
+                 }
+                 putsbackspace(len);
+                 memset(cmdbuf.curcmd,0,CN_CMDLEN_MAX);
+                 cmdbuf.curoffset = 0;
+                 //this is also the transfer code
+                 vk= CN_VK_ES;
+                 vkmask = CN_VK_ES;
+                 break;
+             default: //other control character will be ignored
+                 //push the character to the buffer until its full and the '\n' comes
+                 if((cmdbuf.curoffset <(CN_CMDLEN_MAX-1))&&(isprint((int)ch)))//the last will be'\0'
+                 {
+                     cmdbuf.curcmd[cmdbuf.curoffset] = ch;
+                     cmdbuf.curoffset++;
+                     putc(ch,stdout);   //should do the echo
+                 }
+                 //flush the vk
+                 vk = CN_VK_NULL;
+                 vkmask = CN_VK_NULL;
+                 break;
+         }
+     }
+    return 0;
 }
-
 
 // ============================================================================
 // 功能：shell模块初始化
@@ -1139,11 +1078,14 @@ static ptu32_t __shell_service(void)
 s32 ModuleInstall_Shell(ptu32_t para)
 {
     u16 shell_evtt;
-    para = para;
-    static enum __shell_mode mode = normal;
 
     dListInit(&shells_list.list);
-    shells_list.info = *r_shell_info;
+    shells_list.info =  p_shell_info;
+    if((u32)p_shell_info.sh_Tab_start < (u32)&p_shell_info)
+    {
+        printf("\n\r error :  未添加shell信息 shell 加载失败 !!\n\r");
+        return false;
+    }
     __shell_mutex = Lock_MutexCreate("shell");
     if(NULL == __shell_mutex)
         return (-1);
@@ -1152,12 +1094,11 @@ s32 ModuleInstall_Shell(ptu32_t para)
                                 CN_PRIO_REAL, // 默认优先级
                                 0, // 线程保留数，关联型无效
                                 0, // 线程上限，关联型无效
-                                __shell_service, // 入口函数
+                                Sh_Service, // 入口函数
                                 NULL, // 由系统分配栈
                                 0x1000, // 栈尺寸
                                 "shell" // 事件类型名
                                 );
-
     if(shell_evtt==CN_EVTT_ID_INVALID)
     {
         Lock_MutexDelete(__shell_mutex);
@@ -1165,605 +1106,11 @@ s32 ModuleInstall_Shell(ptu32_t para)
         return (-1);
     }
 
-#ifdef DEBUG
-    {
-        extern s32 shell_debug_init(void);
-        mode = dbug;
-        shell_debug_init();
-    }
-#endif
-    if(Djy_EventPop(shell_evtt, NULL, 0, mode, 0, 0) == CN_EVENT_ID_INVALID)
+    if(Djy_EventPop(shell_evtt, NULL, 0, 0, 0, 0) == CN_EVENT_ID_INVALID)
     {
         Djy_EvttUnregist(shell_evtt);
         return (-1);
     }
 
-    return (0);
+    return (para);
 }
-#if 0
-// ============================================================================
-// 功能：显示os的版本
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(ver,"显示os的版本");
-ADD_TO_IN_SHELL bool_t ver(char *param)
-{
-    param = param;
-    printf("\r\n%s\r\n", djyos_kernel_version);
-    return true;
-}
-
-// ============================================================================
-// 功能：显示或者设置日期
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(date,"显示或者设置日期");
-ADD_TO_IN_SHELL bool_t date(char *param)
-{
-    s64 nowtime;
-    struct tm dtm;
-    char command[20];
-    char buf[12];
-    int res;
-
-    nowtime = Tm_Time(NULL);
-    Tm_LocalTime_r(&nowtime,&dtm);
-    Tm_AscTime(&dtm,command);
-
-    printf("\r\n当前时间：%10.10s %s",command, g_cTmWdays[dtm.tm_wday]);
-    printf("\r\n输入新日期：");
-
-    fgets(buf,11,stdin);
-    if(strlen(buf) != 0)
-    {
-        memcpy(command,buf,10);
-        res = Tm_SetDateTimeStr(command);
-        switch (res)
-        {
-        case EN_CLOCK_YEAR_ERROR:
-            printf("年份错误。");
-            break;
-        case EN_CLOCK_MON_ERROR:
-            printf("月份错误。");
-            break;
-        case EN_CLOCK_DAY_ERROR:
-            printf("日期错误。");
-            break;
-        case EN_CLOCK_FMT_ERROR:
-            printf("格式错误。");
-            break;
-        default:
-            break;
-        }
-    }
-
-    printf("\r\n");
-    return true;
-}
-
-// ============================================================================
-// 功能：显示当前时间或者设置输入新时间
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(Time,"显示当前时间或者设置输入新时间");
-ADD_TO_IN_SHELL bool_t Time(char *param)
-{
-    s64 nowtime;
-    struct tm dtm;
-    char command[20];
-    int res;
-
-    nowtime = Tm_Time(NULL);
-    Tm_LocalTime_r(&nowtime,&dtm);
-    Tm_AscTime(&dtm,command);
-
-    printf("\r\n当前时间：%s",command+11);
-    printf("\r\n输入新时间：");
-
-    fgets(command+11,9,stdin);
-    if(strlen(command+11) != 0)
-    {
-        res = Tm_SetDateTimeStr(command);
-        switch (res)
-        {
-        case EN_CLOCK_HOUR_ERROR:
-            printf("小时错误。");
-            break;
-        case EN_CLOCK_MIN_ERROR:
-            printf("分钟错误。");
-            break;
-        case EN_CLOCK_SEC_ERROR:
-            printf("秒钟错误。");
-            break;
-        case EN_CLOCK_FMT_ERROR:
-            printf("格式错误。");
-            break;
-        default:
-            break;
-        }
-    }
-
-    printf("\r\n");
-    return true;
-}
-
-// ============================================================================
-// 功能：显示内存，显示某地址开始的一段内存，每行显示16个单元，只显示，不能修改
-// 参数：param -- 参数串，本命令需要三个参数，用空格隔开
-//               参数1:起始地址，10进制或16进制(0x开头)
-//               参数2:显示的单元数
-//               参数3:每单元字节数，合法值是1、2、4，其他数值将返回错误
-//               参数4:待填充的内容
-// 返回：true=正常显示，false=错误
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(d,"读取内存里的数据,命令格式:d 地址 单元数 每单元字节数");
-ADD_TO_IN_SHELL bool_t d(char *param)
-{
-    ptu32_t addr;
-    uint32_t unit_num,unit_bytes,len;
-    char *word_addr,*word_un,*word_ub,*word_trail,*next_param;
-
-    //提取3个参数
-    word_addr = shell_inputs(param,&next_param);
-    word_un = shell_inputs(next_param,&next_param);
-    word_ub = shell_inputs(next_param,&next_param);
-    word_trail = shell_inputs(next_param,&next_param);
-    if((word_addr == NULL)||(word_un == NULL)
-            ||(word_ub == NULL)||(word_trail != NULL))
-    {
-        printf("\r\n格式错误，正确格式是：\r\n>d 地址 单元数 每单元字节数\r\n");
-        return false;
-    }
-    addr = strtoul(word_addr, (char **)NULL, 0);
-    unit_num = strtol(word_un, (char **)NULL, 0);
-    unit_bytes = strtol(word_ub, (char **)NULL, 0);
-#if (CN_BYTE_BITS == 8)  //字节位宽=8，最常见的情况
-    switch(unit_bytes)
-    {
-        case 1:
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%02x ", *(uint8_t*)addr);
-                addr ++;
-                if(addr %8 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-            break;
-        case 2:
-            addr &= ~(ptu32_t)1;//只能从偶数开始
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%04x ", *(u16*)addr);
-                addr +=2;
-                if(addr %16 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-            break;
-        case 4:
-            addr &= ~(ptu32_t)3;//只能从偶数开始
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%08x ", *(uint32_t*)addr);
-                addr +=4;
-                if(addr %16 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-            break;
-        case 8:
-            addr &= ~(ptu32_t)7;//只能从偶数开始
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%08x", *(uint32_t*)addr);
-                addr +=4;
-                printf("%08x ", *(uint32_t*)addr);
-                addr +=4;
-                if(addr %32 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-            break;
-        default :
-            printf("\r\n参数错误\r\n");
-            return false;
-            break;
-    }
-#elif (CN_BYTE_BITS == 16)  //字节位宽=16
-    switch(unit_bytes)
-    {
-        case 1:
-        {
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%04x ", *(u16*)addr);
-                addr ++;
-                if(addr %8 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-        } break;
-        case 2:
-        {
-            addr &= ~(ptu32_t)1;
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%08x ", *(uint32_t*)addr);
-                addr +=2;
-                if(addr %16 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-        } break;
-        case 4:
-        {
-            addr &= ~(ptu32_t)3;
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%08x ", *(uint32_t*)addr);
-                addr +=2;
-                printf("%08x ", *(uint32_t*)addr);
-                putchar(' ');
-                addr +=2;
-                if(addr %16 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-        } break;
-        default :
-        {
-            printf("\r\n参数错误\r\n");
-            return false;
-        } break;
-    }
-#elif (CN_BYTE_BITS == 32)  //字节位宽=32
-    switch(unit_bytes)
-    {
-        case 1:
-        {
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%08x ", *(uint32_t*)addr);
-                addr ++;
-                if(addr %8 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-        } break;
-        case 2:
-        {
-            addr &= ~(ptu32_t)1;
-            printf("0x%08x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                printf("%08x ", *(uint32_t*)addr);
-                addr +=2;
-                printf("%08x ", *(uint32_t*)addr);
-                putchar(' ');
-                addr +=2;
-                if(addr %16 == 0)
-                {
-                    printf("\r\n");
-                    if(len != unit_num)
-                    {
-                        printf("0x%08x:", addr);
-                    }
-                }
-            }
-        } break;
-        default :
-        {
-            printf("\r\n参数错误\r\n");
-            return false;
-        } break;
-    }
-#endif
-    printf("\r\n");
-    return true;
-}
-
-// ============================================================================
-// 功能：写入某地址开始的一段内存
-// 参数：param -- 参数串，本命令需要三个参数，用空格隔开
-//               参数1:起始地址，10进制或16进制(0x开头)
-//               参数2:显示的单元数
-//               参数3:每单元字节数，合法值是1、2、4，其他数值将返回错误
-//               参数4:待填充的内容
-// 返回：true=正常显示，false=错误
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(f,"写数据到内存,命令格式：f 起始地址  单元数 每单元字节数 填充内容");
-ADD_TO_IN_SHELL bool_t f(char *param)
-{
-    ptu32_t addr;
-    uint32_t unit_num,unit_bytes,len,data;
-    char *word,*next_param;
-
-    word = shell_inputs(param,&next_param);
-    addr = strtoul(word, (char **)NULL, 0);
-    word = shell_inputs(next_param,&next_param);
-    unit_num = strtol(word, (char **)NULL, 0);
-    word = shell_inputs(next_param,&next_param);
-    unit_bytes = strtol(word, (char **)NULL, 0);
-    word = shell_inputs(next_param,&next_param);
-    data = strtoul(word, (char **)NULL, 0);
-
-#if (CN_BYTE_BITS == 8)  //字节位宽=8，最常见的情况
-    switch(unit_bytes)
-    {
-        case 1:
-            printf("0x%8x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                *(uint8_t*)addr = (u8)data;
-                addr ++;
-            }
-            break;
-        case 2:
-            addr &= ~(ptu32_t)1;
-            printf("0x%8x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                *(u16*)addr = (u16)data;
-                addr +=2;
-            }
-            break;
-        case 4:
-            addr &= ~(ptu32_t)3;
-            printf("0x%8x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                *(u32*)addr = (u32)data;
-                addr +=4;
-            }
-            break;
-        default :
-            printf("\r\n参数错误\r\n");
-            return false;
-            break;
-    }
-#elif (CN_BYTE_BITS == 16)  //字节位宽=16
-    switch(unit_bytes)
-    {
-        case 1:
-        {
-            printf("0x%8x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                *(u16*)addr = (u16)data;
-                addr ++;
-            }
-        } break;
-        case 2:
-        {
-            addr &= ~(ptu32_t)1;
-            printf("0x%8x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                *(u32*)addr = (u32)data;
-                addr +=2;
-            }
-        } break;
-        default :
-        {
-            printf("\r\n参数错误\r\n");
-            return false;
-        } break;
-    }
-#elif (CN_BYTE_BITS == 32)  //字节位宽=32
-    switch(unit_bytes)
-    {
-        case 1:
-        {
-            printf("0x%8x:", addr);
-            for(len = 0; len < unit_num; len++)
-            {
-                *(u32*)addr = (u32)data;
-                addr ++;
-            }
-        } break;
-        default :
-        {
-            printf("\r\n参数错误\r\n");
-            return false;
-        } break;
-    }
-#endif
-    return true;
-}
-
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(dis_exshell,"显示外部shell函数");
-ADD_TO_IN_SHELL bool_t dis_exshell(void)
-{
-    bool_t i,Ex_shell_num;
-    struct exshell_func *ptfuntab;
-    struct shell_list *p_Sh_List;
-    p_Sh_List = &shells_list;
-
-    ptfuntab = (struct exshell_func *)p_Sh_List->info.Ex_funTab_start;
-    Ex_shell_num = (p_Sh_List->info.Ex_funTab_end - p_Sh_List->info.Ex_funTab_start)/sizeof(struct exshell_func);
-
-    printf("\r\n以下是所有的外部shell函数命令,共有 %d个\r\n",Ex_shell_num);
-    printf("外部shell函数格式为：命令名  类型1 参数1 类型2 参数2 类型3 参数3...\r\n");
-    printf("\r\n");
-
-    for(i=0;i<Ex_shell_num;i++)
-    {
-       printf("%s", ptfuntab[i].fun_name);
-        printf("\r\n");
-    }
-    printf("\r\n");
-
-    return true;
-}
-
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(dis_globlvar,"显示全局变量");
-ADD_TO_IN_SHELL bool_t dis_globlvar(void)
-{
-    bool_t i,Global_Var_num;
-    struct data_struct *ptDatetab;
-    struct shell_list *p_Sh_List;
-    p_Sh_List = &shells_list;
-
-    ptDatetab = (struct data_struct *)p_Sh_List->info.dataTab_start;
-    Global_Var_num = (p_Sh_List->info.dataTab_end - p_Sh_List->info.dataTab_start)/sizeof(struct data_struct);
-
-    printf("\r\n以下是所有的全局变量,共有%d个\r\n",Global_Var_num);
-    printf("显示全局变量值的格式：  DataName 类型\r\n");
-    printf("更改全局变量值的格式：  DataName = 类型 num  \r\n");
-    printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d/""/'' \r\n");
-    printf("\r\n");
-
-
-    for(i=0;i<Global_Var_num;i++)
-    {
-
-//       printf("%-24s%x", ptDatetab[i].data_name,ptDatetab[i].data);
-       printf("%s", ptDatetab[i].data_name);
-       printf("\r\n");
-    }
-    printf("\r\n");
-    return true;
-}
-
-// ============================================================================
-// 功能：显示所有命令的帮组信息
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static bool_t __help_all(void)
-{
-    bool_t i,in_shell_num;
-    struct inshell_func *pt_funTab;
-    struct shell_list *p_Sh_List;
-    p_Sh_List = &shells_list;
-
-    printf("\r\n有关具体命令的详细信息，请输入help [命令名]\r\n");
-    printf("\r\n");
-
-    pt_funTab = (struct inshell_func *)p_Sh_List->info.In_funTab_start;
-    in_shell_num = (p_Sh_List->info.In_funTab_end - p_Sh_List->info.In_funTab_start)/sizeof(struct inshell_func);
-
-    for(i=0;i<in_shell_num;i++)
-    {
-
-        if(pt_funTab[i].help != NULL)
-               printf("%-24s%s", pt_funTab[i].fun_name, *pt_funTab[i].help);
-           else
-             printf("%-24s没有提供简要帮助信息", pt_funTab[i].fun_name);
-
-        printf("\r\n");
-    }
-    printf("\r\n\r\n");
-    return true;
-}
-
-// ============================================================================
-// 功能：显示文件系统命令帮助
-// 参数：param -- 参数字符串，含义:
-// 返回：
-// 备注：
-// ============================================================================
-ADD_TO_SHELL_HELP(help,"显示帮助信息");
-ADD_TO_IN_SHELL bool_t help(char *param)
-{
-
-    char *cmd,*next_param;
-    struct commandclass cmd_class;
-    bool_t result;
-
-    if(param == NULL)
-    {
-        __help_all();
-        result = true;
-    }
-    else
-    {
-       cmd = shell_inputs(param,&next_param);
-       cmd_class.cmdname = cmd;
-       if(__search_cmd(&cmd_class) == false)
-       {
-           printf("命令 %s不存在 ,不存在帮助信息 !! \n\r",cmd);
-           return true;
-       }
-
-       if(cmd_class.cmdhelp != NULL)
-           printf("\r\n%s\r\n",cmd_class.cmdhelp);
-       else
-           printf("没有提供详细帮助信息");
-       printf("\r\n");
-       result = true;
-    }
-
-    return result;
-}
-#endif

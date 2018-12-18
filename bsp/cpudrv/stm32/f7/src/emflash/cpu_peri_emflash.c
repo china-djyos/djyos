@@ -86,7 +86,7 @@
 
 //%$#@num,0,100,
 //%$#@enum,0,1,2,3,4,..,100
-#define CFG_PARTS   0     //分区数
+#define CFG_PARTS   0       //分区数
 //%$#@enum_config
 #define CFG_PART_START      //分区起始
 #define CFG_PART_SIZE       //分区大小
@@ -211,7 +211,7 @@ static s32 Flash_SectorEarse(u32 SectorNo)
 // 参数：PageNo -- 页号;
 //       Data -- 写缓冲;
 //       Flags -- 写操作控制位;
-// 返回：">0" -- 正常，写入的字节数;
+// 返回： ">0" -- 正常，写入的字节数;
 //       "-1" -- 参数错误;
 //       "-2" -- 写失败;
 // 备注：

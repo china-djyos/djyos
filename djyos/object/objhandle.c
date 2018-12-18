@@ -1367,7 +1367,7 @@ int fcntl(int fd, int cmd, ...)
     res = __of_cntl(hdl, cmd, &args);
     if(1==res)
     {
-        res = (s32)hdl->obj->ops(OBJCTL, (ptu32_t)hdl, (ptu32_t)cmd, &args);
+        res = (s32)hdl->obj->ops(OBJCTL, (ptu32_t)hdl, (ptu32_t)cmd, args);
     }
 
     va_end (args);
@@ -1798,7 +1798,7 @@ static struct objhandle *__rf_open(struct obj *ob, u32 flags, char *name)
     }
     else // 文件或目录已存在；
     {
-        if(!test_onlycreat(flags))
+        if(test_onlycreat(flags))
             return (NULL); // 逻辑上不合要求；必须创建，但已存在；
 
         file = (struct __ramfile*)obj_GetPrivate(ob);
@@ -1839,8 +1839,11 @@ static struct objhandle *__rf_open(struct obj *ob, u32 flags, char *name)
         }
         else // 打开非文件；
         {
-            if((test_directory(flags))&&(file->type!=RAM_DIR))
-                return (NULL);
+            if(file != NULL)
+            {
+                if((test_directory(flags))&&(file->type!=RAM_DIR))
+                    return (NULL);
+            }
         }
     }
 
@@ -2247,7 +2250,7 @@ static ptu32_t __rf_operations(enum objops ops, ptu32_t oof, ptu32_t args, ...)
             nfile = (char*)va_arg(list, u32);
             va_end(list);
 
-            if(strstr(nfile, "/"))
+            if((nfile != 0) && strstr(nfile, "/"))
                 return (NULL); // 新文件的名字不合法（只允许创建一级）
 
             return ((ptu32_t)__rf_open(ob, flags, nfile));

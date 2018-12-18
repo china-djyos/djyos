@@ -238,7 +238,7 @@ float Max11410_TemperatureGet(u8 temp_x)
 //=============================================================================
 //static bool_t Max11410_shell(char *param)
 
-ADD_TO_SHELL_HELP(pt,"测温度芯片相关命令   pt info 获取max11410的工作状态  .  pt get x  获取“x”通道的温度值 x = 1,2... ");
+ADD_TO_IN_SHELL_HELP(pt,"测温度芯片相关命令   pt info 获取max11410的工作状态  .  pt get x  获取“x”通道的温度值 x = 1,2... ");
 ADD_TO_IN_SHELL  bool_t pt(char *param)
 {
     ptu32_t ch;
@@ -280,36 +280,6 @@ ADD_TO_IN_SHELL  bool_t pt(char *param)
     return true;
 }
 
-/*******************************************************************************
-功能:
-参数:无.
-返回值:1。
-*********************************************************************************/
-static struct shell_debug const shell_cmd_max11410_table[]=
-{
-    {
-            "pt",
-            pt,
-            "测温度芯片相关命令",
-            "pt info      获取max11410的工作状态  . \n\r"
-            "pt get x  获取“x”通道的温度值 x = 1,2... \n\r"
-    }
-};
-
-#define CN_MAX11410_SHELL_NUM  sizeof(shell_cmd_max11410_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_max11410_shell_cmd_rsc[CN_MAX11410_SHELL_NUM];
-
-/*******************************************************************************
-功能:
-参数:无.
-返回值:1。
-*********************************************************************************/
-static ptu32_t Shell_Module_Install(void)
-{
-    shell_debug_add(shell_cmd_max11410_table, CN_MAX11410_SHELL_NUM);
-    return 1;
-}
-
 //=============================================================================
 //功能：初始化Max11410芯片，若采用连续读模式，则配置其模式为连续采样
 //参数：参数：
@@ -325,7 +295,6 @@ bool_t ModuleInstall_Max11410(char *BusName)
     if(Max11410_Init(&config) ==false)
         return false;
 
-    Shell_Module_Install();
     if(s_ptMax_Dev = SPI_DevAdd(BusName,"MAX11410",0,8,SPI_MODE_0,SPI_SHIFT_MSB,Max_SPI_SPEED,false))
     {
         SPI_BusCtrl(s_ptMax_Dev,CN_SPI_SET_POLL,0,0);

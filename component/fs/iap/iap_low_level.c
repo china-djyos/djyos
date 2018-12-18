@@ -68,9 +68,11 @@
 s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)ll;
+    struct uesz esz = {0};
     u32 j, offset, once, more;
     s32 left;
     s64 unit;
+    u32 block = 0;
 
     left = bytes;
     unit = (pos >> um->usz) + um->ustart;
@@ -135,10 +137,15 @@ s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
     if(!more)
     {
         // +1是表示当前unit的后面一个
-        if(((unit-um->ustart+1)<<um->usz)<um->asz)
+        if(((unit-um->ustart+1)<<um->usz) >= um->asz)
         {
             return (-2);
         }
+        esz.block = 1;
+//        esz->unit = 0;
+        um->mreq(whichblock, (ptu32_t)&block, &unit);
+        //block+1是为了擦除下一个块
+        um->mreq(format, block+1, 1, &esz);
     }
 
     um->mreq(unlock, 0); //

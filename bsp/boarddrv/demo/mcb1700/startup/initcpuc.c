@@ -15,6 +15,7 @@
 #include "core_cmFunc.h"
 
 #include "core_cm3.h"
+#include "project_config.h"
 
 // 外部变量和函数声明
 // =============================================================================
@@ -163,7 +164,11 @@ void Init_Cpu(void)
     }
     SystemInit();
 
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
 extern void Load_Preload(void);

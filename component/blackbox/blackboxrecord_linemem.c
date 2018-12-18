@@ -765,7 +765,7 @@ static void __LineMemByteShow(void)
 //this is the line memory debug command
 //static bool_t __LineMemShell(char *param)
 
-ADD_TO_SHELL_HELP(linemem,"usage:linemem [item/state/byte](default state)");
+ADD_TO_IN_SHELL_HELP(linemem,"usage:linemem [item/state/byte](default state)");
 ADD_TO_IN_SHELL bool_t linemem(char *param)
 {
     if(NULL != param)
@@ -791,16 +791,7 @@ ADD_TO_IN_SHELL bool_t linemem(char *param)
     return true;
 }
 
-struct shell_debug  gLineMemDebug[] =
-{
-    {
-        "linemem",
-        linemem,
-        "usage:linemem [item/state/byte](default state)",
-        "usage:linemem [item/state/byte](default state)",
-    },
-};
-#define CN_LineMemDebug_NUM  ((sizeof(gLineMemDebug))/(sizeof(struct shell_debug)))
+
 //static struct ShellCmdRsc gLineMemDebugCmdRsc[CN_LineMemDebug_NUM];
 
 // =============================================================================
@@ -845,13 +836,6 @@ bool_t LineMemBlackBoxRecord_Config(tagBlackBoxLowLevelOpt *lopt,u16 memsize)
         debug_printf("null","%s:register recorder failed\r\n",__FUNCTION__);
         return ret;
     }
-
-    if(CN_LineMemDebug_NUM==shell_debug_add(gLineMemDebug, CN_LineMemDebug_NUM))
-    {
-        debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
-        return (FALSE);
-    }
-
     return ret;
 }
 // =============================================================================
@@ -898,12 +882,6 @@ bool_t LineMemBlackBoxRecord_ConfigTest(tagBlackBoxLowLevelOpt *lopt,u16 memsize
     {
         debug_printf("null","%s:register recorder failed\r\n",__FUNCTION__);
         return ret;
-    }
-
-    if(CN_LineMemDebug_NUM==shell_debug_add(gLineMemDebug, CN_LineMemDebug_NUM))
-    {
-        debug_printf("null","%s:register shell failed\r\n",__FUNCTION__);
-        return (FALSE);
     }
 
     return ret;

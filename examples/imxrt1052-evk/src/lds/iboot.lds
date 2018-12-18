@@ -281,41 +281,36 @@ SECTIONS
         __AppStart = .;             /*函数指针变量，指向APP的Preload函数*/
     }>InnerFlash
     
-    r_In_shell_rROM1_lROM1 :
+    r_In_shell_section :
 	{
    		 . = ALIGN(0x08);
    		 KEEP(* (.in_shell_cmd))
- 	}>InnerFlash
-    
-     r_In_shell_cmdhelp_rROM1_lROM1 :
-	{
-   		
-   		 KEEP(* (.in_shell_cmd_help))
+   		 KEEP(* (.in_shell_data))
  	}>InnerFlash
  	
-    r_Ex_shell_rROM1_lROM1 :
+    r_Ex_shell_section :
 	{
-
  	     KEEP(* (.ex_shell_cmd))
-    
+ 	     KEEP(* (.ex_shell_data))
+ 	      . = ALIGN(0x08);
  	}>InnerFlash
-
+	r_In_shell_help_section :
+	{
+ 	     KEEP(* (.in_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>InnerFlash
+ 	
+	r_Ex_shell_help_section :
+	{
+ 	     KEEP(* (.ex_shell_help_cmd))
+ 	      . = ALIGN(0x08);
+ 	}>InnerFlash
+ 	
  	Shell_Info :
     {
-        . = ALIGN(0x08);
         p_shell_info = .;
-
-        LONG(0xffffffff) /* _shell_fun_tab_start 内部函数表的起始地址*/
-        LONG(0xffffffff) /*_shell_fun_tab_end  内部函数表的结束地址*/
-
-        LONG(0xffffffff) /*shell_fun_tab_start 普通函数表的起始地址*/
-        LONG(0xffffffff) /*shell_fun_tab_end  普通函数表的结束地址*/
-
-        LONG(0xffffffff)  /*shell_var_tab_start 变量表的起始地址*/
-        LONG(0xffffffff) /*shell_var_tab_start变量表的结束地址*/
-       
-        LONG(.)
-        pProgRomEnd = .;
-         . = restore + IbootSize;
+        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
+        
     }>InnerFlash 
 }
