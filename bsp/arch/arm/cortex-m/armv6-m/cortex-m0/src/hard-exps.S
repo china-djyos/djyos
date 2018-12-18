@@ -151,13 +151,6 @@ default_handler:
 .thumb
 .thumb_func
 HardExp_NmiHandler:
-<<<<<<< HEAD
-  push    {r0,lr}               @r0只是为了满足栈指针8字节对齐的填充物
-  ldr     r1,=(gener_sys_ExpHander)
-  ldr     r1,[r1]
-  blx     r1
-  pop     {r0,pc}
-=======
     mov   r2,lr        @PC存r2
     mov   r1,lr
     movs  r0,#4
@@ -175,7 +168,6 @@ isEqual:
 
 @.global HardExp_HardfaultHandler
 @.thumb_set HardExp_HardfaultHandler, default_handler
->>>>>>> master
 
 
 .text
@@ -184,13 +176,6 @@ isEqual:
 .thumb
 .thumb_func
 HardExp_HardfaultHandler:
-<<<<<<< HEAD
-  push    {r0,lr}               @r0只是为了满足栈指针8字节对齐的填充物
-  ldr     r1,=(gener_sys_ExpHander)
-  ldr     r1,[r1]
-  blx     r1
-  pop     {r0,pc}
-=======
     mov  r2,lr          @PC存r2
     mov  r1,lr
     movs r0,#4
@@ -201,7 +186,6 @@ HardExp_HardfaultHandler:
 
 HardFaultNotEqual:              @不相等使用psp 取出给->r0
     MRS   R0,PSP
->>>>>>> master
 
 HardFaultEqual:
     ldr r1,=3           @取中断号
@@ -283,10 +267,6 @@ svc_error:                    @直接返回
 .thumb
 .thumb_func
 Remap_HardExp_NmiHandler:
-<<<<<<< HEAD
-        push    {r0,lr}             @r0只是为了满足栈指针8字节对齐的填充物
-=======
->>>>>>> master
         ldr     r1,=(g_u32ExpTable + 2*4)
         ldr     r1,[r1]
         bx     r1
@@ -298,10 +278,6 @@ Remap_HardExp_NmiHandler:
 .thumb
 .thumb_func
 Remap_HardExp_HardfaultHandler:
-<<<<<<< HEAD
-        push    {r0,lr}            @r0只是为了满足栈指针8字节对齐的填充物
-=======
->>>>>>> master
         ldr     r1,=(g_u32ExpTable + 3*4)
         ldr     r1,[r1]
         bx     r1

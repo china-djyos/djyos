@@ -32,54 +32,54 @@ exp_status_handler:
     psrset  ee
 
     subi    sp, 4
-    stw     r13, (sp)   /*ä¿å­˜åŸæ¥r13çš„å€¼åˆ°åŸæ¥çš„æ ˆé‡Œé¢*/
+    stw     r13, (sp)   /*±£´æÔ­À´r13µÄÖµµ½Ô­À´µÄÕ»ÀïÃæ*/
     addi    sp, 4
 
     lrw     r13, g_trap_sp
-    stw     sp, (r13)   /*ä¿å­˜åŸæ¥SPçš„å€¼åˆ°g_trap_spé‡Œé¢*/
+    stw     sp, (r13)   /*±£´æÔ­À´SPµÄÖµµ½g_trap_spÀïÃæ*/
 
-    lrw     sp, g_top_trapstack     /*æ¢åˆ°æ–°çš„æ ˆ*/
+    lrw     sp, g_top_trapstack     /*»»µ½ĞÂµÄÕ»*/
 
     mov     r0, r0
 #ifdef __CSKY_DSP__
     subi    sp, 64
 #endif
     subi    sp, 72
-    stm     r0-r12, (sp)    /*ä¿å­˜R0-R12åˆ°æ–°çš„æ ˆ*/
+    stm     r0-r12, (sp)    /*±£´æR0-R12µ½ĞÂµÄÕ»*/
 
-    lrw     r0, g_trap_sp   /*æŠŠg_trap_spçš„åœ°å€ä¿å­˜åˆ°R0*/
-    ldw     r0, (r0)        /*æŠŠg_trap_spçš„å€¼ä¿å­˜åˆ°R0*/
+    lrw     r0, g_trap_sp   /*°Ñg_trap_spµÄµØÖ·±£´æµ½R0*/
+    ldw     r0, (r0)        /*°Ñg_trap_spµÄÖµ±£´æµ½R0*/
 
     subi    r0, 4
-    ldw     r13, (r0)       /*æŠŠg_trap_sp-4çš„å€¼ä¿å­˜åœ¨R13*/
+    ldw     r13, (r0)       /*°Ñg_trap_sp-4µÄÖµ±£´æÔÚR13*/
 
-    stw     r13, (sp, 52)   /*æŠŠg_trap_sp-4çš„å€¼ä¿å­˜èµ·æ¥*/
+    stw     r13, (sp, 52)   /*°Ñg_trap_sp-4µÄÖµ±£´æÆğÀ´*/
 
-    stw     r0, (sp, 56)    /*æŠŠg_trap_spçš„å€¼ä¿å­˜åˆ°æ–°çš„æ ˆé‡Œé¢*/
-    stw     r15, (sp, 60)   /*æŠŠR15ä¿å­˜åˆ°æ–°çš„æ ˆé‡Œé¢*/
+    stw     r0, (sp, 56)    /*°Ñg_trap_spµÄÖµ±£´æµ½ĞÂµÄÕ»ÀïÃæ*/
+    stw     r15, (sp, 60)   /*°ÑR15±£´æµ½ĞÂµÄÕ»ÀïÃæ*/
 #ifdef __CSKY_DSP__
     addi    sp, 64
-    stm     r16-r31, (sp)   /*æŠŠR16-R31ä¿å­˜åˆ°æ–°çš„æ ˆé‡Œé¢*/
+    stm     r16-r31, (sp)   /*°ÑR16-R31±£´æµ½ĞÂµÄÕ»ÀïÃæ*/
     subi    sp, 64
 #endif
-    mfcr    r0, epsr        /*æŠŠepsrçš„å€¼ä¿å­˜åˆ°R0*/
+    mfcr    r0, epsr        /*°ÑepsrµÄÖµ±£´æµ½R0*/
 #ifdef __CSKY_DSP__
     addi    sp, 64
 #endif
-    stw     r0, (sp, 64)    /*æŠŠepsrçš„å€¼ä¿å­˜åˆ°æ–°çš„æ ˆ*/
+    stw     r0, (sp, 64)    /*°ÑepsrµÄÖµ±£´æµ½ĞÂµÄÕ»*/
     mfcr    r0, epc
-    stw     r0, (sp, 68)    /*æŠŠepcçš„å€¼ä¿å­˜åˆ°æ–°çš„æ ˆ*/
+    stw     r0, (sp, 68)    /*°ÑepcµÄÖµ±£´æµ½ĞÂµÄÕ»*/
 #ifdef __CSKY_DSP__
     subi    sp, 64
 #endif
-    mov     r0, sp      /*æŠŠSPçš„å€¼ç»™R0ï¼Œæ­¤æ—¶SPçš„å€¼æ˜¯ä¿å­˜å¥½çš„å †æ ˆçš„æœ€ä½åœ°å€*/
-                        /*è‹¥æ²¡æœ‰__CSKY_DSP__ï¼Œåˆ™SP = g_top_trapstack - 72*/
-                        /*è‹¥æœ‰ï¼Œåˆ™SP = g_top_trapstack - 136*/
+    mov     r0, sp      /*°ÑSPµÄÖµ¸øR0£¬´ËÊ±SPµÄÖµÊÇ±£´æºÃµÄ¶ÑÕ»µÄ×îµÍµØÖ·*/
+                        /*ÈôÃ»ÓĞ__CSKY_DSP__£¬ÔòSP = g_top_trapstack - 72*/
+                        /*ÈôÓĞ£¬ÔòSP = g_top_trapstack - 136*/
     /* for backtrace */
     subi    sp, 8
     stw     r8, (sp, 0)
     stw     r15, (sp, 4)
-    mov     r8, sp      /*è¿™é‡Œæ˜¯æŠŠR0å’ŒR15çš„å€¼å†ä¿å­˜ä¸€æ¬¡ï¼Œå¹¶ä¸”æŠŠSPçš„å€¼ä¿å­˜ç»™R8ï¼Œä¸çŸ¥æ˜¯ä½•ç”¨æ„*/
+    mov     r8, sp      /*ÕâÀïÊÇ°ÑR0ºÍR15µÄÖµÔÙ±£´æÒ»´Î£¬²¢ÇÒ°ÑSPµÄÖµ±£´æ¸øR8£¬²»ÖªÊÇºÎÓÃÒâ*/
 
     lrw     r1, HardExp_Trap_c
     jmp     r1
