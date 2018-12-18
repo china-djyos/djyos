@@ -68,7 +68,6 @@
    <component>/third/firmware/stm32h7/component_config_stm32h7.h</component>
    <component>/third/firmware/STM32L4/component_config_stm32L4.h</component>
    <component>/third/goahead-2.5.0/component_config_goahead250.h</component>
-   <component>/third/goahead-4.0.1/component_config_goahead401.h</component>
    <component>/third/javascript/duktape/component_config_duktape.h</component>
    <component>/third/javascript/iotjs/component_config_iotjs.h</component>
    <component>/third/javascript/jerryscript/component_config_jerryscript.h</component>
@@ -101,7 +100,6 @@
    <component>/bsp/chipdrv/ds3232mz/rtc_ds3232M.c</component>
    <component>/bsp/chipdrv/fram/fram_fm24cl64b.c</component>
    <component>/bsp/chipdrv/ft5406/ft5406.c</component>
-   <component>/bsp/chipdrv/ft5x26/FT5X26.c</component>
    <component>/bsp/chipdrv/ili9325/ili9325.c</component>
    <component>/bsp/chipdrv/k9f1208xxx/k9f1208xxx.c</component>
    <component>/bsp/chipdrv/ksz8081rnb/imxrt1052-evk/fsl_phy.c</component>

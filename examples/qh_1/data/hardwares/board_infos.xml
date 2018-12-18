@@ -9,6 +9,7 @@
    <board>sr5333-v2.0</board>
    <board>sr5335</board>
    <board>sr7363</board>
+   <board>st1003-z-v1.0</board>
    <board>ty82xx</board>
    <board>APOLLO-STM32F7</board>
    <board>EXPLORER-stm32f4</board>

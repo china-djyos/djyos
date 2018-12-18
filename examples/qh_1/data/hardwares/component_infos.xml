@@ -69,7 +69,6 @@
    <component>/third/firmware/stm32h7/component_config_stm32h7.h</component>
    <component>/third/firmware/STM32L4/component_config_stm32L4.h</component>
    <component>/third/goahead-2.5.0/component_config_goahead250.h</component>
-   <component>/third/goahead-4.0.1/component_config_goahead401.h</component>
    <component>/third/javascript/duktape/component_config_duktape.h</component>
    <component>/third/javascript/iotjs/component_config_iotjs.h</component>
    <component>/third/javascript/jerryscript/component_config_jerryscript.h</component>

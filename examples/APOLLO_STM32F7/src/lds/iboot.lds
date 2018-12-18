@@ -292,7 +292,7 @@ SECTIONS
         gc_pAppRange = .;           /* APP�ռ䷶Χ */
         LONG(InnerFlashRange - IbootSize)       
     }>InnerFlash
-   
+    
    Iboot_AppInfo :
     {
        /* . = restore + IbootSize;*/
