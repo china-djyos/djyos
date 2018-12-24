@@ -295,7 +295,7 @@ extern void restart_system(u32 key);
 ADD_TO_IN_SHELL_HELP(rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
 ADD_TO_IN_SHELL bool_t rebootshell(char *param)
 {
-    u32 key = 0;
+    u32 key = 0XAA55AA55;
     if(NULL != param)
     {
         key = strtoul(param,NULL,0);

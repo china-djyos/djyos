@@ -52,15 +52,17 @@
 #include <device.h>
 #include <spibus.h>
 #include <systime.h>
-
+#include <math.h>
 struct FlashChip *pNOR;
 struct NorDescr *nordescription;
 extern u32 AT45_OP_TIMEOUT;
-u32 __EFS_IF_WriteData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
-u32 __EFS_IF_ReadData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
-bool_t __EFS_IF_Erase(u32 dwBlock);
-bool_t __EFS_IF_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize);
-
+struct MutexLCB *pAT45_FsLock;   //芯片互斥访问保护
+#if 1
+s32 __at45_write(s64 unit, void *data, struct uopt opt);
+s32 __at45_read(s64 unit, void *data, struct uopt opt);
+s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
+s32 __at45_erase(s64 unit, struct uesz sz);
+#endif
 // ============================================================================
 // 功能：SPI FLASH校验芯片ID
 // 参数：无
@@ -80,22 +82,22 @@ s32 _IDCheck(void)
     frame.SendBuf = &command;
     frame.SendLen = 1;
 
-    if(FALSE ==  Lock_MutexPend(pNOR->Lock, AT45_OP_TIMEOUT))
+    if(FALSE ==  Lock_MutexPend(pAT45_FsLock, AT45_OP_TIMEOUT))
         return (-1);
 
-    if(FALSE == SPI_CsActive(pNOR->Descr.Nor.Port, AT45_OP_TIMEOUT))
+    if(FALSE == SPI_CsActive(nordescription->Port, AT45_OP_TIMEOUT))
     {
-        Lock_MutexPost(pNOR->Lock);
+        Lock_MutexPost(pAT45_FsLock);
         return (-1);
     }
 
-    res = SPI_Transfer(pNOR->Descr.Nor.Port, &frame, TRUE, AT45_OP_TIMEOUT);
-    SPI_CsInactive(pNOR->Descr.Nor.Port);
+    res = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);
+    SPI_CsInactive(nordescription->Port);
 
     if(res)
     {
         printf("\r\nNOR : error : cannot get the ID from SPI bus\r\n");
-        Lock_MutexPost(pNOR->Lock);
+        Lock_MutexPost(pAT45_FsLock);
         return (-1);
     }
 
@@ -106,11 +108,11 @@ s32 _IDCheck(void)
         (id[3] != 0x01) ||
         (id[4] != 0x00))              //Extended_Info
     {
-        Lock_MutexPost(pNOR->Lock);
+        Lock_MutexPost(pAT45_FsLock);
         return (-1);
     }
 
-    Lock_MutexPost(pNOR->Lock);
+    Lock_MutexPost(pAT45_FsLock);
     return (0);    //Match SPI Flash ID successful
 }
 
@@ -133,11 +135,11 @@ static s32 __AT45_Done(void)
     frame.SendBuf = &command;
     frame.SendLen = 1;
 
-    if(FALSE == SPI_CsActive(pNOR->Descr.Nor.Port, AT45_OP_TIMEOUT))
+    if(FALSE == SPI_CsActive(nordescription->Port, AT45_OP_TIMEOUT))
         return (-1);
 
-    res = SPI_Transfer(pNOR->Descr.Nor.Port, &frame, TRUE, AT45_OP_TIMEOUT);
-    SPI_CsInactive(pNOR->Descr.Nor.Port);
+    res = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);
+    SPI_CsInactive(nordescription->Port);
 
     if(CN_SPI_EXIT_NOERR == res)
     {
@@ -180,7 +182,7 @@ static s32 __AT45_PageWrite(u32 dwPage, u8 *pBuf, u32 dwDummy)
     frame.SendBuf = command;
     frame.SendLen = 4;
 
-    if(FALSE == Lock_MutexPend(pNOR->Lock, AT45_OP_TIMEOUT))
+    if(FALSE == Lock_MutexPend(pAT45_FsLock, AT45_OP_TIMEOUT))
         return (0);
 
     {
@@ -200,29 +202,29 @@ static s32 __AT45_PageWrite(u32 dwPage, u8 *pBuf, u32 dwDummy)
         }
     }
 
-    if(FALSE == SPI_CsActive(pNOR->Descr.Nor.Port, AT45_OP_TIMEOUT))
+    if(FALSE == SPI_CsActive(nordescription->Port, AT45_OP_TIMEOUT))
     {
-        Lock_MutexPost(pNOR->Lock);
+        Lock_MutexPost(pAT45_FsLock);
         return (0);
     }
 
-    res = SPI_Transfer(pNOR->Descr.Nor.Port, &frame, TRUE, AT45_OP_TIMEOUT);
+    res = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);
     if(CN_SPI_EXIT_NOERR == res)
     {
         frame.RecvBuf = NULL;
         frame.RecvLen = 0;
         frame.RecvOff = 0;
         frame.SendBuf = pBuf;
-        frame.SendLen = pNOR->dwPageBytes;
+        frame.SendLen = nordescription->BytesPerPage;
 
-        res = SPI_Transfer(pNOR->Descr.Nor.Port, &frame, TRUE, AT45_OP_TIMEOUT);
+        res = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);
         if(CN_SPI_EXIT_NOERR == res)
         {
-            ret = pNOR->dwPageBytes;
+            ret = nordescription->BytesPerPage;
         }
     }
 
-    SPI_CsInactive(pNOR->Descr.Nor.Port);
+    SPI_CsInactive(nordescription->Port);
     Djy_EventDelay(4000);// 延时切出. 4ms
 
     {
@@ -243,7 +245,7 @@ static s32 __AT45_PageWrite(u32 dwPage, u8 *pBuf, u32 dwDummy)
         }
     }
 
-    Lock_MutexPost(pNOR->Lock);
+    Lock_MutexPost(pAT45_FsLock);
     return (ret);
 }
 
@@ -266,12 +268,12 @@ static s32 __AT45_PageRead(u32 dwPage, u8 *pBuf, u32 dwDummy)
     command[4] = 0x0;
 
     frame.RecvBuf = pBuf;
-    frame.RecvLen = pNOR->dwPageBytes;
+    frame.RecvLen = nordescription->BytesPerPage;
     frame.RecvOff = 5;
     frame.SendBuf = command;
     frame.SendLen = 5;
 
-    if(FALSE == Lock_MutexPend(pNOR->Lock, AT45_OP_TIMEOUT))
+    if(FALSE == Lock_MutexPend(pAT45_FsLock, AT45_OP_TIMEOUT))
         return (0);
 
     {
@@ -291,17 +293,17 @@ static s32 __AT45_PageRead(u32 dwPage, u8 *pBuf, u32 dwDummy)
         }
     }
 
-    if(FALSE == SPI_CsActive(pNOR->Descr.Nor.Port, AT45_OP_TIMEOUT))
+    if(FALSE == SPI_CsActive(nordescription->Port, AT45_OP_TIMEOUT))
     {
-        Lock_MutexPost(pNOR->Lock);
+        Lock_MutexPost(pAT45_FsLock);
         return (0);
     }
 
-    ret = SPI_Transfer(pNOR->Descr.Nor.Port, &frame, TRUE, AT45_OP_TIMEOUT);
-    SPI_CsInactive(pNOR->Descr.Nor.Port);
+    ret = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);
+    SPI_CsInactive(nordescription->Port);
     if(CN_SPI_EXIT_NOERR == ret)
     {
-        ret = pNOR->dwPageBytes;
+        ret = nordescription->BytesPerPage;
     }
 
     {
@@ -322,7 +324,7 @@ static s32 __AT45_PageRead(u32 dwPage, u8 *pBuf, u32 dwDummy)
         }
     }
 
-    Lock_MutexPost(pNOR->Lock);
+    Lock_MutexPost(pAT45_FsLock);
     return (ret);
 }
 
@@ -350,7 +352,7 @@ static s32 __AT45_BlockErase(u32 dwBlock)
     frame.SendBuf = command;
     frame.SendLen = 4;
 
-    if(FALSE == Lock_MutexPend(pNOR->Lock, AT45_OP_TIMEOUT))
+    if(FALSE == Lock_MutexPend(pAT45_FsLock, AT45_OP_TIMEOUT))
         return (-1);
 
     {
@@ -370,14 +372,14 @@ static s32 __AT45_BlockErase(u32 dwBlock)
         }
     }
 
-    if(FALSE == SPI_CsActive(pNOR->Descr.Nor.Port, AT45_OP_TIMEOUT))
+    if(FALSE == SPI_CsActive(nordescription->Port, AT45_OP_TIMEOUT))
     {
-        Lock_MutexPost(pNOR->Lock);
+        Lock_MutexPost(pAT45_FsLock);
         return (-1);
     }
 
-    res = SPI_Transfer(pNOR->Descr.Nor.Port, &frame, TRUE, AT45_OP_TIMEOUT);
-    SPI_CsInactive(pNOR->Descr.Nor.Port);
+    res = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);
+    SPI_CsInactive(nordescription->Port);
 
     if(!res)
     {
@@ -394,10 +396,10 @@ static s32 __AT45_BlockErase(u32 dwBlock)
         while(++timeout<50);
     }
 
-    Lock_MutexPost(pNOR->Lock);
+    Lock_MutexPost(pAT45_FsLock);
     return (res);
 }
-
+#if 1
 // ============================================================================
 // 功能：查询页所在的块号，及其所在块的剩余页。
 // 参数：dwPage -- 页号；（从零计）pRemain -- 剩余页数；pBlock -- 块号；（从零计）
@@ -406,7 +408,7 @@ static s32 __AT45_BlockErase(u32 dwBlock)
 // ============================================================================
 static s32 __AT45_PageToBlock(u32 dwPage, u32 *pRemain, u32 *pBlock)
 {
-    if(!pRemain || !pBlock || (dwPage >= pNOR->dwTotalPages))
+    if(!pRemain || !pBlock || ((u16)dwPage >= (nordescription->SectorsPerBlk * nordescription->Blks)))
     {
         return (-1);
     }
@@ -416,137 +418,6 @@ static s32 __AT45_PageToBlock(u32 dwPage, u32 *pRemain, u32 *pBlock)
 
     return (0);
 }
-
-#if 1 // 新接口
-#include <device/include/unit_media.h>
-// ============================================================================
-// 功能：读AT45
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-s32 __at45_read(s64 unit, void *data, struct uopt opt)
-{
-    return (__AT45_PageRead((u32)unit, (u8*)data, 0));
-}
-
-// ============================================================================
-// 功能：写AT45
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-s32 __at45_write(s64 unit, void *data, struct uopt opt)
-{
-    return (__AT45_PageWrite((u32)unit, (u8*)data, 0));
-}
-
-// ============================================================================
-// 功能：差AT45的页或块
-// 参数：unit -- 页或者块；
-//      sz -- 页或者块；
-// 返回：
-// 备注：
-// ============================================================================
-s32 __at45_erase(s64 unit, struct uesz sz)
-{
-    u32 block;
-
-    if(sz.unit)
-        block = unit / 8; // 一个块内有8个page
-    else if (sz.block)
-        block = (u32)unit;
-
-    return (__AT45_BlockErase(block));
-}
-
-// ============================================================================
-// 功能：at45命令
-// 参数：cmd -- 命令；
-//      args -- 可变参，命令参数；
-// 返回：
-// 备注：
-// ============================================================================
-s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
-{
-    s32 res = 0;
-
-    switch(cmd)
-    {
-        case whichblock:
-        {
-            va_list list;
-            u32 *block;
-            s64 *unit;
-
-            block = (u32*)args;
-            va_start(list, args);
-            unit = (s64*)va_arg(list, u32);
-            va_end(list);
-            *block = *unit / nordescription->SectorsPerBlk;
-            break;
-        }
-
-        case totalblocks:
-        {
-            // args = &blocks
-            *((u32*)args) =  nordescription->Blks;
-            break;
-        }
-
-        case blockunits:
-        {
-            // args = &units
-            *((u32*)args) = nordescription->SectorsPerBlk;
-            break;
-        }
-
-        case unitbytes:
-        {
-            // args = &bytes
-            *((u32*)args) = nordescription->BytesPerPage;
-            break;
-        }
-
-        case format:
-        {
-            va_list list;
-            u32 start, end;
-            struct uesz *sz;
-
-            start = (u32)args;
-            va_start(list, args);
-            end = va_arg(list, u32);
-            sz = (struct uesz*)va_arg(list, u32);
-            va_end(list);
-
-            if(!sz->block)
-                return (-1);
-
-            if(-1==end)
-                end = nordescription->Blks;
-            else if (start)
-                end += start;
-
-            do
-            {
-                if(__at45_erase((s64)--end, *sz))
-                {
-                    res = -1;
-                    break;
-                }
-            }
-            while(end!=start);
-
-            break;
-        }
-
-        case checkbad: break; // 检查坏块
-        default: res = -1; break;
-    }
-
-    return (res);
-}
 #endif
 
 // ============================================================================
@@ -555,6 +426,7 @@ s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
 //      dwStart -- 起始块；
 //      dwSize -- 块数；
 //      dwSpecial -- 用于EFS（2）；用于其他其他文件系统（1）；
+//      pPrivate -- 通信线
 // 返回：成功初始化（0）；初始化失败（-1）；
 // 备注：逻辑待优化
 // ============================================================================
@@ -743,6 +615,268 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
 #endif
 
     return (0);
+}
+
+
+
+
+
+#if 1 // 新接口
+#include <device/include/unit_media.h>
+// ============================================================================
+// 功能：读AT45
+// 参数：unit -- 页号；data --存读到数据的缓存；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：
+// ============================================================================
+s32 __at45_read(s64 unit, void *data, struct uopt opt)
+{
+    s32 res;
+    res = __AT45_PageRead((u32)unit, (u8*)data, 0);
+    if(res != nordescription->BytesPerPage)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+// ============================================================================
+// 功能：写AT45
+// 参数：unit -- 页号；data -- 要写的数据；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：
+// ============================================================================
+s32 __at45_write(s64 unit, void *data, struct uopt opt)
+{
+    s32 res;
+    res = __AT45_PageWrite((u32)unit, (u8*)data, 0);
+    if(res != nordescription->BytesPerPage)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+// ============================================================================
+// 功能：差AT45的页或块
+// 参数：unit -- 页或者块；
+//      sz -- 页或者块；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：
+// ============================================================================
+s32 __at45_erase(s64 unit, struct uesz sz)
+{
+    u32 block;
+
+    if(sz.unit)
+        block = unit / 8; // 一个块内有8个page
+    else if (sz.block)
+        block = (u32)unit;
+
+    return (__AT45_BlockErase(block));
+}
+
+// ============================================================================
+// 功能：at45命令
+// 参数：cmd -- 命令；
+//      args -- 可变参，命令参数；
+// 返回：
+// 备注：
+// ============================================================================
+s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
+{
+    s32 res = 0;
+
+    switch(cmd)
+    {
+        case whichblock:
+        {
+            va_list list;
+            u32 *block;
+            s64 *unit;
+
+            block = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+            *block = *unit / nordescription->SectorsPerBlk;
+            break;
+        }
+
+        case totalblocks:
+        {
+            // args = &blocks
+            *((u32*)args) =  nordescription->Blks;
+            break;
+        }
+
+        case blockunits:
+        {
+            // args = &units
+            *((u32*)args) = nordescription->SectorsPerBlk;
+            break;
+        }
+
+        case unitbytes:
+        {
+            // args = &bytes
+            *((u32*)args) = nordescription->BytesPerPage;
+            break;
+        }
+
+        case format:
+        {
+            va_list list;
+            s32 start, end;
+            struct uesz *sz;
+
+            start = (u32)args;
+            va_start(list, args);
+            end = va_arg(list, u32);
+            sz = (struct uesz*)va_arg(list, u32);
+            va_end(list);
+
+            if(!sz->block)
+                return (-1);
+
+            if(-1==end)
+                end = nordescription->Blks;
+            else if (start)
+                end += start;
+
+            do
+            {
+                if(__at45_erase((s64)--end, *sz))
+                {
+                    res = -1;
+                    break;
+                }
+            }
+            while(end!=start);
+
+            break;
+        }
+
+        case remain:
+        {
+            va_list list;
+            u32 *left;
+            s64 *unit;
+
+            left = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+            *left = (nordescription->SectorsPerBlk - 1)- (*unit % nordescription->SectorsPerBlk);
+
+            break;
+        }
+
+        case checkbad: break; // 检查坏块
+        default: res = -1; break;
+    }
+
+    return (res);
+}
+#endif
+
+// ============================================================================
+// 功能：初始化SPI FLASH模块，用做文件系统
+// 参数：pName -- 设备名；
+//      dwStart -- 起始块；
+//      dwSize -- 块数；
+//      dwSpecial -- 擦除该区域（1）；不擦除该区域（0）；
+//      pPrivate -- 通信线
+// 返回：成功初始化（0）；初始化失败（-1）；
+// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
+// ============================================================================
+s32 __AT45_PartitionInit(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, void *pPrivate)
+{
+    static u8 number = 0; // 分区号，从1算逻辑。
+    struct umedia *um;
+    struct uopt opt;
+    char *name;
+
+    if(0 == dwSize)
+    {
+        return (0); // 不做处理
+    }
+
+    pAT45_FsLock = (void*)Lock_MutexCreate("AT45Flash Lock");
+    if(!pAT45_FsLock)
+    {
+        printf("\r\n: erro : device : cannot create lock.\r\n");
+        return (-1);
+    }
+    name = malloc(strlen(pName) + 16);
+    if(!name)
+    {
+        printf("\r\n: erro : device : memory out.\r\n");
+        return (-1);
+    }
+
+    sprintf(name, "%s%s", pName, " part ");
+    itoa(number++, (name+strlen(name)), 10);
+    if(!nordescription) //初始化nor的信息
+    {
+        nordescription = malloc(sizeof(struct NorDescr));
+        if(!nordescription)
+        {
+            printf("\r\n: erro : device : memory out.\r\n");
+            return (-1);
+        }
+
+        memset(nordescription, 0x0, (sizeof(struct NorDescr)));
+
+        // AT45的sector比block大，而且sector的大小不一致。这里逻辑上就将sector等于page，
+        // 忽然sector,block最大。
+        nordescription->PortType = NOR_SPI;
+        nordescription->Port = pPrivate;
+        nordescription->BytesPerPage = 512;
+        nordescription->PagesPerSector = 1;
+        nordescription->SectorsPerBlk = 8;
+        nordescription->Blks = 1024; // 全部器件的容量
+        nordescription->ReservedBlks = 0;
+    }
+    if(dwSpecial)
+    {
+        struct uesz sz;
+        sz.unit = 0;
+        sz.block = 1;
+        __at45_req(format, dwStart , dwSize, &sz);
+    }
+
+    um = malloc(sizeof(struct umedia)+512);
+    if(!um)
+        return (-1);
+
+    opt.hecc = 0;
+    opt.main = 1;
+    opt.necc = 1;
+    opt.secc = 0;
+    opt.spare = 0;
+    if((s32)dwSize == -1)
+    {
+        dwSize = nordescription->Blks;
+        dwSize -= dwStart;
+        um->asz = dwSize * (nordescription->BytesPerPage * nordescription->SectorsPerBlk);
+    }
+    else
+    {
+        um->asz = dwSize * (nordescription->BytesPerPage * nordescription->SectorsPerBlk);
+    }
+    um->esz = log2(nordescription->BytesPerPage * nordescription->SectorsPerBlk); // 4KB
+    um->usz = log2(nordescription->BytesPerPage);; // 512B;
+    um->merase = __at45_erase;
+    um->mread = __at45_read;
+    um->mreq = __at45_req;
+    um->mwrite = __at45_write;
+    um->opt = opt; // 驱动操作逻辑
+    um->type = nor;
+    um->ubuf = (u8*)um + sizeof(struct umedia);
+    um->ustart = dwStart * 8; // 起始unit号
+
+    return (um_add((const char*)name, um));
 }
 
 #if 0

@@ -59,7 +59,6 @@
 #include "dbug.h"
 #include "component_config_fs.h"
 
-
 // ============================================================================
 // 功能：测试是否是有效的的文件流；
 // 参数：stream -- 文件流；
@@ -83,20 +82,19 @@ s32 isvalid(FILE* stream)
 // ============================================================================
 s32 __filebuf_new(FILE *stream)
 {
-    struct __buf *buf;
-
+    u8 *buf;
     if(stream->buf)
-        return (-1);
-
-    buf = malloc(sizeof(*buf)+CFG_CLIB_BUFFERSIZE);
+    {
+        return -1;
+    }
+    buf = malloc(CFG_CLIB_BUFFERSIZE);
     if(!buf)
     {
-        return (-1);
+        return -1;
     }
-
-    buf->prefetched = buf->movs = buf->data = (u8*)buf + sizeof(*buf);
-    buf->size = CFG_CLIB_BUFFERSIZE;
-    stream->buf = buf;
+    memset(buf, 0xff, CFG_CLIB_BUFFERSIZE);
+    stream->current = stream->buf = buf;
+    stream->bufsize = CFG_CLIB_BUFFERSIZE;
     return (0);
 }
 
@@ -108,11 +106,13 @@ s32 __filebuf_new(FILE *stream)
 // ============================================================================
 void __filebuf_del(FILE *stream)
 {
-    if(stream->buf)
+    if((stream->buf != NULL))
     {
-        free(stream->buf);
-        stream->buf = 0;
+        free(stream->buf);//buf不是和fp一起申请的，须单独释放
+                        //fopen中buf和fp是一起申请的，但freopen可能导致分开申请
+        stream->current = stream->buf = 0;
     }
+    stream->bufsize = 0;
 }
 
 // ============================================================================
@@ -123,7 +123,7 @@ void __filebuf_del(FILE *stream)
 // ============================================================================
 s32 __filebuf_frees(FILE *stream)
 {
-    return (stream->buf->size - (stream->buf->movs - stream->buf->data));
+    return (stream->bufsize - (s32)(stream->current - stream->buf));
 }
 
 // ============================================================================
@@ -134,9 +134,9 @@ s32 __filebuf_frees(FILE *stream)
 // ============================================================================
 s32 __filebuf_fetched(FILE *stream)
 {
-    return (stream->buf->prefetched - stream->buf->movs);
+    return (stream->count);
 }
-
+#if 0
 // ============================================================================
 // 功能：获取文件流预读的量；
 // 参数：stream -- 文件流；
@@ -145,9 +145,9 @@ s32 __filebuf_fetched(FILE *stream)
 // ============================================================================
 s32 __filebuf_mark(FILE *stream)
 {
-    return (stream->buf->prefetched - stream->buf->data);
+    return (stream->count);
 }
-
+#endif
 // ============================================================================
 // 功能：文件流已缓存的量；
 // 参数：stream -- 文件流；
@@ -156,7 +156,7 @@ s32 __filebuf_mark(FILE *stream)
 // ============================================================================
 s32 __filebuf_used(FILE*stream)
 {
-    return (stream->buf->movs - stream->buf->data);
+    return (stream->current - stream->buf);
 }
 
 // ============================================================================
@@ -167,7 +167,11 @@ s32 __filebuf_used(FILE*stream)
 // ============================================================================
 s32 __isfilebufed(FILE*stream)
 {
-    return ((s32)stream->buf);
+    if((s32)stream->bufsize != CFG_CLIB_BUFFERSIZE)
+    {
+        return 0;
+    }
+    return -1;
 }
 
 // ============================================================================
@@ -207,12 +211,13 @@ s32 __transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
         switch(*pMode)
         {
             case '+':
-                if (*pFlags & O_RDWR)
+                if ((*pFlags & O_RDWR) == O_RDWR)
+//                    if ((*pFlags & O_RDWR))
                     WhileContinue = false;
                 else
                 {
                     *pFlags |= O_RDWR;
-                    *pFlags &= ~(O_RDONLY | O_WRONLY);
+//                    *pFlags &= ~(O_RDONLY | O_WRONLY);
                     *pCFlags |= FP_IORW;
                     *pCFlags |= FP_IOWRITE + FP_IOREAD;
                 }
@@ -251,7 +256,7 @@ s32 __transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
 // ============================================================================
 s32 fflush(FILE *stream)
 {
-    s32 res, buffed;
+    s32 res = 0, buffed;
     u8 *src, *des;
     s32 i;
     off_t offset;
@@ -259,44 +264,35 @@ s32 fflush(FILE *stream)
     if(!stream)
         return (EOF); // C库上是更新所有的stream
 
-//    if(-1 == IsSTDIO(stream))
-//    {
-//        return (EOF);
-//    }
-
-    if(__isfilebufed(stream))
+    if(0 != stream->wrt_end)    //条件成立，则必有 buffer
     {
-        buffed = __filebuf_used(stream);
-        if(buffed)
+        offset = ftell(stream);
+        lseek(stream->fd, stream->FilePos - (s32)(stream->current - stream->buf) - stream->wrt_start, SEEK_SET);
+        res = write(stream->fd, stream->buf + stream->wrt_start, stream->wrt_end - stream->wrt_start);
+        if(res != stream->wrt_end - stream->wrt_start)
         {
-            offset = -__filebuf_mark(stream);
-            offset = lseek(stream->fd, offset, SEEK_CUR); // 将预读的空间置回；
-            if(-1 == offset)
-                return (EOF);
-
-            res = write(stream->fd, stream->buf->data, buffed);
-            if(res != buffed)
+            buffed = (stream->wrt_end - stream->wrt_start) - res; // 未刷下去的部分
+            src = stream->buf + res;
+            des = stream->buf;
+            for(i = 0; i < buffed; i++)
             {
-                buffed = buffed - res; // 未刷下去的部分
-                src = stream->buf->data + res;
-                des = stream->buf->data;
-                for(i = 0; i < (buffed - res); i++)
-                {
-                    *des = *src;
-                    des++;
-                    src++;
-                }
-                stream->buf->movs = stream->buf->data + buffed;
-                stream->buf->prefetched = stream->buf->movs;
-                return (EOF);
+                *des = *src;
+                des++;
+                src++;
             }
-            else
-                stream->buf->movs=stream->buf->data;
-
+            stream->current = stream->buf + buffed;
+            stream->count = buffed;
+            return (EOF);
         }
+        res = fsync(stream->fd);
+        lseek(stream->fd, offset, SEEK_SET);
     }
-
-    return (0);
+    stream->current = stream->buf;
+    stream->count = 0;
+    stream->ungetbuf = EOF;
+    stream->wrt_start = -1;
+    stream->wrt_end = 0;
+    return res;
 }
 
 // ============================================================================
@@ -309,7 +305,7 @@ s32 fflush(FILE *stream)
 FILE *fopen(const char *filename, const char *mode)
 {
     FILE *stream;
-    s32 flags=0, cflags=0;
+    s32 flags, cflags;
     s32 fd, res;
     struct stat info;
 
@@ -348,12 +344,14 @@ FILE *fopen(const char *filename, const char *mode)
         close(fd);
         return (NULL);
     }
-
-    memset(stream, 0, sizeof(FILE));
+    memset(stream, 0, sizeof(FILE) );
     //单进程模式下，不存在内核态用户态间切换，c库不做buf，也不怎么影响效率。
     //流式数据文件不能写缓冲，如果不能读，亦不需要buf。
-    if((Djy_GetRunMode( ) < CN_RUNMODE_MP )
-            || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
+    if((Djy_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
+    {
+
+    }
+    else
     {
         res = __filebuf_new(stream);
         if(res)
@@ -370,10 +368,11 @@ FILE *fopen(const char *filename, const char *mode)
 
     stream->fd = fd;
     stream->flags = cflags;
-    stream->unget = EOF;
+    stream->ungetbuf = EOF;
+    stream->wrt_start = -1;
     if(cflags & FP_IOAPPEND)
     {
-        stream->pos = info.st_size;
+        stream->FilePos = info.st_size;
     }
 
     return (stream);
@@ -387,8 +386,6 @@ FILE *fopen(const char *filename, const char *mode)
 // ============================================================================
 int fclose(FILE *stream)
 {
-    s32 res = 0;
-
     if(!stream)
         return (-1);
 
@@ -397,8 +394,8 @@ int fclose(FILE *stream)
 
     if(EOF==fflush(stream))
     {
-        res = -1;
         debug_printf("clib","\"fclose\" file failed<cannot flush>.");
+        return (-1);
     }
 
     if(close(stream->fd))
@@ -407,12 +404,15 @@ int fclose(FILE *stream)
         return (-1);
     }
 
-    if(__isfilebufed(stream))
-        __filebuf_del(stream);
+    if(stream->tmpfname)
+    {
+        remove(stream->tmpfname);
+    }
+    __filebuf_del(stream);
 
     free(stream);
 
-    return (res);
+    return 0;
 }
 
 // ============================================================================
@@ -451,10 +451,11 @@ s32 ungetc(s32 c, FILE *stream)
     if((!stream) || (EOF == c))
         return (EOF);
 
-    if(EOF == stream->unget)
+    if(EOF == stream->ungetbuf)
     {
-        stream->unget = c;
-        return (c);
+        stream->ungetbuf = c;                   //ungetc缓冲区是空的
+        stream->flags &= ~FP_IOEOF;
+        return ((u8)c);
     }
 
     return (EOF);
@@ -472,19 +473,28 @@ s32 ungetc(s32 c, FILE *stream)
 // ============================================================================
 size_t fread(void *buf, size_t size, size_t count, FILE *stream)
 {
-    s32 res, all, prefetch, toBuf, i = 0;
+    s32 buffered = 0, i = 0, result = 0;
+    s32 res, read_size, reads, round;
     char ch;
 
-    all = size * count;
-    if((!all) || (stream->flags & FP_IOREAD))
+    read_size = size * count;
+    if((NULL == buf) || (NULL == stream) || (0 == read_size))
         return (0);
 
-    if(EOF != stream->unget)
+    if((!read_size) || ((stream->flags & FP_IOREAD) != FP_IOREAD))
+//    if((!read_size) || (stream->flags & FP_IOREAD))
+        return (0);
+
+    if(EOF != stream->ungetbuf)
     {
-        *(u8*)buf = (u8)stream->unget;
-        stream->unget = EOF;
-        if(--all)
+        *(u8*)buf++ = (u8)stream->ungetbuf;        //先读取ungetc缓冲区中字符
+        stream->ungetbuf = EOF;
+        result += 1;
+        read_size--;
+        if(read_size == 0)
+        {
             return (1/size);
+        }
 
         i = 1;
     }
@@ -493,7 +503,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
     {
         if(GetCharDirect) // 函数已注册；（TODO:这个逻辑不应该防止这里实现）
         {
-            for(; i < all; i++)
+            for(; i < (s32)(size * count); i++)
             {
                 ch = GetCharDirect();
                 if(!ch)
@@ -513,54 +523,87 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         }
     }
 
-    if(!__isfilebufed(stream))
+    if(__isfilebufed(stream) == 0)          //无buf，注意，不能用 stream->buf == NULL 判定，参考freopen
     {
-        res = read(stream->fd, buf, all);
+        res = read(stream->fd, buf, read_size);
+        if(-1 != (s32)res)
+            result += res;
+        else
+            res = 0; // 出错；
     }
     else
     {
-
-        if(all <= __filebuf_fetched(stream))
+        buffered = stream->count;
+        if(read_size <= buffered)         //判断预读取的数据量是否大于本次需要读取的数据量
         {
             // 已预读的文件足够本次读
-            memcpy(buf, stream->buf->movs, all);
-            stream->buf->movs += all;
-            res = all;
+            memcpy(buf, stream->current, read_size);
+            stream->count -= read_size;
+            stream->current += read_size;
+            result += read_size;
         }
         else
         {
-            res = fflush(stream);
+            //buffer中没有足够数据的处理方案：
+            //1、先copy整数nmemb数据到用户buf
+            //2、看buf中是否有需要fflush到文件中的数据。
+            res = fflush(stream);       //把文件缓存先全都写到flash中
             if(EOF==res)
             {
                 debug_printf("clib","\"fread\" file failed(buffer flash).");
                 return (0);
             }
-
-            // 带有预读功能的逻辑，即如果发现读的量不是缓存对齐的，将其进行缓存对齐，这部分大于实际要读的量即为预读；
-            prefetch = stream->buf->size - ((stream->pos+all) % stream->buf->size);
-            res = read(stream->fd, buf, all + prefetch);
-            if(res) // 实际读到的数据可能小于目标
+            if(buffered > 0)
             {
-                stream->pos += res;
-                toBuf = stream->pos % stream->buf->size; // 将缓存不对齐的部分进行缓存
-                memcpy((stream->buf->movs), (buf+res-toBuf), toBuf);
-                stream->buf->movs += toBuf;
-                stream->buf->prefetched += toBuf;
-                if(res > all) // 回读的含有预读
+                memcpy(buf, stream->current, buffered);   //把文件缓存里的数据读出来
+                buf += buffered;
+                stream->count -= buffered;
+                result += buffered;
+                read_size -= buffered;               //还要读数据量
+            }
+//            __isfilebufclean(stream);          //清理文件缓存
+
+            round = read_size - read_size % stream->bufsize;      //需要读取的整数个bufsize
+            reads = 0;
+            if(round != 0)
+            {
+                reads = read(stream->fd, buf, round);   //读取整数个bufsize
+                buf += reads;
+                result += reads;
+            }
+            if(reads < round)       //已到文件尾部
+            {
+                result += reads;
+                stream->current = stream->buf;
+                stream->count = 0;
+            }
+            else
+            {
+                reads = read(stream->fd, stream->buf, stream->bufsize); //读取 bufsize
+                if(reads > (read_size - round))             //读出了超过需求的数据
                 {
-                    // 文件当前位置必须是指定的位置，不能含有预读部分；
-                    stream->buf->movs -= (res - all);
-                    stream->pos -= (res-all);
-                    res = all; // 返回值；
+                    memcpy(buf, stream->buf, (read_size - round));
+                    stream->count = reads - (read_size - round);
+                    stream->current = stream->buf + (read_size - round);
+                    result += read_size-round;
+                }
+                else                                        //读出的数据少于请求数据
+                {
+                    memcpy(buf, stream->buf, reads);
+                    stream->current = stream->buf;
+                    stream->count = 0;
+                    result += reads;
                 }
             }
         }
     }
-
-    if(-1==res)
-        res = 0; // 出错了，读到的数据为零；
-
-    return (res/size);
+    stream->FilePos += result;
+    stream->ungetbuf = EOF;
+    if(result < (s32)(size * count))
+    {
+        stream->flags |= FP_IOEOF;
+    }
+    return (result/size);
 }
 
 // ============================================================================
@@ -574,78 +617,100 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
 // ============================================================================
 size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
 {
-    u32 all, frees, rest;
+//    u32 all, frees, rest;
     s32 res;
-    off_t tmp;
+//    off_t tmp;
+    s32 WriteSize,BufRest;
+    s32 result = 0;
 
-    rest = all = size * count;
-    if((!all) || (stream->flags & FP_IOREAD))
+    WriteSize = size * count;
+    if((NULL == buf) || (NULL == stream) || (0 == WriteSize))
+        return 0;
+    if((!WriteSize) || ((stream->flags & FP_IOWRITE) != FP_IOWRITE))
+//    if((!WriteSize) || (stream->flags & FP_IOREAD))
         return (0);
 
-    if(EOF != stream->unget)
-        stream->unget = EOF; // 抛弃掉ungetc的内容
+    if(EOF != stream->ungetbuf)
+        stream->ungetbuf = EOF; // 抛弃掉ungetc的内容
 
     if(!isvalid(stream)) // TODO
     {
         if(PutStrDirect) // 函数已注册；
         {
-            PutStrDirect((const char*)buf, all);
+            PutStrDirect((const char*)buf, WriteSize);
         }
 
         return (count);
     }
-
-    if(!__isfilebufed(stream))
+    //注意，不能用 stream->buf == NULL 判定有没有buf，参考freopen
+    if(__isfilebufed(stream) == 0)
     {
-        res = write(stream->fd, buf, all);
+        res = write(stream->fd, buf, WriteSize);
         if(-1!=res)
-            stream->pos += res;
+            result += res;
         else
             res = 0; // 出错；
     }
     else
     {
-        tmp = stream->pos;
-        frees = __filebuf_frees(stream);
-        while(1)
+        if(stream->wrt_start == -1)
+            stream->wrt_start = 0;
+        BufRest = __filebuf_frees(stream);
+        if(WriteSize <= BufRest)
         {
-            if(frees > rest)
-                frees = rest;
-            memcpy(stream->buf->movs, buf, frees);
-            stream->buf->movs += frees;
-#if 0
-            if(stream->buf->prefetched < stream->buf->pMov)
-                stream->buf->prefetched = stream->buf->pMov;
-#endif
+            //欲写入的数据未超出 buf，只更新 buffer 参数，不写入文件。
+            memcpy(stream->current, buf, WriteSize);
+            stream->count -= WriteSize;
+            if(stream->count < 0)
+                stream->count = 0;
+            if(stream->wrt_start > (s32)(stream->current - stream->buf))
+                stream->wrt_start = (s32)(stream->current - stream->buf);
 
-            if(__filebuf_frees(stream))
+            stream->current += WriteSize;
+            if(stream->wrt_end < (s32)(stream->current - stream->buf))
+                stream->wrt_end = (s32)(stream->current - stream->buf);
+            result = WriteSize;
+        }
+        else
+        {
+            //待写入数据，超出 buf 空间，需要写入文件
+            memcpy(stream->current, buf, BufRest);
+            //先seek到buf中wrt_start对应位置
+            lseek(stream->fd, stream->FilePos - (s32)(stream->current - stream->buf) - stream->wrt_start, SEEK_SET);
+            //把当前buf中被修改的数据写入文件。
+            res = write(stream->fd, stream->buf + stream->wrt_start,  stream->bufsize - stream->wrt_start);
+            result += res;
+            WriteSize -= res;
+            //计算剩余数据中非整 bufsize 部分（即余数）
+            BufRest = WriteSize % stream->bufsize;
+            //把整数个bufsize数据写入文件，剩余非整bufsize部分则copy到buf中。
+            res = write(stream->fd, buf+result, WriteSize - BufRest);
+            result += res;
+            if(BufRest != 0)        //余数非0
             {
-                res = all;
-                break; // 全部正常写入
+                memcpy(stream->buf, buf+result, BufRest);
+                result += BufRest;
+                stream->wrt_start = 0;
+                stream-> wrt_end = BufRest;
+                stream->current = stream->buf + BufRest;
             }
-
-            res = fflush(stream); // 缓存已满，将数据输入介质
-            if(EOF==res)
+            else
             {
-                res = stream->pos - tmp; // 实际写入的数据数
-                break;
+                stream->wrt_start = -1;
+                stream->wrt_end = 0;
+                stream->current = stream->buf;
             }
-            memset(stream->buf->data, 0xff, stream->buf->size);
-//            stream->buf->movs -= stream->buf->size;
-            stream->pos += stream->buf->size;
-            rest -= frees;
-            buf += frees;
-            frees = stream->buf->size;
         }
     }
-
-    return (res/size);
+    if(result < 0)
+        return (0);
+    stream->FilePos +=result;
+    return (result/size);
 }
-
 
 // ============================================================================
 // 功能：从文件输入一个字符，getc和fgetc是等价的，搞笑的c标准。
-// 参数：fp，输出目标文件，如果是stdin，则要判断是否设备。
+// 参数：stream，输出目标文件，如果是stdin，则要判断是否设备。
 // 返回：读取的字符，错误则返回EOF
 // 备注：
 // ============================================================================
@@ -656,10 +721,17 @@ s32 getc(FILE *stream)     //getc = fgetc
     if(!stream)
         return (EOF);
 
-    if(1 != fread(&ch, 1, 1, stream))
-        ch = EOF;
-
-    return (ch);
+    if(stream->ungetbuf != EOF)
+    {
+        ch = stream->ungetbuf;
+    }
+    else
+    {
+        if(1 != fread(&ch, 1, 1, stream))
+            ch = EOF;
+    }
+    stream->ungetbuf = EOF;
+    return ((s8)ch);
 }
 
 // ============================================================================
@@ -671,21 +743,21 @@ s32 getc(FILE *stream)     //getc = fgetc
 //      2、如果发生读入错误，error指示器被设置，返回NULL，buf的内容可能被改变。
 // 备注：
 // ============================================================================
-char *fgets(char *buf, s32 n, FILE *stream)
+char *fgets(char *buf, s32 size, FILE *stream)
 {
     s32 i = 0;
     char ch;
 
-    if(!stream || !n || !buf)
+    if(!stream || !size || !buf)
         return (NULL);
 
-    if(1 == n)
+    if(1 == size)
     {
-        *buf = '\0';
+        buf[0] = '\0';
         return (buf);
     }
 
-    for (; i < n; i++)
+    for(i = 0; i < size; i++)
     {
        if(1 != fread(&ch, 1, 1, stream))
        {
@@ -705,10 +777,12 @@ char *fgets(char *buf, s32 n, FILE *stream)
            buf[i] = '\0';
            break;
        }
-
-       buf[i] = ch;
+       else
+       {
+           buf[i] = ch;
+       }
    }
-
+    buf[size-1] = '\0';
     return (buf);
 }
 
@@ -727,7 +801,7 @@ s32 putc(s32 ch, FILE *stream)     //putc = fputc
     if(1 !=  fwrite(&ch, 1, 1, stream))
         return (EOF);
 
-    return (ch);
+    return ((u8)ch);
 }
 
 // ============================================================================
@@ -762,12 +836,11 @@ s32 fputs(const char *s, FILE *stream)
 // ============================================================================
 int fseeko(FILE *stream, off_t offset, int whence)
 {
-
     if(!stream)
         return (EOF);
 
-    if(EOF != stream->unget)
-        stream->unget = EOF;
+    if(EOF != stream->ungetbuf)
+        stream->ungetbuf = EOF;
 
 //    if(-1 == IsSTDIO(stream))
 //    {
@@ -780,48 +853,34 @@ int fseeko(FILE *stream, off_t offset, int whence)
         if(-1 == offset)
             return (EOF);
 
-        stream->pos = offset;
+        stream->FilePos = offset;
         return (0);
     }
 
     switch(whence)
     {
+        case SEEK_SET:
         case SEEK_END:
         {
-            struct stat info;
-
-            if(-1 == fstat(stream->fd, &info))
+            if(fflush(stream) == EOF)
             {
-                debug_printf("clib","\"fseek\" file failed<cannot stat>.");
                 return (EOF);
             }
-
-            offset = info.st_size + offset; // 转为SEEK_SET；
         }
-
-        case SEEK_SET:
-        {
-            if(offset < 0)
-            {
-                debug_printf("clib","\"fseek\" file failed<out of range>.");
-                return (EOF);
-            }
-
-            offset = offset - stream->pos; // 转化为SEEK_CUR；
-        }
-
         case SEEK_CUR:
         {
             if(((offset < 0) && ((__filebuf_used(stream) + offset) >= 0)) ||
                ((offset > 0) && (__filebuf_fetched(stream) - offset >= 0)))
             {
                 // 偏置量在缓存内部移动；
-                stream->buf->movs += offset;
+                stream->current += offset;
 #if 0
                 if(stream->buf->movs > stream->buf->prefetched)
                     stream->buf->prefetched = stream->buf->movs;
 #endif
-                stream->pos += offset;
+                stream->FilePos += offset;
+                stream->count -= offset;
+
                 return (0);
             }
 
@@ -832,7 +891,7 @@ int fseeko(FILE *stream, off_t offset, int whence)
             if(-1 == offset)
                 return (EOF);
 
-            stream->pos = offset; // 这里不事先做缓存，等读或写时再做。
+            stream->FilePos = offset; // 这里不事先做缓存，等读或写时再做。
             return (0);
         }
 
@@ -871,77 +930,50 @@ int fseek(FILE *stream, long offset, int whence)
 // ============================================================================
 int fileno(FILE *stream)
 {
-    if(!stream)
-        return (-1);
-
-//    if(-1 != IsSTDIO(stream))
-//        return (-1);
-
-    return (stream->fd);
+    if(stream)
+        return stream->fd;
+    else
+        return -1;
 }
-
 // ============================================================================
 // 功能：获取文件的读写位置;
 // 参数：stream，文件指针
 // 返回：读写位置，出错则返回-1
 // 备注：
 // ============================================================================
-off_t ftello(FILE *stream)
+off_t ftell(FILE *stream)
 {
-    if(!stream)
-        return (-1);
-
-//    if(-1 != IsSTDIO(stream))
-//        return (-1);
-
-    return (stream->pos);
-}
-
-// ============================================================================
-// 功能：获取文件的读写位置;
-// 参数：stream，文件指针
-// 返回：读写位置，出错则返回-1
-// 备注：
-// ============================================================================
-long ftell(FILE *stream)
-{
-    if(!stream)
-        return (EOF);
-
-    if(sizeof(off_t) != sizeof(long))
-    {
-        debug_printf("clib","the size of \"off_t\" is not equal to the size of \"long\".");
-        return (EOF); // TODO
-    }
-
-    return ((long)ftello(stream));
+    if(stream)
+        return stream->FilePos;
+    else
+        return EOF;
 }
 
 // ============================================================================
 // 功能：测试是否达到文件尾；
 // 参数：stream -- 文件流；
-// 返回：达到文件尾（0）；未到达文件尾部（EOF）；
+// 返回：到达文件尾（1）；其它情况返回（0）；
 // 备注：
 // ============================================================================
 s32 feof(FILE *stream)
 {
     struct stat info;
     if(!stream)
-        return (EOF);
-
-    if(fstat(stream->fd, &info))
-        return (EOF);
-
-    if(stream->pos >= info.st_size)
         return (0);
 
-    return (EOF);
+    if(fstat(stream->fd, &info))
+        return (0);
+
+    if(stream->FilePos >= info.st_size)
+        return (1);
+
+    return (0);
 }
 
 // ============================================================================
-// 功能：文件重置；
+// 功能：重设文件流读写位置为文件开头；
 // 参数：stream -- 文件流；
-// 返回：达到文件尾（0）；未到达文件尾部（EOF）；
+// 返回：无
 // 备注：文件错误清楚；刷新所有输出阻塞；
 // ============================================================================
 void rewind(FILE *stream)
@@ -953,14 +985,15 @@ void rewind(FILE *stream)
 // 功能：打开文件
 // 参数：
 // 返回：非NULL -- 成功; NULL -- 失败;
-// 备注：如果 fp 原来是有buf的，但新打开的文件不需要buf，如果fp和buf是一起申请的，
+// 备注：如果 stream 原来是有buf的，但新打开的文件不需要buf，如果fp和buf是一起申请的，
 //      无法单独释放buf，故不会释放buf；如果不是一起申请的，则释放之。如果老fp
 //      不带buf，而新fp需要，则要单独申请buf，这是导致fp和buf分别申请的原因。c
-//      标准规定，freopen不能修改fp指针，故不允许重新malloc fp。
+//      标准规定，freopen不能修改fp指针，故不允许重新malloc stream。
 // ============================================================================
 FILE *freopen(const char *filename, const char *mode, FILE *stream)
 {
-    s32 fd, tmp, flags, cflags, res;
+    s32 fd, flags, cflags, res;
+    u8 *buf;
     struct stat info;
 
     if((!filename) || (!mode) || ('\0' == *filename))
@@ -994,36 +1027,40 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
     }
 
     fflush(stream);
-
+    close(stream->fd);
     //单进程模式下，不存在内核态用户态间切换，c库不做buf，也不怎么影响效率。
     //流式数据文件不能写缓冲，如果不能读，亦不需要buf。
-    if((Djy_GetRunMode( ) < CN_RUNMODE_MP )
-            || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
+    if((Djy_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
     {
-        if(!stream->buf)
-            __filebuf_new(stream);
+
+        __filebuf_del(stream);
+        memset(stream, 0, sizeof(FILE));
     }
     else
     {
-        if(stream->buf)
-            __filebuf_del(stream);
+        buf = stream->buf;
+        if(stream->buf == NULL)
+            buf = malloc(CFG_CLIB_BUFFERSIZE);
+        if(stream->buf == NULL)
+        {
+            memset(stream, 0, sizeof(FILE));
+        }
+        else
+        {
+            memset(stream, 0, sizeof(FILE));
+            stream->current = stream->buf = buf;
+            stream->bufsize = CFG_CLIB_BUFFERSIZE;
+        }
     }
 
-    stream->flags = info.st_mode; // 新的flag
-
-    if(1 == IsSTDIO(stream))
+    stream->flags = cflags; // 新的flag
+    stream->ungetbuf = EOF;
+    stream->wrt_start = -1;
+    if(info.st_mode & FP_IOAPPEND)
     {
-        res = fcntl(stream->fd, F_STDIO_REDRIECT, fd); // 对STDIO进行的重定向（采用fcntl系统调用方式）
-        if(res)
-            return (NULL);
+        stream->FilePos = info.st_size;
     }
-    else
-    {
-        tmp = stream->fd;
-        stream->fd = -1; // 防止，此时被其他线程使用；甚至是释放；应该是加个锁最好；
-        close(tmp);
-        stream->fd = fd;
-    }
+    stream->fd = fd;
 
     return (stream);
 

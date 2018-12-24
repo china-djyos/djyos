@@ -315,7 +315,7 @@ void djybsp_spiflash_step(uint8_t step)
             csi_dcache_enable();
             csi_icache_enable();
             if(atom_low!=0)
-                Int_HighAtomEnd(atom_low);
+                Int_LowAtomEnd(atom_low);
             break;
     }
 }

@@ -451,7 +451,20 @@ static ptu32_t Dev_DevObjOps(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...)
         }
 
         case OBJIOCTL:
-            break;
+        {
+            ptu32_t arg0, arg1;
+            struct objhandle *devfile = (struct objhandle*)o_hdl;
+            u32 cmd = (u32)args;
+
+            va_start(list, args);
+            arg0 = (ptu32_t)va_arg(list, u32);
+            list = (va_list)va_arg(list, va_list);
+            //list = *((va_list*)va_arg(list, u32)); // 这里传进来的本事就是参数的地址
+            arg1 = (ptu32_t)va_arg(list, u32);
+            va_end(list);
+
+            return ((ptu32_t)__devcntl(devfile, cmd, arg0, arg1));
+        }
 
         case OBJCTL:
         {

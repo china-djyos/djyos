@@ -711,7 +711,33 @@ static s32 __iap_write(struct objhandle *hdl, u8 *data, u32 size)
     __unlock(core);
     return (size-left);
 }
+static s32 __iap_sync(struct objhandle *hdl)
+{
+    s32 size;
+    struct __icontext *cx = (struct __icontext *)handle_context(hdl);
+    struct __icore *core = (struct __icore*)handle2sys(hdl);
+    struct __ifile *file = (struct __ifile*)handle_val(hdl);
+    __lock(core);
+    if(__STATUS_UPDATED != file->status) // 数据存在写入操作或者文件是新建的
+    {
+        if(cx->bufed)
+        {
+            if(cx->pos<=core->inhead)
+                size = core->inhead;
+            else
+                size = core->bufsz;
 
+            if(0 !=__ll_write(core->vol, cx->buf, size, (cx->pos-cx->bufed+file->cxbase)))
+            {
+                __unlock(core);
+                return (-1);
+            }
+        }
+    }
+
+    __unlock(core);
+    return (0);
+}
 // ============================================================================
 // 功能：读文件
 // 参数：hdl -- IAP文件对象句柄；
@@ -1152,6 +1178,12 @@ static ptu32_t __iap_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
                 return (-1); // 查询的文件不存在；
 
             return ((ptu32_t)__iap_stat(ob, data));
+        }
+
+        case OBJSYNC:
+        {
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            return ((ptu32_t)__iap_sync(hdl));
         }
 
         default:

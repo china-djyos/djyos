@@ -293,7 +293,9 @@ Remap_HardExp_SvcHandler:
         ldr     r1,=(g_u32ExpTable + 11*4)
         ldr     r1,[r1]
         blx     r1
-        pop     {r0,pc}
+        pop     {r0,r1}
+        mov     lr,r1
+        bx      lr
 
 .text
 .align 2
@@ -305,8 +307,8 @@ Remap_HardExp_SystickHandler:
         ldr     r1,=(g_u32ExpTable + 15*4)
         ldr     r1,[r1]
         blx     r1
-        pop     {r0,pc}
-
-
+        pop     {r0,r1}
+        mov     lr,r1
+        bx      lr
 
 .end

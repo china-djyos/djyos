@@ -511,51 +511,125 @@ static bool_t __asm_execute(u8 num,Ex_shell_func fun)
     return true;
 }
 
+
+
+
+//查找命令类型为type的命令查找范围idx ->cmdmax
+static s32 find_next_cmd(struct sh_cmd_Tab *pcmdtab,int type,int idx ,int cmdmax)
+{
+    s32 i;
+    for(i=idx;i<cmdmax;i++)
+    {
+        if(pcmdtab[i].cmdtype == type)
+                break;
+    }
+    if(cmdmax == i)
+        return -1;
+    return i;
+}
+
+//查找命令对应的帮助信息
+static char * find_cmd_help(const char*cmdname, struct shell_list *p_Sh_List)
+{
+
+    char helpname[CN_SHELL_CMD_LIMIT] = DJYSH_HELP_NAME;
+    strcat(helpname,  cmdname);
+    struct sh_cmd_Tab * help_cmd = __find(p_Sh_List, helpname);
+    if(help_cmd==NULL)
+        return NULL;
+
+    return *(char**)help_cmd->cmdaddr;
+}
+
+
 ADD_TO_IN_SHELL_HELP(help,"帮助信息格式 :help [cmd]\n\r");
 ADD_TO_IN_SHELL bool_t help(char *param)
 {
     bool_t flag = true;
     struct shell_list *p_Sh_List;
     p_Sh_List = &shells_list;
-    u32 cnt=0;
-    char *type;
+    char *help;
+    s32 idx;
     do{
         struct sh_cmd_Tab *pcmdtab = (struct sh_cmd_Tab *)p_Sh_List->info.sh_Tab_start;
         u32 cmdnum = (p_Sh_List->info.sh_Tab_end-p_Sh_List->info.sh_Tab_start)/sizeof(struct sh_cmd_Tab);
 
-        for(u32 i=0;i<cmdnum;i++)
+        printf("常规命令：\n\r");
+        printf("命令名                 帮助\n\r");
+        idx =0;
+        for(;;idx++)
         {
-           switch (pcmdtab[i].cmdtype)
-           {
-                case  SH_CMDTYPE_INFUN     :  type =  "IN_FUN";      break;
-                case  SH_CMDTYPE_INDATA    :  type =  "IN_DATA";     break;
-                case  SH_CMDTYPE_INFUN_HELP:  type =  "IN_FUN_HELP"; break;
-                case  SH_CMDTYPE_EXFUN     :  type =  "EX_FUN";      break;
-                case  SH_CMDTYPE_EXDATA    :  type =  "EX_DATA";     break;
-                case  SH_CMDTYPE_EXFUN_HELP:  type =  "EX_FUN_HELP"; break;
-                case  SH_CMDTYPE_DATE      :  type =  "GLOBAL_DATA"; break;
-                case  SH_CMDTYPE_FUN       :  type =  "GLOBAL_FUN";  break;
-                default:type = "TYPE_ERROR";   break;
-            }
-           if((pcmdtab[i].cmdtype == SH_CMDTYPE_INFUN_HELP) || (pcmdtab[i].cmdtype ==SH_CMDTYPE_EXFUN_HELP))
-               continue;
-           printf("%3d : %-12s  ",i+cnt,type);
-           printf("%-20s", pcmdtab[i].cmdname);
+            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_INFUN,idx,cmdnum);
+            if(idx !=-1)
+            {
 
-           char helpname[CN_SHELL_CMD_LIMIT] = DJYSH_HELP_NAME;
-           strcat(helpname, pcmdtab[i].cmdname);
-           struct sh_cmd_Tab * help_cmd = __find(p_Sh_List, helpname);
-           if(help_cmd==NULL)
-               printf("NO HELP \n\r");
-           else
-           {
-               if((help_cmd->cmdtype == SH_CMDTYPE_INFUN_HELP) || (help_cmd->cmdtype ==SH_CMDTYPE_EXFUN_HELP))
-                   printf("help cmd: help %-20s\n\r ", pcmdtab[i].cmdname);
-               else
-                   printf("NO HELP \n\r");
-           }
+                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
+                if(help ==NULL)
+                    printf("%-20s   NULL \n\r",pcmdtab[idx].cmdname);
+                else
+                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
+
+            }
+            else
+                break;
+
         }
-        cnt+=cmdnum;
+
+        printf("拓展命令：\n\r");
+        printf("命令名                 帮助\n\r");
+        idx =0;
+        for(;;idx++)
+        {
+            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_EXFUN,idx,cmdnum);
+            if(idx !=-1)
+            {
+
+                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
+                if(help ==NULL)
+                    printf("%-20s   NULL\n\r",pcmdtab[idx].cmdname);
+                else
+                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
+
+            }
+            else
+                break;
+        }
+
+        printf("shell 数据：\n\r");
+        printf("命令名                 帮助\n\r");
+        idx =0;
+        for(;;idx++)
+        {
+            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_INDATA,idx,cmdnum);
+            if(idx !=-1)
+            {
+
+                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
+                if(help ==NULL)
+                    printf("%-20s   NULL\n\r",pcmdtab[idx].cmdname);
+                else
+                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
+            }
+            else
+                break;
+        }
+        idx =0;
+        for(;;idx++)
+        {
+            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_EXDATA,idx,cmdnum);
+            if(idx !=-1)
+            {
+
+                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
+                if(help ==NULL)
+                    printf("%-20s   NULL\n\r",pcmdtab[idx].cmdname);
+                else
+                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
+            }
+            else
+                break;
+        }
+
         p_Sh_List = (struct shell_list*)dListGetAfter(&(p_Sh_List->list));
     }while(&shells_list.list != &p_Sh_List->list);
 

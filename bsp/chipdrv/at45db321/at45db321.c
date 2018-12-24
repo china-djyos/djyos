@@ -1100,3 +1100,65 @@ s32 ModuleInstall_AT45DB321E(u8 bArgC, ...)
     return sAT45Inited;
 }
 #endif
+
+
+// =============================================================================
+//新接口
+// =============================================================================
+// 功能：往FLASH上添加SPI，校验芯片ID是否正确
+// 参数：SpiBus -- 用的SPI；
+// 返回：成功（0）；失败（-1）；
+// =============================================================================
+s32 ModuleInstall_AT45DB321E_AddSpi(char *SpiBus)
+{
+    va_list ap;
+    char *bus = SpiBus;
+    u32 start = 0;
+    u32 size = 0;
+    u32 special = 0;
+    u8 i;
+    static char *name = "AT45DB321E";    //要和__nor_part_init中的name保持一致
+
+    s_ptAT45_Dev = SPI_DevAdd(bus,name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
+    if(s_ptAT45_Dev != NULL)
+    {
+        SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
+    }
+    else
+    {
+        printf("\r\n: error : device : AT45 SPI addition failed.");
+        return -1;
+    }
+
+    if(FALSE == _at45db321_Check_ID())  //校验芯片ID
+    {
+        printf("\r\n: error : device : bad ID check for <at45db321e>.");
+        return (-1);
+    }
+
+    if(!(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ)) //转换成512字节
+        _at45db321_Binary_Page_Size_512();
+
+    return 0;
+}
+// =============================================================================
+// 功能：初始化AT45，一般用于安装文件系统
+// 参数：bstart -- 起始块；
+//     bcount -- 该分区一共有多少块
+//     dwSpecial -- 擦除该区域（1）；不擦除该区域（0）；
+// 返回：成功（0）；失败（-1）；
+// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
+s32 __nor_part_init(u32 bstart, u32 bcount, u32 doformat)
+{
+    static char *name = "AT45DB321E";    //要和ModuleInstall_AT45DB321E_AddSpi中的name保持一致
+    if(s_ptAT45_Dev == NULL)
+    {
+        printf("\r\n: error : device : AT45 not add the SPI.");
+        return (-1);
+    }
+    if(__AT45_PartitionInit(name,bstart,bcount,doformat,s_ptAT45_Dev) == 0)
+    {
+        sAT45Inited = TRUE;
+    }
+    return (0);
+}

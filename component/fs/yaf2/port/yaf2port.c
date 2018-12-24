@@ -437,14 +437,15 @@ struct objhandle *__yaf2open(struct obj *ob, u32 flags, char *full)
 {
     char *path;
     s32 res;
-    ptu32_t yafcx;
+    int yafcx;
     struct objhandle *hdl = NULL;
     char *root = (char*)corefs(ob);
 
     if(!root)
         return (NULL);
-
-    path = malloc(strlen(root)+strlen(full)+1);
+    if('/' == *full)
+        full++; // 过滤多余的'/'
+    path = malloc(strlen(root)+strlen(full)+2);
     if(!path)
         return (NULL);
 
@@ -460,7 +461,7 @@ struct objhandle *__yaf2open(struct obj *ob, u32 flags, char *full)
                     break; // 失败
             }
 
-            yafcx = (ptu32_t)yaffs_opendir(path);
+            yafcx = (int)yaffs_opendir(path);
             if(!yafcx)
                 break; // 失败
         }
@@ -473,7 +474,7 @@ struct objhandle *__yaf2open(struct obj *ob, u32 flags, char *full)
 
         hdl = handle_new();
         if(hdl)
-            handle_init(hdl, NULL, flags, yafcx);
+            handle_init(hdl, NULL, flags, (ptu32_t)yafcx);
 
     }while(0);
 
@@ -547,6 +548,34 @@ static s32 __yaf2read(struct objhandle *hdl, u8 *data, u32 size)
         return (0);// 失败
 
     return (res);
+}
+
+// ============================================================================
+// 功能：同步YAF文件；
+// 参数：hdl -- YAF文件的对象句柄；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+static s32 __yaf2fsync(struct objhandle *hdl)
+{
+    s32 res;
+    ptu32_t yafcx = handle_context(hdl);
+
+    if(isdirectory(hdl))
+    {
+        return (-1);
+    }
+    else
+    {
+        res = yaffs_fsync(yafcx);
+    }
+
+    if(!res)
+    {
+        return (0);
+    }
+
+    return (-1);
 }
 
 // ============================================================================
@@ -806,6 +835,11 @@ static ptu32_t __yaf2opertaions(enum objops ops, ptu32_t oof, ptu32_t args,  ...
 
             va_end(list);
             return ((ptu32_t)__yaf2stat(ob, data, path, cached));
+        }
+        case OBJSYNC:
+        {
+            struct objhandle *hdl = (struct objhandle*)oof;
+            return ((ptu32_t)__yaf2fsync(hdl));
         }
 
         default:

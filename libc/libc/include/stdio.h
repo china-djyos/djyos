@@ -272,8 +272,7 @@ int _EXFUN(ungetc, (int, FILE *));
 //#else
 //int   _EXFUN(fsetpos, (FILE *, const fpos_t *));
 //#endif
-long    _EXFUN(ftell, ( FILE *));
-off_t    _EXFUN(ftello, ( FILE *));
+off_t    _EXFUN(ftell, ( FILE *));
 void    _EXFUN(rewind, (FILE *));
 void    _EXFUN(clearerr, (FILE *));
 int _EXFUN(feof, (FILE *));

@@ -64,6 +64,7 @@
 #include <device/include/uart.h>
 #include <silan_syscfg.h>
 #include <silan_uart.h>
+#include "cpu_peri_isr.h"
 
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -91,21 +92,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_uart"                   //CPU的uart外设驱动
-//parent:"uart"                                    //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp组件                                //选填“第三方组件、核心组件、bsp组件、用户组件”，本属性用于在IDE中分组
-//select:可选                                      //选填“必选、可选、不可选”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                                //初始化时机，可选值：early，medium，later。
-                                                  //表示初始化时间，分别是早期、中期、后期
-//dependence:"devfile","lock","uart","heap","cpu_peri_dma","sldrv"      //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                  //选中该组件时，被依赖组件将强制选中，
-                                                  //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"                           //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                                  //选中该组件时，被依赖组件不会被强制选中，
-                                                  //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                                    //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                                  //如果依赖多个组件，则依次列出，用“,”分隔
+//component name:"cpu_peri_uart"//CPU的uart外设驱动
+//parent:"uart"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","lock","uart","heap","cpu_peri_dma"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -129,8 +130,8 @@
 #define CFG_UART4_RECVBUF_LEN            32                 //"UART4接收环形缓冲区大小",
 #define CFG_UART4_DMABUF_LEN             32                 //"UART4 DMA缓冲区大小",
 //%$#@enum,true,false,
-#define CFG_UART1_ENABLE                 true               //"是否使用UART1",
-#define CFG_UART2_ENABLE                 false              //"是否使用UART2",
+#define CFG_UART1_ENABLE                 false               //"是否使用UART1",
+#define CFG_UART2_ENABLE                 true              //"是否使用UART2",
 #define CFG_UART3_ENABLE                 false              //"是否使用UART3",
 #define CFG_UART4_ENABLE                 false              //"是否使用UART4",
 //%$#@string,1,10,
@@ -143,22 +144,22 @@
 
 typedef struct __UART_REG
 {
-    vu32 DR;
-    vu32 RSR_ECR;
-    vu32 REV0[4];
-    vu32 FR;
-    vu32 REV1;
-    vu32 ILPR;
-    vu32 IBRD;
-    vu32 FBRD;
-    vu32 LCR_H;
-    vu32 CR;
-    vu32 IFLS;
-    vu32 IMSC;
-    vu32 RIS;
-    vu32 MIS;
-    vu32 ICR;
-    vu32 DMACR;
+	vu32 DR;
+	vu32 RSR_ECR;
+	vu32 REV0[4];
+	vu32 FR;
+	vu32 REV1;
+	vu32 ILPR;
+	vu32 IBRD;
+	vu32 FBRD;
+	vu32 LCR_H;
+	vu32 CR;
+	vu32 IFLS;
+	vu32 IMSC;
+	vu32 RIS;
+	vu32 MIS;
+	vu32 ICR;
+	vu32 DMACR;
 }tagUartReg;
 
 #define UART_INTR_EN_MCU4    (0x42030000 + 0x610)
@@ -170,16 +171,16 @@ extern const char *gc_pCfgStdoutName;   //标准输出设备
 
 // =============================================================================
 static const tagUartReg volatile *sUartReg[CN_UART_NUM] = {
-                                            (tagUartReg volatile *)0X41000000,
-                                            (tagUartReg volatile *)0X41010000,
-                                            (tagUartReg volatile *)0X41020000,
-                                            (tagUartReg volatile *)0X41030000,
+											(tagUartReg volatile *)0X41000000,
+											(tagUartReg volatile *)0X41010000,
+											(tagUartReg volatile *)0X41020000,
+											(tagUartReg volatile *)0X41030000,
 };
 static const char *sUartName[CN_UART_NUM] = {
-        "UART1","UART2","UART3","UART4"
+		"UART1","UART2","UART3","UART4"
 };
 static const u8 sUartFifo[]={
-        64,16,16,16
+		64,16,16,16
 };
 // =============================================================================
 
@@ -197,69 +198,69 @@ static struct UartCB *pUartCB[CN_UART_NUM];
 static ptu32_t UART_ISR(ptu32_t IniLine);
 __attribute__((weak)) void Board_UartHalfDuplexSend(u8 port)
 {
-    //user added if need out of the file
+	//user added if need out of the file
 }
 __attribute__((weak)) void Board_UartHalfDuplexRecv(u8 port)
 {
-    //user added if need out of the file
+	//user added if need out of the file
 }
 
 static void __UART_Enable(tagUartReg *Reg,u8 Enable)
 {
-    if(Enable)
-    {
-        Reg->CR |= (1<<0);
-    }
-    else
-    {
-        Reg->CR &= ~(1<<0);
-    }
+	if(Enable)
+	{
+		Reg->CR |= (1<<0);
+	}
+	else
+	{
+		Reg->CR &= ~(1<<0);
+	}
 }
 static void __UART_RxEnable(tagUartReg *Reg,u8 Enable)
 {
-    if(Enable)
-    {
-        Reg->CR |= (1<<9);
-    }
-    else
-    {
-        Reg->CR &= ~(1<<9);
-    }
+	if(Enable)
+	{
+		Reg->CR |= (1<<9);
+	}
+	else
+	{
+		Reg->CR &= ~(1<<9);
+	}
 }
 static void __UART_TxEnable(tagUartReg *Reg,u8 Enable)
 {
-    if(Enable)
-    {
-        Reg->CR |= (1<<8);
-    }
-    else
-    {
-        Reg->CR &= ~(1<<8);
-    }
+	if(Enable)
+	{
+		Reg->CR |= (1<<8);
+	}
+	else
+	{
+		Reg->CR &= ~(1<<8);
+	}
 }
 
 static void __UART_TxIntEnable(tagUartReg *Reg,u8 Enable)
 {
-    if(Enable)
-    {
-        Reg->IMSC |= (1<<5);
-    }
-    else
-    {
-        Reg->IMSC &= ~(1<<5);
-    }
+	if(Enable)
+	{
+		Reg->IMSC |= (1<<5);
+	}
+	else
+	{
+		Reg->IMSC &= ~(1<<5);
+	}
 }
 
 static void __UART_RxIntEnable(tagUartReg *Reg,u8 Enable)
 {
-    if(Enable)
-    {
-        Reg->IMSC |= (1<<4)|(1<<6);
-    }
-    else
-    {
-        Reg->IMSC &= ~((1<<4)|(1<<6));
-    }
+	if(Enable)
+	{
+		Reg->IMSC |= (1<<4)|(1<<6);
+	}
+	else
+	{
+		Reg->IMSC &= ~((1<<4)|(1<<6));
+	}
 }
 // =============================================================================
 // 功能: 设置串口baud,PCLK为25M，CPU主频为216M计算,该驱动只提供9600、19200、57600、
@@ -271,23 +272,23 @@ static void __UART_RxIntEnable(tagUartReg *Reg,u8 Enable)
 // =============================================================================
 static void __UART_BaudSet(tagUartReg *Reg,u8 port,u32 baudrate)
 {
-    u32 temp, remainder, divider, fraction;
-    u32 uart_clk;
+	u32 temp, remainder, divider, fraction;
+	u32 uart_clk;
 
-    __UART_Enable(Reg,0);
-    uart_clk = get_sysclk_val_settled();
-    temp = 16 * baudrate;
-    divider = uart_clk / temp;
-    remainder = uart_clk % temp;
-    temp = (8 * remainder) / baudrate;
-    fraction = (temp >> 1) + (temp & 1);
-    Reg->IBRD = divider;
-    Reg->FBRD = fraction;
+	__UART_Enable(Reg,0);
+	uart_clk = get_sysclk_val_settled();
+	temp = 16 * baudrate;
+	divider = uart_clk / temp;
+	remainder = uart_clk % temp;
+	temp = (8 * remainder) / baudrate;
+	fraction = (temp >> 1) + (temp & 1);
+	Reg->IBRD = divider;
+	Reg->FBRD = fraction;
     if(TxDirectPort == port)
     {
         TxByteTime = 11000000/baudrate;     //1个字节传输时间，按10bit，+10%计算
     }
-    __UART_Enable(Reg,1);
+	__UART_Enable(Reg,1);
 }
 // =============================================================================
 // 功能: 有关串口参数的初始化，波特率，停止位，奇偶校验位
@@ -306,46 +307,46 @@ static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
     __UART_Enable(Reg,0);
     switch(COM->DataBits)               // data bits
     {
-        Reg->LCR_H &= ~(0x03<<5);
-        case CN_UART_DATABITS_5:
-            Reg->LCR_H |= (0<<5);
-            break;
-        case CN_UART_DATABITS_6:
-            Reg->LCR_H |= (1<<5);
-            break;
-        case CN_UART_DATABITS_7:
-            Reg->LCR_H |= (2<<5);
-            break;
-        case CN_UART_DATABITS_8:
-            Reg->LCR_H |= (3<<5);
-            break;
-        default:
-            Reg->LCR_H |= (3<<5);
-            break;
+    	Reg->LCR_H &= ~(0x03<<5);
+		case CN_UART_DATABITS_5:
+			Reg->LCR_H |= (0<<5);
+			break;
+		case CN_UART_DATABITS_6:
+			Reg->LCR_H |= (1<<5);
+			break;
+		case CN_UART_DATABITS_7:
+			Reg->LCR_H |= (2<<5);
+			break;
+		case CN_UART_DATABITS_8:
+			Reg->LCR_H |= (3<<5);
+			break;
+		default:
+			Reg->LCR_H |= (3<<5);
+			break;
     }
 
     switch(COM->Parity)        //
-    {
-        case CN_UART_PARITY_NONE:
-            Reg->LCR_H &= ~(1<<1);
-            break;
-        case CN_UART_PARITY_ODD:
-            Reg->LCR_H |= (1<<1);
-            break;
-        case CN_UART_PARITY_EVEN:
-            Reg->LCR_H |= (3<<1);
-            break;
-        default:break;
-    }
+	{
+		case CN_UART_PARITY_NONE:
+			Reg->LCR_H &= ~(1<<1);
+			break;
+		case CN_UART_PARITY_ODD:
+			Reg->LCR_H |= (1<<1);
+			break;
+		case CN_UART_PARITY_EVEN:
+			Reg->LCR_H |= (3<<1);
+			break;
+		default:break;
+	}
 
     switch(COM->StopBits)  //todu:F7的 0.5个停止位没有写进来
     {
         case CN_UART_STOPBITS_1:
-            Reg->LCR_H &= ~(1<<3);
-            break;
+        	Reg->LCR_H &= ~(1<<3);
+        	break;
         case CN_UART_STOPBITS_2:
-            Reg->LCR_H |= (1<<3);
-            break;
+        	Reg->LCR_H |= (1<<3);
+        	break;
         default:break;
     }
     __UART_Enable(Reg,1);
@@ -353,7 +354,7 @@ static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
 
 static bool_t __UART_TxFIFO_Empty(tagUartReg *Reg)
 {
-    return (bool_t)(Reg->FR & UART_FR_TXFE);
+	return (bool_t)(Reg->FR & UART_FR_TXFE);
 }
 
 // =============================================================================
@@ -364,18 +365,31 @@ static bool_t __UART_TxFIFO_Empty(tagUartReg *Reg)
 static void __UART_IntInit(u32 port)
 {
     u8 IntLine;
+    u8 subIntLine;
+
+    switch(port)
+    {
+        case CN_UART1:
+             subIntLine  = CN_SUBID_MISC_UART1;
+             break;
+        case CN_UART2:
+             subIntLine  = CN_SUBID_MISC_UART2;
+             break;
+        case CN_UART3:
+             subIntLine  = CN_SUBID_MISC_UART3;
+             break;
+        case CN_UART4:
+             subIntLine  = CN_SUBID_MISC_UART4;
+             break;
+        default:subIntLine  = CN_SUBID_MISC_UART2;break;
+    }
 
     IntLine = CN_INT_LINE_UART;
 
     *(u32*)UART_INTR_EN_MCU4 |= (1<<port);
 
-    Int_Register(IntLine);
-    Int_SetClearType(IntLine,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(IntLine,UART_ISR);
-    Int_SetIsrPara(IntLine,port);
-    Int_SettoAsynSignal(IntLine);
-    Int_ClearLine(IntLine);
-    Int_RestoreAsynLine(IntLine);
+    djybsp_isr_hdl_register(IntLine,subIntLine,UART_ISR,0);
+
 }
 // =============================================================================
 // 功能: 硬件参数配置和寄存器的初始化，包括波特率、停止位、校验位、数据位，默认情况下:
@@ -385,15 +399,15 @@ static void __UART_IntInit(u32 port)
 // =============================================================================
 static void __UART_HardInit(u8 port)
 {
-    if(port < CN_UART_NUM)
-    {
-        silan_module_clkon(CLK_UART1+port, CLK_ON);
-        silan_uart_sys_init(UART_1+port, BAUDRATE_115200);
+	if(port < CN_UART_NUM)
+	{
+		silan_module_clkon(CLK_UART1+port, CLK_ON);
+		silan_uart_sys_init(UART_1+port, BAUDRATE_115200);
 
-        __UART_RxIntEnable(sUartReg[port],1);   //rx int enable
-        __UART_RxEnable(sUartReg[port],1);
-        __UART_Enable(sUartReg[port],1);
-    }
+		__UART_RxIntEnable(sUartReg[port],1);	//rx int enable
+		__UART_RxEnable(sUartReg[port],1);
+		__UART_Enable(sUartReg[port],1);
+	}
 }
 
 // =============================================================================
@@ -408,23 +422,23 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 
     for(port = CN_UART1;port < CN_UART_NUM;port ++)
     {
-        if(Reg == sUartReg[port])
-            break;
+    	if(Reg == sUartReg[port])
+    		break;
     }
     if(port < CN_UART_NUM)
     {
-        if(__UART_TxFIFO_Empty(Reg))
-        {
-            __UART_TxIntEnable(Reg,0);
-            len = UART_PortRead(pUartCB[port],fifo,sUartFifo[port]);
-            for(i = 0; i < len; i++)
-            {
-                Reg->DR = fifo[i];
-            }
+		if(__UART_TxFIFO_Empty(Reg))
+		{
+			__UART_TxIntEnable(Reg,0);
+			len = UART_PortRead(pUartCB[port],fifo,sUartFifo[port]);
+			for(i = 0; i < len; i++)
+			{
+				Reg->DR = fifo[i];
+			}
 
-            __UART_TxIntEnable(Reg,1);
-            __UART_TxEnable(Reg,1);
-        }
+			__UART_TxIntEnable(Reg,1);
+			__UART_TxEnable(Reg,1);
+		}
     }
     return len;
 }
@@ -443,28 +457,28 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
     s32 timeout = 100000;
     for(port = CN_UART1;port < CN_UART_NUM;port ++)
     {
-        if(Reg == sUartReg[port])
-            break;
+    	if(Reg == sUartReg[port])
+    		break;
     }
     if(port < CN_UART_NUM)
     {
         switch(cmd)
         {
 //        case CN_UART_START:
-//          __UART_Enable(Reg,1);
-//          break;
+//        	__UART_Enable(Reg,1);
+//        	break;
 //        case CN_UART_STOP:
-//          __UART_Enable(Reg,0);
+//        	__UART_Enable(Reg,0);
 //            break;
         case CN_UART_SET_BAUD:
-            __UART_BaudSet(Reg,port,data1);
-            break;
+        	__UART_BaudSet(Reg,port,data1);
+        	break;
         case CN_UART_COM_SET:
             __UART_ComConfig(Reg,port,data1);
             break;
         case CN_UART_HALF_DUPLEX_SEND: //发送数据
-            Board_UartHalfDuplexSend(port);
-            break;
+        	Board_UartHalfDuplexSend(port);
+        	break;
         case CN_UART_HALF_DUPLEX_RECV: //接收数据
             while(__UART_TxFIFO_Empty(Reg) && (timeout > 10))
             {
@@ -474,12 +488,12 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             Board_UartHalfDuplexRecv(port);
             break;
         default:
-            break;
+        	break;
         }
     }
     return result;
 }
-
+u8 g_testBuf[256] = {0};u16 g_Cnt = 0;u8 g_flag = true;u8 test_flag = false;u8 g_Ch;
 // =============================================================================
 // 功能：UART中断,若为idle中断，则从DMA缓冲区中读出数据，并重新启动DMA，否则调用HAL中断
 //       处理函数，最终会调用到HAL_UART_XXXXCallback（）
@@ -488,88 +502,88 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 // =============================================================================
 u32 UART_ISR(ptu32_t port)
 {
-    u32 num,status;
+	u32 num,status;
     tagUartReg volatile *Reg;
     u8 fifo[64];
 
-    status = (*(u32*)UART_INTR_STS_MCU4);
-
-    for(port = 0; port < CN_UART4;port++)
-    {
-        if(status & (1<<port))
-        {
-            break;
-        }
-    }
+//    status = (*(u32*)UART_INTR_STS_MCU4);
+//
+//    for(port = 0; port < CN_UART4;port++)
+//    {
+//    	if(status & (1<<port))
+//    	{
+//    		break;
+//    	}
+//    }
 
     if(port < CN_UART_NUM)
     {
-        Reg = sUartReg[port];
-        if( (Reg->RIS & (1<<4)) || (Reg->RIS & (1 << 6)))   //rx or idle int
-        {
-            Reg->ICR |= (1<<4)|(1<<6);
-            num = 0;
-            while(!(Reg->FR & UART_FR_RXFE))
-            {
-                if(num<sUartFifo[port])
-                {
-                    fifo[num++] = (u8)(Reg->DR);
-                }
-                else
-                {
-                    break;
-                }
-            }
-            if(num > 0)
-            {
-                if(num != UART_PortWrite(pUartCB[port],fifo,num))
-                {
-                    UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-                    printk("uart idle over!\r\n");
-                }
-            }
-        }
+		Reg = sUartReg[port];
+		if( (Reg->RIS & (1<<4))	|| (Reg->RIS & (1 << 6)))	//rx or idle int
+		{
+			Reg->ICR |= (1<<4)|(1<<6);
+			num = 0;
+			while(!(Reg->FR & UART_FR_RXFE))
+			{
+				if(num<sUartFifo[port])
+				{
+					fifo[num++] = (u8)(Reg->DR);
+				}
+				else
+				{
+					break;
+				}
+			}
+			if(num > 0)
+			{
+				if(num != UART_PortWrite(pUartCB[port],fifo,num))
+				{
+					UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+					printk("uart idle over!\r\n");
+				}
+			}
+		}
 
-        if(Reg->RIS & (1<<5))                   //tx int
-        {
-            Reg->ICR |= (1<<5);
-            num = 0;
-            while(!(Reg->FR & UART_FR_TXFF))
-            {
-                if(0 != UART_PortRead(pUartCB[port],&fifo[0],1))
-                {
-                    Reg->DR = fifo[0];
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
+		if(Reg->RIS & (1<<5))					//tx int
+		{
+			Reg->ICR |= (1<<5);
+			num = 0;
+			while(!(Reg->FR & UART_FR_TXFF))
+			{
+				if(0 != UART_PortRead(pUartCB[port],&fifo[0],1))
+				{
+					Reg->DR = fifo[0];
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
 
-        if(Reg->RIS & (0xF << 7))   //hard error int
-        {
-            if(Reg->RIS & (1<<7))   //frame error
-            {
-                printf("uart frame error!\r\n");
-                Reg->ICR |= (1<<7);
-            }
-            if(Reg->RIS & (1<<8))   //parity error
-            {
-                printf("uart parity error!\r\n");
-                Reg->ICR |= (1<<8);
-            }
-            if(Reg->RIS & (1<<9))   //BE
-            {
-                printf("uart be error!\r\n");
-                Reg->ICR |= (1<<9);
-            }
-            if(Reg->RIS & (1<<10))  //over error
-            {
-                printf("uart over error!\r\n");
-                Reg->ICR |= (1<<10);
-            }
-        }
+		if(Reg->RIS & (0xF << 7))	//hard error int
+		{
+			if(Reg->RIS & (1<<7))	//frame error
+			{
+				printf("uart frame error!\r\n");
+				Reg->ICR |= (1<<7);
+			}
+			if(Reg->RIS & (1<<8))	//parity error
+			{
+				printf("uart parity error!\r\n");
+				Reg->ICR |= (1<<8);
+			}
+			if(Reg->RIS & (1<<9))	//BE
+			{
+				printf("uart be error!\r\n");
+				Reg->ICR |= (1<<9);
+			}
+			if(Reg->RIS & (1<<10))	//over error
+			{
+				printf("uart over error!\r\n");
+				Reg->ICR |= (1<<10);
+			}
+		}
     }
     return 1;
 }
@@ -585,7 +599,7 @@ u32 UART_ISR(ptu32_t port)
 // =============================================================================
 ptu32_t ModuleInstall_UART(u32 port)
 {
-    bool_t Ret = false;
+	bool_t Ret = false;
     struct UartParam UART_Param;
 
     switch(port)
@@ -611,21 +625,21 @@ ptu32_t ModuleInstall_UART(u32 port)
 
     if(port < CN_UART_NUM)
     {
-        UART_Param.Name         = sUartName[port];
-        UART_Param.UartPortTag  = (ptu32_t)sUartReg[port];
-        UART_Param.Baud         = 115200;
-        UART_Param.TxRingBufLen = UART_SndBufLen;
-        UART_Param.RxRingBufLen = UART_RxBufLen;
-        UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
-        UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+		UART_Param.Name         = sUartName[port];
+		UART_Param.UartPortTag  = (ptu32_t)sUartReg[port];
+		UART_Param.Baud         = 115200;
+		UART_Param.TxRingBufLen = UART_SndBufLen;
+		UART_Param.RxRingBufLen = UART_RxBufLen;
+		UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
+		UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
 
-        pUartCB[port] = UART_InstallGeneral(&UART_Param);
-        if( pUartCB[port] != NULL)
-        {
-            __UART_HardInit(port);              //硬件初始化
-            __UART_IntInit(port);
-            Ret = true;
-        }
+		pUartCB[port] = UART_InstallGeneral(&UART_Param);
+		if( pUartCB[port] != NULL)
+		{
+			__UART_HardInit(port);				//硬件初始化
+			__UART_IntInit(port);
+			Ret = true;
+		}
     }
     return Ret;
 }
@@ -639,29 +653,30 @@ ptu32_t ModuleInstall_UART(u32 port)
 // =============================================================================
 s32 Uart_PutStrDirect(const char *str,u32 len)
 {
-    u32 timeout,i=0;
-    tagUartReg *Reg;
-    TxByteTime = 11000000/115200;
+	u32 timeout,i=0;
+	tagUartReg *Reg;
+	TxByteTime = 11000000/115200;
 
-    timeout= TxByteTime * len;
+	timeout= TxByteTime * len;
 
-    Reg = sUartReg[TxDirectPort];
+	Reg = sUartReg[TxDirectPort];
 
-    while(1)
-    {
-        if( !(Reg->FR & (1<<5)) )
-        {
-            Reg->DR = str[i++];
-            if(i==len)
-                break;
-        }
-        else
-        {
-            Djy_EventDelay(1000);
-        }
-    }
+	while(1)
+	{
+		if( !(Reg->FR & (1<<5)) )
+		{
+			Reg->DR = str[i++];
+			if(i==len)
+				break;
+		}
+		else
+		{
+//			Djy_EventDelay(1000);
+		    Djy_DelayUs(1000);
+		}
+	}
 
-    return len;
+	return len;
 }
 
 // =============================================================================
@@ -672,27 +687,27 @@ s32 Uart_PutStrDirect(const char *str,u32 len)
 // =============================================================================
 char Uart_GetCharDirect(void)
 {
-    u8 result;
-    tagUartReg *Reg;
-    Reg = sUartReg[RxDirectPort];
-    while(1)
-    {
-        if( !(Reg->FR & (1<<4)) )
-        {
-            result = Reg->DR;
-            break;
-        }
-        printk("bsp uart\r\n");
-        Djy_EventDelay(500);
-    }
+	u8 result;
+	tagUartReg *Reg;
+	Reg = sUartReg[RxDirectPort];
+	while(1)
+	{
+		if( !(Reg->FR & (1<<4)) )
+		{
+			result = Reg->DR;
+			break;
+		}
+		printk("bsp uart\r\n");
+		Djy_EventDelay(500);
+	}
 
-//  Reg->IMSC &= ~((1<<4)|(1<<6));
-//  while(Reg->FR & (1<<4) == 0);
-//  result = Reg->DR;
-//  Reg->FR &= ~(1<<4);
-//  Reg->IMSC |= (1<<4)|(1<<6);
+//	Reg->IMSC &= ~((1<<4)|(1<<6));
+//	while(Reg->FR & (1<<4) == 0);
+//	result = Reg->DR;
+//	Reg->FR &= ~(1<<4);
+//	Reg->IMSC |= (1<<4)|(1<<6);
 
-    return result;
+	return result;
 }
 
 //----初始化内核级IO-----------------------------------------------------------
@@ -761,6 +776,8 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     }
     return;
 }
+
+
 
 
 
