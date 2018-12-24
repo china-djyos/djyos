@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.DGTD
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -48,7 +48,7 @@
 //-----------------------------------------------------------------------------
 
 //所属模块: 字符集驱动
-//作者：lst
+//作者：lst 
 //版本：V1.0.0
 //文件描述: 字符集资源初始化
 //其他说明:
