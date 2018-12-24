@@ -648,6 +648,32 @@ static s32 __fat_close(struct objhandle *hdl)
 }
 
 // ============================================================================
+// 功能：同步FAT文件；
+// 参数：hdl -- 内部句柄；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+static s32 __fat_sync(struct objhandle *hdl)
+{
+    FRESULT res;
+    void *context = (void*)handle_context(hdl);
+
+    if(isdirectory(hdl))
+    {
+        return (-1);
+    }
+    else
+    {
+        res = f_sync((FIL*)context);
+    }
+
+    if(FR_OK != res)
+        return (-1);
+
+    return (0);
+}
+
+// ============================================================================
 // 功能：
 // 参数：hdl -- 内部句柄；
 // 返回：
@@ -963,6 +989,12 @@ static ptu32_t __fat_operations(enum objops ops, ptu32_t o_hdl, ptu32_t args,  .
 
             va_end(list);
             return ((ptu32_t)__fat_stat(ob, data, path, cached));
+        }
+
+        case OBJSYNC:
+        {
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            return ((ptu32_t)__fat_sync(hdl));
         }
 
         default:

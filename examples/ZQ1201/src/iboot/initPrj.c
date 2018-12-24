@@ -3,6 +3,7 @@
  ****************************************************/
 
 #include "project_config.h"
+#include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
@@ -18,8 +19,8 @@ void Sys_ModuleInit(void)
 {
 	uint16_t evtt_main;
 
-    extern void Board_GpioInit(void);
-    Board_GpioInit();
+	extern void Board_GpioInit(void);
+	Board_GpioInit();
 
 	extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
 	Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
@@ -27,11 +28,11 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-	//extern void ModuleInstall_BlackBox(void);
-	//ModuleInstall_BlackBox( );
+//	extern void ModuleInstall_BlackBox(void);
+//	ModuleInstall_BlackBox( );
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
+//	extern ptu32_t ModuleInstall_IAP(void);
+//	ModuleInstall_IAP( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -50,14 +51,32 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
+	extern bool_t ModuleInstall_HardTimer(void);
+	ModuleInstall_HardTimer();
 
 	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_Timer(void);
 	ModuleInstall_Timer();
 
-//	extern bool_t ModuleInstall_Wdt(void);
-//	ModuleInstall_Wdt();
+    extern bool_t ModuleInstall_Ymodem(void);
+    ModuleInstall_Ymodem();
 
+    extern s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat);
+    extern s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
+            u8 parts, ...);
+    //2 ´ó¿é 0~6 block ->iboot
+//    ModuleInstall_UnitMedia(__embed_part_init,   2, 0, 129, 0, 129, -1, 0);
+    ModuleInstall_UnitMedia(__embed_part_init,   1,129, -1, 0);
+    //ModuleInstall_UnitMedia(__embed_part_init, 2, 0, 6, 0, 6, -1, 0);
+
+    extern s32 ModuleInstall_IAP_FS(const char *target, const char *source, u32 opt);
+    ModuleInstall_IAP_FS("/iboot", "/dev/unit media/embed part 0",0);
+
+    extern ptu32_t ModuleInstall_IAP(void);
+    ModuleInstall_IAP();
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);

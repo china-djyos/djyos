@@ -3,6 +3,7 @@
  ****************************************************/
 
 #include "project_config.h"
+#include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
@@ -18,8 +19,8 @@ void Sys_ModuleInit(void)
 {
 	uint16_t evtt_main;
 
-    extern void Board_GpioInit(void);
-    Board_GpioInit();
+	extern void Board_GpioInit(void);
+	Board_GpioInit();
 
 	extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
 	Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
@@ -27,8 +28,20 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-//	extern void ModuleInstall_Exp(void);
-//	ModuleInstall_Exp( );
+//	extern void ModuleInstall_BlackBox(void);
+//	ModuleInstall_BlackBox( );
+
+	extern bool_t ModuleInstall_DjyBus(void);
+	ModuleInstall_DjyBus ( );
+
+	extern bool_t ModuleInstall_IICBus(void);
+	ModuleInstall_IICBus ( );
+
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -47,7 +60,21 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
+	extern bool_t ModuleInstall_I2C(u8 port);
+	#if CFG_I2C1_ENABLE==1
+	ModuleInstall_I2C(CN_I2C1);
+	#endif
+	#if CFG_I2C2_ENABLE==1
+	ModuleInstall_I2C(CN_I2C2);
+	#endif
+
+	extern bool_t ModuleInstall_HardTimer(void);
+	ModuleInstall_HardTimer();
+
 	//-------------------medium-------------------------//
+	extern bool_t ModuleInstall_Timer(void);
+	ModuleInstall_Timer();
+
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);

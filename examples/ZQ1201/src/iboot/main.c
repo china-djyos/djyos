@@ -164,16 +164,16 @@ volatile u32 *p = (volatile u32 *)isr_vector;
 ptu32_t djy_main(void)
 {
       Led_Init();
-    extern bool_t ModuleInstall_HardTimer(void);
-    testFortimer();
-    testWatDog();
-    testADC();
-    printf("%x\r\n",*p);
+      Led_Goggle();
+//    extern bool_t ModuleInstall_HardTimer(void);
+//    testFortimer();
+//    testWatDog();
+//    testADC();
+    printf("MO iboot,Hello World!\r\n");
     while(1)
     {
-        Led_Goggle();
-        get_AD_Dat();
-        printf("hello world!\r\n");
+//        Led_Goggle();
+//        get_AD_Dat();
         Djy_EventDelay(100*mS);
     }
     return 0;

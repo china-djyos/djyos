@@ -191,7 +191,7 @@ static int __writechunk(struct yaffs_dev *yaf2dev, int chunk,
             memcpy(drv->media->ubuf+main, oob, oob_len);
         }
 
-        if(!drv->media->mwrite((s64)chunk, (void*)drv->media->ubuf, opt))
+        if(drv->media->mwrite((s64)chunk, (void*)drv->media->ubuf, opt) != 0)
         {
             res = YAFFS_FAIL;
             break;
@@ -302,7 +302,7 @@ static int __readchunk(struct yaffs_dev *yaf2dev, int chunk,
 
     for(i = 0; i < drv->chunkunits; i++)
     {
-        if(!drv->media->mread((s64)chunk, (void*)drv->media->ubuf, opt))
+        if(drv->media->mread((s64)chunk, (void*)drv->media->ubuf, opt) != 0)
         {
             if(!__iserased(drv->media->ubuf, main, oob_len))
                 *ecc_result_out = YAFFS_ECC_RESULT_UNFIXED;/* ECC校验失败(保证不是被擦除的块中的页) */
@@ -342,7 +342,7 @@ static int __eraseblock(struct yaffs_dev *yaf2dev, int block_no)
     struct __yaf2drv *drv = __drv(yaf2dev);
 
     sz.block = 1;
-    if(drv->media->merase(block_no, sz))
+    if(drv->media->merase(block_no, sz) != 0)
         return (YAFFS_FAIL);
     else
         return (YAFFS_OK);

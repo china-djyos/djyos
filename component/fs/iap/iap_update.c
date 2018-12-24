@@ -53,6 +53,7 @@
 #include <device.h>
 #include "iap.h"
 #include "dbug.h"
+#include <include/unit_media.h>
 #define LOCAL_BUF_SIZE        512
 // ============================================================================
 // 功能：获取文件的CRC值
@@ -161,7 +162,7 @@ s32 __UpdateThroughFS(char *pPath)
     src = open(srcPath, O_RDONLY);
     if(-1 == src)
     {
-        error_printf("iap","can not open update file, <name:%s>, <size:%lH>.", srcPath, info.st_size);
+        error_printf("iap","can not open update file, <name:%s>, <size:%lld>.", srcPath, info.st_size);
         return (-1);
     }
 
@@ -184,7 +185,7 @@ s32 __UpdateThroughFS(char *pPath)
         return (-1);
     }
 
-        debug_printf("iap","update method #0, <from:%s>, <size:%lKB>.", srcPath, (info.st_size>>10));
+        debug_printf("iap","update method #0, <from:%s>, <size:%lld>.", srcPath, (info.st_size>>10));
     left = info.st_size;
     while(left)
     {
@@ -197,14 +198,14 @@ s32 __UpdateThroughFS(char *pPath)
         res = read(src, buf, size);
         if(size != res)
         {
-            error_printf("iap","read file to update, <size:%l>, <left:%xH>.", info.st_size, left);
+            error_printf("iap","read file to update, <size:%lld>, <left:%xH>.", info.st_size, left);
             break;
         }
 
         res = write(des, buf, size);
         if(size != res)
         {
-            error_printf("iap","write file to update, <size:%l>, <left:%xH>.", info.st_size, left);
+            error_printf("iap","write file to update, <size:%lld>, <left:%xH>.", info.st_size, left);
             break;
         }
 
@@ -233,10 +234,11 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
     u32 size, start;
     char *path;
     u8 *buf;
-    struct FlashChip *flash;
+    struct umedia *um;
+    struct uopt opt;
     struct headFormat *head;
     char *update = "/iboot/";
-    s32 fd, res, new;
+    s32 fd, res, new,flash_page_size;
 
     if(!strlen(pDevPath))
     {
@@ -252,18 +254,19 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
         return (-1);
     }
 
-    res = fcntl(fd, F_SETDRVTAG, &flash);
+    res = fcntl(fd, F_GETDRVTAG, &um);
     if(-1 == res)
     {
         error_printf("iap","device has no tag(%s).", pDevPath);
         close(fd);
         return (-1);
     }
-
-    buf = flash->Buf;
+    opt = um->opt;
+    flash_page_size = (1 << um->usz);
+    buf = um->ubuf;
     if(!buf)
     {
-        buf = (u8*)malloc(flash->dwPageBytes);
+        buf = (u8*)malloc(flash_page_size);
         if(!buf)
         {
             error_printf("iap","memory out.\r\n");
@@ -273,9 +276,9 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
     }
 
     // 获取设备中更新文件的头部信息
-    start = flash->dwPagesReserved; // 当前逻辑是从保留页开始
-    res = flash->Ops.RdPage(start++, buf, 0);
-    if(flash->dwPageBytes != res)
+    start = um->ustart; // 当前逻辑是从保留页开始
+    res = um->mread(start++, buf, opt);
+    if(0 != res)
     {
         error_printf("iap","cannot read the source device(%s).", pDevPath);
         res = -1;
@@ -305,9 +308,9 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
         goto __ERROR_OIU;
     }
 
-    size = flash->dwPageBytes - sizeof(struct headFormat);
+    size = flash_page_size - sizeof(struct headFormat);
     res = write(new, (buf+sizeof(struct headFormat)), size);
-    if(size!= res)
+    if((s32)size!= res)
     {
         error_printf("iap","write failed.\r\n");
         res = -1;
@@ -317,15 +320,16 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
     size = head->size - size;
     while(size)
     {
-        res = flash->Ops.RdPage(start++, buf, 0);
-        if(flash->dwPageBytes != res)
+        res = um->mread(start++, buf, opt);
+        if(0 != res)
         {
             error_printf("iap","cannot read the source device.\r\n");
             res = -1;
             goto __ERROR_OIU;
         }
 
-        if(res > size)
+        res = flash_page_size;
+        if(res > (s32)size)
             res = size;
 
         if(res != write(new, (buf), res))
@@ -345,7 +349,7 @@ __ERROR_OIU:
     close(fd);
     close(new);
 
-    if(!flash->Buf)
+    if(!um->ubuf)
         free(buf);
 
     if(path)

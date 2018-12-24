@@ -49,161 +49,308 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include "os.h"
+#include "cpu_peri.h"
+#include "int.h"
+#include "string.h"
+#include "cpu_peri_isr.h"
+#include "silan_irq.h"
 
-typedef struct _PIC_TYPE_
+#define DJYBSP_ISR_SPDIF_HDL_NUM      2
+static djybsp_isr_hdl_t djybsp_spdif_hdl[DJYBSP_ISR_SPDIF_HDL_NUM];
+
+#define DJYBSP_ISR_DMAC_HDL_NUM       8
+static djybsp_isr_hdl_t djybsp_sdmac_hdl[DJYBSP_ISR_DMAC_HDL_NUM];
+static djybsp_isr_hdl_t djybsp_admac_hdl[DJYBSP_ISR_DMAC_HDL_NUM];
+
+#define DJYBSP_ISR_GPIO_HDL_NUM       32
+static djybsp_isr_hdl_t djybsp_gpio1_hdl[DJYBSP_ISR_GPIO_HDL_NUM];
+static djybsp_isr_hdl_t djybsp_gpio2_hdl[DJYBSP_ISR_GPIO_HDL_NUM];
+
+#define DJYBSP_ISR_TIMER_HDL_NUM      7
+static djybsp_isr_hdl_t djybsp_timer_hdl[DJYBSP_ISR_TIMER_HDL_NUM];
+
+#define DJYBSP_ISR_MISC_HDL_NUM       10
+static djybsp_isr_hdl_t djybsp_misc_hdl[DJYBSP_ISR_MISC_HDL_NUM];
+
+#define DJYBSP_ISR_PMU_HDL_NUM        11
+static djybsp_isr_hdl_t djybsp_pmu_hdl[DJYBSP_ISR_PMU_HDL_NUM];
+
+struct djybsp_isr_t {
+    djybsp_isr_hdl_t isr;
+    uint32_t param;
+}static djybsp_isr[CN_INT_LINE_LAST+1];
+
+static void djybsp_isr_do_hdl(uint32_t stat, djybsp_isr_hdl_t *hdl,uint32_t param)
 {
-    struct _PIC_TYPE_ *Next;
-    u32 IntLine;
-    u32 IntSub;
-    u32 *IntEn;
-    u32 *IntSts;
-    u32 (*isr)(ptu32_t);
-}tagPic;
+    int subid = 0;
 
-tagPic *sPicHead = NULL;
-
-static void Pic_NodeInsert(tagPic *node)
-{
-    tagPic *temp = sPicHead;
-    while(temp->Next != NULL)
-    {
-        temp = temp->Next;
+    while (stat) {
+        if (stat & 0x1) {
+            if(hdl[subid])
+            {
+                if(param==0)
+                    (*hdl[subid])(subid);
+                else
+                    (*hdl[subid])(param);
+            }
+        }
+        stat >>= 1;
+        subid++;
     }
-    temp->Next = node;
-    node->Next = NULL;
 }
 
-static tagPic* Pic_FindLineNode(tagPic *pic,u8 intline)
+static uint32_t djybsp_isr_hdl_spdif(uint32_t param)
 {
-    tagPic *temp = pic;
-    while(temp != NULL)
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_SPDIF);
+    djybsp_isr_do_hdl(stat, djybsp_spdif_hdl, param);
+    return stat;
+}
+
+static uint32_t djybsp_isr_hdl_sdmac(uint32_t param)
+{
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_SDMAC);
+    djybsp_isr_do_hdl(stat, djybsp_sdmac_hdl, param);
+    return stat;
+}
+
+static uint32_t djybsp_isr_hdl_admac(uint32_t param)
+{
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_ADMAC);
+    djybsp_isr_do_hdl(stat, djybsp_admac_hdl, param);
+    return stat;
+}
+
+static uint32_t djybsp_isr_hdl_gpio1(uint32_t param)
+{
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_GPIO1);
+    djybsp_isr_do_hdl(stat, djybsp_gpio1_hdl, param);
+    return stat;
+}
+
+static uint32_t djybsp_isr_hdl_gpio2(uint32_t param)
+{
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_GPIO2);
+    djybsp_isr_do_hdl(stat, djybsp_gpio2_hdl, param);
+    return stat;
+}
+
+static uint32_t djybsp_isr_hdl_misc(uint32_t param)
+{
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_MISC);
+    djybsp_isr_do_hdl(stat, djybsp_misc_hdl, param);
+    return stat;
+}
+
+static uint32_t djybsp_isr_hdl_pmu(uint32_t param)
+{
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_PMU);
+    djybsp_isr_do_hdl(stat, djybsp_pmu_hdl, param);
+    return stat;
+}
+
+static uint32_t djybsp_isr_hdl_timer(uint32_t param)
+{
+    uint32_t stat;
+
+    stat = INTR_STS_MSK(PIC_IRQID_TIMER);
+    djybsp_isr_do_hdl(stat, djybsp_timer_hdl, param);
+    return stat;
+}
+
+static void djybsp_isr_register(uint32_t id, djybsp_isr_hdl_t isr,uint32_t param)
+{
+    /*?ú2?μ÷ó?oˉêy￡?2??ì2é2?êy*/
+    switch(id)
     {
-        if(temp->IntLine == intline)
-        {
+        case CN_INT_LINE_SPDIF:
+            djybsp_isr[id].isr = djybsp_isr_hdl_spdif;
             break;
-        }
-        else
-        {
-            temp = temp->Next;
-        }
-    }
-    return temp;
-}
-static tagPic* Pic_FindSubInt(tagPic *pic,u8 intline,u8 subint)
-{
-    tagPic *temp = pic;
-    while(temp != NULL)
-    {
-        if((temp->IntLine == intline) && \
-                (temp->IntSub == subint))
-        {
+        case CN_INT_LINE_SDMAC:
+            djybsp_isr[id].isr = djybsp_isr_hdl_sdmac;
             break;
-        }
-        else
-        {
-            temp = temp->Next;
-        }
-    }
-    return temp;
-}
-
-static bool_t Pic_IsrHandle(u8 intline)
-{
-    tagPic *pic;
-
-    pic = sPicHead;
-    while(1)
-    {
-        pic = Pic_FindLineNode(pic,intline);
-        if(pic == NULL)
-        {
+        case CN_INT_LINE_ADMAC:
+            djybsp_isr[id].isr = djybsp_isr_hdl_admac;
             break;
-        }
-
-        if(*(pic->IntSts) & (1<<pic->IntSub))
-        {
-            pic->isr(pic->IntSub);
-        }
-        pic = pic->Next;
+        case CN_INT_LINE_GPIO1:
+            djybsp_isr[id].isr = djybsp_isr_hdl_gpio1;
+            break;
+        case CN_INT_LINE_GPIO2:
+            djybsp_isr[id].isr = djybsp_isr_hdl_gpio2;
+            break;
+        case CN_INT_LINE_TIMER:
+            djybsp_isr[id].isr = djybsp_isr_hdl_timer;
+            break;
+        case CN_INT_LINE_MISC:
+            djybsp_isr[id].isr = djybsp_isr_hdl_misc;
+            break;
+        case CN_INT_LINE_PMU:
+            djybsp_isr[id].isr = djybsp_isr_hdl_pmu;
+            break;
+        default:
+            djybsp_isr[id].isr = isr;
+            break;
     }
+    djybsp_isr[id].param = param;
 
-    return true;
+    Int_Register(id);
+    Int_SetClearType(id,CN_INT_CLEAR_AUTO);
+    Int_IsrConnect(id,djybsp_isr_hdl_dispatch);
+    Int_SetIsrPara(id,id);
+    Int_SettoAsynSignal(id);
+    Int_ClearLine(id);
+    Int_RestoreAsynLine(id);
 }
-bool_t Pic_IntRegister(u8 intline,u8 subint,u32* EnAddr,\
-                        u32* StsAddr,u32 (*isr)(ptu32_t))
+
+int djybsp_isr_hdl_register(uint32_t id, int subid, djybsp_isr_hdl_t hdl,uint32_t param)
 {
-    bool_t Ret = false;
-    tagPic *pic,*temp;
-
-    if(NULL == isr)
-    {
-        return false;
+    if ((id > CN_INT_LINE_LAST) || (!hdl)) {
+        return -1;
     }
 
-    temp = Pic_FindLineNode(sPicHead,intline);
-    if(NULL == temp)
-    {
-        Int_Register(intline);
-        Int_SetClearType(intline,CN_INT_CLEAR_AUTO);
-        Int_IsrConnect(intline,Pic_IsrHandle);
-        Int_SettoAsynSignal(intline);
-        Int_ClearLine(intline);
-        Int_RestoreAsynLine(intline);
-    }
+    INTR_CTR_MSK(id) &= ~(1 << (subid));/* 1 */
 
-    pic = malloc(sizeof(tagPic));
-    if(NULL != pic)
-    {
-        pic->IntLine = intline;
-        pic->IntSub  = subint;
-        pic->IntEn   = EnAddr;
-        pic->IntSts  = StsAddr;
-        pic->isr     = isr;
-        pic->Next    = NULL;
-
-        if(sPicHead == NULL)
-        {
-            sPicHead = pic;
+    if ((id == CN_INT_LINE_SPDIF) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_SPDIF_HDL_NUM) {
+            return -1;
         }
-        else
-        {
-            Pic_NodeInsert(pic);
+        if (!djybsp_spdif_hdl[subid]) {
+            djybsp_spdif_hdl[subid] = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid)); /* 2 */
         }
-        Ret = true;
+        else if (djybsp_spdif_hdl[subid] != hdl) {
+            return -1;
+        }
     }
-    return true;
+    else if ((id == CN_INT_LINE_SDMAC) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_DMAC_HDL_NUM) {
+            return -1;
+        }
+
+        if (!djybsp_sdmac_hdl[subid]) {
+            djybsp_sdmac_hdl[subid] = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid));
+        }
+        else if (djybsp_sdmac_hdl[subid] != hdl) {
+            return -1;
+        }
+    }
+    else if ((id == CN_INT_LINE_ADMAC) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_DMAC_HDL_NUM) {
+            return -1;
+        }
+
+        if (!djybsp_admac_hdl[subid]) {
+            djybsp_admac_hdl[subid] = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid));
+        }
+        else if (djybsp_admac_hdl[subid] != hdl) {
+            return -1;
+        }
+    }
+    else if ((id == CN_INT_LINE_GPIO1) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_GPIO_HDL_NUM) {
+            return -1;
+        }
+
+        if (!djybsp_gpio1_hdl[subid]) {
+            djybsp_gpio1_hdl[subid] = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid));
+        }
+        else if (djybsp_gpio1_hdl[subid] != hdl) {
+            return -1;
+        }
+    }
+    else if ((id == CN_INT_LINE_GPIO2) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_GPIO_HDL_NUM) {
+            return -1;
+        }
+
+        if (!djybsp_gpio2_hdl[subid]) {
+            djybsp_gpio2_hdl[subid] = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid));
+        }
+        else if (djybsp_gpio2_hdl[subid] != hdl) {
+            return -1;
+        }
+    }
+    else if ((id == CN_INT_LINE_TIMER) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_TIMER_HDL_NUM) {
+            return -1;
+        }
+
+        if (!djybsp_timer_hdl[subid]) {
+            djybsp_timer_hdl[subid] = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid));
+        } else if (djybsp_timer_hdl[subid] != hdl) {
+            return -1;
+        }
+    }
+    else if ((id == CN_INT_LINE_MISC) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_MISC_HDL_NUM) {
+            return -1;
+        }
+
+        if (!djybsp_misc_hdl[subid]) {
+            djybsp_misc_hdl[subid]   = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid));
+        }
+        else if (djybsp_misc_hdl[subid] != hdl) {
+            return -1;
+        }
+    }
+    else if ((id == CN_INT_LINE_PMU) && (subid != CN_SUBID_SOLO)) {
+        if (subid >= DJYBSP_ISR_PMU_HDL_NUM) {
+            return -1;
+        }
+
+        if (!djybsp_pmu_hdl[subid]) {
+            djybsp_pmu_hdl[subid]   = hdl;
+            INTR_CTR_MSK(id) |= (1 << (subid));
+        } else if (djybsp_pmu_hdl[subid] != hdl) {
+            return -1;
+        }
+    }
+    if(djybsp_isr[id].isr==NULL)
+        djybsp_isr_register(id,hdl,param);
+    return 0;
 }
 
-bool_t Pic_IntEnable(u8 intline,u8 subint)
+void djybsp_isr_hdl_unregister(uint32_t id, int subid)
 {
-    bool_t Ret = false;
-    tagPic *pic;
-
-    pic = Pic_FindSubInt(sPicHead,intline,subint);
-    if(NULL != pic)
-    {
-        *(pic->IntEn) |= 1<<subint;
-        Ret = true;
-    }
-    return Ret;
+    return;
 }
 
-bool_t Pic_IntDisable(u8 intline,u8 subint)
+void djybsp_isr_init(void)
 {
-    bool_t Ret = false;
-    tagPic *pic;
+    memset(djybsp_spdif_hdl, 0, DJYBSP_ISR_SPDIF_HDL_NUM * sizeof(djybsp_isr_hdl_t));
+    memset(djybsp_sdmac_hdl, 0, DJYBSP_ISR_DMAC_HDL_NUM  * sizeof(djybsp_isr_hdl_t));
+    memset(djybsp_admac_hdl, 0, DJYBSP_ISR_DMAC_HDL_NUM  * sizeof(djybsp_isr_hdl_t));
+    memset(djybsp_gpio1_hdl, 0, DJYBSP_ISR_GPIO_HDL_NUM  * sizeof(djybsp_isr_hdl_t));
+    memset(djybsp_gpio2_hdl, 0, DJYBSP_ISR_GPIO_HDL_NUM  * sizeof(djybsp_isr_hdl_t));
+    memset(djybsp_timer_hdl, 0, DJYBSP_ISR_TIMER_HDL_NUM * sizeof(djybsp_isr_hdl_t));
+    memset(djybsp_misc_hdl,  0, DJYBSP_ISR_MISC_HDL_NUM * sizeof(djybsp_isr_hdl_t));
+    memset(djybsp_pmu_hdl,   0, DJYBSP_ISR_PMU_HDL_NUM * sizeof(djybsp_isr_hdl_t));
 
-    pic = Pic_FindSubInt(sPicHead,intline,subint);
-    if(NULL != pic)
-    {
-        *(pic->IntEn) &= ~(1<<subint);
-        Ret = true;
-    }
-    return Ret;
+    memset(djybsp_isr,0,sizeof(djybsp_isr));
 }
 
-
+uint32_t djybsp_isr_hdl_dispatch(uint32_t line)
+{
+    if(djybsp_isr[line].isr!=NULL)
+        djybsp_isr[line].isr(djybsp_isr[line].param);
+    return 0;
+}

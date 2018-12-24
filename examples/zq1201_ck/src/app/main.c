@@ -59,6 +59,7 @@ ptu32_t djy_main(void)
 	while(1)
 	{
 	//	printf("app release:hello world!\r\n");
+//		reboot(0);
 		Djy_EventDelay(1000*1000);
 	}
 	return 0;

@@ -154,9 +154,9 @@ void HardExp_EsrTick(void)
 
 void Exp_HardHandle(u32 spValue ,u8 intNum,u32 pcVal)
 {
-    printk("当前异常号为:%u",intNum);
-    printk("PC:%x\r\n",pcVal);
-    printk("Sp:%x\r\n",spValue);
+    printk("当前异常号为:%u\r\n",intNum);
+    printk("pc:%x\r\n",pcVal);
+    printk("sp:%x\r\n",spValue);
 
     while(1);
 }

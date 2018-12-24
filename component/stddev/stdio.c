@@ -526,6 +526,7 @@ static ptu32_t __stdio_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
             struct objhandle *hdl = (struct objhandle*)o_hdl;
             u32 cmd = args;
             va_start(list, args);
+
             switch(cmd)
             {
                 case F_SETTIMEOUT:
@@ -557,10 +558,45 @@ static ptu32_t __stdio_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
 
                 default : break;
             }
+            break;
         }
 
         case OBJIOCTL:
         {
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            u32 cmd = args;
+            va_start(list, args);
+            switch(cmd)
+            {
+                case F_SETTIMEOUT:
+                {
+                    u32 *timeout = (u32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_timeout(hdl, 1, timeout));
+                }
+
+                case F_GETTIMEOUT:
+                    break;
+
+                case F_STDIO_MULTI_ADD:
+                {
+                    s32 *fd = (s32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_multi(hdl, 1, *fd));
+                }
+
+                case F_STDIO_MULTI_DEL:
+                {
+                    s32 *fd = (s32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_multi(hdl, 0, *fd));
+                }
+
+                case F_STDIO_REDRIECT:
+                {
+                    s32 *fd = (s32*)va_arg(list, u32);
+                    return ((ptu32_t)__stdio_redirect(hdl, *fd));
+                }
+
+                default : break;
+            }
             break;
         }
 
@@ -624,31 +660,32 @@ static ptu32_t __stdio_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
 // 备注：因为"STDIN"等的结构中的fd（文件号）被人为改变成了0等，
 //      这会导致读写时找不到其原始的上下文；此处的查找表示为了保存这个上下文；
 // ============================================================================
-static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
+static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 {
     char *notfound;
     struct obj *ob;
     struct stat info;
     s32 res;
-    FILE *fp;
+    FILE *new_fp;
     struct objhandle *hdl = NULL;
     extern s32 __filebuf_new(FILE *stream);
     extern void __filebuf_del(FILE *stream);
 
-    res = fstat(fd, &info);
+    res = fstat(fp->fd, &info);
     if(res)
         return (-1);
 
-    fp = (FILE*)&__stdio_filestruct[type];
-    fp->unget = EOF;
+    new_fp = (FILE*)&__stdio_filestruct[type];
+    new_fp->ungetbuf = EOF;
+    new_fp->flags = fp->flags;
     if((Djy_GetRunMode() < CN_RUNMODE_MP) && (S_ISFLOW(info.st_mode)))
     {
-        res = __filebuf_new(fp);
+        res = __filebuf_new(new_fp);
         if(res)
             goto __ERR_STDIO_SET;
     }
 
-    fcntl(fd, F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // 将所定向的设备设置为forver（阻塞式）；
+    fcntl(fp->fd, F_SETTIMEOUT, CN_TIMEOUT_FOREVER); // 将所定向的设备设置为forver（阻塞式）；
     switch(type)
     {
         case 0 :
@@ -664,7 +701,7 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
                 }
 
                 // 将当前打开的文件加入监听集合
-                if(FALSE == Multiplex_AddObject(stdin_multiplexset, fd,
+                if(FALSE == Multiplex_AddObject(stdin_multiplexset, fp->fd,
                         (CN_MULTIPLEX_SENSINGBIT_READ + CN_MULTIPLEX_SENSINGBIT_OR)))
                 {
                     goto __ERR_STDIO_SET;// TODO: 没有找到删除多路复用集的函数；
@@ -687,7 +724,7 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
             handle_linkobj(hdl, ob);
             __stdio_lookup[0] = hdl;
             stdin->fd = 0;
-            __stdio_in_out_err[0].fd.direct = fd;
+            __stdio_in_out_err[0].fd.direct = fp->fd;
             break;
         }
 
@@ -712,7 +749,7 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
             if(runmode & CN_STDIO_STDOUT_FOLLOW)
                 __stdio_in_out_err[1].fd.follow = &(__stdio_in_out_err[0].fd.direct);
             else
-                __stdio_in_out_err[1].fd.direct = fd;
+                __stdio_in_out_err[1].fd.direct = fp->fd;
 
             break;
         }
@@ -736,7 +773,7 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
             if(runmode & CN_STDIO_STDERR_FOLLOW)
                 __stdio_in_out_err[2].fd.follow = &(__stdio_in_out_err[0].fd.direct);
             else
-                __stdio_in_out_err[2].fd.direct = fd;
+                __stdio_in_out_err[2].fd.direct = fp->fd;
 
             break;
         }
@@ -749,8 +786,8 @@ static s32 __stdio_set(u32 type, s32 fd, u32 mode, u32 runmode)
 
 __ERR_STDIO_SET:
 
-    __filebuf_del(fp);
-    free(fp);
+    __filebuf_del(new_fp);
+    free(new_fp);
     if(hdl)
         __stdio_close(hdl);
 
@@ -827,8 +864,10 @@ static s32 __stdio_build(u32 runmode)
 s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
 {
     char *inname, *outname, *errname;
-    s32 res, inFD, fd;
-    u32 mode, runmode = CFG_STDIO_RUN_MODE;
+    s32 res;
+    FILE *inFD, *fd;
+    u32 runmode = CFG_STDIO_RUN_MODE;
+    char *mode;
 
     res = __stdio_build(CFG_STDIO_RUN_MODE);
     if(res)
@@ -841,14 +880,14 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     if(runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
     {
         // STDOUT或STDERR只要有一个跟随STDIN，STDIN都必须以可读写的模式打开。
-        mode = O_RDWR | O_APPEND;
+        mode = "a+";
     }
     else
     {
-        mode =  O_RDONLY;
+        mode =  "r";
     }
 
-    inFD = open(in, mode);
+    inFD = fopen(in,mode);
     inname = (char*)in;
     res = __stdio_set(0, inFD, O_RDWR, runmode);
     if(res)
@@ -865,7 +904,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
     else
     {
-        fd = open(out, O_RDWR | O_APPEND);
+        fd = fopen(out, "a+");
         outname = (char*)out;
     }
 
@@ -884,7 +923,7 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     }
     else
     {
-        fd = open(err, O_RDWR | O_APPEND);
+        fd = fopen(err, "a+");
         errname = (char*)err;
     }
 

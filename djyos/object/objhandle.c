@@ -1416,7 +1416,7 @@ int ioctl(int fd, int cmd, ...)
 
     va_start (args, cmd);
     arg_linux = va_arg(args, u32);
-    arg_linux = (arg_linux & 0xFF); // 提取出命令码；
+//    arg_linux = (arg_linux & 0xFF); // 提取出命令码；
     res = (s32)hdl->obj->ops(OBJIOCTL, (ptu32_t)hdl, (ptu32_t)cmd, arg_linux, &args);
     va_end (args);
     return (res);

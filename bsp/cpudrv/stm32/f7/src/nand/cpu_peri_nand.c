@@ -1446,8 +1446,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
         {
             struct uopt opt = {0};
             opt.main = 1;
-            if(__nandescription->BytesPerPage
-                    != __nand_write(badslocation, (void*)args, opt)) // 坏块表放置在第0页
+            if(0 != __nand_write(badslocation, (void*)args, opt)) // 坏块表放置在第0页
                 res = -1;
 
             break;
@@ -1493,8 +1492,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
                 return (-1);
 
             opt.main = 1;
-            if(__nandescription->BytesPerPage
-                    ==__nand_read(badslocation, (void*)(tmp), opt)) // 读坏块表
+            if(0 ==__nand_read(badslocation, (void*)(tmp), opt)) // 读坏块表
             {
                 if(nandvalidbads((u32*)tmp))
                     escape = 1; // 存在坏块表，不擦除；
@@ -1537,12 +1535,13 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
 // 参数：unit -- 读的序号（页）；
 //      data -- 读的数据；
 //      opt -- 读的方式；
+// 返回：成功 -- （0）；失败 -- （-1）
 // 备注：
 // ============================================================================
 static s32 __nand_read(s64 unit, void *data, struct uopt opt)
 {
     u32 flags = 0;
-
+    s32 res;
     nandbadfreeunit(badstable, &unit, __nand_req);
     if(opt.hecc)
         flags |= HW_ECC;
@@ -1556,11 +1555,29 @@ static s32 __nand_read(s64 unit, void *data, struct uopt opt)
         if(opt.spare)
             flags |= SPARE_REQ;
 
-        return (stm32f7_PageRead((u32)unit, (u8*)data, flags));
+        res = stm32f7_PageRead((u32)unit, (u8*)data, flags);
+        if (!((SPARE_REQ & flags) || (HW_ECC & flags)))
+        {
+            if(res != (s32)__nandescription->BytesPerPage)
+            {
+                return (-1);
+            }
+        }
+        else
+        {
+            if(res != (s32)(__nandescription->BytesPerPage + __nandescription->OOB_Size))
+            {
+                return (-1);
+            }
+        }
     }
     else
     {
-        return (stm32f7_SpareRead((u32)unit, (u8*)data));
+        res = stm32f7_SpareRead((u32)unit, (u8*)data);
+        if(res != (s32)__nandescription->OOB_Size)
+        {
+            return (-1);
+        }
     }
 
     return (0);
@@ -1571,13 +1588,14 @@ static s32 __nand_read(s64 unit, void *data, struct uopt opt)
 // 参数：unit -- 写的序号（页）；
 //      data -- 写的数据；
 //      opt -- 写的方式；
+// 返回：成功 -- （0）；失败 -- （-1）
 // 返回：
 // 备注：
 // ============================================================================
 static s32 __nand_write(s64 unit, void *data, struct uopt opt)
 {
     u32 flags = 0;
-
+    s32 res;
     nandbadfreeunit(badstable, &unit, __nand_req);
     if(opt.hecc)
         flags |= HW_ECC;
@@ -1591,11 +1609,29 @@ static s32 __nand_write(s64 unit, void *data, struct uopt opt)
         if(opt.spare)
             flags |= SPARE_REQ;
 
-        return (stm32f7_PageProgram((u32)unit, (u8*)data, flags));
+        res = stm32f7_PageProgram((u32)unit, (u8*)data, flags);
+        if (!((SPARE_REQ & flags) || (HW_ECC & flags)))
+        {
+            if(res != (s32)(__nandescription->BytesPerPage))
+            {
+                return (-1);
+            }
+        }
+        else
+        {
+            if(res != (s32)(__nandescription->BytesPerPage + __nandescription->OOB_Size))
+            {
+                return (-1);
+            }
+        }
     }
     else
     {
-        return (stm32f7_SpareProgram((u32)unit, (u8*)data));
+        res = stm32f7_SpareProgram((u32)unit, (u8*)data);
+        if(res != (s32)__nandescription->OOB_Size)
+        {
+            return (-1);
+        }
     }
 
     return (0);
@@ -1605,7 +1641,7 @@ static s32 __nand_write(s64 unit, void *data, struct uopt opt)
 // 功能：nand 擦除
 // 参数：unit -- 擦除的序号；
 //      sz -- 擦除的单位（unit或block）
-// 返回：
+// 返回：成功 -- （0）；失败 -- （-1）
 // 备注：
 // ============================================================================
 static s32 __nand_erase(s64 unit, struct uesz sz)

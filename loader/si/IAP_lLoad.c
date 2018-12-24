@@ -75,6 +75,7 @@
 #include <device/flash/flash.h>
 #include "dbug.h"
 #include "component_config_loader.h"
+#include <include/unit_media.h>
 
 extern tagIapVar pg_IapVar;
 extern struct AppInfo gc_ptAppInfo;
@@ -531,7 +532,9 @@ ptu32_t __UpdateIboot(void)
     s32 Dev;
     DIR *dir;
     char *path;
-    struct FlashChip *Chip;
+    struct umedia *um;
+    struct uesz sz;
+    struct uopt opt;
     struct dirent *structDirent;
     char *buf;
     char buffer[256];
@@ -544,8 +547,11 @@ ptu32_t __UpdateIboot(void)
     uint32_t dwPageBytes=0;
     uint32_t dwPageNo=0;
     u8 i=0;
-    u32 SectorEnd=0,Remains=0;
+    ptu32_t SectorEnd=0;
     u32 k=0;
+
+    sz.block = 1;
+    sz.unit = 0;
 
     while(1)
     {
@@ -588,7 +594,7 @@ ptu32_t __UpdateIboot(void)
 
            // Dev = DevOpen("embedded flash", O_RDWR, CN_TIMEOUT_FOREVER);
            // if(Dev==NULL)
-           Dev = open("dev/embedded flash", O_RDWR);
+           Dev = open("/dev/unit media/embed part 0", O_RDWR);
            if(Dev==-1)
            {
                debug_printf("IAP","cannot open embedded flash.\r\n");
@@ -597,11 +603,12 @@ ptu32_t __UpdateIboot(void)
 
            //Chip=(struct FlashChip *)Dev_GetDevTag(Dev);
            //if(Chip==NULL)
-           if(-1 == fcntl(Dev, F_GETDRVTAG, &Chip))
+           if(-1 == fcntl(Dev, F_GETDRVTAG, &um))
            {
                goto END;
            }
-           dwPageBytes=Chip->dwPageBytes;
+           opt = um->opt;
+           dwPageBytes=(1 << um->usz);;
            buf=malloc(dwPageBytes);
            if(buf==NULL)
            {
@@ -609,8 +616,8 @@ ptu32_t __UpdateIboot(void)
                goto END;
            }
            dwPageNo=gc_ptIbootSize/dwPageBytes;
-           res=Chip->Ops.PageToBlk(dwPageNo,&Remains,&SectorEnd);
-           if(res==-1)
+           res=um->mreq(whichblock,(ptu32_t)&SectorEnd,dwPageNo);
+           if(res == -1)
            {
                debug_printf("IAP","Calculate the flash sector failed.\r\n");
                goto END;
@@ -618,8 +625,8 @@ ptu32_t __UpdateIboot(void)
            dwPageNo=0;
            for(i=0;i<SectorEnd;i++)
            {
-               res=Chip->Ops.ErsBlk(i);
-               if(res==-1)
+               res=um->merase(i,sz);
+               if(res == -1)
                {
                    debug_printf("IAP","Erase the sector failed.\r\n");
                    goto END;
@@ -628,21 +635,21 @@ ptu32_t __UpdateIboot(void)
            while(1)
            {
                res = read(source, buf, dwPageBytes);
-               if(!res)
+               if(res == -1)
                {
                    debug_printf("IAP","read source file error.\r\n");
                     break; // 没有数据可读
                }
                sourceInfo.st_size -= res; // 剩余
-               if(res<dwPageBytes)
+               if((u32)res<dwPageBytes)
                {
                    for(k=res;k<dwPageBytes;k++)
                    {
                        buf[k]=0xFF;
                    }
                }
-               Res=Chip->Ops.WrPage(dwPageNo,buf,NO_ECC);
-               if((res !=Res)&&(Res!=dwPageBytes))
+               Res=um->mwrite(dwPageNo,buf,opt);
+               if(Res != 0)
                {
                    debug_printf("IAP","write destination file error.\r\n");
                     goto END;

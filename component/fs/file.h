@@ -58,22 +58,24 @@ extern "C" {
 
 
 #ifndef __CUSTOM_FILE_H__
-struct __buf
-{
-    u8 *data; // 当前缓冲空间；
-    u8 *movs; // 当前缓冲的读写位置；
-    u8 *prefetched; // 当前缓冲的预取位置；
-    u32 size; // 缓冲空间大小；
-};
-
+//在 FILE 类型中增加 PosOffset 成员非常重要，对于数据库需要一定范围内反复 seek
+//并且交叉读写的应用，有极大的加速作用。
 struct LibcFile
 {
-    struct __buf *buf; // 缓存
-    s32 flags;
-    s32 fd; // 文件描述符；
-    off_t pos; // 文件当前位置；
-    s32 unget;
-};
+    u8  *buf;               // buffer,根据配置用时或fopen时动态分配
+    u8  *current;           // 当前指针位置
+    s32 bufsize;            // 读写buf的尺寸
+    s32 count;              // buf中数据量，不包含ungetc buf
+    s32 wrt_start;          // buf中被修改的起始地址（含）,每次buf初始化时为-1，
+                            // 其后首次写入时修改
+    s32 wrt_end;            // buf中被修改的结束地址（不含）
+    s32 flags;              // 文件访问状态，参见stdio.h中的 FP_IOREAD 及相关定义
+    s32 fd;                 // return from open
+    s32 ungetbuf;           // 用于ungetc函数的buf，仅1字符。
+    off_t FilePos;          // 文件当前读写位置，与fd中的位置不一定相同。
+    char *tmpfname;         // 如果是临时文件，指向文件名，否则NULL
+                            // 关闭文件时，非NULL则同时删除文件。
+} ;
 #endif
 
 #ifdef __cplusplus

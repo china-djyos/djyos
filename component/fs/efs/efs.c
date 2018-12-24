@@ -218,16 +218,11 @@ inline static void __lock(struct __ecore *core)
 static s32 __llread(struct __ecore *core, s64 units, void *buf)
 {
     struct uopt opt = {0};
-    u32 res;
 
     opt.necc = 1;
     opt.main = 1;
     units = core->media->ustart + units;
-    res = core->media->mread(units, (u8*)buf, opt);
-    if(res != (1<<core->media->usz))
-        return (-1);
-
-    return (0);
+    return (core->media->mread(units, (u8*)buf, opt));
 }
 
 // ============================================================================
@@ -241,16 +236,12 @@ static s32 __llread(struct __ecore *core, s64 units, void *buf)
 static s32 __llwrite(struct __ecore *core, s64 units, void *buf)
 {
     struct uopt opt = {0};
-    u32 res;
 
     opt.necc = 1;
     opt.main = 1;
     units = core->media->ustart + units;
-    res = core->media->mwrite(units, (u8*)buf, opt);
-    if(res != (1<<core->media->usz))
-        return (-1);
+    return (core->media->mwrite(units, (u8*)buf, opt));
 
-    return (0);
 }
 
 // ============================================================================
@@ -3165,6 +3156,12 @@ ptu32_t e_operations(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
                 uncache = NULL;
 
             return ((ptu32_t)__e_stat(ob, data, uncache));
+        }
+
+        case OBJSYNC:
+        {
+            struct objhandle *hdl = (struct objhandle*)o_hdl;
+            return ((ptu32_t)__e_sync(hdl));
         }
 
         default:

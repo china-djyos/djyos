@@ -106,7 +106,7 @@ Init_Cpu:
     lrw      a1, msp_top
     mov      sp, a1
     
-    jbsr    IAP_SelectLoadProgam
+    jbsr    Init_Cpuc
 
     .section .text.AppStart
     .align   1
@@ -120,7 +120,7 @@ AppStart:
     lrw      a1, msp_top
     mov      sp, a1
 
-    jbsr    Init_Cpuc
+    jbsr     Load_Preload
 
 .text
    .align  1

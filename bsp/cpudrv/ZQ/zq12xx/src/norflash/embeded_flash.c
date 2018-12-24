@@ -67,7 +67,12 @@ typedef enum EN_LINK_STATUS{
 
 }EN_LinkStatus;
 
-EN_LinkStatus en_gStaus = EN_DOWN_APP_DEBUG_MODE;
+static EN_LinkStatus en_gStaus = EN_DOWN_APP_DEBUG_MODE;
+
+enum EN_SPI_OPT{
+    EN_OPT_START = 0,
+    EN_OPT_END,
+};
 
 
 /*对于app 而言第129块对应-〉0x40800
@@ -117,9 +122,9 @@ static struct EmbdFlashDescr
     u32     PagesPerBlock;               //每块中的页数
     u32     TotalPages;                  //总页数量
     u32     BytesPerBlock;               //一块中的字节数
-    u16     ToltalBlock;                 //总块数量
+    u16     ToltalBlock;				 //总块数量
     u32     RemainBytes;                 //剩余字节数
-    u32     MappedStAddr;
+	u32     MappedStAddr;
 }*sp_tFlashDesrc;
 
 
@@ -164,7 +169,7 @@ static s32 Flash_Init(struct EmbdFlashDescr *Description)
       Description->ToltalBlock      = CN_FLASH_RANGE / FLASH_BLOCK_SIZE;  //2097152/2048=1024
       Description->TotalPages       = (Description->PagesPerBlock)*(Description->ToltalBlock);    //2097152/512=4096
       Description->RemainBytes      = CN_FLASH_RANGE % FLASH_PAGE_SIZE;   //898Page
-
+      
       Description->MappedStAddr = 0x00000000;
     return (0);
 }
@@ -180,9 +185,9 @@ static s32 Flash_GetDescr(struct EmFlashDescr *Description)
 {
     Description->BytesPerPage = sp_tFlashDesrc->BytesPerPage;
     Description->TotalPages   = sp_tFlashDesrc->TotalPages;
-
+                                
     Description->MappedStAddr = sp_tFlashDesrc->MappedStAddr;
-
+    
     return (0);
 }
 
@@ -193,61 +198,43 @@ static s32 Flash_GetDescr(struct EmFlashDescr *Description)
 // 返回：
 // 备注：
 // ============================================================================
+extern void silan_m0_cache_enable(void);
+extern void silan_m0_cache_disable(void);
+extern void silan_m0_cache_clear(void);
+extern void silan_m0_cache_lock(uint32_t lock_addr, uint32_t len);
+extern void silan_m0_cache_unlock(uint32_t lock_addr, uint32_t len, uint8_t unvalid);
+extern int32_t iap_norflash_init();
 
-static u32 restored;
-
-static void enterFlashOperaterMode(void)
+static void SpiFlashOptMode(u8 Mode)
 {
-    u32 optStartAddr, Remain, optAddrLen;
+     u32 optStartAddr;
+     u32 Remain;
+     u32 optAddrLen;
+    static atom_high_t high_atom;
 
-//    restored = pic_get_enable();
-//    pic_clr_enable(restored);
-    atom_high_t high_atom;                      //原子操作
-    high_atom =Int_HighAtomStart();
-
-    silan_m0_cache_disable();
-    silan_m0_cache_clear();
-
-    optStartAddr =    ((u32) &Lock_Cache_Add_Start) & 0xFFFFFFF0;
-    Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
-    optAddrLen   =    ((((u32) &Lock_Cache_Add_End) - ((u32) &Lock_Cache_Add_Start)) + Remain + M0_CACHE_LINE_SIZE - 1) / M0_CACHE_LINE_SIZE;
-
-    silan_m0_cache_lock(optStartAddr, optAddrLen);
-
-    silan_m0_cache_enable();
-
-    Int_HighAtomEnd(high_atom);
-
-    iap_norflash_init();
+    switch(Mode)
+    {
+        case EN_OPT_START:
+             high_atom =Int_HighAtomStart();
+             silan_m0_cache_disable();
+             silan_m0_cache_clear();
+             optStartAddr =    ((u32) &Lock_Cache_Add_Start) & 0xFFFFFFF0;
+             Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
+             optAddrLen   =    ((((u32) &Lock_Cache_Add_End) - ((u32) &Lock_Cache_Add_Start)) + Remain + M0_CACHE_LINE_SIZE - 1) / M0_CACHE_LINE_SIZE;
+             silan_m0_cache_lock(optStartAddr, optAddrLen);
+             silan_m0_cache_enable();
+             iap_norflash_init();
+             break;
+        case EN_OPT_END:
+             optStartAddr =    ((u32) &Lock_Cache_Add_Start) & 0xFFFFFFF0;
+             Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
+             optAddrLen   =    ((((u32) &Lock_Cache_Add_End) - ((u32) &Lock_Cache_Add_Start)) + Remain + M0_CACHE_LINE_SIZE - 1) / M0_CACHE_LINE_SIZE;
+             silan_m0_cache_unlock(optStartAddr, optAddrLen, 0);
+             Int_HighAtomEnd(high_atom);
+             break;
+    }
 }
 
-
-// ============================================================================
-// 功能：退出 flash 操作模式
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-
-static void exitFlashOperaterMode(void)
-{
-
-    u32 optStartAddr, Remain, optAddrLen;
-
-    atom_high_t high_atom;                      //原子操作
-    high_atom =Int_HighAtomStart();
-
-    optStartAddr =    ((u32) &Lock_Cache_Add_Start) & 0xFFFFFFF0;
-    Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
-    optAddrLen   =    ((((u32) &Lock_Cache_Add_End) - ((u32) &Lock_Cache_Add_Start)) + Remain + M0_CACHE_LINE_SIZE - 1) / M0_CACHE_LINE_SIZE;
-
-    silan_m0_cache_unlock(optStartAddr, optAddrLen, 0);
-
-    pic_set_enable(restored);
-    silan_m0_cache_enable();
-
-    Int_HighAtomEnd(high_atom);
-}
 
 
 // ============================================================================
@@ -263,15 +250,12 @@ static s32 Flash_SectorEarse(u32 SectorNo)
     s32 Ret = 0;
     u32 SECTORError=0;//保存出错类型信息
 
-    atom_high_t high_atom;                      //原子操作
-    high_atom =Int_HighAtomStart();
+    SpiFlashOptMode(EN_OPT_START);
 
-    enterFlashOperaterMode();
     Addr = SectorNo * FLASH_BLOCK_SIZE + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
     EraseSomeSectors(Addr,FLASH_BLOCK_SIZE);
-    exitFlashOperaterMode();
 
-    Int_HighAtomEnd(high_atom);
+    SpiFlashOptMode(EN_OPT_END);
 
     return Ret;
 }
@@ -306,17 +290,14 @@ static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 
     u32 DatToWrite = 0;
 
-    atom_high_t high_atom;                      //原子操作
-    high_atom =Int_HighAtomStart();
+    SpiFlashOptMode(EN_OPT_START);
 
-    enterFlashOperaterMode();
     datLen       = sp_tFlashDesrc->BytesPerPage;
     //ProgramOnePackage((u8*)Data, DatAddr, datLen);
     ProgramOnePackage(Data,DatAddr,datLen);
 
-    exitFlashOperaterMode();
+    SpiFlashOptMode(EN_OPT_END);
 
-    Int_HighAtomEnd(high_atom);
     return sp_tFlashDesrc->BytesPerPage;
 }
 
@@ -331,8 +312,8 @@ s32 Flash_PageRead(u32 PageNo, u8 *Data, u32 Flags)
 {
     u8  *ptReadAddr;
     u32 readDatNo;
-    u32 loop;
-
+    u32 loop;    
+    
     if(en_gStaus == EN_DOWN_APP_DEBUG_MODE || \
            en_gStaus == EN_DOWN_RISC_MODE || \
            en_gStaus == EN_DOWN_DSP_MODE)//App 下载
@@ -388,7 +369,7 @@ s32 Flash_PageToSector(u32 PageNo, u32 *Remains, u32 *SectorNo)
 // ============================================================================
 
 s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
-{
+{	
     u32 Len;
     struct FlashChip *Chip;
     struct MutexLCB *FlashLock;
@@ -489,7 +470,7 @@ s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
             free(Chip);
     }
     return (Ret);
-
+    
 }
 
 
@@ -506,7 +487,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 
     switch(cmd)
     {
-
+  
         case whichblock:   //找出该页所在块,现划分一块=4Pages
         {
             va_list list;
@@ -541,7 +522,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 
         case blockunits:                              //每块中的页数量
         {
-
+          
             *((u32*)args)  = sp_tFlashDesrc->PagesPerBlock;
             break;
         }
@@ -786,29 +767,6 @@ s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
  bool_t downapp(char *Param);
  bool_t downrisc(char *Param);
  bool_t downdsp(char *Param);
-#include "shell_debug.h"
-//增加升级dsp 以及risc 相关 的shell命令
-struct shell_debug const update_cmd_table[] =
-{
-    {
-        "downapp",
-        downapp,
-        "下载app",
-        "命令格式: downapp"
-    },
-    {
-        "downrisc",
-        downrisc,
-        "下载risc",
-        "命令格式: downrisc"
-    },
-    {
-         "downdsp",
-         downdsp,
-         "下载dsp",
-         "命令格式: downdsp"
-    }
-};
 
 #include "ymodem.h"
 #include "shell.h"
@@ -820,18 +778,15 @@ void PrepareForDownLoad(u32 startAddr,u32 len)
     u32 BytesPage;
     BytesPage = sp_tFlashDesrc->BytesPerPage;
     //下载前先擦除
-    atom_high_t high_atom;                      //原子操作
-    high_atom =Int_HighAtomStart();
 
-    enterFlashOperaterMode();
+    SpiFlashOptMode(EN_OPT_START);
     //擦除应包括擦去前256字节的文件头
     EraseSomeSectors(startAddr - BytesPage,len+BytesPage);
-    exitFlashOperaterMode();
+    SpiFlashOptMode(EN_OPT_END);
 
-    Int_HighAtomEnd(high_atom);
 }
 
-ADD_TO_SHELL_HELP(downapp,"下载app    命令格式: downapp");
+ADD_TO_IN_SHELL_HELP(downapp,"下载app    命令格式: downapp");
 ADD_TO_IN_SHELL bool_t downapp(char *Param)
 {
 
@@ -846,7 +801,7 @@ ADD_TO_IN_SHELL bool_t downapp(char *Param)
     downloadym(NULL);
 }
 
-ADD_TO_SHELL_HELP(downrisc,"下载risc    命令格式: downrisc");
+ADD_TO_IN_SHELL_HELP(downrisc,"下载risc    命令格式: downrisc");
 ADD_TO_IN_SHELL bool_t downrisc(char *Param)
 {
     u32 BytesPage;
@@ -857,7 +812,7 @@ ADD_TO_IN_SHELL bool_t downrisc(char *Param)
     downloadym(NULL);
 }
 
-ADD_TO_SHELL_HELP(downdsp,"下载dsp    命令格式: downdsp");
+ADD_TO_IN_SHELL_HELP(downdsp,"下载dsp    命令格式: downdsp");
 ADD_TO_IN_SHELL bool_t downdsp(char *Param)
 {
     g_Map_Add_Start = 0x100000 + 0x80000 - 0x40800;
@@ -869,10 +824,7 @@ ADD_TO_IN_SHELL bool_t downdsp(char *Param)
 
 bool_t Module_Install_Update()
 {
-    if(sizeof(update_cmd_table)/sizeof(struct shell_debug)
-                  ==shell_debug_add(update_cmd_table,
-                                    sizeof(update_cmd_table)/sizeof(struct shell_debug)))
-                   return true;
+    return true;
 }
 
 

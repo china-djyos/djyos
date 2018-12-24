@@ -52,7 +52,7 @@
 #include "board-config.h"
 #include "cpu_peri.h"
 
-extern s64  g_s64OsTicks;             //闂備胶鎳撻悘婵堢矓瀹曞洨绀婇柡鍐ㄥ�哥�垫煡鏌ゆ慨鎰拷妤呭春閻樿绾ч柍鍝勫�告慨灞俱亜閵忊�虫暬icks闂備浇妗ㄧ欢銈夊箯閿燂拷
+extern s64  g_s64OsTicks;             //操作系统运行ticks数
 extern void Init_Cpu(void);
 extern void Load_Preload(void);
 // =============================================================================
@@ -106,14 +106,69 @@ __attribute__((weak))   uint64_t __DjyGetSysTime(void)
     return (uint64_t)time;
 }
 
+extern void Load_Preload(void);
+#include <blackbox.h>
+#include <osboot.h>
+#include <IAP_Inner.h>
+extern tagIapVar pg_IapVar;
+
+#define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
+#define CN_BOOT_SOFTRELOAD_FLAG         (CN_BOOT_LEGALKEY <<2)
+#define CN_BOOT_HARDRST_FLAG         (CN_BOOT_LEGALKEY <<3)
+#define CN_BOOT_SOFTRESET_FLAG          (CN_BOOT_LEGALKEY <<4)
+
+// =============================================================================
+// 鍔熻兘锛氳繍琛屽埌閫夋嫨绯荤粺杩愯鏂瑰紡鍓嶏紝瀵逛簬M3/M4鐨凜PU锛屽嵆PC璺宠浆鍒癐nit_CPU()
+// 鍙傛暟锛氭棤
+// 杩斿洖锛氭棤
+// =============================================================================
 void reboot(u32 key)
 {
-    Init_Cpu();
+    vu32 *addr;
+    vu32 value;
+
+    if(key != CN_BOOT_LEGALKEY)
+    {
+//        debug_printf("reboot","IllegalKey:0x%08x Recorded\n\r",key);
+        ThrowOsBootInfo(EN_BOOT_REBOOT);
+    }
+    else
+    {
+        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
+        value = CN_BOOT_SOFTREBOOT_FLAG;
+        *addr = value;
+        value = *addr;
+        Djy_DelayUs(10);
+
+        u32 InitCpu_Addr;
+        InitCpu_Addr = *(u32*)0x02160000;
+        ((void (*)(void))(InitCpu_Addr))();
+    }
+    return;
 }
 
 void reset(u32 key)
 {
+    vu32 *addr;
+    vu32 value;
 
+    if(key != CN_BOOT_LEGALKEY)
+    {
+        //debug_printf("reset","IllegalKey:0x%08x Recorded\n\r",key);
+        ThrowOsBootInfo(EN_BOOT_SRST);
+    }
+    else
+    {
+        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
+        value = CN_BOOT_SOFTRESET_FLAG;
+        *addr = value;
+        value = *addr;
+        Djy_DelayUs(10);
+
+        u32 InitCpu_Addr;
+        InitCpu_Addr = *(u32*)0x02160000;
+        ((void (*)(void))(InitCpu_Addr))();
+    }
 }
 
 void restart_system(u32 key)

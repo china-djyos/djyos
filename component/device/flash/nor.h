@@ -61,10 +61,10 @@ extern "C" {
 //
 struct NorDescr{
     u16 BytesPerPage;                   // 页的字节数
-    u16 PagesPerSector;                 // sector的页数
-    u16 SectorsPerBlk;                  // 最小块大小
-    u16 Blks;                           // 最小块总数
-    u8 ReservedBlks;                    // 保留块数
+    u16 PagesPerSector;                 // 有多少个sector
+    u16 SectorsPerBlk;                  // 一个块有多少页
+    u16 Blks;                           // 1个sector里有多少块
+    u8 ReservedBlks;                    // 保留页数
     u8 PortType;                        // Nor接口类型
 #define NOR_CFI     (0x0)               // 并口
 #define NOR_SPI     (0x1)               // SPI串口
