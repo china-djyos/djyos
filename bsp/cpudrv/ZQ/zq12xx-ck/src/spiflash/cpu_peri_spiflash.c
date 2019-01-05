@@ -301,11 +301,9 @@ int32_t djybsp_program_one_package(char *data, uint32_t addr, uint32_t size)
 
 void djybsp_spiflash_step(uint8_t step)
 {
-    static atom_low_t atom_low = 0;
     switch(step)
     {
         case 0:
-            atom_low = Int_LowAtomStart();
             csi_icache_disable();
             csi_dcache_disable();
             csi_dcache_clean();
@@ -314,8 +312,6 @@ void djybsp_spiflash_step(uint8_t step)
         case 1:
             csi_dcache_enable();
             csi_icache_enable();
-            if(atom_low!=0)
-                Int_LowAtomEnd(atom_low);
             break;
     }
 }
@@ -501,11 +497,14 @@ static s32 __embed_write(s64 unit, void *data, struct uopt opt)
         return -1;
     if(unit>(sp_tFlashDesrc->TotalPages))
         return -1;
+    atom_low_t atom_low = 0;
     uint32_t start_addr = 0xc0000 + 1024 * unit;
     uint8_t *buf_temp = (uint8_t*)data;
+    atom_low = Int_LowAtomStart();
     djybsp_spiflash_step(DJYBSP_SPIFLASH_START);
     djybsp_program_one_package(buf_temp,start_addr,1024);
     djybsp_spiflash_step(DJYBSP_SPIFLASH_END);
+    Int_LowAtomEnd(atom_low);
     return 0;
 }
 
@@ -530,11 +529,13 @@ s32 __embed_erase(s64 unit, struct uesz sz)
     }
     else
         block = (u32)unit;
-
+    atom_low_t atom_low = 0;
     uint32_t start_addr = 0xc0000 + 4096 * block;
+    atom_low = Int_LowAtomStart();
     djybsp_spiflash_step(DJYBSP_SPIFLASH_START);
     djybsp_erase_some_sectors(start_addr,4096);
     djybsp_spiflash_step(DJYBSP_SPIFLASH_END);
+    Int_LowAtomEnd(atom_low);
     return 0;
 }
 

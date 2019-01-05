@@ -57,6 +57,7 @@ struct FlashChip *pNOR;
 struct NorDescr *nordescription;
 extern u32 AT45_OP_TIMEOUT;
 struct MutexLCB *pAT45_FsLock;   //芯片互斥访问保护
+extern struct SPI_Device *s_ptAT45_Dev;
 #if 1
 s32 __at45_write(s64 unit, void *data, struct uopt opt);
 s32 __at45_read(s64 unit, void *data, struct uopt opt);
@@ -399,7 +400,7 @@ static s32 __AT45_BlockErase(u32 dwBlock)
     Lock_MutexPost(pAT45_FsLock);
     return (res);
 }
-#if 1
+#if 0
 // ============================================================================
 // 功能：查询页所在的块号，及其所在块的剩余页。
 // 参数：dwPage -- 页号；（从零计）pRemain -- 剩余页数；pBlock -- 块号；（从零计）
@@ -420,6 +421,7 @@ static s32 __AT45_PageToBlock(u32 dwPage, u32 *pRemain, u32 *pBlock)
 }
 #endif
 
+#if 0
 // ============================================================================
 // 功能：初始化SPI FLASH模块，校验芯片ID是否正确
 // 参数：pName -- 设备名；
@@ -616,8 +618,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
 
     return (0);
 }
-
-
+#endif
 
 
 
@@ -877,6 +878,28 @@ s32 __AT45_PartitionInit(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
     um->ustart = dwStart * 8; // 起始unit号
 
     return (um_add((const char*)name, um));
+}
+
+// =============================================================================
+// 功能：初始化AT45，用于安装文件系统
+// 参数：bstart -- 起始块；
+//     bcount -- 该分区一共有多少块
+//     dwSpecial -- 擦除该区域（1）；不擦除该区域（0）；
+// 返回：成功（0）；失败（-1）；
+// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
+s32 __at45_part_init(u32 bstart, u32 bcount, u32 doformat)
+{
+    static char *name = "AT45DB321E";    //要和ModuleInstall_at45db321中的name保持一致
+    if(s_ptAT45_Dev == NULL)
+    {
+        printf("\r\n: error : device : AT45 not add the SPI.");
+        return (-1);
+    }
+    if(__AT45_PartitionInit(name,bstart,bcount,doformat,s_ptAT45_Dev) == 0)
+    {
+        return (0);
+    }
+    return (-1);
 }
 
 #if 0

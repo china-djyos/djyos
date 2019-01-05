@@ -210,12 +210,10 @@ static void SpiFlashOptMode(u8 Mode)
      u32 optStartAddr;
      u32 Remain;
      u32 optAddrLen;
-    static atom_high_t high_atom;
 
     switch(Mode)
     {
         case EN_OPT_START:
-             high_atom =Int_HighAtomStart();
              silan_m0_cache_disable();
              silan_m0_cache_clear();
              optStartAddr =    ((u32) &Lock_Cache_Add_Start) & 0xFFFFFFF0;
@@ -230,7 +228,6 @@ static void SpiFlashOptMode(u8 Mode)
              Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
              optAddrLen   =    ((((u32) &Lock_Cache_Add_End) - ((u32) &Lock_Cache_Add_Start)) + Remain + M0_CACHE_LINE_SIZE - 1) / M0_CACHE_LINE_SIZE;
              silan_m0_cache_unlock(optStartAddr, optAddrLen, 0);
-             Int_HighAtomEnd(high_atom);
              break;
     }
 }
@@ -249,14 +246,15 @@ static s32 Flash_SectorEarse(u32 SectorNo)
     u8 retry = 0; // 擦除有可能会失败；
     s32 Ret = 0;
     u32 SECTORError=0;//保存出错类型信息
-
+    atom_high_t high_atom;
+    high_atom =Int_HighAtomStart();
     SpiFlashOptMode(EN_OPT_START);
 
     Addr = SectorNo * FLASH_BLOCK_SIZE + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
     EraseSomeSectors(Addr,FLASH_BLOCK_SIZE);
 
     SpiFlashOptMode(EN_OPT_END);
-
+    Int_HighAtomEnd(high_atom);
     return Ret;
 }
 
@@ -275,7 +273,7 @@ static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 {
     u32 datLen;
     u32 DatAddr;
-
+    atom_high_t high_atom;
     if(en_gStaus == EN_DOWN_APP_DEBUG_MODE || \
        en_gStaus == EN_DOWN_RISC_MODE || \
        en_gStaus == EN_DOWN_DSP_MODE)//App 下载
@@ -289,7 +287,7 @@ static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
     }
 
     u32 DatToWrite = 0;
-
+    high_atom =Int_HighAtomStart();
     SpiFlashOptMode(EN_OPT_START);
 
     datLen       = sp_tFlashDesrc->BytesPerPage;
@@ -297,7 +295,7 @@ static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
     ProgramOnePackage(Data,DatAddr,datLen);
 
     SpiFlashOptMode(EN_OPT_END);
-
+    Int_HighAtomEnd(high_atom);
     return sp_tFlashDesrc->BytesPerPage;
 }
 
@@ -776,14 +774,15 @@ s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
 void PrepareForDownLoad(u32 startAddr,u32 len)
 {
     u32 BytesPage;
+    atom_high_t high_atom;
     BytesPage = sp_tFlashDesrc->BytesPerPage;
     //下载前先擦除
-
+    high_atom =Int_HighAtomStart();
     SpiFlashOptMode(EN_OPT_START);
     //擦除应包括擦去前256字节的文件头
     EraseSomeSectors(startAddr - BytesPage,len+BytesPage);
     SpiFlashOptMode(EN_OPT_END);
-
+    Int_HighAtomEnd(high_atom);
 }
 
 ADD_TO_IN_SHELL_HELP(downapp,"下载app    命令格式: downapp");

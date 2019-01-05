@@ -103,6 +103,9 @@ void Startup_Hardfault(void)
 #include <silan_m0_cache.h>
 #include <silan_bootspi.h>
 #include <silan_sdram.h>
+#include "silan_syscfg_regs.h"
+
+
 static void SystemInit(void)
 {
     silan_pmu_wdt_reset_disable();
@@ -122,6 +125,8 @@ static void SystemInit(void)
 
 static void ResetInit(void)
 {
+     __REG32(SILAN_SYSCFG_REG11) &= ~(0x1);
+    __REG32(SILAN_SYSCFG_REG11) &= ~(0x1<<2);
     silan_audiopll_init();
     silan_syspll_init(SYSPLL_SSCG_OFF);
     silan_sysclk_change(SYSCLK_FROM_PLL, SYSPLL_160M);

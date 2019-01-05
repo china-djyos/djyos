@@ -163,8 +163,8 @@ extern u32 isr_vector[];
 volatile u32 *p = (volatile u32 *)isr_vector;
 ptu32_t djy_main(void)
 {
-      Led_Init();
-      Led_Goggle();
+//      Led_Init();
+//      Led_Goggle();
 //    extern bool_t ModuleInstall_HardTimer(void);
 //    testFortimer();
 //    testWatDog();

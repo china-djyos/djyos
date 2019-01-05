@@ -89,17 +89,16 @@ typedef enum {
 #define PIC_SUBID_TIMER_MSO           (5)     /* millisecond */
 #define PIC_SUBID_TIMER_SO            (6)     /* second      */
 
-int  silan_pic_request(pic_irq_t id, int subid, void (*hdl)(int subid));
+int  silan_pic_request(pic_irq_t id, int subid, hdl_t hdl);
 void silan_pic_free(pic_irq_t id, int subid);
 void silan_pic_enable_irq(pic_irq_t irq);
 void silan_pic_disable_irq(pic_irq_t irq);
-//u32  silan_pic_get_subid(pic_irq_t id);
-//u32  silan_pic_get_subid_stat(pic_irq_t id);
-
+//uint32_t  silan_pic_get_subid(pic_irq_t id);
+//uint32_t  silan_pic_get_subid_stat(pic_irq_t id);
 void silan_pic_init(void);
 
 int  pic_port_init(void);
-int  pic_port_request(int id, void (*hdl)(int id));
+int pic_port_request(int id, hdl_t hdl);
 void pic_port_free(int id);
 
 inline u32 pic_get_enable(void);

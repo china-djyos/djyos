@@ -38,7 +38,7 @@ environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/CPLUS_INCLUDE_PATH/delimiter=;
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/CPLUS_INCLUDE_PATH/operation=remove
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/C_INCLUDE_PATH/delimiter=;
-environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/C_INCLUDE_PATH/operation=replace
+environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/C_INCLUDE_PATH/operation=remove
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/C_INCLUDE_PATH/value=C\:\\mingw\\mingw64\\include
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/append=true
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667/appendContributed=true

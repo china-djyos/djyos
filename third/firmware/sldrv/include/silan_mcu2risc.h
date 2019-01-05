@@ -6,7 +6,7 @@
 #define MBOX_SIZE  16
 u8 SendCmd(void);  
 void mcu2risc_message(u8 cmd,u8 *para);
-
+void mcu2dsp_message(u8 cmd,u8 *para);
 extern u8 Flag_CMDACK_FAIL;
 
 #endif

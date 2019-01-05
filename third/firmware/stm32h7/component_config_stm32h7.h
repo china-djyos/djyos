@@ -27,8 +27,8 @@
 //#ifndef CFG_STATIC_IP   //****检查参数是否已经配置好
 //#warning    “网络配置”组件参数未配置，使用默认值
 //%$#@num,0,100
-//%$#@enum,TIM1,TIM2,TIM3,TIM4,TIM5,TIM6,TIM7,TIM8
-#define CFG_STM32_HAL_TIMER     TIM6//配置HAL库使用的定时器
+//%$#@enum,1,2,3,4,5,6,7,8
+#define CFG_STM32_HAL_TIMER     6//配置HAL库使用的定时器
 //%$#@string,1,16
 //%$#@select,2
 #define     USE_HAL_DRIVER          //是否使用hal库

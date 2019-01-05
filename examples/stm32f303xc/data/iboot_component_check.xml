@@ -9,7 +9,7 @@
   <dbug>true</dbug>
   <flash>true</flash>
   <uart>true</uart>
-  <DevFile>false</DevFile>
+  <DevFile>true</DevFile>
   <canbus>false</canbus>
   <ioiicbus>false</ioiicbus>
   <iicbus>true</iicbus>
@@ -68,6 +68,7 @@
   <stm32h7>false</stm32h7>
   <stm32L4>false</stm32L4>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>

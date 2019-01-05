@@ -1367,7 +1367,7 @@ int fcntl(int fd, int cmd, ...)
     res = __of_cntl(hdl, cmd, &args);
     if(1==res)
     {
-        res = (s32)hdl->obj->ops(OBJCTL, (ptu32_t)hdl, (ptu32_t)cmd, args);
+        res = (s32)hdl->obj->ops(OBJCTL, (ptu32_t)hdl, (ptu32_t)cmd, &args);
     }
 
     va_end (args);

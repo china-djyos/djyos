@@ -53,6 +53,7 @@
 //内部会调用该量，因此需此处赋值
 //例如ETH网络驱动中，stm32f7xx_hal_eth.c中会调用
 uint32_t SystemCoreClock = CN_CFG_MCLK;         //HAL_RCC会用到此量
+TIM_TypeDef* STM32_HAL_TIMER;
 //static TIM_HandleTypeDef HalTimHandle;
 //HAL里面会调用该函数作时间操作，因此，若用到HAL库，则需要提供该函数提供延时
 //return ms
@@ -63,7 +64,7 @@ uint32_t HAL_GetTick(void)
     u16 TimCntCurrent;
 
 //    TimCntCurrent = (__HAL_TIM_GET_COUNTER(&HalTimHandle))&0xFFFF;//0.5ms
-    TimCntCurrent = (CFG_STM32_HAL_TIMER->CNT)&0xFFFF;
+    TimCntCurrent = (STM32_HAL_TIMER->CNT)&0xFFFF;
     if( sTimCntLast > TimCntCurrent)
     {
         sTicks += 32768;    //时钟分辨率0.5mS，16bit是32768mS
@@ -75,13 +76,13 @@ uint32_t HAL_GetTick(void)
 void HAL_SuspendTick(void)
 {
     TIM_HandleTypeDef HalTimHandle;
-    HalTimHandle.Instance = CFG_STM32_HAL_TIMER;
+    HalTimHandle.Instance = STM32_HAL_TIMER;
     HAL_TIM_Base_Stop(&HalTimHandle);
 }
 void HAL_ResumeTick(void)
 {
     TIM_HandleTypeDef HalTimHandle;
-    HalTimHandle.Instance = CFG_STM32_HAL_TIMER;
+    HalTimHandle.Instance = STM32_HAL_TIMER;
     HAL_TIM_Base_Start(&HalTimHandle);
 }
 HAL_StatusTypeDef HAL_InitTick (uint32_t TickPriority)
@@ -93,7 +94,33 @@ __attribute__((weak)) void Hal_Timer_Clk_Enable(void)
 {
     //此处的函数在board.c中实现，用于使能对应的TIM的时钟
     //下面以TIM6为例
+#if(CFG_STM32_HAL_TIMER == 1)
+    STM32_HAL_TIMER = TIM1;
+    __HAL_RCC_TIM1_CLK_ENABLE();
+#elif(CFG_STM32_HAL_TIMER == 2)
+    STM32_HAL_TIMER = TIM2;
+    __HAL_RCC_TIM2_CLK_ENABLE();
+#elif(CFG_STM32_HAL_TIMER == 3)
+    STM32_HAL_TIMER = TIM3;
+    __HAL_RCC_TIM3_CLK_ENABLE();
+#elif(CFG_STM32_HAL_TIMER == 4)
+    STM32_HAL_TIMER = TIM4;
+    __HAL_RCC_TIM4_CLK_ENABLE();
+#elif(CFG_STM32_HAL_TIMER == 5)
+    STM32_HAL_TIMER = TIM5;
+    __HAL_RCC_TIM5_CLK_ENABLE();
+#elif(CFG_STM32_HAL_TIMER == 6)
+    STM32_HAL_TIMER = TIM6;
     __HAL_RCC_TIM6_CLK_ENABLE();
+#elif(CFG_STM32_HAL_TIMER == 7)
+    STM32_HAL_TIMER = TIM7;
+    __HAL_RCC_TIM7_CLK_ENABLE();
+#elif(CFG_STM32_HAL_TIMER == 8)
+    STM32_HAL_TIMER = TIM8;
+    __HAL_RCC_TIM8_CLK_ENABLE();
+#else
+#error "error ： 没有配置定时器！！";
+#endif
 }
 //此处用TIM6
 void HAL_TickInit(void)
@@ -103,15 +130,16 @@ void HAL_TickInit(void)
     Hal_Timer_Clk_Enable();
 
     uwPrescalerValue = ((CN_CFG_MCLK/4) / 1000) - 1;    //Counter Clock = 2K
-    HalTimHandle.Instance = CFG_STM32_HAL_TIMER;
+    HalTimHandle.Instance = STM32_HAL_TIMER;
     HalTimHandle.Init.Period        = 0xFFFFFFFF;
     HalTimHandle.Init.Prescaler     = uwPrescalerValue;
     HalTimHandle.Init.ClockDivision = 0;
     HalTimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
-    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+//    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 
     HAL_TIM_Base_DeInit(&HalTimHandle);
     HAL_TIM_Base_Init(&HalTimHandle);
+    MODIFY_REG(STM32_HAL_TIMER->CR1, TIM_CR1_ARPE, TIM_CR1_ARPE);
     HAL_TIM_Base_Start(&HalTimHandle);
 }
 #endif

@@ -79,6 +79,10 @@ void Sys_ModuleInit(void)
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 
+	//    //启动m0 以及Ck核
+	    extern void BootManage(void);
+	    BootManage();
+
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
 	//事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数

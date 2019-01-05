@@ -47,16 +47,14 @@
   <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
-  <qh_board>true</qh_board>
-  <dm9000a-brd>false</dm9000a-brd>
-  <ili9325-brd>true</ili9325-brd>
+  <board>true</board>
   <key_hard>false</key_hard>
-  <qh_1_lowpower>true</qh_1_lowpower>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
   <atsam4s>false</atsam4s>
   <atsamv7>false</atsamv7>
+  <csky>false</csky>
   <imxrt1052>false</imxrt1052>
   <lpc12xx>false</lpc12xx>
   <lpc17xx>false</lpc17xx>
@@ -71,6 +69,7 @@
   <stm32h7>false</stm32h7>
   <stm32L4>false</stm32L4>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
