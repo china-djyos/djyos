@@ -90,7 +90,6 @@
 
 
 //这里的gpio只定义了一部分 复用到不同的GPIO还需根据手册添加
-
 static const Pin uart1_pin[] = {
 
         {GPIO_A,PIN10,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
