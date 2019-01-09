@@ -60,6 +60,8 @@
 #include <djyos.h>
 #include <math.h>
 #include "stm32f7xx_hal_conf.h"
+#include <dbug.h>
+#include <filesystems.h>
 
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
@@ -134,7 +136,8 @@ static NAND_HandleTypeDef NAND_Handler;    //NAND FLASH句柄
 
 static s32 gb_NandFlashReady=-3;
 
-
+extern struct obj *s_ptDeviceRoot;
+s32 __nand_part_init(const char *fs,s32 MountPart,u32 bstart, u32 bcount, u32 doformat);
 //-----------------------------------------------------------------------------
 //功能:获取ECC的奇数位/偶数位个数
 //参数:flag： 0/1  = 奇数位/偶数
@@ -727,88 +730,37 @@ static bool_t WaitNandReady(void)
 
 }
 //-----------------------------------------------------------------------------
-//功能:
-//参数: ChipName --
-//      Clean -- 器件格式化;"1"--是;"0"--否。
-//返回: "0" -- 成功;
-//      "-1" -- 输入参数错误;
-//      "-2" -- 内存不足;
-//      "-3" -- 设备信息获取失败。
-//备注:
+// 功能：安装nand驱动
+// 参数：  TargetFs -- 要挂载的文件系统
+//      parts -- 分区数；
+//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_NAND(const char *ChipName, u32 Flags, u16 StartBlk)
+s32 ModuleInstall_NAND(const char *TargetFs,u8 parts,s32 TargetPart, ...)
 {
-    /*逻辑:
-       1.芯片管脚等基本设置;
-       2.(包括判断逻辑)获取芯片的信息;
-       3.在dev分支下建立NAND节点;
-       4.初始化NAND节点,包括FLASH的操作函数;
-    */
-    u32 Len;
-    struct FlashChip *Chip;
-    struct NandDescr ChipDesrc = {0};
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
 
-    if (NULL == ChipName)
+    va_start(list, TargetPart);
+    for(part=0; part<parts; part++)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "unavailable param! \r\n");
-        return (-1);
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(__nand_part_init(TargetFs,TargetPart,startblock, blocks, doformat))
+        {
+            error_printf("nand","cannot install fail.");
+            res = -1;
+            break;
+        }
     }
 
-    stm32f7_NAND_ControllerConfig();// 芯片管脚等基本配置
-
-    // 获取NAND信息
-    if(stm32f7_GetNandDescr(&ChipDesrc))
-    {
-        TraceDrv(FLASH_TRACE_ERROR, "解析NAND信息失败\r\n");
-        gb_NandFlashReady=-3;
-        return gb_NandFlashReady;
-    }
-
-    if(StartBlk >= ChipDesrc.BlksPerLUN * ChipDesrc.LUNs)
-        return (-1);
-
-    ChipDesrc.ReservedBlks = StartBlk;
-    ChipDesrc.Controller = HW_ECC_SUPPORTED;
-    ChipDesrc.BadMarkOffset = ChipDesrc.OOB_Size - 4 - 1;
-    Len = strlen (ChipName) + 1;
-
-    Chip = (struct FlashChip*)malloc(sizeof(struct FlashChip) + Len);
-    if (NULL == Chip)
-    {
-        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-        gb_NandFlashReady=-2;
-        return gb_NandFlashReady;
-    }
-
-    memset (Chip, 0x00, sizeof(*Chip));
-
-    Chip->Type            = F_NAND;
-    Chip->Descr.Nand      = ChipDesrc;
-    Chip->Ops.RdPage      = stm32f7_PageRead;
-    Chip->Ops.WrPage      = stm32f7_PageProgram;
-    Chip->Ops.ErsBlk      = stm32f7_BlockErase;
-    Chip->Ops.Special.Nand.ChkBlk = stm32f7_BadChk;
-    Chip->Ops.Special.Nand.MrkBad = stm32f7_BadMark;
-
-    strcpy(Chip->Name, ChipName);// 设备名
-
-    __nandescription = (struct NandDescr *)&(Chip->Descr);
-
-    Chip->Buf = (u8*)malloc(__nandescription->OOB_Size + __nandescription->BytesPerPage);// NAND底层缓冲
-    if(NULL == Chip->Buf)
-    {
-        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-        free(Chip);
-        gb_NandFlashReady=-2;
-        return gb_NandFlashReady;
-    }
-
-    dev_add(NULL, Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
-
-    if(Flags & FLASH_ERASE_ALL)
-        EarseWholeChip(Chip);
-    gb_NandFlashReady=0;
-    return (0);// 成功;
+    va_end(list);
+    return (res);
 }
 
 
@@ -1497,7 +1449,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
                 if(nandvalidbads((u32*)tmp))
                     escape = 1; // 存在坏块表，不擦除；
 
-                if(-1==end)
+                if(-1==(s32)end)
                     end = __nandescription->BlksPerLUN * __nandescription->LUNs;
                 else if (start)
                     end += start;
@@ -1689,18 +1641,19 @@ static s32 __nand_init(void)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
+// 功能：初始化nand
+// 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
+//		 bstart -- 起始块，bcount -- 该分区有多少块的容量，doformat -- 该分区是否格式化
+// 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __nand_part_init(u32 bstart, u32 bcount, u32 doformat)
+s32 __nand_part_init(const char *fs,s32 MountPart,u32 bstart, u32 bcount, u32 doformat)
 {
     struct umedia *um;
     struct uopt opt;
     char name[16], part[3];
-    static u8 count = 0;
-
+    static s32 count = 0;
+    char *FullPath;
     if(!__nandescription)
     {
         if(__nand_init())
@@ -1737,7 +1690,7 @@ s32 __nand_part_init(u32 bstart, u32 bcount, u32 doformat)
     opt.necc = 1;
     opt.secc = 0;
     opt.spare = 1;
-    if(-1 == bcount)
+    if(-1 == (s32)bcount)
     {
         bcount = __nandescription->BlksPerLUN * __nandescription->LUNs;
         bcount -= bstart;
@@ -1758,14 +1711,21 @@ s32 __nand_part_init(u32 bstart, u32 bcount, u32 doformat)
     um->type = nand;
     um->ubuf = (u8*)um + sizeof(struct umedia);
     um->ustart = bstart*__nandescription->PagesPerBlk; // 起始unit号
-    itoa(count++, part, 10);
+    itoa(count, part, 10);
     sprintf(name, "nand part %s", part);
     if(um_add((const char*)name, um))
     {
         printf("\r\n: erro : device : %s addition failed.", name);
         return (-1);
     }
-
+    if(MountPart == count)
+    {
+        FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name));
+        sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,name);	//获取该设备的全路径
+        FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
+        free(FullPath);
+    }
+    count++;
     printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, bstart, bcount);
     return (0);
 }

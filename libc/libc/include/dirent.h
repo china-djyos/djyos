@@ -75,7 +75,8 @@ struct __dirstream
     void *__fd; // `struct hurd_fd' pointer for descriptor.
     char *__data; // Directory block.
     int __entry_data; // Entry number `__data' corresponds to.
-    char *__ptr; // Current pointer into the block.，这个用于存放"struct drient"
+//  char *__ptr; // Current pointer into the block.，这个用于存放"struct drient"
+    struct dirent __ptr;    //djyos修改，用指针只能动态分配，不利于软件框架设计
     int __entry_ptr; // Entry number `__ptr' corresponds to.
     size_t __allocation; // Space allocated for the block.
     size_t __size; // Total valid data in the block.

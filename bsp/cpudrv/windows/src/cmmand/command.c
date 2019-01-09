@@ -93,7 +93,7 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
                 cmd_buf_len);
     s_ptRecvRingBufSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
     //以下建立windows 终端输入设备
-    sg_ptCmdDev = dev_add(NULL, "windows_cmd",
+    sg_ptCmdDev = dev_Create("windows_cmd",
                                 NULL,NULL,cmd_Open,NULL,
                                (fntDevWrite) cmd_DriverWrite,
                                (fntDevRead ) cmd_DriverRead,
@@ -125,7 +125,7 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
 
 exit_from_add_device:
     Lock_SempDelete(s_ptRecvRingBufSemp);
-    dev_delo(sg_ptCmdDev);
+    dev_DeleteAtObject(sg_ptCmdDev);
     return 0;
 }
 

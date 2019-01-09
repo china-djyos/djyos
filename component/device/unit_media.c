@@ -136,7 +136,7 @@ static s32 __um_open(struct objhandle *hdl, u32 mode, u32 timeout)
     memset(mc, 0x0, sizeof(struct umcontext));
     mc->opt= media->opt;
 
-    handle_linkcontext(hdl, (ptu32_t)mc);
+    handle_SetContext(hdl, (ptu32_t)mc);
     return (0);
 }
 
@@ -174,10 +174,10 @@ static s32 __um_write(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 
     dbuf = media->ubuf;
     buf = (u8*)data;
 
-    if(israw(hdl))
-        pos = offset & (0xFFFFFFFF);
-    else
-        pos = mc->offset + offset;
+//  if(israw(hdl))
+//      pos = offset & (0xFFFFFFFF);
+//  else
+//      pos = mc->offset + offset;
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->start + media->size))
 //    {
@@ -271,10 +271,10 @@ static s32 __um_read(struct objhandle *hdl, u8 *data, u32 len, u32 offset, u32 t
     dbuf = media->ubuf;
     buf = (u8*)data;
 
-    if(israw(hdl))
-        pos = offset & (0xFFFFFFFF);
-    else
-        pos = mc->offset + offset;
+//  if(israw(hdl))
+//      pos = offset & (0xFFFFFFFF);
+//  else
+//      pos = mc->offset + offset;
 
 //    if((pos > media->ustart + media->size) || ((pos+len) > media->ustart + media->size))
 //    {
@@ -348,30 +348,30 @@ static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
     return (0);
 }
 
-// ============================================================================
-// 功能：建立unit media设备类；
-// 参数：
-// 返回：
-// 备注：只会调用一次；
-// ============================================================================
-static inline struct obj *__isbuild(void)
-{
-    static u8 inited = 0;
-    static struct obj *mm;
-
-    if(inited)
-        return (mm);
-
-    mm = dev_group_addo("unit media");
-    if(!mm)
-    {
-        printf("\r\n: erro : device : cannot build \"unit media\".");
-        return (NULL);
-    }
-
-    inited = 1;
-    return (mm);
-}
+//// ============================================================================
+//// 功能：建立unit media设备类；
+//// 参数：
+//// 返回：
+//// 备注：只会调用一次；
+//// ============================================================================
+//static inline struct obj *__isbuild(void)
+//{
+//    static u8 inited = 0;
+//    static struct obj *mm;
+//
+//    if(inited)
+//        return (mm);
+//
+//    mm = dev_group_addo("unit media");
+//    if(!mm)
+//    {
+//        printf("\r\n: erro : device : cannot build \"unit media\".");
+//        return (NULL);
+//    }
+//
+//    inited = 1;
+//    return (mm);
+//}
 
 // ============================================================================
 // 功能：添加unit media设备;
@@ -384,14 +384,14 @@ s32 um_add(const char *name, struct umedia *media)
 {
     struct obj *mmo;
 
-    mmo = __isbuild();
-    if(!mmo)
-    {
-        error_printf("device","cannot add  \"%s\"<build>.", name);
-        return (-1);
-    }
+//  mmo = __isbuild();
+//  if(!mmo)
+//  {
+//      error_printf("device","cannot add  \"%s\"<build>.", name);
+//      return (-1);
+//  }
 
-    if(dev_addo(mmo, name, __um_open, __um_close, __um_write,
+    if(dev_Create(name, __um_open, __um_close, __um_write,
                 __um_read, __um_cntl, (ptu32_t)media))
         return (0);
 
@@ -399,42 +399,42 @@ s32 um_add(const char *name, struct umedia *media)
     return (-1);
 }
 
-// ============================================================================
-// 功能：在某个设备上安装Unit Media
-// 参数： um_init -- 设备驱动函数；
-//      parts -- 分区数；
-//      分区数据 -- 起始块，分区块数，是否格式化；
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
-                            u8 parts, ...)
-{
-    u8 part;
-    u32 startblock, blocks, doformat;
-    va_list list;
-    s32 res = 0;
-
-    if(!dev_init)
-    {
-        error_printf("device","cannot add unit-media(no driver).");
-        return (-1);
-    }
-
-    va_start(list, parts);
-    for(part=0; part<parts; part++)
-    {
-        startblock = (u32)va_arg(list, u32);
-        blocks = (u32)va_arg(list, u32);
-        doformat = (u32)va_arg(list, u32);
-        if(dev_init(startblock, blocks, doformat))
-        {
-            error_printf("device","cannot add unit-media(driver error).");
-            res = -1;
-            break;
-        }
-    }
-
-    va_end(list);
-    return (res);
-}
+//// ============================================================================
+//// 功能：在某个设备上安装Unit Media
+//// 参数： um_init -- 设备驱动函数；
+////      parts -- 分区数；
+////      分区数据 -- 起始块，分区块数，是否格式化；
+//// 返回：成功（0）；失败（-1）；
+//// 备注：
+//// ============================================================================
+//s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
+//                            u8 parts, ...)
+//{
+//    u8 part;
+//    u32 startblock, blocks, doformat;
+//    va_list list;
+//    s32 res = 0;
+//
+//    if(!dev_init)
+//    {
+//        error_printf("device","cannot add unit-media(no driver).");
+//        return (-1);
+//    }
+//
+//    va_start(list, parts);
+//    for(part=0; part<parts; part++)
+//    {
+//        startblock = (u32)va_arg(list, u32);
+//        blocks = (u32)va_arg(list, u32);
+//        doformat = (u32)va_arg(list, u32);
+//        if(dev_init(startblock, blocks, doformat))
+//        {
+//            error_printf("device","cannot add unit-media(driver error).");
+//            res = -1;
+//            break;
+//        }
+//    }
+//
+//    va_end(list);
+//    return (res);
+//}

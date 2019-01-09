@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arch>
+    <archname>arm968e-s</archname>
+    <compile-option>
+        <mcpu>arm968e-s</mcpu>
+    </compile-option>
+    <vendor-option>
+    </vendor-option>
+</arch>

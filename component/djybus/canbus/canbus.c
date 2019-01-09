@@ -175,7 +175,7 @@ struct CANBusCB *CAN_BusAdd(struct CanDev *pNewCanDev)
         goto exit_from_malloc;
     //将总线结点挂接到总线类型结点的子结点
     //OBJ_AddChild(s_ptCANBusType,NULL,(ptu32_t)NewCAN,pNewCanDev->ChipName);
-    NewCAN = obj_newchild(s_ptCANBusType, (fnObjOps)-1, 0, (ptu32_t)NewCAN,
+    NewCAN = obj_newchild(s_ptCANBusType, (fnObjOps)-1, (ptu32_t)NewCAN,
                                     (const char*)(pNewCanDev->ChipName));
     if(&NewCAN->CAN_BusNode == NULL)
         goto exit_from_add_node;
@@ -211,7 +211,7 @@ exit_from_can_bus_ring_buf:
 exit_from_can_bus_ring:
     free(&NewCAN->CAN_BusSemp);
 exit_from_can_bus_semp:
-    obj_del(&NewCAN->CAN_BusNode);
+    obj_Delete(&NewCAN->CAN_BusNode);
 exit_from_add_node:
     free(NewCAN);
 exit_from_malloc:
@@ -289,7 +289,7 @@ bool_t CAN_BusDelete(struct CANBusCB *DelCAN)
     bool_t result;
     if(NULL == DelCAN)
          return false;
-    if(obj_del(&DelCAN->CAN_BusNode))
+    if(obj_Delete(&DelCAN->CAN_BusNode))
         result = false;
     else
     {
@@ -309,7 +309,7 @@ bool_t CAN_BusDelete_s(struct CANBusCB *DelCAN)
     bool_t result;
     if(NULL == DelCAN)
         return false;
-    if(obj_del(&DelCAN->CAN_BusNode))
+    if(obj_Delete(&DelCAN->CAN_BusNode))
         result = false;
     else
     {

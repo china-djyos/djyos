@@ -263,7 +263,7 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
         return false;
 
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    temp = handle_multiplex(Kfp);
+    temp = handle_GetMultiplexHead(Kfp);
     InitStatus = handle_multievents(Kfp);
     //循环检查一个Object是否重复加入同一个MultiplexSets
     //如果ObjectHead=NULL,检查结果是不重复，后续处理能够正确运行。
@@ -322,7 +322,7 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
             }
             //同一个对象被多个MultiplexSets包含，用NextSets链接。
             //NextSets是单向链表，新对象插入链表头部
-            temp->NextSets = handle_multiplex(Kfp);
+            temp->NextSets = handle_GetMultiplexHead(Kfp);
             handle_setmultiplex(Kfp, temp);
             Lock_MutexPost(&MultiplexMutex);
             if (IsActived)
@@ -363,7 +363,7 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
     if ((Sets == NULL) || (Kfp == NULL))
         return false;
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = handle_multiplex(Kfp);
+    Object = handle_GetMultiplexHead(Kfp);
     following = NULL;
     while (Object != NULL)
     {       //查找被删除的对象控制块
@@ -444,7 +444,7 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
     if (Kfp == NULL)
         return false;
 //  Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = handle_multiplex(Kfp);
+    Object = handle_GetMultiplexHead(Kfp);
     while (Object != NULL)
     {
         Int_SaveAsynSignal();
@@ -496,11 +496,19 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
             }
         }
 
-        if ((ActivedFlag == true) && (false == Sets->SetsActived) )
+        if (ActivedFlag == true)
         {
-            Sets->SetsActived = ActivedFlag;
-            Int_RestoreAsynSignal();
-            Lock_SempPost(&Sets->Lock);
+            if(false == Sets->SetsActived)
+            {
+                Sets->SetsActived = ActivedFlag;
+                Int_RestoreAsynSignal();
+                Lock_SempPost(&Sets->Lock);
+            }
+            else
+            {
+                Sets->SetsActived = ActivedFlag;
+                Int_RestoreAsynSignal();
+            }
         }
         else if((ActivedFlag == false) && (true == Sets->SetsActived))
         {
@@ -510,8 +518,17 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
         }
         else
         {
-            Sets->SetsActived = ActivedFlag;
-            Int_RestoreAsynSignal();
+            if(true == Sets->SetsActived)
+            {
+                Sets->SetsActived = ActivedFlag;
+                Lock_SempPend(&Sets->Lock, 0);
+                Int_RestoreAsynSignal();
+            }
+            else
+            {
+                Sets->SetsActived = ActivedFlag;
+                Int_RestoreAsynSignal();
+            }
         }
 
         Object = Object->NextSets;

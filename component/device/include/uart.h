@@ -68,7 +68,7 @@ struct UartPollCB;
 typedef u32 (* UartStartSend)(ptu32_t PrivateTag);
 typedef u32 (*UartSendPkg)(ptu32_t PrivateTag, u8 *buf, u32 len);
 //typedef u32 (* UartDirectSend)(ptu32_t PrivateTag,u8 *send_buf,u32 len,u32 timeout);
-typedef ptu32_t (*UartControl)(ptu32_t PrivateTag,u32 cmd, u32 data1,u32 data2);
+typedef ptu32_t (*UartControl)(ptu32_t PrivateTag,u32 cmd, va_list *arg0);
 
 // 串口模块初始化结构体
 struct UartParam

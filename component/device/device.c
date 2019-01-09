@@ -82,10 +82,6 @@
 #include "../include/device.h"
 #include "component_config_devfile.h"
 
-static struct MemCellPool *__dev_struct_pool; // 设备控制块内存池头指针
-static struct MutexLCB __dev_sys_lock; // 保护设备安全
-static struct obj *__dev_sys_root; // TODO 返回object
-
 struct __device
 {
     fntDevOpen dOpen; //
@@ -97,32 +93,21 @@ struct __device
     ptu32_t UserTag;       // 应用程序设置的标签
 };
 
+struct obj *s_ptDeviceRoot; // TODO 返回object
+static struct MemCellPool *s_ptDevicePool; // 设备控制块内存池头指针
+static struct __device s_tDeviceInitPool[CFG_DEVFILE_LIMIT];
+static struct MutexLCB s_tDeviceMutex; // 保护设备安全
+static struct objhandle *s_ptDeviceDirHandle;
+
 // ============================================================================
 // 功能：是否为写完成返回操作
 // 参数：flags -- 文件使用标志；
 // 返回：（1）写完成返回；（0）非写完成返回；
 // 备注：用于判断设备的操作模式
 // ============================================================================
-inline s32 isbc(u32 flags)
+s32 handle_IsBlockComplete(u32 flags)
 {
-    if(flags & O_DBC)
-        return (1);
-
-    return (0);
-}
-
-// ============================================================================
-// 功能：是否裸操作，不考虑文件属性
-// 参数：had -- 被判断设备对象的句柄；
-// 返回：-1 参数错误 1具有RAW属性 0不具有RAW属性
-// 备注：用于判断设备的操作模式
-// ============================================================================
-inline s32 israw(struct objhandle *hdl)
-{
-    if(!hdl)
-        return (-1);
-
-    if(handle_mode(hdl) & O_DRAW)
+    if(flags & O_BLOCK_COMPLETE)
         return (1);
 
     return (0);
@@ -155,20 +140,24 @@ static struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
             res = dev->dOpen(devfile, flags, timeout);
             if(res)
             {
-                handle_free(devfile);
+                handle_Delete(devfile);
                 debug_printf("device","cannot open device \"%s\".", obj_name(ob));
                 return (NULL);
             }
+            obj_LinkHandle(devfile, ob);      //将objhandle与obj关联
+            return (devfile);
         }
+        else
+            return NULL;
     }
     else
     {
-        if(obj_isset(ob))
+        if(obj_isMount(ob))
         {
             // 操作的是"/dev"
             if(!test_directory(flags))
             {
-                handle_free(devfile);
+                handle_Delete(devfile);
                 return (NULL); // 只有安装点是目录，其他都是文件
             }
         }
@@ -178,7 +167,7 @@ static struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
         }
     }
 
-    return (devfile);
+    return NULL;
 }
 
 // ============================================================================
@@ -190,13 +179,13 @@ static struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
 static s32 __devclose(struct objhandle *hdl)
 {
     s32 res = 0;
-    struct __device *dev = (struct __device*)handle_val(hdl);
+    struct __device *dev = (struct __device*)handle_GetHostObjectPrivate(hdl);
 
     if(dev && dev->dClose)
         res = (s32)dev->dClose(hdl);
 
     if(!res)
-        handle_free(hdl);
+        handle_Delete(hdl);
 
     return (res);
 }
@@ -212,11 +201,11 @@ static s32 __devclose(struct objhandle *hdl)
 static s32 __devwrite(struct objhandle *hdl, u8 *data, u32 len)
 {
     u32 res = 0;
-    struct __device *dev = (struct __device*)handle_val(hdl);
+    struct __device *dev = (struct __device*)handle_GetHostObjectPrivate(hdl);
 
     if(dev&&dev->dWrite)
     {
-        res = dev->dWrite(hdl, data, len, 0, handle_timeout(hdl));
+        res = dev->dWrite(hdl, data, len, 0, handle_gettimeout(hdl));
     }
 
     return (res);
@@ -229,14 +218,14 @@ static s32 __devwrite(struct objhandle *hdl, u8 *data, u32 len)
 //      len -- 数据大小；
 // 备注：
 // ============================================================================
-static s32 __devread(struct objhandle *hdl, u8 *data, u32 len)
+static ssize_t __devread(struct objhandle *hdl, u8 *data, ssize_t len)
 {
     s32 res = 0;
-    struct __device *dev = (struct __device*)handle_val(hdl);
+    struct __device *dev = (struct __device*)handle_GetHostObjectPrivate(hdl);
 
     if(dev && dev->dRead)
     {
-        res = dev->dRead(hdl, data, len, 0, handle_timeout(hdl));
+        res = dev->dRead(hdl, data, len, 0, handle_gettimeout(hdl));
     }
 
     return (res);
@@ -252,14 +241,14 @@ static s32 __devread(struct objhandle *hdl, u8 *data, u32 len)
 static s32 __devdentry(struct objhandle *hdl, struct dirent *dentry)
 {
     if(!dentry->d_ino)
-        dentry->d_ino = (long)handle2obj(hdl);
+        dentry->d_ino = (long)handle_GetHostObj(hdl);
 
-    dentry->d_ino = (long)obj_foreach_child(handle2obj(hdl), (struct obj*)(dentry->d_ino));
+    dentry->d_ino = (long)obj_foreach_child(handle_GetHostObj(hdl), (struct obj*)(dentry->d_ino));
     if(dentry->d_ino)
     {
         strcpy(dentry->d_name, obj_name((struct obj*)(dentry->d_ino)));
         dentry->d_reclen = strlen(dentry->d_name);
-        if(obj_isset((struct obj*)dentry->d_ino))
+        if(obj_isMount((struct obj*)dentry->d_ino))
             dentry->d_type |= S_IFDIR;
         else
             dentry->d_type |= S_IFREG;
@@ -278,7 +267,7 @@ static s32 __devdentry(struct objhandle *hdl, struct dirent *dentry)
 // 返回：由具体命令决定
 // 备注：
 // ============================================================================
-static s32 __devcntl(struct objhandle *hdl, u32 cmd, ptu32_t arg0, ptu32_t arg1)
+static s32 __devcntl(struct objhandle *hdl, u32 cmd, va_list *arg0)
 {
     struct __device *dev;
     s32 ret = 0;
@@ -287,47 +276,56 @@ static s32 __devcntl(struct objhandle *hdl, u32 cmd, ptu32_t arg0, ptu32_t arg1)
     {
         case F_SETTIMEOUT:
         {
-            handle_settimeout(hdl, arg0); // arg0 = timeout;
+            u32 timeout;
+            timeout = va_arg(*arg0, u32);
+            handle_settimeout(hdl, timeout);
             break;
         }
 
         case F_GETTIMEOUT:
         {
-            u32 *timeout = (u32*)arg0;
-            *timeout = handle_timeout(hdl);
+            u32 *timeout;
+            timeout = va_arg(*arg0, u32 *);
+            *timeout = handle_gettimeout(hdl);
             break;
         }
 
         case F_GETDRVTAG:
         {
-            ptu32_t *drv = (ptu32_t*)arg0;
+            ptu32_t *drv;
+            drv = va_arg(*arg0, ptu32_t *);
             *drv = dev_GetDrvTag(Handle2fd(hdl));
             break;
         }
 
         case F_GETUSERTAG:
         {
-            ptu32_t *usr = (ptu32_t*)arg0;
+            ptu32_t *usr;
+            usr = va_arg(*arg0, ptu32_t *);
             *usr = dev_GetUserTag(Handle2fd(hdl));
             break;
         }
 
         case F_SETDRVTAG:
         {
-            dev_SetDrvTag(Handle2fd(hdl),arg0);
+            ptu32_t drv;
+            drv = va_arg(*arg0, ptu32_t);
+            dev_SetDrvTag(Handle2fd(hdl),drv);
             break;
         }
 
         case F_SETUSERTAG:
         {
-            dev_SetUserTag(Handle2fd(hdl),arg0);
+            ptu32_t user;
+            user = va_arg(*arg0, ptu32_t);
+            dev_SetUserTag(Handle2fd(hdl),user);
             break;
         }
 
         default:
-            dev = (struct __device*)handle_val(hdl);
+            dev = (struct __device*)handle_GetHostObjectPrivate(hdl);
             if(dev && dev->dCntl)
-                ret = dev->dCntl(hdl, cmd, arg0, arg1);
+                ret = dev->dCntl(hdl, cmd, arg0);
     }
 
     return (ret);
@@ -348,19 +346,58 @@ static s32 __devstat(struct obj *ob, struct stat *data)
     dev = (struct __device*)obj_GetPrivate(ob);
     if(dev)
     {
-        // TODO：当完成FLASH等块设备抽象后，利用basic逻辑完善块设备逻辑；
-        data->st_mode = S_IFCHR; // 设备文件都设计为字符（裸）类型；
+        data->st_mode = S_IFFLOW|S_IRUGO|S_IWUGO; // 设备文件都是流式数据；
         data->st_dev = (dev_t)dev;
     }
     else
     {
-        if(obj_isset(ob))
-            data->st_mode = S_IFDIR; // "/dev"节点为目录
-        else
-            printf("\r\n: dbug : device : stat device \"%s\" unknown(type).", obj_name(ob));
+        return -1;
     }
 
     return (0);
+}
+
+//----设备目录操作函数---------------------------------------------------------
+//功能：实现打开和读目录的功能。
+//参数：Target，参考函数指针类型 fnObjOps 的定义
+//      cmd，命令码，参见 CN_OBJ_CMD_OPEN 族定义
+//      para1，para2：与命令码相关
+//返回：与命令码相关
+//-----------------------------------------------------------------------------
+s32 Dev_DirObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+                         ptu32_t OpsArgs2, ptu32_t OpsArgs3)
+{
+    s32 result = CN_OBJ_CMD_EXECUTED;
+    switch(objcmd)
+    {
+        case CN_OBJ_CMD_OPEN:
+        {
+            obj_InuseUp((struct obj*)opsTarget);
+            *(struct objhandle **)OpsArgs1 = s_ptDeviceDirHandle;
+        }break;
+        case CN_OBJ_CMD_READDIR:
+        {
+            DIR *dir = (DIR*)OpsArgs1;
+            struct dirent *direntry;
+            if(dir->__fd == NULL)
+                dir->__fd = (struct obj*)opsTarget;
+            dir->__fd = obj_foreach_child((struct obj*)opsTarget,dir->__fd);
+            if(dir->__fd == NULL)
+                result = 1;
+            else
+            {
+                direntry = &dir->__ptr;
+                strcpy(direntry->d_name, obj_name((struct obj *)(dir->__fd)));
+                direntry->d_reclen = strlen(direntry->d_name);
+                direntry->d_type |= S_IFREG;
+                result = 0;
+            }
+        }break;
+        default:
+            result = CN_OBJ_CMD_UNSUPPORT;
+            break;
+    }
+    return result;
 }
 
 // ============================================================================
@@ -369,139 +406,106 @@ static s32 __devstat(struct obj *ob, struct stat *data)
 // 返回：
 // 备注：
 // ============================================================================
-static ptu32_t Dev_DevObjOps(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...)
+static s32 Dev_DevObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+                         ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-    va_list list;
+    s32 result = CN_OBJ_CMD_EXECUTED;
 
-    switch(ops)
+    switch(objcmd)
     {
-        case OBJOPEN:
+        case CN_OBJ_CMD_OPEN:
         {
-            struct obj *ob = (struct obj*)o_hdl;
-            u32 flags = (u32)args;
-            u32 notFind;
-
-            va_start(list, args);
-            notFind = va_arg(list, u32);
-            va_end(list);
-
-            if(notFind) // 设备都是都已经存在了的，不会找不到
-                return (0);
-
-            if(test_onlycreat(flags)) // dev设备不能新建、或者是目录
-                return (0);
-
-            return ((ptu32_t)__devopen(ob, flags, 0));
+            struct objhandle *hdl;
+            if((char*)OpsArgs3 != NULL)     // 设备都是都已经存在了的，opsTarget后应该是NULL
+            {
+                *(struct objhandle **)OpsArgs1 = NULL;
+                break;
+            }
+            if(test_onlycreat((u32)(*(u64*)OpsArgs2)))       // dev设备不能新建、或者是目录
+            {
+                *(struct objhandle **)OpsArgs1 = NULL;
+                break;
+            }
+            hdl = __devopen((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), CN_TIMEOUT_FOREVER);
+            *(struct objhandle **)OpsArgs1 = hdl;
+            break;
         }
 
-        case OBJCLOSE:
+//      case OBJ_TRAVERSE: // TODO : 这个是不是可以考虑不放在这里
+//      {
+//          struct objhandle *devfile = (struct objhandle*)opsTarget;
+//          struct dirent *ret = (struct dirent*)OpsArgs1;
+//
+//          return(__devdentry(devfile, ret));
+//      }
+
+        case CN_OBJ_CMD_READ:
         {
-            struct objhandle *devfile = (struct objhandle*)o_hdl;
-            return ((ptu32_t)__devclose(devfile));
+            ssize_t len;
+            struct objhandle *devfile = (struct objhandle*)opsTarget;
+
+            len = __devread(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
+            *(ssize_t *)OpsArgs1 = len;
+            break;
         }
 
-        case OBJCHILDS: // TODO : 这个是不是可以考虑不放在这里
+        case CN_OBJ_CMD_WRITE:
         {
-            struct objhandle *devfile = (struct objhandle*)o_hdl;
-            struct dirent *ret = (struct dirent*)args;
+            ssize_t len;
+            struct objhandle *devfile = (struct objhandle*)opsTarget;
 
-            return(__devdentry(devfile, ret));
+            len = __devwrite(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
+            *(ssize_t *)OpsArgs1 = len;
+            break;
         }
 
-        case OBJREAD:
+        case CN_OBJ_CMD_CLOSE:
         {
-            u32 len;
-            struct objhandle *devfile = (struct objhandle*)o_hdl;
-            u8 *buf = (u8*)args;
-
-            va_start(list, args);
-            len = va_arg(list, u32);
-            va_end(list);
-
-            return((ptu32_t)__devread(devfile, buf, len));
+            __devclose((struct objhandle*)opsTarget);
+            result = CN_OBJ_CMD_TRUE;
+            break;
         }
 
-        case OBJWRITE:
+        case CN_OBJ_CMD_STAT:
         {
-            u32 len;
-            struct objhandle *devfile = (struct objhandle*)o_hdl;
-            u8 *buf = (u8*)args;
-
-            va_start(list, args);
-            len = va_arg(list, u32);
-            va_end(list);
-
-            return((ptu32_t)__devwrite(devfile, buf, len));
-        }
-
-        case OBJSTAT:
-        {
-            char *path;
-            struct obj *ob = (struct obj*)o_hdl;
-            struct stat *ret = (struct stat*)args;
-
-            va_start(list, args);
-            path = (char *)va_arg(list, u32);
-            va_end(list);
-
+            char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
-                return (-1); // 设备的对象不存在（都是已缓存的）；
-
-            return((ptu32_t)__devstat(ob, ret));
+                return (-1);        // 查询的文件不存在；
+            if(__devstat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+            {
+                result = CN_OBJ_CMD_TRUE;
+            }
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
         }
 
-        case OBJIOCTL:
+        case CN_OBJ_FCNTL:
+        case CN_OBJ_IOCTL:
         {
-            ptu32_t arg0, arg1;
-            struct objhandle *devfile = (struct objhandle*)o_hdl;
-            u32 cmd = (u32)args;
+//          ptu32_t arg0, arg1;
+//          struct objhandle *devfile = (struct objhandle*)opsTarget;
+//          u32 cmd = (u32)OpsArgs1;
+//
+//          va_start(list, OpsArgs1);
+//          list = *((va_list*)va_arg(list, u32)); // 这里传进来的本事就是参数的地址
+//          arg0 = (ptu32_t)va_arg(list, u32);
+//          arg1 = (ptu32_t)va_arg(list, u32);
+//          va_end(list);
 
-            va_start(list, args);
-            arg0 = (ptu32_t)va_arg(list, u32);
-            list = *((va_list*)va_arg(list, u32)); // 这里传进来的本事就是参数的地址
-            //list = (va_list)va_arg(list, va_list);
-            //list = *((va_list*)va_arg(list, u32)); // 这里传进来的本事就是参数的地址
-            arg1 = (ptu32_t)va_arg(list, u32);
-            va_end(list);
-
-            return ((ptu32_t)__devcntl(devfile, cmd, arg0, arg1));
-        }
-
-        case OBJCTL:
-        {
-            ptu32_t arg0, arg1;
-            struct objhandle *devfile = (struct objhandle*)o_hdl;
-            u32 cmd = (u32)args;
-
-            va_start(list, args);
-            list = (va_list)va_arg(list, va_list);
-            //list = *((va_list*)va_arg(list, u32)); // 这里传进来的本事就是参数的地址
-            arg0 = (ptu32_t)va_arg(list, u32);
-            arg1 = (ptu32_t)va_arg(list, u32);
-            va_end(list);
-
-            return ((ptu32_t)__devcntl(devfile, cmd, arg0, arg1));
+            *(s32*)OpsArgs1 = __devcntl((struct objhandle*)opsTarget, OpsArgs2,
+                                                (va_list *)OpsArgs3);
+            break;
         }
 
         default:
         {
+            return CN_OBJ_CMD_UNSUPPORT;
             break;
         }
     }
 
-    return (-1);
-}
-
-// ============================================================================
-// 功能：对象是否是设备（类）；
-// 参数：
-// 返回：是（1）；否（0）；
-// 备注：
-// ============================================================================
-static s32 __isdev(struct obj *dev)
-{
-    dev = dev;
-    return (1);
+    return result;
 }
 
 // ============================================================================
@@ -519,7 +523,7 @@ void dev_SetDrvTag(s32 fd,ptu32_t DrvTag)
     if(fd >= 0)
     {
         hdl = fd2Handle(fd);
-        dev = (struct __device *)handle_val(hdl);
+        dev = (struct __device *)handle_GetHostObjectPrivate(hdl);
         dev->DrvTag = DrvTag;
     }
 
@@ -541,7 +545,7 @@ ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag)
     if(fd >= 0)
     {
         hdl = fd2Handle(fd);
-        dev = (struct __device *)handle_val(hdl);
+        dev = (struct __device *)handle_GetHostObjectPrivate(hdl);
         dev->UserTag = UserTag;
     }
 
@@ -562,7 +566,7 @@ ptu32_t dev_GetDrvTag(s32 fd)
     if(fd >= 0)
     {
         hdl = fd2Handle(fd);
-        dev = (struct __device *)handle_val(hdl);
+        dev = (struct __device *)handle_GetHostObjectPrivate(hdl);
         return (dev->DrvTag);
     }
 
@@ -583,309 +587,285 @@ ptu32_t dev_GetUserTag(s32 fd)
     if(fd >= 0)
     {
         hdl = fd2Handle(fd);
-        dev = (struct __device *)handle_val(hdl);
+        dev = (struct __device *)handle_GetHostObjectPrivate(hdl);
         return (dev->UserTag);
     }
 
     return (0);
 }
 
-// ============================================================================
-// 功能：添加设备子类
-// 参数：name -- 设备子类名；
-// 返回：成功（设备子类）；失败（NULL）；
-// 备注：
-// ============================================================================
-inline struct obj *dev_group_addo(char *name)
-{
-#if 0
-    struct obj *ob;
-    struct __portBasic *group;
+//// ============================================================================
+//// 功能：添加设备子类
+//// 参数：name -- 设备子类名；
+//// 返回：成功（设备子类）；失败（NULL）；
+//// 备注：
+//// ============================================================================
+//struct obj *dev_group_addo(char *name)
+//{
+//#if 0
+//    struct obj *ob;
+//    struct __portBasic *group;
+//
+//    group = malloc(sizeof(*group));
+//    if(!group)
+//        return(NULL);
+//
+//    handle_initbasic(group, O_RDWR);
+//    ob = of_virtualizeo(s_ptDeviceRoot, group, name);
+//    if(!ob)
+//    {
+//        return (NULL);
+//    }
+//
+//    return (ob);
+//#else
+//    struct obj *ob;
+//
+//    ob = obj_newchild(s_ptDeviceRoot, Dev_DevObjOps, 0, name);
+//    if(!ob)
+//        return (NULL);
+//
+//    if(obj_allow2set(ob)) // 允许对象上建立集合(类)；
+//    {
+//        obj_Delete(ob);
+//        return (NULL);
+//    }
+//
+//    if(obj_change2set(ob)) // 将对象转为集合（类）；
+//    {
+//        obj_Delete(ob);
+//        return (NULL);
+//    }
+//
+//    return (ob);
+//#endif
+//}
 
-    group = malloc(sizeof(*group));
-    if(!group)
-        return(NULL);
+//// ============================================================================
+//// 功能：删除设备子类
+//// 参数：grp -- 设备子类节点；
+//// 返回：成功（0）；失败（-1）；
+//// 备注：
+//// ============================================================================
+//s32 dev_group_delo(struct obj *grp)
+//{
+//    struct obj *dev0, *devx;
+//    u8 end = 0;
+//    s32 res = 0;
+//
+//    if((!grp)
+//       ||(!__isdev(grp)))
+//        return (-1);
+//
+//    dev0 = obj_child(grp);
+//    do
+//    {
+//        devx = obj_next(dev0);
+//        if(devx == dev0)
+//            end = 1; // 最后一个成员；
+//
+//        if(obj_isonduty(devx))
+//            res = -1; // 设备正在使用中，无法删除
+//        else
+//            obj_Delete(devx);
+//    }
+//    while(!end);
+//
+//    if(!res)
+//    {
+//        if(obj_isonduty(grp))
+//        {
+//            obj_Delete(grp);
+//        }
+//        else
+//        {
+//            res = -1; // 类目录正在使用中，无法删除
+//        }
+//    }
+//
+//    return (res);
+//}
 
-    handle_initbasic(group, O_RDWR);
-    ob = of_virtualizeo(__dev_sys_root, group, name);
-    if(!ob)
-    {
-        return (NULL);
-    }
+//// ============================================================================
+//// 功能：删除设备子类
+//// 参数：name -- 设备子类名；
+//// 返回：成功（0）；失败（-1）；
+//// 备注：
+//// ============================================================================
+//s32 dev_group_del(char *name)
+//{
+//    char *left, *tmp;
+//    u8 index = 0;
+//    struct obj *ob;
+//
+//    if(name)
+//    {
+//        // 判断group格式，拼接完整的/dev路径
+//        if('/'==name[0])
+//        {
+//            index = 1;
+//        }
+//
+//        if(('d'==name[index])&&('e'==name[index+1])
+//           &&('v'==name[index+2])&&('/'==name[index+3]))
+//        {
+//            tmp = name; // group已经含有了dev/
+//        }
+//        else
+//        {
+//            tmp = malloc(strlen(name)+4);
+//            if(!tmp)
+//            {
+//                printf("\r\n: warn : device : memory out(%s).", tmp);
+//                return (-1);
+//            }
+//
+//            sprintf(tmp, "%s/%s", "dev/", name);
+//        }
+//
+//        ob = obj_matchpath(tmp, &left, NULL);
+//        if((!left) || (ob))
+//        {
+//            free(tmp);
+//            return (-1);
+//        }
+//
+//        free(tmp);
+//    }
+//
+//    return (dev_group_delo(ob));
+//}
 
-    return (ob);
-#else
-    struct obj *ob;
-
-    ob = obj_newchild(__dev_sys_root, Dev_DevObjOps, O_RDWR, 0, name);
-    if(!ob)
-        return (NULL);
-
-    if(obj_allow2set(ob)) // 允许对象上建立集合(类)；
-    {
-        obj_del(ob);
-        return (NULL);
-    }
-
-    if(obj_change2set(ob)) // 将对象转为集合（类）；
-    {
-        obj_del(ob);
-        return (NULL);
-    }
-
-    return (ob);
-#endif
-}
-
-// ============================================================================
-// 功能：添加设备子类
-// 参数：name -- 设备子类名；
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-s32 dev_group_add(char *name)
-{
-    if(dev_group_addo(name))
-        return (0);
-
-    return (-1);
-}
-
-// ============================================================================
-// 功能：删除设备子类
-// 参数：grp -- 设备子类节点；
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-inline s32 dev_group_delo(struct obj *grp)
-{
-    struct obj *dev0, *devx;
-    u8 end = 0;
-    s32 res = 0;
-
-    if((!grp)
-       ||(!__isdev(grp)))
-        return (-1);
-
-    dev0 = obj_child(grp);
-    do
-    {
-        devx = obj_next(dev0);
-        if(devx == dev0)
-            end = 1; // 最后一个成员；
-
-        if(obj_isonduty(devx))
-            res = -1; // 设备正在使用中，无法删除
-        else
-            obj_del(devx);
-    }
-    while(!end);
-
-    if(!res)
-    {
-        if(obj_isonduty(grp))
-        {
-            obj_del(grp);
-        }
-        else
-        {
-            res = -1; // 类目录正在使用中，无法删除
-        }
-    }
-
-    return (res);
-}
-
-// ============================================================================
-// 功能：删除设备子类
-// 参数：name -- 设备子类名；
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-s32 dev_group_del(char *name)
-{
-    char *left, *tmp;
-    u8 index = 0;
-    struct obj *ob;
-
-    if(name)
-    {
-        // 判断group格式，拼接完整的/dev路径
-        if('/'==name[0])
-        {
-            index = 1;
-        }
-
-        if(('d'==name[index])&&('e'==name[index+1])
-           &&('v'==name[index+2])&&('/'==name[index+3]))
-        {
-            tmp = name; // group已经含有了dev/
-        }
-        else
-        {
-            tmp = malloc(strlen(name)+4);
-            if(!tmp)
-            {
-                printf("\r\n: warn : device : memory out(%s).", tmp);
-                return (-1);
-            }
-
-            sprintf(tmp, "%s/%s", "dev/", name);
-        }
-
-        ob = obj_matchpath(tmp, &left, NULL);
-        if((!left) || (ob))
-        {
-            free(tmp);
-            return (-1);
-        }
-
-        free(tmp);
-    }
-
-    return (dev_group_delo(ob));
-}
-
-// ============================================================================
-// 功能：添加一个设备到其设备类；
-// 参数：grp -- 设备子类；为NULL，则表示其是dev的子类；
-//      name -- 设备名；
-// 返回：成功（设备对象）；失败（NULL）；
-// 备注：
-// ============================================================================
-inline struct obj *dev_addo(struct obj *grpo, const char *name,
-                               fntDevOpen dopen, fntDevClose dclose,
+struct obj *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
                                fntDevWrite dwrite, fntDevRead dread,
                                fntDevCntl dcntl, ptu32_t DrvTag)
 {
-#if 0
-    struct device *device;
-    struct obj *devo;
 
-    if(!grpo)
-        grpo = __dev_sys_root;
+   struct obj *devo;
+   struct __device *dev;
 
-    device = malloc(sizeof(*device));
-    if(!device)
-    {
-        return (NULL);
-    }
 
-    device->dev = (struct __device*)Mb_Malloc(__dev_struct_pool, 0);
-    if(!device->dev)
-    {
-        free(device);
-        return (NULL);
-    }
+   dev = (struct __device*)Mb_Malloc(s_ptDevicePool, 0);
+   if(!dev)
+       return (NULL);
 
-    handle_initbasic(&device->basic, O_RDWR);
-    devo = of_virtualizeo(grpo, &device->basic, (char*)name);
-    if(!devo)
-    {
-        free(device->dev);
-        free(device);
-        return (NULL);
-    }
+   devo = obj_newchild(s_ptDeviceRoot, Dev_DevObjOps, (ptu32_t)dev, name);
+   if(!devo)
+   {
+       Mb_Free(s_ptDevicePool, dev);
+       return (NULL);
+   }
 
-    obj_setval(devo, (ptu32_t)device->dev);
-    device->dev->dClose = dclose;
-    device->dev->dOpen = dopen;
-    device->dev->dCntl = dcntl;
-    device->dev->dRead = dread;
-    device->dev->dWrite = dwrite;
-    device->dev->drv = dtag;
-
-    return (devo);
-#else
-    struct obj *devo;
-    struct __device *dev;
-
-    if(!grpo)
-    {
-        grpo = __dev_sys_root;
-    }
-    else
-    {
-        if((grpo!=__dev_sys_root)
-           &&(obj_parent(grpo)!=__dev_sys_root)) // 逻辑上设备类对象的父必须是dev（控制对象树深度）
-            return (NULL);
-    }
-
-    dev = (struct __device*)Mb_Malloc(__dev_struct_pool, 0);
-    if(!dev)
-        return (NULL);
-
-    devo = obj_newchild(grpo, NULL, O_RDWR, (ptu32_t)dev, name);
-    if(!devo)
-    {
-        Mb_Free(__dev_struct_pool, dev);
-        return (NULL);
-    }
-
-    dev->dClose = dclose;
-    dev->dOpen = dopen;
-    dev->dCntl = dcntl;
-    dev->dRead = dread;
-    dev->dWrite = dwrite;
-    dev->DrvTag = DrvTag;
-    return (devo);
-#endif
+   dev->dClose = dclose;
+   dev->dOpen = dopen;
+   dev->dCntl = dcntl;
+   dev->dRead = dread;
+   dev->dWrite = dwrite;
+   dev->DrvTag = DrvTag;
+   return (devo);
 }
 
-// ============================================================================
-// 功能：添加一个设备到其设备类；
-// 参数：grp -- 设备类；
-//       name -- 设备名；
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
-            fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag)
-{
-    struct obj *ob = __dev_sys_root;
-    char *left, *tmp;
-    u8 index = 0;
+//// ============================================================================
+//// 功能：添加一个设备到其设备类；
+//// 参数：grp -- 设备子类；为NULL，则表示其是dev的子类；
+////      name -- 设备名；
+//// 返回：成功（设备对象）；失败（NULL）；
+//// 备注：
+//// ============================================================================
+//struct obj *dev_addo(struct obj *grpo, const char *name,
+//                               fntDevOpen dopen, fntDevClose dclose,
+//                               fntDevWrite dwrite, fntDevRead dread,
+//                               fntDevCntl dcntl, ptu32_t DrvTag)
+//{
+//
+//    struct obj *devo;
+//    struct __device *dev;
+//
+//    if(!grpo)
+//    {
+//        grpo = s_ptDeviceRoot;
+//    }
+//    else
+//    {
+//        if((grpo!=s_ptDeviceRoot)
+//           &&(obj_parent(grpo)!=s_ptDeviceRoot)) // 逻辑上设备类对象的父必须是dev（控制对象树深度）
+//            return (NULL);
+//    }
+//
+//    dev = (struct __device*)Mb_Malloc(s_ptDevicePool, 0);
+//    if(!dev)
+//        return (NULL);
+//
+//    devo = obj_newchild(grpo, NULL, (ptu32_t)dev, name);
+//    if(!devo)
+//    {
+//        Mb_Free(s_ptDevicePool, dev);
+//        return (NULL);
+//    }
+//
+//    dev->dClose = dclose;
+//    dev->dOpen = dopen;
+//    dev->dCntl = dcntl;
+//    dev->dRead = dread;
+//    dev->dWrite = dwrite;
+//    dev->DrvTag = DrvTag;
+//    return (devo);
+//}
 
-    if(grp)
-    {
-        // 判断group格式，拼接完整的/dev路径
-        if('/' == grp[0])
-        {
-            index = 1;
-        }
-
-        if(('d' == grp[index]) && ('e' == grp[index+1]) &&
-           ('v' == grp[index+2]) && ('/' == grp[index+3]))
-        {
-            tmp = (char*)grp; // group已经含有了dev/
-        }
-        else
-        {
-            tmp = malloc(strlen(grp)+6);
-            if(!tmp)
-            {
-                warning_printf("device","memory out(%s).", tmp);
-                return (-1);
-            }
-
-            sprintf(tmp, "%s/%s", "/dev", grp);
-        }
-
-        ob = obj_matchpath(tmp, &left, NULL);
-        if(left||(!ob))
-        {
-            free(tmp);
-            return (-1);
-        }
-
-        free(tmp);
-    }
-
-    if(dev_addo(ob, name, dopen, dclose, dwrite, dread, dcntl, dtag))
-        return (0);
-
-    return (-1);
-}
+//// ============================================================================
+//// 功能：添加一个设备到其设备类；
+//// 参数：grp -- 设备类；
+////       name -- 设备名；
+//// 返回：成功（0）；失败（-1）；
+//// 备注：
+//// ============================================================================
+//s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
+//            fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag)
+//{
+//    struct obj *ob = s_ptDeviceRoot;
+//    char *left, *tmp;
+//    u8 index = 0;
+//
+//    if(grp)
+//    {
+//        // 判断group格式，拼接完整的/dev路径
+//        if('/' == grp[0])
+//        {
+//            index = 1;
+//        }
+//
+//        if(('d' == grp[index]) && ('e' == grp[index+1]) &&
+//           ('v' == grp[index+2]) && ('/' == grp[index+3]))
+//        {
+//            tmp = (char*)grp; // group已经含有了dev/
+//        }
+//        else
+//        {
+//            tmp = malloc(strlen(grp)+6);
+//            if(!tmp)
+//            {
+//                warning_printf("device","memory out(%s).", tmp);
+//                return (-1);
+//            }
+//
+//            sprintf(tmp, "%s/%s", "/dev", grp);
+//        }
+//
+//        ob = obj_matchpath(tmp, &left, NULL);
+//        if(left||(!ob))
+//        {
+//            free(tmp);
+//            return (-1);
+//        }
+//
+//        free(tmp);
+//    }
+//
+//    if(dev_addo(ob, name, dopen, dclose, dwrite, dread, dcntl, dtag))
+//        return (0);
+//
+//    return (-1);
+//}
 
 // ============================================================================
 // 功能：删除设备对象；
@@ -893,18 +873,15 @@ s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dcl
 // 返回：成功（0）；失败（-1）；
 // 备注：与文件系统接口要形成互斥；（要是在删除的过程中出现了使用）
 // ============================================================================
-inline s32 dev_delo(struct obj *devo)
+s32 dev_DeleteAtObject(struct obj *dev)
 {
     // struct device *device;
 
-    if((!devo)
-       ||(obj_isonduty(devo)) // 设备被使用中
-       ||(!__isdev(devo))) // 不是设备对象
+    if((!dev) ||(obj_isonduty(dev))) // 设备被使用中
         return (-1);
 
-    // TODO：增加删除设备控制；
-    Mb_Free(__dev_struct_pool, (void*)obj_GetPrivate(devo));
-    obj_del(devo);
+    Mb_Free(s_ptDevicePool, (void*)obj_GetPrivate(dev));
+    obj_Delete(dev);
     return (0);
 }
 
@@ -915,72 +892,37 @@ inline s32 dev_delo(struct obj *devo)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 dev_del(const char *grp, const char *name)
+s32 dev_DeleteAtName(const char *name)
 {
-    char *left, *tmp;
-    struct obj *ob = __dev_sys_root;
-    u8 index = 0;
+    char *left;
+    struct obj *ob;
 
-    if(grp)
-    {
-        // 判断group格式，拼接完整的/dev路径
-        if('/' == grp[0])
-        {
-            index = 1;
-        }
-
-        if(('d' == grp[index]) && ('e' == grp[index+1]) &&
-           ('v' == grp[index+2]) && ('/' == grp[index+3]))
-        {
-            tmp = (char*)grp; // group已经含有了dev/
-        }
-        else
-        {
-            tmp = malloc(strlen(grp)+4);
-            if(!tmp)
-            {
-                warning_printf("device","memory out(%s).", tmp);
-                return (-1);
-            }
-
-            sprintf(tmp, "%s/%s", "dev/", grp);
-        }
-
-        ob = obj_matchpath(tmp, &left, NULL);
-        if((!left) || (ob))
-        {
-            free(tmp);
-            return (-1);
-        }
-
-        free(tmp);
-    }
-
-    ob = obj_search_child(ob, name); // 查找设备节点；
+    ob = obj_search_child(s_ptDeviceRoot, name); // 查找设备节点；
     if(!ob)
         return (-1);
 
-    return(dev_delo(ob));
+    return(dev_DeleteAtObject(ob));
 }
 
 // ============================================================================
-// 功能：设备对象的设备标签；
+// 功能：从对象取设备的驱动标签；
 // 参数：devo -- 设备对象；
-// 返回：
-// 备注：TODO: INLINE
+// 返回：struct __device的 DrvTag 成员。出错返回-1，但用户以返回-1为出错条件要谨慎，因为
+//      DrvTag 的真实值也可能是-1.
+// 备注：如果对非 Dev 的 object 调用此函数，后果不可预料。
 // ============================================================================
-ptu32_t devo2drv(struct obj *devo)
+ptu32_t dev_GetDrvTagFromObj(struct obj *devboj)
 {
     struct __device *dev;
 
-    if((!devo)||(!__isdev(devo)))
+    if(!devboj)
         return (0);
 
-    dev = (struct __device*)obj_GetPrivate(devo);
+    dev = (struct __device*)obj_GetPrivate(devboj);
     if(dev)
         return (dev->DrvTag);
-
-    return (0);
+    else
+        return (0);
 }
 
 // ============================================================================
@@ -989,57 +931,49 @@ ptu32_t devo2drv(struct obj *devo)
 // 返回：设备对象的名字
 // 备注：
 // ============================================================================
-inline const char *devo2name(struct obj *devo)
+const char *dev_Name(struct obj *devo)
 {
-    if((devo)&&(__isdev(devo)))
+    if(devo)
         return (obj_name(devo));
 
     return (NULL);
 }
 
 // ============================================================================
-// 功能：设备文件系统安装
+// 功能：初始化设备文件系统
 // 参数：
 // 返回：
 // 备注：TODO
 // ============================================================================
-s32 mount_device_system(void)
+s32 ModuleInstall_dev(void)
 {
-    u8 *mem;
-
-    if(__dev_sys_root || __dev_struct_pool)
-    {
-        debug_printf("device","device file system has been installed.");
-        return (-1);
-    }
-
-    mem = M_Malloc(CFG_DEVFILE_LIMIT * sizeof(struct __device), 0x1);
-    if(!mem)
-    {
-        debug_printf("device","cannot install device file system(memory out).");
-        return (-1);
-    }
-
-    __dev_struct_pool = Mb_CreatePool((void*)mem,
+    s_ptDevicePool = Mb_CreatePool((void*)s_tDeviceInitPool,
                                    CFG_DEVFILE_LIMIT,
                                    sizeof(struct __device),
                                    0, 0,
                                    "设备控制块池");
-    if(!__dev_struct_pool)
+    if(!s_ptDevicePool)
     {
         debug_printf("device","cannot install device file system(pool).");
         return (-1);
     }
 
-    Lock_MutexCreate_s(&__dev_sys_lock, "dev");
-    __dev_sys_root = obj_newchild_set(objsys_root(), "dev", Dev_DevObjOps, 0, O_RDWR);
-    if(!__dev_sys_root)
+    Lock_MutexCreate_s(&s_tDeviceMutex, "dev");
+    s_ptDeviceRoot = obj_newchild(obj_root(), Dev_DirObjOps, 0, "dev");
+    s_ptDeviceDirHandle = handle_new();
+    if((NULL == s_ptDeviceRoot) ||(NULL == s_ptDeviceDirHandle))
     {
+        obj_Delete(s_ptDeviceRoot);
+        handle_Delete(s_ptDeviceDirHandle);
         debug_printf("device","cannot install device file system(mount).");
         return (-1);
     }
-
-    return (0);
+    else
+    {
+        handle_init(s_ptDeviceDirHandle,s_ptDeviceRoot,O_DIRECTORY,0);
+        obj_LinkHandle(s_ptDeviceDirHandle,s_ptDeviceRoot);
+        return (0);
+    }
 }
 
 // ============================================================================
@@ -1060,16 +994,16 @@ s32 DevOpen(const char *name, s32 flags, u32 timeout)
     struct obj *dev;
     struct objhandle *devfile = NULL;
 
-    if(!Lock_MutexPend(&__dev_sys_lock, timeout))
+    if(!Lock_MutexPend(&s_tDeviceMutex, timeout))
         return (-1);
 
-    dev = obj_search_path(__dev_sys_root, name); // 在设备目录中搜索设备
+    dev = obj_search_path(s_ptDeviceRoot, name); // 在设备目录中搜索设备
     if(dev)
     {
-        devfile = __devopen(dev, (flags|O_DRAW), timeout);
+        devfile = __devopen(dev, flags, timeout);
     }
 
-    Lock_MutexPost(&__dev_sys_lock);
+    Lock_MutexPost(&s_tDeviceMutex);
     if(!devfile)
         return (-1);
 
@@ -1094,7 +1028,7 @@ s32 DevClose(s32 fd)
     devFile = fd2Handle( dwFD );
     if(devFile == NULL)
         return false;
-    ob = handle2obj(devFile);
+    ob = handle_GetHostObj(devFile);
     dev = (struct __device *)OBJ_GetPrivate(ob);
     Mode = (s32)KF_GetFileContext(devFile);
 
@@ -1151,7 +1085,7 @@ s32 DevRead(s32 fd, void *buf, u32 len, u32 offset, u32 timeout)
     if(!devfile)
         return (0);
 
-    dev = (struct __device*)handle_val(devfile);
+    dev = (struct __device*)handle_GetHostObjectPrivate(devfile);
     if(dev && dev->dRead)
         return (dev->dRead(devfile, buf, len, offset, timeout));
 
@@ -1182,7 +1116,7 @@ s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout)
     if(!devfile)
         return (0);
 
-    dev = (struct __device*)handle_val(devfile);
+    dev = (struct __device*)handle_GetHostObjectPrivate(devfile);
     if(dev&&dev->dWrite)
         return (dev->dWrite(devfile, buf, len, offset, timeout));
 
@@ -1193,23 +1127,23 @@ s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout)
 // 功能：控制设备.
 // 参数：fd -- 设备指针
 //       dwCmd -- 命令号，driver.h中预定义了一些命令，以及用户命令的使用规则，可参阅
-//          常量CN_DEV_CTRL_START定义附近代码。
+//          常量 CN_DEV_CTRL_START 定义附近代码。
 //       data1，data2 -- 控制命令所需要的参数，由设备开发者定义
 // 返回：-1表示参数检查出错，其他值由设备开发者定义
 // 备注：
 // ============================================================================
 s32 DevCntl(s32 fd, u32 dwCmd, ptu32_t data1, ptu32_t data2)
 {
-    struct __device *dev;
-    struct objhandle *devfile;
-
-    devfile = fd2Handle(fd);
-    if(!devfile)
-        return (-1);
-
-    dev = (struct __device*)handle_val(devfile);
-    if(dev && dev->dCntl)
-        return (dev->dCntl(devfile, dwCmd, data1, data2));
-
+//    struct __device *dev;
+//    struct objhandle *devfile;
+//
+//    devfile = fd2Handle(fd);
+//    if(!devfile)
+//        return (-1);
+//
+//    dev = (struct __device*)handle_GetHostObjectPrivate(devfile);
+//    if(dev && dev->dCntl)
+//        return (dev->dCntl(devfile, dwCmd, data1, data2));
+//
     return (-1);
 }

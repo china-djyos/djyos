@@ -52,7 +52,7 @@
 #include <stdint.h>
 
 //these two functions used by the Ethernet working
-bool_t ResolveMacByArp(u32 ippeer,u32 iphost,void *iface,u8 *macbuf);
+bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf);
 
 #endif /* __ARP_H */
 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<boards>
+   <board>sr1208</board>
+   <board>sr1263</board>
+   <board>sr1266</board>
+   <board>sr2711</board>
+   <board>sr3252</board>
+   <board>sr5261</board>
+   <board>sr5333-v2.0</board>
+   <board>sr5335</board>
+   <board>sr7363</board>
+   <board>ty82xx</board>
+   <board>APOLLO-STM32F7</board>
+   <board>EXPLORER-stm32f4</board>
+   <board>imxrt1052-evk</board>
+   <board>NUCLEO-F746ZG</board>
+   <board>NUCLEO-F767ZI</board>
+   <board>NUCLEO-H743ZI</board>
+   <board>NUCLEO-L476RG</board>
+   <board>NuvotonM487</board>
+   <board>qh_1</board>
+   <board>SAMV71Xplained</board>
+   <board>stm32f103-empty</board>
+   <board>stm32f3-empty</board>
+   <board>STM32F756G-EVAL2</board>
+   <board>STM32H743I-EVAL</board>
+   <board>stm32l433-empty</board>
+   <board>stm32l475-empty</board>
+   <board>zq1201</board>
+   <board>zq1201_ck</board>
+</boards>

@@ -63,7 +63,12 @@
 
 #include "ftp.h"
 #include "dbug.h"
-//make the string ip to net address
+//------------------------------------------------------------------------------
+//功能：字符串地址转整数IPV4地址，字符串可以是点分十进制的，也可以是主机名。
+//参数：string，IPV4 地址，或者主机名
+//     addr，返回结果，网络字节序
+//返回：true=成功，false= 失败
+//------------------------------------------------------------------------------
 static bool_t  __String2Ip(const char *string,struct in_addr *addr)
 {
     bool_t ret = false;

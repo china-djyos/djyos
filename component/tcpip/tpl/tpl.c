@@ -51,10 +51,10 @@
 
 typedef struct
 {
-    int                af_inet;
-    int                type;
-    int                protocol;
-    tagTlayerProto    *proto;
+    int                af_inet;     //在socket.h中定义，例如： AF_INET
+    int                type;        //在socket.h中定义，例如： SOCK_DGRAM
+    int                protocol;    //在socket.h中定义，例如： IPPROTO_UDP
+    struct TPL_ProtocalOps  *proto;       //在各协议模块中初始化
 }tagTplProtoItem;
 static tagTplProtoItem    *pTplProtoTab = NULL;
 static struct MutexLCB    *pTplProtoSync = NULL;
@@ -100,10 +100,10 @@ EXIT_MEMFAIL:
 // RETURN  :the proto found or NULL failed
 // INSTRUCT:
 // =============================================================================
-tagTlayerProto *TPL_GetProto(int family, int type, int protocol)
+struct TPL_ProtocalOps *TPL_GetProto(int family, int type, int protocol)
 {
     int i = 0;
-    tagTlayerProto *result = NULL;
+    struct TPL_ProtocalOps *result = NULL;
 
     if((NULL!=pTplProtoTab)&&mutex_lock(pTplProtoSync))
     {
@@ -129,12 +129,12 @@ tagTlayerProto *TPL_GetProto(int family, int type, int protocol)
 // RETURN  :true success while false failed
 // INSTRUCT:
 // =============================================================================
-bool_t TPL_RegisterProto(int family, int type, int protocol,tagTlayerProto *proto)
+bool_t TPL_RegisterProto(int family, int type, int protocol,struct TPL_ProtocalOps *proto)
 {
     int i = 0;
 
     bool_t result = false;
-    tagTlayerProto *tmp = NULL;
+    struct TPL_ProtocalOps *tmp = NULL;
 
     if((NULL!=pTplProtoTab)&&mutex_lock(pTplProtoSync))
     {

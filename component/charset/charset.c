@@ -79,7 +79,7 @@ bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name)
     if(s_ptCharsetDir == NULL)
         return (FALSE);       // 字符集目录未创建
 
-    encoding->HostObj = obj_newchild(s_ptCharsetDir,(fnObjOps)-1,0,(ptu32_t)encoding,name);
+    encoding->HostObj = obj_newchild(s_ptCharsetDir,(fnObjOps)-1,(ptu32_t)encoding,name);
     if(!encoding->HostObj)
     {
         return (FALSE);
@@ -98,7 +98,7 @@ ptu32_t ModuleInstall_Charset(ptu32_t para)
 {
     s_ptCurCharset = NULL;
     // 创建字符集目录
-    s_ptCharsetDir = obj_newchild(objsys_root(),(fnObjOps)-1,0,0,CN_CHAR_ENCODING_RSC_TREE);
+    s_ptCharsetDir = obj_newchild(obj_root(),(fnObjOps)-1,0,CN_CHAR_ENCODING_RSC_TREE);
     if(s_ptCharsetDir)
     {
         return 1;

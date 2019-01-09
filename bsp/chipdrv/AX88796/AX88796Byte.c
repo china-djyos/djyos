@@ -535,10 +535,10 @@ static bool_t __Ax88796Rst(tagAx88796Pri  *pri)
 // 返回值  ：true发送成功  false发送失败。
 // 说明    ：采用拷贝的方式发送，后续考虑使用链表发送
 // =============================================================================
-bool_t Ax88796Snd(tagNetDev *dev,tagNetPkg *pkglst,u32 netdevtask)
+bool_t Ax88796Snd(struct NetDev *dev,struct NetPkg *pkglst,u32 netdevtask)
 {
     bool_t  result;
-    tagNetPkg *tmp;
+    struct NetPkg *tmp;
     u8 *src;
     u8 *dst;
     u8 *buf;
@@ -560,22 +560,23 @@ bool_t Ax88796Snd(tagNetDev *dev,tagNetPkg *pkglst,u32 netdevtask)
         dst = buf;
         //move all the package to the send buf
         tmp = pkglst;
-        sndlen = 0;
-        while(NULL != tmp)
-        {
-            src = (u8 *)(tmp->buf + tmp->offset);
-            memcpy((void *)dst,(void *)src,tmp->datalen);
-            sndlen +=tmp->datalen;
-            dst+=tmp->datalen;
-            if(PKG_ISLISTEND(tmp))
-            {
-                tmp = NULL;
-            }
-            else
-            {
-                tmp = tmp->partnext;
-            }
-        }
+        sndlen = PkgFrameDataCopy(tmp,dst);
+//      sndlen = 0;
+//      while(NULL != tmp)
+//      {
+//          src = (u8 *)(tmp->buf + tmp->offset);
+//          memcpy((void *)dst,(void *)src,tmp->datalen);
+//          sndlen +=tmp->datalen;
+//          dst+=tmp->datalen;
+//          if(PkgIsBufferEnd(tmp))
+//          {
+//              tmp = NULL;
+//          }
+//          else
+//          {
+//              tmp = PkgGetNextUnit(tmp);
+//          }
+//      }
         //ok, call the api to send the data
         result = Net_PCToNIC(pri,sndlen,buf);
         Lock_MutexPost(pri->devsync);
@@ -607,7 +608,7 @@ static ptu32_t __DevRcvMain(void)
     rcvDealer       fnHook;
     u8              *src;
     u8              *dst;
-    tagNetPkg       *pkg;
+    struct NetPkg       *pkg;
     tagAx88796Pri   *pri = NULL;
     Djy_GetEventPara((ptu32_t *)&pri,NULL);
     if(NULL != pri)
@@ -628,11 +629,13 @@ static ptu32_t __DevRcvMain(void)
                         pkg = PkgMalloc(len,CN_PKLGLST_END);
                         if(NULL != pkg)
                         {
-                            dst = (u8 *)(pkg->offset+ pkg->buf);
+                            dst = PkgGetCurrentBuffer(pkg);
+//                          dst = (u8 *)(pkg->offset+ pkg->buf);
                             src = (u8 *)pri->rcvbuf;
                             src += 4;  //前面四字节为包头信息
                             memcpy((void *)dst,(void *)src, len);
-                            pkg->datalen = len;
+                            PkgSetDataLen(pkg, len);
+//                          pkg->datalen = len;
                             NetDev_PostPkg(pri->devhandle,pkg);
                             PkgTryFreePart(pkg);
                         }
@@ -814,7 +817,7 @@ tagAx88796Pri *Ax88796Install(tagAx88796Para *para)
     devpara.devfunc = CN_IPDEV_NONE;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, ax88796->mac,CN_MACADDR_LEN);
     devpara.name = ax88796->name;
-    devpara.private = (ptu32_t)ax88796;
+    devpara.Private = (ptu32_t)ax88796;
     devpara.linklen = 14;
     devpara.pkglen = 1500;
     ax88796->devhandle = (void *) NetDev_InstallDev(&devpara);

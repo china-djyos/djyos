@@ -184,7 +184,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
         goto exit_from_malloc;
 
     //将总线结点挂接到总线类型结点的子结点
-    IICDev = obj_newchild(s_ptIICBusType, (fnObjOps)-1, 0, (ptu32_t)NewIIC,
+    IICDev = obj_newchild(s_ptIICBusType, (fnObjOps)-1, (ptu32_t)NewIIC,
                                     (const char*)(NewIICParam->BusName));
     if(IICDev == NULL)
         goto exit_from_add_node;
@@ -221,7 +221,7 @@ struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
 exit_from_iic_buf_semp:
     Lock_SempDelete(NewIIC->IIC_BusSemp);
 exit_from_iic_bus_semp:
-    obj_del(NewIIC->HostObj);
+    obj_Delete(NewIIC->HostObj);
 exit_from_add_node:
     free(NewIIC);
 exit_from_malloc:
@@ -242,7 +242,7 @@ bool_t IIC_BusDelete(struct IIC_CB *DelIIC)
     bool_t result;
     if(NULL == DelIIC)
         return false;
-    if(obj_del(DelIIC->HostObj))
+    if(obj_Delete(DelIIC->HostObj))
     {
         result = false;
     }
@@ -302,7 +302,7 @@ struct IIC_Device *IIC_DevAdd(const char *BusName ,const char *DevName, u8 DevAd
     NewDev->DevAddr              = DevAddr;
     NewDev->BitOfMemAddrInDevAddr = BitOfMaddrInDaddr;
     NewDev->BitOfMemAddr          = BitOfMaddr;
-    NewDev->HostObj = obj_newchild(IIC->HostObj, (fnObjOps)-1, 0, (ptu32_t)NewDev, DevName);
+    NewDev->HostObj = obj_newchild(IIC->HostObj, (fnObjOps)-1, (ptu32_t)NewDev, DevName);
     if(NewDev->HostObj == NULL)
     {
         free(NewDev);
@@ -324,7 +324,7 @@ bool_t IIC_DevDelete(struct IIC_Device *DelDev)
     if(NULL == DelDev)
         return false;
 
-    if(obj_del(DelDev->HostObj))
+    if(obj_Delete(DelDev->HostObj))
     {
         result = false;
     }

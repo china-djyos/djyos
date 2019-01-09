@@ -128,8 +128,8 @@ u8 writh_chunnel_buf[CFG_GKERNEL_CMD_DEEP];
 //-----------------------------------------------------------------------------
 bool_t ModuleInstall_GK(void)
 {
-    s_ptDisplayDir = obj_newchild(objsys_root(), (fnObjOps)-1, 0, 0, "display");
-    s_ptWindowDir = obj_newchild(objsys_root(), (fnObjOps)-1, 0, 0, "gkwindow");
+    s_ptDisplayDir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "display");
+    s_ptWindowDir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "gkwindow");
 
     Ring_Init(&g_tGkChunnel.ring_syscall,(u8 *)writh_chunnel_buf,CFG_GKERNEL_CMD_DEEP);
 
@@ -188,8 +188,8 @@ exit_error:
     Lock_MutexDelete(g_tGkChunnel.syscall_mutex);
     MsgQ_Delete(g_tGkChunnel.usercall_msgq);
 
-    obj_del(s_ptDisplayDir);
-    obj_del(s_ptWindowDir);
+    obj_Delete(s_ptDisplayDir);
+    obj_Delete(s_ptWindowDir);
     return false;
 }
 
@@ -508,11 +508,11 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     display->z_topmost = desktop;
     display->desktop = desktop;
     clip = (struct ClipRect*)Mb_Malloc(g_ptClipRectPool,0);
-    NewWindow = obj_newchild(s_ptWindowDir, (fnObjOps)-1, 0, (ptu32_t)desktop, (const char*)(desktop->win_name));
+    NewWindow = obj_newchild(s_ptWindowDir, (fnObjOps)-1, (ptu32_t)desktop, (const char*)(desktop->win_name));
     if((clip == NULL) || (NewWindow == NULL))
     {
         Mb_Free(g_ptClipRectPool, clip);
-        obj_del(NewWindow);
+        obj_Delete(NewWindow);
         return NULL;
     }
     desktop->HostObj = NewWindow;
@@ -530,7 +530,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
                 display->desktop = NULL;
                 M_FreeHeap(desktop->changed_msk.bm_bits,display->DisplayHeap);
                 Mb_Free(g_ptClipRectPool,clip);
-                obj_del(NewWindow);
+                obj_Delete(NewWindow);
                 __gk_vfree(display,desktop);
                 Djy_SaveLastError(EN_GK_NO_MEMORY);
                 debug_printf("gkwin","显存不足\n\r");
@@ -551,7 +551,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
         else               //分配显存失败，
         {
             Mb_Free(g_ptClipRectPool,clip);
-            obj_del(NewWindow);
+            obj_Delete(NewWindow);
             display->z_topmost = NULL;
             display->desktop = NULL;
             Djy_SaveLastError(EN_GK_NO_MEMORY);
@@ -703,7 +703,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     //以下把新窗口连接到资源队列中，并插入到z轴中
     if(obj_child(para->parent_gkwin->HostObj) == NULL)  //父窗口无子窗口
     {
-        NewWindow = obj_newchild(parent->HostObj, (fnObjOps)-1, 0, (ptu32_t)gkwin,
+        NewWindow = obj_newchild(parent->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                     (const char*)(gkwin->win_name));
         if(NewWindow == NULL)
             return NULL;
@@ -737,7 +737,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
 //            NewWindow = OBJ_AddToPrevious(target_section->HostObj, NULL, (ptu32_t)gkwin,
 //                                             (const char *)(gkwin->win_name));
             move_end = __GK_GetZsectionEnd(target_section);
-            NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, 0, (ptu32_t)gkwin,
+            NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                      (const char *)(gkwin->win_name));
             if(NewWindow == NULL)
                 return NULL;
@@ -762,7 +762,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
             {
 //                NewWindow = OBJ_AddToPrevious(target_section->HostObj, NULL, (ptu32_t)gkwin,
 //                                                (const char *)(gkwin->win_name));
-                NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, 0, (ptu32_t)gkwin,
+                NewWindow = obj_newprev(target_section->HostObj, (fnObjOps)-1, (ptu32_t)gkwin,
                                          (const char *)(gkwin->win_name));
                 if(NewWindow == NULL)
                     return NULL;
@@ -772,7 +772,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
                 //新窗口在资源队列中处于同级窗口最后端
 //                NewWindow = OBJ_AddToNext(target_section->HostObj, NULL, (ptu32_t )gkwin,
 //                                            (const char*)(gkwin->win_name));
-                NewWindow = obj_newnext(target_section->HostObj, (fnObjOps)-1, 0, (ptu32_t )gkwin,
+                NewWindow = obj_newnext(target_section->HostObj, (fnObjOps)-1, (ptu32_t )gkwin,
                                             (const char*)(gkwin->win_name));
                 if(NewWindow == NULL)
                     return NULL;
@@ -1497,7 +1497,7 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
         gkwin->disp->z_topmost = gkwin->z_back;
     gkwin->z_back->z_top = gkwin->z_top;
     gkwin->z_top->z_back = gkwin->z_back;
-    obj_del(gkwin->HostObj);
+    obj_Delete(gkwin->HostObj);
     if(gkwin->visible_clip != NULL)
         gkwin->disp->reset_clip = true;
     if(gkwin->disp->frame_buffer != NULL)

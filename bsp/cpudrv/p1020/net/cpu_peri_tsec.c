@@ -39,7 +39,7 @@
 typedef struct TsecSndPkgBuf
 {
     struct TsecSndPkgBuf *nxt;
-    tagNetPkg *plst;
+    struct NetPkg *plst;
     u8 pkgnum;
 }tagTsecSndPkgBuf;
 
@@ -54,7 +54,7 @@ struct tsec_info_struct
     u32  flags;
     unsigned char enetaddr[6];
     void *priv;
-    
+
     u8  devno;
     tagTsecSndPkgBuf   *sndpkgbufhead;
     tagTsecSndPkgBuf   *sndpkgbuftail;
@@ -1114,16 +1114,16 @@ bool_t module_tsec_init(s32 num,u8 last_mac)
     s32 count;
     if(num > ARRAY_SIZE(tsec_info))
         return false;
-    
+
     //初始化tsec网口结构体参数函数
-    if(tsec_initialize(&tsec_info[num],num,last_mac))   
+    if(tsec_initialize(&tsec_info[num],num,last_mac))
     {
         //tsec网口硬件初始化函数
-        count = tsec_init(&tsec_info[num]); 
+        count = tsec_init(&tsec_info[num]);
         if(count == 0)
         return true;
     }
-    
+
     return false;
 }
 

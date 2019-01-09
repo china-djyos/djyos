@@ -147,8 +147,8 @@
 //initialize the vlan,you could call the vlan function to set
 static u16   gVlanInitialize[CN_DEV_NUM]=
 {0x1f,0x1f,0x1f,0x1f,0x1f,0x1f};
-//which means.port 0,1,2,3,4could send frame to port 5, but fram could not
-//transmit between them;port 5 could snd fram to port 0,1,2,3,4
+//which means.port 0,1,2,3,4could send frame to port 5, but frame could not
+//transmit between them;port 5 could snd frame to port 0,1,2,3,4
 
 
 __attribute__((weak))  u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value)

@@ -76,7 +76,7 @@
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
+static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32 devtask,\
         u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t ret = false;
@@ -94,7 +94,7 @@ static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
 //备注:
 //作者:zhangqf@上午9:18:35/2016年12月29日
 //-----------------------------------------------------------------------------
-static bool_t  __LinIn(void *iface,tagNetPkg *pkg)
+static bool_t  __LinIn(void *iface,struct NetPkg *pkg)
 {
     return LinkPush(iface,pkg,EN_LINKPROTO_IPV4);
 }
@@ -110,7 +110,7 @@ bool_t LinkRawInit(void)
 {
     bool_t ret;
     //first we will register a loop link type to the link hal
-    tagLinkOps   ops;
+    struct LinkOps   ops;
     memset(&(ops),0,sizeof(ops));
     ops.linkin = __LinIn;
     ops.linkout =__LinkOut;

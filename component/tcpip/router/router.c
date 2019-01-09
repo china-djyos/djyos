@@ -58,23 +58,22 @@
 #include <shell.h>
 #include "../common/router.h"
 #include "../common/netdev.h"
-//introduction:
-//when send a package, we use the destination to match the rout list,if not a proper rout
-//could be found,then check if destination is the host, if it matches the host, then use the
-//local route, else use the default rout(if has been set)
-//when receive a package, we use the destination to match the host address;if none address is been
-//matched,then do the forward(if permitted)
 
+//发送报文时，先从路由表匹配目标地址，如果不成功，则检查目标是否主机，如果与主机匹配，则使
+//用本地路由，否则使用默认路由（如果已经设置）。
+//收到报文时，检查目的地址是不是主机，是则接受，否则向前转发。
+
+//使用类 Unix 标志
 typedef struct
 {
-    u16 G :1;
-    u16 U :1;
-    u16 R :1;
-    u16 V4 :1;
-    u16 S  :1; //static or not
-    u16 C:1  ; //clone or not
-    u16 B:1;   //broadcast or not
-    u16 M:1;   //multicast or not
+    u16 G_Gateway :1;   //G标志，路由指向网关
+    u16 U_Active :1;    //U标志，路由是活动的。
+    u16 R_Restore :1;   //R标志，恢复动态路由产生的表项
+    u16 IPV4 :1;        //1=IPV4,0=IPV6
+    u16 S  :1;          //static or not
+    u16 C:1  ;          //clone or not
+    u16 B:1;            //broadcast or not
+    u16 M:1;            //multicast or not
 }tagRoutFlag;
 
 typedef union
@@ -109,10 +108,10 @@ typedef struct
 //defines for the rout structure
 typedef struct
 {
-    void      *nxt;           //point to the next rout item
-    void      *iface;         //point to the  interface binded
-    void *rout;               //which include the rout
-    tagRoutPro pro;           //like the unix,we use G U R AND SO ON FLAGS
+    void            *nxt;           //point to the next rout item
+    struct NetDev   *DevFace;       //point to the  interface binded
+    void            *rout;          //tagRoutV4 or tagRoutV6
+    tagRoutPro      pro;            //like the unix,we use G U R AND SO ON FLAGS
 }tagRoutItem;
 
 #define CN_ERR_ROUTPREDIX     "ROUTMODULE"
@@ -154,9 +153,9 @@ static bool_t __ShowTab(enum_ipv_t ver)
                 inet_ntop(AF_INET, &rout->hop, hop, CN_IP_STRMAX);
                 inet_ntop(AF_INET, &rout->mask, mask, CN_IP_STRMAX);
                 debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
-                        i++, net,mask, host, hop,item->pro.flag.bits.G, \
-                        item->pro.flag.bits.R, item->pro.flag.bits.R, item->pro.pri, \
-                        item->pro.len,item->pro.mtu,NetDevName(item->iface));
+                                 i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
+                                 item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
+                        item->pro.len,item->pro.mtu,NetDevName(item->DevFace));
                 item = item->nxt;
             }
             if(NULL != gRoutCB.v4host)
@@ -168,9 +167,9 @@ static bool_t __ShowTab(enum_ipv_t ver)
                 inet_ntop(AF_INET, &rout->hop, hop, CN_IP_STRMAX);
                 inet_ntop(AF_INET, &rout->mask, mask, CN_IP_STRMAX);
                 debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
-                        i++, net,mask, host, hop,item->pro.flag.bits.G, \
-                        item->pro.flag.bits.R, item->pro.flag.bits.R, item->pro.pri, \
-                        item->pro.len,item->pro.mtu,NetDevName(item->iface));
+                                 i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
+                                 item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
+                        item->pro.len,item->pro.mtu,NetDevName(item->DevFace));
             }
         }
         else if(ver == EN_IPV_6) //do the ipv6
@@ -316,14 +315,14 @@ ADD_TO_IN_SHELL  bool_t rout(char *param)
                 tagRoutLink  rout;
                 memset(&rout,0,sizeof(rout));
                 rout.ver = EN_IPV_4;
-                rout.dst = &ipmatchv4;
-                rout.host = &v4addr.host;
-                rout.hop = &v4addr.hop;
+                rout.DstIP = &ipmatchv4;
+                rout.HostIP = &v4addr.host;
+                rout.HopIP = &v4addr.hop;
                 if(RouterMatch(&rout))
                 {
-                    debug_printf("router","host :%s \n\r",inet_ntoa(*(struct in_addr*)rout.host));
-                    debug_printf("router","hop  :%s \n\r",inet_ntoa(*(struct in_addr*)rout.hop));
-                    debug_printf("router","iface:%s \n\r",NetDevName(rout.iface));
+                    debug_printf("router","host :%s \n\r",inet_ntoa(*(struct in_addr*)rout.HostIP));
+                    debug_printf("router","hop  :%s \n\r",inet_ntoa(*(struct in_addr*)rout.HopIP));
+                    debug_printf("router","iface:%s \n\r",NetDevName(rout.DevFace));
                 }
                 else
                 {
@@ -381,13 +380,17 @@ static u8 __CheckOnes(u32 value)
 }
 //we will match the destination
 //you also could use this function to do the address type check
+//-----------------------------------------------------------------------------
+//功能：路由条目匹配，调用前，para的 ver 和 dst 成员必须赋值，本函数将填充 type 和
+//     iface 成员。
+//参数：para，
 bool_t RouterMatch(tagRoutLink *para)
 {
     bool_t ret = false;
     tagRoutItem *tmp = NULL;
     tagRoutV4   *v4;
     struct in_addr addr;
-    if((NULL == para)||(NULL == para->dst))
+    if((NULL == para)||(NULL == para->DstIP))
     {
         return ret;
     }
@@ -397,7 +400,7 @@ bool_t RouterMatch(tagRoutLink *para)
         para->type = EN_IPTYPE_V4_UNKOWN;
         if(para->ver ==EN_IPV_4)
         {
-            memcpy(&addr.s_addr,para->dst,sizeof(addr));
+            memcpy(&addr.s_addr,para->DstIP,sizeof(addr));
             if(addr.s_addr == INADDR_ANY) //use the host
             {
                 para->type = EN_IPTYPE_V4_ANY;
@@ -409,14 +412,14 @@ bool_t RouterMatch(tagRoutLink *para)
                 if(NULL != tmp)
                 {
                     v4 = tmp->rout;
-                    para->iface = tmp->iface;
-                    if(NULL != para->host)
+                    para->DevFace = tmp->DevFace;
+                    if(NULL != para->HostIP)
                     {
-                        memcpy(para->host,&v4->host.s_addr,sizeof(struct in_addr));
+                        memcpy(para->HostIP,&v4->host.s_addr,sizeof(struct in_addr));
                     }
-                    if(NULL != para->hop)
+                    if(NULL != para->HopIP)
                     {
-                        memcpy(para->hop,&v4->hop.s_addr,sizeof(struct in_addr));
+                        memcpy(para->HopIP,&v4->hop.s_addr,sizeof(struct in_addr));
                     }
                 }
             }
@@ -453,14 +456,14 @@ bool_t RouterMatch(tagRoutLink *para)
                 if(NULL != tmp)
                 {
                     v4 = tmp->rout;
-                    para->iface = tmp->iface;
-                    if(NULL != para->host)
+                    para->DevFace = tmp->DevFace;
+                    if(NULL != para->HostIP)
                     {
-                        memcpy(para->host,&v4->host.s_addr,sizeof(struct in_addr));
+                        memcpy(para->HostIP,&v4->host.s_addr,sizeof(struct in_addr));
                     }
-                    if(NULL != para->hop)
+                    if(NULL != para->HopIP)
                     {
-                        memcpy(para->hop,&v4->hop.s_addr,sizeof(struct in_addr));
+                        memcpy(para->HopIP,&v4->hop.s_addr,sizeof(struct in_addr));
                     }
                 }
             }
@@ -476,7 +479,7 @@ bool_t RouterMatch(tagRoutLink *para)
 //if handle is NULL,then NOT check the handle
 //if net is NULL,then NOT check the net:if not must check the bits specified
 //if local is NULL,then NOT check the local
-static int __ItemFind(enum_ipv_t ver, void *iface, void *net, void *host, void *hop, tagRoutItem *array[], int len)
+static int __ItemFind(enum_ipv_t ver, struct NetDev *iface, void *net, void *host, void *hop, tagRoutItem *array[], int len)
 {
     int ret = 0;
     tagRoutItem *tmp = NULL;
@@ -489,7 +492,7 @@ static int __ItemFind(enum_ipv_t ver, void *iface, void *net, void *host, void *
         while ((NULL != tmp) && (ret < len))
         {
             v4 = tmp->rout;
-            if ((NULL != iface) && (iface != tmp->iface))
+            if ((NULL != iface) && (iface != tmp->DevFace))
             {
                 goto V4_CHECKMORE;
             }
@@ -519,7 +522,7 @@ static int __ItemFind(enum_ipv_t ver, void *iface, void *net, void *host, void *
         while ((NULL != tmp) && (ret < len))
         {
             v6 = tmp->rout;
-            if ((NULL != iface) && (iface != tmp->iface))
+            if ((NULL != iface) && (iface != tmp->DevFace))
             {
                 goto V6_CHECKMORE;
             }
@@ -656,7 +659,7 @@ static tagRoutItem * __RemoveFromQueue(tagRoutItem *queue, tagRoutItem *item) //
 void RouterSetHost(enum_ipv_t ver,const char *ifname)
 {
     tagRoutItem *newitem = NULL;
-    void *iface;
+    struct NetDev  *iface;
     int memsize;
     tagRoutV4 *v4;
     iface = NetDevGet(ifname);
@@ -686,13 +689,13 @@ void RouterSetHost(enum_ipv_t ver,const char *ifname)
             }
             else
             {
-                newitem->pro.flag.bits.V4 = 1;
+                newitem->pro.flag.bits.IPV4 = 1;
                 newitem->pro.len = 32;
                 newitem->pro.pri = CN_ROUT_PRIOR_LOOP;
                 newitem->pro.flag.value = 0;
                 newitem->pro.mtu = NetDevMtu(iface);
                 newitem->nxt = NULL;
-                newitem->iface = iface;
+                newitem->DevFace = iface;
                 v4 = newitem->rout;
                 v4->net.s_addr = INADDR_LOOPBACK;
                 v4->host.s_addr = INADDR_LOOPBACK;
@@ -714,7 +717,7 @@ void *RouterCreate(tagRouterPara *para)
     void *ret = NULL;
     tagRoutItem *tmp = NULL;
     tagRoutItem *newitem = NULL;
-    void *iface;
+    struct NetDev  *iface;
     int memsize;
     tagRoutV4 *v4;
     if((para == NULL)||(NULL == para->ifname)||(NULL==para->mask)||\
@@ -762,7 +765,7 @@ void *RouterCreate(tagRouterPara *para)
                 newitem->pro.mtu = para->mtu;
             }
             newitem->nxt = NULL;
-            newitem->iface = iface;
+            newitem->DevFace = iface;
             if (para->ver == EN_IPV_4)
             {
                 v4 = newitem->rout;
@@ -779,7 +782,7 @@ void *RouterCreate(tagRouterPara *para)
                     memcpy((void *) &v4->broad, para->broad, sizeof(struct in_addr));
                 }
                 newitem->pro.len = __CheckOnes(v4->mask.s_addr);
-                newitem->pro.flag.bits.V4 = 1;
+                newitem->pro.flag.bits.IPV4 = 1;
                 gRoutCB.v4lst = __Add2Queue(gRoutCB.v4lst, newitem);
             }
             else
@@ -804,7 +807,7 @@ void RouterRemoveByHandle(void *rout)
     if (mutex_lock(gRoutCB.lock))
     {
         item = rout;
-        if (item->pro.flag.bits.V4)
+        if (item->pro.flag.bits.IPV4)
         {
             gRoutCB.v4lst = __RemoveFromQueue(gRoutCB.v4lst, item);
         }
@@ -824,7 +827,7 @@ void   RouterRemove(tagRouterPara *para)
     int ret;
     tagRoutItem *item;
 
-    void *iface = NULL;
+    struct NetDev  *iface = NULL;
     iface = NetDevGet(para->ifname);
     if (mutex_lock(gRoutCB.lock))
     {
@@ -835,7 +838,7 @@ void   RouterRemove(tagRouterPara *para)
                 ret = __ItemFind(EN_IPV_4, iface, para->net, para->host, para->hop, &item, 1);
                 gRoutCB.v4lst = __RemoveFromQueue(gRoutCB.v4lst, item);
             }
-            while (ret > 0); //delete all the rout(V4) binded to the interface
+            while (ret > 0); //delete all the rout(IPV4) binded to the interface
         }
         else
         {

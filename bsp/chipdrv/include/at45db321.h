@@ -57,7 +57,7 @@
 #ifndef _AT45DB321_H_
 #define _AT45DB321_H_
 
-s32 ModuleInstall_AT45DB321E(u8 bArgC, ...);
+bool_t ModuleInstall_at45db321(char *pBusName);
 u32 AT45_FLASH_Read(u32 Address,u8 *data,u32 data_len);
 u32 AT45_FLASH_Write(u32 Address,u8 *data,u32 data_len);
 bool_t AT45_Page_Erase(u32 Address);

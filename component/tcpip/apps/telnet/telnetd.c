@@ -236,7 +236,7 @@ static ptu32_t __telnetdmain(void)
     int sockopt = 1;
 
     //安装我们自己的 设备, TODO,这套接口作的有问题
-    if(-1==dev_add(NULL, CN_TELNET_DEVNAME,__open,__close,__write,__read,NULL,0))
+    if(-1==dev_Create(CN_TELNET_DEVNAME,__open,__close,__write,__read,NULL,0))
     {
         printf("\r\n: info : net    : create dev %s failed.",CN_TELNET_DEVNAME);
         return 0;

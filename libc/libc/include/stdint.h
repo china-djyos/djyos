@@ -165,6 +165,9 @@ typedef u64 uint_fast64_t;
 typedef s64 intmax_t;
 typedef u64 uintmax_t;
 
+typedef s64 __int64_t;
+typedef u64 __uint64_t;
+
 /* Types for `void *' pointers.  */
 #if CN_PTR_BITS == 64
 # ifndef __intptr_t_defined

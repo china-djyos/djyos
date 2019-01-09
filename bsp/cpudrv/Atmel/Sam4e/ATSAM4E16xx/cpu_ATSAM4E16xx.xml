@@ -7,12 +7,12 @@
       <memory>
          <type>FLASH</type>
          <startAddr>0x00400000</startAddr>
-         <size>1024</size>
+         <size>1024k</size>
       </memory>
       <memory>
          <type>RAM</type>
          <startAddr>0x20000000</startAddr>
-         <size>128</size>
+         <size>128k</size>
       </memory>
    </core>
 </cpu>

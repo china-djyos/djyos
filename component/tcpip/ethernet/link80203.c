@@ -86,18 +86,19 @@ typedef struct EthernetHdr
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
+static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32 devtask,\
                            u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t            ret;
     tagEthernetHdr   *hdr;
-    tagNetPkg        *ethpkg;
+    struct NetPkg        *ethpkg;
 
     ret = false;
     ethpkg = PkgMalloc(CN_ETHERNET_HEADLEN,0);
     if(NULL != ethpkg)
     {
-        hdr = (tagEthernetHdr  *)(ethpkg->buf + ethpkg->offset);
+        hdr = (tagEthernetHdr *)PkgGetCurrentBuffer(ethpkg);
+//      hdr = (tagEthernetHdr  *)(ethpkg->buf + ethpkg->offset);
         memcpy(hdr->macsrc, NetDevGetMac(iface), CN_MACADDR_LEN);
         hdr->type = htons(proto);
         if(ver == EN_IPV_4)
@@ -121,8 +122,10 @@ static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
             {
                 memcpy(hdr->macdst,CN_MAC_BROAD,CN_MACADDR_LEN);
             }
-            ethpkg->datalen = CN_ETHERNET_HEADLEN;
-            ethpkg->partnext = pkg;
+            PkgSetNextUnit(ethpkg,pkg);
+            PkgSetDataLen(ethpkg, CN_ETHERNET_HEADLEN);
+//          ethpkg->datalen = CN_ETHERNET_HEADLEN;
+//          ethpkg->partnext = pkg;
             framlen += CN_ETHERNET_HEADLEN;
             ret = NetDevSend(iface,ethpkg,framlen,devtask);
             PkgTryFreePart(ethpkg);
@@ -142,19 +145,22 @@ static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
 //备注:here we dispatch the ethernet header and pass it to the ip
 //作者:zhangqf@上午9:18:35/2016年12月29日
 //-----------------------------------------------------------------------------
-static bool_t  __LinkIn(void *iface,tagNetPkg *pkg)
+static bool_t  __LinkIn(void *iface,struct NetPkg *pkg)
 {
     bool_t          ret=false;
     tagEthernetHdr *hdr;
     u16             proto;
-    if(pkg->datalen > CN_ETHERNET_HEADLEN)
+    if(PkgGetDataLen(pkg) > CN_ETHERNET_HEADLEN)
+//  if(pkg->datalen > CN_ETHERNET_HEADLEN)
     {
         //we analyze the ethernet header first, which type it has
-        hdr = (tagEthernetHdr *)(pkg->buf + pkg->offset);
+        hdr = (tagEthernetHdr *)PkgGetCurrentBuffer(pkg);
+//      hdr = (tagEthernetHdr *)(pkg->buf + pkg->offset);
         memcpy(&proto,&hdr->type,sizeof(proto));
         proto = ntohs(proto);
-        pkg->offset += CN_ETHERNET_HEADLEN;
-        pkg->datalen -= CN_ETHERNET_HEADLEN;
+        PkgMoveOffsetUp(pkg,CN_ETHERNET_HEADLEN);
+//      pkg->offset += CN_ETHERNET_HEADLEN;
+//      pkg->datalen -= CN_ETHERNET_HEADLEN;
         ret = LinkPush(iface,pkg,proto);
     }
     return ret;
@@ -170,7 +176,7 @@ bool_t LinkEthernetInit(void)
 {
     bool_t ret = true;
     //first we will register a loop link type to the link hal
-    tagLinkOps   ops;
+    struct LinkOps   ops;
     memset(&(ops),0,sizeof(ops));
     ops.linkin = __LinkIn;
     ops.linkout =__LinkOut;

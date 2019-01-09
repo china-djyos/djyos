@@ -62,12 +62,12 @@ typedef struct PseudoHdr
 #pragma pack()
 
 u16 IpPseudoChkSumV4(u32 iplocal, u32 ipdst, u8 proto, u16 translen);
-void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,tagNetPkg *pkg,\
+void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,struct NetPkg *pkg,\
                             u16 translen,u16 *chksum);
 
-bool_t IpV4Send(u32 ipsrc, u32 ipdst, tagNetPkg *pkg,u16 translen,u8 proto,\
+bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
                 u32 devtask, u16 *chksum);
-bool_t IpV4Process(tagNetPkg *pkg,void *dev);
+bool_t IpV4Process(struct NetPkg *pkg,void *dev);
 
 
 #endif /* __IPV4_H */

@@ -2,12 +2,16 @@
 <cpu>
    <cpuName>zq1201</cpuName>
    <core id="1">
+      <type>arm</type>
+      <arch>armv6-m</arch>
+      <family>cortex-m0</family>
       <floatABI>default</floatABI>
       <fpuType>default</fpuType>
+      <resetAddr>0</resetAddr>
       <memory>
-         <type>FLASH</type>
-         <startAddr>0x00000000</startAddr>
-         <size>512k</size>
+         <type>RAM</type>
+         <startAddr>0</startAddr>
+         <size>0x200000k</size>
       </memory>
       <memory>
          <type>RAM</type>
@@ -23,6 +27,21 @@
          <type>RAM</type>
          <startAddr>0x02000000</startAddr>
          <size>4096k</size>
+      </memory>
+      <memory>
+         <type>RAM</type>
+         <startAddr>0</startAddr>
+         <size>0x200000k</size>
+      </memory>
+   </core>
+   <core id="2">
+      <type>ck</type>
+      <family>ck803s</family>
+      <resetAddr>0</resetAddr>
+      <memory>
+         <type>RAM</type>
+         <startAddr>0x200000</startAddr>
+         <size>0x600000k</size>
       </memory>
    </core>
 </cpu>

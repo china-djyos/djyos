@@ -7,6 +7,21 @@ extern "C" {
 #include <_ansi.h>
 //
 #include <stddef.h>
+
+//O_RDONLY 以只读方式打开文件
+//O_WRONLY 以只写方式打开文件
+//O_RDWR 以可读写方式打开文件. 上述三种旗标是互斥的, 也就是不可同时使用, 但可与下列的旗标利用OR(|)运算符组合.
+//O_CREAT 若欲打开的文件不存在则自动建立该文件.
+//O_EXCL 如果O_CREAT 也被设置, 此指令会去检查文件是否存在. 文件若不存在则建立该文件, 否则将导致打开文件错误. 此外, 若O_CREAT 与O_EXCL 同时设置, 并且欲打开的文件为符号连接, 则会打开文件失败.
+//O_NOCTTY 如果欲打开的文件为终端机设备时, 则不会将该终端机当成进程控制终端机.
+//O_TRUNC 若文件存在并且以可写的方式打开时, 此旗标会令文件长度清为0, 而原来存于该文件的资料也会消失.
+//O_APPEND 当读写文件时会从文件尾开始移动, 也就是所写入的数据会以附加的方式加入到文件后面.
+//O_NONBLOCK 以不可阻断的方式打开文件, 也就是无论有无数据读取或等待, 都会立即返回进程之中.
+//O_NDELAY 同O_NONBLOCK.
+//O_SYNC 以同步的方式打开文件.
+//O_NOFOLLOW 如果参数pathname 所指的文件为一符号连接, 则会令打开文件失败.
+//O_DIRECTORY 如果参数pathname 所指的文件并非为一目录, 则会令打开文件失败。
+
 // 解释为Operation mode
 #ifndef O_ACCMODE
  #define O_ACCMODE                  0x00000003      //(00000003)/* 模式屏蔽位 */
@@ -29,6 +44,11 @@ extern "C" {
  #define O_RDWR                     0x00000003      //(00000003)
 #else
  #warning "O_RDWR" duplicate definition!
+#endif
+#ifndef O_EXEC
+ #define O_EXEC                     0x00000004      //(00000003)
+#else
+ #warning "O_EXEC" duplicate definition!
 #endif
 #ifndef O_CREAT
  #define O_CREAT                    0x00000040      //(00000100)
@@ -105,59 +125,13 @@ extern "C" {
 #endif
 
 //djyos增加的定义，仅用于设备文件
-#ifndef S_BLOCK_COMPLETE
- #define S_BLOCK_COMPLETE           0x80000000      //Write的完成条件是传输完成
+#ifndef O_BLOCK_COMPLETE
+ #define O_BLOCK_COMPLETE           0x80000000      //Write的完成条件是传输完成
                                                     //否则写入buffer即算完成
 #else
- #warning "S_BLOCK_COMPLETE" duplicate definition!
+ #warning "O_BLOCK_COMPLETE" duplicate definition!
 #endif
 
-// stat查询，对应struct stat的st_mode成员的12-15bit
-#ifndef S_IFMT
- #define S_IFMT                     0x0000F000      //(00170000)// 1111-0000-0000-0000 文件类型屏蔽位
-#else
- #warning "S_IFMT" duplicate definition!
-#endif
-#ifndef S_IFSOCK
- #define S_IFSOCK                   0x0000c000      //(00140000)// 1100-0000-0000-0000
-#else
- #warning "S_IFSOCK" duplicate definition!
-#endif
-#ifndef S_IFLNK
- #define S_IFLNK                    0x0000a000      //(00120000)// 1010-0000-0000-0000
-#else
- #warning "S_IFlINK" duplicate definition!
-#endif
-#ifndef S_IFREG
- #define S_IFREG                    0x00008000      //(00100000)// 1000-0000-0000-0000
-#else
- #warning "S_IFREG" duplicate definition!
-#endif
-#ifndef S_IFBLK
- #define S_IFBLK                    0x00006000      //(00060000)// 0110-0000-0000-0000
-#else
- #warning "S_IFBLK" duplicate definition!
-#endif
-#ifndef S_IFDIR
- #define S_IFDIR                    0x00004000      //(00040000)// 0100-0000-0000-0000
-#else
- #warning "S_IFDIR" duplicate definition!
-#endif
-#ifndef S_IFCHR
- #define S_IFCHR                    0x00002000      //(00020000)// 0010-0000-0000-0000
-#else
- #warning "S_IFCHR" duplicate definition!
-#endif
-#ifndef S_IFIFO
- #define S_IFIFO                    0x00001000      //(00010000)// 0001-0000-0000-0000
-#else
- #warning "S_IFIFO" duplicate definition!
-#endif
-#ifndef S_IFFLOW                                    //djyos增加定义，文件是个数据
- #define S_IFFLOW                   0x00003000      //流此类文件一般不允许写缓冲
-#else
- #error "S_IFFLOW" duplicate definition!
-#endif
 
 /* For machines which care - */
 #if defined (_WIN32) || defined (__CYGWIN__)
@@ -204,27 +178,20 @@ extern "C" {
 #define F_WRLCK             12                  // write lock
 #define F_UNLCK             13                  // remove lock(s)G
 
-//fcntl 函数的命令码，以下是私有规定的部分
-#define F_LOCAL             (512)               // 文件系统私有命令；
-#define F_GETPORT           (F_LOCAL+1)         // 获取文件的内部文件句柄；
-#define F_SETCONTEXT        (F_LOCAL+2)         // 设置文件的私有上下文；
-#define F_GETCONTEXT        (F_LOCAL+3)         // 获取文件的私有上下文；
-#define F_SETEVENT          (F_LOCAL+4)         // 设置文件的多路复用逻辑；
-#define F_CLREVENT          (F_LOCAL+5)         // 清除文件的多路复用逻辑；
-#define F_SETTIMEOUT        (F_LOCAL+6)         // 设置同步IO阻塞的最长时间；
-#define F_GETTIMEOUT        (F_LOCAL+7)         // 获取同步IO阻塞的最长时间；
-#define F_GETTAG            (F_LOCAL+8)         // 获取文件标签；
-#define F_SETTAG            (F_LOCAL+9)         // 设置文件标签；
-#define F_GETFILE           (F_LOCAL+11)        // 获取文件的结构信息；
+//fcntl 函数的命令码，以下是djyos定义的部分
+#define F_LOCAL             (0x1000)               // 文件系统私有命令；
+#define F_SETCONTEXT        (F_LOCAL+0)         // 设置文件的私有上下文；
+#define F_GETCONTEXT        (F_LOCAL+1)         // 获取文件的私有上下文；
+#define F_SETEVENT          (F_LOCAL+2)         // 设置文件的多路复用逻辑；
+#define F_CLREVENT          (F_LOCAL+3)         // 清除文件的多路复用逻辑；
+#define F_SETTIMEOUT        (F_LOCAL+4)         // 设置同步IO阻塞的最长时间；
+#define F_GETTIMEOUT        (F_LOCAL+5)         // 获取同步IO阻塞的最长时间；
+#define F_GETTAG            (F_LOCAL+6)         // 获取文件标签；
+#define F_SETTAG            (F_LOCAL+7)         // 设置文件标签；
+#define F_GETFILE           (F_LOCAL+8)        // 获取文件的结构信息；
 
-#define F_MODULE            (1024)              // 各模块的私有命令，不同模块系统的命令值可以相同；
-// STDIO模块
-#define F_STDIO_M           (F_MODULE)
-#define F_STDIO_REDRIECT    (F_STDIO_M)         // STDIO重定向
-#define F_STDIO_MULTI_ADD   (F_STDIO_M+1)       // 添加新的文件到STDIN多路复用集
-#define F_STDIO_MULTI_DEL   (F_STDIO_M+2)       // 将文件从STDIN多路复用集删除
-// 设备模块；
-#define F_DEV_M             (F_MODULE)
+// 设备模块需要的命令
+#define F_DEV_M             (0x2000)
 #define F_SETDRVTAG         (F_DEV_M)           // 设置设备驱动标签；
 #define F_GETDRVTAG         (F_DEV_M+1)         // 获取设备的驱动标签；
 #define F_SETUSERTAG        (F_DEV_M+2)         // 设置设备的用户标签；
@@ -238,11 +205,15 @@ extern "C" {
 #define F_DHOOK             (F_DEV_M+10)        // 设置有输入/输出/错误时回调函数
 #define F_DBLOCK_BUFFER     (F_DEV_M+11)        // Write的完成条件是发送到缓冲区
 #define F_DBLOCK_COPLETE    (F_DEV_M+12)        // Write的完成条件是传输完成
-#define F_DEV_DRV           (F_DEV_M+256)       // 设备驱动命令集，不同设备的驱动可以相同；
 
-#if 0
-#define CN_FILE_STATICDATA  (1<<0)              // 文件用于存储静态数据
-#define CN_FILE_FLOWDATA    (1<<1)              // 文件用于存储流式，不可写缓冲，不可seek
+#define F_DEV_USER          (F_DEV_M+256)       // 设备驱动命令集，不同设备的驱动可以相同；
+
+// STDIO模块
+#define F_STDIO_M           (0x3000)
+#define F_STDIO_REDRIECT    (F_STDIO_M)         // STDIO重定向
+#define F_STDIO_MULTI_ADD   (F_STDIO_M+1)       // 添加新的文件到STDIN多路复用集
+#define F_STDIO_MULTI_DEL   (F_STDIO_M+2)       // 将文件从STDIN多路复用集删除
+
 //文件访问状态，位掩码，只有低24bit有效，其中16~23bit是留给用户定义的，系统只能
 //用0~15bit。
 //是fd而不是 object 的属性。如一个object被打开多次，可能创建多个 fd
@@ -254,10 +225,7 @@ extern "C" {
 #define CN_FDFLAG_ERR       0x8   //表示对应的文件描述符发生错误；
 #define CN_FDFLAG_HUP       0x10  //表示对应的文件描述符被挂断；
 // seek相关参数
-#define SEEK_SET            0 // 文件开头位置
-#define SEEK_CUR            1 // 文件当前位置
-#define SEEK_END            2 // 文件结尾位置
-#endif
+
 /*#include <sys/stdtypes.h>*/
 
 #ifndef __CYGWIN__
@@ -290,7 +258,7 @@ s32 open(const char *pathname, s32 fmt, ...);
 s32 close(s32 fd);
 s32 read(s32 fd, void *buf, size_t count);
 s32 write(s32 fd, const void *buf, size_t count);
-int fcntl(int fd,int cmd,...);
+s32 fcntl(s32 fd,s32 cmd,...);
 
 #ifdef __cplusplus
 }

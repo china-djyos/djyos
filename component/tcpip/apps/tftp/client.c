@@ -124,7 +124,7 @@ bool_t ServiceTftpInit(ptu32_t para)
 {
     bool_t result;
 
-    tftppathset((char *)CN_TFTP_PATHDEFAULT);
+    tftppathset((char *)CFG_TFTP_PATHDEFAULT);
 
 
     result = TftpServerShell(NULL);

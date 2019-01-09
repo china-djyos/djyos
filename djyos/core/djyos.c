@@ -143,6 +143,7 @@
 #include "lowpower.h"
 #include "component_config_core.h"
 #include "../heap/component_config_heap.h"
+#include <stdlib.h>
 ptu32_t __Djy_Service(void);
 
 struct ProcessVm *  g_ptMyProcess;

@@ -604,10 +604,10 @@ static bool_t __PppMsgSnd(tagPppCtrl *ppp,u16 proto,tagCHdr *chdr,u8 *buf,u16 l,
 //备注:
 //作者:zhangqf@上午9:24:20/2016年12月29日
 //-----------------------------------------------------------------------------
-static bool_t __PppDevOut(ptu32_t dev,tagNetPkg *pkg,u32 framlen,u32 netdevtask)
+static bool_t __PppDevOut(ptu32_t dev,struct NetPkg *pkg,u32 framlen,u32 netdevtask)
 {
     bool_t  result;
-    tagNetPkg *tmp;
+    struct NetPkg *tmp;
     u8 *buf;
     u8 *src;
     u8 *dst;
@@ -656,7 +656,7 @@ static bool_t __IpFrameDeal(tagPppMsg   *msg )
     //we should package the msg and put it to the stack
     u8 *src,*dst;
     u16 len;
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     tagPppCtrl *ppp;
 
     src = msg->data;

@@ -120,14 +120,15 @@ struct MemCellFree
     struct MemCellFree *next;
 };
 
-static struct dListNode s_tPoolHead; // 管理内存池控制块本身的内存池
+static struct dListNode s_tPoolHead;        // 把所有内存池控制块串起来
 //static struct obj *s_ptPoolObject;
 //static FILE *s_ptPoolFp;
-static struct MemCellPool *s_ptPoolCtrl; // 管理内存池控制块本身的内存池
+static struct MemCellPool *s_ptPoolCtrl;    // 管理内存池控制块本身的内存池
 struct MemCellPool s_tObjectPool; // 管理对象控制块的内存池
 struct MemCellPool g_tObjPortPool; // 管理文件控制块的内存池
 
-ptu32_t Mb_PoolObjOps(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...);
+s32 Mb_PoolObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 //----初始化固定块分配模块------------------------------------------------------
 //功能: 初始化操作系统的固定块内存分配模块.内存池控制块本身也是按照内存池的方式
 //      分配的,但是此时内存池组件还没有初始化完成,故需要手动创建用于内存池控制块
@@ -169,9 +170,9 @@ ptu32_t __InitMB(void)
 // 返回：
 // 备注：
 // ============================================================================
-s32 mount_mb_system(void)
+s32 Mb_CreateObject(void)
 {
-    if(obj_newchild_set(objsys_root(), "memory pool", Mb_PoolObjOps, 0, O_RDWR))
+    if(obj_newchild(obj_root(), Mb_PoolObjOps, 0, "memory pool"))
         return (0);
 
     return (-1);
@@ -184,28 +185,39 @@ s32 mount_mb_system(void)
 //      para，无用
 //返回：true
 //-----------------------------------------------------------------------------
-ptu32_t Mb_PoolObjOps(enum objops ops, ptu32_t o_hdl, ptu32_t args, ...)
+s32 Mb_PoolObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-    s32 result = 0;
-    args = args;
+    s32 result = CN_OBJ_CMD_EXECUTED;
+    OpsArgs1 = OpsArgs1;
 
-    switch(ops)
+    switch(objcmd)
     {
-#if 0
         case CN_OBJ_CMD_SHOW:
         {
-            printf("\r\nMB : debug : unsupported operation.");
+            struct dListNode *pos;
+            struct MemCellPool *pool;
+            u32 num,sum;
+            printf("总块数  空闲数  单元尺寸  每次增量  容量限值  内存池名字\r\n");
+            dListForEach(pos, &s_tPoolHead)
+            {
+                pool = dListEntry(pos, struct MemCellPool, List);
+                sum = Lock_SempQueryCapacital(&pool->memb_semp);
+                num = Lock_SempQueryFree(&pool->memb_semp);
+                printf("%9d %9d %9d %9d %9d %s\r\n", sum,num,pool->cell_size,
+                            pool->cell_increment, pool->cell_limit,pool->Name);
+            }
+            result = CN_OBJ_CMD_TRUE;
             break;
         }
-#endif
 
         default:
         {
-            result = OBJUNSUPPORTED;
+            result = CN_OBJ_CMD_UNSUPPORT;
             break;
         }
     }
-    return ((ptu32_t)result);
+    return (result);
 }
 
 //----创建一个内存池-------------------------------------------------------
@@ -266,7 +278,7 @@ struct MemCellPool *Mb_CreatePool(void *pool_original,u32 init_capacital,
     pool->cell_size = cell_size;
     pool->cell_increment = increment;
     pool->cell_limit = limit;
-    pool->Name = name;
+    pool->Name = (char*)name;
     pool->next_inc_pool = NULL;
     dListInsertBefore(&s_ptPoolCtrl->List, &pool->List);
 //  OBJ_AddChild(&s_ptPoolCtrl->memb_node,
@@ -309,7 +321,7 @@ struct MemCellPool *Mb_CreatePool_s(struct MemCellPool *pool,
     pool->cell_size = cell_size;
     pool->cell_increment = increment;
     pool->cell_limit = limit;
-    pool->Name = name;
+    pool->Name = (char*)name;
     pool->next_inc_pool = NULL;
     dListInsertBefore(&s_ptPoolCtrl->List, &pool->List);
 //  OBJ_AddChild(&s_ptPoolCtrl->memb_node,
@@ -341,7 +353,7 @@ bool_t Mb_DeletePool(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!obj_del(&pool->memb_node))
+//  if(!obj_Delete(&pool->memb_node))
 //      return false;
     Mb_Free(s_ptPoolCtrl,pool);
     return true;
@@ -366,7 +378,7 @@ bool_t Mb_DeletePool_s(struct MemCellPool *pool)
         inc_memory = temp;
     }
     dListRemove(&pool->List);
-//  if(!obj_del(&pool->memb_node))
+//  if(!obj_Delete(&pool->memb_node))
 //      return false;
     return true;
 }

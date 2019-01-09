@@ -112,8 +112,8 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //do the package manage module initialize
-    extern bool_t PkgInit(void);
-    ret = PkgInit();
+    extern bool_t PkgModuleInit(void);
+    ret = PkgModuleInit();
     __LoadLog("PKG",ret);
     if(false == ret)
     {

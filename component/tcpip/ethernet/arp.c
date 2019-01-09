@@ -104,7 +104,7 @@ typedef struct
    void  *nxt;                   //as the hash chain
    u32 iphost;
    u32 ippeer;
-   void *iface;
+   struct NetDev *iface;
    u8  mac[CN_MACADDR_LEN];
    u8  timeout;
    u8  pro;
@@ -142,7 +142,7 @@ static tagArpItem *__ItemMatch(u32 ippeer)
     return ret;
 }
 //use this function to net_malloc mem and insert an arpitem to the arp item tab
-static tagArpItem *__ItemCreate(u32 ippeer,u32 iphost,void *iface)
+static tagArpItem *__ItemCreate(u32 ippeer,u32 iphost,struct NetDev  *iface)
 {
     tagArpItem *ret;
     u32         offset;
@@ -304,11 +304,11 @@ static bool_t __TabShow(void)
 //备注:care that the macto and macfrom must not be NULL!
 //作者:zhangqf@上午10:05:54/2017年3月14日
 //-----------------------------------------------------------------------------
-static tagNetPkg *__BuildArppH(u8 *macto,u8 *macfrom,u32 ipdst,u32 ipsrc,\
+static struct NetPkg *__BuildArppH(u8 *macto,u8 *macfrom,u32 ipdst,u32 ipsrc,\
                                   u8 *macdst,u8 *macsrc,u16 opcode)
 {
     tagArpPH         *arp;
-    tagNetPkg         *pkg;
+    struct NetPkg         *pkg;
     tagArpFrame       *frame;
     tagEthAddr        *eth;
 
@@ -316,7 +316,8 @@ static tagNetPkg *__BuildArppH(u8 *macto,u8 *macfrom,u32 ipdst,u32 ipsrc,\
     pkg = PkgMalloc(CN_ARP_FRAMELEN, CN_PKLGLST_END);
     if(NULL != pkg)
     {
-        frame = (tagArpFrame*)(pkg->buf + pkg->offset);
+        frame = (tagArpFrame *)PkgGetCurrentBuffer(pkg);
+//      frame = (tagArpFrame*)(pkg->buf + pkg->offset);
         memset((void *)frame,0,CN_ARP_FRAMELEN);
         //fill the arp proto
         arp = &frame->arp;
@@ -340,15 +341,16 @@ static tagNetPkg *__BuildArppH(u8 *macto,u8 *macfrom,u32 ipdst,u32 ipsrc,\
         memcpy(eth->macto, macto, CN_MACADDR_LEN);
         memcpy(eth->macfrom,macfrom,CN_MACADDR_LEN);
         eth->frametype = htons(EN_LINKPROTO_ARP);
-        pkg->datalen = CN_ARP_FRAMELEN;
+        PkgSetDataLen(pkg, CN_ARP_FRAMELEN);
+//      pkg->datalen = CN_ARP_FRAMELEN;
     }
     return pkg;
 }
 
-static bool_t __SndReq(u32 ippeer,u32 iphost,void *iface)
+static bool_t __SndReq(u32 ippeer,u32 iphost,struct NetDev *iface)
 {
     bool_t             ret = false;
-    tagNetPkg         *pkg;
+    struct NetPkg         *pkg;
     u8                *macto;
     u8                *macfrom;
 
@@ -357,17 +359,18 @@ static bool_t __SndReq(u32 ippeer,u32 iphost,void *iface)
     pkg = __BuildArppH(macto,macfrom,ippeer,iphost,macto,macfrom,CN_ARP_OP_REQUEST);
     if(NULL != pkg)
     {
-        ret =NetDevSend(iface,pkg,pkg->datalen,CN_IPDEV_NONE);
+        ret = NetDevSend(iface, pkg, PkgGetDataLen(pkg), CN_IPDEV_NONE);
+//      ret = NetDevSend(iface, pkg, pkg->datalen, CN_IPDEV_NONE);
         PkgTryFreePart(pkg);
         ret = true;
     }
     return ret;
 }
 
-static bool_t __SndRes(u32 ippeer,u32 iphost,u8 *macpeer,void *iface)
+static bool_t __SndRes(u32 ippeer,u32 iphost,u8 *macpeer,struct NetDev *iface)
 {
     bool_t             ret = false;
-    tagNetPkg         *pkg;
+    struct NetPkg         *pkg;
     u8                *macto;
     u8                *macfrom;
 
@@ -376,7 +379,8 @@ static bool_t __SndRes(u32 ippeer,u32 iphost,u8 *macpeer,void *iface)
     pkg = __BuildArppH(macto,macfrom,ippeer,iphost,macto,macfrom,CN_ARP_OP_RESPONSE);
     if(NULL != pkg)
     {
-        ret =NetDevSend(iface,pkg,pkg->datalen,CN_IPDEV_NONE);
+//      ret =NetDevSend(iface,pkg,pkg->datalen,CN_IPDEV_NONE);
+        ret =NetDevSend(iface,pkg,PkgGetDataLen(pkg),CN_IPDEV_NONE);
         PkgTryFreePart(pkg);
         ret = true;
     }
@@ -390,7 +394,7 @@ static bool_t __SndRes(u32 ippeer,u32 iphost,u8 *macpeer,void *iface)
 //作者:zhangqf@下午3:02:23/2016年12月29日
 //-----------------------------------------------------------------------------
 //use this function to deal with the arp request
-static bool_t __DealReq(void *iface,tagArpPH *arp)
+static bool_t __DealReq(struct NetDev *iface,tagArpPH *arp)
 {
     bool_t             ret = true;
     u32                iphost;
@@ -401,7 +405,7 @@ static bool_t __DealReq(void *iface,tagArpPH *arp)
     tagRoutLink  rout;
     memset(&rout,0,sizeof(rout));
     rout.ver = EN_IPV_4;
-    rout.dst = &iphost;
+    rout.DstIP = &iphost;
     if(RouterMatch(&rout)&&(rout.type==EN_IPTYPE_V4_LOCAL))
     {
         ret= __SndRes(ippeer,iphost,arp->senhwaddr,iface);//do the response here
@@ -428,16 +432,18 @@ static bool_t __DealRes(void *iface,tagArpPH *arp)
     return result;
 }
 //this function used to process the arp package
-static bool_t __ArpPush(void *iface,tagNetPkg *pkg)
+static bool_t __ArpPush(struct NetDev *iface,struct NetPkg *pkg)
 {
     bool_t ret = true;
     tagArpPH    *hdr;
     u16          opcode;
     if((NULL != iface)&& (NULL!= pkg))
     {
-        hdr = (tagArpPH *)(pkg->buf + pkg->offset);
-        pkg->offset += sizeof(tagArpPH);
-        pkg->datalen -= sizeof(tagArpPH);
+        hdr = (tagArpPH *)PkgGetCurrentBuffer(pkg);
+//      hdr = (tagArpPH *)(pkg->buf + pkg->offset);
+        PkgMoveOffsetUp(pkg,sizeof(tagArpPH));
+//      pkg->offset += sizeof(tagArpPH);
+//      pkg->datalen -= sizeof(tagArpPH);
         opcode = ntohs(hdr->opcode);
         switch (opcode)
         {
@@ -515,7 +521,7 @@ static void  __ArpTicker(void)
 // RETURN  :true find while false not or finding now
 // INSTRUCT:
 // =============================================================================
-bool_t ResolveMacByArp(u32 ippeer,u32 iphost,void *iface,u8 *macbuf)
+bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
 {
     bool_t      ret = false;
     tagArpItem *tmp;
@@ -591,7 +597,7 @@ ADD_TO_IN_SHELL  bool_t arp(char *param)
 {
     bool_t ret = true;
     tagItemAction action =EN_ITEM_ACTION_PRINT ;
-    void *iface = NULL;
+    struct NetDev  *iface = NULL;
     u32 ippeer = 0;
     u32 iphost = 0;
     int i = 0;

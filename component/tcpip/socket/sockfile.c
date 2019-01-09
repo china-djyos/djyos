@@ -63,11 +63,11 @@
 //6,set sockobject status:like the readable writable
 //7,clear sockobject status:like the readable writable
 //////////////////////////WE WILL DO A EASY ONE HERE////////////////////////////
-typedef struct
+typedef struct          //此即为socket文件，每个socket分配一个。
 {
-    u32   flag;
-    u32   status;
-    void *context;
+    u32   flag;         //只是用来标识内存块“忙”
+    u32   status;       //本成员并无卵用
+    void *context;      //指向struct socket结构
 }tagItem;
 typedef struct
 {
@@ -154,25 +154,25 @@ int sockobj_fd(void *obj)
     }
     return ret;
 }
-bool_t sockobj_setstatus(void *obj,u32 status)
-{
-    bool_t ret = true;
-
-    tagItem *tmp;
-    tmp = obj;
-    tmp->status |= status;
-    return ret;
-}
-bool_t sockobj_clrstatus(void *obj,u32 status)
-{
-    bool_t ret = true;
-
-    tagItem *tmp;
-    tmp = obj;
-    tmp->status &= (~status);
-    return ret;
-}
-
+//bool_t sockobj_setstatus(void *obj,u32 status)
+//{
+//    bool_t ret = true;
+//
+//    tagItem *tmp;
+//    tmp = obj;
+//    tmp->status |= status;
+//    return ret;
+//}
+//bool_t sockobj_clrstatus(void *obj,u32 status)
+//{
+//    bool_t ret = true;
+//
+//    tagItem *tmp;
+//    tmp = obj;
+//    tmp->status &= (~status);
+//    return ret;
+//}
+//
 
 //show all the sockfile fd
 

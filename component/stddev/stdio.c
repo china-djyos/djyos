@@ -137,7 +137,7 @@ static s32 __stdio_write(struct objhandle *hdl, u8 *data, u32 size)
     s32 fd;
     s32 res = 0;
 
-    stdio = (struct __stdio*)handle_val(hdl);
+    stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
     if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
     {
         fd = *(stdio->fd.follow); // 当前文件处于跟随模式
@@ -166,10 +166,10 @@ static s32 __stdio_read(struct objhandle *hdl, u8 *buf, u32 size)
     struct __stdio *stdio;
     s32 fd, res = 0;
 
-    stdio = (struct __stdio*)handle_val(hdl);
+    stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
     if(stdio->runmode&CN_STDIO_STDIN_MULTI) // 只有标准输入文件存在多源
     {
-        fd = Multiplex_Wait(stdin_multiplexset, NULL, handle_timeout(hdl)); // timeout是forever
+        fd = Multiplex_Wait(stdin_multiplexset, NULL, handle_gettimeout(hdl)); // timeout是forever
         if(fd >= 0)
             stdio->fd.direct = fd;
         else
@@ -206,7 +206,7 @@ static struct objhandle *__stdio_open(struct obj *ob, u32 mode)
 
     if(test_directory(mode))
     {
-        if(!obj_isset(ob))
+        if(!obj_isMount(ob))
             return (NULL); // 只有针对"stdio"目录的操作才是允许的
     }
     else
@@ -257,7 +257,7 @@ static s32 __stdio_close(struct objhandle *hdl)
         warning_printf("stdio","\"err\"(2) is closed.");
     }
 
-    return (handle_free(hdl));
+    return (handle_Delete(hdl));
 }
 
 // ============================================================================
@@ -271,10 +271,10 @@ static s32 __stdio_redirect(struct objhandle *hdl, s32 fd)
 {
     struct __stdio *stdio;
 
-    if(isdirectory(hdl))
+    if(isDirectory(hdl))
         return (-1); // 只有STDIO是目录，但其不允许重新定向；
 
-    stdio = (struct __stdio*)handle_val(hdl);
+    stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
     if(!(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW)))
         close(stdio->fd.direct); // 非跟随模式时，尝试关闭旧的定向文件；
 
@@ -299,10 +299,7 @@ s32 __stdio_multi(struct objhandle *hdl, u32 acts, s32 fd)
     struct __stdio *stdio;
     s32 res = -1;
 
-    if(isdirectory(hdl))
-        return (-1); // 只有STDIO是目录，但其不允许操作复用集；
-
-    stdio = (struct __stdio*)handle_val(hdl);
+    stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
     if((!(stdio->runmode & CN_STDIO_STDIN_MULTI))&&(!stdin_multiplexset));
         return (-1); // 只有输入才存在多路复用集；
 
@@ -370,10 +367,8 @@ s32 __stdio_tag(struct objhandle *hdl, u32 acts, u32 flags)
 static s32 __stdio_stat(struct obj *ob, struct stat *data)
 {
     memset(data, 0x0, sizeof(*stat));
-    if(obj_isset(ob))
-        data->st_mode = S_IFDIR;
-    else
-        data->st_mode = S_IFREG;
+
+    data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
 
     return (0);
 }
@@ -391,17 +386,17 @@ static s32 __stdio_timeout(struct objhandle *hdl, u32 acts, u32 *timeout)
     struct __stdio *stdio;
     s32 fd, res = 0;
 
-    if(isdirectory(hdl))
+    if(isDirectory(hdl))
     {
         // 只有STDIO是目录
         if(1 == acts)
             handle_settimeout(hdl, *timeout);
         else
-            *timeout = handle_timeout(hdl);
+            *timeout = handle_gettimeout(hdl);
     }
     else
     {
-        stdio = (struct __stdio*)handle_val(hdl);
+        stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
         if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
             fd = *stdio->fd.follow;
         else
@@ -434,185 +429,136 @@ static s32 __stdio_timeout(struct objhandle *hdl, u32 acts, u32 *timeout)
 // 返回：见enum objops说明；
 // 备注：
 // ============================================================================
-static ptu32_t __stdio_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
+s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-    va_list list;
-
-    switch(ops)
+    s32 result = CN_OBJ_CMD_EXECUTED;
+    switch(objcmd)
     {
-        case OBJOPEN:
-        {
-            char *notExist;
-            struct obj *ob = (struct obj*)o_hdl;
-            u32 mode = (u32)args;
-
-            va_start(list, args);
-            notExist = (char*)va_arg(list, u32);
-            va_end(list);
-
-            if(notExist)
-                return (-1);
-
-            return ((ptu32_t)__stdio_open(ob, mode));
-        }
-
-        case OBJCLOSE:
-        {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-
-            return ((ptu32_t)__stdio_close(hdl));
-        }
-
-        case OBJCHILDS:
-        {
-            return(-1); // 读目录项；
-        }
-
-        case OBJDEL:
-        {
-            return (-1); // STDIO文件不允许删除；
-        }
-
-        case OBJSEEK:
-        {
-            return (-1);
-        }
-
-        case OBJWRITE:
+        case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            u8 *buf;
-            u32 len;
-
-            hdl = (struct objhandle *)o_hdl;
-            buf = (u8*)args;
-            va_start(list, args);
-            len = va_arg(list, u32);
-            va_end(list);
-            return((ptu32_t)__stdio_write(hdl, buf, len));
-        }
-
-        case OBJREAD:
-        {
-            struct objhandle *hdl;
-            u8 *buf;
-            u32 len;
-
-            hdl = (struct objhandle *)o_hdl;
-            buf = (u8*)args;
-            va_start(list, args);
-            len = va_arg(list, u32);
-            va_end(list);
-            return((ptu32_t)__stdio_read(hdl, buf, len));
-        }
-
-        case OBJSTAT:
-        {
-            char *path;
-            struct obj *ob = (struct obj*)o_hdl;
-            struct stat *info = (struct stat*)args;
-
-            va_start(list, args);
-            path = (char*)va_arg(list, u32);
-            va_end(list);
-            if(path&&('\0'!=*path))
-                return (-1); // 对象不存在；
-
-            return ((ptu32_t)__stdio_stat(ob, info));
-        }
-
-        case OBJCTL:
-        {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-            u32 cmd = args;
-            va_start(list, args);
-
-            switch(cmd)
-            {
-                case F_SETTIMEOUT:
-                {
-                    u32 *timeout = (u32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_timeout(hdl, 1, timeout));
-                }
-
-                case F_GETTIMEOUT:
-                    break;
-
-                case F_STDIO_MULTI_ADD:
-                {
-                    s32 *fd = (s32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_multi(hdl, 1, *fd));
-                }
-
-                case F_STDIO_MULTI_DEL:
-                {
-                    s32 *fd = (s32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_multi(hdl, 0, *fd));
-                }
-
-                case F_STDIO_REDRIECT:
-                {
-                    s32 *fd = (s32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_redirect(hdl, *fd));
-                }
-
-                default : break;
-            }
+            hdl = __stdio_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2));
+            *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
 
-        case OBJIOCTL:
+//      case OBJ_TRAVERSE:
+//      {
+//          return(-1); // 读目录项；
+//      }
+
+        case CN_OBJ_CMD_READ:
         {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-            u32 cmd = args;
-            va_start(list, args);
+            ssize_t len;
+            struct objhandle *devfile = (struct objhandle*)opsTarget;
+
+            len = __stdio_read(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
+            *(ssize_t *)OpsArgs1 = len;
+            break;
+        }
+
+        case CN_OBJ_CMD_WRITE:
+        {
+            ssize_t len;
+            struct objhandle *devfile = (struct objhandle*)opsTarget;
+
+            len = __stdio_write(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
+            *(ssize_t *)OpsArgs1 = len;
+            break;
+        }
+
+        case CN_OBJ_CMD_CLOSE:
+        {
+            if(__stdio_close((struct objhandle*)opsTarget) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
+        }
+
+        case CN_OBJ_CMD_SEEK:
+        {
+            result = (CN_OBJ_CMD_UNSUPPORT);
+            break;
+        }
+
+        case CN_OBJ_CMD_STAT:
+        {
+            char * path = (char*)OpsArgs2;
+            if(path&&('\0'!=*path))
+                return (-1); // 查询的文件不存在；
+            if(__stdio_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
+        }
+
+        case CN_OBJ_FCNTL:
+        {
+            struct objhandle *hdl = (struct objhandle*)opsTarget;
+            u32 cmd = OpsArgs2;
+//          list = (va_list)va_arg(list, va_list);
             switch(cmd)
             {
                 case F_SETTIMEOUT:
                 {
-                    u32 *timeout = (u32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_timeout(hdl, 1, timeout));
+                    u32 timeout = va_arg(*(va_list*)OpsArgs3, u32);
+                    handle_settimeout(hdl, timeout);
+                    *(s32*)OpsArgs1 = CN_OBJ_CMD_TRUE;
+                    break;
                 }
 
                 case F_GETTIMEOUT:
+                    *(u32*)OpsArgs1 = handle_gettimeout(hdl);
                     break;
-
                 case F_STDIO_MULTI_ADD:
                 {
-                    s32 *fd = (s32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_multi(hdl, 1, *fd));
+                    s32 fd = va_arg(*(va_list*)OpsArgs3, s32);
+                    __stdio_multi(hdl, 1, fd);
+                    break;
                 }
 
                 case F_STDIO_MULTI_DEL:
                 {
-                    s32 *fd = (s32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_multi(hdl, 0, *fd));
+                    s32 fd = va_arg(*(va_list*)OpsArgs3, s32);
+                    __stdio_multi(hdl, 0, fd);
+                    break;
                 }
 
                 case F_STDIO_REDRIECT:
                 {
-                    s32 *fd = (s32*)va_arg(list, u32);
-                    return ((ptu32_t)__stdio_redirect(hdl, *fd));
+                    s32 fd = va_arg(*(va_list*)OpsArgs3, s32);
+                    __stdio_redirect(hdl, fd);
+                    break;
                 }
 
                 default : break;
             }
+            result = CN_OBJ_CMD_TRUE;
+            break;
+        }
+
+        case CN_OBJ_IOCTL:
+        {
+            result = CN_OBJ_CMD_UNSUPPORT;
             break;
         }
 
 #if 0
         case (CN_OBJ_FCNTL_START + F_OF_SETTAG):
         {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-            ptu32_t tag = (ptu32_t)args;
+            struct objhandle *hdl = (struct objhandle*)opsTarget;
+            ptu32_t tag = (ptu32_t)OpsArgs1;
 
             return ((ptu32_t)__stdio_tag(hdl, 1, tag));
         }
 
         case (CN_OBJ_FCNTL_START + F_OF_CLRTAG):
         {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-            ptu32_t tag = (ptu32_t)args;
+            struct objhandle *hdl = (struct objhandle*)opsTarget;
+            ptu32_t tag = (ptu32_t)OpsArgs1;
 
             return ((ptu32_t)__stdio_tag(hdl, 0, tag));
         }
@@ -621,33 +567,36 @@ static ptu32_t __stdio_ops(enum objops ops, ptu32_t o_hdl, ptu32_t args,  ...)
 #if 0
         case (CN_OBJ_FCNTL_START + F_STDIO_MULTI_ADD):
         {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-            u32 add = (u32)args;
+            struct objhandle *hdl = (struct objhandle*)opsTarget;
+            u32 add = (u32)OpsArgs1;
 
             return ((ptu32_t)__stdio_multi(hdl, 1, add));
         }
 
         case (CN_OBJ_FCNTL_START + F_STDIO_MULTI_DEL):
         {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-            u32 del = (u32)args;
+            struct objhandle *hdl = (struct objhandle*)opsTarget;
+            u32 del = (u32)OpsArgs1;
 
             return ((ptu32_t)__stdio_multi(hdl, 0, del));
         }
 
         case (CN_OBJ_FCNTL_START + F_STDIO_REDRIECT):
         {
-            struct objhandle *hdl = (struct objhandle*)o_hdl;
-            u32 fd = (u32)args;
+            struct objhandle *hdl = (struct objhandle*)opsTarget;
+            u32 fd = (u32)OpsArgs1;
 
             return ((ptu32_t)__stdio_redirect(hdl, fd));
         }
 #endif
         default:
+        {
+            result = CN_OBJ_CMD_UNSUPPORT;
             break;
+        }
     }
 
-    return (-1);
+    return result;
 }
 
 // ============================================================================
@@ -708,7 +657,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
                 }
             }
 
-            ob = obj_matchpath("/stdio/in", &notfound, NULL);
+            ob = obj_matchpath("/stdio/in", &notfound);
             if(notfound)
             {
                 goto __ERR_STDIO_SET;
@@ -721,7 +670,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
             }
 
             handle_init(hdl, ob, mode, 0);
-            handle_linkobj(hdl, ob);
+            obj_LinkHandle(hdl, ob);
             __stdio_lookup[0] = hdl;
             stdin->fd = 0;
             __stdio_in_out_err[0].fd.direct = fp->fd;
@@ -730,7 +679,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
         case 1 :
         {
-            ob = obj_matchpath("/stdio/out", &notfound, NULL);
+            ob = obj_matchpath("/stdio/out", &notfound);
             if(notfound)
             {
                 goto __ERR_STDIO_SET;
@@ -743,7 +692,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
             }
 
             handle_init(hdl, ob, mode, 0);
-            handle_linkobj(hdl, ob);
+            obj_LinkHandle(hdl, ob);
             __stdio_lookup[1] = hdl;
             stdout->fd = 1;
             if(runmode & CN_STDIO_STDOUT_FOLLOW)
@@ -756,7 +705,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 
         case 2 :
         {
-            ob = obj_matchpath("/stdio/err", &notfound, NULL);
+            ob = obj_matchpath("/stdio/err", &notfound);
             if(notfound)
                 goto __ERR_STDIO_SET;
 
@@ -767,7 +716,7 @@ static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
             }
 
             handle_init(hdl, ob, mode, 0);
-            handle_linkobj(hdl, ob);
+            obj_LinkHandle(hdl, ob);
             __stdio_lookup[2] = hdl;
             stderr->fd = 2;
             if(runmode & CN_STDIO_STDERR_FOLLOW)
@@ -815,7 +764,7 @@ static s32 __stdio_build(u32 runmode)
     struct obj *stdio_root;
     u8 i;
 
-    stdio_root = obj_newchild_set(objsys_root(), "stdio", __stdio_ops, 0, O_RDWR);
+    stdio_root = obj_newchild(obj_root(), __stdio_ops, 0, "stdio");
     if(!stdio_root)
         return (-1);
 
@@ -841,13 +790,13 @@ static s32 __stdio_build(u32 runmode)
         __stdio_in_out_err[2].fd.follow = &__stdio_in_out_err[0].fd.direct;
     }
 
-    if(!obj_newchild(stdio_root, NULL, O_RDWR, (ptu32_t)(&__stdio_in_out_err[0]), "in"))
+    if(!obj_newchild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[0]), "in"))
         return (-1);
 
-    if(!obj_newchild(stdio_root, NULL, O_RDWR, (ptu32_t)(&__stdio_in_out_err[1]), "out"))
+    if(!obj_newchild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[1]), "out"))
         return (-1);
 
-    if(!obj_newchild(stdio_root, NULL, O_RDWR, (ptu32_t)(&__stdio_in_out_err[2]), "err"))
+    if(!obj_newchild(stdio_root, __stdio_ops, (ptu32_t)(&__stdio_in_out_err[2]), "err"))
         return (-1);
 
     return (0);

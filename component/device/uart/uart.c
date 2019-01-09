@@ -147,56 +147,48 @@ struct UartPollCB
 s32 UART_Open(struct objhandle *hdl, u32 Mode,u32 timeout);
 s32 UART_AppWrite(struct objhandle *hdl,u8* src_buf,u32 len,u32 offset, u32 timeout);
 s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len,u32 offset, u32 timeout);
-s32 UART_Ctrl(struct objhandle *hdl,u32 cmd,ptu32_t data1,ptu32_t data2);
+s32 UART_Ctrl(struct objhandle *hdl,u32 cmd,va_list *arg0);
 s32 UART_Poll_Open(struct objhandle *hdl, u32 Mode,u32 timeout);
 s32 UART_Poll_AppWrite(struct objhandle *hdl,u8* src_buf,u32 len,u32 offset, u32 timeout);
 s32 UART_Poll_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len,u32 offset, u32 timeout);
-s32 UART_Poll_Ctrl(struct objhandle* hdl,u32 cmd,ptu32_t data1,ptu32_t data2);
+s32 UART_Poll_Ctrl(struct objhandle* hdl,u32 cmd,va_list *arg0);
 
-// ============================================================================
-// 功能：串口设备open函数。打开串口设备时的回调函数，使文件上下文指向串口对象对应的串口控制块。
+//----串口设备open函数---------------------------------------------------------
+//功能：打开串口设备时的回调函数，使文件上下文指向串口对象对应的串口控制块。
 //      串口设备文件，是安装串口时创建的，本函数不负责创建文件。
 // 参数：Fp，待操作的串口文件指针
 //      Mode，打开模式，O_RDONLY、O_WRONLY、O_RDWR
 //      timeout，超时时间。
 // 返回：0=success，-1=error
 // 备注：O_RDONLY、O_WRONLY、O_RDWR 须符合POSIX（2016）的最新定义
-// ============================================================================
+//-----------------------------------------------------------------------------
 s32 UART_Open(struct objhandle *hdl, u32 Mode, u32 timeout)
 {
     struct UartGeneralCB *UGCB;
-    bool_t res = false;
 
     if(hdl == NULL)
         return (-1);
 
-#if 0
-    Fd = Handle2fd( hdl );
-//  UartObj = KF_GetHostObject(hdl);
-//  Dev = (struct DjyDevice *)OBJ_Represent(UartObj);
-    UGCB = (struct UartGeneralCB *)Dev_GetDevTag(Fd);
-#else
     UGCB = (struct UartGeneralCB *)dev_GetDrvTag(Handle2fd(hdl));
-#endif
-    handle_linkcontext(hdl, (ptu32_t)UGCB);  //Fd上下文指向串口控制块struct UartGeneralCB
+    handle_SetContext(hdl, (ptu32_t)UGCB);  //Fd上下文指向串口控制块struct UartGeneralCB
     if( ! Ring_IsEmpty(&UGCB->RecvRingBuf))
     {
         //文件尚未加入任何多路复用集，直接初始化即可
-        handle_set_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
+        handle_SetMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
     }
 
     if( ! Ring_IsFull(&UGCB->SendRingBuf))
     {
         //文件尚未加入任何多路复用集，直接初始化即可
-        handle_set_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_WRITE);
+        handle_SetMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_WRITE);
     }
     return 0;
 }
 
-// ============================================================================
-// 功能：串口设备APP写函数。写UART设备,由应用程序调用，UART被注册为设备，调用设备操
-//      作函数Driver_WriteDevice，最终会调用本函数，函数调用过程:
-//      DevWrite() ---> Dev->Write() ---> UART_AppWrite()
+//----串口设备APP写函数----------------------------------------------------------
+//功能: 写UART设备,由应用程序调用，UART被注册为设备，调用设备操作函数
+//      Driver_WriteDevice，最终会调用本函数，函数调用过程:
+//      Dev_Write() ---> Dev->Write() ---> UART_AppWrite()
 //      该函数实现的功能说明如下:
 //      1.若未开调度，则采用直接发送方式，直接发送前需先将缓冲区数据发送完成.
 //      2.若开始调度，把数据写入串口uart_UCB的环形发送缓冲区中.
@@ -205,7 +197,7 @@ s32 UART_Open(struct objhandle *hdl, u32 Mode, u32 timeout)
 //      5.有关timeout，每次等待信号量，时间都需递减.
 //      6.当所有数据写入缓冲区后，判断是否阻塞发送，若为阻塞，则等待阻塞信号量再返回.
 //      7.返回前，将该串口所在的多路利用集的写感应位清除
-// 参数：UCB,被操作的串口tagUartCB结构体指针数值
+//参数: UCB,被操作的串口tagUartCB结构体指针数值
 //      buf，数据源指针.
 //      len，数据量(bytes).
 //      offset,偏移量，在串口模块中，此变量无效
@@ -214,9 +206,8 @@ s32 UART_Open(struct objhandle *hdl, u32 Mode, u32 timeout)
 //         会等待所有数据被填入串口模块的缓冲区中后，立刻返回，非阻塞发送方式在函数
 //         返回时，串口可能仍在发送数据。
 //      timeout,超时量(us).
-// 返回：实际写入环形缓冲区的字符数
-// 备注：
-// ============================================================================
+//返回: 实际写入环形缓冲区的字符数
+//-----------------------------------------------------------------------------
 s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 timeout)
 {
     struct UartGeneralCB *UGCB;
@@ -230,8 +221,8 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
         return 0;
 
     UGCB = (struct UartGeneralCB *)handle_context(hdl);
-    Mode = handle_mode(hdl);
-    UartObj = handle2obj(hdl);
+    Mode = handle_GetMode(hdl);
+    UartObj = handle_GetHostObj(hdl);
     buf = (uint8_t*)src_buf;
     base_time = (u32)DjyGetSysTime();
 
@@ -260,7 +251,7 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
         }
         else // 至此，需发送的数据已经全部copy到串口设备缓冲区
         {
-            if(isbc(Mode)) // 需要block complete
+            if(handle_IsBlockComplete(Mode)) // 需要block complete
             {
                 //如果阻塞选项是complete，还要等待发送完成的信号量。
                 Lock_SempPend(UGCB->BlockingSemp,rel_timeout);
@@ -271,30 +262,29 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
     }
     if(Ring_IsFull(&UGCB->SendRingBuf))
     {
-        obj_unset_handles_multievent(UartObj, CN_MULTIPLEX_SENSINGBIT_WRITE);
+        obj_ClrMultiplexEvent(UartObj, CN_MULTIPLEX_SENSINGBIT_WRITE);
     }
 
     Lock_MutexPost(UGCB->WriteMutex);
     return completed;
 }
 
-// ============================================================================
-// 功能：串口设备APP读函数。读UART设备,由应用程序调用，UART被注册为设备，调用设备操作
-//      函数Driver_ReadDevice，实质就是调用了该函数，函数调用过程:
-//      DevRead() ---> Dev->Read() ---> UART_AppRead()
+//----串口设备APP读函数----------------------------------------------------------
+//功能: 读UART设备,由应用程序调用，UART被注册为设备，调用设备操作函数Driver_ReadDevice,
+//      实质就是调用了该函数，函数调用过程:
+//      Dev_Read() ---> Dev->Read() ---> UART_AppRead()
 //      该函数实现的功能说明如下:
 //      1.读出缓冲区中数据，若缓冲区中数据足够，则直接返回
 //      2.若数据不够，则以缓冲容量的一半为单位，分批次接收数据
 //      3.在等待数据前，需先将信号量清除，每次等待时间需从总超时时间扣除
 //      4.返回前，将该串口所在的多路利用集的读感应位清除
-// 参数：UCB,被操作的串口tagUartCB结构体指针数值
+//参数: UCB,被操作的串口tagUartCB结构体指针数值
 //      dst_buf,应用程序提供的接收缓冲区
 //      len,读入长度,字节
 //      offset,偏移量,在串口模块中，此变量无效
 //      timeout,读超时参数,微秒
-// 返回：实际读出长度
-// 备注：
-// ============================================================================
+//返回: 实际读出长度
+//------------------------------------------------------------------------------
 s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 timeout)
 {
     struct UartGeneralCB *UGCB;
@@ -322,19 +312,11 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
     if(Ring_IsEmpty(&UGCB->RecvRingBuf))
     {
         //标记1。
-#if 0
-        ClrFdAccessStatus(Fd, CN_MULTIPLEX_SENSINGBIT_READ);
-#else
-        handle_unset_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
-#endif
+        handle_ClrMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
         //若因抢占，在“标记1”处 UART_PortWrite 被调用，本if将成立
         if( ! Ring_IsEmpty(&UGCB->RecvRingBuf))
         {
-#if 0
-            SetFdAccessStatus(Fd, CN_MULTIPLEX_SENSINGBIT_READ);
-#else
-            handle_set_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
-#endif
+            handle_SetMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
         }
     }
 
@@ -342,16 +324,16 @@ s32 UART_AppRead(struct objhandle *hdl,u8* dst_buf,u32 len, u32 offset, u32 time
     return completed;
 }
 
-// ============================================================================
-// 功能：串口设备端口写函数。从端口写UART,由底层驱动调用,该函数实现的功能说明如下:
+//----串口设备端口写函数-------------------------------------------------------
+//功能: 从端口写UART,由底层驱动调用,该函数实现的功能说明如下:
 //      1.把数据写入串口uart_UCB的环形接收缓冲区中.
 //      2.如果缓冲区原来是空的，则发送信号量以及设置多路复用集合，通知上层取取数
 //      3.发生错误时，置位多路复用集错误感应位
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      buf，数据源指针。
 //      len，数据量(bytes)
-// 返回：实际写入环形缓冲区的字符数
-// 备注：
+//返回: 实际写入环形缓冲区的字符数
+//-----------------------------------------------------------------------------
 // ============================================================================
 u32 UART_PortWrite(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen)
 {
@@ -364,32 +346,31 @@ u32 UART_PortWrite(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen)
     recv_bytes = Ring_Write(&pUGCB->RecvRingBuf, pBuf, dwLen);
     if(recv_bytes != dwLen)
     {
-        obj_set_handles_multievent(pUGCB->Host, CN_UART_BUF_OVER_ERR);
+        obj_SetMultiplexEvent(pUGCB->Host, CN_UART_BUF_OVER_ERR);
     }
 
     check = Ring_Check(&pUGCB->RecvRingBuf);
     if(check == recv_bytes)
     {
-        obj_set_handles_multievent(pUGCB->Host, CN_MULTIPLEX_SENSINGBIT_READ);
+        obj_SetMultiplexEvent(pUGCB->Host, CN_MULTIPLEX_SENSINGBIT_READ);
         Lock_SempPost(pUGCB->RecvRingBufSemp);
     }
 
     return recv_bytes;
 }
 
-// ============================================================================
-// 功能：从端口读取UART设备,由底层驱动调用,该函数实现的功能说明如下:
+//----串口设备端口读函数---------------------------------------------------------
+//功能: 从端口读取UART设备,由底层驱动调用,该函数实现的功能说明如下:
 //      1.从uart_UCB缓冲区中读取数据到底层驱动提供的dst_buf.
 //      2.检查本次从缓冲区中读出数据前后是否跨过发送触发水平，若跨过了发送触发水平，
 //        则发送信号量，通知应用层，可以继续写数据到缓冲区.
 //      3.达到写触发水平时，置位多路复用集读标志感觉位
 //      4.当读不到数据时，即缓冲区中数据为空时，释放阻塞信号量.
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      dst_buf,读缓冲区
 //      len,读入长度,
-// 返回：实际读出长度
-// 备注：
-// ============================================================================
+//返回: 实际读出长度
+//------------------------------------------------------------------------------
 u32 UART_PortRead(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen)
 {
     u32 check, result = 0;
@@ -403,12 +384,12 @@ u32 UART_PortRead(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen)
             && (check + result > pUGCB->SendRingTrigLevel))
     {
         Lock_SempPost(pUGCB->SendRingBufSemp);
-        obj_set_handles_multievent(pUGCB->Host, CN_MULTIPLEX_SENSINGBIT_WRITE);
+        obj_SetMultiplexEvent(pUGCB->Host, CN_MULTIPLEX_SENSINGBIT_WRITE);
     }
 //  if((check <= UGCB->MplWriteTrigLevel)
 //          && (check + result > UGCB->MplWriteTrigLevel))
 //  {
-//      obj_set_handles_multievent(UartObj, CN_MULTIPLEX_SENSINGBIT_WRITE);
+//      obj_SetMultiplexEvent(UartObj, CN_MULTIPLEX_SENSINGBIT_WRITE);
 //  }
     if(result == 0)
     {
@@ -418,26 +399,25 @@ u32 UART_PortRead(struct UartGeneralCB *pUGCB, u8 *pBuf, u32 dwLen)
     return result;
 }
 
-// ============================================================================
-// 功能：串口错误处理函数，发生错误时调用该函数，配置多路复用集相应的错误标识位
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//----串口错误处理函数----------------------------------------------------------
+//功能: 错误处理函数，发生错误时调用该函数，配置多路复用集相应的错误标识位
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      ErrNo,错误标识的比特位，该比特位必须是多路复用模块未用到感觉位，（3-30比特）
-// 返回：0，错误；1，正确
-// 备注：
-// ============================================================================
+//返回: 0，错误；1，正确
+//------------------------------------------------------------------------------
 u32 UART_ErrHandle(struct UartGeneralCB *pUGCB, u32 dwErrNo)
 {
     if(!pUGCB)
         return (0);
 
-    obj_set_handles_multievent(pUGCB->Host, dwErrNo);
+    obj_SetMultiplexEvent(pUGCB->Host, dwErrNo);
     return (1);
 }
 
-// ============================================================================
-// 功能：串口设备的控制函数,由应用程序调用，UART被注册为设备，调用设备操作函数
+//----串口设备控制函数---------------------------------------------------------
+//功能: 串口设备的控制函数,由应用程序调用，UART被注册为设备，调用设备操作函数
 //      Driver_CtrlDevice，实质就是调用了该函数，函数调用过程:
-//      DevCntl() ---> Dev->dCntl() ---> UART_Ctrl()
+//      Dev_Ctrl() ---> Dev->dCtrl() ---> UART_Ctrl()
 //      该函数实现的功能根据命令字符决定，说明如下:
 //      1.启动停止串口，由底层驱动实现
 //      2.设置半双工发送或接收状态，由底层驱动实现
@@ -445,17 +425,19 @@ u32 UART_ErrHandle(struct UartGeneralCB *pUGCB, u32 dwErrNo)
 //      4.设置波特率和硬件触发水平，由底层驱动实现
 //      5.设置错误弹出事件类型
 //      ......
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      cmd,操作类型
 //      data,含义依cmd而定
-// 返回：无意义.
-// 备注：
-// ============================================================================
-s32 UART_Ctrl(struct objhandle* of, u32 cmd, ptu32_t data1, ptu32_t data2)
+//返回: 无意义.
+//-----------------------------------------------------------------------------
+s32 UART_Ctrl(struct objhandle* hdl,u32 cmd, va_list *arg0)
 {
     struct UartGeneralCB *UGCB;
     ptu32_t result = 0;
 
+    if(hdl == NULL)
+        return 0;
+    UGCB = (struct UartGeneralCB *)handle_context(hdl);
     switch(cmd)
     {
         case CN_DEV_CTRL_START:
@@ -464,48 +446,26 @@ s32 UART_Ctrl(struct objhandle* of, u32 cmd, ptu32_t data1, ptu32_t data2)
         case CN_DEV_CTRL_SLEEP:
         case CN_DEV_CTRL_RESUME:
         case CN_UART_COM_SET:
-        case CN_UART_RX_PAUSE: // 暂停接收
-        case CN_UART_RX_RESUME: // 恢复接收
-        case CN_UART_RECV_HARD_LEVEL: // 设置接收FIFO触发水平
-        case CN_UART_SEND_HARD_LEVEL: // 设置发送FIFO触发水平
-        case CN_UART_EN_RTS: // 使能RTS流控
-        case CN_UART_DIS_RTS: // 禁止RTS流控
-        case CN_UART_EN_CTS: // 使能CTS流控
-        case CN_UART_DIS_CTS: // 禁止CTS流控
-        case CN_UART_DMA_USED: // 使用DMA传输
-        case CN_UART_DMA_UNUSED: // 禁止DMS传输
+        case CN_UART_RX_PAUSE:           //暂停接收
+        case CN_UART_RX_RESUME:          //恢复接收
+        case CN_UART_RECV_HARD_LEVEL:    //设置接收fifo触发水平
+        case CN_UART_SEND_HARD_LEVEL:    //设置发送fifo触发水平
+        case CN_UART_EN_RTS:             //使能rts流控
+        case CN_UART_DIS_RTS:            //禁止rts流控
+        case CN_UART_EN_CTS:             //使能cts流控
+        case CN_UART_DIS_CTS:            //禁止cts流控
+        case CN_UART_DMA_USED:           //使用dma传输
+        case CN_UART_DMA_UNUSED:         //禁止dma传输
         case CN_UART_HALF_DUPLEX_SEND:
         case CN_UART_HALF_DUPLEX_RECV:
-        // case CN_UART_SETTO_ALL_DUPLEX:
-        {
-            UGCB = (struct UartGeneralCB *)handle_context(of);
-            if(UGCB)
-                UGCB->UartCtrl(UGCB->UartPortTag,cmd,data1,data2);
-            break;
-        }
-
         case CN_UART_SET_BAUD:          //设置Baud
         {
-            UGCB = (struct UartGeneralCB *)handle_context(of);
-            if(UGCB && UGCB->Baud !=data1)
-            {
-                UGCB->Baud = data1;
-                UGCB->UartCtrl(UGCB->UartPortTag,CN_UART_SET_BAUD,data1,data2);
-            }
+            UGCB->UartCtrl(UGCB->UartPortTag,cmd,arg0);
             break;
         }
-
-//      case CN_UART_RECV_SOFT_LEVEL:   //设置接收软件触发水平
-//      {
-//          UCB->RecvRingTrigLevel = data1;
-//          break;
-//      }
-
         case CN_UART_SEND_SOFT_LEVEL:   //设置发送软件触发水平
         {
-            UGCB = (struct UartGeneralCB *)handle_context(of);
-            if(UGCB)
-                UGCB->SendRingTrigLevel = data1;
+            UGCB->SendRingTrigLevel = va_arg(*arg0,u32);
             break;
         }
 
@@ -514,55 +474,46 @@ s32 UART_Ctrl(struct objhandle* of, u32 cmd, ptu32_t data1, ptu32_t data2)
     return result;
 }
 
-// ============================================================================
-// 功能：串口设备open函数。打开串口设备时的回调函数，使文件上下文指向串口对象对应的串口控制块。
+//----串口设备open函数---------------------------------------------------------
+//功能：打开串口设备时的回调函数，使文件上下文指向串口对象对应的串口控制块。
 //      串口设备文件，是安装串口时创建的，本函数不负责创建文件。
-// 参数：Fp，待操作的串口文件指针
+//参数：hdl，待操作的串口文件指针
 //      Mode，打开模式
 //      timeout，超时时间。
-// 返回：0=success，-1=error
-// 备注：
-// ============================================================================
+//返回：0=success，-1=error
+//-----------------------------------------------------------------------------
 s32 UART_Poll_Open(struct objhandle *hdl, u32 Mode,u32 timeout)
 {
     struct UartPollCB *UPCB;
 
     if(hdl == NULL)
         return (-1);
-#if 0
-    Fd = Handle2fd( hdl );
-//  UartObj = KF_GetHostObject(hdl);
-//  Dev = (struct DjyDevice *)OBJ_Represent(UartObj);
-    UPCB = (struct UartPollCB *)Dev_GetDevTag(Fd);
-#else
     UPCB = (struct UartPollCB*)dev_GetDrvTag(Handle2fd(hdl));
-#endif
-    handle_linkcontext(hdl,(ptu32_t)UPCB);  //Fd上下文指向串口控制块struct UartGeneralCB
+    handle_SetContext(hdl,(ptu32_t)UPCB);  //Fd上下文指向串口控制块struct UartGeneralCB
     if(UPCB->RecvLen != 0)
     {
         //文件尚未加入任何多路复用集，直接初始化即可
-        handle_set_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
+        handle_SetMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
     }
     else
     {
         //文件尚未加入任何多路复用集，直接初始化即可
-        handle_set_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ
+        handle_SetMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_READ
                                + CN_MULTIPLEX_SENSINGBIT_WRITE);
     }
     return (0);
 }
-// ============================================================================
-// 功能：串口设备端口写函数。写出具到端口。不经过环形缓冲区直接写
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//----串口设备端口写函数-------------------------------------------------------
+//功能:  写出具到端口。不经过环形缓冲区直接写
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      buf，数据源指针。
 //      len，数据量(bytes)
-// 返回：实际写入的字符数
-// 备注：
-// ============================================================================
+//返回: 实际写入的字符数
+//-----------------------------------------------------------------------------
 s32 UART_Poll_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 timeout)
 {
     struct UartPollCB *UPCB;
-    u32 completed;
+    s32 completed;
 
     if((hdl == NULL))
         return 0;
@@ -572,21 +523,20 @@ s32 UART_Poll_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, 
     completed = UPCB->SendPkg(UPCB->UartPortTag, src_buf, len);
 
     Lock_SempPend(UPCB->BlockingSemp,timeout);
-    return ((s32)completed);
+    return (completed);
 }
 
-// ============================================================================
-// 功能：串口设备端口读函数。直接从端口读取数据不经过环形缓冲区。
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//----串口设备端口读函数-------------------------------------------------------
+//功能: 直接从端口读取数据不经过环形缓冲区
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      dst_buf,读缓冲区
 //      len,读入长度,
-// 返回：实际读出长度
-// 备注：
-// ============================================================================
+//返回: 实际读出长度
+//-----------------------------------------------------------------------------
 s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u32 timeout)
 {
     struct UartPollCB *UPCB;
-    uint32_t RcvLen ;
+    s32 RcvLen ;
     bool_t ErrorFlag = false;
 
     if((hdl == NULL))
@@ -610,30 +560,26 @@ s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u
     }
     //由driver把数据copy给用户，同时清接收缓冲区，poll模式要求用户每次读设备都
     //读完缓冲区中的全部数据。
-    UPCB->UartCtrl(UPCB->UartPortTag,CN_UART_RECV_BUF,(u32)dst_buf,RcvLen);
+    fcntl(Handle2fd(hdl), CN_UART_RECV_BUF, dst_buf, RcvLen);
+//  UPCB->UartCtrl(UPCB->UartPortTag,CN_UART_RECV_BUF,(u32)dst_buf,RcvLen);
 
-#if 0
-    ClrFdAccessStatus(Handle2fd(hdl), CN_MULTIPLEX_SENSINGBIT_READ);
-#else
-    handle_unset_multievent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
-#endif
+    handle_ClrMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
     UPCB->RecvLen = 0;
     Int_ContactTrunk();
 
     if(ErrorFlag)
         UART_Poll_PortRead(UPCB);
     Lock_MutexPost(UPCB->ReadMutex);
-    return ((s32)RcvLen);
+    return (RcvLen);
 }
 
-// ============================================================================
-// 功能：串口设备端口写函数。从端口写UART,由于Poll模式下，接收缓冲区由driver管理，
-//      故本函数只是起到多路复用通知作用。
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//----串口设备端口写函数-------------------------------------------------------
+//功能: 从端口写UART,由于Poll模式下，接收缓冲区由driver管理，故本函数只是起到多
+//      路复用通知作用。
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      len，数据量(bytes)
-// 返回：实际写入环形缓冲区的字符数
-// 备注：
-// ============================================================================
+//返回: 实际写入环形缓冲区的字符数
+//-----------------------------------------------------------------------------
 u32 UART_Poll_PortWrite(struct UartPollCB *pUPCB, u32 dwLen)
 {
     if(!pUPCB)
@@ -641,54 +587,52 @@ u32 UART_Poll_PortWrite(struct UartPollCB *pUPCB, u32 dwLen)
 
     if(pUPCB->RecvLen == 0)
     {
-        obj_set_handles_multievent(pUPCB->Host, CN_MULTIPLEX_SENSINGBIT_READ);
+        obj_SetMultiplexEvent(pUPCB->Host, CN_MULTIPLEX_SENSINGBIT_READ);
     }
 
     pUPCB->RecvLen += dwLen;
     return (dwLen);
 }
 
-// ============================================================================
-// 功能：串口设备端口读函数。从端口读取UART设备,由底层驱动调用,驱动程序务必在完成发送时才调用本函数。
+//----串口设备端口读函数---------------------------------------------------------
+//功能: 从端口读取UART设备,由底层驱动调用,驱动程序务必在完成发送时才调用本函数。
 //      函数并不会真正读取APP发送的数据，只会起到设置多路复用集状态以及阻塞发送
 //      的通知作用。
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
-// 返回：0
-// 备注：
-// ============================================================================
+//参数: UCB,被操作的串口tagUartCB结构体指针.
+//返回: 0
+//------------------------------------------------------------------------------
 u32 UART_Poll_PortRead(struct UartPollCB *pUPCB)
 {
     if(!pUPCB)
         return (0);
 
-    obj_set_handles_multievent(pUPCB->Host, CN_MULTIPLEX_SENSINGBIT_WRITE);
+    obj_SetMultiplexEvent(pUPCB->Host, CN_MULTIPLEX_SENSINGBIT_WRITE);
     Lock_SempPost(pUPCB->BlockingSemp);
 
     return (0);
 
 }
 
-// ============================================================================
-// 功能：串口错误处理函数。错误处理函数，发生错误时调用该函数，配置多路复用集相应的错误标识位
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//----串口错误处理函数----------------------------------------------------------
+//功能: 错误处理函数，发生错误时调用该函数，配置多路复用集相应的错误标识位
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      ErrNo,错误标识的比特位，该比特位必须是多路复用模块未用到感觉位，（3-30比特）
-// 返回：0，错误；1，正确
-// 备注：
-// ============================================================================
+//返回: 0，错误；1，正确
+//------------------------------------------------------------------------------
 u32 UART_Poll_ErrHandle(struct UartPollCB *pUPCB, u32 dwErrNo)
 {
     if(!pUPCB)
         return (0);
 
-    obj_set_handles_multievent(pUPCB->Host, dwErrNo);
+    obj_SetMultiplexEvent(pUPCB->Host, dwErrNo);
 
     return (1);
 }
 
-// ============================================================================
-// 功能：串口Poll设备控制函数。串口设备的控制函数,由应用程序调用，UART被注册为设备，
-//      调用设备操作函数Driver_CtrlDevice，实质就是调用了该函数，函数调用过程:
-//      DevCntl() ---> Dev->dCntl() ---> UART_Ctrl()
+//----串口Poll设备控制函数---------------------------------------------------------
+//功能: 串口设备的控制函数,由应用程序调用，UART被注册为设备，调用设备操作函数
+//      Driver_CtrlDevice，实质就是调用了该函数，函数调用过程:
+//      Dev_Ctrl() ---> Dev->dCtrl() ---> UART_Ctrl()
 //      该函数实现的功能根据命令字符决定，说明如下:
 //      1.启动停止串口，由底层驱动实现
 //      2.设置半双工发送或接收状态，由底层驱动实现
@@ -696,48 +640,34 @@ u32 UART_Poll_ErrHandle(struct UartPollCB *pUPCB, u32 dwErrNo)
 //      4.设置波特率和硬件触发水平，由底层驱动实现
 //      5.设置错误弹出事件类型
 //      ......
-// 参数：UCB,被操作的串口tagUartCB结构体指针.
+//参数: UCB,被操作的串口tagUartCB结构体指针.
 //      cmd,操作类型
 //      data,含义依cmd而定
-// 返回：无意义.
-// 备注：
-// ============================================================================
-s32 UART_Poll_Ctrl(struct objhandle* hdl,u32 cmd,ptu32_t data1,ptu32_t data2)
+//返回: 无意义.
+//-----------------------------------------------------------------------------
+s32 UART_Poll_Ctrl(struct objhandle* hdl,u32 cmd, va_list *arg0)
 {
     struct UartPollCB *UPCB;
-    ptu32_t result = 0;
+    s32 result = 0;
 
     if(hdl == NULL)
         return (0);
 
     UPCB = (struct UartPollCB *)handle_context(hdl);
-    switch(cmd)
-    {
-        case CN_UART_SET_BAUD: // 设置Baud
-            if(UPCB->Baud !=data1)
-            {
-                UPCB->Baud = data1;
-                UPCB->UartCtrl(UPCB->UartPortTag, CN_UART_SET_BAUD, data1, data2);
-            }
-            break;
-        default:
-            result = UPCB->UartCtrl(UPCB->UartPortTag,cmd,data1,data2);
-        break;
-    }
+    result = UPCB->UartCtrl(UPCB->UartPortTag,cmd,arg0);
 
-    return ((s32)result);
+    return (result);
 }
 
-// ============================================================================
-// 功能：添加UART设备.添加串口设备到系统设备队列
+//----添加UART设备-------------------------------------------------------------
+//功能：添加串口设备到系统设备队列
 //      a、初始化环形缓冲区
 //      b、创建环形缓冲区信号量和设备互斥量
 //      c、将串口添加到设备管理模块，并初始化设备函数指针
 // 参数：UCB，串口控制块
 //      Param,包含初始化UART所需参数，具体参数请查看tagUartParam结构体
-// 返回：串口控制块指针，NULL失败
-// 备注：
-// ============================================================================
+//返回：串口控制块指针，NULL失败
+//-----------------------------------------------------------------------------
 #if 0
 struct obj * __UART_InstallGeneral(struct UartParam *Param)
 {
@@ -841,7 +771,6 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
 {
     struct obj * uart_dev;
     struct UartGeneralCB *UGCB;
-    struct MutexLCB *uart_mutexR,*uart_mutexT;
     u8 *pRxRingBuf,*pTxRingBuf;
 
     UGCB = (struct UartGeneralCB *)M_Malloc(sizeof(struct UartGeneralCB),0);
@@ -901,7 +830,7 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
     Ring_Init(&UGCB->SendRingBuf,pTxRingBuf,Param->TxRingBufLen);
     Ring_Init(&UGCB->RecvRingBuf,pRxRingBuf,Param->RxRingBufLen);
 
-    uart_dev = dev_addo(NULL, Param->Name, //uart_mutexR,uart_mutexT,
+    uart_dev = dev_Create(Param->Name, //uart_mutexR,uart_mutexT,
                           UART_Open,
                           NULL,
                           UART_AppWrite,
@@ -1032,7 +961,7 @@ struct UartPollCB *UART_InstallPoll(struct UartParam *Param)
 //  UPCB->pMultiplexUart     = NULL;                     //初始化时为NULL
 //  UPCB->MplUartStatus      = CN_MULTIPLEX_SENSINGBIT_WRITE;//初始时可写不可读
 
-    uart_dev = dev_addo(NULL, (const char*)Param->Name,// uart_mutexR, uart_mutexT,
+    uart_dev = dev_Create((const char*)Param->Name,// uart_mutexR, uart_mutexT,
                         UART_Poll_Open,
                         NULL,
                         UART_Poll_AppWrite,

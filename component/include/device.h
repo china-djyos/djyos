@@ -65,7 +65,7 @@ extern "C" {
 #include <object.h>
 #include <objhandle.h>
 #include <multiplex.h>
-
+#include <stdarg.h>
 // 设备模块出错代码，本enum常量从enum_drv_no_error开始依序增1.
 enum _DRV_ERROR_CODE_
 {
@@ -76,18 +76,6 @@ enum _DRV_ERROR_CODE_
 };
 
 #define CN_DEV_NAME_LIMIT   255 // 设备名长度不能超过255字符
-
-#ifndef O_DBC // 设备文件的操作逻辑，block after complete，表示写入数据时，必须等数据发送完，才能返回 (目前仅用于了UART)
- #define O_DBC                  0x00000004 // 需要保证不会与标准O_XXX发送冲突
-#else
- #error "O_DBC" duplicate definition!
-#endif
-
-#ifndef O_DRAW // 裸操作，不考虑文件属性（offset不叠加）
- #define O_DRAW                 0x00000008 // 需要保证不会与标准O_XXX发送冲突
-#else
- #error "O_DRAW" duplicate definition!
-#endif
 
 //常用设备控制命令（为了与旧代码兼容）
 #define CN_DEV_CTRL_START           (F_DSTART)              // 启动设备，有些能控制电源的设备需要
@@ -107,35 +95,34 @@ enum _DRV_ERROR_CODE_
 
 //操纵设备时，通过这些指针，间接调用设备驱动提供的函数。
 //打开设备，如设备无须打开即可工作，置空即可
-typedef s32 (*fntDevOpen)(struct objhandle *of, u32 mode, u32 timeout);
+typedef s32 (*fntDevOpen)(struct objhandle *hdl, u32 mode, u32 timeout);
 //关闭设备，如果设备部需要关闭操作，置空即可
-typedef s32 (*fntDevClose)(struct objhandle *of);
+typedef s32 (*fntDevClose)(struct objhandle *hdl);
 //返回值:成功写入的字节数。
 //以串口为例，如果调用dev_WriteDevice时BlockOption = CN_BLOCK_BUFFER，则返回值表
 //示函数返回时成功写入到设备缓冲区的数据量，并不确定是否已经从物理串口传输出去了。
 //如果BlockOption = CN_BLOCK_COMPLETE，则能确保传输完成才返回。
-typedef s32 (*fntDevWrite)(struct objhandle *of, u8 *data, u32 size, u32 offset, u32 timeout);
+typedef s32 (*fntDevWrite)(struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值:成功读取的字节数
-typedef s32 (*fntDevRead) (struct objhandle *of, u8 *data, u32 size, u32 offset, u32 timeout);
+typedef s32 (*fntDevRead) (struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值:收到不支持的命令，返回-1，0表示成功执行，其他返回值的含义自定
-typedef s32 (*fntDevCntl) (struct objhandle *of, u32 cmd, ptu32_t data1, ptu32_t data2);
+typedef s32 (*fntDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
 
 
-
-s32 israw(struct objhandle *hdl);
-s32 isbc(u32 flags);
-const char *devo2name(struct obj *devo);
-ptu32_t devo2drv(struct obj *devo);
-struct obj *dev_group_addo(char *name);
+s32 handle_IsBlockComplete(u32 flags);
+const char *dev_Name(struct obj *devo);
+ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
+//struct obj *dev_group_addo(char *name);
 s32 dev_group_add(char *name);
-s32 dev_group_delo(struct obj *grp);
-s32 dev_group_del(char *name);
-struct obj *dev_addo(struct obj *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
-                     fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag);
+//s32 dev_group_delo(struct obj *grp);
+//s32 dev_group_del(char *name);
+struct obj *dev_Create(const char *name, fntDevOpen dopen, fntDevClose dclose,
+                        fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl,
+                        ptu32_t dtag);
 s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
             fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag);
-s32 dev_delo(struct obj *devo);
-s32 dev_del(const char *grp, const char *name);
+s32 dev_DeleteAtObject(struct obj *dev);
+s32 dev_DeleteAtName(const char *name);
 void dev_SetDrvTag(s32 fd,ptu32_t DrvTag);
 ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag);
 ptu32_t dev_GetUserTag(s32 fd);

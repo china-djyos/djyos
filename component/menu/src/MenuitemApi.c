@@ -399,7 +399,7 @@ bool_t DelMenuBranchCompletely(struct menu_item * pMenuitem)
   while((temp_menuitem=SearchSubTernalMenuitem(pMenuitem))!=NULL)
   {
     printf("begin to delete the menuitem=%s\n",temp_menuitem->node.name);
-    obj_del((struct obj *)temp_menuitem);
+    obj_Delete((struct obj *)temp_menuitem);
     Mb_Free(pg_menuitem_pool, temp_menuitem);
   }
   if(obj_parent((struct obj *)pMenuitem)==pg_menuitem_root)
@@ -407,7 +407,7 @@ bool_t DelMenuBranchCompletely(struct menu_item * pMenuitem)
      menuitem_tree_count--;
   }
   printf("begin to delete the menuitem=%s\n",pMenuitem->node.name);
-  obj_del((struct obj *)(&(pMenuitem->node)));
+  obj_Delete((struct obj *)(&(pMenuitem->node)));
   Mb_Free(pg_menuitem_pool, pMenuitem);
   result=true;
 
@@ -435,7 +435,7 @@ bool_t DelMenuBranch(struct menu_item * pMenuitem)
   while((temp_menuitem=SearchSubTernalMenuitem(pMenuitem))!=NULL)
   {
     printf("begin to delete the menuitem=%s\n",temp_menuitem->node.name);
-    obj_del((struct obj *)temp_menuitem);
+    obj_Delete((struct obj *)temp_menuitem);
     Mb_Free(pg_menuitem_pool, temp_menuitem);
   }
   result=true;

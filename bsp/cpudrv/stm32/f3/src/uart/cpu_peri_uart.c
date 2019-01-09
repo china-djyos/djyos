@@ -383,12 +383,12 @@ static void __UART_GpioConfig(u8 SerialNo)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *data)
 {
     struct COMParam *COM;
     if((data == 0) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
+    COM = data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     Reg->CR1 &= ~(1);//禁止串口
@@ -862,7 +862,7 @@ void __UART_SetDmaUnUsed(u32 port)
 // 返回: 无意义.
 // =============================================================================
 u32 CN1=0,CN2=0,CN3=0,CN4=0,CN5=0;
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
 {
     ptu32_t result = 0;
     u32 port;
@@ -895,7 +895,8 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-             __UART_BaudSet(Reg,port, data1);
+            len = va_arg(args, u32);
+             __UART_BaudSet(Reg,port, len);
             break;
         case CN_UART_EN_RTS:
             Reg->CR3 |= 0x100;
@@ -916,199 +917,209 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             __UART_SetDmaUnUsed(port);
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+            struct COMParam *com;
+            com = va_arg(args, struct COMParam *);
+            __UART_ComConfig(Reg,port,com);
             break;
         case CN_UART_SEND_BUF:
+            u32 mar;
+            u16 ndtr;
+            mar = va_arg(args, u32);
+            ndtr = va_arg(args, u16);
             Board_UartHalfDuplexSend(port);
-            DMA_Enable(UartDmaTxChannel[port],(u32)data1,data2);
-            result = data2;
+            DMA_Enable(UartDmaTxChannel[port],mar,ndtr);
+            result = ndtr;
             break;
         case CN_UART_RECV_BUF:
             switch (pUartPollCB[port]->NoCopyBufNum)
             {
+                u8 *buf;
+                s32 rcvlen;
+                buf = va_arg(args, char *);
+                rcvlen = va_arg(args, s32);
                 case 1:
-                switch (pUartPollCB[port]->NowRecvbuf)
-                {
-                   case 0:memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[4],data2);
-                          break;
-                   case 1:memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[0],data2);
+                    switch (pUartPollCB[port]->NowRecvbuf)
+                    {
+                       case 0:memcpy(buf,pUartPollCB[port]->DmaRecvBuf[4],rcvlen);
+                              break;
+                       case 1:memcpy(buf,pUartPollCB[port]->DmaRecvBuf[0],rcvlen);
+                        break;
+                       case 2:memcpy(buf,pUartPollCB[port]->DmaRecvBuf[1],rcvlen);
+                              break;
+                       case 3:memcpy(buf,pUartPollCB[port]->DmaRecvBuf[2],rcvlen);
+                              break;
+                       case 4:memcpy(buf,pUartPollCB[port]->DmaRecvBuf[3],rcvlen);
+                              break;
+                       default:  break;
+                    }
+                    CN1++;
                     break;
-                   case 2:memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[1],data2);
-                          break;
-                   case 3:memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[2],data2);
-                          break;
-                   case 4:memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[3],data2);
-                          break;
-                   default:  break;
-                }
-                CN1++;
-                break;
                 case 2:
-                switch (pUartPollCB[port]->NowRecvbuf)
-                    {
-                   case 0: len = MIN(data2,pUartPollCB[port]->RcvBufLen[3]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[3],len);
-                           memcpy((u8*)(data1+pUartPollCB[port]->RcvBufLen[3]),pUartPollCB[port]->DmaRecvBuf[4],data2-len);
-                           break;
-                   case 1: len = MIN(data2,pUartPollCB[port]->RcvBufLen[4]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[4],len);
-                           memcpy((u8*)(data1+pUartPollCB[port]->RcvBufLen[4]),pUartPollCB[port]->DmaRecvBuf[0],data2-len);
-                           break;
-                   case 2: len = MIN(data2,pUartPollCB[port]->RcvBufLen[0]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[0],len);
-                           memcpy((u8*)(data1+pUartPollCB[port]->RcvBufLen[0]),pUartPollCB[port]->DmaRecvBuf[1],data2-len);
-                           break;
-                   case 3: len = MIN(data2,pUartPollCB[port]->RcvBufLen[1]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[1],len);
-                           memcpy((u8*)(data1+pUartPollCB[port]->RcvBufLen[1]),pUartPollCB[port]->DmaRecvBuf[2],data2-len);
-                           break;
-                   case 4: len = MIN(data2,pUartPollCB[port]->RcvBufLen[2]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[2],len);
-                           memcpy((u8*)(data1+pUartPollCB[port]->RcvBufLen[2]),pUartPollCB[port]->DmaRecvBuf[3],data2-len);
-                           break;
-                   default:  break;
-                }
-                CN2++;
-                break;
-            case 3:
-                switch (pUartPollCB[port]->NowRecvbuf)
-                {
-                   case 0: len = MIN(data2,pUartPollCB[port]->RcvBufLen[2]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[3]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[2],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[3],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[4],data2-len-len1);
-                           break;
-                   case 1: len = MIN(data2,pUartPollCB[port]->RcvBufLen[3]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[4]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[3],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[4],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[0],data2-len-len1);
-                           break;
-                   case 2: len = MIN(data2,pUartPollCB[port]->RcvBufLen[4]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[0]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[4],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[0],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[1],data2-len-len1);
-                           break;
-                   case 3: len = MIN(data2,pUartPollCB[port]->RcvBufLen[0]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[1]);
-                        memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[0],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[1],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[2],data2-len-len1);
-                           break;
-                   case 4: len = MIN(data2,pUartPollCB[port]->RcvBufLen[1]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[2]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[1],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[2],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[3],data2-len-len1);
-                           break;
-                   default:  break;
+                    switch (pUartPollCB[port]->NowRecvbuf)
+                        {
+                       case 0: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[3]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[3],len);
+                               memcpy((buf+pUartPollCB[port]->RcvBufLen[3]),pUartPollCB[port]->DmaRecvBuf[4],rcvlen-len);
+                               break;
+                       case 1: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[4]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[4],len);
+                               memcpy((buf+pUartPollCB[port]->RcvBufLen[4]),pUartPollCB[port]->DmaRecvBuf[0],rcvlen-len);
+                               break;
+                       case 2: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[0]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[0],len);
+                               memcpy((buf+pUartPollCB[port]->RcvBufLen[0]),pUartPollCB[port]->DmaRecvBuf[1],rcvlen-len);
+                               break;
+                       case 3: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[1]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[1],len);
+                               memcpy((buf+pUartPollCB[port]->RcvBufLen[1]),pUartPollCB[port]->DmaRecvBuf[2],rcvlen-len);
+                               break;
+                       case 4: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[2]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[2],len);
+                               memcpy((buf+pUartPollCB[port]->RcvBufLen[2]),pUartPollCB[port]->DmaRecvBuf[3],rcvlen-len);
+                               break;
+                       default:  break;
                     }
-                CN3++;
-                break;
-            case 4:
-                switch (pUartPollCB[port]->NowRecvbuf)
-                    {
-                   case 0: len = MIN(data2,pUartPollCB[port]->RcvBufLen[1]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[2]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[3]);
-                        memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[1],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[2],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[3],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[4],data2-len-len1-len2);
-                           break;
-                   case 1: len = MIN(data2,pUartPollCB[port]->RcvBufLen[2]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[3]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[4]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[2],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[3],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[4],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[0],data2-len-len1-len2);
-                           break;
-                   case 2: len = MIN(data2,pUartPollCB[port]->RcvBufLen[3]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[4]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[0]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[3],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[4],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[0],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[1],data2-len-len1-len2);
-                           break;
-                   case 3: len = MIN(data2,pUartPollCB[port]->RcvBufLen[4]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[0]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[1]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[4],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[0],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[1],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[2],data2-len-len1-len2);
-                           break;
-                   case 4: len = MIN(data2,pUartPollCB[port]->RcvBufLen[0]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[1]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[2]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[0],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[1],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[2],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[3],data2-len-len1-len2);
-                           break;
-                   default:  break;
-                    }
-                CN4++;
+                    CN2++;
                     break;
-            case 5:
-                switch (pUartPollCB[port]->NowRecvbuf)
-                {
-                   case 0: len = MIN(data2,pUartPollCB[port]->RcvBufLen[0]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[1]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[2]);
-                           len3 = MIN(data2-len-len1-len2,pUartPollCB[port]->RcvBufLen[3]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[0],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[1],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[2],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[3],len3);
-                           memcpy((u8*)(data1+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[4],data2-len-len1-len2-len3);
-                           break;
-                   case 1: len = MIN(data2,pUartPollCB[port]->RcvBufLen[1]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[2]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[3]);
-                           len3 = MIN(data2-len-len1-len2,pUartPollCB[port]->RcvBufLen[4]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[1],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[2],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[3],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[4],len3);
-                           memcpy((u8*)(data1+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[0],data2-len-len1-len2-len3);
-                           break;
-                   case 2: len = MIN(data2,pUartPollCB[port]->RcvBufLen[2]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[3]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[4]);
-                           len3 = MIN(data2-len-len1-len2,pUartPollCB[port]->RcvBufLen[0]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[2],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[3],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[4],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[0],len3);
-                           memcpy((u8*)(data1+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[1],data2-len-len1-len2-len3);
-                           break;
-                   case 3: len = MIN(data2,pUartPollCB[port]->RcvBufLen[3]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[4]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[0]);
-                           len3 = MIN(data2-len-len1-len2,pUartPollCB[port]->RcvBufLen[1]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[3],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[4],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[0],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[1],len3);
-                           memcpy((u8*)(data1+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[2],data2-len-len1-len2-len3);
-                           break;
-                   case 4: len = MIN(data2,pUartPollCB[port]->RcvBufLen[4]);
-                           len1 = MIN(data2-len,pUartPollCB[port]->RcvBufLen[0]);
-                           len2 = MIN(data2-len-len1,pUartPollCB[port]->RcvBufLen[1]);
-                           len3 = MIN(data2-len-len1-len2,pUartPollCB[port]->RcvBufLen[2]);
-                           memcpy((u8*)data1,pUartPollCB[port]->DmaRecvBuf[4],len);
-                           memcpy((u8*)(data1+len),pUartPollCB[port]->DmaRecvBuf[0],len1);
-                           memcpy((u8*)(data1+len+len1),pUartPollCB[port]->DmaRecvBuf[1],len2);
-                           memcpy((u8*)(data1+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[2],len3);
-                           memcpy((u8*)(data1+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[3],data2-len-len1-len2-len3);
-                           break;
-                default:                break;
-            }
+                case 3:
+                    switch (pUartPollCB[port]->NowRecvbuf)
+                    {
+                       case 0: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[2]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[3]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[2],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[3],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[4],rcvlen-len-len1);
+                               break;
+                       case 1: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[3]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[4]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[3],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[4],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[0],rcvlen-len-len1);
+                               break;
+                       case 2: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[4]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[0]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[4],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[0],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[1],rcvlen-len-len1);
+                               break;
+                       case 3: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[0]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[1]);
+                            memcpy(buf,pUartPollCB[port]->DmaRecvBuf[0],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[1],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[2],rcvlen-len-len1);
+                               break;
+                       case 4: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[1]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[2]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[1],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[2],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[3],rcvlen-len-len1);
+                               break;
+                       default:  break;
+                        }
+                    CN3++;
+                    break;
+                case 4:
+                    switch (pUartPollCB[port]->NowRecvbuf)
+                        {
+                       case 0: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[1]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[2]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[3]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[1],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[2],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[3],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[4],rcvlen-len-len1-len2);
+                               break;
+                       case 1: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[2]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[3]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[4]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[2],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[3],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[4],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[0],rcvlen-len-len1-len2);
+                               break;
+                       case 2: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[3]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[4]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[0]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[3],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[4],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[0],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[1],rcvlen-len-len1-len2);
+                               break;
+                       case 3: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[4]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[0]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[1]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[4],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[0],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[1],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[2],rcvlen-len-len1-len2);
+                               break;
+                       case 4: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[0]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[1]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[2]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[0],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[1],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[2],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[3],rcvlen-len-len1-len2);
+                               break;
+                       default:  break;
+                        }
+                    CN4++;
+                        break;
+                case 5:
+                    switch (pUartPollCB[port]->NowRecvbuf)
+                    {
+                       case 0: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[0]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[1]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[2]);
+                               len3 = MIN(rcvlen-len-len1-len2,pUartPollCB[port]->RcvBufLen[3]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[0],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[1],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[2],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[3],len3);
+                               memcpy((buf+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[4],rcvlen-len-len1-len2-len3);
+                               break;
+                       case 1: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[1]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[2]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[3]);
+                               len3 = MIN(rcvlen-len-len1-len2,pUartPollCB[port]->RcvBufLen[4]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[1],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[2],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[3],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[4],len3);
+                               memcpy((buf+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[0],rcvlen-len-len1-len2-len3);
+                               break;
+                       case 2: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[2]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[3]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[4]);
+                               len3 = MIN(rcvlen-len-len1-len2,pUartPollCB[port]->RcvBufLen[0]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[2],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[3],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[4],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[0],len3);
+                               memcpy((buf+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[1],rcvlen-len-len1-len2-len3);
+                               break;
+                       case 3: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[3]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[4]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[0]);
+                               len3 = MIN(rcvlen-len-len1-len2,pUartPollCB[port]->RcvBufLen[1]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[3],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[4],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[0],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[1],len3);
+                               memcpy((buf+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[2],rcvlen-len-len1-len2-len3);
+                               break;
+                       case 4: len = MIN(rcvlen,pUartPollCB[port]->RcvBufLen[4]);
+                               len1 = MIN(rcvlen-len,pUartPollCB[port]->RcvBufLen[0]);
+                               len2 = MIN(rcvlen-len-len1,pUartPollCB[port]->RcvBufLen[1]);
+                               len3 = MIN(rcvlen-len-len1-len2,pUartPollCB[port]->RcvBufLen[2]);
+                               memcpy(buf,pUartPollCB[port]->DmaRecvBuf[4],len);
+                               memcpy((buf+len),pUartPollCB[port]->DmaRecvBuf[0],len1);
+                               memcpy((buf+len+len1),pUartPollCB[port]->DmaRecvBuf[1],len2);
+                               memcpy((buf+len+len1+len2),pUartPollCB[port]->DmaRecvBuf[2],len3);
+                               memcpy((buf+len+len1+len2+len3),pUartPollCB[port]->DmaRecvBuf[3],rcvlen-len-len1-len2-len3);
+                               break;
+                    default:                break;
+                }
                 CN5++;
                 break;
                 default:    break;

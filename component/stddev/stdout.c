@@ -67,7 +67,7 @@
 #include <systime.h>
 #include <device.h>
 #include <djyos.h>
-#include <fs/file.h>
+#include <djyfs/file.h>
 #include "component_config_stdio.h"
 
 #define CN_BUF_LENGTH   0x40
@@ -99,12 +99,11 @@ extern s32 isvalid(FILE* stream);
 //参数：ch ，待输出的字符
 //返回：正确输出则返回被输出的字符，错误则返回EOF
 //-----------------------------------------------------------------------------
-#ifndef putchar
 s32 putchar (s32 ch)
 {
     return putc(ch,stdout);
 }
-#endif
+
 
 //----输出一个字符串到stdout-----------------------------------------------------
 //功能：输出一个字符串到stdout，stdout可以是设备，也可以是文件

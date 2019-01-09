@@ -548,9 +548,9 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
     return ret;
 }
 //here we create a ppp net device to the stack
-static bool_t __NetDevOut(void *dev, tagNetPkg *pkg, u32 framlen,u32 netdevtask) {
+static bool_t __NetDevOut(void *dev, struct NetPkg *pkg, u32 framlen,u32 netdevtask) {
     bool_t result;
-    tagNetPkg *tmp;
+    struct NetPkg *tmp;
     u8 *buf;
     u8 *src;
     u8 *dst;
@@ -568,18 +568,21 @@ static bool_t __NetDevOut(void *dev, tagNetPkg *pkg, u32 framlen,u32 netdevtask)
         cpylen = 0;
         dst = buf;
         tmp = pkg;
-        while (NULL != tmp) {
-            src = (u8 *) (tmp->buf + tmp->offset);
-            memcpy(dst, src, tmp->datalen);
-            dst += tmp->datalen;
-            cpylen += tmp->datalen;
-            if (tmp->pkgflag & CN_PKLGLST_END) {
-                tmp = NULL;
-            }
-            else {
-                tmp = tmp->partnext;
-            }
-        }
+        cpylen = PkgFrameDataCopy(tmp,dst);
+//        while (NULL != tmp) {
+//            src = (u8 *) (tmp->buf + tmp->offset);
+//            memcpy(dst, src, tmp->datalen);
+//            dst += tmp->datalen;
+//            cpylen += tmp->datalen;
+////          if (tmp->pkgflag & CN_PKLGLST_END)
+//            if(PkgIsBufferEnd(tmp))
+//            {
+//                tmp = NULL;
+//            }
+//            else {
+//                tmp = PkgGetNextUnit(tmp);
+//            }
+//        }
         //send the buf to the ppp
         result = __IoDevOut(ppp, CN_PPP_IP, NULL, buf, cpylen,
                 ppp->accmpeer);
@@ -594,15 +597,17 @@ static bool_t __NetDevOut(void *dev, tagNetPkg *pkg, u32 framlen,u32 netdevtask)
 static bool_t __IpDeal(tagPPP *ppp, tagCH *ch, u8 *data, int len) {
     //we should package the msg and put it to the stack
     u8 *dst;
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     u16 lenframe;
     lenframe = len + sizeof(tagCH);
     ppp->debug.iprcvlen += lenframe;
     pkg = PkgMalloc(lenframe, CN_PKLGLST_END);
     if (NULL != pkg) {
-        dst = pkg->buf + pkg->offset;
+        dst = PkgGetCurrentBuffer(pkg);
+//      dst = pkg->buf + pkg->offset;
         memcpy(dst, (void *) ch, lenframe);
-        pkg->datalen = lenframe;
+        PkgSetDataLen(pkg, lenframe);
+//      pkg->datalen = lenframe;
         NetDevPush(ppp->fdnet, pkg);
         PkgTryFreePart(pkg);
     }
@@ -619,7 +624,7 @@ static bool_t __NetDevAdd(tagPPP *ppp) {
     devpara.ifsend = __NetDevOut;
     devpara.iftype = EN_LINK_RAW;
     devpara.name = ppp->namenet;
-    devpara.private =  ppp;
+    devpara.Private =  ppp;
     devpara.mtu = PPP_MTU;
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac, CN_MAC_BROAD, CN_MACADDR_LEN);

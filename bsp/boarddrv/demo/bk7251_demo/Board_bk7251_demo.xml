@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<board>
+  <boardName>bk7251_demo</boardName>
+  <cpu>
+    <cpuName>bk7251_demo</cpuName>
+  </cpu>
+</board>

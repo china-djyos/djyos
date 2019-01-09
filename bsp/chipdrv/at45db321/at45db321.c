@@ -1004,7 +1004,7 @@ bool_t ModuleInstall_at45db321(char *pBusName)
     s_ptAT45_Dev = SPI_DevAdd(pBusName,name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
     if(s_ptAT45_Dev != NULL)
     {
-        SPI_BusCtrl(s_ptAT45_Dev,CN_SPI_SET_POLL,0,0);
+        SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
     }
     else
     {

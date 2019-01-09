@@ -106,6 +106,12 @@ in_addr_t inet_addr(const char *addr)
     return result;
 }
 
+//------------------------------------------------------------------------------
+//功能：字符串点分十进制模式的IPV4地址转换为 u32 格式地址，一律按大端，即字符串最左边的
+//      数字（IP的最高字节）出现在 u32 存储单元的最低地址字节。
+//参数：string，被转换的 IPV4 地址。
+//      address，接收结果的地址
+//返回：
 int inet_aton(const char *string,struct in_addr *addr)
 {
     int para;

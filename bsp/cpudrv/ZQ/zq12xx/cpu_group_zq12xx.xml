@@ -6,4 +6,5 @@
       <family>cortex-m0</family>
       <floatABI>soft</floatABI>
    </core>
+   <core id="2"/>
 </cpu>

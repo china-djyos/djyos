@@ -77,7 +77,7 @@ typedef struct __rcvhookitem
     struct __rcvhookitem *nxt;  //used to do the queue
     const char *      name;         //may be you want to specify an name here
     u16               proto;        //the listen  protocol you have set
-    void             *iface;    //the listen device you have set
+    struct NetDev     *iface;    //the listen device you have set
     u32               framenum;     //how many frames has listen
     fnLinkProtoDealer hook;         //the listen hook you have set
 }tagRcvHookItem;
@@ -178,7 +178,7 @@ bool_t LinkUnRegisterRcvHook(const char *hookname)
     return result;
 }
 //use this function to do hook protocol deal
-static bool_t __RcvMonitor(void *iface,u16 proto,tagNetPkg *pkg)
+static bool_t __RcvMonitor(void *iface,u16 proto,struct NetPkg *pkg)
 {
     bool_t  result = false;
     fnLinkProtoDealer hook = NULL;
@@ -190,8 +190,9 @@ static bool_t __RcvMonitor(void *iface,u16 proto,tagNetPkg *pkg)
         if(NetDevType(iface) == EN_LINK_ETHERNET)
         {
             //here we recover the link head for the ethernet(14 bytes here 6 macdst 6 macsrc 2 type)
-            pkg->datalen += 14;
-            pkg->offset -= 14;
+            PkgMoveOffsetUp(pkg,14);
+//          pkg->datalen += 14;
+//          pkg->offset -= 14;
         }
         while(NULL != item)
         {
@@ -225,7 +226,7 @@ typedef struct
 {
     enLinkType  iftype;
     const char *name;
-    tagLinkOps  ops;
+    struct LinkOps  ops;
 }tagLink;
 static tagLink  *pLinkHal[EN_LINK_LAST];
 //-----------------------------------------------------------------------------
@@ -235,9 +236,9 @@ static tagLink  *pLinkHal[EN_LINK_LAST];
 //备注:
 //作者:zhangqf@下午8:22:20/2016年12月28日
 //-----------------------------------------------------------------------------
-static tagLinkOps *__FindOps(enLinkType type)
+static struct LinkOps *__FindOps(enLinkType type)
 {
-    tagLinkOps *ret = NULL;
+    struct LinkOps *ret = NULL;
     if((type < EN_LINK_LAST)&&(NULL != pLinkHal[type]))
     {
         ret = &pLinkHal[type]->ops;
@@ -252,15 +253,15 @@ static tagLinkOps *__FindOps(enLinkType type)
 //备注:
 //作者:zhangqf@下午7:48:16/2016年12月28日
 //-----------------------------------------------------------------------------
-bool_t LinkSend(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
+bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
                 enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t ret = false;
-    tagLinkOps *ops;
-    ops = NetDevLinkOps(iface);
+    struct LinkOps *ops;
+    ops = NetDevLinkOps(DevFace);
     if(NULL != ops)
     {
-        ret = ops->linkout(iface,pkg,framlen,devtask,proto,ver,ipdst,ipsrc);
+        ret = ops->linkout(DevFace,pkg,framlen,devtask,proto,ver,ipdst,ipsrc);
     }
     return ret;
 }
@@ -275,7 +276,7 @@ bool_t LinkSend(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
 //{
 //    bool_t ret = false;
 //    enLinkType linktype;
-//    tagLinkOps *ops;
+//    struct LinkOps *ops;
 //
 //    linktype = NetDevType(iface);
 //    ops = __FindOps(linktype);
@@ -320,7 +321,7 @@ bool_t LinkPushRegister(u16 protocol,fnLinkProtoDealer dealer)
     }
     return ret;
 }
-bool_t LinkPush(void  *iface,tagNetPkg *pkg,u16 protocol)
+bool_t LinkPush(void  *iface,struct NetPkg *pkg,u16 protocol)
 {
     bool_t          ret=true;
     //we analyze the ethernet header first, which type it has
@@ -353,10 +354,10 @@ bool_t LinkPush(void  *iface,tagNetPkg *pkg,u16 protocol)
     return ret;
 }
 //the net device layer will call this function to do more deal
-bool_t LinkDeal(void *iface,tagNetPkg *pkg)
+bool_t LinkDeal(void *iface,struct NetPkg *pkg)
 {
     bool_t ret = false;
-    tagLinkOps *ops;
+    struct LinkOps *ops;
     ops = NetDevLinkOps(iface);
     if(NULL != ops)
     {
@@ -365,7 +366,7 @@ bool_t LinkDeal(void *iface,tagNetPkg *pkg)
     return ret;
 }
 //find a link ops here
-void  *LinkFindOps(enLinkType type)
+struct LinkOps  *LinkFindOps(enLinkType type)
 {
     return __FindOps(type);
 }
@@ -392,7 +393,7 @@ const char *LinkTypeName(enLinkType type)
 //备注:
 //作者:zhangqf@下午8:25:38/2016年12月28日
 //-----------------------------------------------------------------------------
-bool_t LinkRegister(enLinkType type,const char *name,tagLinkOps *ops)
+bool_t LinkRegister(enLinkType type,const char *name,struct LinkOps *ops)
 {
     bool_t result = false;
     tagLink *link = NULL;
@@ -416,7 +417,7 @@ bool_t LinkRegister(enLinkType type,const char *name,tagLinkOps *ops)
 //备注:
 //作者:zhangqf@下午1:55:39/2016年12月29日
 //-----------------------------------------------------------------------------
-bool_t LinkUnRegister(enLinkType type,const char *name,tagLinkOps *ops)
+bool_t LinkUnRegister(enLinkType type,const char *name,struct LinkOps *ops)
 {
     bool_t result = false;
     tagLink *link = NULL;

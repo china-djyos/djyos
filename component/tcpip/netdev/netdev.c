@@ -57,37 +57,37 @@
 
 
 //first we should implement the device layer
-typedef struct
+struct NetDev
 {
-    void                         *nxt;                    //dev chain
-    char                           name[CN_TCPIP_NAMELEN]; //dev name
-    u8                             iftype;   //dev type
-    fnIfSend                       ifsend;   //dev snd function
-    fnIfRecv                       ifrecv;   //dev receive function
-    fnIfCtrl                       ifctrl;   //dev ctrl or stat get fucntion
-    void                          *linkops;  //dev link operations
-    fnNetDevEventHook              eventhook;//dev event hook dealer
-    u32                            devfunc;  //dev hard function,such as tcp chksum
-    u16                            mtu;      //dev mtu
-    void                          *private;  //the dev driver use this to has its owner property
-    u8                             mac[CN_MACADDR_LEN];   //mac address
+    void                *nxt;                    //dev chain
+    char                name[CN_TCPIP_NAMELEN]; //dev name
+    u8                  iftype;   //dev type
+    fnIfSend            ifsend;   //dev snd function
+    fnIfRecv            ifrecv;   //dev receive function
+    fnIfCtrl            ifctrl;   //dev ctrl or stat get fucntion
+    struct LinkOps          *linkops;  //dev link operations
+    fnNetDevEventHook   eventhook;//dev event hook dealer
+    u32                 devfunc;  //dev hard function,such as tcp chksum
+    u16                 mtu;      //dev mtu
+    void                *Private;  //the dev driver use this to has its owner property
+    u8                  mac[CN_MACADDR_LEN];   //mac address
     //the following used to debug the net device,show some main status
-    u32                            pkgsnd;     //frame send
-    u32                            pkgsnderr;  //frame snd failed
-    u32                            pkgrcv;     //frame receive
-    u32                            pkgrcverr;  //frame receive err
-}tagNetDev;
+    u32                 pkgsnd;     //frame send
+    u32                 pkgsnderr;  //frame snd failed
+    u32                 pkgrcv;     //frame receive
+    u32                 pkgrcverr;  //frame receive err
+};
 typedef struct
 {
     mutex_t   lock;
-    tagNetDev *lst;
+    struct NetDev *lst;
 }tagNetDevCB; //interface controller
 static tagNetDevCB gIfaceCB;
 //this function used to get the specified dev
-static tagNetDev* __IfGet(const char *name)
+static struct NetDev* __IfGet(const char *name)
 {
-    tagNetDev* ret = NULL;
-    tagNetDev* tmp = gIfaceCB.lst;
+    struct NetDev* ret = NULL;
+    struct NetDev* tmp = gIfaceCB.lst;
     if(NULL == name)
     {
         ret = gIfaceCB.lst;
@@ -113,43 +113,42 @@ static tagNetDev* __IfGet(const char *name)
 
 
 //use this function to send a package from the net device layer
-bool_t NetDevSend(void *iface,tagNetPkg *pkg,u32 framelen,u32 devtask)
+bool_t NetDevSend(struct NetDev *iface,struct NetPkg *pkg,u32 framelen,u32 devtask)
 {
     bool_t ret = false;
-    tagNetDev* dev;
-    dev = iface;
-    if((NULL != dev)&&(NULL != dev->ifsend))
+
+    if((NULL != iface)&&(NULL != iface->ifsend))
     {
-        TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgsnd);
-        ret =dev->ifsend(iface,pkg,framelen,devtask);
+        TCPIP_DEBUG_INC((iface)->pkgsnd);
+        ret =iface->ifsend(iface,pkg,framelen,devtask);
         if(ret == false)
         {
-            TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgsnderr);
+            TCPIP_DEBUG_INC((iface)->pkgsnderr);
         }
     }
     return ret;
 }
 //use this function to receive a package from the net device layer
-bool_t NetDevPush(void *iface,tagNetPkg *pkg)
+bool_t NetDevPush(void *iface,struct NetPkg *pkg)
 {
     bool_t ret = false;
     if(NULL != iface)
     {
-        TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgrcv);
+        TCPIP_DEBUG_INC(((struct NetDev *)iface)->pkgrcv);
         ret = LinkDeal(iface,pkg);
         if(ret == false)
         {
-            TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgrcverr);
+            TCPIP_DEBUG_INC(((struct NetDev *)iface)->pkgrcverr);
         }
     }
     return ret;
 }
 //get the interface name by the handle for external module
-const char *NetDevName(void *iface)
+const char *NetDevName(struct NetDev *DevFace)
 {
-    if(NULL!= iface)
+    if(NULL!= DevFace)
     {
-        return (const char *)(((tagNetDev* )iface)->name);
+        return (const char *)(DevFace->name);
     }
     else
     {
@@ -157,9 +156,9 @@ const char *NetDevName(void *iface)
     }
 }
 //get the interface handle  by name for external module
-void *NetDevGet(const char *ifname)
+struct NetDev *NetDevGet(const char *ifname)
 {
-    void* ret = NULL;
+    struct NetDev * ret = NULL;
     if(mutex_lock(gIfaceCB.lock))
     {
         ret = __IfGet(ifname);
@@ -168,11 +167,11 @@ void *NetDevGet(const char *ifname)
     return ret;
 }
 //get the interface function for external module
-u32 NetDevFunc(void *iface)
+u32 NetDevFunc(struct NetDev *DevFace)
 {
-    if(NULL!= iface)
+    if(NULL!= DevFace)
     {
-        return ((tagNetDev* )iface)->devfunc;
+        return DevFace->devfunc;
     }
     else
     {
@@ -180,11 +179,11 @@ u32 NetDevFunc(void *iface)
     }
 }
 //get the interface mtu for external module
-u16 NetDevMtu(void *iface)
+u16 NetDevMtu(struct NetDev *DevFace)
 {
-    if(NULL!= iface)
+    if(NULL!= DevFace)
     {
-        return ((tagNetDev* )iface)->mtu;
+        return (DevFace)->mtu;
     }
     else
     {
@@ -192,29 +191,29 @@ u16 NetDevMtu(void *iface)
     }
 }
 //get the interface type for external module
-enLinkType NetDevType(void *iface)
+enLinkType NetDevType(struct NetDev *DevFace)
 {
     enLinkType ret = EN_LINK_LAST;
-    if(NULL != iface)
+    if(NULL != DevFace)
     {
-        ret = ((tagNetDev* )iface)->iftype;
+        ret = (DevFace)->iftype;
     }
     return ret;
 }
-void *NetDevLinkOps(void *iface)
+struct LinkOps *NetDevLinkOps(struct NetDev *DevFace)
 {
-    void *ret = NULL;
-    if(NULL != iface)
+    struct LinkOps *ret = NULL;
+    if(NULL != DevFace)
     {
-        ret = ((tagNetDev* )iface)->linkops;
+        ret = (DevFace)->linkops;
     }
     return ret;
 }
-const u8 *NetDevGetMac(void *iface)
+const u8 *NetDevGetMac(struct NetDev *DevFace)
 {
-    if(NULL!= iface)
+    if(NULL!= DevFace)
     {
-        return (const u8 *)(((tagNetDev* )iface)->mac);
+        return (const u8 *)((DevFace)->mac);
     }
     else
     {
@@ -289,18 +288,18 @@ static bool_t __NetdevEventHook(void *iface,enNetDevEvent event)
 // RETURN     :the dev handle
 // DESCRIPTION:NO DUPLICATION NAME PERMITTED
 // =============================================================================
-void *NetDevInstall(tagNetDevPara *para)
+ptu32_t NetDevInstall(tagNetDevPara *para)
 {
-    tagNetDev* iface = NULL;
-    void *linkops;
+    struct NetDev* iface = NULL;
+    struct LinkOps *linkops;
     if(NULL == para)
     {
-        return (void *)iface;
+        return (ptu32_t)iface;
     }
     linkops = LinkFindOps(para->iftype);
     if(NULL == linkops)
     {
-        return (void *)iface;
+        return (ptu32_t)iface;
     }
 
     if(mutex_lock(gIfaceCB.lock))
@@ -308,11 +307,11 @@ void *NetDevInstall(tagNetDevPara *para)
         iface = __IfGet(para->name);
         if(NULL == iface)
         {
-            iface = net_malloc(sizeof(tagNetDev));
+            iface = net_malloc(sizeof(struct NetDev));
             if(NULL != iface)
             {
                 //fill the dev
-                memset(iface, 0, sizeof(tagNetDev));
+                memset(iface, 0, sizeof(struct NetDev));
                 strncpy(iface->name,para->name,CN_TCPIP_NAMELEN);
                 memcpy(iface->mac, para->mac, CN_MACADDR_LEN);
                 iface->ifsend  = para->ifsend;
@@ -320,7 +319,7 @@ void *NetDevInstall(tagNetDevPara *para)
                 iface->ifctrl  = para->ifctrl;
                 iface->linkops = linkops;
                 iface->eventhook = __NetdevEventHook;
-                iface->private = para->private;
+                iface->Private = para->Private;
                 iface->iftype = para->iftype;
                 iface->mtu= para->mtu;
                 iface->devfunc= para->devfunc;
@@ -331,7 +330,7 @@ void *NetDevInstall(tagNetDevPara *para)
         }
         mutex_unlock(gIfaceCB.lock);
     }
-    return iface;
+    return (ptu32_t)iface;
 }
 // =============================================================================
 // FUNCTION   :remove the name specified net device
@@ -342,8 +341,8 @@ void *NetDevInstall(tagNetDevPara *para)
 // =============================================================================
 bool_t  NetDevUninstall(const char *name)
 {
-    tagNetDev* tmp;
-    tagNetDev* bak;
+    struct NetDev* tmp;
+    struct NetDev* bak;
     bool_t     result = false;
 
     if(mutex_lock(gIfaceCB.lock))
@@ -392,12 +391,12 @@ bool_t  NetDevUninstall(const char *name)
 bool_t NetDevRegisterEventHook(void *handle,const char *devname,fnNetDevEventHook hook)
 {
     bool_t result = false;
-    tagNetDev* iface = NULL;
+    struct NetDev* iface = NULL;
     if(mutex_lock(gIfaceCB.lock))
     {
         if(NULL != (void *)handle)
         {
-            iface =(tagNetDev* )handle;
+            iface =(struct NetDev* )handle;
         }
         else
         {
@@ -423,13 +422,13 @@ bool_t NetDevRegisterEventHook(void *handle,const char *devname,fnNetDevEventHoo
 bool_t NetDevUnRegisterEventHook(ptu32_t handle,const char *devname)
 {
     bool_t result = false;
-    tagNetDev* dev = NULL;
+    struct NetDev* dev = NULL;
 
     if(mutex_lock(gIfaceCB.lock))
     {
         if(NULL !=(void *) handle)
         {
-            dev =(tagNetDev* )handle;
+            dev =(struct NetDev* )handle;
         }
         else
         {
@@ -456,7 +455,7 @@ bool_t NetDevUnRegisterEventHook(ptu32_t handle,const char *devname)
 bool_t NetDevPostEvent(void* handle,const char *devname,enNetDevEvent event)
 {
     bool_t result = false;
-    tagNetDev* iface = NULL;
+    struct NetDev* iface = NULL;
     fnNetDevEventHook hook= NULL;
     if(mutex_lock(gIfaceCB.lock))
     {
@@ -492,7 +491,7 @@ bool_t NetDevPostEvent(void* handle,const char *devname,enNetDevEvent event)
 bool_t  NetDevCtrl(const char *name,enNetDevCmd cmd, ptu32_t para)
 {
     bool_t      ret = false;
-    tagNetDev  *dev;
+    struct NetDev  *dev;
 
     dev = NetDevGet((const char *)name);
     if((NULL !=dev)&&(NULL != dev->ifctrl))
@@ -514,9 +513,9 @@ bool_t  NetDevCtrl(const char *name,enNetDevCmd cmd, ptu32_t para)
 bool_t  NetDevCtrlByHandle(void* handle,enNetDevCmd cmd, ptu32_t para)
 {
     bool_t     ret = false;
-    tagNetDev* dev;
+    struct NetDev* dev;
 
-    dev = (tagNetDev* )handle;
+    dev = (struct NetDev* )handle;
     if((NULL !=dev)&&(NULL != dev->ifctrl))
     {
         ret = dev->ifctrl(dev,cmd,para);
@@ -537,12 +536,12 @@ bool_t  NetDevCtrlByHandle(void* handle,enNetDevCmd cmd, ptu32_t para)
 // RETURN     :the private data you installed
 // DESCRIPTION:
 // =============================================================================
-void * NetDevPrivate(void *iface)
+void * NetDevPrivate(struct NetDev *DevFace)
 {
     void *ret = NULL;
-    if(NULL != iface)
+    if(NULL != DevFace)
     {
-        ret = ((tagNetDev *)iface)->private;
+        ret = (DevFace)->Private;
     }
     return ret;
 }
@@ -553,7 +552,7 @@ ADD_TO_IN_SHELL_HELP(ifconfig,"usage:ifconfig");
 ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
 {
     int i = 0;
-    tagNetDev *iface;
+    struct NetDev *iface;
     OsPrintSplit('*',100);
     debug_printf("netdev","%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
             "NO","NAME","TYPE","FUNCTION","MTU","SNDTOTAL","SNDERR","RCVTOTAL","RCVERR","MAC");

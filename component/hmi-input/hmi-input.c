@@ -128,7 +128,7 @@ bool_t ModuleInstall_HmiIn(void)
     tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10,"StdInDev");
     if(tg_pHmiInputMsgQ == NULL)
         goto ExitMsgQ;
-    s_ptHmiInDeviceDir = obj_newchild(objsys_root(), (fnObjOps)-1, 0, (ptu32_t)&root, "stdin input device");
+    s_ptHmiInDeviceDir = obj_newchild(obj_root(), (fnObjOps)-1, (ptu32_t)&root, "stdin input device");
     if(s_ptHmiInDeviceDir == NULL)
     {
         goto ExitDir;
@@ -153,7 +153,7 @@ bool_t ModuleInstall_HmiIn(void)
     return true;
 
 ExitPool:
-    obj_del(s_ptHmiInDeviceDir);
+    obj_Delete(s_ptHmiInDeviceDir);
 ExitDir:
     free(StdinDeviceMem);
 ExitMem:
@@ -182,7 +182,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
         Djy_HmiIn = M_Malloc(sizeof(struct HMI_InputDeviceObj),0);
         if(Djy_HmiIn != NULL)
         {
-            Djy_HmiIn->HostObj = obj_newchild(s_ptHmiInDeviceDir, (fnObjOps)-1, 0, (ptu32_t)Djy_HmiIn, device_name);
+            Djy_HmiIn->HostObj = obj_newchild(s_ptHmiInDeviceDir, (fnObjOps)-1, (ptu32_t)Djy_HmiIn, device_name);
             if(!Djy_HmiIn->HostObj)
             {
                 Mb_Free(g_ptHmiInDevicePool, Djy_HmiIn);
@@ -406,7 +406,7 @@ bool_t HmiIn_UnInstallDevice(const char *device_name)
         return false;
 
     Djy_HmiIn = (struct HMI_InputDeviceObj *)obj_GetPrivate(current);
-    if(!obj_del(current))
+    if(!obj_Delete(current))
     {
         Mb_Free(g_ptHmiInDevicePool,Djy_HmiIn);
         return true;

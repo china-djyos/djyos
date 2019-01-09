@@ -60,7 +60,7 @@ extern "C" {
 #include "stdint.h"
 
 
-s32 ModuleInstall_NAND(const char *ChipName, u32 Flags, u16 StartBlk);
+s32 ModuleInstall_NAND(const char *TargetFs,u8 parts,s32 TargetPart, ...);
 s32  stm32f7_PageProgram(u32 PageNo, u8 *Data, u32 Flags);
 s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags);
 s32 stm32f7_BlockErase(u32 BlkNo);

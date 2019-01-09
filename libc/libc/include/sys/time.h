@@ -169,7 +169,7 @@ time_t time(time_t *t);
 clock_t clock (void);
 double difftime(time_t tim1, time_t tim2);
 
-int gettimeofday(struct timeval *tv, void *tz);
+int gettimeofday(struct timeval *tv, struct timezone *tz);
 int settimeofday(const struct timeval *tv, const struct timezone *tz);
 
 int gettimezone(int *result);

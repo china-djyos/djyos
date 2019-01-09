@@ -626,10 +626,10 @@ u32 GMAC_IntHandler(ufast_t IntLine)
 // 参数：packet,接收到数据的首地址
 // 返回：接收到数据包长度，最大不会超过1518字节
 // =============================================================================
-static tagNetPkg *__GmacRcv(ptu32_t devhandle)
+static struct NetPkg *__GmacRcv(ptu32_t devhandle)
 
 {
-    tagNetPkg         *pkg;
+    struct NetPkg         *pkg;
     tagQueue          *que;
     tagMacDriver      *pDrive;
     volatile tagRcvBD *pRcvBD;
@@ -682,10 +682,12 @@ static tagNetPkg *__GmacRcv(ptu32_t devhandle)
             pkg =PkgMalloc(len,CN_PKLGLST_END);
             if(NULL != pkg)
             {
-                dst = (u8 *)(pkg->buf +pkg->offset);
+                dst = PkgGetCurrentBuffer(pkg);
+//              dst = (u8 *)(pkg->buf +pkg->offset);
                 src = (u8 *)(pRcvBD->addr.val&GMAC_ADDRESS_MASK);
                 memcpy((void *)dst,(void *)src,len);
-                pkg->datalen = len;
+                PkgSetDataLen(pkg, len);
+//              pkg->datalen = len;
             }
         }
         else
@@ -911,11 +913,11 @@ ADD_TO_IN_SHELL  bool_t macsnddis(char *param)
 
 
 
-static bool_t GmacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
-    tagNetPkg         *tmppkg;
+    struct NetPkg         *tmppkg;
     volatile tagSndBD *pSndBD;
     tagQueue          *q;
     u8                *dst,*src;
@@ -982,22 +984,23 @@ static bool_t GmacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtas
         //3.copy datas to static frame buffer
         tmppkg = pkg;
         dst      = &gTxBuffer[0];
-        do
-        {
-            src = (tmppkg->buf + tmppkg->offset);
-            len = tmppkg->datalen;
-            memcpy(dst,src,len);
-            dst      += len;
-            if(PKG_ISLISTEND(tmppkg))
-            {
-                tmppkg = NULL;
-                break;
-            }
-            else
-            {
-                tmppkg = tmppkg->partnext;
-            }
-        }while(NULL != tmppkg );
+        PkgFrameDataCopy(tmppkg,dst);
+//      do
+//      {
+//          src = (tmppkg->buf + tmppkg->offset);
+//          len = tmppkg->datalen;
+//          memcpy(dst,src,len);
+//          dst      += len;
+//          if(PkgIsBufferEnd(tmppkg))
+//          {
+//              tmppkg = NULL;
+//              break;
+//          }
+//          else
+//          {
+//              tmppkg = PkgGetNextUnit(tmppkg);
+//          }
+//      }while(NULL != tmppkg );
 
         //4.how many bd needed,and fill the bd, and send
         bdcnt = (framelen + q->sndbuflen - 1)/q->sndbuflen;
@@ -1066,16 +1069,17 @@ static bool_t GmacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtas
 //you could use this function to send data as usual
 u32 GMAC_SendData(u8 *buf,u32 len)
 {
-    tagNetPkg          pkg;
+    struct NetPkg          pkg;
     tagMacDriver      *pDrive;
 
     pDrive = &gMacDriver;
 
-    pkg.partnext = NULL;
-    pkg.pkgflag  = (1<<0);  //只有一个包
-    pkg.offset   = 0;
-    pkg.datalen  = len;
-    pkg.buf      = buf;
+    PkgInit(pkg,CN_PKLGLST_END,0,len,buf);  //只有一个包
+//  pkg.partnext = NULL;
+//  pkg.pkgflag  = (1<<0);  //只有一个包
+//  pkg.offset   = 0;
+//  pkg.datalen  = len;
+//  pkg.buf      = buf;
     if(GmacSnd(pDrive->devhandle,&pkg,len,0))
     {
         return len;
@@ -1089,7 +1093,7 @@ u32 GMAC_SendData(u8 *buf,u32 len)
 //this is the receive task
 static ptu32_t __GmacRcvTask(void)
 {
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     ptu32_t    handle;
     u8        *rawbuf;
     u16        len;
@@ -1113,8 +1117,10 @@ static ptu32_t __GmacRcvTask(void)
 //                NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
                 if(NULL != pDrive->fnrcvhook)
                 {
-                    rawbuf = pkg->buf + pkg->offset;
-                    len = pkg->datalen;
+                    rawbuf = PkgGetCurrentBuffer(pkg);
+//                  rawbuf = pkg->buf + pkg->offset;
+                    len = PkgGetDataLen(pkg);
+//                  len = pkg->datalen;
                     pDrive->fnrcvhook(rawbuf,len);
                 }
                 else
@@ -1527,9 +1533,9 @@ bool_t ModuleInstall_GMAC(const char *devname, u8 *mac,\
     devpara.devfunc = 0;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, pDrive->macaddr,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.private = 0;
+    devpara.Private = 0;
     devpara.mtu = 1522;
-    devpara.private = (ptu32_t)pDrive;
+    devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(0 == pDrive->devhandle)
     {
