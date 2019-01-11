@@ -2,6 +2,7 @@
 <cpu>
    <cpuName>s3c2416</cpuName>
    <core id="1">
+   	  <name>arm9</name>
       <arch>armv5te</arch>
       <family>arm9</family>
       <floatABI>default</floatABI>

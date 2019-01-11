@@ -1,3 +1,3 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><IncludeFiles>
   
-<file>/component/djyfs</file></IncludeFiles>
+<file>/component/djyfs</file><file>/bsp/boarddrv/demo/qh_1/drv/board/board.c</file></IncludeFiles>
