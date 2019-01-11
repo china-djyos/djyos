@@ -56,6 +56,8 @@
 //%$#@end exclude   ****×é¼şÃèÊö½áÊø
 //@#$%component end configure
 
+#ifdef CFG_CORTEX_M0
+
 #if 0
 typedef struct _RTC_
 {
@@ -184,3 +186,4 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
         return false;
     return true;
 }
+#endif

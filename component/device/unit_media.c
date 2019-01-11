@@ -407,34 +407,34 @@ s32 um_add(const char *name, struct umedia *media)
 //// 返回：成功（0）；失败（-1）；
 //// 备注：
 //// ============================================================================
-//s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
-//                            u8 parts, ...)
-//{
-//    u8 part;
-//    u32 startblock, blocks, doformat;
-//    va_list list;
-//    s32 res = 0;
-//
-//    if(!dev_init)
-//    {
-//        error_printf("device","cannot add unit-media(no driver).");
-//        return (-1);
-//    }
-//
-//    va_start(list, parts);
-//    for(part=0; part<parts; part++)
-//    {
-//        startblock = (u32)va_arg(list, u32);
-//        blocks = (u32)va_arg(list, u32);
-//        doformat = (u32)va_arg(list, u32);
-//        if(dev_init(startblock, blocks, doformat))
-//        {
-//            error_printf("device","cannot add unit-media(driver error).");
-//            res = -1;
-//            break;
-//        }
-//    }
-//
-//    va_end(list);
-//    return (res);
-//}
+s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
+                            u8 parts, ...)
+{
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
+
+    if(!dev_init)
+    {
+        error_printf("device","cannot add unit-media(no driver).");
+        return (-1);
+    }
+
+    va_start(list, parts);
+    for(part=0; part<parts; part++)
+    {
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(dev_init(startblock, blocks, doformat))
+        {
+            error_printf("device","cannot add unit-media(driver error).");
+            res = -1;
+            break;
+        }
+    }
+
+    va_end(list);
+    return (res);
+}

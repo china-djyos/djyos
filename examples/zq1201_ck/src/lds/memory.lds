@@ -1,5 +1,5 @@
 
-IbootSize = 384K;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
+IbootSize = 384K;
 
 Flash1Offset = 0x02160000;
 Flash2Offset = 0x021e0000;

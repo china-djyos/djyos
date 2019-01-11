@@ -65,9 +65,10 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include "cpu_peri.h"
+#ifdef CFG_CORTEX_M0
 #include "silan_irq.h"
 #include "silan_pic_regs.h"
-
+#endif
 typedef  uint32_t (*djybsp_isr_hdl_t)(uint32_t);
 int djybsp_isr_hdl_register(uint32_t id, int subid, djybsp_isr_hdl_t hdl,uint32_t param);
 void djybsp_isr_hdl_unregister(uint32_t id, int subid);

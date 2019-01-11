@@ -895,9 +895,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //ÉèÖÃBaud
-            len = va_arg(args, u32);
+        {
+            len = va_arg(*args, u32);
              __UART_BaudSet(Reg,port, len);
             break;
+        }
         case CN_UART_EN_RTS:
             Reg->CR3 |= 0x100;
             break;
@@ -917,26 +919,30 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
             __UART_SetDmaUnUsed(port);
             break;
         case CN_UART_COM_SET:
+        {
             struct COMParam *com;
-            com = va_arg(args, struct COMParam *);
+            com = va_arg(*args, struct COMParam *);
             __UART_ComConfig(Reg,port,com);
             break;
+        }
         case CN_UART_SEND_BUF:
+        {
             u32 mar;
             u16 ndtr;
-            mar = va_arg(args, u32);
-            ndtr = va_arg(args, u16);
+            mar = va_arg(*args, u32);
+            ndtr = va_arg(*args, u16);
             Board_UartHalfDuplexSend(port);
             DMA_Enable(UartDmaTxChannel[port],mar,ndtr);
             result = ndtr;
             break;
+        }
         case CN_UART_RECV_BUF:
             switch (pUartPollCB[port]->NoCopyBufNum)
             {
                 u8 *buf;
                 s32 rcvlen;
-                buf = va_arg(args, char *);
-                rcvlen = va_arg(args, s32);
+                buf = va_arg(*args, char *);
+                rcvlen = va_arg(*args, s32);
                 case 1:
                     switch (pUartPollCB[port]->NowRecvbuf)
                     {

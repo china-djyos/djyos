@@ -37,6 +37,9 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
 
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
 
@@ -66,9 +69,6 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART8);
 	#endif
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
 	bool_t IIC_Init(u8 iic_port);
 	#if CFG_IIC1_ENABLE== true
 	ModuleInstall_IIC(CN_IIC1);
@@ -83,18 +83,9 @@ void Sys_ModuleInit(void)
 	ModuleInstall_IIC(CN_IIC4);
 	#endif
 
-	extern bool_t MoudleInit_Systime(ptu32_t para);
-	MoudleInit_Systime(0);
-
-	extern bool_t ModuleInstall_HardTimer(void);
-	ModuleInstall_HardTimer();
-
 	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_TcpIp(void);
 	ModuleInstall_TcpIp( );
-
-	extern bool_t ModuleInstall_Timer(void);
-	ModuleInstall_Timer();
 
 //	extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
 //	bool_t loop,u32 loopcycle,\
@@ -107,9 +98,6 @@ void Sys_ModuleInit(void)
 
 	extern ptu32_t ModuleInstall_CpuRtc(ptu32_t para);
 	ModuleInstall_CpuRtc(0);
-
-	extern  bool_t Temprate_Init(void);
-	Temprate_Init( );
 
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);

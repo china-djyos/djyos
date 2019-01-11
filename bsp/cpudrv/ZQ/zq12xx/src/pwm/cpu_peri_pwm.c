@@ -49,7 +49,7 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-
+#ifdef CFG_CORTEX_M0
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
@@ -284,7 +284,7 @@ bool_t PWM_Ctrl(u32 cmd,u32 para1,u32 para2,u32 para3)
     return ret;
 }
 
-
+#endif
 
 
 

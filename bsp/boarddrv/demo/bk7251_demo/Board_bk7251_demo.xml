@@ -2,6 +2,6 @@
 <board>
   <boardName>bk7251_demo</boardName>
   <cpu>
-    <cpuName>bk7251_demo</cpuName>
+    <cpuName>bk7251</cpuName>
   </cpu>
 </board>

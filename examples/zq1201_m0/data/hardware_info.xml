@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<hardware>
+   <baord>zq1201</baord>
+   <cpu>zq1201</cpu>
+   <core>cortex-m0</core>
+</hardware>

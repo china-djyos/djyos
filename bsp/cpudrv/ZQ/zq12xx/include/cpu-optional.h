@@ -65,9 +65,17 @@ extern "C" {
 
 #define CN_CPU_OPTIONAL_BITBAND     1       //是否支持位带
 #define CN_CPU_OPTIONAL_CACHE       0       //是否支持cache
+#ifdef CFG_CORTEX_M0
 #define CN_CPU_OPTIONAL_MPU         0       //是否支持mpu
 #define CN_CPU_OPTIONAL_FLOAT_HARD  0
 #define CN_CPU_OPTIONAL_FLOAT_SOFT  1
+#endif
+
+#ifdef CFG_CK803S
+#define CN_CPU_OPTIONAL_FPU         1       //是否支持fpu
+#define CN_CPU_OPTIONAL_FLOAT_HARD  1       //支持的浮点类型
+#endif
+
 #ifdef __cplusplus
 }
 #endif

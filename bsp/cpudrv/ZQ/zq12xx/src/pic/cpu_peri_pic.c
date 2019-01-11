@@ -49,6 +49,7 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
+#ifdef CFG_CORTEX_M0
 #include "cpu_peri.h"
 #include "int.h"
 #include "string.h"
@@ -354,3 +355,4 @@ uint32_t djybsp_isr_hdl_dispatch(uint32_t line)
         djybsp_isr[line].isr(djybsp_isr[line].param);
     return 0;
 }
+#endif

@@ -15,14 +15,12 @@
    <component>/component/djybus/iicbus/iicbus.c</component>
    <component>/component/djybus/spibus/spibus.c</component>
    <component>/component/djybus/djybus.c</component>
+   <component>/component/djyfs/efs/component_config_efs.h</component>
+   <component>/component/djyfs/iap/component_config_iap.h</component>
+   <component>/component/djyfs/component_config_fs.h</component>
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>
    <component>/component/font/font.c</component>
-   <component>/component/fs/efs/component_config_efs.h</component>
-   <component>/component/fs/fat/component_config_fat.h</component>
-   <component>/component/fs/iap/component_config_iap.h</component>
-   <component>/component/fs/yaf2/component_config_yaf2.h</component>
-   <component>/component/fs/component_config_fs.h</component>
    <component>/component/gui/gdd/component_config_gdd.h</component>
    <component>/component/gui/gkernel/component_config_gk.h</component>
    <component>/component/hmi-input/keypad/keyboard.c</component>
@@ -67,6 +65,8 @@
    <component>/third/firmware/stm32f7/component_config_stm32f7.h</component>
    <component>/third/firmware/stm32h7/component_config_stm32h7.h</component>
    <component>/third/firmware/STM32L4/component_config_stm32L4.h</component>
+   <component>/third/fs/fat/component_config_fat.h</component>
+   <component>/third/fs/yaf2/component_config_yaf2.h</component>
    <component>/third/goahead-2.5.0/component_config_goahead250.h</component>
    <component>/third/javascript/duktape/component_config_duktape.h</component>
    <component>/third/javascript/iotjs/component_config_iotjs.h</component>
@@ -105,6 +105,7 @@
    <component>/bsp/chipdrv/k9f1208xxx/k9f1208xxx.c</component>
    <component>/bsp/chipdrv/ksz8081rnb/imxrt1052-evk/fsl_phy.c</component>
    <component>/bsp/chipdrv/ksz8081rnb/imxrt1052-evk/ksz8081.c</component>
+   <component>/bsp/chipdrv/lan8720/lan8720.c</component>
    <component>/bsp/chipdrv/LCM240128C/component_config_lcm240128c.h</component>
    <component>/bsp/chipdrv/m24256/m24256.c</component>
    <component>/bsp/chipdrv/max11410/max11410.c</component>
@@ -116,6 +117,7 @@
    <component>/bsp/chipdrv/mma8451q/mma8451q.c</component>
    <component>/bsp/chipdrv/mt29fxxx/mt29fxxx.c</component>
    <component>/bsp/chipdrv/nrsec3000/nrsec3000.c</component>
+   <component>/bsp/chipdrv/pcf8574/pcf8574.c</component>
    <component>/bsp/chipdrv/sc1161y/sc1161y_spi.c</component>
    <component>/bsp/chipdrv/STMPE811/stmpe811.c</component>
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>

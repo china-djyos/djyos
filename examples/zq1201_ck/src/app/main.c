@@ -23,7 +23,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -53,13 +53,34 @@
 #include "stdint.h"
 #include "stddef.h"
 
+#include <silan_iomux.h>
+#define CTRL_LED1               IO_CONFIG_PB8
+#define CTRL_LED2               IO_CONFIG_PA6
+
+//----LED_init-----------------------------------------------------------------
+//功能：使能gpio端口设置引脚模式
+//参数：void
+//返回：void
+//-----------------------------------------------------------------------------
+void Led_Init(void)
+{
+    silan_io_func_config(CTRL_LED2, IO_FUNC_GPIO);
+    silan_io_output(CTRL_LED2);
+}
+
+void Led_Goggle(void)
+{
+    silan_io_toggle(CTRL_LED2);
+}
+
 ptu32_t djy_main(void)
 {
-	printf("app release:hello world 11!\r\n");
+	Led_Init();
+	printf("App CK:hello world!\r\n");
 	while(1)
 	{
-	//	printf("app release:hello world!\r\n");
-//		reboot(0);
+		Led_Goggle();
+//		printf("iboot release:hello world!\r\n");
 		Djy_EventDelay(1000*1000);
 	}
 	return 0;

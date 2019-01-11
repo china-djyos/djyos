@@ -6,8 +6,8 @@
   <gb2312_charset>false</gb2312_charset>
   <utf8_charset>false</utf8_charset>
   <NlsCharset>false</NlsCharset>
-  <dbug>true</dbug>
-  <flash>true</flash>
+  <dbug>false</dbug>
+  <flash>false</flash>
   <uart>true</uart>
   <DevFile>true</DevFile>
   <canbus>false</canbus>
@@ -15,14 +15,12 @@
   <iicbus>true</iicbus>
   <spibus>false</spibus>
   <djybus>true</djybus>
+  <easyfilesystem>false</easyfilesystem>
+  <IAP>false</IAP>
+  <filesystem>false</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
-  <easyfilesystem>false</easyfilesystem>
-  <fatfilesystem>false</fatfilesystem>
-  <IAP>true</IAP>
-  <yaf2filesystem>false</yaf2filesystem>
-  <filesystem>false</filesystem>
   <gdd>false</gdd>
   <gkernel>false</gkernel>
   <keyboard>false</keyboard>
@@ -33,8 +31,8 @@
   <isbus_slave>false</isbus_slave>
   <lowpower>false</lowpower>
   <multiplex>true</multiplex>
-  <shell>true</shell>
-  <stdio>true</stdio>
+  <shell>false</shell>
+  <stdio>false</stdio>
   <tcpip>false</tcpip>
   <timer>false</timer>
   <wdt>true</wdt>
@@ -44,7 +42,7 @@
   <int>false</int>
   <lock>true</lock>
   <MsgQueue>true</MsgQueue>
-  <Objfile>true</Objfile>
+  <Objfile>false</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>false</time>
   <board>true</board>
@@ -67,8 +65,9 @@
   <stm32f7>false</stm32f7>
   <stm32h7>false</stm32h7>
   <stm32L4>false</stm32L4>
+  <fatfilesystem>false</fatfilesystem>
+  <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
-  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>

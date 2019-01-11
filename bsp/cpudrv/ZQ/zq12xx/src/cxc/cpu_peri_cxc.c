@@ -1,3 +1,4 @@
+#ifdef CFG_CORTEX_M0
 #include "cpu_peri.h"
 #include "cpu_peri_cxc.h"
 #include "lock.h"
@@ -832,7 +833,7 @@ u8 RiscToRevDspData(u32 *buf,u8 len)
     return (loop - CN_MAIL_BOX_RISC_DSP_START);
 }
 
-
+#endif
 
 
 
