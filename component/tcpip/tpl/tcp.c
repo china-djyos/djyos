@@ -233,9 +233,9 @@ typedef struct CCB
     u8                         acktimes;    //if acktimes overrun the limit, then will do fast ack
 }tagCCB;
 //each server has an SCB
-typedef struct SCB
+typedef struct SSB
 {
-    struct SCB                *nxt;                 //used for the list
+    struct SSB                *nxt;                 //used for the list
     int                        backlog;             //which limit the pending num
     int                        pendnum;             //which means how much still in pending
     u32                        accepttime;          //block time for the accept

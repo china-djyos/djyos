@@ -49,7 +49,7 @@
 // 创建人员: HM
 // 创建时间: 09/15.2015
 // =============================================================================
-
+#ifdef CFG_CORTEX_M0
 #include "cpu_peri.h"
 #include "systime.h"
 #include <board-config.h>
@@ -100,4 +100,4 @@ bool_t MoudleInit_Systime(ptu32_t para)
     return true;
 }
 
-
+#endif

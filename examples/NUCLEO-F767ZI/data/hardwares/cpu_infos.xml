@@ -2,6 +2,7 @@
 <cpus>
    <cpu>ATSAM4E16xx</cpu>
    <cpu>ATSAMV70xxx</cpu>
+   <cpu>bk7251</cpu>
    <cpu>imxrt1052</cpu>
    <cpu>M487JIDAE</cpu>
    <cpu>s3c2416</cpu>
@@ -17,5 +18,4 @@
    <cpu>stm32l475xx</cpu>
    <cpu>stm32l476xx</cpu>
    <cpu>zq1201</cpu>
-   <cpu>zq1201_ck</cpu>
 </cpus>

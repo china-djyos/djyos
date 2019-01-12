@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-
+#ifdef CFG_CORTEX_M0
 /*#include "norflash.h"*/
 #include "silan_m0_cache.h"
 #include "silan_irq.h"
@@ -366,111 +366,111 @@ s32 Flash_PageToSector(u32 PageNo, u32 *Remains, u32 *SectorNo)
 // 备注：
 // ============================================================================
 
-s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
-{	
-    u32 Len;
-    struct FlashChip *Chip;
-    struct MutexLCB *FlashLock;
-    struct EmFlashDescr FlashDescr;
-    u8 *Buf;
-    s32 Ret = 0;
-
-    if (!ChipName)
-        return (-1);
-
-    if(sp_tFlashDesrc)
-        return (-4); // 设备已注册
-
-    sp_tFlashDesrc = malloc(sizeof(*sp_tFlashDesrc));
-    if(!sp_tFlashDesrc)
-        return (-1);
-
-    //初始化FLASH信息
-    if(Flash_Init(sp_tFlashDesrc))
-    {
-        printk("null","解析内置FLASH信息失败\r\n");
-        Ret = -3;
-        goto __FAILURE;
-    }
-
-    Flash_GetDescr(&FlashDescr);// 获取FLASH信息
-    if(ResPages > FlashDescr.TotalPages)
-    {
-        Ret = -1;
-        goto __FAILURE;
-    }
-
-    FlashDescr.ReservedPages += ResPages;
-    Len = strlen (ChipName) + 1;
-    Chip = (struct FlashChip*) malloc(sizeof(struct FlashChip) + Len);
-    if (NULL == Chip)
-    {
-//        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-        error_printf("null","out of memory!\r\n");
-        Ret = -2;
-        goto __FAILURE;
-    }
-
-    memset(Chip, 0x00, sizeof(*Chip));
-    Chip->dwPageBytes             = FlashDescr.BytesPerPage;
-    Chip->dwPagesReserved         = FlashDescr.ReservedPages;
-    Chip->dwTotalPages            = FlashDescr.TotalPages;
-    Chip->Type                    = F_ALIEN;
-    Chip->Descr.Embd              = FlashDescr;
-    Chip->Ops.ErsBlk              = Flash_SectorEarse;
-    Chip->Ops.WrPage              = Flash_PageProgram;
-    Chip->Ops.RdPage              = Flash_PageRead;
-    Chip->Ops.PageToBlk           = Flash_PageToSector;
-    strcpy(Chip->Name, ChipName); // 设备名
-
-    if(Flags & FLASH_BUFFERED)
-    {
-        Buf = (u8*)malloc(sp_tFlashDesrc->BytesPerPage);
-        if(!Buf)
-        {
-//            TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-            error_printf("null","out of memory!\r\n");
-            Ret = -2;
-            goto __FAILURE;
-        }
-
-        FlashLock = Lock_MutexCreate("Embedded Flash Lock");
-        if(!FlashLock)
-        {
-            Ret = -3;
-            goto __FAILURE;
-        }
-
-        Chip->Buf = Buf;
-        Chip->Lock =(void*)FlashLock;
-    }
-
-    if(-1 == dev_add(NULL, Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip)) // 设备接入"/dev"
-    {
-        info_printf("null","device","add embedded flash falied.");
-        Ret = -3;
-        goto __FAILURE;
-    }
-
-    if(Flags & FLASH_ERASE_ALL)
-        EarseWholeChip(Chip);
-
-    __FAILURE:
-    if(Ret)
-    {
-        if(sp_tFlashDesrc)
-            free(sp_tFlashDesrc);
-        if(FlashLock)
-            Lock_MutexDelete(FlashLock);
-        if(Buf)
-            free(Buf);
-        if(Chip)
-            free(Chip);
-    }
-    return (Ret);
-    
-}
-
+//s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
+//{
+//    u32 Len;
+//    struct FlashChip *Chip;
+//    struct MutexLCB *FlashLock;
+//    struct EmFlashDescr FlashDescr;
+//    u8 *Buf;
+//    s32 Ret = 0;
+//
+//    if (!ChipName)
+//        return (-1);
+//
+//    if(sp_tFlashDesrc)
+//        return (-4); // 设备已注册
+//
+//    sp_tFlashDesrc = malloc(sizeof(*sp_tFlashDesrc));
+//    if(!sp_tFlashDesrc)
+//        return (-1);
+//
+//    //初始化FLASH信息
+//    if(Flash_Init(sp_tFlashDesrc))
+//    {
+//        printk("null","解析内置FLASH信息失败\r\n");
+//        Ret = -3;
+//        goto __FAILURE;
+//    }
+//
+//    Flash_GetDescr(&FlashDescr);// 获取FLASH信息
+//    if(ResPages > FlashDescr.TotalPages)
+//    {
+//        Ret = -1;
+//        goto __FAILURE;
+//    }
+//
+//    FlashDescr.ReservedPages += ResPages;
+//    Len = strlen (ChipName) + 1;
+//    Chip = (struct FlashChip*) malloc(sizeof(struct FlashChip) + Len);
+//    if (NULL == Chip)
+//    {
+////        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
+//        error_printf("null","out of memory!\r\n");
+//        Ret = -2;
+//        goto __FAILURE;
+//    }
+//
+//    memset(Chip, 0x00, sizeof(*Chip));
+//    Chip->dwPageBytes             = FlashDescr.BytesPerPage;
+//    Chip->dwPagesReserved         = FlashDescr.ReservedPages;
+//    Chip->dwTotalPages            = FlashDescr.TotalPages;
+//    Chip->Type                    = F_ALIEN;
+//    Chip->Descr.Embd              = FlashDescr;
+//    Chip->Ops.ErsBlk              = Flash_SectorEarse;
+//    Chip->Ops.WrPage              = Flash_PageProgram;
+//    Chip->Ops.RdPage              = Flash_PageRead;
+//    Chip->Ops.PageToBlk           = Flash_PageToSector;
+//    strcpy(Chip->Name, ChipName); // 设备名
+//
+//    if(Flags & FLASH_BUFFERED)
+//    {
+//        Buf = (u8*)malloc(sp_tFlashDesrc->BytesPerPage);
+//        if(!Buf)
+//        {
+////            TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
+//            error_printf("null","out of memory!\r\n");
+//            Ret = -2;
+//            goto __FAILURE;
+//        }
+//
+//        FlashLock = Lock_MutexCreate("Embedded Flash Lock");
+//        if(!FlashLock)
+//        {
+//            Ret = -3;
+//            goto __FAILURE;
+//        }
+//
+//        Chip->Buf = Buf;
+//        Chip->Lock =(void*)FlashLock;
+//    }
+//
+//    if(-1 == dev_add(NULL, Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip)) // 设备接入"/dev"
+//    {
+//        info_printf("null","device","add embedded flash falied.");
+//        Ret = -3;
+//        goto __FAILURE;
+//    }
+//
+//    if(Flags & FLASH_ERASE_ALL)
+//        EarseWholeChip(Chip);
+//
+//    __FAILURE:
+//    if(Ret)
+//    {
+//        if(sp_tFlashDesrc)
+//            free(sp_tFlashDesrc);
+//        if(FlashLock)
+//            Lock_MutexDelete(FlashLock);
+//        if(Buf)
+//            free(Buf);
+//        if(Chip)
+//            free(Chip);
+//    }
+//    return (Ret);
+//
+//}
+//
 
 // ============================================================================
 // 功能：embeded flash 命令
@@ -826,7 +826,7 @@ bool_t Module_Install_Update()
     return true;
 }
 
-
+#endif
 
 
 

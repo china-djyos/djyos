@@ -63,10 +63,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#ifdef CFG_CORTEX_M0
 #include "cpu-optional.h"
+#endif
+#ifdef CFG_CK803S
+#include "arch_feature.h"
+#endif
 
 #define DJY_BOARD   "ZQ1201"
+
+#ifdef CFG_CK803S
+#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
+#endif
 
 //与时钟振荡器相关的配置,本组配置
 #define Mhz 1000000

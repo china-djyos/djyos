@@ -308,6 +308,7 @@ SECTIONS
         LONG( restore + IbootSize + 256 + 256)
     }>InnerFlash
 
+
     r_In_shell_section :
 	{
    		 . = ALIGN(0x08);
@@ -338,8 +339,8 @@ SECTIONS
         p_shell_info = .;
         LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-        
     }>InnerFlash 
+    
     
 }
 /**** The End ****/

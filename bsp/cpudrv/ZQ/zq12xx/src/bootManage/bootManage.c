@@ -48,7 +48,7 @@
  *  Created on: 2014-5-28
  *      Author: huzb
  */
-
+#ifdef CFG_CORTEX_M0
 #include "silan_types.h"
 #include "silan_syscfg.h"
 #include "silan_syscfg_regs.h"
@@ -415,7 +415,7 @@ ADD_TO_IN_SHELL bool_t opendspdebug(char *Param)
 {
     Reg11CtrCfg |= (1<<22);
 }
-
+#endif
 
 
 

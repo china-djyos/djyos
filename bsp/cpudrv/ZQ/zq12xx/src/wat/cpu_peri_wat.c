@@ -50,7 +50,7 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-
+#ifdef CFG_CORTEX_M0
 #include "stdint.h"
 #include "stddef.h"
 #include "systime.h"
@@ -261,7 +261,7 @@ bool_t WatDog_Install(void)
 
 }
 
-
+#endif
 
 
 
