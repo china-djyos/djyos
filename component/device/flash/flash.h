@@ -60,7 +60,7 @@ extern "C" {
 #include "nand.h"
 #include "embedded_flash.h"
 #include "flash_trace.h"
-#include "ecc_sw.h"
+#include "misc.h"
 
 //
 // Flags

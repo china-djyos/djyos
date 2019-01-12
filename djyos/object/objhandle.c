@@ -714,17 +714,17 @@ s32 obj_ClrMultiplexEvent(struct obj *ob, u32 events)
 //     mode，所关注的状态，可读、可写、或者其他
 //返回：1=actived，0=unactive
 //------------------------------------------------------------------------------
-s32 issocketactive(s32 Fd, s32 mode)
-{
-    struct objhandle *hdl;
+//s32 issocketactive(s32 Fd, s32 mode)
+//{
+//    struct objhandle *hdl;
 
-    hdl = fd2Handle(Fd);
-    if(mode & hdl->MultiplexEvents & CN_MULTIPLEX_STATUSMSK)
-    {
-        return  1;
-    }
-    return  0;
-}
+//    hdl = fd2Handle(Fd);
+//    if(mode & hdl->MultiplexEvents & CN_MULTIPLEX_STATUSMSK)
+//    {
+//        return  1;
+//    }
+//    return  0;
+//}
 
 
 // ============================================================================
