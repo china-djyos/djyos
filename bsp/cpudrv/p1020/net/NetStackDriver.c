@@ -64,7 +64,7 @@
 #define CN_HARD_BOARD            0x02
 u8  sgNetHardMac[6] = {0x00,0x01, 0x02, 0x03, 0x04, CN_HARD_BOARD};
 #define CN_PKG_LEN  1536
-static struct NetDev *pgChkNetDev = NULL;
+static tagNetDev *pgChkNetDev = NULL;
 static u8  sgSndBuf[CN_PKG_LEN];
 // =============================================================================
 // 函数功能：NetHard_Send
@@ -76,10 +76,10 @@ static u8  sgSndBuf[CN_PKG_LEN];
 // 返回值  ：true发送成功  false发送失败。
 // 说明    ：采用拷贝的方式发送，后续考虑使用链表发送
 // =============================================================================
-bool_t NetHard_Send(struct NetDev *netdev,struct NetPkg *pkg,u32 netdevtask)
+bool_t NetHard_Send(tagNetDev *netdev,tagNetPkg *pkg,u32 netdevtask)
 {
     bool_t  result;
-    struct NetPkg *tmp;
+    tagNetPkg *tmp;
     u8 *src;
     u8 *dst;
     u32 sndlen;
@@ -90,15 +90,14 @@ bool_t NetHard_Send(struct NetDev *netdev,struct NetPkg *pkg,u32 netdevtask)
         sndlen = 0;
         tmp = pkg;
         //拷贝完毕之后记得释放
-        sndlen = PkgListDataCopy(tmp,sgSndBuf);
-//      while(NULL != tmp)
-//      {
-//          src = (u8 *)(tmp->buf + tmp->offset);
-//          dst = (u8 *)(sgSndBuf + sndlen);
-//          memcpy(dst, src, tmp->datalen);
-//          sndlen += tmp->datalen;
-//          tmp = PkgGetNextUnit(tmp);
-//      }
+        while(NULL != tmp)
+        {
+            src = (u8 *)(tmp->buf + tmp->offset);
+            dst = (u8 *)(sgSndBuf + sndlen);
+            memcpy(dst, src, tmp->datalen);
+            sndlen += tmp->datalen;
+            tmp = tmp->partnext;
+        }
         if(sndlen < 60)//小于60的包，记得填充
         {
             dst = (u8 *)(sgSndBuf + sndlen);
@@ -124,7 +123,7 @@ void NetHard_RcvIntIsr(void)
     bool_t      newpkg;
     s32         rcvlen;
     u8          *rcvbuf;
-    struct NetPkg *pkg;
+    tagNetPkg *pkg;
 
     newpkg = true;
     pkg =NULL;
@@ -137,16 +136,13 @@ void NetHard_RcvIntIsr(void)
 
         if(NULL != pkg)
         {
-            rcvbuf = PkgGetCurrentBuffer(pkg);
-//          rcvbuf = (u8 *)(pkg->buf + pkg->offset);
+            rcvbuf = (u8 *)(pkg->buf + pkg->offset);
 
             rcvlen = Net_RecvPacket(1,rcvbuf);//轮询，里面添加了延时
             if(0 != rcvlen)
             {
-                PkgSetNextUnit(pkg,NULL);
-                PkgSetDataLen(pkg, rcvlen);
-//              pkg->datalen = rcvlen;
-//              pkg->partnext = NULL;
+                pkg->datalen = rcvlen;
+                pkg->partnext = NULL;
                 newpkg = true;
                 NetDev_PostPkg(pgChkNetDev,pkg);
                 PkgTryFreePart(pkg);
@@ -185,7 +181,7 @@ bool_t NetHard_AddNetDev(void)
     devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
     memcpy(devpara.mac, sgNetHardMac,6);
     devpara.name = "TestDriver";
-    devpara.Private = 0;
+    devpara.private = 0;
     devpara.linklen = 14;
     devpara.pkglen = 1500;
     devpara.devfunc = 0;

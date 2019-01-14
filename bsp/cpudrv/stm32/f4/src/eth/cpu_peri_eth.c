@@ -187,9 +187,9 @@ static void __MacReset(tagMacDriver *pDrive)
     return ;
 }
 
-static struct NetPkg *__MacRcv(ptu32_t devhandle)
+static tagNetPkg *__MacRcv(ptu32_t devhandle)
 {
-    struct NetPkg         *pkg = NULL;
+    tagNetPkg         *pkg = NULL;
     tagMacDriver      *pDrive;
     ETH_HandleTypeDef *EthHandle;
     volatile ETH_DMADescTypeDef *dmarxdesc;
@@ -215,8 +215,7 @@ static struct NetPkg *__MacRcv(ptu32_t devhandle)
     if(NULL != pkg)
     {
         dmarxdesc = EthHandle->RxFrameInfos.FSRxDesc;
-        dst = PkgGetCurrentBuffer(pkg);
-//      dst = (u8 *)(pkg->buf +pkg->offset);
+        dst = (u8 *)(pkg->buf +pkg->offset);
         src = (u8 *)EthHandle->RxFrameInfos.buffer;
         while(CopyBytes > EthRxBufSize)
         {
@@ -231,8 +230,7 @@ static struct NetPkg *__MacRcv(ptu32_t devhandle)
         memcpy( dst, src, CopyBytes);
         dmarxdesc->Status |= ETH_DMARXDESC_OWN;
 
-        PkgSetDataLen(pkg, len);
-//      pkg->datalen = len;
+        pkg->datalen = len;
         EthHandle->RxFrameInfos.SegCount =0;
     }
 
@@ -250,13 +248,13 @@ static struct NetPkg *__MacRcv(ptu32_t devhandle)
     return pkg;
 }
 
-static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
     ETH_HandleTypeDef *EthHandle;
     ETH_DMADescTypeDef *DmaTxDesc;
-    struct NetPkg         *tmppkg;
+    tagNetPkg         *tmppkg;
     u8                *dst,*src;
     u16                len=0;
 
@@ -280,26 +278,22 @@ static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdev
         //copy datas to static frame buffer
         tmppkg = pkg;
         dst      = &gTxBuffer[0];
-        len = PkgFrameDataCopy(tmppkg, dst);
-//        do
-//        {
-//            src = (tmppkg->buf + tmppkg->offset);
-//            memcpy(dst,src,PkgGetDataLen(tmppkg));
-//            dst      += PkgGetDataLen(tmppkg);
-//            len      += PkgGetDataLen(tmppkg);
-////          memcpy(dst,src,tmppkg->datalen);
-////          dst      += tmppkg->datalen;
-////          len      += tmppkg->datalen;
-//            if(PkgIsBufferEnd(tmppkg))
-//            {
-//                tmppkg = NULL;
-//                break;
-//            }
-//            else
-//            {
-//                tmppkg = PkgGetNextUnit(tmppkg);
-//            }
-//        }while(NULL != tmppkg );
+        do
+        {
+            src = (tmppkg->buf + tmppkg->offset);
+            memcpy(dst,src,tmppkg->datalen);
+            dst      += tmppkg->datalen;
+            len      += tmppkg->datalen;
+            if(PKG_ISLISTEND(tmppkg))
+            {
+                tmppkg = NULL;
+                break;
+            }
+            else
+            {
+                tmppkg = tmppkg->partnext;
+            }
+        }while(NULL != tmppkg );
 
         if(len < EthTxBufSize)
         {
@@ -337,29 +331,27 @@ NODESCERROR:
     return result;
 }
 
-//u32 ETH_SendData(u8 *buf,u32 len)
-//{
-//    struct NetPkg          pkg;
-//    tagMacDriver      *pDrive;
-//
-//    pDrive = &gMacDriver;
-//
-//    PkgInit(pkg,CN_PKLGLST_END,0,len,buf);  //只有一个包
-////  pkg.partnext = NULL;
-////  pkg.pkgflag  = (1<<0);  //只有一个包
-////  pkg.offset   = 0;
-////  pkg.datalen  = len;
-////  pkg.buf      = buf;
-//    if(MacSnd(pDrive->devhandle,&pkg,len,0))
-//    {
-//        return len;
-//    }
-//    else
-//    {
-//        return 0;
-//    }
-//}
+u32 ETH_SendData(u8 *buf,u32 len)
+{
+    tagNetPkg          pkg;
+    tagMacDriver      *pDrive;
 
+    pDrive = &gMacDriver;
+
+    pkg.partnext = NULL;
+    pkg.pkgflag  = (1<<0);  //只有一个包
+    pkg.offset   = 0;
+    pkg.datalen  = len;
+    pkg.buf      = buf;
+    if(MacSnd(pDrive->devhandle,&pkg,len,0))
+    {
+        return len;
+    }
+    else
+    {
+        return 0;
+    }
+}
 //This is the interrut handler
 u32 ETH_IntHandler(ufast_t IntLine)
 {
@@ -518,7 +510,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
 //this is the receive task
 static ptu32_t __MacRcvTask(void)
 {
-    struct NetPkg *pkg;
+    tagNetPkg *pkg;
     ptu32_t    handle;
     u8        *rawbuf;
     u16        len;
@@ -544,10 +536,8 @@ static ptu32_t __MacRcvTask(void)
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
-                    rawbuf = PkgGetCurrentBuffer(pkg);
-//                  rawbuf = pkg->buf + pkg->offset;
-                    len = PkgGetDataLen(pkg);
-//                  len = pkg->datalen;
+                    rawbuf = pkg->buf + pkg->offset;
+                    len = pkg->datalen;
                     pDrive->fnrcvhook(rawbuf,len);
                 }
                 else
@@ -595,7 +585,7 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 //show the gmac status
 //bool_t macdebuginfo(char *param)
 
-ADD_TO_SHELL_HELP(mac,"usage:gmac");
+ADD_TO_IN_SHELL_HELP(mac,"usage:gmac");
 ADD_TO_IN_SHELL bool_t mac(char *param)
 
 {
@@ -645,7 +635,7 @@ ADD_TO_IN_SHELL bool_t mac(char *param)
 #define CN_GMAC_REG_BASE   ((u32)ETH)
 //bool_t MacReg(char *param)
 
-ADD_TO_SHELL_HELP(macreg,"usage:MacReg");
+ADD_TO_IN_SHELL_HELP(macreg,"usage:MacReg");
 ADD_TO_IN_SHELL bool_t macreg(char *param)
 {
     vu32    i;
@@ -733,7 +723,7 @@ ADD_TO_IN_SHELL bool_t macreg(char *param)
 }
 
 //bool_t MacReset(char *param)
-ADD_TO_SHELL_HELP(macreset,"usage:reset gmac");
+ADD_TO_IN_SHELL_HELP(macreset,"usage:reset gmac");
 ADD_TO_IN_SHELL bool_t macreset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
@@ -743,7 +733,7 @@ ADD_TO_IN_SHELL bool_t macreset(char *param)
 }
 
 //bool_t MacSndEn(char *param)
-ADD_TO_SHELL_HELP(macsnden,"usage:MacSndEn");
+ADD_TO_IN_SHELL_HELP(macsnden,"usage:MacSndEn");
 ADD_TO_IN_SHELL bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
@@ -759,7 +749,7 @@ ADD_TO_IN_SHELL bool_t macsnden(char *param)
 }
 
 //bool_t MacSndDis(char *param)
-ADD_TO_SHELL_HELP(macsnddis,"usage:MacSndDis");
+ADD_TO_IN_SHELL_HELP(macsnddis,"usage:MacSndDis");
 ADD_TO_IN_SHELL bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
@@ -773,72 +763,6 @@ ADD_TO_IN_SHELL bool_t macsnddis(char *param)
     return true;
 }
 
-static struct shell_debug  gMacDebug[] =
-{
-    {
-        "mac",
-        mac,
-        "usage:mac",
-        NULL
-    },
-    {
-        "macreg",
-        macreg,
-        "usage:macreg",
-        NULL
-    },
-//    {
-//        "macpost",
-//        gmacpost,
-//        "usage:gmacpost",
-//        NULL
-//    },
-//    {
-//        "macrcvbd",
-//        gmacrcvbdcheck,
-//        "usage:gmacrcvbd",
-//        NULL
-//    },
-//    {
-//        "macsndbd",
-//        gmacsndbdcheck,
-//        "usage:gmacsndbd",
-//        NULL
-//    },
-    {
-        "macreset",
-        macreset,
-        "usage:reset gmac",
-        NULL
-    },
-//    {
-//        "macdelay",
-//        MacDelay,
-//        "usage:MacDelay",
-//        NULL
-//    },
-//    {
-//        "macsndbdclear",
-//        MacSndBDClear,
-//        "usage:MacSndBdClear + ndnum",
-//        NULL
-//    }
-    {
-        "macsnden",
-        macsnden,
-        "usage:macsnden",
-        NULL
-    },
-    {
-        "macsnddis",
-        macsnddis,
-        "usage:macsnddis",
-        NULL
-    },
-};
-
-#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
 
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
@@ -908,9 +832,9 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,macaddress,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.Private = 0;
+    devpara.private = 0;
     devpara.mtu = 1522;
-    devpara.Private = (ptu32_t)pDrive;
+    devpara.private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(0 == pDrive->devhandle)
     {
@@ -930,7 +854,6 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_ContactLine(CN_INT_LINE_ETH);
     }
 
-    shell_debug_add(gMacDebug, CN_GMACDEBUG_NUM);
     info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -61,7 +61,7 @@ ADD_TO_IN_SHELL_HELP(tcpipver,"usage:tcpipver");
 ADD_TO_IN_SHELL  bool_t tcpipver(char *param)
 {
     param = param;
-    info_printf("tcpip","Copyright (c) 2018, Djyos Open source Development team. All rights reserved.");
+    info_printf("tcpip","Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.");
     info_printf("tcpip","VERSION  :%s ",CN_TCPIP_VERSION);
     info_printf("tcpip","TIME     :%s ",__TIME__);
     info_printf("tcpip","DATE     :%s ",__DATE__);
@@ -70,7 +70,6 @@ ADD_TO_IN_SHELL  bool_t tcpipver(char *param)
     info_printf("tcpip","FUNCTIONS:/ETHERNET/PPP/IPV4/TCP/UDP/ICMP/FTP/TFTP/SNTP/TELNET/DHCP/PING");
     return true;
 }
-
 
 
 //we need a function to do the format result
@@ -112,8 +111,8 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //do the package manage module initialize
-    extern bool_t PkgModuleInit(void);
-    ret = PkgModuleInit();
+    extern bool_t PkgInit(void);
+    ret = PkgInit();
     __LoadLog("PKG",ret);
     if(false == ret)
     {

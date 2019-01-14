@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -51,21 +51,37 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
 //一个PKGLST在传输的过程中，当某个PKG拥有CN_PKLGLST_END标记或者NULL == partnext，即可认为
 //该PKGLST结束，该特性在发送的时候尤其明显
 #define CN_PKLGLST_END   (1<<0)
-struct NetPkg;
-struct NetDev;
+//tagNetPkg的原理
+//bufsize在申请时指定，使用过程中一直不变;data一直指向buf的起始位置，保持不变
+//当向PKG写入数据时，offset不变，从buf的offset+datalen的地方开始写新数据，写完之后
+//                  datalen +=len(len为写入数据长度)
+//当从PKG读取数据时，从buf的offset开始cpy，cpy完成之后，
+//                  offset += len,datalen -= len(len为取出数据长度)
+typedef struct NetPkg
+{
+    struct NetPkg   *partnext;        //该组指针负责数据包在协议栈的传递
+    ptu32_t  private;   //used for the module who malloc the package
+    u8   level;         // PKG的大小等级
+    u8   pkgflag;       // PKG的后续扩展属性
+    u8   refers;        // 缓存的次数
+    u16  datalen;       // buf中的有效数据长度
+    u16  bufsize;       // buf的长度
+    u16  offset;        // 有效数据偏离buf的位置，offset之前的数据无效,当分拆数据或者数据对齐的时候很有用
+    u8   *buf;          // pkg的buf（数据缓存区）
+}tagNetPkg;
 
 bool_t     Pkg_SetAlignOffset(u16 alignsize);
-struct NetPkg *PkgMalloc(u16 bufsize,u8 flags);
-bool_t     PkgTryFreePart(struct NetPkg *pkg);
-bool_t     PkgTryFreeLst(struct NetPkg  *pkglst);
-bool_t     PkgTryFreeQ(struct NetPkg  *pkglst);
-bool_t     PkgCachedPart(struct NetPkg  *pkg);
-bool_t     PkgCachedLst(struct NetPkg   *pkglst);
+tagNetPkg *PkgMalloc(u16 bufsize,u8 flags);
+bool_t     PkgTryFreePart(tagNetPkg *pkg);
+bool_t     PkgTryFreeLst(tagNetPkg  *pkglst);
+bool_t     PkgTryFreeQ(tagNetPkg  *pkglst);
+bool_t     PkgCachedPart(tagNetPkg  *pkg);
+bool_t     PkgCachedLst(tagNetPkg   *pkglst);
 u16        PkgAlignSize(u16 size);
+#define    PKG_ISLISTEND(pkg)      (pkg->pkgflag&CN_PKLGLST_END)
 
 //used to defines the net device task
 #define CN_IPDEV_TCPOCHKSUM  (1<<0)
@@ -168,8 +184,8 @@ typedef enum
 //return means the data has put out or put into the net card buffer
 //pkg maybe an lst or not,you could use the PkgIsEnd to check
 //pkglen is fram len
-typedef bool_t (*fnIfSend)(void* iface,struct NetPkg *pkglst,u32 framlen,u32 netdevtask);
-typedef struct NetPkg* (*fnIfRecv)(void* iface);
+typedef bool_t (*fnIfSend)(void* iface,tagNetPkg *pkglst,u32 framlen,u32 netdevtask);
+typedef tagNetPkg* (*fnIfRecv)(void* iface);
 
 //used to ctrl the dev or get the dev stat
 typedef bool_t (*fnIfCtrl)(void* iface,enNetDevCmd cmd,ptu32_t para);
@@ -182,16 +198,16 @@ typedef struct NetDevPara
     fnIfCtrl       ifctrl;   //dev ctrl or stat get fucntion
     u32            devfunc;  //dev hard function,such as tcp chksum
     u16            mtu;      //dev mtu
-    void          *Private;  //the dev driver use this to has its owner property
+    void          *private;  //the dev driver use this to has its owner property
     u8             mac[CN_MACADDR_LEN];   //mac address
 }tagNetDevPara;
-ptu32_t NetDevInstall(tagNetDevPara *para);
+void   *NetDevInstall(tagNetDevPara *para);
 bool_t  NetDevUninstall(const char *name);
-const u8 *NetDevGetMac(struct NetDev *DevFace);
-const char *NetDevName(struct NetDev *DevFace);
-struct NetDev  *NetDevGet(const char *ifname);
-bool_t NetDevSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 framelen,u32 devtask);
-bool_t NetDevPush(void *iface,struct NetPkg *pkg);//if you get a package,you could call this function
+const u8 *NetDevGetMac(void *iface);
+const char *NetDevName(void *iface);
+void *NetDevGet(const char *ifname);
+bool_t NetDevSend(void *iface,tagNetPkg *pkg,u32 framelen,u32 devtask);
+bool_t NetDevPush(void *iface,tagNetPkg *pkg);//if you get a package,you could call this function
 typedef bool_t (*fnNetDevEventHook)(void* iface,enNetDevEvent event);
 //handle :the netdevice you install (returned by NetDevInstall)
 //devname:if the netdevice is NULL,then we use the devname to search the device
@@ -203,7 +219,7 @@ bool_t  NetDevRegisterEventHook(void *handle,const char *devname,fnNetDevEventHo
 bool_t  NetDevPostEvent(void* handle,const char *devname,enNetDevEvent event);
 bool_t  NetDevCtrl(const char *name,enNetDevCmd cmd, ptu32_t para);
 bool_t  NetDevCtrlByHandle(void* handle,enNetDevCmd cmd, ptu32_t para);
-void   *NetDevPrivate(struct NetDev *DevFace);
+void   *NetDevPrivate(void *iface);
 
 ////////////////////////defines for the link////////////////////////////////////////
 //the following we be cut in the socket.h
@@ -213,22 +229,21 @@ void   *NetDevPrivate(struct NetDev *DevFace);
 //handle:which device has triggled the event
 //event :the message we has get
 //the user could use the following api to listen on more protocol or send specified frames
-typedef bool_t (*fnLinkProtoDealer)(void *iface,struct NetPkg *pkg);
+typedef bool_t (*fnLinkProtoDealer)(void *iface,tagNetPkg *pkg);
 bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook, const char *ifname,u16 proto,const char *hookname);
 bool_t LinkUnRegisterRcvHook(const char *hookname);
 
 //////////////////////USED FOR THE ROUTER//////////////////////////////////
 //if you need to add a rout to the host,then the following will be used
 //this defines for the external applications
-//与 tagRoutFlag 类型定义重复，暂且删除之。
-//#define CN_ROUT_PRO_G         (1<<0)
-//#define CN_ROUT_PRO_U         (1<<1)
-//#define CN_ROUT_PRO_R         (1<<2)
-//#define CN_ROUT_PRO_V         (1<<3)
-//#define CN_ROUT_PRO_S         (1<<4)
-//#define CN_ROUT_PRO_C         (1<<5)
-//#define CN_ROUT_PRO_B         (1<<6)
-//#define CN_ROUT_PRO_M         (1<<7)
+#define CN_ROUT_PRO_G         (1<<0)
+#define CN_ROUT_PRO_U         (1<<1)
+#define CN_ROUT_PRO_R         (1<<2)
+#define CN_ROUT_PRO_V         (1<<3)
+#define CN_ROUT_PRO_S         (1<<4)
+#define CN_ROUT_PRO_C         (1<<5)
+#define CN_ROUT_PRO_B         (1<<6)
+#define CN_ROUT_PRO_M         (1<<7)
 #define CN_ROUT_PRIOR_LOOP    (10) //ANY INTERNAL ROUT WILL USE THIS
 #define CN_ROUT_PRIOR_UNI     (5)  //ALMOST THE HIGHEST
 #define CN_ROUT_PRIOR_ANY     (0)  //COULD MATCH ANY DESTINATION

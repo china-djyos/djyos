@@ -1267,18 +1267,7 @@ void __read_sector_and_oob(u32 sector,u8 *data)
 //参数: 无
 //返回: 1= 成功，0=失败
 //-----------------------------------------------------------------------------
-struct shell_debug const ShellNandCmdTab[] =
-{
-    {
-        "chip-erase",
-        __erase_all_nand,
-        "擦除FLASH芯片中所有内容",
-        NULL
-    },
-};
 
-//static struct ShellCmdRsc tg_NandCmdRsc
-//                        [sizeof(ShellNandCmdTab)/sizeof(struct shell_debug)];
 ptu32_t module_init_fs_k9f1208xxx(const char *FlashHeapName)
 {
     struct nand_chip_id chip_id;
@@ -1316,8 +1305,6 @@ ptu32_t module_init_fs_k9f1208xxx(const char *FlashHeapName)
     tg_samsung_nand.restore_PCRB = restore_PCRB_nand;
     if(DFFSD_InstallChip(&tg_samsung_nand,name,cn_reserve_blocks))
     {
-        shell_debug_add(ShellNandCmdTab,
-            sizeof(ShellNandCmdTab)/sizeof(struct shell_debug));
          return 1;
     }
     else

@@ -109,7 +109,7 @@ typedef struct TsecFcb
 typedef struct TsecSndPkgBuf
 {
     struct TsecSndPkgBuf *nxt;
-    struct NetPkg *plst;
+    tagNetPkg *plst;
     u8 pkgnum;
     u16 bdno;
 }tagTsecSndPkgBuf;
@@ -152,8 +152,8 @@ typedef struct TsecBdTab
     rxbd8_t rxbd[CN_RXBD_NUM];
     u32 nxtrxbd;        /* index of the read bd  nxttime */
     u32 nxttxbd;        /* index of the write bd nxttime*/
-    struct NetPkg *txpkg[CN_TXBD_NUM];
-    struct NetPkg *rcvpkg[CN_RXBD_NUM];
+    tagNetPkg *txpkg[CN_TXBD_NUM];
+    tagNetPkg *rcvpkg[CN_RXBD_NUM];
 } tagTsecBdTab;
 
 #define CN_TSEC_NUM  3
@@ -614,7 +614,7 @@ u8 sgMacAddr[CN_TSEC_NUM][6]=
     {0x00,0x01,0x02,0x03,0x04,0x03},
 };
 
-static struct NetDev *pgTsecNetDev[CN_TSEC_NUM]= {NULL,NULL,NULL};
+static tagNetDev *pgTsecNetDev[CN_TSEC_NUM]= {NULL,NULL,NULL};
 static ufast_t sgTsecIrqNo[CN_TSEC_NUM][2] = {
         {cn_int_line_etsec1_g0_receive,cn_int_line_etsec1_g0_transmit},
         {cn_int_line_etsec2_g0_receive,cn_int_line_etsec2_g0_transmit},
@@ -729,7 +729,7 @@ static tagTsecFcb sgTsecIpFcb   __attribute__ ((aligned(8)));
 #else
 #error "rtx must be 64-bit aligned"
 #endif
-bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
+bool_t __TsecSnd(tagNetDev *netdev,tagNetPkg * plst, u32 netdevtask)
 {
     u8  devno;
     atom_low_t atomop;
@@ -739,8 +739,8 @@ bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
     u32 cursndbd;
     u16 status;
     u32 fbdno;
-    struct NetPkg *pkg;
-    struct NetPkg *pkgnxt;
+    tagNetPkg *pkg;
+    tagNetPkg *pkgnxt;
     u32 bufaddr;
     u16 datalen;
 
@@ -770,7 +770,7 @@ bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
         while(NULL != pkg)
         {
             status = TXBD_READY;
-            if(PkgIsBufferEnd(pkg))
+            if(PKG_ISLISTEND(pkg))
             {
                 //this is the last one
                 status |= TXBD_LAST ;
@@ -778,17 +778,15 @@ bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
             }
             else
             {
-                pkgnxt = PkgGetNextUnit(pkgnxt);
+                pkgnxt = pkg->partnext;
             }
             if(CN_TXBD_NUM == (cursndbd+1))
             {
                 //comes to the end of the bd tab
                 status |= TXBD_WRAP;
             }
-            bufaddr = (u32)PkgGetCurrentBuffer(pkg);
-//          bufaddr = (u32)(pkg->buf+pkg->offset);
-            datalen = PkgGetDataLen(pkg);
-//          datalen = pkg->datalen;
+            bufaddr = (u32)(pkg->buf+pkg->offset);
+            datalen = pkg->datalen;
             //begin to move the sndpkgbuf to the bd
             txbdtab->txbd[cursndbd].bufPtr = bufaddr;
             txbdtab->txbd[cursndbd].length = datalen;
@@ -819,7 +817,7 @@ bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
         while(NULL != pkg)
         {
             status = TXBD_READY;
-            if(PkgIsBufferEnd(pkg))
+            if(PKG_ISLISTEND(pkg))
             {
                 //this is the last one
                 status |= TXBD_LAST ;
@@ -827,17 +825,15 @@ bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
             }
             else
             {
-                pkgnxt = PkgGetNextUnit(pkgnxt);
+                pkgnxt = pkg->partnext;
             }
             if(CN_TXBD_NUM == (cursndbd+1))
             {
                 //comes to the end of the bd tab
                 status |= TXBD_WRAP;
             }
-            bufaddr = (u32)PkgGetCurrentBuffer(pkg);
-//          bufaddr = (u32)(pkg->buf+pkg->offset);
-            datalen = PkgGetDataLen(pkg);
-//          datalen = pkg->datalen;
+            bufaddr = (u32)(pkg->buf+pkg->offset);
+            datalen = pkg->datalen;
             if(0 == datalen)
             {
                 printk("Driver Binggo!\n\r");
@@ -873,7 +869,7 @@ bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
         status = TXBD_CRC| TXBD_READY;
         while(NULL != pkg)
         {
-            if(PkgIsBufferEnd(pkg))
+            if(PKG_ISLISTEND(pkg))
             {
                 //this is the last one
                 status |= TXBD_LAST ;
@@ -881,17 +877,15 @@ bool_t __TsecSnd(struct NetDev *netdev,struct NetPkg * plst, u32 netdevtask)
             }
             else
             {
-                pkgnxt = PkgGetNextUnit(pkg);
+                pkgnxt = pkg->partnext;
             }
             if(CN_TXBD_NUM == (cursndbd+1))
             {
                 //comes to the end of the bd tab
                 status |= TXBD_WRAP;
             }
-            bufaddr = (u32)PkgGetCurrentBuffer(pkg);
-//          bufaddr = (u32)(pkg->buf+pkg->offset);
-            datalen = PkgGetDataLen(pkg);
-//          datalen = pkg->datalen;
+            bufaddr = (u32)(pkg->buf+pkg->offset);
+            datalen = pkg->datalen;
             if(0 == datalen)
             {
                 printk("Driver Binggo!\n\r");
@@ -972,11 +966,11 @@ u32 __TsecSndIsr(ptu32_t irqno)
 // ËµÃ÷    £ºbecause before we begin to read the data, we have turn off the rcv
 //        interrupt, there is no need to worry about the protect in the rcv process
 // =============================================================================
-struct NetPkg *__TsecRcv(u8 devno)
+tagNetPkg *__TsecRcv(u8 devno)
 {
     u16 status;
     u32 rcvbdno;
-    struct NetPkg *result;
+    tagNetPkg *result;
     rxbd8_t *rcvbd;
     u8 *dst;
     u8 *src;
@@ -999,12 +993,10 @@ struct NetPkg *__TsecRcv(u8 devno)
             else
             {
                 //CPY THE BUF TO THE PKG WE ALLOC
-                dst = (u8 *)PkgGetCurrentBuffer(result);
-//              dst = (u8 *)(result->buf + result->offset);
+                dst = (u8 *)(result->buf + result->offset);
                 src =(u8 *) rcvbd->bufPtr;
                 memcpy(dst,src,rcvbd->length);
-                PkgSetDataLen(result,rcvbd->length);
-//              result->datalen = ;
+                result->datalen = rcvbd->length;
             }
         }
         else
@@ -1036,7 +1028,7 @@ u32 __TsecRcvIsr(ptu32_t irqno)
     u8  devno;
     tsec_t *regs;
     u32 value;
-    struct NetPkg  *pkg;
+    tagNetPkg  *pkg;
 
     switch(irqno)
     {
@@ -1139,7 +1131,7 @@ bool_t ModuleInstall_Tsec(ptu32_t para)
                 devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
                 memcpy(devpara.mac, sgMacAddr[devno],6);
                 devpara.name = "TsecDriver";
-                devpara.Private = devno;
+                devpara.private = devno;
 
                 pgTsecNetDev[devno] = NetDev_InstallDev(&devpara);
                 if(pgTsecNetDev[devno]!= NULL)

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然:
@@ -138,7 +138,7 @@ tagIpProto *IpProtoFind(u8 proto)
 }
 
 //usage:use this function to upload the package
-bool_t IpProtoDeal(u8 proto,tagIpAddr *addr,struct NetPkg *pkglst,u32 devfunc)
+bool_t IpProtoDeal(u8 proto,tagIpAddr *addr,tagNetPkg *pkglst,u32 devfunc)
 {
     bool_t result = false;
     tagIpProto  *hash;
@@ -159,15 +159,14 @@ bool_t IpProtoDeal(u8 proto,tagIpAddr *addr,struct NetPkg *pkglst,u32 devfunc)
 //if the life is zero, then it will be delete from the queue
 //we scan the item by the hash value, so we will not block the sync too much
 #define CN_IP_VERMASK    (0X0f)
-static bool_t  __IpPushNew(void *dev,struct NetPkg *pkg)
+static bool_t  __IpPushNew(void *dev,tagNetPkg *pkg)
 {
     u8            ipv;
     bool_t        ret;
     TCPIP_DEBUG_INC(gIpCtrl.debug.rcvnum);
     if((NULL != dev)&& (NULL!= pkg))
     {
-        ipv = *(u8 *)PkgGetCurrentBuffer(pkg);
-//      ipv = *(u8 *)(pkg->buf + pkg->offset);
+        ipv = *(u8 *)(pkg->buf + pkg->offset);
         ipv = (ipv >>4)&CN_IP_VERMASK;
         if(ipv == EN_IPV_4)
         {
@@ -256,16 +255,14 @@ u16 IpChksumSoft16(void *dataptr, int len,u16 chksum,bool_t done)
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-void IpPkgChkSum(struct NetPkg *pkg,u16 *chksum,u16 sum)
+void IpPkgChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum)
 {
     int                             chklen;
     u16                             result;
     void                            *chkbuf;
 
-    chklen = PkgGetDataLen(pkg);
-//  chklen = pkg->datalen;
-    chkbuf = (u8 *)PkgGetCurrentBuffer(pkg);
-//  chkbuf = (u8 *)(pkg->offset + pkg->buf);
+    chklen = pkg->datalen;
+    chkbuf = (u8 *)(pkg->offset + pkg->buf);
     result = IpChksumSoft16((void *)chkbuf, chklen,sum, true);
     *chksum = result;
     return;
@@ -278,21 +275,19 @@ void IpPkgChkSum(struct NetPkg *pkg,u16 *chksum,u16 sum)
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-void IpPkgLstChkSum(struct NetPkg *pkg,u16 *chksum,u16 sum)
+void IpPkgLstChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum)
 {
     int                             chklen;
     u16                             chksumtmp;
     void                            *chkbuf;
-    struct NetPkg                       *pkgtmp;
+    tagNetPkg                       *pkgtmp;
 
     chksumtmp = sum;
     pkgtmp = pkg;
     do{
-        chklen = PkgGetDataLen(pkgtmp);
-//      chklen = pkgtmp->datalen;
-        chkbuf = (u8 *)PkgGetCurrentBuffer(pkgtmp);
-//      chkbuf = (u8 *)(pkgtmp->offset + pkgtmp->buf);
-        if((NULL == PkgGetNextUnit(pkgtmp))||PkgIsBufferEnd(pkgtmp))
+        chklen = pkgtmp->datalen;
+        chkbuf = (u8 *)(pkgtmp->offset + pkgtmp->buf);
+        if((NULL == pkgtmp->partnext)||PKG_ISLISTEND(pkgtmp))
         {
             chksumtmp = IpChksumSoft16((void *)chkbuf, chklen,chksumtmp, true);
             *chksum = chksumtmp;
@@ -301,7 +296,7 @@ void IpPkgLstChkSum(struct NetPkg *pkg,u16 *chksum,u16 sum)
         else
         {
             chksumtmp = IpChksumSoft16((void *)chkbuf, chklen,chksumtmp, false);
-            pkgtmp = PkgGetNextUnit(pkgtmp);
+            pkgtmp = pkgtmp->partnext;
         }
     }while(NULL != pkgtmp);
 }
@@ -321,7 +316,7 @@ void IpPkgLstChkSum(struct NetPkg *pkg,u16 *chksum,u16 sum)
 // RETURN  :true success while false failed
 // INSTRUCT:
 // =============================================================================
-bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, struct NetPkg *pkg,\
+bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkg,\
               u16 translen,u8 proto,u32  devtask, u16 *chksum)
 {
     bool_t result;

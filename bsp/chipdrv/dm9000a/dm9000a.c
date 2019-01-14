@@ -679,7 +679,7 @@ EVTT_FAILED:
 
 static tagDm9000Dev *pDm9000;
 //bool_t dm9000debuginfo(char* param)
-ADD_TO_SHELL_HELP(dm9000,"dm9000 debug info");
+ADD_TO_IN_SHELL_HELP(dm9000,"dm9000 debug info");
 ADD_TO_IN_SHELL bool_t dm9000(char* param)
 {
     u8 rAddrH,rAddrL;
@@ -700,7 +700,7 @@ ADD_TO_IN_SHELL bool_t dm9000(char* param)
     return 1;
 }
 //bool_t dm9000reg(char *param)
-ADD_TO_SHELL_HELP(dm9000reg,"print dm9000 reg");
+ADD_TO_IN_SHELL_HELP(dm9000reg,"print dm9000 reg");
 ADD_TO_IN_SHELL bool_t dm9000reg(char *param)
 {
     __showDm9000Reg(pDm9000);
@@ -708,38 +708,15 @@ ADD_TO_IN_SHELL bool_t dm9000reg(char *param)
 }
 
 //bool_t dm9000Reset(char *param)
-ADD_TO_SHELL_HELP(dm9000reset,"reset dm9000");
+ADD_TO_IN_SHELL_HELP(dm9000reset,"reset dm9000");
 ADD_TO_IN_SHELL bool_t dm9000reset(char *param)
 {
     __dm9000HardInit(pDm9000);
     return 1;
 }
 
-static struct shell_debug  gDm9000Debug[] =
-{
-    {
-        "dm9000",
-        dm9000,
-        "dm9000 debug info",
-        NULL
-    },
-    {
-        "dm9000reg",
-        dm9000reg,
-        "print dm9000 reg",
-        NULL
-    },
-    {
-        "dm9000reset",
-        dm9000reset,
-        "reset dm9000",
-        NULL
-    }
-};
 
 
-#define CN_DM9000DEBUG_NUM  ((sizeof(gDm9000Debug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gGdm9000DebugCmdRsc[CN_DM9000DEBUG_NUM];
 
 //THIS FUNCTION USED BY USER TO INSTALL AN DM9000 DEV WITH THE SPECIFIED NAME AND MAC
 bool_t Dm9000Install(tagDm9000Para *para)
@@ -785,7 +762,6 @@ bool_t Dm9000Install(tagDm9000Para *para)
     DM9000_DBG("%s:ISNTALL DM9000 DEV SUCCESS\n\r",__FUNCTION__);
     pDm9000 = dm9000;
     __showDm9000Reg(dm9000);
-    shell_debug_add(gDm9000Debug, CN_DM9000DEBUG_NUM);
     return res;
 
 

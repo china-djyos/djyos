@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -548,9 +548,9 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
     return ret;
 }
 //here we create a ppp net device to the stack
-static bool_t __NetDevOut(void *dev, struct NetPkg *pkg, u32 framlen,u32 netdevtask) {
+static bool_t __NetDevOut(void *dev, tagNetPkg *pkg, u32 framlen,u32 netdevtask) {
     bool_t result;
-    struct NetPkg *tmp;
+    tagNetPkg *tmp;
     u8 *buf;
     u8 *src;
     u8 *dst;
@@ -568,21 +568,18 @@ static bool_t __NetDevOut(void *dev, struct NetPkg *pkg, u32 framlen,u32 netdevt
         cpylen = 0;
         dst = buf;
         tmp = pkg;
-        cpylen = PkgFrameDataCopy(tmp,dst);
-//        while (NULL != tmp) {
-//            src = (u8 *) (tmp->buf + tmp->offset);
-//            memcpy(dst, src, tmp->datalen);
-//            dst += tmp->datalen;
-//            cpylen += tmp->datalen;
-////          if (tmp->pkgflag & CN_PKLGLST_END)
-//            if(PkgIsBufferEnd(tmp))
-//            {
-//                tmp = NULL;
-//            }
-//            else {
-//                tmp = PkgGetNextUnit(tmp);
-//            }
-//        }
+        while (NULL != tmp) {
+            src = (u8 *) (tmp->buf + tmp->offset);
+            memcpy(dst, src, tmp->datalen);
+            dst += tmp->datalen;
+            cpylen += tmp->datalen;
+            if (tmp->pkgflag & CN_PKLGLST_END) {
+                tmp = NULL;
+            }
+            else {
+                tmp = tmp->partnext;
+            }
+        }
         //send the buf to the ppp
         result = __IoDevOut(ppp, CN_PPP_IP, NULL, buf, cpylen,
                 ppp->accmpeer);
@@ -597,17 +594,15 @@ static bool_t __NetDevOut(void *dev, struct NetPkg *pkg, u32 framlen,u32 netdevt
 static bool_t __IpDeal(tagPPP *ppp, tagCH *ch, u8 *data, int len) {
     //we should package the msg and put it to the stack
     u8 *dst;
-    struct NetPkg *pkg;
+    tagNetPkg *pkg;
     u16 lenframe;
     lenframe = len + sizeof(tagCH);
     ppp->debug.iprcvlen += lenframe;
     pkg = PkgMalloc(lenframe, CN_PKLGLST_END);
     if (NULL != pkg) {
-        dst = PkgGetCurrentBuffer(pkg);
-//      dst = pkg->buf + pkg->offset;
+        dst = pkg->buf + pkg->offset;
         memcpy(dst, (void *) ch, lenframe);
-        PkgSetDataLen(pkg, lenframe);
-//      pkg->datalen = lenframe;
+        pkg->datalen = lenframe;
         NetDevPush(ppp->fdnet, pkg);
         PkgTryFreePart(pkg);
     }
@@ -624,7 +619,7 @@ static bool_t __NetDevAdd(tagPPP *ppp) {
     devpara.ifsend = __NetDevOut;
     devpara.iftype = EN_LINK_RAW;
     devpara.name = ppp->namenet;
-    devpara.Private =  ppp;
+    devpara.private =  ppp;
     devpara.mtu = PPP_MTU;
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac, CN_MAC_BROAD, CN_MACADDR_LEN);
@@ -1427,6 +1422,7 @@ ADD_TO_IN_SHELL  bool_t ppp(char *param)
     return true;
 }
 
+
 //this is the initialize function for the ppp module
 static u16 gPppEvttID = CN_EVTT_ID_INVALID;
 #define     CN_PPP_TASKSTACKSIZE      0x800     //the ppp task stack size
@@ -1448,8 +1444,6 @@ bool_t PppInit(void) {
 
     //install the debug shell for the system
         return (TRUE);
-
-    return result;
 }
 //add the device to the task list
 static bool_t __PppAddTask(tagPPP *ppp) {

@@ -699,72 +699,6 @@ bool_t MacSndDis(char *param)
 }
 
 #include <shell.h>
-static struct shell_debug  gMacDebug[] =
-{
-    {
-        "mac",
-        macdebuginfo,
-        "usage:gmac",
-        NULL
-    },
-    {
-        "macreg",
-        MacReg,
-        "usage:MacReg",
-        NULL
-    },
-//    {
-//        "macpost",
-//        gmacpost,
-//        "usage:gmacpost",
-//        NULL
-//    },
-//    {
-//        "macrcvbd",
-//        gmacrcvbdcheck,
-//        "usage:gmacrcvbd",
-//        NULL
-//    },
-//    {
-//        "macsndbd",
-//        gmacsndbdcheck,
-//        "usage:gmacsndbd",
-//        NULL
-//    },
-    {
-        "macreset",
-        MacReset,
-        "usage:reset gmac",
-        NULL
-    },
-//    {
-//        "macdelay",
-//        MacDelay,
-//        "usage:MacDelay",
-//        NULL
-//    },
-//    {
-//        "macsndbdclear",
-//        MacSndBDClear,
-//        "usage:MacSndBdClear + ndnum",
-//        NULL
-//    }
-    {
-        "macsnden",
-        MacSndEn,
-        "usage:MacSndEn",
-        NULL
-    },
-    {
-        "macsnddis",
-        MacSndDis,
-        "usage:MacSndDis",
-        NULL
-    },
-};
-
-#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -849,7 +783,6 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_ContactLine(CN_INT_LINE_ETH);
     }
 
-    shell_debug_add(gMacDebug, CN_GMACDEBUG_NUM);
     printf("%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

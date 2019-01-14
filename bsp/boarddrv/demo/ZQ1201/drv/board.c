@@ -74,7 +74,7 @@
                                             //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                           //初始化时机，可选值：early，medium，later。
                                             //表示初始化时间，分别是早期、中期、后期
-//dependence:"kernel","cpu_peri_gpio"                 //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"kernel","sldrv","cpu_peri_gpio"                 //该组件的依赖组件名（可以是none，表示无依赖组件），
                                             //选中该组件时，被依赖组件将强制选中，
                                             //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                     //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -101,10 +101,10 @@
 // 参数：无
 // 返回：true
 // =============================================================================
-void Board_GpioInit(void)
+bool_t Board_GpioInit(u8 SerialNo)
 {
     silan_io_func_config(IO_CONFIG_PA4, PA4_FUNC_UART2);
     silan_io_func_config(IO_CONFIG_PA5, PA5_FUNC_UART2);
-//    return true;
+    return true;
 }
 

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -77,13 +77,13 @@ bool_t RouterInit(void);
 //so we make this one
 typedef struct
 {
-    enum_ipv_t       ver;     //调用 RouterMatch 前必须提供
-    enIPTYPE         type;    //RouterMatch函数返回结果用
-    struct NetDev   *DevFace; //网络设备接口
-    void            *DstIP;   //this structure depends on the ver:ipv4 ipv6
-    void            *HopIP;   //this structure depends on the ver:ipv4 ipv6
-    void            *HostIP;  //this structure depends on the ver:ipv4 ipv6
-    u16             mtu;      //you need this do the fragment
+    enum_ipv_t ver;  //you must supply this when do the matcher
+    enIPTYPE   type; //we will return the result
+    void     *iface; //if you need this
+    void     *dst;   //this structure depends on the ver:ipv4 ipv6
+    void     *hop;   //this structure depends on the ver:ipv4 ipv6
+    void     *host;  //this structure depends on the ver:ipv4 ipv6
+    u16       mtu;   //you need this do the fragment
 }tagRoutLink; //you could use this structure to storage the message need in the external
 //you could do the decision on the type,if UNKNOWN,which means we could resolve this
 //if need more function,you could extend it this structure -- TODO,zhangqf

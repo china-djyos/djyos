@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -62,12 +62,12 @@ typedef struct PseudoHdr
 #pragma pack()
 
 u16 IpPseudoChkSumV4(u32 iplocal, u32 ipdst, u8 proto, u16 translen);
-void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,struct NetPkg *pkg,\
+void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,tagNetPkg *pkg,\
                             u16 translen,u16 *chksum);
 
-bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
+bool_t IpV4Send(u32 ipsrc, u32 ipdst, tagNetPkg *pkg,u16 translen,u8 proto,\
                 u32 devtask, u16 *chksum);
-bool_t IpV4Process(struct NetPkg *pkg,void *dev);
+bool_t IpV4Process(tagNetPkg *pkg,void *dev);
 
 
 #endif /* __IPV4_H */

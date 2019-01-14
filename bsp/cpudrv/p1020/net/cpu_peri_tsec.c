@@ -39,7 +39,7 @@
 typedef struct TsecSndPkgBuf
 {
     struct TsecSndPkgBuf *nxt;
-    struct NetPkg *plst;
+    tagNetPkg *plst;
     u8 pkgnum;
 }tagTsecSndPkgBuf;
 
@@ -54,7 +54,7 @@ struct tsec_info_struct
     u32  flags;
     unsigned char enetaddr[6];
     void *priv;
-
+    
     u8  devno;
     tagTsecSndPkgBuf   *sndpkgbufhead;
     tagTsecSndPkgBuf   *sndpkgbuftail;

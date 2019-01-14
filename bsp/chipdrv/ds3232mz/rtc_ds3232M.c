@@ -554,7 +554,7 @@ ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
 
 
 //void Sh_RTC_SetTime(char *param)
-ADD_TO_SHELL_HELP(rtcst,"设置RTC时间   格式:2017/08/20,21:00:00");
+ADD_TO_IN_SHELL_HELP(rtcst,"设置RTC时间   格式:2017/08/20,21:00:00");
 ADD_TO_IN_SHELL bool_t rtcst(char *param)
 {
     char command[20];
@@ -582,7 +582,7 @@ ADD_TO_IN_SHELL bool_t rtcst(char *param)
 }
 
 //void Sh_RTC_GetTime(void)
-ADD_TO_SHELL_HELP(rtcgt,"获取RTC时间");
+ADD_TO_IN_SHELL_HELP(rtcgt,"获取RTC时间");
 ADD_TO_IN_SHELL bool_t rtcgt(void)
 {
     struct tm ptDateTime;
@@ -601,18 +601,8 @@ ADD_TO_IN_SHELL bool_t rtcgt(void)
    return true;
 }
 
-//**************************************************************************
-struct shell_debug const shell_cmd_rtc_table[]=
-{
-    {"rtcst",(bool_t(*)(char*))rtcst,   "设置RTC时间",   "格式:2017/08/20,21:00:00"},
-    {"rtcgt",(bool_t(*)(char*))rtcgt,   "获取RTC时间",    NULL},
-};
-//**************************************************************************
-#define CN_RTC_SHELL_NUM  sizeof(shell_cmd_rtc_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_rtc_cmd_rsc[CN_RTC_SHELL_NUM];
 
 ptu32_t RTC_Shell_Module_Install(void)
 {
-    shell_debug_add(shell_cmd_rtc_table, CN_RTC_SHELL_NUM);
     return 1;
 }

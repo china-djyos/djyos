@@ -626,10 +626,10 @@ u32 GMAC_IntHandler(ufast_t IntLine)
 // 参数：packet,接收到数据的首地址
 // 返回：接收到数据包长度，最大不会超过1518字节
 // =============================================================================
-static struct NetPkg *__GmacRcv(ptu32_t devhandle)
+static tagNetPkg *__GmacRcv(ptu32_t devhandle)
 
 {
-    struct NetPkg         *pkg;
+    tagNetPkg         *pkg;
     tagQueue          *que;
     tagMacDriver      *pDrive;
     volatile tagRcvBD *pRcvBD;
@@ -682,12 +682,10 @@ static struct NetPkg *__GmacRcv(ptu32_t devhandle)
             pkg =PkgMalloc(len,CN_PKLGLST_END);
             if(NULL != pkg)
             {
-                dst = PkgGetCurrentBuffer(pkg);
-//              dst = (u8 *)(pkg->buf +pkg->offset);
+                dst = (u8 *)(pkg->buf +pkg->offset);
                 src = (u8 *)(pRcvBD->addr.val&GMAC_ADDRESS_MASK);
                 memcpy((void *)dst,(void *)src,len);
-                PkgSetDataLen(pkg, len);
-//              pkg->datalen = len;
+                pkg->datalen = len;
             }
         }
         else
@@ -822,7 +820,7 @@ static u32 gSndbdDelay[CN_MAC_MAXDELAY+1];
 static u32 gSndbdTimeoutTotal = 0;
 
 //static bool_t MacDelay(char *param)
-ADD_TO_SHELL_HELP(macdelay,"usage:MacDelay");
+ADD_TO_IN_SHELL_HELP(macdelay,"usage:MacDelay");
 ADD_TO_IN_SHELL  bool_t macdelay(char *param)
 {
     debug_printf("gmac","gmac","%-10s%-10s%10d\n\r","Item","Cnt(HEX)",gSndbdTimeoutTotal);
@@ -835,7 +833,7 @@ ADD_TO_IN_SHELL  bool_t macdelay(char *param)
 }
 
 //static bool_t MacSndBDClear(char *param)
-ADD_TO_SHELL_HELP(macsndbdclear,"usage:MacSndBdClear + ndnum");
+ADD_TO_IN_SHELL_HELP(macsndbdclear,"usage:MacSndBdClear + ndnum");
 ADD_TO_IN_SHELL  bool_t macsndbdclear(char *param)
 {
     vu16  bdnum;
@@ -862,7 +860,7 @@ ADD_TO_IN_SHELL  bool_t macsndbdclear(char *param)
 }
 
 //static bool_t MacSndHalt(char *param)
-ADD_TO_SHELL_HELP(macsndhalt,"usage:MacSndHalt");
+ADD_TO_IN_SHELL_HELP(macsndhalt,"usage:MacSndHalt");
 ADD_TO_IN_SHELL  bool_t macsndhalt(char *param)
 {
     GMAC_TransmissionHalt(GMAC);
@@ -871,7 +869,7 @@ ADD_TO_IN_SHELL  bool_t macsndhalt(char *param)
 
 
 //static bool_t MacSndStart(char *param)
-ADD_TO_SHELL_HELP(macsndstart,"usage:MacSndStart");
+ADD_TO_IN_SHELL_HELP(macsndstart,"usage:MacSndStart");
 ADD_TO_IN_SHELL  bool_t macsndstart(char *param)
 {
     GMAC_TransmissionStart(GMAC);
@@ -880,7 +878,7 @@ ADD_TO_IN_SHELL  bool_t macsndstart(char *param)
 
 
 //static bool_t MacSndEn(char *param)
-ADD_TO_SHELL_HELP(macsnden,"usage:MacSndEn");
+ADD_TO_IN_SHELL_HELP(macsnden,"usage:MacSndEn");
 ADD_TO_IN_SHELL  bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
@@ -896,7 +894,7 @@ ADD_TO_IN_SHELL  bool_t macsnden(char *param)
 
 
 //static bool_t MacSndDis(char *param)
-ADD_TO_SHELL_HELP(macsnddis,"usage:MacSndDis");
+ADD_TO_IN_SHELL_HELP(macsnddis,"usage:MacSndDis");
 ADD_TO_IN_SHELL  bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
@@ -913,11 +911,11 @@ ADD_TO_IN_SHELL  bool_t macsnddis(char *param)
 
 
 
-static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t GmacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
-    struct NetPkg         *tmppkg;
+    tagNetPkg         *tmppkg;
     volatile tagSndBD *pSndBD;
     tagQueue          *q;
     u8                *dst,*src;
@@ -984,23 +982,22 @@ static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netde
         //3.copy datas to static frame buffer
         tmppkg = pkg;
         dst      = &gTxBuffer[0];
-        PkgFrameDataCopy(tmppkg,dst);
-//      do
-//      {
-//          src = (tmppkg->buf + tmppkg->offset);
-//          len = tmppkg->datalen;
-//          memcpy(dst,src,len);
-//          dst      += len;
-//          if(PkgIsBufferEnd(tmppkg))
-//          {
-//              tmppkg = NULL;
-//              break;
-//          }
-//          else
-//          {
-//              tmppkg = PkgGetNextUnit(tmppkg);
-//          }
-//      }while(NULL != tmppkg );
+        do
+        {
+            src = (tmppkg->buf + tmppkg->offset);
+            len = tmppkg->datalen;
+            memcpy(dst,src,len);
+            dst      += len;
+            if(PKG_ISLISTEND(tmppkg))
+            {
+                tmppkg = NULL;
+                break;
+            }
+            else
+            {
+                tmppkg = tmppkg->partnext;
+            }
+        }while(NULL != tmppkg );
 
         //4.how many bd needed,and fill the bd, and send
         bdcnt = (framelen + q->sndbuflen - 1)/q->sndbuflen;
@@ -1069,17 +1066,16 @@ static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netde
 //you could use this function to send data as usual
 u32 GMAC_SendData(u8 *buf,u32 len)
 {
-    struct NetPkg          pkg;
+    tagNetPkg          pkg;
     tagMacDriver      *pDrive;
 
     pDrive = &gMacDriver;
 
-    PkgInit(pkg,CN_PKLGLST_END,0,len,buf);  //只有一个包
-//  pkg.partnext = NULL;
-//  pkg.pkgflag  = (1<<0);  //只有一个包
-//  pkg.offset   = 0;
-//  pkg.datalen  = len;
-//  pkg.buf      = buf;
+    pkg.partnext = NULL;
+    pkg.pkgflag  = (1<<0);  //只有一个包
+    pkg.offset   = 0;
+    pkg.datalen  = len;
+    pkg.buf      = buf;
     if(GmacSnd(pDrive->devhandle,&pkg,len,0))
     {
         return len;
@@ -1093,7 +1089,7 @@ u32 GMAC_SendData(u8 *buf,u32 len)
 //this is the receive task
 static ptu32_t __GmacRcvTask(void)
 {
-    struct NetPkg *pkg;
+    tagNetPkg *pkg;
     ptu32_t    handle;
     u8        *rawbuf;
     u16        len;
@@ -1117,10 +1113,8 @@ static ptu32_t __GmacRcvTask(void)
 //                NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
                 if(NULL != pDrive->fnrcvhook)
                 {
-                    rawbuf = PkgGetCurrentBuffer(pkg);
-//                  rawbuf = pkg->buf + pkg->offset;
-                    len = PkgGetDataLen(pkg);
-//                  len = pkg->datalen;
+                    rawbuf = pkg->buf + pkg->offset;
+                    len = pkg->datalen;
                     pDrive->fnrcvhook(rawbuf,len);
                 }
                 else
@@ -1169,7 +1163,7 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 
 //for shell to do the restart
 //bool_t GmacReset(char *param)
-ADD_TO_SHELL_HELP(macreset,"usage:reset gmac");
+ADD_TO_IN_SHELL_HELP(macreset,"usage:reset gmac");
 ADD_TO_IN_SHELL bool_t macreset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
@@ -1180,7 +1174,7 @@ ADD_TO_IN_SHELL bool_t macreset(char *param)
 
 //show the gmac status
 //bool_t gmacdebuginfo(char *param)
-ADD_TO_SHELL_HELP(mac,"usage:gmac");
+ADD_TO_IN_SHELL_HELP(mac,"usage:gmac");
 ADD_TO_IN_SHELL bool_t mac(char *param)
 {
     s64  time;
@@ -1223,7 +1217,7 @@ ADD_TO_IN_SHELL bool_t mac(char *param)
 #define CN_GMAC_REG_BASE   0X40050000
 #define CN_GMAC_SHOW_NUM   0x20
 //bool_t gmacreg(char *param)
-ADD_TO_SHELL_HELP(macreg,"usage:gmacreg");
+ADD_TO_IN_SHELL_HELP(macreg,"usage:gmacreg");
 ADD_TO_IN_SHELL bool_t macreg(char *param)
 {
     vu32    i;
@@ -1243,7 +1237,7 @@ ADD_TO_IN_SHELL bool_t macreg(char *param)
 }
 //post the receive semp
 //bool_t  gmacpost(char *param)
-ADD_TO_SHELL_HELP(macpost,"usage:gmacpost");
+ADD_TO_IN_SHELL_HELP(macpost,"usage:gmacpost");
 ADD_TO_IN_SHELL bool_t  macpost(char *param)
 {
     tagMacDriver      *pDrive;
@@ -1258,7 +1252,7 @@ ADD_TO_IN_SHELL bool_t  macpost(char *param)
 }
 //check the receive bd
 //bool_t gmacrcvbdcheck(char *param)
-ADD_TO_SHELL_HELP(macrcvbd,"usage:gmacrcvbd");
+ADD_TO_IN_SHELL_HELP(macrcvbd,"usage:gmacrcvbd");
 ADD_TO_IN_SHELL bool_t macrcvbd(char *param)
 {
     tagQueue          *que;
@@ -1310,7 +1304,7 @@ ADD_TO_IN_SHELL bool_t macrcvbd(char *param)
 }
 //check the receive bd
 //bool_t gmacsndbdcheck(char *param)
-ADD_TO_SHELL_HELP(macsndbd,"usage:gmacsndbd");
+ADD_TO_IN_SHELL_HELP(macsndbd,"usage:gmacsndbd");
 ADD_TO_IN_SHELL bool_t macsndbd(char *param)
 {
     tagQueue          *que;
@@ -1366,85 +1360,6 @@ ADD_TO_IN_SHELL bool_t macsndbd(char *param)
     return true;
 }
 
-static struct shell_debug  gGmacDebug[] =
-{
-    {
-        "mac",
-        mac,
-        "usage:mac",
-        NULL
-    },
-    {
-        "macreg",
-        macreg,
-        "usage:macreg",
-        NULL
-    },
-    {
-        "macpost",
-        macpost,
-        "usage:macpost",
-        NULL
-    },
-    {
-        "macrcvbd",
-        macrcvbd,
-        "usage:macrcvbd",
-        NULL
-    },
-    {
-        "macsndbd",
-        macsndbd,
-        "usage:macsndbd",
-        NULL
-    },
-    {
-        "macreset",
-        macreset,
-        "usage:reset gmac",
-        NULL
-    },
-    {
-        "macdelay",
-        macdelay,
-        "usage:macdelay",
-        NULL
-    },
-    {
-        "macsndbdclear",
-        macsndbdclear,
-        "usage:macsndbdclear + ndnum",
-        NULL
-    },
-    {
-        "macsndhalt",
-        macsndhalt,
-        "usage:macsndhalt",
-        NULL
-    },
-    {
-        "macsndstart",
-        macsndstart,
-        "usage:macsndstart",
-        NULL
-    },
-    {
-        "macsnden",
-        macsnden,
-        "usage:MacSndEn",
-        NULL
-    },
-    {
-        "macsnddis",
-        macsnddis,
-        "usage:MacSndDis",
-        NULL
-    },
-};
-
-
-#define CN_GMACDEBUG_NUM  ((sizeof(gGmacDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gGmacDebugCmdRsc[CN_GMACDEBUG_NUM];
 
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
@@ -1533,9 +1448,9 @@ bool_t ModuleInstall_GMAC(const char *devname, u8 *mac,\
     devpara.devfunc = 0;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, pDrive->macaddr,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.Private = 0;
+    devpara.private = 0;
     devpara.mtu = 1522;
-    devpara.Private = (ptu32_t)pDrive;
+    devpara.private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(0 == pDrive->devhandle)
     {
@@ -1555,7 +1470,6 @@ bool_t ModuleInstall_GMAC(const char *devname, u8 *mac,\
         Int_ContactLine(CN_INT_LINE_GMAC);
     }
 
-    shell_debug_add(gGmacDebug, CN_GMACDEBUG_NUM);
     debug_printf("gmac","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

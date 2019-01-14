@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -105,13 +105,13 @@ static tagV4CB gV4CB;
 // RETURN  ：
 // INSTRUCT: all the var is net endian
 // =============================================================================
-void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,struct NetPkg *pkg,u16 translen,u16 *chksum)
+void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,tagNetPkg *pkg,u16 translen,u16 *chksum)
 {
     int                             chklen;
     u16                             chksumtmp;
     void                            *chkbuf;
     tagPseudoHdr                    pseudohdr;   //用于校验的伪部首
-    struct NetPkg                       *pkgtmp;
+    tagNetPkg                       *pkgtmp;
 
     pseudohdr.ipsrc = iplocal;
     pseudohdr.ipdst = ipdst;
@@ -122,11 +122,9 @@ void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,struct NetPkg *pkg
     //校验所有的PKG
     pkgtmp = pkg;
     do{
-        chklen = PkgGetDataLen(pkgtmp);
-//      chklen = pkgtmp->datalen;
-        chkbuf = (u8 *)PkgGetCurrentBuffer(pkgtmp);
-//      chkbuf = (u8 *)(pkgtmp->offset + pkgtmp->buf);
-        if((NULL == PkgGetNextUnit(pkgtmp))||PkgIsBufferEnd(pkgtmp))
+        chklen = pkgtmp->datalen;
+        chkbuf = (u8 *)(pkgtmp->offset + pkgtmp->buf);
+        if((NULL == pkgtmp->partnext)||PKG_ISLISTEND(pkgtmp))
         {
             chksumtmp = IpChksumSoft16((void *)chkbuf, \
                                 chklen,chksumtmp, true);
@@ -136,7 +134,7 @@ void IpPseudoPkgLstChkSumV4(u32 iplocal, u32 ipdst, u8  proto,struct NetPkg *pkg
         else
         {
             chksumtmp = IpChksumSoft16((void *)chkbuf,  chklen,chksumtmp, false);
-            pkgtmp = PkgGetNextUnit(pkgtmp);
+            pkgtmp = pkgtmp->partnext;
         }
     }while(NULL != pkgtmp);
 }
@@ -158,16 +156,15 @@ static u16 Ipv4Flg = 0;
 #define CN_IPV4_HDR_DEFAULTLEN      5
 
 //this function used to make an ipv4 head pkg
-static struct NetPkg *__PHMake(u32 ipsrc,u32 ipdst,u8 proto,u32 translen,bool_t chksum)
+static tagNetPkg *__PHMake(u32 ipsrc,u32 ipdst,u8 proto,u32 translen,bool_t chksum)
 {
-    struct NetPkg    *result;
+    tagNetPkg    *result;
     tagV4PH   *hdr;         //ip header
 
     result = PkgMalloc(sizeof(tagV4PH),0);
     if(NULL != result)
     {
-        hdr = (tagV4PH *)PkgGetCurrentBuffer(result);
-//      hdr = (tagV4PH *)(result->buf + result->offset);
+        hdr = (tagV4PH *)(result->buf + result->offset);
         hdr->ver_len = (EN_IPV_4<<4)|CN_IPV4_HDR_DEFAULTLEN;
         hdr->tos = 0;
         hdr->len = htons(translen + CN_IPV4_HDR_DEFAULTLEN*4);
@@ -179,10 +176,8 @@ static struct NetPkg *__PHMake(u32 ipsrc,u32 ipdst,u8 proto,u32 translen,bool_t 
         hdr->chksum = 0;
         hdr->ipsrc = ipsrc;
         hdr->ipdst = ipdst;
-        PkgSetNextUnit(result,NULL);
-        PkgSetDataLen(result, sizeof(tagV4PH));
-//      result->datalen = sizeof(tagV4PH);
-//      result->partnext = NULL;
+        result->datalen = sizeof(tagV4PH);
+        result->partnext = NULL;
 
         //check the ip head
         if(chksum)
@@ -194,12 +189,12 @@ static struct NetPkg *__PHMake(u32 ipsrc,u32 ipdst,u8 proto,u32 translen,bool_t 
 }
 
 
-bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
+bool_t IpV4Send(u32 ipsrc, u32 ipdst, tagNetPkg *pkg,u16 translen,u8 proto,\
                 u32 devtask, u16 *chksum)
 {
     bool_t                          ret = false;
     u32                             devfunc;     //rout function
-    struct NetPkg                      *ippkg;       //ip header pkg
+    tagNetPkg                      *ippkg;       //ip header pkg
     bool_t                          ipchksum;
     u32                             framlen;
     u32 iphop = INADDR_ANY;
@@ -209,9 +204,9 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
     TCPIP_DEBUG_INC(gV4CB.sndnum);
     memset(&rout,0,sizeof(rout));
     rout.ver = EN_IPV_4;
-    rout.DstIP = &ipdst;
-    rout.HostIP = &iphost;
-    rout.HopIP = &iphop;
+    rout.dst = &ipdst;
+    rout.host = &iphost;
+    rout.hop = &iphop;
     ret = RouterMatch(&rout);
     if(ret)
     {
@@ -246,7 +241,7 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
             {
                 iphop = ipdst;
             }
-            devfunc = NetDevFunc(rout.DevFace);
+            devfunc = NetDevFunc(rout.iface);
             if((0 == (devfunc&devtask))&&(CN_IPDEV_NONE!=devtask))
             {
                 switch (devtask & (CN_IPDEV_TCPOCHKSUM | CN_IPDEV_UDPOCHKSUM \
@@ -279,11 +274,9 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
             }
             //check if the rout has so much mtu,if not do the fragment here //--TODO
             ippkg = __PHMake(ipsrc,ipdst,proto,translen,ipchksum);
-            PkgSetNextUnit(ippkg,pkg);
-//          ippkg->partnext = pkg;
-            framlen = PkgGetDataLen(ippkg) + translen;
-//          framlen = ippkg->datalen + translen;
-            ret = LinkSend(rout.DevFace,ippkg,framlen,devtask,EN_LINKPROTO_IPV4,EN_IPV_4,iphop,ipsrc);
+            ippkg->partnext = pkg;
+            framlen = ippkg->datalen + translen;
+            ret = LinkSend(rout.iface,ippkg,framlen,devtask,EN_LINKPROTO_IPV4,EN_IPV_4,iphop,ipsrc);
             PkgTryFreePart(ippkg);
         }
     }
@@ -302,7 +295,7 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
 // RETURN  ：
 // INSTRUCT:
 // =============================================================================
-static bool_t __rcvhost(struct NetPkg *pkg,void *dev)
+static bool_t __rcvhost(tagNetPkg *pkg,void *dev)
 {
     bool_t                      ret;
     u8                          proto;
@@ -317,12 +310,11 @@ static bool_t __rcvhost(struct NetPkg *pkg,void *dev)
     tagIpAddr addr;
 
     ret = true;
-    ph = (tagV4PH *)PkgGetCurrentBuffer(pkg);
-//  ph = (tagV4PH *)(pkg->buf + pkg->offset);
+    ph = (tagV4PH *)(pkg->buf + pkg->offset);
     hdrlen = (ph->ver_len&0x0f)*4;
     devfunc = NetDevFunc(dev);
     if((0 ==(devfunc &CN_IPDEV_IPICHKSUM))&&\
-       (0 != IpChksumSoft16(PkgGetCurrentBuffer(pkg),hdrlen,0,true)))
+       (0 != IpChksumSoft16((void *)(pkg->buf + pkg->offset),hdrlen,0,true)))
     {
         TCPIP_DEBUG_INC(gV4CB.rcvdrop);
         return ret;
@@ -336,17 +328,14 @@ static bool_t __rcvhost(struct NetPkg *pkg,void *dev)
     memcpy(&framlen,&ph->len,sizeof(framlen));
     framlen = ntohs(framlen);
 
-    PkgSetOffset(pkg, PkgGetOffset(pkg));
-//  pkg->offset += hdrlen;
-    if(PkgGetDataLen(pkg) < framlen)
-//  if(pkg->datalen < framlen)
+    pkg->offset += hdrlen;
+    if(pkg->datalen < framlen)
     {
         return ret;
     }
     if(framlen > hdrlen)
     {
-        PkgSetDataLen(pkg, framlen - hdrlen);
-//      pkg->datalen = framlen - hdrlen;
+        pkg->datalen = framlen - hdrlen;
     }
     else
     {
@@ -370,7 +359,7 @@ static bool_t __rcvhost(struct NetPkg *pkg,void *dev)
 
 
 //use this to deal with the ipv4 package
-bool_t IpV4Process(struct NetPkg *pkg,void *dev)
+bool_t IpV4Process(tagNetPkg *pkg,void *dev)
 {
     bool_t                      ret = true;
     u32                         ipdst;
@@ -378,15 +367,14 @@ bool_t IpV4Process(struct NetPkg *pkg,void *dev)
     tagV4PH                     *ph;
 
     TCPIP_DEBUG_INC(gV4CB.rcvnum);
-    ph = (tagV4PH *)PkgGetCurrentBuffer(pkg);
-//  ph = (tagV4PH *)(pkg->buf + pkg->offset);
+    ph = (tagV4PH *)(pkg->buf + pkg->offset);
     memcpy(&ipdst,&ph->ipdst,sizeof(ipdst));
     memcpy(&ipsrc,&ph->ipsrc,sizeof(ipsrc));
 
     tagRoutLink  rout;
     memset(&rout,0,sizeof(rout));
     rout.ver = EN_IPV_4;
-    rout.DstIP = &ipdst;
+    rout.dst = &ipdst;
     ret = RouterMatch(&rout);
     if(ret)
     {
@@ -432,25 +420,6 @@ ADD_TO_IN_SHELL bool_t ipv4(char *param)
     debug_printf("IPV4","IPV4 STATISTICS:RCV  FRAG   :%d\n\r",gV4CB.rcvfragment);
     return true;
 }
-//install some shell command here
-//static struct shell_debug  gIpV4Debug[] =
-//{
-//    {
-//        "ipv4",
-//        _V4Show,
-//        "usage:ipv4",
-//        "usage:ipv4",
-//    },
-//};
-//#define CN_IpV4Debug_ITEMNUM  ((sizeof(gIpV4Debug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gIpV4DebugCmdRsc[CN_IpV4Debug_ITEMNUM];
-//use this function to deal the ipv4 initialize
-//bool_t  Ipv4Init(void)
-//{
-//    bool_t ret;
-//    ret = shell_debug_add(gIpV4Debug,g CN_IpV4Debug_ITEMNUM);
-//    return ret;
-//}
 
 
 

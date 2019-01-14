@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -81,13 +81,13 @@ typedef struct
     mutex_t lock;
     semp_t  sync;
     void  *iface;
-    struct NetPkg *pkg;
+    tagNetPkg *pkg;
 }tagLoopCB;
 static tagLoopCB gLoopCB;
 //for the tempory, we will create a loop task here
 static ptu32_t __LoopTask(void)
 {
-    struct NetPkg *pkg = NULL;
+    tagNetPkg *pkg = NULL;
     while(1)
     {
         if(semp_pendtimeout(gLoopCB.sync,10*mS))
@@ -110,9 +110,9 @@ static ptu32_t __LoopTask(void)
 
 //implement the device io functions
 //device receive function
-static struct NetPkg * __LoopIn(void *iface)
+static tagNetPkg * __LoopIn(void *iface)
 {
-    struct NetPkg *pkg = NULL;
+    tagNetPkg *pkg = NULL;
     if(mutex_lock(gLoopCB.lock))
     {
         pkg = gLoopCB.pkg;
@@ -122,34 +122,32 @@ static struct NetPkg * __LoopIn(void *iface)
     return pkg;
 }
 //device send function
-static bool_t __LoopOut(void *iface,struct NetPkg *pkg,u32 framlen,u32 netdevtask)
+static bool_t __LoopOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 netdevtask)
 {
     bool_t  ret = false;
-    struct NetPkg *tmp;
-    struct NetPkg *sndpkg;
+    tagNetPkg *tmp;
+    tagNetPkg *sndpkg;
     u8 *src;
     u8 *dst;
     sndpkg = PkgMalloc(framlen,0);
     if(NULL != sndpkg)
     {
         tmp = pkg;
-        PkgCopyFrameToPkg(tmp, sndpkg);
-//        while(NULL != tmp)
-//        {
-//            src = (u8 *)(tmp->buf + tmp->offset);
-//            dst = (u8 *)(sndpkg->buf + sndpkg->offset + sndpkg->datalen);
-//            memcpy(dst, src, tmp->datalen);
-//            sndpkg->datalen += tmp->datalen;
-////          if(tmp->pkgflag & CN_PKLGLST_END)
-//            if(PkgIsBufferEnd(tmp))
-//            {
-//                tmp = NULL;
-//            }
-//            else
-//            {
-//                tmp = PkgGetNextUnit(tmp);
-//            }
-//        }
+        while(NULL != tmp)
+        {
+            src = (u8 *)(tmp->buf + tmp->offset);
+            dst = (u8 *)(sndpkg->buf + sndpkg->offset + sndpkg->datalen);
+            memcpy(dst, src, tmp->datalen);
+            sndpkg->datalen += tmp->datalen;
+            if(tmp->pkgflag & CN_PKLGLST_END)
+            {
+                tmp = NULL;
+            }
+            else
+            {
+                tmp = tmp->partnext;
+            }
+        }
         //push it to the loop controller
         if(mutex_lock(gLoopCB.lock))
         {
@@ -191,7 +189,7 @@ bool_t LoopInit(void)
     devpara.ifrecv = __LoopIn;
     devpara.iftype = EN_LINK_RAW;
     devpara.name = CN_LOOP_DEVICE;
-    devpara.Private = 0;
+    devpara.private = 0;
     devpara.mtu = CN_LOOP_MTU;
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,CN_MAC_BROAD,CN_MACADDR_LEN);

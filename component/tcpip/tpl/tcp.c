@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -74,6 +74,7 @@ enum _EN_TCPSTATE
     EN_TCP_MC_2FREE,       //待释放状态
 };
 //some default defines for the tcp
+#define CN_TCP_BUFLENDEFAULT    0x2000      //8KB
 #define CN_TCP_BUFTRIGDEFAULT   0           //TRIGGER LEVEL DEFAULT
 #define CN_TCP_SNDBUF_SIZEDEFAULT  0x800    //默认 tcp 发送 buffer size
 #define CN_TCP_RCVBUF_SIZEDEFAULT  0x800    //默认 tcp 接收 buffer size
@@ -169,8 +170,8 @@ typedef struct
     int                       buflen;      //the valid data length in the buffer
     int                       buflenlimit; //the buffer length
     int                       trigerlevel; //the buffer trigerlevel
-    struct NetPkg            *ph;          //the buffer package head
-    struct NetPkg            *pt;          //the buffer package tail
+    tagNetPkg                *ph;          //the buffer package head
+    tagNetPkg                *pt;          //the buffer package tail
     u32                       rcvnxt;      //this is we receive next number
 }tagRecvBuf;
 //send buffer
@@ -202,7 +203,7 @@ typedef struct CCB
     u16                       channelstat;  //the stat of the channel,which mean we could recv or send
     tagRecvBuf                rbuf;         //rcv buffer
     tagSendBuf                sbuf;         //sendbuffer
-    struct NetPkg                *pkgrecomblst; //the package recomb queue
+    tagNetPkg                *pkgrecomblst; //the package recomb queue
     u16                       pkgrecomblen; //the package recomb queue length
     //the send window member
     u16                       mss;         //you could send the most data one time
@@ -233,9 +234,9 @@ typedef struct CCB
     u8                         acktimes;    //if acktimes overrun the limit, then will do fast ack
 }tagCCB;
 //each server has an SCB
-typedef struct SSB
+typedef struct SCB
 {
-    struct SSB                *nxt;                 //used for the list
+    struct SCB                *nxt;                 //used for the list
     int                        backlog;             //which limit the pending num
     int                        pendnum;             //which means how much still in pending
     u32                        accepttime;          //block time for the accept
@@ -251,7 +252,7 @@ typedef struct
     u32  scbfreenum;
 }tagTcpStatistics;
 //define for the register in the tpl layer
-static struct TPL_ProtocalOps         gTcpProto;
+static tagTlayerProto         gTcpProto;
 //used for the connection to snd syn (server or client)  tcp option
 static tagSynOption           sgSynOptDefault;   //when snd syn,use this const option
 //we use the hash table to search the socket
@@ -324,7 +325,7 @@ static tagSocket *__hashSocketSearch(u32 iplocal, u16 portlocal,u32 ipremote,u16
         }
         else
         {
-            tmp = tmp->Nextsock;
+            tmp = tmp->nxt;
         }
     }
 
@@ -353,7 +354,7 @@ static tagSocket *__hashSocketLocalSearch(u32 iplocal, u16 portlocal)
             }
             else
             {
-                tmp = tmp->Nextsock;
+                tmp = tmp->nxt;
             }
         }
         if(NULL != tmp)
@@ -383,16 +384,16 @@ static bool_t __hashSocketAdd(tagSocket *sock)
     if(NULL == tmp)
     {
         pTcpHashTab->array[hashKey] = sock;
-        sock->Nextsock = NULL;
+        sock->nxt = NULL;
     }
     else
     {
-        while(NULL != tmp->Nextsock)
+        while(NULL != tmp->nxt)
         {
-            tmp = tmp->Nextsock;
+            tmp = tmp->nxt;
         }
-        tmp->Nextsock = sock;
-        sock->Nextsock = NULL;
+        tmp->nxt = sock;
+        sock->nxt = NULL;
     }
     return true;
 }
@@ -416,19 +417,19 @@ static bool_t __hashSocketRemove(tagSocket *sock)
     tmp = pTcpHashTab->array[hashKey];
     if(sock == tmp)
     {
-        pTcpHashTab->array[hashKey] = sock->Nextsock;
-        sock->Nextsock = NULL;
+        pTcpHashTab->array[hashKey] = sock->nxt;
+        sock->nxt = NULL;
     }
     else
     {
-        while((NULL != tmp)&&(sock != tmp->Nextsock))
+        while((NULL != tmp)&&(sock != tmp->nxt))
         {
-            tmp = tmp->Nextsock;
+            tmp = tmp->nxt;
         }
         if(NULL != tmp)
         {
-            tmp->Nextsock = sock->Nextsock;
-            sock->Nextsock = NULL;
+            tmp->nxt = sock->nxt;
+            sock->nxt = NULL;
         }
     }
     return true;
@@ -657,7 +658,7 @@ static void  __ResetCCB(tagCCB *ccb,u16 machinestat)
     semp_post(ccb->sbuf.bufsync);
     //reset the receive buf
     ccb->rbuf.buflen       = 0;
-    ccb->rbuf.buflenlimit  = CN_TCP_RCVBUF_SIZEDEFAULT;
+    ccb->rbuf.buflenlimit  = CN_TCP_BUFLENDEFAULT;
     ccb->rbuf.timeout      = CN_TIMEOUT_FOREVER;
     ccb->rbuf.trigerlevel    = 0;
     PkgTryFreeQ(ccb->rbuf.ph);
@@ -753,7 +754,7 @@ static tagSocket * __socket(int family, int type, int protocal)
     u16           findtime = 0;
     if(AF_INET == family)
     {
-        sock = SocketMalloc();
+        sock = socket_malloc();
         if(NULL != sock)
         {
             if(mutex_lock(pTcpHashTab->tabsync))
@@ -775,18 +776,17 @@ static tagSocket * __socket(int family, int type, int protocal)
                     sock->element.v4.iplocal = INADDR_ANY;
                     sock->element.v4.portlocal = gPortEngineTcp ++;
                     //net_malloc an cb for the socket
-                    sock->TplCB = __CreateCCB();
-                    if(NULL == sock->TplCB)
+                    sock->cb = __CreateCCB();
+                    if(NULL == sock->cb)
                     {
-                        SocketFree(sock);
+                        socket_free(sock);
                         sock = NULL;
                     }
                     else
                     {
                         //initialize the sock add the sock to the hash tab
-                        sock->IoInitstat = 0;
                         sock->sockstat |=CN_SOCKET_OPEN|CN_SOCKET_CLIENT|CN_SOCKET_PROBLOCK|CN_SOCKET_PRONAGLE;
-                        sock->ProtocolOps = &gTcpProto;
+                        sock->proto = &gTcpProto;
                         __hashSocketAdd(sock);
                     }
                 }
@@ -823,7 +823,7 @@ static int __bind(tagSocket *sock,struct sockaddr *addr, int addrlen)
     }
     if(mutex_lock(pTcpHashTab->tabsync))
     {
-        if(mutex_lock(sock->SockSync))
+        if(mutex_lock(sock->sync))
         {
             if((0 == (sock->sockstat&CN_SOCKET_BIND))&&\
                (0 == (CN_SOCKET_CLOSE&sock->sockstat)))  //NOT BIND YET
@@ -836,7 +836,7 @@ static int __bind(tagSocket *sock,struct sockaddr *addr, int addrlen)
                 tagRoutLink  rout;
                 memset(&rout,0,sizeof(rout));
                 rout.ver = EN_IPV_4;
-                rout.DstIP = &ip;
+                rout.dst = &ip;
                 if(RouterMatch(&rout))
                 {
                     type = rout.type;
@@ -869,7 +869,7 @@ static int __bind(tagSocket *sock,struct sockaddr *addr, int addrlen)
                     }
                 }
             }
-            mutex_unlock(sock->SockSync);
+            mutex_unlock(sock->sync);
         }
         mutex_unlock(pTcpHashTab->tabsync);
     }
@@ -888,7 +888,7 @@ static int __listen(tagSocket *sock, int backlog)
     tagSCB  *scb;
 
     result = -1;
-    if(mutex_lock(sock->SockSync))
+    if(mutex_lock(sock->sync))
     {
         if((CN_SOCKET_BIND &sock->sockstat)&&\
            (0 == (CN_SOCKET_CONNECT&sock->sockstat))&&\
@@ -899,9 +899,9 @@ static int __listen(tagSocket *sock, int backlog)
             if(NULL != scb)
             {
                 //may be we should cpy some options from the CCB,which set before listen
-                __DeleCCB(sock->TplCB);
-                scb->accepttime = ((tagCCB *)(sock->TplCB))->rbuf.timeout;
-                sock->TplCB = scb;
+                __DeleCCB(sock->cb);
+                scb->accepttime = ((tagCCB *)(sock->cb))->rbuf.timeout;
+                sock->cb = scb;
                 scb->backlog = backlog;
                 sock->sockstat&=(~CN_SOCKET_CLIENT);
                 sock->sockstat |=CN_SOCKET_LISTEN;
@@ -909,7 +909,7 @@ static int __listen(tagSocket *sock, int backlog)
                 result = 0;
             }
         }
-        mutex_unlock(sock->SockSync);
+        mutex_unlock(sock->sync);
     }
     return  result;
 }
@@ -927,7 +927,7 @@ static tagSocket *__acceptclient(tagSCB *scb)
     pre = client;
     while(NULL != client)  //find the established and unopend socket
     {
-        ccb = (tagCCB*)client->TplCB;
+        ccb = (tagCCB*)client->cb;
         if(EN_TCP_MC_ESTABLISH== ccb->machinestat)
         {
             ccb->channelstat|=CN_TCP_CHANNEL_STATARCV|CN_TCP_CHANNEL_STATASND;
@@ -935,19 +935,19 @@ static tagSocket *__acceptclient(tagSCB *scb)
             //remove it from the scb client
             if(scb->clst == client)
             {
-                scb->clst = client->Nextsock;
+                scb->clst = client->nxt;
             }
             else
             {
-                pre->Nextsock = client->Nextsock;
+                pre->nxt = client->nxt;
             }
-            client->Nextsock = NULL;
+            client->nxt = NULL;
             result = client;
             break;
         }
         else
         {
-            client = client->Nextsock;
+            client = client->nxt;
             pre = client;
         }
     }
@@ -973,18 +973,18 @@ static tagSocket *__accept(tagSocket *sock, struct sockaddr *addr, int *addrlen)
     //first we will find if any client is ready
     if((0 ==(CN_SOCKET_CLIENT&sock->sockstat))&&\
        (sock->sockstat &CN_SOCKET_LISTEN)&&\
-       mutex_lock(sock->SockSync))
+       mutex_lock(sock->sync))
     {
-        scb = (tagSCB *)sock->TplCB;
+        scb = (tagSCB *)sock->cb;
         result = __acceptclient(scb);
         waittime = scb->accepttime;
         if((NULL == result)&&(0 != waittime))
         {
             //if none find and permit the wait
-            mutex_unlock(sock->SockSync);
+            mutex_unlock(sock->sync);
             if(semp_pendtimeout(scb->acceptsemp,waittime))
             {
-                if(mutex_lock(sock->SockSync))
+                if(mutex_lock(sock->sync))
                 {
                     result = __acceptclient(scb);
                 }
@@ -992,13 +992,13 @@ static tagSocket *__accept(tagSocket *sock, struct sockaddr *addr, int *addrlen)
         }
         if(NULL== result)  //no one to accept
         {
-            handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
+            socket_clrsatus(sock,CN_SOCKET_IOACCEPT);
         }
         else
         {
             result->sockstat |= CN_SOCKET_OPEN;
         }
-        mutex_unlock(sock->SockSync);
+        mutex_unlock(sock->sync);
     }
     if((NULL != result)&&(mutex_lock(pTcpHashTab->tabsync)))
     {
@@ -1018,7 +1018,7 @@ static tagSocket *__accept(tagSocket *sock, struct sockaddr *addr, int *addrlen)
 }
 
 //use this function to send a packge or pakage list to the ip layer
-static bool_t __sendmsg(tagSocket *sock, struct NetPkg *pkg,u16 translen)
+static bool_t __sendmsg(tagSocket *sock, tagNetPkg *pkg,u16 translen)
 {
     bool_t       result;
     tagTcpHdr    *hdr;
@@ -1027,11 +1027,10 @@ static bool_t __sendmsg(tagSocket *sock, struct NetPkg *pkg,u16 translen)
 
     iplocal = sock->element.v4.iplocal;
     ipremote = sock->element.v4.ipremote;
-    hdr = (tagTcpHdr *)PkgGetCurrentBuffer(pkg);
-//  hdr = (tagTcpHdr *)(pkg->buf + pkg->offset);
+    hdr = (tagTcpHdr *)(pkg->buf + pkg->offset);
     hdr->chksum = 0;
     //if any ack timer set, we'd better to clear the ack timer
-    ccb = (tagCCB *)sock->TplCB;
+    ccb = (tagCCB *)sock->cb;
     result = IpSend(EN_IPV_4,(ptu32_t)iplocal, (ptu32_t)ipremote,pkg,translen,IPPROTO_TCP,\
                      CN_IPDEV_TCPOCHKSUM,&hdr->chksum);
     if(result)
@@ -1042,10 +1041,10 @@ static bool_t __sendmsg(tagSocket *sock, struct NetPkg *pkg,u16 translen)
 }
 
 //use this function to make a tcp header
-static struct NetPkg  *__buildhdr(tagSocket *sock, u8 flags,\
+static tagNetPkg  *__buildhdr(tagSocket *sock, u8 flags,\
         void *option, u8 optionlen,u32 pkgflag,u32 sndno)
 {
-    struct NetPkg  *result;
+    tagNetPkg  *result;
     tagTcpHdr  *hdr;
     tagCCB     *ccb;
     u32         datalen;
@@ -1054,11 +1053,9 @@ static struct NetPkg  *__buildhdr(tagSocket *sock, u8 flags,\
     result = PkgMalloc(datalen,pkgflag);
     if(NULL != result)
     {
-        PkgSetDataLen(result, datalen);
-//      result->datalen = datalen;
-        ccb = (tagCCB*)sock->TplCB;
-        hdr = (tagTcpHdr *)PkgGetCurrentBuffer(result);
-//      hdr =(tagTcpHdr *)(result->offset + result->buf);
+        result->datalen = datalen;
+        ccb = (tagCCB*)sock->cb;
+        hdr =(tagTcpHdr *)(result->offset + result->buf);
         hdr->portdst = sock->element.v4.portremote;
         hdr->portsrc = sock->element.v4.portlocal;
         hdr->ackno = htonl(ccb->rbuf.rcvnxt);
@@ -1083,15 +1080,14 @@ static struct NetPkg  *__buildhdr(tagSocket *sock, u8 flags,\
 static bool_t __sendflag(tagSocket *sock, u8 flags, void *option, u8 optionlen,u32 sndno)
 {
     bool_t              result;
-    struct NetPkg          *pkg;
+    tagNetPkg          *pkg;
 
     result=false;
     //OK, construct the package for the connect
     pkg = __buildhdr(sock, flags, option, optionlen,CN_PKLGLST_END,sndno);
     if(NULL != pkg)
     {
-        result = __sendmsg(sock,pkg,PkgGetDataLen(pkg));
-//      result = __sendmsg(sock,pkg,pkg->datalen);
+        result = __sendmsg(sock,pkg,pkg->datalen);
         PkgTryFreePart(pkg);
     }
     return  result;
@@ -1134,9 +1130,9 @@ static int __connect(tagSocket *sock, struct sockaddr *serveraddr, int addrlen)
     {
         result = -1;
         //now do the handshake with the server
-        if(mutex_lock(sock->SockSync))
+        if(mutex_lock(sock->sync))
         {
-            ccb = (tagCCB *)sock->TplCB;
+            ccb = (tagCCB *)sock->cb;
             if((0 ==(CN_SOCKET_CONNECT &sock->sockstat))&&\
                (EN_TCP_MC_CREAT ==ccb->machinestat))  //it does not connect yet
             {
@@ -1147,11 +1143,11 @@ static int __connect(tagSocket *sock, struct sockaddr *serveraddr, int addrlen)
                 ccb->sbuf.sndnxtno++;
                 ccb->machinestat = EN_TCP_MC_SYNSNT;
                 ccb->timerctrl  = CN_TCP_TIMER_SYN;
-                mutex_unlock(sock->SockSync); //release the mutex
-                //wait the SockSync signal happens
+                mutex_unlock(sock->sync); //release the mutex
+                //wait the sync signal happens
                 semp_pendtimeout(ccb->rbuf.bufsync,ccb->rbuf.timeout);
                 //check the connection
-                mutex_lock(sock->SockSync);
+                mutex_lock(sock->sync);
                 if(ccb->machinestat == EN_TCP_MC_ESTABLISH)
                 {
                     //the app could send and rceive data from now on
@@ -1163,7 +1159,7 @@ static int __connect(tagSocket *sock, struct sockaddr *serveraddr, int addrlen)
                     __ResetCCB(ccb, EN_TCP_MC_2FREE); //THE NEXT STEP NEED BE CLOSE
                 }
             }
-            mutex_unlock(sock->SockSync);
+            mutex_unlock(sock->sync);
         }
     }
     return  result;
@@ -1177,7 +1173,7 @@ static void __cpy2sndbuf(tagSocket *sock, const void *msg, int len)
     u8               *dst;
     int               cpylen;
 
-    ccb = (tagCCB *)sock->TplCB;
+    ccb = (tagCCB *)sock->cb;
 
     cpylen = ccb->sbuf.buflenlimit-ccb->sbuf.dataoff;
     if(cpylen >= len)
@@ -1226,7 +1222,7 @@ static int __chkchannelsendlen(tagSocket *sock)
     int      datalen;
     tagCCB  *ccb;
 
-    ccb =(tagCCB *)sock->TplCB;
+    ccb =(tagCCB *)sock->cb;
     if(0 ==(ccb->channelstat & CN_TCP_CHANNEL_STATKSND))
     {
         return 0;
@@ -1270,15 +1266,15 @@ static int __chkchannelsendlen(tagSocket *sock)
 static void __senddata(tagSocket *sock,int length)
 {
     u16                 datalen;
-    struct NetPkg          *pkghdr;
-    struct NetPkg          *pkgdata;
+    tagNetPkg          *pkghdr;
+    tagNetPkg          *pkgdata;
     tagCCB             *ccb;
     u8                  flags;
     u8                 *data;
     bool_t              sendresult;
     u32                 translen;
 
-    ccb = (tagCCB *)sock->TplCB;
+    ccb = (tagCCB *)sock->cb;
     while(length > 0) //we send all the data specified by length or until send failed
     {
         //compute the data datalen flags first
@@ -1311,20 +1307,16 @@ static void __senddata(tagSocket *sock,int length)
         pkghdr = __buildhdr(sock,flags,NULL,0,0,ccb->sbuf.sndnxtno);
         if(NULL != pkghdr)
         {
-            pkgdata = PkgMalloc(0,CN_PKLGLST_END);
-//          pkgdata = PkgMalloc(sizeof(struct NetPkg),CN_PKLGLST_END);
+            pkgdata = PkgMalloc(sizeof(tagNetPkg),CN_PKLGLST_END);
             if(NULL != pkgdata)
             {
                 //we got the data pkgnow, make sure how many data we will send
-                PkgInit(pkgdata,CN_PKLGLST_END,0,datalen,data);  //只有一个包
-//              pkgdata->buf = data;
-//              pkgdata->offset = 0;
-//              pkgdata->datalen = datalen;
-//              pkgdata->partnext = NULL;
-                PkgSetNextUnit(pkghdr,pkgdata);
-//              pkghdr->partnext = pkgdata;
-                translen = PkgGetDataLen(pkghdr)+datalen;
-//              translen = datalen + pkghdr->datalen;
+                pkgdata->buf = data;
+                pkgdata->offset = 0;
+                pkgdata->datalen = datalen;
+                pkgdata->partnext = NULL;
+                pkghdr->partnext = pkgdata;
+                translen = datalen + pkghdr->datalen;
                 sendresult = __sendmsg(sock,pkghdr,translen);
                 //net_free the package
                 PkgTryFreePart(pkghdr);
@@ -1406,14 +1398,14 @@ static void __senddata(tagSocket *sock,int length)
 static void __resenddata(tagSocket *sock)
 {
     u16                 datalen;
-    struct NetPkg          *pkghdr;
-    struct NetPkg          *pkgdata;
+    tagNetPkg          *pkghdr;
+    tagNetPkg          *pkgdata;
     tagCCB             *ccb;
     u8                  flags;
     u8                 *data;
     u32                 translen;
 
-    ccb = (tagCCB *)sock->TplCB;
+    ccb = (tagCCB *)sock->cb;
     //first we want to make sure if any data or how many data to resend
     //we could only send a mss at most
     datalen = ccb->sbuf.unacklen;
@@ -1435,20 +1427,16 @@ static void __resenddata(tagSocket *sock)
         pkghdr = __buildhdr(sock,flags,NULL,0,0,ccb->sbuf.unackno);
         if(NULL != pkghdr)
         {
-            pkgdata = PkgMalloc(0,CN_PKLGLST_END);
-//          pkgdata = PkgMalloc(sizeof(struct NetPkg),CN_PKLGLST_END);
+            pkgdata = PkgMalloc(sizeof(tagNetPkg),CN_PKLGLST_END);
             if(NULL != pkgdata)
             {
                 //we got the data pkgnow, make sure how many data we will send
-                PkgInit(pkgdata,CN_PKLGLST_END,0,datalen,data);  //只有一个包
-//              pkgdata->buf = data;
-//              pkgdata->offset = 0;
-//              pkgdata->datalen = datalen;
-//              pkgdata->partnext = NULL;
-                PkgSetNextUnit(pkghdr,pkgdata);
-//              pkghdr->partnext = pkgdata;
-                translen = PkgGetDataLen(pkghdr)+datalen;
-//              translen = datalen + pkghdr->datalen;
+                pkgdata->buf = data;
+                pkgdata->offset = 0;
+                pkgdata->datalen = datalen;
+                pkgdata->partnext = NULL;
+                pkghdr->partnext = pkgdata;
+                translen = datalen + pkghdr->datalen;
                 __sendmsg(sock,pkghdr,translen);
                 //net_free the package
                 PkgTryFreePart(pkghdr);
@@ -1472,7 +1460,7 @@ static void __resenddata(tagSocket *sock)
 // RETURN  :
 // INSTRUCT:-1 failed while others return the send length really
 // =============================================================================
-//1,first we must got the SockSync,
+//1,first we must got the sync,
 //2,then got the mutex to copy data
 static int __send(tagSocket *sock, const void *msg, int len, int flags)
 {
@@ -1485,11 +1473,11 @@ static int __send(tagSocket *sock, const void *msg, int len, int flags)
     {
         return result;
     }
-    ccb = (tagCCB *)sock->TplCB;
+    ccb = (tagCCB *)sock->cb;
     if(semp_pendtimeout(ccb->sbuf.bufsync,ccb->sbuf.timeout))
     {
         //got the mutex
-        if(mutex_lock(sock->SockSync))
+        if(mutex_lock(sock->sync))
         {
             //check if we could copy it to the buffer
             if(CN_TCP_CHANNEL_STATASND&ccb->channelstat)
@@ -1511,12 +1499,12 @@ static int __send(tagSocket *sock, const void *msg, int len, int flags)
                    if((ccb->sbuf.buflenleft > ccb->sbuf.trigerlevel)||
                       (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
                    {
-                       handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                       socket_setstatus(sock,CN_SOCKET_IOWRITE);
                        semp_post(ccb->sbuf.bufsync);
                    }
                    else
                    {
-                       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                       socket_clrsatus(sock,CN_SOCKET_IOWRITE);
                    }
                 }
                 else
@@ -1534,15 +1522,15 @@ static int __send(tagSocket *sock, const void *msg, int len, int flags)
             else
             {
                 result = 0;  // the channel is shutdown now
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOWRITE);
+                socket_setstatus(sock,CN_SOCKET_IOWRITE);
                 semp_post(ccb->sbuf.bufsync);
             }
-            mutex_unlock(sock->SockSync);
+            mutex_unlock(sock->sync);
         }
     }
     else
     {
-        //has not got the SockSync yet. maybe time out
+        //has not got the sync yet. maybe time out
     }
     return result;
 }
@@ -1554,7 +1542,7 @@ static int __cpyfromrcvbuf(tagCCB *ccb, void *buf, int len)
     int cpylen;
     u8   *cpybuf;
     u8   *srcbuf;
-    struct NetPkg  *pkg;
+    tagNetPkg  *pkg;
 
     srcbuf = (u8 *)buf;
     result = 0;
@@ -1562,22 +1550,18 @@ static int __cpyfromrcvbuf(tagCCB *ccb, void *buf, int len)
     pkg = ccb->rbuf.ph;
     while((len >0) && (NULL != pkg))
     {
-        cpylen = len > PkgGetDataLen(pkg)?PkgGetDataLen(pkg):len;
-//      cpylen = len > pkg->datalen?pkg->datalen:len;
-        cpybuf = (u8 *)PkgGetCurrentBuffer(pkg);
-//      cpybuf = (u8 *)(pkg->buf + pkg->offset);
+        cpylen = len > pkg->datalen?pkg->datalen:len;
+        cpybuf = (u8 *)(pkg->buf + pkg->offset);
         memcpy(srcbuf, cpybuf,cpylen);
-        PkgMoveOffsetUp(pkg,cpylen);
-//      pkg->offset += cpylen;
-//      pkg->datalen -= cpylen;
+        pkg->offset += cpylen;
+        pkg->datalen -= cpylen;
         ccb->rbuf.buflen -= cpylen;
         result +=cpylen;
         len-= cpylen;
         srcbuf+=cpylen;
-        if(0==PkgGetDataLen(pkg)) //release the no data pkg
-//      if(0==pkg->datalen) //release the no data pkg
+        if(0==pkg->datalen) //release the no data pkg
         {
-            ccb->rbuf.ph = PkgGetNextUnit(pkg);
+            ccb->rbuf.ph = pkg->partnext;
             if(NULL == ccb->rbuf.ph)
             {
                 ccb->rbuf.pt = NULL;
@@ -1607,11 +1591,11 @@ static int __recv(tagSocket *sock, void *buf,int len, unsigned int flags)
     {
         return result;
     }
-    ccb = (tagCCB *)sock->TplCB;
+    ccb = (tagCCB *)sock->cb;
     if(semp_pendtimeout(ccb->rbuf.bufsync,ccb->rbuf.timeout))
     {
         //got the mutex
-        if(mutex_lock(sock->SockSync))
+        if(mutex_lock(sock->sync))
         {
             if(CN_TCP_CHANNEL_STATARCV & ccb->channelstat)
             {
@@ -1634,12 +1618,12 @@ static int __recv(tagSocket *sock, void *buf,int len, unsigned int flags)
                 if((ccb->rbuf.buflen > ccb->rbuf.trigerlevel)||
                    (0 == (ccb->channelstat&CN_TCP_CHANNEL_STATKRCV)))
                 {
-                    handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                    socket_setstatus(sock,CN_SOCKET_IOREAD);
                     semp_post(ccb->rbuf.bufsync);
                 }
                 else
                 {
-                    handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                    socket_clrsatus(sock,CN_SOCKET_IOREAD);
                     ccb->channelstat &=(~CN_TCP_CHANNEL_STATCONGEST);
                     //changed the rcv window
                     //we may prevent the data in because of the limited buf, then we
@@ -1651,16 +1635,16 @@ static int __recv(tagSocket *sock, void *buf,int len, unsigned int flags)
             else
             {
                 result = 0;  // the channel receive is shutdown now
-                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
+                socket_setstatus(sock,CN_SOCKET_IOREAD);
                 semp_post(ccb->rbuf.bufsync);
             }
 
-            mutex_unlock(sock->SockSync);
+            mutex_unlock(sock->sync);
         }
     }
     else
     {
-        //not got the SockSync yet
+        //not got the sync yet
     }
     return  result;
 }
@@ -1678,7 +1662,7 @@ static int __shutdownRD(tagSocket *sock)
     tagCCB *ccb;
 
     result = -1;
-    ccb = (tagCCB *)sock->TplCB;
+    ccb = (tagCCB *)sock->cb;
 
     //clear the rcv buf and recombination queue
     //and set some specified flags at the same time
@@ -1686,7 +1670,7 @@ static int __shutdownRD(tagSocket *sock)
     //release the rcv and recombination queue
     PkgTryFreeQ(ccb->rbuf.ph);
     ccb->rbuf.buflen = 0;
-    ccb->rbuf.buflenlimit  = CN_TCP_RCVBUF_SIZEDEFAULT;
+    ccb->rbuf.buflenlimit  = CN_TCP_BUFLENDEFAULT;
     ccb->rbuf.ph = NULL;
     ccb->rbuf.pt = NULL;
     ccb->rbuf.trigerlevel = 0;
@@ -1714,7 +1698,7 @@ static int __shutdownWR(tagSocket *sock)
     result = -1;
     if(sock->sockstat & CN_SOCKET_CLIENT)
     {
-        ccb = (tagCCB *)sock->TplCB;
+        ccb = (tagCCB *)sock->cb;
         ccb->channelstat&=(~(CN_TCP_CHANNEL_STATASND));  //APP NO PERMIT TO TRANSMISSION
         //if send buf still has some data to snd, then set the flag is OK
         if(ccb->sbuf.datalen == 0)
@@ -1754,7 +1738,7 @@ static int __shutdown(tagSocket *sock, u32 how)
     int    result;
 
     if((CN_SOCKET_CLIENT&sock->sockstat)&&\
-        mutex_lock(sock->SockSync))
+        mutex_lock(sock->sync))
     {
         switch(how)
         {
@@ -1775,7 +1759,7 @@ static int __shutdown(tagSocket *sock, u32 how)
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        mutex_unlock(sock->sync);
     }
     return  result;
 }
@@ -1802,13 +1786,13 @@ static int __closesocket(tagSocket *sock)
 
     if(mutex_lock(pTcpHashTab->tabsync))
     {
-        if(mutex_lock(sock->SockSync))
+        if(mutex_lock(sock->sync))
         {
             if(CN_SOCKET_CLIENT&sock->sockstat)  //sock client
             {
                 client = sock;
                 client->sockstat |= CN_SOCKET_CLOSE;
-                ccb = (tagCCB *)client->TplCB;
+                ccb = (tagCCB *)client->cb;
                 if(ccb->machinestat == EN_TCP_MC_CREAT)
                 {
                     __ResetCCB(ccb, EN_TCP_MC_2FREE);
@@ -1819,28 +1803,28 @@ static int __closesocket(tagSocket *sock)
                     __shutdownRD(client);
                     result = __shutdownWR(client);
                 }
-                mutex_unlock(client->SockSync);
+                mutex_unlock(client->sync);
             }
             else   //this is the server,so just close it and close all the client hung on it
             {
                 server = sock;
                 server->sockstat |= CN_SOCKET_CLOSE;
                 //shutdown each socket hunge on the server(not accept yet)
-                scb = (tagSCB *)server->TplCB;
+                scb = (tagSCB *)server->cb;
                 while(NULL != scb->clst)
                 {
                     client = scb->clst;
-                    scb->clst = client->Nextsock;
+                    scb->clst = client->nxt;
 
-                    ccb = (tagCCB *)client->TplCB;
+                    ccb = (tagCCB *)client->cb;
                     __ResetCCB(ccb,EN_TCP_MC_2FREE);
                     __DeleCCB(ccb);
-                    SocketFree(client);
+                    socket_free(client);
                 }
                 __ReseSCB(scb);
                 __DeleteScb(scb);
                 __hashSocketRemove(server);
-                SocketFree(server);
+                socket_free(server);
             }
             result = 0;
         }
@@ -1875,7 +1859,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
         case SO_KEEPALIVE:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 if(*(int *)optval)
                 {
                     ccb->timerctrl |= CN_TCP_TIMER_KEEPALIVE;
@@ -1892,7 +1876,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
             if((CN_SOCKET_CLIENT&sock->sockstat)&&\
                     (optlen == sizeof(struct linger)))
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 mylinger  = (struct linger *)optval;
                 if(mylinger->l_onff)
                 {
@@ -1911,7 +1895,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
         case SO_RCVBUF:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 int buflen;
                 buflen = *(int *)optval;
                 if(buflen >0)
@@ -1925,7 +1909,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
         case SO_SNDBUF:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 buflen = *(int *)optval;
                 if((buflen >0)&&((buf = net_malloc(buflen))!= NULL))
                 {
@@ -1951,7 +1935,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
         case SO_RCVLOWAT:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 if(*(int *)optval>=0)
                 {
                     ccb->rbuf.trigerlevel = *(int *)optval;
@@ -1962,7 +1946,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
         case SO_SNDLOWAT:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 if(*(int *)optval>=0)
                 {
                     ccb->sbuf.trigerlevel = *(int *)optval;
@@ -1973,7 +1957,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
         case SO_RCVTIMEO:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 if(*(int *)optval>=0)
                 {
                     ccb->rbuf.timeout = *(int *)optval;
@@ -1982,7 +1966,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
             }
             else
             {
-                scb = (tagSCB *)sock->TplCB;
+                scb = (tagSCB *)sock->cb;
                 if(*(int *)optval>=0)
                 {
                     scb->accepttime = *(int *)optval;
@@ -1993,7 +1977,7 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
         case SO_SNDTIMEO:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 if(*(int *)optval>=0)
                 {
                     ccb->sbuf.timeout = *(int *)optval;
@@ -2016,13 +2000,13 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
                 sock->sockstat &= (~CN_SOCKET_PROBLOCK);
                 if(CN_SOCKET_CLIENT&sock->sockstat)
                 {
-                    ccb = (tagCCB *)sock->TplCB;
+                    ccb = (tagCCB *)sock->cb;
                     ccb->rbuf.timeout = 0;
                     ccb->sbuf.timeout = 0;
                 }
                 else
                 {
-                    scb = (tagSCB *)sock->TplCB;
+                    scb = (tagSCB *)sock->cb;
                     scb->accepttime = 0;
                 }
             }
@@ -2031,13 +2015,13 @@ static int __setsockopt_sol(tagSocket *sock,int optname,const void *optval, int 
                 sock->sockstat |=  CN_SOCKET_PROBLOCK;
                 if(CN_SOCKET_CLIENT&sock->sockstat)
                 {
-                    ccb = (tagCCB *)sock->TplCB;
+                    ccb = (tagCCB *)sock->cb;
                     ccb->rbuf.timeout = CN_TIMEOUT_FOREVER;
                     ccb->sbuf.timeout = CN_TIMEOUT_FOREVER;
                 }
                 else
                 {
-                    scb = (tagSCB *)sock->TplCB;
+                    scb = (tagSCB *)sock->cb;
                     scb->accepttime = CN_TIMEOUT_FOREVER;
                 }
             }
@@ -2083,7 +2067,7 @@ static int __setsockopt_tcp(tagSocket *sock,int optname,const void *optval, int 
         case TCP_MAXSEG:
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
-                ccb = (tagCCB *)sock->TplCB;
+                ccb = (tagCCB *)sock->cb;
                 ccb->mss = *(u8 *)optval;
                 result = 0;
             }
@@ -2124,7 +2108,7 @@ static int __setsockopt(tagSocket *sock, int level, int optname,\
 {
     int  result;
 
-    if(mutex_lock(sock->SockSync))
+    if(mutex_lock(sock->sync))
     {
         switch(level)
         {
@@ -2141,7 +2125,7 @@ static int __setsockopt(tagSocket *sock, int level, int optname,\
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->SockSync);
+        mutex_unlock(sock->sync);
     }
     return  result;
 }
@@ -2166,20 +2150,19 @@ static int __getsockopt(tagSocket *sock, int level, int optname, void *optval,\
 }
 ////////////////////////MACHINE STAT DEAL///////////////////////////////////////
 //do the tcp checksum if the net dev not do it
-static bool_t  __rcvchecksum(u32 iplocal,u32 ipremote, struct NetPkg *pkglst)
+static bool_t  __rcvchecksum(u32 iplocal,u32 ipremote, tagNetPkg *pkglst)
 {
     bool_t  result;
     u16     chksum;
     u16     translen;
-    struct NetPkg *pkg;
+    tagNetPkg *pkg;
     translen = 0;
     pkg = pkglst;
-    PkgListDatastatistics(pkg);
-//  while(pkg != NULL)
-//  {
-//      translen += pkg->datalen;
-//      pkg = PkgGetNextUnit(pkg);
-//  }
+    while(pkg != NULL)
+    {
+        translen += pkg->datalen;
+        pkg = pkg->partnext;
+    }
     IpPseudoPkgLstChkSumV4(iplocal, ipremote, IPPROTO_TCP,\
                          pkglst,translen,&chksum);
     if(0 == chksum)
@@ -2192,7 +2175,7 @@ static bool_t  __rcvchecksum(u32 iplocal,u32 ipremote, struct NetPkg *pkglst)
 static bool_t __resetremoteraw(u32 iplocal, u16 portlocal,u32 ipremote, u16 portremote,u32 ackno,u32 seqno)
 {
     bool_t result ;
-    struct NetPkg *pkg;
+    tagNetPkg *pkg;
     tagTcpHdr   *hdr;
     u16 translen;
 
@@ -2200,8 +2183,7 @@ static bool_t __resetremoteraw(u32 iplocal, u16 portlocal,u32 ipremote, u16 port
     pkg = PkgMalloc(sizeof(tagTcpHdr),CN_PKLGLST_END);
     if(NULL != pkg)
     {
-        hdr = (tagTcpHdr *)PkgGetCurrentBuffer(pkg);
-//      hdr = (tagTcpHdr *)(pkg->offset + pkg->buf);
+        hdr = (tagTcpHdr *)(pkg->offset + pkg->buf);
         hdr->chksum = 0;
         hdr->flags = CN_TCP_FLAG_RST|CN_TCP_FLAG_ACK;
         hdr->hdroff = 0x05<<4;
@@ -2210,10 +2192,8 @@ static bool_t __resetremoteraw(u32 iplocal, u16 portlocal,u32 ipremote, u16 port
         hdr->ackno  = htonl(ackno);
         hdr->seqno = htonl(seqno);
         hdr->urgencyp = 0;
-        PkgSetDataLen(pkg,sizeof(tagTcpHdr));
-//      pkg->datalen = sizeof(tagTcpHdr);
-        translen = PkgGetDataLen(pkg);
-//      translen = pkg->datalen;
+        pkg->datalen = sizeof(tagTcpHdr);
+        translen = pkg->datalen;
 
         result = IpSend(EN_IPV_4,(ptu32_t)iplocal, (ptu32_t)ipremote, pkg,translen,IPPROTO_TCP,\
                  CN_IPDEV_TCPOCHKSUM,&hdr->chksum);
@@ -2292,20 +2272,19 @@ static void dealtcpoption(tagCCB *ccb, tagTcpHdr *hdr)
 //bit of the ccb is set then could use this function to deal with the data received
 //check the krcv bit and the pkg.data len > 0
 //which means how many data received
-static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
+static u32 __rcvdata(tagSocket *client, u32 seqno,tagNetPkg *pkg)
 {
     tagCCB   *ccb;
     u32        pkgstart;
     u32        pkgstop;
     u32        rcvlen;
     u32        pkgdataoff;
-    struct NetPkg *pkgcomb;
+    tagNetPkg *pkgcomb;
 
     rcvlen = 0;
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     pkgstart = seqno;
-    pkgstop = PkgGetDataLen(pkg)+seqno;
-//  pkgstop = seqno + pkg->datalen;
+    pkgstop = seqno + pkg->datalen;
     if(ccb->rbuf.rcvnxt == pkgstart)
     {
         //this is just the pkg what we want to receive next
@@ -2317,24 +2296,19 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
         }
         else
         {
-            PkgSetNextUnit(ccb->rbuf.pt,pkg);
-//          ccb->rbuf.pt->partnext = pkg;
+            ccb->rbuf.pt->partnext = pkg;
         }
         ccb->rbuf.pt = pkg;
-        ccb->rbuf.buflen += PkgGetDataLen(pkg);
-        ccb->rbuf.rcvnxt+= PkgGetDataLen(pkg);
-        rcvlen += PkgGetDataLen(pkg);
-//      ccb->rbuf.buflen += pkg->datalen;
-//      ccb->rbuf.rcvnxt+= pkg->datalen;
-//      rcvlen += pkg->datalen;
+        ccb->rbuf.buflen += pkg->datalen;
+        ccb->rbuf.rcvnxt+= pkg->datalen;
+        rcvlen += pkg->datalen;
     }
     else if((pkgstop > pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)&&(ccb->rbuf.rcvnxt < pkgstop)))
     {
         //this is only part of the package data valid
         pkgdataoff = ccb->rbuf.rcvnxt - pkgstart;
-        PkgMoveOffsetUp(pkg,pkgdataoff);
-//      pkg->offset += pkgdataoff;
-//      pkg->datalen -= pkgdataoff;
+        pkg->offset += pkgdataoff;
+        pkg->datalen -= pkgdataoff;
         //then cached it and add it to the queue
         PkgCachedPart(pkg); //cached the package
         //and add it to the receive queue
@@ -2344,24 +2318,19 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
         }
         else
         {
-            PkgSetNextUnit(ccb->rbuf.pt,pkg);
-//          ccb->rbuf.pt->partnext = pkg;
+            ccb->rbuf.pt->partnext = pkg;
         }
         ccb->rbuf.pt = pkg;
-        ccb->rbuf.buflen += PkgGetDataLen(pkg);
-        ccb->rbuf.rcvnxt+= PkgGetDataLen(pkg);
-        rcvlen += PkgGetDataLen(pkg);
-//      ccb->rbuf.buflen += pkg->datalen;
-//      ccb->rbuf.rcvnxt+= pkg->datalen;
-//      rcvlen += pkg->datalen;
+        ccb->rbuf.buflen += pkg->datalen;
+        ccb->rbuf.rcvnxt+= pkg->datalen;
+        rcvlen += pkg->datalen;
     }
     else if((pkgstop < pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)||(ccb->rbuf.rcvnxt < pkgstop)))
     {
         //this is only part of the package data valid and the seqo turn over
         pkgdataoff = ccb->rbuf.rcvnxt - pkgstart;
-        PkgMoveOffsetUp(pkg,pkgdataoff);
-//      pkg->offset += pkgdataoff;
-//      pkg->datalen -= pkgdataoff;
+        pkg->offset += pkgdataoff;
+        pkg->datalen -= pkgdataoff;
         //then cached it and add it to the queue
         PkgCachedPart(pkg); //cached the package
         //and add it to the receive queue
@@ -2371,16 +2340,12 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
         }
         else
         {
-            PkgSetNextUnit(ccb->rbuf.pt,pkg);
-//          ccb->rbuf.pt->partnext = pkg;
+            ccb->rbuf.pt->partnext = pkg;
         }
         ccb->rbuf.pt = pkg;
-        ccb->rbuf.buflen += PkgGetDataLen(pkg);
-        ccb->rbuf.rcvnxt+= PkgGetDataLen(pkg);
-        rcvlen += PkgGetDataLen(pkg);
-//      ccb->rbuf.buflen += pkg->datalen;
-//      ccb->rbuf.rcvnxt+= pkg->datalen;
-//      rcvlen += pkg->datalen;
+        ccb->rbuf.buflen += pkg->datalen;
+        ccb->rbuf.rcvnxt+= pkg->datalen;
+        rcvlen += pkg->datalen;
     }
     else if(pkgstop == ccb->rbuf.rcvnxt) //maybe a keepalive package,just ignore it
     {
@@ -2393,19 +2358,16 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
         if(CFG_TCP_REORDER)
         {
             PkgCachedPart(pkg);
-            PkgSetPrivate(pkg, seqno);
-//          pkg->Private = seqno;
+            pkg->private = seqno;
             //find an proplace to insert the pkg
             if(NULL == ccb->pkgrecomblst)//this queue is empty
             {
-                PkgSetNextUnit(pkg,NULL);
-//              pkg->partnext = NULL;
+                pkg->partnext = NULL;
                 ccb->pkgrecomblst = pkg;
             }
             else
             {
-                PkgSetNextUnit(pkg,ccb->pkgrecomblst);
-//              pkg->partnext = ccb->pkgrecomblst;
+                pkg->partnext = ccb->pkgrecomblst;
                 ccb->pkgrecomblst = pkg;
             }
             ccb->pkgrecomblen++;
@@ -2420,13 +2382,10 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
             while(NULL != ccb->pkgrecomblst)
             {
                 pkgcomb = ccb->pkgrecomblst;
-                ccb->pkgrecomblst = PkgGetNextUnit(pkgcomb);
-                PkgSetNextUnit(pkgcomb,NULL);
-//              pkgcomb->partnext = NULL;
-                pkgstart = (u32)PkgGetPrivate(pkgcomb);
-//              pkgstart = pkgcomb->Private;
-                pkgstop = pkgstart + PkgGetDataLen(pkgcomb);
-//              pkgstop = pkgstart + pkgcomb->datalen;
+                ccb->pkgrecomblst = pkgcomb->partnext;
+                pkgcomb->partnext = NULL;
+                pkgstart = (u32)pkgcomb->private;
+                pkgstop = pkgstart + pkgcomb->datalen;
                 if(pkgstart == ccb->rbuf.rcvnxt)
                 {
                     //and add it to the receive queue
@@ -2436,16 +2395,12 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
                     }
                     else
                     {
-                        PkgSetNextUnit(ccb->rbuf.pt,pkgcomb);
-//                      ccb->rbuf.pt->partnext = pkgcomb;
+                        ccb->rbuf.pt->partnext = pkgcomb;
                     }
                     ccb->rbuf.pt = pkgcomb;
-                    ccb->rbuf.buflen += PkgGetDataLen(pkgcomb);
-                    ccb->rbuf.rcvnxt+= PkgGetDataLen(pkgcomb);
-                    rcvlen += PkgGetDataLen(pkgcomb);
-//                  ccb->rbuf.buflen += pkgcomb->datalen;
-//                  ccb->rbuf.rcvnxt+= pkgcomb->datalen;
-//                  rcvlen += pkgcomb->datalen;
+                    ccb->rbuf.buflen += pkgcomb->datalen;
+                    ccb->rbuf.rcvnxt+= pkgcomb->datalen;
+                    rcvlen += pkgcomb->datalen;
                 }
                 else
                 {
@@ -2457,7 +2412,7 @@ static u32 __rcvdata(tagSocket *client, u32 seqno,struct NetPkg *pkg)
         }
         if(ccb->rbuf.buflen > ccb->rbuf.trigerlevel)
         {
-            handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+            socket_setstatus(client,CN_SOCKET_IOREAD);
             semp_post(ccb->rbuf.bufsync);
         }
         if(ccb->rbuf.buflen >= (2*ccb->rbuf.buflenlimit))
@@ -2489,7 +2444,7 @@ static bool_t __ackdata(tagSocket *client, tagTcpHdr *hdr)
     u32                usedtime;
 
     acklen = 0;
-    ccb    = (tagCCB *)client->TplCB;
+    ccb    = (tagCCB *)client->cb;
     ackno  = ntohl(hdr->ackno);
     //first we will deal the send buffer to release some space
     if((ackno  == ccb->sbuf.unackno)&&(ccb->sbuf.unacklen > 0))
@@ -2574,12 +2529,12 @@ static bool_t __ackdata(tagSocket *client, tagTcpHdr *hdr)
         if((ccb->sbuf.buflenleft > ccb->sbuf.trigerlevel)||
            (0 ==(ccb->channelstat&CN_TCP_CHANNEL_STATASND)))
         {
-            handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
+            socket_setstatus(client,CN_SOCKET_IOWRITE);
             semp_post(ccb->sbuf.bufsync);
         }
         else
         {
-            handle_ClrMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE);
+            socket_clrsatus(client,CN_SOCKET_IOWRITE);
         }
         if(ccb->sbuf.sndnxtno == ccb->sbuf.unackno)  //noting to resend, so close the resend timer
         {
@@ -2614,7 +2569,7 @@ static bool_t __ackdata(tagSocket *client, tagTcpHdr *hdr)
 // RETURN  :
 // INSTRUCT:WE JUST CARE ABOUT THE ACK TO THE SYNACK WE SEND
 // =============================================================================
-static bool_t __rcvsyn_ms(tagSocket *client, tagTcpHdr *hdr, struct NetPkg *pkg)
+static bool_t __rcvsyn_ms(tagSocket *client, tagTcpHdr *hdr, tagNetPkg *pkg)
 {
     tagCCB   *ccb;
     tagSCB   *scb;
@@ -2624,7 +2579,7 @@ static bool_t __rcvsyn_ms(tagSocket *client, tagTcpHdr *hdr, struct NetPkg *pkg)
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
         __ackdata(client,hdr);
-        ccb = (tagCCB *)client->TplCB;
+        ccb = (tagCCB *)client->cb;
         if(ccb->sbuf.unackno == ccb->sbuf.sndnxtno) //ok, has ack the syn
         {
             ccb->machinestat = EN_TCP_MC_ESTABLISH;
@@ -2635,8 +2590,8 @@ static bool_t __rcvsyn_ms(tagSocket *client, tagTcpHdr *hdr, struct NetPkg *pkg)
             ccb->resndtimer = ccb->rto;
             //notice the server to accept
             server = ccb->server;
-            scb = (tagSCB *)server->TplCB;
-            handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT);
+            scb = (tagSCB *)server->cb;
+            socket_setstatus(server,CN_SOCKET_IOACCEPT);
             semp_post(scb->acceptsemp);
         }
     }
@@ -2649,11 +2604,11 @@ static bool_t __rcvsyn_ms(tagSocket *client, tagTcpHdr *hdr, struct NetPkg *pkg)
 // RETURN  :
 // INSTRUCT:WE JUST CARE ABOUT THE SYNACK TO THE SYN WE SEND
 // =============================================================================
-static bool_t __sndsyn_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __sndsyn_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     tagCCB   *ccb;
 
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     //only care about the ack to the syn
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2683,22 +2638,21 @@ static bool_t __sndsyn_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
 // RETURN  ：
 // INSTRUCT:ANY DATA WILL BE DEALT
 // =============================================================================
-static bool_t __stable_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __stable_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     u32       seqno;
     tagCCB  *ccb;
     u32       rcvlen = 0;
 
     seqno =ntohl(hdr->seqno);
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     //deal the acknowledge to release the send buffer
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
         __ackdata(client, hdr);
     }
     //receive the data to the receive buffer
-    if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
-//  if((NULL != pkg)&&(pkg->datalen > 0))
+    if((NULL != pkg)&&(pkg->datalen > 0))
     {
         if((0==(CN_TCP_CHANNEL_STATCONGEST&ccb->channelstat))&&\
                    (CN_TCP_CHANNEL_STATKRCV&ccb->channelstat))
@@ -2718,7 +2672,7 @@ static bool_t __stable_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
         ccb->machinestat= EN_TCP_MC_CLOSEWAIT;
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        socket_setstatus(client,CN_SOCKET_IOREAD);
         semp_post(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
@@ -2748,22 +2702,21 @@ static bool_t __stable_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
 // RETURN  ：
 // INSTRUCT:ANY DATA WILL BE DEALT
 // =============================================================================
-static bool_t __finwait1_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __finwait1_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     u32      seqno;
     tagCCB  *ccb;
     u32       rcvlen = 0;
 
     seqno =ntohl(hdr->seqno);
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     //deal the acn to release the package in the send buffer
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
         __ackdata(client, hdr);
     }
     //receive the data to the receive buffer
-    if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
-//  if((NULL != pkg)&&(pkg->datalen > 0))
+    if((NULL != pkg)&&(pkg->datalen > 0))
     {
         if((0==(CN_TCP_CHANNEL_STATCONGEST&ccb->channelstat))&&\
                    (CN_TCP_CHANNEL_STATKRCV&ccb->channelstat))
@@ -2798,7 +2751,7 @@ static bool_t __finwait1_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg
         }
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        socket_setstatus(client,CN_SOCKET_IOREAD);
         semp_post(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
@@ -2817,22 +2770,21 @@ static bool_t __finwait1_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg
 // INSTRUCT:we must consider that if any more data comes but we are not to accept
 //          more data,such as closed ,what should we do then?--TODO
 // =============================================================================
-static bool_t __finwait2_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __finwait2_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     u32      seqno;
     tagCCB  *ccb;
     u32       rcvlen = 0;
 
     seqno =ntohl(hdr->seqno);
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     //deal the acn to release the package in the send buffer
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
         __ackdata(client, hdr);
     }
     //receive the data to the receive buffer
-    if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
-//  if((NULL != pkg)&&(pkg->datalen > 0))
+    if((NULL != pkg)&&(pkg->datalen > 0))
     {
         if((0==(CN_TCP_CHANNEL_STATCONGEST&ccb->channelstat))&&\
                    (CN_TCP_CHANNEL_STATKRCV&ccb->channelstat))
@@ -2854,7 +2806,7 @@ static bool_t __finwait2_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg
         ccb->mltimer = CN_TCP_TICK_2ML;
         //could never to receive more data
         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKRCV);
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
+        socket_setstatus(client,CN_SOCKET_IOREAD);
         semp_post(ccb->rbuf.bufsync);
         //--TODO,maybe signal an sigpipe signal
     }
@@ -2871,11 +2823,11 @@ static bool_t __finwait2_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg
 // RETURN  ：
 // INSTRUCT:ANY DATA WILL BE SEE AS RETRANSMITION
 // =============================================================================
-static bool_t __closing_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __closing_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     tagCCB  *ccb;
 
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     //deal the ack first
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2888,8 +2840,7 @@ static bool_t __closing_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
         ccb->timerctrl |= CN_TCP_TIMER_2MSL;    //open the 2ml timer
         ccb->mltimer = CN_TCP_TICK_2ML;
      }
-    if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
-//   if((NULL != pkg)&&(pkg->datalen > 0))
+     if((NULL != pkg)&&(pkg->datalen > 0))
      {
          ccb->acktimes ++;
      }
@@ -2906,13 +2857,12 @@ static bool_t __closing_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
 // RETURN  ：
 // INSTRUCT:ANY DATA WILL BE SEE AS RETRANSMITION
 // =============================================================================
-static bool_t __timewait_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __timewait_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     tagCCB  *ccb;
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
 
-    if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
-//  if((NULL != pkg)&&(pkg->datalen > 0))
+    if((NULL != pkg)&&(pkg->datalen > 0))
     {
         ccb->acktimes ++;
     }
@@ -2929,18 +2879,17 @@ static bool_t __timewait_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg
 // RETURN  ：
 // INSTRUCT:ANY DATA WILL BE SEE AS RETRANSMITION
 // =============================================================================
-static bool_t __closewait_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __closewait_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     tagCCB  *ccb;
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     //deal the ack first
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
         __ackdata(client, hdr);
     }
     //if any fin received
-    if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
-//  if((NULL != pkg)&&(pkg->datalen > 0))
+    if((NULL != pkg)&&(pkg->datalen > 0))
     {
         ccb->acktimes ++;
     }
@@ -2964,11 +2913,11 @@ static bool_t __closewait_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pk
 // RETURN  ：
 // INSTRUCT:ANY DATA WILL BE SEE AS RETRANSMITION
 // =============================================================================
-static bool_t __lastack_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __lastack_ms(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     tagCCB         *ccb;
 
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     //deal the ack first
     if(hdr->flags|CN_TCP_FLAG_ACK)
     {
@@ -2979,8 +2928,7 @@ static bool_t __lastack_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
         ccb->machinestat = EN_TCP_MC_2FREE;
         ccb->timerctrl &= (~CN_TCP_TIMER_FIN);  //CLOSE THE FIN TIMER
     }
-    if((NULL != pkg)&&(PkgGetDataLen(pkg) > 0))
-//  if((NULL != pkg)&&(pkg->datalen > 0))
+    if((NULL != pkg)&&(pkg->datalen > 0))
     {
         ccb->acktimes ++;
     }
@@ -2993,10 +2941,10 @@ static bool_t __lastack_ms(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
 }
 
 //this function to deal with the remote package received in the socket
-static bool_t __dealrecvpkg(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __dealrecvpkg(tagSocket *client, tagTcpHdr *hdr,tagNetPkg *pkg)
 {
     tagCCB  *ccb;
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     if(ccb->timerctrl&CN_TCP_TIMER_KEEPALIVE)
     {
         ccb->keeptimer = CN_TCP_TICK_KEEPALIVE; //any receive data will reset the keep alive timer
@@ -3004,7 +2952,7 @@ static bool_t __dealrecvpkg(tagSocket *client, tagTcpHdr *hdr,struct NetPkg *pkg
     if((hdr->flags & CN_TCP_FLAG_RST)&&(ccb->rbuf.rcvnxt == htonl(hdr->seqno)))
     {
         __ResetCCB(ccb, EN_TCP_MC_2FREE);           //general deal the reset socket
-        handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
+        socket_setstatus(client,CN_SOCKET_IOWRITE|CN_SOCKET_IOREAD);
     }
     else
     {
@@ -3052,32 +3000,32 @@ static tagSocket* __newclient(tagSocket *server, tagTcpHdr *hdr,\
     tagCCB *ccb;
     tagSocket *result= NULL;
 
-    scb = (tagSCB *)server->TplCB;
+    scb = (tagSCB *)server->cb;
     if((0 ==(CN_SOCKET_CLOSE&server->sockstat))&&\
        (CN_SOCKET_LISTEN&server->sockstat)&&\
        (scb->pendnum <scb->backlog)&&\
        (CN_TCP_FLAG_SYN&hdr->flags)&&\
        (0 == (CN_TCP_FLAG_ACK&hdr->flags)))  //could accept more in the pending
     {
-        result = SocketMalloc();
+        result = socket_malloc();
         if(NULL != result)
         {
             ccb = __CreateCCB();
             if(NULL == ccb)
             {
-                SocketFree(result);
+                socket_free(result);
                 result = NULL;
             }
             else
             {
-                result->TplCB = (void *)ccb;
+                result->cb = (void *)ccb;
                 result->sockstat |=CN_SOCKET_CLIENT|CN_SOCKET_PROBLOCK|CN_SOCKET_PRONAGLE;
                 result->element.v4.iplocal = ipdst;
                 result->element.v4.portlocal = portdst;
                 result->element.v4.ipremote = ipsrc;
                 result->element.v4.portremote = portsrc;
                 result->af_inet = AF_INET;
-                result->ProtocolOps = &gTcpProto;
+                result->proto = &gTcpProto;
                 ccb->rbuf.rcvnxt = htonl(hdr->seqno)+1;
                 ccb->sndwnd = htons(hdr->window);
                 dealtcpoption(ccb,hdr);
@@ -3085,7 +3033,7 @@ static tagSocket* __newclient(tagSocket *server, tagTcpHdr *hdr,\
                 //ok, now send the syn ack and open the syn timer
                 __sendflag(result,CN_TCP_FLAG_ACK|CN_TCP_FLAG_SYN,\
                           (void *)&sgSynOptDefault,sizeof(sgSynOptDefault),ccb->sbuf.sndnxtno);
-                result->Nextsock = scb->clst;
+                result->nxt = scb->clst;
                 scb->clst = result;
                 scb->pendnum++;
                 ccb->server = server;
@@ -3106,7 +3054,7 @@ static tagSocket* __tcpmatchclient(tagSocket *server, u32 ip, u16 port)
     tagSocket *client;
     tagSCB   *scb;
 
-    scb = (tagSCB *)server->TplCB;
+    scb = (tagSCB *)server->cb;
     client = scb->clst;
     while(NULL != client)
     {
@@ -3117,13 +3065,13 @@ static tagSocket* __tcpmatchclient(tagSocket *server, u32 ip, u16 port)
         }
         else
         {
-            client = client->Nextsock;
+            client = client->nxt;
         }
     }
     return result;
 }
 
-static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devfunc)
+static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  tagNetPkg *pkg, u32 devfunc)
 {
 
     u16         portdst;
@@ -3141,20 +3089,16 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
             return true;  //chksum failed
         }
     }
-    hdr = (tagTcpHdr *)PkgGetCurrentBuffer(pkg);
-//  hdr = (tagTcpHdr *)(pkg->buf + pkg->offset);
-    PkgMoveOffsetUp(pkg, (hdr->hdroff>>4)*4);
-//    pkg->offset += (hdr->hdroff>>4)*4;
-//    if((PkgGetDataLen(pkg) > (hdr->hdroff>>4)*4)
-////  if(pkg->datalen> (hdr->hdroff>>4)*4)
-//    {
-//        (PkgSetDataLen(pkg) -= (hdr->hdroff>>4)*4;
-////      pkg->datalen -= (hdr->hdroff>>4)*4;
-//    }
-//    else
-//    {
-//        pkg = NULL;
-//    }
+    hdr = (tagTcpHdr *)(pkg->buf + pkg->offset);
+    pkg->offset += (hdr->hdroff>>4)*4;
+    if(pkg->datalen> (hdr->hdroff>>4)*4)
+    {
+        pkg->datalen -= (hdr->hdroff>>4)*4;
+    }
+    else
+    {
+        pkg = NULL;
+    }
     //cpy the hdr to the thread stack avoid the align error
     memcpy((void *)cpyhdr,(void *)hdr,(hdr->hdroff>>4)*4);
     hdr = (tagTcpHdr *)cpyhdr;
@@ -3169,23 +3113,23 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
     {
         //get the communicate client
         client = sock;
-        mutex_lock(client->SockSync);
+        mutex_lock(client->sync);
         __dealrecvpkg(client,hdr,pkg);
-        mutex_unlock(client->SockSync);
+        mutex_unlock(client->sync);
     }
     else if((sock = __hashSocketSearch(INADDR_ANY,portdst,ipsrc,portsrc)) != NULL)
     {
         //the inaddr_any client matches
         client = sock;
-        mutex_lock(client->SockSync);
+        mutex_lock(client->sync);
         __dealrecvpkg(client,hdr,pkg);
-        mutex_unlock(client->SockSync);
+        mutex_unlock(client->sync);
     }
     else if((sock = __hashSocketSearch(ipdst,portdst,0,0))!= NULL)
     {
         //the specified server matches
         server = sock;
-        mutex_lock(server->SockSync);
+        mutex_lock(server->sync);
         client = __tcpmatchclient(server,ipsrc,portsrc);
         if(NULL == client)
         {
@@ -3199,13 +3143,13 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
         {
             __dealrecvpkg(client,hdr,pkg);
         }
-        mutex_unlock(server->SockSync);
+        mutex_unlock(server->sync);
     }
     else if((sock = __hashSocketSearch(INADDR_ANY,portdst,0,0))!= NULL)
     {
         //the inaddr_any server matches
         server = sock;
-        mutex_lock(server->SockSync);
+        mutex_lock(server->sync);
         client = __tcpmatchclient(server,ipsrc,portsrc);
         if(NULL == client)
         {
@@ -3219,7 +3163,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
         {
             __dealrecvpkg(client,hdr,pkg);
         }
-        mutex_unlock(server->SockSync);
+        mutex_unlock(server->sync);
     }
     else   //no port matches, so just reset it
     {
@@ -3244,7 +3188,7 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
 // RETURN  :
 // INSTRUCT:true success while false failed
 // =============================================================================
-static bool_t __rcvdealv4(ptu32_t ipsrc, ptu32_t ipdst,  struct NetPkg *pkg, u32 devfunc)
+static bool_t __rcvdealv4(ptu32_t ipsrc, ptu32_t ipdst,  tagNetPkg *pkg, u32 devfunc)
 {
     bool_t result = false;
 
@@ -3253,7 +3197,7 @@ static bool_t __rcvdealv4(ptu32_t ipsrc, ptu32_t ipdst,  struct NetPkg *pkg, u32
     return result;
 }
 
-static bool_t __rcvdeal(tagIpAddr *addr,struct NetPkg *pkglst, u32 devfunc)
+static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, u32 devfunc)
 {
     bool_t result = false;
     enum_ipv_t  ver;
@@ -3284,7 +3228,7 @@ static bool_t __dealclienttimer(tagSocket *client)
     u8        flag;
     tagCCB   *ccb;
 
-    ccb = (tagCCB *)client->TplCB;
+    ccb = (tagCCB *)client->cb;
     if(ccb->timerctrl&CN_TCP_TIMER_LINGER)   //deal the linger timer
     {
         if( 0 == ccb->lingertimer)
@@ -3453,54 +3397,54 @@ static void __tcptick(void)
         sock = pTcpHashTab->array[i];
         while(NULL != sock)
         {
-            mutex_lock(sock->SockSync);
+            mutex_lock(sock->sync);
             if(CN_SOCKET_CLIENT&sock->sockstat)//this is the client
             {
                 client = sock;
-                ccb = (tagCCB *)client->TplCB;
+                ccb = (tagCCB *)client->cb;
                 if((CN_SOCKET_CLOSE&client->sockstat)&&\
                     (EN_TCP_MC_2FREE == ccb->machinestat))
                 {
                     __ResetCCB(ccb,EN_TCP_MC_2FREE);
                     __DeleCCB(ccb);
-                    sock = client->Nextsock;
+                    sock = client->nxt;
                     __hashSocketRemove(client);
-                    SocketFree(client);
+                    socket_free(client);
                 }
                 else
                 {
                     __dealclienttimer(client);
-                    sock = client->Nextsock;
-                    mutex_unlock(client->SockSync);
+                    sock = client->nxt;
+                    mutex_unlock(client->sync);
                 }
             }//end for the client
             else//this is an server, we should deal the client hang on it
             {
                 server = sock;
-                scb = (tagSCB *)server->TplCB;
+                scb = (tagSCB *)server->cb;
                 client = scb->clst;
                 clientpre = client;
                 while(NULL != client)  //deal all the client
                 {
                     __dealclienttimer(client);
-                    ccb = (tagCCB *)client->TplCB;
+                    ccb = (tagCCB *)client->cb;
                     if(EN_TCP_MC_2FREE == ccb->machinestat)
                     {
                         //remove it from the queue
                         if(client == scb->clst)
                         {
-                            scb->clst = client->Nextsock;
-                            clientpre = client->Nextsock;
+                            scb->clst = client->nxt;
+                            clientpre = client->nxt;
                         }
                         else
                         {
-                            clientpre->Nextsock = client->Nextsock;
+                            clientpre->nxt = client->nxt;
                         }
-                        clientnxt = client->Nextsock;
-                        client->Nextsock = NULL;
+                        clientnxt = client->nxt;
+                        client->nxt = NULL;
                         __ResetCCB(ccb,EN_TCP_MC_2FREE);
                         __DeleCCB(ccb);
-                        SocketFree(client);  //net_free the client
+                        socket_free(client);  //net_free the client
                         if (scb->pendnum > 0) {
                             scb->pendnum--;
                             semp_pendtimeout(scb->acceptsemp, 0);
@@ -3516,18 +3460,18 @@ static void __tcptick(void)
                         ccb->timerctrl |= CN_TCP_TIMER_FIN;
                         ccb->machinestat = EN_TCP_MC_LASTACK;
                         clientpre = client;
-                        clientnxt = client->Nextsock;
+                        clientnxt = client->nxt;
                     }
                     else
                     {
                         clientpre = client;
-                        clientnxt = client->Nextsock;
+                        clientnxt = client->nxt;
                     }
                     client = clientnxt;
                 }
                 //deal the server it self
-                sock = server->Nextsock;
-                mutex_unlock(server->SockSync);
+                sock = server->nxt;
+                mutex_unlock(server->sync);
             }
         }
         mutex_unlock(pTcpHashTab->tabsync);
@@ -3557,9 +3501,9 @@ static void __tcpdebugsockinfo(tagSocket *sock,char *prefix)
             prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.iplocal),ntohs(sock->element.v4.portlocal));
     debug_printf("tcp","%s:ipremote:%s    portremote:%d\r\n",\
             prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.ipremote),ntohs(sock->element.v4.portremote));
-    debug_printf("tcp","%s:0x%08x sockstat:0x%08x    UserTag:0x%08x\n\r",\
-            prefix,sock->sockstat,sock->SockUserTag);
-    debug_printf("tcp","%s:syncstat:%d\n\r",prefix,sock->SockSync->enable);
+    debug_printf("tcp","%s:iostat  :0x%08x sockstat:0x%08x    private:0x%08x\n\r",\
+            prefix,sock->iostat,sock->sockstat,sock->private);
+    debug_printf("tcp","%s:syncstat:%d\n\r",prefix,sock->sync->enable);
     debug_printf("tcp","%s:errno   :%d\n\r",prefix,sock->errorno);
 }
 
@@ -3583,12 +3527,12 @@ static void __tcpdebugccb(tagCCB *ccb,char *prefix)
             ccb->sbuf.unackoff,ccb->sbuf.sndnxtoff,ccb->sbuf.dataoff,ccb->sbuf.trigerlevel);
     debug_printf("tcp","%s:sndbuffer:unackno:0x%08x sndnxtno:0x%08x \n\r",prefix,\
             ccb->sbuf.unackno,ccb->sbuf.sndnxtno);
-    debug_printf("tcp","%s:sndbuffer:timeout:0x%08x rtotick:0x%08x dupacks:%04d SockSync:%s\n\r",prefix,\
+    debug_printf("tcp","%s:sndbuffer:timeout:0x%08x rtotick:0x%08x dupacks:%04d sync:%s\n\r",prefix,\
             ccb->sbuf.timeout,ccb->sbuf.rtotick,ccb->sbuf.dupacktims,ccb->sbuf.bufsync->lamp_counter?"enable":"disable");
     //receive buffer
     debug_printf("tcp","%s:rcvbuf:buflen:%04d datalen:%04d trigerlevel:%04d\n\r",\
             prefix,ccb->rbuf.buflenlimit,ccb->rbuf.buflen,ccb->rbuf.trigerlevel);
-    debug_printf("tcp","%s:rcvbuf:rcvnxtno:0x%08x timeout:0x%08x SockSync:%s\n\r",prefix,\
+    debug_printf("tcp","%s:rcvbuf:rcvnxtno:0x%08x timeout:0x%08x sync:%s\n\r",prefix,\
             ccb->rbuf.rcvnxt,ccb->rbuf.timeout,ccb->rbuf.bufsync->lamp_counter?"enable":"disable");
     //recomb queue
     debug_printf("tcp","%s:recomb:len:%d\n\r",prefix,ccb->pkgrecomblen);
@@ -3624,14 +3568,14 @@ static void __debug(tagSocket *sock,char *filter)
 
     if(sock->sockstat&CN_SOCKET_CLIENT)
     {
-        ccb = (tagCCB *)sock->TplCB;
+        ccb = (tagCCB *)sock->cb;
         debug_printf("tcp","TCPCLIENT:address:0x%08x\n\r",(u32)sock);
         __tcpdebugsockinfo(sock,CN_TCP_DEBUG_PREFIX);
         __tcpdebugccb(ccb,CN_TCP_DEBUG_PREFIX);
     }
     else
     {
-        scb = (tagSCB *)sock->TplCB;
+        scb = (tagSCB *)sock->cb;
         debug_printf("tcp","TCPSERVER:address:0x%08x\n\r",(u32)sock);
         __tcpdebugsockinfo(sock,CN_TCP_DEBUG_PREFIX);
         __tcpdebugscb(scb,CN_TCP_DEBUG_PREFIX);

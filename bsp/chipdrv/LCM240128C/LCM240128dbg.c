@@ -82,48 +82,6 @@ extern void InitLCM240128C(void);
 extern u8 LCD_GetStatus(void);
 
 
-struct shell_debug const shell_cmd_lcd_table[]=
-{
-    {
-            "lcdrst",
-            lcdrst,
-            "reset lcd",
-            "COMMAND:lcdrst+enter"
-    },
-    {
-            "lcdbl",
-            lcdbl,
-            "On/Off lcd back light",
-            "COMMAND:lcdbl+1/0(1:On 0:Off)+enter"
-    },
-    {
-            "lcdsta",
-            lcdsta,
-            "get lcd status",
-            "COMMAND:lcdsta+enter"
-    },
-    {
-            "gtav",
-            gtav,
-            "get touch lcd adjust val",
-            "COMMAND:gtav+enter"
-    },
-    {
-            "etav",
-            etav,
-            "erase touch lcd adjust val",
-            "COMMAND:etav+enter"
-    },
-    {
-            "gtp",
-            gtp,
-            "get the location of touch point",
-            "COMMAND:gtp+enter"
-    }
-};
-
-#define CN_LCD_SHELL_NUM  sizeof(shell_cmd_lcd_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_lcd_shell_cmd_rsc[CN_LCD_SHELL_NUM];
 
 
 /*******************************************************************************
@@ -133,13 +91,12 @@ struct shell_debug const shell_cmd_lcd_table[]=
 *********************************************************************************/
 ptu32_t LCD_Shell_Module_Install(void)
 {
-    shell_debug_add(shell_cmd_lcd_table, CN_LCD_SHELL_NUM);
     return 1;
 }
 
 
 //static void Sh_LCD_Reset(void)
-ADD_TO_SHELL_HELP(lcdrst,"reset lcd  COMMAND:lcdrst+enter");
+ADD_TO_IN_SHELL_HELP(lcdrst,"reset lcd  COMMAND:lcdrst+enter");
 ADD_TO_IN_SHELL  bool_t lcdrst(void)
 {
     LCD_Reset();
@@ -148,7 +105,7 @@ ADD_TO_IN_SHELL  bool_t lcdrst(void)
 }
 
 //static void Sh_LCD_Status(void)
-ADD_TO_SHELL_HELP(lcdsta,"get lcd status  COMMAND:lcdsta+enter");
+ADD_TO_IN_SHELL_HELP(lcdsta,"get lcd status  COMMAND:lcdsta+enter");
 ADD_TO_IN_SHELL  bool_t lcdsta(void)
 {
    u8 status;
@@ -157,7 +114,7 @@ ADD_TO_IN_SHELL  bool_t lcdsta(void)
    return true;
 }
 //static bool_t Sh_LCD_BackLight(char *param)
-ADD_TO_SHELL_HELP(lcdbl,"On/Off lcd back light  COMMAND:lcdbl+1/0(1:On 0:Off)+enter");
+ADD_TO_IN_SHELL_HELP(lcdbl,"On/Off lcd back light  COMMAND:lcdbl+1/0(1:On 0:Off)+enter");
 ADD_TO_IN_SHELL  bool_t lcdbl(char *param)
 {
     char *word_OnOff,*word_trail,*next_param;
@@ -187,21 +144,21 @@ ADD_TO_IN_SHELL  bool_t lcdbl(char *param)
     return true;
 }
 //static void Sh_Get_AdjustVal(void)
-ADD_TO_SHELL_HELP(gtav,"get touch lcd adjust val  COMMAND:gtav+enter");
+ADD_TO_IN_SHELL_HELP(gtav,"get touch lcd adjust val  COMMAND:gtav+enter");
 ADD_TO_IN_SHELL  bool_t gtav(void)
 {
     Touch_GetAdjustVal();
     return true;
 }
 //static void Sh_Earse_AdjustVal(void)
-ADD_TO_SHELL_HELP(etav,"erase touch lcd adjust val  COMMAND:etav+enter");
+ADD_TO_IN_SHELL_HELP(etav,"erase touch lcd adjust val  COMMAND:etav+enter");
 ADD_TO_IN_SHELL  bool_t etav(void)
 {
     Touch_EraseAdjustVal();
     return true;
 }
 //static void Sh_Get_TouchPoint(void)
-ADD_TO_SHELL_HELP(gtp,"get the location of touch point  COMMAND:gtp+enter");
+ADD_TO_IN_SHELL_HELP(gtp,"get the location of touch point  COMMAND:gtp+enter");
 ADD_TO_IN_SHELL  bool_t gtp(void)
 {
     Touch_GetTouchPoint();

@@ -17,7 +17,7 @@
 /*----------------------------------------------------------------------------
   Clock Variable definitions
  *----------------------------------------------------------------------------*/
-//uint32_t SystemCoreClock  = __SYSTEM_CLOCK;    /*!< System Clock Frequency (Core Clock)*/
+uint32_t SystemCoreClock  = __SYSTEM_CLOCK;    /*!< System Clock Frequency (Core Clock)*/
 uint32_t CyclesPerUs      = (__HSI / 1000000UL); /* Cycles per micro second */
 uint32_t PllClock         = __HSI;             /*!< PLL Output Clock Frequency         */
 uint32_t gau32ClkSrcTbl[] = {__HXT, __LXT, 0UL, __LIRC, 0UL, 0UL, 0UL, __HIRC};
