@@ -101,10 +101,10 @@
 // 参数：无
 // 返回：true
 // =============================================================================
-bool_t Board_GpioInit(u8 SerialNo)
+void Board_GpioInit(void)
 {
     silan_io_func_config(IO_CONFIG_PA4, PA4_FUNC_UART2);
     silan_io_func_config(IO_CONFIG_PA5, PA5_FUNC_UART2);
-    return true;
+    //return true;
 }
 
