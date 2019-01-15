@@ -1,8 +1,9 @@
 /****************************************************
  *  Automatically-generated file. Do not edit!	*
  ****************************************************/
-#include "djyos.h"
+
 #include "project_config.h"
+#include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
@@ -72,9 +73,6 @@ void Sys_ModuleInit(void)
 	#endif
 
 	//-------------------medium-------------------------//
-//	extern void ModuleInstall_LowPower (void);
-//	ModuleInstall_LowPower();
-
 	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
 	ModuleInstall_Charset(0);
 	extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
@@ -97,6 +95,9 @@ void Sys_ModuleInit(void)
 
 	extern bool_t ModuleInstall_Touch(void);
 	ModuleInstall_Touch();    //初始化人机界面输入模块
+
+	extern void ModuleInstall_LowPower (void);
+	ModuleInstall_LowPower();
 
 	extern ptu32_t ModuleInstall_ili9325(const char *DisplayName,const char* HeapName);
 	ModuleInstall_ili9325(CFG_ILI9325_DISPLAY_NAME,CFG_ILI9325_HEAP_NAME);
