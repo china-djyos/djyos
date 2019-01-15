@@ -48,10 +48,13 @@
  *  Created on: 2014-5-28
  *      Author: huzb
  */
-
+#ifdef CFG_CORTEX_M0
 #include "silan_types.h"
 #include "silan_syscfg.h"
 #include "silan_syscfg_regs.h"
+#include "int_hard.h"
+#include "shell.h"
+
 
 
 /*boot  risc infomation*/
@@ -79,14 +82,14 @@ enum EN_DspBootMedia
 // 功能:copy
 // 参数：
 // 返回：
-// 备注：
+// 备注： 
 // ============================================================================
 void codesCopy(u8* dst,u8* scr,u32 len)
 {
     u32 tmpLen   = 0;
     u8  *optDst  = NULL;
     u8  *optScr  = NULL;
-
+    
     if(dst == NULL || scr == NULL || len == 0)
     {
         printf("arg err\r\n");
@@ -98,14 +101,14 @@ void codesCopy(u8* dst,u8* scr,u32 len)
         optDst = dst;
         optScr = scr;
     }
-
+    
     while(tmpLen)
     {
-        *optDst++ = *optScr++;
-        tmpLen--;
+    	*optDst++ = *optScr++;
+    	tmpLen--;
     }
     printk("code Copy Over\r\n");
-
+    
     return;
 }
 
@@ -113,7 +116,7 @@ void codesCopy(u8* dst,u8* scr,u32 len)
 // 功能：M0 核启动Risc 核
 // 参数：
 // 返回：
-// 备注：
+// 备注： 
 // ============================================================================
 
 void M0BootRisc(void)
@@ -121,16 +124,16 @@ void M0BootRisc(void)
     int  inst;
     int  tmpSts;
     u32  *resetAddr = NULL;
-
+    
    // silan_risc_reset();
    // __REG32(SILAN_SYSCFG_REG11) &= ~(0x1);
-
+    
     //codesCopy((u8*)CN_RISC_RUN_ADDR,(u8*)CN_RISC_FLASH_ADDR,CN_RISC_CODE_LEN);
     memcpy((uint8_t *) (CN_RISC_RUN_ADDR & 0xFFFFF000), (char *)CN_RISC_FLASH_ADDR, CN_RISC_CODE_LEN);
 
     inst    = (*(volatile u32*)(CN_RISC_RESET_ADDR));
     tmpSts  = (inst & 0xFF000000) >> 24;
-
+    
     u8 iLoop;
     for(iLoop = 0; iLoop < 10;iLoop++)
     printk("risc isbooting ,please wait...\r\n");
@@ -141,10 +144,10 @@ void M0BootRisc(void)
     }
     else
     {
-        printk("risc boot failed\r\n");
-        return;
+    	printk("risc boot failed\r\n");
+    	return;
     }
-
+    
 //    silan_risc_unreset();
     __REG32(SILAN_SYSCFG_REG11) |= (0x1);
 
@@ -155,77 +158,75 @@ void M0BootRisc(void)
 // 功能：M0 核启动Dsp核
 // 参数：
 // 返回：
-// 备注：
+// 备注： 
 // ============================================================================
 
 void M0BootDsp(u32 bootMedia)
 {
      volatile u32*dspLoadAddr = NULL;
      u32 inst;
-
+     
      dspLoadAddr = (volatile u32*)CN_DSP_LOAD_ADDR;
-     inst        = (*(volatile u32*)(dspLoadAddr));
-
+     inst 	     = (*(volatile u32*)(dspLoadAddr));
+     
      if(bootMedia == EN_BOOT_FROM_SDRAM)
      {
          if(inst == 0x0000AF02)
-         {
+     	 {
              memcpy((uint8_t *)CN_DSP_RUN_ADDR, (char *)CN_DSP_LOAD_ADDR, CN_DSP_CODE_LEN);
-         }
+     	 }
          else
-         {
-             printk("no code\r\n");
-             return;
-         }
+     	 {
+     	     printk("Dsp Boot Failed\r\n");
+     	     return;
+     	 }
      }
-
+     
      if(bootMedia == EN_BOOT_FROM_SDRAM)
-    __REG32(SILAN_SYSCFG_SOC0) |=  (0x1<<1);
+	__REG32(SILAN_SYSCFG_SOC0) |=  (0x1<<1);
      else
-    __REG32(SILAN_SYSCFG_SOC0) &= ~(0x1<<1);
+	__REG32(SILAN_SYSCFG_SOC0) &= ~(0x1<<1);
 
     inst =  __REG32(0x02000000);
-
+		                               
     if(inst == 0x0000AF02)
     {
-        printk("dsp boot successs\r\n");
+    	printk("dsp boot successs\r\n");
     }
     else
     {
-        printk("dsp boot failed\r\n");
-        return;
+	    printk("dsp boot failed\r\n");
+	    return;
     }
 
 
     //silan_dsp_unreset();
     __REG32(SILAN_SYSCFG_REG11) |= (0x1<<2);
-
+     
 }
 
 // ============================================================================
 // 功能：M0 核启动Risc核
 // 参数：
 // 返回：
-// 备注：
+// 备注： 
 // ============================================================================
 
 void M0RebootRisc(void)
 {
-   silan_risc_reset();
-   silan_risc_unreset();
+    silan_risc_reboot();
 }
 
 // ============================================================================
 // 功能：M0 核启动Dsp核
 // 参数：
 // 返回：
-// 备注：
+// 备注： 
 // ============================================================================
 
 void M0RebootDsp(void)
 {
-    silan_dsp_reset();
-    silan_dsp_unreset();
+    silan_dsp_reboot();
 }
 
 // ============================================================================
@@ -240,6 +241,7 @@ typedef enum BOOT_METHOD{
    EN_BOOT_DSP,
 };
 #include "stddef.h"
+
 bool_t isToBoot(u8 Method)
 {
     u16 loop,ZeroCount = 0,FCount = 0;
@@ -280,24 +282,140 @@ bool_t isToBoot(u8 Method)
 
 
 //启动M0 以及CK
+
 void BootManage(void)
 {
-    //暂时处理
-    if(isToBoot(EN_BOOT_RISC) && isToBoot(EN_BOOT_DSP))
+    u32 dwBoot_Delay = 800;
+
+    while(dwBoot_Delay--);
+
+    if(isToBoot(EN_BOOT_RISC))
     {
         M0BootRisc();
+    }
+
+    if(isToBoot(EN_BOOT_DSP))
+    {
         M0BootDsp(0x11);
     }
 
-//    if(isToBoot(EN_BOOT_DSP))
-//    {
-//        M0BootDsp(0x11);
-//    }
+}
+
+//shell 运行Risc
+
+ADD_TO_IN_SHELL_HELP(RunRisc,"运行Risc    命令格式: RunRisc");
+
+ADD_TO_IN_SHELL bool_t RunRisc(char *Param)
+{
+    if(isToBoot(EN_BOOT_RISC))
+    {
+         M0BootRisc();
+    }
+}
+
+//shell 运行Dsp
+
+ADD_TO_IN_SHELL_HELP(RunDsp,"运行Dsp    命令格式: RunDsp");
+
+ADD_TO_IN_SHELL bool_t RunDsp(char *Param)
+{
+    if(isToBoot(EN_BOOT_DSP))
+    {
+        M0BootDsp(0x11);
+    }
+}
+
+//Reboot Risc
+
+ADD_TO_IN_SHELL_HELP(RebootRisc,"RebootRisc    命令格式: RebootRisc");
+
+ADD_TO_IN_SHELL bool_t RebootRisc(char *Param)
+{
+    M0RebootRisc();
+}
+
+//Reboot Dsp
+
+ADD_TO_IN_SHELL_HELP(ReBootDsp,"ReBootDsp    命令格式: ReBootDsp");
+
+ADD_TO_IN_SHELL bool_t ReBootDsp(char *Param)
+{
+    M0RebootDsp();
+}
+
+//复位 Risc
+
+ADD_TO_IN_SHELL_HELP(ResetRisc,"ResetRisc    命令格式: ResetRisc");
+
+ADD_TO_IN_SHELL bool_t ResetRisc(char *Param)
+{
+    __REG32(SILAN_SYSCFG_REG11) &= ~(0x1);
 }
 
 
+//复位Dsp
+
+ADD_TO_IN_SHELL_HELP(ResetDsp,"ResetDsp    命令格式: ResetDsp");
+
+ADD_TO_IN_SHELL bool_t ResetDsp(char *Param)
+{
+    __REG32(SILAN_SYSCFG_REG11) &= ~(0x1<<2);
+}
 
 
+//shell 增加调试控制
+
+#define Reg11CtrCfg    *((volatile u32*)(0x42010000 + 0x2C))
+
+//关闭M0调试
+
+ADD_TO_IN_SHELL_HELP(closem0debug,"关闭M0Debug    命令格式: closem0debug");
+ADD_TO_IN_SHELL bool_t closem0debug(char *Param)
+{
+    Reg11CtrCfg &= ~(1<<20);
+}
+
+//打开M0调试
+
+ADD_TO_IN_SHELL_HELP(openm0debug,"打开M0Debug    命令格式: openm0debug");
+ADD_TO_IN_SHELL bool_t openm0debug(char *Param)
+{
+    Reg11CtrCfg |= (1<<20);
+}
+
+//关闭ck 调试
+
+ADD_TO_IN_SHELL_HELP(closeriscdebug,"关闭RiscDebug    命令格式: closeriscdebug");
+ADD_TO_IN_SHELL bool_t closeriscdebug(char *Param)
+{
+    Reg11CtrCfg &= ~(1<<21);
+}
+
+//打开risc 调试
+
+ADD_TO_IN_SHELL_HELP(openriscdebug,"打开riscDebug    命令格式: openriscdebug");
+ADD_TO_IN_SHELL bool_t openriscdebug(char *Param)
+{
+    Reg11CtrCfg |= (1<<21);
+}
+
+//关闭dsp 调试
+
+ADD_TO_IN_SHELL_HELP(closedspdebug,"关闭DspDebug    命令格式: closedspdebug");
+ADD_TO_IN_SHELL bool_t closedspdebug(char *Param)
+{
+    Reg11CtrCfg &= ~(1<<22);
+}
+
+
+//打开Dsp 调试
+
+ADD_TO_IN_SHELL_HELP(opendspdebug,"打开riscDebug    命令格式: opendspdebug");
+ADD_TO_IN_SHELL bool_t opendspdebug(char *Param)
+{
+    Reg11CtrCfg |= (1<<22);
+}
+#endif
 
 
 

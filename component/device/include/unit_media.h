@@ -88,19 +88,19 @@ enum ucmd{
 };
 
 struct uopt{
-    u32 hecc:1;
-    u32 secc:1;
-    u32 necc:1;
-    u32 main:1;
-    u32 spare:1;
+    u32 hecc:1;     // 硬件实现ECC
+    u32 secc:1;     // 软件实现ECC
+    u32 necc:1;     // 无ECC
+    u32 main:1;     // 0 = 不写主区
+    u32 spare:1;    // OOB空间
 };
 
 struct uesz{
-    u32 unit:1;
-    u32 block:1;
+    u32 unit:1;     // 1 = 操作页
+    u32 block:1;    // 1 = 操作块
 };
 
-struct ustatistics{
+struct ustatistics{     //没见哪里用到
     u32 erases;
     u32 brases;
     u32 reads;
@@ -133,7 +133,7 @@ u32 *nandbuildbads(s32 (*um_req)(enum ucmd cmd, ptu32_t args, ...));
 void nandbadfreeblock(u32 *badtable, u32 *block, s32 (*um_req)(enum ucmd cmd, ptu32_t args, ...));
 void nandbadfreeunit(u32 *badtable, s64 *unit, __um_req req);
 
-s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat), u8 parts, ...);
+//s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat), u8 parts, ...);
 
 #ifdef __cplusplus
 }

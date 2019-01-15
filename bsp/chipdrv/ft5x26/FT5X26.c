@@ -140,14 +140,17 @@ static u32 s_FT5X26_Timeout = CN_TIMEOUT_FOREVER;
 static struct SingleTouchPrivate FT5X26;
 static struct ST_TouchAdjust tg_touch_adjust;
 
-__attribute__((weak))  void Board_FT5X26_RST(void)
+__attribute__((weak))  void FT5X26_Pin_Init(void)
 {
     return;
 }
 
-__attribute__((weak))  void Board_FT5X26_Int_Gpio(void)
+void FT5X26_RST(void)
 {
-    return;
+    FT_RST(0);    //复位
+    Djy_DelayUs(20*mS);
+    FT_RST(1);   //释放复位
+    Djy_DelayUs(50*mS);
 }
 
 // =============================================================================
@@ -181,8 +184,8 @@ static bool_t FT5X26_Init( )
 {
     u8 temp[2];
 
-    Board_FT5X26_Int_Gpio();
-    Board_FT5X26_RST();
+    FT5X26_Pin_Init();
+    FT5X26_RST();
 
     FT5206_WR_Reg(FT_DEVIDE_MODE,temp,1);   //进入正常操作模式
     FT5206_WR_Reg(FT_ID_G_MODE,temp,1);     //查询模式

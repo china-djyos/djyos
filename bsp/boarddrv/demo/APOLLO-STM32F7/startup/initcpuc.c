@@ -111,7 +111,7 @@ void Init_Cpu(void)
     __set_FAULTMASK(1);
     __set_CONTROL(0);
 
-    #if (_D_FPU_USED == 1)
+    #if (_D_FPU_USED == 1)      //_D_FPU_USED符号由gcc定义
         startup_scb_reg->CPACR = (3UL << 20)|(3UL << 22);    //使能FPU
         startup_scb_reg->FPCCR = (1UL << 31);                //关闭lazy stacking
     #endif

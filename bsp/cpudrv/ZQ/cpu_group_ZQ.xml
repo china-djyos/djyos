@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <cpu>
    <core id="1">
+      <name>cortex-m0</name>
+      <type>arm</type>
+      <arch>armv6-m</arch>
+      <family>cortex-m0</family>
+      <resetAddr>0x0</resetAddr>
+   </core>
+   <core id="2">
+      <name>ck803s</name>
+      <type>ck</type>
+      <family>ck803s</family>
       <resetAddr>0x0</resetAddr>
    </core>
 </cpu>

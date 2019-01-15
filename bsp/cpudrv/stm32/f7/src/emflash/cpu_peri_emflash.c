@@ -52,7 +52,8 @@
 #include <stm32f7xx_hal_flash.h>
 #include <int.h>
 #include <device/include/unit_media.h>
-
+#include <dbug.h>
+#include <filesystems.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -101,7 +102,7 @@
 
 //@#$%component end configure
 // ============================================================================
-
+extern struct obj *s_ptDeviceRoot;
 static struct EmbdFlashDescr{
     u16     BytesPerPage;                // 页中包含的字节数
     u16     PagesPerSmallSect;           // small sector的页数
@@ -115,7 +116,7 @@ static struct EmbdFlashDescr{
 } *embeddescription;
 
 extern u32 gc_ptIbootSize;
-
+s32 __embed_part_init(const char *fs, s32 MountPart,u32 bstart, u32 bcount, u32 doformat);
 // ============================================================================
 // 功能：喂狗
 // 参数：
@@ -322,98 +323,38 @@ DONE:
     return (0);
 }
 
-// ============================================================================
-// 功能：
-// 参数：ResPages：保留页数
-// 返回：
-// 备注：
-// ============================================================================
-s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
+//-----------------------------------------------------------------------------
+// 功能：安装片内Flash驱动
+// 参数：TargetFs -- 要挂载的文件系统
+//      parts -- 分区数；
+//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+//-----------------------------------------------------------------------------
+s32 ModuleInstall_EmbededFlash(const char *TargetFs,u8 parts,s32 TargetPart, ...)
 {
-    u32 Len;
-    struct FlashChip *Chip;
-    struct EmFlashDescr FlashDescr;
-    struct MutexLCB *FlashLock;
-    u8 *Buf;
-    s32 Ret = 0;
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
 
-    if (!ChipName)
-        return (-1);
-
-    if(embeddescription)
-        return (-4); // 设备已注册
-
-    embeddescription = malloc(sizeof(*embeddescription));
-    if(!embeddescription)
-        return (-1);
-
-    EmFlash_Init(embeddescription);
-    Flash_GetDescr(&FlashDescr);// 获取FLASH信息
-    if(ResPages > FlashDescr.TotalPages)
+    va_start(list, TargetPart);
+    for(part=0; part<parts; part++)
     {
-        Ret = -1;
-        goto FAILURE;
-    }
-
-    FlashDescr.ReservedPages += ResPages;
-    Len = strlen (ChipName) + 1;
-    Chip = (struct FlashChip*)malloc(sizeof(struct FlashChip) + Len);
-    if (NULL == Chip)
-    {
-        printf("\r\n: erro : device : out of memory.\r\n");
-        Ret = -2;
-        goto FAILURE;
-    }
-
-    memset(Chip, 0x00, sizeof(*Chip));
-    Chip->dwPageBytes             = FlashDescr.BytesPerPage;
-    Chip->dwPagesReserved         = FlashDescr.ReservedPages;
-    Chip->dwTotalPages            = FlashDescr.TotalPages;
-    Chip->Type                    = F_ALIEN;
-    Chip->Descr.Embd              = FlashDescr;
-    Chip->Ops.ErsBlk              = Flash_SectorEarse;
-    Chip->Ops.WrPage              = Flash_PageProgram;
-    Chip->Ops.RdPage              = Flash_PageRead;
-    Chip->Ops.PageToBlk              = Flash_PageToSector;
-    strcpy(Chip->Name, ChipName); // 设备名
-    if(Flags & FLASH_BUFFERED)
-    {
-        Buf = (u8*)malloc(embeddescription->BytesPerPage); // NAND底层缓冲
-        if(!Buf)
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(__embed_part_init(TargetFs,TargetPart,startblock, blocks, doformat))
         {
-            printf("\r\n: erro : device : out of memory.");
-            Ret = -2;
-            goto FAILURE;
+            error_printf("nand","cannot install fail.");
+            res = -1;
+            break;
         }
-
-        FlashLock = Lock_MutexCreate("Embedded Flash Lock");
-        if(!FlashLock)
-        {
-            Ret = -3;
-            goto FAILURE;
-        }
-
-        Chip->Buf = Buf;
-        Chip->Lock =(void*)FlashLock;
     }
 
-    dev_add(NULL, Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip); // 设备接入"/dev"
-    if(Flags & FLASH_ERASE_ALL)
-        EarseWholeChip(Chip);
-
-FAILURE:
-    if(Ret)
-    {
-        if(embeddescription)
-            free(embeddescription);
-        if(FlashLock)
-            Lock_MutexDelete(FlashLock);
-        if(Buf)
-            free(Buf);
-        if(Chip)
-            free(Chip);
-    }
-    return (Ret);
+    va_end(list);
+    return (res);
 }
 
 // ============================================================================
@@ -659,19 +600,20 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
+// 功能：初始化片内flash
+// 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
+//		 bstart -- 起始块，bcount -- 该分区有多少块的容量，doformat -- 该分区是否格式化
+// 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
+s32 __embed_part_init(const char *fs, s32 MountPart,u32 bstart, u32 bcount, u32 doformat)
 {
     struct umedia *um;
     struct uopt opt;
     char name[16], part[3];
     u32 units, total = 0;
     static u8 count;
-
+    char *FullPath;
     if(!embeddescription)
     {
         embeddescription = malloc(sizeof(*embeddescription));
@@ -741,7 +683,7 @@ s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
     }
 
     um->ustart = total; // 起始unit号
-    itoa(count++, part, 10);
+    itoa(count, part, 10);
     sprintf(name, "embed part %s", part);
     if(um_add((const char*)name, um))
     {
@@ -749,6 +691,14 @@ s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
         return (-1);
     }
 
+    if(MountPart == count)
+    {
+        FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name));
+        sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,name);	//获取该设备的全路径
+        FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
+        free(FullPath);
+    }
+    count++;
     printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, bstart, bcount);
     return (0);
 

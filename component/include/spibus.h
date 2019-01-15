@@ -19,6 +19,7 @@ typedef bool_t (*CsActiveFunc)(ptu32_t SpecificFlag, u8 cs);
 typedef bool_t (*CsInActiveFunc)(ptu32_t SpecificFlag, u8 cs);
 typedef ptu32_t (*SPIBusCtrlFunc)(ptu32_t SpecificFlag,u32 cmd,ptu32_t data1,ptu32_t data2);
 
+struct SPI_Device;
 struct SPI_Param
 {
     char            *BusName;               //总线名称，如SPI1

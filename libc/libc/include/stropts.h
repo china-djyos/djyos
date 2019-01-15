@@ -87,6 +87,6 @@
 #define I_UNLINK    28     //Disconnect two STREAMs.
 //TODO：待补充，参照stropts.h.html，把POSIX中规定的用于上述命令的常数定义完整。
 
-int ioctl(int fildes, int request, ... /* arg */);
+s32 ioctl(s32 fildes, s32 request, ...);
 
 #endif /* __IOCTL_H__ */

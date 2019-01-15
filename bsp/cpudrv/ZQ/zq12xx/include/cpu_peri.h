@@ -66,6 +66,7 @@
 extern "C" {
 #endif
 
+#ifdef CFG_CORTEX_M0
 #include "stdint.h"
 #include "cpu_peri_int_line.h"
 #include "cpu_peri_uart.h"
@@ -73,7 +74,39 @@ extern "C" {
 #include "djyos.h"
 
 #include <stdint.h>
+#endif
 
+#ifdef CFG_CK803S
+#include "djyos.h"
+#include "stdio.h"
+#include "board.h"
+#include "core_ck803.h"
+#include "silan_config.h"
+#include "silan_syscfg.h"
+#include "silan_uart.h"
+#include "silan_printf.h"
+#include "silan_iomux.h"
+#include "silan_iomux_regs.h"
+#include "silan_syscfg.h"
+#include "silan_pmu.h"
+#include "silan_gpio.h"
+#include "silan_irq.h"
+#include "silan_timer.h"
+#include "silan_timer_regs.h"
+#include "silan_adc.h"
+#include "silan_bootspi.h"
+#include "silan_bootspi_regs.h"
+#include "silan_rtc.h"
+#include "silan_sdram.h"
+#include "silan_pwm.h"
+#include "silan_version.h"
+#include "silan_irq.h"
+#include "silan_pic_regs.h"
+//#include "cpu_peri_printf.h"
+#include "cpu_peri_uart.h"
+#include "cpu_peri_isr.h"
+#include "cpu_peri_spiflash.h"
+#endif
 
 #ifdef __cplusplus
 }

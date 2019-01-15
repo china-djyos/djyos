@@ -4,6 +4,7 @@
   <cpu>
     <cpuName>zq1201</cpuName>
     <mianClk>12.0</mianClk>
+    <peripheral>cpu_peri_gpio</peripheral>
     <peripheral>cpu_peri_iic</peripheral>
     <peripheral>cpu_peri_rtc</peripheral>
     <peripheral>cpu_peri_spi</peripheral>

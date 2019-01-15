@@ -440,7 +440,7 @@ s32 ModuleInstall_MMC(u32 dwArgC, ...)
         return (-1);
     }
 
-    res = dev_add(NULL, (const char*)name, NULL, NULL, NULL, NULL,NULL, ((ptu32_t)&MMC_Drv));
+    res = dev_Create((const char*)name, NULL, NULL, NULL, NULL,NULL, ((ptu32_t)&MMC_Drv));
     if(res)
     {
         printk("\r\nMODULE : INSTALL : \"%s\" initialization failed.\r\n", name);

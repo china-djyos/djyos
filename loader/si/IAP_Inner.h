@@ -128,7 +128,7 @@ typedef struct _IAP_Var
 {
     u32 IbootStatus;
     u32 RunMode;
-    char UpdateFlag[8];
+    char UpdateFlag[8];         //写上字符串"update"表示要更新 app 程序
     char IbootFlag[16];
     tagMessage message;
 }tagIapVar;

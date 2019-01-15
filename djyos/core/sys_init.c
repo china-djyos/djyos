@@ -62,10 +62,11 @@ extern void __InitSys(void);
 extern ptu32_t __InitMB(void);
 extern void __StartOs(void);
 extern ptu32_t __InitLock(void);
-extern s32 objsys_init(void);
-extern s32 mount_lock_system(void);
-extern s32 mount_device_system(void);
-extern s32 mount_mb_system(void);
+extern s32 obj_ModuleInit(void);
+extern s32 handle_ModuleInit(void);
+extern s32 Lock_CreateObject(void);
+extern s32 ModuleInstall_dev(void);
+extern s32 Mb_CreateObject(void);
 extern void Sys_ModuleInit(void);
 
 align_type InitStack[CFG_INIT_STACK_SIZE/sizeof(align_type)] = {'d'};
@@ -105,10 +106,11 @@ void Sys_Start(void)
     // Mb_ModuleInit函数需要创建信号量，调用ModuleInstall_Lock之前，创建信号量是允许的，
     // 但不能对其做Post和pend操作。而ModuleInstall_Lock需要创建内存池，则只能在调用
     __InitLock();
-    objsys_init(); // 对象体系初始化；
-    mount_lock_system(); // lock体系；
-    mount_mb_system(); // memory block体系；
-    mount_device_system(); // 设备体系；
+    obj_ModuleInit();
+    handle_ModuleInit();          // 对象句柄体系初始化；
+    Lock_CreateObject();    // lock体系；
+    Mb_CreateObject();      // memory block体系；
+    ModuleInstall_dev();    // 安装设备文件系统；
     Sys_ModuleInit();
     // 黑客们注意,此两函数间不要企图插入什么代码,一切后果自负.
     __StartOs();

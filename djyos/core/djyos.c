@@ -136,6 +136,9 @@
 #include "djyos.h"
 #include "blackbox.h"
 #include "dbug.h"
+
+#define CN_USE_TICKLESS_MODE    (0U)
+
 #if (CN_USE_TICKLESS_MODE)
 #include "tickless.h"
 #endif
@@ -143,6 +146,7 @@
 #include "lowpower.h"
 #include "component_config_core.h"
 #include "../heap/component_config_heap.h"
+#include <stdlib.h>
 ptu32_t __Djy_Service(void);
 
 struct ProcessVm *  g_ptMyProcess;

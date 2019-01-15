@@ -49,6 +49,27 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define uint8_t    u8
+#define uint32_t   u32
+
+/**
+ *  These are the possible errors when trying to verify a block of data encoded
+ *  using a Hamming code:
+ *
+ *  \section Errors
+ *   - HAMMING_ERROR_SINGLE_BIT
+ *   - HAMMING_ERROR_ECC
+ *   - HAMMING_ERROR_MULTIPLE_BITS
+ */
+
+/*  A single bit was incorrect but has been recovered. */
+#define HAMMING_ERROR_SINGLE_BIT         1
+
+/* The original code has been corrupted. */
+#define HAMMING_ERROR_ECC               2
+
+/* Multiple bits are incorrect in the data and they cannot be corrected. */
+#define HAMMING_ERROR_MULTIPLE_BITS      3
 
 u16 crc16(u8 *buf, u32 len);
 u32 crc32(u8 *buf, u32 len);

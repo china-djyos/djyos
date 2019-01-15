@@ -526,7 +526,7 @@ void * mqttcreate(char *devname,char *id,char *host,char *user,char *passwd,\
 
     //here we should create the mosquitto device here,then the app could open the device and
     //do the read and write
-    dev_add(NULL, dev->devname,NULL,NULL,__DevWrite,__DevRead,NULL,(ptu32_t)dev);
+    dev_Create(dev->devname,NULL,NULL,__DevWrite,__DevRead,NULL,(ptu32_t)dev);
     //add it to the list
     dev->nxt = pMqttDevLst;
     pMqttDevLst = dev;

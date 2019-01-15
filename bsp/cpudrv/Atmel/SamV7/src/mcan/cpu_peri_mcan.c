@@ -464,37 +464,6 @@ void canreg(void);
 void canpkg(void);
 
 
-struct shell_debug const shell_cmd_can_table[]=
-{
-    {
-            "canrst",
-            canrst,
-            "复位CAN控制器",
-            "COMMAND:canrst+enter"
-    },
-    {
-            "canstat",
-            canstat,
-            "CAN通信统计",
-            "COMMAND:canstat+enter"
-    },
-    {
-            "canreg",
-            canreg,
-            "读取CAN寄存器值",
-            "COMMAND:canreg+enter"
-    },
-    {
-            "canpkg",
-            canpkg,
-            "获取CAN最近10次发送/接收报文内容",
-            "COMMAND:canpkg+enter"
-    }
-
-};
-
-#define CN_CAN_SHELL_NUM  sizeof(shell_cmd_can_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_can_shell_cmd_rsc[CN_CAN_SHELL_NUM];
 
 
 /*******************************************************************************
@@ -504,7 +473,6 @@ struct shell_debug const shell_cmd_can_table[]=
 *********************************************************************************/
 ptu32_t MCAN_Shell_Module_Install(void)
 {
-    shell_debug_add(shell_cmd_can_table, CN_CAN_SHELL_NUM);
     return 1;
 }
 
@@ -514,7 +482,7 @@ ptu32_t MCAN_Shell_Module_Install(void)
 输出:无。
 *********************************************************************************/
 //void Sh_CAN_Reset(void)
-ADD_TO_SHELL_HELP(canrst,"复位CAN控制器   COMMAND:canrst+enter");
+ADD_TO_IN_SHELL_HELP(canrst,"复位CAN控制器   COMMAND:canrst+enter");
 ADD_TO_IN_SHELL bool_t canrst(void)
 {
     MCAN_Init(&mcan1Config);
@@ -529,7 +497,7 @@ ADD_TO_IN_SHELL bool_t canrst(void)
 输出:无。
 *********************************************************************************/
 //void Sh_CAN_Stat(void)
-ADD_TO_SHELL_HELP(canstat,"CAN通信统计  COMMAND:canstat+enter");
+ADD_TO_IN_SHELL_HELP(canstat,"CAN通信统计  COMMAND:canstat+enter");
 ADD_TO_IN_SHELL bool_t canstat(void)
 {
    uint32_t data[2];//used to print the s64 type
@@ -573,7 +541,7 @@ ADD_TO_IN_SHELL bool_t canstat(void)
 输出:无。
 *********************************************************************************/
 //void Sh_Read_CAN_Reg(void)
-ADD_TO_SHELL_HELP(canreg,"读取CAN寄存器值   COMMAND:canreg+enter");
+ADD_TO_IN_SHELL_HELP(canreg,"读取CAN寄存器值   COMMAND:canreg+enter");
 ADD_TO_IN_SHELL bool_t canreg(void)
 {
       vu32 Reg;
@@ -670,7 +638,7 @@ ADD_TO_IN_SHELL bool_t canreg(void)
 输出:无。
 *********************************************************************************/
 //void Sh_CAN_Pkg(void)
-ADD_TO_SHELL_HELP(canpkg,"获取CAN最近10次发送/接收报文内容    COMMAND:canpkg+enter");
+ADD_TO_IN_SHELL_HELP(canpkg,"获取CAN最近10次发送/接收报文内容    COMMAND:canpkg+enter");
 ADD_TO_IN_SHELL bool_t canpkg(void)
 {
     uint8_t i,j;

@@ -127,7 +127,15 @@ extern "C" {
 #define CN_INT_LINE_RTC                   (0x14)
 #define CN_INT_LINE_PMU                   (0x15)
 #define CN_INT_LINE_DMAC                  (0x16)
-
+#define  CN_INT_LINE_DEFAULT23                        (23U)
+#define  CN_INT_LINE_DEFAULT24                        (24U)
+#define  CN_INT_LINE_DEFAULT25                        (25U)
+#define  CN_INT_LINE_DEFAULT26                        (26U)
+#define  CN_INT_LINE_DEFAULT27                        (27U)
+#define  CN_INT_LINE_DEFAULT28                        (28U)
+#define  CN_INT_LINE_DEFAULT29                        (29U)
+#define  CN_INT_LINE_DEFAULT30                        (30U)
+#define  CN_INT_LINE_CORET                            (31U)
 #define CN_INT_LINE_LAST                 (0x1F)
 
 #ifdef __cplusplus

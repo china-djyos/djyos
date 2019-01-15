@@ -551,7 +551,7 @@ s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk)
         return (-2);
     }
 
-    dev_add(NULL,Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
+    dev_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
 
     return (0);
 

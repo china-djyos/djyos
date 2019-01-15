@@ -67,6 +67,11 @@ extern "C"{
 
 //方便第三方移植，内部逻辑未实现，对应struct stat的st_mode成员的0-11bit
 //open 调用的第三个参数
+#define   S_IALLUGO   (S_ISUID|S_ISGID|S_ISVTX|S_IRWXUGO)   //所有权限和控制
+#define   S_IRWXUGO   (S_IRWXU|S_IRWXG|S_IRWXO)     //所有权限
+#define   S_IRUGO     (S_IRUSR|S_IRGRP|S_IROTH)     //全部读权限
+#define   S_IWUGO     (S_IWUSR|S_IWGRP|S_IWOTH)     //全部写权限
+#define   S_IXUGO     (S_IXUSR|S_IXGRP|S_IXOTH)     //全部执行权限
 #define   S_ISUID    0004000   //set-user-ID bit
 #define   S_ISGID    0002000   //set-group-ID bit (see below)
 #define   S_ISVTX    0001000   //sticky bit (see below)
@@ -76,7 +81,6 @@ extern "C"{
 #define   S_IXUSR    00100     //owner has execute permission
 #define   S_IRWXG    00070     //mask for group permissions
 #define   S_IRGRP    00040     //group has read permission
-
 #define   S_IWGRP    00020     //group has write permission
 #define   S_IXGRP    00010     //group has execute permission
 #define   S_IRWXO    00007     //mask for permissions for others (not in group)
@@ -84,22 +88,80 @@ extern "C"{
 #define   S_IWOTH    00002     //others have write permission
 #define   S_IXOTH    00001     //others have execute permission
 
+// stat查询，对应struct stat 的st_mode成员的12-15bit
+#ifndef S_IFMT
+ #define S_IFMT                     0x0000F000      //(00170000)// 1111-0000-0000-0000 文件类型屏蔽位
+#else
+ #warning "S_IFMT" duplicate definition!
+#endif
+#ifndef S_IFSOCK
+ #define S_IFSOCK                   0x0000c000      //(00140000)// 1100-0000-0000-0000
+#else
+ #warning "S_IFSOCK" duplicate definition!
+#endif
+#ifndef S_IFLNK
+ #define S_IFLNK                    0x0000a000      //(00120000)// 1010-0000-0000-0000
+#else
+ #warning "S_IFlINK" duplicate definition!
+#endif
+#ifndef S_IFREG
+ #define S_IFREG                    0x00008000      //(00100000)// 1000-0000-0000-0000
+#else
+ #warning "S_IFREG" duplicate definition!
+#endif
+#ifndef S_IFBLK
+ #define S_IFBLK                    0x00006000      //(00060000)// 0110-0000-0000-0000
+#else
+ #warning "S_IFBLK" duplicate definition!
+#endif
+#ifndef S_IFDIR
+ #define S_IFDIR                    0x00004000      //(00040000)// 0100-0000-0000-0000
+#else
+ #warning "S_IFDIR" duplicate definition!
+#endif
+#ifndef S_IFCHR
+ #define S_IFCHR                    0x00002000      //(00020000)// 0010-0000-0000-0000
+#else
+ #warning "S_IFCHR" duplicate definition!
+#endif
+#ifndef S_IFIFO
+ #define S_IFIFO                    0x00001000      //(00010000)// 0001-0000-0000-0000
+#else
+ #warning "S_IFIFO" duplicate definition!
+#endif
+
+//以下是djyos增加定义，使用 mode_t 的高16bit
+#ifndef S_IFFLOW
+ #define S_IFFLOW                   0x00010000      //数据流文件，一般不允许写缓冲
+#else
+ #error "S_IFFLOW" duplicate definition!
+#endif
+
+#ifndef S_IFMOUNT
+ #define S_IFMOUNT                  0x00020000      //是个 mount 点
+#else
+ #error "S_IFMOUNT" duplicate definition!
+#endif
+
 // 按LINUX逻辑
 struct stat
 {
-    mode_t st_mode; // 文件对应的模式，文件，目录等(目前只用了低16位，15-12为文件类型，如S_IFSOCK，11-0为权限)
-    ino_t st_ino; // inode节点号
-    dev_t st_dev; // 设备号
-    dev_t st_rdev; // 特殊设备号
-    nlink_t st_nlink; // 文件的连接数
-    uid_t st_uid; // 文件所有者
-    gid_t st_gid; // 文件所有者对应的组
-    off_t st_size; // 普通文件，对应的文件字节数
+    mode_t st_mode;     // 文件对应的模式，文件，目录等，低16位兼容POSIX，
+                        // 15-12为文件类型，如 S_IFSOCK 等
+                        // 11-0为权限，stat.h中的 S_IRWXA等
+                        // 高16位用于DJYOS扩展
+    ino_t st_ino;       // inode节点号
+    dev_t st_dev;       // 保存文件的设备号
+    dev_t st_rdev;      // 特殊设备号
+    nlink_t st_nlink;   // 文件的连接数
+    uid_t st_uid;       // 文件所有者的UID号
+    gid_t st_gid;       // 文件所有者对应的组号
+    off_t st_size;      // 普通文件，对应的文件字节数
     blksize_t st_blksize; // 文件内容对应的块大小
-    blkcnt_t st_blocks; // 伟建内容对应的块数量
-    time_t st_atime; // 文件最后被访问的时间
-    time_t st_mtime; // 文件内容最后被修改的时间
-    time_t st_ctime; // 文件状态改变时间
+    blkcnt_t st_blocks; // 文件内容对应的块数量
+    time_t st_atime;    // 文件最后被访问的时间
+    time_t st_mtime;    // 文件内容最后被修改的时间
+    time_t st_ctime;    // 文件的权限、属主、组或内容上一次被修改的时间
 };
 
 #define S_ISREG(x)      ((x&S_IFMT)==S_IFREG?true:false) // is it a regular file

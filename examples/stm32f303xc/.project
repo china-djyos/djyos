@@ -7,7 +7,7 @@
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
+			<triggers>full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -59,7 +59,7 @@
 	<variableList>
 		<variable>
 			<name>DJYOS_SRC_LOCATION</name>
-			<value>$%7BECLIPSE_HOME%7D../djysrc</value>
+			<value>$%7BPARENT-1-ECLIPSE_HOME%7D/djysrc</value>
 		</variable>
 	</variableList>
 </projectDescription>

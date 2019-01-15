@@ -82,7 +82,7 @@
 //
 // Ôö¼ÓÏî
 //
-#include <fs/file.h>
+#include <djyfs/file.h>
 
 typedef struct LibcFile FILE;
 

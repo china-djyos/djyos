@@ -2,4 +2,5 @@
 <hardware>
    <baord>NUCLEO-F767ZI</baord>
    <cpu>stm32f767xx</cpu>
+   <core>Core1</core>
 </hardware>

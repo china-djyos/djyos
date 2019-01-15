@@ -32,7 +32,7 @@
   <isbus_host>false</isbus_host>
   <isbus_slave>false</isbus_slave>
   <lowpower>false</lowpower>
-  <multiplex>false</multiplex>
+  <multiplex>true</multiplex>
   <shell>true</shell>
   <stdio>true</stdio>
   <tcpip>false</tcpip>
@@ -68,6 +68,7 @@
   <stm32h7>true</stm32h7>
   <stm32L4>false</stm32L4>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>

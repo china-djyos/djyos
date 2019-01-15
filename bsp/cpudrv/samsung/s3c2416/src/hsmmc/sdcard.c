@@ -172,7 +172,7 @@ s32  ModuleInstall_SD(const char *ChipName, s32 Clean)
     Ret = S3c2416_HsmmcInit(1);
     if(0 == Ret)
     {
-        if(dev_add(NULL,Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)&SDDrv)))
+        if(dev_Create(Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)&SDDrv)))
         {
             if((0 == Clean) || ((Clean) &&
               (0 == S3c2416_BlkErase(0, ((Card.CapacityInBytes >> Card.BlkLenSettings)-1)))))

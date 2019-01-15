@@ -70,7 +70,8 @@ extern s64 __Rtc_TimeUs(s64 *rtctime);
 extern bool_t __Rtc_SetTime(s64 rtctime);
 
 u32 g_u32DaysToMonth[13] = {0,31,59,90,120,151,181,212,243,273,304,334,365};
-u32 g_u32MonthDays[]={31,28,31,30,31,30,31,31,30,31,30,31,};
+s32 g_u32MonthDays[]={31,28,31,30,31,30,31,31,30,31,30,31,};
+s32 sg_s32MyTimezone = CFG_LOCAL_TIMEZONE;
 
 //char g_cTmWdays[][8] = {"星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"};
 char g_cTmWdays[][8] = {"星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"};
@@ -88,7 +89,7 @@ s64 Tm_MkTime(struct tm *dt)
 
     //将时间后推两个月，则不用判断闰年二月分界
     //直接用year/4 - year/100 + year/400
-    if(0>= (int)(mon -= 2))
+    if(0>= (s32)(mon -= 2))
     {
         mon += 12;
         year--;
@@ -127,11 +128,11 @@ struct tm *Tm_GmTime_r(const s64 *time,struct tm *result)
     if(time == NULL)
     {
         temp_time = __Rtc_Time(NULL);
-        temp_time -= ((s64)CFG_LOCAL_TIMEZONE*3600);
+        temp_time -= ((s64)sg_s32MyTimezone*3600);
     }
     else
     {
-        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600);
+        temp_time = *time - ((s64)sg_s32MyTimezone*3600);
     }
     return Tm_LocalTime_r(&temp_time,result);
 }
@@ -149,11 +150,11 @@ struct tm *Tm_GmTime(const s64 *time)
     if(time == NULL)
     {
         temp_time = __Rtc_Time(NULL);
-        temp_time -= ((s64)CFG_LOCAL_TIMEZONE*3600);
+        temp_time -= ((s64)sg_s32MyTimezone*3600);
     }
     else
     {
-        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600);
+        temp_time = *time - ((s64)sg_s32MyTimezone*3600);
     }
     return Tm_LocalTime_r(&temp_time,&datetime);
 }
@@ -172,11 +173,11 @@ struct tm *Tm_GmTimeUs_r(const s64 *time,struct tm *result)
     if(time == NULL)
     {
         temp_time = __Rtc_TimeUs(NULL);
-        temp_time -= (((s64)CFG_LOCAL_TIMEZONE*3600)*1000000);
+        temp_time -= (((s64)sg_s32MyTimezone*3600)*1000000);
     }
     else
     {
-        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600)*1000000;
+        temp_time = *time - ((s64)sg_s32MyTimezone*3600)*1000000;
     }
     return Tm_LocalTimeUs_r(&temp_time,result);
 }
@@ -194,11 +195,11 @@ struct tm *Tm_GmTimeUs(const s64 *time)
     if(time == NULL)
     {
         temp_time = __Rtc_TimeUs(NULL);
-        temp_time -= (((s64)CFG_LOCAL_TIMEZONE*3600)*1000000);
+        temp_time -= (((s64)sg_s32MyTimezone*3600)*1000000);
     }
     else
     {
-        temp_time = *time - ((s64)CFG_LOCAL_TIMEZONE*3600)*1000000;
+        temp_time = *time - ((s64)sg_s32MyTimezone*3600)*1000000;
     }
     return Tm_LocalTimeUs_r(&temp_time,&datetime);
 }
@@ -373,7 +374,7 @@ s32 Tm_SetDateTimeStr(char *buf)
 {
     s64 nowtime;
     struct tm ptDateTime;
-    int params;
+    s32 params;
 
     memset(&ptDateTime,0,sizeof(ptDateTime));
     params = sscanf(buf,"%d/%d/%d,%d:%d:%d:%d",\
@@ -683,22 +684,25 @@ time_t time(time_t *t)
     return Tm_Time(t);
 }
 
-int gettimeofday(struct timeval *tv, void *tz)
+//TODO：补充 timezone 相关代码
+s32 gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-    int result = -1;
+    s32 result = -1;
 
     if(NULL != tv)
     {
-        tv->tv_sec = time(NULL);
+        tv->tv_usec = Tm_TimeUs(NULL);
+        tv->tv_sec = (time_t)(tv->tv_usec / 1000000);
         result = 0;
     }
 
     return result;
 }
 
-int settimeofday(const struct timeval *tv, const struct timezone *tz)
+//TODO：补充 timezone 相关代码
+s32 settimeofday(const struct timeval *tv, const struct timezone *tz)
 {
-    int result = -1;
+    s32 result = -1;
     time_t timetmp;
     struct tm  time_tm,*time_p;
 
@@ -717,17 +721,18 @@ int settimeofday(const struct timeval *tv, const struct timezone *tz)
     return result;
 }
 
-int gettimezone(int *result)
+s32 gettimezone(s32 *result)
 {
     if(NULL != result)
     {
-        *result = CFG_LOCAL_TIMEZONE;
+        *result = sg_s32MyTimezone;
     }
     return 0;
 }
-int settimezone(int timezone)
+s32 settimezone(s32 timezone)
 {
-    return -1;
+    sg_s32MyTimezone = timezone;
+    return 0;
 }
 
 

@@ -358,7 +358,7 @@ s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
         Chip->Lock =(void*)FlashLock;
     }
 
-    dev_add(NULL,Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip); // 设备接入"/dev"
+    dev_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip); // 设备接入"/dev"
     if(Flags & FLASH_ERASE_ALL)
         EarseWholeChip(Chip);
 

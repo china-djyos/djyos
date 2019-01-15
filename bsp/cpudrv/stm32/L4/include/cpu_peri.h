@@ -67,7 +67,7 @@ extern "C" {
 #endif
 
 #include "stdint.h"
-#include "stm32L4xx.h"
+#include "stm32l4xx.h"
 #include "stm32l4xx_hal_conf.h"
 #include "cpu_peri_gpio.h"
 #include "cpu_peri_iic.h"
@@ -78,7 +78,7 @@ extern "C" {
 //#include "cpu_peri_rtc.h"
 #include "cpu_peri_wwdg.h"
 //#include "cpu_peri_timer.h"
-
+#include "stm32l4xx_hal_tim.h"
 extern struct DMA_StReg volatile * const pg_dma1_reg;
 extern struct DMA_StReg volatile * const pg_dma2_reg;
 

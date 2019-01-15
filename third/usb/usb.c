@@ -58,6 +58,7 @@
 #include "./stm32_usb_host_library/class/hub/inc/usbh_hub.h"
 #include "./stm32_usb_host_library/class/hid/inc/usbh_hid.h"
 #include "usb.h"
+#include <stdlib.h>
 
 USBH_HandleTypeDef gUSBHost[2];
 static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
@@ -80,7 +81,7 @@ __attribute__((weak)) void USB_DeviceReset(u8 bHostID, u8 bDevID)
 // 返回：
 // 备注： 由BSP实现
 // ============================================================================
-__attribute__((weak)) void USB_UserInstall(u16 wHostID)
+__attribute__((weak)) void USB_UserInstall(const char *TargetFs,u16 wHostID)
 {
     wHostID = wHostID;
 }
@@ -585,10 +586,10 @@ s32 USBH_Resume(USBH_HandleTypeDef *pHost)
 // 返回： "0" -- 成功; "-1" -- 失败;
 // 备注：
 // ============================================================================
-s32 ModuleInstall_USB(u8 controller)
+s32 ModuleInstall_USB(const char *TargetFs,u8 controller)
 {
     u16 thread;
-    static char dev_usb = 0;
+//    static char dev_usb = 0;
     char id[2];
     char name[] = "USB #x stack service";
     void USB_ShellInstall(void);
@@ -598,21 +599,19 @@ s32 ModuleInstall_USB(u8 controller)
         error_printf("usb", "too big ID(%d) for usb controller.", controller);
         return (-1);
     }
-    if(dev_usb == 0)
-    {
-        if(dev_group_add("usb"))
-        {
-            error_printf("usb", "cannot create \"usb\" group.");
-            return (-1);
-        }
-        dev_usb = 1;
-    }
+
+//  if(!dev_group_addo("usb"))
+//  {
+//      error_printf("usb", "cannot create \"usb\" group.");
+//      return (-1);
+//  }
     itoa(controller, id, 10);
-    memcpy(&name[5], id, 1); // 初始化线程名
+//  memcpy(&name[5], id, 1); // 初始化线程名
+    name[5] = id[0];
 
     USB_ShellInstall(); // USB 相关shell命令
 
-    USB_UserInstall(controller);
+    USB_UserInstall(TargetFs,controller);
 
     thread = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_RRS, 0, 0,
                             USB_ServiceThread, NULL, 0x2000, name);

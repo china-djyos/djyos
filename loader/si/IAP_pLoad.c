@@ -245,14 +245,18 @@ static u32 __IAP_GetAPPStartAddr(void)
  bool_t IAP_IsRamIbootFlag(void)
  {
     u8 i;
-    for(i=0;i<8;i++)
-    {
-        if(pg_IapVar.IbootFlag[i]!=bootflag[i])
-        {
-            return false;
-        }
-    }
-    return true;
+    if(memcmp(pg_IapVar.IbootFlag,"RunIboot",8) == 0)
+        return true;
+    else
+        return false;
+//  for(i=0;i<8;i++)
+//  {
+//      if(pg_IapVar.IbootFlag[i]!=bootflag[i])
+//      {
+//          return false;
+//      }
+//  }
+//  return true;
  }
 
 //----选择加载项目代码-----------------------------------------------------------
@@ -544,7 +548,9 @@ static s32 __IBOOT_PassMessage(void)
 }
 
 // ============================================================================
-// 功能：初始化信息控制
+// 功能：初始化信息控制，pg_IapVar.message.actions在启动时被赋值，并且pg_IapVar所在
+//      的内存区不会被加载过程覆盖，使无论Iboot和APP，都能调用到正确的__IBOOT_Actions
+//      函数。TODO: 如果APP通过mmu或者mpu使Iboot的text段不可访问呢？
 // 参数：
 // 返回：成功（0）；失败（-1）；
 // 备注：

@@ -138,8 +138,8 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
         frame_buffer->limit_right = frame_bitmap->width;
         frame_buffer->limit_bottom = frame_bitmap->height;
     }
-    Obj = obj_search_child(objsys_root(), "display");     //取显示器目录
-    Obj = obj_newchild(Obj, (fnObjOps)-1, 0, (ptu32_t)display, name);
+    Obj = obj_search_child(obj_root(), "display");     //取显示器目录
+    Obj = obj_newchild(Obj, (fnObjOps)-1, (ptu32_t)display, name);
     if(NULL != Obj)
     {
         display->HostObj = Obj;
@@ -163,7 +163,7 @@ bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
                                struct DisplayObj *mirror_display,char *name)
 {
     struct obj *Obj;
-    Obj = obj_newchild(base_display->HostObj, (fnObjOps)-1, 0, (ptu32_t)mirror_display, name);
+    Obj = obj_newchild(base_display->HostObj, (fnObjOps)-1, (ptu32_t)mirror_display, name);
     if(NULL != Obj)
     {
         mirror_display->HostObj = Obj;
@@ -181,7 +181,7 @@ bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
 bool_t GK_SetDefaultDisplay(const char *name)
 {
     struct obj *Obj;
-    Obj = obj_search_child(objsys_root(), "display");     //取显示器目录
+    Obj = obj_search_child(obj_root(), "display");     //取显示器目录
     Obj = obj_search_child(Obj,name);     //找到被操作的显示器对象
     if(Obj == NULL)
     {

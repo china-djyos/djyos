@@ -116,7 +116,7 @@ static u32  sgNetHardIpAddrMain = 0xC0A80100;
 static u32  sgNetHardIpMsk = 0xFFFFFF00 ; //255.255.255.0
 static u32  sgNetHardGateWay = 0xC0A80101; //192.168.1.1
 static tagRoutTab  *ptNetRout = NULL;
-static tagNetDev   *ptNetDev = NULL;
+static struct NetDev   *ptNetDev = NULL;
 #define CN_PKG_MAX_LEN   1500
 // =============================================================================
 
@@ -377,10 +377,10 @@ void DM9000_TxPacket(unsigned char *datas, int length)
 // 返回值  ：true发送成功  false发送失败。
 // 说明    ：采用拷贝的方式发送，后续考虑使用链表发送
 // =============================================================================
-bool_t DM9000_Send(tagNetDev *dev,tagNetPkg *pkg,u32 netdevtask)
+bool_t DM9000_Send(struct NetDev *dev,struct NetPkg *pkg,u32 netdevtask)
 {
     bool_t  result;
-    tagNetPkg *tmp;
+    struct NetPkg *tmp;
     u16 *mysrc;
     u16 sndlen;
     u16 i;
@@ -396,15 +396,17 @@ bool_t DM9000_Send(tagNetDev *dev,tagNetPkg *pkg,u32 netdevtask)
         sndlen = 0;
         while(NULL != tmp)
         {
-            sndlen +=tmp->datalen;
+            sndlen +=PkgGetDataLen(tmp);
+//          sndlen +=tmp->datalen;
 
-            if(tmp->pkgflag&CN_PKLGLST_END)
+//          if(tmp->pkgflag&CN_PKLGLST_END)
+            if(PkgIsBufferEnd(tmp))
             {
                 tmp = NULL;
             }
             else
             {
-                tmp = tmp->partnext;
+                tmp = PkgGetNextUnit(tmp);
             }
         }
         atom = Int_LowAtomStart();
@@ -422,20 +424,22 @@ bool_t DM9000_Send(tagNetDev *dev,tagNetPkg *pkg,u32 netdevtask)
 
         while(NULL!= tmp)
         {
-            sndlen = tmp->datalen;
-            mysrc = (u16 *)(tmp->buf + tmp->offset);
+            sndlen = PkgGetDataLen(tmp);
+//          sndlen = tmp->datalen;
+            mysrc = (u16 *)PkgGetCurrentBuffer(tmp);
+//          mysrc = (u16 *)(tmp->buf + tmp->offset);
             //发送数据
             for(i=0;i<sndlen;i+=2)
             {
                 DM_DATA_PORT = *mysrc++;  //8位数据转换为16位数据输出
             }
-            if(PKG_ISLISTEND(tmp))
+            if(PkgIsBufferEnd(tmp))
             {
                 tmp = NULL;
             }
             else
             {
-                tmp = tmp->partnext;
+                tmp = PkgGetNextUnit(tmp);
             }
         }
         //ok now start transfer;
@@ -463,12 +467,12 @@ bool_t DM9000_Send(tagNetDev *dev,tagNetPkg *pkg,u32 netdevtask)
 // 返回值  ：
 // 说明    ：网卡读数据
 // =============================================================================
-tagNetPkg *DM9000_RcvPacket(tagNetDev *netdev)
+struct NetPkg *DM9000_RcvPacket(struct NetDev *netdev)
 {
     s32   rx_length,i;
     u8    rx_ready;
     u16 rx_status;
-    tagNetPkg *pkg=NULL;
+    struct NetPkg *pkg=NULL;
 
     u16 *dst;
     atom_low_t atom;
@@ -487,11 +491,11 @@ tagNetPkg *DM9000_RcvPacket(tagNetDev *netdev)
         if((rx_length > 0) && (rx_length <= CN_PKG_MAX_LEN))
         {
             pkg =PkgMalloc(rx_length,0);
-            pkg->partnext = NULL;
         }
         if(pkg != NULL)
         {
-            dst = (u16 *)(pkg->buf + pkg->offset);
+            dst = (u16 *)PkgGetCurrentBuffer(pkg);
+//          dst = (u16 *)(pkg->buf + pkg->offset);
             if(!(rx_status & 0xbf00) && (rx_length < 10000))//判读数据是否符合要求
             {
                 for(i=0; i<rx_length; i+=2)          //16位数据转换为8位数据存储
@@ -499,8 +503,8 @@ tagNetPkg *DM9000_RcvPacket(tagNetDev *netdev)
                     *dst++ = DM_DATA_PORT;
                 }
             }
-            pkg->datalen = rx_length;
-            pkg->partnext= NULL;
+            PkgSetDataLen(pkg, rx_length);
+//          pkg->datalen = rx_length;
         }
     }
     Int_LowAtomEnd(atom);
@@ -543,7 +547,7 @@ u32 DM9000_ISR_Handler(ptu32_t IntLine)
 
 ptu32_t Dm9000Rcv(void)
 {
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
 
     while(1)
     {
@@ -602,7 +606,7 @@ bool_t DM9000_AddNetDev(void)
     devpara.devfunc = 0x00;//0xFF;//所有属性都配置上
     memcpy(devpara.mac, sgNetHardMac,6);
     devpara.name = "DM9000NetDriver";
-    devpara.private = 0;
+    devpara.Private = 0;
     devpara.linklen = 14;
     devpara.pkglen = 1500;
 

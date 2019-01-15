@@ -55,6 +55,7 @@
 //   新版本号：V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
+#ifdef CFG_CORTEX_M0
 #include "arch_feature.h"
 #include "stdint.h"
 #include "int.h"
@@ -103,6 +104,9 @@ void Startup_Hardfault(void)
 #include <silan_m0_cache.h>
 #include <silan_bootspi.h>
 #include <silan_sdram.h>
+#include "silan_syscfg_regs.h"
+
+
 static void SystemInit(void)
 {
     silan_pmu_wdt_reset_disable();
@@ -122,6 +126,8 @@ static void SystemInit(void)
 
 static void ResetInit(void)
 {
+     __REG32(SILAN_SYSCFG_REG11) &= ~(0x1);
+    __REG32(SILAN_SYSCFG_REG11) &= ~(0x1<<2);
     silan_audiopll_init();
     silan_syspll_init(SYSPLL_SSCG_OFF);
     silan_sysclk_change(SYSCLK_FROM_PLL, SYSPLL_160M);
@@ -177,6 +183,7 @@ void AppStart(void)
 }
 
 
+
 //-----------------------------------------------------------------
 //功能：IAP组件控制运行模式所需的GPIO引脚初始化，由于此时系统还没有加载，只能使
 //      用直接地址操作，不能调用gpio相关的库函数。
@@ -213,4 +220,50 @@ bool_t IAP_IsForceIboot(void)
     return false;
 
 }
+#endif
+
+#ifdef CFG_CK803S
+#include "csi_core.h"
+#include "arch_feature.h"
+#include "project_config.h"
+
+extern void Load_Preload(void);
+
+void Init_Cpuc(void)
+{
+    /* Here we may setting exception vector, MGU, cache, and so on. */
+//  csi_cache_set_range(0, 0x00000000, CACHE_CRCR_4M, 1);
+//  csi_cache_set_range(1, 0x22000000, CACHE_CRCR_8M, 1);
+//  csi_dcache_enable();
+
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
+    IAP_SelectLoadProgam();
+#endif
+}
+
+void IAP_GpioPinInit(void)
+{
+
+}
+
+bool_t IAP_IsForceIboot(void)
+{
+    return false;
+}
+
+void epc_test(uint32_t r_epc)
+{
+    if(r_epc>=0x021e0100)
+    {
+        return;
+    }
+    else if(r_epc<=0x02160000)
+    {
+        return;
+    }
+}
+
+#endif
 

@@ -2,6 +2,7 @@
 <cpu>
    <cpuName>imxrt1052</cpuName>
    <core id="1">
+  	  <name>cortex-m7</name>
       <type>arm</type>
       <arch>armv7e-m</arch>
       <family>cortex-m7</family>

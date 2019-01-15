@@ -153,7 +153,7 @@ s32  ModuleInstall_SD(const char *ChipName, s32 Clean)
     Ret = SD_Init();
     if(SD_OK == Ret)
     {
-        if(dev_add(NULL, Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)&SDDrv))
+        if(dev_Create(Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)&SDDrv))
             return (0);// ³É¹¦
     }
 

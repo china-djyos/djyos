@@ -3,6 +3,7 @@
  ****************************************************/
 
 #include "project_config.h"
+#include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
@@ -50,13 +51,16 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
+
 	extern s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat);
 	extern s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
 			u8 parts, ...);
 	ModuleInstall_UnitMedia(__embed_part_init,1,0,150,1);
 
 	extern s32 ModuleInstall_IAP_FS(const char *target, const char *source, u32 opt);
-	ModuleInstall_IAP_FS("/iboot","/dev/unit media/embed part 0",0);
+//	ModuleInstall_IAP_FS("iboot","/dev/unit media/embed part 0",0);
+	ModuleInstall_IAP_FS("iboot", "/dev/embed part 0", 0);
+
 
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP();
@@ -64,10 +68,10 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_Ymodem(void);
 	ModuleInstall_Ymodem();
 
-	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_HardTimer(void);
 	ModuleInstall_HardTimer();
 
+	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_Timer(void);
 	ModuleInstall_Timer();
 

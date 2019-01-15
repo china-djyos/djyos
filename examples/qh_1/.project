@@ -26,11 +26,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/iboot/gdd_test</name>
-			<type>2</type>
-			<locationURI>PARENT-2-PROJECT_LOC/test/gdd_test</locationURI>
-		</link>
-		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>
 			<locationURI>DJYOS_SRC_LOCATION/bsp</locationURI>

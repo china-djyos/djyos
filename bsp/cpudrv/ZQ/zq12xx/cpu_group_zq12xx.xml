@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <cpu>
-   <core id="1">
-      <type>arm</type>
-      <arch>armv6-m</arch>
-      <family>cortex-m0</family>
-      <floatABI>soft</floatABI>
-   </core>
+   <core id="1"/>
+   <core id="2"/>
 </cpu>

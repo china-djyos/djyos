@@ -388,10 +388,10 @@ static void __dm9000HardInit(tagDm9000Dev *dm9000)
 // 返回值  ：true发送成功  false发送失败。
 // 说明    ：采用拷贝的方式发送，后续考虑使用链表发送
 // =============================================================================
-static bool_t __dm9000Snd(ptu32_t handle,tagNetPkg *pkg,u32 netdevtask)
+static bool_t __dm9000Snd(ptu32_t handle,struct NetPkg *pkg,u32 netdevtask)
 {
     bool_t  result;
-    tagNetPkg *tmp;
+    struct NetPkg *tmp;
     u8 *mysrc;
     u16 sndlen;
     u16 i,u16Data,sndTimeout = 5000;
@@ -406,18 +406,19 @@ static bool_t __dm9000Snd(ptu32_t handle,tagNetPkg *pkg,u32 netdevtask)
         //cout the len
         tmp = pkg;
         sndlen = 0;
-        while(NULL != tmp)
-        {
-            sndlen +=tmp->datalen;
-            if(PKG_ISLISTEND(tmp))
-            {
-                tmp = NULL;
-            }
-            else
-            {
-                tmp = tmp->partnext;
-            }
-        }
+        PkgFrameDatastatistics(tmp);
+//      while(NULL != tmp)
+//      {
+//          sndlen +=tmp->datalen;
+//          if(PkgIsBufferEnd(tmp))
+//          {
+//              tmp = NULL;
+//          }
+//          else
+//          {
+//              tmp = PkgGetNextUnit(tmp);
+//          }
+//      }
         if(Lock_MutexPend(&dm9000->devsync,CN_TIMEOUT_FOREVER))
         {
             /* 检查 dm9000 是否还在传送中！若是等待直到传送结束 */
@@ -437,8 +438,10 @@ static bool_t __dm9000Snd(ptu32_t handle,tagNetPkg *pkg,u32 netdevtask)
 
             while(NULL!= tmp)
             {
-                sndlen = tmp->datalen;
-                mysrc = (u8 *)(tmp->buf + tmp->offset);
+                sndlen = PkgGetDataLen(tmp);
+//              sndlen = tmp->datalen;
+                mysrc = PkgGetCurrentBuffer(pkg);
+//              mysrc = (u8 *)(tmp->buf + tmp->offset);
                 //发送数据
                 i = sndlen;
                 while(i > 1)
@@ -453,13 +456,13 @@ static bool_t __dm9000Snd(ptu32_t handle,tagNetPkg *pkg,u32 netdevtask)
                     u16Data = (u16)((*mysrc++) & 0x00FF);
                     *dm9000->dataddr = u16Data;
                 }
-                if(PKG_ISLISTEND(tmp))
+                if(PkgIsBufferEnd(tmp))
                 {
                     tmp = NULL;
                 }
                 else
                 {
-                    tmp = tmp->partnext;
+                    tmp = PkgGetNextUnit(tmp);
                 }
             }
             //ok now start transfer;
@@ -494,12 +497,12 @@ static bool_t __dm9000Snd(ptu32_t handle,tagNetPkg *pkg,u32 netdevtask)
 // 返回值  ：
 // 说明    ：网卡读数据
 // =============================================================================
-static tagNetPkg *__dm9000RcvPkg(tagDm9000Dev *dm9000)
+static struct NetPkg *__dm9000RcvPkg(tagDm9000Dev *dm9000)
 {
     s32   rx_length,i;
     u8    rx_ready;
     u16 rx_status;
-    tagNetPkg *pkg=NULL;
+    struct NetPkg *pkg=NULL;
     u16 *dst;
 
     if(Lock_MutexPend(&dm9000->devsync,CN_TIMEOUT_FOREVER))
@@ -521,11 +524,11 @@ static tagNetPkg *__dm9000RcvPkg(tagDm9000Dev *dm9000)
                     pkg =PkgMalloc(rx_length+1,0);
                 else
                     pkg =PkgMalloc(rx_length,0);
-                pkg->partnext = NULL;
             }
             if(pkg != NULL)
             {
-                dst = (u16 *)(pkg->buf + pkg->offset);
+                dst = (u16 *)PkgGetCurrentBuffer(pkg);
+//              dst = (u16 *)(pkg->buf + pkg->offset);
                 if(!(rx_status & 0xbf00) && (rx_length < 10000))//判读数据是否符合要求
                 {
                     for(i=0; i<rx_length; i+=2)          //16位数据转换为8位数据存储
@@ -533,8 +536,8 @@ static tagNetPkg *__dm9000RcvPkg(tagDm9000Dev *dm9000)
                         *dst++ = *dm9000->dataddr;
                     }
                 }
-                pkg->datalen = rx_length;
-                pkg->partnext= NULL;
+                PkgSetDataLen(pkg, rx_length);
+//              pkg->datalen = rx_length;
             }
         }
         else if(rx_ready == 0)
@@ -558,7 +561,7 @@ static tagNetPkg *__dm9000RcvPkg(tagDm9000Dev *dm9000)
 static ptu32_t dm9000Rcv(void)
 {
     u8  rcvstat;
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     tagDm9000Dev *dm9000;
 
     Djy_GetEventPara((ptu32_t *)&dm9000,NULL);
@@ -642,9 +645,9 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
     devpara.devfunc = 0x00;//COULD DO NO CRC
     memcpy(devpara.mac, dm9000->devmac,CN_MACADDR_LEN);
     devpara.name = dm9000->devname;
-    devpara.private = 0;
+    devpara.Private = 0;
     devpara.mtu = 14;
-    devpara.private = (ptu32_t)dm9000;
+    devpara.Private = (ptu32_t)dm9000;
     dm9000->handle = NetDevInstall(&devpara);
 
     if(0 == dm9000->handle)
@@ -676,7 +679,7 @@ EVTT_FAILED:
 
 static tagDm9000Dev *pDm9000;
 //bool_t dm9000debuginfo(char* param)
-ADD_TO_SHELL_HELP(dm9000,"dm9000 debug info");
+ADD_TO_IN_SHELL_HELP(dm9000,"dm9000 debug info");
 ADD_TO_IN_SHELL bool_t dm9000(char* param)
 {
     u8 rAddrH,rAddrL;
@@ -697,7 +700,7 @@ ADD_TO_IN_SHELL bool_t dm9000(char* param)
     return 1;
 }
 //bool_t dm9000reg(char *param)
-ADD_TO_SHELL_HELP(dm9000reg,"print dm9000 reg");
+ADD_TO_IN_SHELL_HELP(dm9000reg,"print dm9000 reg");
 ADD_TO_IN_SHELL bool_t dm9000reg(char *param)
 {
     __showDm9000Reg(pDm9000);
@@ -705,38 +708,15 @@ ADD_TO_IN_SHELL bool_t dm9000reg(char *param)
 }
 
 //bool_t dm9000Reset(char *param)
-ADD_TO_SHELL_HELP(dm9000reset,"reset dm9000");
+ADD_TO_IN_SHELL_HELP(dm9000reset,"reset dm9000");
 ADD_TO_IN_SHELL bool_t dm9000reset(char *param)
 {
     __dm9000HardInit(pDm9000);
     return 1;
 }
 
-static struct shell_debug  gDm9000Debug[] =
-{
-    {
-        "dm9000",
-        dm9000,
-        "dm9000 debug info",
-        NULL
-    },
-    {
-        "dm9000reg",
-        dm9000reg,
-        "print dm9000 reg",
-        NULL
-    },
-    {
-        "dm9000reset",
-        dm9000reset,
-        "reset dm9000",
-        NULL
-    }
-};
 
 
-#define CN_DM9000DEBUG_NUM  ((sizeof(gDm9000Debug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gGdm9000DebugCmdRsc[CN_DM9000DEBUG_NUM];
 
 //THIS FUNCTION USED BY USER TO INSTALL AN DM9000 DEV WITH THE SPECIFIED NAME AND MAC
 bool_t Dm9000Install(tagDm9000Para *para)
@@ -782,7 +762,6 @@ bool_t Dm9000Install(tagDm9000Para *para)
     DM9000_DBG("%s:ISNTALL DM9000 DEV SUCCESS\n\r",__FUNCTION__);
     pDm9000 = dm9000;
     __showDm9000Reg(dm9000);
-    shell_debug_add(gDm9000Debug, CN_DM9000DEBUG_NUM);
     return res;
 
 

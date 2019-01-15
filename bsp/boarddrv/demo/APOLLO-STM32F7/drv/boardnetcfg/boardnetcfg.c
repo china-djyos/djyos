@@ -88,11 +88,8 @@
 #define CFG_NETCARD_NAME    "APOLLO_ETH"    //"网卡名",
 //%$#@string,7,15
 #define CFG_MY_IPV4         "192.168.0.179" //"静态IP",
-//%$#@string,7,15
 #define CFG_MY_SUBMASK      "255.255.255.0" //"子网掩码",
-//%$#@string,7,15
 #define CFG_MY_GATWAY       "192.168.0.1"   //"网关",
-//%$#@string,7,15
 #define CFG_MY_DNS          "192.168.0.1"   //"DNS",
 //%$#@select
 //%$#@free
@@ -130,7 +127,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     //use the signature as the mac address
     signature[0] = signature[1]+signature[2]+signature[3];
     memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
-    gc_NetMac[0]=0x00;
+    gc_NetMac[0]=0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
     //install the net device you used,you could use more than one, but they
     //has different names and macs
     //use the corresponding net device install function you use

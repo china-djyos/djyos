@@ -90,7 +90,6 @@
 
 
 //这里的gpio只定义了一部分 复用到不同的GPIO还需根据手册添加
-
 static const Pin uart1_pin[] = {
 
         {GPIO_A,PIN10,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
@@ -358,7 +357,7 @@ void Lcd_BackLight_OnOff(u8 onoff)
 }
 
 //电容触摸芯片IIC接口初始化
-void Board_FT5X26_Int_Gpio(void)
+void FT5X26_Pin_Init(void)
 {
     GPIO_PowerOn(GPIO_H);
     GPIO_PowerOn(GPIO_I);
@@ -370,28 +369,72 @@ void Board_FT5X26_Int_Gpio(void)
 
 }
 
-void Board_FT5X26_RST(void)
+void PCF8574_Pin_Init(void)
 {
-    FT_RST(0);    //复位
-    Djy_DelayUs(20*mS);
-    FT_RST(1);   //释放复位
-    Djy_DelayUs(50*mS);
+    GPIO_InitTypeDef GPIO_Initure;
+    __HAL_RCC_GPIOB_CLK_ENABLE();           //使能GPIOB时钟
+
+    GPIO_Initure.Pin=GPIO_PIN_12;           //PB12
+    GPIO_Initure.Mode=GPIO_MODE_INPUT;      //输入
+    GPIO_Initure.Pull=GPIO_PULLUP;          //上拉
+    GPIO_Initure.Speed=GPIO_SPEED_HIGH;     //高速
+    HAL_GPIO_Init(GPIOB,&GPIO_Initure);     //初始化
+
+    //IIC初始化
+    GPIO_PowerOn(GPIO_H);   //使能GPIOH时钟
+    //PH4,5初始化设置
+    GPIO_Initure.Pin=GPIO_PIN_4|GPIO_PIN_5;
+    GPIO_Initure.Mode=GPIO_MODE_OUTPUT_PP;  //推挽输出
+    GPIO_Initure.Pull=GPIO_PULLUP;          //上拉
+    GPIO_Initure.Speed=GPIO_SPEED_FAST;     //快速
+    HAL_GPIO_Init(GPIOH,&GPIO_Initure);
+
+
+    //检查PCF8574是否在位
+//    IIC_Start();
+//    IIC_Send_Byte(PCF8574_ADDR);            //写地址
+//    temp=IIC_Wait_Ack();                    //等待应答,通过判断是否有ACK应答,来判断PCF8574的状态
+//    IIC_Stop();                             //产生一个停止条件
+//    PCF8574_WriteOneByte(0XFF);             //默认情况下所有IO输出高电平
+//    return temp;
 }
 
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 {
-    switch(IO)
+    switch(tag)
     {
-    case scl_set_High : CT_IIC_SCL(1); break;
-    case scl_set_Low  : CT_IIC_SCL(0); break;
-    case scl_set_out  : CT_SCL_OUT();  break;
-    case sda_set_High : CT_IIC_SDA(1); break;
-    case sda_get      : return CT_READ_SDA;
-    case sda_set_Low  : CT_IIC_SDA(0); break;
-    case sda_set_out  : CT_SDA_OUT();  break;
-    case sda_set_in   : CT_SDA_IN();   break;
-    default:
+        case 1 :
+            switch(IO)
+            {
+            case scl_set_High : CT_IIC_SCL(1); break;
+            case scl_set_Low  : CT_IIC_SCL(0); break;
+            case scl_set_out  : CT_SCL_OUT();  break;
+            case sda_set_High : CT_IIC_SDA(1); break;
+            case sda_get      : return CT_READ_SDA;
+            case sda_set_Low  : CT_IIC_SDA(0); break;
+            case sda_set_out  : CT_SDA_OUT();  break;
+            case sda_set_in   : CT_SDA_IN();   break;
+            default:
+                break;
+            }
         break;
+        case 2 :
+            switch(IO)
+            {
+            case scl_set_High : PCF_IIC_SCL(1); break;
+            case scl_set_Low  : PCF_IIC_SCL(0); break;
+            case scl_set_out  : PCF_SCL_OUT();  break;
+            case sda_set_High : PCF_IIC_SDA(1); break;
+            case sda_get      : return PCF_READ_SDA;
+            case sda_set_Low  : PCF_IIC_SDA(0); break;
+            case sda_set_out  : PCF_SDA_OUT();  break;
+            case sda_set_in   : PCF_SDA_IN();   break;
+            default:
+                break;
+            }
+        break;
+        default:
+            break;
     }
     return 0;
 }
@@ -410,7 +453,7 @@ void Board_GpioInit(void)
     ETH_RESE( );//网口复位
 #endif
     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
-//     PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
+//   PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
     PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));
 //     PIO_Configure(uart8_pin, PIO_LISTSIZE(uart8_pin));
 //     PIO_Configure(SDMMC_Pins, PIO_LISTSIZE(SDMMC_Pins));

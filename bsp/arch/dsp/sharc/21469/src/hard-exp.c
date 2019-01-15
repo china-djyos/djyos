@@ -117,38 +117,6 @@ bool_t Sh_RestartSystem(char *param);
 
 
 
-//异常shell扩展命令
-struct shell_debug const shell_cmd_reset_table[]=
-{
-
-    {
-        "reset",
-        Sh_SoftwareReset,
-        "Reset, like the power on!",
-        "COMMAND: reset+enter"
-    },
-    {
-         "reboot",
-        Sh_Reboot,
-        "Reboot, go to the os version check to boot!",
-        "COMMAND: reboot+enter"
-
-    },
-
-
-    {
-         "restart-system",
-        Sh_RestartSystem,
-        "Only to restart the operating system",
-        "COMMAND: restart-system+enter"
-
-    },
-
-};
-
-#define cn_reset_shell_num  sizeof(shell_cmd_reset_table)/sizeof(struct shell_debug)
-//static struct ShellCmdRsc tg_reset_shell_cmd_rsc[cn_reset_shell_num];
-
 
 //定义各种异常向量名字
 static char *s_pcMajorExpNameTab[CN_MAJOREXP_INVALID] =
@@ -814,7 +782,6 @@ bool_t HardExp_InfoDecoderInit(void)
 ptu32_t module_exp_shell_init(ptu32_t para)
 {
     para=para;
-    shell_debug_add(shell_cmd_reset_table, cn_reset_shell_num);
     return 1;
 }
 

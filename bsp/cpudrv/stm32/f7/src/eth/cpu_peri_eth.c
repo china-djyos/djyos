@@ -886,6 +886,7 @@ ADD_TO_IN_SHELL bool_t macfiltdis(char *param)
     return true;
 }
 
+
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -970,7 +971,6 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_IsrConnect(CN_INT_LINE_ETH,ETH_IntHandler);
         Int_ContactLine(CN_INT_LINE_ETH);
     }
-
     printf("%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

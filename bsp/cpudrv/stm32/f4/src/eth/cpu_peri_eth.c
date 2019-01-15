@@ -585,7 +585,7 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 //show the gmac status
 //bool_t macdebuginfo(char *param)
 
-ADD_TO_SHELL_HELP(mac,"usage:gmac");
+ADD_TO_IN_SHELL_HELP(mac,"usage:gmac");
 ADD_TO_IN_SHELL bool_t mac(char *param)
 
 {
@@ -635,7 +635,7 @@ ADD_TO_IN_SHELL bool_t mac(char *param)
 #define CN_GMAC_REG_BASE   ((u32)ETH)
 //bool_t MacReg(char *param)
 
-ADD_TO_SHELL_HELP(macreg,"usage:MacReg");
+ADD_TO_IN_SHELL_HELP(macreg,"usage:MacReg");
 ADD_TO_IN_SHELL bool_t macreg(char *param)
 {
     vu32    i;
@@ -723,7 +723,7 @@ ADD_TO_IN_SHELL bool_t macreg(char *param)
 }
 
 //bool_t MacReset(char *param)
-ADD_TO_SHELL_HELP(macreset,"usage:reset gmac");
+ADD_TO_IN_SHELL_HELP(macreset,"usage:reset gmac");
 ADD_TO_IN_SHELL bool_t macreset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
@@ -733,7 +733,7 @@ ADD_TO_IN_SHELL bool_t macreset(char *param)
 }
 
 //bool_t MacSndEn(char *param)
-ADD_TO_SHELL_HELP(macsnden,"usage:MacSndEn");
+ADD_TO_IN_SHELL_HELP(macsnden,"usage:MacSndEn");
 ADD_TO_IN_SHELL bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
@@ -749,7 +749,7 @@ ADD_TO_IN_SHELL bool_t macsnden(char *param)
 }
 
 //bool_t MacSndDis(char *param)
-ADD_TO_SHELL_HELP(macsnddis,"usage:MacSndDis");
+ADD_TO_IN_SHELL_HELP(macsnddis,"usage:MacSndDis");
 ADD_TO_IN_SHELL bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
@@ -763,72 +763,6 @@ ADD_TO_IN_SHELL bool_t macsnddis(char *param)
     return true;
 }
 
-static struct shell_debug  gMacDebug[] =
-{
-    {
-        "mac",
-        mac,
-        "usage:mac",
-        NULL
-    },
-    {
-        "macreg",
-        macreg,
-        "usage:macreg",
-        NULL
-    },
-//    {
-//        "macpost",
-//        gmacpost,
-//        "usage:gmacpost",
-//        NULL
-//    },
-//    {
-//        "macrcvbd",
-//        gmacrcvbdcheck,
-//        "usage:gmacrcvbd",
-//        NULL
-//    },
-//    {
-//        "macsndbd",
-//        gmacsndbdcheck,
-//        "usage:gmacsndbd",
-//        NULL
-//    },
-    {
-        "macreset",
-        macreset,
-        "usage:reset gmac",
-        NULL
-    },
-//    {
-//        "macdelay",
-//        MacDelay,
-//        "usage:MacDelay",
-//        NULL
-//    },
-//    {
-//        "macsndbdclear",
-//        MacSndBDClear,
-//        "usage:MacSndBdClear + ndnum",
-//        NULL
-//    }
-    {
-        "macsnden",
-        macsnden,
-        "usage:macsnden",
-        NULL
-    },
-    {
-        "macsnddis",
-        macsnddis,
-        "usage:macsnddis",
-        NULL
-    },
-};
-
-#define CN_GMACDEBUG_NUM  ((sizeof(gMacDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gMacDebugCmdRsc[CN_GMACDEBUG_NUM];
 
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
@@ -920,7 +854,6 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_ContactLine(CN_INT_LINE_ETH);
     }
 
-    shell_debug_add(gMacDebug, CN_GMACDEBUG_NUM);
     info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

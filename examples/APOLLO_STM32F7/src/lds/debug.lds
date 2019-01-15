@@ -303,7 +303,8 @@ SECTIONS
         LONG(InnerFlashRange - IbootSize)       
     }>InnerFlash
     
-    r_In_shell_section :
+    
+	r_In_shell_section :
 	{
    		 . = ALIGN(0x08);
    		 KEEP(* (.in_shell_cmd))
@@ -332,8 +333,7 @@ SECTIONS
     {
         p_shell_info = .;
         LONG(gc_ptIbootCtrl) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG( LENGTH(InnerFlash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
-        
+        LONG( LENGTH(InnerFlash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/        
     }>InnerFlash 
 }
 /**** The End ****/

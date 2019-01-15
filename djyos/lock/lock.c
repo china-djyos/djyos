@@ -119,8 +119,6 @@
 //@#$%component end configure
 
 
-static struct obj *s_ptMutexObject=NULL;
-static struct obj *s_ptSempObject=NULL;
 //说明： CFG_LOCK_LIMIT 是用户配置的，由于用户并不知道操作系统需要用多少信号量，
 //      所以操作系统并不占用 CFG_LOCK_LIMIT 指标，用户使用的信号量从
 //      tg_semp_pool定义的内存池中分配，操作系统使用的信号量自己定义，两不
@@ -133,18 +131,18 @@ struct MemCellPool *g_ptLockPool;  //信号量结构内存池头指针
 //static struct MutexLCB *s_tMutexHead;
 static struct dListNode s_tSempHead = {&s_tSempHead, &s_tSempHead};
 static struct dListNode s_tMutexHead = {&s_tMutexHead, &s_tMutexHead};
-static struct objhandle *s_ptSempFp;
-static struct objhandle *s_ptMutexFp;
 
 extern void __Djy_EventReady(struct EventECB *event_ready);
 extern void __Djy_ResumeDelay(struct EventECB *delay_event);
 extern void __Djy_AddToDelay(u32 u32l_uS);
 extern void __Djy_AddRunningToBlock(struct EventECB **Head,bool_t Qsort,u32 timeout,u32 Status);
 
-void __Lock_ShowSemp(struct obj *fp);
-void __Lock_ShowMutex(struct obj *fp);
-ptu32_t Lock_SempObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...);
-ptu32_t Lock_MutexObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...);
+void __Lock_ShowSemp(void);
+void __Lock_ShowMutex(void);
+s32 Lock_SempObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3);
+s32 Lock_MutexObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 
 //----初始化锁模块模块step1----------------------------------------------------
 //功能：初始化信号量模块的第一步，此后可以调用除semp_create和mutex_create以外的
@@ -212,12 +210,12 @@ ptu32_t __InitLock(void)
 // 返回：
 // 备注：
 // ============================================================================
-s32 mount_lock_system(void)
+s32 Lock_CreateObject(void)
 {
-    if(!obj_newchild_set(objsys_root(), "mutex", (fnObjOps)Lock_MutexObjOps, 0, O_RDWR))
+    if(!obj_newchild(obj_root(), (fnObjOps)Lock_MutexObjOps, 0, "mutex"))
         return (-1);
 
-    if(!obj_newchild_set(objsys_root(), "semaphore", (fnObjOps)Lock_SempObjOps, 0, O_RDWR))
+    if(!obj_newchild(obj_root(), (fnObjOps)Lock_SempObjOps, 0, "semaphore"))
         return (-1);
 
     return (0);
@@ -716,6 +714,10 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
     struct EventECB *pl_ecb;
     bool_t lamp,sch;
 
+    if(Djy_IsMultiEventStarted() == false)
+    {
+        return true;        //如果调度还未开始则直接返回true
+    }
     if(mutex == NULL)
     {
         if(Int_GetRunLevel() == 0)
@@ -915,7 +917,7 @@ u16 Lock_MutexGetOwner(struct MutexLCB *mutex)
         return CN_EVENT_ID_INVALID;
 }
 
-void __Lock_ShowMutex(struct obj *fp)
+void __Lock_ShowMutex(void)
 {
     struct dListNode *current;
     struct MutexLCB *Mutex;
@@ -971,31 +973,31 @@ void __Lock_ShowMutex(struct obj *fp)
 //      para，无用
 //返回：true
 //-----------------------------------------------------------------------------
-ptu32_t Lock_MutexObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...)
+s32 Lock_MutexObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-    s32 result = 0;
+    s32 result = CN_OBJ_CMD_EXECUTED;
 
-    switch(ops)
+    switch(objcmd)
     {
-#if 0
         case CN_OBJ_CMD_SHOW:
         {
-            __Lock_ShowMutex((struct obj*)context);
+            __Lock_ShowMutex( );
+            result = CN_OBJ_CMD_TRUE;
             break;
         }
-#endif
 
         default:
         {
-            result = OBJUNSUPPORTED;
+            result = CN_OBJ_CMD_UNSUPPORT;
             break;
         }
     }
 
-    return ((ptu32_t)result);
+    return (result);
 }
 
-void __Lock_ShowSemp(struct obj *fp)
+void __Lock_ShowSemp(void)
 {
     struct dListNode *current;
     struct SemaphoreLCB *Semp;
@@ -1041,26 +1043,26 @@ void __Lock_ShowSemp(struct obj *fp)
 //      para，无用
 //返回：true
 //-----------------------------------------------------------------------------
-ptu32_t Lock_SempObjOps(enum objops ops, ptu32_t oof, ptu32_t args, ...)
+s32 Lock_SempObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-    s32 result = 0;
+    s32 result = CN_OBJ_CMD_EXECUTED;
 
-    switch(ops)
+    switch(objcmd)
     {
-#if 0
         case CN_OBJ_CMD_SHOW:
         {
-            __Lock_ShowSemp((struct obj*)context);
+            __Lock_ShowSemp( );
+            result = CN_OBJ_CMD_TRUE;
             break;
         }
-#endif
         default:
         {
-            result = OBJUNSUPPORTED;
+            result = CN_OBJ_CMD_UNSUPPORT;
             break;
         }
     }
 
-    return (ptu32_t)result;
+    return result;
 }
 

@@ -53,10 +53,15 @@
 #include <spibus.h>
 #include <systime.h>
 #include <math.h>
+#include "at45db321.h"
+#include <dbug.h>
+#include <filesystems.h>
 struct FlashChip *pNOR;
 struct NorDescr *nordescription;
 extern u32 AT45_OP_TIMEOUT;
 struct MutexLCB *pAT45_FsLock;   //芯片互斥访问保护
+extern struct SPI_Device *s_ptAT45_Dev;
+extern struct obj *s_ptDeviceRoot;
 #if 1
 s32 __at45_write(s64 unit, void *data, struct uopt opt);
 s32 __at45_read(s64 unit, void *data, struct uopt opt);
@@ -399,7 +404,7 @@ static s32 __AT45_BlockErase(u32 dwBlock)
     Lock_MutexPost(pAT45_FsLock);
     return (res);
 }
-#if 1
+#if 0
 // ============================================================================
 // 功能：查询页所在的块号，及其所在块的剩余页。
 // 参数：dwPage -- 页号；（从零计）pRemain -- 剩余页数；pBlock -- 块号；（从零计）
@@ -420,6 +425,7 @@ static s32 __AT45_PageToBlock(u32 dwPage, u32 *pRemain, u32 *pBlock)
 }
 #endif
 
+#if 0
 // ============================================================================
 // 功能：初始化SPI FLASH模块，校验芯片ID是否正确
 // 参数：pName -- 设备名；
@@ -525,7 +531,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         partition->Ops.ErsBlk = __AT45_BlockErase;
         partition->Ops.PageToBlk = __AT45_PageToBlock;
 
-        if(!dev_add(NULL, name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
+        if(!dev_Create(name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)partition))
         {
             free(buf);
             printf("\r\n: erro : device : register AT45db321 failed.");
@@ -616,8 +622,7 @@ s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
 
     return (0);
 }
-
-
+#endif
 
 
 
@@ -782,21 +787,27 @@ s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
 
 // ============================================================================
 // 功能：初始化SPI FLASH模块，用做文件系统
-// 参数：pName -- 设备名；
+// 参数：   fs -- 该媒体所要安装文件系统mount点名字；
+//      MountPart -- 文件系统安装在第几个分区
 //      dwStart -- 起始块；
 //      dwSize -- 块数；
 //      dwSpecial -- 擦除该区域（1）；不擦除该区域（0）；
-//      pPrivate -- 通信线
 // 返回：成功初始化（0）；初始化失败（-1）；
 // 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
 // ============================================================================
-s32 __AT45_PartitionInit(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, void *pPrivate)
+s32 __AT45_PartitionInit(const char *fs, s32 MountPart, u32 dwStart, u32 dwSize, u32 dwSpecial)
 {
     static u8 number = 0; // 分区号，从1算逻辑。
     struct umedia *um;
     struct uopt opt;
-    char *name;
+    char *name,*FullPath;
 
+    static char *pName = "AT45DB321E";    //要和ModuleInstall_at45db321中的name保持一致
+    if(s_ptAT45_Dev == NULL)
+    {
+        printf("\r\n: error : device : AT45 not add the SPI.");
+        return (-1);
+    }
     if(0 == dwSize)
     {
         return (0); // 不做处理
@@ -816,7 +827,7 @@ s32 __AT45_PartitionInit(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
     }
 
     sprintf(name, "%s%s", pName, " part ");
-    itoa(number++, (name+strlen(name)), 10);
+    itoa(number, (name+strlen(name)), 10);
     if(!nordescription) //初始化nor的信息
     {
         nordescription = malloc(sizeof(struct NorDescr));
@@ -831,7 +842,7 @@ s32 __AT45_PartitionInit(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
         // AT45的sector比block大，而且sector的大小不一致。这里逻辑上就将sector等于page，
         // 忽然sector,block最大。
         nordescription->PortType = NOR_SPI;
-        nordescription->Port = pPrivate;
+        nordescription->Port = s_ptAT45_Dev;
         nordescription->BytesPerPage = 512;
         nordescription->PagesPerSector = 1;
         nordescription->SectorsPerBlk = 8;
@@ -875,8 +886,81 @@ s32 __AT45_PartitionInit(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, vo
     um->type = nor;
     um->ubuf = (u8*)um + sizeof(struct umedia);
     um->ustart = dwStart * 8; // 起始unit号
+    if(um_add((const char*)name, um))
+    {
+        printf("\r\n: erro : device : %s addition failed.", name);
+        return (-1);
+    }
+    if(MountPart == number)
+    {
+        FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name));
+        sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,name);		//获取设备的全路径
+        FsBeMedia(FullPath,fs);		//往该设备挂载文件系统
+        free(FullPath);
+    }
+    number++;
+    printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, dwStart, dwSpecial);
+    return (0);
+}
 
-    return (um_add((const char*)name, um));
+//// =============================================================================
+//// 功能：初始化AT45，一般用于安装文件系统
+//// 参数：bstart -- 起始块；
+////     bcount -- 该分区一共有多少块
+////     dwSpecial -- 擦除该区域（1）；不擦除该区域（0）；
+//// 返回：成功（0）；失败（-1）；
+//// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
+//s32 __at45_part_init(const char *fs,s32 MountPart,u32 bstart, u32 bcount, u32 doformat)
+//{
+//    static char *name = "AT45DB321E";    //要和ModuleInstall_at45db321中的name保持一致
+//    if(s_ptAT45_Dev == NULL)
+//    {
+//        printf("\r\n: error : device : AT45 not add the SPI.");
+//        return (-1);
+//    }
+//    if(__AT45_PartitionInit(name,bstart,bcount,doformat,s_ptAT45_Dev) == 0)
+//    {
+//        return (0);
+//    }
+//    return (-1);
+//}
+
+//-----------------------------------------------------------------------------
+// 功能：安装at45支持文件系统的驱动
+// 参数：  pBusName -- AT45所要用的通信线
+//      TargetFs -- 要挂载的文件系统
+//      parts -- 分区数；
+//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+//-----------------------------------------------------------------------------
+s32 ModuleInstall_AT45UseOnFs(char *pBusName,const char *TargetFs,u8 parts,s32 TargetPart, ...)
+{
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
+    if(ModuleInstall_at45db321(pBusName) == false)
+    {
+        return -1;
+    }
+    va_start(list, TargetPart);
+    for(part=0; part<parts; part++)
+    {
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(__AT45_PartitionInit(TargetFs,TargetPart,startblock, blocks, doformat))
+        {
+            error_printf("nand","cannot install fail.");
+            res = -1;
+            break;
+        }
+    }
+
+    va_end(list);
+    return (res);
 }
 
 #if 0

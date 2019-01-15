@@ -147,8 +147,8 @@
 //initialize the vlan,you could call the vlan function to set
 static u16   gVlanInitialize[CN_DEV_NUM]=
 {0x1f,0x1f,0x1f,0x1f,0x1f,0x1f};
-//which means.port 0,1,2,3,4could send frame to port 5, but fram could not
-//transmit between them;port 5 could snd fram to port 0,1,2,3,4
+//which means.port 0,1,2,3,4could send frame to port 5, but frame could not
+//transmit between them;port 5 could snd frame to port 0,1,2,3,4
 
 
 __attribute__((weak))  u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value)
@@ -370,7 +370,7 @@ const unsigned char gSwitchReg[]={0,3,4,6,0x0b,0x10,0x11};
 #define CN_SWITCH_SIZE   sizeof(gSwitchReg)
 
 //static bool_t DevPhyRegPrint(char *param)
-ADD_TO_SHELL_HELP(preg,"usage:print the phyregs");
+ADD_TO_IN_SHELL_HELP(preg,"usage:print the phyregs");
 ADD_TO_IN_SHELL  bool_t preg(char *param)
 {
     int i =0;
@@ -404,7 +404,7 @@ ADD_TO_IN_SHELL  bool_t preg(char *param)
 }
 
 //static bool_t DevSwitchRegPrint(char *param)
-ADD_TO_SHELL_HELP(sreg,"usage:print the switch regs");
+ADD_TO_IN_SHELL_HELP(sreg,"usage:print the switch regs");
 ADD_TO_IN_SHELL  bool_t sreg(char *param)
 {
     int i =0;
@@ -436,7 +436,7 @@ ADD_TO_IN_SHELL  bool_t sreg(char *param)
 }
 
 //static bool_t DevSetPhyReg(char *param)
-ADD_TO_SHELL_HELP(setphy,"usage:set the phy regs:setphy +port +reg +value");
+ADD_TO_IN_SHELL_HELP(setphy,"usage:set the phy regs:setphy +port +reg +value");
 ADD_TO_IN_SHELL  bool_t setphy(char *param)
 {
 
@@ -481,7 +481,7 @@ ADD_TO_IN_SHELL  bool_t setphy(char *param)
 }
 
 //static bool_t DevSetSwitchReg(char *param)
-ADD_TO_SHELL_HELP(setswitch,"usage:set the switch regs:setswitch +port +reg +value");
+ADD_TO_IN_SHELL_HELP(setswitch,"usage:set the switch regs:setswitch +port +reg +value");
 ADD_TO_IN_SHELL  bool_t setswitch(char *param)
 {
 
@@ -527,7 +527,7 @@ ADD_TO_IN_SHELL  bool_t setswitch(char *param)
 
 
 //static bool_t DevSetPhyLoop(char *param)
-ADD_TO_SHELL_HELP(phyloop,"usage:reset the phy loop::phyloop+port");
+ADD_TO_IN_SHELL_HELP(phyloop,"usage:reset the phy loop::phyloop+port");
 ADD_TO_IN_SHELL  bool_t phyloop(char *param)
 {
     int argc;
@@ -592,7 +592,7 @@ ADD_TO_IN_SHELL  bool_t phyloop(char *param)
     return true;
 }
 //static bool_t DevResetCmd(char *param)
-ADD_TO_SHELL_HELP(phyreset,"usage:reset the dev:phyreset+port");
+ADD_TO_IN_SHELL_HELP(phyreset,"usage:reset the dev:phyreset+port");
 ADD_TO_IN_SHELL  bool_t phyreset(char *param)
 {
     int argc;
@@ -627,7 +627,7 @@ ADD_TO_IN_SHELL  bool_t phyreset(char *param)
 }
 
 //static bool_t DevVlanSet(char *param)
-ADD_TO_SHELL_HELP(vlan,"usage:set the vlan map:vlan + port +value");
+ADD_TO_IN_SHELL_HELP(vlan,"usage:set the vlan map:vlan + port +value");
 ADD_TO_IN_SHELL  bool_t vlan(char *param)
 {
     int argc;
@@ -666,61 +666,9 @@ ADD_TO_IN_SHELL  bool_t vlan(char *param)
     return true;
 }
 
-static struct shell_debug  gEthRawDebug[] =
-{
-    {
-        "preg",
-        preg,
-        "usage:print the phyregs",
-        NULL
-    },
-    {
-        "sreg",
-        sreg,
-        "usage:print the switch regs",
-        NULL
-    },
-    {
-        "setphy",
-        setphy,
-        "usage:set the phy regs:setphy +port +reg +value",
-        NULL
-    },
-    {
-        "setswitch",
-        setswitch,
-        "usage:set the switch regs:setswitch +port +reg +value",
-        NULL
-    },
-
-    {
-        "phyloop",
-        phyloop,
-        "usage:reset the phy loop::phyloop+port",
-        NULL
-    },
-    {
-        "phyreset",
-        phyreset,
-        "usage:reset the dev:phyreset+port",
-        NULL
-    },
-    {
-        "vlan",
-        vlan,
-        "usage:set the vlan map:vlan + port +value",
-        NULL
-    }
-};
-
-#define CN_GMAC_DEBUG_CMDNUM  ((sizeof(gEthRawDebug))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gEthRawDebugCmdRsc[CN_GMAC_DEBUG_CMDNUM];
 static bool_t DevDebugInstall(void)
 {
-    if(CN_GMAC_DEBUG_CMDNUM==shell_debug_add(gEthRawDebug, CN_GMAC_DEBUG_CMDNUM))
         return (TRUE);
-
-    return FALSE;
 }
 
 void LS88e6060ShellCmdInit(void)

@@ -5,12 +5,12 @@ INCLUDE  ../src/lds/memory.lds
 /*不同的make程序，文件路径表示方式，是不同的，输入段中文件名写法要相应修改*/
 /*正确的写法，可参看console中输出的命令行*/
 SECTIONS
-{       
-    Rom_Start :
-    {
-        restore = .; 
-    }>InnerFlash
-    
+{		
+	Rom_Start :
+	{
+	    restore = .; 
+	}>InnerFlash
+	
     /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
     /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
     Iboot_RevRam (NOLOAD):
@@ -18,7 +18,7 @@ SECTIONS
         . = ALIGN(0x08);
         KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))  
     }>RAM1
-    
+	
     stack_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x08);
@@ -26,7 +26,7 @@ SECTIONS
         KEEP(* (.data.InitStack))
         msp_top = ALIGN(0x08);
     }>RAM1
-            
+    		
     text_startup_rIbootRom_lIbootRom :
     {
        . = ALIGN(0x08);
@@ -44,7 +44,6 @@ SECTIONS
         KEEP(*libos_Iboot_Debug.a:stm32f7xx_hal_pwr_ex.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot_Debug.a:stm32f7xx_hal_cortex.o (.text .text.* .rodata .rodata.*))
         KEEP(*libos_Iboot_Debug.a:stm32f7xx_ll_fmc.o (.text .text.* .rodata .rodata.*))
-        KEEP(*board/APOLLO-STM32F7/src/OS_prjcfg/Iboot_config.o (.text .text.* .rodata .rodata.*))
     }>InnerFlash
 
     text_preload_rIbootRom_lIbootRom :
@@ -57,7 +56,7 @@ SECTIONS
         *libos_Iboot_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:int.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
-        *board/APOLLO-STM32F7/src/critical/*.o (.text .text.* .rodata .rodata.*)
+        *src/iboot/critical/*.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
         *libos_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
     }>InnerFlash
@@ -67,7 +66,7 @@ SECTIONS
        . = ALIGN(0x08);
         * (.text .text.* .rodata .rodata.*)
         g_pAppCodeEndRamAddr = .;
-    }>InnerFlash /* }>RAM1 AT>InnerFlash */
+    }>InnerFlash
 
     rw_preload_rRAM1_lIbootRom :
     {
@@ -78,7 +77,7 @@ SECTIONS
         *libos_Iboot_Debug.a:hard-exp.o (.data .data.*)
         *libos_Iboot_Debug.a:int.o (.data .data.*)
         *libos_Iboot_Debug.a:ints.o (.data .data.*)
-        *board/APOLLO-STM32F7/src/critical/*.o (.data .data.*)
+        *src/iboot/critical/*.o (.data .data.*)
         *libos_Iboot_Debug.a:heap-static.o (.data .data.*)
         *libos_Iboot_Debug.a:list.o (.data .data.*)
     }>RAM1 AT>InnerFlash
@@ -103,7 +102,7 @@ SECTIONS
         *libos_Iboot_Debug.a:hard-exp.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:int.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:ints.o (.bss .bss.* COMMON)
-        *board/APOLLO-STM32F7/src/critical/*.o (.bss .bss.* COMMON)
+        *src/iboot/critical/*.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:heap-static.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:list.o (.bss .bss.* COMMON)
         *libos_Iboot_Debug.a:cpu_peri_hal.o (.bss .bss.* COMMON)
@@ -114,7 +113,6 @@ SECTIONS
        . = ALIGN(0x08);
         * (.data .data.*)
     }>RAM1 AT>InnerFlash
- 
 
     zi_sysload_rRAM1_lRAM1 (NOLOAD) :
     {
@@ -161,7 +159,7 @@ SECTIONS
         LONG(ADDR(rw_sysload_rRAM1_lIbootRom))
         LONG(SIZEOF(rw_sysload_rRAM1_lIbootRom))
         LONG(1)
- 
+
         LONG(LOADADDR(zi_sysload_rRAM1_lRAM1))
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
@@ -175,13 +173,20 @@ SECTIONS
     }>RAM1
     sys_heap_top = InnerRamStart + InnerRamSize;
     
+/*    heap_rextram_lextram (NOLOAD) :*/
+/*     {*/
+/*         . = ALIGN(0x08);*/
+/*         extram_heap_bottom = .;*/
+/*     }>extram*/
+/*     extram_heap_top = ExtRamStart + ExtRamSize;*/
+
      heap_rnocache_lextram (NOLOAD) : 
       { 
          . = ALIGN(0x08);
          NoCacheRam_heap_bottom = .;
       }>RAM1NOCACHE
      NoCacheRam_heap_top = NoCacheRamStart + NoCacheRamSize;
-
+     
     heap_cp_table :
     {
         . = ALIGN(0x08);
@@ -202,6 +207,21 @@ SECTIONS
         BYTE(0x73)                  /*'s'*/
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
 
+/*        . = ALIGN(0x04);*/
+/*        LONG(1)        */             /*表示该堆由1段内存组成*/
+/*        LONG(0)        */             /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+/*        LONG(0)         */            /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+/*        LONG(extram_heap_bottom)*/   /*第一段基址，须符合对齐要求*/
+/*        LONG(extram_heap_top) */     /*第一段地址上限（不含），须符合对齐要求*/
+/*        LONG(64)          */         /*第一段页尺寸=128bytes*/
+/*        BYTE(0x65)         */         /*'e'*/
+/*        BYTE(0x78)        */          /*'x'*/
+/*        BYTE(0x74)        */          /*'t'*/
+/*        BYTE(0x72)        */          /*'r'*/
+/*        BYTE(0x61)        */          /*'a'*/
+/*        BYTE(0x6d)        */          /*'m'*/
+/*        BYTE(0)           */          /*串结束，"extram"是堆的名字*/
+
 	    . = ALIGN(0x04);
 	    LONG(1)                     /*表示该堆由1段内存组成*/
     	LONG(0)                     /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
@@ -217,8 +237,7 @@ SECTIONS
 		BYTE(0x68)                  /*'h'*/
 		BYTE(0x65)                  /*'e'*/
 		BYTE(0)                     /*串结束，"nocache"是堆的名字*/
-
-	. = ALIGN(0x04);
+        . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
     }>InnerFlash
     
@@ -232,21 +251,15 @@ SECTIONS
         
         gc_ptIbootSize = .;
         LONG(IbootSize)
-    
+	
         gc_ptRevSectors = .;
         LONG(RevSectors)
-    
+	
         gc_ptCacheRam1Size = .;
         LONG(CacheRam1Size)
         
         gc_ptCacheRam2Size = .;
         LONG(CacheRam2Size)
-
-        gc_ptCacheRam3Size = .;
-        LONG(CacheRam3Size)
-        
-        gc_ptCacheRam4Size = .;
-        LONG(CacheRam4Size)
         
         gc_ptNoCacheRamSize = .;
         LONG(NoCacheRamSize)
@@ -307,8 +320,8 @@ SECTIONS
         p_shell_info = .;
         LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-        
     }>InnerFlash 
+    
     
 }
 /**** The End ****/

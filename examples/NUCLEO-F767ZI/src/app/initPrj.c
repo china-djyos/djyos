@@ -37,6 +37,9 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
 
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
 
@@ -64,6 +67,20 @@ void Sys_ModuleInit(void)
 	#endif
 	#if CFG_UART8_ENABLE ==1
 	ModuleInstall_UART(CN_UART8);
+	#endif
+
+	bool_t IIC_Init(u8 iic_port);
+	#if CFG_IIC1_ENABLE== true
+	ModuleInstall_IIC(CN_IIC1);
+	#endif
+	#if CFG_IIC2_ENABLE== true
+	ModuleInstall_IIC(CN_IIC2);
+	#endif
+	#if CFG_IIC3_ENABLE== true
+	ModuleInstall_IIC(CN_IIC3);
+	#endif
+	#if CFG_IIC4_ENABLE== true
+	ModuleInstall_IIC(CN_IIC4);
 	#endif
 
 	//-------------------medium-------------------------//

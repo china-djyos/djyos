@@ -489,12 +489,10 @@ static void __UART_ClkConfig(u8 SerialNo)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == 0) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     Reg->CR1 &= ~(1);//禁止串口
@@ -956,7 +954,7 @@ void __UART_SetDmaUnUsed(u32 port)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
     u32 port;
@@ -993,8 +991,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-             __UART_BaudSet(Reg,port, data1);
+        {
+            u32 baud = va_arg(*arg0, u32);
+             __UART_BaudSet(Reg,port, baud);
             break;
+        }
         case CN_UART_EN_RTS:
             Reg->CR3 |= 0x100;
             break;
@@ -1014,8 +1015,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             __UART_SetDmaUnUsed(port);
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM = va_arg(*arg0, struct COMParam *);
+            __UART_ComConfig(Reg,port,COM);
             break;
+        }
         default: break;
     }
     return result;

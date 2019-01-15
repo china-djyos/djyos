@@ -84,7 +84,7 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_DEVFILE_LIMIT   //****检查参数是否已经配置好
 #warning    DevFile组件参数未配置，使用默认值
-//%$#@num,0,100,
+//%$#@num,0,1000,
 #define CFG_DEVFILE_LIMIT       10      //"设备数量",定义设备数量
 //%$#@enum,true,false,
 //%$#@string,1,10,

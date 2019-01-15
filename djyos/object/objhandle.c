@@ -64,12 +64,14 @@
 #include "../include/object.h"
 #include "../include/objhandle.h"
 
-#define CN_BASIC_HANDLES               32 // 对象句柄预分的数量；（动态扩展）
+#define CN_BASIC_HANDLES               16 // 对象句柄预分的数量；（动态扩展）
 
-static struct MutexLCB __handle_sys_mutex; // 文件系统互斥锁
-static struct MemCellPool __handle_struct_pool; // 文件预分配池
+static struct MutexLCB s_tHandleMutex; // 文件系统互斥锁
+static struct MemCellPool s_tHandlePool; // 文件预分配池
+static struct objhandle s_tHandleInitPool[CN_BASIC_HANDLES];
 
-static ptu32_t __rf_operations(enum objops ops, ptu32_t oof, ptu32_t args, ...);
+static s32 __rf_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
+                            ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 
 // ============================================================================
 // 功能：对象句柄系统上锁；
@@ -79,7 +81,7 @@ static ptu32_t __rf_operations(enum objops ops, ptu32_t oof, ptu32_t args, ...);
 // ============================================================================
 static inline void __lock_handle_sys(void)
 {
-    Lock_MutexPend(&__handle_sys_mutex, CN_TIMEOUT_FOREVER);
+    Lock_MutexPend(&s_tHandleMutex, CN_TIMEOUT_FOREVER);
 }
 
 // ============================================================================
@@ -90,56 +92,27 @@ static inline void __lock_handle_sys(void)
 // ============================================================================
 static inline void __unlock_handle_sys(void)
 {
-    Lock_MutexPost(&__handle_sys_mutex);
+    Lock_MutexPost(&s_tHandleMutex);
 }
 
+
 // ============================================================================
-// 功能：对象句柄空间池初始化
+// 功能：对象句柄系统初始化；
 // 参数：
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __handle_init_struct_pool(void)
+s32 handle_ModuleInit(void)
 {
-    static struct objhandle handle_basic_struct_space[CN_BASIC_HANDLES];
 
-    if(Mb_CreatePool_s(&__handle_struct_pool, handle_basic_struct_space,
-                CN_BASIC_HANDLES, sizeof(struct objhandle), 16, 16384, "object file"))
-        return (0);
-
-    return (-1);
-}
-
-// ============================================================================
-// 功能：对象系统系统初始化；
-// 参数：
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-s32 objsys_init(void)
-{
-    s32 res;
-    extern s32 raw_objsys_init(void);
-
-    res = raw_objsys_init();
-    if(res)
+    if(!Lock_MutexCreate_s(&s_tHandleMutex, "ohdl sys"))
     {
         return (-1);
     }
 
-    if(!Lock_MutexCreate_s(&__handle_sys_mutex, "ohdl sys"))
-    {
-        return (-1);
-    }
-
-    res = __handle_init_struct_pool();
-    if(res)
-    {
-        return (-1);
-    }
-
-    obj_setops(objsys_root(), __rf_operations); // 缺省安装的是基于RAM的文件对象系统
-
+    Mb_CreatePool_s(&s_tHandlePool, s_tHandleInitPool,
+                        CN_BASIC_HANDLES, sizeof(struct objhandle),
+                        16, 16384, "handle pool");
     return (0);
 }
 
@@ -192,7 +165,7 @@ struct objhandle *fd2Handle(s32 fd)
 // 返回：目录（1）；非目录（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_directory(u32 flags)
+s32 test_directory(u32 flags)
 {
     if(flags & O_DIRECTORY)
         return (1);
@@ -206,7 +179,7 @@ inline s32 test_directory(u32 flags)
 // 返回：文件（1）；非文件（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_regular(u32 flags)
+s32 test_regular(u32 flags)
 {
     if(flags & O_DIRECTORY)
         return (0);
@@ -220,7 +193,7 @@ inline s32 test_regular(u32 flags)
 // 返回：创建或打开（1）；非创建或打开（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_creat(u32 flags)
+s32 test_creat(u32 flags)
 {
     if(flags & O_CREAT)
         return (1);
@@ -234,7 +207,7 @@ inline s32 test_creat(u32 flags)
 // 返回：仅创建（1）；非仅创建（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_onlycreat(u32 flags)
+s32 test_onlycreat(u32 flags)
 {
     if((flags & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL))
         return (1);
@@ -248,7 +221,7 @@ inline s32 test_onlycreat(u32 flags)
 // 返回：追加（1）；非追加（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_append(u32 flags)
+s32 test_append(u32 flags)
 {
     if(flags & O_APPEND)
         return (1);
@@ -262,7 +235,7 @@ inline s32 test_append(u32 flags)
 // 返回：截断（1）；非截断（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_trunc(u32 flags)
+s32 test_trunc(u32 flags)
 {
     if(flags & (O_TRUNC))
         return (1);
@@ -276,7 +249,7 @@ inline s32 test_trunc(u32 flags)
 // 返回：可读（1）；非可读（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_readable(u32 flags)
+s32 test_readable(u32 flags)
 {
     if(flags & O_RDONLY)
         return (1);
@@ -290,20 +263,9 @@ inline s32 test_readable(u32 flags)
 // 返回：可写（1）；非可写（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 test_writeable(u32 flags)
+s32 test_writeable(u32 flags)
 {
     return (flags & O_WRONLY);
-}
-
-// ============================================================================
-// 功能：对象句柄关联的文件是否是目录；
-// 参数：hdl -- 对象句柄；
-// 返回：目录（1）；非目录（0）；
-// 备注：INLINE
-// ============================================================================
-inline s32 isdirectory(struct objhandle *hdl)
-{
-    return(test_directory(hdl->flags));
 }
 
 // ============================================================================
@@ -312,7 +274,7 @@ inline s32 isdirectory(struct objhandle *hdl)
 // 返回：追加（1）；非追加（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 isappend(struct objhandle *hdl)
+s32 handle_isAppend(struct objhandle *hdl)
 {
     return (test_append(hdl->flags));
 }
@@ -323,7 +285,7 @@ inline s32 isappend(struct objhandle *hdl)
 // 返回：可读（1）；不可读（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 isreadable(struct objhandle *hdl)
+s32 handle_isReadable(struct objhandle *hdl)
 {
     return (test_readable(hdl->flags));
 }
@@ -334,7 +296,7 @@ inline s32 isreadable(struct objhandle *hdl)
 // 返回：可读（1）；不可读（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 iswritable(struct objhandle *hdl)
+s32 handle_isWritable(struct objhandle *hdl)
 {
     return (test_writeable(hdl->flags));
 }
@@ -345,7 +307,7 @@ inline s32 iswritable(struct objhandle *hdl)
 // 返回：存在（1）；不存在（0）；
 // 备注：INLINE
 // ============================================================================
-inline s32 iscontender(struct objhandle *hdl)
+s32 iscontender(struct objhandle *hdl)
 {
     if(!hdl)
         return (0);
@@ -362,11 +324,11 @@ inline s32 iscontender(struct objhandle *hdl)
 // 返回：成功（对象句柄）；失败（NULL）；
 // 备注：INLINE
 // ============================================================================
-inline struct objhandle *handle_new(void)
+struct objhandle *handle_new(void)
 {
     struct objhandle *hdl;
 
-    hdl = (struct objhandle*)Mb_Malloc(&__handle_struct_pool, 0);
+    hdl = (struct objhandle*)Mb_Malloc(&s_tHandlePool, 0);
     if(!hdl)
         return (NULL);
 
@@ -381,12 +343,12 @@ inline struct objhandle *handle_new(void)
 // 返回：成功（0）；失败（-1）；
 // 备注：INLINE
 // ============================================================================
-inline s32 handle_free(struct objhandle *hdl)
+s32 handle_Delete(struct objhandle *hdl)
 {
     if(hdl)
     {
         dListRemove(&hdl->list);
-        Mb_Free(&__handle_struct_pool, hdl);
+        Mb_Free(&s_tHandlePool, hdl);
         return (0);
     }
 
@@ -397,16 +359,16 @@ inline s32 handle_free(struct objhandle *hdl)
 // 功能：对象句柄的初始化；
 // 参数：hdl -- 对象句柄；
 //      ob -- 关联的对象；
-//      flags -- 使用标志；
+//      flags，文件访问标志，在fcntl.h中定义，如 O_RDONLY
 //      context -- 关联的内容；
 // 返回：无；
 // 备注：
 // ============================================================================
-inline void handle_init(struct objhandle *hdl, struct obj *ob, u32 flags, ptu32_t context)
+void handle_init(struct objhandle *hdl, struct obj *ob, u32 flags, ptu32_t context)
 {
     memset(hdl, 0, sizeof(struct objhandle));
     hdl->timeout = CN_TIMEOUT_FOREVER;
-    hdl->obj = ob;
+    hdl->HostObj = ob;
     hdl->context = context;
     hdl->flags = flags;
 }
@@ -417,12 +379,12 @@ inline void handle_init(struct objhandle *hdl, struct obj *ob, u32 flags, ptu32_
 // 返回：成功（文件名）；失败（NULL）；
 // 备注：INLINE
 // ============================================================================
-inline const char *handle_name(struct objhandle *hdl)
+const char *handle_name(struct objhandle *hdl)
 {
     if(!hdl)
         return (NULL);
 
-    return (obj_name(hdl->obj));
+    return (obj_name(hdl->HostObj));
 }
 
 // ============================================================================
@@ -431,7 +393,7 @@ inline const char *handle_name(struct objhandle *hdl)
 // 返回：成功（私有内容）；失败（NULL）;
 // 备注：INLINE
 // ============================================================================
-inline ptu32_t handle_context(struct objhandle *hdl)
+ptu32_t handle_context(struct objhandle *hdl)
 {
     if(hdl)
         return (hdl->context);
@@ -446,7 +408,7 @@ inline ptu32_t handle_context(struct objhandle *hdl)
 // 返回：无；
 // 备注：INLINE
 // ============================================================================
-inline void handle_linkcontext(struct objhandle *hdl, ptu32_t context)
+void handle_SetContext(struct objhandle *hdl, ptu32_t context)
 {
     if(hdl)
         hdl->context = context;
@@ -458,57 +420,14 @@ inline void handle_linkcontext(struct objhandle *hdl, ptu32_t context)
 // 返回：成功（文件）；失败（NULL）；
 // 备注：
 // ============================================================================
-inline void *handle_val(struct objhandle *hdl)
+void *handle_GetHostObjectPrivate(struct objhandle *hdl)
 {
-    if(hdl&&hdl->obj)
-        return ((void*)obj_GetPrivate(hdl->obj));
+    if(hdl&&hdl->HostObj)
+        return ((void*)obj_GetPrivate(hdl->HostObj));
 
     return (NULL);
 }
 
-// ============================================================================
-// 功能：获取对象句柄所在系统的管理控制；
-// 参数：hdl -- 文件上下文；
-// 返回：成功（系统的管理信息）；失败（NULL）；
-// 备注：
-// ============================================================================
-inline void *handle2sys(struct objhandle *hdl)
-{
-    extern void *corefs(struct obj *ob);
-
-    return (corefs(hdl->obj));
-}
-
-// ============================================================================
-// 功能：将对象句柄与对象关联；
-// 参数：hdl -- 对象句柄；
-//      ob -- 对象；
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-s32 handle_linkobj(struct objhandle *hdl, struct obj *ob)
-{
-    if((!ob)||(!hdl))
-        return (-1);
-
-    hdl->obj = ob;
-    obj_setquote(ob, &hdl->list);
-    return (0);
-}
-
-// ============================================================================
-// 功能：获取对象句柄的多路复用控制；
-// 参数：hdl -- 对象句柄；
-// 返回：成功（多路复用控制）；失败（NULL）；
-// 备注：
-// ============================================================================
-inline struct MultiplexObjectCB *handle_multiplex(struct objhandle *hdl)
-{
-    if(hdl)
-        return (hdl->pMultiplexHead);
-
-    return (NULL);
-}
 
 // ============================================================================
 // 功能：设置对象句柄的多路复用控制；
@@ -517,7 +436,7 @@ inline struct MultiplexObjectCB *handle_multiplex(struct objhandle *hdl)
 // 返回：无；
 // 备注：
 // ============================================================================
-inline void handle_setmultiplex(struct objhandle *hdl, struct MultiplexObjectCB *cb)
+void handle_setmultiplex(struct objhandle *hdl, struct MultiplexObjectCB *cb)
 {
     if(hdl)
         hdl->pMultiplexHead = cb;
@@ -529,7 +448,7 @@ inline void handle_setmultiplex(struct objhandle *hdl, struct MultiplexObjectCB 
 // 返回：超时时间；
 // 备注：
 // ============================================================================
-inline u32 handle_timeout(struct objhandle *hdl)
+u32 handle_gettimeout(struct objhandle *hdl)
 {
     if(hdl)
         return (hdl->timeout);
@@ -544,7 +463,7 @@ inline u32 handle_timeout(struct objhandle *hdl)
 // 返回：无；
 // 备注：INLINE
 // ============================================================================
-inline void handle_settimeout(struct objhandle *hdl, u32 timeout)
+void handle_settimeout(struct objhandle *hdl, u32 timeout)
 {
     if(hdl)
         hdl->timeout = timeout;
@@ -556,7 +475,7 @@ inline void handle_settimeout(struct objhandle *hdl, u32 timeout)
 // 返回：使用标志；
 // 备注：INLINE
 // ============================================================================
-inline u32 handle_mode(struct objhandle *hdl)
+u32 handle_GetMode(struct objhandle *hdl)
 {
     if(hdl)
         return (hdl->flags);
@@ -571,7 +490,7 @@ inline u32 handle_mode(struct objhandle *hdl)
 // 返回：无；
 // 备注：INLINE
 // ============================================================================
-inline void handle_changemode(struct objhandle *hdl, u32 mode)
+void handle_SetMode(struct objhandle *hdl, u32 mode)
 {
     if(hdl)
         hdl->flags = mode;
@@ -582,10 +501,10 @@ inline void handle_changemode(struct objhandle *hdl, u32 mode)
 // 返回：成功（关联对象）；失败（NULL）；
 // 备注：INLINK
 // ============================================================================
-inline struct obj *handle2obj(struct objhandle *hdl)
+struct obj *handle_GetHostObj(struct objhandle *hdl)
 {
     if(hdl)
-        return (hdl->obj);
+        return (hdl->HostObj);
 
     return (NULL);
 }
@@ -668,13 +587,27 @@ inline u32 handle_multievents(struct objhandle *hdl)
 }
 
 // ============================================================================
+// 功能：获取对象句柄的多路复用控制；
+// 参数：hdl -- 对象句柄；
+// 返回：成功（多路复用控制）；失败（NULL）；
+// 备注：
+// ============================================================================
+struct MultiplexObjectCB *handle_GetMultiplexHead(struct objhandle *hdl)
+{
+    if(hdl)
+        return (hdl->pMultiplexHead);
+
+    return (NULL);
+}
+
+// ============================================================================
 // 功能：设置对象句柄的多路复用触发事件；
 // 参数：hdl -- 对象句柄；
 //      events -- 多路复用触发事件；
 // 返回：无；
 // 备注：
 // ============================================================================
-inline void handle_set_multievent(struct objhandle *hdl, u32 events)
+void handle_SetMultiplexEvent(struct objhandle *hdl, u32 events)
 {
     u32 check;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
@@ -696,7 +629,7 @@ inline void handle_set_multievent(struct objhandle *hdl, u32 events)
 // 返回：无；
 // 备注：
 // ============================================================================
-inline void handle_unset_multievent(struct objhandle *hdl, u32 events)
+void handle_ClrMultiplexEvent(struct objhandle *hdl, u32 events)
 {
     u32 check;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
@@ -712,24 +645,24 @@ inline void handle_unset_multievent(struct objhandle *hdl, u32 events)
 }
 
 // ============================================================================
-// 功能：设置同文件下的所有对象句柄的多路复用触发事件；
-// 参数：hdl -- 对象句柄；
+// 功能：设置对象的所有句柄的多路复用触发事件；
+// 参数：ob -- 被操作的文件对象；
 //      events -- 多路复用触发事件；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 handle_multievent_setall(list_t* all, u32 events)
+s32 obj_SetMultiplexEvent(struct obj *ob, u32 events)
 {
     struct objhandle *hdl;
     u32 MultiplexEvents;
     list_t *head, *cur;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 
-    if(!all)
+    if(!ob)
         return (-1);
 
     Int_SaveAsynSignal();
-    head = all; // head是不需要设置的；
+    head = &ob->handles; // head是不需要设置的；
     dListForEach(cur, head)
     {
         hdl = dListEntry(cur, struct objhandle, list);
@@ -743,24 +676,24 @@ s32 handle_multievent_setall(list_t* all, u32 events)
 }
 
 // ============================================================================
-// 功能：清除同文件下的所有对象句柄的多路复用触发事件；
-// 参数：hdl -- 对象句柄；
+// 功能：清除对象的所有句柄的多路复用触发事件；
+// 参数：ob -- 被操作的文件对象；
 //      events -- 多路复用触发事件；
-// 返回：无；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 handle_multievent_unsetall(list_t *all, u32 events)
+s32 obj_ClrMultiplexEvent(struct obj *ob, u32 events)
 {
     struct objhandle *hdl;
     u32 MultiplexEvents;
     list_t *head, *cur;
     extern bool_t __Multiplex_Set(s32 Fd, u32 dwAccess);
 
-    if(!all)
+    if(!ob)
         return (-1);
 
     Int_SaveAsynSignal();
-    head = all; // 头部是不需要设置的；
+    head = &ob->handles;             // 头部是不需要设置的；
     dListForEach(cur, head)
     {
         hdl = dListEntry(cur, struct objhandle, list);
@@ -774,37 +707,62 @@ s32 handle_multievent_unsetall(list_t *all, u32 events)
     return (0);
 }
 
+//----IO状态--------------------------------------------------------------------
+//功能：这是一个为 select 函数准备的基础函数，为了兼容一些开源软件而设，编程时不建议使用
+//      select函数，应该使用更高效更便捷的 Multiplex_Wait 系列函数
+//参数：Fd，待判断的文件
+//     mode，所关注的状态，可读、可写、或者其他
+//返回：1=actived，0=unactive
+//------------------------------------------------------------------------------
+#if 0
+s32 issocketactive(s32 Fd, s32 mode)
+{
+    struct objhandle *hdl;
+
+    hdl = fd2Handle(Fd);
+    if(mode & hdl->MultiplexEvents & CN_MULTIPLEX_STATUSMSK)
+    {
+        return  1;
+    }
+    return  0;
+}
+#endif
+
 // ============================================================================
 // 功能：打开文件
 // 参数：pathname -- 文件路径;
-//      flags -- 操作标志;
-//      mode -- 操作模式;
-// 返回：失败（-1）; 文件描述符（非-1）;
+//      flags -- 操作标志;fcntl.h的 O_RDONLY 等
+//      mode -- 操作模式;flags中有有create标志才有意义，stat.h的 S_IRUSR 等
+// 返回：文件描述符，失败==NULL
 // 备注：O_RDONLY、O_WRONLY、O_RDWR 须符合POSIX（2016）的最新定义
 // ============================================================================
-static inline struct objhandle *__open(char *path, s32 flags, u32 mode)
+struct objhandle *__open(char *path, u32 flags, u32 mode)
 {
-    struct objhandle *hdl;
+    struct objhandle *hdl = 0;
     struct obj *ob;
-    char *full, *uncached;
-
+    char *uncached;
+    s32 run;
+    u64 OpenMode;
+//  struct stat statbuf;
+//  ptu32_t StatResult;
+    OpenMode = ( (u64)mode << 32) | flags;
     __lock_handle_sys();
-    ob = obj_matchpath(path, &uncached, &full);
-    if(obj_up(ob)) // 防止文件操作过程中，被删除了；
-    {
-        __unlock_handle_sys();
-        return (NULL);
-    }
+    ob = obj_matchpath(path, &uncached);
+    obj_InuseUpFullPath(ob);        // 防止文件操作过程中，被删除了；
 
-    __unlock_handle_sys();
-    hdl = (struct objhandle*)ob->ops(OBJOPEN, (ptu32_t)ob, (ptu32_t)flags, uncached, mode, full);
-    __lock_handle_sys();
-    obj_down(ob);
-    if(hdl)
+//  __unlock_handle_sys();
+        //todo:权限管理暂未实现。框架：调用stat，再判断当前st_mode是否满足flags权限
+//      StatResult = ob->ops(CN_OBJ_CMD_STAT, (ptu32_t)ob, &statbuf, uncached, full);
+//  if(权限满足要求)
+    run = ob->ops((void *)ob, CN_OBJ_CMD_OPEN,
+                                (ptu32_t)&hdl,(ptu32_t)&OpenMode,(ptu32_t)uncached);
+   
+    if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
     {
-        ob = obj_buildpath(ob, uncached); // 对于文件系统而言，存在需要缓冲的目录路径,继承操作方法等.
-        handle_linkobj(hdl, ob);
+        obj_InuseUpRange(ob, hdl->HostObj);
     }
+    else
+        obj_InuseDownFullPath(ob);
 
     __unlock_handle_sys();
     return (hdl);
@@ -819,39 +777,41 @@ static inline struct objhandle *__open(char *path, s32 flags, u32 mode)
 s32 __close(struct objhandle *hdl)
 {
     s32 res;
-    struct obj *ob = hdl->obj;
+    struct obj *ob = hdl->HostObj;
 
-    res = (s32)ob->ops(OBJCLOSE, (ptu32_t)hdl, 0);
-    if(!res)
+    res = ob->ops((void *)hdl, CN_OBJ_CMD_CLOSE, 0, 0, 0);
+    if(res == CN_OBJ_CMD_TRUE)
     {
+        obj_InuseDownFullPath(ob);
         obj_releasepath(ob); // 释放对象临时路径
+        return (0);
     }
-
-    return (res);
+    else
+        return (-1);
 }
 
 // ============================================================================
 // 功能：打开文件
 // 参数：pathname -- 文件路径;
-//      flags -- 操作标志;
-//      mode -- 操作模式;
+//      flags -- 操作标志;fcntl.h的 O_RDONLY 等
+//      mode -- 操作模式;flags中有有create标志才有意义，stat.h的 S_IRUSR 等
 // 返回：失败（-1）; 成功（文件描述符（非-1））;
 // 备注：O_RDONLY、O_WRONLY、O_RDWR 须符合POSIX（2016）的最新定义
 // ============================================================================
-int open(const char *pathname, int flags, ...)
+s32 open(const char *pathname, s32 flags, ...)
 {
     struct objhandle *hdl;
+    va_list args;
+    s32 mode;
 
     if((!pathname) || ('\0' == *pathname))
         return (-1);
 
-#if 0 // TODO
     va_start(args, flags);
     mode = va_arg(args, s32);
     va_end(args);
-#endif
 
-    hdl = __open((char*)pathname, flags, 0);
+    hdl = __open((char*)pathname, (u32)flags, mode);
     return (Handle2fd(hdl));
 }
 
@@ -861,7 +821,7 @@ int open(const char *pathname, int flags, ...)
 // 返回：成功（0）;失败（-1）；
 // 备注：
 // ============================================================================
-int close(int fd)
+s32 close(s32 fd)
 {
     struct objhandle *hdl;
 
@@ -878,34 +838,35 @@ int close(int fd)
 // 返回：成功（0）； 失败（-1）；
 // 备注：
 // ============================================================================
-inline int remove(const char *path)
+s32 remove(const char *path)
 {
     struct obj *ob;
-    char *uncached, *full;
+    char *uncached;
     s32 res;
 
     __lock_handle_sys();
-    ob = obj_matchpath(path, &uncached, &full);
+    ob = obj_matchpath(path, &uncached);
     if(!uncached) // 文件已经在系统中
     {
-        if(obj_isset(ob) // 安装点（对象集合点）不可删除
-           ||(obj_isonduty(ob)))  // 文件正在被使用中
+        if(obj_isonduty(ob))  // 文件正在被使用中
         {
             __unlock_handle_sys();
             return (-1);
         }
     }
 
-    obj_lock(ob);
+    obj_lock();
     __unlock_handle_sys();
-    res = (s32)ob->ops(OBJDEL, (ptu32_t)ob, (ptu32_t)uncached, full);
-    obj_unlock(ob);
-    if(!res)
+    res = ob->ops((void *)ob, CN_OBJ_CMD_DELETE, 0, 0, (ptu32_t)uncached);
+    obj_unlock();
+    if(res == CN_OBJ_CMD_TRUE)
     {
-        obj_releasepath(ob); // 释放由路径中的临时对象；
+        obj_releasepath(ob); // 释放对象临时路径
+        return (0);
     }
+    else
+        return (-1);
 
-    return (res);
 }
 
 // ============================================================================
@@ -916,8 +877,9 @@ inline int remove(const char *path)
 // 返回：成功（实际读取到的长度）；错误（-1）；
 // 备注：
 // ============================================================================
-ssize_t read(int fd, void *buf, size_t size)
+ssize_t read(s32 fd, void *buf, size_t size)
 {
+    size_t result;
     struct objhandle *hdl;
     s32 res = -1;
 
@@ -931,12 +893,17 @@ ssize_t read(int fd, void *buf, size_t size)
     if(!hdl)
         return (-1);
 
-    if(isreadable(hdl))
+    if(handle_isReadable(hdl))
     {
-        res = (s32)hdl->obj->ops(OBJREAD, (ptu32_t)hdl, (ptu32_t)buf, size);
+        res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_READ, (ptu32_t)&result,
+                                (ptu32_t)buf, (ptu32_t)size);
+        if(res == CN_OBJ_CMD_EXECUTED)
+            return (result);
+        else
+            return (-1);
     }
-
-    return (res);
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -947,8 +914,9 @@ ssize_t read(int fd, void *buf, size_t size)
 // 返回： 成功（实际写入的长度）；错误（-1）；
 // 备注：
 // ============================================================================
-ssize_t write(int fd, const void *buf, size_t count)
+ssize_t write(s32 fd, const void *buf, size_t count)
 {
+    size_t result;
     struct objhandle *hdl;
     s32 res = -1;
 
@@ -962,12 +930,17 @@ ssize_t write(int fd, const void *buf, size_t count)
     if(!hdl)
         return (-1);
 
-    if(iswritable(hdl))
+    if(handle_isWritable(hdl))
     {
-        res = (s32)hdl->obj->ops(OBJWRITE, (ptu32_t)hdl, (ptu32_t)buf, count);
+        res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_WRITE, (ptu32_t)&result,
+                                (ptu32_t)buf, (ptu32_t)count);
+        if(res == CN_OBJ_CMD_EXECUTED)
+            return (result);
+        else
+            return (-1);
     }
-
-    return (res);
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -978,10 +951,11 @@ ssize_t write(int fd, const void *buf, size_t count)
 // 返回：成功（重定位后的位置）；失败（-1）；
 // 备注：NOTE: lseek不支持文件大小拓展
 // ============================================================================
-off_t lseek(int fd, off_t offset, int whence)
+off_t lseek(s32 fd, off_t offset, s32 whence)
 {
     struct objhandle *hdl;
     s32 res;
+    off_t result;
 
     if((SEEK_SET != whence) && (SEEK_CUR != whence) && (SEEK_END != whence))
         return (-1); // 错误的参数
@@ -996,11 +970,12 @@ off_t lseek(int fd, off_t offset, int whence)
     if(test_directory(hdl->flags))
         return (-1); // 目录不可以seek
 
-    res = (s32)hdl->obj->ops(OBJSEEK, (ptu32_t)hdl, (ptu32_t)&offset, whence);
-    if(res)
+    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_SEEK, (ptu32_t)&result,
+                             (ptu32_t)&offset, whence);
+    if(res == CN_OBJ_CMD_EXECUTED)
+        return (result);
+    else
         return (-1);
-
-    return (offset);
 }
 
 // ============================================================================
@@ -1009,7 +984,7 @@ off_t lseek(int fd, off_t offset, int whence)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-int fsync(int fd)
+s32 fsync(s32 fd)
 {
     struct objhandle *hdl;
     s32 res;
@@ -1021,8 +996,11 @@ int fsync(int fd)
         return (-1);
     }
 
-    res = (s32)hdl->obj->ops(OBJSYNC, (ptu32_t)hdl, 0);
-    return (res);
+    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_SYNC, 0, 0, 0);
+    if(res == CN_OBJ_CMD_TRUE)
+        return (0);
+    else
+        return (-1);
 }
 
 // ============================================================================
@@ -1031,10 +1009,10 @@ int fsync(int fd)
 // 返回：成功（文件当前位置）；失败（-1）；
 // 备注：
 // ============================================================================
-off_t tell(int fd)
+off_t tell(s32 fd)
 {
     struct objhandle *hdl;
-    s64 offset;
+    off_t offset;
     s32 res;
 
     hdl = fd2Handle(fd);
@@ -1044,11 +1022,11 @@ off_t tell(int fd)
         return (-1);
     }
 
-    res = (s32)hdl->obj->ops(OBJTELL, (ptu32_t)hdl, (ptu32_t)&offset);
-    if(!res)
+    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_TELL, (ptu32_t)&offset,0,0);
+    if(res == CN_OBJ_CMD_EXECUTED)
         return (offset);
-
-    return (-1);
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1058,7 +1036,7 @@ off_t tell(int fd)
 //返回：成功（0）; 失败（-1）;
 //备注：
 // ============================================================================
-int fstat(int fd, struct stat *buf)
+s32 fstat(s32 fd, struct stat *buf)
 {
     s32 res;
     struct objhandle *hdl;
@@ -1070,8 +1048,12 @@ int fstat(int fd, struct stat *buf)
     if(!hdl)
         return (-1);
 
-    res = (s32)hdl->obj->ops(OBJSTAT, (ptu32_t)(hdl->obj), (ptu32_t)buf, 0, hdl);
-    return (res);
+    res = hdl->HostObj->ops((void *)(hdl->HostObj), CN_OBJ_CMD_STAT,
+                                    (ptu32_t)buf, 0, 0);
+    if(res == CN_OBJ_CMD_TRUE)
+        return 0;
+    else
+        return (-1);
 }
 
 // ============================================================================
@@ -1081,28 +1063,32 @@ int fstat(int fd, struct stat *buf)
 // 返回：成功（0）; 失败（-1）;
 // 备注：
 // ============================================================================
-int stat(const char *path, struct stat *buf)
+s32 stat(const char *path, struct stat *buf)
 {
     struct obj *ob;
-    char *uncache, *full;
+    char *uncache;
     s32 res;
 
     if((!buf) || (!path))
         return(-1);
 
     __lock_handle_sys();// 防止操作过程文件被删除了
-    ob = obj_matchpath((char*)path, &uncache, &full);
-    res = obj_up(ob);
+    ob = obj_matchpath((char*)path, &uncache);
+    res = obj_InuseUp(ob);
     __unlock_handle_sys();
-    if(res)
+    if(res == 0)
         return (-1);
 
     if(!uncache)
         uncache = ""; // 全部路径都已经缓存时，设置为空字符串（即'\0'），用于与fstat逻辑区分；
 
-    res = (s32)ob->ops(OBJSTAT, (ptu32_t)ob, (ptu32_t)buf, uncache, full);
-    obj_down(ob);
-    return (res);
+    res = (s32)ob->ops((void *)ob, CN_OBJ_CMD_STAT, (ptu32_t)buf, 0,
+                                    (ptu32_t)uncache);
+    obj_InuseDown(ob);
+    if(res == CN_OBJ_CMD_TRUE)
+        return 0;
+    else
+        return (-1);
 }
 
 // ============================================================================
@@ -1112,9 +1098,8 @@ int stat(const char *path, struct stat *buf)
 // 返回：成功（0）; 失败（-1）;
 // 备注：the file offset is not changed.
 // ============================================================================
-int ftruncate(int fd, off_t length)
+s32 ftruncate(s32 fd, off_t length)
 {
-#if 0
     struct objhandle *hdl;
     s32 res;
 
@@ -1125,13 +1110,12 @@ int ftruncate(int fd, off_t length)
     if(!hdl)
         return (-1);
 
-    res = (s32)hdl->ob->ops(CN_OBJ_CMD_TRUNCATE, (ptu32_t)hdl, (ptu32_t)&length);
-    return (res);
-#else
-    fd = fd;
-    length = length;
-#endif
-    return (-1);
+    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_CMD_TRUNCATE, 0,
+                                (ptu32_t)&length, 0);
+    if(res == CN_OBJ_CMD_TRUE)
+        return (0);
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -1140,7 +1124,7 @@ int ftruncate(int fd, off_t length)
 //返回：0 -- 成功; -1 -- 失败;
 //备注:
 // ============================================================================
-int unlink(const char *pathname)
+s32 unlink(const char *pathname)
 {
     if(remove(pathname))
         return (-1);
@@ -1194,20 +1178,12 @@ struct dirent *readdir(DIR *dir)
     if(!dir)
         return (NULL);
 
-    if(!dir->__ptr)
-    {
-        dir->__ptr = malloc(sizeof(struct dirent));
-        if(!dir->__ptr)
-            return (NULL);
-
-        memset(dir->__ptr, 0x0, (sizeof(struct dirent)));
-    }
-
     hdl = (struct objhandle*)(dir->__fd); // 目录的上下文
-    ob = hdl->obj; // 目录的节点
-    res = (s32)ob->ops(OBJCHILDS, (ptu32_t)hdl, (ptu32_t)dir->__ptr);
-    if(!res)
-        return (struct dirent*)(dir->__ptr);
+    ob = hdl->HostObj;      // 目录的节点
+    ob = hdl->HostObj;      // 目录的节点
+    res = ob->ops(ob, CN_OBJ_CMD_READDIR, (ptu32_t)dir, 0, 0);
+    if(res == CN_OBJ_CMD_TRUE)
+        return (struct dirent*)&(dir->__ptr);
     else
         return (NULL); // 已全部遍历完
 }
@@ -1218,16 +1194,13 @@ struct dirent *readdir(DIR *dir)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-int closedir(DIR *dir)
+s32 closedir(DIR *dir)
 {
     s32 res;
 
     res = __close(dir->__fd);
     if(res)
         return (-1);
-
-    if(dir->__ptr)
-        free(dir->__ptr);
 
     free(dir);
 
@@ -1241,7 +1214,7 @@ int closedir(DIR *dir)
 // 返回：成功（0）；失败（-1）；
 // 备注：如果目录已存在，返回失败；
 // ============================================================================
-int mkdir(const char *filename, mode_t mode)
+s32 mkdir(const char *filename, mode_t mode)
 {
     struct objhandle *dir;
 
@@ -1257,37 +1230,25 @@ int mkdir(const char *filename, mode_t mode)
 
 // ============================================================================
 // 功能：对象句柄处理的文件控制；
-// 参数：hdl -- 对象句柄；
-//      cmd -- 控制命令;
-//      argspace -- 控制命令参数空间；
-// 返回：失败（-1）；成功（0）；未支持（1）；
+// 参数：hdl：对象句柄；
+//      cmd：控制命令;
+//      argspace：控制命令参数空间；
+// 返回：未支持（-1）；成功（0）
 // 备注：
 // ============================================================================
-static s32 __of_cntl(struct objhandle *hdl, s32 cmd, va_list *argspace)
+static s32 __handle_cntl(struct objhandle *hdl, s32 cmd, va_list argspace)
 {
-    va_list args = *argspace;
+    va_list args = argspace;
 
     switch(cmd)
     {
-        case F_GETPORT:
-        {
-            struct objhandle **ret;
-            ret = (struct objhandle **)va_arg(args, u32);
-
-            if(!*ret)
-                return (-1);
-
-            *ret = hdl;
-            return (0);
-        }
-
         case F_SETCONTEXT:
         {
             ptu32_t context;
 
             context = (ptu32_t)va_arg(args, u32);
-            handle_linkcontext(hdl, context);
-            return (0);
+            handle_SetContext(hdl, context);
+            return (CN_OBJ_CMD_EXECUTED);
         }
 
         case F_GETCONTEXT:
@@ -1296,7 +1257,7 @@ static s32 __of_cntl(struct objhandle *hdl, s32 cmd, va_list *argspace)
 
             ret = (ptu32_t*)va_arg(args, u32);
             *ret =  handle_context(hdl);
-            return (0);
+            return (CN_OBJ_CMD_EXECUTED);
         }
 
         case F_GETFILE:
@@ -1304,7 +1265,7 @@ static s32 __of_cntl(struct objhandle *hdl, s32 cmd, va_list *argspace)
             ptu32_t *ret;
 
             ret = (ptu32_t*)va_arg(args, u32);
-            *ret = (ptu32_t)handle_val(hdl);
+            *ret = (ptu32_t)handle_GetHostObjectPrivate(hdl);
             return (0);
         }
 
@@ -1313,7 +1274,7 @@ static s32 __of_cntl(struct objhandle *hdl, s32 cmd, va_list *argspace)
             u32 events;
 
             events = va_arg(args, u32);
-            handle_set_multievent(hdl, events);
+            handle_SetMultiplexEvent(hdl, events);
             return (0);
         }
 
@@ -1322,67 +1283,64 @@ static s32 __of_cntl(struct objhandle *hdl, s32 cmd, va_list *argspace)
             u32 events;
 
             events = va_arg(args, u32);
-            handle_unset_multievent(hdl, events);
+            handle_ClrMultiplexEvent(hdl, events);
             return (0);
         }
 
         default: break;
     }
 
-    return (1);
+    return (CN_OBJ_CMD_UNSUPPORT);
 }
 
 // ============================================================================
 // 功能：文件控制；
-// 参数：fd -- 文件描述符；
-//      cmd -- 控制命令；
-//      可变参 -- 控制命令参数；
-// 返回：
-// 备注：cmd 加上偏移 CN_OBJ_FCNTL_START 后就是调用 ObjOps 的cmd 码
+// 参数：fd，文件描述符；
+//      cmd，控制命令，如 fcntl.h 中的 F_DUPFD 等常量定义。
+//      ...，控制命令参数；
+// 返回：cmd = F_DUPFD：返回新的文件描述符。
+//      cmd = F_GETFD、F_GETFL：返回相应标志
+//      cmd = F_GETOWN：返回一个正的进程ID或负的进程组ID。
+//      cmd = 其他：-1 = 出错，其他值 = 成功。
 // ============================================================================
-int fcntl(int fd, int cmd, ...)
+s32 fcntl(s32 fd, s32 cmd, ...)
 {
     struct objhandle *hdl;
+    s32 result;
     va_list args;
-    s32 res = -1;
+    s32 res;
 
     hdl = fd2Handle(fd);
     if(!hdl)
         return (-1);
 
-    va_start (args, cmd);
-#if 0
-    res = __of_cntl(hdl, cmd, &args);
-    if(!res)
-        return (0); // 仅对文件的操作
-
-    if(cmd < CN_OBJ_IOCTL_START)
-       cmd += CN_OBJ_FCNTL_START;
-
-    res = (s32)hdl->obj->ops(cmd, (ptu32_t)hdl, (ptu32_t)&args);
-    va_end (args);
-
-    return (res);
-#else
-    res = __of_cntl(hdl, cmd, &args);
-    if(1==res)
+    va_start(args, cmd);
+    res = __handle_cntl(hdl, cmd, args);
+    if(CN_OBJ_CMD_UNSUPPORT == res)
     {
-        res = (s32)hdl->obj->ops(OBJCTL, (ptu32_t)hdl, (ptu32_t)cmd, args);
+        res = hdl->HostObj->ops((void *)hdl, CN_OBJ_FCNTL,(ptu32_t)(&result),
+                                (ptu32_t)cmd,(ptu32_t)&args);
     }
+    else
+        result = res;
 
     va_end (args);
-    return (res);
-#endif
+    if(res == CN_OBJ_CMD_TRUE)
+        return result;
+    else
+        return -1;
 }
 
 // ============================================================================
 // 功能：IO控制；
-// 参数：fd -- 文件描述符；
-//      cmd -- 控制命令码；
-//      可变参数 -- 控制命令参数；
-// 返回：
+// 参数：fd，文件描述符；
+//      request，控制命令码，POSIX也没有规定，遵循Linux格式，方向(2bit)，第三个参数
+//      （若有）数据尺寸(14bit)，设备类型 (8it) ，命令编码(8bit)），命令码如 stropts.h
+//      中的 I_ATMARK 等常量定义
+//      ...,控制命令参数；
+// 返回：0 = 成功，-1 = 出错
 // 备注：
-//      最新的POSIX已经废弃了ioctl函数（用什么取代这个功能？），而然并卵，大量开源项目仍然在用。
+//      最新的POSIX已经废弃了ioctl函数，而然并卵，大量开源项目仍然在用。
 //      注：奇怪的POSIX，ioctl相关的常量，头文件名是 stropts.h 而不是 ioctl.h
 //      request 加上偏移 CN_OBJ_IOCTL_START 后就是调用 ObjOps 的cmd 码
 //      可变参数写法，完全是为了兼容POSIX，事实上从来没有人用过第四个参数，三个参数不
@@ -1400,26 +1358,26 @@ int fcntl(int fd, int cmd, ...)
 //      1、使用单一常数方案；
 //      2、系统自带的模块，不使用第四个参数，三个参数不够用的，用结构指针
 //      3、目前尚未见到使用第四个参数的开源代码，djyos实际上不考虑支持。
-//
-//      linux下cmd的命令码结构：（方向(2bit)数据尺寸(14bit)设备类型 (8it) 命令编码(8bit)）
 // ============================================================================
-int ioctl(int fd, int cmd, ...)
+s32 ioctl(s32 fd,s32 request, ... )
 {
     struct objhandle *hdl;
     va_list args;
-    u32 arg_linux;
-    s32 res = -1;
+    s32 result,res;
 
     hdl = fd2Handle(fd);
     if(!hdl)
         return (0);
+    va_start(args, request);
 
-    va_start (args, cmd);
-    arg_linux = va_arg(args, u32);
-//    arg_linux = (arg_linux & 0xFF); // 提取出命令码；
-    res = (s32)hdl->obj->ops(OBJIOCTL, (ptu32_t)hdl, (ptu32_t)cmd, arg_linux, &args);
+    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_IOCTL,(ptu32_t)&result,
+                                    (ptu32_t)request,(ptu32_t)&args );
     va_end (args);
-    return (res);
+    if(res == CN_OBJ_CMD_TRUE)
+        return result;
+    else
+        return -1;
+
 }
 
 // ============================================================================
@@ -1432,7 +1390,7 @@ int ioctl(int fd, int cmd, ...)
 char *getcwd(char *buf, size_t size)
 {
     u32 len = 0, offset;
-    struct obj *ob = objsys_current();
+    struct obj *ob = obj_current();
 
     if(((buf) && (!size)) || ((!buf) && (size)))
         return (NULL);
@@ -1440,7 +1398,7 @@ char *getcwd(char *buf, size_t size)
     while(ob)
     {
         len += strlen((char*)obj_name(ob)) + 1;
-        if(ob==objsys_root())
+        if(ob==obj_root())
             break;
 
         ob = obj_parent(ob);
@@ -1458,7 +1416,7 @@ char *getcwd(char *buf, size_t size)
     }
 
     offset = len -1;
-    ob = objsys_current();
+    ob = obj_current();
     buf[offset] = '\0';
     while(ob)
     {
@@ -1466,7 +1424,7 @@ char *getcwd(char *buf, size_t size)
         offset -= len;
         memcpy(buf+offset, (char*)obj_name(ob), len);
         buf[--offset] = '/';
-        if(ob==objsys_root())
+        if(ob==obj_root())
             break;
 
         ob = obj_parent(ob);
@@ -1481,12 +1439,13 @@ char *getcwd(char *buf, size_t size)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-int chdir(const char *path)
+s32 chdir(const char *path)
 {
     path = path;
     return (-1); // TODO; NOTE:设置的路径是一个目录
 }
 
+#if 0
 // ============================================================================
 // 功能：
 // 参数：
@@ -1777,7 +1736,7 @@ static struct objhandle *__rf_open(struct obj *ob, u32 flags, char *name)
             file->u = NULL;
         }
 
-        ob = obj_newchild(ob, NULL, O_RDWR, (ptu32_t)file, name);
+        ob = obj_newchild(ob, NULL, (ptu32_t)file, name);
         if(!ob)
         {
             debug_printf("ramfs", "open failed(object create).");
@@ -1788,10 +1747,10 @@ static struct objhandle *__rf_open(struct obj *ob, u32 flags, char *name)
 
         if(!test_regular(flags))
         {
-            if(obj_allow2set(ob)) // 允许目录对象之上建立对象集合；比如在目录之上挂载文件系统；
+//          if(obj_allow2set(ob)) // 允许目录对象之上建立对象集合；比如在目录之上挂载文件系统；
             {
                 free(reg);
-                obj_del(ob);
+                obj_Delete(ob);
                 return (NULL);
             }
         }
@@ -1875,7 +1834,7 @@ static s32 __rf_close(struct objhandle *hdl)
         free(cx);
     }
 
-    handle_free(hdl);
+    handle_Delete(hdl);
     return (0);
 }
 
@@ -1899,7 +1858,7 @@ static s32 __rf_remove(struct obj *ob)
         free(file);
     }
 
-    obj_del(ob);
+    obj_Delete(ob);
     return (0);
 }
 
@@ -1913,7 +1872,7 @@ static s32 __rf_remove(struct obj *ob)
 // ============================================================================
 static s32 __rf_write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    struct __ramfile *file = (struct __ramfile*)handle_val(hdl);
+    struct __ramfile *file = (struct __ramfile*)handle_GetHostObjectPrivate(hdl);
     struct __context *cx = (struct __context*)handle_context(hdl);
     struct __ramreg *reg;
     s32 once, extend, left = size;
@@ -1923,7 +1882,7 @@ static s32 __rf_write(struct objhandle *hdl, u8 *data, u32 size)
         return (0); // 目录不可写；
 
     reg = (struct __ramreg*)file->u;
-    if(isappend(hdl))
+    if(handle_isAppend(hdl))
     {
         if((cx->cindex*__CONTENT_SIZE+cx->cpos)!=reg->sz)
         {
@@ -2006,7 +1965,7 @@ static s32 __rf_write(struct objhandle *hdl, u8 *data, u32 size)
 // ============================================================================
 static s32 __rf_read(struct objhandle *hdl, u8 *data, u32 size)
 {
-    struct __ramfile *file = (struct __ramfile*)handle_val(hdl);
+    struct __ramfile *file = (struct __ramfile*)handle_GetHostObjectPrivate(hdl);
     struct __context *cx = (struct __context*)handle_context(hdl);
     struct __ramreg *reg;
     s32 left, once, cfree;
@@ -2076,14 +2035,14 @@ static s32 __rf_readdentry(struct objhandle *hdl, struct dirent *dentry)
 
     if(!ob) // 第一次读；
     {
-        ob = obj_child(handle2obj(hdl));
+        ob = obj_child(handle_GetHostObj(hdl));
         if(!ob)
             return (1); // 没有子项目；
     }
     else // 后续读；
     {
         ob = obj_next(ob);
-        if(ob==obj_child(handle2obj(hdl)))
+        if(ob==obj_child(handle_GetHostObj(hdl)))
             return (1); // 全部读完；
     }
 
@@ -2113,7 +2072,7 @@ static s32 __rf_stat(struct obj *ob, struct stat *data)
     {
         reg = (struct __ramreg*)file->u;
         data->st_size = reg->sz; //
-        data->st_mode = S_IFREG; //
+        data->st_mode = S_IFREG|S_IRWXUGO; //
     }
     else // 目录
     {
@@ -2134,7 +2093,7 @@ static s32 __rf_stat(struct obj *ob, struct stat *data)
 // ============================================================================
 static s32 __rf_seek(struct objhandle *hdl, s64 *offset, s32 whence)
 {
-    struct __ramfile *file = (struct __ramfile*)handle_val(hdl);
+    struct __ramfile *file = (struct __ramfile*)handle_GetHostObjectPrivate(hdl);
     struct __ramreg *reg;
     struct __context *cx;
     s32 npos, movs, pos, bufed;
@@ -2234,100 +2193,81 @@ static s32 __rf_seek(struct objhandle *hdl, s64 *offset, s32 whence)
 // 返回：
 // 备注：
 // ============================================================================
-static ptu32_t __rf_operations(enum objops ops, ptu32_t oof, ptu32_t args, ...)
+static s32 __rf_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
+                            ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
     va_list list;
+    s32 result = CN_OBJ_CMD_EXECUTED;
 
-    switch(ops)
+    switch(objcmd & CN_OBJ_CMD_MSK)
     {
-        case OBJOPEN:
+        case CN_OBJ_CMD_OPEN:
         {
-            char *nfile;
-            struct obj *ob = (struct obj*)oof;
-            u32 flags = (u32)args;
-
-            va_start(list, args);
-            nfile = (char*)va_arg(list, u32);
-            va_end(list);
-
-            if((nfile != 0) && strstr(nfile, "/"))
-                return (NULL); // 新文件的名字不合法（只允许创建一级）
-
-            return ((ptu32_t)__rf_open(ob, flags, nfile));
+            struct objhandle *hdl;
+            hdl = __rf_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            (struct objhandle *)OpsArgs1 = hdl;
+            break;
         }
 
-        case OBJCLOSE:
+//      case OBJ_TRAVERSE:
+//      {
+//          struct objhandle *hdl = (struct objhandle*)opsTarget;
+//          struct dirent *ret = (struct dirent *)OpsArgs1;
+//
+//          return(__rf_readdentry(hdl, ret));
+//      }
+
+        case CN_OBJ_CMD_READ:
         {
-            struct objhandle *hdl = (struct objhandle*)oof;
-            return ((ptu32_t)__rf_close(hdl));
+            ssize_t len;
+            struct objhandle *devfile = (struct objhandle*)opsTarget;
+
+            len = __rf_read(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
+            *(ssize_t *)OpsArgs1 = len;
+            break;
         }
 
-        case OBJCHILDS:
+        case CN_OBJ_CMD_WRITE:
         {
-            struct objhandle *hdl = (struct objhandle*)oof;
-            struct dirent *ret = (struct dirent *)args;
+            ssize_t len;
+            struct objhandle *devfile = (struct objhandle*)opsTarget;
 
-            return(__rf_readdentry(hdl, ret));
+            len = __rf_write(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
+            *(ssize_t *)OpsArgs1 = len;
+            break;
         }
 
-        case OBJREAD:
+        case CN_OBJ_CMD_CLOSE:
         {
-            u32 len;
-            struct objhandle *hdl = (struct objhandle*)oof;
-            u8 *buf = (u8*)args;
-
-            va_start(list, args);
-            len = va_arg(list, u32);
-            va_end(list);
-
-            return((ptu32_t)__rf_read(hdl, buf, len));
+            __rf_close((struct objhandle*)opsTarget);
+            result = CN_OBJ_CMD_TRUE;
+            break;
         }
 
-        case OBJWRITE:
+        case CN_OBJ_CMD_STAT:
         {
-            u32 len;
-            struct objhandle *hdl = (struct objhandle*)oof;
-            u8 *buf = (u8*)args;
-
-            va_start(list, args);
-            len = va_arg(list, u32);
-            va_end(list);
-            return((ptu32_t)__rf_write(hdl, buf, len));
-        }
-
-        case OBJSTAT:
-        {
-            struct stat *data = (struct stat*)args;
-            struct obj *ob = (struct obj*)oof;
-            char *path;
-
-            va_start(list, args);
-            path = (char*)va_arg(list, u32);
-            va_end(list);
-
+            char *path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
-                return (-1); // 查询的文件不存在；ramfs的文件都是缓存了的；
-
-            return ((ptu32_t)__rf_stat(ob, data));
+                return (-1);    // 查询的文件不存在；ramfs的文件都是缓存了的；
+            __rf_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1);
+            result = CN_OBJ_CMD_TRUE;
+            break;
         }
 
-        case OBJDEL:
+        case CN_OBJ_CMD_DELETE:
         {
-            struct obj *ob = (struct obj*)oof;
-            char *nexist = (char*)args;
-
-            if(nexist)
-                return (-1);
-
-            return((ptu32_t)__rf_remove(ob));
+            *(s32*)OpsArgs1 = __rf_remove((struct obj*)opsTarget);
+            result = CN_OBJ_CMD_TRUE;
+            break;
         }
 
         default:
         {
-            printf("\r\n: dbug : ramfs  : do not support this operation now.");
+            return CN_OBJ_CMD_UNSUPPORT;
             break;
         }
     }
 
-    return (-1);
+    return result;
 }
+#endif

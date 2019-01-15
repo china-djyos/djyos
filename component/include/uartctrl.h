@@ -130,26 +130,26 @@ struct COMParam
                                         //连接，实际工作在一问一答的半双工状态
 
 //串口设备控制命令常数，用于uart_ctrl函数。
-#define CN_UART_SET_BAUD              (F_DEV_DRV+0 )  //设置uartBaud.
-#define CN_UART_COM_SET               (F_DEV_DRV+1 )  //设置串口参数
-#define CN_UART_HALF_DUPLEX_SEND      (F_DEV_DRV+2 )  //发送数据
-#define CN_UART_HALF_DUPLEX_RECV      (F_DEV_DRV+3 )  //接收数据
-#define CN_UART_COMPLETED_SEND        (F_DEV_DRV+4 )  //完成发送工作
-#define CN_UART_RX_PAUSE              (F_DEV_DRV+5 )  //暂停接收数据到缓冲区
-#define CN_UART_RX_RESUME             (F_DEV_DRV+6 )  //重新开始接收数据到缓冲区
-#define CN_UART_RX_OVERTIME           (F_DEV_DRV+7 )  //设置接收超时时间，毫秒数
-#define CN_UART_SEND_SOFT_LEVEL       (F_DEV_DRV+8 )  //设置接收软件缓冲区触发水平
-#define CN_UART_RECV_HARD_LEVEL       (F_DEV_DRV+9 )  //设置接收fifo触发水平
-#define CN_UART_SEND_HARD_LEVEL       (F_DEV_DRV+10)  //设置发送fifo触发水平
-#define CN_UART_RECV_ERROR_EVTT       (F_DEV_DRV+11)  //设置错误弹出事件类型
-#define CN_UART_EN_RTS                (F_DEV_DRV+12)  //使能rts流控
-#define CN_UART_DIS_RTS               (F_DEV_DRV+13)  //禁止rts流控
-#define CN_UART_EN_CTS                (F_DEV_DRV+14)  //使能cts流控
-#define CN_UART_DIS_CTS               (F_DEV_DRV+15)  //禁止cts流控
-#define CN_UART_DMA_USED              (F_DEV_DRV+16)  //使用dma传输
-#define CN_UART_DMA_UNUSED            (F_DEV_DRV+17)  //禁止dma传输
-#define CN_UART_SEND_BUF              (F_DEV_DRV+18)  //不经缓冲区直接发送
-#define CN_UART_RECV_BUF              (F_DEV_DRV+19)  //不经缓冲区直接接收
+#define CN_UART_SET_BAUD              (F_DEV_USER+0 )  //设置uartBaud.
+#define CN_UART_COM_SET               (F_DEV_USER+1 )  //设置串口参数
+#define CN_UART_HALF_DUPLEX_SEND      (F_DEV_USER+2 )  //发送数据
+#define CN_UART_HALF_DUPLEX_RECV      (F_DEV_USER+3 )  //接收数据
+#define CN_UART_COMPLETED_SEND        (F_DEV_USER+4 )  //完成发送工作
+#define CN_UART_RX_PAUSE              (F_DEV_USER+5 )  //暂停接收数据到缓冲区
+#define CN_UART_RX_RESUME             (F_DEV_USER+6 )  //重新开始接收数据到缓冲区
+#define CN_UART_RX_OVERTIME           (F_DEV_USER+7 )  //设置接收超时时间，毫秒数
+#define CN_UART_SEND_SOFT_LEVEL       (F_DEV_USER+8 )  //设置接收软件缓冲区触发水平
+#define CN_UART_RECV_HARD_LEVEL       (F_DEV_USER+9 )  //设置接收fifo触发水平
+#define CN_UART_SEND_HARD_LEVEL       (F_DEV_USER+10)  //设置发送fifo触发水平
+#define CN_UART_RECV_ERROR_EVTT       (F_DEV_USER+11)  //设置错误弹出事件类型
+#define CN_UART_EN_RTS                (F_DEV_USER+12)  //使能rts流控
+#define CN_UART_DIS_RTS               (F_DEV_USER+13)  //禁止rts流控
+#define CN_UART_EN_CTS                (F_DEV_USER+14)  //使能cts流控
+#define CN_UART_DIS_CTS               (F_DEV_USER+15)  //禁止cts流控
+#define CN_UART_DMA_USED              (F_DEV_USER+16)  //使用dma传输
+#define CN_UART_DMA_UNUSED            (F_DEV_USER+17)  //禁止dma传输
+#define CN_UART_SEND_BUF              (F_DEV_USER+18)  //不经缓冲区直接发送
+#define CN_UART_RECV_BUF              (F_DEV_USER+19)  //不经缓冲区直接接收
 
 #ifdef __cplusplus
 }

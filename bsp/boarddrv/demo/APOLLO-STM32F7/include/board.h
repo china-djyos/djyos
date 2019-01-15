@@ -53,8 +53,9 @@
 extern "C" {
 #endif
 
+/**********************************ft5x26********************************************/
 //IO方向设置
-#define CT_SCL_OUT() {GPIOH->MODER&=~(6<<(6*2));GPIOH->MODER|=1<<6*2;}  //PI3输出模式
+#define CT_SCL_OUT() {GPIOH->MODER&=~(3<<(6*2));GPIOH->MODER|=1<<6*2;}  //PH6输出模式
 #define CT_SDA_IN()  {GPIOI->MODER&=~(3<<(3*2));GPIOI->MODER|=0<<3*2;}  //PI3输入模式
 #define CT_SDA_OUT() {GPIOI->MODER&=~(3<<(3*2));GPIOI->MODER|=1<<3*2;}  //PI3输出模式
 //IO操作函数
@@ -65,7 +66,29 @@ extern "C" {
 /*触摸屏芯片接口IO*/
 #define FT_RST(n)  (n?GPIO_SettoHigh(GPIO_I,PIN8):GPIO_SettoLow(GPIO_I,PIN8))
 #define FT_INT      (GPIO_GetData(GPIO_H)&PIN7)
+/*************************************************************************************/
 
+/********************************PCF8574***********************************************/
+//IO方向设置
+#define PCF_SCL_OUT() {GPIOH->MODER&=~(3<<(4*2));GPIOH->MODER|=1<<4*2;} //PH4输出模式
+#define PCF_SDA_IN()  {GPIOH->MODER&=~(3<<(5*2));GPIOH->MODER|=0<<5*2;} //PH5输入模式
+#define PCF_SDA_OUT() {GPIOH->MODER&=~(3<<(5*2));GPIOH->MODER|=1<<5*2;} //PH5输出模式
+//IO操作
+#define PCF_IIC_SCL(n)  (n?HAL_GPIO_WritePin(GPIOH,GPIO_PIN_4,GPIO_PIN_SET):HAL_GPIO_WritePin(GPIOH,GPIO_PIN_4,GPIO_PIN_RESET)) //SCL
+#define PCF_IIC_SDA(n)  (n?HAL_GPIO_WritePin(GPIOH,GPIO_PIN_5,GPIO_PIN_SET):HAL_GPIO_WritePin(GPIOH,GPIO_PIN_5,GPIO_PIN_RESET)) //SDA
+#define PCF_READ_SDA    HAL_GPIO_ReadPin(GPIOH,GPIO_PIN_5)  //输入SDA
+
+#define PCF8574_INT  HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_12)//PCF8574 INT脚
+//PCF8574各个IO的功能
+#define BEEP_IO         0       //蜂鸣器控制引脚   P0
+#define AP_INT_IO       1       //AP3216C中断引脚   P1
+#define DCMI_PWDN_IO    2       //DCMI的电源控制引脚   P2
+#define USB_PWR_IO      3       //USB电源控制引脚 P3
+#define EX_IO           4       //扩展IO,自定义使用    P4
+#define MPU_INT_IO      5       //MPU9250中断引脚   P5
+#define RS485_RE_IO     6       //RS485_RE引脚        P6
+#define ETH_RESET_IO    7       //以太网复位引脚       P7
+/*************************************************************************************/
 void Board_GpioInit(void);
 void FT5206_RST(bool_t flag);
 void Board_UartHalfDuplexSend(u8 SerialNo);
@@ -99,8 +122,8 @@ bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 //
 //bool_t Ltdc_Lcd_Config(struct LCD_ConFig *lcd);
 
-void Board_FT5X26_Int_Gpio(void);
-void Board_FT5X26_RST(void);
+void FT5X26_Pin_Init(void);
+void PCF8574_Pin_Init(void);
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
 unsigned char  NAND_RB_Get(void);
 #ifdef __cplusplus

@@ -117,6 +117,7 @@
 struct NandDescr *s_ptNandInfo;// 临时
 static u8 s_u8SizeofHammingCode; // ECC校验数据大小
 static u8 *s_pu8HammingCode; // ECC校验结果
+extern struct obj *s_ptDeviceRoot;
 static const Pin NAND_PINS[] = {
 {PIO_PC0A_D0,           PIOC, ID_PIOC, PIO_PERIPH_A, PIO_PULLUP },  // NAND D0 管脚
 {PIO_PC1A_D1,           PIOC, ID_PIOC, PIO_PERIPH_A, PIO_PULLUP },  // NAND D1 管脚
@@ -659,7 +660,7 @@ s32 ModuleInstall_NAND(const char *ChipName, u32 Flags, u16 StartBlk)
         return (-2);
     }
 
-    if(!dev_add(NULL,Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip)) // 设备接入"/dev"
+    if(!dev_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip)) // 设备接入"/dev"
     {
         free(s_pu8HammingCode);
         free(Chip);
@@ -1219,6 +1220,8 @@ void EFS_DriverTest(void)
     }
 }
 #endif
+
+#if 1
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
@@ -1375,3 +1378,442 @@ void ChipRawTest(void)
     ContinuityTest(Chip);
     while(1);
 }
+
+#else // 新接口
+#include <device/include/unit_media.h>
+
+static s32 __nand_read(s64 unit, void *data, struct uopt opt);
+static s32 __nand_write(s64 unit, void *data, struct uopt opt);
+static s32 __nand_erase(s64 unit, struct uesz sz);
+static u32 *badstable;
+static u32 badslocation = 0;
+
+
+// ============================================================================
+// 功能：nand 命令
+// 参数：ucmd -- 命令；
+//      其他 -- 命令参数；
+// 返回：
+// 备注：
+// ============================================================================
+s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
+{
+    s32 res = 0;
+
+    switch(cmd)
+    {
+        case whichblock:
+        {
+            va_list list;
+            u32 *block;
+            s64 unit;
+
+            block = (u32*)args;
+            va_start(list, args);
+            unit = (s64)va_arg(list, u32);
+            va_end(list);
+            *block = unit / s_ptNandInfo->PagesPerBlk;
+            break;
+        }
+
+        case totalblocks:
+        {
+            // args = &blocks
+            *((u32*)args) =  s_ptNandInfo->BlksPerLUN * s_ptNandInfo->LUNs;
+            break;
+        }
+
+        case blockunits:
+        {
+            // args = &units
+            *((u32*)args) = s_ptNandInfo->PagesPerBlk;
+            break;
+        }
+
+        case unitbytes:
+        {
+            // args = &bytes
+            *((u32*)args) = s_ptNandInfo->BytesPerPage;
+            break;
+        }
+
+        case checkbad:
+        {
+            if(badslocation==(u32)args)
+                res = 1;
+            else
+                res = SAMv7_BadChk((u32)args); // args = block
+
+            break;
+        }
+
+        case savebads:
+        {
+            struct uopt opt = {0};
+            opt.main = 1;
+            if(0 != __nand_write(badslocation, (void*)args, opt)) // 坏块表放置在第0页
+                res = -1;
+
+            break;
+        }
+
+        case getbads:
+        {
+            struct uopt opt = {0};
+            u32 **table = (u32**)args;
+
+            opt.main = 1;
+            if(!(*table))
+            {
+                res = 1;
+            }
+            else
+            {
+                res = __nand_read(badslocation, (void*)(*table), opt); // 坏块表放置在第0页
+            }
+
+            break;
+        }
+
+        case format:
+        {
+            va_list list;
+            u32 start, end;
+            u8 *tmp, escape = 0;
+            struct uesz *sz;
+            struct uopt opt = {0};
+
+            start = (u32)args;
+            va_start(list, args);
+            end = va_arg(list, u32);
+            sz = (struct uesz*)va_arg(list, u32);
+            va_end(list);
+
+            if(!sz->block)
+                return (-1);
+
+            tmp = malloc(s_ptNandInfo->BytesPerPage);
+            if(!tmp)
+                return (-1);
+
+            opt.main = 1;
+            if(0 ==__nand_read(badslocation, (void*)(tmp), opt)) // 读坏块表
+            {
+                if(nandvalidbads((u32*)tmp))
+                    escape = 1; // 存在坏块表，不擦除；
+
+                if(-1==(s32)end)
+                    end = s_ptNandInfo->BlksPerLUN * s_ptNandInfo->LUNs;
+                else if (start)
+                    end += start;
+
+                do
+                {
+                    if((badslocation==(--end))&&escape) // 坏块表在第一页
+                        continue;
+
+                    if(__nand_erase((s64)end, *sz))
+                    {
+                        res = -1;
+                        break;
+                    }
+                }
+                while(end!=start);
+            }
+            else
+            {
+                res = -1;
+            }
+
+            free(tmp);
+            break;
+        }
+
+        default: res = -1; break;
+    }
+
+    return (res);
+}
+
+// ============================================================================
+// 功能：nand 读；
+// 参数：unit -- 读的序号（页）；
+//      data -- 读的数据；
+//      opt -- 读的方式；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：
+// ============================================================================
+static s32 __nand_read(s64 unit, void *data, struct uopt opt)
+{
+    u32 flags = 0;
+    s32 res;
+    nandbadfreeunit(badstable, &unit, __nand_req);
+    if(opt.hecc)
+        flags |= HW_ECC;
+    else if(opt.secc)
+        flags |= SW_ECC;
+    else
+        flags |= NO_ECC;
+
+    if(opt.main)
+    {
+        if(opt.spare)
+            flags |= SPARE_REQ;
+
+        res = SAMv7_PageRead((u32)unit, (u8*)data, flags);
+        if (!((SPARE_REQ & flags) || (HW_ECC & flags)))
+        {
+            if(res != (s32)s_ptNandInfo->BytesPerPage)
+            {
+                return (-1);
+            }
+        }
+        else
+        {
+            if(res != (s32)(s_ptNandInfo->BytesPerPage + s_ptNandInfo->OOB_Size))
+            {
+                return (-1);
+            }
+        }
+    }
+    else
+    {
+        res = SAMv7_SpareRead((u32)unit, (u8*)data);
+        if(res != (s32)s_ptNandInfo->OOB_Size)
+        {
+            return (-1);
+        }
+    }
+
+    return (0);
+}
+
+// ============================================================================
+// 功能：nand 写；
+// 参数：unit -- 写的序号（页）；
+//      data -- 写的数据；
+//      opt -- 写的方式；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 返回：
+// 备注：
+// ============================================================================
+static s32 __nand_write(s64 unit, void *data, struct uopt opt)
+{
+    u32 flags = 0;
+    s32 res;
+    nandbadfreeunit(badstable, &unit, __nand_req);
+    if(opt.hecc)
+        flags |= HW_ECC;
+    else if(opt.secc)
+        flags |= SW_ECC;
+    else
+        flags |= NO_ECC;
+
+    if(opt.main)
+    {
+        if(opt.spare)
+            flags |= SPARE_REQ;
+
+        res = SAMv7_PageProgram((u32)unit, (u8*)data, flags);
+        if (!((SPARE_REQ & flags) || (HW_ECC & flags)))
+        {
+            if(res != (s32)(s_ptNandInfo->BytesPerPage))
+            {
+                return (-1);
+            }
+        }
+        else
+        {
+            if(res != (s32)(s_ptNandInfo->BytesPerPage + s_ptNandInfo->OOB_Size))
+            {
+                return (-1);
+            }
+        }
+    }
+    else
+    {
+        res = SAMv7_SpareProgram((u32)unit, (u8*)data);
+        if(res != (s32)s_ptNandInfo->OOB_Size)
+        {
+            return (-1);
+        }
+    }
+
+    return (0);
+}
+
+// ============================================================================
+// 功能：nand 擦除
+// 参数：unit -- 擦除的序号；
+//      sz -- 擦除的单位（unit或block）
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：
+// ============================================================================
+static s32 __nand_erase(s64 unit, struct uesz sz)
+{
+    u32 block;
+
+    if(sz.unit)
+    {
+        nandbadfreeunit(badstable, &unit, __nand_req);
+        block = (u32)(unit / s_ptNandInfo->PagesPerBlk);
+    }
+    else
+    {
+        block = unit;
+        nandbadfreeblock(badstable, &block, __nand_req);
+    }
+
+    return (SAMv7_BlockErase(block));
+}
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+static s32 __nand_init(void)
+{
+    s_ptNandInfo = malloc(sizeof(*s_ptNandInfo));
+    if(!s_ptNandInfo)
+        return (-1);
+
+    SAMv7_NAND_Config();// 芯片管脚等基本配置
+    if(SAMv7_GetNandDescr(s_ptNandInfo))
+    {
+        free(s_ptNandInfo);
+        s_ptNandInfo = NULL;
+        return (-1);
+    }
+
+    s_ptNandInfo->ReservedBlks = 0;
+    s_ptNandInfo->Controller = HW_ECC_SUPPORTED;
+    s_ptNandInfo->BadMarkOffset = s_ptNandInfo->OOB_Size - 4 - 1;
+    return (0);
+}
+
+// ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+s32 __nand_part_init(const char *fs,s32 MountPart,u32 bstart, u32 bcount, u32 doformat)
+{
+    struct umedia *um;
+    struct uopt opt;
+    char name[16], part[3];
+    static s32 count = 0;
+    char *FullPath;
+    if(!s_ptNandInfo)
+    {
+        if(__nand_init())
+        {
+            printf("\r\n: erro : device : nand initialization failed(init).");
+            return (-1);
+        }
+    }
+
+    if(doformat)
+    {
+        struct uesz sz;
+        sz.unit = 0;
+        sz.block = 1;
+        __nand_req(format, bstart , bcount, &sz);
+    }
+
+    if(!badstable)
+    {
+        badstable = nandbuildbads(__nand_req);
+        if(!badstable)
+        {
+            printf("\r\n: erro : device : nand initialization failed(bad table).");
+            return (-1);
+        }
+    }
+
+    um = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
+    if(!um)
+        return (-1);
+
+    opt.hecc = 0;
+    opt.main = 1;
+    opt.necc = 1;
+    opt.secc = 0;
+    opt.spare = 1;
+    if(-1 == (s32)bcount)
+    {
+        bcount = s_ptNandInfo->BlksPerLUN * s_ptNandInfo->LUNs;
+        bcount -= bstart;
+        um->asz = s_ptNandInfo->BytesPerPage * s_ptNandInfo->PagesPerBlk * bcount;
+    }
+    else
+    {
+        um->asz = s_ptNandInfo->BytesPerPage * s_ptNandInfo->PagesPerBlk * bcount;
+    }
+
+    um->esz = log2(s_ptNandInfo->BytesPerPage * s_ptNandInfo->PagesPerBlk); //
+    um->usz = log2(s_ptNandInfo->BytesPerPage);
+    um->merase = __nand_erase;
+    um->mread = __nand_read;
+    um->mreq = __nand_req;
+    um->mwrite = __nand_write;
+    um->opt = opt;
+    um->type = nand;
+    um->ubuf = (u8*)um + sizeof(struct umedia);
+    um->ustart = bstart*s_ptNandInfo->PagesPerBlk; // 起始unit号
+    itoa(count, part, 10);
+    sprintf(name, "nand part %s", part);
+    if(um_add((const char*)name, um))
+    {
+        printf("\r\n: erro : device : %s addition failed.", name);
+        return (-1);
+    }
+    if(MountPart == count)
+    {
+        FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name));
+        sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,name);
+        FsBeMedia(FullPath,fs);
+        free(FullPath);
+    }
+    count++;
+    printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, bstart, bcount);
+    return (0);
+}
+
+//-----------------------------------------------------------------------------
+// 功能：安装nand驱动
+// 参数：  TargetFs -- 要挂载的文件系统
+//      parts -- 分区数；
+//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+//-----------------------------------------------------------------------------
+s32 ModuleInstall_NAND(const char *TargetFs,u8 parts,s32 TargetPart, ...)
+{
+    u8 part;
+    u32 startblock, blocks, doformat;
+    va_list list;
+    s32 res = 0;
+
+    va_start(list, TargetPart);
+    for(part=0; part<parts; part++)
+    {
+        startblock = (u32)va_arg(list, u32);
+        blocks = (u32)va_arg(list, u32);
+        doformat = (u32)va_arg(list, u32);
+        if(__nand_part_init(TargetFs,TargetPart,startblock, blocks, doformat))
+        {
+            error_printf("nand","cannot install fail.");
+            res = -1;
+            break;
+        }
+    }
+
+    va_end(list);
+    return (res);
+}
+
+#endif

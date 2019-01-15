@@ -47,7 +47,7 @@ inline void silan_gpio_irq_enable(u32 addr, u32 pin)
 	__sREG32(addr, GPIO_IE) |= pin;
 }
 
-inline void silan_gpio_irq_clear(u32 addr, u32 pin)
+void silan_gpio_irq_clear(u32 addr, u32 pin)
 {
 	__sREG32(addr, GPIO_IC) |= pin;
 }

@@ -144,7 +144,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
         goto exit_from_malloc;
 
     //将总线结点挂接到总线类型结点的子结点
-    SpiDev = obj_newchild(s_ptSPIBusType, (fnObjOps)-1, 0,(ptu32_t)NewSPI,(const char*)(NewSPIParam->BusName));
+    SpiDev = obj_newchild(s_ptSPIBusType, (fnObjOps)-1,(ptu32_t)NewSPI,(const char*)(NewSPIParam->BusName));
     if(SpiDev == NULL)
         goto exit_from_add_node;
 
@@ -177,7 +177,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
 exit_from_spi_buf_semp:
     Lock_SempDelete(NewSPI->SPI_BusSemp);
 exit_from_spi_bus_semp:
-    obj_del(SpiDev);
+    obj_Delete(SpiDev);
 exit_from_add_node:
     free(NewSPI);
 exit_from_malloc:
@@ -198,7 +198,7 @@ bool_t SPI_BusDelete(struct SPI_CB *DelSPI)
     bool_t result;
     if(NULL == DelSPI)
         return false;
-    if(obj_del(DelSPI->HostObj))
+    if(obj_Delete(DelSPI->HostObj))
     {
         result = false;
     }
@@ -264,7 +264,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
 
     //为新结点初始化
     NewDev->Cs  = cs;
-    NewDev->HostObj = obj_newchild(SPI->HostObj, (fnObjOps)-1, 0,(ptu32_t)NewDev,  DevName);
+    NewDev->HostObj = obj_newchild(SPI->HostObj, (fnObjOps)-1, (ptu32_t)NewDev,  DevName);
     if(!NewDev->HostObj)
     {
         free(NewDev);
@@ -304,7 +304,7 @@ bool_t SPI_DevDelete(struct SPI_Device *DelDev)
     if(NULL == DelDev)
         return false;
 
-    if(obj_del(DelDev->HostObj))
+    if(obj_Delete(DelDev->HostObj))
     {
         result = false;
     }
@@ -327,7 +327,7 @@ bool_t SPI_DevDelete_s(struct SPI_Device *DelDev)
     if(NULL == DelDev)
         return false;
 
-    if(obj_del(DelDev->HostObj))
+    if(obj_Delete(DelDev->HostObj))
     {
         result = false;
     }

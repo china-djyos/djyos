@@ -17,23 +17,4 @@
    <cpu>stm32l475xx</cpu>
    <cpu>stm32l476xx</cpu>
    <cpu>zq1201</cpu>
-   <cpu>zq1201_ck</cpu>
-   <cpu>ATSAM4E16xx</cpu>
-   <cpu>ATSAMV70xxx</cpu>
-   <cpu>imxrt1052</cpu>
-   <cpu>M487JIDAE</cpu>
-   <cpu>s3c2416</cpu>
-   <cpu>stm32f103xe</cpu>
-   <cpu>stm32f103xg</cpu>
-   <cpu>stm32f303xc</cpu>
-   <cpu>stm32f407xx</cpu>
-   <cpu>stm32f746xx</cpu>
-   <cpu>stm32f756xx</cpu>
-   <cpu>stm32f767xx</cpu>
-   <cpu>stm32h743xx</cpu>
-   <cpu>stm32l433xx</cpu>
-   <cpu>stm32l475xx</cpu>
-   <cpu>stm32l476xx</cpu>
-   <cpu>zq1201</cpu>
-   <cpu>zq1201_ck</cpu>
 </cpus>

@@ -79,6 +79,7 @@ extern "C" {
 #include "stm32f1xx.h"
 #include "stm32f1xx_hal_conf.h"
 
+#include "stm32f1xx_hal_tim.h"
 extern struct DMA_StReg volatile * const pg_dma1_reg;
 extern struct DMA_StReg volatile * const pg_dma2_reg;
 

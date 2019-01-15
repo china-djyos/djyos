@@ -11,6 +11,12 @@
     <chip>
       <chipName>ft5x26</chipName>
     </chip>
+    <chip>
+      <chipName>pcf8574</chipName>
+    </chip>
+    <chip>
+      <chipName>lan8720</chipName>
+    </chip>
     <memory>
       <type>RAM</type>
       <startAddr>0xc0000000</startAddr>

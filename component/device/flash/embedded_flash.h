@@ -61,7 +61,7 @@ struct EmFlashDescr{
     u32     MappedStAddr;           // 内存映射起始地址;
 };
 
-s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 Start);
+s32 ModuleInstall_EmbededFlash(const char *TargetFs,u8 parts,s32 TargetPart, ...);
 s32 EEFC_PageRead(u32 Page, u8 *Data, u32 Flags);
 s32 EEFC_PageProgram(u32 Page, u8 *Data, u32 Flags);
 s32 EEFC_SectorEarse(u32 SectorNo);

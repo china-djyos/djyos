@@ -98,7 +98,7 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     struct GkscParaCreateDesktop para;
     struct GkWinObj *result = NULL;
     struct GkWinObj *desktop;
-    DisplayObject = obj_search_child(objsys_root(), "display");         //取显示器目录
+    DisplayObject = obj_search_child(obj_root(), "display");         //取显示器目录
     DisplayObject = obj_search_child(DisplayObject, DisplayName);    //取显示器对象
     desktop = malloc(sizeof(struct GkWinObj));
     if((NULL == DisplayObject) || (NULL == desktop))
@@ -125,7 +125,7 @@ struct GkWinObj *GK_GetDesktop(const char *display_name)
 {
     struct DisplayObj *display = NULL;
     struct obj *DispObj;
-    DispObj = obj_search_child(objsys_root( ),"display");
+    DispObj = obj_search_child(obj_root( ),"display");
     if(DispObj != NULL)
     {
         DispObj = obj_search_child(DispObj,display_name);
