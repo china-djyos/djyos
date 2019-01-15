@@ -51,6 +51,7 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
+
 	extern s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat);
 	extern s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
 			u8 parts, ...);

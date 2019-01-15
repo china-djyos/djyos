@@ -53,15 +53,12 @@
 #include "stdint.h"
 #include "stddef.h"
 
-
 ptu32_t djy_main(void)
 {
-	printf("Iboot CK:hello world!\r\n");
 	while(1)
 	{
-//		printf("iboot release:hello world!\r\n");
+		printf("hello world!\r\n");
 		Djy_EventDelay(1000*1000);
 	}
 	return 0;
 }
-
