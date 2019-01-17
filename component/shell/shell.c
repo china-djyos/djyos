@@ -76,9 +76,8 @@
 #include <string.h>
 #include <systime.h>
 #include <unistd.h>
-
-                                //允许是个空文件，所有配置将按默认值配置。
-
+#include "project_config.h"
+//允许是个空文件，所有配置将按默认值配置。
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
@@ -108,15 +107,35 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#ifndef CFG_ADD_ROUTINE_SHELL
+#warning  " shell  组件参数未配置使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,0,100,
 //%$#@enum,true,false,
+#define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令"
+#define CFG_ADD_EXPAND_SHELL       true       //"是否添加拓展shell命令"
+#define CFG_ADD_GLOBAL_FUN         false       //"添加全局函数到shell"
+#define CFG_SHOW_ADD_SHEELL        true        //"显示在编译窗口添加的shell命令"
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+struct
+{
+    u8 add_routine_shell;
+    u8 add_expand_shell;
+    u8 add_global_fun ;
+    u8 show_add_sheell;
+}const pt_shell_config __attribute__ ((section(".shellconfig"))) =
+    {
+     .add_routine_shell = CFG_ADD_ROUTINE_SHELL,
+     .add_expand_shell= CFG_ADD_EXPAND_SHELL,
+     .add_global_fun = CFG_ADD_GLOBAL_FUN,
+     .show_add_sheell= CFG_SHOW_ADD_SHEELL,
+    };
 //=============通用函数调用参数与返回值由shell根据输入字符串解析汇编实现=========//
 typedef void (*Ex_shell_func)(void);
 //=============内部函数参数为字符串由函数本身解析参数========================//
@@ -173,15 +192,13 @@ enum commandtype
 struct sh_cmd_Tab
 {
     char * const cmdname;
-    void * cmdaddr;
-    #define    SH_CMDTYPE_INFUN         0   //内部sh函数
-    #define    SH_CMDTYPE_INDATA        1   //内部sh数据
-    #define    SH_CMDTYPE_INFUN_HELP    2   //内部函数帮助信息
-    #define    SH_CMDTYPE_EXFUN         3   //外部函数
-    #define    SH_CMDTYPE_EXDATA        4   //外部sh数据
-    #define    SH_CMDTYPE_EXFUN_HELP    5   //外部函数数据帮助细信息
-    #define    SH_CMDTYPE_DATE          6   //全局数据
-    #define    SH_CMDTYPE_FUN           7   //全局函数
+    struct shell_cmd *cmdaddr;
+    #define    SH_CMDTYPE_ROUTINE_FUN         0   //常规sh函数
+    #define    SH_CMDTYPE_ROUTINE_DATA        1   //常规sh数据
+    #define    SH_CMDTYPE_EXPAND_FUN          2   //拓展shell函数
+    #define    SH_CMDTYPE_EXPAND_DATA         3   //拓展shell数据
+    #define    SH_CMDTYPE_GLOBAL_FUN          4   //全局函数
+    #define    SH_CMDTYPE_GLOBAL_DATE         5   //全局数据
     int   cmdtype;
 };
 
@@ -189,7 +206,7 @@ struct sh_cmd_Tab
 #define CN_SHELL_CMD_LIMIT 255 // shell 命令串长度限制
 extern struct shellinfo p_shell_info; // p_shell_info 来自iboot.lds文件
 static struct MutexLCB *__shell_mutex;//shell执行的互斥
-struct shell_list shells_list;
+static struct shell_list shells_list;
 
 static union param ParameterTab[PARAMETER_MAX];
 static enum param_typr ParameterFlagTab[PARAMETER_MAX];
@@ -512,122 +529,41 @@ static bool_t __asm_execute(u8 num,Ex_shell_func fun)
 }
 
 
-
-
-//查找命令类型为type的命令查找范围idx ->cmdmax
-static s32 find_next_cmd(struct sh_cmd_Tab *pcmdtab,int type,int idx ,int cmdmax)
-{
-    s32 i;
-    for(i=idx;i<cmdmax;i++)
-    {
-        if(pcmdtab[i].cmdtype == type)
-                break;
-    }
-    if(cmdmax == i)
-        return -1;
-    return i;
-}
-
-//查找命令对应的帮助信息
-static char * find_cmd_help(const char*cmdname, struct shell_list *p_Sh_List)
-{
-
-    char helpname[CN_SHELL_CMD_LIMIT] = DJYSH_HELP_NAME;
-    strcat(helpname,  cmdname);
-    struct sh_cmd_Tab * help_cmd = __find(p_Sh_List, helpname);
-    if(help_cmd==NULL)
-        return NULL;
-
-    return *(char**)help_cmd->cmdaddr;
-}
-
-
-ADD_TO_IN_SHELL_HELP(help,"帮助信息格式 :help [cmd]\n\r");
-ADD_TO_IN_SHELL bool_t help(char *param)
+static bool_t shell_help(char *param)
 {
     bool_t flag = true;
     struct shell_list *p_Sh_List;
     p_Sh_List = &shells_list;
-    char *help;
-    s32 idx;
+    u32 idx;
+
     do{
         struct sh_cmd_Tab *pcmdtab = (struct sh_cmd_Tab *)p_Sh_List->info.sh_Tab_start;
         u32 cmdnum = (p_Sh_List->info.sh_Tab_end-p_Sh_List->info.sh_Tab_start)/sizeof(struct sh_cmd_Tab);
 
         printf("常规命令：\n\r");
-        printf("命令名                 帮助\n\r");
-        idx =0;
-        for(;;idx++)
+        printf("%-20s  %-12s   %-20s\n\r","命令名","类型名","帮助");
+        for(idx=0;idx<cmdnum;idx++)
         {
-            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_INFUN,idx,cmdnum);
-            if(idx !=-1)
+            if(pcmdtab[idx].cmdtype == SH_CMDTYPE_ROUTINE_FUN)
             {
-
-                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
-                if(help ==NULL)
-                    printf("%-20s   NULL \n\r",pcmdtab[idx].cmdname);
-                else
-                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
-
+                printf("%-20s ROUTINE SHELL   %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdaddr->shell_help_addr);
             }
-            else
-                break;
-
+            else if(pcmdtab[idx].cmdtype == SH_CMDTYPE_ROUTINE_DATA)
+            {
+                printf("%-20s  ROUTINE DATE \n\r",pcmdtab[idx].cmdname);
+            }
         }
-
-        printf("拓展命令：\n\r");
-        printf("命令名                 帮助\n\r");
-        idx =0;
-        for(;;idx++)
+        printf("\n\r拓展命令：\n\r");
+        for(idx=0;idx<cmdnum;idx++)
         {
-            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_EXFUN,idx,cmdnum);
-            if(idx !=-1)
+            if(pcmdtab[idx].cmdtype == SH_CMDTYPE_EXPAND_FUN)
             {
-
-                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
-                if(help ==NULL)
-                    printf("%-20s   NULL\n\r",pcmdtab[idx].cmdname);
-                else
-                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
-
+                printf("%-20s EXPAND SHWLL   %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdaddr->shell_help_addr);
             }
-            else
-                break;
-        }
-
-        printf("shell 数据：\n\r");
-        printf("命令名                 帮助\n\r");
-        idx =0;
-        for(;;idx++)
-        {
-            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_INDATA,idx,cmdnum);
-            if(idx !=-1)
+            else if(pcmdtab[idx].cmdtype == SH_CMDTYPE_EXPAND_DATA)
             {
-
-                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
-                if(help ==NULL)
-                    printf("%-20s   NULL\n\r",pcmdtab[idx].cmdname);
-                else
-                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
+                printf("%-20s  EXPAND DATE \n\r",pcmdtab[idx].cmdname);
             }
-            else
-                break;
-        }
-        idx =0;
-        for(;;idx++)
-        {
-            idx = find_next_cmd(pcmdtab,SH_CMDTYPE_EXDATA,idx,cmdnum);
-            if(idx !=-1)
-            {
-
-                help = find_cmd_help(pcmdtab[idx].cmdname,p_Sh_List);
-                if(help ==NULL)
-                    printf("%-20s   NULL\n\r",pcmdtab[idx].cmdname);
-                else
-                    printf("%-20s   help %-20s\n\r",pcmdtab[idx].cmdname,pcmdtab[idx].cmdname);
-            }
-            else
-                break;
         }
 
         p_Sh_List = (struct shell_list*)dListGetAfter(&(p_Sh_List->list));
@@ -650,23 +586,23 @@ static bool_t shell_exec_command(char *buf)
     u8 i;
     struct dataclass data_class;
     in_shell_func inshfun;
+    Ex_shell_func exshfun;
+    bool_t help_flag = false;
 
-    char helpname[CN_SHELL_CMD_LIMIT] = DJYSH_HELP_NAME;
     //串口限制读取255字符，在这里提示超长就行。
     if(strnlen(buf, CN_SHELL_CMD_LIMIT+1) > CN_SHELL_CMD_LIMIT)
     {
         printf("输入字符串太长\r\n");
+        return false;
     }
-
     cmdname = shell_inputs(buf, &next_param);//提取函数或者变量名
-
     if(strcmp("help",cmdname)==0)//如果是帮助信息则拼接成新的名字
     {
-        word = shell_inputs(next_param,&next_param);
-        if(word != NULL)
+        wordbak = shell_inputs(next_param,&next_param);
+        if(wordbak != NULL)
         {
-            strcat(helpname,word);
-            cmdname = helpname;
+            cmdname = wordbak;
+            help_flag = true;
         }
     }
 
@@ -679,17 +615,81 @@ static bool_t shell_exec_command(char *buf)
 
     switch (sh_sym->cmdtype)
     {
-        case SH_CMDTYPE_INFUN:  //内部函数直接将字符串传递给函数由函数自己解析
-            inshfun = (in_shell_func)sh_sym->cmdaddr;
-            result = inshfun(next_param);
-            if(result == false)
+        case SH_CMDTYPE_ROUTINE_FUN :       //常规sh函数
+            if(help_flag)
             {
+                printf("%s", sh_sym->cmdaddr->shell_help_addr);
+            }
+            else
+            {
+                inshfun = (in_shell_func)sh_sym->cmdaddr->shell_fun_addr;
+                result = inshfun(next_param);
+                if(result == false)
                     printf("shell 内部函数执行错误 ！！\n\r");
             }
             break;
+        case SH_CMDTYPE_ROUTINE_DATA:     //常规sh数据
+        case SH_CMDTYPE_EXPAND_DATA :     //拓展shell数据
+        case SH_CMDTYPE_GLOBAL_DATE :     //全局数据
+            word = shell_inputs(next_param,&next_param);
+            if(word == NULL)
+            {
+               printf("正确格式为：1、 DataName = 类型  num  2、 DataName  类型\r\n");
+               printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d/""/''\r\n");
+                break;
+             }
 
-        case SH_CMDTYPE_FUN:  //普通shell函数
-        case SH_CMDTYPE_EXFUN:// 外部shell函数
+            if(strcmp(word,"=") == 0)//变量赋值
+            {
+                word = shell_inputs(next_param,&next_param);
+                if(word != NULL)
+                    data_class.datatype = __str2type(word);
+                else
+                    data_class.datatype = flag_error;
+
+                word = shell_inputs(next_param,&next_param);
+                wordbak = word;
+                word = shell_inputs(next_param,&next_param);
+                if((NULL != word) || (wordbak ==NULL)|| \
+                        (data_class.datatype == flag_error))
+                {
+                    printf("正确格式为 DataName = 类型  num \n\r"\
+                        "类型为 u8 u16 u32 s8 s16 s32 b f d "" ''\n\r");
+                    return false;
+                }
+                data_class.datastring = wordbak;
+                result = __variable_assignment(&data_class,(union param *)sh_sym->cmdaddr);
+            }else
+            {
+                data_class.datatype = __str2type(word);
+                if( data_class.datatype == flag_error)
+                {
+                    printf("shell 变量参数类型错误 ！！\n\r");
+                    printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d/""/''\r\n");
+                    return false;
+                }
+                result = __show_data(&data_class,(union param *)sh_sym->cmdaddr);
+            }
+            break;
+        case SH_CMDTYPE_EXPAND_FUN  :      //拓展shell函数
+        case SH_CMDTYPE_GLOBAL_FUN  :     //全局函数
+            if(sh_sym->cmdtype==SH_CMDTYPE_EXPAND_FUN)
+            {
+                if(help_flag)
+                {
+                    printf("%s",sh_sym->cmdaddr->shell_help_addr);
+                    return true;
+                }
+                else
+                {
+                    exshfun = (Ex_shell_func)sh_sym->cmdaddr->shell_fun_addr;
+                }
+            }
+            else
+            {
+                exshfun = (Ex_shell_func)sh_sym->cmdaddr;
+            }
+
             for(i=1;i<PARAMETER_MAX;i++)
             {
                 word = shell_inputs(next_param,&next_param);
@@ -735,57 +735,10 @@ static bool_t shell_exec_command(char *buf)
                  printf("形参数量最多10个，不能超过10个\r\n");
                  return false;
             }
-            result = __asm_execute(i,(Ex_shell_func)sh_sym->cmdaddr);
-            break;
-
-        case SH_CMDTYPE_INDATA:
-        case SH_CMDTYPE_EXDATA:
-        case SH_CMDTYPE_DATE:
-            word = shell_inputs(next_param,&next_param);
-            if(word == NULL)
-            {
-               printf("正确格式为：1、 DataName = 类型  num  2、 DataName  类型\r\n");
-               printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d/""/''\r\n");
-                break;
-             }
-
-            if(strcmp(word,"=") == 0)//变量赋值
-            {
-                word = shell_inputs(next_param,&next_param);
-                if(word != NULL)
-                    data_class.datatype = __str2type(word);
-                else
-                    data_class.datatype = flag_error;
-
-                word = shell_inputs(next_param,&next_param);
-                wordbak = word;
-                word = shell_inputs(next_param,&next_param);
-                if((NULL != word) || (wordbak ==NULL)|| \
-                        (data_class.datatype == flag_error))
-                {
-                    printf("正确格式为 DataName = 类型  num \n\r"\
-                        "类型为 u8 u16 u32 s8 s16 s32 b f d "" ''\n\r");
-                    return false;
-                }
-                data_class.datastring = wordbak;
-                result = __variable_assignment(&data_class,sh_sym->cmdaddr);
-            }else
-            {
-                data_class.datatype = __str2type(word);
-                if( data_class.datatype == flag_error)
-                {
-                    printf("shell 变量参数类型错误 ！！\n\r");
-                    printf("参数类型有：u8/u16/u32/u64/s8/s16/s32/s64/b/f/d/""/''\r\n");
-                    return false;
-                }
-                result = __show_data(&data_class,(union param *)sh_sym->cmdaddr);
-            }
-            break;
-        case SH_CMDTYPE_INFUN_HELP:
-        case SH_CMDTYPE_EXFUN_HELP:
-            printf("%s",*(char**)sh_sym->cmdaddr);
+            result = __asm_execute(i,(Ex_shell_func)exshfun);
             break;
         default : break;
+
     }
 
     return result;
@@ -1188,3 +1141,4 @@ s32 ModuleInstall_Shell(ptu32_t para)
 
     return (para);
 }
+ADD_TO_ROUTINE_SHELL(help,shell_help,"帮助信息格式 :help [cmd]");

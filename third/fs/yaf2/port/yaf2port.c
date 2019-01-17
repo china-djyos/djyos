@@ -416,16 +416,8 @@ static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data);
 static s32 YAF2_Ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 
-//
-// IAP的文件系统类型
-//
-struct FsType typeYAF2 = {
-        YAF2_Ops,
-        __yaf2install,
-        NULL,
-        NULL,
-        "YAF2"
-};
+extern int yaf2_install_drv(struct yaffs_dev *yaf2dev, struct umedia *um, u32 splices);
+
 // ============================================================================
 // 功能：打开YAF的文件或目录
 // 参数：ob -- YAF文件对象(可能不是需要打开的文件)；
@@ -701,6 +693,7 @@ static s32 __yaf2stat(struct obj *ob, struct stat *data, char *uncached)
 {
     struct yaffs_stat yafstat = {0};
     struct objhandle *myhandle;
+    s32 res;
 
     myhandle = obj_ForeachHandle(NULL, ob);     //取该文件其中一个句柄
     if((uncached)                   //文件对象未缓存，依靠路径查询文件；
@@ -714,11 +707,13 @@ static s32 __yaf2stat(struct obj *ob, struct stat *data, char *uncached)
             return (-1);
         GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
 
-        path = malloc(strlen(root)+strlen(entirepath)+1);
+        res = strlen(entirepath) + 1;
+        path = malloc(res);
         if(!path)
-            return (-1);
+            return -1;
+        memset(path, 0, res);
+        memcpy(path, entirepath, res);
 
-        sprintf(path, "%s%s", root, uncached);
         if(-1==yaffs_stat(path, &yafstat))
         {
             free(path);
@@ -765,13 +760,17 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             break;
         }
 
-//      case OBJ_TRAVERSE:
-//      {
-//          struct objhandle *hdl = (struct objhandle*)opsTarget;
-//          struct dirent *ret = (struct dirent *)OpsArgs1;
-//
-//          return(__yaf2readdentry(hdl, ret));
-//      }
+      case CN_OBJ_CMD_READDIR:
+      {
+          struct objhandle *hdl = (struct objhandle*)opsTarget;
+          struct dirent *ret = (struct dirent *)OpsArgs1;
+
+          if((ptu32_t)__yaf2readdentry(hdl, ret) == 0)
+              result = CN_OBJ_CMD_TRUE;
+          else
+              result = CN_OBJ_CMD_FALSE;
+          break;
+      }
 
         case CN_OBJ_CMD_READ:
         {
@@ -830,7 +829,11 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SYNC:
         {
-            return ((ptu32_t)__yaf2fsync((struct objhandle*)opsTarget));
+            if((ptu32_t)__yaf2fsync((struct objhandle*)opsTarget) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
         }
 
         default:
@@ -861,15 +864,15 @@ static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data)
     u32 config = *(u32*)data;
 
 //    flash = (struct FlashChip*)dev_GetDrvTagFromObj(pSuper->pDev);
-    media = (struct umedia*)pSuper->media;
-    if(dwOpts & INSTALL_FORMAT)
+    media = (struct umedia*)pSuper->Media;
+    if(dwOpts & MS_INSTALLFORMAT)
     {
 //        if(-1 == EarseWholeChip(flash))
 //            return (-1);
         struct uesz sz = {0};
         sz.block = 1;
 
-        if(media->mreq(format, (media->ustart<<(media->esz-media->usz)), -1, &sz))
+        if(media->mreq(format, (pSuper->MediaStart<<(media->esz-media->usz)), -1, &sz))
             return (-1);
     }
 
@@ -930,12 +933,12 @@ static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data)
     }
 
     params->chunks_per_block = 1 << (media->esz - media->usz - splice);
-    params->start_block = media->ustart / params->chunks_per_block;
-    pieces = (u32)(media->ustart % params->chunks_per_block); // 对齐操作
+    params->start_block = pSuper->MediaStart / params->chunks_per_block;
+    pieces = (u32)(pSuper->MediaStart % params->chunks_per_block); // 对齐操作
     if(pieces)
         params->start_block += 1;
 
-    params->end_block = (media->asz - (pieces << media->usz)) >> media->esz;
+    params->end_block = (pSuper->AreaSize - (pieces << media->usz)) >> media->esz;
     params->end_block += (params->start_block - 1); // 减一是块的需要从零开始；
     if((nor==media->type)||(splice))
         params->inband_tags = 1; // nand页过小或非nand设备，tag存放于内页;
@@ -981,15 +984,15 @@ int yaffs_start_up(void)
 
 // ============================================================================
 // 功能：挂载YAFFS2文件系统到目录/yaffs2下
-// 参数：target -- YAF2文件系统所挂载的目录；缺省为“/yaf2”
-//      source -- YAF2文件系统所处于的设备；
-//      opt -- 文件系统配置选项；
+// 参数：target -- YAF2文件系统所挂载的目录；缺省为“yaf2”
+//      opt -- 文件系统配置选项；  如MS_INSTALLCREAT
 //      data -- 传递给YAF2安装逻辑的数据；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 ModuleInstall_YAF2(const char *target, const char *source, u32 opt, void *data)
+s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
 {
+    static struct filesystem *typeYAF2 = NULL;
     struct obj * mountobj;
     s32 res;
 
@@ -999,7 +1002,17 @@ s32 ModuleInstall_YAF2(const char *target, const char *source, u32 opt, void *da
         return (-1);
     }
 
-    res = regfs(&typeYAF2);
+    if(typeYAF2 == NULL)
+    {
+        typeYAF2 = malloc(sizeof(*typeYAF2));
+
+        typeYAF2->fileOps = YAF2_Ops;
+        typeYAF2->install = __yaf2install;
+        typeYAF2->pType = "YAF2";
+        typeYAF2->format = NULL;
+        typeYAF2->uninstall = NULL;
+    }
+    res = regfs(typeYAF2);
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"YAF2\"<file system type>.");
@@ -1014,19 +1027,13 @@ s32 ModuleInstall_YAF2(const char *target, const char *source, u32 opt, void *da
     }
     obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;				//直接挂载不用备份
-    res = mountfs(source, target, "YAF2", opt, data);
+    res = mountfs(NULL, target, "YAF2", opt, data);
    if(res == -1)
    {
        printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot install.");
        obj_Delete(mountobj);
        return (-1);// 失败
    }
-   if(res == -2)
-   {
-       return (-1);// 失败，没找到媒体
-   }
-
-   printf("\r\n: info : module : file system \"YAF2\" installed on \"%s\".", source);
    return (0);
 }
 
@@ -1037,20 +1044,20 @@ s32 ModuleInstall_YAF2(const char *target, const char *source, u32 opt, void *da
 // 返回：成功（0）；失败（-1）;
 // 备注：不再使用
 // ============================================================================
-s32 ModuleInstall_YAFFS2(const char *pDevPath, u32 dwOpt)
-{
-    u32 data;
-    u32 opt;
-
-    if(dwOpt & 0x1)
-        data = YAF2_ENABLE_DEVICE_ECC;
-
-    if(dwOpt & 0x2)
-        opt = INSTALL_FORMAT;
-    else
-        opt = INSTALL_CREAT;
-
-    return (ModuleInstall_YAF2("/yaffs2", pDevPath, opt, &data));
-}
+//s32 ModuleInstall_YAFFS2(const char *pDevPath, u32 dwOpt)
+//{
+//    u32 data;
+//    u32 opt;
+//
+//    if(dwOpt & 0x1)
+//        data = YAF2_ENABLE_DEVICE_ECC;
+//
+//    if(dwOpt & 0x2)
+//        opt = MS_INSTALLFORMAT;
+//    else
+//        opt = MS_INSTALLCREAT;
+//
+//    return (ModuleInstall_YAF2("/yaffs2", pDevPath, opt, &data));
+//}
 
 #endif

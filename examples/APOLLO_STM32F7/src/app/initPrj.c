@@ -31,6 +31,9 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
@@ -64,6 +67,24 @@ void Sys_ModuleInit(void)
 	#endif
 
 	//-------------------medium-------------------------//
+	ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+
+	extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
+	bool_t loop,u32 loopcycle,\
+	bool_t (*rcvHook)(u8 *buf, u16 len));
+	static u8 mac_addr[]={CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5};
+	ModuleInstall_ETH(CFG_ETH_DEV_NAME,mac_addr,CFG_ETH_LOOP_ENABLE,CFG_ETH_LOOP_CYCLE,NULL);
+
+	bool_t lan8720Init(void);
+	lan8720Init();
+
+	extern void ModuleInstall_InitNet( );
+	ModuleInstall_InitNet( );
+
+	extern s32 ModuleInstall_YAF2(const char *target, const char *source, u32 dwOpt, void *data);
+	ModuleInstall_YAF2(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS, CFG_ECC);
+
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);

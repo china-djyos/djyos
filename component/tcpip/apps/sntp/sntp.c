@@ -173,8 +173,7 @@ static void __SntpRequest()
 }
 
 //bool_t SntpTimeSyncShell(char *param)
-ADD_TO_IN_SHELL_HELP(sntp,"usage:sntp");
-ADD_TO_IN_SHELL bool_t sntp(char *param)
+bool_t sntp(char *param)
 {
     __SntpRequest();
     return true;
@@ -186,5 +185,6 @@ bool_t ServiceSntpInit(ptu32_t para)
 {
         return (TRUE);
 }
+ADD_TO_ROUTINE_SHELL(sntp,sntp,"usage:sntp");
 
 

@@ -90,6 +90,8 @@ struct __ecore{
     u16 nsz; // 文件名长度
     u32 fmax; // 可容纳文件数最大值（最大时是一个文件块存放一个文件）；
     u32 fsz; // 文件块容量;（块对齐，以unit为单位）；
+    s64 MStart;             // 在媒体中的起始unit,unit为单位；
+    s64 ASize;               // 所在区域的总大小；Byte为单位；
     struct umedia *media;
     struct MutexLCB *mutex;
 };
@@ -227,7 +229,7 @@ static s32 __llread(struct __ecore *core, s64 units, void *buf)
 
     opt.necc = 1;
     opt.main = 1;
-    units = core->media->ustart + units;
+    units = core->MStart + units;
     return (core->media->mread(units, (u8*)buf, opt));
 }
 
@@ -245,7 +247,7 @@ static s32 __llwrite(struct __ecore *core, s64 units, void *buf)
 
     opt.necc = 1;
     opt.main = 1;
-    units = core->media->ustart + units;
+    units = core->MStart + units;
     return (core->media->mwrite(units, (u8*)buf, opt));
 
 }
@@ -922,7 +924,7 @@ __RETRY_RECYCLE:
         memcpy(estruct->signature, ESIGN, ESIG_LEN);
         estruct->age = 0xFFFFFFFF; // 当头部被破坏时的专用age；
         estruct->files = core->fmax;
-        estruct->range = core->media->asz;
+        estruct->range = core->ASize;
         estruct->ecc = 0;
     }
     else
@@ -944,7 +946,7 @@ __RETRY_RECYCLE:
     }
 
     // 整理idx表；
-    for(i=0; i<core->fmax;)
+    for(i=0; (u32)i<core->fmax;)
     {
         if(!(i%idxs)) // 读idx表；
         {
@@ -961,7 +963,7 @@ __RETRY_RECYCLE:
             idx = (struct __eidx *)core->ebuf;
         }
 
-        for(j=0; j<sizeof(*idx); j++)
+        for(j=0; (u32)j<sizeof(*idx); j++)
         {
             if((0!=((u8*)idx)[j]) && (0xFF!=((u8*)idx)[j]))
                 break; // 有效的idx
@@ -993,7 +995,7 @@ __RETRY_RECYCLE:
     }
 
     // 整理文件信息；
-    for(i=0; i<core->fmax; i++)
+    for(i=0; (u32)i<core->fmax; i++)
     {
         k = i / 8;
         j = i % 8;
@@ -1016,7 +1018,7 @@ __RETRY_RECYCLE:
 
         for(k=0, j=0; j<sizes; j++)
         {
-            if((-1 == fstruct.size[j].s) && (-1 == fstruct.size[j].e))
+            if((-1 == (s32)fstruct.size[j].s) && (-1 == (s32)fstruct.size[j].e))
             {
                 // 未知逻辑，文件第一个size为空闲，不可能不存在；
                 // 进一步检查，如果后续size也全部是空闲，则是存在问题；
@@ -1253,13 +1255,13 @@ static s32 __e_scan(struct __ecore *core)
         {
             // 检验数据正确性；
             __fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc));
-            if((estruct->range != (core->media->asz)) ||
+            if((estruct->range != (core->ASize)) ||
                (strcmp(estruct->signature, ESIGN)) ||
                (estruct->files != core->fmax) ||
                (estruct->status != SYS_UPDATED))
             {
                 // 存在不一致
-                if((estruct->range == (core->media->asz)) ||
+                if((estruct->range == (core->ASize)) ||
                    (!strcmp(estruct->signature, ESIGN)) ||
                    (estruct->files == core->fmax) ||
                    (estruct->status == SYS_UPDATED))
@@ -1369,7 +1371,7 @@ static s32 __e_build(struct __ecore *core)
     estruct = (struct __ecstruct*)core->ebuf;
     estruct->age = 0;
     estruct->files = core->fmax;
-    estruct->range = core->media->asz;
+    estruct->range = core->ASize;
     memcpy(estruct->signature, ESIGN, ESIG_LEN);
     estruct->ecc = 0;
     __gen(core, estruct, (sizeof(struct __ecstruct)-SYS_NOECCSIZE), &(estruct->ecc));
@@ -1419,7 +1421,7 @@ static s32 __e_lookupfree(struct __ecore *core)
     __lock(core);
 
 __RETRY_LOOKUPFREE:
-    for(i = 0; i < core->fmax; i++)
+    for(i = 0; (u32)i < core->fmax; i++)
     {
         if(!(i%idxs))
         {
@@ -1506,7 +1508,7 @@ static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *
     szmax = (1 << core->media->usz) - (core->nsz + 4); // 一个unit内的可容纳size记录数量
     for(i = 0; i < szmax; i++)
     {
-        if((-1 == fstruct.size[i].s) && (-1 == fstruct.size[i].e))
+        if((-1 == (s32)fstruct.size[i].s) && (-1 == (s32)fstruct.size[i].e))
         {
             break; // 直至未被记录的位置
         }
@@ -1611,7 +1613,7 @@ static s32 __e_allocfile(struct __ecore *core, u32 *loc, const char *name, u32 o
         {
             __e_markidx(core, *loc, NULL, 0); // 标记不可用区域
             *loc = __e_lookupfree(core); // 获取一个可用区域
-            if(-1 == *loc)
+            if(-1 == (s32)*loc)
             {
                 printf("\r\n: erro : efs    : allocate file \"%s\"(no space).", name);
                 return (-1);
@@ -1715,7 +1717,7 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
     if(!eloc) // 文件被重置为零了，但是需要为其重新申请一个区域；（空文件逻辑上也是需要分配文件空间的，相当于新建一个文件）
     {
         loc = __e_lookupfree(core);
-        if(-1 == loc)
+        if(-1 == (s32)loc)
         {
             printf("\r\n: warn : efs    : update file size has problem(no space).");
             file->loc = NULL;
@@ -1762,7 +1764,7 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
         szmax = ((1 << core->media->usz) - (core->nsz + 4)) / sizeof(struct __esize); // 可以存放file size的次数
         for(i = 0; i < szmax; i++ )
         {
-            if((-1 == fstruct.size[i].s) && (-1 == fstruct.size[i].e))
+            if((-1 == (s32)fstruct.size[i].s) && (-1 == (s32)fstruct.size[i].e))
             {
                 break; // 查找到空闲file size
             }
@@ -1957,7 +1959,7 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
     __key(name, key);
     idxs = (1 << core->media->usz) / sizeof(*idx); // 一个unit中能存放多少个idx
     __lock(core);
-    for(i = 0; i < core->fmax; i++)
+    for(i = 0; (u32)i < core->fmax; i++)
     {
         if(!(i%idxs))// 一个unit内的idx读完，尝试下一页
         {
@@ -1983,7 +1985,7 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
                 return (-1); //
             }
         }
-        else if((-2 == freeloc) && (2 == res))
+        else if((-2 == (s32)freeloc) && (2 == res))
         {
             freeloc = i;
         }
@@ -2353,7 +2355,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
         while(sz--) // 需要扩展的文件空间数量
         {
             loc = __e_lookupfree(core);
-            if(-1==loc)
+            if(-1 == (s32)loc)
             {
                 printf("\r\n: erro : efs    : \"%s\" write failed(no space).", handle_name(hdl));
                 __unlock(core);
@@ -2509,7 +2511,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
             // 只能从文件末尾写，如果没有写完，则需要拓展空间；
             // 这里没有考虑seek回去的逻辑；TODO
             loc = __e_lookupfree(core);
-            if(-1==loc)
+            if(-1 == (s32)loc)
             {
                 printf("\r\n: erro : efs    : write failed(no space).");
                 goto __ERROR_WR;
@@ -2937,7 +2939,7 @@ static s32 __cachedentry(struct __ecore *core, struct __dentrys *dentrys)
         }
 
         units = core->serial * core->ssz + 1 + (dentrys->scans / idxs);
-        if(idxs>(core->fmax-dentrys->scans))
+        if((u32)idxs>(core->fmax-dentrys->scans))
             idxs = core->fmax - dentrys->scans; //
 
         if(__llread(core, units, core->ebuf)) // 索引表
@@ -2950,7 +2952,7 @@ static s32 __cachedentry(struct __ecore *core, struct __dentrys *dentrys)
         idx = (struct __eidx *)core->ebuf;
         for(i=0; i<idxs; i++)
         {
-            for(j=0; j<sizeof(*idx); j++)
+            for(j=0; (u32)j<sizeof(*idx); j++)
             {
                 if(0xFF!=((u8*)idx)[i])
                     break;
@@ -2958,7 +2960,7 @@ static s32 __cachedentry(struct __ecore *core, struct __dentrys *dentrys)
 
             if(j!=sizeof(*idx))
             {
-                for(j=0; j<sizeof(*idx); j++)
+                for(j=0; (u32)j<sizeof(*idx); j++)
                 {
                     if(0x0!=((u8*)idx)[i])
                         break;
@@ -3099,13 +3101,17 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             break;
         }
 
-//      case OBJ_TRAVERSE:
-//      {
-//          struct objhandle *hdl = (struct objhandle*)opsTarget;
-//          struct dirent *ret = (struct dirent *)OpsArgs1;
-//
-//          return((ptu32_t)__e_readdentry(hdl, ret));
-//      }
+      case CN_OBJ_CMD_READDIR:
+      {
+          struct objhandle *hdl = (struct objhandle*)opsTarget;
+          struct dirent *ret = (struct dirent *)OpsArgs1;
+
+          if((ptu32_t)__e_readdentry(hdl, ret) == 0)
+              result = CN_OBJ_CMD_TRUE;
+          else
+              result = CN_OBJ_CMD_FALSE;
+          break;
+      }
 
         case CN_OBJ_CMD_READ:
         {
@@ -3165,7 +3171,11 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SYNC:
         {
-            return ((ptu32_t)__e_sync((struct objhandle *)opsTarget));
+			if(__e_sync((struct objhandle *)opsTarget) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
         }
 
         default:
@@ -3196,7 +3206,7 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 //    char *lock = "efs0";
 //    installs++;
 
-    media = (struct umedia*)pSuper->media;
+    media = (struct umedia*)pSuper->Media;
     core = malloc(sizeof(*core) + (1 << media->usz));
     if(!core)
     {
@@ -3214,6 +3224,8 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
     }
 
     core->media = media;
+    core->MStart = pSuper->MediaStart;
+    core->ASize = pSuper->AreaSize;
     core->ebuf = (u8*)core + sizeof(*core);
     if(media->usz>9)
     {
@@ -3233,7 +3245,7 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
     }
 
     core->fsz = fileblock >> media->usz; // 单文件的容量，unit为单位；
-    core->fmax = media->asz / fileblock; // 预估文件数
+    core->fmax = core->ASize / fileblock; // 预估文件数
     tmp = (1 << media->usz) / sizeof(struct __eidx); // 单个unit能存放的索引数
     if(core->fmax%tmp) // 索引空间按单个unit对齐操作
     {
@@ -3254,7 +3266,7 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 
     core->ssz = sys; // 对齐后的系统空间，unit为单位
     sys = core->ssz * 6; // 全部系统部分逻辑所占用的空间（可擦除空间对齐，unit为单位）；
-    tmp = (media->asz - ((core->fmax * core->fsz) << media->usz)); // 预估系统可用空间的剩余空间
+    tmp = (core->ASize - ((core->fmax * core->fsz) << media->usz)); // 预估系统可用空间的剩余空间
     tmp = tmp & (0xFFFFFFFF - ((1 << media->esz) -1)); // 预估系统可用空间的剩余空间, 可擦除对齐
     tmp = tmp >> media->usz; // // 预估系统可用空间的剩余空间，unit为单位
     if(tmp<sys) // 预估的系统空间不够，从文件空间里获取
@@ -3262,14 +3274,14 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
         i = 1;
         while(1)
         {
-            if((tmp+i*core->fsz) >= sys)
+            if((tmp+i*core->fsz) >= (u32)sys)
                 break;
 
             i++;
         }
     }
 
-    if(core->fmax<=i)
+    if(core->fmax<=(u32)i)
     {
         printf("\r\n: erro : efs    : file system cannot create for bad logic.");
         free(core);
@@ -3280,7 +3292,7 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
     res = __e_scan(core);
     if(1==res)
     {
-        if(!(opts&INSTALL_CREAT))
+        if(!(opts&MS_INSTALLCREAT))
         {
             printf("\r\n: erro : efs    : file system does not exist, but no create.");
             free(core);

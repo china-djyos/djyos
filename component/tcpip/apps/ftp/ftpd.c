@@ -70,8 +70,7 @@ static bool_t  gFtpdDebugSwitch = false;
 static tagFtpClient* pFtpClient = NULL;
 
 //static bool_t __FtpdDebug(char *para)
-ADD_TO_IN_SHELL_HELP(ftpd,"usage:ftpd subcmd [subpara]");
-ADD_TO_IN_SHELL  bool_t ftpd(char *para)
+bool_t ftpd(char *para)
 {
 
     int argc = 3;
@@ -964,5 +963,6 @@ bool_t ServiceFtpdInit(ptu32_t para)
 
     return ret;
 }
+ADD_TO_ROUTINE_SHELL(ftpd,ftpd,"usage:ftpd subcmd [subpara]");
 
 

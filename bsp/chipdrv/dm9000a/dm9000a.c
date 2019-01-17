@@ -679,8 +679,7 @@ EVTT_FAILED:
 
 static tagDm9000Dev *pDm9000;
 //bool_t dm9000debuginfo(char* param)
-ADD_TO_IN_SHELL_HELP(dm9000,"dm9000 debug info");
-ADD_TO_IN_SHELL bool_t dm9000(char* param)
+bool_t dm9000(char* param)
 {
     u8 rAddrH,rAddrL;
 
@@ -700,16 +699,14 @@ ADD_TO_IN_SHELL bool_t dm9000(char* param)
     return 1;
 }
 //bool_t dm9000reg(char *param)
-ADD_TO_IN_SHELL_HELP(dm9000reg,"print dm9000 reg");
-ADD_TO_IN_SHELL bool_t dm9000reg(char *param)
+bool_t dm9000reg(char *param)
 {
     __showDm9000Reg(pDm9000);
     return 1;
 }
 
 //bool_t dm9000Reset(char *param)
-ADD_TO_IN_SHELL_HELP(dm9000reset,"reset dm9000");
-ADD_TO_IN_SHELL bool_t dm9000reset(char *param)
+bool_t dm9000reset(char *param)
 {
     __dm9000HardInit(pDm9000);
     return 1;
@@ -779,3 +776,7 @@ bool_t shellDm9000Reg(char *param)
     __showDm9000Reg(pDm9000);
     return true;
 }
+ADD_TO_ROUTINE_SHELL(dm9000,dm9000,"dm9000 debug info");
+ADD_TO_ROUTINE_SHELL(dm9000reg,dm9000reg,"print dm9000 reg");
+ADD_TO_ROUTINE_SHELL(dm9000reset,dm9000reset,"reset dm9000");
+

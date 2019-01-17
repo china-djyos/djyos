@@ -494,8 +494,7 @@ static bool_t __RecordTest(u32 timestotal,u32 msglen)
 
 //you could use this function to add one messages -t times -l maxlenth
 //static bool_t __RecordTestShell(char *param)
-ADD_TO_IN_SHELL_HELP(blackboxrtest,"usage:blackboxrtest [test/func] [subcmdparas]");
-ADD_TO_IN_SHELL bool_t blackboxrtest(char *param)
+bool_t blackboxrtest(char *param)
 {
     int argc = 8;
     char *argv[8];
@@ -771,4 +770,5 @@ bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 ma
     }
     return ret;
 }
+ADD_TO_ROUTINE_SHELL(blackboxrtest,blackboxrtest,"usage:blackboxrtest [test/func] [subcmdparas]");
 

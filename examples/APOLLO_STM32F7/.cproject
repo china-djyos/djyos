@@ -7,11 +7,11 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ibootapp"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/IbootApp"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_STM32F7"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_F7"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ibootapp/Debug"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ibootapp/libos_demo_o0"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/IbootApp/libos_App_Debug"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_STM32F7/libos_App_Debug"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_F7/libos_App_Debug"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="libos_demo_o0" srcPrefixMapping="" srcRootPath=""/>
 						<entry flags="RESOLVED" kind="libraryFile" name="libos_App_Debug" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
@@ -64,6 +64,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.752173042" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.402976144" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.12618273" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -74,10 +75,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1494761559" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.758697805" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -95,6 +97,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -151,21 +154,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.86459" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.17410795" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.1300822958" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -185,6 +185,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -241,13 +242,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1449867666" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -256,10 +253,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.149537354" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2019724367" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.944647718" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1610454532" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -314,7 +312,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libos/third/fs/yaf2|libos/third/fs/fat|libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/bk7251|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/eth|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/boardnetcfg|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|app|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|iboot" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/user/sr5261|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/fat|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|app|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|iboot" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -322,7 +320,7 @@
 			<storageModule moduleId="ilg.gnuarmeclipse.managedbuild.packs"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_STM32F7_App_Debug">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_F7_App_Debug">
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ibootapp"/>
@@ -340,7 +338,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597" name="APOLLO_STM32F7_App_Debug" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p1 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597" name="APOLLO_F7_App_Debug" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p1 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597." name="/" resourcePath="">
 						<toolChain errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug.507525665" name="Cross ARM GCC" nonInternalBuilderId="ilg.gnuarmeclipse.managedbuild.cross.builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.1288841243" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.none" valueType="enumerated"/>
@@ -378,6 +376,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.376416985" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.132196319" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.185773362" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -388,10 +387,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1272976018" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.420667959" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -409,6 +409,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -465,21 +466,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.576479793" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1769481568" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -497,6 +495,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -553,13 +552,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1323311346" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -568,10 +563,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.562305016" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1311632395" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.429369705" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -636,7 +632,7 @@
 			<storageModule moduleId="ilg.gnuarmeclipse.managedbuild.packs"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_STM32F7_App_Release">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_F7_App_Release">
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ibootapp"/>
@@ -654,7 +650,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935" name="APOLLO_STM32F7_App_Release" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p2 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935" name="APOLLO_F7_App_Release" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p2 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935." name="/" resourcePath="">
 						<toolChain errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug.1559592851" name="Cross ARM GCC" nonInternalBuilderId="ilg.gnuarmeclipse.managedbuild.cross.builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.1774916053" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.more" valueType="enumerated"/>
@@ -692,6 +688,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.671354753" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.2018804275" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.47327090" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -702,10 +699,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1033376135" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1951978568" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -723,6 +721,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -779,21 +778,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1472411991" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.308220685" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -811,6 +807,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -867,13 +864,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.888545620" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -882,10 +875,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1445491555" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2067850758" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1271584887" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -950,7 +944,7 @@
 			<storageModule moduleId="ilg.gnuarmeclipse.managedbuild.packs"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.1472410121">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.1472410121" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_STM32F7_Iboot_Debug">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.1472410121" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_F7_Iboot_Debug">
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ibootapp"/>
@@ -968,7 +962,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.1472410121" name="APOLLO_STM32F7_Iboot_Debug" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p0 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.1472410121" name="APOLLO_F7_Iboot_Debug" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p0 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.1472410121." name="/" resourcePath="">
 						<toolChain errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug.2025266645" name="Cross ARM GCC" nonInternalBuilderId="ilg.gnuarmeclipse.managedbuild.cross.builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.573852570" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.none" valueType="enumerated"/>
@@ -1006,6 +1000,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1080651755" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1026202315" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.824325990" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -1016,10 +1011,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1954110412" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1601896545" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1037,6 +1033,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -1093,21 +1090,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1588187403" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.462330839" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -1125,6 +1119,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -1181,13 +1176,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.56719513" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -1196,10 +1187,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1081858792" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.448488494" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1253780681" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -1264,7 +1256,7 @@
 			<storageModule moduleId="ilg.gnuarmeclipse.managedbuild.packs"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935.598863225">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935.598863225" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_STM32F7_Iboot_Release">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935.598863225" moduleId="org.eclipse.cdt.core.settings" name="APOLLO_F7_Iboot_Release">
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ibootapp"/>
@@ -1282,7 +1274,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935.598863225" name="APOLLO_STM32F7_Iboot_Release" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p0 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935.598863225" name="APOLLO_F7_Iboot_Release" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug" postannouncebuildStep="" postbuildStep="addsh.exe -p0 -v3 -a2 ${ConfigName}.elf" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.1380908584.1298085597.975697935.598863225." name="/" resourcePath="">
 						<toolChain errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug.1126967738" name="Cross ARM GCC" nonInternalBuilderId="ilg.gnuarmeclipse.managedbuild.cross.builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.465273049" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.more" valueType="enumerated"/>
@@ -1320,6 +1312,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1212697846" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1826855245" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1364721136" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -1330,10 +1323,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.582620925" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1366963866" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1351,6 +1345,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -1407,21 +1402,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1806742167" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.824881988" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -1439,6 +1431,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -1495,13 +1488,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.326087053" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -1510,10 +1499,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1664161319" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.365195092" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.820853400" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -1582,9 +1572,9 @@
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/IbootApp"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_STM32F7"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_F7"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/IbootApp/libos_Iboot_Debug"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_STM32F7/libos_Iboot_Debug"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_F7/libos_Iboot_Debug"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="libos_Iboot_Debug" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
@@ -1636,6 +1626,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.332974100" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.70895779" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1347468026" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -1646,10 +1637,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1944386163" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1270976184" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1667,6 +1659,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -1723,21 +1716,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1375750575" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.1953073749" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.2070061252" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1757,6 +1747,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -1813,13 +1804,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1841401919" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -1828,10 +1815,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.150397694" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.405156835" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.872339386" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1495854982" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1886,7 +1874,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libos/third/fs/yaf2|libos/third/fs/fat|libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/bk7251|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/eth|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/boardnetcfg|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/user/sr5261|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/fat|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -1898,9 +1886,9 @@
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/IbootApp"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_STM32F7"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_F7"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/IbootApp/libos_App_Release"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_STM32F7/libos_App_Release"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_F7/libos_App_Release"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="libos_App_Release" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
@@ -1952,6 +1940,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.97620929" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.67494423" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.788578275" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -1962,10 +1951,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.22991104" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1612026939" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1983,6 +1973,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -2039,21 +2030,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1176820893" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.519292794" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.662276119" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2073,6 +2061,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -2129,13 +2118,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1229356408" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -2144,10 +2129,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.2048765015" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.781913709" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.1126913106" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1962825572" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2202,7 +2188,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libos/third/fs/yaf2|libos/third/fs/fat|libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/bk7251|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/eth|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/boardnetcfg|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|app|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|iboot" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/user/sr5261|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/fat|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|app|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|iboot" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -2214,9 +2200,9 @@
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/IbootApp"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_STM32F7"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/APOLLO_F7"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/IbootApp/libos_Iboot_Release"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_STM32F7/libos_Iboot_Release"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/APOLLO_F7/libos_Iboot_Release"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="libos_Iboot_Release" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
@@ -2268,6 +2254,7 @@
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.128139211" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1918920478" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1193572640" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/armv7e-m/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm/cortex-m/include&quot;"/>
@@ -2278,10 +2265,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.131975683" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.957445245" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -2299,6 +2287,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -2355,21 +2344,18 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.107101811" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.1314031022" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.2029192965" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2389,6 +2375,7 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\mingw\mingw64\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/CMSIS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/arch/arm&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/include&quot;"/>
@@ -2445,13 +2432,9 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/object&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/pool&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/fat&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/fs/yaf2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/APOLLO-STM32F7/drv/board&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/gpio&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/uart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/stm32/f7/src/dma&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/third/firmware/stm32f7/inc&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.944746953" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -2460,10 +2443,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.192322797" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.189137760" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
+									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
-									<listOptionValue builtIn="false" value="STM32F767xx=null"/>
+									<listOptionValue builtIn="false" value="STM32F767xx"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.1328101295" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.2078957150" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2518,7 +2502,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libos/third/fs/yaf2|libos/third/fs/fat|libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/bk7251|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/boarddrv/demo/bk7251_demo|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/eth|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/lan8720|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/boardnetcfg|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="libos/bsp/cpudrv/ZQ|libos/bsp/cpudrv/ZQ/zq12xx|libos/bsp/cpudrv/ZQ/zq12xx/zq1201|libos/bsp/cpudrv/stm32/L4|libos/bsp/cpudrv/stm32/L4/stm32l476xx|libos/bsp/cpudrv/stm32/L4/stm32l475xx|libos/bsp/cpudrv/stm32/L4/stm32l433xx|libos/bsp/cpudrv/stm32/h7|libos/bsp/cpudrv/stm32/h7/stm32h743xx|libos/bsp/cpudrv/stm32/f7/stm32f756xx|libos/bsp/cpudrv/stm32/f7/stm32f746xx|libos/bsp/cpudrv/stm32/f4|libos/bsp/cpudrv/stm32/f4/stm32f407xx|libos/bsp/cpudrv/stm32/f3|libos/bsp/cpudrv/stm32/f3/stm32f303xc|libos/bsp/cpudrv/stm32/f1|libos/bsp/cpudrv/stm32/f1/stm32f103xg|libos/bsp/cpudrv/stm32/f1/stm32f103xe|libos/bsp/cpudrv/samsung|libos/bsp/cpudrv/samsung/s3c2416|libos/bsp/cpudrv/Nuvoton|libos/bsp/cpudrv/Nuvoton/M480|libos/bsp/cpudrv/Nuvoton/M480/M487JIDAE|libos/bsp/cpudrv/imxrt|libos/bsp/cpudrv/imxrt/1050|libos/bsp/cpudrv/imxrt/1050/imxrt1052|libos/bsp/cpudrv/Atmel|libos/bsp/cpudrv/Atmel/SamV7|libos/bsp/cpudrv/Atmel/SamV7/ATSAMV70xxx|libos/bsp/cpudrv/Atmel/Sam4e|libos/bsp/cpudrv/Atmel/Sam4e/ATSAM4E16xx|libos/bsp/cpudrv/windows|libos/bsp/cpudrv/Sharc21469|libos/bsp/cpudrv/samsung/s3c2440|libos/bsp/cpudrv/samsung/s3c2410|libos/bsp/cpudrv/p1020|libos/bsp/cpudrv/omapl138|libos/bsp/cpudrv/LPC|libos/bsp/cpudrv/FslKxx|libos/bsp/cpudrv/Atmel/Sam4s|libos/bsp/boarddrv/user/sr5261|libos/bsp/boarddrv/staged/目录说明.txt|libos/bsp/boarddrv/staged/windows|libos/bsp/boarddrv/staged/tq2440|libos/bsp/boarddrv/staged/SAM4E-EK|libos/bsp/boarddrv/staged/P1020_DDRTest|libos/bsp/boarddrv/staged/P1020RDB|libos/bsp/boarddrv/staged/iot-hall|libos/bsp/boarddrv/demo/ZQ1201|libos/bsp/boarddrv/demo/TWR_K70F120M|libos/bsp/boarddrv/demo/TWR_K60F120M|libos/bsp/boarddrv/demo/tq2416|libos/bsp/boarddrv/demo/stm32l475-empty|libos/bsp/boarddrv/demo/stm32l433-empty|libos/bsp/boarddrv/demo/STM32H743I-EVAL|libos/bsp/boarddrv/demo/STM32F756G-EVAL2|libos/bsp/boarddrv/demo/stm32f3-empty|libos/bsp/boarddrv/demo/stm32f103-empty|libos/bsp/boarddrv/demo/SAMV71Xplained|libos/bsp/boarddrv/demo/qh_1|libos/bsp/boarddrv/demo/NuvotonM487|libos/bsp/boarddrv/demo/NUCLEO-L476RG|libos/bsp/boarddrv/demo/NUCLEO-H743ZI|libos/bsp/boarddrv/demo/NUCLEO-F767ZI|libos/bsp/boarddrv/demo/NUCLEO-F746ZG|libos/bsp/boarddrv/demo/mcb1700|libos/bsp/boarddrv/demo/imxrt1052-evk|libos/bsp/boarddrv/demo/EXPLORER-stm32f4|libos/bsp/chipdrv/s29glxxx|libos/bsp/chipdrv/s25fl128|libos/bsp/chipdrv/m29w320|libos/bsp/chipdrv/m25p16|libos/bsp/chipdrv/AR8021|libos/bsp/chipdrv/ad7616|libos/third/firmware/bk7251drv|libos/bsp/boarddrv/demo/APOLLO-STM32F7/lds|libos/djyos/tickless|libos/djyos/msg|libos/component/pipe|libos/component/menu|libos/bsp/cpudrv/stm32/f7/src/usb|libos/bsp/cpudrv/stm32/f7/src/timer|libos/bsp/cpudrv/stm32/f7/src/Temprate|libos/bsp/cpudrv/stm32/f7/src/systime|libos/bsp/cpudrv/stm32/f7/src/spi|libos/bsp/cpudrv/stm32/f7/src/sdmmc|libos/bsp/cpudrv/stm32/f7/src/rtc|libos/bsp/cpudrv/stm32/f7/src/nand|libos/bsp/cpudrv/stm32/f7/src/lowpwer|libos/bsp/cpudrv/stm32/f7/src/lcd|libos/bsp/cpudrv/stm32/f7/src/iic|libos/bsp/cpudrv/stm32/f7/src/emflash|libos/bsp/cpudrv/stm32/f7/src/can|libos/bsp/cpudrv/stm32/f7/src/bkpsram|libos/bsp/chipdrv/w25qxx|libos/bsp/chipdrv/tca9535|libos/bsp/chipdrv/STMPE811|libos/bsp/chipdrv/sc1161y|libos/bsp/chipdrv/pcf8574|libos/bsp/chipdrv/nrsec3000|libos/bsp/chipdrv/mt29fxxx|libos/bsp/chipdrv/mma8451q|libos/bsp/chipdrv/mcp2515|libos/bsp/chipdrv/mcb1700lcd|libos/bsp/chipdrv/max98357|libos/bsp/chipdrv/max31865|libos/bsp/chipdrv/max14001|libos/bsp/chipdrv/max11410|libos/bsp/chipdrv/m24256|libos/bsp/chipdrv/LCM240128C|libos/bsp/chipdrv/ksz8081rnb/imxrt1052-evk|libos/bsp/chipdrv/k9f1208xxx|libos/bsp/chipdrv/ili9325|libos/bsp/chipdrv/ft5x26|libos/bsp/chipdrv/ft5406|libos/bsp/chipdrv/fram|libos/bsp/chipdrv/ds3232mz|libos/bsp/chipdrv/ds1390|libos/bsp/chipdrv/dm9000a|libos/bsp/chipdrv/dm9000|libos/bsp/chipdrv/AX88796|libos/bsp/chipdrv/at45db321|libos/bsp/chipdrv/at24c512c|libos/bsp/chipdrv/at24c128b|libos/bsp/chipdrv/at24c02a|libos/bsp/chipdrv/at24c02|libos/bsp/chipdrv/ads8688|libos/bsp/chipdrv/ads8664|libos/bsp/chipdrv/adm1032|libos/bsp/chipdrv/ad7606|libos/bsp/chipdrv/ad5697r|libos/bsp/chipdrv/88E6060|libos/bsp/chipdrv/88E1512|libos/bsp/chipdrv/39vf160|libos/third/zlib-1.2.8|libos/third/wolfssl-3.10.2|libos/third/usb|libos/third/sqlite3|libos/third/qrencode|libos/third/mosquitto-1.0|libos/third/lua-5.1.4|libos/third/LibVNCServer-0.9.9|libos/third/libghttp-1.0.9|libos/third/javascript/jerryscript|libos/third/javascript/iotjs|libos/third/javascript/duktape|libos/third/goahead-2.5.0|libos/third/fs/fat|libos/third/firmware/STM32L4|libos/third/firmware/stm32h7|libos/third/firmware/stm32f4|libos/third/firmware/stm32f3|libos/third/firmware/stm32f1|libos/third/firmware/sldrv|libos/third/firmware/silan|libos/third/firmware/Sharc21469|libos/third/firmware/NuvotonM480|libos/third/firmware/lpc17xx|libos/third/firmware/lpc12xx|libos/third/firmware/imxrt1052|libos/third/firmware/csky|libos/third/firmware/AtmelSamV7|libos/third/firmware/AtmelSam4s|libos/third/firmware/AtmelSam4e|libos/third/cjson-code-73|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/lcd_config|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard|libos/bsp/arch/arm/cortex-m/armv7-m|libos/bsp/arch/arm/cortex-m/armv6-m|libos/bsp/arch/arm/armv5te|libos/bsp/arch/arm/cortex-m/armv7e-m/cortex-m4|libos/bsp/arch/arm/cortex-m/armv7-m/cortex-m3|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m1|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0+|libos/bsp/arch/arm/cortex-m/armv6-m/cortex-m0|libos/bsp/arch/arm/armv5te/arm968e-s|libos/bsp/arch/arm/armv5te/arm926|libos/bsp/arch/windows|libos/bsp/arch/ppc|libos/bsp/arch/dsp|libos/bsp/arch/ck|libos/bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer|libos/third/firmware/FslKxx|libos/third/firmware/CMSIS|libos/bsp/cpudrv/stm32/f1/stm32f103zg|libos/bsp/boarddrv/user/BoardDemo11|libos/bsp/boarddrv/user/BoardDemo9|libos/bsp/boarddrv/user/BoardDemo8|libos/bsp/boarddrv/user/BoardDemo|libos/bsp/boarddrv/user/BoardDemo7|libos/bsp/boarddrv/user/BoardDemo6|libos/bsp/boarddrv/user/BoardDemo5|libos/bsp/boarddrv/user/BoardDemo4|libos/bsp/boarddrv/user/Board3|libos/bsp/boarddrv/user/BoardDemo2|libos/bsp/boarddrv/user/BoardDemo1|libos/bsp/cpudrv/stm22|libos/bsp/cpudrv/stm12|libos/bsp/cpudrv/imxrt/1050/src/semc|libos/bsp/cpudrv/stm32/h7/src/hal|libos/component/osboot|libos/Test|Test|iboot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/u-boot|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/direct/test-framework|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_vfs_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_single.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_mtdif_multi.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_attribs.c|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/utils|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/patches|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/mtdemul|libos/component/djyfs/yaffs2/yaffs2-583dbd9/yaffs2-583dbd9/linux-tests|libos/component/driver/pci|libos/libc/libm/test|libos/libc/libc/posix/wordfree.c|libos/libc/libc/posix/wordexp.c|libos/libc/libc/posix/telldir.c|libos/libc/libc/posix/seekdir.c|libos/libc/libc/posix/scandir.c|libos/libc/libc/posix/rewinddir.c|libos/libc/libc/posix/regfree.c|libos/libc/libc/posix/regexec.c|libos/libc/libc/posix/regerror.c|libos/libc/libc/posix/regcomp.c|libos/libc/libc/posix/readdir.c|libos/libc/libc/posix/readdir_r.c|libos/libc/libc/posix/posix_spawn.c|libos/libc/libc/posix/popen.c|libos/libc/libc/posix/opendir.c|libos/libc/libc/posix/isatty.c|libos/libc/libc/posix/glob.c|libos/libc/libc/posix/fnmatch.c|libos/libc/libc/posix/execvp.c|libos/libc/libc/posix/execve.c|libos/libc/libc/posix/execv.c|libos/libc/libc/posix/execlp.c|libos/libc/libc/posix/execle.c|libos/libc/libc/posix/execl.c|libos/libc/libc/posix/engine.c|libos/libc/libc/posix/creat.c|libos/libc/libc/posix/collcmp.c|libos/libc/libc/posix/collate.c|libos/libc/libc/posix/closedir.c|libos/libc/libc/posix/_isatty.c|libos/libc/libc/locale|app" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

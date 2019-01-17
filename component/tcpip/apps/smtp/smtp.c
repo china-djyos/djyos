@@ -753,8 +753,7 @@ typedef struct
 
 //-h host -s server -u user -p passwd -to to -from from -topic topic -m msg
 //bool_t sendemail(char *param)
-ADD_TO_IN_SHELL_HELP(smtp,"usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]");
-ADD_TO_IN_SHELL bool_t smtp(char *param)
+bool_t smtp(char *param)
 {
     const char *host ="DJYOS_BOARD";
     const char *server = NULL;
@@ -766,12 +765,12 @@ ADD_TO_IN_SHELL bool_t smtp(char *param)
     const char *html="<html><body>"\
         "<p><img src=\"http://www.djyos.com/wp-content/themes/wpressmonster/images/logo.png\"></p><br/>"\
         "<h1>hello,djyos users.</h1>"\
-        "<h4>婵″倹鐏夋担鐘哄厴閺�璺哄煂鏉╂瑥鐨濇穱鈽呯礉闁絿婀￠弰顖氥亰婵傛垝绨￠敍灞芥礈娑撻缚绻栫亸浣蜂繆閺夈儴鍤滄禍宸噅yos閻ㄥ墕mtp</h4>"\
-        "<h4>閻楄锟窖冾洤娑撳绱伴弨顖涘瘮閸欐垿锟戒礁顦挎禍鐚寸礉閺�顖涘瘮閹跺嫰锟戒礁顦挎禍鐚寸礉娑旂喐鏁幐浣哥槕闁礁顦挎禍鐚寸礉瑜版挾鍔ф稊鐔告暜閹镐礁顦挎稉顏堟娴犺绱濇潻妯绘暜閹镐弓tml,鏉╂瑥鐨濇穱鈥虫皑閺勭棢tml閺嶇厧绱￠敍锟�</h4>"\
-        "<h4>鐠囷附鍎忛崣鍌濓拷鍍簃tp.c閺傚洣娆㈤敍灞剧垽缁屾椽妫块敍姘劀鐢憡鏋冮張顒佹1KB瀹革箑褰搁敍娑樺絺闁線妾禒璺烘躬2KB瀹革箑褰搁敍宀冾嚞閸斺�崇箑妫板嫮鏆�鐡掑啿顧勭粚娲？</h4>"\
-        "<h4>娴ｈ法鏁ら弬瑙勭《閿涙俺鐨熼悽鈺痬tp_open閼惧嘲褰囬崣銉︾労閿涘奔濞囬悽鈺痬tp_configure闁板秶鐤嗛幍锟界憰浣稿絺闁礁鍞寸�圭櫢绱濈拫鍐暏smtp_send閸欐垿锟戒線鍋栨禒璁圭礉鐠嬪啰鏁mtp_close閸忔娊妫撮崣銉︾労</h4>"\
-        "<h4>閸欘垯浜掓担璺ㄦ暏鐎瑰啯娼甸崣鎴︼拷浣风鐏忎線鍋栨禒鑸垫降閹躲儱鎲¤ぐ鎾冲閻ㄥ嫯绻嶇悰宀�濮搁幀渚婄礉鏉╂瑥顕禍搴㈠閺堢儤娼电拠瀛樻Ц娑擃亙绗夐柨娆戞畱娑撶粯鍓�</h4>"\
-        "<h1>濞嗐垼绻嬫担璺ㄦ暏</h1>"\
+        "<h4>濠碘�冲�归悘澶嬫媴閻樺搫鍘撮柡锟界捄鍝勭厒閺夆晜鐟ラ惃婵囩┍閳藉懐绀夐梺顓ㄧ悼濠�锟犲及椤栨哎浜板┑鍌涘灊缁繝鏁嶇仦鑺ョ濞戞捇缂氱换鏍焊娴ｈ渹绻嗛柡澶堝劥閸ゆ粍绂嶅鍣厃os闁汇劌澧昺tp</h4>"\
+        "<h4>闁绘顫夐敓绐栧喚娲ゅ☉鎾愁儜缁变即寮ㄩ娑樼槷闁告瑦鍨块敓鎴掔椤︽寧绂嶉悮瀵哥闁猴拷椤栨稑鐦柟璺哄閿熸垝绀侀ˇ鎸庣閻氬绀夊☉鏃傚枑閺侇噣骞愭担鍝ユ闂侇偂绀侀ˇ鎸庣閻氬绀夌憸鐗堟尵閸斞勭▕閻斿憡鏆滈柟闀愮椤︽寧绋夐鍫燁�嶅ù鐘侯啇缁辨繃娼诲Ο缁樻殰闁归晲寮搕ml,閺夆晜鐟ラ惃婵囩┍閳ヨ櫕鐨戦柡鍕＂tml闁哄秶鍘х槐锟犳晬閿燂拷</h4>"\
+        "<h4>閻犲浄闄勯崕蹇涘矗閸屾繐鎷烽崓绨僼p.c闁哄倸娲ｅ▎銏ゆ晬鐏炲墽鍨界紒灞炬そ濡潡鏁嶅顓у妧閻㈩垰鎲￠弸鍐嫉椤掍焦顦�1KB鐎归潻绠戣ぐ鎼佹晬濞戞ê绲洪梺顐＄窔濡绢喗绂掔捄鐑樿含2KB鐎归潻绠戣ぐ鎼佹晬瀹�鍐惧殲闁告柡锟藉磭绠戝Λ鏉垮閺嗭拷閻℃帒鍟块¨鍕矚濞差亝锛�</h4>"\
+        "<h4>濞达綀娉曢弫銈夊棘鐟欏嫮銆婇柨娑欎亢閻ㄧ喖鎮介埡鐥瑃p_open闁兼儳鍢茶ぐ鍥矗閵夛妇鍔撮柨娑樺婵炲洭鎮介埡鐥瑃p_configure闂佹澘绉堕悿鍡涘箥閿熺晫鎲版担绋跨岛闂侇偂绀侀崬瀵革拷鍦缁辨繄鎷崘顏呮殢smtp_send闁告瑦鍨块敓鎴掔窔閸嬫牗绂掔拋鍦閻犲鍟伴弫顦檓tp_close闁稿繑濞婂Λ鎾矗閵夛妇鍔�</h4>"\
+        "<h4>闁告瑯鍨禍鎺撴媴鐠恒劍鏆忛悗鐟板暞濞肩敻宕ｉ幋锔兼嫹娴ｉ顏遍悘蹇庣窔閸嬫牗绂掗懜鍨檷闁硅翰鍎遍幉陇銇愰幘鍐差枀闁汇劌瀚换宥囨偘瀹�锟芥慨鎼佸箑娓氬﹦绀夐弶鈺傜懃椤曨喗绂嶆惔銏狀伓闁哄牏鍎ゅ鐢垫嫚鐎涙ɑ笑濞戞搩浜欑粭澶愭煥濞嗘垶鐣卞☉鎾剁帛閸擄拷</h4>"\
+        "<h1>婵炲棎鍨肩换瀣媴鐠恒劍鏆�</h1>"\
         "</body></html>";
     const char *inl = NULL;
     tagListCtrl *listto;
@@ -917,8 +916,7 @@ ADD_TO_IN_SHELL bool_t smtp(char *param)
 }
 
 //static bool_t base64encodeshell(char *param)
-ADD_TO_IN_SHELL_HELP(enbase64file,"enbase64file srcfile dstfile");
-ADD_TO_IN_SHELL  bool_t enbase64file(char *param)
+bool_t enbase64file(char *param)
 {
     const char *srcfile;
     const char *dstfile;
@@ -971,12 +969,14 @@ ADD_TO_IN_SHELL  bool_t enbase64file(char *param)
 }
 
 // =============================================================================
-// 闁跨喐鏋婚幏鐑芥晸閺夊府缍囬幏绌塪d the SmtpClient debug to the system
-// 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归柨鐔告灮閹风ara
-// 闁跨喐鏋婚幏鐑芥晸閺傘倖瀚归崐锟�  闁跨喐鏋婚幏绌瀝ue闁跨喓鍗抽惂鍛婂  false婢堕亶鏁撻弶鎵虫閹凤拷
+// 闂佽法鍠愰弸濠氬箯閻戣姤鏅搁柡澶婂簻缂嶅洭骞忕粚濉猟 the SmtpClient debug to the system
+// 闂佽法鍠愰弸濠氬箯閻戣姤鏅搁柡鍌樺�栫�氬綊鏌ㄩ悢鍛婄伄闁归顭穉ra
+// 闂佽法鍠愰弸濠氬箯閻戣姤鏅搁柡鍌樺�栫�氬綊宕愰敓锟�  闂佽法鍠愰弸濠氬箯缁岀�漸e闂佽法鍠撻崡鎶芥儌閸涘﹤顏�  false濠㈠爼浜堕弫鎾诲级閹佃櫕顫夐柟鍑ゆ嫹
 // =============================================================================
 bool_t ServiceSmtpClient()
 {
     return true;
 }
+ADD_TO_ROUTINE_SHELL(enbase64file,enbase64file,"enbase64file srcfile dstfile");
+ADD_TO_ROUTINE_SHELL(smtp,smtp,"usage:smtp [-h host] [-s server] [-u user] [-p passwd] [-to to] [-from from] [-topic topic] [-m msg] [-file file] [-in inline]");
 

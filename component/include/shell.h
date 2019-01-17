@@ -73,16 +73,25 @@ struct shell_list
  * 内部shell函数帮助信息与内部shell函数变量主是与裁减有关，在工具中指定添加哪些类型的shell
  *
  * */
-#define ADD_TO_IN_SHELL_DATA  __attribute__((section(".in_shell_data")))//添加内部shell数据
-#define ADD_TO_IN_SHELL  __attribute__((section(".in_shell_cmd")))//内部shell函数
-#define ADD_TO_IN_SHELL_HELP(cmdname,help)  __attribute__((section(".in_shell_help_cmd"))) \
-                                         const char *djysh_##cmdname = help//内部shell帮助信息
+/*shell 和拓展shell*/
 
-#define ADD_TO_EX_SHELL_DATA    __attribute__((section(".ex_shell_data")))//外部shell数据
-#define ADD_TO_EX_SHELL   __attribute__((section(".ex_shell_cmd")))//外部shell函数
-#define ADD_TO_EX_SHELL_HELP(cmdname,help)  __attribute__((section(".ex_shell_help_cmd"))) \
-                                         const char *djysh_##cmdname = help//外部shell帮助信息
+u8 ADD_TO_EXPAND_SHELL;
+
+struct shell_cmd
+{
+    void *shell_fun_addr;
+    char *shell_help_addr;
+};
 #define DJYSH_HELP_NAME "djysh_"
+
+#define ADD_TO_ROUTINE_SHELL(cmdname,fun,help) __attribute__((section(".ro_shell_cmd")))\
+    const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
+
+#define ADD_TO_EXPAND_SHELL(cmdname,fun,help) __attribute__((section(".ex_shell_cmd")))\
+        const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
+
+#define ADD_TO_IN_SHELL_DATA  __attribute__((section(".ro_shell_data")))//添加内部shell数据
+#define ADD_TO_EX_SHELL_DATA    __attribute__((section(".ex_shell_data")))//外部shell数据
 
 // ============================================================================
 // 功能：从shell的输入参数（字符串）中，提取出一个参数；

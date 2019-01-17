@@ -42,16 +42,70 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+// 文件名     ：
+// 模块描述:
+// 模块版本:
+// 创建人员: czz
+// 创建时间:
+// =============================================================================
 
-#ifndef CHECK_TEXT_CODE_H_
-#define CHECK_TEXT_CODE_H_
+#ifndef __SI_INFO_H__
+#define __SI_INFO_H__
+#include "stdio.h"
+
+enum runibootmode{
+    HEARD_SET_RUN_IBOOT,
+    RAM_SET_RUN_IBOOT,
+    UPDATE_APP_RUN_IBOOT,
+    CHACK_ERROR,
+};
+
+enum runappmode{
+    RUN_APP_FROM_FILE,
+    RUN_APP_FROM_DIRECT,
+    RUN_APP_FROM_UPDATE,
+};
+
+enum headflag
+{
+    POWER_ON_FLAG,
+    HEAD_RESET_FLAG,
+    HEAD_WDT_RESET,
+    LOW_POWER_WAKEUP,
+
+};
+//==============================================================================
+//说明：该函数__attribute__((weak))  u8  Get_Headflag(enum headflag flag)实现
+//      如果硬件支持则应在initcpuc.c文件中实现该函数
+//功能：获取硬件上的标志
+//参数：POWER_ON_FLAG：获取上电复位硬件标志，0=无此硬件；1=有此硬件，
+//                  但无标志；2=有标志，阅后即焚；3=有，非阅后即焚
+//     HEAD_RESET_FLAG： 获取硬件复位标志没有/不支持返回0
+//     HEAD_WDT_RESE： 获取硬件看门狗复位标志没有/不支持返回0
+//     LOW_POWER_WAKEUP： 低功耗唤醒没有/不支持返回0
+//
+//==============================================================================
+
+bool_t Run_Iboot(enum runibootmode mode);
+bool_t Run_App(enum runappmode mode);
+
+bool_t Set_UpdateRunModet(u8 mode);
+bool_t Set_RunIbootUpdateIboot();
+bool_t Set_RunIbootUpdateApp();
+bool_t Set_RunAppFlag();
+bool_t Set_RunIbootFlag();
+bool_t clear_resentflag();
+bool_t Update_ToRun();
+bool_t Si_IbootAppInfoInit();
+bool_t IAP_IsRamIbootFlag();
 
 
-void  CPLD_LedOn(u8 num);
+u32  IAP_GetAPPSize(void * apphead);
+u32  Get_AppHeadSize(void);
+u32  IAP_GetAPPStartAddr(void * apphead);
+char*  Get_AppName(void * apphead);
+bool_t IAP_APPIsDebug(void * apphead);
+bool_t Iap_AppFileChack(void * apphead);
+bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
 
-void  CPLD_LedOff(u8 num);
-
-u32 check_text_code();
-
-
-#endif /* CHECK_TEXT_CODE_H_ */
+#endif /* __IICBUS_H__ */

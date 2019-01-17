@@ -73,8 +73,7 @@ bool_t  BlackBox_InfoDecoder(struct BlackBoxRecordPara *recordpara);
 // 说明    ：
 // =============================================================================
 //bool_t BlackBox_ShellBrowseAssignedRecord(char *param)
-ADD_TO_IN_SHELL_HELP(blackboxi,"browse the specified exception item");
-ADD_TO_IN_SHELL bool_t blackboxi(char *param)
+bool_t blackboxi(char *param)
 {
     bool_t   result;
     char *word,*next_param;
@@ -128,8 +127,7 @@ browse_end:
 // 说明    ：
 // =============================================================================
 //bool_t BlackBox_ShellBrowseRecordNum(char *param)
-ADD_TO_IN_SHELL_HELP(blackboxn,"browse the exception number");
-ADD_TO_IN_SHELL bool_t blackboxn(char *param)
+bool_t blackboxn(char *param)
 {
     bool_t  result;
 
@@ -163,8 +161,7 @@ ADD_TO_IN_SHELL bool_t blackboxn(char *param)
 // =============================================================================
 //bool_t BlackBox_ShellRecordClear(char *param)
 
-ADD_TO_IN_SHELL_HELP(blackboxc,"clear all the exception item");
-ADD_TO_IN_SHELL bool_t blackboxc(char *param)
+bool_t blackboxc(char *param)
 {
     bool_t  result;
 
@@ -194,4 +191,7 @@ bool_t BlackBox_ShellInit()
 {
     return true;
 }
+ADD_TO_ROUTINE_SHELL(blackboxc,blackboxc,"clear all the exception item");
+ADD_TO_ROUTINE_SHELL(blackboxn,blackboxn,"browse the exception number");
+ADD_TO_ROUTINE_SHELL(blackboxi,blackboxi,"browse the specified exception item");
 

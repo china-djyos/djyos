@@ -482,8 +482,7 @@ ptu32_t MCAN_Shell_Module_Install(void)
 输出:无。
 *********************************************************************************/
 //void Sh_CAN_Reset(void)
-ADD_TO_IN_SHELL_HELP(canrst,"复位CAN控制器   COMMAND:canrst+enter");
-ADD_TO_IN_SHELL bool_t canrst(void)
+bool_t canrst(void)
 {
     MCAN_Init(&mcan1Config);
     return true;
@@ -497,8 +496,7 @@ ADD_TO_IN_SHELL bool_t canrst(void)
 输出:无。
 *********************************************************************************/
 //void Sh_CAN_Stat(void)
-ADD_TO_IN_SHELL_HELP(canstat,"CAN通信统计  COMMAND:canstat+enter");
-ADD_TO_IN_SHELL bool_t canstat(void)
+bool_t canstat(void)
 {
    uint32_t data[2];//used to print the s64 type
    debug_printf("mcan","CAN Stat:\r\n");
@@ -541,8 +539,7 @@ ADD_TO_IN_SHELL bool_t canstat(void)
 输出:无。
 *********************************************************************************/
 //void Sh_Read_CAN_Reg(void)
-ADD_TO_IN_SHELL_HELP(canreg,"读取CAN寄存器值   COMMAND:canreg+enter");
-ADD_TO_IN_SHELL bool_t canreg(void)
+bool_t canreg(void)
 {
       vu32 Reg;
       debug_printf("mcan","CAN Reg:\r\n");
@@ -638,8 +635,7 @@ ADD_TO_IN_SHELL bool_t canreg(void)
 输出:无。
 *********************************************************************************/
 //void Sh_CAN_Pkg(void)
-ADD_TO_IN_SHELL_HELP(canpkg,"获取CAN最近10次发送/接收报文内容    COMMAND:canpkg+enter");
-ADD_TO_IN_SHELL bool_t canpkg(void)
+bool_t canpkg(void)
 {
     uint8_t i,j;
     gs_CanDebugFlag=true;
@@ -1555,3 +1551,7 @@ bool_t ModuleInstall_CAN(void)
     return true;
 
 }
+ADD_TO_ROUTINE_SHELL(canrst,canrst,"复位CAN控制器   COMMAND:canrst+enter");
+ADD_TO_ROUTINE_SHELL(canstat,canstat,"CAN通信统计  COMMAND:canstat+enter");
+ADD_TO_ROUTINE_SHELL(canreg,canreg,"读取CAN寄存器值   COMMAND:canreg+enter");
+ADD_TO_ROUTINE_SHELL(canpkg,canpkg,"获取CAN最近10次发送/接收报文内容    COMMAND:canpkg+enter");

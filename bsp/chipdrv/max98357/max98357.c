@@ -512,8 +512,7 @@ ptu32_t ModuleInstall_MAX98357(void)
 返回值:1。
 *********************************************************************************/
 //static bool_t Sh_AudioStart(char *param)
-ADD_TO_IN_SHELL_HELP(audiop,"播放音频文件");
-ADD_TO_IN_SHELL  bool_t audiop(char *param)
+bool_t audiop(char *param)
 {
     bool_t ret;
     if(param==NULL)
@@ -531,8 +530,7 @@ ADD_TO_IN_SHELL  bool_t audiop(char *param)
 返回值:1。
 *********************************************************************************/
 //static bool_t Sh_AudioStop(char *param)
-ADD_TO_IN_SHELL_HELP(audios,"停止播放音频文件");
-ADD_TO_IN_SHELL  bool_t audios(char *param)
+bool_t audios(char *param)
 {
     I2S_PlayStop();
     return true;
@@ -604,3 +602,5 @@ ADD_TO_IN_SHELL  bool_t audios(char *param)
 //  }
 //}
 #endif
+ADD_TO_ROUTINE_SHELL(audiop,audiop,"播放音频文件");
+ADD_TO_ROUTINE_SHELL(audios,audios,"停止播放音频文件");

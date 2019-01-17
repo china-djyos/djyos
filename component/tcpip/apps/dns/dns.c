@@ -406,8 +406,7 @@ EXIT_DNSMAIN:
 
 
 //bool_t DnsNameResolveShell(char *param)
-ADD_TO_IN_SHELL_HELP(netgethostbyname,"usage:netgethostbyname hostname");
-ADD_TO_IN_SHELL bool_t netgethostbyname(char *param)
+bool_t netgethostbyname(char *param)
 {
     bool_t result = true;
     char *name;
@@ -457,4 +456,5 @@ bool_t ServiceDnsInit(ptu32_t para)
 {
         return (TRUE);
 }
+ADD_TO_ROUTINE_SHELL(netgethostbyname,netgethostbyname,"usage:netgethostbyname hostname");
 

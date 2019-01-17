@@ -204,8 +204,7 @@ bool_t iodevclose(int dev)
 }
 //usage:this function to set the sdev debug mode
 //bool_t iodebugset(char *param)
-ADD_TO_IN_SHELL_HELP(iodebug,"usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]");
-ADD_TO_IN_SHELL bool_t iodebug(char *param)
+bool_t iodebug(char *param)
 {
     const char *argv[2];
     int   argc=2;
@@ -238,6 +237,7 @@ bool_t PppIoInit(ptu32_t para)
 {
         return (TRUE);
 }
+ADD_TO_ROUTINE_SHELL(iodebug,iodebug,"usage:iodebug type[0/rcv 1/snd] mode[0/nodebug 1/ascii 2/hex]");
 
 
 

@@ -76,7 +76,7 @@ bool_t lan8720Init(void)
             printf("\r\n LAN8720驱动需要mac驱动");
         return false;
     }
-     Djy_EventDelay(CN_RESET_DELAY*mS);
+     Djy_EventDelay(CN_RESET_DELAY);
 //   tickstart=HAL_GetTick();
     do
     {

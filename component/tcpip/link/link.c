@@ -482,8 +482,7 @@ static bool_t __LinkTypeShell(void)
 
 //static bool_t __LinkShell(char *param)
 
-ADD_TO_IN_SHELL_HELP(net_link,"usage:net_link [-t (show types)]/[-h (show hooks)]");
-ADD_TO_IN_SHELL bool_t net_link(char *param)
+bool_t net_link(char *param)
 {
     bool_t ret = true;
     if((NULL == param)||(0 == strcmp(param,"-t")))
@@ -516,4 +515,5 @@ bool_t LinkInit(void)
     gRcvHookCB.lock = mutex_init(NULL);
     return true;
 }
+ADD_TO_ROUTINE_SHELL(net_link,net_link,"usage:net_link [-t (show types)]/[-h (show hooks)]");
 

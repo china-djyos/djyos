@@ -720,8 +720,7 @@ static ptu32_t Wdt_Service(void)
 
 //static bool_t wdtshow(char *param)
 
-ADD_TO_IN_SHELL_HELP(wdtshow,"usage:wdtshow");
-ADD_TO_IN_SHELL  bool_t wdtshow(char *param)
+bool_t wdtshow(char *param)
 {
     u8 i = 0;
     tagWdt *wdt;
@@ -1009,4 +1008,5 @@ bool_t Wdt_Ctrl(tagWdt *wdt, u32 type, ptu32_t para)
     }
     return result;
 }
+ADD_TO_ROUTINE_SHELL(wdtshow,wdtshow,"usage:wdtshow");
 

@@ -80,8 +80,7 @@ typedef struct  DhcpClient
 
 static tagDhcpClient   *pDhcpClientQ;
 //bool_t showDhcpClient(char *param)
-ADD_TO_IN_SHELL_HELP(dhcpdclient,"usage:dhcpdclient:show all the client");
-ADD_TO_IN_SHELL  bool_t dhcpdclient(char *param)
+bool_t dhcpdclient(char *param)
 {
     tagDhcpClient *client;
     u32 num = 1;
@@ -418,6 +417,7 @@ bool_t ServiceDhcpdInit(ptu32_t para)
     result = ModuleInstall_DhcpServer(0);
     return result;
 }
+ADD_TO_ROUTINE_SHELL(dhcpdclient,dhcpdclient,"usage:dhcpdclient:show all the client");
 
 
 

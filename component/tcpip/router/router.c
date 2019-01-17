@@ -198,8 +198,7 @@ typedef enum
 
 //usage:rout -a/d/p(action) -v(4/6) -i ifname -n net -h host -g gateway
 //static bool_t __RoutShell(char *param)
-ADD_TO_IN_SHELL_HELP(rout,"usage:rout");
-ADD_TO_IN_SHELL  bool_t rout(char *param)
+bool_t rout(char *param)
 {
     enum_ipv_t ver = EN_IPV_4;
     enRoutOperation  opt = enRoutOperation_print;
@@ -875,6 +874,7 @@ bool_t RoutCreate(const char *ifname,enum_ipv_t ver,void *netaddr,u32 pro)
     return ret;
 }
 
+ADD_TO_ROUTINE_SHELL(rout,rout,"usage:rout");
 
 
 

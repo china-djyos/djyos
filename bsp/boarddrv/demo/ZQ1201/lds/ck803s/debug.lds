@@ -11,21 +11,8 @@ SECTIONS
 
 	Iboot_AppInfo :
     {
-        gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
-        /* LONG(0xffffffff)            APP size*/
-        /* LONG(0xffffffff)            CRC32 of APP*/
-        /* LONG(0xffffffff)            rev*/
-        /* LONG(0x00676264)             "dbg",调试标志，Iboot遇到此标志不检查APP正确性*/
-
-        /*. = ALIGN(256);*/
-        gc_ptAppInfo = .;   
-        LONG( . + 256);
-        gc_AppSize = .;             /*ROM区 存储APP的bin文件大小 */
-        LONG(pProgRomEnd - gc_AppSize + 4); /* APP的bin文件大小 */
-        . = ALIGN(256);
-        __AppStart = .;
-        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
-        KEEP(*initcpus.o (.text.AppStart))
+        gc_AppStart = .;          
+        KEEP(*(.DjyAppHead .DjyAppHead.*))    
     }>ROM2_SDRAM
 
     /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
@@ -33,7 +20,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))    
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))   
     }>RAM_SDRAM
 
 	stack_rRAM1_lRAM1 (NOLOAD) :
@@ -126,6 +113,16 @@ SECTIONS
 		. = ALIGN(0x4) ;
     }>RAM_SDRAM
 	
+		routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>RAM_SDRAM AT>ROM2_SDRAM
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>RAM_SDRAM AT>ROM2_SDRAM
+ 	 
 	preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -154,7 +151,7 @@ SECTIONS
        . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(5)
 
         LONG(LOADADDR(text_sysload_rIbootRom_lIbootRom))
         LONG(ADDR(text_sysload_rIbootRom_lIbootRom))
@@ -170,6 +167,16 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
+        	                
+        LONG(LOADADDR(routine_shell_data_section))
+        LONG(ADDR(routine_shell_data_section))
+        LONG(SIZEOF(routine_shell_data_section))
+        LONG(1)
+        
+        LONG(LOADADDR(expand_shell_data_section))
+        LONG(ADDR(expand_shell_data_section))
+        LONG(SIZEOF(expand_shell_data_section))
+        LONG(1)
     }>ROM2_SDRAM
 	
 	heap_rRAM_lRAM (NOLOAD) :
@@ -207,37 +214,29 @@ SECTIONS
         LONG(IbootSize)
     }>ROM2_SDRAM
     
-    r_In_shell_section :
+	    
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
- 	}>ROM2_SDRAM
+   		KEEP(*(.shellconfig))
+ 	}>InnerFlash
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
+ 	}>InnerFlash
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
  	      . = ALIGN(0x08);
- 	}>ROM2_SDRAM
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>ROM2_SDRAM
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>ROM2_SDRAM
- 	
+ 	}>InnerFlash
+
  	Shell_Info :
     {
         p_shell_info = .;
-        LONG(gc_ptIbootCtrl) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG( LENGTH(ROM2_SDRAM) ) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
-        LONG(.)
-        pProgRomEnd = .;
-    }>ROM2_SDRAM 
+        LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG( LENGTH(InnerFlash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
+    }>InnerFlash 
 }

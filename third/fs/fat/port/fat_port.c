@@ -447,14 +447,6 @@ s32 __fat_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 static s32 __fat_install(struct FsCore *super, u32 opt, void *pData);
 
-struct FsType typeFAT = {
-        __fat_operations,
-        __fat_install,
-        NULL,
-        NULL,
-        "FAT"
-};
-
 // ============================================================================
 // 功能：安装FAT文件系统
 // 参数：super -- 文件系统管理信息；opt -- 文件系统的安装方式；data -- 文件系统的私有配置
@@ -489,17 +481,17 @@ static s32 __fat_install(struct FsCore *super, u32 opt, void *data)
         return (-1);
     }
 
-    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(super->media)))
+    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(super->Media)))
     {
         free(volume);
         return (-1); // 安装驱动失败
     }
 
-    if(opt & INSTALL_USE)
+    if(opt & MS_INSTALLUSE)
         immediately = 0;
 
     res = f_mount(structFAT, volume, immediately); // 挂载
-    if ((FR_NO_FILESYSTEM == res) && (opt & INSTALL_CREAT))
+    if ((FR_NO_FILESYSTEM == res) && (opt & MS_INSTALLCREAT))
         res = f_mkfs(volume, 1, 0); // 设备上不存在文件系统，则新建FAT
 
     if(FR_OK != res) // 失败
@@ -554,36 +546,40 @@ static u8 __deflags(u32 flags)
 // ============================================================================
 static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
 {
-    char *path;
+    char *path, *part_path, *mount_name = NULL;
     void *context;
-    u8 mode,i;
+    u8 mode;
     mode_t obj_mode, property = 0;
     struct objhandle *hdl = NULL;
+    struct obj *temp =  ob;;
     FRESULT res = FR_OK;
     char *volume = (char*)corefs(ob);
     char entirepath[DJYFS_PATH_BUFFER_SIZE];
 
-    if(!volume)
+    while(temp != obj_root())
+    {
+        if(obj_isMount(temp))
+        {
+            mount_name = (char*)obj_name(temp);    //找出mount点的名字
+            break;
+        }
+        temp = obj_parent(temp);
+    }
+    if((!volume) && (!mount_name))
         return (NULL);
 
     if(!full)
         full = "/"; // 根目录
     GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
-    for(i = 0; i < strlen(entirepath); i++)
-    {
-        if((entirepath[i] == '/') || (entirepath[i] == '\\'))
-        {
-            i++;
-            break;
-        }
-    }
     res = strlen(entirepath) + strlen(volume) + 1;
     path = malloc(res);
     if(!path)
         return (NULL);
     memset(path, 0, res);
+    part_path = strstr(entirepath, mount_name);     //找出mount点名字的所在位置
+    part_path += strlen(mount_name);
 	//用volume中的设备名替换entirepath中的mount点名，因为fat只识别几种特定的设备
-    sprintf(path,"%s%s", volume, entirepath + i);
+    sprintf(path,"%s%s", volume, part_path);
 
     mode = __deflags(flags);
     do
@@ -906,7 +902,7 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
 s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-    va_list list;
+//    va_list list;
     s32 result = CN_OBJ_CMD_EXECUTED;
 
     switch(objcmd)
@@ -919,13 +915,17 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             break;
         }
 
-//      case OBJ_TRAVERSE:
-//      {
-//          struct objhandle *hdl = (struct objhandle*)opsTarget;
-//          struct dirent *ret = (struct dirent *)OpsArgs1;
-//
-//          return((ptu32_t)__fat_readdentry(hdl, ret));
-//      }
+      case CN_OBJ_CMD_READDIR:
+      {
+          struct objhandle *hdl = (struct objhandle*)opsTarget;
+          struct dirent *ret = (struct dirent *)OpsArgs1;
+
+          if((ptu32_t)__fat_readdentry(hdl, ret) == 0)
+              result = CN_OBJ_CMD_TRUE;
+          else
+              result = CN_OBJ_CMD_FALSE;
+          break;
+      }
 
         case CN_OBJ_CMD_READ:
         {
@@ -984,7 +984,12 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SYNC:
         {
-            return ((ptu32_t)__fat_sync((struct objhandle *)opsTarget));
+            if((ptu32_t)__fat_sync((struct objhandle*)opsTarget) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
+        }
         }
 
         default:
@@ -996,56 +1001,35 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
     return result;
 }
-// ============================================================================
-// 功能：获取设备路径中的设备名
-// 参数：dev -- 文件系统所在设备；
-//       sort -- 存设备名缓存；
-// 返回：无
-// 备注：
-// ============================================================================
-void GetMediaSort(char *dev,char *sort)
-{
-    char *path = (char*)dev;
-    u8 i;
-
-    for(i = 0; i < SORTLEN; i++)
-    {
-        while(('/' == *path) || ('\\' == *path))
-        {
-            path++; // 过滤多余的'/'
-            i = 0;
-        }
-        sort[i] = *path;
-        if(*path == '\0')
-        {
-            break;
-        }
-        path++;
-    }
-}
 
 // ============================================================================
 // 功能：安装FAT文件系统
-// 参数：dev -- 文件系统所在设备；
-//      opt -- 文件系统设置选项；
+// 参数：  dir -- fat文件系统所挂载的目录；缺省为“fat”
+//      opt -- 文件系统设置选项；如MS_INSTALLCREAT
+//      data -- 媒体所属类别（"RAM","NAND","CF","SD", "MSC", "EMMC"）
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 ModuleInstall_FAT(const char *dir, const char *dev, u32 opt)
+s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
 {
     s32 res;
     char *mountpoint = "fat";
     struct obj * mountobj;
-    char *Media_Sort;
-    Media_Sort = malloc(SORTLEN);
-    if(Media_Sort == NULL)
-    {
-        return (-1);
-    }
+    static struct filesystem *typeFAT = NULL;
     if(dir)
         mountpoint = (char*)dir;
 
-    res = regfs(&typeFAT);
+    if(typeFAT == NULL)
+	{
+	    typeFAT = malloc(sizeof(*typeFAT));
+
+	    typeFAT->fileOps = __fat_operations;
+	    typeFAT->install = __fat_install;
+	    typeFAT->pType = "FAT";
+	    typeFAT->format = NULL;
+	    typeFAT->uninstall = NULL;
+	}
+    res = regfs(typeFAT);
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"FAT\"<file system type>.");
@@ -1059,21 +1043,14 @@ s32 ModuleInstall_FAT(const char *dir, const char *dev, u32 opt)
         return (-1);
     }
 
-    GetMediaSort((char *)dev,(char *)Media_Sort);	//获取媒体的类型名
     obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;			//直接挂载不用备份
-    res = mountfs(dev, mountpoint, "FAT", opt, Media_Sort);
+    res = mountfs(NULL, mountpoint, "FAT", opt, data);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"FAT\" failed, cannot install.");
         obj_Delete(mountobj);
         return (-1);// 失败
     }
-    if(res == -2)
-    {
-        return (-1);// 失败，没找到媒体
-    }
-    free(Media_Sort);
-    printf("\r\n: info : module : file system \"FAT\" installed on \"%s\".", dev);
     return (0);
 }

@@ -1388,8 +1388,7 @@ static void __PppShow(tagPPP *ppp)
 
 }
 //static bool_t __PppShellCmd(char *param)
-ADD_TO_IN_SHELL_HELP(ppp,"usage:ppp [subcmd subparam]/help");
-ADD_TO_IN_SHELL  bool_t ppp(char *param)
+bool_t ppp(char *param)
 {
     int argc = 4;
     const char*argv[4];
@@ -1538,6 +1537,7 @@ bool_t PppDevAdd(char *namenet, char *nameio, const char *user,
     net_free((void *) ppp);
     EXIT_PPPMEM: return result;
 }
+ADD_TO_ROUTINE_SHELL(ppp,ppp,"usage:ppp [subcmd subparam]/help");
 
 
 

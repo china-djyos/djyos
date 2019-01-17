@@ -16,7 +16,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))  
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
     }>RAM1
     
     stack_rRAM1_lRAM1 (NOLOAD) :
@@ -128,6 +128,17 @@ SECTIONS
         * (.bss .bss.* COMMON)
     }>RAM1
 
+    
+    routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>RAM1 AT>InnerFlash
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>RAM1 AT>InnerFlash
+ 	 
     preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -156,7 +167,7 @@ SECTIONS
        . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(4)
+        LONG(6)
 
         LONG(LOADADDR(text_sysload_rIbootRom_lIbootRom))
         LONG(ADDR(text_sysload_rIbootRom_lIbootRom))
@@ -167,6 +178,7 @@ SECTIONS
         LONG(ADDR(rw_sysload_rRAM1_lIbootRom))
         LONG(SIZEOF(rw_sysload_rRAM1_lIbootRom))
         LONG(1)
+        
         LONG(LOADADDR(zi_sysload_rextram_lextram))
         LONG(ADDR(zi_sysload_rextram_lextram))
         LONG(SIZEOF(zi_sysload_rextram_lextram))
@@ -176,6 +188,18 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
+        	 
+		LONG(LOADADDR(routine_shell_data_section))
+		LONG(ADDR(routine_shell_data_section))
+		LONG(SIZEOF(routine_shell_data_section))
+		LONG(1)
+		
+		LONG(LOADADDR(expand_shell_data_section))
+		LONG(ADDR(expand_shell_data_section))
+		LONG(SIZEOF(expand_shell_data_section))
+		LONG(1)
+	
+	
     }>InnerFlash
 
     heap_rRAM1_lRAM1 (NOLOAD) :
@@ -308,29 +332,22 @@ SECTIONS
         LONG( restore + IbootSize + 256 + 256)
     }>InnerFlash
 
-
-    r_In_shell_section :
+	
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
+   		KEEP(*(.shellconfig))
+ 	}>InnerFlash
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
  	}>InnerFlash
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
  	      . = ALIGN(0x08);
  	}>InnerFlash
  	
@@ -340,7 +357,8 @@ SECTIONS
         LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
     }>InnerFlash 
-    
+	
+	
     
 }
 /**** The End ****/
