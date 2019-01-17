@@ -53,7 +53,26 @@
 //内部会调用该量，因此需此处赋值
 //例如ETH网络驱动中，stm32f7xx_hal_eth.c中会调用
 uint32_t SystemCoreClock = CN_CFG_MCLK;         //HAL_RCC会用到此量
-TIM_TypeDef* STM32_HAL_TIMER;
+
+#if(CFG_STM32_HAL_TIMER == 1)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM1;
+#elif(CFG_STM32_HAL_TIMER == 2)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM2;
+#elif(CFG_STM32_HAL_TIMER == 3)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM3;
+#elif(CFG_STM32_HAL_TIMER == 4)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM4;
+#elif(CFG_STM32_HAL_TIMER == 5)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM5;
+#elif(CFG_STM32_HAL_TIMER == 6)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM6;
+#elif(CFG_STM32_HAL_TIMER == 7)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM7;
+#elif(CFG_STM32_HAL_TIMER == 8)
+    TIM_TypeDef* const STM32_HAL_TIMER = TIM8;
+#else
+#error "error ： 没有配置定时器！！";
+#endif
 //static TIM_HandleTypeDef HalTimHandle;
 //HAL里面会调用该函数作时间操作，因此，若用到HAL库，则需要提供该函数提供延时
 //return ms
@@ -95,28 +114,20 @@ __attribute__((weak)) void Hal_Timer_Clk_Enable(void)
     //此处的函数在board.c中实现，用于使能对应的TIM的时钟
     //下面以TIM6为例
 #if(CFG_STM32_HAL_TIMER == 1)
-    STM32_HAL_TIMER = TIM1;
     __HAL_RCC_TIM1_CLK_ENABLE();
 #elif(CFG_STM32_HAL_TIMER == 2)
-    STM32_HAL_TIMER = TIM2;
     __HAL_RCC_TIM2_CLK_ENABLE();
 #elif(CFG_STM32_HAL_TIMER == 3)
-    STM32_HAL_TIMER = TIM3;
     __HAL_RCC_TIM3_CLK_ENABLE();
 #elif(CFG_STM32_HAL_TIMER == 4)
-    STM32_HAL_TIMER = TIM4;
     __HAL_RCC_TIM4_CLK_ENABLE();
 #elif(CFG_STM32_HAL_TIMER == 5)
-    STM32_HAL_TIMER = TIM5;
     __HAL_RCC_TIM5_CLK_ENABLE();
 #elif(CFG_STM32_HAL_TIMER == 6)
-    STM32_HAL_TIMER = TIM6;
     __HAL_RCC_TIM6_CLK_ENABLE();
 #elif(CFG_STM32_HAL_TIMER == 7)
-    STM32_HAL_TIMER = TIM7;
     __HAL_RCC_TIM7_CLK_ENABLE();
 #elif(CFG_STM32_HAL_TIMER == 8)
-    STM32_HAL_TIMER = TIM8;
     __HAL_RCC_TIM8_CLK_ENABLE();
 #else
 #error "error ： 没有配置定时器！！";
