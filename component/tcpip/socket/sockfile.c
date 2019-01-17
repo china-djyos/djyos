@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -63,11 +63,11 @@
 //6,set sockobject status:like the readable writable
 //7,clear sockobject status:like the readable writable
 //////////////////////////WE WILL DO A EASY ONE HERE////////////////////////////
-typedef struct
+typedef struct          //此即为socket文件，每个socket分配一个。
 {
-    u32   flag;
-    u32   status;
-    void *context;
+    u32   flag;         //只是用来标识内存块“忙”
+    u32   status;       //本成员并无卵用
+    void *context;      //指向struct socket结构
 }tagItem;
 typedef struct
 {
@@ -202,7 +202,6 @@ bool_t sockfile(char *param)
     return true;
 }
 
-
 //do the sockfile initialize here
 bool_t sockobj_init(u32 num)
 {
@@ -223,7 +222,7 @@ bool_t sockobj_init(u32 num)
         goto EXIT_TABLOCK;
     }
 
-    return (TRUE);
+        return (TRUE);
 
 EXIT_TABLOCK:
     net_free(gSockFileCB.tab);

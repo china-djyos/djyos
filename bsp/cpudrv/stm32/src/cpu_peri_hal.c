@@ -53,6 +53,7 @@
 //内部会调用该量，因此需此处赋值
 //例如ETH网络驱动中，stm32f7xx_hal_eth.c中会调用
 uint32_t SystemCoreClock = CN_CFG_MCLK;         //HAL_RCC会用到此量
+
 #if(CFG_STM32_HAL_TIMER == 1)
     TIM_TypeDef* const STM32_HAL_TIMER = TIM1;
 #elif(CFG_STM32_HAL_TIMER == 2)
@@ -145,7 +146,7 @@ void HAL_TickInit(void)
     HalTimHandle.Init.Prescaler     = uwPrescalerValue;
     HalTimHandle.Init.ClockDivision = 0;
     HalTimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
-    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+//    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 
     HAL_TIM_Base_DeInit(&HalTimHandle);
     HAL_TIM_Base_Init(&HalTimHandle);

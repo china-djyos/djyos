@@ -125,7 +125,7 @@ bool_t ModuleInstall_PCF8574(char *BusName)
         IIC_BusCtrl(s_PCF8574_Dev,CN_IIC_SET_CLK,100*1000,0);
         ps_PCF8574_Dev = s_PCF8574_Dev;
 
-        PCF8574_Init();
+        PCF8574_Pin_Init();
 
         return true;
     }
@@ -135,7 +135,7 @@ bool_t ModuleInstall_PCF8574(char *BusName)
 
 bool_t ETH_RESE(void)
 {
-    PCF8574_Init();
+    PCF8574_Pin_Init();
     PCF8574_WriteBit(ETH_RESET_IO,1);
     Djy_DelayUs(100*mS);
     PCF8574_WriteBit(ETH_RESET_IO,0);

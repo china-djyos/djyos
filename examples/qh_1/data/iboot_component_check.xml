@@ -15,14 +15,12 @@
   <iicbus>true</iicbus>
   <spibus>false</spibus>
   <djybus>true</djybus>
+  <easyfilesystem>false</easyfilesystem>
+  <IAP>true</IAP>
+  <filesystem>true</filesystem>
   <ascii_font>true</ascii_font>
   <gb2312_dot>false</gb2312_dot>
   <font>true</font>
-  <easyfilesystem>false</easyfilesystem>
-  <fatfilesystem>false</fatfilesystem>
-  <IAP>true</IAP>
-  <yaf2filesystem>false</yaf2filesystem>
-  <filesystem>true</filesystem>
   <gdd>true</gdd>
   <gkernel>true</gkernel>
   <keyboard>false</keyboard>
@@ -68,8 +66,9 @@
   <stm32f7>false</stm32f7>
   <stm32h7>false</stm32h7>
   <stm32L4>false</stm32L4>
+  <fatfilesystem>false</fatfilesystem>
+  <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
-  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
