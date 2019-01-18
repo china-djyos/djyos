@@ -103,7 +103,7 @@
             #ifdef __PPU
                 #include <netex/errno.h>
             #else
-                #include <sys/stropts.h>
+//                #include <sys/stropts.h>
             #endif
         #endif
     #endif

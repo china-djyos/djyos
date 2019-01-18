@@ -67,7 +67,7 @@ struct FileContext *YAF2Open(const char *Path, u32 Mode, const char *Root)
 
     FileCt->FileOps = (void *)&g_tYAF2FileOps;
 
-    if((Mode & M_READ) && (Mode & M_WRITE))
+    if((Mode & M_READ) && (Mode & S_IWUGO))
     {
         YFlag |= O_RDWR;
         FileCt->Property = P_READ | P_WRITE;
@@ -77,7 +77,7 @@ struct FileContext *YAF2Open(const char *Path, u32 Mode, const char *Root)
         YFlag |= O_RDONLY;
         FileCt->Property = P_READ;
     }
-    else if(Mode & M_WRITE)
+    else if(Mode & S_IWUGO)
     {
         YFlag |= O_WRONLY;
         FileCt->Property = P_WRITE;

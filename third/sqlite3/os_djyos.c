@@ -935,7 +935,7 @@ static int djyIsDir(const char *zConverted){
   result = stat(zConverted,&fp_info);
   if(result != -1)
   {
-    if( fp_info.st_mode & M_DIR)
+    if( fp_info.st_mode & S_IFDIR)
         return true;
     else
         return false;
@@ -1092,7 +1092,7 @@ static int djyAccess(
       fp_exist = stat(zFilename,&fp_info);
       if(fp_exist != -1)
       {
-        if( !(fp_info.st_mode & M_WRITE))
+        if( !(fp_info.st_mode & S_IWUGO))
           *pResOut = 0;
         else
           *pResOut = 1;

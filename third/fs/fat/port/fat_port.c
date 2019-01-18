@@ -86,7 +86,7 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
         FileCt->Property |= P_READ;
     }
 
-    if(Mode & M_WRITE)
+    if(Mode & S_IWUGO)
     {
         LocalMode |= FA_WRITE;
         FileCt->Property |= P_WRITE;

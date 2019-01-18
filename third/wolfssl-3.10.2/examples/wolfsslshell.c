@@ -159,36 +159,36 @@ static bool_t __CryptStart(char *param)
 }
 
 #include <shell.h>
-static struct shell_debug  gWolfSSLDebugCmd[] =
-{
-    {
-        "wolfclient",
-        __ClientStart,
-        "usage:wolfclient",
-        "usage:wolfclient"
-    },
-    {
-        "wolfserver",
-        __ServerStart,
-        "usage:wolfserver",
-        "usage:wolfserver"
-    },
-    {
-        "wolfcypt",
-        __CryptStart,
-        "usage:wolfcypt",
-        "usage:wolfcypt"
-    },
-};
+//static struct shell_debug  gWolfSSLDebugCmd[] =
+//{
+//    {
+//        "wolfclient",
+//        __ClientStart,
+//        "usage:wolfclient",
+//        "usage:wolfclient"
+//    },
+//    {
+//        "wolfserver",
+//        __ServerStart,
+//        "usage:wolfserver",
+//        "usage:wolfserver"
+//    },
+//    {
+//        "wolfcypt",
+//        __CryptStart,
+//        "usage:wolfcypt",
+//        "usage:wolfcypt"
+//    },
+//};
 
-#define CN_WolfSSLDebug_CMDNUM  ((sizeof(gWolfSSLDebugCmd))/(sizeof(struct shell_debug)))
+//#define CN_WolfSSLDebug_CMDNUM  ((sizeof(gWolfSSLDebugCmd))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gWolfSSLDebugCmdRsc[CN_WolfSSLDebug_CMDNUM];
 
 int WolfSSL(void)
 {
     //add some debug info for the mqtt app
-    if(CN_WolfSSLDebug_CMDNUM==shell_debug_add(gWolfSSLDebugCmd, CN_WolfSSLDebug_CMDNUM))
-        return (TRUE);
+//    if(CN_WolfSSLDebug_CMDNUM==shell_debug_add(gWolfSSLDebugCmd, CN_WolfSSLDebug_CMDNUM))
+//        return (TRUE);
 
     return (FALSE);
 }
