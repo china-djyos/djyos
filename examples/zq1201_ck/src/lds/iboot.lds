@@ -9,7 +9,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))    
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
     }>RAM_SDRAM
 
 	stack_rRAM1_lRAM1 (NOLOAD) :
@@ -107,6 +107,16 @@ SECTIONS
 		. = ALIGN(0x4) ;
     }>RAM_SDRAM
 	
+	routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>RAM_SDRAM AT>ROM1_SDRAM
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>RAM_SDRAM AT>ROM1_SDRAM
+ 	 
 	preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -151,6 +161,17 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
+                
+		LONG(LOADADDR(routine_shell_data_section))
+		LONG(ADDR(routine_shell_data_section))
+		LONG(SIZEOF(routine_shell_data_section))
+		LONG(1)
+		
+		LONG(LOADADDR(expand_shell_data_section))
+		LONG(ADDR(expand_shell_data_section))
+		LONG(SIZEOF(expand_shell_data_section))
+		LONG(1)
+        
     }>ROM1_SDRAM
 	
 	heap_rRAM_lRAM (NOLOAD) :
@@ -203,28 +224,21 @@ SECTIONS
         LONG( Flash2Offset + 256 + 256)
     }>ROM1_SDRAM
 
-    r_In_shell_section :
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
+   		KEEP(*(.shellconfig))
+ 	}>ROM1_SDRAM
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
  	}>ROM1_SDRAM
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>ROM1_SDRAM
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>ROM1_SDRAM
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
  	      . = ALIGN(0x08);
  	}>ROM1_SDRAM
  	
@@ -233,8 +247,5 @@ SECTIONS
         p_shell_info = .;
         LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-        
-        LONG(.)
-        pProgRomEnd = .;
     }>ROM1_SDRAM 
 }

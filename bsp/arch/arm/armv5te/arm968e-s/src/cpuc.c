@@ -108,12 +108,12 @@ __attribute__((weak))   uint64_t __DjyGetSysTime(void)
     return (uint64_t)time;
 }
 
-void reboot(u32 key)
+void reboot()
 {
 
 }
 
-void reset(u32 key)
+void reset()
 {
 
 }

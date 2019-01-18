@@ -60,16 +60,19 @@
 #include "at45db321.h"
 #include "spibus.h"
 #include "board-config.h"
+#include <device/flash/flash.h>
 #include "os.h"
 #include "systime.h"
+#include <math.h>
+#include <stdlib.h>
+#include <device/include/unit_media.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_AT45DB321E(u8 bArgC, ...);
-//    ModuleInstall_AT45DB321E(CFG_AT45_ARGC,CFG_AT45_BUSNAME);
+//    ModuleInstall_at45db321(CFG_AT45_BUSNAME, CFG_AT45_FSNAME, CFG_AT45_START, CFG_AT45_END, CFG_AT45_OPTION);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -94,12 +97,16 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_AT45_ARGC           //****检查参数是否已经配置好
 #warning   at45db321组件参数未配置，使用默认值
-//%$#@num,0,100,
-#define CFG_AT45_ARGC                1  //"参数个数",AT45参数的个数
 //%$#@enum,512,528,
 #define CFG_AT45_PAGE_SIZE           528//"pagesize",配置AT45的页大小，默认为528
 //%$#@string,1,10,
-#define CFG_AT45_BUSNAME             "SPI0"//"SPI总线名称",AT45使用的总线名称
+#define CFG_AT45_BUSNAME             "SPI4"//"SPI总线名称",AT45使用的总线名称
+//%$#@string,1,10,
+#define CFG_AT45_FSNAME              "efs" //"文件系统mount点名字",需要挂载的文件系统mount点名字
+//%$#@enum_config
+#define CFG_AT45_START                  0  //分区起始
+#define CFG_AT45_END                   -1  //分区结束
+#define CFG_AT45_OPTION                 0  //分区选项
 //%$#@select
 //%$#@free,
 #endif
@@ -189,6 +196,14 @@ u8 _at45db321_buff[CFG_AT45_PAGE_SIZE] = {0};
 u8 _at45db321_Ready_Buff = AT45_Buff1;
 
 struct MutexLCB *pAT45_Lock;   //芯片互斥访问保护
+struct NorDescr *nordescription;
+char *At45Name = "AT45DB321E";
+extern s32 __at45_write(s64 unit, void *data, struct uopt opt);
+extern s32 __at45_read(s64 unit, void *data, struct uopt opt);
+extern s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
+extern s32 __at45_erase(s64 unit, struct uesz sz);
+extern s32 __AT45_FsInstallInit(const char *fs, u32 dwStart, u32 dwSize, u32 dwSpecial);
+
 
 bool_t at45db321_Wait_Ready(u32 Time_Out);
 /*---------------------test use only----------------------
@@ -985,43 +1000,111 @@ bool_t AT45_FLASH_Ready(void)
 
 #if 1
 // =============================================================================
-// 功能：初始化SPI FLASH模块，校验芯片ID是否正确
-// 参数：
-// 返回：
+// 功能：安装at45驱动
+// 参数：   pBusName -- AT45所要用的通信线
+//      TargetFs -- 要挂载的文件系统
+//      parts -- 分区数；
+//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_at45db321(char *pBusName)
+bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart, u32 bend, u32 doformat)
 {
-    static char *name = "AT45DB321E";
-
-    pAT45_Lock = Lock_MutexCreate("AT45 Lock");
-    if(!pAT45_Lock)
+    static u8 at45init = 0;
+    struct umedia *um;
+    struct uopt opt;
+    if(at45init == 0)
     {
-        printf("\r\n: error : device : cannot create AT45 flash lock.");
-        return false;
+        pAT45_Lock = Lock_MutexCreate("AT45 Lock");
+        if(!pAT45_Lock)
+        {
+            printf("\r\n: error : device : cannot create AT45 flash lock.");
+            return false;
+        }
+
+        s_ptAT45_Dev = SPI_DevAdd(pBusName,At45Name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
+        if(s_ptAT45_Dev != NULL)
+        {
+            SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
+        }
+        else
+        {
+            printf("\r\n: error  : device : AT45DB321E init failed.\n\r");
+            return false;
+        }
+
+        if(false == _at45db321_Check_ID())  //校验芯片ID
+            return false;
+
+        if( !(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ) )//转换成512字节
+        {
+            _at45db321_Binary_Page_Size_512();//不可逆，且需重新上电
+            printf("\r\n: info  : device : AT45DB321 page size 改变，请重新上电\n\r");
+        }
+        sAT45Inited = true;
+        if(bstart == bend)
+        {
+            return (0); // 不做处理
+        }
+
+        if(!nordescription) //初始化nor的信息
+        {
+            nordescription = malloc(sizeof(struct NorDescr));
+            if(!nordescription)
+            {
+                printf("\r\n: erro : device : memory out.\r\n");
+                return (-1);
+            }
+
+            memset(nordescription, 0x0, (sizeof(struct NorDescr)));
+
+            // AT45的sector比block大，而且sector的大小不一致。这里逻辑上就将sector等于page，
+            // 忽然sector,block最大。
+            nordescription->PortType = NOR_SPI;
+            nordescription->Port = s_ptAT45_Dev;
+            nordescription->BytesPerPage = 512;
+            nordescription->PagesPerSector = 1;
+            nordescription->SectorsPerBlk = 8;
+            nordescription->Blks = 1024; // 全部器件的容量
+            nordescription->ReservedBlks = 0;
+        }
+        um = malloc(sizeof(struct umedia)+512);
+        if(!um)
+            return (-1);
+
+        opt.hecc = 0;
+        opt.main = 1;
+        opt.necc = 1;
+        opt.secc = 0;
+        opt.spare = 0;
+        um->esz = log2(nordescription->BytesPerPage * nordescription->SectorsPerBlk); // 4KB
+        um->usz = log2(nordescription->BytesPerPage);; // 512B;
+        um->merase = __at45_erase;
+        um->mread = __at45_read;
+        um->mreq = __at45_req;
+        um->mwrite = __at45_write;
+        um->opt = opt; // 驱动操作逻辑
+        um->type = nor;
+        um->ubuf = (u8*)um + sizeof(struct umedia);
+        um->asz = nordescription->BytesPerPage * nordescription->SectorsPerBlk * nordescription->Blks;
+        if(um_add((const char*)At45Name, um))
+        {
+            printf("\r\n: erro : device : %s addition failed.", At45Name);
+            free(um);
+            return (-1);
+        }
+        at45init = 1;
     }
 
-    s_ptAT45_Dev = SPI_DevAdd(pBusName,name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
-    if(s_ptAT45_Dev != NULL)
+    if(TargetFs != NULL)
     {
-        SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
-    }
-    else
-    {
-        printf("\r\n: error  : device : AT45DB321E init failed.\n\r");
-        return false;
+        if(__AT45_FsInstallInit(TargetFs, bstart, bend, doformat))
+        {
+            return -1;
+        }
     }
 
-    if(false == _at45db321_Check_ID())  //校验芯片ID
-        return false;
-
-    if( !(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ) )//转换成512字节
-    {
-        _at45db321_Binary_Page_Size_512();//不可逆，且需重新上电
-        printf("\r\n: info  : device : AT45DB321 page size 改变，请重新上电\n\r");
-    }
-
-    sAT45Inited = true;
     return sAT45Inited;
 }
 #else

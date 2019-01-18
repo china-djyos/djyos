@@ -100,8 +100,7 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
 
 //use it as:tftp serverip filename
 //bool_t TftpClientShell(char *param)
-ADD_TO_IN_SHELL_HELP(tftp,"usage:tftp get/put hostname filename");
-ADD_TO_IN_SHELL bool_t tftp(char *param)
+bool_t tftp(char *param)
 {
     int argc =3;
     const char *argv[3];
@@ -134,5 +133,6 @@ bool_t ServiceTftpInit(ptu32_t para)
     return result;
 }
 
+ADD_TO_ROUTINE_SHELL(tftp,tftp,"usage:tftp get/put hostname filename");
 
 

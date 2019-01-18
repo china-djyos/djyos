@@ -451,8 +451,8 @@ static ptu32_t __NetTickerTask(void)
 
 //this is the nettick shell function:use it for the debug
 //static bool_t  __NetTickShell(char *param)
-ADD_TO_IN_SHELL_HELP(netticker,"usage:netticker");
-ADD_TO_IN_SHELL  bool_t  netticker(char *param)
+
+ bool_t  netticker(char *param)
 {
     bool_t ret = true;
     tagTickerItem *item;
@@ -482,8 +482,7 @@ ADD_TO_IN_SHELL  bool_t  netticker(char *param)
 
 //show the tcpip memory consumed
 //static bool_t __tcpipmem(char *para)
-ADD_TO_IN_SHELL_HELP(tcpipmem,"usage:tcpipmem");
-ADD_TO_IN_SHELL  bool_t tcpipmem(char *para)
+bool_t tcpipmem(char *para)
 {
     debug_printf("osarch","MEMNEED  :%-8d Bytes\n\r",gOsCB.mem);
     debug_printf("osarch","TASKSTACK:%-8d Bytes\n\r",gOsCB.stack);
@@ -535,7 +534,7 @@ void OsPrintSplit(char c,int num)
     int i = 0;
     for(i = 0;i<num;i++)
     {
-        debug_printf("osarch","%c",c);
+        printf("%c",c);
     }
     printf("\n\r");
     return;
@@ -559,5 +558,6 @@ bool_t OsArchInit()
 
     return ret;
 }
-
+ADD_TO_ROUTINE_SHELL(tcpipmem,tcpipmem,"usage:tcpipmem");
+ADD_TO_ROUTINE_SHELL(netticker,netticker,"usage:netticker");
 

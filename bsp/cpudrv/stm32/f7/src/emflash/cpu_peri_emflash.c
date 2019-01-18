@@ -60,8 +60,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//extern s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat);
-//ModuleInstall_UnitMedia(__embed_part_init, CFG_PARTS, ...);
+//s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
+//ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_OPTION);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -86,12 +86,12 @@
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 
 //%$#@num,0,100,
-//%$#@enum,0,1,2,3,4,..,100
-#define CFG_PARTS   0       //分区数
+//%$#@string,1,10,
+#define CFG_EFLASH_FSMOUNT_NAME     "iboot"    //需安装的文件系统的mount的名字
 //%$#@enum_config
-#define CFG_PART_START      //分区起始
-#define CFG_PART_SIZE       //分区大小
-#define CFG_PART_OPTION     //分区选项
+#define CFG_EFLASH_PART_START      6          //分区起始
+#define CFG_EFLASH_PART_END        -1         //分区结束
+#define CFG_EFLASH_PART_OPTION     0          //分区选项
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
@@ -102,6 +102,8 @@
 
 //@#$%component end configure
 // ============================================================================
+
+const char *EmflashName = "emflash";      //该flash在obj在的名字
 extern struct obj *s_ptDeviceRoot;
 static struct EmbdFlashDescr{
     u16     BytesPerPage;                // 页中包含的字节数
@@ -116,7 +118,11 @@ static struct EmbdFlashDescr{
 } *embeddescription;
 
 extern u32 gc_ptIbootSize;
-s32 __embed_part_init(const char *fs, s32 MountPart,u32 bstart, u32 bcount, u32 doformat);
+s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bcount, u32 doformat);
+static s32 __embed_read(s64 unit, void *data, struct uopt opt);
+s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
+static s32 __embed_write(s64 unit, void *data, struct uopt opt);
+s32 __embed_erase(s64 unit, struct uesz sz);
 // ============================================================================
 // 功能：喂狗
 // 参数：
@@ -332,29 +338,78 @@ DONE:
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_EmbededFlash(const char *TargetFs,u8 parts,s32 TargetPart, ...)
+s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
 {
-    u8 part;
-    u32 startblock, blocks, doformat;
-    va_list list;
-    s32 res = 0;
-
-    va_start(list, TargetPart);
-    for(part=0; part<parts; part++)
+    struct umedia *um;
+    struct uopt opt;
+    static u8 emflashinit = 0;
+    u32 units, maxblock = 12, total = 0;
+    if(!embeddescription)
     {
-        startblock = (u32)va_arg(list, u32);
-        blocks = (u32)va_arg(list, u32);
-        doformat = (u32)va_arg(list, u32);
-        if(__embed_part_init(TargetFs,TargetPart,startblock, blocks, doformat))
+        embeddescription = malloc(sizeof(*embeddescription));
+        if(!embeddescription)
         {
-            error_printf("nand","cannot install fail.");
-            res = -1;
-            break;
+            return (-1);
+        }
+
+        EmFlash_Init(embeddescription);
+    }
+
+    if(emflashinit == 0)
+    {
+        um = malloc(sizeof(struct umedia)+embeddescription->BytesPerPage);
+        if(!um)
+        {
+            return (-1);
+        }
+
+        opt.hecc = 1;
+        opt.main = 1;
+        opt.necc = 1;
+        opt.secc = 0;
+        opt.spare = 0;
+        um->esz = 0; // 各个区域不同
+        um->usz = log2(embeddescription->BytesPerPage);
+        um->merase = __embed_erase;
+        um->mread = __embed_read;
+        um->mreq = __embed_req;
+        um->mwrite = __embed_write;
+        um->opt = opt;
+        um->type = embed;
+        um->ubuf = (u8*)um + sizeof(struct umedia);
+
+        do
+        {
+            if(__embed_req(blockunits, (ptu32_t)&units, --maxblock))
+            {
+                free(um);
+                return (-1);
+            }
+
+            total += units;
+        }
+        while(maxblock != 0);
+
+        um->asz = total * embeddescription->BytesPerPage;
+
+        if(um_add((const char*)EmflashName, um))
+        {
+            printf("\r\n: erro : device : %s addition failed.", EmflashName);
+            free(um);
+            return (-1);
+        }
+        emflashinit = 1;
+    }
+
+    if(TargetFs != NULL)
+    {
+        if(__embed_FsInstallInit(TargetFs, bstart, bend, doformat))
+        {
+            return -1;
         }
     }
 
-    va_end(list);
-    return (res);
+    return 0;
 }
 
 // ============================================================================
@@ -509,10 +564,8 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             if(!sz->block)
                 return (-1);
 
-            if(-1==end)
+            if(-1==(s32)end)
                 end = 12; // 结束的号；
-            else if(start)
-                end += start;
 
             do
             {
@@ -606,100 +659,68 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __embed_part_init(const char *fs, s32 MountPart,u32 bstart, u32 bcount, u32 doformat)
+s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
 {
-    struct umedia *um;
-    struct uopt opt;
-    char name[16], part[3];
     u32 units, total = 0;
-    static u8 count;
-    char *FullPath;
-    if(!embeddescription)
+    char *FullPath,*notfind;
+    struct obj *targetobj;
+    struct FsCore *super;
+    s32 res;
+    targetobj = obj_matchpath(fs, &notfind);
+    if(notfind)
     {
-        embeddescription = malloc(sizeof(*embeddescription));
-        if(!embeddescription)
-        {
-            return (-1);
-        }
-
-        EmFlash_Init(embeddescription);
+        error_printf("nand"," not found need to install file system.");
+        return -1;
     }
+    super = (struct FsCore *)obj_GetPrivate(targetobj);
 
     if(doformat)
     {
         struct uesz sz;
         sz.unit = 0;
         sz.block = 1;
-        __embed_req(format, (ptu32_t)bstart , bcount, &sz);
+        __embed_req(format, (ptu32_t)bstart , bend, &sz);
     }
 
-    um = malloc(sizeof(struct umedia)+embeddescription->BytesPerPage);
-    if(!um)
+    if(-1 == (s32)bend)
     {
-        return (-1);
+        bend = 12; // 最大块号
     }
-
-    opt.hecc = 1;
-    opt.main = 1;
-    opt.necc = 1;
-    opt.secc = 0;
-    opt.spare = 0;
-    if(-1 == bcount)
-        bcount = 12; // 最大块号
-    else
-        bcount += bstart; // 结束块号
+//    BlockNum = bend - bstart; // 结束块号
 
     do
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, --bcount))
+        if(__embed_req(blockunits, (ptu32_t)&units, --bend))
         {
             return (-1);
         }
 
         total += units;
     }
-    while(bcount!=bstart);
+    while(bend!=bstart);
 
-    um->asz = total * embeddescription->BytesPerPage;
-    um->esz = 0; // 各个区域不同
-    um->usz = log2(embeddescription->BytesPerPage);
-    um->merase = __embed_erase;
-    um->mread = __embed_read;
-    um->mreq = __embed_req;
-    um->mwrite = __embed_write;
-    um->opt = opt;
-    um->type = embed;
-    um->ubuf = (u8*)um + sizeof(struct umedia);
-    bcount = 0;
+    super->AreaSize = total * embeddescription->BytesPerPage;
+    bend = 0;
     total = 0;
-    while(bcount<bstart)
+    while(bend<bstart)
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, bcount++))
+        if(__embed_req(blockunits, (ptu32_t)&units, bend++))
         {
             return (-1);
         }
-
         total += units;
     }
 
-    um->ustart = total; // 起始unit号
-    itoa(count, part, 10);
-    sprintf(name, "embed part %s", part);
-    if(um_add((const char*)name, um))
-    {
-        printf("\r\n: erro : device : %s addition failed.", name);
-        return (-1);
-    }
+    super->MediaStart = total; // 起始unit号
 
-    if(MountPart == count)
-    {
-        FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name));
-        sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,name);	//获取该设备的全路径
-        FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
-        free(FullPath);
-    }
-    count++;
-    printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, bstart, bcount);
+    res = strlen(EmflashName) + strlen(s_ptDeviceRoot->name) + 1;
+    FullPath = malloc(res);
+    memset(FullPath, 0, res);
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);	//获取该设备的全路径
+    FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
+    free(FullPath);
+
+    printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
     return (0);
 
 }

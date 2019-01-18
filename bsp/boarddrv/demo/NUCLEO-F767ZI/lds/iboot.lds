@@ -16,7 +16,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))  
+         KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
     }>RAM1
 	
     stack_rRAM1_lRAM1 (NOLOAD) :
@@ -120,6 +120,16 @@ SECTIONS
         * (.bss .bss.* COMMON)
     }>RAM1
 
+    routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>RAM1 AT>InnerFlash
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>RAM1 AT>InnerFlash
+ 	 
     preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -148,7 +158,7 @@ SECTIONS
        . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(5)
 
         LONG(LOADADDR(text_sysload_rIbootRom_lIbootRom))
         LONG(ADDR(text_sysload_rIbootRom_lIbootRom))
@@ -164,6 +174,16 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
+        	 
+		LONG(LOADADDR(routine_shell_data_section))
+		LONG(ADDR(routine_shell_data_section))
+		LONG(SIZEOF(routine_shell_data_section))
+		LONG(1)
+		
+		LONG(LOADADDR(expand_shell_data_section))
+		LONG(ADDR(expand_shell_data_section))
+		LONG(SIZEOF(expand_shell_data_section))
+		LONG(1)
     }>InnerFlash
 
     heap_rRAM1_lRAM1 (NOLOAD) :
@@ -290,28 +310,21 @@ SECTIONS
     }>InnerFlash
 
 
-    r_In_shell_section :
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
+   		KEEP(*(.shellconfig))
+ 	}>InnerFlash
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
  	}>InnerFlash
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
  	      . = ALIGN(0x08);
  	}>InnerFlash
  	

@@ -48,15 +48,15 @@
 #include <time.h>
 #include <systime.h>
 #include "../include/shell.h"
-#if (1)
+
 // ============================================================================
 // 功能：显示os的版本
 // 参数：
 // 返回：
 // 备注：
 // ============================================================================
-ADD_TO_IN_SHELL_HELP(ver,"显示os的版本");
-ADD_TO_IN_SHELL bool_t ver(char *param)
+
+bool_t djyos_ver(char *param)
 {
     printf("\r\n%s\r\n", djyos_kernel_version);
     if(param)
@@ -71,8 +71,8 @@ ADD_TO_IN_SHELL bool_t ver(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-ADD_TO_IN_SHELL_HELP(date,"显示或者设置日期");
-ADD_TO_IN_SHELL bool_t date(char *param)
+
+bool_t date(char *param)
 {
     s64 nowtime;
     struct tm dtm;
@@ -121,8 +121,7 @@ ADD_TO_IN_SHELL bool_t date(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-ADD_TO_IN_SHELL_HELP(time,"显示当前时间或者设置输入新时间");
-ADD_TO_IN_SHELL bool_t __time(char *param)
+bool_t __time(char *param)
 {
     s64 nowtime;
     struct tm dtm;
@@ -173,8 +172,8 @@ ADD_TO_IN_SHELL bool_t __time(char *param)
 // 返回：true=正常显示，false=错误
 // 备注：
 // ============================================================================
-ADD_TO_IN_SHELL_HELP(d,"读取内存里的数据,命令格式:d 地址 单元数 每单元字节数");
-ADD_TO_IN_SHELL bool_t d(char *param)
+
+bool_t d(char *param)
 {
     ptu32_t addr;
     uint32_t unit_num,unit_bytes,len;
@@ -398,8 +397,8 @@ ADD_TO_IN_SHELL bool_t d(char *param)
 // 返回：true=正常显示，false=错误
 // 备注：
 // ============================================================================
-ADD_TO_IN_SHELL_HELP(f,"写数据到内存,命令格式：f 起始地址  单元数 每单元字节数 填充内容");
-ADD_TO_IN_SHELL bool_t f(char *param)
+
+bool_t f(char *param)
 {
     ptu32_t addr;
     uint32_t unit_num,unit_bytes,len,data;
@@ -498,4 +497,8 @@ ADD_TO_IN_SHELL bool_t f(char *param)
     return true;
 }
 
-#endif
+ADD_TO_ROUTINE_SHELL(f,f,"写数据到内存,命令格式：f 起始地址  单元数 每单元字节数 填充内容");
+ADD_TO_ROUTINE_SHELL(ver,djyos_ver,"显示os的版本");
+ADD_TO_ROUTINE_SHELL(date,date,"显示或者设置日期");
+ADD_TO_ROUTINE_SHELL(d,d,"读取内存里的数据,命令格式:d 地址 单元数 每单元字节数");
+ADD_TO_ROUTINE_SHELL(time,time,"显示当前时间或者设置输入新时间");

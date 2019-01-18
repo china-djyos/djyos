@@ -109,7 +109,7 @@ __attribute__((weak))   uint64_t __DjyGetSysTime(void)
 extern void Load_Preload(void);
 #include <blackbox.h>
 #include <osboot.h>
-#include <IAP_Inner.h>
+#include <Iboot_info.h>
 extern tagIapVar pg_IapVar;
 
 #define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
@@ -122,53 +122,21 @@ extern tagIapVar pg_IapVar;
 // 参数：无
 // 返回：无
 // =============================================================================
-void reboot(u32 key)
+void reboot()
 {
-    vu32 *addr;
-    vu32 value;
 
-    if(key != CN_BOOT_LEGALKEY)
-    {
-//        debug_printf("reboot","IllegalKey:0x%08x Recorded\n\r",key);
-        ThrowOsBootInfo(EN_BOOT_REBOOT);
-    }
-    else
-    {
-        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
-        value = CN_BOOT_SOFTREBOOT_FLAG;
-        *addr = value;
-        value = *addr;
-        Djy_DelayUs(10);
 
         u32 InitCpu_Addr;
         InitCpu_Addr = *(u32*)0x02160000;
         ((void (*)(void))(InitCpu_Addr))();
-    }
-    return;
 }
 
-void reset(u32 key)
+void reset( )
 {
-    vu32 *addr;
-    vu32 value;
+    u32 InitCpu_Addr;
+    InitCpu_Addr = *(u32*)0x02160000;
+    ((void (*)(void))(InitCpu_Addr))();
 
-    if(key != CN_BOOT_LEGALKEY)
-    {
-        //debug_printf("reset","IllegalKey:0x%08x Recorded\n\r",key);
-        ThrowOsBootInfo(EN_BOOT_SRST);
-    }
-    else
-    {
-        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
-        value = CN_BOOT_SOFTRESET_FLAG;
-        *addr = value;
-        value = *addr;
-        Djy_DelayUs(10);
-
-        u32 InitCpu_Addr;
-        InitCpu_Addr = *(u32*)0x02160000;
-        ((void (*)(void))(InitCpu_Addr))();
-    }
 }
 
 void restart_system(u32 key)

@@ -42,29 +42,137 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: 内核模块
+//所属模块: Iboot
 //作者:  罗侍田.
 //版本：V1.0.0
-//文件描述: 加载操作系统
+//文件描述: 在应用编程的核心文件
 //其他说明:
 //修订历史:
-//2. 日期: 2009-04-24
-//   作者:  罗侍田.
-//   新版本号：V1.1.0
-//   修改说明: 原版本中，把系统初始化也放在这里了，本版本分离之
-//1. 日期: 2009-01-04
+//1. 日期: 2016-06-17
 //   作者:  罗侍田.
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include "stdint.h"
-#include "int_hard.h"
-#include "copy_table.h"
+#include "stdio.h"
+#include "iap.h"
+#include <stdlib.h>
+#include "string.h"
 #include "cpu-optional.h"
-
-#if CN_CPU_OPTIONAL_CACHE == 1
+#include "project_config.h"
+#if(CN_CPU_OPTIONAL_CACHE==1)
 #include "set-cache.h"
 #endif
+#include "dbug.h"
+#include "iboot_info.h"
+
+
+struct CopyRecord{
+    u32 load_start_address;
+    u32 run_start_address;
+    u32 size;
+    u32 type;    //0:zero init;    1:copy
+};
+
+struct copy_table{
+    u32 record_size;
+    u32 record_cnt;
+    struct CopyRecord record[1];
+};
+
+//-----------------------------------------------------------------
+//功能：由硬件决定是否强制进入Iboot，若此函数返回TRUE，则强制运行Iboot。通常会使
+//      用一个gpio，通过跳线决定。
+//      正常情况下，如果正在运行APP，是可以用runiboot命令切换到Iboot状态的，设置
+//      此硬件的目的有二：
+//     1、在严重异常错误，不能用shell切换时，提供一个补救措施。
+//     2、出于安全考虑，APP中没有包含切换代码，或者由于资源的关系，裁掉了shell。
+//参数：无
+//返回：无。
+//说明：本函数所涉及到的硬件，须在本文件中初始化，特别需要注意的是，不允许调用未
+//      加载的函数，特别是库函数。
+//      本函数必须提供，如果没有设置相应硬件，可以简单返回false。
+//-----------------------------------------------------------------
+__attribute__((weak))  bool_t IAP_IsForceIboot()
+{
+    return false;
+}
+//----选择加载项目代码-----------------------------------------------------------
+//功能：选择加载存储存储器中哪个项目代码,Iboot或APP。
+//参数: 无。
+//返回: 无。
+//----------------------------------------------------------------------------
+void IAP_SelectLoadProgam(void)
+{
+#if defined (CFG_BRAR_APP)
+        Load_Preload();   //运行Iboot
+#else
+
+    Si_IbootAppInfoInit();
+
+    if(IAP_IsForceIboot())//硬件设置运行iboot
+    {
+        Run_Iboot(HEARD_SET_RUN_IBOOT);//填充硬件设置运行iboot信息
+    }
+    if(IAP_IsRamIbootFlag())//ram中标记运行iboot
+    {
+        Run_Iboot(RAM_SET_RUN_IBOOT);
+    }
+
+#if (CFG_APP_RUNMODE == EN_FORM_FILE)
+    if(false == Run_App(RUN_APP_FROM_FILE))//
+#elif (CFG_APP_RUNMODE == EN_DIRECT_RUN)
+    if(false == Run_App(RUN_APP_FROM_DIRECT))
+#else
+    #error "error ： 没有定义APP加载方式！！";
+#endif
+        Run_Iboot(CHACK_ERROR);
+#endif
+
+}
+
+void Pre_Start(void);
+
+extern struct copy_table preload_copy_table;
+
+//----预加载程序---------------------------------------------------------------
+//功能：加载主加载器、中断管理模块，紧急代码
+//参数: 无。
+//返回: 无。
+//----------------------------------------------------------------------------
+//备注: 本函数移植敏感，与开发系统有关，也与目标硬件配置有关
+void Load_Preload(void)
+{
+//    void (*volatile pl_1st)(void) = Pre_Start;
+
+    volatile u32 *src,*des;
+    volatile u32 i, j;
+    for(i=0; i<preload_copy_table.record_cnt; i++) {
+        src = (u32*) preload_copy_table.record[i].load_start_address;
+        des = (u32*) preload_copy_table.record[i].run_start_address;
+        if(preload_copy_table.record[i].type == 1) {    //copy
+            if(src != des) {
+                for(j=0; j<preload_copy_table.record[i].size; src++,des++) {
+                    *des=*src;
+                    j+=4;
+                }
+            }
+        } else if(preload_copy_table.record[i].type == 0) {    //zero init
+            for(j=0; j<preload_copy_table.record[i].size; des++) {
+                *des=0;
+                j+=4;
+            }
+        }
+    }
+
+#if CN_CPU_OPTIONAL_CACHE == 1
+    Cache_CleanData();
+    Cache_InvalidInst();
+    Cache_config();
+#endif
+
+    Pre_Start();   //用指针做远程调用
+}
 
 extern struct copy_table sysload_copy_table;
 
@@ -130,3 +238,4 @@ void Pre_Start(void)
     Sys_Start();        //开始启动系统
     __libc_fini_array();
 }
+

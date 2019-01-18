@@ -2,5 +2,5 @@
 <hardware>
    <baord>APOLLO-STM32F7</baord>
    <cpu>stm32f767xx</cpu>
-   <core>Core1</core>
+   <core>cortex-m7</core>
 </hardware>

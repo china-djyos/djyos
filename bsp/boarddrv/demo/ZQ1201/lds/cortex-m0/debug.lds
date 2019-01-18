@@ -15,32 +15,17 @@ SECTIONS
         . += IbootSize;             /*该地址需保证256字节对齐*/
     }>Flash
 	
-    Iboot_AppInfo :
+	Iboot_Apphead :
     {
-        gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性  该地址必须是256字节对齐*/
-        LONG(0xffffffff)            /*APP size*/
-        LONG(0xffffffff)            /*CRC32 of APP*/
-        LONG(0xffffffff)            /*rev*/
-        LONG(0x00676264)            /* "dbg",调试标志，Iboot遇到此标志不检查APP正确性*/
-
-        . = ALIGN(256);             /*使得该地址符合256地址对齐,不够补够  0x40500 + 256 = 0x40900*/     
-        gc_ptAppInfo = .;           /*0x40900*/
-        LONG( . + 256);             /*存储4字节long 数据 0x40a00*/
-        gc_AppSize = .;             /*ROM区 存储APP的bin文件大小  0x40604*/
-        LONG(0); /* APP的bin文件大小  gc_AppSize 标号为了访问 存储4字节long 数据 */
-        . = ALIGN(256);             /*使得下一地址256对齐*/
-        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址  0x40800 + 256 = 0x41000*/
-        __AppStart = .;           
+        gc_AppStart = .;          
+        KEEP(*(.DjyAppHead .DjyAppHead.*))    
     }>Flash
-    
-
-      /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
-    /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
-    Iboot_RevRam (NOLOAD):
+	
+	Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))
-    }>RAM1
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
+    }>ExtRam
 
     /*iboot.lds中InitStack大小及位置必须与应用程序中debug/release.lds*/
     /*的一致，否则程序会可能会出现被覆盖的问题*/
@@ -50,7 +35,7 @@ SECTIONS
         msp_bottom = .;
         KEEP(* (.data.InitStack))
         msp_top = ALIGN(0x08);
-   }>RAM1 
+   }>ExtRam 
     
     text_startup_rAppRom_lAppRom :
     {
@@ -136,6 +121,16 @@ SECTIONS
         * (.bss .bss.* COMMON)
     }>ExtRam
 
+	routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>ExtRam AT>Flash
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>ExtRam AT>Flash
+ 	 
    preload_cp_table :
     {
         . = ALIGN(0x08);
@@ -164,7 +159,7 @@ SECTIONS
         . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(5)
 
         LONG(LOADADDR(text_sysload_rROM_lROM))
         LONG(ADDR(text_sysload_rROM_lROM))
@@ -180,13 +175,24 @@ SECTIONS
         LONG(ADDR(zi_sysload_rExtRam_lExtRam))
         LONG(SIZEOF(zi_sysload_rExtRam_lExtRam))
         LONG(0)
+                
+        LONG(LOADADDR(routine_shell_data_section))
+        LONG(ADDR(routine_shell_data_section))
+        LONG(SIZEOF(routine_shell_data_section))
+        LONG(1)
+        
+        LONG(LOADADDR(expand_shell_data_section))
+        LONG(ADDR(expand_shell_data_section))
+        LONG(SIZEOF(expand_shell_data_section))
+        LONG(1)
+	
     }>Flash
     
     heap_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x08);
         sys_heap_bottom = .;
-    }>RAM1
+    }>ExtRam
     sys_heap_top = Ram1Start + Ram1Size;
     
     heap_rExtRam_lExtRam (NOLOAD) :
@@ -276,37 +282,29 @@ SECTIONS
         LONG(FlashRange - IbootSize)
         
     }>Flash
-    
-	r_In_shell_section :
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
+   		KEEP(*(.shellconfig))
+ 	}>Flash
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
  	}>Flash
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
  	      . = ALIGN(0x08);
  	}>Flash
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>Flash
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>Flash
- 	
+
  	Shell_Info :
     {
         p_shell_info = .;
-        LONG(gc_ptIbootCtrl) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG( LENGTH(Flash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/        
+        LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG( LENGTH(Flash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
     }>Flash 
 }
 /**** The End ****/

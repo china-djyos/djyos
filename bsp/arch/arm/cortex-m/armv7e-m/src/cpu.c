@@ -394,8 +394,7 @@ __attribute__((weak))   void __DjyInitTick(void)
 extern void Load_Preload(void);
 #include <blackbox.h>
 #include <osboot.h>
-#include <IAP_Inner.h>
-extern tagIapVar pg_IapVar;
+#include <Iboot_Info.h>
 
 #define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
 #define CN_BOOT_SOFTRELOAD_FLAG         (CN_BOOT_LEGALKEY <<2)
@@ -450,30 +449,12 @@ typedef struct
 // 参数：无
 // 返回：无
 // =============================================================================
-void reboot(u32 key)
+void reboot()
 {
-    vu32 *addr;
-    vu32 value;
+    u32 InitCpu_Addr;
+    InitCpu_Addr = (u32)Init_Cpu;
+    ((void (*)(void))(InitCpu_Addr))();
 
-    if(key != CN_BOOT_LEGALKEY)
-    {
-        debug_printf("reboot","IllegalKey:0x%08x Recorded\n\r",key);
-        ThrowOsBootInfo(EN_BOOT_REBOOT);
-    }
-    else
-    {
-        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
-        value = CN_BOOT_SOFTREBOOT_FLAG;
-        *addr = value;
-        value = *addr;
-        Djy_DelayUs(10);
-#if CN_CPU_OPTIONAL_CACHE == 1
-        SCB_DisableDCache();
-#endif
-        u32 InitCpu_Addr;
-        InitCpu_Addr = (u32)Init_Cpu;
-        ((void (*)(void))(InitCpu_Addr))();
-    }
     return;
 }
 // =============================================================================
@@ -481,25 +462,9 @@ void reboot(u32 key)
 // 参数：无
 // 返回：无
 // =============================================================================
-void reset(u32 key)
+void reset()
 {
-    vu32 *addr;
-    vu32 value;
-
-    if(key != CN_BOOT_LEGALKEY)
-    {
-        debug_printf("reset","IllegalKey:0x%08x Recorded\n\r",key);
-        ThrowOsBootInfo(EN_BOOT_SRST);
-    }
-    else
-    {
-        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
-        value = CN_BOOT_SOFTRESET_FLAG;
-        *addr = value;
-        value = *addr;
-        Djy_DelayUs(10);
-        pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
-    }
+    pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
     return;
 }
 // =============================================================================
@@ -507,59 +472,19 @@ void reset(u32 key)
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_system(u32 key)
+void restart_system()
 {
-    vu32 *addr;
-    vu32 value;
 
-    if(key != CN_BOOT_LEGALKEY)
-    {
-        debug_printf("restart_system","IllegalKey:0x%08x Recorded\n\r",key);
-        ThrowOsBootInfo(EN_BOOT_RELOAD);
-    }
-    else
-    {
-        addr = (vu32 *)&pg_IapVar.IbootFlag[12];
-        value = CN_BOOT_SOFTRELOAD_FLAG;
-        *addr = value;
-        value = *addr;
-        Djy_DelayUs(10);
-        __set_PSP((uint32_t)msp_top);
-        __set_MSP((uint32_t)msp_top);
-        Load_Preload();
-    }
+    Djy_DelayUs(10);
+    __set_PSP((uint32_t)msp_top);
+    __set_MSP((uint32_t)msp_top);
+    Load_Preload();
     return;
 }
 
 enBootMode GetBootMethodSoft(void)
 {
-    vu32 *addr;
-    vu32 value;
     enBootMode result;
-    addr = (u32*)&pg_IapVar.IbootFlag[12];
-    value = *addr;
-    if(value == CN_BOOT_SOFTRESET_FLAG)
-    {
-        result = EN_BOOT_SRST;
-    }
-    else if(value == CN_BOOT_SOFTREBOOT_FLAG)
-    {
-        result = EN_BOOT_REBOOT;
-    }
-    else if(value == CN_BOOT_SOFTRELOAD_FLAG)
-    {
-        result = EN_BOOT_RELOAD;
-    }
-    else if(value == CN_BOOT_HARDRST_FLAG)
-    {
-        result = EN_BOOT_HRST;
-    }
-    else
-    {
-        result = EN_BOOT_POWERDOWN;
-    }
-    value = CN_BOOT_HARDRST_FLAG;
-    *addr = value;
     return result;
 }
 enum

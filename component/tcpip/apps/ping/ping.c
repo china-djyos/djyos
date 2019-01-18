@@ -78,8 +78,7 @@ static void pingusage(void)
 // INSTRUCT:
 // =============================================================================
 //static bool_t pingshell(char *param)
-ADD_TO_IN_SHELL_HELP(ping,"usage:ping hostname [options/-help]");
-ADD_TO_IN_SHELL  bool_t ping(char *param)
+bool_t ping(char *param)
 {
     u32 i;
     u32 ip;
@@ -186,16 +185,16 @@ ADD_TO_IN_SHELL  bool_t ping(char *param)
         {
             timeend = (u32)DjyGetSysTime();
             timeused = (u32)(timeend - timestart);
-            debug_printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+            printf("0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
             Djy_EventDelay(waittime);
             numrcv++;
         }
         else
         {
-            debug_printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+            printf("0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
         }
     }
-        debug_printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+        printf("%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
     net_free(buf);
     return true;
 }
@@ -286,4 +285,5 @@ bool_t ServicePingInit(ptu32_t para)
 {
         return (TRUE);
 }
+ADD_TO_ROUTINE_SHELL(ping,ping,"usage:ping hostname [options/-help]");
 

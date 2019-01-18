@@ -90,38 +90,39 @@ extern "C" {
 #define MS_ACTIVE       (1<<30)
 #define MS_NOUSER       (1<<31)
 #define MS_DIRECTMOUNT  (1<<29) //DJYOS增加：直接mount到挂载点，不备份
+#define MS_INSTALLFORMAT  256   //DJYOS增加： 安装时会格式化整个文件系统
+#define MS_INSTALLUSE     512   //DJYOS增加：使用时才发生安装动作
+#define MS_INSTALLCREAT (1<<24) //DJYOS增加：文件系统不存在时，则新建
 
 struct FsCore;
-struct FsType
-{
-//  s32 (*fileOps)(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
-//                      ptu32_t OpsArgs2, ptu32_t OpsArgs3);
-    fnObjOps fileOps;
+
+
+struct filesystem{
+    struct dListNode list;
+    s32 (*fileOps)(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3);
     s32 (*install)(struct FsCore *pFsCore, u32 dwOpt, void *data);
     s32 (*uninstall)();
     s32 (*format)();
     char *pType;
-};
+} *pFileSystemTypes;
 
 struct FsCore
 {
     struct obj *pTarget;        // 挂载点
-    ptu32_t media;              // 文件系统设备
+    ptu32_t Media;              // 文件系统设备
     void *pCore;                // 具体的文件系统控制信息
-    struct obj *MountBak;       //用于隐藏原目录内容，如果 flags 带 MS_DIRECTMOUNT
-                                //参数，则置空
-    struct FsType *pFsType;     //所属文件系统类型
-    u32 InstallWay;             //文件系统的安装方式，如INSTALL_CREAT；
-    void *config;               //文件系统的私有配置
+    struct obj *MountBak;       // 用于隐藏原目录内容，如果 flags 带 MS_DIRECTMOUNT
+                                // 参数，则置空
+    struct filesystem *pFsType; // 所属文件系统类型
+    u32 InstallWay;             // 文件系统的安装方式，如MS_INSTALLCREAT；
+    void *Config;               // 文件系统的私有配置
+    s64 MediaStart;             // 在媒体中的起始unit,unit为单位；
+    s64 AreaSize;               // 所在区域的总大小；Byte为单位；
 };
 
 
-#define INSTALL_FORMAT                  (0x1) // 安装时会格式化整个文件系统
-#define INSTALL_USE                     (0x2) // 使用时才发生安装动作
-#define INSTALL_CREAT                   (0x4) // 文件系统不存在时，则新建
-#define INSTALL_READONLY                (0x8) // 文件系统只读
-
-s32 regfs(struct FsType *type);
+s32 regfs(struct filesystem *type);
 bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
                      u32 BufSize);
 bool_t obj_isMount(struct obj *obj);

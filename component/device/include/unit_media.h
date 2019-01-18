@@ -115,7 +115,7 @@ struct umedia{
     struct uopt opt;
     s32 usz; // unit单位大小, 2的幂次方
     s32 esz; // 可擦除的单位大小，2的幂次方
-    s64 ustart; // 起始unit,unit为单位；
+//    s64 ustart; // 起始unit,unit为单位；
     s64 asz; // all size；总大小；Byte为单位；
     u8 *ubuf;
     s32 (*mread)(s64 unit, void *data, struct uopt opt); // 成功（0）；失败（-1）；

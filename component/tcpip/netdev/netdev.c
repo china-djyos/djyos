@@ -549,13 +549,12 @@ void * NetDevPrivate(void *iface)
 
 //netdev shell here
 //static bool_t __IfconfigShell(char *param)
-ADD_TO_IN_SHELL_HELP(ifconfig,"usage:ifconfig");
-ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
+bool_t ifconfig(char *param)
 {
     int i = 0;
     tagNetDev *iface;
     OsPrintSplit('*',100);
-    debug_printf("netdev","%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
+    printf("%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
             "NO","NAME","TYPE","FUNCTION","MTU","SNDTOTAL","SNDERR","RCVTOTAL","RCVERR","MAC");
     if(mutex_lock(gIfaceCB.lock))
     {
@@ -563,7 +562,7 @@ ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
         while(NULL != iface)
         {
             i++;
-            debug_printf("netdev","%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
+            printf("%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
                     i,iface->name,LinkTypeName(iface->iftype),iface->devfunc,iface->mtu,\
                     iface->pkgsnd,iface->pkgsnderr,iface->pkgrcv,iface->pkgrcverr,mac2string(iface->mac));
             iface = iface->nxt;
@@ -605,6 +604,7 @@ EXIT_MUTEX:
     return ret;
 }
 
+ADD_TO_ROUTINE_SHELL(ifconfig,ifconfig,"usage:ifconfig");
 
 
 

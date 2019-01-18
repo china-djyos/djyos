@@ -765,8 +765,7 @@ static void __LineMemByteShow(void)
 //this is the line memory debug command
 //static bool_t __LineMemShell(char *param)
 
-ADD_TO_IN_SHELL_HELP(linemem,"usage:linemem [item/state/byte](default state)");
-ADD_TO_IN_SHELL bool_t linemem(char *param)
+bool_t linemem(char *param)
 {
     if(NULL != param)
     {
@@ -886,4 +885,5 @@ bool_t LineMemBlackBoxRecord_ConfigTest(tagBlackBoxLowLevelOpt *lopt,u16 memsize
 
     return ret;
 }
+ADD_TO_ROUTINE_SHELL(linemem,linemem,"usage:linemem [item/state/byte](default state)");
 

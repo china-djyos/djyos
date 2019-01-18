@@ -57,8 +57,7 @@
 #define CN_TCPIP_VERSION    "V1.2.0"
 #define CN_TCPIP_AUTHOR     "luost@sznari.com,zhangqf1314@163.com"
 //static bool_t __TcpIpVersion(char *param)
-ADD_TO_IN_SHELL_HELP(tcpipver,"usage:tcpipver");
-ADD_TO_IN_SHELL  bool_t tcpipver(char *param)
+bool_t tcpipver(char *param)
 {
     param = param;
     info_printf("tcpip","Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.");
@@ -256,4 +255,4 @@ TCPIP_INITERR:
     error_printf("tcpip","*********DJY TCP/IP INIT  FAILED**********************");
     return ret;
 }
-
+ADD_TO_ROUTINE_SHELL(tcpipver,tcpipver,"usage:tcpipver");

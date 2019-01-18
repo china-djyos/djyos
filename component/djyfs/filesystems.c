@@ -63,10 +63,6 @@
 static char __DJYFS_PATH_BUFFER[DJYFS_PATH_BUFFER_SIZE];
 char *DJYFS_PATH_BUFFER = __DJYFS_PATH_BUFFER; // 用于移植的文件系统的路径拼接
 
-struct filesystem{
-    struct dListNode list;
-    struct FsType *pType;
-} *pFileSystemTypes;
 
 // ============================================================================
 // 功能：查找文件系统类型。
@@ -74,7 +70,7 @@ struct filesystem{
 // 返回：文件系统类型；未找到（NULL）；
 // 备注：
 // ============================================================================
-static struct FsType *__findtype(const char *pType)
+static struct filesystem *__findtype(const char *pType)
 {
     list_t *cur;
     struct filesystem *fs;
@@ -83,15 +79,15 @@ static struct FsType *__findtype(const char *pType)
         return (NULL);
 
     fs = pFileSystemTypes;
-    if(!strcmp(fs->pType->pType, pType))
-        return (fs->pType);
+    if(!strcmp(fs->pType, pType))
+        return (fs);
 
     dListForEach(cur, &pFileSystemTypes->list)
     {
         fs = dListEntry(cur, struct filesystem, list);
-        if(!strcmp(fs->pType->pType, pType))
+        if(!strcmp(fs->pType, pType))
         {
-            return (fs->pType);
+            return (fs);
         }
     }
 
@@ -104,24 +100,19 @@ static struct FsType *__findtype(const char *pType)
 // 返回：成功（0）；失败（-1）。已注册（1）；
 // 备注：
 // ============================================================================
-s32 regfs(struct FsType *type)
+s32 regfs(struct filesystem *type)
 {
-    struct filesystem *newt;
-
     if(__findtype(type->pType))
         return (1);
 
-    newt = malloc(sizeof(*newt));
-    newt->pType = type;
-
     if(!pFileSystemTypes)
     {
-        dListInit(&(newt->list));
-        pFileSystemTypes = newt;
+        dListInit(&(type->list));
+        pFileSystemTypes = type;
     }
     else
     {
-        dListInsertAfter(&(pFileSystemTypes->list), &(newt->list));
+        dListInsertAfter(&(pFileSystemTypes->list), &(type->list));
     }
 
     return (0);
@@ -257,7 +248,7 @@ bool_t obj_isMount(struct obj *obj)
 // ============================================================================
 s32 mountfs(const char *source, const char *target, const char *type, u32 opt, void *data)
 {
-    struct FsType *fstype;
+    struct filesystem *fstype;
     struct FsCore *super;
     struct obj *srcobj = NULL, *targetobj, *tmpobj;
     s32 res;
@@ -294,7 +285,7 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
     {
         super = malloc(sizeof(*super));
         memset(super, 0, sizeof(*super));
-        super->media = dev_GetDrvTagFromObj(srcobj);
+        super->Media = dev_GetDrvTagFromObj(srcobj);
         super->pFsType = fstype;
         if(opt & MS_DIRECTMOUNT)
         {
@@ -324,10 +315,10 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
 //          debug_printf("fs","mount failed(cannot mount on the \"%s\" for wrong target type).", target);
 //          return (-1);
 //      }
-        if(super->media == 0)        //如果媒体为空则先不挂载
+        if(super->Media == 0)        //如果媒体为空则先不挂载
         {
             super->InstallWay = opt;
-            super->config = data;
+            super->Config = data;
             return (-2);
         }
         res = fstype->install(super, opt, data);
@@ -416,15 +407,19 @@ void FsBeMedia(const char *source, const char *target)
         return ;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
-    if(super->media)
+    if(super->Media)
     {
         return ;
     }
-    super->media = dev_GetDrvTagFromObj(srcobj);
-    res = super->pFsType->install(super,super->InstallWay,super->config);  //挂载
+    super->Media = dev_GetDrvTagFromObj(srcobj);
+    res = super->pFsType->install(super,super->InstallWay,super->Config);  //挂载
     if(res == 0)
     {
         debug_printf("fs","file system \"%s\" installed on \"%s\".",targetobj->name,srcobj->name);
+    }
+    else
+    {
+        error_printf("fs","file system \"%s\" installed fail on \"%s\".",targetobj->name,srcobj->name);
     }
 
 }

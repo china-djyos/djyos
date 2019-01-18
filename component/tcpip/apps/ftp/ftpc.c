@@ -912,8 +912,7 @@ static bool_t __FtpcTest(int argc,const char *argv[])
     return true;
 }
 //static bool_t __FtpcDebug(char *param)
-ADD_TO_IN_SHELL_HELP(ftpc,"usage:ftpc subcmd [subpara]");
-ADD_TO_IN_SHELL  bool_t ftpc(char *param)
+bool_t ftpc(char *param)
 {
     int len ;
     int argc =10;
@@ -1292,6 +1291,7 @@ bool_t ServiceFtpcInit(ptu32_t para)
     return true;
 }
 
+ADD_TO_ROUTINE_SHELL(ftpc,ftpc,"usage:ftpc subcmd [subpara]");
 
 
 

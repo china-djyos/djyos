@@ -276,7 +276,7 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
     }
 
     // 获取设备中更新文件的头部信息
-    start = um->ustart; // 当前逻辑是从保留页开始
+    start = 0; // 要用该升级方式的话iap文件系统的起始必须是0开始
     res = um->mread(start++, buf, opt);
     if(0 != res)
     {

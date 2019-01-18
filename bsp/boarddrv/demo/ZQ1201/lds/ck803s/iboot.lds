@@ -9,60 +9,60 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))    
+       KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
     }>RAM_SDRAM
 
-	stack_rRAM1_lRAM1 (NOLOAD) :
+        stack_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x02);
         msp_bottom = .;
         KEEP(* (.data.InitStack))
-		/*. = ALIGN(0x08);*/
+                /*. = ALIGN(0x08);*/
         msp_top = .;
     }>RAM_SDRAM
-	
-	Rom_Start :
+
+        Rom_Start :
     {
-        restore = .; 
+        restore = .;
     }>ROM1_SDRAM
-	
-	text_startup_rIbootRom_lIbootRom :
-	{
-		/*. = ALIGN(10);*/
+
+        text_startup_rIbootRom_lIbootRom :
+        {
+                /*. = ALIGN(10);*/
        /*__VECTOR_TABLE = .;*/
-	   /*KEEP(*startup.o(.vectors))*/
-	   KEEP(*(.StartupExpTbl .StartupExpTbl.*))
-	   . = ALIGN(4);
-	   KEEP(*initcpus.o(.text .text.* .rodata .rodata.*))
-	   KEEP(*initcpuc.o(.text .text.* .rodata .rodata.*))
-	   KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
-	   . = ALIGN(10);
-	}>ROM1_SDRAM
-	
-	text_preload_rIbootRom_lIbootRom :
-	{
-		. = ALIGN(0x08);
-		g_pAppCodeStartRamAddr = .;
+           /*KEEP(*startup.o(.vectors))*/
+           KEEP(*(.StartupExpTbl .StartupExpTbl.*))
+           . = ALIGN(4);
+           KEEP(*initcpus.o(.text .text.* .rodata .rodata.*))
+           KEEP(*initcpuc.o(.text .text.* .rodata .rodata.*))
+           KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
+           . = ALIGN(10);
+        }>ROM1_SDRAM
+
+        text_preload_rIbootRom_lIbootRom :
+        {
+                . = ALIGN(0x08);
+                g_pAppCodeStartRamAddr = .;
         *loader.o (.text .text.* .rodata .rodata.*)
         *int_hard.o (.text .text.* .rodata .rodata.*)
-		KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
+                KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
         *hard-exp.o (.text .text.* .rodata .rodata.*)
         *int.o (.text .text.* .rodata .rodata.*)
         *ints.o (.text .text.* .rodata .rodata.*)
         *heap-static.o (.text .text.* .rodata .rodata.*)
         *list.o (.text .text.* .rodata .rodata.*)
-		. = ALIGN(0x08);
-	}>ROM1_SDRAM
-	
-	text_sysload_rIbootRom_lIbootRom :
-    {       
+                . = ALIGN(0x08);
+        }>ROM1_SDRAM
+
+        text_sysload_rIbootRom_lIbootRom :
+    {
        . = ALIGN(0x08);
         * (.text .text.* .rodata .rodata.* )
         g_pAppCodeEndRamAddr = .;
-		. = ALIGN(0x08);
-    }>ROM1_SDRAM 
-	
-	rw_preload_rRAM1_lIbootRom :
+                . = ALIGN(0x08);
+    }>ROM1_SDRAM
+
+        rw_preload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x08);
         *loader.o (.data .data.*)
@@ -74,10 +74,10 @@ SECTIONS
         *heap-static.o (.data .data.*)
         *list.o (.data .data.*)
         *cpu_peri_isr.o (.data .data.*)
-		. = ALIGN(0x08);
+                . = ALIGN(0x08);
     }>RAM_SDRAM AT>ROM1_SDRAM
-	
-	zi_preload_rRAM1_lRAM1 (NOLOAD) :
+
+        zi_preload_rRAM1_lRAM1 (NOLOAD) :
     {
        . = ALIGN(10);
         KEEP(* (.table.exceptions .table.exceptions.*))
@@ -92,27 +92,37 @@ SECTIONS
         *list.o (.bss .bss.* COMMON)
         *cpu_peri_isr.o (.bss .bss.* COMMON)
     }>RAM_SDRAM
-	
-	rw_sysload_rRAM1_lIbootRom :
+
+        rw_sysload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x4) ;
         * (.data .data.*)
-		. = ALIGN(0x4) ;
+                . = ALIGN(0x4) ;
     }>RAM_SDRAM AT>ROM1_SDRAM
 
     zi_sysload_rRAM1_lRAM1 (NOLOAD) :
     {
        . = ALIGN(0x04);
         * (.bss .bss.* COMMON)
-		. = ALIGN(0x4) ;
+                . = ALIGN(0x4) ;
     }>RAM_SDRAM
-	
-	preload_cp_table :
+
+    routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>RAM_SDRAM AT>ROM1_SDRAM
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>RAM_SDRAM AT>ROM1_SDRAM
+ 	 
+        preload_cp_table :
     {
        . = ALIGN(0x08);
         preload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(5)
 
         LONG(LOADADDR(text_preload_rIbootRom_lIbootRom))
         LONG(ADDR(text_preload_rIbootRom_lIbootRom))
@@ -128,9 +138,19 @@ SECTIONS
         LONG(ADDR(zi_preload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_preload_rRAM1_lRAM1))
         LONG(0)
-    }>ROM1_SDRAM
+        
+        LONG(LOADADDR(routine_shell_data_section))
+	    LONG(ADDR(routine_shell_data_section))
+	    LONG(SIZEOF(routine_shell_data_section))
+	    LONG(1)
 	
-	sysload_cp_table :
+      	LONG(LOADADDR(expand_shell_data_section))
+	    LONG(ADDR(expand_shell_data_section))
+	    LONG(SIZEOF(expand_shell_data_section))
+	    LONG(1)
+    }>ROM1_SDRAM
+
+        sysload_cp_table :
     {
        . = ALIGN(0x08);
         sysload_copy_table = .;
@@ -146,23 +166,23 @@ SECTIONS
         LONG(ADDR(rw_sysload_rRAM1_lIbootRom))
         LONG(SIZEOF(rw_sysload_rRAM1_lIbootRom))
         LONG(1)
-		
+
         LONG(LOADADDR(zi_sysload_rRAM1_lRAM1))
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
     }>ROM1_SDRAM
-	
-	heap_rRAM_lRAM (NOLOAD) :
+
+        heap_rRAM_lRAM (NOLOAD) :
     {
        . = ALIGN(0x08);
         sys_heap_bottom = .;
-		/*__heap_start = .;*/
+                /*__heap_start = .;*/
     }>RAM_SDRAM
     sys_heap_top = RamStart + RamSize;
-	/*__heap_end = RamStart + RamSize;*/
-	
-	heap_cp_table :
+        /*__heap_end = RamStart + RamSize;*/
+
+        heap_cp_table :
     {
         . = ALIGN(0x08);
         pHeapList = .;
@@ -177,24 +197,24 @@ SECTIONS
         BYTE(0x79)                  /*'y'*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
-        
+
         . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/
     }>ROM1_SDRAM
-    
+
     Iboot_Info :
-    {        
+    {
         gc_ptIbootSize = .;
         LONG(IbootSize)
     }>ROM1_SDRAM
-    
+
     Iboot_AppInfo :
     {
        /* . = restore + IbootSize;*/
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
         LONG( Flash2Offset)
         . += 256;
-        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
+        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */
         LONG( Flash2Offset + 256)
         . += 256;
         gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
@@ -203,28 +223,21 @@ SECTIONS
         LONG( Flash2Offset + 256 + 256)
     }>ROM1_SDRAM
 
-    r_In_shell_section :
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
+   		KEEP(*(.shellconfig))
+ 	}>ROM1_SDRAM
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
  	}>ROM1_SDRAM
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>ROM1_SDRAM
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>ROM1_SDRAM
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
  	      . = ALIGN(0x08);
  	}>ROM1_SDRAM
  	
@@ -233,8 +246,5 @@ SECTIONS
         p_shell_info = .;
         LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-        
-        LONG(.)
-        pProgRomEnd = .;
     }>ROM1_SDRAM 
 }

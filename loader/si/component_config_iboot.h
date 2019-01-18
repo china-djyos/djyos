@@ -4,6 +4,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//  ptu32_t ModuleInstall_IAP(void);
+//  ModuleInstall_IAP( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -31,13 +33,11 @@
 //%$#@num,0,100,
 //%$#@enum,EN_FORM_FILE,EN_DIRECT_RUN,
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
-//%$#@enum,EN_USE_APP_CRC,EN_NO_APP_CRC,
-#define  CFG_IBOOT_CRC   EN_NO_APP_CRC      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
+//%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL
+#define  CFG_APP_VERIFICATION   VERIFICATION_NULL      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 //%$#@string,1,128,
 #define CFG_APP_FILENAME        ""              //CFG_APP_RUNMODE==EN_FORM_FILE，这里配置文件名
-#define CFG_IBOOT_VERSION       "V1.0.0"        //Iboot发布版本号
-#define CFG_IBOOT_UPDATE_NAME   "iboot.bin"     //iboot更新文件名，此二配置，以后改掉
-#define CFG_IBOOT_UPDATE_PATH   "\\"     //iboot更新路径名，此二配置，以后改掉
+#define CFG_IBOOT_VERSION       01        //Iboot发布版本号
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 

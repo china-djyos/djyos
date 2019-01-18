@@ -586,8 +586,7 @@ typedef enum
 }tagItemAction;
 
 //static bool_t __ArpShell(char *param)
-ADD_TO_IN_SHELL_HELP(arp,"usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]");
-ADD_TO_IN_SHELL  bool_t arp(char *param)
+bool_t arp(char *param)
 {
     bool_t ret = true;
     tagItemAction action =EN_ITEM_ACTION_PRINT ;
@@ -700,6 +699,7 @@ EXIT_ITEMMUTEX:
     return ret;
 }
 
+ADD_TO_ROUTINE_SHELL(arp,arp,"usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]");
 
 
 

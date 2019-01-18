@@ -345,8 +345,7 @@ bool_t PkgCachedLst(tagNetPkg   *pkglst)
 // DESCRIPTION:
 // =============================================================================
 //bool_t PkgMemShow(char *param)
-ADD_TO_IN_SHELL_HELP(pkgmem,"usage:pkgmem,  show the pkg module statistics");
-ADD_TO_IN_SHELL bool_t pkgmem(char *param)
+bool_t pkgmem(char *param)
 {
     int i =0;
     debug_printf("pkg","PkgMem:HdrSize:%d\n\r",CN_PKG_HDRSIZE);
@@ -403,6 +402,7 @@ EXIT_SYNC:
     result = false;
     return result;
 }
+ADD_TO_ROUTINE_SHELL(pkgmem,pkgmem,"usage:pkgmem,  show the pkg module statistics");
 
 
 

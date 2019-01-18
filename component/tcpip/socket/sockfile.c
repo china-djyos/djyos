@@ -177,8 +177,7 @@ bool_t sockobj_clrstatus(void *obj,u32 status)
 //show all the sockfile fd
 
 //static bool_t __sockobj_shell(char *param)
-ADD_TO_IN_SHELL_HELP(sockfile,"usage:sockfile [-a]");
-ADD_TO_IN_SHELL  bool_t sockfile(char *param)
+bool_t sockfile(char *param)
 {
     //first show the statistics
     info_printf("sockfile","TABLEN:%d USED:%d ITEMSIZE:%d TABADDR:0X%08X",\
@@ -232,6 +231,7 @@ EXIT_TABMEM:
     return ret;
 
 }
+ADD_TO_ROUTINE_SHELL(sockfile,sockfile,"usage:sockfile [-a]");
 
 
 

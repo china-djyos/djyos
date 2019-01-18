@@ -316,8 +316,7 @@ void pci_header_show(pci_dev_t dev)
 //返回：true:  打印完成
 //----------------------------------------------------------
 //bool_t sh_cmd_pcie(char *param)
-ADD_TO_IN_SHELL_HELP(pcie,"查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息");
-ADD_TO_IN_SHELL bool_t pcie(char *param)
+bool_t pcie(char *param)
 {
     ptu32_t busno;
     char *next_param;
@@ -347,3 +346,4 @@ ADD_TO_IN_SHELL bool_t pcie(char *param)
     return true;
 
 }
+ADD_TO_ROUTINE_SHELL(pcie,pcie,"查看指定bus号的pcie设备或主桥的信息,当不输入pcie号时，打印所有pcie设备或主桥的信息");

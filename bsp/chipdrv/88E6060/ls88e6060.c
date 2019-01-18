@@ -370,8 +370,7 @@ const unsigned char gSwitchReg[]={0,3,4,6,0x0b,0x10,0x11};
 #define CN_SWITCH_SIZE   sizeof(gSwitchReg)
 
 //static bool_t DevPhyRegPrint(char *param)
-ADD_TO_IN_SHELL_HELP(preg,"usage:print the phyregs");
-ADD_TO_IN_SHELL  bool_t preg(char *param)
+bool_t preg(char *param)
 {
     int i =0;
     unsigned char     dev;
@@ -404,8 +403,7 @@ ADD_TO_IN_SHELL  bool_t preg(char *param)
 }
 
 //static bool_t DevSwitchRegPrint(char *param)
-ADD_TO_IN_SHELL_HELP(sreg,"usage:print the switch regs");
-ADD_TO_IN_SHELL  bool_t sreg(char *param)
+bool_t sreg(char *param)
 {
     int i =0;
     unsigned char     dev;
@@ -436,8 +434,7 @@ ADD_TO_IN_SHELL  bool_t sreg(char *param)
 }
 
 //static bool_t DevSetPhyReg(char *param)
-ADD_TO_IN_SHELL_HELP(setphy,"usage:set the phy regs:setphy +port +reg +value");
-ADD_TO_IN_SHELL  bool_t setphy(char *param)
+bool_t setphy(char *param)
 {
 
     u8 dev;
@@ -481,8 +478,7 @@ ADD_TO_IN_SHELL  bool_t setphy(char *param)
 }
 
 //static bool_t DevSetSwitchReg(char *param)
-ADD_TO_IN_SHELL_HELP(setswitch,"usage:set the switch regs:setswitch +port +reg +value");
-ADD_TO_IN_SHELL  bool_t setswitch(char *param)
+bool_t setswitch(char *param)
 {
 
     u8 dev;
@@ -527,8 +523,7 @@ ADD_TO_IN_SHELL  bool_t setswitch(char *param)
 
 
 //static bool_t DevSetPhyLoop(char *param)
-ADD_TO_IN_SHELL_HELP(phyloop,"usage:reset the phy loop::phyloop+port");
-ADD_TO_IN_SHELL  bool_t phyloop(char *param)
+bool_t phyloop(char *param)
 {
     int argc;
     char *argv[2];
@@ -592,8 +587,7 @@ ADD_TO_IN_SHELL  bool_t phyloop(char *param)
     return true;
 }
 //static bool_t DevResetCmd(char *param)
-ADD_TO_IN_SHELL_HELP(phyreset,"usage:reset the dev:phyreset+port");
-ADD_TO_IN_SHELL  bool_t phyreset(char *param)
+bool_t phyreset(char *param)
 {
     int argc;
     char *argv[2];
@@ -627,8 +621,7 @@ ADD_TO_IN_SHELL  bool_t phyreset(char *param)
 }
 
 //static bool_t DevVlanSet(char *param)
-ADD_TO_IN_SHELL_HELP(vlan,"usage:set the vlan map:vlan + port +value");
-ADD_TO_IN_SHELL  bool_t vlan(char *param)
+ bool_t vlan(char *param)
 {
     int argc;
 
@@ -747,4 +740,10 @@ void   LS_IntHandler(void)
 
     return ;
 }
-
+ADD_TO_ROUTINE_SHELL(vlan,vlan,"usage:set the vlan map:vlan + port +value");
+ADD_TO_ROUTINE_SHELL(phyreset,phyreset,"usage:reset the dev:phyreset+port");
+ADD_TO_ROUTINE_SHELL(preg,preg,"usage:print the phyregs");
+ADD_TO_ROUTINE_SHELL(sreg,sreg,"usage:print the switch regs");
+ADD_TO_ROUTINE_SHELL(setphy,setphy,"usage:set the phy regs:setphy +port +reg +value");
+ADD_TO_ROUTINE_SHELL(setswitch,setswitch,"usage:set the switch regs:setswitch +port +reg +value");
+ADD_TO_ROUTINE_SHELL(phyloop,phyloop,"usage:reset the phy loop::phyloop+port");
