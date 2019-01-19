@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-
+#ifdef CFG_CORTEX_M0
 /*#include "norflash.h"*/
 #include "silan_m0_cache.h"
 #include "silan_irq.h"
@@ -52,6 +52,7 @@
 #include "flash.h"
 #include "dbug.h"
 #include <device/include/unit_media.h>
+#include "filesystems.h"
 
 //为了调试 方便，这里面 Debug 版本也设置可以通过终端下载
 
@@ -362,91 +363,6 @@ s32 Flash_PageToSector(u32 PageNo, u32 *Remains, u32 *SectorNo)
     return secNum;
 }
 
-//-----------------------------------------------------------------------------
-// 功能：安装片内Flash驱动
-// 参数：TargetFs -- 要挂载的文件系统
-//      分区数据 -- 起始块，分区块数，是否格式化；
-// 返回：成功（0）；失败（-1）；
-// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
-//-----------------------------------------------------------------------------
-s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
-{	
-    struct umedia *um;
-    struct uopt opt;
-    static u8 emflashinit = 0;
-    u32 units, total = 0;
-
-    if(!sp_tFlashDesrc)
-    {
-        sp_tFlashDesrc = malloc(sizeof(*sp_tFlashDesrc));
-        if(!sp_tFlashDesrc)
-        {
-            return (-1);
-        }
-
-        Flash_Init(sp_tFlashDesrc);
-    }
-
-    if(emflashinit == 0)
-    {
-        um = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
-        if(!um)
-        {
-            return (-1);
-        }
-
-        opt.hecc = 1;
-        opt.main = 1;
-        opt.necc = 1;
-        opt.secc = 0;
-        opt.spare = 0;
-
-        if(-1 == bend)
-            bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
-
-        do
-        {
-            if(__embed_req(blockunits, (ptu32_t)&units, --bend))
-            {
-                return (-1);
-            }
-
-            total += units;
-        }
-        while(bend != 0);
-
-        um->asz = total * sp_tFlashDesrc->BytesPerPage;
-        um->esz = 0; // 各个区域不同
-        //um->usz = log2(embeddescription->BytesPerPage);
-        um->usz = 8;  //每页改为256字节
-        um->merase = __embed_erase;
-        um->mread = __embed_read;
-        um->mreq = __embed_req;
-        um->mwrite = __embed_write;
-        um->opt = opt;
-        um->type = embed;
-        um->ubuf = (u8*)um + sizeof(struct umedia);
-
-        if(um_add((const char*)EmflashName, um))
-        {
-            printf("\r\n: erro : device : %s addition failed.", EmflashName);
-            return (-1);
-        }
-        emflashinit = 1;
-    }
-
-    if(TargetFs != NULL)
-    {
-        if(__embed_FsInstallInit(TargetFs, bstart, bend, doformat))
-        {
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
-
 // ============================================================================
 // 功能：embeded flash 命令
 // 参数：ucmd -- 命令；
@@ -665,7 +581,7 @@ s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
         struct uesz sz;
         sz.unit = 0;
         sz.block = 1;
-        __embed_req(format, (ptu32_t)bstart , bcount, &sz);
+        __embed_req(format, (ptu32_t)bstart , bend, &sz);
     }
 
     if(-1 == bend)
@@ -732,8 +648,8 @@ void PrepareForDownLoad(u32 startAddr,u32 len)
     Int_HighAtomEnd(high_atom);
 }
 
-ADD_TO_IN_SHELL_HELP(downapp,"下载app    命令格式: downapp");
-ADD_TO_IN_SHELL bool_t downapp(char *Param)
+//ADD_TO_IN_SHELL_HELP(downapp,"下载app    命令格式: downapp");
+bool_t downapp(char *Param)
 {
 
     g_Map_Add_Start = 0;
@@ -747,8 +663,8 @@ ADD_TO_IN_SHELL bool_t downapp(char *Param)
     downloadym(NULL);
 }
 
-ADD_TO_IN_SHELL_HELP(downrisc,"下载risc    命令格式: downrisc");
-ADD_TO_IN_SHELL bool_t downrisc(char *Param)
+//ADD_TO_IN_SHELL_HELP(downrisc,"下载risc    命令格式: downrisc");
+bool_t downrisc(char *Param)
 {
     u32 BytesPage;
     g_Map_Add_Start = 0x100000 - 0x40800;
@@ -758,8 +674,8 @@ ADD_TO_IN_SHELL bool_t downrisc(char *Param)
     downloadym(NULL);
 }
 
-ADD_TO_IN_SHELL_HELP(downdsp,"下载dsp    命令格式: downdsp");
-ADD_TO_IN_SHELL bool_t downdsp(char *Param)
+//ADD_TO_IN_SHELL_HELP(downdsp,"下载dsp    命令格式: downdsp");
+bool_t downdsp(char *Param)
 {
     g_Map_Add_Start = 0x100000 + 0x80000 - 0x40800;
     //下载前先擦除
@@ -773,6 +689,95 @@ bool_t Module_Install_Update()
     return true;
 }
 
+//-----------------------------------------------------------------------------
+// 功能：安装片内Flash驱动
+// 参数：TargetFs -- 要挂载的文件系统
+//      分区数据 -- 起始块，分区块数，是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+//-----------------------------------------------------------------------------
+s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
+{
+    struct umedia *um;
+    struct uopt opt;
+    static u8 emflashinit = 0;
+    u32 units, total = 0;
+
+    if(!sp_tFlashDesrc)
+    {
+        sp_tFlashDesrc = malloc(sizeof(*sp_tFlashDesrc));
+        if(!sp_tFlashDesrc)
+        {
+            return (-1);
+        }
+
+        Flash_Init(sp_tFlashDesrc);
+    }
+
+    if(emflashinit == 0)
+    {
+        um = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
+        if(!um)
+        {
+            return (-1);
+        }
+
+        opt.hecc = 1;
+        opt.main = 1;
+        opt.necc = 1;
+        opt.secc = 0;
+        opt.spare = 0;
+
+        if(-1 == bend)
+            bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
+
+        do
+        {
+            if(__embed_req(blockunits, (ptu32_t)&units, --bend))
+            {
+                return (-1);
+            }
+
+            total += units;
+        }
+        while(bend != 0);
+
+        um->asz = total * sp_tFlashDesrc->BytesPerPage;
+        um->esz = 0; // 各个区域不同
+        //um->usz = log2(embeddescription->BytesPerPage);
+        um->usz = 8;  //每页改为256字节
+        um->merase = __embed_erase;
+        um->mread = __embed_read;
+        um->mreq = __embed_req;
+        um->mwrite = __embed_write;
+        um->opt = opt;
+        um->type = embed;
+        um->ubuf = (u8*)um + sizeof(struct umedia);
+
+        if(um_add((const char*)EmflashName, um))
+        {
+            printf("\r\n: erro : device : %s addition failed.", EmflashName);
+            return (-1);
+        }
+        emflashinit = 1;
+    }
+
+    if(TargetFs != NULL)
+    {
+        if(__embed_FsInstallInit(TargetFs, bstart, bend, doformat))
+        {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+ADD_TO_ROUTINE_SHELL(downapp,downapp,"下载app    命令格式: downapp");
+ADD_TO_ROUTINE_SHELL(downrisc,downrisc,"下载risc    命令格式: downrisc");
+ADD_TO_ROUTINE_SHELL(downdsp,downdsp,"下载dsp    命令格式: downdsp");
+
+#endif
 
 
 

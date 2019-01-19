@@ -50,25 +50,25 @@ SECTIONS
        . = ALIGN(0x08);
        __VECTOR_TABLE = .;
         KEEP(*(.StartupExpTbl .StartupExpTbl.*))
-        KEEP(*libos_Iboot_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:sdram.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:initcpuc.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:sdram.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
     }>InnerFlash
 
     text_preload_rIbootRom_lIbootRom :
     {
        . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-       *libos_Iboot_Debug.a:loader.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:int_hard.o (.text .text.* .rodata .rodata.*)
-         KEEP(*libos_Iboot_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*))
-        *libos_Iboot_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:int.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
+       *libos_Iboot.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:int_hard.o (.text .text.* .rodata .rodata.*)
+         KEEP(*libos_Iboot.a:hard-exps.o (.text .text.* .rodata .rodata.*))
+        *libos_Iboot.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:ints.o (.text .text.* .rodata .rodata.*)
         *src/iboot/critical/*.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:list.o (.text .text.* .rodata .rodata.*)
     }>InnerFlash 
    
     text_sysload_rIbootRom_lIbootRom :
@@ -81,15 +81,15 @@ SECTIONS
     rw_preload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x08);
-        *libos_Iboot_Debug.a:loader.o (.data .data.*)
-        *libos_Iboot_Debug.a:int_hard.o (.data .data.*)
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.data .data.*))
-        *libos_Iboot_Debug.a:hard-exp.o (.data .data.*)
-        *libos_Iboot_Debug.a:int.o (.data .data.*)
-        *libos_Iboot_Debug.a:ints.o (.data .data.*)
+        *libos_Iboot.a:loader.o (.data .data.*)
+        *libos_Iboot.a:int_hard.o (.data .data.*)
+        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
+        *libos_Iboot.a:hard-exp.o (.data .data.*)
+        *libos_Iboot.a:int.o (.data .data.*)
+        *libos_Iboot.a:ints.o (.data .data.*)
         *src/iboot/critical/*.o (.data .data.*)
-        *libos_Iboot_Debug.a:heap-static.o (.data .data.*)
-        *libos_Iboot_Debug.a:list.o (.data .data.*)
+        *libos_Iboot.a:heap-static.o (.data .data.*)
+        *libos_Iboot.a:list.o (.data .data.*)
     }>RAM1 AT>InnerFlash
 
 
@@ -101,15 +101,15 @@ SECTIONS
        . = ALIGN(0x400);
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
-        *libos_Iboot_Debug.a:loader.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.bss .bss.* COMMON))
-        *libos_Iboot_Debug.a:hard-exp.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:int.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:ints.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:loader.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_Iboot.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_Iboot.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:ints.o (.bss .bss.* COMMON)
         *src/iboot/critical/*.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:heap-static.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:list.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:list.o (.bss .bss.* COMMON)
     }>RAM1
    
     rw_sysload_rNOCACHE_lIbootRom :
@@ -145,7 +145,7 @@ SECTIONS
        . = ALIGN(0x08);
         preload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(5)
 
         LONG(LOADADDR(text_preload_rIbootRom_lIbootRom))
         LONG(ADDR(text_preload_rIbootRom_lIbootRom))

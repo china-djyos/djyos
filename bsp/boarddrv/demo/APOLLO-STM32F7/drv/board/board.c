@@ -448,10 +448,13 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 // =============================================================================
 void Board_GpioInit(void)
 {
-
+    bool_t ETH_RESE(void);
+#if 0
+    ETH_RESE( );//网口复位
+#endif
     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
 //   PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
-    PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));
+//    PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));
 //     PIO_Configure(uart8_pin, PIO_LISTSIZE(uart8_pin));
 //     PIO_Configure(SDMMC_Pins, PIO_LISTSIZE(SDMMC_Pins));
 
@@ -468,9 +471,9 @@ void Board_GpioInit(void)
 //    IIC_Busfree(GPIO_H,PIN12,PIN11);
 //I/O模拟IIC 触摸屏用到
 //    PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
-    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
-    LCD_PinInit();
     PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));  //ETH RMII
+//    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
+//    LCD_PinInit();
 }
 
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)

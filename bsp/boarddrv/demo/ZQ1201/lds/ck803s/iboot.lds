@@ -33,24 +33,26 @@ SECTIONS
            /*KEEP(*startup.o(.vectors))*/
            KEEP(*(.StartupExpTbl .StartupExpTbl.*))
            . = ALIGN(4);
-           KEEP(*initcpus.o(.text .text.* .rodata .rodata.*))
-           KEEP(*initcpuc.o(.text .text.* .rodata .rodata.*))
-           KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
+           KEEP(*libos_Iboot.a:initcpus.o(.text .text.* .rodata .rodata.*))
+           KEEP(*libos_Iboot.a:initcpuc.o(.text .text.* .rodata .rodata.*))
+           KEEP(*libos_Iboot.a:pre_loader.o(.text .text.* .rodata .rodata.*))
            . = ALIGN(10);
         }>ROM1_SDRAM
 
         text_preload_rIbootRom_lIbootRom :
         {
                 . = ALIGN(0x08);
-                g_pAppCodeStartRamAddr = .;
-        *loader.o (.text .text.* .rodata .rodata.*)
-        *int_hard.o (.text .text.* .rodata .rodata.*)
-                KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
-        *hard-exp.o (.text .text.* .rodata .rodata.*)
-        *int.o (.text .text.* .rodata .rodata.*)
-        *ints.o (.text .text.* .rodata .rodata.*)
-        *heap-static.o (.text .text.* .rodata .rodata.*)
-        *list.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:loader.o (.data .data.*)
+        *libos_Iboot.a:int_hard.o (.data .data.*)
+        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
+        *libos_Iboot.a:hard-exp.o (.data .data.*)
+        *libos_Iboot.a:int.o (.data .data.*)
+        *libos_Iboot.a:ints.o (.data .data.*)
+        *src/iboot/critical/*.o (.data .data.*)
+        *libos_Iboot.a:heap-static.o (.data .data.*)
+        *libos_Iboot.a:list.o (.data .data.*)
+
+
                 . = ALIGN(0x08);
         }>ROM1_SDRAM
 
@@ -65,15 +67,15 @@ SECTIONS
         rw_preload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x08);
-        *loader.o (.data .data.*)
-        *int_hard.o (.data .data.*)
-        KEEP(*:hard-exps.o (.data .data.*))
-        *hard-exp.o (.data .data.*)
-        *int.o (.data .data.*)
-        *ints.o (.data .data.*)
-        *heap-static.o (.data .data.*)
-        *list.o (.data .data.*)
-        *cpu_peri_isr.o (.data .data.*)
+        *libos_Iboot.a:loader.o (.data .data.*)
+        *libos_Iboot.a:int_hard.o (.data .data.*)
+        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
+        *libos_Iboot.a:hard-exp.o (.data .data.*)
+        *libos_Iboot.a:int.o (.data .data.*)
+        *libos_Iboot.a:ints.o (.data .data.*)
+        *libos_Iboot.a:heap-static.o (.data .data.*)
+        *libos_Iboot.a:list.o (.data .data.*)
+        *libos_Iboot.a:cpu_peri_isr.o (.data .data.*)
                 . = ALIGN(0x08);
     }>RAM_SDRAM AT>ROM1_SDRAM
 
@@ -82,15 +84,15 @@ SECTIONS
        . = ALIGN(10);
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
-        *loader.o (.bss .bss.* COMMON)
-        *int_hard.o (.bss .bss.* COMMON)
-        KEEP(*hard-exps.o (.bss .bss.* COMMON))
-        *hard-exp.o (.bss .bss.* COMMON)
-        *int.o (.bss .bss.* COMMON)
-        *ints.o (.bss .bss.* COMMON)
-        *heap-static.o (.bss .bss.* COMMON)
-        *list.o (.bss .bss.* COMMON)
-        *cpu_peri_isr.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:loader.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_Iboot.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_Iboot.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:ints.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:list.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:cpu_peri_isr.o (.bss .bss.* COMMON)
     }>RAM_SDRAM
 
         rw_sysload_rRAM1_lIbootRom :
@@ -208,6 +210,13 @@ SECTIONS
         LONG(IbootSize)
     }>ROM1_SDRAM
 
+    App_Info :
+    {
+        . = ALIGN(0x08);
+        gc_pAppOffset = .;          /* APP空间偏置  为了访问下面四个字节 */
+        LONG(Flash2Offset + IbootSize)
+    }>ROM1_SDRAM
+	
     Iboot_AppInfo :
     {
        /* . = restore + IbootSize;*/

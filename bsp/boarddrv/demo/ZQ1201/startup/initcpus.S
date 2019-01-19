@@ -1,3 +1,5 @@
+#ifdef CFG_CK803S
+
 .import CK_Trap0ISR
 .import IAP_SelectLoadProgam
 .import exp_status_handler
@@ -57,7 +59,7 @@ __Vectors_Tbl:
     .long   default_handler
     .long   default_handler
     
-    /*鍏ㄩ儴璁炬垚寮傛淇″彿寮曟搸*/
+    /*全部设成异步信号引擎*/
     .long   __start_asyn_signal    /*  default interrupt entry  */
     .long   __start_asyn_signal    /*  default interrupt entry  */
     .long   __start_asyn_signal    /*  default interrupt entry  */
@@ -130,3 +132,4 @@ default_handler:
     .size   default_handler, . - default_handler
 
     .end
+#endif

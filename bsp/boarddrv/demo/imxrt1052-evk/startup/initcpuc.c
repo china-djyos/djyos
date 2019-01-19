@@ -118,12 +118,8 @@ void Init_Cpu(void)
     BOARD_ConfigMPU();
     ClockInit();
     //Sdram_SemcInit();
-#if (CFG_RUNMODE_BAREAPP == 1)
-    Load_Preload();
-#else
-    IAP_SelectLoadProgam();
-#endif
 
+    IAP_SelectLoadProgam();
 }
 
 extern void Load_Preload(void);
