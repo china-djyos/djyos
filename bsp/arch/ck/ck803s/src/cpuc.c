@@ -110,7 +110,7 @@ extern void Load_Preload(void);
 #include <blackbox.h>
 #include <osboot.h>
 #include <Iboot_info.h>
-extern tagIapVar pg_IapVar;
+//extern tagIapVar pg_IapVar;
 
 #define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
 #define CN_BOOT_SOFTRELOAD_FLAG         (CN_BOOT_LEGALKEY <<2)
