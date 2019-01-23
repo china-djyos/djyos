@@ -1181,7 +1181,7 @@ struct dirent *readdir(DIR *dir)
     hdl = (struct objhandle*)(dir->__fd); // 目录的上下文
 
     ob = hdl->HostObj;      // 目录的节点
-    res = ob->ops(hdl, CN_OBJ_CMD_READDIR, (ptu32_t)&dir->__ptr, 0, 0);
+    res = ob->ops((void *)ob, CN_OBJ_CMD_READDIR, (ptu32_t)&dir->__ptr, 0, (ptu32_t)hdl);
     if(res == CN_OBJ_CMD_TRUE)
         return (struct dirent*)&(dir->__ptr);
     else

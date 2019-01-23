@@ -4,6 +4,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//s32 kernel_command(void);
+// kernel_command();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -30,8 +32,8 @@
 #warning    kernel组件参数未配置，使用默认值
 //%$#@num,0,8192,
 #define CFG_INIT_STACK_SIZE     4096    //"初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
-#define CFG_EVENT_LIMIT         10      //"事件数量限值",事件数量
-#define CFG_EVENT_TYPE_LIMIT    10      //"事件类型数限值",事件类型数
+#define CFG_EVENT_LIMIT         15      //"事件数量限值",事件数量
+#define CFG_EVENT_TYPE_LIMIT    15      //"事件类型数限值",事件类型数
 #define CFG_MAINSTACK_LIMIT     4096    //"main函数栈尺寸",main函数运行所需的栈尺寸
 #define CFG_IDLESTACK_LIMIT     1024    //"IDLE事件栈尺寸",IDLE事件处理函数运行的栈尺寸，一般按默认值就可以了
 //%$#@enum,true,false

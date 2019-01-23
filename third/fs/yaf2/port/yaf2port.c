@@ -67,7 +67,7 @@ struct FileContext *YAF2Open(const char *Path, u32 Mode, const char *Root)
 
     FileCt->FileOps = (void *)&g_tYAF2FileOps;
 
-    if((Mode & M_READ) && (Mode & S_IWUGO))
+    if((Mode & M_READ) && (Mode & M_WRITE))
     {
         YFlag |= O_RDWR;
         FileCt->Property = P_READ | P_WRITE;
@@ -77,7 +77,7 @@ struct FileContext *YAF2Open(const char *Path, u32 Mode, const char *Root)
         YFlag |= O_RDONLY;
         FileCt->Property = P_READ;
     }
-    else if(Mode & S_IWUGO)
+    else if(Mode & M_WRITE)
     {
         YFlag |= O_WRONLY;
         FileCt->Property = P_WRITE;
@@ -590,6 +590,21 @@ static s32 __yaf2fsync(struct objhandle *hdl)
 }
 
 // ============================================================================
+// 功能：更改文件名称或位置
+// 参数：oldpath -- 原路径；
+//      newpath -- 新路径；
+// 返回：成功 -- 0，失败 -- -1。
+// 备注：
+// ============================================================================
+static s32 __yaf2rename(const char *oldpath, const char *newpath)
+{
+    s32 res;
+
+    res = yaffs_rename(oldpath, newpath);
+    return (res);
+}
+
+// ============================================================================
 // 功能：读目录项；
 // 参数：hdl -- YAF文件的对象句柄；
 //      dentry -- 目录项；
@@ -708,12 +723,20 @@ static s32 __yaf2stat(struct obj *ob, struct stat *data, char *uncached)
         GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
 
         res = strlen(entirepath) + 1;
+
         path = malloc(res);
         if(!path)
             return -1;
         memset(path, 0, res);
         memcpy(path, entirepath, res);
-
+        res = strlen(path);
+        while(res--)
+        {
+            if((path[res] == '/') || (path[res] == '\\'))    //去掉路径最后多余的"/"或"\\"
+                path[res] = '\0';
+            else
+                break;
+        }
         if(-1==yaffs_stat(path, &yafstat))
         {
             free(path);
@@ -762,7 +785,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
       case CN_OBJ_CMD_READDIR:
       {
-          struct objhandle *hdl = (struct objhandle*)opsTarget;
+          struct objhandle *hdl = (struct objhandle*)OpsArgs3;
           struct dirent *ret = (struct dirent *)OpsArgs1;
 
           if((ptu32_t)__yaf2readdentry(hdl, ret) == 0)
@@ -835,6 +858,14 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                 result = CN_OBJ_CMD_FALSE;
             break;
         }
+
+        case CN_OBJ_RENAME:
+        {
+            *(s32*)OpsArgs1 = __yaf2rename((const char *)OpsArgs2,(const char *)OpsArgs3);
+
+            break;
+        }
+
 
         default:
         {

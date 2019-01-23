@@ -287,19 +287,14 @@ static bool_t __BootModeDecoder(struct BlackBoxThrowPara *exppara,u32 endian)
 
 
 //add some boot commands
-extern void reboot(u32 key);
-extern void reset(u32 key);
+extern void reboot();
+extern void reset();
 extern void restart_system(u32 key);
 //static bool_t rebootshell(char *param)
 bool_t rebootshell(char *param)
 {
-    u32 key = 0XAA55AA55;
-    if(NULL != param)
-    {
-        key = strtoul(param,NULL,0);
-    }
 
-    reboot(key);
+    reboot( );
     return true;
 }
 //static bool_t resetshell(char *param)

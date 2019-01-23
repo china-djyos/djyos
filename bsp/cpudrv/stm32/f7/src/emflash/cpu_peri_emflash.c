@@ -85,13 +85,13 @@
 //%$#@configue      ****参数配置开始
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 
-//%$#@num,0,100,
-//%$#@string,1,10,
-#define CFG_EFLASH_FSMOUNT_NAME     "iboot"    //需安装的文件系统的mount的名字
-//%$#@enum_config
+//%$#@num,-1,12,
 #define CFG_EFLASH_PART_START      6          //分区起始
 #define CFG_EFLASH_PART_END        -1         //分区结束
 #define CFG_EFLASH_PART_OPTION     0          //分区选项
+//%$#@string,1,32,
+#define CFG_EFLASH_FSMOUNT_NAME   "XIP-APP"    //需安装的文件系统的mount的名字
+//%$#@enum
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,

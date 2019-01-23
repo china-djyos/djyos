@@ -121,7 +121,9 @@
 #define     CFG_TFTP_ENABLE             true    //"tftp 使能"
 #define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能"
 #define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
+//%$#@string,1,25,
 #define     CN_TFTP_PATHDEFAULT       "/efs/"   //TFTP默认工作目录
+//%$#@enum,true,false,
 //*******************************DHCP SERVER**********************************//
 #define     CFG_DHCP_ENABLE             true    //"DHCP 使能"
 #define     CFG_DHCPD_ENABLE            false   //"DHCP 服务器使能"
@@ -138,11 +140,12 @@
 #define     CFG_DHCPD_NETIP             "255.255.255.0"  //"DHCP MASK IP"
 #define     CFG_DHCPD_DNS               "192.168.0.253"  //"DHCP DNSSERVER IP"
 //%$#@string,1,32,
-#define     CFG_DHCPD_DOMAINNAME       ""               //"DHCP domain name"
+#define     CFG_DHCPD_DOMAINNAME       "domain"        //"DHCP domain name"
 //*******************************PPP******************************************//
-#define     CN_PPP_ENABLE             1         //是否需要 ppp 协议
+//%$#@enum,true,false,
+#define     CN_PPP_ENABLE             true         //是否需要 ppp 协议
 //%$#@select
-#define CFG_MYCONFIG6           //"name",我的配置
+#define CFG_MYCONFIG6              //"name",我的配置
 //%$#@free
 #define CFG_MYCONFIG7   CN_CONFIG           //我的配置
 #endif

@@ -146,7 +146,7 @@ void HAL_TickInit(void)
     HalTimHandle.Init.Prescaler     = uwPrescalerValue;
     HalTimHandle.Init.ClockDivision = 0;
     HalTimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
-//    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 
     HAL_TIM_Base_DeInit(&HalTimHandle);
     HAL_TIM_Base_Init(&HalTimHandle);

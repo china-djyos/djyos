@@ -488,7 +488,7 @@ void UpdateApplication(void)
 // ============================================================================
 ptu32_t ModuleInstall_IAP(void)
 {
-    uint16_t evtt_id,event_id;
+ /*   uint16_t evtt_id,event_id;
     ptUpdateIbootSemp=Lock_SempCreate(1,0,CN_BLOCK_FIFO,"UpdateIbootSemp");
     if(ptUpdateIbootSemp==NULL)
     {
@@ -505,6 +505,7 @@ ptu32_t ModuleInstall_IAP(void)
         Djy_EvttUnregist(evtt_id);
         debug_printf("IAP","Update Iboot evtt pop failed.\r\n");
     }
+    */
     return 0;
 }
 

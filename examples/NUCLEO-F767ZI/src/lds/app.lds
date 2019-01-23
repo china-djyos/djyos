@@ -26,7 +26,7 @@ SECTIONS
         . = ALIGN(0x08);
         KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
     }>RAM1
-	
+     
     stack_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x08);
@@ -38,25 +38,25 @@ SECTIONS
     text_startup_rAppRom_lAppRom :
     {
        . = ALIGN(0x08);
-        KEEP(*libos_App_Debug.a:initcpuc.o (.text.AppStart))
-        KEEP(*libos_App_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_App.a:initcpuc.o (.text.AppStart))
+        KEEP(*libos_App.a:pre_loader.o (.text .text.* .rodata .rodata.*))
     }>InnerFlash
 
     text_preload_rAppRom_lAppRom :
     {
        . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-        *libos_App_Debug.a:loader.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Debug.a:int_hard.o (.text .text.* .rodata .rodata.*) 
-        *libos_App_Debug.a:set-cache.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Debug.a:mpu.o (.text .text.* .rodata .rodata.*)       
-        KEEP(*libos_App_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*)) 
-        *libos_App_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Debug.a:int.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:int_hard.o (.text .text.* .rodata .rodata.*) 
+        *libos_App.a:set-cache.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:mpu.o (.text .text.* .rodata .rodata.*)       
+        KEEP(*libos_App.a:hard-exps.o (.text .text.* .rodata .rodata.*)) 
+        *libos_App.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:ints.o (.text .text.* .rodata .rodata.*)
         *src/app/critical/*.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Debug.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:list.o (.text .text.* .rodata .rodata.*)
     }>InnerFlash
     
     text_sysload_rAppRom_lAppRom :
@@ -69,15 +69,15 @@ SECTIONS
     rw_preload_rRAM1_lAppRom :
     {
        . = ALIGN(0x08);
-        *libos_App_Debug.a:loader.o (.data .data.*)
-        *libos_App_Debug.a:int_hard.o (.data .data.*)
-        KEEP(*libos_App_Debug.a:hard-exps.o (.data .data.*))
-        *libos_App_Debug.a:hard-exp.o (.data .data.*)
-        *libos_App_Debug.a:int.o (.data .data.*)
-        *libos_App_Debug.a:ints.o (.data .data.*)
+        *libos_App.a:loader.o (.data .data.*)
+        *libos_App.a:int_hard.o (.data .data.*)
+        KEEP(*libos_App.a:hard-exps.o (.data .data.*))
+        *libos_App.a:hard-exp.o (.data .data.*)
+        *libos_App.a:int.o (.data .data.*)
+        *libos_App.a:ints.o (.data .data.*)
         *src/app/critical/*.o (.data .data.*)
-        *libos_App_Debug.a:heap-static.o (.data .data.*)
-        *libos_App_Debug.a:list.o (.data .data.*)
+        *libos_App.a:heap-static.o (.data .data.*)
+        *libos_App.a:list.o (.data .data.*)
     }>RAM1 AT>InnerFlash
         
     rw_nocache_rRAM1_lRAM1 (NOLOAD) :
@@ -94,15 +94,15 @@ SECTIONS
        . = ALIGN(0x200);
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
-        *libos_App_Debug.a:loader.o (.bss .bss.* COMMON)
-        *libos_App_Debug.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*libos_App_Debug.a:hard-exps.o (.bss .bss.* COMMON))
-        *libos_App_Debug.a:hard-exp.o (.bss .bss.* COMMON)
-        *libos_App_Debug.a:int.o (.bss .bss.* COMMON)
-        *libos_App_Debug.a:ints.o (.bss .bss.* COMMON)
+        *libos_App.a:loader.o (.bss .bss.* COMMON)
+        *libos_App.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_App.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_App.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_App.a:int.o (.bss .bss.* COMMON)
+        *libos_App.a:ints.o (.bss .bss.* COMMON)
         *src/app/critical/*.o (.bss .bss.* COMMON)
-        *libos_App_Debug.a:heap-static.o (.bss .bss.* COMMON)
-        *libos_App_Debug.a:list.o (.bss .bss.* COMMON)
+        *libos_App.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_App.a:list.o (.bss .bss.* COMMON)
     }>RAM1
 
      rw_sysload_rRAM1_lAppRom :
@@ -172,7 +172,7 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
-        	                
+        
         LONG(LOADADDR(routine_shell_data_section))
         LONG(ADDR(routine_shell_data_section))
         LONG(SIZEOF(routine_shell_data_section))

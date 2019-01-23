@@ -54,6 +54,7 @@
 #include "iap.h"
 #include "dbug.h"
 #include <include/unit_media.h>
+#if 0
 #define LOCAL_BUF_SIZE        512
 // ============================================================================
 // 功能：获取文件的CRC值
@@ -420,3 +421,4 @@ s32 IAP_Update(u8 bArgC, ...)
     debug_printf("iap","\r\n");
     return (res);
 }
+#endif

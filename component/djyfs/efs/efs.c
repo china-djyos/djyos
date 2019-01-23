@@ -3103,7 +3103,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
       case CN_OBJ_CMD_READDIR:
       {
-          struct objhandle *hdl = (struct objhandle*)opsTarget;
+          struct objhandle *hdl = (struct objhandle*)OpsArgs3;
           struct dirent *ret = (struct dirent *)OpsArgs1;
 
           if((ptu32_t)__e_readdentry(hdl, ret) == 0)

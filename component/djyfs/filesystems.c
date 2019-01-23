@@ -136,7 +136,7 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     fnObjOps MyOps;
     s32 result = CN_OBJ_CMD_EXECUTED;
 
-    if((objcmd & CN_TARGET_IS_OBJ) && ((char*)OpsArgs3 != NULL))
+    if((objcmd & CN_TARGET_IS_OBJ) && ((((u32)(*(u64*)OpsArgs2) & O_DIRECTORY) || (char*)OpsArgs3 != NULL)))
     {
         me = (struct obj *)opsTarget;
         super = (struct FsCore *)obj_GetPrivate(me);

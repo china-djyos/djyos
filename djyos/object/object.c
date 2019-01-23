@@ -189,7 +189,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
 
         case CN_OBJ_CMD_READDIR:
         {
-            struct objhandle *hdl = (struct objhandle*)opsTarget;
+            struct objhandle *hdl = (struct objhandle*)OpsArgs3;
             struct dirent *ret = (struct dirent *)OpsArgs1;
 
             if((ptu32_t)__objsys_readdentry(hdl, ret) == 0)

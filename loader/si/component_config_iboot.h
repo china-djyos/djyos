@@ -35,8 +35,7 @@
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
-//%$#@string,1,128,
-#define CFG_APP_FILENAME        ""              //CFG_APP_RUNMODE==EN_FORM_FILE，这里配置文件名
+//%$#@num,0,100,
 #define CFG_IBOOT_VERSION       01        //Iboot发布版本号
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,

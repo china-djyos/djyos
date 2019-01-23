@@ -63,7 +63,6 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-
 //
 // IAP文件信息
 //
@@ -82,6 +81,9 @@ struct __icontext{
     u32 pos; // 文件的当前位置；
     s16 bufed; // 存在于缓存中的数据；
     u8 *buf; // 是物理的一个缓存，逻辑上是对齐的；
+
+    u8 *apphead;
+    u32 Wappsize;
 };
 //
 // IAP文件系统管理信息
@@ -94,17 +96,6 @@ struct __icore{
     s64 ASize;               // 所在区域的总大小；Byte为单位；
     struct obj *root; // IAP文件系统接入的文件系统的根；
     struct MutexLCB *lock; // 系统锁；
-};
-
-//
-// IAP文件格式（头部）
-//
-struct headFormat {
-    u32 size;
-    u32 crc;
-    u32 reserved;
-    u32 signature;
-    char name[240];
 };
 
 

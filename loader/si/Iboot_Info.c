@@ -61,7 +61,7 @@ extern void Init_Cpu(void);
 extern void reboot();
 extern void Load_Preload(void);
 extern void * gc_pAppOffset;
-extern void __asm_bl_fun(u32 fun_addr);
+extern void __asm_bl_fun(void * fun_addr);
 //版本号最后一位当做debug release 标志
 #define APP_HEAD_VERSION        1
 #if defined(DEBUG)
@@ -733,13 +733,16 @@ static bool_t __RunApp(void * apphead)
     {
         Iboot_App_Info.runflag.error_app_size  = 1;
     }
-    Verification_AppInit(&app_head);
-    Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
-    Verification_AppExit(&app_head);
-    if(false == Verification_compare(apphead,&app_head))
+    if(p_apphead->Verification !=VERIFICATION_NULL)
     {
-        Iboot_App_Info.runflag.error_app_check = 1;
-        return false;
+        Verification_AppInit(&app_head);
+        Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
+        Verification_AppExit(&app_head);
+        if(false == Verification_compare(apphead,&app_head))
+        {
+            Iboot_App_Info.runflag.error_app_check = 1;
+            return false;
+        }
     }
     Iboot_App_Info.runflag.runmode_app     = 1;
     __asm_bl_fun((u32)p_apphead+sizeof(struct AppHead));
@@ -1197,7 +1200,7 @@ bool_t Set_UpdateRunModet(u8 mode)
 }
 
 //========================SHELL================================================
-bool_t ibootinfo( )
+static bool_t ibootinfo( )
 {
     printf("iboot version:V%2d \n\r",Iboot_App_Info.ibootVer);
     printf("iboot build time : %4d/%2d/%2d %2d:%2d:%2d \n\r",Iboot_App_Info.buildyear,\
@@ -1210,7 +1213,7 @@ bool_t ibootinfo( )
 }
 
 
-bool_t appinfo( )
+static bool_t appinfo( )
 {
     struct AppHead*  p_apphead = gc_pAppOffset;
     if(p_apphead->djyflag[0]!='d' || p_apphead->djyflag[1]!='j' || p_apphead->djyflag[2]!='y' )
@@ -1229,7 +1232,7 @@ bool_t appinfo( )
     return true;
 }
 
-bool_t iapmode( )
+static bool_t iapmode( )
 {
 
     if(Iboot_App_Info.runflag.heard_set_run_iboot)
@@ -1278,7 +1281,7 @@ bool_t iapmode( )
     if(Iboot_App_Info.runflag.call_fun_resent)
         printf( "1=内部复位/重启是主动调用相关函数引发的；0=异常重启 \r\n");
     if(Iboot_App_Info.runflag.power_on_resent_flag )
-        printf( "上电复位标志，结合b18~19以及“上电标志”字判定 \r\n");
+        printf( "上电复位标志 \r\n");
 
     return true;
 }

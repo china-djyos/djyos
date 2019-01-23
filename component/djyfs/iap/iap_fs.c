@@ -61,8 +61,8 @@
 #include <device/include/unit_media.h>
 #include <stdio.h>
 #include "../filesystems.h"
+#include "Iboot_info.h"
 
-//
 // 底层接口函数
 //
 
@@ -73,7 +73,6 @@ s32 __iap_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //
 //
 //
-#define __FILE_HEAD_SIZE                  ((u32)256)
 #define __FILE_NAME_MAX_LEN               (240) // 支持的最大文件名长度(包括结束符)
 
 //
@@ -99,58 +98,22 @@ extern u32 __ll_crc32(struct __icore *core, u32 pos, u32 len);
 // 返回：IAP文件；
 // 备注：
 // ============================================================================
-struct __ifile *__decodefilehead(struct headFormat *head, struct __ifile *file)
+struct __ifile *__decodefilehead(void *head, struct __ifile *file)
 {
-    u16 i, len;
-    u8 *temp = (u8*)head;
-
     if(!file)
         return (NULL);
 
-    for(i = 0; i < __FILE_HEAD_SIZE; i++)
+    if(false == Iap_AppFileChack(head))
     {
-        if(0xFF != temp[i])
-            break;
-    }
-
-    if(i == __FILE_HEAD_SIZE)
-    {
-        printf("\r\n: info : iapfs  : invalid file, empty(head is all 0xFF).");
-        return (NULL); // 全FF数据，无效，表示没有文件
-    }
-
-    if((__TAG_RELEASE != head->signature) &&
-       (__TAG_DEBUG != head->signature)) // debug模式的程序标签
-    {
-        printf("\r\n: erro : iapfs  : invalid file, signature(%xH) is bad.", head->signature);
-        return (NULL); // 格式错误
-    }
-
-    len = strlen(head->name) + 1;
-    if(__FILE_NAME_MAX_LEN < len)
-    {
-        printf("\r\n: erro : iapfs  : too long file name(%d), limitation(%d).", len, __FILE_NAME_MAX_LEN);
+        printf("\r\n: info : iapfs  : No APp file ");
         return (NULL);
     }
-
-    file->sz = head->size;
+    file->sz = IAP_GetAPPSize(head);
     file->status = __STATUS_UPDATED;
     return (file);
 }
 
-// ============================================================================
-// 功能：计算文件的CRC值
-// 参数：core -- IAP文件系统信息；
-//      file -- IAP文件；
-// 返回：文件的CRC32值；
-// 备注：
-// ============================================================================
-static inline u32 __crc(struct __icore *core, struct __ifile *file)
-{
-    return (__ll_crc32(core, file->cxbase, file->sz));
-}
-
-// ============================================================================
+//==========================================================================
 // 功能：文件上锁
 // 参数：
 // 返回：
@@ -189,7 +152,7 @@ static struct __ifile *__newfile(struct __icore *core)
         return (NULL);
 
     memset(file, 0x0, size);
-    file->cxbase = __FILE_HEAD_SIZE;
+    file->cxbase = Get_AppHeadSize();
     file->status = __STATUS_TEMP;
     return (file);
 }
@@ -202,7 +165,7 @@ static struct __ifile *__newfile(struct __icore *core)
 // ============================================================================
 static inline u32 __locatefilehead(struct __ifile *file)
 {
-    return (file->cxbase - __FILE_HEAD_SIZE);
+    return (file->cxbase - Get_AppHeadSize());
 }
 
 // ============================================================================
@@ -219,7 +182,7 @@ s32 __formatfilehead(struct __icore *core, struct __ifile *file)
     if(file)
         base = __locatefilehead(file);
 
-   return (__ll_erase(core, __FILE_HEAD_SIZE, base));
+   return (__ll_erase(core, Get_AppHeadSize(), base));
 }
 
 // ============================================================================
@@ -230,17 +193,13 @@ s32 __formatfilehead(struct __icore *core, struct __ifile *file)
 // 返回：失败（-1）；成功（0）。
 // 备注：
 // ============================================================================
-s32 __makefilehead(struct __icore *core, struct __ifile *file, const char *name)
+s32 __makefilehead(struct __icontext *cx,struct __icore *core, struct __ifile *file, const char *name)
 {
-    struct headFormat head;
-
-    head.size = file->sz;
-    strcpy(head.name, name);
-    head.signature = __TAG_RELEASE;
-    head.reserved = -1;
-    head.crc = __crc(core, file);
-
-    if(-1==__ll_write(core, (u8*)&head, __FILE_HEAD_SIZE, __locatefilehead(file)))
+    if(file->cxbase != cx->Wappsize)
+        return -1;
+    file->sz += file->cxbase;
+    Rewrite_AppHead(cx->apphead,name,file->sz);
+    if(-1==__ll_write(core, cx->apphead, file->cxbase, __locatefilehead(file)))
         return (-1);
 
     file->status = __STATUS_UPDATED;
@@ -256,50 +215,37 @@ s32 __makefilehead(struct __icore *core, struct __ifile *file, const char *name)
 static s32 __scanfiles(struct __icore *core)
 {
     s32 res;
-    struct headFormat structFileHead;
+    u32 size = Get_AppHeadSize();
+    u8 * structFileHead = malloc(size);
+    char *name;
     struct __ifile *file;
 
-    res = __ll_read(core, (u8*)&structFileHead, __FILE_HEAD_SIZE, 0);
+    res = __ll_read(core, structFileHead,size, 0);
     if(res)
-        return (-1);
+        goto Error;
 
     // 当前只有一个文件
     file = __newfile(core);
-    if(NULL == __decodefilehead(&structFileHead, file))
+    if(NULL == __decodefilehead(structFileHead, file))
     {
-#if 0
-        printf("IAP : info : format the disk, please wait    ");
-        Res = LowLevelFormat(s_ptIAP_Core->vol); // 不存在有效文件，为保险起见，格式化整个vol
-        if(Res)
-        {
-            printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-            printf("                 ");
-            printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b erro.\r\n");
-            return (-1);
-        }
-
-        printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-        printf("                 ");
-        printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b successfully.\r\n");
-#else
         // 当前逻辑不在上电检索文件的时候格式整个空间,而只格式一个头部。
         // 必须要这个逻辑，因为在升级过程的中断，往往是头部不存在，而后续有内容。而第一次写入时，并不想照顾这个逻辑。
         res = __formatfilehead(core, file);
-#endif
-        return (res); // 当前系统已无文件，后续逻辑不执行
+        goto Error; // 当前系统已无文件，后续逻辑不执行
     }
-
+    name = Get_AppName(structFileHead);
     // 将内容接入文件系统
-//    res = of_virtualize(core->root, &file->basic, structFileHead.name);
-//    if(res)
-    if(!obj_newchild(core->root, __iap_ops, (ptu32_t)file, structFileHead.name))
+    if(!obj_newchild(core->root, __iap_ops, (ptu32_t)file, name))
     {
         free(file);
-        return (-1);
+        goto Error;
     }
-
-    printf("\r\n: info : iapfs  : valid file found, name(%s), size(%dKB).", structFileHead.name, (file->sz>>10));
+    printf("\r\n: info : iapfs  : valid file found, name(%s), size(%dKB).", name, (file->sz>>10));
+    free(structFileHead);
     return (0);
+Error:
+    free(structFileHead);
+    return (-1);
 }
 
 // ============================================================================
@@ -327,7 +273,7 @@ static void __freefile(struct __ifile *file)
 // ============================================================================
 static s32 __delfile(struct __icore *core, struct __ifile *file)
 {
-    if(__ll_erase(core, __FILE_HEAD_SIZE, __locatefilehead(file)))
+    if(__ll_erase(core, Get_AppHeadSize(), __locatefilehead(file)))
         return (-1);
 
     __freefile(file);
@@ -343,17 +289,17 @@ static s32 __delfile(struct __icore *core, struct __ifile *file)
 static struct __icontext *__newcontext(struct __icore *core)
 {
     struct __icontext *cx;
+    u32 appheadsize = Get_AppHeadSize();
 
-    cx = malloc(sizeof(*cx) + core->bufsz);
+    cx = malloc(sizeof(*cx) + core->bufsz+appheadsize);
     if(!cx)
         return (NULL);
 
+    memset(cx, 0, sizeof(*cx) + core->bufsz+appheadsize);
     cx->pos = 0;
-//    cx->bufs = (u8*)cx + sizeof(*cx);
-//    cx->bufc = cx->bufs;
-//    cx->bufe = cx->bufs + core->bufsz;
     cx->buf = (u8*)cx + sizeof(*cx);
-    memset(cx->buf, 0xFF, core->bufsz);
+    cx->apphead = cx->buf+core->bufsz;
+    cx->Wappsize = 0;
     cx->bufed = 0;
     return (cx);
 }
@@ -397,7 +343,7 @@ static struct objhandle *__iap_open(struct obj *ob, u32 flags, char *uncached)
     }
     if(uncached)
     {
-	//关闭文件后文件的obj会从mount点的obj中删除，所以如果mount点的obj中没有文件的obj则先从flash中获取该文件信息
+    //关闭文件后文件的obj会从mount点的obj中删除，所以如果mount点的obj中没有文件的obj则先从flash中获取该文件信息
         __scanfiles(core);//扫描文件
         do
         {
@@ -416,6 +362,7 @@ static struct objhandle *__iap_open(struct obj *ob, u32 flags, char *uncached)
     }
     if(test_directory(flags)) // 目录逻辑
     {
+        __scanfiles(core);//扫描文件
         if(uncached)// 不支持新建目录
         {
             printf("\r\n: info : iapfs  : do not support create directory.");
@@ -599,7 +546,7 @@ static s32 __iap_close(struct objhandle *hdl)
 
             if(!iscontender(hdl)) // 最后一个文件使用者关闭文件时，才会设置文件头
             {
-                if(__makefilehead(core, file, handle_name(hdl)))
+                if(__makefilehead(cx,core, file, handle_name(hdl)))
                 {
                     __unlock(core);
                     return (-1);
@@ -629,10 +576,27 @@ static s32 __iap_write(struct objhandle *hdl, u8 *data, u32 size)
     struct __icontext *cx = (struct __icontext *)handle_context(hdl);
     struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
+    u32 wsize = 0;
+
+    if(cx->Wappsize < file->cxbase)
+    {
+        if(size > (file->cxbase - cx->Wappsize))
+        {
+            wsize = (file->cxbase - cx->Wappsize);
+            memcpy(&cx->apphead[cx->Wappsize],data,wsize);
+            size-= wsize;
+            data+=wsize;
+            cx->Wappsize+=wsize;
+        }
+        else
+        {
+            memcpy(&cx->apphead[cx->Wappsize],data,size);
+            cx->Wappsize+=size;
+            return size;
+        }
+    }
 
     __lock(core);
-
-
     if(cx->pos<=core->inhead) // 缓存中剩余可写空间；（连续写和不连续写会有这么处理，256时）
         free = core->inhead - cx->pos; // 在开始的区域中，文件头部占据了固定空间；
     else
@@ -643,17 +607,6 @@ static s32 __iap_write(struct objhandle *hdl, u8 *data, u32 size)
         once = left;
         if(once>free) // 单次先写入到缓存中；
             once = free;
-#if 0
-        // 数据校验，已写入的数据不可改写；
-        for(i=0; i<once; i++)
-        {
-            if((0xFF!=cx->buf[cx->bufed+i])&&(cx->buf[cx->bufed+i]!=data[i]))
-            {
-                printf("\r\n: erro : iapfs  : write the written area is no supported.");
-                return (size-left);
-            }
-        }
-#endif
         memcpy(cx->buf+cx->bufed, data, once);
         cx->bufed += once;
         if((cx->bufed==core->bufsz) || // 缓冲已满，刷入
@@ -696,7 +649,7 @@ static s32 __iap_write(struct objhandle *hdl, u8 *data, u32 size)
         file->status = __STATUS_UPDATING; // 文件数据发生变改变
 
     __unlock(core);
-    return (size-left);
+    return (wsize+size-left);
 }
 static s32 __iap_sync(struct objhandle *hdl)
 {
@@ -1011,11 +964,11 @@ static s32 __iap_readdentry(struct objhandle *hdl, struct dirent *dentry)
 // ============================================================================
 static s32 __iap_fs_install(struct FsCore *super, u32 opt, void *config)
 {
-    s32 res;
+
     struct __icore *core;
     struct umedia *um;
-    extern u32 gc_pAppRange; // 来自于LDS定义
-    extern u32 gc_pAppOffset; // 来自于LDS定义
+
+
 
     config = config;
     opt = opt;
@@ -1037,21 +990,15 @@ static s32 __iap_fs_install(struct FsCore *super, u32 opt, void *config)
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
     core->bufsz = 1 << um->usz; // iap文件系统文件的缓存大小依据unit的尺寸；
-    if(core->bufsz<(s16)__FILE_HEAD_SIZE)
+    if(core->bufsz<(s16)Get_AppHeadSize())
     {
         free(core);
         return (-1);
     }
 
-    core->inhead = core->bufsz - __FILE_HEAD_SIZE;
+    core->inhead = core->bufsz - Get_AppHeadSize();
     core->root = super->pTarget;
-    res = __scanfiles(core); // 扫描已存在文件
-    if(res)
-    {
-        free(core);
-        return (-1);
-    }
-
+    __scanfiles(core); // 扫描已存在文件
     core->lock = Lock_MutexCreate("iap fs");
     if(!core->lock)
     {
@@ -1086,7 +1033,7 @@ s32 __iap_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
       case CN_OBJ_CMD_READDIR:
       {
-          struct objhandle *hdl = (struct objhandle*)opsTarget;
+          struct objhandle *hdl = (struct objhandle*)OpsArgs3;
           struct dirent *ret = (struct dirent *)OpsArgs1;
 
           if((ptu32_t)__iap_readdentry(hdl, ret) == 0)
@@ -1216,7 +1163,7 @@ s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data)
         return (-1);
     }
     obj_InuseUpFullPath(mountobj);
-    opt |= MS_DIRECTMOUNT;		//直接挂载不用备份
+    opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
     res = mountfs(NULL, target, "IAP", opt, data);
     if(res == -1)
     {

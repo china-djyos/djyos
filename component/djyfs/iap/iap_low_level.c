@@ -146,7 +146,7 @@ s32 __ll_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 //        esz->unit = 0;
         um->mreq(whichblock, (ptu32_t)&block, &unit);
         //block+1是为了擦除下一个块
-        um->mreq(format, block+1, 1, &esz);
+        um->mreq(format, block+1, block+1+1, &esz);
     }
 
     um->mreq(unlock, 0); //
@@ -235,40 +235,3 @@ s32 __ll_erase(struct __icore *core, u32 bytes, u32 pos)
     return (0);
 }
 
-// ============================================================================
-// 功能：计算一段数据的CRC
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-u32 __ll_crc32(struct __icore *core, u32 pos, u32 len)
-{
-    struct umedia *um = (struct umedia *)core->vol;
-    u32 crc, once, offset;
-    s64 unit;
-    s32 left = len, res = 0;
-
-    crc32init(&crc);
-    unit = (pos >> um->usz) + core->MStart;
-    offset = pos & ((1 << um->usz)-1); // unit内偏移
-    while(left)
-    {
-        once = MIN(((1 << um->usz) - offset), left);
-        res = um->mread(unit, um->ubuf, um->opt);
-        if(res)
-        {
-            crc32exit(&crc);
-            printf("\r\n: erro : iapfs  : read unit %lld failed when crc.", unit);
-            return (-1);
-        }
-
-        crc32run(&crc, um->ubuf+offset, once);
-        left -= once;
-        offset = 0;
-        unit ++;
-    }
-
-    crc32exit(&crc);
-    um->mreq(unlock, 0); //
-    return (crc);
-}

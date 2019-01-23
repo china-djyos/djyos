@@ -86,7 +86,7 @@ struct FileContext *FATOpen(const char *Path, u32 Mode, const char *Root)
         FileCt->Property |= P_READ;
     }
 
-    if(Mode & S_IWUGO)
+    if(Mode & M_WRITE)
     {
         LocalMode |= FA_WRITE;
         FileCt->Property |= P_WRITE;
@@ -551,7 +551,7 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
     u8 mode;
     mode_t obj_mode, property = 0;
     struct objhandle *hdl = NULL;
-    struct obj *temp =  ob;;
+    struct obj *temp =  ob;
     FRESULT res = FR_OK;
     char *volume = (char*)corefs(ob);
     char entirepath[DJYFS_PATH_BUFFER_SIZE];
@@ -841,6 +841,19 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
 {
     FILINFO fatstat = {0};// 要初始化，否则源程序会跑飞；
     struct objhandle *myhandle;
+    char *mount_name = NULL, *part_path;
+    struct obj *temp =  ob;
+    s32 res;
+
+    while(temp != obj_root())
+    {
+        if(obj_isMount(temp))
+        {
+            mount_name = (char*)obj_name(temp);    //找出mount点的名字
+            break;
+        }
+        temp = obj_parent(temp);
+    }
 
     myhandle = obj_ForeachHandle(NULL, ob);     //取该文件其中一个句柄
     if((uncached)                   //文件对象未缓存，依靠路径查询文件；
@@ -854,12 +867,29 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
             return (-1);
 
         GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
-
+        part_path = strstr(entirepath, mount_name);     //找出mount点名字的所在位置
+        part_path += strlen(mount_name);
         path = malloc(strlen(root)+strlen(entirepath)+1);
         if(!path)
             return (-1);
 
-        sprintf(path, "%s%s", root, uncached);
+        sprintf(path, "%s%s", root, part_path);
+        res = strlen(path);
+        while(res--)
+        {
+            if((path[res] == '/') || (path[res] == '\\'))    //去掉路径最后对于的'/'或'\\'
+                path[res] = '\0';
+            else
+                break;
+        }
+        if(strcmp(path, root) == 0)
+        {
+            // 根目录目前访问不了,直接处理
+            data->st_size = 0;
+            data->st_mode = S_IFDIR;
+            free(path);
+            return (0);
+        }
         if(FR_OK != f_stat(path, &fatstat))
         {
             free(path);
@@ -894,6 +924,52 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
 }
 
 // ============================================================================
+// 功能：更改文件名称或位置
+// 参数：oldpath -- 原路径；
+//      newpath -- 新路径；
+// 返回：成功 -- 0，失败 -- -1。
+// 备注：
+// ============================================================================
+static s32 __fat_rename(const char *oldpath, const char *newpath)
+{
+    s32 res;
+    struct obj *ob;
+    char *OPath = NULL, *NPath = NULL, *uncached, *volume = NULL, *mount_name = NULL;
+
+    ob = obj_matchpath(oldpath, &uncached);     //找出原路径的OBJ
+    volume = (char*)corefs(ob);
+
+    while(ob != obj_root())
+    {
+        if(obj_isMount(ob))
+        {
+            mount_name = (char*)obj_name(ob);       //找出mount的名字
+            break;
+        }
+        ob = obj_parent(ob);
+    }
+    if((!volume) && (!mount_name))
+        return (-1);
+    oldpath = strstr(oldpath, mount_name);      ////找出mount点名字的所在位置
+    newpath = strstr(newpath, mount_name);
+    OPath = malloc(DJYFS_PATH_BUFFER_SIZE);
+    NPath = malloc(DJYFS_PATH_BUFFER_SIZE);
+    if((!OPath) && (!NPath))
+        return (-1);
+    memset(OPath, 0, DJYFS_PATH_BUFFER_SIZE);
+    memset(NPath, 0, DJYFS_PATH_BUFFER_SIZE);
+    //用volume中的设备名替换entirepath中的mount点名，因为fat只识别几种特定的设备
+    sprintf(OPath,"%s%s", volume, oldpath + strlen(mount_name));
+    sprintf(NPath,"%s%s", volume, newpath + strlen(mount_name));
+    res = f_rename(OPath, NPath);
+
+    free(OPath);
+    free(NPath);
+    return res;
+}
+
+
+// ============================================================================
 // 功能：
 // 参数：
 // 返回：
@@ -917,7 +993,7 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
       case CN_OBJ_CMD_READDIR:
       {
-          struct objhandle *hdl = (struct objhandle*)opsTarget;
+          struct objhandle *hdl = (struct objhandle*)OpsArgs3;
           struct dirent *ret = (struct dirent *)OpsArgs1;
 
           if((ptu32_t)__fat_readdentry(hdl, ret) == 0)
@@ -990,6 +1066,12 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                 result = CN_OBJ_CMD_FALSE;
             break;
         }
+
+        case CN_OBJ_RENAME:
+        {
+            *(s32*)OpsArgs1 = __fat_rename((const char *)OpsArgs2,(const char *)OpsArgs3);
+
+            break;
         }
 
         default:
