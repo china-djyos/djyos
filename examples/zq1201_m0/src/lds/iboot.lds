@@ -13,11 +13,10 @@ SECTIONS
 
     /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
     /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
- 
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
+         KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
     }>RAM1
 
     /*iboot.lds中InitStack大小及位置必须与应用程序中debug/release.lds*/
@@ -41,24 +40,24 @@ SECTIONS
     text_startup_rROM_lROM :
     {
     	. = ALIGN(0x08);
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:hard-exps.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:initcpuc.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
     }>Flash
 
     text_preload_rROM_lROM :
     {
         . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-        *libos_Iboot_Debug.a:loader.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:int_hard.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:int.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:int_hard.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:ints.o (.text .text.* .rodata .rodata.*)
         *src/iboot/critical/*.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:list.o (.text .text.* .rodata .rodata.*)
     }>Flash
 
 	QSpi_Flash :
@@ -88,15 +87,15 @@ SECTIONS
     rw_preload_rExtRam_lROM :
     {
         . = ALIGN(0x08);
-        *libos_Iboot_Debug.a:loader.o (.data .data.*)
-        *libos_Iboot_Debug.a:int_hard.o (.data .data.*)
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.data .data.*))
-        *libos_Iboot_Debug.a:hard-exp.o (.data .data.*)
-        *libos_Iboot_Debug.a:int.o (.data .data.*)
-        *libos_Iboot_Debug.a:ints.o (.data .data.*)
+        *libos_Iboot.a:loader.o (.data .data.*)
+        *libos_Iboot.a:int_hard.o (.data .data.*)
+        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
+        *libos_Iboot.a:hard-exp.o (.data .data.*)
+        *libos_Iboot.a:int.o (.data .data.*)
+        *libos_Iboot.a:ints.o (.data .data.*)
         *src/iboot/critical/*.o (.data .data.*)
-        *libos_Iboot_Debug.a:heap-static.o (.data .data.*)
-        *libos_Iboot_Debug.a:list.o (.data .data.*)
+        *libos_Iboot.a:heap-static.o (.data .data.*)
+        *libos_Iboot.a:list.o (.data .data.*)
     }>ExtRam AT>Flash
 
     /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
@@ -109,15 +108,15 @@ SECTIONS
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
         Remap_Int_End = . ;
-        *libos_Iboot_Debug.a:loader.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.bss .bss.* COMMON))
-        *libos_Iboot_Debug.a:hard-exp.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:int.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:ints.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:loader.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_Iboot.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_Iboot.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:ints.o (.bss .bss.* COMMON)
         *src/iboot/critical/*.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:heap-static.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:list.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:list.o (.bss .bss.* COMMON)
     }>ExtRam
 
     rw_sysload_rExtRam_lROM :
@@ -132,15 +131,15 @@ SECTIONS
         * (.bss .bss.* COMMON)
     }>ExtRam
 
-	routine_shell_data_section :
+    routine_shell_data_section :
 	{
    		 KEEP(* (.ro_shell_data))
- 	 }>RAM1 AT>InnerFlash
+ 	 }>ExtRam AT>Flash
  	
     expand_shell_data_section :
 	{
  	     KEEP(* (.ex_shell_data))
- 	 }>RAM1 AT>InnerFlash
+ 	 }>ExtRam AT>Flash
  	 
     preload_cp_table :
     {
@@ -186,8 +185,8 @@ SECTIONS
         LONG(ADDR(zi_sysload_rExtRam_lExtRam))
         LONG(SIZEOF(zi_sysload_rExtRam_lExtRam))
         LONG(0)
-                
-		LONG(LOADADDR(routine_shell_data_section))
+        
+       	LONG(LOADADDR(routine_shell_data_section))
 		LONG(ADDR(routine_shell_data_section))
 		LONG(SIZEOF(routine_shell_data_section))
 		LONG(1)
@@ -319,27 +318,27 @@ SECTIONS
     shell_config_section :
 	{
    		KEEP(*(.shellconfig))
- 	}>InnerFlash
+ 	}>Flash
     
     routine_shell_section :
 	{
    		 KEEP(* (.ro_shell_cmd))
    		 KEEP(* (.ro_shell_data))
- 	}>InnerFlash
+ 	}>Flash
  	
     expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
  	      . = ALIGN(0x08);
- 	}>InnerFlash
+ 	}>Flash
  	
  	Shell_Info :
     {
         p_shell_info = .;
         LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>InnerFlash 
+    }>Flash 
     
  /*   
     QSpi_Flash:

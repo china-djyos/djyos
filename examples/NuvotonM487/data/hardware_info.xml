@@ -2,4 +2,5 @@
 <hardware>
    <baord>NuvotonM487</baord>
    <cpu>M487JIDAE</cpu>
+   <core>cortex-m4</core>
 </hardware>

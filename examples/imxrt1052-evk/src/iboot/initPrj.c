@@ -3,6 +3,7 @@
  ****************************************************/
 
 #include "project_config.h"
+#include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
@@ -110,6 +111,9 @@ void Sys_ModuleInit(void)
 
 	extern bool_t ModuleInstall_Touch(void);
 	ModuleInstall_Touch();    //初始化人机界面输入模块
+
+	ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
 	extern struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
 	const char* HeapName);

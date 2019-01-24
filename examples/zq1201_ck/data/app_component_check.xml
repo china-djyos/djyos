@@ -16,7 +16,7 @@
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <IAP>true</IAP>
+  <IAP>false</IAP>
   <filesystem>false</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>

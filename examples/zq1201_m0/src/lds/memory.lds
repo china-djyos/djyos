@@ -1,7 +1,7 @@
 /*由于MEMORY命令不能使用符号，这些常量的定义，必须与MEMORY命令处一致 */
 
 /*为使得iap升级分区方便：*/
-IbootSize = 256K;
+IbootSize = 256k;   /*此处定义应与相应板件的APP的memory.lds中定义一致  */
 FlashOffset = 0x00000800;  /*为兼容APP工程 起始地址 + IbootSize 保证为256字节对齐*/
 FlashRange = 4*512k;         /*0x00000800 + 512k = 525568 / 256 = 253*/
 Ram1Start = 0x01000000;    /*Ram1 start*/

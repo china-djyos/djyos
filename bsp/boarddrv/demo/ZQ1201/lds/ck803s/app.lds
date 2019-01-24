@@ -49,16 +49,17 @@ SECTIONS
 	{
 		. = ALIGN(0x08);
 		g_pAppCodeStartRamAddr = .;
-        *libos_App.a:loader.o (.text .text.* .rodata .rodata.*)
-        *libos_App.a:int_hard.o (.text .text.* .rodata .rodata.*)
+        *loader.o (.text .text.* .rodata .rodata.*)
+        *int_hard.o (.text .text.* .rodata .rodata.*)
 		KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
-        *libos_App.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *libos_App.a:int.o (.text .text.* .rodata .rodata.*)
-        *libos_App.a:ints.o (.text .text.* .rodata .rodata.*)
-        *libos_App.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *libos_App.a:list.o (.text .text.* .rodata .rodata.*)
+        *hard-exp.o (.text .text.* .rodata .rodata.*)
+        *int.o (.text .text.* .rodata .rodata.*)
+        *ints.o (.text .text.* .rodata .rodata.*)
+        *heap-static.o (.text .text.* .rodata .rodata.*)
+        *list.o (.text .text.* .rodata .rodata.*)
 		. = ALIGN(0x08);
 	}>ROM2_SDRAM
+
 	
 	text_sysload_rIbootRom_lIbootRom :
     {       
@@ -214,7 +215,13 @@ SECTIONS
         LONG(IbootSize)
     }>ROM2_SDRAM
     
-	    
+	App_Info :
+    {
+        . = ALIGN(0x08);
+        gc_pAppOffset = .;          /* APP空间偏置  为了访问下面四个字节 */
+        LONG(Flash2Offset + IbootSize)
+    }>ROM1_SDRAM
+    
     shell_config_section :
 	{
    		KEEP(*(.shellconfig))

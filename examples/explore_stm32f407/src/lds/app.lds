@@ -38,23 +38,23 @@ SECTIONS
     text_startup_rAppRom_lAppRom :
     {
        . = ALIGN(0x08);
-        KEEP(*libos_APP_debug.a:initcpuc.o (.text.AppStart))
-        KEEP(*libos_APP_debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_App.a:initcpuc.o (.text.AppStart))
+        KEEP(*libos_App.a:pre_loader.o (.text .text.* .rodata .rodata.*))
     }>InnerFlash
 
     text_preload_rAppRom_lAppRom :
     {
        . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-        *libos_APP_debug.a:loader.o (.text .text.* .rodata .rodata.*)
-        *libos_APP_debug.a:int_hard.o (.text .text.* .rodata .rodata.*) 
-        KEEP(*libos_APP_debug.a:hard-exps.o (.text .text.* .rodata .rodata.*)) 
-        *libos_APP_debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *libos_APP_debug.a:int.o (.text .text.* .rodata .rodata.*)
-        *libos_APP_debug.a:ints.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:int_hard.o (.text .text.* .rodata .rodata.*) 
+        KEEP(*libos_App.a:hard-exps.o (.text .text.* .rodata .rodata.*)) 
+        *libos_App.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:ints.o (.text .text.* .rodata .rodata.*)
         *src/app/critical/*.o (.text .text.* .rodata .rodata.*)
-        *libos_APP_debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *libos_APP_debug.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:list.o (.text .text.* .rodata .rodata.*)
     }>InnerFlash
     
     text_sysload_rAppRom_lAppRom :
@@ -67,15 +67,15 @@ SECTIONS
     rw_preload_rRAM1_lAppRom :
     {
        . = ALIGN(0x08);
-        *libos_APP_debug.a:loader.o (.data .data.*)
-        *libos_APP_debug.a:int_hard.o (.data .data.*)
-        KEEP(*libos_APP_debug.a:hard-exps.o (.data .data.*))
-        *libos_APP_debug.a:hard-exp.o (.data .data.*)
-        *libos_APP_debug.a:int.o (.data .data.*)
-        *libos_APP_debug.a:ints.o (.data .data.*)
+        *libos_App.a:loader.o (.data .data.*)
+        *libos_App.a:int_hard.o (.data .data.*)
+        KEEP(*libos_App.a:hard-exps.o (.data .data.*))
+        *libos_App.a:hard-exp.o (.data .data.*)
+        *libos_App.a:int.o (.data .data.*)
+        *libos_App.a:ints.o (.data .data.*)
         *src/app/critical/*.o (.data .data.*)
-        *libos_APP_debug.a:heap-static.o (.data .data.*)
-        *libos_APP_debug.a:list.o (.data .data.*)
+        *libos_App.a:heap-static.o (.data .data.*)
+        *libos_App.a:list.o (.data .data.*)
     }>RAM1 AT>InnerFlash
 
     /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
@@ -86,15 +86,15 @@ SECTIONS
        . = ALIGN(0x200);
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
-        *libos_APP_debug.a:loader.o (.bss .bss.* COMMON)
-        *libos_APP_debug.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*libos_APP_debug.a:hard-exps.o (.bss .bss.* COMMON))
-        *libos_APP_debug.a:hard-exp.o (.bss .bss.* COMMON)
-        *libos_APP_debug.a:int.o (.bss .bss.* COMMON)
-        *libos_APP_debug.a:ints.o (.bss .bss.* COMMON)
+        *libos_App.a:loader.o (.bss .bss.* COMMON)
+        *libos_App.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_App.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_App.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_App.a:int.o (.bss .bss.* COMMON)
+        *libos_App.a:ints.o (.bss .bss.* COMMON)
         *src/app/critical/*.o (.bss .bss.* COMMON)
-        *libos_APP_debug.a:heap-static.o (.bss .bss.* COMMON)
-        *libos_APP_debug.a:list.o (.bss .bss.* COMMON)
+        *libos_App.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_App.a:list.o (.bss .bss.* COMMON)
     }>RAM1
 
      rw_sysload_rRAM1_lAppRom :
@@ -108,7 +108,7 @@ SECTIONS
        . = ALIGN(0x08);
         * (.bss .bss.* COMMON)
     }>RAM1
-	
+    
 	routine_shell_data_section :
 	{
    		 KEEP(* (.ro_shell_data))
@@ -163,7 +163,7 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
-        
+        	                
         LONG(LOADADDR(routine_shell_data_section))
         LONG(ADDR(routine_shell_data_section))
         LONG(SIZEOF(routine_shell_data_section))
@@ -173,7 +173,6 @@ SECTIONS
         LONG(ADDR(expand_shell_data_section))
         LONG(SIZEOF(expand_shell_data_section))
         LONG(1)
-	
     }>InnerFlash
 
     heap_rRAM1_lRAM1 (NOLOAD) :

@@ -28,11 +28,8 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-//	extern void ModuleInstall_BlackBox(void);
-//	ModuleInstall_BlackBox( );
-
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
 
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
@@ -54,7 +51,16 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+
+	extern bool_t ModuleInstall_HardTimer(void);
+	ModuleInstall_HardTimer();
+
 	//-------------------medium-------------------------//
+	extern bool_t ModuleInstall_Timer(void);
+	ModuleInstall_Timer();
+
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
@@ -66,9 +72,6 @@ void Sys_ModuleInit(void)
 
 	extern bool_t Heap_DynamicModuleInit(void);
 	Heap_DynamicModuleInit ( );
-
-	extern void BootManage(void);
-	BootManage();
 
 	printf("\r\n: info : all modules are configured.");
 	printf("\r\n: info : os starts.\r\n");

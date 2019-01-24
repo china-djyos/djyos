@@ -92,16 +92,19 @@ void Sys_ModuleInit(void)
 	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_Ymodem(void);
 	ModuleInstall_Ymodem();
+
+	extern s32 kernel_command(void);
     kernel_command();
+
 	ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
 
-	bool_t ModuleInstall_TcpIp(void);
-	ModuleInstall_TcpIp();
+//	bool_t ModuleInstall_TcpIp(void);
+//	ModuleInstall_TcpIp();
 
-	extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
-	bool_t loop,u32 loopcycle,\
-	bool_t (*rcvHook)(u8 *buf, u16 len));
+//	extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
+//	bool_t loop,u32 loopcycle,\
+//	bool_t (*rcvHook)(u8 *buf, u16 len));
 //	static u8 mac_addr[]={CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5};
 //	ModuleInstall_ETH(CFG_ETH_DEV_NAME,mac_addr,0,CFG_ETH_LOOP_CYCLE,NULL);
 

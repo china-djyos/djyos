@@ -9,16 +9,18 @@ SECTIONS
         restore = .; 
     }>ROM2_SDRAM
 
-	Iboot_Apphead :
+	Iboot_AppInfo :
     {
         gc_AppStart = .;          
         KEEP(*(.DjyAppHead .DjyAppHead.*))    
     }>ROM2_SDRAM
-	
-	Iboot_RevRam (NOLOAD):
+
+    /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
+    /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
+    Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))   
     }>RAM_SDRAM
 
 	stack_rRAM1_lRAM1 (NOLOAD) :
@@ -37,9 +39,9 @@ SECTIONS
 	   /*KEEP(*startup.o(.vectors))*/
 	   KEEP(*(.StartupExpTbl .StartupExpTbl.*))
 	   . = ALIGN(4);
-	   KEEP(*initcpus.o(.text .text.* .rodata .rodata.*))
-	   KEEP(*initcpuc.o(.text .text.* .rodata .rodata.*))
-	   KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
+	   KEEP(*libos_App.a:initcpus.o(.text .text.* .rodata .rodata.*))
+	   KEEP(*libos_App.a:initcpuc.o(.text .text.* .rodata .rodata.*))
+	   KEEP(*libos_App.a:pre_loader.o(.text .text.* .rodata .rodata.*))
 	   . = ALIGN(10);
 	}>ROM2_SDRAM
 	
@@ -57,6 +59,7 @@ SECTIONS
         *list.o (.text .text.* .rodata .rodata.*)
 		. = ALIGN(0x08);
 	}>ROM2_SDRAM
+
 	
 	text_sysload_rIbootRom_lIbootRom :
     {       
@@ -69,15 +72,15 @@ SECTIONS
 	rw_preload_rRAM1_lIbootRom :
     {
        . = ALIGN(0x08);
-        *loader.o (.data .data.*)
-        *int_hard.o (.data .data.*)
-        KEEP(*:hard-exps.o (.data .data.*))
-        *hard-exp.o (.data .data.*)
-        *int.o (.data .data.*)
-        *ints.o (.data .data.*)
-        *heap-static.o (.data .data.*)
-        *list.o (.data .data.*)
-        *cpu_peri_isr.o (.data .data.*)
+        *libos_App.a:loader.o (.data .data.*)
+        *libos_App.a:int_hard.o (.data .data.*)
+        KEEP(*libos_App.a:hard-exps.o (.data .data.*))
+        *libos_App.a:hard-exp.o (.data .data.*)
+        *libos_App.a:int.o (.data .data.*)
+        *libos_App.a:ints.o (.data .data.*)
+        *libos_App.a:heap-static.o (.data .data.*)
+        *libos_App.a:list.o (.data .data.*)
+        *libos_App.a:cpu_peri_isr.o (.data .data.*)
 		. = ALIGN(0x08);
     }>RAM_SDRAM AT>ROM2_SDRAM
 	
@@ -86,15 +89,15 @@ SECTIONS
        . = ALIGN(10);
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
-        *loader.o (.bss .bss.* COMMON)
-        *int_hard.o (.bss .bss.* COMMON)
-        KEEP(*hard-exps.o (.bss .bss.* COMMON))
-        *hard-exp.o (.bss .bss.* COMMON)
-        *int.o (.bss .bss.* COMMON)
-        *ints.o (.bss .bss.* COMMON)
-        *heap-static.o (.bss .bss.* COMMON)
-        *list.o (.bss .bss.* COMMON)
-        *cpu_peri_isr.o (.bss .bss.* COMMON)
+        *libos_App.a:loader.o (.bss .bss.* COMMON)
+        *libos_App.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_App.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_App.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_App.a:int.o (.bss .bss.* COMMON)
+        *libos_App.a:ints.o (.bss .bss.* COMMON)
+        *libos_App.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_App.a:list.o (.bss .bss.* COMMON)
+        *libos_App.a:cpu_peri_isr.o (.bss .bss.* COMMON)
     }>RAM_SDRAM
 	
 	rw_sysload_rRAM1_lIbootRom :
@@ -111,8 +114,7 @@ SECTIONS
 		. = ALIGN(0x4) ;
     }>RAM_SDRAM
 	
-		
-	routine_shell_data_section :
+		routine_shell_data_section :
 	{
    		 KEEP(* (.ro_shell_data))
  	 }>RAM_SDRAM AT>ROM2_SDRAM
@@ -166,7 +168,7 @@ SECTIONS
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
-        
+        	                
         LONG(LOADADDR(routine_shell_data_section))
         LONG(ADDR(routine_shell_data_section))
         LONG(SIZEOF(routine_shell_data_section))
@@ -176,7 +178,6 @@ SECTIONS
         LONG(ADDR(expand_shell_data_section))
         LONG(SIZEOF(expand_shell_data_section))
         LONG(1)
-	
     }>ROM2_SDRAM
 	
 	heap_rRAM_lRAM (NOLOAD) :
@@ -214,28 +215,35 @@ SECTIONS
         LONG(IbootSize)
     }>ROM2_SDRAM
     
+	App_Info :
+    {
+        . = ALIGN(0x08);
+        gc_pAppOffset = .;          /* APP空间偏置  为了访问下面四个字节 */
+        LONG(Flash2Offset + IbootSize)
+    }>ROM1_SDRAM
+    
     shell_config_section :
 	{
    		KEEP(*(.shellconfig))
- 	}>ROM2_SDRAM
+ 	}>InnerFlash
     
     routine_shell_section :
 	{
    		 KEEP(* (.ro_shell_cmd))
    		 KEEP(* (.ro_shell_data))
- 	}>ROM2_SDRAM
+ 	}>InnerFlash
  	
     expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
  	      . = ALIGN(0x08);
- 	}>ROM2_SDRAM
+ 	}>InnerFlash
 
  	Shell_Info :
     {
         p_shell_info = .;
         LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG( LENGTH(ROM2_SDRAM)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
-    }>ROM2_SDRAM 
+        LONG( LENGTH(InnerFlash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
+    }>InnerFlash 
 }

@@ -6,42 +6,26 @@ INCLUDE  ../src/lds/memory.lds
 /*正确的写法，可参看console中输出的命令行*/
 SECTIONS
 { 
-    
     /*地址填充区域，Release版本下载起始地址实质上是0x0040 0000 + IbootSize + 256*/
-    /*因此在此处填充section内，将InnerFlash地址偏移，使生成的bin文件起始地址为0x00440100*/
+    /*因此在此处填充section内，将Flash地址偏移，使生成的bin文件起始地址为0x00440100*/
     /*切勿在填充section内填写数据（例如LONG( . + 256)），否则生成的bin文件中会包含此段*/
     Iboot_IbootFill :        
     {
-        gc_IbootStart = .;          
-        . += IbootSize;      		 /*0x40800*/
+        gc_IbootStart = .;          /*0x800 + 256*1024 = 0x40800*/
+        . += IbootSize;             /*该地址需保证256字节对齐*/
     }>Flash
-    
-    Iboot_AppFill :
+	
+	Iboot_Apphead :
     {
-        gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
-        . += 256;
-   
+        gc_AppStart = .;          
+        KEEP(*(.DjyAppHead .DjyAppHead.*))    
     }>Flash
-            
-	Iboot_AppInfo :
-    {       
-        gc_ptAppInfo = .;           /*确保这个地址为iboot中指向的0x40900 iboot的 gc_ptAppInfo 指向*/
-        LONG( . + 256);
-        gc_AppSize = .;             /*ROM区 存储APP的bin文件大小 */
-        LONG(0); /* APP的bin文件大小 */   
-        . = ALIGN(256);
-        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
-        __AppStart = .;
-    }>Flash
-    
-
-      /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
-    /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
-    Iboot_RevRam (NOLOAD):
+	
+	Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))
-    }>RAM1
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
+    }>ExtRam
 
     /*iboot.lds中InitStack大小及位置必须与应用程序中debug/release.lds*/
     /*的一致，否则程序会可能会出现被覆盖的问题*/
@@ -51,37 +35,36 @@ SECTIONS
         msp_bottom = .;
         KEEP(* (.data.InitStack))
         msp_top = ALIGN(0x08);
-   }>RAM1 
+   }>ExtRam 
     
     text_startup_rAppRom_lAppRom :
     {
        . = ALIGN(0x08);
-        KEEP(*libos_App_Release.a:initcpuc.o (.text.AppStart))
-        KEEP(*libos_App_Release.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_App.a:initcpuc.o (.text.AppStart))
+        KEEP(*libos_App.a:pre_loader.o (.text .text.* .rodata .rodata.*))
     }>Flash
 
     text_preload_rROM_lROM :
     {
         . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-        *libos_App_Release.a:loader.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Release.a:int_hard.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Release.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Release.a:int.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Release.a:ints.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:int_hard.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:ints.o (.text .text.* .rodata .rodata.*)
         *src/app/critical/*.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Release.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *libos_App_Release.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_App.a:list.o (.text .text.* .rodata .rodata.*)
     }>Flash
     
-     QSpi_Flash :
+    QSpi_Flash :
     {     
          . = ALIGN(0x08);
         Lock_Cache_Add_Start = .;
-        KEEP(*libos_App_Debug.a:norflash.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_App.a:norflash.o (.text .text.* .rodata .rodata.*))
         Lock_Cache_Add_End = .; 
     }>Flash 
-    
     
     text_sysload_rROM_lROM :
     {
@@ -93,15 +76,15 @@ SECTIONS
     rw_preload_rExtRam_lROM :
     {
         . = ALIGN(0x08);
-        *libos_App_Release.a:loader.o (.data .data.*)
-        *libos_App_Release.a:int_hard.o (.data .data.*)
-        KEEP(*libos_App_Release.a:hard-exps.o (.data .data.*))
-        *libos_App_Release.a:hard-exp.o (.data .data.*)
-        *libos_App_Release.a:int.o (.data .data.*)
-        *libos_App_Release.a:ints.o (.data .data.*)
+        *libos_App.a:loader.o (.data .data.*)
+        *libos_App.a:int_hard.o (.data .data.*)
+        KEEP(*libos_App.a:hard-exps.o (.data .data.*))
+        *libos_App.a:hard-exp.o (.data .data.*)
+        *libos_App.a:int.o (.data .data.*)
+        *libos_App.a:ints.o (.data .data.*)
         *board/ZQ1201/src/critical/*.o (.data .data.*)
-        *libos_App_Release.a:heap-static.o (.data .data.*)
-        *libos_App_Release.a:list.o (.data .data.*)
+        *libos_App.a:heap-static.o (.data .data.*)
+        *libos_App.a:list.o (.data .data.*)
     }>ExtRam AT>Flash
 
       /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
@@ -110,17 +93,19 @@ SECTIONS
     zi_preload_rExtRam_lExtRam (NOLOAD) :
     {
         . = ALIGN(0x100);
+        Remap_Int_Start = . ;
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
-        *libos_App_Release.a:loader.o (.bss .bss.* COMMON)
-        *libos_App_Release.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*libos_App_Release.a:hard-exps.o (.bss .bss.* COMMON))
-        *libos_App_Release.a:hard-exp.o (.bss .bss.* COMMON)
-        *libos_App_Release.a:int.o (.bss .bss.* COMMON)
-        *libos_App_Release.a:ints.o (.bss .bss.* COMMON)
+        Remap_Int_End   = . ;
+        *libos_App.a:loader.o (.bss .bss.* COMMON)
+        *libos_App.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_App.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_App.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_App.a:int.o (.bss .bss.* COMMON)
+        *libos_App.a:ints.o (.bss .bss.* COMMON)
         *board/ZQ1201/src/critical/*.o (.bss .bss.* COMMON)
-        *libos_App_Release.a:heap-static.o (.bss .bss.* COMMON)
-        *libos_App_Release.a:list.o (.bss .bss.* COMMON)
+        *libos_App.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_App.a:list.o (.bss .bss.* COMMON)
     }>ExtRam
 
 
@@ -136,6 +121,16 @@ SECTIONS
         * (.bss .bss.* COMMON)
     }>ExtRam
 
+	routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>ExtRam AT>Flash
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>ExtRam AT>Flash
+ 	 
    preload_cp_table :
     {
         . = ALIGN(0x08);
@@ -164,7 +159,7 @@ SECTIONS
         . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(5)
 
         LONG(LOADADDR(text_sysload_rROM_lROM))
         LONG(ADDR(text_sysload_rROM_lROM))
@@ -180,13 +175,24 @@ SECTIONS
         LONG(ADDR(zi_sysload_rExtRam_lExtRam))
         LONG(SIZEOF(zi_sysload_rExtRam_lExtRam))
         LONG(0)
+                
+        LONG(LOADADDR(routine_shell_data_section))
+        LONG(ADDR(routine_shell_data_section))
+        LONG(SIZEOF(routine_shell_data_section))
+        LONG(1)
+        
+        LONG(LOADADDR(expand_shell_data_section))
+        LONG(ADDR(expand_shell_data_section))
+        LONG(SIZEOF(expand_shell_data_section))
+        LONG(1)
+	
     }>Flash
     
     heap_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x08);
         sys_heap_bottom = .;
-    }>RAM1
+    }>ExtRam
     sys_heap_top = Ram1Start + Ram1Size;
     
     heap_rExtRam_lExtRam (NOLOAD) :
@@ -218,7 +224,7 @@ SECTIONS
         LONG(sys_heap_top)          /*第一段地址上限（不含），须符合对齐要求*/
         LONG(32)                    /*第一段页尺寸=32bytes*/
         LONG(msp_bottom)            /*第二段基址，回收初始化栈，须符合对齐要求*/
-        LONG(msp_top - (1024+512))  /*第二段地址上限（不含），384是留给中断使用的，须符合对齐要求*/
+        LONG(msp_top - (1024+512))        /*第二段地址上限（不含），(1024+512)是留给中断使用的，须符合对齐要求*/
         LONG(24)                    /*第二段页尺寸=24bytes*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0x79)                  /*'y'*/
@@ -276,38 +282,29 @@ SECTIONS
         LONG(FlashRange - IbootSize)
         
     }>Flash
-    
-    
-	r_In_shell_section :
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
+   		KEEP(*(.shellconfig))
+ 	}>Flash
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
  	}>Flash
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
  	      . = ALIGN(0x08);
  	}>Flash
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>Flash
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>Flash
- 	
+
  	Shell_Info :
     {
         p_shell_info = .;
-        LONG(gc_ptIbootCtrl) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG( LENGTH(Flash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/        
+        LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG( LENGTH(Flash)-IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/   
     }>Flash 
 }
 /**** The End ****/

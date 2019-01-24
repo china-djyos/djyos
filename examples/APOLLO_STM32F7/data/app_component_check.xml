@@ -16,8 +16,8 @@
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <IAP>true</IAP>
-  <filesystem>true</filesystem>
+  <iap>false</iap>
+  <filesystem>false</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
@@ -33,7 +33,7 @@
   <multiplex>true</multiplex>
   <shell>true</shell>
   <stdio>true</stdio>
-  <tcpip>true</tcpip>
+  <tcpip>false</tcpip>
   <timer>false</timer>
   <wdt>false</wdt>
   <ymodem>false</ymodem>
@@ -46,7 +46,7 @@
   <MemoryPool>true</MemoryPool>
   <time>false</time>
   <board>true</board>
-  <netconfig>true</netconfig>
+  <netconfig>false</netconfig>
   <key_hard>false</key_hard>
   <lcd_config>false</lcd_config>
   <loader>true</loader>
@@ -69,7 +69,7 @@
   <stm32h7>false</stm32h7>
   <stm32L4>false</stm32L4>
   <fatfilesystem>false</fatfilesystem>
-  <yaf2filesystem>true</yaf2filesystem>
+  <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
@@ -85,13 +85,13 @@
   <zlib>false</zlib>
   <Clib>true</Clib>
   <FT5X26>false</FT5X26>
-  <lan8720>true</lan8720>
+  <lan8720>false</lan8720>
   <PCF8574>false</PCF8574>
   <cpu_peri_bksram>false</cpu_peri_bksram>
   <cpu_peri_can>false</cpu_peri_can>
   <cpu_peri_dma>true</cpu_peri_dma>
   <cpu_peri_emflash>false</cpu_peri_emflash>
-  <cpu_peri_eth>true</cpu_peri_eth>
+  <cpu_peri_eth>false</cpu_peri_eth>
   <cpu_peri_gpio>true</cpu_peri_gpio>
   <cpu_peri_iic>false</cpu_peri_iic>
   <cpu_peri_lcd>false</cpu_peri_lcd>

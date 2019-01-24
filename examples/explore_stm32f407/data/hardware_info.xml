@@ -2,4 +2,5 @@
 <hardware>
    <baord>EXPLORER-stm32f4</baord>
    <cpu>stm32f407xx</cpu>
+   <core>cortex-m4</core>
 </hardware>

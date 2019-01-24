@@ -129,7 +129,7 @@
 #define CFG_ETH_LOOP_ENABLE     true        //
 #define CFG_ETH_DEV_NAME        "STM32F7_ETH"//
 //*******************************  Configure netconfig  ******************************************//
-#define     CFG_STATIC_IP                    true              //true=使用静态IPfalse=动态IP
+#define     CFG_STATIC_IP                    false              //true=使用静态IPfalse=动态IP
 #define     CFG_NETCARD_NAME                 "NUCLEO-F767ZI_ETH"//
 #define     CFG_MY_IPV4                      "192.168.0.179"   //
 #define     CFG_MY_SUBMASK                   "255.255.255.0"   //

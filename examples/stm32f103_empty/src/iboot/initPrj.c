@@ -1,8 +1,9 @@
 /****************************************************
  *  Automatically-generated file. Do not edit!	*
  ****************************************************/
-#include "djyos.h"
+
 #include "project_config.h"
+#include "djyos.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "cpu_peri.h"
@@ -30,6 +31,9 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
 
@@ -49,6 +53,9 @@ void Sys_ModuleInit(void)
 	#if CFG_UART5_ENABLE ==1
 	ModuleInstall_UART(CN_UART5);
 	#endif
+
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
 	//-------------------medium-------------------------//
 	extern void ModuleInstall_LowPower (void);

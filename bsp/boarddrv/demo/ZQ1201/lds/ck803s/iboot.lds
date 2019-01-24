@@ -42,10 +42,12 @@ SECTIONS
         text_preload_rIbootRom_lIbootRom :
         {
                 . = ALIGN(0x08);
+		g_pAppCodeStartRamAddr = .;
         *libos_Iboot.a:loader.o (.data .data.*)
-        *libos_Iboot.a:int_hard.o (.data .data.*)
-        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
-        *libos_Iboot.a:hard-exp.o (.data .data.*)
+        *int_hard.o (.text .text.* .rodata .rodata.*)
+		KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
+        *hard-exp.o (.text .text.* .rodata .rodata.*)
+
         *libos_Iboot.a:int.o (.data .data.*)
         *libos_Iboot.a:ints.o (.data .data.*)
         *src/iboot/critical/*.o (.data .data.*)

@@ -2,4 +2,5 @@
 <hardware>
    <baord>imxrt1052-evk</baord>
    <cpu>imxrt1052</cpu>
+   <core>cortex-m7</core>
 </hardware>

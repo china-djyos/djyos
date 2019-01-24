@@ -36,7 +36,7 @@
   <tcpip>false</tcpip>
   <timer>true</timer>
   <wdt>false</wdt>
-  <ymodem>false</ymodem>
+  <ymodem>true</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>
   <int>true</int>

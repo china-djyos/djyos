@@ -46,7 +46,7 @@
    <component>/djyos/pool/pool.c</component>
    <component>/djyos/time/component_config_time.h</component>
    <component>/bsp/boarddrv/demo/zq1201/drv/board.c</component>
-   <component>/loader/si/component_config_loader.h</component>
+   <component>/loader/si/component_config_iboot.h</component>
    <component>/third/cjson-code-73/component_config_cjson.h</component>
    <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
    <component>/third/firmware/AtmelSam4s/component_config_atmelsam4s.h</component>

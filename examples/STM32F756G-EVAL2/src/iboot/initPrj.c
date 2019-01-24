@@ -40,6 +40,9 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
+	extern bool_t ModuleInstall_Multiplex(void);
+	ModuleInstall_Multiplex ();
+
 	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
 	#if CFG_UART1_ENABLE ==1
 	ModuleInstall_UART(CN_UART1);
@@ -65,6 +68,9 @@ void Sys_ModuleInit(void)
 	#if CFG_UART8_ENABLE ==1
 	ModuleInstall_UART(CN_UART8);
 	#endif
+
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
 	bool_t IIC_Init(u8 iic_port);
 	#if CFG_IIC1_ENABLE== true

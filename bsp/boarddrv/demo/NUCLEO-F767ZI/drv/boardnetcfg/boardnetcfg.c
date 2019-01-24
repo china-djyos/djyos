@@ -134,6 +134,10 @@ void ModuleInstall_InitNet(void)   //static ip example
     //install the net device you used,you could use more than one, but they
     //has different names and macs
     //use the corresponding net device install function you use
+
+    extern bool_t ModuleInstall_TcpIp(void);
+    ModuleInstall_TcpIp( );
+
     extern bool_t ModuleInstall_ETH(const char *devname, u8 *mac,\
             bool_t loop,u32 loopcycle,\
             bool_t (*rcvHook)(u8 *buf, u16 len));
