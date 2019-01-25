@@ -473,7 +473,7 @@ void Board_GpioInit(void)
 //    PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
     PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));  //ETH RMII
 //    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
-//    LCD_PinInit();
+    LCD_PinInit();
 }
 
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)

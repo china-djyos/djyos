@@ -7,6 +7,9 @@
     <chip>
       <chipName>at24c02</chipName>
     </chip>
+    <chip>
+      <chipName>lan8720</chipName>
+    </chip>
     <memory>
       <type>RAM</type>
       <startAddr>0x68000000</startAddr>

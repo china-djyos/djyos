@@ -586,7 +586,7 @@ static ptu32_t __MacRcvTask(void)
     u32 value;
     u32 resettimes= 0;
     time_t printtime;
-    bool_t MacReset();
+    bool_t MacReset(char *param);
 
     Djy_GetEventPara((ptu32_t *)&handle,NULL);
 
@@ -680,8 +680,7 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 
 //show the gmac status
 //bool_t macdebuginfo(char *param)
-bool_t mac()
-
+bool_t mac(char *param)
 {
     s64  time;
     u32  timeS;
@@ -728,8 +727,7 @@ bool_t mac()
 }
 
 #define CN_GMAC_REG_BASE   ((u32)ETH)
-//bool_t MacReg()
-bool_t macreg()
+bool_t macreg(char *param)
 {
     vu32    i;
     vu32   *addr;
@@ -815,7 +813,7 @@ bool_t macreg()
     return true;
 }
 
-bool_t MacReset()
+bool_t MacReset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
 
@@ -823,8 +821,7 @@ bool_t MacReset()
     return true;
 }
 
-//bool_t MacReset()
-bool_t macreset()
+bool_t macreset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
 
@@ -832,8 +829,7 @@ bool_t macreset()
     return true;
 }
 
-//bool_t MacSndEn()
-bool_t macsnden()
+bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -846,8 +842,7 @@ bool_t macsnden()
     }
     return true;
 }
-//bool_t MacSndDis()
-bool_t macsnddis()
+bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -860,8 +855,7 @@ bool_t macsnddis()
     return true;
 }
 
-//bool_t MacAddrFilterEn()
-bool_t macfilten()
+bool_t macfilten(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -869,8 +863,7 @@ bool_t macfilten()
     MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,1);//开通地址过滤功能
     return true;
 }
-//bool_t MacAddrFilterDis()
-bool_t macfiltdis()
+bool_t macfiltdis(char *param)
 {
     tagMacDriver      *pDrive;
 

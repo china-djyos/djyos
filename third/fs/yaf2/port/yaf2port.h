@@ -53,6 +53,8 @@
 extern "C" {
 #endif
 
+extern void yaffs_remove_device(struct yaffs_dev *dev);
+extern int yaffs_mount_reldev(struct yaffs_dev *dev);
 #if 0
 #include <device/flash/flash.h>
 #include "../yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h"
@@ -70,8 +72,6 @@ s32 YAF2Stat(struct FileContext *FileCt, const char *Path, struct Stat *Buf, con
 s32 YAF2Truncate(struct FileContext *FileCt, off_t NewSize);
 s32 YAF2DirRead(struct FileContext *FileCt, struct Dirent *Content);
 
-extern void yaffs_remove_device(struct yaffs_dev *dev);
-extern int yaffs_mount_reldev(struct yaffs_dev *dev);
 #else
 #define YAF2_ENABLE_DEVICE_ECC                  ((u32)0x1) // 启用ECC
 #endif

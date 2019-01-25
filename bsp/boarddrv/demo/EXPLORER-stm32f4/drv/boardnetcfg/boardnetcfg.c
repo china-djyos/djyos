@@ -83,16 +83,13 @@
 #warning    “网络配置”组件参数未配置，使用默认值
 //%$#@num,0,100
 //%$#@enum,true,false
-#define CFG_STATIC_IP       true            //"IP属性",true=使用静态IP，false=动态IP
+#define CFG_STATIC_IP       true            //"使用静态IP?",
 //%$#@string,1,16
-#define CFG_NETCARD_NAME    "NUCLEO-F767ZI_ETH"    //"网卡名",
+#define CFG_NETCARD_NAME    "explorer407_eth"    //"网卡名",
 //%$#@string,7,15
 #define CFG_MY_IPV4         "192.168.0.179" //"静态IP",
-//%$#@string,7,15
 #define CFG_MY_SUBMASK      "255.255.255.0" //"子网掩码",
-//%$#@string,7,15
 #define CFG_MY_GATWAY       "192.168.0.1"   //"网关",
-//%$#@string,7,15
 #define CFG_MY_DNS          "192.168.0.1"   //"DNS",
 //%$#@select
 //%$#@free
@@ -107,7 +104,7 @@ __attribute__((weak)) void GetCpuSignature(void *buf,int len)
     //this is for the stm32f7
     vu8   *base;
     int i = 0;
-    base = (vu8 *)0x1FF0F420;   //THE ADDRESS OF F7 F4 F1 IS NOT THE SAME
+    base = (vu8 *)0x1FFF7A10;   //THE ADDRESS OF F7 F4 F1 IS NOT THE SAME
     for(i = 0;i < len;i++)
     {
         *((vu8 *)buf +i)=*(base+i);
@@ -130,7 +127,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     //use the signature as the mac address
     signature[0] = signature[1]+signature[2]+signature[3];
     memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
-    gc_NetMac[0]=0x00;
+    gc_NetMac[0]=0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
     //install the net device you used,you could use more than one, but they
     //has different names and macs
     //use the corresponding net device install function you use
@@ -196,7 +193,9 @@ void ModuleInstall_InitNet(void)   //static ip example
 
 #endif
     //do the lan8720 chip set
+//  bool_t lan8720Init(void);
+//  lan8720Init( );
 
-    return ;
+    return 0;
 }
 

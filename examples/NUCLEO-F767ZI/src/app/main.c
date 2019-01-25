@@ -1,6 +1,6 @@
 
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -56,9 +56,9 @@
 ptu32_t djy_main(void)
 {
     printf("hello world!\r\n");
-	while(1)
-	{
-		Djy_EventDelay(1000*1000);
-	}
-	return 0;
+    while(1)
+    {
+        Djy_EventDelay(1000*1000);
+    }
+    return 0;
 }

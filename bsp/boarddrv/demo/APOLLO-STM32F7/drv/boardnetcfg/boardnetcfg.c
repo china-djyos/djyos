@@ -131,8 +131,6 @@ void ModuleInstall_InitNet(void)   //static ip example
     //has different names and macs
     //use the corresponding net device install function you use
 
-    extern bool_t ModuleInstall_TcpIp(void);
-    ModuleInstall_TcpIp( );
 
     extern bool_t ModuleInstall_ETH(const char *devname, u8 *mac,\
             bool_t loop,u32 loopcycle,\
@@ -196,10 +194,6 @@ void ModuleInstall_InitNet(void)   //static ip example
 
 #endif
     //do the lan8720 chip set
-
-    bool_t ETH_RESE(void);
-    ETH_RESE( );//Íø¿Ú¸´Î»
-
     bool_t lan8720Init(void);
     lan8720Init( );
 

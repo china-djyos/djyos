@@ -60,7 +60,7 @@
 bool_t tcpipver(char *param)
 {
     param = param;
-    info_printf("tcpip","Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.");
+    info_printf("tcpip","Copyright (c) 2018, Djyos Open source Development team. All rights reserved.");
     info_printf("tcpip","VERSION  :%s ",CN_TCPIP_VERSION);
     info_printf("tcpip","TIME     :%s ",__TIME__);
     info_printf("tcpip","DATE     :%s ",__DATE__);

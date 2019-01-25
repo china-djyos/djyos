@@ -732,7 +732,7 @@ static bool_t  stm32f7_NAND_ControllerConfig(void)
 static void ResetNand(void)
 {
     *(vu8*)(NAND_ADDRESS|NAND_CMD)=(RESET_CMD_BYTE);
-    while(WaitNandReady() == false);
+//    while(WaitNandReady() == false);
 }
 #if 0
 //-----------------------------------------------------------------------------
