@@ -57,6 +57,7 @@ int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
 	int fd = -1;
 	int result = 0;
 	int waittime = 0;
+    int forever = 0;
 
 
 	if(NULL != reads)
@@ -81,7 +82,8 @@ int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
 	}
 	else
 	{
-		waittime = CN_SELECT_TIMEDEFAULT;
+		//waittime = CN_SELECT_TIMEDEFAULT;
+		forever = 1;
 	}
 
 	while(result == 0)
@@ -128,15 +130,24 @@ int select(int maxfd, fd_set *reads,fd_set *writes, fd_set *exps, \
 				}
 			}
 		}
-		if((result == 0)&&(0 != waittime))//do the delay
-		{
-			Djy_EventDelay(1*mS);
-			waittime--;
-		}
-		else
-		{
-			break;
-		}
+
+        if(forever == 0)
+        {
+        	if(waittime > 0)//do the delay
+        	{
+        		Djy_EventDelay(1*mS);
+        		waittime--;
+        	}
+        	else
+        	{
+        		break;
+        	}
+        }
+        else
+        {
+            Djy_EventDelay(1*mS);
+        }
+
 	}
 	return result;
 }

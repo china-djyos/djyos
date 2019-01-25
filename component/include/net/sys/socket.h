@@ -523,7 +523,7 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 //select.h
 #include <sys/time.h>
 #define CN_SELECT_MAXNUM      FD_SETSIZE
-#define CN_SELECT_TIMEDEFAULT 10
+//#define CN_SELECT_TIMEDEFAULT 10
 typedef struct
 {
     int  mode;

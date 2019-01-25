@@ -448,7 +448,6 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 // =============================================================================
 void Board_GpioInit(void)
 {
-    bool_t ETH_RESE(void);
 #if 0
     ETH_RESE( );//Íø¿Ú¸´Î»
 #endif
