@@ -160,6 +160,6 @@ static bool_t __CryptStart(char *param)
 
 #include <shell.h>
 
-ADD_TO_ROUTINE_SHELL("wolfclient",__ClientStart, "usage:wolfclient");
-ADD_TO_ROUTINE_SHELL("wolfserver",__ServerStart, "usage:wolfserver");
-ADD_TO_ROUTINE_SHELL("wolfcypt",__CryptStart,"usage:wolfcypt");
+ADD_TO_ROUTINE_SHELL(wolfclient,__ClientStart, "usage:wolfclient");
+ADD_TO_ROUTINE_SHELL(wolfserver,__ServerStart, "usage:wolfserver");
+ADD_TO_ROUTINE_SHELL(wolfcypt,__CryptStart,"usage:wolfcypt");

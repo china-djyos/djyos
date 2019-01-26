@@ -299,10 +299,10 @@ bool_t ModuleInstall_WebsDownload(void)
     }
     return result;
 }
-ADD_TO_ROUTINE_SHELL("setserver",WebsServerIpSet,"usage:this cmd used to set the webs storage server");
-ADD_TO_ROUTINE_SHELL("webslistdownload",WebsDownLoadList,"usage:this cmd used to download the webs file list name file");
-ADD_TO_ROUTINE_SHELL("webslist",WebsListShow,"usage:this cmd used to show what file to be download or has been downloaded");
-ADD_TO_ROUTINE_SHELL("websdownload", WebsDownLoad, "usage:download all the webs listed in the listfile");
-ADD_TO_ROUTINE_SHELL("webstat",WebsStat,"usage:show all the webs stat");
-ADD_TO_ROUTINE_SHELL("websupdate",WebsUpdate, "usage:update all the webs");
+ADD_TO_ROUTINE_SHELL(setserver,WebsServerIpSet,"usage:this cmd used to set the webs storage server");
+ADD_TO_ROUTINE_SHELL(webslistdownload,WebsDownLoadList,"usage:this cmd used to download the webs file list name file");
+ADD_TO_ROUTINE_SHELL(webslist,WebsListShow,"usage:this cmd used to show what file to be download or has been downloaded");
+ADD_TO_ROUTINE_SHELL(websdownload, WebsDownLoad, "usage:download all the webs listed in the listfile");
+ADD_TO_ROUTINE_SHELL(webstat,WebsStat,"usage:show all the webs stat");
+ADD_TO_ROUTINE_SHELL(websupdate,WebsUpdate, "usage:update all the webs");
 
