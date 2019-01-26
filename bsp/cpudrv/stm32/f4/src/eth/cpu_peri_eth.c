@@ -735,7 +735,7 @@ bool_t macsnden(char *param)
     tagMacDriver      *pDrive;
 
 
-    pDrive = &gMacDriver;""
+    pDrive = &gMacDriver;
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
     {
         HAL_ETH_Start(pDrive->EthHandle);
