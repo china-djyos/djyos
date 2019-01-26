@@ -28,8 +28,8 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-	extern void ModuleInstall_BlackBox(void);
-	ModuleInstall_BlackBox( );
+//	extern void ModuleInstall_BlackBox(void);
+//	ModuleInstall_BlackBox( );
 
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
