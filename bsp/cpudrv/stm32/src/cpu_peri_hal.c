@@ -146,11 +146,13 @@ void HAL_TickInit(void)
     HalTimHandle.Init.Prescaler     = uwPrescalerValue;
     HalTimHandle.Init.ClockDivision = 0;
     HalTimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
-    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 
+#if (defined(CFG_CORTEX_M7) || defined(CFG_CORTEX_M3))
+    HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+#endif
     HAL_TIM_Base_DeInit(&HalTimHandle);
     HAL_TIM_Base_Init(&HalTimHandle);
-    MODIFY_REG(STM32_HAL_TIMER->CR1, TIM_CR1_ARPE, TIM_CR1_ARPE);
+//    MODIFY_REG(STM32_HAL_TIMER->CR1, TIM_CR1_ARPE, TIM_CR1_ARPE);
     HAL_TIM_Base_Start(&HalTimHandle);
 }
 #endif
