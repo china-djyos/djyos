@@ -1,0 +1,10 @@
+/.svn
+user
+*.mk
+*.o
+*.d
+*.lst
+*.elf
+*.bin
+*.a
+*.map

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -451,8 +451,8 @@ static ptu32_t __NetTickerTask(void)
 
 //this is the nettick shell function:use it for the debug
 //static bool_t  __NetTickShell(char *param)
-ADD_TO_IN_SHELL_HELP(netticker,"usage:netticker");
-ADD_TO_IN_SHELL  bool_t  netticker(char *param)
+
+ bool_t  netticker(char *param)
 {
     bool_t ret = true;
     tagTickerItem *item;
@@ -482,8 +482,7 @@ ADD_TO_IN_SHELL  bool_t  netticker(char *param)
 
 //show the tcpip memory consumed
 //static bool_t __tcpipmem(char *para)
-ADD_TO_IN_SHELL_HELP(tcpipmem,"usage:tcpipmem");
-ADD_TO_IN_SHELL  bool_t tcpipmem(char *para)
+bool_t tcpipmem(char *para)
 {
     debug_printf("osarch","MEMNEED  :%-8d Bytes\n\r",gOsCB.mem);
     debug_printf("osarch","TASKSTACK:%-8d Bytes\n\r",gOsCB.stack);
@@ -535,7 +534,7 @@ void OsPrintSplit(char c,int num)
     int i = 0;
     for(i = 0;i<num;i++)
     {
-        debug_printf("osarch","%c",c);
+        printf("%c",c);
     }
     printf("\n\r");
     return;
@@ -543,7 +542,7 @@ void OsPrintSplit(char c,int num)
 
 
 //////////////////////////////OSARCH SERVICE///////////////////////////////////
-//shell tab here
+
 
 bool_t OsArchInit()
 {
@@ -556,7 +555,9 @@ bool_t OsArchInit()
     }
 
 
+
     return ret;
 }
-
+ADD_TO_ROUTINE_SHELL(tcpipmem,tcpipmem,"usage:tcpipmem");
+ADD_TO_ROUTINE_SHELL(netticker,netticker,"usage:netticker");
 

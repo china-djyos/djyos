@@ -78,58 +78,16 @@ extern bool_t UdpServer_RcvTask(char *param);
 //------------------------------------------------------------------------------
 //monitor≤‚ ‘±Ì
 //------------------------------------------------------------------------------
-struct ShellCmdTab  shellstackdebug[] =
-{
-    {
-        "tcpserversnd",
-        TcpServer_SndTask,
-        "tcpserver∑¢ÀÕ≤‚ ‘",
-        NULL
-    },
-    {
-        "tcpserverblocksnd",
-        TcpServer_BlockSendTest,
-        "tcpserverblock∑¢ÀÕ≤‚ ‘",
-        NULL
-    },
-    {
-        "udpserversnd",
-        UdpServer_SndTask,
-        "udpserver∑¢ÀÕ≤‚ ‘",
-        NULL
-    },
-    {
-        "udpserverrcv",
-        UdpServer_RcvTask,
-        "udpserverΩ” ’≤‚ ‘",
-        NULL
-    },
-    {
-        "reset",
-         reset,
-        "÷ÿ∆Ùª˙∆˜",
-        NULL
-    }
-};
-#define cn_monitor_test_num  ((sizeof(shellstackdebug))/(sizeof(struct ShellCmdTab)))
-static struct ShellCmdRsc tg_monitorshell_cmd_rsc[cn_monitor_test_num];
+
+
 void djyip_main(void)
 {
     printk("DJYOS NETSTACK TEST\n\r");
-
-    if(Sh_InstallCmd(shellstackdebug,tg_monitorshell_cmd_rsc,cn_monitor_test_num))
-    {
-        printk("ADD TEST SHELL SUCCESS!\n\r");
-    }
-    else
-    {
-        printk("ADD TEST SHELL FAILED!\n\r");
-    }
 }
-
-
-
-
-
+ADD_TO_ROUTINE_SHELL(tcpserversnd,TcpServer_SndTask,"tcpserver∑¢ÀÕ≤‚ ‘");
+ADD_TO_ROUTINE_SHELL(tcpserverblocksnd,TcpServer_BlockSendTest,"tcpserverblock∑¢ÀÕ≤‚ ‘");
+ADD_TO_ROUTINE_SHELL(udpserversnd,UdpServer_SndTask,"udpserver∑¢ÀÕ≤‚ ‘");
+ADD_TO_ROUTINE_SHELL(udpserverrcv,UdpServer_RcvTask,"udpserverΩ” ’≤‚ ‘");
+ADD_TO_ROUTINE_SHELL(reset,reset,"÷ÿ∆Ùª˙∆˜");
 
 

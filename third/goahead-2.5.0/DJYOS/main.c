@@ -224,25 +224,11 @@ bool_t GoAheadStart(char *para)
 
 #include "shell.h"
 
-static struct shell_debug  gGoAheadCmd[] =
-{
-    {
-        "goaheadstart",
-        GoAheadStart,
-        "usage:goaheadstart",
-        "usage:this is an webserver, and the version now is 2.5.0,specified for DJYOS"
-    }
-};
-
-#define CN_GOAHEAD_CMDNUM  ((sizeof(gGoAheadCmd))/(sizeof(struct shell_debug)))
 //static struct ShellCmdRsc gGoAheadCmdRsc[CN_GOAHEAD_CMDNUM];
 int Goahead_main(int argc, char *argv[])
 {
-    bool_t result;
 
-    result = shell_debug_add(gGoAheadCmd, CN_GOAHEAD_CMDNUM);
-
-    return result;
+    return 1;
 }
 
 

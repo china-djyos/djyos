@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -74,14 +74,14 @@ void critical(void)
 //    Timer_ModuleInit();
 //#endif
 //#if(CN_CFG_WDT == 1)
-//	//  初始化硬件看门狗
-//	extern bool_t WDT_FslInit(u32 setcycle);
-//	WDT_FslInit(1000);
+//  //  初始化硬件看门狗
+//  extern bool_t WDT_FslInit(u32 setcycle);
+//  WDT_FslInit(1000);
 //
-//	// 看门狗组件HAL喂狗
-//	//  开启中断并注册相关的服务函数
-//	bool_t WdtHal_BootStart(u32 bootfeedtimes);
-//	WdtHal_BootStart(20);
+//  // 看门狗组件HAL喂狗
+//  //  开启中断并注册相关的服务函数
+//  bool_t WdtHal_BootStart(u32 bootfeedtimes);
+//  WdtHal_BootStart(20);
 //#endif
 //#endif
 }

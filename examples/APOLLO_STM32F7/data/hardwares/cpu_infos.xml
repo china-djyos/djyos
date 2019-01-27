@@ -2,7 +2,6 @@
 <cpus>
    <cpu>ATSAM4E16xx</cpu>
    <cpu>ATSAMV70xxx</cpu>
-   <cpu>bk7251</cpu>
    <cpu>imxrt1052</cpu>
    <cpu>M487JIDAE</cpu>
    <cpu>s3c2416</cpu>

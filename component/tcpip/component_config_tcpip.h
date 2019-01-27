@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -60,7 +60,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-
+//    extern bool_t ModuleInstall_TcpIp(void);
+//    ModuleInstall_TcpIp( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -120,7 +121,9 @@
 #define     CFG_TFTP_ENABLE             true    //"tftp 使能"
 #define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能"
 #define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
-#define     CN_TFTP_PATHDEFAULT       "/efs/"   //TFTP默认工作目录
+//%$#@string,1,25,
+#define     CFG_TFTP_PATHDEFAULT       "/efs/"   //TFTP默认工作目录
+//%$#@enum,true,false,
 //*******************************DHCP SERVER**********************************//
 #define     CFG_DHCP_ENABLE             true    //"DHCP 使能"
 #define     CFG_DHCPD_ENABLE            false   //"DHCP 服务器使能"
@@ -137,13 +140,12 @@
 #define     CFG_DHCPD_NETIP             "255.255.255.0"  //"DHCP MASK IP"
 #define     CFG_DHCPD_DNS               "192.168.0.253"  //"DHCP DNSSERVER IP"
 //%$#@string,1,32,
-#define     CFG_DHCPD_DOMAINNAME       ""               //"DHCP domain name"
+#define     CFG_DHCPD_DOMAINNAME       "domain"        //"DHCP domain name"
 //*******************************PPP******************************************//
-#define     CN_PPP_ENABLE             1         //是否需要 ppp 协议
+//%$#@enum,true,false,
+#define     CN_PPP_ENABLE             true         //是否需要 ppp 协议
 //%$#@select
-#define CFG_MYCONFIG6           //"name",我的配置
 //%$#@free
-#define CFG_MYCONFIG7   CN_CONFIG           //我的配置
 #endif
 //%$#@end configue  ****参数配置结束
 

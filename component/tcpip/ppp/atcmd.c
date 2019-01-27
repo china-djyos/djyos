@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -72,8 +72,7 @@ static char pAtDevName[32]; //use this var to storage the at command device
 //作者:zhangqf@上午10:17:31/2017年3月23日
 //-----------------------------------------------------------------------------
 //bool_t  AtDefaultDevSet(char *name)
-ADD_TO_IN_SHELL_HELP(atdevset,"usage:atdevset devname");
-ADD_TO_IN_SHELL bool_t  atdevset(char *name)
+bool_t  atdevset(char *name)
 {
     if(NULL != name)
     {
@@ -89,8 +88,7 @@ const char *AtDevGetDefault(void)
 }
 
 //bool_t AtDefaultDevGetShell(char *para)
-ADD_TO_IN_SHELL_HELP(atdevget,"usage:atdevget");
-ADD_TO_IN_SHELL bool_t atdevget(char *para)
+bool_t atdevget(char *para)
 {
     debug_printf("ATCOMMANDDEV","%s\n\r",AtDevGetDefault());
     return true;
@@ -254,8 +252,7 @@ u8 gAtRcvBuf[CN_AT_LEN];
 //作者:zhangqf@上午10:54:07/2017年3月23日
 //-----------------------------------------------------------------------------
 //bool_t AtCmdShell(char *cmd)
-ADD_TO_IN_SHELL_HELP(atcmd,"usage:atcmd command");
-ADD_TO_IN_SHELL bool_t atcmd(char *cmd)
+bool_t atcmd(char *cmd)
 {
     int result;
     int argc = 10;
@@ -748,8 +745,7 @@ bool_t AtDial(char *devname,char *apn)
     return result;
 }
 //static bool_t  AtDialShell(char *param)
-ADD_TO_IN_SHELL_HELP(atdial,"usage:atdial devname apn");
-ADD_TO_IN_SHELL  bool_t  atdial(char *param)
+bool_t  atdial(char *param)
 {
     bool_t result = false;
     int argc =2;
@@ -801,8 +797,7 @@ int AtGetSignal(const char *atdev)
     return result;
 }
 //static bool_t AtGetSignalShell(char *param)
-ADD_TO_IN_SHELL_HELP(atsignal,"usage:atsignal [devname](if not supplied, will use the default)");
-ADD_TO_IN_SHELL  bool_t atsignal(char *param)
+bool_t atsignal(char *param)
 {
     const char *atdev;
     int signal;
@@ -835,7 +830,12 @@ ADD_TO_IN_SHELL  bool_t atsignal(char *param)
 //-----------------------------------------------------------------------------
 bool_t PppAtInit(ptu32_t para)
 {
-        return (TRUE);
+     return (TRUE);
 }
+ADD_TO_ROUTINE_SHELL(atsignal,atsignal,"usage:atsignal [devname](if not supplied, will use the default)");
+ADD_TO_ROUTINE_SHELL(atdevset,atdevset,"usage:atdevset devname");
+ADD_TO_ROUTINE_SHELL(atdevget,atdevget,"usage:atdevget");
+ADD_TO_ROUTINE_SHELL(atcmd,atcmd,"usage:atcmd command");
+ADD_TO_ROUTINE_SHELL(atdial,atdial,"usage:atdial devname apn");
 
 

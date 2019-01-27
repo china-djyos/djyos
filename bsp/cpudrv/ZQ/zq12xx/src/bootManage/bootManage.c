@@ -303,9 +303,8 @@ void BootManage(void)
 
 //shell 运行Risc
 
-ADD_TO_IN_SHELL_HELP(RunRisc,"运行Risc    命令格式: RunRisc");
 
-ADD_TO_IN_SHELL bool_t RunRisc(char *Param)
+bool_t RunRisc(char *Param)
 {
     if(isToBoot(EN_BOOT_RISC))
     {
@@ -315,9 +314,8 @@ ADD_TO_IN_SHELL bool_t RunRisc(char *Param)
 
 //shell 运行Dsp
 
-ADD_TO_IN_SHELL_HELP(RunDsp,"运行Dsp    命令格式: RunDsp");
 
-ADD_TO_IN_SHELL bool_t RunDsp(char *Param)
+bool_t RunDsp(char *Param)
 {
     if(isToBoot(EN_BOOT_DSP))
     {
@@ -327,27 +325,24 @@ ADD_TO_IN_SHELL bool_t RunDsp(char *Param)
 
 //Reboot Risc
 
-ADD_TO_IN_SHELL_HELP(RebootRisc,"RebootRisc    命令格式: RebootRisc");
 
-ADD_TO_IN_SHELL bool_t RebootRisc(char *Param)
+bool_t RebootRisc(char *Param)
 {
     M0RebootRisc();
 }
 
 //Reboot Dsp
 
-ADD_TO_IN_SHELL_HELP(ReBootDsp,"ReBootDsp    命令格式: ReBootDsp");
 
-ADD_TO_IN_SHELL bool_t ReBootDsp(char *Param)
+bool_t ReBootDsp(char *Param)
 {
     M0RebootDsp();
 }
 
 //复位 Risc
 
-ADD_TO_IN_SHELL_HELP(ResetRisc,"ResetRisc    命令格式: ResetRisc");
 
-ADD_TO_IN_SHELL bool_t ResetRisc(char *Param)
+bool_t ResetRisc(char *Param)
 {
     __REG32(SILAN_SYSCFG_REG11) &= ~(0x1);
 }
@@ -355,9 +350,8 @@ ADD_TO_IN_SHELL bool_t ResetRisc(char *Param)
 
 //复位Dsp
 
-ADD_TO_IN_SHELL_HELP(ResetDsp,"ResetDsp    命令格式: ResetDsp");
 
-ADD_TO_IN_SHELL bool_t ResetDsp(char *Param)
+bool_t ResetDsp(char *Param)
 {
     __REG32(SILAN_SYSCFG_REG11) &= ~(0x1<<2);
 }
@@ -369,40 +363,35 @@ ADD_TO_IN_SHELL bool_t ResetDsp(char *Param)
 
 //关闭M0调试
 
-ADD_TO_IN_SHELL_HELP(closem0debug,"关闭M0Debug    命令格式: closem0debug");
-ADD_TO_IN_SHELL bool_t closem0debug(char *Param)
+bool_t closem0debug(char *Param)
 {
     Reg11CtrCfg &= ~(1<<20);
 }
 
 //打开M0调试
 
-ADD_TO_IN_SHELL_HELP(openm0debug,"打开M0Debug    命令格式: openm0debug");
-ADD_TO_IN_SHELL bool_t openm0debug(char *Param)
+bool_t openm0debug(char *Param)
 {
     Reg11CtrCfg |= (1<<20);
 }
 
 //关闭ck 调试
 
-ADD_TO_IN_SHELL_HELP(closeriscdebug,"关闭RiscDebug    命令格式: closeriscdebug");
-ADD_TO_IN_SHELL bool_t closeriscdebug(char *Param)
+bool_t closeriscdebug(char *Param)
 {
     Reg11CtrCfg &= ~(1<<21);
 }
 
 //打开risc 调试
 
-ADD_TO_IN_SHELL_HELP(openriscdebug,"打开riscDebug    命令格式: openriscdebug");
-ADD_TO_IN_SHELL bool_t openriscdebug(char *Param)
+bool_t openriscdebug(char *Param)
 {
     Reg11CtrCfg |= (1<<21);
 }
 
 //关闭dsp 调试
 
-ADD_TO_IN_SHELL_HELP(closedspdebug,"关闭DspDebug    命令格式: closedspdebug");
-ADD_TO_IN_SHELL bool_t closedspdebug(char *Param)
+bool_t closedspdebug(char *Param)
 {
     Reg11CtrCfg &= ~(1<<22);
 }
@@ -410,11 +399,23 @@ ADD_TO_IN_SHELL bool_t closedspdebug(char *Param)
 
 //打开Dsp 调试
 
-ADD_TO_IN_SHELL_HELP(opendspdebug,"打开riscDebug    命令格式: opendspdebug");
-ADD_TO_IN_SHELL bool_t opendspdebug(char *Param)
+bool_t opendspdebug(char *Param)
 {
     Reg11CtrCfg |= (1<<22);
 }
+ADD_TO_ROUTINE_SHELL(opendspdebug,opendspdebug,"打开riscDebug    命令格式: opendspdebug");
+ADD_TO_ROUTINE_SHELL(RunRisc,RunRisc,"运行Risc    命令格式: RunRisc");
+ADD_TO_ROUTINE_SHELL(RunDsp,RunDsp,"运行Dsp    命令格式: RunDsp");
+ADD_TO_ROUTINE_SHELL(RebootRisc,RebootRisc,"RebootRisc    命令格式: RebootRisc");
+ADD_TO_ROUTINE_SHELL(ReBootDsp,ReBootDsp,"ReBootDsp    命令格式: ReBootDsp");
+ADD_TO_ROUTINE_SHELL(ResetRisc,ResetRisc,"ResetRisc    命令格式: ResetRisc");
+ADD_TO_ROUTINE_SHELL(ResetDsp,ResetDsp,"ResetDsp    命令格式: ResetDsp");
+ADD_TO_ROUTINE_SHELL(closem0debug,closem0debug,"关闭M0Debug    命令格式: closem0debug");
+ADD_TO_ROUTINE_SHELL(closeriscdebug,closeriscdebug,"关闭RiscDebug    命令格式: closeriscdebug");
+ADD_TO_ROUTINE_SHELL(openriscdebug,openriscdebug,"打开riscDebug    命令格式: openriscdebug");
+ADD_TO_ROUTINE_SHELL(closedspdebug,closedspdebug,"关闭DspDebug    命令格式: closedspdebug");
+ADD_TO_ROUTINE_SHELL(openm0debug,openm0debug,"打开M0Debug    命令格式: openm0debug");
+
 #endif
 
 

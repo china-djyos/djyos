@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -403,8 +403,7 @@ bool_t IpV4Process(tagNetPkg *pkg,void *dev)
 //static bool_t _V4Show(char *param)
 
 
-ADD_TO_IN_SHELL_HELP(ipv4,"usage:ipv4");
-ADD_TO_IN_SHELL bool_t ipv4(char *param)
+bool_t ipv4(char *param)
 {
     debug_printf("IPV4","IPV4 STATISTICS:\n\r");
     debug_printf("IPV4","IPV4 STATISTICS:SND         :%d\n\r",gV4CB.sndnum);
@@ -421,6 +420,7 @@ ADD_TO_IN_SHELL bool_t ipv4(char *param)
     return true;
 }
 
+ADD_TO_ROUTINE_SHELL(ipv4,ipv4,"usage:ipv4");
 
 
 

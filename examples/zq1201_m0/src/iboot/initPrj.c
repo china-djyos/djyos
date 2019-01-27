@@ -31,8 +31,8 @@ void Sys_ModuleInit(void)
 //	extern void ModuleInstall_BlackBox(void);
 //	ModuleInstall_BlackBox( );
 
-    extern bool_t ModuleInstall_MsgQ(void);
-    ModuleInstall_MsgQ ( );
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -51,24 +51,22 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
-    extern s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat);
-    extern s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
-            u8 parts, ...);
-    ModuleInstall_UnitMedia(__embed_part_init,   1,129, -1, 0);
+//    extern s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat);
+//    extern s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
+//            u8 parts, ...);
+//    ModuleInstall_UnitMedia(__embed_FsInstallInit,   1,129, -1, 0);
 
-    extern s32 ModuleInstall_IAP_FS(const char *target, const char *source, u32 opt);
+//    extern s32 ModuleInstall_IAP_FS(const char *target, const char *source, u32 opt);
 //    ModuleInstall_IAP_FS("iboot","/dev/unit media/embed part 0",0);
-    ModuleInstall_IAP_FS("iboot", "/dev/embed part 0", 0);
+//
+//    extern ptu32_t ModuleInstall_IAP(void);
+//    ModuleInstall_IAP();
+//
+//    extern bool_t ModuleInstall_Ymodem(void);
+//    ModuleInstall_Ymodem();
 
-
-    extern ptu32_t ModuleInstall_IAP(void);
-    ModuleInstall_IAP();
-
-    extern bool_t ModuleInstall_Ymodem(void);
-    ModuleInstall_Ymodem();
-
-	extern bool_t ModuleInstall_HardTimer(void);
-	ModuleInstall_HardTimer();
+    extern bool_t ModuleInstall_HardTimer(void);
+    ModuleInstall_HardTimer();
 
 	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_Timer(void);
@@ -80,7 +78,7 @@ void Sys_ModuleInit(void)
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
-	//ÊÂ¼şµÄÁ½¸ö²ÎÊıÔİÉèÎª0,Èç¹ûÓÃshellÆô¶¯,¿ÉÓÃÀ´²É¼¯shellÃüÁîĞĞ²ÎÊı
+	//äº‹ä»¶çš„ä¸¤ä¸ªå‚æ•°æš‚è®¾ä¸º0,å¦‚æœç”¨shellå¯åŠ¨,å¯ç”¨æ¥é‡‡é›†shellå‘½ä»¤è¡Œå‚æ•°
 	Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
 
 	extern bool_t Heap_DynamicModuleInit(void);

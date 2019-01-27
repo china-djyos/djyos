@@ -99,6 +99,9 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_LowPower (void);
 	ModuleInstall_LowPower();
 
+	ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+
 	extern ptu32_t ModuleInstall_ili9325(const char *DisplayName,const char* HeapName);
 	ModuleInstall_ili9325(CFG_ILI9325_DISPLAY_NAME,CFG_ILI9325_HEAP_NAME);
 

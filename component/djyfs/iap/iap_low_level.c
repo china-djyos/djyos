@@ -55,19 +55,20 @@
 #include <systime.h>
 #include <device/flash/flash.h> // will be obsolete
 #include <device/include/unit_media.h>
+#include <iap.h>
 
 // ============================================================================
 // 功能：写数据
-// 参数：ll -- IAP的volume
+// 参数：core -- IAP文件系统管理信息
 //      data -- 数据缓冲
 //      bytes -- 写字节数，不会超过一个缓存大小；
 //      pos -- 数据地址
 // 返回：成功（0）；失败（-1）；将要没有可写空间（-2）；
 // 备注：当写到最后一个unit时，会尝试擦除
 // ============================================================================
-s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
+s32 __ll_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
-    struct umedia *um = (struct umedia *)ll;
+    struct umedia *um = (struct umedia *)core->vol;
     struct uesz esz = {0};
     u32 j, offset, once, more;
     s32 left;
@@ -75,7 +76,7 @@ s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
     u32 block = 0;
 
     left = bytes;
-    unit = (pos >> um->usz) + um->ustart;
+    unit = (pos >> um->usz) + core->MStart;
     offset = pos & ((1 << um->usz)-1); // unit内偏移
     um->mreq(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
@@ -137,7 +138,7 @@ s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
     if(!more)
     {
         // +1是表示当前unit的后面一个
-        if(((unit-um->ustart+1)<<um->usz) >= um->asz)
+        if(((unit-core->MStart+1)<<um->usz) >= core->ASize)
         {
             return (-2);
         }
@@ -145,7 +146,7 @@ s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
 //        esz->unit = 0;
         um->mreq(whichblock, (ptu32_t)&block, &unit);
         //block+1是为了擦除下一个块
-        um->mreq(format, block+1, 1, &esz);
+        um->mreq(format, block+1, block+1+1, &esz);
     }
 
     um->mreq(unlock, 0); //
@@ -154,21 +155,21 @@ s32 __ll_write(void *ll, u8 *data, u32 bytes, u32 pos)
 
 // ============================================================================
 // 功能：读数据
-// 参数：ll -- IAP的volume
+// 参数：core -- IAP文件系统管理信息
 //      data -- 数据缓冲
 //      bytes -- 读字节数
 //      pos -- 数据地址
 // 返回：成功（0）；失败（-1）；
 // 备注：单次也就只会读一个unit，目前
 // ============================================================================
-s32 __ll_read(void *ll, u8 *data, u32 bytes, u32 pos)
+s32 __ll_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
-    struct umedia *um = (struct umedia *)ll;
+    struct umedia *um = (struct umedia *)core->vol;
     s64 unit;
     u32 offset;
     s32 left = bytes, once;
 
-    unit = (pos >> um->usz) + um->ustart;
+    unit = (pos >> um->usz) + core->MStart;
     offset = pos & ((1 << um->usz) - 1); // unit内偏移
     um->mreq(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
@@ -193,22 +194,22 @@ s32 __ll_read(void *ll, u8 *data, u32 bytes, u32 pos)
 
 // ============================================================================
 // 功能：擦除数据
-// 参数：pLowLevel -- IAP的volume
+// 参数：core -- IAP文件系统管理信息
 //       dwBytes -- 字节数
 //       dwAddr -- 数据地址
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 __ll_erase(void *ll, u32 bytes, u32 pos)
+s32 __ll_erase(struct __icore *core, u32 bytes, u32 pos)
 {
-    struct umedia *um = (struct umedia *)ll;
+    struct umedia *um = (struct umedia *)core->vol;
     struct uesz esz = {0};
     s64 unit;
     u32 erases, offset;
     s32 left = bytes;
 
     esz.unit = 1;
-    unit = (pos >> um->usz) + um->ustart;
+    unit = (pos >> um->usz) + core->MStart;
     offset = pos & ((1 << um->usz)-1); // unit内偏移
     um->mreq(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
@@ -234,40 +235,3 @@ s32 __ll_erase(void *ll, u32 bytes, u32 pos)
     return (0);
 }
 
-// ============================================================================
-// 功能：计算一段数据的CRC
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-u32 __ll_crc32(void *ll, u32 pos, u32 len)
-{
-    struct umedia *um = (struct umedia *)ll;
-    u32 crc, once, offset;
-    s64 unit;
-    s32 left = len, res = 0;
-
-    crc32init(&crc);
-    unit = (pos >> um->usz) + um->ustart;
-    offset = pos & ((1 << um->usz)-1); // unit内偏移
-    while(left)
-    {
-        once = MIN(((1 << um->usz) - offset), left);
-        res = um->mread(unit, um->ubuf, um->opt);
-        if(res)
-        {
-            crc32exit(&crc);
-            printf("\r\n: erro : iapfs  : read unit %lld failed when crc.", unit);
-            return (-1);
-        }
-
-        crc32run(&crc, um->ubuf+offset, once);
-        left -= once;
-        offset = 0;
-        unit ++;
-    }
-
-    crc32exit(&crc);
-    um->mreq(unlock, 0); //
-    return (crc);
-}

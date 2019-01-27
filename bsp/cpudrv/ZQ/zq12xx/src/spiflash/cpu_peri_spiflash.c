@@ -614,7 +614,7 @@ s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
     um->opt = opt;
     um->type = nand;
     um->ubuf = (u8*)um + sizeof(struct umedia);
-    um->ustart = bstart*sp_tFlashDesrc->PagesPerBlock; // 起始unit号
+//    um->ustart = bstart*sp_tFlashDesrc->PagesPerBlock; // 起始unit号
 //    bcount = 0;
 //    total = 0;
 

@@ -204,19 +204,6 @@ bool_t IeShell(char *param)
 #include <shell.h>
 #include <os.h>
 
-struct shell_debug  gServiceUrl[] =
-{
-    {
-        "ie",
-        IeShell,
-        "usage:ie",
-        "usage:ie + http://host:port/dir?param",
-    },
-};
-
-#define CN_URLDEBUG_NUM  ((sizeof(gServiceUrl))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gServiceUrlCmdRsc[CN_URLDEBUG_NUM];
-
 //usage:use this function to add the url debug to the kernel
 int Ghttp_main(int argc, char *argv[])
 {
@@ -224,12 +211,11 @@ int Ghttp_main(int argc, char *argv[])
     if(gIeEvttID == CN_EVTT_ID_INVALID)
     {
         return -1;
-    }
-    shell_debug_add(gServiceUrl, CN_URLDEBUG_NUM);
+    } 
     return 0;
 }
 
-
+ADD_TO_ROUTINE_SHELL ("ie",IeShell,"usage:ie + http://host:port/dir?param");
 
 
 

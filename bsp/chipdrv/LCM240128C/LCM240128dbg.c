@@ -96,8 +96,7 @@ ptu32_t LCD_Shell_Module_Install(void)
 
 
 //static void Sh_LCD_Reset(void)
-ADD_TO_IN_SHELL_HELP(lcdrst,"reset lcd  COMMAND:lcdrst+enter");
-ADD_TO_IN_SHELL  bool_t lcdrst(void)
+bool_t lcdrst(void)
 {
     LCD_Reset();
     InitLCM240128C( );
@@ -105,8 +104,7 @@ ADD_TO_IN_SHELL  bool_t lcdrst(void)
 }
 
 //static void Sh_LCD_Status(void)
-ADD_TO_IN_SHELL_HELP(lcdsta,"get lcd status  COMMAND:lcdsta+enter");
-ADD_TO_IN_SHELL  bool_t lcdsta(void)
+bool_t lcdsta(void)
 {
    u8 status;
    status=LCD_GetStatus();
@@ -114,8 +112,7 @@ ADD_TO_IN_SHELL  bool_t lcdsta(void)
    return true;
 }
 //static bool_t Sh_LCD_BackLight(char *param)
-ADD_TO_IN_SHELL_HELP(lcdbl,"On/Off lcd back light  COMMAND:lcdbl+1/0(1:On 0:Off)+enter");
-ADD_TO_IN_SHELL  bool_t lcdbl(char *param)
+ bool_t lcdbl(char *param)
 {
     char *word_OnOff,*word_trail,*next_param;
     uint8_t byOnOff;
@@ -144,23 +141,26 @@ ADD_TO_IN_SHELL  bool_t lcdbl(char *param)
     return true;
 }
 //static void Sh_Get_AdjustVal(void)
-ADD_TO_IN_SHELL_HELP(gtav,"get touch lcd adjust val  COMMAND:gtav+enter");
-ADD_TO_IN_SHELL  bool_t gtav(void)
+bool_t gtav(void)
 {
     Touch_GetAdjustVal();
     return true;
 }
 //static void Sh_Earse_AdjustVal(void)
-ADD_TO_IN_SHELL_HELP(etav,"erase touch lcd adjust val  COMMAND:etav+enter");
-ADD_TO_IN_SHELL  bool_t etav(void)
+bool_t etav(void)
 {
     Touch_EraseAdjustVal();
     return true;
 }
 //static void Sh_Get_TouchPoint(void)
-ADD_TO_IN_SHELL_HELP(gtp,"get the location of touch point  COMMAND:gtp+enter");
-ADD_TO_IN_SHELL  bool_t gtp(void)
+bool_t gtp(void)
 {
     Touch_GetTouchPoint();
     return true;
 }
+ADD_TO_ROUTINE_SHELL(gtp,gtp,"get the location of touch point  COMMAND:gtp+enter");
+ADD_TO_ROUTINE_SHELL(etav,etav,"erase touch lcd adjust val  COMMAND:etav+enter");
+ADD_TO_ROUTINE_SHELL(gtav,gtav,"get touch lcd adjust val  COMMAND:gtav+enter");
+ADD_TO_ROUTINE_SHELL(lcdbl,lcdbl,"On/Off lcd back light  COMMAND:lcdbl+1/0(1:On 0:Off)+enter");
+ADD_TO_ROUTINE_SHELL(lcdsta,lcdsta,"get lcd status  COMMAND:lcdsta+enter");
+ADD_TO_ROUTINE_SHELL(lcdrst,lcdrst,"reset lcd  COMMAND:lcdrst+enter");

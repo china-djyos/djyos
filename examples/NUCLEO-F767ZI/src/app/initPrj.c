@@ -37,6 +37,9 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
 
+	extern s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data);
+	ModuleInstall_IAP_FS("XIP-APP",0,NULL);
+
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
@@ -83,7 +86,29 @@ void Sys_ModuleInit(void)
 	ModuleInstall_IIC(CN_IIC4);
 	#endif
 
+
+	s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
+	ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_OPTION);
+
 	//-------------------medium-------------------------//
+	bool_t ModuleInstall_TcpIp(void);
+	ModuleInstall_TcpIp();
+
+	extern bool_t ModuleInstall_Ymodem(void);
+	ModuleInstall_Ymodem();
+
+	ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+
+	extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
+	bool_t loop,u32 loopcycle,\
+	bool_t (*rcvHook)(u8 *buf, u16 len));
+//	static u8 mac_addr[]={CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5};
+//	ModuleInstall_ETH(CFG_ETH_DEV_NAME,mac_addr,CFG_ETH_LOOP_ENABLE,CFG_ETH_LOOP_CYCLE,NULL);
+
+	extern void ModuleInstall_InitNet( );
+	ModuleInstall_InitNet( );
+
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);

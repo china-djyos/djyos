@@ -60,12 +60,12 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t ModuleInstall_IAP(void);
-//    ModuleInstall_IAP( );
+//    extern s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data);
+//    ModuleInstall_IAP_FS(CFG_EFLASH_FSMOUNT_NAME,0,NULL);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"IAP"          //在线升级
+//component name:"iap"          //在线升级
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，

@@ -705,8 +705,7 @@ YMODEM_RECVEXIT:
 // 返回：true,下载成功，否则，失败
 // ============================================================================
 //bool_t Ymodem_DownloadFile(char *Param)
-ADD_TO_IN_SHELL_HELP(downloadym,"下载文件    命令格式: download");
-ADD_TO_IN_SHELL bool_t downloadym(char *Param)
+bool_t downloadym(char *Param)
 {
     YMRESULT Ret = YMODEM_OK;
     u32 CntOver = 0;
@@ -947,8 +946,7 @@ YMODEM_SENDEXIT:
 // 返回：true,上载成功，否则，失败
 // ============================================================================
 //bool_t Ymodem_UploadFile(char *Param)
-ADD_TO_IN_SHELL_HELP(uploadym,"上传文件    命令格式: upload 文件名\n\r");
-ADD_TO_IN_SHELL bool_t uploadym(char *Param)
+bool_t uploadym(char *Param)
 {
     YMRESULT Ret = YMODEM_OK;
     u32 CntOver = 0;
@@ -1066,3 +1064,5 @@ YMODEM_EXIT:
 
     return true;
 }
+ADD_TO_ROUTINE_SHELL(uploadym,uploadym,"上传文件    命令格式: upload 文件名\n\r");
+ADD_TO_ROUTINE_SHELL(downloadym,downloadym,"下载文件    命令格式: download");

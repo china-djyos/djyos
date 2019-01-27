@@ -287,49 +287,7 @@ static bool_t WebsUpdate(char *param)
 
 
 #include "shell.h"
-static struct shell_debug gWebsDownload[] =
-{
-    {
-        "setserver",
-        WebsServerIpSet,
-        "usage:setserver + serverip",
-        "usage:this cmd used to set the webs storage server"
-    },
-    {
-        "webslistdownload",
-        WebsDownLoadList,
-        "usage:websdownloadlst + listfilename",
-        "usage:this cmd used to download the webs file list name file"
-    },
-    {
-        "webslist",
-        WebsListShow,
-        "usage:webslist",
-        "usage:this cmd used to show what file to be download or has been downloaded"
-    },
 
-    {
-        "websdownload",
-        WebsDownLoad,
-        "usage:websdownload",
-        "usage:download all the webs listed in the listfile"
-    },
-    {
-        "webstat",
-        WebsStat,
-        "usage:webstat",
-        "usage:show all the webs stat"
-    },
-    {
-        "websupdate",
-        WebsUpdate,
-        "usage:websupdate",
-        "usage:update all the webs"
-    }
-};
-
-#define CN_WEBSDOWNLOAD_CMDNUM  ((sizeof(gWebsDownload))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gWebsDownloadRsc[CN_WEBSDOWNLOAD_CMDNUM];
 bool_t ModuleInstall_WebsDownload(void)
 {
     bool_t result = false;
@@ -339,11 +297,12 @@ bool_t ModuleInstall_WebsDownload(void)
     {
         return result;
     }
-
-    shell_debug_add(gWebsDownload, CN_WEBSDOWNLOAD_CMDNUM);
-
     return result;
 }
-
-
+ADD_TO_ROUTINE_SHELL(setserver,WebsServerIpSet,"usage:this cmd used to set the webs storage server");
+ADD_TO_ROUTINE_SHELL(webslistdownload,WebsDownLoadList,"usage:this cmd used to download the webs file list name file");
+ADD_TO_ROUTINE_SHELL(webslist,WebsListShow,"usage:this cmd used to show what file to be download or has been downloaded");
+ADD_TO_ROUTINE_SHELL(websdownload, WebsDownLoad, "usage:download all the webs listed in the listfile");
+ADD_TO_ROUTINE_SHELL(webstat,WebsStat,"usage:show all the webs stat");
+ADD_TO_ROUTINE_SHELL(websupdate,WebsUpdate, "usage:update all the webs");
 

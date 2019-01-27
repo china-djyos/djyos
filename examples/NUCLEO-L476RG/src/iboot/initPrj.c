@@ -34,6 +34,9 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
+	extern bool_t ModuleInstall_Multiplex(void);
+	ModuleInstall_Multiplex ();
+
 	ptu32_t ModuleInstall_UART(u32 port);
 	#if CFG_USART1_ENABLE ==1
 	ModuleInstall_UART(CN_USART1);
@@ -57,6 +60,9 @@ void Sys_ModuleInit(void)
 	//-------------------medium-------------------------//
 	extern void ModuleInstall_LowPower (void);
 	ModuleInstall_LowPower();
+
+	ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);

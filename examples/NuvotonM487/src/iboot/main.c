@@ -23,7 +23,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -49,53 +49,16 @@
  *  Created on: 2014-5-28
  *      Author: Administrator
  */
-#include "djyos.h"
+
 #include "stdint.h"
 #include "stddef.h"
 
-#include "systime.h"
-#include "cpu_peri.h"
-
-// =============================================================================
-// 功能: LED TEST
-// 参数:无
-// 返回: 无
-// =============================================================================
-ptu32_t Led_Test(void)
-{
-    while(1)
-    {
-        Djy_EventDelay(500*mS);
-        PH0 = 0;
-        PH1 = 1;
-        Djy_EventDelay(500*mS);
-        PH0 = 1;
-        PH1 = 0;
-    }
-    return 0;
-}
-
-
-void LED_Init(void)
-{
-    u16 evtt_led;
-    /* Configure PB.3 as Output mode and PD.7 as Input mode then close it */
-    GPIO_SetMode(PH, BIT0, GPIO_MODE_OUTPUT);
-    GPIO_SetMode(PH, BIT1, GPIO_MODE_OUTPUT);
-    evtt_led = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
-                                Led_Test,NULL,1000,"Led_Test");
-    //事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
-    if(evtt_led!=CN_EVTT_ID_INVALID)
-        Djy_EventPop(evtt_led,NULL,0,NULL,0,0);
-}
-
-
 ptu32_t djy_main(void)
 {
-    LED_Init();
     while(1)
     {
-        Djy_EventDelay(5000*1000);
+        printf("hello world!\r\n");
+        Djy_EventDelay(1000*1000);
     }
     return 0;
 }

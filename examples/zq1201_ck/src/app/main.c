@@ -1,6 +1,6 @@
 
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -75,13 +75,13 @@ void Led_Goggle(void)
 
 ptu32_t djy_main(void)
 {
-	Led_Init();
-	printf("App CK:hello world!\r\n");
-	while(1)
-	{
-		Led_Goggle();
-//		printf("iboot release:hello world!\r\n");
-		Djy_EventDelay(1000*1000);
-	}
-	return 0;
+    Led_Init();
+    printf("App CK:hello world!\r\n");
+    while(1)
+    {
+        Led_Goggle();
+//      printf("iboot release:hello world!\r\n");
+        Djy_EventDelay(1000*1000);
+    }
+    return 0;
 }

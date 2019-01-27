@@ -86,8 +86,7 @@ bool_t stack(char *param);
 // 备注：
 // ============================================================================
 //bool_t Sh_ShowEvent(char *param)
-ADD_TO_IN_SHELL_HELP(event,"显示事件表");
-ADD_TO_IN_SHELL bool_t event(char *param)
+bool_t event(char *param)
 {
     u16 pl_ecb;
     u32 time1,MemSize,StackSize;
@@ -152,8 +151,7 @@ ADD_TO_IN_SHELL bool_t event(char *param)
 // 备注：
 // ============================================================================
 //bool_t Sh_ShowEvtt(char *param)
-ADD_TO_IN_SHELL_HELP(evtt,"显示事件类型表");
-ADD_TO_IN_SHELL bool_t evtt(char *param)
+bool_t evtt(char *param)
 {
     u16 pl_ecb;
     u32 MemSize;
@@ -200,8 +198,7 @@ ADD_TO_IN_SHELL bool_t evtt(char *param)
 // 备注：
 // ============================================================================
 //bool_t Sh_ShowStack(char *param)
-ADD_TO_IN_SHELL_HELP(stack,"显示系统中所有已经分配线程的事件的栈信息");
-ADD_TO_IN_SHELL bool_t stack(char *param)
+bool_t stack(char *param)
 {
     u16 pl_ecb;
     u32 loop,StackSize,pads;
@@ -370,4 +367,7 @@ void ModuleInstall_DebugInfo(ptu32_t para)
 #endif  //CFG_OS_TINY == false
 }
 #endif
+ADD_TO_ROUTINE_SHELL(stack,stack,"显示系统中所有已经分配线程的事件的栈信息");
+ADD_TO_ROUTINE_SHELL(event,event,"显示事件表");
+ADD_TO_ROUTINE_SHELL(evtt,evtt,"显示事件类型表");
 

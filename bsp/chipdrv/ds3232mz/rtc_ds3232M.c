@@ -554,8 +554,7 @@ ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
 
 
 //void Sh_RTC_SetTime(char *param)
-ADD_TO_IN_SHELL_HELP(rtcst,"设置RTC时间   格式:2017/08/20,21:00:00");
-ADD_TO_IN_SHELL bool_t rtcst(char *param)
+bool_t rtcst(char *param)
 {
     char command[20];
     bool_t ret;
@@ -582,8 +581,7 @@ ADD_TO_IN_SHELL bool_t rtcst(char *param)
 }
 
 //void Sh_RTC_GetTime(void)
-ADD_TO_IN_SHELL_HELP(rtcgt,"获取RTC时间");
-ADD_TO_IN_SHELL bool_t rtcgt(void)
+bool_t rtcgt(void)
 {
     struct tm ptDateTime;
     bool_t ret;
@@ -606,3 +604,5 @@ ptu32_t RTC_Shell_Module_Install(void)
 {
     return 1;
 }
+ADD_TO_ROUTINE_SHELL(rtcst,rtcst,"设置RTC时间   格式:2017/08/20,21:00:00");
+ADD_TO_ROUTINE_SHELL(rtcgt,rtcgt,"获取RTC时间");

@@ -31,11 +31,11 @@
   <isbus_slave>false</isbus_slave>
   <lowpower>false</lowpower>
   <multiplex>true</multiplex>
-  <shell>false</shell>
-  <stdio>false</stdio>
+  <shell>true</shell>
+  <stdio>true</stdio>
   <tcpip>false</tcpip>
   <timer>false</timer>
-  <wdt>true</wdt>
+  <wdt>false</wdt>
   <ymodem>false</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>

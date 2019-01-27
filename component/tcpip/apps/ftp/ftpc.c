@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -63,7 +63,12 @@
 
 #include "ftp.h"
 #include "dbug.h"
-//make the string ip to net address
+//------------------------------------------------------------------------------
+//功能：字符串地址转整数IPV4地址，字符串可以是点分十进制的，也可以是主机名。
+//参数：string，IPV4 地址，或者主机名
+//     addr，返回结果，网络字节序
+//返回：true=成功，false= 失败
+//------------------------------------------------------------------------------
 static bool_t  __String2Ip(const char *string,struct in_addr *addr)
 {
     bool_t ret = false;
@@ -907,8 +912,7 @@ static bool_t __FtpcTest(int argc,const char *argv[])
     return true;
 }
 //static bool_t __FtpcDebug(char *param)
-ADD_TO_IN_SHELL_HELP(ftpc,"usage:ftpc subcmd [subpara]");
-ADD_TO_IN_SHELL  bool_t ftpc(char *param)
+bool_t ftpc(char *param)
 {
     int len ;
     int argc =10;
@@ -1287,6 +1291,7 @@ bool_t ServiceFtpcInit(ptu32_t para)
     return true;
 }
 
+ADD_TO_ROUTINE_SHELL(ftpc,ftpc,"usage:ftpc subcmd [subpara]");
 
 
 

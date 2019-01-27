@@ -768,61 +768,6 @@ static bool_t mqttstat(char *param)
 
 #include <os.h>
 #include <shell.h>
-static struct ShellCmdTab  gMosquittoCmd[] =
-{
-    {
-        "mqttcfg",
-        mqttconfig,
-        "usage:moscfg -h[host] -p[port] -u[user] -P[passwd] -i[id] -t[topic] -m[message]",
-        "usage:moscfg config the environment"
-    },
-    {
-        "subset",
-        mqttsetsubtopic,
-        "usage:subset subtopics",
-        "usage:subset subtopics",
-    },
-    {
-        "pubset",
-        mqttsetpubtopic,
-        "usage:pubset pubtopics",
-        "usage:pubset pubtopics",
-    },
-    {
-        "mqttstart",
-        mqttstartshell,
-        "usage:mqttstart ",
-        "usage:mqttstart ",
-    },
-    {
-        "mqttstop",
-        mqttstopshell,
-        "usage:mqttstop ",
-        "usage:mqttstop ",
-    },
-    {
-        "mqttdebug",
-        mqttdebugsetshell,
-        "usage:mqttdebug on/off",
-        "usage:mqttdebug on/off",
-    },
-    {
-        "mqttstat",
-        mqttstat,
-        "usage:mqttstat",
-        "usage:mqttstat",
-    },
-    {
-        "mqttpub",
-        mqttpubmsg,
-        "usage:mqttpub messages",
-        "usage:mqttpub messages",
-    },
-
-};
-
-#define CN_Mosquitto_CMDNUM  ((sizeof(gMosquittoCmd))/(sizeof(struct ShellCmdTab)))
-//static struct ShellCmdRsc gMosquittoCmdRsc[CN_Mosquitto_CMDNUM];
 
 //work flow:mqttservicestart->add mqtt device ->configure the device->enable the device
 //usage:use this function to do the mqtt  module initialize
@@ -836,10 +781,17 @@ int mqttserviceinit(void)
     }
     else
     {
-        result = shell_debug_add(gMosquittoCmd, CN_Mosquitto_CMDNUM);
+        result = true;
     }
     return result;
 }
 
 
-
+ADD_TO_ROUTINE_SHELL(mqttcfg,mqttconfig,"usage:moscfg -h[host] -p[port] -u[user] -P[passwd] -i[id] -t[topic] -m[message]");
+ADD_TO_ROUTINE_SHELL(subset,mqttsetsubtopic,"usage:subset subtopics");
+ADD_TO_ROUTINE_SHELL(pubset,mqttsetpubtopic,"usage:pubset pubtopics");
+ADD_TO_ROUTINE_SHELL(mqttstart,mqttstartshell,"usage:mqttstart ");
+ADD_TO_ROUTINE_SHELL(mqttstop,mqttstopshell,"usage:mqttstop ");
+ADD_TO_ROUTINE_SHELL(mqttdebug, mqttdebugsetshell, "usage:mqttdebug on/off");
+ADD_TO_ROUTINE_SHELL(mqttstat,mqttstat,"usage:mqttstat");
+ADD_TO_ROUTINE_SHELL(mqttpub,mqttpubmsg,"usage:mqttpub messages");

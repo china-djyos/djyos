@@ -54,6 +54,7 @@
 #include "iap.h"
 #include "dbug.h"
 #include <include/unit_media.h>
+#if 0
 #define LOCAL_BUF_SIZE        512
 // ============================================================================
 // 功能：获取文件的CRC值
@@ -276,7 +277,7 @@ s32 OBSOLETE_IAP_Update(char *pDevPath)
     }
 
     // 获取设备中更新文件的头部信息
-    start = um->ustart; // 当前逻辑是从保留页开始
+    start = 0; // 要用该升级方式的话iap文件系统的起始必须是0开始
     res = um->mread(start++, buf, opt);
     if(0 != res)
     {
@@ -420,3 +421,4 @@ s32 IAP_Update(u8 bArgC, ...)
     debug_printf("iap","\r\n");
     return (res);
 }
+#endif

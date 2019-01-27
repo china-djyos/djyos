@@ -98,6 +98,7 @@
 #include <systime.h>
 #include <lock.h>
 #include <stdio.h>
+#include <dirent.h>
 
 // OBJ双向链表初始化
 #define __OBJ_LIST_INIT(l)              (l)->next = (l)->prev = (l)
@@ -153,6 +154,10 @@ static struct MutexLCB s_tObjectMutex;
 static const char *__uname_obj = "un_named";
 inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                                 ptu32_t OpsArgs2, ptu32_t OpsArgs3);
+static struct objhandle *__objsys_open(struct obj *ob, u32 flags, char *uncached);
+static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry);
+static s32 __objsys_close(struct objhandle *hdl);
+
 
 struct __statics
 {
@@ -171,9 +176,118 @@ struct __statics
 inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                                 ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-    return (CN_OBJ_CMD_UNSUPPORT);
+    s32 result = CN_OBJ_CMD_EXECUTED;
+    switch(cmd)
+    {
+        case CN_OBJ_CMD_OPEN:
+        {
+            struct objhandle *hdl;
+            hdl = __objsys_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            *(struct objhandle **)OpsArgs1 = hdl;
+            break;
+        }
+
+        case CN_OBJ_CMD_READDIR:
+        {
+            struct objhandle *hdl = (struct objhandle*)OpsArgs3;
+            struct dirent *ret = (struct dirent *)OpsArgs1;
+
+            if((ptu32_t)__objsys_readdentry(hdl, ret) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
+        }
+
+        case CN_OBJ_CMD_CLOSE:
+        {
+            if(__objsys_close((struct objhandle*)opsTarget) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
+        }
+//      ftp是通过能否获取到该obj的状态来决定该obj是否要通过ftp显示出来，所以这里把获取状态的功能注释了，不然所有节点都会显示出来
+
+
+        default:
+        {
+            result = CN_OBJ_CMD_UNSUPPORT;
+            break;
+        }
+    }
+	
+    return (result);
+}
+// ============================================================================
+// 功能：打开根目录
+// 参数：ob -- 根目录对象(可能不是需要打开的文件)；
+//      flags -- 文件标记；
+//      uncached -- 未匹配的部分；
+// 返回：成功申请（新对象）；失败（NULL）；
+// 备注：
+// ============================================================================
+static struct objhandle *__objsys_open(struct obj *ob, u32 flags, char *uncached)
+{
+	struct objhandle *hdl;
+
+	hdl = handle_new();
+	if(!hdl)
+    {
+        printf("\r\n : erro : efs    : open failed(memory out).");
+        return (NULL);
+    }
+	handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
+    return (hdl);	
+}
+// ============================================================================
+// 功能：读根目录
+// 参数：directory -- 根目录的对象句柄；；
+//      dentry -- 目录项；
+// 返回：全部读完（1）；读了一项（0）；
+// 备注：
+// ============================================================================
+static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry)
+{
+	struct obj *ob = (struct obj *)dentry->d_ino;
+	if(!ob) // 第一次读；
+    {
+        ob = obj_child(handle_GetHostObj(directory));
+        if(!ob)
+            return (1); // 没有子项目；
+    }
+    else // 后续读；
+    {
+        ob = obj_next(ob);
+        if(ob==obj_child(handle_GetHostObj(directory)))
+            return (1); // 全部读完；
+    }
+	if(!obj_GetPrivate(ob))
+        dentry->d_type = DIRENT_IS_DIR;
+    else
+        dentry->d_type = DIRENT_IS_REG;
+	
+    strcpy(dentry->d_name, obj_name(ob));
+    dentry->d_ino = (long)ob;
+    return (0);
+}
+// ============================================================================
+// 功能：关闭打开的根目录；
+// 参数：hdl -- 根目录的对象句柄；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+static s32 __objsys_close(struct objhandle *hdl)
+{
+    return handle_Delete(hdl);
 }
 
+//static s32 __objsys_stat(struct obj *ob, struct stat *data, char *uncached)
+//{
+//    data->st_size = 0; // 安装点；
+//    data->st_mode = S_IFDIR;
+//    return (0);
+//}
 // ============================================================================
 // 功能：锁定对象系统；
 // 参数：

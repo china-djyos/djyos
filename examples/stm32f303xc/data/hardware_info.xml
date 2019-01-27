@@ -2,5 +2,5 @@
 <hardware>
    <baord>stm32f3-empty</baord>
    <cpu>stm32f303xc</cpu>
-   <core>Core1</core>
+   <core>cortex-m4</core>
 </hardware>

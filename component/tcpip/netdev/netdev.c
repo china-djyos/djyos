@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -549,13 +549,12 @@ void * NetDevPrivate(void *iface)
 
 //netdev shell here
 //static bool_t __IfconfigShell(char *param)
-ADD_TO_IN_SHELL_HELP(ifconfig,"usage:ifconfig");
-ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
+bool_t ifconfig(char *param)
 {
     int i = 0;
     tagNetDev *iface;
     OsPrintSplit('*',100);
-    debug_printf("netdev","%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
+    printf("%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
             "NO","NAME","TYPE","FUNCTION","MTU","SNDTOTAL","SNDERR","RCVTOTAL","RCVERR","MAC");
     if(mutex_lock(gIfaceCB.lock))
     {
@@ -563,7 +562,7 @@ ADD_TO_IN_SHELL  bool_t ifconfig(char *param)
         while(NULL != iface)
         {
             i++;
-            debug_printf("netdev","%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
+            printf("%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
                     i,iface->name,LinkTypeName(iface->iftype),iface->devfunc,iface->mtu,\
                     iface->pkgsnd,iface->pkgsnderr,iface->pkgrcv,iface->pkgrcverr,mac2string(iface->mac));
             iface = iface->nxt;
@@ -605,6 +604,7 @@ EXIT_MUTEX:
     return ret;
 }
 
+ADD_TO_ROUTINE_SHELL(ifconfig,ifconfig,"usage:ifconfig");
 
 
 

@@ -50,31 +50,23 @@
 #include <dirent.h>
 #include "../filesystems.h"
 #include "component_config_efs.h"
+#include <stdlib.h>
 
 extern s32 e_install(struct FsCore *super, u32 flags, void *data);
 extern s32 e_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 
-//
-// IAP文件系统类型
-//
-static struct FsType typeEFS = {
-        e_operations,
-        e_install,
-        NULL,
-        NULL,
-        "EFS"
-};
 
 // ============================================================================
 // 功能：安装EASY文件系统
-// 参数：target -- 安装目录；source -- 安装设备；opt -- 安装选项； config -- 特殊逻辑；
+// 参数：target -- 安装目录；opt -- 安装选项； config -- 特殊逻辑；
 // 返回：失败(-1)； 成功(0)。
 // 备注:
 // ============================================================================
-s32 ModuleInstall_EFS(const char *target, const char *source, u32 opt, void *config)
+s32 ModuleInstall_EFS(const char *target, u32 opt, void *config)
 {
     struct obj * mountobj;
+    static struct filesystem *typeEFS = NULL;
     s32 res;
 
     if(!target)
@@ -82,7 +74,17 @@ s32 ModuleInstall_EFS(const char *target, const char *source, u32 opt, void *con
         return (-1);
     }
 
-    res = regfs(&typeEFS);
+    if(typeEFS == NULL)
+    {
+        typeEFS = malloc(sizeof(*typeEFS));
+
+        typeEFS->fileOps = e_operations;
+        typeEFS->install = e_install;
+        typeEFS->pType = "EFS";
+        typeEFS->format = NULL;
+        typeEFS->uninstall = NULL;
+    }
+    res = regfs(typeEFS);
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"EFS\"<file system type>.");
@@ -97,18 +99,13 @@ s32 ModuleInstall_EFS(const char *target, const char *source, u32 opt, void *con
     }
     obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;
-    res = mountfs(source, target, "EFS", opt, config);
+    res = mountfs(NULL, target, "EFS", opt, config);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"%s\" failed, cannot install.", "EFS");
         obj_Delete(mountobj);
         return (-1);
     }
-    if(res == -2)
-    {
-        return (-1);// 失败，没有识别到媒体
-    }
 
-    printf("\r\n: info  : module : file system \"%s\" installed on \"%s\".", "EFS", source);
     return (0);
 }

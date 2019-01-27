@@ -16,7 +16,7 @@
   <spibus>false</spibus>
   <djybus>true</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <IAP>false</IAP>
+  <iap>true</iap>
   <filesystem>false</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>
@@ -36,7 +36,7 @@
   <tcpip>true</tcpip>
   <timer>false</timer>
   <wdt>false</wdt>
-  <ymodem>false</ymodem>
+  <ymodem>true</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>
   <int>true</int>
@@ -44,7 +44,7 @@
   <MsgQueue>true</MsgQueue>
   <Objfile>false</Objfile>
   <MemoryPool>true</MemoryPool>
-  <time>true</time>
+  <time>false</time>
   <board>true</board>
   <netconfig>true</netconfig>
   <loader>true</loader>
@@ -69,6 +69,7 @@
   <fatfilesystem>false</fatfilesystem>
   <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
@@ -85,14 +86,14 @@
   <cpu_peri_bksram>false</cpu_peri_bksram>
   <cpu_peri_can>false</cpu_peri_can>
   <cpu_peri_dma>true</cpu_peri_dma>
-  <cpu_peri_emflash>false</cpu_peri_emflash>
+  <cpu_peri_emflash>true</cpu_peri_emflash>
   <cpu_peri_eth>true</cpu_peri_eth>
   <cpu_peri_gpio>true</cpu_peri_gpio>
   <cpu_peri_iic>true</cpu_peri_iic>
   <cpu_peri_lcd>false</cpu_peri_lcd>
   <cpu_peri_lowpower>false</cpu_peri_lowpower>
   <cpu_peri_nand>false</cpu_peri_nand>
-  <cpu_peri_rtc>true</cpu_peri_rtc>
+  <cpu_peri_rtc>false</cpu_peri_rtc>
   <cpu_peri_emmc>false</cpu_peri_emmc>
   <cpu_peri_spi>false</cpu_peri_spi>
   <cpu_peri_systime>false</cpu_peri_systime>

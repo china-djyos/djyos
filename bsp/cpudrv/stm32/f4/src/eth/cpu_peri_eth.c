@@ -510,7 +510,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
 //this is the receive task
 static ptu32_t __MacRcvTask(void)
 {
-    tagNetPkg *pkg;
+    tagNetPkg *pkg=NULL;
     ptu32_t    handle;
     u8        *rawbuf;
     u16        len;
@@ -585,8 +585,7 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 //show the gmac status
 //bool_t macdebuginfo(char *param)
 
-ADD_TO_IN_SHELL_HELP(mac,"usage:gmac");
-ADD_TO_IN_SHELL bool_t mac(char *param)
+bool_t mac(char *param)
 
 {
     s64  time;
@@ -635,8 +634,7 @@ ADD_TO_IN_SHELL bool_t mac(char *param)
 #define CN_GMAC_REG_BASE   ((u32)ETH)
 //bool_t MacReg(char *param)
 
-ADD_TO_IN_SHELL_HELP(macreg,"usage:MacReg");
-ADD_TO_IN_SHELL bool_t macreg(char *param)
+bool_t macreg(char *param)
 {
     vu32    i;
     vu32   *addr;
@@ -723,8 +721,7 @@ ADD_TO_IN_SHELL bool_t macreg(char *param)
 }
 
 //bool_t MacReset(char *param)
-ADD_TO_IN_SHELL_HELP(macreset,"usage:reset gmac");
-ADD_TO_IN_SHELL bool_t macreset(char *param)
+bool_t macreset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
 
@@ -733,8 +730,7 @@ ADD_TO_IN_SHELL bool_t macreset(char *param)
 }
 
 //bool_t MacSndEn(char *param)
-ADD_TO_IN_SHELL_HELP(macsnden,"usage:MacSndEn");
-ADD_TO_IN_SHELL bool_t macsnden(char *param)
+bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -749,8 +745,7 @@ ADD_TO_IN_SHELL bool_t macsnden(char *param)
 }
 
 //bool_t MacSndDis(char *param)
-ADD_TO_IN_SHELL_HELP(macsnddis,"usage:MacSndDis");
-ADD_TO_IN_SHELL bool_t macsnddis(char *param)
+bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -891,3 +886,8 @@ u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
         return 0;
     return 1;
 }
+ADD_TO_ROUTINE_SHELL(mac,mac,"usage:gmac");
+ADD_TO_ROUTINE_SHELL(macreg,macreg,"usage:MacReg");
+ADD_TO_ROUTINE_SHELL(macreset,macreset,"usage:reset gmac");
+ADD_TO_ROUTINE_SHELL(macsnden,macsnden,"usage:MacSndEn");
+ADD_TO_ROUTINE_SHELL(macsnddis,macsnddis,"usage:MacSndDis");

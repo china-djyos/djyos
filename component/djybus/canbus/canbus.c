@@ -629,8 +629,7 @@ void CAN_BusGetStat(struct CANBusCB * CANBus,CanStatDef *CanStat)
 *********************************************************************************/
 //static void Sh_CAN_BusStat(char *param)
 
-ADD_TO_IN_SHELL_HELP(cbstat,"COMMAND:canrst+CAN¿ØÖÆÆ÷±àºÅ+enter");
-ADD_TO_IN_SHELL bool_t cbstat(char *param)
+bool_t cbstat(char *param)
 {
     struct obj *Object=NULL;
     struct CANBusCB * CANBus;
@@ -717,3 +716,4 @@ void __CAN_BusPrintfStat(struct CANBusCB * CANBus)
     debug_printf("CANBUS","%s ACK Err Cnt          :0x%08x 0x%08x \r\n",CN_CAN_BUS_PRINTF_PREFIX,data[1],data[0]);
 
 }
+ADD_TO_ROUTINE_SHELL(cbstat,cbstat,"COMMAND:canrst+CAN¿ØÖÆÆ÷±àºÅ+enter");

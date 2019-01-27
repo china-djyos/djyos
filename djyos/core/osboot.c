@@ -265,8 +265,7 @@ static void __ShowBootMode(tagBootMode *bootmsg)
 }
 
 //static bool_t __BootMsgShowShell(char *param)
-ADD_TO_IN_SHELL_HELP(bootmsg,"usage:bootmsg");
-ADD_TO_IN_SHELL bool_t bootmsg(char *param)
+bool_t bootmsg(char *param)
 {
     tagBootMode *msg;
 
@@ -288,25 +287,18 @@ static bool_t __BootModeDecoder(struct BlackBoxThrowPara *exppara,u32 endian)
 
 
 //add some boot commands
-extern void reboot(u32 key);
-extern void reset(u32 key);
+extern void reboot();
+extern void reset();
 extern void restart_system(u32 key);
 //static bool_t rebootshell(char *param)
-ADD_TO_IN_SHELL_HELP(rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_IN_SHELL bool_t rebootshell(char *param)
+bool_t rebootshell(char *param)
 {
-    u32 key = 0XAA55AA55;
-    if(NULL != param)
-    {
-        key = strtoul(param,NULL,0);
-    }
 
-    reboot(key);
+    reboot( );
     return true;
 }
 //static bool_t resetshell(char *param)
-ADD_TO_IN_SHELL_HELP(resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_IN_SHELL bool_t resetshell(char *param)
+bool_t resetshell(char *param)
 {
     u32 key = 0;
     if(NULL != param)
@@ -317,8 +309,7 @@ ADD_TO_IN_SHELL bool_t resetshell(char *param)
     return true;
 }
 //static bool_t reloadshell(char *param)
-ADD_TO_IN_SHELL_HELP(restart,"usage:restart [key](if key is 0XAA55AA55 then will not record)");
-ADD_TO_IN_SHELL bool_t restart(char *param)
+bool_t restart(char *param)
 {
     u32 key = 0;
     if(NULL != param)
@@ -330,8 +321,7 @@ ADD_TO_IN_SHELL bool_t restart(char *param)
 }
 
 //static bool_t bootaddressshell(char *param)
-ADD_TO_IN_SHELL_HELP(bootaddress,"usage:bootaddress [address]");
-ADD_TO_IN_SHELL bool_t bootaddress(char *param)
+bool_t bootaddress(char *param)
 {
     u32 addr;
     u32 InitCpu_Addr;
@@ -419,3 +409,8 @@ bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode getmodehard,
 
 }
 
+ADD_TO_ROUTINE_SHELL(restart,restart,"usage:restart [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_ROUTINE_SHELL(bootaddress,bootaddress,"usage:bootaddress [address]");
+ADD_TO_ROUTINE_SHELL(rebootshell,rebootshell,"usage:rebootshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_ROUTINE_SHELL(resetshell,resetshell,"usage:resetshell [key](if key is 0XAA55AA55 then will not record)");
+ADD_TO_ROUTINE_SHELL(bootmsg,bootmsg,"usage:bootmsg");

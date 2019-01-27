@@ -318,8 +318,7 @@ struct HeapCB *M_FindHeap(const char *HeapName)
 }
 
 //void __M_ShowHeap(void)
-ADD_TO_IN_SHELL_HELP(heap,"显示堆使用情况");
-ADD_TO_IN_SHELL bool_t heap(void)
+bool_t heap(void)
 {
     struct HeapCB *Heap;
     struct HeapCession *Cession;
@@ -398,8 +397,7 @@ ADD_TO_IN_SHELL bool_t heap(void)
 }
 
 //void __M_ShowHeapSpy(void)
-ADD_TO_IN_SHELL_HELP(heap_spy,"显示动态内存详细分配情况");
-ADD_TO_IN_SHELL bool_t heap_spy(void)
+bool_t heap_spy(void)
 {
     struct HeapCB *Heap;
     struct HeapCession *Cession;
@@ -2077,3 +2075,6 @@ ptu32_t  __M_GetFreeMem(void)
 
     return result;
 }
+ADD_TO_ROUTINE_SHELL(heap_spy,heap_spy,"显示动态内存详细分配情况");
+ADD_TO_ROUTINE_SHELL(heap,heap,"显示堆使用情况");
+

@@ -16,7 +16,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))
+         KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
     }>RAM1
 
     /*iboot.lds中InitStack大小及位置必须与应用程序中debug/release.lds*/
@@ -40,24 +40,24 @@ SECTIONS
     text_startup_rROM_lROM :
     {
     	. = ALIGN(0x08);
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:initcpuc.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:pre_loader.o (.text .text.* .rodata .rodata.*))
-        KEEP(*libos_Iboot_Debug.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:hard-exps.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:initcpuc.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:pre_loader.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:IAP_pLoad.o (.text .text.* .rodata .rodata.*))
     }>Flash
 
     text_preload_rROM_lROM :
     {
         . = ALIGN(0x08);
         g_pAppCodeStartRamAddr = .;
-        *libos_Iboot_Debug.a:loader.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:int_hard.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:hard-exp.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:int.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:ints.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:loader.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:int_hard.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:hard-exp.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:int.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:ints.o (.text .text.* .rodata .rodata.*)
         *src/iboot/critical/*.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:heap-static.o (.text .text.* .rodata .rodata.*)
-        *libos_Iboot_Debug.a:list.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:heap-static.o (.text .text.* .rodata .rodata.*)
+        *libos_Iboot.a:list.o (.text .text.* .rodata .rodata.*)
     }>Flash
 
 	QSpi_Flash :
@@ -87,15 +87,15 @@ SECTIONS
     rw_preload_rExtRam_lROM :
     {
         . = ALIGN(0x08);
-        *libos_Iboot_Debug.a:loader.o (.data .data.*)
-        *libos_Iboot_Debug.a:int_hard.o (.data .data.*)
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.data .data.*))
-        *libos_Iboot_Debug.a:hard-exp.o (.data .data.*)
-        *libos_Iboot_Debug.a:int.o (.data .data.*)
-        *libos_Iboot_Debug.a:ints.o (.data .data.*)
+        *libos_Iboot.a:loader.o (.data .data.*)
+        *libos_Iboot.a:int_hard.o (.data .data.*)
+        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
+        *libos_Iboot.a:hard-exp.o (.data .data.*)
+        *libos_Iboot.a:int.o (.data .data.*)
+        *libos_Iboot.a:ints.o (.data .data.*)
         *src/iboot/critical/*.o (.data .data.*)
-        *libos_Iboot_Debug.a:heap-static.o (.data .data.*)
-        *libos_Iboot_Debug.a:list.o (.data .data.*)
+        *libos_Iboot.a:heap-static.o (.data .data.*)
+        *libos_Iboot.a:list.o (.data .data.*)
     }>ExtRam AT>Flash
 
     /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
@@ -108,15 +108,15 @@ SECTIONS
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
         Remap_Int_End = . ;
-        *libos_Iboot_Debug.a:loader.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:int_hard.o (.bss .bss.* COMMON)
-        KEEP(*libos_Iboot_Debug.a:hard-exps.o (.bss .bss.* COMMON))
-        *libos_Iboot_Debug.a:hard-exp.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:int.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:ints.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:loader.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int_hard.o (.bss .bss.* COMMON)
+        KEEP(*libos_Iboot.a:hard-exps.o (.bss .bss.* COMMON))
+        *libos_Iboot.a:hard-exp.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:int.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:ints.o (.bss .bss.* COMMON)
         *src/iboot/critical/*.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:heap-static.o (.bss .bss.* COMMON)
-        *libos_Iboot_Debug.a:list.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:heap-static.o (.bss .bss.* COMMON)
+        *libos_Iboot.a:list.o (.bss .bss.* COMMON)
     }>ExtRam
 
     rw_sysload_rExtRam_lROM :
@@ -131,6 +131,16 @@ SECTIONS
         * (.bss .bss.* COMMON)
     }>ExtRam
 
+    routine_shell_data_section :
+	{
+   		 KEEP(* (.ro_shell_data))
+ 	 }>ExtRam AT>Flash
+ 	
+    expand_shell_data_section :
+	{
+ 	     KEEP(* (.ex_shell_data))
+ 	 }>ExtRam AT>Flash
+ 	 
     preload_cp_table :
     {
         . = ALIGN(0x08);
@@ -159,7 +169,7 @@ SECTIONS
         . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(5)
 
         LONG(LOADADDR(text_sysload_rROM_lROM))
         LONG(ADDR(text_sysload_rROM_lROM))
@@ -175,6 +185,16 @@ SECTIONS
         LONG(ADDR(zi_sysload_rExtRam_lExtRam))
         LONG(SIZEOF(zi_sysload_rExtRam_lExtRam))
         LONG(0)
+        
+       	LONG(LOADADDR(routine_shell_data_section))
+		LONG(ADDR(routine_shell_data_section))
+		LONG(SIZEOF(routine_shell_data_section))
+		LONG(1)
+		
+		LONG(LOADADDR(expand_shell_data_section))
+		LONG(ADDR(expand_shell_data_section))
+		LONG(SIZEOF(expand_shell_data_section))
+		LONG(1)
     }>Flash
 
     heap_rRAM1_lRAM1 (NOLOAD) :
@@ -295,28 +315,21 @@ SECTIONS
         LONG( restore + IbootSize + 256 + 256)
     }>Flash
     
-    r_In_shell_section :
+    shell_config_section :
 	{
-   		 . = ALIGN(0x08);
-   		 KEEP(* (.in_shell_cmd))
-   		 KEEP(* (.in_shell_data))
+   		KEEP(*(.shellconfig))
+ 	}>Flash
+    
+    routine_shell_section :
+	{
+   		 KEEP(* (.ro_shell_cmd))
+   		 KEEP(* (.ro_shell_data))
  	}>Flash
  	
-    r_Ex_shell_section :
+    expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
  	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>Flash
-	r_In_shell_help_section :
-	{
- 	     KEEP(* (.in_shell_help_cmd))
- 	      . = ALIGN(0x08);
- 	}>Flash
- 	
-	r_Ex_shell_help_section :
-	{
- 	     KEEP(* (.ex_shell_help_cmd))
  	      . = ALIGN(0x08);
  	}>Flash
  	

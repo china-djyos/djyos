@@ -995,6 +995,25 @@ void rewind(FILE *stream)
 }
 
 // ============================================================================
+// 功能：更改文件名称或位置
+// 参数：oldpath -- 原路径；
+//      newpath -- 新路径；
+// 返回：成功 -- 0，失败 -- -1。
+// 备注：
+// ============================================================================
+int rename(const char *oldpath, const char *newpath)
+{
+    struct obj *ob;
+    s32 result;
+    char *uncached;
+    ob = obj_matchpath(oldpath, &uncached);
+    ob->ops((void *)ob, CN_OBJ_RENAME,
+                                (ptu32_t)&result,(ptu32_t)oldpath,(ptu32_t)newpath);
+
+    return result;
+}
+
+// ============================================================================
 // 功能：打开文件
 // 参数：
 // 返回：非NULL -- 成功; NULL -- 失败;

@@ -31,9 +31,6 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
-
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
@@ -53,6 +50,9 @@ void Sys_ModuleInit(void)
 	#if CFG_UART4_ENABLE ==1
 	ModuleInstall_UART(CN_UART4);
 	#endif
+
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
 	//-------------------medium-------------------------//
 	//-------------------later-------------------------//

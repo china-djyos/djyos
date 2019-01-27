@@ -16,7 +16,7 @@
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <IAP>true</IAP>
+  <IAP>false</IAP>
   <filesystem>false</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>
@@ -34,7 +34,7 @@
   <shell>true</shell>
   <stdio>true</stdio>
   <tcpip>false</tcpip>
-  <timer>false</timer>
+  <timer>true</timer>
   <wdt>false</wdt>
   <ymodem>false</ymodem>
   <kernel>true</kernel>
@@ -86,6 +86,6 @@
   <cpu_peri_isr>true</cpu_peri_isr>
   <cpu_peri_rtc>false</cpu_peri_rtc>
   <cpu_peri_spi>false</cpu_peri_spi>
-  <cpu_peri_timer>false</cpu_peri_timer>
+  <cpu_peri_timer>true</cpu_peri_timer>
   <cpu_peri_uart>true</cpu_peri_uart>
 </component>

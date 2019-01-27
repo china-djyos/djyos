@@ -183,6 +183,7 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 #define CN_OBJ_CMD_SYNC       (CN_TARGET_IS_HDL|11) // 同步文件
 #define CN_OBJ_FCNTL          (CN_TARGET_IS_HDL|12) // fcntl 命令组命令
 #define CN_OBJ_IOCTL          (CN_TARGET_IS_HDL|13) // ioctl 命令组命令
+#define CN_OBJ_RENAME         (CN_TARGET_IS_OBJ|14) // 更改文件名称或位置
 
 #define CN_OBJ_CMD_USER       (CN_TARGET_IS_HDL|0x1000) // 用户自定义命令起始值，由用户写的驱动程序解释，不同模块可以定义重复的值
 

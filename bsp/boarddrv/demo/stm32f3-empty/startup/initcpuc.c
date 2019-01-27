@@ -115,24 +115,17 @@ void Init_Cpu(void)
     {
     }
 
-
-
-
-
 #ifdef USE_HAL_DRIVER
     HAL_TickInit();
 #endif
+
     while(false==SysClockInit());
 
 
 //    extern void SRAM_Init(void);
 //    SRAM_Init();
-#if (CFG_RUNMODE_BAREAPP == 1)
-    Load_Preload();
-#else
-    extern void IAP_SelectLoadProgam(void);
+
     IAP_SelectLoadProgam();
-#endif
 }
 
 extern void Load_Preload(void);

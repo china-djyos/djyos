@@ -64,21 +64,43 @@ extern "C" {
 #include <stddef.h>
 
 //
-// IAP文件格式（头部）
+// IAP文件信息
 //
-struct headFormat {
-    u32 size;
-    u32 crc;
-    u32 reserved;
-    u32 signature;
-    char name[240];
+struct __ifile{
+//  char *name; // 这个信息放置于object
+    u32 cxbase; // 文件实际内容的偏置（文件头部信息存放于开始，存在一个偏置）。
+    u32 sz; // 文件大小
+    u32 status; // 文件状态；
+    struct MutexLCB *lock; // 文件锁；
 };
 
-enum _ENUM_RUN_MODE_
-{
-    EN_FORM_FILE=0,
-    EN_DIRECT_RUN,
+//
+// IAP文件上下文，缓存未考虑预读逻辑，即只针对写进行了缓存，读未考虑缓存；
+//
+struct __icontext{
+    u32 pos; // 文件的当前位置；
+    s16 bufed; // 存在于缓存中的数据；
+    u8 *buf; // 是物理的一个缓存，逻辑上是对齐的；
+
+    u8 *apphead;
+    u32 Wappsize;
 };
+//
+// IAP文件系统管理信息
+//
+struct __icore{
+    void *vol; // 文件系统底层抽象，volume；
+    s16 bufsz; // 当大于零时，表示存在缓冲。需要原因，对于小数据量的多次写入会造成内部自带ECC的设备的ECC错误
+    u32 inhead; // 文件的一个区域内容是头部+部分内容，大小为bufsz；inhead这部分为部分内容的大小；
+    s64 MStart;             // 在媒体中的起始unit,unit为单位；
+    s64 ASize;               // 所在区域的总大小；Byte为单位；
+    struct obj *root; // IAP文件系统接入的文件系统的根；
+    struct MutexLCB *lock; // 系统锁；
+};
+
+
+#define EN_FORM_FILE  0
+#define EN_DIRECT_RUN 1
 
 enum _ENUM_USE_CRC_
 {
@@ -87,12 +109,9 @@ enum _ENUM_USE_CRC_
 };
 
 ptu32_t ModuleInstall_IAP(void);
-u32 IAP_GetAPPStartAddr(void);
-u32 IAP_GetAPPSize(void);
 u32 IAP_GetAPPCRC(void);
 u32 IAP_GetAPPStartCodeRamAddr(void);
 u32 IAP_GetAPPCodeRamSize(void);
-bool_t IAP_APPIsDebug(void);
 bool_t IAP_LoadAPPFromFile(void);
 s32 IAP_Update(u8 bArgC, ...);
 s32 IAP_SetMethod(u32 dwMethod);

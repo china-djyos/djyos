@@ -238,8 +238,7 @@ float Max11410_TemperatureGet(u8 temp_x)
 //=============================================================================
 //static bool_t Max11410_shell(char *param)
 
-ADD_TO_IN_SHELL_HELP(pt,"测温度芯片相关命令   pt info 获取max11410的工作状态  .  pt get x  获取“x”通道的温度值 x = 1,2... ");
-ADD_TO_IN_SHELL  bool_t pt(char *param)
+bool_t pt(char *param)
 {
     ptu32_t ch;
     char *word,*next_param;
@@ -311,3 +310,4 @@ bool_t ModuleInstall_Max11410(char *BusName)
     }
     return sMaxInited;
 }
+ADD_TO_ROUTINE_SHELL(pt,pt,"测温度芯片相关命令   pt info 获取max11410的工作状态  .  pt get x  获取“x”通道的温度值 x = 1,2... ");
