@@ -573,7 +573,7 @@ static bool_t MacCtrl(void *devhandle,u8 cmd,ptu32_t para)
 //this is the receive task
 static ptu32_t __MacRcvTask(void)
 {
-    tagNetPkg *pkg;
+    tagNetPkg *pkg=NULL;
     void      *handle;
     u8        *rawbuf;
     u16        len;
