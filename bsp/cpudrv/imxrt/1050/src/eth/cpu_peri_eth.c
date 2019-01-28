@@ -99,19 +99,19 @@
 #ifndef CFG_MAC_ADDR0      //****检查参数是否已经配置好
 #warning    cpu_peri_eth组件参数未配置，使用默认值
 //%$#@num,0,255,
-#define CFG_MAC_ADDR0             00//"网卡MAC地址0",
-#define CFG_MAC_ADDR1             00//"网卡MAC地址1",
-#define CFG_MAC_ADDR2             00//"网卡MAC地址2",
-#define CFG_MAC_ADDR3             00//"网卡MAC地址3",
-#define CFG_MAC_ADDR4             00//"网卡MAC地址4",
-#define CFG_MAC_ADDR5             00//"网卡MAC地址5",
+#define CFG_MAC_ADDR0             00 //"网卡MAC地址0",
+#define CFG_MAC_ADDR1             00 //"网卡MAC地址1",
+#define CFG_MAC_ADDR2             00 //"网卡MAC地址2",
+#define CFG_MAC_ADDR3             00 //"网卡MAC地址3",
+#define CFG_MAC_ADDR4             00 //"网卡MAC地址4",
+#define CFG_MAC_ADDR5             00 //"网卡MAC地址5",
 //%$#@num,1000,10000,
-#define CFG_LOOP_CYCLE            1000//"读网卡loop时间",
+#define CFG_LOOP_CYCLE            1000 //"读网卡loop时间",
 //%$#@enum,1,0,
-#define CFG_IMX_PHY_SPEED          1//"配置phy速度",为1表示100M，为0表示10M
-#define CFG_IMX_PHY_DUPLEX         1//"配置全/半双工模式",为1表示全双工，为0表示半双工
+#define CFG_IMX_PHY_SPEED          1 //"配置phy速度",为1表示100M，为0表示10M
+#define CFG_IMX_PHY_DUPLEX         1 //"配置全/半双工模式",为1表示全双工，为0表示半双工
 //%$#@string,1,30,
-#define CFG_ETH_DEV_NAME          "ETH_DEV_IMXRT1052"//"网卡名称",注册网卡的设备名称
+#define CFG_ETH_DEV_NAME          "ETH_DEV_IMXRT1052" //"网卡名称",注册网卡的设备名称
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
