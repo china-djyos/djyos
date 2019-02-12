@@ -42,57 +42,32 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块:功能函数库
-//作者：网络
-//版本：V1.0.0
-//文件描述:原子变量操作部分
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-01-04
-//   作者: lst
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
-                                //允许是个空文件，所有配置将按默认值配置。
+// 文件名     ：cpu_peri_iic.h
+// 模块描述: IIC模块底层驱动头文件
+// 模块版本: V1.00
+// 创建时间: 09/17.2014
+// =============================================================================
 
-//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
-//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
-//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data);
-//    ModuleInstall_IAP_FS(CFG_EFLASH_FSMOUNT_NAME,0,NULL);
-//%$#@end initcode  ****初始化代码结束
+#ifndef CPU_PERI_IIC_H_
+#define CPU_PERI_IIC_H_
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-//%$#@describe      ****组件描述开始
-//component name:"iap"          //在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
-                                //表示初始化时间，分别是早期、中期、后期
-//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//%$#@end describe  ****组件描述结束
 
-//%$#@configue      ****参数配置开始
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//%$#@num,0,100,
-//%$#@enum,true,false,
-//%$#@string,1,32,
-#define CFG_EFLASH_FSMOUNT_NAME   "XIP-APP"    //需安装的文件系统的mount的名字
-//%$#select,        ***定义无值的宏，仅用于第三方组件
-//%$#@free,
-//%$#@end configue  ****参数配置结束
+#include <stdint.h>
 
-//%$#@exclude       ****编译排除文件列表
-//%$#@end exclude   ****组件描述结束
+//IIC控制器编号宏定义
+#define CN_IIC1     0
+#define CN_IIC2     1
+#define CN_IIC3     2
+#define CN_IIC4     3
+#define CN_IIC_NUM  4
 
-//@#$%component end configure
-
+bool_t IIC_Init(u8 iic_port);
+bool_t ModuleInstall_IIC(ptu32_t port);
+bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin);
+#ifdef __cplusplus
+}
+#endif
+#endif /* CPU_PERI_IIC_H_ */

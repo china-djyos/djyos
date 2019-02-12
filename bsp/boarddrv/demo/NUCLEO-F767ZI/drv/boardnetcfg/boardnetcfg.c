@@ -67,7 +67,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"cpu_peri_eth","lan8720","tcpip"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu_peri_eth","tcpip"     //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -84,7 +84,7 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 #define CFG_STATIC_IP       true            //"IP属性",true=使用静态IP，false=动态IP
-//%$#@string,1,16
+//%$#@string,1,30
 #define CFG_NETCARD_NAME    "NUCLEO-F767ZI_ETH"    //"网卡名",
 //%$#@string,7,15
 #define CFG_MY_IPV4         "192.168.0.179" //"静态IP",

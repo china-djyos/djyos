@@ -42,57 +42,76 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块:功能函数库
-//作者：网络
-//版本：V1.0.0
-//文件描述:原子变量操作部分
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-01-04
-//   作者: lst
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
+
+#include "cpu_peri.h"
+#include "stm32h7xx_hal_conf.h"
+#include "cpu_peri_lcd.h"
+#include "stddef.h"
+#include "stm32h7xx.h"
+//#include "stm32f7xx_hal_dma2d.h"
+//#include "stm32f7xx_hal_ltdc.h"
+//#include "stm32f7xx_hal_rcc_ex.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data);
-//    ModuleInstall_IAP_FS(CFG_EFLASH_FSMOUNT_NAME,0,NULL);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"iap"          //在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//component name:"lcd_config"          //CPU LCD外设参数配置
+//parent:"cpu_peri_lcd"                //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
-                                //表示初始化时间，分别是早期、中期、后期
-//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//init time:medium                     //初始化时机，可选值：early，medium，later。
+                                       //表示初始化时间，分别是早期、中期、后期
+//dependence:"none"                    //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                       //选中该组件时，被依赖组件将强制选中，
+                                       //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"                //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                       //选中该组件时，被依赖组件不会被强制选中，
+                                       //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                         //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                       //如果依赖多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,0,100,
 //%$#@enum,true,false,
-//%$#@string,1,32,
-#define CFG_EFLASH_FSMOUNT_NAME   "XIP-APP"    //需安装的文件系统的mount的名字
+//%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 //%$#@end configue  ****参数配置结束
-
-//%$#@exclude       ****编译排除文件列表
-//%$#@end exclude   ****组件描述结束
-
 //@#$%component end configure
 
+
+//初始化LCD配置参数
+bool_t Ltdc_Lcd_Config(struct LCD_ConFig *lcd)
+{
+    lcd->hsw              =20;
+    lcd->hbp              =140;
+    lcd->hfp              =160;
+    lcd->vsw              =3;
+    lcd->vbp              =20;
+    lcd->vfp              =12;
+    lcd->Dma2dPixelFormat =DMA2D_OUTPUT_RGB565;
+    lcd->LcdPixelFormat   =CN_SYS_PF_RGB565;
+    lcd->LtdcPixelFormat  =LTDC_PIXEL_FORMAT_RGB565;
+    lcd->pixsize          =2;
+
+//    lcd->Dma2dPixelFormat =DMA2D_OUTPUT_RGB888;
+//    lcd->LcdPixelFormat   =CN_SYS_PF_RGB888;
+//    lcd->LtdcPixelFormat  =LTDC_PIXEL_FORMAT_RGB888;
+//    lcd->pixsize          =3;
+
+    lcd->Dma2dTimeOut     =50000;
+    lcd->LtdcClk          =45;
+    lcd->LtdcHSPolarity   =LTDC_HSPOLARITY_AL;
+    lcd->LtdcVSPolarity   =LTDC_VSPOLARITY_AL;
+    lcd->LtdcDEPolarity   =LTDC_DEPOLARITY_AL;
+    lcd->LtdcPCPolarity   =LTDC_PCPOLARITY_IPC;//LTDC_PCPOLARITY_IIPC;
+    return true;
+}

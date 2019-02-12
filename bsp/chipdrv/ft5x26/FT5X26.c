@@ -285,13 +285,13 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
     FILE *touch_init;
     s32 limit_left,limit_top,limit_right,limit_bottom;
 
-    if((touch_init = fopen("/yaffs2/touch_init.dat","r")) != NULL)
-    {
-
-        fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
-    }
-    else
-    {
+//    if((touch_init = fopen("/yaffs2/touch_init.dat","r")) != NULL)
+//    {
+//
+//        fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+//    }
+//    else
+//    {
         limit_left = desktop->limit_left;
         limit_top = desktop->limit_top;
         limit_right = desktop->limit_right;
@@ -337,13 +337,13 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
         GK_FillWin(desktop,CN_COLOR_BLUE,0);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
 
-        touch_init = fopen("/yaffs2/touch_init.dat","w+");
-        if(touch_init)
-            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+//        touch_init = fopen("/yaffs2/touch_init.dat","w+");
+//        if(touch_init)
+//            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
         return true;
-    }
-    fclose(touch_init);
-    return false;
+//    }
+//    fclose(touch_init);
+//    return false;
 }
 
 // =============================================================================

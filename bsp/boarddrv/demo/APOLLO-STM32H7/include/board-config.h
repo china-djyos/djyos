@@ -42,57 +42,92 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块:功能函数库
-//作者：网络
+//所属模块: BSP模块
+//作者:  罗侍田.
 //版本：V1.0.0
-//文件描述:原子变量操作部分
+//文件描述: 板件特性配置文件。
+//        CPU型号:STM32F103ZE
+//        板件型号:QH_1
+//        生产企业:爱好者团体
 //其他说明:
 //修订历史:
 //2. ...
-//1. 日期: 2009-01-04
-//   作者: lst
+//1. 日期: 2009-10-31
+//   作者:  罗侍田.
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
-                                //允许是个空文件，所有配置将按默认值配置。
+#ifndef __BOARD_CONFIG_H__
+#define __BOARD_CONFIG_H__
 
-//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
-//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
-//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data);
-//    ModuleInstall_IAP_FS(CFG_EFLASH_FSMOUNT_NAME,0,NULL);
-//%$#@end initcode  ****初始化代码结束
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-//%$#@describe      ****组件描述开始
-//component name:"iap"          //在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
-                                //表示初始化时间，分别是早期、中期、后期
-//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//%$#@end describe  ****组件描述结束
+#define DJY_BOARD    "STM32H743I-EVAL"
 
-//%$#@configue      ****参数配置开始
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//%$#@num,0,100,
-//%$#@enum,true,false,
-//%$#@string,1,32,
-#define CFG_EFLASH_FSMOUNT_NAME   "XIP-APP"    //需安装的文件系统的mount的名字
-//%$#select,        ***定义无值的宏，仅用于第三方组件
-//%$#@free,
-//%$#@end configue  ****参数配置结束
+#define Mhz 1000000
+#define CN_CFG_MCLK (400*Mhz)  //主频，内核要用，必须定义
+#define CN_CFG_FCLK CN_CFG_MCLK  //cm7自由运行外设时钟
+#define BOARD_MCK   (CN_CFG_MCLK/2) //的MCK
 
-//%$#@exclude       ****编译排除文件列表
-//%$#@end exclude   ****组件描述结束
 
-//@#$%component end configure
+
+#define CN_CFG_SYS_CLK     CN_CFG_MCLK
+#define CN_CFG_AXI_CLK    (CN_CFG_MCLK/2)
+#define CN_CFG_HCLK3      (CN_CFG_AXI_CLK)
+
+#define CN_CFG_APB1_CLK   (CN_CFG_AXI_CLK/2)
+#define CN_CFG_APB2_CLK   (CN_CFG_AXI_CLK/2)
+#define CN_CFG_APB3_CLK   (CN_CFG_AXI_CLK/2)
+#define CN_CFG_APB4_CLK   (CN_CFG_AXI_CLK/2)
+
+
+
+#define CN_CFG_LSE (32768)
+#define CN_CFG_HSE (25*Mhz)
+
+/*____以下定义tick参数____*/
+#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
+#define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
+#define CN_USE_TICKLESS_MODE    (0U)
+#if (!CN_USE_TICKLESS_MODE)
+#define CN_CFG_FINE_US 0x00000A3  //1/400M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
+#define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
+#else
+#define CN_CFG_USE_USERTIMER        (0U)//是否使用LPTIMER作为系统时钟
+#define CN_CFG_TIME_BASE_HZ         CN_CFG_MCLK//(32000U)//(8000U)
+#if (!CN_CFG_USE_USERTIMER)
+#define CN_CFG_USE_BYPASSTIMER      (0U)//0表示不使用旁路定时器，1表示使用旁路定时器
+#define CN_CFG_TIME_PRECISION       (500U)/*精度单位：US*/
+#else
+#define CN_CFG_USERTIMER_PRESC      (1U)//若不使用SYSTICK定时器，需指定用户定时器的分频数
+#define CN_CFG_FINE_US (0x1F4000U)  //1/32000,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
+#define CN_CFG_FINE_HZ (0x831U)  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
+#define CN_CFG_TIME_PRECISION       (200U)/*精度单位：US*/
+#endif
+#endif
+
+//CPU架构相关配置,可选或者可能可选的才在这里配置,例如大小端,是可选的,在这里配置,
+//而CPU字长固定,故字长在BSP的arch.h文件中定义
+//存储器大小端的配置
+#define CN_CFG_LITTLE_ENDIAN        0
+#define CN_CFG_BIG_ENDIAN           1
+#define CN_CFG_BYTE_ORDER          CN_CFG_LITTLE_ENDIAN
+
+#define BOARD_GMAC_PHY_ADDR        1
+#define MAX_PIO_INTERRUPT_SOURCES  5
+
+
+#define CN_LCD_XSIZE   ((uint16_t)1024)             /* LCD PIXEL WIDTH */
+#define CN_LCD_YSIZE   ((uint16_t)600)             /* LCD PIXEL HEIGHT*/
+
+#define CN_CAN_NUM
+
+#ifdef __cplusplus
+}
+#endif
+#endif // __CPU_OPTIONAL_H__
+
+
 
