@@ -1,6 +1,6 @@
 
 /*由于MEMORY命令不能使用符号，这些常量的定义，必须与MEMORY命令处一致 */
-IbootSize = 256k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
+IbootSize = 768k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
 InnerFlashOffset = 0x08000000;
 InnerFlashRange = 2048k;
 
@@ -18,7 +18,10 @@ InnerRam4Size = 128k+128k;
 
 InnerRam5Start = 0x38000000;
 InnerRam5Size  =  64k;
- 
+
+ExtRamStart = 0xc0000000;
+ExtRamSize  = 0x2000000;/*32M*/
+
 CacheRam1Size    = 64k;        /*第一段cache大小*/
 CacheRam2Size    = 128K;
 CacheRam3Size    = 512K;
@@ -38,4 +41,5 @@ MEMORY
     RAM4(RXW)        : org = 0x30000000,           len = 128K+128k
     RAM5(RXW)        : org = 0x38000000,           len = 64k
     RAM1NOCACHE(RXW) : org = 0x30040000,           len = 32k 
+    extram(RXW)      : org = 0xc0000000,         len = 0x2000000 
 }
