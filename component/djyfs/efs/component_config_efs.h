@@ -4,8 +4,9 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    externs32 ModuleInstall_EFS(const char *target, const char *source, u32 opt, void *config);
-//    ModuleInstall_EFS(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS, CFG_FILE_BLOCK_SIZE);
+//#include "filesystems.h"
+//    externs32 s32 ModuleInstall_EFS(const char *target, u32 opt, void *config);
+//    ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, MS_INSTALLCREAT, CFG_EFS_FILE_BLOCK_SIZE);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -31,14 +32,12 @@
 #ifndef CFG_OPTIONS   //****检查参数是否已经配置好
 #warning    efsfilesystem组件参数未配置，使用默认值
 //%$#@num,0,100,
-#define CFG_OPTIONS             0       //"name",文件系统文件安装逻辑
-#define CFG_FILE_BLOCK_SIZE     0
+#define CFG_EFS_FILE_BLOCK_SIZE           0x1000                 //EFS文件系统用的媒体块大小.at45块大小为0x1000；如用其它媒体这里需要修改
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#define CFG_MOUNT_POINT         ""      //"name",EFS文件系统安装目录
-#define CFG_MOUNT_DEV           ""      //"name",EFS文件系统所在设备路径
+#define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
 #endif//%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表

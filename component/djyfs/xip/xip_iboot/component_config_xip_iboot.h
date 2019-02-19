@@ -42,72 +42,56 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+//所属模块:功能函数库
+//作者：网络
+//版本：V1.0.0
+//文件描述:原子变量操作部分
+//其他说明:
+//修订历史:
+//2. ...
+//1. 日期: 2009-01-04
+//   作者: lst
+//   新版本号: V1.0.0
+//   修改说明: 原始版本
+//------------------------------------------------------
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-#ifndef __SHELL_H__
-#define __SHELL_H__
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data);
+//    ModuleInstall_XIP_IBOOT_FS(0,NULL);
+//%$#@end initcode  ****初始化代码结束
 
-#include <stdint.h>
-#include <errno.h>
-#include <types.h>
-#include <stddef.h>
-#include <list.h>
+//%$#@describe      ****组件描述开始
+//component name:"xip_iboot"    //用于iboot的在线升级
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
 
-struct shellinfo
-{
-   const char *sh_Tab_start; //
-   const char *sh_Tab_end; //
-};
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
 
-struct shell_list
-{
-    list_t list;
-    struct shellinfo info;
-};
-#define PARAMETER_MAX     (10)   //最大参数个数限制
-
-/* 常规shell函数与拓展shell函数区别在于，参数的解析发生在函数内还是函数外
- * 常规shell函数帮助信息与常规shell函数变量主要是与裁减有关，在工具中指定添加哪些类型的shell
- * */
-/*shell 和拓展shell*/
-
-struct shell_cmd
-{
-    void *shell_fun_addr;
-    char *shell_help_addr;
-};
-#define DJYSH_HELP_NAME "djysh_"
-
-#define ADD_TO_ROUTINE_SHELL(cmdname,fun,help) __attribute__((section(".ro_shell_cmd")))\
-    const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
-
-#define ADD_TO_EXPAND_SHELL(cmdname,fun,help) __attribute__((section(".ex_shell_cmd")))\
-        const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
-
-#define ADD_TO_IN_SHELL_DATA  __attribute__((section(".ro_shell_data")))//添加常规shell数据
-#define ADD_TO_EX_SHELL_DATA    __attribute__((section(".ex_shell_data")))//拓展shell数据
-
-// ============================================================================
-// 功能：从shell的输入参数（字符串）中，提取出一个参数；
-// 参数：input -- shell输入参数；
-//      next -- 后续参数；
-// 返回：剔除的输入参数；
-// 备注：参数之间依靠空格作为分隔符；
-//      提取出的参数，已将后面的分隔符换成串结束符'\0；
-//      input的原始数据已发生变化；
-// ============================================================================
-char *shell_inputs(char *input, char **next);
-
-bool_t shell_add(struct shell_list *pLisTtab);
-bool_t shell_del(struct shell_list *pLisTtab);
-
-s32 ModuleInstall_Shell(ptu32_t para);
-#ifdef __cplusplus
-}
-#endif
-
-#endif //__SHELL_H__
+//@#$%component end configure
 

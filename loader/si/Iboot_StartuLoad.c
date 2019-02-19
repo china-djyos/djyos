@@ -55,7 +55,7 @@
 //------------------------------------------------------
 #include "stdint.h"
 #include "stdio.h"
-#include "iap.h"
+#include "xip.h"
 #include <stdlib.h>
 #include "string.h"
 #include "cpu-optional.h"
@@ -114,7 +114,7 @@ void IAP_SelectLoadProgam(void)
     {
         Run_Iboot(HEARD_SET_RUN_IBOOT);//填充硬件设置运行iboot信息
     }
-    if(IAP_IsRamIbootFlag())//ram中标记运行iboot
+    if(XIP_IsRamIbootFlag())//ram中标记运行iboot
     {
         Run_Iboot(RAM_SET_RUN_IBOOT);
     }

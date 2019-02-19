@@ -46,8 +46,8 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-#ifndef __IAP_FS_H__
-#define __IAP_FS_H__
+#ifndef __XIP_APP_H__
+#define __XIP_APP_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,4 +63,4 @@ extern "C" {
 }
 #endif
 
-#endif // ifndef __IAP_H__
+#endif // ifndef __XIP_APP_H__

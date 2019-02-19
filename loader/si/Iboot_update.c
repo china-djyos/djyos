@@ -59,7 +59,7 @@
 #include <device.h>
 #include <stat.h>
 #include <dirent.h>
-#include <iap.h>
+#include <xip.h>
 #include "shell.h"
 #include <djyos.h>
 #include <stdlib.h>
@@ -170,7 +170,7 @@ bool updateiboot(char *param)
    return true;
 }
 
-bool IAP_UpdateIboot()
+bool XIP_UpdateIboot()
 {
     return (updateiboot(0));
 }
@@ -348,7 +348,7 @@ bool_t IAP_LoadAPPFromFile(void)
     }
     else
     {
-        result=IAP_IsRamIbootFlag();
+        result=XIP_IsRamIbootFlag();
         if(result)
         {
             pg_IapVar.IbootStatus=EN_RAM_IBOOT_FLAG;
@@ -365,14 +365,14 @@ bool_t IAP_LoadAPPFromFile(void)
                goto LOAD_FILE_EXIT;
            }
 
-           addr=IAP_GetAPPStartAddr() - 0x100;
+           addr=XIP_GetAPPStartAddr() - 0x100;
            Buf=(char *)addr;
 
            fread(Buf,0x100,1,fp);           //read the 256 byte file info
 
            fseek(fp,0,0);
 
-           if(IAP_APPIsDebug())             //dbg not need crc
+           if(XIP_APPIsDebug())             //dbg not need crc
            {
                 if(0 == stat(CFG_APP_FILENAME,&FpInfo))
                 {
@@ -389,7 +389,7 @@ bool_t IAP_LoadAPPFromFile(void)
            }
            else
            {
-               len=IAP_GetAPPSize();
+               len=XIP_GetAPPSize();
                fread(Buf,len,1,fp);
                crc=crc32_buf(Buf,len);
                if(crc!=gc_ptIbootCtrl.Iap_crc)
