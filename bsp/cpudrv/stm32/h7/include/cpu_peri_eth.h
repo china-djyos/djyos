@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018,Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -42,37 +42,27 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: CPU外设定义
-//作者:  lst
-//版本：V1.0.0
-//其他说明:
-//修订历史:
-//1. 日期: 2013-05-29
-//   作者:  lst.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __CPU_PERI_H__
-#define __CPU_PERI_H__
-
+#ifndef CPU_PERI_ETH_H_
+#define CPU_PERI_ETH_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//包含外设所需的头文件
-#include "os.h"
-#include "board-config.h"
-#include "cpu_peri_int_line.h"
-#include "stm32h7xx.h"
-#include "stm32h7xx_hal.h"
-#include "cpu_peri_uart.h"
-#include "cpu_peri_gpio.h"
-#include "cpu_peri_eth.h"
-#define memory_barrier() __DMB();
-#define InLowPower      0
-#define OutLowPower     1
+//#define GMAC_IN_LOWPOWER         0//进入低功耗
+//#define GMAC_OUT_LOWPOWER        1//退出低功耗
+bool_t GMAC_LowPowerConfig(u8 flag);
+int32_t ETH_PHY_IO_Init(void);
+int32_t ETH_PHY_IO_DeInit (void);
+int32_t ETH_PHY_IO_ReadReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal);
+int32_t ETH_PHY_IO_WriteReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t RegVal);
+int32_t ETH_PHY_IO_GetTick(void);
+void ETH_GetMACConfig(ETH_MACConfigTypeDef *macconf);
+void ETH_SetMACConfig(ETH_MACConfigTypeDef *macconf);
+void ETH_Start(void);
+
 #ifdef __cplusplus
 }
 #endif
+#endif
 
-#endif //__CPU_PERI_H__
+
