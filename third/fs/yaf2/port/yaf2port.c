@@ -438,7 +438,7 @@ struct objhandle *__yaf2open(struct obj *ob, u32 flags, char *uncached)
 
     if(!root)
         return (NULL);
-
+    memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
     GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
 
     res = strlen(entirepath) + 1;
@@ -486,7 +486,10 @@ struct objhandle *__yaf2open(struct obj *ob, u32 flags, char *uncached)
         //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
         ob = obj_buildpath(ob, YAF2_Ops, mode,uncached);
         mode = S_IALLUGO | property;     //最末端的也许是文件
-        obj_SetPrivate(ob, mode);
+        if(!obj_isMount(ob))
+        {
+            obj_SetPrivate(ob, mode);
+        }
         obj_LinkHandle(hdl, ob);
         return (hdl);
     }
@@ -720,6 +723,7 @@ static s32 __yaf2stat(struct obj *ob, struct stat *data, char *uncached)
         root = (char*)corefs(ob);
         if(!root)
             return (-1);
+        memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
         GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
 
         res = strlen(entirepath) + 1;

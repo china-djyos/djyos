@@ -167,7 +167,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
                 routpara.hop = NULL;
                 routpara.prior = CN_ROUT_PRIOR_UNI;
                 tmp->routlan = RouterCreate(&routpara);
-                NetDevPostEvent(NULL,tmp->ifname,EN_NETDEVEVENT_IPGET);
+                NetDevPostEvent(NetDevGet(tmp->ifname),EN_NETDEVEVENT_IPGET);
             }
             else if(reply.msgtype == DHCP_NAK)
             {
@@ -413,7 +413,7 @@ EXIT_LOCK:
 }
 
 //this is the dhcp entry
-bool_t ServiceDhcpcInit(ptu32_t para)
+bool_t ServiceDhcpcInit(void)
 {
     bool_t result;
     result = DhcpClientInit();

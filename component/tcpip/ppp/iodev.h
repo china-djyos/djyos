@@ -76,6 +76,6 @@ int    iodevopen(const char *name);
 bool_t iodevclose(int dev);
 void   iodevflush(int dev);
 bool_t iodebugset(char *param);
-bool_t PppIoInit(ptu32_t para);
+bool_t PppIoInit(void);
 
 #endif /* HD6F8200D_D7BA_43C7_805A_09B146F47AC6 */

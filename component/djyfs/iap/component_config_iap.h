@@ -61,7 +61,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data);
-//    ModuleInstall_IAP_FS(CFG_EFLASH_FSMOUNT_NAME,0,NULL);
+//    ModuleInstall_IAP_FS(CFG_IAP_MOUNT_POINT,0,NULL);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -85,8 +85,8 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,0,100,
 //%$#@enum,true,false,
-//%$#@string,1,32,
-#define CFG_EFLASH_FSMOUNT_NAME   "XIP-APP"    //需安装的文件系统的mount的名字
+//%$#@string,1,128,
+#define CFG_IAP_MOUNT_POINT         "xip-APP"      //"name",iap文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 //%$#@end configue  ****参数配置结束

@@ -69,28 +69,28 @@
 
 //return value is the really receive or send data units(bytes)
 //the device driver use this function to pass the receive package to the tcpip stack
-typedef bool_t (*fnLinkIn)(void *iface,tagNetPkg *pkg); //pkg is the link frame
+typedef bool_t (*fnLinkIn)(struct NetDev *iface,struct NetPkg *pkg); //pkg is the link frame
 //the tcpip stack use this function to pass the package to the hard device
-typedef bool_t (*fnLinkOut)(void *iface,tagNetPkg *pkglst,u32 framlen,u32 devtask,u16 proto,\
+typedef bool_t (*fnLinkOut)(struct NetDev *iface,struct NetPkg *pkglst,u32 framlen,u32 devtask,u16 proto,\
                             enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);//pkg is the ip frame
 //this function is used do some command from the upper protocols;
-typedef bool_t (*fnLinkIo)(void *dev,u32 cmd,u32 para);
-typedef struct
+typedef bool_t (*fnLinkIo)(struct NetDev *dev,u32 cmd,u32 para);
+struct LinkOps
 {
     fnLinkIn     linkin;
     fnLinkOut    linkout;
-    fnLinkIo     linkio;
-}tagLinkOps;
-bool_t LinkRegister(enLinkType type,const char *name,tagLinkOps *ops);
-bool_t LinkUnRegister(enLinkType type,const char *name,tagLinkOps *ops);
-bool_t LinkSend(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
+//  fnLinkIo     linkio;
+};
+bool_t LinkRegister(enum enLinkType type,const char *name,struct LinkOps *ops);
+bool_t LinkUnRegister(enum enLinkType type,const char *name);
+bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
         enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);
-void  *LinkFindOps(enLinkType type);
-const char *LinkTypeName(enLinkType type);
+struct LinkOps  *LinkFindOps(enum enLinkType type);
+const char *LinkTypeName(enum enLinkType type);
 bool_t LinkInit(void);
 bool_t LinkPushRegister(u16 protocol,fnLinkProtoDealer dealer);//ip and arp intall their push functions
-bool_t LinkPush(void  *iface,tagNetPkg *pkg,u16 protocol); //and the linker layer call this function
-bool_t LinkDeal(void *iface,tagNetPkg *pkg);//the net device layer call this function
+bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protocol); //and the linker layer call this function
+bool_t LinkDeal(struct NetDev *iface,struct NetPkg *pkg);//the net device layer call this function
 
 
 #endif /* TCPIP_LINK_H_ */

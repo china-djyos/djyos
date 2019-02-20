@@ -115,7 +115,7 @@ typedef struct
     u8     devmac[CN_MACADDR_LEN];
     struct SemaphoreLCB rcvsync;
     struct MutexLCB     devsync;
-    ptu32_t handle;
+    struct NetDev* handle;
     u32 irqno;
     bool_t (*clearextint)(u32 irqno);
     u16 *cmdaddr;
@@ -624,7 +624,7 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
     bool_t res = false;
     u16 evttID;
     u16 eventID;
-    tagNetDevPara  devpara;
+    struct NetDevPara  devpara;
 
     Lock_MutexCreate_s(&dm9000->devsync,NULL);
     Lock_SempCreate_s(&dm9000->rcvsync,1,0,CN_BLOCK_FIFO,NULL);
@@ -645,7 +645,6 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
     devpara.devfunc = 0x00;//COULD DO NO CRC
     memcpy(devpara.mac, dm9000->devmac,CN_MACADDR_LEN);
     devpara.name = dm9000->devname;
-    devpara.Private = 0;
     devpara.mtu = 14;
     devpara.Private = (ptu32_t)dm9000;
     dm9000->handle = NetDevInstall(&devpara);

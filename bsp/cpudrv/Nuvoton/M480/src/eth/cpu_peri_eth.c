@@ -136,9 +136,9 @@ static void __MacReset(tagMacDriver *pDrive)
     return ;
 }
 
-static tagNetPkg *__MacRcv(ptu32_t devhandle)
+static struct NetPkg *__MacRcv(ptu32_t devhandle)
 {
-    tagNetPkg         *pkg = NULL;
+    struct NetPkg         *pkg = NULL;
     tagMacDriver      *pDrive;
     ETH_HandleTypeDef *EthHandle;
     volatile ETH_DMADescTypeDef *dmarxdesc;
@@ -197,13 +197,13 @@ static tagNetPkg *__MacRcv(ptu32_t devhandle)
     return pkg;
 }
 
-static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
     ETH_HandleTypeDef *EthHandle;
     ETH_DMADescTypeDef *DmaTxDesc;
-    tagNetPkg         *tmppkg;
+    struct NetPkg         *tmppkg;
     u8                *dst,*src;
     u16                len=0;
 
@@ -280,27 +280,27 @@ NODESCERROR:
     return result;
 }
 
-u32 ETH_SendData(u8 *buf,u32 len)
-{
-    tagNetPkg          pkg;
-    tagMacDriver      *pDrive;
-
-    pDrive = &gMacDriver;
-
-    pkg.partnext = NULL;
-    pkg.pkgflag  = (1<<0);  //只有一个包
-    pkg.offset   = 0;
-    pkg.datalen  = len;
-    pkg.buf      = buf;
-    if(MacSnd(pDrive->devhandle,&pkg,len,0))
-    {
-        return len;
-    }
-    else
-    {
-        return 0;
-    }
-}
+//u32 ETH_SendData(u8 *buf,u32 len)
+//{
+//    struct NetPkg          pkg;
+//    tagMacDriver      *pDrive;
+//
+//    pDrive = &gMacDriver;
+//
+//    pkg.partnext = NULL;
+//    pkg.pkgflag  = (1<<0);  //只有一个包
+//    pkg.offset   = 0;
+//    pkg.datalen  = len;
+//    pkg.buf      = buf;
+//    if(MacSnd(pDrive->devhandle,&pkg,len,0))
+//    {
+//        return len;
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//}
 //This is the interrut handler
 u32 ETH_IntHandler(ufast_t IntLine)
 {
@@ -459,7 +459,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
 //this is the receive task
 static ptu32_t __MacRcvTask(void)
 {
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     ptu32_t    handle;
     u8        *rawbuf;
     u16        len;
@@ -709,7 +709,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
                           bool_t (*rcvHook)(u8 *buf, u16 len))
 {
     tagMacDriver   *pDrive = &gMacDriver;
-    tagNetDevPara   devpara;
+    struct NetDevPara   devpara;
 
     memset((void *)pDrive,0,sizeof(tagMacDriver));
     //copy the config para to the pDrive

@@ -206,8 +206,18 @@ bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
     Name = PathTail;
     while('/' == *Name)
         Name++; // ¹ıÂË¶àÓàµÄ'/'
-    len = strlen(Name);
-    strcpy(Entire,Name);
+    if((Name != 0) && (*Name != 0))
+    {
+        len = strlen(Name);
+        strcpy(Entire,Name);
+    }
+    else
+    {
+        if(*(Entire - 1) == '/')
+        {
+            *(Entire - 1) = '\0';
+        }
+    }
     return true;
 }
 

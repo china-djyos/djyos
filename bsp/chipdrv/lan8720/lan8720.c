@@ -49,6 +49,9 @@
 
 #define CN_RESET_DELAY      255000      //uS
 static bool_t sg_NeedMacDriver = false;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 __attribute__((weak)) u8 GMAC_MdioR(u8 dev, u8 reg, u16 *value)
 {
     sg_NeedMacDriver = true;
@@ -60,6 +63,9 @@ __attribute__((weak)) u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
     sg_NeedMacDriver = true;
     return 0;
 }
+
+#pragma GCC diagnostic pop
+
 extern uint32_t HAL_GetTick(void);
 bool_t lan8720Init(void)
 {

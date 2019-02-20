@@ -54,14 +54,16 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
+#include "filesystems.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_YAF2(const char *target, const char *source, u32 dwOpt, void *data);
-//    ModuleInstall_YAF2(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS, CFG_ECC);
+//#include "filesystems.h"
+//    extern s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data);
+//    ModuleInstall_YAF2(CFG_MOUNT_POINT, CFG_INSTALL_OPTION, CFG_ECC);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -87,15 +89,13 @@
 #ifndef CFG_OPTIONS   //****检查参数是否已经配置好
 #warning    yaf2filesystem组件参数未配置，使用默认值
 //%$#@num,0,100,
-#define CFG_OPTIONS             0       //"name",文件系统文件安装逻辑
-#define CFG_ECC                 0       //"name",YAF文件系统文件使能设备ECC功能
+#define CFG_YAF_ECC                       0                //YAF文件系统文件使能设备ECC功能。0不使用ecc，YAF2_ENABLE_DEVICE_ECC使用ecc
 //%$#@enum,true,false,
 //%$#@string,1,32,
-#define CFG_DEFAULT_HEAP        "extram"    //"yaffs2 使用的内存heap"
+#define CFG_YAF_MOUNT_POINT           "yaf2"               //"name",YAF文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#define CFG_MOUNT_POINT         ""      //"name",YAF文件系统安装目录
-#define CFG_MOUNT_DEV           ""      //"name",YAF文件系统所在设备路径
+#define CFG_YAF_INSTALL_OPTION        MS_INSTALLCREAT      //YAF文件系统安装选项，MS_INSTALLCREAT：文件系统不存在时，则新建；
 #endif
 //%$#@end configue  ****参数配置结束
 

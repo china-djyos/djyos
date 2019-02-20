@@ -598,7 +598,7 @@ bool_t Dm9000RcvTask()
 bool_t DM9000_AddNetDev(void)
 {
     bool_t  result;
-    tagNetDevPara  devpara;
+    struct NetDevPara  devpara;
     tagHostIpv4Addr devaddr;
 
     devpara.ifsend = DM9000_Send;

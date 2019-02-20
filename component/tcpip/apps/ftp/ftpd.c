@@ -69,12 +69,15 @@
 static bool_t  gFtpdDebugSwitch = false;
 static tagFtpClient* pFtpClient = NULL;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //static bool_t __FtpdDebug(char *para)
 bool_t ftpd(char *para)
 {
 
     int argc = 3;
-    const char *argv[3];
+    char *argv[3];
     if((NULL == para)||(0 == strcmp(para,"help")))
     {
         debug_printf("ftpd","usage:help\r\n"
@@ -925,7 +928,8 @@ static ptu32_t ServerMain()
     pFtpClient = client;
     while(1) //always do the loop
     {
-        client->cchannel.s = FtpAccept(sockserver, &client->cchannel.ipaddr, &client->cchannel.port);
+        client->cchannel.s = FtpAccept(sockserver, &client->cchannel.ipaddr,
+                                        &client->cchannel.port);
         if(client->cchannel.s >0)
         {
             //do the initialize
@@ -937,8 +941,9 @@ static ptu32_t ServerMain()
             client->dchannel.slisten = -1;
             //build a client a do the message deal
             timeindex = time(NULL);
-            info_printf("ftpd","NewClient:IP:%s PORT:%d Time:%s",\
-                    inet_ntoa(client->cchannel.ipaddr),ntohs(client->cchannel.port),ctime(&timeindex));
+            info_printf("ftpd","NewClient:IP:%s PORT:%d Time:%s",
+                        inet_ntoa(client->cchannel.ipaddr),
+                        ntohs(client->cchannel.port),ctime(&timeindex));
             __ClientEngine(client);
         }
     }
@@ -952,7 +957,7 @@ SERVER_EXIT:
 }
 
 //THIS IS PING MODULE FUNCTION
-bool_t ServiceFtpdInit(ptu32_t para)
+bool_t ServiceFtpdInit(void)
 {
     bool_t ret;
     ret = taskcreate("FTPD",0x1000,CN_PRIO_RRS,ServerMain,NULL);
@@ -963,5 +968,5 @@ bool_t ServiceFtpdInit(ptu32_t para)
     return ret;
 }
 ADD_TO_ROUTINE_SHELL(ftpd,ftpd,"usage:ftpd subcmd [subpara]");
-
+#pragma GCC diagnostic pop
 

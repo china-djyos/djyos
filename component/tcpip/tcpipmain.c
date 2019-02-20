@@ -98,7 +98,7 @@ bool_t ModuleInstall_TcpIp(void)
     enable_udp = 1;
 #endif
 
-#if CN_PPP_ENABLE == true
+#if CFG_PPP_ENABLE == true
     enable_ppp = 1;
 #endif
 
@@ -110,8 +110,8 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //do the package manage module initialize
-    extern bool_t PkgInit(void);
-    ret = PkgInit();
+    extern bool_t PkgModuleInit(void);
+    ret = PkgModuleInit();
     __LoadLog("PKG",ret);
     if(false == ret)
     {
@@ -188,17 +188,17 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-    //install the tcp protocol
-    if(enable_tcp)
-    {
-        extern bool_t TcpInit(void);
-        ret = TcpInit();
-        __LoadLog("TCP",ret);
-        if(false == ret)
-        {
-            goto TCPIP_INITERR;
-        }
-    }
+//  //install the tcp protocol
+//  if(enable_tcp)
+//  {
+//      extern bool_t TcpInit(void);
+//      ret = TcpInit();
+//      __LoadLog("TCP",ret);
+//      if(false == ret)
+//      {
+//          goto TCPIP_INITERR;
+//      }
+//  }
 
     //install the udp protocol
     if(enable_udp)

@@ -570,6 +570,7 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
 
     if(!full)
         full = "/"; // 根目录
+    memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
     GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
     res = strlen(entirepath) + strlen(volume) + 1;
     path = malloc(res);
@@ -865,7 +866,7 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
         root = (char*)corefs(ob);
         if(!root)
             return (-1);
-
+        memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
         GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
         part_path = strstr(entirepath, mount_name);     //找出mount点名字的所在位置
         part_path += strlen(mount_name);
@@ -874,14 +875,7 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
             return (-1);
 
         sprintf(path, "%s%s", root, part_path);
-        res = strlen(path);
-        while(res--)
-        {
-            if((path[res] == '/') || (path[res] == '\\'))    //去掉路径最后对于的'/'或'\\'
-                path[res] = '\0';
-            else
-                break;
-        }
+
         if(strcmp(path, root) == 0)
         {
             // 根目录目前访问不了,直接处理

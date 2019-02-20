@@ -60,8 +60,9 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_FAT(const char *dir, const char *dev, u32 opt);
-//    ModuleInstall_FAT(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS);
+//#include "filesystems.h"
+//    extern s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data);
+//    ModuleInstall_FAT(CFG_MOUNT_POINT, CFG_INSTALL_OPTION, CFG_MEDIA_KIND);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -86,15 +87,15 @@
 #ifndef CFG_OPTIONS   //****检查参数是否已经配置好
 #warning    fatfilesystem组件参数未配置，使用默认值
 //%$#@num,0,100
-#define CFG_OPTIONS             0       //"name",FAT文件系统文件安装逻辑
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#@select
 //%$#@free
+#define CFG_FAT_INSTALL_OPTION      MS_INSTALLUSE       //FAT文件系统文件安装逻辑, MS_INSTALLUSE:使用时才发生安装动作
 //%$#@select
 //%$#@free
-#define CFG_MOUNT_POINT         ""      //"name",FAT文件系统安装目录
-#define CFG_MOUNT_DEV           ""      //"name",FAT文件系统所在设备路径
+#define CFG_FAT_MOUNT_POINT         "fat"      //"name",FAT文件系统安装目录
+#define CFG_FAT_MEDIA_KIND          "MSC"      //"name",媒体所属类别（ "MSC", "EMMC"）
 #endif
 //%$#@end configue  ****参数配置结束
 

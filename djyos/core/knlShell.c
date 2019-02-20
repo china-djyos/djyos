@@ -212,6 +212,7 @@ bool_t stack(char *param)
         if(g_tECB_Table[pl_ecb].previous !=
                         (struct EventECB*)&s_ptEventFree)
         {
+            printf("\n\r");
             printf("%05d  ",pl_ecb);
             if(g_tECB_Table[pl_ecb].vm)
                 printf("已分配 ");
@@ -240,7 +241,6 @@ bool_t stack(char *param)
                         (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
                         StackSize,(loop<<2),
                         name);
-            printf("\n\r");
         }
         else
         {
@@ -248,7 +248,7 @@ bool_t stack(char *param)
         }
     }
 
-    printf("栈指针是最后一次上下文切换时保存的值");
+    printf("\n\r栈指针是最后一次上下文切换时保存的值");
     return (TRUE);
 }
 

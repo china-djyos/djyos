@@ -79,6 +79,10 @@ typedef struct  DhcpClient
 }tagDhcpClient;
 
 static tagDhcpClient   *pDhcpClientQ;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //bool_t showDhcpClient(char *param)
 bool_t dhcpdclient(char *param)
 {
@@ -409,7 +413,7 @@ EXIT_TASK:
 BITMAP_FAILED:
     return ret;
 }
-bool_t ServiceDhcpdInit(ptu32_t para)
+bool_t ServiceDhcpdInit(void)
 {
 
     bool_t result;
@@ -418,6 +422,4 @@ bool_t ServiceDhcpdInit(ptu32_t para)
 }
 ADD_TO_ROUTINE_SHELL(dhcpdclient,dhcpdclient,"usage:dhcpdclient:show all the client");
 
-
-
-
+#pragma GCC diagnostic pop

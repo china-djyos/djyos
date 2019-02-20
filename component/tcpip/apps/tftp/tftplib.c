@@ -64,6 +64,9 @@ static char *gTftpErrMsg[] =
     "SOCKET ERR",
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //get the err message
 char *TftpErrMsg(u16 errcode)
 {
@@ -992,7 +995,4 @@ int TftpTransEngine(tagTftpClient *client)
 
 ADD_TO_ROUTINE_SHELL(tftppath,tftppath,"usage:tftppath");
 ADD_TO_ROUTINE_SHELL(tftppathset,tftppathset,"usage:tftppathset workpath");
-
-
-
-
+#pragma GCC diagnostic pop

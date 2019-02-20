@@ -60,7 +60,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_TcpIp(void);
+//  extern bool_t ModuleInstall_TcpIp(void);
 //    ModuleInstall_TcpIp( );
 //%$#@end initcode  ****初始化代码结束
 
@@ -72,7 +72,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"lock","heap","devfile",             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock","heap","devfile",   //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -98,13 +98,13 @@
 //%$#@num,,,
 #define     CFG_UDP_CBNUM               10      //"UDP socket数限值"，占用一个 tagUdpCB 结构
 #define     CFG_UDP_HASHLEN             4       //"udp socket 哈希表长度"，占用一个指针
-//*******************************TCP******************************************//
-//%$#@enum,true,false,
-#define     CFG_TCP_ENABLE              true    //"tcp协议使能"
-#define     CFG_TCP_REORDER             true    //"TCP乱序重组使能",资源充足才打开
-//%$#@num,,,
-#define     CFG_TCP_CCBNUM              10      //"tcp 客户端数限值"，占一个 指针 和 tagCCB
-#define     CFG_TCP_SCBNUM              5       //"tcp 服务器数限值"，，占一个 指针 和 tagSCB
+////*******************************TCP******************************************//
+////%$#@enum,true,false,
+//#define     CFG_TCP_ENABLE              true    //"tcp协议使能"
+//#define     CFG_TCP_REORDER             true    //"TCP乱序重组使能",资源充足才打开
+////%$#@num,,,
+//#define     CFG_TCP_CCBNUM              10      //"tcp 客户端数限值"，占一个 指针 和 tagCCB
+//#define     CFG_TCP_SCBNUM              5       //"tcp 服务器数限值"，，占一个 指针 和 tagSCB
 //*******************************SOCKET***************************************//
 #define     CFG_SOCKET_NUM              10      //"socket数限值"，占一个 tagItem 结构
 //*******************************TELNET***************************************//
@@ -119,12 +119,12 @@
 
 //******************************TFTP******************************************//
 #define     CFG_TFTP_ENABLE             true    //"tftp 使能"
-#define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能"
+#define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能",暂未实现
 #define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
-//%$#@string,1,25,
+//%$#@string,1,256,
 #define     CFG_TFTP_PATHDEFAULT       "/efs/"   //TFTP默认工作目录
-//%$#@enum,true,false,
 //*******************************DHCP SERVER**********************************//
+//%$#@enum,true,false,
 #define     CFG_DHCP_ENABLE             true    //"DHCP 使能"
 #define     CFG_DHCPD_ENABLE            false   //"DHCP 服务器使能"
 #define     CFG_DHCPC_ENABLE            true    //"DHCP 客户端使能"
@@ -143,7 +143,7 @@
 #define     CFG_DHCPD_DOMAINNAME       "domain"        //"DHCP domain name"
 //*******************************PPP******************************************//
 //%$#@enum,true,false,
-#define     CN_PPP_ENABLE             true         //是否需要 ppp 协议
+#define     CFG_PPP_ENABLE             false         //是否需要 ppp 协议
 //%$#@select
 //%$#@free
 #endif

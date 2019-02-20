@@ -356,7 +356,7 @@ void Board_GpioInit(void)
 {
     Board_EthGpioInit();//ÍøÂç
     Board_UartGpioInit(CN_UART1);
-    Board_UartGpioInit(CN_UART2);
+//    Board_UartGpioInit(CN_UART2);
     Board_NORGpioInit();
 
 

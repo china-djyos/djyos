@@ -39,7 +39,7 @@
 typedef struct TsecSndPkgBuf
 {
     struct TsecSndPkgBuf *nxt;
-    tagNetPkg *plst;
+    struct NetPkg *plst;
     u8 pkgnum;
 }tagTsecSndPkgBuf;
 

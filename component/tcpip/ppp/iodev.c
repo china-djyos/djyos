@@ -81,9 +81,9 @@ static tagIoDebug  gIoDebug = {
 //备注:
 //作者:zhangqf@下午4:55:51/2017年1月5日
 //-----------------------------------------------------------------------------
-int iodevopen(const char *name)
+s32 iodevopen(const char *name)
 {
-    int ret;
+    s32 ret;
 
     ret = DevOpen(name,O_RDWR,0);
     if(-1==ret)
@@ -99,9 +99,9 @@ int iodevopen(const char *name)
 //备注:do the block read
 //作者:zhangqf@下午4:57:17/2017年1月5日
 //-----------------------------------------------------------------------------
-int iodevread(int dev,u8 *buf,u32 buflen,u32 timeout)
+s32 iodevread(s32 dev,u8 *buf,u32 buflen,u32 timeout)
 {
-    int len = -1;
+    s32 len = -1;
 
     len = DevRead(dev,buf,buflen,0,timeout);
     if((len > 0)&&(gIoDebug.idebug > 0))
@@ -109,7 +109,7 @@ int iodevread(int dev,u8 *buf,u32 buflen,u32 timeout)
         time_t printtime;
         printtime = time(NULL);
         debug_printf("iodev","[RCV:%s:%d bytes]",ctime(&printtime),len);
-        for(int i = 0;i < len;i++)
+        for(s32 i = 0;i < len;i++)
         {
             if(gIoDebug.idebug == 1)
             {
@@ -132,11 +132,12 @@ int iodevread(int dev,u8 *buf,u32 buflen,u32 timeout)
 //备注:do the block send
 //作者:zhangqf@下午4:57:17/2017年1月5日
 //-----------------------------------------------------------------------------
-int iodevwrite(int dev,u8 *buf,u32 len,u32 timeout)
+s32 iodevwrite(s32 dev,u8 *buf,u32 len,u32 timeout)
 {
-    int ret = -1;
-    int sentlen;
+    s32 ret = -1;
+    u32 sentlen;
     sentlen  =0;
+    u32 i;
 
     while(sentlen != len)
     {
@@ -157,7 +158,7 @@ int iodevwrite(int dev,u8 *buf,u32 len,u32 timeout)
         time_t printtime;
         printtime = time(NULL);
         debug_printf("iodev","[SND:%s:%d bytes]",ctime(&printtime),len);
-        for(int i = 0;i < len;i++)
+        for(i = 0;i < len;i++)
         {
             if(gIoDebug.odebug == 1)
             {
@@ -180,10 +181,10 @@ int iodevwrite(int dev,u8 *buf,u32 len,u32 timeout)
 //备注:do the block send
 //作者:zhangqf@下午4:57:17/2017年1月5日
 //-----------------------------------------------------------------------------
-void iodevflush(int dev)
+void iodevflush(s32 dev)
 {
     u8 buf[8];
-    int len;
+    s32 len;
     while((len =iodevread(dev,buf,8,0))>0);
     return;
 }
@@ -196,7 +197,7 @@ void iodevflush(int dev)
 //备注:
 //作者:zhangqf@下午5:05:27/2017年1月5日
 //-----------------------------------------------------------------------------
-bool_t iodevclose(int dev)
+bool_t iodevclose(s32 dev)
 {
     bool_t ret = true;
     DevClose(dev);
@@ -206,21 +207,21 @@ bool_t iodevclose(int dev)
 //bool_t iodebugset(char *param)
 bool_t iodebug(char *param)
 {
-    const char *argv[2];
-    int   argc=2;
-    int   v1;
+    char *argv[2];
+    s32   argc=2;
+    s32   v1;
 
     string2arg(&argc,argv,param);
     if(argc == 2)
     {
-        v1 = strtol(argv[0],NULL,NULL);
+        v1 = strtol(argv[0],NULL,0);
         if(v1 == 0)
         {
-            gIoDebug.idebug = strtol(argv[1],NULL,NULL);
+            gIoDebug.idebug = strtol(argv[1],NULL,0);
         }
         else
         {
-            gIoDebug.odebug = strtol(argv[1],NULL,NULL);
+            gIoDebug.odebug = strtol(argv[1],NULL,0);
         }
     }
     return true;
@@ -233,7 +234,7 @@ bool_t iodebug(char *param)
 //备注:
 //作者:zhangqf@下午4:06:57/2017年1月5日
 //-----------------------------------------------------------------------------
-bool_t PppIoInit(ptu32_t para)
+bool_t PppIoInit(void)
 {
         return (TRUE);
 }

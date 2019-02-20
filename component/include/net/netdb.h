@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -53,8 +53,8 @@
 
 #include <sys/socket.h>
 
-#ifndef H1B23F456_1CB8_4487_9CDE_B5DA91CF8218
-#define H1B23F456_1CB8_4487_9CDE_B5DA91CF8218
+#ifndef __NETDB_H__
+#define __NETDB_H__
 
 extern int h_errno;
 //rpc_netdb.h
@@ -244,6 +244,10 @@ struct addrinfo
   struct addrinfo *ai_next;      /* Pointer to next in list.  */
 };
 
+void NetDevPkgsndInc(struct NetDev *iface);
+void NetDevPkgsndErrInc(struct NetDev *iface);
+void NetDevPkgrcvInc(struct NetDev *iface);
+void NetDevPkgrcvErrInc(struct NetDev *iface);
 struct servent *getservbyname(const char *name, const char *proto);
 struct hostent *gethostbyname(const char *name);
 int  gethostname(char *name, int len);
@@ -252,4 +256,4 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
 
 int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result );
 void freeaddrinfo (struct addrinfo*ai);
-#endif /* H1B23F456_1CB8_4487_9CDE_B5DA91CF8218 */
+#endif /* __NETDB_H__ */

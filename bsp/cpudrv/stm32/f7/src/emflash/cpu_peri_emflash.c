@@ -87,7 +87,7 @@
 
 //%$#@num,-1,12,
 #define CFG_EFLASH_PART_START      6          //分区起始
-#define CFG_EFLASH_PART_END        -1         //分区结束
+#define CFG_EFLASH_PART_END        -1         //分区结束，-1代表至存储模块结束地址
 #define CFG_EFLASH_PART_OPTION     0          //分区选项
 //%$#@string,1,32,
 #define CFG_EFLASH_FSMOUNT_NAME   "XIP-APP"    //需安装的文件系统的mount的名字

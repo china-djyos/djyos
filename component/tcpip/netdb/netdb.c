@@ -54,7 +54,8 @@
 #include "../component_config_tcpip.h"
 
 //usage:use this data to storage the netdb errors
-int h_errno;
+s32 h_errno;
+//服务器列表，TODO：应该改为注册式，否则添加服务器很麻烦
 static struct servent  gServEnt[]={
         {"sntp",NULL,htons(123),"udp"},
         {"ftp",NULL,htons(21),"tcp"},
@@ -68,9 +69,16 @@ static struct servent  gServEnt[]={
 };
 
 #define CN_SERVENT_NUM  (sizeof(gServEnt)/sizeof(struct servent))
+
+//----获取服务入口---------------------------------------------------------------
+//功能：根据服务的功能和协议，取服务入口
+//参数：name，服务器名，例如 "ftp"
+//     proto，字符串表示的传输层协议，例如 "tcp"
+//返回：struct servent结构指针，失败则返回NULL
+//------------------------------------------------------------------------------
 struct servent *getservbyname(const char *name, const char *proto)
 {
-    int i = 0;
+    u32 i = 0;
     struct servent *result = NULL;
 
     for(i= 0; i <CN_SERVENT_NUM;i++)
@@ -87,14 +95,20 @@ struct servent *getservbyname(const char *name, const char *proto)
     return result;
 }
 
-in_addr_t inet_addr(const char *addr)
+//----网络地址转换--------------------------------------------------------------
+//功能：字符串点分十进制模式的IPV4地址转换为 u32 格式地址，一律按大端，即字符串最左边的
+//     数字（IP的最高字节）出现在 u32 存储单元的最低地址字节。
+//参数：string，被转换的 IPV4 地址。
+//返回：转换的结果，如果失败则返回 INADDR_NONE
+//-----------------------------------------------------------------------------
+in_addr_t inet_addr(const char *string)
 {
-    int para;
-    int tmp[4];
+    s32 para;
+    s32 tmp[4];
     in_addr_t result = INADDR_NONE;
     u8  ip[4];
 
-    para = sscanf(addr,"%d.%d.%d.%d",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+    para = sscanf(string,"%d.%d.%d.%d",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
     if(para == 4)
     {
         ip[0] = (u8)tmp[0];
@@ -106,18 +120,18 @@ in_addr_t inet_addr(const char *addr)
     return result;
 }
 
-//------------------------------------------------------------------------------
-//功能：字符串点分十进制模式的IPV4地址转换为 u32 格式地址，一律按大端，即字符串最左边的
-//      数字（IP的最高字节）出现在 u32 存储单元的最低地址字节。
+//----网络地址转换--------------------------------------------------------------
+//功能：同inet_addr，但把 INADDR_NONE(0xffffffff) 看成合法地址
 //参数：string，被转换的 IPV4 地址。
-//      address，接收结果的地址
-//返回：
-int inet_aton(const char *string,struct in_addr *addr)
+//      addr，接收结果的地址
+//返回：成功则返回1，失败返回0
+//-----------------------------------------------------------------------------
+s32 inet_aton(const char *string,struct in_addr *addr)
 {
-    int para;
-    int tmp[4];
+    s32 para;
+    s32 tmp[4];
     u8  ip[4];
-    int result = 0;
+    s32 result = 0;
 
     para = sscanf(string,"%d.%d.%d.%d",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
     if(para == 4)
@@ -133,26 +147,39 @@ int inet_aton(const char *string,struct in_addr *addr)
     return result;
 }
 
-
-#define CN_INET_ADDRLEN     16
-static  char gInetAddr[CN_INET_ADDRLEN];
-
+//----IPv4地址转换---------------------------------------------------------------
+//功能：将网络字节序的整数 IPv4地址转换成点分十进制地址，不可重入。
+//参数：addr，整数IPv4地址
+//返回：点分十进制地址
+//注意：使用静态变量返回地址，函数不可重入
+//------------------------------------------------------------------------------
 char *inet_ntoa(struct in_addr addr)
 {
+#define CN_INET_ADDRLEN     16
+static  char gInetAddr[CN_INET_ADDRLEN];
     u8 ip[4];
-    int tmp[4];
+    s32 tmp[4];
     memcpy((void *)ip,(void *)&addr,sizeof(ip));
     memset((void *)gInetAddr,0,CN_INET_ADDRLEN);
 
-    tmp[0] = (int)ip[0];
-    tmp[1] = (int)ip[1];
-    tmp[2] = (int)ip[2];
-    tmp[3] = (int)ip[3];
+    tmp[0] = (s32)ip[0];
+    tmp[1] = (s32)ip[1];
+    tmp[2] = (s32)ip[2];
+    tmp[3] = (s32)ip[3];
     sprintf(gInetAddr,"%d.%d.%d.%d",tmp[0],tmp[1],tmp[2],tmp[3]);
 
     return (char *)gInetAddr;
 }
-const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt)
+
+//----支持IPv6网路地址转化--------------------------------------------------------
+//功能：将数值格式转化为点分十进制的ip地址格式
+//参数：family，地址族
+//     src，待转化的地址
+//     dst，保存转换结果的指针
+//     cnt，dst buffer的长度
+//TODO：IPv6部分并没有实现
+//------------------------------------------------------------------------------
+const char *inet_ntop(s32 family, const void *src, char *dst, socklen_t cnt)
 {
     char *str;
     char          *result = NULL;
@@ -163,13 +190,13 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt)
         return result;
     }
 
-    if(af==AF_INET)
+    if(family==AF_INET)
     {
 
         memcpy((void *)&addr,src,sizeof(addr));
         str = inet_ntoa(addr);
 
-        if((NULL != str)&&(cnt > (strlen(str)+1)))
+        if((NULL != str)&&(cnt > (s32)(strlen(str)+1)))
         {
             memcpy((void*)dst,(void*)str,strlen(str)+1);
             result = dst;
@@ -178,10 +205,18 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt)
 
     return result;
 }
-int inet_pton(int af, const char *src, void *dst)
+
+//----支持IPv6网路地址转化--------------------------------------------------------
+//功能：将点分十进制的ip地址转化为用于网络传输的数值格式
+//参数：family，地址族
+//     src，待转化的地址
+//     dst，保存转换结果的指针
+//TODO：IPv6部分并没有实现
+//------------------------------------------------------------------------------
+s32 inet_pton(s32 family, const char *src, void *dst)
 {
 
-    int result = -1;
+    s32 result = -1;
 //    unsigned char *str;
     struct in_addr addr;
 
@@ -191,7 +226,7 @@ int inet_pton(int af, const char *src, void *dst)
         return result;
     }
 
-    if(af==AF_INET)
+    if(family==AF_INET)
     {
         if(inet_aton(src,&addr))
         {
@@ -203,33 +238,46 @@ int inet_pton(int af, const char *src, void *dst)
     return result;
 }
 
-extern struct hostent*  DnsNameResolve(const char *name);
-
-
-
-static char gHostName[32] = "DJYOS_TERNIMAL";
-int  gethostname(char *name, int len)
+static char gHostName[32] = "DJYOS_TERMINAL";
+//----取主机名-------------------------------------------------------------------
+//功能：取主机名
+//参数：name，接收结果的buffer
+//     len，buffer尺寸
+//返回：0
+//------------------------------------------------------------------------------
+s32  gethostname(char *name, s32 len)
 {
-    strcpy(name,gHostName);
+    strncpy(name,gHostName,len);
     return 0;
 }
 
-int sethostname(const char *name, size_t len)
+//----设置主机名-----------------------------------------------------------------
+//功能：设置主机名
+//参数：name，新名字，＜32
+//     len，新名字长度，必须＜32，否则无效
+//返回：0
+//------------------------------------------------------------------------------
+s32 sethostname(const char *name, size_t len)
 {
-    int ret = -1;
+    s32 ret = -1;
     if((len > 0)&&(len <32)&&(NULL != name))
     {
-        memset(gHostName,0,32);
         strncpy(gHostName,name,31);
         ret = 0;
     }
     return ret;
 }
 static struct hostent gHostEnt;
-static struct in_addr gHostAddr;
-static struct in_addr gLocalAddr;
-static void  *gHLAddr[3];
-
+static struct in_addr gHostAddr;    //主机地址
+static struct in_addr gLocalAddr;   //本地地址
+static struct in_addr *gHLAddr[3];  //指向数值格式的网络地址
+extern struct hostent*  DnsNameResolve(const char *name);
+//------------------------------------------------------------------------------
+//功能：对应于给定主机名的包含主机名字和地址信息的hostent结构的指针。引用静态定义数据
+//      结构，非多线程安全。如果主机名NULL，则认为是"localhost"。
+//参数：name，给定的主机名。
+//返回：struct hostent *
+//------------------------------------------------------------------------------
 struct hostent *gethostbyname(const char *name)
 {
     struct hostent *ret;
@@ -238,10 +286,10 @@ struct hostent *gethostbyname(const char *name)
         gHostEnt.h_addrtype = AF_INET;
         gHostEnt.h_length = sizeof(struct in_addr);
         gHostEnt.h_name =(char *) name;
-        inet_aton("127.0.0.1",&gLocalAddr);
-        gHLAddr[0]=&gLocalAddr;
-        gHLAddr[1]=&gHostAddr;
-        gHLAddr[2] = NULL;
+        inet_aton("127.0.0.1", &gLocalAddr);
+        gHLAddr[0] = &gLocalAddr;
+        gHLAddr[1] = &gHostAddr;
+        gHLAddr[2] = NULL;              //结束标志
         gHostEnt.h_addr_list = (char **)&gHLAddr;
         ret = &gHostEnt;
     }
@@ -252,8 +300,8 @@ struct hostent *gethostbyname(const char *name)
         gHostEnt.h_length = sizeof(struct in_addr);
         gHostEnt.h_name = (char *)name;
         gHostAddr.s_addr = INADDR_LOOPBACK;
-        gHLAddr[0]=&gHostAddr;
-        gHLAddr[1]=&gLocalAddr;
+        gHLAddr[0] = &gHostAddr;
+        gHLAddr[1] = &gLocalAddr;
         gHLAddr[2] = NULL;
         gHostEnt.h_addr_list = (char **)&gHLAddr;
         ret = &gHostEnt;
@@ -271,9 +319,26 @@ struct hostent *gethostbyname(const char *name)
 //and ipv6,you also can request for the service and port
 //return 0 success while others failed
 //--TODO,should make a list for more than one address and port,but now only one
-int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result )
+//------------------------------------------------------------------------------
+//功能：gethostbyname和gethostbyaddr这两个函数仅仅支持IPv4，getaddrinfo函数能够处理
+//      名字到地址以及服务到端口这两种转换，返回的是一个sockaddr结构的链表而不是一个地址
+//      清单。这些sockaddr结构随后可由套接口函数直接使用。如此一来，getaddrinfo函数把协
+//      议相关性安全隐藏在这个库函数内部。应用程序只要处理由getaddrinfo函数填写的套接口
+//      地址结构。
+//参数：hostname，一个主机名或者地址串(IPv4的点分十进制串或者IPv6的16进制串)
+//      service，服务名可以是十进制的端口号，也可以是已定义的服务名称，如ftp、http等
+//      hints，可以是一个空指针，也可以是一个指向某个addrinfo结构体的指针，调用者在这个
+//             结构中填入关于期望返回的信息类型的暗示。举例来说：指定的服务既可支持TCP也
+//             可支持UDP，所以调用者可以把hints结构中的ai_socktype成员设置成
+//             SOCK_DGRAM使得返回的仅仅是适用于数据报套接口的信息。
+//      result，返回一个指向addrinfo结构体链表的指针。
+//返回：0=成功，其他值=失败
+//TODO：应该为多个地址和端口创建一个列表，但目前只有一个
+//------------------------------------------------------------------------------
+s32 getaddrinfo( const char *hostname, const char *service,
+                 const struct addrinfo *hints, struct addrinfo **result )
 {
-    int res = -1;
+    s32 res = -1;
     struct hostent     *host;
     struct servent     *serve;
     struct addrinfo    *answer;

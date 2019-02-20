@@ -649,9 +649,9 @@ void GMAC_PhyIntHandler(void)
 // 参数：packet,接收到数据的首地址
 // 返回：接收到数据包长度，最大不会超过1518字节
 // =============================================================================
-static tagNetPkg *GMAC_RcvPacket(tagNetDev *NetCard)
+static struct NetPkg *GMAC_RcvPacket(tagNetDev *NetCard)
 {
-    tagNetPkg *pkg=NULL;
+    struct NetPkg *pkg=NULL;
     u8 LastBuffer=0;
     u8 *rcvbuf = NULL;
     u8 tmpIdx,i;
@@ -779,10 +779,10 @@ static tagNetPkg *GMAC_RcvPacket(tagNetDev *NetCard)
 // 输出参数：
 // 返回值  ：true发送成功  false发送失败。
 // =============================================================================
-static bool_t GMAC_SendPacket(tagNetDev *dev,tagNetPkg * pkg, u32 netdevtask)
+static bool_t GMAC_SendPacket(tagNetDev *dev,struct NetPkg * pkg, u32 netdevtask)
 {
     bool_t  result = false;
-    tagNetPkg *tmp;
+    struct NetPkg *tmp;
     u32 pkgnum = 0,temp = 0,i;
     u32 SendBdWaitTime = SendPkgWaitMs;
     volatile gmac_tx_descriptor_t *pTxTd;
@@ -866,7 +866,7 @@ static bool_t GMAC_SendPacket(tagNetDev *dev,tagNetPkg * pkg, u32 netdevtask)
 // =============================================================================
 static ptu32_t GMAC_Rcv(void)
 {
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     tagNetDev *NetCard = ptNetDev;
 
 //    Djy_GetEventPara(NetCard,NULL);
@@ -922,7 +922,7 @@ static bool_t GMAC_RcvTask(tagNetDev *NetCard)
 // =============================================================================
 tagNetDev *GMAC_AddNetDev(void)
 {
-    tagNetDevPara  devpara;
+    struct NetDevPara  devpara;
     tagHostIpv4Addr devaddr;
 
     devpara.ifsend = GMAC_SendPacket;

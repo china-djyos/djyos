@@ -63,6 +63,10 @@
 
 #include "ftp.h"
 #include "dbug.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //------------------------------------------------------------------------------
 //功能：字符串地址转整数IPV4地址，字符串可以是点分十进制的，也可以是主机名。
 //参数：string，IPV4 地址，或者主机名
@@ -78,7 +82,7 @@ static bool_t  __String2Ip(const char *string,struct in_addr *addr)
         hent = gethostbyname(string);
         if (hent)
         {
-            memcpy(addr, hent->h_addr, hent->h_length);
+            memcpy(addr, hent->h_addr_list[0], hent->h_length);
             ret = true;
         }
     }
@@ -253,7 +257,7 @@ static bool_t  __PortCmd(tagFtpClient *client)
     {
         return ret;
     }
-    memcpy(&hostip,h->h_addr,sizeof(hostip));
+    memcpy(&hostip,h->h_addr_list[0],sizeof(hostip));
 
     lsn_sock = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
     if(lsn_sock <= 0)
@@ -916,7 +920,7 @@ bool_t ftpc(char *param)
 {
     int len ;
     int argc =10;
-    const char *argv[10];
+    char *argv[10];
     if((NULL == param)||(0 == strcmp(param,"help"))) //printf the usage
     {
         info_printf("ftpc","usage:help\r\n"
@@ -998,7 +1002,7 @@ bool_t ftpc(char *param)
             }
             else
             {
-                error_printf("ftpc","%s:logout:ERR");
+                error_printf("ftpc","logout:ERR");
             }
         }
         else if(0 == strcmp(argv[0],"pwd"))
@@ -1286,15 +1290,10 @@ EXIT_MEM:
 // 参数：para
 // 返回值  ：true成功  false失败。
 // =============================================================================
-bool_t ServiceFtpcInit(ptu32_t para)
+bool_t ServiceFtpcInit(void)
 {
     return true;
 }
 
 ADD_TO_ROUTINE_SHELL(ftpc,ftpc,"usage:ftpc subcmd [subpara]");
-
-
-
-
-
 

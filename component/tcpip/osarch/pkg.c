@@ -54,46 +54,43 @@
 //we will add some
 //this var used to make the pkg aligned by the specified value
 #define CN_ALIGN_DEFAULT         0X20                   //default align size
-static u16 gPkgHdrSizeAlign = CN_ALIGN_DEFAULT;         //the package aligned size
+//static u16 gPkgHdrSizeAlign = CN_ALIGN_DEFAULT;         //the package aligned size
 
+//tagNetPkg的原理
+//bufsize在申请时指定，使用过程中一直不变;data一直指向buf的起始位置，保持不变
+//当向PKG写入数据时，offset不变，从buf的offset+datalen的地方开始写新数据，写完之后
+//                  datalen +=len(len为写入数据长度)
+//当从PKG读取数据时，从buf的offset开始cpy，cpy完成之后，
+//                  offset += len,datalen -= len(len为取出数据长度)
+struct NetPkg
+{
+    struct NetPkg   *partnext;  //该组指针负责数据包在协议栈的传递
+    ptu32_t  PkgPrivate;// used for the module who malloc the package
+    u8   level;         // PKG的大小等级
+    u8   pkgflag;       // PKG的属性标志，目前只有包结束标志
+    u8   refers;        // 缓存的次数
+    u16  datalen;       // buf中的有效数据长度
+    u16  bufsize;       // buf的长度
+    u16  pkgoffset;     // 有效数据偏离buf的位置，offset之前的数据无效,当分拆数据或者数据对齐的时候很有用
+    u8   *pkgbuf;       // pkg的buf（数据缓存区）
+};
 
 #define CN_NETPKG_LEVEL           9                     //how many layers
-static tagNetPkg *sgPkgFreeLst[CN_NETPKG_LEVEL];        //used to list the free pkg
-#define CN_PKG_HDRSIZE    (sizeof(tagNetPkg))
+static struct NetPkg *sgPkgFreeLst[CN_NETPKG_LEVEL];        //used to list the free pkg
+#define CN_PKG_HDRSIZE    (sizeof(struct NetPkg))
 static u32  sgPkgLevlMap[CN_NETPKG_LEVEL]=  {32,64,128,256,512,1024,2048,4096,8192}; //layer size
 static u8  *pPkgMemSrc = NULL;                          //the package heap
 static u32  gPkgMemOffset = 0;                          //the package use heap offset
 static  mutex_t pPkgQueLock = NULL;                     //protect the heap and the free list
-// =============================================================================
-// FUNCTION   :use this function to set the aligned size
-// PARAMS IN  :alignsize,must be larger than zero,if less than the default, then will set
-//             it to the default
-// PARAMS OUT :
-// RETURN     :true success while false failed
-// DESCRIPTION:
-// =============================================================================
-bool_t Pkg_SetAlignOffset(u16 alignsize)
+
+void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf)
 {
-    if(alignsize < CN_ALIGN_DEFAULT)
-    {
-        gPkgHdrSizeAlign = CN_ALIGN_DEFAULT;
-    }
-    else
-    {
-        gPkgHdrSizeAlign = alignsize;
-    }
-    return true;
-}
-// =============================================================================
-// FUNCTION   :use this function to get the align size
-// PARAMS IN  :
-// PARAMS OUT :
-// RETURN     :the align size used in the pkg
-// DESCRIPTION:
-// =============================================================================
-u16 PkgAlignSize(u16 size)
-{
-    return gPkgHdrSizeAlign;
+    pkg->partnext = NULL;
+    pkg->pkgflag  = flag;  //只有一个包
+    pkg->pkgoffset   = offset;
+    pkg->datalen  = datalen;
+    pkg->pkgbuf      = buf;
+    return;
 }
 
 typedef struct
@@ -112,11 +109,11 @@ static tagPkgStatistics gPkgStatistics;
 // RETURN     :the package malloc or NULL failed
 // DESCRIPTION:
 // =============================================================================
-tagNetPkg *PkgMalloc(u16 bufsize, u8 flags)
+struct NetPkg *PkgMalloc(u16 bufsize, u8 flags)
 {
     u8 i ;
     u16  pkgsize;
-    tagNetPkg *result;
+    struct NetPkg *result;
 
     result = NULL;
     pkgsize = bufsize+CN_PKG_HDRSIZE;
@@ -143,7 +140,7 @@ tagNetPkg *PkgMalloc(u16 bufsize, u8 flags)
             }
             else if((pkgsize+gPkgMemOffset)<CFG_NETPKG_MEMSIZE)
             {
-                result = (tagNetPkg *)(pPkgMemSrc + gPkgMemOffset);
+                result = (struct NetPkg *)(pPkgMemSrc + gPkgMemOffset);
                 gPkgMemOffset += pkgsize;
                 TCPIP_DEBUG_INC(gPkgStatistics.mallocnum[i]);
             }
@@ -155,12 +152,12 @@ tagNetPkg *PkgMalloc(u16 bufsize, u8 flags)
             {
                 result->partnext = NULL;
                 result->bufsize = pkgsize - CN_PKG_HDRSIZE;
-                result->buf = (u8 *)result + CN_PKG_HDRSIZE;
+                result->pkgbuf = (u8 *)result + CN_PKG_HDRSIZE;
                 result->datalen = 0;
                 result->refers = 0;
                 result->pkgflag =flags;
                 result->level = i;
-                result->offset = 0;
+                result->pkgoffset = 0;
             }
             Lock_MutexPost(pPkgQueLock);
         }
@@ -181,7 +178,7 @@ tagNetPkg *PkgMalloc(u16 bufsize, u8 flags)
 // DESCRIPTION:if the package's refers is zero then we will free it else sub the refers
 //             if its matches the heap's offset, then will free it to the heap
 // =============================================================================
-bool_t PkgTryFreePart(tagNetPkg *pkg)
+bool_t PkgTryFreePart(struct NetPkg *pkg)
 {
     u8         level;
     u32        len;
@@ -219,6 +216,167 @@ bool_t PkgTryFreePart(tagNetPkg *pkg)
     }
     return true;
 }
+
+struct NetPkg *PkgGetNextUnit(struct NetPkg *NextUnit)
+{
+    return NextUnit->partnext;
+}
+
+void PkgSetNextUnit(struct NetPkg *pkg,struct NetPkg *NextUnit)
+{
+    pkg->partnext = NextUnit;
+}
+
+u8* PkgGetCurrentBuffer(struct NetPkg *pkg)
+{
+    return pkg->pkgbuf + pkg->pkgoffset;
+}
+u8* PkgGetBuffer(struct NetPkg *pkg)
+{
+    return pkg->pkgbuf;
+}
+void PkgSetBuffer(struct NetPkg *pkg, u8 *buf)
+{
+    pkg->pkgbuf = buf;
+}
+u16 PkgGetDataLen(struct NetPkg *pkg)
+{
+    return pkg->datalen;
+}
+void PkgSetDataLen(struct NetPkg *pkg,u16 len)
+{
+    pkg->datalen = len;
+}
+u16 PkgGetOffset(struct NetPkg *pkg)
+{
+    return pkg->pkgoffset;
+}
+void PkgSetOffset(struct NetPkg *pkg,u16 offset)
+{
+    pkg->pkgoffset = offset;
+}
+ptu32_t PkgGetPrivate(struct NetPkg *pkg)
+{
+    return pkg->PkgPrivate;
+}
+void PkgSetPrivate(struct NetPkg *pkg,ptu32_t PkgPrivate)
+{
+    pkg->PkgPrivate = PkgPrivate;
+}
+bool_t PkgIsBufferEnd(struct NetPkg *pkg)
+{
+    return (pkg->pkgflag&CN_PKLGLST_END);
+}
+
+void PkgMoveOffsetUp(struct NetPkg *pkg, u16 len)
+{
+    pkg->pkgoffset += len;
+    pkg->datalen -= len;
+}
+void PkgMoveOffsetDown(struct NetPkg *pkg, u16 len)
+{
+    pkg->pkgoffset -= len;
+    pkg->datalen += len;
+}
+u16 PkgListDatastatistics(struct NetPkg *pkg)
+{
+    u16 result = 0;
+    while(pkg != NULL)
+    {
+        result += pkg->datalen;
+        pkg = PkgGetNextUnit(pkg);
+    }
+    return result;
+}
+u16 PkgFrameDatastatistics(struct NetPkg *pkg)
+{
+    u16 result = 0;
+    while(pkg != NULL)
+    {
+        result += pkg->datalen;
+        if(PkgIsBufferEnd(pkg))
+            break ;
+        else
+            pkg = PkgGetNextUnit(pkg);
+    }
+    return result;
+}
+u16 PkgListDataCopy(struct NetPkg *pkg,u8 *dst)
+{
+    u8 *src;
+    u16 cpylen = 0;
+    while (NULL != pkg)
+    {
+        src = (u8 *) (pkg->pkgbuf + pkg->pkgoffset);
+        memcpy(dst, src, pkg->datalen);
+        dst += pkg->datalen;
+        cpylen += pkg->datalen;
+        pkg = PkgGetNextUnit(pkg);
+    }
+    return cpylen;
+}
+u16 PkgFrameDataCopy(struct NetPkg *pkg,u8 *dst)
+{
+    u8 *src;
+    u16 cpylen = 0;
+    while (NULL != pkg)
+    {
+        src = (u8 *) (pkg->pkgbuf + pkg->pkgoffset);
+        memcpy(dst, src, pkg->datalen);
+        dst += pkg->datalen;
+        cpylen += pkg->datalen;
+//          if (pkg->pkgflag & CN_PKLGLST_END)
+        if(PkgIsBufferEnd(pkg))
+        {
+            pkg = NULL;
+        }
+        else
+        {
+            pkg = PkgGetNextUnit(pkg);
+        }
+    }
+    return cpylen;
+}
+void PkgCopyListToPkg(struct NetPkg *pkg,struct NetPkg *dst)
+{
+    u8 *dstbuf,*src;
+    u16 pkglen;
+    dstbuf = (u8 *)(dst->pkgbuf + dst->pkgoffset);
+    while(NULL != pkg)
+    {
+        pkglen = pkg->datalen;
+        src = pkg->pkgbuf + pkg->pkgoffset;
+        memcpy(dstbuf, src, pkglen);
+        dstbuf += pkglen;
+        dst->datalen += pkglen;
+        pkg = PkgGetNextUnit(pkg);
+    }
+}
+void PkgCopyFrameToPkg(struct NetPkg *pkg,struct NetPkg *dst)
+{
+    u8 *dstbuf,*src;
+    u16 pkglen;
+    dstbuf = (u8 *)(dst->pkgbuf + dst->pkgoffset);
+    while(NULL != pkg)
+    {
+        pkglen = pkg->datalen;
+        src = pkg->pkgbuf + pkg->pkgoffset;
+        memcpy(dstbuf, src, pkglen);
+        dstbuf += pkglen;
+        dst->datalen += pkglen;
+        if(PkgIsBufferEnd(pkg))
+        {
+            break;
+        }
+        else
+        {
+            pkg = PkgGetNextUnit(pkg);
+        }
+    }
+}
+
+
+
 // =============================================================================
 // FUNCTION   :we use this function to free the queue which terminated by the queue
 // PARAMS IN  :pkglst, the package to free
@@ -226,17 +384,17 @@ bool_t PkgTryFreePart(tagNetPkg *pkg)
 // RETURN     :true
 // DESCRIPTION:
 // =============================================================================
-bool_t PkgTryFreeLst(tagNetPkg  *pkglst)
+bool_t PkgTryFreeLst(struct NetPkg  *pkglst)
 {
     u8          level;
-    tagNetPkg  *pkg;
-    tagNetPkg  *pkgnxt;
+    struct NetPkg  *pkg;
+    struct NetPkg  *pkgnxt;
     if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
     {
         pkg = pkglst;
         while(NULL != pkg)
         {
-            if(PKG_ISLISTEND(pkg))
+            if(PkgIsBufferEnd(pkg))
             {
                 pkgnxt = NULL;// this is the end of the lst
             }
@@ -268,11 +426,11 @@ bool_t PkgTryFreeLst(tagNetPkg  *pkglst)
 // RETURN     :true
 // DESCRIPTION:
 // =============================================================================
-bool_t PkgTryFreeQ(tagNetPkg  *pkglst)
+bool_t PkgTryFreeQ(struct NetPkg  *pkglst)
 {
     u8          level;
-    tagNetPkg  *pkg;
-    tagNetPkg  *pkgnxt;
+    struct NetPkg  *pkg;
+    struct NetPkg  *pkgnxt;
     if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
     {
         pkg = pkglst;
@@ -303,7 +461,7 @@ bool_t PkgTryFreeQ(tagNetPkg  *pkglst)
 // RETURN     :true
 // DESCRIPTION:
 // =============================================================================
-bool_t PkgCachedPart(tagNetPkg  *pkg)
+bool_t PkgCachedPart(struct NetPkg  *pkg)
 {
     if(NULL != pkg)
     {
@@ -318,14 +476,14 @@ bool_t PkgCachedPart(tagNetPkg  *pkg)
 // RETURN     :true
 // DESCRIPTION:
 // =============================================================================
-bool_t PkgCachedLst(tagNetPkg   *pkglst)
+bool_t PkgCachedLst(struct NetPkg   *pkglst)
 {
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     pkg = pkglst;
     while(NULL != pkg)
     {
         pkg->refers++;
-        if(PKG_ISLISTEND(pkg))
+        if(PkgIsBufferEnd(pkg))
         {
             pkg = NULL;// this is the end of the lst
         }
@@ -360,7 +518,6 @@ bool_t pkgmem(char *param)
     return true;
 }
 
-
 // =============================================================================
 // FUNCTION:this function is used to initialize the package memory
 // PARA  IN:
@@ -368,7 +525,7 @@ bool_t pkgmem(char *param)
 // RETURN  :true success while false failed
 // INSTRUCT:
 // =============================================================================
-bool_t PkgInit(void)
+bool_t PkgModuleInit(void)
 {
     bool_t result = false;
     //FIRST MALLOC THE MEM FROM THE HEAP
@@ -389,11 +546,6 @@ bool_t PkgInit(void)
 
     result = true;
     return result;
-
-
-EXIT_CMD:
-    free((void *)pPkgMemSrc);
-    pPkgMemSrc = NULL;
 
 EXIT_MEM:
     Lock_MutexDelete_s(pPkgQueLock);

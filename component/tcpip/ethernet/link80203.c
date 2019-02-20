@@ -62,8 +62,10 @@
 //add your own specified header here
 #include <sys/socket.h>
 #include <netbsp.h>
+#include <netdb.h>
 #include "../common/link.h"
 #include "../common/netdev.h"
+#include "../common/netpkg.h"
 #include "arp.h"
 
 
@@ -75,31 +77,44 @@ typedef struct EthernetHdr
 {
     u8 macdst[CN_MACADDR_LEN];
     u8 macsrc[CN_MACADDR_LEN];
-    u16 type;
+    u16 type_or_tpid;           //如果是vlan帧，则=0x8100，否则，代表协议类型
+    u16 vlantci;                //如果是vlan帧，则是vlan的tci域
+    u16 type_if_vlan;           //如果是vlan帧，协议类型移到这里
+
 }tagEthernetHdr;
 #pragma pack()
-#define CN_ETHERNET_HEADLEN  sizeof(tagEthernetHdr)
+#define CN_ETHERNET_HEADLEN_UNVLAN  14      //非vlan帧的帧头长度
+#define CN_ETHERNET_HEADLEN_VLAN    18      //vlan帧的帧头长度
 //-----------------------------------------------------------------------------
-//功能:this is the loop out function here
-//参数:
+//功能: 链路层发送函数，准备好Ethernet的包头，如果不知道对方Mac地址，则调用ARP功能获取，
+//      然后调用网卡设备端额ifsend函数发送包链
+//参数: iface，网卡设备指针
+//      pkg，须发送的包链
+//      framlen，须发送的报文总长度，包括包链中的所有节点
+//      devtask，网卡硬件加速功能需要完成的工作，例如填充tcp或IP头的校验和
+//      proto，协议类型，0800/0806/0835等
+//      ver，IP版本号。TODO：此处值得商榷，网卡难道只能发送IP包吗？
+//      ipdst，目的IP地址
+//      ipsrc，源IP地址
 //返回:
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
+static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32 devtask,\
                            u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t            ret;
     tagEthernetHdr   *hdr;
-    tagNetPkg        *ethpkg;
+    struct NetPkg    *ethpkg;
 
     ret = false;
-    ethpkg = PkgMalloc(CN_ETHERNET_HEADLEN,0);
+    ethpkg = PkgMalloc(CN_ETHERNET_HEADLEN_UNVLAN,0);
     if(NULL != ethpkg)
     {
-        hdr = (tagEthernetHdr  *)(ethpkg->buf + ethpkg->offset);
+        hdr = (tagEthernetHdr *)PkgGetCurrentBuffer(ethpkg);
+//      hdr = (tagEthernetHdr  *)(ethpkg->buf + ethpkg->offset);
         memcpy(hdr->macsrc, NetDevGetMac(iface), CN_MACADDR_LEN);
-        hdr->type = htons(proto);
+        hdr->type_or_tpid = htons(proto);
         if(ver == EN_IPV_4)
         {
             //we should just do it here
@@ -121,10 +136,18 @@ static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
             {
                 memcpy(hdr->macdst,CN_MAC_BROAD,CN_MACADDR_LEN);
             }
-            ethpkg->datalen = CN_ETHERNET_HEADLEN;
-            ethpkg->partnext = pkg;
-            framlen += CN_ETHERNET_HEADLEN;
+            PkgSetNextUnit(ethpkg,pkg);
+            PkgSetDataLen(ethpkg, CN_ETHERNET_HEADLEN_UNVLAN);
+//          ethpkg->datalen = CN_ETHERNET_HEADLEN;
+//          ethpkg->partnext = pkg;
+            framlen += CN_ETHERNET_HEADLEN_UNVLAN;
+//          ret = NetDevSend(iface,ethpkg,framlen,devtask);
+            NetDevPkgsndInc(iface);
             ret = NetDevSend(iface,ethpkg,framlen,devtask);
+            if(ret == false)
+            {
+                NetDevPkgsndErrInc(iface);
+            }
             PkgTryFreePart(ethpkg);
         }
         else
@@ -135,27 +158,41 @@ static bool_t __LinkOut(void *iface,tagNetPkg *pkg,u32 framlen,u32 devtask,\
     }
     return ret;
 }
+
 //-----------------------------------------------------------------------------
-//功能:the link layer will call this function to deal the loop in package
-//参数:
-//返回:
-//备注:here we dispatch the ethernet header and pass it to the ip
-//作者:zhangqf@上午9:18:35/2016年12月29日
+//功能: 由网卡推送函数调用，处理链路层部分，取出上层协议，并调用LinkPush把数据推送到更高
+//      层协议处理。
+//参数: iface，数据源网卡设备指针
+//      pkg，推送上来的数据包
+//返回: true or false
 //-----------------------------------------------------------------------------
-static bool_t  __LinkIn(void *iface,tagNetPkg *pkg)
+static bool_t  __LinkIn(struct NetDev *iface,struct NetPkg *pkg)
 {
     bool_t          ret=false;
+    u8              *buf;
     tagEthernetHdr *hdr;
     u16             proto;
-    if(pkg->datalen > CN_ETHERNET_HEADLEN)
+    if(PkgGetDataLen(pkg) > CN_ETHERNET_HEADLEN_UNVLAN)
+//  if(pkg->datalen > CN_ETHERNET_HEADLEN)
     {
         //we analyze the ethernet header first, which type it has
-        hdr = (tagEthernetHdr *)(pkg->buf + pkg->offset);
-        memcpy(&proto,&hdr->type,sizeof(proto));
-        proto = ntohs(proto);
-        pkg->offset += CN_ETHERNET_HEADLEN;
-        pkg->datalen -= CN_ETHERNET_HEADLEN;
-        ret = LinkPush(iface,pkg,proto);
+        hdr = (tagEthernetHdr *)PkgGetCurrentBuffer(pkg);
+//      hdr = (tagEthernetHdr *)(pkg->buf + pkg->offset);
+//      memcpy(&proto,&hdr->type,sizeof(proto));
+        buf = (u8*)&hdr->type_or_tpid;
+        proto = (((u16)*buf)<<8) + *(buf+1);
+        if(proto==0x8100)           //带vlan标签的帧，有些交换机会把vlan帧发过来
+        {
+            buf += 4;               //vlan 域 4 字节
+            proto = (((u16)*buf)<<8) + *(buf+1);        //取出真正的协议字段
+            PkgMoveOffsetUp(pkg,CN_ETHERNET_HEADLEN_VLAN);
+        }
+        else
+            PkgMoveOffsetUp(pkg,CN_ETHERNET_HEADLEN_UNVLAN);
+
+//      pkg->offset += CN_ETHERNET_HEADLEN;
+//      pkg->datalen -= CN_ETHERNET_HEADLEN;
+        ret = LinkPush(iface,pkg,(enum enLinkProto)proto);
     }
     return ret;
 }
@@ -170,7 +207,7 @@ bool_t LinkEthernetInit(void)
 {
     bool_t ret = true;
     //first we will register a loop link type to the link hal
-    tagLinkOps   ops;
+    struct LinkOps   ops;
     memset(&(ops),0,sizeof(ops));
     ops.linkin = __LinkIn;
     ops.linkout =__LinkOut;

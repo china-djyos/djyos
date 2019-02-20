@@ -84,7 +84,7 @@ void *sockobj_malloc(void *cb)
 {
     void *ret = NULL;
     tagItem *tmp;
-    int i = 0;
+    u32 i = 0;
     if(mutex_lock(gSockFileCB.lock))
     {
         for(i =0;i <gSockFileCB.tablen;i++)
@@ -154,25 +154,25 @@ int sockobj_fd(void *obj)
     }
     return ret;
 }
-bool_t sockobj_setstatus(void *obj,u32 status)
-{
-    bool_t ret = true;
-
-    tagItem *tmp;
-    tmp = obj;
-    tmp->status |= status;
-    return ret;
-}
-bool_t sockobj_clrstatus(void *obj,u32 status)
-{
-    bool_t ret = true;
-
-    tagItem *tmp;
-    tmp = obj;
-    tmp->status &= (~status);
-    return ret;
-}
-
+//bool_t sockobj_setstatus(void *obj,u32 status)
+//{
+//    bool_t ret = true;
+//
+//    tagItem *tmp;
+//    tmp = obj;
+//    tmp->status |= status;
+//    return ret;
+//}
+//bool_t sockobj_clrstatus(void *obj,u32 status)
+//{
+//    bool_t ret = true;
+//
+//    tagItem *tmp;
+//    tmp = obj;
+//    tmp->status &= (~status);
+//    return ret;
+//}
+//
 
 //show all the sockfile fd
 
