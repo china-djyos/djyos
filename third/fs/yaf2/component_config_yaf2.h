@@ -63,7 +63,7 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //#include "filesystems.h"
 //    extern s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data);
-//    ModuleInstall_YAF2(CFG_MOUNT_POINT, CFG_INSTALL_OPTION, CFG_ECC);
+//    ModuleInstall_YAF2(CFG_YAF_MOUNT_POINT, CFG_YAF_INSTALL_OPTION, CFG_YAF_ECC);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -91,11 +91,11 @@
 //%$#@num,0,100,
 #define CFG_YAF_ECC                       0                //YAF文件系统文件使能设备ECC功能。0不使用ecc，YAF2_ENABLE_DEVICE_ECC使用ecc
 //%$#@enum,true,false,
+#define CFG_YAF_INSTALL_OPTION           false        //YAF文件系统安装选项，安装时是否格式化整个文件系统；
 //%$#@string,1,32,
-#define CFG_YAF_MOUNT_POINT           "yaf2"               //"name",YAF文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#define CFG_YAF_INSTALL_OPTION        MS_INSTALLCREAT      //YAF文件系统安装选项，MS_INSTALLCREAT：文件系统不存在时，则新建；
+#define CFG_YAF_MOUNT_POINT              "yaf2"               //"name",YAF文件系统安装目录
 #endif
 //%$#@end configue  ****参数配置结束
 

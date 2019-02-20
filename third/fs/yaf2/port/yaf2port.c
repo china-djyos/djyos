@@ -684,18 +684,14 @@ static s32 __yaf2remove(struct obj *ob, char *full)
 // 参数：hdl -- YAF文件对象句柄；
 //      qwOffset -- 移动量；
 //      dwWhence -- 移动的起点；
-// 返回：成功（0）；失败（-1）；
+// 返回：成功（当前位置）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __yaf2seek(struct objhandle *hdl, s64 *offset, s32 whence)
+static off_t __yaf2seek(struct objhandle *hdl, off_t *offset, s32 whence)
 {
     s32 yafcx = (s32)handle_context(hdl);
 
-    *offset = yaffs_lseek(yafcx, *offset, whence);
-    if(-1==*offset)
-        return (-1);
-
-    return (0);
+    return (yaffs_lseek(yafcx, *offset, whence));
 }
 
 // ============================================================================
@@ -830,7 +826,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SEEK:
         {
-            *(s32*)OpsArgs1 = __yaf2seek((struct objhandle *)opsTarget,
+            *(off_t*)OpsArgs1 = __yaf2seek((struct objhandle *)opsTarget,
                                         (off_t*)OpsArgs2, (s32)OpsArgs3);
             break;
         }
@@ -890,6 +886,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data)
 {
     struct yaffs_dev *yaf2Dev;
+    struct yaffs_driver *drv;
     struct yaffs_param *params;
 //    struct FlashChip *flash;
     struct umedia *media;
@@ -898,12 +895,10 @@ static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data)
     s32 res = YAFFS_FAIL;
     u32 config = *(u32*)data;
 
-//    flash = (struct FlashChip*)dev_GetDrvTagFromObj(pSuper->pDev);
-    media = (struct umedia*)pSuper->Media;
+    media = (struct umedia*)pSuper->MediaInfo;
+    drv = (struct yaffs_driver *)pSuper->MediaDrv;
     if(dwOpts & MS_INSTALLFORMAT)
     {
-//        if(-1 == EarseWholeChip(flash))
-//            return (-1);
         struct uesz sz = {0};
         sz.block = 1;
 
@@ -924,40 +919,6 @@ static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data)
     params->n_caches = 0; // 0 -- 不使用cache逻辑
     params->use_nand_ecc = 0; // 挂载过程未使用ECC，这个对一个新芯片很重要的逻辑
     params->disable_summary = 1; // 除去summary功能，这个功能对于随时断电的设备作用不大；
-//    if(F_NAND == flash->Type)
-//    {
-//        params->total_bytes_per_chunk = flash->Descr.Nand.BytesPerPage; // todo: 考虑nand页小于512的情况
-//        params->chunks_per_block = flash->Descr.Nand.PagesPerBlk;
-//        params->start_block = flash->Descr.Nand.ReservedBlks;
-//        params->end_block = (flash->Descr.Nand.BlksPerLUN * flash->Descr.Nand.LUNs) - 1; // 例如总块数2048,则范围"0-2047"
-//        res = yaffs_nand_install_drv(yaf2Dev, flash); // 初始化YAFFS2驱动层接口
-//    }
-//    else if(F_NOR == flash->Type)
-//    {
-//        // 文件头结构体最大是512Bytes另外还有Tags是16Bytes,
-//        if(flash->Descr.Nor.BytesPerPage > 512+16)
-//        {
-//            params->total_bytes_per_chunk = flash->Descr.Nor.BytesPerPage;
-//            params->chunks_per_block = flash->Descr.Nor.PagesPerSector * flash->Descr.Nor.PagesPerSector;
-//        }
-//        else
-//        {
-//            params->total_bytes_per_chunk = 1024;
-//            index = params->total_bytes_per_chunk / flash->Descr.Nor.BytesPerPage; // todo: 此处转变为位运算
-//            params->chunks_per_block = flash->Descr.Nor.PagesPerSector * flash->Descr.Nor.PagesPerSector / index;
-//        }
-//
-//        params->start_block = flash->Descr.Nor.ReservedBlks;
-//        params->end_block = flash->Descr.Nor.Blks - 1;
-//        params->inband_tags = 1; // tag存放于内页
-//        res = yaffs_nor_install_drv(yaf2Dev, flash); // 初始化YAFFS2驱动层接口
-//    }
-//
-//    if (YAFFS_FAIL == res) // 其他设备暂不支持或者上面逻辑执行失败
-//    {
-//        free(yaf2Dev);
-//        return (-1);
-//    }
 
     // yaf文件系统的文件头结构体最大是512Bytes另外还有Tags是16Bytes
     params->total_bytes_per_chunk = 1 << media->usz;
@@ -978,7 +939,7 @@ static s32 __yaf2install(struct FsCore *pSuper, u32 dwOpts, void *data)
     if((nor==media->type)||(splice))
         params->inband_tags = 1; // nand页过小或非nand设备，tag存放于内页;
 
-    res = yaf2_install_drv(yaf2Dev, media, (1<<splice)); // 初始化YAFFS2驱动层接口
+    res = yaf2_install_drv(yaf2Dev, drv, (1<<splice)); // 初始化YAFFS2驱动层接口
     yaffs_add_device(yaf2Dev); // 将"yaffs_dev"注册进yaffs2
     res = yaffs_mount_reldev(yaf2Dev); // 挂载
     if(-1 == res)
@@ -1018,9 +979,28 @@ int yaffs_start_up(void)
 }
 
 // ============================================================================
+// 功能：
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+s32 __iserased(const u8 *buf, s32 datalen, s32 taglen)
+{
+    extern int yaffs_check_ff(u8 *buffer, int n_bytes);
+
+    if(datalen && (!yaffs_check_ff((u8*)buf, datalen)))
+        return (0);
+
+    if(taglen && (!yaffs_check_ff((u8*)(buf+datalen), taglen)))
+        return (0);
+
+    return (1);
+}
+
+// ============================================================================
 // 功能：挂载YAFFS2文件系统到目录/yaffs2下
 // 参数：target -- YAF2文件系统所挂载的目录；缺省为“yaf2”
-//      opt -- 文件系统配置选项；  如MS_INSTALLCREAT
+//      opt -- 文件系统配置选项；  true ：格式化整个文件系统；false ：不格式化整个文件系统
 //      data -- 传递给YAF2安装逻辑的数据；
 // 返回：成功（0）；失败（-1）；
 // 备注：
@@ -1031,6 +1011,10 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
     struct obj * mountobj;
     s32 res;
 
+    if(opt == true)
+    {
+        opt = MS_INSTALLFORMAT;
+    }
     if(!target)
     {
         printf("\r\n: dbug : module : cannot input \"YAF2\" file system mount name.");
@@ -1061,7 +1045,7 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
         return (-1); // 失败;
     }
     obj_InuseUpFullPath(mountobj);
-    opt |= MS_DIRECTMOUNT;				//直接挂载不用备份
+    opt |= MS_DIRECTMOUNT;              //直接挂载不用备份
     res = mountfs(NULL, target, "YAF2", opt, data);
    if(res == -1)
    {

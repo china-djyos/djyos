@@ -198,6 +198,7 @@ u8 _at45db321_Ready_Buff = AT45_Buff1;
 struct MutexLCB *pAT45_Lock;   //芯片互斥访问保护
 struct NorDescr *nordescription;
 char *At45Name = "AT45DB321E";
+struct umedia *at45_umedia;
 extern s32 __at45_write(s64 unit, void *data, struct uopt opt);
 extern s32 __at45_read(s64 unit, void *data, struct uopt opt);
 extern s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
@@ -1005,14 +1006,13 @@ bool_t AT45_FLASH_Ready(void)
 //      TargetFs -- 要挂载的文件系统
 //      parts -- 分区数；
 //      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，分区块数，是否格式化；
+//      分区数据 -- 起始块，结束块数（擦除时不包括该块，只擦到该块的上一块），是否格式化；
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // =============================================================================
 bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart, u32 bend, u32 doformat)
 {
     static u8 at45init = 0;
-    struct umedia *um;
     struct uopt opt;
     if(at45init == 0)
     {
@@ -1069,8 +1069,8 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart,
             nordescription->Blks = 1024; // 全部器件的容量
             nordescription->ReservedBlks = 0;
         }
-        um = malloc(sizeof(struct umedia)+512);
-        if(!um)
+        at45_umedia = malloc(sizeof(struct umedia)+512);
+        if(!at45_umedia)
             return (-1);
 
         opt.hecc = 0;
@@ -1078,20 +1078,21 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart,
         opt.necc = 1;
         opt.secc = 0;
         opt.spare = 0;
-        um->esz = log2(nordescription->BytesPerPage * nordescription->SectorsPerBlk); // 4KB
-        um->usz = log2(nordescription->BytesPerPage);; // 512B;
-        um->merase = __at45_erase;
-        um->mread = __at45_read;
-        um->mreq = __at45_req;
-        um->mwrite = __at45_write;
-        um->opt = opt; // 驱动操作逻辑
-        um->type = nor;
-        um->ubuf = (u8*)um + sizeof(struct umedia);
-        um->asz = nordescription->BytesPerPage * nordescription->SectorsPerBlk * nordescription->Blks;
-        if(um_add((const char*)At45Name, um))
+        at45_umedia->esz = log2(nordescription->BytesPerPage * nordescription->SectorsPerBlk); // 4KB
+        at45_umedia->usz = log2(nordescription->BytesPerPage);; // 512B;
+        at45_umedia->mreq = __at45_req;
+        at45_umedia->merase = __at45_erase;
+        at45_umedia->mread = __at45_read;
+        at45_umedia->mwrite = __at45_write;
+        at45_umedia->opt = opt; // 驱动操作逻辑
+        at45_umedia->type = nor;
+        at45_umedia->ubuf = (u8*)at45_umedia + sizeof(struct umedia);
+        at45_umedia->asz = nordescription->BytesPerPage * nordescription->SectorsPerBlk * nordescription->Blks;
+
+        if(!dev_Create((const char*)At45Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)at45_umedia)))
         {
             printf("\r\n: erro : device : %s addition failed.", At45Name);
-            free(um);
+            free(at45_umedia);
             return (-1);
         }
         at45init = 1;

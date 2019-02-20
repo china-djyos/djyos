@@ -481,7 +481,7 @@ static s32 __fat_install(struct FsCore *super, u32 opt, void *data)
         return (-1);
     }
 
-    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(super->Media)))
+    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(super->MediaDrv)))
     {
         free(volume);
         return (-1); // 安装驱动失败
@@ -705,9 +705,9 @@ static s32 __fat_sync(struct objhandle *hdl)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
+static off_t __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 {
-    DWORD position;
+    DWORD position = -1;
     FRESULT res;
     FIL *context = (FIL*)handle_context(hdl);
 
@@ -723,8 +723,7 @@ static s32 __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     if(FR_OK != res)
         return (-1);
 
-    *offset = position;
-    return (0);
+    return ((off_t)position);
 }
 
 // ============================================================================
@@ -1028,7 +1027,7 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SEEK:
         {
-            *(s32*)OpsArgs1 = __fat_seek((struct objhandle *)opsTarget,
+            *(off_t*)OpsArgs1 = __fat_seek((struct objhandle *)opsTarget,
                                         (off_t*)OpsArgs2, (s32)OpsArgs3);
             break;
         }

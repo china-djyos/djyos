@@ -63,6 +63,9 @@ extern struct MutexLCB *pAT45_Lock;   //芯片互斥访问保护
 //extern struct SPI_Device *s_ptAT45_Dev;
 extern char *At45Name;
 extern struct obj *s_ptDeviceRoot;
+extern struct yaffs_driver YAF_AT45_DRV;
+extern struct __efs_drv EFS_AT45_DRV;
+extern struct umedia *at45_umedia;
 #if 1
 
 #endif
@@ -786,7 +789,7 @@ s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
 // 参数：   fs -- 该媒体所要安装文件系统mount点名字；
 //      MountPart -- 文件系统安装在第几个分区
 //      dwStart -- 起始块；
-//      dwSize -- 块数；
+//      dwEnd -- 结束块数（擦除时不包括该块，只擦到该块的上一块）；
 //      dwSpecial -- 擦除该区域（1）；不擦除该区域（0）；
 // 返回：成功初始化（0）；初始化失败（-1）；
 // 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
@@ -806,6 +809,21 @@ s32 __AT45_FsInstallInit(const char *fs, u32 dwStart, u32 dwEnd, u32 dwSpecial)
         return -1;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super->MediaInfo = at45_umedia;
+    if(strcmp(super->pFsType->pType, "YAF2") == 0)      //这里的"YAF2"为文件系统的类型名，在文件系统的filesystem结构中
+    {
+        super->MediaDrv = &YAF_AT45_DRV;
+    }
+    else if(strcmp(super->pFsType->pType, "EFS") == 0)
+    {
+        super->MediaDrv = &EFS_AT45_DRV;
+    }
+    else
+    {
+        super->MediaDrv = 0;
+        error_printf("at45"," \"%s\" file system type nonsupport", super->pFsType->pType);
+        return -1;
+    }
 
     if(dwSpecial)
     {

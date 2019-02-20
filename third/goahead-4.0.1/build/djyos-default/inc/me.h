@@ -9,6 +9,7 @@
 
 #define __djyos__  1
 #define __arm__  1
+#define HOME_DIRECTORY_NAME "/fat"
 
 #ifndef ME_AUTHOR
     #define ME_AUTHOR "Embedthis Software"
@@ -200,7 +201,7 @@
     #define ME_GOAHEAD_SSL_CACHE 512
 #endif
 #ifndef ME_GOAHEAD_SSL_CERTIFICATE
-    #define ME_GOAHEAD_SSL_CERTIFICATE "/efs/self.crt"
+    #define ME_GOAHEAD_SSL_CERTIFICATE HOME_DIRECTORY_NAME"/self.crt"
 #endif
 #ifndef ME_GOAHEAD_SSL_CIPHERS
     #define ME_GOAHEAD_SSL_CIPHERS ""
@@ -209,7 +210,7 @@
     #define ME_GOAHEAD_SSL_HANDSHAKES 1
 #endif
 #ifndef ME_GOAHEAD_SSL_KEY
-    #define ME_GOAHEAD_SSL_KEY "/efs/self.key"
+    #define ME_GOAHEAD_SSL_KEY HOME_DIRECTORY_NAME"/self.key"
 #endif
 #ifndef ME_GOAHEAD_SSL_LOG_LEVEL
     #define ME_GOAHEAD_SSL_LOG_LEVEL 5
