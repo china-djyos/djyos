@@ -64,7 +64,8 @@
 #include <filesystems.h>
 #include <device/include/unit_media.h>
 #include <board.h>
-
+#include <libc/misc/ecc/ecc_256.h>
+#include <efs.h>
 
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
@@ -124,13 +125,15 @@
 #define NSTA_TIMEOUT            0X02        //超时
 
 extern s32 deonfi(const char *data, struct NandDescr *onfi, u8 little);
+extern struct yaffs_driver YAF_NAND_DRV;
+extern struct __efs_drv EFS_NAND_DRV;
 
 //static u8 *s_pu8HammingCode;    // ECC校验结果
 #define s_u8SizeofHammingCode   (4)
 //互斥锁超时时间
 #define NFlashLockTimeOut     CN_CFG_TICK_US * 1000 * 10
 
-static struct NandDescr *__nandescription; // NAND器件描述
+struct NandDescr *__nandescription; // NAND器件描述
 static void ResetNand(void);
 //static s32 StatusOfNand(void);
 static bool_t WaitNandReady(void);
@@ -138,6 +141,7 @@ static u8 NAND_WaitForReady(void);
 
 static NAND_HandleTypeDef NAND_Handler;    //NAND FLASH句柄
 static struct MutexLCB *NandFlashLock;
+struct umedia *nand_umedia;
 static s32 gb_NandFlashReady=-3;
 
 const char *NandName = "nand";      //该flash在obj在的名字
@@ -147,11 +151,8 @@ static u32 *badstable;
 static u32 badslocation = 0;
 extern struct obj *s_ptDeviceRoot;
 s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bcount, u32 doformat);
-s32 __nand_req(enum ucmd cmd, ptu32_t args, ...);
 static s32 __nand_init(void);
-static s32 __nand_read(s64 unit, void *data, struct uopt opt);
-static s32 __nand_write(s64 unit, void *data, struct uopt opt);
-static s32 __nand_erase(s64 unit, struct uesz sz);
+
 //-----------------------------------------------------------------------------
 //功能:获取ECC的奇数位/偶数位个数
 //参数:flag： 0/1  = 奇数位/偶数
@@ -792,13 +793,12 @@ static bool_t WaitNandReady(void)
 // 参数：  TargetFs -- 要挂载的文件系统
 //      parts -- 分区数；
 //      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，分区块数，是否格式化；
+//      分区数据 -- 起始块，结束块数（擦除时不包括该块，只擦到该块的上一块），是否格式化；
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
 {
-    struct umedia *um;
     struct uopt opt;
     static u8 nandinit = 0;
 
@@ -822,8 +822,8 @@ s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
     }
     if(nandinit == 0)
     {
-        um = malloc(sizeof(struct umedia)+__nandescription->BytesPerPage+__nandescription->OOB_Size);
-        if(!um)
+        nand_umedia = malloc(sizeof(struct umedia)+__nandescription->BytesPerPage+__nandescription->OOB_Size);
+        if(!nand_umedia)
             return (-1);
 
         opt.hecc = 0;
@@ -831,23 +831,23 @@ s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
         opt.necc = 1;
         opt.secc = 0;
         opt.spare = 1;
-        um->esz = log2(__nandescription->BytesPerPage * __nandescription->PagesPerBlk); //
-        um->usz = log2(__nandescription->BytesPerPage);
-        um->merase = __nand_erase;
-        um->mread = __nand_read;
-        um->mreq = __nand_req;
-        um->mwrite = __nand_write;
-        um->opt = opt;
-        um->type = nand;
-        um->ubuf = (u8*)um + sizeof(struct umedia);
+        nand_umedia->esz = log2(__nandescription->BytesPerPage * __nandescription->PagesPerBlk); //
+        nand_umedia->usz = log2(__nandescription->BytesPerPage);
+        nand_umedia->mreq = __nand_req;
+        nand_umedia->merase = __nand_erase;
+        nand_umedia->mread = __nand_read;
+        nand_umedia->mwrite = __nand_write;
+        nand_umedia->opt = opt;
+        nand_umedia->type = nand;
+        nand_umedia->ubuf = (u8*)nand_umedia + sizeof(struct umedia);
 
-        um->asz = __nandescription->BytesPerPage * __nandescription->PagesPerBlk *
+        nand_umedia->asz = __nandescription->BytesPerPage * __nandescription->PagesPerBlk *
                                             __nandescription->BlksPerLUN * __nandescription->LUNs;
 
-        if(um_add((const char*)NandName, um))
+        if(!dev_Create((const char*)NandName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
         {
             printf("\r\n: erro : device : %s addition failed.", NandName);
-            free(um);
+            free(nand_umedia);
             return (-1);
         }
         nandinit = 1;
@@ -1515,6 +1515,12 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
             break;
         }
 
+        case markbad:
+        {
+            res = stm32f7_BadMark((u32)args); // args = block
+            break;
+        }
+
         case format:
         {
             va_list list;
@@ -1581,7 +1587,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
 // 返回：成功 -- （0）；失败 -- （-1）
 // 备注：
 // ============================================================================
-static s32 __nand_read(s64 unit, void *data, struct uopt opt)
+s32 __nand_read(s64 unit, void *data, struct uopt opt)
 {
     u32 flags = 0;
     s32 res;
@@ -1635,7 +1641,7 @@ static s32 __nand_read(s64 unit, void *data, struct uopt opt)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __nand_write(s64 unit, void *data, struct uopt opt)
+s32 __nand_write(s64 unit, void *data, struct uopt opt)
 {
     u32 flags = 0;
     s32 res;
@@ -1687,7 +1693,7 @@ static s32 __nand_write(s64 unit, void *data, struct uopt opt)
 // 返回：成功 -- （0）；失败 -- （-1）
 // 备注：
 // ============================================================================
-static s32 __nand_erase(s64 unit, struct uesz sz)
+s32 __nand_erase(s64 unit, struct uesz sz)
 {
     u32 block;
 
@@ -1732,9 +1738,9 @@ static s32 __nand_init(void)
 }
 
 // ============================================================================
-// 功能：初始化nand
+// 功能：把nand和文件系统关联起来
 // 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
-//		 bstart -- 起始块，bcount -- 该分区有多少块的容量，doformat -- 该分区是否格式化
+//		 bstart -- 起始块，bend -- 结束块数（擦除时不包括该块，只擦到该块的上一块），doformat -- 该分区是否格式化
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
@@ -1752,7 +1758,21 @@ s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
         return -1;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
-
+    super->MediaInfo = nand_umedia;
+    if(strcmp(super->pFsType->pType, "YAF2") == 0)      //这里的"YAF2"为文件系统的类型名，在文件系统的filesystem结构中
+    {
+        super->MediaDrv = &YAF_NAND_DRV;
+    }
+    else if(strcmp(super->pFsType->pType, "EFS") == 0)
+    {
+        super->MediaDrv = &EFS_NAND_DRV;
+    }
+    else
+    {
+        super->MediaDrv = 0;
+        error_printf("nand"," \"%s\" file system type nonsupport", super->pFsType->pType);
+        return -1;
+    }
     if(doformat)
     {
         struct uesz sz;

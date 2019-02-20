@@ -137,7 +137,6 @@
 #include "blackbox.h"
 #include "dbug.h"
 
-#define CN_USE_TICKLESS_MODE    (0U)
 
 #if (CN_USE_TICKLESS_MODE)
 #include "tickless.h"

@@ -133,3 +133,20 @@ bool_t ModuleInstall_PCF8574(char *BusName)
     return false;
 }
 
+bool_t ETH_RESE(void)
+{
+    PCF8574_Pin_Init();
+    PCF8574_WriteBit(ETH_RESET_IO,1);
+    Djy_DelayUs(100*mS);
+    PCF8574_WriteBit(ETH_RESET_IO,0);
+    Djy_DelayUs(100*mS);
+    return true;
+}
+
+
+
+
+
+
+
+

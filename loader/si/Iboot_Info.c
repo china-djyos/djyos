@@ -62,7 +62,7 @@ extern void reboot();
 extern void Load_Preload(void);
 extern void * gc_pAppOffset;
 extern void __asm_bl_fun(void * fun_addr);
-//版本号最后一位当做debug release 标志
+//版本号
 #define APP_HEAD_VERSION        1
 #if defined(DEBUG)
 #define BUILD_IS_DEBUG     (1)//当前APP版本debug
@@ -792,7 +792,7 @@ u32 Get_AppHeadSize(void)
 //App 头文件初步检查
 //
 //==============================================================================
-bool_t Iap_AppFileChack(void * apphead)
+bool_t XIP_AppFileChack(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     if(p_apphead->djyflag[0]!='d' || \
@@ -811,19 +811,19 @@ bool_t Iap_AppFileChack(void * apphead)
 //参数：无
 //返回：APP信息头的大小。
 //==============================================================================
-u32 IAP_GetAPPStartAddr(void * apphead)
+u32 XIP_GetAPPStartAddr(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  p_apphead->VirtAddr;
 }
 
-u32 IAP_GetAPPSize(void * apphead)
+u32 XIP_GetAPPSize(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  p_apphead->filesize;
 }
 
-bool_t IAP_APPIsDebug(void * apphead)
+bool_t XIP_APPIsDebug(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     if(p_apphead->isdebug)
@@ -868,7 +868,7 @@ bool_t File_Run_App(void * apphead)
 //参数：
 //返回： true/false
 //==============================================================================
-bool_t IAP_IsRamIbootFlag()
+bool_t XIP_IsRamIbootFlag()
 {
     if(Iboot_App_Info.runflag.restart_run_iboot ==1)
         return true;

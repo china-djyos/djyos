@@ -42,56 +42,97 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块:功能函数库
-//作者：网络
+//所属模块: Iboot
+//作者:  罗侍田.
 //版本：V1.0.0
-//文件描述:原子变量操作部分
+//文件描述: 在应用编程的核心文件
 //其他说明:
 //修订历史:
-//2. ...
-//1. 日期: 2009-01-04
-//   作者: lst
+//1. 日期: 2016-06-17
+//   作者:  罗侍田.
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
-                                //允许是个空文件，所有配置将按默认值配置。
+#ifndef __XIP_H__
+#define __XIP_H__
 
-//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
-//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
-//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_IAP_FS(const char *target, u32 opt, void *data);
-//    ModuleInstall_IAP_FS(CFG_EFLASH_FSMOUNT_NAME,0,NULL);
-//%$#@end initcode  ****初始化代码结束
+#if __cplusplus
+extern "C" {
+#endif
 
-//%$#@describe      ****组件描述开始
-//component name:"iap"          //在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
-                                //表示初始化时间，分别是早期、中期、后期
-//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//%$#@end describe  ****组件描述结束
+#include <stdint.h>
+#include <stddef.h>
 
-//%$#@configue      ****参数配置开始
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//%$#@num,0,100,
-//%$#@enum,true,false,
-//%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
-//%$#@free,
-//%$#@end configue  ****参数配置结束
+//
+// IAP文件信息
+//
+struct __ifile{
+//  char *name; // 这个信息放置于object
+    u32 cxbase; // 文件实际内容的偏置（文件头部信息存放于开始，存在一个偏置）。
+    u32 sz; // 文件大小
+    u32 status; // 文件状态；
+    struct MutexLCB *lock; // 文件锁；
+};
 
-//%$#@exclude       ****编译排除文件列表
-//%$#@end exclude   ****组件描述结束
+//
+// IAP文件上下文，缓存未考虑预读逻辑，即只针对写进行了缓存，读未考虑缓存；
+//
+struct __icontext{
+    u32 pos; // 文件的当前位置；
+    s16 bufed; // 存在于缓存中的数据；
+    u8 *buf; // 是物理的一个缓存，逻辑上是对齐的；
 
-//@#$%component end configure
+    u8 *apphead;
+    u32 Wappsize;
+};
+//
+// iap文件系统对flash的操作函数集
+//
+struct __xip_drv{
+    s32 (*xip_write_media) (struct __icore *core, u8 *data, u32 bytes, u32 pos);
+    s32 (*xip_read_media) (struct __icore *core, u8 *data, u32 bytes, u32 pos);
+    s32 (*xip_erase_media) (struct __icore *core, u32 bytes, u32 pos);
+};
+//
+// IAP文件系统管理信息
+//
+struct __icore{
+    void *vol; // 文件系统底层抽象，volume；
+    s16 bufsz; // 当大于零时，表示存在缓冲。需要原因，对于小数据量的多次写入会造成内部自带ECC的设备的ECC错误
+    u32 inhead; // 文件的一个区域内容是头部+部分内容，大小为bufsz；inhead这部分为部分内容的大小；
+    s64 MStart;             // 在媒体中的起始unit,unit为单位；
+    s64 ASize;               // 所在区域的总大小；Byte为单位；
+    struct obj *root; // IAP文件系统接入的文件系统的根；
+    struct MutexLCB *lock; // 系统锁；
+    struct __xip_drv *drv;
+};
 
+
+#define EN_FORM_FILE  0
+#define EN_DIRECT_RUN 1
+
+#define EN_XIP_APP_TARGET     "xip-app"
+#define EN_XIP_IBOOT_TARGET   "xip-iboot"
+
+enum _ENUM_USE_CRC_
+{
+    EN_NO_APP_CRC=0,
+    EN_USE_APP_CRC,
+};
+
+ptu32_t ModuleInstall_IAP(void);
+u32 IAP_GetAPPCRC(void);
+u32 IAP_GetAPPStartCodeRamAddr(void);
+u32 IAP_GetAPPCodeRamSize(void);
+bool_t IAP_LoadAPPFromFile(void);
+s32 IAP_Update(u8 bArgC, ...);
+s32 IAP_SetMethod(u32 dwMethod);
+u32 IAP_GetMethod(void);
+char *IAP_GetPath(void);
+s32 IAP_SetPath(char *pPath);
+
+
+#if __cplusplus
+}
+#endif
+#endif  /*__IAP_H__*/

@@ -298,7 +298,7 @@ s32 __Font_Gb2312_12GetCharHeightSong(u32 CharCode)
 
 #if CFG_GB2312_12_SONG == from_array
 
-#include "dot-gb2312_12song.h"
+#include "dot-gb2312_12song.rsc"
 
 #else       //CFG_GB2312_12_SONG == from_array
 
@@ -497,7 +497,7 @@ s32 __Font_Gb2312_16GetCharHeightSong(u32 CharCode)
 
 #if CFG_GB2312_16_SONG == from_array
 
-#include "dot-gb2312_16song.h"
+#include "dot-gb2312_16song.rsc"
 
 #else       //CFG_GB2312_16_SONG == from_array
 
@@ -690,7 +690,7 @@ s32 __Font_Gb2312_16GetCharHeightFang(u32 CharCode)
 
 #if CFG_GB2312_16_FANG == from_array
 
-#include "dot-gb2312_16fang.h"
+#include "dot-gb2312_16fang.rsc"
 
 #else       //CFG_GB2312_16_FANG == from_array
 
@@ -882,7 +882,7 @@ s32 __Font_Gb2312_16GetCharHeightHei(u32 CharCode)
 
 #if CFG_GB2312_16_HEI == from_array
 
-#include "dot-gb2312_16hei.h"
+#include "dot-gb2312_16hei.rsc"
 
 #else       //CFG_GB2312_16_HEI == from_array
 
@@ -1075,7 +1075,7 @@ s32 __Font_Gb2312_16GetCharHeightKai(u32 CharCode)
 
 #if CFG_GB2312_16_KAI == from_array
 
-#include "dot-gb2312_16song.h"
+#include "dot-gb2312_16song.rsc"
 
 #else       //CFG_GB2312_16_KAI == from_array
 
@@ -1268,7 +1268,7 @@ s32 __Font_Gb2312_16GetCharHeightYuan(u32 CharCode)
 
 #if CFG_GB2312_16_YUAN == from_array
 
-#include "dot-gb2312_16yuan.h"
+#include "dot-gb2312_16yuan.rsc"
 
 #else       //CFG_GB2312_16_YUAN == from_array
 
@@ -1467,7 +1467,7 @@ s32 __Font_Gb2312_24GetCharHeightSong(u32 CharCode)
 
 #if CFG_GB2312_24_SONG == from_array
 
-#include "dot-gb2312_24song.h"
+#include "dot-gb2312_24song.rsc"
 
 #else       //CFG_GB2312_24_SONG == from_array
 
@@ -1661,7 +1661,7 @@ s32 __Font_Gb2312_24GetCharHeightFang(u32 CharCode)
 
 #if CFG_GB2312_24_FANG == from_array
 
-#include "dot-gb2312_24fang.h"
+#include "dot-gb2312_24fang.rsc"
 
 #else       //CFG_GB2312_24_FANG == from_array
 
@@ -1853,7 +1853,7 @@ s32 __Font_Gb2312_24GetCharHeightHei(u32 CharCode)
 
 #if CFG_GB2312_24_HEI == from_array
 
-#include "dot-gb2312_24hei.h"
+#include "dot-gb2312_24hei.rsc"
 
 #else       //CFG_GB2312_24_HEI == from_array
 
@@ -2046,7 +2046,7 @@ s32 __Font_Gb2312_24GetCharHeightKai(u32 CharCode)
 
 #if CFG_GB2312_24_KAI == from_array
 
-#include "dot-gb2312_24song.h"
+#include "dot-gb2312_24song.rsc"
 
 #else       //CFG_GB2312_24_KAI == from_array
 
@@ -2239,7 +2239,7 @@ s32 __Font_Gb2312_24GetCharHeightYuan(u32 CharCode)
 
 #if CFG_GB2312_24_YUAN == from_array
 
-#include "dot-gb2312_24yuan.h"
+#include "dot-gb2312_24yuan.rsc"
 
 #else       //CFG_GB2312_24_YUAN == from_array
 
@@ -2438,7 +2438,7 @@ s32 __Font_Gb2312_32GetCharHeightSong(u32 CharCode)
 
 #if CFG_GB2312_32_SONG == from_array
 
-#include "dot-gb2312_32song.h"
+#include "dot-gb2312_32song.rsc"
 
 #else       //CFG_GB2312_32_SONG == from_array
 
@@ -2632,7 +2632,7 @@ s32 __Font_Gb2312_32GetCharHeightFang(u32 CharCode)
 
 #if CFG_GB2312_32_FANG == from_array
 
-#include "dot-gb2312_32fang.h"
+#include "dot-gb2312_32fang.rsc"
 
 #else       //CFG_GB2312_32_FANG == from_array
 
@@ -2824,7 +2824,7 @@ s32 __Font_Gb2312_32GetCharHeightHei(u32 CharCode)
 
 #if CFG_GB2312_32_HEI == from_array
 
-#include "dot-gb2312_32hei.h"
+#include "dot-gb2312_32hei.rsc"
 
 #else       //CFG_GB2312_32_HEI == from_array
 
@@ -3017,7 +3017,7 @@ s32 __Font_Gb2312_32GetCharHeightKai(u32 CharCode)
 
 #if CFG_GB2312_32_KAI == from_array
 
-#include "dot-gb2312_32song.h"
+#include "dot-gb2312_32song.rsc"
 
 #else       //CFG_GB2312_32_KAI == from_array
 
@@ -3210,7 +3210,7 @@ s32 __Font_Gb2312_32GetCharHeightYuan(u32 CharCode)
 
 #if CFG_GB2312_32_YUAN == from_array
 
-#include "dot-gb2312_32yuan.h"
+#include "dot-gb2312_32yuan.rsc"
 
 #else       //CFG_GB2312_32_YUAN == from_array
 

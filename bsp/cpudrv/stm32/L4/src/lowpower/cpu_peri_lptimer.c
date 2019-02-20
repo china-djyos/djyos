@@ -215,7 +215,7 @@ void djybsp_lptimer_init(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t para
     switch(id)
     {
         case 0:
-            RCC->APB1ENR1 = RCC_APB1ENR1_LPTIM1EN | RCC_APB1ENR1_PWREN;
+            RCC->APB1ENR1 |= RCC_APB1ENR1_LPTIM1EN | RCC_APB1ENR1_PWREN;
             RCC->CCIPR = RCC_CCIPR_LPTIM1SEL; // LPTIM1 ±÷”—°LSI
             int_line = CN_INT_LINE_LPTIM1;
             break;

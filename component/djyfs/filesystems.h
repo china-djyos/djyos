@@ -110,7 +110,8 @@ struct filesystem{
 struct FsCore
 {
     struct obj *pTarget;        // 挂载点
-    ptu32_t Media;              // 文件系统设备
+    void *MediaInfo;          // 文件系统设备信息
+    void *MediaDrv;           // 文件系统设备驱动
     void *pCore;                // 具体的文件系统控制信息
     struct obj *MountBak;       // 用于隐藏原目录内容，如果 flags 带 MS_DIRECTMOUNT
                                 // 参数，则置空

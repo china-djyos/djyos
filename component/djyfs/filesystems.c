@@ -206,8 +206,18 @@ bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
     Name = PathTail;
     while('/' == *Name)
         Name++; // 过滤多余的'/'
-    len = strlen(Name);
-    strcpy(Entire,Name);
+    if((Name != 0) && (*Name != 0))
+    {
+        len = strlen(Name);
+        strcpy(Entire,Name);
+    }
+    else
+    {
+        if(*(Entire - 1) == '/')
+        {
+            *(Entire - 1) = '\0';
+        }
+    }
     return true;
 }
 
@@ -250,8 +260,8 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
 {
     struct filesystem *fstype;
     struct FsCore *super;
-    struct obj *srcobj = NULL, *targetobj, *tmpobj;
-    s32 res;
+    struct obj *targetobj, *tmpobj;
+//    s32 res;
     char *notfind;
 
     fstype = __findtype(type);
@@ -259,16 +269,6 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
     {
         debug_printf("fs","mount failed(cannot find type \"%s\")", type);
         return (-1);
-    }
-
-    if(source)
-    {
-        srcobj = obj_matchpath(source, &notfind);
-        if(notfind)
-        {
-            // 未找到设备
-            debug_printf("fs","mount failed(cannot find device \"%s\").", source);
-        }
     }
 
     targetobj = obj_matchpath(target, &notfind);
@@ -285,7 +285,6 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
     {
         super = malloc(sizeof(*super));
         memset(super, 0, sizeof(*super));
-        super->Media = dev_GetDrvTagFromObj(srcobj);
         super->pFsType = fstype;
         if(opt & MS_DIRECTMOUNT)
         {
@@ -300,49 +299,10 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
             super->pTarget = tmpobj;
             super->MountBak = targetobj;
         }
-//      if(obj_testset(targetobj)) // 对象上可否创建集合
-//      {
-//          tmpobj = targetobj;
-//          targetobj = obj_replacebyset(tmpobj, 0, 0); // 原来的对象被对象集合（新的文件类型集合）替代。
-//          if(!targetobj)
-//          {
-//              debug_printf("fs","mount failed(cannot target replace the \"%s\").", target);
-//              return (-1);
-//          }
-//      }
-//      else
-//      {
-//          debug_printf("fs","mount failed(cannot mount on the \"%s\" for wrong target type).", target);
-//          return (-1);
-//      }
-        if(super->Media == 0)        //如果媒体为空则先不挂载
-        {
-            super->InstallWay = opt;
-            super->Config = data;
-            return (-2);
-        }
-        res = fstype->install(super, opt, data);
-        if(res)
-        {
-             // 安装失败
-//          tmpobj = obj_destoryset(super->pTarget);
-            free(super);
-            return (-1);
-        }
+        super->InstallWay = opt;
+        super->Config = data;
     }
 
-//  obj_SetPrivate(targetobj, (ptu32_t)super); // 设置对象的内容；（本对象是集合）
-//  obj_SetOps(targetobj, fstype->fileOps); // 设置对象方法；（本对象是集合）
-//  res = fstype->install(super, opt, data);
-//  if(res)
-//  {
-//       // 安装失败
-//      tmpobj = obj_destoryset(super->pTarget);
-//      free(super);
-//      return (-1);
-//  }
-
-    // if(!DJYFS_PATH_BUFFER)
     return (0);
 }
 
@@ -407,11 +367,10 @@ void FsBeMedia(const char *source, const char *target)
         return ;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
-    if(super->Media)
+    if(!super->MediaDrv)
     {
-        return ;
+        return ;        //如果没有找到媒体驱动则不挂载文件系统
     }
-    super->Media = dev_GetDrvTagFromObj(srcobj);
     res = super->pFsType->install(super,super->InstallWay,super->Config);  //挂载
     if(res == 0)
     {

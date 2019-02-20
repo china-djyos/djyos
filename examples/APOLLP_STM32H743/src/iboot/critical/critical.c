@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,15 +22,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
-// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
+// 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
 //
-// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、此三条件表列，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
-//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    于散播包装中的媒介方式，重制上述之版权宣告、此三条件表列，以及下述
 //    的免责声明。
 
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
@@ -42,85 +42,47 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: Iboot
-//作者:  罗侍田.
+//所属模块:安全钩子
+//作者：lst
 //版本：V1.0.0
-//文件描述: 在应用编程的核心文件
+//文件描述:安全钩子是必须在开机后尽可能快地执行的部分代码
 //其他说明:
 //修订历史:
-//1. 日期: 2016-06-17
-//   作者:  罗侍田.
+//2. ...
+//1. 日期: 2009-01-04
+//   作者: lst
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#ifndef __IAP_H__
-#define __IAP_H__
+#include "cpu_peri.h"
 
-#if __cplusplus
-extern "C" {
-#endif
-
-#include <stdint.h>
-#include <stddef.h>
-
-//
-// IAP文件信息
-//
-struct __ifile{
-//  char *name; // 这个信息放置于object
-    u32 cxbase; // 文件实际内容的偏置（文件头部信息存放于开始，存在一个偏置）。
-    u32 sz; // 文件大小
-    u32 status; // 文件状态；
-    struct MutexLCB *lock; // 文件锁；
-};
-
-//
-// IAP文件上下文，缓存未考虑预读逻辑，即只针对写进行了缓存，读未考虑缓存；
-//
-struct __icontext{
-    u32 pos; // 文件的当前位置；
-    s16 bufed; // 存在于缓存中的数据；
-    u8 *buf; // 是物理的一个缓存，逻辑上是对齐的；
-
-    u8 *apphead;
-    u32 Wappsize;
-};
-//
-// IAP文件系统管理信息
-//
-struct __icore{
-    void *vol; // 文件系统底层抽象，volume；
-    s16 bufsz; // 当大于零时，表示存在缓冲。需要原因，对于小数据量的多次写入会造成内部自带ECC的设备的ECC错误
-    u32 inhead; // 文件的一个区域内容是头部+部分内容，大小为bufsz；inhead这部分为部分内容的大小；
-    s64 MStart;             // 在媒体中的起始unit,unit为单位；
-    s64 ASize;               // 所在区域的总大小；Byte为单位；
-    struct obj *root; // IAP文件系统接入的文件系统的根；
-    struct MutexLCB *lock; // 系统锁；
-};
-
-
-#define EN_FORM_FILE  0
-#define EN_DIRECT_RUN 1
-
-enum _ENUM_USE_CRC_
+//----配置全部IO口--------------------------------------------------------------
+//功能：除必须的外，全部配置成初始态，各功能口由相应的功能模块自行定义。
+//参数：无
+//返回：无
+//------------------------------------------------------------------------------
+void gpio_init(void)
 {
-    EN_NO_APP_CRC=0,
-    EN_USE_APP_CRC,
-};
-
-ptu32_t ModuleInstall_IAP(void);
-u32 IAP_GetAPPCRC(void);
-u32 IAP_GetAPPStartCodeRamAddr(void);
-u32 IAP_GetAPPCodeRamSize(void);
-bool_t IAP_LoadAPPFromFile(void);
-s32 IAP_Update(u8 bArgC, ...);
-s32 IAP_SetMethod(u32 dwMethod);
-u32 IAP_GetMethod(void);
-char *IAP_GetPath(void);
-s32 IAP_SetPath(char *pPath);
-
-
-#if __cplusplus
 }
-#endif
-#endif  /*__IAP_H__*/
+
+void critical(void)
+{
+//#if 0 //ARM版本认为程序加载过程无误
+//    //定时器初始化
+//#if(CN_CFG_SYSTIMER == 1)
+//    extern void Timer_ModuleInit(void);
+//    Timer_ModuleInit();
+//#endif
+//#if(CN_CFG_WDT == 1)
+//	//  初始化硬件看门狗
+//	extern bool_t WDT_FslInit(u32 setcycle);
+//	WDT_FslInit(1000);
+//
+//	// 看门狗组件HAL喂狗
+//	//  开启中断并注册相关的服务函数
+//	bool_t WdtHal_BootStart(u32 bootfeedtimes);
+//	WdtHal_BootStart(20);
+//#endif
+//#endif
+}
+

@@ -470,7 +470,7 @@ void Board_GpioInit(void)
 //    IIC_Busfree(GPIO_H,PIN12,PIN11);
 //I/OÄ£ÄâIIC ´¥ÃþÆÁÓÃµ½
 //    PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
-    PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));  //ETH RMII
+//    PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));  //ETH RMII
 //    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
     LCD_PinInit();
 }
