@@ -6,7 +6,7 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //#include "filesystems.h"
 //    externs32 s32 ModuleInstall_EFS(const char *target, u32 opt, void *config);
-//    ModuleInstall_EFS(CFG_MOUNT_POINT, CFG_MOUNT_DEV, CFG_OPTIONS, CFG_FILE_BLOCK_SIZE);
+//    ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, MS_INSTALLCREAT, CFG_EFS_FILE_BLOCK_SIZE);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -34,11 +34,10 @@
 //%$#@num,0,100,
 #define CFG_EFS_FILE_BLOCK_SIZE           0x1000                 //EFS文件系统用的媒体块大小.at45块大小为0x1000；如用其它媒体这里需要修改
 //%$#@enum,true,false,
-//%$#@string,1,128,
-#define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
+//%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#define CFG_EFS_INSTALL_OPTION        MS_INSTALLCREAT       //EFS文件系统安装选项，MS_INSTALLCREAT：文件系统不存在时，则新建；
+#define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
 #endif//%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表

@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+// Copyright (c) 2018,Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -42,72 +42,27 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-
-#ifndef __SHELL_H__
-#define __SHELL_H__
-
-#include <stdint.h>
-#include <errno.h>
-#include <types.h>
-#include <stddef.h>
-#include <list.h>
-
+#ifndef CPU_PERI_ETH_H_
+#define CPU_PERI_ETH_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct shellinfo
-{
-   const char *sh_Tab_start; //
-   const char *sh_Tab_end; //
-};
+//#define GMAC_IN_LOWPOWER         0//进入低功耗
+//#define GMAC_OUT_LOWPOWER        1//退出低功耗
+bool_t GMAC_LowPowerConfig(u8 flag);
+int32_t ETH_PHY_IO_Init(void);
+int32_t ETH_PHY_IO_DeInit (void);
+int32_t ETH_PHY_IO_ReadReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal);
+int32_t ETH_PHY_IO_WriteReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t RegVal);
+int32_t ETH_PHY_IO_GetTick(void);
+void ETH_GetMACConfig(ETH_MACConfigTypeDef *macconf);
+void ETH_SetMACConfig(ETH_MACConfigTypeDef *macconf);
+void ETH_Start(void);
 
-struct shell_list
-{
-    list_t list;
-    struct shellinfo info;
-};
-#define PARAMETER_MAX     (10)   //最大参数个数限制
-
-/* 常规shell函数与拓展shell函数区别在于，参数的解析发生在函数内还是函数外
- * 常规shell函数帮助信息与常规shell函数变量主要是与裁减有关，在工具中指定添加哪些类型的shell
- * */
-/*shell 和拓展shell*/
-
-struct shell_cmd
-{
-    void *shell_fun_addr;
-    char *shell_help_addr;
-};
-#define DJYSH_HELP_NAME "djysh_"
-
-#define ADD_TO_ROUTINE_SHELL(cmdname,fun,help) __attribute__((section(".ro_shell_cmd")))\
-    const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
-
-#define ADD_TO_EXPAND_SHELL(cmdname,fun,help) __attribute__((section(".ex_shell_cmd")))\
-        const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
-
-#define ADD_TO_IN_SHELL_DATA  __attribute__((section(".ro_shell_data")))//添加常规shell数据
-#define ADD_TO_EX_SHELL_DATA    __attribute__((section(".ex_shell_data")))//拓展shell数据
-
-// ============================================================================
-// 功能：从shell的输入参数（字符串）中，提取出一个参数；
-// 参数：input -- shell输入参数；
-//      next -- 后续参数；
-// 返回：剔除的输入参数；
-// 备注：参数之间依靠空格作为分隔符；
-//      提取出的参数，已将后面的分隔符换成串结束符'\0；
-//      input的原始数据已发生变化；
-// ============================================================================
-char *shell_inputs(char *input, char **next);
-
-bool_t shell_add(struct shell_list *pLisTtab);
-bool_t shell_del(struct shell_list *pLisTtab);
-
-s32 ModuleInstall_Shell(ptu32_t para);
 #ifdef __cplusplus
 }
 #endif
+#endif
 
-#endif //__SHELL_H__
 

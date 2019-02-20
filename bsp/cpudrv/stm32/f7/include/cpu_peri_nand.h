@@ -58,6 +58,7 @@ extern "C" {
 
 #include "stm32f7xx.h"
 #include "stdint.h"
+#include <device/include/unit_media.h>
 
 
 s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bcount, u32 doformat);
@@ -65,7 +66,10 @@ s32  stm32f7_PageProgram(u32 PageNo, u8 *Data, u32 Flags);
 s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags);
 s32 stm32f7_BlockErase(u32 BlkNo);
 bool_t NandFlash_Ready();
-
+s32 __nand_read(s64 unit, void *data, struct uopt opt);
+s32 __nand_write(s64 unit, void *data, struct uopt opt);
+s32 __nand_erase(s64 unit, struct uesz sz);
+s32 __nand_req(enum ucmd cmd, ptu32_t args, ...);
 
 #ifdef __cplusplus
 }

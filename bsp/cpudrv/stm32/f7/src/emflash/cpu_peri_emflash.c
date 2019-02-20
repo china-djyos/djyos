@@ -53,6 +53,7 @@
 #include <int.h>
 #include <device/include/unit_media.h>
 #include <dbug.h>
+#include <xip.h>
 #include <filesystems.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -66,13 +67,13 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_emflash"     //片内flash读写
-//parent:"iap"                          //填写该组件的父组件名字，none表示没有父组件
+//parent:"xip"                          //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                       //初始化时机，可选值：early，medium，later。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"iap","devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"xip","devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
 //weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -90,8 +91,8 @@
 #define CFG_EFLASH_PART_END        -1         //分区结束，-1代表至存储模块结束地址
 #define CFG_EFLASH_PART_OPTION     0          //分区选项
 //%$#@string,1,32,
-#define CFG_EFLASH_FSMOUNT_NAME   "XIP-APP"    //需安装的文件系统的mount的名字
-//%$#@enum
+//%$#@enum,EN_XIP_APP_TARGET,EN_XIP_IBOOT_TARGET,NULL
+#define CFG_EFLASH_FSMOUNT_NAME   EN_XIP_APP_TARGET    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
@@ -105,6 +106,7 @@
 
 const char *EmflashName = "emflash";      //该flash在obj在的名字
 extern struct obj *s_ptDeviceRoot;
+extern struct __xip_drv XIP_EMFLASH_DRV;
 static struct EmbdFlashDescr{
     u16     BytesPerPage;                // 页中包含的字节数
     u16     PagesPerSmallSect;           // small sector的页数
@@ -117,11 +119,12 @@ static struct EmbdFlashDescr{
     u32     MappedStAddr;
 } *embeddescription;
 
+struct umedia *emflash_um;
 extern u32 gc_ptIbootSize;
 s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bcount, u32 doformat);
-static s32 __embed_read(s64 unit, void *data, struct uopt opt);
+s32 __embed_read(s64 unit, void *data, struct uopt opt);
 s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
-static s32 __embed_write(s64 unit, void *data, struct uopt opt);
+s32 __embed_write(s64 unit, void *data, struct uopt opt);
 s32 __embed_erase(s64 unit, struct uesz sz);
 // ============================================================================
 // 功能：喂狗
@@ -332,15 +335,12 @@ DONE:
 //-----------------------------------------------------------------------------
 // 功能：安装片内Flash驱动
 // 参数：TargetFs -- 要挂载的文件系统
-//      parts -- 分区数；
-//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，分区块数，是否格式化；
+//      分区数据 -- 起始块，结束块数（擦除时不包括该块，只擦到该块的上一块），是否格式化；
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
 {
-    struct umedia *um;
     struct uopt opt;
     static u8 emflashinit = 0;
     u32 units, maxblock = 12, total = 0;
@@ -357,8 +357,8 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 do
 
     if(emflashinit == 0)
     {
-        um = malloc(sizeof(struct umedia)+embeddescription->BytesPerPage);
-        if(!um)
+        emflash_um = malloc(sizeof(struct umedia)+embeddescription->BytesPerPage);
+        if(!emflash_um)
         {
             return (-1);
         }
@@ -368,21 +368,21 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 do
         opt.necc = 1;
         opt.secc = 0;
         opt.spare = 0;
-        um->esz = 0; // 各个区域不同
-        um->usz = log2(embeddescription->BytesPerPage);
-        um->merase = __embed_erase;
-        um->mread = __embed_read;
-        um->mreq = __embed_req;
-        um->mwrite = __embed_write;
-        um->opt = opt;
-        um->type = embed;
-        um->ubuf = (u8*)um + sizeof(struct umedia);
+        emflash_um->esz = 0; // 各个区域不同
+        emflash_um->usz = log2(embeddescription->BytesPerPage);
+        emflash_um->mreq = __embed_req;
+        emflash_um->merase = __embed_erase;
+        emflash_um->mread = __embed_read;
+        emflash_um->mwrite = __embed_write;
+        emflash_um->opt = opt;
+        emflash_um->type = embed;
+        emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
 
         do
         {
             if(__embed_req(blockunits, (ptu32_t)&units, --maxblock))
             {
-                free(um);
+                free(emflash_um);
                 return (-1);
             }
 
@@ -390,12 +390,12 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 do
         }
         while(maxblock != 0);
 
-        um->asz = total * embeddescription->BytesPerPage;
+        emflash_um->asz = total * embeddescription->BytesPerPage;
 
-        if(um_add((const char*)EmflashName, um))
+        if(!dev_Create((const char*)EmflashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
         {
             printf("\r\n: erro : device : %s addition failed.", EmflashName);
-            free(um);
+            free(emflash_um);
             return (-1);
         }
         emflashinit = 1;
@@ -458,7 +458,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             else if((*unit<3584)&&(*unit>=3072))
                 *left = 3583 - *unit;
             else if((*unit<4096)&&(*unit>=3584))
-                *left = 40951 - *unit;
+                *left = 4095 - *unit;
             else
                 res = -1;
 
@@ -600,7 +600,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 //      opt -- 读的方式；
 // 备注：
 // ============================================================================
-static s32 __embed_read(s64 unit, void *data, struct uopt opt)
+s32 __embed_read(s64 unit, void *data, struct uopt opt)
 {
     s32 res;
 
@@ -619,7 +619,7 @@ static s32 __embed_read(s64 unit, void *data, struct uopt opt)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __embed_write(s64 unit, void *data, struct uopt opt)
+s32 __embed_write(s64 unit, void *data, struct uopt opt)
 {
     s32 res;
 
@@ -631,7 +631,7 @@ static s32 __embed_write(s64 unit, void *data, struct uopt opt)
 }
 
 // ============================================================================
-// 功能：nand 擦除
+// 功能：embed 擦除
 // 参数：unit -- 擦除的序号；
 //      sz -- 擦除的单位（unit或block）
 // 返回：成功（0）；失败（-1）；
@@ -661,7 +661,7 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 // ============================================================================
 s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
 {
-    u32 units, total = 0;
+    u32 units, total = 0,endblock = bend;
     char *FullPath,*notfind;
     struct obj *targetobj;
     struct FsCore *super;
@@ -669,42 +669,51 @@ s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
     targetobj = obj_matchpath(fs, &notfind);
     if(notfind)
     {
-        error_printf("nand"," not found need to install file system.");
+        error_printf("embed"," not found need to install file system.");
         return -1;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
-
+    super->MediaInfo = emflash_um;
+    if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))      //这里的"YAF2"为文件系统的类型名，在文件系统的filesystem结构中
+    {
+        super->MediaDrv = &XIP_EMFLASH_DRV;
+    }
+    else
+    {
+        super->MediaDrv = 0;
+        error_printf("embed"," \"%s\" file system type nonsupport", super->pFsType->pType);
+        return -1;
+    }
     if(doformat)
     {
         struct uesz sz;
         sz.unit = 0;
         sz.block = 1;
-        __embed_req(format, (ptu32_t)bstart , bend, &sz);
+        __embed_req(format, (ptu32_t)bstart , endblock, &sz);
     }
 
-    if(-1 == (s32)bend)
+    if(-1 == (s32)endblock)
     {
-        bend = 12; // 最大块号
+        endblock = bend = 12; // 最大块号
     }
-//    BlockNum = bend - bstart; // 结束块号
 
     do
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, --bend))
+        if(__embed_req(blockunits, (ptu32_t)&units, --endblock))
         {
             return (-1);
         }
 
         total += units;
     }
-    while(bend!=bstart);
+    while(endblock!=bstart);
 
     super->AreaSize = total * embeddescription->BytesPerPage;
-    bend = 0;
+    endblock = 0;
     total = 0;
-    while(bend<bstart)
+    while(endblock<bstart)
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, bend++))
+        if(__embed_req(blockunits, (ptu32_t)&units, endblock++))
         {
             return (-1);
         }

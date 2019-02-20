@@ -97,15 +97,15 @@ bool_t Set_RunIbootFlag();
 bool_t clear_resentflag();
 bool_t Update_ToRun();
 bool_t Si_IbootAppInfoInit();
-bool_t IAP_IsRamIbootFlag();
+bool_t XIP_IsRamIbootFlag();
 
 
-u32  IAP_GetAPPSize(void * apphead);
+u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);
-u32  IAP_GetAPPStartAddr(void * apphead);
+u32  XIP_GetAPPStartAddr(void * apphead);
 char*  Get_AppName(void * apphead);
-bool_t IAP_APPIsDebug(void * apphead);
-bool_t Iap_AppFileChack(void * apphead);
+bool_t XIP_APPIsDebug(void * apphead);
+bool_t XIP_AppFileChack(void * apphead);
 bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
 
 #endif /* __IICBUS_H__ */

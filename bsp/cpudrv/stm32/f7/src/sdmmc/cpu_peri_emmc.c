@@ -54,6 +54,9 @@
 #include <fs/fat/ff11/src/diskio.h>
 #include <stm32f7xx_hal_mmc.h>
 #include <systime.h>
+#include <filesystems.h>
+#include <dbug.h>
+#include <string.h>
 
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -109,6 +112,7 @@
 
 s32 MMC_HardInit(void);
 extern uint32_t SDMMC_CmdSendStatus(SDMMC_TypeDef *SDMMCx, uint32_t Argument);
+extern struct obj *s_ptDeviceRoot;
 extern const Pin MMC[6]; // 在board.c之中定义
 
 MMC_HandleTypeDef handleMMC;
@@ -391,35 +395,18 @@ s32 MMC_HardInit(void)
 
 // ============================================================================
 // 功能：安装MMC类设备
-// 参数：dwArgC -- 参数个数；可选参数 -- 设备名；设备操作；速度模式；
+// 参数： target -- 要挂载的文件系统
+//      opt -- 文件系统配置选项；  如MS_INSTALLCREAT
+//      data -- 传递给YAF2安装逻辑的数据；
 // 返回：0 -- 成功； 其他 -- 失败；
 // 备注：
 // ============================================================================
-s32 ModuleInstall_MMC(u32 dwArgC, ...)
+s32 ModuleInstall_MMC(const char *TargetFs, u32 doformat, u32 speed)
 {
-    s32 res;
-    va_list ap;
-    u32 options = 0; // 设备操作选项;
-    char *name = NULL; // 设备名;
-    const char *defaultName = "emmc"; // 设备缺省名;
-    u32 speed = 0;
-    u8 i;
-
-    va_start(ap, dwArgC);
-    for(i = 0; i < dwArgC; i++)
-    {
-        switch(i)
-        {
-            case 0 : name = va_arg(ap, char*); break;
-            case 1 : options = va_arg(ap, u32); break;
-            case 2 : speed = va_arg(ap, u32); break;
-            default : break;
-        }
-    }
-    va_end(ap);
-
-    if(!name)
-        name = (char*)defaultName;
+    char *defaultName = "emmc"; // 设备缺省名;
+    char *FullPath,*notfind;
+    struct obj *targetobj;
+    struct FsCore *super;
 
     if(speed)
         SDMMC_BUS_CLK_DIV = 0;
@@ -429,35 +416,62 @@ s32 ModuleInstall_MMC(u32 dwArgC, ...)
     pOperationMutex = (void*)Lock_MutexCreate("MMC");
     if(!pOperationMutex)
     {
-        printf("\r\nMODULE : INSTALL : \"%s\" create mutex failed.\r\n", name);
+        printf("\r\nMODULE : INSTALL : \"%s\" create mutex failed.\r\n", defaultName);
         return (-1);
     }
 
-    res = MMC_HardInit();
-    if(res)
+    if(MMC_HardInit())
     {
-        printk("\r\nMODULE : INSTALL : \"%s\" initialization failed.\r\n", name);
+        printk("\r\nMODULE : INSTALL : \"%s\" initialization failed.\r\n", defaultName);
         return (-1);
     }
 
-    res = dev_Create((const char*)name, NULL, NULL, NULL, NULL,NULL, ((ptu32_t)&MMC_Drv));
-    if(res)
+    if(!dev_Create((const char*)defaultName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)defaultName)))
     {
-        printk("\r\nMODULE : INSTALL : \"%s\" initialization failed.\r\n", name);
+        printk("\r\nMODULE : INSTALL : \"%s\" initialization failed.\r\n", defaultName);
         return (-1); // 失败
     }
 
-    if(1 == options) // 擦除整个设备
+    if(1 == doformat) // 擦除整个设备
     {
-        res = HAL_MMC_Erase(&handleMMC, 0, handleMMC.MmcCard.LogBlockNbr-1);
-        if(res)
+        if(HAL_MMC_Erase(&handleMMC, 0, handleMMC.MmcCard.LogBlockNbr-1))
         {
-            printk("\r\nMODULE : INSTALL : \"%s\" format failed during initialization.\r\n", name);
+            printk("\r\nMODULE : INSTALL : \"%s\" format failed during initialization.\r\n", defaultName);
         }
         Djy_EventDelay(3000000); // 等待一段时间
     }
 
-    return (res);
+    if(TargetFs != NULL)
+    {
+        targetobj = obj_matchpath(TargetFs, &notfind);
+        if(notfind)
+        {
+            error_printf("mmc"," not found need to install file system.");
+            return -1;
+        }
+        super = (struct FsCore *)obj_GetPrivate(targetobj);
+        super->MediaInfo = defaultName;
+        if(strcmp(super->pFsType->pType, "FAT") == 0)      //这里的"FAT"为文件系统的类型名，在文件系统的filesystem结构中
+        {
+            super->MediaDrv = &MMC_Drv;
+        }
+        else
+        {
+            super->MediaDrv = 0;
+            error_printf("mmc","  install file system type not FAT");
+            return -1;
+        }
+
+        FullPath = malloc(strlen(defaultName)+strlen(s_ptDeviceRoot->name));  //获取msc的完整路径
+        sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,defaultName);
+        FsBeMedia(FullPath,TargetFs);     //在msc上挂载文件系统
+        free(FullPath);
+    }
+    else
+    {
+        warning_printf("usb", "  No file system is installed");
+    }
+    return (0);
 }
 // ============================================================================
 // 功能：擦除整个设备
@@ -465,9 +479,9 @@ s32 ModuleInstall_MMC(u32 dwArgC, ...)
 // 返回：
 // 备注：
 // ============================================================================
-s32 MMC_Erase(u32 dwArgC, ...)
+s32 MMC_Erase(s32 dwArgC, ...)
 {
-    u32 range = -1, i;
+    s32 range = -1, i;
     s32 res = -1;
     va_list ap;
 
@@ -476,7 +490,7 @@ s32 MMC_Erase(u32 dwArgC, ...)
     {
         switch(i)
         {
-            case 0 : range = va_arg(ap, u32); break;
+            case 0 : range = va_arg(ap, s32); break;
             default : break;
         }
     }
@@ -514,7 +528,7 @@ void LOCAL_Test(void)
     u32 error = 0;
     u32 error2 = 0;
 
-    res = ModuleInstall_MMC(0);
+    res = ModuleInstall_MMC(NULL,0,0);
     if(res)
     {
         printk("\r\nLOCAL TEST : install failed.\r\n");

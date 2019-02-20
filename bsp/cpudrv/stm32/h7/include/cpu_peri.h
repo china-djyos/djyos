@@ -67,8 +67,10 @@ extern "C" {
 #include "stm32h7xx_hal.h"
 #include "cpu_peri_uart.h"
 #include "cpu_peri_gpio.h"
+#include "cpu_peri_eth.h"
 #define memory_barrier() __DMB();
-
+#define InLowPower      0
+#define OutLowPower     1
 #ifdef __cplusplus
 }
 #endif

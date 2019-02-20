@@ -113,7 +113,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 #define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令"
-#define CFG_ADD_EXPAND_SHELL       true       //"是否添加拓展shell命令"
+#define CFG_ADD_EXPAND_SHELL       true        //"是否添加拓展shell命令"
 #define CFG_ADD_GLOBAL_FUN         false       //"添加全局函数到shell"
 #define CFG_SHOW_ADD_SHEELL        true        //"显示在编译窗口添加的shell命令"
 //%$#@string,1,10,

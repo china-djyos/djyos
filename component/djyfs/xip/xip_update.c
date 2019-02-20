@@ -51,7 +51,7 @@
 #include <string.h>
 #include <device/flash/flash.h>
 #include <device.h>
-#include "iap.h"
+#include "xip.h"
 #include "dbug.h"
 #include <include/unit_media.h>
 #if 0

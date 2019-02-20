@@ -16,7 +16,8 @@
    <component>/component/djybus/spibus/spibus.c</component>
    <component>/component/djybus/djybus.c</component>
    <component>/component/djyfs/efs/component_config_efs.h</component>
-   <component>/component/djyfs/iap/component_config_iap.h</component>
+   <component>/component/djyfs/xip/xip_app/component_config_xip_app.h</component>
+   <component>/component/djyfs/xip/xip_iboot/component_config_xip_iboot.h</component>
    <component>/component/djyfs/component_config_fs.h</component>
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>
@@ -46,6 +47,7 @@
    <component>/djyos/pool/pool.c</component>
    <component>/djyos/time/component_config_time.h</component>
    <component>/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/board/board.c</component>
+   <component>/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/boardnetcfg/boardnetcfg.c</component>
    <component>/loader/si/component_config_iboot.h</component>
    <component>/third/cjson-code-73/component_config_cjson.h</component>
    <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
@@ -123,6 +125,10 @@
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
+   <component>/bsp/cpudrv/stm32/h7/src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/h7/src/eth/cpu_peri_eth.c</component>
    <component>/bsp/cpudrv/stm32/h7/src/gpio/cpu_peri_gpio.c</component>
+   <component>/bsp/cpudrv/stm32/h7/src/iic/cpu_peri_iic.c</component>
+   <component>/bsp/cpudrv/stm32/h7/src/lcd/cpu_peri_lcd.c</component>
    <component>/bsp/cpudrv/stm32/h7/src/uart/cpu_peri_uart.c</component>
 </components>
