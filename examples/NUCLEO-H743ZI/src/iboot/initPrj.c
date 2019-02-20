@@ -71,8 +71,8 @@ void Sys_ModuleInit(void)
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 
-//    extern bool_t ModuleInstall_TcpIp(void);
-//    ModuleInstall_TcpIp();
+    extern bool_t ModuleInstall_TcpIp(void);
+    ModuleInstall_TcpIp();
 
 	extern void ModuleInstall_InitNet(void);
 	ModuleInstall_InitNet();
