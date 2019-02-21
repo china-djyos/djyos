@@ -736,7 +736,7 @@ void __Djy_SelectEventToRun(void)
             vm = __CreateThread(pl_evtt,&(g_ptEventReady->wait_mem_size));
             if(vm == NULL)                  //创建线程失败
             {
-                __Djy_CutReadyEvent(g_ptEventReady);          //从ready队列取出
+//                __Djy_CutReadyEvent(g_ptEventReady);          //从ready队列取出
             }else                                           //成功创建线程
             {
                 g_ptEventReady->vm = vm;

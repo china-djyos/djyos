@@ -56,9 +56,9 @@ int32_t ETH_PHY_IO_DeInit (void);
 int32_t ETH_PHY_IO_ReadReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal);
 int32_t ETH_PHY_IO_WriteReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t RegVal);
 int32_t ETH_PHY_IO_GetTick(void);
-void ETH_GetMACConfig(ETH_MACConfigTypeDef *macconf);
-void ETH_SetMACConfig(ETH_MACConfigTypeDef *macconf);
-void ETH_Start(void);
+void djybsp_eth_get_mac_config(ETH_MACConfigTypeDef *macconf);
+void djybsp_eth_set_mac_config(ETH_MACConfigTypeDef *macconf);
+void djybsp_eth_start(void);
 
 #ifdef __cplusplus
 }
