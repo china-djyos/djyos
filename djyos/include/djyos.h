@@ -118,6 +118,7 @@ enum _KNL_ERROR_CODE_
     EN_KNL_EVTT_HOMONYMY,         //事件类型重名
     EN_KNL_EVENT_FREE,            //企图使用空闲事件控制块
     EN_KNL_EVTT_FREE,             //企图使用空闲事件类型控制块
+    EN_KNL_EVENTID_LIMIT,         //事件id越限
     EN_KNL_EVTTID_LIMIT,          //事件类型id越限
     EN_KNL_EVTT_UNREGISTER,       //事件类型未登记
     EN_KNL_EVENT_SYNC_EXIT,       //事件同步中，被同步的事件异常结束

@@ -2378,9 +2378,9 @@ u16 Djy_EventPop(   u16  hybrid_id,
     {
         if(hybrid_id >= CFG_EVENT_LIMIT)
         {
-            Djy_SaveLastError(EN_KNL_EVENT_FREE);
+            Djy_SaveLastError(EN_KNL_EVENTID_LIMIT);
             if(pop_result != NULL)
-                *pop_result = (ptu32_t)EN_KNL_EVENT_FREE;
+                *pop_result = (ptu32_t)EN_KNL_EVENTID_LIMIT;
             return CN_EVENT_ID_INVALID;
         }
         else
