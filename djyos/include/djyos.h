@@ -384,11 +384,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_RaiseTempPrio(u16 event_id);
 bool_t Djy_RestorePrio(void);
 u32 Djy_EventDelay(u32 u32l_uS);
-#if (CN_USE_TICKLESS_MODE)
-u64 Djy_EventDelayTo(u64 s64l_uS);
-#else
-u32 Djy_EventDelayTo(s64 s64l_uS);
-#endif
+s64 Djy_EventDelayTo(s64 s64l_uS);
 u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout);
 u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
 u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);

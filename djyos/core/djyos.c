@@ -1922,68 +1922,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
 //备注：延时队列为双向循环链表
 //add by lst in 20130922
 //-----------------------------------------------------------------------------
-#if (CN_USE_TICKLESS_MODE)
-u64 Djy_EventDelayTo(u64 u64l_uS)
-{
-    struct EventECB * event;
-
-    if( !Djy_QuerySch())
-    {
-//      Djy_SaveLastError(EN_KNL_CANT_SCHED);
-        Djy_DelayUs((u32)(u64l_uS - DjyGetSysTime()));
-        return 0;
-    }
-    Int_SaveAsynSignal();
-    g_ptEventRunning->delay_start_cnt =djytickless_get_total_cnt();//设定闹铃的时间
-    g_ptEventRunning->delay_end_cnt = djytickless_us_to_cnt(u64l_uS);
-    djytickless_sys_param.cur_cnt = g_ptEventRunning->delay_start_cnt;
-    if(g_ptEventRunning->delay_end_cnt <= g_ptEventRunning->delay_start_cnt)
-    {
-        Int_RestoreAsynSignal();
-        return 0;
-    }
-
-    __Djy_CutReadyEvent(g_ptEventRunning);
-
-    g_ptEventRunning->event_status = CN_STS_EVENT_DELAY;
-    if(g_ptEventDelay==NULL)    //闹钟同步队列空
-    {
-        g_ptEventRunning->next = g_ptEventRunning;
-        g_ptEventRunning->previous = g_ptEventRunning;
-        g_ptEventDelay=g_ptEventRunning;
-        djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-        djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
-    }else
-    {
-        event = g_ptEventDelay;
-        do
-        {//本循环找到第一个闹铃时间晚于新事件的事件.
-            if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
-            {
-                event = event->next;
-            }
-            else
-                break;
-        }while(event != g_ptEventDelay);
-        //下面把新事件插入前述找到的事件前面，如没有找到，则event将等于
-        //pg_event_delay，因是双向循环队列，g_event_delay前面也就刚好是队列尾。
-        g_ptEventRunning->next = event;
-        g_ptEventRunning->previous = event->previous;
-        event->previous->next = g_ptEventRunning;
-        event->previous = g_ptEventRunning;
-        if(g_ptEventDelay->delay_end_cnt >g_ptEventRunning->delay_end_cnt)
-            //新事件延时小于原队列中的最小延时.
-        {
-            g_ptEventDelay = g_ptEventRunning;
-            djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-            djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
-        }
-    }
-    Int_RestoreAsynSignal();
-    return djytickless_cnt_to_us(djytickless_get_total_cnt() - g_ptEventRunning->delay_start_cnt);
-}
-#else
-u32 Djy_EventDelayTo(s64 s64l_uS)
+s64 Djy_EventDelayTo(s64 s64l_uS)
 {
     struct EventECB * event;
 
@@ -1994,9 +1933,16 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         return 0;
     }
     Int_SaveAsynSignal();
+#if (CN_USE_TICKLESS_MODE)
+    g_ptEventRunning->delay_start_cnt =djytickless_get_total_cnt();//设定闹铃的时间
+    g_ptEventRunning->delay_end_cnt = djytickless_us_to_cnt((u64)s64l_uS);
+    djytickless_sys_param.cur_cnt = g_ptEventRunning->delay_start_cnt;
+    if(g_ptEventRunning->delay_end_cnt <= g_ptEventRunning->delay_start_cnt)
+#else
     g_ptEventRunning->delay_start_tick =DjyGetSysTick();//设定闹铃的时间
     g_ptEventRunning->delay_end_tick =(s64l_uS +CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
     if(g_ptEventRunning->delay_end_tick <= g_ptEventRunning->delay_start_tick)
+#endif
     {
         Int_RestoreAsynSignal();
         return 0;
@@ -2010,12 +1956,20 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         g_ptEventRunning->next = g_ptEventRunning;
         g_ptEventRunning->previous = g_ptEventRunning;
         g_ptEventDelay=g_ptEventRunning;
+#if (CN_USE_TICKLESS_MODE)
+        djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
+        djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
+#endif
     }else
     {
         event = g_ptEventDelay;
         do
         {//本循环找到第一个闹铃时间晚于新事件的事件.
+#if (CN_USE_TICKLESS_MODE)
+            if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
+#else
             if(event->delay_end_tick <= g_ptEventRunning->delay_end_tick)
+#endif
             {
                 event = event->next;
             }
@@ -2028,14 +1982,28 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         g_ptEventRunning->previous = event->previous;
         event->previous->next = g_ptEventRunning;
         event->previous = g_ptEventRunning;
+#if (CN_USE_TICKLESS_MODE)
+        if(g_ptEventDelay->delay_end_cnt >g_ptEventRunning->delay_end_cnt)
+            //新事件延时小于原队列中的最小延时.
+        {
+            g_ptEventDelay = g_ptEventRunning;
+            djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
+            djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
+        }
+#else
         if(g_ptEventDelay->delay_end_tick >g_ptEventRunning->delay_end_tick)
             //新事件延时小于原队列中的最小延时.
             g_ptEventDelay = g_ptEventRunning;
+#endif
     }
     Int_RestoreAsynSignal();
+#if (CN_USE_TICKLESS_MODE)
+    return djytickless_cnt_to_us(djytickless_get_total_cnt() - g_ptEventRunning->delay_start_cnt);
+#else
     return (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
-}
 #endif
+}
+
 //----同步事件----------------------------------------------------------------
 //功能: 把正在运行的事件加入到指定事件的同步队列中去,然后重新调度。当指定事件
 //      处理完成，或者超时时间到，将唤醒当前事件。
