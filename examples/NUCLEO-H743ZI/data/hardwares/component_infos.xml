@@ -34,6 +34,7 @@
    <component>/component/multiplex/multiplex.c</component>
    <component>/component/shell/shell.c</component>
    <component>/component/stddev/component_config_stdio.h</component>
+   <component>/component/tcpip/tpl/tcp.c</component>
    <component>/component/tcpip/component_config_tcpip.h</component>
    <component>/component/timer/timer.c</component>
    <component>/component/wdt/wdt_soft.c</component>
@@ -70,6 +71,7 @@
    <component>/third/fs/fat/component_config_fat.h</component>
    <component>/third/fs/yaf2/component_config_yaf2.h</component>
    <component>/third/goahead-2.5.0/component_config_goahead250.h</component>
+   <component>/third/goahead-4.0.1/component_config_goahead401.h</component>
    <component>/third/javascript/duktape/component_config_duktape.h</component>
    <component>/third/javascript/iotjs/component_config_iotjs.h</component>
    <component>/third/javascript/jerryscript/component_config_jerryscript.h</component>

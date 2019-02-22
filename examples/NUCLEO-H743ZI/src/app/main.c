@@ -1,3 +1,4 @@
+
 //----------------------------------------------------
 // Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
@@ -42,47 +43,22 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块:安全钩子
-//作者：lst
-//版本：V1.0.0
-//文件描述:安全钩子是必须在开机后尽可能快地执行的部分代码
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-01-04
-//   作者: lst
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#include "cpu_peri.h"
+/*
+ * app_main.c
+ *
+ *  Created on: 2014-5-28
+ *      Author: Administrator
+ */
 
-//----配置全部IO口--------------------------------------------------------------
-//功能：除必须的外，全部配置成初始态，各功能口由相应的功能模块自行定义。
-//参数：无
-//返回：无
-//------------------------------------------------------------------------------
-void gpio_init(void)
+#include "stdint.h"
+#include "stddef.h"
+
+ptu32_t djy_main(void)
 {
+	while(1)
+	{
+		printf("hello world!\r\n");
+		Djy_EventDelay(1000*1000);
+	}
+	return 0;
 }
-
-void critical(void)
-{
-//#if 0 //ARM版本认为程序加载过程无误
-//    //定时器初始化
-//#if(CN_CFG_SYSTIMER == 1)
-//    extern void Timer_ModuleInit(void);
-//    Timer_ModuleInit();
-//#endif
-//#if(CN_CFG_WDT == 1)
-//	//  初始化硬件看门狗
-//	extern bool_t WDT_FslInit(u32 setcycle);
-//	WDT_FslInit(1000);
-//
-//	// 看门狗组件HAL喂狗
-//	//  开启中断并注册相关的服务函数
-//	bool_t WdtHal_BootStart(u32 bootfeedtimes);
-//	WdtHal_BootStart(20);
-//#endif
-//#endif
-}
-
