@@ -65,13 +65,13 @@ extern "C" {
 #define CN_LPTIMER_CMP              (2U)
 #define CN_LPTIMER_RELOAD_AND_CMP   (3U)
 
-void djybsp_lptimer_init(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t param));
-void djybsp_lptimer_preinit(uint8_t id);
-uint16_t djybsp_lptimer_read_cnt(uint8_t id);
-void djybsp_lptimer_set_reload(uint8_t id,uint16_t period);
-bool_t djybsp_lptimer_get_isr_flag(uint8_t id);
-uint8_t djybsp_lptimer_clear_isr_flag(uint8_t id);
-void djybsp_lptimer_clear_all_isr_flag(uint8_t id);
+void DjyBsp_LptimerInit(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t param));
+void DjyBsp_LptimerPreInit(uint8_t id);
+uint16_t DjyBsp_LptimerReadCnt(uint8_t id);
+void DjyBsp_LptimerSetReload(uint8_t id,uint16_t period);
+bool_t DjyBsp_LptimerGetIsrFlag(uint8_t id);
+uint8_t DjyBsp_LptimerClearIsrFlag(uint8_t id);
+void DjyBsp_LptimerClearAllIsrFlag(uint8_t id);
 #ifdef __cplusplus
 }
 #endif

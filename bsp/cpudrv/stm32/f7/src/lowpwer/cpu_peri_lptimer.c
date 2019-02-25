@@ -77,7 +77,7 @@ struct djylptimer_debug_t{
 // 参数：要清理的定时器号
 // 返回：无
 // =============================================================================
-void djybsp_lptimer_clear_all_isr_flag(uint8_t id)
+void DjyBsp_LptimerClearAllIsrFlag(uint8_t id)
 {
     djybsp_lptimer_reg[id]->ICR = 0x7f;
 }
@@ -87,7 +87,7 @@ void djybsp_lptimer_clear_all_isr_flag(uint8_t id)
 // 参数：要清理的定时器号
 // 返回：无
 // =============================================================================
-uint8_t djybsp_lptimer_clear_isr_flag(uint8_t id)
+uint8_t DjyBsp_LptimerClearIsrFlag(uint8_t id)
 {
     uint8_t temp = CN_LPTIMER_NONE;
     if(djybsp_lptimer_reg[id]->ISR & LPTIM_ISR_CMPM)
@@ -124,7 +124,7 @@ uint8_t djybsp_lptimer_clear_isr_flag(uint8_t id)
 // 参数：定时器号
 // 返回：无
 // =============================================================================
-bool_t djybsp_lptimer_get_isr_flag(uint8_t id)
+bool_t DjyBsp_LptimerGetIsrFlag(uint8_t id)
 {
     return ((djybsp_lptimer_reg[id]->ISR&LPTIM_ISR_CMPM) ? true : false);
 }
@@ -134,7 +134,7 @@ bool_t djybsp_lptimer_get_isr_flag(uint8_t id)
 // 参数：id:定时器号,period:需要设置的值
 // 返回：无
 // =============================================================================
-void djybsp_lptimer_set_reload(uint8_t id,uint16_t period)
+void DjyBsp_LptimerSetReload(uint8_t id,uint16_t period)
 {
     uint16_t temp = 0;
     uint16_t temp1=0,temp2=1;
@@ -161,7 +161,7 @@ void djybsp_lptimer_set_reload(uint8_t id,uint16_t period)
 // 参数：定时器号
 // 返回：无
 // =============================================================================
-uint16_t djybsp_lptimer_read_cnt(uint8_t id)
+uint16_t DjyBsp_LptimerReadCnt(uint8_t id)
 {
     uint16_t temp1=0,temp2=1;
     while(temp1!=temp2)
@@ -179,7 +179,7 @@ uint16_t djybsp_lptimer_read_cnt(uint8_t id)
 // 参数：定时器号
 // 返回：无
 // =============================================================================
-void djybsp_lptimer_preinit(uint8_t id)
+void DjyBsp_LptimerPreInit(uint8_t id)
 {
 }
 
@@ -188,7 +188,7 @@ void djybsp_lptimer_preinit(uint8_t id)
 // 参数：id:定时器号,reload:重装载值，isr:中断函数
 // 返回：无
 // =============================================================================
-void djybsp_lptimer_init(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t param))
+void DjyBsp_LptimerInit(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t param))
 {
     uint32_t presc=0;
     uint32_t int_line = 0;
@@ -245,7 +245,7 @@ void djybsp_lptimer_init(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t para
     djybsp_lptimer_reg[id]->CR = LPTIM_CR_ENABLE; // 打开LPTIM, 但暂不开始计时
     djybsp_lptimer_reg[id]->ARR = reload;
     djybsp_lptimer_reg[id]->CMP = reload;
-    djybsp_lptimer_clear_all_isr_flag(id);
+    DjyBsp_LptimerClearAllIsrFlag(id);
     djybsp_lptimer_reg[id]->CR |= LPTIM_CR_CNTSTRT;
     while(djybsp_lptimer_reg[id]->CNT==0);
 }
