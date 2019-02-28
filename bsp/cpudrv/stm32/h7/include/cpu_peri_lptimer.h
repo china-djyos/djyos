@@ -42,47 +42,38 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: CPU外设定义
-//作者:  lst
-//版本：V1.0.0
-//其他说明:
-//修订历史:
-//1. 日期: 2013-05-29
-//   作者:  lst.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __CPU_PERI_H__
-#define __CPU_PERI_H__
+
+// 文件名     ：cpu_peri_lptimer.h
+// 模块描述: 低功耗定时器底层硬件驱动头文件
+// 模块版本: V1.00
+// 创建人员: chj
+// 创建时间: 6/14.2018
+// =============================================================================
+
+#ifndef CPU_PERI_LPTIMER_H_
+#define CPU_PERI_LPTIMER_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//包含外设所需的头文件
-#include "os.h"
-#include "board-config.h"
-#include "cpu_peri_int_line.h"
-#include "stm32h7xx.h"
-#include "stm32h7xx_hal.h"
-#include "cpu_peri_gpio.h"
-#include "cpu_peri_uart.h"
-#include "cpu_peri_dma.h"
-#include "cpu_peri_iic.h"
-#include "cpu_peri_spi.h"
-#include "cpu_peri_can.h"
-//#include "cpu_peri_rtc.h"
-#include "cpu_peri_nand.h"
-#include "cpu_peri_eth.h"
+#include <stddef.h>
+#include <stdint.h>
 
-#include "stm32h7xx_hal_tim.h"
-#define InLowPower      0
-#define OutLowPower     1
+#define CN_LPTIMER_NONE             (0U)
+#define CN_LPTIMER_RELOAD           (1U)
+#define CN_LPTIMER_CMP              (2U)
+#define CN_LPTIMER_RELOAD_AND_CMP   (3U)
 
-#define memory_barrier() __DMB();
-
+void DjyBsp_LptimerInit(uint8_t id,uint16_t reload,uint32_t (*isr)(ptu32_t param));
+void DjyBsp_LptimerPreInit(uint8_t id);
+uint16_t DjyBsp_LptimerReadCnt(uint8_t id);
+void DjyBsp_LptimerSetReload(uint8_t id,uint16_t period);
+bool_t DjyBsp_LptimerGetIsrFlag(uint8_t id);
+uint8_t DjyBsp_LptimerClearIsrFlag(uint8_t id);
+void DjyBsp_LptimerClearAllIsrFlag(uint8_t id);
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__CPU_PERI_H__
+#endif

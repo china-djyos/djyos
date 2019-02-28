@@ -3717,7 +3717,8 @@ bool_t TcpInit(void)
     bool_t ret = false;
 
     //do the port random initialize
-    gPortEngineTcp = (u16)DjyGetSysTime();
+//    gPortEngineTcp = (u16)RNG_Get_RandomRange(1024,65535);
+    gPortEngineTcp = (u16)(rand() >> 16)%(0xffff-1024)+1024;
     if(false == __hashTabInit(CFG_TCP_CCBNUM+CFG_TCP_SCBNUM))
     {
         goto EXIT_REGISTERTCPFAILED;

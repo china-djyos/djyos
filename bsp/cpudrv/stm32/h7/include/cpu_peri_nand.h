@@ -42,93 +42,39 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: BSP模块
-//作者:  罗侍田.
-//版本：V1.0.0
-//文件描述: 板件特性配置文件。
-//        CPU型号:STM32F103ZE
-//        板件型号:QH_1
-//        生产企业:爱好者团体
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-10-31
-//   作者:  罗侍田.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __BOARD_CONFIG_H__
-#define __BOARD_CONFIG_H__
+// =============================================================================
+
+// 文件名     ：cpu_peri_can.h
+// 模块版本: V1.00
+// 创建人员: zhb
+// 创建时间: 05/01.2017
+// =============================================================================
+#ifndef __CPU_PERI_NAND_H__
+#define __CPU_PERI_NAND_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define DJY_BOARD    "APOLLO-STM32H7"
-
-#define Mhz 1000000
-#define CN_CFG_MCLK (400*Mhz)  //主频，内核要用，必须定义
-#define CN_CFG_FCLK CN_CFG_MCLK  //cm7自由运行外设时钟
-#define BOARD_MCK   (CN_CFG_MCLK/2) //的MCK
-
-#define CN_CFG_PCLK1  (CN_CFG_MCLK/4)
-#define CN_CFG_PCLK2  (CN_CFG_MCLK/2)
-
-#define CN_CFG_SYS_CLK     CN_CFG_MCLK
-#define CN_CFG_AXI_CLK    (CN_CFG_MCLK/2)
-#define CN_CFG_HCLK3      (CN_CFG_AXI_CLK)
-
-#define CN_CFG_APB1_CLK   (CN_CFG_AXI_CLK/2)
-#define CN_CFG_APB2_CLK   (CN_CFG_AXI_CLK/2)
-#define CN_CFG_APB3_CLK   (CN_CFG_AXI_CLK/2)
-#define CN_CFG_APB4_CLK   (CN_CFG_AXI_CLK/2)
+#include "stm32h7xx.h"
+#include "stdint.h"
+#include <device/include/unit_media.h>
 
 
-
-#define CN_CFG_LSE (32768)
-#define CN_CFG_HSE (25*Mhz)
-
-/*____以下定义tick参数____*/
-#define CN_CFG_TICK_US 1000  //tick间隔，以us为单位。
-#define CN_CFG_TICK_HZ 1000  //内核时钟频率，单位为hz。
-#define CN_USE_TICKLESS_MODE    (0U)
-#if (!CN_USE_TICKLESS_MODE)
-#define CN_CFG_FINE_US 0x00000A3  //1/400M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
-#define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
-#else
-#define CN_CFG_USE_USERTIMER        (0U)//是否使用LPTIMER作为系统时钟
-#define CN_CFG_TIME_BASE_HZ         CN_CFG_MCLK//(32000U)//(8000U)
-#if (!CN_CFG_USE_USERTIMER)
-#define CN_CFG_USE_BYPASSTIMER      (0U)//0表示不使用旁路定时器，1表示使用旁路定时器
-#define CN_CFG_TIME_PRECISION       (500U)/*精度单位：US*/
-#else
-#define CN_CFG_USERTIMER_PRESC      (1U)//若不使用SYSTICK定时器，需指定用户定时器的分频数
-#define CN_CFG_FINE_US (0x1F4000U)  //1/32000,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
-#define CN_CFG_FINE_HZ (0x831U)  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
-#define CN_CFG_TIME_PRECISION       (200U)/*精度单位：US*/
-#endif
-#endif
-
-//CPU架构相关配置,可选或者可能可选的才在这里配置,例如大小端,是可选的,在这里配置,
-//而CPU字长固定,故字长在BSP的arch.h文件中定义
-//存储器大小端的配置
-#define CN_CFG_LITTLE_ENDIAN        0
-#define CN_CFG_BIG_ENDIAN           1
-#define CN_CFG_BYTE_ORDER          CN_CFG_LITTLE_ENDIAN
-
-#define BOARD_GMAC_PHY_ADDR        1
-#define MAX_PIO_INTERRUPT_SOURCES  5
-
-
-#define CN_LCD_XSIZE   ((uint16_t)1024)             /* LCD PIXEL WIDTH */
-#define CN_LCD_YSIZE   ((uint16_t)600)             /* LCD PIXEL HEIGHT*/
-
-#define CN_CAN_NUM      2
+s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bcount, u32 doformat);
+s32  stm32f7_PageProgram(u32 PageNo, u8 *Data, u32 Flags);
+s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags);
+s32 stm32f7_BlockErase(u32 BlkNo);
+bool_t NandFlash_Ready();
+s32 __nand_read(s64 unit, void *data, struct uopt opt);
+s32 __nand_write(s64 unit, void *data, struct uopt opt);
+s32 __nand_erase(s64 unit, struct uesz sz);
+s32 __nand_req(enum ucmd cmd, ptu32_t args, ...);
 
 #ifdef __cplusplus
 }
 #endif
-#endif // __CPU_OPTIONAL_H__
 
+#endif // __CPU_PERI_NAND_H__
 
 

@@ -67,11 +67,13 @@
 #include "stdint.h"
 #include "lowpower.h"
 #include "cpu_peri.h"
-#include <stm32l4xx_hal_rcc.h>
-#include <stm32l4xx_hal_rtc.h>
-#include <stm32l4xx_hal_rtc.h>
-#include <stm32l4xx_hal_rtc_ex.h>
-#include <stm32l4xx_hal_pwr.h>
+
+
+#include <stm32h7xx_hal_rcc.h>
+#include <stm32h7xx_hal_rtc.h>
+#include <stm32h7xx_hal_rtc_ex.h>
+#include <stm32h7xx_hal_pwr.h>
+#include <stm32h7xx_hal_pwr_ex.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -81,32 +83,38 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_lowpower" //低功耗组件外设驱动
-//parent:"lowpower"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                    //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:none                    //初始化时机，可选值：early，medium，later。
-                                    //表示初始化时间，分别是早期、中期、后期
-//dependence:"lowpower"             //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //选中该组件时，被依赖组件将强制选中，
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"             //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                    //选中该组件时，被依赖组件不会被强制选中，
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                      //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
+//component name:"cpu_peri_lowpower"  //低功耗组件外设驱动
+//parent:none                         //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                       //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                    //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:none                      //初始化时机，可选值：early，medium，later。
+                                      //表示初始化时间，分别是早期、中期、后期
+//dependence:"lowpower"               //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                      //选中该组件时，被依赖组件将强制选中，
+                                      //如果依赖多个组件，则依次列出
+//weakdependence:"none"               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                      //选中该组件时，被依赖组件不会被强制选中，
+                                      //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                        //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                      //如果依赖多个组件，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-//%$#@target = header              //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
+ extern void __Int_ClearAllLine(void);
 //----初始化低功耗硬件--------------------------------------------------------
 //功能: 初始化低功耗管理硬件,如果不需要初始化,可以直接return true.因为stm32低功耗
 //      管理需要使用备份区保存参数, 故需要打开备份模块电源和使能备份区访问.
@@ -116,7 +124,6 @@
 bool_t __LP_BSP_HardInit(void)
 {
     __HAL_RCC_PWR_CLK_ENABLE();//PWR模块使能
-
     HAL_PWR_EnableBkUpAccess();//后备区使能
     return true;
 }
@@ -131,16 +138,16 @@ bool_t __LP_BSP_HardInit(void)
 //----------------------------------------------------------------------------
 u32 __LP_BSP_GetSleepLevel(void)
 {
-    u32 bkt_DR;
-    RTC_HandleTypeDef RTC_Handler;  //RTC句柄
-    RTC_Handler.Instance=RTC;
-    if(__HAL_PWR_GET_FLAG(PWR_FLAG_WU+PWR_FLAG_SB)& PWR_FLAG_WU)
-    {
-        bkt_DR = HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR0);
-        return bkt_DR;
-    }
-    else
-        return CN_SLEEP_NORMAL;
+//    u32 bkt_DR;
+//    RTC_HandleTypeDef RTC_Handler;  //RTC句柄
+//    RTC_Handler.Instance=RTC;
+//    if(__HAL_PWR_GET_FLAG(PWR_FLAG_WU+PWR_FLAG_SB)& PWR_FLAG_WU)
+//    {
+//        bkt_DR = HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR0);
+//        return bkt_DR;
+//    }
+//    else
+//        return CN_SLEEP_NORMAL;
 }
 
 //----保存休眠级别-------------------------------------------------------------
@@ -169,6 +176,7 @@ void __LP_BSP_EntrySleepL0(void)
 {
     //Sleep
 //    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+     __Int_ClearAllLine();
     HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 }
 
@@ -181,7 +189,9 @@ void __LP_BSP_EntrySleepL0(void)
 void __LP_BSP_EntrySleepL1(void)
 {
     //Mode : Run --> lprun--->lpsleep
-//  HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+    __Int_ClearAllLine();
+    HAL_PWREx_EnableFlashPowerDown();
+    HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
 }
 
 //----进入L2级低功耗-----------------------------------------------------------
@@ -192,7 +202,7 @@ void __LP_BSP_EntrySleepL1(void)
 void __LP_BSP_EntrySleepL2(void)
 {
     //stop2 mode : exit this mode by exti_line int or wakeup
-  HAL_PWREx_EnterSTOP2Mode(PWR_SLEEPENTRY_WFI);
+//  HAL_PWREx_EnterSTOP2Mode(PWR_SLEEPENTRY_WFI);
 }
 
 //----进入L3级低功耗-----------------------------------------------------------
@@ -219,7 +229,18 @@ void __LP_BSP_EntrySleepL4(void)
 //  HAL_PWREx_EnterSHUTDOWNMode();
 }
 
+
+bool_t __LP_BSP_RestoreRamL3(void)
+{
+    return true;
+}
 bool_t __LP_BSP_SaveRamL3(void)
 {
    return true;
+}
+
+void __LP_BSP_AsmSaveReg(struct ThreadVm *running_vm,bool_t (*SaveRamL3)(void),\
+        void (*EntrySleepL3)(void))
+{
+    return;
 }

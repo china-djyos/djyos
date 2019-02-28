@@ -46,8 +46,14 @@
 #ifdef CFG_CK803S
 #include "cpu_peri.h"
 #include "int.h"
-
+#include "filesystems.h"
 bootspi_t iap_bootspi;
+
+static struct umedia *emflash_um;
+
+static const char *EmflashName = "emflash";      //该flash在obj在的名字
+extern struct obj *s_ptDeviceRoot;
+extern struct __xip_drv XIP_EMFLASH_DRV;
 
 static void djybsp_spi_init(uint8_t spiclk_sel,uint8_t if_preread,uint8_t if_rcv_cpol)
 {
@@ -437,7 +443,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 //                return (-1);
 
             if(-1==end)                                //挂在区域全部擦除
-                    end = sp_tFlashDesrc->ToltalBlock;
+                    end = 12;
             else if (start)
                     end += start;
 
@@ -474,7 +480,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 //      opt -- 读的方式；
 // 备注：
 // ============================================================================
-static s32 __embed_read(s64 unit, void *data, struct uopt opt)
+s32 __embed_read(s64 unit, void *data, struct uopt opt)
 {
     uint32_t start_addr = 0xc0000 + 1024 * unit;
     uint8_t *buf_temp = (uint8_t*)data;
@@ -492,7 +498,7 @@ static s32 __embed_read(s64 unit, void *data, struct uopt opt)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __embed_write(s64 unit, void *data, struct uopt opt)
+s32 __embed_write(s64 unit, void *data, struct uopt opt)
 {
     if(sp_tFlashDesrc==NULL)
         return -1;
@@ -555,13 +561,86 @@ static s32 Flash_Init(struct EmbdFlashDescr *Description)
     return (0);
 }
 
-s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
+s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend)
 {
-    struct umedia *um;
+    u32 units, total = 0,endblock = bend;
+    char *FullPath,*notfind;
+    struct obj *targetobj;
+    struct FsCore *super;
+    s32 res;
+
+    targetobj = obj_matchpath(fs, &notfind);
+    if(notfind)
+    {
+        printf("embed"," not found need to install file system.");
+        return -1;
+    }
+    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super->MediaInfo = emflash_um;
+    //这里的"XIP-APP"和"XIP-IBOOT"为文件系统的类型名
+    if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
+    {
+        super->MediaDrv = &XIP_EMFLASH_DRV;
+    }
+    else
+    {
+        super->MediaDrv = 0;
+        printf("embed"," \"%s\" file system type nonsupport", super->pFsType->pType);
+        return -1;
+    }
+    if(-1 == (s32)endblock)
+        endblock = bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
+
+    do
+    {
+        if(__embed_req(blockunits, (ptu32_t)&units, --endblock))
+        {
+            return (-1);
+        }
+
+        total += units;     //计算该分区一共有多少页
+    }
+    while(endblock!=bstart);
+
+    super->AreaSize = total * sp_tFlashDesrc->BytesPerPage;
+    endblock = 0;
+    total = 0;
+
+    while(endblock<bstart)
+    {
+        if(__embed_req(blockunits, (ptu32_t)&units, endblock++))
+        {
+            return (-1);
+        }
+
+        total += units;
+    }
+    super->MediaStart = total; // 起始unit号
+
+    res = strlen(EmflashName) + strlen(s_ptDeviceRoot->name) + 1;
+    FullPath = malloc(res);
+    memset(FullPath, 0, res);
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);   //获取该设备的全路径
+    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    free(FullPath);
+
+    printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
+    return (0);
+
+}
+
+//-----------------------------------------------------------------------------
+// 功能：安装片内Flash驱动
+// 参数：TargetFs -- 要挂载的文件系统
+//      分区数据 -- 起始块，结束块（如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块，不包括第六块），是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+//-----------------------------------------------------------------------------
+s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
+{
     struct uopt opt;
-    char name[16], part[3];
-    u32 units, total = 0;
-    static u8 count;
+    static u8 emflashinit = 0;
+    u32 units;
 
     if(!sp_tFlashDesrc)
     {
@@ -570,67 +649,68 @@ s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
         {
             return (-1);
         }
+
         Flash_Init(sp_tFlashDesrc);
         djybsp_spiflash_init();
     }
 
-//    if(doformat)
-//    {
-//            djybsp_spiflash_step(DJYBSP_SPIFLASH_START);
-//            djybsp_erase_some_sectors(0xc0000,SECTOR_SIZE);
-//            djybsp_spiflash_step(DJYBSP_SPIFLASH_END);
-//    }
-
-    um = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
-    if(!um)
+    if(doformat)
     {
-        return (-1);
+        struct uesz sz;
+        sz.unit = 0;
+        sz.block = 1;
+        __embed_req(format, (ptu32_t)bstart , bend, &sz);       //格式化指定区域
     }
 
-    opt.hecc = 0;
-    opt.main = 1;
-    opt.necc = 1;
-    opt.secc = 0;
-    opt.spare = 1;
-    if(-1 == bcount)//最大块数
+    if(emflashinit == 0)
     {
-        bcount = sp_tFlashDesrc->ToltalBlock;
-        bcount -= bstart;
-        um->asz = sp_tFlashDesrc->BytesPerPage * sp_tFlashDesrc->PagesPerBlock * bcount;
-    }
-    else
-        um->asz = sp_tFlashDesrc->BytesPerPage * sp_tFlashDesrc->PagesPerBlock * bcount;
+        emflash_um = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
+        if(!emflash_um)
+        {
+            return (-1);
+        }
 
+        opt.hecc = 1;
+        opt.main = 1;
+        opt.necc = 1;
+        opt.secc = 0;
+        opt.spare = 0;
 
-//    um->esz = log2(sp_tFlashDesrc->BytesPerPage * sp_tFlashDesrc->PagesPerBlock); //
-//    um->usz = log2(sp_tFlashDesrc->BytesPerPage);
-    um->esz = 12;
-    um->usz = 10;
-    //um->esz = 0; // 各个区域不同
-    um->merase = __embed_erase;
-    um->mread = __embed_read;
-    um->mreq = __embed_req;
-    um->mwrite = __embed_write;
-    um->opt = opt;
-    um->type = nand;
-    um->ubuf = (u8*)um + sizeof(struct umedia);
-//    um->ustart = bstart*sp_tFlashDesrc->PagesPerBlock; // 起始unit号
-//    bcount = 0;
-//    total = 0;
+        if(-1 == bend)
+            bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
 
-//    um->ustart = total; // 起始unit号
-    itoa(count++, part, 10);
-    sprintf(name, "embed part %s", part);
-    if(um_add((const char*)name, um))
-    {
-        printf("\r\n: erro : device : %s addition failed.", name);
-        return (-1);
+        emflash_um->asz = sp_tFlashDesrc->TotalPages * sp_tFlashDesrc->BytesPerPage;
+        emflash_um->esz = 0; // 各个区域不同
+        //um->usz = log2(embeddescription->BytesPerPage);
+        emflash_um->usz = 8;  //每页改为256字节
+        emflash_um->merase = __embed_erase;
+        emflash_um->mread = __embed_read;
+        emflash_um->mreq = __embed_req;
+        emflash_um->mwrite = __embed_write;
+        emflash_um->opt = opt;
+        emflash_um->type = embed;
+        emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
+
+        if(!dev_Create((const char*)EmflashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
+        {
+            printf("\r\n: erro : device : %s addition failed.", EmflashName);
+            free(emflash_um);
+            return (-1);
+        }
+        emflashinit = 1;
     }
 
-    printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, bstart, bcount);
-    return (0);
+    if(TargetFs != NULL)
+    {
+        if(__embed_FsInstallInit(TargetFs, bstart, bend))
+        {
+            return -1;
+        }
+    }
 
+    return 0;
 }
+
 #endif
 
 

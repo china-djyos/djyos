@@ -51,7 +51,7 @@
 #include <sys/socket.h>
 #include "djyos.h"
 #include "lan8720.h"
-#include "pcf8574.h"
+//#include "pcf8574.h"
 #include "cpu_peri.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -71,7 +71,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"cpu_peri_eth","lan8742","tcpip"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu_peri_eth","lan8720","tcpip"     //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -160,7 +160,7 @@ bool_t PHY_Init(void)
     ETH_MACConfigTypeDef MACConf;
     /* Set PHY IO functions */
 //    Djy_DelayUs(500*1000);
-    PCF8574_Init();                         //初始化PCF8574
+//    PCF8574_Init();                         //初始化PCF8574
     LAN8720_RegisterBusIO(&LAN8720_IOCtx);
     Djy_DelayUs(1000);
     PCF8574_WriteBit(ETH_RESET_IO,1);       //硬件复位

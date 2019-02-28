@@ -83,7 +83,7 @@ WOLFSSL_API int wolfSSL_SetLoggingCb(wolfSSL_Logging_cb log_function);
     #define WOLFSSL_ENTER(m)       do{printf("%s\n\r",m);}while(0)
     #define WOLFSSL_LEAVE(m, r)    do{printf("%s\n\r",m);}while(0)
     #define WOLFSSL_STUB(m)        do{printf("%s\n\r",m);}while(0)
-    #define WOLFSSL_ERROR(e)       do{printf("%s\n\r",e);}while(0)
+    #define WOLFSSL_ERROR(e)       do{printf("%d\n\r",e);}while(0)
     #define WOLFSSL_MSG(m)         do{printf("%s\n\r",m);}while(0)
     #define WOLFSSL_BUFFER(b, l)
 

@@ -58,11 +58,7 @@
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
-//                          bool_t loop,u32 loopcycle,\
-//                          bool_t (*rcvHook)(u8 *buf, u16 len));
-//   static u8 mac_addr[]={CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5};
-//   ModuleInstall_ETH(CFG_ETH_DEV_NAME,mac_addr,CFG_ETH_LOOP_ENABLE,CFG_ETH_LOOP_CYCLE,NULL);
+
 //%$#@end initcode  ****初始化代码结束
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_eth" //CPU的mac驱动
@@ -637,7 +633,7 @@ static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
 //this is the receive task
 static ptu32_t __MacRcvTask(void)
 {
-    struct NetDev *pkg=NULL;
+    struct NetPkg *pkg;
     void      *handle;
     u8        *rawbuf;
     u16        len;
@@ -684,8 +680,9 @@ static ptu32_t __MacRcvTask(void)
                 if(NULL != pDrive->fnrcvhook)
                 {
                     rawbuf = PkgGetCurrentBuffer(pkg);
-//                    rawbuf = pkg->buf + pkg->offset;
+//                  rawbuf = pkg->buf + pkg->offset;
                     len = PkgGetDataLen(pkg);
+
                     pDrive->fnrcvhook(rawbuf,len);
                 }
                 else
@@ -1083,7 +1080,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac,macaddress,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.Private = 0;
+//    devpara.private = 0;
     devpara.mtu = 1528;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
