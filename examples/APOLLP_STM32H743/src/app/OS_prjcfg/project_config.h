@@ -18,7 +18,7 @@
 #define IO_IIC_BUS_NAME "IoIic"     // 该IIC总线的名字
 #define IIC_IOCTRL_FUN   IIC_IoCtrlFunc   // 用户实现的IO控制函数名
 //*******************************  Configure filesystem  ******************************************//
-#define     CFG_CLIB_BUFFERSIZE              512                    // "C库文件用户态缓冲区尺寸"
+#define CFG_CLIB_BUFFERSIZE            512           // "C库文件用户态缓冲区尺寸"
 //*******************************  Configure stdio  ******************************************//
 #define CFG_STDIO_RUN_MODE            (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW)      // "STDIO模式",
 #define CFG_STDIO_IN_NAME              "/dev/UART1"         // "标准输入设备名",
@@ -40,6 +40,10 @@
 #define     CFG_ADD_EXPAND_SHELL             true                   // "是否添加拓展shell命令"
 #define     CFG_ADD_GLOBAL_FUN               false                  // "添加全局函数到shell"
 #define     CFG_SHOW_ADD_SHEELL              true                   // "显示在编译窗口添加的shell命令"
+//*******************************  Configure tcp  ******************************************//
+#define     CFG_TCP_REORDER                  true                   // "TCP乱序重组使能",资源充足才打开
+#define     CFG_TCP_CCBNUM                   10                     // "tcp 客户端数限值"，占一个 指针 和 struct ClienCB
+#define     CFG_TCP_SCBNUM                   5                      // "tcp 服务器数限值"，占一个 指针 和 struct ServerCB
 //*******************************  Configure tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE               0x4000                 // "数据包缓冲区尺寸"
 #define     CFG_ARP_HASHLEN                  32                     // "ARP哈希表长度"，占用一个指针
@@ -61,7 +65,7 @@
 #define     CFG_TFTP_ENABLE                  true                   // "tftp 使能"
 #define     CFG_TFTPD_ENABLE                 false                  // "tftp 服务器使能",暂未实现
 #define     CFG_TFTPC_ENABLE                 true                   // "tftp 客户端使能"
-#define     CFG_TFTP_PATHDEFAULT              "/"              // TFTP默认工作目录
+#define     CFG_TFTP_PATHDEFAULT             "/"                       // TFTP默认工作目录
 #define     CFG_DHCP_ENABLE                  true                   // "DHCP 使能"
 #define     CFG_DHCPD_ENABLE                 false                  // "DHCP 服务器使能"
 #define     CFG_DHCPC_ENABLE                 true                   // "DHCP 客户端使能"
@@ -76,10 +80,6 @@
 #define     CFG_DHCPD_DNS                    "192.168.0.253"        // "DHCP DNSSERVER IP"
 #define     CFG_DHCPD_DOMAINNAME             "domain"               // "DHCP domain name"
 #define     CFG_PPP_ENABLE                   false                  // 是否需要 ppp 协议
-//*******************************  Configure tcp  ******************************************//
-#define     CFG_TCP_REORDER                  true                   // "TCP乱序重组使能",资源充足才打开
-#define     CFG_TCP_CCBNUM                   10                     // "tcp 客户端数限值"，占一个 指针 和 struct ClienCB
-#define     CFG_TCP_SCBNUM                   5                      // "tcp 服务器数限值"，占一个 指针 和 struct ServerCB
 //*******************************  Configure timer  ******************************************//
 #define CFG_TIMER_SOUCE     1            // "时钟源",1=由硬件计时器提供时钟源，0=由tick提供时钟源
 #define CFG_TIMERS_LIMIT    5            // "定时器数量",可创建的定时器数量（不包含图形界面的定时器）
@@ -87,7 +87,7 @@
 #define     CFG_YMODEM_BUF_NUM               32                     // "缓存ymodem包数量",每包1024字节
 #define     CFG_YMODEM_PKG_TIMEOUT           (15*1000*1000)         // "包间隔超时时间",微秒
 #define     CFG_YMODEM_TIMEOUT               (300*1000*1000)        // "ymodem传输总超时时间",微秒
-#define     CFG_YMODEM_DEVNAME               "std"                  // "ymodem传输设备，std表示使用标准输入输出设备"
+#define     CFG_YMODEM_DEVNAME               "/dev/UART1"                  // "ymodem传输设备，std表示使用标准输入输出设备"
 #define     CFG_YMODEM_TIMEOUT               (600*1000*1000)        // #define CFG_YMODEM_TIMEOUT (600*1000*1000)
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096         // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
@@ -105,15 +105,15 @@
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL           // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01             // Iboot发布版本号
 //*******************************  Configure cpu_peri_eth  ******************************************//
-#define CFG_MAC_ADDR0           00                // "网卡地址0",
-#define CFG_MAC_ADDR1           00                // "网卡地址1",
-#define CFG_MAC_ADDR2           00                // "网卡地址2",
-#define CFG_MAC_ADDR3           00                // "网卡地址3",
-#define CFG_MAC_ADDR4           00                // "网卡地址4",
-#define CFG_MAC_ADDR5           00                // "网卡地址5",
-#define CFG_ETH_LOOP_CYCLE      1000              // "网卡轮询接收周期",
-#define CFG_ETH_LOOP_ENABLE     true             // "网卡接收是否轮询",
-#define CFG_ETH_DEV_NAME        "STM32H7_ETH"     // "网卡名称",
+#define     CFG_MAC_ADDR0                    00                 // "网卡地址0",
+#define     CFG_MAC_ADDR1                    00                 // "网卡地址1",
+#define     CFG_MAC_ADDR2                    00                 // "网卡地址2",
+#define     CFG_MAC_ADDR3                    00                 // "网卡地址3",
+#define     CFG_MAC_ADDR4                    00                 // "网卡地址4",
+#define     CFG_MAC_ADDR5                    00                 // "网卡地址5",
+#define     CFG_ETH_LOOP_CYCLE               1000               // "网卡轮询接收周期",
+#define     CFG_ETH_LOOP_ENABLE              true               // "网卡接收是否轮询",
+#define     CFG_ETH_DEV_NAME                 "STM32H7_ETH"      // "网卡名称",
 //*******************************  Configure lan8720  ******************************************//
 #define CFG_LAN8720_PHY_ADDRESS     0        // phy的物理地址，硬件一般设计为 0
 //*******************************  Configure netconfig  ******************************************//
@@ -126,19 +126,19 @@
 //*******************************  Configure PCF8574  ******************************************//
 #define     CFG_PCF8574_BUS_NAME             "IoIic"              // "name"
 //*******************************  Configure cpu_peri_emflash  ******************************************//
-#define     CFG_EFLASH_PART_START            4                   // 分区起始
-#define     CFG_EFLASH_PART_END              -1                  // 分区结束，-1代表至存储模块结束地址
+#define     CFG_EFLASH_PART_START            0                   // 分区起始
+#define     CFG_EFLASH_PART_END              4                   // 分区结束，-1代表至存储模块结束地址
 #define     CFG_EFLASH_PART_OPTION           0                   // 分区选项
-#define     CFG_EFLASH_FSMOUNT_NAME          EN_XIP_APP_TARGET   // 需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
+#define     CFG_EFLASH_FSMOUNT_NAME          EN_XIP_IBOOT_TARGET  // 需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //*******************************  Configure yaf2filesystem  ******************************************//
 #define     CFG_YAF_ECC                      0                     // YAF文件系统文件使能设备ECC功能。0不使用ecc，YAF2_ENABLE_DEVICE_ECC使用ecc
 #define     CFG_YAF_INSTALL_OPTION           false                 // YAF文件系统安装选项，安装时是否格式化整个文件系统；
 #define     CFG_YAF_MOUNT_POINT              "yaf2"                // "name",YAF文件系统安装目录
 //*******************************  Configure cpu_peri_nand  ******************************************//
-#define     CFG_NFLASH_FSMOUNT_NAME          "yaf2"        //需安装的文件系统的mount的名字
-#define     CFG_NFLASH_PART_START            0                 //分区起始
-#define     CFG_NFLASH_PART_END              -1                //分区结束
-#define     CFG_NFLASH_PART_OPTION           0                 //分区选项
+#define     CFG_NFLASH_FSMOUNT_NAME          "yaf2"         // 需安装的文件系统的mount的名字
+#define     CFG_NFLASH_PART_START            0                 // 分区起始
+#define     CFG_NFLASH_PART_END              -1                // 分区结束
+#define     CFG_NFLASH_PART_OPTION           0                 // 分区选项
 //******************************* Core Clock ******************************************//
 #define  CFG_CORE_MCLK                   (400*Mhz)         //主频，内核要用，必须定义
 

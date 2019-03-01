@@ -50,8 +50,9 @@
  *      Author: Administrator
  */
 
-#include "stdint.h"
-#include "stddef.h"
+#include <stdint.h>
+#include <djyos.h>
+#include <stdio.h>
 
 ptu32_t djy_main(void)
 {

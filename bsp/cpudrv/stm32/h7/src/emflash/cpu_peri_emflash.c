@@ -61,6 +61,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//#include "xip.h"
 //s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
 //ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_OPTION);
 //%$#@end initcode  ****初始化代码结束
@@ -87,8 +88,8 @@
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 
 //%$#@num,-1,12,
-#define CFG_EFLASH_PART_START      6          //分区起始
-#define CFG_EFLASH_PART_END        -1         //分区结束
+#define CFG_EFLASH_PART_START      (gc_ptIbootSize/128*1024)          //分区起始
+#define CFG_EFLASH_PART_END        -1         //分区结束，-1代表至存储模块结束地址
 #define CFG_EFLASH_PART_OPTION     0          //分区选项
 //%$#@string,1,32,
 //%$#@enum,EN_XIP_APP_TARGET,EN_XIP_IBOOT_TARGET,NULL
@@ -103,7 +104,7 @@
 
 //@#$%component end configure
 // ============================================================================
-
+#define FLASH_WAITETIME     5000
 const char *EmflashName = "emflash";      //该flash在obj在的名字
 extern struct obj *s_ptDeviceRoot;
 extern struct __xip_drv XIP_EMFLASH_DRV;
@@ -121,7 +122,7 @@ static struct EmbdFlashDescr{
 
 struct umedia *emflash_um;
 extern u32 gc_ptIbootSize;
-s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bcount, u32 doformat);
+s32 __embed_FsInstallInit(const char *fs, u32 bstart, s32 bcount, u32 doformat);
 s32 __embed_read(s64 unit, void *data, struct uopt opt);
 s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
 s32 __embed_write(s64 unit, void *data, struct uopt opt);
@@ -147,35 +148,14 @@ bool_t BrdWdt_FeedDog(void)
 static s32 EmFlash_Init(struct EmbdFlashDescr *Description)
 {
     Description->BytesPerPage = 512;
-    Description->PagesPerSmallSect = 64;
-    Description->PagesPerLargeSect = 256;
-    Description->PagesPerNormalSect = 512;
-    Description->SmallSectorsPerPlane = 4;
-    Description->LargeSectorsPerPlane = 1;
-    Description->NormalSectorsPerPlane = 7; // STM32F767
+    Description->PagesPerSmallSect = 256;
+    Description->PagesPerLargeSect = 0;
+    Description->PagesPerNormalSect = 0;
+    Description->SmallSectorsPerPlane = 16;
+    Description->LargeSectorsPerPlane = 0;
+    Description->NormalSectorsPerPlane = 0; // STM32h767
     Description->Planes = 1;
     Description->MappedStAddr = 0x08000000;
-    return (0);
-}
-
-// ============================================================================
-// 功能：获取内置FLASH的信息
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static s32 Flash_GetDescr(struct EmFlashDescr *Description)
-{
-    Description->BytesPerPage = embeddescription->BytesPerPage;
-    Description->TotalPages = (embeddescription->PagesPerSmallSect *
-                        embeddescription->SmallSectorsPerPlane +
-                        embeddescription->PagesPerLargeSect *
-                        embeddescription->LargeSectorsPerPlane +
-                        embeddescription->PagesPerNormalSect *
-                        embeddescription->NormalSectorsPerPlane) *
-                        embeddescription->Planes;
-    Description->ReservedPages = gc_ptIbootSize / embeddescription->BytesPerPage;
-    Description->MappedStAddr = embeddescription->MappedStAddr;
     return (0);
 }
 
@@ -185,34 +165,31 @@ static s32 Flash_GetDescr(struct EmFlashDescr *Description)
 // 返回："0" -- 成功;"-1" -- 失败;
 // 备注：
 // ============================================================================
-static s32 Flash_SectorEarse(u32 SectorNo)
+s32 Flash_SectorEarse(u32 SectorNo)
 {
-    u8 retry = 0; // 擦除有可能会失败；
+
     s32 Ret = -1;
     u32 SECTORError=0;//保存出错类型信息
     static FLASH_EraseInitTypeDef EraseInitStruct;
 
-    do
-    {
-        HAL_FLASH_Unlock();
-        EraseInitStruct.TypeErase     = FLASH_TYPEERASE_SECTORS;
-        EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
-        EraseInitStruct.Sector        = SectorNo;
-        EraseInitStruct.NbSectors     = 1;
+    HAL_FLASH_Unlock();
+    EraseInitStruct.Banks         = 1+(SectorNo/8);
+    EraseInitStruct.TypeErase     = FLASH_TYPEERASE_SECTORS;
+    EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
+    EraseInitStruct.Sector        = SectorNo%8;
+    EraseInitStruct.NbSectors     = 1;
 
-        BrdWdt_FeedDog(); // 喂狗
-        Int_CutTrunk();
-        if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
-             Ret=-1;
-        else
-            Ret=0;
-        Int_ContactTrunk();
-        BrdWdt_FeedDog(); // 喂狗
-        HAL_FLASH_Lock();
-        SCB_CleanInvalidateDCache();//块擦除后，需清cache，否则读flash可能数据错误
-    }
-    while(Ret&&((retry++)<1));
-
+    BrdWdt_FeedDog(); // 喂狗
+    Int_CutTrunk();
+    if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK)
+         Ret=-1;
+    else
+        Ret=0;
+    Int_ContactTrunk();
+    BrdWdt_FeedDog(); // 喂狗
+    HAL_FLASH_Lock();
+    SCB_CleanInvalidateDCache();//块擦除后，需清cache，否则读flash可能数据错误
+    FLASH_WaitForLastOperation(FLASH_WAITETIME,EraseInitStruct.Banks);
     return Ret;
 }
 
@@ -226,36 +203,38 @@ static s32 Flash_SectorEarse(u32 SectorNo)
 //       "-2" -- 写失败;
 // 备注：
 // ============================================================================
-static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
+s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 {
     u32 Ret,i;
-    u32 *pData = (u32*)Data;
+    u64 *pData = (u64*)Data;
     u32 Addr = Page * embeddescription->BytesPerPage + embeddescription->MappedStAddr;
-
+    HAL_StatusTypeDef FlashStatus;
     if(!Data)
         return (-1);
 
     HAL_FLASH_Unlock();
-
-    for(i = 0; i < embeddescription->BytesPerPage;)
+    FlashStatus=FLASH_WaitForLastOperation(FLASH_WAITETIME,FLASH_BANK_1);
+    if(FlashStatus==HAL_OK)
     {
-        if(*(u32*)Addr != *pData)
+        for(i = 0; i < embeddescription->BytesPerPage;)
         {
-            BrdWdt_FeedDog(); // 喂狗
-            Int_CutTrunk();
-            Ret = HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD,Addr,*pData);
-            Int_ContactTrunk();
-            BrdWdt_FeedDog(); // 喂狗
-            if(Ret != HAL_OK)
-                break;
+            if(*(u64*)Addr != *pData)
+            {
+                BrdWdt_FeedDog(); // 喂狗
+                Int_CutTrunk();
+                Ret = HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD,Addr,pData);
+                Int_ContactTrunk();
+                BrdWdt_FeedDog(); // 喂狗
+                if(Ret != HAL_OK)
+                    break;
+            }
+            pData++;
+            i += 8;
+            Addr += 8;
         }
-        pData++;
-        i += 4;
-        Addr += 4;
     }
 
     HAL_FLASH_Lock();
-
     return (i);
 }
 
@@ -276,61 +255,6 @@ static s32 Flash_PageRead(u32 Page, u8 *Data, u32 Flags)
     return (embeddescription->BytesPerPage);
 }
 
-// ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static s32 Flash_PageToSector(u32 PageNo, u32 *Remains, u32 *SectorNo)
-{
-    u32 PagesLeft, PagesDone;
-    u32 i;
-    u32 Sector;
-
-    if((!Remains) || (!SectorNo))
-        return (-1);
-
-    Sector = 0;
-    PagesDone = 0;
-    PagesLeft = embeddescription->PagesPerSmallSect -
-               (PageNo % embeddescription->PagesPerSmallSect);
-    for(i = 1; i <= embeddescription->SmallSectorsPerPlane; i++)
-    {
-        if(PageNo < (PagesDone + embeddescription->PagesPerSmallSect * i))
-            goto DONE;
-        Sector++;
-    }
-
-    PagesDone += embeddescription->SmallSectorsPerPlane *
-            embeddescription->PagesPerSmallSect;
-    PagesLeft = embeddescription->PagesPerLargeSect -
-                   (PageNo % embeddescription->PagesPerLargeSect);
-    for(i = 1; i <= embeddescription->LargeSectorsPerPlane; i++)
-    {
-        if(PageNo < (PagesDone + embeddescription->PagesPerLargeSect * i))
-            goto DONE;
-        Sector++;
-    }
-
-    PagesDone += embeddescription->LargeSectorsPerPlane *
-            embeddescription->PagesPerLargeSect;
-    PagesLeft = embeddescription->PagesPerNormalSect -
-                   (PageNo % embeddescription->PagesPerNormalSect);
-    for(i = 1; i <= embeddescription->NormalSectorsPerPlane; i++)
-    {
-        if(PageNo < (PagesDone + embeddescription->PagesPerNormalSect * i))
-            goto DONE;
-        Sector++;
-    }
-
-    return (-1);
-
-DONE:
-    *SectorNo = Sector; // 从sector零计
-    *Remains = PagesLeft -1; // page从零计
-    return (0);
-}
 
 //-----------------------------------------------------------------------------
 // 功能：安装片内Flash驱动
@@ -435,31 +359,11 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             va_start(list, args);
             unit = (s64*)va_arg(list, u32);
             va_end(list);
-            if((*unit<64)&&(*unit>=0))
-                *left = 63 - *unit;
-            else if((*unit<128)&&(*unit>=64))
-                *left = 127 - *unit;
-            else if((*unit<192)&&(*unit>=128))
-                *left = 191 - *unit;
-            else if((*unit<256)&&(*unit>=192))
-                *left = 255 - *unit;
-            else if((*unit<512)&&(*unit>=256))
-                *left = 511 - *unit;
-            else if((*unit<1024)&&(*unit>=512))
-                *left = 1023 - *unit;
-            else if((*unit<1536)&&(*unit>=1024))
-                *left = 1535 - *unit;
-            else if((*unit<2048)&&(*unit>=1536))
-                *left = 2047 - *unit;
-            else if((*unit<2560)&&(*unit>=2048))
-                *left = 2559 - *unit;
-            else if((*unit<3072)&&(*unit>=2560))
-                *left = 3071 - *unit;
-            else if((*unit<3584)&&(*unit>=3072))
-                *left = 3583 - *unit;
-            else if((*unit<4096)&&(*unit>=3584))
-                *left = 4095 - *unit;
-            else
+
+            *left = 1;
+            if(0 == (*unit&0xff))
+                *left = 0;
+             else if(*unit>256*16)
                 res = -1;
 
             break;
@@ -475,34 +379,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             va_start(list, args);
             unit = (s64*)va_arg(list, u32);
             va_end(list);
-
-            if((*unit<64)&&(*unit>=0))
-                *block = 0;
-            else if((*unit<128)&&(*unit>=64))
-                *block = 1;
-            else if((*unit<192)&&(*unit>=128))
-                *block = 2;
-            else if((*unit<256)&&(*unit>=192))
-                *block = 3;
-            else if((*unit<512)&&(*unit>=256))
-                *block = 4;
-            else if((*unit<1024)&&(*unit>=512))
-                *block = 5;
-            else if((*unit<1536)&&(*unit>=1024))
-                *block = 6;
-            else if((*unit<2048)&&(*unit>=1536))
-                *block = 7;
-            else if((*unit<2560)&&(*unit>=2048))
-                *block = 8;
-            else if((*unit<3072)&&(*unit>=2560))
-                *block = 9;
-            else if((*unit<3584)&&(*unit>=3072))
-                *block = 10;
-            else if((*unit<4096)&&(*unit>=3584))
-                *block = 11;
-            else
-                res = -1;
-
+            *block = *unit/256;
             break;
         }
 
@@ -523,25 +400,12 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             block = (u32)va_arg(list, u32);
             va_end(list);
 
-            switch(block)
-            {
-                case 0:
-                case 1:
-                case 2:
-                case 3: *units = embeddescription->PagesPerSmallSect; break;
-                case 4: *units = embeddescription->PagesPerLargeSect; break;
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                case 10:
-                case 11:*units = embeddescription->PagesPerNormalSect; break;
-                default: res = -1;
-            }
+            if(block<16)
+                *units = embeddescription->PagesPerSmallSect;
+            else
+                res = -1;
             break;
         }
-
         case unitbytes:
         {
             // args = &bytes
@@ -565,7 +429,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
                 return (-1);
 
             if(-1==(s32)end)
-                end = 12; // 结束的号；
+                end = 16; // 结束的号；
 
             do
             {
@@ -655,11 +519,11 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 // ============================================================================
 // 功能：初始化片内flash
 // 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
-//		 bstart -- 起始块，bcount -- 该分区有多少块的容量，doformat -- 该分区是否格式化
+//       bstart -- 起始块，bcount -- 该分区有多少块的容量，doformat -- 该分区是否格式化
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
+s32 __embed_FsInstallInit(const char *fs, u32 bstart, s32 bend, u32 doformat)
 {
     u32 units, total = 0,endblock = bend;
     char *FullPath,*notfind;
@@ -725,8 +589,8 @@ s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
     res = strlen(EmflashName) + strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);	//获取该设备的全路径
-    FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);   //获取该设备的全路径
+    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);

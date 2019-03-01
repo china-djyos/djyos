@@ -16,8 +16,8 @@
   <spibus>false</spibus>
   <djybus>true</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <xip_app>true</xip_app>
-  <xip_iboot>false</xip_iboot>
+  <xip_app>false</xip_app>
+  <xip_iboot>true</xip_iboot>
   <filesystem>true</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>

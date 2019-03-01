@@ -1,6 +1,6 @@
 
-/*由于MEMORY命令不能使用符号，这些常量的定义，必须与MEMORY命令处一致 */
-IbootSize = 768k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
+/*由于MEMORY命令不能使用符号，这些常量的定义,必须与MEMORY命令处一致 */
+IbootSize = 512k;   /*由于片内flash组织结构为128k/block 所以ibootsize应为128K的正整数倍 */
 InnerFlashOffset = 0x08000000;
 InnerFlashRange = 2048k;
 

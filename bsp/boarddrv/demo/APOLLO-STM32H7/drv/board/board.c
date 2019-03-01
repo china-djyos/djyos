@@ -245,7 +245,7 @@ static const Pin SDMMC_Pins[] = {
 };
 
 static const Pin FmcNandPins[] = {
-    {GPIO_D,PIN6,GPIO_MODE_IN,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_PU},       //R/B
+    {GPIO_D,PIN6,GPIO_MODE_IN,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_PU,AF_NUll},       //R/B
     {GPIO_G,PIN9,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE,AF12},//CE
     {GPIO_D,PIN0,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE,AF12},//D2
     {GPIO_D,PIN1,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_H,GPIO_PUPD_NONE,AF12},//D3
@@ -276,17 +276,17 @@ void FT5206_RST(bool_t flag)
 // ============================================================================
 void Board_UartHalfDuplexSend(u8 SerialNo)
 {
-//    switch(SerialNo)
-//    {
+    switch(SerialNo)
+    {
 //    case CN_UART1:
 //        PIO_Set(&uart1_pin[2]);
 //        break;
 //    case CN_UART6:
 //        PIO_Set(&uart6_pin[2]);
 //        break;
-//    default:
-//        break;
-//    }
+    default:
+        break;
+    }
 }
 
 // ============================================================================
@@ -297,17 +297,17 @@ void Board_UartHalfDuplexSend(u8 SerialNo)
 void Board_UartHalfDuplexRecv(u8 SerialNo)
 {
     //拉低为485接收
-//    switch(SerialNo)
-//    {
+    switch(SerialNo)
+    {
 //    case CN_UART1:
 //        PIO_Clear(&uart1_pin[2]);
 //        break;
 //    case CN_UART6:
 //        PIO_Clear(&uart6_pin[2]);
 //        break;
-//    default:
-//        break;
-//    }
+    default:
+        break;
+    }
 }
 void LCD_PinInit(void )
 {
@@ -454,7 +454,7 @@ void Board_GpioInit(void)
 #if 0
     ETH_RESE( );//网口复位
 #endif
-//    PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
+    PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
    PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
 //    PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));
 //     PIO_Configure(uart8_pin, PIO_LISTSIZE(uart8_pin));
@@ -474,7 +474,7 @@ void Board_GpioInit(void)
 //I/O模拟IIC 触摸屏用到
 //    PIO_Configure(Key_pin,PIO_LISTSIZE(Key_pin));  //KEY
 //    PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));  //ETH RMII
-//    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
+    PIO_Configure(FmcNandPins,PIO_LISTSIZE(FmcNandPins)); //nand flash
     LCD_PinInit();
 }
 

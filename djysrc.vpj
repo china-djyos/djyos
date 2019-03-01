@@ -595,6 +595,9 @@
 							<Folder Name="board">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/board/board.c"/>
 							</Folder>
+							<Folder Name="boardnetcfg">
+								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/boardnetcfg/boardnetcfg.c"/>
+							</Folder>
 							<Folder Name="lcd_config">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/lcd_config/lcd_config.c"/>
 							</Folder>
@@ -1754,6 +1757,8 @@
 				<Folder Name="at45db321">
 					<F N="bsp/chipdrv/at45db321/at45db321.c"/>
 					<F N="bsp/chipdrv/at45db321/at45db321_dev.c"/>
+					<F N="bsp/chipdrv/at45db321/at45_efs.c"/>
+					<F N="bsp/chipdrv/at45db321/at45_yaf.c"/>
 				</Folder>
 				<Folder Name="AX88796">
 					<F N="bsp/chipdrv/AX88796/AX88796Byte.c"/>
@@ -1821,6 +1826,7 @@
 					<F N="bsp/chipdrv/include/rtc_ds3232M.h"/>
 					<F N="bsp/chipdrv/include/stmpe811.h"/>
 					<F N="bsp/chipdrv/include/tca9535.h"/>
+					<F N="bsp/chipdrv/include/lan8720.h"/>
 				</Folder>
 				<Folder Name="k9f1208xxx">
 					<F N="bsp/chipdrv/k9f1208xxx/k9f1208xxx.c"/>
@@ -2803,6 +2809,9 @@
 								<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_nand_yaf.c"/>
 								<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_peri_nand.c"/>
 							</Folder>
+							<Folder Name="rng">
+								<F N="bsp/cpudrv/stm32/f7/src/rng/cpu_peri_rng.c"/>
+							</Folder>
 							<Folder Name="rtc">
 								<F N="bsp/cpudrv/stm32/f7/src/rtc/cpu_peri_rtc.c"/>
 							</Folder>
@@ -2857,10 +2866,24 @@
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_lcd.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_uart.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/set-cache.h"/>
+							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_can.h"/>
+							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_lptimer.h"/>
+							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_nand.h"/>
+							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_spi.h"/>
 						</Folder>
 						<Folder Name="src">
+							<Folder Name="bkpsram">
+								<F N="bsp/cpudrv/stm32/h7/src/bkpsram/cpu_peri_bkpsram.c"/>
+							</Folder>
+							<Folder Name="can">
+								<F N="bsp/cpudrv/stm32/h7/src/can/cpu_peri_can.c"/>
+							</Folder>
 							<Folder Name="dma">
 								<F N="bsp/cpudrv/stm32/h7/src/dma/cpu_peri_dma.c"/>
+							</Folder>
+							<Folder Name="emflash">
+								<F N="bsp/cpudrv/stm32/h7/src/emflash/cpu_emflash_xip.c"/>
+								<F N="bsp/cpudrv/stm32/h7/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="eth">
 								<F N="bsp/cpudrv/stm32/h7/src/eth/cpu_peri_eth.c"/>
@@ -2873,6 +2896,30 @@
 							</Folder>
 							<Folder Name="lcd">
 								<F N="bsp/cpudrv/stm32/h7/src/lcd/cpu_peri_lcd.c"/>
+							</Folder>
+							<Folder Name="lowpwer">
+								<F N="bsp/cpudrv/stm32/h7/src/lowpwer/cpu_peri_lowpower.c"/>
+								<F N="bsp/cpudrv/stm32/h7/src/lowpwer/cpu_peri_lptimer.c"/>
+							</Folder>
+							<Folder Name="nand">
+								<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_efs.c"/>
+								<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_yaf.c"/>
+								<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_peri_nand.c"/>
+							</Folder>
+							<Folder Name="rng">
+								<F N="bsp/cpudrv/stm32/h7/src/rng/cpu_peri_rng.c"/>
+							</Folder>
+							<Folder Name="rtc">
+								<F N="bsp/cpudrv/stm32/h7/src/rtc/cpu_peri_rtc.c"/>
+							</Folder>
+							<Folder Name="spi">
+								<F N="bsp/cpudrv/stm32/h7/src/spi/cpu_peri_spi.c"/>
+							</Folder>
+							<Folder Name="systime">
+								<F N="bsp/cpudrv/stm32/h7/src/systime/cpu_peri_systime.c"/>
+							</Folder>
+							<Folder Name="timer">
+								<F N="bsp/cpudrv/stm32/h7/src/timer/cpu_peri_timer.c"/>
 							</Folder>
 							<Folder Name="uart">
 								<F N="bsp/cpudrv/stm32/h7/src/uart/cpu_peri_uart.c"/>
@@ -3003,6 +3050,7 @@
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/embeded_flash.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.h"/>
+								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/emflash_xip.c"/>
 							</Folder>
 							<Folder Name="pic">
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/pic/cpu_peri_pic.c"/>
@@ -3018,6 +3066,7 @@
 							</Folder>
 							<Folder Name="spiflash">
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/spiflash/cpu_peri_spiflash.c"/>
+								<F N="bsp/cpudrv/ZQ/zq12xx/src/spiflash/emflash_xip.c"/>
 							</Folder>
 							<Folder Name="systime">
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/systime/cpu_peri_systime.c"/>
@@ -3586,6 +3635,55 @@
 			</Folder>
 		</Folder>
 		<Folder Name="examples">
+			<Folder Name="APOLLO_STM32F7">
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/APOLLO_STM32F7/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/APOLLO_STM32F7/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/APOLLO_STM32F7/src/app/initPrj.c"/>
+						<F N="examples/APOLLO_STM32F7/src/app/main.c"/>
+					</Folder>
+					<Folder Name="iboot">
+						<Folder Name="critical">
+							<F N="examples/APOLLO_STM32F7/src/iboot/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/APOLLO_STM32F7/src/iboot/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/APOLLO_STM32F7/src/iboot/initPrj.c"/>
+						<F N="examples/APOLLO_STM32F7/src/iboot/main.c"/>
+					</Folder>
+				</Folder>
+			</Folder>
+			<Folder Name="APOLLP_STM32H743">
+				<Folder Name="src">
+					<Folder Name="iboot">
+						<Folder Name="critical">
+							<F N="examples/APOLLP_STM32H743/src/iboot/critical/critical.c"/>
+						</Folder>
+						<Folder Name="gdd_test">
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_draw_text.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_hello_world.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_listbox.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_move_window.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_progressbar.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_qurcode.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_timer.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_zigbee.c"/>
+							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_test.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/APOLLP_STM32H743/src/iboot/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/APOLLP_STM32H743/src/iboot/initPrj.c"/>
+						<F N="examples/APOLLP_STM32H743/src/iboot/main.c"/>
+					</Folder>
+				</Folder>
+			</Folder>
 			<Folder Name="explore_stm32f407">
 				<Folder Name=".settings">
 					<F N="examples/explore_stm32f407/.settings/language.settings.xml"/>
@@ -3691,6 +3789,7 @@
 						</Folder>
 						<F N="examples/NUCLEO-F767ZI/src/iboot/initPrj.c"/>
 						<F N="examples/NUCLEO-F767ZI/src/iboot/main.c"/>
+						<F N="examples/NUCLEO-F767ZI/src/iboot/tcptest.c"/>
 					</Folder>
 					<Folder Name="lds">
 						<F N="examples/NUCLEO-F767ZI/src/lds/iboot.lds"/>
@@ -3713,6 +3812,16 @@
 					<F N="examples/NUCLEO-H743ZI/data/user_handled_files.xml"/>
 				</Folder>
 				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/NUCLEO-H743ZI/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/NUCLEO-H743ZI/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/NUCLEO-H743ZI/src/app/initPrj.c"/>
+						<F N="examples/NUCLEO-H743ZI/src/app/main.c"/>
+					</Folder>
 					<Folder Name="iboot">
 						<Folder Name="critical">
 							<F N="examples/NUCLEO-H743ZI/src/iboot/critical/critical.c"/>
@@ -4147,6 +4256,10 @@
 				<Folder Name="misc">
 					<Folder Name="crc">
 						<F N="libc/libc/misc/crc/crc.c"/>
+					</Folder>
+					<Folder Name="ecc">
+						<F N="libc/libc/misc/ecc/ecc_256.c"/>
+						<F N="libc/libc/misc/ecc/ecc_256.h"/>
 					</Folder>
 					<Folder Name="md5">
 						<F N="libc/libc/misc/md5/md5.c"/>
@@ -8434,6 +8547,392 @@
 					<F N="third/firmware/STM32L4/stm32l486xx.h"/>
 					<F N="third/firmware/STM32L4/stm32l4xx.h"/>
 					<F N="third/firmware/STM32L4/system_stm32l4xx.h"/>
+				</Folder>
+			</Folder>
+			<Folder Name="freetype2">
+				<Folder Name="include">
+					<Folder Name="freetype">
+						<Folder Name="config">
+							<F N="third/freetype2/include/freetype/config/ftconfig.h"/>
+							<F N="third/freetype2/include/freetype/config/ftheader.h"/>
+							<F N="third/freetype2/include/freetype/config/ftmodule.h"/>
+							<F N="third/freetype2/include/freetype/config/ftoption.h"/>
+							<F N="third/freetype2/include/freetype/config/ftstdlib.h"/>
+						</Folder>
+						<Folder Name="internal">
+							<Folder Name="services">
+								<F N="third/freetype2/include/freetype/internal/services/svbdf.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svcid.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svgldict.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svgxval.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svkern.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svmm.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svotval.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svpfr.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svpostnm.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svpscmap.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svpsinfo.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svsfnt.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svttcmap.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svtteng.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svttglyf.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svwinfnt.h"/>
+								<F N="third/freetype2/include/freetype/internal/services/svxf86nm.h"/>
+							</Folder>
+							<F N="third/freetype2/include/freetype/internal/autohint.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftcalc.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftdebug.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftdriver.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftgloadr.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftmemory.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftobjs.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftpic.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftrfork.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftserv.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftstream.h"/>
+							<F N="third/freetype2/include/freetype/internal/fttrace.h"/>
+							<F N="third/freetype2/include/freetype/internal/ftvalid.h"/>
+							<F N="third/freetype2/include/freetype/internal/internal.h"/>
+							<F N="third/freetype2/include/freetype/internal/pcftypes.h"/>
+							<F N="third/freetype2/include/freetype/internal/psaux.h"/>
+							<F N="third/freetype2/include/freetype/internal/pshints.h"/>
+							<F N="third/freetype2/include/freetype/internal/sfnt.h"/>
+							<F N="third/freetype2/include/freetype/internal/t1types.h"/>
+							<F N="third/freetype2/include/freetype/internal/tttypes.h"/>
+						</Folder>
+						<F N="third/freetype2/include/freetype/freetype.h"/>
+						<F N="third/freetype2/include/freetype/ftadvanc.h"/>
+						<F N="third/freetype2/include/freetype/ftbbox.h"/>
+						<F N="third/freetype2/include/freetype/ftbdf.h"/>
+						<F N="third/freetype2/include/freetype/ftbitmap.h"/>
+						<F N="third/freetype2/include/freetype/ftcache.h"/>
+						<F N="third/freetype2/include/freetype/ftchapters.h"/>
+						<F N="third/freetype2/include/freetype/ftcid.h"/>
+						<F N="third/freetype2/include/freetype/fterrdef.h"/>
+						<F N="third/freetype2/include/freetype/fterrors.h"/>
+						<F N="third/freetype2/include/freetype/ftgasp.h"/>
+						<F N="third/freetype2/include/freetype/ftglyph.h"/>
+						<F N="third/freetype2/include/freetype/ftgxval.h"/>
+						<F N="third/freetype2/include/freetype/ftgzip.h"/>
+						<F N="third/freetype2/include/freetype/ftimage.h"/>
+						<F N="third/freetype2/include/freetype/ftincrem.h"/>
+						<F N="third/freetype2/include/freetype/ftlcdfil.h"/>
+						<F N="third/freetype2/include/freetype/ftlist.h"/>
+						<F N="third/freetype2/include/freetype/ftlzw.h"/>
+						<F N="third/freetype2/include/freetype/ftmac.h"/>
+						<F N="third/freetype2/include/freetype/ftmm.h"/>
+						<F N="third/freetype2/include/freetype/ftmodapi.h"/>
+						<F N="third/freetype2/include/freetype/ftmoderr.h"/>
+						<F N="third/freetype2/include/freetype/ftotval.h"/>
+						<F N="third/freetype2/include/freetype/ftoutln.h"/>
+						<F N="third/freetype2/include/freetype/ftpfr.h"/>
+						<F N="third/freetype2/include/freetype/ftrender.h"/>
+						<F N="third/freetype2/include/freetype/ftsizes.h"/>
+						<F N="third/freetype2/include/freetype/ftsnames.h"/>
+						<F N="third/freetype2/include/freetype/ftstroke.h"/>
+						<F N="third/freetype2/include/freetype/ftsynth.h"/>
+						<F N="third/freetype2/include/freetype/ftsystem.h"/>
+						<F N="third/freetype2/include/freetype/fttrigon.h"/>
+						<F N="third/freetype2/include/freetype/fttypes.h"/>
+						<F N="third/freetype2/include/freetype/ftwinfnt.h"/>
+						<F N="third/freetype2/include/freetype/ftxf86.h"/>
+						<F N="third/freetype2/include/freetype/t1tables.h"/>
+						<F N="third/freetype2/include/freetype/ttnameid.h"/>
+						<F N="third/freetype2/include/freetype/tttables.h"/>
+						<F N="third/freetype2/include/freetype/tttags.h"/>
+						<F N="third/freetype2/include/freetype/ttunpat.h"/>
+					</Folder>
+					<F N="third/freetype2/include/ft2build.h"/>
+				</Folder>
+				<Folder Name="src">
+					<Folder Name="autofit">
+						<F N="third/freetype2/src/autofit/afangles.c"/>
+						<F N="third/freetype2/src/autofit/afangles.h"/>
+						<F N="third/freetype2/src/autofit/afcjk.c"/>
+						<F N="third/freetype2/src/autofit/afcjk.h"/>
+						<F N="third/freetype2/src/autofit/afdummy.c"/>
+						<F N="third/freetype2/src/autofit/afdummy.h"/>
+						<F N="third/freetype2/src/autofit/aferrors.h"/>
+						<F N="third/freetype2/src/autofit/afglobal.c"/>
+						<F N="third/freetype2/src/autofit/afglobal.h"/>
+						<F N="third/freetype2/src/autofit/afhints.c"/>
+						<F N="third/freetype2/src/autofit/afhints.h"/>
+						<F N="third/freetype2/src/autofit/afindic.c"/>
+						<F N="third/freetype2/src/autofit/afindic.h"/>
+						<F N="third/freetype2/src/autofit/aflatin.c"/>
+						<F N="third/freetype2/src/autofit/aflatin.h"/>
+						<F N="third/freetype2/src/autofit/aflatin2.c"/>
+						<F N="third/freetype2/src/autofit/aflatin2.h"/>
+						<F N="third/freetype2/src/autofit/afloader.c"/>
+						<F N="third/freetype2/src/autofit/afloader.h"/>
+						<F N="third/freetype2/src/autofit/afmodule.c"/>
+						<F N="third/freetype2/src/autofit/afmodule.h"/>
+						<F N="third/freetype2/src/autofit/afpic.c"/>
+						<F N="third/freetype2/src/autofit/afpic.h"/>
+						<F N="third/freetype2/src/autofit/aftypes.h"/>
+						<F N="third/freetype2/src/autofit/afwarp.c"/>
+						<F N="third/freetype2/src/autofit/afwarp.h"/>
+						<F N="third/freetype2/src/autofit/autofit.c"/>
+					</Folder>
+					<Folder Name="base">
+						<F N="third/freetype2/src/base/basepic.c"/>
+						<F N="third/freetype2/src/base/basepic.h"/>
+						<F N="third/freetype2/src/base/ftadvanc.c"/>
+						<F N="third/freetype2/src/base/ftapi.c"/>
+						<F N="third/freetype2/src/base/ftbase.c"/>
+						<F N="third/freetype2/src/base/ftbase.h"/>
+						<F N="third/freetype2/src/base/ftbbox.c"/>
+						<F N="third/freetype2/src/base/ftbdf.c"/>
+						<F N="third/freetype2/src/base/ftbitmap.c"/>
+						<F N="third/freetype2/src/base/ftcalc.c"/>
+						<F N="third/freetype2/src/base/ftcid.c"/>
+						<F N="third/freetype2/src/base/ftdbgmem.c"/>
+						<F N="third/freetype2/src/base/ftdebug.c"/>
+						<F N="third/freetype2/src/base/ftfstype.c"/>
+						<F N="third/freetype2/src/base/ftgasp.c"/>
+						<F N="third/freetype2/src/base/ftgloadr.c"/>
+						<F N="third/freetype2/src/base/ftglyph.c"/>
+						<F N="third/freetype2/src/base/ftgxval.c"/>
+						<F N="third/freetype2/src/base/ftinit.c"/>
+						<F N="third/freetype2/src/base/ftlcdfil.c"/>
+						<F N="third/freetype2/src/base/ftmac.c"/>
+						<F N="third/freetype2/src/base/ftmm.c"/>
+						<F N="third/freetype2/src/base/ftobjs.c"/>
+						<F N="third/freetype2/src/base/ftotval.c"/>
+						<F N="third/freetype2/src/base/ftoutln.c"/>
+						<F N="third/freetype2/src/base/ftpatent.c"/>
+						<F N="third/freetype2/src/base/ftpfr.c"/>
+						<F N="third/freetype2/src/base/ftpic.c"/>
+						<F N="third/freetype2/src/base/ftrfork.c"/>
+						<F N="third/freetype2/src/base/ftsnames.c"/>
+						<F N="third/freetype2/src/base/ftstream.c"/>
+						<F N="third/freetype2/src/base/ftstroke.c"/>
+						<F N="third/freetype2/src/base/ftsynth.c"/>
+						<F N="third/freetype2/src/base/ftsystem.c"/>
+						<F N="third/freetype2/src/base/fttrigon.c"/>
+						<F N="third/freetype2/src/base/fttype1.c"/>
+						<F N="third/freetype2/src/base/ftutil.c"/>
+						<F N="third/freetype2/src/base/ftwinfnt.c"/>
+						<F N="third/freetype2/src/base/ftxf86.c"/>
+					</Folder>
+					<Folder Name="cff">
+						<F N="third/freetype2/src/cff/cff.c"/>
+						<F N="third/freetype2/src/cff/cffcmap.c"/>
+						<F N="third/freetype2/src/cff/cffcmap.h"/>
+						<F N="third/freetype2/src/cff/cffdrivr.c"/>
+						<F N="third/freetype2/src/cff/cffdrivr.h"/>
+						<F N="third/freetype2/src/cff/cfferrs.h"/>
+						<F N="third/freetype2/src/cff/cffgload.c"/>
+						<F N="third/freetype2/src/cff/cffgload.h"/>
+						<F N="third/freetype2/src/cff/cffload.c"/>
+						<F N="third/freetype2/src/cff/cffload.h"/>
+						<F N="third/freetype2/src/cff/cffobjs.c"/>
+						<F N="third/freetype2/src/cff/cffobjs.h"/>
+						<F N="third/freetype2/src/cff/cffparse.c"/>
+						<F N="third/freetype2/src/cff/cffparse.h"/>
+						<F N="third/freetype2/src/cff/cffpic.c"/>
+						<F N="third/freetype2/src/cff/cffpic.h"/>
+						<F N="third/freetype2/src/cff/cfftoken.h"/>
+						<F N="third/freetype2/src/cff/cfftypes.h"/>
+					</Folder>
+					<Folder Name="cid">
+						<F N="third/freetype2/src/cid/ciderrs.h"/>
+						<F N="third/freetype2/src/cid/cidgload.c"/>
+						<F N="third/freetype2/src/cid/cidgload.h"/>
+						<F N="third/freetype2/src/cid/cidload.c"/>
+						<F N="third/freetype2/src/cid/cidload.h"/>
+						<F N="third/freetype2/src/cid/cidobjs.c"/>
+						<F N="third/freetype2/src/cid/cidobjs.h"/>
+						<F N="third/freetype2/src/cid/cidparse.c"/>
+						<F N="third/freetype2/src/cid/cidparse.h"/>
+						<F N="third/freetype2/src/cid/cidriver.c"/>
+						<F N="third/freetype2/src/cid/cidriver.h"/>
+						<F N="third/freetype2/src/cid/cidtoken.h"/>
+						<F N="third/freetype2/src/cid/type1cid.c"/>
+					</Folder>
+					<Folder Name="gzip">
+						<F N="third/freetype2/src/gzip/adler32.c"/>
+						<F N="third/freetype2/src/gzip/ftgzip.c"/>
+						<F N="third/freetype2/src/gzip/infblock.c"/>
+						<F N="third/freetype2/src/gzip/infblock.h"/>
+						<F N="third/freetype2/src/gzip/infcodes.c"/>
+						<F N="third/freetype2/src/gzip/infcodes.h"/>
+						<F N="third/freetype2/src/gzip/inffixed.h"/>
+						<F N="third/freetype2/src/gzip/inflate.c"/>
+						<F N="third/freetype2/src/gzip/inftrees.c"/>
+						<F N="third/freetype2/src/gzip/inftrees.h"/>
+						<F N="third/freetype2/src/gzip/infutil.c"/>
+						<F N="third/freetype2/src/gzip/infutil.h"/>
+						<F N="third/freetype2/src/gzip/zconf.h"/>
+						<F N="third/freetype2/src/gzip/zlib.h"/>
+						<F N="third/freetype2/src/gzip/zutil.c"/>
+						<F N="third/freetype2/src/gzip/zutil.h"/>
+					</Folder>
+					<Folder Name="lzw">
+						<F N="third/freetype2/src/lzw/ftlzw.c"/>
+						<F N="third/freetype2/src/lzw/ftzopen.c"/>
+						<F N="third/freetype2/src/lzw/ftzopen.h"/>
+					</Folder>
+					<Folder Name="pcf">
+						<F N="third/freetype2/src/pcf/pcf.c"/>
+						<F N="third/freetype2/src/pcf/pcf.h"/>
+						<F N="third/freetype2/src/pcf/pcfdrivr.c"/>
+						<F N="third/freetype2/src/pcf/pcfdrivr.h"/>
+						<F N="third/freetype2/src/pcf/pcferror.h"/>
+						<F N="third/freetype2/src/pcf/pcfread.c"/>
+						<F N="third/freetype2/src/pcf/pcfread.h"/>
+						<F N="third/freetype2/src/pcf/pcfutil.c"/>
+						<F N="third/freetype2/src/pcf/pcfutil.h"/>
+					</Folder>
+					<Folder Name="pfr">
+						<F N="third/freetype2/src/pfr/pfr.c"/>
+						<F N="third/freetype2/src/pfr/pfrcmap.c"/>
+						<F N="third/freetype2/src/pfr/pfrcmap.h"/>
+						<F N="third/freetype2/src/pfr/pfrdrivr.c"/>
+						<F N="third/freetype2/src/pfr/pfrdrivr.h"/>
+						<F N="third/freetype2/src/pfr/pfrerror.h"/>
+						<F N="third/freetype2/src/pfr/pfrgload.c"/>
+						<F N="third/freetype2/src/pfr/pfrgload.h"/>
+						<F N="third/freetype2/src/pfr/pfrload.c"/>
+						<F N="third/freetype2/src/pfr/pfrload.h"/>
+						<F N="third/freetype2/src/pfr/pfrobjs.c"/>
+						<F N="third/freetype2/src/pfr/pfrobjs.h"/>
+						<F N="third/freetype2/src/pfr/pfrsbit.c"/>
+						<F N="third/freetype2/src/pfr/pfrsbit.h"/>
+						<F N="third/freetype2/src/pfr/pfrtypes.h"/>
+					</Folder>
+					<Folder Name="psaux">
+						<F N="third/freetype2/src/psaux/afmparse.c"/>
+						<F N="third/freetype2/src/psaux/afmparse.h"/>
+						<F N="third/freetype2/src/psaux/psaux.c"/>
+						<F N="third/freetype2/src/psaux/psauxerr.h"/>
+						<F N="third/freetype2/src/psaux/psauxmod.c"/>
+						<F N="third/freetype2/src/psaux/psauxmod.h"/>
+						<F N="third/freetype2/src/psaux/psconv.c"/>
+						<F N="third/freetype2/src/psaux/psconv.h"/>
+						<F N="third/freetype2/src/psaux/psobjs.c"/>
+						<F N="third/freetype2/src/psaux/psobjs.h"/>
+						<F N="third/freetype2/src/psaux/t1cmap.c"/>
+						<F N="third/freetype2/src/psaux/t1cmap.h"/>
+						<F N="third/freetype2/src/psaux/t1decode.c"/>
+						<F N="third/freetype2/src/psaux/t1decode.h"/>
+					</Folder>
+					<Folder Name="pshinter">
+						<F N="third/freetype2/src/pshinter/pshalgo.c"/>
+						<F N="third/freetype2/src/pshinter/pshalgo.h"/>
+						<F N="third/freetype2/src/pshinter/pshglob.c"/>
+						<F N="third/freetype2/src/pshinter/pshglob.h"/>
+						<F N="third/freetype2/src/pshinter/pshinter.c"/>
+						<F N="third/freetype2/src/pshinter/pshmod.c"/>
+						<F N="third/freetype2/src/pshinter/pshmod.h"/>
+						<F N="third/freetype2/src/pshinter/pshnterr.h"/>
+						<F N="third/freetype2/src/pshinter/pshpic.c"/>
+						<F N="third/freetype2/src/pshinter/pshpic.h"/>
+						<F N="third/freetype2/src/pshinter/pshrec.c"/>
+						<F N="third/freetype2/src/pshinter/pshrec.h"/>
+					</Folder>
+					<Folder Name="psnames">
+						<F N="third/freetype2/src/psnames/psmodule.c"/>
+						<F N="third/freetype2/src/psnames/psmodule.h"/>
+						<F N="third/freetype2/src/psnames/psnamerr.h"/>
+						<F N="third/freetype2/src/psnames/psnames.c"/>
+						<F N="third/freetype2/src/psnames/pspic.c"/>
+						<F N="third/freetype2/src/psnames/pspic.h"/>
+						<F N="third/freetype2/src/psnames/pstables.h"/>
+					</Folder>
+					<Folder Name="raster">
+						<F N="third/freetype2/src/raster/ftmisc.h"/>
+						<F N="third/freetype2/src/raster/ftraster.c"/>
+						<F N="third/freetype2/src/raster/ftraster.h"/>
+						<F N="third/freetype2/src/raster/ftrend1.c"/>
+						<F N="third/freetype2/src/raster/ftrend1.h"/>
+						<F N="third/freetype2/src/raster/raster.c"/>
+						<F N="third/freetype2/src/raster/rasterrs.h"/>
+						<F N="third/freetype2/src/raster/rastpic.c"/>
+						<F N="third/freetype2/src/raster/rastpic.h"/>
+					</Folder>
+					<Folder Name="sfnt">
+						<F N="third/freetype2/src/sfnt/sfdriver.c"/>
+						<F N="third/freetype2/src/sfnt/sfdriver.h"/>
+						<F N="third/freetype2/src/sfnt/sferrors.h"/>
+						<F N="third/freetype2/src/sfnt/sfnt.c"/>
+						<F N="third/freetype2/src/sfnt/sfntpic.c"/>
+						<F N="third/freetype2/src/sfnt/sfntpic.h"/>
+						<F N="third/freetype2/src/sfnt/sfobjs.c"/>
+						<F N="third/freetype2/src/sfnt/sfobjs.h"/>
+						<F N="third/freetype2/src/sfnt/ttbdf.c"/>
+						<F N="third/freetype2/src/sfnt/ttbdf.h"/>
+						<F N="third/freetype2/src/sfnt/ttcmap.c"/>
+						<F N="third/freetype2/src/sfnt/ttcmap.h"/>
+						<F N="third/freetype2/src/sfnt/ttcmapc.h"/>
+						<F N="third/freetype2/src/sfnt/ttkern.c"/>
+						<F N="third/freetype2/src/sfnt/ttkern.h"/>
+						<F N="third/freetype2/src/sfnt/ttload.c"/>
+						<F N="third/freetype2/src/sfnt/ttload.h"/>
+						<F N="third/freetype2/src/sfnt/ttmtx.c"/>
+						<F N="third/freetype2/src/sfnt/ttmtx.h"/>
+						<F N="third/freetype2/src/sfnt/ttpost.c"/>
+						<F N="third/freetype2/src/sfnt/ttpost.h"/>
+						<F N="third/freetype2/src/sfnt/ttsbit.c"/>
+						<F N="third/freetype2/src/sfnt/ttsbit.h"/>
+						<F N="third/freetype2/src/sfnt/ttsbit0.c"/>
+					</Folder>
+					<Folder Name="smooth">
+						<F N="third/freetype2/src/smooth/ftgrays.c"/>
+						<F N="third/freetype2/src/smooth/ftgrays.h"/>
+						<F N="third/freetype2/src/smooth/ftsmerrs.h"/>
+						<F N="third/freetype2/src/smooth/ftsmooth.c"/>
+						<F N="third/freetype2/src/smooth/ftsmooth.h"/>
+						<F N="third/freetype2/src/smooth/ftspic.c"/>
+						<F N="third/freetype2/src/smooth/ftspic.h"/>
+						<F N="third/freetype2/src/smooth/smooth.c"/>
+					</Folder>
+					<Folder Name="truetype">
+						<F N="third/freetype2/src/truetype/truetype.c"/>
+						<F N="third/freetype2/src/truetype/ttdriver.c"/>
+						<F N="third/freetype2/src/truetype/ttdriver.h"/>
+						<F N="third/freetype2/src/truetype/tterrors.h"/>
+						<F N="third/freetype2/src/truetype/ttgload.c"/>
+						<F N="third/freetype2/src/truetype/ttgload.h"/>
+						<F N="third/freetype2/src/truetype/ttgxvar.c"/>
+						<F N="third/freetype2/src/truetype/ttgxvar.h"/>
+						<F N="third/freetype2/src/truetype/ttinterp.c"/>
+						<F N="third/freetype2/src/truetype/ttinterp.h"/>
+						<F N="third/freetype2/src/truetype/ttobjs.c"/>
+						<F N="third/freetype2/src/truetype/ttobjs.h"/>
+						<F N="third/freetype2/src/truetype/ttpic.c"/>
+						<F N="third/freetype2/src/truetype/ttpic.h"/>
+						<F N="third/freetype2/src/truetype/ttpload.c"/>
+						<F N="third/freetype2/src/truetype/ttpload.h"/>
+					</Folder>
+					<Folder Name="type1">
+						<F N="third/freetype2/src/type1/t1afm.c"/>
+						<F N="third/freetype2/src/type1/t1afm.h"/>
+						<F N="third/freetype2/src/type1/t1driver.c"/>
+						<F N="third/freetype2/src/type1/t1driver.h"/>
+						<F N="third/freetype2/src/type1/t1errors.h"/>
+						<F N="third/freetype2/src/type1/t1gload.c"/>
+						<F N="third/freetype2/src/type1/t1gload.h"/>
+						<F N="third/freetype2/src/type1/t1load.c"/>
+						<F N="third/freetype2/src/type1/t1load.h"/>
+						<F N="third/freetype2/src/type1/t1objs.c"/>
+						<F N="third/freetype2/src/type1/t1objs.h"/>
+						<F N="third/freetype2/src/type1/t1parse.c"/>
+						<F N="third/freetype2/src/type1/t1parse.h"/>
+						<F N="third/freetype2/src/type1/t1tokens.h"/>
+						<F N="third/freetype2/src/type1/type1.c"/>
+					</Folder>
+					<Folder Name="type42">
+						<F N="third/freetype2/src/type42/t42drivr.c"/>
+						<F N="third/freetype2/src/type42/t42drivr.h"/>
+						<F N="third/freetype2/src/type42/t42error.h"/>
+						<F N="third/freetype2/src/type42/t42objs.c"/>
+						<F N="third/freetype2/src/type42/t42objs.h"/>
+						<F N="third/freetype2/src/type42/t42parse.c"/>
+						<F N="third/freetype2/src/type42/t42parse.h"/>
+						<F N="third/freetype2/src/type42/t42types.h"/>
+						<F N="third/freetype2/src/type42/type42.c"/>
+					</Folder>
 				</Folder>
 			</Folder>
 			<Folder Name="fs">
@@ -13332,6 +13831,104 @@
 				<F N="third/mosquitto-1.0/pwfile.example"/>
 				<F N="third/mosquitto-1.0/readme-windows.txt"/>
 				<F N="third/mosquitto-1.0/readme.txt"/>
+			</Folder>
+			<Folder Name="picasso">
+				<F N="third/picasso/clipper.cpp"/>
+				<F N="third/picasso/clipper.h"/>
+				<F N="third/picasso/color_type.h"/>
+				<F N="third/picasso/common.h"/>
+				<F N="third/picasso/convert.h"/>
+				<F N="third/picasso/curve.cpp"/>
+				<F N="third/picasso/curve.h"/>
+				<F N="third/picasso/data_vector.h"/>
+				<F N="third/picasso/device.cpp"/>
+				<F N="third/picasso/device.h"/>
+				<F N="third/picasso/fastcopy.h"/>
+				<F N="third/picasso/fastcopy_sse.h"/>
+				<F N="third/picasso/fastfill.h"/>
+				<F N="third/picasso/fixedopt.cpp"/>
+				<F N="third/picasso/fixedopt.h"/>
+				<F N="third/picasso/geometry.h"/>
+				<F N="third/picasso/gfx_blur.cpp"/>
+				<F N="third/picasso/gfx_blur.h"/>
+				<F N="third/picasso/gfx_device.cpp"/>
+				<F N="third/picasso/gfx_device.h"/>
+				<F N="third/picasso/gfx_font_adapter.h"/>
+				<F N="third/picasso/gfx_font_adapter_freetype2.cpp"/>
+				<F N="third/picasso/gfx_font_load_freetype2.cpp"/>
+				<F N="third/picasso/gfx_gamma_function.h"/>
+				<F N="third/picasso/gfx_gradient_adapter.cpp"/>
+				<F N="third/picasso/gfx_gradient_adapter.h"/>
+				<F N="third/picasso/gfx_image_accessors.h"/>
+				<F N="third/picasso/gfx_image_filters.cpp"/>
+				<F N="third/picasso/gfx_image_filters.h"/>
+				<F N="third/picasso/gfx_line_generator.h"/>
+				<F N="third/picasso/gfx_mask_layer.h"/>
+				<F N="third/picasso/gfx_math.h"/>
+				<F N="third/picasso/gfx_painter.h"/>
+				<F N="third/picasso/gfx_painter_helper.h"/>
+				<F N="third/picasso/gfx_pixfmt_rgb.h"/>
+				<F N="third/picasso/gfx_pixfmt_rgb16.h"/>
+				<F N="third/picasso/gfx_pixfmt_rgba.h"/>
+				<F N="third/picasso/gfx_pixfmt_wrapper.h"/>
+				<F N="third/picasso/gfx_rasterizer_cell.h"/>
+				<F N="third/picasso/gfx_rasterizer_scanline.h"/>
+				<F N="third/picasso/gfx_raster_adapter.cpp"/>
+				<F N="third/picasso/gfx_raster_adapter.h"/>
+				<F N="third/picasso/gfx_renderer.h"/>
+				<F N="third/picasso/gfx_rendering_buffer.cpp"/>
+				<F N="third/picasso/gfx_rendering_buffer.h"/>
+				<F N="third/picasso/gfx_scanline.h"/>
+				<F N="third/picasso/gfx_scanline_renderer.h"/>
+				<F N="third/picasso/gfx_scanline_storage.h"/>
+				<F N="third/picasso/gfx_span_generator.h"/>
+				<F N="third/picasso/gfx_span_image_filters.h"/>
+				<F N="third/picasso/gfx_sqrt_tables.cpp"/>
+				<F N="third/picasso/gfx_trans_affine.h"/>
+				<F N="third/picasso/graphic_base.h"/>
+				<F N="third/picasso/graphic_helper.h"/>
+				<F N="third/picasso/graphic_path.cpp"/>
+				<F N="third/picasso/graphic_path.h"/>
+				<F N="third/picasso/interfaces.h"/>
+				<F N="third/picasso/math_type.h"/>
+				<F N="third/picasso/memory_manager.h"/>
+				<F N="third/picasso/pconfig.h"/>
+				<F N="third/picasso/picasso.h"/>
+				<F N="third/picasso/picasso_api.cpp"/>
+				<F N="third/picasso/picasso_canvas.cpp"/>
+				<F N="third/picasso/picasso_font.cpp"/>
+				<F N="third/picasso/picasso_font.h"/>
+				<F N="third/picasso/picasso_font_api.cpp"/>
+				<F N="third/picasso/picasso_font_cache.h"/>
+				<F N="third/picasso/picasso_global.h"/>
+				<F N="third/picasso/picasso_gradient.cpp"/>
+				<F N="third/picasso/picasso_gradient.h"/>
+				<F N="third/picasso/picasso_gradient_api.cpp"/>
+				<F N="third/picasso/picasso_image.cpp"/>
+				<F N="third/picasso/picasso_image.h"/>
+				<F N="third/picasso/picasso_image_plugin.h"/>
+				<F N="third/picasso/picasso_mask.cpp"/>
+				<F N="third/picasso/picasso_mask.h"/>
+				<F N="third/picasso/picasso_mask_api.cpp"/>
+				<F N="third/picasso/picasso_matrix.cpp"/>
+				<F N="third/picasso/picasso_matrix.h"/>
+				<F N="third/picasso/picasso_matrix_api.cpp"/>
+				<F N="third/picasso/picasso_objects.h"/>
+				<F N="third/picasso/picasso_painter.cpp"/>
+				<F N="third/picasso/picasso_painter.h"/>
+				<F N="third/picasso/picasso_path.cpp"/>
+				<F N="third/picasso/picasso_pattern.cpp"/>
+				<F N="third/picasso/picasso_private.h"/>
+				<F N="third/picasso/picasso_raster_adapter.cpp"/>
+				<F N="third/picasso/picasso_raster_adapter.h"/>
+				<F N="third/picasso/picasso_rendering_buffer.cpp"/>
+				<F N="third/picasso/picasso_rendering_buffer.h"/>
+				<F N="third/picasso/platform.h"/>
+				<F N="third/picasso/refptr.h"/>
+				<F N="third/picasso/resource.h"/>
+				<F N="third/picasso/shared.h"/>
+				<F N="third/picasso/vertex.h"/>
+				<F N="third/picasso/vertex_dist.h"/>
 			</Folder>
 			<Folder Name="qrencode">
 				<F N="third/qrencode/bitstream.c"/>

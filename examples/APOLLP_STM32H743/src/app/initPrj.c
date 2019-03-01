@@ -48,8 +48,11 @@ void Sys_ModuleInit(void)
 	//Ä£¿é½Ó¿Ú
 	ModuleInstall_IO_IICBus(&IoIic);
 
-	extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
-	ModuleInstall_XIP_APP_FS(0,NULL);
+	extern s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data);
+	ModuleInstall_XIP_IBOOT_FS(0,NULL);
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -80,9 +83,6 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART8);
 	#endif
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
 
@@ -105,12 +105,13 @@ void Sys_ModuleInit(void)
 	ModuleInstall_NAND(CFG_NFLASH_FSMOUNT_NAME, CFG_NFLASH_PART_START, CFG_NFLASH_PART_END, CFG_NFLASH_PART_OPTION);
 
 	//-------------------medium-------------------------//
+
+
 	extern bool_t ModuleInstall_TcpIp(void);
 	ModuleInstall_TcpIp( );
 
 	extern bool_t TcpInit(void);
 	TcpInit();
-
 	extern bool_t ModuleInstall_Timer(void);
 	ModuleInstall_Timer();
 

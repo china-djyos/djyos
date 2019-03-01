@@ -50,6 +50,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include "djyos.h"
+#include "board.h"
 #include "lan8720.h"
 //#include "pcf8574.h"
 #include "cpu_peri.h"

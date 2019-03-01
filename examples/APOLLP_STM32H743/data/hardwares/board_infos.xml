@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <boards>
-   <board>sr5261</board>
    <board>APOLLO-STM32F7</board>
    <board>APOLLO-STM32H7</board>
    <board>EXPLORER-stm32f4</board>
