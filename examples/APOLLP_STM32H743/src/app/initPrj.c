@@ -106,7 +106,6 @@ void Sys_ModuleInit(void)
 
 	//-------------------medium-------------------------//
 
-
 	extern bool_t ModuleInstall_TcpIp(void);
 	ModuleInstall_TcpIp( );
 

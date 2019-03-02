@@ -14,7 +14,7 @@
 //*******************************  Configure DevFile  ******************************************//
 #define CFG_DEVFILE_LIMIT       10           // "设备数量",定义设备数量
 //*******************************  Configure ioiicbus  ******************************************//
-#define IO_IIC_USER_TAG      0       // 用户自己的标签用作在回调用户提供的IO控制函数的第二个参数
+#define IO_IIC_USER_TAG      2       // 用户自己的标签用作在回调用户提供的IO控制函数的第二个参数
 #define IO_IIC_BUS_NAME "IoIic"     // 该IIC总线的名字
 #define IIC_IOCTRL_FUN   IIC_IoCtrlFunc   // 用户实现的IO控制函数名
 //*******************************  Configure filesystem  ******************************************//
