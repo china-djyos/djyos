@@ -55,15 +55,16 @@
 #include "../common/tpl.h"
 #include "../common/ip.h"
 #include "../common/ipv4.h"
+#include "../common/netpkg.h"
 
-static tagTlayerProto  gTplProto;
-typedef struct
+static struct TPL_ProtocalOps  gUdpProto;
+struct UdpHdr
 {
     u16 portsrc;
     u16 portdst;
     u16 msglen;
     u16 chksum;
-}tagUdpHdr;
+};
 
 #define CN_UDP_CHANNEL_STATASND    (1<<0)  //APP COULD SND DATA
 #define CN_UDP_CHANNEL_STATARCV    (1<<1)  //APP COULD NOT SND DATA
@@ -75,8 +76,8 @@ typedef struct
     int                       buflen;      //the data length in the buffer
     int                       buflenlimit; //the buffer length
     int                       triglevel;   //the buffer trigger level
-    tagNetPkg                *ph;          //the data list head
-    tagNetPkg                *pt;          //the data list tail
+    struct NetPkg                *ph;          //the data list head
+    struct NetPkg                *pt;          //the data list tail
     struct SemaphoreLCB      *bufsync;     //if any data in the buffer, it will be activited
     u32                       timeout;     //if block, use this time to wait
 }tagRBufUdp;
@@ -103,9 +104,11 @@ typedef struct
 {
     u32                          tablen;
     struct MutexLCB             *tabsync;
-    tagSocket                   *array[0];
+    struct Socket                   *array[0];
 }tagUdpHashTab;
 static tagUdpHashTab   *pUdpHashTab = NULL;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // FUNCTION：this function is used to initialize the udpv4 hash tab
 // PARA  IN：len ,this parameter limites the hashtab lenth
@@ -117,12 +120,12 @@ static bool_t __hashTabInit(u32 len)
 {
     bool_t result = false;
 
-    pUdpHashTab = net_malloc(sizeof(tagUdpHashTab) + len *sizeof(tagSocket *));
+    pUdpHashTab = net_malloc(sizeof(tagUdpHashTab) + len *sizeof(struct Socket *));
     if(NULL == pUdpHashTab)
     {
         goto ERR_ARRAYMEM;
     }
-    memset((void *)pUdpHashTab,0,sizeof(tagUdpHashTab) + len *sizeof(tagSocket *));
+    memset((void *)pUdpHashTab,0,sizeof(tagUdpHashTab) + len *sizeof(struct Socket *));
 
     pUdpHashTab->tabsync = mutex_init(NULL);
     if(NULL == pUdpHashTab->tabsync)
@@ -149,11 +152,11 @@ ERR_ARRAYMEM:
 // RETURN  ：the socket find else NULL(no one mathes)
 // INSTRUCT:send an mail to the mail box, which to be dealt by the ip engine
 // =============================================================================
-static tagSocket *__hashSocketSearch(u32 ip, u16 port)
+static struct Socket *__hashSocketSearch(u32 ip, u16 port)
 {
-    tagSocket *result = NULL;
+    struct Socket *result = NULL;
 
-    tagSocket *tmp;
+    struct Socket *tmp;
     u32 hashKey;
 
     if(mutex_lock(pUdpHashTab->tabsync))
@@ -169,7 +172,7 @@ static tagSocket *__hashSocketSearch(u32 ip, u16 port)
             }
             else
             {
-                tmp = tmp->nxt;
+                tmp = tmp->Nextsock;
             }
         }
 
@@ -184,10 +187,10 @@ static tagSocket *__hashSocketSearch(u32 ip, u16 port)
 // RETURN  :true add success while false failed
 // INSTRUCT:if the same ip and port has existed, then will fail
 // =============================================================================
-static bool_t __hashSocketAdd(tagSocket *sock)
+static bool_t __hashSocketAdd(struct Socket *sock)
 {
     bool_t      result;
-    tagSocket  *tmp;
+    struct Socket  *tmp;
     u32         hashKey;
     u32         ip;
     u16         port;
@@ -207,12 +210,12 @@ static bool_t __hashSocketAdd(tagSocket *sock)
             }
             else
             {
-                tmp = tmp->nxt;
+                tmp = tmp->Nextsock;
             }
         }
         if(NULL == tmp)
         {
-            sock->nxt = pUdpHashTab->array[hashKey];
+            sock->Nextsock = pUdpHashTab->array[hashKey];
             pUdpHashTab->array[hashKey] = sock;
             result = true;
         }
@@ -228,10 +231,10 @@ static bool_t __hashSocketAdd(tagSocket *sock)
 // RETURN  :the hash item we create
 // INSTRUCT:add the create item to the last
 // =============================================================================
-static bool_t __hashSocketRemove(tagSocket *sock)
+static bool_t __hashSocketRemove(struct Socket *sock)
 {
 
-    tagSocket  *tmp;
+    struct Socket  *tmp;
     u32         hashKey;
 
     if(mutex_lock(pUdpHashTab->tabsync))
@@ -240,22 +243,22 @@ static bool_t __hashSocketRemove(tagSocket *sock)
         tmp = pUdpHashTab->array[hashKey];
         if(sock == tmp)
         {
-            pUdpHashTab->array[hashKey] = sock->nxt;
-            sock->nxt = NULL;
+            pUdpHashTab->array[hashKey] = sock->Nextsock;
+            sock->Nextsock = NULL;
         }
         else
         {
             while(NULL != tmp)
             {
-                if(tmp->nxt == sock)
+                if(tmp->Nextsock == sock)
                 {
-                    tmp->nxt = sock->nxt;
-                    sock->nxt = NULL;
+                    tmp->Nextsock = sock->Nextsock;
+                    sock->Nextsock = NULL;
                     break;
                 }
                 else
                 {
-                    tmp = tmp->nxt;
+                    tmp = tmp->Nextsock;
                 }
             }
         }
@@ -380,10 +383,10 @@ static  tagUdpCB * __UdpCbMalloc(void )
 // INSTRUCT:
 // =============================================================================
 static u16        gPortEngineUdp = 0x400;
-static tagSocket * __socket(int family, int type, int protocal)
+static struct Socket * __udpsocket(int family, int type, int protocal)
 {
-    tagSocket  *sock;
-    tagSocket  *tmp;
+    struct Socket  *sock;
+    struct Socket  *tmp;
     u32         hashKey;
     u16         port;
     u32         ip;
@@ -410,7 +413,7 @@ static tagSocket * __socket(int family, int type, int protocal)
                     }
                     else
                     {
-                        tmp = tmp->nxt;
+                        tmp = tmp->Nextsock;
                     }
                 }
                 if(NULL == tmp)
@@ -420,21 +423,25 @@ static tagSocket * __socket(int family, int type, int protocal)
                 gPortEngineUdp++;
             }
             //now we got an port, so we should net_malloc an socket and do the initialize
-            sock = socket_malloc();
+            sock = SocketBuild();
             ucb = __UdpCbMalloc();
             if((NULL != sock)&&(NULL != ucb))
             {
+                sock->ProtocolOps = &gUdpProto;
+                handle_SetMultiplexEvent(fd2Handle(sock->sockfd), CN_SOCKET_IOWRITE);
+//              memset(sock, 0, sizeof(struct Socket));
+//              sock->SockSync = mutex_init(NULL);
                 //ok, now we got an port here
                 sock->af_inet = AF_INET;
                 sock->element.v4.iplocal = INADDR_ANY;
                 sock->element.v4.portlocal = port;
                 //initialize the sock add the sock to the hash tab
                 sock->sockstat |=CN_SOCKET_PROBLOCK;
-                sock->proto = &gTplProto;
-                sock->iostat |= CN_SOCKET_IOWRITE;
-                sock->cb = ucb;
+                sock->ProtocolOps = &gUdpProto;
+//              sock->IoInitstat = CN_SOCKET_IOWRITE;
+                sock->TplCB = ucb;
                 //add it to the socket queue
-                sock->nxt = pUdpHashTab->array[hashKey];
+                sock->Nextsock = pUdpHashTab->array[hashKey];
                 pUdpHashTab->array[hashKey] = sock;
             }
             else
@@ -445,7 +452,7 @@ static tagSocket * __socket(int family, int type, int protocal)
                 }
                 if(NULL != sock)
                 {
-                    socket_free(sock);
+                    SocketFree(sock);
                     sock = NULL;
                 }
             }
@@ -461,11 +468,11 @@ static tagSocket * __socket(int family, int type, int protocal)
 // RETURN  ：0 success while -1 failed
 // INSTRUCT:
 // =============================================================================
-static int __bind(tagSocket *sock,struct sockaddr *addr, int addrlen)
+static int __udpbind(struct Socket *sock,struct sockaddr *addr, int addrlen)
 {
     int  result = -1;
     struct sockaddr_in *sockaddrin;
-    tagSocket    *tmp;
+    struct Socket    *tmp;
 
     if((NULL != addr)&&(AF_INET == addr->sa_family)&&((NULL != sock)))
     {
@@ -506,26 +513,27 @@ static int __bind(tagSocket *sock,struct sockaddr *addr, int addrlen)
 // RETURN  ：0 success while -1 failed
 // INSTRUCT:the ipv6 udp not implement yet
 // =============================================================================
-static int __msgsnd(tagSocket *sock, const void *msg, int len, int flags,\
+static int __msgsnd(struct Socket *sock, const void *msg, int len, int flags,\
                   const struct sockaddr *addr, int addrlen)
 {
     int             result;
     u16             translen;
     u32             iplocal, ipremote;
     u16             portlocal, portremote;
-    tagUdpHdr       *hdr;
-    tagNetPkg       *pkg,*pkgdata;
+    struct UdpHdr       *hdr;
+    struct NetPkg       *pkg,*pkgdata;
     tagUdpCB        *ucb;
     struct sockaddr_in *addrin;
 
     result = -1;
-    ucb =(tagUdpCB *)sock->cb;
+    ucb =(tagUdpCB *)sock->TplCB;
     if(ucb->sndlimit >=len)
     {
-        pkg = PkgMalloc(sizeof(tagUdpHdr),0);
+        pkg = PkgMalloc(sizeof(struct UdpHdr),0);
         if(NULL != pkg)
         {
-            pkgdata = PkgMalloc(sizeof(tagNetPkg),CN_PKLGLST_END);
+            pkgdata = PkgMalloc(0,CN_PKLGLST_END);
+//          pkgdata = PkgMalloc(sizeof(struct NetPkg),CN_PKLGLST_END);
             if(NULL != pkgdata)
             {
                 //compute the ip and port
@@ -543,20 +551,24 @@ static int __msgsnd(tagSocket *sock, const void *msg, int len, int flags,\
                     ipremote = sock->element.v4.ipremote;
                     portremote = sock->element.v4.portremote;
                 }
-                translen = len + sizeof(tagUdpHdr);
+                translen = len + sizeof(struct UdpHdr);
                 //do the udp header
-                hdr = (tagUdpHdr *)(pkg->buf + pkg->offset);
+                hdr = (struct UdpHdr *)PkgGetCurrentBuffer(pkg);
+//              hdr = (struct UdpHdr *)(pkg->buf + pkg->offset);
                 hdr->portdst = portremote;
                 hdr->portsrc = portlocal;
                 hdr->msglen = htons(translen);
                 hdr->chksum = 0;
-                pkg->datalen = sizeof(tagUdpHdr);
+                PkgSetDataLen(pkg,sizeof(struct UdpHdr));
+//              pkg->datalen = sizeof(struct UdpHdr);
 
-                pkg->partnext = pkgdata;
-                pkgdata->partnext = NULL;
-                pkgdata->offset = 0;
-                pkgdata->buf = (u8 *)msg;
-                pkgdata->datalen = len;
+                PkgSetNextUnit(pkg,pkgdata);
+//              pkg->partnext = pkgdata;
+                PkgInit(pkgdata,CN_PKLGLST_END,0,len,(u8*)msg);
+//              pkgdata->partnext = NULL;
+//              pkgdata->offset = 0;
+//              pkgdata->buf = (u8 *)msg;
+//              pkgdata->datalen = len;
                 //ok, the msg has cpy to the pkg, then snd the pkg
                 if(IpSend(EN_IPV_4,(ptu32_t)iplocal, (ptu32_t)ipremote, pkg,translen,IPPROTO_UDP,\
                                     CN_IPDEV_UDPOCHKSUM,&hdr->chksum))
@@ -585,7 +597,7 @@ static int __msgsnd(tagSocket *sock, const void *msg, int len, int flags,\
 // RETURN  :0 success while -1 failed
 // INSTRUCT:
 // =============================================================================
-static int __connect(tagSocket *sock, struct sockaddr *serveraddr, int addrlen)
+static int __udpconnect(struct Socket *sock, struct sockaddr *serveraddr, int addrlen)
 {
     int  result=-1;
     struct sockaddr_in *addrin;
@@ -596,7 +608,7 @@ static int __connect(tagSocket *sock, struct sockaddr *serveraddr, int addrlen)
     {
         return result;  //if para error
     }
-    if(mutex_lock(sock->sync))
+    if(mutex_lock(sock->SockSync))
     {
         if(0 == (sock->sockstat & CN_SOCKET_CONNECT)) //make sure not connect yet
         {
@@ -605,12 +617,12 @@ static int __connect(tagSocket *sock, struct sockaddr *serveraddr, int addrlen)
             sock->sockstat |= CN_SOCKET_CONNECT;
             result = 0;
         }
-        mutex_unlock(sock->sync);
+        mutex_unlock(sock->SockSync);
     }
     return  result;
 }
 // =============================================================================
-// 函数功能:__send
+// 函数功能:__udpsend
 //         向套接字发送数据
 // 输入参数:sock,目的套接字
 //        msg,待发送的信息
@@ -620,19 +632,19 @@ static int __connect(tagSocket *sock, struct sockaddr *serveraddr, int addrlen)
 // 返回值  ：-1出错，否则返回发送字节数
 // 说明    ：
 // =============================================================================
-static int __send(tagSocket *sock, const void *msg, int len, int flags)
+static int __udpsend(struct Socket *sock, const void *msg, int len, int flags)
 {
     int  result= -1;
     tagUdpCB  *ucb;
 
-    if(mutex_lock(sock->sync))
+    if(mutex_lock(sock->SockSync))
     {
-        ucb = (tagUdpCB *)sock->cb;
+        ucb = (tagUdpCB *)sock->TplCB;
         if(CN_UDP_CHANNEL_STATASND&ucb->channelstat)
         {
             result = __msgsnd(sock,msg,len,flags,NULL,0);
         }
-        mutex_unlock(sock->sync);
+        mutex_unlock(sock->SockSync);
     }
     return  result;
 }
@@ -643,31 +655,35 @@ static int __send(tagSocket *sock, const void *msg, int len, int flags)
 // 返回值  ：-1出错，否则返回拷贝的字节数
 // 说明    ：must remember that each time only one frame
 // =============================================================================
-static int __cpyfromrbuf(tagSocket *sock, void *buf, int len,\
+static int __cpyfromrbuf(struct Socket *sock, void *buf, int len,\
                      struct sockaddr *addr, int *addrlen)
 {
     int cpylen;
     u8   *srcbuf;
-    tagNetPkg  *pkg;
+    struct NetPkg  *pkg;
     tagUdpCB *ucb;
 
-    ucb = (tagUdpCB *)sock->cb;
+    ucb = (tagUdpCB *)sock->TplCB;
     srcbuf = (u8 *)buf;
     //可能会超负载，但是这不是关键
     //先看看看有没有没有填满的数据包来接纳我们的数据
     pkg = ucb->rbuf.ph;
-    cpylen = len > pkg->datalen?pkg->datalen:len;
-    srcbuf = (u8 *)(pkg->buf);
+    cpylen = len > PkgGetDataLen(pkg) ? PkgGetDataLen(pkg) : len;
+//  cpylen = len > pkg->datalen?pkg->datalen:len;
+    srcbuf = PkgGetBuffer(pkg);
+//  srcbuf = (pkg->buf);
     if((NULL != addr)&&(NULL != addrlen))   //cpy the address
     {
         memcpy((void *)addr,srcbuf, sizeof(struct sockaddr));
         *addrlen = sizeof(struct sockaddr);
     }
-    srcbuf += pkg->offset;
+    srcbuf += PkgGetOffset(pkg);
+//  srcbuf += pkg->offset;
     memcpy(buf, srcbuf,cpylen);
     //udp是按数据帧的格式，所以即使没有接受完毕，我们也丢弃掉剩余的数据
-    ucb->rbuf.buflen-=pkg->datalen;
-    ucb->rbuf.ph = pkg->partnext;
+    ucb->rbuf.buflen -= PkgGetDataLen(pkg);
+//  ucb->rbuf.buflen-=pkg->datalen;
+    ucb->rbuf.ph = PkgGetNextUnit(pkg);
     if(NULL == ucb->rbuf.ph)
     {
         ucb->rbuf.pt = NULL;
@@ -676,7 +692,7 @@ static int __cpyfromrbuf(tagSocket *sock, void *buf, int len,\
     return cpylen;
 }
 // =============================================================================
-// 函数功能：  __recv
+// 函数功能：  __udprecv
 //        读取接字数据
 // 输入参数：  sock,目的套接字
 //        flags,一般为0
@@ -686,17 +702,17 @@ static int __cpyfromrbuf(tagSocket *sock, void *buf, int len,\
 // 返回值  ：-1出错，否则返回收到字节数
 // 说明    ：
 // =============================================================================
-static int __recv(tagSocket *sock, void *buf,int len, unsigned int flags)
+static int __udprecv(struct Socket *sock, void *buf,int len, unsigned int flags)
 {
     int  result = -1;
     tagUdpCB *ucb;
     u32  timeout;
-    ucb = (tagUdpCB *)sock->cb;
+    ucb = (tagUdpCB *)sock->TplCB;
 
     timeout = ucb->rbuf.timeout;
     if(semp_pendtimeout(ucb->rbuf.bufsync,timeout))
     {
-        if(mutex_lock(sock->sync))
+        if(mutex_lock(sock->SockSync))
         {
             if(ucb->channelstat & CN_UDP_CHANNEL_STATARCV)
             {
@@ -717,14 +733,14 @@ static int __recv(tagSocket *sock, void *buf,int len, unsigned int flags)
             //if any data or could receive again
             if((ucb->rbuf.buflen > ucb->rbuf.triglevel)||(0 == (ucb->channelstat & CN_UDP_CHANNEL_STATARCV)))
             {
-                socket_setstatus(sock,CN_SOCKET_IOREAD);
+                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                 semp_post(ucb->rbuf.bufsync);
             }
             else
             {
-                socket_clrsatus(sock,CN_SOCKET_IOREAD);
+                handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
             }
-            mutex_unlock(sock->sync);
+            mutex_unlock(sock->SockSync);
         }
     }
     else
@@ -736,7 +752,7 @@ static int __recv(tagSocket *sock, void *buf,int len, unsigned int flags)
 
 
 // =============================================================================
-// 函数功能：  __sendto
+// 函数功能：  __udpsendto
 //        向目的网络地址发送数据
 // 输入参数：  sock,     目的套接字
 //        msg,        待发送的信息
@@ -748,25 +764,25 @@ static int __recv(tagSocket *sock, void *buf,int len, unsigned int flags)
 // 返回值  ：-1出错，否则返回发送字节数
 // 说明    ：
 // =============================================================================
-static int __sendto(tagSocket *sock, const void *msg,int len, unsigned int flags,\
+static int __udpsendto(struct Socket *sock, const void *msg,int len, unsigned int flags,\
               const struct sockaddr *addr, int addrlen)
 {
     int  result= -1;
     tagUdpCB   *ucb;
 
-    if(mutex_lock(sock->sync))
+    if(mutex_lock(sock->SockSync))
     {
-        ucb = (tagUdpCB *)sock->cb;
+        ucb = (tagUdpCB *)sock->TplCB;
         if(CN_UDP_CHANNEL_STATASND&ucb->channelstat)
         {
             result = __msgsnd(sock,msg,len,flags,addr,addrlen);
         }
-        mutex_unlock(sock->sync);
+        mutex_unlock(sock->SockSync);
     }
     return  result;
 }
 // =============================================================================
-// 函数功能： __recvfrom
+// 函数功能： __udprecvform
 //           从目的网络地址读取数据
 // 输入参数：  sock,目的套接字
 //           flags,一般为0
@@ -778,18 +794,18 @@ static int __sendto(tagSocket *sock, const void *msg,int len, unsigned int flags
 // 返回值  ：-1出错，否则返回收到字节数
 // 说明    ：
 // =============================================================================
-static int __recvfrom(tagSocket *sock,void *buf, int len, unsigned int flags,\
+static int __udprecvform(struct Socket *sock,void *buf, int len, unsigned int flags,\
             struct sockaddr *addr, int *addrlen)
 {
     int  result = -1;
     tagUdpCB *ucb;
     u32  timeout;
 
-    ucb = (tagUdpCB *)sock->cb;
+    ucb = (tagUdpCB *)sock->TplCB;
     timeout = ucb->rbuf.timeout;
     if(semp_pendtimeout(ucb->rbuf.bufsync,timeout))
     {
-        if(mutex_lock(sock->sync))
+        if(mutex_lock(sock->SockSync))
         {
             if(ucb->channelstat & CN_UDP_CHANNEL_STATARCV)
             {
@@ -810,14 +826,14 @@ static int __recvfrom(tagSocket *sock,void *buf, int len, unsigned int flags,\
             //if any data or could receive again
             if((ucb->rbuf.buflen > ucb->rbuf.triglevel)||(0 == (ucb->channelstat & CN_UDP_CHANNEL_STATARCV)))
             {
-                socket_setstatus(sock,CN_SOCKET_IOREAD);
+                handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                 semp_post(ucb->rbuf.bufsync);
             }
             else
             {
-                socket_clrsatus(sock,CN_SOCKET_IOREAD);
+                handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
             }
-            mutex_unlock(sock->sync);
+            mutex_unlock(sock->SockSync);
         }
     }
     else
@@ -834,13 +850,13 @@ static int __recvfrom(tagSocket *sock,void *buf, int len, unsigned int flags,\
 // 返回值  ：0 success while -1 failed
 // 说明    ：
 // =============================================================================
-static int __shutdown_rd(tagSocket *sock)
+static int __shutdown_rd(struct Socket *sock)
 {
     int result;
     tagUdpCB *ucb;
 
     result = -1;
-    ucb = (tagUdpCB *)sock->cb;
+    ucb = (tagUdpCB *)sock->TplCB;
     if(CN_UDP_CHANNEL_STATARCV& ucb->channelstat)
     {
         //clear the rcv buf and recombination queue
@@ -866,13 +882,13 @@ static int __shutdown_rd(tagSocket *sock)
 // 返回值  ：0 success while -1 failed
 // 说明    ：
 // =============================================================================
-static int __shutdown_wr(tagSocket *sock)
+static int __shutdown_wr(struct Socket *sock)
 {
     int result;
     tagUdpCB     *ucb;
 
     result = -1;
-    ucb = (tagUdpCB *)sock->cb;
+    ucb = (tagUdpCB *)sock->TplCB;
     if(CN_UDP_CHANNEL_STATASND&ucb->channelstat)
     {
         ucb->channelstat&=(~(CN_UDP_CHANNEL_STATKSND|CN_UDP_CHANNEL_STATASND));  //APP NO PERMIT TO TRANSMISSION
@@ -881,7 +897,7 @@ static int __shutdown_wr(tagSocket *sock)
     return result;
 }
 // =============================================================================
-// 函数功能：  __shutdown
+// 函数功能：  __udpshutdown
 //        关闭套接字
 // 输入参数：  sock,目的套接字
 //        how,关闭方法， 见SHUT_RD等定义
@@ -889,11 +905,11 @@ static int __shutdown_wr(tagSocket *sock)
 // 返回值  ：0 成功  -1失败
 // 说明    ：
 // =============================================================================
-static int __shutdown(tagSocket *sock, u32 how)
+static int __udpshutdown(struct Socket *sock, u32 how)
 {
     int    result=-1;
 
-    if(mutex_lock(sock->sync))
+    if(mutex_lock(sock->SockSync))
     {
         switch(how)
         {
@@ -914,27 +930,27 @@ static int __shutdown(tagSocket *sock, u32 how)
                 result = -1;
                 break;
         }
-        mutex_unlock(sock->sync);
+        mutex_unlock(sock->SockSync);
     }
     return  result;
 }
 // =============================================================================
-// 函数功能：  __socketclose
+// 函数功能：  __udpclose
 // 输入参数：  sock,待关闭的套接字
 // 输出参数：
 // 返回值  ：0 成功 -1失败
 // 说明    ：
 // =============================================================================
-static int __socketclose(tagSocket *sock)
+static int __udpclose(struct Socket *sock)
 {
     int result = -1;
 
     __hashSocketRemove(sock);
-    if(mutex_lock(sock->sync))
+    if(mutex_lock(sock->SockSync))
     {
-        __UdpCbFree(sock->cb);
-        sock->cb = NULL;
-        socket_free(sock);
+        __UdpCbFree(sock->TplCB);
+        sock->TplCB = NULL;
+        SocketFree(sock);
         result = 0;
     }
     return result;
@@ -950,12 +966,12 @@ static int __socketclose(tagSocket *sock)
 // 返回值  ：0 成功 -1失败
 // 说明    ：
 // =============================================================================
-static int __sol_socket(tagSocket *sock,int optname,const void *optval, int optlen)
+static int __sol_socket(struct Socket *sock,int optname,const void *optval, int optlen)
 {
     bool_t result = -1;
     tagUdpCB *ucb;
 
-    ucb = (tagUdpCB *)sock->cb;
+    ucb = (tagUdpCB *)sock->TplCB;
     switch(optname)
     {
         case SO_BROADCAST:
@@ -1021,13 +1037,13 @@ static int __sol_socket(tagSocket *sock,int optname,const void *optval, int optl
             if(*(int *)optval)
             {
                 sock->sockstat &=(~CN_SOCKET_PROBLOCK);
-                ucb = (tagUdpCB *)sock->cb;
+                ucb = (tagUdpCB *)sock->TplCB;
                 ucb->rbuf.timeout = 0;
             }
             else
             {
                 sock->sockstat |=CN_SOCKET_PROBLOCK;
-                ucb = (tagUdpCB *)sock->cb;
+                ucb = (tagUdpCB *)sock->TplCB;
                 ucb->rbuf.timeout = CN_TIMEOUT_FOREVER;
             }
             result = 0;
@@ -1048,7 +1064,7 @@ static int __sol_socket(tagSocket *sock,int optname,const void *optval, int optl
 // 返回值  ：0 成功 -1失败
 // 说明    ：
 // =============================================================================
-static int __ipproto_ip(tagSocket *sock,int optname,const void *optval, int optlen)
+static int __ipproto_ip(struct Socket *sock,int optname,const void *optval, int optlen)
 {
     bool_t result;
 
@@ -1070,7 +1086,7 @@ static int __ipproto_ip(tagSocket *sock,int optname,const void *optval, int optl
     return result;
 }
 // =============================================================================
-// 函数功能：  __setsockopt
+// 函数功能：  __udpsetsockopt
 //           设置套接字选项
 // 输入参数：  sock,目的套接字
 //           level,设置的层次，支持SOL_SOCKET、IPPROTO_TCP、IPPROTO_IP和IPPROTO_IPV6
@@ -1081,14 +1097,14 @@ static int __ipproto_ip(tagSocket *sock,int optname,const void *optval, int optl
 // 返回值  ：0 成功 -1失败
 // 说明    ：
 // =============================================================================
-static int __setsockopt(tagSocket *sock, int level, int optname,\
+static int __udpsetsockopt(struct Socket *sock, int level, int optname,\
                const void *optval, int optlen)
 {
     int  result;
 
     result = -1;
 
-    if(mutex_lock(sock->sync))
+    if(mutex_lock(sock->SockSync))
     {
         switch(level)
         {
@@ -1103,13 +1119,13 @@ static int __setsockopt(tagSocket *sock, int level, int optname,\
             default:
                 break;
         }
-        mutex_unlock(sock->sync);
+        mutex_unlock(sock->SockSync);
     }
 
     return  result;
 }
 
-static void __addpkg2rbuf(tagUdpCB *ucb, tagNetPkg *pkg)
+static void __addpkg2rbuf(tagUdpCB *ucb, struct NetPkg *pkg)
 {
     if(NULL == ucb->rbuf.pt)
     {
@@ -1118,10 +1134,12 @@ static void __addpkg2rbuf(tagUdpCB *ucb, tagNetPkg *pkg)
     }
     else
     {
-        ucb->rbuf.pt->partnext = pkg;
+        PkgSetNextUnit(ucb->rbuf.pt,pkg);
+//      ucb->rbuf.pt->partnext = pkg;
         ucb->rbuf.pt = pkg;
     }
-    ucb->rbuf.buflen+= pkg->datalen;
+    ucb->rbuf.buflen += PkgGetDataLen(pkg);
+//  ucb->rbuf.buflen+= pkg->datalen;
 
     PkgCachedPart(pkg);
     TCPIP_DEBUG_INC(ucb->framrcv);
@@ -1135,22 +1153,24 @@ static void __addpkg2rbuf(tagUdpCB *ucb, tagNetPkg *pkg)
 // RETURN  :
 // INSTRUCT:
 // =============================================================================
-static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkg, u32 devfunc)
+static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkg, u32 devfunc)
 {
     bool_t              result ;
     u16                 portdst;
     u16                 portsrc;
-    tagUdpHdr          *hdr;
+    struct UdpHdr          *hdr;
     tagUdpCB           *ucb;
-    tagSocket          *sock;
+    struct Socket          *sock;
     struct  sockaddr_in addrin;
 
     result  = true;
-    if((NULL == pkg)||(pkg->datalen <= sizeof(tagUdpHdr)))
+    if((NULL == pkg)||(PkgGetDataLen(pkg) <= sizeof(struct UdpHdr)))
+//  if((NULL == pkg)||(pkg->datalen <= sizeof(struct UdpHdr)))
     {
         goto EXIT_RCVEND;  //para error
     }
-    hdr = (tagUdpHdr *)(pkg->buf + pkg->offset);
+    hdr = (struct UdpHdr *)PkgGetCurrentBuffer(pkg);
+//  hdr = (struct UdpHdr *)(pkg->buf + pkg->offset);
     if((0 != hdr->chksum)&&(0 == (devfunc&CN_IPDEV_UDPICHKSUM))) //if need chksum
     {
         IpPseudoPkgLstChkSumV4(ipdst, ipsrc, IPPROTO_UDP,\
@@ -1160,9 +1180,11 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkg, u32 devfunc)
             goto EXIT_RCVEND;
         }
     }
-    pkg->datalen -= sizeof(tagUdpHdr);
-    pkg->offset += sizeof(tagUdpHdr);
-    if(0 == pkg->datalen)
+    PkgMoveOffsetUp(pkg, sizeof(struct UdpHdr));
+//  pkg->datalen -= sizeof(struct UdpHdr);
+//  pkg->offset += sizeof(struct UdpHdr);
+    if(0 == PkgGetDataLen(pkg))
+//  if(0 == pkg->datalen)
     {
         goto EXIT_RCVEND;
     }
@@ -1177,9 +1199,9 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkg, u32 devfunc)
         sock =__hashSocketSearch(INADDR_ANY,portdst); //if INADDR_ANY match
     }
 
-    if((NULL != sock)&&mutex_lock(sock->sync))
+    if((NULL != sock)&&mutex_lock(sock->SockSync))
     {
-        ucb = (tagUdpCB *)sock->cb;
+        ucb = (tagUdpCB *)sock->TplCB;
         result = true;
 
         if((ipdst == INADDR_BROAD)&&(0 == (CN_SOCKET_PROBROAD &sock->sockstat)))
@@ -1198,21 +1220,22 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkg, u32 devfunc)
 
         if(result)
         {
-            if(pkg->offset >= sizeof(struct sockaddr_in))
+//          if(pkg->offset >= sizeof(struct sockaddr_in))
+            if(PkgGetOffset(pkg) >= sizeof(struct sockaddr_in))
             {
                 addrin.sin_family = AF_INET;
                 addrin.sin_port =portsrc;
                 addrin.sin_addr.s_addr = ipsrc;
-                memcpy((void *)pkg->buf,(void *)&addrin, sizeof(addrin));
+                memcpy(PkgGetBuffer(pkg),(void *)&addrin, sizeof(addrin));
                 __addpkg2rbuf(ucb,pkg);
                 if(ucb->rbuf.buflen > ucb->rbuf.triglevel)
                 {
-                    socket_setstatus(sock,CN_SOCKET_IOREAD);
+                    handle_SetMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOREAD);
                     semp_post(ucb->rbuf.bufsync);
                 }
             }
         }
-        mutex_unlock(sock->sync);
+        mutex_unlock(sock->SockSync);
     }
     else
     {
@@ -1223,7 +1246,7 @@ EXIT_RCVEND:
     return true;
 }
 
-static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, u32 devfunc)
+static bool_t __rcvdeal(tagIpAddr *addr,struct NetPkg *pkglst, u32 devfunc)
 {
     bool_t result = false;
     enum_ipv_t  ver;
@@ -1244,7 +1267,7 @@ static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, u32 devfunc)
 
 
 #define CN_UDP_DEBUG_PREFIX  "         "
-static void __debug(tagSocket *sock,char *filter)
+static void __udpdebug(struct Socket *sock,char *filter)
 {
     tagUdpCB    *ucb = NULL;
     char *prefix = CN_UDP_DEBUG_PREFIX;
@@ -1253,16 +1276,16 @@ static void __debug(tagSocket *sock,char *filter)
             prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.iplocal),ntohs(sock->element.v4.portlocal));
     debug_printf("udp","%s:ipremote:%s    portremote:%d\r\n",\
             prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.ipremote),ntohs(sock->element.v4.portremote));
-    debug_printf("udp","%s:iostat  :0x%08x sockstat:0x%08x    private:0x%08x\n\r",\
-            prefix,sock->iostat,sock->sockstat,sock->private);
-    debug_printf("udp","%s:syncstat:%d\n\r",prefix,sock->sync->enable);
+    debug_printf("udp","%s:sockstat:0x%08x    UserTag:0x%08x\n\r",\
+            prefix,sock->sockstat,sock->SockUserTag);
+    debug_printf("udp","%s:syncstat:%d\n\r",prefix,sock->SockSync->enable);
     debug_printf("udp","%s:errno   :%d\n\r",prefix,sock->errorno);
 
-    ucb = (tagUdpCB    *)sock->cb;
+    ucb = (tagUdpCB    *)sock->TplCB;
     if(NULL != ucb)
     {
         debug_printf("udp","%s:channelstat:0x%04x\n\r",prefix,ucb->channelstat);
-        debug_printf("udp","%s:rbuf:len:0x%08x buflen:0x%08x triglevel:0x%08x timeout:0x%08x sync:%d\n\r",\
+        debug_printf("udp","%s:rbuf:len:0x%08x buflen:0x%08x triglevel:0x%08x timeout:0x%08x SockSync:%d\n\r",\
                 prefix,ucb->rbuf.buflen,ucb->rbuf.buflenlimit,ucb->rbuf.triglevel,\
                 ucb->rbuf.timeout,ucb->rbuf.bufsync->lamp_counter);
         debug_printf("udp","%s:framrcv:0x%llx  framsnd:0x%llx\n\r",prefix,ucb->framrcv,ucb->framsnd);
@@ -1293,20 +1316,20 @@ bool_t UdpInit(void)
         return result;
     }
 
-    memset((void *)&gTplProto,0, sizeof(gTplProto));
-    gTplProto.socket     = __socket;
-    gTplProto.bind       = __bind;
-    gTplProto.connect    = __connect;
-    gTplProto.recv       = __recv;
-    gTplProto.recvfrom   = __recvfrom;
-    gTplProto.send       = __send;
-    gTplProto.sendto     = __sendto;
-    gTplProto.setsockopt = __setsockopt;
-    gTplProto.shutdown   = __shutdown;
-    gTplProto.close      = __socketclose;
-    gTplProto.debuginfo  = __debug;
-    if((false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,IPPROTO_UDP, &gTplProto))||\
-       (false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,0, &gTplProto))||\
+    memset((void *)&gUdpProto,0, sizeof(gUdpProto));
+    gUdpProto.__socket     = __udpsocket;
+    gUdpProto.__bind       = __udpbind;
+    gUdpProto.__connect    = __udpconnect;
+    gUdpProto.__recv       = __udprecv;
+    gUdpProto.__recvfrom   = __udprecvform;
+    gUdpProto.__send       = __udpsend;
+    gUdpProto.__sendto     = __udpsendto;
+    gUdpProto.__setsockopt = __udpsetsockopt;
+    gUdpProto.__shutdown   = __udpshutdown;
+    gUdpProto.__close      = __udpclose;
+    gUdpProto.__debuginfo  = __udpdebug;
+    if((false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,IPPROTO_UDP, &gUdpProto))||\
+       (false ==TPL_RegisterProto(AF_INET,SOCK_DGRAM,0, &gUdpProto))||\
        (false == IpInstallProto("udp",IPPROTO_UDP,__rcvdeal)))
     {
         debug_printf("udp","%s:ERR:UDP PROTO REGISTER FAILED\n\r",__FUNCTION__);
@@ -1319,8 +1342,4 @@ bool_t UdpInit(void)
     return result;
 }
 
-
-
-
-
-
+#pragma GCC diagnostic pop

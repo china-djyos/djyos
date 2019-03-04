@@ -51,10 +51,10 @@
 
 typedef struct
 {
-    int                af_inet;
-    int                type;
-    int                protocol;
-    tagTlayerProto    *proto;
+    int                af_inet;     //在socket.h中定义，例如： AF_INET
+    int                type;        //在socket.h中定义，例如： SOCK_DGRAM
+    int                protocol;    //在socket.h中定义，例如： IPPROTO_UDP
+    struct TPL_ProtocalOps  *proto;       //在各协议模块中初始化
 }tagTplProtoItem;
 static tagTplProtoItem    *pTplProtoTab = NULL;
 static struct MutexLCB    *pTplProtoSync = NULL;
@@ -93,17 +93,17 @@ EXIT_MEMFAIL:
     return result;
 }
 
-// =============================================================================
-// FUNCTION：this function is used to find an transmit layer proto
-// PARA  IN：
-// PARA OUT：
-// RETURN  :the proto found or NULL failed
-// INSTRUCT:
-// =============================================================================
-tagTlayerProto *TPL_GetProto(int family, int type, int protocol)
+//------------------------------------------------------------------------------
+//功能：获取一个传输层协议
+//参数：family，地址族，如 AF_INET 等
+//     type，协议类型，如 SOCK_STREAM 等
+//     protocol，协议，如 IPPROTO_TCP 等
+//返回：传输层接口 struct TPL_ProtocalOps 指针，或 NULL
+//------------------------------------------------------------------------------
+struct TPL_ProtocalOps *TPL_GetProto(int family, int type, int protocol)
 {
     int i = 0;
-    tagTlayerProto *result = NULL;
+    struct TPL_ProtocalOps *result = NULL;
 
     if((NULL!=pTplProtoTab)&&mutex_lock(pTplProtoSync))
     {
@@ -122,27 +122,30 @@ tagTlayerProto *TPL_GetProto(int family, int type, int protocol)
 
     return result;
 }
-// =============================================================================
-// FUNCTION：this function is used to find an register an transmit layer protocol
-// PARA  IN：
-// PARA OUT：
-// RETURN  :true success while false failed
-// INSTRUCT:
-// =============================================================================
-bool_t TPL_RegisterProto(int family, int type, int protocol,tagTlayerProto *proto)
+
+//------------------------------------------------------------------------------
+//功能：注册一个传输层协议
+//参数：family，地址族，如 AF_INET 等
+//     type，协议类型，如 SOCK_STREAM 等
+//     protocol，协议，如 IPPROTO_TCP 等
+//     proto，传输协议接口函数集
+//返回：true or false
+//------------------------------------------------------------------------------
+bool_t TPL_RegisterProto(int family, int type, int protocol,
+                            struct TPL_ProtocalOps *proto)
 {
     int i = 0;
 
     bool_t result = false;
-    tagTlayerProto *tmp = NULL;
+    struct TPL_ProtocalOps *tmp = NULL;
 
     if((NULL!=pTplProtoTab)&&mutex_lock(pTplProtoSync))
     {
         //check any one existed
         for(i =0; i< CFG_TPL_PROTONUM;i++)
         {
-            if((pTplProtoTab[i].af_inet == family)&&(pTplProtoTab[i].type == type)&&\
-                pTplProtoTab[i].protocol == protocol)
+            if((pTplProtoTab[i].af_inet == family)&&(pTplProtoTab[i].type == type)
+                        && (pTplProtoTab[i].protocol == protocol))
             {
                 tmp = pTplProtoTab[i].proto;
                 break;

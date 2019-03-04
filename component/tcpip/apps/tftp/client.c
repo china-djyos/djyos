@@ -49,7 +49,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "../../component_config_tcpip.h"
+#include "component_config_tcpip.h"
 
 #include "tftplib.h"
 #include "dbug.h"
@@ -103,7 +103,7 @@ static bool_t __ClientMain(char *mode, char *serverip,char *filename)
 bool_t tftp(char *param)
 {
     int argc =3;
-    const char *argv[3];
+    char *argv[3];
 
     string2arg(&argc,argv,param);
     if(argc == 3)
@@ -117,18 +117,17 @@ bool_t tftp(char *param)
 
     return true;
 }
-
-extern bool_t TftpServerShell(char *param);
-
+extern bool_t TftpServerShell(void);
 
 //THIS IS PING MODULE FUNCTION
-bool_t ServiceTftpInit(ptu32_t para)
+bool_t ServiceTftpInit(void)
 {
     bool_t result;
 
     tftppathset((char *)CFG_TFTP_PATHDEFAULT);
 
-    result = TftpServerShell(NULL);
+
+    result = TftpServerShell();
 
     return result;
 }

@@ -150,7 +150,7 @@ EXIT_BUF:
     return 0;
 }
 
-bool_t TftpServerShell(char *param)
+bool_t TftpServerShell(void)
 {
 
     bool_t ret;

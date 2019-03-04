@@ -79,33 +79,36 @@ typedef struct
     struct RingBuf       *ring;
     semp_t                rcvsync;     //the read task will pend here
     int                   clientfd;    //which connect to the server
-    void                 *obj;         //which will be created by open
+    struct objhandle     *hdl;         //which will be created by open
 }tagDevTelnetd;
 static tagDevTelnetd gDevTelnetd;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //do the open
-static s32 __open(void *obj, u32 dwMode, u32 timeout)
+static s32 __open(struct objhandle *hdl, u32 dwMode, u32 timeout)
 {
     s32 ret =-1;
-    if(NULL == gDevTelnetd.obj)
+    if(NULL == gDevTelnetd.hdl)
     {
-        gDevTelnetd.obj = obj;
+        gDevTelnetd.hdl = hdl;
         ret = 0;
     }
     return ret;
 }
-static s32 __close(void *obj)
+static s32 __close(struct objhandle *hdl)
 {
     s32 ret =-1;
-    if(NULL == gDevTelnetd.obj)
+    if(NULL == gDevTelnetd.hdl)
     {
-        gDevTelnetd.obj = NULL;
+        gDevTelnetd.hdl = NULL;
         ret = 0;
     }
     return ret;
 }
 //install the device as an io device
-static u32 __write(void *obj,u8 *buf, u32 len,u32 offset, bool_t block,u32 timeout)
+static s32 __write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeout)
 {
     if(gDevTelnetd.clientfd >0)
     {
@@ -113,7 +116,7 @@ static u32 __write(void *obj,u8 *buf, u32 len,u32 offset, bool_t block,u32 timeo
     }
     return len;
 }
-static u32 __read(void *obj,u8 *buf,u32 len,u32 offset,u32 timeout)
+static s32 __read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 timeout)
 {
     u32 ret =0;
     if(semp_pendtimeout(gDevTelnetd.rcvsync,timeout))
@@ -122,11 +125,11 @@ static u32 __read(void *obj,u8 *buf,u32 len,u32 offset,u32 timeout)
         if(Ring_Check(gDevTelnetd.ring)) //still some data in the ring
         {
             semp_post(gDevTelnetd.rcvsync);
-            fcntl(Handle2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else
         {
-            fcntl(Handle2fd(gDevTelnetd.obj),F_CLREVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(Handle2fd(gDevTelnetd.hdl),F_CLREVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
     }
     return ret;
@@ -196,7 +199,7 @@ static void __telnetclientengine(int sock)
 
     Ring_Write(gDevTelnetd.ring,(u8 *)opt,sizeof(tagNvtCmd));
     semp_post(gDevTelnetd.rcvsync);
-    fcntl(Handle2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+    fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
     //OK,now send info here
     sendexact(sock,(u8 *)CN_CLIENT_WELCOM,strlen(CN_CLIENT_WELCOM));
     gDevTelnetd.clientfd = sock;
@@ -207,7 +210,7 @@ static void __telnetclientengine(int sock)
         {
             Ring_Write(gDevTelnetd.ring,(u8 *)&ch,1);
             semp_post(gDevTelnetd.rcvsync);
-            fcntl(Handle2fd(gDevTelnetd.obj),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
+            fcntl(Handle2fd(gDevTelnetd.hdl),F_SETEVENT,CN_MULTIPLEX_SENSINGBIT_READ);
         }
         else if(len == 0)
         {
@@ -236,13 +239,13 @@ static ptu32_t __telnetdmain(void)
     int sockopt = 1;
 
     //安装我们自己的 设备, TODO,这套接口作的有问题
-    if(-1==dev_Create(CN_TELNET_DEVNAME,__open,__close,__write,__read,NULL,0))
+    if(NULL==dev_Create(CN_TELNET_DEVNAME,__open,__close,__write,__read,NULL,0))
     {
         printf("\r\n: info : net    : create dev %s failed.",CN_TELNET_DEVNAME);
         return 0;
     }
 
-    add2listenset(CN_TELNET_PATH,true);//添加到设备输出
+    add2listenset(CN_TELNET_PATH);//添加到设备输出
 
     sockserver = socket(AF_INET, SOCK_STREAM, 0);
     sa_server.sin_family = AF_INET;
@@ -327,8 +330,4 @@ EXIT_RING:
     return ret;
 }
 
-
-
-
-
-
+#pragma GCC diagnostic pop

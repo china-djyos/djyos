@@ -88,7 +88,7 @@
 //%$#@enum,true,false
 #define CFG_STATIC_IP       true            //"IP属性",true=使用静态IP，false=动态IP
 //%$#@string,1,16
-#define CFG_NETCARD_NAME    "APOLLO_ETH"    //"网卡名",
+#define CFG_NETCARD_NAME    "NUCLEO_H743_ETH"    //"网卡名",
 //%$#@string,7,15
 #define CFG_MY_IPV4         "192.168.0.179" //"静态IP",
 #define CFG_MY_SUBMASK      "255.255.255.0" //"子网掩码",
@@ -121,6 +121,59 @@ __attribute__((weak)) void GetCpuSignature(void *buf,int len)
     return;
 }
 
+// HAL库中调用了该函数
+void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    /* Ethernett MSP init: RMII Mode */
+
+    /* Enable GPIOs clocks */
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOG_CLK_ENABLE();
+
+  /* Ethernet pins configuration ************************************************/
+    /*
+          RMII_REF_CLK ----------------------> PA1
+          RMII_MDIO -------------------------> PA2
+          RMII_MDC --------------------------> PC1
+          RMII_MII_CRS_DV -------------------> PA7
+          RMII_MII_RXD0 ---------------------> PC4
+          RMII_MII_RXD1 ---------------------> PC5
+          RMII_MII_RXER ---------------------> PG2
+          RMII_MII_TX_EN --------------------> PG11
+          RMII_MII_TXD0 ---------------------> PG13
+          RMII_MII_TXD1 ---------------------> PB13
+    */
+
+    /* Configure PA1, PA2 and PA7 */
+    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStructure.Pull = GPIO_NOPULL;
+    GPIO_InitStructure.Alternate = GPIO_AF11_ETH;
+    GPIO_InitStructure.Pin = GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_7;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    /* Configure PB13 */
+    GPIO_InitStructure.Pin = GPIO_PIN_13;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    /* Configure PC1, PC4 and PC5 */
+    GPIO_InitStructure.Pin = GPIO_PIN_1 | GPIO_PIN_4 | GPIO_PIN_5;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+    /* Configure PG2, PG11, PG13 and PG14 */
+    GPIO_InitStructure.Pin =  GPIO_PIN_2 | GPIO_PIN_11 | GPIO_PIN_13;
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);
+
+    /* Enable Ethernet clocks */
+    __HAL_RCC_ETH1MAC_CLK_ENABLE();
+    __HAL_RCC_ETH1TX_CLK_ENABLE();
+    __HAL_RCC_ETH1RX_CLK_ENABLE();
+}
+
 bool_t PHY_Init(void)
 {
     uint32_t duplex, speed = 0;
@@ -137,7 +190,7 @@ bool_t PHY_Init(void)
   /* Get link state */
     if(PHYLinkState <= LAN8742_STATUS_LINK_DOWN)
     {
-      return false;
+        return false;
     }
     else
     {
@@ -166,11 +219,11 @@ bool_t PHY_Init(void)
         }
 
         /* Get MAC Config MAC */
-        ETH_GetMACConfig(&MACConf);
+        djybsp_eth_get_mac_config(&MACConf);
         MACConf.DuplexMode = duplex;
         MACConf.Speed = speed;
-        ETH_SetMACConfig( &MACConf);
-        ETH_Start();
+        djybsp_eth_set_mac_config( &MACConf);
+        djybsp_eth_start();
     }
     return true;
 }
@@ -192,8 +245,8 @@ void ModuleInstall_InitNet(void)   //static ip example
     //install the net device you used,you could use more than one, but they
     //has different names and macs
     //use the corresponding net device install function you use
-    extern bool_t ModuleInstall_TcpIp(void);
-    ModuleInstall_TcpIp();
+//    extern bool_t ModuleInstall_TcpIp(void);
+//    ModuleInstall_TcpIp();
 
     extern bool_t ModuleInstall_ETH(const char *devname, u8 *mac,\
             bool_t loop,u32 loopcycle,\

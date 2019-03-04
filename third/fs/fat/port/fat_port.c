@@ -481,7 +481,7 @@ static s32 __fat_install(struct FsCore *super, u32 opt, void *data)
         return (-1);
     }
 
-    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(super->Media)))
+    if(FatDrvInitialize(LD2PD(volumeNum), (struct FatDrvFuns*)(super->MediaDrv)))
     {
         free(volume);
         return (-1); // 安装驱动失败
@@ -570,6 +570,7 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
 
     if(!full)
         full = "/"; // 根目录
+    memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
     GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
     res = strlen(entirepath) + strlen(volume) + 1;
     path = malloc(res);
@@ -704,9 +705,9 @@ static s32 __fat_sync(struct objhandle *hdl)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
+static off_t __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 {
-    DWORD position;
+    DWORD position = -1;
     FRESULT res;
     FIL *context = (FIL*)handle_context(hdl);
 
@@ -722,8 +723,7 @@ static s32 __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     if(FR_OK != res)
         return (-1);
 
-    *offset = position;
-    return (0);
+    return ((off_t)position);
 }
 
 // ============================================================================
@@ -865,7 +865,7 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
         root = (char*)corefs(ob);
         if(!root)
             return (-1);
-
+        memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
         GetEntirePath(ob,uncached,entirepath,DJYFS_PATH_BUFFER_SIZE);
         part_path = strstr(entirepath, mount_name);     //找出mount点名字的所在位置
         part_path += strlen(mount_name);
@@ -874,14 +874,7 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
             return (-1);
 
         sprintf(path, "%s%s", root, part_path);
-        res = strlen(path);
-        while(res--)
-        {
-            if((path[res] == '/') || (path[res] == '\\'))    //去掉路径最后对于的'/'或'\\'
-                path[res] = '\0';
-            else
-                break;
-        }
+
         if(strcmp(path, root) == 0)
         {
             // 根目录目前访问不了,直接处理
@@ -1034,7 +1027,7 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SEEK:
         {
-            *(s32*)OpsArgs1 = __fat_seek((struct objhandle *)opsTarget,
+            *(off_t*)OpsArgs1 = __fat_seek((struct objhandle *)opsTarget,
                                         (off_t*)OpsArgs2, (s32)OpsArgs3);
             break;
         }

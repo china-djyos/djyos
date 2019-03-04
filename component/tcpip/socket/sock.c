@@ -47,136 +47,105 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
+#include  <dirent.h>
 #include  <errno.h>
 #include "../component_config_tcpip.h"
-
+#include  <fcntl.h>
 #include  "../common/tpl.h"
 #include "sockfile.h"
 #include "dbug.h"
-typedef tagSocket  tagItemCB; //each socket is a item
+typedef struct Socket  tagItemCB; //each socket is a item
+static struct obj *s_ptSocketObject;
+static struct MemCellPool *s_ptSocketPool;  //socket控制块内存池头指针
 
-//use this function to get a item
-tagItemCB *socket_malloc(void)
+static struct Socket *__Fd2Sock(s32 fd)
 {
-    void *sockobj = NULL;
-    tagItemCB *ret= NULL;
-    ret = net_malloc(sizeof(tagItemCB));
-    if(NULL == ret)
-    {
-        error_printf("socket","MEM ERR");
-        goto EXIT_MALLOC;
-    }
-    memset(ret,0,sizeof(tagItemCB));
-    ret->sync = mutex_init(NULL);
-    if(NULL == ret->sync)
-    {
-        error_printf("socket","MUTEX ERR");
-        goto EXIT_MUTEX;
-    }
-    sockobj = sockobj_malloc(NULL);
-    if(NULL == sockobj)
-    {
-        error_printf("socket","OBJ ERR");
-        goto EXIT_SOCKOBJ;
-    }
-    //set the context to the object
-    sockobj_setcontext(sockobj,ret);
-    ret->obj = sockobj;
+    struct objhandle *hdl;
+    struct Socket *sock;
 
-    return ret;
-
-EXIT_SOCKOBJ:
-    mutex_del(ret->sync);
-    ret->sync = NULL;
-EXIT_MUTEX:
-    net_free(ret);
-    ret = NULL;
-EXIT_MALLOC:
-    return ret;
+    hdl = fd2Handle(fd);
+    sock = (struct Socket *)handle_context(hdl);
+    return sock;
 }
 
-bool_t socket_free(tagItemCB *ret)
+struct Socket *SocketBuild(void)
 {
-    void *sockobj;
-    //remove the obj
-    sockobj = ret->obj;
-    sockobj_setcontext(ret->obj,NULL);
-    sockobj_free(NULL,sockobj);
-    mutex_del(ret->sync);
-    ret->sync = NULL;
-    net_free(ret);
-    return true;
-}
-
-bool_t socket_setstatus(tagItemCB *sock,u32 status)
-{
-    sock->iostat |= status;
-    sockobj_setstatus(sock->obj,status);
-    return true;
-}
-bool_t socket_clrsatus(tagItemCB *sock,u32 status)
-{
-    sock->iostat &= (~status);
-    sockobj_clrstatus(sock->obj,status);
-
-    return true;
-}
-
-//this used to map the socket controller and its file handle
-static tagItemCB *__socket_fd2sock(int fd)
-{
-    tagItemCB *ret = NULL;
-    void *sockobj;
-    sockobj = sockobj_obj(fd);
-    if(NULL != sockobj)
+    struct objhandle *SocketFile;
+    struct Socket *sock;
+    sock = Mb_Malloc(s_ptSocketPool, 0);
+    if(sock)
     {
-        ret = sockobj_getcontext(sockobj);
-    }
-    return ret;
-}
-
-static int __socket_sock2fd(tagItemCB *sock)
-{
-    if(NULL != sock)
-    {
-        return sockobj_fd(sock->obj);
-    }
-    else
-    {
-        return -1;
-    }
-}
-
-// =============================================================================
-// 函数功能：  socket
-//        create an new socket
-// 输入参数： family,所属域，如AF_INET AF_LOCAL等
-//        type,类型，如SOCK_STREAM SOCK_DGRAM等
-//        protocol,协议类型，一般的默认为0
-// 输出参数：
-// 返回值  ：套接字号，-1表示创建失败
-// 说明    ：套接字创建不成功，可能是指定协议没有找到或者内存不足
-// =============================================================================
-//创建一个套接字
-int socket(int family, int type, int protocol)
-{
-    int ret = -1;
-    tagTlayerProto *proto = NULL;
-    tagItemCB *sock = NULL;
-    proto = TPL_GetProto(family, type, protocol);
-    if(NULL != proto)
-    {
-        if(NULL != proto->socket)
+        memset(sock, 0, sizeof(struct Socket));
+        sock->SockSync = mutex_init(NULL);
+        SocketFile = handle_new( );
+        if(SocketFile != NULL)
         {
-            sock = proto->socket(family, type, protocol);
+            handle_init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
+            sock->sockfd = Handle2fd(SocketFile);
+//          sock = Handle2fd(SocketFile);
+//          sock->sockfd = sock;
+//          sock->ProtocolOps = ProtocolOps;
+//          handle_SetMultiplexEvent(SocketFile, sock->IoInitstat);
+        }
+        else
+        {
+//          errno = ENOENT;
+            Mb_Free(s_ptSocketPool, sock);
+        }
+    }
+    return sock;
+}
+
+bool_t SocketFree(struct Socket *sock)
+{
+    handle_Delete(fd2Handle(sock->sockfd));
+    Mb_Free(s_ptSocketPool, sock);
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 创建一个套接字，先检查传输层协议函数集是否已经注册，然后调用传输层的 socket 函数
+//     创建socket，在  s_ptSocketObject对象下创建 handle ，socket作为handle的私有成员。
+//参数: family，地址族，见socket.h的 AF_INET 等定义
+//      type，socket 协议类型，见socket.h的 SOCK_DGRAM 等定义
+//      protocol，具体协议，见socket.h的 IPPROTO_UDP 等定义
+//返回: 网卡控制块指针
+//-----------------------------------------------------------------------------
+s32 socket(s32 family, s32 type, s32 protocol)
+{
+    s32 result = -1;
+    struct TPL_ProtocalOps  *ProtocolOps = NULL;
+    struct Socket       *sock = NULL;
+    ProtocolOps = TPL_GetProto(family, type, protocol);
+    if(NULL != ProtocolOps)
+    {
+        if(NULL != ProtocolOps->__socket)
+        {
+            sock = ProtocolOps->__socket(family, type, protocol);
             if(sock == NULL)
             {
                 errno =EPROTOTYPE;
             }
             else
             {
-                socket_setstatus(sock,sock->iostat);
-                ret = __socket_sock2fd(sock);
+                errno = EN_NEWLIB_NO_ERROR;
+                result = sock->sockfd;
+//              SocketFile = handle_new( );
+//              SocketFile = OBJ_AddFile(s_ptSocketObject);
+//              if(SocketFile != NULL)
+//              {
+//                  handle_init(SocketFile, s_ptSocketObject, O_RDWR,(ptu32_t)sock);
+//                  handle_SetContext(SocketFile, (ptu32_t)sock);
+//                  result = Handle2fd(SocketFile);
+//                  sock->sockfd = result;
+//                  sock->ProtocolOps = ProtocolOps;
+//                  handle_SetMultiplexEvent(fd2Handle(sock->sockfd), sock->IoInitstat);
+//              }
+//              else
+//              {
+//                  errno = ENOENT;
+//                  closesocket(result);
+//              }
             }
         }
         else
@@ -188,30 +157,27 @@ int socket(int family, int type, int protocol)
     {
         errno = ENOPROTOOPT;
     }
-    return  ret;
+    return  result;
 }
 
-// =============================================================================
-// 函数功能：  bind
-//           为一个套接字绑定一个网络地址
-// 输入参数：  sockfd,待绑定的套接字
-//           myaddr,指定的网络地址
-//           addrlen,网络地址长度
-// 输出参数：
-// 返回值  ：0 成功  -1失败
-// 说明    ：失败一般的是因为该网络地址冲突（端口号）
-// =============================================================================
-//创建一个套接字
-int bind(int sockfd,struct sockaddr *addr, int addrlen)
+//-----------------------------------------------------------------------------
+//功能: 为一个套接字绑定一个网络地址
+//参数: sockfd,待绑定的套接字
+//      myaddr,指定的网络地址
+//      addrlen,网络地址长度
+//返回：0 成功  -1失败
+//说明：失败一般的是因为该网络地址冲突（端口号）
+//-----------------------------------------------------------------------------
+s32 bind(s32 sockfd,struct sockaddr *addr, s32 addrlen)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->bind))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__bind))
     {
-        result = sock->proto->bind(sock, addr, addrlen);
+        result = sock->ProtocolOps->__bind(sock, addr, addrlen);
         if(result < 0)
         {
             errno =EADDRINUSE;
@@ -236,16 +202,16 @@ int bind(int sockfd,struct sockaddr *addr, int addrlen)
 // 返回值  ：0 成功  -1失败
 // 说明    ：失败一般的是因为重复指定
 // =============================================================================
-int listen(int sockfd, int backlog)
+s32 listen(s32 sockfd, s32 backlog)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->listen))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__listen))
     {
-        result = sock->proto->listen(sock, backlog);
+        result = sock->ProtocolOps->__listen(sock, backlog);
     }
     if(result < 0)
     {
@@ -257,28 +223,29 @@ int listen(int sockfd, int backlog)
 // 函数功能：  accept
 //           等待客户端的链接
 // 输入参数：  sockfd,服务器端套接字
-// 输出参数：  addr,连接的客户端地址
-//           addrlen，地址长度
+// 输出参数：  addr,用于接收连接的客户端地址
+//           addrlen，用于接收地址长度
 // 返回值  ：链接的客户端套接字，-1出错
 // 说明    ：出错一般是因为非阻塞而且没有连接的客户端，或者超出链接限制数
 // =============================================================================
-int accept(int sockfd, struct sockaddr *addr, int *addrlen)
+s32 accept(s32 sockfd, struct sockaddr *addr, s32 *addrlen)
 {
-    tagItemCB *sock;
-    tagItemCB *result;
-    int        client = -1;
+    struct Socket *sock;
+    struct Socket *result;
+    s32        client = -1;
 
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->accept))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__accept))
     {
-        result = sock->proto->accept(sock, addr,addrlen);
-        client = __socket_sock2fd(result);
-        if(client < 0)
+        result = sock->ProtocolOps->__accept(sock, addr,addrlen);
+        if(result == NULL)
         {
+            client = -1;
             errno = EAGAIN;
         }
         else
         {
+            client = result->sockfd;
             errno =EN_NEWLIB_NO_ERROR;
         }
     }
@@ -299,16 +266,16 @@ int accept(int sockfd, struct sockaddr *addr, int *addrlen)
 // 返回值  ：-1出错，0成功
 // 说明    ：
 // =============================================================================
-int connect(int sockfd, struct sockaddr *addr, int addrlen)
+s32 connect(s32 sockfd, struct sockaddr *addr, s32 addrlen)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->connect))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__connect))
     {
-        result = sock->proto->connect(sock, addr, addrlen);
+        result = sock->ProtocolOps->__connect(sock, addr, addrlen);
         if(errno < 0)
         {
             errno = ECONNREFUSED;
@@ -335,18 +302,18 @@ int connect(int sockfd, struct sockaddr *addr, int addrlen)
 // 返回值  ：-1出错，否则返回发送字节数
 // 说明    ：
 // =============================================================================
-int send(int sockfd, const void *msg, int len, int flags)
+s32 send(s32 sockfd, const void *msg, s32 len, s32 flags)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
     if((NULL != msg)&&(len > 0))
     {
-        sock = __socket_fd2sock(sockfd);
-        if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->send))
+        sock = __Fd2Sock(sockfd);
+        if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__send))
         {
-            result = sock->proto->send(sock, msg, len, flags);
+            result = sock->ProtocolOps->__send(sock, msg, len, flags);
             if(result < 0)
             {
                 errno = EAGAIN;
@@ -367,15 +334,15 @@ int send(int sockfd, const void *msg, int len, int flags)
     }
     return  result;
 }
-//the send or recv exact function used to deal the application proto
+//the send or recv exact function used to deal the application ProtocolOps
 //which has negotiate the data structure
 //we use the function to send the exact messages
 //if return true, then the message has been sent in to the buffer at least
 //if return false, then the socket must has some err
-bool_t sendexact(int sock,u8 *buf,int len)
+bool_t sendexact(s32 sock,u8 *buf,s32 len)
 {
 //  bool_t ret=true;
-    int sentlen;
+    s32 sentlen;
 //  sentlen = 0;
     sentlen = send(sock,buf,len,0);
 //  while(len > 0)
@@ -404,10 +371,10 @@ bool_t sendexact(int sock,u8 *buf,int len)
 //we use the function to recv the exact messages
 //if return true, then the message has been cpied to the buffer
 //if return false, then the socket must has some err
-bool_t recvexact(int sock,u8 *buf,int len)
+bool_t recvexact(s32 sock,u8 *buf,s32 len)
 {
     bool_t result;
-    int recvlen;
+    s32 recvlen;
 
     recvlen = 0;
     result = true;
@@ -443,19 +410,19 @@ bool_t recvexact(int sock,u8 *buf,int len)
 // 返回值  ：-1出错，否则返回收到字节数
 // 说明    ：
 // =============================================================================
-int recv(int sockfd, void *buf,int len, unsigned int flags)
+s32 recv(s32 sockfd, void *buf,s32 len, u32 flags)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
 
     if((NULL != buf)&&(len > 0))
     {
-        sock = __socket_fd2sock(sockfd);
-        if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->recv))
+        sock = __Fd2Sock(sockfd);
+        if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__recv))
         {
-            result = sock->proto->recv(sock, buf, len, flags);
+            result = sock->ProtocolOps->__recv(sock, buf, len, flags);
             if(result < 0)
             {
                 errno = EAGAIN;
@@ -490,19 +457,19 @@ int recv(int sockfd, void *buf,int len, unsigned int flags)
 // 返回值  ：-1出错，否则返回发送字节数
 // 说明    ：
 // =============================================================================
-int sendto(int sockfd, const void *msg,int len, unsigned int flags,\
-          const struct sockaddr *addr, int addrlen)
+s32 sendto(s32 sockfd, const void *msg,s32 len, u32 flags,\
+          const struct sockaddr *addr, s32 addrlen)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
     if((NULL != msg)&&(len > 0))
     {
-        sock = __socket_fd2sock(sockfd);
-        if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->sendto))
+        sock = __Fd2Sock(sockfd);
+        if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__sendto))
         {
-            result = sock->proto->sendto(sock, msg, len, flags,addr, addrlen);
+            result = sock->ProtocolOps->__sendto(sock, msg, len, flags,addr, addrlen);
             if(result < 0)
             {
                 errno = EAGAIN;
@@ -536,19 +503,19 @@ int sendto(int sockfd, const void *msg,int len, unsigned int flags,\
 // 返回值  ：-1出错，否则返回收到字节数
 // 说明    ：
 // =============================================================================
-int recvfrom(int sockfd,void *buf, int len, unsigned int flags,\
-            struct sockaddr *addr, int *addrlen)
+s32 recvfrom(s32 sockfd,void *buf, s32 len, u32 flags,\
+            struct sockaddr *addr, s32 *addrlen)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
     if((NULL != buf)&&(len > 0))
     {
-        sock = __socket_fd2sock(sockfd);
-        if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->recvfrom))
+        sock = __Fd2Sock(sockfd);
+        if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__recvfrom))
         {
-            result = sock->proto->recvfrom(sock, buf, len, flags,addr, addrlen);
+            result = sock->ProtocolOps->__recvfrom(sock, buf, len, flags,addr, addrlen);
             if(result < 0)
             {
                 errno = EAGAIN;
@@ -579,16 +546,16 @@ int recvfrom(int sockfd,void *buf, int len, unsigned int flags,\
 // 返回值  ：false失败  true 成功
 // 说明    ：
 // =============================================================================
-bool_t  shutdown(int sockfd, u32 how)
+bool_t  shutdown(s32 sockfd, u32 how)
 {
     bool_t  result;
-    tagItemCB *sock;
+    struct Socket *sock;
 
     result = false;
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->shutdown))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__shutdown))
     {
-        result = sock->proto->shutdown(sock, how);
+        result = sock->ProtocolOps->__shutdown(sock, how);
     }
     else
     {
@@ -605,16 +572,16 @@ bool_t  shutdown(int sockfd, u32 how)
 // 返回值  ：false失败  true 成功
 // 说明    ：
 // =============================================================================
-bool_t closesocket(int sockfd)
+bool_t closesocket(s32 sockfd)
 {
     bool_t  result;
-    tagItemCB *sock;
+    struct Socket *sock;
 
     result = false;
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->close))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__close))
     {
-        result = sock->proto->close(sock);
+        result = sock->ProtocolOps->__close(sock);
     }
     else
     {
@@ -635,17 +602,17 @@ bool_t closesocket(int sockfd)
 // 返回值  ：0 成功 -1失败
 // 说明    ：
 // =============================================================================
-int setsockopt(int sockfd, int level, int optname,\
-               const void *optval, int optlen)
+s32 setsockopt(s32 sockfd, s32 level, s32 optname,\
+               const void *optval, s32 optlen)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->setsockopt))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__setsockopt))
     {
-        result = sock->proto->setsockopt(sock, level, optname,\
+        result = sock->ProtocolOps->__setsockopt(sock, level, optname,\
                                             optval,optlen);
     }
     else
@@ -667,17 +634,17 @@ int setsockopt(int sockfd, int level, int optname,\
 // 返回值  ：0 成功 -1失败
 // 说明    ：
 // =============================================================================
-int getsockopt(int sockfd, int level, int optname, void *optval,\
-               int *optlen)
+s32 getsockopt(s32 sockfd, s32 level, s32 optname, void *optval,\
+               s32 *optlen)
 {
-    int  result;
-    tagItemCB *sock;
+    s32  result;
+    struct Socket *sock;
 
     result = -1;
-    sock = __socket_fd2sock(sockfd);
-    if((NULL != sock)&&(NULL != sock->proto)&&(NULL != sock->proto->getsockopt))
+    sock = __Fd2Sock(sockfd);
+    if((NULL != sock)&&(NULL != sock->ProtocolOps)&&(NULL != sock->ProtocolOps->__getsockopt))
     {
-        result = sock->proto->getsockopt(sock, level, optname,\
+        result = sock->ProtocolOps->__getsockopt(sock, level, optname,\
                                             optval,optlen);
     }
     else
@@ -688,42 +655,42 @@ int getsockopt(int sockfd, int level, int optname, void *optval,\
 }
 
 //返回以前设置的app关联数据
-ptu32_t socket_setprivate(int sockfd, ptu32_t private)
+ptu32_t socket_setprivate(s32 sockfd, ptu32_t private)
 {
     ptu32_t result;
-    tagItemCB *sock;
+    struct Socket *sock;
 
     result =(ptu32_t)NULL;
-    sock = __socket_fd2sock(sockfd);
+    sock = __Fd2Sock(sockfd);
     if(NULL != sock)
     {
-        result = sock->private;
-        sock->private = private;
+        result = sock->SockUserTag;
+        sock->SockUserTag = private;
     }
 
     return result;
 }
-ptu32_t socket_getprivate(int sockfd)
+ptu32_t socket_getprivate(s32 sockfd)
 {
     ptu32_t result;
-    tagItemCB *sock;
+    struct Socket *sock;
 
     result =(ptu32_t)NULL;
-    sock = __socket_fd2sock(sockfd);
+    sock = __Fd2Sock(sockfd);
     if(NULL != sock)
     {
-        result = sock->private;
+        result = sock->SockUserTag;
     }
 
     return result;
 }
-int getsockname(int sockfd,struct sockaddr *addr,socklen_t *addrlen)
+s32 getsockname(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
-    int result = -1;
-    tagItemCB *sock;
+    s32 result = -1;
+    struct Socket *sock;
     struct sockaddr_in *addrin;
 
-    sock = __socket_fd2sock(sockfd);
+    sock = __Fd2Sock(sockfd);
     if(NULL != sock)
     {
         result = 0;
@@ -739,13 +706,13 @@ int getsockname(int sockfd,struct sockaddr *addr,socklen_t *addrlen)
     return result;
 }
 
-int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen)
+s32 getpeername(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
-    int result = -1;
-    tagItemCB *sock;
+    s32 result = -1;
+    struct Socket *sock;
     struct sockaddr_in *addrin;
 
-    sock = __socket_fd2sock(sockfd);
+    sock = __Fd2Sock(sockfd);
     if(NULL != sock)
     {
         result = 0;
@@ -759,22 +726,79 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen)
     return result;
 }
 
-
-int issocketactive(int sockfd, int mode)
+void sockinfo(s32 sockfd,char *filter)
 {
-    int  result = 0;
-    tagItemCB *sock;
-
-    result = false;
-    sock = __socket_fd2sock(sockfd);
+    struct Socket *sock;
+    sock = __Fd2Sock(sockfd);
     if(NULL != sock)
     {
-        if(mode &sock->iostat)
+        if(NULL != sock->ProtocolOps->__debuginfo)
         {
-            result = 1;
+            sock->ProtocolOps->__debuginfo(sock,filter);
+        }
+        else
+        {
+            printf("%s:sockfd:%d :no debug function\r\n",__FUNCTION__,sockfd);
         }
     }
-    return  result;
+
+    return ;
+}
+
+bool_t sockallinfo(char *param)
+{
+    struct objhandle *Current = NULL;
+    while(1)
+    {
+        Current = obj_ForeachHandle(Current, s_ptSocketObject);
+        if(Current != NULL)
+            sockinfo(Handle2fd(Current), param);
+        else
+            break;
+    }
+
+    return true;
+}
+
+//----socket文件操作函数-------------------------------------------------------
+//功能：实现读写等功能。
+//参数：Target，参考函数指针类型 fnObjOps 的定义
+//      cmd，命令码，参见 CN_OBJ_CMD_OPEN 族定义
+//      para1，para2：与命令码相关
+//返回：与命令码相关
+//todo:待完成，lst
+//-----------------------------------------------------------------------------
+s32 Socket_ObjOps(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
+                        ptu32_t OpsArgs2, ptu32_t OpsArgs3)
+{
+    s32 result = CN_OBJ_CMD_EXECUTED;
+    switch(opscmd)
+    {
+        case CN_OBJ_CMD_READ:
+        {
+            s32 sockfd;
+            sockfd = Handle2fd((struct objhandle *)opsTarget);
+            //此处len是有符号数，send 和 recv 函数本身如此
+            *(ssize_t *)OpsArgs1 = recv(sockfd, (u8*)OpsArgs2, (s32)OpsArgs3, 0);
+        }break;
+        case CN_OBJ_CMD_WRITE:
+        {
+            s32 sockfd;
+            sockfd = Handle2fd((struct objhandle *)opsTarget);
+            *(ssize_t *)OpsArgs1 = send(sockfd, (void*)OpsArgs2, (s32)OpsArgs3,0);
+        }break;
+        case CN_OBJ_CMD_SHOW:
+        {
+            if( sockallinfo((char*)OpsArgs2) )
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+        }break;
+        default:
+            result = CN_OBJ_CMD_UNSUPPORT;
+            break;
+    }
+    return result;
 }
 
 // =============================================================================
@@ -787,7 +811,26 @@ int issocketactive(int sockfd, int mode)
 // =============================================================================
 bool_t SocketInit(void)
 {
-    sockobj_init(CFG_SOCKET_NUM);
+
+    s_ptSocketPool = Mb_CreatePool(NULL, 0, sizeof(struct Socket), 10, 1000, "sockmem");
+    if(NULL == s_ptSocketPool)
+    {
+        printf("%s:分配socket控制块内存不足\n\r",__FUNCTION__);
+        goto EXIT_SOCKMEM;
+    }
+    s_ptSocketObject = obj_newchild(obj_root(),Socket_ObjOps, 0, "socket");
+    if(s_ptSocketObject == NULL)
+    {
+        printf("%s:创建socket文件失败\n\r",__FUNCTION__);
+        goto EXIT_CREATE_OBJ;
+    }
+
+//    tcpipmemlog("sockmem",sizeof(struct Socket),CFG_SOCKET_NUM);
+
     return true;
+EXIT_CREATE_OBJ:
+    Mb_DeletePool(s_ptSocketPool);
+EXIT_SOCKMEM:
+    return false;
 }
 

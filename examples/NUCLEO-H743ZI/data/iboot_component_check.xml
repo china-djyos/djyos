@@ -6,8 +6,8 @@
   <gb2312_charset>false</gb2312_charset>
   <utf8_charset>false</utf8_charset>
   <NlsCharset>false</NlsCharset>
-  <dbug>true</dbug>
-  <flash>true</flash>
+  <dbug>false</dbug>
+  <flash>false</flash>
   <uart>true</uart>
   <DevFile>true</DevFile>
   <canbus>false</canbus>
@@ -16,8 +16,9 @@
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <IAP>false</IAP>
-  <filesystem>false</filesystem>
+  <xip_app>false</xip_app>
+  <xip_iboot>false</xip_iboot>
+  <filesystem>true</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
@@ -33,19 +34,20 @@
   <multiplex>true</multiplex>
   <shell>true</shell>
   <stdio>true</stdio>
-  <tcpip>false</tcpip>
+  <tcpip>true</tcpip>
   <timer>false</timer>
   <wdt>false</wdt>
-  <ymodem>false</ymodem>
+  <ymodem>true</ymodem>
   <kernel>true</kernel>
   <heap>true</heap>
-  <int>false</int>
+  <int>true</int>
   <lock>true</lock>
   <MsgQueue>true</MsgQueue>
-  <Objfile>true</Objfile>
+  <Objfile>false</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>false</time>
   <board>true</board>
+  <netconfig>true</netconfig>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
@@ -68,6 +70,7 @@
   <fatfilesystem>false</fatfilesystem>
   <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
@@ -81,6 +84,10 @@
   <wolfssl>false</wolfssl>
   <zlib>false</zlib>
   <Clib>true</Clib>
+  <cpu_peri_dma>false</cpu_peri_dma>
+  <cpu_peri_eth>true</cpu_peri_eth>
   <cpu_peri_gpio>true</cpu_peri_gpio>
+  <cpu_peri_iic>false</cpu_peri_iic>
+  <cpu_peri_lcd>false</cpu_peri_lcd>
   <cpu_peri_uart>true</cpu_peri_uart>
 </component>

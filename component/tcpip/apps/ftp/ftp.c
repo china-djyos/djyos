@@ -58,19 +58,19 @@
 
 
 
-extern bool_t ServiceFtpdInit(ptu32_t para);
-extern bool_t ServiceFtpcInit(ptu32_t para);
+extern bool_t ServiceFtpdInit(void);
+extern bool_t ServiceFtpcInit(void);
 
-bool_t ServiceFtpInit(ptu32_t para)
+bool_t ServiceFtpInit(void)
 {
     bool_t ret = true;
-    if((CFG_FTPD_ENABLE)&&(false == ServiceFtpdInit(0)))
+    if((CFG_FTPD_ENABLE)&&(false == ServiceFtpdInit()))
     {
         error_printf("ftp","###err:FTPD ERR");
         ret = false;
     }
 
-    if((CFG_FTPC_ENABLE)&&(false == ServiceFtpcInit(0)))
+    if((CFG_FTPC_ENABLE)&&(false == ServiceFtpcInit()))
     {
         error_printf("ftp","###err:FTPC ERR");
         ret = false;

@@ -54,33 +54,15 @@
 //一个PKGLST在传输的过程中，当某个PKG拥有CN_PKLGLST_END标记或者NULL == partnext，即可认为
 //该PKGLST结束，该特性在发送的时候尤其明显
 #define CN_PKLGLST_END   (1<<0)
-//tagNetPkg的原理
-//bufsize在申请时指定，使用过程中一直不变;data一直指向buf的起始位置，保持不变
-//当向PKG写入数据时，offset不变，从buf的offset+datalen的地方开始写新数据，写完之后
-//                  datalen +=len(len为写入数据长度)
-//当从PKG读取数据时，从buf的offset开始cpy，cpy完成之后，
-//                  offset += len,datalen -= len(len为取出数据长度)
-typedef struct NetPkg
-{
-    struct NetPkg   *partnext;        //该组指针负责数据包在协议栈的传递
-    ptu32_t  private;   //used for the module who malloc the package
-    u8   level;         // PKG的大小等级
-    u8   pkgflag;       // PKG的后续扩展属性
-    u8   refers;        // 缓存的次数
-    u16  datalen;       // buf中的有效数据长度
-    u16  bufsize;       // buf的长度
-    u16  offset;        // 有效数据偏离buf的位置，offset之前的数据无效,当分拆数据或者数据对齐的时候很有用
-    u8   *buf;          // pkg的buf（数据缓存区）
-}tagNetPkg;
+struct NetPkg;
+struct NetDev;
 
-bool_t     Pkg_SetAlignOffset(u16 alignsize);
-tagNetPkg *PkgMalloc(u16 bufsize,u8 flags);
-bool_t     PkgTryFreePart(tagNetPkg *pkg);
-bool_t     PkgTryFreeLst(tagNetPkg  *pkglst);
-bool_t     PkgTryFreeQ(tagNetPkg  *pkglst);
-bool_t     PkgCachedPart(tagNetPkg  *pkg);
-bool_t     PkgCachedLst(tagNetPkg   *pkglst);
-u16        PkgAlignSize(u16 size);
+struct NetPkg *PkgMalloc(u16 bufsize,u8 flags);
+bool_t     PkgTryFreePart(struct NetPkg *pkg);
+bool_t     PkgTryFreeLst(struct NetPkg  *pkglst);
+bool_t     PkgTryFreeQ(struct NetPkg  *pkglst);
+bool_t     PkgCachedPart(struct NetPkg  *pkg);
+bool_t     PkgCachedLst(struct NetPkg   *pkglst);
 #define    PKG_ISLISTEND(pkg)      (pkg->pkgflag&CN_PKLGLST_END)
 
 //used to defines the net device task
@@ -112,18 +94,19 @@ typedef enum
 
 typedef enum
 {
-    EN_NETDEV_SETNOPKG = 0,      //PARA IS NOT CARE
-    EN_NETDEV_SETBORAD,          //para is int,0 disable else enable
-    EN_NETDEV_SETPOINT,          //para is int,0 disable else enable
-    EN_NETDEV_SETMULTI,          //para is int,0 disable else enable
-    EN_NETDEV_SETRECV,           //para is int,0 disable else enable
-    EN_NETDEV_SETSEND,           //para is int,0 disable else enable
-    EN_NETDEV_SETMAC,            //para point to an buf which contains the mac
-                                 //driver must modify the dev struct mac at the same time
-    EN_NETDEV_SETMULTIMAC,       //para point to an buf which contains the mac
-    EN_NETDEV_GTETMAC,           //para point to an buf which used to contain the mac
-    EN_NETDEV_RESET,             //para must be true
-    EN_NETDEV_CMDLAST,           //which means the max command
+    EN_NETDEV_SETNOPKG = 0,     //PARA IS NOT CARE
+    EN_NETDEV_SETBORAD,         //para is int,0 disable else enable
+    EN_NETDEV_SETPOINT,         //para is int,0 disable else enable
+    EN_NETDEV_SETMULTI,         //para is int,0 disable else enable
+    EN_NETDEV_SETRECV,          //para is int,0 disable else enable
+    EN_NETDEV_SETSEND,          //para is int,0 disable else enable
+    EN_NETDEV_SETMAC,           //para point to an buf which contains the mac
+                                //driver must modify the dev struct mac at the same time
+    EN_NETDEV_SETMULTIMAC,      //para point to an buf which contains the mac
+    EN_NETDEV_GTETMAC,          //para point to an buf which used to contain the mac
+    EN_NETDEV_RESET,            //para must be true
+    EN_NETDEV_ADDRFILTER,       //开启网卡Mac地址过滤功能
+    EN_NETDEV_CMDLAST,          //which means the max command
 }enNetDevCmd;
 
 typedef enum
@@ -143,25 +126,25 @@ typedef enum
     EN_NETDEV_FLOW_LAST,
 }enNetDevFlowType;
 
-typedef enum _EN_LINK_INTERFACE_TYPE
+enum enLinkType
 {
     EN_LINK_ETHERNET = 0,  //ethenet net device,ethernetII
     EN_LINK_RAW,           //raw,just do the ip frames,no other link
     EN_LINK_80211,
     EN_LINK_LAST,
-}enLinkType;
+};
 
-typedef enum __LinkProto
+enum enLinkProto
 {
     EN_LINKPROTO_IPV4    = 0x0800,
     EN_LINKPROTO_IPV6    = 0x86dd,
     EN_LINKPROTO_ARP     = 0x0806,
     EN_LINKPROTO_RARP    = 0x8035,
     EN_LINKPROTO_RESBASE = 0x1000,
-}enLinkProto;
+};
 //usage:for the net device event
 //      all these event are edge-triggled
-typedef enum
+enum NetDevEvent
 {
     //THE OLD ONES ARE DEPRECATED
     EN_NETDEVEVENT_LINKDOWN = 0, //which means the phy down or network cable is pullout
@@ -178,18 +161,19 @@ typedef enum
     EN_NETDEVEVENT_FLOW_OVER,    //means the FLOW over
     EN_NETDEVEVENT_FLOW_LACKNetDevSend,    //means the FLOW lack,
     EN_NETDEVEVENT_RESERVED,     //which means nothing
-}enNetDevEvent;
+};
 //net device type
 //netdev snd module function
 //return means the data has put out or put into the net card buffer
 //pkg maybe an lst or not,you could use the PkgIsEnd to check
 //pkglen is fram len
-typedef bool_t (*fnIfSend)(void* iface,tagNetPkg *pkglst,u32 framlen,u32 netdevtask);
-typedef tagNetPkg* (*fnIfRecv)(void* iface);
+typedef bool_t (*fnIfSend)(struct NetDev* iface,struct NetPkg *pkglst,u32 framlen,u32 netdevtask);
+typedef struct NetPkg* (*fnIfRecv)(struct NetDev* iface);
 
+typedef bool_t (*fnNetDevEventHook)(struct NetDev* iface,enum NetDevEvent event);
 //used to ctrl the dev or get the dev stat
-typedef bool_t (*fnIfCtrl)(void* iface,enNetDevCmd cmd,ptu32_t para);
-typedef struct NetDevPara
+typedef bool_t (*fnIfCtrl)(struct NetDev* iface,enNetDevCmd cmd,ptu32_t para);
+struct NetDevPara
 {
     const char    *name;    //dev name
     u8             iftype;   //dev type，详见：enum _EN_LINK_INTERFACE_TYPE
@@ -198,38 +182,36 @@ typedef struct NetDevPara
     fnIfCtrl       ifctrl;   //dev ctrl or stat get fucntion
     u32            devfunc;  //dev hard function,such as tcp chksum
     u16            mtu;      //dev mtu
-    void          *private;  //the dev driver use this to has its owner property
+    void          *Private;  //the dev driver use this to has its owner property
     u8             mac[CN_MACADDR_LEN];   //mac address
-}tagNetDevPara;
-void   *NetDevInstall(tagNetDevPara *para);
+};
+struct NetDev   *NetDevInstall(struct NetDevPara *para);
 bool_t  NetDevUninstall(const char *name);
-const u8 *NetDevGetMac(void *iface);
-const char *NetDevName(void *iface);
-void *NetDevGet(const char *ifname);
-bool_t NetDevSend(void *iface,tagNetPkg *pkg,u32 framelen,u32 devtask);
-bool_t NetDevPush(void *iface,tagNetPkg *pkg);//if you get a package,you could call this function
-typedef bool_t (*fnNetDevEventHook)(void* iface,enNetDevEvent event);
+const u8 *NetDevGetMac(struct NetDev *iface);
+const char *NetDevName(struct NetDev *iface);
+struct NetDev *NetDevGet(const char *ifname);
+bool_t NetDevSend(struct NetDev *iface,struct NetPkg *pkg,u32 framelen,u32 devtask);
+bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg);//if you get a package,you could call this function
 //handle :the netdevice you install (returned by NetDevInstall)
 //devname:if the netdevice is NULL,then we use the devname to search the device
 //hook   :which used to deal the device message has been triggled
-bool_t  NetDevRegisterEventHook(void *handle,const char *devname,fnNetDevEventHook hook);
+bool_t  NetDevRegisterEventHook(struct NetDev *handle, fnNetDevEventHook hook);
 //handle :the netdevice you install (returned by NetDevInstall)
 //devname:if the netdevice is NULL,then we use the devname to search the device
 //event  :the message want to send to the device
-bool_t  NetDevPostEvent(void* handle,const char *devname,enNetDevEvent event);
-bool_t  NetDevCtrl(const char *name,enNetDevCmd cmd, ptu32_t para);
-bool_t  NetDevCtrlByHandle(void* handle,enNetDevCmd cmd, ptu32_t para);
-void   *NetDevPrivate(void *iface);
+bool_t  NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event);
+bool_t  NetDevCtrl(struct NetDev* handle,enNetDevCmd cmd, ptu32_t para);
+void   *NetDevPrivate(struct NetDev *iface);
 
 ////////////////////////defines for the link////////////////////////////////////////
 //the following we be cut in the socket.h
 //link function that driver should use
-//bool_t LinkPost(void* iface,tagNetPkg *pkg);
+//bool_t LinkPost(void* iface,struct NetPkg *pkg);
 //the hook function  module for the dev event
 //handle:which device has triggled the event
 //event :the message we has get
 //the user could use the following api to listen on more protocol or send specified frames
-typedef bool_t (*fnLinkProtoDealer)(void *iface,tagNetPkg *pkg);
+typedef bool_t (*fnLinkProtoDealer)(struct NetDev *iface,struct NetPkg *pkg);
 bool_t LinkRegisterRcvHook(fnLinkProtoDealer hook, const char *ifname,u16 proto,const char *hookname);
 bool_t LinkUnRegisterRcvHook(const char *hookname);
 

@@ -80,7 +80,7 @@ u32 get_random(void);
 char* mac2string(u8 *mac);
 bool_t string2mac(char *str,u8 *mac);
 int getargs(int argc, char *argv[],char *string);
-int string2arg(int *argc, const char *argv[],char *string);
+int string2arg(int *argc, char *argv[],char *string);
 //we create some thing needed by the net stack
 //here we do a net ticker here,we could do it in a task
 //for it will consumed more time here,if use the timer,then it will be make the
@@ -93,6 +93,7 @@ typedef void (*fnNetTickIsr)(void);
 void* NetTickerIsrInstall(const char *name,fnNetTickIsr isr,int cycle);
 bool_t NetTickerIsrRemove(void *ticker);
 u32 NetTickerTicks(void *ticker);
+void OsPrintSplit(char c,int num);
 bool_t OsArchInit();
 #endif /* __OSARCH_H */
 

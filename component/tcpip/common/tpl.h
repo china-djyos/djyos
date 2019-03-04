@@ -52,8 +52,8 @@
 
 #include <sys/socket.h>
 
-bool_t TPL_RegisterProto(int family, int type, int protocol,tagTlayerProto *proto);
-tagTlayerProto* TPL_GetProto(int family, int type, int protocol);
+bool_t TPL_RegisterProto(int family, int type, int protocol,struct TPL_ProtocalOps *proto);
+struct TPL_ProtocalOps * TPL_GetProto(int family, int type, int protocol);
 
 #endif /* __TPL_H */
 

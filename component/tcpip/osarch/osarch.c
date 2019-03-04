@@ -64,6 +64,9 @@ typedef struct
 }tagOsCB;
 static tagOsCB gOsCB;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //use this function for the statistics
 void *net_malloc(int size)
 {
@@ -98,7 +101,7 @@ bool_t mutex_lock(mutex_t mutex)
 }
 bool_t mutex_locktimeout(mutex_t mutex,u32 timeout)
 {
-    return Lock_MutexPend(mutex,CN_TIMEOUT_FOREVER);
+    return Lock_MutexPend(mutex,timeout);
 }
 bool_t mutex_unlock(mutex_t mutex)
 {
@@ -121,7 +124,7 @@ void mutex_del(mutex_t mutex)
 semp_t semp_init(u32 limit,u32 value,const char *name)
 {
     gOsCB.semp++;
-    return Lock_SempCreate(0x1000,0,CN_BLOCK_FIFO,NULL);
+    return Lock_SempCreate(limit,value,CN_BLOCK_FIFO,name);
 }
 //-----------------------------------------------------------------------------
 //¹¦ÄÜ:use this function to pend a semaphore
@@ -198,7 +201,7 @@ u32 get_random(void)
 }
 //this function is used to format the char string to the argc mode
 //this function will changed the original string, used it carefully
-int string2arg(int *argc, const char *argv[],char *string)
+int string2arg(int *argc, char *argv[],char *string)
 {
     int argvlen = 0;
     int paramnum = 0;
@@ -560,4 +563,6 @@ bool_t OsArchInit()
 }
 ADD_TO_ROUTINE_SHELL(tcpipmem,tcpipmem,"usage:tcpipmem");
 ADD_TO_ROUTINE_SHELL(netticker,netticker,"usage:netticker");
+
+#pragma GCC diagnostic pop
 

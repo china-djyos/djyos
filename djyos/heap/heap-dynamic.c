@@ -329,10 +329,10 @@ bool_t heap(void)
         return (FALSE);
 
     Heap = tg_pHeapList;
-    debug_printf("heap","列出系统中所有的Heap\r\n\r\n");
+    printf("列出系统中所有的Heap\r\n\r\n");
     do
     {
-        debug_printf("heap","Heap name: %s，含 %d 个 Cessions\r\n",
+        printf("Heap name: %s，含 %d 个 Cessions\r\n",
                     Heap->HeapName,Heap->CessionNum);
 #if ((CFG_DYNAMIC_MEM == true))
         ECB = Heap->mem_sync;
@@ -346,35 +346,35 @@ bool_t heap(void)
             }while(ECB != Heap->mem_sync);
         }
 #endif
-        debug_printf("heap","有 %d 个事件在阻塞等待本 Heap 分配内存\r\n\r\n",n);
+        printf("有 %d 个事件在阻塞等待本 Heap 分配内存\r\n\r\n",n);
         Cession = Heap->Cession;
         n = 0;
         m = 0;
         k = 0;
         while(Cession != NULL)
         {
-            debug_printf("heap","Cession %d:\r\n",n+1);
+            printf("Cession %d:\r\n",n+1);
 
-            debug_printf("heap","准静态分配空间:  0x%08x\r\n",
+            printf("准静态分配空间:  0x%08x\r\n",
                     (ptu32_t)(Cession->heap_bottom - Cession->static_bottom));
 #if ((CFG_DYNAMIC_MEM == true))
-            debug_printf("heap","动态分配空间:    0x%08x\r\n",
+            printf("动态分配空间:    0x%08x\r\n",
                         Cession->ua_pages_num * Cession->PageSize);
 #endif
-            debug_printf("heap","静态起始地址:    0x%08x,    动态起始地址:  0x%08x\r\n",
+            printf("静态起始地址:    0x%08x,    动态起始地址:  0x%08x\r\n",
                         (ptu32_t)Cession->static_bottom,
                         (ptu32_t)Cession->heap_bottom);
 #if ((CFG_DYNAMIC_MEM == true))
-            debug_printf("heap","总页数:          %10d，   页尺寸:        0x%08x\n\r",
+            printf("总页数:          %10d，   页尺寸:        0x%08x\n\r",
                         Cession->ua_pages_num,Cession->PageSize);
-            debug_printf("heap","空闲页数:        %10d，   空闲空间:      0x%08x\r\n",
+            printf("空闲页数:        %10d，   空闲空间:      0x%08x\r\n",
                         Cession->free_pages_num,
                         Cession->free_pages_num * Cession->PageSize);
-            debug_printf("heap","最大块尺寸:      0x%08x，   最大空闲块尺寸:0x%08x\r\n\r\n",
+            printf("最大块尺寸:      0x%08x，   最大空闲块尺寸:0x%08x\r\n\r\n",
                         Cession->ua_block_max,
                         Cession->ua_free_block_max);
 #else
-            debug_printf("heap","本cession空闲：  %08x\n\r",(ptu32_t)(Cession->heap_top - Cession->heap_bottom));
+            printf("本cession空闲：  %08x\n\r",(ptu32_t)(Cession->heap_top - Cession->heap_bottom));
 #endif
 #if ((CFG_DYNAMIC_MEM == true))
             m += Cession->ua_pages_num * Cession->PageSize;
@@ -387,9 +387,9 @@ bool_t heap(void)
         }
         if(n > 1)
         {
-            debug_printf("heap","%d个Cession总动态分配空间 %d bytes\r\n",n,m);
-            debug_printf("heap","%d个Cession总空闲内存     %d bytes\r\n",n,k);
-            debug_printf("heap","\r\n");
+            printf("%d个Cession总动态分配空间 %d bytes\r\n",n,m);
+            printf("%d个Cession总空闲内存     %d bytes\r\n",n,k);
+            printf("\r\n");
         }
         Heap = Heap->NextHeap;
     }while(Heap != tg_pHeapList);
@@ -408,18 +408,18 @@ bool_t heap_spy(void)
         return (TRUE);
 
     Heap = tg_pHeapList;
-    debug_printf("heap","列出所有Heap的分配情况\r\n");
+    printf("列出所有Heap的分配情况\r\n");
     do
     {
-        debug_printf("heap","Heap name: %s，含 %d 个 Cessions\r\n",
+        printf("Heap name: %s，含 %d 个 Cessions\r\n",
                     Heap->HeapName,Heap->CessionNum);
         Cession = Heap->Cession;
         n = 0;
         k = 0;
         while(Cession != NULL)
         {
-            debug_printf("heap","Cession %d:\r\n",n+1);
-            debug_printf("heap","         页号           属性   尺寸       事件\r\n");
+            printf("Cession %d:\r\n",n+1);
+            printf("         页号           属性   尺寸       事件\r\n");
             m = 0;
 #if ((CFG_DYNAMIC_MEM == true))
             pl_eid = Cession->index_event_id;
@@ -429,23 +429,23 @@ bool_t heap_spy(void)
                 {
                     case CN_MEM_DOUBLE_PAGE_LOCAL:
                     {//双页局部分配,-1+id
-                        debug_printf("heap","%10d = %-10d 局部  0x%08x %05d\n\r", m, m + 1, Cession->PageSize*2,pl_eid[m + 1]);
+                        printf("%10d = %-10d 局部  0x%08x %05d\n\r", m, m + 1, Cession->PageSize*2,pl_eid[m + 1]);
                         m += 2;
                     }break;
                     case CN_MEM_MANY_PAGE_LOCAL:
                     {//多页局部分配:-2+id+阶号
-                        debug_printf("heap","%10d = %-10d 局部   0x%08x %05d\n\r",
+                        printf("%10d = %-10d 局部   0x%08x %05d\n\r",
                                     m,m+(1<<pl_eid[m+2])-1, Cession->PageSize*(1<<pl_eid[m+2]),pl_eid[m+1]);
                         m += 1<<pl_eid[m+2];
                     }break;
                     case CN_MEM_SINGLE_PAGE_GLOBAL:
                     {//单页全局内存:-3
-                        debug_printf("heap","%10d - %-10d 全局   0x%08x\n\r",m,m,Cession->PageSize);
+                        printf("%10d - %-10d 全局   0x%08x\n\r",m,m,Cession->PageSize);
                         m++;
                     }break;
                     case CN_MEM_MANY_PAGE_GLOBAL:
                     {//双(多)页全局内存:-4+阶号.
-                        debug_printf("heap","%10d - %-10d 全局   0x%08x\n\r",m,m+(1<<pl_eid[m+1])-1, Cession->PageSize*(1<<pl_eid[m+1]));
+                        printf("%10d - %-10d 全局   0x%08x\n\r",m,m+(1<<pl_eid[m+1])-1, Cession->PageSize*(1<<pl_eid[m+1]));
                         m += 1<<pl_eid[m+1];
                     }break;
                     case CN_MEM_FREE_PAGE:
@@ -455,12 +455,12 @@ bool_t heap_spy(void)
                             if(pl_eid[k] != CN_MEM_FREE_PAGE)
                                 break;
                         }
-                        debug_printf("heap","%10d ~ %-10d 空闲   0x%08x\n\r",m,k-1,Cession->PageSize*(k-m));
+                        printf("%10d ~ %-10d 空闲   0x%08x\n\r",m,k-1,Cession->PageSize*(k-m));
                         m = k;
                     }break;
                     default :
                     {
-                        debug_printf("heap","%10d = %-10d 局部   0x%08x %05d\n\r",m,m,Cession->PageSize,pl_eid[m]);
+                        printf("%10d = %-10d 局部   0x%08x %05d\n\r",m,m,Cession->PageSize,pl_eid[m]);
                         m++;
                     }break;
                 }

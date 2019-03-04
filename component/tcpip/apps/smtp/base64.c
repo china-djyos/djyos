@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +12,7 @@
 
 const char * base64char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-char * base64_encode( const unsigned char * bindata, char * base64, int binlength )
+char * base64_encode( u8 * bindata, char * base64, int binlength )
 {
     int i, j;
     unsigned char current;
@@ -142,7 +140,7 @@ bool_t base64EncodeTest(void)
     };
     int argc= sizeof(argv)/sizeof(char *);
 
-    u8 buf[64];
+    char buf[64];
     for(int i =0;i < argc;i++)
     {
         memset(buf,0,64);
@@ -169,7 +167,7 @@ bool_t base64DecodeTest(void)
     {
         memset(buf,0,64);
         debug_printf("base64","original:%s\n\r",argv[i]);
-        base64_decode((u8 *)argv[i],buf);
+        base64_decode(argv[i],buf);
         debug_printf("base64","decode:%s\n\r",(char *)buf);
     }
     return true;

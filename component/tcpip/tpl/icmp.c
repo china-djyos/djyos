@@ -51,6 +51,7 @@
 #include "../common/icmp.h"
 #include "../common/ipV4.h"
 #include "../common/ip.h"
+#include "../common/netpkg.h"
 
 #pragma pack(1)
 typedef struct
@@ -188,7 +189,6 @@ bool_t __Icmp_TaskDel(tagIcmpTask *task)
 // 函数功能：__Icmp_TaskEchoActive
 // 输入参数：
 //          ipsrc:pkg src
-//          ipdst:pkg dst
 //          type: icmp type
 //          code: icmp code
 //          pkg:  icmp info pkg
@@ -196,7 +196,7 @@ bool_t __Icmp_TaskDel(tagIcmpTask *task)
 // 返回值  ：
 // 说明    :
 // =============================================================================
-void __Icmp_TaskEchoActive(u32 ipsrc, u32 ipdst,u8 type, u8 code,tagNetPkg *pkg)
+void __Icmp_TaskEchoActive(u32 ipsrc, u8 type, u8 code,struct NetPkg *pkg)
 {
     tagIcmpTask         *tmp;
     tagIcmpTaskEcho     *taskdata;
@@ -205,7 +205,8 @@ void __Icmp_TaskEchoActive(u32 ipsrc, u32 ipdst,u8 type, u8 code,tagNetPkg *pkg)
     if(mutex_lock(&sgIcmpTaskSync))
     {
         tmp = pgIcmpTaskLst;
-        echodata = (tagIcmpHdrEcho *)(pkg->buf + pkg->offset);
+        echodata = (tagIcmpHdrEcho *)PkgGetCurrentBuffer(pkg);;
+//      echodata = (tagIcmpHdrEcho *)(pkg->buf + pkg->offset);
         while(NULL != tmp)
         {
             if((tmp->type == type)&&(tmp->code == code))
@@ -240,7 +241,7 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
     bool_t               result;
     static u16           seqno = 0;
     u16                  pkglen;
-    tagNetPkg            *sndpkg;
+    struct NetPkg            *sndpkg;
     tagIcmpHdr           *icmppkg;
     tagIcmpHdrEcho       *icmppkgecho;
     tagIcmpTask          icmptask;
@@ -254,10 +255,13 @@ bool_t Icmp_EchoRequest(u32 ipdst, u8 *data, int len,int timeout)
         if(NULL != sndpkg)
         {
             seqno++;
-            sndpkg->datalen = pkglen;
-            sndpkg->partnext = NULL;
+            PkgSetDataLen(sndpkg, pkglen);
+            PkgSetNextUnit(sndpkg,NULL);
+//          sndpkg->datalen = pkglen;
+//          sndpkg->partnext = NULL;
             //fill the snd pkg
-            icmppkg = (tagIcmpHdr *)(sndpkg->buf + sndpkg->offset);
+            icmppkg = (tagIcmpHdr *)PkgGetCurrentBuffer(sndpkg);
+//          icmppkg = (tagIcmpHdr *)(sndpkg->buf + sndpkg->offset);
             icmppkg->type = EN_ICMP_ECHOREQUEST;
             icmppkg->code = CN_ICMP_ECHOREQUEST_CODE;
             icmppkg->chksum = 0;
@@ -303,7 +307,7 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
 {
     bool_t            result;
     u16               pkglen;
-    tagNetPkg         *pkg2snd;
+    struct NetPkg         *pkg2snd;
     tagIcmpHdr        *hdr;
     u8                *src;
     u8                *dst;
@@ -312,10 +316,12 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
     pkg2snd = PkgMalloc(pkglen,CN_PKLGLST_END);
     if(NULL != pkg2snd)
     {
-        pkg2snd->datalen = pkglen;
-        pkg2snd->partnext = NULL;
-
-        hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
+        PkgSetDataLen(pkg2snd, pkglen);
+        PkgSetNextUnit(pkg2snd,NULL);
+//      pkg2snd->datalen = pkglen;
+//      pkg2snd->partnext = NULL;
+        hdr = (tagIcmpHdr *)PkgGetCurrentBuffer(pkg2snd);
+//      hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
         hdr->type = type;
         hdr->code = code;
         hdr->chksum = 0;
@@ -323,7 +329,7 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
         dst = &hdr->data[0];
         memcpy(dst, src, infolen);
 
-        result = IpSend(EN_IPV_4,(ptu32_t)ipdst,(ptu32_t)ipsrc,pkg2snd,pkg2snd->datalen,IPPROTO_ICMP,\
+        result = IpSend(EN_IPV_4,(ptu32_t)ipdst,(ptu32_t)ipsrc,pkg2snd,PkgGetDataLen(pkg2snd),IPPROTO_ICMP,\
                 CN_IPDEV_ICMPOCHKSUM,&hdr->chksum);
         PkgTryFreePart(pkg2snd);
     }
@@ -344,7 +350,7 @@ bool_t Icmp_MsgSnd(u32 ipsrc, u32 ipdst, u8 type, u8 code, u8 *info, u16 infolen
 // 说明    :Find any task in the queue,if any the set it,otherwise do nothing
 //       anyway, net_free the pkg in
 // =============================================================================
-bool_t __Icmp_EchoReply(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkg)
+bool_t __Icmp_EchoReply(u32 ipsrc, tagIcmpHdr *hdr,struct NetPkg *pkg)
 {
     u8 type;
     u8 code;
@@ -352,7 +358,7 @@ bool_t __Icmp_EchoReply(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkg)
     type = hdr->type;
     code = hdr->code;
 
-    __Icmp_TaskEchoActive(ipsrc, ipdst, type, code, pkg);
+    __Icmp_TaskEchoActive(ipsrc, type, code, pkg);
     return true;
 }
 // =============================================================================
@@ -367,28 +373,28 @@ bool_t __Icmp_EchoReply(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkg)
 // 返回值  ：true , request success while false timeout
 // 说明    :--todo, CPY PROCESS MAYBE TOO OLD
 // =============================================================================
-bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkglst)
+bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,struct NetPkg *pkglst)
 {
     bool_t              result;
     u16                 pkglen;
-    tagNetPkg           *pkg;
-    tagNetPkg           *pkg2snd;
-    u8                  *dst;
-    u8                  *src;
+    struct NetPkg           *pkg;
+    struct NetPkg           *pkg2snd;
 
     hdr->type = EN_ICMP_ECHOREPLY;
     hdr->code = CN_ICMP_ECHOREPLY_CODE;
     hdr->chksum = 0;
-    pkglst->offset -= sizeof(tagIcmpHdr);
-    pkglst->datalen +=sizeof(tagIcmpHdr);
+    PkgMoveOffsetDown(pkglst,sizeof(tagIcmpHdr));
+//  pkglst->offset -= sizeof(tagIcmpHdr);
+//  pkglst->datalen +=sizeof(tagIcmpHdr);
 
-    pkglen = 0;
+//  pkglen = 0;
     pkg = pkglst;
-    while(NULL != pkg)
-    {
-        pkglen += pkg->datalen;
-        pkg = pkg->partnext;
-    }
+    pkglen = PkgListDatastatistics(pkg);
+//  while(NULL != pkg)
+//  {
+//      pkglen += pkg->datalen;
+//      pkg = PkgGetNextUnit(pkg);
+//  }
     //net_malloc NEW PKG FOR SEND, BECAUSE THE OLD ONE MAY NOT ALIGNED
     pkg2snd = PkgMalloc(pkglen,CN_PKLGLST_END);
     if(NULL != pkg2snd)
@@ -396,20 +402,23 @@ bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkglst
         //cpy the data to the new pkg
         pkglen = 0;
         pkg = pkglst;
-        dst = (u8 *)(pkg2snd->buf + pkg2snd->offset);
-        while(NULL != pkg)
-        {
-            pkglen = pkg->datalen;
-            src = (u8 *)(pkg->buf + pkg->offset);
-            memcpy(dst, src, pkglen);
-            dst += pkglen;
-            pkg2snd->datalen += pkglen;
-            pkg = pkg->partnext;
-        }
+        PkgCopyListToPkg(pkg, pkg2snd);
+//      dst = (u8 *)(pkg2snd->buf + pkg2snd->offset);
+//      while(NULL != pkg)
+//      {
+//          pkglen = pkg->datalen;
+//          src = (u8 *)(pkg->buf + pkg->offset);
+//          memcpy(dst, src, pkglen);
+//          dst += pkglen;
+//          pkg2snd->datalen += pkglen;
+//          pkg = PkgGetNextUnit(pkg);
+//      }
 
-        hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
-        result = IpSend(EN_IPV_4,(ptu32_t)ipdst,(ptu32_t)ipsrc,pkg2snd,pkg2snd->datalen,IPPROTO_ICMP,\
-                CN_IPDEV_ICMPOCHKSUM,&hdr->chksum);
+        hdr = (tagIcmpHdr *)PkgGetCurrentBuffer(pkg2snd);
+//      hdr = (tagIcmpHdr *)(pkg2snd->buf + pkg2snd->offset);
+        result = IpSend(EN_IPV_4,(ptu32_t)ipdst,(ptu32_t)ipsrc,pkg2snd,
+                        PkgGetDataLen(pkg2snd),IPPROTO_ICMP,\
+                        CN_IPDEV_ICMPOCHKSUM,&hdr->chksum);
         PkgTryFreePart(pkg2snd);
     }
     return  result;
@@ -426,7 +435,7 @@ bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,tagNetPkg *pkglst
 // 返回值  ：true数据包已经被缓存或者释放， false数据包没有被缓存或者释放失败
 // 说明    :
 // =============================================================================
-static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, u32 devfunc)
+static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkglst, u32 devfunc)
 {
     bool_t        result;
     tagIcmpHdr     *hdr;
@@ -444,16 +453,18 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, u32 devfunc)
         }
     }
 
-    hdr = (tagIcmpHdr *)(pkglst->buf + pkglst->offset);
-    pkglst->offset += sizeof(tagIcmpHdr);
-    pkglst->datalen -=sizeof(tagIcmpHdr);
+    hdr = (tagIcmpHdr *)PkgGetCurrentBuffer(pkglst);
+//  hdr = (tagIcmpHdr *)(pkglst->buf + pkglst->offset);
+    PkgMoveOffsetUp(pkglst,sizeof(tagIcmpHdr));
+//  pkglst->offset += sizeof(tagIcmpHdr);
+//  pkglst->datalen -=sizeof(tagIcmpHdr);
     switch(hdr->type)
     {
         case EN_ICMP_ECHOREQUEST:
             result = __Icmp_EchoRequest(ipsrc,ipdst,hdr,pkglst);
             break;
         case EN_ICMP_ECHOREPLY:
-            result = __Icmp_EchoReply(ipsrc,ipdst,hdr,pkglst);
+            result = __Icmp_EchoReply(ipsrc,hdr,pkglst);
             break;
         default:
             break;
@@ -462,7 +473,7 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, tagNetPkg *pkglst, u32 devfunc)
     return result;
 }
 
-static bool_t __rcvdeal(tagIpAddr *addr,tagNetPkg *pkglst, u32 devfunc)
+static bool_t __rcvdeal(tagIpAddr *addr,struct NetPkg *pkglst, u32 devfunc)
 {
     bool_t result = false;
     enum_ipv_t  ver;

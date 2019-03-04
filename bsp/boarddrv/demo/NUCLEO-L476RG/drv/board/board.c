@@ -84,7 +84,7 @@ void Board_GpioInit(void)
 #include "tickless.h"
 extern struct IntMasterCtrl  tg_int_global;          //定义并初始化总中断控制结构
 extern void __Djy_ScheduleAsynSignal(void);
-static uint32_t djybsp_user_timer_isr_handle(uint32_t param);
+static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param);
 #define TIME_GLUE           CN_CFG_FINE_US
 #define FAST_TIME_GLUE      CN_CFG_FINE_HZ
 #define TIME_BASE_MIN_GAP   (CN_CFG_TIME_BASE_HZ>Mhz?(CN_CFG_TIME_PRECISION*TIME_GLUE): \
@@ -104,7 +104,7 @@ static void Null_Tick(uint32_t inc_ticks)
     return;
 }
 
-static void djybsp_user_timer_reset(void)
+static void DjyBsp_UserTimerReset(void)
 {
     HardExp_ConnectSystick(Null_Tick);
     pg_systick_reg->ctrl &=   ~((1<<bo_systick_ctrl_enable)
@@ -116,57 +116,57 @@ static void djybsp_user_timer_reset(void)
     djybsp_user_timer.cnt_before = 0;
     djybsp_user_timer.total_cnt = 0;
     /*以上几行是为了兼容旧版本的IBOOT，因为旧版本的IBOOT里面使用了lptimer定时器，打开了该定时器，所以这里要关掉*/
-    djybsp_lptimer_preinit(0);
+    DjyBsp_LptimerPreInit(0);
 }
 
-static void djybsp_user_timer_start(void)
+static void DjyBsp_UserTimerStart(void)
 {
-    djybsp_lptimer_init(0,CN_LIMIT_UINT16,djybsp_user_timer_isr_handle);
+    DjyBsp_LptimerInit(0,CN_LIMIT_UINT16,DjyBsp_UserTimerIsrHandle);
     djybsp_user_timer.reload_value = CN_LIMIT_UINT16;
 }
 
-static uint32_t djybsp_user_timer_get_cnt_max(void)
+static uint32_t DjyBsp_UserTimerGetCntMax(void)
 {
     return (CN_LIMIT_UINT16>>1);
 }
 
-static uint32_t djybsp_user_timer_get_cnt_min(void)
+static uint32_t DjyBsp_UserTimerGetCntMin(void)
 {
     return TIME_BASE_MIN_GAP;
 }
 
-static void djybsp_user_timer_set_reload(uint32_t cnt)
+static void DjyBsp_UserTimerSetReload(uint32_t cnt)
 {
-    if(cnt>djybsp_user_timer_get_cnt_max() || cnt==0)
+    if(cnt>DjyBsp_UserTimerGetCntMax() || cnt==0)
     {
         //理论上不可能出现此事件
         return;
     }
-    djybsp_lptimer_set_reload(0,(uint16_t)cnt);
+    DjyBsp_LptimerSetReload(0,(uint16_t)cnt);
     djybsp_user_timer.reload_value = cnt;
 }
 
-static uint32_t djybsp_user_timer_read_cnt(void)
+static uint32_t Djybsp_UserTimerReadCnt(void)
 {
-    return djybsp_lptimer_read_cnt(0);
+    return DjyBsp_LptimerReadCnt(0);
 }
 
-static uint32_t djybsp_user_timer_get_reload(void)
+static uint32_t DjyBsp_UserTimerGetReload(void)
 {
     return (djybsp_user_timer.reload_value);
 }
 
-static uint64_t djybsp_user_timer_refresh_total_cnt(uint32_t cnt)
+static uint64_t DjyBsp_UserTimerRefreshTotalCnt(uint32_t cnt)
 {
     return (djybsp_user_timer.total_cnt + cnt);
 }
 
-static uint64_t djybsp_user_timer_get_total_cnt(void)
+static uint64_t DjyBsp_UserTimerGetTotalCnt(void)
 {
     uint64_t temp = 0;
     atom_low_t atom_low;
     atom_low = Int_LowAtomStart();
-    temp = djybsp_user_timer.total_cnt + djybsp_lptimer_read_cnt(0);
+    temp = djybsp_user_timer.total_cnt + DjyBsp_LptimerReadCnt(0);
     if(temp < djybsp_user_timer.cnt_before)
     {
         temp += CN_LIMIT_UINT16;
@@ -177,7 +177,7 @@ static uint64_t djybsp_user_timer_get_total_cnt(void)
     return temp;
 }
 
-static uint64_t djybsp_user_timer_us_to_cnt(uint64_t us)
+static uint64_t DjyBsp_UserTimerUsToCnt(uint64_t us)
 {
     uint64_t temp = 0;
     temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
@@ -188,7 +188,7 @@ static uint64_t djybsp_user_timer_us_to_cnt(uint64_t us)
     return temp;
 }
 
-static uint64_t djybsp_user_timer_cnt_to_us(u64 cnt)
+static uint64_t DjyBsp_UserTimerCntToUs(u64 cnt)
 {
     return ((CN_CFG_TIME_BASE_HZ>Mhz)?
             (cnt/(uint32_t)TIME_GLUE):
@@ -197,24 +197,24 @@ static uint64_t djybsp_user_timer_cnt_to_us(u64 cnt)
 
 static struct djytickless_op_t djyticklss_user_timer_op =
 {
-    .get_cnt_max = djybsp_user_timer_get_cnt_max,
-    .get_cnt_min = djybsp_user_timer_get_cnt_min,
-    .get_reload =  djybsp_user_timer_get_reload,
-    .refresh_total_cnt = djybsp_user_timer_refresh_total_cnt,
-    .get_total_cnt = djybsp_user_timer_get_total_cnt,
-    .us_to_cnt = djybsp_user_timer_us_to_cnt,
-    .cnt_to_us = djybsp_user_timer_cnt_to_us,
-    .reset = djybsp_user_timer_reset,
-    .start = djybsp_user_timer_start,
-    .set_reload = djybsp_user_timer_set_reload,
+    .get_cnt_max = DjyBsp_UserTimerGetCntMax,
+    .get_cnt_min = DjyBsp_UserTimerGetCntMin,
+    .get_reload =  DjyBsp_UserTimerGetReload,
+    .refresh_total_cnt = DjyBsp_UserTimerRefreshTotalCnt,
+    .get_total_cnt = DjyBsp_UserTimerGetTotalCnt,
+    .us_to_cnt = DjyBsp_UserTimerUsToCnt,
+    .cnt_to_us = DjyBsp_UserTimerCntToUs,
+    .reset = DjyBsp_UserTimerReset,
+    .start = DjyBsp_UserTimerStart,
+    .set_reload = DjyBsp_UserTimerSetReload,
 };
 
-void djytickless_user_timer_register_op(struct djytickless_op_t **op)
+void DjyTickless_UserTimerRegisterOp(struct djytickless_op_t **op)
 {
     *op = &djyticklss_user_timer_op;
 }
 
-static uint32_t djybsp_user_timer_isr_handle(uint32_t param)
+static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param)
 {
     uint32_t flag = 0;
     uint32_t cnt = 0;
@@ -222,7 +222,7 @@ static uint32_t djybsp_user_timer_isr_handle(uint32_t param)
     param = *(&param);
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
-    flag = djybsp_lptimer_clear_isr_flag(0);
+    flag = DjyBsp_LptimerClearIsrFlag(0);
     switch(flag)
     {
         case CN_LPTIMER_NONE:
@@ -232,7 +232,7 @@ static uint32_t djybsp_user_timer_isr_handle(uint32_t param)
             djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt;
             break;
         case CN_LPTIMER_CMP:
-            cnt = djybsp_user_timer_read_cnt();
+            cnt = Djybsp_UserTimerReadCnt();
             if(djybsp_user_timer.cnt_before > (djybsp_user_timer.total_cnt + cnt))
                 djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt + cnt + CN_LIMIT_UINT16;
             else
@@ -258,8 +258,8 @@ static uint32_t djybsp_user_timer_isr_handle(uint32_t param)
 /*只需重写__InitTimeBase函数就足够了*/
 void __InitTimeBase(void)
 {
-    djytickless_register_op(&djyticklss_user_timer_op);
-    djytickless_reset();
+    DjyTickless_RegisterOp(&djyticklss_user_timer_op);
+    DjyTickless_Reset();
 }
 
 ///////////////////////////////////////////////djy-api end//////////////////////////////////

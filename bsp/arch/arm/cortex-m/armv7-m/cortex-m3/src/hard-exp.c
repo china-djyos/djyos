@@ -176,7 +176,7 @@ void Exp_SystickTickHandler(void)
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
 #if (CN_USE_TICKLESS_MODE)
-    tick = djytickless_get_reload();
+    tick = DjyTickless_GetReload();
     user_systick(tick);
 #else
     user_systick(1);

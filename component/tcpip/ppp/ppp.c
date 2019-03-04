@@ -64,12 +64,14 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netbsp.h>
+#include <arpa/inet.h>
 //add your own specified header here
 #include "iodev.h"
 #include "osarch.h"
 #include "ppp.h"
 #include <shell.h>
 #include "../component_config_tcpip.h"
+#include "../common/netpkg.h"
 
 #include "fcs.h"
 #include "dbug.h"
@@ -137,6 +139,10 @@ typedef struct
     u8 len;  //show how many option item there
     tagOptItem *tab;
 } tagOpts;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //use this function to initialize all the options in lcp ncp
 static void __OptItemInit(tagOptItem *item, u8 type, u8 *value, u8 len,
         u8 status)
@@ -259,8 +265,8 @@ typedef struct {
     fnIORst fniorst;     //used to reset the io device
     fnNetDevEventHook fnevent;
     //defines will not be reset
-    ptu32_t fdio;    //the io device
-    void *fdnet;   //the net device
+    s32 fdio;    //the io device
+    struct NetDev *fdnet;   //the net device
     tagDB debug;     //defines for the ppp debug
     tagRBC rbc;      //receive byte controller
     mutex_t sndmutex;      //do the multiple thread protect
@@ -548,11 +554,10 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
     return ret;
 }
 //here we create a ppp net device to the stack
-static bool_t __NetDevOut(void *dev, tagNetPkg *pkg, u32 framlen,u32 netdevtask) {
+static bool_t __NetDevOut(struct NetDev *dev, struct NetPkg *pkg, u32 framlen,u32 netdevtask) {
     bool_t result;
-    tagNetPkg *tmp;
+    struct NetPkg *tmp;
     u8 *buf;
-    u8 *src;
     u8 *dst;
     u32 cpylen;
     tagPPP *ppp;
@@ -568,18 +573,21 @@ static bool_t __NetDevOut(void *dev, tagNetPkg *pkg, u32 framlen,u32 netdevtask)
         cpylen = 0;
         dst = buf;
         tmp = pkg;
-        while (NULL != tmp) {
-            src = (u8 *) (tmp->buf + tmp->offset);
-            memcpy(dst, src, tmp->datalen);
-            dst += tmp->datalen;
-            cpylen += tmp->datalen;
-            if (tmp->pkgflag & CN_PKLGLST_END) {
-                tmp = NULL;
-            }
-            else {
-                tmp = tmp->partnext;
-            }
-        }
+        cpylen = PkgFrameDataCopy(tmp,dst);
+//        while (NULL != tmp) {
+//            src = (u8 *) (tmp->buf + tmp->offset);
+//            memcpy(dst, src, tmp->datalen);
+//            dst += tmp->datalen;
+//            cpylen += tmp->datalen;
+////          if (tmp->pkgflag & CN_PKLGLST_END)
+//            if(PkgIsBufferEnd(tmp))
+//            {
+//                tmp = NULL;
+//            }
+//            else {
+//                tmp = PkgGetNextUnit(tmp);
+//            }
+//        }
         //send the buf to the ppp
         result = __IoDevOut(ppp, CN_PPP_IP, NULL, buf, cpylen,
                 ppp->accmpeer);
@@ -594,15 +602,17 @@ static bool_t __NetDevOut(void *dev, tagNetPkg *pkg, u32 framlen,u32 netdevtask)
 static bool_t __IpDeal(tagPPP *ppp, tagCH *ch, u8 *data, int len) {
     //we should package the msg and put it to the stack
     u8 *dst;
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     u16 lenframe;
     lenframe = len + sizeof(tagCH);
     ppp->debug.iprcvlen += lenframe;
     pkg = PkgMalloc(lenframe, CN_PKLGLST_END);
     if (NULL != pkg) {
-        dst = pkg->buf + pkg->offset;
+        dst = PkgGetCurrentBuffer(pkg);
+//      dst = pkg->buf + pkg->offset;
         memcpy(dst, (void *) ch, lenframe);
-        pkg->datalen = lenframe;
+        PkgSetDataLen(pkg, lenframe);
+//      pkg->datalen = lenframe;
         NetDevPush(ppp->fdnet, pkg);
         PkgTryFreePart(pkg);
     }
@@ -612,14 +622,14 @@ static bool_t __IpDeal(tagPPP *ppp, tagCH *ch, u8 *data, int len) {
 //      register a rout
 static bool_t __NetDevAdd(tagPPP *ppp) {
     bool_t ret = false;
-    void * dev;
-    tagNetDevPara devpara;
+    struct NetDev* dev;
+    struct NetDevPara devpara;
     //then we will register a loop device to the stack
     memset((void *) &devpara, 0, sizeof(devpara));
     devpara.ifsend = __NetDevOut;
     devpara.iftype = EN_LINK_RAW;
     devpara.name = ppp->namenet;
-    devpara.private =  ppp;
+    devpara.Private =  ppp;
     devpara.mtu = PPP_MTU;
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac, CN_MAC_BROAD, CN_MACADDR_LEN);
@@ -629,7 +639,7 @@ static bool_t __NetDevAdd(tagPPP *ppp) {
     }
     //add the event hook here
     if (NULL != ppp->fnevent) {
-        NetDevRegisterEventHook(dev, NULL, ppp->fnevent);
+        NetDevRegisterEventHook(dev, ppp->fnevent);
     }
     //here means we are successful
     ppp->fdnet = dev;
@@ -832,7 +842,7 @@ static bool_t __LcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
                     RouterRemoveByHandle(ppp->routwan);
                     ppp->routwan = NULL;
                 }
-                NetDevPostEvent(ppp->fdnet, NULL, EN_NETDEVEVENT_IPRELEASE);
+                NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_IPRELEASE);
             }
             __ChangeMS(ppp,EN_PPP_DEAD);
             TCPIP_DEBUG_INC(ppp->debug.termreq);
@@ -958,7 +968,7 @@ static bool_t __NcpDeal(tagPPP *ppp, tagCH *ch, u8 *data, u16 len) {
             DnsSet(EN_IPV_4,&ppp->dnsaddr,NULL);
             __ChangeMS(ppp, EN_PPP_NETWORK);
             //here we call the uplayer that the ip get here
-            NetDevPostEvent(ppp->fdnet, NULL, EN_NETDEVEVENT_IPGET);
+            NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_IPGET);
             break;
         case CONFNAK:
             //modify the request and resend the request
@@ -1103,7 +1113,7 @@ static void __TimeoutCheck(tagPPP *ppp) {
                         RouterRemoveByHandle(ppp->routwan);
                         ppp->routwan = NULL;
                     }
-                    NetDevPostEvent(ppp->fdnet, NULL, EN_NETDEVEVENT_IPRELEASE);
+                    NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_IPRELEASE);
                     TCPIP_DEBUG_INC(ppp->debug.timerst);
                 }
             }
@@ -1290,11 +1300,11 @@ ptu32_t __ClientMain(void) {
         //use the at command to register the module
         if (NULL != ppp->fnio2ppp) {
             if (ppp->fnio2ppp(ppp->nameio, ppp->apn)) {
-                NetDevPostEvent(ppp->fdnet, NULL, EN_NETDEVEVENT_LINKUP);
+                NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_LINKUP);
                 debug_printf("PPP","%s:CHANGE2PPPMODE SUCCESS\n\r", __FUNCTION__);
             }
             else {
-                NetDevPostEvent(ppp->fdnet, NULL, EN_NETDEVEVENT_LINKDOWN);
+                NetDevPostEvent(ppp->fdnet, EN_NETDEVEVENT_LINKDOWN);
                 debug_printf("PPP","%s:CHANGE2PPPMODE FAILED\n\r", __FUNCTION__);
                 continue; //wait for another time
             }
@@ -1324,14 +1334,14 @@ ptu32_t __ClientMain(void) {
     return 0;
 }
 //usage:use this function to start the ppp dev
-bool_t PppDevLinkStart(char *pppdevname) {
+bool_t PppDevLinkStart(void) {
     if (NULL != pPPPClient) {
         pPPPClient->start = true;
     }
     return true;
 }
 //usage:use this function to stop the ppp dev
-bool_t PppDevLinkStop(char *pppdevname) {
+bool_t PppDevLinkStop(void) {
     if (NULL != pPPPClient) {
         pPPPClient->start = false;
     }
@@ -1339,7 +1349,7 @@ bool_t PppDevLinkStop(char *pppdevname) {
 }
 //usage:use this function to check if the ppp dial is ok or not
 //      this function is a block function here
-bool_t PppDevLinkIsOk(char *pppdevname) {
+bool_t PppDevLinkIsOk(void) {
     bool_t result = false;
     if ((NULL != pPPPClient) && (pPPPClient->ms.stat == EN_PPP_NETWORK)) {
         result = true;
@@ -1347,7 +1357,7 @@ bool_t PppDevLinkIsOk(char *pppdevname) {
     return result;
 }
 //usage:use this function to reset the ppp dev,as it create state
-bool_t PppDevLinkRst(char *pppdevname) {
+bool_t PppDevLinkRst(void) {
     //we will do another  register and  ppp negotiation
     if (NULL != pPPPClient) {
         pPPPClient->start = false;
@@ -1391,7 +1401,7 @@ static void __PppShow(tagPPP *ppp)
 bool_t ppp(char *param)
 {
     int argc = 4;
-    const char*argv[4];
+    char*argv[4];
     if (NULL == param) {      //SHOW THE PPP USAGE
         __PppUsage();
     }
@@ -1421,7 +1431,6 @@ bool_t ppp(char *param)
     return true;
 }
 
-
 //this is the initialize function for the ppp module
 static u16 gPppEvttID = CN_EVTT_ID_INVALID;
 #define     CN_PPP_TASKSTACKSIZE      0x800     //the ppp task stack size
@@ -1443,6 +1452,8 @@ bool_t PppInit(void) {
 
     //install the debug shell for the system
         return (TRUE);
+
+    return result;
 }
 //add the device to the task list
 static bool_t __PppAddTask(tagPPP *ppp) {
@@ -1539,6 +1550,4 @@ bool_t PppDevAdd(char *namenet, char *nameio, const char *user,
 }
 ADD_TO_ROUTINE_SHELL(ppp,ppp,"usage:ppp [subcmd subparam]/help");
 
-
-
-
+#pragma GCC diagnostic pop

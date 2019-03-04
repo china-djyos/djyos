@@ -714,7 +714,6 @@ s32 obj_ClrMultiplexEvent(struct obj *ob, u32 events)
 //     mode，所关注的状态，可读、可写、或者其他
 //返回：1=actived，0=unactive
 //------------------------------------------------------------------------------
-#if 0
 s32 issocketactive(s32 Fd, s32 mode)
 {
     struct objhandle *hdl;
@@ -726,7 +725,7 @@ s32 issocketactive(s32 Fd, s32 mode)
     }
     return  0;
 }
-#endif
+
 
 // ============================================================================
 // 功能：打开文件

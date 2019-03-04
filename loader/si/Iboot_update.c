@@ -164,15 +164,23 @@ bool_t updateapp(char *param)
 // 返回：
 // 备注：
 // ============================================================================
+#if !defined(CFG_IBOOT_UPDATE_NAME)
+#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"
+#endif
+
+char iapibootname[512];
+#define IAPBUF_SIZE   512
+bool (*Update_and_run_mode)(char *param);
+
 bool updateiboot(char *param)
 {
+    if(param == NULL)
+        strcpy(iapibootname,CFG_IBOOT_UPDATE_NAME);
+    else
+        strcpy(iapibootname,param);
+   Update_and_run_mode = NULL;
    Lock_SempPost(ptUpdateIbootSemp);
    return true;
-}
-
-bool XIP_UpdateIboot()
-{
-    return (updateiboot(0));
 }
 
 // ============================================================================
@@ -183,302 +191,64 @@ bool XIP_UpdateIboot()
 // ============================================================================
 static ptu32_t __UpdateIboot(void)
 {
-#if 0
-    s32 Dev;
-    DIR *dir;
-    char *path;
-    struct FlashChip *Chip;
-    struct dirent *structDirent;
-    char *buf;
-    char buffer[256];
-    u8 found = 0;
-    struct stat sourceInfo;
-    s32 source = -1;
-    s32 res;
-    u32 Res;
-    u8 RootLen = strlen(CFG_IBOOT_UPDATE_PATH);
-    uint32_t dwPageBytes=0;
-    uint32_t dwPageNo=0;
-    u8 i=0;
-    u32 SectorEnd=0,Remains=0;
-    u32 k=0;
+    FILE *srciboot;
+    FILE *xipiboot;
+    u8 buf[IAPBUF_SIZE];
+    u32 readsize,res;
+    struct stat test_stat;
+    s64 srcsize;
 
     while(1)
     {
        Lock_SempPend(ptUpdateIbootSemp,CN_TIMEOUT_FOREVER);
-       dir=opendir(CFG_IBOOT_UPDATE_PATH);
-       if(dir)
+       stat(iapibootname,&test_stat);
+       srcsize = test_stat.st_size;
+       srciboot = fopen(iapibootname, "r+");
+       if(srciboot==NULL)
        {
-           while((structDirent = readdir(dir)) != NULL)
-           {
-              if(0 == strcmp(structDirent->d_name, CFG_IBOOT_UPDATE_NAME))
-               {
-                  info_printf("IAP","file \"%s\" will be programmed.\r\n",
-                            structDirent->d_name);
-                    found = 1;
-                    break;
-               }
-           }
-           if(!found)
-           {
-               error_printf("IAP","file \"%s\" is not found.\r\n", CFG_IBOOT_UPDATE_NAME);
-               goto END;
-           }
-           path = buffer;
-           strcpy(path, CFG_IBOOT_UPDATE_PATH);
-           strcpy(path+RootLen, "/");
-           strcpy(path+RootLen+1, structDirent->d_name);
-           source = open(path, O_RDONLY);
-           if(-1 == source)
-           {
-               error_printf("IAP","cannot open source file \"%s\".\r\n", path);
-               goto END;
-           }
-           res = fstat(source, &sourceInfo);
-           if(res)
-           {
-               error_printf("IAP","cannot statistics source file \"%s\".\r\n", path);
-               goto END;
-           }
-
-           Dev = open("dev/embedded flash", O_RDWR);
-           if(Dev==-1)
-           {
-               error_printf("IAP","cannot open embedded flash.\r\n");
-              goto END;
-           }
-
-           //Chip=(struct FlashChip *)Dev_GetDevTag(Dev);
-           //if(Chip==NULL)
-           if(-1 == fcntl(Dev, F_GETDRVTAG, &Chip))
-           {
-               goto END;
-           }
-           dwPageBytes=Chip->dwPageBytes;
-           buf=malloc(dwPageBytes);
-           if(buf==NULL)
-           {
-               error_printf("IAP","memroy out.\r\n");
-               goto END;
-           }
-           dwPageNo=gc_ptIbootSize/dwPageBytes;
-           res=Chip->Ops.PageToBlk(dwPageNo,&Remains,&SectorEnd);
-           if(res==-1)
-           {
-               error_printf("IAP","Calculate the flash sector failed.\r\n");
-               goto END;
-           }
-           dwPageNo=0;
-           for(i=0;i<SectorEnd;i++)
-           {
-               res=Chip->Ops.ErsBlk(i);
-               if(res==-1)
-               {
-                   error_printf("IAP","Erase the sector failed.\r\n");
-                   goto END;
-               }
-           }
-           while(1)
-           {
-               res = read(source, buf, dwPageBytes);
-               if(!res)
-               {
-                   error_printf("IAP","read source file error.\r\n");
-                    break; // 没有数据可读
-               }
-               sourceInfo.st_size -= res; // 剩余
-               if(res<dwPageBytes)
-               {
-                   for(k=res;k<dwPageBytes;k++)
-                   {
-                       buf[k]=0xFF;
-                   }
-               }
-               Res=Chip->Ops.WrPage(dwPageNo,buf,NO_ECC);
-               if((res !=Res)&&(Res!=dwPageBytes))
-               {
-                   error_printf("IAP","write destination file error.\r\n");
-                    goto END;
-               }
-               dwPageNo++;
-               if(!sourceInfo.st_size)
-               {
-                   error_printf("IAP","Iboot update success.\r\n");
-                   goto END; // 全部读完
-               }
-
-           }
-
-END:
-            closedir(dir);
-            if(-1 != source)
-            {
-                res = close(source);
-                if(res)
-                {
-                    debug_printf("IAP","close source file failed.\r\n");
-                }
-            }
+           error_printf("IAP","file \"%s\" is not found.\r\n", CFG_IBOOT_UPDATE_NAME);
+           break;
        }
-    }
-}
-
-
-// ============================================================================
-// 功能：从文件中加载APP并运行。(判断是否需要从文件系统中加载APP并执行)
-// 参数：无。
-// 返回：无。
-// 备注：当IAP加载模式为LoadFromData时，只有满足以下三个条件：1.运行APP；2.IAP加载模
-//      式为LoadFromData；3.APP文件存在.才会从文件中加载到RAM中运行。
-// ============================================================================
-bool_t IAP_LoadAPPFromFile(void)
-{
-    bool_t result = true;
-    char *Buf;
-    u32 crc,len,addr;
-    FILE *fp;
-    struct stat FpInfo;
-
-    //首先判断是否需要进入APP状态
-    result = IAP_IsForceIboot();
-    if(result)
-    {
-        pg_IapVar.IbootStatus=EN_FORCE_IBOOT;
-        result = false;  //运行Iboot
-    }
-    else
-    {
-        result=XIP_IsRamIbootFlag();
-        if(result)
-        {
-            pg_IapVar.IbootStatus=EN_RAM_IBOOT_FLAG;
-            result = false;   //运行Iboot
-        }
-        else
-        {
-#if (CFG_APP_RUNMODE == EN_FORM_FILE)
-           fp=fopen(CFG_APP_FILENAME,"r");
-           if(fp==NULL)
+       xipiboot = fopen("/xip-iboot/iboot.bin", "r+");
+       if(srciboot==NULL)
+       {
+           error_printf("IAP","cannot open source file xip-iboot .\r\n");
+           break;
+       }
+       while(1)
+       {
+           readsize = fread(buf, 1, IAPBUF_SIZE, srciboot);
+           if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
            {
-               result = false;
-               pg_IapVar.IbootStatus = EN_FILE_NO_EXSIT_ERR;
-               goto LOAD_FILE_EXIT;
+               printf("Iap read file %s error \n\r",iapibootname);
+               break;
+           }
+           if(readsize != IAPBUF_SIZE)
+           {
+               printf("read file %s End \r\n ",iapibootname);
            }
 
-           addr=XIP_GetAPPStartAddr() - 0x100;
-           Buf=(char *)addr;
-
-           fread(Buf,0x100,1,fp);           //read the 256 byte file info
-
-           fseek(fp,0,0);
-
-           if(XIP_APPIsDebug())             //dbg not need crc
+           res = fwrite(buf, 1, readsize, xipiboot);
+           if(res != readsize)
            {
-                if(0 == stat(CFG_APP_FILENAME,&FpInfo))
-                {
-                    len = (u32)FpInfo.st_size;
-                }
-                else
-                {
-                    fclose(fp);
-                    result = false;
-                    pg_IapVar.IbootStatus = EN_BIN_INCOMPLETED_ERR;
-                    goto LOAD_FILE_EXIT;
-                }
-                fread(Buf,len,1,fp);
+               printf("write file xip-iboot error  \r\n ");
            }
-           else
+           srcsize -= readsize;
+           if(srcsize == 0)
            {
-               len=XIP_GetAPPSize();
-               fread(Buf,len,1,fp);
-               crc=crc32_buf(Buf,len);
-               if(crc!=gc_ptIbootCtrl.Iap_crc)
-               {
-                   fclose(fp);
-                   result = false;
-                   pg_IapVar.IbootStatus = EN_CRC_ERR;
-                   goto LOAD_FILE_EXIT;
-               }
+               info_printf("IAP","Iboot update success.\r\n");
+               break;
            }
-           pg_IapVar.IbootStatus = EN_LOAD_FROM_DATA_MODE;
-           pg_IapVar.RunMode = CN_IAP_MODE_APP;
-#if(CN_CPU_OPTIONAL_CACHE==1)
- Cache_CleanData();
- Cache_InvalidInst();
-#endif
-            __AppStart();
-            return true;        //clear compile warning
-#endif
-        }
+       }
+       fclose(srciboot);
+       fclose(xipiboot);
+       if(srcsize !=0)
+           error_printf("IAP","Iboot update error .\r\n");
+       else if(Update_and_run_mode != NULL)
+           Update_and_run_mode(NULL);
 
     }
-LOAD_FILE_EXIT:
-    pg_IapVar.RunMode = CN_IAP_MODE_IBOOT;
-    return result;
-#endif
     return 0;
-}
-
-
-
-
-// ============================================================================
-// 功能：通过模式一升级应用程序
-// 参数：pPath -- 文件所在路径
-// 返回：成功（0）；失败（-1）；
-// 备注：
-// ============================================================================
-void UpdateApplication(void)
-{
-/*    bool_t doUpdate;
-    s32 res;
-    u8 doPrint = 1;
-    doUpdate = HAL_CheckUpdateFlag();
-    if(doUpdate)
-    {
-        if(doPrint)
-        {
-            debug_printf("IAP","APP need update(flag).");
-            doPrint = 0;
-        }
-
-        res = IAP_Update(2, IAP_GetMethod(), IAP_GetPath());
-        if(res != -1)
-        {
-            HAL_ClrUpdateFlag();
-            debug_printf("IAP","APP update succeed. Now going to running APP in 5 seconds.\r\n");
-            Djy_EventDelay(5000*mS);
-            RunApp();
-        }
-        else
-        {
-            debug_printf("IAP","APP update failed. will retry.");
-        }
-    }
-    else if(pg_IapVar.IbootStatus==EN_CRC_ERR)
-    {
-        if(doPrint)
-        {
-            debug_printf("IAP","APP need update(status).");
-            doPrint = 0;
-        }
-        res = IAP_Update(2, IAP_GetMethod(), IAP_GetPath());
-        if(res != -1)
-        {
-            debug_printf("IAP","APP update succeed. Now going to running APP in 5 seconds.\r\n");
-            Djy_EventDelay(5000*mS);
-            RunApp();
-        }
-        else
-        {
-            debug_printf("IAP","APP update failed. will retry.");
-        }
-    }
-    else
-    {
-
-    }
-    */
 }
 // ============================================================================
 // 功能：安装IAP组件。
@@ -488,7 +258,7 @@ void UpdateApplication(void)
 // ============================================================================
 ptu32_t ModuleInstall_IAP(void)
 {
- /*   uint16_t evtt_id,event_id;
+     uint16_t evtt_id,event_id;
     ptUpdateIbootSemp=Lock_SempCreate(1,0,CN_BLOCK_FIFO,"UpdateIbootSemp");
     if(ptUpdateIbootSemp==NULL)
     {
@@ -505,15 +275,15 @@ ptu32_t ModuleInstall_IAP(void)
         Djy_EvttUnregist(evtt_id);
         debug_printf("IAP","Update Iboot evtt pop failed.\r\n");
     }
-    */
+
     return 0;
 }
 
 ADD_TO_ROUTINE_SHELL(runiboot,runiboot,NULL);
 ADD_TO_ROUTINE_SHELL(runapp,runapp,"直接运行APP(仅在采取内存标示确定加载项目时有效)");
-ADD_TO_ROUTINE_SHELL(runibootui,runibootui,"设置运行iboot并更新iboot并升级iboot");
-ADD_TO_ROUTINE_SHELL(updateruniboot,updateruniboot,"设置运行iboot并升级iboot");
-ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
+//ADD_TO_ROUTINE_SHELL(runibootui,runibootui,"设置运行iboot并更新iboot并升级iboot");
+//ADD_TO_ROUTINE_SHELL(updateruniboot,updateruniboot,"设置运行iboot并升级iboot");
+//ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
 ADD_TO_ROUTINE_SHELL(updateiboot,updateiboot,"Update Iboot.");
 
 

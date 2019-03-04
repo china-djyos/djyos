@@ -131,7 +131,7 @@ static tagEnetCfg s_EnetConfig = {"ENET",MAC_RMII,AUTONEG_ON,MII_100BASET,
 // =============================================================================
 static struct SemaphoreLCB *pEnetRcvSync;
 static struct MutexLCB     *pEnetSndSync;
-static ptu32_t              gEnetHandle = NULL;
+static struct NetDev       *gEnetHandle = NULL;
 // 该指针初始化到按16字节对齐的BD表
 #ifdef __GNUC__
 static u8 txbd[(sizeof(NBUF) * NUM_TXBDS)] __attribute__ ((aligned(16)));
@@ -634,9 +634,9 @@ static void Enet_MAC_Init(void)
 // 参数：packet,接收到数据的首地址
 // 返回：接收到数据包长度，最大不会超过1518字节
 // =============================================================================
-static tagNetPkg *__Enet_RcvPacket(ptu32_t handle)
+static struct NetPkg *__Enet_RcvPacket(struct NetDev *handle)
 {
-    tagNetPkg *pkg=NULL;
+    struct NetPkg *pkg=NULL;
     int LastBuffer,length,len,RxBdIndex;
     u16 status;
     u8 *rcvbuf = NULL;
@@ -675,9 +675,8 @@ static tagNetPkg *__Enet_RcvPacket(ptu32_t handle)
         pkg =PkgMalloc(length,CN_PKLGLST_END);
         if(NULL != pkg)
         {
-            rcvbuf = (u8 *)(pkg->buf + pkg->offset);
-            pkg->datalen = length;
-            pkg->partnext= NULL;
+            rcvbuf = PkgGetBuffer(pkg);
+            PkgSetDataLen(pkg, length)
         }
         else
         {
@@ -767,10 +766,10 @@ u32 Enet_ErrISR(ufast_t IntLine)
 // 输出参数：
 // 返回值  ：true发送成功  false发送失败。
 // =============================================================================
-static bool_t Enet_SendPacket(ptu32_t hanlde,tagNetPkg * pkglst,u32 framlen, u32 netdevtask)
+static bool_t Enet_SendPacket(ptu32_t hanlde,struct NetPkg * pkglst,u32 framlen, u32 netdevtask)
 {
     bool_t  result = false;
-    tagNetPkg *tmppkg;
+    struct NetPkg *tmppkg;
     u32 TxBdIndex;
 
     u8  *dst,*src;
@@ -790,28 +789,31 @@ static bool_t Enet_SendPacket(ptu32_t hanlde,tagNetPkg * pkglst,u32 framlen, u32
             pkglen = 0;
             len =0;
             tmppkg = pkglst;
-            do{
-                //拷贝数据
-                src = (tmppkg->buf + tmppkg->offset);
-                len = tmppkg->datalen;
-                memcpy((void *)dst,(void *)src,len);
-                dst += len;
-                pkglen+=len;
-                if(pkglen > TX_BUFFER_SIZE)
-                {
-                    break;//溢出
-                }
-
-                if(PKG_ISLISTEND(tmppkg))
-                {
-                    tmppkg = NULL;
-                    break;
-                }
-                else
-                {
-                    tmppkg = tmppkg->partnext;
-                }
-            }while(tmppkg != NULL);
+            pkglen = PkgFrameDataCopy(tmppkg,dst);
+//            do{
+//                //拷贝数据
+//                src = PkgGetCurrentBuffer(tmppkg);
+////              src = (tmppkg->buf + tmppkg->offset);
+//                len = PkgGetDataLen(tmppkg);
+////              len = tmppkg->datalen;
+//                memcpy((void *)dst,(void *)src,len);
+//                dst += len;
+//                pkglen+=len;
+//                if(pkglen > TX_BUFFER_SIZE)
+//                {
+//                    break;//溢出
+//                }
+//
+//                if(PkgIsBufferEnd(tmppkg))
+//                {
+//                    tmppkg = NULL;
+//                    break;
+//                }
+//                else
+//                {
+//                    tmppkg = PkgGetNextUnit(tmppkg);
+//                }
+//            }while(tmppkg != NULL);
 
             spTxBdTab[TxBdIndex].status = TX_BD_TC | TX_BD_R | TX_BD_L;
             spTxBdTab[TxBdIndex].length = ENET_REVSH(pkglen);
@@ -847,7 +849,7 @@ static bool_t Enet_SendPacket(ptu32_t hanlde,tagNetPkg * pkglst,u32 framlen, u32
 // =============================================================================
 static ptu32_t __GmacRcvTask(void)
 {
-    tagNetPkg *pkg;
+    struct NetPkg *pkg;
     while(1)
     {
         Lock_SempPend(pEnetRcvSync,CN_TIMEOUT_FOREVER);
@@ -864,7 +866,7 @@ static ptu32_t __GmacRcvTask(void)
 // 参数：网卡
 // 返回：true
 // =============================================================================
-static bool_t __CreateRcvTask(ptu32_t nethandle)
+static bool_t __CreateRcvTask(struct NetDev *nethandle)
 {
     bool_t result = false;
     u16 evttID;
@@ -887,11 +889,11 @@ static bool_t __CreateRcvTask(ptu32_t nethandle)
     return result;
 }
 
-bool_t Enet_Ctrl(ptu32_t handle,u8 cmd, ptu32_t para)
+bool_t Enet_Ctrl(struct NetDev *handle,u8 cmd, ptu32_t para)
 {
     atom_low_t  atom;
     bool_t result = false;
-    if(0 != handle)
+    if(NULL != handle)
     {
         switch(cmd)
         {
@@ -921,7 +923,7 @@ bool_t Enet_Ctrl(ptu32_t handle,u8 cmd, ptu32_t para)
 // =============================================================================
 static bool_t Enet_AddNetDev(void)
 {
-    tagNetDevPara   devpara;
+    struct NetDevPara   devpara;
 
     //创建发送和接收同步量
     pEnetRcvSync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);
@@ -942,9 +944,8 @@ static bool_t Enet_AddNetDev(void)
     devpara.devfunc = 0;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, s_EnetConfig.mac,6);
     devpara.name = (char *)(s_EnetConfig.name);
-    devpara.private = 0;
     devpara.mtu = CN_PKG_MAX_LEN;
-    devpara.private = (u32)NULL;
+    devpara.Private = (u32)NULL;
     gEnetHandle = NetDevInstall(&devpara);
     if(0 == gEnetHandle)
     {

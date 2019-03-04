@@ -80,16 +80,10 @@ SECTIONS
         *libos_Iboot.a:heap-static.o (.data .data.*)
         *libos_Iboot.a:list.o (.data .data.*)
     }>RAM1 AT>InnerFlash
-	
+
     rw_nocache_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x20);
-        KEEP(* (.nocacheram.DMARxDscrTab*))
-        KEEP(* (.nocacheram.DMATxDscrTab*))
-        . = ALIGN(0x200);
-        KEEP(* (.nocacheram.Rx_Buff*))
-        . = ALIGN(0x200);
-        KEEP(* (.nocacheram.TxBuffer*))
         KEEP(* (.nocacheram .nocacheram.*))
     }>RAM1NOCACHE
 

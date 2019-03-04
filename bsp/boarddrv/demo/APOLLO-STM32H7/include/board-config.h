@@ -64,14 +64,15 @@
 extern "C" {
 #endif
 
-#define DJY_BOARD    "STM32H743I-EVAL"
+#define DJY_BOARD    "APOLLO-STM32H7"
 
 #define Mhz 1000000
 #define CN_CFG_MCLK (400*Mhz)  //主频，内核要用，必须定义
 #define CN_CFG_FCLK CN_CFG_MCLK  //cm7自由运行外设时钟
 #define BOARD_MCK   (CN_CFG_MCLK/2) //的MCK
 
-
+#define CN_CFG_PCLK1  (CN_CFG_MCLK/4)
+#define CN_CFG_PCLK2  (CN_CFG_MCLK/2)
 
 #define CN_CFG_SYS_CLK     CN_CFG_MCLK
 #define CN_CFG_AXI_CLK    (CN_CFG_MCLK/2)
@@ -122,7 +123,7 @@ extern "C" {
 #define CN_LCD_XSIZE   ((uint16_t)1024)             /* LCD PIXEL WIDTH */
 #define CN_LCD_YSIZE   ((uint16_t)600)             /* LCD PIXEL HEIGHT*/
 
-#define CN_CAN_NUM
+#define CN_CAN_NUM      2
 
 #ifdef __cplusplus
 }

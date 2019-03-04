@@ -318,9 +318,9 @@ typedef struct
     u16 portlocal;
     u16 portremote;
 }tagSockElementV4;
-#define INET_ADDRSTRLEN 16 /* for IPv4 dotted-decimal */
-#define CN_IPV6_LEN_WORD    4
-#define INET6_ADDRSTRLEN    46
+#define INET_ADDRSTRLEN 16      //IPv4点分十进制地址长度
+#define CN_IPV6_LEN_WORD    4   // u32 表示的ipv6地址长度
+#define INET6_ADDRSTRLEN    46  //IPv6点分十进制地址最大长度
 typedef struct
 {
     u32 iplocal[CN_IPV6_LEN_WORD];
@@ -335,65 +335,64 @@ typedef union
     tagSockElementv6  v6;
 }uSockElement;
 
-typedef struct Socket tagSocket;
 //传输层协议接口定义
 //传输层定义的接口,各个传输层协议，比方TCP,UDP等必须按照这个接口来实现
 //对于不需要的函数接口，可以置空
 //返回值为标准的BSD返回值
-typedef struct TlayerProto
+struct TPL_ProtocalOps
 {
     //创建一个套接字
-    tagSocket* (*socket)(int family, int type, int protocol);
+    struct Socket* (*__socket)(int family, int type, int protocol);
     //绑定一个端口号
-    int (*bind)(tagSocket *sockfd,struct sockaddr *myaddr, int addrlen);
+    int (*__bind)(struct Socket *sockfd,struct sockaddr *myaddr, int addrlen);
     //让一个端口处于监听状态
-    int (*listen)(tagSocket *sockfd, int backlog);
+    int (*__listen)(struct Socket *sockfd, int backlog);
     //让一个主机端处于接收状态(服务器才会)
-    tagSocket* (*accept)(tagSocket *sockfd, struct sockaddr *addr, int *addrlen);
+    struct Socket* (*__accept)(struct Socket *sockfd, struct sockaddr *addr, int *addrlen);
     //让一个客户端去链接服务器
-    int (*connect)(tagSocket *sockfd, struct sockaddr *serv_addr, int addrlen);
+    int (*__connect)(struct Socket *sockfd, struct sockaddr *serv_addr, int addrlen);
     //发送数据
-    int (*send)(tagSocket *sockfd, const void *msg, int len, int flags);
+    int (*__send)(struct Socket *sockfd, const void *msg, int len, int flags);
     //接收数据
-    int (*recv)(tagSocket *sockfd, void *buf,int len, unsigned int flags);
+    int (*__recv)(struct Socket *sockfd, void *buf,int len, unsigned int flags);
     //直接发送数据到目的端
-    int (*sendto)(tagSocket * sockfd, const void *msg,int len, unsigned int flags,\
+    int (*__sendto)(struct Socket * sockfd, const void *msg,int len, unsigned int flags,\
               const struct sockaddr *addr, int addrlen);
     //直接从目的端读取数据
-    int (*recvfrom)(tagSocket * sockfd,void *buf, int len, unsigned int flags,\
+    int (*__recvfrom)(struct Socket * sockfd,void *buf, int len, unsigned int flags,\
                 struct sockaddr *addr, int *addrlen);
     //关闭一个套接口
 #define SHUT_RD   0  //关闭读
 #define SHUT_WR   1  //关闭写
 #define SHUT_RDWR 2  //关闭读写
-    int (*shutdown)(tagSocket *sockfd, u32 how);
-    int (*close)(tagSocket *sockfd);
-    int (*isactive)(tagSocket *sockfd,int mode);
+    int (*__shutdown)(struct Socket *sockfd, u32 how);
+    int (*__close)(struct Socket *sockfd);
+    int (*isactive)(struct Socket *sockfd,int mode);
     //设置套接字选项
-    int (*setsockopt)(tagSocket *sockfd, int level, int optname,\
+    int (*__setsockopt)(struct Socket *sockfd, int level, int optname,\
                    const void *optval, int optlen);
     //获取套接字选项
-    int (*getsockopt)(tagSocket *sockfd, int level, int optname, void *optval,\
+    int (*__getsockopt)(struct Socket *sockfd, int level, int optname, void *optval,\
                    int *optlen);
-    void (*debuginfo)(tagSocket *sockfd,char *filter);
-}tagTlayerProto;
+    void (*__debuginfo)(struct Socket *sockfd,char *filter);
+};
 
 struct Socket
 {
     //the following used by the proto
-    void                           *obj;     //used for the socket layqueue
-    struct Socket                  *nxt;         //nxt node
-    struct MutexLCB                *sync;         //used to protect the socket
-    tagTlayerProto                 *proto;        //protocol for the socket
-    void                           *cb;           //the control node
-    struct MultiplexObjectCB       *ioselect;     //used for the select;
-    u32                             iostat;       //used for the select stat;
+//  void                           *SockObj;      //used for the socket layqueue
+    s32                             sockfd;       //socket对应的文件指针
+    struct Socket                  *Nextsock;     //nxt node
+    struct MutexLCB                *SockSync;     //used to protect the socket
+    struct TPL_ProtocalOps         *ProtocolOps;  //传输层操作函数集
+    void                           *TplCB;        //传输层协议控制块指针，类型由具体传输层解析
+//  struct MultiplexObjectCB       *ioselect;     //used for the select;
+//  u32                             IoInitstat;   //多路复用状态，如 CN_SOCKET_IOREAD
     u32                             errorno;      //record the socket errorno
-    u32                             sockstat;     //which used by the specified protocal
-    u32                             sockfd;       //the socket user fd
-    ptu32_t                         private;      //used for the user, we could know who use the
-                                                  //socket to communicate
-    int                             af_inet;      //AF_FAMILY
+    u32                             sockstat;     //socket状态，如 CN_SOCKET_OPEN
+    ptu32_t                         SockUserTag;  //由用户决定怎么用
+    //下面是协议地址，考虑把它挪到网络层去
+    int                             af_inet;      //地址族，如 AF_INET
     uSockElement                    element;      //socket addr
 };
 
@@ -409,11 +408,9 @@ struct linger
 #define CN_SOCKET_PORT_INVALID   0x0
 #define CN_SOCKET_PORT_LIMIT     0xFFFF
 
-//the sock layer only supply the sock malloc and free
-tagSocket *socket_malloc(void);
-bool_t     socket_free(tagSocket *sock);
-bool_t     socket_setsatus(tagSocket *sock,u32 status);
-bool_t     socket_clrsatus(tagSocket *sock,u32 status);
+struct Socket *SocketBuild(void);
+bool_t SocketFree(struct Socket *sock);
+
 //FOR ALL THE APPLICATIONS, ONLY THE FOLLOWING INTERFACE COULD BE USED
 int socket(int family, int type, int protocol);
 int bind(int sockfd,struct sockaddr *addr, int addrlen);
@@ -436,83 +433,90 @@ int getsockopt(int sockfd, int level, int optname, void *optval,int *optlen);
 bool_t Socket_MultiplexAdd(struct MultiplexSetsCB *MultiplexSets,
                            int sock,u32 SensingBit);
 bool_t Socket_MultiplexDel(struct MultiplexSetsCB *MultiplexSets,int sock);
-ptu32_t socket_setprivate(int sock, ptu32_t private);
+ptu32_t socket_setprivate(int sock, ptu32_t Private);
 ptu32_t socket_getprivate(int sock);
-int issocketactive(int sockfd, int mode);
 void sockinfo(int sockfd,char *filter);
 bool_t sockallinfo(char *param);
 int getsockname(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 
-//THIS IS THE COMPORT DEFINES FOR THE FREE SOFTWARE**********************//
-//fcntl.h
-/* open/fcntl - O_SYNC is only implemented on blocks devices and on files
-   located on an ext2 file system */
-#ifndef O_ACCMODE
-#define O_ACCMODE   00000003
-#endif
+////THIS IS THE COMPORT DEFINES FOR THE FREE SOFTWARE**********************//
+////fcntl.h
+///* open/fcntl - O_SYNC is only implemented on blocks devices and on files
+//   located on an ext2 file system */
+//#ifndef O_ACCMODE
+//#define O_ACCMODE   00000003
+//#endif
+//
+//#ifndef O_RDONLY
+//#define O_RDONLY    00000000
+//#endif
+//
+//#ifndef O_WRONLY
+//#define O_WRONLY    00000001
+//#endif
+//
+//#ifndef O_RDWR
+//#define O_RDWR      00000002
+//#endif
+//
+//
+//#ifndef O_CREAT
+//#define O_CREAT     00000100    /* not fcntl */
+//#endif
+//#ifndef O_EXCL
+//#define O_EXCL      00000200    /* not fcntl */
+//#endif
+//#ifndef O_NOCTTY
+//#define O_NOCTTY    00000400    /* not fcntl */
+//#endif
+//#ifndef O_TRUNC
+//#define O_TRUNC     00001000    /* not fcntl */
+//#endif
+//#ifndef O_APPEND
+//#define O_APPEND    00002000
+//#endif
+//#ifndef O_NONBLOCK
+//#define O_NONBLOCK  00004000
+//#endif
+//#ifndef O_SYNC
+//#define O_SYNC      00010000
+//#endif
+//#ifndef FASYNC
+//#define FASYNC      00020000    /* fcntl, for BSD compatibility */
+//#endif
+//#ifndef O_DIRECT
+//#define O_DIRECT    00040000    /* direct disk access hint */
+//#endif
+//#ifndef O_LARGEFILE
+//#define O_LARGEFILE 00100000
+//#endif
+//#ifndef O_DIRECTORY
+//#define O_DIRECTORY 00200000    /* must be a directory */
+//#endif
+//#ifndef O_NOFOLLOW
+//#define O_NOFOLLOW  00400000    /* don't follow links */
+//#endif
+//#ifndef O_NOATIME
+//#define O_NOATIME   01000000
+//#endif
+//#ifndef O_CLOEXEC
+//#define O_CLOEXEC   02000000    /* set close_on_exec */
+//#endif
+//#ifndef O_NDELAY
+//#define O_NDELAY    O_NONBLOCK
+//#endif
+//
+//#ifndef FD_CLOEXEC
+//#define FD_CLOEXEC     (1<<0)
+//#endif
+//
+//#ifndef FD_SETSIZE
+//#define FD_SETSIZE     (10)    //the mac select num
+//#endif
 
-#ifndef O_RDONLY
-#define O_RDONLY    00000000
-#endif
-
-#ifndef O_WRONLY
-#define O_WRONLY    00000001
-#endif
-
-#ifndef O_RDWR
-#define O_RDWR      00000002
-#endif
-
-
-#ifndef O_CREAT
-#define O_CREAT     00000100    /* not fcntl */
-#endif
-#ifndef O_EXCL
-#define O_EXCL      00000200    /* not fcntl */
-#endif
-#ifndef O_NOCTTY
-#define O_NOCTTY    00000400    /* not fcntl */
-#endif
-#ifndef O_TRUNC
-#define O_TRUNC     00001000    /* not fcntl */
-#endif
-#ifndef O_APPEND
-#define O_APPEND    00002000
-#endif
-#ifndef O_NONBLOCK
-#define O_NONBLOCK  00004000
-#endif
-#ifndef O_SYNC
-#define O_SYNC      00010000
-#endif
-#ifndef FASYNC
-#define FASYNC      00020000    /* fcntl, for BSD compatibility */
-#endif
-#ifndef O_DIRECT
-#define O_DIRECT    00040000    /* direct disk access hint */
-#endif
-#ifndef O_LARGEFILE
-#define O_LARGEFILE 00100000
-#endif
-#ifndef O_DIRECTORY
-#define O_DIRECTORY 00200000    /* must be a directory */
-#endif
-#ifndef O_NOFOLLOW
-#define O_NOFOLLOW  00400000    /* don't follow links */
-#endif
-#ifndef O_NOATIME
-#define O_NOATIME   01000000
-#endif
-#ifndef O_CLOEXEC
-#define O_CLOEXEC   02000000    /* set close_on_exec */
-#endif
 #ifndef O_NDELAY
 #define O_NDELAY    O_NONBLOCK
-#endif
-
-#ifndef FD_CLOEXEC
-#define FD_CLOEXEC     (1<<0)
 #endif
 
 #ifndef FD_SETSIZE
@@ -523,7 +527,7 @@ int getpeername(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
 //select.h
 #include <sys/time.h>
 #define CN_SELECT_MAXNUM      FD_SETSIZE
-#define CN_SELECT_TIMEDEFAULT 10
+//#define CN_SELECT_TIMEDEFAULT 10
 typedef struct
 {
     int  mode;

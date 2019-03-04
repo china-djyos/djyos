@@ -55,39 +55,66 @@
 
 #include "../common/link.h"
 
-
 //first we should implement the device layer
-typedef struct
+struct NetDev
 {
-    void                         *nxt;                    //dev chain
-    char                           name[CN_TCPIP_NAMELEN]; //dev name
-    u8                             iftype;   //dev type
-    fnIfSend                       ifsend;   //dev snd function
-    fnIfRecv                       ifrecv;   //dev receive function
-    fnIfCtrl                       ifctrl;   //dev ctrl or stat get fucntion
-    void                          *linkops;  //dev link operations
-    fnNetDevEventHook              eventhook;//dev event hook dealer
-    u32                            devfunc;  //dev hard function,such as tcp chksum
-    u16                            mtu;      //dev mtu
-    void                          *private;  //the dev driver use this to has its owner property
-    u8                             mac[CN_MACADDR_LEN];   //mac address
+    void                *nxt;                    //dev chain
+    char                name[CN_TCPIP_NAMELEN]; //dev name
+    u8                  iftype;   //dev type
+    fnIfSend            ifsend;   //dev snd function
+//  fnIfRecv            ifrecv;   //dev receive function
+    fnIfCtrl            ifctrl;   //dev ctrl or stat get fucntion
+    struct LinkOps     *linkops;  //dev link operations
+    fnNetDevEventHook   eventhook;//dev event hook dealer
+    u32                 devfunc;  //dev hard function,such as tcp chksum
+    u16                 mtu;      //dev mtu
+    void                *Private;  //the dev driver use this to has its owner property
+    u8                  mac[CN_MACADDR_LEN];   //mac address
     //the following used to debug the net device,show some main status
-    u32                            pkgsnd;     //frame send
-    u32                            pkgsnderr;  //frame snd failed
-    u32                            pkgrcv;     //frame receive
-    u32                            pkgrcverr;  //frame receive err
-}tagNetDev;
+    u32                 pkgsnd;     //frame send
+    u32                 pkgsnderr;  //frame snd failed
+    u32                 pkgrcv;     //frame receive
+    u32                 pkgrcverr;  //frame receive err
+};
 typedef struct
 {
     mutex_t   lock;
-    tagNetDev *lst;
+    struct NetDev *lst;
 }tagNetDevCB; //interface controller
 static tagNetDevCB gIfaceCB;
-//this function used to get the specified dev
-static tagNetDev* __IfGet(const char *name)
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+void NetDevPkgsndInc(struct NetDev *iface)
 {
-    tagNetDev* ret = NULL;
-    tagNetDev* tmp = gIfaceCB.lst;
+    iface->pkgsnd++;
+}
+
+void NetDevPkgsndErrInc(struct NetDev *iface)
+{
+    iface->pkgsnderr++;
+}
+
+void NetDevPkgrcvInc(struct NetDev *iface)
+{
+    iface->pkgrcv++;
+}
+
+void NetDevPkgrcvErrInc(struct NetDev *iface)
+{
+    iface->pkgrcverr++;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 通过名字获取网卡设备控制块指针。
+//参数: name，网卡名，NULL则返回第一块网卡
+//返回: 网卡指针
+//-----------------------------------------------------------------------------
+static struct NetDev* __IfGet(const char *name)
+{
+    struct NetDev* ret = NULL;
+    struct NetDev* tmp = gIfaceCB.lst;
     if(NULL == name)
     {
         ret = gIfaceCB.lst;
@@ -113,108 +140,47 @@ static tagNetDev* __IfGet(const char *name)
 
 
 //use this function to send a package from the net device layer
-bool_t NetDevSend(void *iface,tagNetPkg *pkg,u32 framelen,u32 devtask)
-{
-    bool_t ret = false;
-    tagNetDev* dev;
-    dev = iface;
-    if((NULL != dev)&&(NULL != dev->ifsend))
-    {
-        TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgsnd);
-        ret =dev->ifsend(iface,pkg,framelen,devtask);
-        if(ret == false)
-        {
-            TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgsnderr);
-        }
-    }
-    return ret;
-}
+//bool_t NetDevSend(struct NetDev *iface,struct NetPkg *pkg,u32 framelen,u32 devtask)
+//{
+//    bool_t ret = false;
+//
+//    if((NULL != iface)&&(NULL != iface->ifsend))
+//    {
+//        TCPIP_DEBUG_INC((iface)->pkgsnd);
+//        ret =iface->ifsend(iface,pkg,framelen,devtask);
+//        if(ret == false)
+//        {
+//            TCPIP_DEBUG_INC((iface)->pkgsnderr);
+//        }
+//    }
+//    return ret;
+//}
 //use this function to receive a package from the net device layer
-bool_t NetDevPush(void *iface,tagNetPkg *pkg)
+//bool_t NetDevPush(void *iface,struct NetPkg *pkg)
+//{
+//    bool_t ret = false;
+//    if(NULL != iface)
+//    {
+//        TCPIP_DEBUG_INC(((struct NetDev *)iface)->pkgrcv);
+//        ret = LinkDeal(iface,pkg);
+//        if(ret == false)
+//        {
+//            TCPIP_DEBUG_INC(((struct NetDev *)iface)->pkgrcverr);
+//        }
+//    }
+//    return ret;
+//}
+
+//-----------------------------------------------------------------------------
+//功能: 通过网卡设备控制块指针获取网卡名
+//参数: DevFace，网络控制块指针
+//返回: 网卡名
+//-----------------------------------------------------------------------------
+const char *NetDevName(struct NetDev *DevFace)
 {
-    bool_t ret = false;
-    if(NULL != iface)
+    if(NULL!= DevFace)
     {
-        TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgrcv);
-        ret = LinkDeal(iface,pkg);
-        if(ret == false)
-        {
-            TCPIP_DEBUG_INC(((tagNetDev *)iface)->pkgrcverr);
-        }
-    }
-    return ret;
-}
-//get the interface name by the handle for external module
-const char *NetDevName(void *iface)
-{
-    if(NULL!= iface)
-    {
-        return (const char *)(((tagNetDev* )iface)->name);
-    }
-    else
-    {
-        return NULL;
-    }
-}
-//get the interface handle  by name for external module
-void *NetDevGet(const char *ifname)
-{
-    void* ret = NULL;
-    if(mutex_lock(gIfaceCB.lock))
-    {
-        ret = __IfGet(ifname);
-        mutex_unlock(gIfaceCB.lock);
-    }
-    return ret;
-}
-//get the interface function for external module
-u32 NetDevFunc(void *iface)
-{
-    if(NULL!= iface)
-    {
-        return ((tagNetDev* )iface)->devfunc;
-    }
-    else
-    {
-        return 0;
-    }
-}
-//get the interface mtu for external module
-u16 NetDevMtu(void *iface)
-{
-    if(NULL!= iface)
-    {
-        return ((tagNetDev* )iface)->mtu;
-    }
-    else
-    {
-        return 0;
-    }
-}
-//get the interface type for external module
-enLinkType NetDevType(void *iface)
-{
-    enLinkType ret = EN_LINK_LAST;
-    if(NULL != iface)
-    {
-        ret = ((tagNetDev* )iface)->iftype;
-    }
-    return ret;
-}
-void *NetDevLinkOps(void *iface)
-{
-    void *ret = NULL;
-    if(NULL != iface)
-    {
-        ret = ((tagNetDev* )iface)->linkops;
-    }
-    return ret;
-}
-const u8 *NetDevGetMac(void *iface)
-{
-    if(NULL!= iface)
-    {
-        return (const u8 *)(((tagNetDev* )iface)->mac);
+        return (const char *)(DevFace->name);
     }
     else
     {
@@ -222,8 +188,102 @@ const u8 *NetDevGetMac(void *iface)
     }
 }
 
-//the device event listen hook module
-static bool_t __NetdevEventHook(void *iface,enNetDevEvent event)
+//-----------------------------------------------------------------------------
+//功能: 通过名字获取网卡设备控制块指针。
+//参数: name，网卡名，NULL则返回第一块网卡
+//返回: 网卡指针
+//-----------------------------------------------------------------------------
+struct NetDev *NetDevGet(const char *ifname)
+{
+    struct NetDev * ret = NULL;
+    if(mutex_lock(gIfaceCB.lock))
+    {
+        ret = __IfGet(ifname);
+        mutex_unlock(gIfaceCB.lock);
+    }
+    return ret;
+}
+//-----------------------------------------------------------------------------
+//功能: 获取网卡附加功能，参见netbsp.h中的 CN_IPDEV_TCPOCHKSUM 等定义
+//参数: DevFace，网络控制块指针
+//返回: 网卡名
+//-----------------------------------------------------------------------------
+u32 NetDevFunc(struct NetDev *DevFace)
+{
+    if(NULL!= DevFace)
+    {
+        return DevFace->devfunc;
+    }
+    else
+    {
+        return 0;
+    }
+}
+//get the interface mtu for external module
+u16 NetDevMtu(struct NetDev *DevFace)
+{
+    if(NULL!= DevFace)
+    {
+        return (DevFace)->mtu;
+    }
+    else
+    {
+        return 0;
+    }
+}
+//-----------------------------------------------------------------------------
+//功能: 获取网卡类型，参见netbsp.h中的 EN_LINK_LAST 等定义
+//参数: DevFace，网络控制块指针
+//返回: 网卡类型
+//-----------------------------------------------------------------------------
+enum enLinkType NetDevType(struct NetDev *DevFace)
+{
+    enum enLinkType ret = EN_LINK_LAST;
+    if(NULL != DevFace)
+    {
+        ret = (DevFace)->iftype;
+    }
+    return ret;
+}
+//-----------------------------------------------------------------------------
+//功能: 获取网卡链路层收发函数集指针
+//参数: DevFace，网络控制块指针
+//返回: 函数集指针
+//-----------------------------------------------------------------------------
+struct LinkOps *NetDevLinkOps(struct NetDev *DevFace)
+{
+    struct LinkOps *ret = NULL;
+    if(NULL != DevFace)
+    {
+        ret = (DevFace)->linkops;
+    }
+    return ret;
+}
+//-----------------------------------------------------------------------------
+//功能: 获取网卡的Mac地址，按网络字节序的buffer。
+//参数: DevFace，网络控制块指针
+//返回: Mac地址指针
+//-----------------------------------------------------------------------------
+const u8 *NetDevGetMac(struct NetDev *DevFace)
+{
+    if(NULL!= DevFace)
+    {
+        return (const u8 *)((DevFace)->mac);
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+//-----------------------------------------------------------------------------
+//功能: 默认网卡事件监听钩子，APP可以调用 NetDevRegisterEventHook 函数重新设置，只打印
+//      信息，其他什么都不做。
+//参数: iface，网络控制块指针
+//      event，网卡事件，参见 EN_NETDEVEVENT_LINKDOWN 等定义
+//返回: true
+//-----------------------------------------------------------------------------
+static bool_t __NetdevEventHook(struct NetDev *iface,enum NetDevEvent event)
 {
     switch(event)
     {
@@ -282,25 +342,23 @@ static bool_t __NetdevEventHook(void *iface,enNetDevEvent event)
     return true;
 }
 
-// =============================================================================
-// FUNCTION   :install an net device to the stack
-// PARAMS IN  :para, the net device function paras as tagNetDev *Para defined
-// PARAMS OUT :NULL
-// RETURN     :the dev handle
-// DESCRIPTION:NO DUPLICATION NAME PERMITTED
-// =============================================================================
-void *NetDevInstall(tagNetDevPara *para)
+//-----------------------------------------------------------------------------
+//功能: 安装网卡。
+//参数: para，参数，见 struct NetDevPara 定义
+//返回: 网卡控制块指针
+//-----------------------------------------------------------------------------
+struct NetDev* NetDevInstall(struct NetDevPara *para)
 {
-    tagNetDev* iface = NULL;
-    void *linkops;
+    struct NetDev* iface = NULL;
+    struct LinkOps *linkops;
     if(NULL == para)
     {
-        return (void *)iface;
+        return iface;
     }
     linkops = LinkFindOps(para->iftype);
     if(NULL == linkops)
     {
-        return (void *)iface;
+        return iface;
     }
 
     if(mutex_lock(gIfaceCB.lock))
@@ -308,19 +366,19 @@ void *NetDevInstall(tagNetDevPara *para)
         iface = __IfGet(para->name);
         if(NULL == iface)
         {
-            iface = net_malloc(sizeof(tagNetDev));
+            iface = net_malloc(sizeof(struct NetDev));
             if(NULL != iface)
             {
                 //fill the dev
-                memset(iface, 0, sizeof(tagNetDev));
+                memset(iface, 0, sizeof(struct NetDev));
                 strncpy(iface->name,para->name,CN_TCPIP_NAMELEN);
                 memcpy(iface->mac, para->mac, CN_MACADDR_LEN);
                 iface->ifsend  = para->ifsend;
-                iface->ifrecv = para->ifrecv;
+//              iface->ifrecv = para->ifrecv;
                 iface->ifctrl  = para->ifctrl;
                 iface->linkops = linkops;
                 iface->eventhook = __NetdevEventHook;
-                iface->private = para->private;
+                iface->Private = para->Private;
                 iface->iftype = para->iftype;
                 iface->mtu= para->mtu;
                 iface->devfunc= para->devfunc;
@@ -333,17 +391,16 @@ void *NetDevInstall(tagNetDevPara *para)
     }
     return iface;
 }
-// =============================================================================
-// FUNCTION   :remove the name specified net device
-// PARAMS IN  :name, the net device name,which specified by installation
-// PARAMS OUT :NULL
-// RETURN     :true success while false failed
-// DESCRIPTION:
-// =============================================================================
+
+//-----------------------------------------------------------------------------
+//功能: 卸载网卡。
+//参数: name，网卡名
+//返回: true  or false
+//-----------------------------------------------------------------------------
 bool_t  NetDevUninstall(const char *name)
 {
-    tagNetDev* tmp;
-    tagNetDev* bak;
+    struct NetDev* tmp;
+    struct NetDev* bak;
     bool_t     result = false;
 
     if(mutex_lock(gIfaceCB.lock))
@@ -380,94 +437,66 @@ bool_t  NetDevUninstall(const char *name)
     }
     return result;
 }
-// =============================================================================
-// FUNCTION   :register a hook to do the device event here
-// PARAMS IN  :handle:the device handle returned by NetDevInstall
-//             devname:the name of the net device that has been installed
-//             hook:which will used to deal the net dev event
-// PARAMS OUT :NULL
-// RETURN     :true success while false failed
-// DESCRIPTION:if handle NULL,then use the devname to search the net device
-// =============================================================================
-bool_t NetDevRegisterEventHook(void *handle,const char *devname,fnNetDevEventHook hook)
+
+//-----------------------------------------------------------------------------
+//功能: 设置网卡事件钩子函数，若不设置，则使用默认的 __NetdevEventHook 函数
+//参数: handle，由 NetDevInstall 返回的网卡控制块指针
+//      hook，钩子函数
+//返回: true or false
+//-----------------------------------------------------------------------------
+bool_t NetDevRegisterEventHook(struct NetDev *handle,fnNetDevEventHook hook)
 {
     bool_t result = false;
-    tagNetDev* iface = NULL;
     if(mutex_lock(gIfaceCB.lock))
     {
-        if(NULL != (void *)handle)
+        if(NULL != handle)
         {
-            iface =(tagNetDev* )handle;
-        }
-        else
-        {
-            iface = __IfGet(devname);
-        }
-        if(NULL != iface)
-        {
-            iface->eventhook = hook;
+            handle->eventhook = hook;
             result = true;
         }
         mutex_unlock(gIfaceCB.lock);
     }
     return result;
 }
-// =============================================================================
-// FUNCTION   :Unregister the event hook  of the device
-// PARAMS IN  :handle:the device handle returned by NetDevInstall
-//             devname:the name of the net device that has been installed
-// PARAMS OUT :NULL
-// RETURN     :true success while false failed
-// DESCRIPTION:if handle NULL,then use the devname to search the net device
-// =============================================================================
-bool_t NetDevUnRegisterEventHook(ptu32_t handle,const char *devname)
+
+//-----------------------------------------------------------------------------
+//功能: 卸载网卡事件钩子函数,卸载后，使用默认的 __NetdevEventHook 函数
+//参数: handle，由 NetDevInstall 返回的网卡控制块指针
+//返回: true or false
+//-----------------------------------------------------------------------------
+bool_t NetDevUnRegisterEventHook(struct NetDev * handle)
 {
     bool_t result = false;
-    tagNetDev* dev = NULL;
 
     if(mutex_lock(gIfaceCB.lock))
     {
-        if(NULL !=(void *) handle)
+        if(NULL != handle)
         {
-            dev =(tagNetDev* )handle;
-        }
-        else
-        {
-            dev = __IfGet(devname);
-        }
-        if(NULL != dev)
-        {
-            dev->eventhook = NULL;
+            handle->eventhook = __NetdevEventHook;
             result = true;
         }
         mutex_unlock(gIfaceCB.lock);
     }
     return result;
 }
-// =============================================================================
-// FUNCTION   :used to post a event to the net device
-// PARAMS IN  :handle:the device handle returned by NetDevInstall
-//             devname:the name of the net device that has been installed
-//             event:the event to post
-// PARAMS OUT :NULL
-// RETURN     :true success while false failed
-// DESCRIPTION:if handle NULL,then use the devname to search the net device
-// =============================================================================
-bool_t NetDevPostEvent(void* handle,const char *devname,enNetDevEvent event)
+
+//-----------------------------------------------------------------------------
+//功能: 抛出网卡事件，将由 dev->eventhook 函数响应
+//参数: handle，由 NetDevInstall 返回的网卡控制块指针
+//      event，被抛出的网卡事件
+//返回: true or false
+//-----------------------------------------------------------------------------
+bool_t NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event)
 {
     bool_t result = false;
-    tagNetDev* iface = NULL;
+    struct NetDev* iface = NULL;
     fnNetDevEventHook hook= NULL;
+    if(NULL != handle)
+    {
+        return false;
+    }
     if(mutex_lock(gIfaceCB.lock))
     {
-        if(NULL != (void *)handle)
-        {
-            iface = handle;
-        }
-        else
-        {
-            iface = __IfGet(devname);
-        }
         if(NULL != iface)
         {
             hook =iface->eventhook;
@@ -480,43 +509,39 @@ bool_t NetDevPostEvent(void* handle,const char *devname,enNetDevEvent event)
     }
     return result;
 }
-// =============================================================================
-// FUNCTION   :ctrl the specified netdev
-// PARAMS IN  :name, the net device name,which specified by installation
-//             cmd, the ctrl cmd. which defined by tagNetDev *Cmd
-//             para,used by the cmd, and its type defined by cmd
-// PARAMS OUT :NULL
-// RETURN     :true success while false failed
-// DESCRIPTION:
-// =============================================================================
-bool_t  NetDevCtrl(const char *name,enNetDevCmd cmd, ptu32_t para)
-{
-    bool_t      ret = false;
-    tagNetDev  *dev;
 
-    dev = NetDevGet((const char *)name);
-    if((NULL !=dev)&&(NULL != dev->ifctrl))
-    {
-        ret = dev->ifctrl(dev,cmd,para);
-        if(ret &&(cmd == EN_NETDEV_SETMAC))
-        {
-            memcpy(dev->mac,(u8 *)para,CN_MACADDR_LEN);
-        }
-    }
-    else
-    {
-        debug_printf("netdev","%s:no dev matched or no ctrl function\n\r",__FUNCTION__);
-    }
-    return ret;
-}
-//if you got the handle when install the net device, please use the handle
-//it maybe more fast
-bool_t  NetDevCtrlByHandle(void* handle,enNetDevCmd cmd, ptu32_t para)
+//-----------------------------------------------------------------------------
+//功能: 网卡发送函数，
+//参数: handle，由 NetDevInstall 返回的网卡控制块指针
+//      pkglst，待发送的包
+//      framlen，发送数据长度
+//      netdevtask，网卡功能
+//返回: true or false
+//-----------------------------------------------------------------------------
+bool_t  NetDevSend(struct NetDev* handle,struct NetPkg *pkglst,u32 framlen,u32 netdevtask)
 {
     bool_t     ret = false;
-    tagNetDev* dev;
 
-    dev = (tagNetDev* )handle;
+    if(NULL !=handle)
+    {
+        ret = handle->ifsend(handle,pkglst,framlen,netdevtask);
+    }
+    return ret;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 网卡控制函数，功能由 cmd 决定。
+//参数: handle，由 NetDevInstall 返回的网卡控制块指针
+//      cmd，命令码
+//      para，命令参数
+//返回: true or false
+//-----------------------------------------------------------------------------
+bool_t  NetDevCtrl(struct NetDev* handle,enNetDevCmd cmd, ptu32_t para)
+{
+    bool_t     ret = false;
+    struct NetDev* dev;
+
+    dev = handle;
     if((NULL !=dev)&&(NULL != dev->ifctrl))
     {
         ret = dev->ifctrl(dev,cmd,para);
@@ -528,21 +553,17 @@ bool_t  NetDevCtrlByHandle(void* handle,enNetDevCmd cmd, ptu32_t para)
     return ret;
 }
 
-
-
-// =============================================================================
-// FUNCTION   :get the netdev private member
-// PARAMS IN  :handle, the install returns handle
-// PARAMS OUT :NULL
-// RETURN     :the private data you installed
-// DESCRIPTION:
-// =============================================================================
-void * NetDevPrivate(void *iface)
+//-----------------------------------------------------------------------------
+//功能: 取网卡的私有指针
+//参数: DevFace，由 NetDevInstall 返回的网卡控制块指针
+//返回: true or false
+//-----------------------------------------------------------------------------
+void * NetDevPrivate(struct NetDev *iface)
 {
     void *ret = NULL;
     if(NULL != iface)
     {
-        ret = ((tagNetDev *)iface)->private;
+        ret = (iface)->Private;
     }
     return ret;
 }
@@ -552,9 +573,9 @@ void * NetDevPrivate(void *iface)
 bool_t ifconfig(char *param)
 {
     int i = 0;
-    tagNetDev *iface;
+    struct NetDev *iface;
     OsPrintSplit('*',100);
-    printf("%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
+    debug_printf("netdev","%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
             "NO","NAME","TYPE","FUNCTION","MTU","SNDTOTAL","SNDERR","RCVTOTAL","RCVERR","MAC");
     if(mutex_lock(gIfaceCB.lock))
     {
@@ -562,7 +583,7 @@ bool_t ifconfig(char *param)
         while(NULL != iface)
         {
             i++;
-            printf("%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
+            debug_printf("netdev","%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
                     i,iface->name,LinkTypeName(iface->iftype),iface->devfunc,iface->mtu,\
                     iface->pkgsnd,iface->pkgsnderr,iface->pkgrcv,iface->pkgrcverr,mac2string(iface->mac));
             iface = iface->nxt;
@@ -572,15 +593,11 @@ bool_t ifconfig(char *param)
     OsPrintSplit('*',100);
     return true;
 }
-
-
-// =============================================================================
-// FUNCTION   :this is the rout module initialize function
-// PARAMS IN  :
-// PARAMS OUT :
-// RETURN     :
-// DESCRIPTION:after this function,you could add some devices
-// =============================================================================
+//-----------------------------------------------------------------------------
+//功能: 网络设备接口初始化
+//参数: 无
+//返回: true or false
+//-----------------------------------------------------------------------------
 bool_t NetDevInit(void)
 {
     bool_t ret = false;
@@ -591,13 +608,9 @@ bool_t NetDevInit(void)
         goto EXIT_MUTEX;
     }
 
-
     ret = true;
     return ret;
 
-EXIT_ROUTCMD:
-    mutex_del(gIfaceCB.lock);
-    gIfaceCB.lock = NULL;
 
 EXIT_MUTEX:
     ret = false;
@@ -605,8 +618,4 @@ EXIT_MUTEX:
 }
 
 ADD_TO_ROUTINE_SHELL(ifconfig,ifconfig,"usage:ifconfig");
-
-
-
-
-
+#pragma GCC diagnostic pop

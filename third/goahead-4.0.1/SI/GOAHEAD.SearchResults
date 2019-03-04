@@ -1,0 +1,156 @@
+---- VXWORKS Matches (155 in 17 files) ----
+Cgi.c (src):#if !VXWORKS
+Cgi.c (src):#endif /* ! VXWORKS */
+Cgi.c (src):#if VXWORKS
+Cgi.c (src):#endif /* VXWORKS */
+Cgitest.c (test):#if VXWORKS
+Cgitest.c (test):#if VXWORKS
+Cgitest.c (test):#if !VXWORKS
+Cgitest.c (test):#if VXWORKS
+Cgitest.c (test):#endif /* VXWORKS */
+Crypt.c (src):#elif ME_WIN_LIKE || VXWORKS
+Crypt.c (src):#if VXWORKS
+Goahead.h (build\linux-x64-default\inc):#if VXWORKS
+Goahead.h (build\linux-x64-default\inc):#if VXWORKS
+Goahead.h (src):#if VXWORKS
+Goahead.h (src):#if VXWORKS
+Gopass.c (src\utils):#if ME_WIN_LIKE || VXWORKS
+Gopass.c (src\utils):#elif ME_WIN_LIKE || VXWORKS
+Gopass.c (src\utils):#if VXWORKS
+Http.c (src):    /* Some platforms don't implement O_APPEND (VXWORKS) */
+Http.c (src):#elif !VXWORKS
+Http.c (src):#if VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.c (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.c (src\mbedtls):#if !VXWORKS
+Mbedtls.c (src\mbedtls):#if !VXWORKS
+Mbedtls.c (src\mbedtls):#if !VXWORKS
+Mbedtls.c (src\mbedtls):#if VXWORKS
+Mbedtls.c (src\mbedtls):#if VXWORKS
+Mbedtls.c (src\mbedtls):#if VXWORKS
+Mbedtls.c (src\mbedtls):#if !VXWORKS
+Mbedtls.c (src\mbedtls):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (build\linux-x64-default\inc):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (paks\mbedtls\dist):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Mbedtls.h (src\mbedtls):#if !VXWORKS
+Osdep.c (src):#if WINDOWS || VXWORKS || TIDSP
+Osdep.c (src):#elif VXWORKS
+Osdep.c (src):#if VXWORKS
+Osdep.h (build\linux-x64-default\inc):#elif defined(VXWORKS)
+Osdep.h (build\linux-x64-default\inc):#if VXWORKS
+Osdep.h (build\linux-x64-default\inc):#if ME_UNIX_LIKE || VXWORKS
+Osdep.h (build\linux-x64-default\inc):#if !VXWORKS && !TIDSP
+Osdep.h (build\linux-x64-default\inc):#if VXWORKS
+Osdep.h (build\linux-x64-default\inc):    #if ME_UNIX_LIKE || VXWORKS || DOXYGEN
+Osdep.h (build\linux-x64-default\inc):    #elif VXWORKS || DOXYGEN
+Osdep.h (build\linux-x64-default\inc):    #elif VXWORKS || DOXYGEN
+Osdep.h (build\linux-x64-default\inc):#elif VXWORKS
+Osdep.h (build\linux-x64-default\inc):#if DOXYGEN || ME_UNIX_LIKE || VXWORKS
+Osdep.h (build\linux-x64-default\inc):    #if VXWORKS
+Osdep.h (build\linux-x64-default\inc):    #elif VXWORKS || MACOSX || LINUX
+Osdep.h (build\linux-x64-default\inc):#if VXWORKS
+Osdep.h (build\linux-x64-default\inc):#if ((__GNUC__ >= 3) || MACOSX) && !VXWORKS
+Osdep.h (build\linux-x64-default\inc):#if ME_COMPILER_HAS_MMU && !VXWORKS
+Osdep.h (build\linux-x64-default\inc):#if ME_UNIX_LIKE || VXWORKS || TIDSP
+Osdep.h (build\linux-x64-default\inc):#if VXWORKS
+Osdep.h (build\linux-x64-default\inc):#if VXWORKS
+Osdep.h (build\linux-x64-default\inc):#endif  /* VXWORKS */
+Osdep.h (paks\osdep\dist):#elif defined(VXWORKS)
+Osdep.h (paks\osdep\dist):#if VXWORKS
+Osdep.h (paks\osdep\dist):#if ME_UNIX_LIKE || VXWORKS
+Osdep.h (paks\osdep\dist):#if !VXWORKS && !TIDSP
+Osdep.h (paks\osdep\dist):#if VXWORKS
+Osdep.h (paks\osdep\dist):    #if ME_UNIX_LIKE || VXWORKS || DOXYGEN
+Osdep.h (paks\osdep\dist):    #elif VXWORKS || DOXYGEN
+Osdep.h (paks\osdep\dist):    #elif VXWORKS || DOXYGEN
+Osdep.h (paks\osdep\dist):#elif VXWORKS
+Osdep.h (paks\osdep\dist):#if DOXYGEN || ME_UNIX_LIKE || VXWORKS
+Osdep.h (paks\osdep\dist):    #if VXWORKS
+Osdep.h (paks\osdep\dist):    #elif VXWORKS || MACOSX || LINUX
+Osdep.h (paks\osdep\dist):#if VXWORKS
+Osdep.h (paks\osdep\dist):#if ((__GNUC__ >= 3) || MACOSX) && !VXWORKS
+Osdep.h (paks\osdep\dist):#if ME_COMPILER_HAS_MMU && !VXWORKS
+Osdep.h (paks\osdep\dist):#if ME_UNIX_LIKE || VXWORKS || TIDSP
+Osdep.h (paks\osdep\dist):#if VXWORKS
+Osdep.h (paks\osdep\dist):#if VXWORKS
+Osdep.h (paks\osdep\dist):#endif  /* VXWORKS */
+Osdep.h (src\osdep):#elif defined(VXWORKS)
+Osdep.h (src\osdep):#if VXWORKS
+Osdep.h (src\osdep):#if ME_UNIX_LIKE || VXWORKS
+Osdep.h (src\osdep):#if !VXWORKS && !TIDSP
+Osdep.h (src\osdep):#if VXWORKS
+Osdep.h (src\osdep):    #if ME_UNIX_LIKE || VXWORKS || DOXYGEN
+Osdep.h (src\osdep):    #elif VXWORKS || DOXYGEN
+Osdep.h (src\osdep):    #elif VXWORKS || DOXYGEN
+Osdep.h (src\osdep):#elif VXWORKS
+Osdep.h (src\osdep):#if DOXYGEN || ME_UNIX_LIKE || VXWORKS
+Osdep.h (src\osdep):    #if VXWORKS
+Osdep.h (src\osdep):    #elif VXWORKS || MACOSX || LINUX
+Osdep.h (src\osdep):#if VXWORKS
+Osdep.h (src\osdep):#if ((__GNUC__ >= 3) || MACOSX) && !VXWORKS
+Osdep.h (src\osdep):#if ME_COMPILER_HAS_MMU && !VXWORKS
+Osdep.h (src\osdep):#if ME_UNIX_LIKE || VXWORKS || TIDSP
+Osdep.h (src\osdep):#if VXWORKS
+Osdep.h (src\osdep):#if VXWORKS
+Osdep.h (src\osdep):#endif  /* VXWORKS */
+Socket.c (src):#if defined(ME_COMPILER_HAS_SINGLE_STACK) || VXWORKS
+Socket.c (src):#if ME_UNIX_LIKE || VXWORKS
+Socket.c (src):#if VXWORKS || TIDSP
+Socket.c (src):#elif VXWORKS
+Socket.c (src):#elif VXWORKS
+Socket.c (src):#elif ME_UNIX_LIKE || VXWORKS
+Socket.c (src):#if VXWORKS

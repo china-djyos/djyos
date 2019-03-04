@@ -61,14 +61,14 @@ typedef struct
     __tagIpAddr src;
     __tagIpAddr dst;
 }tagIpAddr;
-typedef bool_t (*fnIpProto)( tagIpAddr *addr,tagNetPkg *pkglst,u32 devfunc);
+typedef bool_t (*fnIpProto)( tagIpAddr *addr,struct NetPkg *pkglst,u32 devfunc);
 bool_t IpInstallProto(const char *name,u8 proto,fnIpProto handler);
-bool_t IpProtoDeal(u8 proto,tagIpAddr *addr,tagNetPkg *pkglst,u32 devfunc);
+bool_t IpProtoDeal(u8 proto,tagIpAddr *addr,struct NetPkg *pkglst,u32 devfunc);
 u16    IpChksumSoft16(void *buf,int len,u16 chksum, bool_t done);
-void   IpPkgChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum);
-void   IpPkgLstChkSum(tagNetPkg *pkg,u16 *chksum,u16 sum);
-bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, tagNetPkg *pkg,\
+void   IpPkgChkSum(struct NetPkg *pkg,u16 *chksum,u16 sum);
+void   IpPkgLstChkSum(struct NetPkg *pkg,u16 *chksum,u16 sum);
+bool_t IpSend(enum_ipv_t ver,ptu32_t ipsrc, ptu32_t ipdst, struct NetPkg *pkg,\
               u16 translen,u8 proto,u32  devtask, u16 *chksum);
-bool_t IpSnd(tagIpAddr *addr,tagNetPkg *pkg,u16 translen,u8 proto,u32  devtask, u16 *chksum);
+bool_t IpSnd(tagIpAddr *addr,struct NetPkg *pkg,u16 translen,u8 proto,u32  devtask, u16 *chksum);
 
 #endif

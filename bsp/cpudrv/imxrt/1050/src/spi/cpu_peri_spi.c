@@ -107,7 +107,7 @@
 #warning    cpu_peri_spi组件参数未配置，使用默认值
 //%$#@num,32,512,
 #define CFG_SPI_BUF_LEN              128   //"配置SPI缓冲大小",
-//#define CFG_SPI_DMA_BUF_LEN          128 //"楝SPI的DMA缓冲",
+//#define CFG_SPI_DMA_BUF_LEN        128   //"SPI的DMA缓冲尺寸",
 //%$#@enum,true,false,
 #define CFG_SPI1_ENABLE              false //"是否配置使用SPI1",
 #define CFG_SPI2_ENABLE              false //"是否配置使用SPI2",

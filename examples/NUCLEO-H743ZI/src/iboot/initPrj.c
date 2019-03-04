@@ -31,9 +31,6 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
 
@@ -63,19 +60,37 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART8);
 	#endif
 
-	//-------------------medium-------------------------//
-	ptu32_t ModuleInstall_IAP(void);
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
+	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
+
+	//-------------------medium-------------------------//
+	extern bool_t ModuleInstall_TcpIp(void);
+	ModuleInstall_TcpIp( );
+
+	bool_t TcpInit(void);
+	TcpInit();
+
+	extern bool_t ModuleInstall_Ymodem(void);
+	ModuleInstall_Ymodem();
+
+	extern s32 kernel_command(void);
+	kernel_command();
+
+	extern bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
+	bool_t loop,u32 loopcycle,\
+	bool_t (*rcvHook)(u8 *buf, u16 len));
+	static u8 mac_addr[]={CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5};
+//	ModuleInstall_ETH(CFG_ETH_DEV_NAME,mac_addr,CFG_ETH_LOOP_ENABLE,CFG_ETH_LOOP_CYCLE,NULL);
+
+	extern void ModuleInstall_InitNet( );
+	ModuleInstall_InitNet( );
 
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
-
-//    extern bool_t ModuleInstall_TcpIp(void);
-//    ModuleInstall_TcpIp();
-
-	extern void ModuleInstall_InitNet(void);
-	ModuleInstall_InitNet();
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");

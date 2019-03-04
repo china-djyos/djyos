@@ -56,48 +56,48 @@
 
 
 
-extern bool_t ServiceDhcpcInit(ptu32_t para);
-extern bool_t ServiceDhcpdInit(ptu32_t para);
-extern bool_t ServiceDnsInit(ptu32_t para);
-extern bool_t ServicePingInit(ptu32_t para);
-extern bool_t ServiceSntpInit(ptu32_t para);
-extern bool_t ServiceFtpInit(ptu32_t para);
+extern bool_t ServiceDhcpcInit(void);
+extern bool_t ServiceDhcpdInit(void);
+extern bool_t ServiceDnsInit(void);
+extern bool_t ServicePingInit(void);
+extern bool_t ServiceSntpInit(void);
+extern bool_t ServiceFtpInit(void);
 extern bool_t ServiceInit_Telnetd(void);
-extern bool_t ServiceTftpInit(ptu32_t para);
+extern bool_t ServiceTftpInit(void);
 
 //THIS IS THE TCP IP SERVICE LOAD MODULE
 bool_t ServiceInit(void)
 {
     bool_t result = true;
 
-    if((CFG_DHCPC_ENABLE)&&(false == ServiceDhcpcInit(0)))
+    if((CFG_DHCPC_ENABLE)&&(false == ServiceDhcpcInit()))
     {
         error_printf("tcpip","###err: service dhcpc failed");
         result = false;
     }
-    if((CFG_DHCPD_ENABLE)&&(false == ServiceDhcpdInit(0)))
+    if((CFG_DHCPD_ENABLE)&&(false == ServiceDhcpdInit()))
     {
         error_printf("tcpip","###err: service dhcpd failed");
         result = false;
     }
 
-    if(false == ServiceDnsInit(0))
+    if(false == ServiceDnsInit())
     {
         error_printf("tcpip","###err: service dns failed");
         result = false;
     }
-    if(false == ServicePingInit(0))
+    if(false == ServicePingInit())
     {
         error_printf("tcpip","###err: service ping failed");
         result = false;
     }
-    if(false == ServiceSntpInit(0))
+    if(false == ServiceSntpInit())
     {
         error_printf("tcpip","###err: service sntp failed");
         result = false;
     }
 
-    if((CFG_FTP_ENABLE)&&(false == ServiceFtpInit(0)))
+    if((CFG_FTP_ENABLE)&&(false == ServiceFtpInit()))
     {
         error_printf("tcpip","###err: service ftp failed");
         result = false;
@@ -107,7 +107,7 @@ bool_t ServiceInit(void)
         error_printf("tcpip","###err: service telnet failed\n\r");
         result = false;
     }
-    if((CFG_TFTP_ENABLE)&&(false == ServiceTftpInit(0)))
+    if((CFG_TFTP_ENABLE)&&(false == ServiceTftpInit()))
     {
         error_printf("tcpip","###err: service tftp failed");
         result = false;

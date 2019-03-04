@@ -181,7 +181,7 @@ bool_t sntp(char *param)
 
 
 //THIS IS SNTP MODULE FUNCTION
-bool_t ServiceSntpInit(ptu32_t para)
+bool_t ServiceSntpInit(void)
 {
         return (TRUE);
 }

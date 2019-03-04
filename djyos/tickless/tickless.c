@@ -76,7 +76,7 @@ struct djytickless_debug_t{
 // 参数：无
 // 返回：最大cnt数
 // =============================================================================
-uint32_t djytickless_get_cnt_max(void)
+uint32_t DjyTickless_GetCntMax(void)
 {
     if(djytickless.op != NULL)
     {
@@ -90,7 +90,7 @@ uint32_t djytickless_get_cnt_max(void)
 // 参数：无
 // 返回：最小cnt数
 // =============================================================================
-uint32_t djytickless_get_cnt_min(void)
+uint32_t DjyTickless_GetCntMin(void)
 {
     if(djytickless.op != NULL)
     {
@@ -104,7 +104,7 @@ uint32_t djytickless_get_cnt_min(void)
 // 参数：要设置的值
 // 返回：无
 // =============================================================================
-uint32_t djytickless_get_reload(void)
+uint32_t DjyTickless_GetReload(void)
 {
     if(djytickless.op != NULL)
     {
@@ -118,7 +118,7 @@ uint32_t djytickless_get_reload(void)
 // 参数：新增的cnt数
 // 返回：当前累计的cnt数
 // =============================================================================
-uint64_t djytickless_refresh_total_cnt(uint32_t cnt)
+uint64_t DjyTickless_RefreshTotalCnt(uint32_t cnt)
 {
     if(djytickless.op != NULL)
     {
@@ -132,7 +132,7 @@ uint64_t djytickless_refresh_total_cnt(uint32_t cnt)
 // 参数：无
 // 返回：当前累计的cnt值
 // =============================================================================
-uint64_t djytickless_get_total_cnt(void)
+uint64_t DjyTickless_GetTotalCnt(void)
 {
     if(djytickless.op != NULL)
     {
@@ -146,7 +146,7 @@ uint64_t djytickless_get_total_cnt(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void djytickless_reset(void)
+void DjyTickless_Reset(void)
 {
     if(djytickless.op != NULL)
     {
@@ -160,7 +160,7 @@ void djytickless_reset(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void djytickless_start(void)
+void DjyTickless_Start(void)
 {
     if(djytickless.op != NULL)
     {
@@ -174,7 +174,7 @@ void djytickless_start(void)
 // 参数：cnt值
 // 返回：us数
 // =============================================================================
-uint64_t djytickless_cnt_to_us(uint64_t cnt)
+uint64_t DjyTickless_CntToUs(uint64_t cnt)
 {
     if(djytickless.op != NULL)
     {
@@ -188,7 +188,7 @@ uint64_t djytickless_cnt_to_us(uint64_t cnt)
 // 参数：us数
 // 返回：cnt值
 // =============================================================================
-uint64_t djytickless_us_to_cnt(uint64_t us)
+uint64_t DjyTickless_UsToCnt(uint64_t us)
 {
     if(djytickless.op != NULL)
     {
@@ -202,7 +202,7 @@ uint64_t djytickless_us_to_cnt(uint64_t us)
 // 参数：param:要设置的参数以及当前的参数，evt:发生的事件
 // 返回：无
 // =============================================================================
-void djytickless_set_reload(struct djytickless_param *param,uint8_t evt)
+void DjyTickless_SetReload(struct djytickless_param *param,uint8_t evt)
 {
     static uint64_t next_int_cnt=CN_LIMIT_UINT64; //next_int_cntUs：下一次中断的时间
     uint32_t cnt=0;          //转换成US数后写入reload设置函数
@@ -299,7 +299,7 @@ void djytickless_set_reload(struct djytickless_param *param,uint8_t evt)
 // 参数：param:系统参数，cnt:中断时的reload值
 // 返回：无
 // =============================================================================
-void djytickless_check_cnt(struct djytickless_param *param,uint32_t cnt)
+void DjyTickless_CheckCnt(struct djytickless_param *param,uint32_t cnt)
 {
     /*这里的逻辑是：当cur_cnt加上min_cnt都小于等于下一次中断的时间时，说明，唤醒时候未到*/
     /*这个函数在djyos.c里面的定时器中断函数里被调用，需注意的是，此逻辑与定时中断函数里面的*/
@@ -309,7 +309,7 @@ void djytickless_check_cnt(struct djytickless_param *param,uint32_t cnt)
             (param->cur_cnt)<=((param->next_delay_cnt) - (djytickless.op->get_cnt_min())) && \
             (param->cur_cnt)<=((param->next_rrs_cnt) - (djytickless.op->get_cnt_min())) )
     {
-        djytickless_set_reload(param,ISR_TICK_DELAY_TOO_LONG);
+        DjyTickless_SetReload(param,ISR_TICK_DELAY_TOO_LONG);
         return;
     }
 }
@@ -319,7 +319,7 @@ void djytickless_check_cnt(struct djytickless_param *param,uint32_t cnt)
 // 参数：op
 // 返回：无
 // =============================================================================
-void djytickless_register_op(struct djytickless_op_t* op)
+void DjyTickless_RegisterOp(struct djytickless_op_t* op)
 {
     djytickless.op = op;
 }

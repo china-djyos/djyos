@@ -757,7 +757,7 @@ static void __Ax88796IntInstall(tagAx88796Pri  *pri)
 //初始化网卡并将网卡添加进协议栈中
 tagAx88796Pri *Ax88796Install(tagAx88796Para *para)
 {
-    tagNetDevPara   devpara;
+    struct NetDevPara   devpara;
     tagAx88796Pri  *ax88796 = NULL;
 
     ax88796 = (tagAx88796Pri *)malloc(sizeof(tagAx88796Pri));

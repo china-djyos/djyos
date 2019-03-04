@@ -18,7 +18,7 @@
 #include "shell.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_eth.h"
-
+#include <netbsp.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -98,7 +98,7 @@ typedef struct
     //os member
     struct SemaphoreLCB     *rcvsync;          //activate the receive task
     struct MutexLCB         *protect;          //protect the device
-    ptu32_t                 devhandle;        //returned by the tcpip stack
+    struct NetDev           *devhandle;        //returned by the tcpip stack
     char                    devname[CN_DEVNAME_LEN];
     //hardware
     ETH_HandleTypeDef       *EthHandle;
@@ -134,11 +134,15 @@ u8 Rx_Buff[EthRxDescs][EthRxBufSize];
 u8 Tx_Buff[EthTxDescs][EthTxBufSize];
 #endif
 static u8 gTxBuffer[EthRxBufSize];      //for sending copy frame
-extern bool_t Board_EthGpioInit(void);
+
 
 // HAL库中调用了该函数
 void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
 {
+      __HAL_RCC_GPIOA_CLK_ENABLE();
+      __HAL_RCC_GPIOB_CLK_ENABLE();
+      __HAL_RCC_GPIOC_CLK_ENABLE();
+      __HAL_RCC_GPIOG_CLK_ENABLE();
       __HAL_RCC_ETH_CLK_ENABLE();
 }
 
@@ -187,9 +191,9 @@ static void __MacReset(tagMacDriver *pDrive)
     return ;
 }
 
-static tagNetPkg *__MacRcv(ptu32_t devhandle)
+static struct NetPkg *__MacRcv(ptu32_t devhandle)
 {
-    tagNetPkg         *pkg = NULL;
+    struct NetPkg         *pkg = NULL;
     tagMacDriver      *pDrive;
     ETH_HandleTypeDef *EthHandle;
     volatile ETH_DMADescTypeDef *dmarxdesc;
@@ -215,7 +219,8 @@ static tagNetPkg *__MacRcv(ptu32_t devhandle)
     if(NULL != pkg)
     {
         dmarxdesc = EthHandle->RxFrameInfos.FSRxDesc;
-        dst = (u8 *)(pkg->buf +pkg->offset);
+        dst = PkgGetCurrentBuffer(pkg);
+//      dst = (u8 *)(pkg->buf +pkg->offset);
         src = (u8 *)EthHandle->RxFrameInfos.buffer;
         while(CopyBytes > EthRxBufSize)
         {
@@ -230,7 +235,8 @@ static tagNetPkg *__MacRcv(ptu32_t devhandle)
         memcpy( dst, src, CopyBytes);
         dmarxdesc->Status |= ETH_DMARXDESC_OWN;
 
-        pkg->datalen = len;
+        PkgSetDataLen(pkg, len);
+//      pkg->datalen = len;
         EthHandle->RxFrameInfos.SegCount =0;
     }
 
@@ -248,13 +254,13 @@ static tagNetPkg *__MacRcv(ptu32_t devhandle)
     return pkg;
 }
 
-static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
     ETH_HandleTypeDef *EthHandle;
     ETH_DMADescTypeDef *DmaTxDesc;
-    tagNetPkg         *tmppkg;
+    struct NetPkg         *tmppkg;
     u8                *dst,*src;
     u16                len=0;
 
@@ -278,22 +284,26 @@ static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask
         //copy datas to static frame buffer
         tmppkg = pkg;
         dst      = &gTxBuffer[0];
-        do
-        {
-            src = (tmppkg->buf + tmppkg->offset);
-            memcpy(dst,src,tmppkg->datalen);
-            dst      += tmppkg->datalen;
-            len      += tmppkg->datalen;
-            if(PKG_ISLISTEND(tmppkg))
-            {
-                tmppkg = NULL;
-                break;
-            }
-            else
-            {
-                tmppkg = tmppkg->partnext;
-            }
-        }while(NULL != tmppkg );
+        len = PkgFrameDataCopy(tmppkg, dst);
+//        do
+//        {
+//            src = (tmppkg->buf + tmppkg->offset);
+//            memcpy(dst,src,PkgGetDataLen(tmppkg));
+//            dst      += PkgGetDataLen(tmppkg);
+//            len      += PkgGetDataLen(tmppkg);
+////          memcpy(dst,src,tmppkg->datalen);
+////          dst      += tmppkg->datalen;
+////          len      += tmppkg->datalen;
+//            if(PkgIsBufferEnd(tmppkg))
+//            {
+//                tmppkg = NULL;
+//                break;
+//            }
+//            else
+//            {
+//                tmppkg = PkgGetNextUnit(tmppkg);
+//            }
+//        }while(NULL != tmppkg );
 
         if(len < EthTxBufSize)
         {
@@ -331,27 +341,29 @@ NODESCERROR:
     return result;
 }
 
-u32 ETH_SendData(u8 *buf,u32 len)
-{
-    tagNetPkg          pkg;
-    tagMacDriver      *pDrive;
+//u32 ETH_SendData(u8 *buf,u32 len)
+//{
+//    struct NetPkg          pkg;
+//    tagMacDriver      *pDrive;
+//
+//    pDrive = &gMacDriver;
+//
+//    PkgInit(pkg,CN_PKLGLST_END,0,len,buf);  //只有一个包
+////  pkg.partnext = NULL;
+////  pkg.pkgflag  = (1<<0);  //只有一个包
+////  pkg.offset   = 0;
+////  pkg.datalen  = len;
+////  pkg.buf      = buf;
+//    if(MacSnd(pDrive->devhandle,&pkg,len,0))
+//    {
+//        return len;
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//}
 
-    pDrive = &gMacDriver;
-
-    pkg.partnext = NULL;
-    pkg.pkgflag  = (1<<0);  //只有一个包
-    pkg.offset   = 0;
-    pkg.datalen  = len;
-    pkg.buf      = buf;
-    if(MacSnd(pDrive->devhandle,&pkg,len,0))
-    {
-        return len;
-    }
-    else
-    {
-        return 0;
-    }
-}
 //This is the interrut handler
 u32 ETH_IntHandler(ufast_t IntLine)
 {
@@ -391,7 +403,7 @@ u32 ETH_IntHandler(ufast_t IntLine)
     return 0;
 }
 //mac control function
-static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
+static bool_t MacCtrl(struct NetDev   *devhandle,u8 cmd,ptu32_t para)
 {
     bool_t result = false;
     tagMacDriver   *pDrive;
@@ -510,7 +522,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
 //this is the receive task
 static ptu32_t __MacRcvTask(void)
 {
-    tagNetPkg *pkg=NULL;
+    struct NetPkg *pkg;
     ptu32_t    handle;
     u8        *rawbuf;
     u16        len;
@@ -536,8 +548,9 @@ static ptu32_t __MacRcvTask(void)
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
-                    rawbuf = pkg->buf + pkg->offset;
-                    len = pkg->datalen;
+                    rawbuf = PkgGetCurrentBuffer(pkg);
+//                  rawbuf = pkg->buf + pkg->offset;
+                    len = PkgGetDataLen(pkg);
                     pDrive->fnrcvhook(rawbuf,len);
                 }
                 else
@@ -769,18 +782,12 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
                           bool_t (*rcvHook)(u8 *buf, u16 len))
 {
     tagMacDriver   *pDrive = &gMacDriver;
-    tagNetDevPara   devpara;
+    struct NetDevPara   devpara;
 
     memset((void *)pDrive,0,sizeof(tagMacDriver));
     //copy the config para to the pDrive
     memcpy(pDrive->devname,devname,CN_DEVNAME_LEN-1);
-//    memcpy((void *)pDrive->macaddr,macaddress,CN_MACADDR_LEN);
-    pDrive->macaddr[0] = CFG_GMAC_MAC_ADDR0;
-    pDrive->macaddr[1] = CFG_GMAC_MAC_ADDR1;
-    pDrive->macaddr[2] = CFG_GMAC_MAC_ADDR2;
-    pDrive->macaddr[3] = CFG_GMAC_MAC_ADDR3;
-    pDrive->macaddr[4] = CFG_GMAC_MAC_ADDR4;
-    pDrive->macaddr[5] = CFG_GMAC_MAC_ADDR5;
+    memcpy((void *)pDrive->macaddr,macaddress,CN_MACADDR_LEN);
     if(loop)
     {
         pDrive->loop = 1;
@@ -796,7 +803,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
 
     pDrive->EthHandle = &sEthHandle;
     pDrive->EthHandle->Instance = ETH;
-    pDrive->EthHandle->Init.MACAddr = macaddress;
+    pDrive->EthHandle->Init.MACAddr = pDrive->macaddr;
     pDrive->EthHandle->Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
     pDrive->EthHandle->Init.Speed = ETH_SPEED_100M;
     pDrive->EthHandle->Init.DuplexMode = ETH_MODE_FULLDUPLEX;
@@ -819,6 +826,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     {
         goto DEVPROTECT_FAILED;
     }
+    MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,1);//开通地址过滤功能
 
     //install the net device
     devpara.ifctrl = MacCtrl;
@@ -827,9 +835,8 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,macaddress,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.private = 0;
     devpara.mtu = 1522;
-    devpara.private = (ptu32_t)pDrive;
+    devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(0 == pDrive->devhandle)
     {

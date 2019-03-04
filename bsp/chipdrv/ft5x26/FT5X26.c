@@ -103,10 +103,11 @@
 //%$#@num,1,100,
 #define CT_MAX_TOUCH  5                         //"触控数",支持最多5点触摸
 //%$#@enum,true,false,
-//%$#@string,1,10,
-#define CFG_FT5X26_BUS_NAME           "IoIic"        //"IIC总线名称",触摸芯片使用的IIC总线名称
-#define CFG_TOUCH_NAME                "FT5X26"  //"触摸屏名称",配置触摸屏名称
-#define CFG_DESKTOP_NAME              "desktop" //"桌面名称",配置触摸屏所在显示器桌面的名称
+//%$#@string,1,128,
+#define CFG_TOUCH_ADJUST_FILE   "/yaf2/touch_init.dat"  //保存触摸屏矫正参数的文件
+#define CFG_FT5X26_BUS_NAME     "IoIic"        //"IIC总线名称",触摸芯片使用的IIC总线名称
+#define CFG_TOUCH_NAME          "FT5X26"       //"触摸屏名称",配置触摸屏名称
+#define CFG_DESKTOP_NAME        "desktop"      //"桌面名称",配置触摸屏所在显示器桌面的名称
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
@@ -285,13 +286,13 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
     FILE *touch_init;
     s32 limit_left,limit_top,limit_right,limit_bottom;
 
-//    if((touch_init = fopen("/yaffs2/touch_init.dat","r")) != NULL)
-//    {
-//
-//        fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
-//    }
-//    else
-//    {
+    if((touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"r")) != NULL)
+    {
+
+        fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+    }
+    else
+    {
         limit_left = desktop->limit_left;
         limit_top = desktop->limit_top;
         limit_right = desktop->limit_right;
@@ -337,13 +338,13 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
         GK_FillWin(desktop,CN_COLOR_BLUE,0);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
 
-//        touch_init = fopen("/yaffs2/touch_init.dat","w+");
-//        if(touch_init)
-//            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+        touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"w+");
+        if(touch_init)
+            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
         return true;
-//    }
-//    fclose(touch_init);
-//    return false;
+    }
+    fclose(touch_init);
+    return false;
 }
 
 // =============================================================================

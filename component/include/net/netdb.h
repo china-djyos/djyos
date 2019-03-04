@@ -53,8 +53,8 @@
 
 #include <sys/socket.h>
 
-#ifndef H1B23F456_1CB8_4487_9CDE_B5DA91CF8218
-#define H1B23F456_1CB8_4487_9CDE_B5DA91CF8218
+#ifndef __NETDB_H__
+#define __NETDB_H__
 
 extern int h_errno;
 //rpc_netdb.h
@@ -244,6 +244,10 @@ struct addrinfo
   struct addrinfo *ai_next;      /* Pointer to next in list.  */
 };
 
+void NetDevPkgsndInc(struct NetDev *iface);
+void NetDevPkgsndErrInc(struct NetDev *iface);
+void NetDevPkgrcvInc(struct NetDev *iface);
+void NetDevPkgrcvErrInc(struct NetDev *iface);
 struct servent *getservbyname(const char *name, const char *proto);
 struct hostent *gethostbyname(const char *name);
 int  gethostname(char *name, int len);
@@ -252,4 +256,4 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
 
 int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result );
 void freeaddrinfo (struct addrinfo*ai);
-#endif /* H1B23F456_1CB8_4487_9CDE_B5DA91CF8218 */
+#endif /* __NETDB_H__ */

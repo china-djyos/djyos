@@ -80,19 +80,19 @@ static void pingusage(void)
 //static bool_t pingshell(char *param)
 bool_t ping(char *param)
 {
-    u32 i;
+    s32 i;
     u32 ip;
     u32 timeused;
     u32 timestart;
     u32 timeend;
     struct in_addr ipaddr;
     struct hostent *host;
-    u32    times;
+    s32    times;
     u32    numrcv = 0;
     u32    waittime;
-    int    len = CN_PING_DEFAULT_SIZE;
+    s32    len = CN_PING_DEFAULT_SIZE;
 
-    int argc = 6;
+    s32 argc = 6;
     char *argv[6];
 
     times = CN_PING_DEFAULT_COUNTER;
@@ -116,7 +116,7 @@ bool_t ping(char *param)
                 i++;
                 if(i < argc)
                 {
-                    len = strtol(argv[i],NULL,NULL);
+                    len = strtol(argv[i],NULL,0);
                     i++;
                 }
             }
@@ -125,7 +125,7 @@ bool_t ping(char *param)
                 i++;
                 if(i < argc)
                 {
-                    times = strtol(argv[i],NULL,NULL);
+                    times = strtol(argv[i],NULL,0);
                     i++;
                 }
             }
@@ -134,7 +134,7 @@ bool_t ping(char *param)
                 i++;
                 if(i < argc)
                 {
-                    waittime = strtol(argv[i],NULL,NULL);
+                    waittime = strtol(argv[i],NULL,0);
                     waittime = waittime*1000*mS;
                     i++;
                 }
@@ -185,16 +185,16 @@ bool_t ping(char *param)
         {
             timeend = (u32)DjyGetSysTime();
             timeused = (u32)(timeend - timestart);
-            printf("0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
+            debug_printf("ping","0x%08x %s reply:Time = %d ms\n\r",i,inet_ntoa(ipaddr),timeused/1000);
             Djy_EventDelay(waittime);
             numrcv++;
         }
         else
         {
-            printf("0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
+            debug_printf("ping","0x%08x %s reply:Timeout\n\r",i,inet_ntoa(ipaddr));
         }
     }
-        printf("%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
+        debug_printf("ping","%s:snd:%d rcv:%d miss:%d\n\r",__FUNCTION__,times,numrcv,times-numrcv);
     net_free(buf);
     return true;
 }
@@ -218,7 +218,7 @@ bool_t ping(char *param)
 //    u32    waittime;
 //
 //    char *argv[3];
-//    int argc = 3;
+//    s32 argc = 3;
 //    memset(argv,0,sizeof(argv));
 //    if(NULL == param)
 //    {
@@ -281,7 +281,7 @@ bool_t ping(char *param)
 
 
 //THIS IS PING MODULE FUNCTION
-bool_t ServicePingInit(ptu32_t para)
+bool_t ServicePingInit(void)
 {
         return (TRUE);
 }

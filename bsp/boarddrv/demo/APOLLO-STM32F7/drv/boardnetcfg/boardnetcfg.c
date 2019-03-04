@@ -118,6 +118,7 @@ __attribute__((weak)) void GetCpuSignature(void *buf,int len)
 //make sure that that board net hardware has initialized and could work ok
 void ModuleInstall_InitNet(void)   //static ip example
 {
+
     //GET THE SIGNATURE OF THE DEVICE
     u32  signature[4];
     memset(signature,0,sizeof(signature));
@@ -130,8 +131,6 @@ void ModuleInstall_InitNet(void)   //static ip example
     //install the net device you used,you could use more than one, but they
     //has different names and macs
     //use the corresponding net device install function you use
-
-
     extern bool_t ModuleInstall_ETH(const char *devname, u8 *mac,\
             bool_t loop,u32 loopcycle,\
             bool_t (*rcvHook)(u8 *buf, u16 len));
@@ -198,8 +197,8 @@ void ModuleInstall_InitNet(void)   //static ip example
     bool_t ETH_RESE(void);
     ETH_RESE( );//Íø¿Ú¸´Î»
 
-    bool_t lan8720Init(void);
-    lan8720Init( );
+    bool_t LAN8720_ResetInit(void);
+    LAN8720_ResetInit( );
 
     return 0;
 }

@@ -51,6 +51,7 @@
 #include <netbsp.h>
 #include "dbug.h"
 #include <shell.h>
+
 enum __DNS_OPCODE
 {
     DNS_OPCODE_STANDQUERY = 0,
@@ -138,7 +139,6 @@ enum __DNS_DECODE_STAT
     EN_DECODE_STAT_ERR,
     EN_DECODE_STAT_DONE,
 };
-
 
 //must add the len parameter to avoid the memory overrride
 static  void __decodeName(unsigned  char *name,int len)
@@ -433,7 +433,7 @@ bool_t netgethostbyname(char *param)
         addr = host->h_addr_list;
         while(NULL != *addr)
         {
-            if(inet_ntop(AF_INET,*addr,ipstr,20)>0)
+            if(inet_ntop(AF_INET,*addr,ipstr,20) != NULL)
             {
                 debug_printf("dns","%s:ip:%s\n\r",__FUNCTION__,ipstr);
             }
@@ -448,13 +448,10 @@ bool_t netgethostbyname(char *param)
     return result;
 }
 
-
-
-
 //THIS IS DNS MODULE FUNCTION
-bool_t ServiceDnsInit(ptu32_t para)
+bool_t ServiceDnsInit(void)
 {
-        return (TRUE);
+    return (TRUE);
 }
 ADD_TO_ROUTINE_SHELL(netgethostbyname,netgethostbyname,"usage:netgethostbyname hostname");
 
