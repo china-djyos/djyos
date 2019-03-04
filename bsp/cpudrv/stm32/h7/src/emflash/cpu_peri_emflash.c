@@ -354,18 +354,19 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             va_list list;
             u32 *left;
             s64 *unit;
+            u32 num;
 
             left = (u32*)args;
             va_start(list, args);
             unit = (s64*)va_arg(list, u32);
             va_end(list);
 
-            *left = 1;
-            if(0 == (*unit&0xff))
-                *left = 0;
-             else if(*unit>256*16)
-                res = -1;
+            num = *unit;
 
+            *left = 0xff - num%0x100;
+
+            if(*unit>256*16)
+                res = -1;
             break;
         }
 
@@ -433,7 +434,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 
             do
             {
-                if(__embed_erase((s64)--end, *sz))
+                if(__embed_erase((s64)end--, *sz))
                 {
                     res = -1;
                     break;

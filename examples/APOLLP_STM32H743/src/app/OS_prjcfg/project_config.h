@@ -88,7 +88,6 @@
 #define     CFG_YMODEM_PKG_TIMEOUT           (15*1000*1000)         // "包间隔超时时间",微秒
 #define     CFG_YMODEM_TIMEOUT               (300*1000*1000)        // "ymodem传输总超时时间",微秒
 #define     CFG_YMODEM_DEVNAME               "/dev/UART1"                  // "ymodem传输设备，std表示使用标准输入输出设备"
-#define     CFG_YMODEM_TIMEOUT               (600*1000*1000)        // #define CFG_YMODEM_TIMEOUT (600*1000*1000)
 //*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096         // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         15           // "事件数量限值",事件数量

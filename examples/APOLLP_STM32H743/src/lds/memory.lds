@@ -37,7 +37,7 @@ MEMORY
     InnerFlash(RX)   : org = 0x08000000,           len = 1024k   
     RAM1(RXW)        : org = 0x00000000,           len = 64K
     RAM2(RXW)        : org = 0x20000000,           len = 128K
-    RAM3(RXW)        : org = 0x24000000,           len = 512K-32K
+    RAM3(RXW)        : org = 0x24000000,           len = 512
     RAM4(RXW)        : org = 0x30000000,           len = 128K+128k
     RAM5(RXW)        : org = 0x38000000,           len = 64k
     RAM1NOCACHE(RXW) : org = 0x30040000,           len = 32k 
