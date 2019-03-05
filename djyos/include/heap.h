@@ -78,7 +78,9 @@ typedef struct HeapCB * pHeap_t;
 
 bool_t Heap_DynamicModuleInit(void);
 
-
+bool_t DjyMemInit(void *mem,size_t size);
+void *DjyMalloc(size_t size);
+void DjyFree(void * ptr);
 
 #ifdef __cplusplus
 }
