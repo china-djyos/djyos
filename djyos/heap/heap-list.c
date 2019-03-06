@@ -54,33 +54,13 @@
 #define   HEAP_AEESRT(x)
 #endif
 
-static const size_t heap_mem_list[] = {16,32,64,128,256,512,1024,1560,2048,3072,4096,8192};
+static const size_t heap_mem_list[HEAD_LIST_NUM] = {16,32,64,128,256,512,1024,1560,2048,3072,4096,8192};
 
 #define BLOCK_HEADER_OFFSET         (sizeof(tagBlockHeader))
-#define HEAD_LIST_NUM               (sizeof(heap_mem_list)/sizeof(heap_mem_list[0]))
 #define BLOCK_SIZE_MIN              (heap_mem_list[0] + sizeof(tagBlockHeader))
 #define BLOCK_SIZE_MAX              (heap_mem_list[HEAD_LIST_NUM-1] + sizeof(tagBlockHeader))
-#define BLOCK_ALIGN_SIZE            (0X04U)
 #define BLOCK_HRADER_FREE_BIT       (1U<<0)
 #define BLOCK_HEADER_PREV_FREE_BIT  (1U<<1)
-
-struct block_header_t
-{
-    struct block_header_t * prev_phys_block;
-    size_t size;
-    struct block_header_t * next_free;
-    struct block_header_t * prev_free;
-}__attribute__((aligned (BLOCK_ALIGN_SIZE)));
-typedef struct block_header_t tagBlockHeader;
-
-typedef struct heap_control_t
-{
-    tagBlockHeader block_null;
-    tagBlockHeader *mem_lst[HEAD_LIST_NUM];
-    size_t last_addr;
-}tagHeadControl;
-
-static tagHeadControl heap_control;
 
 // =============================================================================
 // 功能：获取block的大小
@@ -300,7 +280,7 @@ static uint16_t BlockFindFitLevel(size_t size)
     uint16_t i = 0;
     for(i=0;i<HEAD_LIST_NUM;i++)
     {
-        if(heap_mem_list[i]>size)
+        if(heap_mem_list[i]>=size)
             break;
     }
     return i;
@@ -595,32 +575,36 @@ static void __Free(tagHeadControl * control, void * ptr)
     }
 }
 
-void *DjyMalloc(size_t size)
+void *DjyMalloc(tagHeadControl *control,size_t size)
 {
     void *mem = NULL;
     atom_low_t low;
+    if(control==NULL || size==0)
+        return NULL;
     low = Int_LowAtomStart();
-    mem = __Malloc(&heap_control,size);
+    mem = __Malloc(control,size);
     Int_LowAtomEnd(low);
     return mem;
 }
 
-void DjyFree(void * ptr)
+void DjyFree(tagHeadControl *control,void * ptr)
 {
     atom_low_t low;
+    if(control==NULL || ptr==NULL)
+         return;
     low = Int_LowAtomStart();
-    __Free(&heap_control,ptr);
+    __Free(control,ptr);
     Int_LowAtomEnd(low);
 }
 
-bool_t DjyMemInit(void *mem,size_t size)
+bool_t DjyMemInit(tagHeadControl *control,void *mem,size_t size)
 {
     tagBlockHeader  *block;
     atom_low_t low;
-    if(mem==NULL || size<=sizeof(tagBlockHeader))
+    if(mem==NULL || size<=sizeof(tagBlockHeader) || control==NULL)
         return false;
     low = Int_LowAtomStart();
-    ControlConstruct(&heap_control);
+    ControlConstruct(control);
     block = (tagBlockHeader*)AlignUp((size_t)mem,BLOCK_ALIGN_SIZE);
     HEAP_AEESRT((size_t)block<=(size_t)mem);
     if((size_t)block<(size_t)mem)
@@ -629,8 +613,8 @@ bool_t DjyMemInit(void *mem,size_t size)
     block->prev_phys_block = NULL;
     block->next_free = block;
     block->prev_free = block;
-    heap_control.last_addr = block->size +  (size_t)block + sizeof(tagBlockHeader);
-    BlockInsert(&heap_control,block);
+    control->last_addr = block->size +  (size_t)block + sizeof(tagBlockHeader);
+    BlockInsert(control,block);
     BlockSetFree(block);
     Int_LowAtomEnd(low);
     return true;

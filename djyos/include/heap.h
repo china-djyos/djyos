@@ -77,10 +77,29 @@ enum _MEM_ERROR_CODE_
 typedef struct HeapCB * pHeap_t;
 
 bool_t Heap_DynamicModuleInit(void);
+////////////////////////////////////////////heap-list//////////////////////////////////
+#define HEAD_LIST_NUM               (12U)
+#define BLOCK_ALIGN_SIZE            (0X04U)
 
-bool_t DjyMemInit(void *mem,size_t size);
-void *DjyMalloc(size_t size);
-void DjyFree(void * ptr);
+struct block_header_t
+{
+    struct block_header_t * prev_phys_block;
+    size_t size;
+    struct block_header_t * next_free;
+    struct block_header_t * prev_free;
+}__attribute__((aligned (BLOCK_ALIGN_SIZE)));
+typedef struct block_header_t tagBlockHeader;
+
+typedef struct heap_control_t
+{
+    tagBlockHeader block_null;
+    tagBlockHeader *mem_lst[HEAD_LIST_NUM];
+    size_t last_addr;
+}tagHeadControl;
+
+bool_t DjyMemInit(tagHeadControl *control,void *mem,size_t size);
+void *DjyMalloc(tagHeadControl *control,size_t size);
+void DjyFree(tagHeadControl *control,void * ptr);
 
 #ifdef __cplusplus
 }

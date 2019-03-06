@@ -83,6 +83,7 @@ static u32  sgPkgLevlMap[CN_NETPKG_LEVEL]=  {32,64,128,256,512,1024,2048,4096,81
 static u8  *pPkgMemSrc = NULL;                          //the package heap
 static u32  gPkgMemOffset = 0;                          //the package use heap offset
 static  mutex_t pPkgQueLock = NULL;                     //protect the heap and the free list
+static tagHeadControl pkg_heap_control;
 
 void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf)
 {
@@ -120,7 +121,7 @@ struct NetPkg *PkgMalloc(u16 bufsize, u8 flags)
     pkgsize = bufsize+CN_PKG_HDRSIZE;
     if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
     {
-        result = (struct NetPkg *)DjyMalloc(pkgsize);
+        result = (struct NetPkg *)DjyMalloc(&pkg_heap_control,pkgsize);
         if(result!=NULL)
         {
             result->partnext = NULL;
@@ -153,7 +154,7 @@ bool_t PkgTryFreePart(struct NetPkg *pkg)
         {
             if(pkg->refers == 0)
             {
-                DjyFree(pkg);
+                DjyFree(&pkg_heap_control,pkg);
             }
             else
             {
@@ -351,7 +352,7 @@ bool_t PkgTryFreeLst(struct NetPkg  *pkglst)
             }
             if(pkg->refers==0)//ÔÊÐíÊÍ·Å
             {
-                DjyFree(pkg);
+                DjyFree(&pkg_heap_control,pkg);
             }
             else
             {
@@ -382,7 +383,7 @@ bool_t PkgTryFreeQ(struct NetPkg  *pkglst)
             pkgnxt = pkg->partnext;
             if(pkg->refers==0)
             {
-                DjyFree(pkg);
+                DjyFree(&pkg_heap_control,pkg);
             }
             else
             {
@@ -482,7 +483,7 @@ bool_t PkgModuleInit(void)
         error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
         goto EXIT_MEM;
     }
-    if(!DjyMemInit(pPkgMemSrc,CFG_NETPKG_MEMSIZE))
+    if(!DjyMemInit(&pkg_heap_control,pPkgMemSrc,CFG_NETPKG_MEMSIZE))
     {
         error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
         goto EXIT_MEM;
