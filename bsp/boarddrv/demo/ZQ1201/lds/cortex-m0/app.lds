@@ -25,7 +25,7 @@ SECTIONS
     {
         . = ALIGN(0x08);
         KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
-    }>ExtRam
+    }>RAM1
 
     /*iboot.lds中InitStack大小及位置必须与应用程序中debug/release.lds*/
     /*的一致，否则程序会可能会出现被覆盖的问题*/
@@ -35,7 +35,8 @@ SECTIONS
         msp_bottom = .;
         KEEP(* (.data.InitStack))
         msp_top = ALIGN(0x08);
-   }>ExtRam 
+   }>RAM1 
+   
     
     text_startup_rAppRom_lAppRom :
     {
@@ -73,20 +74,6 @@ SECTIONS
         g_pAppCodeEndRamAddr = .;
     }>Flash
 
-    rw_preload_rExtRam_lROM :
-    {
-        . = ALIGN(0x08);
-        *libos_App.a:loader.o (.data .data.*)
-        *libos_App.a:int_hard.o (.data .data.*)
-        KEEP(*libos_App.a:hard-exps.o (.data .data.*))
-        *libos_App.a:hard-exp.o (.data .data.*)
-        *libos_App.a:int.o (.data .data.*)
-        *libos_App.a:ints.o (.data .data.*)
-        *board/ZQ1201/src/critical/*.o (.data .data.*)
-        *libos_App.a:heap-static.o (.data .data.*)
-        *libos_App.a:list.o (.data .data.*)
-    }>ExtRam AT>Flash
-
       /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
     /*先增大到2的整数次幂，若为M，则Addr = ALIGN(4 * M) */
     /*举例：若cpu有64个中断，则N = 80, M = 128, Addr = ALIGN(0x200)*/
@@ -107,6 +94,22 @@ SECTIONS
         *libos_App.a:heap-static.o (.bss .bss.* COMMON)
         *libos_App.a:list.o (.bss .bss.* COMMON)
     }>ExtRam
+    
+    rw_preload_rExtRam_lROM :
+    {
+        . = ALIGN(0x08);
+        *libos_App.a:loader.o (.data .data.*)
+        *libos_App.a:int_hard.o (.data .data.*)
+        KEEP(*libos_App.a:hard-exps.o (.data .data.*))
+        *libos_App.a:hard-exp.o (.data .data.*)
+        *libos_App.a:int.o (.data .data.*)
+        *libos_App.a:ints.o (.data .data.*)
+        *board/ZQ1201/src/critical/*.o (.data .data.*)
+        *libos_App.a:heap-static.o (.data .data.*)
+        *libos_App.a:list.o (.data .data.*)
+    }>ExtRam AT>Flash
+
+
 
 
     rw_sysload_rExtRam_lROM :
@@ -192,7 +195,7 @@ SECTIONS
     {
         . = ALIGN(0x08);
         sys_heap_bottom = .;
-    }>ExtRam
+    }>RAM1
     sys_heap_top = Ram1Start + Ram1Size;
     
     heap_rExtRam_lExtRam (NOLOAD) :
