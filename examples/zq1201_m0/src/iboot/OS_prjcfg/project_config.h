@@ -23,7 +23,7 @@
 #define CFG_UART1_RECVBUF_LEN            32                    // "UART1接收环形缓冲区大小",
 #define CFG_UART1_DMABUF_LEN             32                    // "UART1 DMA缓冲区大小",
 #define CFG_UART2_SENDBUF_LEN            32                    // "UART2发送环形缓冲区大小",
-#define CFG_UART2_RECVBUF_LEN            32                    // "UART2接收环形缓冲区大小",
+#define CFG_UART2_RECVBUF_LEN            256                    // "UART2接收环形缓冲区大小",
 #define CFG_UART2_DMABUF_LEN             32                    // "UART2 DMA缓冲区大小",
 #define CFG_UART3_SENDBUF_LEN            32                    // "UART3发送环形缓冲区大小",
 #define CFG_UART3_RECVBUF_LEN            32                    // "UART3接收环形缓冲区大小",
