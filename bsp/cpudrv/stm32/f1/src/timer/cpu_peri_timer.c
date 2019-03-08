@@ -248,7 +248,9 @@ bool_t __STM32Timer_StartCount(struct STM32TimerHandle  *timer)
         }
         else
         {
-            tg_TIMER_Reg[timerno]->CNT = 0;
+            //似乎是timer的bug，+计数模式时，得经历一次CNT计满回绕到0以后，reload功能
+            //才有效，故初值设为 0xffffffff
+            tg_TIMER_Reg[timerno]->CNT = 0xffffffff;
             tg_TIMER_Reg[timerno]->SR = 0;//清中断标志
             tg_TIMER_Reg[timerno]->CR1 |= TIM_CR1_CEN_MASK;
             timer->timerstate = (timer->timerstate)| (CN_TIMER_ENCOUNT);
@@ -379,7 +381,8 @@ ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
 //    __STM32Timer_SetCycle(timer,cycle);
     //设置定时器中断,先结束掉该中断所有的关联相关内容
     Int_Register(irqline);
-    Int_CutLine(irqline);
+    Int_DisableLine(irqline);
+
     Int_IsrDisConnect(irqline);
     Int_EvttDisConnect(irqline);
     Int_SettoAsynSignal(irqline);
@@ -416,7 +419,7 @@ bool_t  __STM32Timer_Free(ptu32_t timerhandle)
             gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK<< timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
-            Int_CutLine(irqline);
+            Int_DisableLine(irqline);
             Int_IsrDisConnect(irqline);
             Int_EvttDisConnect(irqline);
             Int_UnRegister(irqline);
@@ -481,7 +484,7 @@ bool_t  __STM32Timer_EnInt(struct STM32TimerHandle  *timer)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timer->timerstate = (timer->timerstate)| (CN_TIMER_ENINT);
-        return Int_ContactLine(timer->irqline);
+        return Int_EnableLine(timer->irqline);
     }
     else
     {
@@ -501,7 +504,7 @@ bool_t  __STM32Timer_DisInt(struct STM32TimerHandle  *timer)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timer->timerstate = (timer->timerstate)&(~CN_TIMER_ENINT);
-        return Int_CutLine(timer->irqline);
+        return Int_DisableLine(timer->irqline);
     }
     else
     {
@@ -529,6 +532,32 @@ bool_t __STM32Timer_GetTime(struct STM32TimerHandle  *timer, u32 *time)
         }
         counter = tg_TIMER_Reg[timerno]->CNT;   //CNT即是微秒数
         *time = counter;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// =============================================================================
+// 函数功能:取定时器硬件控制寄存器地址
+// 输入参数:timer，待操作的定时器
+// 返回值  :true成功 false失败
+// 说明    :
+// =============================================================================
+bool_t __STM32Timer_GetReg(struct STM32TimerHandle  *timer, void **reg)
+{
+    u8 timerno;
+    u32 counter;
+    if(timer->timerstate & CN_TIMER_ENUSE)
+    {
+        timerno = timer->timerno;
+        if(timerno > CN_STM32TIMER_MAX)
+        {
+            return false;
+        }
+        *reg = tg_TIMER_Reg[timerno];
         return true;
     }
     else
@@ -697,6 +726,9 @@ bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
             case EN_TIMER_GETSTATE:
                 result = __STM32Timer_GetState(timer, (u32 *)inoutpara);
                 break;
+            case EN_TIMER_GETREG:
+                result = __STM32Timer_GetReg(timer, (void **)inoutpara);
+                break;
             default:
                 break;
         };
@@ -735,7 +767,7 @@ bool_t ModuleInstall_HardTimer(void)
     for(temp = 0; temp < CN_STM32TIMER_NUM; temp++)
     {
         tg_TIMER_Reg[temp]->CR1 &= ~(TIM_CR1_CEN_MASK); //禁止TIMER
-        tg_TIMER_Reg[temp]->CR1 |= TIM_CR1_ARPE_MASK;
+        tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE;//自动重装
 
         tg_TIMER_Reg[temp]->DIER |= TIM_DIER_UIE_MASK;
         tg_TIMER_Reg[temp]->PSC = 0x23;//配置为36，则一个时钟为1uS

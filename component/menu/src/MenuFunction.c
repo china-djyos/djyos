@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -218,9 +219,4 @@ void*   getfunc_byname(char *funcname)
    }
 }
 
-
-
-
-
-
-
+#endif

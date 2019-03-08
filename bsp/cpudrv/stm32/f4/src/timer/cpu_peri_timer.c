@@ -242,7 +242,9 @@ bool_t __STM32Timer_StartCount(struct STM32TimerHandle  *timer)
         }
         else
         {
-            tg_TIMER_Reg[timerno]->CNT = 0;
+            //似乎是timer的bug，+计数模式时，得经历一次CNT计满回绕到0以后，reload功能
+            //才有效，故初值设为 0xffffffff
+            tg_TIMER_Reg[timerno]->CNT = 0xffffffff;
             tg_TIMER_Reg[timerno]->SR = 0;//清中断标志
             tg_TIMER_Reg[timerno]->CR1 |= TIM_CR1_CEN;
             timer->timerstate = (timer->timerstate)| (CN_TIMER_ENCOUNT);
@@ -339,12 +341,12 @@ bool_t  __STM32Timer_SetAutoReload(struct STM32TimerHandle  *timer, bool_t autor
 // 参数：定时器句柄。
 // 返回：user ISR的返回值
 //-----------------------------------------------------------------------------
-u32 __STM32Timer_isr(ptu32_t TimerHandle)
+__attribute__((weak)) u32 __STM32Timer_isr(ptu32_t TimerHandle)
 {
     u32 timerno;
     timerno = ((struct STM32TimerHandle  *)TimerHandle)->timerno;
     //以下两句顺序不能改
-    tg_TIMER_Reg[timerno]->CNT = 0;
+//  tg_TIMER_Reg[timerno]->CNT = 0;
     tg_TIMER_Reg[timerno]->SR = 0;//清中断标志
     Int_ClearLine(((struct STM32TimerHandle  *)TimerHandle)->irqline);
     return ((struct STM32TimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
@@ -393,7 +395,7 @@ ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
     //__STM32Timer_SetCycle(timer,cycle);
     //设置定时器中断,先结束掉该中断所有的关联相关内容
     Int_Register(irqline);
-    Int_CutLine(irqline);
+    Int_DisableLine(irqline);
 
     Int_IsrDisConnect(irqline);
     Int_EvttDisConnect(irqline);
@@ -435,7 +437,7 @@ bool_t  __STM32Timer_Free(ptu32_t timerhandle)
             gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK<< timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
-            Int_CutLine(irqline);
+            Int_DisableLine(irqline);
             Int_IsrDisConnect(irqline);
             Int_EvttDisConnect(irqline);
             Int_UnRegister(irqline);
@@ -500,7 +502,7 @@ bool_t  __STM32Timer_EnInt(struct STM32TimerHandle  *timer)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timer->timerstate = (timer->timerstate)| (CN_TIMER_ENINT);
-        return Int_ContactLine(timer->irqline);
+        return Int_EnableLine(timer->irqline);
     }
     else
     {
@@ -520,7 +522,7 @@ bool_t  __STM32Timer_DisInt(struct STM32TimerHandle  *timer)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timer->timerstate = (timer->timerstate)&(~CN_TIMER_ENINT);
-        return Int_CutLine(timer->irqline);
+        return Int_DisableLine(timer->irqline);
     }
     else
     {
@@ -548,6 +550,32 @@ bool_t __STM32Timer_GetTime(struct STM32TimerHandle  *timer, u32 *time)
         }
         counter = tg_TIMER_Reg[timerno]->CNT;   //CNT即是微秒数
         *time = counter;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// =============================================================================
+// 函数功能:取定时器硬件控制寄存器地址
+// 输入参数:timer，待操作的定时器
+// 返回值  :true成功 false失败
+// 说明    :
+// =============================================================================
+bool_t __STM32Timer_GetReg(struct STM32TimerHandle  *timer, void **reg)
+{
+    u8 timerno;
+    u32 counter;
+    if(timer->timerstate & CN_TIMER_ENUSE)
+    {
+        timerno = timer->timerno;
+        if(timerno > CN_STM32TIMER_MAX)
+        {
+            return false;
+        }
+        *reg = tg_TIMER_Reg[timerno];
         return true;
     }
     else
@@ -715,6 +743,9 @@ bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
             case EN_TIMER_GETSTATE:
                 result = __STM32Timer_GetState(timer, (u32 *)inoutpara);
                 break;
+            case EN_TIMER_GETREG:
+                result = __STM32Timer_GetReg(timer, (void **)inoutpara);
+                break;
             default:
                 break;
         };
@@ -761,10 +792,7 @@ bool_t ModuleInstall_HardTimer(void)
                                                 //如果定时器中断属性设为实时中断，则用户实现的中断服务函数ISR中必须清
                                                 //中断，且不能调用任何系统服务；如果设定为异步信号，则
                                                 //无须清中断，且允许调用全部系统调用。
-        //tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE;   //自动重装使能
-        tg_TIMER_Reg[i]->CR1 &=~ TIM_CR1_ARPE;   //自动重装使能
-        //tg_TIMER_Reg[i]->CR1 |= ~(TIM_CR1_DIR); //计数器递增计数
-        tg_TIMER_Reg[i]->CR1 &=  ~TIM_CR1_DIR;    //计数器递增计数
+        tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE;//自动重装
         tg_TIMER_Reg[i]->DIER |= TIM_DIER_UIE;  //使能更新中断
         tg_TIMER_Reg[i]->PSC = 0;    //分频系数为零，不分频，CK_CNT=CK_PSC频率，1/84M=1uS,84MHZ=84 000 000
                                                              //1s=1000ms  1ms=1000us

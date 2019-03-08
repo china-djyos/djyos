@@ -78,6 +78,7 @@ enum HardTimerCmdCode
     EN_TIMER_GETCYCLE,      //获取定时周期，inoutpara为u32 *,单位为周期数
     EN_TIMER_GETID,         //获取定时器ID，inoutpara为u32 *，高16位为intID，低16为timerID
     EN_TIMER_GETSTATE,      //获取定时器状态，inoutpara为u32 *
+    EN_TIMER_GETREG,        //获取定时器硬件寄存器地址，inoutpara为void *
     EN_TIMER_LASTOPCODE,
 };
 

@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -245,7 +246,4 @@ const  tagMenuitemModel g_tMenuitemModelTab[]=
     {   0,  "",  "",         0,                    0x0000,         0,              ""      },
 };
 
-
-
-
-
+#endif

@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -276,4 +277,5 @@ struct menu_item  *create_menu_tree(const char *treename,const struct MenuitemMo
 
      return result;
 }
+#endif
 

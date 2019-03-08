@@ -1156,545 +1156,6 @@
 						<F N="bsp/boarddrv/staged/windows/board-config.h"/>
 					</Folder>
 				</Folder>
-				<Folder Name="user">
-					<Folder Name="sr1208">
-						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr1208/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/sr1208/drv/max706/max706.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr1208/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr1208/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr1208/include/max706.h"/>
-							<F N="bsp/boarddrv/user/sr1208/include/stm32f7xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr1208/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr1208/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr1208/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr1208/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr1208/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr1208/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/sr1208/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr1208/Board_sr1208.xml"/>
-					</Folder>
-					<Folder Name="SR1210">
-						<Folder Name="startup">
-							<Folder Name="include">
-								<F N="bsp/boarddrv/user/SR1210/startup/include/board-config.h"/>
-							</Folder>
-							<F N="bsp/boarddrv/user/SR1210/startup/board.h"/>
-							<F N="bsp/boarddrv/user/SR1210/startup/initcpu.h"/>
-							<F N="bsp/boarddrv/user/SR1210/startup/initcpu.S"/>
-							<F N="bsp/boarddrv/user/SR1210/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/SR1210/startup/SR1210_lowpower.c"/>
-						</Folder>
-					</Folder>
-					<Folder Name="sr1263">
-						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr1263/drv/board/board.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr1263/include/ad.h"/>
-							<F N="bsp/boarddrv/user/sr1263/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr1263/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr1263/include/stm32l4xx_hal_conf.h"/>
-							<F N="bsp/boarddrv/user/sr1263/include/timer.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr1263/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr1263/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr1263/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr1263/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr1263/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr1263/startup/stm32l4xx_hal_conf.h"/>
-							<F N="bsp/boarddrv/user/sr1263/startup/sysinit.c"/>
-							<F N="bsp/boarddrv/user/sr1263/startup/system_stm32l4xx.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr1263/Board_sr1263.xml"/>
-					</Folder>
-					<Folder Name="sr1266">
-						<Folder Name="drv">
-							<Folder Name="ad_sr1266">
-								<F N="bsp/boarddrv/user/sr1266/drv/ad_sr1266/ad_sr1266.c"/>
-							</Folder>
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr1266/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="pwm_sr1266">
-								<F N="bsp/boarddrv/user/sr1266/drv/pwm_sr1266/pwm_sr1266.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr1266/include/ad_sr1266.h"/>
-							<F N="bsp/boarddrv/user/sr1266/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr1266/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr1266/include/pwm_sr1266.h"/>
-							<F N="bsp/boarddrv/user/sr1266/include/stm32l4xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr1266/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr1266/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr1266/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr1266/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr1266/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr1266/startup/stm32l4xx_hal_conf.h"/>
-							<F N="bsp/boarddrv/user/sr1266/startup/sysinit.c"/>
-							<F N="bsp/boarddrv/user/sr1266/startup/system_stm32l4xx.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr1266/Board_sr1266.xml"/>
-					</Folder>
-					<Folder Name="sr2711">
-						<Folder Name="drv">
-							<Folder Name="ad_sr2711">
-								<F N="bsp/boarddrv/user/sr2711/drv/ad_sr2711/ad_sr2711.c"/>
-							</Folder>
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr2711/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="boardnetcfg">
-								<F N="bsp/boarddrv/user/sr2711/drv/boardnetcfg/boardnetcfg.c"/>
-							</Folder>
-							<Folder Name="brdexp">
-								<F N="bsp/boarddrv/user/sr2711/drv/brdexp/brdexp.c"/>
-							</Folder>
-							<Folder Name="brdexp_bkpsram">
-								<F N="bsp/boarddrv/user/sr2711/drv/brdexp_bkpsram/brdexp_bkpsram.c"/>
-							</Folder>
-							<Folder Name="iwdg">
-								<F N="bsp/boarddrv/user/sr2711/drv/iwdg/iwdg.c"/>
-							</Folder>
-							<Folder Name="kiko">
-								<F N="bsp/boarddrv/user/sr2711/drv/kiko/kiko.c"/>
-							</Folder>
-							<Folder Name="lp_sr2711">
-								<F N="bsp/boarddrv/user/sr2711/drv/lp_sr2711/lp_sr2711.c"/>
-							</Folder>
-							<Folder Name="lptim">
-								<F N="bsp/boarddrv/user/sr2711/drv/lptim/lptim.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/sr2711/drv/max706/max706.c"/>
-							</Folder>
-							<Folder Name="modemrest">
-								<F N="bsp/boarddrv/user/sr2711/drv/modemrest/modemrest.c"/>
-							</Folder>
-							<Folder Name="powerctrl">
-								<F N="bsp/boarddrv/user/sr2711/drv/powerctrl/powerctrl.c"/>
-							</Folder>
-							<Folder Name="updatelowlevel">
-								<F N="bsp/boarddrv/user/sr2711/drv/updatelowlevel/updatelowlevel.c"/>
-							</Folder>
-							<Folder Name="usb_io">
-								<F N="bsp/boarddrv/user/sr2711/drv/usb_io/usb_io_init.c"/>
-							</Folder>
-							<Folder Name="wwdg">
-								<F N="bsp/boarddrv/user/sr2711/drv/wwdg/wwdg.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr2711/include/ad_sr2711.h"/>
-							<F N="bsp/boarddrv/user/sr2711/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr2711/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr2711/include/kiko.h"/>
-							<F N="bsp/boarddrv/user/sr2711/include/lptim.h"/>
-							<F N="bsp/boarddrv/user/sr2711/include/max706.h"/>
-							<F N="bsp/boarddrv/user/sr2711/include/powerctrl.h"/>
-							<F N="bsp/boarddrv/user/sr2711/include/stm32f7xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr2711/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr2711/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr2711/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr2711/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr2711/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr2711/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/sr2711/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr2711/Board_sr2711.xml"/>
-					</Folder>
-					<Folder Name="sr3200">
-						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr3200/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="brdwdt">
-								<F N="bsp/boarddrv/user/sr3200/drv/brdwdt/brdwdt.c"/>
-							</Folder>
-							<Folder Name="flash">
-								<F N="bsp/boarddrv/user/sr3200/drv/flash/flash.c"/>
-							</Folder>
-							<Folder Name="pwrsamp">
-								<F N="bsp/boarddrv/user/sr3200/drv/pwrsamp/pwrsamp.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr3200/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr3200/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr3200/include/flash.h"/>
-							<F N="bsp/boarddrv/user/sr3200/include/pwrsamp.h"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr3200/startup/initcpuc.c"/>
-						</Folder>
-					</Folder>
-					<Folder Name="sr3252">
-						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr3252/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="flashdrv">
-								<F N="bsp/boarddrv/user/sr3252/drv/flashdrv/flashdrv.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/sr3252/drv/max706/max706.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr3252/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr3252/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr3252/include/flashdrv.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr3252/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr3252/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr3252/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr3252/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr3252/startup/initcpu.c"/>
-							<F N="bsp/boarddrv/user/sr3252/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/sr3252/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr3252/Board_sr3252.xml"/>
-					</Folder>
-					<Folder Name="sr5190">
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr5190/include/board-config.h"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr5190/startup/initcpuc.c"/>
-						</Folder>
-					</Folder>
-					<Folder Name="sr5261">
-						<Folder Name="drv">
-							<Folder Name="ads8688">
-								<F N="bsp/boarddrv/user/sr5261/drv/ads8688/ads8688.c"/>
-							</Folder>
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr5261/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="boardnetcfg">
-								<F N="bsp/boarddrv/user/sr5261/drv/boardnetcfg/boardnetcfg.c"/>
-							</Folder>
-							<Folder Name="brdexp">
-								<F N="bsp/boarddrv/user/sr5261/drv/brdexp/brdexp.c"/>
-							</Folder>
-							<Folder Name="harddrv_ad">
-								<F N="bsp/boarddrv/user/sr5261/drv/harddrv_ad/harddrv_ad.c"/>
-							</Folder>
-							<Folder Name="kiko">
-								<F N="bsp/boarddrv/user/sr5261/drv/kiko/kiko.c"/>
-							</Folder>
-							<Folder Name="lcd_config">
-								<F N="bsp/boarddrv/user/sr5261/drv/lcd_config/lcd_config.c"/>
-							</Folder>
-							<Folder Name="lvds_usb_touch">
-								<F N="bsp/boarddrv/user/sr5261/drv/lvds_usb_touch/lvds_usb_touch.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/sr5261/drv/max706/max706.c"/>
-							</Folder>
-							<Folder Name="modemrest">
-								<F N="bsp/boarddrv/user/sr5261/drv/modemrest/modemrest.c"/>
-							</Folder>
-							<Folder Name="pwm">
-								<F N="bsp/boarddrv/user/sr5261/drv/pwm/pwm.c"/>
-							</Folder>
-							<Folder Name="usb_io_init">
-								<F N="bsp/boarddrv/user/sr5261/drv/usb_io_init/usb_io_init.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr5261/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr5261/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr5261/include/harddrv_ad.h"/>
-							<F N="bsp/boarddrv/user/sr5261/include/kiko.h"/>
-							<F N="bsp/boarddrv/user/sr5261/include/max706.h"/>
-							<F N="bsp/boarddrv/user/sr5261/include/pwm.h"/>
-							<F N="bsp/boarddrv/user/sr5261/include/stm32f7xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr5261/lds/Debug.lds"/>
-							<F N="bsp/boarddrv/user/sr5261/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr5261/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr5261/lds/Release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr5261/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr5261/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/sr5261/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr5261/Board_sr5261.xml"/>
-					</Folder>
-					<Folder Name="sr5333-v2.0">
-						<Folder Name="drv">
-							<Folder Name="ad_sr5333">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/ad_sr5333/ad_sr5333.c"/>
-							</Folder>
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="brdexp">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/brdexp/brdexp.c"/>
-							</Folder>
-							<Folder Name="brdexp_bkpsram">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/brdexp_bkpsram/brdexp_bkpsram.c"/>
-							</Folder>
-							<Folder Name="harddrv_ad">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/harddrv_ad/harddrv_ad.c"/>
-							</Folder>
-							<Folder Name="kiko">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/kiko/kiko.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/max706/max706.c"/>
-							</Folder>
-							<Folder Name="modemrest">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/modemrest/modemrest.c"/>
-							</Folder>
-							<Folder Name="pwm">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/pwm/pwm.c"/>
-							</Folder>
-							<Folder Name="usb_io_init">
-								<F N="bsp/boarddrv/user/sr5333-v2.0/drv/usb_io_init/usb_io_init.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/ad_sr5333.h"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/harddrv_ad.h"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/kiko.h"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/max706.h"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/pwm.h"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/include/stm32f7xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr5333-v2.0/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/sr5333-v2.0/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr5333-v2.0/Board_sr5333-v2.0.xml"/>
-					</Folder>
-					<Folder Name="sr5335">
-						<Folder Name="drv">
-							<Folder Name="ad_sr5335">
-								<F N="bsp/boarddrv/user/sr5335/drv/ad_sr5335/ad_sr5335.c"/>
-							</Folder>
-							<Folder Name="ads8688">
-								<F N="bsp/boarddrv/user/sr5335/drv/ads8688/ads8688.c"/>
-							</Folder>
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr5335/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="boardnetcfg">
-								<F N="bsp/boarddrv/user/sr5335/drv/boardnetcfg/boardnetcfg.c"/>
-							</Folder>
-							<Folder Name="brdexp">
-								<F N="bsp/boarddrv/user/sr5335/drv/brdexp/brdexp.c"/>
-							</Folder>
-							<Folder Name="brdexp_bkpsram">
-								<F N="bsp/boarddrv/user/sr5335/drv/brdexp_bkpsram/brdexp_bkpsram.c"/>
-							</Folder>
-							<Folder Name="harddrv_ad">
-								<F N="bsp/boarddrv/user/sr5335/drv/harddrv_ad/harddrv_ad.c"/>
-							</Folder>
-							<Folder Name="kiko">
-								<F N="bsp/boarddrv/user/sr5335/drv/kiko/kiko.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/sr5335/drv/max706/max706.c"/>
-							</Folder>
-							<Folder Name="modemrest">
-								<F N="bsp/boarddrv/user/sr5335/drv/modemrest/modemrest.c"/>
-							</Folder>
-							<Folder Name="pwm">
-								<F N="bsp/boarddrv/user/sr5335/drv/pwm/pwm.c"/>
-							</Folder>
-							<Folder Name="usb_io">
-								<F N="bsp/boarddrv/user/sr5335/drv/usb_io/usb_io_init.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr5335/include/ad_sr5335.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/ads8688.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/harddrv_ad.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/kiko.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/max706.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/pwm.h"/>
-							<F N="bsp/boarddrv/user/sr5335/include/stm32f7xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr5335/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/sr5335/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr5335/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr5335/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr5335/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr5335/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/sr5335/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr5335/Board_sr5335.xml"/>
-					</Folder>
-					<Folder Name="sr7363">
-						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/sr7363/drv/board/board.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/sr7363/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/sr7363/include/board.h"/>
-							<F N="bsp/boarddrv/user/sr7363/include/stm32f3xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr7363/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/sr7363/lds/memory.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/sr7363/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/sr7363/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/sr7363/Board_sr7363.xml"/>
-					</Folder>
-					<Folder Name="ty82xx">
-						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/ty82xx/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="boardnetcfg">
-								<F N="bsp/boarddrv/user/ty82xx/drv/boardnetcfg/boardnetcfg.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/ty82xx/drv/max706/max706.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/ty82xx/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/ty82xx/include/board.h"/>
-						</Folder>
-						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/ty82xx/lds/debug.lds"/>
-							<F N="bsp/boarddrv/user/ty82xx/lds/iboot.lds"/>
-							<F N="bsp/boarddrv/user/ty82xx/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/ty82xx/lds/release.lds"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/ty82xx/startup/initcpu.c"/>
-							<F N="bsp/boarddrv/user/ty82xx/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/ty82xx/startup/sysinit.c"/>
-						</Folder>
-						<F N="bsp/boarddrv/user/ty82xx/Board_ty82xx.xml"/>
-					</Folder>
-					<Folder Name="wb7290">
-						<Folder Name="drv">
-							<Folder Name="ad7616">
-								<F N="bsp/boarddrv/user/wb7290/drv/ad7616/ad7616.c"/>
-							</Folder>
-							<Folder Name="ads8688">
-								<F N="bsp/boarddrv/user/wb7290/drv/ads8688/ads8688.c"/>
-							</Folder>
-							<Folder Name="backupmode">
-								<F N="bsp/boarddrv/user/wb7290/drv/backupmode/backupmode.c"/>
-							</Folder>
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/wb7290/drv/board/board.c"/>
-							</Folder>
-							<Folder Name="brdexp">
-								<F N="bsp/boarddrv/user/wb7290/drv/brdexp/brdexp.c"/>
-							</Folder>
-							<Folder Name="dcoutput">
-								<F N="bsp/boarddrv/user/wb7290/drv/dcoutput/dcoutput.c"/>
-							</Folder>
-							<Folder Name="kiko">
-								<F N="bsp/boarddrv/user/wb7290/drv/kiko/kiko.c"/>
-							</Folder>
-							<Folder Name="lcd-6963">
-								<F N="bsp/boarddrv/user/wb7290/drv/lcd-6963/lcd-6963.c"/>
-							</Folder>
-							<Folder Name="max706">
-								<F N="bsp/boarddrv/user/wb7290/drv/max706/max706.c"/>
-							</Folder>
-							<Folder Name="st7567">
-								<F N="bsp/boarddrv/user/wb7290/drv/st7567/st7567.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/wb7290/include/ad7616.h"/>
-							<F N="bsp/boarddrv/user/wb7290/include/ads8688.h"/>
-							<F N="bsp/boarddrv/user/wb7290/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/wb7290/include/board.h"/>
-							<F N="bsp/boarddrv/user/wb7290/include/dcoutput.h"/>
-							<F N="bsp/boarddrv/user/wb7290/include/kiko.h"/>
-							<F N="bsp/boarddrv/user/wb7290/include/lcd-6963.h"/>
-							<F N="bsp/boarddrv/user/wb7290/include/led.h"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/wb7290/startup/initcpu.c"/>
-							<F N="bsp/boarddrv/user/wb7290/startup/set-cache.c"/>
-							<F N="bsp/boarddrv/user/wb7290/startup/sysinit.c"/>
-						</Folder>
-					</Folder>
-					<Folder Name="wb7292">
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/wb7292/include/board-config.h"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/wb7292/startup/initcpu.c"/>
-						</Folder>
-					</Folder>
-					<Folder Name="WB7612">
-						<Folder Name="drv">
-							<Folder Name="board">
-								<F N="bsp/boarddrv/user/WB7612/drv/board/board.c"/>
-							</Folder>
-						</Folder>
-						<Folder Name="include">
-							<F N="bsp/boarddrv/user/WB7612/include/board-config.h"/>
-							<F N="bsp/boarddrv/user/WB7612/include/board.h"/>
-							<F N="bsp/boarddrv/user/WB7612/include/stm32f3xx_hal_conf.h"/>
-						</Folder>
-						<Folder Name="startup">
-							<F N="bsp/boarddrv/user/WB7612/startup/initcpuc.c"/>
-							<F N="bsp/boarddrv/user/WB7612/startup/sysinit.c"/>
-						</Folder>
-					</Folder>
-				</Folder>
 			</Folder>
 			<Folder Name="chipdrv">
 				<Folder Name="39vf160">
@@ -1755,10 +1216,10 @@
 					<F N="bsp/chipdrv/at24c512c/at24c512c.c"/>
 				</Folder>
 				<Folder Name="at45db321">
-					<F N="bsp/chipdrv/at45db321/at45db321.c"/>
-					<F N="bsp/chipdrv/at45db321/at45db321_dev.c"/>
 					<F N="bsp/chipdrv/at45db321/at45_efs.c"/>
 					<F N="bsp/chipdrv/at45db321/at45_yaf.c"/>
+					<F N="bsp/chipdrv/at45db321/at45db321.c"/>
+					<F N="bsp/chipdrv/at45db321/at45db321_dev.c"/>
 				</Folder>
 				<Folder Name="AX88796">
 					<F N="bsp/chipdrv/AX88796/AX88796Byte.c"/>
@@ -1808,6 +1269,7 @@
 					<F N="bsp/chipdrv/include/ili9325.h"/>
 					<F N="bsp/chipdrv/include/k9f1208xxx.h"/>
 					<F N="bsp/chipdrv/include/k9fxxx.h"/>
+					<F N="bsp/chipdrv/include/lan8720.h"/>
 					<F N="bsp/chipdrv/include/lan8742.h"/>
 					<F N="bsp/chipdrv/include/LCM240128C.h"/>
 					<F N="bsp/chipdrv/include/LCM240128Touch.h"/>
@@ -1826,7 +1288,6 @@
 					<F N="bsp/chipdrv/include/rtc_ds3232M.h"/>
 					<F N="bsp/chipdrv/include/stmpe811.h"/>
 					<F N="bsp/chipdrv/include/tca9535.h"/>
-					<F N="bsp/chipdrv/include/lan8720.h"/>
 				</Folder>
 				<Folder Name="k9f1208xxx">
 					<F N="bsp/chipdrv/k9f1208xxx/k9f1208xxx.c"/>
@@ -2858,18 +2319,18 @@
 						<Folder Name="include">
 							<F N="bsp/cpudrv/stm32/h7/include/cpu-optional.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri.h"/>
+							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_can.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_dma.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_eth.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_gpio.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_iic.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_int_line.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_lcd.h"/>
-							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_uart.h"/>
-							<F N="bsp/cpudrv/stm32/h7/include/set-cache.h"/>
-							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_can.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_lptimer.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_nand.h"/>
 							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_spi.h"/>
+							<F N="bsp/cpudrv/stm32/h7/include/cpu_peri_uart.h"/>
+							<F N="bsp/cpudrv/stm32/h7/include/set-cache.h"/>
 						</Folder>
 						<Folder Name="src">
 							<Folder Name="bkpsram">
@@ -3048,9 +2509,9 @@
 							</Folder>
 							<Folder Name="norflash">
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/embeded_flash.c"/>
+								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/emflash_xip.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.h"/>
-								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/emflash_xip.c"/>
 							</Folder>
 							<Folder Name="pic">
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/pic/cpu_peri_pic.c"/>
@@ -3659,28 +3120,41 @@
 					</Folder>
 				</Folder>
 			</Folder>
-			<Folder Name="APOLLP_STM32H743">
+			<Folder Name="applo_h743_systest">
+				<Folder Name=".settings">
+					<F N="examples/applo_h743_systest/.settings/language.settings.xml"/>
+				</Folder>
+				<Folder Name="data">
+					<Folder Name="hardwares">
+						<F N="examples/applo_h743_systest/data/hardwares/board_infos.xml"/>
+						<F N="examples/applo_h743_systest/data/hardwares/component_infos.xml"/>
+						<F N="examples/applo_h743_systest/data/hardwares/cpu_infos.xml"/>
+					</Folder>
+					<F N="examples/applo_h743_systest/data/hardware_info.xml"/>
+					<F N="examples/applo_h743_systest/data/iboot_component_check.xml"/>
+					<F N="examples/applo_h743_systest/data/user_handled_files.xml"/>
+				</Folder>
 				<Folder Name="src">
 					<Folder Name="iboot">
 						<Folder Name="critical">
-							<F N="examples/APOLLP_STM32H743/src/iboot/critical/critical.c"/>
-						</Folder>
-						<Folder Name="gdd_test">
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_draw_text.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_hello_world.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_listbox.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_move_window.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_progressbar.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_qurcode.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_timer.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_demo_zigbee.c"/>
-							<F N="examples/APOLLP_STM32H743/src/iboot/gdd_test/gdd_test.c"/>
+							<F N="examples/applo_h743_systest/src/iboot/critical/critical.c"/>
 						</Folder>
 						<Folder Name="OS_prjcfg">
-							<F N="examples/APOLLP_STM32H743/src/iboot/OS_prjcfg/project_config.h"/>
+							<F N="examples/applo_h743_systest/src/iboot/OS_prjcfg/keepshell.c"/>
+							<F N="examples/applo_h743_systest/src/iboot/OS_prjcfg/project_config.h"/>
 						</Folder>
-						<F N="examples/APOLLP_STM32H743/src/iboot/initPrj.c"/>
-						<F N="examples/APOLLP_STM32H743/src/iboot/main.c"/>
+						<Folder Name="sysModuleTest">
+							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/sysModuleTest.c"/>
+							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/sysModuleTest.h"/>
+							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/SysTestTime.c"/>
+							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/sysTestTime.h"/>
+						</Folder>
+						<F N="examples/applo_h743_systest/src/iboot/initPrj.c"/>
+						<F N="examples/applo_h743_systest/src/iboot/main.c"/>
+					</Folder>
+					<Folder Name="lds">
+						<F N="examples/applo_h743_systest/src/lds/iboot.lds"/>
+						<F N="examples/applo_h743_systest/src/lds/memory.lds"/>
 					</Folder>
 				</Folder>
 			</Folder>
@@ -3722,6 +3196,42 @@
 					<Folder Name="lds">
 						<F N="examples/explore_stm32f407/src/lds/iboot.lds"/>
 						<F N="examples/explore_stm32f407/src/lds/memory.lds"/>
+					</Folder>
+				</Folder>
+			</Folder>
+			<Folder Name="explorer_f407_systest">
+				<Folder Name=".settings">
+					<F N="examples/explorer_f407_systest/.settings/language.settings.xml"/>
+				</Folder>
+				<Folder Name="data">
+					<Folder Name="hardwares">
+						<F N="examples/explorer_f407_systest/data/hardwares/board_infos.xml"/>
+						<F N="examples/explorer_f407_systest/data/hardwares/component_infos.xml"/>
+						<F N="examples/explorer_f407_systest/data/hardwares/cpu_infos.xml"/>
+					</Folder>
+					<F N="examples/explorer_f407_systest/data/app_component_check.xml"/>
+					<F N="examples/explorer_f407_systest/data/hardware_info.xml"/>
+				</Folder>
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/explorer_f407_systest/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/explorer_f407_systest/src/app/OS_prjcfg/keepshell.c"/>
+							<F N="examples/explorer_f407_systest/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<Folder Name="sysModuleTest">
+							<F N="examples/explorer_f407_systest/src/app/sysModuleTest/sysModuleTest.c"/>
+							<F N="examples/explorer_f407_systest/src/app/sysModuleTest/sysModuleTest.h"/>
+							<F N="examples/explorer_f407_systest/src/app/sysModuleTest/testsupport.c"/>
+						</Folder>
+						<F N="examples/explorer_f407_systest/src/app/initPrj.c"/>
+						<F N="examples/explorer_f407_systest/src/app/main.c"/>
+					</Folder>
+					<Folder Name="lds">
+						<F N="examples/explorer_f407_systest/src/lds/app.lds"/>
+						<F N="examples/explorer_f407_systest/src/lds/memory.lds"/>
 					</Folder>
 				</Folder>
 			</Folder>
@@ -3809,7 +3319,6 @@
 					</Folder>
 					<F N="examples/NUCLEO-H743ZI/data/hardware_info.xml"/>
 					<F N="examples/NUCLEO-H743ZI/data/iboot_component_check.xml"/>
-					<F N="examples/NUCLEO-H743ZI/data/user_handled_files.xml"/>
 				</Folder>
 				<Folder Name="src">
 					<Folder Name="app">
@@ -13871,10 +13380,10 @@
 				<F N="third/picasso/gfx_pixfmt_rgb16.h"/>
 				<F N="third/picasso/gfx_pixfmt_rgba.h"/>
 				<F N="third/picasso/gfx_pixfmt_wrapper.h"/>
-				<F N="third/picasso/gfx_rasterizer_cell.h"/>
-				<F N="third/picasso/gfx_rasterizer_scanline.h"/>
 				<F N="third/picasso/gfx_raster_adapter.cpp"/>
 				<F N="third/picasso/gfx_raster_adapter.h"/>
+				<F N="third/picasso/gfx_rasterizer_cell.h"/>
+				<F N="third/picasso/gfx_rasterizer_scanline.h"/>
 				<F N="third/picasso/gfx_renderer.h"/>
 				<F N="third/picasso/gfx_rendering_buffer.cpp"/>
 				<F N="third/picasso/gfx_rendering_buffer.h"/>

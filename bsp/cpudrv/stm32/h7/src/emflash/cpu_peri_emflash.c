@@ -88,7 +88,7 @@
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 
 //%$#@num,-1,12,
-#define CFG_EFLASH_PART_START      (gc_ptIbootSize/128*1024)          //分区起始
+#define CFG_EFLASH_PART_START      100          //分区起始
 #define CFG_EFLASH_PART_END        -1         //分区结束，-1代表至存储模块结束地址
 #define CFG_EFLASH_PART_OPTION     0          //分区选项
 //%$#@string,1,32,

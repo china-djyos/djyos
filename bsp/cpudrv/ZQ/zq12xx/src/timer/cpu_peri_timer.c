@@ -106,21 +106,21 @@
 #ifdef CFG_CORTEX_M0
 typedef struct _TIMER
 {
-	vu32 COUNTER;
-	vu32 COMPARE;
-	vu32 CONTROL;
-	vu32 CLKSEL;
+    vu32 COUNTER;
+    vu32 COMPARE;
+    vu32 CONTROL;
+    vu32 CLKSEL;
 }tagTimerReg;
 
 static tagTimerReg volatile * const tg_TIMER_Reg[] = {
-                                    (tagTimerReg *)0x41860000,		//TIMER1
-                                    (tagTimerReg *)0x41860010,		//TIMER2
-									};
+                                    (tagTimerReg *)0x41860000,      //TIMER1
+                                    (tagTimerReg *)0x41860010,      //TIMER2
+                                    };
 
 enum ENUM_CPU_TIMER
 {
     EN_CPU_TIMER_1=0,
-	EN_CPU_TIMER_2
+    EN_CPU_TIMER_2
 };
 
 //#define CN_TIMER_DIV     (CN_CFG_PCLK1/1000000)
@@ -146,10 +146,6 @@ enum TIM_RELOAD_SET{
 #define CN_CPUTIMER_NUM   (EN_CPU_TIMER_2 +1)
 #define CN_CPUTIMER_MAX    EN_CPU_TIMER_2
 
-//对于多个定时器中断线只有一个的情况，中断传进去的操作定时器句柄永远都只是最后一个分配的定时器。因此，对于中断
-//服务函数中不能通过传递进来的句柄去操作对应的寄存器以及执行中断调用。鉴于这种情况，这里实现一个数组去维护。通
-//过在中断服务函数中判断哪个定时器发生中断请求再进行对应的操作以及调用用于中断
-fntTimerIsr gtUsrTimerHandle[CN_CPUTIMER_NUM];
 
 static struct CPUTimerHandle  stgTimerHandle[CN_CPUTIMER_NUM];
 
@@ -158,7 +154,7 @@ static u32  gs_dwCPUTimerBitmap;  //对于定时器这种东西，一般的不会很多，32个应该
 #define CN_CPUTIMER_BITMAP_MSK  (0x80000000)  //最高位为1，依次右移即可
 
 //timer0..timern的irq
-static u8 spTimerIrqOffset[CN_CPUTIMER_NUM]={	0,1  };
+static u8 spTimerIrqOffset[CN_CPUTIMER_NUM]={   0,1  };
 
 #define TIMER_IRQ_ENABLE_ADDR                (0x42030000+0x620)
 #define TIMER_IRQ_STA_ADDR                      (0x42030000+0x520)
@@ -193,8 +189,8 @@ bool_t __CPUTimer_PauseCount(struct CPUTimerHandle  *timer)
         }
         else
         {
-            tg_TIMER_Reg[timerno]->CONTROL = 0;			//停止计数器，关中断
-            tg_TIMER_Reg[timerno]->COUNTER = 0;			//清计数器
+            tg_TIMER_Reg[timerno]->CONTROL = 0;         //停止计数器，关中断
+            tg_TIMER_Reg[timerno]->COUNTER = 0;         //清计数器
             timer->timerstate = (timer->timerstate)&(~CN_TIMER_ENCOUNT);
             return true;
         }
@@ -226,7 +222,7 @@ bool_t __CPUTimer_StartCount(struct CPUTimerHandle  *timer)
         {
             tg_TIMER_Reg[timerno]->COUNTER    = 0;
             tg_TIMER_Reg[timerno]->CONTROL &= ~(1 << 1);            //清中断标识
-            tg_TIMER_Reg[timerno]->CONTROL    = (1<<0)|(1<<2);		//timer and int
+            tg_TIMER_Reg[timerno]->CONTROL    = (1<<0)|(1<<2);      //timer and int
             timer->timerstate = (timer->timerstate)| (CN_TIMER_ENCOUNT);
 
             return true;
@@ -292,7 +288,7 @@ bool_t  __CPUTimer_SetAutoReload(struct CPUTimerHandle  *timer, bool_t autoreloa
     }
 
 
-    return true;		//reload every time
+    return true;        //reload every time
 }
 
 //-----------------------------------------------------------------------------
@@ -302,21 +298,22 @@ bool_t  __CPUTimer_SetAutoReload(struct CPUTimerHandle  *timer, bool_t autoreloa
 // 参数：定时器句柄。
 // 返回：user ISR的返回值
 //-----------------------------------------------------------------------------
-u32 __CPUTimer_isr(ptu32_t TimerHandle)
+__attribute__((weak)) u32 __CPUTimer_isr(ptu32_t TimerHandle)
 {
     u32 timerno;
-    struct CPUTimerHandle  *timer;
+    struct CPUTimerHandle  *timer = (struct CPUTimerHandle  *)TimerHandle;
 
-    if((((u32*)TIMER_IRQ_STA_ADDR)[0])  & (1<< spTimerIrqOffset[0]))
-    {
-    	timerno = 0;
-    }
-    else if((((u32*)TIMER_IRQ_STA_ADDR )[0])&(1<<spTimerIrqOffset[1]))
-    {
-    	timerno = 1;
-    }
+    timerno = timer->timerno;
+//  if((((u32*)TIMER_IRQ_STA_ADDR)[0])  & (1<< spTimerIrqOffset[0]))
+//  {
+//      timerno = 0;
+//  }
+//  else if((((u32*)TIMER_IRQ_STA_ADDR )[0])&(1<<spTimerIrqOffset[1]))
+//  {
+//      timerno = 1;
+//  }
 
-    timer = &stgTimerHandle[timerno];
+//  timer = &stgTimerHandle[timerno];
     tg_TIMER_Reg[timerno]->CONTROL = (1<<0) | (1<<2);
 
     if(timer->autoReloadSet == EN_RELOAD_NOT_SET)
@@ -324,8 +321,7 @@ u32 __CPUTimer_isr(ptu32_t TimerHandle)
         tg_TIMER_Reg[timerno]->CONTROL = 0;         //停止计数器，关中断
 //        tg_TIMER_Reg[timerno]->COUNTER = 0;         //清计数器
     }
-
-    return (gtUsrTimerHandle [timerno])(TimerHandle);
+    return (timer->UserIsr(TimerHandle));
 }
 
 // =============================================================================
@@ -362,18 +358,18 @@ ptu32_t __CPUTimer_Alloc(fntTimerIsr timerisr)
         return 0;
     }
 
-    irqline = CN_INT_LINE_TIMER;		
+    irqline = CN_INT_LINE_TIMER;
     timer = &stgTimerHandle[timerno];
     timer->cycle = 0;
-    timer->timerno = timerno;                  
-    timer->irqline = irqline;                       
+    timer->timerno = timerno;
+    timer->irqline = irqline;
     timer->timerstate = CN_TIMER_ENUSE;
-//    timer->UserIsr=timerisr;                      
-    gtUsrTimerHandle [timerno]= timerisr;
+    timer->UserIsr=timerisr;
 
     //好了，中断号和定时器号码都有了，该干嘛就干嘛了。
     //先设置好定时器周期
     __CPUTimer_PauseCount(timer);
+    Int_SetIsrPara(irqline,(ptu32_t)timer);
 
     switch(timerno)
     {
@@ -391,9 +387,9 @@ ptu32_t __CPUTimer_Alloc(fntTimerIsr timerisr)
 
     djybsp_isr_hdl_register(irqline, subIntLine, __CPUTimer_isr,0);
 
-    timerhandle = (ptu32_t)timer;         
+    timerhandle = (ptu32_t)timer;
 
-    return timerhandle; 
+    return timerhandle;
 }
 
 
@@ -471,7 +467,7 @@ bool_t  __CPUTimer_SetIntPro(struct CPUTimerHandle  *timer, bool_t real_prior)
 //        return false;
 //    }
 
-	return false;
+    return false;
 }
 
 // =============================================================================
@@ -508,7 +504,7 @@ bool_t  __CPUTimer_DisInt(struct CPUTimerHandle  *timer)
 {
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
-    	*(u32*)TIMER_IRQ_ENABLE_ADDR &= ~(1<<spTimerIrqOffset[timer->timerno]);
+        *(u32*)TIMER_IRQ_ENABLE_ADDR &= ~(1<<spTimerIrqOffset[timer->timerno]);
         timer->timerstate = (timer->timerstate)&(~CN_TIMER_ENINT);
         return Int_CutLine(timer->irqline);
     }
@@ -745,14 +741,14 @@ bool_t ModuleInstall_HardTimer(void)
 
     for(i=0;i<CN_CPUTIMER_NUM;i++)
     {
-        tg_TIMER_Reg[i]->CONTROL = 0; 			//禁止TIMER
-        tg_TIMER_Reg[i]->COUNTER = 0;			//计数器清0
+        tg_TIMER_Reg[i]->CONTROL = 0;           //禁止TIMER
+        tg_TIMER_Reg[i]->COUNTER = 0;           //计数器清0
         tg_TIMER_Reg[i]->COMPARE = 0xFFFFFFFF;
-        tg_TIMER_Reg[i]->CLKSEL  = 7;			//时钟源为80M，128分频
+        tg_TIMER_Reg[i]->CLKSEL  = 7;           //时钟源为80M，128分频
     }
 
 //    //由原先分配定时器的移动到这里
-//     irqline = CN_INT_LINE_TIMER;		//对已经分配得到的stgTimerHandle 进行初始化
+//     irqline = CN_INT_LINE_TIMER;     //对已经分配得到的stgTimerHandle 进行初始化
 //    //设置定时器中断,先结束掉该中断所有的关联相关内容
 //      Int_Register(irqline);
 //      Int_CutLine(irqline);
@@ -814,11 +810,6 @@ struct CPUTimerHandle
 
 #define CN_CPUTIMER_NUM   (EN_CPU_TIMER_2 +1)
 #define CN_CPUTIMER_MAX    EN_CPU_TIMER_2
-
-//对于多个定时器中断线只有一个的情况，中断传进去的操作定时器句柄永远都只是最后一个分配的定时器。因此，对于中断
-//服务函数中不能通过传递进来的句柄去操作对应的寄存器以及执行中断调用。鉴于这种情况，这里实现一个数组去维护。通
-//过在中断服务函数中判断哪个定时器发生中断请求再进行对应的操作以及调用用于中断
-fntTimerIsr gtUsrTimerHandle[CN_CPUTIMER_NUM];
 
 static struct CPUTimerHandle  stgTimerHandle[CN_CPUTIMER_NUM];
 
@@ -966,19 +957,16 @@ bool_t  __CPUTimer_SetAutoReload(struct CPUTimerHandle  *timer, bool_t autoreloa
 // 参数：定时器句柄。
 // 返回：user ISR的返回值
 //-----------------------------------------------------------------------------
-u32 __CPUTimer_isr(ptu32_t TimerHandle)
+__attribute__((weak)) u32 __CPUTimer_isr(ptu32_t TimerHandle)
 {
-    u32 timerno = TimerHandle;
+    u32 timerno = (struct CPUTimerHandle  *)TimerHandle->timerno;
 
     //以下两句顺序不能改
     silan_timer_irq_reset(TIMER_ADDR(timerno));
     if(!(stgTimerHandle[timerno].auto_reload))
         silan_timer_disable(TIMER_ADDR(timerno));
 
-    if(gtUsrTimerHandle [timerno]!=NULL)
-        return (gtUsrTimerHandle [timerno])(TimerHandle);
-    else
-        return 0;
+    return ((struct CPUTimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
 }
 
 // =============================================================================
@@ -1018,11 +1006,11 @@ ptu32_t __CPUTimer_Alloc(fntTimerIsr timerisr)
     timer->timerno = timerno;
     timer->irqline = irqline;
     timer->timerstate = CN_TIMER_ENUSE;
-//    timer->UserIsr=timerisr;
-    gtUsrTimerHandle [timerno]= timerisr;
+    timer->UserIsr=timerisr;
     //好了，中断号和定时器号码都有了，该干嘛就干嘛了。
     //先设置好定时器周期
     __CPUTimer_PauseCount(timer);
+    Int_SetIsrPara(irqline,(ptu32_t)timer);
     djybsp_isr_hdl_register(CN_INT_LINE_TIMER, CN_SUBID_TIMER_0 + timer->timerno, __CPUTimer_isr,0);
     timerhandle = (ptu32_t)timer;
 

@@ -911,7 +911,7 @@ void __M_WaitMemoryStack(struct EventECB *event,u32 size)
         pl_event->multi_previous->multi_next = event;
         pl_event->multi_previous = event;
     }
-    event->event_status = CN_STS_WAIT_MEMORY + CN_WF_EVENT_NORUN;
+    event->event_status = CN_STS_WAIT_MEMORY + CN_STS_EVENT_NORUN;
     return;
 }
 
@@ -1297,7 +1297,7 @@ void __M_CheckSTackSync(void)
         do
         {
             next_sync = event->multi_next;
-            event->wakeup_from = CN_STS_WAIT_MEMORY + CN_WF_EVENT_NORUN;
+            event->wakeup_from = CN_STS_WAIT_MEMORY + CN_STS_EVENT_NORUN;
             event->event_status = CN_STS_EVENT_READY;
             __Djy_EventReady(event);
             event = next_sync;

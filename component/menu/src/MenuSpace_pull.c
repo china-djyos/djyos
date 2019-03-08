@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -472,3 +473,4 @@ struct menu_displaypara *createmenudisparabypre_pull(struct menu_displaypara *pr
    return cur;
 }
 
+#endif

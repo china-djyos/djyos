@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -1237,3 +1238,4 @@ void goto_menuitem_inslayers(struct menu_displaypara *operatingDispara, s8 step)
 //}
 
 
+#endif
