@@ -251,7 +251,7 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
         }
         else // 至此，需发送的数据已经全部copy到串口设备缓冲区
         {
-            if(handle_IsBlockComplete(Mode)) // 需要block complete
+            if(test_IsBlockComplete(Mode)) // 需要block complete
             {
                 //如果阻塞选项是complete，还要等待发送完成的信号量。
                 Lock_SempPend(UGCB->BlockingSemp,rel_timeout);
@@ -416,7 +416,7 @@ u32 UART_ErrHandle(struct UartGeneralCB *pUGCB, u32 dwErrNo)
 
 //----串口设备控制函数---------------------------------------------------------
 //功能: 串口设备的控制函数,由应用程序调用，UART被注册为设备，调用设备操作函数
-//      Driver_CtrlDevice，实质就是调用了该函数，函数调用过程:
+//      Dev_Ctrl，实质就是调用了该函数，函数调用过程:
 //      Dev_Ctrl() ---> Dev->dCtrl() ---> UART_Ctrl()
 //      该函数实现的功能根据命令字符决定，说明如下:
 //      1.启动停止串口，由底层驱动实现

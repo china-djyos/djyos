@@ -238,19 +238,6 @@ bool_t   Ring_IsFull(struct RingBuf *ring)
     return (ring->len == ring->max_len)? true:false;
 }
 
-//----清空环形缓冲区-------------------------------------------------------------
-//功能: 清除缓冲区中所有数据
-//参数: ring,目标环形缓冲区指针.
-//返回: 无
-//特别注意: 调用前，请确认没有其他线程在使用缓冲区，否则可能出现不可预料的结果
-//------------------------------------------------------------------------------
-void    Ring_Flush(struct RingBuf *ring)
-{
-    ring->len = 0;
-    ring->offset_write = 0;
-    ring->offset_read = 0;
-}
-
 //----释放若干数据---------------------------------------------------------------
 //功能: 从读指针开始,释放掉指定大小的数据,相当于哑读了len个字节
 //参数: ring,目标环形缓冲区指针.
@@ -343,7 +330,7 @@ u32 Ring_SkipTail(struct RingBuf *ring,u32 size)
     }else
     {
         result = ring->len;
-        Ring_Flush(ring);
+        Ring_Clean(ring);
     }
     Int_LowAtomEnd(atom_bak);
     return result;
@@ -516,7 +503,7 @@ u32 Ring_SearchStr(struct RingBuf *ring, char *string,u32 str_len)
 // 返回: ring中剩余容量（字节数）
 // 备注：
 // ============================================================================
-u32 Ring_Capacity2(struct RingBuf *ring)
+u32 Ring_CheckFree(struct RingBuf *ring)
 {
     return (ring->max_len - ring->len);
 }

@@ -126,6 +126,7 @@ struct FsCore
 s32 regfs(struct filesystem *type);
 bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
                      u32 BufSize);
+bool_t isDirectory(struct objhandle *hdl);
 bool_t obj_isMount(struct obj *obj);
 s32 mountfs(const char *source, const char *target, const char *type, u32 flags, void *data);
 void *corefs(struct obj *ob);

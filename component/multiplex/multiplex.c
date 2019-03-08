@@ -263,7 +263,7 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
         return false;
 
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    temp = handle_GetMultiplexHead(Kfp);
+    temp = __handle_GetMultiplexHead(Kfp);
     InitStatus = handle_multievents(Kfp);
     //循环检查一个Object是否重复加入同一个MultiplexSets
     //如果ObjectHead=NULL,检查结果是不重复，后续处理能够正确运行。
@@ -322,8 +322,8 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
             }
             //同一个对象被多个MultiplexSets包含，用NextSets链接。
             //NextSets是单向链表，新对象插入链表头部
-            temp->NextSets = handle_GetMultiplexHead(Kfp);
-            handle_setmultiplex(Kfp, temp);
+            temp->NextSets = __handle_GetMultiplexHead(Kfp);
+            __handle_SetMultiplexHead(Kfp, temp);
             Lock_MutexPost(&MultiplexMutex);
             if (IsActived)
             {
@@ -363,7 +363,7 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
     if ((Sets == NULL) || (Kfp == NULL))
         return false;
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = handle_GetMultiplexHead(Kfp);
+    Object = __handle_GetMultiplexHead(Kfp);
     following = NULL;
     while (Object != NULL)
     {       //查找被删除的对象控制块
@@ -417,7 +417,7 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
             }
         }
         if(following == NULL)       // Fd是链表头
-            handle_setmultiplex(Kfp, Object->NextSets);
+            __handle_SetMultiplexHead(Kfp, Object->NextSets);
         else
             following->NextSets = Object->NextSets;
         Mb_Free(g_ptMultiplexObjectPool, Object);
@@ -444,7 +444,7 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
     if (Kfp == NULL)
         return false;
 //  Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = handle_GetMultiplexHead(Kfp);
+    Object = __handle_GetMultiplexHead(Kfp);
     while (Object != NULL)
     {
         Int_SaveAsynSignal();

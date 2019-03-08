@@ -105,24 +105,17 @@ typedef s32 (*fntDevClose)(struct objhandle *hdl);
 typedef s32 (*fntDevWrite)(struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值:成功读取的字节数
 typedef s32 (*fntDevRead) (struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
-//返回值:收到不支持的命令，返回-1，0表示成功执行，其他返回值的含义自定
+//返回值: CN_OBJ_CMD_UNSUPPORT 或 CN_OBJ_CMD_EXECUTED
 typedef s32 (*fntDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
 
 
-s32 handle_IsBlockComplete(u32 flags);
 const char *dev_Name(struct obj *devo);
-ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
-//struct obj *dev_group_addo(char *name);
-s32 dev_group_add(char *name);
-//s32 dev_group_delo(struct obj *grp);
-//s32 dev_group_del(char *name);
+//ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
 struct obj *dev_Create(const char *name, fntDevOpen dopen, fntDevClose dclose,
                         fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl,
-                        ptu32_t dtag);
-s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
-            fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag);
-s32 dev_DeleteAtObject(struct obj *dev);
-s32 dev_DeleteAtName(const char *name);
+                        ptu32_t DrvTag);
+s32 dev_Delete(struct obj *dev);
+s32 dev_DeleteByName(const char *name);
 void dev_SetDrvTag(s32 fd,ptu32_t DrvTag);
 ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag);
 ptu32_t dev_GetUserTag(s32 fd);

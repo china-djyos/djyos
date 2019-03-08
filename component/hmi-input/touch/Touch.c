@@ -114,7 +114,7 @@ ptu32_t Touch_Scan(void)
     struct obj *ob;
     struct SingleTouchMsg touch_temp = {0,0,0,0,0};
 
-    ob = obj_search_child(obj_root(),"stdin input device");
+    ob = obj_search_child(obj_root(),"hmi input device");
     StdinObj = (struct HMI_InputDeviceObj *)obj_GetPrivate(ob);
     while(1)
     {
@@ -177,7 +177,7 @@ s32 Touch_InstallDevice(char *touch_name,struct SingleTouchPrivate *touch_pr)
 bool_t ModuleInstall_Touch(void)
 {
     s16 touch_scan_evtt;
-    if(!obj_search_child(obj_root( ),"stdin input device"))      //标准输入设备未初始化
+    if(!obj_search_child(obj_root( ),"hmi input device"))      //标准输入设备未初始化
         return false;
     touch_scan_evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
                             Touch_Scan,NULL,2048,"touch");

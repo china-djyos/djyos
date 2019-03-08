@@ -229,7 +229,7 @@ bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
 bool_t isDirectory(struct objhandle *hdl)
 {
     mode_t mymode;
-    mymode = handle_GetHostObjectPrivate(hdl);
+    mymode = (mode_t)handle_GetHostObjectPrivate(hdl);
     return S_ISDIR(mymode);
 }
 

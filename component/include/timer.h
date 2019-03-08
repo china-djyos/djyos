@@ -61,9 +61,6 @@ extern "C" {
 
 #include "stdint.h"
 
-#define CN_TIMER_SOURCE_TICK   0
-#define CN_TIMER_SOURCE_HARD   1
-
 struct Timer;
 typedef struct Timer tagTimer;
 typedef void (*fnTimerIsr)(struct Timer *timer);

@@ -125,10 +125,10 @@ bool_t ModuleInstall_HmiIn(void)
     static struct HMI_InputDeviceObj root;
     struct HMI_InputDeviceObj *StdinDeviceMem;
 
-    tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10,"StdInDev");
+    tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10,"HmiInDev");
     if(tg_pHmiInputMsgQ == NULL)
         goto ExitMsgQ;
-    s_ptHmiInDeviceDir = obj_newchild(obj_root(), (fnObjOps)-1, (ptu32_t)&root, "stdin input device");
+    s_ptHmiInDeviceDir = obj_newchild(obj_root(), (fnObjOps)-1, (ptu32_t)&root, "hmi input device");
     if(s_ptHmiInDeviceDir == NULL)
     {
         goto ExitDir;

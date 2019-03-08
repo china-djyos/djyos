@@ -402,17 +402,14 @@ u16 Djy_EventPop(  u16  hybrid_id,
 u32 Djy_GetEvttPopTimes(u16 evtt_id);
 ptu32_t Djy_GetEventResult(void);
 void Djy_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
-void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action);
+void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action);
 void Djy_EventComplete(ptu32_t result);
-void Djy_EventSessionComplete(ptu32_t result);
-//void Djy_ParaUsed(ptu32_t result);
 u32 Djy_WakeUpFrom(void);
 u16 Djy_MyEvttId(void);
 u16 Djy_MyEventId(void);
 void Djy_ApiStart(u32 api_no);
 void Djy_DelayUs(u32 time);
 void Djy_DelayNano(u32 time);
-struct EventECB *Djy_GetIdle(void);
 
 bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info);
 bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len);

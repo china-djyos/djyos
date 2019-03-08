@@ -627,6 +627,7 @@ struct MutexLCB *Lock_MutexCreate_s( struct MutexLCB *mutex,const char *name)
     return mutex;
 }
 
+struct EventECB *__Djy_GetIdle(void);
 //----释放一个互斥量-----------------------------------------------------------
 //功能：释放互斥量，只有互斥量的拥有者才能释放互斥量。
 //参数：mutex,互斥量指针
@@ -654,7 +655,7 @@ void Lock_MutexPost(struct MutexLCB *mutex)
         }
     }
     if((mutex->owner != g_ptEventRunning)   //互斥量只能由拥有者释放
-        &&(mutex->owner != Djy_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
+        &&(mutex->owner != __Djy_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
         return;
     Int_SaveAsynSignal();
     if(mutex->enable > 0)

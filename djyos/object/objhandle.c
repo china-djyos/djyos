@@ -269,6 +269,20 @@ s32 test_writeable(u32 flags)
 }
 
 // ============================================================================
+// 功能：测试设备写操作是否阻塞直至物理层完成传输
+// 参数：flags -- 文件使用标志；
+// 返回：（1）阻塞直至物理层完成传输；（0）写到缓冲区即认为完成；
+// 备注：用于判断设备的操作模式
+// ============================================================================
+s32 test_IsBlockComplete(u32 flags)
+{
+    if(flags & O_BLOCK_COMPLETE)
+        return (1);
+
+    return (0);
+}
+
+// ============================================================================
 // 功能：对象句柄是否追加模式；
 // 参数：hdl -- 对象句柄；
 // 返回：追加（1）；非追加（0）；
@@ -420,26 +434,12 @@ void handle_SetContext(struct objhandle *hdl, ptu32_t context)
 // 返回：成功（文件）；失败（NULL）；
 // 备注：
 // ============================================================================
-void *handle_GetHostObjectPrivate(struct objhandle *hdl)
+ptu32_t handle_GetHostObjectPrivate(struct objhandle *hdl)
 {
     if(hdl&&hdl->HostObj)
-        return ((void*)obj_GetPrivate(hdl->HostObj));
+        return (obj_GetPrivate(hdl->HostObj));
 
     return (NULL);
-}
-
-
-// ============================================================================
-// 功能：设置对象句柄的多路复用控制；
-// 参数：hdl -- 对象句柄；
-//      cb -- 多路复用控制；
-// 返回：无；
-// 备注：
-// ============================================================================
-void handle_setmultiplex(struct objhandle *hdl, struct MultiplexObjectCB *cb)
-{
-    if(hdl)
-        hdl->pMultiplexHead = cb;
 }
 
 // ============================================================================
@@ -592,12 +592,25 @@ inline u32 handle_multievents(struct objhandle *hdl)
 // 返回：成功（多路复用控制）；失败（NULL）；
 // 备注：
 // ============================================================================
-struct MultiplexObjectCB *handle_GetMultiplexHead(struct objhandle *hdl)
+struct MultiplexObjectCB *__handle_GetMultiplexHead(struct objhandle *hdl)
 {
     if(hdl)
         return (hdl->pMultiplexHead);
 
     return (NULL);
+}
+
+// ============================================================================
+// 功能：设置对象句柄的多路复用控制；
+// 参数：hdl -- 对象句柄；
+//      cb -- 多路复用控制；
+// 返回：无；
+// 备注：
+// ============================================================================
+void __handle_SetMultiplexHead(struct objhandle *hdl, struct MultiplexObjectCB *cb)
+{
+    if(hdl)
+        hdl->pMultiplexHead = cb;
 }
 
 // ============================================================================
@@ -755,7 +768,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 //  if(权限满足要求)
     run = ob->ops((void *)ob, CN_OBJ_CMD_OPEN,
                                 (ptu32_t)&hdl,(ptu32_t)&OpenMode,(ptu32_t)uncached);
-   
+
     if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
     {
         obj_InuseUpRange(ob, hdl->HostObj);
@@ -1265,7 +1278,7 @@ static s32 __handle_cntl(struct objhandle *hdl, s32 cmd, va_list argspace)
 
             ret = (ptu32_t*)va_arg(args, u32);
             *ret = (ptu32_t)handle_GetHostObjectPrivate(hdl);
-            return (0);
+            return (CN_OBJ_CMD_EXECUTED);
         }
 
         case F_SETEVENT:
@@ -1274,7 +1287,7 @@ static s32 __handle_cntl(struct objhandle *hdl, s32 cmd, va_list argspace)
 
             events = va_arg(args, u32);
             handle_SetMultiplexEvent(hdl, events);
-            return (0);
+            return (CN_OBJ_CMD_EXECUTED);
         }
 
         case F_CLREVENT:
@@ -1283,7 +1296,22 @@ static s32 __handle_cntl(struct objhandle *hdl, s32 cmd, va_list argspace)
 
             events = va_arg(args, u32);
             handle_ClrMultiplexEvent(hdl, events);
-            return (0);
+            return (CN_OBJ_CMD_EXECUTED);
+        }
+
+        case F_SETTIMEOUT:
+        {
+            u32 timeout = va_arg(args, u32);
+            hdl->timeout = timeout;
+            return (CN_OBJ_CMD_EXECUTED);
+        }
+
+        case F_GETTIMEOUT:
+        {
+            u32 *timeout = va_arg(args, u32 *);
+            *timeout = hdl->timeout;
+//          *(u32*)OpsArgs1 = handle_gettimeout(hdl);
+            return (CN_OBJ_CMD_EXECUTED);
         }
 
         default: break;
@@ -1317,23 +1345,35 @@ s32 fcntl(s32 fd, s32 cmd, ...)
     res = __handle_cntl(hdl, cmd, args);
     if(CN_OBJ_CMD_UNSUPPORT == res)
     {
-        res = hdl->HostObj->ops((void *)hdl, CN_OBJ_FCNTL,(ptu32_t)(&result),
-                                (ptu32_t)cmd,(ptu32_t)&args);
+        if((cmd == F_DUPFD)||(cmd == F_GETFD)||(cmd == F_GETFL)||(cmd == F_GETFL))
+        {
+            res = hdl->HostObj->ops((void *)hdl, CN_OBJ_FCNTL,0,
+                                    (ptu32_t)cmd,(ptu32_t)&result);
+            if(res == CN_OBJ_CMD_UNSUPPORT)
+                result = -1;
+        }
+        else
+        {
+            res = hdl->HostObj->ops((void *)hdl, CN_OBJ_FCNTL,0,
+                                    (ptu32_t)cmd,(ptu32_t)&args);
+            if((res == CN_OBJ_CMD_UNSUPPORT) || (res == CN_OBJ_CMD_FALSE))
+                result = -1;
+            else
+                result = 0;
+        }
     }
     else
         result = res;
 
     va_end (args);
-    if(res == CN_OBJ_CMD_TRUE)
-        return result;
-    else
-        return -1;
+
+    return result;
 }
 
 // ============================================================================
 // 功能：IO控制；
 // 参数：fd，文件描述符；
-//      request，控制命令码，POSIX也没有规定，遵循Linux格式，方向(2bit)，第三个参数
+//      request，控制命令码，POSIX也没有规定，Linux格式为：方向(2bit)，第三个参数
 //      （若有）数据尺寸(14bit)，设备类型 (8it) ，命令编码(8bit)），命令码如 stropts.h
 //      中的 I_ATMARK 等常量定义
 //      ...,控制命令参数；
@@ -1341,7 +1381,6 @@ s32 fcntl(s32 fd, s32 cmd, ...)
 // 备注：
 //      最新的POSIX已经废弃了ioctl函数，而然并卵，大量开源项目仍然在用。
 //      注：奇怪的POSIX，ioctl相关的常量，头文件名是 stropts.h 而不是 ioctl.h
-//      request 加上偏移 CN_OBJ_IOCTL_START 后就是调用 ObjOps 的cmd 码
 //      可变参数写法，完全是为了兼容POSIX，事实上从来没有人用过第四个参数，三个参数不
 //      够用的，就用结构指针。
 //      POSIX并没有规定参数 request 如何实现，只定义了一些必须的符号名。
@@ -1352,28 +1391,29 @@ s32 fcntl(s32 fd, s32 cmd, ...)
 //      3、如果有第四个参数，对不起，懵逼。
 //      故，Linux和newlib实际上是不支持第四个参数的。
 //      B：VxWorks，采用了单一常数而非组合的方式。
-//      C：有些开源项目，如三星的iotjs，自定义了一些ioctl命令，A和B方案都有。
-//      djyos实现方案：
+//      C：有些开源项目，如三星的iotjs，自定义了一些ioctl命令常量，A和B方案都有。
+//      djyos自有组件实现方案：
 //      1、使用单一常数方案；
 //      2、系统自带的模块，不使用第四个参数，三个参数不够用的，用结构指针
 //      3、目前尚未见到使用第四个参数的开源代码，djyos实际上不考虑支持。
+//      4、djyos的IO系统只提供接口，实际是否支持ioctl的功能，由组件实现者自行决定。
 // ============================================================================
 s32 ioctl(s32 fd,s32 request, ... )
 {
     struct objhandle *hdl;
     va_list args;
-    s32 result,res;
+    s32 res;
 
     hdl = fd2Handle(fd);
     if(!hdl)
         return (0);
     va_start(args, request);
 
-    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_IOCTL,(ptu32_t)&result,
+    res = hdl->HostObj->ops((void *)hdl, CN_OBJ_IOCTL,0,
                                     (ptu32_t)request,(ptu32_t)&args );
     va_end (args);
-    if(res == CN_OBJ_CMD_TRUE)
-        return result;
+    if((res == CN_OBJ_CMD_TRUE) || (res == CN_OBJ_CMD_EXECUTED))
+        return 0;
     else
         return -1;
 

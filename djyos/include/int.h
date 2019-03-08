@@ -122,9 +122,6 @@ atom_high_t Int_HighAtomStart(void);
 void Int_HighAtomEnd(atom_high_t high);
 atom_low_t Int_LowAtomStart(void);
 void Int_LowAtomEnd(atom_low_t low);
-void Int_SaveTrunk(void);
-void Int_RestoreTrunk(void);
-bool_t Int_CheckTrunk(void);
 void Int_SaveAsynSignal(void);
 u32 Int_GetRunLevel(void);
 void Int_RestoreAsynSignal(void);
@@ -144,10 +141,10 @@ void Int_IsrConnect(ufast_t ufl_line, u32 (*isr)(ptu32_t));
 bool_t Int_EvttConnect(ufast_t ufl_line,uint16_t my_evtt_id);
 void Int_IsrDisConnect(ufast_t ufl_line);
 void Int_EvttDisConnect(ufast_t ufl_line);
-void Int_ResetAsynSync(ufast_t ufl_line);
 bool_t Int_AsynSignalSync(ufast_t ufl_line);
 bool_t Int_Register(ufast_t ufl_line);
 bool_t Int_UnRegister(ufast_t ufl_line);
+void Int_SetIsrPara(ufast_t ufl_line,ptu32_t para);
 
 //以下函数在int_hard.c中实现
 void Int_ContactAsynSignal(void);
@@ -162,8 +159,9 @@ bool_t Int_QueryLine(ufast_t ufl_line);
 bool_t Int_SettoAsynSignal(ufast_t ufl_line);
 bool_t Int_SettoReal(ufast_t ufl_line);
 bool_t Int_SetPrio(ufast_t ufl_line,u32 prio);
+bool_t Int_EnableNest(ufast_t ufl_line);
+void Int_DisableNest(ufast_t ufl_line);
 void Int_Init(void);
-void Int_SetIsrPara(ufast_t ufl_line,ptu32_t para);
 
 
 #ifdef __cplusplus

@@ -64,7 +64,7 @@
 #include "systime.h"
 #include "component_config_time.h"
 
-extern u64 __DjyGetSysTime(void);
+extern s64 __DjyGetSysTime(void);
 #if (!CN_USE_TICKLESS_MODE)
 extern s64  g_s64OsTicks;               //操作系统运行ticks数
 #endif
@@ -76,6 +76,12 @@ static u32 s_u32SysTimeCycle = CN_CFG_TICK_US;  //系统时钟走时周期，CN_CFG_TICK_
                                                 //是选tick时基默认值
 static s64 s_s64sysTimeMajor = 0;       //时钟高位
 static u32 s_u32BakCounter = 0;         //计数值的备份
+
+//__attribute__((weak)) s64 __DjyGetSysTime(void)
+//{
+//    debug_printf("systime", "请bsp提供 __DjyGetSysTime函数")
+//    return 0;
+//}
 
 // =============================================================================
 // 函数功能：连接专用定时器到系统时间
@@ -90,7 +96,7 @@ static u32 s_u32BakCounter = 0;         //计数值的备份
 void SysTimeConnect(fntSysTimeHard32 GetSysTime32,fntSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle)
 {
-    //不要判SysTime是否为NULL，NULL也是一个正确选项。
+    //不要判GetSysTime32和GetSysTime64是否为NULL，NULL也是一个正确选项。
     fnSysTimeHard32 = GetSysTime32;
     fnSysTimeHard64 = GetSysTime64;
     s_u32SysTimeFreq = Freq;
@@ -110,7 +116,7 @@ s64 DjyGetSysTime(void)
     atom_low_t atom;
 
     if((fnSysTimeHard32 == NULL) && (fnSysTimeHard64 == NULL))
-        return (s64)__DjyGetSysTime();
+        return __DjyGetSysTime();
     else if(fnSysTimeHard32 != NULL)
     {
         atom = Int_LowAtomStart();
@@ -148,7 +154,7 @@ s64 DjyGetSysTimeCycle(void)
     atom_low_t atom;
 
     if((fnSysTimeHard32 == NULL) && (fnSysTimeHard64 == NULL))
-        return (s64)__DjyGetSysTime();
+        return __DjyGetSysTime();
     else if(fnSysTimeHard32 != NULL)
     {
         atom = Int_LowAtomStart();

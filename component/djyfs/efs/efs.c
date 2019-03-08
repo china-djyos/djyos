@@ -2107,7 +2107,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
     struct __loc *eloc;
     struct __econtext *cx = (struct __econtext *)handle_context(hdl);
     struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file = handle_GetHostObjectPrivate(hdl);;
+    struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);;
 
     if(handle_isAppend(hdl)) // 追加模式下的lseek引起文件位置回溯是无效的；
     {
@@ -2360,7 +2360,7 @@ static s32 __e_read(struct objhandle *hdl, u8 *data, u32 len)
     struct __loc *eloc;
     struct __econtext *cx = (struct __econtext *)handle_context(hdl);
     struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file = handle_GetHostObjectPrivate(hdl);
+    struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);
 
     __lock(core);
     if((cx->pos+cx->wpos)>=file->size)
@@ -2488,7 +2488,7 @@ static off_t __e_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     struct __loc *eloc;
     struct __econtext *cx = (struct __econtext *)handle_context(hdl);
     struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file = handle_GetHostObjectPrivate(hdl);
+    struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);
 
     eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间
     switch(whence)
@@ -2977,7 +2977,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SYNC:
         {
-			if(__e_sync((struct objhandle *)opsTarget) == 0)
+            if(__e_sync((struct objhandle *)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;

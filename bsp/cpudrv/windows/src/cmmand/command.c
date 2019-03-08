@@ -125,7 +125,7 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
 
 exit_from_add_device:
     Lock_SempDelete(s_ptRecvRingBufSemp);
-    dev_DeleteAtObject(sg_ptCmdDev);
+    dev_Delete(sg_ptCmdDev);
     return 0;
 }
 

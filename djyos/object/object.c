@@ -216,7 +216,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
             break;
         }
     }
-	
+
     return (result);
 }
 // ============================================================================
@@ -229,16 +229,16 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
 // ============================================================================
 static struct objhandle *__objsys_open(struct obj *ob, u32 flags, char *uncached)
 {
-	struct objhandle *hdl;
+    struct objhandle *hdl;
 
-	hdl = handle_new();
-	if(!hdl)
+    hdl = handle_new();
+    if(!hdl)
     {
         printf("\r\n : erro : efs    : open failed(memory out).");
         return (NULL);
     }
-	handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
-    return (hdl);	
+    handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
+    return (hdl);
 }
 // ============================================================================
 // 功能：读根目录
@@ -249,8 +249,8 @@ static struct objhandle *__objsys_open(struct obj *ob, u32 flags, char *uncached
 // ============================================================================
 static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry)
 {
-	struct obj *ob = (struct obj *)dentry->d_ino;
-	if(!ob) // 第一次读；
+    struct obj *ob = (struct obj *)dentry->d_ino;
+    if(!ob) // 第一次读；
     {
         ob = obj_child(handle_GetHostObj(directory));
         if(!ob)
@@ -262,11 +262,11 @@ static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentr
         if(ob==obj_child(handle_GetHostObj(directory)))
             return (1); // 全部读完；
     }
-	if(!obj_GetPrivate(ob))
+    if(!obj_GetPrivate(ob))
         dentry->d_type = DIRENT_IS_DIR;
     else
         dentry->d_type = DIRENT_IS_REG;
-	
+
     strcpy(dentry->d_name, obj_name(ob));
     dentry->d_ino = (long)ob;
     return (0);
@@ -437,7 +437,22 @@ const char *obj_name(struct obj *ob)
 }
 
 // ============================================================================
-// 功能: 获取对象的父关系对象；
+// 功能：修改对象名,本函数执行过程不拷贝数据，而是直接使用NewName提供的buffer，因此，
+//      NewName应该提供永久buffer，不允许局部数组，也不允许用过就释放的临时空间。
+// 参数：ob -- 对象；
+// 返回：成功（对象名）；失败（NULL）；
+// 注意：
+// ============================================================================
+char *obj_rename(struct obj *ob,char *NewName)
+{
+    if(!ob)
+        return (NULL);
+
+    ob->name = NewName;
+    return NewName;
+}
+// ============================================================================
+// 功能: 获取对象的父对象；
 // 参数: ob -- 对象；
 // 返回: 成功（父节点），失败（NULL）；
 // 备注：
@@ -451,7 +466,7 @@ struct obj *obj_parent(struct obj *ob)
 }
 
 // ============================================================================
-// 功能：获取对象的子关系对象（同级子对象的链表链表头）
+// 功能：获取对象的子对象（同级子对象的链表链表头）
 // 参数：ob -- 对象
 // 返回：成功（子对象）；失败（NULL）；
 // 备注：
@@ -510,10 +525,10 @@ struct obj *obj_head(struct obj *ob)
 }
 
 // ============================================================================
-// 功能：获取对象在对象体系中的等级（深度）；
+// 功能：获取对象在对象体系中路径深度。
 // 参数：ob -- 对象；
 // 返回：成功（深度）；失败（-1）；
-// 备注：根表示0级，根的子关系对象表示1级，根的子关系对象的子关系对象表示2级；......
+// 备注：根表示0级，根的子对象表示1级，根的子对象的子对象表示2级；......
 //      目前限定深度不大于256，考虑的原因是，大于256时，实际上路径也是可能表示不出来的；
 // ============================================================================
 s32 obj_level(struct obj *ob)
@@ -833,7 +848,7 @@ void obj_InuseUpRange(struct obj *start, struct obj *end)
 // ============================================================================
 // 功能：沿路径增对象引用计数；打开一次文件，则从根开始沿到被打开的文件，沿途所有对象
 //      的引用次数均增 1
-// 参数：ob -- 对象；
+// 参数：Obj -- 对象；
 // 返回：无
 // 备注：有引用后则不可删除
 // ============================================================================
@@ -990,7 +1005,7 @@ struct obj *obj_detach(struct obj *branch)
 // 返回：合法（0）；非法（-1）；
 // 备注：检查规则：不允许存在'/'、'\'字符，长度不允许超过规定；
 // ============================================================================
-inline s32 obj_checkname(const char *name)
+s32 obj_checkname(const char *name)
 {
     if(name)
         return (-1);
@@ -999,10 +1014,10 @@ inline s32 obj_checkname(const char *name)
 }
 
 //----沿路径匹配对象名---------------------------------------------------------
-//功能: 与OBJ_Search类似,不同的是，找到第一个匹配不上的就返回。例如，对象树中有
-//      "obj1\obj2\"，path="obj1\obj2\obj3\obj4"，将返回obj2的指针。
-// 参数：pPath -- 需匹配的路径；
-//      left -- 完全匹配，为NULL；不完全匹配，则返回不匹配部分（保证不以'/'开头）；
+//功能: 与OBJ_Search类似,不同的是，找到第一个不匹配的对象就返回。例如，对象树中有
+//      "obj1\obj2\"，match="obj1\obj2\obj3\obj4"，将返回obj2的指针。
+// 参数：match,需匹配的路径；
+//      left,完全匹配，为NULL；不完全匹配，则返回不匹配部分（保证不以'/'开头）；
 // 返回：匹配路径所能检索到的最终对象。
 // 备注：
 //-----------------------------------------------------------------------------
@@ -1933,30 +1948,29 @@ char *obj_getpath(struct obj *ob, char *path, u32 limit)
 // 参数：parent -- 对象；
 //      child -- 当前子对象。
 // 返回：成功（子对象）；失败（NULL）
-// 备注：data必须先初始化；
-//      如果初始化为父对象，则遍历全部队列成员；
-//      如果data初始化为是某个子对象链表成员，则只遍历其到队列结束，而不是全部队列成员；
+// 备注：current必须先初始化；如果初始化为父对象，则遍历全部队列成员；
+//      如果current初始化为是某个子对象链表成员，则只遍历其到队列结束，而不是全部队列成员；
 // ============================================================================
-struct obj *obj_foreach_child(struct obj *parent, struct obj *child)
+struct obj *obj_foreach_child(struct obj *parent, struct obj *current)
 {
-    if((parent==NULL)||(child==NULL))
+    if((parent==NULL)||(current==NULL))
         return (NULL);
 
     obj_lock();
 
-    if((child==parent)||(child->parent!=parent))
+    if((current==parent)||(current->parent!=parent))
     {
-        child = parent->child; // data不是某个子对象，则从首子对象开始；
+        current = parent->child; // data不是某个子对象，则从首子对象开始；
     }
     else
     {
-        child = child->next;
-        if(child == parent->child)
-            child = NULL;
+        current = current->next;
+        if(current == parent->child)
+            current = NULL;
     }
 
     obj_unlock();
-    return (child);
+    return (current);
 }
 
 // ============================================================================
@@ -1970,19 +1984,19 @@ struct obj *obj_foreach_child(struct obj *parent, struct obj *child)
 //      本函数按父、子、孙、曾孙....的顺序搜索，先搜直系，再搜旁系，确保所有子孙
 //      节点都能够访问到，如果对访问顺序有特殊要求，不能使用本函数；
 // ============================================================================
-struct obj *obj_foreach_scion(struct obj *ancester, struct obj *scion)
+struct obj *obj_foreach_scion(struct obj *ancester, struct obj *current)
 {
     struct  obj *result = NULL, *current_copy;
     bool_t up = FALSE;
 
-    if((ancester==NULL)||(scion==NULL))
+    if((ancester==NULL)||(current==NULL))
         return (NULL);
 
     obj_lock();
 
-    if((scion != ancester)||ancester->child)
+    if((current != ancester)||ancester->child)
     {
-        current_copy = scion;
+        current_copy = current;
         do
         {
             if((up == FALSE) && (current_copy->child != NULL))

@@ -100,20 +100,6 @@ static struct MutexLCB s_tDeviceMutex; // 保护设备安全
 static struct objhandle *s_ptDeviceDirHandle;
 
 // ============================================================================
-// 功能：是否为写完成返回操作
-// 参数：flags -- 文件使用标志；
-// 返回：（1）写完成返回；（0）非写完成返回；
-// 备注：用于判断设备的操作模式
-// ============================================================================
-s32 handle_IsBlockComplete(u32 flags)
-{
-    if(flags & O_BLOCK_COMPLETE)
-        return (1);
-
-    return (0);
-}
-
-// ============================================================================
 // 功能：打开设备；
 // 参数：ob -- 设备对象；
 //       flags -- 打开模式；
@@ -163,7 +149,7 @@ static struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
         }
         else
         {
-            debug_printf("device","open device \"%s\" unknown(type).", obj_name(ob));
+            debug_printf("device","open device \"%s\" unknown.", obj_name(ob));
         }
     }
 
@@ -274,21 +260,21 @@ static s32 __devcntl(struct objhandle *hdl, u32 cmd, va_list *arg0)
 
     switch(cmd)
     {
-        case F_SETTIMEOUT:
-        {
-            u32 timeout;
-            timeout = va_arg(*arg0, u32);
-            handle_settimeout(hdl, timeout);
-            break;
-        }
-
-        case F_GETTIMEOUT:
-        {
-            u32 *timeout;
-            timeout = va_arg(*arg0, u32 *);
-            *timeout = handle_gettimeout(hdl);
-            break;
-        }
+//      case F_SETTIMEOUT:
+//      {
+//          u32 timeout;
+//          timeout = va_arg(*arg0, u32);
+//          handle_settimeout(hdl, timeout);
+//          break;
+//      }
+//
+//      case F_GETTIMEOUT:
+//      {
+//          u32 *timeout;
+//          timeout = va_arg(*arg0, u32 *);
+//          *timeout = handle_gettimeout(hdl);
+//          break;
+//      }
 
         case F_GETDRVTAG:
         {
@@ -326,6 +312,8 @@ static s32 __devcntl(struct objhandle *hdl, u32 cmd, va_list *arg0)
             dev = (struct __device*)handle_GetHostObjectPrivate(hdl);
             if(dev && dev->dCntl)
                 ret = dev->dCntl(hdl, cmd, arg0);
+            else
+                res = CN_OBJ_CMD_UNSUPPORT;
     }
 
     return (ret);
@@ -481,7 +469,6 @@ static s32 Dev_DevObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         }
 
         case CN_OBJ_FCNTL:
-        case CN_OBJ_IOCTL:
         {
 //          ptu32_t arg0, arg1;
 //          struct objhandle *devfile = (struct objhandle*)opsTarget;
@@ -495,6 +482,11 @@ static s32 Dev_DevObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
             *(s32*)OpsArgs1 = __devcntl((struct objhandle*)opsTarget, OpsArgs2,
                                                 (va_list *)OpsArgs3);
+            break;
+        }
+        case CN_OBJ_IOCTL:
+        {
+            result = CN_OBJ_CMD_UNSUPPORT;
             break;
         }
 
@@ -873,7 +865,7 @@ struct obj *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
 // 返回：成功（0）；失败（-1）；
 // 备注：与文件系统接口要形成互斥；（要是在删除的过程中出现了使用）
 // ============================================================================
-s32 dev_DeleteAtObject(struct obj *dev)
+s32 dev_Delete(struct obj *dev)
 {
     // struct device *device;
 
@@ -892,7 +884,7 @@ s32 dev_DeleteAtObject(struct obj *dev)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 dev_DeleteAtName(const char *name)
+s32 dev_DeleteByName(const char *name)
 {
     char *left;
     struct obj *ob;
@@ -901,29 +893,29 @@ s32 dev_DeleteAtName(const char *name)
     if(!ob)
         return (-1);
 
-    return(dev_DeleteAtObject(ob));
+    return(dev_Delete(ob));
 }
 
-// ============================================================================
-// 功能：从对象取设备的驱动标签；
-// 参数：devo -- 设备对象；
-// 返回：struct __device的 DrvTag 成员。出错返回-1，但用户以返回-1为出错条件要谨慎，因为
-//      DrvTag 的真实值也可能是-1.
-// 备注：如果对非 Dev 的 object 调用此函数，后果不可预料。
-// ============================================================================
-ptu32_t dev_GetDrvTagFromObj(struct obj *devboj)
-{
-    struct __device *dev;
-
-    if(!devboj)
-        return (0);
-
-    dev = (struct __device*)obj_GetPrivate(devboj);
-    if(dev)
-        return (dev->DrvTag);
-    else
-        return (0);
-}
+//// ============================================================================
+//// 功能：取对象取设备的驱动标签；
+//// 参数：devo -- 设备对象；
+//// 返回：struct __device的 DrvTag 成员。出错返回-1，但用户以返回-1为出错条件要谨慎，因为
+////      DrvTag 的真实值也可能是-1.
+//// 备注：如果对非 Dev 的 object 调用此函数，后果不可预料。
+//// ============================================================================
+//ptu32_t dev_GetDrvTagFromObj(struct obj *devboj)
+//{
+//    struct __device *dev;
+//
+//    if(!devboj)
+//        return (0);
+//
+//    dev = (struct __device*)obj_GetPrivate(devboj);
+//    if(dev)
+//        return (dev->DrvTag);
+//    else
+//        return (0);
+//}
 
 // ============================================================================
 // 功能：获取设备对象的名字
@@ -1014,7 +1006,7 @@ s32 DevOpen(const char *name, s32 flags, u32 timeout)
 // 功能：关闭设备，由于设备受互斥量保护，故只有设备拥有者(即打开设备的事件)才能关
 //      闭设备，这是由互斥量的特点决定的。
 // 参数：fd -- 设备文件描述符
-// 返回：成功（TRUE）；失败（FALSE）；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
 s32 DevClose(s32 fd)

@@ -73,14 +73,13 @@ struct RingBuf
 
 void Ring_Init(struct RingBuf *ring, u8 *buf, u32 len);
 u32 Ring_Capacity(struct RingBuf *ring);
-u32 Ring_Capacity2(struct RingBuf *ring);
+u32 Ring_CheckFree(struct RingBuf *ring);
 u8 *Ring_GetBuf(struct RingBuf *ring);
 u32    Ring_Write(struct RingBuf *ring,u8 *buffer,u32 len);
 u32    Ring_Read(struct RingBuf *ring,u8 *buffer,u32 len);
 u32    Ring_Check(struct RingBuf *ring);
 bool_t   Ring_IsEmpty(struct RingBuf *ring);
 bool_t   Ring_IsFull(struct RingBuf *ring);
-void    Ring_Flush(struct RingBuf *ring);
 u32 Ring_PseudoRead(struct RingBuf *ring,u32 len);
 u32 Ring_RecedeRead(struct RingBuf *ring,u32 len,u8 *buf);
 u32 Ring_SkipTail(struct RingBuf *ring,u32 size);

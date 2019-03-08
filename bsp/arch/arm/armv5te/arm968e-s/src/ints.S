@@ -57,18 +57,14 @@ Int_LowAtomStart:
 Int_LowAtomEnd:
     MSR     CPSR_c, R0
     BX      LR
-   
+
 /*
 @----进入高级原子操作---------------------------------------------------------
-@功能：读当前总中断状态，然后禁止总中断。高级原子操作是指期间不容许任何原因
-@      打断的操作。
-@      Int_HighAtomStart--int_high_atom_end必须配套使用，绝对不能嵌套，在可能
-@      嵌套的地方，必须使用int_save_trunk来关闭中断(调度)。
-@      这两函数可视作"Int_RestoreTrunk--Int_SaveTrunk"的快速版本，除本身不能
-@      嵌套调用外，在被他们套住的代码块内，也不允许调用int_restore_trunk和
-@      int_save_trunk中的任何一个。
+@功能：读出当前总中断状态，然后禁止总中断。高级原子操作是指期间不容许任何原因打断的操作。
+@    Int_HighAtomStart--int_high_atom_end必须配套使用，在被他们套住的代码块内不
+@    允许调用用任何系统调用。
 @参数：无
-@返回：原子状态
+@返回：原来的原子状态
 @备注：移植敏感
 @函数原型:atom_high_t Int_HighAtomStart(void)
 @-----------------------------------------------------------------------------
@@ -80,16 +76,13 @@ Int_HighAtomStart:
     MRS     R0, CPSR
     ORR     R1, R0, #NOINT
     MSR     CPSR_c, R1
-    BX      LR    
+    BX      LR
 
 /*
 @----离开高级原子操作---------------------------------------------------------
-@功能：恢复进入前总中断状态，本函数应与int_high_atom_start函数配套
-@      Int_HighAtomStart--int_high_atom_end必须配套使用，绝对不能嵌套，在可能
-@      嵌套的地方，必须使用int_save_trunk来关闭中断(调度)。
-@      这两函数可视作"Int_RestoreTrunk--Int_SaveTrunk"的快速版本，除本身不能
-@      嵌套调用外，在被他们套住的代码块内，也不允许调用int_restore_trunk和
-@      int_save_trunk中的任何一个。
+@功能：恢复进入离开原子操作前的总中断状态，本函数应与int_high_atom_start函数配套
+@     Int_HighAtomStart--int_high_atom_end必须配套使用，在被他们套住的代码块内不
+@    允许调用用任何系统调用。
 @参数：high，int_high_atom_start保存的原子状态
 @返回：无
 @备注：移植敏感
@@ -101,7 +94,7 @@ Int_HighAtomStart:
 .type Int_HighAtomEnd, %function
 Int_HighAtomEnd:
     MSR     CPSR_c, R0
-    BX      LR    
+    BX      LR
 
     .globl portENABLE_IRQ
     .type portENABLE_IRQ, %function
@@ -145,10 +138,10 @@ portDISABLE_FIQ:
     MSR     CPSR_c, R1
     AND     R0, R2, #0x40
     BX      LR
-    
+
     .global djy_irq_dispatch
     .global djy_fiq_dispatch
-    
+
     /*.global rt_interrupt_enter*/
     /*.global rt_interrupt_leave*/
     .global djy_switch_interrupt_flag
@@ -165,47 +158,47 @@ portDISABLE_FIQ:
         STR     SP, [R0, #13*4]
         STR     LR, [R0, #14*4]
     .endm
-    
+
     /* Interrupt */
         .align  5
 .globl boot_undefined
 .type boot_undefined, %function
 boot_undefined:
-	PUSH_SVC_REG
+    PUSH_SVC_REG
     BL boot_undefined
-	B       .
+    B       .
 
         .align  5
 .globl boot_swi
 .type boot_swi, %function
 boot_swi:
-	PUSH_SVC_REG
+    PUSH_SVC_REG
     BL boot_swi
-	B       .
+    B       .
 
         .align  5
 .globl boot_pabort
 .type boot_pabort, %function
 boot_pabort:
-	PUSH_SVC_REG
+    PUSH_SVC_REG
     BL boot_pabort
-	B       .
+    B       .
 
         .align  5
 .globl boot_dabort
 .type boot_dabort, %function
 boot_dabort:
-	PUSH_SVC_REG
+    PUSH_SVC_REG
     BL boot_dabort
-	B       .
+    B       .
 
         .align  5
 .globl boot_reserved
 .type boot_reserved, %function
 boot_reserved:
-	PUSH_SVC_REG
+    PUSH_SVC_REG
     BL boot_reserved
-	B       .
+    B       .
 
         .align  5
 .globl irq_handler

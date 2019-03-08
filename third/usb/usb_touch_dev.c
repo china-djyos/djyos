@@ -138,7 +138,7 @@ s32 USBH_ResigerDevTouch(void *pParam)
 // ============================================================================
 s32 USBH_UnResigerDevTouch(void)
 {
-    if(dev_DeleteAtName(touchname))
+    if(dev_DeleteByName(touchname))
     {
         printf("\r\n: erro : usb    : unregister touch device failed.\r\n");
         return (-1); // register failure

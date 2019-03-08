@@ -199,55 +199,27 @@ extern void __asm_delay_cycle(u64 timeCoreClock);
 void __Djy_ChangeBlockQueue(struct EventECB *Event);
 
 //----微秒级延时-------------------------------------------------------------
-//功能：利用循环实现的微秒分辨率延时，__asm_delay_us函数由汇编实现，参数是时钟周期数
+//功能：利用循环实现的微秒分辨率延时，__asm_delay_cycle函数由汇编实现，参数是时钟周期数
 //参数：time，延时时间，单位为微秒
 //返回：无
 //注意：不建议使用此函数做太长延时，长延时请使用函数 Djy_EventDelay,
 //-----------------------------------------------------------------------------
 void Djy_DelayUs(u32 time)
 {
-    if(time > 0)
-        __asm_delay_cycle((u64)(time*((CN_CFG_MCLK)/1000000)));
-//    volatile u32 u32Time;
-//    if(time<1000000)
-//    {
-//        //延时量较小时，在慢速CPU上，使用else分之将会有很大误差
-//        u32Time= (u32)((time << 10) / g_u32CycleSpeed);
-//        for(; u32Time>0 ; u32Time--);
-//    }
-//    else
-//    {
-//        volatile u32 i;
-//        u32Time = time>>7;                            //time>1000000,舍入误差很小
-//        for(; u32Time>0 ; u32Time--)
-//            for(i = g_u32HundreUsfor; i > 0; i--);    //100uS for循环数
-//    }
+//  if(time > 0)
+    __asm_delay_cycle((u64)(time*((CN_CFG_MCLK)/1000000)));
 }
 
 //----纳秒级延时-------------------------------------------------------------
-//功能：利用循环实现的微秒分辨率延时，__asm_delay_us函数由汇编实现，参数是时钟周期数
-//参数：time，延时时间，单位为微秒
+//功能：利用循环实现的纳秒分辨率延时，__asm_delay_cycle函数由汇编实现，参数是时钟周期数
+//参数：time，延时时间，单位为纳秒
 //返回：无
 //注意：不建议使用此函数做太长延时，长延时请使用函数 Djy_EventDelay,
 //-----------------------------------------------------------------------------
 void Djy_DelayNano(u32 time)
 {
-    if(time > 0)
-        __asm_delay_cycle((u64)(time*((CN_CFG_MCLK)/1000000)/1000));
-//    volatile u32 u32Time;
-//    if(time<1000000)
-//    {
-//        //延时量较小时，在慢速CPU上，使用else分之将会有很大误差
-//        u32Time= (u32)((time << 10) / g_u32CycleSpeed);
-//        for(; u32Time>0 ; u32Time--);
-//    }
-//    else
-//    {
-//        volatile u32 i;
-//        u32Time = time>>7;                            //time>1000000,舍入误差很小
-//        for(; u32Time>0 ; u32Time--)
-//            for(i = g_u32HundreUsfor; i > 0; i--);    //100uS for循环数
-//    }
+//  if(time > 0)
+    __asm_delay_cycle((u64)(time*((CN_CFG_MCLK)/1000000)/1000));
 }
 
 //----设置栈检查水平-----------------------------------------------------------
@@ -2868,7 +2840,7 @@ void __Djy_CutEcbFromSync(struct EventECB  *event)
 //返回: 本函数不返回
 //todo: 未完成
 //-----------------------------------------------------------------------------
-void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
+void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
 {
     struct ThreadVm *next_vm,*temp;
     struct EventECB *pl_ecb;
@@ -3090,24 +3062,17 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     }
 }
 
-//----事件阶段性完成----------------------------------------------------------
-//功能：处理完成一次EventPop,但事件未终止时,调用本函数表示该次EventPop已经完成,
-//      将激活事件同步队列中的事件.一般用于调用Djy_WaitEvttPop且返回
-//      CN_SYNC_SUCCESS后,用于通知调用Djy_EventPop的事件"该次弹出已经被处理".
-//      如果该次Djy_EventPop设定了同步(即timeout !=0),则同步条件达成。
-//
-//      在以下情况下,本函数可能有歧义:
-//      A事件调用Djy_EventPop弹出C事件,timeout = 0,因C被阻塞,未切换到C.
-//      B事件调用Djy_EventPop弹出C事件,timeout = 无穷,切换到C.
-//      C 调用Djy_EventSessionComplete,B也将激活.
-//      此种情况下,不能认为C该调用两次Djy_EventSessionComplete分别对应两
-//      次弹出,第二次弹出时才能激活B.因为,关联型事件所完成的,总是最后一次
-//      弹出,因为前后弹出是有关联的.
-//
+//----事件处理完成----------------------------------------------------------
+//功能：通知系统，事件已经处理完成，但未事件处理函数仍将继续运行，等待处理下一条时间,将激
+//      活正在等待本事件完成的事件。常见使用方法：
+//      A事件调用Djy_WaitEvttCompleted等待B类型事件完成n次，则B类型事件调用n次本函数后，
+//          将激活A事件
+//      A事件调用Djy_WaitEventCompleted等待B事件完成，则B事件调用本函数，将激活A事件
+//      A事件调用Djy_EventPop弹出B事件,且timeout != 0,则B事件调用本函数，将激活A事件
 //参数：result，事件处理结果，这个结果将返回给弹出该事件的事件(如果设定了同步)
 //返回：无
 //-----------------------------------------------------------------------------
-void Djy_EventSessionComplete(ptu32_t result)
+void Djy_EventComplete(ptu32_t result)
 {
     struct EventECB *pl_ecb,*event_temp;
     Int_SaveAsynSignal();
@@ -3134,8 +3099,8 @@ void Djy_EventSessionComplete(ptu32_t result)
 
 }
 
-//----事件完成-----------------------------------------------------------------
-//功能：事件处理函数自然返回,完成清理工作.
+//----事件处理终结-------------------------------------------------------------
+//功能：事件处理函数返回,由系统调用本函数，将完成清理工作，用户不应该调用本函数
 //      1.如果事件同步队列非空，把同步事件放到ready表。
 //      2.处理事件类型完成同步队列
 //      3.如果未释放的动态分配内存，释放之。
@@ -3151,7 +3116,7 @@ void Djy_EventSessionComplete(ptu32_t result)
 //备注: 调用本函数的必定是running事件,在running事件上下文中执行，不可以调用
 //      __asm_reset_thread函数。
 //-----------------------------------------------------------------------------
-void Djy_EventComplete(ptu32_t result)
+void __Djy_EventFinal(ptu32_t result)
 {
     struct ThreadVm *next_vm,*temp;
     struct EventECB *pl_ecb,*event_temp;
@@ -3444,7 +3409,7 @@ bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len)
 //-----------------------------------------------------------------------------
 void __Djy_VmEngine(ptu32_t (*thread_routine)(void))
 {
-    Djy_EventComplete( thread_routine() );
+    __Djy_EventFinal( thread_routine() );
 }
 
 //----取IDLE事件控制块---------------------------------------------------------
@@ -3452,7 +3417,7 @@ void __Djy_VmEngine(ptu32_t (*thread_routine)(void))
 //参数：无
 //返回：IDLE事件控制块指针。
 //-----------------------------------------------------------------------------
-struct EventECB *Djy_GetIdle(void)
+struct EventECB *__Djy_GetIdle(void)
 {
     return &g_tECB_Table[0];
 }
