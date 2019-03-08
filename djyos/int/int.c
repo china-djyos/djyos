@@ -209,38 +209,38 @@ bool_t Int_CheckAsynSignal(void)
 //参数：ufl_line
 //返回：无
 //-----------------------------------------------------------------------------
-bool_t Int_SaveAsynLine(ufast_t ufl_line)
-{
-    if( (ufl_line > CN_INT_LINE_LAST)
-            || (tg_pIntLineTable[ufl_line] == NULL)
-            || (tg_int_global.nest_real != 0) )
-        return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
-        return false;
-    Int_CutLine(ufl_line);
-    if(tg_pIntLineTable[ufl_line]->en_counter!=CN_LIMIT_UCPU)//达上限后再加会回绕到0
-        tg_pIntLineTable[ufl_line]->en_counter++;
-    //原算法是从0->1的过程中才进入，但如果在en_counter != 0的状态下
-    //因故障使中断关闭，将使用户后续调用的en_counter起不到作用
-    tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
-                &= ~(1<<(ufl_line % CN_CPU_BITS));
-    return true;
-}
+//bool_t Int_SaveAsynLine(ufast_t ufl_line)
+//{
+//    if( (ufl_line > CN_INT_LINE_LAST)
+//            || (tg_pIntLineTable[ufl_line] == NULL)
+//            || (tg_int_global.nest_real != 0) )
+//        return false;
+//    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
+//        return false;
+//    Int_CutLine(ufl_line);
+//    if(tg_pIntLineTable[ufl_line]->en_counter!=CN_LIMIT_UCPU)//达上限后再加会回绕到0
+//        tg_pIntLineTable[ufl_line]->en_counter++;
+//    //原算法是从0->1的过程中才进入，但如果在en_counter != 0的状态下
+//    //因故障使中断关闭，将使用户后续调用的en_counter起不到作用
+//    tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
+//                &= ~(1<<(ufl_line % CN_CPU_BITS));
+//    return true;
+//}
 
-//----保存当前状态并禁止异步信号中断线-----------------------------------------
-//功能：本函数是int_restore_real_line()的姊妹函数，调用本函数使禁止次数增加，调
-//      用一次int_restore_real_line是禁止次数减少。
+//----保存当前状态并禁止中断线-----------------------------------------
+//功能：本函数是 Int_RestoreLine()的姊妹函数，调用本函数使禁止次数增加，调
+//      用一次 Int_RestoreLine 使禁止次数减少。
 //      若当前次数为0，增加为1并禁止中断线，不为0时简单地增1
 //参数：ufl_line
 //返回：无
 //------------------------------------------------------------------------------
-bool_t Int_SaveRealLine(ufast_t ufl_line)
+bool_t Int_SaveLine(ufast_t ufl_line)
 {
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
-        return false;
+//  if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
+//      return false;
     Int_CutLine(ufl_line);
     if(tg_pIntLineTable[ufl_line]->en_counter!=CN_LIMIT_UCPU)//达上限后再加会回绕到0
         tg_pIntLineTable[ufl_line]->en_counter++;
@@ -259,40 +259,39 @@ bool_t Int_SaveRealLine(ufast_t ufl_line)
 //返回：无
 //注: 本函数不允许在实时中断ISR中调用，若调用直接返回false。
 //-----------------------------------------------------------------------------
-bool_t Int_RestoreAsynLine(ufast_t ufl_line)
-{
-    if( (ufl_line > CN_INT_LINE_LAST)
-            || (tg_pIntLineTable[ufl_line] == NULL)
-            || (tg_int_global.nest_real != 0) )
-        return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
-        return false;
-    if(tg_pIntLineTable[ufl_line]->en_counter != 0)
-        tg_pIntLineTable[ufl_line]->en_counter--;
-    if(tg_pIntLineTable[ufl_line]->en_counter==0)
-    {
-        tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
-                |= 1<<(ufl_line % CN_CPU_BITS);
-        Int_ContactLine(ufl_line);
-    }
-    return true;
-}
+//bool_t Int_RestoreAsynLine(ufast_t ufl_line)
+//{
+//    if( (ufl_line > CN_INT_LINE_LAST)
+//            || (tg_pIntLineTable[ufl_line] == NULL)
+//            || (tg_int_global.nest_real != 0) )
+//        return false;
+//    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
+//        return false;
+//    if(tg_pIntLineTable[ufl_line]->en_counter != 0)
+//        tg_pIntLineTable[ufl_line]->en_counter--;
+//    if(tg_pIntLineTable[ufl_line]->en_counter==0)
+//    {
+//        tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
+//                |= 1<<(ufl_line % CN_CPU_BITS);
+//        Int_ContactLine(ufl_line);
+//    }
+//    return true;
+//}
 
-//----恢复保存的实时中断线状态-------------------------------------------------
-//功能：本函数是int_save_line（）的姊妹函数，调用本函数使禁止次数减少，调
-//      用一次int_save_line是禁止次数增加。
+//----恢复保存的中断线状态-------------------------------------------------
+//功能：本函数是 Int_SaveLine（）的姊妹函数，调用本函数使禁止次数减少，调
+//      用一次 Int_SaveLine 是禁止次数增加。
 //      当次数减至0时激活中断线,否则简单减1
 //参数：ufl_line
 //返回：无
-//注: 与int_restore_asyn_line不一样，本函数在异步信号和实时中断ISR中都允许调用
 //-----------------------------------------------------------------------------
-bool_t Int_RestoreRealLine(ufast_t ufl_line)
+bool_t Int_RestoreLine(ufast_t ufl_line)
 {
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
-        return false;
+//  if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
+//      return false;
     if(tg_pIntLineTable[ufl_line]->en_counter != 0)
         tg_pIntLineTable[ufl_line]->en_counter--;
     if(tg_pIntLineTable[ufl_line]->en_counter==0)
@@ -310,34 +309,34 @@ bool_t Int_RestoreRealLine(ufast_t ufl_line)
 //参数：ufl_line
 //返回：无
 //------------------------------------------------------------------------------
-bool_t Int_DisableAsynLine(ufast_t ufl_line)
-{
-    if( (ufl_line > CN_INT_LINE_LAST)
-            || (tg_pIntLineTable[ufl_line] == NULL)
-            || (tg_int_global.nest_real != 0) )
-        return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
-        return false;
-    Int_CutLine(ufl_line);
-    tg_pIntLineTable[ufl_line]->en_counter = 1;
-    tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
-                &= ~(1<<(ufl_line % CN_CPU_BITS));
-    return true;
-}
+//bool_t Int_DisableAsynLine(ufast_t ufl_line)
+//{
+//    if( (ufl_line > CN_INT_LINE_LAST)
+//            || (tg_pIntLineTable[ufl_line] == NULL)
+//            || (tg_int_global.nest_real != 0) )
+//        return false;
+//    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
+//        return false;
+//    Int_CutLine(ufl_line);
+//    tg_pIntLineTable[ufl_line]->en_counter = 1;
+//    tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
+//                &= ~(1<<(ufl_line % CN_CPU_BITS));
+//    return true;
+//}
 
-//----直接禁止实时中断线-------------------------------------------------------
+//----直接禁止中断线-------------------------------------------------------
 //功能：本函数是int_enable_real_line()的姊妹函数，调用本函数使中断线的使能计数器
 //      置位，并掐断中断线
 //参数：ufl_line
 //返回：无
 //------------------------------------------------------------------------------
-bool_t Int_DisableRealLine(ufast_t ufl_line)
+bool_t Int_DisableLine(ufast_t ufl_line)
 {
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
-        return false;
+//  if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
+//      return false;
     Int_CutLine(ufl_line);
     tg_pIntLineTable[ufl_line]->en_counter = 1;
     tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
@@ -351,34 +350,34 @@ bool_t Int_DisableRealLine(ufast_t ufl_line)
 //参数：ufl_line
 //返回：无
 //------------------------------------------------------------------------------
-bool_t Int_EnableAsynLine(ufast_t ufl_line)
-{
-    if( (ufl_line > CN_INT_LINE_LAST)
-            || (tg_pIntLineTable[ufl_line] == NULL)
-            || (tg_int_global.nest_real != 0) )
-        return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
-        return false;
-    tg_pIntLineTable[ufl_line]->en_counter = 0;
-    tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
-                |= 1<<(ufl_line % CN_CPU_BITS);
-    Int_ContactLine(ufl_line);
-    return true;
-}
+//bool_t Int_EnableAsynLine(ufast_t ufl_line)
+//{
+//    if( (ufl_line > CN_INT_LINE_LAST)
+//            || (tg_pIntLineTable[ufl_line] == NULL)
+//            || (tg_int_global.nest_real != 0) )
+//        return false;
+//    if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
+//        return false;
+//    tg_pIntLineTable[ufl_line]->en_counter = 0;
+//    tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
+//                |= 1<<(ufl_line % CN_CPU_BITS);
+//    Int_ContactLine(ufl_line);
+//    return true;
+//}
 
-//----直接允许实时中断线-------------------------------------------------------
+//----直接允许中断线-------------------------------------------------------
 //功能：本函数是int_disable_real_line()的姊妹函数，调用本函数使中断线的使能计数
 //      器归零，并接通中断线
 //参数：ufl_line
 //返回：无
 //------------------------------------------------------------------------------
-bool_t Int_EnableRealLine(ufast_t ufl_line)
+bool_t Int_EnableLine(ufast_t ufl_line)
 {
     if( (ufl_line > CN_INT_LINE_LAST)
             || (tg_pIntLineTable[ufl_line] == NULL) )
         return false;
-    if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
-        return false;
+//  if(tg_pIntLineTable[ufl_line]->int_type == CN_ASYN_SIGNAL)
+//      return false;
 
     tg_pIntLineTable[ufl_line]->en_counter = 0;
     tg_int_global.enable_bitmap[ufl_line/CN_CPU_BITS]
@@ -522,8 +521,10 @@ void Int_EvttDisConnect(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_AsynSignalSync(ufast_t ufl_line)
 {
-    if( (ufl_line > CN_INT_LINE_LAST)
-            || (tg_pIntLineTable[ufl_line] == NULL) )
+    struct IntLine *ptIntLine;
+
+    ptIntLine =tg_pIntLineTable[ufl_line];
+    if( (ufl_line > CN_INT_LINE_LAST) || (ptIntLine == NULL) )
         return false;
     if( !Djy_QuerySch())
     {   //禁止调度，不能进入异步信号同步状态。
@@ -541,6 +542,8 @@ bool_t Int_AsynSignalSync(ufast_t ufl_line)
     {
         if(Int_QueryLine(ufl_line) == true)    //中断已经发生，同步条件达到
         {
+            if(ptIntLine->ISR)
+                ptIntLine->ISR(ptIntLine->para);
             Int_ClearLine(ufl_line);
             Int_RestoreAsynSignal();
             return true;
@@ -552,10 +555,10 @@ bool_t Int_AsynSignalSync(ufast_t ufl_line)
         g_ptEventRunning->event_status = CN_STS_WAIT_ASYN_SIGNAL;
         tg_pIntLineTable[ufl_line]->sync_event = g_ptEventRunning;
     }
-    Int_EnableAsynLine(ufl_line);
+    Int_EnableLine(ufl_line);
     Int_RestoreAsynSignal();      //调用本函数将引发线程切换，正在处理的事件被
                                     //挂起。
-    Int_DisableAsynLine(ufl_line);
+    Int_DisableLine(ufl_line);
     g_ptEventRunning->wakeup_from = CN_STS_WAIT_ASYN_SIGNAL;
     g_ptEventRunning->event_status = CN_STS_EVENT_READY;
     return true;

@@ -539,7 +539,7 @@ u32 UART_ISR(ptu32_t port)
 				if(num != UART_PortWrite(pUartCB[port],fifo,num))
 				{
 					UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
-					printk("uart idle over!\r\n");
+//					printk("uart idle over!\r\n");
 				}
 			}
 		}

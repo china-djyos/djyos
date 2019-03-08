@@ -65,12 +65,22 @@ extern "C" {
 #include "cpu_peri_int_line.h"
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
-#include "cpu_peri_uart.h"
 #include "cpu_peri_gpio.h"
+#include "cpu_peri_uart.h"
+#include "cpu_peri_dma.h"
+#include "cpu_peri_iic.h"
+#include "cpu_peri_spi.h"
+#include "cpu_peri_can.h"
+//#include "cpu_peri_rtc.h"
+#include "cpu_peri_nand.h"
 #include "cpu_peri_eth.h"
-#define memory_barrier() __DMB();
+
+#include "stm32h7xx_hal_tim.h"
 #define InLowPower      0
 #define OutLowPower     1
+
+#define memory_barrier() __DMB();
+
 #ifdef __cplusplus
 }
 #endif

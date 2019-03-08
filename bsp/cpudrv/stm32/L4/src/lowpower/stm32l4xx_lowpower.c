@@ -192,7 +192,7 @@ void __LP_BSP_EntrySleepL1(void)
 void __LP_BSP_EntrySleepL2(void)
 {
     //stop2 mode : exit this mode by exti_line int or wakeup
-//  HAL_PWREx_EnterSTOP2Mode(PWR_SLEEPENTRY_WFI);
+  HAL_PWREx_EnterSTOP2Mode(PWR_SLEEPENTRY_WFI);
 }
 
 //----进入L3级低功耗-----------------------------------------------------------

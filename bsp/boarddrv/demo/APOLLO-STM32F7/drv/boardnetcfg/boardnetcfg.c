@@ -118,6 +118,7 @@ __attribute__((weak)) void GetCpuSignature(void *buf,int len)
 //make sure that that board net hardware has initialized and could work ok
 void ModuleInstall_InitNet(void)   //static ip example
 {
+
     //GET THE SIGNATURE OF THE DEVICE
     u32  signature[4];
     memset(signature,0,sizeof(signature));
@@ -192,8 +193,12 @@ void ModuleInstall_InitNet(void)   //static ip example
 
 #endif
     //do the lan8720 chip set
-//  bool_t lan8720Init(void);
-//  lan8720Init( );
+
+    bool_t ETH_RESE(void);
+    ETH_RESE( );//Íø¿Ú¸´Î»
+
+    bool_t LAN8720_ResetInit(void);
+    LAN8720_ResetInit( );
 
     return 0;
 }

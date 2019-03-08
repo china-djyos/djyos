@@ -50,6 +50,7 @@
 // 程序修改记录(最新的放在最前面):
 // <版本号> <修改日期>, <修改人员>: <修改功能概述>
 // =============================================================================
+#if 0
 #include "MenuitemApi.h"
 #include "MenuFunction.h"
 
@@ -775,3 +776,4 @@ bool_t  SetMenuitemPasswd(struct menu_item *pMenuitem, u16 passwd)
    }
    return result;
 }
+#endif

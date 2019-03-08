@@ -112,7 +112,7 @@ struct djybsp_systick_tickless_t
 // 参数：无
 // 返回：无
 // =============================================================================
-static void djybsp_systick_reset(void)
+static void DjyBsp_SystickReset(void)
 {
     HardExp_ConnectSystick(Djy_IsrTimeBase);
     pg_systick_reg->reload = 0;
@@ -132,7 +132,7 @@ static void djybsp_systick_reset(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-static void djybsp_systick_start(void)
+static void DjyBsp_SystickStart(void)
 {
     pg_systick_reg->reload = CN_LIMIT_UINT24;
     pg_systick_reg->current = CN_LIMIT_UINT24;
@@ -147,7 +147,7 @@ static void djybsp_systick_start(void)
 // 参数：无
 // 返回：最大cnt数
 // =============================================================================
-static uint32_t djybsp_systick_get_cnt_max(void)
+static uint32_t DjyBsp_SystickGetCntMax(void)
 {
     return CN_LIMIT_UINT24;
 }
@@ -157,7 +157,7 @@ static uint32_t djybsp_systick_get_cnt_max(void)
 // 参数：无
 // 返回：最小cnt数
 // =============================================================================
-static uint32_t djybsp_systick_get_cnt_min(void)
+static uint32_t DjyBsp_SystickGetCntMin(void)
 {
     return TIME_BASE_MIN_GAP;
 }
@@ -167,7 +167,7 @@ static uint32_t djybsp_systick_get_cnt_min(void)
 // 参数：要设置的值
 // 返回：无
 // =============================================================================
-static void djybsp_systick_set_reload(uint32_t cnt)
+static void DjyBsp_SystickSetReload(uint32_t cnt)
 {
     uint32_t temp_reload = 0;
     uint32_t temp_cur = 0;
@@ -205,7 +205,7 @@ static void djybsp_systick_set_reload(uint32_t cnt)
 // 参数：无
 // 返回：当前cnt值
 // =============================================================================
-static uint32_t djybsp_systick_read_cnt(void)
+static uint32_t DjyBsp_SystickReadCnt(void)
 {
     if( djybsp_systick.reload_flag )
         return (pg_systick_reg->reload - pg_systick_reg->current);
@@ -218,7 +218,7 @@ static uint32_t djybsp_systick_read_cnt(void)
 // 参数：无
 // 返回：systick的reload值
 // =============================================================================
-static uint32_t djybsp_systick_get_reload(void)
+static uint32_t DjyBsp_SystickGetReload(void)
 {
     return (djybsp_systick.reload_value);
 }
@@ -228,12 +228,12 @@ static uint32_t djybsp_systick_get_reload(void)
 // 参数：新增的cnt数
 // 返回：当前累计的cnt数
 // =============================================================================
-static uint64_t djybsp_systick_refresh_total_cnt(uint32_t cnt)
+static uint64_t DjyBsp_SystickRefreshTotalCnt(uint32_t cnt)
 {
     djybsp_systick.reload_flag = GETTIMEBASECNT_FLAG;
     djybsp_systick.int_flag = false;
     djybsp_systick.total_cnt += cnt;
-    return ((djybsp_systick.total_cnt) + djybsp_systick_read_cnt());
+    return ((djybsp_systick.total_cnt) + DjyBsp_SystickReadCnt());
 }
 
 // =============================================================================
@@ -241,7 +241,7 @@ static uint64_t djybsp_systick_refresh_total_cnt(uint32_t cnt)
 // 参数：无
 // 返回：当前累计的cnt值
 // =============================================================================
-static uint64_t djybsp_systick_get_total_cnt(void)
+static uint64_t DjyBsp_SystickGetTotalCnt(void)
 {
     uint32_t cnt2=0;
     uint64_t temp = 0;
@@ -275,7 +275,7 @@ static uint64_t djybsp_systick_get_total_cnt(void)
 // 参数：us数
 // 返回：cnt值
 // =============================================================================
-static uint64_t djybsp_systick_us_to_cnt(uint64_t us)
+static uint64_t DjyBsp_SystickUsToCnt(uint64_t us)
 {
     uint64_t temp = 0;
     temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
@@ -291,7 +291,7 @@ static uint64_t djybsp_systick_us_to_cnt(uint64_t us)
 // 参数：cnt值
 // 返回：us数
 // =============================================================================
-static uint64_t djybsp_systick_cnt_to_us(uint64_t cnt)
+static uint64_t DjyBsp_SystickCntToUs(uint64_t cnt)
 {
     return ((CN_CFG_TIME_BASE_HZ>Mhz)?
             (cnt/(u32)TIME_GLUE):
@@ -301,16 +301,16 @@ static uint64_t djybsp_systick_cnt_to_us(uint64_t cnt)
 /*上述OPS通过这个结构体注册到tickless模块里面*/
 static struct djytickless_op_t djyticklss_systick_op =
 {
-    .get_cnt_max = djybsp_systick_get_cnt_max,
-    .get_cnt_min = djybsp_systick_get_cnt_min,
-    .get_reload =  djybsp_systick_get_reload,
-    .refresh_total_cnt = djybsp_systick_refresh_total_cnt,
-    .get_total_cnt = djybsp_systick_get_total_cnt,
-    .us_to_cnt = djybsp_systick_us_to_cnt,
-    .cnt_to_us = djybsp_systick_cnt_to_us,
-    .reset = djybsp_systick_reset,
-    .start = djybsp_systick_start,
-    .set_reload = djybsp_systick_set_reload,
+    .get_cnt_max = DjyBsp_SystickGetCntMax,
+    .get_cnt_min = DjyBsp_SystickGetCntMin,
+    .get_reload =  DjyBsp_SystickGetReload,
+    .refresh_total_cnt = DjyBsp_SystickRefreshTotalCnt,
+    .get_total_cnt = DjyBsp_SystickGetTotalCnt,
+    .us_to_cnt = DjyBsp_SystickUsToCnt,
+    .cnt_to_us = DjyBsp_SystickCntToUs,
+    .reset = DjyBsp_SystickReset,
+    .start = DjyBsp_SystickStart,
+    .set_reload = DjyBsp_SystickSetReload,
 };
 
 // =============================================================================
@@ -318,7 +318,7 @@ static struct djytickless_op_t djyticklss_systick_op =
 // 参数：op
 // 返回：无
 // =============================================================================
-void djytickless_systick_register_op(struct djytickless_op_t **op)
+void DjyTickless_SystickRegisterOp(struct djytickless_op_t **op)
 {
     *op = &djyticklss_systick_op;
 }
@@ -334,8 +334,8 @@ __attribute__((weak))   uint64_t __DjyGetSysTime(void)
 {
 #if     CN_USE_TICKLESS_MODE
     uint64_t temp=0;
-    temp = djytickless_get_total_cnt();
-    return djytickless_cnt_to_us(temp);
+    temp = DjyTickless_GetTotalCnt();
+    return DjyTickless_CntToUs(temp);
 #else
     extern s64  g_s64OsTicks;
     s64 time;
@@ -365,8 +365,8 @@ __attribute__((weak))   void __InitTimeBase(void)
 {
 #if     CN_USE_TICKLESS_MODE
 #if (!CN_CFG_USE_USERTIMER)
-    djytickless_register_op(&djyticklss_systick_op);
-    djytickless_reset();
+    DjyTickless_RegisterOp(&djyticklss_systick_op);
+    DjyTickless_Reset();
 #endif
 #endif
 }
@@ -379,7 +379,7 @@ __attribute__((weak))   void __InitTimeBase(void)
 __attribute__((weak))   void __DjyInitTick(void)
 {
 #if     CN_USE_TICKLESS_MODE
-    djytickless_start();
+    DjyTickless_Start();
 #else
     HardExp_ConnectSystick(Djy_IsrTick);
     pg_systick_reg->reload = CN_CFG_FCLK/CN_CFG_TICK_HZ;

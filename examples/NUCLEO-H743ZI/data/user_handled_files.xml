@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><IncludeFiles>
-  <file>/bsp/cpudrv/stm32/h7/src/eth/cpu_peri_eth.c</file>
-<file>/bsp/cpudrv/stm32/h7/src/eth</file><file>/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/boardnetcfg</file></IncludeFiles>

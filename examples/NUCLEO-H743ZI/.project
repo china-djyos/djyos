@@ -7,7 +7,7 @@
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
+			<triggers>full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -25,6 +25,21 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
 	<linkedResources>
+		<link>
+			<name>src/iboot/boardnetcfg.c</name>
+			<type>1</type>
+			<locationURI>DJYOS_SRC_LOCATION/bsp/boarddrv/demo/NUCLEO-H743ZI/drv/boardnetcfg/boardnetcfg.c</locationURI>
+		</link>
+		<link>
+			<name>src/iboot/djyiptest</name>
+			<type>2</type>
+			<locationURI>DJYOS_SRC_LOCATION/test/djyiptest</locationURI>
+		</link>
+		<link>
+			<name>src/iboot/lan8742</name>
+			<type>2</type>
+			<locationURI>DJYOS_SRC_LOCATION/bsp/chipdrv/lan8742</locationURI>
+		</link>
 		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>

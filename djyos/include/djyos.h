@@ -177,10 +177,10 @@ struct ThreadVm          //线程数据结构
 #define CN_STS_WAIT_VPIPE       (u32)(1<<11)    //动态长度pipe
 #define CN_STS_WAIT_MSG_SENT    (u32)(1<<12)    //等待消息发送
 #define CN_STS_WAIT_PARA_USED   (u32)(1<<13)    //等待消息处理完成
-#define CN_WF_EVTT_DELETED      (u32)(1<<14)    //事件类型相关的同步，因目标类型
+#define CN_STS_EVTTSYNC_DELETED (u32)(1<<14)    //事件类型相关的同步，因目标类型
                                                 //被删除而解除同步。
-#define CN_WF_EVENT_RESET       (u32)(1<<15)    //复位后首次切入运行
-#define CN_WF_EVENT_NORUN       (u32)(1<<16)    //事件还未开始处理
+#define CN_STS_EVENT_RESET      (u32)(1<<15)    //复位后首次切入运行
+#define CN_STS_EVENT_NORUN      (u32)(1<<16)    //事件还未开始处理
 
 #define CN_BLOCK_PRIO_SORT      (u32)(1<<17)    //是否在优先级排序的阻塞队列中
 
@@ -334,13 +334,15 @@ struct EventType
                         //如模块间需要交叉弹出事件，用名字访问。
 #endif  //CFG_OS_TINY == false
     //优先级小于0x80为紧急优先级,它影响线程的构建.类型优先级在初始化时设定,
-    ufast_t     default_prio;       //事件类型优先级.不同于事件优先级,1~255,0非法.
-    u16    events;     //分配的事件总数
-    u16    vpus_res;   //系统为本类型事件保留的空闲线程上限，关联型无效
-    u16    vpus_limit; //独立型:本类型事件允许同时建立的线程个数
-                       //关联型:无效
-    u16    vpus;       //独立型:本类型事件已经拥有的线程个数
-                       //关联型:无效
+    u16    default_prio;    //事件类型优先级.不同于事件优先级,1~255,0非法.
+    u16    correlativeID;   //独立型:无效
+                            //关联型:已经弹出的事件ID
+    u16    events;          //分配的事件总数
+    u16    vpus_res;        //系统为本类型事件保留的空闲线程上限，关联型无效
+    u16    vpus_limit;      //独立型:本类型事件允许同时建立的线程个数
+                            //关联型:无效
+    u16    vpus;            //独立型:本类型事件已经拥有的线程个数
+                            //关联型:无效
 //    u16    para_limit; //本类型事件参数控制块队列长度
     ptu32_t (*thread_routine)(void);//函数指针,可能是死循环.
     u32 stack_size;              //thread_routine所需的栈大小
@@ -385,11 +387,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio);
 bool_t Djy_RaiseTempPrio(u16 event_id);
 bool_t Djy_RestorePrio(void);
 u32 Djy_EventDelay(u32 u32l_uS);
-#if (CN_USE_TICKLESS_MODE)
-u64 Djy_EventDelayTo(u64 s64l_uS);
-#else
-u32 Djy_EventDelayTo(s64 s64l_uS);
-#endif
+s64 Djy_EventDelayTo(s64 s64l_uS);
 u32 Djy_WaitEventCompleted(u16 event_id,u32 timeout);
 u32 Djy_WaitEvttCompleted(u16 evtt_id,u16 done_times,u32 timeout);
 u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout);

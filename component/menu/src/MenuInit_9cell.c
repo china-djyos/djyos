@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -100,3 +101,4 @@ struct menu_displaypara  *module_menu_init_9cell(struct menu_item *menuitem, str
 
   return dispara;
 }
+#endif

@@ -64,7 +64,7 @@ extern "C" {
 #define CN_IIC4     3
 #define CN_IIC_NUM  4
 
-bool_t IIC_Init(u8 iic_port);
+//bool_t IIC_Init(u8 iic_port);
 bool_t ModuleInstall_IIC(ptu32_t port);
 bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin);
 #ifdef __cplusplus

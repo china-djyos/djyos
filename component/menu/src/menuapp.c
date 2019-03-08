@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -161,5 +162,5 @@ void start_menu(void)
     }
 }
 
-
+#endif
 

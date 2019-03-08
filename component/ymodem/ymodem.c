@@ -112,8 +112,6 @@
 //%$#@free,
 #endif
 
-
-//#define CFG_YMODEM_TIMEOUT (600*1000*1000)
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //@#$%component end configure
 

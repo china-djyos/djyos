@@ -1,4 +1,4 @@
-
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -270,13 +270,4 @@ struct menu_displaypara*  menutouchlcd_9cell(struct menu_displaypara *operatingD
    return operatingDispara;
 }
 
-
-
-
-
-
-
-
-
-
-
+#endif

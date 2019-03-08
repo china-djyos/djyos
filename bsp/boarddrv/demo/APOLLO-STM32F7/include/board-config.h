@@ -117,7 +117,7 @@ extern "C" {
 
 #define CN_CAN_NUM                    1
 
-#define DJY_BOARD       "APOLLO"
+#define DJY_BOARD       "APOLLO-STM32F7"
 #ifdef __cplusplus
 }
 #endif

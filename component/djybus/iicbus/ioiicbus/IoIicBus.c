@@ -69,6 +69,7 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    #include "IoIicBus.h"
 //    struct IO_IIC_Init IoIic;
+//    u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
 //    IoIic.BusName     =  IO_IIC_BUS_NAME;//总线名称，如IIC1
 //    IoIic.tag         =  IO_IIC_USER_TAG; //用户自己的标记
 //    IoIic.IIC_IoCtrl  =  IIC_IOCTRL_FUN; //控制函数
@@ -102,7 +103,7 @@
 #define IO_IIC_BUS_NAME "IoIic"  //该IIC总线的名字
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#define IIC_IOCTRL_FUN   //用户实现的IO控制函数名
+#define IIC_IOCTRL_FUN   IIC_IoCtrlFunc//用户实现的IO控制函数名
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 

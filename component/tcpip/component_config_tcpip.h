@@ -122,7 +122,7 @@
 #define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能",暂未实现
 #define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
 //%$#@string,1,256,
-#define     CFG_TFTP_PATHDEFAULT       "/efs/"   //TFTP默认工作目录
+#define     CFG_TFTP_PATHDEFAULT       "/"   //TFTP默认工作目录
 //*******************************DHCP SERVER**********************************//
 //%$#@enum,true,false,
 #define     CFG_DHCP_ENABLE             true    //"DHCP 使能"

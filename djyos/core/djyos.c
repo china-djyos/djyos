@@ -325,14 +325,14 @@ void  Djy_IsrTick(u32 inc_ticks)
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
 #if (CN_USE_TICKLESS_MODE)
     u32 event=0;
-    djytickless_sys_param.cur_cnt = djytickless_refresh_total_cnt(inc_ticks);
+    djytickless_sys_param.cur_cnt = DjyTickless_RefreshTotalCnt(inc_ticks);
 #else
     g_s64OsTicks += (s64)inc_ticks;    //系统时钟,默认永不溢出
 #endif
     //用于维护系统时钟运转，使读系统时间的间隔，小于硬件定时器循环周期。
     __DjyMaintainSysTime( );
 #if (CN_USE_TICKLESS_MODE)
-    djytickless_check_cnt(&djytickless_sys_param,inc_ticks);
+    DjyTickless_CheckCnt(&djytickless_sys_param,inc_ticks);
 #endif
     if(g_ptEventDelay != NULL)
     {
@@ -340,7 +340,7 @@ void  Djy_IsrTick(u32 inc_ticks)
         while(1)
         {
 #if (CN_USE_TICKLESS_MODE)
-            if(pl_ecb->delay_end_cnt < djytickless_sys_param.cur_cnt + djytickless_get_cnt_min()) //默认64位ticks不会溢出
+            if(pl_ecb->delay_end_cnt < djytickless_sys_param.cur_cnt + DjyTickless_GetCntMin()) //默认64位ticks不会溢出
 #else
             if(pl_ecb->delay_end_tick <= g_s64OsTicks) //默认64位ticks不会溢出
 #endif
@@ -416,7 +416,7 @@ void  Djy_IsrTick(u32 inc_ticks)
                     &&(g_ptEventRunning != g_ptEventRunning->next) )
         {//该优先级有多个事件，看轮转时间是否到
 #if (CN_USE_TICKLESS_MODE)
-            if(djytickless_sys_param.next_rrs_cnt < djytickless_sys_param.cur_cnt+djytickless_get_cnt_min()) //时间片用完
+            if(djytickless_sys_param.next_rrs_cnt < djytickless_sys_param.cur_cnt+DjyTickless_GetCntMin()) //时间片用完
 #else
             if((u32)g_s64OsTicks % s_u32RRS_Slice == 0) //时间片用完
 #endif
@@ -458,9 +458,9 @@ void  Djy_IsrTick(u32 inc_ticks)
     }
 #if (CN_USE_TICKLESS_MODE)
     if(event!=0)
-        djytickless_set_reload(&djytickless_sys_param,ISR_TICK_HANDLE);
+        DjyTickless_SetReload(&djytickless_sys_param,ISR_TICK_HANDLE);
     else
-        djytickless_set_reload(&djytickless_sys_param,SET_INT_TICK_DEFAULT);
+        DjyTickless_SetReload(&djytickless_sys_param,SET_INT_TICK_DEFAULT);
 #endif
     return;
 }
@@ -563,7 +563,7 @@ void Djy_SetRRS_Slice(u32 slices)
     atom_low = Int_LowAtomStart( );   //本函数对不能嵌套调用
 #endif
 #if (CN_USE_TICKLESS_MODE)
-    s_u64RRS_Slice = djytickless_us_to_cnt((u64)slices);
+    s_u64RRS_Slice = DjyTickless_UsToCnt((u64)slices);
 #else
     s_u32RRS_Slice =(slices + CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
 #endif
@@ -723,22 +723,22 @@ void __Djy_SelectEventToRun(void)
     if(g_ptEventReady->prio==g_ptEventReady->next->prio \
             && (g_ptEventReady != g_ptEventReady->next))
     {
-        djytickless_sys_param.cur_cnt = djytickless_get_total_cnt();
+        djytickless_sys_param.cur_cnt = DjyTickless_GetTotalCnt();
         temp = djytickless_sys_param.cur_cnt%s_u64RRS_Slice;
 
-        if(temp+djytickless_get_cnt_min()>s_u64RRS_Slice)
+        if(temp+DjyTickless_GetCntMin()>s_u64RRS_Slice)
             djytickless_sys_param.next_rrs_cnt = djytickless_sys_param.cur_cnt + 2*s_u64RRS_Slice-temp;
         else
             djytickless_sys_param.next_rrs_cnt = djytickless_sys_param.cur_cnt + s_u64RRS_Slice-temp;
-        djytickless_set_reload(&djytickless_sys_param,RRS_ENABLE);
+        DjyTickless_SetReload(&djytickless_sys_param,RRS_ENABLE);
     }
     else
     {
         if(djytickless_sys_param.next_rrs_cnt != CN_LIMIT_UINT64)
         {
-            djytickless_sys_param.cur_cnt = djytickless_get_total_cnt();
+            djytickless_sys_param.cur_cnt = DjyTickless_GetTotalCnt();
             djytickless_sys_param.next_rrs_cnt = CN_LIMIT_UINT64;
-            djytickless_set_reload(&djytickless_sys_param,RRS_CANCLE);
+            DjyTickless_SetReload(&djytickless_sys_param,RRS_CANCLE);
         }
     }
 #endif
@@ -787,7 +787,7 @@ bool_t __Djy_Schedule(void)
      //级高于running的事件全部进入内存等待队列的可能.此时执行else子句.
         event = g_ptEventRunning;
 #if (CN_USE_TICKLESS_MODE)
-        djytickless_sys_param.cur_cnt = djytickless_get_total_cnt();
+        djytickless_sys_param.cur_cnt = DjyTickless_GetTotalCnt();
 #else
         time = (u32)DjyGetSysTime();
 #endif
@@ -840,7 +840,7 @@ void __Djy_ScheduleAsynSignal(void)
      //级高于running的事件全部进入内存等待队列的可能.此时执行else子句.
          event=g_ptEventRunning;
 #if (CN_USE_TICKLESS_MODE)
-         djytickless_sys_param.cur_cnt = djytickless_get_total_cnt();
+         djytickless_sys_param.cur_cnt = DjyTickless_GetTotalCnt();
 #else
          time = (u32)DjyGetSysTime();
 #endif
@@ -855,11 +855,11 @@ void __Djy_ScheduleAsynSignal(void)
 #if (CN_USE_TICKLESS_MODE)
          g_s64RunningStartCnt = djytickless_sys_param.cur_cnt;
 #endif
-         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
+//         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
          g_ptEventRunning=g_ptEventReady;
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);
-         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+//         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
     }else
     {//优先级高于running的事件全部进入内存等待队列,下一个要处理的事件就是
      //running事件,无须执行任何操作
@@ -910,7 +910,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
     for(evtt_offset=0; evtt_offset<CFG_EVENT_TYPE_LIMIT; evtt_offset++)
         if( g_tEvttTable[evtt_offset].property.registered ==0)
             break;
-    if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //没有空闲事件控制块
+    if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //没有空闲事件类型控制块
     {
         parahead.DecoderName = NULL;
         parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
@@ -955,6 +955,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
     }
 
     g_tEvttTable[evtt_offset].default_prio = default_prio;
+    g_tEvttTable[evtt_offset].correlativeID = CN_EVENT_ID_INVALID;
     g_tEvttTable[evtt_offset].events = 0;
     g_tEvttTable[evtt_offset].vpus_limit = vpus_limit;
     if(relation == EN_INDEPENDENCE)
@@ -1097,7 +1098,7 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
 //          {
 //              __Djy_ResumeDelay(pl_ecb);    //结束超时等待
 //          }
-//          pl_ecb->wakeup_from = CN_WF_EVTT_DELETED;   //设置唤醒原因
+//          pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;   //设置唤醒原因
 //          pl_ecb->event_status = CN_STS_EVENT_READY;
 //          pl_ecb_temp = pl_ecb;
 //          if(pl_ecb->multi_next == pl_evtt->done_sync)   //是最后一个事件
@@ -1120,10 +1121,10 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
             {
                 __Djy_ResumeDelay(pl_ecb);    //结束超时等待
             }
-            pl_ecb->wakeup_from = CN_WF_EVTT_DELETED;    //设置唤醒原因
+            pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;    //设置唤醒原因
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb_temp = pl_ecb;
-            if(pl_ecb->multi_next == pl_evtt->done_sync)  //是最后一个事件
+            if(pl_ecb->multi_next == pl_evtt->pop_sync)  //是最后一个事件
             {
                 pl_evtt->pop_sync = NULL;  //置空事件同步队列
                 pl_ecb = NULL;
@@ -1174,7 +1175,7 @@ const struct EventECB cn_sys_event = {
                         EN_KNL_NO_ERROR,          //error_no
                         0,                          //event_result
                         0,                          //wait_mem_size
-                        CN_WF_EVENT_NORUN,          //wakeup_from
+                        CN_STS_EVENT_NORUN,          //wakeup_from
                         CN_STS_EVENT_READY,         //event_status
                         CN_PRIO_SYS_SERVICE,        //prio_base
                         CN_PRIO_SYS_SERVICE,        //prio
@@ -1239,6 +1240,7 @@ void __InitSys(void)
 #endif  //CFG_OS_TINY == false
 
     g_tEvttTable[0].default_prio = CN_PRIO_SYS_SERVICE;
+    g_tEvttTable[0].correlativeID = CN_EVENT_ID_INVALID;
     g_tEvttTable[0].events = 1;
     g_tEvttTable[0].vpus_res =0;
     g_tEvttTable[0].vpus_limit =1;
@@ -1356,12 +1358,12 @@ void __Djy_EventReady(struct EventECB *event_ready)
 void __Djy_ResumeDelay(struct EventECB *delay_event)
 {
 #if (CN_USE_TICKLESS_MODE)
-    djytickless_sys_param.cur_cnt = djytickless_get_total_cnt();
+    djytickless_sys_param.cur_cnt = DjyTickless_GetTotalCnt();
     if(g_ptEventDelay->next == g_ptEventDelay)  //队列中只有一个事件
     {
         g_ptEventDelay = NULL;
         djytickless_sys_param.next_delay_cnt = CN_LIMIT_UINT64;
-        djytickless_set_reload(&djytickless_sys_param,RESUME_DELAY);
+        DjyTickless_SetReload(&djytickless_sys_param,RESUME_DELAY);
     }
 #else
     if(g_ptEventDelay->next == g_ptEventDelay)  //队列中只有一个事件
@@ -1374,7 +1376,7 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
             g_ptEventDelay = g_ptEventDelay->next;
 #if (CN_USE_TICKLESS_MODE)
             djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-            djytickless_set_reload(&djytickless_sys_param,RESUME_DELAY);
+            DjyTickless_SetReload(&djytickless_sys_param,RESUME_DELAY);
 #endif
         }
         delay_event->next->previous = delay_event->previous;
@@ -1405,11 +1407,11 @@ void __Djy_AddToDelay(u32 u32l_uS)
     struct EventECB * event;
     u64 temp = 0;
 #if (CN_USE_TICKLESS_MODE)
-    g_ptEventRunning->delay_start_cnt = djytickless_get_total_cnt(); //事件延时开始时间
-    temp = djytickless_us_to_cnt((uint64_t)u32l_uS);
+    g_ptEventRunning->delay_start_cnt = DjyTickless_GetTotalCnt(); //事件延时开始时间
+    temp = DjyTickless_UsToCnt((uint64_t)u32l_uS);
     g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt + temp;
 //    g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt + \
-//                                                djytickless_us_to_cnt((uint64_t)u32l_uS); //闹铃时间
+//                                                DjyTickless_UsToCnt((uint64_t)u32l_uS); //闹铃时间
     if(g_ptEventRunning->delay_end_cnt < g_ptEventRunning->delay_start_cnt)
     {
         g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt;
@@ -1427,7 +1429,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
         g_ptEventDelay=g_ptEventRunning;
 #if (CN_USE_TICKLESS_MODE)
         djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-        djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
+        DjyTickless_SetReload(&djytickless_sys_param,EVENT_DELAY);
 #endif
     }else
     {
@@ -1460,7 +1462,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
         {
             g_ptEventDelay = g_ptEventRunning;
             djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-            djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
+            DjyTickless_SetReload(&djytickless_sys_param,EVENT_DELAY);
         }
 #else
         if(g_ptEventDelay->delay_end_tick > g_ptEventRunning->delay_end_tick)
@@ -1801,7 +1803,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
                     && (g_ptEventRunning != g_ptEventRunning->next)   )
         {
 #if (CN_USE_TICKLESS_MODE)
-            g_ptEventRunning->delay_start_cnt = djytickless_get_total_cnt();//闹铃时间
+            g_ptEventRunning->delay_start_cnt = DjyTickless_GetTotalCnt();//闹铃时间
 #else
             g_ptEventRunning->delay_start_tick = DjyGetSysTick();//闹铃时间
 #endif
@@ -1815,9 +1817,9 @@ u32 Djy_EventDelay(u32 u32l_uS)
     }else
     {
 #if (CN_USE_TICKLESS_MODE)
-        g_ptEventRunning->delay_start_cnt =djytickless_get_total_cnt();//设定闹铃的时间
+        g_ptEventRunning->delay_start_cnt =DjyTickless_GetTotalCnt();//设定闹铃的时间
         g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt +   \
-                                            djytickless_us_to_cnt((u64)u32l_uS);//闹铃时间
+                DjyTickless_UsToCnt((u64)u32l_uS);//闹铃时间
         if(g_ptEventRunning->delay_end_cnt < g_ptEventRunning->delay_start_cnt)
         {
             g_ptEventRunning->delay_end_cnt = g_ptEventRunning->delay_start_cnt;
@@ -1839,7 +1841,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
             g_ptEventDelay=g_ptEventRunning;
 #if (CN_USE_TICKLESS_MODE)
             djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-            djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
+            DjyTickless_SetReload(&djytickless_sys_param,EVENT_DELAY);
 #endif
         }else
         {
@@ -1873,14 +1875,14 @@ u32 Djy_EventDelay(u32 u32l_uS)
                 g_ptEventDelay = g_ptEventRunning;
 #if (CN_USE_TICKLESS_MODE)
                 djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-                djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
+                DjyTickless_SetReload(&djytickless_sys_param,EVENT_DELAY);
 #endif
             }
         }
     }
     Int_RestoreAsynSignal();
 #if (CN_USE_TICKLESS_MODE)
-    us_return = (uint32_t)djytickless_cnt_to_us((djytickless_get_total_cnt() - g_ptEventRunning->delay_start_cnt));
+    us_return = (uint32_t)DjyTickless_CntToUs((DjyTickless_GetTotalCnt() - g_ptEventRunning->delay_start_cnt));
 #else
     us_return = (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
 #endif
@@ -1894,68 +1896,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
 //备注：延时队列为双向循环链表
 //add by lst in 20130922
 //-----------------------------------------------------------------------------
-#if (CN_USE_TICKLESS_MODE)
-u64 Djy_EventDelayTo(u64 u64l_uS)
-{
-    struct EventECB * event;
-
-    if( !Djy_QuerySch())
-    {
-//      Djy_SaveLastError(EN_KNL_CANT_SCHED);
-        Djy_DelayUs((u32)(u64l_uS - DjyGetSysTime()));
-        return 0;
-    }
-    Int_SaveAsynSignal();
-    g_ptEventRunning->delay_start_cnt =djytickless_get_total_cnt();//设定闹铃的时间
-    g_ptEventRunning->delay_end_cnt = djytickless_us_to_cnt(u64l_uS);
-    djytickless_sys_param.cur_cnt = g_ptEventRunning->delay_start_cnt;
-    if(g_ptEventRunning->delay_end_cnt <= g_ptEventRunning->delay_start_cnt)
-    {
-        Int_RestoreAsynSignal();
-        return 0;
-    }
-
-    __Djy_CutReadyEvent(g_ptEventRunning);
-
-    g_ptEventRunning->event_status = CN_STS_EVENT_DELAY;
-    if(g_ptEventDelay==NULL)    //闹钟同步队列空
-    {
-        g_ptEventRunning->next = g_ptEventRunning;
-        g_ptEventRunning->previous = g_ptEventRunning;
-        g_ptEventDelay=g_ptEventRunning;
-        djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-        djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
-    }else
-    {
-        event = g_ptEventDelay;
-        do
-        {//本循环找到第一个闹铃时间晚于新事件的事件.
-            if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
-            {
-                event = event->next;
-            }
-            else
-                break;
-        }while(event != g_ptEventDelay);
-        //下面把新事件插入前述找到的事件前面，如没有找到，则event将等于
-        //pg_event_delay，因是双向循环队列，g_event_delay前面也就刚好是队列尾。
-        g_ptEventRunning->next = event;
-        g_ptEventRunning->previous = event->previous;
-        event->previous->next = g_ptEventRunning;
-        event->previous = g_ptEventRunning;
-        if(g_ptEventDelay->delay_end_cnt >g_ptEventRunning->delay_end_cnt)
-            //新事件延时小于原队列中的最小延时.
-        {
-            g_ptEventDelay = g_ptEventRunning;
-            djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
-            djytickless_set_reload(&djytickless_sys_param,EVENT_DELAY);
-        }
-    }
-    Int_RestoreAsynSignal();
-    return djytickless_cnt_to_us(djytickless_get_total_cnt() - g_ptEventRunning->delay_start_cnt);
-}
-#else
-u32 Djy_EventDelayTo(s64 s64l_uS)
+s64 Djy_EventDelayTo(s64 s64l_uS)
 {
     struct EventECB * event;
 
@@ -1966,9 +1907,16 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         return 0;
     }
     Int_SaveAsynSignal();
+#if (CN_USE_TICKLESS_MODE)
+    g_ptEventRunning->delay_start_cnt =DjyTickless_GetTotalCnt();//设定闹铃的时间
+    g_ptEventRunning->delay_end_cnt = DjyTickless_UsToCnt((u64)s64l_uS);
+    djytickless_sys_param.cur_cnt = g_ptEventRunning->delay_start_cnt;
+    if(g_ptEventRunning->delay_end_cnt <= g_ptEventRunning->delay_start_cnt)
+#else
     g_ptEventRunning->delay_start_tick =DjyGetSysTick();//设定闹铃的时间
     g_ptEventRunning->delay_end_tick =(s64l_uS +CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
     if(g_ptEventRunning->delay_end_tick <= g_ptEventRunning->delay_start_tick)
+#endif
     {
         Int_RestoreAsynSignal();
         return 0;
@@ -1982,12 +1930,20 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         g_ptEventRunning->next = g_ptEventRunning;
         g_ptEventRunning->previous = g_ptEventRunning;
         g_ptEventDelay=g_ptEventRunning;
+#if (CN_USE_TICKLESS_MODE)
+        djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
+        DjyTickless_SetReload(&djytickless_sys_param,EVENT_DELAY);
+#endif
     }else
     {
         event = g_ptEventDelay;
         do
         {//本循环找到第一个闹铃时间晚于新事件的事件.
+#if (CN_USE_TICKLESS_MODE)
+            if(event->delay_end_cnt <= g_ptEventRunning->delay_end_cnt)
+#else
             if(event->delay_end_tick <= g_ptEventRunning->delay_end_tick)
+#endif
             {
                 event = event->next;
             }
@@ -2000,14 +1956,28 @@ u32 Djy_EventDelayTo(s64 s64l_uS)
         g_ptEventRunning->previous = event->previous;
         event->previous->next = g_ptEventRunning;
         event->previous = g_ptEventRunning;
+#if (CN_USE_TICKLESS_MODE)
+        if(g_ptEventDelay->delay_end_cnt >g_ptEventRunning->delay_end_cnt)
+            //新事件延时小于原队列中的最小延时.
+        {
+            g_ptEventDelay = g_ptEventRunning;
+            djytickless_sys_param.next_delay_cnt = g_ptEventDelay->delay_end_cnt;
+            DjyTickless_SetReload(&djytickless_sys_param,EVENT_DELAY);
+        }
+#else
         if(g_ptEventDelay->delay_end_tick >g_ptEventRunning->delay_end_tick)
             //新事件延时小于原队列中的最小延时.
             g_ptEventDelay = g_ptEventRunning;
+#endif
     }
     Int_RestoreAsynSignal();
+#if (CN_USE_TICKLESS_MODE)
+    return DjyTickless_CntToUs(DjyTickless_GetTotalCnt() - g_ptEventRunning->delay_start_cnt);
+#else
     return (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
-}
 #endif
+}
+
 //----同步事件----------------------------------------------------------------
 //功能: 把正在运行的事件加入到指定事件的同步队列中去,然后重新调度。当指定事件
 //      处理完成，或者超时时间到，将唤醒当前事件。
@@ -2509,7 +2479,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
 
 #if CFG_OS_TINY == false
 #if (CN_USE_TICKLESS_MODE)
-            pl_ecb->EventStartCnt = djytickless_get_total_cnt();   //事件发生时间
+            pl_ecb->EventStartCnt = DjyTickless_GetTotalCnt();   //事件发生时间
             pl_ecb->consumed_cnt = 0;
             pl_ecb->consumed_cnt_second = 0;
             pl_ecb->consumed_cnt_record = 0;
@@ -2529,12 +2499,13 @@ u16 Djy_EventPop(   u16  hybrid_id,
 #endif
             pl_ecb->error_no = 0;
             pl_ecb->wait_mem_size = 0;
-            pl_ecb->wakeup_from = CN_WF_EVENT_NORUN;
+            pl_ecb->wakeup_from = CN_STS_EVENT_NORUN;
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb->evtt_id = evtt_offset | CN_EVTT_ID_MASK;    //设置事件类型
             pl_ecb->sync_counter = 0;
             pl_ecb->local_memory = 0;
             pl_evtt->property.inuse = 1;
+            pl_evtt->correlativeID = pl_ecb->event_id;
 //          if(pl_evtt->property.correlative == EN_CORRELATIVE)
 //          {
 //              pl_evtt->mark_event = pl_ecb;
@@ -2560,8 +2531,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
     {
 //      if(pl_evtt->property.correlative == EN_INDEPENDENCE)
 //      {
-//          //此时hybrid_id一定是事件ID,而mark_event并不指向相应事件
-        pl_ecb = &g_tECB_Table[hybrid_id];
+        pl_ecb = &g_tECB_Table[pl_evtt->correlativeID];
 //      }
 //      else
 //      {
@@ -3021,7 +2991,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
 #if (CN_USE_TICKLESS_MODE)
-        g_s64RunningStartCnt = djytickless_get_total_cnt();
+        g_s64RunningStartCnt = DjyTickless_GetTotalCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3038,7 +3008,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
             g_ptEventRunning=g_ptEventReady;
             g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
 #if (CN_USE_TICKLESS_MODE)
-            g_s64RunningStartCnt = djytickless_get_total_cnt();
+            g_s64RunningStartCnt = DjyTickless_GetTotalCnt();
 #else
             g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3053,7 +3023,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
 #if (CN_USE_TICKLESS_MODE)
-        g_s64RunningStartCnt = djytickless_get_total_cnt();
+        g_s64RunningStartCnt = DjyTickless_GetTotalCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3290,7 +3260,7 @@ void __Djy_EventFinal(ptu32_t result)
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
 #if (CN_USE_TICKLESS_MODE)
-        g_s64RunningStartCnt = djytickless_get_total_cnt();
+        g_s64RunningStartCnt = DjyTickless_GetTotalCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3306,7 +3276,7 @@ void __Djy_EventFinal(ptu32_t result)
             g_ptEventRunning = g_ptEventReady;
             g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
 #if (CN_USE_TICKLESS_MODE)
-            g_s64RunningStartCnt = djytickless_get_total_cnt();
+            g_s64RunningStartCnt = DjyTickless_GetTotalCnt();
 #else
             g_s64RunningStartTime = DjyGetSysTime();
 #endif
@@ -3321,7 +3291,7 @@ void __Djy_EventFinal(ptu32_t result)
         g_ptEventRunning = g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
 #if (CN_USE_TICKLESS_MODE)
-        g_s64RunningStartCnt = djytickless_get_total_cnt();
+        g_s64RunningStartCnt = DjyTickless_GetTotalCnt();
 #else
         g_s64RunningStartTime = DjyGetSysTime();
 #endif

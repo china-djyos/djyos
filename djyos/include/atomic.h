@@ -61,6 +61,8 @@
 extern "C" {
 #endif
 
+void atom_set32(u32 *base, u32 value);
+void atom_set64(u64 *base, u64 value);
 void atom_uadd32(u32 *base, u32 inc);
 void atom_usub32(u32 *base, u32 sub);
 void atom_sadd32(s32 *base, s32 inc);

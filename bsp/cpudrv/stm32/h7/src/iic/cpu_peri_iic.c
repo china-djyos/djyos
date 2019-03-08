@@ -1250,13 +1250,13 @@ static void IIC_HardInit(ptu32_t port)
     I2CType* reg = config[port].iicBaseAddr;
 #if defined IICCLKOLD
     RCC->DCKCFGR2 &=~(3<<((2*port)+16));//清除原来的设置
-    RCC->APB1ENR |=(1<<(21+port));//外设时钟使能
+    RCC->APB1LENR |=(1<<(21+port));//外设时钟使能
     reg->TIMINGR = 0x40953c38;//时序寄存器先写死
     reg->CR1     = TYPE1_I2C_CR1_PE;//PE使能
 #else
-    RCC->APB1ENR |=(1<<(21+port));//外设时钟使能
-    RCC->DCKCFGR2 &=~(3<<((2*port)+16));//清除原来的设置
-    RCC->DCKCFGR2 |=(0<<((2*port)+16));
+    RCC->APB1LENR |=(1<<(21+port));//外设时钟使能
+//    RCC->DCKCFGR2 &=~(3<<((2*port)+16));//清除原来的设置
+//    RCC->DCKCFGR2 |=(0<<((2*port)+16));
     IIC_ClkSet(port,config[port].speed);
     reg->CR1     = TYPE1_I2C_CR1_PE;//PE使能
 #endif

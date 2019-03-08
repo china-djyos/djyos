@@ -127,14 +127,24 @@ u32 Int_GetRunLevel(void);
 void Int_RestoreAsynSignal(void);
 void Int_HalfEnableAsynSignal(void);
 bool_t Int_CheckAsynSignal(void);
-bool_t Int_SaveAsynLine(ufast_t ufl_line);
-bool_t Int_SaveRealLine(ufast_t ufl_line);
-bool_t Int_RestoreAsynLine(ufast_t ufl_line);
-bool_t Int_RestoreRealLine(ufast_t ufl_line);
-bool_t Int_DisableAsynLine(ufast_t ufl_line);
-bool_t Int_DisableRealLine(ufast_t ufl_line);
-bool_t Int_EnableAsynLine(ufast_t ufl_line);
-bool_t Int_EnableRealLine(ufast_t ufl_line);
+#define Int_RestoreAsynLine(x)    Int_RestoreLine(x)
+#define Int_RestoreRealLine(x)    Int_RestoreLine(x)
+#define Int_SaveAsynLine(x)    Int_SaveLine(x)
+#define Int_SaveRealLine(x)    Int_SaveLine(x)
+//bool_t Int_SaveAsynLine(ufast_t ufl_line);
+bool_t Int_SaveLine(ufast_t ufl_line);
+//bool_t Int_RestoreAsynLine(ufast_t ufl_line);
+bool_t Int_RestoreLine(ufast_t ufl_line);
+
+#define Int_DisableAsynLine(x)    Int_DisableLine(x)
+#define Int_DisableRealLine(x)    Int_DisableLine(x)
+#define Int_EnableAsynLine(x)    Int_SaveLine(x)
+#define Int_EnableRealLine(x)    Int_SaveLine(x)
+//bool_t Int_DisableAsynLine(ufast_t ufl_line);
+bool_t Int_DisableLine(ufast_t ufl_line);
+//bool_t Int_EnableAsynLine(ufast_t ufl_line);
+bool_t Int_EnableLine(ufast_t ufl_line);
+
 bool_t Int_CheckLine(ufast_t ufl_line);
 bool_t Int_SetClearType(ufast_t ufl_line,ufast_t clear_type);
 void Int_IsrConnect(ufast_t ufl_line, u32 (*isr)(ptu32_t));
