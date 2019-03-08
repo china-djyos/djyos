@@ -64,7 +64,7 @@ SECTIONS
     {
     	. = ALIGN(0x04);
         Lock_Cache_Add_Start = .;
-        KEEP(*os_Iboot_Debug.a:norflash.o (.text .text.* .rodata .rodata.*))
+        KEEP(*libos_Iboot.a:norflash.o (.text .text.* .rodata .rodata.*))
          . = ALIGN(0x04);
         Lock_Cache_Add_End = .;
     
@@ -83,20 +83,6 @@ SECTIONS
         * (.text .text.* .rodata .rodata.*)
         g_pAppCodeEndRamAddr = .;
     }>Flash
-
-    rw_preload_rExtRam_lROM :
-    {
-        . = ALIGN(0x08);
-        *libos_Iboot.a:loader.o (.data .data.*)
-        *libos_Iboot.a:int_hard.o (.data .data.*)
-        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
-        *libos_Iboot.a:hard-exp.o (.data .data.*)
-        *libos_Iboot.a:int.o (.data .data.*)
-        *libos_Iboot.a:ints.o (.data .data.*)
-        *src/iboot/critical/*.o (.data .data.*)
-        *libos_Iboot.a:heap-static.o (.data .data.*)
-        *libos_Iboot.a:list.o (.data .data.*)
-    }>ExtRam AT>Flash
 
     /*Cortex-M 系列的向量表可重定位，对起始地址的要求是：若有N个向量（包含异常），*/
     /*先增大到2的整数次幂，若为M，则Addr = ALIGN(4 * M) */
@@ -118,6 +104,22 @@ SECTIONS
         *libos_Iboot.a:heap-static.o (.bss .bss.* COMMON)
         *libos_Iboot.a:list.o (.bss .bss.* COMMON)
     }>ExtRam
+    
+    rw_preload_rExtRam_lROM :
+    {
+        . = ALIGN(0x08);
+        *libos_Iboot.a:loader.o (.data .data.*)
+        *libos_Iboot.a:int_hard.o (.data .data.*)
+        KEEP(*libos_Iboot.a:hard-exps.o (.data .data.*))
+        *libos_Iboot.a:hard-exp.o (.data .data.*)
+        *libos_Iboot.a:int.o (.data .data.*)
+        *libos_Iboot.a:ints.o (.data .data.*)
+        *src/iboot/critical/*.o (.data .data.*)
+        *libos_Iboot.a:heap-static.o (.data .data.*)
+        *libos_Iboot.a:list.o (.data .data.*)
+    }>ExtRam AT>Flash
+
+
 
     rw_sysload_rExtRam_lROM :
     {

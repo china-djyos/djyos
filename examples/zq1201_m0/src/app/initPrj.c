@@ -31,8 +31,8 @@ void Sys_ModuleInit(void)
 //	extern void ModuleInstall_BlackBox(void);
 //	ModuleInstall_BlackBox( );
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
+	extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
+	ModuleInstall_XIP_APP_FS(0,NULL);
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -51,8 +51,14 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
+
+	s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
+//	ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
 
 	extern bool_t ModuleInstall_HardTimer(void);
 	ModuleInstall_HardTimer();
@@ -61,20 +67,23 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_Timer(void);
 	ModuleInstall_Timer();
 
+	extern bool_t ModuleInstall_Ymodem(void);
+	ModuleInstall_Ymodem();
+
+	extern s32 kernel_command(void);
+	kernel_command();
+
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
-	//ÊÂ¼þµÄÁ½¸ö²ÎÊýÔÝÉèÎª0,Èç¹ûÓÃshellÆô¶¯,¿ÉÓÃÀ´²É¼¯shellÃüÁîÐÐ²ÎÊý
+	//ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª0,ï¿½ï¿½ï¿½ï¿½ï¿½shellï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¼ï¿½shellï¿½ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½
 	Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
 
 	extern bool_t Heap_DynamicModuleInit(void);
 	Heap_DynamicModuleInit ( );
-
-	printf("\r\n: info : all modules are configured.");
-	printf("\r\n: info : os starts.\r\n");
 
 	return ;
 }

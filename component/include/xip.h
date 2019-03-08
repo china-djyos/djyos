@@ -85,14 +85,7 @@ struct __icontext{
     u8 *apphead;
     u32 Wappsize;
 };
-//
-// iap文件系统对flash的操作函数集
-//
-struct __xip_drv{
-    s32 (*xip_write_media) (struct __icore *core, u8 *data, u32 bytes, u32 pos);
-    s32 (*xip_read_media) (struct __icore *core, u8 *data, u32 bytes, u32 pos);
-    s32 (*xip_erase_media) (struct __icore *core, u32 bytes, u32 pos);
-};
+
 //
 // IAP文件系统管理信息
 //
@@ -106,7 +99,14 @@ struct __icore{
     struct MutexLCB *lock; // 系统锁；
     struct __xip_drv *drv;
 };
-
+//
+// iap文件系统对flash的操作函数集
+//
+struct __xip_drv{
+    s32 (*xip_write_media) (struct __icore *core, u8 *data, u32 bytes, u32 pos);
+    s32 (*xip_read_media) (struct __icore *core, u8 *data, u32 bytes, u32 pos);
+    s32 (*xip_erase_media) (struct __icore *core, u32 bytes, u32 pos);
+};
 
 #define EN_FORM_FILE  0
 #define EN_DIRECT_RUN 1

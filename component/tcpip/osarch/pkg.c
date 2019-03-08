@@ -48,6 +48,7 @@
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
 #include "dbug.h"
+#include "heap.h"
 #include <shell.h>
 #include "../component_config_tcpip.h"
 //attention than the biggest buffer is 8192,if you need more, please contact the author
@@ -76,12 +77,13 @@ struct NetPkg
 };
 
 #define CN_NETPKG_LEVEL           9                     //how many layers
-static struct NetPkg *sgPkgFreeLst[CN_NETPKG_LEVEL];        //used to list the free pkg
+//static struct NetPkg *sgPkgFreeLst[CN_NETPKG_LEVEL];        //used to list the free pkg
 #define CN_PKG_HDRSIZE    (sizeof(struct NetPkg))
 static u32  sgPkgLevlMap[CN_NETPKG_LEVEL]=  {32,64,128,256,512,1024,2048,4096,8192}; //layer size
 static u8  *pPkgMemSrc = NULL;                          //the package heap
 static u32  gPkgMemOffset = 0;                          //the package use heap offset
 static  mutex_t pPkgQueLock = NULL;                     //protect the heap and the free list
+static tagHeadControl pkg_heap_control;
 
 void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf)
 {
@@ -111,61 +113,27 @@ static tagPkgStatistics gPkgStatistics;
 // =============================================================================
 struct NetPkg *PkgMalloc(u16 bufsize, u8 flags)
 {
-    u8 i ;
+    u8 i = 0 ;
     u16  pkgsize;
     struct NetPkg *result;
 
     result = NULL;
     pkgsize = bufsize+CN_PKG_HDRSIZE;
-    //find the pkgsize level
-    for(i =0;i < CN_NETPKG_LEVEL;i++)
+    if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
     {
-        if(pkgsize < sgPkgLevlMap[i])
+        result = (struct NetPkg *)DjyMalloc(&pkg_heap_control,pkgsize);
+        if(result!=NULL)
         {
-            break;
+            result->partnext = NULL;
+            result->bufsize = pkgsize - CN_PKG_HDRSIZE;
+            result->pkgbuf = (u8 *)result + CN_PKG_HDRSIZE;
+            result->datalen = 0;
+            result->refers = 0;
+            result->pkgflag =flags;
+            result->level = i;
+            result->pkgoffset = 0;
         }
-    }
-    if(i < CN_NETPKG_LEVEL)
-    {
-        pkgsize = sgPkgLevlMap[i]; //we must aligned it to the layer
-        //ok, now we should malloc it from the heap or the free list
-        if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
-        {
-            if(NULL != sgPkgFreeLst[i])
-            {
-                //fetch the pkg from the free lst
-                result = sgPkgFreeLst[i];
-                sgPkgFreeLst[i] = result->partnext;
-                TCPIP_DEBUG_DEC(gPkgStatistics.freenum[i]);
-            }
-            else if((pkgsize+gPkgMemOffset)<CFG_NETPKG_MEMSIZE)
-            {
-                result = (struct NetPkg *)(pPkgMemSrc + gPkgMemOffset);
-                gPkgMemOffset += pkgsize;
-                TCPIP_DEBUG_INC(gPkgStatistics.mallocnum[i]);
-            }
-            else
-            {
-                TCPIP_DEBUG_INC(gPkgStatistics.failnum[i]);
-            }
-            if(NULL != result)
-            {
-                result->partnext = NULL;
-                result->bufsize = pkgsize - CN_PKG_HDRSIZE;
-                result->pkgbuf = (u8 *)result + CN_PKG_HDRSIZE;
-                result->datalen = 0;
-                result->refers = 0;
-                result->pkgflag =flags;
-                result->level = i;
-                result->pkgoffset = 0;
-            }
-            Lock_MutexPost(pPkgQueLock);
-        }
-    }
-    else
-    {
-        //no level matched
-        TCPIP_DEBUG_INC(gPkgStatistics.overbufnum);
+        Lock_MutexPost(pPkgQueLock);
     }
     return result;
 }
@@ -180,32 +148,13 @@ struct NetPkg *PkgMalloc(u16 bufsize, u8 flags)
 // =============================================================================
 bool_t PkgTryFreePart(struct NetPkg *pkg)
 {
-    u8         level;
-    u32        len;
     if(NULL != pkg)
     {
         if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
         {
             if(pkg->refers == 0)
             {
-                //we check free it to the queue or the heap
-                level = pkg->level;
-                len = sgPkgLevlMap[level];
-
-                if((pPkgMemSrc + gPkgMemOffset)==((u8 *)pkg + len))
-                {
-                    //free it to the heap.
-                    memset((void *)pkg,0,len);
-                    gPkgMemOffset -= len;
-                    TCPIP_DEBUG_DEC(gPkgStatistics.mallocnum[level]);
-                }
-                else
-                {
-                    //free it to the queue
-                    pkg->partnext = sgPkgFreeLst[level];
-                    sgPkgFreeLst[level] = pkg;
-                    TCPIP_DEBUG_INC(gPkgStatistics.freenum[level]);
-                }
+                DjyFree(&pkg_heap_control,pkg);
             }
             else
             {
@@ -386,7 +335,6 @@ void PkgCopyFrameToPkg(struct NetPkg *pkg,struct NetPkg *dst)
 // =============================================================================
 bool_t PkgTryFreeLst(struct NetPkg  *pkglst)
 {
-    u8          level;
     struct NetPkg  *pkg;
     struct NetPkg  *pkgnxt;
     if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
@@ -404,10 +352,7 @@ bool_t PkgTryFreeLst(struct NetPkg  *pkglst)
             }
             if(pkg->refers==0)//ÔÊÐíÊÍ·Å
             {
-                level = pkg->level;
-                pkg->partnext = sgPkgFreeLst[level];
-                sgPkgFreeLst[level] = pkg;
-                TCPIP_DEBUG_INC(gPkgStatistics.freenum[level]);
+                DjyFree(&pkg_heap_control,pkg);
             }
             else
             {
@@ -428,7 +373,6 @@ bool_t PkgTryFreeLst(struct NetPkg  *pkglst)
 // =============================================================================
 bool_t PkgTryFreeQ(struct NetPkg  *pkglst)
 {
-    u8          level;
     struct NetPkg  *pkg;
     struct NetPkg  *pkgnxt;
     if(mutex_locktimeout(pPkgQueLock,CN_TIMEOUT_FOREVER))
@@ -439,10 +383,7 @@ bool_t PkgTryFreeQ(struct NetPkg  *pkglst)
             pkgnxt = pkg->partnext;
             if(pkg->refers==0)
             {
-                level = pkg->level;
-                pkg->partnext = sgPkgFreeLst[level];
-                sgPkgFreeLst[level] = pkg;
-                TCPIP_DEBUG_INC(gPkgStatistics.freenum[level]);
+                DjyFree(&pkg_heap_control,pkg);
             }
             else
             {
@@ -542,7 +483,11 @@ bool_t PkgModuleInit(void)
         error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
         goto EXIT_MEM;
     }
-
+    if(!DjyMemInit(&pkg_heap_control,pPkgMemSrc,CFG_NETPKG_MEMSIZE))
+    {
+        error_printf("pkg","%s:create memory block failed\r\n",__FUNCTION__);
+        goto EXIT_MEM;
+    }
 
     result = true;
     return result;

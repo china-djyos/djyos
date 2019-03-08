@@ -31,8 +31,8 @@ void Sys_ModuleInit(void)
 //	extern void ModuleInstall_BlackBox(void);
 //	ModuleInstall_BlackBox( );
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
+	extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
+	ModuleInstall_XIP_APP_FS(0,NULL);
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
@@ -51,26 +51,27 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
-//    extern s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat);
-//    extern s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
-//            u8 parts, ...);
-//    ModuleInstall_UnitMedia(__embed_FsInstallInit,   1,129, -1, 0);
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
 
-//    extern s32 ModuleInstall_IAP_FS(const char *target, const char *source, u32 opt);
-//    ModuleInstall_IAP_FS("iboot","/dev/unit media/embed part 0",0);
-//
-//    extern ptu32_t ModuleInstall_IAP(void);
-//    ModuleInstall_IAP();
-//
-//    extern bool_t ModuleInstall_Ymodem(void);
-//    ModuleInstall_Ymodem();
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
-    extern bool_t ModuleInstall_HardTimer(void);
-    ModuleInstall_HardTimer();
+	s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
+	ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
+
+	extern bool_t ModuleInstall_HardTimer(void);
+	ModuleInstall_HardTimer();
 
 	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_Timer(void);
 	ModuleInstall_Timer();
+
+	extern bool_t ModuleInstall_Ymodem(void);
+	ModuleInstall_Ymodem();
+
+	extern s32 kernel_command(void);
+	kernel_command();
 
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
@@ -78,14 +79,11 @@ void Sys_ModuleInit(void)
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
-	//事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
+	//�¼���������������Ϊ0,�����shell����,�������ɼ�shell�����в���
 	Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
 
 	extern bool_t Heap_DynamicModuleInit(void);
 	Heap_DynamicModuleInit ( );
-
-	printf("\r\n: info : all modules are configured.");
-	printf("\r\n: info : os starts.\r\n");
 
 	return ;
 }
