@@ -655,7 +655,7 @@ s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend)
 
     super->AreaSize = total * sp_tFlashDesrc->BytesPerPage;
     endblock = 0;
-    total = 0;
+    total = 1;
 
     while(endblock<bstart)
     {

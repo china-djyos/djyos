@@ -1,4 +1,4 @@
-
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -428,8 +428,4 @@ struct menu_displaypara *createmenudisparabypre_9cell(struct menu_displaypara *p
    }
    return cur;
 }
-
-
-
-
-
+#endif

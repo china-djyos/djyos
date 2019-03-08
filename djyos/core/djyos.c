@@ -883,11 +883,11 @@ void __Djy_ScheduleAsynSignal(void)
 #if (CN_USE_TICKLESS_MODE)
          g_s64RunningStartCnt = djytickless_sys_param.cur_cnt;
 #endif
-         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
+//         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
          g_ptEventRunning=g_ptEventReady;
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);
-         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+//         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
     }else
     {//优先级高于running的事件全部进入内存等待队列,下一个要处理的事件就是
      //running事件,无须执行任何操作
@@ -938,7 +938,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
     for(evtt_offset=0; evtt_offset<CFG_EVENT_TYPE_LIMIT; evtt_offset++)
         if( g_tEvttTable[evtt_offset].property.registered ==0)
             break;
-    if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //没有空闲事件控制块
+    if(evtt_offset == CFG_EVENT_TYPE_LIMIT)     //没有空闲事件类型控制块
     {
         parahead.DecoderName = NULL;
         parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
@@ -983,6 +983,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
     }
 
     g_tEvttTable[evtt_offset].default_prio = default_prio;
+    g_tEvttTable[evtt_offset].correlativeID = CN_EVENT_ID_INVALID;
     g_tEvttTable[evtt_offset].events = 0;
     g_tEvttTable[evtt_offset].vpus_limit = vpus_limit;
     if(relation == EN_INDEPENDENCE)
@@ -1125,7 +1126,7 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
 //          {
 //              __Djy_ResumeDelay(pl_ecb);    //结束超时等待
 //          }
-//          pl_ecb->wakeup_from = CN_WF_EVTT_DELETED;   //设置唤醒原因
+//          pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;   //设置唤醒原因
 //          pl_ecb->event_status = CN_STS_EVENT_READY;
 //          pl_ecb_temp = pl_ecb;
 //          if(pl_ecb->multi_next == pl_evtt->done_sync)   //是最后一个事件
@@ -1148,10 +1149,10 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
             {
                 __Djy_ResumeDelay(pl_ecb);    //结束超时等待
             }
-            pl_ecb->wakeup_from = CN_WF_EVTT_DELETED;    //设置唤醒原因
+            pl_ecb->wakeup_from = CN_STS_EVTTSYNC_DELETED;    //设置唤醒原因
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb_temp = pl_ecb;
-            if(pl_ecb->multi_next == pl_evtt->done_sync)  //是最后一个事件
+            if(pl_ecb->multi_next == pl_evtt->pop_sync)  //是最后一个事件
             {
                 pl_evtt->pop_sync = NULL;  //置空事件同步队列
                 pl_ecb = NULL;
@@ -1202,7 +1203,7 @@ const struct EventECB cn_sys_event = {
                         EN_KNL_NO_ERROR,          //error_no
                         0,                          //event_result
                         0,                          //wait_mem_size
-                        CN_WF_EVENT_NORUN,          //wakeup_from
+                        CN_STS_EVENT_NORUN,          //wakeup_from
                         CN_STS_EVENT_READY,         //event_status
                         CN_PRIO_SYS_SERVICE,        //prio_base
                         CN_PRIO_SYS_SERVICE,        //prio
@@ -1267,6 +1268,7 @@ void __InitSys(void)
 #endif  //CFG_OS_TINY == false
 
     g_tEvttTable[0].default_prio = CN_PRIO_SYS_SERVICE;
+    g_tEvttTable[0].correlativeID = CN_EVENT_ID_INVALID;
     g_tEvttTable[0].events = 1;
     g_tEvttTable[0].vpus_res =0;
     g_tEvttTable[0].vpus_limit =1;
@@ -2525,12 +2527,13 @@ u16 Djy_EventPop(   u16  hybrid_id,
 #endif
             pl_ecb->error_no = 0;
             pl_ecb->wait_mem_size = 0;
-            pl_ecb->wakeup_from = CN_WF_EVENT_NORUN;
+            pl_ecb->wakeup_from = CN_STS_EVENT_NORUN;
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb->evtt_id = evtt_offset | CN_EVTT_ID_MASK;    //设置事件类型
             pl_ecb->sync_counter = 0;
             pl_ecb->local_memory = 0;
             pl_evtt->property.inuse = 1;
+            pl_evtt->correlativeID = pl_ecb->event_id;
 //          if(pl_evtt->property.correlative == EN_CORRELATIVE)
 //          {
 //              pl_evtt->mark_event = pl_ecb;
@@ -2556,8 +2559,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
     {
 //      if(pl_evtt->property.correlative == EN_INDEPENDENCE)
 //      {
-//          //此时hybrid_id一定是事件ID,而mark_event并不指向相应事件
-        pl_ecb = &g_tECB_Table[hybrid_id];
+        pl_ecb = &g_tECB_Table[pl_evtt->correlativeID];
 //      }
 //      else
 //      {

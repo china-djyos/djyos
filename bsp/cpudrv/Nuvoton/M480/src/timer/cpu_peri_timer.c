@@ -466,7 +466,7 @@ bool_t  __STM32Timer_EnInt(struct STM32TimerHandle  *timer)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timer->timerstate = (timer->timerstate)| (CN_TIMER_ENINT);
-        return Int_ContactLine(timer->irqline);
+        return Int_EnableLine(timer->irqline);
     }
     else
     {

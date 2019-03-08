@@ -66,7 +66,6 @@
 #include "dbug.h"
 #include "iboot_info.h"
 
-
 struct CopyRecord{
     u32 load_start_address;
     u32 run_start_address;
@@ -104,7 +103,7 @@ __attribute__((weak))  bool_t IAP_IsForceIboot()
 //----------------------------------------------------------------------------
 void IAP_SelectLoadProgam(void)
 {
-#if defined (CFG_BRAR_APP)
+#if defined (CFG_BARE_APP)
         Load_Preload();   //‘À––Iboot
 #else
 

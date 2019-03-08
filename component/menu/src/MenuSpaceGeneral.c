@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -425,14 +426,4 @@ bool_t create_menudisparawin(struct menu_displaypara  *menudispara,struct Rectan
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
+#endif

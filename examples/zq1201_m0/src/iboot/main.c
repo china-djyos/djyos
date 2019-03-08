@@ -50,15 +50,33 @@
  *      Author: Administrator
  */
 
-#include "stdint.h"
-#include "stddef.h"
+#include <arm32_stdint.h>
+#include <djyos.h>
+#include <stdio.h>
 
+int test_flag;
+int delaytime = 100*1000;
 ptu32_t djy_main(void)
 {
+    int i=0;
+    printf("M0:iboot,hello world!\r\n");
     while(1)
     {
-        printf("hello world!\r\n");
-        Djy_EventDelay(1000*1000);
+        if(test_flag == 0)
+        {
+            Djy_EventDelay(1000*1000);
+        }
+        else
+        {
+            printf("hello world!\r\n");
+            Djy_EventDelay(delaytime);
+            printf("hello world! i = %d\r\n",i);
+            Djy_EventDelay(delaytime);
+            i++;
+        }
     }
     return 0;
 }
+
+
+

@@ -16,7 +16,8 @@
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <IAP>true</IAP>
+  <xip_app>true</xip_app>
+  <xip_iboot>false</xip_iboot>
   <filesystem>false</filesystem>
   <ascii_font>false</ascii_font>
   <gb2312_dot>false</gb2312_dot>
@@ -33,6 +34,7 @@
   <multiplex>true</multiplex>
   <shell>true</shell>
   <stdio>true</stdio>
+  <tcp>false</tcp>
   <tcpip>false</tcpip>
   <timer>true</timer>
   <wdt>false</wdt>
@@ -68,6 +70,7 @@
   <fatfilesystem>false</fatfilesystem>
   <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
@@ -84,6 +87,7 @@
   <cpu_peri_gpio>true</cpu_peri_gpio>
   <cpu_peri_iic>false</cpu_peri_iic>
   <cpu_peri_isr>true</cpu_peri_isr>
+  <cpu_peri_emflash>true</cpu_peri_emflash>
   <cpu_peri_rtc>false</cpu_peri_rtc>
   <cpu_peri_spi>false</cpu_peri_spi>
   <cpu_peri_timer>true</cpu_peri_timer>

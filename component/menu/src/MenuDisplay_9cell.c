@@ -1,3 +1,4 @@
+#if 0
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
@@ -176,3 +177,4 @@ void  menu_display_9cell(struct menu_displaypara  *dispara)
 
     return ;
 }
+#endif
