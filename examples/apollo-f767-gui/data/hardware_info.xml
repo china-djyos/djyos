@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<hardware>
+   <baord>APOLLO-STM32F7</baord>
+   <cpu>stm32f767xx</cpu>
+   <core>cortex-m7</core>
+</hardware>

@@ -24,14 +24,17 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = cmdline   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//#ifndef CFG_STATIC_IP   //****检查参数是否已经配置好
-//#warning    “网络配置”组件参数未配置，使用默认值
+//#ifndef CFG_STM32_HAL_TIMER   //****检查参数是否已经配置好
+//#warning   固件参数未配置，使用默认值
 //%$#@num,0,100
 //%$#@enum,1,2,3,4,5,6,7,8
-#define CFG_STM32_HAL_TIMER     6//配置HAL库使用的定时器
+#define CFG_STM32_HAL_TIMER     6  //配置HAL库使用的定时器
 //%$#@string,1,16
-//%$#@select,2
+//%$#@SYMBOL
+#define CFG_CPU_STM32F7
+//%$#@select,1
 #define     USE_HAL_DRIVER          //是否使用hal库
+//%$#@select,1
 //#define     STM32F722xx           //只能选一个
 //#define     STM32F723xx
 //#define     STM32F732xx

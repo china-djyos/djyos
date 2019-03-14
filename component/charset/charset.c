@@ -68,6 +68,7 @@
 
 static struct Charset *s_ptCurCharset;      // 当前字符集
 static struct obj *s_ptCharsetDir;       // 字符集目录
+static bool_t g_bUserSetCharset = false;
 //----安装字符集-------------------------------------------------------------
 //功能: 把新字符集安装到字符集目录中
 //参数: encoding，新增的字符集指针
@@ -85,8 +86,18 @@ bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name)
         return (FALSE);
     }
 
-    if(!s_ptCurCharset)
+    if(!s_ptCurCharset)     //如果当前字符集未设置
         s_ptCurCharset = encoding;
+    else
+    {
+        //当前字符集如果是调用API设置的，则维持，否则，如果新安装的字符集是本地字符集，
+        //则把当前字符集设置为本地字符集
+        if( ! g_bUserSetCharset)
+        {
+            if(strcmp(name,CFG_LOCAL_CHARSET) == 0)
+                s_ptCurCharset = encoding;
+        }
+    }
 
     return (TRUE);
 }
@@ -138,6 +149,7 @@ struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
     if(s_ptCharsetDir==obj_parent(Me)) // 字符集确已安装到s_ptCharsetDir目录
     {
         s_ptCurCharset = (struct Charset*)encoding;
+        g_bUserSetCharset = true;
     }
     return s_ptCurCharset;
 }

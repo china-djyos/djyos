@@ -106,11 +106,11 @@ static struct MsgTableLink  s_gDefWindowMsgLink;
 bool_t    __HWND_Lock(HWND hwnd)
 {
     bool_t result;
-//    if(__GDD_Lock())
-//    {
-    result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
-//        __GDD_Unlock( );
-//    }
+    if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
+    {
+        result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
+        __GDD_Unlock( );
+    }
     return result;
 }
 
@@ -559,7 +559,7 @@ char *GetWindowText(HWND hwnd)
 HWND    GetDlgItem(HWND hwnd,u16 Id)
 {
     HWND Current = hwnd;
-    if(__HWND_Lock(hwnd))
+    if(__GDD_Lock())
     {
         Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         while(Current != NULL)
@@ -568,7 +568,7 @@ HWND    GetDlgItem(HWND hwnd,u16 Id)
                 break;
             Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
-        __HWND_Unlock(hwnd);
+        __GDD_Unlock();
     }
     return Current;
 }
@@ -738,7 +738,7 @@ static struct MsgTableLink  s_gDesktopMsgLink;
 //=======================================================
 //获取当前消息链表从s_gDefWindowMsgLink开始的深度
 //=====================================================
-static u32 _GetNumber_Of_Prev(struct MsgTableLink*MsgTab)
+static u32 __GetNumber_Of_Prev(struct MsgTableLink*MsgTab)
 {
     u32 num = 0;
     if(MsgTab == NULL)
@@ -762,8 +762,8 @@ bool_t GDD_AdoptWin(HWND Hwnd ,HWND NewParent)
     struct MsgTableLink **pmsgtabnext;
     struct MsgTableLink  *msptab;
     u32 num;
-  __GDD_Lock();
-    num=_GetNumber_Of_Prev(NewParent->MyMsgTableLink)+1;
+    __GDD_Lock();
+    num=__GetNumber_Of_Prev(NewParent->MyMsgTableLink)+1;
     pmsgtabnext = (struct MsgTableLink **)malloc(num*sizeof( struct MsgTableLink *));
     if(pmsgtabnext ==NULL)
     {
@@ -814,9 +814,9 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
         pGddWin->MyMsgTableLink = &s_gDesktopMsgLink;
         s_gDesktopMsgLink.LinkPrev = &s_gDefWindowMsgLink;
 
-        num=_GetNumber_Of_Prev(&s_gDesktopMsgLink);
+        num=__GetNumber_Of_Prev(&s_gDesktopMsgLink);
         s_gDesktopMsgLink.pLinkNext = (struct MsgTableLink **)\
-          malloc(num*sizeof( struct MsgTableLink *));
+                                    malloc(num*sizeof( struct MsgTableLink *));
         if( s_gDesktopMsgLink.pLinkNext ==NULL)
         {
            free(pGddWin);
@@ -949,7 +949,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
         hParent = HWND_Desktop;
     }
 
-    if(__HWND_Lock(hParent))
+    if(__GDD_Lock())
     {
         pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinObj),100*mS);
         if(NULL!=pGddWin)
@@ -988,7 +988,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                         __GUI_DeleteMsgQ(pGddWin->pMsgQ);
                         GK_DestroyWin(pGkWin);
                         free(pGkWin);
-                        __HWND_Unlock(hParent);
+                        __GDD_Unlock();
                         return NULL;
                     }
                 }
@@ -1000,7 +1000,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                     pGddWin->MyMsgTableLink = pUserMsgTableLink;
                     pUserMsgTableLink->LinkPrev = hParent->MyMsgTableLink;
 
-                    num = _GetNumber_Of_Prev(pUserMsgTableLink);
+                    num = __GetNumber_Of_Prev(pUserMsgTableLink);
                     pUserMsgTableLink->pLinkNext = (struct MsgTableLink **)\
                       malloc(num*sizeof( struct MsgTableLink *));
 
@@ -1010,7 +1010,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                         __GUI_DeleteMsgQ(pGddWin->pMsgQ);
                         GK_DestroyWin(pGkWin);
                         free(pGkWin);
-                        __HWND_Unlock(hParent);
+                        __GDD_Unlock( );
                         return NULL;
                     }
                     else
@@ -1041,7 +1041,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                 //将新窗口添加到父窗口
             }
         }
-        __HWND_Unlock(hParent);
+        __GDD_Unlock();
 
         if(NULL!=pGddWin)
         {
@@ -1120,7 +1120,7 @@ void DestroyAllChild(HWND hwnd)
 {
     HWND Current = hwnd;
 
-    if(__HWND_Lock(hwnd))
+    if(__GDD_Lock())
     {
         Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         while(Current != NULL)
@@ -1128,7 +1128,7 @@ void DestroyAllChild(HWND hwnd)
             PostMessage(Current, MSG_CLOSE, 0, 0);
             Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
-        __HWND_Unlock(hwnd);
+        __GDD_Unlock();
     }
     return ;
 
@@ -1172,10 +1172,10 @@ bool_t    OffsetWindow(HWND hwnd,s32 dx,s32 dy)
     {//桌面不允许移动
         return false;
     }
-    if(__HWND_Lock(hwnd))
+    if(__GDD_Lock())
     {
         __OffsetWindow(hwnd,dx,dy);
-        __HWND_Unlock(hwnd);
+        __GDD_Unlock();
         return true;
     }
     return FALSE;
@@ -1229,10 +1229,10 @@ bool_t    MoveWindow(HWND hwnd,s32 x,s32 y)
     {//桌面不允许移动
         return false;
     }
-    if(__HWND_Lock(hwnd))
+    if(__GDD_Lock())
     {
         __MoveWindow(hwnd,x,y);
-        __HWND_Unlock(hwnd);
+        __GDD_Unlock();
         return TRUE;
     }
     return FALSE;
@@ -1558,9 +1558,9 @@ static ptu32_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg)
                 InflateRect(&rc,-1,-1);
                 DrawText(hdc, hwnd->Text, -1, &rc, DT_LEFT | DT_VCENTER);
             }
-            ReleaseDC(hwnd,hdc);
             __HWND_Unlock(hwnd);
         }
+        ReleaseDC(hwnd,hdc);
     }
     return 0;
 }

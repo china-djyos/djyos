@@ -5,7 +5,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //#include "filesystems.h"
-//    externs32 s32 ModuleInstall_EFS(const char *target, u32 opt, void *config);
+//    extern s32 ModuleInstall_EFS(const char *target, u32 opt, void *config);
 //    ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, MS_INSTALLCREAT, CFG_EFS_FILE_BLOCK_SIZE);
 //%$#@end initcode  ****初始化代码结束
 
