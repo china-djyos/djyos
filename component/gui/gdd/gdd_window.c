@@ -738,52 +738,16 @@ static struct MsgTableLink  s_gDesktopMsgLink;
 //=======================================================
 //获取当前消息链表从s_gDefWindowMsgLink开始的深度
 //=====================================================
-static u32 __GetNumber_Of_Prev(struct MsgTableLink*MsgTab)
+static u32 __GetNumber_Of_Prev(HWND Hwnd)
 {
     u32 num = 0;
-    if(MsgTab == NULL)
+    if(Hwnd == NULL)
         return num;
 
-    while(MsgTab != &s_gDefWindowMsgLink)
-    {
-        MsgTab = MsgTab->LinkPrev;
-        num++;
-    }
+    while(Hwnd->MyMsgTableLink[num++] != &s_gDefWindowMsgLink);
+
     return num;
 }
-//----设置窗口的宿主窗口-----------------------------------------------------------
-//描述: 把一个窗口从其父窗口中移出，变成其他窗口的子窗口。窗口的其他属性不变。
-//参数：Hwnd: 被操作的窗口句柄
-//      NewParent,新的父窗口句柄
-//返回：桌面窗口句柄.
-//------------------------------------------------------------------------------
-bool_t GDD_AdoptWin(HWND Hwnd ,HWND NewParent)
-{
-    struct MsgTableLink **pmsgtabnext;
-    struct MsgTableLink  *msptab;
-    u32 num;
-    __GDD_Lock();
-    num=__GetNumber_Of_Prev(NewParent->MyMsgTableLink)+1;
-    pmsgtabnext = (struct MsgTableLink **)malloc(num*sizeof( struct MsgTableLink *));
-    if(pmsgtabnext ==NULL)
-    {
-        __GDD_Unlock();
-       return false;
-    }
-    free(Hwnd->MyMsgTableLink->pLinkNext);
-    Hwnd->MyMsgTableLink->pLinkNext = pmsgtabnext;
-    msptab = NewParent->MyMsgTableLink;
-    for(u32 i=0;i<num+1;i++)
-    {
-
-        s_gDesktopMsgLink.pLinkNext[i] = msptab;
-        msptab = msptab->LinkPrev ;
-    }
-    GK_AdoptWin(Hwnd->pGkWin, NewParent->pGkWin);
-    __GDD_Unlock();
-    return true;
-}
-
 
 //----初始化桌面窗口-----------------------------------------------------------
 //描述: 初始化gdd的桌面窗口
@@ -798,9 +762,7 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
     u32 Style;
     u16 MyEvtt;
     u16 MyEventid;
-    u32 num;
 
-    struct MsgTableLink * msgtablink;
     pGddWin=malloc(sizeof(struct WINDOW));
     if(NULL!=pGddWin)
     {
@@ -811,28 +773,19 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
 //      s_gDesktopMsgLink.myTable = s_gDesktopMsgProcTable;
         pGddWin->pGkWin     = desktop;
         pGddWin->PrivateData = NULL;
-        pGddWin->MyMsgTableLink = &s_gDesktopMsgLink;
-        s_gDesktopMsgLink.LinkPrev = &s_gDefWindowMsgLink;
+        pGddWin->MyMsgTableLink = (struct MsgTableLink **)\
+                                           malloc(2*sizeof( struct MsgTableLink *));
 
-        num=__GetNumber_Of_Prev(&s_gDesktopMsgLink);
-        s_gDesktopMsgLink.pLinkNext = (struct MsgTableLink **)\
-                                    malloc(num*sizeof( struct MsgTableLink *));
-        if( s_gDesktopMsgLink.pLinkNext ==NULL)
+        if( pGddWin->MyMsgTableLink ==NULL)
         {
            free(pGddWin);
            return NULL;
         }
         else
         {
-            msgtablink = s_gDesktopMsgLink.LinkPrev;
-            for(u32 i=0;i<num;i++)
-            {
-
-                s_gDesktopMsgLink.pLinkNext[i] = msgtablink;
-                msgtablink = msgtablink->LinkPrev ;
-            }
+            pGddWin->MyMsgTableLink[0] = &s_gDesktopMsgLink;
+            pGddWin->MyMsgTableLink[1] = &s_gDefWindowMsgLink;
         }
-        s_gDesktopMsgLink.LinkAdd =  NULL;
 
 //      dListInit(&pGddWin->MsgProcFuncTable);
 //
@@ -908,16 +861,25 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
 // ----------------------------------------------------------------------------
 void AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink)
 {
-    struct MsgTableLink * msgtab;
-    msgtab =  hwnd->MyMsgTableLink;
+    u32 num;
+    u32 i;
+    struct MsgTableLink ** tab;
+    if(pNewMsgTableLink==NULL || hwnd==NULL)
+        return;
+    num =  __GetNumber_Of_Prev(hwnd);
+    tab = (struct MsgTableLink **)malloc((num+1)*sizeof( struct MsgTableLink *));
+    if(tab==NULL)
+        return;
     if(__HWND_Lock(hwnd))
     {
-        pNewMsgTableLink->LinkAdd =  msgtab->LinkAdd;
-        msgtab->LinkAdd = pNewMsgTableLink;
-        pNewMsgTableLink->LinkPrev = msgtab->LinkPrev;
-        pNewMsgTableLink->pLinkNext = msgtab->pLinkNext;
+        tab[0] = pNewMsgTableLink;
+        for(i=0;i<num;i++)
+            tab[i+1] = hwnd->MyMsgTableLink[i];
+        free(hwnd->MyMsgTableLink);
+        hwnd->MyMsgTableLink = tab;
         __HWND_Unlock(hwnd);
     }
+
 }
 //----创建窗口-----------------------------------------------------------------
 //描述: 该函数可以创建主窗口和子窗口(控件)
@@ -940,8 +902,8 @@ HWND    CreateWindow(const char *Text,u32 Style,
 {
     HWND pGddWin=NULL;
     struct GkWinObj *pGkWin=NULL;
-    struct MsgTableLink *msgtablink;
     u32 num;
+
     struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
 
     if(NULL==hParent)
@@ -995,45 +957,32 @@ HWND    CreateWindow(const char *Text,u32 Style,
                 pGddWin->pGkWin = pGkWin;
                 pGddWin->PrivateData = pdata;
 
-                if(pUserMsgTableLink != NULL)
+                num = (pUserMsgTableLink != NULL)? 2:1;
+                pGddWin->MyMsgTableLink = (struct MsgTableLink **)\
+                  malloc(num*sizeof( struct MsgTableLink *));
+
+                if(pGddWin->MyMsgTableLink == NULL)
                 {
-                    pGddWin->MyMsgTableLink = pUserMsgTableLink;
-                    pUserMsgTableLink->LinkPrev = hParent->MyMsgTableLink;
-
-                    num = __GetNumber_Of_Prev(pUserMsgTableLink);
-                    pUserMsgTableLink->pLinkNext = (struct MsgTableLink **)\
-                      malloc(num*sizeof( struct MsgTableLink *));
-
-                    if( pUserMsgTableLink->pLinkNext == NULL)
-                    {
-                        Lock_MutexDelete(pGddWin->mutex_lock);
-                        __GUI_DeleteMsgQ(pGddWin->pMsgQ);
-                        GK_DestroyWin(pGkWin);
-                        free(pGkWin);
-                        __GDD_Unlock( );
-                        return NULL;
-                    }
-                    else
-                    {
-                        msgtablink =  pUserMsgTableLink->LinkPrev;
-                        for(u32 i=0;i<num;i++)
-                        {
-
-                            pUserMsgTableLink->pLinkNext[i] = msgtablink;
-                            msgtablink = msgtablink->LinkPrev ;
-                        }
-                    }
-                    pUserMsgTableLink->LinkAdd =  NULL;
+                    Lock_MutexDelete(pGddWin->mutex_lock);
+                    __GUI_DeleteMsgQ(pGddWin->pMsgQ);
+                    GK_DestroyWin(pGkWin);
+                    free(pGkWin);
+                    __GDD_Unlock( );
+                    return NULL;
                 }
                 else
-                    pGddWin->MyMsgTableLink = &s_gDefWindowMsgLink;
+                {
+                   if(num==1)
+                   {
+                       pGddWin->MyMsgTableLink[0] = &s_gDefWindowMsgLink;
+                   }
+                   else
+                   {
+                       pGddWin->MyMsgTableLink[0] = pUserMsgTableLink;
+                       pGddWin->MyMsgTableLink[1] = &s_gDefWindowMsgLink;
 
-//              dListInit(&pGddWin->MsgProcFuncTable);
-//              dListInsertAfter(&pGddWin->MsgProcFuncTable,
-//                                  &s_gDefWindowMsgLink.TableLink);
-//              if(pUserMsgTableLink != NULL)
-//                  dListInsertAfter(&pGddWin->MsgProcFuncTable,
-//                                      &pUserMsgTableLink->TableLink);
+                   }
+                }
                 GK_SetUserTag(pGkWin,pGddWin);
                 //初始化窗口数据
                 __InitWindow(pGddWin,Style,WinId);
@@ -1068,7 +1017,7 @@ void __DeleteChildWindowData(HWND hwnd)
     __RemoveWindowTimer(hwnd);
 //    GK_DestroyWin(hwnd->pGkWin);
 
-    free(hwnd->MyMsgTableLink->pLinkNext);
+    free(hwnd->MyMsgTableLink);
     free(hwnd->pGkWin);
     hwnd->pGkWin =NULL;
     hwnd->mutex_lock =NULL; //子窗口没有私有的 mutex_lock,不用释放.
@@ -1092,7 +1041,7 @@ void __DeleteMainWindowData(HWND hwnd)
     UpdateDisplay(CN_TIMEOUT_FOREVER);
     Lock_MutexDelete(hwnd->mutex_lock);
 
-    free(hwnd->MyMsgTableLink->pLinkNext);
+    free(hwnd->MyMsgTableLink);
     free(hwnd->pGkWin);
     hwnd->pGkWin =NULL;
     hwnd->mutex_lock =NULL;
@@ -1452,7 +1401,7 @@ HDC GetDC(HWND hwnd)
 //------------------------------------------------------------------------------
 bool_t    ReleaseDC(HWND hwnd,HDC hdc)
 {
-    return  DeleteDC(hdc);
+       return  DeleteDC(hdc);
 }
 
 //----指定窗口开始绘图-----------------------------------------------------------
@@ -1679,37 +1628,10 @@ static ptu32_t DefWindowProc_CLOSE(struct WindowMsg *pMsg)
 //-----------------------------------------------------------------------------
 static s32 GetWinMsgFunc(u32 Code,struct MsgTableLink * msgtablink)
 {
-    s32 loop = 0;
+    u32 loop = 0;
     u32 CodeTab;
-    struct MsgTableLink * mtl = msgtablink->LinkAdd;
     struct MsgProcTable *MsgTable;
-    s32 Num;
-    while(mtl!=NULL)//先找添加的消息处理函数表
-    {
-        MsgTable = mtl->myTable;
-        Num = (s32)mtl->MsgNum;
-        if(MsgTable == NULL||Num==0)
-        {
-            mtl = mtl->LinkAdd;
-            continue;
-        }
-        for(loop = 0; loop < Num; loop++)
-        {
-            CodeTab = MsgTable[loop].MsgCode & MSG_BODY_MASK;
-            if(Code == CodeTab)
-            {
-                break;
-            }
-            else if(CodeTab == 0)
-            {
-                loop = -1;
-                break;
-            }
-        }
-        if(loop != -1)
-            return loop;
-        mtl = mtl->LinkAdd;
-    }
+    u32 Num;
 
     MsgTable = msgtablink->myTable;
     Num = msgtablink->MsgNum;
@@ -1724,8 +1646,7 @@ static s32 GetWinMsgFunc(u32 Code,struct MsgTableLink * msgtablink)
         }
         else if(CodeTab == 0)
         {
-            loop = -1;
-            break;
+            return (-1);
         }
     }
     if(loop >= Num)
@@ -1746,14 +1667,14 @@ ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
     bool_t Adopt = false;
     ptu32_t result = 0;
     struct MsgTableLink *MyTableLinkNode;
-    struct MsgTableLink *MyPrebak;
+//    struct MsgTableLink *MyPrebak;
     struct MsgProcTable *MyTable;
-    u32 num = 0;;
+    s32 num = 0;
 
     hwnd = pMsg->hwnd;
-    MyTableLinkNode = hwnd->MyMsgTableLink;
-    MyPrebak = MyTableLinkNode ;
-//    MyTableLinkNode->pLinkNext = NULL;
+    MyTableLinkNode = hwnd->MyMsgTableLink[num];
+//    MyPrebak = &MyTableLinkNode;
+//    MyTableLinkNode->pLinkTab = NULL;
 //  MyTableLinkNode = Head;
     //这是一级级消息处理继承机制，先从最低一级继承出发
     //以控件的paint消息处理为例说明一下：
@@ -1763,6 +1684,7 @@ ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
     //      消息处理函数，调用后返回。否则：
     //      从窗口系统的默认消息处理函数表 s_gDefWindowMsgProcTable中找。
     //这就是类似C++的继承机制。相当于用户继承控件，控件继承窗口系统。
+
     while(MyTableLinkNode != NULL)
     {
         MyTable = MyTableLinkNode->myTable;
@@ -1778,7 +1700,7 @@ ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
                         result = MyTable[offset].MsgProc(pMsg);
                     while((Adopt == true)&&(num!=0) )
                     {
-                        MyTableLinkNode = MyPrebak->pLinkNext[--num];
+                        MyTableLinkNode = hwnd->MyMsgTableLink[--num];
                         MyTable = MyTableLinkNode->myTable;
                         offset = GetWinMsgFunc(pMsg->Code,MyTableLinkNode);
                         if((offset != -1)&&(MyTable[offset].MsgProc !=NULL))
@@ -1794,10 +1716,10 @@ ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
                 }
             }
         }
-        MyTableLinkNode = MyTableLinkNode->LinkPrev;
-        if(MyTableLinkNode != MyPrebak->pLinkNext[num] && MyTableLinkNode!=NULL&& MyTableLinkNode!=&s_gDefWindowMsgLink)
-            printf("MyTableLinkNode->pLinkNext[num--] error \n\r");
-        num++;
+        if(MyTableLinkNode == &s_gDefWindowMsgLink)
+            MyTableLinkNode =NULL;
+        else
+            MyTableLinkNode = hwnd->MyMsgTableLink[++num];
     }
     if(pMsg->Code == MSG_CLOSE)
     {
@@ -1912,8 +1834,5 @@ void    GDD_WindowInit(void)
     s_gDefWindowMsgLink.MsgNum = sizeof(s_gDefWindowMsgProcTable)
                                     / sizeof(struct MsgProcTable);
     s_gDefWindowMsgLink.myTable   = s_gDefWindowMsgProcTable;
-    s_gDefWindowMsgLink.LinkPrev  = NULL;
-    s_gDefWindowMsgLink.LinkAdd   = NULL;
-    s_gDefWindowMsgLink.pLinkNext = NULL;
 }
 
