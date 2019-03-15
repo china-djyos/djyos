@@ -9,7 +9,7 @@
 
 #define FCLK_SECOND           (RT_TICK_PER_SECOND)
 #else
-#define FCLK_DURATION_MS      2
+#define FCLK_DURATION_MS      1
 
 #define FCLK_SECOND           (1000/FCLK_DURATION_MS)
 #endif
