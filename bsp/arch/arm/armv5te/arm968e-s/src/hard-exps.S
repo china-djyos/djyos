@@ -1,4 +1,4 @@
-.globl boot_reset
+.globl Init_Cpu
 .globl irq_handler
 .globl fiq_handler
 
@@ -39,7 +39,7 @@ cp15_disable_alignfault:
 .align  3
 .global isr_vector
 isr_vector:
-    b   boot_reset
+    b   Init_Cpu
     ldr pc, HardExp_UndefJump
     ldr pc, HardExp_SwiJump
     ldr pc, HardExp_PrefetchJump
@@ -51,7 +51,7 @@ isr_vector:
 
 
 ResetAddr:
-        .word boot_reset
+        .word Init_Cpu
 HardExp_UndefJump:
         .word HardExp_UndefHandler
 HardExp_SwiJump:

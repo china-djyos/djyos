@@ -13,9 +13,9 @@
 #include "intc_pub.h"
 #include "icu_pub.h"
 #include "gpio_pub.h"
-//#include "reg_rc.h"
-//#include "co_math.h"
-//#include "rw_pub.h"
+#include "reg_rc.h"
+#include "co_math.h"
+#include "rw_pub.h"
 #include "manual_ps_pub.h"
 #include "mcu_ps_pub.h"
 #include "ps_debug_pub.h"
@@ -256,7 +256,7 @@ void sctrl_sta_ps_init(void)
     #if PS_WAKEUP_MOTHOD_RW
     intc_service_register(FIQ_MAC_WAKEUP, PRI_FIQ_MAC_WAKEUP, power_save_wakeup_isr);
     nxmac_enable_lp_clk_switch_setf(0x01);
-    os_printf("sctrl_sta_ps_init\r\n");
+//    os_printf("sctrl_sta_ps_init\r\n");
     #endif
 
     sctrl_flash_select_dco();

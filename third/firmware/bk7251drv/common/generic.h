@@ -11,7 +11,7 @@ typedef void (*FUNC_2PARAM_PTR)(void *arg, uint8_t vif_idx);
 #define MIN(x, y)                  (((x) < (y)) ? (x) : (y))
 #define max(x, y)                  (((x) > (y)) ? (x) : (y))
 #define min(x, y)                  (((x) < (y)) ? (x) : (y))
-
+//#define bk_printf                      printf
 extern void bk_printf(const char *fmt, ...);
 #define as_printf (printf("%s:%d\r\n",__FUNCTION__,__LINE__))
 

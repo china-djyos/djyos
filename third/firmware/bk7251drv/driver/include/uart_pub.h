@@ -15,14 +15,15 @@
 #ifdef KEIL_SIMULATOR
 #define os_printf                       os_null_printf
 #else
-#define os_printf                       bk_printf
+#define os_printf                       printf
 #endif // KEIL_SIMULATOR
 #endif // CFG_BACKGROUND_PRINT
 #endif // CFG_RELEASE_FIRMWARE
 
-#define warning_prf                    bk_printf
-#define fatal_prf                      bk_printf
+#define warning_prf                    printf
+#define fatal_prf                      printf
 #define null_prf                       os_null_printf
+//#define bk_printf                      printf
 
 #define UART_SUCCESS                 (0)
 #define UART_FAILURE                 ((UINT32)-1)
