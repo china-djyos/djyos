@@ -12,7 +12,7 @@
 
 #ifndef __MUSB_NONE_BOARD_CONFIG_H__
 #define __MUSB_NONE_BOARD_CONFIG_H__
-
+//#define bk_printf                      printf
 extern void bk_printf(const char *fmt, ...);
 
 #define MUSB_VBUS_ERROR_RETRIES             4

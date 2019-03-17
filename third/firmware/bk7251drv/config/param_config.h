@@ -58,6 +58,8 @@ typedef struct sta_param
     fast_connect_param_t fast_connect;
 } sta_param_t;
 
+#define DEFAULT_MAC_ADDR "\xC8\x47\x8C\x00\x00\x00"
+
 extern general_param_t *g_wlan_general_param;
 extern ap_param_t *g_ap_param_ptr;
 extern sta_param_t *g_sta_param_ptr;

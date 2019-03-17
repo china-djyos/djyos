@@ -86,7 +86,7 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_NETPKG_MEMSIZE   //****检查参数是否已经配置好
+#ifndef CFG_TCP_REORDER   //****检查参数是否已经配置好
 #warning    tcpip组件参数未配置，使用默认值
 //%$#@num,,,
 //%$#@enum,true,false,

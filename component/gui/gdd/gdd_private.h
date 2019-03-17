@@ -144,7 +144,7 @@ struct WINDOW
 {
     //窗口（一般是控件）的私有消息处理函数表。
     //本成员是实现窗口消息继承机制的关键
-    struct MsgTableLink *MyMsgTableLink;
+    struct MsgTableLink **MyMsgTableLink;
 //  list_t MsgProcFuncTable;
     char    *Text;
     struct MutexLCB *mutex_lock;        //窗口互斥锁

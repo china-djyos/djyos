@@ -359,19 +359,19 @@ u32 SendMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
     }
     else
     {
-        if(__HWND_Lock(hwnd))
+        if(__GDD_Lock())
         {
             if(__GetWindowEvent(hwnd) == Djy_MyEventId())
             {
                 //如果是同一线程内,直接调用窗口过程
                 __InitMsg(&Msg,hwnd,msg,param1,param2);
                 res = __WinMsgProc(&Msg);
-                __HWND_Unlock(hwnd);
+                __GDD_Unlock();
 
             }
             else
             {
-                __HWND_Unlock(hwnd);
+                __GDD_Unlock();
                 res=__PostSyncMessage(hwnd,msg,param1,param2);
             }
         }
@@ -546,7 +546,7 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
     struct WinMsgQueueCB *pMsgQ;
     bool_t res=FALSE;
 
-    if(__HWND_Lock(hwnd))
+    if(__GDD_Lock())
     {
         pMsgQ =__GetWindowMsgQ(hwnd);
         if(NULL!=pMsgQ)
@@ -579,7 +579,7 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
         }
 
-        __HWND_Unlock(hwnd);
+        __GDD_Unlock();
     }
     return res;
 }

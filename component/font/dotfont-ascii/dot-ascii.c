@@ -76,7 +76,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"ascii_font"   //ascii字体
+//component name:"ascii_dot"   //ascii字体
 //parent:"font"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -89,7 +89,7 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//mutex:"gb2312_dot"            //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
@@ -98,23 +98,23 @@
 #ifndef CFG_ASCII_8X8           //****检查参数是否已经配置好
 #warning    ascii_font组件参数未配置，使用默认值
 //%$#@num,0,100,
-#define CFG_ASCII_8X8         0         //"ASCII_8×8",8*8点阵ascii字体
-#define CFG_ASCII_6X12        0         //"ASCII_6×12",6*12点阵ascii字体
-#define CFG_ASCII_8X16_SONG   1         //"ASCII_8×16宋体",8*16点阵ascii字体_宋体
-#define CFG_ASCII_8X16_YUAN   0         //"ASCII_8×16圆体",8*16点阵ascii字体_圆体
-#define CFG_ASCII_8X16_KAI    0         //"ASCII_8×16楷体",8*16点阵ascii字体_楷体
-#define CFG_ASCII_8X16_HEI    0         //"ASCII_8×16黑体",8*16点阵ascii字体_黑体
-#define CFG_ASCII_8X16_FANG   0         //"ASCII_8×16仿宋",8*16点阵ascii字体_仿宋
-#define CFG_ASCII_12X24_SONG  0         //"ASCII_12×24宋体",12*24点阵ascii字体_宋体
-#define CFG_ASCII_12X24_YUAN  0         //"ASCII_12×24圆体",12*24点阵ascii字体_圆体
-#define CFG_ASCII_12X24_KAI   0         //"ASCII_12×24楷体",12*24点阵ascii字体_楷体
-#define CFG_ASCII_12X24_HEI   0         //"ASCII_12×24黑体",12*24点阵ascii字体_黑体
-#define CFG_ASCII_12X24_FANG  0         //"ASCII_12×24仿宋",12*24点阵ascii字体_仿宋
-#define CFG_ASCII_16X32_YUAN  0         //"ASCII_16×32圆体",16*32点阵ascii字体_圆体
-#define CFG_ASCII_16X32_KAI   0         //"ASCII_16×32楷体",16*32点阵ascii字体_楷体
-#define CFG_ASCII_16X32_HEI   0         //"ASCII_16×32黑体",16*32点阵ascii字体_黑体
-#define CFG_ASCII_16X32_FANG  0         //"ASCII_16×32仿宋",16*32点阵ascii字体_仿宋
 //%$#@enum,true,false,
+#define CFG_ASCII_8X8         false         //"ASCII_8×8",8*8点阵ascii字体
+#define CFG_ASCII_6X12        false         //"ASCII_6×12",6*12点阵ascii字体
+#define CFG_ASCII_8X16_SONG   true          //"ASCII_8×16宋体",8*16点阵ascii字体_宋体
+#define CFG_ASCII_8X16_YUAN   false         //"ASCII_8×16圆体",8*16点阵ascii字体_圆体
+#define CFG_ASCII_8X16_KAI    false         //"ASCII_8×16楷体",8*16点阵ascii字体_楷体
+#define CFG_ASCII_8X16_HEI    false         //"ASCII_8×16黑体",8*16点阵ascii字体_黑体
+#define CFG_ASCII_8X16_FANG   false         //"ASCII_8×16仿宋",8*16点阵ascii字体_仿宋
+#define CFG_ASCII_12X24_SONG  false         //"ASCII_12×24宋体",12*24点阵ascii字体_宋体
+#define CFG_ASCII_12X24_YUAN  false         //"ASCII_12×24圆体",12*24点阵ascii字体_圆体
+#define CFG_ASCII_12X24_KAI   false         //"ASCII_12×24楷体",12*24点阵ascii字体_楷体
+#define CFG_ASCII_12X24_HEI   false         //"ASCII_12×24黑体",12*24点阵ascii字体_黑体
+#define CFG_ASCII_12X24_FANG  false         //"ASCII_12×24仿宋",12*24点阵ascii字体_仿宋
+#define CFG_ASCII_16X32_YUAN  false         //"ASCII_16×32圆体",16*32点阵ascii字体_圆体
+#define CFG_ASCII_16X32_KAI   false         //"ASCII_16×32楷体",16*32点阵ascii字体_楷体
+#define CFG_ASCII_16X32_HEI   false         //"ASCII_16×32黑体",16*32点阵ascii字体_黑体
+#define CFG_ASCII_16X32_FANG  false         //"ASCII_16×32仿宋",16*32点阵ascii字体_仿宋
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
@@ -123,7 +123,7 @@
 //@#$%component end configure
 
 
-#if CFG_ASCII_8X8 == 1
+#if CFG_ASCII_8X8 == true
 #include "dot-ascii8x8.h"
 
 bool_t __Font_Ascii8x8LoadFont(void *zk_addr);
@@ -235,9 +235,9 @@ bool_t ModuleInstall_FontAscii8x8(void)
         return false;
     }
 }
-#endif      // CFG_ASCII_8X8 == 1
+#endif      // CFG_ASCII_8X8 == true
 
-#if CFG_ASCII_8X16_SONG == 1
+#if CFG_ASCII_8X16_SONG == true
 
 #include "dot-ascii8x16song.h"
 
@@ -351,9 +351,9 @@ bool_t ModuleInstall_FontAscii8x16(void)
     }
 }
 
-#endif      //CFG_ASCII_8X16_SONG == 1
+#endif      //CFG_ASCII_8X16_SONG == true
 
-#if CFG_ASCII_6X12 == 1
+#if CFG_ASCII_6X12 == true
 
 #include "dot-ascii6x12.h"
 
@@ -467,34 +467,34 @@ bool_t ModuleInstall_FontAscii6x12(void)
     }
 }
 
-#endif      //CFG_ASCII_6X12 == 1
+#endif      //CFG_ASCII_6X12 == true
 
-#if CFG_ASCII_8X16_YUAN == 1        //圆体
+#if CFG_ASCII_8X16_YUAN == true        //圆体
 
 #include "dot-ascii8x16yuan.h"
 
-#endif      //CFG_ASCII_8X16_YUAN == 1
+#endif      //CFG_ASCII_8X16_YUAN == true
 
-#if CFG_ASCII_8X16_KAI == 1         //楷体
+#if CFG_ASCII_8X16_KAI == true         //楷体
 
 #include "dot-ascii8x16kai.h"
 
-#endif      //CFG_ASCII_8X16_KAI == 1
+#endif      //CFG_ASCII_8X16_KAI == true
 
-#if CFG_ASCII_8X16_HEI == 1         //黑体
+#if CFG_ASCII_8X16_HEI == true         //黑体
 
 #include "dot-ascii8x16hei.h"
 
-#endif      //CFG_ASCII_8X16_HEI == 1
+#endif      //CFG_ASCII_8X16_HEI == true
 
-#if CFG_ASCII_8X16_FANG == 1         //仿宋
+#if CFG_ASCII_8X16_FANG == true         //仿宋
 
 #include "dot-ascii8x16fang.h"
 
-#endif      //CFG_ASCII_8X16_FANG == 1
+#endif      //CFG_ASCII_8X16_FANG == true
 
 
-#if CFG_ASCII_12X24_SONG == 1        //圆体
+#if CFG_ASCII_12X24_SONG == true        //圆体
 
 #include "dot-ascii12x24song.h"
 
@@ -584,34 +584,34 @@ bool_t ModuleInstall_FontAscii12x24(void)
     }
 }
 
-#endif      //CFG_ASCII_12X24_SONG == 1
+#endif      //CFG_ASCII_12X24_SONG == true
 
-#if CFG_ASCII_12X24_YUAN == 1        //圆体
+#if CFG_ASCII_12X24_YUAN == true        //圆体
 
 #include "dot-ascii12x24yuan.h"
 
-#endif      //CFG_ASCII_12X24_YUAN == 1
+#endif      //CFG_ASCII_12X24_YUAN == true
 
-#if CFG_ASCII_12X24_KAI == 1         //楷体
+#if CFG_ASCII_12X24_KAI == true         //楷体
 
 #include "dot-ascii12x24kai.h"
 
-#endif      //CFG_ASCII_12X24_KAI == 1
+#endif      //CFG_ASCII_12X24_KAI == true
 
-#if CFG_ASCII_12X24_HEI == 1         //黑体
+#if CFG_ASCII_12X24_HEI == true         //黑体
 
 #include "dot-ascii12x24hei.h"
 
-#endif      //CFG_ASCII_12X24_HEI == 1
+#endif      //CFG_ASCII_12X24_HEI == true
 
-#if CFG_ASCII_12X24_FANG == 1         //仿宋
+#if CFG_ASCII_12X24_FANG == true         //仿宋
 
 #include "dot-ascii12x24fang.h"
 
-#endif      //CFG_ASCII_12X24_FANG == 1
+#endif      //CFG_ASCII_12X24_FANG == true
 
 
-#if CFG_ASCII_16X32_SONG == 1        //圆体
+#if CFG_ASCII_16X32_SONG == true        //圆体
 
 #include "dot-ascii16x32song.h"
 
@@ -701,103 +701,103 @@ bool_t ModuleInstall_FontAscii16x32(void)
     }
 }
 
-#endif      //CFG_ASCII_16X32_SONG == 1
+#endif      //CFG_ASCII_16X32_SONG == true
 
-#if CFG_ASCII_16X32_YUAN == 1        //圆体
+#if CFG_ASCII_16X32_YUAN == true        //圆体
 
 #include "dot-ascii16x32yuan.h"
 
-#endif      //CFG_ASCII_16X32_YUAN == 1
+#endif      //CFG_ASCII_16X32_YUAN == true
 
-#if CFG_ASCII_16X32_KAI == 1         //楷体
+#if CFG_ASCII_16X32_KAI == true         //楷体
 
 #include "dot-ascii16x32kai.h"
 
-#endif      //CFG_ASCII_16X32_KAI == 1
+#endif      //CFG_ASCII_16X32_KAI == true
 
-#if CFG_ASCII_16X32_HEI == 1         //黑体
+#if CFG_ASCII_16X32_HEI == true         //黑体
 
 #include "dot-ascii16x32hei.h"
 
-#endif      //CFG_ASCII_16X32_HEI == 1
+#endif      //CFG_ASCII_16X32_HEI == true
 
-#if CFG_ASCII_16X32_FANG == 1         //仿宋
+#if CFG_ASCII_16X32_FANG == true         //仿宋
 
 #include "dot-ascii16x32fang.h"
 
-#endif      //CFG_ASCII_16X32_FANG == 1
+#endif      //CFG_ASCII_16X32_FANG == true
 
 
 void ModuleInstall_FontAscii(void)
 {
-#if CFG_ASCII_8X8 == 1
+#if CFG_ASCII_8X8 == true
     extern bool_t ModuleInstall_FontAscii8x8(void);
     ModuleInstall_FontAscii8x8( );
-#endif      //CFG_ASCII_8X8 == 1
-#if CFG_ASCII_6X12 == 1
+#endif      //CFG_ASCII_8X8 == true
+#if CFG_ASCII_6X12 == true
     extern bool_t ModuleInstall_FontAscii6x12(void);
     ModuleInstall_FontAscii6x12( );
-#endif      //CFG_ASCII_6X12 == 1
-#if CFG_ASCII_8X16_SONG == 1
+#endif      //CFG_ASCII_6X12 == true
+#if CFG_ASCII_8X16_SONG == true
     extern bool_t ModuleInstall_FontAscii8x16(void);
     ModuleInstall_FontAscii8x16( );
-#endif      //CFG_ASCII_8X16_SONG == 1
-#if CFG_ASCII_8X16_YUAN == 1
+#endif      //CFG_ASCII_8X16_SONG == true
+#if CFG_ASCII_8X16_YUAN == true
     extern bool_t ModuleInstall_FontAscii8x16yuan(void);
     ModuleInstall_FontAscii8x16yuan( );
-#endif      //CFG_ASCII_8X16_YUAN == 1
-#if CFG_ASCII_8X16_KAI == 1
+#endif      //CFG_ASCII_8X16_YUAN == true
+#if CFG_ASCII_8X16_KAI == true
     extern bool_t ModuleInstall_FontAscii8x16kai(void);
     ModuleInstall_FontAscii8x16kai( );
-#endif      //CFG_ASCII_8X16_KAI == 1
-#if CFG_ASCII_8X16_HEI == 1
+#endif      //CFG_ASCII_8X16_KAI == true
+#if CFG_ASCII_8X16_HEI == true
     extern bool_t ModuleInstall_FontAscii8x16hei(void);
     ModuleInstall_FontAscii8x16hei( );
-#endif      //CFG_ASCII_8X16_HEI == 1
-#if CFG_ASCII_8X16_FANG == 1
+#endif      //CFG_ASCII_8X16_HEI == true
+#if CFG_ASCII_8X16_FANG == true
     extern bool_t ModuleInstall_FontAscii8x16fang(void);
     ModuleInstall_FontAscii8x16fang( );
-#endif      //CFG_ASCII_8X16_FANG == 1
-#if CFG_ASCII_12X24_SONG == 1
+#endif      //CFG_ASCII_8X16_FANG == true
+#if CFG_ASCII_12X24_SONG == true
     extern bool_t ModuleInstall_FontAscii12x24(void);
     ModuleInstall_FontAscii12x24( );
-#endif      //CFG_ASCII_12X24_SONG == 1
-#if CFG_ASCII_12X24_YUAN == 1
+#endif      //CFG_ASCII_12X24_SONG == true
+#if CFG_ASCII_12X24_YUAN == true
     extern bool_t ModuleInstall_FontAscii12x24yuan(void);
     ModuleInstall_FontAscii12x24yuan( );
-#endif      //CFG_ASCII_12X24_YUAN == 1
-#if CFG_ASCII_12X24_KAI == 1
+#endif      //CFG_ASCII_12X24_YUAN == true
+#if CFG_ASCII_12X24_KAI == true
     extern bool_t ModuleInstall_FontAscii12x24kai(void);
     ModuleInstall_FontAscii12x24kai( );
-#endif      //CFG_ASCII_12X24_KAI == 1
-#if CFG_ASCII_12X24_HEI == 1
+#endif      //CFG_ASCII_12X24_KAI == true
+#if CFG_ASCII_12X24_HEI == true
     extern bool_t ModuleInstall_FontAscii12x24hei(void);
     ModuleInstall_FontAscii12x24hei( );
-#endif      //CFG_ASCII_12X24_HEI == 1
-#if CFG_ASCII_12X24_FANG == 1
+#endif      //CFG_ASCII_12X24_HEI == true
+#if CFG_ASCII_12X24_FANG == true
     extern bool_t ModuleInstall_FontAscii12x24fang(void);
     ModuleInstall_FontAscii12x24fang( );
-#endif      //CFG_ASCII_12X24_FANG == 1
-#if CFG_ASCII_16X32_SONG == 1
+#endif      //CFG_ASCII_12X24_FANG == true
+#if CFG_ASCII_16X32_SONG == true
     extern bool_t ModuleInstall_FontAscii16x32(void);
     ModuleInstall_FontAscii16x32( );
-#endif      //CFG_ASCII_16X32_SONG == 1
-#if CFG_ASCII_16X32_YUAN == 1
+#endif      //CFG_ASCII_16X32_SONG == true
+#if CFG_ASCII_16X32_YUAN == true
     extern bool_t ModuleInstall_FontAscii16x32yuan(void);
     ModuleInstall_FontAscii16x32yuan( );
-#endif      //CFG_ASCII_16X32_YUAN == 1
-#if CFG_ASCII_16X32_KAI == 1
+#endif      //CFG_ASCII_16X32_YUAN == true
+#if CFG_ASCII_16X32_KAI == true
     extern bool_t ModuleInstall_FontAscii16x32kai(void);
     ModuleInstall_FontAscii16x32kai( );
-#endif      //CFG_ASCII_16X32_KAI == 1
-#if CFG_ASCII_16X32_HEI == 1
+#endif      //CFG_ASCII_16X32_KAI == true
+#if CFG_ASCII_16X32_HEI == true
     extern bool_t ModuleInstall_FontAscii16x32hei(void);
     ModuleInstall_FontAscii16x32hei( );
-#endif      //CFG_ASCII_16X32_HEI == 1
-#if CFG_ASCII_16X32_FANG == 1
+#endif      //CFG_ASCII_16X32_HEI == true
+#if CFG_ASCII_16X32_FANG == true
     extern bool_t ModuleInstall_FontAscii16x32fang(void);
     ModuleInstall_FontAscii16x32fang( );
-#endif      //CFG_ASCII_16X32_FANG == 1
+#endif      //CFG_ASCII_16X32_FANG == true
 
 
 }

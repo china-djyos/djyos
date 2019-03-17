@@ -147,7 +147,7 @@ void HAL_TickInit(void)
     HalTimHandle.Init.ClockDivision = 0;
     HalTimHandle.Init.CounterMode   = TIM_COUNTERMODE_UP;
 
-#if (defined(CFG_CORTEX_M7) || defined(CFG_CORTEX_M3))
+#if defined(TIM_AUTORELOAD_PRELOAD_ENABLE)
     HalTimHandle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 #endif
     HAL_TIM_Base_DeInit(&HalTimHandle);

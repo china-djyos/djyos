@@ -84,7 +84,7 @@
 //        ModuleInstall_Touch_Stmpe811(stmpe811_desktop,CFG_STMPE811_TOUCH_DEV_NAME);
 //    }
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
-//    GDD_AddInputDev(CFG_INPUTDEV_NAME);
+//    GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

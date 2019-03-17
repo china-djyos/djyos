@@ -73,7 +73,7 @@
 //      while(1);
 //  }
 //  extern bool_t GDD_AddInputDev(const char *InputDevName);
-//  GDD_AddInputDev(CFG_INPUTDEV_NAME);
+//  GDD_AddInputDev(CFG_FT5406_TOUCH_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

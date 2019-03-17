@@ -79,7 +79,7 @@ typedef int _Bool;
 
 
 #ifndef bool
-#define bool int
+#define bool unsigned char
 #endif
 #ifndef true
 #define true 1
