@@ -72,7 +72,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    ModuleInstall_at45db321(CFG_AT45_BUSNAME, CFG_AT45_FSNAME, CFG_AT45_START, CFG_AT45_END, CFG_AT45_OPTION);
+//    extern bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
+//    ModuleInstall_at45db321(CFG_AT45_BUSNAME, CFG_AT45_FSMOUNT_NAME, CFG_AT45_PART_START, CFG_AT45_PART_END, CFG_AT45_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -95,18 +96,18 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_AT45_ARGC           //****检查参数是否已经配置好
+#ifndef CFG_AT45_BUSNAME           //****检查参数是否已经配置好
 #warning   at45db321组件参数未配置，使用默认值
 //%$#@enum,512,528,
-#define CFG_AT45_PAGE_SIZE           528//"pagesize",配置AT45的页大小，默认为528
+#define CFG_AT45_PAGE_SIZE                  528       //"pagesize",配置AT45的页大小，默认为528
 //%$#@string,1,10,
-#define CFG_AT45_BUSNAME             "SPI4"//"SPI总线名称",AT45使用的总线名称
-//%$#@string,1,10,
-#define CFG_AT45_FSNAME              "efs" //"文件系统mount点名字",需要挂载的文件系统mount点名字
-//%$#@enum_config
-#define CFG_AT45_START                  0  //分区起始
-#define CFG_AT45_END                   -1  //分区结束
-#define CFG_AT45_OPTION                 0  //分区选项
+#define CFG_AT45_BUSNAME                   "SPI4"     //"SPI总线名称",AT45使用的总线名称
+#define CFG_AT45_FSMOUNT_NAME              "efs"      //"文件系统mount点名字",需要挂载的文件系统mount点名字
+//%$#@num,-1,1024,
+#define CFG_AT45_PART_START                  0        //分区起始，填写块号，块号从0开始计算
+#define CFG_AT45_PART_END                   -1        //分区结束，-1表示最后一块
+//%$#@enum,true,false,
+#define CFG_AT45_PART_FORMAT               false      //分区选项,是否需要格式化该分区。
 //%$#@select
 //%$#@free,
 #endif
@@ -203,7 +204,7 @@ extern s32 __at45_write(s64 unit, void *data, struct uopt opt);
 extern s32 __at45_read(s64 unit, void *data, struct uopt opt);
 extern s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
 extern s32 __at45_erase(s64 unit, struct uesz sz);
-extern s32 __AT45_FsInstallInit(const char *fs, u32 dwStart, u32 dwSize, u32 dwSpecial);
+extern s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwSize);
 
 
 bool_t at45db321_Wait_Ready(u32 Time_Out);
@@ -1010,10 +1011,10 @@ bool_t AT45_FLASH_Ready(void)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart, u32 bend, u32 doformat)
+bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat)
 {
     static u8 at45init = 0;
-    struct uopt opt;
+
     if(at45init == 0)
     {
         pAT45_Lock = Lock_MutexCreate("AT45 Lock");
@@ -1069,25 +1070,22 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart,
             nordescription->Blks = 1024; // 全部器件的容量
             nordescription->ReservedBlks = 0;
         }
-        at45_umedia = malloc(sizeof(struct umedia)+512);
+
+        if(doformat)
+        {
+            struct uesz sz;
+            sz.unit = 0;
+            sz.block = 1;
+            __at45_req(format, bstart , bend, &sz);
+        }
+
+        at45_umedia = malloc(sizeof(struct umedia)+nordescription->BytesPerPage);
         if(!at45_umedia)
             return (-1);
 
-        opt.hecc = 0;
-        opt.main = 1;
-        opt.necc = 1;
-        opt.secc = 0;
-        opt.spare = 0;
-        at45_umedia->esz = log2(nordescription->BytesPerPage * nordescription->SectorsPerBlk); // 4KB
-        at45_umedia->usz = log2(nordescription->BytesPerPage);; // 512B;
         at45_umedia->mreq = __at45_req;
-        at45_umedia->merase = __at45_erase;
-        at45_umedia->mread = __at45_read;
-        at45_umedia->mwrite = __at45_write;
-        at45_umedia->opt = opt; // 驱动操作逻辑
         at45_umedia->type = nor;
         at45_umedia->ubuf = (u8*)at45_umedia + sizeof(struct umedia);
-        at45_umedia->asz = nordescription->BytesPerPage * nordescription->SectorsPerBlk * nordescription->Blks;
 
         if(!dev_Create((const char*)At45Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)at45_umedia)))
         {
@@ -1100,7 +1098,7 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart,
 
     if(TargetFs != NULL)
     {
-        if(__AT45_FsInstallInit(TargetFs, bstart, bend, doformat))
+        if(__AT45_FsInstallInit(TargetFs, bstart, bend))
         {
             return -1;
         }

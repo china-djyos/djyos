@@ -16,7 +16,8 @@
    <component>/component/djybus/spibus/spibus.c</component>
    <component>/component/djybus/djybus.c</component>
    <component>/component/djyfs/efs/component_config_efs.h</component>
-   <component>/component/djyfs/iap/component_config_iap.h</component>
+   <component>/component/djyfs/xip/xip_app/component_config_xip_app.h</component>
+   <component>/component/djyfs/xip/xip_iboot/component_config_xip_iboot.h</component>
    <component>/component/djyfs/component_config_fs.h</component>
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>

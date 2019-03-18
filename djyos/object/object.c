@@ -158,7 +158,7 @@ static struct objhandle *__objsys_open(struct obj *ob, u32 flags, char *uncached
 static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry);
 static s32 __objsys_close(struct objhandle *hdl);
 
-
+extern char g_pWokingPath[257]; // shell使用
 struct __statics
 {
     u32 news;
@@ -817,7 +817,7 @@ void obj_InuseUpRange(struct obj *start, struct obj *end)
 {
     struct obj *temp = end;
     obj_lock();
-    if((start != NULL) && (start != NULL))
+    if((start != NULL) && (end != NULL))
     {
         while((temp != start) && (temp != obj_root()))
         {
@@ -860,7 +860,7 @@ void obj_InuseDownRange(struct obj *start, struct obj *end)
 {
     struct obj *temp = end;
     obj_lock();
-    if((start != NULL) && (start != NULL))
+    if((start != NULL) && (end != NULL))
     {
         while((temp != start) && (temp != obj_root()))
         {
@@ -2302,7 +2302,153 @@ __SEARCH_DONE:
    return (current);
 #endif
 }
+//-----------------------------------------------------------------------------
+//功能: 用于shell打印当前工作目录
+//参数:
+//返回: 0 -- 成功; -1 -- 失败;
+//备注:
+//-----------------------------------------------------------------------------
+s32 __WorkingPath(char *Path)
+{
+    u16 Len;
 
+    Len = CurWorkPathLen();
+    if(257 < Len)
+        return (-1); // 路径过长
+
+    if(CurWorkPath(Path, Len))
+        return (-1);
+
+    return (0);
+}
+//-----------------------------------------------------------------------------
+//功能: 设置环境变量,系统当前工作路径
+//参数:
+//返回: 0 -- 成功; -1 -- 目录无法打开; -2 -- 目录无法使用;
+//备注:
+//-----------------------------------------------------------------------------
+s32 SetPWD(const char *Path)
+{
+    DIR *dir;
+    s32 res = 0;
+    struct objhandle *hdl;
+    struct obj *ob;
+
+    if(!Path)
+        return (-1);
+    dir = opendir(Path);
+    if(!dir)
+        return (-1);
+    hdl = (struct objhandle*)(dir->__fd); // 目录的上下文
+    ob = hdl->HostObj;      // 目录的节点
+    if(NULL == ob)
+        res = -1;
+    else if(ob->inuse == CN_LIMIT_UINT32)
+        res = -2;
+    else
+        ob->inuse++;
+    if(!res)
+    {
+        obj_InuseDown(s_ptCurrentObject);
+        s_ptCurrentObject = ob;
+    }
+
+    closedir(dir);// 关闭目录
+    __WorkingPath(g_pWokingPath); // 用于shell
+    return res;
+}
+//-----------------------------------------------------------------------------
+//功能: 获取当前工作路径字符串长度(含结束符)
+//参数:
+//返回: 非零-- 成功; 零 -- 失败，未设置当前工作路径;
+//备注:
+//-----------------------------------------------------------------------------
+s32 CurWorkPathLen(void)
+{
+    u32 PathLen = 0;
+    struct obj *ob;
+    ob = s_ptCurrentObject;
+
+    while(1)
+    {
+        PathLen++;
+        PathLen += strlen(obj_name(ob));
+        if(obj_parent(ob) == NULL)
+            break;
+        ob = obj_parent(ob);
+    }
+
+    return PathLen;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 获取当前工作路径
+//参数: Buf -- 当前工作路径
+//      BufSize -- 路径长度，包括字符串结束符
+//返回: 0 -- 成功; -1 -- 未设置当前工作路径; -2 -- 参数错误; -3 -- 内存不足;
+//      -4 -- 其他;
+//备注:
+//-----------------------------------------------------------------------------
+s32 CurWorkPath(char *Buf, u32 BufSize)
+{
+    struct obj *Obj;
+    u32 ObjNameLen, Offset;
+    char *PathTemp, *ObjName;
+    s32 Ret = 0;
+
+    obj_lock();// 进互斥(防止操作过程当前工作路径被更改)
+
+    Offset = CurWorkPathLen();
+    if((NULL == Buf) || (BufSize < Offset))
+    {
+        Ret = -2; // 参数错误
+        goto FAIL;
+    }
+
+    PathTemp = (char*)malloc(Offset + 1);
+    if(NULL == PathTemp)
+    {
+        Ret = -3; // 内存不足
+        goto FAIL;
+    }
+    memset(PathTemp, 0, Offset + 1);
+    Offset -= 1;
+    PathTemp[Offset] = '\0'; // 路径的结束符
+    Obj = s_ptCurrentObject; // 路径最后一个节点
+
+    for(;;)
+    {
+        ObjName = (char *)obj_name(Obj);
+        ObjNameLen = strlen(ObjName);
+        Offset = Offset - ObjNameLen;
+        memcpy((PathTemp + Offset), ObjName, ObjNameLen);
+        if(Offset) // 去除根的情况
+        {
+            Offset--;
+            PathTemp[Offset] = '/'; // 路径之间的分隔或者是根
+        }
+
+        if(0 == Offset)
+        {
+            if(PathTemp[Offset] == '\0')
+                PathTemp[Offset] = '/';
+            strcpy(Buf, PathTemp);
+            break; // 结束
+        }
+        Obj = obj_parent(Obj);
+        if(NULL == Obj)
+        {
+            Ret = -4;
+            break;
+        }
+    }
+
+FAIL:
+    if(PathTemp)
+        free(PathTemp);
+    obj_unlock(); // 出互斥
+    return (Ret);
+}
 // ============================================================================
 // 功能：在对象parent之下新建子对象集合
 // 参数：parent -- 对象；

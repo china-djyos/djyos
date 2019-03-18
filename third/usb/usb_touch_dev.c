@@ -120,7 +120,7 @@ s32 TOUCH_DeviceReady(void)
 s32 USBH_ResigerDevTouch(void *pParam)
 {
 
-    if(dev_Create((const char*)touchname, NULL, NULL,NULL,
+    if(NULL == dev_Create((const char*)touchname, NULL, NULL,NULL,
             __TOUCH_DriRead, NULL, (ptu32_t)pParam))
     {
         printf("\r\n: erro : usb    : register touch device failed.");

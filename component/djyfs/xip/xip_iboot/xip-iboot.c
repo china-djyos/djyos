@@ -62,6 +62,47 @@
 #include <stdio.h>
 #include "../../filesystems.h"
 #include "Iboot_info.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data);
+//    ModuleInstall_XIP_IBOOT_FS(0,NULL);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"xip_iboot"    //用于iboot的在线升级
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
+//@#$%component end configure
+
 
 u64 FileNowPos = 0;
 //static const char *xip_iboot_target = "xip-iboot";
@@ -190,6 +231,22 @@ static s32 xip_iboot_write(struct objhandle *hdl, u8 *data, u32 size)
 }
 
 // ============================================================================
+// 功能：查询xip-iboot状态；
+// 参数：ob -- stdio对象；
+//      data -- stdio状态；
+// 返回：
+// 备注：
+// ============================================================================
+static s32 xip_iboot_stat(struct obj *ob, struct stat *data)
+{
+    memset(data, 0x0, sizeof(struct stat));
+
+    data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
+
+    return (0);
+}
+
+// ============================================================================
 // 功能：初始化xip对media的驱动
 // 参数：core -- efs文件系统管理；  drv -- media的操作函数集
 // 返回：0 -- 成功；  -1 --失败
@@ -219,7 +276,7 @@ static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config)
 
     struct __icore *core;
     struct umedia *um;
-
+    u32 flash_page_size;
     config = config;
     opt = opt;
     core = malloc(sizeof(*core));
@@ -236,11 +293,12 @@ static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config)
         free(core);
         return (-1);
     }
+    um->mreq(unitbytes,(ptu32_t)&flash_page_size);
     xip_iboot_install_drv(core,super->MediaDrv);
     core->ASize = super->AreaSize;
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
-    core->bufsz = 1 << um->usz; // xip文件系统文件的缓存大小依据unit的尺寸；
+    core->bufsz = (s16)flash_page_size; // xip文件系统文件的缓存大小依据unit的尺寸；
     core->inhead = 0;  //inhead这部分为部分内容的大小
     core->root = super->pTarget;
     core->lock = Lock_MutexCreate("xip-iboot、 fs");
@@ -294,7 +352,14 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         }
         case CN_OBJ_CMD_STAT:
         {
-            result = CN_OBJ_CMD_TRUE;   //xip-iboot文件系统不需要stat，直接返回true
+            char * path = (char*)OpsArgs2;
+            if(path&&('\0'!=*path))
+                return (-1); // 查询的文件不存在；
+            if(xip_iboot_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
             break;
         }
         default:

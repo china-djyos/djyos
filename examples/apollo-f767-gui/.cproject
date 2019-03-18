@@ -76,6 +76,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -163,6 +165,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -256,6 +260,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -389,6 +395,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -476,6 +484,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -567,6 +577,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -705,6 +717,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -792,6 +806,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -883,6 +899,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1021,6 +1039,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1120,6 +1140,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1223,6 +1245,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1361,6 +1385,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1460,6 +1486,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1563,6 +1591,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1687,7 +1717,7 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.1133943057" name="Endianness" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.358879038" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.568534416" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="SHELL=cmd.exe " buildPath="${workspace_loc:/apollo-f767-gui}/libos_Iboot_Debug" enableCleanBuild="false" id="ilg.gnuarmeclipse.managedbuild.cross.builder.221205950" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder arguments="SHELL=cmd.exe" buildPath="${workspace_loc:/apollo-f767-gui}/libos_Iboot_Debug" enableCleanBuild="false" id="ilg.gnuarmeclipse.managedbuild.cross.builder.221205950" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.332974100" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.70895779" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1347468026" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
@@ -1703,6 +1733,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1802,6 +1834,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -1907,6 +1941,8 @@
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -2042,6 +2078,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -2129,6 +2167,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -2222,6 +2262,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F723xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -2357,6 +2399,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -2456,6 +2500,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
@@ -2561,6 +2607,8 @@
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="CFG_CORTEX_M7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
+									<listOptionValue builtIn="false" value="CFG_CPU_STM32F711"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>

@@ -124,7 +124,6 @@ int yaf_nand_write(struct yaffs_dev *yaf2dev, int chunk,
 
     main = __nandescription->BytesPerPage;
     __nand_req(sparebytes, (ptu32_t)&spare);
-    __nand_req(lock, -1);
     for(i = 0; i < (s32)(yaf2dev->driver_context); i++)
     {
         memset(nand_umedia->ubuf, 0xFF, main+spare);
@@ -148,7 +147,6 @@ int yaf_nand_write(struct yaffs_dev *yaf2dev, int chunk,
         }
     }
 
-    __nand_req(unlock, 0);
     return (res);
 }
 
@@ -189,7 +187,6 @@ int yaf_nand_read(struct yaffs_dev *yaf2dev, int chunk,
 
     main = __nandescription->BytesPerPage;;
     __nand_req(sparebytes, (ptu32_t)&spare);
-    __nand_req(lock, -1);
     opt.main = 1;
     if(oob)
         opt.spare = 1;
@@ -218,7 +215,6 @@ int yaf_nand_read(struct yaffs_dev *yaf2dev, int chunk,
             memcpy(oob, (nand_umedia->ubuf+main), oob_len);
     }
 
-    __nand_req(unlock, 0);
     return (res);
 }
 

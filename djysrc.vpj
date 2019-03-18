@@ -1553,6 +1553,38 @@
 					</Folder>
 					<F N="bsp/cpudrv/Atmel/cpu_group_Atmel.xml"/>
 				</Folder>
+				<Folder Name="bk7251">
+					<Folder Name="include">
+						<F N="bsp/cpudrv/bk7251/include/cpu-optional.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri_audio_dac.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri_audio_mic.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri_flash.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri_gpio.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri_int_line.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri_uart.h"/>
+						<F N="bsp/cpudrv/bk7251/include/cpu_peri_wifi.h"/>
+					</Folder>
+					<Folder Name="src">
+						<Folder Name="audio">
+							<F N="bsp/cpudrv/bk7251/src/audio/cpu_peri_audio_dac.c"/>
+							<F N="bsp/cpudrv/bk7251/src/audio/cpu_peri_audio_mic.c"/>
+						</Folder>
+						<Folder Name="flash">
+							<F N="bsp/cpudrv/bk7251/src/flash/cpu_peri_flash.c"/>
+						</Folder>
+						<Folder Name="gpio">
+							<F N="bsp/cpudrv/bk7251/src/gpio/cpu_peri_gpio.c"/>
+						</Folder>
+						<Folder Name="uart">
+							<F N="bsp/cpudrv/bk7251/src/uart/cpu_peri_uart.c"/>
+						</Folder>
+						<Folder Name="wifi">
+							<F N="bsp/cpudrv/bk7251/src/wifi/cpu_peri_wifi.c"/>
+						</Folder>
+					</Folder>
+					<F N="bsp/cpudrv/bk7251/cpu_bk7251.xml"/>
+				</Folder>
 				<Folder Name="FslKxx">
 					<Folder Name="include">
 						<F N="bsp/cpudrv/FslKxx/include/cpu-optional.h"/>
@@ -2443,6 +2475,7 @@
 					</Folder>
 					<Folder Name="src">
 						<F N="bsp/cpudrv/stm32/src/cpu_peri_hal.c"/>
+						<F N="bsp/cpudrv/stm32/src/testsupport.c"/>
 					</Folder>
 					<F N="bsp/cpudrv/stm32/cpu_group_stm32.xml"/>
 				</Folder>
@@ -3096,6 +3129,92 @@
 			</Folder>
 		</Folder>
 		<Folder Name="examples">
+			<Folder Name="apollo-f767-gui">
+				<Folder Name=".settings">
+					<F N="examples/apollo-f767-gui/.settings/language.settings.xml"/>
+				</Folder>
+				<Folder Name="data">
+					<Folder Name="hardwares">
+						<F N="examples/apollo-f767-gui/data/hardwares/board_infos.xml"/>
+						<F N="examples/apollo-f767-gui/data/hardwares/component_infos.xml"/>
+						<F N="examples/apollo-f767-gui/data/hardwares/cpu_infos.xml"/>
+					</Folder>
+					<F N="examples/apollo-f767-gui/data/app_component_check.xml"/>
+					<F N="examples/apollo-f767-gui/data/hardware_info.xml"/>
+					<F N="examples/apollo-f767-gui/data/iboot_component_check.xml"/>
+				</Folder>
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/apollo-f767-gui/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/apollo-f767-gui/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/apollo-f767-gui/src/app/initPrj.c"/>
+						<F N="examples/apollo-f767-gui/src/app/main.c"/>
+					</Folder>
+					<Folder Name="iboot">
+						<Folder Name="critical">
+							<F N="examples/apollo-f767-gui/src/iboot/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/apollo-f767-gui/src/iboot/OS_prjcfg/keepshell.c"/>
+							<F N="examples/apollo-f767-gui/src/iboot/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/apollo-f767-gui/src/iboot/initPrj.c"/>
+						<F N="examples/apollo-f767-gui/src/iboot/main.c"/>
+					</Folder>
+					<Folder Name="lds">
+						<F N="examples/apollo-f767-gui/src/lds/app.lds"/>
+						<F N="examples/apollo-f767-gui/src/lds/iboot.lds"/>
+						<F N="examples/apollo-f767-gui/src/lds/memory.lds"/>
+					</Folder>
+				</Folder>
+			</Folder>
+			<Folder Name="apollo-h743-gui">
+				<Folder Name=".settings">
+					<F N="examples/apollo-h743-gui/.settings/language.settings.xml"/>
+				</Folder>
+				<Folder Name="data">
+					<Folder Name="hardwares">
+						<F N="examples/apollo-h743-gui/data/hardwares/board_infos.xml"/>
+						<F N="examples/apollo-h743-gui/data/hardwares/component_infos.xml"/>
+						<F N="examples/apollo-h743-gui/data/hardwares/cpu_infos.xml"/>
+					</Folder>
+					<F N="examples/apollo-h743-gui/data/app_component_check.xml"/>
+					<F N="examples/apollo-h743-gui/data/hardware_info.xml"/>
+					<F N="examples/apollo-h743-gui/data/iboot_component_check.xml"/>
+				</Folder>
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/apollo-h743-gui/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/apollo-h743-gui/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/apollo-h743-gui/src/app/initPrj.c"/>
+						<F N="examples/apollo-h743-gui/src/app/main.c"/>
+					</Folder>
+					<Folder Name="iboot">
+						<Folder Name="critical">
+							<F N="examples/apollo-h743-gui/src/iboot/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/apollo-h743-gui/src/iboot/OS_prjcfg/keepshell.c"/>
+							<F N="examples/apollo-h743-gui/src/iboot/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/apollo-h743-gui/src/iboot/initPrj.c"/>
+						<F N="examples/apollo-h743-gui/src/iboot/main.c"/>
+					</Folder>
+					<Folder Name="lds">
+						<F N="examples/apollo-h743-gui/src/lds/app.lds"/>
+						<F N="examples/apollo-h743-gui/src/lds/iboot.lds"/>
+						<F N="examples/apollo-h743-gui/src/lds/memory.lds"/>
+					</Folder>
+				</Folder>
+			</Folder>
 			<Folder Name="APOLLO_STM32F7">
 				<Folder Name="src">
 					<Folder Name="app">
@@ -3132,7 +3251,6 @@
 					</Folder>
 					<F N="examples/applo_h743_systest/data/hardware_info.xml"/>
 					<F N="examples/applo_h743_systest/data/iboot_component_check.xml"/>
-					<F N="examples/applo_h743_systest/data/user_handled_files.xml"/>
 				</Folder>
 				<Folder Name="src">
 					<Folder Name="iboot">
@@ -3142,12 +3260,6 @@
 						<Folder Name="OS_prjcfg">
 							<F N="examples/applo_h743_systest/src/iboot/OS_prjcfg/keepshell.c"/>
 							<F N="examples/applo_h743_systest/src/iboot/OS_prjcfg/project_config.h"/>
-						</Folder>
-						<Folder Name="sysModuleTest">
-							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/sysModuleTest.c"/>
-							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/sysModuleTest.h"/>
-							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/SysTestTime.c"/>
-							<F N="examples/applo_h743_systest/src/iboot/sysModuleTest/sysTestTime.h"/>
 						</Folder>
 						<F N="examples/applo_h743_systest/src/iboot/initPrj.c"/>
 						<F N="examples/applo_h743_systest/src/iboot/main.c"/>
@@ -3220,11 +3332,6 @@
 						<Folder Name="OS_prjcfg">
 							<F N="examples/explorer_f407_systest/src/app/OS_prjcfg/keepshell.c"/>
 							<F N="examples/explorer_f407_systest/src/app/OS_prjcfg/project_config.h"/>
-						</Folder>
-						<Folder Name="sysModuleTest">
-							<F N="examples/explorer_f407_systest/src/app/sysModuleTest/sysModuleTest.c"/>
-							<F N="examples/explorer_f407_systest/src/app/sysModuleTest/sysModuleTest.h"/>
-							<F N="examples/explorer_f407_systest/src/app/sysModuleTest/testsupport.c"/>
 						</Folder>
 						<F N="examples/explorer_f407_systest/src/app/initPrj.c"/>
 						<F N="examples/explorer_f407_systest/src/app/main.c"/>

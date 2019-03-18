@@ -2556,7 +2556,7 @@ static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
 {
     u32                ackno;
     s32                acklen;
-    struct ClienCB            *ccb;
+    struct ClienCB    *ccb;
     s32                err;
     s32                uerr;
     u32                usedtime;
@@ -2591,7 +2591,8 @@ static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
         }
     }
     //1,sndnxtno > unackno, then ackno must be between them
-    //2,sndnxtno <= unackno,then ackno must be bigger than unack no or less than sndnxtno
+    //2,sndnxtno <= unackno,then ackno must be bigger than unack no or less than
+    //  sndnxtno
     else if(((ccb->sbuf.sndnxtno > ccb->sbuf.unackno)&&\
        ((ackno >ccb->sbuf.unackno)&&(ackno <= ccb->sbuf.sndnxtno)))||\
             ((ccb->sbuf.sndnxtno < ccb->sbuf.unackno)&&\

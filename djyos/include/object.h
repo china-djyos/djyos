@@ -279,6 +279,10 @@ struct obj *obj_search_path(struct obj *start, const char *path);
 s32 obj_SetMultiplexEvent(struct obj *ob, u32 events);
 s32 obj_ClrMultiplexEvent(struct obj *ob, u32 events);
 s32 issocketactive(s32 Fd, s32 mode);
+struct objhandle* obj_ForeachHandle(struct objhandle *Current, struct obj *Object);
+s32 CurWorkPathLen(void);
+s32 CurWorkPath(char *Buf, u32 BufSize);
+s32 SetPWD(const char *Path);
 
 #ifdef __cplusplus
 }

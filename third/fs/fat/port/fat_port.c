@@ -440,12 +440,24 @@ s32 FATDirRead(struct FileContext *pFileCt, struct Dirent *pContent)
 #include "../ff11/src/ff.h"
 #include <djyfs/file.h>
 #include <djyfs/filesystems.h>
-
+#include <dbug.h>
 #define SORTLEN    20      //媒体类型名的最大长度
 
 s32 __fat_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 static s32 __fat_install(struct FsCore *super, u32 opt, void *pData);
+
+// ============================================================================
+// 功能：格式化fat文件系统
+// 参数：
+// 返回：0 -- 成功; -1 -- 失败;
+// 备注：
+// ============================================================================
+static s32 __fatformat(void *core)
+{
+    debug_printf("fat","Formatting is not supported.");
+    return -1;
+}
 
 // ============================================================================
 // 功能：安装FAT文件系统
@@ -568,8 +580,8 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
     if((!volume) && (!mount_name))
         return (NULL);
 
-    if(!full)
-        full = "/"; // 根目录
+//    if(!full)
+//        full = "/"; // 根目录
     memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
     GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
     res = strlen(entirepath) + strlen(volume) + 1;
@@ -636,7 +648,6 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
             //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
             ob = obj_buildpath(ob, __fat_operations, obj_mode,full);
             obj_mode = S_IALLUGO | property;     //最末端的也许是文件
-            obj_SetPrivate(ob, mode);
             obj_LinkHandle(hdl, ob);
         }
     }
@@ -735,14 +746,35 @@ static off_t __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 static s32 __fat_remove(struct obj *ob, char *full)
 {
     FRESULT res;
-    char *path;
+    char *path, *part_path, *mount_name = NULL;
     char *volume = (char*)corefs(ob);
+    struct obj *temp =  ob;
+    char entirepath[DJYFS_PATH_BUFFER_SIZE];
+    while(temp != obj_root())
+    {
+        if(obj_isMount(temp))
+        {
+            mount_name = (char*)obj_name(temp);    //找出mount点的名字
+            break;
+        }
+        temp = obj_parent(temp);
+    }
+    if((!volume) && (!mount_name))
+        return (-1);
 
-    path = malloc(strlen(volume) + strlen(full) + 1);
+    memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
+    GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
+    res = strlen(entirepath) + strlen(volume) + 1;
+    path = malloc(res);
     if(!path)
         return (-1);
 
-    sprintf(path,  "%s%s", (char*)volume, full);
+    memset(path, 0, res);
+    part_path = strstr(entirepath, mount_name);     //找出mount点名字的所在位置
+    part_path += strlen(mount_name);
+    //用volume中的设备名替换entirepath中的mount点名，因为fat只识别几种特定的设备
+    sprintf(path,"%s%s", volume, part_path);
+
     res = f_unlink(path);
     free(path);
     if(FR_OK != res)
@@ -843,7 +875,6 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
     struct objhandle *myhandle;
     char *mount_name = NULL, *part_path;
     struct obj *temp =  ob;
-    s32 res;
 
     while(temp != obj_root())
     {
@@ -1101,7 +1132,7 @@ s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
 	    typeFAT->fileOps = __fat_operations;
 	    typeFAT->install = __fat_install;
 	    typeFAT->pType = "FAT";
-	    typeFAT->format = NULL;
+	    typeFAT->format = __fatformat;
 	    typeFAT->uninstall = NULL;
 	}
     res = regfs(typeFAT);

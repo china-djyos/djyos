@@ -86,14 +86,15 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
     struct uesz esz = {0};
+    struct uopt opt = {0};
     u32 j, offset, once, more;
     s32 left;
     s64 unit;
     u32 block = 0;
 
     left = bytes;
-    unit = (pos >> um->usz) + core->MStart;
-    offset = pos & ((1 << um->usz)-1); // unit内偏移
+    unit = (pos / core->bufsz) + core->MStart;
+    offset = pos & (core->bufsz-1); // unit内偏移
     __embed_req(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
     {
@@ -112,13 +113,13 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             }
         }
 #endif
-        if(__embed_read(unit, um->ubuf, um->opt))
+        if(__embed_read(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0); //
             return (-1);
         }
 
-        once = 1<<um->usz;
+        once = core->bufsz;
         if(left<(s32)once)
             once = left;
 
@@ -135,7 +136,7 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
         }
 
         memcpy((um->ubuf + offset), data, once);
-        if(__embed_write(unit, um->ubuf, um->opt))
+        if(__embed_write(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0);
             return (-1);
@@ -154,7 +155,7 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     if(!more)
     {
         // +1是表示当前unit的后面一个
-        if(((unit-core->MStart+1)<<um->usz) >= core->ASize)
+        if(((unit-core->MStart+1)* core->bufsz) >= core->ASize)
         {
             return (-2);
         }
@@ -181,17 +182,18 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 s32 xip_emflash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
+    struct uopt opt = {0};
     s64 unit;
     u32 offset;
     s32 left = bytes, once;
 
-    unit = (pos >> um->usz) + core->MStart;
-    offset = pos & ((1 << um->usz) - 1); // unit内偏移
+    unit = (pos / core->bufsz) + core->MStart;
+    offset = pos & (core->bufsz - 1); // unit内偏移
     __embed_req(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
     {
-        once = MIN(((1 << um->usz) - offset), left);
-        if(__embed_read(unit, um->ubuf, um->opt))
+        once = MIN((core->bufsz - offset), left);
+        if(__embed_read(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0); //
             return (-1);
@@ -211,26 +213,25 @@ s32 xip_emflash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 // ============================================================================
 // 功能：擦除数据
 // 参数：core -- xip文件系统管理信息
-//       dwBytes -- 字节数
-//       dwAddr -- 数据地址
+//       bytes -- 字节数
+//       pos -- 数据地址
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
 s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
 {
-    struct umedia *um = (struct umedia *)core->vol;
     struct uesz esz = {0};
     s64 unit;
     u32 erases, offset;
     s32 left = bytes;
 
     esz.unit = 1;
-    unit = (pos >> um->usz) + core->MStart;
-    offset = pos & ((1 << um->usz)-1); // unit内偏移
+    unit = (pos / core->bufsz) + core->MStart;
+    offset = pos & (core->bufsz-1); // unit内偏移
     __embed_req(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
     {
-        if(__embed_req(remain, (ptu32_t)&erases, (ptu32_t)&unit))
+        if(__embed_req(remain, (ptu32_t)&erases, (ptu32_t)&unit))       //获取当前页在所在块中的位置
         {
             printf("\r\n: erro : xipfs  : erase unit %lld failed, cannot get remain.", unit);
             return (-1);
@@ -243,8 +244,8 @@ s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
         }
 
         erases++; // 擦除增一，表示包括当前的unit
-        left -= ((erases << um->usz) - offset);
-        unit += erases;
+        left -= ((erases * core->bufsz) - offset);
+        unit += erases;     //加erases等于下一块的第一页
         offset = 0;
     }
 

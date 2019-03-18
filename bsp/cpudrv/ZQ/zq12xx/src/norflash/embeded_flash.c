@@ -57,7 +57,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
+//    s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
 //    ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
@@ -478,7 +478,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
         case format:                                  //格式
         {
             va_list list;
-            u32 start, end;
+            s32 start,end;
             struct uesz *sz;
 
             start = (u32)args;
@@ -612,18 +612,18 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend)
+s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
-    u32 units, total = 0,endblock = bend;
     char *FullPath,*notfind;
     struct obj *targetobj;
     struct FsCore *super;
     s32 res;
+    s32 BlockNum;
 
     targetobj = obj_matchpath(fs, &notfind);
     if(notfind)
     {
-        error_printf("embed"," not found need to install file system.");
+        error_printf("spiflash"," not found need to install file system.");
         return -1;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
@@ -639,40 +639,24 @@ s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend)
         error_printf("embed"," \"%s\" file system type nonsupport", super->pFsType->pType);
         return -1;
     }
-    if(-1 == (s32)endblock)
-        endblock = bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
 
-    do
+    if(bend == -1)
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, --endblock))
-        {
-            return (-1);
-        }
-
-        total += units;     //计算该分区一共有多少页
+        bend = sp_tFlashDesrc->ToltalBlock;
+        BlockNum = bend - bstart;
     }
-    while(endblock!=bstart);
-
-    super->AreaSize = total * sp_tFlashDesrc->BytesPerPage;
-    endblock = 0;
-    total = 1;
-
-    while(endblock<bstart)
+    else
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, endblock++))
-        {
-            return (-1);
-        }
-
-        total += units;
+        BlockNum = bend - bstart;
     }
-    super->MediaStart = total; // 起始unit号
+    super->AreaSize = BlockNum * sp_tFlashDesrc->BytesPerBlock;
+    super->MediaStart = bstart * sp_tFlashDesrc->PagesPerBlock; // 起始unit号
 
-    res = strlen(EmflashName) + strlen(s_ptDeviceRoot->name) + 1;
+    res = strlen(EmflashName)+strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);   //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);      //获取设备的全路径
+    FsBeMedia(FullPath,fs);     //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
@@ -751,9 +735,8 @@ bool_t Module_Install_Update()
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
+s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
 {
-    struct uopt opt;
     static u8 emflashinit = 0;
     u32 units;
 
@@ -784,24 +767,7 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 do
             return (-1);
         }
 
-        opt.hecc = 1;
-        opt.main = 1;
-        opt.necc = 1;
-        opt.secc = 0;
-        opt.spare = 0;
-
-        if(-1 == bend)
-            bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
-
-        emflash_um->asz = sp_tFlashDesrc->TotalPages * sp_tFlashDesrc->BytesPerPage;
-        emflash_um->esz = 0; // 各个区域不同
-        //um->usz = log2(embeddescription->BytesPerPage);
-        emflash_um->usz = 8;  //每页改为256字节
-        emflash_um->merase = __embed_erase;
-        emflash_um->mread = __embed_read;
         emflash_um->mreq = __embed_req;
-        emflash_um->mwrite = __embed_write;
-        emflash_um->opt = opt;
         emflash_um->type = embed;
         emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
 

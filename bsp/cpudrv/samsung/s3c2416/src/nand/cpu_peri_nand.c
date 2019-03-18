@@ -58,6 +58,14 @@
 #include <device/flash/flash.h>
 #include <cpu_peri.h>
 #include <djyos.h>
+#include <device/include/unit_media.h>
+#include <board.h>
+#include <libc/misc/ecc/ecc_256.h>
+#include <efs.h>
+#include <dbug.h>
+#include <filesystems.h>
+#include <math.h>
+#include "stm32f7xx_hal_conf.h"
 
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -65,7 +73,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    ModuleInstall_NAND(CFG_NAND_CHIP_NAME,CFG_NAND_FLAG,CFG_NAND_START_BLOCK);
+//    extern s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
+//    ModuleInstall_NAND(CFG_NFLASH_FSMOUNT_NAME, CFG_NFLASH_PART_START, CFG_NFLASH_PART_END, CFG_NFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -88,20 +97,23 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header                      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_NAND_START_BLOCK               //****检查参数是否已经配置好
+#ifndef CFG_NFLASH_FSMOUNT_NAME               //****检查参数是否已经配置好
 #warning    cpu_peri_nand组件参数未配置，使用默认值
-//%$#@num,0,100,
-#define CFG_NAND_START_BLOCK        (0)         //"nand文件系统使用的起始块",
-#define CFG_NAND_FLAG               (2)         //"标记，2为使用buffer，1为擦除nand",
-//%$#@enum,true,false,
+//%$#@num,-1,10000,
+#define CFG_NFLASH_PART_START      0      //分区起始，填写块号，块号从0开始计算
+#define CFG_NFLASH_PART_END        -1     //分区结束，-1表示最后一块
 //%$#@string,1,10,
-#define CFG_NAND_CHIP_NAME          ("nand")         //"芯片名称",用于注册到系统时的标识
+#define CFG_NFLASH_FSMOUNT_NAME     "yaf2" //需安装的文件系统的mount的名字
+//%$#@enum_config
+//%$#@enum,true,false,
+#define CFG_NFLASH_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+//上面的分区起始和分区结束我写的是-1到10000，具体数值可根据具体芯片参数填写
 
 #define NAND_CONTROLLER_REG                 (pg_nand_reg)
 #define NandChipOn()                        (NAND_CONTROLLER_REG->NFCONT &= ~(1<<1))
@@ -111,8 +123,24 @@
 #define SetNandData(data)                   (NAND_CONTROLLER_REG->NFDATA = data)
 #define GetNandData()                       (NAND_CONTROLLER_REG->NFDATA)
 
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend);
+s32 __nand_req(enum ucmd cmd, ptu32_t args, ...);
+s32 __nand_read(s64 unit, void *data, struct uopt opt);
+s32 __nand_write(s64 unit, void *data, struct uopt opt);
+s32 __nand_erase(s64 unit, struct uesz sz);
+static u32 *badstable = NULL;
+static u32 badslocation = 0;
+
+#define NFlashLockTimeOut     CN_CFG_TICK_US * 1000 * 10
+extern s32 deonfi(const char *data, struct NandDescr *onfi, u8 little);
+extern struct yaffs_driver YAF_NAND_DRV;
+extern struct __efs_drv EFS_NAND_DRV;
 extern struct obj *s_ptDeviceRoot;
 static struct NandDescr *s_ptNandInfo;
+static struct MutexLCB *NandFlashLock;
+struct umedia *nand_umedia;
+static const char *NandFlashName = "nand";      //该flash在obj在的名字
+
 static void ResetNand(void);
 static s32 StatusOfNand(void);
 static void WaitNandReady(void);
@@ -128,6 +156,11 @@ s32 S3C2416_SpareProgram(u32 PageNo, const u8 *Data)
     u32 i;
     s32 Ret;
     u32 SpareOffset = s_ptNandInfo->BytesPerPage;
+
+    if(Lock_MutexPend(NandFlashLock, NFlashLockTimeOut) == false)
+    {
+        return (-2);
+    }
 
     NandChipOn();
 
@@ -152,8 +185,11 @@ s32 S3C2416_SpareProgram(u32 PageNo, const u8 *Data)
     NandChipOff();
 
     if(Ret)
+    {
+        Lock_MutexPost(NandFlashLock);
         return (-2);
-
+    }
+    Lock_MutexPost(NandFlashLock);
     return (s_ptNandInfo->OOB_Size);
 }
 //-----------------------------------------------------------------------------
@@ -167,6 +203,11 @@ s32 S3C2416_SpareRead(u32 PageNo, u8 *Data)
     u8 i;
     s32 Ret;
     u32 SpareOffset = s_ptNandInfo->BytesPerPage;
+
+    if(Lock_MutexPend(NandFlashLock, NFlashLockTimeOut) == false)
+    {
+        return (-2);
+    }
 
     NandChipOn();
 
@@ -191,8 +232,11 @@ s32 S3C2416_SpareRead(u32 PageNo, u8 *Data)
     NandChipOff();
 
     if(Ret)
+    {
+        Lock_MutexPost(NandFlashLock);
         return (-2);
-
+    }
+    Lock_MutexPost(NandFlashLock);
     return (s_ptNandInfo->OOB_Size);
 }
 
@@ -213,6 +257,11 @@ s32  S3C2416_PageProgram(u32 PageNo, const u8 *Data, u32 Flags)
     s32 Ret;
     u8 *Spare;
 
+    if(Lock_MutexPend(NandFlashLock, NFlashLockTimeOut) == false)
+    {
+        return (-2);
+    }
+
     // ECC 功能
     Ret = NAND_CONTROLLER_REG->NFMECC0;//测试
     switch (Flags & MASK_ECC)
@@ -229,7 +278,9 @@ s32  S3C2416_PageProgram(u32 PageNo, const u8 *Data, u32 Flags)
             NAND_CONTROLLER_REG->NFCONT |= (1<<7);// 关闭Main ECC
             break;
         }
-        default :return (-1);
+        default :
+            Lock_MutexPost(NandFlashLock);
+            return (-1);
     }
 
     NandChipOn();
@@ -255,10 +306,16 @@ s32  S3C2416_PageProgram(u32 PageNo, const u8 *Data, u32 Flags)
     NandChipOff();
 
     if(Ret)
+    {
+        Lock_MutexPost(NandFlashLock);
         return (-2);
+    }
 
     if (!((SPARE_REQ & Flags) || (HW_ECC & Flags)))
+    {
+        Lock_MutexPost(NandFlashLock);
         return (s_ptNandInfo->BytesPerPage);// 只写页,结束退出
+    }
 
     Spare = (u8*)Data + s_ptNandInfo->BytesPerPage;// 注意：这里是基于驱动都有统一的缓冲块逻辑
 
@@ -274,8 +331,12 @@ s32  S3C2416_PageProgram(u32 PageNo, const u8 *Data, u32 Flags)
         memset(Spare, 0xFF, EccOffset);// 未要求写spare,则默认写0xFF
 
     if(-2 == S3C2416_SpareProgram(PageNo, Spare))
+    {
+        Lock_MutexPost(NandFlashLock);
         return (-2);
+    }
 
+    Lock_MutexPost(NandFlashLock);
     return (s_ptNandInfo->BytesPerPage + s_ptNandInfo->OOB_Size);
 }
 //-----------------------------------------------------------------------------
@@ -295,6 +356,10 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
     s32 Ret;
     u8 *Spare;
 
+    if(Lock_MutexPend(NandFlashLock, NFlashLockTimeOut) == false)
+    {
+        return (-2);
+    }
     // ecc 功能
     switch (Flags & MASK_ECC)
     {
@@ -310,7 +375,9 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
             NAND_CONTROLLER_REG->NFCONT |= (1<<7);// 关闭Main ECC
             break;
         }
-        default : return (-1);
+        default :
+            Lock_MutexPost(NandFlashLock);
+            return (-1);
     }
 
     NandChipOn();
@@ -336,10 +403,16 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
     NandChipOff();
 
     if(Ret)
+    {
+        Lock_MutexPost(NandFlashLock);
         return (-2);
+    }
 
     if (!((SPARE_REQ & Flags) || (HW_ECC & Flags)))
+    {
+        Lock_MutexPost(NandFlashLock);
         return (s_ptNandInfo->BytesPerPage);// 只读页,结束退出
+    }
 
     Spare = Data + s_ptNandInfo->BytesPerPage;// 注意：这里是基于驱动都有统一的缓冲块逻辑
 
@@ -347,7 +420,10 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
         NAND_CONTROLLER_REG->NFCONT |= (1<<7);// 关闭(锁)Mian ECC
 
     if(-2 == S3C2416_SpareRead(PageNo, Spare))
+    {
+        Lock_MutexPost(NandFlashLock);
         return (-2);
+    }
 
     if(HW_ECC & Flags)
     {
@@ -376,11 +452,12 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
                 case 2:// 错误位太多, 不可纠错
                 case 3:// ECC计算错误
                     TraceDrv(FLASH_TRACE_DEBUG, "cannot be fixed");
+                    Lock_MutexPost(NandFlashLock);
                     return (-3);
             }
         }
     }
-
+    Lock_MutexPost(NandFlashLock);
     return (s_ptNandInfo->BytesPerPage + s_ptNandInfo->OOB_Size);
 
 }
@@ -394,6 +471,11 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
 s32 S3C2416_BlockErase(u32 BlkNo)
 {
     s32 Ret;
+
+    if(Lock_MutexPend(NandFlashLock, NFlashLockTimeOut) == false)
+    {
+        return (-1);
+    }
 
     NandChipOn();
 
@@ -411,7 +493,7 @@ s32 S3C2416_BlockErase(u32 BlkNo)
     Ret = StatusOfNand();
 
     NandChipOff();
-
+    Lock_MutexPost(NandFlashLock);
     return (Ret);
 }
 
@@ -523,7 +605,7 @@ static s32 S3C2416_GetNandDescr(struct NandDescr *Descr)
 
 //  PrintBuf(OnfiBuf, 786);//测试
 
-    if(DecodeONFI((const char*)OnfiBuf, Descr, 0))
+    if(deonfi((const char*)OnfiBuf, Descr, 0))
         Ret = -1;
 
     free (OnfiBuf);
@@ -566,85 +648,75 @@ static void  S3C2416_NAND_ControllerConfig(void)
     ResetNand();
 }
 //-----------------------------------------------------------------------------
-//功能:
-//参数: ChipName --
-//      Clean -- 器件格式化;"1"--是;"0"--否。
-//返回: "0" -- 成功;
-//      "-1" -- 输入参数错误;
-//      "-2" -- 内存不足;
-//      "-3" -- 设备信息获取失败。
-//备注:
+// 功能：安装nand驱动
+// 参数：  TargetFs -- 要挂载的文件系统
+//      parts -- 分区数；
+//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
+//      分区数据 -- 起始块，结束块数（擦除时不包括该块，只擦到该块的上一块），是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_NAND(const char *ChipName, u32 Flags, u16 StartBlk)
+s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
 {
-    /*逻辑:
-       1.芯片管脚等基本设置;
-       2.(包括判断逻辑)获取芯片的信息;
-       3.在dev分支下建立NAND节点;
-       4.初始化NAND节点,包括FLASH的操作函数;
-    */
-    u32 Len;
-    struct FlashChip *Chip;
-    struct NandDescr ChipDesrc = {0};
-
-    if (NULL == ChipName)
+    char name[16], part[3];
+    static s32 count = 0;
+    static u8 nandinit = 0;
+    char *FullPath;
+    if(!s_ptNandInfo)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "unavailable param! \r\n");
-        return (-1);
+        if(__nand_init())
+        {
+            printf("\r\n: erro : device : nand initialization failed(init).");
+            return (-1);
+        }
     }
 
-    S3C2416_NAND_ControllerConfig();// 芯片管脚等基本配置
-
-    // 获取NAND信息
-    if(S3C2416_GetNandDescr(&ChipDesrc))
+    if(doformat)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "解析NAND信息失败\r\n");
-        return (-3);
+        struct uesz sz;
+        sz.unit = 0;
+        sz.block = 1;
+        __nand_req(format, bstart , bcount, &sz);
     }
 
-    if(StartBlk >= ChipDesrc.BlksPerLUN * ChipDesrc.LUNs)
-        return (-1);
-
-    ChipDesrc.ReservedBlks = StartBlk;
-    ChipDesrc.Controller = HW_ECC_SUPPORTED;
-    ChipDesrc.BadMarkOffset = ChipDesrc.OOB_Size - 4 - 1;
-    Len = strlen (ChipName) + 1;
-
-    Chip = (struct FlashChip*)malloc(sizeof(struct FlashChip) + Len);
-    if (NULL == Chip)
+    if(!badstable)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-        return (-2);
+        badstable = nandbuildbads(__nand_req);
+        if(!badstable)
+        {
+            printf("\r\n: erro : device : nand initialization failed(bad table).");
+            return (-1);
+        }
     }
 
-    memset (Chip, 0x00, sizeof(*Chip));
-
-    Chip->Type            = F_NAND;
-    Chip->Descr.Nand      = ChipDesrc;
-    Chip->Ops.RdPage      = S3C2416_PageRead;
-    Chip->Ops.WrPage      = S3C2416_PageProgram;
-    Chip->Ops.ErsBlk      = S3C2416_BlockErase;
-    Chip->Ops.Special.Nand.ChkBlk = S3C2416_BadChk;
-    Chip->Ops.Special.Nand.MrkBad = S3C2416_BadMark;
-
-    strcpy(Chip->Name, ChipName);// 设备名
-
-    s_ptNandInfo = &(Chip->Descr);
-
-    Chip->Buf = (u8*)malloc(s_ptNandInfo->OOB_Size + s_ptNandInfo->BytesPerPage);// NAND底层缓冲
-    if(NULL == Chip->Buf)
+    if(nandinit == 0)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-        free(Chip);
-        return (-2);
+        nand_umedia = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
+        if(!nand_umedia)
+            return (-1);
+
+        nand_umedia->mreq = __nand_req;
+        nand_umedia->type = nand;
+        nand_umedia->ubuf = (u8*)um + sizeof(struct umedia);
+
+        if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
+        {
+            printf("\r\n: erro : device : %s addition failed.", NandFlashName);
+            free(nand_umedia);
+            return (-1);
+        }
+        nandinit = 1;
     }
 
-    dev_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip);// 设备接入"/dev"
+    if(TargetFs != NULL)
+    {
+        if(__nand_FsInstallInit(TargetFs, bstart, bend))
+        {
+            return -1;
+        }
+    }
 
-    if(Flags & FLASH_ERASE_ALL)
-        EarseWholeChip(Chip);
-
-    return (0);// 成功;
+    return (0);
 }
 /******************************************************************************
                          PRIVATE FUNCTION(本地私有函数)
@@ -706,7 +778,7 @@ static void __WaitEccDone(void)
 {
     ;//1-bit ECC 没有判断的位
 }
-#if 1
+#if 0
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
@@ -982,14 +1054,6 @@ void ChipRawTest(void)
     while(1);
 }
 #else
-#include <device/include/unit_media.h>
-
-static s32 __nand_read(s64 unit, void *data, struct uopt opt);
-static s32 __nand_write(s64 unit, void *data, struct uopt opt);
-static s32 __nand_erase(s64 unit, struct uesz sz);
-static u32 *badstable;
-static u32 badslocation = 0;
-
 
 // ============================================================================
 // 功能：nand 命令
@@ -1077,10 +1141,16 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
             break;
         }
 
+        case markbad:
+        {
+            res = S3C2416_BadMark((u32)args); // args = block
+            break;
+        }
+
         case format:
         {
             va_list list;
-            u32 start, end;
+            s32 start, end;
             u8 *tmp, escape = 0;
             struct uesz *sz;
             struct uopt opt = {0};
@@ -1104,14 +1174,12 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
                 if(nandvalidbads((u32*)tmp))
                     escape = 1; // 存在坏块表，不擦除；
 
-                if(-1==(s32)end)
+                if(-1 == (s32)end)
                     end = s_ptNandInfo->BlksPerLUN * s_ptNandInfo->LUNs;
-                else if (start)
-                    end += start;
 
                 do
                 {
-                    if((badslocation==(--end))&&escape) // 坏块表在第一页
+                    if((badslocation == (--end)) && escape) // 坏块表在第一页
                         continue;
 
                     if(__nand_erase((s64)end, *sz))
@@ -1145,7 +1213,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
 // 返回：成功 -- （0）；失败 -- （-1）
 // 备注：
 // ============================================================================
-static s32 __nand_read(s64 unit, void *data, struct uopt opt)
+s32 __nand_read(s64 unit, void *data, struct uopt opt)
 {
     u32 flags = 0;
     s32 res;
@@ -1199,7 +1267,7 @@ static s32 __nand_read(s64 unit, void *data, struct uopt opt)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __nand_write(s64 unit, void *data, struct uopt opt)
+s32 __nand_write(s64 unit, void *data, struct uopt opt)
 {
     u32 flags = 0;
     s32 res;
@@ -1251,7 +1319,7 @@ static s32 __nand_write(s64 unit, void *data, struct uopt opt)
 // 返回：成功 -- （0）；失败 -- （-1）
 // 备注：
 // ============================================================================
-static s32 __nand_erase(s64 unit, struct uesz sz)
+s32 __nand_erase(s64 unit, struct uesz sz)
 {
     u32 block;
 
@@ -1288,7 +1356,7 @@ static s32 __nand_init(void)
         s_ptNandInfo = NULL;
         return (-1);
     }
-
+    NandFlashLock = Lock_MutexCreate("Nand Flash Lock");        //创建nand的互斥锁
     s_ptNandInfo->ReservedBlks = 0;
     s_ptNandInfo->Controller = HW_ECC_SUPPORTED;
     s_ptNandInfo->BadMarkOffset = s_ptNandInfo->OOB_Size - 4 - 1;
@@ -1296,92 +1364,61 @@ static s32 __nand_init(void)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
+// 功能：把nand和文件系统关联起来
+// 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
+//       bstart -- 起始块，bend -- 结束块数（不包括该块，只到该块的上一块）
+// 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __nand_part_init(const char *fs,s32 MountPart,u32 bstart, u32 bcount, u32 doformat)
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
-    struct umedia *um;
-    struct uopt opt;
-    char name[16], part[3];
-    static s32 count = 0;
-    char *FullPath;
-    if(!s_ptNandInfo)
+    char *FullPath,*notfind;
+    struct obj *targetobj;
+    struct FsCore *super;
+    s32 res,BlockNum;
+    targetobj = obj_matchpath(fs, &notfind);
+    if(notfind)
     {
-        if(__nand_init())
-        {
-            printf("\r\n: erro : device : nand initialization failed(init).");
-            return (-1);
-        }
+        error_printf("nand"," not found need to install file system.");
+        return -1;
     }
-
-    if(doformat)
+    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super->MediaInfo = nand_umedia;
+    if(strcmp(super->pFsType->pType, "YAF2") == 0)      //这里的"YAF2"为文件系统的类型名，在文件系统的filesystem结构中
     {
-        struct uesz sz;
-        sz.unit = 0;
-        sz.block = 1;
-        __nand_req(format, bstart , bcount, &sz);
+        super->MediaDrv = &YAF_NAND_DRV;
     }
-
-    if(!badstable)
+    else if(strcmp(super->pFsType->pType, "EFS") == 0)
     {
-        badstable = nandbuildbads(__nand_req);
-        if(!badstable)
-        {
-            printf("\r\n: erro : device : nand initialization failed(bad table).");
-            return (-1);
-        }
-    }
-
-    um = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
-    if(!um)
-        return (-1);
-
-    opt.hecc = 0;
-    opt.main = 1;
-    opt.necc = 1;
-    opt.secc = 0;
-    opt.spare = 1;
-    if(-1 == (s32)bcount)
-    {
-        bcount = s_ptNandInfo->BlksPerLUN * s_ptNandInfo->LUNs;
-        bcount -= bstart;
-        um->asz = s_ptNandInfo->BytesPerPage * s_ptNandInfo->PagesPerBlk * bcount;
+        super->MediaDrv = &EFS_NAND_DRV;
     }
     else
     {
-        um->asz = s_ptNandInfo->BytesPerPage * s_ptNandInfo->PagesPerBlk * bcount;
+        super->MediaDrv = 0;
+        error_printf("nand"," \"%s\" file system type nonsupport", super->pFsType->pType);
+        return -1;
     }
 
-    um->esz = log2(s_ptNandInfo->BytesPerPage * s_ptNandInfo->PagesPerBlk); //
-    um->usz = log2(s_ptNandInfo->BytesPerPage);
-    um->merase = __nand_erase;
-    um->mread = __nand_read;
-    um->mreq = __nand_req;
-    um->mwrite = __nand_write;
-    um->opt = opt;
-    um->type = nand;
-    um->ubuf = (u8*)um + sizeof(struct umedia);
-    um->ustart = bstart*s_ptNandInfo->PagesPerBlk; // 起始unit号
-    itoa(count, part, 10);
-    sprintf(name, "nand part %s", part);
-    if(um_add((const char*)name, um))
+    if(-1 == (s32)bend)
     {
-        printf("\r\n: erro : device : %s addition failed.", name);
-        return (-1);
+        bend = s_ptNandInfo->BlksPerLUN * s_ptNandInfo->LUNs;
+        BlockNum = bend - bstart;
     }
-    if(MountPart == count)
+    else
     {
-        FullPath = malloc(strlen(name)+strlen(s_ptDeviceRoot->name));
-        sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,name);
-        FsBeMedia(FullPath,fs);
-        free(FullPath);
+        BlockNum = bend - bstart;
     }
-    count++;
-    printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, bstart, bcount);
+    super->AreaSize = s_ptNandInfo->BytesPerPage * s_ptNandInfo->PagesPerBlk * BlockNum;
+    super->MediaStart = bstart*s_ptNandInfo->PagesPerBlk; // 起始unit号
+
+    res = strlen(NandFlashName)+strlen(s_ptDeviceRoot->name) + 1;
+    FullPath = malloc(res);
+    memset(FullPath, 0, res);
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandFlashName); //获取该设备的全路径
+    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    free(FullPath);
+
+    printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
     return (0);
 }
 
-#endif

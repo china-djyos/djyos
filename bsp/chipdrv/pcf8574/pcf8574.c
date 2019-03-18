@@ -3,7 +3,7 @@
 #include <Legacy/stm32_hal_legacy.h>
 #include <stddef.h>
 #include <stdint.h>
-//#include <stm32f7xx_hal_conf.h>
+#include <stm32f7xx_hal_conf.h>
 #include <systime.h>
 #include "iicbus.h"
 #include "board.h"
@@ -23,7 +23,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"ioiicbus"         //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -40,7 +40,6 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_PCF8574_BUS_NAME       "IoIic"        //"name"
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 //%$#@end configue  ****参数配置结束
@@ -134,12 +133,3 @@ bool_t ModuleInstall_PCF8574(char *BusName)
     return false;
 }
 
-bool_t ETH_RESE(void)
-{
-    PCF8574_Pin_Init();
-    PCF8574_WriteBit(ETH_RESET_IO,1);
-    Djy_DelayUs(100*mS);
-    PCF8574_WriteBit(ETH_RESET_IO,0);
-    Djy_DelayUs(100*mS);
-    return true;
-}

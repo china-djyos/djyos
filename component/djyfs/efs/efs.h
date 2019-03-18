@@ -65,14 +65,6 @@ extern "C" {
 #define BUFBITS                 (8)
 #define KEYLEN                  (6) // 文件key值大小；
 //
-// efs文件系统对flash的操作函数集
-//
-struct __efs_drv{
-    s32 (*efs_write_media) (struct __ecore *core, s64 units, void *buf);
-    s32 (*efs_read_media) (struct __ecore *core, s64 units, void *buf);
-    s32 (*efs_erase_media) (struct __ecore *core, s64 units, s64 size);
-};
-//
 // 文件系统控制结构体
 //
 struct __ecore{
@@ -87,9 +79,19 @@ struct __ecore{
     u32 fsz; // 文件块容量;（块对齐，以unit为单位）；
     s64 MStart;             // 在媒体中的起始unit,unit为单位；
     s64 ASize;               // 所在区域的总大小；Byte为单位；
-    struct umedia *media;
+    s32 pagesize; // unit单位大小, pagesize = log2(flash_page_size);
+    s32 blacksize; // 可擦除的单位大小，blacksize = log2(flash_black_size);
     struct MutexLCB *mutex;
     struct __efs_drv *drv;
+};
+
+//
+// efs文件系统对flash的操作函数集
+//
+struct __efs_drv{
+    s32 (*efs_write_media) (struct __ecore *core, s64 units, void *buf);
+    s32 (*efs_read_media) (struct __ecore *core, s64 units, void *buf);
+    s32 (*efs_erase_media) (struct __ecore *core, s64 units, s64 size);
 };
 
 //

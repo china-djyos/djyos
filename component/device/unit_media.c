@@ -114,7 +114,7 @@ static void __um_stats(enum ustatstype type)
 {
     ;
 }
-#endif
+
 
 // ============================================================================
 // 功能：打开unit media设备文件;
@@ -438,3 +438,4 @@ s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat)
     va_end(list);
     return (res);
 }
+#endif

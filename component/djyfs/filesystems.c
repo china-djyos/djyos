@@ -58,6 +58,7 @@
 #include "dbug.h"
 #include "component_config_fs.h"
 #include <device.h>
+#include <dirent.h>
 
 
 static char __DJYFS_PATH_BUFFER[DJYFS_PATH_BUFFER_SIZE];
@@ -133,6 +134,7 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 {
     struct FsCore *super;
     struct obj *me;
+    struct objhandle *hdl;
     fnObjOps MyOps;
     s32 result = CN_OBJ_CMD_EXECUTED;
 
@@ -153,7 +155,15 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                 result = CN_OBJ_CMD_TRUE;
                 break;
             }
-
+            case CN_OBJ_CMD_CLOSE:
+            {
+                hdl = (struct objhandle *)opsTarget;
+                me = hdl->HostObj;
+                super = (struct FsCore *)obj_GetPrivate(me);
+                MyOps = super->pFsType->fileOps;
+                result = MyOps(opsTarget, objcmd, OpsArgs1, OpsArgs2, OpsArgs3);
+                break;
+            }
             default:
             {
                 result = CN_OBJ_CMD_UNSUPPORT;
@@ -228,9 +238,10 @@ bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
 // ============================================================================
 bool_t isDirectory(struct objhandle *hdl)
 {
-    mode_t mymode;
-    mymode = handle_GetHostObjectPrivate(hdl);
-    return S_ISDIR(mymode);
+//    mode_t mymode;
+//    mymode = handle_GetHostObjectPrivate(hdl);
+//    return S_ISDIR(mymode);
+    return test_directory(hdl->flags);
 }
 
 
@@ -261,7 +272,6 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
     struct filesystem *fstype;
     struct FsCore *super;
     struct obj *targetobj, *tmpobj;
-//    s32 res;
     char *notfind;
 
     fstype = __findtype(type);
@@ -306,6 +316,39 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
     return (0);
 }
 
+//-----------------------------------------------------------------------------
+//功能: 格式化文件系统
+//参数:
+//返回: -1 -- 参数错误; -2 -- 文件系统内有文件正在被使用; -3 -- 格式化失败;
+//      0 -- 成功;
+//备注:
+//-----------------------------------------------------------------------------
+s32 Format(const char *MountPath)
+{
+    DIR *dir;
+    s32 res = 0;
+    struct objhandle *hdl;
+    struct obj *ob;
+    struct FsCore *super;
+    struct filesystem *pFsType;
+
+    if(!MountPath)
+        return (-1);
+
+    dir = opendir(MountPath);
+    if(!dir)
+        return (-1);
+    hdl = (struct objhandle*)(dir->__fd); // 目录的上下文
+    ob = hdl->HostObj;      // 目录的节点
+    if(!obj_isMount(ob))
+        return (-1);
+    super = (struct FsCore*)ob->ObjPrivate;
+    pFsType = super->pFsType;
+    res = pFsType->format(super->pCore);
+    closedir(dir);
+
+    return res;
+}
 // ============================================================================
 // 功能：获取文件系统对象（集合点）的管理体
 // 参数：ob -- 文件系统对象集合；
@@ -382,3 +425,4 @@ void FsBeMedia(const char *source, const char *target)
     }
 
 }
+
