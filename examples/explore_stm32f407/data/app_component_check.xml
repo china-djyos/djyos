@@ -16,9 +16,10 @@
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <IAP>false</IAP>
+  <xip_app>false</xip_app>
+  <xip_iboot>false</xip_iboot>
   <filesystem>true</filesystem>
-  <ascii_font>false</ascii_font>
+  <ascii_dot>false</ascii_dot>
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
   <gdd>false</gdd>
@@ -33,6 +34,7 @@
   <multiplex>true</multiplex>
   <shell>true</shell>
   <stdio>true</stdio>
+  <tcp>false</tcp>
   <tcpip>false</tcpip>
   <timer>false</timer>
   <wdt>false</wdt>
@@ -46,6 +48,7 @@
   <MemoryPool>true</MemoryPool>
   <time>true</time>
   <board>true</board>
+  <netconfig>false</netconfig>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
@@ -56,6 +59,7 @@
   <lpc12xx>false</lpc12xx>
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
+  <scm6xx>false</scm6xx>
   <Sharc21469>false</Sharc21469>
   <silan>false</silan>
   <sldrv>false</sldrv>
@@ -68,6 +72,7 @@
   <fatfilesystem>false</fatfilesystem>
   <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
@@ -82,6 +87,7 @@
   <zlib>false</zlib>
   <Clib>true</Clib>
   <at24c02>false</at24c02>
+  <lan8720>false</lan8720>
   <cpu_peri_dma>true</cpu_peri_dma>
   <cpu_peri_emflash>false</cpu_peri_emflash>
   <cpu_peri_eth>false</cpu_peri_eth>
