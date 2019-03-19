@@ -257,7 +257,7 @@ struct ClienCB
     //the send window member
     u16                       mss;         //you could send the most data one time
     u8                        sndwndscale; //the remote window scale,update by the handshake
-    s32                       cwnd;        //the conggest avoiding window
+    s32                       cwnd;        //the congest avoiding window
     s32                       ssthresh;    //slow thresh,default 65535
     s32                       sndwnd;      //the remote receive window,update by the receive frame
     //round trip time measure
@@ -2621,6 +2621,8 @@ static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
         {
             ccb->cwnd += ccb->mss;
         }
+        if(ccb->cwnd < 0)
+            ccb->cwnd = CN_LIMIT_SINT32;
         if(ccb->resndtimes == 0)
         {
             //no resend happens,so measure the rto time

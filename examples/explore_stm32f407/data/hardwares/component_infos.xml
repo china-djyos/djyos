@@ -59,6 +59,7 @@
    <component>/third/firmware/lpc12xx/component_config_lpc12xx.h</component>
    <component>/third/firmware/lpc17xx/component_config_lpc17xx.h</component>
    <component>/third/firmware/NuvotonM480/component_config_NuvotonM480.h</component>
+   <component>/third/firmware/scm6xx/component_config_scm6xx.h</component>
    <component>/third/firmware/Sharc21469/component_config_Sharc21469.h</component>
    <component>/third/firmware/silan/component_config_silan.h</component>
    <component>/third/firmware/sldrv/component_config_sldrv.h</component>
