@@ -64,7 +64,7 @@
 static char __DJYFS_PATH_BUFFER[DJYFS_PATH_BUFFER_SIZE];
 char *DJYFS_PATH_BUFFER = __DJYFS_PATH_BUFFER; // 用于移植的文件系统的路径拼接
 
-
+struct filesystem *pFileSystemTypes;
 // ============================================================================
 // 功能：查找文件系统类型。
 // 参数：pType -- 文件系统类型名。

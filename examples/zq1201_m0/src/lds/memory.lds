@@ -1,5 +1,10 @@
 /*由于MEMORY命令不能使用符号，这些常量的定义，必须与MEMORY命令处一致 */
 
+
+
+/* M0 0--0x20000  dsp 0x20000 -- 0xb0000   CK  0x20000 -- 0xb0000     1.mp3 0x100000 2.mp3 0x110000      */
+
+
 /*为使得iap升级分区方便：*/
 IbootSize = 256k-2k;   /*此处定义应与相应板件的APP的memory.lds中定义一致  */
 FlashOffset = 0x00000800;  /*为兼容APP工程 起始地址 + IbootSize 保证为256字节对齐*/
@@ -25,5 +30,4 @@ MEMORY
     RAM1(RXW)              : org = 0x01000000,             len = 16k  /*0x01000000*/
     ExtRam(RXW)            : org = 0x20000000,             len = 32k  /*0x20008000*/
     SdRam(RXW)             : org = 0x02000000 +  0x80000,  len = 4096k /*0x02000000*/ 
- 
 }

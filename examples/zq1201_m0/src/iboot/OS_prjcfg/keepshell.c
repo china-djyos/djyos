@@ -40,7 +40,4 @@ void keep_shell(void)
 	extern void *djysh_updateiboot;
 	keep = (void *)djysh_updateiboot;
 
-	extern void *djysh_downdsp;
-	keep = (void *)djysh_downdsp;
-
 }

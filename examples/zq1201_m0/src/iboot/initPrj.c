@@ -58,6 +58,7 @@ void Sys_ModuleInit(void)
 	ModuleInstall_IAP( );
 
 	s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
+
 	ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
 
 	extern bool_t ModuleInstall_HardTimer(void);
@@ -69,10 +70,8 @@ void Sys_ModuleInit(void)
 
 	extern bool_t ModuleInstall_Ymodem(void);
 	ModuleInstall_Ymodem();
-
-	extern s32 kernel_command(void);
-	kernel_command();
-
+	bool_t ModuleInstall_App();
+	ModuleInstall_App();
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);

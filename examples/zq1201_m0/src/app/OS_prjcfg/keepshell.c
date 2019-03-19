@@ -22,9 +22,6 @@ void keep_shell(void)
 	extern void *djysh_time;
 	keep = (void *)djysh_time;
 
-	extern void *djysh_downloada;
-	keep = (void *)djysh_downloada;
-
 	extern void *djysh_evtt;
 	keep = (void *)djysh_evtt;
 
@@ -39,8 +36,5 @@ void keep_shell(void)
 
 	extern void *djysh_updateiboot;
 	keep = (void *)djysh_updateiboot;
-
-	extern void *djysh_downdsp;
-	keep = (void *)djysh_downdsp;
 
 }

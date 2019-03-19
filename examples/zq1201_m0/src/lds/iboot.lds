@@ -64,7 +64,7 @@ SECTIONS
     {
     	. = ALIGN(0x04);
         Lock_Cache_Add_Start = .;
-        KEEP(*libos_Iboot.a:norflash.o (.text .text.* .rodata .rodata.*))
+        KEEP(*norflash.o (.text .text.* .rodata .rodata.*))
          . = ALIGN(0x04);
         Lock_Cache_Add_End = .;
     
