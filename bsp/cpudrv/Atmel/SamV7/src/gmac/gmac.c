@@ -1601,7 +1601,7 @@ ADD_TO_ROUTINE_SHELL(macsndhalt,macsndhalt,"usage:MacSndHalt");
 ADD_TO_ROUTINE_SHELL(macsnden,macsnden,"usage:MacSndEn");
 ADD_TO_ROUTINE_SHELL(macsndstart,macsndstart,"usage:MacSndStart");
 ADD_TO_ROUTINE_SHELL(macsnddis,macsnddis,"usage:MacSndDis");
-ADD_TO_ROUTINE_SHELL(macreset,macreset,"usage:reset gmac");
+ADD_TO_ROUTINE_SHELL(macreset,MacReset,"usage:reset gmac");
 ADD_TO_ROUTINE_SHELL(mac,mac,"usage:gmac");
 ADD_TO_ROUTINE_SHELL(macreg,macreg,"usage:gmacreg");
 ADD_TO_ROUTINE_SHELL(macpost,macpost,"usage:gmacpost");

@@ -477,29 +477,29 @@ NODESCERROR:
 
     return result;
 }
-
-u32 ETH_SendData(u8 *buf,u32 len)
-{
-    tagNetPkg          pkg;
-    tagMacDriver      *pDrive;
-
-    pDrive = &gMacDriver;
-
-    pkg.partnext = NULL;
-    pkg.pkgflag  = (1<<0);  //只有一个包
-    pkg.offset   = 0;
-    pkg.datalen  = len;
-    pkg.buf      = buf;
-
-    if(MacSnd(pDrive->devhandle,&pkg,len,0))
-    {
-        return len;
-    }
-    else
-    {
-        return 0;
-    }
-}
+//
+//u32 ETH_SendData(u8 *buf,u32 len)
+//{
+//    tagNetPkg          pkg;
+//    tagMacDriver      *pDrive;
+//
+//    pDrive = &gMacDriver;
+//
+//    pkg.partnext = NULL;
+//    pkg.pkgflag  = (1<<0);  //只有一个包
+//    pkg.offset   = 0;
+//    pkg.datalen  = len;
+//    pkg.buf      = buf;
+//
+//    if(MacSnd(pDrive->devhandle,&pkg,len,0))
+//    {
+//        return len;
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//}
 
 //This is the interrut handler
 
@@ -873,7 +873,7 @@ bool_t macreg(char *param)
     return true;
 }
 
-bool_t macreset(char *param)
+bool_t MacReset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
 
@@ -1084,7 +1084,7 @@ u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
 
 ADD_TO_ROUTINE_SHELL(mac,mac,"usage:gmac");
 ADD_TO_ROUTINE_SHELL(macreg,macreg,"usage:MacReg");
-ADD_TO_ROUTINE_SHELL(macreset,macreset,"usage:reset gmac");
+ADD_TO_ROUTINE_SHELL(macreset,MacReset,"usage:reset gmac");
 ADD_TO_ROUTINE_SHELL(macsnden,macsnden,"usage:MacSndEn");
 ADD_TO_ROUTINE_SHELL(macsnddis,macsnddis,"usage:MacSndDis");
 

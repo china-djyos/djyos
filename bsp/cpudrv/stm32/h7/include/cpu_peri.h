@@ -74,6 +74,7 @@ extern "C" {
 //#include "cpu_peri_rtc.h"
 #include "cpu_peri_nand.h"
 #include "cpu_peri_eth.h"
+#include "get_cpuid.h"
 
 #include "stm32h7xx_hal_tim.h"
 #define InLowPower      0
