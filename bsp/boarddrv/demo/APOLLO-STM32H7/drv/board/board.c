@@ -369,7 +369,6 @@ void FT5X26_Pin_Init(void)
 
 }
 
-#if 0
 void PCF8574_Pin_Init(void)
 {
     GPIO_InitTypeDef GPIO_Initure;
@@ -378,7 +377,7 @@ void PCF8574_Pin_Init(void)
     GPIO_Initure.Pin=GPIO_PIN_12;           //PB12
     GPIO_Initure.Mode=GPIO_MODE_INPUT;      //输入
     GPIO_Initure.Pull=GPIO_PULLUP;          //上拉
-    GPIO_Initure.Speed=GPIO_SPEED_HIGH;     //高速
+    GPIO_Initure.Speed=GPIO_SPEED_FREQ_VERY_HIGH;     //高速
     HAL_GPIO_Init(GPIOB,&GPIO_Initure);     //初始化
 
     //IIC初始化
@@ -387,7 +386,7 @@ void PCF8574_Pin_Init(void)
     GPIO_Initure.Pin=GPIO_PIN_4|GPIO_PIN_5;
     GPIO_Initure.Mode=GPIO_MODE_OUTPUT_PP;  //推挽输出
     GPIO_Initure.Pull=GPIO_PULLUP;          //上拉
-    GPIO_Initure.Speed=GPIO_SPEED_FAST;     //快速
+    GPIO_Initure.Speed=GPIO_SPEED_FREQ_VERY_HIGH;     //快速
     HAL_GPIO_Init(GPIOH,&GPIO_Initure);
 
 
@@ -399,7 +398,6 @@ void PCF8574_Pin_Init(void)
 //    PCF8574_WriteOneByte(0XFF);             //默认情况下所有IO输出高电平
 //    return temp;
 }
-#endif
 
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 {
