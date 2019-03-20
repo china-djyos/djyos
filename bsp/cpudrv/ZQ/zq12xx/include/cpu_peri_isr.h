@@ -65,7 +65,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include "cpu_peri.h"
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "silan_irq.h"
 #include "silan_pic_regs.h"
 #endif

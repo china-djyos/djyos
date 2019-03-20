@@ -29,6 +29,8 @@
 //%$#@num,0,100
 //%$#@enum,true,false
 //%$#@string,1,16
+//%$#@SYMBOL
+#define CFG_CPU_ZQ12XX_CK
 //%$#@select
 //%$#@free
 //#endif

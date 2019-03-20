@@ -56,7 +56,7 @@
 //%$#@end exclude   ****ื้ผþร่ส๖ฝแส๘
 //@#$%component end configure
 
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 
 #if 0
 typedef struct _RTC_

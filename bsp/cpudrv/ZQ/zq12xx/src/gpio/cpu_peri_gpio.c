@@ -22,75 +22,75 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018锛岃憲浣滄潈鐢遍兘姹熷牥鎿嶄綔绯荤粺寮�婧愬紑鍙戝洟闃熸墍鏈夈�傝憲浣滄潈浜轰繚鐣欎竴鍒囨潈鍒┿��
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
-// 杩欎唤鎺堟潈鏉℃锛屽湪浣跨敤鑰呯鍚堜笅鍒楁潯浠剁殑鎯呭舰涓嬶紝鎺堜簣浣跨敤鑰呬娇鐢ㄥ強鍐嶆暎鎾湰
-// 杞欢鍖呰鍘熷鐮佸強浜岃繘浣嶅彲鎵ц褰㈠紡鐨勬潈鍒╋紝鏃犺姝ゅ寘瑁呮槸鍚︾粡鏀逛綔鐨嗙劧锛�
+// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
+// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
 //
-// 1. 瀵逛簬鏈蒋浠舵簮浠ｇ爜鐨勫啀鏁ｆ挱锛屽繀椤讳繚鐣欎笂杩扮殑鐗堟潈瀹ｅ憡銆佹湰鏉′欢鍒楄〃锛屼互
-//    鍙婁笅杩扮殑鍏嶈矗澹版槑銆�
-// 2. 瀵逛簬鏈浠朵簩杩涗綅鍙墽琛屽舰寮忕殑鍐嶆暎鎾紝蹇呴』杩炲甫浠ユ枃浠朵互鍙婏紡鎴栬�呭叾浠栭檮
-//    浜庢暎鎾寘瑁呬腑鐨勫獟浠嬫柟寮忥紝閲嶅埗涓婅堪涔嬬増鏉冨鍛娿�佹湰鏉′欢鍒楄〃锛屼互鍙婁笅杩�
-//    鐨勫厤璐ｅ０鏄庛��
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
+//    及下述的免责声明。
+// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
+//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    的免责声明。
 
-// 鍏嶈矗澹版槑锛氭湰杞欢鏄湰杞欢鐗堟潈鎸佹湁浜轰互鍙婅础鐚�呬互鐜扮姸锛�"as is"锛夋彁渚涳紝
-// 鏈蒋浠跺寘瑁呬笉璐熶换浣曟槑绀烘垨榛樼ず涔嬫媴淇濊矗浠伙紝鍖呮嫭浣嗕笉闄愪簬灏遍�傚敭鎬т互鍙婄壒瀹氱洰
-// 鐨勭殑閫傜敤鎬т负榛樼ず鎬ф媴淇濄�傜増鏉冩寔鏈変汉鍙婃湰杞欢涔嬭础鐚�咃紝鏃犺浠讳綍鏉′欢銆�
-// 鏃犺鎴愬洜鎴栦换浣曡矗浠讳富涔夈�佹棤璁烘璐ｄ换涓哄洜鍚堢害鍏崇郴銆佹棤杩囧け璐ｄ换涓讳箟鎴栧洜闈炶繚
-// 绾︿箣渚垫潈锛堝寘鎷繃澶辨垨鍏朵粬鍘熷洜绛夛級鑰岃捣锛屽浜庝换浣曞洜浣跨敤鏈蒋浠跺寘瑁呮墍浜х敓鐨�
-// 浠讳綍鐩存帴鎬с�侀棿鎺ユ�с�佸伓鍙戞�с�佺壒娈婃�с�佹儵缃氭�ф垨浠讳綍缁撴灉鐨勬崯瀹筹紙鍖呮嫭浣嗕笉闄�
-// 浜庢浛浠ｅ晢鍝佹垨鍔冲姟涔嬭喘鐢ㄣ�佷娇鐢ㄦ崯澶便�佽祫鏂欐崯澶便�佸埄鐩婃崯澶便�佷笟鍔′腑鏂瓑绛夛級锛�
-// 涓嶈礋浠讳綍璐ｄ换锛屽嵆鍦ㄨ绉嶄娇鐢ㄥ凡鑾蜂簨鍓嶅憡鐭ュ彲鑳戒細閫犳垚姝ょ被鎹熷鐨勬儏褰笅浜︾劧銆�
+// 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
+// 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
+// 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
+// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
+// 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
+// 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
+// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
 
-// 鏂囦欢鍚�     锛歝pu_peri_gpio.h
-// 妯″潡鎻忚堪: STM32F7xx鐨凣PIO椹卞姩
-// 妯″潡鐗堟湰:
-// 鍒涘缓浜哄憳:
-// 鍒涘缓鏃堕棿: 10/28.2016
+// 文件名     ：cpu_peri_gpio.h
+// 模块描述: STM32F7xx的GPIO驱动
+// 模块版本:
+// 创建人员:
+// 创建时间: 10/28.2016
 // =============================================================================
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "stdint.h"
 #include "silan_iomux.h"
 #include "cpu_peri_isr.h"
 #include "cpu_peri_gpio.h"
 #include "cpu_peri.h"
 
-#include "project_config.h"     //鏈枃浠剁敱IDE涓厤缃晫闈㈢敓鎴愶紝瀛樻斁鍦ˋPP鐨勫伐绋嬬洰褰曚腑銆�
-                                //鍏佽鏄釜绌烘枃浠讹紝鎵�鏈夐厤缃皢鎸夐粯璁ゅ�奸厤缃��
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-//@#$%component configure   ****缁勪欢閰嶇疆寮�濮嬶紝鐢ㄤ簬 DIDE 涓浘褰㈠寲閰嶇疆鐣岄潰
-//****閰嶇疆鍧楃殑璇硶鍜屼娇鐢ㄦ柟娉曪紝鍙傝婧愮爜鏍圭洰褰曚笅鐨勬枃浠讹細component_config_readme.txt****
-//%$#@initcode      ****鍒濆鍖栦唬鐮佸紑濮嬶紝鐢� DIDE 鍒犻櫎鈥�//鈥濆悗copy鍒板垵濮嬪寲鏂囦欢涓�
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 
-//%$#@end initcode  ****鍒濆鍖栦唬鐮佺粨鏉�
-//%$#@describe      ****缁勪欢鎻忚堪寮�濮�
-//component name:"cpu_peri_gpio" //gpio鎿嶄綔鍑芥暟闆�
-//parent:"none"                  //濉啓璇ョ粍浠剁殑鐖剁粍浠跺悕瀛楋紝none琛ㄧず娌℃湁鐖剁粍浠�
-//attribute:bsp                  //閫夊～鈥渢hird銆乻ystem銆乥sp銆乽ser鈥濓紝鏈睘鎬х敤浜庡湪IDE涓垎缁�
-//select:choosable               //閫夊～鈥渞equired銆乧hoosable銆乶one鈥濓紝鑻ュ～蹇呴�変笖闇�瑕侀厤缃弬鏁帮紝鍒橧DE瑁佸壀鐣岄潰涓粯璁ゅ嬀鍙栵紝
-                                 //涓嶅彲鍙栨秷锛屽繀閫変笖涓嶉渶瑕侀厤缃弬鏁扮殑锛屾垨鏄笉鍙�夌殑锛孖DE瑁佸壀鐣岄潰涓笉鏄剧ず锛�
-//init time:none                 //鍒濆鍖栨椂鏈猴紝鍙�夊�硷細early锛宮edium锛宭ater銆�
-                                 //琛ㄧず鍒濆鍖栨椂闂达紝鍒嗗埆鏄棭鏈熴�佷腑鏈熴�佸悗鏈�
-//dependence:none                //璇ョ粍浠剁殑渚濊禆缁勪欢鍚嶏紙鍙互鏄痭one锛岃〃绀烘棤渚濊禆缁勪欢锛夛紝
-                                 //閫変腑璇ョ粍浠舵椂锛岃渚濊禆缁勪欢灏嗗己鍒堕�変腑锛�
-                                 //濡傛灉渚濊禆澶氫釜缁勪欢锛屽垯渚濇鍒楀嚭
-//weakdependence:"none"          //璇ョ粍浠剁殑寮变緷璧栫粍浠跺悕锛堝彲浠ユ槸none锛岃〃绀烘棤渚濊禆缁勪欢锛夛紝
-                                 //閫変腑璇ョ粍浠舵椂锛岃渚濊禆缁勪欢涓嶄細琚己鍒堕�変腑锛�
-                                 //濡傛灉渚濊禆澶氫釜缁勪欢锛屽垯渚濇鍒楀嚭锛岀敤鈥�,鈥濆垎闅�
-//mutex:"none"                   //璇ョ粍浠剁殑渚濊禆缁勪欢鍚嶏紙鍙互鏄痭one锛岃〃绀烘棤渚濊禆缁勪欢锛夛紝
-                                 //濡傛灉渚濊禆澶氫釜缁勪欢锛屽垯渚濇鍒楀嚭
-//%$#@end describe  ****缁勪欢鎻忚堪缁撴潫
+//%$#@end initcode  ****初始化代码结束
+//%$#@describe      ****组件描述开始
+//component name:"cpu_peri_gpio" //gpio操作函数集
+//parent:"none"                  //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:none                 //初始化时机，可选值：early，medium，later。
+                                 //表示初始化时间，分别是早期、中期、后期
+//dependence:none                //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                 //选中该组件时，被依赖组件将强制选中，
+                                 //如果依赖多个组件，则依次列出
+//weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                 //选中该组件时，被依赖组件不会被强制选中，
+                                 //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                   //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                 //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
 
-//%$#@configue      ****鍙傛暟閰嶇疆寮�濮�
-//%$#@target = header           //header = 鐢熸垚澶存枃浠�,cmdline = 鍛戒护琛屽彉閲忥紝DJYOS鑷湁妯″潡绂佺敤
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***瀹氫箟鏃犲�肩殑瀹忥紝浠呯敤浜庣涓夋柟缁勪欢
+//%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-//%$#@end configue  ****鍙傛暟閰嶇疆缁撴潫
+//%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
 /*Gpio Module*/
@@ -179,7 +179,7 @@ static volatile tagRegBaseInfo s_RegGpioInfo[CN_GPIO_GROUP_NUM] =
 // Function Describe:
 // Config io to input
 // 
-// 閰嶇疆瀵瑰簲 鐨処O涓鸿緭鍏ユā寮�
+// 配置对应 的IO为输入模式
 // =============================================================================
 
 void Gpio_Input_Config(u8 io)
@@ -466,10 +466,10 @@ void Gpio_Clear_Irq(u8 io)
 
 // =============================================================================
 // Function Describe:
-// 璁剧疆澶栭儴涓柇瑙﹀彂妯″紡
-// io:闇�瑕侀厤缃殑io
-// trugleMethod:    杈规部瑙﹀彂 杩樻槸 鐢靛钩瑙﹀彂
-// edgeTrugleMethod:鍏蜂綋鏄珮銆佷綆鐢靛钩瑙﹀彂杩樻槸涓婂崌娌挎垨鑰呬笅闄嶆部瑙﹀彂
+// 设置外部中断触发模式
+// io:需要配置的io
+// trugleMethod:    边沿触发 还是 电平触发
+// edgeTrugleMethod:具体是高、低电平触发还是上升沿或者下降沿触发
 // =============================================================================
 
 void Gpio_Set_Iqr_Mode(u8 io,u8 trugleMethod,u8 edgeTrugleMethod)
@@ -492,35 +492,35 @@ void Gpio_Set_Iqr_Mode(u8 io,u8 trugleMethod,u8 edgeTrugleMethod)
    
     switch(trugleMethod)
     {
-        case EN_EDGE:   //杈规部瑙﹀彂
+        case EN_EDGE:   //边沿触发
              GpioRegBase->GPIO_IS &= ~(1<<byPinRegLoc);
-             if(edgeTrugleMethod == EN_BOTH_EDGE)           //鍙岃竟娌胯Е鍙�
+             if(edgeTrugleMethod == EN_BOTH_EDGE)           //双边沿触发
              {
-                GpioRegBase->GPIO_IBE |= (1<<byPinRegLoc);  //鍙岃竟娌胯Е鍙�
+                GpioRegBase->GPIO_IBE |= (1<<byPinRegLoc);  //双边沿触发
              }
-             else if(edgeTrugleMethod == EN_RISING_EDGE)    //涓婂崌娌胯Е鍙�
+             else if(edgeTrugleMethod == EN_RISING_EDGE)    //上升沿触发
              {
-                 //閫夋嫨涓婂崌娌挎垨鑰呬笅闄嶆部瑙﹀彂
+                 //选择上升沿或者下降沿触发
                  GpioRegBase->GPIO_IBE &= ~(1<<byPinRegLoc);
-                 //閫夋嫨楂樼數骞虫垨鑰呬笂鍗囨部瑙﹀彂
+                 //选择高电平或者上升沿触发
                  GpioRegBase->GPIO_IEV |= (1<<byPinRegLoc);
-             }else if(edgeTrugleMethod == EN_FALLING_EDGE)  //涓嬮檷娌胯Е鍙�
+             }else if(edgeTrugleMethod == EN_FALLING_EDGE)  //下降沿触发
              {
-                 //閫夋嫨涓婂崌娌挎垨鑰呬笅闄嶆部瑙﹀彂
+                 //选择上升沿或者下降沿触发
                  GpioRegBase->GPIO_IBE &= ~(1<<byPinRegLoc);
-                 //閫夋嫨浣庣數骞虫垨鑰呬笅闄嶆部瑙﹀彂
+                 //选择低电平或者下降沿触发
                  GpioRegBase->GPIO_IEV &= ~(1<<byPinRegLoc);
              }
              break;
-        case EN_LEVEL:                                      //鐢靛钩瑙﹀彂
+        case EN_LEVEL:                                      //电平触发
              GpioRegBase->GPIO_IS |= (1<<byPinRegLoc);
 
              if(edgeTrugleMethod == EN_HIGHT_LAVEL_EDGE)
              {
-                GpioRegBase->GPIO_IEV |= (1<<byPinRegLoc); //楂樼數骞宠Е鍙�
+                GpioRegBase->GPIO_IEV |= (1<<byPinRegLoc); //高电平触发
              }else if(edgeTrugleMethod == EN_LOW_LEVEL_EDGE)
              {
-                GpioRegBase->GPIO_IEV &= ~(1<<byPinRegLoc);//浣庣數骞宠Е鍙�
+                GpioRegBase->GPIO_IEV &= ~(1<<byPinRegLoc);//低电平触发
              }
              break;
     }
@@ -530,7 +530,7 @@ void Gpio_Set_Iqr_Mode(u8 io,u8 trugleMethod,u8 edgeTrugleMethod)
 
 // =============================================================================
 // Function Describe:
-// 濠娿倖灏濋崚鍡涱暥闁瀚�
+// 婊ゆ尝鍒嗛閫夋嫨
 // 
 // 
 // =============================================================================
@@ -560,7 +560,7 @@ void Gpio_Io_Filter_Config_Div(u8 io,u8 div)
 
 // =============================================================================
 // Function Describe:
-// Gpio 鎵撳紑铏戞尝閰嶇疆
+// Gpio 打开虑波配置
 // 
 // 
 // =============================================================================
@@ -593,7 +593,7 @@ void Gpio_io_Filter_Open(u8 io)
 
 // =============================================================================
 // Function Describe:
-// 鍏抽棴 Gpio 婊ゆ尝閰嶇疆
+// 关闭 Gpio 滤波配置
 // 
 // 
 // =============================================================================
@@ -623,7 +623,7 @@ void Gpio_io_Filter_Close(u8 io)
 
 // =============================================================================
 // Function Describe:
-// Gpio 澶栭儴涓柇璇锋眰顕�
+// Gpio 外部中断请求
 // 
 // 
 // =============================================================================
@@ -639,8 +639,8 @@ void Register_Gpio_Irq(u8 io,fnGpioHandle_t IsrHandle)
     u8 byPinGroupLoc;
     u8 byGpio;
     volatile tagRegGpio* GpioRegBase  = NULL;
-    u8 intLine;      //涓柇绾�
-    u8 subIntLine;   //瀛愪腑鏂嚎
+    u8 intLine;      //中断线
+    u8 subIntLine;   //子中断线
 
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
@@ -653,7 +653,7 @@ void Register_Gpio_Irq(u8 io,fnGpioHandle_t IsrHandle)
    
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
 
-    //Gpio1 涓�6鍙蜂腑鏂嚎 Gpio2 涓�7鍙� 涓柇绾�
+    //Gpio1 为6号中断线 Gpio2 为7号 中断线
     switch(byPinGroupLoc)
     {
         case EN_GPIO1_INT_LINE:

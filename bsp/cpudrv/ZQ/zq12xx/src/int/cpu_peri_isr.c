@@ -50,7 +50,7 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-#ifdef CFG_CK803S
+#ifdef CFG_CPU_ZQ12XX_CK
 #include <string.h>
 #include "cpu_peri.h"
 #include "int.h"

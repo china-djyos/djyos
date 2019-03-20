@@ -66,7 +66,8 @@
 extern "C" {
 #endif
 
-#ifdef CFG_CORTEX_M0
+#include "board.h"
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "stdint.h"
 #include "cpu_peri_int_line.h"
 #include "cpu_peri_uart.h"
@@ -76,10 +77,9 @@ extern "C" {
 #include <stdint.h>
 #endif
 
-#ifdef CFG_CK803S
+#ifdef CFG_CPU_ZQ12XX_CK
 #include "djyos.h"
 #include "stdio.h"
-#include "board.h"
 #include "core_ck803.h"
 #include "silan_config.h"
 #include "silan_syscfg.h"
