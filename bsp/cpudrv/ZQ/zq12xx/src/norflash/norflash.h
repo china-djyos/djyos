@@ -7,7 +7,7 @@
 
  #define PAGE_SIZE			  (0x100)	    /* 256 byte */
  #define SECTOR_SIZE          (0x1000)      /* 4 Kbyte */
- #define BLOCK_SIZE           (0x10000)
+ #define BLOCK_SIZE           (0x10000)     /* 64 Kbyte */
  #define FLASH_SIZE			  (0x400000)    /* 4 MBytes */
 
 

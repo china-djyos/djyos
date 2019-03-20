@@ -54,8 +54,8 @@ extern "C" {
 
 
 ptu32_t ModuleInstall_Ymodem( void );
-bool_t Ymodem_UploadFile(char *Param);
-bool_t Ymodem_DownloadFile(char *Param);
+bool_t uploadym(char *Param);
+bool_t downloadym(char *Param);
 bool_t Ymodem_PathSet(const char *Path);
 
 #ifdef __cplusplus

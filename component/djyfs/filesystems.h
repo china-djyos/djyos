@@ -105,7 +105,7 @@ struct filesystem{
     s32 (*uninstall)();
     s32 (*format)(void *core);
     char *pType;
-} *pFileSystemTypes;
+};
 
 struct FsCore
 {

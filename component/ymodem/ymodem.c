@@ -1076,13 +1076,7 @@ YMODEM_EXIT:
 
     return true;
 }
-bool_t downloadym_iboot(char *Param)
-{
-    Ymodem_PathSet("/xip-iboot/");
-    return  downloadym(Param);
 
-
-}
 bool_t downloadym_app(char *Param)
 {
     Ymodem_PathSet("/xip-app/");
@@ -1090,7 +1084,6 @@ bool_t downloadym_app(char *Param)
 }
 
 ADD_TO_ROUTINE_SHELL(upload ,uploadym,"上传文件    命令格式: upload 文件名\n\r");
-ADD_TO_ROUTINE_SHELL(downloadi ,downloadym_iboot,"下载iboot文件    命令格式: downloadi");
 ADD_TO_ROUTINE_SHELL(downloada ,downloadym_app,"下载app文件       命令格式: downloada");
 
 

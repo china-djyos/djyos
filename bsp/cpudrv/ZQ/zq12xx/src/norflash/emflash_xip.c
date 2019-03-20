@@ -82,6 +82,8 @@ struct __xip_drv XIP_EMFLASH_DRV =
 // 返回：成功（0）；失败（-1）；将要没有可写空间（-2）；
 // 备注：当写到最后一个unit时，会尝试擦除
 // ============================================================================
+static s64  unitbak = 0x48000/0x100;
+
 s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
@@ -98,21 +100,25 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     __embed_req(lock, CN_TIMEOUT_FOREVER);
     while(left>0)
     {
-#if 0
-        // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
-        // (page+1)用于防止格式化了不属于xip的空间
-        __embed_req(remain, (ptu32_t)&more, &unit);
-        if(!more)
+        if(pos !=0)
         {
-            // +1是表示当前unit的后面一个
-            if(((unit-um->ustart+1)<<um->usz)<um->asz)
+            // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
+            // (page+1)用于防止格式化了不属于xip的空间
+            __embed_req(remain, (ptu32_t)&more, &unit);
+            if(!more)
             {
-                struct uesz sz = {0};
-                sz.unit = 1;
-                __embed_erase(unit+1, sz); // 不管有没有擦除成功，因为如果后续写入的话，会有回读校验
+                // +1是表示当前unit的后面一个
+//                if(((unit-core->MStart+1)* core->bufsz) >= core->ASize)
+//                {
+//                    return (-2);
+//                }
+                esz.block = 1;
+        //        esz->unit = 0;
+                __embed_req(whichblock, (ptu32_t)&block, &unit);
+                //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
+                __embed_req(format, block+1, block+1+1, &esz);
             }
         }
-#endif
         if(__embed_read(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0); //
@@ -136,6 +142,10 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
         }
 
         memcpy((um->ubuf + offset), data, once);
+
+
+        if(unit == unitbak )
+             unitbak = unit;
         if(__embed_write(unit, um->ubuf, opt))
         {
             __embed_req(unlock, 0);
@@ -149,22 +159,7 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             unit++;
     }
 
-    // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
-    // (page+1)用于防止格式化了不属于xip的空间
-    __embed_req(remain, (ptu32_t)&more, &unit);
-    if(!more)
-    {
-        // +1是表示当前unit的后面一个
-        if(((unit-core->MStart+1)* core->bufsz) >= core->ASize)
-        {
-            return (-2);
-        }
-        esz.block = 1;
-//        esz->unit = 0;
-        __embed_req(whichblock, (ptu32_t)&block, &unit);
-        //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
-        __embed_req(format, block+1, block+1+1, &esz);
-    }
+
 
     __embed_req(unlock, 0); //
     return (0);

@@ -156,8 +156,8 @@ static struct objhandle *xip_iboot_open(struct obj *ob, u32 flags, char *uncache
 
     xip_iboot_lock(core);
 
-    if(strcmp(obj_name(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
-    {
+//    if(strcmp(obj_name(ob),EN_XIP_IBOOT_TARGET) == 0)      //判断访问的路径是不是xip-iboot，如果不是则直接返回NULL
+//    {
         xip_fs_format(core);        //擦除iboot所在的flash区域
 
         if(!obj_newchild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
@@ -182,7 +182,7 @@ static struct objhandle *xip_iboot_open(struct obj *ob, u32 flags, char *uncache
             ob = obj_buildpath(ob, xip_iboot_ops, mode,uncached);
             obj_LinkHandle(hdl, ob);
         }
-    }
+//    }
     xip_iboot_unlock(core);
     return (hdl);
 }
@@ -379,12 +379,11 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 // 返回：失败(-1)； 成功(0)。
 // 备注:
 // ============================================================================
-s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data)
+s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
 {
     struct obj * mountobj;
     static struct filesystem *typeXIPIBOOT = NULL;
     s32 res;
-
     if(typeXIPIBOOT == NULL)
     {
         typeXIPIBOOT = malloc(sizeof(*typeXIPIBOOT));
@@ -402,23 +401,34 @@ s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data)
         return (-1); // 失败;
     }
 
-    mountobj = obj_newchild(obj_root(), __mount_ops, 0, EN_XIP_IBOOT_TARGET);
+    mountobj = obj_newchild(obj_root(), __mount_ops, 0, xip_target);
     if(NULL == mountobj)
     {
-        printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_IBOOT_TARGET);
+        printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", xip_target);
         return (-1);
     }
     obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
-    res = mountfs(NULL, EN_XIP_IBOOT_TARGET, "XIP-IBOOT", opt, data);
+    res = mountfs(NULL, xip_target, "XIP-IBOOT", opt, data);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"XIP-IBOOT\" failed, cannot install.");
         obj_Delete(mountobj);
         return (-1);
     }
-
     return (0);
 }
 
+// ============================================================================
+// 功能：安装xip文件系统
+// 参数： opt -- 文件系统配置选项；如MS_INSTALLCREAT
+//      data -- 传递给xip-iboot安装逻辑的数据；
+// 返回：失败(-1)； 成功(0)。
+// 备注:
+// ============================================================================
+s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data)
+{
+    ModuleInstall_XIP_FS(opt,data,EN_XIP_IBOOT_TARGET);
+    return 0;
+}
 
