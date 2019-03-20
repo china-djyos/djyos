@@ -639,17 +639,20 @@ static tagRoutItem * __RemoveFromQueue(tagRoutItem *queue, tagRoutItem *item) //
         queue = queue->nxt;
         item->nxt = NULL;
     }
-    //now do the loop,this operation will not change the queue head
-    tmp = queue;
-    while (tmp != NULL)
+    else
     {
-        if (item == tmp->nxt) //find it here
+        //now do the loop,this operation will not change the queue head
+        tmp = queue;
+        while (tmp != NULL)
         {
-            tmp->nxt = item->nxt;
-            item->nxt = NULL;
-            break;
+            if (item == tmp->nxt) //find it here
+            {
+                tmp->nxt = item->nxt;
+                item->nxt = NULL;
+                break;
+            }
+            tmp = tmp->nxt; //for the loop
         }
-        tmp = tmp->nxt; //for the loop
     }
     return queue;
 }
