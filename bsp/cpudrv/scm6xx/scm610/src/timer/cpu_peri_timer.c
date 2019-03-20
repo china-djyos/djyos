@@ -155,16 +155,16 @@ volatile tagTimer32Reg sgpt_TimerReg[] = {
 #define CN_PIT_MAX_TIME_US     (0xFFFFFFFF/375/10)  //0xFFFFFFFF/375Mhz=1us
 
 
-enum ENUM_STM32_TIMER
+enum ENUM_SCM6XX_TIMER
 {
-    EN_STM32TIMER_A=0,//按顺序赋值
-    EN_STM32TIMER_B,   //EN_STM32TIMER_5为1，EN_STM32TIMER_5下再增加一个则为2
-    EN_STM32TIMER_C,
+    EN_SCM6XXTIMER_A=0,//按顺序赋值
+    EN_SCM6XXTIMER_B,   //EN_STM32TIMER_5为1，EN_STM32TIMER_5下再增加一个则为2
+    EN_SCM6XXTIMER_C,
 //  EN_STM32TIMER_D,
 };
 
 //各个定时器芯片的定时器应该有自己的句柄
-struct STM32TimerHandle
+struct SCM6xxTimerHandle
 {
     u32     timerno;          //定时器号
     u32     irqline;          //中断号
@@ -173,24 +173,24 @@ struct STM32TimerHandle
     bool_t  autoReload;       //自动重装载标记 true 使能  false 使能
     fntTimerIsr UserIsr;      //用户中断响应函数
 };
-#define CN_STM32TIMER_NUM   (EN_STM32TIMER_C +1)
-#define CN_STM32TIMER_MAX    EN_STM32TIMER_C
+#define CN_SCM6XXTIMER_NUM   (EN_SCM6XXTIMER_C +1)
+#define CN_SCM6XXTIMER_MAX    EN_SCM6XXTIMER_C
 
-static struct STM32TimerHandle  stgTimerHandle[CN_STM32TIMER_NUM];
+static struct SCM6xxTimerHandle  stgTimerHandle[CN_SCM6XXTIMER_NUM];
 
 //最高位代表timer0，依次类推
-static u32  gs_dwSTM32TimerBitmap;  //对于定时器这种东西，一般的不会很多，32个应该足够
-#define CN_STM32TIMER_BITMAP_MSK  (0x80000000)  //最高位为1，依次右移即可
+static u32  gs_dwSCM6xxTimerBitmap;  //对于定时器这种东西，一般的不会很多，32个应该足够
+#define CN_SCM6XXTIMER_BITMAP_MSK  (0x80000000)  //最高位为1，依次右移即可
 
 //timer0到timern的irq中断
-static u32 sgHaltimerIrq[CN_STM32TIMER_NUM]={
+static u32 sgHaltimerIrq[CN_SCM6XXTIMER_NUM]={
                                             CN_INT_LINE_TIMERA1,
                                             CN_INT_LINE_TIMERB1,
                                             CN_INT_LINE_TIMERC1,
                                             };
 
 //获取32位数第一个0bit位置(从高位到低位算起)
-u8 __STM32Timer_GetFirstZeroBit(u32 para)
+u8 __SCM6xxTimer_GetFirstZeroBit(u32 para)
 {
     u8 i;
     for(i = 0; i < 32; i++)
@@ -202,14 +202,14 @@ u8 __STM32Timer_GetFirstZeroBit(u32 para)
 }
 
 // =============================================================================
-// 函数功能:__STM32Timer_Time2Counter
+// 函数功能:__SCM6xxTimer_Time2Counter
 //          将提供的时间换算为定时器的计数单位,
 // 输入参数:time，要换算的时间(单位为微秒)
 // 输出参数:counter,对应时间的counter
 // 返回值  :true成功 fasle失败
 // 说明    :time太大会失败，计算的counter则是定时器的最大值
 // =============================================================================
-bool_t __STM32Timer_Time2Counter(u64 time, u64 *counter)
+bool_t __SCM6xxTimer_Time2Counter(u64 time, u64 *counter)
 {
 
     u64 counter_1=time*375/10;
@@ -222,13 +222,13 @@ bool_t __STM32Timer_Time2Counter(u64 time, u64 *counter)
 
 }
 // =============================================================================
-// 函数功能:__STM32Timer_Counter2Time
+// 函数功能:__SCM6xxTimer_Counter2Time
 //          将定时器的计数单位换算为时间
 // 输入参数:counter,定时器的counter单元
 // 输出参数:time，换算的时间(单位为微秒)
 // 返回值  :true成功 fasle失败
 // =============================================================================
-bool_t __STM32Timer_Counter2Time(u64 counter,u64 *time)
+bool_t __SCM6xxTimer_Counter2Time(u64 counter,u64 *time)
 {
     //这里设置对Pcl时钟进行计数 - 不分频- 37500000
     u32 time_1=counter/375* 10;
@@ -244,7 +244,7 @@ bool_t __STM32Timer_Counter2Time(u64 counter,u64 *time)
     }
 }
 // =============================================================================
-// 函数功能:__STM32Timer_PauseCount
+// 函数功能:__SCM6xxTimer_PauseCount
 //          停止计数
 // 输入参数:timer，PIC定时器
 // 输出参数:
@@ -252,14 +252,14 @@ bool_t __STM32Timer_Counter2Time(u64 counter,u64 *time)
 // 说明    :
 // =============================================================================
 
-bool_t __STM32Timer_PauseCount(struct STM32TimerHandle  *timer)
+bool_t __SCM6xxTimer_PauseCount(struct SCM6xxTimerHandle  *timer)
 {
     u8 timerno;
 
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timerno = timer->timerno;
-        if(timerno > CN_STM32TIMER_MAX)
+        if(timerno > CN_SCM6XXTIMER_MAX)
         {
             return false;
         }
@@ -282,21 +282,21 @@ bool_t __STM32Timer_PauseCount(struct STM32TimerHandle  *timer)
     }
 }
 // =============================================================================
-// 函数功能:__STM32Timer_StartCount
+// 函数功能:__SCM6xxTimer_StartCount
 //          开始计数
 // 输入参数:timer，PIC定时器
 // 输出参数:
 // 返回值  :true成功 fasle失败
 // 说明    :
 // =============================================================================
-bool_t __STM32Timer_StartCount(struct STM32TimerHandle  *timer)
+bool_t __SCM6xxTimer_StartCount(struct SCM6xxTimerHandle  *timer)
 {
     u8 timerno;
 
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timerno = timer->timerno;
-        if(timerno > CN_STM32TIMER_MAX)
+        if(timerno > CN_SCM6XXTIMER_MAX)
         {
             return false;
         }
@@ -328,7 +328,7 @@ bool_t __STM32Timer_StartCount(struct STM32TimerHandle  *timer)
 }
 
 // =============================================================================
-// 函数功能:__STM32Timer_SetCycle,STM32的timer,最大为0xFFFFFFFF,根据Timer_ModuleInit
+// 函数功能:__SCM6xxTimer_SetCycle,STM32的timer,最大为0xFFFFFFFF,根据Timer_ModuleInit
 //          设定计数器每计一次数为(1/84)1us，可知最大时间不超-1
 //          设定周期
 // 输入参数:timer，PIC定时器
@@ -337,7 +337,7 @@ bool_t __STM32Timer_StartCount(struct STM32TimerHandle  *timer)
 // 返回值  :true成功 fasle失败
 // 说明    :如果设置周期太大（超过最大定时器能力），则设置为定时器的最大周期
 // =============================================================================
-bool_t  __STM32Timer_SetCycle(struct STM32TimerHandle  *timer, u32 cycle)
+bool_t  __SCM6xxTimer_SetCycle(struct SCM6xxTimerHandle  *timer, u32 cycle)
 {
     u8 timerno;
     u64 counter,time_set;
@@ -345,7 +345,7 @@ bool_t  __STM32Timer_SetCycle(struct STM32TimerHandle  *timer, u32 cycle)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timerno = timer->timerno;
-        if(timerno > CN_STM32TIMER_MAX)
+        if(timerno > CN_SCM6XXTIMER_MAX)
         {
             return false;
         }
@@ -365,7 +365,7 @@ bool_t  __STM32Timer_SetCycle(struct STM32TimerHandle  *timer, u32 cycle)
     }
 }
 // =============================================================================
-// 函数功能:__STM32Timer_SetAutoReload
+// 函数功能:__SCM6xxTimer_SetAutoReload
 //          设定周期
 // 输入参数:timer，PIC定时器
 //         autoreload, true则自己reload周期，否则手动每次设置周期
@@ -373,7 +373,7 @@ bool_t  __STM32Timer_SetCycle(struct STM32TimerHandle  *timer, u32 cycle)
 // 返回值  :true成功 fasle失败
 // =============================================================================
 
-bool_t  __STM32Timer_SetAutoReload(struct STM32TimerHandle  *timer, bool_t autoreload)
+bool_t  __SCM6xxTimer_SetAutoReload(struct SCM6xxTimerHandle  *timer, bool_t autoreload)
 {
     bool_t result;
     u8 timerno;
@@ -382,7 +382,7 @@ bool_t  __STM32Timer_SetAutoReload(struct STM32TimerHandle  *timer, bool_t autor
     {
         timerno = timer->timerno;
 
-        if(timerno < CN_STM32TIMER_MAX)
+        if(timerno < CN_SCM6XXTIMER_MAX)
         {
             if(autoreload == true)
             {
@@ -418,11 +418,11 @@ bool_t  __STM32Timer_SetAutoReload(struct STM32TimerHandle  *timer, bool_t autor
 // 参数：定时器句柄。
 // 返回：user ISR的返回值
 //-----------------------------------------------------------------------------
-u32 __STM32Timer_isr(ptu32_t TimerHandle)
+__attribute__((weak))  u32 __SCM6xxTimer_isr(ptu32_t TimerHandle)
 {
     u32 timerno;
 
-    timerno = ((struct STM32TimerHandle  *)TimerHandle)->timerno;
+    timerno = ((struct SCM6xxTimerHandle  *)TimerHandle)->timerno;
 
     if(stgTimerHandle[timerno].autoReload == false)
     {
@@ -433,33 +433,33 @@ u32 __STM32Timer_isr(ptu32_t TimerHandle)
     sgpt_TimerReg[timerno].mp_TimerReg_L->INTIF |= (1<<0);
     sgpt_TimerReg[timerno].mp_TimerReg_H->INTIF |= (1<<0);
 
-    Int_ClearLine(((struct STM32TimerHandle  *)TimerHandle)->irqline);
-    return ((struct STM32TimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
+    Int_ClearLine(((struct SCM6xxTimerHandle  *)TimerHandle)->irqline);
+    return ((struct SCM6xxTimerHandle  *)TimerHandle)->UserIsr(TimerHandle);
 }
 
 // =============================================================================
-// 函数功能:__STM32Timer_Alloc
+// 函数功能:__SCM6xxTimer_Alloc
 //          分配定时器
 // 输入参数:timerisr,定时器的中断处理函数
 // 输出参数:
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
+ptu32_t __SCM6xxTimer_Alloc(fntTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;
-    struct STM32TimerHandle  *timer;
+    struct SCM6xxTimerHandle  *timer;
     ptu32_t timerhandle;
     //原子操作，防止资源竞争
     atom_low_t  timeratom;
     timeratom = Int_LowAtomStart();
 
     //寻找空闲的timer
-    timerno = __STM32Timer_GetFirstZeroBit(gs_dwSTM32TimerBitmap);
-    if(timerno < CN_STM32TIMER_NUM)//还有空闲的，则设置标志位
+    timerno = __SCM6xxTimer_GetFirstZeroBit(gs_dwSCM6xxTimerBitmap);
+    if(timerno < CN_SCM6XXTIMER_NUM)//还有空闲的，则设置标志位
     {
-        gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap | (CN_STM32TIMER_BITMAP_MSK<< timerno);
+        gs_dwSCM6xxTimerBitmap = gs_dwSCM6xxTimerBitmap | (CN_SCM6XXTIMER_BITMAP_MSK<< timerno);
         Int_LowAtomEnd(timeratom);  //原子操作完毕
     }
     else//没有的话直接返回就可以了，用不着再啰嗦了
@@ -476,8 +476,8 @@ ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
     timer->UserIsr=timerisr;
     //好了，中断号和定时器号码都有了，该干嘛就干嘛了。
     //先设置好定时器周期
-    __STM32Timer_PauseCount(timer);
-    //__STM32Timer_SetCycle(timer,cycle);
+    __SCM6xxTimer_PauseCount(timer);
+    //__SCM6xxTimer_SetCycle(timer,cycle);
     //设置定时器中断,先结束掉该中断所有的关联相关内容
     Int_Register(irqline);
     Int_CutLine(irqline);
@@ -489,7 +489,7 @@ ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
     Int_SetClearType(irqline,CN_INT_CLEAR_USER);
     Int_SetIsrPara(irqline,(ptu32_t)timer);
 
-    Int_IsrConnect(irqline, __STM32Timer_isr);
+    Int_IsrConnect(irqline, __SCM6xxTimer_isr);
     timerhandle = (ptu32_t)timer;
 
     return timerhandle;
@@ -497,29 +497,29 @@ ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
 
 
 // =============================================================================
-// 函数功能:__STM32Timer_Free
+// 函数功能:__SCM6xxTimer_Free
 //          释放定时器
 // 输入参数:timer，分配的定时器
 // 输出参数:
 // 返回值  :true成功false失败
 // 说明    :
 // =============================================================================
-bool_t  __STM32Timer_Free(ptu32_t timerhandle)
+bool_t  __SCM6xxTimer_Free(ptu32_t timerhandle)
 {
     u8 timerno;
     u8 irqline;
     atom_low_t  timeratom;  //保护公用资源
-    struct STM32TimerHandle  *timer;
-    timer = (struct STM32TimerHandle  *)timerhandle;
+    struct SCM6xxTimerHandle  *timer;
+    timer = (struct SCM6xxTimerHandle  *)timerhandle;
 
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timerno = timer->timerno;
         irqline = timer->irqline;
-        if(timerno < CN_STM32TIMER_NUM)//还有空闲的，则设置标志位
+        if(timerno < CN_SCM6XXTIMER_NUM)//还有空闲的，则设置标志位
         {       //修改全局标志一定是原子性的
             timeratom = Int_LowAtomStart();
-            gs_dwSTM32TimerBitmap = gs_dwSTM32TimerBitmap &(~(CN_STM32TIMER_BITMAP_MSK<< timerno));
+            gs_dwSCM6xxTimerBitmap = gs_dwSCM6xxTimerBitmap &(~(CN_SCM6XXTIMER_BITMAP_MSK<< timerno));
             //解除掉中断所关联的内容
             timer->timerstate = 0;
             Int_CutLine(irqline);
@@ -544,7 +544,7 @@ bool_t  __STM32Timer_Free(ptu32_t timerhandle)
 
 
 // =============================================================================
-// 函数功能:__STM32Timer_SetIntPro
+// 函数功能:__SCM6xxTimer_SetIntPro
 //          设置定时器的中断类型
 // 输入参数:timer，待操作的定时器
 //          real_prior为true则为实时信号否则为异步信号
@@ -552,7 +552,7 @@ bool_t  __STM32Timer_Free(ptu32_t timerhandle)
 // 返回值  :分配的定时器，NULL则分配不成功
 // 说明    :
 // =============================================================================
-bool_t  __STM32Timer_SetIntPro(struct STM32TimerHandle  *timer, bool_t real_prior)
+bool_t  __SCM6xxTimer_SetIntPro(struct SCM6xxTimerHandle  *timer, bool_t real_prior)
 {
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
@@ -575,14 +575,14 @@ bool_t  __STM32Timer_SetIntPro(struct STM32TimerHandle  *timer, bool_t real_prio
 }
 
 // =============================================================================
-// 函数功能:__STM32Timer_EnInt
+// 函数功能:__SCM6xxTimer_EnInt
 //          使能定时器中断
 // 输入参数:timer，待操作的定时器
 // 输出参数:
 // 返回值  :true成功false失败
 // 说明    :
 // =============================================================================
-bool_t  __STM32Timer_EnInt(struct STM32TimerHandle  *timer)
+bool_t  __SCM6xxTimer_EnInt(struct SCM6xxTimerHandle  *timer)
 {
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
@@ -595,14 +595,14 @@ bool_t  __STM32Timer_EnInt(struct STM32TimerHandle  *timer)
     }
 }
 // =============================================================================
-// 函数功能:__STM32Timer_DisInt
+// 函数功能:__SCM6xxTimer_DisInt
 //          禁止定时器中断
 // 输入参数:timer，待操作的定时器
 // 输出参数:
 // 返回值  :true成功false失败
 // 说明    :
 // =============================================================================
-bool_t  __STM32Timer_DisInt(struct STM32TimerHandle  *timer)
+bool_t  __SCM6xxTimer_DisInt(struct SCM6xxTimerHandle  *timer)
 {
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
@@ -615,14 +615,14 @@ bool_t  __STM32Timer_DisInt(struct STM32TimerHandle  *timer)
     }
 }
 // =============================================================================
-// 函数功能:__STM32Timer_GetTime
+// 函数功能:__SCM6xxTimer_GetTime
 //          获取定时器走时
 // 输入参数:timer，待操作的定时器
 // 输出参数:time，走时（微秒）
 // 返回值  :true成功false失败
 // 说明    :从设定的周期算起，即cycle-剩余时间,表示已经走掉的时间(单位：定时器主频时钟个数)
 // =============================================================================
-bool_t __STM32Timer_GetTime(struct STM32TimerHandle  *timer, u32 *time)
+bool_t __SCM6xxTimer_GetTime(struct SCM6xxTimerHandle  *timer, u32 *time)
 {
     u8 timerno;
     u32 counter;
@@ -632,7 +632,7 @@ bool_t __STM32Timer_GetTime(struct STM32TimerHandle  *timer, u32 *time)
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timerno = timer->timerno;
-        if(timerno > CN_STM32TIMER_MAX)
+        if(timerno > CN_SCM6XXTIMER_MAX)
         {
             return false;
         }
@@ -648,15 +648,42 @@ bool_t __STM32Timer_GetTime(struct STM32TimerHandle  *timer, u32 *time)
         return false;
     }
 }
+
+// =============================================================================
+// 函数功能:取定时器硬件控制寄存器地址
+// 输入参数:timer，待操作的定时器
+// 返回值  :true成功 false失败
+// 说明    :
+// =============================================================================
+bool_t __SCM6xxTimer_GetReg(struct SCM6xxTimerHandle  *timer, void **reg)
+{
+    u8 timerno;
+    u32 counter;
+    if(timer->timerstate & CN_TIMER_ENUSE)
+    {
+        timerno = timer->timerno;
+        if(timerno > CN_SCM6XXTIMER_MAX)
+        {
+            return false;
+        }
+        *reg = sgpt_TimerReg[timerno].mp_TimerReg_L;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 // ========================= ====================================================
-// 函数功能:__STM32Timer_CheckTimeout
+// 函数功能:__SCM6xxTimer_CheckTimeout
 //          看定时器的定时时间是否已经到了
 // 输入参数:timer，待操作的定时器
 // 输出参数:timeout, true超时，false不超时
 // 返回值  :true成功 false失败
 // 说明    :
 // =============================================================================
-bool_t __STM32Timer_CheckTimeout(struct STM32TimerHandle  *timer, bool_t *timeout)
+bool_t __SCM6xxTimer_CheckTimeout(struct SCM6xxTimerHandle  *timer, bool_t *timeout)
 {
     bool_t result=true;
     u8 timerno;
@@ -667,7 +694,7 @@ bool_t __STM32Timer_CheckTimeout(struct STM32TimerHandle  *timer, bool_t *timeou
     if(timer->timerstate & CN_TIMER_ENUSE)
     {
         timerno = timer->timerno;
-        if(timerno > CN_STM32TIMER_MAX)
+        if(timerno > CN_SCM6XXTIMER_MAX)
         {
             result = false;
         }
@@ -701,14 +728,14 @@ bool_t __STM32Timer_CheckTimeout(struct STM32TimerHandle  *timer, bool_t *timeou
 }
 
 // =============================================================================
-// 函数功能：__STM32Timer_GetID
+// 函数功能：__SCM6xxTimer_GetID
 //          获取定时器ID
 // 输入参数：timer，待操作定时器，
 // 输出参数：timerId,高16位为TIMERNO,低16为对应的IRQNO
 // 返回值  ：true 成功 false失败
 // 说明    : 本层实现
 // =============================================================================
-bool_t __STM32Timer_GetID(struct STM32TimerHandle   *timer,u32 *timerId)
+bool_t __SCM6xxTimer_GetID(struct SCM6xxTimerHandle   *timer,u32 *timerId)
 {
     u16 irqno;
     u16 timerno;
@@ -726,13 +753,13 @@ bool_t __STM32Timer_GetID(struct STM32TimerHandle   *timer,u32 *timerId)
     }
 }
 // =============================================================================
-// 函数功能：__STM32Timer_GetCycle
+// 函数功能：__SCM6xxTimer_GetCycle
 //          获取定时器周期
 // 输入参数：timer，待操作定时器，
 // 输出参数：cycle，定时器周期(单位：定时器主频时钟个数)
 // 返回值  ：true 成功 false失败
 // =============================================================================
-bool_t __STM32Timer_GetCycle(struct STM32TimerHandle   *timer, u32 *cycle)
+bool_t __SCM6xxTimer_GetCycle(struct SCM6xxTimerHandle   *timer, u32 *cycle)
 {
     if(NULL == timer)
     {
@@ -745,14 +772,14 @@ bool_t __STM32Timer_GetCycle(struct STM32TimerHandle   *timer, u32 *cycle)
     }
 }
 // =============================================================================
-// 函数功能：__STM32Timer_GetState
+// 函数功能：__SCM6xxTimer_GetState
 //          获取定时器状态
 // 输入参数：timer,待操作的定时器
 // 输出参数：timerflag，定时器状态
 // 返回值  ：true 成功 false失败
 // 说明    : 本层实现
 // =============================================================================
-bool_t __STM32Timer_GetState(struct STM32TimerHandle   *timer, u32 *timerflag)
+bool_t __SCM6xxTimer_GetState(struct SCM6xxTimerHandle   *timer, u32 *timerflag)
 {
 
     if(NULL == timer)
@@ -766,7 +793,7 @@ bool_t __STM32Timer_GetState(struct STM32TimerHandle   *timer, u32 *timerflag)
     }
 }
 // =============================================================================
-// 函数功能:__STM32Timer_Ctrl
+// 函数功能:__SCM6xxTimer_Ctrl
 //          看定时器的定时时间是否已经到了
 // 输入参数:timerhandle 待操作的定时器句柄
 //         ctrlcmd, 操作命令码
@@ -774,49 +801,52 @@ bool_t __STM32Timer_GetState(struct STM32TimerHandle   *timer, u32 *timerflag)
 // 返回值  : true成功  false失败
 // 说明    :
 // =============================================================================
-bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
+bool_t __SCM6xxTimer_Ctrl(ptu32_t timerhandle, \
                          enum HardTimerCmdCode ctrlcmd, \
                          ptu32_t inoutpara)
 {
     bool_t result = false;
-    struct STM32TimerHandle  *timer;
-    timer = (struct STM32TimerHandle  *)timerhandle;
+    struct SCM6xxTimerHandle  *timer;
+    timer = (struct SCM6xxTimerHandle  *)timerhandle;
     if(NULL != timer)
     {
         switch(ctrlcmd)
         {
             case EN_TIMER_STARTCOUNT:
-                result = __STM32Timer_StartCount(timer);
+                result = __SCM6xxTimer_StartCount(timer);
                 break;
             case EN_TIMER_PAUSECOUNT:
-                result = __STM32Timer_PauseCount(timer);
+                result = __SCM6xxTimer_PauseCount(timer);
                 break;
             case EN_TIMER_SETCYCLE:
-                result = __STM32Timer_SetCycle(timer,(u32)inoutpara);
+                result = __SCM6xxTimer_SetCycle(timer,(u32)inoutpara);
                 break;
             case EN_TIMER_SETRELOAD:
-                result = __STM32Timer_SetAutoReload(timer, (bool_t)inoutpara);
+                result = __SCM6xxTimer_SetAutoReload(timer, (bool_t)inoutpara);
                 break;
             case EN_TIMER_ENINT:
-                result = __STM32Timer_EnInt(timer);
+                result = __SCM6xxTimer_EnInt(timer);
                 break;
             case EN_TIMER_DISINT:
-                result = __STM32Timer_DisInt(timer);
+                result = __SCM6xxTimer_DisInt(timer);
                 break;
             case EN_TIMER_SETINTPRO:
-                result = __STM32Timer_SetIntPro(timer, (bool_t)inoutpara);
+                result = __SCM6xxTimer_SetIntPro(timer, (bool_t)inoutpara);
                 break;
             case EN_TIMER_GETTIME:
-                result = __STM32Timer_GetTime(timer, (u32 *)inoutpara);
+                result = __SCM6xxTimer_GetTime(timer, (u32 *)inoutpara);
                 break;
             case EN_TIMER_GETCYCLE:
-                result = __STM32Timer_GetCycle(timer, (u32 *)inoutpara);
+                result = __SCM6xxTimer_GetCycle(timer, (u32 *)inoutpara);
                 break;
             case EN_TIMER_GETID:
-                result = __STM32Timer_GetID(timer, (u32 *)inoutpara);
+                result = __SCM6xxTimer_GetID(timer, (u32 *)inoutpara);
                 break;
             case EN_TIMER_GETSTATE:
-                result = __STM32Timer_GetState(timer, (u32 *)inoutpara);
+                result = __SCM6xxTimer_GetState(timer, (u32 *)inoutpara);
+                break;
+            case EN_TIMER_GETREG:
+                result = __SCM6xxTimer_GetReg(timer, (void **)inoutpara);
                 break;
             default:
                 break;
@@ -833,7 +863,7 @@ bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
 // 返回值  :定时器主频
 // 说明    :单位（HZ）
 // =============================================================================
-u32  __STM32Timer_GetFreq(ptu32_t timerhandle)
+u32  __SCM6xxTimer_GetFreq(ptu32_t timerhandle)
 {
     //定时器TIM2、5 时钟源为低速外设时钟PCLK1(APB1时钟)，速度为42M，
     //除非APB1分频系数为1，否则通用定时器时钟为APB1的2倍
@@ -851,10 +881,10 @@ u32  __STM32Timer_GetFreq(ptu32_t timerhandle)
 // =============================================================================
 bool_t ModuleInstall_HardTimer(void)
 {
-    struct TimerChip  STM32timer;
+    struct TimerChip  SCM6xxtimer;
     u8 i;
 
-    for(i=0;i<CN_STM32TIMER_NUM;i++)
+    for(i=0;i<CN_SCM6XXTIMER_NUM;i++)
     {
         //设置为定时模式
         sgpt_TimerReg[i].mp_TimerReg_L->FSR =0;
@@ -886,13 +916,13 @@ bool_t ModuleInstall_HardTimer(void)
 
     }
 
-    STM32timer.chipname = "SCM610TIMER";
-    STM32timer.HardTimerAlloc = __STM32Timer_Alloc;     //分配定时器
-    STM32timer.HardTimerFree = __STM32Timer_Free;       //释放定时器
-    STM32timer.HardTimerCtrl = __STM32Timer_Ctrl;       //控制定时器
-    STM32timer.HardTimerGetFreq = __STM32Timer_GetFreq; //获取定时器计数频率，84Mhz
+    SCM6xxtimer.chipname = "SCM610TIMER";
+    SCM6xxtimer.HardTimerAlloc = __SCM6xxTimer_Alloc;     //分配定时器
+    SCM6xxtimer.HardTimerFree  = __SCM6xxTimer_Free;       //释放定时器
+    SCM6xxtimer.HardTimerCtrl  = __SCM6xxTimer_Ctrl;       //控制定时器
+    SCM6xxtimer.HardTimerGetFreq = __SCM6xxTimer_GetFreq; //获取定时器计数频率，84Mhz
 
-    HardTimer_RegisterChip(&STM32timer);                //注册定时器芯片到系统定时器模块
+    HardTimer_RegisterChip(&SCM6xxtimer);                //注册定时器芯片到系统定时器模块
 
     return true;
 }
