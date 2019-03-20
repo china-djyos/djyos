@@ -48,7 +48,7 @@
  *  Created on: 2014-5-28
  *      Author: huzb
  */
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "silan_types.h"
 #include "silan_syscfg.h"
 #include "silan_syscfg_regs.h"

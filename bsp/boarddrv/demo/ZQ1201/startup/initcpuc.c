@@ -55,7 +55,7 @@
 //   新版本号：V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "arch_feature.h"
 #include "stdint.h"
 #include "int.h"
@@ -218,7 +218,7 @@ bool_t IAP_IsForceIboot(void)
 }
 #endif
 
-#ifdef CFG_CK803S
+#ifdef CFG_CPU_ZQ12XX_CK
 #include "csi_core.h"
 #include "arch_feature.h"
 #include "project_config.h"
