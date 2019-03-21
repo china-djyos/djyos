@@ -303,13 +303,15 @@ bool_t __SCM6xxTimer_StartCount(struct SCM6xxTimerHandle  *timer)
         else
         {
             //清中断标志
-            sgpt_TimerReg[timerno].mp_TimerReg_L->INTIF = 0;
-            sgpt_TimerReg[timerno].mp_TimerReg_H->INTIF = 0;
+            sgpt_TimerReg[timerno].mp_TimerReg_L->INTIF |= 0xf;
+            sgpt_TimerReg[timerno].mp_TimerReg_H->INTIF |= 0xf;
 
             //复位以及停止复位 TC0
+            sgpt_TimerReg[timerno].mp_TimerReg_L->CR |= (1<<1);
+            sgpt_TimerReg[timerno].mp_TimerReg_H->CR |= (1<<1);
 
-            sgpt_TimerReg[timerno].mp_TimerReg_L->CR = 0;
-            sgpt_TimerReg[timerno].mp_TimerReg_H->CR = 0;
+            sgpt_TimerReg[timerno].mp_TimerReg_L->CR &= ~(1<<1);
+            sgpt_TimerReg[timerno].mp_TimerReg_H->CR &= ~(1<<1);
 
             //启动计数
             sgpt_TimerReg[timerno].mp_TimerReg_L->CR = 0x1;
@@ -388,14 +390,12 @@ bool_t  __SCM6xxTimer_SetAutoReload(struct SCM6xxTimerHandle  *timer, bool_t aut
             {
                 stgTimerHandle[timerno].autoReload = true;
                 //默认就是自动重装载
-                sgpt_TimerReg[timerno].mp_TimerReg_L->MCR &= ~(1<<2);
-                sgpt_TimerReg[timerno].mp_TimerReg_H->MCR &= ~(1<<2);
+//                sgpt_TimerReg[timerno].mp_TimerReg_L->MCR &= ~(1<<2);
+//                sgpt_TimerReg[timerno].mp_TimerReg_H->MCR &= ~(1<<2);
             }
             else
             {
                 stgTimerHandle[timerno].autoReload = false;
-                sgpt_TimerReg[timerno].mp_TimerReg_L->MCR |= (1<<2);
-                sgpt_TimerReg[timerno].mp_TimerReg_H->MCR |= (1<<2);;
             }
         }
         else
@@ -886,6 +886,8 @@ bool_t ModuleInstall_HardTimer(void)
 
     for(i=0;i<CN_SCM6XXTIMER_NUM;i++)
     {
+        sgpt_TimerReg[i].mp_TimerReg_L->CR = 0;
+        sgpt_TimerReg[i].mp_TimerReg_L->CR = 0;
         //设置为定时模式
         sgpt_TimerReg[i].mp_TimerReg_L->FSR =0;
         sgpt_TimerReg[i].mp_TimerReg_H->FSR =(0xE << 4) | (0x1);
@@ -908,10 +910,10 @@ bool_t ModuleInstall_HardTimer(void)
         sgpt_TimerReg[i].mp_TimerReg_H->INTIE = 0x1;
 
         //out control
-        sgpt_TimerReg[i].mp_TimerReg_H->EMR = 0x3;
+        sgpt_TimerReg[i].mp_TimerReg_H->EMR   = 0x3;
 
         //默认情况下自动重装不使能
-        stgTimerHandle[i].autoReload = false;
+        stgTimerHandle[i].autoReload = true;
 
 
     }

@@ -84,8 +84,8 @@ void Test_PushTimeHook(u32 time_counter);
 u32 __SCM6xxTimer_isr(ptu32_t TimerHandle)
 {
     u32 cnt1,cnt2;
-    u16 cnt16L1 = 0,cnt16H1 = 0;
-    u16 cnt16L2 = 0,cnt16H2 = 0;
+    u32 cnt16L1 = 0,cnt16H1 = 0;
+    u32 cnt16L2 = 0,cnt16H2 = 0;
 
     TIM_TypeDef* Reg_Tim16L = (TIM_TypeDef*) TimerReg;
     TIM_TypeDef* Reg_Tim16H = (TIM_TypeDef*)((u32)TimerReg + 0x40);
@@ -114,15 +114,24 @@ u32 __Test_TimerStart(void)
     TIM_TypeDef* Reg_Tim16L = (TIM_TypeDef*) TimerReg;
     TIM_TypeDef* Reg_Tim16H = (TIM_TypeDef*)((u32)TimerReg + 0x40);
 
+    //清中断标记
+    Reg_Tim16L->INTIF |= 0xf;
+    Reg_Tim16H->INTIF |= 0xf;
+
     Reg_Tim16L->TC  = 0;
     Reg_Tim16H->TC  = 0;
 
-    Reg_Tim16L->CR  = 0;
-    Reg_Tim16H->CR  = 0;
+    //复位
+    Reg_Tim16L->CR |= (1<<1);
+    Reg_Tim16H->CR |= (1<<1);
+
+    //停止复位
+    Reg_Tim16L->CR &= ~(1<<1);
+    Reg_Tim16H->CR &= ~(1<<1);
 
     //启动计数
-    Reg_Tim16L->CR  = 0x1;
-    Reg_Tim16H->CR  = 0x1;
+    Reg_Tim16L->CR = 0x1;
+    Reg_Tim16H->CR = 0x1;
 
 
     return 0;
@@ -130,7 +139,7 @@ u32 __Test_TimerStart(void)
 
 bool_t __Test_TimerEnd(u32 *val)
 {
-    u16 valueL,valueH;
+    u32 valueL = 0,valueH = 0;
     if(TimerStarted)
     {
         TIM_TypeDef* Reg_Tim16L = (TIM_TypeDef*) TimerReg;
@@ -149,7 +158,7 @@ bool_t __Test_TimerEnd(u32 *val)
 void Test_IntSyncHook(ucpu_t SchType)
 {
     u32 cnt1,cnt2;
-    u16 valueL,valueH;
+    u32 valueL = 0,valueH = 0;
 
     //切入的时候才获取时间,切出不做处理
     if(SchType == EN_SWITCH_IN)
