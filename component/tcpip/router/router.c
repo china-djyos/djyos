@@ -817,6 +817,7 @@ void RouterRemoveByHandle(void *rout)
         {
             gRoutCB.v6lst = __RemoveFromQueue(gRoutCB.v6lst, item);
         }
+        net_free(item);
         mutex_unlock(gRoutCB.lock);
     }
     return;
@@ -846,6 +847,7 @@ void   RouterRemove(tagRouterPara *para)
         {
             //not implement yet
         }
+        net_free(item);
         mutex_unlock(gRoutCB.lock);
     }
     return;

@@ -134,7 +134,6 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
                     RouterRemoveByHandle(tmp->routwan);
                 }
                 //NOW SET THE DNS HERE
-                DnsSet(EN_IPV_4,&reply.dns1,&reply.dns2);
                 //OK,NOW CREATE THE WAN ROUT
                 memset(&addr,0,sizeof(addr));
                 memset(&routpara,0,sizeof(routpara));
@@ -167,6 +166,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
                 routpara.hop = NULL;
                 routpara.prior = CN_ROUT_PRIOR_UNI;
                 tmp->routlan = RouterCreate(&routpara);
+                DnsSet(EN_IPV_4,&reply.dns1,&reply.dns2);
                 NetDevPostEvent(NetDevGet(tmp->ifname),EN_NETDEVEVENT_IPGET);
             }
             else if(reply.msgtype == DHCP_NAK)

@@ -137,7 +137,7 @@ typedef struct
 typedef struct
 {
     //os member
-    struct SemaphoreLCB     *rcvsync;          //activate the receive task
+    struct SemaphoreLCB     *sendsync;          //activate the receive task
     struct MutexLCB         *protect;          //protect the device
     struct NetDev           *devhandle;        //returned by the tcpip stack
     char                    devname[CN_DEVNAME_LEN];
@@ -250,10 +250,8 @@ static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
     return true;
 }
 
-extern void hexdump(const unsigned char* buf, int len);
-//extern s32 Uart_PutStrDirect(const char *str,u32 len);
-
-static bool_t MacSnd(void* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+//extern void hexdump(const unsigned char* buf, int len);
+static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
@@ -282,20 +280,16 @@ static bool_t MacSnd(void* handle,struct NetPkg * pkg,u32 framelen, u32 netdevta
             p = pbuf_alloc(PBUF_RAW, len, PBUF_RAM);
             src = &gTxBuffer[0];
             memcpy(p->payload,src,len);
-//            Uart_PutStrDirect("\r\ntx buf:",sizeof("\r\ntx buf:"));
 //            printk("\r\ntx buf:");
 ////            for(int i=0;i<len;i++)
 ////                printf("%x ",*(src + i));
 ////            printf("\r\n");
 //            hexdump(src,len);
-//            tx_pbuf.len = tx_pbuf.tot_len = len;
-//            tx_pbuf.payload = src;
-//            tx_pbuf.next = NULL;
             msg.type = BMSG_TX_TYPE;
             msg.arg = (uint32_t)p;
             msg.len = 0;
-            msg.sema = NULL;
-            Djy_EventDelay(2000);
+            msg.sema = gMacDriver.sendsync;
+            Lock_SempPend(gMacDriver.sendsync,10*mS);
             ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
             if(0 != ret)
             {
@@ -397,8 +391,8 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
     wifi_start();
     //all the configuration has set in the pDrive now,we need some sys assistant
     //application some semphore and mutex
-    pDrive->rcvsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);
-    if(NULL == pDrive->rcvsync)
+    pDrive->sendsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);
+    if(NULL == pDrive->sendsync)
     {
         goto RCVSYNC_FAILED;
     }
@@ -410,7 +404,7 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
 
     //install the net device
     devpara.ifctrl = MacCtrl;
-    devpara.ifsend = MacSnd;
+    devpara.ifsend = __MacSnd;
     devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac,macaddress,6);
@@ -432,8 +426,8 @@ NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;
 DEVPROTECT_FAILED:
-    Lock_SempDelete(pDrive->rcvsync);
-    pDrive->rcvsync = NULL;
+    Lock_SempDelete(pDrive->sendsync);
+    pDrive->sendsync = NULL;
 RCVSYNC_FAILED:
     error_printf("bspETH","Install Net Device %s failed\n\r",devname);
     return false;
