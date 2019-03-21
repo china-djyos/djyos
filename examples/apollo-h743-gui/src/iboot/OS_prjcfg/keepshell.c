@@ -16,6 +16,9 @@ void keep_shell(void)
 	extern void *djysh_blackboxi;
 	keep = (void *)djysh_blackboxi;
 
+	extern void *djysh_cp;
+	keep = (void *)djysh_cp;
+
 	extern void *djysh_help;
 	keep = (void *)djysh_help;
 
@@ -24,6 +27,9 @@ void keep_shell(void)
 
 	extern void *djysh_tcpipver;
 	keep = (void *)djysh_tcpipver;
+
+	extern void *djysh_mac;
+	keep = (void *)djysh_mac;
 
 	extern void *djysh_evtt;
 	keep = (void *)djysh_evtt;

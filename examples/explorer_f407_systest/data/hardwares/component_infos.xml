@@ -134,6 +134,7 @@
    <component>/bsp/cpudrv/stm32/f4/src/gpio/cpu_peri_gpio.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/iic/cpu_peri_iic.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/lowpower/stm32f4xx_lowpower.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/rng/cpu_peri_rng.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/rtc/cpu_peri_rtc.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/sdio/sdio_sdcard.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/spi/cpu_peri_spi.c</component>

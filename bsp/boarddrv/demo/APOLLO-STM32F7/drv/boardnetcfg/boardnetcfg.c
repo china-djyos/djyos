@@ -159,14 +159,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     }
 
 #endif
-    //do the lan8720 chip set
 
-    bool_t ETH_RESE(void);
-    ETH_RESE( );//Íø¿Ú¸´Î»
-
-    bool_t LAN8720_ResetInit(void);
-    LAN8720_ResetInit( );
-
-    return 0;
+    return ;
 }
 

@@ -674,22 +674,23 @@ static ptu32_t __MacRcvTask(void)
 
 
     u32 *addr;
-    u32 value;
+//  u32 value;
     u32 resettimes= 0;
     time_t printtime;
 
     Djy_GetEventPara((ptu32_t *)&handle,NULL);
-    value = pDrive->EthHandle->Instance->MMCRFCECR;
-//  addr = (u32 *)((u32)ETH + 0x194);
-//  value =*addr;
-    if(value > 0)
-    {
-        printtime = time(NULL);
-        printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x start\n\r",\
-                ctime(&printtime),resettimes++,value);
-        MacReset(NULL);
-        Djy_EventDelay(10*mS);
-    }
+    //没发现H7有统计CRC错误的功能
+//    value = pDrive->EthHandle->Instance->MMCRFCECR;
+////  addr = (u32 *)((u32)ETH + 0x194);
+////  value =*addr;
+//    if(value > 0)
+//    {
+//        printtime = time(NULL);
+//        printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x start\n\r",\
+//                ctime(&printtime),resettimes++,value);
+//        MacReset(NULL);
+//        Djy_EventDelay(10*mS);
+//    }
 
     while(1)
     {
@@ -733,17 +734,18 @@ static ptu32_t __MacRcvTask(void)
         }
 
         //check if any crc error get then reset the mac
-        value = pDrive->EthHandle->Instance->MMCRFCECR;
-//      addr = (u32 *)((u32)ETH + 0x194);
-//      value =*addr;
-        if(value > 0)
-        {
-            printtime = time(NULL);
-            printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x running\n\r",\
-                    ctime(&printtime),resettimes++,value);
-            MacReset(NULL);
-            Djy_EventDelay(10*mS);
-        }
+        //没发现H7有统计CRC错误的功能
+//        value = pDrive->EthHandle->Instance->MMCRFCECR;
+////      addr = (u32 *)((u32)ETH + 0x194);
+////      value =*addr;
+//        if(value > 0)
+//        {
+//            printtime = time(NULL);
+//            printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x running\n\r",\
+//                    ctime(&printtime),resettimes++,value);
+//            MacReset(NULL);
+//            Djy_EventDelay(10*mS);
+//        }
 
     }
     return 0;

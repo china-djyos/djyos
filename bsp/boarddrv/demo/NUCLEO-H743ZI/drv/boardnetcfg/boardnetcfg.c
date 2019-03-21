@@ -49,9 +49,6 @@
 
 #include <stdint.h>
 #include <sys/socket.h>
-#include "djyos.h"
-#include "lan8742.h"
-#include "cpu_peri.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -68,9 +65,9 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:later               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"cpu_peri_eth","lan8742","tcpip"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"tcpip"            //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -86,9 +83,9 @@
 #warning    “网络配置”组件参数未配置，使用默认值
 //%$#@num,0,100
 //%$#@enum,true,false
-#define CFG_STATIC_IP       true            //"IP属性",true=使用静态IP，false=动态IP
-//%$#@string,1,16
-#define CFG_NETCARD_NAME    "NUCLEO_H743_ETH"    //"网卡名",
+#define CFG_STATIC_IP       true            //"使用静态IP?",
+//%$#@string,1,32
+#define CFG_SELECT_NETCARD  "NUCLEO_H743_ETH"   //"网卡名称",必须与选中的网卡驱动中配置的名称相同
 //%$#@string,7,15
 #define CFG_MY_IPV4         "192.168.0.179" //"静态IP",
 #define CFG_MY_SUBMASK      "255.255.255.0" //"子网掩码",
@@ -98,28 +95,6 @@
 //%$#@free
 #endif
 //%$#@end configue  ****参数配置结束
-
-
-static u8   gc_NetMac[CN_MACADDR_LEN] ={0x00,0x02,0x03,0x04,0x05,0x06};
-static lan8742_Object_t LAN8742;
-static lan8742_IOCtx_t  LAN8742_IOCtx = {ETH_PHY_IO_Init,
-                                         ETH_PHY_IO_DeInit,
-                                         ETH_PHY_IO_WriteReg,
-                                         ETH_PHY_IO_ReadReg,
-                                         ETH_PHY_IO_GetTick};
-
-__attribute__((weak)) void GetCpuSignature(void *buf,int len)
-{
-    //this is for the stm32f7
-    vu8   *base;
-    int i = 0;
-    base = (vu8 *)0x1FF0F420;   //THE ADDRESS OF F7 F4 F1 IS NOT THE SAME
-    for(i = 0;i < len;i++)
-    {
-        *((vu8 *)buf +i)=*(base+i);
-    }
-    return;
-}
 
 // HAL库中调用了该函数
 void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
@@ -233,29 +208,7 @@ bool_t PHY_Init(void)
 //make sure that that board net hardware has initialized and could work ok
 void ModuleInstall_InitNet(void)   //static ip example
 {
-    //GET THE SIGNATURE OF THE DEVICE
-    u32  signature[4];
-    memset(signature,0,sizeof(signature));
-    GetCpuSignature((u8 *)signature,sizeof(signature));
-    printk("CPU SIGNATURE:%08X-%08X-%08X-%08X\n\r",signature[0],signature[1],signature[2],signature[3]);
-    //use the signature as the mac address
-    signature[0] = signature[1]+signature[2]+signature[3];
-    memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
-    gc_NetMac[0]=0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
-    //install the net device you used,you could use more than one, but they
-    //has different names and macs
-    //use the corresponding net device install function you use
-//    extern bool_t ModuleInstall_TcpIp(void);
-//    ModuleInstall_TcpIp();
-
-    extern bool_t ModuleInstall_ETH(const char *devname, u8 *mac,\
-            bool_t loop,u32 loopcycle,\
-            bool_t (*rcvHook)(u8 *buf, u16 len));
-    ModuleInstall_ETH(CFG_NETCARD_NAME,gc_NetMac,false,1*mS,NULL);
-    if(PHY_Init()==false)
-    {
-        return;
-    }
+    u32  signature[3];
 #if CFG_STATIC_IP == 1
     tagHostAddrV4  ipv4addr;
     //we use the static ip we like
@@ -265,18 +218,19 @@ void ModuleInstall_InitNet(void)   //static ip example
     ipv4addr.gatway  = inet_addr(CFG_MY_GATWAY);
     ipv4addr.dns     = inet_addr(CFG_MY_DNS);
     ipv4addr.broad   = inet_addr("192.168.0.255");
-    if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+    if(RoutCreate(CFG_SELECT_NETCARD,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
     {
-        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD,inet_ntoa(ipv4addr.ip));
     }
     else
     {
-        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_SELECT_NETCARD,inet_ntoa(ipv4addr.ip));
     }
     //下一个路由，用于生产测试用，利用CPU ID 随机生成主机地址，网络地址用 192.168.1
     //WE WILL ADD A ROUT DIFFERENT FOR EACH DEVICE USE THE CPU SIGNATURE
     //USE THE NET:192.168.1.xx
     u8 value8 = 0;
+    GetCpuID(&signature[0],&signature[1],&signature[2]);
     value8 = +((u8)signature[0]>>0)+((u8)signature[0]>>8)+((u8)signature[0]>>16)+((u8)signature[0]>>24);
     if((value8==0)||(value8==1)||(value8==255))
     {
@@ -292,34 +246,27 @@ void ModuleInstall_InitNet(void)   //static ip example
     ipv4addr.gatway  = inet_addr("192.168.1.1");
     ipv4addr.dns     = inet_addr("192.168.1.1");
     ipv4addr.broad   = inet_addr("192.168.1.255");
-    if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+    if(RoutCreate(CFG_SELECT_NETCARD,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
     {
-        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD,inet_ntoa(ipv4addr.ip));
     }
     else
     {
-        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_SELECT_NETCARD,inet_ntoa(ipv4addr.ip));
     }
 
 #else
-    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+    if(DhcpAddClientTask(CFG_SELECT_NETCARD))
     {
-       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD);
     }
     else
     {
-        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_SELECT_NETCARD);
     }
 
 #endif
-    //do the lan8720 chip set
 
-//    bool_t ETH_RESE(void);
-//    ETH_RESE( );//网口复位
-//
-//    bool_t lan8720Init(void);
-//    lan8720Init( );
-
-    return;
+    return ;
 }
 

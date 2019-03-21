@@ -110,7 +110,7 @@ bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 //u8 PCF8574_ReadOneByte(void);
 //void PCF8574_WriteBit(u8 bit,u8 sta);
 //u8 PCF8574_ReadBit(u8 bit);
-//bool_t ETH_RESE(void);
+//bool_t LAN8720_RESET(void);
 
 //bool_t ModuleInstall_Touch_FT5206(struct GkWinObj *desktop,\
 //        const char *touch_dev_name );
@@ -123,9 +123,10 @@ bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 //bool_t Ltdc_Lcd_Config(struct LCD_ConFig *lcd);
 
 void FT5X26_Pin_Init(void);
-void PCF8574_Pin_Init(void);
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
 unsigned char  NAND_RB_Get(void);
+bool_t LAN8720_RESET(void);
+
 #ifdef __cplusplus
 }
 #endif

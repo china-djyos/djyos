@@ -42,34 +42,35 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+// =============================================================================
 
-#ifndef __BOARD__H__
-#define __BOARD__H__
+// 文件名     ：mcp2515.h
+// 模块描述: SPI转CAN芯片mcp2515驱动头文件
+// 模块版本: V1.10
+// 创建人员: zhb
+// 创建时间: 11/1.2017
+// =============================================================================
+#ifndef __PCF8574_H__
+#define __PCF8574_H__
 
+#include "stdint.h"
 
 #ifdef __cplusplus
-extern "C" {
+#if __cplusplus
+extern "C"{
 #endif
+#endif /* __cplusplus */
 
-bool_t Board_UartGpioInit(u8 SerialNo);
-bool_t Board_IicGpioInit(u8 I2Cx);
-bool_t Board_EthGpioInit(void);
-bool_t Board_SpiGpioInit(u8 SPIx);
-void Board_UartHalfDuplexSend(u8 SerialNo);
-u8   Board_CheckPortIsRS232(u8 SerialNo);
-void Board_UartHalfDuplexRecv(u8 SerialNo);
-bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
-static void Board_NORGpioInit (void );
-void Board_GpioInit(void);
-bool_t LAN8720_RESET(void);
+void PCF8574_WriteOneByte(u8 DataToWrite);
+u8 PCF8574_ReadOneByte(void);
+void PCF8574_WriteBit(u8 bit,u8 sta);
+u8 PCF8574_ReadBit(u8 bit);
+bool_t ModuleInstall_PCF8574(char *BusName);
 
 #ifdef __cplusplus
+#if __cplusplus
 }
 #endif
+#endif /* __cplusplus */
+
 #endif
-
-
-
-
-
-
