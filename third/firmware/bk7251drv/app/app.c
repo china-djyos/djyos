@@ -502,6 +502,7 @@ void bmsg_ps_handler(BUS_MSG_T *msg)
     ps_msg_process(arg);
 }
 #endif
+
 static void core_thread_main( void *arg )
 {
     OSStatus ret;
