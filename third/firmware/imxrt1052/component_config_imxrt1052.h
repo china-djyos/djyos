@@ -39,8 +39,8 @@
 //../utilities
 //%$#@end exclude
 //%$#@include path
-//..;..\drivers;
-//..;..\xip;
-//..;..\CMSIS\Include;
-//..;..\utilities;
+//../drivers;
+//../xip;
+//../CMSIS/Include;
+//../utilities;
 //%$#@end include path
