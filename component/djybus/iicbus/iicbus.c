@@ -393,9 +393,12 @@ s32  IIC_Write(struct IIC_Device *Dev, u32 addr,u8 *buf,u32 len,
         return CN_IIC_EXIT_TIMEOUT;
 
     rel_timeout = timeout - ((u32)DjyGetSysTime() - base_time);
+    //DevAddr = Dev->DevAddr |
+    //        ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+    //        & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
     DevAddr = Dev->DevAddr |
-            ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
-            & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
+              (((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+              & ~(0xFF<<Dev->BitOfMemAddrInDevAddr))<<1);//the lowest is read or write in dev address
     //计算发送地址字节数
     //change by lst
 //    MemAddrLen = (Dev->BitOfMemAddr)/8 +
@@ -525,9 +528,13 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
     Lock_SempPend(IIC->IIC_BufSemp,0);                          //相当于清二值信号量
 
     rel_timeout = timeout - ((u32)DjyGetSysTime() - base_time);
-    DevAddr = Dev->DevAddr |
-            ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
-            & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
+    //DevAddr = Dev->DevAddr |
+    //        ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+    //        & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
+     DevAddr = Dev->DevAddr |
+              (((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+              & ~(0xFF<<Dev->BitOfMemAddrInDevAddr))<<1);//the lowest is read or write in dev address
+              
     //计算发送地址字节数
 //    MemAddrLen = (Dev->BitOfMemAddr)/8 +
 //            ((Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr)%8 ? 1:0);

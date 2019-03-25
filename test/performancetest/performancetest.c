@@ -195,7 +195,7 @@ void Test_MutexTest(void)
         {
             Djy_DelayUs(Cpu_Tatio[loop]*100);
             Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
-            if(TestOffset>=CN_TEST_TIMES+2)         //测试完成则释放资源
+            if(TestOffset2>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;
             }
@@ -287,9 +287,9 @@ void Test_LowPrioHook(ucpu_t SchType)
         //记录数据
         if(__Test_TimerEnd(&TimeRecordEnd))     //读取结束测试系统时间
         {
-            if(TestOffset < CN_TEST_TIMES+2)
+            if(TestOffset2 < CN_TEST_TIMES+2)
             {
-                TimeRecord[TestOffset++] = TimeRecordEnd - TimeRecordStart - u32g_GetTimeCost;
+                TimeRecord2[TestOffset2++] = TimeRecordEnd - TimeRecordStart - u32g_GetTimeCost;
             }
             else
             {
@@ -381,7 +381,7 @@ void Test_SempTest(void)
         {
             Djy_DelayUs(Cpu_Tatio[loop]*100);
             Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
-            if(TestOffset>=CN_TEST_TIMES+2)         //测试完成则释放资源
+            if(TestOffset2>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;
             }
