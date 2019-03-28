@@ -62,19 +62,19 @@
 //../func/ethernet_intf;../func/hostapd-2.5;../func/hostapd-2.5/bk_patch;
 //../func/hostapd-2.5/hostapd;../func/hostapd-2.5/src;../func/hostapd-2.5/src/ap;
 //../func/hostapd-2.5/src/common;../func/hostapd-2.5/src/drivers;../func/hostapd-2.5/src/utils;
-//../func/include;../func/joint_up;../func/lwip_intf/lwip-2.0.2/port;../func/lwip_intf/lwip-2.0.2/port/arch;
-//../func/lwip_intf/lwip-2.0.2/src/include;../func/os/include;
-//../func/rttos/include;../func/rwnx_intf;../func/temp_detect;../func/uart_debug;
-//../func/user_driver;
+//../ip/umac/src/apm;../func/include;../func/joint_up;../func/lwip_intf/lwip-2.0.2/port;
+//../func/lwip_intf/lwip-2.0.2/port/arch;../func/lwip_intf/lwip-2.0.2/src/include;
+//../func/os/include;../func/rttos/include;../func/rwnx_intf;../func/temp_detect;
+//../func/uart_debug;../func/user_driver;
 //../ip/common;
 //../ip/ke;
 //../ip/lmac;../ip/lmac/src/rwnx;../ip/lmac/src/tx;../ip/lmac/src/tx/txl;
 //../ip/lmac/src/hal;../ip/lmac/src/scan;../ip/lmac/src/mm;../ip/lmac/src/bfr;
 //../ip/lmac/src/chan;../ip/lmac/src/p2p;../ip/lmac/src/rd;../ip/lmac/src/rx;
-//../ip/lmac/src/sta;../ip/lmac/src/tpc;../ip/lmac/src/tdls;../ip/lmac/src/td;
-//../ip/lmac/src/vif;../ip/lmac/src/ps;../ip/lmac/src/rx/rxl;
+//../ip/umac/src/bam;../ip/lmac/src/sta;../ip/lmac/src/tpc;../ip/lmac/src/tdls;
+//../ip/lmac/src/td;../ip/lmac/src/vif;../ip/lmac/src/ps;../ip/lmac/src/rx/rxl;
 //../ip/mac;
-//../ip/umac;../ip/umac/src/apm;../ip/umac/src/bam;../ip/umac/src/me;../ip/umac/src/mesh;
+//../ip/umac;../ip/umac/src/me;../ip/umac/src/mesh;
 //../ip/umac/src/mfp;../ip/umac/src/rc;../ip/umac/src/rxu;../ip/umac/src/scanu;
 //../ip/umac/src/llc;../ip/umac/src/sm;../ip/umac/src/txu;
 //%$#@end include path

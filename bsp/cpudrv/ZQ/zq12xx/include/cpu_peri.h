@@ -70,6 +70,9 @@ extern "C" {
 #ifdef CFG_CPU_ZQ12XX_M0
 #include "stdint.h"
 #include "cpu_peri_int_line.h"
+#include "cpu_peri_cxc.h"
+#include "cpu_peri_gpio.h"
+#include "cpu_peri_isr.h"
 #include "cpu_peri_uart.h"
 #include "cpu_peri_spi.h"
 #include "djyos.h"

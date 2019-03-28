@@ -97,7 +97,7 @@
 
 typedef struct
 {
-	volatile u32 GPIO_DATA;//0x000
+    volatile u32 GPIO_DATA;//0x000
 }tagRegGpioData;
 
 
@@ -163,13 +163,13 @@ static volatile u32 *spg_RegIntEnable[2] = {
 static volatile tagRegBaseInfo s_RegGpioInfo[CN_GPIO_GROUP_NUM] =
 {
     {   //Gpio Group 1
-    	(volatile u32 *)GPIO1_REG_DATA,
-    	(volatile tagRegGpio*)GPIO1_REG_BASE,
+        (volatile u32 *)GPIO1_REG_DATA,
+        (volatile tagRegGpio*)GPIO1_REG_BASE,
     },
        //Gpio Group 2
     {
-    	(volatile u32 *)GPIO2_REG_DATA,
-    	(volatile tagRegGpio*)GPIO2_REG_BASE,
+        (volatile u32 *)GPIO2_REG_DATA,
+        (volatile tagRegGpio*)GPIO2_REG_BASE,
     }
 };
 
@@ -202,7 +202,7 @@ void Gpio_Input_Config(u8 io)
    
    if(GpioRegBase != NULL)
    {
-   	   GpioRegBase->GPIO_DIR &= ~(1 << byPinRegLoc);
+       GpioRegBase->GPIO_DIR &= ~(1 << byPinRegLoc);
    }
 
 }
@@ -235,7 +235,7 @@ void Gpio_Output_Config(u8 io)
    
    if(GpioRegBase != NULL)
    {
-   	   GpioRegBase->GPIO_DIR |= (1 << byPinRegLoc);
+       GpioRegBase->GPIO_DIR |= (1 << byPinRegLoc);
    }
 }
 
@@ -251,10 +251,10 @@ void Gpio_Derection_Config(u8 io,bool_t bDerection)
 {
     if(bDerection)
     {
-    	Gpio_Output_Config(io);
+        Gpio_Output_Config(io);
     }else
     {
-    	Gpio_Input_Config(io);
+        Gpio_Input_Config(io);
     }
 }
 
@@ -268,7 +268,7 @@ void Gpio_Derection_Config(u8 io,bool_t bDerection)
 
 void Gpio_Set_Value_Hight(u8 io)
 {
-	u8 byPinRegLoc;
+    u8 byPinRegLoc;
     u8 byPinGroupLoc;
     u8 byGpio;
     volatile tagRegGpioData* GpioRegData  = NULL;
@@ -286,7 +286,7 @@ void Gpio_Set_Value_Hight(u8 io)
    
     if(GpioRegData != NULL)
     {
-   	    GpioRegData->GPIO_DATA |= (1 << byPinRegLoc);
+        GpioRegData->GPIO_DATA |= (1 << byPinRegLoc);
     }
 }
 
@@ -675,31 +675,3 @@ void Register_Gpio_Irq(u8 io,fnGpioHandle_t IsrHandle)
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

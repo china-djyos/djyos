@@ -129,7 +129,7 @@ bool_t event(char *param)
             printf("\r\n%05d   %05d   %03d    %02d%%  %08x %s",\
                    pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
                     g_tECB_Table[pl_ecb].prio,time1,\
-                    g_tECB_Table[pl_ecb].vm->stack_size,name);
+                    StackSize,name);
 
             MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
         }

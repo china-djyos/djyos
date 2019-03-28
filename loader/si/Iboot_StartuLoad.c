@@ -103,7 +103,7 @@ __attribute__((weak))  bool_t IAP_IsForceIboot()
 //----------------------------------------------------------------------------
 void IAP_SelectLoadProgam(void)
 {
-#if defined (CFG_BARE_APP)
+#if defined (CFG_RUNMODE_BAREAPP)
         Load_Preload();   //‘À––Iboot
 #else
 
