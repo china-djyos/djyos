@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
 
-// æ¨¡å—ç‰ˆæœ¬: V1.00
-// åˆ›å»ºäººå‘˜:czz
-// åˆ›å»ºæ—¶é—´:2017
+// Ä£¿é°æ±¾: V1.00
+// ´´½¨ÈËÔ±:czz
+// ´´½¨Ê±¼ä:2017
 // =============================================================================
 
 #include <stdint.h>
@@ -14,52 +14,52 @@
 #include "cpu_peri.h"
 #include "time.h"
 
-#include "project_config.h"     //æœ¬æ–‡ä»¶ç”±IDEä¸­é…ç½®ç•Œé¢ç”Ÿæˆï¼Œå­˜æ”¾åœ¨APPçš„å·¥ç¨‹ç›®å½•ä¸­ã€‚
-                                //å…è®¸æ˜¯ä¸ªç©ºæ–‡ä»¶ï¼Œæ‰€æœ‰é…ç½®å°†æŒ‰é»˜è®¤å€¼é…ç½®ã€‚
+#include "project_config.h"     //±¾ÎÄ¼þÓÉIDEÖÐÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖÐ¡£
+                                //ÔÊÐíÊÇ¸ö¿ÕÎÄ¼þ£¬ËùÓÐÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
 
-//@#$%component configure   ****ç»„ä»¶é…ç½®å¼€å§‹ï¼Œç”¨äºŽ DIDE ä¸­å›¾å½¢åŒ–é…ç½®ç•Œé¢
-//****é…ç½®å—çš„è¯­æ³•å’Œä½¿ç”¨æ–¹æ³•ï¼Œå‚è§æºç æ ¹ç›®å½•ä¸‹çš„æ–‡ä»¶ï¼šcomponent_config_readme.txt****
-//%$#@initcode      ****åˆå§‹åŒ–ä»£ç å¼€å§‹ï¼Œç”± DIDE åˆ é™¤â€œ//â€åŽcopyåˆ°åˆå§‹åŒ–æ–‡ä»¶ä¸­
+//@#$%component configure   ****×é¼þÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖÐÍ¼ÐÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼þ£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ý¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼þÖÐ
 //  extern ptu32_t ModuleInstall_CpuRtc(ptu32_t para);
 //  ModuleInstall_CpuRtc(0);
-//%$#@end initcode  ****åˆå§‹åŒ–ä»£ç ç»“æŸ
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
 
-//%$#@describe      ****ç»„ä»¶æè¿°å¼€å§‹
-//component name:"cpu_peri_rtc" //CPUçš„rtcå¤–è®¾é©±åŠ¨
-//parent:"rtc"                  //å¡«å†™è¯¥ç»„ä»¶çš„çˆ¶ç»„ä»¶åå­—ï¼Œnoneè¡¨ç¤ºæ²¡æœ‰çˆ¶ç»„ä»¶
-//attribute:bsp                 //é€‰å¡«â€œthirdã€systemã€bspã€userâ€ï¼Œæœ¬å±žæ€§ç”¨äºŽåœ¨IDEä¸­åˆ†ç»„
-//select:choosable              //é€‰å¡«â€œrequiredã€choosableã€noneâ€ï¼Œè‹¥å¡«å¿…é€‰ä¸”éœ€è¦é…ç½®å‚æ•°ï¼Œåˆ™IDEè£å‰ªç•Œé¢ä¸­é»˜è®¤å‹¾å–ï¼Œ
-                                //ä¸å¯å–æ¶ˆï¼Œå¿…é€‰ä¸”ä¸éœ€è¦é…ç½®å‚æ•°çš„ï¼Œæˆ–æ˜¯ä¸å¯é€‰çš„ï¼ŒIDEè£å‰ªç•Œé¢ä¸­ä¸æ˜¾ç¤ºï¼Œ
-//init time:medium              //åˆå§‹åŒ–æ—¶æœºï¼Œå¯é€‰å€¼ï¼šearlyï¼Œmediumï¼Œlaterã€‚
-                                //è¡¨ç¤ºåˆå§‹åŒ–æ—¶é—´ï¼Œåˆ†åˆ«æ˜¯æ—©æœŸã€ä¸­æœŸã€åŽæœŸ
-//dependence:"time","int",      //è¯¥ç»„ä»¶çš„ä¾èµ–ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— ä¾èµ–ç»„ä»¶ï¼‰ï¼Œ
-                                //é€‰ä¸­è¯¥ç»„ä»¶æ—¶ï¼Œè¢«ä¾èµ–ç»„ä»¶å°†å¼ºåˆ¶é€‰ä¸­ï¼Œ
-                                //å¦‚æžœä¾èµ–å¤šä¸ªç»„ä»¶ï¼Œåˆ™ä¾æ¬¡åˆ—å‡º
-//weakdependence:"none"         //è¯¥ç»„ä»¶çš„å¼±ä¾èµ–ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— ä¾èµ–ç»„ä»¶ï¼‰ï¼Œ
-                                //é€‰ä¸­è¯¥ç»„ä»¶æ—¶ï¼Œè¢«ä¾èµ–ç»„ä»¶ä¸ä¼šè¢«å¼ºåˆ¶é€‰ä¸­ï¼Œ
-                                //å¦‚æžœä¾èµ–å¤šä¸ªç»„ä»¶ï¼Œåˆ™ä¾æ¬¡åˆ—å‡ºï¼Œç”¨â€œ,â€åˆ†éš”
-//mutex:"none"                  //è¯¥ç»„ä»¶çš„ä¾èµ–ç»„ä»¶åï¼ˆå¯ä»¥æ˜¯noneï¼Œè¡¨ç¤ºæ— ä¾èµ–ç»„ä»¶ï¼‰ï¼Œ
-                                //å¦‚æžœä¾èµ–å¤šä¸ªç»„ä»¶ï¼Œåˆ™ä¾æ¬¡åˆ—å‡º
-//%$#@end describe  ****ç»„ä»¶æè¿°ç»“æŸ
+//%$#@describe      ****×é¼þÃèÊö¿ªÊ¼
+//component name:"cpu_peri_rtc" //CPUµÄrtcÍâÉèÇý¶¯
+//parent:"rtc"                  //ÌîÐ´¸Ã×é¼þµÄ¸¸×é¼þÃû×Ö£¬none±íÊ¾Ã»ÓÐ¸¸×é¼þ
+//attribute:bsp                 //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôÐÔÓÃÓÚÔÚIDEÖÐ·Ö×é
+//select:choosable              //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒÐèÒªÅäÖÃ²ÎÊý£¬ÔòIDE²Ã¼ô½çÃæÖÐÄ¬ÈÏ¹´È¡£¬
+                                //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ÐèÒªÅäÖÃ²ÎÊýµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖÐ²»ÏÔÊ¾£¬
+//init time:medium              //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later¡£
+                                //±íÊ¾³õÊ¼»¯Ê±¼ä£¬·Ö±ðÊÇÔçÆÚ¡¢ÖÐÆÚ¡¢ºóÆÚ
+//dependence:"time","int",      //¸Ã×é¼þµÄÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ½«Ç¿ÖÆÑ¡ÖÐ£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö
+//weakdependence:"none"         //¸Ã×é¼þµÄÈõÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ²»»á±»Ç¿ÖÆÑ¡ÖÐ£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                  //¸Ã×é¼þµÄ»¥³â×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞ»¥³â×é¼þ£©£¬
+                                //Èç¹ûÓë¶à¸ö×é¼þ»¥³â£¬ÔòÒÀ´ÎÁÐ³ö
+//%$#@end describe  ****×é¼þÃèÊö½áÊø
 
-//%$#@configue      ****å‚æ•°é…ç½®å¼€å§‹
-//%$#@target = header    //header = ç”Ÿæˆå¤´æ–‡ä»¶,cmdline = å‘½ä»¤è¡Œå˜é‡ï¼ŒDJYOSè‡ªæœ‰æ¨¡å—ç¦ç”¨
+//%$#@configue      ****²ÎÊýÅäÖÃ¿ªÊ¼
+//%$#@target = header    //header = Éú³ÉÍ·ÎÄ¼þ,cmdline = ÃüÁîÐÐ±äÁ¿£¬DJYOS×ÔÓÐÄ£¿é½ûÓÃ
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***å®šä¹‰æ— å€¼çš„å®ï¼Œä»…ç”¨äºŽç¬¬ä¸‰æ–¹ç»„ä»¶
+//%$#select,        ***´ÓÁÐ³öµÄÑ¡ÏîÖÐÑ¡ÔñÈô¸É¸ö¶¨Òå³Éºê
 //%$#@free,
-//%$#@end configue  ****å‚æ•°é…ç½®ç»“æŸ
-//%$#@exclude       ****ç¼–è¯‘æŽ’é™¤æ–‡ä»¶åˆ—è¡¨
-//%$#@end exclude   ****ç»„ä»¶æè¿°ç»“æŸ
+//%$#@end configue  ****²ÎÊýÅäÖÃ½áÊø
+//%$#@exclude       ****±àÒëÅÅ³ýÎÄ¼þÁÐ±í
+//%$#@end exclude   ****×é¼þÃèÊö½áÊø
 //@#$%component end configure
 
 RTC_HandleTypeDef RTC_Handler;
 
 // =============================================================================
-// åŠŸèƒ½ï¼šä»ŽRTCè®¾å¤‡ä¸­è¯»å–RTCæ—¶é—´ï¼Œå•ä½å¾®ç§’,å–ä»Ž1970å¹´1æœˆ1æ—¥0:0:0åˆ°çŽ°åœ¨çš„æ—¶é—´å·®
-// å‚æ•°ï¼štime, æ—¶é—´å€¼ï¼Œéœ€æŠŠæ—¥åŽ†æ—¶é—´è½¬æ¢æˆ1970å¹´1æœˆ1æ—¥0:0:0åˆ°çŽ°åœ¨çš„æ—¶é—´å·®
-// è¿”å›žï¼štrue,æ­£å¸¸æ“ä½œï¼Œå¦åˆ™å‡ºé”™
+// ¹¦ÄÜ£º´ÓRTCÉè±¸ÖÐ¶ÁÈ¡RTCÊ±¼ä£¬µ¥Î»Î¢Ãë,È¡´Ó1970Äê1ÔÂ1ÈÕ0:0:0µ½ÏÖÔÚµÄÊ±¼ä²î
+// ²ÎÊý£ºtime, Ê±¼äÖµ£¬Ðè°ÑÈÕÀúÊ±¼ä×ª»»³É1970Äê1ÔÂ1ÈÕ0:0:0µ½ÏÖÔÚµÄÊ±¼ä²î
+// ·µ»Ø£ºtrue,Õý³£²Ù×÷£¬·ñÔò³ö´í
 // =============================================================================
 bool_t Rtc_GetTime(u8 *time)
 {
@@ -71,9 +71,9 @@ bool_t Rtc_GetTime(u8 *time)
 }
 
 // =============================================================================
-// åŠŸèƒ½ï¼šè®¾ç½®RTCè®¾å¤‡RTCæ—¶é—´ï¼Œå•ä½å¾®ç§’ï¼Œè¯¥æ—¶é—´ä»Ž1970å¹´1æœˆ1æ—¥0:0:0åˆ°çŽ°åœ¨çš„æ—¶é—´å·®
-// å‚æ•°ï¼štime, æ—¶é—´å€¼
-// è¿”å›žï¼štrue,æ­£å¸¸æ“ä½œï¼Œå¦åˆ™å‡ºé”™
+// ¹¦ÄÜ£ºÉèÖÃRTCÉè±¸RTCÊ±¼ä£¬µ¥Î»Î¢Ãë£¬¸ÃÊ±¼ä´Ó1970Äê1ÔÂ1ÈÕ0:0:0µ½ÏÖÔÚµÄÊ±¼ä²î
+// ²ÎÊý£ºtime, Ê±¼äÖµ
+// ·µ»Ø£ºtrue,Õý³£²Ù×÷£¬·ñÔò³ö´í
 // =============================================================================
 HAL_StatusTypeDef RTC_Set_Time(u8 hour,u8 min,u8 sec,u8 ampm)
 {
@@ -123,25 +123,25 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct;
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
-    __HAL_RCC_RTC_CLK_ENABLE();     //ÃŠÂ¹Ã„ÃœRTCÃŠÂ±Ã–Ã“
-    HAL_PWR_EnableBkUpAccess();     //ÃˆÂ¡ÃÃ»Â±Â¸Â·ÃÃ‡Ã¸Ã“Ã²ÃÂ´Â±Â£Â»Â¤
+    __HAL_RCC_RTC_CLK_ENABLE();     //????RTC?¡À??
+    HAL_PWR_EnableBkUpAccess();     //????¡À?¡¤????¨°??¡À??¡è
 
-    RCC_OscInitStruct.OscillatorType=RCC_OSCILLATORTYPE_LSE;//LSEÃ…Ã¤Ã–Ãƒ
+    RCC_OscInitStruct.OscillatorType=RCC_OSCILLATORTYPE_LSE;//LSE????
     RCC_OscInitStruct.PLL.PLLState=RCC_PLL_NONE;
-    RCC_OscInitStruct.LSEState=RCC_LSE_ON;                  //RTCÃŠÂ¹Ã“ÃƒLSE
+    RCC_OscInitStruct.LSEState=RCC_LSE_ON;                  //RTC????LSE
     HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
-    PeriphClkInitStruct.PeriphClockSelection=RCC_PERIPHCLK_RTC;//ÃÃ¢Ã‰Ã¨ÃŽÂªRTC
-    PeriphClkInitStruct.RTCClockSelection=RCC_RTCCLKSOURCE_LSE;//RTCÃŠÂ±Ã–Ã“Ã”Â´ÃŽÂªLSE
+    PeriphClkInitStruct.PeriphClockSelection=RCC_PERIPHCLK_RTC;//???¨¨??RTC
+    PeriphClkInitStruct.RTCClockSelection=RCC_RTCCLKSOURCE_LSE;//RTC?¡À??????LSE
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
 
-    __HAL_RCC_RTC_ENABLE();//RTCÃŠÂ±Ã–Ã“ÃŠÂ¹Ã„Ãœ
+    __HAL_RCC_RTC_ENABLE();//RTC?¡À??????
 }
 
 // =============================================================================
-// åŠŸèƒ½ï¼šRTCæ—¶é—´æ³¨å†ŒåŠåˆå§‹åŒ–
-// å‚æ•°ï¼štime, æ—¶é—´å€¼
-// è¿”å›žï¼štrue,æ­£å¸¸æ“ä½œï¼Œå¦åˆ™å‡ºé”™
+// ¹¦ÄÜ£ºRTCÊ±¼ä×¢²á¼°³õÊ¼»¯
+// ²ÎÊý£ºtime, Ê±¼äÖµ
+// ·µ»Ø£ºtrue,Õý³£²Ù×÷£¬·ñÔò³ö´í
 // =============================================================================
 ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
 {
@@ -149,6 +149,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
 
     return true;
 }
+
 
 
 

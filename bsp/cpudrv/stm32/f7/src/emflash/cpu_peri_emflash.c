@@ -79,8 +79,8 @@
 //weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                          //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                        //如果依赖多个组件，则依次列出
+//mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                        //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -96,7 +96,7 @@
 //%$#@enum,EN_XIP_APP_TARGET,EN_XIP_IBOOT_TARGET,NULL
 #define CFG_EFLASH_FSMOUNT_NAME   EN_XIP_APP_TARGET    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -643,7 +643,7 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 // ============================================================================
 // 功能：初始化片内flash
 // 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
-//		 bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
@@ -708,8 +708,8 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend)
     res = strlen(EmflashName) + strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);	//获取该设备的全路径
-    FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);   //获取该设备的全路径
+    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);

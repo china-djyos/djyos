@@ -66,7 +66,7 @@ enum runappmode{
     RUN_APP_FROM_UPDATE,
 };
 
-enum headflag
+enum hardflag
 {
     POWER_ON_FLAG,
     HEAD_RESET_FLAG,
@@ -74,17 +74,6 @@ enum headflag
     LOW_POWER_WAKEUP,
 
 };
-//==============================================================================
-//说明：该函数__attribute__((weak))  u8  Get_Headflag(enum headflag flag)实现
-//      如果硬件支持则应在initcpuc.c文件中实现该函数
-//功能：获取硬件上的标志
-//参数：POWER_ON_FLAG：获取上电复位硬件标志，0=无此硬件；1=有此硬件，
-//                  但无标志；2=有标志，阅后即焚；3=有，非阅后即焚
-//     HEAD_RESET_FLAG： 获取硬件复位标志没有/不支持返回0
-//     HEAD_WDT_RESE： 获取硬件看门狗复位标志没有/不支持返回0
-//     LOW_POWER_WAKEUP： 低功耗唤醒没有/不支持返回0
-//
-//==============================================================================
 
 bool_t Run_Iboot(enum runibootmode mode);
 bool_t Run_App(enum runappmode mode);

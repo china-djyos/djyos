@@ -36,8 +36,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -51,7 +51,7 @@
 #define CFG_MAX31865_SAM_MODE              MAX31865_CONTINOUS_MODE   //"采样模式",连续采样或单次采样
 //%$#@string,1,10,
 #define CFG_MAX31865_BUS_NAME              "SPI0"       //"SPI总线",MAX31865所使用SPI总线名称
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #define CFG_MAX3_TIMEOUT                   CN_TIMEOUT_FOREVER//"超时时间"，即等待超时间
 #endif

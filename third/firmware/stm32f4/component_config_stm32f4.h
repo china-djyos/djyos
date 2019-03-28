@@ -18,8 +18,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -30,7 +30,7 @@
 //%$#@enum,1,2,3,4,5,6,7,8
 #define CFG_STM32_HAL_TIMER     6//配置HAL库使用的定时器
 //%$#@string,1,16
-//%$#@SYMBOL
+//%$#@SYMBOL        ***不经配置界面，直接定义符号
 #define CFG_CPU_STM32F4
 //%$#@select,1
 #define     USE_HAL_DRIVER          //是否使用hal库

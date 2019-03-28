@@ -159,7 +159,11 @@ void Init_Cpu(void)
 //  else
 //      Load_Preload( );
 
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
 extern void Load_Preload(void);

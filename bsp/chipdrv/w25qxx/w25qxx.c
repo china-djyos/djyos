@@ -78,8 +78,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -91,7 +91,7 @@
 //%$#@enum,1,2,
 #define CFG_W25QXX_FLAG                   (2)        //"FLASH标记位",FLASH_BUFFERED(2) OR FLASH_ERASE_ALL(1)
 //%$#@string,1,20,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #define CFG_W25QXX_BUS_NAME               ""         //"总线名称",FLASH总线接口名称
 #endif

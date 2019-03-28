@@ -184,7 +184,7 @@ struct IbootAppInfo
 //     HEAD_WDT_RESE： 获取硬件看门狗复位标志没有/不支持返回0
 //     LOW_POWER_WAKEUP： 低功耗唤醒没有/不支持返回0
 //==============================================================================
-__attribute__((weak))  u8  Get_Headflag(enum headflag flag)
+__attribute__((weak))  u8  Get_Hardflag(enum hardflag flag)
 {
     switch (flag)
     {
@@ -977,8 +977,8 @@ static bool_t Fill_boardname(char* boardname,char* buf,u8 maxlen)
 bool_t Si_IbootAppInfoInit()
 {
     bool_t initflag = false;
-    u8 headflag = Get_Headflag(POWER_ON_FLAG);
-    switch (headflag)
+    u8 hardflag = Get_Hardflag(POWER_ON_FLAG);
+    switch (hardflag)
     {
         case 0: //0=无此硬件
             if((Iboot_App_Info.PreviouReset != PREVIOURESET_APP) && \
@@ -1015,7 +1015,7 @@ bool_t Si_IbootAppInfoInit()
         Iboot_App_Info.runflag.error_app_check       = 0;//校验出错
         Iboot_App_Info.runflag.error_app_no_file     = 0;//没有这个文件或文件格式错误
         Iboot_App_Info.runflag.error_app_size        = 0;//app文件大小错误
-        Iboot_App_Info.runflag.power_on_flag         = headflag;//上电复位硬件标志0=无此硬件；1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
+        Iboot_App_Info.runflag.power_on_flag         = hardflag;//上电复位硬件标志0=无此硬件；1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
         Iboot_App_Info.runflag.head_wdt_reset        = 0;//看门狗复位标志
         Iboot_App_Info.runflag.soft_reset_flag       = 0;//软件引起的内部复位
         Iboot_App_Info.runflag.reboot_flag           = 0;//reboot 标志
@@ -1039,17 +1039,17 @@ bool_t Si_IbootAppInfoInit()
     }
     else//非上电复位
     {
-        Iboot_App_Info.runflag.power_on_flag = headflag;
+        Iboot_App_Info.runflag.power_on_flag = hardflag;
         Iboot_App_Info.runflag.power_on_resent_flag  = 0;
-        if(Get_Headflag(HEAD_RESET_FLAG))
+        if(Get_Hardflag(HEAD_RESET_FLAG))
             Iboot_App_Info.runflag.head_reset_flag = 1;
         else
             Iboot_App_Info.runflag.head_reset_flag = 0;
-        if(Get_Headflag(HEAD_WDT_RESET))
+        if(Get_Hardflag(HEAD_WDT_RESET))
             Iboot_App_Info.runflag.head_wdt_reset = 1;
         else
             Iboot_App_Info.runflag.head_wdt_reset = 0;
-        if(Get_Headflag(LOW_POWER_WAKEUP))
+        if(Get_Hardflag(LOW_POWER_WAKEUP))
             Iboot_App_Info.runflag.low_power_wakeup = 1;
         else
             Iboot_App_Info.runflag.low_power_wakeup = 0;

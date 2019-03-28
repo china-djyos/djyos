@@ -1,4 +1,4 @@
-﻿/*
+/*
  ***********************************************************************
  ** md5.c -- the source code for MD5 routines                         **
  ** RSA Data Security, Inc. MD5 Message-Digest Algorithm              **
@@ -134,7 +134,7 @@ MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
   PPPDEBUG(LOG_INFO, ("MD5Update: %u:%.*H\n", inLen, LWIP_MIN(inLen, 20) * 2, inBuf));
   PPPDEBUG(LOG_INFO, ("MD5Update: %u:%s\n", inLen, inBuf));
 #endif
-  
+
   /* compute number of bytes mod 64 */
   mdi = (int)((mdContext->i[0] >> 3) & 0x3F);
 

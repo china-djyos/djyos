@@ -99,6 +99,7 @@
 #include <lock.h>
 #include <stdio.h>
 #include <dirent.h>
+#include "component_config_objfile.h"
 
 // OBJ双向链表初始化
 #define __OBJ_LIST_INIT(l)              (l)->next = (l)->prev = (l)
@@ -141,14 +142,13 @@
 
 
 #define CN_OBJ_NAME_LIMIT               255 // 对象名最大长度；
-#define BASIC_OBJECTS                   32
 
 static inline s32 __checkname(const char *name);
 static inline struct obj *__newobj(void);
 static inline void __freeobj(struct obj *ob);
 
 static struct MemCellPool s_tObjectPool;
-static struct obj s_tObjectInitPool[BASIC_OBJECTS];
+static struct obj s_tObjectInitPool[CFG_OBJECT_LIMIT];
 static struct obj *s_ptRootObject, *s_ptCurrentObject; // 逻辑上，应该是每一个进程一个；
 static struct MutexLCB s_tObjectMutex;
 static const char *__uname_obj = "un_named";
@@ -216,7 +216,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
             break;
         }
     }
-	
+
     return (result);
 }
 // ============================================================================
@@ -229,16 +229,16 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
 // ============================================================================
 static struct objhandle *__objsys_open(struct obj *ob, u32 flags, char *uncached)
 {
-	struct objhandle *hdl;
+    struct objhandle *hdl;
 
-	hdl = handle_new();
-	if(!hdl)
+    hdl = handle_new();
+    if(!hdl)
     {
         printf("\r\n : erro : efs    : open failed(memory out).");
         return (NULL);
     }
-	handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
-    return (hdl);	
+    handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
+    return (hdl);
 }
 // ============================================================================
 // 功能：读根目录
@@ -249,8 +249,8 @@ static struct objhandle *__objsys_open(struct obj *ob, u32 flags, char *uncached
 // ============================================================================
 static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry)
 {
-	struct obj *ob = (struct obj *)dentry->d_ino;
-	if(!ob) // 第一次读；
+    struct obj *ob = (struct obj *)dentry->d_ino;
+    if(!ob) // 第一次读；
     {
         ob = obj_child(handle_GetHostObj(directory));
         if(!ob)
@@ -262,11 +262,11 @@ static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentr
         if(ob==obj_child(handle_GetHostObj(directory)))
             return (1); // 全部读完；
     }
-	if(!obj_GetPrivate(ob))
+    if(!obj_GetPrivate(ob))
         dentry->d_type = DIRENT_IS_DIR;
     else
         dentry->d_type = DIRENT_IS_REG;
-	
+
     strcpy(dentry->d_name, obj_name(ob));
     dentry->d_ino = (long)ob;
     return (0);
@@ -638,7 +638,7 @@ s32 obj_ModuleInit(void)
     Lock_MutexCreate_s(&s_tObjectMutex, "obj sys");
 
     Mb_CreatePool_s(&s_tObjectPool, s_tObjectInitPool,
-            BASIC_OBJECTS, sizeof(struct obj), 16, 16384, "object");
+            CFG_OBJECT_LIMIT, sizeof(struct obj), 16, 16384, "object");
     s_ptRootObject = __newobj();
 
     __OBJ_LIST_INIT(s_ptRootObject);

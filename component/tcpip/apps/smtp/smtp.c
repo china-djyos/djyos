@@ -1,4 +1,3 @@
-﻿
 #include <sys/socket.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -766,10 +765,10 @@ bool_t smtp(char *param)
         "<p><img src=\"http://www.djyos.com/wp-content/themes/wpressmonster/images/logo.png\"></p><br/>"\
         "<h1>hello,djyos users.</h1>"\
         "<h4>如果你能收到这封信，那真是太好了，因为这封信来自于djyos的smtp</h4>"\
-        "<h4>特性如下：支持发送多人，支持抄送多人，也支持密送多人，当然也支持多个附件，还支持html,这封信就是html格式！</h4>"\
-        "<h4>详情参考smtp.c文件，栈空间：正常文本时1KB左右；发送附件在2KB左右，请务必预留足够空间</h4>"\
-        "<h4>使用方法：调用smtp_open获取句柄，使用smtp_configure配置所要发送内容，调用smtp_send发送邮件，调用smtp_close关闭句柄</h4>"\
-        "<h4>可以使用它来发送一封邮件来报告当前的运行状态，这对于拷机来说是个不错的主意</h4>"\
+        "<h4>特�?�如下：支持发�?�多人，支持抄�?�多人，也支持密送多人，当然也支持多个附件，还支持html,这封信就是html格式�?</h4>"\
+        "<h4>详情参�?�smtp.c文件，栈空间：正常文本时1KB左右；发送附件在2KB左右，请务必预留足够空间</h4>"\
+        "<h4>使用方法：调用smtp_open获取句柄，使用smtp_configure配置�?要发送内容，调用smtp_send发�?�邮件，调用smtp_close关闭句柄</h4>"\
+        "<h4>可以使用它来发�?�一封邮件来报告当前的运行状态，这对于拷机来说是个不错的主意</h4>"\
         "<h1>欢迎使用</h1>"\
         "</body></html>";
     const char *inl = NULL;
@@ -972,7 +971,7 @@ bool_t enbase64file(char *param)
 // =============================================================================
 // 功能：add the SmtpClient debug to the system
 // 参数：para
-// 返回值  ：true成功  false失败。
+// 返回�?  ：true成功  false失败�?
 // =============================================================================
 bool_t ServiceSmtpClient()
 {
