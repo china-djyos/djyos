@@ -204,12 +204,15 @@ static void SpiFlashOptMode(u8 Mode)
 {
      u32 optStartAddr;
      u32 Remain;
+     atom_high_t high_atom;
      u32 optAddrLen;
 
     switch(Mode)
     {
         case EN_OPT_START:
-             silan_m0_cache_disable();
+//             high_atom =Int_HighAtomStart();
+//             silan_m0_cache_disable();
+             Int_CutTrunk();
              silan_m0_cache_clear();
              optStartAddr =    ((u32) &Lock_Cache_Add_Start) & 0xFFFFFFF0;
              Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
@@ -223,6 +226,8 @@ static void SpiFlashOptMode(u8 Mode)
              Remain       =    ((u32) &Lock_Cache_Add_Start) & 0x0000000F;
              optAddrLen   =    ((((u32) &Lock_Cache_Add_End) - ((u32) &Lock_Cache_Add_Start)) + Remain + M0_CACHE_LINE_SIZE - 1) / M0_CACHE_LINE_SIZE;
              silan_m0_cache_unlock(optStartAddr, optAddrLen, 0);
+//             Int_HighAtomEnd(high_atom);
+             Int_ContactTrunk();
              break;
     }
 }
@@ -237,13 +242,12 @@ static s32 Flash_BlockEarse(u32 SectorNo)
 {
     u32 Addr;
     s32 Ret = 0;
-    atom_high_t high_atom;
-    high_atom =Int_HighAtomStart();
+
     SpiFlashOptMode(EN_OPT_START);
     Addr = SectorNo * BLOCK_SIZE + sp_tFlashDesrc->MappedStAddr ;
     EraseSomeBlocks(Addr,BLOCK_SIZE);
     SpiFlashOptMode(EN_OPT_END);
-    Int_HighAtomEnd(high_atom);
+
     return Ret;
 }
 
@@ -263,18 +267,12 @@ static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
     u32 datLen;
     u32 DatAddr;
     Flags =Flags;
-    atom_high_t high_atom;
     DatAddr = (Page) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr ;
-
-    high_atom =Int_HighAtomStart();
     SpiFlashOptMode(EN_OPT_START);
-
     datLen       = sp_tFlashDesrc->BytesPerPage;
     //ProgramOnePackage((u8*)Data, DatAddr, datLen);
     ProgramOnePackage(Data,DatAddr,datLen);
-
     SpiFlashOptMode(EN_OPT_END);
-    Int_HighAtomEnd(high_atom);
     return sp_tFlashDesrc->BytesPerPage;
 }
 
@@ -615,3 +613,9 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 do
 
 #endif
 
+
+
+void flash_testFlash_BlockEarse(u32 num)
+{
+    Flash_BlockEarse(num);
+}

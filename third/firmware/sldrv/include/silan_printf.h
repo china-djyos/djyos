@@ -23,7 +23,7 @@ extern int sprintf(char * buf, const char *fmt, ...);
                            	/*silan_cxc_mutex_unlock(SILAN_CXC_MUTEX_LOG);*/ \
                            } while(0)
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 #define LOG_CORE_HEAD          "[M0]"
 #elif defined(__SILAN_DRIVERS_CORE_CK__)
 #define LOG_CORE_HEAD          "[CK]"

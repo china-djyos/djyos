@@ -116,7 +116,7 @@ s32 xip_emflash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
         //        esz->unit = 0;
                 __embed_req(whichblock, (ptu32_t)&block, &unit);
                 //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
-                __embed_req(format, block+1, block+1+1, &esz);
+                __embed_req(format, block, block+1, &esz);
             }
         }
         if(__embed_read(unit, um->ubuf, opt))

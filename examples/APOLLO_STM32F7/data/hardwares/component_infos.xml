@@ -56,11 +56,13 @@
    <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
    <component>/third/firmware/AtmelSam4s/component_config_atmelsam4s.h</component>
    <component>/third/firmware/AtmelSamV7/component_config_atmelsamv7.h</component>
+   <component>/third/firmware/bk7251drv/component_config_bk7251.h</component>
    <component>/third/firmware/csky/component_config_csky.h</component>
    <component>/third/firmware/imxrt1052/component_config_imxrt1052.h</component>
    <component>/third/firmware/lpc12xx/component_config_lpc12xx.h</component>
    <component>/third/firmware/lpc17xx/component_config_lpc17xx.h</component>
    <component>/third/firmware/NuvotonM480/component_config_NuvotonM480.h</component>
+   <component>/third/firmware/scm6xx/component_config_scm6xx.h</component>
    <component>/third/firmware/Sharc21469/component_config_Sharc21469.h</component>
    <component>/third/firmware/silan/component_config_silan.h</component>
    <component>/third/firmware/sldrv/component_config_sldrv.h</component>
@@ -137,7 +139,7 @@
    <component>/bsp/cpudrv/stm32/f7/src/gpio/cpu_peri_gpio.c</component>
    <component>/bsp/cpudrv/stm32/f7/src/iic/cpu_peri_iic.c</component>
    <component>/bsp/cpudrv/stm32/f7/src/lcd/cpu_peri_lcd.c</component>
-   <component>/bsp/cpudrv/stm32/f7/src/lowpwer/cpu_peri_lowpower.c</component>
+   <component>/bsp/cpudrv/stm32/f7/src/lowpower/cpu_peri_lowpower.c</component>
    <component>/bsp/cpudrv/stm32/f7/src/nand/cpu_peri_nand.c</component>
    <component>/bsp/cpudrv/stm32/f7/src/rng/cpu_peri_rng.c</component>
    <component>/bsp/cpudrv/stm32/f7/src/rtc/cpu_peri_rtc.c</component>

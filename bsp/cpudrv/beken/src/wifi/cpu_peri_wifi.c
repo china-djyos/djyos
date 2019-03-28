@@ -288,8 +288,9 @@ static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 framelen, u32 netdev
             msg.type = BMSG_TX_TYPE;
             msg.arg = (uint32_t)p;
             msg.len = 0;
-            msg.sema = gMacDriver.sendsync;
-            Lock_SempPend(gMacDriver.sendsync,10*mS);
+//            msg.sema = gMacDriver.sendsync;
+            msg.sema = NULL;
+//            Lock_SempPend(gMacDriver.sendsync,10*mS);
             ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
             if(0 != ret)
             {

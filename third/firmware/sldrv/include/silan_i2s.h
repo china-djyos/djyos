@@ -1,7 +1,7 @@
 #ifndef _SILAN_I2S_H_
 #define _SILAN_I2S_H_
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 #include "silan_core_m0.h"
 #endif
 

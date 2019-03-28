@@ -17,7 +17,7 @@
 #include "silan_timer.h"
 #include "silan_printf.h"
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 #define INST_PER_CYCLE		5
 static u32 delay_calib = 8;
 #endif
@@ -113,7 +113,7 @@ u32 silan_get_timer_count(u32 addr)
 	return __sREG32(addr, TIMER_COUNT);
 }
 //todo
-u32 delay_calib = 100*1000;
+//u32 delay_calib = 100*1000;
 void silan_udelay(u32 us)
 {
 	volatile u32 i,j;
@@ -126,7 +126,7 @@ void silan_udelay(u32 us)
 
 void silan_delay_calib(void)
 {
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 	delay_calib = silan_get_mcu_cclk()/1000000/INST_PER_CYCLE;
 #endif
 #if defined(__XCC__)

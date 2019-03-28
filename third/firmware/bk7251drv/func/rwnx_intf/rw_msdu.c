@@ -562,7 +562,7 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u8 flag)
         txl_cntrl_dec_pck_cnt();
         #endif
         
-        os_printf("rwm_transfer no txdesc \r\n");
+//        os_printf("rwm_transfer no txdesc \r\n");
         goto tx_exit;
     }
 
