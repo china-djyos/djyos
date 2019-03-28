@@ -884,8 +884,16 @@ repeat:
         case 'e':
         case 'f':
         case 'g':
-        position = flt(TempBuf,Target, Size, va_arg(args, double), field_width, precision,
-                         *fmt, flags | SIGN, position, PushChar);
+#if(CFG_STDIO_FLOAT_PRINT == true)
+            position = flt(TempBuf,Target, Size, va_arg(args, double), field_width, precision,
+                             *fmt, flags | SIGN, position, PushChar);
+#else
+            va_arg(args, double);   //跳至下一个参数
+            //不支持浮点打印时输出非法浮点数标志"NaN"
+            position = PushChar(TempBuf,Target, Size,'N',position);
+            position = PushChar(TempBuf,Target, Size,'a',position);
+            position = PushChar(TempBuf,Target, Size,'N',position);
+#endif
           continue;
 
         default:

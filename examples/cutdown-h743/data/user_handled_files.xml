@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><IncludeFiles>
+  <file>/loader/si</file>
+<file>/bsp/cpudrv/stm32/h7/src/uart</file></IncludeFiles>

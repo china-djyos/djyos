@@ -794,6 +794,15 @@ s32 Socket_ObjOps(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
             else
                 result = CN_OBJ_CMD_FALSE;
         }break;
+        case CN_OBJ_CMD_CLOSE:
+        {
+            s32 sockfd;
+            sockfd = Handle2fd((struct objhandle *)opsTarget);
+            if(closesocket(sockfd) == true)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+        }break;
         default:
             result = CN_OBJ_CMD_UNSUPPORT;
             break;

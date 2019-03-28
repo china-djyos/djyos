@@ -56,6 +56,7 @@
    <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
    <component>/third/firmware/AtmelSam4s/component_config_atmelsam4s.h</component>
    <component>/third/firmware/AtmelSamV7/component_config_atmelsamv7.h</component>
+   <component>/third/firmware/bk7251drv/component_config_bk7251.h</component>
    <component>/third/firmware/csky/component_config_csky.h</component>
    <component>/third/firmware/imxrt1052/component_config_imxrt1052.h</component>
    <component>/third/firmware/lpc12xx/component_config_lpc12xx.h</component>

@@ -63,12 +63,11 @@
 #include <math.h>
 #include "../include/object.h"
 #include "../include/objhandle.h"
-
-#define CN_BASIC_HANDLES               16 // 对象句柄预分的数量；（动态扩展）
+#include "component_config_objfile.h"
 
 static struct MutexLCB s_tHandleMutex; // 文件系统互斥锁
 static struct MemCellPool s_tHandlePool; // 文件预分配池
-static struct objhandle s_tHandleInitPool[CN_BASIC_HANDLES];
+static struct objhandle s_tHandleInitPool[CFG_HANDLE_LIMIT];
 
 static s32 __rf_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                             ptu32_t OpsArgs2, ptu32_t OpsArgs3);
@@ -111,7 +110,7 @@ s32 handle_ModuleInit(void)
     }
 
     Mb_CreatePool_s(&s_tHandlePool, s_tHandleInitPool,
-                        CN_BASIC_HANDLES, sizeof(struct objhandle),
+                        CFG_HANDLE_LIMIT, sizeof(struct objhandle),
                         16, 16384, "handle pool");
     return (0);
 }
@@ -760,7 +759,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 //  if(权限满足要求)
     run = ob->ops((void *)ob, CN_OBJ_CMD_OPEN,
                                 (ptu32_t)&hdl,(ptu32_t)&OpenMode,(ptu32_t)uncached);
-   
+
     if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
     {
         obj_InuseUpRange(ob, hdl->HostObj);

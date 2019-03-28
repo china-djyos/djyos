@@ -2879,13 +2879,13 @@ void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     g_ptEventRunning->previous
                     = (struct EventECB*)&s_ptEventFree;//表示本控制块空闲
     g_ptEventRunning->next = s_ptEventFree;     //pg_event_free是单向非循环队列
-    g_ptEventRunning->evtt_id = CN_EVTT_ID_INVALID;     //todo
     s_ptEventFree = g_ptEventRunning;
     s_ptEventFree->event_id = s_ptEventFree - g_tECB_Table;   //容错用
 
     //下面处理完成同步队列，必须联系共享文档的相关章节才容易读懂，注释难于解释
     //那么清楚的。
     pl_evtt =&g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)];
+    g_ptEventRunning->evtt_id = CN_EVTT_ID_INVALID;
     pl_evtt->events--;
     pl_ecb = pl_evtt->done_sync;
     while(pl_ecb != NULL)

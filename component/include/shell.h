@@ -51,6 +51,7 @@
 #include <types.h>
 #include <stddef.h>
 #include <list.h>
+#include "project_config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,15 +82,29 @@ struct shell_cmd
 };
 #define DJYSH_HELP_NAME "djysh_"
 
-#define ADD_TO_ROUTINE_SHELL(cmdname,fun,help) __attribute__((section(".ro_shell_cmd")))\
-    const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
+#if(CFG_MODULE_ENABLE_SHELL == true)
+#define ADD_TO_ROUTINE_SHELL(cmdname,fun,help) \
+                __attribute__((section(".ro_shell_cmd")))\
+                const struct shell_cmd djysh_##cmdname = \
+                        {.shell_fun_addr  = fun,.shell_help_addr = help,}
 
-#define ADD_TO_EXPAND_SHELL(cmdname,fun,help) __attribute__((section(".ex_shell_cmd")))\
-        const struct shell_cmd djysh_##cmdname = {.shell_fun_addr  = fun,.shell_help_addr = help,}
+#define ADD_TO_EXPAND_SHELL(cmdname,fun,help) \
+                __attribute__((section(".ex_shell_cmd")))\
+                const struct shell_cmd djysh_##cmdname = \
+                        {.shell_fun_addr  = fun,.shell_help_addr = help,}
 
 #define ADD_TO_IN_SHELL_DATA  __attribute__((section(".ro_shell_data")))//添加常规shell数据
 #define ADD_TO_EX_SHELL_DATA    __attribute__((section(".ex_shell_data")))//拓展shell数据
 
+#else   //for #if(CFG_MODULE_ENABLE_SHELL == true)
+
+//当没有勾选shell组件，这些宏全部置空
+#define ADD_TO_ROUTINE_SHELL(cmdname,fun,help)
+#define ADD_TO_EXPAND_SHELL(cmdname,fun,help)
+#define ADD_TO_IN_SHELL_DATA
+#define ADD_TO_EX_SHELL_DATA
+
+#endif   //for #if(CFG_MODULE_ENABLE_SHELL == true)
 // ============================================================================
 // 功能：从shell的输入参数（字符串）中，提取出一个参数；
 // 参数：input -- shell输入参数；

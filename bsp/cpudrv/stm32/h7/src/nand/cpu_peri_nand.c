@@ -88,8 +88,8 @@
 //weakdependence:"yaf2filesystem","fatfilesystem"  //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -102,7 +102,7 @@
 #define CFG_NFLASH_PART_START      0      //分区起始
 #define CFG_NFLASH_PART_END        -1     //分区结束
 #define CFG_NFLASH_PART_OPTION     0      //分区选项
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 
@@ -1743,7 +1743,7 @@ static s32 __nand_init(void)
 // ============================================================================
 // 功能：把nand和文件系统关联起来
 // 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
-//		 bstart -- 起始块，bend -- 结束块数（擦除时不包括该块，只擦到该块的上一块），doformat -- 该分区是否格式化
+//       bstart -- 起始块，bend -- 结束块数（擦除时不包括该块，只擦到该块的上一块），doformat -- 该分区是否格式化
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
@@ -1799,8 +1799,8 @@ s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
     res = strlen(NandName)+strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandName);	//获取该设备的全路径
-    FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandName);  //获取该设备的全路径
+    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);

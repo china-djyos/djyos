@@ -64,6 +64,8 @@
 #include "cpu-optional.h"
 #include "core_cm7.h"
 #include "arm32_feature.h"
+#include "project_config.h"
+
 #ifndef __CHECK_DEVICE_DEFINES
 #define __CHECK_DEVICE_DEFINES
 #endif
@@ -131,7 +133,11 @@ void Init_Cpu(void)
     SCB_EnableDCache();
 #endif
 
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
 extern void Load_Preload(void);

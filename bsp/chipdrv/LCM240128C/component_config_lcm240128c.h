@@ -88,8 +88,8 @@
 //weakdependence:"gdd"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -102,7 +102,7 @@
 #define CFG_LCM240128_DISPLAY_NAME        "DISPLAY_LCM240"//"显示器名称"，配置显示器的显示名称
 #define CFG_LCM240128_DESKTOP_NAME        "DESKTOP_LCM240"//"桌面名称"，触摸屏使用的桌面名称
 #define CFG_LCM240128_TOUCH_NAME          "TOUCH_LCM240"  //"触摸名称"，触摸屏的名称
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
