@@ -2056,6 +2056,68 @@
 					</Folder>
 					<F N="bsp/cpudrv/samsung/cpu_group_samsung.xml"/>
 				</Folder>
+				<Folder Name="scm6xx">
+					<Folder Name="scm610">
+						<Folder Name="include">
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu-optional.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri_gpio.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri_iic.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri_int_line.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri_sdio.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri_spi.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri_uart.h"/>
+							<F N="bsp/cpudrv/scm6xx/scm610/include/cpu_peri_wdt.h"/>
+						</Folder>
+						<Folder Name="src">
+							<Folder Name="emflash">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/emflash/cpu_emflash_xip.c"/>
+								<F N="bsp/cpudrv/scm6xx/scm610/src/emflash/cpu_peri_emflash.c"/>
+							</Folder>
+							<Folder Name="eth">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/eth/cpu_peri_eth.c"/>
+							</Folder>
+							<Folder Name="gpio">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/gpio/cpu_peri_gpio.c"/>
+							</Folder>
+							<Folder Name="iic">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/iic/cpu_peri_iic.c"/>
+							</Folder>
+							<Folder Name="lowpower">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/lowpower/stm32f4xx_lowpower.c"/>
+							</Folder>
+							<Folder Name="norflash">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/norflash/cpu_nor_yaf.c"/>
+								<F N="bsp/cpudrv/scm6xx/scm610/src/norflash/cpu_peri_nor.c"/>
+								<F N="bsp/cpudrv/scm6xx/scm610/src/norflash/hal_w25q64.c"/>
+							</Folder>
+							<Folder Name="rtc">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/rtc/cpu_peri_rtc.c"/>
+							</Folder>
+							<Folder Name="sdio">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/sdio/sdcard.c"/>
+								<F N="bsp/cpudrv/scm6xx/scm610/src/sdio/sdio_sdcard.c"/>
+							</Folder>
+							<Folder Name="spi">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/spi/cpu_peri_spi.c"/>
+							</Folder>
+							<Folder Name="systime">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/systime/cpu_peri_systime.c"/>
+							</Folder>
+							<Folder Name="timer">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/timer/cpu_peri_timer.c"/>
+							</Folder>
+							<Folder Name="uart">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/uart/cpu_peri_uart.c"/>
+							</Folder>
+							<Folder Name="wdt">
+								<F N="bsp/cpudrv/scm6xx/scm610/src/wdt/cpu_peri_wdt.c"/>
+							</Folder>
+						</Folder>
+						<F N="bsp/cpudrv/scm6xx/scm610/cpu_scm610.xml"/>
+					</Folder>
+					<F N="bsp/cpudrv/scm6xx/cpu_group_scm6xx.xml"/>
+				</Folder>
 				<Folder Name="Sharc21469">
 					<Folder Name="include">
 						<F N="bsp/cpudrv/Sharc21469/include/cpu_peri.h"/>
@@ -2475,6 +2537,7 @@
 					</Folder>
 					<Folder Name="src">
 						<F N="bsp/cpudrv/stm32/src/cpu_peri_hal.c"/>
+						<F N="bsp/cpudrv/stm32/src/get_cpuid.c"/>
 						<F N="bsp/cpudrv/stm32/src/testsupport.c"/>
 					</Folder>
 					<F N="bsp/cpudrv/stm32/cpu_group_stm32.xml"/>
@@ -4588,6 +4651,10 @@
 			</Folder>
 			<Folder Name="newshelltest">
 				<F N="test/newshelltest/newshell_test.c"/>
+			</Folder>
+			<Folder Name="performancetest">
+				<F N="test/performancetest/performancetest.c"/>
+				<F N="test/performancetest/performancetest.h"/>
 			</Folder>
 			<Folder Name="testbmp">
 				<F N="test/testbmp/gray1_64x48.c"/>
@@ -13449,102 +13516,140 @@
 				<F N="third/mosquitto-1.0/readme.txt"/>
 			</Folder>
 			<Folder Name="picasso">
-				<F N="third/picasso/clipper.cpp"/>
-				<F N="third/picasso/clipper.h"/>
-				<F N="third/picasso/color_type.h"/>
-				<F N="third/picasso/common.h"/>
+				<Folder Name="build">
+					<F N="third/picasso/build/pconfig.h"/>
+				</Folder>
+				<Folder Name="ext">
+					<Folder Name="gif">
+						<F N="third/picasso/ext/gif/gif_module.c"/>
+					</Folder>
+					<Folder Name="jpeg">
+						<F N="third/picasso/ext/jpeg/jpeg_module.c"/>
+					</Folder>
+					<Folder Name="png">
+						<F N="third/picasso/ext/png/png_module.c"/>
+					</Folder>
+					<Folder Name="webp">
+						<F N="third/picasso/ext/webp/webp_module.c"/>
+					</Folder>
+					<F N="third/picasso/ext/psx_color_convert.h"/>
+					<F N="third/picasso/ext/psx_image_io.c"/>
+					<F N="third/picasso/ext/psx_image_io.h"/>
+					<F N="third/picasso/ext/psx_image_loader.c"/>
+					<F N="third/picasso/ext/psx_image_loader.h"/>
+					<F N="third/picasso/ext/psx_image_modules.c"/>
+					<F N="third/picasso/ext/psx_image_modules.h"/>
+					<F N="third/picasso/ext/psx_list.h"/>
+					<F N="third/picasso/ext/resource.h"/>
+				</Folder>
+				<Folder Name="include">
+					<F N="third/picasso/include/picasso.h"/>
+					<F N="third/picasso/include/picasso_image.h"/>
+					<F N="third/picasso/include/picasso_image_plugin.h"/>
+				</Folder>
+				<Folder Name="src">
+					<Folder Name="core">
+						<F N="third/picasso/src/core/clipper.cpp"/>
+						<F N="third/picasso/src/core/curve.cpp"/>
+						<F N="third/picasso/src/core/device.cpp"/>
+						<F N="third/picasso/src/core/fixedopt.cpp"/>
+						<F N="third/picasso/src/core/graphic_path.cpp"/>
+					</Folder>
+					<Folder Name="gfx">
+						<F N="third/picasso/src/gfx/gfx_blur.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_blur.h"/>
+						<F N="third/picasso/src/gfx/gfx_device.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_device.h"/>
+						<F N="third/picasso/src/gfx/gfx_font_adapter.h"/>
+						<F N="third/picasso/src/gfx/gfx_font_adapter_freetype2.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_font_load_freetype2.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_gamma_function.h"/>
+						<F N="third/picasso/src/gfx/gfx_gradient_adapter.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_gradient_adapter.h"/>
+						<F N="third/picasso/src/gfx/gfx_image_accessors.h"/>
+						<F N="third/picasso/src/gfx/gfx_image_filters.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_image_filters.h"/>
+						<F N="third/picasso/src/gfx/gfx_line_generator.h"/>
+						<F N="third/picasso/src/gfx/gfx_mask_layer.h"/>
+						<F N="third/picasso/src/gfx/gfx_math.h"/>
+						<F N="third/picasso/src/gfx/gfx_painter.h"/>
+						<F N="third/picasso/src/gfx/gfx_painter_helper.h"/>
+						<F N="third/picasso/src/gfx/gfx_pixfmt_rgb.h"/>
+						<F N="third/picasso/src/gfx/gfx_pixfmt_rgb16.h"/>
+						<F N="third/picasso/src/gfx/gfx_pixfmt_rgba.h"/>
+						<F N="third/picasso/src/gfx/gfx_pixfmt_wrapper.h"/>
+						<F N="third/picasso/src/gfx/gfx_raster_adapter.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_raster_adapter.h"/>
+						<F N="third/picasso/src/gfx/gfx_rasterizer_cell.h"/>
+						<F N="third/picasso/src/gfx/gfx_rasterizer_scanline.h"/>
+						<F N="third/picasso/src/gfx/gfx_renderer.h"/>
+						<F N="third/picasso/src/gfx/gfx_rendering_buffer.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_rendering_buffer.h"/>
+						<F N="third/picasso/src/gfx/gfx_scanline.h"/>
+						<F N="third/picasso/src/gfx/gfx_scanline_renderer.h"/>
+						<F N="third/picasso/src/gfx/gfx_scanline_storage.h"/>
+						<F N="third/picasso/src/gfx/gfx_span_generator.h"/>
+						<F N="third/picasso/src/gfx/gfx_span_image_filters.h"/>
+						<F N="third/picasso/src/gfx/gfx_sqrt_tables.cpp"/>
+						<F N="third/picasso/src/gfx/gfx_trans_affine.h"/>
+					</Folder>
+					<Folder Name="include">
+						<F N="third/picasso/src/include/clipper.h"/>
+						<F N="third/picasso/src/include/color_type.h"/>
+						<F N="third/picasso/src/include/common.h"/>
+						<F N="third/picasso/src/include/convert.h"/>
+						<F N="third/picasso/src/include/curve.h"/>
+						<F N="third/picasso/src/include/data_vector.h"/>
+						<F N="third/picasso/src/include/device.h"/>
+						<F N="third/picasso/src/include/fastcopy.h"/>
+						<F N="third/picasso/src/include/fastfill.h"/>
+						<F N="third/picasso/src/include/fixedopt.h"/>
+						<F N="third/picasso/src/include/geometry.h"/>
+						<F N="third/picasso/src/include/graphic_base.h"/>
+						<F N="third/picasso/src/include/graphic_helper.h"/>
+						<F N="third/picasso/src/include/graphic_path.h"/>
+						<F N="third/picasso/src/include/interfaces.h"/>
+						<F N="third/picasso/src/include/math_type.h"/>
+						<F N="third/picasso/src/include/memory_manager.h"/>
+						<F N="third/picasso/src/include/platform.h"/>
+						<F N="third/picasso/src/include/refptr.h"/>
+						<F N="third/picasso/src/include/shared.h"/>
+						<F N="third/picasso/src/include/vertex.h"/>
+						<F N="third/picasso/src/include/vertex_dist.h"/>
+					</Folder>
+					<Folder Name="simd">
+						<F N="third/picasso/src/simd/fastcopy_sse.h"/>
+					</Folder>
+					<F N="third/picasso/src/picasso_api.cpp"/>
+					<F N="third/picasso/src/picasso_canvas.cpp"/>
+					<F N="third/picasso/src/picasso_font.cpp"/>
+					<F N="third/picasso/src/picasso_font.h"/>
+					<F N="third/picasso/src/picasso_font_api.cpp"/>
+					<F N="third/picasso/src/picasso_font_cache.h"/>
+					<F N="third/picasso/src/picasso_global.h"/>
+					<F N="third/picasso/src/picasso_gradient.cpp"/>
+					<F N="third/picasso/src/picasso_gradient.h"/>
+					<F N="third/picasso/src/picasso_gradient_api.cpp"/>
+					<F N="third/picasso/src/picasso_image.cpp"/>
+					<F N="third/picasso/src/picasso_mask.cpp"/>
+					<F N="third/picasso/src/picasso_mask.h"/>
+					<F N="third/picasso/src/picasso_mask_api.cpp"/>
+					<F N="third/picasso/src/picasso_matrix.cpp"/>
+					<F N="third/picasso/src/picasso_matrix.h"/>
+					<F N="third/picasso/src/picasso_matrix_api.cpp"/>
+					<F N="third/picasso/src/picasso_objects.h"/>
+					<F N="third/picasso/src/picasso_painter.cpp"/>
+					<F N="third/picasso/src/picasso_painter.h"/>
+					<F N="third/picasso/src/picasso_path.cpp"/>
+					<F N="third/picasso/src/picasso_pattern.cpp"/>
+					<F N="third/picasso/src/picasso_private.h"/>
+					<F N="third/picasso/src/picasso_raster_adapter.cpp"/>
+					<F N="third/picasso/src/picasso_raster_adapter.h"/>
+					<F N="third/picasso/src/picasso_rendering_buffer.cpp"/>
+					<F N="third/picasso/src/picasso_rendering_buffer.h"/>
+					<F N="third/picasso/src/resource.h"/>
+				</Folder>
 				<F N="third/picasso/convert.h"/>
-				<F N="third/picasso/curve.cpp"/>
-				<F N="third/picasso/curve.h"/>
-				<F N="third/picasso/data_vector.h"/>
-				<F N="third/picasso/device.cpp"/>
-				<F N="third/picasso/device.h"/>
-				<F N="third/picasso/fastcopy.h"/>
-				<F N="third/picasso/fastcopy_sse.h"/>
-				<F N="third/picasso/fastfill.h"/>
-				<F N="third/picasso/fixedopt.cpp"/>
-				<F N="third/picasso/fixedopt.h"/>
-				<F N="third/picasso/geometry.h"/>
-				<F N="third/picasso/gfx_blur.cpp"/>
-				<F N="third/picasso/gfx_blur.h"/>
-				<F N="third/picasso/gfx_device.cpp"/>
-				<F N="third/picasso/gfx_device.h"/>
-				<F N="third/picasso/gfx_font_adapter.h"/>
-				<F N="third/picasso/gfx_font_adapter_freetype2.cpp"/>
-				<F N="third/picasso/gfx_font_load_freetype2.cpp"/>
-				<F N="third/picasso/gfx_gamma_function.h"/>
-				<F N="third/picasso/gfx_gradient_adapter.cpp"/>
-				<F N="third/picasso/gfx_gradient_adapter.h"/>
-				<F N="third/picasso/gfx_image_accessors.h"/>
-				<F N="third/picasso/gfx_image_filters.cpp"/>
-				<F N="third/picasso/gfx_image_filters.h"/>
-				<F N="third/picasso/gfx_line_generator.h"/>
-				<F N="third/picasso/gfx_mask_layer.h"/>
-				<F N="third/picasso/gfx_math.h"/>
-				<F N="third/picasso/gfx_painter.h"/>
-				<F N="third/picasso/gfx_painter_helper.h"/>
-				<F N="third/picasso/gfx_pixfmt_rgb.h"/>
-				<F N="third/picasso/gfx_pixfmt_rgb16.h"/>
-				<F N="third/picasso/gfx_pixfmt_rgba.h"/>
-				<F N="third/picasso/gfx_pixfmt_wrapper.h"/>
-				<F N="third/picasso/gfx_raster_adapter.cpp"/>
-				<F N="third/picasso/gfx_raster_adapter.h"/>
-				<F N="third/picasso/gfx_rasterizer_cell.h"/>
-				<F N="third/picasso/gfx_rasterizer_scanline.h"/>
-				<F N="third/picasso/gfx_renderer.h"/>
-				<F N="third/picasso/gfx_rendering_buffer.cpp"/>
-				<F N="third/picasso/gfx_rendering_buffer.h"/>
-				<F N="third/picasso/gfx_scanline.h"/>
-				<F N="third/picasso/gfx_scanline_renderer.h"/>
-				<F N="third/picasso/gfx_scanline_storage.h"/>
-				<F N="third/picasso/gfx_span_generator.h"/>
-				<F N="third/picasso/gfx_span_image_filters.h"/>
-				<F N="third/picasso/gfx_sqrt_tables.cpp"/>
-				<F N="third/picasso/gfx_trans_affine.h"/>
-				<F N="third/picasso/graphic_base.h"/>
-				<F N="third/picasso/graphic_helper.h"/>
-				<F N="third/picasso/graphic_path.cpp"/>
-				<F N="third/picasso/graphic_path.h"/>
-				<F N="third/picasso/interfaces.h"/>
-				<F N="third/picasso/math_type.h"/>
-				<F N="third/picasso/memory_manager.h"/>
-				<F N="third/picasso/pconfig.h"/>
-				<F N="third/picasso/picasso.h"/>
-				<F N="third/picasso/picasso_api.cpp"/>
-				<F N="third/picasso/picasso_canvas.cpp"/>
-				<F N="third/picasso/picasso_font.cpp"/>
-				<F N="third/picasso/picasso_font.h"/>
-				<F N="third/picasso/picasso_font_api.cpp"/>
-				<F N="third/picasso/picasso_font_cache.h"/>
-				<F N="third/picasso/picasso_global.h"/>
-				<F N="third/picasso/picasso_gradient.cpp"/>
-				<F N="third/picasso/picasso_gradient.h"/>
-				<F N="third/picasso/picasso_gradient_api.cpp"/>
-				<F N="third/picasso/picasso_image.cpp"/>
-				<F N="third/picasso/picasso_image.h"/>
-				<F N="third/picasso/picasso_image_plugin.h"/>
-				<F N="third/picasso/picasso_mask.cpp"/>
-				<F N="third/picasso/picasso_mask.h"/>
-				<F N="third/picasso/picasso_mask_api.cpp"/>
-				<F N="third/picasso/picasso_matrix.cpp"/>
-				<F N="third/picasso/picasso_matrix.h"/>
-				<F N="third/picasso/picasso_matrix_api.cpp"/>
-				<F N="third/picasso/picasso_objects.h"/>
-				<F N="third/picasso/picasso_painter.cpp"/>
-				<F N="third/picasso/picasso_painter.h"/>
-				<F N="third/picasso/picasso_path.cpp"/>
-				<F N="third/picasso/picasso_pattern.cpp"/>
-				<F N="third/picasso/picasso_private.h"/>
-				<F N="third/picasso/picasso_raster_adapter.cpp"/>
-				<F N="third/picasso/picasso_raster_adapter.h"/>
-				<F N="third/picasso/picasso_rendering_buffer.cpp"/>
-				<F N="third/picasso/picasso_rendering_buffer.h"/>
-				<F N="third/picasso/platform.h"/>
-				<F N="third/picasso/refptr.h"/>
-				<F N="third/picasso/resource.h"/>
-				<F N="third/picasso/shared.h"/>
-				<F N="third/picasso/vertex.h"/>
-				<F N="third/picasso/vertex_dist.h"/>
 			</Folder>
 			<Folder Name="qrencode">
 				<F N="third/qrencode/bitstream.c"/>

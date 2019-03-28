@@ -195,7 +195,7 @@ void Test_MutexTest(void)
         {
             Djy_DelayUs(Cpu_Tatio[loop]*100);
             Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
-            if(TestOffset>=CN_TEST_TIMES+2)         //测试完成则释放资源
+            if(TestOffset2>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;
             }
@@ -287,9 +287,9 @@ void Test_LowPrioHook(ucpu_t SchType)
         //记录数据
         if(__Test_TimerEnd(&TimeRecordEnd))     //读取结束测试系统时间
         {
-            if(TestOffset < CN_TEST_TIMES+2)
+            if(TestOffset2 < CN_TEST_TIMES+2)
             {
-                TimeRecord[TestOffset++] = TimeRecordEnd - TimeRecordStart - u32g_GetTimeCost;
+                TimeRecord2[TestOffset2++] = TimeRecordEnd - TimeRecordStart - u32g_GetTimeCost;
             }
             else
             {
@@ -381,7 +381,7 @@ void Test_SempTest(void)
         {
             Djy_DelayUs(Cpu_Tatio[loop]*100);
             Djy_EventDelay(10000 - Cpu_Tatio[loop]*100);
-            if(TestOffset>=CN_TEST_TIMES+2)         //测试完成则释放资源
+            if(TestOffset2>=CN_TEST_TIMES+2)         //测试完成则释放资源
             {
                 break;
             }
@@ -713,6 +713,7 @@ void Test_IntISRTest(EN_INT_FLAG MeaType)
 }
 
 extern void *TimerReg;
+extern bool_t TimerStarted;
 void SysPerformTest(void)
 {
     u32 RunTime,RunTime1;
@@ -724,13 +725,17 @@ void SysPerformTest(void)
     IntLine = IntLine>>16;
     u32g_TimerFreq = HardTimer_GetFreq(TimerHandle);   //获取定时器频率
     HardTimer_Ctrl(TimerHandle,EN_TIMER_SETCYCLE,u32g_TimerFreq/10000);  //中断周期=0.1mS
-    HardTimer_Ctrl(TimerHandle,EN_TIMER_ENINT,true);           //中断使能
+    //HardTimer_Ctrl(TimerHandle,EN_TIMER_ENINT,true);           //中断使能
     HardTimer_Ctrl(TimerHandle,EN_TIMER_STARTCOUNT,0);         //开始计数
     printf("<<<<<<<<<<<<<<<<<系统性能测试开始：>>>>>>>>>>>>>>>\r\n\n");
+    TimerStarted = true;
     __Test_TimerEnd(&RunTime);
+    TimerStarted = true;
     __Test_TimerEnd(&RunTime1);
     u32g_GetTimeCost = RunTime1 - RunTime;
-
+    HardTimer_Ctrl(TimerHandle,EN_TIMER_PAUSECOUNT,0);         //开始计数
+    HardTimer_Ctrl(TimerHandle,EN_TIMER_STARTCOUNT,0);
+    HardTimer_Ctrl(TimerHandle,EN_TIMER_ENINT,true);           //中断使能
     printf("测试的板件名为:%s\r\n",DJY_BOARD);
     printf("测试主频为:%d\r\n",CFG_CORE_MCLK);
 

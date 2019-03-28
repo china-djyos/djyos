@@ -503,9 +503,7 @@ ptu32_t __M_CheckSize(void * mp)
             {
                 if((u8*)mp < Cession->heap_bottom)    //该指针在静态分配区
                 {
-                    temp = mp;
-                    temp--;
-                    return *temp;
+                    return __M_StaticCheckSize(mp);
                 }else                   //该指针在块相联动态分配区
                 {
                 #if ((CFG_DYNAMIC_MEM == true))

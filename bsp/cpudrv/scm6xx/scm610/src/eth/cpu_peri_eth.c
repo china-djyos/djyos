@@ -14,7 +14,9 @@
 #include <sys/socket.h>
 #include <cpu_peri.h>
 #include <board-config.h>
+#include <netbsp.h>
 #include "dbug.h"
+#include "SCM6XX_ALL.h"
 #include "shell.h"
 
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -60,7 +62,7 @@
 #define CFG_GMAC_MAC_ADDR5         00           //"MAC ADDR5",
 //%$#@enum,true,false,
 //%$#@string,1,32,
-#define CFG_GMAC_NAME              ("STM32F4_ETH")   //"网卡设备名称",
+#define CFG_GMAC_NAME              ("scm6xx")   //"网卡设备名称",
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
@@ -82,10 +84,10 @@
 #define CN_ETH0_BASE (0x50200000UL)
 #define CN_ETH1_BASE (0x50210000UL)
 
-static volatile ETH_TypeDef *sgpt_Gmac[CN_GMAC_MAX] =
+static  ETH_TypeDef *sgpt_Gmac[CN_GMAC_MAX] =
 {
-    (volatile ETH_TypeDef *)CN_ETH0_BASE,
-    (volatile ETH_TypeDef *)CN_ETH1_BASE,
+    ( ETH_TypeDef *)CN_ETH0_BASE,
+    ( ETH_TypeDef *)CN_ETH1_BASE,
 };
 
 #define  ETH_ERROR              ((uint32_t)0)
@@ -97,14 +99,12 @@ static volatile ETH_TypeDef *sgpt_Gmac[CN_GMAC_MAX] =
 extern ETH_DMADESCTypeDef  *DMATxDescToSet;
 extern ETH_DMADESCTypeDef  *DMARxDescToGet;
 
-//frame struct define
 
 typedef struct
 {
     u32 length;                      //frame len
     u32 buffer;                      //buffer address
     ETH_DMADESCTypeDef *descriptor;  //point to current tx or rx Dma descriptor
-
 }FrameTypeDef;
 
 
@@ -139,7 +139,7 @@ typedef struct
     //os member
     struct SemaphoreLCB     *rcvsync;          //activate the receive task
     struct MutexLCB         *protect;          //protect the device
-    ptu32_t                 devhandle;        //returned by the tcpip stack
+    struct NetDev           *devhandle;        //returned by the tcpip stack
     char                    devname[CN_DEVNAME_LEN];
     //hardware
     ETH_TypeDef            *EthHandle;
@@ -179,29 +179,102 @@ u8 Rx_Buff[EthRxDescs][EthRxBufSize];
 u8 Tx_Buff[EthTxDescs][EthTxBufSize];
 #endif
 static u8 gTxBuffer[EthRxBufSize];      //for sending copy frame
-extern bool_t Board_EthGpioInit(void);
+extern ETH_TypeDef *g_eth;
+extern void Ethernet_Configuration(ETH_TypeDef *ETH);
 
-//Get Eth Fram
+#define  CHECKSUM_GEN_ICMP      (0)  //0-使用软件校验，关闭硬件校验
+#define PHY_ADDRESS             0x01  //DP83848地址，根据核心板硬件连接决定
+//#define  MAC0_MII             (0)
+ETH_TypeDef *g_eth;
+// =============================================================================
+// 功能：以太网配置
+// 参数：
+// 返回值  ：
+// =============================================================================
+void Ethernet_Configuration(ETH_TypeDef *ETH)
+{
+    ETH_InitTypeDef ETH_InitStructure;
+    #ifndef MAC0_MII
+    #define MAC0_MII
+    #endif
+    #ifdef MAC0_MII
+        SCU_Configure_GMAC_Mode(SYS_CTRL_GMAC_MODE_MII) ;
 
-FrameTypeDef Eth_RxGetFramInfo(void)
+        IO_Configure_PullDown(P_GPIO111, DISABLE);  //MCO pull-down disable
+        MII0_ConfigDS(IO_DS_MII0_18);
+
+        MII0_InitPad();
+    #else
+        SCU_Configure_GMAC_Mode(SYS_CTRL_GMAC_MODE_RMII) ;//
+
+        IO_Configure_PullDown(P_GPIO111, DISABLE);  //
+        MII0_ConfigDS(IO_DS_MII0_18);
+
+        RMII0_InitPad();
+    #endif
+
+        MCO_InitPad();
+
+        ETH_DeInit(ETH);
+
+        ETH_SoftwareReset(ETH);
+
+        while (ETH_GetSoftwareResetStatus(ETH) == SET);//
+
+        ETH_StructInit(&ETH_InitStructure);
+
+        ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Enable;
+        ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;
+        ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable;
+        ETH_InitStructure.ETH_AutomaticPadCRCStrip = ETH_AutomaticPadCRCStrip_Disable;
+        ETH_InitStructure.ETH_ReceiveAll = ETH_ReceiveAll_Disable;
+        ETH_InitStructure.ETH_BroadcastFramesReception = ETH_BroadcastFramesReception_Enable;
+        ETH_InitStructure.ETH_PromiscuousMode = ETH_PromiscuousMode_Disable;
+        ETH_InitStructure.ETH_MulticastFramesFilter = ETH_MulticastFramesFilter_Perfect;
+        ETH_InitStructure.ETH_UnicastFramesFilter = ETH_UnicastFramesFilter_Perfect;
+
+        #if  !CHECKSUM_GEN_ICMP
+        ETH_InitStructure.ETH_ChecksumOffload = ETH_ChecksumOffload_Enable;
+        #endif
+
+        ETH_InitStructure.ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Enable;
+        ETH_InitStructure.ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;
+        ETH_InitStructure.ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;
+
+        ETH_InitStructure.ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;
+        ETH_InitStructure.ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable;
+        ETH_InitStructure.ETH_SecondFrameOperate = ETH_SecondFrameOperate_Enable;
+        ETH_InitStructure.ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;
+        ETH_InitStructure.ETH_FixedBurst = ETH_FixedBurst_Enable;
+        ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;
+        ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;
+        ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
+        ETH_Init(ETH, &ETH_InitStructure,PHY_ADDRESS);
+
+        ETH_DMAITConfig(ETH, ETH_DMA_IT_NIS|ETH_DMA_IT_R,ENABLE);
+        ETH_DMAITConfig(ETH, ETH_DMA_IT_T,DISABLE);
+}
+// =============================================================================
+// 功能：获取网卡接收到的数据帧fram
+// 参数：
+// 返回值：
+// =============================================================================
+FrameTypeDef ETH_RxPkt_ChainMode(void)
 {
     ETH_TypeDef *EthHandle;
-
     EthHandle = gMacDriver.EthHandle;
 
     u32 framelength = 0;
     FrameTypeDef frame = {0,0};
 
-    if((DMARxDescToGet->Status & ETH_DMARxDesc_OWN) != (u32)RESET)
+    if((DMARxDescToGet->Status & ETH_DMARxDesc_OWN) != (u32)RESET) //如果DMA占用符成立
     {
         frame.length = ETH_ERROR;
-
     if ((EthHandle->DMASR & ETH_DMASR_RBUS) != (u32)RESET)
     {
         EthHandle->DMASR = ETH_DMASR_RBUS;
         EthHandle->DMARPDR = 0;
     }
-
         return frame;
     }
 
@@ -211,7 +284,6 @@ FrameTypeDef Eth_RxGetFramInfo(void)
     {
 
         framelength = ((DMARxDescToGet->Status & ETH_DMARxDesc_FL) >> ETH_DMARxDesc_FrameLengthShift) - 4;
-
         frame.buffer = DMARxDescToGet->Buffer1Addr;
     }
     else
@@ -247,26 +319,54 @@ static void __macbitsclear(vu32 *reg,u32 bits)
     return;
 }
 
+// =============================================================================
+// 功能：网卡时钟初始化
+// 参数：
+// 返回值：
+// =============================================================================
+void ETH_CLK_ENABLE(void)
+{
+    CLK_Enable_Peripheral_Clk(GMAC0); //使能GMAC0时钟
+    g_eth = SGCC_GMAC0_P;  //将GMAC0寄存器启始地址传给g_eth
+}
+// =============================================================================
+// 功能：网卡硬件初始化
+// 参数：
+// 返回值：
+// =============================================================================
 static void ETH_HardDrvInit(tagMacDriver *pDrive)
 {
-    ETH_TypeDef  *EthHandle = NULL;
+    ETH_TypeDef  *ETH;
+
+    ETH = pDrive->EthHandle;   //寄存器地址传给ETH
 
     if(pDrive != NULL)
     {
-        EthHandle = pDrive->EthHandle;
-        Ethernet_Configuration(EthHandle);
-        //Set Mac Address
-        ETH_MACAddressConfig(pDrive->EthHandle, ETH_MAC_Address0,pDrive->macaddr);
-        //Set DMADesTxTab
-        ETH_DMATxDescChainInit(EthHandle, DMATxDscrTab, &Tx_Buff[0][0], EthTxDescs);
-        //Set DMADesRxTab
-        ETH_DMARxDescChainInit(EthHandle, DMARxDscrTab, &Rx_Buff[0][0], EthRxDescs);
 
-    }else
+        Ethernet_Configuration(ETH); //配置eth,管脚等
+        ETH_MACAddressConfig(ETH, ETH_MAC_Address0,pDrive->macaddr); //配置MAC地址，在boardnetcfg.c中定义，通过参数传进来
+
+        ETH_DMATxDescChainInit(ETH, DMATxDscrTab, &Tx_Buff[0][0], EthTxDescs); //初始化发送DMA描述符链表  (from ethernetif.c)
+        ETH_DMARxDescChainInit(ETH, DMARxDscrTab, &Rx_Buff[0][0], EthRxDescs); //初始化接收DMA描述符链表
+
+        for(u8 i=0; i<EthRxDescs; i++) //开启DMA描述符接收中断
     {
+            ETH_DMARxDescReceiveITConfig(&DMARxDscrTab[i], ENABLE);
+        }
+        #if  !CHECKSUM_GEN_ICMP  //判断硬件检验还是软件检验
+             for(u8 i=0; i<EthTxDescs; i++) //发送帧检验
+             {
+                ETH_DMATxDescChecksumInsertionConfig(&DMATxDscrTab[i], ETH_DMATxDesc_ChecksumTCPUDPICMPFull); //TODO:这里是否需要去掉？
+             }
+        #endif
+        ETH_Start(ETH); //开启MAC和DMA
+        printf("ETH hard init ok!\n\r");
+    }
+    else
+    {
+        printf("ETH hard init filed!\n\r");
         return;
     }
-
 }
 
 static void __MacReset(tagMacDriver *pDrive)
@@ -284,13 +384,18 @@ static void __MacReset(tagMacDriver *pDrive)
     return ;
 }
 
-//找接收Buffer地址 、以及数据帧长度 、拷贝到Pkg往上传输
-
-static tagNetPkg *__MacRcv(ptu32_t devhandle)
+// =============================================================================
+// 功能：网卡接收数据函数
+// 说明：找接收Buffer地址 、以及数据帧长度 、拷贝到Pkg往上传输
+// 参数：
+// 返回值：
+// =============================================================================
+static struct NetPkg *__MacRcv(void* devhandle)
 {
-    tagNetPkg         *pkg = NULL;
+    struct NetPkg     *pkg = NULL;
     tagMacDriver      *pDrive;
     ETH_TypeDef       *EthHandle;
+    FrameTypeDef      frame;
 
     u16 CopyBytes,len;
     u8   *dst,*src;
@@ -299,15 +404,17 @@ static tagNetPkg *__MacRcv(ptu32_t devhandle)
     EthHandle = pDrive->EthHandle;
 
     //Lenth to copy to Pkg
-    len = ETH_GetRxPktSize();
-    len = len - 4;          //减去4字节的crc
+    if((len = ETH_GetRxPktSize())==0)
+    {
+        len=0;
+        return NULL;
+    }
+    else
+    {
+        len = len - 4;  //获取的帧长度包含4字节crc,然后减去4字节CRC
+    }
 
-    //copy to Pkg
     CopyBytes = len;
-
-    //Get Rev Fram Info
-    //Here Return DMARxDescToGet Point To Next DMARxDescToGet
-    FrameTypeDef frame = Eth_RxGetFramInfo();
 
     if(len > 0)
     {
@@ -318,54 +425,50 @@ static tagNetPkg *__MacRcv(ptu32_t devhandle)
 
     if(NULL != pkg)
     {
-        dst = (u8 *)(pkg->buf +pkg->offset);       //Pkg Buf Address
+        //Here Return DMARxDescToGet Point To Next DMARxDescToGet
+        frame = ETH_RxPkt_ChainMode();
+        dst = PkgGetCurrentBuffer(pkg);       //Pkg Buf Address
         src = (u8 *)frame.buffer;                  //Get Buffer Address
 
-//      while(CopyBytes > EthRxBufSize)
+        while(CopyBytes > EthRxBufSize)
         {
-            memcpy( dst, src, len);
-//          CopyBytes -= len;
-//          dst += len;
-            //Set Own The Rev Description DMA
-            //Set Current descriptor To Be Used -point to DMARxDescToGet in fact
-            frame.descriptor->Status = ETH_DMARxDesc_OWN;
+            memcpy(dst,src,EthRxBufSize);  //copy the first part
+            CopyBytes -= EthRxBufSize;
+            dst += EthRxBufSize;
+            //Set Own The Current Rev Description DMA
+            frame.descriptor->Status |= ETH_DMARxDesc_OWN;
+            //get the rest data len
+            frame = ETH_RxPkt_ChainMode();
+            src = (u8 *)frame.buffer;
         }
-
-        pkg->datalen = len;
+        memcpy(dst, src, CopyBytes);
+        frame.descriptor->Status |= ETH_DMARxDesc_OWN;
+        PkgSetDataLen(pkg, len);
 //      EthHandle->RxFrameInfos.SegCount =0;
+    }
+    else
+    {
+        DMARxDescToGet->Status |= ETH_DMARxDesc_OWN;
+        printf("malloc pkg failed\n\r");
     }
 
     // When Rx Buffer unavailable flag is set: clear it and resume reception
-
     if ((EthHandle->DMASR & ETH_DMASR_RBUS) != (u32)RESET)
     {
-        EthHandle->DMASR = ETH_DMASR_RBUS; //清除接收缓冲区不可用标志
-        EthHandle->DMARPDR = 0;            //恢复DMA接收
+        EthHandle->DMASR = ETH_DMASR_RBUS; //清除接收缓冲区不可用标志 Clear RBUS ETHERNET DMA flag
+        EthHandle->DMARPDR = 0;            //恢复DMA接收 Resume DMA reception
         pDrive->debuginfo.rxoverInts++;
     }
-
-
     return pkg;
 }
 
-//Get Send Buffer
-
-u32 ETH_GetCurrentTxBuffer(void)
+// =============================================================================
+// 功能：网卡底层发送数据帧fram
+// 参数：
+// 返回值：
+// =============================================================================
+u32 ETH_TxPkt_ChainMode(u16 FrameLength)
 {
-  return (DMATxDescToSet->Buffer1Addr);
-}
-
-//ETH Start To Send
-
-u32 ETH_StartSndPkg(u16 len)
-{
-    ETH_TypeDef *EthHandle;
-    u16 FrameLength;
-
-    FrameLength = len;
-
-    EthHandle = gMacDriver.EthHandle;
-
     if((DMATxDescToSet->Status & ETH_DMATxDesc_OWN) != (u32)RESET)
     {
         return ETH_ERROR;
@@ -381,25 +484,36 @@ u32 ETH_StartSndPkg(u16 len)
     DMATxDescToSet->Status |= ETH_DMATxDesc_OWN;
 
 
-    if ((EthHandle->DMASR & ETH_DMASR_TBUS) != (u32)RESET)
+    if ((g_eth->DMASR & ETH_DMASR_TBUS) != (u32)RESET)
     {
-        EthHandle->DMASR = ETH_DMASR_TBUS;
-        EthHandle->DMATPDR = 0;
+        g_eth->DMASR = ETH_DMASR_TBUS;
+        g_eth->DMATPDR = 0;
     }
 
     DMATxDescToSet = (ETH_DMADESCTypeDef*) (DMATxDescToSet->Buffer2NextDescAddr);
-
-
     return ETH_SUCCESS;
 }
 
+//Get the next DMA Description
 
-static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask)
+u32 ETH_GetCurrentTxBuffer(void)
+{
+  return (DMATxDescToSet->Buffer1Addr);
+}
+
+
+// =============================================================================
+// 功能：网卡发送数据至协议层
+// 说明：
+// 参数：
+// 返回值：
+// =============================================================================
+static bool_t MacSnd(void* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
     ETH_TypeDef       *EthHandle;
-    tagNetPkg         *tmppkg;
+    struct NetPkg     *tmppkg;
     u8                *dst,*src;
     u16                len=0;
 
@@ -407,8 +521,7 @@ static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask
     pDrive = &gMacDriver;
     EthHandle = pDrive->EthHandle;
     pDrive->debuginfo.sndTimes++;
-
-    if((0 == handle)||(NULL == pkg))
+    if((NULL == handle)||(NULL == pkg))
         return result;
 
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
@@ -420,42 +533,22 @@ static bool_t MacSnd(ptu32_t handle,tagNetPkg * pkg,u32 framelen, u32 netdevtask
             pDrive->debuginfo.sndnobdCnt ++;
             goto NODESCERROR;
         }
-
+        dst      = &gTxBuffer[0];
         //copy datas to static frame buffer
         tmppkg = pkg;
-        dst      = &gTxBuffer[0];
-        do
-        {
-            src = (tmppkg->buf + tmppkg->offset);
-            memcpy(dst,src,tmppkg->datalen);
-            dst      += tmppkg->datalen;
-            len      += tmppkg->datalen;
-            if(PKG_ISLISTEND(tmppkg))
-            {
-                tmppkg = NULL;
-                break;
-            }
-            else
-            {
-                tmppkg = tmppkg->partnext;
-            }
-        }while(NULL != tmppkg );
+        len = PkgFrameDataCopy(tmppkg, dst);
 
         if(len < EthTxBufSize)
         {
             src = &gTxBuffer[0];
+            //get current buffer point
             dst = (u8 *)ETH_GetCurrentTxBuffer();
-
-            memcpy( dst,src ,len );
+            memcpy(dst,src ,len);
             // start to send
-            ETH_StartSndPkg(len);
-            //Prepare transmit descriptors to give to DMA
-            //if(HAL_OK == HAL_ETH_TransmitFrame(EthHandle, len))
-            {
+            ETH_TxPkt_ChainMode(len); //网卡底层发送数据至协议层
                 pDrive->debuginfo.sndOkTimes++;
                 result = true;
             }
-        }
         else
         {
             pDrive->debuginfo.sndPkgTooLongCnt++;
@@ -477,55 +570,93 @@ NODESCERROR:
 
     return result;
 }
+//
+//u32 ETH_SendData(u8 *buf,u32 len)
+//{
+//    tagNetPkg          pkg;
+//    tagMacDriver      *pDrive;
+//
+//    pDrive = &gMacDriver;
+//
+//    pkg.partnext = NULL;
+//    pkg.pkgflag  = (1<<0);  //只有一个包
+//    pkg.offset   = 0;
+//    pkg.datalen  = len;
+//    pkg.buf      = buf;
+//
+//    if(MacSnd(pDrive->devhandle,&pkg,len,0))
+//    {
+//        return len;
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//}
 
-u32 ETH_SendData(u8 *buf,u32 len)
-{
-    tagNetPkg          pkg;
-    tagMacDriver      *pDrive;
-
-    pDrive = &gMacDriver;
-
-    pkg.partnext = NULL;
-    pkg.pkgflag  = (1<<0);  //只有一个包
-    pkg.offset   = 0;
-    pkg.datalen  = len;
-    pkg.buf      = buf;
-
-    if(MacSnd(pDrive->devhandle,&pkg,len,0))
-    {
-        return len;
-    }
-    else
-    {
-        return 0;
-    }
-}
+//u32 ETH_SendData(u8 *buf,u32 len)
+//{
+//    struct NetPkg      pkg;
+//    tagMacDriver      *pDrive;
+//
+//    pDrive = &gMacDriver;
+//
+//    PkgInit(pkg,CN_PKLGLST_END,0,len,buf);  //只有一个包
+////  pkg.partnext = NULL;
+////  pkg.pkgflag  = (1<<0);  //只有一个包
+////  pkg.offset   = 0;
+////  pkg.datalen  = len;
+////  pkg.buf      = buf;
+//    if(MacSnd(pDrive->devhandle,&pkg,len,0))
+//    {
+//        return len;
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//}
 
 //This is the interrut handler
-
 u32 ETH_IntHandler(ufast_t IntLine)
 {
     tagMacDriver *pDrive;
-    ETH_TypeDef *EthHandle;
+    ETH_TypeDef *ETH;
 
     pDrive = &gMacDriver;
-    EthHandle = pDrive->EthHandle;
-
+    ETH = pDrive->EthHandle;
     pDrive->debuginfo.Ints++;
 
-    pDrive->debuginfo.rcvInts++;
+    ETH_DMAClearITPendingBit(SGCC_GMAC0_P, ETH_DMA_IT_NIS); //清DMA中断标志位
 
-    //清DMA中断标志以及DMA接收中断标志
-    ETH_DMAClearITPendingBit(SGCC_GMAC0_P, ETH_DMA_IT_R);
-    ETH_DMAClearITPendingBit(SGCC_GMAC0_P, ETH_DMA_IT_NIS);
-    Lock_SempPost(pDrive->rcvsync);
+    if (ETH_GetDMAFlagStatus(ETH, ETH_DMA_FLAG_R))
+    {
+    pDrive->debuginfo.rcvInts++;
+        Lock_SempPost(pDrive->rcvsync); //释放信号量
+        ETH_DMAClearITPendingBit(SGCC_GMAC0_P, ETH_DMA_IT_R); //清接收中断标志位
+    }
+//    if (ETH_GetDMAFlagStatus(ETH, ETH_DMA_FLAG_T))
+//    {
+//        pDrive->debuginfo.sndInts++;
+//        ETH_DMAClearITPendingBit(SGCC_GMAC0_P, ETH_DMA_IT_T); //清发送中断标志位
+//    }
+
+    else if(ETH_GetDMAFlagStatus(ETH, ETH_DMA_FLAG_AIS))
+    {
+        pDrive->debuginfo.dmaerr++;
+        ETH_DMAClearITPendingBit(SGCC_GMAC0_P, ETH_DMA_IT_AIS);
+    }
 
     return 0;
 }
 
-//mac control function
-
-static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
+// =============================================================================
+// 功能：网卡控制函数
+// 说明：
+// 参数：
+// 返回值  ：
+// =============================================================================
+static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
 {
     bool_t result = false;
     tagMacDriver   *pDrive;
@@ -604,7 +735,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
                       ETH_FlushTransmitFIFO(pDrive->EthHandle);
                       /* Start DMA transmission */
                       ETH_DMATransmissionCmd(pDrive->EthHandle, ENABLE);
-}
+                }
                 else
                 {
                       /* Disable transmit state machine of the MAC for transmission on the MII */
@@ -621,7 +752,7 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
                 memcpy(pDrive->macaddr,(u8 *)para, CN_MACADDR_LEN);
                 ETH_HardDrvInit(pDrive);
                 //Set Mac Address
-                ETH_MACAddressConfig(pDrive->EthHandle, ETH_MAC_Address0,para);
+                ETH_MACAddressConfig(pDrive->EthHandle, ETH_MAC_Address0,(u8 *)para);
                 pDrive->debuginfo.rsttimes++;
                 result = true;
                 break;
@@ -655,18 +786,22 @@ static bool_t MacCtrl(ptu32_t devhandle,u8 cmd,ptu32_t para)
     return true;
 }
 
-//this is the receive task
-
+// =============================================================================
+// 功能：接收任务
+// 说明：
+// 参数：
+// 返回值  ：
+// =============================================================================
 static ptu32_t __MacRcvTask(void)
 {
-    tagNetPkg *pkg;
-    ptu32_t    handle;
+    struct NetPkg *pkg;
+    void      *handle;
     u8        *rawbuf;
     u16        len;
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    Djy_GetEventPara(&handle,NULL);
+    Djy_GetEventPara((ptu32_t *)&handle,NULL);
 
     while(1)
     {
@@ -684,17 +819,17 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-                NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+//                NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
-                    rawbuf = pkg->buf + pkg->offset;
-                    len = pkg->datalen;
+                    rawbuf = PkgGetCurrentBuffer(pkg);
+                    len = PkgGetDataLen(pkg);
                     pDrive->fnrcvhook(rawbuf,len);
                 }
                 else
                 {
-                    LinkPost(handle,pkg);
+                    NetDevPush(handle,pkg);  //丢给协议栈
                 }
                 PkgTryFreePart(pkg);
                 pDrive->debuginfo.rcvPkgTimes++;
@@ -702,16 +837,21 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                   //here we still use the counter to do the time state check
-                  NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+//                  NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
+
     }
     return 0;
 }
 
-//create the receive task
-
+// =============================================================================
+// 功能：创建接收数据包任务线程
+// 说明：
+// 参数：
+// 返回值  ：
+// =============================================================================
 static bool_t __CreateRcvTask(ptu32_t handle)
 {
     bool_t result = false;
@@ -736,8 +876,12 @@ static bool_t __CreateRcvTask(ptu32_t handle)
 }
 
 
-//show the gmac status
-
+// =============================================================================
+// 功能：shell调试用
+// 说明：how the gmac status
+// 参数：
+// 返回值  ：
+// =============================================================================
 //bool_t macdebuginfo(char *param)
 bool_t mac(char *param)
 {
@@ -873,7 +1017,7 @@ bool_t macreg(char *param)
     return true;
 }
 
-bool_t macreset(char *param)
+bool_t MacReset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
 
@@ -919,7 +1063,7 @@ bool_t macsnddis(char *param)
 
 
 // =============================================================================
-// 功能：GMAC网卡和DJYIP驱动初始化函数
+// 功能：SCM610网卡和DJYIP驱动初始化函数
 // 参数：para
 // 返回值  ：true成功  false失败。
 // =============================================================================
@@ -928,7 +1072,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
                           bool_t (*rcvHook)(u8 *buf, u16 len))
 {
     tagMacDriver   *pDrive = &gMacDriver;
-    tagNetDevPara   devpara;
+    struct NetDevPara   devpara;
     u8 intLine;
 
     memset((void *)pDrive,0,sizeof(tagMacDriver));
@@ -951,22 +1095,20 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     pDrive->macstat.mii = 0;       //use RMII mode
 
     //默认使用GMAC0
-    pDrive->EthHandle  = sgpt_Gmac[0];
+    pDrive->EthHandle  = sgpt_Gmac[0]; //MAC寄存器启始地址
 
-    //add to set MAC address
-    ETH_HardDrvInit(pDrive);
+    ETH_CLK_ENABLE(); //ETH所有相关时钟初始化
 
-    //all the configuration has set in the pDrive now,we need some sys assistant
-    //application some semphore and mutex
+    ETH_HardDrvInit(pDrive);  //MAC控制器硬件初始化
 
-    pDrive->rcvsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL);
+    pDrive->rcvsync = Lock_SempCreate(1,1,CN_BLOCK_FIFO,NULL); //信号量
 
     if(NULL == pDrive->rcvsync)
     {
         goto RCVSYNC_FAILED;
     }
 
-    pDrive->protect = Lock_MutexCreate(NULL);
+    pDrive->protect = Lock_MutexCreate(NULL); //互斥量
     if(NULL == pDrive->protect)
     {
         goto DEVPROTECT_FAILED;
@@ -979,12 +1121,11 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,macaddress,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.private = 0;
-    devpara.mtu = 1500;                     //Max Transmit Unit
-    devpara.private = (ptu32_t)pDrive;
+    devpara.mtu = 1520;                     //Max Transmit Unit
+    devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
 
-    if(0 == pDrive->devhandle)
+    if(NULL == pDrive->devhandle)
     {
         goto NetInstallFailed;
     }
@@ -1005,7 +1146,6 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
             break;
             default:break;
         }
-
         Int_Register(intLine);
         Int_SettoAsynSignal(intLine);
         Int_ClearLine(intLine);
@@ -1013,7 +1153,6 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_ContactLine(intLine);
     }
 
-//    Sh_InstallCmd(gMacDebug,gMacDebugCmdRsc,CN_GMACDEBUG_NUM);
     printf("%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 
@@ -1071,7 +1210,6 @@ u8 GMAC_MdioR(u8 dev,u8 reg, u16 *value)
   *         ETH_SUCCESS: for correct write
   */
 
-
 u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
 {
     tagMacDriver *pDrive = &gMacDriver;
@@ -1084,7 +1222,7 @@ u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
 
 ADD_TO_ROUTINE_SHELL(mac,mac,"usage:gmac");
 ADD_TO_ROUTINE_SHELL(macreg,macreg,"usage:MacReg");
-ADD_TO_ROUTINE_SHELL(macreset,macreset,"usage:reset gmac");
+ADD_TO_ROUTINE_SHELL(macreset,MacReset,"usage:reset gmac");
 ADD_TO_ROUTINE_SHELL(macsnden,macsnden,"usage:MacSndEn");
 ADD_TO_ROUTINE_SHELL(macsnddis,macsnddis,"usage:MacSndDis");
 

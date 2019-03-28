@@ -253,14 +253,14 @@ static const Pin EthRmiiPins[] = {
 void Board_GpioInit(void)
 {
 
-     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));      //UART1
-     PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));      //UART2
-     PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));      //UART2
-     PIO_Configure(uart4_pin, PIO_LISTSIZE(uart4_pin));      //UART2
-     PIO_Configure(uart5_pin, PIO_LISTSIZE(uart5_pin));      //UART2
-     PIO_Configure(uart6_pin, PIO_LISTSIZE(uart6_pin));      //UART2
-     PIO_Configure(uart7_pin, PIO_LISTSIZE(uart7_pin));      //UART2
-     PIO_Configure(uart8_pin, PIO_LISTSIZE(uart8_pin));      //UART2
+//     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));      //UART1
+//     PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));      //UART2
+     PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));      //UART3
+//     PIO_Configure(uart4_pin, PIO_LISTSIZE(uart4_pin));      //UART4
+//     PIO_Configure(uart5_pin, PIO_LISTSIZE(uart5_pin));      //UART5
+//     PIO_Configure(uart6_pin, PIO_LISTSIZE(uart6_pin));      //UART6
+//     PIO_Configure(uart7_pin, PIO_LISTSIZE(uart7_pin));      //UART7
+//     PIO_Configure(uart8_pin, PIO_LISTSIZE(uart8_pin));      //UART8
      PIO_Configure(EthRmiiPins,PIO_LISTSIZE(EthRmiiPins));      //UART1
 
 //   PIO_Configure(spi1_pin, PIO_LISTSIZE(spi1_pin));      //SPI1

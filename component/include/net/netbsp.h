@@ -103,8 +103,10 @@ typedef enum
     EN_NETDEV_SETMAC,           //para point to an buf which contains the mac
                                 //driver must modify the dev struct mac at the same time
     EN_NETDEV_SETMULTIMAC,      //para point to an buf which contains the mac
+    EN_NETDEV_SETHOOK,          //para is a receive hook fucntion name
     EN_NETDEV_GTETMAC,          //para point to an buf which used to contain the mac
     EN_NETDEV_RESET,            //para must be true
+    EN_NETDEV_LOWPOWER,         //para is int,0 disable else enable
     EN_NETDEV_ADDRFILTER,       //开启网卡Mac地址过滤功能
     EN_NETDEV_CMDLAST,          //which means the max command
 }enNetDevCmd;

@@ -230,9 +230,6 @@ ethernetif_input(int iface, struct pbuf *p)
     case ETHTYPE_PPPOE:
 #endif /* PPPOE_SUPPORT */
         /* full packet send to tcpip_thread to process */
-//        MacRcv(p);
-//        pbuf_free(p);
-//        p = NULL;
 //        printk("\r\nrec buf:");
 //        for(int i=0;i<p->len;i++)
 //            printf("%x ",*(src + i));
@@ -241,12 +238,6 @@ ethernetif_input(int iface, struct pbuf *p)
         MacRcv(p);
         pbuf_free(p);
         p = NULL;
-//        if (netif->input(p, netif) != ERR_OK)    // ethernet_input
-//        {
-//            LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\r\n"));
-//            pbuf_free(p);
-//            p = NULL;
-//        }
         break;
 		
     case ETHTYPE_EAPOL:

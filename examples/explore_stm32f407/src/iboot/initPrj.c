@@ -61,9 +61,6 @@ void Sys_ModuleInit(void)
   ModuleInstall_IAP( );
 
 	//-------------------medium-------------------------//
-	extern s32 kernel_command(void);
- kernel_command();
-
 	extern bool_t ModuleInstall_TcpIp(void);
     ModuleInstall_TcpIp( );
 
@@ -73,15 +70,18 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_Timer(void);
     ModuleInstall_Timer();
 
-	extern bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle);
-//    ModuleInstall_ETH(CFG_GMAC_NAME,CFG_GMAC_LOOP_MODE,CFG_GMAC_LOOP_CYCLE);
+	extern s32 kernel_command(void);
+ kernel_command();
 
-	extern void ModuleInstall_InitNet( );
-    ModuleInstall_InitNet( );
+	extern bool_t ModuleInstall_ETH(void);
+    ModuleInstall_ETH( );
 
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
     ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
+
+	extern void ModuleInstall_InitNet( );
+    ModuleInstall_InitNet( );
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");

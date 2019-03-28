@@ -777,7 +777,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
     return;
 }
 
-#ifdef CFG_CK803S
+#ifdef CFG_CPU_ZQ12XX_CK
 #include "shell.h"
 typedef void (*Ex_shell_func)(void);
 void __asm_ExecuteCmd(union param *ptab,

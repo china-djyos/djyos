@@ -25,6 +25,9 @@ void keep_shell(void)
 	extern void *djysh_time;
 	keep = (void *)djysh_time;
 
+	extern void *djysh_tcpipver;
+	keep = (void *)djysh_tcpipver;
+
 	extern void *djysh_evtt;
 	keep = (void *)djysh_evtt;
 
@@ -39,5 +42,8 @@ void keep_shell(void)
 
 	extern void *djysh_updateiboot;
 	keep = (void *)djysh_updateiboot;
+
+	extern void *djysh_mac;
+	keep = (void *)djysh_mac;
 
 }

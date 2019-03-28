@@ -115,15 +115,12 @@ typedef struct
     volatile u32 INTIE;
 }tagTimer16Reg;
 
+volatile tagTimer16Reg *sgpt_Tim4Reg = (volatile tagTimer16Reg *)SGCC_TIMERD0_P;
+
 //使用定时器4 的低位定时器作为系统时间
-
-#define CN_TIMERD0_BASE (0x41530000UL)
-#define TIM4            ((tagTimer16Reg*)CN_TIMERD0_BASE)
-
 #define TIM_CLK          (37500000)
-#define CLK_DIV          TIM_CLK/1000000
+#define CLK_DIV          (TIM_CLK/1000000)
 #define SYSTIME_CYCLE    (65536) //周期为最大，即0xFFFF,最大T= SYSTIME_FRE * 0xFFFF
-#define SYS_TIM  TIM4    //sys用到的定时器
 
 #define CN_CLK_EN_REG_BASE ((volatile u32*)(0x40000000UL))
 #define CN_PCLK1_ENR       (CN_CLK_EN_REG_BASE[3])
@@ -136,7 +133,8 @@ typedef struct
 // =============================================================================
 u32 Systime_GetTime(void)
 {
-    return (SYS_TIM->TC & 0xffff);
+
+    return (sgpt_Tim4Reg->TC & 0xffff);
 }
 
 // =============================================================================
@@ -147,19 +145,31 @@ u32 Systime_GetTime(void)
 static void SysTime_TcConfig(void)
 {
     //开启定时器4时钟
-    CN_PCLK1_ENR |= (1<<1);
+    CLK_Enable_Peripheral_Clk(TIMERD);
 
-    SYS_TIM->CCR = 0;
+    sgpt_Tim4Reg->CR  = 0;
     //设置定时器4工作在定时模式
-    SYS_TIM->FSR = 0;
-    //设置不分频
-    SYS_TIM->PR  = 0;
+    sgpt_Tim4Reg->FSR = 0;
+    //CLK_DIV
+    sgpt_Tim4Reg->PR  = CLK_DIV;
+    //设置计数周期
+    sgpt_Tim4Reg->MR  = SYSTIME_CYCLE - 1;
+    //使能发生匹配时,计数器清0
+    sgpt_Tim4Reg->MCR |= 1<<1;
+    //启动匹配功能
+    sgpt_Tim4Reg->MCR |= 1<<0;
+    //失能中断
+    sgpt_Tim4Reg->INTIE &= ~0x1;
 
-    //失能全部中断
-    SYS_TIM->INTIE = 0;
+    sgpt_Tim4Reg->EMR   = 0;
+    sgpt_Tim4Reg->EWCR  = 0;
 
-    SYS_TIM->CCR = 0x2;
-    SYS_TIM->CCR = 0x1;
+    //reset timer
+    sgpt_Tim4Reg->CR |= (1<<1);
+    //stop reset
+    sgpt_Tim4Reg->CR = 0;
+    sgpt_Tim4Reg->CR |= (1<<0);
+
 }
 // =============================================================================
 // 功能：系统时钟初始化，注册系统时钟，并初始化RTT闹钟中断

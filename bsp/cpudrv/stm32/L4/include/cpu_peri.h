@@ -74,6 +74,7 @@ extern "C" {
 #include "cpu_peri_spi.h"
 #include "cpu_peri_int_line.h"
 #include "cpu_peri_uart.h"
+#include "get_cpuid.h"
 //#include "cpu_peri_rcc.h"
 //#include "cpu_peri_rtc.h"
 #include "cpu_peri_wwdg.h"

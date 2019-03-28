@@ -61,6 +61,7 @@ void Board_UartHalfDuplexRecv(u8 SerialNo);
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 static void Board_NORGpioInit (void );
 void Board_GpioInit(void);
+bool_t LAN8720_RESET(void);
 
 #ifdef __cplusplus
 }

@@ -58,7 +58,7 @@
 //#include "cfg/misc_config.h"
 #include "int.h"
 #include "cpu.h"
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "cpu_peri_int_line.h"
 #endif
 #include "timer_hard.h"
@@ -103,7 +103,7 @@
 //@#$%component end configure
 // =============================================================================
 
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 typedef struct _TIMER
 {
     vu32 COUNTER;
@@ -775,7 +775,7 @@ bool_t ModuleInstall_HardTimer(void)
 }
 #endif
 
-#ifdef CFG_CK803S
+#ifdef CFG_CPU_ZQ12XX_CK
 typedef struct _TIMER
 {
     vu32 COUNTER;

@@ -19,7 +19,7 @@
   <xip_app>true</xip_app>
   <xip_iboot>false</xip_iboot>
   <filesystem>true</filesystem>
-  <ascii_font>false</ascii_font>
+  <ascii_dot>false</ascii_dot>
   <gb2312_dot>true</gb2312_dot>
   <font>true</font>
   <gdd>true</gdd>
@@ -60,6 +60,7 @@
   <lpc12xx>false</lpc12xx>
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
+  <scm6xx>false</scm6xx>
   <Sharc21469>false</Sharc21469>
   <silan>false</silan>
   <sldrv>false</sldrv>

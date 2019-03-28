@@ -202,7 +202,7 @@ static bool_t  _IIC_Chek(tagI2CReg *reg)
 {
     if(reg->SR & (1<<13))
     {
-        return false;
+       return false;
     }
 
     return true;
@@ -294,16 +294,16 @@ static bool_t __IIC_GpioConfig(u8 iic_port)
 
     switch(iic_port)
     {
-        case CN_I2C1:
-             I2cClockBit = 14;
-             break;
-        case CN_I2C2:
-             I2cClockBit = 15;
-             break;
-        case CN_I2C3:
-             I2cClockBit = 29;
-             break;
-        default:;break;
+       case CN_I2C1:
+            I2cClockBit = 14;
+            break;
+       case CN_I2C2:
+            I2cClockBit = 15;
+            break;
+       case CN_I2C3:
+            I2cClockBit = 29;
+            break;
+       default:;break;
     }
 
     CLK_Enable_Peripheral_Clk(I2cClockBit);
@@ -321,7 +321,6 @@ static bool_t __IIC_GpioConfig(u8 iic_port)
     sgpt_I2cReg[iic_port]->CFGR |= (0x1<<0);
 
     return true;
-
 }
 
 // =============================================================================
@@ -332,26 +331,26 @@ static bool_t __IIC_GpioConfig(u8 iic_port)
 // =============================================================================
 static void __IIC_IntConfig(u8 iic_port,u32 (*isr)(ptu32_t))
 {
-        ufast_t IntLine;
-        switch (iic_port)
-        {
-        case CN_I2C1:
-//            IntLine=CN_INT_LINE_IIC0;
-            break;
-        case CN_I2C2:
-//            IntLine=CN_INT_LINE_IIC1;
-            break;
-        case CN_I2C3:
-//            IntLine=CN_INT_LINE_IIC2;
-            break;
-            default:return;
-        }
+    ufast_t IntLine;
+    switch (iic_port)
+    {
+      case CN_I2C1:
+          IntLine=CN_INT_LINE_IIC0;
+          break;
+      case CN_I2C2:
+          IntLine=CN_INT_LINE_IIC1;
+          break;
+      case CN_I2C3:
+          IntLine=CN_INT_LINE_IIC2;
+          break;
+          default:return;
+     }
 
-        Int_Register(IntLine);
-        Int_IsrConnect(IntLine,isr);
-        Int_SettoAsynSignal(IntLine);
-        Int_ClearLine(IntLine);     //清掉初始化产生的发送fifo空的中断
-        Int_RestoreAsynLine(IntLine);
+     Int_Register(IntLine);
+     Int_IsrConnect(IntLine,isr);
+     Int_SettoAsynSignal(IntLine);
+     Int_ClearLine(IntLine);     //清掉初始化产生的发送fifo空的中断
+     Int_RestoreLine(IntLine);   //清掉初始化产生的发送fifo空的中断
 }
 
 // =============================================================================
@@ -377,7 +376,6 @@ static void __IIC_GenerateStop(tagI2CReg *reg)
 // 返回：true/false
 // =============================================================================
 
-
 static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u32 memaddr, u32 addr_len,u8 *buf, u32 len)
 {
     u32 timeout=0;
@@ -388,14 +386,9 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u32 memaddr, u32 addr_len,u
     u32 internalDevAddress = 0;
     u32 datToSend = 0;
 
-    //turn get internal address
+    //get device internal address
     //from hight to low
     internalDevAddress =  memaddr;
-//    for(addressLoop = 0;addressLoop < addr_len;addressLoop++)
-//    {
-//      internalDevAddress |= adder_nuf[addressLoop];
-//      internalDevAddress = internalDevAddress <<((addr_len - 1-addressLoop)*8);
-//    }
 
     while(datToSend < len)
     {
@@ -440,10 +433,9 @@ static bool_t __IIC_Write(tagI2CReg *reg,u8 devaddr, u32 memaddr, u32 addr_len,u
         datToSend++;
 //        while(!(reg->SR & (1<<9)));
 //      delay(10);
-//      delay_ms(3);
-        Djy_DelayUs(300);
+//        delay_ms(3);
+        Djy_DelayUs(3000);
     }
-
     return true;
 }
 
@@ -465,11 +457,6 @@ static bool_t __IIC_Read(tagI2CReg *reg,u8 devaddr, u32 memaddr, u32 addr_len,u8
     u8 addressLoop;
 
     internalDevAddress =  memaddr;
-//  for(addressLoop = 0;addressLoop < addr_len;addressLoop++)
-//  {
-//      internalDevAddress |= adder_nuf[addressLoop];
-//      internalDevAddress = internalDevAddress <<((addr_len - 1-addressLoop)*8);
-//  }
 
     while(datToRev < len)
     {
@@ -652,7 +639,6 @@ static bool_t __IIC_GenerateWriteStart(tagI2CReg *reg,
 
 
     __IIC_IntDisable(reg);                 //关中断
-
     return true;
 }
 
@@ -683,20 +669,20 @@ static bool_t __IIC_GenerateReadStart( tagI2CReg *reg,
 {
     u8 iic_port;
     if(reg==sgpt_I2cReg[CN_I2C1])
-        iic_port=CN_I2C1;
+      iic_port=CN_I2C1;
     else if(reg==sgpt_I2cReg[CN_I2C2])
-        iic_port=CN_I2C2;
+      iic_port=CN_I2C2;
     else if (reg==sgpt_I2cReg[CN_I2C3])
-        iic_port=CN_I2C3;
+      iic_port=CN_I2C3;
     else
-        return false;
+      return false;
 
-    IntParamset[iic_port].TransTotalLen = length;
-    IntParamset[iic_port].TransCount = 0;
-    IntParamset[iic_port].pDrvPostSemp = iic_semp;               //iic_buf_semp
-    __IIC_IntDisable(reg);//关中断
+  IntParamset[iic_port].TransTotalLen = length;
+  IntParamset[iic_port].TransCount = 0;
+  IntParamset[iic_port].pDrvPostSemp = iic_semp;               //iic_buf_semp
+  __IIC_IntDisable(reg);//关中断
 
-    return true;
+  return true;
 }
 
 
@@ -724,7 +710,7 @@ static void __IIC_GenerateEnd(tagI2CReg *reg)
 // 返回：无
 //==============================================================================
 
-static void _IIC_ClkSet(tagI2CReg *reg,u32 data)
+static void __IIC_ClkSet(tagI2CReg *reg,u32 data)
 {
 
 }
@@ -740,25 +726,25 @@ static void _IIC_ClkSet(tagI2CReg *reg,u32 data)
 static s32 __IIC_BusCtrl(tagI2CReg *reg,u32 cmd,u32 data1,u32 data2)
 {
     if( reg == NULL )
-        return 0;
-    switch(cmd)
-    {
-        case CN_IIC_SET_CLK: //设置时钟频率
-                _IIC_ClkSet(reg,data1);
-              break;
-        case CN_IIC_DMA_USED://使用dma传输
+           return 0;
+       switch(cmd)
+       {
+           case CN_IIC_SET_CLK: //设置时钟频率
+               __IIC_ClkSet(reg,data1);
+                 break;
+           case CN_IIC_DMA_USED://使用dma传输
 
-            break;
-        case CN_IIC_DMA_UNUSED://禁止dma传输
+               break;
+           case CN_IIC_DMA_UNUSED://禁止dma传输
 
-            break;
-        case CN_IIC_SET_POLL:           //使用轮询方式发送接收
-            __IIC_IntDisable(reg);
-            break;
-        default:
-            return 0;
-    }
-    return 1;
+               break;
+           case CN_IIC_SET_POLL:           //使用轮询方式发送接收
+               __IIC_IntDisable(reg);
+               break;
+           default:
+               return 0;
+       }
+       return 1;
 }
 
 
