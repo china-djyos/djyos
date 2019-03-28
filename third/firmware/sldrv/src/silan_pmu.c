@@ -8,12 +8,12 @@
 #include "silan_pmu_regs.h"
 #include "silan_printf.h"
 
-static inline void sysclk_regs_protect_open(void)
+static void sysclk_regs_protect_open(void)
 {
 	sysclk_st->write_key = W_PROTECT_OPEN;
 }
 
-static inline void sysclk_regs_protect_close(void)
+static void sysclk_regs_protect_close(void)
 {
 	sysclk_st->write_key = W_PROTECT_CLOSE;
 }
@@ -376,7 +376,7 @@ void silan_pmu_wdt_reset_disable(void)
 	sysclk_regs_protect_close();
 }
 
-inline void silan_pmu_wdt_clr(void)
+void silan_pmu_wdt_clr(void)
 {
 	sysclk_regs_protect_open();
 	sysclk_st->sys_wdt_clr = 0;	

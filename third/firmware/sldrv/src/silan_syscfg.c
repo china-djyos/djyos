@@ -231,7 +231,7 @@ inline dcache_invalidate(void *addr, u32 size)
 }
 #endif
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 inline u32 cpu_to_dma(u32 addr)
 {
 	return addr;

@@ -103,8 +103,14 @@
 // =============================================================================
 void Board_GpioInit(void)
 {
+    silan_io_func_config(IO_CONFIG_PB0, PB0_FUNC_UART1);
+    silan_io_func_config(IO_CONFIG_PB1, PB1_FUNC_UART1);
+
     silan_io_func_config(IO_CONFIG_PA4, PA4_FUNC_UART2);
     silan_io_func_config(IO_CONFIG_PA5, PA5_FUNC_UART2);
+
+    silan_io_func_config(IO_CONFIG_PD7, PD7_FUNC_UART3);
+    silan_io_func_config(IO_CONFIG_PD8, PD8_FUNC_UART3);
 //    return true;
 }
 
