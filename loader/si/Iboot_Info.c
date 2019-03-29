@@ -56,6 +56,7 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "shell.h"
+#if !defined (CFG_RUNMODE_BAREAPP)
 extern void AppStart(void);
 extern void Init_Cpu(void);
 extern void reboot();
@@ -1290,4 +1291,4 @@ ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
 ADD_TO_ROUTINE_SHELL(iapmode,iapmode,NULL);
 
-
+#endif
