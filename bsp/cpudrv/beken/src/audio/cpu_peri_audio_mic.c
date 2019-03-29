@@ -93,7 +93,7 @@ void djy_audio_adc_open(uint16_t buf_len,uint16_t channel,
         return;
     aud_adc.buf_len = buf_len;
     aud_adc.channels = channel;
-    aud_adc.mode &= ~AUD_ADC_MODE_DMA_BIT;
+    aud_adc.mode |= AUD_ADC_MODE_DMA_BIT;
     aud_adc.linein_detect_pin = linein_detect_pin;
     aud_adc.freq = freq;
     audio_adc_open((uint32_t)(&aud_adc));
