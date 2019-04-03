@@ -33,10 +33,13 @@ FlashOffset = 0x00000000;
 FlashSize = 2000K;
 RamStart = 0x00400000;
 RamSize = 256K;
+SDRamStart = 0x00900000;
+SDRamSize = 256K;
 
 /* Split memory into area for vectors and ram */
 MEMORY
 {
         flash  (rx) : ORIGIN = 0x00000000, LENGTH = 1500k /* 1216KB - 96B */
         ram   (rw!x): ORIGIN = 0x00400000, LENGTH = 256k
+        sdram (rw!x): ORIGIN = 0x00900000, LENGTH = 256k
 }

@@ -275,6 +275,7 @@ djy_context_switch_interrupt_do:
     LDR     SP,  [R6]
 
     LDMFD   SP!, {R4}
+    AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     /*从栈里面弹出r0-r12,lr,pc，弹出pc后是立即跳转到线程里面执行了*/
     LDMFD   SP!, {R0-R12,LR,PC}^
@@ -335,6 +336,7 @@ djy_context_switch_interrupt_fiq_do:
     LDR     SP,  [R6]
 
     LDMFD   SP!, {R4}
+    AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
 
     LDMFD   SP!, {R0-R12,LR,PC}^

@@ -31,6 +31,7 @@ __asm_reset_switch:
     BL      __asm_reset_thread
     LDR     SP, [R5]                @; get new task stack pointer
     LDMFD   SP!, {R4}               @; pop new task cpsr
+    AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     LDMFD   SP!, {R0-R12, LR, PC}^  @; pop new task r0-r12, lr & pc
 
@@ -48,6 +49,7 @@ __asm_reset_switch:
 __asm_start_thread:
     LDR     SP, [R0]                @; get new task stack pointer
     LDMFD   SP!, {R4}               @; pop new task cpsr
+    AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     LDMFD   SP!, {R0-R12, LR, PC}^  @; pop new task r0-r12, lr & pc
     
@@ -66,6 +68,7 @@ __asm_start_thread:
 __asm_turnto_context:
     LDR     SP, [R0]                @; get new task stack pointer
     LDMFD   SP!, {R4}               @; pop new task cpsr
+    AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     LDMFD   SP!, {R0-R12, LR, PC}^  @; pop new task r0-r12, lr & pc
 
@@ -95,6 +98,7 @@ _ARM_MODE:
     STR     SP, [R1]                @; store sp in preempted tasks tcb
     LDR     SP, [R0]                @; get new task stack pointer
     LDMFD   SP!, {R4}               @; pop new task spsr
+    AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     LDMFD   SP!, {R0-R12, LR, PC}^  @; pop new task r0-r12, lr & pc
     
