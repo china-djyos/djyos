@@ -596,6 +596,9 @@
 							<Folder Name="boardnetcfg">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/boardnetcfg/boardnetcfg.c"/>
 							</Folder>
+							<Folder Name="ioiic_config">
+								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/ioiic_config/ioiic_config.c"/>
+							</Folder>
 							<Folder Name="lcd_config">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/lcd_config/lcd_config.c"/>
 							</Folder>
@@ -3780,6 +3783,7 @@
 				<F N="djyos/heap/component_config_heap.h"/>
 				<F N="djyos/heap/heap-dynamic.c"/>
 				<F N="djyos/heap/heap-in.h"/>
+				<F N="djyos/heap/heap-list.c"/>
 				<F N="djyos/heap/heap-static.c"/>
 			</Folder>
 			<Folder Name="include">
@@ -3946,6 +3950,15 @@
 					</Folder>
 				</Folder>
 			</Folder>
+			<Folder Name="APOLLP_STM32H743">
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="OS_prjcfg">
+							<F N="examples/APOLLP_STM32H743/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+					</Folder>
+				</Folder>
+			</Folder>
 			<Folder Name="applo_h743_systest">
 				<Folder Name=".settings">
 					<F N="examples/applo_h743_systest/.settings/language.settings.xml"/>
@@ -3977,6 +3990,51 @@
 					</Folder>
 				</Folder>
 			</Folder>
+			<Folder Name="beken7251_demo">
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/beken7251_demo/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/beken7251_demo/src/app/OS_prjcfg/keepshell.c"/>
+							<F N="examples/beken7251_demo/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/beken7251_demo/src/app/initPrj.c"/>
+						<F N="examples/beken7251_demo/src/app/main.c"/>
+					</Folder>
+				</Folder>
+			</Folder>
+			<Folder Name="cutdown-h743">
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/cutdown-h743/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/cutdown-h743/src/app/OS_prjcfg/keepshell.c"/>
+							<F N="examples/cutdown-h743/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/cutdown-h743/src/app/initPrj.c"/>
+						<F N="examples/cutdown-h743/src/app/main.c"/>
+					</Folder>
+				</Folder>
+			</Folder>
+			<Folder Name="cutdown-zq12xx-m0">
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/cutdown-zq12xx-m0/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/cutdown-zq12xx-m0/src/app/OS_prjcfg/keepshell.c"/>
+							<F N="examples/cutdown-zq12xx-m0/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/cutdown-zq12xx-m0/src/app/initPrj.c"/>
+						<F N="examples/cutdown-zq12xx-m0/src/app/main.c"/>
+					</Folder>
+				</Folder>
+			</Folder>
 			<Folder Name="explore_stm32f407">
 				<Folder Name=".settings">
 					<F N="examples/explore_stm32f407/.settings/language.settings.xml"/>
@@ -3997,6 +4055,7 @@
 							<F N="examples/explore_stm32f407/src/app/critical/critical.c"/>
 						</Folder>
 						<Folder Name="OS_prjcfg">
+							<F N="examples/explore_stm32f407/src/app/OS_prjcfg/keepshell.c"/>
 							<F N="examples/explore_stm32f407/src/app/OS_prjcfg/project_config.h"/>
 						</Folder>
 						<F N="examples/explore_stm32f407/src/app/initPrj.c"/>
@@ -4007,6 +4066,7 @@
 							<F N="examples/explore_stm32f407/src/iboot/critical/critical.c"/>
 						</Folder>
 						<Folder Name="OS_prjcfg">
+							<F N="examples/explore_stm32f407/src/iboot/OS_prjcfg/keepshell.c"/>
 							<F N="examples/explore_stm32f407/src/iboot/OS_prjcfg/project_config.h"/>
 						</Folder>
 						<F N="examples/explore_stm32f407/src/iboot/initPrj.c"/>
@@ -4251,6 +4311,30 @@
 					</Folder>
 				</Folder>
 			</Folder>
+			<Folder Name="scm610-evk">
+				<Folder Name="src">
+					<Folder Name="app">
+						<Folder Name="critical">
+							<F N="examples/scm610-evk/src/app/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/scm610-evk/src/app/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/scm610-evk/src/app/initPrj.c"/>
+						<F N="examples/scm610-evk/src/app/main.c"/>
+					</Folder>
+					<Folder Name="iboot">
+						<Folder Name="critical">
+							<F N="examples/scm610-evk/src/iboot/critical/critical.c"/>
+						</Folder>
+						<Folder Name="OS_prjcfg">
+							<F N="examples/scm610-evk/src/iboot/OS_prjcfg/project_config.h"/>
+						</Folder>
+						<F N="examples/scm610-evk/src/iboot/initPrj.c"/>
+						<F N="examples/scm610-evk/src/iboot/main.c"/>
+					</Folder>
+				</Folder>
+			</Folder>
 			<Folder Name="stm32f103_empty">
 				<Folder Name=".settings">
 					<F N="examples/stm32f103_empty/.settings/language.settings.xml"/>
@@ -4429,6 +4513,7 @@
 							<F N="examples/zq1201_m0/src/app/critical/critical.c"/>
 						</Folder>
 						<Folder Name="OS_prjcfg">
+							<F N="examples/zq1201_m0/src/app/OS_prjcfg/keepshell.c"/>
 							<F N="examples/zq1201_m0/src/app/OS_prjcfg/project_config.h"/>
 						</Folder>
 						<F N="examples/zq1201_m0/src/app/initPrj.c"/>
@@ -4439,10 +4524,12 @@
 							<F N="examples/zq1201_m0/src/iboot/critical/critical.c"/>
 						</Folder>
 						<Folder Name="OS_prjcfg">
+							<F N="examples/zq1201_m0/src/iboot/OS_prjcfg/keepshell.c"/>
 							<F N="examples/zq1201_m0/src/iboot/OS_prjcfg/project_config.h"/>
 						</Folder>
 						<F N="examples/zq1201_m0/src/iboot/initPrj.c"/>
 						<F N="examples/zq1201_m0/src/iboot/main.c"/>
+						<F N="examples/zq1201_m0/src/iboot/updateapp.c"/>
 					</Folder>
 					<Folder Name="lds">
 						<F N="examples/zq1201_m0/src/lds/iboot.lds"/>
