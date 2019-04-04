@@ -46,12 +46,12 @@
 
 #ifndef __YMODEM_CONFIG_H__
 #define __YMODEM_CONFIG_H__
-
-extern const u32 CFG_YMODEM_BUF_NUM ;     //缓存ymodem包数量
-
-extern const u32 CFG_YMODEM_PKG_TIMEOUT;     //包间隔超时时间，微秒
-
-extern const u32 CFG_YMODEM_TIMEOUT;   //ymodem总超时时间
+#include "project_config.h"
+//extern const u32 CFG_YMODEM_BUF_NUM ;     //缓存ymodem包数量
+//
+//extern const u32 CFG_YMODEM_PKG_TIMEOUT;     //包间隔超时时间，微秒
+//
+//extern const u32 CFG_YMODEM_TIMEOUT;   //ymodem总超时时间
 
 
 

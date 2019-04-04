@@ -361,13 +361,13 @@ void Board_GpioInit(void)
     Board_NORGpioInit();
 }
 
-//网口的 PHY 芯片：LAN8720复位
-bool_t LAN8720_RESET(void)
-{
-    PCF8574_WriteBit(ETH_RESET_IO,1);
-    Djy_DelayUs(100*mS);
-    PCF8574_WriteBit(ETH_RESET_IO,0);
-    Djy_DelayUs(100*mS);
-    return true;
-}
+////网口的 PHY 芯片：LAN8720复位
+//bool_t LAN8720_RESET(void)
+//{
+//    PCF8574_WriteBit(ETH_RESET_IO,1);
+//    Djy_DelayUs(100*mS);
+//    PCF8574_WriteBit(ETH_RESET_IO,0);
+//    Djy_DelayUs(100*mS);
+//    return true;
+//}
 
