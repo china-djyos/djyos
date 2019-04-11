@@ -58,6 +58,48 @@
 #include <shell.h>
 #include "../common/router.h"
 #include "../common/netdev.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"router"          //路由协议
+//parent:"tcpip"             //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"lock","heap","devfile",   //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#if(CFG_MODULE_ENABLE_ROUTER == false)//****检查参数是否已经配置好
+//#warning   " tcpip ROUTER组件参数未配置，使用默认值"
+#define CFG_MODULE_ENABLE_ROUTER  false
+//%$#@num,,,
+#define CFG_IP_STRMAX           20 //最大路由条目数
+//%$#@enum,true,false,
+//%$#@string,1,256,
+//%$#@select
+//%$#@free
+#endif
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
 
 //发送报文时，先从路由表匹配目标地址，如果不成功，则检查目标是否主机，如果与主机匹配，则使
 //用本地路由，否则使用默认路由（如果已经设置）。
@@ -115,7 +157,6 @@ typedef struct
 }tagRoutItem;
 
 #define CN_ERR_ROUTPREDIX     "ROUTMODULE"
-#define CN_IP_STRMAX           20
 typedef struct
 {
     tagRoutItem *v6lst;     //which point to the ipv6 route list
@@ -129,10 +170,10 @@ static bool_t __ShowTab(enum_ipv_t ver)
 {
     int i = 0;
     tagRoutItem *item;
-    char net[CN_IP_STRMAX];
-    char host[CN_IP_STRMAX];
-    char hop[CN_IP_STRMAX];
-    char mask[CN_IP_STRMAX];
+    char net[CFG_IP_STRMAX];
+    char host[CFG_IP_STRMAX];
+    char hop[CFG_IP_STRMAX];
+    char mask[CFG_IP_STRMAX];
     tagRoutV4 *rout;
     if (mutex_lock(gRoutCB.lock))
     {
@@ -148,10 +189,10 @@ static bool_t __ShowTab(enum_ipv_t ver)
             while (NULL != item)
             {
                 rout = item->rout;
-                inet_ntop(AF_INET, &rout->net, net, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout->host, host, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout->hop, hop, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout->mask, mask, CN_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->net, net, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->host, host, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->hop, hop, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->mask, mask, CFG_IP_STRMAX);
                 debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
                                  i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
                                  item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
@@ -162,10 +203,10 @@ static bool_t __ShowTab(enum_ipv_t ver)
             {
                 item =  gRoutCB.v4host;
                 rout = item->rout;
-                inet_ntop(AF_INET, &rout->net, net, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout->host, host, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout->hop, hop, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout->mask, mask, CN_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->net, net, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->host, host, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->hop, hop, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout->mask, mask, CFG_IP_STRMAX);
                 debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
                                  i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
                                  item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
