@@ -8,12 +8,15 @@ FlashOffset = 0x00000000;
 FlashSize = 2000K;
 RamStart = 0x00400000;
 RamSize = 256K;
+SDRamStart = 0x00900000;
+SDRamSize = 256K;
 
 /* Split memory into area for vectors and ram */
 MEMORY
 {
         flash  (rx) : ORIGIN = 0x00000000, LENGTH = 1500k /* 1216KB - 96B */
         ram   (rw!x): ORIGIN = 0x00400000, LENGTH = 256k
+        sdram (rw!x): ORIGIN = 0x00900000, LENGTH = 256k
 }
 
 SECTIONS
@@ -191,6 +194,13 @@ text_preload_rIbootRom_lIbootRom :
     sys_heap_top = RamStart + RamSize;
 	/*__heap_end = RamStart + RamSize;*/
 	
+	SDRAM_lRAM (NOLOAD) :
+    {
+       . = ALIGN(0x08);
+        sdram_bottom = .;
+    }>sdram
+    sdram_top = SDRamStart + SDRamSize;
+	
 	heap_cp_table :
     {
         . = ALIGN(0x08);
@@ -206,6 +216,21 @@ text_preload_rIbootRom_lIbootRom :
         BYTE(0x79)                  /*'y'*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
+        
+        . = ALIGN(0x04); 
+        LONG(1)                      /*表示该堆由1段内存组成*/
+        LONG(0)                      /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+        LONG(0)                      /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+        LONG(sdram_bottom)     /*第一段基址，须符合对齐要求*/
+        LONG(sdram_top)        /*第一段地址上限（不含），须符合对齐要求*/
+        LONG(32)                   /*第一段页尺寸=32bytes*/
+        BYTE(0x65)                   /*'e'*/
+        BYTE(0x78)                   /*'x'*/
+        BYTE(0x74)                   /*'t'*/
+        BYTE(0x72)                   /*'r'*/
+        BYTE(0x61)                   /*'a'*/
+        BYTE(0x6d)                   /*'m'*/
+        BYTE(0)                      /*串结束，"extram"是堆的名字*/
         
         . = ALIGN(0x04);
         LONG(0)                     /*结束标志*/

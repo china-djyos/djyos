@@ -58,6 +58,48 @@
 #include <shell.h>
 #include "../common/router.h"
 #include "../common/netdev.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"router"          //路由协议
+//parent:"tcpip"             //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"lock","heap","devfile",   //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#if(CFG_MODULE_ENABLE_ROUTER == false)//****检查参数是否已经配置好
+//#warning   " tcpip ROUTER组件参数未配置，使用默认值"
+#define CFG_MODULE_ENABLE_ROUTER  false
+//%$#@num,,,
+#define CFG_IP_STRMAX           20 //最大路由条目数
+//%$#@enum,true,false,
+//%$#@string,1,256,
+//%$#@select
+//%$#@free
+#endif
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
 
 //发送报文时，先从路由表匹配目标地址，如果不成功，则检查目标是否主机，如果与主机匹配，则使
 //用本地路由，否则使用默认路由（如果已经设置）。
@@ -86,7 +128,7 @@ typedef struct
 {
     tagURoutFlag flag;
     u8 pri;
-    u8 len;  //net address mask len，most 255 bits
+    u8 len; //most 256 bits
     u16 mtu; //how much bytes could be sent by the rout:default decided by the interface
              //but could be modified by the protocols:such as the icmpv6
 }tagRoutPro;
@@ -109,9 +151,9 @@ struct RoutV4
 struct RoutItem4
 {
     struct RoutItem4    *nxt;           //point to the next rout item，NULL end
-    struct NetDev       *DevFace;       //point to the  interface binded
+    struct NetDev   *DevFace;       //point to the  interface binded
     struct RoutV4       *rout4;
-    tagRoutPro          pro;            //like the unix,we use G U R AND SO ON FLAGS
+    tagRoutPro      pro;            //like the unix,we use G U R AND SO ON FLAGS
 };
 struct RoutItem6
 {
@@ -136,10 +178,10 @@ static bool_t __ShowTab(enum_ipv_t ver)
 {
     int i = 0;
     struct RoutItem4 *item;
-    char net[CN_IP_STRMAX];
-    char host[CN_IP_STRMAX];
-    char hop[CN_IP_STRMAX];
-    char mask[CN_IP_STRMAX];
+    char net[CFG_IP_STRMAX];
+    char host[CFG_IP_STRMAX];
+    char hop[CFG_IP_STRMAX];
+    char mask[CFG_IP_STRMAX];
     struct RoutV4 *rout4;
     if (mutex_lock(gRoutCB.lock))
     {
@@ -155,10 +197,10 @@ static bool_t __ShowTab(enum_ipv_t ver)
             while (NULL != item)
             {
                 rout4 = item->rout4;
-                inet_ntop(AF_INET, &rout4->net, net, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->host, host, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->hop, hop, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->mask, mask, CN_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->net, net, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->host, host, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->hop, hop, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->mask, mask, CFG_IP_STRMAX);
                 debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
                                  i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
                                  item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
@@ -169,10 +211,10 @@ static bool_t __ShowTab(enum_ipv_t ver)
             {
                 item =  gRoutCB.v4host;
                 rout4 = item->rout4;
-                inet_ntop(AF_INET, &rout4->net, net, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->host, host, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->hop, hop, CN_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->mask, mask, CN_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->net, net, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->host, host, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->hop, hop, CFG_IP_STRMAX);
+                inet_ntop(AF_INET, &rout4->mask, mask, CFG_IP_STRMAX);
                 debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
                                  i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
                                  item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
@@ -669,13 +711,7 @@ static struct RoutItem6 * __RemoveFromQueueV6(struct RoutItem6 *queue, struct Ro
 {
     return NULL;
 }
-
-//-----------------------------------------------------------------------------
-//功能：主机路由设置，调用它，将生成自环路由。
-//参数：ver，IP版本，EN_IPV_4 或 EN_IPV_6
-//      ifname，网卡名
-//返回：无
-//-----------------------------------------------------------------------------
+//when enable the loop.then call it
 void RouterSetHost(enum_ipv_t ver,const char *ifname)
 {
     struct RoutItem4 *newitem = NULL;
@@ -876,15 +912,6 @@ void   RouterRemove(tagRouterPara *para)
     return;
 }
 
-// =============================================================================
-// FUNCTION:Use this function to modify the existed rout
-// PARA  IN:name, the net dev name
-//          ver,you must specified the ip version
-//          netaddr, a pointer to tagHostAddrV4 if ver is EN_IP_V4 else tagHostAddrV6
-// PARA OUT:
-// RETURN  :the corresponding rout
-// INSTRUCT:
-// =============================================================================
 // ============================================================================
 // 功能：修改已存在的路由条目
 // 参数：fd，IP版本号，取值 EN_IPV_4 或 EN_IPV_6
@@ -967,4 +994,15 @@ bool_t RoutCreate(const char *ifname,enum_ipv_t ver,void *netaddr,u32 pro)
 }
 
 ADD_TO_ROUTINE_SHELL(rout,rout,"usage:rout -a/d/p(action) -v(4/6) -i ifname -n net -h host -g gateway");
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,6 +1,5 @@
 //----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
-
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 
@@ -41,80 +40,85 @@
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // =============================================================================
-#include "cpu_peri.h"
+//------------------------------------------------------------------------------
+// 文件名     ：ioiicbus.c
+// 模块描述:模块用于用GPIO模拟IIC时序，并将该IIC添加到IIC总线上。
+// 模块版本: V1.00
+// 创建人员: czz
+// 创建时间: 2018.07.17
+// =============================================================================
+#include "IoIicBus.h"
+#include "djyos.h"
+#include "stdint.h"
+#include "stdio.h"
+#include "iicbus.h"
+#include "endian.h"
+#include "lock.h"
+#include "int.h"
+#include "stddef.h"
 #include "stdlib.h"
+
+
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-
+// bool_t ModuleInstall_init_ioiic(const char * busname);
+// ModuleInstall_init_ioiic(IO_IIC_BUS_NAME);
 //%$#@end initcode  ****初始化代码结束
+
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_audio_mic" //gpio操作函数集
-//parent:"none"                  //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:none                 //初始化时机，可选值：early，medium，later。
-                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:none                //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                 //选中该组件时，被依赖组件将强制选中，
-                                 //如果依赖多个组件，则依次列出
-//weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                 //选中该组件时，被依赖组件不会被强制选中，
-                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                   //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                 //如果与多个组件互斥，则依次列出
+//component name:"ioiicconfig"     //填写该组件的名字
+//parent:"ioiicbus"               //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"iicbus","ioiicbus" //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//%$#@num,0,100,
-//%$#@enum,true,false,
-//%$#@string,1,10,
+//%$#@target = header      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,
+//%$#@string,1,32,
+#define IO_IIC_BUS_NAME   "Ioiic"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-static AUD_ADC_CFG_ST aud_adc;
+#include <stdint.h>
+#include "djyos.h"
+#include "board.h"
+#include "cpu_peri.h"
+#include "project_config.h"
+#include "IoIicBus.h"
 
-void djy_audio_adc_open(uint16_t buf_len,uint16_t channel,
-        audio_sample_rate_e freq,uint32_t linein_detect_pin)
+bool_t ModuleInstall_init_ioiic(const char * busname)
 {
-    if(channel>2)
-        return;
-    aud_adc.buf = malloc(buf_len);
-    if(aud_adc.buf==NULL)
-        return;
-    aud_adc.buf_len = buf_len;
-    aud_adc.channels = channel;
-    aud_adc.mode |= AUD_ADC_MODE_DMA_BIT;
-    aud_adc.linein_detect_pin = linein_detect_pin;
-    aud_adc.freq = freq;
-    audio_adc_open((uint32_t)(&aud_adc));
-    audio_adc_ctrl(AUD_ADC_CMD_PLAY,0);
+    struct IO_IIC_Init IoIic;
+
+    IoIic.BusName     =  busname;//总线名称，如IIC1
+    IoIic.tag         =  0; //用户自己的标记
+    IoIic.IIC_IoCtrl  =  IIC_IoCtrlFunc; //控制函数
+    //模块接口
+    ModuleInstall_IO_IICBus(&IoIic);
+
 }
 
-uint32_t djy_audio_adc_read(char *user_buf, uint32_t count)
-{
-    return audio_adc_read(user_buf, count, 0);
-}
 
-void djy_audio_adc_control( uint32_t cmd, void *args)
-{
-    audio_adc_ctrl(cmd,args);
-}
-
-void djy_audio_adc_close(void)
-{
-    audio_adc_close();
-    free(aud_adc.buf);
-}
 
 
 

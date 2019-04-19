@@ -42,35 +42,37 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: BSP模块
-//作者:  罗侍田.
-//版本：V1.0.0
-//文件描述: 许多CPU内核设计都留有一些可选项,供芯片公司选择性实现。本文件被
-//         hard-config.h文件引用,如果不建议直接使用.也可以不提供本文件
-//         直接写在hard-config.h中.
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-10-31
-//   作者:  罗侍田.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __CPU_OPTIONAL_H__
-#define __CPU_OPTIONAL_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "arm32_feature.h"
 
-#define CN_CPU_OPTIONAL_BITBAND     1       //是否支持位带
-#define CN_CPU_OPTIONAL_CACHE       0       //是否支持cache
-#define CN_CPU_OPTIONAL_FPU         1       //是否支持fpu
+#ifndef __YMODEM_CONFIG_H__
+#define __YMODEM_CONFIG_H__
+#include "project_config.h"
+//extern const u32 CFG_YMODEM_BUF_NUM ;     //缓存ymodem包数量
+//
+//extern const u32 CFG_YMODEM_PKG_TIMEOUT;     //包间隔超时时间，微秒
+//
+//extern const u32 CFG_YMODEM_TIMEOUT;   //ymodem总超时时间
 
-#ifdef __cplusplus
-}
-#endif
-#endif // __CPU_OPTIONAL_H__
+
+
+#endif /* __YMODEM_CONFIG_H__ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

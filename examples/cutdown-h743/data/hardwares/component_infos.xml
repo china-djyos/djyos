@@ -128,6 +128,7 @@
    <component>/bsp/chipdrv/sc1161y/sc1161y_spi.c</component>
    <component>/bsp/chipdrv/STMPE811/stmpe811.c</component>
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
+   <component>/bsp/chipdrv/uc1698/uc1698.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
    <component>/bsp/cpudrv/stm32/h7/src/bkpsram/cpu_peri_bkpsram.c</component>

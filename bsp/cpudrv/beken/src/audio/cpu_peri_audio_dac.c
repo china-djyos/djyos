@@ -59,7 +59,7 @@ void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
     aud_dac.buf_len = buf_len;
     aud_dac.channels = channel;
     aud_dac.freq = freq;
-    aud_dac.dma_mode = 0;
+    aud_dac.dma_mode = 1;
     audio_dac_open(&aud_dac);
     audio_dac_ctrl(AUD_DAC_CMD_PLAY,0);
 }

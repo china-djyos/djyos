@@ -90,8 +90,8 @@ void djy_fiq_dispatch(void)
 //-----------------------------------------------------------------------------
 void Int_ContactAsynSignal(void)
 {
-    portDISABLE_FIQ();
-    portDISABLE_IRQ();
+    portENABLE_FIQ();
+    portENABLE_IRQ();
 }
 
 //----断开异步信号开关---------------------------------------------------------

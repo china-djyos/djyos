@@ -42,79 +42,73 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-// =============================================================================
-#include "cpu_peri.h"
-#include "stdlib.h"
+//所属模块:tcpip
+//作者：lst
+//版本：V1.0.0
+//文件描述:模块配置文件
+//其他说明:
+//修订历史:
+//2. ...
+//1. 日期: 2009-01-04
+//   作者: lst
+//   新版本号: V1.0.0
+//   修改说明: 原始版本
+//------------------------------------------------------
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-
 //%$#@end initcode  ****初始化代码结束
+
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_audio_mic" //gpio操作函数集
-//parent:"none"                  //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:none                 //初始化时机，可选值：early，medium，later。
-                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:none                //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                 //选中该组件时，被依赖组件将强制选中，
-                                 //如果依赖多个组件，则依次列出
-//weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                 //选中该组件时，被依赖组件不会被强制选中，
-                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                   //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                 //如果与多个组件互斥，则依次列出
+//component name:"dhcp"          //DHCP协议
+//parent:"tcpip"             //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"lock","heap","devfile",   //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//%$#@num,0,100,
+#if(CFG_MODULE_ENABLE_DHCP == false)//****检查参数是否已经配置好
+#warning    tcpip dhcp组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_DHCP  false
 //%$#@enum,true,false,
-//%$#@string,1,10,
-//%$#select,        ***从列出的选项中选择若干个定义成宏
-//%$#@free,
+#define     CFG_DHCPD_ENABLE            false   //"DHCP 服务器使能"
+#define     CFG_DHCPC_ENABLE            true    //"DHCP 客户端使能"
+//%$#@num,,,
+#define     CFG_DHCP_RENEWTIME          3600    //"renew timer",秒数
+#define     CFG_DHCP_REBINDTIME         3600    //"rebind timer",秒数
+#define     CFG_DHCP_LEASETIME          3600    //"lease timer",秒数
+#define     CFG_DHCPD_IPNUM             0x40    //"IP池尺寸",64
+//%$#@string,7,32,
+#define     CFG_DHCPD_IPSTART           "192.168.0.2"    //"DHCP起始IP",
+#define     CFG_DHCPD_SERVERIP          "192.168.0.253"  //"DHCP SERVER IP"
+#define     CFG_DHCPD_ROUTERIP          "192.168.0.253"  //"DHCP ROUTER SERVER IP"
+#define     CFG_DHCPD_NETIP             "255.255.255.0"  //"DHCP MASK IP"
+#define     CFG_DHCPD_DNS               "192.168.0.253"  //"DHCP DNSSERVER IP"
+//%$#@string,1,32,
+#define     CFG_DHCPD_DOMAINNAME       "domain"        //"DHCP domain name"
+
+//%$#@select
+//%$#@free
+#endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
-
-static AUD_ADC_CFG_ST aud_adc;
-
-void djy_audio_adc_open(uint16_t buf_len,uint16_t channel,
-        audio_sample_rate_e freq,uint32_t linein_detect_pin)
-{
-    if(channel>2)
-        return;
-    aud_adc.buf = malloc(buf_len);
-    if(aud_adc.buf==NULL)
-        return;
-    aud_adc.buf_len = buf_len;
-    aud_adc.channels = channel;
-    aud_adc.mode |= AUD_ADC_MODE_DMA_BIT;
-    aud_adc.linein_detect_pin = linein_detect_pin;
-    aud_adc.freq = freq;
-    audio_adc_open((uint32_t)(&aud_adc));
-    audio_adc_ctrl(AUD_ADC_CMD_PLAY,0);
-}
-
-uint32_t djy_audio_adc_read(char *user_buf, uint32_t count)
-{
-    return audio_adc_read(user_buf, count, 0);
-}
-
-void djy_audio_adc_control( uint32_t cmd, void *args)
-{
-    audio_adc_ctrl(cmd,args);
-}
-
-void djy_audio_adc_close(void)
-{
-    audio_adc_close();
-    free(aud_adc.buf);
-}
-
-
 

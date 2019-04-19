@@ -96,6 +96,7 @@
    <component>/bsp/chipdrv/ads8688/ads8688.c</component>
    <component>/bsp/chipdrv/at24c02/at24c02.c</component>
    <component>/bsp/chipdrv/at24c02a/at24c02a.c</component>
+   <component>/bsp/chipdrv/at24c08/at24c08.c</component>
    <component>/bsp/chipdrv/at24c128b/at24c128b.c</component>
    <component>/bsp/chipdrv/at24c512c/at24c512c.c</component>
    <component>/bsp/chipdrv/at45db321/at45db321.c</component>
@@ -127,6 +128,7 @@
    <component>/bsp/chipdrv/sc1161y/sc1161y_spi.c</component>
    <component>/bsp/chipdrv/STMPE811/stmpe811.c</component>
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
+   <component>/bsp/chipdrv/uc1698/uc1698.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
    <component>/bsp/cpudrv/stm32/f4/src/dma/cpu_peri_dma.c</component>

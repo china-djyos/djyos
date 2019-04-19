@@ -19,6 +19,8 @@
 #define     CFG_STDIO_IN_NAME                "/dev/UART1"        // "标准输入设备名",
 #define     CFG_STDIO_OUT_NAME               "/dev/UART1"        // "标准输出设备名",
 #define     CFG_STDIO_ERR_NAME               "/dev/UART1"        // "标准err输出设备名",
+#define CFG_STDIO_FLOAT_PRINT       true        //"支持浮点打印"
+#define CFG_STDIO_STDIOFILE         true        //"支持标准IO文件"
 //*******************************  Configure cpu_peri_uart  ******************************************//
 #define     CFG_UART1_SENDBUF_LEN            32                  // "UART1发送环形缓冲区大小",
 #define     CFG_UART1_RECVBUF_LEN            32                  // "UART1接收环形缓冲区大小",
@@ -49,6 +51,7 @@
 #define     CFG_ADD_EXPAND_SHELL             true              //
 #define     CFG_ADD_GLOBAL_FUN               false             //
 #define     CFG_SHOW_ADD_SHEELL              true              //
+#define CFG_MODULE_ENABLE_SHELL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //*******************************  Configure timer  ******************************************//
 #define CFG_TIMER_SOUCE     1         // "时钟源",1=由硬件计时器提供时钟源，0=由tick提供时钟源
 #define CFG_TIMERS_LIMIT    5         // "定时器数量",可创建的定时器数量（不包含图形界面的定时器）
@@ -67,5 +70,4 @@
 #define     CFG_IBOOT_VERSION                01                  // Iboot发布版本号
 //******************************* Core Clock ******************************************//
 #define  CFG_CORE_MCLK                   (168*Mhz)         //主频，内核要用，必须定义
-#define CFG_BARE_APP 1
 #endif

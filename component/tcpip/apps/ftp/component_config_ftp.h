@@ -42,40 +42,62 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: CPU外设定义
-//作者:  lst
+//所属模块:tcpip
+//作者：lst
 //版本：V1.0.0
+//文件描述:模块配置文件
 //其他说明:
 //修订历史:
-//1. 日期: 2013-05-29
-//   作者:  lst.
+//2. ...
+//1. 日期: 2009-01-04
+//   作者: lst
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#ifndef __CPU_PERI_H__
-#define __CPU_PERI_H__
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-#ifdef __cplusplus
-extern "C" {
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"ftp"          //ftp协议
+//parent:"tcpip"             //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:medium              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"tcp","tcpip",   //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#if(CFG_MODULE_ENABLE_FTP == false)//****检查参数是否已经配置好
+#warning    tcpip ftp组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_FTP  false
+//%$#@num,,,
+//%$#@enum,true,false,
+#define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能",暂未实现
+#define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
+//%$#@string,1,256,
+#define     CFG_TFTP_PATHDEFAULT       "/"   //TFTP默认工作目录
+//%$#@select
+//%$#@free
 #endif
+//%$#@end configue  ****参数配置结束
 
-//包含外设所需的头文件"
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
 
-#include "bk_uart.h"
-#include "gpio_pub.h"
-#include "intc.h"
-#include "flash.h"
-#include "flash_pub.h"
-#include "audio_pub.h"
+//@#$%component end configure
 
-#include "cpu_peri_uart.h"
-#include "cpu_peri_flash.h"
-#include "cpu_peri_gpio.h"
-#include "cpu_peri_audio_mic.h"
-#include "cpu_peri_audio_dac.h"
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif //__CPU_PERI_H__

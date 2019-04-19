@@ -19,7 +19,7 @@
   <xip_app>false</xip_app>
   <xip_iboot>false</xip_iboot>
   <filesystem>false</filesystem>
-  <ascii_font>false</ascii_font>
+  <ascii_dot>false</ascii_dot>
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
   <gdd>false</gdd>
