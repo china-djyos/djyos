@@ -554,14 +554,17 @@ static bool_t __IoDevOut(tagPPP *ppp, u16 proto, tagCH *chdr, u8 *buf, u16 l,
     return ret;
 }
 //here we create a ppp net device to the stack
-static bool_t __NetDevOut(struct NetDev *dev, struct NetPkg *pkg, u32 framlen,u32 netdevtask) {
+static bool_t __NetDevOut(struct NetDev *dev, struct NetPkg *pkg, u32 netdevtask)
+{
     bool_t result;
     struct NetPkg *tmp;
     u8 *buf;
     u8 *dst;
     u32 cpylen;
     tagPPP *ppp;
+    u32 framlen;
 
+    framlen = PkgFrameDatastatistics(pkg);
     result = false;
     ppp = (tagPPP*) NetDevPrivate(dev);
     if (ppp->ms.stat != EN_PPP_NETWORK) {

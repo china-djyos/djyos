@@ -310,7 +310,7 @@ static struct NetPkg *__MacRcv(struct NetDev *devhandle)
     return pkg;
 }
 
-static bool_t MacSnd(struct NetDev* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(struct NetDev* handle,struct NetPkg * pkg, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
@@ -623,7 +623,6 @@ static ptu32_t __MacRcvTask(void)
 
 
 
-    u32 *addr;
     u32 value;
     u32 resettimes= 0;
     time_t printtime;
@@ -658,7 +657,8 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-//              NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                                                      PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
@@ -677,7 +677,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                 //here we still use the counter to do the time state check
-//              NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -699,7 +699,7 @@ static ptu32_t __MacRcvTask(void)
     return 0;
 }
 //create the receive task
-static bool_t __CreateRcvTask(ptu32_t handle)
+static bool_t __CreateRcvTask(struct NetDev * handle)
 {
     bool_t result = false;
     u16 evttID;

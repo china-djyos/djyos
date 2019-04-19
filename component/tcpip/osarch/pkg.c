@@ -250,6 +250,14 @@ u16 PkgFrameDatastatistics(struct NetPkg *pkg)
     }
     return result;
 }
+
+//-----------------------------------------------------------------------------
+//功能：把 pkg 包链中的全部数据 copy 到 dst 缓冲区中
+//参数：pkg，被copy的包链
+//     dst，接收数据的缓冲区。
+//返回：copy的数据长度
+//注意：注意与 PkgFrameDataCopy 的细微区别
+//-----------------------------------------------------------------------------
 u16 PkgListDataCopy(struct NetPkg *pkg,u8 *dst)
 {
     u8 *src;
@@ -264,6 +272,14 @@ u16 PkgListDataCopy(struct NetPkg *pkg,u8 *dst)
     }
     return cpylen;
 }
+
+//-----------------------------------------------------------------------------
+//功能：把 pkg 包链中的一帧数据 copy 到 dst 缓冲区中
+//参数：pkg，被copy的包链
+//     dst，接收数据的缓冲区。
+//返回：copy的数据长度
+//注意：注意与 PkgListDataCopy 的细微区别
+//-----------------------------------------------------------------------------
 u16 PkgFrameDataCopy(struct NetPkg *pkg,u8 *dst)
 {
     u8 *src;
@@ -286,6 +302,14 @@ u16 PkgFrameDataCopy(struct NetPkg *pkg,u8 *dst)
     }
     return cpylen;
 }
+
+//-----------------------------------------------------------------------------
+//功能：把 pkg 包链中的全部数据 copy 到 dst 包中，dst是一个单包
+//参数：pkg，被copy的包链
+//     dst，目标包，是个单包。
+//返回：无
+//注意：注意与 PkgCopyFrameToPkg 的细微区别
+//-----------------------------------------------------------------------------
 void PkgCopyListToPkg(struct NetPkg *pkg,struct NetPkg *dst)
 {
     u8 *dstbuf,*src;
@@ -301,6 +325,14 @@ void PkgCopyListToPkg(struct NetPkg *pkg,struct NetPkg *dst)
         pkg = PkgGetNextUnit(pkg);
     }
 }
+
+//-----------------------------------------------------------------------------
+//功能：把 pkg 包链中的一帧数据 copy 到 dst 包中，dst是一个单包
+//参数：pkg，被copy的包链
+//     dst，目标包，是个单包。
+//返回：无
+//注意：注意与 PkgCopyListToPkg 的细微区别
+//-----------------------------------------------------------------------------
 void PkgCopyFrameToPkg(struct NetPkg *pkg,struct NetPkg *dst)
 {
     u8 *dstbuf,*src;

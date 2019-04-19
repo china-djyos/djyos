@@ -67,7 +67,7 @@
 #include "component_config_NlsCharset.h"
 
 static struct Charset *s_ptCurCharset;      // 当前字符集
-static struct obj *s_ptCharsetDir;       // 字符集目录
+static struct Object *s_ptCharsetDir;       // 字符集目录
 static bool_t g_bUserSetCharset = false;
 //----安装字符集-------------------------------------------------------------
 //功能: 把新字符集安装到字符集目录中
@@ -138,7 +138,7 @@ struct Charset* Charset_NlsGetCurCharset(void)
 //-----------------------------------------------------------------------------
 struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
 {
-    struct obj *Me;
+    struct Object *Me;
     if(encoding == NULL)
         return NULL;
     if(encoding == s_ptCurCharset)
@@ -162,7 +162,7 @@ struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding)
 //-----------------------------------------------------------------------------
 struct Charset* Charset_NlsSearchCharset(const char* name)
 {
-    struct obj *CharsetObj;
+    struct Object *CharsetObj;
     if(s_ptCharsetDir == NULL)
         return NULL;       //字符资源树未创建
 

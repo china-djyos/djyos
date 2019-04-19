@@ -81,14 +81,14 @@
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32 devtask,\
+static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
         u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t ret = false;
     if((NULL != iface)&&(proto == EN_LINKPROTO_IPV4))
     {
         NetDevPkgsndInc(iface);
-        ret = NetDevSend(iface,pkg,framlen,devtask);
+        ret = NetDevSend(iface,pkg,devtask);
 //      ret = iface->ifsend(iface,pkg,framlen,devtask);
         if(ret == false)
         {

@@ -65,7 +65,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    ModuleInstall_RTC(CFG_DS1390_BUS_NAME);
+//    extern ptu32_t ModuleInstall_RTC(void)
+//    ModuleInstall_RTC();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -244,11 +245,11 @@ bool_t rtc_update_time(s64 time)
 //参数：模块初始化函数没有参数
 //返回：true = 成功初始化，false = 初始化失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_RTC(const char *pBusName)
+ptu32_t ModuleInstall_RTC(void)
 {
     struct tm DateTime;
 
-    if(sptDS1390Dev = SPI_DevAdd(pBusName,"RTC_DS1390",0,8,\
+    if(sptDS1390Dev = SPI_DevAdd(CFG_DS1390_BUS_NAME,"RTC_DS1390",0,8,\
             SPI_MODE_0,SPI_SHIFT_MSB,DS1390_SPI_SPEED,false))
     {
         SPI_BusCtrl(s_ptAT45_Dev,CN_SPI_SET_POLL,0,0);

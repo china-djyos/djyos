@@ -127,11 +127,13 @@ static struct NetPkg * __LoopIn(struct NetDev *iface)
     return pkg;
 }
 //device send function
-static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32 netdevtask)
+static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
 {
     bool_t  ret = false;
     struct NetPkg *tmp;
     struct NetPkg *sndpkg;
+    u32 framlen;
+    framlen = PkgFrameDatastatistics(pkg);
     sndpkg = PkgMalloc(framlen,0);
     if(NULL != sndpkg)
     {

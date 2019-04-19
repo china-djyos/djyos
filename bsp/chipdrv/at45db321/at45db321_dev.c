@@ -62,7 +62,7 @@ extern u32 AT45_OP_TIMEOUT;
 extern struct MutexLCB *pAT45_Lock;   //芯片互斥访问保护
 //extern struct SPI_Device *s_ptAT45_Dev;
 extern char *At45Name;
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 extern struct yaffs_driver YAF_AT45_DRV;
 extern struct __efs_drv EFS_AT45_DRV;
 extern struct umedia *at45_umedia;
@@ -796,7 +796,7 @@ s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
 s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
 
@@ -838,8 +838,8 @@ s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd)
     res = strlen(At45Name) + strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,At45Name);		//获取设备的全路径
-    FsBeMedia(FullPath,fs);		//往该设备挂载文件系统
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,At45Name);      //获取设备的全路径
+    FsBeMedia(FullPath,fs);     //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, dwStart, dwEnd);

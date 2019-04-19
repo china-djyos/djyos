@@ -26,8 +26,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t module_init_sst39vfxxx(ptu32_t para);
-//    module_init_sst39vfxxx(0);
+//    extern ptu32_t module_init_sst39vfxxx(void);
+//    module_init_sst39vfxxx();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -101,7 +101,7 @@ void __get_device_id(u16 *mft_id,u16 *device_id)
     return ;
 }
 
-ptu32_t module_init_sst39vfxxx(ptu32_t para)
+ptu32_t module_init_sst39vfxxx(void)
 {
     Flash39VFxxxAddress = (u16 *)0x60000000;
     __get_device_id(&(tg_flash_info.mft_id),&(tg_flash_info.device_id));

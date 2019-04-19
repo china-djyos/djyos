@@ -1275,14 +1275,14 @@ __RETRY_LOOKUPFREE:
 // 返回：
 // 备注：
 // ============================================================================
-static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *loc, char *name, struct obj *ob)
+static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *loc, char *name, struct Object *ob)
 {
     struct __efstruct fstruct;
     s64 units, size;
     s32 res, szmax, i;
     u32 ecc;
     struct __efile *file;
-    struct obj *find;
+    struct Object *find;
     struct __loc *eloc = loc;
 
     find = obj_search_child(ob, name); // 先在对象系统中查找
@@ -1443,7 +1443,7 @@ static s32 __e_allocfile(struct __ecore *core, u32 *loc, const char *name, u32 o
 // 返回：成功（文件结构）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct __efile *__e_newfile(struct __ecore *core, u32 loc, char *name, struct obj *ob)
+static struct __efile *__e_newfile(struct __ecore *core, u32 loc, char *name, struct Object *ob)
 {
     s32 res;
     struct __efile *file;
@@ -1826,7 +1826,7 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
 // 返回：成功（文件上下文）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
+static struct objhandle *__e_open(struct Object *ob, u32 flags, char *uncached)
 {
     s32 res, bufs, eccu;
     struct __loc *loc;
@@ -2035,7 +2035,7 @@ static s32 __e_close(struct objhandle *hdl)
     struct __econtext *cx = (struct __econtext*)handle_context(hdl);
     struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
     struct __efile *file;
-    struct obj *nxt, *head;
+    struct Object *nxt, *head;
     struct __loc *eloc;
 
     __lock(core);
@@ -2596,7 +2596,7 @@ static off_t __e_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 // 返回：成功（0）；失败（-1）；
 // 备注：未考虑互斥；当pName为NULL时，表示文件正在被使用；
 // ============================================================================
-static s32 __e_remove(struct obj *ob, char *uncached)
+static s32 __e_remove(struct Object *ob, char *uncached)
 {
     struct __loc *loc;
     struct __efile *cached = NULL;
@@ -2647,7 +2647,7 @@ static s32 __e_remove(struct obj *ob, char *uncached)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __e_stat(struct obj *ob, struct stat *data, char *uncached)
+static s32 __e_stat(struct Object *ob, struct stat *data, char *uncached)
 {
     s32 res;
     struct __loc *loc;
@@ -2903,7 +2903,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __e_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = __e_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -2959,7 +2959,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(__e_remove((struct obj*)opsTarget, (char *)OpsArgs3) == 0)
+            if(__e_remove((struct Object*)opsTarget, (char *)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -2968,7 +2968,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_STAT:
         {
-            if(__e_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1,
+            if(__e_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1,
                                                 (char*)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
@@ -2978,7 +2978,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SYNC:
         {
-			if(__e_sync((struct objhandle *)opsTarget) == 0)
+            if(__e_sync((struct objhandle *)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;

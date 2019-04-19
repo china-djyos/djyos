@@ -122,8 +122,8 @@ s32 regfs(struct filesystem *type)
 // ============================================================================
 // 功能：mount点的文件操作接口，opsTarget 肯定是 mountpoint，但实际操作的，可能是下级
 //      路径上的文件或目录，只是该文件或目录还在磁盘里面，还没有挂到object树中。此时，应
-//      该转调用具体文件系统的ops。所有 opsTarget 是 struct obj *的命令，OpsArgs3 均
-//      表示被操作路径中 opsTarget 后的部分，因此，只要 opsTarget 是 struct obj *，且
+//      该转调用具体文件系统的ops。所有 opsTarget 是 struct Object *的命令，OpsArgs3 均
+//      表示被操作路径中 opsTarget 后的部分，因此，只要 opsTarget 是 struct Object *，且
 //      opsTarget != NULL 的，就要调用具体文件系统的 ops 函数。
 // 参数：标准逻辑，查看接口说明；
 // 返回：标准逻辑，查看接口说明；
@@ -133,14 +133,14 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                        ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
     struct FsCore *super;
-    struct obj *me;
+    struct Object *me;
     struct objhandle *hdl;
     fnObjOps MyOps;
     s32 result = CN_OBJ_CMD_EXECUTED;
 
     if((objcmd & CN_TARGET_IS_OBJ) && ((((u32)(*(u64*)OpsArgs2) & O_DIRECTORY) || (char*)OpsArgs3 != NULL)))
     {
-        me = (struct obj *)opsTarget;
+        me = (struct Object *)opsTarget;
         super = (struct FsCore *)obj_GetPrivate(me);
         MyOps = super->pFsType->fileOps;
         result = MyOps(opsTarget, objcmd, OpsArgs1, OpsArgs2, OpsArgs3);
@@ -182,10 +182,10 @@ s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 //      EntirePath，返回完整路径的buffer
 //返回：false = 失败，true = 成功
 //-----------------------------------------------------------------------------
-bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
+bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePath,
                      u32 BufSize)
 {
-    struct obj *current;
+    struct Object *current;
     char *Name;
     char *Entire = EntirePath;
     u32 objnum = 0,len;
@@ -250,7 +250,7 @@ bool_t isDirectory(struct objhandle *hdl)
 // 参数：obj，对象；
 // 返回：true = 是 mount 点，false = 不是
 // ============================================================================
-bool_t obj_isMount(struct obj *obj)
+bool_t obj_isMount(struct Object *obj)
 {
     if(obj_GetOps(obj) == __mount_ops)
         return true;
@@ -271,7 +271,7 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
 {
     struct filesystem *fstype;
     struct FsCore *super;
-    struct obj *targetobj, *tmpobj;
+    struct Object *targetobj, *tmpobj;
     char *notfind;
 
     fstype = __findtype(type);
@@ -328,7 +328,7 @@ s32 Format(const char *MountPath)
     DIR *dir;
     s32 res = 0;
     struct objhandle *hdl;
-    struct obj *ob;
+    struct Object *ob;
     struct FsCore *super;
     struct filesystem *pFsType;
 
@@ -355,10 +355,10 @@ s32 Format(const char *MountPath)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-void *corefs(struct obj *ob)
+void *corefs(struct Object *ob)
 {
     struct FsCore *super;
-    struct obj *parent;
+    struct Object *parent;
 
     if(!ob)
         return (NULL);
@@ -390,7 +390,7 @@ void *corefs(struct obj *ob)
 // ============================================================================
 void FsBeMedia(const char *source, const char *target)
 {
-    struct obj *srcobj,*targetobj;
+    struct Object *srcobj,*targetobj;
     char *notfind;
     struct FsCore *super;
     s32 res;

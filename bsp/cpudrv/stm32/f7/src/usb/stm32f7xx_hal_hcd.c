@@ -141,7 +141,7 @@ HAL_StatusTypeDef HAL_HCD_Init(HCD_HandleTypeDef *hhcd)
   hhcd->State = HAL_HCD_STATE_BUSY;
 
   /* Init the low level hardware : GPIO, CLOCK, NVIC... */
-  HAL_HCD_MspInit(hhcd); // 閰嶇疆IO,浣胯兘鏃堕挓
+  HAL_HCD_MspInit(hhcd); // 配置IO,使能时钟
 
   /* Disable the Interrupts */
  __HAL_HCD_DISABLE(hhcd);
@@ -150,10 +150,10 @@ HAL_StatusTypeDef HAL_HCD_Init(HCD_HandleTypeDef *hhcd)
  USB_CoreInit(hhcd->Instance, hhcd->Init); //
 
  /* Force Host Mode*/
- USB_SetCurrentMode(hhcd->Instance, USB_OTG_HOST_MODE); // 璁剧疆涓篐OST妯″紡
+ USB_SetCurrentMode(hhcd->Instance, USB_OTG_HOST_MODE); // 设置为HOST模式
 
  /* Init Host */
- USB_HostInit(hhcd->Instance, hhcd->Init); // USB涓绘ā寮忓垵濮嬪寲
+ USB_HostInit(hhcd->Instance, hhcd->Init); // USB主模式初始化
 
  hhcd->State= HAL_HCD_STATE_READY; //
 
@@ -465,15 +465,15 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
     uint32_t i = 0 , interrupt = 0;
 
     /* ensure that we are in device mode */
-    if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST) // 涓绘満妯″紡
+    if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST) // 主机模式
     {
         /* avoid spurious interrupt */
-        if(__HAL_HCD_IS_INVALID_INTERRUPT(hhcd)) // USB杩樻湭鍒濆鍖?
+        if(__HAL_HCD_IS_INVALID_INTERRUPT(hhcd)) // USB还未初始势
         {
             return;
         }
 
-        // Incomplete periodic transfer锛屾湭瀹屾垚鍛ㄦ湡浼犺緭
+        // Incomplete periodic transfer，未完成周期传输
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_PXFR_INCOMPISOOUT))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -482,7 +482,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
                 intRecord.dwINCOMPISOOUT++;
         }
 
-        // Incomplete isochronous IN transfer锛屾湭瀹屾垚IN鍚屾浼犺緭
+        // Incomplete isochronous IN transfer，未完成IN同步传输
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_IISOIXFR))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -495,10 +495,10 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         {
             // TODO
             __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_NPTXFE);
-            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_NPTXFE); // 灞忚斀涓柇
+            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_NPTXFE); // 屏蔽中断
         }
 
-        // Periodic TxFIFO empty锛屽懆鏈熸?X FIFO涓虹┖
+        // Periodic TxFIFO empty，周期俧TX FIFO为空
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_PTXFE))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -507,7 +507,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
                 intRecord.dwPTXFE++;
         }
 
-        // Mode mismatch interrupt锛屾ā寮忎笉鍖归厤
+        // Mode mismatch interrupt，模式不匹配
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_MMIS))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -517,30 +517,30 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         }
 
         /* Handle Host Disconnect Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT)) // 妫?娴嬪埌鏂紑閾炬帴
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT)) // 桿测到断开链接
         {
             /* Cleanup HPRT */
             USBx_HPRT0 &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |\
-            USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // 涓绘満绔彛瀵勫瓨鍣紝绂佹绔彛 | 绔彛閾炬帴 | 绔彛浣胯兘鍙樺寲 | 杩囨祦
+            USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // 主机端口寄存器，禁止端口 | 端口链接 | 端口使能变化 | 过流
 
             /* Handle Host Port Interrupts */
-            HAL_HCD_Disconnect_Callback(hhcd); // usb_core.c杩涜澶勭悊
+            HAL_HCD_Disconnect_Callback(hhcd); // usb_core.c进行处理
             USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_48_MHZ );
-            __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT); // 娓呬腑鏂?
+            __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT); // 清中政
             if(ON == intRecord.state)
                 intRecord.dwDISCINT++;
         }
 
         /* Handle Host Port Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HPRTINT)) // 涓绘満绔彛缁堢
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HPRTINT)) // 主机端口终端
         {
-            HCD_Port_IRQHandler (hhcd); // 澶勭悊绔彛涓柇,鍙戠敓杩炴帴绛夋儏鍐?
+            HCD_Port_IRQHandler (hhcd); // 处理端口中断,发生连接等情儿
             if(ON == intRecord.state)
                 intRecord.dwHPRTINT++;
         }
 
         /* Handle Host SOF Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_SOF)) // 鍙戦?佷簡SOF甯?
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_SOF)) // 发翁了SOF嶿
         {
             HAL_HCD_SOF_Callback(hhcd);
             __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_SOF);
@@ -549,14 +549,14 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         }
 
         /* Handle Host channel Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HCINT)) // 涓绘満閫氶亾涓柇
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HCINT)) // 主机通道中断
         {
-            interrupt = USB_HC_ReadInterrupt(hhcd->Instance); // 鑾峰彇閫氶亾鍙?
+            interrupt = USB_HC_ReadInterrupt(hhcd->Instance); // 获取通道卿
             for (i = 0; i < hhcd->Init.Host_channels ; i++)
             {
                 if (interrupt & (1 << i))
                 {
-                    if ((USBx_HC(i)->HCCHAR) &  USB_OTG_HCCHAR_EPDIR) // 鑾峰彇绔偣鏂瑰悜
+                    if ((USBx_HC(i)->HCCHAR) &  USB_OTG_HCCHAR_EPDIR) // 获取端点方向
                     {
                         HCD_HC_IN_IRQHandler (hhcd, i);
                     }
@@ -572,13 +572,13 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         }
 
         /* Handle Rx Queue Level Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_RXFLVL)) // RX FIFO闈炵┖锛屾湁鏁版嵁鍙
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_RXFLVL)) // RX FIFO非空，有数据可读
         {
-            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); // 灞忚斀涓柇
+            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); // 屏蔽中断
 
-            HCD_RXQLVL_IRQHandler (hhcd); // 璇籖X FIFO鏁版嵁
+            HCD_RXQLVL_IRQHandler (hhcd); // 读RX FIFO数据
 
-            USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); // 浣胯兘涓柇
+            USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); // 使能中断
             if(ON == intRecord.state)
                 intRecord.dwRXFLVL++;
         }
@@ -594,7 +594,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
             USBx_HPRT0 = settings;
             __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_WKUINT);
 
-            bNoRemoteWakeupTemp = 1; // 澶嶄綅妯″潡
+            bNoRemoteWakeupTemp = 1; // 复位模块
         }
     }
 }
@@ -698,10 +698,10 @@ __weak void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, uint8_t
   */
 HAL_StatusTypeDef HAL_HCD_Start(HCD_HandleTypeDef *hhcd)
 {
-  __HAL_LOCK(hhcd); // TODO:鑾峰彇閿?
-  __HAL_HCD_ENABLE(hhcd); // TODO:寮?鍚腑鏂?
-  USB_DriveVbus(hhcd->Instance, 1); // 绔彛,涓婄數锛堝ソ鍍忎笉鏄疺BUS鐨勭數婧愮嚎锛?
-  __HAL_UNLOCK(hhcd); // 瑙ｉ攣
+  __HAL_LOCK(hhcd); // TODO:获取钿
+  __HAL_HCD_ENABLE(hhcd); // TODO:庿启中政
+  USB_DriveVbus(hhcd->Instance, 1); // 端口,上电（好像不是VBUS的电源线?
+  __HAL_UNLOCK(hhcd); // 解锁
   return HAL_OK;
 }
 
@@ -714,7 +714,7 @@ HAL_StatusTypeDef HAL_HCD_Start(HCD_HandleTypeDef *hhcd)
 HAL_StatusTypeDef HAL_HCD_Stop(HCD_HandleTypeDef *hhcd)
 {
   __HAL_LOCK(hhcd);
-  USB_StopHost(hhcd->Instance); // 鍒锋柊FIFO锛屾竻閫氶亾锛屾竻涓柇
+  USB_StopHost(hhcd->Instance); // 刷新FIFO，清通道，清中断
   __HAL_UNLOCK(hhcd);
   return HAL_OK;
 }
@@ -726,7 +726,7 @@ HAL_StatusTypeDef HAL_HCD_Stop(HCD_HandleTypeDef *hhcd)
   */
 HAL_StatusTypeDef HAL_HCD_ResetPort(HCD_HandleTypeDef *hhcd)
 {
-  return (USB_ResetPort(hhcd->Instance)); // 绔彛澶嶄綅
+  return (USB_ResetPort(hhcd->Instance)); // 端口复位
 }
 
 /**
@@ -774,7 +774,7 @@ HCD_StateTypeDef HAL_HCD_GetState(HCD_HandleTypeDef *hhcd)
   */
 HCD_URBStateTypeDef HAL_HCD_HC_GetURBState(HCD_HandleTypeDef *hhcd, uint8_t chnum)
 {
-  return hhcd->hc[chnum].urb_state; // channel鐘舵??
+  return hhcd->hc[chnum].urb_state; // channel状使
 }
 
 
@@ -856,54 +856,54 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
   uint32_t tmpreg = 0;
   static u32 countNAK = 0;
 
-  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_AHBERR) // 锛堥珮閫熸ā寮忎笅锛?
+  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_AHBERR) // （高速模式下?
   {
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_AHBERR);
     __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
     if(ON == intRecord.state)
       intRecord.in.dwAHBERR++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) // 鏀跺埌/鍙戝嚭ACK鍝嶅簲涓柇
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) // 收到/发出ACK响应中断
   {
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_ACK);
     if(ON == intRecord.state)
       intRecord.in.dwACK++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) // 鏀跺埌STALL鍝嶅簲涓柇
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) // 收到STALL响应中断
   {
     __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
     hhcd->hc[chnum].state = HC_STALL;
-    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // 娓匩AK涓柇
-    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_STALL); // 娓匰TALL涓柇
-    USB_HC_Halt(hhcd->Instance, chnum); // 绂佹閫氶亾
+    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // 清NAK中断
+    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_STALL); // 清STALL中断
+    USB_HC_Halt(hhcd->Instance, chnum); // 禁止通道
     if(ON == intRecord.state)
       intRecord.in.dwSTALL++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) // 鏁版嵁鍚屾閿欒
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) // 数据同步错误
   {
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
-    USB_HC_Halt(hhcd->Instance, chnum); // 绂佹閫氶亾
-    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // 娓匩AK涓柇
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
+    USB_HC_Halt(hhcd->Instance, chnum); // 禁止通道
+    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // 清NAK中断
     hhcd->hc[chnum].state = HC_DATATGLERR;
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_DTERR);
     if(ON == intRecord.state)
       intRecord.in.dwDTERR++;
   }
 
-  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // 甯ф孩鍑?
+  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // 帧溢兿
   {
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
-    USB_HC_Halt(hhcd->Instance, chnum); // 绂佹閫氶亾
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
+    USB_HC_Halt(hhcd->Instance, chnum); // 禁止通道
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_FRMOR);
     if(ON == intRecord.state)
       intRecord.in.dwFRMOR++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // 浼犺緭瀹屾垚
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // 传输完成
   {
     if (hhcd->Init.dma_enable)
     {
       hhcd->hc[chnum].xfer_count = hhcd->hc[chnum].xfer_len - \
-                               (USBx_HC(chnum)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ); // 鍓╀綑鍙戦?佸瓧鑺傛暟
+                               (USBx_HC(chnum)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ); // 剩余发翁字节数
     }
 
     hhcd->hc[chnum].state = HC_XFRC;
@@ -912,16 +912,16 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
 
 
     if ((hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)||
-        (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // 鎺у埗鎴栨壒閲?
+        (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // 控制或批酿
     {
-      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
-      USB_HC_Halt(hhcd->Instance, chnum); // 绂佹閫氶亾
+      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
+      USB_HC_Halt(hhcd->Instance, chnum); // 禁止通道
       __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
 
     }
-    else if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // 涓柇浼犺緭
+    else if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // 中断传输
     {
-      USBx_HC(chnum)->HCCHAR |= USB_OTG_HCCHAR_ODDFRM; // 濂囨暟甯?
+      USBx_HC(chnum)->HCCHAR |= USB_OTG_HCCHAR_ODDFRM; // 奇数嶿
       hhcd->hc[chnum].urb_state = URB_DONE;
       HAL_HCD_HC_NotifyURBChange_Callback(hhcd, chnum, hhcd->hc[chnum].urb_state);
     }
@@ -929,24 +929,24 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
     if(ON == intRecord.state)
       intRecord.in.dwXFRC++;
 
-    countNAK = 0; // 璁℃暟娓呴浂
+    countNAK = 0; // 计数清零
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_CHH) // 绂佹閫氶亾
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_CHH) // 禁止通道
   {
-    __HAL_HCD_MASK_HALT_HC_INT(chnum); // 灞忚斀閫氶亾鍋滄涓柇
+    __HAL_HCD_MASK_HALT_HC_INT(chnum); // 屏蔽通道停止中断
 
-    if(hhcd->hc[chnum].state == HC_XFRC) // 浼犺緭宸插畬鎴?
+    if(hhcd->hc[chnum].state == HC_XFRC) // 传输已完憿
     {
       hhcd->hc[chnum].urb_state  = URB_DONE;
     }
 
-    else if (hhcd->hc[chnum].state == HC_STALL) // 浼犺緭鍋滄
+    else if (hhcd->hc[chnum].state == HC_STALL) // 传输停止
     {
       hhcd->hc[chnum].urb_state = URB_STALL;
     }
 
     else if((hhcd->hc[chnum].state == HC_XACTERR) ||
-            (hhcd->hc[chnum].state == HC_DATATGLERR)) // 鍙戠敓閿欒
+            (hhcd->hc[chnum].state == HC_DATATGLERR)) // 发生错误
     {
       if(hhcd->hc[chnum].ErrCnt++ > 3)
       {
@@ -961,7 +961,7 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
       /* re-activate the channel  */
       tmpreg = USBx_HC(chnum)->HCCHAR;
       tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-      tmpreg |= USB_OTG_HCCHAR_CHENA; // 浣胯兘閫氶亾
+      tmpreg |= USB_OTG_HCCHAR_CHENA; // 使能通道
       USBx_HC(chnum)->HCCHAR = tmpreg;
     }
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_CHH);
@@ -969,39 +969,39 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
     if(ON == intRecord.state)
       intRecord.in.dwCHH++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // 閫氫俊浜嬪姟閿欒
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // 通信事务错误
   {
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
      hhcd->hc[chnum].ErrCnt++;
      hhcd->hc[chnum].state = HC_XACTERR;
-     USB_HC_Halt(hhcd->Instance, chnum); // 鍋滄閫氶亾
+     USB_HC_Halt(hhcd->Instance, chnum); // 停止通道
      __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR);
      if(ON == intRecord.state)
       intRecord.in.dwTXERR++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) // 鏀跺埌NAK鍝嶅簲
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) // 收到NAK响应
   {
-    if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // 涓柇妯″紡
+    if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // 中断模式
     {
-      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
-      USB_HC_Halt(hhcd->Instance, chnum); // 鍋滄閫氶亾
+      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
+      USB_HC_Halt(hhcd->Instance, chnum); // 停止通道
     }
-#if 0 // 杩欓噷鏈塀UG锛孖N濡傛灉鏀跺埌NAK鍖呭悗锛岀‖浠朵細涓?鐩翠笉鏂噸鍙戯紝浠庤?屽鑷翠腑鏂笉鎸?
+#if 0 // 这里有BUG，IN如果收到NAK包后，硬件会?直不断重发，从濌导致中断不抿
     else if  ((hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)||
-         (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // 鎺у埗鎴栨壒閲忔ā寮?
+         (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // 控制或批量模庿
     {
       /* re-activate the channel  */
       tmpreg = USBx_HC(chnum)->HCCHAR;
-      tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 浣胯兘閫氶亾
-      tmpreg |= USB_OTG_HCCHAR_CHENA; // 浣胯兘閫氶亾
+      tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 使能通道
+      tmpreg |= USB_OTG_HCCHAR_CHENA; // 使能通道
       USBx_HC(chnum)->HCCHAR = tmpreg;
     }
 #else
     else if(hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)
     {
       tmpreg = USBx_HC(chnum)->HCCHAR;
-      tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 浣胯兘閫氶亾
-      tmpreg |= USB_OTG_HCCHAR_CHENA; // 浣胯兘閫氶亾
+      tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 使能通道
+      tmpreg |= USB_OTG_HCCHAR_CHENA; // 使能通道
       USBx_HC(chnum)->HCCHAR = tmpreg;
     }
     else if(hhcd->hc[chnum].ep_type == EP_TYPE_BULK)
@@ -1010,22 +1010,22 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
       u32 retrys = 10;
 
       if(USBH_MSC_CLASS == pHost->pActiveClass)
-          retrys = -1; // TODO 涓柇瑙﹀彂杩囬绻?
+          retrys = -1; // TODO 中断触发过频緿
 
-      // 鏀跺埌NAK鍖呬互鍚庯紝鍙皾璇曢噸鍙?10娆N锛屽鏋滆繕娌℃湁锛屽垯涓嶅湪鍙戦??
+      // 收到NAK包以后，只尝试重卿10次IN，如果还没有，则不在发罿
       if(countNAK++ > retrys)
       {
         tmpreg = USBx_HC(chnum)->HCCHAR;
-        tmpreg |= USB_OTG_HCCHAR_CHDIS; // 鍏抽棴閫氶亾, 闃叉鍏朵竴鐩村彂閫両N鍛戒护
+        tmpreg |= USB_OTG_HCCHAR_CHDIS; // 关闭通道, 防止其一直发送IN命令
         USBx_HC(chnum)->HCCHAR = tmpreg;
         countNAK = 0;
       }
       else
       {
-        // TODO: 璇勪及涓柇妯″紡绔偣鏀跺埌NAK鐨勬儏鍐?,鐩墠娌℃湁鍙戠幇閲嶅瑙﹀彂涓柇鐨勬儏鍐?
+        // TODO: 评估中断模式端点收到NAK的情儿,目前没有发现重复触发中断的情儿
         tmpreg = USBx_HC(chnum)->HCCHAR;
-        tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 浣胯兘閫氶亾
-        tmpreg |= USB_OTG_HCCHAR_CHENA; // 浣胯兘閫氶亾
+        tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // 使能通道
+        tmpreg |= USB_OTG_HCCHAR_CHENA; // 使能通道
         USBx_HC(chnum)->HCCHAR = tmpreg;
       }
 
@@ -1053,20 +1053,20 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
   if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_AHBERR) //
   {
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_AHBERR);
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
     if(ON == intRecord.state)
       intRecord.out.dwAHBERR++;
   }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) // 鏀跺埌鎴栬?呭彂鍑篈CK
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) // 收到或濅发出ACK
     {
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_ACK);
 
         if( hhcd->hc[chnum].do_ping == 1)
         {
             hhcd->hc[chnum].state = HC_NYET;
-            __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
-            USB_HC_Halt(hhcd->Instance, chnum); // 鍋滄閫氶亾
+            __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
+            USB_HC_Halt(hhcd->Instance, chnum); // 停止通道
             hhcd->hc[chnum].urb_state  = URB_NOTREADY;
         }
 
@@ -1074,21 +1074,21 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             intRecord.out.dwACK++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NYET) // 锛圚S妯″紡涓嬶級鏀跺埌灏氭湭灏辩华
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NYET) // （HS模式下）收到尚未就绪
     {
         hhcd->hc[chnum].state = HC_NYET;
         hhcd->hc[chnum].ErrCnt= 0;
-        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
-        USB_HC_Halt(hhcd->Instance, chnum); // 鍋滄閫氶亾
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
+        USB_HC_Halt(hhcd->Instance, chnum); // 停止通道
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NYET);
 
         if(ON == intRecord.state)
             intRecord.out.dwNYET++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // 甯ф孩鍑?
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // 帧溢兿
     {
-        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
         USB_HC_Halt(hhcd->Instance, chnum);
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_FRMOR);
 
@@ -1096,10 +1096,10 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             intRecord.out.dwFRMOR++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // 浼犺緭瀹屾垚
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // 传输完成
     {
         hhcd->hc[chnum].ErrCnt = 0;
-        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
         USB_HC_Halt(hhcd->Instance, chnum);
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_XFRC);
         hhcd->hc[chnum].state = HC_XFRC;
@@ -1108,7 +1108,7 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             intRecord.out.dwXFRC++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) // 鏀跺埌STALL鍝嶅簲
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) // 收到STALL响应
     {
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_STALL);
         __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
@@ -1118,7 +1118,7 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             intRecord.out.dwSTALL++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) // 鏀跺埌NAK鍝嶅簲
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) // 收到NAK响应
     {
         hhcd->hc[chnum].ErrCnt = 0;
         __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
@@ -1130,7 +1130,7 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             intRecord.out.dwNAK++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // 閫氫俊浜嬪姟閿欒
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // 通信事务错误
     {
         __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
         USB_HC_Halt(hhcd->Instance, chnum);
@@ -1141,9 +1141,9 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             intRecord.out.dwTXERR++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) // 鏁版嵁鍚屾閿欒
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) // 数据同步错误
     {
-        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 浣胯兘閫氶亾鍋滄涓柇锛屽叾浠栦腑鏂兘灞忚斀
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // 使能通道停止中断，其他中断都屏蔽
         USB_HC_Halt(hhcd->Instance, chnum);
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_DTERR);
@@ -1153,9 +1153,9 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             intRecord.out.dwDTERR++;
     }
 
-    else if ((USBx_HC(chnum)->HCINT) & USB_OTG_HCINT_CHH) // 閫氶亾鍋滄
+    else if ((USBx_HC(chnum)->HCINT) & USB_OTG_HCINT_CHH) // 通道停止
     {
-        __HAL_HCD_MASK_HALT_HC_INT(chnum); // 绂佹浣胯兘閫氶亾涓柇
+        __HAL_HCD_MASK_HALT_HC_INT(chnum); // 禁止使能通道中断
 
         if(hhcd->hc[chnum].state == HC_XFRC)
         {
@@ -1178,8 +1178,8 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
         {
             hhcd->hc[chnum].urb_state  = URB_STALL;
         }
-        else if((hhcd->hc[chnum].state == HC_XACTERR) || // 閫氫俊浜嬪姟閿欒
-                (hhcd->hc[chnum].state == HC_DATATGLERR)) // 鍙戦?侀敊璇?
+        else if((hhcd->hc[chnum].state == HC_XACTERR) || // 通信事务错误
+                (hhcd->hc[chnum].state == HC_DATATGLERR)) // 发翁错譿
         {
             if(hhcd->hc[chnum].ErrCnt++ > 3)
             {
@@ -1189,7 +1189,7 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
             else
             {
                 // hhcd->hc[chnum].urb_state = URB_NOTREADY;
-                hhcd->hc[chnum].urb_state = URB_ERROR; // 鐩存帴鎶ラ敊
+                hhcd->hc[chnum].urb_state = URB_ERROR; // 直接报错
             }
 
             /* re-activate the channel  */
@@ -1208,12 +1208,12 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
     else if((USBx_HC(chnum)->HCINT) &USB_OTG_HCINT_BBERR)
     {
         __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_BBERR);
-        // TODO: 鐩墠杩樹笉鐭ラ亾鎬庝箞澶勭悊杩欎釜閿欒锛屼笌纭欢甯冪嚎鏈夊叧
+        // TODO: 目前还不知道怎么处理这个错误，与硬件布线有关
     }
 
     else
     {
-        tmpreg = 0; // 鏈煡涓柇
+        tmpreg = 0; // 未知中断
     }
 }
 
@@ -1232,37 +1232,37 @@ static void HCD_RXQLVL_IRQHandler  (HCD_HandleTypeDef *hhcd)
   uint32_t tmpreg = 0;
 
   temp = hhcd->Instance->GRXSTSP ;
-  channelnum = temp &  USB_OTG_GRXSTSP_EPNUM; // 褰撳墠鎺ユ敹鐨勬暟鎹寘鎵?灞為?氶亾
-  pktsts = (temp &  USB_OTG_GRXSTSP_PKTSTS) >> 17; // 鏁版嵁鍖呯姸鎬?
-  pktcnt = (temp &  USB_OTG_GRXSTSP_BCNT) >> 4; // 鍖呯殑瀛楄妭鏁?
+  channelnum = temp &  USB_OTG_GRXSTSP_EPNUM; // 当前接收的数据包懿属翚道
+  pktsts = (temp &  USB_OTG_GRXSTSP_PKTSTS) >> 17; // 数据包状徿
+  pktcnt = (temp &  USB_OTG_GRXSTSP_BCNT) >> 4; // 包的字节擿
 
   switch (pktsts)
   {
-  case GRXSTS_PKTSTS_IN: // 鎺ユ敹鐨勬暟鎹寘鐨勭姸鎬?
+  case GRXSTS_PKTSTS_IN: // 接收的数据包的状徿
     /* Read the data into the host buffer. */
     if(!hhcd->hc[channelnum].async)
     {
-        if ((pktcnt > 0) && (hhcd->hc[channelnum].xfer_buff != (void  *)0)) // 瀛樺湪缂撳啿
+        if ((pktcnt > 0) && (hhcd->hc[channelnum].xfer_buff != (void  *)0)) // 存在缓冲
         {
 
-          USB_ReadPacket(hhcd->Instance, hhcd->hc[channelnum].xfer_buff, pktcnt); // 璇籖X FIFO
+          USB_ReadPacket(hhcd->Instance, hhcd->hc[channelnum].xfer_buff, pktcnt); // 读RX FIFO
 
           /*manage multiple Xfer */
           hhcd->hc[channelnum].xfer_buff += pktcnt;
           hhcd->hc[channelnum].xfer_count  += pktcnt;
 
-          if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) // 鏁版嵁鍖呰鏁?
+          if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) // 数据包计擿
           {
             /* re-activate the channel when more packets are expected */
             tmpreg = USBx_HC(channelnum)->HCCHAR;
             tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
             tmpreg |= USB_OTG_HCCHAR_CHENA;
-            USBx_HC(channelnum)->HCCHAR = tmpreg; // 閲嶆柊婵?娲婚?氶亾
+            USBx_HC(channelnum)->HCCHAR = tmpreg; // 重新潿活翚道
             hhcd->hc[channelnum].toggle_in ^= 1;
           }
         }
     }
-    else // 寮傛妯″紡锛屾暟鎹紦瀛樺湪椹卞姩灞?
+    else // 异步模式，数据缓存在驱动寿
     {
         u8 buffer[128];
         if(pktcnt > 0)
@@ -1277,23 +1277,23 @@ static void HCD_RXQLVL_IRQHandler  (HCD_HandleTypeDef *hhcd)
         hhcd->hc[channelnum].xfer_buff += pktcnt;
         hhcd->hc[channelnum].xfer_count  += pktcnt;
 
-        if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) // 鏁版嵁鍖呰鏁?
+        if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) // 数据包计擿
         {
             /* re-activate the channel when more packets are expected */
             tmpreg = USBx_HC(channelnum)->HCCHAR;
             tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
             tmpreg |= USB_OTG_HCCHAR_CHENA;
-            USBx_HC(channelnum)->HCCHAR = tmpreg; // 閲嶆柊婵?娲婚?氶亾
+            USBx_HC(channelnum)->HCCHAR = tmpreg; // 重新潿活翚道
             hhcd->hc[channelnum].toggle_in ^= 1;
         }
 
     }
     break;
 
-  case GRXSTS_PKTSTS_DATA_TOGGLE_ERR: // 鏁版嵁鍚屾閿欒
+  case GRXSTS_PKTSTS_DATA_TOGGLE_ERR: // 数据同步错误
     break;
-  case GRXSTS_PKTSTS_IN_XFER_COMP: // IN浼犺緭瀹屾垚
-  case GRXSTS_PKTSTS_CH_HALTED: // 鏆傚仠閫氶亾
+  case GRXSTS_PKTSTS_IN_XFER_COMP: // IN传输完成
+  case GRXSTS_PKTSTS_CH_HALTED: // 暂停通道
   default:
     break;
   }
@@ -1314,40 +1314,40 @@ static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
   hprt0_dup = USBx_HPRT0;
 
   hprt0_dup &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |\
-                 USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // 绂佹PENA(绔彛)| 绔彛閾炬帴 鍙樺寲| PENA浣嶅彉鍖? | 杩囨祦鍙樺寲
+                 USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // 禁止PENA(端口)| 端口链接 变化| PENA位变势 | 过流变化
 
   /* Check whether Port Connect detected */
-  if((hprt0 & USB_OTG_HPRT_PCDET) == USB_OTG_HPRT_PCDET) // 绔彛閾炬帴鍙樺寲
+  if((hprt0 & USB_OTG_HPRT_PCDET) == USB_OTG_HPRT_PCDET) // 端口链接变化
   {
-    if((hprt0 & USB_OTG_HPRT_PCSTS) == USB_OTG_HPRT_PCSTS) // 閾炬帴
+    if((hprt0 & USB_OTG_HPRT_PCSTS) == USB_OTG_HPRT_PCSTS) // 链接
     {
       // USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT);
-      HAL_HCD_Connect_Callback(hhcd); // 鍙戠敓閾炬帴
+      HAL_HCD_Connect_Callback(hhcd); // 发生链接
     }
-    hprt0_dup  |= USB_OTG_HPRT_PCDET; // 娓呬腑鏂?
-    // 鍙鏄鍙ｅ彉鍖栵紝灏卞紑鍚繖涓腑鏂?傦紙褰撶鍙ｉ摼鎺ョ姸鎬佸揩閫熷彉鍖栨椂锛屽鏋滀笉寮?鍚繖涓腑鏂紝浼氬埌鏃秇ost绔娴嬩笉鍒版柇寮?閾炬帴鐨勫姩浣滐級
+    hprt0_dup  |= USB_OTG_HPRT_PCDET; // 清中政
+    // 只要是端口变化，就开启这个中断?（当端口链接状态快速变化时，如果不庿启这个中断，会到时host端检测不到断庿链接的动作）
     USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT);
   }
 
   /* Check whether Port Enable Changed */
-  if((hprt0 & USB_OTG_HPRT_PENCHNG) == USB_OTG_HPRT_PENCHNG) // 绔彛浣胯兘浣嶅彂鐢熷彉鍖?
+  if((hprt0 & USB_OTG_HPRT_PENCHNG) == USB_OTG_HPRT_PENCHNG) // 端口使能位发生变势
   {
     hprt0_dup |= USB_OTG_HPRT_PENCHNG; // TODO
 
-    if((hprt0 & USB_OTG_HPRT_PENA) == USB_OTG_HPRT_PENA) // 浣胯兘绔彛
+    if((hprt0 & USB_OTG_HPRT_PENA) == USB_OTG_HPRT_PENA) // 使能端口
     {
-      if(hhcd->Init.phy_itface  == USB_OTG_EMBEDDED_PHY) // 宓屽叆寮忕殑USB PHY
+      if(hhcd->Init.phy_itface  == USB_OTG_EMBEDDED_PHY) // 嵌入式的USB PHY
       {
         if ((hprt0 & USB_OTG_HPRT_PSPD) == (HPRT0_PRTSPD_LOW_SPEED << 17))
         {
-          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_6_MHZ ); // 浣庨??
+          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_6_MHZ ); // 低速
         }
         else
         {
-          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_48_MHZ ); // 楂橀??
+          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_48_MHZ ); // 高速
         }
       }
-      else // 澶栫疆鐨刄SB PHY
+      else // 外置的USB PHY
       {
         if(hhcd->Init.speed == HCD_SPEED_FULL)
         {
@@ -1357,21 +1357,21 @@ static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
       HAL_HCD_Connect_Callback(hhcd);
 
     }
-    else // 绂佹绔彛
+    else // 禁止端口
     {
       /* Cleanup HPRT */
       USBx_HPRT0 &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |\
         USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG );
 
-      USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT); // 灞忚斀妫?娴嬪埌鏂紑閾炬帴涓柇
+      USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT); // 屏蔽桿测到断开链接中断
     }
   }
 
   /* Check For an overcurrent */
-  if((hprt0 & USB_OTG_HPRT_POCCHNG) == USB_OTG_HPRT_POCCHNG) // 杩囨祦
+  if((hprt0 & USB_OTG_HPRT_POCCHNG) == USB_OTG_HPRT_POCCHNG) // 过流
   {
     hprt0_dup |= USB_OTG_HPRT_POCCHNG;
-    // TODO: 杩囨祦閫昏緫
+    // TODO: 过流逻辑
   }
 
   /* Clear Port Interrupts */
@@ -1396,3 +1396,4 @@ static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
   */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

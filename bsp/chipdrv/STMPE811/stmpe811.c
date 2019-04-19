@@ -70,8 +70,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    struct GkWinObj;
-//    extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop,\
-//      const char *touch_dev_name);
+//    extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop);
 //    extern struct GkWinObj *GK_GetDesktop(const char *display_name);
 //    struct GkWinObj *stmpe811_desktop;
 //    stmpe811_desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
@@ -81,7 +80,7 @@
 //    }
 //    else
 //    {
-//        ModuleInstall_Touch_Stmpe811(stmpe811_desktop,CFG_STMPE811_TOUCH_DEV_NAME);
+//        ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
 //    }
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
@@ -480,7 +479,7 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 //参数: display_name,本触摸屏对应的显示器名(资源名)
 //返回: true,成功;false,失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop,const char *touch_dev_name)
+ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop)
 {
     static struct SingleTouchPrivate stmpe811;
 
@@ -491,6 +490,6 @@ ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop,const char *touch_
     touch_ratio_adjust(desktop);          //屏幕校准
     stmpe811.read_touch = read_touch_stmpe811;//读触摸点的坐标函数
     stmpe811.touch_loc.display = NULL;     //NULL表示用默认桌面
-    Touch_InstallDevice(touch_dev_name,&stmpe811);//添加驱动到Touch
+    Touch_InstallDevice(CFG_STMPE811_TOUCH_DEV_NAME,&stmpe811);//添加驱动到Touch
     return true;
 }

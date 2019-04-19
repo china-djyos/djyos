@@ -135,7 +135,7 @@ static u32 badslocation = 0;
 extern s32 deonfi(const char *data, struct NandDescr *onfi, u8 little);
 extern struct yaffs_driver YAF_NAND_DRV;
 extern struct __efs_drv EFS_NAND_DRV;
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 static struct NandDescr *s_ptNandInfo;
 static struct MutexLCB *NandFlashLock;
 struct umedia *nand_umedia;
@@ -1373,7 +1373,7 @@ static s32 __nand_init(void)
 s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
     targetobj = obj_matchpath(fs, &notfind);

@@ -354,10 +354,10 @@ static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 //// 返回：
 //// 备注：只会调用一次；
 //// ============================================================================
-//static inline struct obj *__isbuild(void)
+//static inline struct Object *__isbuild(void)
 //{
 //    static u8 inited = 0;
-//    static struct obj *mm;
+//    static struct Object *mm;
 //
 //    if(inited)
 //        return (mm);
@@ -382,7 +382,7 @@ static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 // ============================================================================
 s32 um_add(const char *name, struct umedia *media)
 {
-    struct obj *mmo;
+    struct Object *mmo;
 
 //  mmo = __isbuild();
 //  if(!mmo)

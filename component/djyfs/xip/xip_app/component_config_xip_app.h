@@ -66,7 +66,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"xip_app"      //用于app的在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"filesystem"           //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -77,7 +77,7 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+//mutex:"xip_iboot"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
                                 //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 

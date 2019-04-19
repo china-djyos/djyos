@@ -20,8 +20,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//   extern ptu32_t ModuleInit_Fram(char *BusName);
-//    ModuleInit_Fram(CFG_FRAM_BUS_NAME);
+//   extern ptu32_t ModuleInit_Fram(void);
+//   ModuleInit_Fram();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -247,11 +247,11 @@ u32 FRAM_Write_Data_r(u16 wAddress, u8 *pbyBuf, u32 dwLen)
 // 参数: para,铁电号，0或1
 // 返回: true= 成功，false=失败
 // =============================================================================
-ptu32_t ModuleInit_Fram(char *BusName)
+ptu32_t ModuleInit_Fram(void)
 {
     ptSemID_Fram = Lock_MutexCreate("Fram0 Lock");
 
-    s_ptFRAM_Dev = IIC_DevAdd(BusName,"FRAM_FM24CL64B",CFG_FRAM_ADDR,1,17);
+    s_ptFRAM_Dev = IIC_DevAdd(CFG_FRAM_BUS_NAME,"FRAM_FM24CL64B",CFG_FRAM_ADDR,1,17);
     if(s_ptFRAM_Dev)
     {
         IIC_BusCtrl(s_ptFRAM_Dev,CN_IIC_SET_CLK,CFG_FM24CL64B_CLK_FRE,0);

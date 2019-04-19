@@ -425,7 +425,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 // 返回：成功（YAF文件）；失败（NULL）;
 // 备注：
 // ============================================================================
-struct objhandle *__yaf2open(struct obj *ob, u32 flags, char *uncached)
+struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
 {
     char *path;
     s32 res;
@@ -655,7 +655,7 @@ static s32 __yaf2readdentry(struct objhandle *hdl, struct dirent *dentry)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __yaf2remove(struct obj *ob, char *full)
+static s32 __yaf2remove(struct Object *ob, char *full)
 {
     s32 res;
     char *path;
@@ -700,7 +700,7 @@ static off_t __yaf2seek(struct objhandle *hdl, off_t *offset, s32 whence)
 // 返回：成功（0）；失败（-1）；
 // 备注：当查询安装点时，uncached为NULL；
 // ============================================================================
-static s32 __yaf2stat(struct obj *ob, struct stat *data, char *uncached)
+static s32 __yaf2stat(struct Object *ob, struct stat *data, char *uncached)
 {
     struct yaffs_stat yafstat = {0};
     struct objhandle *myhandle;
@@ -775,7 +775,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __yaf2open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = __yaf2open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -830,7 +830,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(__yaf2remove((struct obj*)opsTarget, (char *)OpsArgs3) == 0)
+            if(__yaf2remove((struct Object*)opsTarget, (char *)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -839,7 +839,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_STAT:
         {
-            if(__yaf2stat((struct obj*)opsTarget, (struct stat *)OpsArgs1,
+            if(__yaf2stat((struct Object*)opsTarget, (struct stat *)OpsArgs1,
                                 (char*)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
@@ -1046,7 +1046,7 @@ s32 __iserased(const u8 *buf, s32 datalen, s32 taglen)
 s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
 {
     static struct filesystem *typeYAF2 = NULL;
-    struct obj * mountobj;
+    struct Object * mountobj;
     s32 res;
 
     if(opt == true)

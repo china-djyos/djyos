@@ -55,10 +55,14 @@
 
 #define LOCAL_PRINT                 printk
 #define LOCAL_RESPONSE_TIMEOUT      50
-char *AT_COMMANDS[] = {"AT+CSQ"};
+char *AT_COMMANDS_SIMCOM[] = {"AT+CSQ","AT+CICCID"};
+char *AT_COMMANDS_HUAWEI[] = {"AT+CSQ","AT^ICCID?"};
 char *AT_END = " \r";
 char *AT_OK = "OK";
 char *AT_ERROR = "ERROR";
+char ICCID[21];
+u8 AT_Output[256];
+char *CUSTOM_GetInfos(void);
 
 // ============================================================================
 //功能：命令确认。
@@ -171,6 +175,40 @@ u32 __Command(s32 handle, char *pCommand, u32 dwLen)
 {
     return (write(handle, (u8*)pCommand, dwLen));
 }
+// ============================================================================
+//功能：获取AT命令。
+//参数：function -- 需要AT命令集中的第几个命令；
+//返回：该命令
+//备注：
+// ============================================================================
+char *GetAT_Command(u32 function)
+{
+    char *receive;
+    char *name[] = {"SIMCOM","HUAWEI"};
+    receive = CUSTOM_GetInfos();     //获取4G模块的型号
+    if(receive == NULL)
+    {
+        printf("AT : error : no found 4G module .\r\n");
+        return NULL;
+    }
+
+    if(strstr(receive,name[0]) == NULL)     //根据获取到的型号选择使用的指令集
+    {
+        if(strstr(receive,name[1]) == NULL)
+        {
+            printf("AT : error : unsupported modules.\r\n");
+            return NULL;
+        }
+        else
+        {
+           return AT_COMMANDS_HUAWEI[function];
+        }
+    }
+    else
+    {
+        return AT_COMMANDS_SIMCOM[function];
+    }
+}
 
 // ============================================================================
 //功能：读取信号强度
@@ -181,9 +219,10 @@ u32 __Command(s32 handle, char *pCommand, u32 dwLen)
 s32 SignalStrength(u8 bArgC, ...)
 {
     // const char *defaultName = "uat";
-    const char *defaultName = "/dev/uat";
+    const char *defaultName = "/dev/usb-at";
     char *name = NULL;
     char command[10] = {0};
+    char *at_command;
     u8 response[50];
     va_list ap;
     // void *handle;
@@ -192,6 +231,12 @@ s32 SignalStrength(u8 bArgC, ...)
     u8 i;
     s32 strength;
     u32 good = 0;
+
+    at_command = GetAT_Command(0);
+    if(at_command == NULL)
+    {
+        return (-1);
+    }
 
     va_start(ap, bArgC);
     for(i = 0; i < bArgC; i++)
@@ -209,7 +254,7 @@ s32 SignalStrength(u8 bArgC, ...)
 
     // handle = (void*)DevOpen(name, O_RDWR, 0);
     // if(!handle)
-    handle = (void*)open(name, O_RDWR);
+    handle = open(name, O_RDWR);
     if(-1 == handle)
     {
         LOCAL_PRINT("AT : error : \"%s\" does not exist.\r\n", name);
@@ -218,19 +263,19 @@ s32 SignalStrength(u8 bArgC, ...)
 
     memset(command, 0x0, sizeof(command));
     memset(response, 0x0, sizeof(response));
-    strcat(command, AT_COMMANDS[0]);
+    strcat(command, at_command);
     strcat(command, AT_END);
     len = strlen(command)+1;
     res = __Command(handle, command, len);
     if(res != len)
     {
-        LOCAL_PRINT("AT : error : \"%s\" cannot sent for signal strength.\r\n", AT_COMMANDS[0]);
+        LOCAL_PRINT("AT : error : \"%s\" cannot sent for signal strength.\r\n", at_command);
         // Driver_CloseDevice(handle);
         close(handle);
         return (-1);
     }
 
-    if(__GetResponse(handle, AT_COMMANDS[0], response, sizeof(response)))
+    if(__GetResponse(handle, at_command, response, sizeof(response)))
     {
         // Driver_CloseDevice(handle);
         close(handle);
@@ -284,4 +329,174 @@ s32 SignalStrength(u8 bArgC, ...)
     // Driver_CloseDevice(handle);
     close(handle);
     return (strength);
+}
+
+// ============================================================================
+//功能：读取ICCID
+//参数：bArgC -- 参数数量；第一个参数为设备名，缺省为“uat”
+//返回：NULL -- 读取失败；其他 -- 获取到的ICCID（以字符串形式）；
+//备注：
+// ============================================================================
+char *ReadICCID(u8 bArgC, ...)
+{
+    const char *defaultName = "/dev/usb-at";
+    char *name = NULL;
+    char command[15] = {0};
+    char *at_command;
+    u8 response[50];
+    va_list ap;
+    s32 handle;
+    u32 len, res;
+    u8 i;
+    u32 good = 0;
+
+    at_command = GetAT_Command(1);
+    if(at_command == NULL)
+    {
+        return NULL;
+    }
+
+    va_start(ap, bArgC);
+    for(i = 0; i < bArgC; i++)
+    {
+        switch(i)
+        {
+        case 0 : name = va_arg(ap, char*); break;
+        default: break;
+        }
+    }
+    va_end(ap);
+
+    if(!name)
+        name = (char*)defaultName;
+
+    handle = open(name, O_RDWR);
+    if(-1 == handle)
+    {
+        LOCAL_PRINT("AT : error : \"%s\" does not exist.\r\n", name);
+        return NULL;
+    }
+
+    memset(command, 0x0, sizeof(command));
+    memset(response, 0x0, sizeof(response));
+    strcat(command, at_command);
+    strcat(command, AT_END);
+    len = strlen(command)+1;
+    res = __Command(handle, command, len);
+    if(res != len)
+    {
+        LOCAL_PRINT("AT : error : \"%s\" cannot sent for read ICCID.\r\n", at_command);
+        close(handle);
+        return NULL;
+    }
+
+    if(__GetResponse(handle, at_command, response, sizeof(response)))
+    {
+        close(handle);
+        return NULL;
+    }
+
+#if 0
+    res = sscanf((const char*)response, "+ICCID: %d", &ICCID);
+    if(-1 == res)
+        return NULL;
+#else
+
+    for(i = 0; i < (sizeof(response) - 8); i++)
+    {
+        if((response[i] == '+') || (response[i] == '^'))
+        {
+            if((response[i+1] == 'I') &&(response[i+2] == 'C') &&
+               (response[i+3] == 'C') &&(response[i+4] == 'I') &&
+               (response[i+5] == 'D') &&(response[i+6] == ':') &&
+               (response[i+7] == ' '))
+            {
+                good = i+8;
+                break;
+            }
+        }
+    }
+
+    if(!good)
+    {
+        close(handle);
+        return NULL;
+    }
+
+    i = good;
+    for(; i < sizeof(response); i++)
+    {
+        if(response[i] < '0' || response [i] > '9')
+        {
+            if(response[i] < 'A' || response [i] > 'Z')
+            {
+                break;
+            }
+        }
+    }
+
+    len = i-good;
+    if(len != 20)
+    {
+        close(handle);
+        return NULL;
+    }
+
+    memset(ICCID, 0x0, sizeof(ICCID));
+    for(i = 0; i < len; i++ )
+    {
+//        ICCID[i] = response[good + i] - '0';           //返回阿拉伯数字
+        ICCID[i] = response[good + i] ;                  //返回ASCII
+    }
+    ICCID[len] = '\0';
+#endif
+
+    close(handle);
+    return (ICCID);
+}
+
+// ============================================================================
+//功能：通用AT命令接口
+//参数：bArgC -- 参数数量；第一个参数为要输入的AT命令，第二个参数为设备名
+//返回：NULL -- 读取失败；其他 -- 输出的结果（输出的结果是一个数组的首地址，该数组大小为256字节）；
+//备注：AT命令的输入和输出最多不超过256个字节
+// ============================================================================
+u8 *AT_Command(char *at_command,char *name)
+{
+    const char *defaultName = "/dev/usb-at";
+    char command[256] = {0};
+    s32 handle;
+    u32 len, res;
+
+    if(!name)
+        name = (char*)defaultName;
+
+    handle = open(name, O_RDWR);
+    if(-1 == handle)
+    {
+        LOCAL_PRINT("AT : error : \"%s\" does not exist.\r\n", name);
+        return NULL;
+    }
+
+    memset(command, 0x0, sizeof(command));
+    memset(AT_Output, 0x0, sizeof(AT_Output));
+    strcat(command, at_command);
+    strcat(command, AT_END);
+    len = strlen(command)+1;
+    res = __Command(handle, command, len);
+    if(res != len)
+    {
+        LOCAL_PRINT("AT : error : \"%s\" cannot sent for read ICCID.\r\n", at_command);
+        close(handle);
+        return NULL;
+    }
+
+    if(__GetResponse(handle, at_command, AT_Output, sizeof(AT_Output)))
+    {
+        close(handle);
+        return NULL;
+    }
+
+    close(handle);
+    return (AT_Output);
 }

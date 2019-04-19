@@ -93,7 +93,7 @@ struct __device
     ptu32_t UserTag;       // 应用程序设置的标签
 };
 
-struct obj *s_ptDeviceRoot; // TODO 返回object
+struct Object *s_ptDeviceRoot; // TODO 返回object
 static struct MemCellPool *s_ptDevicePool; // 设备控制块内存池头指针
 static struct __device s_tDeviceInitPool[CFG_DEVFILE_LIMIT];
 static struct MutexLCB s_tDeviceMutex; // 保护设备安全
@@ -121,7 +121,7 @@ s32 handle_IsBlockComplete(u32 flags)
 // 返回：成功（设备对象句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *__devopen(struct obj *ob, u32 flags, u32 timeout)
+static struct objhandle *__devopen(struct Object *ob, u32 flags, u32 timeout)
 {
     struct objhandle *devfile;
     struct __device *dev;
@@ -243,12 +243,12 @@ static s32 __devdentry(struct objhandle *hdl, struct dirent *dentry)
     if(!dentry->d_ino)
         dentry->d_ino = (long)handle_GetHostObj(hdl);
 
-    dentry->d_ino = (long)obj_foreach_child(handle_GetHostObj(hdl), (struct obj*)(dentry->d_ino));
+    dentry->d_ino = (long)obj_foreach_child(handle_GetHostObj(hdl), (struct Object*)(dentry->d_ino));
     if(dentry->d_ino)
     {
-        strcpy(dentry->d_name, obj_name((struct obj*)(dentry->d_ino)));
+        strcpy(dentry->d_name, obj_name((struct Object*)(dentry->d_ino)));
         dentry->d_reclen = strlen(dentry->d_name);
-        if(obj_isMount((struct obj*)dentry->d_ino))
+        if(obj_isMount((struct Object*)dentry->d_ino))
             dentry->d_type |= S_IFDIR;
         else
             dentry->d_type |= S_IFREG;
@@ -338,7 +338,7 @@ static s32 __devcntl(struct objhandle *hdl, u32 cmd, va_list *arg0)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __devstat(struct obj *ob, struct stat *data)
+static s32 __devstat(struct Object *ob, struct stat *data)
 {
     struct __device *dev;
 
@@ -372,7 +372,7 @@ s32 Dev_DirObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     {
         case CN_OBJ_CMD_OPEN:
         {
-            obj_InuseUp((struct obj*)opsTarget);
+            obj_InuseUp((struct Object*)opsTarget);
             *(struct objhandle **)OpsArgs1 = s_ptDeviceDirHandle;
         }break;
         case CN_OBJ_CMD_READDIR:
@@ -380,14 +380,14 @@ s32 Dev_DirObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             DIR *dir = (DIR*)OpsArgs1;
             struct dirent *direntry;
             if(dir->__fd == NULL)
-                dir->__fd = (struct obj*)opsTarget;
-            dir->__fd = obj_foreach_child((struct obj*)opsTarget,dir->__fd);
+                dir->__fd = (struct Object*)opsTarget;
+            dir->__fd = obj_foreach_child((struct Object*)opsTarget,dir->__fd);
             if(dir->__fd == NULL)
                 result = 1;
             else
             {
                 direntry = &dir->__ptr;
-                strcpy(direntry->d_name, obj_name((struct obj *)(dir->__fd)));
+                strcpy(direntry->d_name, obj_name((struct Object *)(dir->__fd)));
                 direntry->d_reclen = strlen(direntry->d_name);
                 direntry->d_type |= S_IFREG;
                 result = 0;
@@ -426,7 +426,7 @@ static s32 Dev_DevObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                 *(struct objhandle **)OpsArgs1 = NULL;
                 break;
             }
-            hdl = __devopen((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), CN_TIMEOUT_FOREVER);
+            hdl = __devopen((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), CN_TIMEOUT_FOREVER);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -471,7 +471,7 @@ static s32 Dev_DevObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
                 return (-1);        // 查询的文件不存在；
-            if(__devstat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+            if(__devstat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
             {
                 result = CN_OBJ_CMD_TRUE;
             }
@@ -600,10 +600,10 @@ ptu32_t dev_GetUserTag(s32 fd)
 //// 返回：成功（设备子类）；失败（NULL）；
 //// 备注：
 //// ============================================================================
-//struct obj *dev_group_addo(char *name)
+//struct Object *dev_group_addo(char *name)
 //{
 //#if 0
-//    struct obj *ob;
+//    struct Object *ob;
 //    struct __portBasic *group;
 //
 //    group = malloc(sizeof(*group));
@@ -619,7 +619,7 @@ ptu32_t dev_GetUserTag(s32 fd)
 //
 //    return (ob);
 //#else
-//    struct obj *ob;
+//    struct Object *ob;
 //
 //    ob = obj_newchild(s_ptDeviceRoot, Dev_DevObjOps, 0, name);
 //    if(!ob)
@@ -647,9 +647,9 @@ ptu32_t dev_GetUserTag(s32 fd)
 //// 返回：成功（0）；失败（-1）；
 //// 备注：
 //// ============================================================================
-//s32 dev_group_delo(struct obj *grp)
+//s32 dev_group_delo(struct Object *grp)
 //{
-//    struct obj *dev0, *devx;
+//    struct Object *dev0, *devx;
 //    u8 end = 0;
 //    s32 res = 0;
 //
@@ -696,7 +696,7 @@ ptu32_t dev_GetUserTag(s32 fd)
 //{
 //    char *left, *tmp;
 //    u8 index = 0;
-//    struct obj *ob;
+//    struct Object *ob;
 //
 //    if(name)
 //    {
@@ -736,12 +736,12 @@ ptu32_t dev_GetUserTag(s32 fd)
 //    return (dev_group_delo(ob));
 //}
 
-struct obj *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
+struct Object *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
                                fntDevWrite dwrite, fntDevRead dread,
                                fntDevCntl dcntl, ptu32_t DrvTag)
 {
 
-   struct obj *devo;
+   struct Object *devo;
    struct __device *dev;
 
 
@@ -772,13 +772,13 @@ struct obj *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
 //// 返回：成功（设备对象）；失败（NULL）；
 //// 备注：
 //// ============================================================================
-//struct obj *dev_addo(struct obj *grpo, const char *name,
+//struct Object *dev_addo(struct Object *grpo, const char *name,
 //                               fntDevOpen dopen, fntDevClose dclose,
 //                               fntDevWrite dwrite, fntDevRead dread,
 //                               fntDevCntl dcntl, ptu32_t DrvTag)
 //{
 //
-//    struct obj *devo;
+//    struct Object *devo;
 //    struct __device *dev;
 //
 //    if(!grpo)
@@ -822,7 +822,7 @@ struct obj *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
 //s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
 //            fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag)
 //{
-//    struct obj *ob = s_ptDeviceRoot;
+//    struct Object *ob = s_ptDeviceRoot;
 //    char *left, *tmp;
 //    u8 index = 0;
 //
@@ -873,7 +873,7 @@ struct obj *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
 // 返回：成功（0）；失败（-1）；
 // 备注：与文件系统接口要形成互斥；（要是在删除的过程中出现了使用）
 // ============================================================================
-s32 dev_DeleteAtObject(struct obj *dev)
+s32 dev_DeleteAtObject(struct Object *dev)
 {
     // struct device *device;
 
@@ -895,7 +895,7 @@ s32 dev_DeleteAtObject(struct obj *dev)
 s32 dev_DeleteAtName(const char *name)
 {
     char *left;
-    struct obj *ob;
+    struct Object *ob;
 
     ob = obj_search_child(s_ptDeviceRoot, name); // 查找设备节点；
     if(!ob)
@@ -911,7 +911,7 @@ s32 dev_DeleteAtName(const char *name)
 //      DrvTag 的真实值也可能是-1.
 // 备注：如果对非 Dev 的 object 调用此函数，后果不可预料。
 // ============================================================================
-ptu32_t dev_GetDrvTagFromObj(struct obj *devboj)
+ptu32_t dev_GetDrvTagFromObj(struct Object *devboj)
 {
     struct __device *dev;
 
@@ -931,7 +931,7 @@ ptu32_t dev_GetDrvTagFromObj(struct obj *devboj)
 // 返回：设备对象的名字
 // 备注：
 // ============================================================================
-const char *dev_Name(struct obj *devo)
+const char *dev_Name(struct Object *devo)
 {
     if(devo)
         return (obj_name(devo));
@@ -991,7 +991,7 @@ s32 ModuleInstall_dev(void)
 // ============================================================================
 s32 DevOpen(const char *name, s32 flags, u32 timeout)
 {
-    struct obj *dev;
+    struct Object *dev;
     struct objhandle *devfile = NULL;
 
     if(!Lock_MutexPend(&s_tDeviceMutex, timeout))
@@ -1022,7 +1022,7 @@ s32 DevClose(s32 fd)
 #if 0
     struct __device * dev;
     struct objhandle* devFile;
-    struct obj *ob;
+    struct Object *ob;
     s32 Mode;
 
     devFile = fd2Handle( dwFD );
@@ -1132,7 +1132,7 @@ s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout)
 // 返回：-1表示参数检查出错，其他值由设备开发者定义
 // 备注：
 // ============================================================================
-s32 DevCntl(s32 fd, u32 dwCmd, ptu32_t data1, ptu32_t data2)
+s32 DevCtrl(s32 fd, u32 dwCmd, ptu32_t data1, ptu32_t data2)
 {
 //    struct __device *dev;
 //    struct objhandle *devfile;

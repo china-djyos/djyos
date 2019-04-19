@@ -107,7 +107,7 @@
 //@#$%component end configure
 
 
-static struct obj *s_ptMsgQ_Dir;
+static struct Object *s_ptMsgQ_Dir;
 static struct MutexLCB s_tMsgQ_Mutex;
 
 //----初始化-------------------------------------------------------------------
@@ -140,7 +140,7 @@ bool_t ModuleInstall_MsgQ (void)
 struct MsgQueue *MsgQ_Create( s32 MaxMsgs,u32  MsgLength,u32 Options)
 {
     struct MsgQueue *MQ;
-    struct obj *MQ_Obj;
+    struct Object *MQ_Obj;
     //分配内存，同时分配消息队列控制块和存储消息的内存。
     MQ = M_Malloc(sizeof(struct MsgQueue)+MsgLength*MaxMsgs,0);
     if(MQ != NULL)

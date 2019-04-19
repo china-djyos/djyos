@@ -363,7 +363,7 @@ static bool_t __SndReq(u32 ippeer,u32 iphost,struct NetDev *iface)
     if(NULL != pkg)
     {
         NetDevPkgsndInc(iface);
-        ret = NetDevSend(iface, pkg, PkgGetDataLen(pkg), CN_IPDEV_NONE);
+        ret = NetDevSend(iface, pkg, CN_IPDEV_NONE);
         if(ret == false)
         {
             NetDevPkgsndErrInc(iface);
@@ -391,7 +391,7 @@ static bool_t __SndRes(u32 ippeer,u32 iphost,u8 *macpeer,struct NetDev *iface)
 //      ret =NetDevSend(iface,pkg,pkg->datalen,CN_IPDEV_NONE);
 //      ret =NetDevSend(iface,pkg,PkgGetDataLen(pkg),CN_IPDEV_NONE);
         NetDevPkgsndInc(iface);
-        ret = NetDevSend(iface, pkg, PkgGetDataLen(pkg), CN_IPDEV_NONE);
+        ret = NetDevSend(iface, pkg, CN_IPDEV_NONE);
 //      ret =iface->ifsend(iface,pkg,PkgGetDataLen(pkg),CN_IPDEV_NONE);
         if(ret == false)
         {

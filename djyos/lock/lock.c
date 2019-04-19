@@ -154,11 +154,11 @@ s32 Lock_MutexObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //-----------------------------------------------------------------------------
 //ptu32_t ModuleInstall_Lock1(ptu32_t para)
 //{
-//    static struct obj semp_root;
-//    static struct obj mutex_root;
+//    static struct Object semp_root;
+//    static struct Object mutex_root;
 //    para = para;        //Ïû³ý±àÒëÆ÷¸æ¾¯
-//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct obj),"semaphore");
-//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct obj),"mutex");
+//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct Object),"semaphore");
+//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct Object),"mutex");
 //    return 1;
 //}
 

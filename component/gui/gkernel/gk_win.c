@@ -91,8 +91,8 @@
 #include "dbug.h"
 
 struct GkWinObj   *g_ptFocusWin;//显示焦点窗口,所有的显示都是对这个窗口的操作
-static struct obj *s_ptDisplayDir;
-static struct obj *s_ptWindowDir;
+static struct Object *s_ptDisplayDir;
+static struct Object *s_ptWindowDir;
 u32 g_u32DefaultBackColor,g_u32DefaultColor;
 u16 g_u16GkServerEvtt,g_u16GkUsercallServerEvtt;
 u16 g_u16GkServerEvent,g_u16GkUsercallServerEvent;
@@ -382,7 +382,7 @@ void __gk_vfree(struct DisplayObj *disp,struct GkWinObj *gkwin)
 //-----------------------------------------------------------------------------
 struct GkWinObj *__GK_GetZsectionStart(struct GkWinObj *gkwin)
 {
-    struct obj *temp;
+    struct Object *temp;
     struct GkWinObj *current,*result;
     temp = gkwin->HostObj;
     result = gkwin;
@@ -412,7 +412,7 @@ struct GkWinObj *__GK_GetZsectionStart(struct GkWinObj *gkwin)
 //-----------------------------------------------------------------------------
 struct GkWinObj *__GK_GetZsectionEnd(struct GkWinObj *gkwin)
 {
-    struct obj *temp;
+    struct Object *temp;
     struct GkWinObj *current,*result;
     temp = gkwin->HostObj;
     result = gkwin;
@@ -445,7 +445,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
 {
     struct GkWinObj *desktop;
     struct DisplayObj *display;
-    struct obj *NewWindow;
+    struct Object *NewWindow;
     struct ClipRect *clip;
     bool_t BufM;
     s32 desktop_x,desktop_y;
@@ -598,7 +598,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     bool_t BufM;
     struct GkWinObj *target_section;
     struct GkWinObj *parent;                       //gkwin的父窗口
-    struct obj *NewWindow;
+    struct Object *NewWindow;
     struct DisplayObj *display;
     //z轴中被移动的窗口段最后端的窗口
     struct GkWinObj *move_start;
@@ -817,7 +817,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
     s32 left,top,right,bottom;
     s32 delta_top,delta_left;
     struct GkWinObj *cwawin,*temp,bak;
-    struct obj *changing,*current;
+    struct Object *changing,*current;
     struct DisplayObj *disp;
     struct GkscParaMoveWin movwin_para;
 
@@ -960,7 +960,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
 void __GK_AdoptWin(struct GkscParaAdoptWin *para)
 {
     struct GkWinObj *last,*foremost,*gkwin,*Ztarget,*NowWin;
-    struct obj *parent,*point;
+    struct Object *parent,*point;
     struct DisplayObj *display;
     gkwin = para->gkwin;
     parent = para->NewParent->HostObj;
@@ -1037,7 +1037,7 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
 {
     s32 delta_top,delta_left;
     struct GkWinObj *movewin;
-    struct obj *moving,*current;
+    struct Object *moving,*current;
     struct DisplayObj *disp;
     movewin = para->gkwin;
     if((para->left == movewin->left) && (para->top == movewin->top))
@@ -1206,7 +1206,7 @@ void __GK_SetBound(struct GkWinObj *gkwin)
 void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
 {
     struct GkWinObj *current;
-    struct obj *Scion,*ancestor;
+    struct Object *Scion,*ancestor;
     if(para->gkwin == NULL)
         return;
     if(para->gkwin == para->gkwin->disp->desktop)   //桌面不可修改边界模式
@@ -1524,7 +1524,7 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
 void __GK_DestroyWin(struct GkWinObj *gkwin)
 {
     struct GkWinObj *CurWin;
-    while((CurWin = (struct GkWinObj *)obj_GetPrivate((struct obj*)obj_twig(gkwin->HostObj))) != NULL)
+    while((CurWin = (struct GkWinObj *)obj_GetPrivate((struct Object*)obj_twig(gkwin->HostObj))) != NULL)
     {
         __gk_destroy_win(CurWin);
     }
@@ -1543,7 +1543,7 @@ void __GK_OutputRedraw(struct DisplayObj *display)
     u32 color;
     struct ClipRect *clip;
     struct DisplayObj *MirrorDisplay;
-    struct obj *mirror,*current;
+    struct Object *mirror,*current;
     struct GkWinObj *gkwin,*desktop_gkwin,*topwin,*frame_buf;
     struct GkucParaRepaint repaint;
     struct RectBitmap *src,*dst;
@@ -1713,7 +1713,7 @@ void __GK_OutputRedraw(struct DisplayObj *display)
 void __gk_redraw_all(void)
 {
     struct DisplayObj *Display;
-    struct obj *current;
+    struct Object *current;
 
     current = obj_child(s_ptDisplayDir);
     while(current != NULL)
@@ -1741,7 +1741,7 @@ void __gk_RefreshDisplay(struct DisplayObj *Display)
     u32 color;
     struct ClipRect *clip;
     struct DisplayObj *MirrorDisplay;
-    struct obj *mirror,*current;
+    struct Object *mirror,*current;
     struct GkWinObj *gkwin,*desktop_gkwin,*topwin,*frame_buf;
     struct GkucParaRepaint repaint;
     struct Rectangle rect;

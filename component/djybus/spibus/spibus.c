@@ -59,14 +59,14 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-static struct obj *s_ptSPIBusType;
+static struct Object *s_ptSPIBusType;
 
 #define CN_SPI_FLAG_POLL        (1<<0)          //轮询中断方式标记
 
 //SPI总线器件结构体
 struct SPI_Device
 {
-    struct obj *HostObj;
+    struct Object *HostObj;
     u8 Cs;                                  //片选信号
     bool_t AutoCs;                          //自动片选
     u8 CharLen;                             //数据长度
@@ -85,7 +85,7 @@ struct SPI_Buf
 //SPI总线控制块结构体,本模块可见
 struct SPI_CB
 {
-    struct obj           *HostObj;              //宿主对象
+    struct Object           *HostObj;              //宿主对象
     struct SPI_Buf          SPI_Buf;               //缓冲区,用于异步发送
     struct SemaphoreLCB     *SPI_BusSemp;           //SPI总线保护信号量
     struct SemaphoreLCB     *SPI_BlockSemp;         //简易缓冲区保护信号量
@@ -130,7 +130,7 @@ bool_t ModuleInstall_SPIBus(void)
 // =============================================================================
 struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
 {
-    struct obj *SpiDev;
+    struct Object *SpiDev;
     struct SPI_CB *NewSPI;
     if(NULL == NewSPIParam)
         goto exit_from_param;
@@ -218,7 +218,7 @@ bool_t SPI_BusDelete(struct SPI_CB *DelSPI)
 // =============================================================================
 struct SPI_CB *SPI_BusFind(const char *BusName)
 {
-    struct obj *SPI_BusObj;
+    struct Object *SPI_BusObj;
     SPI_BusObj = obj_search_child(s_ptSPIBusType,BusName);
     if(SPI_BusObj)
     {
@@ -245,7 +245,7 @@ struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 
 {
     struct SPI_CB     *SPI;
     struct SPI_Device *NewDev;
-    struct obj *NewIicObj;
+    struct Object *NewIicObj;
     tagSpiConfig spicfg;
 
     //查询是否该总线存在
@@ -346,7 +346,7 @@ bool_t SPI_DevDelete_s(struct SPI_Device *DelDev)
 // =============================================================================
 struct SPI_Device *SPI_DevFind(const char *BusName ,const char *DevName)
 {
-    struct obj *SPI_DevObj;
+    struct Object *SPI_DevObj;
     struct SPI_CB *SPI_Bus;
 
     SPI_Bus = SPI_BusFind(BusName);

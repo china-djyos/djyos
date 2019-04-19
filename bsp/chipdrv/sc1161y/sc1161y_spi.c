@@ -63,8 +63,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_SC1161Y(char *BusName);
-//    NRSEC3000_Init(CFG_SC1161Y_BUS_NAME);
+//    extern bool_t ModuleInstall_SC1161Y(void);
+//    ModuleInstall_SC1161Y();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -256,9 +256,9 @@ u32 SC1161Y_Read(u8* pbRdBuf,u32 timeout)
 //参数：总线名称，如“SPI1”
 //返回：true = 成功初始化，false = 初始化失败
 // =============================================================================
-bool_t ModuleInstall_SC1161Y(char *BusName)
+bool_t ModuleInstall_SC1161Y(void)
 {
-    s_ptSc1161yDev = SPI_DevAdd(BusName,"SC1161Y",1,8,SPI_MODE_3,
+    s_ptSc1161yDev = SPI_DevAdd(CFG_SC1161Y_BUS_NAME,"SC1161Y",1,8,SPI_MODE_3,
                                 SPI_SHIFT_MSB,SC1161Y_SPI_SPEED,false);
     if(NULL != s_ptSc1161yDev)
     {

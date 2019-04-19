@@ -108,7 +108,7 @@
 //一般模式状态结构
 struct UartGeneralCB
 {
-    struct obj *Host;
+    struct Object *Host;
     struct SemaphoreLCB *BlockingSemp;         // 阻塞信号量
 //  struct MultiplexObjectCB * pMultiplexUart;      // 多路复用目标对象头指针
     u32 Baud;                                  // 串口当前波特率
@@ -132,7 +132,7 @@ struct UartGeneralCB
 // 串口状态控制结构
 struct UartPollCB
 {
-    struct obj *Host;
+    struct Object *Host;
     struct SemaphoreLCB *BlockingSemp;              //阻塞信号量
 //  struct MultiplexObjectCB * pMultiplexUart;      //多路复用目标对象头指针
     u32 Baud;                                       //串口当前波特率
@@ -211,7 +211,7 @@ s32 UART_Open(struct objhandle *hdl, u32 Mode, u32 timeout)
 s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 timeout)
 {
     struct UartGeneralCB *UGCB;
-    struct obj *UartObj;
+    struct Object *UartObj;
     u32 Mode;
     u32 completed = 0,written;
     uint8_t *buf;
@@ -669,9 +669,9 @@ s32 UART_Poll_Ctrl(struct objhandle* hdl,u32 cmd, va_list *arg0)
 //返回：串口控制块指针，NULL失败
 //-----------------------------------------------------------------------------
 #if 0
-struct obj * __UART_InstallGeneral(struct UartParam *Param)
+struct Object * __UART_InstallGeneral(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartGeneralCB *UGCB;
     struct MutexLCB *uart_mutexR,*uart_mutexT;
     u8 *pRxRingBuf,*pTxRingBuf;
@@ -769,7 +769,7 @@ exit_from_ucb:
 #else
 struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartGeneralCB *UGCB;
     u8 *pRxRingBuf,*pTxRingBuf;
 
@@ -874,9 +874,9 @@ exit_from_ucb:
 #endif
 
 #if 0
-struct obj * __UART_InstallPoll(struct UartParam *Param)
+struct Object * __UART_InstallPoll(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartPollCB *UPCB;
     struct MutexLCB *uart_mutexR,*uart_mutexT;
 
@@ -932,7 +932,7 @@ exit_from_ucb:
 #else
 struct UartPollCB *UART_InstallPoll(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartPollCB *UPCB;
     struct MutexLCB *uart_mutexR,*uart_mutexT;
 
@@ -1000,7 +1000,7 @@ exit_from_ucb:
 //      Param,包含初始化UART所需参数，具体参数请查看tagUartParam结构体
 //返回：串口控制块指针，NULL失败
 //-----------------------------------------------------------------------------
-struct obj * UART_InstallPort(struct UartParam *Param)
+struct Object * UART_InstallPort(struct UartParam *Param)
 {
     if(Param == NULL)
         return NULL;

@@ -53,6 +53,7 @@
 
 #include "dhcpLib.h"
 #include "dbug.h"
+#include "../common/router.h"
 
 typedef struct
 {
@@ -63,8 +64,8 @@ typedef struct
     u8                         mac[CN_MACADDR_LEN]; //the rout mac
 //    tagDhcpReplyPara           replypara;      //used to record the reply
     const char                *ifname;         //dev name
-    void                      *routwan;       //if get the gateway,create one here
-    void                      *routlan;       //for the local router
+    struct RoutItem4          *routwan;       //if get the gateway,create one here
+    struct RoutItem4          *routlan;       //for the local router
     u32                        offerip;
     u32                        offerserver;
 }tagTaskItem;

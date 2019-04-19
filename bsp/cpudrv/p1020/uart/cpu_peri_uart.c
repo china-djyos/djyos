@@ -130,7 +130,7 @@
 //#define UART1_SendBufLen  2048
 //#define UART1_RecvBufLen  2048
 
-static struct obj *pUartCB[CN_UART_NUM];
+static struct Object *pUartCB[CN_UART_NUM];
 //用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
 //依此类推，1表示初始化，0表示未初始化
 static u8 sUartInited = 0;
@@ -375,7 +375,7 @@ u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
 //-----------------------------------------------------------------------------
 uint32_t UART_ISR(ptu32_t IntLine)
 {
-    struct obj *UCB = NULL;
+    struct Object *UCB = NULL;
     tagUartReg *Reg;
     uint32_t recv_trans,num;
     uint8_t ch[20],IIR=0;

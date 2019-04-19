@@ -73,8 +73,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t module_init_fs_k9f1208xxx(const char *FlashHeapName);
-//    module_init_fs_k9f1208xxx(CFG_K9F1208_HEAP_NAME);
+//    extern ptu32_t module_init_fs_k9f1208xxx(void);
+//    module_init_fs_k9f1208xxx();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -1268,7 +1268,7 @@ void __read_sector_and_oob(u32 sector,u8 *data)
 //返回: 1= 成功，0=失败
 //-----------------------------------------------------------------------------
 
-ptu32_t module_init_fs_k9f1208xxx(const char *FlashHeapName)
+ptu32_t module_init_fs_k9f1208xxx(void)
 {
     struct nand_chip_id chip_id;
     pHeap_t MyHeap;
@@ -1283,7 +1283,7 @@ ptu32_t module_init_fs_k9f1208xxx(const char *FlashHeapName)
     if( __parse_chip(myid,&name) == false)
         return 0;
 
-    MyHeap = M_FindHeap(FlashHeapName);
+    MyHeap = M_FindHeap(CFG_K9F1208_HEAP_NAME);
     if(MyHeap == NULL)
         return 0;
     tg_samsung_nand.ChipHeap = MyHeap;

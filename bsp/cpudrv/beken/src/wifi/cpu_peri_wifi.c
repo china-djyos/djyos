@@ -251,7 +251,7 @@ static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
 }
 
 //extern void hexdump(const unsigned char* buf, int len);
-static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;

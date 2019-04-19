@@ -71,14 +71,14 @@
 #define DHCP_BOOTREPLY      2
 
 /* DHCP message type */
-#define DHCP_DISCOVER       1
-#define DHCP_OFFER          2
-#define DHCP_REQUEST        3
-#define DHCP_DECLINE        4
-#define DHCP_ACK            5
-#define DHCP_NAK            6
-#define DHCP_RELEASE        7
-#define DHCP_INFORM         8
+#define DHCP_DISCOVER       1   //客户端发送广播包在网络上寻找 DHCP 服务器
+#define DHCP_OFFER          2   //服务器发送吗，单播，含 IP、MAC地址以及地址租期
+#define DHCP_REQUEST        3   //客户端发送，广播包，功能：1、请求配置信息；2、确认信息是否仍然有效；3、延长租期
+#define DHCP_DECLINE        4   //客户端发送，告知服务器此地址已被使用
+#define DHCP_ACK            5   //服务器发送 DHCP ACK 单播包，确认主机的请求
+#define DHCP_NAK            6   //服务器发送，告知地址无效或租期已满
+#define DHCP_RELEASE        7   //客户端发送，告知服务器地址不再使用
+#define DHCP_INFORM         8   //客户端发送，请求配置参数，IP地址已经有了。
 
 /* DHCP option and value (cf. RFC1533) */
 enum

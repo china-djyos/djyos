@@ -105,9 +105,8 @@
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
                                 //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
-
 //%$#@configue      ****参数配置开始
-#if(CFG_MODULE_ENABLE_SHELL == false)
+#if ( CFG_MODULE_ENABLE_SHELL == false )
 #warning  " shell  组件参数未配置使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_SHELL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true

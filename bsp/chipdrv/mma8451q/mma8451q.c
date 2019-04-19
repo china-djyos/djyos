@@ -61,8 +61,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t MMA8541Q_ModuleInit(const char *BusName);
-//    MMA8541Q_ModuleInit(CFG_MMA_BUS_NAME);
+//    extern ptu32_t MMA8541Q_ModuleInit(void);
+//    MMA8541Q_ModuleInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -232,14 +232,14 @@ u16 MMA8541Q_Z_Read(void)
 // 返回：true,成功;false,失败
 // =============================================================================
 
-ptu32_t MMA8541Q_ModuleInit(const char *BusName)
+ptu32_t MMA8541Q_ModuleInit(void)
 {
     bool_t result = false;
     //GPIO初始化，SDA、SCL已经在IIC中初始化了，此处只需初始化WP即可
 //  __MMA_GpioInit();
 
     //添加MMA8451到IIC0总线
-    if(ps_MMA_Dev = IIC_DevAdd(BusName,"IIC_Dev_MMA8451Q",CFG_MMA_ADDRESS,0,8))
+    if(ps_MMA_Dev = IIC_DevAdd(CFG_MMA_BUS_NAME,"IIC_Dev_MMA8451Q",CFG_MMA_ADDRESS,0,8))
     {
         IIC_BusCtrl(ps_MMA_Dev,CN_IIC_SET_CLK,MMA_CLK_FRE,0);
         result = true;

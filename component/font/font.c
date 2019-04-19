@@ -111,7 +111,7 @@
 //@#$%component end configure
 
 static struct FontObj *s_ptCurFont;
-struct obj *pFontRoot;
+struct Object *pFontRoot;
 static bool_t g_bUserSetFont = false;
 
 //----获取字体资源-------------------------------------------------------------
@@ -202,7 +202,7 @@ struct FontObj* Font_GetCurFont(void)
 //-----------------------------------------------------------------------------
 struct FontObj* Font_SetCurFont(struct FontObj* font)
 {
-    struct obj *rsc;
+    struct Object *rsc;
     char *Name;
     if(font == NULL)
         return NULL;
@@ -228,7 +228,7 @@ struct FontObj* Font_SetCurFont(struct FontObj* font)
 //-----------------------------------------------------------------------------
 struct FontObj* Font_SearchFont(const char* name)
 {
-    struct obj *rsc;
+    struct Object *rsc;
 
     rsc = OBJ_SearchTree(CN_FONT_RSC_TREE);
     if(rsc == NULL)

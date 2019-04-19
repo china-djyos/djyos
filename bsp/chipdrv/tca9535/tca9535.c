@@ -14,8 +14,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t TCA9535_Init(char *BusName);
-//    TCA9535_Init(CFG_TCA9535_BUS_NAME);
+//    extern bool_t TCA9535_Init(void);
+//    TCA9535_Init();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -276,7 +276,7 @@ bool_t text(void)
  返回：true,成功;false,失败
  =============================================================================*/
 
-bool_t TCA9535_Init(char *BusName)
+bool_t TCA9535_Init(void)
 {
     ptSemID_TCA9535 = Lock_MutexCreate("TCA9535 Lock");
     if(!ptSemID_TCA9535)
@@ -285,7 +285,7 @@ bool_t TCA9535_Init(char *BusName)
         return (FALSE);
     }
 
-    pg_TCA9535_Dev = IIC_DevAdd(BusName, "TCA9535", CFG_TCA9535_ADDR, 0, 8);
+    pg_TCA9535_Dev = IIC_DevAdd(CFG_TCA9535_BUS_NAME, "TCA9535", CFG_TCA9535_ADDR, 0, 8);
     if(!pg_TCA9535_Dev)
     {
         Lock_MutexDelete(ptSemID_TCA9535);

@@ -60,8 +60,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//   extern bool_t AT24_ModuleInit(char *BusName);
-//    AT24_ModuleInit(CFG_AT24C512_BUS_NAME);
+//   extern bool_t AT24_ModuleInit(void);
+//    AT24_ModuleInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -302,7 +302,7 @@ u16 AT24_ReadWord(u32 wAddr)
 // 参数：无
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t AT24_ModuleInit(char *BusName)
+bool_t AT24_ModuleInit(void)
 {
     bool_t result = false;
     //GPIO初始化，SDA、SCL已经在IIC中初始化了，此处只需初始化WP即可
@@ -312,7 +312,7 @@ bool_t AT24_ModuleInit(char *BusName)
         return false;
 
     //添加AT24到IIC0总线
-    s_ptAT24_Dev = IIC_DevAdd(BusName,"AT24C512C",CFG_AT24_ADDRESS, 0, 16);
+    s_ptAT24_Dev = IIC_DevAdd(CFG_AT24C512_BUS_NAME,"AT24C512C",CFG_AT24_ADDRESS, 0, 16);
     if(s_ptAT24_Dev)
     {
         IIC_BusCtrl(s_ptAT24_Dev,CN_IIC_SET_CLK,CFG_AT24_CLK_FRE,0);

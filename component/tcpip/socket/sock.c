@@ -55,7 +55,7 @@
 #include "sockfile.h"
 #include "dbug.h"
 typedef struct Socket  tagItemCB; //each socket is a item
-static struct obj *s_ptSocketObject;
+static struct Object *s_ptSocketObject;
 static struct MemCellPool *s_ptSocketPool;  //socket控制块内存池头指针
 
 static struct Socket *__Fd2Sock(s32 fd)

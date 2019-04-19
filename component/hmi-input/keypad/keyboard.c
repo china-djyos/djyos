@@ -165,7 +165,7 @@ ptu32_t KeyBoard_Scan(void)
 {
     struct HMI_InputDeviceObj *KeyboardObj,*StdinObj;
     struct KeyBoardPrivate *keyboard_pr;
-    struct obj *ob;
+    struct Object *ob;
     struct KeyBoardMsg key_msg;
     u32 keyvalue;
     ob = obj_search_child(obj_root(),"stdin input device");

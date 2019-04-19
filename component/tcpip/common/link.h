@@ -71,7 +71,7 @@
 //the device driver use this function to pass the receive package to the tcpip stack
 typedef bool_t (*fnLinkIn)(struct NetDev *iface,struct NetPkg *pkg); //pkg is the link frame
 //the tcpip stack use this function to pass the package to the hard device
-typedef bool_t (*fnLinkOut)(struct NetDev *iface,struct NetPkg *pkglst,u32 framlen,u32 devtask,u16 proto,\
+typedef bool_t (*fnLinkOut)(struct NetDev *iface,struct NetPkg *pkglst,u32 devtask,u16 proto,\
                             enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);//pkg is the ip frame
 //this function is used do some command from the upper protocols;
 typedef bool_t (*fnLinkIo)(struct NetDev *dev,u32 cmd,u32 para);
@@ -83,7 +83,7 @@ struct LinkOps
 };
 bool_t LinkRegister(enum enLinkType type,const char *name,struct LinkOps *ops);
 bool_t LinkUnRegister(enum enLinkType type,const char *name);
-bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
+bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,\
         enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc);
 struct LinkOps  *LinkFindOps(enum enLinkType type);
 const char *LinkTypeName(enum enLinkType type);

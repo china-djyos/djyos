@@ -139,7 +139,7 @@ struct umedia *nand_umedia;
 static const char *NandFlashName = "nand";      //该flash在obj在的名字
 static u8 s_u8SizeofHammingCode; // ECC校验数据大小
 static u8 *s_pu8HammingCode; // ECC校验结果
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 
 static const Pin NAND_PINS[] = {
 {PIO_PC0A_D0,           PIOC, ID_PIOC, PIO_PERIPH_A, PIO_PULLUP },  // NAND D0 管脚
@@ -1732,7 +1732,7 @@ static s32 __nand_init(void)
 s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
     targetobj = obj_matchpath(fs, &notfind);

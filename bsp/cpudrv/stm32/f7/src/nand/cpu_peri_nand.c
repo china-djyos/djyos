@@ -152,7 +152,7 @@ static const char *NandFlashName = "nand";      //该flash在obj在的名字
 //新接口
 static u32 *badstable = NULL;
 static s32 badslocation = 0;
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bcount);
 static s32 __nand_init(void);
 
@@ -1745,7 +1745,7 @@ static s32 __nand_init(void)
 s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
     targetobj = obj_matchpath(fs, &notfind);

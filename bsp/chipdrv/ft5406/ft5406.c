@@ -64,10 +64,10 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,char *touch_dev_name);
+//  extern bool_t ModuleInstall_FT5406(struct GkWinObj *desktop);
 //  struct GkWinObj *ptouchdesktop;
 //  ptouchdesktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-//  if(false == ModuleInstall_FT5406(CFG_FT5406_BUS_NAME,ptouchdesktop,CFG_FT5406_TOUCH_NAME))
+//  if(false == ModuleInstall_FT5406(ptouchdesktop))
 //  {
 //      printf("FT5406 Install Failed!\r\n");
 //      while(1);
@@ -351,13 +351,13 @@ bool_t Touch_Adjust(struct GkWinObj *desktop,struct ST_TouchAdjust* touch_adjust
 // 参数：无
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,char *touch_dev_name )
+bool_t ModuleInstall_FT5406(struct GkWinObj *desktop)
 {
     bool_t result = false;
     static struct IIC_Device* s_FT5406_Dev;
 
     //添加FT5406到IIC总线
-    s_FT5406_Dev = IIC_DevAdd(BusName,"IIC_Dev_FT5406",CFG_FT5406_RT_I2C_ADDRESS,0,8);
+    s_FT5406_Dev = IIC_DevAdd(CFG_FT5406_BUS_NAME,"IIC_Dev_FT5406",CFG_FT5406_RT_I2C_ADDRESS,0,8);
     if(NULL != s_FT5406_Dev)
     {
         ps_FT5406_Dev = s_FT5406_Dev;
@@ -371,7 +371,7 @@ bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,char *touch_d
 
         FT5406.read_touch = FT5406_Scan;//读触摸点的坐标函数
         FT5406.touch_loc.display = NULL;     //NULL表示用默认桌面
-        result=Touch_InstallDevice(touch_dev_name,&FT5406);//添加驱动到Touch
+        result=Touch_InstallDevice(CFG_FT5406_TOUCH_NAME,&FT5406);//添加驱动到Touch
         if(!result)
             return false;
 

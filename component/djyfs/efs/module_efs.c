@@ -65,7 +65,7 @@ extern s32 e_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 // ============================================================================
 s32 ModuleInstall_EFS(const char *target, u32 opt, void *config)
 {
-    struct obj * mountobj;
+    struct Object * mountobj;
     static struct filesystem *typeEFS = NULL;
     s32 res;
 

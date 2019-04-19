@@ -171,7 +171,7 @@ struct IbootAppInfo
     u8   ibootVer;         //iboot 版本
     u64  ibootstartaddr;   //iboot启动地址
     u8   ibootisdebug;
-    char boardname[23];    //板件名
+    char boardname[23];    //组件名
     u8   rsvbuf[12];  //保留
 }Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 

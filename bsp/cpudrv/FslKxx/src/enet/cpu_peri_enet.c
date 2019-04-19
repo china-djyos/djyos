@@ -766,7 +766,7 @@ u32 Enet_ErrISR(ufast_t IntLine)
 // 输出参数：
 // 返回值  ：true发送成功  false发送失败。
 // =============================================================================
-static bool_t Enet_SendPacket(ptu32_t hanlde,struct NetPkg * pkglst,u32 framlen, u32 netdevtask)
+static bool_t Enet_SendPacket(ptu32_t hanlde,struct NetPkg * pkglst, u32 netdevtask)
 {
     bool_t  result = false;
     struct NetPkg *tmppkg;

@@ -104,7 +104,7 @@
 
 bool_t cbstat(char *param);
 
-static struct obj *s_ptCANBusType;
+static struct Object *s_ptCANBusType;
 static struct MsgQueue * gs_ptCanSndMsgQ;
 static uint8_t CAN_BusSndStack[0x1000];
 #define CN_CAN_BUS_MSGQ_LEN        18
@@ -118,10 +118,10 @@ void __CAN_BusPrintfStat(struct CANBusCB * CANBus);
 // 参数：para,无实际意义。
 // 返回：返回建立的资源结点指针，失败时返回NULL。
 // =============================================================================
-struct obj * ModuleInstall_CANBus()
+struct Object * ModuleInstall_CANBus()
 {
     uint16_t evtt_id;
-    struct obj *CANBusType = NULL;
+    struct Object *CANBusType = NULL;
     CANBusType = DjyBus_BusTypeAdd("CANBusType");
     if(CANBusType==NULL)
     {
@@ -631,7 +631,7 @@ void CAN_BusGetStat(struct CANBusCB * CANBus,CanStatDef *CanStat)
 
 bool_t cbstat(char *param)
 {
-    struct obj *Object=NULL;
+    struct Object *Object=NULL;
     struct CANBusCB * CANBus;
     Object=obj_foreach_child(s_ptCANBusType,s_ptCANBusType);
     if(Object==NULL)

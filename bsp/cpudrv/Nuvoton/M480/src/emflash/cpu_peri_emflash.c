@@ -59,8 +59,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
-//ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
+//s32 ModuleInstall_EmbededFlash(s32 bstart, s32 bend, u32 doformat);
+//ModuleInstall_EmbededFlash(CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -121,7 +121,7 @@ extern u32 gc_ptIbootSize;
 static const char *EmflashName = "emflash";      //该flash在obj在的名字
 static struct umedia *emflash_um;
 extern struct __xip_drv XIP_EMFLASH_DRV;
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend);
 s32 __embed_read(s64 unit, void *data, struct uopt opt);
 s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
@@ -342,7 +342,7 @@ DONE:
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
+s32 ModuleInstall_EmbededFlash(s32 bstart, s32 bend, u32 doformat)
 {
     static u8 emflashinit = 0;
     u32 units;
@@ -386,9 +386,9 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 do
         emflashinit = 1;
     }
 
-    if(TargetFs != NULL)
+    if(CFG_EFLASH_FSMOUNT_NAME != NULL)
     {
-        if(__embed_FsInstallInit(TargetFs, bstart, bend))
+        if(__embed_FsInstallInit(CFG_EFLASH_FSMOUNT_NAME, bstart, bend))
         {
             return -1;
         }
@@ -649,7 +649,7 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
     u32 units, total = 0;
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,endblock = bend;
     targetobj = obj_matchpath(fs, &notfind);

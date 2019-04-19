@@ -108,7 +108,7 @@
 
 s32 MMC_HardInit(void);
 extern uint32_t SDMMC_CmdSendStatus(SDMMC_TypeDef *SDMMCx, uint32_t Argument);
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 extern const Pin MMC[6]; // 在board.c之中定义
 
 MMC_HandleTypeDef handleMMC;
@@ -401,7 +401,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
 {
     char *defaultName = "emmc"; // 设备缺省名;
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
 
     SDMMC_BUS_CLK_DIV = speed;

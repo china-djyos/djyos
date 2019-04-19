@@ -111,7 +111,7 @@
 // ============================================================================
 
 bootspi_t iap_bootspi;
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 static const char *SpiFlashName = "SpiFlash";      //该flash在obj在的名字
 struct umedia *sipflash_umedia;
 extern struct __xip_drv XIP_EMFLASH_DRV;
@@ -632,7 +632,7 @@ static s32 Flash_Init(struct EmbdFlashDescr *Description)
 s32 __SpiFlash_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
 

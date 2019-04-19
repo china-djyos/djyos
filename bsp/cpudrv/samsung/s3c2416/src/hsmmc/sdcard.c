@@ -54,7 +54,7 @@
 //@#$%component end configure
 
 
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
@@ -167,7 +167,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
     s32 Ret;
     const char *ChipName = "sdcard";    // 设备名;
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
 
     if(NULL == ChipName)

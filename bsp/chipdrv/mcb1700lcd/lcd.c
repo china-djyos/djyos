@@ -63,8 +63,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t LCD_ModuleInit(ptu32_t para);
-//    LCD_ModuleInit(CFG_LCD_HEAP_NAME);
+//    extern ptu32_t LCD_ModuleInit(void);
+//    LCD_ModuleInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -89,7 +89,9 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_LCD_HEAP_NAME   //****检查参数是否已经配置好
 #warning    mcb1700lcd组件参数未配置，使用默认值
-//%$#@num,0,100,
+//%$#@num,0,65536,
+#define CFG_LCD_XSIZE   240             //"LCD宽度",
+#define CFG_LCD_YSIZE   128             //"LCD高度",
 //%$#@enum,true,false,
 //%$#@string,1,30,
 #define CFG_LCD_HEAP_NAME              "sys"        //"堆名称",配置LCD分配内存时使用的堆
@@ -663,12 +665,12 @@ bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 r2_code)
     pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,color);
     if(CN_R2_COPYPEN == r2_code)
     {
-        __mcbqvga_set_pixel(CN_LCD_XSIZE-x,CN_LCD_YSIZE-y,pixel);   //转换坐标
+        __mcbqvga_set_pixel(CFG_LCD_XSIZE-x,CFG_LCD_YSIZE-y,pixel);   //转换坐标
     }else
     {
-        dest = __mcbqvga_get_pixel(CN_LCD_XSIZE-1-x,CN_LCD_YSIZE-1-y);  //转换坐标
+        dest = __mcbqvga_get_pixel(CFG_LCD_XSIZE-1-x,CFG_LCD_YSIZE-1-y);  //转换坐标
         pixel = GK_BlendRop2(dest, pixel, r2_code);
-        __mcbqvga_set_pixel(CN_LCD_XSIZE-1-x,CN_LCD_YSIZE-1-y,pixel);   //转换坐标
+        __mcbqvga_set_pixel(CFG_LCD_XSIZE-1-x,CFG_LCD_YSIZE-1-y,pixel);   //转换坐标
     }
     return true;
 }
@@ -703,8 +705,8 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
     width = Focus->right-Focus->left;
     height = Focus->bottom-Focus->top;
     //转换坐标
-    __mcbqvga_set_window(CN_LCD_XSIZE-Focus->right,
-                         CN_LCD_YSIZE-Focus->bottom,width,height);
+    __mcbqvga_set_window(CFG_LCD_XSIZE-Focus->right,
+                         CFG_LCD_YSIZE-Focus->bottom,width,height);
     __mcbqvga_write_cmd(0x0022);
     for(y = 0; y < height; y++)
     {
@@ -733,8 +735,8 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
                         + (ysrc+height-1)*src_bitmap->linebytes);
     lineoffset +=xsrc;
     //转换坐标
-    __mcbqvga_set_window(CN_LCD_XSIZE-dst_rect->right,
-                         CN_LCD_YSIZE-dst_rect->bottom,width,height);
+    __mcbqvga_set_window(CFG_LCD_XSIZE-dst_rect->right,
+                         CFG_LCD_YSIZE-dst_rect->bottom,width,height);
     __mcbqvga_write_cmd(0x0022);
     for(y = 0; y < height; y++)
     {
@@ -752,7 +754,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
-                    __mcbqvga_get_pixel(CN_LCD_XSIZE-1-x,CN_LCD_YSIZE-1-y),0);
+                    __mcbqvga_get_pixel(CFG_LCD_XSIZE-1-x,CFG_LCD_YSIZE-1-y),0);
 }
 
 #endif
@@ -778,7 +780,7 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 //参数: 无
 //返回: 显示器资源指针
 //-----------------------------------------------------------------------------
-ptu32_t LCD_ModuleInit(ptu32_t para)
+ptu32_t LCD_ModuleInit(void)
 {
     LCD_HardInit();
     __lcd_mcbqvga_init( );
@@ -786,8 +788,8 @@ ptu32_t LCD_ModuleInit(ptu32_t para)
 
     tg_lcd_display.xmm = 0;
     tg_lcd_display.ymm = 0;
-    tg_lcd_display.width = CN_LCD_XSIZE;
-    tg_lcd_display.height = CN_LCD_YSIZE;
+    tg_lcd_display.width = CFG_LCD_XSIZE;
+    tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;
     tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
@@ -809,6 +811,6 @@ ptu32_t LCD_ModuleInit(ptu32_t para)
     tg_lcd_display.DisplayHeap = (struct HeapCB *)M_FindHeap("sys");
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
-    GK_InstallDisplay(&tg_lcd_display,(char*)para);
+    GK_InstallDisplay(&tg_lcd_display,(char*)CFG_LCD_HEAP_NAME);
     return (ptu32_t)&tg_lcd_display;
 }

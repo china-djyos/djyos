@@ -18,8 +18,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_Max31865(char *BusName,u8 SampleMode);
-//    ModuleInstall_Max31865(CFG_MAX31865_BUS_NAME,CFG_MAX31865_SAM_MODE);
+//    extern bool_t ModuleInstall_Max31865(void);
+//    ModuleInstall_Max31865();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -289,7 +289,7 @@ float Max31865_TemperatureGet(void)
 //     Mode，连续模式或单次采样模式,
 //返回：true = 成功初始化，false = 初始化失败
 // =============================================================================
-bool_t ModuleInstall_Max31865(char *BusName,u8 SampleMode)
+bool_t ModuleInstall_Max31865(void)
 {
 //  PIO_Configure(Max3_pin,PIO_LISTSIZE(Max3_pin));
 //  PIO_Set(&Max3_pin[0]);
@@ -297,10 +297,10 @@ bool_t ModuleInstall_Max31865(char *BusName,u8 SampleMode)
     if(NULL == Lock_SempCreate_s(&s_tMax3_Semp,1,1,CN_BLOCK_FIFO,"MAX31865_semp"))
         return false;
 
-    if(s_ptMax3_Dev = SPI_DevAdd(BusName,"MAX31865",0,8,SPI_MODE_1,SPI_SHIFT_MSB,CFG_MAX3_SPI_SPEED,false))
+    if(s_ptMax3_Dev = SPI_DevAdd(CFG_MAX31865_BUS_NAME,"MAX31865",0,8,SPI_MODE_1,SPI_SHIFT_MSB,CFG_MAX3_SPI_SPEED,false))
     {
         SPI_BusCtrl(s_ptMax3_Dev,CN_SPI_SET_POLL,0,0);
-        if(SampleMode == MAX31865_CONTINOUS_MODE)
+        if(CFG_MAX31865_SAM_MODE == MAX31865_CONTINOUS_MODE)
         {
             MaxSampleMode = MAX31865_CONTINOUS_MODE;
             if(Max31865_ContinousModeCfg())

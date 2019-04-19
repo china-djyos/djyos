@@ -363,11 +363,11 @@ void xip_app_freecontext(struct __icontext *pContext)
 // 返回：成功（xip文件上下文）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
+static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncached)
 {
     s32 size;
     struct objhandle *hdl;
-    struct obj *tmp;
+    struct Object *tmp;
     struct __ifile *file = NULL;
     struct __icontext *cx = NULL;
     struct __icore *core = (struct __icore*)corefs(ob);
@@ -936,7 +936,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 // 返回：成功（0）；失败（-1）；
 // 备注：未考虑互斥；当pName为NULL时，表示文件正在被使用；
 // ============================================================================
-static s32 xip_app_remove(struct obj *ob)
+static s32 xip_app_remove(struct Object *ob)
 {
     struct __ifile *file;
     struct __icore *core;
@@ -952,7 +952,7 @@ static s32 xip_app_remove(struct obj *ob)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 xip_app_stat(struct obj *ob, struct stat *data)
+static s32 xip_app_stat(struct Object *ob, struct stat *data)
 {
     struct __ifile *file;
 
@@ -980,7 +980,7 @@ static s32 xip_app_stat(struct obj *ob, struct stat *data)
 // ============================================================================
 static s32 xip_app_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
-    struct obj *ob = handle_GetHostObj(hdl);
+    struct Object *ob = handle_GetHostObj(hdl);
 
     ob = obj_child(ob);
     if((ob)&&(dentry->d_ino!=(long)ob))
@@ -1083,7 +1083,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = xip_app_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = xip_app_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -1138,7 +1138,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(xip_app_remove((struct obj*)opsTarget) == 0)
+            if(xip_app_remove((struct Object*)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -1150,7 +1150,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
                 return (-1); // 查询的文件不存在；
-            if(xip_app_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+            if(xip_app_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -1186,7 +1186,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 // ============================================================================
 s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
 {
-    struct obj * mountobj;
+    struct Object * mountobj;
     static struct filesystem *typeXIPAPP = NULL;
     s32 res;
 

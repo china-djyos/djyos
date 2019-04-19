@@ -95,7 +95,7 @@ struct __icore{
     u32 inhead; // 文件的一个区域内容是头部+部分内容，大小为bufsz；inhead这部分为部分内容的大小；
     s64 MStart;             // 在媒体中的起始unit,unit为单位；
     s64 ASize;               // 所在区域的总大小；Byte为单位；
-    struct obj *root; // IAP文件系统接入的文件系统的根；
+    struct Object *root; // IAP文件系统接入的文件系统的根；
     struct MutexLCB *lock; // 系统锁；
     struct __xip_drv *drv;
 };

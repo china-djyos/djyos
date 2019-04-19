@@ -373,7 +373,7 @@ bool_t __UART_SendDirectly(struct UART_REG *Reg,u8 *send_buf,u32 len,u32 timeout
 u32 __UART_SendStart(struct UART_REG *Reg,u32 timeout)
 {
     u8 trans,num,ch[UART_TX_FIFO_SIZE],sending_num,port;
-    struct obj *UCB;
+    struct Object *UCB;
 
     do{
         if(Reg == UART0_REG_BASE)
@@ -687,7 +687,7 @@ u32 UART2_Int(ptu32_t uart_int_line)
 //-----------------------------------------------------------------------------
 ptu32_t ModuleInstall_UART(ptu32_t serial_no)
 {
-    struct obj *UCB;
+    struct Object *UCB;
     struct UartParam UART_Param;
 
     switch(serial_no)
@@ -750,7 +750,7 @@ ptu32_t ModuleInstall_UART(ptu32_t serial_no)
 s32 Uart_PutStrDirect(const char *str,u32 len)
 {
     u32 result = 0,port,timeout = 100*mS;
-    struct obj *UCB = NULL;
+    struct Object *UCB = NULL;
     struct UART_REG *Reg;
     u32 BaseAddr;
 

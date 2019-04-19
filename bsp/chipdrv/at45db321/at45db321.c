@@ -72,8 +72,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
-//    ModuleInstall_at45db321(CFG_AT45_BUSNAME, CFG_AT45_FSMOUNT_NAME, CFG_AT45_PART_START, CFG_AT45_PART_END, CFG_AT45_PART_FORMAT);
+//    extern bool_t ModuleInstall_at45db321(void);
+//    ModuleInstall_at45db321();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -1011,7 +1011,7 @@ bool_t AT45_FLASH_Ready(void)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat)
+bool_t ModuleInstall_at45db321(void)
 {
     static u8 at45init = 0;
 
@@ -1024,7 +1024,7 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart,
             return false;
         }
 
-        s_ptAT45_Dev = SPI_DevAdd(pBusName,At45Name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
+        s_ptAT45_Dev = SPI_DevAdd(CFG_AT45_BUSNAME,At45Name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
         if(s_ptAT45_Dev != NULL)
         {
             SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
@@ -1044,7 +1044,7 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart,
             printf("\r\n: info  : device : AT45DB321 page size 改变，请重新上电\n\r");
         }
         sAT45Inited = true;
-        if(bstart == bend)
+        if(CFG_AT45_PART_START == CFG_AT45_PART_END)
         {
             return (0); // 不做处理
         }
@@ -1071,12 +1071,12 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart,
             nordescription->ReservedBlks = 0;
         }
 
-        if(doformat)
+        if(CFG_AT45_PART_FORMAT)
         {
             struct uesz sz;
             sz.unit = 0;
             sz.block = 1;
-            __at45_req(format, bstart , bend, &sz);
+            __at45_req(format, CFG_AT45_PART_START , CFG_AT45_PART_END, &sz);
         }
 
         at45_umedia = malloc(sizeof(struct umedia)+nordescription->BytesPerPage);
@@ -1096,9 +1096,9 @@ bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart,
         at45init = 1;
     }
 
-    if(TargetFs != NULL)
+    if(CFG_AT45_FSMOUNT_NAME != NULL)
     {
-        if(__AT45_FsInstallInit(TargetFs, bstart, bend))
+        if(__AT45_FsInstallInit(CFG_AT45_FSMOUNT_NAME, CFG_AT45_PART_START, CFG_AT45_PART_END))
         {
             return -1;
         }

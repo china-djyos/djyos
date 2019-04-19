@@ -110,18 +110,18 @@ typedef s32 (*fntDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
 
 
 s32 handle_IsBlockComplete(u32 flags);
-const char *dev_Name(struct obj *devo);
-ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
-//struct obj *dev_group_addo(char *name);
+const char *dev_Name(struct Object *devo);
+ptu32_t dev_GetDrvTagFromObj(struct Object *devo);
+//struct Object *dev_group_addo(char *name);
 s32 dev_group_add(char *name);
-//s32 dev_group_delo(struct obj *grp);
+//s32 dev_group_delo(struct Object *grp);
 //s32 dev_group_del(char *name);
-struct obj *dev_Create(const char *name, fntDevOpen dopen, fntDevClose dclose,
+struct Object *dev_Create(const char *name, fntDevOpen dopen, fntDevClose dclose,
                         fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl,
                         ptu32_t dtag);
 s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
             fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag);
-s32 dev_DeleteAtObject(struct obj *dev);
+s32 dev_DeleteAtObject(struct Object *dev);
 s32 dev_DeleteAtName(const char *name);
 void dev_SetDrvTag(s32 fd,ptu32_t DrvTag);
 ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag);
@@ -132,7 +132,7 @@ s32 DevOpen(const char *name, s32 flags,u32 timeout);
 s32 DevClose(s32 fd);
 s32 DevRead(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
 s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
-s32 DevCntl(s32 fd, u32 cmd, ptu32_t data1, ptu32_t data2);
+s32 DevCtrl(s32 fd, u32 cmd, ptu32_t data1, ptu32_t data2);
 #ifdef __cplusplus
 }
 #endif

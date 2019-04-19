@@ -111,7 +111,7 @@ ptu32_t Touch_Scan(void)
 {
     struct HMI_InputDeviceObj *TouchObj,*StdinObj;
     struct SingleTouchPrivate *touch_pr;
-    struct obj *ob;
+    struct Object *ob;
     struct SingleTouchMsg touch_temp = {0,0,0,0,0};
 
     ob = obj_search_child(obj_root(),"stdin input device");

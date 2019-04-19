@@ -103,7 +103,7 @@
 //IIC总线器件结构体
 struct IIC_Device
 {
-    struct obj         *HostObj;                 //宿主对象
+    struct Object         *HostObj;                 //宿主对象
 
     u8 DevAddr;                 //七位的器件地址,最低的0~2bit可能是器件内部地址。
     u8 BitOfMemAddrInDevAddr;   //器件地址中内部地址所占比特位数
@@ -120,7 +120,7 @@ struct IICBuf
 //IIC总线控制块结构体,本模块可见
 struct IIC_CB
 {
-    struct obj           *HostObj;               //宿主对象
+    struct Object           *HostObj;               //宿主对象
     struct IICBuf           IIC_Buf;                //缓冲区,用于异步发送
     struct SemaphoreLCB     *IIC_BusSemp;           //IIC总线保护信号量
     struct SemaphoreLCB     *IIC_BufSemp;           //简易缓冲区保护信号量
@@ -136,7 +136,7 @@ struct IIC_CB
     IICBusCtrlFunc          pBusCtrl;
 };
 
-static struct obj *s_ptIICBusType;
+static struct Object *s_ptIICBusType;
 
 //ICB的成员FLAG的位标记
 #define CN_IIC_FLAG_R    (1<<0)         //读写标志位
@@ -170,7 +170,7 @@ bool_t ModuleInstall_IICBus(void)
 // =============================================================================
 struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
 {
-    struct obj *IICDev;
+    struct Object *IICDev;
     struct IIC_CB *NewIIC;
     if(NULL == NewIICParam)
         goto exit_from_param;
@@ -261,7 +261,7 @@ bool_t IIC_BusDelete(struct IIC_CB *DelIIC)
 // =============================================================================
 struct IIC_CB *IIC_BusFind(const char *BusName)
 {
-    struct obj *IIC_Obj;
+    struct Object *IIC_Obj;
     IIC_Obj = obj_search_child(s_ptIICBusType,BusName);
     if(IIC_Obj)
         return (struct IIC_CB *)obj_GetPrivate(IIC_Obj);
@@ -344,7 +344,7 @@ bool_t IIC_DevDelete(struct IIC_Device *DelDev)
 // =============================================================================
 struct IIC_Device *IIC_DevFind(const char *BusName ,const char *DevName)
 {
-    struct obj *IIC_DevObj;
+    struct Object *IIC_DevObj;
     struct IIC_CB *IIC_Bus;
 
     IIC_Bus = IIC_BusFind(BusName);

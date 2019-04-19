@@ -148,7 +148,7 @@ const char *NandName = "nand";      //该flash在obj在的名字
 //新接口
 static u32 *badstable;
 static u32 badslocation = 0;
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bcount, u32 doformat);
 static s32 __nand_init(void);
 s32 __nand_req(enum ucmd cmd, ptu32_t args, ...);
@@ -1750,7 +1750,7 @@ static s32 __nand_init(void)
 s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res;
     u32 BlockNum;

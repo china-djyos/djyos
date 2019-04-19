@@ -907,15 +907,16 @@ bool_t macsnddis(char *param)
 
 
 
-static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
     struct NetPkg         *tmppkg;
     volatile tagSndBD *pSndBD;
     tagQueue          *q;
-    u8                *dst,*src;
     u16                len;
+    u16 framelen;
+    u8                *dst,*src;
     u8                 bdnums,bdcnt;
     result = false;
     pDrive = &gMacDriver;
@@ -978,7 +979,7 @@ static bool_t GmacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netde
         //3.copy datas to static frame buffer
         tmppkg = pkg;
         dst      = &gTxBuffer[0];
-        PkgFrameDataCopy(tmppkg,dst);
+        framelen = PkgFrameDataCopy(tmppkg,dst);
 //      do
 //      {
 //          src = (tmppkg->buf + tmppkg->offset);
@@ -1108,7 +1109,8 @@ static ptu32_t __GmacRcvTask(void)
             }
             if(NULL != pkg)
             {
-//                NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                                                      PkgGetDataLen(pkg)));
                 if(NULL != pDrive->fnrcvhook)
                 {
                     rawbuf = PkgGetCurrentBuffer(pkg);
@@ -1126,7 +1128,7 @@ static ptu32_t __GmacRcvTask(void)
             else
             {
                 //here we still use the counter to do the time state check
-//              NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -1136,7 +1138,7 @@ static ptu32_t __GmacRcvTask(void)
 
 
 //create the receive task
-static bool_t __CreateRcvTask(ptu32_t handle)
+static bool_t __CreateRcvTask(struct NetDev * handle)
 {
     bool_t result = false;
     u16 evttID;

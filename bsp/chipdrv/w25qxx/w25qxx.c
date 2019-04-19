@@ -60,8 +60,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk);
-//    ModuleInstall_NOR(CFG_W25QXX_BUS_NAME,CFG_W25QXX_FLAG,CFG_W25QXX_START_BLK);
+//    extern s32 ModuleInstall_NOR(void);
+//    ModuleInstall_NOR();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -508,22 +508,20 @@ s32 Nor_Init(struct FlashChip *Nor)
 }
 //-----------------------------------------------------------------------------
 //功能: Nor模块安装
-//参数: DevName -- 设备名;
-//      Flags -- 保留;
-//      StartBlk -- 起始块;
+//参数:
 //返回: 0 -- 成功; -1 -- 参数失败; -2 -- 内存不足;
 //备注:
 //-----------------------------------------------------------------------------
 
-s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk)
+s32 ModuleInstall_NOR(void)
 {
     u32 Len;
     struct FlashChip *Chip;
 
-    if(NULL == DevName)
+    if(NULL == CFG_W25QXX_BUS_NAME)
         return (-1);
 
-    Len = strlen(DevName) + 1;
+    Len = strlen(CFG_W25QXX_BUS_NAME) + 1;
 
     Chip = (struct FlashChip*)malloc(sizeof(*Chip) + Len);
     if(NULL == Chip)
@@ -533,9 +531,9 @@ s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk)
     }
     memset(Chip, 0x0, sizeof(*Chip));
     s_pChip = Chip;
-    strcpy(Chip->Name, DevName); // 设备别名
+    strcpy(Chip->Name, CFG_W25QXX_BUS_NAME); // 设备别名
     Chip->Type = F_NOR;
-    Chip->Descr.Nor.ReservedBlks = StartBlk; //
+    Chip->Descr.Nor.ReservedBlks = CFG_W25QXX_START_BLK; //
 
     if(Nor_Init(Chip))
     {

@@ -69,8 +69,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t ModuleInstall_ili9325(const char *DisplayName,const char* HeapName);
-//    ModuleInstall_ili9325(CFG_ILI9325_DISPLAY_NAME,CFG_ILI9325_HEAP_NAME);
+//    extern ptu32_t ModuleInstall_ili9325(void);
+//    ModuleInstall_ili9325();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -95,7 +95,9 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_ILI9325_DISPLAY_NAME        //****检查参数是否已经配置好
 #warning    ili9325组件参数未配置，使用默认值
-//%$#@num,0,100,
+//%$#@num,0,65536,
+#define CFG_LCD_XSIZE   240             //"LCD宽度",
+#define CFG_LCD_YSIZE   128             //"LCD高度",
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_ILI9325_DISPLAY_NAME              "lcdili9325"    //"显示器名称",配置液晶显示的名称
@@ -108,8 +110,8 @@
 
 #define cn_coordinates      1      //0=正常坐标，1=翻转坐标，即原点=(239,319)
 
-#define cn_lcd_line_size        (CN_LCD_XSIZE<<1)
-#define cn_frame_buffer_size    (cn_lcd_line_size * CN_LCD_YSIZE)
+#define cn_lcd_line_size        (CFG_LCD_XSIZE<<1)
+#define cn_frame_buffer_size    (cn_lcd_line_size * CFG_LCD_YSIZE)
 #define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
 
 #define __ili9325_write_cmd(cmd)   (LCD_CMD=cmd)
@@ -565,12 +567,12 @@ bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 r2_code)
     pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,color);
     if(CN_R2_COPYPEN == r2_code)
     {
-        __ili9325_set_pixel(CN_LCD_XSIZE-x,CN_LCD_YSIZE-y,pixel);   //转换坐标
+        __ili9325_set_pixel(CFG_LCD_XSIZE-x,CFG_LCD_YSIZE-y,pixel);   //转换坐标
     }else
     {
-        dest = __ili9325_get_pixel(CN_LCD_XSIZE-1-x,CN_LCD_YSIZE-1-y);  //转换坐标
+        dest = __ili9325_get_pixel(CFG_LCD_XSIZE-1-x,CFG_LCD_YSIZE-1-y);  //转换坐标
         pixel = GK_BlendRop2(dest, pixel, r2_code);
-        __ili9325_set_pixel(CN_LCD_XSIZE-1-x,CN_LCD_YSIZE-1-y,pixel);   //转换坐标
+        __ili9325_set_pixel(CFG_LCD_XSIZE-1-x,CFG_LCD_YSIZE-1-y,pixel);   //转换坐标
     }
     return true;
 }
@@ -606,8 +608,8 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
     width = Focus->right-Focus->left;
     height = Focus->bottom-Focus->top;
     //转换坐标
-    __ili9325_set_window(CN_LCD_XSIZE-Focus->right,
-                         CN_LCD_YSIZE-Focus->bottom,width,height);
+    __ili9325_set_window(CFG_LCD_XSIZE-Focus->right,
+                         CFG_LCD_YSIZE-Focus->bottom,width,height);
     __ili9325_write_cmd(0x0022);
 
     n = (width+7)/8;
@@ -652,8 +654,8 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
                         + (ysrc+height-1)*src_bitmap->linebytes);
     lineoffset +=xsrc;
     //转换坐标
-    __ili9325_set_window(CN_LCD_XSIZE-dst_rect->right,
-                         CN_LCD_YSIZE-dst_rect->bottom,width,height);
+    __ili9325_set_window(CFG_LCD_XSIZE-dst_rect->right,
+                         CFG_LCD_YSIZE-dst_rect->bottom,width,height);
     __ili9325_write_cmd(0x0022);
     n = (width+7)/8;
     for(y = 0; y < height; y++)
@@ -686,7 +688,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
-                    __ili9325_get_pixel(CN_LCD_XSIZE-1-x,CN_LCD_YSIZE-1-y),0);
+                    __ili9325_get_pixel(CFG_LCD_XSIZE-1-x,CFG_LCD_YSIZE-1-y),0);
 }
 
 #endif
@@ -712,14 +714,14 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 //参数: 无
 //返回: 显示器资源指针
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_ili9325(const char *DisplayName,const char* HeapName)
+ptu32_t ModuleInstall_ili9325(void)
 {
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
     __lcd_ili9325_init( );
     FrameBitmap.bm_bits = u8g_frame_buffer;
-    FrameBitmap.width = CN_LCD_XSIZE;
-    FrameBitmap.height = CN_LCD_YSIZE;
+    FrameBitmap.width = CFG_LCD_XSIZE;
+    FrameBitmap.height = CFG_LCD_YSIZE;
     FrameBitmap.PixelFormat = CN_LCD_PIXEL_FORMAT;
     FrameBitmap.linebytes = cn_lcd_line_size;
     FrameBitmap.ExColor = 0;
@@ -728,8 +730,8 @@ ptu32_t ModuleInstall_ili9325(const char *DisplayName,const char* HeapName)
 
     tg_lcd_display.xmm = 0;
     tg_lcd_display.ymm = 0;
-    tg_lcd_display.width = CN_LCD_XSIZE;
-    tg_lcd_display.height = CN_LCD_YSIZE;
+    tg_lcd_display.width = CFG_LCD_XSIZE;
+    tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;
     tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
@@ -750,9 +752,9 @@ ptu32_t ModuleInstall_ili9325(const char *DisplayName,const char* HeapName)
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
 
-    tg_lcd_display.DisplayHeap = M_FindHeap(HeapName);
+    tg_lcd_display.DisplayHeap = M_FindHeap(CFG_ILI9325_HEAP_NAME);
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
-    GK_InstallDisplay(&tg_lcd_display,DisplayName);
+    GK_InstallDisplay(&tg_lcd_display,CFG_ILI9325_DISPLAY_NAME);
     return (ptu32_t)&tg_lcd_display;
 }

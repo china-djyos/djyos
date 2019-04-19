@@ -147,7 +147,7 @@ struct umedia *nand_umedia;
 static const char *flashName = "norFlash";      //该flash在obj在的名字
 
 //新接口
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 //s32 __Flash_FsInstallInit(const char *fs, u32 bstart, u32 bcount);
 static s32 __Flash_init(void);
 
@@ -490,7 +490,7 @@ s32 __Flash_FsInstallInit(const char *fs, u32 bstart, u32 bend)
 {
     u32 units, total = 0,endblock = bend;
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res;
     targetobj = obj_matchpath(fs, &notfind);

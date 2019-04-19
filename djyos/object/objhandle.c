@@ -363,7 +363,7 @@ s32 handle_Delete(struct objhandle *hdl)
 // 返回：无；
 // 备注：
 // ============================================================================
-void handle_init(struct objhandle *hdl, struct obj *ob, u32 flags, ptu32_t context)
+void handle_init(struct objhandle *hdl, struct Object *ob, u32 flags, ptu32_t context)
 {
     memset(hdl, 0, sizeof(struct objhandle));
     hdl->timeout = CN_TIMEOUT_FOREVER;
@@ -500,7 +500,7 @@ void handle_SetMode(struct objhandle *hdl, u32 mode)
 // 返回：成功（关联对象）；失败（NULL）；
 // 备注：INLINK
 // ============================================================================
-struct obj *handle_GetHostObj(struct objhandle *hdl)
+struct Object *handle_GetHostObj(struct objhandle *hdl)
 {
     if(hdl)
         return (hdl->HostObj);
@@ -524,7 +524,7 @@ struct obj *handle_GetHostObj(struct objhandle *hdl)
 // 返回：下一个文件指针，遍历完成则返回NULL
 // 备注：当前是SOCKET专用（未见使用）
 // ============================================================================
-struct objhandle *traverseall(struct objhandle *hdl, struct obj *ob)
+struct objhandle *traverseall(struct objhandle *hdl, struct Object *ob)
 {
     struct objhandle *res;
     struct dListNode *list;
@@ -650,7 +650,7 @@ void handle_ClrMultiplexEvent(struct objhandle *hdl, u32 events)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_SetMultiplexEvent(struct obj *ob, u32 events)
+s32 obj_SetMultiplexEvent(struct Object *ob, u32 events)
 {
     struct objhandle *hdl;
     u32 MultiplexEvents;
@@ -681,7 +681,7 @@ s32 obj_SetMultiplexEvent(struct obj *ob, u32 events)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_ClrMultiplexEvent(struct obj *ob, u32 events)
+s32 obj_ClrMultiplexEvent(struct Object *ob, u32 events)
 {
     struct objhandle *hdl;
     u32 MultiplexEvents;
@@ -737,7 +737,7 @@ s32 issocketactive(s32 Fd, s32 mode)
 struct objhandle *__open(char *path, u32 flags, u32 mode)
 {
     struct objhandle *hdl = 0;
-    struct obj *ob;
+    struct Object *ob;
     char *uncached;
     s32 run;
     u64 OpenMode;
@@ -762,7 +762,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 
     if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
     {
-        obj_InuseUpRange(ob, hdl->HostObj);
+//      obj_InuseUpFullPath(hdl->HostObj);
     }
     else
         obj_InuseDownFullPath(ob);
@@ -780,7 +780,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 s32 __close(struct objhandle *hdl)
 {
     s32 res;
-    struct obj *ob = hdl->HostObj;
+    struct Object *ob = hdl->HostObj;
 
     res = ob->ops((void *)hdl, CN_OBJ_CMD_CLOSE, 0, 0, 0);
     if(res == CN_OBJ_CMD_TRUE)
@@ -843,7 +843,7 @@ s32 close(s32 fd)
 // ============================================================================
 s32 remove(const char *path)
 {
-    struct obj *ob;
+    struct Object *ob;
     char *uncached;
     s32 res;
 
@@ -1068,7 +1068,7 @@ s32 fstat(s32 fd, struct stat *buf)
 // ============================================================================
 s32 stat(const char *path, struct stat *buf)
 {
-    struct obj *ob;
+    struct Object *ob;
     char *uncache;
     s32 res;
 
@@ -1159,11 +1159,14 @@ DIR *opendir(const char *name)
     if(NULL == directory)
     {
         __close(hdl);
+        return NULL;
     }
-
-    memset(directory, 0, sizeof(*directory));
-    directory->__fd = (void*)hdl;
-    return (directory);
+    else
+    {
+        memset(directory, 0, sizeof(*directory));
+        directory->__fd = (void*)hdl;
+        return (directory);
+    }
 }
 
 // ============================================================================
@@ -1175,7 +1178,7 @@ DIR *opendir(const char *name)
 struct dirent *readdir(DIR *dir)
 {
     struct objhandle *hdl;
-    struct obj *ob;
+    struct Object *ob;
     s32 res;
 
     if(!dir)
@@ -1393,7 +1396,7 @@ s32 ioctl(s32 fd,s32 request, ... )
 char *getcwd(char *buf, size_t size)
 {
     u32 len = 0, offset;
-    struct obj *ob = obj_current();
+    struct Object *ob = obj_current();
 
     if(((buf) && (!size)) || ((!buf) && (size)))
         return (NULL);
@@ -1692,7 +1695,7 @@ struct __content *__rf_content(struct __ramreg *reg, s16 index)
 // 返回：成功（文件句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *__rf_open(struct obj *ob, u32 flags, char *name)
+static struct objhandle *__rf_open(struct Object *ob, u32 flags, char *name)
 {
     struct objhandle *hdl;
     struct __ramfile *file = NULL;
@@ -1847,7 +1850,7 @@ static s32 __rf_close(struct objhandle *hdl)
 // 返回：
 // 备注：删除的时候，对象已经被锁住，不会有新的访问；
 // ============================================================================
-static s32 __rf_remove(struct obj *ob)
+static s32 __rf_remove(struct Object *ob)
 {
     struct __ramfile *file = (struct __ramfile*)obj_GetPrivate(ob);
 
@@ -2034,7 +2037,7 @@ static s32 __rf_read(struct objhandle *hdl, u8 *data, u32 size)
 // ============================================================================
 static s32 __rf_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
-    struct obj *ob = (struct obj *)dentry->d_ino;
+    struct Object *ob = (struct Object *)dentry->d_ino;
 
     if(!ob) // 第一次读；
     {
@@ -2066,7 +2069,7 @@ static s32 __rf_readdentry(struct objhandle *hdl, struct dirent *dentry)
 // 返回：成功（0）；
 // 备注：
 // ============================================================================
-static s32 __rf_stat(struct obj *ob, struct stat *data)
+static s32 __rf_stat(struct Object *ob, struct stat *data)
 {
     struct __ramfile *file = (struct __ramfile*)obj_GetPrivate(ob);
     struct __ramreg *reg;
@@ -2207,7 +2210,7 @@ static s32 __rf_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __rf_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = __rf_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             (struct objhandle *)OpsArgs1 = hdl;
             break;
         }
@@ -2252,14 +2255,14 @@ static s32 __rf_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             char *path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
                 return (-1);    // 查询的文件不存在；ramfs的文件都是缓存了的；
-            __rf_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1);
+            __rf_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1);
             result = CN_OBJ_CMD_TRUE;
             break;
         }
 
         case CN_OBJ_CMD_DELETE:
         {
-            *(s32*)OpsArgs1 = __rf_remove((struct obj*)opsTarget);
+            *(s32*)OpsArgs1 = __rf_remove((struct Object*)opsTarget);
             result = CN_OBJ_CMD_TRUE;
             break;
         }

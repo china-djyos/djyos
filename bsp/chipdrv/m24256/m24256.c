@@ -60,8 +60,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t M24256_ModuleInit(const char *BusName);
-//    M24256_ModuleInit(CFG_M24256_BUS_NAME);
+//    extern ptu32_t M24256_ModuleInit(void);
+//    M24256_ModuleInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -170,12 +170,12 @@ u32 E2PROM_WritePage(u32 PageNo,u8 *pSrcBuf,u32 SrcLen)
 // 参数：para，暂时没用到
 // 返回：true,正确;false,错误
 // =============================================================================
-ptu32_t M24256_ModuleInit(const char *BusName)
+ptu32_t M24256_ModuleInit(void)
 {
 
 //    IIC0_Init();
 
-    if(pg_E2ROM_Dev = IIC_DevAdd(BusName,"IICDev_M24256",CFG_E2ROM_ADDR,0,16))
+    if(pg_E2ROM_Dev = IIC_DevAdd(CFG_M24256_BUS_NAME,"IICDev_M24256",CFG_E2ROM_ADDR,0,16))
         return true;
     else
         return false;
