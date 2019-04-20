@@ -239,10 +239,10 @@ s32 obj_LinkHandle(struct objhandle *hdl, struct Object *ob);
 bool_t obj_lock(void);
 void obj_unlock(void);
 
-u32 obj_InuseUp(struct Object *ob);
+//u32 obj_InuseUp(struct Object *ob);
 //void obj_InuseUpRange(struct Object *start, struct Object *end);
 void obj_InuseUpFullPath(struct Object *Obj);
-u32 obj_InuseDown(struct Object *ob);
+//u32 obj_InuseDown(struct Object *ob);
 //void obj_InuseDownRange(struct Object *start, struct Object *end);
 void obj_InuseDownFullPath(struct Object *Obj);
 

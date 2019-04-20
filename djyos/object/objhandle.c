@@ -1077,7 +1077,7 @@ s32 stat(const char *path, struct stat *buf)
 
     __lock_handle_sys();// 防止操作过程文件被删除了
     ob = obj_matchpath((char*)path, &uncache);
-    res = obj_InuseUp(ob);
+    res = obj_InuseUpFullPath(ob);
     __unlock_handle_sys();
     if(res == 0)
         return (-1);
@@ -1087,7 +1087,7 @@ s32 stat(const char *path, struct stat *buf)
 
     res = (s32)ob->ops((void *)ob, CN_OBJ_CMD_STAT, (ptu32_t)buf, 0,
                                     (ptu32_t)uncache);
-    obj_InuseDown(ob);
+    obj_InuseDownFullPath(ob);
     if(res == CN_OBJ_CMD_TRUE)
         return 0;
     else
