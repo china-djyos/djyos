@@ -1077,10 +1077,8 @@ s32 stat(const char *path, struct stat *buf)
 
     __lock_handle_sys();// 防止操作过程文件被删除了
     ob = obj_matchpath((char*)path, &uncache);
-    res = obj_InuseUpFullPath(ob);
+    obj_InuseUpFullPath(ob);
     __unlock_handle_sys();
-    if(res == 0)
-        return (-1);
 
     if(!uncache)
         uncache = ""; // 全部路径都已经缓存时，设置为空字符串（即'\0'），用于与fstat逻辑区分；
