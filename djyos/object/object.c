@@ -2352,7 +2352,7 @@ s32 SetPWD(const char *Path)
         ob->inuse++;
     if(!res)
     {
-        obj_InuseDown(s_ptCurrentObject);
+        obj_InuseDownFullPath(s_ptCurrentObject);
         s_ptCurrentObject = ob;
     }
 
