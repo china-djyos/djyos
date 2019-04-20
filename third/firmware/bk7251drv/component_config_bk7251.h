@@ -35,7 +35,7 @@
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //../common;
-//../driver/ble;../driver/codec;../driver/entry;../driver/fft;../driver/general_dma;
+//../driver/ble;../driver/codec;../driver/entry;../driver/fft;
 //../driver/i2c;../driver/i2s;../driver/irda;../driver/jpeg;../driver/rc_beken;../driver/saradc;
 //../driver/sdcard;../driver/sdio;../driver/spi;../driver/spidma;../driver/usb;../driver/wdt;
 //../driver/driver.c;../driver/SConscript;../driver/pwm/timer.c;
