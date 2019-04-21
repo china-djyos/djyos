@@ -158,7 +158,6 @@ static struct objhandle *__objsys_open(struct Object *ob, u32 flags, char *uncac
 static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry);
 static s32 __objsys_close(struct objhandle *hdl);
 
-extern char g_pWokingPath[257]; // shell使用
 struct __statics
 {
     u32 news;
@@ -220,6 +219,9 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
 
     return (result);
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // ============================================================================
 // 功能：默认的打开对象函数，根对象使用，如果创建对象时，参数ops == -1，亦使用此函数。
 // 参数：ob -- 根目录对象(可能不是需要打开的文件)；
@@ -241,6 +243,8 @@ static struct objhandle *__objsys_open(struct Object *ob, u32 flags, char *uncac
     handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
     return (hdl);
 }
+#pragma GCC diagnostic pop
+
 // ============================================================================
 // 功能：默认的读对象函数，根对象使用，如果创建对象时，参数ops == -1，亦使用此函数。
 // 参数：directory -- 根目录的对象句柄；；
@@ -647,7 +651,8 @@ s32 obj_ModuleInit(void)
 //  s_ptRootObject->rights = S_IRWXUGO;       //根的默认权限是拥有所有权限
     s_ptRootObject->parent = NULL;
     s_ptRootObject->ops = (fnObjOps)__objsys_default_ops;
-    s_ptRootObject->inuse = 1;  //从1开始计数，正常的成对“open-close”调用不会被删掉。
+    s_ptRootObject->inuse = 2;  //从1开始计数，正常的成对“open-close”调用不会被删掉。
+                                //被设为当前目录，故初始化为2
     s_ptCurrentObject = s_ptRootObject;
     return (0);
 }
@@ -1255,7 +1260,9 @@ struct Object * obj_current(void)
 // ============================================================================
 void obj_setcurrent(struct Object *ob)
 {
+    obj_InuseDownFullPath(s_ptCurrentObject);
     s_ptCurrentObject = ob;
+    obj_InuseDownFullPath(ob);
 }
 
 // ============================================================================
@@ -2207,7 +2214,7 @@ struct Object *obj_search_path(struct Object *start, const char *path)
     while(current)
     {
 __SEARCH_NEXT:
-        while('/' == *path)
+        while(('/' == *path) || ('\\' == *path))
             path++; // 过滤多余的'/'
 
         if('\0' == *path)
@@ -2305,60 +2312,26 @@ __SEARCH_DONE:
    return (current);
 #endif
 }
-//-----------------------------------------------------------------------------
-//功能: 用于shell打印当前工作目录
-//参数:
-//返回: 0 -- 成功; -1 -- 失败;
-//备注:
-//-----------------------------------------------------------------------------
-s32 __WorkingPath(char *Path)
-{
-    u16 Len;
 
-    Len = CurWorkPathLen();
-    if(257 < Len)
-        return (-1); // 路径过长
-
-    if(CurWorkPath(Path, Len))
-        return (-1);
-
-    return (0);
-}
 //-----------------------------------------------------------------------------
 //功能: 设置环境变量,系统当前工作路径
 //参数:
-//返回: 0 -- 成功; -1 -- 目录无法打开; -2 -- 目录无法使用;
+//返回: 0 -- 成功; -1 -- 对象找不到;
 //备注:
 //-----------------------------------------------------------------------------
 s32 SetPWD(const char *Path)
 {
-    DIR *dir;
-    s32 res = 0;
-    struct objhandle *hdl;
     struct Object *ob;
 
     if(!Path)
         return (-1);
-    dir = opendir(Path);
-    if(!dir)
+    ob = obj_search_path(s_ptRootObject, Path);
+    if(!ob)
         return (-1);
-    hdl = (struct objhandle*)(dir->__fd); // 目录的上下文
-    ob = hdl->HostObj;      // 目录的节点
-    if(NULL == ob)
-        res = -1;
-    else if(ob->inuse == CN_LIMIT_UINT32)
-        res = -2;
-    else
-        ob->inuse++;
-    if(!res)
-    {
-        obj_InuseDownFullPath(s_ptCurrentObject);
-        s_ptCurrentObject = ob;
-    }
 
-    closedir(dir);// 关闭目录
-    __WorkingPath(g_pWokingPath); // 用于shell
-    return res;
+    obj_setcurrent(ob);
+    s_ptCurrentObject =  ob;
+     return 0;
 }
 //-----------------------------------------------------------------------------
 //功能: 获取当前工作路径字符串长度(含结束符)
