@@ -1670,6 +1670,14 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     {
         CurHeap = Heap;
         MemSyncHead = &Heap->mem_sync;      //使用专用堆的同步指针
+        Cession = CurHeap->Cession;
+        //以下循环找出待释放的内存在哪个Cession中
+        while(Cession != NULL)
+        {
+            if(((u8*)pl_mem < Cession->heap_top) && ((u8*)pl_mem >= Cession->heap_bottom) )
+                break ;
+            Cession = Cession->Next;
+        }
     }
     else
     {
