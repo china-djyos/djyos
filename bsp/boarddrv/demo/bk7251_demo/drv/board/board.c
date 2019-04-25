@@ -46,6 +46,7 @@
 
 #include "stdint.h"
 #include "stddef.h"
+#include "mem_pub.h"
 #include "cpu_peri.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -97,6 +98,7 @@
 void Board_Init(void)
 {
     extern void os_clk_init(void);
+    os_meminit();
     drv_model_init();
     g_dd_init();
     intc_init();

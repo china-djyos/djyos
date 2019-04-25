@@ -6,8 +6,10 @@ ENTRY(isr_vector);
 IbootSize = 1500k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
 FlashOffset = 0x00000000;
 FlashSize = 2000K;
-RamStart = 0x00400000;
-RamSize = 256K;
+RamStart = 0x00410000;
+RamSize = 192K;
+DtcmStart = 0x00400000;
+DtcmSize = 64K;
 SDRamStart = 0x00900000;
 SDRamSize = 256K;
 
@@ -15,7 +17,8 @@ SDRamSize = 256K;
 MEMORY
 {
         flash  (rx) : ORIGIN = 0x00000000, LENGTH = 1500k /* 1216KB - 96B */
-        ram   (rw!x): ORIGIN = 0x00400000, LENGTH = 256k
+        dtcm  (rw!x): ORIGIN = 0x00400000, LENGTH = 64k
+        ram   (rw!x): ORIGIN = 0x00410000, LENGTH = 192k
         sdram (rw!x): ORIGIN = 0x00900000, LENGTH = 256k
 }
 
@@ -194,6 +197,13 @@ text_preload_rIbootRom_lIbootRom :
     sys_heap_top = RamStart + RamSize;
 	/*__heap_end = RamStart + RamSize;*/
 	
+	heap_Dtcm (NOLOAD) :
+	{
+		. = ALIGN(0x08);
+		dtcm_heap_bottom = .;
+	}>dtcm
+	dtcm_heap_top = DtcmStart + DtcmSize;
+	
 	SDRAM_lRAM (NOLOAD) :
     {
        . = ALIGN(0x08);
@@ -216,6 +226,19 @@ text_preload_rIbootRom_lIbootRom :
         BYTE(0x79)                  /*'y'*/
         BYTE(0x73)                  /*'s'*/
         BYTE(0)                     /*串结束，"sys"是堆的名字*/
+        
+        . = ALIGN(0x04); 
+        LONG(1)                      /*表示该堆由1段内存组成*/
+        LONG(0)                      /*该堆上分配的内存的对齐尺寸，0表示使用系统对齐*/
+        LONG(1)                      /*0=通用堆,1=专用堆,如果系统只有唯一一个堆,则只能是通用堆*/
+        LONG(dtcm_heap_bottom)     /*第一段基址，须符合对齐要求*/
+        LONG(dtcm_heap_top)        /*第一段地址上限（不含），须符合对齐要求*/
+        LONG(32)                   /*第一段页尺寸=32bytes*/
+        BYTE(0x64)                   /*'d'*/
+        BYTE(0x74)                   /*'t'*/
+        BYTE(0x63)                   /*'c'*/
+        BYTE(0x6d)                   /*'m'*/
+        BYTE(0)                      /*串结束，"dtcm"是堆的名字*/
         
         . = ALIGN(0x04); 
         LONG(1)                      /*表示该堆由1段内存组成*/

@@ -31,8 +31,10 @@
 IbootSize = 1500k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
 FlashOffset = 0x00000000;
 FlashSize = 2000K;
-RamStart = 0x00400000;
-RamSize = 256K;
+RamStart = 0x00410000;
+RamSize = 192K;
+DtcmStart = 0x00400000;
+DtcmSize = 64K;
 SDRamStart = 0x00900000;
 SDRamSize = 256K;
 
@@ -40,6 +42,7 @@ SDRamSize = 256K;
 MEMORY
 {
         flash  (rx) : ORIGIN = 0x00000000, LENGTH = 1500k /* 1216KB - 96B */
-        ram   (rw!x): ORIGIN = 0x00400000, LENGTH = 256k
+        dtcm  (rw!x): ORIGIN = 0x00400000, LENGTH = 64k
+        ram   (rw!x): ORIGIN = 0x00410000, LENGTH = 192k
         sdram (rw!x): ORIGIN = 0x00900000, LENGTH = 256k
 }
