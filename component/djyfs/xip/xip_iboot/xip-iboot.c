@@ -74,7 +74,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"xip_iboot"    //用于iboot的在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"filesystem"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -407,7 +407,7 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", xip_target);
         return (-1);
     }
-    obj_InuseUpFullPath(mountobj);
+//    obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
     res = mountfs(NULL, xip_target, "XIP-IBOOT", opt, data);
     if(res == -1)

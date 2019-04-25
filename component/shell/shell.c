@@ -1124,7 +1124,11 @@ s32 ModuleInstall_Shell(ptu32_t para)
                                 0, // 线程上限，关联型无效
                                 Sh_Service, // 入口函数
                                 NULL, // 由系统分配栈
+#ifdef BUILDING_WOLFSSH
+                                0x9000, // 栈尺寸
+#else
                                 0x1000, // 栈尺寸
+#endif
                                 "shell" // 事件类型名
                                 );
     if(shell_evtt==CN_EVTT_ID_INVALID)

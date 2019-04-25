@@ -50,7 +50,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include "dbug.h"
-#include "../component_config_tcpip.h"
 
 #include "../common/tpl.h"
 #include "../common/ip.h"

@@ -417,9 +417,17 @@ extern "C" {
     #include <stdio.h>    /* used for remove and rename */
     #include <dirent.h>   /* used for opening directory and reading */
 
+#if 1
+    #define WRMDIR(d)   remove((d))
+#else
     #define WRMDIR(d)   rmdir((d))
+#endif
     #define WSTAT(p,b)  stat((p),(b))
+#if 1
+    #define WLSTAT(p,b) stat((p),(b))
+#else
     #define WLSTAT(p,b) lstat((p),(b))
+#endif
     #define WREMOVE(d)   remove((d))
     #define WRENAME(o,n) rename((o),(n))
     #define WGETCWD(r,rSz) getcwd((r),(rSz))
@@ -437,9 +445,13 @@ extern "C" {
 
     #define WOPEN(f,m,p) open((f),(m),(p))
     #define WCLOSE(fd) close((fd))
+#if 1
+    #define WPWRITE(fd,b,s,o) write((fd),(b),(s))
+    #define WPREAD(fd,b,s,o)  read((fd),(b),(s))
+#else
     #define WPWRITE(fd,b,s,o) pwrite((fd),(b),(s),(o))
     #define WPREAD(fd,b,s,o)  pread((fd),(b),(s),(o))
-
+#endif
 #ifndef NO_WOLFSSH_DIR
     #include <dirent.h> /* used for opendir, readdir, and closedir */
     #define WDIR DIR*

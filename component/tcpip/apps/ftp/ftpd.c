@@ -55,7 +55,7 @@
 #include <netdb.h>
 
 #include <dirent.h>
-#include "../../component_config_tcpip.h"
+#include "component_config_ftp.h"
 #include "dbug.h"
 #include "ftp.h"
 #include <shell.h>

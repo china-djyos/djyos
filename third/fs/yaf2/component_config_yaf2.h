@@ -61,7 +61,6 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//#include "filesystems.h"
 //    extern s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data);
 //    ModuleInstall_YAF2(CFG_YAF_MOUNT_POINT, CFG_YAF_INSTALL_OPTION, CFG_YAF_ECC);
 //%$#@end initcode  ****初始化代码结束
@@ -86,16 +85,16 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_OPTIONS   //****检查参数是否已经配置好
+#ifndef CFG_YAF_MOUNT_POINT   //****检查参数是否已经配置好
 #warning    yaf2filesystem组件参数未配置，使用默认值
 //%$#@num,0,100,
 #define CFG_YAF_ECC                       0                //YAF文件系统文件使能设备ECC功能。0不使用ecc，YAF2_ENABLE_DEVICE_ECC使用ecc
 //%$#@enum,true,false,
 #define CFG_YAF_INSTALL_OPTION           false        //YAF文件系统安装选项，安装时是否格式化整个文件系统；
-//%$#@string,1,32,
+//%$#@string,1,10,
+#define CFG_YAF_MOUNT_POINT              "yaf2"               //"name",YAF文件系统安装目录
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
-#define CFG_YAF_MOUNT_POINT              "yaf2"               //"name",YAF文件系统安装目录
 #endif
 //%$#@end configue  ****参数配置结束
 

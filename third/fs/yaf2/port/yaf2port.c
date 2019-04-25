@@ -1017,25 +1017,6 @@ int yaffs_start_up(void)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-s32 __iserased(const u8 *buf, s32 datalen, s32 taglen)
-{
-    extern int yaffs_check_ff(u8 *buffer, int n_bytes);
-
-    if(datalen && (!yaffs_check_ff((u8*)buf, datalen)))
-        return (0);
-
-    if(taglen && (!yaffs_check_ff((u8*)(buf+datalen), taglen)))
-        return (0);
-
-    return (1);
-}
-
-// ============================================================================
 // 功能：挂载YAFFS2文件系统到目录/yaffs2下
 // 参数：target -- YAF2文件系统所挂载的目录；缺省为“yaf2”
 //      opt -- 文件系统配置选项；  true ：格式化整个文件系统；false ：不格式化整个文件系统
@@ -1043,7 +1024,7 @@ s32 __iserased(const u8 *buf, s32 datalen, s32 taglen)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
+s32 ModuleInstall_YAF2(const char *target, u32 opt, u32 data)
 {
     static struct filesystem *typeYAF2 = NULL;
     struct Object * mountobj;
@@ -1082,7 +1063,7 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
         printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot create \"%s\"<mount point>.", target);
         return (-1); // 失败;
     }
-    obj_InuseUpFullPath(mountobj);
+//    obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;              //直接挂载不用备份
     res = mountfs(NULL, target, "YAF2", opt, data);
    if(res == -1)

@@ -87,10 +87,9 @@
 #define CFG_MODULE_ENABLE_FTP  false
 //%$#@num,,,
 //%$#@enum,true,false,
-#define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能",暂未实现
-#define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
+#define     CFG_FTPD_ENABLE            false   //"tftp 服务器使能",暂未实现
+#define     CFG_FTPC_ENABLE            true    //"tftp 客户端使能"
 //%$#@string,1,256,
-#define     CFG_TFTP_PATHDEFAULT       "/"   //TFTP默认工作目录
 //%$#@select
 //%$#@free
 #endif

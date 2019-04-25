@@ -54,8 +54,7 @@
 #include <netdb.h>
 #include "dbug.h"
 #include "ftp.h"
-#include "../../component_config_tcpip.h"
-
+#include "component_config_ftp.h"
 
 
 extern bool_t ServiceFtpdInit(void);

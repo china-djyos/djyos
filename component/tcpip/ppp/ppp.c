@@ -70,7 +70,7 @@
 #include "osarch.h"
 #include "ppp.h"
 #include <shell.h>
-#include "../component_config_tcpip.h"
+#include "component_config_ppp.h"
 #include "../common/netpkg.h"
 
 #include "fcs.h"

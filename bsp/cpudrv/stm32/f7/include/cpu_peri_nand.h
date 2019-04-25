@@ -61,7 +61,7 @@ extern "C" {
 #include <device/include/unit_media.h>
 
 
-s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bcount, u32 doformat);
+s32 ModuleInstall_NAND(u32 doformat);
 s32  stm32f7_PageProgram(u32 PageNo, u8 *Data, u32 Flags);
 s32  stm32f7_PageRead(u32 PageNo, u8 *Data, u32 Flags);
 s32 stm32f7_BlockErase(u32 BlkNo);

@@ -128,7 +128,7 @@ enum {
     #define DEFAULT_HIGHWATER_MARK ((1024 * 1024 * 1024) - (32 * 1024))
 #endif
 #ifndef DEFAULT_WINDOW_SZ
-    #define DEFAULT_WINDOW_SZ (1024 * 1024)
+    #define DEFAULT_WINDOW_SZ (1024 * 128)//(1024 * 1024)
 #endif
 #ifndef DEFAULT_MAX_PACKET_SZ
     #define DEFAULT_MAX_PACKET_SZ (16 * 1024)

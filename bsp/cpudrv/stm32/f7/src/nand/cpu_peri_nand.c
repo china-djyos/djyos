@@ -65,19 +65,19 @@
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
-#include <efs.h>
+#include <efs_full.h>
 
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//   s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
-//   ModuleInstall_NAND(CFG_NFLASH_FSMOUNT_NAME, CFG_NFLASH_PART_START, CFG_NFLASH_PART_END, CFG_NFLASH_PART_FORMAT);
+//   extern s32 ModuleInstall_NAND(u32 doformat);
+//   ModuleInstall_NAND(CFG_NFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu_peri_nand"//CPU的nand驱动
-//parent:"devfile"              //填写该组件的父组件名字，none表示没有父组件
+//parent:"none"                //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -95,17 +95,11 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_NFLASH_FSMOUNT_NAME   //****检查参数是否已经配置好
+#ifndef CFG_NFLASH_PART_FORMAT   //****检查参数是否已经配置好
 #warning    cpu_peri_nand 组件参数未配置，使用默认值
-//%$#@num,0,100,
-//%$#@string,1,10,
-#define CFG_NFLASH_FSMOUNT_NAME     "yaf2" //需安装的文件系统的mount的名字
-//%$#@num,-1,2048
-#define CFG_NFLASH_PART_START      0      //分区起始，填写块号，块号从0开始计算
-#define CFG_NFLASH_PART_END        -1     //分区结束，-1表示最后一块
 //%$#@enum,true,false,
-#define CFG_NFLASH_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
-//%$#select,        ***从列出的选项中选择若干个定义成宏
+#define CFG_NFLASH_PART_FORMAT     false      //是否需要擦除该芯片。
+//%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -128,8 +122,6 @@
 #define NSTA_TIMEOUT            0X02        //超时
 
 extern s32 deonfi(const char *data, struct NandDescr *onfi, u8 little);
-extern struct yaffs_driver YAF_NAND_DRV;
-extern struct __efs_drv EFS_NAND_DRV;
 
 //static u8 *s_pu8HammingCode;    // ECC校验结果
 #define s_u8SizeofHammingCode   (4)
@@ -152,8 +144,8 @@ static const char *NandFlashName = "nand";      //该flash在obj在的名字
 //新接口
 static u32 *badstable = NULL;
 static s32 badslocation = 0;
-extern struct Object *s_ptDeviceRoot;
-s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bcount);
+extern struct obj *s_ptDeviceRoot;
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
 static s32 __nand_init(void);
 
 //-----------------------------------------------------------------------------
@@ -793,16 +785,12 @@ static bool_t WaitNandReady(void)
 }
 //-----------------------------------------------------------------------------
 // 功能：安装nand驱动
-// 参数：  TargetFs -- 要挂载的文件系统
-//      parts -- 分区数；
-//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，结束块数（如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块，不包括第六块），是否格式化；
+// 参数：  doformat -- 是否格式化；
 // 返回：成功（0）；失败（-1）；
-// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+// 备注：
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
+s32 ModuleInstall_NAND(u32 doformat)
 {
-//    struct uopt opt;
     static u8 nandinit = 0;
 
     if(!__nandescription)
@@ -819,7 +807,7 @@ s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
         struct uesz sz;
         sz.unit = 0;
         sz.block = 1;
-        __nand_req(format, bstart , bend, &sz);
+        __nand_req(format, 0 , -1, &sz);
     }
 
     if(!badstable)
@@ -851,14 +839,6 @@ s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
         nandinit = 1;
     }
 
-    if(TargetFs != NULL)
-    {
-        if(__nand_FsInstallInit(TargetFs, bstart, bend))
-        {
-            return -1;
-        }
-    }
-
     return 0;
 }
 
@@ -871,289 +851,6 @@ bool_t NandFlash_Ready(void)
     else
         return true;
 }
-
-
-#if 0
-
-/******************************************************************************
-                         简易文件系统函数
-******************************************************************************/
-//#ifdef EFS_ON
-//-----------------------------------------------------------------------------
-//功能: 写小于一页的数据
-//参数:
-//返回:
-//备注:
-//-----------------------------------------------------------------------------
-
-
-
-
-
-
-#define __WritePage(a,b,c) stm32f7_PageProgram(a,b,c)
-#define __ReadPage(a,b,c) stm32f7_PageRead(a,b,c)
-static s32 __WriteFragment(u32 PageNo, u32 Offset, const u8 *Buf, u32 Size)
-{
-    u32 i;
-
-    *(vu8*)(NAND_ADDRESS|NAND_CMD) = PAGE_PROGRAM_CMD_BYTE1;
-
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (Offset);
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (Offset>>8);
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (PageNo);
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (PageNo>>8);
-
-    for(i = 0; i < Size; i++)
-        *(vu8*)NAND_ADDRESS=(Buf[i]);
-
-    *(vu8*)(NAND_ADDRESS|NAND_CMD) = PAGE_PROGRAM_CMD_BYTE2;
-
-    Djy_EventDelay(700);// 切出
-    if(NAND_WaitForReady()!=NSTA_READY)
-    {
-        return (-2);
-    }
-    return (Size);
-}
-
-//-----------------------------------------------------------------------------
-//功能: 读小于一页的数据
-//参数:
-//返回:
-//备注:
-//-----------------------------------------------------------------------------
-static s32 __ReadFragment(u32 PageNo, u32 Offset, u8 *Buf, u32 Size)
-{
-    u32 i,tolerate;
-
-again:
-
-    *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE1);
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (Offset);
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (Offset>>8);
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (PageNo);
-    *(vu8*)(NAND_ADDRESS|NAND_ADDR) = (PageNo>>8);
-    *(vu8*)(NAND_ADDRESS|NAND_CMD)=(PAGE_READ_CMD_BYTE2);
-
-    Djy_EventDelay(25);
-    if(WaitNandReady() == false)//时序要求
-    {
-        if(tolerate < 3)
-        {
-            tolerate++;
-            goto again;
-        }
-        return (-3);
-    }
-
-    for(i = 0; i < Size; i++)
-        Buf[i] = (*(vu8*)NAND_ADDRESS);
-
-    if(NAND_WaitForReady()!=NSTA_READY)
-    {
-        return (-2);
-    }
-
-    return (Size);
-}
-//-----------------------------------------------------------------------------
-//功能: 写数据
-//参数: BlkNo -- 块号;
-//      Offset -- 块内偏置;
-//      Buf -- 写缓冲;
-//      Size -- 写数据大小
-//      Flags -- 0x0 -- 无功能; 0x1 - ECC功能开启(数据大小为必须256)
-//返回:
-//备注:
-//-----------------------------------------------------------------------------
-u32 EFS_IF_WriteData(u32 BlkNo, u32 Offset, u8 *Buf, u32 Size, u8 Flags)
-{
-    s32 Ret;
-    u32 PageNo = (BlkNo << 6) + (Offset >> 11);
-    u32 PageOffset = Offset & 0x7FF;
-    u32 WrLen = Size;
-
-    if(!Buf)
-        return (0);
-
-    // ECC的数据源为256字节，放入数据后端,3个字节
-    if(1 == Flags)
-    {
-        hamming_compute_256x(Buf, 256, Buf+256);
-        WrLen = Size + 3;
-        PageOffset += 3 * (PageOffset >> 8);
-    }
-
-    for(;;)
-    {
-        if((!PageOffset) && (WrLen >= __nandescription->BytesPerPage))
-            Ret = __WritePage(PageNo, Buf, NO_ECC);
-        else if((WrLen >= __nandescription->BytesPerPage) || // 写数据大与等于一页,但内容跨页
-                (((WrLen+PageOffset) > __nandescription->BytesPerPage) && (!Flags))) // 写数据小于一页,但内容跨页(只有考虑非ECC的情况)
-            Ret = __WriteFragment(PageNo, PageOffset, (const u8*)Buf, (__nandescription->BytesPerPage - PageOffset));
-        else
-            Ret = __WriteFragment(PageNo, PageOffset, (const u8*)Buf, WrLen);
-
-        if(Ret <= 0)
-            break;// 错误或者已写完
-
-        WrLen -= Ret;
-        if(WrLen <= 0)
-            break;
-        Buf += Ret;
-        PageNo++;
-        if(PageOffset)
-            PageOffset = 0;
-    }
-
-    if(Ret > 0)
-        return (Size);
-    else
-        return (0);
-}
-//-----------------------------------------------------------------------------
-//功能: 读数据
-//参数: BlkNo -- 块号;
-//      Offset -- 块内偏置;
-//      Buf -- 读缓冲;
-//      Size -- 读数据大小
-//      Flags -- 0x0 -- 无功能; 0x1 - ECC功能开启(数据大小为必须256)
-//返回:
-//备注:
-//-----------------------------------------------------------------------------
-u32 EFS_IF_ReadData(u32 BlkNo, u32 Offset, u8 *Buf, u32 Size, u8 Flags)
-{
-    s32 Ret;
-    u32 PageNo = (BlkNo << 6) + (Offset >> 11);
-    u32 PageOffset = Offset & 0x7FF;
-    u32 RdLen = Size;
-
-    if(!Buf)
-        return (0);
-
-    if(1 == Flags)
-    {
-        RdLen += 3;
-        PageOffset += 3 * (PageOffset >> 8);
-    }
-
-    for(;;)
-    {
-        if((!PageOffset) && (RdLen >= __nandescription->BytesPerPage))
-            Ret = __ReadPage(PageNo, Buf, NO_ECC);
-        else if((RdLen >= __nandescription->BytesPerPage) || // 写数据大与等于一页,但内容跨页
-                (((RdLen+PageOffset) > __nandescription->BytesPerPage) && (!Flags))) // 读数据小于一页,但内容跨页(只有非ECC的情况需要考虑)
-            Ret = __ReadFragment(PageNo, PageOffset, Buf, (__nandescription->BytesPerPage - PageOffset));
-        else
-            Ret = __ReadFragment(PageNo, PageOffset, Buf, RdLen);
-
-        if(Ret <= 0)
-            break;// 错误或者已写完
-
-        RdLen -= Ret;
-        if(RdLen <= 0)
-            break;
-        Buf += Ret;
-        PageNo++;
-        if(PageOffset)
-            PageOffset = 0;
-    }
-
-
-    if(Ret <= 0)
-        return (0);
-
-    if((1 == Flags) && (256 == Size))
-    {
-        u8 *HammingCode;
-        u32 EccRet;
-
-        HammingCode = Buf + 256;
-        EccRet = hamming_verify_256x(Buf, 256, HammingCode);
-        if (EccRet && (EccRet != HAMMING_ERROR_SINGLE_BIT))
-        {
-            TraceDrv(FLASH_TRACE_DEBUG, "cannot be fixed");
-            return (0);
-        }
-    }
-
-    return (Size);
-}
-//-----------------------------------------------------------------------------
-//功能: 擦除
-//参数: BlkNo -- 块号;
-//返回:
-//备注:
-//-----------------------------------------------------------------------------
-bool_t EFS_IF_Erase(u32 BlkNo)
-{
-    if(0==stm32f7_BlockErase(BlkNo))
-        return (TRUE);
-    return (FALSE);
-}
-//-----------------------------------------------------------------------------
-//功能: 检查文件是否可写
-//参数:
-//返回:
-//备注:
-//-----------------------------------------------------------------------------
-static u8 TempBuf[259];
-s32 EFS_IF_IsFragmentWritten(u32 BlkNo, u32 Offset)
-{
-    u16 i;
-    u32 PageOffset = Offset & 0x7FF;
-    u8 EccOffset = 3 * (PageOffset >> 8);
-
-    if(0 == EFS_IF_ReadData(BlkNo, (Offset+EccOffset), TempBuf, 259, 0))
-        return (-1);
-
-    for(i = 0; i < 259; i++)
-    {
-        if(0xFF != TempBuf[i])
-            return (-1);
-    }
-
-    return (0);
-}
-
-//-----------------------------------------------------------------------------
-//功能: 未实现
-//参数:
-//返回:
-//备注:
-//-----------------------------------------------------------------------------
-bool_t EFS_IF_CheckBlockReady(u32 block,u32 offset,
-        u8 *buf,u32 size)
-{
-    u32 CurBlock,CurBlockOffset;
-    u32 BlockSize;
-    bool_t result = TRUE;
-
-    if(NULL == __nandescription)
-    {
-        return FALSE;
-    }
-
-    CurBlock = block;
-    CurBlockOffset = offset;
-    BlockSize = __nandescription->BytesPerPage * __nandescription->PagesPerBlk;
-
-    while(size)
-    {
-        if(-1 == EFS_IF_IsFragmentWritten(CurBlock,CurBlockOffset))
-        {
-            result = FALSE;
-            break;
-        }
-        CurBlockOffset += 256;
-        CurBlock += CurBlockOffset / BlockSize;
-        CurBlockOffset = CurBlockOffset % BlockSize;
-        size = (size > 256) ? (size - 256) :0;
-    }
-    return result;// 文件写入操作不存在改写逻辑
-}
-
 
 #if (0)
 //-----------------------------------------------------------------------------
@@ -1423,7 +1120,6 @@ void ChipRawTest(void)
     while(1);
 }
 #endif
-#endif
 
 #if 1 // 新接口
 
@@ -1589,6 +1285,7 @@ s32 __nand_read(s64 unit, void *data, struct uopt opt)
 {
     u32 flags = 0;
     s32 res;
+
     nandbadfreeunit(badstable, &unit, __nand_req);
     if(opt.hecc)
         flags |= HW_ECC;
@@ -1734,20 +1431,22 @@ static s32 __nand_init(void)
     __nandescription->BadMarkOffset = __nandescription->OOB_Size - 4 - 1;
     return (0);
 }
-
 // ============================================================================
 // 功能：把nand和文件系统关联起来
-// 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
-//       bstart -- 起始块，bend -- 结束块数（不包括该块，只到该块的上一块）
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     char *FullPath,*notfind;
-    struct Object *targetobj;
+    struct obj *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
+
+    if(mediadrv == NULL)
+        return -1;
     targetobj = obj_matchpath(fs, &notfind);
     if(notfind)
     {
@@ -1756,20 +1455,7 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
     super->MediaInfo = nand_umedia;             //把nand的信息放到文件系统的核心数据结构当中
-    if(strcmp(super->pFsType->pType, "YAF2") == 0)      //这里的"YAF2"为文件系统的类型名，在文件系统的filesystem结构中
-    {
-        super->MediaDrv = &YAF_NAND_DRV;        //把文件系统对nand的操作函数放到文件系统的核心数据结构当中
-    }
-    else if(strcmp(super->pFsType->pType, "EFS") == 0)
-    {
-        super->MediaDrv = &EFS_NAND_DRV;
-    }
-    else
-    {
-        super->MediaDrv = 0;
-        error_printf("nand"," \"%s\" file system type nonsupport", super->pFsType->pType);
-        return -1;
-    }
+    super->MediaDrv = mediadrv;
 
     if(-1 == (s32)bend)
     {
@@ -1786,8 +1472,8 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
     res = strlen(NandFlashName)+strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandFlashName); //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandFlashName);	//获取该设备的全路径
+    FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);

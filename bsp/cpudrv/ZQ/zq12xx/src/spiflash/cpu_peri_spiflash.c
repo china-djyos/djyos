@@ -59,24 +59,24 @@
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
-#include <efs.h>
+#include <efs_full.h>
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    s32 ModuleInstall_SpiFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
-//    ModuleInstall_SpiFlash(CFG_SPIFLASH_FSMOUNT_NAME,CFG_SPIFLASH_PART_START, CFG_SPIFLASH_PART_END, CFG_SPIFLASH_PART_FORMAT);
+//s32 ModuleInstall_SpiFlash(u32 doformat);
+//ModuleInstall_SpiFlash(CFG_SPIFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_emflash"     //片内flash读写
-//parent:"xip"                          //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu_peri_spiflash"     //片内flash
+//parent:"none"                          //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                       //初始化时机，可选值：early，medium，later。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"xip","devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
 //weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -88,16 +88,11 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_SPIFLASH_FSMOUNT_NAME   //****检查参数是否已经配置好
-#warning    sip_flash组件参数未配置，使用默认值
-//%$#@num,-1,150,
-#define CFG_SPIFLASH_PART_START      6          //分区起始
-#define CFG_SPIFLASH_PART_END        -1         //分区结束
+#ifndef CFG_SPIFLASH_PART_FORMAT   //****检查参数是否已经配置好
+#warning    cpu_peri_spiflash 组件参数未配置，使用默认值
 //%$#@enum,true,false,
-#define CFG_SPIFLASH_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
+#define CFG_SPIFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
 //%$#@string,1,32,
-//%$#@enum,EN_XIP_APP_TARGET,EN_XIP_IBOOT_TARGET,NULL
-#define CFG_SPIFLASH_FSMOUNT_NAME   EN_XIP_APP_TARGET    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -114,7 +109,6 @@ bootspi_t iap_bootspi;
 extern struct Object *s_ptDeviceRoot;
 static const char *SpiFlashName = "SpiFlash";      //该flash在obj在的名字
 struct umedia *sipflash_umedia;
-extern struct __xip_drv XIP_EMFLASH_DRV;
 
 static void djybsp_spi_init(uint8_t spiclk_sel,uint8_t if_preread,uint8_t if_rcv_cpol)
 {
@@ -621,15 +615,13 @@ static s32 Flash_Init(struct EmbdFlashDescr *Description)
 }
 
 // ============================================================================
-// 功能：初始化SPI FLASH模块，用做文件系统
-// 参数：   fs -- 该媒体所要安装文件系统mount点名字；
-//      MountPart -- 文件系统安装在第几个分区
-//      dwStart -- 起始块；
-//      dwEnd -- 结束块数（不包括该块，只到该块的上一块）；
-// 返回：成功初始化（0）；初始化失败（-1）；
-// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
+// 功能：初始化片内SPIflash
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
+// 返回：0 -- 成功， -1 -- 失败
+// 备注：
 // ============================================================================
-s32 __SpiFlash_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd)
+s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     char *FullPath,*notfind;
     struct Object *targetobj;
@@ -644,17 +636,7 @@ s32 __SpiFlash_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd)
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
     super->MediaInfo = sipflash_umedia;
-    //这里的"XIP-APP"和"XIP-IBOOT"为文件系统的类型名
-    if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
-    {
-        super->MediaDrv = &XIP_EMFLASH_DRV;
-    }
-    else
-    {
-        super->MediaDrv = 0;
-        error_printf("embed"," \"%s\" file system type nonsupport", super->pFsType->pType);
-        return -1;
-    }
+    super->MediaDrv = mediadrv;
 
     if((s32)dwEnd == -1)
     {
@@ -680,15 +662,12 @@ s32 __SpiFlash_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd)
 }
 
 //-----------------------------------------------------------------------------
-// 功能：安装spiflash驱动
-// 参数：  TargetFs -- 要挂载的文件系统
-//      parts -- 分区数；
-//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，结束块数（如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块，不包括第六块），是否格式化；
+// 功能：安装片内Flash驱动
+// 参数：doformat -- 是否格式化；
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_SpiFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
+s32 ModuleInstall_SpiFlash(u32 doformat)
 {
     static u8 spiflashinit = 0;
 
@@ -708,7 +687,7 @@ s32 ModuleInstall_SpiFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doform
         struct uesz sz;
         sz.unit = 0;
         sz.block = 1;
-        __embed_req(format, bstart , bend, &sz);
+        __embed_req(format, 0 , -1, &sz);
     }
 
     if(spiflashinit == 0)
@@ -732,13 +711,6 @@ s32 ModuleInstall_SpiFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doform
         spiflashinit = 1;
     }
 
-    if(TargetFs != NULL)
-    {
-        if(__SpiFlash_FsInstallInit(TargetFs, bstart, bend))
-        {
-            return -1;
-        }
-    }
 
     return 0;
 }

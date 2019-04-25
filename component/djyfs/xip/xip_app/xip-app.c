@@ -74,7 +74,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"xip_app"      //用于app的在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"filesystem"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -612,7 +612,7 @@ static s32 xip_app_close(struct objhandle *hdl)
 // ============================================================================
 static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 pos, once, free, res, left;
+    s32 pos, once, free, res, left = (s32)size;
     struct __icontext *cx = (struct __icontext *)handle_context(hdl);
     struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
@@ -635,13 +635,13 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
             return size;
         }
     }
+
     xip_app_lock(core);
     if(cx->pos<=core->inhead) // 缓存中剩余可写空间；（连续写和不连续写会有这么处理，256时）
         free = core->inhead - cx->pos; // 在开始的区域中，文件头部占据了固定空间；
     else
         free = core->bufsz - ((cx->pos - core->inhead) % core->bufsz);
 
-    left = (s32)size;
     while(left)
     {
         once = left;
@@ -1213,7 +1213,7 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_APP_TARGET);
         return (-1);
     }
-    obj_InuseUpFullPath(mountobj);
+//    obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
     res = mountfs(NULL, EN_XIP_APP_TARGET, "XIP-APP", opt, data);
     if(res == -1)

@@ -54,7 +54,8 @@
 
 #include "arp.h"
 #include <shell.h>
-#include "../component_config_tcpip.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
 #include "../common/netdev.h"
 #include "../common/router.h"
@@ -69,7 +70,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"arp"          //arp协议
-//parent:"tcpip"             //填写该组件的父组件名字，none表示没有父组件
+//parent:"tcpip"                //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，

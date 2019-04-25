@@ -34,7 +34,18 @@
    <component>/component/multiplex/multiplex.c</component>
    <component>/component/shell/shell.c</component>
    <component>/component/stddev/component_config_stdio.h</component>
+   <component>/component/tcpip/apps/dhcp/component_config_dhcp.h</component>
+   <component>/component/tcpip/apps/ftp/component_config_ftp.h</component>
+   <component>/component/tcpip/apps/telnet/telnetd.c</component>
+   <component>/component/tcpip/apps/tftp/component_config_tftp.h</component>
+   <component>/component/tcpip/ethernet/arp.c</component>
+   <component>/component/tcpip/ppp/component_config_ppp.h</component>
+   <component>/component/tcpip/router/router.c</component>
+   <component>/component/tcpip/socket/sock.c</component>
+   <component>/component/tcpip/tpl/icmp.c</component>
    <component>/component/tcpip/tpl/tcp.c</component>
+   <component>/component/tcpip/tpl/tpl.c</component>
+   <component>/component/tcpip/tpl/udp.c</component>
    <component>/component/tcpip/component_config_tcpip.h</component>
    <component>/component/timer/timer.c</component>
    <component>/component/wdt/wdt_soft.c</component>

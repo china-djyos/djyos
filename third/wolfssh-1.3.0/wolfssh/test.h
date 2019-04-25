@@ -108,7 +108,13 @@
     #define WCLOSESOCKET(s) NU_Close_Socket((s))
     #define WSTARTTCP()
 #else
-    #define WCLOSESOCKET(s) close(s)
+#define USE_DJY_OS 1
+
+#if USE_DJY_OS
+#define WCLOSESOCKET(s) closesocket((s))
+#else
+#define WCLOSESOCKET(s) close(s)
+#endif
     #define WSTARTTCP()
 #endif
 
@@ -145,9 +151,17 @@
     #define AF_INET_V AF_INET
 #endif
 
-
+#if 0
 #define serverKeyRsaPemFile "./keys/server-key-rsa.pem"
+#define serverKeyEccDerFile "./keys/server-key-ecc.der"
+#define serverKeyRsaDerFile "./keys/server-key-rsa.der"
 
+#else
+#define serverKeyRsaPemFile "/efs/server-key-rsa.pem"
+#define serverKeyEccDerFile "/efs/server-key-ecc.der"
+#define serverKeyRsaDerFile "/efs/server-key-rsa.der"
+
+#endif
 
 typedef struct tcp_ready {
     word16 ready;     /* predicate */
@@ -208,7 +222,7 @@ void WaitTcpReady(func_args*);
     /* port 8080 was open with QEMU */
     static const word16 wolfSshPort = 8080;
 #else
-    static const word16 wolfSshPort = 22222;
+    static word16 wolfSshPort = 22222;
 #endif
 
 #ifdef __GNUC__
@@ -217,7 +231,7 @@ void WaitTcpReady(func_args*);
     #define WS_NORETURN
 #endif
 
-static INLINE WS_NORETURN void err_sys(const char* msg)
+static INLINE void err_sys(const char* msg)
 {
     printf("wolfSSH error: %s\n", msg);
 
@@ -231,7 +245,7 @@ static INLINE WS_NORETURN void err_sys(const char* msg)
     if (msg)
 #endif
     {
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
     }
 }
 
@@ -252,11 +266,17 @@ static INLINE int mygetopt(int argc, char** argv, const char* optstring)
         next = NULL;   /* we're starting new/over */
 
     if (next == NULL || *next == '\0') {
-        if (myoptind == 0)
-            myoptind++;
+       if (myoptind == 0)
+        {
+            if(argv[myoptind][0] != '-')
+            {
+                myoptind++;
+            }
+        }
 
         if (myoptind >= argc || argv[myoptind][0] != '-' ||
                                 argv[myoptind][1] == '\0') {
+            myoptind++;
             myoptarg = NULL;
             if (myoptind < argc)
                 myoptarg = argv[myoptind];

@@ -742,6 +742,12 @@ static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
     for (; *fmt ; ++fmt)
     {
         if (*fmt != '%') {
+
+            if(*fmt == '\n')
+            {
+                position = PushChar(TempBuf,Target, Size, '\r',position);
+            }
+
             position = PushChar(TempBuf,Target, Size,*fmt,position);
 //            position = ADDDCH_With_push(Target, *fmt, position,Method);
             continue;

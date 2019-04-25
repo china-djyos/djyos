@@ -1049,7 +1049,6 @@ struct Object *obj_matchpath(const char *match, char **left)
 
         if('.' == path[0])
         {
-            path++;
             if('.' == path[1])  //看是否要返回上一级目录
             {
                 if(Base == obj_root())
@@ -1058,7 +1057,6 @@ struct Object *obj_matchpath(const char *match, char **left)
                     *left = path;
                     return NULL;
                 }
-                path++;
                 result = Base;
                 Base = obj_parent(Base);        // ".."字符，表示上一级目录
                 current = Base;
@@ -1070,11 +1068,11 @@ struct Object *obj_matchpath(const char *match, char **left)
                 else if('\0' != path[2])        //完成path路径匹配
                 {
                     *left = NULL;
-                    return result;
+                    return current;
                 }
                 else                            //".."后不是合法的分隔符，非法
                 {
-                    result = NULL;
+                    result = current;
                     *left = NULL;
                     break;
                 }
@@ -1091,7 +1089,6 @@ struct Object *obj_matchpath(const char *match, char **left)
             }
             else                            //"."后不是合法的分隔符，非法
             {
-                result = NULL;
                 *left = NULL;
                 break;
             }
@@ -1128,10 +1125,6 @@ struct Object *obj_matchpath(const char *match, char **left)
                 {
                     break; // 当前对象不匹配，继续遍历兄弟节点
                 }
-            }
-            else
-            {
-                break;      // 当前对象不匹配，继续遍历兄弟节点
             }
         }
 

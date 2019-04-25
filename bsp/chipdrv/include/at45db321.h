@@ -57,11 +57,11 @@
 #ifndef _AT45DB321_H_
 #define _AT45DB321_H_
 
-bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
+bool_t ModuleInstall_at45db321(char *pBusName, u32 doformat);
 u32 AT45_FLASH_Read(u32 Address,u8 *data,u32 data_len);
 u32 AT45_FLASH_Write(u32 Address,u8 *data,u32 data_len);
 bool_t AT45_Page_Erase(u32 Address);
-bool_t AT45_Block_Erase(u32 Address);
+s32 AT45_Block_Erase(u32 Address);
 bool_t AT45_Chip_Erase(void);
 bool_t AT45_FLASH_Ready(void);
 

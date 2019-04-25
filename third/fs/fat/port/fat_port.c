@@ -1149,7 +1149,7 @@ s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
         return (-1);
     }
 
-    obj_InuseUpFullPath(mountobj);
+//    obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;          //直接挂载不用备份
     res = mountfs(NULL, mountpoint, "FAT", opt, data);
     if(res == -1)

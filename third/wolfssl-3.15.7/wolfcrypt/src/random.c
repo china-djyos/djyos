@@ -48,6 +48,7 @@
 #include <wolfssl/wolfcrypt/random.h>
 #include <wolfssl/wolfcrypt/cpuid.h>
 
+static int get_special_length_random(unsigned char *output, size_t len);
 
 /* If building for old FIPS. */
 #if defined(HAVE_FIPS) && \
@@ -749,7 +750,13 @@ static int _InitRng(WC_RNG* rng, byte* nonce, word32 nonceSz,
             ret = MEMORY_E;
         }
         else {
+#if 0
             ret = wc_GenerateSeed(&rng->seed, seed, seedSz);
+#else
+            ret = get_special_length_random(seed, seedSz);
+#endif
+
+            
             if (ret != 0)
                 ret = DRBG_FAILURE;
             else
@@ -2185,6 +2192,30 @@ int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)
         return 0;
     }
 #endif
+
+/*the len should be the multiple of 4,such 4, 8, 12, cannot 5, 7, 13 etc. */
+static int get_special_length_random(unsigned char *output, size_t len)
+{
+    int n=0;
+    int i=0;
+    s32 randnum=0;
+
+    if(output == NULL || ((len%sizeof(randnum))!=0))
+    {
+        return -1;
+    }
+
+    n=len/sizeof(randnum);
+
+    for(i=0;i<n;i++)
+    {
+        srand((u32) (time(NULL)+i));
+        randnum = rand();
+        memcpy(output+(sizeof(randnum)*i),&randnum,sizeof(randnum));
+    }
+
+    return 0;
+}
 
 /* End wc_GenerateSeed */
 #endif /* WC_NO_RNG */

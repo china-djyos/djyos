@@ -562,6 +562,9 @@
 							<Folder Name="bypass_timer">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32F7/drv/bypass_timer/bypass_timer.c"/>
 							</Folder>
+							<Folder Name="ioiic_config">
+								<F N="bsp/boarddrv/demo/APOLLO-STM32F7/drv/ioiic_config/ioiic_config.c"/>
+							</Folder>
 							<Folder Name="key_hard">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32F7/drv/key_hard/key_hard.c"/>
 							</Folder>
@@ -595,6 +598,9 @@
 							</Folder>
 							<Folder Name="boardnetcfg">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/boardnetcfg/boardnetcfg.c"/>
+							</Folder>
+							<Folder Name="ioiic_config">
+								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/ioiic_config/ioiic_config.c"/>
 							</Folder>
 							<Folder Name="lcd_config">
 								<F N="bsp/boarddrv/demo/APOLLO-STM32H7/drv/lcd_config/lcd_config.c"/>
@@ -1344,6 +1350,7 @@
 						<F N="bsp/boarddrv/user/SR2711/Board_SR2711.xml"/>
 						<F N="bsp/boarddrv/user/SR2711/brdexp.c"/>
 						<F N="bsp/boarddrv/user/SR2711/brdexp_bkpsram.c"/>
+						<F N="bsp/boarddrv/user/sr2711/iwdg.c"/>
 						<F N="bsp/boarddrv/user/SR2711/kiko.c"/>
 						<F N="bsp/boarddrv/user/SR2711/lp_sr2711.c"/>
 						<F N="bsp/boarddrv/user/SR2711/lptim.c"/>
@@ -1781,8 +1788,15 @@
 					<F N="bsp/chipdrv/at24c512c/at24c512c.c"/>
 				</Folder>
 				<Folder Name="at45db321">
-					<F N="bsp/chipdrv/at45db321/at45_efs.c"/>
-					<F N="bsp/chipdrv/at45db321/at45_yaf.c"/>
+					<Folder Name="at45_efs">
+						<F N="bsp/chipdrv/at45db321/at45_efs/at45_efs.c"/>
+					</Folder>
+					<Folder Name="at45_efs_full">
+						<F N="bsp/chipdrv/at45db321/at45_efs_full/at45_efs_full.c"/>
+					</Folder>
+					<Folder Name="at45_yaf">
+						<F N="bsp/chipdrv/at45db321/at45_yaf/at45_yaf.c"/>
+					</Folder>
 					<F N="bsp/chipdrv/at45db321/at45db321.c"/>
 					<F N="bsp/chipdrv/at45db321/at45db321_dev.c"/>
 				</Folder>
@@ -2080,8 +2094,12 @@
 								<F N="bsp/cpudrv/Atmel/SamV7/src/mcan/cpu_peri_mcan.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<F N="bsp/cpudrv/Atmel/SamV7/src/nand/cpu_nand_efs.c"/>
-								<F N="bsp/cpudrv/Atmel/SamV7/src/nand/cpu_nand_yaf.c"/>
+								<Folder Name="cpu_nand_efs_full">
+									<F N="bsp/cpudrv/Atmel/SamV7/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
+								</Folder>
+								<Folder Name="cpu_nand_yaf">
+									<F N="bsp/cpudrv/Atmel/SamV7/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/Atmel/SamV7/src/nand/cpu_peri_nand.c"/>
 							</Folder>
 							<Folder Name="pio">
@@ -2159,38 +2177,6 @@
 					</Folder>
 					<F N="bsp/cpudrv/beken/cpu_group_beken.xml"/>
 				</Folder>
-				<Folder Name="bk7251">
-					<Folder Name="include">
-						<F N="bsp/cpudrv/bk7251/include/cpu-optional.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri_audio_dac.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri_audio_mic.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri_flash.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri_gpio.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri_int_line.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri_uart.h"/>
-						<F N="bsp/cpudrv/bk7251/include/cpu_peri_wifi.h"/>
-					</Folder>
-					<Folder Name="src">
-						<Folder Name="audio">
-							<F N="bsp/cpudrv/bk7251/src/audio/cpu_peri_audio_dac.c"/>
-							<F N="bsp/cpudrv/bk7251/src/audio/cpu_peri_audio_mic.c"/>
-						</Folder>
-						<Folder Name="flash">
-							<F N="bsp/cpudrv/bk7251/src/flash/cpu_peri_flash.c"/>
-						</Folder>
-						<Folder Name="gpio">
-							<F N="bsp/cpudrv/bk7251/src/gpio/cpu_peri_gpio.c"/>
-						</Folder>
-						<Folder Name="uart">
-							<F N="bsp/cpudrv/bk7251/src/uart/cpu_peri_uart.c"/>
-						</Folder>
-						<Folder Name="wifi">
-							<F N="bsp/cpudrv/bk7251/src/wifi/cpu_peri_wifi.c"/>
-						</Folder>
-					</Folder>
-					<F N="bsp/cpudrv/bk7251/cpu_bk7251.xml"/>
-				</Folder>
 				<Folder Name="FslKxx">
 					<Folder Name="include">
 						<F N="bsp/cpudrv/FslKxx/include/cpu-optional.h"/>
@@ -2209,7 +2195,9 @@
 					</Folder>
 					<Folder Name="src">
 						<Folder Name="emflash">
-							<F N="bsp/cpudrv/FslKxx/src/emflash/cpu_emflash_xip.c"/>
+							<Folder Name="cpu_emflash_xip">
+								<F N="bsp/cpudrv/FslKxx/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+							</Folder>
 							<F N="bsp/cpudrv/FslKxx/src/emflash/cpu_peri_emflash.c"/>
 						</Folder>
 						<Folder Name="enet">
@@ -2225,8 +2213,12 @@
 							<F N="bsp/cpudrv/FslKxx/src/lcd/cpu_peri_lcd.c"/>
 						</Folder>
 						<Folder Name="nand">
-							<F N="bsp/cpudrv/FslKxx/src/nand/cpu_nand_efs.c"/>
-							<F N="bsp/cpudrv/FslKxx/src/nand/cpu_nand_yaf.c"/>
+							<Folder Name="cpu_nand_efs_full">
+								<F N="bsp/cpudrv/FslKxx/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
+							</Folder>
+							<Folder Name="cpu_nand_yaf">
+								<F N="bsp/cpudrv/FslKxx/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
+							</Folder>
 							<F N="bsp/cpudrv/FslKxx/src/nand/cpu_peri_nand.c"/>
 						</Folder>
 						<Folder Name="nfc">
@@ -2333,7 +2325,9 @@
 						</Folder>
 						<Folder Name="src">
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/LPC/17xx/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/LPC/17xx/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/LPC/17xx/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="enet">
@@ -2382,7 +2376,9 @@
 								<F N="bsp/cpudrv/Nuvoton/M480/src/dma/cpu_peri_dma.c"/>
 							</Folder>
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/Nuvoton/M480/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/Nuvoton/M480/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/Nuvoton/M480/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="eth">
@@ -2585,8 +2581,12 @@
 								<F N="bsp/cpudrv/samsung/s3c2416/src/lcd/cpu_peri_lcd.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<F N="bsp/cpudrv/samsung/s3c2416/src/nand/cpu_nand_efs.c"/>
-								<F N="bsp/cpudrv/samsung/s3c2416/src/nand/cpu_nand_yaf.c"/>
+								<Folder Name="cpu_nand_efs_full">
+									<F N="bsp/cpudrv/samsung/s3c2416/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
+								</Folder>
+								<Folder Name="cpu_nand_yaf">
+									<F N="bsp/cpudrv/samsung/s3c2416/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/samsung/s3c2416/src/nand/cpu_peri_nand.c"/>
 							</Folder>
 							<Folder Name="nude_io">
@@ -2684,7 +2684,9 @@
 						</Folder>
 						<Folder Name="src">
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/scm6xx/scm610/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/scm6xx/scm610/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/scm6xx/scm610/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="eth">
@@ -2791,7 +2793,9 @@
 								<F N="bsp/cpudrv/stm32/f1/src/dma/cpu_peri_dma.c"/>
 							</Folder>
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/stm32/f1/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/stm32/f1/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/stm32/f1/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="gpio">
@@ -2884,7 +2888,9 @@
 								<F N="bsp/cpudrv/stm32/f4/src/dma/cpu_peri_dma.c"/>
 							</Folder>
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/stm32/f4/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/stm32/f4/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/stm32/f4/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="eth">
@@ -2961,7 +2967,9 @@
 								<F N="bsp/cpudrv/stm32/f7/src/dma/cpu_peri_dma.c"/>
 							</Folder>
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/stm32/f7/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/stm32/f7/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/stm32/f7/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="eth">
@@ -2984,8 +2992,12 @@
 								<F N="bsp/cpudrv/stm32/f7/src/lowpower/cpu_peri_lptimer.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_nand_efs.c"/>
-								<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_nand_yaf.c"/>
+								<Folder Name="cpu_nand_efs_full">
+									<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
+								</Folder>
+								<Folder Name="cpu_nand_yaf">
+									<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_peri_nand.c"/>
 							</Folder>
 							<Folder Name="rng">
@@ -3061,7 +3073,9 @@
 								<F N="bsp/cpudrv/stm32/h7/src/dma/cpu_peri_dma.c"/>
 							</Folder>
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/stm32/h7/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/stm32/h7/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/stm32/h7/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="eth">
@@ -3081,8 +3095,12 @@
 								<F N="bsp/cpudrv/stm32/h7/src/lowpwer/cpu_peri_lptimer.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_efs.c"/>
-								<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_yaf.c"/>
+								<Folder Name="cpu_nand_efs_full">
+									<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
+								</Folder>
+								<Folder Name="cpu_nand_yaf">
+									<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_peri_nand.c"/>
 							</Folder>
 							<Folder Name="rng">
@@ -3126,7 +3144,9 @@
 						</Folder>
 						<Folder Name="src">
 							<Folder Name="emflash">
-								<F N="bsp/cpudrv/stm32/L4/src/emflash/cpu_emflash_xip.c"/>
+								<Folder Name="cpu_emflash_xip">
+									<F N="bsp/cpudrv/stm32/L4/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/stm32/L4/src/emflash/cpu_peri_emflash.c"/>
 							</Folder>
 							<Folder Name="iic">
@@ -3232,6 +3252,9 @@
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/int/cpu_peri_isr.c"/>
 							</Folder>
 							<Folder Name="norflash">
+								<Folder Name="emflash_xip">
+									<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/emflash_xip/emflash_xip.c"/>
+								</Folder>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/embeded_flash.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/emflash_xip.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.c"/>
@@ -3478,6 +3501,9 @@
 				<F N="component/hmi-input/hmi-input.c"/>
 			</Folder>
 			<Folder Name="include">
+				<Folder Name="cfg">
+					<F N="component/include/cfg/ymodemcfg.h"/>
+				</Folder>
 				<Folder Name="font">
 					<F N="component/include/font/font.h"/>
 					<F N="component/include/font/font_ascii.h"/>
@@ -3500,6 +3526,7 @@
 						<F N="component/include/net/netinet/in.h"/>
 					</Folder>
 					<Folder Name="sys">
+						<F N="component/include/net/sys/dhcp.h"/>
 						<F N="component/include/net/sys/mman.h"/>
 						<F N="component/include/net/sys/select.h"/>
 						<F N="component/include/net/sys/socket.h"/>
@@ -3633,6 +3660,7 @@
 			<Folder Name="tcpip">
 				<Folder Name="apps">
 					<Folder Name="dhcp">
+						<F N="component/tcpip/apps/dhcp/component_config_dhcp.h"/>
 						<F N="component/tcpip/apps/dhcp/dhcpclient.c"/>
 						<F N="component/tcpip/apps/dhcp/dhcpLib.c"/>
 						<F N="component/tcpip/apps/dhcp/dhcpLib.h"/>
@@ -3642,6 +3670,7 @@
 						<F N="component/tcpip/apps/dns/dns.c"/>
 					</Folder>
 					<Folder Name="ftp">
+						<F N="component/tcpip/apps/ftp/component_config_ftp.h"/>
 						<F N="component/tcpip/apps/ftp/ftp.c"/>
 						<F N="component/tcpip/apps/ftp/ftp.h"/>
 						<F N="component/tcpip/apps/ftp/ftpc.c"/>
@@ -3662,6 +3691,7 @@
 					</Folder>
 					<Folder Name="tftp">
 						<F N="component/tcpip/apps/tftp/client.c"/>
+						<F N="component/tcpip/apps/tftp/component_config_tftp.h"/>
 						<F N="component/tcpip/apps/tftp/server.c"/>
 						<F N="component/tcpip/apps/tftp/tftplib.c"/>
 						<F N="component/tcpip/apps/tftp/tftplib.h"/>
@@ -3710,6 +3740,7 @@
 				<Folder Name="ppp">
 					<F N="component/tcpip/ppp/atcmd.c"/>
 					<F N="component/tcpip/ppp/atcmd.h"/>
+					<F N="component/tcpip/ppp/component_config_ppp.h"/>
 					<F N="component/tcpip/ppp/fcs.c"/>
 					<F N="component/tcpip/ppp/fcs.h"/>
 					<F N="component/tcpip/ppp/iodev.c"/>

@@ -60,45 +60,46 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_EmbededFlash(s32 bstart, s32 bend, u32 doformat);
-//    ModuleInstall_EmbededFlash(CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
+//s32 ModuleInstall_EmbededFlash(u32 doformat);
+//ModuleInstall_EmbededFlash(CFG_EFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_emflash" //片内flash读写
-//parent:"iap"                      //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                    //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                   //初始化时机，可选值：early，medium，later。
-                                    //表示初始化时间，分别是早期、中期、后期
-//dependence:"int","devfile","heap","lock"    //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //选中该组件时，被依赖组件将强制选中，
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"             //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                    //选中该组件时，被依赖组件不会被强制选中，
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
+//component name:"cpu_peri_emflash"     //片内flash
+//parent:"none"                          //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                        //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early                       //初始化时机，可选值：early，medium，later。
+                                        //表示初始化时间，分别是早期、中期、后期
+//dependence:"devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                        //选中该组件时，被依赖组件将强制选中，
+                                        //如果依赖多个组件，则依次列出
+//weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                        //选中该组件时，被依赖组件不会被强制选中，
+                                        //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                      //该组件的互斥组件名（可以是none，表示无互斥组件），
                                     //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-//%$#@target = header                                   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_EFLASH_FSMOUNT_NAME   //****检查参数是否已经配置好
+//%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_EFLASH_PART_FORMAT   //****检查参数是否已经配置好
 #warning    cpu_peri_emflash 组件参数未配置，使用默认值
-//%$#@num,-1,12,
-#define CFG_EFLASH_PART_START      6          //分区起始，填写块号，块号从0开始计算
-#define CFG_EFLASH_PART_END        -1         //分区结束，-1表示最后一块
 //%$#@enum,true,false,
-#define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
+#define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
 //%$#@string,1,32,
-//%$#@enum,EN_XIP_APP_TARGET,EN_XIP_IBOOT_TARGET,NULL
-#define CFG_EFLASH_FSMOUNT_NAME   EN_XIP_APP_TARGET    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
-//%$#select,        ***从列出的选项中选择若干个定义成宏
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
+// ============================================================================
 
 static struct EmbdFlashDescr{
     u16     BytesPerPage;                   // 页中包含的字节数
@@ -115,9 +116,8 @@ extern u32 gc_ptIbootSize;
 
 static const char *EmflashName = "emflash";      //该flash在obj在的名字
 static struct umedia *emflash_um;
-extern struct __xip_drv XIP_EMFLASH_DRV;
-extern struct Object *s_ptDeviceRoot;
-s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend);
+extern struct obj *s_ptDeviceRoot;
+s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
 s32 __embed_read(s64 unit, void *data, struct uopt opt);
 s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
 s32 __embed_write(s64 unit, void *data, struct uopt opt);
@@ -331,12 +331,11 @@ DONE:
 
 //-----------------------------------------------------------------------------
 // 功能：安装片内Flash驱动
-// 参数：TargetFs -- 要挂载的文件系统
-//      分区数据 -- 起始块，结束块数（如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块，不包括第六块），是否格式化；
+// 参数：doformat -- 是否格式化；
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_EmbededFlash(s32 bstart, s32 bend, u32 doformat)
+s32 ModuleInstall_EmbededFlash(u32 doformat)
 {
     static u8 emflashinit = 0;
     u32 units;
@@ -356,7 +355,7 @@ s32 ModuleInstall_EmbededFlash(s32 bstart, s32 bend, u32 doformat)
         struct uesz sz;
         sz.unit = 0;
         sz.block = 1;
-        __embed_req(format, (ptu32_t)bstart , bend, &sz);           //格式化指定区域
+        __embed_req(format, (ptu32_t)0 , -1, &sz);           //格式化指定区域
     }
 
     if(emflashinit == 0)
@@ -378,14 +377,6 @@ s32 ModuleInstall_EmbededFlash(s32 bstart, s32 bend, u32 doformat)
             return (-1);
         }
         emflashinit = 1;
-    }
-
-    if(CFG_EFLASH_FSMOUNT_NAME != NULL)
-    {
-        if(__embed_FsInstallInit(CFG_EFLASH_FSMOUNT_NAME, bstart, bend))
-        {
-            return -1;
-        }
     }
     return (0);
 }
@@ -634,16 +625,16 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 
 // ============================================================================
 // 功能：初始化片内flash
-// 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
 //       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend)
+s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     u32 units, total = 0;
     char *FullPath,*notfind;
-    struct Object *targetobj;
+    struct obj *targetobj;
     struct FsCore *super;
     s32 res,endblock = bend;
     targetobj = obj_matchpath(fs, &notfind);
@@ -654,17 +645,7 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend)
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
     super->MediaInfo = emflash_um;
-    //这里的"XIP-APP"和"XIP-IBOOT"为文件系统的类型名
-    if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
-    {
-        super->MediaDrv = &XIP_EMFLASH_DRV;
-    }
-    else
-    {
-        super->MediaDrv = 0;
-        error_printf("embed"," \"%s\" file system type nonsupport", super->pFsType->pType);
-        return -1;
-    }
+    super->MediaDrv = mediadrv;
 
     if(-1 == (s32)endblock)
     {
