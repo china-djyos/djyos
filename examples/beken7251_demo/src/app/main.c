@@ -54,33 +54,41 @@
 #include "stddef.h"
 #include "cpu_peri.h"
 #include "cpu_peri_wifi.h"
-char fifo_buf[8000] = {0};
+#include <sys/dhcp.h>
+#include <sys/socket.h>
 
 ptu32_t djy_main(void)
 {
     int i = 0;
-    uint32_t size = 0;
-    uint32_t volume = 0;
-    djy_audio_adc_open(8000,2,audio_sample_rate_11025,AUD_ADC_LINEIN_DETECT_PIN);
-    djy_audio_dac_open(8000,1,audio_sample_rate_11025);
-    volume = 80;/*MAX 99*/
-    djy_audio_dac_ctrl(AUD_DAC_CMD_SET_VOLUME,&volume);
-    djy_gpio_mode(GPIO4,PIN_MODE_INPUT_PULLUP);
-//    djy_flash_read(0x80000,fifo_buf,4096);
-//    Djy_EventDelay(1000*1000);
-    DjyWifi_Connect("djyos-ap", "djyos12345");
-    while(1)
+    DjyWifi_ApOpen("djyos-yunap","djyos12345");
+    i = 40;
+    do
     {
-       i++;
-       if(i%50==0)
-           printf("hello world%d!\r\n",(i/50));
-       if(djy_gpio_read(GPIO4)==0)
-       {
-           size = djy_audio_adc_read(fifo_buf,8000);
-           djy_audio_dac_write(fifo_buf,size);
-       }
-       Djy_EventDelay(20*1000);
-    }
+        i--;
+        printf("ap mode!\r\n");
+        Djy_EventDelay(2000*1000);
+    }while(i>0);
+    DjyWifi_ApClose();
+    DjyWifi_StaConnect("djyos-ap", "djyos12345");
+    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+   {
+      printf("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+   }
+   else
+   {
+       printf("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+   }
+
+   do
+   {
+       printf("wait connect!\r\n");
+       Djy_EventDelay(2000*1000);
+   }while(DHCP_ConnetStatus(EN_DHCP_GET_STATUS_CMD,0)!=EN_DHCP_CONNET_STATUS);
+   while(1)
+   {
+      printf("sta mode!\r\n");
+      Djy_EventDelay(2000*1000);
+   }
     return 0;
 }
 

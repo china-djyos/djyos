@@ -63,7 +63,10 @@ extern "C" {
 #include <stddef.h>
 
 void MacRcv(void *p);
-void DjyWifi_Connect(char *ssid,char *connect_key);
+void DjyWifi_StaConnect(char *ssid,char *connect_key);
+void DjyWifi_StaDisConnect(void);
+void DjyWifi_ApOpen(char *ap_ssid, char *ap_key);
+void DjyWifi_ApClose(void);
 bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
                           bool_t loop,u32 loopcycle,\
                           bool_t (*rcvHook)(u8 *buf, u16 len));

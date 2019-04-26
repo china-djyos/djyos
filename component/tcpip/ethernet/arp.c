@@ -590,6 +590,13 @@ bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
     bool_t      ret = false;
     tagArpItem *tmp;
 
+    if(ippeer==INADDR_BROAD)
+    {
+        for(int i=0;i<CN_MACADDR_LEN;i++)
+            macbuf[i] = 0xff;
+        ret = true;
+        return ret;
+    }
     if(mutex_lock(gArpCB.lock))
     {
         tmp = __ItemMatch(ippeer);

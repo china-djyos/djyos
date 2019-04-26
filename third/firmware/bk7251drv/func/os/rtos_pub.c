@@ -4,7 +4,7 @@
 #include "rtos_pub.h"
 
 #include "systime.h"
-
+#include "djytimer.h"
 //#include "finsh.h"
 
 #define THREAD_TIMESLICE 5
@@ -354,7 +354,7 @@ static void timer_oneshot_callback(void* parameter)
 OSStatus rtos_start_oneshot_timer( beken2_timer_t* timer)
 {
     RTOS_DBG("oneshot_timer start \n");
-
+    djytimer_start(timer->handle);
     return kNoErr;
 }
 
@@ -364,7 +364,7 @@ OSStatus rtos_stop_oneshot_timer(beken2_timer_t* timer)
 
     if(timer->handle != NULL)
     {
-        djytimer_free(timer->handle);
+        djytimer_stop(timer->handle);
         return kNoErr;
     }
 
@@ -380,7 +380,7 @@ BOOL rtos_is_oneshot_timer_init(beken2_timer_t* timer)
 BOOL rtos_is_oneshot_timer_running(beken2_timer_t* timer)
 {
     RTOS_DBG("oneshot_timer is runing \n");
-    if(timer->handle!=NULL)
+    if(djytimer_get_status(timer->handle)==DJYTIMER_RUNNIG)
         return true;
     return false;
 }
@@ -388,7 +388,11 @@ BOOL rtos_is_oneshot_timer_running(beken2_timer_t* timer)
 OSStatus rtos_oneshot_reload_timer( beken2_timer_t* timer)
 {
     RTOS_DBG("reload oneshot timer\n");
-    djytimer_create(timer->time_ms, 1,timer_oneshot_callback, timer);
+    if(timer->handle==NULL)
+        timer->handle = djytimer_create(timer->time_ms, 1,timer_oneshot_callback, timer);
+    if(timer->handle==NULL)
+        return kGeneralErr;
+    djytimer_start(timer->handle);
     return kNoErr;
 }
 
@@ -421,7 +425,7 @@ OSStatus rtos_deinit_oneshot_timer( beken2_timer_t* timer )
 
     RTOS_DBG("delete oneshot_timer \n");
     djytimer_free(timer->handle);
-    timer->handle = 0;
+    timer->handle = NULL;
     timer->function = 0;
     timer->left_arg = 0;
     timer->right_arg = 0;
