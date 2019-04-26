@@ -48,6 +48,14 @@
 #include <stdint.h>
 #include "djyq.h"
 
+enum djytimer_status_e
+{
+    DJYTIMER_ERROR,
+    DJYTIMER_INIT,
+    DJYTIMER_STOP,
+    DJYTIMER_RUNNIG,
+};
+
 struct djytimer_t
 {
     // inherent from djyq_node_t
@@ -56,11 +64,14 @@ struct djytimer_t
     void *param;
     uint32_t interval;
     int trigger_cnt;
+    enum djytimer_status_e status;
 };
 
 void djytimer_init(void);
 void djytimer_free(struct djytimer_t *timer);
 struct djytimer_t *djytimer_create(uint32_t interval, int16_t trigger_cnt,
                                         void (*cb)(void *), void *param);
-
+void djytimer_start(struct djytimer_t *timer);
+void djytimer_stop(struct djytimer_t *timer);
+enum djytimer_status_e djytimer_get_status(struct djytimer_t *timer);
 #endif

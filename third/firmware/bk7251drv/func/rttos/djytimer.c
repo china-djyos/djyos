@@ -54,22 +54,32 @@ static struct djytimer_info_t
     struct djyq_t timerlist;
 }djytimer;
 
-static void djytimer_dequeue(struct djytimer_t *timer)
+enum djytimer_status_e djytimer_get_status(struct djytimer_t *timer)
+{
+    if(timer==NULL)
+        return DJYTIMER_ERROR;
+    else
+        return timer->status;
+}
+
+void djytimer_stop(struct djytimer_t *timer)
 {
     atom_low_t low = 0;
     low = Int_LowAtomStart();
     djyq_remove(&djytimer.timerlist, &timer->node);
+    timer->status = DJYTIMER_STOP;
     Int_LowAtomEnd(low);
 }
 
-static void djytimer_enqueue(struct djytimer_t *timer)
+void djytimer_start(struct djytimer_t *timer)
 {
     atom_low_t low = 0;
     timer->node.addr = timer->interval + (uint32_t)(DjyGetSysTime()/1000);
-    djytimer_dequeue(timer);
+    djytimer_stop(timer);
 
     low = Int_LowAtomStart();
     djyq_enqueue(&djytimer.timerlist, &timer->node);
+    timer->status = DJYTIMER_RUNNIG;
     Int_LowAtomEnd(low);
 }
 
@@ -89,14 +99,14 @@ struct djytimer_t *djytimer_create(uint32_t interval, int16_t trigger_cnt,
     timer->trigger_cnt = trigger_cnt;
     timer->cb = cb;
     timer->param = param;
-    djytimer_enqueue(timer);
+    timer->status = DJYTIMER_INIT;
     return timer;
 }
 
 void djytimer_free(struct djytimer_t *timer)
 {
     atom_low_t low = 0;
-    djytimer_dequeue(timer);
+    djytimer_stop(timer);
     low = Int_LowAtomStart();
     free(timer);
     Int_LowAtomEnd(low);
@@ -126,7 +136,7 @@ static ptu32_t djytimer_thread(void)
                 }
                 if (timer->trigger_cnt != 0)
                 {
-                    djytimer_enqueue(timer);
+                    djytimer_start(timer);
                 }
                 else
                 {

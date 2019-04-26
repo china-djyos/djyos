@@ -349,9 +349,24 @@ void MacRcv(void *p)
     }
 }
 
-void DjyWifi_Connect(char *ssid,char *connect_key)
+void DjyWifi_StaConnect(char *ssid,char *connect_key)
 {
     demo_sta_app_init(ssid, connect_key);
+}
+
+void DjyWifi_StaDisConnect(void)
+{
+    bk_wlan_stop(STATION);
+}
+
+void DjyWifi_ApOpen(char *ap_ssid, char *ap_key)
+{
+    demo_softap_app_init(ap_ssid,ap_key);
+}
+
+void DjyWifi_ApClose(void)
+{
+    bk_wlan_stop(SOFT_AP);
 }
 
 // =============================================================================

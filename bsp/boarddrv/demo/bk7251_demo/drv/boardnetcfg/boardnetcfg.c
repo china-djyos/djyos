@@ -97,6 +97,10 @@
 #endif
 //%$#@end configue  ****参数配置结束
 
+#define CFG_DHCPD_IPV4      "192.168.0.179"
+#define CFG_DHCPD_SUBMASK   "255.255.255.0"
+#define CFG_DHCPD_GATWAY    "192.168.0.1"
+#define CFG_DHCPD_DNS       "192.168.0.1"   //"DNS"
 
 static u8   gc_NetMac[CN_MACADDR_LEN] = DEFAULT_MAC_ADDR;
 
@@ -111,42 +115,14 @@ void ModuleInstall_InitNet(void)   //static ip example
                               bool_t (*rcvHook)(u8 *buf, u16 len));
     ModuleInstall_Wifi(CFG_NETCARD_NAME,gc_NetMac,false,1*mS,NULL);
 
-#if CFG_STATIC_IP == 1
     tagHostAddrV4  ipv4addr;
     //we use the static ip we like
     memset((void *)&ipv4addr,0,sizeof(ipv4addr));
-    ipv4addr.ip      = inet_addr(CFG_MY_IPV4);
-    ipv4addr.submask = inet_addr(CFG_MY_SUBMASK);
-    ipv4addr.gatway  = inet_addr(CFG_MY_GATWAY);
-    ipv4addr.dns     = inet_addr(CFG_MY_DNS);
-    ipv4addr.broad   = inet_addr("192.168.0.255");
-    if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
-    {
-        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
-    }
-    else
-    {
-        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
-    }
-    //下一个路由，用于生产测试用，利用CPU ID 随机生成主机地址，网络地址用 192.168.1
-    //WE WILL ADD A ROUT DIFFERENT FOR EACH DEVICE USE THE CPU SIGNATURE
-    //USE THE NET:192.168.1.xx
-    u8 value8 = 0;
-    value8 = +((u8)signature[0]>>0)+((u8)signature[0]>>8)+((u8)signature[0]>>16)+((u8)signature[0]>>24);
-    if((value8==0)||(value8==1)||(value8==255))
-    {
-        value8=253;
-    }
-    u32 value32 = 0;
-    memset((void *)&ipv4addr,0,sizeof(ipv4addr));
-    value32 = inet_addr("192.168.1.0");
-    value32 = ntohl(value32);
-    value32 =(value32&0xffffff00) + value8;
-    ipv4addr.ip      = htonl(value32);
-    ipv4addr.submask = inet_addr("255.255.255.0");
-    ipv4addr.gatway  = inet_addr("192.168.1.1");
-    ipv4addr.dns     = inet_addr("192.168.1.1");
-    ipv4addr.broad   = inet_addr("192.168.1.255");
+    ipv4addr.ip      = inet_addr(CFG_DHCPD_IPV4);
+    ipv4addr.submask = inet_addr(CFG_DHCPD_SUBMASK);
+    ipv4addr.gatway  = inet_addr(CFG_DHCPD_GATWAY);
+    ipv4addr.dns     = inet_addr(CFG_DHCPD_DNS);
+    ipv4addr.broad   = inet_addr("255.255.255.255");
     if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
     {
         printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
@@ -156,16 +132,14 @@ void ModuleInstall_InitNet(void)   //static ip example
         printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
     }
 
-#else
-    if(DhcpAddClientTask(CFG_NETCARD_NAME))
-    {
-       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-    }
-    else
-    {
-        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-    }
+//    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+//    {
+//       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+//    }
+//    else
+//    {
+//        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+//    }
 
-#endif
 }
 
