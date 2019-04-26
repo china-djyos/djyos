@@ -373,11 +373,11 @@ static void PwMapListDelete(PwMapList* list)
     }
 }
 
-
-static const char samplePasswordBuffer[] =
-    "jill:upthehill\n"
-    "jack:fetchapail\n";
-
+#if 1
+static const char samplePasswordBuffer[] = SFTP_SERVER_USERNAME_PASSWORD_STRINGS;
+#else
+static const char samplePasswordBuffer[] = "jill:upthehill\n jack:fetchapail\n";
+#endif
 
 static const char samplePublicKeyEccBuffer[] =
     "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAA"
@@ -421,6 +421,11 @@ static int LoadPasswordBuffer(byte* buf, word32 bufSz, PwMapList* list)
         return 0;
 
     while (*str != 0) {
+        while(*str == ' ')
+        {
+            str++; //trim the empty space
+        }
+
         delimiter = strchr(str, ':');
         username = str;
         *delimiter = 0;

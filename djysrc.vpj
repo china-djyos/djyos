@@ -15145,6 +15145,35 @@
 				<F N="third/libjpeg-turbo-1.4.1/wrrle.c"/>
 				<F N="third/libjpeg-turbo-1.4.1/wrtarga.c"/>
 			</Folder>
+			<Folder Name="libmad-0.15.1b">
+				<F N="third/libmad-0.15.1b/bit.c"/>
+				<F N="third/libmad-0.15.1b/bit.h"/>
+				<F N="third/libmad-0.15.1b/config.h"/>
+				<F N="third/libmad-0.15.1b/decoder.c"/>
+				<F N="third/libmad-0.15.1b/decoder.h"/>
+				<F N="third/libmad-0.15.1b/fixed.c"/>
+				<F N="third/libmad-0.15.1b/fixed.h"/>
+				<F N="third/libmad-0.15.1b/frame.c"/>
+				<F N="third/libmad-0.15.1b/frame.h"/>
+				<F N="third/libmad-0.15.1b/global.h"/>
+				<F N="third/libmad-0.15.1b/huffman.c"/>
+				<F N="third/libmad-0.15.1b/huffman.h"/>
+				<F N="third/libmad-0.15.1b/imdct_l_arm.S"/>
+				<F N="third/libmad-0.15.1b/layer12.c"/>
+				<F N="third/libmad-0.15.1b/layer12.h"/>
+				<F N="third/libmad-0.15.1b/layer3.c"/>
+				<F N="third/libmad-0.15.1b/layer3.h"/>
+				<F N="third/libmad-0.15.1b/mad.h"/>
+				<F N="third/libmad-0.15.1b/minimad.c"/>
+				<F N="third/libmad-0.15.1b/stream.c"/>
+				<F N="third/libmad-0.15.1b/stream.h"/>
+				<F N="third/libmad-0.15.1b/synth.c"/>
+				<F N="third/libmad-0.15.1b/synth.h"/>
+				<F N="third/libmad-0.15.1b/timer.c"/>
+				<F N="third/libmad-0.15.1b/timer.h"/>
+				<F N="third/libmad-0.15.1b/version.c"/>
+				<F N="third/libmad-0.15.1b/version.h"/>
+			</Folder>
 			<Folder Name="libpng-1.6.17">
 				<Folder Name="arm">
 					<F N="third/libpng-1.6.17/arm/arm_init.c"/>
@@ -16252,6 +16281,8 @@
 					<F N="third/wolfssh-1.3.0/wolfssh/wolfscp.h"/>
 					<F N="third/wolfssh-1.3.0/wolfssh/wolfsftp.h"/>
 				</Folder>
+				<F N="third/wolfssh-1.3.0/component_config_wolfssh130.h"/>
+				<F N="third/wolfssh-1.3.0/sftp_port_info.txt"/>
 			</Folder>
 			<Folder Name="wolfssl-3.10.2">
 				<Folder Name="certs">
@@ -17698,6 +17729,7 @@
 					<F N="third/wolfssl-3.15.7/wolfssl/version.h"/>
 					<F N="third/wolfssl-3.15.7/wolfssl/wolfio.h"/>
 				</Folder>
+				<F N="third/wolfssl-3.15.7/component_config_wolfssl3157.h"/>
 				<F N="third/wolfssl-3.15.7/resource.h"/>
 			</Folder>
 			<Folder Name="zlib-1.2.8">

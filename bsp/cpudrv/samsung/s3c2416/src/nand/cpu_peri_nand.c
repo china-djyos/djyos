@@ -61,7 +61,6 @@
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
-#include <efs_full.h>
 #include <dbug.h>
 #include <filesystems.h>
 #include <math.h>
@@ -88,11 +87,11 @@
 //dependence:"devfile","djyfs"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"yaf2filesystem"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                //如果与多个组件互斥，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -128,7 +127,7 @@ s32 __nand_write(s64 unit, void *data, struct uopt opt);
 s32 __nand_erase(s64 unit, struct uesz sz);
 static u32 *badstable = NULL;
 static u32 badslocation = 0;
-
+static bool_t sNandflashInited = false;
 #define NFlashLockTimeOut     CN_CFG_TICK_US * 1000 * 10
 extern s32 deonfi(const char *data, struct NandDescr *onfi, u8 little);
 extern struct Object *s_ptDeviceRoot;
@@ -651,10 +650,6 @@ static void  S3C2416_NAND_ControllerConfig(void)
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_NAND(u32 doformat)
 {
-    char name[16], part[3];
-    static s32 count = 0;
-    static u8 nandinit = 0;
-    char *FullPath;
     if(!s_ptNandInfo)
     {
         if(__nand_init())
@@ -682,26 +677,32 @@ s32 ModuleInstall_NAND(u32 doformat)
         }
     }
 
-    if(nandinit == 0)
+    nand_umedia = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
+    if(!nand_umedia)
+        return (-1);
+
+    nand_umedia->mreq = __nand_req;
+    nand_umedia->type = nand;
+    nand_umedia->ubuf = (u8*)um + sizeof(struct umedia);
+
+    if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
     {
-        nand_umedia = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
-        if(!nand_umedia)
-            return (-1);
-
-        nand_umedia->mreq = __nand_req;
-        nand_umedia->type = nand;
-        nand_umedia->ubuf = (u8*)um + sizeof(struct umedia);
-
-        if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
-        {
-            printf("\r\n: erro : device : %s addition failed.", NandFlashName);
-            free(nand_umedia);
-            return (-1);
-        }
-        nandinit = 1;
+        printf("\r\n: erro : device : %s addition failed.", NandFlashName);
+        free(nand_umedia);
+        return (-1);
     }
-
+    sNandflashInited = true;
     return (0);
+}
+// =============================================================================
+// 功能：判断nandflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t Nandflash_is_install(void)
+{
+    return sNandflashInited;
 }
 /******************************************************************************
                          PRIVATE FUNCTION(本地私有函数)
@@ -1358,7 +1359,7 @@ static s32 __nand_init(void)
 s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
     targetobj = obj_matchpath(fs, &notfind);

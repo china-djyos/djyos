@@ -61,7 +61,6 @@
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
-#include <efs_full.h>
 #include <dbug.h>
 #include <filesystems.h>
 #include <math.h>
@@ -144,10 +143,10 @@ s32 __nand_erase(s64 unit, struct uesz sz);
 s32 __nand_req(enum ucmd cmd, ptu32_t args, ...);
 static u32 *badstable;
 static u32 badslocation = 0;
-
+static bool_t sNandflashInited = false;
 extern s32 deonfi(const char *data, struct NandDescr *onfi, u8 little);
 static struct NandDescr *s_ptNandInfo;//
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 static struct MutexLCB *NandFlashLock;
 struct umedia *nand_umedia;
 static const char *NandFlashName = "nand";      //该flash在obj在的名字
@@ -680,8 +679,6 @@ static s32 K70_GetNandDescr(struct NandDescr *Descr)
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_NAND(u32 doformat)
 {
-    static u8 nandinit = 0;
-
     if(!s_ptNandInfo)
     {
         if(__nand_init())
@@ -709,26 +706,32 @@ s32 ModuleInstall_NAND(u32 doformat)
         }
     }
 
-    if(nandinit == 0)
+    nand_umedia = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
+    if(!nand_umedia)
+        return (-1);
+
+    nand_umedia->mreq = __nand_req;
+    nand_umedia->type = nand;
+    nand_umedia->ubuf = (u8*)nand_umedia + sizeof(struct umedia);
+
+    if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
     {
-        nand_umedia = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
-        if(!nand_umedia)
-            return (-1);
-
-        nand_umedia->mreq = __nand_req;
-        nand_umedia->type = nand;
-        nand_umedia->ubuf = (u8*)nand_umedia + sizeof(struct umedia);
-
-        if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
-        {
-            printf("\r\n: erro : device : %s addition failed.", NandFlashName);
-            free(nand_umedia);
-            return (-1);
-        }
-        nandinit = 1;
+        printf("\r\n: erro : device : %s addition failed.", NandFlashName);
+        free(nand_umedia);
+        return (-1);
     }
-
+    sNandflashInited = true;
     return (0);// 成功;
+}
+// =============================================================================
+// 功能：判断nandflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t Nandflash_is_install(void)
+{
+    return sNandflashInited;
 }
 /******************************************************************************
                          PRIVATE FUNCTION(本地私有函数)
@@ -1296,7 +1299,7 @@ static s32 __nand_init(void)
 s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
     targetobj = obj_matchpath(fs, &notfind);

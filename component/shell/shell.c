@@ -111,6 +111,7 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_SHELL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
+#define CFG_SHELL_STACK            0x1000      //"执行shell命令的栈尺寸"
 //%$#@enum,true,false,
 #define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令"
 #define CFG_ADD_EXPAND_SHELL       true        //"是否添加拓展shell命令"
@@ -1124,11 +1125,7 @@ s32 ModuleInstall_Shell(ptu32_t para)
                                 0, // 线程上限，关联型无效
                                 Sh_Service, // 入口函数
                                 NULL, // 由系统分配栈
-#ifdef BUILDING_WOLFSSH
-                                0x9000, // 栈尺寸
-#else
-                                0x1000, // 栈尺寸
-#endif
+                                CFG_SHELL_STACK,
                                 "shell" // 事件类型名
                                 );
     if(shell_evtt==CN_EVTT_ID_INVALID)

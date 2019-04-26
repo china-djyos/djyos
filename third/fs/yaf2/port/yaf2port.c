@@ -1030,10 +1030,6 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, u32 data)
     struct Object * mountobj;
     s32 res;
 
-    if(opt == true)
-    {
-        opt = MS_INSTALLFORMAT;
-    }
     if(!target)
     {
         printf("\r\n: dbug : module : cannot input \"YAF2\" file system mount name.");
@@ -1065,7 +1061,7 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, u32 data)
     }
 //    obj_InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;              //直接挂载不用备份
-    res = mountfs(NULL, target, "YAF2", opt, data);
+    res = mountfs(NULL, target, "YAF2", opt, (void *)data);
    if(res == -1)
    {
        printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot install.");

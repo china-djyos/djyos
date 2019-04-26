@@ -64,8 +64,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_At45InstallEfs(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
-//    ModuleInstall_At45InstallEfs(CFG_AT45_BUSNAME, CFG_AT45_EFS_MOUNT_NAME,
+//    extern bool_t ModuleInstall_At45InstallEfs(const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
+//    ModuleInstall_At45InstallEfs(CFG_AT45_EFS_MOUNT_NAME,
 //                  CFG_AT45_EFS_PART_START, CFG_AT45_EFS_PART_END, CFG_AT45_EFS_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
@@ -77,7 +77,8 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"easyfilesystem","lock","spibus","cpu_peri_spi"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"easyfilesystem","lock","spibus","cpu_peri_spi","at45db321"
+                                //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -93,7 +94,6 @@
 #warning   at45db321_install_efs组件参数未配置，使用默认值
 //%$#@enum,512,528,
 //%$#@string,1,10,
-#define CFG_AT45_BUSNAME                   "SPI4"     //"SPI总线名称",AT45使用的总线名称
 #define CFG_AT45_EFS_MOUNT_NAME            "efs"      //"文件系统mount点名字",需要挂载的efs文件系统mount点名字
 //%$#@num,-1,1024,
 #define CFG_AT45_EFS_PART_START                  0        //分区起始，填写块号，块号从0开始计算
@@ -106,24 +106,25 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+extern bool_t At45_is_install(void);
 extern s32 __at45_write(u32 unit, void *data, struct uopt opt);
 extern s32 __at45_read(u32 unit, void *data, struct uopt opt);
 extern s32 __at45_erase(u32 unit, struct uesz sz);
 extern s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
 extern s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd,void *mediadrv);
-u32 __EFS_IF_WriteData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
-u32 __EFS_IF_ReadData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
-bool_t __EFS_IF_Erase(u32 dwBlock);
-bool_t __EFS_IF_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize);
+u32 efs_at45_write(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
+u32 efs_at45_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
+bool_t efs_at45_erase(u32 dwBlock);
+bool_t efs_at45_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize);
 
 extern struct NorDescr *nordescription;;
 
 struct __efs_media_drv EFS_AT45_DRV =
 {
-    .efs_erase_media = __EFS_IF_Erase,
-    .efs_read_media = __EFS_IF_ReadData,
-    .efs_write_media = __EFS_IF_WriteData,
-    .efs_check_block_ready = __EFS_IF_CheckBlockReady
+    .efs_erase_media = efs_at45_erase,
+    .efs_read_media = efs_at45_read,
+    .efs_write_media = efs_at45_write,
+    .efs_check_block_ready = efs_at45_CheckBlockReady
 };
 
 // ============================================================================
@@ -136,7 +137,7 @@ struct __efs_media_drv EFS_AT45_DRV =
 // 返回：错误（0）；成功（写出数据大小）；
 // 备注：
 // ============================================================================
-u32 __EFS_IF_WriteData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
+u32 efs_at45_write(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
 {
     u32 page = (dwBlock * nordescription->SectorsPerBlk) + (dwOffset / nordescription->BytesPerPage); // 页号
     u32 offset = dwOffset & 0x1FF; // 页内的偏置
@@ -188,7 +189,7 @@ u32 __EFS_IF_WriteData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlag
 // 返回：失败（0）；成功（读入的字节数）；
 // 备注：
 // ============================================================================
-u32 __EFS_IF_ReadData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
+u32 efs_at45_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
 {
     s32 res , rdLen = dwSize;
     u32 page = (dwBlock * nordescription->SectorsPerBlk) + (dwOffset / nordescription->BytesPerPage); // 页号
@@ -243,7 +244,7 @@ u32 __EFS_IF_ReadData(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags
 // 返回：成功（TRUE）；失败（FALSE）；
 // 备注：
 // ============================================================================
-bool_t __EFS_IF_Erase(u32 dwBlock)
+bool_t efs_at45_erase(u32 dwBlock)
 {
     struct uesz sz;
 
@@ -260,7 +261,7 @@ bool_t __EFS_IF_Erase(u32 dwBlock)
 // 返回：成功（TRUE）；失败（FALSE）；
 // 备注：
 // ============================================================================
-bool_t __EFS_IF_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize)
+bool_t efs_at45_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize)
 {
     static u8 data[259];
     u8 *buf = pBuf;
@@ -274,7 +275,7 @@ bool_t __EFS_IF_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize)
         if(rLen > 256)
             rLen = 256;
 
-        if(0 == __EFS_IF_ReadData(block, offset, data, rLen,0))
+        if(0 == efs_at45_read(block, offset, data, rLen,0))
             return (FALSE);
 
         for(i=0; i < rLen; i++)
@@ -297,12 +298,12 @@ bool_t __EFS_IF_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize)
 // 返回：成功（true）；失败（false）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_At45InstallEfs(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat)
+bool_t ModuleInstall_At45InstallEfs(const char *TargetFs, s32 bstart, s32 bend, u32 doformat)
 {
     struct FsCore *super;
     char *notfind;
-    struct obj *targetobj;
-    if(ModuleInstall_at45db321(pBusName,0) == true)
+    struct Object *targetobj;
+    if(At45_is_install() == true)
     {
         if((TargetFs != NULL) && (bstart != bend))
         {

@@ -78,7 +78,8 @@
 //dependence:"devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
-//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"xip_app","xip_iboot","cpu_peri_emflash","cpu_peri_spiflash"
+                                        //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -108,7 +109,12 @@
 
 //@#$%component end configure
 // ============================================================================
-
+#ifdef CFG_CPU_ZQ12XX_M0
+extern bool_t emflash_is_install(void);
+#endif
+#ifdef CFG_CPU_ZQ12XX_CK
+extern bool_t spiflash_is_install(void);
+#endif
 extern s32 __embed_read(s64 unit, void *data, struct uopt opt);
 extern s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
 extern s32 __embed_write(s64 unit, void *data, struct uopt opt);
@@ -125,6 +131,28 @@ struct __xip_drv XIP_EMFLASH_DRV =
     .xip_read_media = xip_emflash_read,
     .xip_write_media = xip_emflash_write
 };
+
+// =============================================================================
+// 功能：判断emflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+__attribute__((weak)) bool_t emflash_is_install(void)
+{
+    return false;
+}
+// =============================================================================
+// 功能：判断spiflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+__attribute__((weak)) bool_t spiflash_is_install(void)
+{
+    return false;
+}
+
 // ============================================================================
 // 功能：写数据
 // 参数：core -- xip文件系统管理信息
@@ -348,8 +376,8 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
 {
     struct FsCore *super;
     char *notfind;
-    struct obj *targetobj;
-    if(ModuleInstall_EmbededFlash(0) == 0)
+    struct Object *targetobj;
+    if((emflash_is_install() == true) || (spiflash_is_install() == true))
     {
         if((TargetFs != NULL) && (bstart != bend))
         {

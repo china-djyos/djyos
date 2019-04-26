@@ -2,11 +2,11 @@
 https://www.wolfssl.com/products/wolfssh/
 
 
-ä¸‹è½½åœ°å€ï¼šhttps://www.wolfssl.com/download/
+ÏÂÔØµØÖ·£ºhttps://www.wolfssl.com/download/
 
-ç¼–è¯‘æŒ‡å¯¼ï¼šhttps://www.wolfssl.com/configuring-wolfssh-lightweight-ssh-library/
+±àÒëÖ¸µ¼£ºhttps://www.wolfssl.com/configuring-wolfssh-lightweight-ssh-library/
 
-å‚è€ƒï¼š
+²Î¿¼£º
 https://blog.csdn.net/u014530704/article/details/79919876
 
 
@@ -14,23 +14,23 @@ https://blog.csdn.net/u014530704/article/details/79919876
 
 WOLFSSH_SFTP
 
-ä»https://www.wolfssl.com/download/ åˆ†åˆ«ä¸‹è½½wolfssl-3.15.7 å’Œwolfssh-1.3.0
-è¿›å…¥wolfssl-3.15.7ä¸»ç›®å½•ä¸‹ï¼Œ
+´Óhttps://www.wolfssl.com/download/ ·Ö±ğÏÂÔØwolfssl-3.15.7 ºÍwolfssh-1.3.0
+½øÈëwolfssl-3.15.7Ö÷Ä¿Â¼ÏÂ£¬
 sudo ./configure --enable-ssh
 sudo make check
-sudo make install 
-ç”Ÿæˆsslåº“æ–‡ä»¶ï¼Œ æ”¾åœ¨
+sudo make install
+Éú³Éssl¿âÎÄ¼ş£¬ ·ÅÔÚ
 ./src/.libs
 /usr/local/lib
 
-è¿›å…¥wolfssh-1.3.0ä¸»ç›®å½•ä¸‹ï¼š
+½øÈëwolfssh-1.3.0Ö÷Ä¿Â¼ÏÂ£º
 sudo ./configure --enable-sftp
 sudo make
 sudo make check
-ç”Ÿæˆçš„åº“æ–‡ä»¶åœ¨
+Éú³ÉµÄ¿âÎÄ¼şÔÚ
 ./src/.libs/
 /usr/local/lib
-ç›®æ ‡å¯æ‰§è¡Œæ–‡ä»¶:
+Ä¿±ê¿ÉÖ´ĞĞÎÄ¼ş:
 examples/client/client
 examples/server/server
 examples/echoserver/echoserver
@@ -39,40 +39,41 @@ wolfsftp/client/wolfsftp
 
 
 
-è™šæ‹Ÿæœºsftpæµ‹è¯•å¸å·ï¼š
+ĞéÄâ»úsftp²âÊÔÕÊºÅ£º
 sftp://192.168.48.128
-ç”¨æˆ·å: sftp
-å¯†ç :sftp
-ç«¯å£:22
+ÓÃ»§Ãû: sftp
+ÃÜÂë:sftp
+¶Ë¿Ú:22
 
 
 
-æµ‹è¯•æœåŠ¡å™¨ç¨‹åº:
-éœ€å°†wolfssh-1.3.0/keys ä¸‹çš„ server-key-ecc.der server-key-rsa.der server-key-rsa.pem
-æ”¾åˆ°wolfssh-1.3.0/wolfssh/test.h å®šä¹‰çš„æ¿å­ä¸Šå¯¹åº”ç›®å½•ä¸‹ã€‚serverKeyRsaPemFile
+²âÊÔ·şÎñÆ÷³ÌĞò:
+Ğè½«wolfssh-1.3.0/keys ÏÂµÄ server-key-ecc.der server-key-rsa.der server-key-rsa.pem
+·Åµ½wolfssh-1.3.0/wolfssh/test.h ¶¨ÒåµÄ°å×ÓÉÏ¶ÔÓ¦Ä¿Â¼ÏÂ¡£serverKeyRsaPemFile
 
 
-echoserver æµ‹è¯•ç¨‹åº:
+echoserver ²âÊÔ³ÌĞò:
 ./sftpd -p 22222
-å®¢æˆ·ç«¯:
-linuxä¸Š ./wolfsftp -p 22222  -u jack -h localhost -P fetchapail
-windows ä¸Šç”¨filezilla.exe åšå®¢æˆ·ç«¯
-ä¸»æœº:sftp://192.168.0.179 ç”¨æˆ·å:jack å¯†ç :fetchapail ç«¯å£:22222
+¿Í»§¶Ë:
+linuxÉÏ ./wolfsftp -p 22222  -u jack -h localhost -P fetchapail
+windows ÉÏÓÃfilezilla.exe ×ö¿Í»§¶Ë
+Ö÷»ú:sftp://192.168.0.179 ÓÃ»§Ãû:jack ÃÜÂë:fetchapail ¶Ë¿Ú:22222
 
-ç”¨æˆ·åå¯†ç ä¿å­˜åœ¨echoserver.c çš„æ•°ç»„samplePasswordBufferä¸­
+ÓÃ»§ÃûÃÜÂë±£´æÔÚechoserver.c µÄÊı×ésamplePasswordBufferÖĞ
 
 
 
-æµ‹è¯•å®¢æˆ·ç«¯ç¨‹åº:
-windows ä¸Šç”¨freesshd åšæœåŠ¡å™¨ç«¯
-è¿è¡Œwindowsç«¯freesshdæ—¶ï¼Œè¦ä»¥ç®¡ç†å‘˜èº«ä»½è¿è¡Œï¼Œæ³¨æ„å…³é—­windowsçš„é˜²ç«å¢™ï¼Œ
-ä¿®æ”¹å‚æ•°ä¹‹åï¼ŒæŠŠå…¶æ€æ­»ï¼Œå†ä»¥ç®¡ç†å‘˜èº«ä»½è¿è¡Œ(é‡å¯æœ€é‡è¦?)ã€‚
-freesshd è®¾ç½®:
-users: authorizationé€‰æ‹©password storedas SHA1 hash
-authentication: password authentication é€‰æ‹©requiredï¼Œpublic key authenticationé€‰æ‹©allowed
-SSH: æŠŠ start SSH server on freeSSHd startup å’Œuse new console engineå‹¾é€‰å»æ‰ã€‚
+²âÊÔ¿Í»§¶Ë³ÌĞò:
+windows ÉÏÓÃfreesshd ×ö·şÎñÆ÷¶Ë
+ÔËĞĞwindows¶ËfreesshdÊ±£¬ÒªÒÔ¹ÜÀíÔ±Éí·İÔËĞĞ£¬×¢Òâ¹Ø±ÕwindowsµÄ·À»ğÇ½£¬
+ĞŞ¸Ä²ÎÊıÖ®ºó£¬°ÑÆäÉ±ËÀ£¬ÔÙÒÔ¹ÜÀíÔ±Éí·İÔËĞĞ(ÖØÆô×îÖØÒª?)¡£
+freesshd ÉèÖÃ:
+users: authorizationÑ¡Ôñpassword storedas SHA1 hash
+authentication: password authentication Ñ¡Ôñrequired£¬public key authenticationÑ¡Ôñallowed
+SSH: °Ñ start SSH server on freeSSHd startup ºÍuse new console engine¹´Ñ¡È¥µô¡£
 
 ./sftpc -h 192.168.0.1 -p 2323 -u user -P user
+
 
 
 

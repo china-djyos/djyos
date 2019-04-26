@@ -151,17 +151,6 @@
     #define AF_INET_V AF_INET
 #endif
 
-#if 0
-#define serverKeyRsaPemFile "./keys/server-key-rsa.pem"
-#define serverKeyEccDerFile "./keys/server-key-ecc.der"
-#define serverKeyRsaDerFile "./keys/server-key-rsa.der"
-
-#else
-#define serverKeyRsaPemFile "/efs/server-key-rsa.pem"
-#define serverKeyEccDerFile "/efs/server-key-ecc.der"
-#define serverKeyRsaDerFile "/efs/server-key-rsa.der"
-
-#endif
 
 typedef struct tcp_ready {
     word16 ready;     /* predicate */
@@ -173,6 +162,15 @@ typedef struct tcp_ready {
 #endif
 } tcp_ready;
 
+
+/*user config start, when use sftp server.  to config the encrypt file and server listen port, username and password*/
+#define serverKeyRsaPemFile "/efs/server-key-rsa.pem" /*locate in  wolfssh-1.3.0/keys */
+#define serverKeyEccDerFile "/efs/server-key-ecc.der"
+#define serverKeyRsaDerFile "/efs/server-key-rsa.der"
+
+#define SFTP_SERVER_DEFAULT_LISTEN_PORT        22222      // ssh server listen port
+#define SFTP_SERVER_USERNAME_PASSWORD_STRINGS  "jill:upthehill\n jack:fetchapail\n"
+/*end user config*/
 
 static INLINE void InitTcpReady(tcp_ready* ready)
 {
@@ -222,7 +220,7 @@ void WaitTcpReady(func_args*);
     /* port 8080 was open with QEMU */
     static const word16 wolfSshPort = 8080;
 #else
-    static word16 wolfSshPort = 22222;
+    static word16 wolfSshPort = SFTP_SERVER_DEFAULT_LISTEN_PORT;
 #endif
 
 #ifdef __GNUC__

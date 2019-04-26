@@ -75,7 +75,7 @@
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                       //初始化时机，可选值：early，medium，later。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"devfile","lock","cpu_peri_emflash" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
 //weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -109,6 +109,7 @@
 //@#$%component end configure
 // ============================================================================
 
+extern bool_t emflash_is_install(void);
 extern s32 __embed_read(s64 unit, void *data, struct uopt opt);
 extern s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
 extern s32 __embed_write(s64 unit, void *data, struct uopt opt);
@@ -353,8 +354,8 @@ bool_t ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend
 {
     struct FsCore *super;
     char *notfind;
-    struct obj *targetobj;
-    if(ModuleInstall_EmbededFlash(0) == 0)
+    struct Object *targetobj;
+    if(emflash_is_install() == true)
     {
         if((TargetFs != NULL) && (bstart != bend))
         {

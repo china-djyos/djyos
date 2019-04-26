@@ -64,20 +64,21 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_At45InstallYaf(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
-//    ModuleInstall_At45InstallYaf(CFG_AT45_BUSNAME, CFG_AT45_YAF_MOUNT_NAME,
+//    extern bool_t ModuleInstall_At45InstallYaf(const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
+//    ModuleInstall_At45InstallYaf(CFG_AT45_YAF_MOUNT_NAME,
 //              CFG_AT45_YAF_PART_START, CFG_AT45_YAF_PART_END, CFG_AT45_YAF_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"at45db321_install_yaf"    //在norflash上安装efs文件系统
+//component name:"at45db321_install_yaf"    //在norflash上安装yaf文件系统
 //parent:"at45db321"                //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"yaf2filesystem","lock","spibus","cpu_peri_spi"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"yaf2filesystem","lock","spibus","cpu_peri_spi","at45db321"
+                                //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -93,8 +94,7 @@
 #warning   at45db321_install_yaf组件参数未配置，使用默认值
 //%$#@enum,512,528,
 //%$#@string,1,10,
-#define CFG_AT45_BUSNAME                   "SPI4"     //"SPI总线名称",AT45使用的总线名称
-#define CFG_AT45_YAF_MOUNT_NAME            "yaf2"      //"文件系统mount点名字",需要挂载的efs文件系统mount点名字
+#define CFG_AT45_YAF_MOUNT_NAME            "yaf2"      //"文件系统mount点名字",需要挂载的yaf文件系统mount点名字
 //%$#@num,-1,1024,
 #define CFG_AT45_YAF_PART_START                  0        //分区起始，填写块号，块号从0开始计算
 #define CFG_AT45_YAF_PART_END                   -1        //分区结束，-1表示最后一块
@@ -108,6 +108,7 @@
 
 extern struct NorDescr *nordescription;
 extern struct umedia *at45_umedia;
+extern bool_t At45_is_install(void);
 extern s32 __at45_write(u32 unit, void *data, struct uopt opt);
 extern s32 __at45_read(u32 unit, void *data, struct uopt opt);
 extern s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
@@ -343,12 +344,12 @@ int yaf_at45_deinitialize(struct yaffs_dev *yaf2dev)
 // 返回：成功（true）；失败（false）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_At45InstallYaf(char *pBusName, const char *TargetFs, s32 bstart, s32 bend, u32 doformat)
+bool_t ModuleInstall_At45InstallYaf (const char *TargetFs, s32 bstart, s32 bend, u32 doformat)
 {
     struct FsCore *super;
     char *notfind;
-    struct obj *targetobj;
-    if(ModuleInstall_at45db321(pBusName,0) == true)
+    struct Object *targetobj;
+    if(At45_is_install() == true)
     {
         if((TargetFs != NULL) && (bstart != bend))
         {

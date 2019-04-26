@@ -89,8 +89,8 @@
 #warning    yaf2filesystem组件参数未配置，使用默认值
 //%$#@num,0,100,
 #define CFG_YAF_ECC                       0                //YAF文件系统文件使能设备ECC功能。0不使用ecc，YAF2_ENABLE_DEVICE_ECC使用ecc
-//%$#@enum,true,false,
-#define CFG_YAF_INSTALL_OPTION           false        //YAF文件系统安装选项，安装时是否格式化整个文件系统；
+//%$#@enum,MS_INSTALLCREAT,MS_INSTALLFORMAT,
+#define CFG_YAF_INSTALL_OPTION           MS_INSTALLCREAT            //YAF文件系统安装选项，安装时是否格式化整个文件系统；
 //%$#@string,1,10,
 #define CFG_YAF_MOUNT_POINT              "yaf2"               //"name",YAF文件系统安装目录
 //%$#select,        ***从列出的选项中选择若干个定义成宏

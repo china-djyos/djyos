@@ -73,11 +73,11 @@
 //dependence:"devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
-//weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                        //如果与多个组件互斥，则依次列出
+//mutex:"none"                          //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                        //如果依赖多个组件，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -130,8 +130,8 @@ enum EN_SPI_OPT{
 static struct umedia *emflash_um;
 
 static const char *EmflashName = "emflash";      //该flash在obj在的名字
-extern struct obj *s_ptDeviceRoot;
-
+extern struct Object *s_ptDeviceRoot;
+static bool_t sEmflashInited = false;
 //flash 信息描述
 static struct EmbdFlashDescr
 {
@@ -496,7 +496,7 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res;
     s32 BlockNum;
@@ -542,8 +542,6 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_EmbededFlash(u32 doformat)
 {
-    static u8 emflashinit = 0;
-
     if(!sp_tFlashDesrc)
     {
         sp_tFlashDesrc = malloc(sizeof(*sp_tFlashDesrc));
@@ -563,29 +561,35 @@ s32 ModuleInstall_EmbededFlash(u32 doformat)
         __embed_req(format, (ptu32_t)0 , -1, &sz);       //格式化指定区域
     }
 
-    if(emflashinit == 0)
+    emflash_um = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
+    if(!emflash_um)
     {
-        emflash_um = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
-        if(!emflash_um)
-        {
-            return (-1);
-        }
-
-        emflash_um->mreq = __embed_req;
-        emflash_um->type = embed;
-        emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
-
-        if(!dev_Create((const char*)EmflashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
-        {
-            printf("\r\n: erro : device : %s addition failed.", EmflashName);
-            free(emflash_um);
-            return (-1);
-        }
-        emflashinit = 1;
+        return (-1);
     }
 
+    emflash_um->mreq = __embed_req;
+    emflash_um->type = embed;
+    emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
+
+    if(!dev_Create((const char*)EmflashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
+    {
+        printf("\r\n: erro : device : %s addition failed.", EmflashName);
+        free(emflash_um);
+        return (-1);
+    }
+
+    sEmflashInited = true;
     return 0;
 }
-
+// =============================================================================
+// 功能：判断emflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t emflash_is_install(void)
+{
+    return sEmflashInited;
+}
 #endif
 

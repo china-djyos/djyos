@@ -74,8 +74,8 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_FAT_MOUNT_POINT   //****检查参数是否已经配置好
 #warning    fatfilesystem组件参数未配置，使用默认值
-//%$#@num,0,1000
-#define CFG_FAT_MS_INSTALLUSE     512
+//%$#@enum,"MS_INSTALLUSE",
+#define CFG_FAT_MS_INSTALLUSE       MS_INSTALLUSE       //使用时才发生安装动作
 //%$#@enum,"MSC","EMMC",
 #define CFG_FAT_MEDIA_KIND          "MSC"      //"name",媒体所属类别（ "MSC", "EMMC"）
 //%$#@string,1,10,

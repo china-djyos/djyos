@@ -59,7 +59,6 @@
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
-#include <efs_full.h>
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
@@ -79,11 +78,11 @@
 //dependence:"devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
-//weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                        //如果与多个组件互斥，则依次列出
+//mutex:"none"                          //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                        //如果依赖多个组件，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -94,7 +93,7 @@
 #define CFG_SPIFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
 //%$#@string,1,32,
 //%$#@string,1,10,
-//%$#select,        ***从列出的选项中选择若干个定义成宏
+//%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -109,7 +108,7 @@ bootspi_t iap_bootspi;
 extern struct Object *s_ptDeviceRoot;
 static const char *SpiFlashName = "SpiFlash";      //该flash在obj在的名字
 struct umedia *sipflash_umedia;
-
+static bool_t sSpiflashInited = false;
 static void djybsp_spi_init(uint8_t spiclk_sel,uint8_t if_preread,uint8_t if_rcv_cpol)
 {
     spi_st->spi_sub_config &= ~SPI_CLK_DIV(0x7);
@@ -669,8 +668,6 @@ s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_SpiFlash(u32 doformat)
 {
-    static u8 spiflashinit = 0;
-
     if(!sp_tFlashDesrc)
     {
         sp_tFlashDesrc = malloc(sizeof(*sp_tFlashDesrc));
@@ -690,29 +687,36 @@ s32 ModuleInstall_SpiFlash(u32 doformat)
         __embed_req(format, 0 , -1, &sz);
     }
 
-    if(spiflashinit == 0)
+    sipflash_umedia = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
+    if(!sipflash_umedia)
     {
-        sipflash_umedia = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
-        if(!sipflash_umedia)
-        {
-            return (-1);
-        }
-
-        sipflash_umedia->mreq = __embed_req;
-        sipflash_umedia->type = nand;
-        sipflash_umedia->ubuf = (u8*)sipflash_umedia + sizeof(struct umedia);
-
-        if(!dev_Create((const char*)SpiFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)sipflash_umedia)))
-        {
-            printf("\r\n: erro : device : %s addition failed.", SpiFlashName);
-            free(sipflash_umedia);
-            return (-1);
-        }
-        spiflashinit = 1;
+        return (-1);
     }
 
+    sipflash_umedia->mreq = __embed_req;
+    sipflash_umedia->type = nand;
+    sipflash_umedia->ubuf = (u8*)sipflash_umedia + sizeof(struct umedia);
 
+    if(!dev_Create((const char*)SpiFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)sipflash_umedia)))
+    {
+        printf("\r\n: erro : device : %s addition failed.", SpiFlashName);
+        free(sipflash_umedia);
+        return (-1);
+    }
+
+    sSpiflashInited = true;
     return 0;
+}
+
+// =============================================================================
+// 功能：判断spiflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t spiflash_is_install(void)
+{
+    return sSpiflashInited;
 }
 #endif
 

@@ -54,7 +54,7 @@
 
 #include "dhcpLib.h"
 #include "dbug.h"
-#include "../common/router.h"
+#include "common/router.h"
 
 typedef struct
 {
