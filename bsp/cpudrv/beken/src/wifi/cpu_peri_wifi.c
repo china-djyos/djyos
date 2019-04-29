@@ -430,6 +430,22 @@ void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
         demo_sta_app_init(ssid, connect_key);
     }
 }
+
+bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum NetDevEvent event)
+{
+    switch(event)
+     {
+         case EN_NETDEVEVENT_IPGET:
+             mhdr_set_station_status(6/*MSG_GOT_IP*/); //for rf power save;
+             break;
+         default:
+             break;
+     }
+     return true;
+
+}
+
+
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -494,6 +510,7 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
         goto NetInstallFailed;
     }
 
+	NetDevRegisterEventHook(pDrive->devhandle, FnNetDevEventHookEvent);
     info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 
