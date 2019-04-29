@@ -84,6 +84,7 @@ ptu32_t djy_main(void)
        printf("wait connect!\r\n");
        Djy_EventDelay(2000*1000);
    }while(DHCP_ConnetStatus(EN_DHCP_GET_STATUS_CMD,0)!=EN_DHCP_CONNET_STATUS);
+   DjyWifi_StaConnectDone();
    while(1)
    {
       printf("sta mode!\r\n");
