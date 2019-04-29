@@ -51,6 +51,8 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
+    extern int ModuleInstall_Flash(void);
+    ModuleInstall_Flash();
 //	extern ptu32_t ModuleInstall_IAP(void);
 //	ModuleInstall_IAP( );
 
