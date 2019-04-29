@@ -24,6 +24,8 @@
 extern "C" {
 # endif
 
+#include "config.h"
+
 # define FPM_INTEL
 
 
