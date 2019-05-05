@@ -90,12 +90,12 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_TIMER_SOUCE   //****检查参数是否已经配置好
+#ifndef CFG_TIMER_SOUCE_HARD   //****检查参数是否已经配置好
 #warning    timer组件参数未配置，使用默认值
 //%$#@num,0,100,
-#define CFG_TIMER_SOUCE     1       //"时钟源",1=由硬件计时器提供时钟源，0=由tick提供时钟源
-#define CFG_TIMERS_LIMIT    5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
+#define CFG_TIMERS_LIMIT        5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
 //%$#@enum,true,false,
+#define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick/tickless做时钟源
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -795,7 +795,7 @@ bool_t ModuleInstall_Timer(void)
     {
         goto EXIT_POOLFAILED;
     }
-#if CFG_TIMER_SOUCE == 1        //由硬件计时器提供时钟源
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
         //使用硬件定时器的时候才会使用该同步标记
         ptTimerQSync = Lock_MutexCreate("Timer");
         if(NULL == ptTimerQSync)
@@ -818,7 +818,7 @@ bool_t ModuleInstall_Timer(void)
         //使能定时器中断，但是没有使能定时器,坐等API的调用
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_ENINT,(ptu32_t)NULL);
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_SETRELOAD,(ptu32_t)false);
-#else   //CFG_TIMER_SOUCE == 1      由tick提供时钟源
+#else   //CFG_TIMER_SOUCE_HARD == true      由tick提供时钟源
 
         //建立通信用的消息队列
         ptTimerMsgQ = MsgQ_Create(CN_TIMERSOFT_MSGLEN, \
@@ -850,7 +850,7 @@ bool_t ModuleInstall_Timer(void)
                 }
             }
         }
-#endif  //CFG_TIMER_SOUCE == 1
+#endif  //CFG_TIMER_SOUCE_HARD == true
 
     printk("Timer:Init Success\n\r");
     return true;

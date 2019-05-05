@@ -747,25 +747,46 @@ void SysPerformTest(void)
     printf(" ***************** 异步信号ISR响应时间测试 ***************** \r\n\n");
     Test_IntISRTest(EN_SYNC_INT);
 
+    printf("输入任意键进行下一项测试\r\n");
+    getchar();
+
     //异步信号同步引发切换测试
     Test_IntSync();
+
+    printf("输入任意键进行下一项测试\r\n");
+    getchar();
 
 //---------------与中断相关功能测量完毕，定时器用于计时-----------------
     HardTimer_Ctrl(TimerHandle,EN_TIMER_SETCYCLE,0xffffffff);
     //信号量引发切换的切换速度测试
     Test_SempTest();
 
+    printf("输入任意键进行下一项测试\r\n");
+    getchar();
+
     //互斥量引发切换的切换速度测试
     Test_MutexTest();
+
+    printf("输入任意键进行下一项测试\r\n");
+    getchar();
 
     //测量核心功能函数的执行时间
     Test_coreFunc();
 
+    printf("输入任意键进行下一项测试\r\n");
+    getchar();
+
     //弹出高优先级事件导致切换时间测试
     Test_PopHighPrioEvent();
 
+    printf("输入任意键进行下一项测试\r\n");
+    getchar();
+
     //eventdelay导致切换的切换时间测试
     Test_EventDelay();
+
+    printf("输入任意键进行下一项测试\r\n");
+    getchar();
 
     /*定点运算DMIPS测试、 */
     extern void DhryStoneTest(void);

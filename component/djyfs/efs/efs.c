@@ -1861,7 +1861,7 @@ s32 ModuleInstall_EFS(const char *target, u32 opt, u32 config)
         printf("\r\n: dbug : module : mount \"EFS\" failed, cannot create \"%s\"<group point>.", target);
         return (-1);
     }
-//    obj_InuseUpFullPath(mountobj);
+//    __InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;
     res = mountfs(NULL, target, "EFS", opt, (void *)config);
     if(res == -1)

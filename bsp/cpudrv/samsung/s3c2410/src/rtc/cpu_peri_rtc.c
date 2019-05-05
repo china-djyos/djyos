@@ -95,28 +95,28 @@
 #define HexToBcd(x) ((((x) / 10) <<4) + ((x) % 10))
 #define BcdToHex(x) ((((x) & 0xF0) >>4) * 10 + ((x) & 0x0F))
 
-// =============================================================================
-// 功能：RTC中断，使用RTC模块的TICK计数器，配置为每一秒中断一次，并在中断中读取RTC
-//       时钟，并配置系统时钟
-// 参数：中断线号
-// 返回：0
-// =============================================================================
-u32 RTC_ISR(ufast_t rtc_int_line)
-{
-    struct tm dtm;
-
-    rRTCCON = 1 ;       //RTC read and write enable
-    dtm.tm_year = BcdToHex(rBCDYEAR) + 2000;
-    dtm.tm_mon  = BcdToHex(rBCDMON);
-    dtm.tm_mday = BcdToHex(rBCDDATE);
-    dtm.tm_hour = BcdToHex(rBCDHOUR);
-    dtm.tm_min  = BcdToHex(rBCDMIN);
-    dtm.tm_sec  = BcdToHex(rBCDSEC);
-    rRTCCON &= ~1 ;     //RTC read and write disable
-
-    Tm_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
-    return 0;
-}
+//// =============================================================================
+//// 功能：RTC中断，使用RTC模块的TICK计数器，配置为每一秒中断一次，并在中断中读取RTC
+////       时钟，并配置系统时钟
+//// 参数：中断线号
+//// 返回：0
+//// =============================================================================
+//u32 RTC_ISR(ufast_t rtc_int_line)
+//{
+//    struct tm dtm;
+//
+//    rRTCCON = 1 ;       //RTC read and write enable
+//    dtm.tm_year = BcdToHex(rBCDYEAR) + 2000;
+//    dtm.tm_mon  = BcdToHex(rBCDMON);
+//    dtm.tm_mday = BcdToHex(rBCDDATE);
+//    dtm.tm_hour = BcdToHex(rBCDHOUR);
+//    dtm.tm_min  = BcdToHex(rBCDMIN);
+//    dtm.tm_sec  = BcdToHex(rBCDSEC);
+//    rRTCCON &= ~1 ;     //RTC read and write disable
+//
+//    Tm_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
+//    return 0;
+//}
 
 // =============================================================================
 // 功能：RTC时钟更新，将系统时间更新到RTC模块，由于时钟模块的年存储的最大值为99，因此
@@ -189,13 +189,14 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
 
     if(RtcIsReset == true)
     {
+        DateTime.tm_us = 0;
         DateTime.tm_sec = 0;
         DateTime.tm_min = 0;
         DateTime.tm_hour = 0;
         DateTime.tm_mday = 1;
         DateTime.tm_mon  = 1;
-        DateTime.tm_yday = 2000;
-        RTC_TimeUpdate(&DateTime);
+        DateTime.tm_year = 2000;
+//      RTC_TimeUpdate(&DateTime);
         Tm_SetDateTime(&DateTime);
     }
     Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate);

@@ -1213,7 +1213,7 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_APP_TARGET);
         return (-1);
     }
-//    obj_InuseUpFullPath(mountobj);
+//    __InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
     res = mountfs(NULL, EN_XIP_APP_TARGET, "XIP-APP", opt, data);
     if(res == -1)

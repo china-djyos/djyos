@@ -751,7 +751,7 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
         __unlock_handle_sys();
         return NULL;
     }
-    obj_InuseUpFullPath(ob);        // 防止文件操作过程中，被删除了；
+    __InuseUpFullPath(ob);        // 防止文件操作过程中，被删除了；
 
 //  __unlock_handle_sys();
         //todo:权限管理暂未实现。框架：调用stat，再判断当前st_mode是否满足flags权限
@@ -762,10 +762,10 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
 
     if( (run == CN_OBJ_CMD_EXECUTED) && (hdl != NULL) )
     {
-//      obj_InuseUpFullPath(hdl->HostObj);
+//      __InuseUpFullPath(hdl->HostObj);
     }
     else
-        obj_InuseDownFullPath(ob);
+        __InuseDownFullPath(ob);
 
     __unlock_handle_sys();
     return (hdl);
@@ -785,7 +785,7 @@ s32 __close(struct objhandle *hdl)
     res = ob->ops((void *)hdl, CN_OBJ_CMD_CLOSE, 0, 0, 0);
     if(res == CN_OBJ_CMD_TRUE)
     {
-        obj_InuseDownFullPath(ob);
+        __InuseDownFullPath(ob);
         obj_releasepath(ob); // 释放对象临时路径
         return (0);
     }
@@ -1077,7 +1077,7 @@ s32 stat(const char *path, struct stat *buf)
 
     __lock_handle_sys();// 防止操作过程文件被删除了
     ob = obj_matchpath((char*)path, &uncache);
-    obj_InuseUpFullPath(ob);
+    __InuseUpFullPath(ob);
     __unlock_handle_sys();
 
     if(!uncache)
@@ -1085,7 +1085,7 @@ s32 stat(const char *path, struct stat *buf)
 
     res = (s32)ob->ops((void *)ob, CN_OBJ_CMD_STAT, (ptu32_t)buf, 0,
                                     (ptu32_t)uncache);
-    obj_InuseDownFullPath(ob);
+    __InuseDownFullPath(ob);
     if(res == CN_OBJ_CMD_TRUE)
         return 0;
     else

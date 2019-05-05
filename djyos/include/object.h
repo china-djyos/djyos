@@ -241,10 +241,10 @@ void obj_unlock(void);
 
 //u32 obj_InuseUp(struct Object *ob);
 //void obj_InuseUpRange(struct Object *start, struct Object *end);
-void obj_InuseUpFullPath(struct Object *Obj);
+void __InuseUpFullPath(struct Object *Obj);
 //u32 obj_InuseDown(struct Object *ob);
 //void obj_InuseDownRange(struct Object *start, struct Object *end);
-void obj_InuseDownFullPath(struct Object *Obj);
+void __InuseDownFullPath(struct Object *Obj);
 
 s32 obj_Delete(struct Object *ob);
 struct Object *obj_detach(struct Object *branch);

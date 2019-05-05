@@ -1059,7 +1059,7 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, u32 data)
         printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot create \"%s\"<mount point>.", target);
         return (-1); // 失败;
     }
-//    obj_InuseUpFullPath(mountobj);
+//    __InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;              //直接挂载不用备份
     res = mountfs(NULL, target, "YAF2", opt, (void *)data);
    if(res == -1)

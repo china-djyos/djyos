@@ -844,7 +844,7 @@ s32 obj_isonduty(struct Object *ob)
 // 返回：无
 // 备注：有引用后则不可删除
 // ============================================================================
-void obj_InuseUpFullPath(struct Object *Obj)
+void __InuseUpFullPath(struct Object *Obj)
 {
     while(Obj != NULL)
     {
@@ -910,7 +910,7 @@ void obj_InuseUpFullPath(struct Object *Obj)
 // 返回：减少后的对象引用次数；
 // 备注：有引用后则不可删除
 // ============================================================================
-void obj_InuseDownFullPath(struct Object *Obj)
+void __InuseDownFullPath(struct Object *Obj)
 {
     while(Obj != NULL)
     {
@@ -1253,9 +1253,9 @@ struct Object * obj_current(void)
 // ============================================================================
 void obj_setcurrent(struct Object *ob)
 {
-    obj_InuseDownFullPath(s_ptCurrentObject);
+    __InuseDownFullPath(s_ptCurrentObject);
     s_ptCurrentObject = ob;
-    obj_InuseDownFullPath(ob);
+    __InuseUpFullPath(ob);
 }
 
 // ============================================================================

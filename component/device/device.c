@@ -372,7 +372,7 @@ s32 Dev_DirObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     {
         case CN_OBJ_CMD_OPEN:
         {
-            obj_InuseUpFullPath((struct Object*)opsTarget);
+            __InuseUpFullPath((struct Object*)opsTarget);
             *(struct objhandle **)OpsArgs1 = s_ptDeviceDirHandle;
         }break;
         case CN_OBJ_CMD_READDIR:

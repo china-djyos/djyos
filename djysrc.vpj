@@ -1589,10 +1589,8 @@
 							<F N="bsp/boarddrv/user/sr5335/include/stm32f7xx_hal_conf.h"/>
 						</Folder>
 						<Folder Name="lds">
-							<F N="bsp/boarddrv/user/sr5335/lds/debug.lds"/>
 							<F N="bsp/boarddrv/user/sr5335/lds/iboot.lds"/>
 							<F N="bsp/boarddrv/user/sr5335/lds/memory.lds"/>
-							<F N="bsp/boarddrv/user/sr5335/lds/release.lds"/>
 						</Folder>
 						<Folder Name="startup">
 							<F N="bsp/boarddrv/user/sr5335/startup/initcpuc.c"/>
@@ -1798,7 +1796,6 @@
 						<F N="bsp/chipdrv/at45db321/at45_yaf/at45_yaf.c"/>
 					</Folder>
 					<F N="bsp/chipdrv/at45db321/at45db321.c"/>
-					<F N="bsp/chipdrv/at45db321/at45db321_dev.c"/>
 				</Folder>
 				<Folder Name="AX88796">
 					<F N="bsp/chipdrv/AX88796/AX88796Byte.c"/>
@@ -3256,7 +3253,6 @@
 									<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/emflash_xip/emflash_xip.c"/>
 								</Folder>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/embeded_flash.c"/>
-								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/emflash_xip.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.c"/>
 								<F N="bsp/cpudrv/ZQ/zq12xx/src/norflash/norflash.h"/>
 							</Folder>
@@ -3392,19 +3388,15 @@
 			</Folder>
 			<Folder Name="djyfs">
 				<Folder Name="efs">
-					<F N="component/djyfs/efs/component_config_efs.h"/>
 					<F N="component/djyfs/efs/efs.c"/>
 					<F N="component/djyfs/efs/efs.h"/>
-					<F N="component/djyfs/efs/module_efs.c"/>
 				</Folder>
 				<Folder Name="xip">
 					<Folder Name="xip_app">
-						<F N="component/djyfs/xip/xip_app/component_config_xip_app.h"/>
 						<F N="component/djyfs/xip/xip_app/xip-app.c"/>
 						<F N="component/djyfs/xip/xip_app/xip-app.h"/>
 					</Folder>
 					<Folder Name="xip_iboot">
-						<F N="component/djyfs/xip/xip_iboot/component_config_xip_iboot.h"/>
 						<F N="component/djyfs/xip/xip_iboot/xip-iboot.c"/>
 					</Folder>
 					<F N="component/djyfs/xip/xip_update.c"/>
