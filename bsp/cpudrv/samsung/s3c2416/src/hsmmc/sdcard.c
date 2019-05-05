@@ -34,8 +34,8 @@
 //weakdependence:"none"                //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                        //选中该组件时，被依赖组件不会被强制选中，
                                        //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                         //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                       //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                         //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                       //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -47,14 +47,14 @@
 #define CFG_SDCARD_FORMAT            false    //是否需要器件格式化。
 //%$#@string,1,10,
 #define CFG_SDCARD_FSMOUNT_NAME      "fat"    //需安装的文件系统的mount的名字
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
 
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
@@ -167,7 +167,7 @@ s32  ModuleInstall_SD(const char *targetfs,u8 doformat)
     s32 Ret;
     const char *ChipName = "sdcard";    // 设备名;
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
 
     if(NULL == ChipName)

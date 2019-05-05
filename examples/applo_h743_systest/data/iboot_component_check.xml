@@ -9,17 +9,18 @@
   <dbug>false</dbug>
   <flash>false</flash>
   <uart>true</uart>
-  <DevFile>true</DevFile>
+  <devfile>true</devfile>
   <canbus>false</canbus>
   <ioiicbus>false</ioiicbus>
   <iicbus>false</iicbus>
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
+  <easyfullfilesystem>false</easyfullfilesystem>
   <xip_app>false</xip_app>
   <xip_iboot>false</xip_iboot>
   <filesystem>false</filesystem>
-  <ascii_font>false</ascii_font>
+  <ascii_dot>false</ascii_dot>
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
   <gdd>false</gdd>
@@ -34,7 +35,18 @@
   <multiplex>true</multiplex>
   <shell>true</shell>
   <stdio>true</stdio>
+  <dhcp>false</dhcp>
+  <ftp>false</ftp>
+  <telnet>false</telnet>
+  <tftp>false</tftp>
+  <arp>false</arp>
+  <ppp>false</ppp>
+  <router>false</router>
+  <sock>false</sock>
+  <icmp>false</icmp>
   <tcp>false</tcp>
+  <tpl>true</tpl>
+  <udp>false</udp>
   <tcpip>false</tcpip>
   <timer>true</timer>
   <wdt>false</wdt>
@@ -44,22 +56,25 @@
   <int>true</int>
   <lock>true</lock>
   <MsgQueue>true</MsgQueue>
-  <Objfile>false</Objfile>
+  <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>true</time>
   <board>true</board>
   <netconfig>false</netconfig>
+  <ioiicconfig>false</ioiicconfig>
   <lcd_config>false</lcd_config>
   <loader>true</loader>
   <cjson>false</cjson>
   <atsam4e>false</atsam4e>
   <atsam4s>false</atsam4s>
   <atsamv7>false</atsamv7>
+  <bk7251>false</bk7251>
   <csky>false</csky>
   <imxrt1052>false</imxrt1052>
   <lpc12xx>false</lpc12xx>
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
+  <scm6xx>false</scm6xx>
   <Sharc21469>false</Sharc21469>
   <silan>false</silan>
   <sldrv>false</sldrv>
@@ -83,7 +98,9 @@
   <qrencode>false</qrencode>
   <sqlite3>false</sqlite3>
   <stm32usb>false</stm32usb>
+  <wolfssh130>false</wolfssh130>
   <wolfssl>false</wolfssl>
+  <wolfssl3157>false</wolfssl3157>
   <zlib>false</zlib>
   <Clib>true</Clib>
   <FT5X26>false</FT5X26>
@@ -92,12 +109,15 @@
   <cpu_peri_bksram>false</cpu_peri_bksram>
   <cpu_peri_can>false</cpu_peri_can>
   <cpu_peri_dma>true</cpu_peri_dma>
+  <emflash_install_xip>false</emflash_install_xip>
   <cpu_peri_emflash>false</cpu_peri_emflash>
   <cpu_peri_eth>false</cpu_peri_eth>
   <cpu_peri_gpio>true</cpu_peri_gpio>
   <cpu_peri_iic>false</cpu_peri_iic>
   <cpu_peri_lcd>false</cpu_peri_lcd>
   <cpu_peri_lowpower>false</cpu_peri_lowpower>
+  <nand_install_efsfull>false</nand_install_efsfull>
+  <nand_install_yaf>false</nand_install_yaf>
   <cpu_peri_nand>false</cpu_peri_nand>
   <cpu_peri_rng>false</cpu_peri_rng>
   <cpu_peri_rtc>false</cpu_peri_rtc>

@@ -79,8 +79,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -101,7 +101,7 @@
 #define CFG_ETH_MAC_ADDR3      04           //"MAC ADDR3",若选中"硬件生成Mac地址",则无须填写
 #define CFG_ETH_MAC_ADDR4      05           //"MAC ADDR4",若选中"硬件生成Mac地址",则无须填写
 #define CFG_ETH_MAC_ADDR5      06           //"MAC ADDR5",若选中"硬件生成Mac地址",则无须填写
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -310,7 +310,7 @@ static struct NetPkg *__MacRcv(struct NetDev *devhandle)
     return pkg;
 }
 
-static bool_t MacSnd(struct NetDev* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(struct NetDev* handle,struct NetPkg * pkg, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
@@ -623,7 +623,6 @@ static ptu32_t __MacRcvTask(void)
 
 
 
-    u32 *addr;
     u32 value;
     u32 resettimes= 0;
     time_t printtime;
@@ -658,7 +657,8 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-//              NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                                                      PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
@@ -677,7 +677,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                 //here we still use the counter to do the time state check
-//              NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -699,7 +699,7 @@ static ptu32_t __MacRcvTask(void)
     return 0;
 }
 //create the receive task
-static bool_t __CreateRcvTask(ptu32_t handle)
+static bool_t __CreateRcvTask(struct NetDev * handle)
 {
     bool_t result = false;
     u16 evttID;

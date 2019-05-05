@@ -1,4 +1,3 @@
-ï»¿//----------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -24,1982 +23,689 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018ï¼Œè‘—ä½œæƒç”±éƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿå¼€æºå¼€å‘å›¢é˜Ÿæ‰€æœ‰ã€‚è‘—ä½œæƒäººä¿ç•™ä¸€åˆ‡æƒåˆ©ã€‚
+// Copyright (c) 2018£¬Öø×÷È¨ÓÉ¶¼½­Ñß²Ù×÷ÏµÍ³¿ªÔ´¿ª·¢ÍÅ¶ÓËùÓĞ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇĞÈ¨Àû¡£
 //
-// è¿™ä»½æˆæƒæ¡æ¬¾ï¼Œåœ¨ä½¿ç”¨è€…ç¬¦åˆä»¥ä¸‹ä¸‰æ¡ä»¶çš„æƒ…å½¢ä¸‹ï¼Œæˆäºˆä½¿ç”¨è€…ä½¿ç”¨åŠå†æ•£æ’­æœ¬
-// è½¯ä»¶åŒ…è£…åŸå§‹ç åŠäºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„æƒåˆ©ï¼Œæ— è®ºæ­¤åŒ…è£…æ˜¯å¦ç»æ”¹ä½œçš†ç„¶ï¼š
+// Õâ·İÊÚÈ¨Ìõ¿î£¬ÔÚÊ¹ÓÃÕß·ûºÏÒÔÏÂÈıÌõ¼şµÄÇéĞÎÏÂ£¬ÊÚÓèÊ¹ÓÃÕßÊ¹ÓÃ¼°ÔÙÉ¢²¥±¾
+// Èí¼ş°ü×°Ô­Ê¼Âë¼°¶ş½øÎ»¿ÉÖ´ĞĞĞÎÊ½µÄÈ¨Àû£¬ÎŞÂÛ´Ë°ü×°ÊÇ·ñ¾­¸Ä×÷½ÔÈ»£º
 //
-// 1. å¯¹äºæœ¬è½¯ä»¶æºä»£ç çš„å†æ•£æ’­ï¼Œå¿…é¡»ä¿ç•™ä¸Šè¿°çš„ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥
-//    åŠä¸‹è¿°çš„å…è´£å£°æ˜ã€‚
-// 2. å¯¹äºæœ¬å¥—ä»¶äºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„å†æ•£æ’­ï¼Œå¿…é¡»è¿å¸¦ä»¥æ–‡ä»¶ä»¥åŠï¼æˆ–è€…å…¶ä»–é™„
-//    äºæ•£æ’­åŒ…è£…ä¸­çš„åª’ä»‹æ–¹å¼ï¼Œé‡åˆ¶ä¸Šè¿°ä¹‹ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥åŠä¸‹è¿°
-//    çš„å…è´£å£°æ˜ã€‚
-// 3. æœ¬è½¯ä»¶ä½œä¸ºéƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿçš„ç»„æˆéƒ¨åˆ†ï¼Œæœªè·äº‹å‰å–å¾—çš„ä¹¦é¢è®¸å¯ï¼Œä¸å…è®¸ç§»æ¤åˆ°é
-//    éƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿç¯å¢ƒä¸‹è¿è¡Œã€‚
+// 1. ¶ÔÓÚ±¾Èí¼şÔ´´úÂëµÄÔÙÉ¢²¥£¬±ØĞë±£ÁôÉÏÊöµÄ°æÈ¨Ğû¸æ¡¢±¾Ìõ¼şÁĞ±í£¬ÒÔ
+//    ¼°ÏÂÊöµÄÃâÔğÉùÃ÷¡£
+// 2. ¶ÔÓÚ±¾Ì×¼ş¶ş½øÎ»¿ÉÖ´ĞĞĞÎÊ½µÄÔÙÉ¢²¥£¬±ØĞëÁ¬´øÒÔÎÄ¼şÒÔ¼°£¯»òÕßÆäËû¸½
+//    ÓÚÉ¢²¥°ü×°ÖĞµÄÃ½½é·½Ê½£¬ÖØÖÆÉÏÊöÖ®°æÈ¨Ğû¸æ¡¢±¾Ìõ¼şÁĞ±í£¬ÒÔ¼°ÏÂÊö
+//    µÄÃâÔğÉùÃ÷¡£
+// 3. ±¾Èí¼ş×÷Îª¶¼½­Ñß²Ù×÷ÏµÍ³µÄ×é³É²¿·Ö£¬Î´»ñÊÂÇ°È¡µÃµÄÊéÃæĞí¿É£¬²»ÔÊĞíÒÆÖ²µ½·Ç
+//    ¶¼½­Ñß²Ù×÷ÏµÍ³»·¾³ÏÂÔËĞĞ¡£
 
-// å…è´£å£°æ˜ï¼šæœ¬è½¯ä»¶æ˜¯æœ¬è½¯ä»¶ç‰ˆæƒæŒæœ‰äººä»¥åŠè´¡çŒ®è€…ä»¥ç°çŠ¶ï¼ˆ"as is"ï¼‰æä¾›ï¼Œ
-// æœ¬è½¯ä»¶åŒ…è£…ä¸è´Ÿä»»ä½•æ˜ç¤ºæˆ–é»˜ç¤ºä¹‹æ‹…ä¿è´£ä»»ï¼ŒåŒ…æ‹¬ä½†ä¸é™äºå°±é€‚å”®æ€§ä»¥åŠç‰¹å®šç›®
-// çš„çš„é€‚ç”¨æ€§ä¸ºé»˜ç¤ºæ€§æ‹…ä¿ã€‚ç‰ˆæƒæŒæœ‰äººåŠæœ¬è½¯ä»¶ä¹‹è´¡çŒ®è€…ï¼Œæ— è®ºä»»ä½•æ¡ä»¶ã€
-// æ— è®ºæˆå› æˆ–ä»»ä½•è´£ä»»ä¸»ä¹‰ã€æ— è®ºæ­¤è´£ä»»ä¸ºå› åˆçº¦å…³ç³»ã€æ— è¿‡å¤±è´£ä»»ä¸»ä¹‰æˆ–å› éè¿
-// çº¦ä¹‹ä¾µæƒï¼ˆåŒ…æ‹¬è¿‡å¤±æˆ–å…¶ä»–åŸå› ç­‰ï¼‰è€Œèµ·ï¼Œå¯¹äºä»»ä½•å› ä½¿ç”¨æœ¬è½¯ä»¶åŒ…è£…æ‰€äº§ç”Ÿçš„
-// ä»»ä½•ç›´æ¥æ€§ã€é—´æ¥æ€§ã€å¶å‘æ€§ã€ç‰¹æ®Šæ€§ã€æƒ©ç½šæ€§æˆ–ä»»ä½•ç»“æœçš„æŸå®³ï¼ˆåŒ…æ‹¬ä½†ä¸é™
-// äºæ›¿ä»£å•†å“æˆ–åŠ³åŠ¡ä¹‹è´­ç”¨ã€ä½¿ç”¨æŸå¤±ã€èµ„æ–™æŸå¤±ã€åˆ©ç›ŠæŸå¤±ã€ä¸šåŠ¡ä¸­æ–­ç­‰ç­‰ï¼‰ï¼Œ
-// ä¸è´Ÿä»»ä½•è´£ä»»ï¼Œå³åœ¨è¯¥ç§ä½¿ç”¨å·²è·äº‹å‰å‘ŠçŸ¥å¯èƒ½ä¼šé€ æˆæ­¤ç±»æŸå®³çš„æƒ…å½¢ä¸‹äº¦ç„¶ã€‚
+// ÃâÔğÉùÃ÷£º±¾Èí¼şÊÇ±¾Èí¼ş°æÈ¨³ÖÓĞÈËÒÔ¼°¹±Ï×ÕßÒÔÏÖ×´£¨"as is"£©Ìá¹©£¬
+// ±¾Èí¼ş°ü×°²»¸ºÈÎºÎÃ÷Ê¾»òÄ¬Ê¾Ö®µ£±£ÔğÈÎ£¬°üÀ¨µ«²»ÏŞÓÚ¾ÍÊÊÊÛĞÔÒÔ¼°ÌØ¶¨Ä¿
+// µÄµÄÊÊÓÃĞÔÎªÄ¬Ê¾ĞÔµ£±£¡£°æÈ¨³ÖÓĞÈË¼°±¾Èí¼şÖ®¹±Ï×Õß£¬ÎŞÂÛÈÎºÎÌõ¼ş¡¢
+// ÎŞÂÛ³ÉÒò»òÈÎºÎÔğÈÎÖ÷Òå¡¢ÎŞÂÛ´ËÔğÈÎÎªÒòºÏÔ¼¹ØÏµ¡¢ÎŞ¹ıÊ§ÔğÈÎÖ÷Òå»òÒò·ÇÎ¥
+// Ô¼Ö®ÇÖÈ¨£¨°üÀ¨¹ıÊ§»òÆäËûÔ­ÒòµÈ£©¶øÆğ£¬¶ÔÓÚÈÎºÎÒòÊ¹ÓÃ±¾Èí¼ş°ü×°Ëù²úÉúµÄ
+// ÈÎºÎÖ±½ÓĞÔ¡¢¼ä½ÓĞÔ¡¢Å¼·¢ĞÔ¡¢ÌØÊâĞÔ¡¢³Í·£ĞÔ»òÈÎºÎ½á¹ûµÄËğº¦£¨°üÀ¨µ«²»ÏŞ
+// ÓÚÌæ´úÉÌÆ·»òÀÍÎñÖ®¹ºÓÃ¡¢Ê¹ÓÃËğÊ§¡¢×ÊÁÏËğÊ§¡¢ÀûÒæËğÊ§¡¢ÒµÎñÖĞ¶ÏµÈµÈ£©£¬
+// ²»¸ºÈÎºÎÔğÈÎ£¬¼´ÔÚ¸ÃÖÖÊ¹ÓÃÒÑ»ñÊÂÇ°¸æÖª¿ÉÄÜ»áÔì³É´ËÀàËğº¦µÄÇéĞÎÏÂÒàÈ»¡£
 //-----------------------------------------------------------------------------
-// è¯¥ç®€æ˜“æ–‡ä»¶ç³»ç»Ÿå¤ªè¿‡å¤æ‚ï¼Œéœ€è¦é‡æ„ï¼Œæš‚æ—¶å±è”½è¯¥æ–‡ä»¶ç³»ç»Ÿ
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <fcntl.h>
-#include <misc.h>
-#include <stdarg.h>
-#include <systime.h>
-#include <lock.h>
-#include <dirent.h>
-#include <objhandle.h>
 #include <stdio.h>
-#include <math.h>
+#include <dirent.h>
+#include <filesystems.h>
+#include <stdlib.h>
 #include <device/include/unit_media.h>
-#include "../filesystems.h"
-#include "component_config_efs.h"
+#include <string.h>
+#include <endian.h>
+#include <misc.h>
+#include <lock.h>
 #include "efs.h"
-//
-//
-//
+#include <dbug.h>
+#include <Object.h>
+#include "project_config.h"     //±¾ÎÄ¼şÓÉIDEÖĞÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖĞ¡£
+                                //ÔÊĞíÊÇ¸ö¿ÕÎÄ¼ş£¬ËùÓĞÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
+
+//@#$%component configure   ****×é¼şÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖĞÍ¼ĞÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼ş£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ı¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼şÖĞ
+//    extern s32 ModuleInstall_EFS(const char *target, u32 opt, void *config);
+//    ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, CFG_EFS_INSTALL_OPTION, NULL);
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
+
+//%$#@describe      ****×é¼şÃèÊö¿ªÊ¼+
+//component name:"easyfilesystem"     //easyÎÄ¼şÏµÍ³
+//parent:"filesystem"                 //ÌîĞ´¸Ã×é¼şµÄ¸¸×é¼şÃû×Ö£¬none±íÊ¾Ã»ÓĞ¸¸×é¼ş
+//attribute:system                    //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôĞÔÓÃÓÚÔÚIDEÖĞ·Ö×é
+//select:choosable                    //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒĞèÒªÅäÖÃ²ÎÊı£¬ÔòIDE²Ã¼ô½çÃæÖĞÄ¬ÈÏ¹´È¡£¬
+                                      //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ĞèÒªÅäÖÃ²ÎÊıµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖĞ²»ÏÔÊ¾£¬
+//init time:early                    //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later¡£
+                                      //±íÊ¾³õÊ¼»¯Ê±¼ä£¬·Ö±ğÊÇÔçÆÚ¡¢ÖĞÆÚ¡¢ºóÆÚ
+//dependence:"filesystem"             //¸Ã×é¼şµÄÒÀÀµ×é¼şÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎŞÒÀÀµ×é¼ş£©£¬
+                                      //Ñ¡ÖĞ¸Ã×é¼şÊ±£¬±»ÒÀÀµ×é¼ş½«Ç¿ÖÆÑ¡ÖĞ£¬
+                                      //Èç¹ûÒÀÀµ¶à¸ö×é¼ş£¬ÔòÒÀ´ÎÁĞ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//weakdependence:"none"               //¸Ã×é¼şµÄÈõÒÀÀµ×é¼şÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎŞÒÀÀµ×é¼ş£©£¬
+                                      //Ñ¡ÖĞ¸Ã×é¼şÊ±£¬±»ÒÀÀµ×é¼ş²»»á±»Ç¿ÖÆÑ¡ÖĞ£¬
+                                      //Èç¹ûÒÀÀµ¶à¸ö×é¼ş£¬ÔòÒÀ´ÎÁĞ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                        //¸Ã×é¼şµÄÒÀÀµ×é¼şÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎŞÒÀÀµ×é¼ş£©£¬
+                                      //Èç¹ûÒÀÀµ¶à¸ö×é¼ş£¬ÔòÒÀ´ÎÁĞ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//%$#@end describe  ****×é¼şÃèÊö½áÊø
+
+//%$#@configue      ****²ÎÊıÅäÖÃ¿ªÊ¼
+//%$#@target = header           //header = Éú³ÉÍ·ÎÄ¼ş,cmdline = ÃüÁîĞĞ±äÁ¿£¬DJYOS×ÔÓĞÄ£¿é½ûÓÃ
+#ifndef CFG_EFS_MOUNT_POINT   //****¼ì²é²ÎÊıÊÇ·ñÒÑ¾­ÅäÖÃºÃ
+#warning    efsfilesystem×é¼ş²ÎÊıÎ´ÅäÖÃ£¬Ê¹ÓÃÄ¬ÈÏÖµ
+//%$#@num,0,1073741823,
+#define CFG_EFS_FILE_BLOCK_SIZE           4096                 // µ¥¸öÎÄ¼ş´óĞ¡µÄÉÏÏŞ
+//%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,
+#define CFG_EFS_INSTALL_OPTION            MS_INSTALLFORMAT      //EFSÎÄ¼şÏµÍ³°²×°Ñ¡Ïî£¬16777216:ÎÄ¼şÏµÍ³²»´æÔÚÊ±ÔòĞÂ½¨£»256£º¸ñÊ½»¯ÎÄ¼şÏµÍ³
+//%$#@string,1,10,
+#define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFSÎÄ¼şÏµÍ³°²×°Ä¿Â¼
+//%$#select,        ***¶¨ÒåÎŞÖµµÄºê£¬½öÓÃÓÚµÚÈı·½×é¼ş
+//%$#@free,
+#endif//%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
+
+//%$#@exclude       ****±àÒëÅÅ³ıÎÄ¼şÁĞ±í
+//%$#@end exclude   ****×é¼şÃèÊö½áÊø
+
+//@#$%component end configure
+
+#define CN_EFS_MAX                   1 // ¼òÒ×ÎÄ¼şÏµÍ³µÄ¸öÊı
+#define MUTEX_WAIT_TIME             CN_TIMEOUT_FOREVER//(2*1000*1000) // »¥³â·ÃÎÊµÈ´ıÊ±¼ä
+
 s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                  ptu32_t OpsArgs2, ptu32_t OpsArgs3);
+tagEFS *s_pEfsList[CN_EFS_MAX]; // ¼òÒ×ÎÄ¼şÏµÍ³ÁĞ±í
+static u8 tgOpenedSum = 0; // ´ò¿ªµÄÎÄ¼şÊı
+static char NameBuf[256];
+static void NameECC(char *Name, u8 *Ecc);
+static s32 ChkOrRecNameByECC(char *Name, u8 *Ecc);
+static u32 dwFileMaxSize,EfsCgfLimit,IndexesNum,CreateMax;
 
-
-// ============================================================================
-// åŠŸèƒ½ï¼šè§£é”æ–‡ä»¶ç³»ç»Ÿï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ï¼›
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-inline static void __unlock(struct __ecore *core)
+// =============================================================================
+// ¹¦ÄÜ£ºÍ¨¹ıECCĞŞ¸´ÎÄ¼şÃû
+// ²ÎÊı£º
+// ·µ»Ø£º-1 -- ECCĞ£ÑéÊ§°Ü; 0 -- ECCĞ£Ñé³É¹¦;
+// =============================================================================
+static s32 ChkOrRecNameByECC(char *Name, u8 *Ecc)
 {
-    Lock_MutexPost(core->mutex);
-}
-// ============================================================================
-// åŠŸèƒ½ï¼šé”å®šæ–‡ä»¶ç³»ç»Ÿï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ï¼›
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-inline static void __lock(struct __ecore *core)
-{
-    Lock_MutexPend(core->mutex, CN_TIMEOUT_FOREVER);
-}
+    u32 Ret;
 
-// ============================================================================
-// åŠŸèƒ½ï¼šé€šè¿‡ECCæ ¡éªŒå’Œä¿®å¤æ•°æ®ï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-//      data -- æ•°æ®ï¼›
-//      len -- æ•°æ®é•¿åº¦ï¼›
-//      ecc -- æ•°æ®çš„ECCå€¼ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼šä¸èƒ½è¶…è¿‡256ä¸ªå­—èŠ‚ï¼›
-// ============================================================================
-static s32 __fix(struct __ecore *core, void *data, u32 len, u32 *ecc)
-{
-    u8 *buf;
+    if( ((Ecc[0] == 0) && (Ecc[1] == 0) && (Ecc[2] == 0)) ||
+            ((Ecc[0] == 0xFF) && (Ecc[1] == 0xFF) && (Ecc[2] == 0xFF))    )
+        return 0;
 
-    if(len > 256)
-        return (-1);
-
-    if(len < 256)
+    memset(NameBuf, 0x00, 256);
+    strcpy(NameBuf, Name);
+    Ret = hamming_verify_256x((u8*)NameBuf, 256, Ecc);      //Ğ£ÑéÎÄ¼şÃû
+    if (Ret && (Ret != HAMMING_ERROR_SINGLE_BIT))
     {
-        memset(core->ecc, 0x0, 256);
-        memcpy(core->ecc, data, len);
-        buf = core->ecc;
-    }
-    else
-    {
-        buf = data;
-    }
-
-    if(hamming_verify_256x(buf, 256, ((const u8*)ecc)))
-    {
-        // printf("\r\n: erro : efs    : data ecc error.");
+        printf("\r\nfile name \"%s\" ecc error [0x%x]\r\n", Name, Ret);
         return (-1);
     }
-
     return (0);
 }
-
-// ============================================================================
-// åŠŸèƒ½ï¼šç”ŸæˆECCï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-//      data -- æ•°æ®ï¼›
-//      len -- æ•°æ®é•¿åº¦ï¼›
-//      ecc -- æ•°æ®çš„ECCå€¼ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼šä¸èƒ½è¶…è¿‡256ä¸ªå­—èŠ‚ï¼›
-// ============================================================================
-static s32 __gen(struct __ecore *core, void *data, u32 len, u32 *ecc)
+// =============================================================================
+// ¹¦ÄÜ£º¼ÆËãÎÄ¼şÃûECC
+// ²ÎÊı£ºName -- ÎÄ¼şÃû£» Ecc -- ´æeccÖµµÄµØÖ·
+// ·µ»Ø£º
+// =============================================================================
+static void NameECC(char *Name, u8 *Ecc)
 {
-    u8 *buf;
-
-    if(len > 256)
-        return (-1);
-
-    if(len < 256)
+    memset(NameBuf, 0x00, 256);
+    strcpy(NameBuf, Name);
+    hamming_compute_256x((u8*)NameBuf, 256, Ecc);
+}
+//------------------------------------------------------------------------------
+//¹¦ÄÜ: ¼ÆËãÆæĞ£ÑéÎ»
+//²ÎÊı: newsize -- ÎÄ¼ş´óĞ¡
+//·µ»Ø: Èç¹û1µÄ¸öÊıÎªÆæÊı¸ö£¬Ôò·µ»Ø0£¬Èç¹û1µÄ¸öÊıÎªÅ¼Êı¸ö£¬Ôò·µ»Ø1¡£
+//-----------------------------------------------------------------------------
+static u32 __Efs_paritycheck(u32 odd)
+{
+    u32 val=1;
+    u32 flag=1;
+    while(odd)
     {
-        memset(core->ecc, 0x0, 256);
-        memcpy(core->ecc, data, len);
-        buf = core->ecc;
+        val ^= (odd & flag);
+        odd >>= 1;
     }
-    else
-    {
-        buf = (u8*)data;
-    }
+    return val & 0x1;
+}
+//------------------------------------------------------------------------------
+//¹¦ÄÜ: ¼ÆËãÎÄ¼ş´óĞ¡µÄÆæÅ¼Ğ£Ñé,ÆæÊıÎ»ºÍÅ¼ÊıÎ»µÄÆæĞ£Ñé·Ö±ğ·ÅÔÚµÚ30Î»ºÍµÚ31Î»
+//²ÎÊı: newsize -- ÎÄ¼ş´óĞ¡
+//·µ»Ø: ·µ»Ø¼ÓÉÏÁËÆæÅ¼Ğ£ÑéµÄÎÄ¼ş´óĞ¡
+//-----------------------------------------------------------------------------
+static u32 __EfsFileSize_odd_even_check(u32 newsize)
+{
+    u32 ret = newsize,odd,even;
 
-    *ecc = 0;
-    hamming_compute_256x(buf, 256, (u8*)ecc);
-    return (0);
+    if(ret > EFS_SUPPORT_MAXFILESIZE)
+    {
+        ret = EFS_SUPPORT_MAXFILESIZE;
+        warning_printf("efs","The file size exceeds the maximum file size supported by efs ");
+    }
+    odd = ret & 0x15555555;     //»ñÈ¡ËùÓĞÆæÊıÎ»
+    odd = __Efs_paritycheck(odd);   //»ñÈ¡ËùÓĞÅ¼ÊıÊıÎ»
+    even = ret & 0x2aaaaaaa;
+    even = __Efs_paritycheck(even);   //»ñÈ¡ËùÓĞÅ¼ÊıÊıÎ»
+    ret = (ret | (odd << 30) | (even << 31));
+    return ret;
 }
 
-// ============================================================================
-// åŠŸèƒ½ï¼šä¸ºæ–‡ä»¶å¤§å°æ·»åŠ ä¸€ä¸ªæ–°ç©ºé—´
-// å‚æ•°ï¼šlist -- locé“¾è¡¨ï¼›
-//      loc -- ç‰©ç†ä½ç½®åç½®ï¼›
-//      order -- åºå·æ ‡è®°ï¼›
-//      sort -- 0ï¼ˆæ–°æˆå‘˜åœ¨æ¥liståï¼‰ï¼›è¿½åŠ ï¼›
-//              1ï¼ˆé“¾è¡¨æœ¬èº«æ˜¯æŒ‰ä»å°åˆ°å¤§æ’åˆ—çš„ï¼Œæ–°æˆå‘˜ä¹ŸæŒ‰åºæ’å…¥ï¼Œlistå‚æ•°åœ¨å‡½æ•°è¿”å›æ—¶ï¼ŒæŒ‡å‘æœ€å°åºå·æˆå‘˜ï¼›æŒ‰åºï¼›
-//
-// è¿”å›ï¼šæˆåŠŸï¼ˆæ–°åŠ å…¥çš„locï¼‰ï¼›å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼šè¾“å…¥çš„listå¯ä»¥æŒ‡å‘ç©ºï¼Œè¡¨ç¤ºæ²¡æœ‰é˜Ÿåˆ—ï¼›
-// ============================================================================
-static struct __loc *__addloc(struct __loc **list, u32 loc, u32 order, u8 sort)
+//------------------------------------------------------------------------------
+//¹¦ÄÜ: Ğ£ÑéÎÄ¼ş´óĞ¡ºÍĞ£ÑéÎ»ÊÇ·ñÆ¥Åä
+//²ÎÊı: filesize -- ÎÄ¼ş´óĞ¡
+//·µ»Ø: 0 -- Æ¥Åä £» -1 -- ²»Æ¥Åä
+//-----------------------------------------------------------------------------
+static s32 __EfsFileSize_verify(u32 filesize)
 {
-    list_t *start, *cur;
-    struct __loc *nloc, *cloc;
+    u32 ret = filesize,odd,even;
 
-    nloc = (struct __loc*)malloc(sizeof(struct __loc));
-    if(!nloc)
-    {
-        printf("\r\n: error: efs    : add location failed(memory out).");
-        return (NULL);
-    }
+    odd = ((ret >> 30) & 0x1);
+    even = ((ret >> 31) & 0x1);
 
-    dListInit(&nloc->list);
-    nloc->order = order;
-    nloc->loc = loc;
-    if(list) // æ²¡æœ‰é˜Ÿåˆ—ï¼Œåˆ™ç›´æ¥è¿”å›æ–°ç”³è¯·çš„loc
-    {
-        if(!*list)
-        {
-            *list = nloc; // è¾“å…¥çš„é˜Ÿåˆ—æŒ‡é’ˆä¸ºç©ºï¼›
-        }
-        else if(sort) // æŒ‰åºæ’å…¥
-        {
-            // é“¾è¡¨æœ¬èº«æ˜¯æŒ‰ä»å°åˆ°å¤§æ’åˆ—çš„ï¼Œæ–°æˆå‘˜ä¹ŸæŒ‰åºæ’å…¥ï¼Œlistå‚æ•°åœ¨å‡½æ•°è¿”å›æ—¶ï¼ŒæŒ‡å‘æœ€å°åºå·æˆå‘˜ï¼›
-            // æ­¤æ—¶é˜Ÿåˆ—å¤´æ˜¯é˜Ÿåˆ—çš„æœ€å°åºå·ï¼›
-            start = &(*list)->list;
-            cloc = dListEntry(start, struct __loc, list); // ç¬¬ä¸€ä¸ªæˆå‘˜ï¼›
-            if(cloc->order>=order) // ç¬¬ä¸€ä¸ªæˆå‘˜å¤§äºæ–°æ’å…¥çš„æ–°æˆå‘˜ï¼›åˆ™ç¬¬ä¸€ä¸ªæˆå‘˜å˜æ›´ä¸ºæ–°æˆå‘˜ï¼›
-            {
-                // ç›´æ¥å°†æ–°æˆå‘˜æ’å…¥åˆ°å¤´éƒ¨å‰é¢ï¼Œç„¶åå˜æ›´å¤´éƒ¨æŒ‡å‘ï¼›
-                dListInsertBefore(start, &nloc->list);
-                *list = nloc; // å¤´éƒ¨æŒ‡å‘æœ€å°æˆå‘˜
-                return (nloc);
-            }
+    if((odd != __Efs_paritycheck(ret & 0x15555555)) || (even != __Efs_paritycheck(ret & 0x2aaaaaaa)))
+        return -1;
 
-            cloc = dListEntry(dListGetBefore(start), struct __loc, list); // æœ€åä¸€ä¸ªæˆå‘˜ï¼›
-            if(cloc->order<=order) // æœ€åä¸€ä¸ªæˆå‘˜å°äºæ–°æ’å…¥çš„æ–°æˆå‘˜ï¼›åˆ™æ–°æˆå‘˜ç›´æ¥è¿½åŠ å…¶åé¢ï¼›
-            {
-                dListInsertAfter(&cloc->list, &nloc->list);
-                return (nloc);
-            }
-
-            dListForEach(cur, start) // åœ¨é˜Ÿåˆ—ä¸­æŸ¥æ‰¾æ–°æˆå‘˜çš„æ’å…¥ä½ç½®ï¼›
-            {
-                cloc = dListEntry(cur, struct __loc, list);
-                if(cloc->order>=order)
-                {
-                    dListInsertBefore(cur, &nloc->list);
-                    return (nloc);
-                }
-            }
-        }
-        else // è¿½åŠ æ’å…¥
-        {
-            dListInsertAfter(&((*list)->list), &(nloc->list)); // æ–°æˆå‘˜æ¥åœ¨listå
-        }
-    }
-
-    return (nloc);
+    return 0;
 }
 
-// ============================================================================
-// åŠŸèƒ½ï¼šæŸ¥æ‰¾offsetå¯¹åº”çš„locåŒºåŸŸï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿï¼›
-//      offset -- æ–‡ä»¶çš„ä½ç½®ï¼›-1è¡¨ç¤ºè·å–æ–‡ä»¶å°¾éƒ¨ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆoffsetå¯¹åº”çš„locåŒºï¼‰ï¼›å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼šheadå¿…é¡»åœ¨è°ƒç”¨é€»è¾‘ä¿è¯ï¼›
-// ============================================================================
-static struct __loc *__getloc(enum locmove movon, struct __ecore *core, struct __loc *loc, s64 offset)
+//----¼ì²éÎÄ¼ş·ÖÅä±ífilesize-----------------------------------------------------------
+//¹¦ÄÜ: ¼ì²éÒ»¸öÎÄ¼ş·ÖÅä±íµÄfilesize£¬Ö»¼ì²é£¬²»×÷ÈÎºÎ¸ÄĞ´
+//²ÎÊı: buf£¬»º³åÇø£¬´æÓĞÎÄ¼şµÄ26¸ö´óĞ¡
+//      location£¬filesizeÊı¾İµÄÎ»ÖÃ£¬Èç¹ûfilesize³ö´í£¬ÔòÊÇ³ö´íµÄÎ»ÖÃ
+//·µ»Ø: 0 = ÎŞ´í£¬1=ÓĞ´íÃ»ÓĞ¸ÄÕı
+//-----------------------------------------------------------------------------
+static u32 __Efs_CheckFileSize(u8 *buf, u32 *location)
 {
-    list_t *ret;
-    s32 movs;
-    struct __loc *cloc;
-    s64 eccesz;
+    u32 filesize_no, offset;
+    u32 ret = 0;
 
-    if(position==movon)
+    for (filesize_no = 0; filesize_no < FILE_FILESIZE_NUM;filesize_no++)
     {
-        if(-1 == offset)
-        {
-            ret = dListGetBefore(&(loc->list));
-        }
-        else
-        {
-            eccesz = (1 << (core->pagesize - BUFBITS)) * 4; // ä¸€ä¸ªunitå†…çš„ECCæ•°æ®é‡ï¼›
-            eccesz = (core->fsz << core->pagesize) - (core->fsz * eccesz); // é™¤å»ECCæ•°æ®çš„æ–‡ä»¶ç©ºé—´å¤§å°ï¼›
-            movs = offset / eccesz;
-            ret = &(loc->list);
-            while(movs--)
-            {
-                ret = dListGetAfter(ret);
-                if(ret == &(loc->list))
-                {
-                    if((!movs)&&(!(offset%eccesz))) // æ–‡ä»¶ä½ç½®æ­£å¥½åœ¨æ–‡ä»¶å°¾éƒ¨ï¼Œä¸”æ­¤æ—¶å°ºå¯¸æ­£å¥½ä¸æ–‡ä»¶ç©ºé—´å¯¹é½ï¼›
-                        ret = dListGetBefore(&(loc->list));
-                    else
-                        return (NULL);
-                }
-            }
-        }
-    }
-    else if(direct==movon)
-    {
-        if(offset<0)
-        {
-            ret = dListGetBefore(&(loc->list));
-        }
-        else
-        {
-            ret = dListGetAfter(&(loc->list));
-        }
-    }
-
-    cloc = dListEntry(ret, struct __loc, list);
-    return (cloc);
-}
-// ============================================================================
-// åŠŸèƒ½ï¼šåˆ é™¤locï¼›
-// å‚æ•°ï¼šend -- locé“¾è¡¨æˆå‘˜ï¼›
-//      ward -- è¿”å›æˆå‘˜,å‘å‰ï¼ˆ-1ï¼‰ï¼›å‘åï¼ˆ1ï¼‰ï¼›
-// è¿”å›ï¼šè¿”å›æ“ä½œåçš„locé“¾è¡¨çš„ç›¸é‚»ä¸€ä¸ªï¼›å…¨éƒ¨åˆ é™¤ï¼Œåˆ™è¿”å›NULL
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static struct __loc *__delloc(struct __loc *end, s8 ward)
-{
-    list_t *loc;
-    struct __loc *res;
-
-    if(dListIsEmpty(&(end->list)))
-    {
-        res = NULL;
-    }
-    else if(1==ward) //å‘å
-    {
-        loc = dListGetAfter(&(end->list));
-        res = dListEntry(loc, struct __loc, list);
-        dListRemove(&(end->list));
-    }
-    else if(-1==ward) // å‘å‰
-    {
-
-        loc = dListGetBefore(&(end->list));
-        res = dListEntry(loc, struct __loc, list);
-        dListRemove(&(end->list));
-    }
-
-    free(end);
-    return (res);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šé€šè¿‡bufæ„å»ºfileä¿¡æ¯ï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-//      file -- æ–‡ä»¶ä¿¡æ¯ï¼›
-//      buf -- æ–‡ä»¶ä¿¡æ¯æ‰€åœ¨çš„ç©ºé—´ï¼›
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static inline void __e_structfile(struct __ecore *core, struct __efstruct *file, u8 *buf)
-{
-    file->name.n = (char*)buf;
-    file->name.e = (u32*)(buf+core->nsz);
-    file->size = (struct __esize*)(buf+core->nsz+4);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ£€æŸ¥æ–‡ä»¶locé“¾è¡¨çš„æœ‰æ•ˆæ€§
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-//      loc -- æ–‡ä»¶å†…å®¹çš„locé“¾è¡¨ï¼›
-//      name -- æ–‡ä»¶åï¼›
-// è¿”å›ï¼šæ­£å¸¸ï¼ˆ0ï¼‰ï¼›æœ‰é—®é¢˜ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼šæ£€æŸ¥locé“¾è¡¨æ˜¯å¦æŒ‰åºï¼Œæ˜¯å¦å­˜åœ¨åŒåºå·;ï¼ˆå‡å°‘é“¾è¡¨æ£€æŸ¥éœ€è¦æé«˜keyçš„å”¯ä¸€æ€§ï¼‰ï¼›
-// ============================================================================
-static void __e_sanityloc(struct __ecore *core, struct __loc **loc, const char *name)
-{
-    s64 units;
-    u8 delsub = 0;
-    u8 found;
-    u8 one2one = 0;
-    struct __efstruct fstruct;
-    struct __loc *nloc, *sub;
-
-    sub = *loc;
-    if(1!=sub->order) // æ–‡ä»¶åºå·ä¸ä»¥1ä½å¼€å¤´ï¼Œè¡¨ç¤ºæ–‡ä»¶æ•°æ®ä¸¢å¤±äº†
-    {
-        printf("\r\n: warn : efs    : file (%s)'s location is not sanity, the 1 to %d has lost", name,
-                (sub->order));
-
-        while(sub)
-            sub = __delloc(sub, 1);
-
-        *loc = NULL;
-        return;
-    }
-
-    // æŒ‰åºå·è¿›è¡Œåˆ†æ®µ(sub)è§£æï¼›
-    // ä¾‹å¦‚ï¼šloc ï¼ˆ1-1-1-1ï¼‰--ï¼ˆ2-2-2ï¼‰--ï¼ˆ3-3ï¼‰--ï¼ˆ4ï¼‰
-    //           sub         sub        sub     sub
-    do
-    {   // __SUB_LOC_SCAN:
-        nloc = __getloc(direct, core, sub, 1);
-        if((nloc->order==sub->order)&&(nloc!=(*loc))) // subä¸­å­˜åœ¨orderç›¸åŒçš„locï¼Œéœ€è¦è¯¦ç»†ç”„åˆ«subä¸­æ¯ä¸ªæˆå‘˜
-        {
-            if(one2one)
-            {
-                printf("\r\n: warn : efs    : file (%s)'s location is not sanity(sub order %d should be single).",
-                       name, sub->order);
-                one2one = 0;
-                // TODO
-            }
-
-            units = core->serial * core->ssz + core->finfo + sub->loc;
-            if(core->drv->efs_read_media(core, units, core->ebuf)) // æ–‡ä»¶ä¿¡æ¯
-            {
-                printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, info (%d) can not read",
-                       name, sub->loc);
-                found = 0;
-                delsub = 1;
-            }
-            else
-            {
-                __e_structfile(core, &fstruct, core->ebuf);
-                if(strcmp(fstruct.name.n, name))
-                {
-                    __fix(core, fstruct.name.n, (strlen(name)+1), fstruct.name.e);
-                    if(strcmp(fstruct.name.n, name))
-                    {
-                        delsub = 1;
-                        found = 0;
-                    }
-                    else
-                    {
-                        found = 1;
-                    }
-                }
-                else
-                {
-                    found = 1;
-                }
-            }
-
-            while((nloc->order==sub->order)&&(nloc!=(*loc)))
-            {
-                if(found) // å·²æ‰¾åˆ°ï¼Œåˆ™åˆ é™¤å…¶ä»–åŒorderçš„loc
-                {
-                    nloc = __delloc(nloc, 1); // åˆ é™¤å½“å‰ï¼Œå¹¶è¿”å›åä¸€ä¸ªæˆå‘˜ï¼›
-                }
-                else
-                {
-                    units = core->serial * core->ssz + core->finfo + nloc->loc;
-                    if(core->drv->efs_read_media(core, units, core->ebuf)) // æ–‡ä»¶ä¿¡æ¯
-                    {
-                        printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, info (%d) can not read",
-                               name, nloc->loc);
-                        nloc = __delloc(nloc, 1); // åˆ é™¤å½“å‰ï¼Œå¹¶è¿”å›åä¸€ä¸ªæˆå‘˜ï¼›
-                        continue;
-                    }
-                    else
-                    {
-                        __e_structfile(core, &fstruct, core->ebuf);
-                        if(strcmp(fstruct.name.n, name))
-                        {
-                            __fix(core, fstruct.name.n, (strlen(name)+1), fstruct.name.e);
-                            if(strcmp(fstruct.name.n, name))
-                            {
-                                nloc = __delloc(nloc, 1); // åˆ é™¤å½“å‰ï¼Œå¹¶è¿”å›åä¸€ä¸ªæˆå‘˜ï¼›
-                                continue;
-                            }
-                        }
-
-                        found = 1;
-                        nloc = __getloc(direct, core, nloc, 1);
-                    }
-                }
-            }
-        }
-        else if(!one2one)
-        {
-            // subä¸­æœ‰å¤šä¸ªåï¼Œå˜ä¸º1ä¸ªæ—¶ï¼Œä¼šæ£€æŸ¥ä¸€æ¬¡ï¼›ï¼›
-            // æˆ–è€…å¼€å§‹æ—¶ï¼Œç¬¬ä¸€ä¸ªsubåªæœ‰ä¸€ä¸ªæ—¶ï¼Œä¹Ÿä¼šæ£€æŸ¥ä¸€æ¬¡ï¼›
-            units = core->serial * core->ssz + core->finfo + sub->loc;
-            if(core->drv->efs_read_media(core, units, core->ebuf)) // æ–‡ä»¶ä¿¡æ¯
-            {
-                printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, info (%d) can not read",
-                       name, sub->loc);
-                delsub = 1;
-                found = 0;
-            }
-            else
-            {
-                __e_structfile(core, &fstruct, core->ebuf);
-                if(strcmp(fstruct.name.n, name))
-                {
-                    __fix(core, fstruct.name.n, (strlen(name)+1), fstruct.name.e);
-                    if(strcmp(fstruct.name.n, name))
-                    {
-                        delsub = 1;
-                        found = 0;
-                    }
-                    else
-                    {
-                        one2one = 1; // åªè¦ä¸€ç»„subé‡Œé¢ä¸å†ååŒå·order,åç»­çš„å°±ä¸åº”è¯¥å†æœ‰åŒå·ï¼ˆé€»è¾‘ä¸Šï¼‰ï¼›
-                        // nloc = __getloc(direct, core, nloc, 1);
-                        found = 1;
-                    }
-                }
-                else
-                {
-                    one2one = 1; // åªè¦ä¸€ç»„subé‡Œé¢ä¸å†ååŒå·order,åç»­çš„å°±ä¸åº”è¯¥å†æœ‰åŒå·ï¼ˆé€»è¾‘ä¸Šï¼‰ï¼›
-                    // nloc = __getloc(direct, core, nloc, 1);
-                    found = 1;
-                }
-            }
-        }
-        else // one2one = 1 (éç¬¬ä¸€ä¸ª)
-        {
-            found = 1; // ä¸ä½œæ£€æŸ¥äº†ï¼ˆæ£€æŸ¥å¤ªå¤šå½±å“æ•ˆç‡ï¼‰
-            // nloc = __getloc(direct, core, nloc, 1);
-        }
-
-        if(found) // subä¸­æ‰¾åˆ°æ–‡ä»¶éœ€è¦çš„loc
-        {
-            if(delsub) // åˆ é™¤subåï¼Œsubåº”è¯¥æŒ‡å‘çš„æ˜¯è¿™ç»„subä¸­æ–‡ä»¶å¯¹åº”çš„loc
-            {
-                delsub = 0;
-                if(nloc==sub)
-                    nloc = __getloc(direct, core, nloc, 1);
-
-                if(sub==*loc) // ç¬¬ä¸€ç»„sub
-                {
-                    sub = __delloc(sub, 1);
-                    *loc = sub;
-                }
-                else // åç»­ç»„sub
-                {
-                    sub = __delloc(sub, 1);
-                }
-            }
-
-            if((nloc->order==(sub->order+1)) // ç¬¦åˆsubçš„orderé€»è¾‘
-               ||(nloc==(*loc))) // ç»“æŸ
-            {
-                sub = nloc;
-                // goto __SUB_LOC_SCAN; // æ‰§è¡Œä¸‹ä¸€ç»„
-            }
-            else // ä¸ç¬¦åˆsubçš„orderé€»è¾‘ï¼›
-            {
-                printf("\r\n: dbug : efs    : file (%s)'s location is not sanity, %d to %d has lost.",
-                        name, sub->order, nloc->order);
-                #if 1
-                while(nloc!=(*loc)) // åˆ é™¤åç»­é“¾è¡¨
-                    nloc = __delloc(nloc, 1);
-                #else // ä¸åˆ é™¤é“¾è¡¨ï¼Œç»§ç»­æ£€æŸ¥ï¼ˆé˜²æ­¢æ–­é“¾åçš„æ•°æ®åˆ é™¤ä¸äº†ï¼Œä½†å¦‚æ­¤è€ƒè™‘å› ç´ å¤ªå¤šï¼Œå¥½å¤æ‚ï¼‰
-                if(one2one)
-                    one2one = 0;
-
-                sub = nloc;
-                goto __SUB_LOC_SCAN; // æ‰§è¡Œä¸‹ä¸€ç»„
-                #endif
-            }
-        }
-        else // subç»„ä¸­æœªæ‰¾åˆ°æ–‡ä»¶éœ€è¦çš„locï¼Œåˆ é™¤é“¾è¡¨å‰©ä½™çš„locæˆå‘˜ï¼›
-        {
-            if(sub==(*loc)) // å…¨éƒ¨éƒ½ä¸ç¬¦åˆ
-            {
-                while(sub)
-                    sub = __delloc(sub, 1);
-
-                *loc = NULL;
-            }
-            else
-            {
-                while(sub!=(*loc))
-                    sub = __delloc(sub, 1);
-            }
-        }
-    }
-    while(sub&&(sub!=(*loc)));
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šç”Ÿæˆæ–‡ä»¶keyå€¼ï¼›
-// å‚æ•°ï¼šname -- æ–‡ä»¶åï¼›
-//      key -- æ–‡ä»¶keyå€¼ï¼›
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼šé”®å€¼è®¡ç®—åŸç†ï¼šå­—ç¬¦ä¸²çš„å‰3ä¸ªå­—ç¬¦ï¼Œå’Œå3ä¸ªå­—ç¬¦ï¼›å¦‚æœå­—ç¬¦é•¿åº¦ä¸å¤Ÿï¼Œé‡å¤æœ€åä¸€ä¸ªå­—ç¬¦ï¼›
-//      test0çš„keyä¸ºtesst0
-// ============================================================================
-static void __key(const char *name, u8 *key)
-{
-    s16 i, j, offset, len = strlen(name);
-
-    for(i = 0, j = 0; i< 3; )
-    {
-        key[i] = name[j];
-
-        if((++i) < len)
-            j++;
-    }
-
-    if(len > 3)
-    {
-        offset = len - 3;
-        len = 3; //
-    }
-    else
-    {
-        offset = 0;
-    }
-
-    for(i = 0, j = 0; i< 3; )
-    {
-        key[i+3] = name[j+offset];
-
-        if((++i) < len)
-            j++;
-    }
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ ¡éªŒkeyå€¼ï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-//      idx -- ç´¢å¼•ï¼›
-//      key -- keyå€¼ï¼›
-// è¿”å›ï¼šåŒ¹é…ï¼ˆ0ï¼‰ï¼›ä¸åŒ¹é…ï¼ˆ1ï¼‰ï¼›ç©ºé—²æ•°æ®ï¼ˆ2ï¼‰ï¼›æ•°æ®è¢«ç ´å¿«ä¸”æ— æ³•ä¿®å¤ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static inline s32 __e_matchkey(struct __ecore *core, struct __eidx *idx, u8 *key)
-{
-    u8 i;
-    struct __eidx recheck;
-
-    for(i = 0; i < sizeof(*idx); i++)
-    {
-        if(0xFF != ((u8*)idx)[i])
+        offset = filesize_no * EFS_FILESIZE_BYTE_NUMBER;
+        if(pick_little_32bit(buf + offset,0) == CN_LIMIT_UINT32)//ÎªÈ«1£¬Ôò¸ÃÌõÎŞ´í
             break;
-    }
-
-    if(i == sizeof(*idx))
-        return (2); //
-
-    for(i = 0; i < KEYLEN;)
-    {
-        if((idx->key[i] == idx->bakup[i]))
-        {
-            if(idx->key[i] != key[i])
-                return (1); // å‡è®¾æ˜¯ä¸¤ä¸ªåŒæ—¶è¢«æ”¹äº†ï¼Œä¿®å¤ä¸äº†ã€‚è®¤ä¸ºå®ƒä¸åŒ¹é…çš„å¯èƒ½æ€§æ›´å¤§
-
-            i++;
+        else if(pick_little_32bit(buf + offset,0) == 0)//±íÊ¾±»¸ÄĞ´¹ıµÄ´óĞ¡£¬ÎªÈ«0,Ö±½ÓÌø¹ı
             continue;
-        }
-        else
+        else if(__EfsFileSize_verify(*(u32 *) (buf + offset)))//Õı·´ÂëÓĞ´í
         {
-            // æ•°æ®å‡ºé”™äº†ï¼Œå°è¯•ä¿®å¤
-            if((idx->key[i] == key[i]) ||
-               (idx->bakup[i] == key[i]))
-            {
-                 // å½“ä¸­åªæœ‰ä¸€ä¸ªéƒ½keyåŒ¹é…ï¼Œæ•°æ®è‚¯å®šæ˜¯è¢«æ”¹äº†
-                for(i = 0; i < KEYLEN; i++)
-                    recheck.key[i] = key[i];
-
-                for(i = 0; i < KEYLEN; i++)
-                    recheck.bakup[i] = key[i];
-
-                recheck.order = idx->order;
-                recheck.ecc = 0;
-                __gen(core, &recheck, sizeof(struct __eidx), &recheck.ecc);
-                if(recheck.ecc != idx->ecc)
-                    return (-1); // åŒ…æ‹¬eccåœ¨å†…ï¼Œä¹Ÿä¸ä¸€æ ·ï¼Œæ— æ³•ä¿®å¤äº†
-
-                __fix(core, (u8*)idx, sizeof(*idx), &(idx->ecc)); // å°è¯•ä¿®å¤
-            }
-            else
-            {
-                // keyå’Œbakupéƒ½ä¸è¾“å…¥çš„keyä¸ä¸€æ ·ï¼Œä¸åŒ¹é…çš„å¯èƒ½æ€§å¤§ã€‚
-                return (1);
-            }
+            ret = 1;
+            break;
         }
-
-        break;
     }
-
-    if(i < KEYLEN)
-        return (-1); //
-
-    return (0);
+    *location = filesize_no;
+    return ret;
 }
-
-// ============================================================================
-// åŠŸèƒ½ï¼šå›æ”¶æ•´ç†æ–‡ä»¶ç³»ç»Ÿï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼šè§¦å‘å›æ”¶æ¡ä»¶ï¼šæ–‡ä»¶ä¿¡æ¯ç©ºé—´file sizeä½¿ç”¨å®Œã€æ²¡æœ‰ç©ºé—²ç©ºé—´
-// ============================================================================
-static s32 __e_recycle(struct __ecore *core)
+//----¼ì²éÉÈÇø»º³åÇø-----------------------------------------------------------
+//¹¦ÄÜ: ¼ì²éÒ»¸öÎÄ¼ş·ÖÅä±íµÄÉÈÇø»º³åÇø£¬ÓĞ´íÎóÔò¸ÄÕıÖ®,µ«²»Ğ´ÈëĞ¾Æ¬¡£ÈôÎŞ´í»òÓĞ
+//      ´íµ«ÄÜ¸ÄÕı£¬Í¬Ê±°Ñ¸Ã»º³åÇø°üº¬µÄÎÄ¼şÊıÔö¼Óµ½chip->files_sum¡£
+//²ÎÊı: buf£¬»º³åÇø
+//      index£¬µÚ¼¸¸öÉÈÇø
+//      efs£¬ÎÄ¼şÏµÍ³ºËĞÄÊı¾İ
+//·µ»Ø: 0 = ÎŞ´í£¬1=ÓĞ´í²¢¸ÄÕı£¬2=ÓĞ´í²»ÄÜ¸ÄÕı
+//-----------------------------------------------------------------------------
+static u32 __Efs_CheckSingleBuf(u8 *buf, u32 index, struct EasyFS *efs)
 {
-    struct __eidx *idx;
-    struct __ecstruct *estruct;
-    struct __efstruct fstruct;
-    s64 units;
-    s32 i, j, k, idxs, sizes, res;
-    u8 new, *idxbit;
+    u32 offset, location, item_no,item_num;
+    u32 temp_files_sum = 0;
+    u32 ret = 0;
 
-    // æ–‡ä»¶æ•°é‡ç”¨ä½è¡¨ç¤ºï¼Œéœ€è¦å å¤šå°‘ä¸ªå­—èŠ‚ï¼›
-    if(core->fmax%8)
-        sizes = core->fmax / 8 + 1;
+    item_num = (EfsCgfLimit > efs->block_size)?
+            efs->block_size:EfsCgfLimit;
+    item_num = item_num / EFS_ITEM_LIMIT;       //Ò»¸ö¿éÖĞ´æÁË¶àÉÙÎÄ¼şË÷Òı
+    if(index == efs->start_block)
+        item_no = 1;            //Èç¹ûÊÇefsÎÄ¼şÏµÍ³µÄÆğÊ¼¿é£¬Ôò´ÓµÚ¶şÌõ¿ªÊ¼¼ì²é£¬µÚÒ»Ìõ´æµÄÊÇÎÄ¼şÏµÍ³ĞÅÏ¢
     else
-        sizes = core->fmax / 8;
+        item_no = 0;
 
-    idxbit = malloc(sizes);
-    if(!idxbit)
+    for (;item_no < item_num;item_no++)
     {
-        printf("\r\n: warn : efs    : recycle failed(memory out).");
-        return (-1);
+        offset = item_no * EFS_ITEM_LIMIT;
+        if( (buf[offset] != 0xFF) && (buf[offset] != 0x00) )//nameÎª·Ç¿Õ£¬±íÊ¾¸ÃÌõÓĞÓÃ
+        {
+            temp_files_sum++; //¸ÃÌõÓÃµ½£¬ÔòÎÄ¼şÊı¼Ó1
+            offset += FILE_FILESIZE_OFF;
+            if(__Efs_CheckFileSize(buf + offset,&location)) //ÓĞ´í£¬Ôò½«filesize¸ÄĞ´³É0
+            {
+                ret = 1;
+                memset(buf + offset + EFS_FILESIZE_BYTE_NUMBER * location, 0, EFS_FILESIZE_BYTE_NUMBER);   //Èç¹ûÎÄ¼ş´óĞ¡³ö´í£¬Ôò°Ñ´íÎóµÄ´óĞ¡Çå³ı£¬È«Ğ´0
+            }
+        }
     }
+    //°Ñ±¾¿éÄÚËùÓĞÎÄ¼şÊı·Åµ½efs->files_sum
+    efs->files_sum += temp_files_sum;
+    return ret;
+}
 
-    sizes = ((1 << core->pagesize) - (core->nsz + 4)) / sizeof(struct __esize); // æ–‡ä»¶ä¿¡æ¯ç©ºé—´å†…å¯ä»¥å­˜sizeæ¬¡æ•°;
-    idxs = (1 << core->pagesize) / sizeof(*idx); // ä¸€é¡µä¸­èƒ½å­˜æ”¾å¤šå°‘ä¸ªindexï¼›
-    new = core->serial;
-    __lock(core);
+//----¼ì²éÉÈÇø-----------------------------------------------------------
+//¹¦ÄÜ: ¼ì²éÒ»¶Ô(Ö÷+±¸·İ)ÎÄ¼ş·ÖÅä±íµÄÉÈÇø»º³åÇø£¬ÓĞ´íÎóÔò¸ÄÕıÖ®,¸ÃÊı¾İÒÑ¾­ÔÚ
+//      flashÖĞ£¬¸ÄÕıºóĞ´½øÈ¥¡£Í¬Ê±°Ñ¸Ã»º³åÇø°üº¬µÄÎÄ¼şÊıÔö¼Óµ½chip->files_sum¡£
+//²ÎÊı: buf_main -- Ö÷ÎÄ¼ş·ÖÅä±í»º³åÇø£» index_main -- Ö÷ÎÄ¼ş·ÖÅä±íÆğÊ¼¿éºÅ
+//     buf_bakindex -- ±¸·İÎÄ¼ş·ÖÅä±í»º³åÇø£»index_bak -- ±¸·İÎÄ¼ş·ÖÅä±íÆğÊ¼¿éºÅ
+//      efs£¬ÎÄ¼şÏµÍ³ºËĞÄÊı¾İ
+//·µ»Ø: ÎŞ
+//-----------------------------------------------------------------------------
+static bool_t __Efs_CheckBlock(u8 *buf_main,u32 index_main, u8 *buf_bak,
+                    u32 index_bak, struct EasyFS *efs)
+{
+    u32 item_no,offset,item_num;
+    u32 reflash = 0, location;
+    u32 temp_files_sum = 0;
+    u8 * correct_filesize;
 
-__RETRY_RECYCLE:
-    if(++new == SYS_LOOPS)
-        new = 0;
-
-    if(new == core->serial)
-    {
-        printf("\r\n: erro : efs    : recycle failed(cannot erase all the rest).");
-        free(idxbit);
-        __unlock(core);
-        return (-1); // æ–°åŒºå…¨éƒ¨å°è¯•å®Œï¼Œæ–‡ä»¶ç³»ç»Ÿä¸èƒ½å†ç”¨äº†ï¼›
-    }
-
-    units = new * core->ssz;
-    if(core->drv->efs_erase_media(core, units, core->ssz)) // æ ¼å¼åŒ–ä¸‹ä¸€ä¸ªç³»ç»ŸåŒºï¼Œä½œä¸ºæ–°åŒºåŸŸï¼›
-    {
-        printf("\r\n: warn : efs    : recycle(cannot erase %d).", new);
-        goto __RETRY_RECYCLE;
-    }
-
-    // æ•´ç†ç›®å‰ä½¿ç”¨çš„ç³»ç»Ÿç©ºé—´ï¼Œå¹¶æ‹·è´åˆ°nextç³»ç»Ÿç©ºé—´åŒºï¼›
-    // å°†ç³»ç»Ÿä¿¡æ¯æ›´æ–°åˆ°å¤´éƒ¨ï¼Œæ­¤æ—¶æ˜¯æ›´æ–°çŠ¶æ€ï¼›
-    units = core->serial * core->ssz;
-    res = core->drv->efs_read_media(core, units, core->ebuf);
-    if(res)
-    {
-        printf("\r\n: erro : efs    : recycle cannot read system area.");
-        // è¯»å¤±è´¥æ²¡æœ‰å…³ç³»ï¼Œå¯ä»¥è‡ªå·±æ„å»ºï¼›
-    }
-
-    estruct = (struct __ecstruct*)core->ebuf;
-    estruct->status = SYS_UPDATING;
-    if(res || __fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc))) // ç³»ç»Ÿå¤´éƒ¨å­˜åœ¨é—®é¢˜ï¼Œç›´æ¥æ„å»ºï¼›
-    {
-        printf("\r\n: dbug : efs    : recycle (bad estruct).");
-        memset(estruct, 0xFF, (1<<core->pagesize));
-        memcpy(estruct->signature, ESIGN, ESIG_LEN);
-        estruct->age = 0xFFFFFFFF; // å½“å¤´éƒ¨è¢«ç ´åæ—¶çš„ä¸“ç”¨ageï¼›
-        estruct->files = core->fmax;
-        estruct->range = core->ASize;
-        estruct->ecc = 0;
-    }
+    item_num = (EfsCgfLimit > efs->block_size)?
+            efs->block_size:EfsCgfLimit;
+    item_num = item_num / EFS_ITEM_LIMIT;       //Ò»¸ö¿éÖĞ´æÁË¶àÉÙÎÄ¼şË÷Òı
+    if(index_main == efs->start_block)
+        item_no = 1;        //Èç¹ûÊÇefsÎÄ¼şÏµÍ³µÄÆğÊ¼¿é£¬Ôò´ÓµÚ¶şÌõ¿ªÊ¼¼ì²é£¬µÚÒ»Ìõ´æµÄÊÇÎÄ¼şÏµÍ³ĞÅÏ¢
     else
-    {
-        // æ­£å¸¸çš„ç³»ç»Ÿå¤´éƒ¨ï¼Œåªå¢åŠ å¤´éƒ¨ageï¼›
-        if(estruct->age == 0xFFFFFFFE)
-            estruct->age = 0; // 0xFFFFFFFFä¿ç•™ç»™ä¸æ­£å¸¸çš„estructçš„ä¿®å¤é€»è¾‘ï¼›
-        else
-            estruct->age ++;
-    }
+        item_no = 0;
 
-    __gen(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc));
-    units = new * core->ssz;
-    res = core->drv->efs_write_media(core, units, estruct);
-    if(res)
+    for (;item_no < item_num;item_no++)
     {
-        printf("\r\n: warn : efs    : recycle %d cannot write.", new);
-        goto __RETRY_RECYCLE;
-    }
-
-    // æ•´ç†idxè¡¨ï¼›
-    for(i=0; (u32)i<core->fmax;)
-    {
-        if(!(i%idxs)) // è¯»idxè¡¨ï¼›
+        offset = item_no * EFS_ITEM_LIMIT;
+        if ((buf_main[offset] != 0xFF) || (buf_bak[offset] != 0xFF)) //´ÓÃû³ÆÅĞ¶ÏÊÇ·ñÓĞÓÃµ½¸ÃÎÄ¼şÅäÖÃ
         {
-            units = core->serial * core->ssz + 1 + i / idxs;
-            res = core->drv->efs_read_media(core, units, core->ebuf);
-            if(res)
+            if( (buf_main[offset] != 0x00) && (buf_bak[offset] != 0x00) ) //ÈôÎª0£¬Ôò±íÊ¾¸ÃÎÄ¼ş±»É¾³ı
             {
-                printf("\r\n: erro : efs    : recycle(cannot read backup).");
-                free(idxbit);
-                __unlock(core);
-                return (-1);
+                temp_files_sum++;
             }
 
-            idx = (struct __eidx *)core->ebuf;
-        }
-
-        for(j=0; (u32)j<sizeof(*idx); j++)
-        {
-            if((0!=((u8*)idx)[j]) && (0xFF!=((u8*)idx)[j]))
-                break; // æœ‰æ•ˆçš„idx
-        }
-
-        k = i / 8; // bitä½æ‰€åœ¨çš„å­—èŠ‚ï¼›
-        if(j==sizeof(*idx)) // å·²åºŸå¼ƒçš„idxï¼Œè¿›ä¸€æ­¥é‡ç½®è¯¥åŒºåŸŸï¼›
-        {
-            memset((u8*)idx, 0xFF, j);
-            idxbit[k] |= (u8)(1 << (i % 8)); // 1è¡¨ç¤ºidxä¸å­˜åœ¨ï¼›
-        }
-        else
-        {
-            idxbit[k] &= (~(u8)(1 << (i % 8))); // 0è¡¨ç¤ºidxå­˜åœ¨ï¼›
-        }
-
-        if(!((++i)%idxs)) // ä¸€ä¸ªunitå†…çš„idxæ•´ç†å®Œï¼Œå°†å…¶åˆ·æ–°ä¸‹å»ï¼›
-        {
-            units= core->ssz * new + 1 + ((i - 1) / idxs);
-            res = core->drv->efs_write_media(core, units, core->ebuf);
-            if(res) // å°†idxæ›´æ–°åˆ°æ–°åŒºï¼›
+            //¼ì²éÖ÷±¸·ÖÅä±íname,startblock,maxsize,crc
+            if(memcmp(buf_main+offset,buf_bak+offset,FILE_FILESIZE_OFF))//Èô²»ÏàÍ¬
             {
-                printf("\r\n: erro : efs    : recycle %d cannot write new idx table.", new);
-                goto __RETRY_RECYCLE;
-            }
-        }
-
-        idx ++; // ä¸‹ä¸€ä¸ªidxï¼›
-    }
-
-    // æ•´ç†æ–‡ä»¶ä¿¡æ¯ï¼›
-    for(i=0; (u32)i<core->fmax; i++)
-    {
-        k = i / 8;
-        j = i % 8;
-        if(idxbit[k]&((u8)(1 << j)))
-            continue; // idxæ˜¯ç©ºé—²çš„è¡¨ç¤ºæ–‡ä»¶ç©ºé—´æ˜¯æ— æ•ˆï¼Œæ•´ç†ä¸‹ä¸€ä¸ªï¼›
-
-        units = core->serial * core->ssz + core->finfo + i;
-        res = core->drv->efs_read_media(core, units, core->ebuf);
-        if(res)
-        {
-            printf("\r\n: erro : efs    : recycle cannot read old file space %d's info.", i);
-            continue;
-        }
-
-        __e_structfile(core, &fstruct, core->ebuf);
-        if(__fix(core, fstruct.name.n, core->nsz, fstruct.name.e)) // ä¸çŸ¥é“åŸæ–‡ä»¶åé•¿ï¼Œä½¿ç”¨æœ€å¤§èŒƒå›´ï¼›
-        {
-            printf("\r\n: dbug : efs    : recycle old file info %d's name maybe corrupted(%s).", i, fstruct.name.n);
-        }
-
-        for(k=0, j=0; j<sizes; j++)
-        {
-            if((-1 == (s32)fstruct.size[j].s) && (-1 == (s32)fstruct.size[j].e))
-            {
-                // æœªçŸ¥é€»è¾‘ï¼Œæ–‡ä»¶ç¬¬ä¸€ä¸ªsizeä¸ºç©ºé—²ï¼Œä¸å¯èƒ½ä¸å­˜åœ¨ï¼›
-                // è¿›ä¸€æ­¥æ£€æŸ¥ï¼Œå¦‚æœåç»­sizeä¹Ÿå…¨éƒ¨æ˜¯ç©ºé—²ï¼Œåˆ™æ˜¯å­˜åœ¨é—®é¢˜ï¼›
-                if(j==0)
+                //Ö÷·ÖÅä±í´íÎó,Ôò·¢Éú²Á³ı»òÕßĞ´Èë´íÎó£¬ĞèÒªÒª±¾ÌõitemÈ«²¿¸´ÖÆ
+                if(memcmp(buf_main + FILE_VERIFITY_OFF, "easyfile", 8))
                 {
-                    k = 0;
-                    continue;
+                    memcpy(buf_main+offset,buf_bak+offset,EFS_ITEM_LIMIT);
                 }
-                else
+                else    //±¸ÓÃ·ÖÅä±í´íÎó
                 {
-                    // æœªçŸ¥é€»è¾‘ï¼Œæ–‡ä»¶ç¬¬ä¸€ä¸ªsizeä¸å¯èƒ½ä¸å­˜åœ¨ï¼›
-                    // å°è¯•ç¬¬äºŒä¸ªä½ç½®ï¼Œçœ‹æ˜¯å¦è¿˜æ˜¯ç©ºé—²ï¼›å¦‚æœè¿˜æ˜¯ç©ºé—´ï¼›
-                    if(++k==j)
-                        continue;
-
-                    break; // é‡åˆ°ç©ºé—²sizeä½ç½®ï¼Œåˆ™é€€å‡ºï¼›
+                    memcpy(buf_bak+offset,buf_main+offset,EFS_ITEM_LIMIT);
                 }
-            }
-        }
-
-        if(j!=k)
-        {
-            j--; // æœ€åä¸€ä¸ªsizeè®°å½•ï¼›
-            if(__fix(core, &(fstruct.size[j].s), sizeof(fstruct.size[j].s), &(fstruct.size[j].e)))
-            {
-                printf("\r\n: warn : efs    : recycle old file info %d's size of maybe corrupted.", i);
-            }
-
-            fstruct.size[0].s = fstruct.size[j].s; // å°†sizeè®°å½•åˆ°ç¬¬ä¸€ä¸ªä½ç½®ï¼›
-            fstruct.size[0].e = fstruct.size[j].e;
-            memset(&fstruct.size[1], 0xFF, (sizes-1)*sizeof(struct __esize)); // å‰©ä½™çš„sizeç©ºé—´é‡ç½®ï¼›
-        }
-        else
-        {
-            // sizeè®°å½•ä½ç½®å…¨ä¸ºç©ºé—²ï¼›
-            printf("\r\n: warn : efs    : recycle old file info %d's size is not exist.", i);
-        }
-
-        units = new * core->ssz + core->finfo + i; // å°†æ–‡ä»¶ä¿¡æ¯æ›´æ–°åˆ°æ–°åŒºï¼›
-        if(core->drv->efs_write_media(core, units, core->ebuf))
-        {
-            printf("\r\n: erro : efs    : recycle cannot write new file info %d.", i);
-            goto __RETRY_RECYCLE;
-        }
-    }
-
-    // å°†ç³»ç»Ÿä¿¡æ¯æ›´æ–°å®Œçš„æ ‡å¿—ä½åˆ°å¤´éƒ¨ï¼›
-    // æ­¤é˜¶æ®µï¼Œå¦‚æœè¯»å†™å¤±è´¥äº†ï¼Œå°±å…ˆä¸ç®¡ï¼›
-    units = new * core->ssz;
-    res = core->drv->efs_read_media(core, units, estruct);
-    if(res)
-    {
-        printf("\r\n: erro : efs    : recycle %d cannot read new system area to finish.", new);
-    }
-
-    if(__fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc))) // ç³»ç»Ÿå¤´éƒ¨å­˜åœ¨é—®é¢˜,å°è¯•ä¸‹ä¸€ä¸ªåŒºåŸŸï¼›
-    {
-        printf("\r\n: erro : efs    : recycle %d new system area has corrupted to finish.", new);
-    }
-
-    estruct->status = SYS_UPDATED;
-    res = core->drv->efs_write_media(core, units, estruct);
-    if(res)
-    {
-        printf("\r\n: erro : efs    : recycle %d cannot write new system area to finish.", new);
-    }
-
-    printf("\r\n: info : efs    : recycle successfully, use %d.", new);
-    core->serial = new;
-    __unlock(core);
-    return (0);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ ‡è®°ç´¢å¼•ï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-//      loc -- æ–‡ä»¶ç©ºé—´ä½ç½®ï¼›
-//      name -- æ–‡ä»¶åï¼›
-//      order -- æ–‡ä»¶ç©ºé—´åœ¨æ–‡ä»¶ä¸­çš„åºåˆ—ï¼ˆä»ä¸€è®¡ï¼‰ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_markidx(struct __ecore *core, s32 loc, char *name, u32 order)
-{
-    s64 units;
-    struct __eidx idx; // ä¸ä½¿ç”¨æŒ‡é’ˆï¼Œæ˜¯é˜²æ­¢å†™å¤±è´¥äº†ï¼Œåˆéœ€è¦é‡æ–°è®¡ç®—ï¼›
-    u32 idxs;
-
-    idxs = (1 << core->pagesize) / sizeof(struct __eidx); // ä¸€ä¸ªunitå†…å¯å­˜æ”¾idxçš„æ•°é‡ï¼›
-    units = loc / idxs + 1; // idxæ‰€åœ¨unit, unitå¯¹é½ï¼›
-    idxs = sizeof(struct __eidx) * (loc % idxs); // idxåœ¨unitå†…çš„åç½®ï¼›
-    if(name&&order)
-    {
-        __key(name, idx.key);
-        memcpy(idx.bakup, idx.key, KEYLEN);
-        idx.order = order;
-        idx.ecc = 0;
-        __gen(core, &idx, (sizeof(struct __eidx)-4), &idx.ecc);
-    }
-    else
-    {
-        memset(&idx, 0x0, sizeof(struct __eidx));
-    }
-
-    memset(core->ebuf, 0xFF, (1<<core->pagesize));
-    memcpy((core->ebuf + idxs), &idx, sizeof(struct __eidx));
-    if(core->drv->efs_write_media(core, (core->serial*core->ssz+units), core->ebuf))
-    {
-        printf("\r\n: dbug : efs    : mark idx failed, try recycle.");
-        if(__e_recycle(core)) // å†™å¤±è´¥ï¼Œå°è¯•å›æ”¶ï¼Œæ¢ä¸€ä¸ªç³»ç»ŸåŒºï¼›
-            return (-1);
-
-        memset(core->ebuf, 0xFF, (1<<core->pagesize));
-        memcpy((core->ebuf + idxs), &idx, sizeof(struct __eidx));
-        if(core->drv->efs_write_media(core, (core->serial*core->ssz+units), core->ebuf))
-            return (-1);
-    }
-
-    return (0);
-}
-
-
-// ============================================================================
-// åŠŸèƒ½ï¼š
-// å‚æ•°ï¼š
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-#if 0
-static s32 __e_recovery(struct __ecore *core)
-{
-    struct umedia *media;
-    u8 *buf;
-    s32 res, i, size;
-    s64 bakup, recovery;
-    struct __ecstruct *estruct;
-
-    bakup = (core->serial + 1) * core->ssz + media->startu;
-    media = core->media;
-    estruct = (struct __ecstruct*)core->buf;
-
-    res = core->drv->efs_read_media(media, backup, buf);
-    if(res)
-    {
-        printf("\r\n: erro : efs    : recovery<cannot read>.");
-        return (-1);
-    }
-
-    if((__fix(estruct, (size-4), estruct->ecc)) ||
-       (strcmp(estruct->signature, ESIGN)) ||
-       (estruct->range != core->tsz) ||
-       (estruct->files != core->max))
-    {
-        return (-1); // æ–‡ä»¶å¤´éƒ¨é”™è¯¯
-    }
-
-    if(core->serial > SYS_LOOPS)
-    {
-        core->serial = 1;
-    }
-
-    sys = core->serial * core->ssz + media->startu;
-    res = core->drv->efs_read_media(media, sys, media->sizeu, media->buf);
-    if(res)
-    {
-        printf("\r\n: erro : efs    : recovery<cannot read>.");
-        return (-1);
-    }
-
-    for(i=0; i<media->sizeu; i++)
-    {
-        if(0xFF != (media->buf)[i])
-        {
-            res = core->drv->efs_erase_media(media, sys, core->ssz*2);
-            if(res)
-            {
-                printf("\r\n: erro : efs    : recovery<cannot erase>.");
-                return (-1);
-            }
-        }
-    }
-
-    res = core->drv->efs_write_media(media, sys, estruct);
-    if(res)
-    {
-        printf("\r\n: erro : efs    : recovery<cannot write>.");
-        return (-1);
-    }
-
-
-
-    return (0);
-}
-
-#endif
-// ============================================================================
-// åŠŸèƒ½ï¼šæ£€ç´¢æ–‡ä»¶ç³»ç»Ÿ
-// å‚æ•°ï¼š
-// è¿”å›ï¼šé”™è¯¯æˆ–æ–‡ä»¶ç³»ç»Ÿè¢«ç ´åï¼ˆ-1ï¼‰ï¼›å­˜åœ¨æ–‡ä»¶ç³»ç»Ÿï¼ˆ0ï¼‰ï¼›ä¸å­˜åœ¨æ–‡ä»¶ç³»ç»Ÿï¼ˆ1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_scan(struct __ecore *core)
-{
-    u32 size, eldest, i, j;
-    u8 serial, found = 0;
-    struct __ecstruct *estruct;
-    struct __scanlogic scan[SYS_LOOPS];
-
-    estruct = (struct __ecstruct*)core->ebuf;
-    eldest = 0;
-    size = 1 << core->pagesize;
-
-    // æ£€æŸ¥ç³»ç»Ÿä¿¡æ¯æœ‰æ•ˆæ€§ï¼›
-    for(i = 0; i < SYS_LOOPS; i++)
-    {
-        if(core->drv->efs_read_media(core, (core->ssz*i), estruct))
-        {
-            printf("\r\n: erro : efs    : scan in loop %d(cannot read).", i);
-            scan[i].stat = badsys;
-            continue;
-        }
-
-        for(j = 0; j < size; j++)
-        {
-            if(0xFF != ((u8*)estruct)[j])
-                break;
-        }
-
-        if(j == size)
-        {
-            scan[i].stat = nosys;
-        }
-        else
-        {
-            // æ£€éªŒæ•°æ®æ­£ç¡®æ€§ï¼›
-            __fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc));
-            if((estruct->range != (core->ASize)) ||
-               (strcmp(estruct->signature, ESIGN)) ||
-               (estruct->files != core->fmax) ||
-               (estruct->status != SYS_UPDATED))
-            {
-                // å­˜åœ¨ä¸ä¸€è‡´
-                if((estruct->range == (core->ASize)) ||
-                   (!strcmp(estruct->signature, ESIGN)) ||
-                   (estruct->files == core->fmax) ||
-                   (estruct->status == SYS_UPDATED))
-                {
-                    scan[i].stat = badsys; // åªæœ‰éƒ¨åˆ†æ•°æ®æ­£ç¡®ï¼Œè¯´æ˜è¢«è¢«ç ´åäº†
-                }
-                else
-                {
-                    scan[i].stat = nosys; // å…¨éƒ¨æ•°æ®ä¸æ­£ç¡®ï¼Œå¯èƒ½æ˜¯ä¸å­˜åœ¨æ–‡ä»¶ç³»ç»Ÿä¿¡æ¯
-                }
-
+                reflash = 1;
                 continue;
             }
-            else
-            {
-                scan[i].stat = goodsys;
-                scan[i].age = estruct->age;
-            }
 
-            if(goodsys == scan[i].stat)
+            //ºË¶ÔÖ÷±¸ÎÄ¼ş·ÖÅä±íµÄfilesize......todo:´Ë´¦Èç¹ûÊÇnandflash,ÊÇ·ñÖ±½Ó¸Ä³ÉÓĞ´í±ã²Á³ı£¿
+            offset += FILE_FILESIZE_OFF;
+            if(memcmp(buf_main+offset,buf_bak+offset,
+                    FILE_VERIFITY_OFF - FILE_FILESIZE_OFF))//Ö÷±¸·ÖÅä±ífilesize´óĞ¡²»Í¬
             {
-                // å¯¹äºæœ‰æ•ˆçš„ç³»ç»Ÿä¿¡æ¯ï¼ŒæŸ¥æ‰¾åˆ°æœ€åä¸€æ¬¡çš„è®°å½•
-                found = 1;
-                if(!i) // ç¬¬ä¸€ä¸ªç³»ç»Ÿç©ºé—´
+                reflash = 1;        //nandflash ÓĞ´í¾¡Á¿È¥¾ÀÕı£¬Í¬Ê±²Á³ı¸Ã¿é
+                if (__Efs_CheckFileSize(buf_main + offset, &location)) //Ö÷·ÖÅä±íÓĞ´í
                 {
-                    eldest = scan[i].age; // è®°å½•æœ€å¤§ageï¼›
-                    serial = i; //
+                    correct_filesize = buf_bak + offset + EFS_FILESIZE_BYTE_NUMBER * location;
+                    if(pick_little_32bit(correct_filesize,0) == CN_LIMIT_UINT32)//Ö÷·ÖÅä±ífilesize´íÎó£¬µ«ÊÇbak»¹Ã»Ğ´
+                    {
+                        memset(correct_filesize, 0, EFS_FILESIZE_BYTE_NUMBER);//ÓëÖ÷·ÖÅä±í±£³ÖÒ»ÖÂ
+                        memset(buf_main + offset + EFS_FILESIZE_BYTE_NUMBER * location, 0, EFS_FILESIZE_BYTE_NUMBER);
+                    }
+                    else if(location == FILE_FILESIZE_NUM)//´íÎóµÄÊÇ×îºóÒ»Ìõfilesize
+                    {
+                        reflash = 1;
+                        memset(buf_main+offset,0xff,FILE_VERIFITY_OFF-FILE_FILESIZE_OFF);
+                        memcpy(buf_main+offset,correct_filesize,EFS_FILESIZE_BYTE_NUMBER);//±£´æÕıÈ·filesizeµ½µÚÒ»ÌõÎ»ÖÃ
+                        memset(buf_bak+offset,0xff,FILE_VERIFITY_OFF-FILE_FILESIZE_OFF);
+                        memcpy(buf_bak+offset,buf_main+offset,EFS_FILESIZE_BYTE_NUMBER);//±£´æÕıÈ·filesizeµ½µÚÒ»ÌõÎ»ÖÃ
+                    }
+                    else////Ö÷·ÖÅä±ífilesize´íÎó£¬µ«ÊÇbakÒÑĞ´£¬¼´bakÎÄ¼ş´óĞ¡ÕıÈ·
+                    {
+                        //½«Ğ´Îª0µÄÖ÷filesizeĞ´µ½±¸·İÖĞÏà¶ÔÓ¦µÄÎ»ÖÃ
+                        memset(buf_main + offset + EFS_FILESIZE_BYTE_NUMBER * location, 0, EFS_FILESIZE_BYTE_NUMBER);//½«Ö÷·ÖÅä±íÖĞfilesize´íÎóÌõĞ´³É0
+                        memcpy(buf_main + offset + EFS_FILESIZE_BYTE_NUMBER * location + EFS_FILESIZE_BYTE_NUMBER,
+                                                        correct_filesize,EFS_FILESIZE_BYTE_NUMBER);//´Ó±¸·İ±íÖĞ¿½±´ÕıÈ·µÄfilesizeµ½ÏÂÒ»Ìõ
+                        memcpy(correct_filesize + EFS_FILESIZE_BYTE_NUMBER,correct_filesize,EFS_FILESIZE_BYTE_NUMBER);
+                        memset(correct_filesize, 0, EFS_FILESIZE_BYTE_NUMBER);//ÓëÖ÷·ÖÅä±í±£³ÖÒ»ÖÂ
+                    }
                 }
-                else if((eldest < scan[i].age) ||
-                   ((eldest) && (0 == scan[i].age))) // ageæ•°æ®æº¢å‡ºæ—¶ï¼Œå³ä»æœ€å¤§å€¼åˆ°æœ€å°å€¼çš„å˜æ¢æ—¶
+                else//Ö÷·ÖÅä±íÕıÈ·
                 {
-                    eldest = scan[i].age; // è®°å½•æœ€å¤§ageï¼›
-                    serial = i; //
-                }
-                else if(eldest == scan[i].age)
-                {
-                    printf("\r\n: erro : efs    : scan in loop %d(unknow logic, two eldest age).", i);
-                    return (-1);
+                    correct_filesize = buf_main + offset + EFS_FILESIZE_BYTE_NUMBER * location;
+                    if(pick_little_32bit(correct_filesize,0) == CN_LIMIT_UINT32)//Ö÷·ÖÅä±ífilesize´íÎó£¬µ«ÊÇbak»¹Ã»Ğ´
+                    {
+                        memset(correct_filesize, 0, EFS_FILESIZE_BYTE_NUMBER);//ÓëÖ÷·ÖÅä±í±£³ÖÒ»ÖÂ
+                        memset(buf_bak + offset + EFS_FILESIZE_BYTE_NUMBER * location, 0, EFS_FILESIZE_BYTE_NUMBER);
+                    }
+                    else if(location == FILE_FILESIZE_NUM)//´íÎóµÄÊÇ×îºóÒ»Ìõfilesize
+                    {
+                        reflash = 1;
+                        memset(buf_bak+offset, 0xff, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);
+                        memcpy(buf_bak+offset, correct_filesize, EFS_FILESIZE_BYTE_NUMBER);//±£´æÕıÈ·filesizeµ½µÚÒ»ÌõÎ»ÖÃ
+                        memset(buf_main+offset, 0xff, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);
+                        memcpy(buf_main+offset, buf_bak + offset, EFS_FILESIZE_BYTE_NUMBER);//±£´æÕıÈ·filesizeµ½µÚÒ»ÌõÎ»ÖÃ
+                    }
+                    else
+                    {
+                        //½«bak¸ÃfilesizeĞ´³É0
+                        memset(buf_bak + offset + EFS_FILESIZE_BYTE_NUMBER * location, 0, EFS_FILESIZE_BYTE_NUMBER);
+                        memcpy(correct_filesize + EFS_FILESIZE_BYTE_NUMBER, correct_filesize, EFS_FILESIZE_BYTE_NUMBER); //ÏÂÒÆ²¢¿½±´
+                        memcpy(buf_bak + offset + EFS_FILESIZE_BYTE_NUMBER * location + EFS_FILESIZE_BYTE_NUMBER,
+                                                        correct_filesize, EFS_FILESIZE_BYTE_NUMBER); //¿½±´Ö÷ÎÄ¼ş·ÖÅä±íµÄfilesize
+                        memset(correct_filesize, 0, EFS_FILESIZE_BYTE_NUMBER); //Óë±¸ÓÃ·ÖÅä±íÏà³ÖÒ»ÖÂ
+                    }
                 }
             }
         }
     }
 
-    if(found)// æ‰¾åˆ°æœ€è€çš„ï¼Œå­˜åœ¨æœ‰æ•ˆç³»ç»Ÿä¿¡æ¯
+    efs->files_sum += temp_files_sum;
+    return reflash;
+}
+//-----------------------------------------------------------------------------
+//¹¦ÄÜ: ¼ì²éºÍĞŞ¸´ËùÓĞÎÄ¼şµÄÎÄ¼şÃû
+//²ÎÊı: FileInfoBuf -- ËùÓĞÎÄ¼şĞÅÏ¢µÄ»º³åÇø
+//·µ»Ø:
+//-----------------------------------------------------------------------------
+static bool_t __Efs_CheckAllNameECC(u8 *FileInfoBuf)
+{
+    u32 offset,loop;
+    u8 *buf;
+
+    for (loop = 1; loop < IndexesNum; loop++)
     {
-        core->serial = serial;
-        return (0);
+        offset = loop * EFS_ITEM_LIMIT;
+        buf = FileInfoBuf + offset;
+        if( (buf[0] != 0xFF) && (buf[0] != 0x00) )
+        {
+            buf[FILENAME_LIMIT] = '\0';
+            ChkOrRecNameByECC((char *)buf,buf+FILENAME_LIMIT+1);  //Í¨¹ıECC¼ì²éºÍĞŞ¸´ÎÄ¼şÃû
+        }
+    }
+    return true;
+}
+
+//----ĞŞ¸ÄÎÄ¼ş³ß´ç-------------------------------------------------------------
+//¹¦ÄÜ: ĞŞ¸ÄÎÄ¼ş·ÖÅä±íÖĞÎÄ¼ş³ß´ç²¿·Ö¡£1¡¢ÔÚÖ÷·ÖÅä±íÖĞÕÒÒ»¸ö¿ÕÏĞÎ»ÖÃĞ´Èë¡£2¡¢Èç¹û
+//      ÕÒ²»µ½£¬Ôò¶Á³öÕû¿é£¬°ÑÕû¸öfilesizeÇøÌî³ä³Éff£¬È»ºó°ÑÎÄ¼ş³ß´ç¸üĞÂµ½µÚÒ»¸ö
+//      ¿ÕÎ»ÉÏ£¬²Á³ı¿é²¢Ğ´ÈëÖ®¡£3¡¢ÔÚbakÉÏ×öÏàÍ¬µÄ²Ù×÷¡£
+//²ÎÊı: ob£¬´ı²Ù×÷µÄÎÄ¼ş¶ÔÏóÖ¸Õë
+//      newsize£¬ĞÂµÄÎÄ¼ş³ß´ç
+//·µ»Ø: ÎŞ
+//-----------------------------------------------------------------------------
+static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
+{
+    struct EfsFileInfo *fileinfo;
+    struct EasyFS *efs;
+    struct FileRsc *fp;
+    u8 *block_buf;
+    u32 fileoffset,sizeoffset, cfg_blocks,temp;
+    u32 filesize_no,file_max_size,block_no,block_addr;
+    u16 crc16_check;
+
+    fp = (struct FileRsc *)obj_GetPrivate(ob);
+    efs = (struct EasyFS *)corefs(ob);
+    fileinfo = (struct EfsFileInfo *) fp->private;
+
+    cfg_blocks = (EfsCgfLimit + efs->block_size - 1) / efs->block_size;  //ÎÄ¼ş·ÖÅä±íËùÕ¼¿éÊı
+    block_buf = efs->file_list_buf + (fileinfo->item * EFS_ITEM_LIMIT);
+    ChkOrRecNameByECC((char *)block_buf,block_buf+FILENAME_LIMIT+1);
+    //ÎÄ¼ş³ß´ç²»ÄÜ´óÓÚÎÄ¼ş×î´ó³ß´ç
+    file_max_size = pick_little_32bit(block_buf,FILE_MAXSIZE_OFF >> 2);
+    if(newsize > file_max_size)
+        return;
+
+    fileoffset = fileinfo->item * EFS_ITEM_LIMIT;
+    sizeoffset = FILE_FILESIZE_OFF;
+    newsize = __EfsFileSize_odd_even_check(newsize); //¼ÓÉÏĞ£ÑéºóµÄÎÄ¼ş´óĞ¡
+    for (filesize_no = 0; filesize_no < FILE_FILESIZE_NUM;filesize_no++)
+    {
+        if (pick_little_32bit(block_buf + sizeoffset,0) == CN_LIMIT_UINT32) //ÔÚÖ÷·ÖÅä±íÕÒµ½¿ÕÏĞÎ»ÖÃ
+        {
+            fill_little_32bit(block_buf, sizeoffset >> 2, newsize);
+            efs->drv->efs_write_media(efs->start_block, fileoffset + sizeoffset,
+                    block_buf + sizeoffset, EFS_FILESIZE_BYTE_NUMBER,EF_WR_NOECC);  //Ğ´ĞÂµÄÎÄ¼ş´óĞ¡£¬ÎÄ¼ş´óĞ¡Õ¼4×Ö½Ú
+            efs->drv->efs_write_media(efs->start_block + cfg_blocks, fileoffset + sizeoffset,
+                    block_buf + sizeoffset, EFS_FILESIZE_BYTE_NUMBER,EF_WR_NOECC);
+            break;
+        }
+        sizeoffset += EFS_FILESIZE_BYTE_NUMBER;
+    }
+
+    if (filesize_no == FILE_FILESIZE_NUM) //Ö÷·ÖÅä±íÃ»ÓĞ¿ÕÓàÎ»ÖÃ
+    {
+        //ÏÈ¶Á³öÕû¿éÊı¾İµ½buf,²¢²Á³ı
+        efs->drv->efs_read_media(efs->start_block, 0, efs->file_list_buf, EfsCgfLimit, EF_WR_NOECC);
+        __Efs_CheckAllNameECC(efs->file_list_buf);
+
+        sizeoffset = fileinfo->item * EFS_ITEM_LIMIT + FILE_FILESIZE_OFF;      //¸ÃÎÄ¼ş£¬ÎÄ¼ş´óĞ¡µÄÎ»ÖÃ
+        memset(efs->file_list_buf + sizeoffset, 0xFF, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);  //°Ñ¸ÃÎÄ¼şÔ­À´´æµÄ26¸öÎÄ¼ş´óĞ¡Çå³ı
+        fill_little_32bit(efs->file_list_buf, sizeoffset >> 2, newsize);     //°ÑĞÂµÄÎÄ¼ş´óĞ¡Ìî½øÈ¥
+        crc16_check = crc16(efs->file_list_buf, 16);
+        fill_little_16bit((u8*)&temp, 0, crc16_check);    //×ª»¯ÎªĞ¡¶Ë
+
+        block_no = fileoffset / efs->block_size;
+        block_addr = block_no * efs->block_size;
+
+        efs->drv->efs_erase_media(block_no);       //²ÁÖ÷ÇøÖĞ¸ÃÎÄ¼şĞÅÏ¢ËùÊôµÄ¿é
+        efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+        efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp,2,EF_WR_NOECC);
+
+        efs->drv->efs_erase_media(block_no + cfg_blocks);        //²Á¸±ÇøÖĞ¸ÃÎÄ¼şĞÅÏ¢ËùÊôµÄ¿é
+        efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+        efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC);
+
+
+    }
+}
+
+// =============================================================================
+// ¹¦ÄÜ£ºĞÂ½¨²¢´ò¿ªÎÄ¼ş£¬³õÊ¼»¯ÎÄ¼şÏà¹ØµÄĞÅÏ¢£¬ÎÄ¼ş´óĞ¡Îª0£¬×î´ó³ß´çÎªÄ¬ÈÏ
+// ²ÎÊı£ºfp -- ÎÄ¼şË½ÓĞÊı¾İ£»ob -- ÎÄ¼şµÄ¶ÔÏóÖ¸Õë£»filename -- ÎÄ¼şÃû£» fileinfo -- ÎÄ¼şĞÅÏ¢Ö¸Õë
+// ·µ»Ø£ºfp -- ´´½¨³É¹¦£»NULL -- ´´½¨Ê§°Ü
+// =============================================================================
+static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *filename,
+                        tagEfsFileInfo *fileinfo)
+{
+    struct EasyFS *efs;
+    u32 block_no, start_block, offset,block_addr;
+    u8 cfg_blocks, item;
+    u16 crc16_check, temp;
+    if( (ob == NULL) || (strlen(filename) > FILENAME_LIMIT) )//ÎÄ¼şÃûÌ«³¤
+    {
+        printf("Create New File Failed For Too Long Name!\r\n");
+        return NULL;
+    }
+
+    efs = (tagEFS*)corefs(ob);
+    if (efs->files_sum >= CreateMax)
+        return NULL; //ÒÑ´ï¿É´´½¨ÎÄ¼şµÄÉÏÏŞ
+
+    offset = 0;
+    //¼ÆËãÎÄ¼şÏµÍ³ÎÄ¼ş·ÖÅä±íÖ÷·ÖÅäËùÊ¹ÓÃµÄblocks
+    cfg_blocks = (EfsCgfLimit + efs->block_size-1) / efs->block_size;
+    __Efs_CheckAllNameECC(efs->file_list_buf);
+    //²éÕÒÎªÈ«0»òÈ«FFµÄÎ»ÖÃ
+    for(item = 1; item < IndexesNum; item++)  //µÚÒ»¸öÎÄ¼şµÄË÷ÒıÊÇÔÚÎÄ¼ş·ÖÅä±íµÄµÚ¶ş¸öÎ»ÖÃ£¬ËùÒÔÕâÀï¼Ó1
+    {
+        offset = item * EFS_ITEM_LIMIT;
+        if(efs->file_list_buf[offset] == 0x00)  //ÈôÎª0£¬Ôò±íÊ¾¸ÃÎÄ¼ş±»É¾³ı,¿ÉÓÃÓÚĞÂ½¨ÎÄ¼ş
+        {
+            block_no = offset / efs->block_size;
+            block_addr = block_no * efs->block_size;
+            memset(efs->file_list_buf+offset,0xFF,EFS_ITEM_LIMIT);
+            crc16_check = crc16(efs->file_list_buf,16);
+            fill_little_16bit((u8*)&temp,0,crc16_check);    //×ª»¯ÎªĞ¡¶Ë
+//            //added,½«×îºóµÄCRCĞ´µ½ÎÄ¼şÏµÍ³ĞÅÏ¢µÄ×îºóÁ½¸ö×Ö½Ú
+            efs->drv->efs_erase_media(block_no);       //²ÁÖ÷ÇøÖĞ¸ÃÎÄ¼şĞÅÏ¢ËùÊôµÄ¿é
+            efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+            efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
+
+            efs->drv->efs_erase_media(block_no + cfg_blocks);       //²Á¸±ÇøÖĞ¸ÃÎÄ¼şĞÅÏ¢ËùÊôµÄ¿é
+            efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+            efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
+            break;
+        }
+        if(efs->file_list_buf[offset] == 0xFF) //´ÓÃû³ÆÅĞ¶ÏÊÇ·ñÓĞÓÃµ½¸ÃÎÄ¼şÅäÖÃ
+        {
+            break;          //¿ÕÏĞÎ»ÖÃ
+        }
+    }
+
+    if(item == IndexesNum)        //Ã»ÓĞÕÒµ½¿ÕÏĞÎ»ÖÃ»òÎÄ¼şÊıÁ¿´ïµ½ÉÏÏŞ
+        return NULL;
+
+    //¼ÆËãĞÂ½¨µÄÎÄ¼şÄÚÈİ´æ´¢Î»ÖÃ
+    start_block = efs->start_block + 2*cfg_blocks + (item - 1)*((dwFileMaxSize + efs->block_size-1)/efs->block_size);
+    //Í¬Ê±ĞèÒª²Á³ıÎÄ¼şÄÚÈİËùÔÚµÄ¿éÊı¾İ
+    block_no = (dwFileMaxSize + efs->block_size-1) / efs->block_size;
+    for(temp = 0; temp < block_no; temp++)
+    {
+        efs->drv->efs_erase_media(temp + start_block);
+    }
+    block_no = efs->start_block;
+    //ÒÔÏÂ³õÊ¼»¯ÎÄ¼ş·ÖÅä±í²¢Ğ´Èëflash
+    memset((char *)efs->file_list_buf + offset, 0xff, EFS_ITEM_LIMIT);
+    strncpy((char *)efs->file_list_buf + offset, filename, FILENAME_LIMIT+1);        //Ğ´ÈëÎÄ¼şÃû
+    efs->file_list_buf[FILENAME_LIMIT + offset] = '\0';
+    NameECC((char *)filename,efs->file_list_buf + offset + FILENAME_LIMIT+1);        //ÎÄ¼şÃûECC
+    fill_little_32bit(efs->file_list_buf + offset, FILE_STARTBLOCK_OFF >> 2,start_block);      //ÎÄ¼şÄÚÈİÆğÊ¼¿é
+    fill_little_32bit(efs->file_list_buf + offset, FILE_MAXSIZE_OFF >> 2, dwFileMaxSize);      //ÎÄ¼ş×î´ó´óĞ¡
+    fill_little_32bit(efs->file_list_buf + offset, FILE_FILESIZE_OFF >> 2, 0xc0000000);               //ÒòÎªÊÇĞÂ½¨µÄÎÄ¼ş£¬ÎÄ¼ş´óĞ¡ÏÈĞ´0
+    memcpy(efs->file_list_buf + offset + FILE_VERIFITY_OFF, "easyfile", 8);              //ÎÄ¼şË÷ÒıÄ©Î²Ğ´easyfile
+    efs->drv->efs_write_media(block_no, offset, efs->file_list_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
+    efs->drv->efs_write_media(block_no+cfg_blocks, offset, efs->file_list_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
+    strncpy(fp->name,filename,FILENAME_LIMIT+1);
+    //¸üĞÂÎÄ¼şĞÅÏ¢£¬´´½¨¼´´ò¿ª
+    fp->private = (ptu32_t)fileinfo;
+    fp->file_size = 0;
+    fp->ptr = 0;
+
+    //¸üĞÂÎÄ¼şĞÅÏ¢£¬´´½¨¼´´ò¿ª
+    fileinfo->max_size = dwFileMaxSize;
+    fileinfo->start_block = start_block;
+    fileinfo->item = item;
+    fileinfo->filesize = 0;
+
+    return fp;
+}
+// =============================================================================
+// ¹¦ÄÜ£º´ò¿ªÎÄ¼ş£¬ÈôÎÄ¼ş²»´æÔÚ£¬Ôò¿É¸ù¾İmode·½Ê½£¬¾ö¶¨ÊÇ·ñĞÂ½¨ÎÄ¼ş
+// ²ÎÊı£ºob -- ÎÄ¼şµÄ¶ÔÏóÖ¸Õë
+//      flags -- ´ò¿ª·½Ê½
+//      uncached -- Â·¾¶Î´Æ¥ÅäµÄ²¿·Ö
+// ·µ»Ø£ºÎÄ¼ş¾ä±úhdl -- ³É¹¦£» NULL -- Ê§°Ü
+// =============================================================================
+static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
+{
+    tagEFS *efs;
+    tagFileRsc *fp;
+    struct EfsFileInfo *fileinfo;
+    u32 loop;
+    u64 index_offset;
+    u8 *hsize,*buf;
+    bool_t found = false;
+    struct objhandle *hdl;
+    mode_t mode, property = 0;
+    if(ob == NULL)
+        return NULL;
+
+    efs = (tagEFS*)corefs(ob);
+    if (efs == NULL)
+        return NULL;
+
+    if((!uncached)&&(obj_isMount(ob)))
+    {
+        if(!test_directory(flags))      //Ã»ÓĞÎ´Æ¥ÅäµÄÂ·¾¶£¬²¢ÇÒobÊÇ¹ÒÔØµã£¬ÔòÊÇ´ò¿ªefsµÄ¸ùÄ¿Â¼
+            return (NULL);  //Èç¹û²»ÊÇ´ò¿ªÄ¿Â¼µÄ²Ù×÷ÔòÖ±½Ó·µ»ØÊ§°Ü
+    }
+
+//    if(tgOpenedSum >= CFG_EFS_MAX_OPENED_FILE_NUM)
+//        return NULL;
+
+    if(test_directory(flags))
+    {
+        property = S_IFDIR;     // Ä¿Â¼Âß¼­²»×öÆäËü²Ù×÷£¬Ö±½Ó°ÑobjºÍhal¹ØÁª¾ÍĞĞÁË
     }
     else
     {
-        for(i = 0; i < SYS_LOOPS; i++)
+        if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+            return (NULL);
+
+        fp = malloc(sizeof(tagFileRsc));
+        fileinfo = malloc(sizeof(tagEfsFileInfo));
+        buf = malloc(CN_FILE_BUF_LIMIT);
+        if( (NULL == fileinfo) || (NULL == buf) || (efs == NULL) || (fp == NULL))
+            goto exit;
+
+        memset(fp, 0, sizeof(tagFileRsc));
+        memset(fileinfo, 0, sizeof(struct EfsFileInfo));
+        memset(buf, 0xFF, CN_FILE_BUF_LIMIT);
+        //É¨Ãè¹Ì¶¨ÎÄ¼şÊı
+        for (loop = 1; loop < IndexesNum; loop++)
         {
-            if(nosys != scan[i].stat)
-                return (-1); // æœªæ‰¾åˆ°æœ‰æ•ˆç³»ç»Ÿä¿¡æ¯, æ–‡ä»¶ç³»ç»Ÿè¢«ç ´å
-        }
-    }
-
-    return (1); // ä¸å­˜åœ¨æ–‡ä»¶ç³»ç»Ÿ
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šå»ºç«‹æ–‡ä»¶ç³»ç»Ÿ
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ç»“æ„ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_build(struct __ecore *core)
-{
-    struct __ecstruct *estruct;
-    s32 res, erases, esz;
-    u32 i, once;
-    s64 offset = 0;
-
-    // åªæ ¼å¼åŒ–ç³»ç»ŸåŒº
-    printf("\r\n: info : efs    : new system is building...");
-    erases = core->ssz * SYS_LOOPS;
-    esz = (1 << (core->blacksize - core->pagesize)) << 1; // ä¸€æ¬¡æ“¦é™¤çš„unitæ•°é‡ï¼›
-    while(erases)
-    {
-        if(erases > esz)
-            once = esz;
-        else
-            once = erases;
-
-        res = core->drv->efs_erase_media(core, offset, once);
-        if(res)
-        {
-            printf("\r\n: erro : efs    : new system build failed(cannot format).");
-            return (-1);
-        }
-
-        switch(i)
-        {
-            case 0 : printf("\b\b\b.  ");i = 1;break;
-            case 1 : printf("\b\b\b.. ");i = 2;break;
-            case 2 : printf("\b\b\b...");i = 0;break;
-            default: break;
-        }
-
-        erases -= once;
-        offset += once;
-    }
-
-    printf("\b\b\b\b\b\b\b\b\b\b\bformated.");
-    // å»ºç«‹ç³»ç»Ÿç»“æ„
-    memset(core->ebuf, 0xFF, (1<<core->pagesize));
-    estruct = (struct __ecstruct*)core->ebuf;
-    estruct->age = 0;
-    estruct->files = core->fmax;
-    estruct->range = core->ASize;
-    memcpy(estruct->signature, ESIGN, ESIG_LEN);
-    estruct->ecc = 0;
-    __gen(core, estruct, (sizeof(struct __ecstruct)-SYS_NOECCSIZE), &(estruct->ecc));
-    estruct->status = SYS_UPDATED;
-
-    for(i = 0; i < SYS_LOOPS; i++)
-    {
-        res = core->drv->efs_write_media(core, (i*core->ssz), estruct);
-        if(!res)
-        {
-            break; // æˆåŠŸï¼›
-        }
-
-        // å¤±è´¥ï¼Œå°è¯•ä¸‹ä¸€ä¸ªï¼ŒæŠŠè¿™ä¸ªæ“¦é™¤
-        printf("\r\n: warn : efs    : new system can not write in sys loop %d.", i);
-        res = core->drv->efs_erase_media(core, (i*core->ssz), core->ssz);
-        if(res)
-        {
-            printf("\r\n: erro : efs    : new system build failed in sys loop %d(erase).", i);
-            return (-1);
-        }
-    }
-
-    if(SYS_LOOPS == i)
-    {
-        printf("\r\n: erro : efs    : new system build failed(no valid sys loop).");
-        return (-1);
-    }
-
-    return (0);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæŸ¥æ‰¾ç©ºé—²çš„æ–‡ä»¶ç©ºé—´ï¼›
-// å‚æ•°ï¼š
-// è¿”å›ï¼šç©ºé—²ï¼ˆç©ºé—²ä½ç½®ï¼‰ï¼›å‡ºé”™ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_lookupfree(struct __ecore *core)
-{
-    s64 units;
-    s32 freeloc = -1, size, i, j, idxs;
-    u8 *tmp, recycle = 0;
-
-    size = sizeof(struct __eidx);
-    idxs = (1 << core->pagesize) / size; // ä¸€ä¸ªunitä¸­èƒ½å­˜æ”¾å¤šå°‘ä¸ªidx
-    __lock(core);
-
-__RETRY_LOOKUPFREE:
-    for(i = 0; (u32)i < core->fmax; i++)
-    {
-        if(!(i%idxs))
-        {
-            units = core->serial * core->ssz + 1 + i / idxs;
-            if(core->drv->efs_read_media(core, units, core->ebuf))
+            index_offset = loop * EFS_ITEM_LIMIT;
+            efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
+            ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset), efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
+            if (strncmp((const char*)efs->file_list_buf + index_offset, uncached, FILENAME_LIMIT) == 0)
             {
-                printf("\r\n: erro : efs    : lookup free failed(read).");
-                i = idxs + i - 1; // å‡ä¸€æ˜¯ä¸ºæ˜¯äº†ç…§é¡¾foré€»è¾‘
-                continue; // è¯»idxè¡¨å¤±è´¥ï¼Œå°è¯•ä¸‹ä¸€ä¸ªè¡¨
-            }
-
-            tmp = core->ebuf;
-        }
-
-        for(j = 0; j < size; j++)
-        {
-            if(0xFF != tmp[j])
+                found = true;
+                fileinfo->item = loop;      //°Ñ¸ÃÎÄ¼şË÷ÒıÔÚÎÄ¼ş·ÖÅä±íÖĞµÄÎ»ÖÃ±£´æÏÂÀ´
                 break;
-        }
-
-        if(j == size)
-        {
-            freeloc = i; // ç©ºé—´å…¨éFFï¼Œåˆ™è¡¨ç¤ºä¸ºç©ºé—²çš„idx
-            break;
-        }
-
-        tmp += size;
-   }
-
-   if(!recycle &&  (-1 == freeloc)) // æ²¡æœ‰ç©ºé—²äº†ï¼Œå°è¯•å›æ”¶ï¼›
-   {
-       recycle = 1;
-       printf("\r\n: dbug : efs    : lookup free failed, no space, try recycle.");
-       if(!__e_recycle(core))
-           goto __RETRY_LOOKUPFREE; // æˆåŠŸå›æ”¶åï¼Œå†å°è¯•è·å–ç©ºé—²idx
-   }
-
-   __unlock(core);
-   return (freeloc);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šç¼“å­˜æ–‡ä»¶ä¿¡æ¯
-// å‚æ•°ï¼š
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *loc, char *name, struct obj *ob)
-{
-    struct __efstruct fstruct;
-    s64 units, size;
-    s32 res, szmax, i;
-    u32 ecc;
-    struct __efile *file;
-    struct obj *find;
-    struct __loc *eloc = loc;
-
-    find = obj_search_child(ob, name); // å…ˆåœ¨å¯¹è±¡ç³»ç»Ÿä¸­æŸ¥æ‰¾
-    if(find)
-        return ((struct __efile*)obj_GetPrivate(find));
-
-    eloc = __getloc(position, core, loc, -1); // è·å–æ–‡ä»¶æœ€æœ«å°¾çš„ä½ç½®
-    units = (core->ssz * core->serial) + (core->finfo + eloc->loc);
-    res = core->drv->efs_read_media(core, units, core->ebuf); // æ–‡ä»¶ä¿¡æ¯
-    if(res)
-    {
-        printf("\r\n: erro : efs    : cache file failed(cannot read info %d).", eloc->loc);
-        return (NULL);
-    }
-
-    __e_structfile(core, &fstruct, core->ebuf);
-    if(strcmp(name, fstruct.name.n))
-    {
-        __gen(core, name, strlen(name+1), &ecc); // å› ä¸ºçŸ¥é“æ–‡ä»¶åï¼Œå°±ä½¿ç”¨çŸ¥é“æ–‡ä»¶åçš„eccå€¼ï¼›
-        __fix(core, fstruct.name.n, (strlen(name)+1), &ecc);
-        if(strcmp(name, fstruct.name.n))
-        {
-            printf("\r\n: error : efs    : file name is corrupted(\"%s\" != \"%s\").", fstruct.name.n, name);
-            return (NULL); // åå­—ä¸åŒ¹é…
-        }
-    }
-
-    // è·å–sizeè®°å½•ä½ç½®
-    szmax = (1 << core->pagesize) - (core->nsz + 4); // ä¸€ä¸ªunitå†…çš„å¯å®¹çº³sizeè®°å½•æ•°é‡
-    for(i = 0; i < szmax; i++)
-    {
-        if((-1 == (s32)fstruct.size[i].s) && (-1 == (s32)fstruct.size[i].e))
-        {
-            break; // ç›´è‡³æœªè¢«è®°å½•çš„ä½ç½®
-        }
-    }
-
-    if(-1 != (--i)) // ç¡®ä¿ä¸æ˜¯ç¬¬0ä¸ªï¼ˆä¸åˆè®¾è®¡é€»è¾‘ï¼‰
-    {
-        __gen(core, &(fstruct.size[i].s), sizeof(fstruct.size[i].s), &ecc);
-        if(ecc != fstruct.size[i].e) // æ£€æµ‹sizeçš„ECCå€¼æ˜¯å¦ä¸€è‡´ï¼Œå¦‚æœä¸ä¸€è‡´ï¼Œè¯´æ˜æ•°æ®è¢«æ”¹äº†ï¼Œå°è¯•ä¿®å¤
-        {
-            // å› ä¸ºä¸çŸ¥é“å®é™…çš„å¤§å°ï¼Œæ‰€ä»¥ä½¿ç”¨ä»‹è´¨ä¸Šå€¼ï¼›
-            size = fstruct.size[i].s;
-            if(__fix(core, &(fstruct.size[i].s), sizeof(fstruct.size[i].s), &(fstruct.size[i].e)))
-            {
-                printf("\r\n: warn : efs    : file \"%s\"'s size maybe corrupted.", name);
             }
-
-            if(fstruct.size[i].s != size) // è·å–backupå¤±è´¥ï¼Œä½¿ç”¨ä¸nameåŒä¸€ä¸ªåŒºï¼›
-                fstruct.size[i].s = size; // ä½¿ç”¨åŸå§‹æ•°æ®ï¼Œå› ä¸ºä¸çŸ¥é“å“ªä¸ªæ˜¯å¯¹çš„ï¼›
         }
-    }
-    else // æ— æœ‰æ•ˆsize
-    {
-        printf("\r\n: erro : efs    : file \"%s\"'s size maybe corrupted(no data).", name);
-        fstruct.size[0].s = 0;
-    }
-
-    file = malloc(sizeof(*file));
-    if(!file)
-    {
-        printf("\r\n: erro : efs    : cache file \"%s\" failed(memory out).", name);
-        return (NULL);
-    }
-
-    file->loc = loc;
-    file->size = fstruct.size[i].s;
-    if(!obj_newchild(ob, e_operations, (ptu32_t)file, name))
-    {
-        printf("\r\n: erro : efs    : cache file \"%s\" failed(virtual).", name);
-        free(file);
-        return (NULL);
-    }
-
-    return (file);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šåˆ†é…æ–‡ä»¶ç©ºé—´
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ï¼›
-//      loc -- æ–‡ä»¶ä½ç½®ï¼›
-//      name -- æ–‡ä»¶åï¼›
-//      order -- æ–‡ä»¶å†…å®¹åºåˆ—ï¼ˆä»ä¸€è®¡ï¼‰ï¼›
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_allocfile(struct __ecore *core, u32 *loc, const char *name, u32 order)
-{
-    struct __efstruct fstruct;
-    s64 units;
-    s32 max, res, i;
-
-    max = 1 << core->pagesize;
-    while(1)
-    {
-        units = core->ssz * core->serial + core->finfo + *loc;
-        res = core->drv->efs_read_media(core, units, core->ebuf); // æ–‡ä»¶ä¿¡æ¯
-        if(!res)
+        if (!found)
         {
-            for(i = 0; i < max; i++)
+            if(test_creat(flags))//Î´ÕÒµ½£¬ÅĞ¶ÏÊÇ·ñÊÇĞÂ½¨ÎÄ¼ş
             {
-                if(0xFF != core->ebuf[i])
+                if(__Efs_NewFile(fp, ob, uncached, fileinfo))
+                    efs->files_sum++;
+                else
                 {
-                    res = -1; // æ–‡ä»¶ä¿¡æ¯åŒºä¸å¹²å‡€ï¼Œæ ‡è®°ä¸ºä¸å¯ç”¨ï¼›å¹¶å†ç”³è¯·ä¸€ä¸ªç©ºé—´ï¼›
+                    if (efs->files_sum >= CreateMax)
+                    {
+                        warning_printf("efs", "file sum exceed upper limit (%d)",CreateMax);
+                    }
+                    goto exit;
+                }
+            }
+            else
+            {   // ÎÄ¼ş²»´æÔÚ£¬µ«²»ÒªÇóĞÂ½¨£»
+                printf("\r\n : dbug : efs    : open \"%s\" failed(do not exist).", uncached);
+                goto exit;
+            }
+        }
+        else     //´Ë´¦ ÎÄ¼ş´æÔÚ
+        {
+            if(test_onlycreat(flags)) // ÒÑ´æÔÚ£¬µ«Ö»ÒªÇóĞÂ½¨£»
+            {
+                printf("\r\n : dbug : efs    : open \"%s\" failed(already exist).", uncached);
+                goto exit;
+            }
+            //ÒÔÏÂÉèÖÃÎÄ¼ş×ÊÔ´ÃèÊö£¬²ÎÕÕstruct file_rsc¶¨ÒåÖĞÒªÇóÇı¶¯Ä£¿éÎ¬»¤µÄ²¿·Ö¡£
+            for (loop = 0; loop < FILE_FILESIZE_NUM; loop++)
+            {
+                hsize = (efs->file_list_buf + index_offset + FILE_FILESIZE_END - loop * EFS_FILESIZE_BYTE_NUMBER);
+                if ((pick_little_32bit(hsize,0) == CN_LIMIT_UINT32) ||
+                    (pick_little_32bit(hsize,0) == 0))
+                    continue;
+//                if (pick_little_32bit(hsize,0) == ~(pick_little_32bit(hsize + 4,0)))
+                if(__EfsFileSize_verify(*(u32 *)(hsize)) == 0)
+                {
+                    fp->file_size = (pick_little_32bit(efs->file_list_buf + index_offset,     //´Ó44¸öÎÄ¼ş´óĞ¡ÖĞ£¬ÕÒÕıÈ·µÄÎÄ¼ş´óĞ¡£¬´Ó×îºó¿ªÊ¼ÕÒ
+                            (FILE_FILESIZE_END - loop * EFS_FILESIZE_BYTE_NUMBER) >> 2) & EFS_SUPPORT_MAXFILESIZE);
                     break;
                 }
             }
+            fileinfo->start_block = pick_little_32bit(efs->file_list_buf + index_offset, FILE_STARTBLOCK_OFF >> 2);          //»ñÈ¡ÎÄ¼şÄÚÈİµÄ¿ªÊ¼¿é
+            fileinfo->max_size = pick_little_32bit(efs->file_list_buf + index_offset, FILE_MAXSIZE_OFF >> 2);       //»ñÈ¡ÎÄ¼ş×î´ó´óĞ¡
+            fileinfo->filesize = fp->file_size;     //»ñÈ¡ÎÄ¼şµ±Ç°´óĞ¡
+            strncpy(fp->name, (const char *)(efs->file_list_buf + index_offset), FILENAME_LIMIT+1);
         }
 
-        if(i == max)
-        {
-            units = (core->ssz * SYS_LOOPS) + (*loc * core->fsz);
-            res = core->drv->efs_erase_media(core, units, core->fsz); // å‡†å¤‡æ–‡ä»¶ç©ºé—´
-            if(!res)
-            {
-                // æ˜¯å¯ç”¨çš„åŒºåŸŸï¼Œå…ˆå†™ä¿¡æ¯
-                memset(core->ebuf, 0xFF, (1<<core->pagesize));
-                __e_structfile(core, &fstruct, core->ebuf);
-                strcpy(fstruct.name.n, name);
-                __gen(core, fstruct.name.n, (strlen(name)+1), fstruct.name.e);
-                fstruct.size->s = 0;
-                __gen(core, &(fstruct.size->s), 8, &(fstruct.size->e));
-                units = core->ssz * core->serial + core->finfo + *loc;
-                res = core->drv->efs_write_media(core, units, core->ebuf);
-                if(!res)
-                {
-                    res = __e_markidx(core, *loc, fstruct.name.n, order); // è®¾ç½®idx
-                }
-            }
-        }
-
-        if(res) // å¤±è´¥ï¼Œå†ç”³è¯·ä¸€ä¸ª
-        {
-            __e_markidx(core, *loc, NULL, 0); // æ ‡è®°ä¸å¯ç”¨åŒºåŸŸ
-            *loc = __e_lookupfree(core); // è·å–ä¸€ä¸ªå¯ç”¨åŒºåŸŸ
-            if(-1 == (s32)*loc)
-            {
-                printf("\r\n: erro : efs    : allocate file \"%s\"(no space).", name);
-                return (-1);
-            }
-        }
-        else
-        {
-            break; // è®¾ç½®æˆåŠŸ
-        }
-
-    }
-
-    return (res);
-}
-// ============================================================================
-// åŠŸèƒ½ï¼šæ–°å»ºæ–‡ä»¶ï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ï¼›
-//      loc -- æ–‡ä»¶ä½ç½®ï¼›
-//      name -- æ–‡ä»¶åï¼›
-//      ob -- æ–‡ä»¶ç¼“å­˜èŠ‚ç‚¹ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆæ–‡ä»¶ç»“æ„ï¼‰ï¼›å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static struct __efile *__e_newfile(struct __ecore *core, u32 loc, char *name, struct obj *ob)
-{
-    s32 res;
-    struct __efile *file;
-
-    res = __e_allocfile(core, &loc, name, 1);
-    if(res)
-    {
-        printf("\r\n: erro : efs    : new file \"%s\" failed(create).", name);
-        return (NULL);
-    }
-
-    file = malloc(sizeof(*file));
-    if(!file)
-    {
-        printf("\r\n: erro : efs    : new file \"%s\"(memory out).", name);
-        return (NULL);
-    }
-
-    file->loc = __addloc(NULL, loc, 1, 0);
-    file->size = 0;
-    if(!obj_newchild(ob, e_operations, (ptu32_t)file, name))
-    {
-        printf("\r\n: erro : efs    : new file \"%s\"(virtual).", name);
-        free(file);
-        return (NULL);
-    }
-
-    return (file);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ›´æ–°æ–‡ä»¶å°ºå¯¸
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ï¼›
-//      file -- æ–‡ä»¶ï¼›
-//      size -- æ›´æ–°çš„å°ºå¯¸ï¼›
-//      name -- æ–‡ä»¶åï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size, const char *name)
-{
-    s64 units, dels;
-    struct __efstruct fstruct;
-    s32 res, szmax, i;
-    u32 loc, eccu, ecce;
-    struct __loc *eloc;
-
-    if(size == file->size)
-        return (0); // file sizeåªä¼šåœ¨æœ¬å‡½æ•°å†…å‘ç”Ÿå˜æ›´
-
-    __lock(core);
-    eloc = __getloc(position, core, file->loc, -1);
-    if(size<file->size) // å°ºå¯¸å‡å°‘
-    {
-        eccu = (1 << (core->pagesize - BUFBITS)) * 4; // ä¸€ä¸ªunitå†…è¢«ECCå ç”¨çš„ç©ºé—´ï¼›
-        ecce = core->fsz * eccu; // ä¸€ä¸ªæ–‡ä»¶ç©ºé—´å†…è¢«ECCå ç”¨æ‰çš„ç©ºé—´ï¼›
-        dels = file->size - size; // éœ€è¦åˆ é™¤çš„å¤§å°
-        // éœ€å‡å°‘çš„éƒ¨åˆ†ï¼Œåˆ¤æ–­æ˜¯å¦å¤§äºç­‰äºæ–‡ä»¶åœ¨æœ€åä¸€ä¸ªæ–‡ä»¶ç©ºé—´çš„å·²ä½¿ç”¨é‡ï¼›
-        // å¦‚æœå¤§äºç­‰äºï¼Œåˆ™éœ€è¦åˆ é™¤è‡³å°‘æœ€åä¸€ä¸ªæ–‡ä»¶ç©ºé—´ï¼›
-        dels -= (file->size % ((core->fsz << core->pagesize) - ecce));
-        if(dels>=0) // å¤§äºï¼Œ åˆ™éœ€è¦è‡³å°‘åˆ é™¤æœ€åä¸€ä¸ªåŒºåŸŸ
-        {
-            dels = dels / ((core->fsz << core->pagesize) - ecce) + 1; // æ€»ä½“éœ€è¦åˆ é™¤çš„åŒºåŸŸæ•°ï¼Œæ­¤å¤„"+1"è¡¨ç¤ºè‡³å°‘è¦åˆ é™¤ä¸€ä¸ªæ–‡ä»¶ç©ºé—´ï¼›
-            while(dels--)
-            {
-                // ä»æœ€åä¸€ä¸ªåŒºåŸŸå¼€å§‹åˆ é™¤æ–‡ä»¶å†…å®¹ï¼ˆç´¢å¼•ï¼‰
-                if(__e_markidx(core, eloc->loc, NULL, 0))
-                {
-                    printf("\r\n: warn : efs    : update file size has problem(shrink).");
-                }
-
-                eloc = __delloc(eloc, -1);
-            }
-        }
-    }
-
-    if(!eloc) // æ–‡ä»¶è¢«é‡ç½®ä¸ºé›¶äº†ï¼Œä½†æ˜¯éœ€è¦ä¸ºå…¶é‡æ–°ç”³è¯·ä¸€ä¸ªåŒºåŸŸï¼›ï¼ˆç©ºæ–‡ä»¶é€»è¾‘ä¸Šä¹Ÿæ˜¯éœ€è¦åˆ†é…æ–‡ä»¶ç©ºé—´çš„ï¼Œç›¸å½“äºæ–°å»ºä¸€ä¸ªæ–‡ä»¶ï¼‰
-    {
-        loc = __e_lookupfree(core);
-        if(-1 == (s32)loc)
-        {
-            printf("\r\n: warn : efs    : update file size has problem(no space).");
-            file->loc = NULL;
-            file->size = 0;
-            __unlock(core);
-            return (-1);
-        }
-
-        res = __e_allocfile(core, &loc, name, 1);
-        if(res)
-        {
-            printf("\r\n: warn : efs    : update file size has problem(cannot allocate).");
-            file->loc = NULL;
-            file->size = 0;
-            __unlock(core);
-            return (-1);
-        }
-
-        eloc = __addloc(NULL, loc, 1, 0);
-        if(!eloc)
-        {
-            printf("\r\n: warn : efs    : update file size has problem(no memory).");
-            file->loc = NULL;
-            file->size = 0;
-            __unlock(core);
-            return (-1);
-        }
-
-        file->loc = eloc;
-        file->size = 0;
-    }
-    else // æ–‡ä»¶å°ºå¯¸å‘ç”Ÿäº†å˜ï¼Œéœ€è¦æ›´æ–°å°ºå¯¸æ•°æ®ï¼›
-    {
-        units = core->ssz * core->serial + core->finfo + eloc->loc;
-        res = core->drv->efs_read_media(core, units, core->ebuf); // æ–‡ä»¶ä¿¡æ¯
-        if(res)
-        {
-            printf("\r\n: erro : efs    : cannot update file size(read).");
-            __unlock(core);
-            return (-1);
-        }
-
-        __e_structfile(core, &fstruct, core->ebuf);
-        szmax = ((1 << core->pagesize) - (core->nsz + 4)) / sizeof(struct __esize); // å¯ä»¥å­˜æ”¾file sizeçš„æ¬¡æ•°
-        for(i = 0; i < szmax; i++ )
-        {
-            if((-1 == (s32)fstruct.size[i].s) && (-1 == (s32)fstruct.size[i].e))
-            {
-                break; // æŸ¥æ‰¾åˆ°ç©ºé—²file size
-            }
-        }
-
-        if(szmax == i) // sizeç©ºé—´å†™æ»¡ï¼Œè¿›è¡Œå›æ”¶
-        {
-            printf("\r\n: dbug : efs    : file size full, try recycle.");
-            res = __e_recycle(core);
-            if(res)
-            {
-                printf("\r\n: erro : efs    : cannot update file size(recycle).");
-                __unlock(core);
-                return (-1);
-            }
-
-            i = 1; // sizeçš„æ–°ä½ç½®ï¼›å›æ”¶æ—¶ï¼Œç¬¬ä¸€ä¸ªä½ç½®è‚¯å®šæ˜¯è¢«ç”¨æ‰äº†çš„
-        }
-
-        memset(core->ebuf, 0xFF, (1<<core->pagesize));
-        file->size = size;
-        fstruct.size[i].s = file->size;
-        __gen(core, &(fstruct.size[i].s), sizeof(fstruct.size[i].s), &(fstruct.size[i].e));
-        units = core->serial * core->ssz + core->finfo + eloc->loc; // å¯èƒ½ç”±å›æ”¶å¸¦æ¥çš„serialå˜åŒ–
-        res = core->drv->efs_write_media(core, units, core->ebuf);
-        if(res)
-        {
-            __unlock(core);
-            return (-1);
-        }
-    }
-
-    __unlock(core);
-    return (0);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šåˆ é™¤æ–‡ä»¶
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ï¼›
-//      loc -- æ–‡ä»¶ä½ç½®ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼šä»æ–‡ä»¶å°¾éƒ¨å¼€å§‹å¾€å‰åˆ é™¤
-// ============================================================================
-static s32 __e_destroyfile(struct __ecore *core, struct __loc *loc)
-{
-    s64 units;
-    u32 idxmax, oloc = 1;
-    u8 update = 1;
-    s32 res;
-    struct __eidx *idx;
-    struct __loc *eloc;
-
-    idxmax = (1 << core->pagesize) / sizeof(struct __eidx); // ä¸€ä¸ªunitå†…å¯å­˜æ”¾idxçš„æ•°é‡
-    eloc = __getloc(position, core, loc, -1);
-    if(!eloc)
-    {
-        printf("\r\n: erro : efs    : destroy file(no location).");
-        return (-1);
-    }
-
-    while(eloc)
-    {
-        if(update)
-        {
-            units = core->serial * core->ssz + 1;
-            units += eloc->loc / idxmax;
-            res = core->drv->efs_read_media(core, units, core->ebuf); // ç´¢å¼•è¡¨
-            if(res)
-            {
-                printf("\r\n: erro : efs    : destroy file(read idx).");
-                return (-1);
-            }
-        }
-
-        idx = (struct __eidx*)core->ebuf;
-        memset((idx+(eloc->loc%idxmax)), 0x0, sizeof(struct __eidx)); // å°†idxåŒºåŸŸç½®é›¶
-        oloc = eloc->loc; // å·²åˆ é™¤çš„loc
-        eloc = __delloc(eloc, -1);
-        if(!eloc)
-        {
-            update = 1; // å…¨éƒ¨åˆ é™¤
-        }
-        else
-        {
-            // åˆ¤æ–­æ˜¯å¦éœ€è¦è¯»idxè¡¨ï¼Œå› ä¸ºidxçš„locè·¨unitå¼•èµ·
-            if(eloc->loc>oloc)
-            {
-                if((eloc->loc-oloc)>(idxmax-(oloc %idxmax)))
-                    update = 1;
-                else
-                    update = 0;
-            }
-            else
-            {
-                if((oloc-eloc->loc) > (oloc %idxmax))
-                    update = 1;
-                else
-                    update = 0;
-            }
-        }
-
-        if(update) // é‡æ–°è¯»æˆ–è€…åˆ é™¤å®Œæˆ
-        {
-            res = core->drv->efs_write_media(core, units, core->ebuf);
-            if(res)
-            {
-                printf("\r\n: erro : efs    : destroy file \"%s\"(write).", (char*)core->ebuf);
-                return (-1);
-            }
-        }
-    }
-
-    return (0);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶åŒæ­¥ï¼›
-// å‚æ•°ï¼šhdl -- å†…éƒ¨å¥æŸ„ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_sync(struct objhandle *hdl)
-{
-    s64 units, sz;
-    s32 bufsmax, bufc, bufo, eccu;
-    struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext*)handle_context(hdl);
-    struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);
-
-    if(!cx->dirty)
-        return (0); // æ²¡æœ‰éœ€è¦æ›´æ–°çš„æ•°æ®
-
-    if((cx->pos+cx->wpos)>file->size) // åŒæ­¥çš„æ—¶å€™ï¼Œåªæœ‰æ–‡ä»¶å°ºå¯¸æ‰©å¤§æ‰ä¼šæ›´æ–°æ–‡ä»¶å°ºå¯¸
-    {
-        if(__e_updatefilesz(core, file, cx->pos+cx->wpos, handle_name(hdl)))
-            return (-1);
-    }
-
-    if(cx->wpos)
-    {
-        sz = (cx->pos - (cx->pos % BUFLEN)) + BUFLEN;
-        if(sz<file->size) // æ–‡ä»¶çš„å½“å‰ä½ç½®ä¸èƒ½å°äºæ–‡ä»¶å¤§å°(é¢„ç•™äº†ç¼“å†²ä½™é‡)
-        {
-            // ç›®å‰ä¸æ”¯æŒæ”¹å†™
-            printf("\r\n: erro : efs    : \"%s\" write failed(do not support rewrite beyond buffer size).", handle_name(hdl));
-            return (-1);
-        }
-
-        eccu = (1 << (core->pagesize - BUFBITS)) * 4; // ä¸€ä¸ªunitå†…è¢«ECCå ç”¨çš„ç©ºé—´ï¼›
-        eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos));
-        units = (core->ssz*SYS_LOOPS) + (core->fsz * eloc->loc);
-        units += (cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz; // æ­¤æ—¶cx->posé€»è¾‘ä¸Šæ˜¯ä¿è¯wbufå¯¹é½çš„ï¼›
-        bufsmax = 1 << (core->pagesize - BUFBITS); // ä¸€ä¸ªunitå†…æœ‰å¤šå°‘ä¸ªbufferåŒºï¼›
-        bufc = (cx->pos / BUFLEN) % bufsmax; // ä¸€ä¸ªunitå†…å·²ä½¿ç”¨äº†å¤šå°‘ä¸ªbufferåŒºï¼›
-        bufo = bufc << BUFBITS; // æ–‡ä»¶æŒ‡é’ˆåœ¨ä¸€ä¸ªunitå†…çš„åç½®,bufferåŒºå¯¹é½ï¼›
-        memset(core->ebuf, 0xFF, (1<<core->pagesize));
-        memcpy(core->ebuf+bufo, cx->wbuf, cx->wpos); // ä¸åšECCï¼›
-        if(core->drv->efs_write_media(core, units, core->ebuf))
-            return (-1);
-
-        cx->dirty = 0;
-    }
-
-    return (0);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæŸ¥æ‰¾æ–‡ä»¶
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿæ§åˆ¶ï¼›
-//      name -- æ–‡ä»¶åï¼›
-//      loc -- æ–‡ä»¶ä½ç½®ï¼›
-// è¿”å›ï¼šç©ºé—²ï¼ˆç©ºé—²ä½ç½®ï¼Œé€»è¾‘å¢ä¸€,ä½¿ç”¨æ—¶å‡ä¸€ï¼‰ï¼›æ‰¾åˆ°ï¼ˆ0ï¼‰ï¼›å‡ºé”™ï¼ˆ-1ï¼‰ï¼›æ²¡æœ‰ç©ºé—²ï¼ˆ-2ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc **loc)
-{
-    s32 size, i, idxs, res;
-    struct __eidx *idx;
-    u8 key[KEYLEN];
-    u32 freeloc = -2;
-    s64 units;
-    struct __loc *hloc = NULL;
-
-    size = strlen(name);
-    if(size >= core->nsz)
-    {
-        printf("\r\n: erro : efs    : lookup failed(file name \"%s\" is illegal).", name);
-        return (-1);
-    }
-
-    __key(name, key);
-    idxs = (1 << core->pagesize) / sizeof(*idx); // ä¸€ä¸ªunitä¸­èƒ½å­˜æ”¾å¤šå°‘ä¸ªidx
-    __lock(core);
-    for(i = 0; (u32)i < core->fmax; i++)
-    {
-        if(!(i%idxs))// ä¸€ä¸ªunitå†…çš„idxè¯»å®Œï¼Œå°è¯•ä¸‹ä¸€é¡µ
-        {
-            units = core->serial * core->ssz + 1 + (i / idxs);
-            if(core->drv->efs_read_media(core, units, core->ebuf)) // ç´¢å¼•è¡¨
-            {
-                printf("\r\n: erro : efs    : lookup has problem(can not read %d).", i);
-                i += idxs;
-                continue; // æŸ¥è¯¢ä¸‹ä¸€ä¸ªç´¢å¼•è¡¨
-            }
-
-            idx = (struct __eidx *)core->ebuf;
-        }
-
-        res = __e_matchkey(core, idx, key);
-        if(0 == res)
-        {
-            // åŒ¹é…æˆåŠŸ
-            if(!__addloc(&hloc, i, idx->order, 1))
-            {
-                printf("\r\n: erro : efs    : lookup failed(memory out).");
-                __unlock(core);
-                return (-1); //
-            }
-        }
-        else if((-2 == (s32)freeloc) && (2 == res))
-        {
-            freeloc = i;
-        }
-        else if(-1 == res)
-        {
-            printf("\r\n: warn : efs    : lookup idx %d is corrupted.", i);
-        }
-
-        idx++;
-    }
-
-    __unlock(core);
-    if(hloc)
-        __e_sanityloc(core, &hloc, name); // è¿›ä¸€æ­¥æ ¡éªŒæ•°æ®æ­£ç¡®æ€§
-
-    if(hloc)
-    {
-        *loc = hloc;
-        return (0);
-    }
-    else
-    {
-        return (freeloc+1); // æœªæ‰¾åˆ°ï¼Œè¿”å›ç©ºé—²
-    }
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ‰“å¼€æ–‡ä»¶ï¼›
-// å‚æ•°ï¼šob -- æ–‡ä»¶èŠ‚ç‚¹ï¼›
-//      flags -- æ–‡ä»¶æ‰“å¼€æ–¹å¼ï¼›
-//      uncached -- æ–‡ä»¶æœªç¼“å­˜ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆæ–‡ä»¶ä¸Šä¸‹æ–‡ï¼‰ï¼›å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
-{
-    s32 res, bufs, eccu;
-    struct __loc *loc;
-    s64 units;
-    struct __efile *file;
-    struct __econtext *cx;
-    struct objhandle *hdl;
-    struct __ecore *core = (struct __ecore*)corefs(ob);
-    mode_t mode, property = 0;
-
-    if(test_directory(flags)) // ç›®å½•é€»è¾‘
-    {
-        if(uncached) // EFSä¸æ”¯æŒç›®å½•é€»è¾‘
-        {
-            printf("\r\n : dbug  : efs    : do not support directory.");
-            return (NULL);
-        }
-        else
-        {
-            if(!obj_isMount(ob)) // ç¡®è®¤æ‰“å¼€çš„ç›®å½•æ˜¯å®‰è£…ç‚¹
-                return (NULL);
-        }
-        property = S_IFDIR;
-    }
-    else // æ–‡ä»¶çš„é€»è¾‘
-    {
-        __lock(core);
-        if(!uncached)
-        {
-            // æ–‡ä»¶å·²ç¼“å­˜ï¼Œä½†è¦ç¡®è®¤ä¸æ˜¯å®‰è£…ç‚¹
-            if(obj_isMount(ob))
-            {
-                __unlock(core);
-                return (NULL);
-            }
-        }
-        else
-        {
-            // æ–‡ä»¶æœªç¼“å­˜ï¼Œéœ€è¦åˆ°ä»‹è´¨ä¸ŠæŸ¥æ‰¾
-            res = __e_lookupfile(core, uncached, &loc);
-            if(-1 == res)
-            {
-                printf("\r\n : erro : efs    : open failed(look up).");
-                __unlock(core);
-                return (NULL);
-            }
-            else if(!res) // æ–‡ä»¶å·²å­˜åœ¨
-            {
-                if(test_onlycreat(flags)) // å·²å­˜åœ¨ï¼Œä½†åªè¦æ±‚æ–°å»ºï¼›
-                {
-                    printf("\r\n : dbug : efs    : open \"%s\" failed(already exist).", uncached);
-                    __unlock(core);
-                    return (NULL);
-                }
-
-                file = __e_cachefile(core, loc, uncached, ob);
-                if(!file)
-                {
-                    while(loc)
-                        loc = __delloc(loc, 1);
-
-                    printf("\r\n : dbug : efs    : open \"%s\" failed(cache in).", uncached);
-                    __unlock(core);
-                    return (NULL);
-                }
-            }
-            else // æ–‡ä»¶ä¸å­˜åœ¨
-            {
-                if(!test_creat(flags)) // æ–‡ä»¶ä¸å­˜åœ¨ï¼Œä½†ä¸è¦æ±‚æ–°å»ºï¼›
-                {
-                    printf("\r\n : dbug : efs    : open \"%s\" failed(do not exist).", uncached);
-                    __unlock(core);
-                    return (NULL);
-                }
-                else
-                {
-                    if(-2 == res) // æ²¡æœ‰ç©ºé—²
-                    {
-                        printf("\r\n: dbug : efs    : open failed, no space, try recycle.");
-                        res = __e_recycle(core); // å°è¯•å›æ”¶ï¼›
-                        if(!res)
-                        {
-                            printf("\r\n : dbug : efs    : open \"%s\" failed(recycle).", uncached);
-                            __unlock(core);
-                            return (NULL);
-                        }
-
-                        res = __e_lookupfree(core); // å†å°è¯•è·å–ç©ºé—²
-                        if(-1 == res)
-                        {
-                            printf("\r\n : dbug : efs    : open \"%s\" failed(no space).", uncached);
-                            __unlock(core);
-                            return (NULL);
-                        }
-                    }
-
-                    file = __e_newfile(core, (res-1), uncached, ob); // æ–°å»ºæ–‡ä»¶
-                    if(!file)
-                    {
-                        printf("\r\n : erro : efs    : open \"%s\" failed(cannot create).", uncached);
-                        __unlock(core);
-                        return (NULL);
-                    }
-                }
-            }
-            property = S_IFREG;
-        }
-
-        cx = (struct __econtext*)malloc(sizeof(*cx)); // æ–‡ä»¶ä¸Šä¸‹æ–‡
-        if(!cx)
-        {
-            printf("\r\n : erro : efs    : open \"%s\" failed(memory out).", uncached);
-            __unlock(core);
-            return (NULL);
-        }
-
-        memset(cx, 0xFF, BUFLEN);
-        cx->pos = 0;
-        cx->wpos = 0;
-        cx->dirty = 0;
-        if(test_trunc(flags))
-        {
-            if(!uncached) // æ–‡ä»¶å·²ç¼“å­˜
-            {
-                if(obj_isonduty(ob))
-                    printf("\r\n : warn : efs    : truncate file \"%s\" while others are using.", obj_name(ob));
-
-                file = (struct __efile*)obj_GetPrivate(ob);
-            }
-
-            if(file->size)
-            {
-                if(uncached)
-                    res = __e_updatefilesz(core, file, 0, uncached); // æ–‡ä»¶å†…å®¹æ¸…ç©ºï¼Œå°ºå¯¸å˜ä¸º0
-                else
-                    res = __e_updatefilesz(core, file, 0, obj_name(ob)); // æ–‡ä»¶å†…å®¹æ¸…ç©ºï¼Œå°ºå¯¸å˜ä¸º0
-
-                if(res)
-                {
-                    free(cx);
-                    __unlock(core);
-                    return (NULL);
-                }
-            }
-        }
-
+        fp->wr_buf = buf;       //ÎÄ¼şĞ´»º´æ
+        fp->buf_off = 0;        //ÎÄ¼şĞ´»º´æÖĞµÄÆ«ÒÆ
         if(test_append(flags))
+            fp->ptr = fileinfo->filesize;       //×·¼ÓÄ£Ê½£¬Ôò°ÑÎÄ¼şµ±Ç°Î»ÖÃÉèÖÃÎªÎÄ¼ş´óĞ¡
+        else
+            fp->ptr = 0;
+
+        fp->private = (ptu32_t)fileinfo;
+        property = S_IFREG;
+        tgOpenedSum ++;
+        if(!obj_newchild(ob, e_operations, (ptu32_t)fp, uncached))
         {
-            if(!uncached)
-                //file = dListEntry(of_basiclinko(ob), struct __efile, basic);
-                file = (struct __efile*)obj_GetPrivate(ob);
-
-            cx->pos = file->size;
-            if(cx->pos % BUFLEN)
-            {
-                // æœ€åä¸€éƒ¨åˆ†æ•°æ®ä¸å¯¹é½ï¼Œå°†å…¶ç¼“å­˜åˆ°bufï¼›
-                eccu = (1 << (core->pagesize - BUFBITS)) * 4; // ä¸€ä¸ªunitå†…è¢«ECCå ç”¨çš„ç©ºé—´
-                loc = __getloc(position, core, file->loc, -1);
-                units = (core->ssz * SYS_LOOPS) + (loc->loc * core->fsz) + ((cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz);
-                res = core->drv->efs_read_media(core, units, core->ebuf); // æ–‡ä»¶å†…å®¹
-                if(res)
-                {
-                    free(cx);
-                    __unlock(core);
-                    return (NULL);
-                }
-
-                bufs = (1 << core->pagesize) / (BUFLEN+3); // ä¸€ä¸ªunitå†…æœ‰å¤šå°‘ä¸ªbuffer
-                bufs = (cx->pos / BUFLEN) % bufs; // åœ¨ä¸€ä¸ªunitå†…çš„éœ€è¦ç¼“å†²çš„ä½ç½®
-                cx->wpos = cx->pos % BUFLEN; // éœ€è¦ç¼“å†²çš„é‡ï¼›
-                cx->pos -= cx->wpos;
-                memcpy(cx->wbuf, (core->ebuf+(bufs<<BUFBITS)), cx->wpos);
-            }
+            printf("\r\n: erro : efs    : new file \"%s\"(virtual).", uncached);
+            goto exit;
         }
     }
 
@@ -2007,895 +713,775 @@ static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
     if(!hdl)
     {
         printf("\r\n : erro : efs    : open failed(memory out).");
-        __unlock(core);
-        return (NULL);
+        goto exit;
     }
 
-    handle_init(hdl, NULL, flags, (ptu32_t)cx);
-    if(hdl)
-    {
-        //TODOï¼šä»yaffs2ä¸­è¯»å–æƒé™ç­‰ï¼Œæš‚æ—¶èµ‹äºˆå…¨éƒ¨æƒé™ã€‚
-        mode = S_IALLUGO | S_IFDIR | property;     //å»ºç«‹çš„è·¯å¾„ï¼Œå±æ€§æ˜¯ç›®å½•ã€‚
-        //ç»§æ‰¿æ“ä½œæ–¹æ³•ï¼Œå¯¹è±¡çš„ç§æœ‰æˆå‘˜ä¿å­˜è®¿é—®æ¨¡å¼ï¼ˆå³ stat çš„ st_mode ï¼‰
-        ob = obj_buildpath(ob, e_operations, mode,uncached);
-        obj_LinkHandle(hdl, ob);
-    }
-    __unlock(core);
-    return (hdl);
+    handle_init(hdl, NULL, flags, (ptu32_t)0);
+    //TODO£º´Óyaffs2ÖĞ¶ÁÈ¡È¨ÏŞµÈ£¬ÔİÊ±¸³ÓèÈ«²¿È¨ÏŞ¡£
+    mode = S_IALLUGO | S_IFDIR | property;     //½¨Á¢µÄÂ·¾¶£¬ÊôĞÔÊÇÄ¿Â¼¡£
+    //¼Ì³Ğ²Ù×÷·½·¨£¬¶ÔÏóµÄË½ÓĞ³ÉÔ±±£´æ·ÃÎÊÄ£Ê½£¨¼´ stat µÄ st_mode £©
+    ob = obj_buildpath(ob, e_operations, mode,uncached);
+    obj_LinkHandle(hdl, ob);
+
+    Lock_MutexPost(efs->block_buf_mutex);
+    return hdl;
+
+exit:
+    free(buf);
+    free(fileinfo);
+    free(fp);
+    Lock_MutexPost(efs->block_buf_mutex);
+    return NULL;
 }
 
-// ============================================================================
-// åŠŸèƒ½ï¼šå…³é—­æ–‡ä»¶ï¼›
-// å‚æ•°ï¼šhdl -- å†…éƒ¨å¥æŸ„ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_close(struct objhandle *hdl)
+// =============================================================================
+// ¹¦ÄÜ£º¶ÁÄ¿Â¼£¬¼´¶ÁµÚÒ»¸öÎÄ¼ş»òÕßfnameµÄÏÂÒ»¸öÎÄ¼ş
+// ²ÎÊı£ºhdl -- ÎÄ¼ş¾ä±ú£»dentry -- Ä¿Â¼½á¹¹
+// ·µ»Ø£ºÈ«²¿¶ÁÍê£¨1£©£»Ê§°Ü£¨-1£©£»¶ÁÁËÒ»Ïî£¨0£©£»
+// =============================================================================
+static s32 Efs_DirRead(struct objhandle *hdl,struct dirent *dentry)
 {
-    struct __econtext *cx = (struct __econtext*)handle_context(hdl);
-    struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file;
-    struct obj *nxt, *head;
-    struct __loc *eloc;
+    s32 result = -1;
+    tagEFS *efs;
+    u32 loop = 1;
+    u64 index_offset;
+    struct Object *ob = hdl->HostObj;
+    if(NULL == dentry)
+        return -1;
 
-    __lock(core);
-    if(cx) // æ–‡ä»¶ï¼›
+    efs = (tagEFS*)corefs(ob);
+    if(NULL == efs)
+        return -1;
+
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+       return -1;
+
+    //ÅĞ¶ÏÊÇ·ñ´æÔÚ¸ÃÎÄ¼ş
+    if(dentry->d_off < 1)
+        dentry->d_off = 1;
+    loop = dentry->d_off;   //ÎÄ¼ş·ÖÅä±íÖĞµÄÆ«ÒÆ
+    for(; loop < IndexesNum; loop++ )       //²éÕÒfnameÏÂÒ»¸öÎÄ¼ş»òµÚÒ»¸öÎÄ¼ş
     {
-        if(__e_sync(hdl))
+        index_offset = loop * EFS_ITEM_LIMIT;;
+        efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
+        ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset), efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
+        //²éÕÒÏÂÒ»¸öÓĞĞ§µÄÎÄ¼ş
+        if((efs->file_list_buf[index_offset] != 0x00) && (efs->file_list_buf[index_offset] != 0xFF))
         {
-            printf("\r\n : erro : efs    : \"%s\" close failed(sync).", handle_name(hdl));
-        }
-
-        free(cx); // TODO: è¿™é‡Œå¹¶æ²¡æœ‰é‡Šæ”¾æ–‡ä»¶ç¼“å­˜ï¼Œä¸‹æ¬¡æ‰“å¼€æ—¶ï¼Œå°±ä¸ç”¨å†æ¬¡æŸ¥æ‰¾æ–‡ä»¶äº†ï¼›
-    }
-    else // ç›®å½•ï¼›
-    {
-        // å…³é—­ç›®å½•æ—¶ï¼ŒæŠŠç›®å½•ä¸‹æœªä½¿ç”¨å´å·²ç¼“å­˜çš„æ–‡ä»¶é‡Šæ”¾æ‰ï¼›
-        while(1)
-        {
-            head = obj_child(handle_GetHostObj(hdl));
-            if(!head)
-                break;
-
-            if(!obj_isonduty(head))
-            {
-                file = (struct __efile*)obj_GetPrivate(head);
-                eloc = __getloc(position, core, file->loc, -1);
-                while(eloc)
-                    eloc = __delloc(eloc, -1);
-
-                free(file);
-                obj_Delete(head);
-            }
-            else
-            {
-                nxt = obj_next(head);
-                while(nxt != head)
-                {
-                    if(!obj_isonduty(nxt))
-                    {
-                        file = (struct __efile*)obj_GetPrivate(head);
-                        eloc = __getloc(position, core, file->loc, -1);
-                        while(eloc)
-                            eloc = __delloc(eloc, -1);
-
-                        free(file);
-                        obj_Delete(head);
-                    }
-                }
-            }
-        }
-    }
-
-    __unlock(core);
-    handle_Delete(hdl);
-    return (0);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šå†™æ–‡ä»¶ï¼›
-// å‚æ•°ï¼šhdl -- å†…éƒ¨å¥æŸ„ï¼›
-//      data -- æ•°æ®ï¼›
-//      len -- æ•°æ®é•¿åº¦ï¼›
-// è¿”å›ï¼šå®é™…å†™å…¥çš„å­—èŠ‚æ•°ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
-{
-    s64 units;
-    s32 sz, szc,  updatesz = 0;
-    u32 loc, bufsmax, bufc, bufo, bufs = 0, all = len, ecc, ecce, eccu;
-    struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext *)handle_context(hdl);
-    struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);;
-
-    if(handle_isAppend(hdl)) // è¿½åŠ æ¨¡å¼ä¸‹çš„lseekå¼•èµ·æ–‡ä»¶ä½ç½®å›æº¯æ˜¯æ— æ•ˆçš„ï¼›
-    {
-        if((cx->pos+cx->wpos)<file->size)
-        {
-            cx->pos = file->size;
-            cx->wpos = 0;
-        }
-    }
-
-    // å†™æ—¶ï¼Œç›®å‰æ˜¯å…è®¸æœ€åä¸€æ®µå¤§å°å°äºBUFLENæ—¶ï¼Œé‡å¤å†™å…¥çš„;TODOï¼šæ•°æ®ä¸å…è®¸æ”¹å†™æ ¡éªŒï¼›
-    sz = (cx->pos - (cx->pos % BUFLEN)) + BUFLEN;
-    if(sz<file->size)
-    {
-        printf("\r\n: erro : efs    : \"%s\" write failed(do not support rewrite beyond buffer).", handle_name(hdl));
-        return (0);
-    }
-
-    eccu = (1 << (core->pagesize - BUFBITS)) * 4; // ä¸€ä¸ªunitå†…è¢«ECCå ç”¨çš„ç©ºé—´ï¼›
-    ecce = core->fsz * eccu; // ä¸€ä¸ªæ–‡ä»¶ç©ºé—´å†…è¢«ECCå ç”¨æ‰çš„ç©ºé—´ï¼›
-    bufsmax = 1 << (core->pagesize - BUFBITS); // ä¸€ä¸ªunitå†…æœ‰å¤šå°‘ä¸ªbufferåŒºï¼›
-    __lock(core);
-    eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos+1)); // è·å–æ–‡ä»¶ä½ç½®ï¼›(+1çš„é€»è¾‘ï¼Œæ˜¯é˜²æ­¢å½“å‰ä½ç½®æ­£å¥½åœ¨è¾¹ç•Œï¼Œé‚£ä¹ˆæ­¤æ—¶éœ€è¦ç”³è¯·ç©ºé—´)
-    if(!eloc)
-    {
-        // æ–‡ä»¶ä½ç½®ä¸å­˜åœ¨ï¼Œæ˜¯ç”±äºseekå¼•èµ·çš„ç©ºæ´ï¼Œå³é€»è¾‘ä¸Šæ˜¯ä¾é seekæ˜¯æ— æ³•æ‹“å±•æ–‡ä»¶å°ºå¯¸çš„ï¼Œå¿…é¡»ç»“åˆå†™çš„åŠ¨ä½œï¼›å› æ­¤åœ¨å†™æ—¶æ‰ä¼šç”³è¯·ç©ºé—´ï¼›
-        // å¦å¤–ï¼Œæ–‡ä»¶ä¸Šæ¬¡ä¸€æ¬¡å†™å…¥æ—¶ï¼Œæ­£å¥½æ˜¯åœ¨æ–‡ä»¶ç©ºé—´çš„ç»“æŸä½ç½®ã€‚åœ¨å†™å®Œæˆæ—¶ï¼Œä¸ä¼šæ‹“å±•æ–‡ä»¶ç©ºé—´ï¼Œåœ¨ä¸‹ä¸€æ¬¡å†™æ—¶æ‹“å±•ï¼›
-        eloc = __getloc(position, core, file->loc, -1); // è·å–æ–‡ä»¶å®é™…æœ«å°¾ï¼›
-        sz =  cx->pos + cx->wpos -  (eloc->order * ((core->fsz << core->pagesize) - ecce)); // ç›¸å·®ç©ºé—´çš„å°ºå¯¸ï¼›
-        if(sz<0)
-        {
-            printf("\r\n: erro : efs    : \"%s\" write failed(unknown, %ld, %d).", handle_name(hdl), (long)cx->pos, (u32)cx->wpos);
-            __unlock(core);
-            return (0);
-        }
-
-        if(sz) // å½“å‰ä½ç½®å¤§äºæ–‡ä»¶å®é™…å°ºå¯¸ï¼ˆç­‰äºé›¶çš„æƒ…å†µå°±æ˜¯ä¸Šè¿°çš„"å¦å¤–.."éƒ¨åˆ†ï¼‰
-        {
-            // éœ€è¦æ‰©å±•æ–‡ä»¶å®¹é‡æ•°é‡
-            if(sz%((core->fsz<<core->pagesize)-ecce))
-                sz = sz / ((core->fsz << core->pagesize) - ecce) + 1;
-            else
-                sz = sz / ((core->fsz << core->pagesize) - ecce);
-        }
-        else
-        {
-            sz = 1; // ç­‰äºé›¶æ—¶ï¼Œä¹Ÿæ˜¯éœ€è¦ç”³è¯·ä¸€å—æ–‡ä»¶ç©ºé—´ï¼Œå› ä¸ºæ¥ä¸‹æ¥æ–‡ä»¶è¦å†™å…¥ï¼Œéœ€è¦ç©ºé—´ï¼›
-        }
-
-        while(sz--) // éœ€è¦æ‰©å±•çš„æ–‡ä»¶ç©ºé—´æ•°é‡
-        {
-            loc = __e_lookupfree(core);
-            if(-1 == (s32)loc)
-            {
-                printf("\r\n: erro : efs    : \"%s\" write failed(no space).", handle_name(hdl));
-                __unlock(core);
-                return (0);
-            }
-
-            if(__e_allocfile(core, &loc, handle_name(hdl), eloc->order+1))
-            {
-                printf("\r\n: erro : efs    : \"%s\" write failed(no space).", handle_name(hdl));
-                __unlock(core);
-                return (0);
-            }
-
-            eloc = __addloc(&eloc, loc, eloc->order+1, 0);
-            if(!eloc)
-            {
-                printf("\r\n: erro : efs    : \"%s\" write failed(memory out).", handle_name(hdl));
-                __unlock(core);
-                return (0);
-            }
-        }
-    }
-
-    // å…ˆç¡®ä¿cx->poså¯¹é½,å°†ä¸å¯¹é½çš„å›è¯»
-    sz = cx->pos % BUFLEN;
-    if(sz) // å°†ä¸å¯¹é½çš„éƒ¨åˆ†å›è¯»
-    {
-        if((cx->pos<=file->size)||((cx->pos-sz)<file->size)) // åªæœ‰æœ‰æ•°æ®æ‰ä¼šè¯»ï¼ˆé€»è¾‘ä¸Šå­˜åœ¨ä¸€ä¸ªå¯èƒ½ï¼Œå°±æ˜¯å°†å…¶seekæ‰©å±•åˆ°æŸä¸ªä¸å¯¹é½ä½ç½®ï¼Œæ­¤æ—¶æ²¡æœ‰å¿…è¦è¯»ï¼‰
-        {
-            // æœ€åä¸€éƒ¨åˆ†æ•°æ®ä¸å¯¹é½ï¼Œå°†å…¶ç¼“å­˜åˆ°bufï¼›å¯èƒ½æ˜¯æ­¤å‰çš„fsyncç­‰æ“ä½œå¼•èµ·çš„ï¼›
-            units = (core->ssz * core->serial) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz);
-            if(core->drv->efs_read_media(core, units, core->ebuf))
-            {
-                printf("\r\n: erro : efs    : \"%s\" write failed(read back).", handle_name(hdl));
-                __unlock(core);
-                return (0);
-            }
-
-            bufc = (cx->pos / BUFLEN) % bufsmax; // ä¸€ä¸ªunitå†…å·²ä½¿ç”¨äº†å¤šå°‘ä¸ªwbufåŒºï¼›
-            bufo = bufc << BUFBITS; // æ–‡ä»¶æŒ‡é’ˆåœ¨ä¸€ä¸ªunitå†…çš„åç½®ï¼ŒwbufåŒºå¯¹é½ï¼›
-            if((file->size-cx->pos+sz) >= BUFLEN) // å›è¯»çš„ä½ç½®å­˜åœ¨ECCæ ¡éªŒ
-            {
-                if(__fix(core, core->ebuf+bufo, BUFLEN, (u32*)(core->ebuf+ bufo + BUFLEN)))
-                {
-                    if(0xFFFFFFFF != *((u32*)(core->ebuf+bufo+BUFLEN)))
-                        printf("\r\n: warn : efs    : \"%s\"'s data may corrupted(%ld).", handle_name(hdl), (long)cx->pos);
-                }
-            }
-
-            memcpy(cx->wbuf, (core->ebuf+bufo), sz);
-        }
-
-        cx->pos -= sz;
-        cx->wpos += sz;
-    }
-
-    // æ­¤æ—¶cx->posæ˜¯wbufå¯¹é½çš„ï¼ˆé€»è¾‘ä¿è¯ï¼‰
-    while(len) // æŒ‰æ–‡ä»¶ç©ºé—´å¯¹é½åˆ†æ‰¹å†™å…¥
-    {
-        // è®¡ç®—å•æ‰¹æ¬¡å†™å‡ºçš„å¤§å°ï¼ˆæ–‡ä»¶ç©ºé—´å¤§å°ï¼‰
-        sz = ((cx->pos + cx->wpos) % ((core->fsz << core->pagesize) - ecce)); // å·²å­˜åœ¨çš„æ–‡ä»¶ç©ºé—´ä¸å¯¹é½éƒ¨åˆ†ï¼Œå»é™¤äº†ECCç©ºé—´çš„
-        if((len+sz)>((core->fsz<<core->pagesize)-ecce))
-        {
-            // éœ€å†™å‡ºå¤§å°ï¼Œæ˜¯éœ€è¦è·¨æ–‡ä»¶ç©ºé—´çš„ï¼ŒæŒ‰æ–‡ä»¶ç©ºé—´å¯¹é½è®¡ç®—å†™å‡ºå¤§å°ï¼›
-            sz = ((core->fsz << core->pagesize) - ecce) - sz;
-        }
-        else
-        {
-            sz = len; // å¤§å°å°äºç­‰äºæ–‡ä»¶ç©ºé—´
-        }
-
-        updatesz = (sz + cx->wpos) - ((sz + cx->wpos) % BUFLEN); // ä¸€ä¸ªæ–‡ä»¶ç©ºé—´èŒƒå›´å†…ï¼Œéœ€è¦å†™å‡ºçš„æ•°æ®å¤§å°ï¼ˆå‰”é™¤ç¼“å­˜åœ¨wbufçš„æ•°æ®ï¼Œå› ä¸ºè¦æ›´æ–°file sizeï¼‰ï¼›
-        while(sz) // æ–‡ä»¶ç©ºé—´å†…ï¼ŒæŒ‰BUFLENå¤§å°åˆ†æ‰¹å†™å‡ºï¼›
-        {
-            if(sz>(BUFLEN-cx->wpos)) // å•æ¬¡å¾ªç¯çš„æ•°æ®é‡ï¼›
-                szc = BUFLEN - cx->wpos;
-            else
-                szc = sz; // wbufå¯ä»¥ç¼“å­˜ä¸‹ï¼›
-
-            memcpy(cx->wbuf+cx->wpos, data, szc);
-            data += szc;
-            sz -= szc;
-            len -= szc;
-            if((cx->wpos+szc)<BUFLEN)
-            {
-                cx->wpos += szc; // åªæ˜¯å†™å‡ºåˆ°wbufï¼Œä¸”æœªå†™æ»¡ï¼Œå°±æ­¤é€€å‡ºï¼›
-                cx->dirty = 1;
-            }
-            else
-            {
-                // æ•°æ®ç¼“å†²å†…æ”¾ç½®ä¸ä¸‹ï¼Œéœ€è¿›å…¥ä»‹è´¨ï¼›
-                if((-1!=updatesz)&&updatesz) // å…ˆæ›´æ–°æ–‡ä»¶å°ºå¯¸ï¼›é˜²æ­¢å†™è¿‡ç¨‹ä¸­æ‰ç”µï¼Œé€ æˆé€»è¾‘ç ´åï¼ˆæ–‡ä»¶ç©ºé—´é€»è¾‘åªéœ€å†™ä¸€æ¬¡ï¼‰ï¼›
-                {
-                    if((cx->pos+cx->wpos+updatesz)>file->size) // åªæœ‰æ–‡ä»¶å°ºå¯¸æ‰©å¤§æ‰ä¼šæ›´æ–°å°ºå¯¸ï¼›
-                    {
-                        if(__e_updatefilesz(core, file, (cx->pos+updatesz), handle_name(hdl))) // æ­¤æ—¶cx->posæ˜¯å¯¹é½çš„ï¼›
-                        {
-                            printf("\r\n: erro : efs    : write failed(update file size).");
-                            goto __ERROR_WR;
-                        }
-
-                        updatesz = 0; // æ›´æ–°äº†æ–‡ä»¶å°ºå¯¸ï¼›
-                    }
-
-                    updatesz = -1; // é˜²æ­¢é€»è¾‘é‡å¤è¿›å…¥ï¼›
-                    memset(core->ebuf, 0xFF, (1 << core->pagesize)); // ç¬¬ä¸€æ¬¡é‡ç½®ebufï¼›
-                }
-
-                cx->wpos = 0;
-                ecc = 0;
-                __gen(core, cx->wbuf, BUFLEN, &ecc);
-                bufc = (cx->pos / BUFLEN) % bufsmax; // ä¸€ä¸ªunitå†…å·²ä½¿ç”¨äº†å¤šå°‘ä¸ªwbufåŒºï¼›
-                bufo = bufc << BUFBITS; // åœ¨ä¸€ä¸ªunitå†…çš„åç½®(wbufåŒºå¯¹é½)ï¼›
-                memcpy((core->ebuf + bufo), cx->wbuf, BUFLEN);
-                memcpy((core->ebuf + bufo + BUFLEN), (u8*)&ecc, 4);
-                if(!(((++bufc)<bufsmax)&&(sz>BUFLEN))) // é™¤äº†å‰©ä½™å®¹é‡ä»ç„¶å¯ä»¥å†™å‡ºè¿™ä¸ªunitçš„æƒ…å†µå¤–ï¼Œå…¶ä»–éƒ½å†™å‡ºåˆ°ä»‹è´¨ï¼›
-                {
-                    units = (core->ssz * SYS_LOOPS) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz);
-                    if(core->drv->efs_write_media(core, units, core->ebuf))
-                    {
-                        printf("\r\n: erro : efs    : write failed.");
-                        cx->pos -= bufs * BUFLEN; // å¤±è´¥ï¼Œé€€å›ç¼“å†²åœ¨ebufçš„æ•°æ®ï¼›
-                        if(!updatesz) // æ–‡ä»¶å°ºå¯¸åœ¨ä¸Šé¢å‘ç”Ÿå˜æ›´ï¼Œä½†å®é™…å†™å…¥çš„å°ºå¯¸ä¸å¯¹ï¼›
-                        {
-                            if(__e_updatefilesz(core, file, cx->pos, handle_name(hdl)))
-                                printf("\r\n: erro : efs    : write failed(update file size after write failed).");
-                        }
-
-                        if(bufs) // æœ¬æ¬¡å†™å…¥å¤±è´¥æ—¶ï¼Œebufæœ‰å¤šä¸ªwbufç¼“å†²ï¼Œå°†ç¬¬ä¸€ä¸ªæ•°æ®æ”¾åœ¨ç¼“å†²ï¼Œå…¶ä»–çš„æŠ›å¼ƒï¼›
-                        {
-                            bufo = ((bufc - 1) - bufs) << BUFBITS;
-                            memcpy(cx->wbuf, (core->ebuf+bufo), BUFLEN);
-                        }
-
-                        cx->wpos = BUFLEN;
-                        cx->dirty = 1;
-                        goto __ERROR_WR;
-                    }
-
-                    bufs = 0;
-                    if(len>=BUFLEN)
-                        memset(core->ebuf, 0xFF, (1 << core->pagesize)); // ç¼“å­˜å·²åˆ·å…¥ï¼Œé‡ç½®ç¼“å­˜ï¼›
-                }
-
-                memset(cx->wbuf, 0xFF, BUFLEN);
-                bufs ++; // å•æ¬¡å†™å‡ºçš„bufæ•°é‡ï¼›
-                cx->pos += BUFLEN;
-            }
-        }
-
-        if(len)
-        {
-            // åªèƒ½ä»æ–‡ä»¶æœ«å°¾å†™ï¼Œå¦‚æœæ²¡æœ‰å†™å®Œï¼Œåˆ™éœ€è¦æ‹“å±•ç©ºé—´ï¼›
-            // è¿™é‡Œæ²¡æœ‰è€ƒè™‘seekå›å»çš„é€»è¾‘ï¼›TODO
-            loc = __e_lookupfree(core);
-            if(-1 == (s32)loc)
-            {
-                printf("\r\n: erro : efs    : write failed(no space).");
-                goto __ERROR_WR;
-            }
-
-            if(__e_allocfile(core, &loc, handle_name(hdl), eloc->order+1))
-            {
-                printf("\r\n: erro : efs    : write failed(allocate file space).");
-                goto __ERROR_WR;
-            }
-
-            eloc = __addloc(&eloc, loc, (eloc->order+1), 0);
-            if(!eloc)
-            {
-                printf("\r\n: erro : efs    : write failed(memory out).");
-                goto __ERROR_WR;
-            }
-        }
-    }
-
-__ERROR_WR:
-    __unlock(core);
-
-    return (all-len);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šè¯»æ–‡ä»¶
-// å‚æ•°ï¼šhdl -- å†…éƒ¨å¥æŸ„ï¼›
-//      data -- æ•°æ®ï¼›
-//      len -- æ•°æ®é•¿åº¦ï¼›
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_read(struct objhandle *hdl, u8 *data, u32 len)
-{
-    s64 units;
-    s16 rebuf;
-    u32 rdsz = 0, sz, szu, movs;
-    u32 bufsmax, bufc, eccu, ecce;
-    struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext *)handle_context(hdl);
-    struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);
-
-    __lock(core);
-    if((cx->pos+cx->wpos)>=file->size)
-    {
-        __unlock(core);
-        return (0); // å½“å‰æ–‡ä»¶æ— å†…å®¹å¯è¯»ï¼›
-    }
-
-    if(len>(file->size-cx->pos-cx->wpos)) // è¯»è¶Šç•Œäº†ï¼›
-        len = file->size - cx->pos - cx->wpos;
-
-    eccu = (1 << (core->pagesize - BUFBITS)) * 4; // ä¸€ä¸ªunitå†…è¢«ECCå ç”¨çš„ç©ºé—´ï¼›
-    ecce = core->fsz * eccu; // ä¸€ä¸ªæ–‡ä»¶ç©ºé—´å†…è¢«ECCå ç”¨æ‰çš„ç©ºé—´ï¼›
-    bufsmax = 1 << (core->pagesize - BUFBITS); // ä¸€ä¸ªunitå†…æœ‰å¤šå°‘ä¸ªwbufåŒºï¼›
-    rebuf = (cx->pos + cx->wpos + len) % BUFLEN; // è®¡ç®—è¯»å®Œåï¼Œç»“å°¾ä¸å¯¹é½çš„éƒ¨åˆ†ï¼Œè¯»å®Œåéœ€å°†ä»dataç¼“å­˜åˆ°wbufï¼›
-    if((cx->wpos)&&((cx->wpos+len)>=BUFLEN)) // å­˜åœ¨ç¼“å†²ï¼ŒåŒæ—¶è¯»æ•°æ®ä¼šè¶…å‡ºç¼“å†²èŒƒå›´ï¼Œåˆ™å…ˆå°†æ•°æ®åˆ·ä¸‹å»ï¼›
-    {
-        if(__e_sync(hdl))
-        {
-            printf("\r\n: warn : efs   : \"%s\"'s read(sync).", handle_name(hdl));
-        }
-
-        memset(cx->wbuf, 0xFF, BUFLEN);
-    }
-
-    if(BUFLEN==cx->wpos) // wbufå·²æ»¡ï¼Œå°†wposç½®ç©ºï¼›
-    {
-        cx->wpos = 0;
-        cx->pos += BUFLEN;
-    }
-
-    do // æŒ‰æ–‡ä»¶ç©ºé—´å°ºå¯¸ï¼Œåˆ†æ‰¹è¯»å…¥dataç©ºé—´
-    {
-        sz = ((cx->pos + cx->wpos) % ((core->fsz << core->pagesize) - ecce)); // å½“å‰ä½ç½®åœ¨æ–‡ä»¶ç©ºé—´ä¸å¯¹é½éƒ¨åˆ†ï¼Œå»é™¤äº†ECCç©ºé—´çš„ï¼›
-        if((len+sz)>((core->fsz<<core->pagesize)-ecce))
-            sz = ((core->fsz << core->pagesize) -ecce) - sz; // éœ€è¯»å…¥å¤§å°ï¼Œéœ€è¦è·¨æ–‡ä»¶ç©ºé—´ï¼ŒæŒ‰æ–‡ä»¶ç©ºé—´å¯¹é½è®¡ç®—å•æ¬¡å¤§å°ï¼›
-        else
-            sz = len; // å°äºä¸€ä¸ªæ–‡ä»¶ç©ºé—´å†…çš„æ•°æ®é‡
-
-        len -= sz;
-        eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos)); // æ–‡ä»¶ä½ç½®;
-        units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc)
-                + (((cx->pos / ((1 << core->pagesize)- eccu))) % core->fsz); // å½“å‰ä½ç½®æ‰€åœ¨çš„unit
-        do // æŒ‰æ–‡ä»¶ç©ºé—´å°ºå¯¸å¯¹é½ï¼Œä¸€æ¬¡å¾ªç¯è¯»ä¸€ä¸ªunitï¼›
-        {
-            if(core->drv->efs_read_media(core, units++, core->ebuf)) // æ–‡ä»¶å†…å®¹ï¼›
-            {
-                printf("\r\n: dbug : efs    : \"%s\"'s read failed(%ld).", handle_name(hdl), (long)(cx->pos));
-                __unlock(core);
-                return (rdsz);
-            }
-
-            szu = ((cx->pos + cx->wpos) % ((1 << core->pagesize) - eccu)); // å½“å‰ä½ç½®åœ¨unitä¸å¯¹é½éƒ¨åˆ†ï¼Œå»é™¤äº†ECCç©ºé—´çš„ï¼›
-            if((sz+szu)>((1<<core->pagesize)-eccu))
-                szu = ((1 << core->pagesize) -eccu) - szu; // éœ€è¯»å…¥å¤§å°ï¼Œæ˜¯éœ€è¦è·¨unitçš„ï¼ŒæŒ‰unitå¯¹é½è®¡ç®—å¤§å°ï¼›
-            else
-                szu = sz; // å°äºä¸€ä¸ªunitå†…çš„æ•°æ®é‡
-
-            sz -= szu;
-            bufc = (cx->pos / BUFLEN) % bufsmax; // ä¸€ä¸ªunitå†…å·²ä½¿ç”¨äº†çš„wbufåŒºï¼›
-            do
-            {
-                movs = szu;
-                if((cx->wpos+movs)>BUFLEN)
-                    movs = BUFLEN - cx->wpos;
-
-                if((cx->pos+BUFLEN)<=file->size)
-                {
-                    // åªæœ‰å°ºå¯¸å¤§äºBUFLENæ‰å­˜åœ¨ECCï¼›
-                    if(__fix(core, (core->ebuf+(bufc<<BUFBITS)), BUFLEN, (u32*)(core->ebuf+(bufc<<BUFBITS)+BUFLEN)))
-                    {
-                        if(0xFFFFFFFF != *((u32*)(core->ebuf+(bufc<<BUFBITS)+BUFLEN)))
-                            printf("\r\n: warn : efs    : \"%s\"'s data may corrupted(%ld).", handle_name(hdl), (long)(cx->pos));
-                    }
-                }
-
-                memcpy((data+rdsz), (core->ebuf+(bufc<<BUFBITS)+cx->wpos), movs);
-                rdsz += movs; // å·²è¯»æ•°æ®é‡ï¼›
-                szu -= movs;
-                bufc ++;
-                if((movs+cx->wpos)==BUFLEN)
-                {
-                    cx->wpos = 0; // è¯»è¶…è¿‡wbufèŒƒå›´ï¼Œå°†wposç½®ç©ºï¼›
-                    cx->pos += BUFLEN;
-                }
-
-                if((szu)&&(bufc==bufsmax))
-                {
-                    printf("\r\n: erro : efs    : \"%s\"'s read failed(%ld, bad logic).", handle_name(hdl), (long)(cx->pos));
-                    return (rdsz);
-                }
-            }
-            while(szu); // unitå°ºå¯¸å†…çš„å¾ªç¯ï¼Œä¸€æ¬¡å¤§å°ä¸ºBUFLENï¼›
-        }
-        while(sz);
-    }
-    while(len);
-
-    if(!len) // å°†ç»“å°¾ä¸å¯¹é½çš„éƒ¨åˆ†ï¼Œç¼“å­˜åœ¨wbufï¼›
-    {
-        rebuf -= cx->wpos;
-        if(rebuf>0)
-            memcpy((cx->wbuf+cx->wpos), (data+rdsz-rebuf), rebuf);
-
-        cx->wpos += rebuf;
-    }
-
-    __unlock(core);
-    return (rdsz);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶é‡å®šä½ï¼›
-// å‚æ•°ï¼šhdl -- å†…éƒ¨å¥æŸ„ï¼›
-//      offset -- æ–‡ä»¶æ–°ä½ç½®ï¼›
-//      whence -- æ–‡ä»¶æ–°ä½ç½®çš„åŸºå‡†ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static off_t __e_seek(struct objhandle *hdl, off_t *offset, s32 whence)
-{
-    s64 movs = *offset, npos, units;
-    s32 bufo, bufsmax, eccu;
-    off_t position = -1;
-    struct __loc *eloc;
-    struct __econtext *cx = (struct __econtext *)handle_context(hdl);
-    struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
-    struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);
-
-    eccu = (1 << (core->pagesize - BUFBITS)) * 4; // ä¸€ä¸ªunitå†…è¢«ECCå ç”¨çš„ç©ºé—´
-    switch(whence)
-    {
-        case SEEK_END:
-        {
-            movs = file->size + movs; // è½¬ä¸ºSETé€»è¾‘ï¼›
-        }
-
-        case SEEK_SET:
-        {
-            movs = movs - (cx->pos + cx->wpos); // è½¬ä¸ºCURé€»è¾‘ï¼›
-        }
-
-        case SEEK_CUR:
-        {
-            if(!movs)
-                break;
-
-            npos = cx->pos + cx->wpos + movs; // æ–°ä½ç½®
-            if(npos<0)
-            {
-                printf("\r\n: erro : efs    : seek failed(out of range).");
-                return (-1);
-            }
-
-            if(cx->wpos) // æœ‰ç¼“å­˜
-            {
-                if((((movs>0)&&((movs-(BUFLEN-cx->wpos))>0)) || // å‘å‰ç§»åŠ¨ï¼Œä¸”è¶…è¿‡wbufç©ºé—´ï¼›
-                   (((movs<0)&&(cx->wpos+movs)<0)))) // å‘åç§»åŠ¨ï¼Œä¸”è¶…è¿‡wbufç©ºé—´ï¼›
-                {
-                    if(__e_sync(hdl)) // å°†ç¼“å­˜æ•°æ®åˆ·å…¥ä»‹è´¨
-                    {
-                        printf("\r\n: erro : efs    : seek failed(sync).");
-                        return (-1);
-                    }
-
-                    memset(cx->wbuf, 0xFF, BUFLEN); // é‡ç½®ç¼“å­˜
-                    cx->wpos = 0;
-                }
-            }
-
-            if(npos<=file->size) // seekåï¼Œå°†ä¸å¯¹é½çš„éƒ¨åˆ†ç¼“å­˜å…¥wbufï¼ˆåœ¨æ–‡ä»¶å°ºå¯¸ èŒƒå›´å†…ï¼‰ï¼›å°¤å…¶æ˜¯wbufèŒƒå›´å†…å‘åç§»åŠ¨ï¼Œå°†å·²å­˜åœ¨ä»‹è´¨çš„å†…å®¹ç¼“å­˜è¿›æ¥ï¼›
-            {
-                if((movs<0)&&(cx->wpos+movs)>=0) // å‘å‰ç§»åŠ¨ï¼Œä¸”èŒƒå›´åœ¨wbufç©ºé—´å†…ï¼›åˆ™ä¸éœ€è¦ã€‚
-                {
-                    cx->wpos += movs;
-                }
-                else if(npos%BUFLEN)
-                {
-                    eloc = __getloc(position, core, file->loc, npos);
-                    units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc) + ((npos / ((1 << core->pagesize) - eccu)) % core->fsz);
-                    if(core->drv->efs_read_media(core, units, core->ebuf))
-                    {
-                        printf("\r\n: erro : efs    : \"%s\"'s data cannot read(%ld).", handle_name(hdl), (long)npos);
-                        return (-1);
-                    }
-
-                    bufsmax = 1 << (core->pagesize - BUFBITS); // ä¸€ä¸ªunitå†…æœ‰å¤šå°‘ä¸ªbufferåŒºï¼›
-                    bufo = ((npos / BUFLEN) % bufsmax) << BUFBITS; // wbufåŒºå†…åç½®(å«ECC)
-                    if((file->size-(npos-(npos%BUFLEN)))>BUFLEN)
-                    {
-                        // æ•°æ®æ˜¯å­˜åœ¨ECCæ•°æ®çš„ï¼Œåˆ™å…ˆæ ¡éªŒä¿®å¤
-                        if(__fix(core, (core->ebuf+bufo), BUFLEN, (u32*)(core->ebuf+bufo+BUFLEN)))
-                        {
-                            printf("\r\n: warn : efs    : \"%s\"'s data has corrupted(%ld).", handle_name(hdl), (long)npos);
-                        }
-                    }
-
-                    movs = npos % BUFLEN - cx->wpos;
-                    memcpy((cx->wbuf+cx->wpos), (core->ebuf+bufo+cx->wpos), movs); // åªä¼šæ›´æ–°wbufæ²¡æœ‰ç¼“å­˜çš„éƒ¨åˆ†
-                }
-
-                cx->wpos += movs;
-                cx->pos = npos - cx->wpos;
-            }
-            else // æ–°ä½ç½®å®é™…ä¸Šæ˜¯åœ¨æ‰©å±•æ–‡ä»¶å¤§å°ï¼Œæ²¡æœ‰å®é™…æ–‡ä»¶å†…å®¹ï¼›
-            {
-                if((movs+cx->wpos)>BUFLEN)
-                {
-                    cx->pos = npos;
-                    cx->wpos = 0; // ä¸ç®¡æ–°ä½ç½®æ˜¯å¦æ˜¯wbufå¯¹é½çš„ï¼Œç¼“å†²ç­‰å†™ç”¨æ—¶å†å»åˆ·å…¥ï¼Œå¯¹äºè¯»é€»è¾‘ä¸Šæ˜¯ä¸æˆç«‹çš„ï¼›
-                }
-                else
-                {
-                    // æ–°çš„ä½ç½®ç§»åŠ¨æ˜¯å°äºwbufï¼Œç›´æ¥ç§»åŠ¨ï¼›ä¸ç®¡wbufå†…åŸæ¥æ˜¯ä»€ä¹ˆï¼Œä¸€æ–¹é¢ä¸æ”¹å˜åŸæ¥çš„æ•°æ®ï¼Œå¯ä»¥ç¡®ä¿åŸæ¥çš„ä¿®æ”¹å¾—ä»¥ä¿å­˜ã€‚
-                    cx->wpos += movs;
-                }
-            }
-
+            memcpy((char *)dentry->d_name, efs->file_list_buf + index_offset, FILENAME_LIMIT+1);     //»ñÈ¡ÎÄ¼şÃû
+            result = 0;
             break;
         }
-
-        default : return (-1);
     }
 
-    position = cx->pos + cx->wpos;
-    return (position);
+    if(loop == IndexesNum)
+    {
+        dentry->d_off = 1;
+        if(result == 0)
+            result = 1;  //±éÀúÍêËùÓĞÎÄ¼ş
+        else
+            result = -1;
+    }
+    else
+        dentry->d_off = loop + 1;
+    Lock_MutexPost(efs->block_buf_mutex);
+    if(result != -1)
+    {
+        dentry->d_reclen = sizeof(dentry->d_name);
+        dentry->d_type |= DIRENT_IS_REG;        //efs²»Ö§³Ö´´½¨Ä¿Â¼£¬ËùÒÔÕâÀï¸³ÖµÊôĞÔÊ¼ÖÕÊÇÎÄ¼şÊôĞÔ
+    }
+
+    return result;
 }
 
-// ============================================================================
-// åŠŸèƒ½ï¼šåˆ é™¤æ–‡ä»¶
-// å‚æ•°ï¼šob -- æ–‡ä»¶å¯¹è±¡ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼šæœªè€ƒè™‘äº’æ–¥ï¼›å½“pNameä¸ºNULLæ—¶ï¼Œè¡¨ç¤ºæ–‡ä»¶æ­£åœ¨è¢«ä½¿ç”¨ï¼›
-// ============================================================================
-static s32 __e_remove(struct obj *ob, char *uncached)
+// =============================================================================
+// ¹¦ÄÜ£º¶Á ÎÄ¼ş
+// ²ÎÊı£ºhdl,ÎÄ¼şÖ¸Õë
+//     buf,¶ÁÎÄ¼şÊı¾İ´æ´¢µÄ»º³åÇø
+//     len,¶ÁÎÄ¼ş×Ö½ÚÊı
+// ·µ»Ø£º¶ÁÈ¡µÄÊµ¼Ê³¤¶È -- ³É¹¦£»0 -- Ê§°Ü£»
+// =============================================================================
+static u32 Efs_Read (struct objhandle *hdl, u8 *buf, u32 len)
 {
-    struct __loc *loc;
-    struct __efile *cached = NULL;
-    struct __ecore *core = (struct __ecore*)corefs(ob);
+    struct EfsFileInfo *fileinfo;
+    struct EasyFS *efs;
+    struct FileRsc *fp;
+    u32 buf_off, copy_len, block, readlen, rdsz = 0, completed = 0;
+    u64 rd_point, blk_off;
+    u8 rDataBuf[CN_FILE_BUF_LIMIT];
+    struct Object *ob = hdl->HostObj;
+    //ÎÄ¼şËùÔÚflashĞ¾Æ¬Ö¸Õë
+    fp = (struct FileRsc *)obj_GetPrivate(ob);
+    efs = (struct EasyFS *)corefs(ob);
+    fileinfo = (struct EfsFileInfo *)fp->private;
+    if ((len == 0) || (buf == NULL) || (fp == NULL) || (efs == 0) || (fileinfo == NULL))
+    {
+        printf("\r\nEfs_Read - FSR_INVALID_PARAMETER\r\n");
+        return 0;
+    }
 
-    __lock(core);
+    rd_point = fp->ptr;     //¶ÁµÄÎ»ÖÃ
+    if((sint64_t)(rd_point + len) > fp->file_size)
+        len = fp->file_size - rd_point;     //ÎÄ¼şµ±Ç°¶ÁÈ¡Î»ÖÃ¼ÓĞèÒª¶ÁÈ¡µÄ³¤¶È´óÓÚÎÄ¼ş´óĞ¡µÄ»°¡£ÔòĞèÒª¶ÁµÄÊı¾İ³¤¶ÈÎªÎÄ¼ş´óĞ¡¼õÈ¥ÎÄ¼şµ±Ç°µÄ¶ÁÈ¡Î»ÖÃ
+
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+    {
+        printf("\r\nEfs_Read - FSR_DENIED- locked\r\n");
+        return 0;
+    }
+    while(((s32)len) > 0)
+    {
+        block = rd_point / efs->block_size + fileinfo->start_block;
+        blk_off =  rd_point % efs->block_size;
+
+        buf_off = blk_off % CN_FILE_BUF_LEN;    //ÓÃ¿éÆ«ÒÆ¼ÆËã³öÔÚ¶Á³öÀ´µÄ256×Ö½ÚÖĞµÄÆ«ÒÆ
+        if(buf_off)
+            blk_off -= buf_off;     //Ò»´Î¶ÁÈ¡256×Ö½Ú£¬ÕâÀï¼õÈ¥buf_offÊÇÎªÁË¶ÔÆë
+
+        if(rd_point >= fileinfo->filesize)
+            memcpy(rDataBuf,fp->wr_buf, CN_FILE_BUF_LEN);    //ÎÄ¼ş¶ÁÈ¡Î»ÖÃ±ÈÎÄ¼şµÄÊµ¼Ê´óĞ¡´ó£¬Ôò´ÓĞ´»º´æÀï¶ÁÊı¾İ
+        else
+            readlen = efs->drv->efs_read_media(block, blk_off, rDataBuf, CN_FILE_BUF_LEN,EF_WR_ECC);    //´ÓflashÖĞ¶ÁÊı¾İ
+
+        copy_len = CN_FILE_BUF_LEN - buf_off;   //¼ÆËã¿ÉÒÔÔÚ±¾´Î¶Á³öÀ´µÄ256×Ö½ÚÖĞ»ñÈ¡¶àÉÙÓĞĞ§Êı¾İ
+        copy_len = (copy_len > len) ? len : copy_len;   //Èç¹û¿ÉÒÔ»ñÈ¡µÄÊı¾İÁ¿´óÓÚĞèÒª¶ÁÈ¡µÄÊı¾İÁ¿£¬Ôò°Ñcopy_len¸³ÖµÎªĞèÒª¶ÁÈ¡µÄÊı¾İÁ¿
+        if((buf_off + copy_len) > readlen)
+        {   //±¾´ÎÏë¶ÁµÄÊı¾İ´óÓÚ±¾´Î´ÓflashÀï¶Áµ½µÄÊı¾İ
+            if(buf_off >= readlen)    //»ñ´Ó»º´æÖĞ¸´ÖÆÊı¾İµÄ³¤¶È
+                copy_len = len = 0; //bufÆ«ÒÆ¶¼´óÓÚ±¾´Î±¾´Î´ÓflashÀï¶Áµ½µÄÊı¾İ£¬ÄÇÃ´°Ñcopy_lenºÍlenÈ«ÇåÁã
+            else
+                copy_len = len = readlen - buf_off; //´ÓflashÀï¶ÁÁË¶àÉÙÓĞĞ§Êı¾İ¾ÍÄÃ¶àÉÙÓĞĞ§Êı¾İ
+        }
+        memcpy(buf + completed,&rDataBuf[buf_off],copy_len);
+
+        completed += copy_len;
+        rd_point  += copy_len;
+        len       -= copy_len;
+    }
+
+    fp->ptr += completed;
+    rdsz = completed;
+    Lock_MutexPost(efs->block_buf_mutex);
+    return rdsz;
+}
+
+// =============================================================================
+// ¹¦ÄÜ£ºĞ´ÎÄ¼ş£¬Èç¹û³¬¹ıÎÄ¼şµÄ×î´ó³ß´çÏŞÖÆ£¬Ôò·µ»Ø´íÎó
+// ²ÎÊı£ºhdl,ÎÄ¼ş¾ä±ú
+//      buf,´ıĞ´ÈëµÄÊı¾İ»º³åÇø
+//      len,Ğ´ÈëÊı¾İµÄ×Ö½ÚÊı
+// ·µ»Ø£ºFSRESULT£¬ÕıÈ··µ»ØÊÇFSR_OK
+// =============================================================================
+static u32 Efs_Write (struct objhandle *hdl, u8 *buf, u32 len)
+{
+    struct EfsFileInfo *fileinfo = NULL;
+    struct EasyFS *efs = NULL;
+    struct FileRsc *fp = NULL;
+    struct Object *ob = hdl->HostObj;
+    int ret = 1;
+    u32 write_sum, write_len, completed = 0, rdsz = 0, block, alignsize;
+    u64 wr_point, offset_block;
+    //ÎÄ¼şËùÔÚflashĞ¾Æ¬Ö¸Õë
+    fp = (struct FileRsc *)obj_GetPrivate(ob);
+    efs = (struct EasyFS *)corefs(ob);
+    fileinfo = (struct EfsFileInfo *) fp->private;
+    if ((fp == NULL) || (len == 0) || (buf == NULL) || (efs == 0) || (fileinfo == NULL))
+        return 0;
+
+    if(fp->ptr < fp->file_size)
+        return 0;       //²»Ö§³Ö¸ÄĞ´£¬µ±ÎÄ¼şµÄµ±Ç°Î»ÖÃ£¬Ğ¡ÓÚÎÄ¼ş´óĞ¡Ê±ÔòÊ§°Ü
+
+    //Èç¹û³¬³öÁË×î´ó³ß´ç£¬Ôò³¬³ö²¿·Ö»á±»ÉáÆú
+    if (len <= (fileinfo->max_size - fp->ptr))
+        write_sum = len;
+    else
+        write_sum = fileinfo->max_size - fp->ptr;
+
+    if((s32)write_sum <= 0)
+        return 0;       //ĞèÒªĞ´µÄÊı¾İ³¤¶ÈĞ¡ÓÚµÈ0ÔòÖ±½Ó·µ»Ø0
+    wr_point = fp->ptr;
+
+    //¼ÆËãÆğÊ¼Ğ´Î»ÖÃ´¦ÓÚÎÄ¼şÄÚµÚ¼¸¿éºÍÆ«ÒÆÁ¿
+    block = (fileinfo->filesize / efs->block_size) + fileinfo->start_block;
+    offset_block = fileinfo->filesize % efs->block_size;
+
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+       return 0;
+
+    //ÅĞ¶ÏÊÇ·ñ¸ÄĞ´
+    if(!efs->drv->efs_check_block_ready(block,offset_block,(u8*)buf,fp->buf_off + len))
+    {
+        Lock_MutexPost(efs->block_buf_mutex);
+        return 0;
+    }
+
+    memset(fp->wr_buf + fp->buf_off, 0xFF, (CN_FILE_BUF_LIMIT - fp->buf_off));
+    if( fileinfo->filesize % CN_FILE_BUF_LEN )//ĞèÏÈ¶Á³öÀ´,Ö»ÓĞclose,flushºó²ÅÓĞ
+    {
+        fp->buf_off = fileinfo->filesize % CN_FILE_BUF_LEN;
+        efs->drv->efs_read_media(block, (offset_block & (~0xFF)), fp->wr_buf, fp->buf_off, EF_WR_NOECC); // »Ø¶ÁÊı¾İ£¬ÎªÁËºóÃæ256Ğ´ÈëÊ±µÄECCĞ£Ñé
+    }
+
+    alignsize = fileinfo->filesize - fileinfo->filesize % CN_FILE_BUF_LEN;  //»ñÈ¡ÎÄ¼ş´óĞ¡¼õÈ¥ÁË²»Âú256×Ö½Ú³¤¶ÈµÄ´óĞ¡
+    //ÎÄ¼şµ±Ç°Î»ÖÃ¼ÓĞèÒªĞ´ÈëµÄÊı¾İ´óĞ¡´óÓÚµÈÓÚalignsize + CN_FILE_BUF_LENµÄ»°£¬¾ÍÏÈ¸üĞÂÎÄ¼ş´óĞ¡¡££¨ÒâÎ¶×Å±¾´ÎĞ´²Ù×÷ÖÁÉÙÓĞÒ»´Î»áÍùflashÀïĞ´Êı¾İ£©
+    if(wr_point + write_sum >= alignsize + CN_FILE_BUF_LEN )
+    {
+        write_len = wr_point + write_sum;
+        write_len = write_len - (write_len % CN_FILE_BUF_LEN);      //²»Âú256×Ö½ÚµÄÊı¾İ£¬ÔÚÎÄ¼şcloseÊ±²ÅĞ´Èëflash
+        fileinfo->filesize = write_len;
+        __Efs_ChangeFileSize(ob, write_len);    //½«filesizeĞ´Èëflash
+    }
+
+    while(1)
+    {
+        fp->buf_off = wr_point % CN_FILE_BUF_LEN;   //»ñÈ¡ÎÄ¼şĞ´»º³åÀïµÄÊı¾İ³¤¶È
+        write_len = CN_FILE_BUF_LEN - fp->buf_off;  //¼ÆËãÎÄ¼ş»º³åÀï»¹ÄÜĞ´¶àÉÙÊı¾İ
+
+        if(write_sum < write_len)
+        {   //ÎÄ¼ş»º³åÀïÄÜĞ´µÄÊı¾İ´óÓÚ±¾´ÎĞèÒªĞ´µÄÊı¾İÁ¿
+            write_len = write_sum;
+            memcpy(fp->wr_buf + fp->buf_off,buf+completed,write_len);   //ÏÈĞ´ÈëĞ´»º´æ
+            fp->buf_off += write_len;
+            break;
+        }
+        else//write the buf to flash
+        {    //°ÑĞ´»º´æµÄÊı¾İĞ´Èëflash
+            memcpy(fp->wr_buf + fp->buf_off,buf+completed,write_len);
+            block = (wr_point / efs->block_size) + fileinfo->start_block;
+            offset_block = (wr_point % efs->block_size) - fp->buf_off;
+            if(CN_FILE_BUF_LEN != efs->drv->efs_write_media(block,offset_block,
+                    fp->wr_buf,CN_FILE_BUF_LEN,EF_WR_ECC))
+            {
+                write_len = 0;
+                ret = 0;
+                break;
+            }
+            fp->buf_off = 0;
+            memset(fp->wr_buf, 0xFF, CN_FILE_BUF_LIMIT); // Ğ´»º´æÇå³ı£¬·ÀÖ¹seek²Ù×÷ºó»áÌîÈëÒ»Ğ©²»¿ÉÖªµÄÖµ£»
+        }
+        wr_point += write_len;
+        write_sum -= write_len;
+        completed += write_len;
+    }
+
+    fp->ptr += completed + write_len;
+    fp->file_size = fp->ptr;
+    rdsz = completed + write_len;
+
+    if(ret)
+    {
+        if(fileinfo->filesize != (u64)(fp->ptr - fp->ptr % CN_FILE_BUF_LEN))
+        {
+            fileinfo->filesize = fp->ptr - fp->ptr % CN_FILE_BUF_LEN;
+            __Efs_ChangeFileSize(ob, fileinfo->filesize);    //Ğ´³É¹¦¸üĞÂÎÄ¼ş´óĞ¡
+        }
+    }
+
+    Lock_MutexPost(efs->block_buf_mutex);
+    return rdsz;
+}
+
+// =============================================================================
+// ¹¦ÄÜ£º¹Ø±ÕÎÄ¼ş,Ö÷Òª¹¤×÷ÊÇÊÍ·ÅÎÄ¼şÖ¸ÕëµÄ¿Õ¼äºÍ´ò¿ªÎÄ¼ş¿Õ¼ä
+// ²ÎÊı£ºhdl,ÎÄ¼ş¾ä±ú
+// ·µ»Ø£º³É¹¦£¨0£©£»Ê§°Ü£¨-1£©£»
+// =============================================================================
+static s8 Efs_Close (struct objhandle *hdl)
+{
+    tagEfsFileInfo *fileinfo;
+    struct EasyFS *efs;
+    u32 block;
+    u64 offset;
+    struct FileRsc *fp;
+    struct Object *ob = hdl->HostObj;
+    s8 ret = 0;
+
+    fp = (struct FileRsc *)obj_GetPrivate(ob);
+    efs = (struct EasyFS *)corefs(ob);
+    fileinfo = (tagEfsFileInfo *)fp->private;
+    if ((fp == NULL) || (efs == 0) || (fileinfo == NULL))
+        return -1;
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+       return -1;
+
+    if(!test_directory(hdl->flags)) // ·ÇÄ¿Â¼Âß¼­
+    {
+        //Èôwr_bufÓĞÊı¾İ£¬ÔòÏÈ½«ÆäĞ´Èëflash£¬²»´øECC
+        if(fp->buf_off)
+        {
+            block = (fileinfo->filesize / efs->block_size) + fileinfo->start_block;
+            offset = (fileinfo->filesize % efs->block_size) & (~0xFF); // 256¶ÔÆë£¬fp->buf_off¿ÉÄÜ´æÔÚ»Ø¶ÁÊı¾İ£¬¶øfilesize²»Ò»¶¨ÊÇ256¶ÔÆëµÄ
+
+            if(!efs->drv->efs_check_block_ready(block, offset, fp->wr_buf, fp->buf_off))
+            {
+                ret = -1;
+                goto exit;
+            }
+
+            __Efs_ChangeFileSize(ob, fp->file_size);
+            //´Ë´¦Ğ´Èë´óĞ¡Ã»ÓĞ256£¬Ğ´ÈëEF_WR_ECCÖ»ÊÇÎªÁËµ×²ã¸üºÃ×öÒ»µã
+            if(fp->buf_off !=
+                    efs->drv->efs_write_media(block,offset,fp->wr_buf,fp->buf_off,EF_WR_ECC))
+            {
+                __Efs_ChangeFileSize(ob, fileinfo->filesize);   //Ğ´ÈëÊ§°Ü£¬Ôò¸üÕıfilesize
+                ret = -1;
+                goto exit;
+            }
+        }
+
+        free(fileinfo);
+        free(fp->wr_buf);
+        free(fp);//todo ---- ²»Ó¦¸ÃÔÚ´Ë´¦ÊÍ·Å£¬ÔÚefs/port.cÀïÃæÊÍ·Å£¬ÒòÎªÔÚÄÇÀïmalloc
+        tgOpenedSum --;
+    }
+    handle_Delete(hdl);    //ÊÇÄ¿Â¼µÄ»°É¶Ò²²»¸ÉÖ±½ÓÉ¾³ı¾ä±ú
+exit:
+    Lock_MutexPost(efs->block_buf_mutex);
+    return (ret);
+}
+// =============================================================================
+// ¹¦ÄÜ£ºseekº¯Êı£¬Á½¸ö¹¦ÄÜ£¬ÔÚEFSÖĞ£¬¶ÔÓÚ¸ÕĞÂ½¨µÄÎÄ¼ş£¬¸Ãº¯ÊıÊµÏÖÅäÖÃ×î´ó³ß´ç£¬ÁíÍâµÄÇé¿ö
+//      ¸Ãº¯ÊıÊµÏÖÒÆ¶¯¶ÁĞ´Ö¸Õë£¨²»ÄÜÊµÏÖ¶¯Ì¬À©´óµÄ¹¦ÄÜ£©
+// ²ÎÊı£ºhdl,ÎÄ¼ş¾ä±ú£»file_offset,Æ«ÒÆ¶àÉÙÎ»ÖÃ£»whence£¬´ÓÄÄÀï¿ªÊ¼Æ«ÒÆ
+// ·µ»Ø£ºFSRESULT£¬ÕıÈ··µ»ØÊÇFSR_OK
+// =============================================================================
+static off_t Efs_Seek(struct objhandle *hdl, off_t *file_offset, s32 whence)
+{
+    tagEfsFileInfo *fileinfo;
+    tagEFS *efs;
+    u32 block, offset, newpos = 0, fsizeoff, alignsize;
+    struct FileRsc *fp;
+    struct Object *ob = hdl->HostObj;
+
+    fp = (struct FileRsc *)obj_GetPrivate(ob);
+    efs = (struct EasyFS *)corefs(ob);
+    fileinfo = (tagEfsFileInfo *)fp->private;
+    if ((fp == NULL) || (efs == 0) || (fileinfo == NULL))
+        return -1;
+
+    switch(whence)
+    {
+        case SEEK_SET: newpos = (*file_offset);break;    //´ÓÎÄ¼ş¿ªÊ¼³öÆ«ÒÆ
+        case SEEK_CUR: newpos = (*file_offset + fp->ptr);break;     //´ÓÎÄ¼şµ±Ç°Î»ÖÃ¿ªÊ¼Æ«ÒÆ
+        case SEEK_END: newpos = (*file_offset + fp->file_size); break;     //´ÓÎÄ¼ş½áÊøÎ»ÖÃ¿ªÊ¼Æ«ÒÆ
+        default: return (-1);// ²ÎÊı´íÎó
+    }
+
+    if(newpos > fileinfo->max_size)   //ÎÄ¼şÎ»ÖÃ³¬¹ıÎÄ¼ş´óĞ¡ÔòÊ§°Ü
+        return -1;
+
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+        return -1;
+
+    fsizeoff = fileinfo->filesize % CN_FILE_BUF_LEN;
+    alignsize = fileinfo->filesize - fsizeoff;
+    //Ïòºóseek > CN_FILE_BUF_LEN,Ôò½«wr_bufĞ´ÏÂÈ¥
+    if( (newpos - alignsize >= CN_FILE_BUF_LEN) && (newpos > alignsize) )
+    {
+        block = (fileinfo->filesize / efs->block_size) + fileinfo->start_block;
+        offset = fileinfo->filesize % efs->block_size;
+        if(!efs->drv->efs_check_block_ready(block,offset,fp->wr_buf,CN_FILE_BUF_LEN))
+        {
+            Lock_MutexPost(efs->block_buf_mutex);
+            return -1;
+        }
+
+        if(fsizeoff)        //ÅĞ¶ÏÊÇ·ñĞèÒª¶Á³öÀ´ÔÙwrite
+        {
+            offset = alignsize % efs->block_size;
+            memset(fp->wr_buf,0xFF,CN_FILE_BUF_LEN);
+            efs->drv->efs_read_media(block ,offset, fp->wr_buf, fsizeoff, EF_WR_NOECC);
+        }
+
+        __Efs_ChangeFileSize(ob, newpos - newpos % CN_FILE_BUF_LEN);//ĞŞ¸ÄÎÄ¼ş´óĞ¡
+
+        if(CN_FILE_BUF_LEN != efs->drv->efs_write_media(block, alignsize, fp->wr_buf,
+                CN_FILE_BUF_LEN,EF_WR_ECC))
+        {
+            __Efs_ChangeFileSize(ob, fileinfo->filesize);    //Èç¹ûĞ´ÈëÊ§°ÜÔò°ÑÎÄ¼ş´óĞ¡»Ö¸´
+            Lock_MutexPost(efs->block_buf_mutex);
+            return -1;
+        }
+        else
+        {
+            fileinfo->filesize = newpos - newpos % CN_FILE_BUF_LEN;    //ÎÄ¼şÊµ¼Ê´óĞ¡
+            fp->file_size = newpos;     //ÎÄ¼şº¬Ğ´»º³åÀïÊı¾İµÄ´óĞ¡
+            fp->buf_off = 0;
+            memset(fp->wr_buf,0xFF,CN_FILE_BUF_LEN);
+        }
+    }
+
+    fp->ptr = newpos;
+    Lock_MutexPost(efs->block_buf_mutex);
+    return newpos;
+}
+
+// =============================================================================
+// ¹¦ÄÜ£ºÉ¾³ıÎÄ¼ş
+// ²ÎÊı£ºob,ÎÄ¼ş¶ÔÏóµØÖ·£» uncached,Â·¾¶ÖĞÎ´Æ¥ÅäµÄ²¿·Ö
+// ·µ»Ø£º³É¹¦  -- 0£» Ê§°Ü -- -1
+// =============================================================================
+static s32 Efs_Remove(struct Object *ob, char *uncached)
+{
+    tagEFS *efs;
+    u64 index_offset;
+    u8 cfg_blocks,loop;
+    char *fname;
+    if(ob == NULL)
+        return -1;
+
+    efs = (tagEFS*)corefs(ob);
+    if(NULL == efs)
+    {
+        printf("cannot fine efs root");
+        return -1;
+    }
     if(uncached)
-    {
-        if(__e_lookupfile(core, uncached, &loc))
-        {
-            __unlock(core);
-            return (-1);
-        }
-    }
+        fname = uncached;
     else
-    {
-        // æ–‡ä»¶å·²ç¼“å­˜
-        // cached = dListEntry(of_basiclinko(ob), struct __efile, basic);
-        struct __efile *cached = (struct __efile *)obj_GetPrivate(ob);
-        loc = cached->loc;
-    }
+        fname = ob->name;
 
-    if(__e_destroyfile(core, loc))
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
     {
-        printf("\r\n: dbug : efs    : cannot delete file info.");
+       return -1;
+    }
+    cfg_blocks = (EfsCgfLimit+ efs->block_size-1) / efs->block_size;      //ÎÄ¼ş·ÖÅä±íËùÕ¼µÄ¿éÊı
+    for (loop = 1; loop < IndexesNum; loop++)
+    {
+        index_offset = loop * EFS_ITEM_LIMIT;
+        efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
+        ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset),efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
+        if (strncmp((const char*)(efs->file_list_buf + index_offset), fname, FILENAME_LIMIT) == 0)
         {
-            __unlock(core);
-            return (-1);
+            break;//ÕÒµ½¸ÃÎÄ¼ş
         }
     }
 
-    if(cached)
+    if(loop == IndexesNum)
     {
-        //of_unlinkbasic(&file->basic);
-        obj_SetPrivate(ob, 0);
-        free(cached);
+        printf("cannot find :%s\r\n", fname);
+        return -1;
     }
 
-    __unlock(core);
-    return (0);
+    if(loop < IndexesNum)
+    {
+        //É¾³ıµÄÎÄ¼şĞÅÏ¢£¬Ğ´È«0
+        memset(efs->file_list_buf + index_offset, 0x0, EFS_ITEM_LIMIT);
+        efs->drv->efs_write_media(efs->start_block, index_offset, efs->file_list_buf + index_offset,
+                EFS_ITEM_LIMIT,EF_WR_NOECC);
+        efs->drv->efs_write_media(efs->start_block+cfg_blocks, index_offset,
+                efs->file_list_buf + index_offset,EFS_ITEM_LIMIT,EF_WR_NOECC);
+        efs->files_sum --;
+#if 1
+{       //ÅĞ¶ÏÎÄ¼şË÷ÒıÔÚÖ÷/±¸ÊÇ·ñ¶¼Ğ´ÎªÁË0
+        u16 CountTemp;
+        efs->drv->efs_read_media(efs->start_block, index_offset, efs->file_list_buf + index_offset,
+                EFS_ITEM_LIMIT, EF_WR_NOECC);
+        for(CountTemp = 0; CountTemp < EFS_ITEM_LIMIT; CountTemp++)
+        {
+            if(efs->file_list_buf[CountTemp + index_offset] != 0x0)
+            {
+                printf("\r\nremove error in \"%s\"\r\n", fname);
+                break;
+            }
+        }
+        efs->drv->efs_read_media(efs->start_block+cfg_blocks, index_offset, efs->file_list_buf + index_offset,
+                EFS_ITEM_LIMIT, EF_WR_NOECC);
+        for(CountTemp = 0; CountTemp < EFS_ITEM_LIMIT; CountTemp++)
+        {
+            if(efs->file_list_buf[CountTemp + index_offset] != 0x0)
+            {
+                printf("\r\nremove error in \"%s\"\r\n", fname);
+                break;
+            }
+        }
+}
+#endif
+    }
+
+    Lock_MutexPost(efs->block_buf_mutex);
+    return 0;
 }
 
-// ============================================================================
-// åŠŸèƒ½ï¼šæŸ¥è¯¢æ–‡ä»¶ï¼›
-// å‚æ•°ï¼šob -- æ–‡ä»¶èŠ‚ç‚¹ï¼›
-//      data -- æ–‡ä»¶ä¿¡æ¯ï¼›
-//      uncached -- æœªç¼“å­˜æ–‡ä»¶åï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_stat(struct obj *ob, struct stat *data, char *uncached)
+// =============================================================================
+// ¹¦ÄÜ£º»ñÈ¡ÎÄ¼ş×´Ì¬
+// ²ÎÊı£ºob,ÎÄ¼ş¶ÔÏóµØÖ·£»data£¬´æÎÄ¼ş×´Ì¬µÄ½á¹¹£»uncached,Â·¾¶ÖĞÎ´Æ¥ÅäµÄ²¿·Ö
+// ·µ»Ø£º³É¹¦  -- 0£»Ê§°Ü  -- -1
+// =============================================================================
+static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
 {
-    s32 res;
-    struct __loc *loc;
-    struct __efile *file;
-    struct __ecore *core = (struct __ecore*)corefs(ob);
+    tagEFS *efs;
+    tagFileRsc* fp;
+    u32 loop;
+    u64 index_offset;
+    u8 found = false;
+    char *fname;
+    u8 *hsize;
+    if(ob == NULL)
+        return -1;
 
-    if((!uncached)&&(obj_isMount(ob)))
+    if(((*uncached == '\0') || (uncached == NULL)) && (obj_isMount(ob)))
     {
-        data->st_size = 0; // å®‰è£…ç‚¹ï¼›
+        data->st_size = 0; // °²×°µã£»
         data->st_mode = S_IFDIR;
+        return 0;
     }
-    else
+
+    if((*uncached == '\0') || (uncached == NULL))
     {
-        if(uncached)
-        {
-            res = __e_lookupfile(core, uncached, &loc);
-            if(res)
-            {
-                return (-1); // æ–‡ä»¶ä¸å­˜åœ¨
-            }
-
-            file = __e_cachefile(core, loc, uncached, ob);
-            if(!file)
-            {
-                return (-1); // æ–‡ä»¶ä¸å¯è¯»
-            }
-        }
-        else // æ–‡ä»¶å·²æ‰“å¼€ï¼›
-        {
-            //file = dListEntry(of_basiclinko(ob), struct __efile, basic);
-            file = (struct __efile*)obj_GetPrivate(ob);
-        }
-
-        data->st_size = (off_t)file->size;
+        fp = (tagFileRsc *)obj_GetPrivate(ob);      //»ñÈ¡ÒÔ´ò¿ªÎÄ¼şµÄ×´Ì¬
+        data->st_size = fp->file_size;
         data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
+        return 0;
     }
 
+    efs = (tagEFS*)corefs(ob);
+    if(uncached)
+        fname = uncached;
+    else
+        fname = ob->name;
+
+    if(NULL == efs)
+        return -1;
+
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+       return -1;
+
+    //ÅĞ¶ÏÊÇ·ñ´æÔÚ¸ÃÎÄ¼ş
+    for (loop = 1; loop < IndexesNum; loop++)
+    {
+        index_offset = loop * EFS_ITEM_LIMIT;
+        efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
+        ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset),efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
+        if (strncmp((const char*)efs->file_list_buf + index_offset,fname,FILENAME_LIMIT) == 0)
+        {
+            found = true;       //ÕÒµ½Ä¿±êÎÄ¼ş
+            break;
+        }
+    }
+
+    if(found)
+    {
+        for (loop = 0; loop < FILE_FILESIZE_NUM; loop++)
+        {
+            hsize = (efs->file_list_buf + index_offset + FILE_FILESIZE_END - loop * EFS_FILESIZE_BYTE_NUMBER);
+            if ((pick_little_32bit(hsize,0) == CN_LIMIT_UINT32) ||
+                (pick_little_32bit(hsize,0) == 0))
+                continue;
+            if (__EfsFileSize_verify(*(u32 *)hsize) == 0)
+            {   //»ñÈ¡Ä¿±êÎÄ¼şµÄ´óĞ¡
+                data->st_size = (pick_little_32bit(efs->file_list_buf + index_offset,     //´Ó44¸öÎÄ¼ş´óĞ¡ÖĞ£¬ÕÒÕıÈ·µÄÎÄ¼ş´óĞ¡£¬´Ó×îºó¿ªÊ¼ÕÒ
+                        (FILE_FILESIZE_END - loop * EFS_FILESIZE_BYTE_NUMBER) >> 2) & EFS_SUPPORT_MAXFILESIZE);
+                break;
+            }
+        }
+        data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;    //efsÀïÖ»ÓĞÎÄ¼şÃ»ÓĞÄ¿Â¼£¬ËùÓĞÀïÃæÕÒµ½µÄÎÄ¼ş£¬ÊôĞÔÈ«¶¼¸³ÖµÎªÎÄ¼ş
+        Lock_MutexPost(efs->block_buf_mutex);
+        return 0;
+    }
+
+    Lock_MutexPost(efs->block_buf_mutex);
+    return -1;
+}
+
+// =============================================================================
+// ¹¦ÄÜ£º½«»º´æµÄÊı¾İĞ´Èëflash
+// ²ÎÊı£ºhdl,ÎÄ¼ş¾ä±ú
+// ·µ»Ø£º³É¹¦ -- 0£»Ê§°Ü -- -1
+// =============================================================================
+static s32 Efs_Sync (struct objhandle *hdl)
+{
+    tagEfsFileInfo *fileinfo;
+    struct EasyFS *efs;
+    struct FileRsc *fp;
+    u32 block;
+    u64 offset;
+    struct Object *ob = hdl->HostObj;
+
+    fp = (struct FileRsc *)obj_GetPrivate(ob);
+    efs = (struct EasyFS *)corefs(ob);
+    fileinfo = (tagEfsFileInfo *)fp->private;
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+       return -1;
+
+    //Èôwr_bufÓĞÊı¾İ£¬ÔòÏÈ½«ÆäĞ´Èëflash£¬²»´øECC
+    if(fp->buf_off)
+    {
+        block = (fileinfo->filesize / efs->block_size) + fileinfo->start_block;
+        offset = fileinfo->filesize % efs->block_size;
+        if(!efs->drv->efs_check_block_ready(block, offset, fp->wr_buf, fp->buf_off))
+        {
+            Lock_MutexPost(efs->block_buf_mutex);
+            return -1;
+        }
+
+        __Efs_ChangeFileSize(ob, fp->file_size);        //ĞŞ¸ÄÎÄ¼ş´óĞ¡£¨¼ÓÉÏĞ´»º´æÀïµÄÊı¾İ£©
+        //´Ë´¦Ğ´Èë´óĞ¡Ã»ÓĞ256£¬Ğ´ÈëEF_WR_ECCÖ»ÊÇÎªÁËµ×²ã¸üºÃ×öÒ»µã
+        if(fp->buf_off !=
+                efs->drv->efs_write_media(block, offset, fp->wr_buf, fp->buf_off, EF_WR_ECC))
+        {
+            __Efs_ChangeFileSize(ob, fileinfo->filesize);   //Ğ´ÈëÊ§°Ü£¬Ôò¸üÕıfilesize
+            Lock_MutexPost(efs->block_buf_mutex);
+            return -1;
+        }
+        else
+        {
+            fileinfo->filesize = fp->ptr;
+            fp->buf_off = 0;
+        }
+    }
+    Lock_MutexPost(efs->block_buf_mutex);
+    return 0;
+}
+// ============================================================================
+// ¹¦ÄÜ£º³õÊ¼»¯efs¶ÔmediaµÄÇı¶¯
+// ²ÎÊı£ºcore -- efsÎÄ¼şÏµÍ³¹ÜÀí£»  drv -- mediaµÄ²Ù×÷º¯Êı¼¯
+// ·µ»Ø£º0 -- ³É¹¦£»  -1 --Ê§°Ü
+// ±¸×¢£º
+// ============================================================================
+int efs_install_drv(tagEFS *core, struct __efs_media_drv *drv)
+{
+    if (!core || !drv)
+         return (-1);
+    core->drv = malloc(sizeof(*drv));
+    core->drv->efs_erase_media = drv->efs_erase_media;
+    core->drv->efs_read_media = drv->efs_read_media;
+    core->drv->efs_write_media = drv->efs_write_media;
+    core->drv->efs_check_block_ready = drv->efs_check_block_ready;
     return (0);
 }
-
 // ============================================================================
-// åŠŸèƒ½ï¼šæ£€æŸ¥ç›®å½•é¡¹æ˜¯å¦å·²ç¼“å­˜ï¼Œæœªç¼“å­˜åˆ™ç¼“å­˜ç›®å½•é¡¹ï¼›
-// å‚æ•°ï¼šdentrys -- ç›®å½•é¡¹ç¼“å­˜ä½“ï¼›
-//      name -- ç›®å½•é¡¹åï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ1ï¼‰ï¼›å¤±è´¥ï¼ˆ0ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º³õÊ¼»¯efsµÄĞÅÏ¢
+// ²ÎÊı£ºcore -- efsÎÄ¼şÏµÍ³¹ÜÀí£»  pSuper -- ÎÄ¼şÏµÍ³ºËĞÄÊı¾İ
+// ·µ»Ø£ºÆäËû -- ³É¹¦£» NULL --Ê§°Ü
+// ±¸×¢£º
 // ============================================================================
-static s32 __checkdentry(struct __dentrys *dentrys, char *name)
+tagEFS *EfsInfo(struct FsCore *pSuper)
 {
-    struct __dentry *uncached, *last, *cur;
+    struct umedia *media;
+    tagEFS *core;
+    u32 flash_black_size,flash_page_size,black_page_number,filedatablocks,allblocknum,num,filelistblock;
 
-    last = cur = dentrys->item;
-    while(cur)
-    {
-        if(!strcmp(cur->name, name))
-            return (0); // nameå·²å­˜åœ¨äºé“¾è¡¨
+    if(pSuper == NULL)
+        return NULL;
 
-        last = cur;
-        cur = cur->nxt;
-    }
-
-    uncached = malloc(strlen(name)+5);
-    strcpy(uncached->name, name);
-    uncached->nxt = NULL;
-    if(last)
-        last->nxt = uncached;
-    else
-        dentrys->item = uncached;
-
-    dentrys->items++;
-    return (1);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šç¼“å­˜ç›®å½•é¡¹ï¼›
-// å‚æ•°ï¼šcore -- efsæ–‡ä»¶ç³»ç»Ÿç®¡ç†ï¼›
-//      dentrys -- ç›®å½•é¡¹ç¼“å­˜ä½“ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __cachedentry(struct __ecore *core, struct __dentrys *dentrys)
-{
-    struct __efstruct fstruct;
-    s32 idxs, i, j, news;
-    struct __eidx *idx;
-    s64 units;
-
-    idxs = (1 << core->pagesize) / sizeof(*idx); // ä¸€ä¸ªunitä¸­èƒ½å­˜æ”¾å¤šå°‘ä¸ªidx
-    __lock(core);
+    media = (struct umedia*)pSuper->MediaInfo;              //»ñÈ¡flashµÄĞÅÏ¢
+    media->mreq(blockunits,(ptu32_t)&black_page_number);             //»ñÈ¡flashÖĞÒ»¿éÓĞ¶àÉÙÒ³
+    media->mreq(unitbytes,(ptu32_t)&flash_page_size);                //»ñÈ¡flashµÄÒ³´óĞ¡
+    flash_black_size = black_page_number * flash_page_size;  //»ñÈ¡flashµÄ¿é´óĞ¡
+    allblocknum = pSuper->AreaSize / flash_black_size;      //×Ü¿éÊı
+    filedatablocks = (CFG_EFS_FILE_BLOCK_SIZE + flash_black_size - 1) / flash_black_size; // EFSµ¥¸öÎÄ¼şÊµ¼ÊÊı¾İËùĞèÒªµÄ¿éÊı
+    num = allblocknum / filedatablocks;     //Ô¤¼Æ¿ÉÒÔ´´½¨µÄ×î´óÎÄ¼şÊı
     do
     {
-        if(dentrys->scans >= core->fmax)
-        {
-            __unlock(core);
-            return (-1); // å·²å…¨éƒ¨éå†å®Œï¼›
-        }
+        num--;
+        filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_black_size - 1) / flash_black_size;
+    }while(((num * filedatablocks) + (filelistblock * 2)) > allblocknum);       //¼ÆËãÊµ¼ÊÄÜ´´½¨µÄ×î´óÎÄ¼şÊı
+    CreateMax = num;
+    IndexesNum = num + 1;
+    EfsCgfLimit = IndexesNum * EFS_ITEM_LIMIT;
+    if((CreateMax == 0) || (IndexesNum == 0) || (EfsCgfLimit == 0))
+    {
+        error_printf("efs","file system core parameters calculated incorrectly.\r\n");
+        return NULL;
+    }
+    notice_printf("efs","create max file number %d .\r\n",num);
 
-        units = core->serial * core->ssz + 1 + (dentrys->scans / idxs);
-        if((u32)idxs>(core->fmax-dentrys->scans))
-            idxs = core->fmax - dentrys->scans; //
+    core = malloc(sizeof(*core) + EfsCgfLimit);
+    if(!core)
+    {
+        printf("\r\n: erro : efs    : install failed(memory out).");
+        return NULL;
+    }
+    memset(core, 0x0, sizeof(*core));
+    core->block_buf_mutex = Lock_MutexCreate("EFS_BLOCK_BUF_SEMP");
+    if(!core->block_buf_mutex)
+    {
+        free(core);
+        printf("\r\n: erro : efs    : install failed(cannot create lock).");
+        return NULL;
+    }
 
-        if(core->drv->efs_read_media(core, units, core->ebuf)) // ç´¢å¼•è¡¨
-        {
-            printf("\r\n: erro : efs    : lookup has problem(can not read %d).", i);
-            i += idxs;
-            continue; // æŸ¥è¯¢ä¸‹ä¸€ä¸ªç´¢å¼•è¡¨
-        }
+    core->media = media;
+    efs_install_drv(core,pSuper->MediaDrv);
+    core->file_list_buf = (u8*)core + sizeof(*core);
+    core->block_size = flash_black_size;
+    core->block_sum = allblocknum;
+    core->files_sum = 0;
+    memcpy(core->name, pSuper->pTarget->name, EFS_NAME_LIMIT+1);
+    core->start_block = pSuper->MediaStart / black_page_number;
 
-        idx = (struct __eidx *)core->ebuf;
-        for(i=0; i<idxs; i++)
-        {
-            for(j=0; (u32)j<sizeof(*idx); j++)
-            {
-                if(0xFF!=((u8*)idx)[i])
-                    break;
-            }
-
-            if(j!=sizeof(*idx))
-            {
-                for(j=0; (u32)j<sizeof(*idx); j++)
-                {
-                    if(0x0!=((u8*)idx)[i])
-                        break;
-                }
-            }
-
-            if(j!=sizeof(*idx))
-            {
-                units = core->serial * core->ssz + core->finfo + i;
-                if(core->drv->efs_read_media(core, units, core->ebuf)) // æ–‡ä»¶ä¿¡æ¯
-                {
-                    printf("\r\n: erro : efs    : file's info (%d) can not read", i);
-                }
-
-                __e_structfile(core, &fstruct, core->ebuf);
-                if(__checkdentry(dentrys, fstruct.name.n))
-                    news++;
-            }
-
-            idx++;
-        }
-
-        dentrys->scans += idxs; // å·²éå†çš„
-    }while(!news);
-
-    __unlock(core);
-    return (0);
+    return core;
 }
-
-// ============================================================================
-// åŠŸèƒ½ï¼šè·å–ç›®å½•é¡¹ï¼›
-// å‚æ•°ï¼šcore -- æ–‡ä»¶ç³»ç»Ÿç®¡ç†ç»“æ„ä½“ï¼›
-//      dentrys -- ç›®å½•é¡¹ç¼“å­˜ä½“ï¼›
-//      offset -- å½“å‰è¯»å–ç›®å½•é¡¹ä½ç½®ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static char *__getdentry(struct __ecore *core, struct __dentrys *dentrys, u32 offset)
+// =============================================================================
+// ¹¦ÄÜ£º´´½¨ÎÄ¼şÏµÍ³£¬ÔÚmount²»³É¹¦Ê±£¬»áµ÷ÓÃ£¬µ÷ÓÃºóÔ­ÓĞÎÄ¼şĞÅÏ¢½«²»´æÔÚ
+// ²ÎÊı£ºefs,ÎÄ¼şÏµÍ³Ö¸Õë
+//      pSuper -- ÎÄ¼şÏµÍ³ºËĞÄÊı¾İ
+// ·µ»Ø£º0 -- ³É¹¦£» -1 --Ê§°Ü
+// =============================================================================
+static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
 {
-    u32 i;
-    struct __dentry *current = dentrys->item;
+    u32 loop, blocks, cfg_end_block;
+    u8 *block_buf;
+    u16 crc16_check,temp;
 
-    if(offset>dentrys->items)
+    if(!efs->block_sum) // ËµÃ÷¸ÃchipÎ´³õÊ¼»¯
     {
-        if(__cachedentry(core, dentrys))
-            return (NULL);
+        error_printf("efs","file system was not initialized.\r\n");
+        return -1;
     }
 
-    for(i=0; i<offset; i++)
-        current = current->nxt;
+    blocks = (EfsCgfLimit + efs->block_size-1) / efs->block_size;
+    cfg_end_block = efs->start_block + blocks;
+    block_buf = efs->file_list_buf;
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+    {
+       return -1;
+    }
+    //Ğ´ºÃefsÎÄ¼şÏµÍ³µÄºËĞÄĞÅÏ¢µ½flashÀï
+    memset(block_buf, 0xff, EfsCgfLimit);
+    memcpy(block_buf, "easyfile", 8);
+    memcpy(block_buf + FILE_VERIFITY_OFF, "easyfile", 8);
+    fill_little_32bit(block_buf, 2, efs->block_sum);
+    fill_little_32bit(block_buf, 3, efs->block_size);
 
-    return (current->name);
+    crc16_check = crc16(block_buf,16);
+    fill_little_16bit((u8*)&temp,0,crc16_check); // ×ª»¯ÎªĞ¡¶Ë
+    for (loop = efs->start_block; loop < cfg_end_block; loop++)
+    {
+        efs->drv->efs_erase_media(loop);       //efsÓÃµ½µÄÕû¸öÇøÓò²ÁÒ»±é
+        efs->drv->efs_erase_media(loop + blocks);       //efsÓÃµ½µÄÕû¸öÇøÓò²ÁÒ»±é
+    }
+    efs->drv->efs_write_media(efs->start_block, 0, block_buf,EfsCgfLimit,EF_WR_NOECC);
+    efs->drv->efs_write_media(cfg_end_block, 0, block_buf, EfsCgfLimit,EF_WR_NOECC);
+    //added,½«×îºóµÄCRCĞ´µ½ÎÄ¼şÏµÍ³ĞÅÏ¢µÄ×îºóÁ½¸ö×Ö½Ú
+    efs->drv->efs_write_media(efs->start_block + blocks - 1,
+            efs->block_size-2, (u8*)&temp,2,EF_WR_NOECC);
+    efs->drv->efs_write_media(cfg_end_block + blocks - 1,
+            efs->block_size-2, (u8*)&temp,2,EF_WR_NOECC);
+
+    efs->files_sum = 0;
+
+    if(pSuper)
+    {
+        //Ã¿´ÎĞÂ½¨¶¼½«fs´æ·Åµ½È«¾Ö±äÁ¿tgNorDisk£¬ÓÃÓÚºóÃæ²Ù×÷
+        s_pEfsList[0] = efs;
+        strncpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
+        pSuper->pCore = (void*)efs;
+    }
+    Lock_MutexPost(efs->block_buf_mutex);
+    return 0;
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šé‡Šæ”¾ç¼“å­˜ç›®å½•é¡¹ï¼›
-// å‚æ•°ï¼šdentrys -- ç›®å½•é¡¹ç¼“å­˜ä½“ï¼›
-// è¿”å›ï¼š
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static void __uncachedentry(struct __dentrys *dentrys)
-{
-    struct __dentry *release, *current;
-
-    if(!dentrys)
-        return;
-
-    current = dentrys->item;
-    while(current)
-    {
-        release = current;
-        current = current->nxt;
-        free(release);
-    }
-
-    free(dentrys);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šè¯»ç›®å½•é¡¹ï¼›
-// å‚æ•°ï¼š
-// è¿”å›ï¼šå…¨éƒ¨è¯»å®Œï¼ˆ1ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›è¯»äº†ä¸€é¡¹ï¼ˆ0ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
-// ============================================================================
-static s32 __e_readdentry(struct objhandle *directory, struct dirent *dentry)
-{
-    struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(directory));
-    struct __dentrys *dentrys = (struct __dentrys *)(dentry->d_ino);
-    char *name;
-
-    if(!dentry->d_ino)
-    {
-        dentrys = (struct __dentrys *)malloc(sizeof(struct __dentrys));
-        if(dentrys)
-        {
-            printf("\r\n: erro : efs    : memory out when read dir \"%s\".", handle_name(directory));
-            return (-1);
-        }
-
-        dentry->d_ino = (long)dentrys;
-    }
-    else
-    {
-        dentrys = (struct __dentrys *)(dentry->d_ino);
-    }
-
-    name = __getdentry(core, dentrys, (u32)dentry->d_off);
-    if(!name)
-    {
-        __uncachedentry(dentrys); // å…¨éƒ¨è¯»å®Œï¼Œé‡Šæ”¾
-        return (1);
-    }
-
-    strcpy(dentry->d_name, name);
-    dentry->d_type = DIRENT_IS_REG;
-    return (0);
-}
-
-// ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶ç³»ç»Ÿæ¥å£ï¼›
-// å‚æ•°ï¼š
-// è¿”å›ï¼šæ ¹æ®å„å‘½ä»¤è¦æ±‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼şÏµÍ³½Ó¿Ú£»
+// ²ÎÊı£º
+// ·µ»Ø£º¸ù¾İ¸÷ÃüÁîÒªÇó
+// ±¸×¢£º
 // ============================================================================
 s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                  ptu32_t OpsArgs2, ptu32_t OpsArgs3)
 {
-//    va_list list;
     s32 result = CN_OBJ_CMD_EXECUTED;
 
     switch(objcmd)
@@ -2903,7 +1489,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __e_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = Efs_Open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -2913,7 +1499,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
           struct objhandle *hdl = (struct objhandle*)OpsArgs3;
           struct dirent *ret = (struct dirent *)OpsArgs1;
 
-          if((ptu32_t)__e_readdentry(hdl, ret) == 0)
+          if((ptu32_t)Efs_DirRead(hdl, ret) == 0)
               result = CN_OBJ_CMD_TRUE;
           else
               result = CN_OBJ_CMD_FALSE;
@@ -2922,28 +1508,27 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_READ:
         {
-            ssize_t len;
+            u32 len;
             struct objhandle *devfile = (struct objhandle*)opsTarget;
 
-            len = __e_read(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
-            *(ssize_t *)OpsArgs1 = len;
+            len = Efs_Read(devfile, (u8*)OpsArgs2, (u32)OpsArgs3);
+            *(u32 *)OpsArgs1 = len;
             break;
         }
 
         case CN_OBJ_CMD_WRITE:
         {
-            ssize_t len;
+            u32 len;
             struct objhandle *devfile = (struct objhandle*)opsTarget;
 
-            len = __e_write(devfile, (u8*)OpsArgs2, (ssize_t)OpsArgs3);
-            *(ssize_t *)OpsArgs1 = len;
+            len = Efs_Write(devfile, (u8*)OpsArgs2, (u32)OpsArgs3);
+            *(u32 *)OpsArgs1 = len;
             break;
-            return((ptu32_t)__e_write((struct objhandle *)opsTarget, (u8*)OpsArgs1, (u32)OpsArgs2));
         }
 
         case CN_OBJ_CMD_CLOSE:
         {
-            if(__e_close((struct objhandle*)opsTarget) == 0)
+            if(Efs_Close((struct objhandle*)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -2952,14 +1537,14 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SEEK:
         {
-            *(off_t*)OpsArgs1 = __e_seek((struct objhandle *)opsTarget,
+            *(off_t*)OpsArgs1 = Efs_Seek((struct objhandle *)opsTarget,
                                         (off_t*)OpsArgs2, (s32)OpsArgs3);
             break;
         }
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(__e_remove((struct obj*)opsTarget, (char *)OpsArgs3) == 0)
+            if(Efs_Remove((struct Object*)opsTarget, (char *)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -2968,7 +1553,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_STAT:
         {
-            if(__e_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1,
+            if(Efs_Stat((struct Object*)opsTarget, (struct stat *)OpsArgs1,
                                                 (char*)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
@@ -2978,7 +1563,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SYNC:
         {
-            if(__e_sync((struct objhandle *)opsTarget) == 0)
+            if(Efs_Sync((struct objhandle *)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -2996,155 +1581,295 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šåˆå§‹åŒ–efså¯¹mediaçš„é©±åŠ¨
-// å‚æ•°ï¼šcore -- efsæ–‡ä»¶ç³»ç»Ÿç®¡ç†ï¼›  drv -- mediaçš„æ“ä½œå‡½æ•°é›†
-// è¿”å›ï¼š0 -- æˆåŠŸï¼›  -1 --å¤±è´¥
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¸ñÊ½»¯efsÎÄ¼şÏµÍ³
+// ²ÎÊı£ºcore -- ÎÄ¼ş ÏµÍ³ºËĞÄÊı¾İ
+// ·µ»Ø£º0 -- ³É¹¦; -1 -- Ê§°Ü;
+// ±¸×¢£º
 // ============================================================================
-int efs_install_drv(struct __ecore *core, struct __efs_drv *drv)
+static s32 Efs_Format(void *core)
 {
-    if (!core || !drv)
-         return (-1);
+    if(core == NULL)
+        return -1;
 
-    core->drv = malloc(sizeof(*drv));
-    core->drv->efs_erase_media = drv->efs_erase_media;
-    core->drv->efs_read_media = drv->efs_read_media;
-    core->drv->efs_write_media = drv->efs_write_media;
-    return (0);
+    tagEFS *efs = (tagEFS *)core;
+    return Efs_Mkfs(efs,NULL);
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå®‰è£…æ–‡ä»¶ç³»ç»Ÿï¼›
-// å‚æ•°ï¼šsuper -- æ–‡ä»¶ç³»ç»Ÿç»“æ„ï¼›
-//      opts -- å®‰è£…æ–¹å¼ï¼›
-//      config -- æ–‡ä»¶ç³»ç»Ÿé…ç½®ï¼›
-// è¿”å›ï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º°²×°ÎÄ¼şÏµÍ³£»
+// ²ÎÊı£ºsuper -- ÎÄ¼şÏµÍ³½á¹¹£»
+//      opts -- °²×°·½Ê½£»
+//      config -- ÎÄ¼şÏµÍ³ÅäÖÃ£»
+// ·µ»Ø£º³É¹¦£¨0£©£»Ê§°Ü£¨-1£©£»
+// ±¸×¢£º
 // ============================================================================
 s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 {
-    struct umedia *media;
-    struct __ecore *core;
-    s32 res, idxs, tmp, sys, i;
-    s32 fileblock = (s32)config; // æ–‡ä»¶å—å°ºå¯¸
-    u32 flash_block_size,flash_page_size,block_page_number;
+    tagEFS *core;
+    u32 loop, blocks, end_block, fileInfoSize;
+    u8 *bakbuf, *block_buf;
+    u8 mainblockerr = 0,bakblockerr = 0;
+    u16 crc16_check,temp;
 
-    media = (struct umedia*)pSuper->MediaInfo;
-    media->mreq(blockunits,(ptu32_t)&block_page_number);             //è·å–flashä¸­ä¸€å—æœ‰å¤šå°‘é¡µ
-    media->mreq(unitbytes,(ptu32_t)&flash_page_size);                //è·å–flashçš„é¡µå¤§å°
-    flash_block_size = block_page_number * flash_page_size;  //è·å–flashçš„å—å¤§å°
-    if((flash_block_size == 0) || (block_page_number == 0) || (flash_page_size == 0))
-        return (-1);
-
-    core = malloc(sizeof(*core));
-    if(!core)
+    dwFileMaxSize = CFG_EFS_FILE_BLOCK_SIZE; // ÎÄ¼ş´óĞ¡ÉÏÏŞ
+    if(dwFileMaxSize > EFS_SUPPORT_MAXFILESIZE)
     {
-        printf("\r\n: erro : efs    : install failed(memory out).");
-        return (-1);
+        dwFileMaxSize = EFS_SUPPORT_MAXFILESIZE;
+        warning_printf("efs","The file size exceeds the maximum file size supported by efs "
+                                            "and now forces the maximum file size to be 0x3fffffff");
     }
-
-    memset(core, 0x0, sizeof(*core));
-    core->mutex = Lock_MutexCreate(NULL);
-    if(!core->mutex)
+    core = EfsInfo(pSuper);
+    if(core == NULL)
     {
         free(core);
-        printf("\r\n: erro : efs    : install failed(cannot create lock).");
-        return (-1);
+        return -1;
     }
 
-    core->pagesize = log2(flash_page_size);
-    core->blacksize = log2(flash_block_size);
-    efs_install_drv(core,pSuper->MediaDrv);
-    core->MStart = pSuper->MediaStart;
-    core->ASize = pSuper->AreaSize;
-    core->ebuf = media->ubuf;
-    if(flash_page_size > 512)
+    if(opts & MS_INSTALLFORMAT)
     {
-        core->nsz = 256;
-    }
-    else
-    {
-        core->nsz = 128; // unitså°ºå¯¸å°äº512bytesæ—¶ï¼Œåå­—é•¿åº¦ç¼©å°ä¸º128ï¼›
-    }
-
-    if(fileblock & (flash_block_size-1)) // fileblockæŒ‰å¯æ“¦é™¤å¤§å°å¯¹é½
-    {
-        printf("\r\n: info : efs    : single file space's range expand from %d to ", fileblock);
-        fileblock -= fileblock & (flash_block_size - 1); // å‰”é™¤ä¸å¯¹é½
-        fileblock += flash_block_size; // æ€»ä½“å¢åŠ ä¸€ä¸ªå¯æ“¦é™¤ç©ºé—´ï¼Œå¯¹é½äº†
-        printf("%d.", fileblock);
-    }
-
-    core->fsz = fileblock / flash_page_size; // å•æ–‡ä»¶çš„å®¹é‡ï¼Œunitä¸ºå•ä½ï¼›
-    core->fmax = core->ASize / fileblock; // é¢„ä¼°æ–‡ä»¶æ•°
-    tmp = flash_page_size / sizeof(struct __eidx); // å•ä¸ªunitèƒ½å­˜æ”¾çš„ç´¢å¼•æ•°
-    if(core->fmax%tmp) // ç´¢å¼•ç©ºé—´æŒ‰å•ä¸ªunitå¯¹é½æ“ä½œ
-    {
-        idxs = core->fmax / tmp + 1; // ç´¢å¼•ç©ºé—´éœ€å ç”¨çš„unitæ•°ï¼Œunitä¸ºå•ä½ï¼›
-    }
-    else
-    {
-        idxs = core->fmax / tmp; // ç´¢å¼•ç©ºé—´éœ€å ç”¨çš„unitæ•°ï¼Œunitä¸ºå•ä½ï¼›
-    }
-
-    core->finfo = 1 + idxs; // æ–‡ä»¶ä¿¡æ¯çš„åç½®ï¼Œunitä¸ºå•ä½;
-    sys = 1 + idxs + core->fmax; // é¢„ä¼°ç³»ç»Ÿç©ºé—´å¤§å°ï¼ˆç³»ç»Ÿä¿¡æ¯+ç´¢å¼•+æ–‡ä»¶ä¿¡æ¯ï¼‰,unitä¸ºå•ä½
-    tmp = block_page_number; // å¯æ“¦é™¤ç©ºé—´è½¬ä¸ºunitå•ä½ï¼›
-    if(sys%tmp) // ç³»ç»Ÿå°ºå¯¸æŒ‰å¯æ“¦é™¤å¤§å°å¯¹é½,unitä¸ºå•ä½
-    {
-        sys = (sys - sys % tmp) + tmp;
-    }
-
-    core->ssz = sys; // å¯¹é½åçš„ç³»ç»Ÿç©ºé—´ï¼Œunitä¸ºå•ä½
-    sys = core->ssz * 6; // å…¨éƒ¨ç³»ç»Ÿéƒ¨åˆ†é€»è¾‘æ‰€å ç”¨çš„ç©ºé—´ï¼ˆå¯æ“¦é™¤ç©ºé—´å¯¹é½ï¼Œunitä¸ºå•ä½ï¼‰ï¼›
-    tmp = (core->ASize - ((core->fmax * core->fsz) * flash_page_size)); // é¢„ä¼°ç³»ç»Ÿå¯ç”¨ç©ºé—´çš„å‰©ä½™ç©ºé—´
-    tmp = tmp & (0xFFFFFFFF - (flash_block_size -1)); // é¢„ä¼°ç³»ç»Ÿå¯ç”¨ç©ºé—´çš„å‰©ä½™ç©ºé—´, å¯æ“¦é™¤å¯¹é½
-    tmp = tmp / flash_page_size; // // é¢„ä¼°ç³»ç»Ÿå¯ç”¨ç©ºé—´çš„å‰©ä½™ç©ºé—´ï¼Œunitä¸ºå•ä½
-    if(tmp<sys) // é¢„ä¼°çš„ç³»ç»Ÿç©ºé—´ä¸å¤Ÿï¼Œä»æ–‡ä»¶ç©ºé—´é‡Œè·å–
-    {
-        i = 1;
-        while(1)
+        if(Efs_Mkfs(core,pSuper) == 0)//Éè±¸ÉÏ²»´æÔÚÎÄ¼şÏµÍ³£¬ÔòĞÂ½¨
+            return 0;
+        else
         {
-            if((tmp+i*core->fsz) >= (u32)sys)
-                break;
-
-            i++;
-        }
-    }
-
-    if(core->fmax<=(u32)i)
-    {
-        printf("\r\n: erro : efs    : file system cannot create for bad logic.");
-        free(core);
-        return (-1);
-    }
-
-    core->fmax -= i; // å®é™…æ–‡ä»¶æ•°é‡ï¼›(å‡æ‰ç³»ç»Ÿç©ºé—´éœ€è¦çš„ç©ºé—´)
-    res = __e_scan(core);
-    if(1==res)
-    {
-        if(!(opts&MS_INSTALLCREAT))
-        {
-            printf("\r\n: erro : efs    : file system does not exist, but no create.");
+            error_printf("efs","format fail.\r\n");
             free(core);
-            return (-1);
-        }
-
-        res = __e_build(core); // å»ºç«‹efsæ–‡ä»¶ç³»ç»Ÿï¼›
-        if(res)
-        {
-            printf("\r\n: erro : efs    : file system does not exist, and cannot create.");
-            free(core);
-            return (-1);
+            return -1;
         }
     }
-    else if (-1 == res)
+
+    bakbuf = M_MallocLc(EfsCgfLimit, 0);//Ö»ĞèÎÄ¼şĞÅÏ¢´óĞ¡
+    if (bakbuf == NULL)
     {
-        printf("\r\n: erro : efs    : file system has corrupted.");
         free(core);
-        return (-1);
+        return -1;
+    }
+    blocks = (EfsCgfLimit + core->block_size-1) / core->block_size; // EFSÎÄ¼ş·ÖÅä±íËùĞèÒªÊ¹ÓÃµÄ¿éÊı
+    end_block = core->start_block + blocks; //
+    fileInfoSize = EfsCgfLimit;
+    block_buf = core->file_list_buf;
+
+   if(false == Lock_MutexPend(core->block_buf_mutex,MUTEX_WAIT_TIME))
+   {
+       free(bakbuf);
+       free(core);
+       return -1;
+   }
+
+    //¼ì²éÎÄ¼şÏµÍ³ÊÇ·ñÒÑ¾­½¨Á¢
+    if(!core->drv->efs_read_media(core->start_block, 0, block_buf, fileInfoSize,EF_WR_NOECC))
+        goto fail;
+    if(!core->drv->efs_read_media(end_block, 0, bakbuf, fileInfoSize,EF_WR_NOECC))
+        goto fail;
+    //Ö÷±¸Çø¶¼±»ÆÆ»µ£¬ÔòĞèÒªÖØĞÂ½¨Á¢ÎÄ¼şÏµÍ³
+    if ((memcmp(bakbuf, "easyfile", 8) ||
+            memcmp(bakbuf + FILE_VERIFITY_OFF, "easyfile", 8)) &&
+        (memcmp(block_buf, "easyfile", 8)||
+            memcmp(block_buf + FILE_VERIFITY_OFF, "easyfile", 8)) )
+    {
+        printf("ÎÄ¼şÏµÍ³Î´½¨Á¢!\r\n");
+        Lock_MutexPost(core->block_buf_mutex);
+        goto exit;
     }
 
+    //¼ì²éÎÄ¼şÏµÍ³ĞÅÏ¢Çø×îºóÁ½×Ö½ÚCRCÊÇ·ñÕıÈ·
+    if(!core->drv->efs_read_media(core->start_block + blocks - 1, core->block_size-2,
+            block_buf+fileInfoSize-2, 2,EF_WR_NOECC))
+        goto fail;
+    if(!core->drv->efs_read_media(end_block + blocks - 1, core->block_size-2,
+            bakbuf+fileInfoSize-2, 2,EF_WR_NOECC))
+        goto fail;
+
+    crc16_check = pick_little_16bit(block_buf,(fileInfoSize/2)-1);
+    if(crc16_check != crc16(block_buf,16))
+        mainblockerr = 1;
+
+    crc16_check = pick_little_16bit(bakbuf,(fileInfoSize/2)-1);
+    if(crc16_check != crc16(bakbuf,16)) //bakĞ£Ñé´í
+        bakblockerr = 1;
+
+    //ÒÔÏÂ¼ì²éÊı¾İÕıÈ·ĞÔ
+    loop = core->start_block;
+
+    switch((mainblockerr << 1) + (bakblockerr << 0))
+    {
+    case 0x03:      //Á½¸ö»º³åÇøĞ£Ñé¾ù³ö´í£¬±íÃ÷ÎÄ¼şÏµÍ³ÒÑ¾­Ëğ»µ£¬±¨´í
+        Lock_MutexPost(core->block_buf_mutex);
+        goto exit;
+        break;
+    case 0x02:      //mainbuf error, bakĞ£ÑéÕıÈ·
+        temp = __Efs_CheckSingleBuf(bakbuf, loop, core);
+        if (temp == 0)
+        {
+            crc16_check = crc16(bakbuf,16);
+            fill_little_16bit((u8*)&temp,0,crc16_check);    //×ª»¯ÎªĞ¡¶Ë
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop);       //²ÁÖ÷Çø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(core->start_block, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+        }
+        else if (temp == 1)
+        {
+            crc16_check = crc16(bakbuf,16);
+            fill_little_16bit((u8*)&temp,0,crc16_check);    //×ª»¯ÎªĞ¡¶Ë
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop);       //²ÁÖ÷Çø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(core->start_block, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop + blocks);       //²Á±¸·İÇø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(loop, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+        }
+        else
+        {
+            Lock_MutexPost(core->block_buf_mutex);
+            goto exit;
+        }
+        break;
+    case 0x01:          //Ö÷Ğ£ÑéÕıÈ·, bakbuf error
+        temp = __Efs_CheckSingleBuf(block_buf, loop,core);
+        if (temp == 0)
+        {
+            crc16_check = crc16(block_buf,16);
+            fill_little_16bit((u8*)&temp,0,crc16_check);    //×ª»¯ÎªĞ¡¶Ë
+
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop + blocks);       //²Á±¸·İÇø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+        }
+        else if (temp == 1)
+        {
+            crc16_check = crc16(block_buf,16);
+            fill_little_16bit((u8*)&temp,0,crc16_check);    //×ª»¯ÎªĞ¡¶Ë
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop);       //²ÁÖ÷Çø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(core->start_block, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop + blocks);       //²Á±¸·İÇø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+        }
+        else
+        {
+            Lock_MutexPost(core->block_buf_mutex);
+            goto exit;
+        }
+        break;
+    case 0x00:          //Ö÷/±¸ÇøÓòÈ«´í
+        if(true == __Efs_CheckBlock(block_buf,loop, bakbuf, loop+blocks, core) )
+        {
+            crc16_check = crc16(block_buf,16);
+            fill_little_16bit((u8*)&temp,0,crc16_check);    //×ª»¯ÎªĞ¡¶Ë
+            //·ÖÅä±íĞÅÏ¢´í»òfilesizeÂú£¬ÔòĞ´Èëflash
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop);       //²ÁÖ÷Çø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(core->start_block, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+
+            for (loop = core->start_block; loop < end_block; loop++)
+                    core->drv->efs_erase_media(loop + blocks);       //²Á±¸·İÇø£¬È»ºóÖØĞÂĞ´ÈëËùÓĞÎÄ¼şË÷Òı;
+            if(!core->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+                goto fail;
+            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+                goto fail;
+        }
+        break;
+    default:
+        Lock_MutexPost(core->block_buf_mutex);
+        goto exit;
+        break;
+    }
+    if(!core->drv->efs_read_media(core->start_block, 0, block_buf, fileInfoSize,EF_WR_NOECC))       //¶ÁÎÄ¼ş·ÖÅä±íµ½»º´æÖĞ
+        goto fail;
+    s_pEfsList[0] = core;
+    strncpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
+    Lock_MutexPost(core->block_buf_mutex);
+    free(bakbuf);
     pSuper->pCore = (void*)core;
+    return 0;
+exit:
+    free(bakbuf);
+    if(opts & MS_INSTALLCREAT)
+    {
+        if(Efs_Mkfs(core,pSuper) == 0)//Éè±¸ÉÏ²»´æÔÚÎÄ¼şÏµÍ³£¬ÔòĞÂ½¨
+            return 0;
+    }
+    free(core);
+    return -1;
+fail:
+    free(bakbuf);
+    free(core);
+    Lock_MutexPost(core->block_buf_mutex);
+    return -1;
+}
+// ============================================================================
+// ¹¦ÄÜ£º°²×°EASYÎÄ¼şÏµÍ³
+// ²ÎÊı£ºtarget -- °²×°Ä¿Â¼£»opt -- °²×°Ñ¡Ïî£» config -- ÌØÊâÂß¼­£¨ÔİÊ±Î´Ê¹ÓÃ£©£»
+// ·µ»Ø£ºÊ§°Ü(-1)£» ³É¹¦(0)¡£
+// ±¸×¢:
+// ============================================================================
+s32 ModuleInstall_EFS(const char *target, u32 opt, u32 config)
+{
+    struct Object * mountobj;
+    static struct filesystem *typeEFS = NULL;
+    s32 res;
+
+    if(!target)
+    {
+        return (-1);
+    }
+
+    res = sizeof(*typeEFS);
+    if(typeEFS == NULL)
+    {
+        typeEFS = malloc(res);
+
+        typeEFS->fileOps = e_operations;
+        typeEFS->install = e_install;
+        typeEFS->pType = "EFS";
+        typeEFS->format = Efs_Format;
+        typeEFS->uninstall = NULL;
+    }
+    res = regfs(typeEFS);
+    if(-1==res)
+    {
+        printf("\r\n: dbug : module : cannot register \"EFS\"<file system type>.");
+        return (-1); // Ê§°Ü;
+    }
+
+    mountobj = obj_newchild(obj_root(), __mount_ops, 0, target); // ´´½¨°²×°Ä¿Â¼
+    if(NULL == mountobj)
+    {
+        printf("\r\n: dbug : module : mount \"EFS\" failed, cannot create \"%s\"<group point>.", target);
+        return (-1);
+    }
+//    __InuseUpFullPath(mountobj);
+    opt |= MS_DIRECTMOUNT;
+    res = mountfs(NULL, target, "EFS", opt, (void *)config);
+    if(res == -1)
+    {
+        printf("\r\n: dbug : module : mount \"%s\" failed, cannot install.", "EFS");
+        obj_Delete(mountobj);
+        return (-1);
+    }
+
     return (0);
 }

@@ -99,7 +99,7 @@ typedef enum IRQn
 /*                Device Specific Peripheral Registers structures             */
 /******************************************************************************/
 
-#if defined ( __CC_ARM   )
+#if defined ( __CC_ARM   )||  defined ( __GNUC__ )
 #pragma anon_unions
 #endif
 

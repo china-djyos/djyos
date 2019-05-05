@@ -88,8 +88,8 @@
                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"driver","lock","uart","heap","cpu_peri_pmc",  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //如果依赖多个组件，则依次列出
-//mutex:"none"                      //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //如果依赖多个组件，则依次列出
+//mutex:"none"                      //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                    //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -118,7 +118,7 @@
 #define CFG_USART0_ENABLE       false         //"是否配置USART0",
 #define CFG_USART1_ENABLE       false         //"是否配置USART1",
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束

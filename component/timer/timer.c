@@ -84,20 +84,20 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_TIMER_HARD   //****检查参数是否已经配置好
+#ifndef CFG_TIMER_SOUCE_HARD   //****检查参数是否已经配置好
 #warning    timer组件参数未配置，使用默认值
-//%$#@enum,true,false,
-#define CFG_TIMER_HARD     true    //"使用硬件定时器",不勾选则使用系统时间
 //%$#@num,0,100,
-#define CFG_TIMERS_LIMIT    5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
+#define CFG_TIMERS_LIMIT        5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
+//%$#@enum,true,false,
+#define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick/tickless做时钟源
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -423,7 +423,7 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
     }
     else
     {
-#if CFG_TIMER_HARD == true        //由硬件计时器提供时钟源
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
 //      if(sbUsingHardTimer)
         {
            if(Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER))
@@ -450,7 +450,7 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
                 result = timer;
             }
         }
-#else       //for #if CFG_TIMER_HARD == true
+#else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
             timer->name = (char*)name;
             timer->cycle = cycle;
@@ -465,7 +465,7 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
                 result = timer;
             }
         }
-#endif       //for #if CFG_TIMER_HARD == true
+#endif       //for #if CFG_TIMER_SOUCE_HARD == true
     }
     return result;
 }
@@ -487,7 +487,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
     }
     else
     {
-#if CFG_TIMER_HARD == true        //由硬件计时器提供时钟源
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
 //      if(sbUsingHardTimer)
         {
            if(Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER))
@@ -508,7 +508,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
                 result = (tagTimer*)timer;
             }
         }
-#else       //for #if CFG_TIMER_HARD == true
+#else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
             msg.timer = timer;
             msg.type = EN_TIMERSOFT_REMOVE;
@@ -518,7 +518,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
                 result = timer;
             }
         }
-#endif       //for #if CFG_TIMER_HARD == true
+#endif       //for #if CFG_TIMER_SOUCE_HARD == true
     }
     return result;
 }
@@ -590,7 +590,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
     tagTimerMsg msg;
     if(timer)                      //参数检查
     {
-#if CFG_TIMER_HARD == true        //由硬件计时器提供时钟源
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
 //      if(sbUsingHardTimer)
         {
             Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER);
@@ -654,7 +654,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
             }
             Lock_MutexPost(ptTimerQSync);
         }
-#else       //for #if CFG_TIMER_HARD == true
+#else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
             msg.timer = timer;
             msg.type = opcode;
@@ -662,7 +662,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
             result = MsgQ_Send(ptTimerMsgQ,(u8 *)&msg, sizeof(msg),\
                                CN_TIMEOUT_FOREVER, CN_MSGQ_PRIO_NORMAL);
         }
-#endif       //for #if CFG_TIMER_HARD == true
+#endif       //for #if CFG_TIMER_SOUCE_HARD == true
     }
 
     return result;
@@ -800,7 +800,7 @@ bool_t ModuleInstall_Timer(void)
     {
         goto EXIT_POOLFAILED;
     }
-#if CFG_TIMER_HARD == true        //由硬件计时器提供时钟源
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
         //使用硬件定时器的时候才会使用该同步标记
         ptTimerQSync = Lock_MutexCreate("Timer");
         if(NULL == ptTimerQSync)
@@ -823,7 +823,7 @@ bool_t ModuleInstall_Timer(void)
         //使能定时器中断，但是没有使能定时器,坐等API的调用
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_ENINT,(ptu32_t)NULL);
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_SETRELOAD,(ptu32_t)false);
-#else   //CFG_TIMER_HARD == true      由tick提供时钟源
+#else   //CFG_TIMER_SOUCE_HARD == true      由tick提供时钟源
 
         //建立通信用的消息队列
         ptTimerMsgQ = MsgQ_Create(CN_TIMERSOFT_MSGLEN, \
@@ -855,7 +855,7 @@ bool_t ModuleInstall_Timer(void)
                 }
             }
         }
-#endif  //CFG_TIMER_HARD == true
+#endif  //CFG_TIMER_SOUCE_HARD == true
 
     printk("Timer:Init Success\n\r");
     return true;

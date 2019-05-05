@@ -1,0 +1,37 @@
+{
+	"ide_version":"DIDE-V1.6_20190404",
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"stm32f407xx",
+		"board":"EXPLORER-stm32f4"
+	},
+	"components_checked":{
+		"app":["blackbox",
+		"buffer",
+		"uart",
+		"devfile",
+		"multiplex",
+		"shell",
+		"stdio",
+		"timer",
+		"kernel",
+		"heap",
+		"int",
+		"lock",
+		"MsgQueue",
+		"Objfile",
+		"MemoryPool",
+		"board",
+		"stm32f4",
+		"Clib",
+		"cpu_peri_dma",
+		"cpu_peri_gpio",
+		"cpu_peri_timer",
+		"cpu_peri_uart"],
+		"iboot":[]
+	}
+}

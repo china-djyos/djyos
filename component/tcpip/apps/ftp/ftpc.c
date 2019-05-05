@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -24,27 +24,27 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018������Ȩ�ɶ����߲���ϵͳ��Դ�����Ŷ�����?����Ȩ�˱���һ��Ȩ��?
 //
-// 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
-// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
+// �����Ȩ�����ʹ���߷��������������������£�����ʹ�Ý�ʹ�ü���ɢ����
+// ������װԭʼ�뼰����λ��ִ����ʽ��Ȩ�������۴˰�װ�Ƿ񾭸�����Ȼ?
 //
-// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
-//    及下述的免责声明。
-// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
-//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
-//    的免责声明。
-// 3. 本软件作为都江堰操作系统的组成部分，未获事前取得的书面许可，不允许移植到非
-//    都江堰操作系统环境下运行。
+// 1. ���ڱ�����Դ�������ɢ�������뱣�������İ�Ȩ���桢�������б�����
+//    ����������������?
+// 2. ���ڱ��׼�����λ��ִ����ʽ����ɢ���������������ļ��Լ������������
+//    ��ɢ����װ�е�ý�鷽ʽ����������֮��Ȩ����?�������б����Լ��½�
+//    ����������?
+// 3. ��������Ϊ�����߲���ϵͳ����ɲ��֣�δ����ǰȡ�õ��������ɣ���������ֲ���
+//    �����߲���ϵͳ����������?
 
-// 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
-// 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
-// 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
-// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
-// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
-// 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
-// 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
-// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
+// �����������������Ǳ�������Ȩ�������Լ����ם�����״?"as is"���ṩ��
+// ��������װ�����κ���ʾ��Ĭʾ֮�������Σ������������ھ��������Լ��ض�Ŀ
+// �ĵ�������ΪĬʾ�Ե���?��Ȩ�����˼�������֮���ם䣬�����κ�����?
+// ���۳�����κ���������?���۴�����Ϊ���Լ��ϵ���޹�ʧ������������Υ
+// Լ֮��Ȩ��������ʧ������ԭ��ȣ����𣬶����κ���ʹ�ñ�������װ�������
+// �κ�ֱ����?��ӂf?ż���f?����f?�ͷ��f���κν�����𺦣����������]
+// �������Ʒ������֮����?ʹ����ʧ?������ʧ?������ʧ?ҵ���жϵȵȣ�?
+// �����κ����Σ����ڸ���ʹ���ѻ���ǰ��֪���ܻ���ɴ����𺦵���������Ȼ?
 //-----------------------------------------------------------------------------
 #include <stdio.h>
 #include <sys/types.h>
@@ -59,7 +59,7 @@
 #include <string.h>
 #include <os.h>
 #include <shell.h>
-#include "../../component_config_tcpip.h"
+#include "component_config_ftp.h"
 
 #include "ftp.h"
 #include "dbug.h"
@@ -68,10 +68,10 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //------------------------------------------------------------------------------
-//功能：字符串地址转整数IPV4地址，字符串可以是点分十进制的，也可以是主机名。
-//参数：string，IPV4 地址，或者主机名
-//     addr，返回结果，网络字节序
-//返回：true=成功，false= 失败
+//���ܣ��ַ�����ַת����IPV4��ַ���ַ��������ǵ��ʮ���Ƶģ�Ҳ������������?
+//������string��IPV4 ��ַ������������
+//     addr�����ؽ���������ֽڎ�
+//���أ�true=�ɹ���false= ʧ��
 //------------------------------------------------------------------------------
 static bool_t  __String2Ip(const char *string,struct in_addr *addr)
 {
@@ -611,7 +611,7 @@ static int __DownLoad( tagFtpClient *client,const char *s,const char *d)
     s64    time1;
     s64    time2;
     s64    time3;
-    //打开本地文件
+    //�򿪱����ļ�
     fd = open( d,  O_WRONLY|O_CREAT|O_TRUNC);
     if (fd == -1 )
     {
@@ -711,7 +711,7 @@ static int __UpLoad( tagFtpClient *client,const char *s,const char *d)
     s64    time2;
     s64    time3;
 
-    //打开本地文件
+    //�򿪱����ļ�
     fd = open(s, O_RDONLY);
     if (fd == -1 )
     {
@@ -1286,9 +1286,9 @@ EXIT_MEM:
 
 
 // =============================================================================
-// 功能：add the ftpclient debug to the system
-// 参数：para
-// 返回值  ：true成功  false失败。
+// ���ܣ�add the ftpclient debug to the system
+// ������para
+// ���ر�  ��true�ɹ�  falseʧ��?
 // =============================================================================
 bool_t ServiceFtpcInit(void)
 {
@@ -1296,4 +1296,5 @@ bool_t ServiceFtpcInit(void)
 }
 
 ADD_TO_ROUTINE_SHELL(ftpc,ftpc,"usage:ftpc subcmd [subpara]");
+
 

@@ -109,7 +109,7 @@
 #define CFG_USE_CAMERA_INTF                        0
 
 /*section 13-----for GENERRAL DMA */
-#define CFG_GENERAL_DMA                            0
+#define CFG_GENERAL_DMA                            1
 
 /*section 14-----for FTPD UPGRADE*/
 #define CFG_USE_FTPD_UPGRADE                       0

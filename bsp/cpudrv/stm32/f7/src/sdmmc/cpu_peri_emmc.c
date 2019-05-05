@@ -76,14 +76,14 @@
                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                    //初始化时机，可选值：early，medium，later。
                                      //表示初始化时间，分别是早期、中期、后期
-//dependence:"devfile","lock"        //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"fatfilesystem","devfile","lock"        //该组件的依赖组件名（可以是none，表示无依赖组件），
                                      //选中该组件时，被依赖组件将强制选中，
                                      //如果依赖多个组件，则依次列出
 //weakdependence:"none"              //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                      //选中该组件时，被依赖组件不会被强制选中，
                                      //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                       //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                     //如果依赖多个组件，则依次列出
+//mutex:"none"                       //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                     //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -96,7 +96,7 @@
 #define CFG_EMMC_FORMAT          false    //是否需要器件格式化。
 //%$#@string,1,10,
 #define CFG_EMMC_FSMOUNT_NAME    "fat"    //需安装的文件系统的mount的名字
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -108,7 +108,7 @@
 
 s32 MMC_HardInit(void);
 extern uint32_t SDMMC_CmdSendStatus(SDMMC_TypeDef *SDMMCx, uint32_t Argument);
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 extern const Pin MMC[6]; // 在board.c之中定义
 
 MMC_HandleTypeDef handleMMC;
@@ -401,7 +401,7 @@ s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
 {
     char *defaultName = "emmc"; // 设备缺省名;
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
 
     SDMMC_BUS_CLK_DIV = speed;

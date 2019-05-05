@@ -53,7 +53,7 @@
 #include "dbug.h"
 #include <stdio.h>
 #include <shell.h>
-#include "../../component_config_tcpip.h"
+#include "component_config_dhcp.h"
 static s32   gDhcpIpMapBytes;                       //which defines the bitmap lenth
 static u8   *gDhcpServerIpBitmap;                   //this is bitmap
 typedef struct

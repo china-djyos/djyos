@@ -64,7 +64,7 @@ extern "C"{
 #include <time.h>
 #include <stdint.h>
 
-ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para);
+ptu32_t ModuleInstall_RTCDS3232M(void);
 bool_t RTC_DS3232MZ_UpdateTime(struct tm *ptm);
 bool_t RTC_DS3232MZ_GetTime(struct tm *ptm);
 bool_t RTC_DS3232MZ_SetAlarm1Time(struct tm *ptm);

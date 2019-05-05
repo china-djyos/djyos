@@ -448,10 +448,6 @@ bool_t netgethostbyname(char *param)
     return result;
 }
 
-//THIS IS DNS MODULE FUNCTION
-bool_t ServiceDnsInit(void)
-{
-    return (TRUE);
-}
+
 ADD_TO_ROUTINE_SHELL(netgethostbyname,netgethostbyname,"usage:netgethostbyname hostname");
 

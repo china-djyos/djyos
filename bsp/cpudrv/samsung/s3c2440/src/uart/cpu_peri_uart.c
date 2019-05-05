@@ -99,8 +99,8 @@
 //weakdependence:"none"               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件不会被强制选中，
                                       //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                        //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                      //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                        //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                      //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -121,7 +121,7 @@
 #define CFG_UART1_ENABLE                 false             //"配置是否使用UART1",
 #define CFG_UART2_ENABLE                 false             //"配置是否使用UART2",
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -366,7 +366,7 @@ void __UART_IntConfig(u32 port)
 u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
 {
     u8 trans,num,ch[UART_TX_FIFO_SIZE],sending_num,port;
-    struct obj *UCB;
+    struct Object *UCB;
 
     switch((u32)Reg)
     {
@@ -666,7 +666,7 @@ u32 UART2_Int(ptu32_t uart_int_line)
 //-----------------------------------------------------------------------------
 ptu32_t ModuleInstall_UART(ptu32_t serial_no)
 {
-    struct obj *UCB;
+    struct Object *UCB;
     struct UartParam UART_Param;
 
     switch(serial_no)
@@ -736,7 +736,7 @@ static int port_stdio=0;
 s32 Uart_PutStrDirect(const char *str,u32 len)
 {
     u32 result = 0,port,timeout = 100*mS;
-    struct obj *UCB = NULL;
+    struct Object *UCB = NULL;
     tagUartReg *Reg;
     u32 BaseAddr;
 

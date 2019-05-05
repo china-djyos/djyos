@@ -19,7 +19,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    AD5697R_ModuleInit(CFG_AD5697R_BUS_NAME);
+//    extern bool_t AD5697R_ModuleInit(void)
+//    AD5697R_ModuleInit();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -36,8 +37,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -52,7 +53,7 @@
 #define CFG_AD5697R_ADDR           0x0D                 //"设备地址",
 //%$#@string,1,10,
 #define CFG_AD5697R_BUS_NAME              "I2C0"        //"name",所挂载的总线名称,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -185,7 +186,7 @@ bool_t AD5697R_OutputAll(u16 DacValue1,u16 DacValue2)
 // 参数：无
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t AD5697R_ModuleInit(char *BusName)
+bool_t AD5697R_ModuleInit(void)
 {
     //GPIO初始化，SDA、SCL已经在IIC中初始化了，此处只需初始化WP即可
     __AD5697R_GpioInit();
@@ -194,7 +195,7 @@ bool_t AD5697R_ModuleInit(char *BusName)
         return false;
 
     //添加FM24CL64到IIC0总线
-    s_ptAD5697R_Dev = IIC_DevAdd(BusName,"AD5697R",CFG_AD5697R_ADDR,0,8);
+    s_ptAD5697R_Dev = IIC_DevAdd(CFG_AD5697R_BUS_NAME,"AD5697R",CFG_AD5697R_ADDR,0,8);
     if(s_ptAD5697R_Dev)
     {
         IIC_BusCtrl(s_ptAD5697R_Dev,CN_IIC_SET_CLK,CFG_AD5697R_CLK_FRE,0);

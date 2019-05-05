@@ -68,8 +68,8 @@
             M0IBOOT     DSP          CK         M0APP
 blackstart  0           2            11
 blackEnd    2           11           16
-AddRStart   0           0x20000
-AddEnd      0x20000     0xb0000
+AddRStart   0           0x20000     0xb0000
+AddEnd      0x20000     0xb0000     0x100000
 SIZE        128K        576K        320K
 ============================================================================*/
 

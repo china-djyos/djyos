@@ -4,6 +4,13 @@
 #include <stdlib.h>
 //#include <rtthread.h>
 
+static struct HeapCB *pMemHeap = NULL;
+
+void os_meminit(void)
+{
+    pMemHeap = M_FindHeap("dtcm");
+}
+
 INT32 os_memcmp(const void *s1, const void *s2, UINT32 n)
 {
     return memcmp(s1, s2, (unsigned int)n);
@@ -27,17 +34,15 @@ void *os_memset(void *b, int c, UINT32 len)
 void *os_malloc(size_t size)
 {
     void *ptr = NULL;
-    ptr = malloc(size);
-    if(ptr == NULL)
-    {
-        ptr = NULL;
-    }
+    if(pMemHeap==NULL)
+        return NULL;
+    ptr = M_MallocHeap(size,pMemHeap,0);
     return ptr;
 }
 
 void * os_zalloc(size_t size)
 {
-	void *n = (void *)malloc(size);
+	void *n = (void *)os_malloc(size);
 	if (n)
 		memset(n, 0, size);
 	return n;
@@ -47,11 +52,11 @@ void *os_realloc(void *ptr, size_t size)
 {
 	void *tmp;
 
-	tmp = (void *)malloc(size);
+	tmp = (void *)os_malloc(size);
 	if(tmp)
 	{
 		memcpy(tmp, ptr, size);
-		free(ptr);
+		os_free(ptr);
 	}
 
 	return tmp;
@@ -61,7 +66,7 @@ void os_free(void *ptr)
 {
     if(ptr)
     {
-        free(ptr);
+        M_FreeHeap(ptr,pMemHeap);
     }
 }
 

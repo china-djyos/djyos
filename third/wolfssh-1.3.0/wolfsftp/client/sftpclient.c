@@ -280,6 +280,62 @@ static int wsUserAuth(byte authType,
     return ret;
 }
 
+static char * wolfssh_fgets ( char * str, int num, FILE * f )
+{
+    int i ;
+
+    for(i = 0 ; i< num ; i++) 
+    {
+        do
+        {
+            str[i] = getchar();
+        }while(str[i] == 0);
+
+        if(str[i] == '\n' || str[i] == '\012' || str[i] == '\015')  
+        {
+            putchar('\n') ;
+            str[i++] = '\n' ;
+            str[i] = '\0' ;
+            break ;
+        } 
+        else if(str[i] == '\010')/* BS */
+        {
+            if(i>0)/* erace one char */
+            {
+                str[i]=0;
+                i--;
+                str[i]=0;
+                i--;
+                putchar('\010'); 
+                putchar(' '); 
+                putchar('\010');
+                continue ;
+            }
+            else
+            {
+                str[i]=0;
+                i--;
+                continue ;
+            }
+        }
+        else if(str[i] == 3  || str[i] == 4 )/* ^C or ^D */
+        {  
+            str[i] = '\0' ;
+            return(0) ;
+        }
+
+        if(str[i] >= 32 && str[i] <= 126 )
+        {
+            putchar(str[i]) ;
+        }
+        else
+        {
+            i--;
+        }
+    }
+
+    return(str) ;
+}
 
 /* main loop for handling commands */
 int doCmds()
@@ -295,10 +351,19 @@ int doCmds()
         char msg[WOLFSSH_MAX_FILENAME * 2];
         char* pt;
 
-        if (WFPUTS("wolfSSH sftp> ", fout) < 0)
+        if (WFPUTS("\rwolfSSH sftp>", fout) < 0)
+        {  
             err_sys("fputs error");
-        if (WFGETS(msg, sizeof(msg) - 1, fin) == NULL)
-            err_sys("fgets error");
+            quit = 1;
+            continue;
+        }
+        //if (WFGETS(msg, sizeof(msg) - 1, fin) == NULL)
+        if(wolfssh_fgets(msg, sizeof(msg) - 1, fin) == NULL)
+        {  
+            //err_sys("fgets error");
+            quit = 1;
+            continue;
+        }
         msg[WOLFSSH_MAX_FILENAME * 2 - 1] = '\0';
 
         if ((pt = WSTRNSTR(msg, "mkdir", sizeof(msg))) != NULL) {
@@ -744,6 +809,7 @@ int doCmds()
             WS_SFTPNAME* tmp;
             WS_SFTPNAME* current = wolfSSH_SFTP_LS(ssh, workingDir);
             tmp = current;
+            printf("\r", tmp->fName);
             while (tmp != NULL) {
                 printf("%s\n", tmp->fName);
                 tmp = tmp->next;
@@ -775,7 +841,10 @@ int doCmds()
             continue;
         }
 
-        WFPUTS("Unknown command\n", fout);
+        if(msg[0] != '\n')
+        {
+            WFPUTS("\rUnknown command\n", fout);
+        }
     }
 
     return WS_SUCCESS;
@@ -809,7 +878,10 @@ THREAD_RETURN WOLFSSH_THREAD sftpclient_test(void* args)
                 port = (word16)atoi(myoptarg);
                 #if !defined(NO_MAIN_DRIVER) || defined(USE_WINDOWS_API)
                     if (port == 0)
+                    {
                         err_sys("port number cannot be 0");
+                        return 0;
+                    }
                 #endif
                 break;
 
@@ -823,21 +895,28 @@ THREAD_RETURN WOLFSSH_THREAD sftpclient_test(void* args)
 
             case '?':
                 ShowUsage();
-                exit(EXIT_SUCCESS);
+                //exit(EXIT_SUCCESS);
+                return 0;
 
             default:
                 ShowUsage();
-                exit(MY_EX_USAGE);
+                //exit(MY_EX_USAGE);
+                return 0;
         }
     }
     myoptind = 0;      /* reset for test cases */
 
     if (username == NULL)
+    {
         err_sys("client requires a username parameter.");
-
+        return 0;
+    }
     ctx = wolfSSH_CTX_new(WOLFSSH_ENDPOINT_CLIENT, NULL);
     if (ctx == NULL)
+    {
         err_sys("Couldn't create wolfSSH client context.");
+        return 0;
+    }
 
     if (((func_args*)args)->user_auth == NULL)
         wolfSSH_SetUserAuth(ctx, wsUserAuth);
@@ -851,39 +930,60 @@ THREAD_RETURN WOLFSSH_THREAD sftpclient_test(void* args)
 
     ssh = wolfSSH_new(ctx);
     if (ssh == NULL)
+    {
         err_sys("Couldn't create wolfSSH session.");
+        wolfSSH_CTX_free(ctx);
+        wolfSSH_free(ssh);
+        return 0;
+    }
 
     if (password != NULL)
         wolfSSH_SetUserAuthCtx(ssh, (void*)password);
 
     ret = wolfSSH_SetUsername(ssh, username);
     if (ret != WS_SUCCESS)
+    {
         err_sys("Couldn't set the username.");
+        wolfSSH_CTX_free(ctx);
+        wolfSSH_free(ssh);
+        return 0;
+    }
 
     build_addr(&clientAddr, host, port);
     tcp_socket(&sockFd);
     ret = connect(sockFd, (const struct sockaddr *)&clientAddr, clientAddrSz);
     if (ret != 0)
+    {
         err_sys("Couldn't connect to server.");
+        goto go_return;
+    }
 
     ret = wolfSSH_set_fd(ssh, (int)sockFd);
     if (ret != WS_SUCCESS)
+    {
         err_sys("Couldn't set the session's socket.");
+        goto go_return;
+    }
 
     ret = wolfSSH_SFTP_connect(ssh);
     if (ret != WS_SUCCESS)
-        err_sys("Couldn't connect SFTP");
+    {
+       err_sys("Couldn't connect SFTP");
+       goto go_return;
+    }
 
     {
         /* get current working directory */
         WS_SFTPNAME* n = wolfSSH_SFTP_RealPath(ssh, (char*)".");
         if (n == NULL) {
             err_sys("Unable to get real path for working directory");
+            goto go_return;
         }
 
         workingDir = (char*)XMALLOC(n->fSz + 1, NULL, DYNAMIC_TYPE_TMP_BUFFER);
         if (workingDir == NULL) {
             err_sys("Unable to create working directory");
+            goto go_return;
         }
         WMEMCPY(workingDir, n->fName, n->fSz);
         workingDir[n->fSz] = '\0';
@@ -895,6 +995,7 @@ THREAD_RETURN WOLFSSH_THREAD sftpclient_test(void* args)
 
     doCmds();
 
+go_return:
     ret = wolfSSH_shutdown(ssh);
     if (ret != WS_SUCCESS)
         err_sys("Closing stream failed.");
@@ -908,18 +1009,17 @@ THREAD_RETURN WOLFSSH_THREAD sftpclient_test(void* args)
 
 
 #ifndef NO_MAIN_DRIVER
-#if 0
-    int main(int argc, char** argv)
-#else
-    int sftp_main(int argc, char** argv)
-#endif
-    {
+static int main(int argc, char** argv)
+{
         func_args args;
 
         args.argc = argc;
         args.argv = argv;
         args.return_code = 0;
         args.user_auth = NULL;
+
+        myoptarg = NULL;
+        myoptind = 0;
 
         WSTARTTCP();
 
@@ -928,8 +1028,9 @@ THREAD_RETURN WOLFSSH_THREAD sftpclient_test(void* args)
         #endif
 
         wolfSSH_Init();
-
+#if 0
         ChangeToWolfSshRoot();
+#endif
         sftpclient_test(&args);
 
         wolfSSH_Cleanup();
@@ -939,5 +1040,16 @@ THREAD_RETURN WOLFSSH_THREAD sftpclient_test(void* args)
 
     int myoptind = 0;
     char* myoptarg = NULL;
+
+bool_t sftp_client(char *Param)
+{
+    int argc = 8;
+    const char *argv[8];
+
+    string2arg(&argc,argv,Param);   
+    main(argc, argv);
+
+    return true;
+}
 
 #endif /* NO_MAIN_DRIVER */

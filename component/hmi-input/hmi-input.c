@@ -88,8 +88,8 @@
 //weakdependence:"none"                   //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件不会被强制选中，
                                           //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                            //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                          //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                            //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                          //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -100,7 +100,7 @@
 #define CFG_HMIIN_DEV_LIMIT     2       //"name",人机交互输入设备数量，如键盘、鼠标等
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -112,7 +112,7 @@ struct MemCellPool *g_ptHmiInDevicePool;
 struct HMI_InputDeviceObj sg_ptStdinDeviceMem[CFG_HMIIN_DEV_LIMIT];
 s32 g_s32NextId = 0;       //每次安装输入设备时，以本变量为设备ID，然后本变量++
                             //删除设备，ID不收回。
-static struct obj *s_ptHmiInDeviceDir;
+static struct Object *s_ptHmiInDeviceDir;
 tpInputMsgQ tg_pHmiInputMsgQ;    //  标准输入设备的消息队列
 
 //----初始化标准输入模块-------------------------------------------------------
@@ -240,7 +240,7 @@ bool_t HmiIn_DeleteInputMsgQ(tpInputMsgQ InputMsgQ)
 bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
 {
     struct HMI_InputDeviceObj *result;
-    struct obj *focus;
+    struct Object *focus;
 
     focus = obj_search_child(s_ptHmiInDeviceDir,device_name);
     if(focus != NULL)
@@ -263,7 +263,7 @@ bool_t HmiIn_SetFocus(const char *device_name, tpInputMsgQ FocusMsgQ)
 enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name)
 {
     struct HMI_InputDeviceObj *InputDev;
-    struct obj *input;
+    struct Object *input;
 
     input = obj_search_child(s_ptHmiInDeviceDir,device_name);
     if(input != NULL)
@@ -308,7 +308,7 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //void HmiIn_SetFocusAll(u16 focus_evtt)
 //{
 //    //在这里遍历所有输入设备，即"input device"资源的子孙资源，设置他们的focus_evtt
-//    struct  obj  *current,*start,*target;
+//    struct Object  *current,*start,*target;
 //    start = &(s_ptHmiInDeviceDir->stdin_device_node);
 //    current = start;
 //    while((target =
@@ -331,7 +331,7 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //-----------------------------------------------------------------------------
 bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
 {
-    struct  obj  *current;
+    struct Object  *current;
     struct HMI_InputDeviceObj *InputDevice;
     struct InputDeviceMsg input_msg;
     tpInputMsgQ InputMsgQ;
@@ -399,7 +399,7 @@ bool_t HmiIn_ReadDefaultMsg(struct InputDeviceMsg *MsgBuf,u32 TimeOut)
 //-----------------------------------------------------------------------------
 bool_t HmiIn_UnInstallDevice(const char *device_name)
 {
-    struct  obj  *current;
+    struct Object  *current;
     struct HMI_InputDeviceObj *Djy_HmiIn;
     current = obj_search_child(s_ptHmiInDeviceDir,device_name);
     if(current == NULL)

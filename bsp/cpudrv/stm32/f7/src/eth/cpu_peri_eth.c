@@ -79,8 +79,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -101,7 +101,7 @@
 #define CFG_ETH_MAC_ADDR3      04           //"MAC ADDR3",若选中"硬件生成Mac地址",则无须填写
 #define CFG_ETH_MAC_ADDR4      05           //"MAC ADDR4",若选中"硬件生成Mac地址",则无须填写
 #define CFG_ETH_MAC_ADDR5      06           //"MAC ADDR5",若选中"硬件生成Mac地址",则无须填写
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -339,7 +339,7 @@ static struct NetPkg *__MacRcv(struct NetDev *devhandle)
     return pkg;
 }
 
-static bool_t MacSnd(struct NetDev* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(struct NetDev* handle,struct NetPkg * pkg, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
@@ -652,7 +652,6 @@ static ptu32_t __MacRcvTask(void)
 
 
 
-    u32 *addr;
     u32 value;
     u32 resettimes= 0;
     time_t printtime;
@@ -687,7 +686,8 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-//              NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                                                      PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
@@ -706,7 +706,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                 //here we still use the counter to do the time state check
-//              NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -728,7 +728,7 @@ static ptu32_t __MacRcvTask(void)
     return 0;
 }
 //create the receive task
-static bool_t __CreateRcvTask(ptu32_t handle)
+static bool_t __CreateRcvTask(struct NetDev* handle)
 {
     bool_t result = false;
     u16 evttID;
@@ -750,10 +750,11 @@ static bool_t __CreateRcvTask(ptu32_t handle)
     }
     return result;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //show the gmac status
-//bool_t macdebuginfo(char *param)
-bool_t mac(char *param)
+bool_t macdebuginfo(char *param)
 {
     s64  time;
     u32  timeS;
@@ -800,7 +801,7 @@ bool_t mac(char *param)
 }
 
 #define CN_ETH_REG_BASE   ((u32)ETH)
-bool_t macreg(char *param)
+bool_t MacReg(char *param)
 {
     vu32    i;
     vu32   *addr;
@@ -894,7 +895,7 @@ bool_t MacReset(char *param)
     return true;
 }
 
-bool_t macsnden(char *param)
+bool_t MacSndEn(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -907,7 +908,7 @@ bool_t macsnden(char *param)
     }
     return true;
 }
-bool_t macsnddis(char *param)
+bool_t MacSndDis(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -920,7 +921,7 @@ bool_t macsnddis(char *param)
     return true;
 }
 
-bool_t macfilten(char *param)
+bool_t MacAddrFilterEn(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -928,7 +929,7 @@ bool_t macfilten(char *param)
     MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,1);//开通地址过滤功能
     return true;
 }
-bool_t macfiltdis(char *param)
+bool_t MacAddrFilterDis(char *param)
 {
     tagMacDriver      *pDrive;
 
@@ -936,6 +937,7 @@ bool_t macfiltdis(char *param)
     MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,0);//关闭地址过滤功能
     return true;
 }
+#pragma GCC diagnostic pop
 
 
 // =============================================================================
@@ -1075,11 +1077,40 @@ u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
     return 1;
 }
 
+extern void GMAC_InLowPowerPinCfg(void);
+extern void GMAC_OutLowPowerPinCfg(void);
 
-ADD_TO_ROUTINE_SHELL(macfiltdis,macfiltdis,"usage:MacAddrDis, receive all frame(don't care MAC filter)");
-ADD_TO_ROUTINE_SHELL(macfilten,macfilten,"usage:MacAddrEn, don't receive all frame(MAC filter)");
-ADD_TO_ROUTINE_SHELL(macsnden,macsnden,"usage:MacSndEn");
-ADD_TO_ROUTINE_SHELL(macsnddis,macsnddis,"usage:MacSndDis");
+// =============================================================================
+// 功能： 进入或退出低功耗模式
+//     时钟使能 控制器使能 GPIO设置相应的状态
+// 参数： port 串口号：如 CN_UART1
+//     flag 进入低功耗 或退出低功耗标志：如 UART_IN_LOWPOWER
+// 返回：true/false
+// =============================================================================
+bool_t GMAC_LowPowerConfig(u8 flag)
+{
+	if(flag == InLowPower)
+	{
+		RCC->AHB1ENR&=~(1<<25);  //禁能ETHMAC时钟
+		GMAC_InLowPowerPinCfg();
+		return true;
+	}
+	else if (flag == OutLowPower)
+	{
+		 RCC->AHB1ENR|=1<<25;  //使能ETHMAC时钟
+		 GMAC_OutLowPowerPinCfg();
+		 MacReset(0);
+		return true;
+	}
+	else
+		return false;
+}
+
+
+ADD_TO_ROUTINE_SHELL(macfiltdis,MacAddrFilterDis,"usage:MacAddrDis, receive all frame(don't care MAC filter)");
+ADD_TO_ROUTINE_SHELL(macfilten,MacAddrFilterEn,"usage:MacAddrEn, don't receive all frame(MAC filter)");
+ADD_TO_ROUTINE_SHELL(macsnden,MacSndEn,"usage:MacSndEn");
+ADD_TO_ROUTINE_SHELL(macsnddis,MacSndDis,"usage:MacSndDis");
 ADD_TO_ROUTINE_SHELL(macreset,MacReset,"usage:reset gmac");
-ADD_TO_ROUTINE_SHELL(macreg,macreg,"usage:MacReg");
-ADD_TO_ROUTINE_SHELL(mac,mac,"usage:gmac");
+ADD_TO_ROUTINE_SHELL(macreg,MacReg,"usage:MacReg");
+ADD_TO_ROUTINE_SHELL(mac,macdebuginfo,"usage:gmac");

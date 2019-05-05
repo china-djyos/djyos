@@ -2,7 +2,7 @@
 #define _SILAN_CODEC_REGS_H_
 
 #include "silan_types.h"
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 #include "silan_core_m0.h"
 #endif
 

@@ -67,14 +67,6 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    #include "IoIicBus.h"
-//    struct IO_IIC_Init IoIic;
-//    u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
-//    IoIic.BusName     =  IO_IIC_BUS_NAME;//总线名称，如IIC1
-//    IoIic.tag         =  IO_IIC_USER_TAG; //用户自己的标记
-//    IoIic.IIC_IoCtrl  =  IIC_IOCTRL_FUN; //控制函数
-//    //模块接口
-//    ModuleInstall_IO_IICBus(&IoIic);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -91,19 +83,16 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,
-#define IO_IIC_USER_TAG      0    //用户自己的标签，用作在回调用户提供的IO控制函数的第二个参数
 //%$#@string,1,32,
-#define IO_IIC_BUS_NAME "IoIic"  //该IIC总线的名字
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
-#define IIC_IOCTRL_FUN   IIC_IoCtrlFunc//用户实现的IO控制函数名
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 

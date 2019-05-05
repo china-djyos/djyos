@@ -256,7 +256,7 @@ static struct LinkOps *__FindOps(enum enLinkType type)
 //备注:
 //作者:zhangqf@下午7:48:16/2016年12月28日
 //-----------------------------------------------------------------------------
-bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 framlen,u32 devtask,u16 proto,\
+bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 devtask,u16 proto,\
                 enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t ret = false;
@@ -264,7 +264,7 @@ bool_t LinkSend(struct NetDev *DevFace,struct NetPkg *pkg,u32 framlen,u32 devtas
     ops = NetDevLinkOps(DevFace);
     if(NULL != ops)
     {
-        ret = ops->linkout(DevFace,pkg,framlen,devtask,proto,ver,ipdst,ipsrc);
+        ret = ops->linkout(DevFace,pkg,devtask,proto,ver,ipdst,ipsrc);
     }
     return ret;
 }

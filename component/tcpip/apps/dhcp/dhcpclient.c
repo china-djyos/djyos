@@ -48,11 +48,13 @@
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/dhcp.h>
 #include <osarch.h>
 #include <netbsp.h>
 
 #include "dhcpLib.h"
 #include "dbug.h"
+#include "common/router.h"
 
 typedef struct
 {
@@ -63,8 +65,8 @@ typedef struct
     u8                         mac[CN_MACADDR_LEN]; //the rout mac
 //    tagDhcpReplyPara           replypara;      //used to record the reply
     const char                *ifname;         //dev name
-    void                      *routwan;       //if get the gateway,create one here
-    void                      *routlan;       //for the local router
+    struct RoutItem4          *routwan;       //if get the gateway,create one here
+    struct RoutItem4          *routlan;       //for the local router
     u32                        offerip;
     u32                        offerserver;
 }tagTaskItem;
@@ -90,6 +92,30 @@ typedef struct
     void           *ticker; //dhcp ticks here
 }tagDhcpClientCB;
 static tagDhcpClientCB gClientCB;
+
+enDHCPStatus DHCP_ConnetStatus(enDHCPCmd cmd,enDHCPStatus status)
+{
+    static enDHCPStatus flag = EN_DHCP_DISCONNET_STATUS;
+    enDHCPStatus temp_flag;
+    switch(cmd)
+    {
+        case EN_DHCP_SET_STATUS_CMD:
+            if(status>=EN_DHCP_LAST_STATUS)
+            {
+                temp_flag = EN_DHCP_CMD_ERR_STATUS;
+                break;
+            }
+            flag = status;
+            break;
+        case EN_DHCP_GET_STATUS_CMD:
+            temp_flag = flag;
+            break;
+        default:
+            break;
+    }
+    return temp_flag;
+}
+
 //do the reply message deal
 static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
 {
@@ -168,6 +194,7 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
                 tmp->routlan = RouterCreate(&routpara);
                 DnsSet(EN_IPV_4,&reply.dns1,&reply.dns2);
                 NetDevPostEvent(NetDevGet(tmp->ifname),EN_NETDEVEVENT_IPGET);
+                DHCP_ConnetStatus(EN_DHCP_SET_STATUS_CMD,EN_DHCP_CONNET_STATUS);
             }
             else if(reply.msgtype == DHCP_NAK)
             {

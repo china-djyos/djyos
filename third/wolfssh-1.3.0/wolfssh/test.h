@@ -108,7 +108,13 @@
     #define WCLOSESOCKET(s) NU_Close_Socket((s))
     #define WSTARTTCP()
 #else
-    #define WCLOSESOCKET(s) close(s)
+#define USE_DJY_OS 1
+
+#if USE_DJY_OS
+#define WCLOSESOCKET(s) closesocket((s))
+#else
+#define WCLOSESOCKET(s) close(s)
+#endif
     #define WSTARTTCP()
 #endif
 
@@ -146,9 +152,6 @@
 #endif
 
 
-#define serverKeyRsaPemFile "./keys/server-key-rsa.pem"
-
-
 typedef struct tcp_ready {
     word16 ready;     /* predicate */
     word16 port;
@@ -159,6 +162,15 @@ typedef struct tcp_ready {
 #endif
 } tcp_ready;
 
+
+/*user config start, when use sftp server.  to config the encrypt file and server listen port, username and password*/
+#define serverKeyRsaPemFile "/efs/server-key-rsa.pem" /*locate in  wolfssh-1.3.0/keys */
+#define serverKeyEccDerFile "/efs/server-key-ecc.der"
+#define serverKeyRsaDerFile "/efs/server-key-rsa.der"
+
+#define SFTP_SERVER_DEFAULT_LISTEN_PORT        22222      // ssh server listen port
+#define SFTP_SERVER_USERNAME_PASSWORD_STRINGS  "jill:upthehill\n jack:fetchapail\n"
+/*end user config*/
 
 static INLINE void InitTcpReady(tcp_ready* ready)
 {
@@ -208,7 +220,7 @@ void WaitTcpReady(func_args*);
     /* port 8080 was open with QEMU */
     static const word16 wolfSshPort = 8080;
 #else
-    static const word16 wolfSshPort = 22222;
+    static word16 wolfSshPort = SFTP_SERVER_DEFAULT_LISTEN_PORT;
 #endif
 
 #ifdef __GNUC__
@@ -217,7 +229,7 @@ void WaitTcpReady(func_args*);
     #define WS_NORETURN
 #endif
 
-static INLINE WS_NORETURN void err_sys(const char* msg)
+static INLINE void err_sys(const char* msg)
 {
     printf("wolfSSH error: %s\n", msg);
 
@@ -231,7 +243,7 @@ static INLINE WS_NORETURN void err_sys(const char* msg)
     if (msg)
 #endif
     {
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
     }
 }
 
@@ -252,11 +264,17 @@ static INLINE int mygetopt(int argc, char** argv, const char* optstring)
         next = NULL;   /* we're starting new/over */
 
     if (next == NULL || *next == '\0') {
-        if (myoptind == 0)
-            myoptind++;
+       if (myoptind == 0)
+        {
+            if(argv[myoptind][0] != '-')
+            {
+                myoptind++;
+            }
+        }
 
         if (myoptind >= argc || argv[myoptind][0] != '-' ||
                                 argv[myoptind][1] == '\0') {
+            myoptind++;
             myoptarg = NULL;
             if (myoptind < argc)
                 myoptarg = argv[myoptind];

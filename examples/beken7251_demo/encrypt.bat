@@ -1,0 +1,1 @@
+encrypt.exe beken7251_demo_App_Debug/beken7251_demo_App_Debug.bin 00000000

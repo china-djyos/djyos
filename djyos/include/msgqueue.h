@@ -63,7 +63,7 @@ extern "C" {
 
 struct MsgQueue
 {
-    struct obj *HostObj;
+    struct Object *HostObj;
     struct SemaphoreLCB MsgSendSemp;    //发送端控制信号量
     struct SemaphoreLCB MsgRecvSemp;    //接收端控制信号量
 

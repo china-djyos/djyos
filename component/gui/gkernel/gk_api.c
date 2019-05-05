@@ -94,7 +94,7 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
                         u32 buf_mode,u16 PixelFormat,
                         u32 BaseColor)
 {
-    struct obj *DisplayObject;
+    struct Object *DisplayObject;
     struct GkscParaCreateDesktop para;
     struct GkWinObj *result = NULL;
     struct GkWinObj *desktop;
@@ -124,7 +124,7 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
 struct GkWinObj *GK_GetDesktop(const char *display_name)
 {
     struct DisplayObj *display = NULL;
-    struct obj *DispObj;
+    struct Object *DispObj;
     DispObj = obj_search_child(obj_root( ),"display");
     if(DispObj != NULL)
     {
@@ -555,7 +555,7 @@ struct GkWinObj* GK_GetWinFromPt(struct GkWinObj *desktop,
 //-----------------------------------------------------------------------------
 struct GkWinObj* GK_GetTwig(struct GkWinObj *Ancestor)
 {
-    struct obj *result;
+    struct Object *result;
 
     if(NULL == Ancestor)
         return NULL;
@@ -571,7 +571,7 @@ struct GkWinObj* GK_GetTwig(struct GkWinObj *Ancestor)
 //-----------------------------------------------------------------------------
 struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Current)
 {
-    struct obj *result;
+    struct Object *result;
 
     if((NULL == Ancestor) || (NULL == Current))
         return NULL;
@@ -587,7 +587,7 @@ struct GkWinObj* GK_TraveScion(struct GkWinObj *Ancestor,struct GkWinObj *Curren
 //-----------------------------------------------------------------------------
 struct GkWinObj* GK_TraveChild(struct GkWinObj *Parent,struct GkWinObj *Current)
 {
-    struct obj *result;
+    struct Object *result;
 
     if((NULL == Parent) || (NULL == Current))
         return NULL;

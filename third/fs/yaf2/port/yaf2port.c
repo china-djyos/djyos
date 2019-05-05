@@ -425,7 +425,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 // 返回：成功（YAF文件）；失败（NULL）;
 // 备注：
 // ============================================================================
-struct objhandle *__yaf2open(struct obj *ob, u32 flags, char *uncached)
+struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
 {
     char *path;
     s32 res;
@@ -655,7 +655,7 @@ static s32 __yaf2readdentry(struct objhandle *hdl, struct dirent *dentry)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __yaf2remove(struct obj *ob, char *full)
+static s32 __yaf2remove(struct Object *ob, char *full)
 {
     s32 res;
     char *path;
@@ -700,7 +700,7 @@ static off_t __yaf2seek(struct objhandle *hdl, off_t *offset, s32 whence)
 // 返回：成功（0）；失败（-1）；
 // 备注：当查询安装点时，uncached为NULL；
 // ============================================================================
-static s32 __yaf2stat(struct obj *ob, struct stat *data, char *uncached)
+static s32 __yaf2stat(struct Object *ob, struct stat *data, char *uncached)
 {
     struct yaffs_stat yafstat = {0};
     struct objhandle *myhandle;
@@ -775,7 +775,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __yaf2open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = __yaf2open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -830,7 +830,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(__yaf2remove((struct obj*)opsTarget, (char *)OpsArgs3) == 0)
+            if(__yaf2remove((struct Object*)opsTarget, (char *)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -839,7 +839,7 @@ static s32 YAF2_Ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_STAT:
         {
-            if(__yaf2stat((struct obj*)opsTarget, (struct stat *)OpsArgs1,
+            if(__yaf2stat((struct Object*)opsTarget, (struct stat *)OpsArgs1,
                                 (char*)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
@@ -1017,25 +1017,6 @@ int yaffs_start_up(void)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-s32 __iserased(const u8 *buf, s32 datalen, s32 taglen)
-{
-    extern int yaffs_check_ff(u8 *buffer, int n_bytes);
-
-    if(datalen && (!yaffs_check_ff((u8*)buf, datalen)))
-        return (0);
-
-    if(taglen && (!yaffs_check_ff((u8*)(buf+datalen), taglen)))
-        return (0);
-
-    return (1);
-}
-
-// ============================================================================
 // 功能：挂载YAFFS2文件系统到目录/yaffs2下
 // 参数：target -- YAF2文件系统所挂载的目录；缺省为“yaf2”
 //      opt -- 文件系统配置选项；  true ：格式化整个文件系统；false ：不格式化整个文件系统
@@ -1043,16 +1024,12 @@ s32 __iserased(const u8 *buf, s32 datalen, s32 taglen)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
+s32 ModuleInstall_YAF2(const char *target, u32 opt, u32 data)
 {
     static struct filesystem *typeYAF2 = NULL;
-    struct obj * mountobj;
+    struct Object * mountobj;
     s32 res;
 
-    if(opt == true)
-    {
-        opt = MS_INSTALLFORMAT;
-    }
     if(!target)
     {
         printf("\r\n: dbug : module : cannot input \"YAF2\" file system mount name.");
@@ -1082,9 +1059,9 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data)
         printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot create \"%s\"<mount point>.", target);
         return (-1); // 失败;
     }
-    obj_InuseUpFullPath(mountobj);
+//    __InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;              //直接挂载不用备份
-    res = mountfs(NULL, target, "YAF2", opt, data);
+    res = mountfs(NULL, target, "YAF2", opt, (void *)data);
    if(res == -1)
    {
        printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot install.");

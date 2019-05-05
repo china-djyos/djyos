@@ -76,8 +76,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果互斥多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -85,7 +85,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -354,10 +354,10 @@ static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 //// 返回：
 //// 备注：只会调用一次；
 //// ============================================================================
-//static inline struct obj *__isbuild(void)
+//static inline struct Object *__isbuild(void)
 //{
 //    static u8 inited = 0;
-//    static struct obj *mm;
+//    static struct Object *mm;
 //
 //    if(inited)
 //        return (mm);
@@ -382,7 +382,7 @@ static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 // ============================================================================
 s32 um_add(const char *name, struct umedia *media)
 {
-    struct obj *mmo;
+    struct Object *mmo;
 
 //  mmo = __isbuild();
 //  if(!mmo)

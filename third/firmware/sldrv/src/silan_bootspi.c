@@ -6,7 +6,7 @@
 #include "silan_pmu.h"
 #include "silan_irq.h"
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 #include "silan_m0_cache.h"
 #endif
 

@@ -57,7 +57,6 @@
 #include <dirent.h>
 #include <object.h>
 
-char g_pWokingPath[257] = {'/'};
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
@@ -97,9 +96,9 @@ static char *PropertyToStr(u32 Mode)
 //-----------------------------------------------------------------------------
 static bool_t FSformat(char *Param)
 {
-	extern s32 Format(const char *MountPath);
+    extern s32 Format(const char *MountPath);
 
-	if(NULL == Param)
+    if(NULL == Param)
         return (FALSE);
 
     printf("文件系统格式化 ----");
@@ -346,7 +345,9 @@ static bool_t FS_List(char *Param)
 //-----------------------------------------------------------------------------
 bool_t PrintWorkPath(void)
 {
-    printf("用户当前工作路径：\"%s\"", g_pWokingPath);
+    char WokingPath[257];
+    CurWorkPath(WokingPath, 257);
+    printf("用户当前工作路径：\"%s\"", WokingPath);
     return (TRUE);
 }
 
@@ -594,16 +595,16 @@ ADD_TO_ROUTINE_SHELL(cp,CopyFile,"拷贝文件，COMMAND:cp + /fat/abc + /yaffs/abc +
 // ============================================================================
 static bool_t SH_IAP(char *pParam)
 {
-	char *cur = pParam;
+    char *cur = pParam;
 
-	if(!strncmp(cur, "update ", 6))
-	{
-		extern s32 IAP_Update(char *pDevPath);
-		cur += 7;
-		IAP_Update(cur);
-	}
+    if(!strncmp(cur, "update ", 6))
+    {
+        extern s32 IAP_Update(char *pDevPath);
+        cur += 7;
+        IAP_Update(cur);
+    }
 
-	return (TRUE);
+    return (TRUE);
 }
 
 #endif

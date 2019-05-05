@@ -1,0 +1,79 @@
+
+https://www.wolfssl.com/products/wolfssh/
+
+
+下载地址：https://www.wolfssl.com/download/
+
+编译指导：https://www.wolfssl.com/configuring-wolfssh-lightweight-ssh-library/
+
+参考：
+https://blog.csdn.net/u014530704/article/details/79919876
+
+
+
+
+WOLFSSH_SFTP
+
+从https://www.wolfssl.com/download/ 分别下载wolfssl-3.15.7 和wolfssh-1.3.0
+进入wolfssl-3.15.7主目录下，
+sudo ./configure --enable-ssh
+sudo make check
+sudo make install
+生成ssl库文件， 放在
+./src/.libs
+/usr/local/lib
+
+进入wolfssh-1.3.0主目录下：
+sudo ./configure --enable-sftp
+sudo make
+sudo make check
+生成的库文件在
+./src/.libs/
+/usr/local/lib
+目标可执行文件:
+examples/client/client
+examples/server/server
+examples/echoserver/echoserver
+wolfsftp/client/wolfsftp
+
+
+
+
+虚拟机sftp测试帐号：
+sftp://192.168.48.128
+用户名: sftp
+密码:sftp
+端口:22
+
+
+
+测试服务器程序:
+需将wolfssh-1.3.0/keys 下的 server-key-ecc.der server-key-rsa.der server-key-rsa.pem
+放到wolfssh-1.3.0/wolfssh/test.h 定义的板子上对应目录下。serverKeyRsaPemFile
+
+
+echoserver 测试程序:
+./sftpd -p 22222
+客户端:
+linux上 ./wolfsftp -p 22222  -u jack -h localhost -P fetchapail
+windows 上用filezilla.exe 做客户端
+主机:sftp://192.168.0.179 用户名:jack 密码:fetchapail 端口:22222
+
+用户名密码保存在echoserver.c 的数组samplePasswordBuffer中
+
+
+
+测试客户端程序:
+windows 上用freesshd 做服务器端
+运行windows端freesshd时，要以管理员身份运行，注意关闭windows的防火墙，
+修改参数之后，把其杀死，再以管理员身份运行(重启最重要?)。
+freesshd 设置:
+users: authorization选择password storedas SHA1 hash
+authentication: password authentication 选择required，public key authentication选择allowed
+SSH: 把 start SSH server on freeSSHd startup 和use new console engine勾选去掉。
+
+./sftpc -h 192.168.0.1 -p 2323 -u user -P user
+
+
+
+

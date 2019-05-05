@@ -48,7 +48,7 @@
 //-----------------------------------------------------------------------------
 
 #include <sys/socket.h>
-#include "../../component_config_tcpip.h"
+#include "component_config_tftp.h"
 
 #include "tftplib.h"
 #include "dbug.h"

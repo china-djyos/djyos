@@ -74,7 +74,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"xip_app"      //用于app的在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"filesystem"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -363,11 +363,11 @@ void xip_app_freecontext(struct __icontext *pContext)
 // 返回：成功（xip文件上下文）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
+static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncached)
 {
     s32 size;
     struct objhandle *hdl;
-    struct obj *tmp;
+    struct Object *tmp;
     struct __ifile *file = NULL;
     struct __icontext *cx = NULL;
     struct __icore *core = (struct __icore*)corefs(ob);
@@ -612,7 +612,7 @@ static s32 xip_app_close(struct objhandle *hdl)
 // ============================================================================
 static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 pos, once, free, res, left;
+    s32 pos, once, free, res, left = (s32)size;
     struct __icontext *cx = (struct __icontext *)handle_context(hdl);
     struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
@@ -635,13 +635,13 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
             return size;
         }
     }
+
     xip_app_lock(core);
     if(cx->pos<=core->inhead) // 缓存中剩余可写空间；（连续写和不连续写会有这么处理，256时）
         free = core->inhead - cx->pos; // 在开始的区域中，文件头部占据了固定空间；
     else
         free = core->bufsz - ((cx->pos - core->inhead) % core->bufsz);
 
-    left = (s32)size;
     while(left)
     {
         once = left;
@@ -936,7 +936,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 // 返回：成功（0）；失败（-1）；
 // 备注：未考虑互斥；当pName为NULL时，表示文件正在被使用；
 // ============================================================================
-static s32 xip_app_remove(struct obj *ob)
+static s32 xip_app_remove(struct Object *ob)
 {
     struct __ifile *file;
     struct __icore *core;
@@ -952,7 +952,7 @@ static s32 xip_app_remove(struct obj *ob)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 xip_app_stat(struct obj *ob, struct stat *data)
+static s32 xip_app_stat(struct Object *ob, struct stat *data)
 {
     struct __ifile *file;
 
@@ -980,7 +980,7 @@ static s32 xip_app_stat(struct obj *ob, struct stat *data)
 // ============================================================================
 static s32 xip_app_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
-    struct obj *ob = handle_GetHostObj(hdl);
+    struct Object *ob = handle_GetHostObj(hdl);
 
     ob = obj_child(ob);
     if((ob)&&(dentry->d_ino!=(long)ob))
@@ -1083,7 +1083,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = xip_app_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = xip_app_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -1138,7 +1138,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(xip_app_remove((struct obj*)opsTarget) == 0)
+            if(xip_app_remove((struct Object*)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -1150,7 +1150,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
                 return (-1); // 查询的文件不存在；
-            if(xip_app_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+            if(xip_app_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -1180,13 +1180,13 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 // 功能：安装xip文件系统
 // 参数：target -- 安装目录；
 //      opt -- 文件系统配置选项；如MS_INSTALLCREAT
-//      data -- 传递给YAF2安装逻辑的数据；
+//      data -- 传递给xip安装逻辑的数据；
 // 返回：失败(-1)； 成功(0)。
 // 备注:
 // ============================================================================
 s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
 {
-    struct obj * mountobj;
+    struct Object * mountobj;
     static struct filesystem *typeXIPAPP = NULL;
     s32 res;
 
@@ -1213,7 +1213,7 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_APP_TARGET);
         return (-1);
     }
-    obj_InuseUpFullPath(mountobj);
+//    __InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
     res = mountfs(NULL, EN_XIP_APP_TARGET, "XIP-APP", opt, data);
     if(res == -1)

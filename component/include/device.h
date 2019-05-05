@@ -109,9 +109,10 @@ typedef s32 (*fntDevRead) (struct objhandle *hdl, u8 *data, u32 size, u32 offset
 typedef s32 (*fntDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
 
 
-const char *dev_Name(struct obj *devo);
+s32 handle_IsBlockComplete(u32 flags);
+const char *dev_Name(struct Object *devo);
 //ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
-struct obj *dev_Create(const char *name, fntDevOpen dopen, fntDevClose dclose,
+struct Object *dev_Create(const char *name, fntDevOpen dopen, fntDevClose dclose,
                         fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl,
                         ptu32_t DrvTag);
 s32 dev_Delete(struct obj *dev);
@@ -125,7 +126,7 @@ s32 DevOpen(const char *name, s32 flags,u32 timeout);
 s32 DevClose(s32 fd);
 s32 DevRead(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
 s32 DevWrite(s32 fd, void *buf, u32 len, u32 offset, u32 timeout);
-s32 DevCntl(s32 fd, u32 cmd, ptu32_t data1, ptu32_t data2);
+s32 DevCtrl(s32 fd, u32 cmd, ptu32_t data1, ptu32_t data2);
 #ifdef __cplusplus
 }
 #endif

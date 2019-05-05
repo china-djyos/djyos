@@ -52,6 +52,8 @@
 
 #include <sys/socket.h>
 #include <osarch.h>
+
+struct RoutItem4;
 //功能说明：
 //该文件是路由模块，该模块完成的主要为网络层提供出口和入口的匹配机制
 //后续的路由防火墙则在该模块实现。

@@ -72,78 +72,25 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"lock","heap","devfile",   //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock","heap","devfile","tpl","icmp","router"   //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_NETPKG_MEMSIZE   //****检查参数是否已经配置好
-#warning    tcpip组件参数未配置，使用默认值
+#if(CFG_MODULE_ENABLE_TCPIP == false)//****检查参数是否已经配置好
+#warning  " tcpip  组件参数未配置使用默认配置"
+#define CFG_MODULE_ENABLE_TCPIP  false
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_TCPIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,,,
 #define     CFG_NETPKG_MEMSIZE          0x4000  //"数据包缓冲区尺寸"
-//*******************************ARP******************************************//
-#define     CFG_ARP_HASHLEN             32      //"ARP哈希表长度"，占用一个指针
-//*******************************TPL******************************************//
-#define     CFG_TPL_PROTONUM            5       //"支持的传输协议数"，占用一个 tagTplProtoItem 结构
-//*******************************UDP******************************************//
-//%$#@enum,true,false,
-#define     CFG_UDP_ENABLE              true    //"udp协议使能"
-//%$#@num,,,
-#define     CFG_UDP_CBNUM               10      //"UDP socket数限值"，占用一个 tagUdpCB 结构
-#define     CFG_UDP_HASHLEN             4       //"udp socket 哈希表长度"，占用一个指针
-////*******************************TCP******************************************//
-////%$#@enum,true,false,
-//#define     CFG_TCP_ENABLE              true    //"tcp协议使能"
-//#define     CFG_TCP_REORDER             true    //"TCP乱序重组使能",资源充足才打开
-////%$#@num,,,
-//#define     CFG_TCP_CCBNUM              10      //"tcp 客户端数限值"，占一个 指针 和 tagCCB
-//#define     CFG_TCP_SCBNUM              5       //"tcp 服务器数限值"，，占一个 指针 和 tagSCB
-//*******************************SOCKET***************************************//
-#define     CFG_SOCKET_NUM              10      //"socket数限值"，占一个 tagItem 结构
-//*******************************TELNET***************************************//
-//%$#@enum,true,false,
-#define     CFG_TELNET_ENABLE           true    //"telnet 使能"
-#define     CFG_TELNETD_ENABLE          true    //"telnet 服务器使能"
-#define     CFG_TELNETC_ENABLE          false   //"telnet 客户端使能"
-//*******************************FTP******************************************//
-#define     CFG_FTP_ENABLE              true    //"ftp 使能"
-#define     CFG_FTPD_ENABLE             true    //"ftp 服务器使能"
-#define     CFG_FTPC_ENABLE             false   //"ftp 客户端使能"
-
-//******************************TFTP******************************************//
-#define     CFG_TFTP_ENABLE             true    //"tftp 使能"
-#define     CFG_TFTPD_ENABLE            false   //"tftp 服务器使能",暂未实现
-#define     CFG_TFTPC_ENABLE            true    //"tftp 客户端使能"
-//%$#@string,1,256,
-#define     CFG_TFTP_PATHDEFAULT       "/"   //TFTP默认工作目录
-//*******************************DHCP SERVER**********************************//
-//%$#@enum,true,false,
-#define     CFG_DHCP_ENABLE             true    //"DHCP 使能"
-#define     CFG_DHCPD_ENABLE            false   //"DHCP 服务器使能"
-#define     CFG_DHCPC_ENABLE            true    //"DHCP 客户端使能"
-//%$#@num,,,
-#define     CFG_DHCP_RENEWTIME          3600    //"renew timer",秒数
-#define     CFG_DHCP_REBINDTIME         3600    //"rebind timer",秒数
-#define     CFG_DHCP_LEASETIME          3600    //"lease timer",秒数
-#define     CFG_DHCPD_IPNUM             0x40    //"IP池尺寸",64
-//%$#@string,7,32,
-#define     CFG_DHCPD_IPSTART           "192.168.0.2"    //"DHCP起始IP",
-#define     CFG_DHCPD_SERVERIP          "192.168.0.253"  //"DHCP SERVER IP"
-#define     CFG_DHCPD_ROUTERIP          "192.168.0.253"  //"DHCP ROUTER SERVER IP"
-#define     CFG_DHCPD_NETIP             "255.255.255.0"  //"DHCP MASK IP"
-#define     CFG_DHCPD_DNS               "192.168.0.253"  //"DHCP DNSSERVER IP"
-//%$#@string,1,32,
-#define     CFG_DHCPD_DOMAINNAME       "domain"        //"DHCP domain name"
-//*******************************PPP******************************************//
-//%$#@enum,true,false,
-#define     CFG_PPP_ENABLE             false         //是否需要 ppp 协议
 //%$#@select
 //%$#@free
 #endif

@@ -95,8 +95,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -104,7 +104,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -165,7 +165,7 @@ ptu32_t KeyBoard_Scan(void)
 {
     struct HMI_InputDeviceObj *KeyboardObj,*StdinObj;
     struct KeyBoardPrivate *keyboard_pr;
-    struct obj *ob;
+    struct Object *ob;
     struct KeyBoardMsg key_msg;
     u32 keyvalue;
     ob = obj_search_child(obj_root(),"hmi input device");

@@ -61,7 +61,6 @@
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
-#include <efs.h>
 #include <dbug.h>
 #include <filesystems.h>
 #include <math.h>
@@ -71,44 +70,42 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern    s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
-//   ModuleInstall_NAND(CFG_NFLASH_FSMOUNT_NAME, CFG_NFLASH_PART_START, CFG_NFLASH_PART_END, CFG_NFLASH_PART_FORMAT);
+//   extern s32 ModuleInstall_NAND(u32 doformat);
+//   ModuleInstall_NAND(CFG_NFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_nand"//CPU的nand控制器驱动
-//parent:"djyfs"                //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu_peri_nand"//CPU的nand驱动
+//parent:"none"                //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"djyfs","heap","driver"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"devfile","djyfs"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+                                //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_NFLASH_FSMOUNT_NAME   //****检查参数是否已经配置好
-#warning    cpu_peri_nand组件参数未配置，使用默认值
-//%$#@num,-1,10000,
-#define CFG_NFLASH_PART_START      0      //分区起始，填写块号，块号从0开始计算
-#define CFG_NFLASH_PART_END        -1     //分区结束，-1表示最后一块
-//%$#@string,1,10,
-#define CFG_NFLASH_FSMOUNT_NAME     "yaf2" //需安装的文件系统的mount的名字
-//%$#@enum_config
+//%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_NFLASH_PART_FORMAT   //****检查参数是否已经配置好
+#warning    cpu_peri_nand 组件参数未配置，使用默认值
 //%$#@enum,true,false,
-#define CFG_NFLASH_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
+#define CFG_NFLASH_PART_FORMAT     false      //是否需要擦除该芯片。
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
 
 
@@ -146,19 +143,17 @@ s32 __nand_erase(s64 unit, struct uesz sz);
 s32 __nand_req(enum ucmd cmd, ptu32_t args, ...);
 static u32 *badstable;
 static u32 badslocation = 0;
-
+static bool_t sNandflashInited = false;
 extern s32 deonfi(const char *data, struct NandDescr *onfi, u8 little);
-extern struct yaffs_driver YAF_NAND_DRV;
-extern struct __efs_drv EFS_NAND_DRV;
 static struct NandDescr *s_ptNandInfo;//
-extern struct obj *s_ptDeviceRoot;
+extern struct Object *s_ptDeviceRoot;
 static struct MutexLCB *NandFlashLock;
 struct umedia *nand_umedia;
 static const char *NandFlashName = "nand";      //该flash在obj在的名字
 #define NFlashLockTimeOut     CN_CFG_TICK_US * 1000 * 10
 static u32 *badstable = NULL;
 static u32 badslocation = 0;
-s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bcount);
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
 static s32 __nand_init(void);
 
 //
@@ -678,17 +673,12 @@ static s32 K70_GetNandDescr(struct NandDescr *Descr)
 }
 //-----------------------------------------------------------------------------
 // 功能：安装nand驱动
-// 参数：  TargetFs -- 要挂载的文件系统
-//      parts -- 分区数；
-//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，结束块数（如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块，不包括第六块），是否格式化；
+// 参数：  doformat -- 是否格式化；
 // 返回：成功（0）；失败（-1）；
-// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+// 备注：
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
+s32 ModuleInstall_NAND(u32 doformat)
 {
-    static u8 nandinit = 0;
-
     if(!s_ptNandInfo)
     {
         if(__nand_init())
@@ -703,7 +693,7 @@ s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
         struct uesz sz;
         sz.unit = 0;
         sz.block = 1;
-        __nand_req(format, bstart , bend, &sz);
+        __nand_req(format, 0 , -1, &sz);
     }
 
     if(!badstable)
@@ -716,33 +706,32 @@ s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
         }
     }
 
-    if(nandinit == 0)
+    nand_umedia = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
+    if(!nand_umedia)
+        return (-1);
+
+    nand_umedia->mreq = __nand_req;
+    nand_umedia->type = nand;
+    nand_umedia->ubuf = (u8*)nand_umedia + sizeof(struct umedia);
+
+    if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
     {
-        nand_umedia = malloc(sizeof(struct umedia)+s_ptNandInfo->BytesPerPage+s_ptNandInfo->OOB_Size);
-        if(!nand_umedia)
-            return (-1);
-
-        nand_umedia->mreq = __nand_req;
-        nand_umedia->type = nand;
-        nand_umedia->ubuf = (u8*)nand_umedia + sizeof(struct umedia);
-
-        if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
-        {
-            printf("\r\n: erro : device : %s addition failed.", NandFlashName);
-            free(nand_umedia);
-            return (-1);
-        }
-        nandinit = 1;
+        printf("\r\n: erro : device : %s addition failed.", NandFlashName);
+        free(nand_umedia);
+        return (-1);
     }
-
-    if(TargetFs != NULL)
-    {
-        if(__nand_FsInstallInit(TargetFs, bstart, bend))
-        {
-            return -1;
-        }
-    }
+    sNandflashInited = true;
     return (0);// 成功;
+}
+// =============================================================================
+// 功能：判断nandflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t Nandflash_is_install(void)
+{
+    return sNandflashInited;
 }
 /******************************************************************************
                          PRIVATE FUNCTION(本地私有函数)
@@ -1302,15 +1291,15 @@ static s32 __nand_init(void)
 
 // ============================================================================
 // 功能：把nand和文件系统关联起来
-// 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
-//       bstart -- 起始块，bend -- 结束块数（不包括该块，只到该块的上一块）
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     char *FullPath,*notfind;
-    struct obj *targetobj;
+    struct Object *targetobj;
     struct FsCore *super;
     s32 res,BlockNum;
     targetobj = obj_matchpath(fs, &notfind);
@@ -1321,20 +1310,7 @@ s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
     super->MediaInfo = nand_umedia;
-    if(strcmp(super->pFsType->pType, "YAF2") == 0)      //这里的"YAF2"为文件系统的类型名，在文件系统的filesystem结构中
-    {
-        super->MediaDrv = &YAF_NAND_DRV;
-    }
-    else if(strcmp(super->pFsType->pType, "EFS") == 0)
-    {
-        super->MediaDrv = &EFS_NAND_DRV;
-    }
-    else
-    {
-        super->MediaDrv = 0;
-        error_printf("nand"," \"%s\" file system type nonsupport", super->pFsType->pType);
-        return -1;
-    }
+    super->MediaDrv = mediadrv;
 
     if(-1 == (s32)bend)
     {

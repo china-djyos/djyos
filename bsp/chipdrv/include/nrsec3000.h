@@ -83,7 +83,7 @@ typedef struct   //加密芯片结构体
 extern tagEncryptionCtrl  g_tEncryptionCtrl;
 
 
-bool_t NRSEC3000_Init(char *BusName);
+bool_t NRSEC3000_Init(void);
 bool_t Import_SM1_Key();
 bool_t Import_IV();
 bool_t SM1_Encrypt(u8 *Txbuffer,u16 InLenth);

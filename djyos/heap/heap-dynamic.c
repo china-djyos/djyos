@@ -474,6 +474,8 @@ bool_t heap_spy(void)
     return true;
 }
 
+#if ((CFG_DYNAMIC_MEM == true))
+
 //----查询内存尺寸-------------------------------------------------------------
 //功能: 根据给定的指针,查询该指针所在的内存块的尺寸.
 //参数: mp,动态分配的内存指针.
@@ -503,9 +505,7 @@ ptu32_t __M_CheckSize(void * mp)
             {
                 if((u8*)mp < Cession->heap_bottom)    //该指针在静态分配区
                 {
-                    temp = mp;
-                    temp--;
-                    return *temp;
+                    return __M_StaticCheckSize(mp);
                 }else                   //该指针在块相联动态分配区
                 {
                 #if ((CFG_DYNAMIC_MEM == true))
@@ -860,59 +860,6 @@ bool_t __M_CheckMemory(ptu32_t size,struct HeapCB *Heap,u32 timeout)
         }
     }while(wait==true);
     return true;    //return true前是不开中断的,以免在分配内存之前发生中断.
-}
-
-//----把事件放入等待队列-------------------------------------------------------
-//功能: 把事件直接放进等待队列,不调度.等待队列是一个按请求的内存从小到大排列的
-//      双向循环链表.用内存尺寸排序而不是用优先级排队，基于两点考量:1、可以最大
-//      程度满足需求，2、在应用程序设计中，一般不会在非常紧急、优先级非常高的
-//      事件处理中使用动态分配方法。
-//      本函数只提供给djyos.c中创建线程时使用，对通用堆操作
-//参数: event,待进入等待队列的事件指针
-//返回: 无
-//更新记录:
-// 1.日期: 2015/4/25
-//   说明: 改为把事件放进通用堆等待队列中
-//   作者: 罗侍田
-//-----------------------------------------------------------------------------
-void __M_WaitMemoryStack(struct EventECB *event,u32 size)
-{
-    struct EventECB *pl_event;
-
-
-    event->wait_mem_size = size;
-    pl_event = s_ptGenMemSync;     //获取内存等待表指针
-    event->sync_head = &s_ptGenMemSync;
-    __Djy_CutReadyEvent(event);
-    if(pl_event == NULL)            //等待队列空
-    {
-        event->next = NULL;
-        event->previous = NULL;
-
-        event->multi_next = event;
-        event->multi_previous = event;
-
-        s_ptGenMemSync = event;
-    }else
-    {
-        do
-        {//本循环找到第一个请求内存大于新事件的事件.
-            if(pl_event->wait_mem_size < size)
-                pl_event = pl_event->multi_next;
-            else
-                break;
-        }while(pl_event != s_ptGenMemSync);
-        //如果没有找到申请内存比新事件长的事件,新事件插入队列尾,而队列
-        //尾部就是event_wait的前面,此时event恰好等于event_wait
-        //如果找到剩余延时时间长于新事件的事件,新事件插入该事件前面.
-        //所以无论前面循环找到与否,均可使用下列代码
-        event->multi_next = pl_event;
-        event->multi_previous = pl_event->multi_previous;
-        pl_event->multi_previous->multi_next = event;
-        pl_event->multi_previous = event;
-    }
-    event->event_status = CN_STS_WAIT_MEMORY + CN_STS_EVENT_NORUN;
-    return;
 }
 
 //----回收running事件申请的内存------------------------------------------------
@@ -1307,6 +1254,60 @@ void __M_CheckSTackSync(void)
     Int_LowAtomEnd(atom_low);
     return;
 }
+
+//----把事件放入等待队列-------------------------------------------------------
+//功能: 把事件直接放进等待队列,不调度.等待队列是一个按请求的内存从小到大排列的
+//      双向循环链表.用内存尺寸排序而不是用优先级排队，基于两点考量:1、可以最大
+//      程度满足需求，2、在应用程序设计中，一般不会在非常紧急、优先级非常高的
+//      事件处理中使用动态分配方法。
+//      本函数只提供给djyos.c中创建线程时使用，对通用堆操作
+//参数: event,待进入等待队列的事件指针
+//返回: 无
+//更新记录:
+// 1.日期: 2015/4/25
+//   说明: 改为把事件放进通用堆等待队列中
+//   作者: 罗侍田
+//-----------------------------------------------------------------------------
+void __M_WaitMemoryStack(struct EventECB *event,u32 size)
+{
+    struct EventECB *pl_event;
+
+
+    event->wait_mem_size = size;
+    pl_event = s_ptGenMemSync;     //获取内存等待表指针
+    event->sync_head = &s_ptGenMemSync;
+    __Djy_CutReadyEvent(event);
+    if(pl_event == NULL)            //等待队列空
+    {
+        event->next = NULL;
+        event->previous = NULL;
+
+        event->multi_next = event;
+        event->multi_previous = event;
+
+        s_ptGenMemSync = event;
+    }else
+    {
+        do
+        {//本循环找到第一个请求内存大于新事件的事件.
+            if(pl_event->wait_mem_size < size)
+                pl_event = pl_event->multi_next;
+            else
+                break;
+        }while(pl_event != s_ptGenMemSync);
+        //如果没有找到申请内存比新事件长的事件,新事件插入队列尾,而队列
+        //尾部就是event_wait的前面,此时event恰好等于event_wait
+        //如果找到剩余延时时间长于新事件的事件,新事件插入该事件前面.
+        //所以无论前面循环找到与否,均可使用下列代码
+        event->multi_next = pl_event;
+        event->multi_previous = pl_event->multi_previous;
+        pl_event->multi_previous->multi_next = event;
+        pl_event->multi_previous = event;
+    }
+    event->event_status = CN_STS_WAIT_MEMORY + CN_STS_EVENT_NORUN;
+    return;
+}
+
 //----分配线程栈---------------------------------------------------------------
 //功能：与 malloc 相似，但要求在关异步信号的条件下调用，本函数仅提供给创建
 //      线程函数__CreateThread使用
@@ -1669,6 +1670,14 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     {
         CurHeap = Heap;
         MemSyncHead = &Heap->mem_sync;      //使用专用堆的同步指针
+        Cession = CurHeap->Cession;
+        //以下循环找出待释放的内存在哪个Cession中
+        while(Cession != NULL)
+        {
+            if(((u8*)pl_mem < Cession->heap_top) && ((u8*)pl_mem >= Cession->heap_bottom) )
+                break ;
+            Cession = Cession->Next;
+        }
     }
     else
     {
@@ -2075,6 +2084,9 @@ ptu32_t  __M_GetFreeMem(void)
 
     return result;
 }
+
+#endif
+
 ADD_TO_ROUTINE_SHELL(heap_spy,heap_spy,"显示动态内存详细分配情况");
 ADD_TO_ROUTINE_SHELL(heap,heap,"显示堆使用情况");
 

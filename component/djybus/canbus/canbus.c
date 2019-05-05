@@ -85,8 +85,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -97,14 +97,14 @@
 #define CFG_CAN_BUS_RCV_RING_LEN    100     //"接收buffer消息数",
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
 bool_t cbstat(char *param);
 
-static struct obj *s_ptCANBusType;
+static struct Object *s_ptCANBusType;
 static struct MsgQueue * gs_ptCanSndMsgQ;
 static uint8_t CAN_BusSndStack[0x1000];
 #define CN_CAN_BUS_MSGQ_LEN        18
@@ -118,10 +118,10 @@ void __CAN_BusPrintfStat(struct CANBusCB * CANBus);
 // 参数：para,无实际意义。
 // 返回：返回建立的资源结点指针，失败时返回NULL。
 // =============================================================================
-struct obj * ModuleInstall_CANBus()
+struct Object * ModuleInstall_CANBus()
 {
     uint16_t evtt_id;
-    struct obj *CANBusType = NULL;
+    struct Object *CANBusType = NULL;
     CANBusType = DjyBus_BusTypeAdd("CANBusType");
     if(CANBusType==NULL)
     {
@@ -631,7 +631,7 @@ void CAN_BusGetStat(struct CANBusCB * CANBus,CanStatDef *CanStat)
 
 bool_t cbstat(char *param)
 {
-    struct obj *Object=NULL;
+    struct Object *Object=NULL;
     struct CANBusCB * CANBus;
     Object=obj_foreach_child(s_ptCANBusType,s_ptCANBusType);
     if(Object==NULL)

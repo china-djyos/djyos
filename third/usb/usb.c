@@ -599,7 +599,8 @@ s32 ModuleInstall_USB(const char *TargetFs,u8 controller)
         error_printf("usb", "too big ID(%d) for usb controller.", controller);
         return (-1);
     }
-
+    if(strcmp(TargetFs,"NULL") == 0)
+        TargetFs = NULL;
 //  if(!dev_group_addo("usb"))
 //  {
 //      error_printf("usb", "cannot create \"usb\" group.");

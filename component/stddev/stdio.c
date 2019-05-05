@@ -204,7 +204,7 @@ static s32 __stdio_read(struct objhandle *hdl, u8 *buf, u32 size)
 // 返回：成功（STDIO对象句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *__stdio_open(struct obj *ob, u32 mode)
+static struct objhandle *__stdio_open(struct Object *ob, u32 mode)
 {
     struct __stdio *stdio;
     struct objhandle *hdl;
@@ -371,7 +371,7 @@ s32 __stdio_tag(struct objhandle *hdl, u32 acts, u32 flags)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __stdio_stat(struct obj *ob, struct stat *data)
+static s32 __stdio_stat(struct Object *ob, struct stat *data)
 {
     memset(data, 0x0, sizeof(struct stat));
 
@@ -445,7 +445,7 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __stdio_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2));
+            hdl = __stdio_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2));
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -495,7 +495,7 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
                 return (-1); // 查询的文件不存在；
-            if(__stdio_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+            if(__stdio_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -608,7 +608,7 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 {
     char *notfound;
-    struct obj *ob;
+    struct Object *ob;
     struct stat info;
     s32 res;
     FILE *new_fp;
@@ -757,7 +757,7 @@ static void __stdio_destory(void)
 // ============================================================================
 static s32 __stdio_build(u32 runmode)
 {
-    struct obj *stdio_root;
+    struct Object *stdio_root;
     u8 i;
 
     stdio_root = obj_newchild(obj_root(), __stdio_ops, 0, "stdio");

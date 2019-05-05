@@ -200,7 +200,7 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 //    u32 a;
 //};
 //
-struct obj
+struct Object
 {
     char *name;             // 对象名；当用于文件系统为文件名或目录名，用于设备是
                             //设备名，用于gui则是窗口名；
@@ -210,77 +210,77 @@ struct obj
 //  union __rights rights;  // 对象权限管理，stat.h的 S_IRUSR 等
     list_t handles;         // 对象句柄链表；对象被打开，系统会给用户分配一个句柄；
                             // 句柄的数据结构接入此链表；
-    struct obj *prev,*next, *parent, *child; // 对象关系；构建对象树；
-//  struct obj *seton;      // 对象关系；某个新的对象集合(类)建立于某个旧对象之上，
+    struct Object *prev,*next, *parent, *child; // 对象关系；构建对象树；
+//  struct Object *seton;      // 对象关系；某个新的对象集合(类)建立于某个旧对象之上，
 //                          //形成一个闭环单向链；当具体文件系统被mount到某对象；原
 //                          //节点在这里备份，以备unmount时恢复旧对象。-1被作为特别
 //                          //用处，表示该对象之上不可建立新的对象集合（类）；
-//  struct obj *set;        // 对象关系；集合点（类）；如果对象本身就是对象集合（类），
+//  struct Object *set;        // 对象关系；集合点（类）；如果对象本身就是对象集合（类），
 //                          //则指向自己；其他则指向对象的集合点（类）；
 };
 
 struct objhandle;
-ptu32_t obj_GetPrivate(struct obj *ob);
-void obj_SetPrivate(struct obj *ob, ptu32_t Private);
-fnObjOps obj_GetOps(struct obj *ob);
-s32 obj_SetOps(struct obj *ob, fnObjOps ops);
-const char *obj_name(struct obj *ob);
+ptu32_t obj_GetPrivate(struct Object *ob);
+void obj_SetPrivate(struct Object *ob, ptu32_t Private);
+fnObjOps obj_GetOps(struct Object *ob);
+s32 obj_SetOps(struct Object *ob, fnObjOps ops);
+const char *obj_name(struct Object *ob);
 char *obj_rename(struct obj *ob,char *NewName);
-struct obj *obj_parent(struct obj *ob);
-struct obj *obj_child(struct obj *ob);
-struct obj *obj_prev(struct obj *ob);
-struct obj *obj_next(struct obj *ob);
-struct obj *obj_head(struct obj *ob);
-s32 obj_level(struct obj *ob);
-s32 obj_ishead(struct obj *ob);
-s32 obj_islast(struct obj *ob);
-s32 obj_isonduty(struct obj *ob);
-s32 obj_LinkHandle(struct objhandle *hdl, struct obj *ob);
+struct Object *obj_parent(struct Object *ob);
+struct Object *obj_child(struct Object *ob);
+struct Object *obj_prev(struct Object *ob);
+struct Object *obj_next(struct Object *ob);
+struct Object *obj_head(struct Object *ob);
+s32 obj_level(struct Object *ob);
+s32 obj_ishead(struct Object *ob);
+s32 obj_islast(struct Object *ob);
+s32 obj_isonduty(struct Object *ob);
+struct objhandle* obj_TraveFile(struct objhandle *Current, struct Object *Object);
+s32 obj_LinkHandle(struct objhandle *hdl, struct Object *ob);
 bool_t obj_lock(void);
 void obj_unlock(void);
 
-u32 obj_InuseUp(struct obj *ob);
-void obj_InuseUpRange(struct obj *start, struct obj *end);
-void obj_InuseUpFullPath(struct obj *Obj);
-u32 obj_InuseDown(struct obj *ob);
-void obj_InuseDownRange(struct obj *start, struct obj *end);
-void obj_InuseDownFullPath(struct obj *Obj);
+//u32 obj_InuseUp(struct Object *ob);
+//void obj_InuseUpRange(struct Object *start, struct Object *end);
+void __InuseUpFullPath(struct Object *Obj);
+//u32 obj_InuseDown(struct Object *ob);
+//void obj_InuseDownRange(struct Object *start, struct Object *end);
+void __InuseDownFullPath(struct Object *Obj);
 
-s32 obj_Delete(struct obj *ob);
-struct obj *obj_detach(struct obj *branch);
+s32 obj_Delete(struct Object *ob);
+struct Object *obj_detach(struct Object *branch);
 s32 obj_checkname(const char *name);
-struct obj *obj_matchpath(const char *match, char **left);
-struct obj *obj_buildpath(struct obj *begin, fnObjOps ops,
+struct Object *obj_matchpath(const char *match, char **left);
+struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
                             ptu32_t ObjPrivate, char *path);
-s32 obj_releasepath(struct obj *start);
-struct obj *obj_current(void);
-void obj_setcurrent(struct obj *ob);
-struct obj *obj_root(void);
-struct obj *obj_newprev(struct obj *loc, fnObjOps ops,
+s32 obj_releasepath(struct Object *start);
+struct Object *obj_current(void);
+void obj_setcurrent(struct Object *ob);
+struct Object *obj_root(void);
+struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
                         ptu32_t ObjPrivate, const char *name);
-struct obj *obj_newnext(struct obj *loc, fnObjOps ops,
+struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
                         ptu32_t ObjPrivate, const char *name);
-struct obj *obj_newchild(struct obj *parent, fnObjOps ops,
+struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
                          ptu32_t ObjPrivate, const char *name);
-struct obj *obj_newhead(struct obj *loc,fnObjOps ops,
+struct Object *obj_newhead(struct Object *loc,fnObjOps ops,
                            ptu32_t ObjPrivate, const char *name);
-s32 obj_move2last(struct obj *ob);
-s32 obj_move2head(struct obj *ob);
-s32 obj_insert2next(struct obj *loc, struct obj *next);
-s32 obj_insert2prev(struct obj *loc, struct obj *prev);
-s32 obj_child_move2prev(struct obj *parent);
-s32 obj_child_move2next(struct obj *parent);
-struct obj *obj_twig(struct obj *ob)
-struct obj *obj_foreach_child(struct obj *parent, struct obj *child);
-struct obj *obj_foreach_scion(struct obj *ancester, struct obj *scion);
-struct obj *obj_search_sibling(struct obj *ob, const char *name);
-struct obj *obj_search_child(struct obj *parent, const char *name);
-struct obj *obj_search_scion(struct obj *ancester, const char *name);
-struct obj *obj_search_path(struct obj *start, const char *path);
-s32 obj_SetMultiplexEvent(struct obj *ob, u32 events);
-s32 obj_ClrMultiplexEvent(struct obj *ob, u32 events);
+s32 obj_move2last(struct Object *ob);
+s32 obj_move2head(struct Object *ob);
+s32 obj_insert2next(struct Object *loc, struct Object *next);
+s32 obj_insert2prev(struct Object *loc, struct Object *prev);
+s32 obj_child_move2prev(struct Object *parent);
+s32 obj_child_move2next(struct Object *parent);
+struct Object *obj_foreach_child(struct Object *parent, struct Object *child);
+struct Object * obj_foreach_scion(struct Object *ancester, struct Object *scion);
+struct Object *obj_search_sibling(struct Object *ob, const char *name);
+struct Object *obj_search_child(struct Object *parent, const char *name);
+struct Object *obj_search_scion(struct Object *ancester, const char *name);
+struct Object *obj_search_path(struct Object *start, const char *path);
+s32 obj_SetMultiplexEvent(struct Object *ob, u32 events);
+s32 obj_ClrMultiplexEvent(struct Object *ob, u32 events);
 s32 issocketactive(s32 Fd, s32 mode);
-struct objhandle* obj_ForeachHandle(struct objhandle *Current, struct obj *Object);
+struct objhandle* obj_ForeachHandle(struct objhandle *Current, struct Object *Object);
 s32 CurWorkPathLen(void);
 s32 CurWorkPath(char *Buf, u32 BufSize);
 s32 SetPWD(const char *Path);

@@ -924,7 +924,8 @@ WOLFSSH_CHANNEL* ChannelNew(WOLFSSH* ssh, byte channelType,
                 newChannel->inputBuffer.dynamicFlag = 1;
             }
             else {
-                WLOG(WS_LOG_DEBUG, "Unable to allocate new channel's buffer");
+                //WLOG(WS_LOG_DEBUG, "Unable to allocate new channel's buffer");
+                printf("Unable to allocate new channel's buffer, size:%d\n\r",initialWindowSz);
                 WFREE(newChannel, heap, DYNTYPE_CHANNEL);
                 newChannel = NULL;
             }

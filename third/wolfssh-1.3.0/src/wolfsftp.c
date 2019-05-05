@@ -2273,9 +2273,11 @@ int wolfSSH_SFTP_RecvLSTAT(WOLFSSH* ssh, int reqId, word32 maxSz)
  * return WS_SUCCESS on success */
 static int SFTP_SetMode(WOLFSSH* ssh, char* name, word32 mode) {
     (void)ssh;
+/* not support chmod
     if (WCHMOD(name, mode) != 0) {
         return WS_BAD_FILE_E;
     }
+*/
     return WS_SUCCESS;
 }
 

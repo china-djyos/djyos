@@ -67,7 +67,6 @@
 #include <misc.h>
 #include "dbug.h"
 #include "ymodem.h"
-#include <cfg/ymodemcfg.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -92,8 +91,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -108,7 +107,7 @@
 //%$#@enum,true,false,
 //%$#@string,1,128,
 #define     CFG_YMODEM_DEVNAME      "std"           //"ymodem传输设备，std表示使用标准输入输出设备"
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 
@@ -116,19 +115,19 @@
 //@#$%component end configure
 
 
-static s32 write_char(s32 ch, int fd) 
+static s32 write_char(s32 ch, int fd)
 {
-	ssize_t res = write(fd, (u8*)&ch, 1);
-	if (res==1) return ch;
-	return EOF;
+    ssize_t res = write(fd, (u8*)&ch, 1);
+    if (res==1) return ch;
+    return EOF;
 }
 
 static s32 read_char(int fd)
 {
-	u8 ch=0;
-	ssize_t res = read(fd, &ch, 1);
-	if (res == 1) return ch;
-	return EOF;
+    u8 ch=0;
+    ssize_t res = read(fd, &ch, 1);
+    if (res == 1) return ch;
+    return EOF;
 }
 
 
@@ -471,7 +470,7 @@ static bool_t __Ymodem_FilePathMerge(char *name)
     if(NULL != name)
     {
         //PathLen = strlen(pYmodem->FileName);
-		PathLen = strlen(pYmodem->FileName);
+        PathLen = strlen(pYmodem->FileName);
         NameLen = strlen(name);
         if(PathLen + NameLen + 1 < CN_YMODEM_NAME_LENGTH)
         {
@@ -915,10 +914,10 @@ static YMRESULT __Ymodem_SendProcess(tagYmodem *ym)
             }
             else
             {
-                
+
                 ym->Status = ENUM_YMODEM_STA_STX;
                 Ret = __Ymodem_FileOps(ym,YMODEM_FILE_READ);
-				ym->PkgNo ++;
+                ym->PkgNo ++;
 //              ym->FileOps = YMODEM_FILE_READ;
             }
             break;

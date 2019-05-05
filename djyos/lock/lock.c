@@ -95,12 +95,12 @@
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -154,11 +154,11 @@ s32 Lock_MutexObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //-----------------------------------------------------------------------------
 //ptu32_t ModuleInstall_Lock1(ptu32_t para)
 //{
-//    static struct obj semp_root;
-//    static struct obj mutex_root;
+//    static struct Object semp_root;
+//    static struct Object mutex_root;
 //    para = para;        //消除编译器告警
-//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct obj),"semaphore");
-//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct obj),"mutex");
+//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct Object),"semaphore");
+//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct Object),"mutex");
 //    return 1;
 //}
 

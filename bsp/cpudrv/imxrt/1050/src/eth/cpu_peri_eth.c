@@ -90,8 +90,8 @@
                                     //表示初始化时间，分别是早期、中期、后期
 //dependence:"djyip","lock","int",  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //如果依赖多个组件，则依次列出
-//mutex:"none"                      //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //如果依赖多个组件，则依次列出
+//mutex:"none"                      //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                    //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -112,7 +112,7 @@
 #define CFG_IMX_PHY_DUPLEX         1//"配置全/半双工模式",为1表示全双工，为0表示半双工
 //%$#@string,1,30,
 #define CFG_ETH_DEV_NAME          "ETH_DEV_IMXRT1052"//"网卡名称",注册网卡的设备名称
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -303,7 +303,7 @@ static void __MacReset(tagMacDriver *pDrive)
     return pkg;
 }
 
-static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
@@ -522,7 +522,8 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-                //NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+                NetDevFlowCtrl(handle,NetDevFrameType(PkgGetCurrentBuffer(pkg),
+                                                      PkgGetDataLen(pkg)));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
@@ -541,7 +542,7 @@ static ptu32_t __MacRcvTask(void)
             else
             {
                   //here we still use the counter to do the time state check
-                //NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+                NetDevFlowCtrl(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
@@ -549,7 +550,7 @@ static ptu32_t __MacRcvTask(void)
     return 0;
 }
 
-static bool_t __CreateRcvTask(ptu32_t handle)
+static bool_t __CreateRcvTask(struct NetDev * handle)
 {
     bool_t result = false;
     u16 evttID;

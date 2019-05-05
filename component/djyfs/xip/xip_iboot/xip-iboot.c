@@ -74,7 +74,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"xip_iboot"    //用于iboot的在线升级
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"filesystem"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -143,7 +143,7 @@ static inline void xip_iboot_unlock(struct __icore *core)
 // 返回：成功（xip-iboot文件句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *xip_iboot_open(struct obj *ob, u32 flags, char *uncached)
+static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *uncached)
 {
     struct objhandle *hdl = NULL;
     struct __icore *core = (struct __icore*)corefs(ob);
@@ -237,7 +237,7 @@ static s32 xip_iboot_write(struct objhandle *hdl, u8 *data, u32 size)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 xip_iboot_stat(struct obj *ob, struct stat *data)
+static s32 xip_iboot_stat(struct Object *ob, struct stat *data)
 {
     memset(data, 0x0, sizeof(struct stat));
 
@@ -327,7 +327,7 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = xip_iboot_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = xip_iboot_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -355,7 +355,7 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
                 return (-1); // 查询的文件不存在；
-            if(xip_iboot_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+            if(xip_iboot_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -381,7 +381,7 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 // ============================================================================
 s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
 {
-    struct obj * mountobj;
+    struct Object * mountobj;
     static struct filesystem *typeXIPIBOOT = NULL;
     s32 res;
     if(typeXIPIBOOT == NULL)
@@ -407,7 +407,7 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", xip_target);
         return (-1);
     }
-    obj_InuseUpFullPath(mountobj);
+//    __InuseUpFullPath(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
     res = mountfs(NULL, xip_target, "XIP-IBOOT", opt, data);
     if(res == -1)

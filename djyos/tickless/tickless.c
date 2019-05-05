@@ -55,14 +55,16 @@ struct djytickless_t {
 #define DJYTICKLESS_DEBUG      (0U)
 /*调试用的，不用管*/
 #if     DJYTICKLESS_DEBUG
-struct djytickless_debug_t{
+struct djytickless_debug_t
+{
     uint64_t pre_cur_cnt;
     uint64_t next_int_cnt;
     uint64_t pre_next_int_cnt;
     uint32_t pre_reload;
     uint8_t  evt;
     bool_t return_flag;
-}djytickless_debug={
+};
+struct djytickless_debug_t djytickless_debug={
     0,
     0,
     0,

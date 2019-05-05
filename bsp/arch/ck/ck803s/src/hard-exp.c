@@ -57,7 +57,7 @@
 #undef  VIC_TSPR
 #define VIC_TSPR  0xE000EC10
 
-extern struct IntMasterCtrl  tg_int_global;          //闂佽姘﹂～澶愭儗椤斿墽涓嶉柣鏃囧亹瀹撲線鎮归崫鍕儓闁诲繈鍎遍埞鎴︻敊绾板崬鍓伴柣搴＄仛閻擄繝鐛敓浠嬫偣娴ｅ摜鏋冮柛姗嗗墴閺岋繝宕掗妶鍛闁汇埄鍨伴悥鐓庣暦濮樿泛绀堝ù锝囧劋鐏忔繈姊洪崫鍕靛劀闁瑰嚖鎷�
+extern struct IntMasterCtrl  tg_int_global;          
 extern void __Djy_ScheduleAsynSignal(void);
 extern   void Init_Cpu(void);
 extern   void HardExp_HardfaultHandler(void);
@@ -78,8 +78,7 @@ static void __Exp_TableSet(void)
     csi_dcache_enable();
     csi_icache_enable();
 
-    //*((uint32_t*)VIC_TSPR) = 0xb00;/*濠电偞鎸婚懝楣冾敄閸ヮ剙鐓濋柛蹇氬亹閳绘柨鈹戦悩鎻掝仾闁伙綁浜堕弻娑氾拷锝庡亞椤ｈ尙鐥鐐靛煟闁轰礁绉舵禒锕傚箚瑜滈弶褰掓⒑閸涘﹤濮囧┑鍌涙⒒缁參宕掑鑲╀函闂侀潧鐗嗛幊鎰ｉ幋锔藉�垫繛鎴烆仾椤忓嫧鏋嶉柟鐑橆殔缁�鍐╃箾閸℃ê鐏︾紒鑼额嚙鑿愰柛銉ｅ妿缁犳﹢鏌￠崱顓熷/
-
+    //*((uint32_t*)VIC_TSPR) = 0xb00;
 }
 
 
@@ -109,7 +108,7 @@ void Exp_SystickTickHandler(void)
 //    tg_int_global.en_asyn_signal = true;
     tg_int_global.en_asyn_signal_counter = 0;
 //  if(g_ptEventReady != g_ptEventRunning)
-//      __Djy_ScheduleAsynSignal();       //闂備礁婀遍悷鎶藉幢閳哄倹鏉稿┑鐐村灦閹尖晠宕㈡禒瀣摕闁搞儺鍓欑粈鍐煕濞戞瑥顥嬫繛鍫濈埣楠炴牗娼忛悙顒�顏�
+//      __Djy_ScheduleAsynSignal();       
     g_bScheduleEnable = true;
 }
 

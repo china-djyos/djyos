@@ -14,8 +14,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t TCA9535_Init(char *BusName);
-//    TCA9535_Init(CFG_TCA9535_BUS_NAME);
+//    extern bool_t TCA9535_Init(void);
+//    TCA9535_Init();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -32,8 +32,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -46,7 +46,7 @@
 //%$#@enum,0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,
 #define CFG_TCA9535_ADDR                (0x20)          //"设备地址",设备的总线地址
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #define CFG_TCA9535_BUS_NAME              "IIC0"            //"总线名称",设备所在总线的名称
 #endif
@@ -276,7 +276,7 @@ bool_t text(void)
  返回：true,成功;false,失败
  =============================================================================*/
 
-bool_t TCA9535_Init(char *BusName)
+bool_t TCA9535_Init(void)
 {
     ptSemID_TCA9535 = Lock_MutexCreate("TCA9535 Lock");
     if(!ptSemID_TCA9535)
@@ -285,7 +285,7 @@ bool_t TCA9535_Init(char *BusName)
         return (FALSE);
     }
 
-    pg_TCA9535_Dev = IIC_DevAdd(BusName, "TCA9535", CFG_TCA9535_ADDR, 0, 8);
+    pg_TCA9535_Dev = IIC_DevAdd(CFG_TCA9535_BUS_NAME, "TCA9535", CFG_TCA9535_ADDR, 0, 8);
     if(!pg_TCA9535_Dev)
     {
         Lock_MutexDelete(ptSemID_TCA9535);

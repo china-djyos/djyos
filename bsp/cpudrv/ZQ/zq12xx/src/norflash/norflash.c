@@ -8,7 +8,7 @@
 //#include "common.h"
 
 #ifdef __DEBUG__
-#define FLASH_LOG(x)		printk(x)
+#define FLASH_LOG(x)		//printk(x)
 #else
 #define FLASH_LOG(x)
 #endif

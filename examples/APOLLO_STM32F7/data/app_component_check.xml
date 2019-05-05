@@ -6,7 +6,7 @@
   <gb2312_charset>false</gb2312_charset>
   <utf8_charset>false</utf8_charset>
   <NlsCharset>false</NlsCharset>
-  <dbug>false</dbug>
+  <dbug>true</dbug>
   <flash>false</flash>
   <uart>true</uart>
   <DevFile>true</DevFile>
@@ -16,9 +16,10 @@
   <spibus>false</spibus>
   <djybus>false</djybus>
   <easyfilesystem>false</easyfilesystem>
-  <iap>false</iap>
+  <xip_app>false</xip_app>
+  <xip_iboot>false</xip_iboot>
   <filesystem>false</filesystem>
-  <ascii_font>false</ascii_font>
+  <ascii_dot>false</ascii_dot>
   <gb2312_dot>false</gb2312_dot>
   <font>false</font>
   <gdd>false</gdd>
@@ -33,6 +34,7 @@
   <multiplex>true</multiplex>
   <shell>true</shell>
   <stdio>true</stdio>
+  <tcp>false</tcp>
   <tcpip>false</tcpip>
   <timer>false</timer>
   <wdt>false</wdt>
@@ -42,7 +44,7 @@
   <int>true</int>
   <lock>true</lock>
   <MsgQueue>true</MsgQueue>
-  <Objfile>false</Objfile>
+  <Objfile>true</Objfile>
   <MemoryPool>true</MemoryPool>
   <time>false</time>
   <board>true</board>
@@ -54,11 +56,13 @@
   <atsam4e>false</atsam4e>
   <atsam4s>false</atsam4s>
   <atsamv7>false</atsamv7>
+  <bk7251>false</bk7251>
   <csky>false</csky>
   <imxrt1052>false</imxrt1052>
   <lpc12xx>false</lpc12xx>
   <lpc17xx>false</lpc17xx>
   <NuvotonM480>false</NuvotonM480>
+  <scm6xx>false</scm6xx>
   <Sharc21469>false</Sharc21469>
   <silan>false</silan>
   <sldrv>false</sldrv>
@@ -71,6 +75,7 @@
   <fatfilesystem>false</fatfilesystem>
   <yaf2filesystem>false</yaf2filesystem>
   <goahead250>false</goahead250>
+  <goahead401>false</goahead401>
   <duktape>false</duktape>
   <iotjs>false</iotjs>
   <jerryscript>false</jerryscript>
@@ -97,6 +102,7 @@
   <cpu_peri_lcd>false</cpu_peri_lcd>
   <cpu_peri_lowpower>false</cpu_peri_lowpower>
   <cpu_peri_nand>false</cpu_peri_nand>
+  <cpu_peri_rng>false</cpu_peri_rng>
   <cpu_peri_rtc>false</cpu_peri_rtc>
   <cpu_peri_emmc>false</cpu_peri_emmc>
   <cpu_peri_spi>false</cpu_peri_spi>

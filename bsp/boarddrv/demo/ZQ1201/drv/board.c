@@ -56,6 +56,8 @@
 #include "cpu_peri.h"
 
 #include <silan_iomux.h>
+#include <silan_gpio.h>
+#include <silan_iomux_regs.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -80,8 +82,8 @@
 //weakdependence:"none"                     //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                             //选中该组件时，被依赖组件不会被强制选中，
                                             //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                              //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                            //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                              //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                            //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -89,7 +91,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -103,8 +105,66 @@
 // =============================================================================
 void Board_GpioInit(void)
 {
+    //UART3
+    silan_io_func_config(IO_CONFIG_PD7, PD7_FUNC_UART3);
+    silan_io_func_config(IO_CONFIG_PD8, PD8_FUNC_UART3);
+
+    // UART2 to PA4/5
     silan_io_func_config(IO_CONFIG_PA4, PA4_FUNC_UART2);
     silan_io_func_config(IO_CONFIG_PA5, PA5_FUNC_UART2);
-//    return true;
+
+    // IIS1 IN 2.0
+    //  silan_io_func_config(IO_CONFIG_PB4, IO_FUNC_GPIO);
+    //  silan_io_func_config(IO_CONFIG_PB5, IO_FUNC_GPIO);
+    //  silan_io_func_config(IO_CONFIG_PB6, IO_FUNC_GPIO);
+    //  silan_io_func_config(IO_CONFIG_PB7, IO_FUNC_GPIO);
+    // IIS3 IN 2.0
+
+    silan_io_func_config(IO_CONFIG_PC3, PC3_FUNC_I3_I2S);
+    silan_io_func_config(IO_CONFIG_PC4, PC4_FUNC_I3_I2S);
+    silan_io_func_config(IO_CONFIG_PC5, PC5_FUNC_I3_I2S);
+    silan_io_func_config(IO_CONFIG_PC6, PC6_FUNC_I3_I2S);
+
+    //I2_IIS IN
+    //  silan_io_func_config(IO_CONFIG_PB8, IO_FUNC_GPIO);
+    //  silan_io_func_config(IO_CONFIG_PC0, IO_FUNC_GPIO);
+    //  silan_io_func_config(IO_CONFIG_PC1, IO_FUNC_GPIO);
+    //  silan_io_func_config(IO_CONFIG_PC2, IO_FUNC_GPIO);
+
+    silan_io_func_config(IO_CONFIG_PA6,PA6_FUNC_SPDIF_IN);
+
+    // SPDIF
+    silan_io_func_config(IO_CONFIG_PA3,PA3_FUNC_SPDIF_O);
+    silan_io_func_config(IO_CONFIG_PA7,IO_FUNC_GPIO);
+    silan_io_func_config(CTRL_LED1,IO_FUNC_GPIO);
+    //  silan_io_func_config(CTRL_LED2,IO_FUNC_GPIO);
+    silan_io_func_config(CTRL_LED3,IO_FUNC_GPIO);
+    //  silan_io_func_config(CTRL_MUTE,IO_FUNC_GPIO);
+    silan_io_func_config(CTRL_IR,IO_FUNC_GPIO);
+
+    /////////////////////////////////////////////////
+    silan_io_func_config(IO_CONFIG_PB6,IO_FUNC_GPIO); ////检查有线MIC
+    silan_io_pullup_config(IO_CONFIG_PB6,IO_ATTR_INPUT_EN);
+    silan_io_direction(IO_CONFIG_PB6,IO_INPUT);
+
+    silan_io_func_config(IO_CONFIG_PB7,IO_FUNC_GPIO); ////检查有线MIC
+    silan_io_pullup_config(IO_CONFIG_PB7,IO_ATTR_INPUT_EN);
+    silan_io_direction(IO_CONFIG_PB7,IO_INPUT);
+
+    ///////////////////////////////////////////////////////
+    silan_io_func_config(IO_CONFIG_PD9,IO_FUNC_GPIO); //PD9
+    silan_io_driver_config(IO_CONFIG_PD9, IO_ATTR_DS_8mA);
+    silan_io_output(IO_CONFIG_PD9);
+    silan_io_set_low(IO_CONFIG_PD9);
+
+    //silan_io_output(CTRL_MUTE);
+
+    //  silan_io_output(CTRL_LED2);
+    //silan_io_output(CTRL_LED3);
+    //silan_io_input(CTRL_IR);
+
+    //  silan_io_set_high(CTRL_LED2);
+    //silan_io_set_high(CTRL_LED3);
+    //  silan_io_set_low(CTRL_MUTE);
 }
 

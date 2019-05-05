@@ -27,10 +27,6 @@
 #define SNTP_PORT                   123
 #endif
 
-/** SNTP server address as IPv4 address in "u32" format */
-#ifndef SNTP_SERVER_ADDRESS
-#define SNTP_SERVER_ADDRESS         inet_addr("202.120.2.101") /* pool.ntp.org */
-#endif
 
 /** SNTP receive timeout - in milliseconds */
 #ifndef SNTP_RECV_TIMEOUT
@@ -104,21 +100,21 @@ static void sntp_process( time_t t)
 /**
  * SNTP request
  */
-static void __SntpRequest()
+static void __SntpRequest(char *SntpServerAddress)
 {
     int                sock;
     struct sockaddr_in to;
     int                tolen;
     int                size;
     int                timeout;
-    u8               __SntpRequest [SNTP_MAX_DATA_LEN];
+    u8               __SntpBuffer [SNTP_MAX_DATA_LEN];
     u8               sntp_response[SNTP_MAX_DATA_LEN];
     u32              sntp_server_address;
     u32              timestamp;
     time_t           t;
 
     /* initialize SNTP server address */
-    sntp_server_address = SNTP_SERVER_ADDRESS;
+    sntp_server_address = inet_addr(SntpServerAddress);
 
     /* if we got a valid SNTP server address... */
     if (sntp_server_address!=0)
@@ -133,8 +129,8 @@ static void __SntpRequest()
             setsockopt( sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
 
             /* prepare SNTP request */
-            memset( __SntpRequest, 0, sizeof(__SntpRequest));
-            __SntpRequest[0] = SNTP_LI_NO_WARNING | SNTP_VERSION | SNTP_MODE_CLIENT;
+            memset( __SntpBuffer, 0, sizeof(__SntpBuffer));
+            __SntpBuffer[0] = SNTP_LI_NO_WARNING | SNTP_VERSION | SNTP_MODE_CLIENT;
 
             /* prepare SNTP server address */
             memset(&to, 0, sizeof(to));
@@ -143,7 +139,7 @@ static void __SntpRequest()
             to.sin_addr.s_addr = sntp_server_address;
 
             /* send SNTP request to server */
-            if (sendto( sock, __SntpRequest, sizeof(__SntpRequest), 0, (struct sockaddr *)&to, sizeof(to))>=0)
+            if (sendto( sock, __SntpBuffer, sizeof(__SntpBuffer), 0, (struct sockaddr *)&to, sizeof(to))>=0)
             {
                 /* receive SNTP server response */
                 tolen = sizeof(to);
@@ -175,7 +171,7 @@ static void __SntpRequest()
 //bool_t SntpTimeSyncShell(char *param)
 bool_t sntp(char *param)
 {
-    __SntpRequest();
+    __SntpRequest(param);
     return true;
 }
 
@@ -185,6 +181,6 @@ bool_t ServiceSntpInit(void)
 {
         return (TRUE);
 }
-ADD_TO_ROUTINE_SHELL(sntp,sntp,"usage:sntp");
+ADD_TO_ROUTINE_SHELL(sntp,sntp,"usage:sntp ipaddress");
 
 

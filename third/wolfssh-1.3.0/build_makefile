@@ -79,7 +79,7 @@ TARGET_DIR=target
 
 OBJS=$(patsubst %.c, %.o, $(SOURCE))
 OBJS_DEBUG=$(patsubst %.c, %.E, $(SOURCE))
-BUILD_TARGET=$(TARGET_DIR)/sftp_client_jianwu
+BUILD_TARGET=$(TARGET_DIR)/sftpc
 BUILD_TARGET_OBJ=$(patsubst %.c, %.o, $(BUILD_TARGET_SRC))
 
 

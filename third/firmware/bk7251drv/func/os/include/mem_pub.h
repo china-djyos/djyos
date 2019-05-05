@@ -19,6 +19,7 @@ int os_memcmp_const(const void *a, const void *b, size_t len);
 #define os_free(p)        vPortFree_cm((const char*)__FUNCTION__,__LINE__,p)
 #define os_zalloc(size)   pvPortMalloc_cm((const char*)__FUNCTION__,__LINE__,size, 1)
 #else
+void os_meminit(void);
 void *os_malloc(size_t size);
 void os_free(void *ptr);
 void *os_zalloc(size_t size);

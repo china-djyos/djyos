@@ -80,8 +80,8 @@
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -89,7 +89,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 
@@ -99,7 +99,7 @@
 //@#$%component end configure
 
 
-static struct obj *s_ptDjybusDir;                //定义静态变量DjyBus的根结点
+static struct Object *s_ptDjybusDir;                //定义静态变量DjyBus的根结点
 // =============================================================================
 // 功能：建立并初始化DjyBus总线根节点，它是总线类型节点的父结点
 // 参数：para,无实际意义
@@ -125,9 +125,9 @@ bool_t ModuleInstall_DjyBus (void)
 // 参数：NewBusTypeName,总线类型名称
 // 返回：返回建立的资源结点指针，失败时返回NULL
 // =============================================================================
-struct obj * DjyBus_BusTypeAdd (const char* NewBusTypeName)
+struct Object * DjyBus_BusTypeAdd (const char* NewBusTypeName)
 {
-    struct obj * NewBusType;
+    struct Object * NewBusType;
 
     //避免重复创建同名的总线类型
     if(NULL != obj_search_child(s_ptDjybusDir, NewBusTypeName))
@@ -144,7 +144,7 @@ struct obj * DjyBus_BusTypeAdd (const char* NewBusTypeName)
 // 参数：DelBusType,待删除的总线类型结点
 // 返回：TRUE,删除成功;false,删除失败
 // =============================================================================
-bool_t DjyBus_BusTypeDelete(struct obj * DelBusType)
+bool_t DjyBus_BusTypeDelete(struct Object * DelBusType)
 {
     bool_t result;
 
@@ -164,7 +164,7 @@ bool_t DjyBus_BusTypeDelete(struct obj * DelBusType)
 // 参数：BusTypeName,待查找的总线类型结点名称
 // 返回：结点指针，NULL时查找失败
 // =============================================================================
-struct obj * DjyBus_BusTypeFind(const char * BusTypeName)
+struct Object * DjyBus_BusTypeFind(const char * BusTypeName)
 {
     return obj_search_child(s_ptDjybusDir,BusTypeName);
 }

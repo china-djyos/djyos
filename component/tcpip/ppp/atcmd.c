@@ -75,7 +75,7 @@ static char pAtDevName[32]; //use this var to storage the at command device
 //作者:zhangqf@上午10:17:31/2017年3月23日
 //-----------------------------------------------------------------------------
 //bool_t  AtDefaultDevSet(char *name)
-bool_t  atdevset(char *name)
+bool_t  AtDefaultDevSet(char *name)
 {
     if(NULL != name)
     {
@@ -837,7 +837,7 @@ bool_t PppAtInit(ptu32_t para)
      return (TRUE);
 }
 ADD_TO_ROUTINE_SHELL(atsignal,atsignal,"usage:atsignal [devname](if not supplied, will use the default)");
-ADD_TO_ROUTINE_SHELL(atdevset,atdevset,"usage:atdevset devname");
+ADD_TO_ROUTINE_SHELL(atdevset,AtDefaultDevSet,"usage:atdevset devname");
 ADD_TO_ROUTINE_SHELL(atdevget,atdevget,"usage:atdevget");
 ADD_TO_ROUTINE_SHELL(atcmd,atcmd,"usage:atcmd command");
 ADD_TO_ROUTINE_SHELL(atdial,atdial,"usage:atdial devname apn");

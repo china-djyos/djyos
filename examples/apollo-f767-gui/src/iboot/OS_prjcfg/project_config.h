@@ -72,6 +72,8 @@
 #define     CFG_STDIO_IN_NAME                "/dev/UART1"        // "标准输入设备名",
 #define     CFG_STDIO_OUT_NAME               "/dev/UART1"        // "标准输出设备名",
 #define     CFG_STDIO_ERR_NAME               "/dev/UART1"        // "标准err输出设备名",
+#define CFG_STDIO_FLOAT_PRINT       true        //"支持浮点打印"
+#define CFG_STDIO_STDIOFILE         true        //"支持标准IO文件"
 //*******************************  Configure cpu_peri_uart  ******************************************//
 #define     CFG_UART1_SENDBUF_LEN            64                       // "UART1发送环形缓冲区大小",
 #define     CFG_UART1_RECVBUF_LEN            64                       // "UART1接收环形缓冲区大小",
@@ -110,6 +112,7 @@
 #define     CFG_ADD_EXPAND_SHELL             true                // "是否添加拓展shell命令"
 #define     CFG_ADD_GLOBAL_FUN               false               // "添加全局函数到shell"
 #define     CFG_SHOW_ADD_SHEELL              true                // "显示在编译窗口添加的shell命令"
+#define CFG_MODULE_ENABLE_SHELL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //*******************************  Configure tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE               0x4000                  // "数据包缓冲区尺寸"
 #define     CFG_ARP_HASHLEN                  32                      // "ARP哈希表长度"，占用一个指针
@@ -170,24 +173,25 @@
 #define CFG_IBOOT_VERSION       01               // Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"                  // "ymodem传输设备，std表示使用标准输入输出设备"
 //*******************************  Configure cpu_peri_eth  ******************************************//
-#define CFG_MAC_ADDR0           00                  // "网卡地址0",
-#define CFG_MAC_ADDR1           00                  // "网卡地址1",
-#define CFG_MAC_ADDR2           00                  // "网卡地址2",
-#define CFG_MAC_ADDR3           00                  // "网卡地址3",
-#define CFG_MAC_ADDR4           00                  // "网卡地址4",
-#define CFG_MAC_ADDR5           00                  // "网卡地址5",
 #define CFG_ETH_LOOP_CYCLE      1000                // "网卡轮询接收周期",
 #define CFG_ETH_LOOP_ENABLE     true               // "网卡接收是否轮询",
-#define CFG_ETH_DEV_NAME        "STM32F7_ETH"       // "网卡名称",
+#define CFG_ETH_NETCARD_NAME    "STM32F7_ETH"   //"网卡名称",
+#define CFG_ETH_HARD_MAC_ADDR   true            //"硬件生成Mac地址",
+#define CFG_ETH_MAC_ADDR0      00           //"MAC ADDR0",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR1      02           //"MAC ADDR1",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR2      03           //"MAC ADDR2",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR3      04           //"MAC ADDR3",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR4      05           //"MAC ADDR4",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR5      06           //"MAC ADDR5",若选中"硬件生成Mac地址",则无须填写
 //*******************************  Configure lan8720  ******************************************//
 #define CFG_LAN8720_PHY_ADDRESS     0          // phy的物理地址，硬件一般设计为 0
 //*******************************  Configure netconfig  ******************************************//
 #define     CFG_STATIC_IP                    true                     // "IP属性",true=使用静态IP，false=动态IP
-#define     CFG_NETCARD_NAME                 "APOLLO_ETH"             // "网卡名",
 #define     CFG_MY_IPV4                      "192.168.0.179"          // "静态IP",
 #define     CFG_MY_SUBMASK                   "255.255.255.0"          // "子网掩码",
 #define     CFG_MY_GATWAY                    "192.168.0.1"            // "网关",
 #define     CFG_MY_DNS                       "192.168.0.1"            // "DNS",
+#define CFG_SELECT_NETCARD  "STM32F7_ETH"   //"网卡名称",必须与选中的网卡驱动中配置的名称相同
 //*******************************  Configure key_hard  ******************************************//
 #define     CFG_KEYBOARD_NAME                "KEYBOARD"               // "name",配置键盘名称
 //*******************************  Configure FT5X26  ******************************************//

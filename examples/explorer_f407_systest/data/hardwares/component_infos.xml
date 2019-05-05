@@ -15,9 +15,10 @@
    <component>/component/djybus/iicbus/iicbus.c</component>
    <component>/component/djybus/spibus/spibus.c</component>
    <component>/component/djybus/djybus.c</component>
-   <component>/component/djyfs/efs/component_config_efs.h</component>
-   <component>/component/djyfs/xip/xip_app/component_config_xip_app.h</component>
-   <component>/component/djyfs/xip/xip_iboot/component_config_xip_iboot.h</component>
+   <component>/component/djyfs/efs/efs.c</component>
+   <component>/component/djyfs/efs_full/component_config_efs_full.h</component>
+   <component>/component/djyfs/xip/xip_app/xip-app.c</component>
+   <component>/component/djyfs/xip/xip_iboot/xip-iboot.c</component>
    <component>/component/djyfs/component_config_fs.h</component>
    <component>/component/font/dotfont-ascii/dot-ascii.c</component>
    <component>/component/font/dotfont-gb2312/dot-gb2312.c</component>
@@ -34,7 +35,18 @@
    <component>/component/multiplex/multiplex.c</component>
    <component>/component/shell/shell.c</component>
    <component>/component/stddev/component_config_stdio.h</component>
+   <component>/component/tcpip/apps/dhcp/component_config_dhcp.h</component>
+   <component>/component/tcpip/apps/ftp/component_config_ftp.h</component>
+   <component>/component/tcpip/apps/telnet/telnetd.c</component>
+   <component>/component/tcpip/apps/tftp/component_config_tftp.h</component>
+   <component>/component/tcpip/ethernet/arp.c</component>
+   <component>/component/tcpip/ppp/component_config_ppp.h</component>
+   <component>/component/tcpip/router/router.c</component>
+   <component>/component/tcpip/socket/sock.c</component>
+   <component>/component/tcpip/tpl/icmp.c</component>
    <component>/component/tcpip/tpl/tcp.c</component>
+   <component>/component/tcpip/tpl/tpl.c</component>
+   <component>/component/tcpip/tpl/udp.c</component>
    <component>/component/tcpip/component_config_tcpip.h</component>
    <component>/component/timer/timer.c</component>
    <component>/component/wdt/wdt_soft.c</component>
@@ -54,6 +66,7 @@
    <component>/third/firmware/AtmelSam4e/component_config_atmelsam4e.h</component>
    <component>/third/firmware/AtmelSam4s/component_config_atmelsam4s.h</component>
    <component>/third/firmware/AtmelSamV7/component_config_atmelsamv7.h</component>
+   <component>/third/firmware/bk7251drv/component_config_bk7251.h</component>
    <component>/third/firmware/csky/component_config_csky.h</component>
    <component>/third/firmware/imxrt1052/component_config_imxrt1052.h</component>
    <component>/third/firmware/lpc12xx/component_config_lpc12xx.h</component>
@@ -83,7 +96,9 @@
    <component>/third/qrencode/component_config_qrencode.h</component>
    <component>/third/sqlite3/component_config_sqlite3.h</component>
    <component>/third/usb/component_config_stusb.h</component>
+   <component>/third/wolfssh-1.3.0/component_config_wolfssh130.h</component>
    <component>/third/wolfssl-3.10.2/component_config_wolfssl.h</component>
+   <component>/third/wolfssl-3.15.7/component_config_wolfssl3157.h</component>
    <component>/third/zlib-1.2.8/component_config_zlib.h</component>
    <component>/bsp/chipdrv/39vf160/39vfxxx.c</component>
    <component>/bsp/chipdrv/88E1512/phy_88e1512.c</component>
@@ -95,8 +110,12 @@
    <component>/bsp/chipdrv/ads8688/ads8688.c</component>
    <component>/bsp/chipdrv/at24c02/at24c02.c</component>
    <component>/bsp/chipdrv/at24c02a/at24c02a.c</component>
+   <component>/bsp/chipdrv/at24c08/at24c08.c</component>
    <component>/bsp/chipdrv/at24c128b/at24c128b.c</component>
    <component>/bsp/chipdrv/at24c512c/at24c512c.c</component>
+   <component>/bsp/chipdrv/at45db321/at45_efs/at45_efs.c</component>
+   <component>/bsp/chipdrv/at45db321/at45_efs_full/at45_efs_full.c</component>
+   <component>/bsp/chipdrv/at45db321/at45_yaf/at45_yaf.c</component>
    <component>/bsp/chipdrv/at45db321/at45db321.c</component>
    <component>/bsp/chipdrv/AX88796/AX88796Byte.c</component>
    <component>/bsp/chipdrv/dm9000/dm9000.c</component>
@@ -126,9 +145,11 @@
    <component>/bsp/chipdrv/sc1161y/sc1161y_spi.c</component>
    <component>/bsp/chipdrv/STMPE811/stmpe811.c</component>
    <component>/bsp/chipdrv/tca9535/tca9535.c</component>
+   <component>/bsp/chipdrv/uc1698/uc1698.c</component>
    <component>/bsp/chipdrv/w25qxx/w25qxx.c</component>
    <component>/libc/component_config_clib.h</component>
    <component>/bsp/cpudrv/stm32/f4/src/dma/cpu_peri_dma.c</component>
+   <component>/bsp/cpudrv/stm32/f4/src/emflash/cpu_emflash_xip/cpu_emflash_xip.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/emflash/cpu_peri_emflash.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/eth/cpu_peri_eth.c</component>
    <component>/bsp/cpudrv/stm32/f4/src/gpio/cpu_peri_gpio.c</component>

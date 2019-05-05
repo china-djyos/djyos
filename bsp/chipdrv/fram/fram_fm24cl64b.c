@@ -20,8 +20,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//   extern ptu32_t ModuleInit_Fram(char *BusName);
-//    ModuleInit_Fram(CFG_FRAM_BUS_NAME);
+//   extern ptu32_t ModuleInit_Fram(void);
+//   ModuleInit_Fram();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -38,8 +38,8 @@
 //weakdependence:"none"           //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                   //选中该组件时，被依赖组件不会被强制选中，
                                   //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                    //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                  //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                    //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                  //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -50,7 +50,7 @@
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_FRAM_BUS_NAME              "IIC0"       //"IIC总线",配置铁电使用的IIC总线名称
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #define CFG_FRAM_ADDR                 (0x80)             //"地址",铁电的地址（硬件地址）
 #endif
@@ -247,11 +247,11 @@ u32 FRAM_Write_Data_r(u16 wAddress, u8 *pbyBuf, u32 dwLen)
 // 参数: para,铁电号，0或1
 // 返回: true= 成功，false=失败
 // =============================================================================
-ptu32_t ModuleInit_Fram(char *BusName)
+ptu32_t ModuleInit_Fram(void)
 {
     ptSemID_Fram = Lock_MutexCreate("Fram0 Lock");
 
-    s_ptFRAM_Dev = IIC_DevAdd(BusName,"FRAM_FM24CL64B",CFG_FRAM_ADDR,1,17);
+    s_ptFRAM_Dev = IIC_DevAdd(CFG_FRAM_BUS_NAME,"FRAM_FM24CL64B",CFG_FRAM_ADDR,1,17);
     if(s_ptFRAM_Dev)
     {
         IIC_BusCtrl(s_ptFRAM_Dev,CN_IIC_SET_CLK,CFG_FM24CL64B_CLK_FRE,0);
