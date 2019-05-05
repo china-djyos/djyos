@@ -1789,9 +1789,6 @@
 					<Folder Name="at45_efs">
 						<F N="bsp/chipdrv/at45db321/at45_efs/at45_efs.c"/>
 					</Folder>
-					<Folder Name="at45_efs_full">
-						<F N="bsp/chipdrv/at45db321/at45_efs_full/at45_efs_full.c"/>
-					</Folder>
 					<Folder Name="at45_yaf">
 						<F N="bsp/chipdrv/at45db321/at45_yaf/at45_yaf.c"/>
 					</Folder>
@@ -2091,9 +2088,6 @@
 								<F N="bsp/cpudrv/Atmel/SamV7/src/mcan/cpu_peri_mcan.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<Folder Name="cpu_nand_efs_full">
-									<F N="bsp/cpudrv/Atmel/SamV7/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
-								</Folder>
 								<Folder Name="cpu_nand_yaf">
 									<F N="bsp/cpudrv/Atmel/SamV7/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
 								</Folder>
@@ -2210,9 +2204,6 @@
 							<F N="bsp/cpudrv/FslKxx/src/lcd/cpu_peri_lcd.c"/>
 						</Folder>
 						<Folder Name="nand">
-							<Folder Name="cpu_nand_efs_full">
-								<F N="bsp/cpudrv/FslKxx/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
-							</Folder>
 							<Folder Name="cpu_nand_yaf">
 								<F N="bsp/cpudrv/FslKxx/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
 							</Folder>
@@ -2578,9 +2569,6 @@
 								<F N="bsp/cpudrv/samsung/s3c2416/src/lcd/cpu_peri_lcd.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<Folder Name="cpu_nand_efs_full">
-									<F N="bsp/cpudrv/samsung/s3c2416/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
-								</Folder>
 								<Folder Name="cpu_nand_yaf">
 									<F N="bsp/cpudrv/samsung/s3c2416/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
 								</Folder>
@@ -2699,7 +2687,6 @@
 								<F N="bsp/cpudrv/scm6xx/scm610/src/lowpower/stm32f4xx_lowpower.c"/>
 							</Folder>
 							<Folder Name="norflash">
-								<F N="bsp/cpudrv/scm6xx/scm610/src/norflash/cpu_nor_yaf.c"/>
 								<F N="bsp/cpudrv/scm6xx/scm610/src/norflash/cpu_peri_nor.c"/>
 								<F N="bsp/cpudrv/scm6xx/scm610/src/norflash/hal_w25q64.c"/>
 							</Folder>
@@ -2989,9 +2976,6 @@
 								<F N="bsp/cpudrv/stm32/f7/src/lowpower/cpu_peri_lptimer.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<Folder Name="cpu_nand_efs_full">
-									<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
-								</Folder>
 								<Folder Name="cpu_nand_yaf">
 									<F N="bsp/cpudrv/stm32/f7/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
 								</Folder>
@@ -3092,9 +3076,6 @@
 								<F N="bsp/cpudrv/stm32/h7/src/lowpwer/cpu_peri_lptimer.c"/>
 							</Folder>
 							<Folder Name="nand">
-								<Folder Name="cpu_nand_efs_full">
-									<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_efs_full/cpu_nand_efs_full.c"/>
-								</Folder>
 								<Folder Name="cpu_nand_yaf">
 									<F N="bsp/cpudrv/stm32/h7/src/nand/cpu_nand_yaf/cpu_nand_yaf.c"/>
 								</Folder>
@@ -3708,6 +3689,9 @@
 					<F N="component/tcpip/ethernet/arp.h"/>
 					<F N="component/tcpip/ethernet/link80203.c"/>
 				</Folder>
+				<Folder Name="icmp">
+					<F N="component/tcpip/icmp/icmp.c"/>
+				</Folder>
 				<Folder Name="ip">
 					<F N="component/tcpip/ip/ip.c"/>
 					<F N="component/tcpip/ip/ip_v4.c"/>
@@ -3748,12 +3732,15 @@
 					<F N="component/tcpip/socket/sockfile.c"/>
 					<F N="component/tcpip/socket/sockfile.h"/>
 				</Folder>
+				<Folder Name="tcp">
+					<F N="component/tcpip/tcp/tcp.c"/>
+				</Folder>
 				<Folder Name="tpl">
 					<F N="component/tcpip/tpl/extstack.c"/>
-					<F N="component/tcpip/tpl/icmp.c"/>
-					<F N="component/tcpip/tpl/tcp.c"/>
 					<F N="component/tcpip/tpl/tpl.c"/>
-					<F N="component/tcpip/tpl/udp.c"/>
+				</Folder>
+				<Folder Name="udp">
+					<F N="component/tcpip/udp/udp.c"/>
 				</Folder>
 				<F N="component/tcpip/component_config_tcpip.h"/>
 				<F N="component/tcpip/tcpipmain.c"/>
@@ -15826,9 +15813,6 @@
 					<Folder Name="png">
 						<F N="third/picasso/ext/png/png_module.c"/>
 					</Folder>
-					<Folder Name="webp">
-						<F N="third/picasso/ext/webp/webp_module.c"/>
-					</Folder>
 					<F N="third/picasso/ext/psx_color_convert.h"/>
 					<F N="third/picasso/ext/psx_image_io.c"/>
 					<F N="third/picasso/ext/psx_image_io.h"/>
@@ -15946,7 +15930,6 @@
 					<F N="third/picasso/src/picasso_rendering_buffer.h"/>
 					<F N="third/picasso/src/resource.h"/>
 				</Folder>
-				<F N="third/picasso/convert.h"/>
 			</Folder>
 			<Folder Name="qrencode">
 				<F N="third/qrencode/bitstream.c"/>

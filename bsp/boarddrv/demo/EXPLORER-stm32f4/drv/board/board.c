@@ -362,12 +362,13 @@ void Board_GpioInit(void)
 }
 
 ////网口的 PHY 芯片：LAN8720复位
-//bool_t LAN8720_RESET(void)
-//{
-//    PCF8574_WriteBit(ETH_RESET_IO,1);
-//    Djy_DelayUs(100*mS);
-//    PCF8574_WriteBit(ETH_RESET_IO,0);
-//    Djy_DelayUs(100*mS);
-//    return true;
-//}
+bool_t LAN8720_RESET(void)
+{
+//  PCF8574_WriteBit(ETH_RESET_IO,1);
+//  Djy_DelayUs(100*mS);
+//  PCF8574_WriteBit(ETH_RESET_IO,0);
+//  Djy_DelayUs(100*mS);
+    //PD3上输出一个100mS的高电平脉冲
+    return true;
+}
 

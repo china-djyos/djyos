@@ -37,7 +37,7 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_STDIO_RUN_MODE
+#ifndef CFG_STDIO_STDIN_MULTI
 #warning stdio模块未配置，使用默认配置
 //%$#@num,0,100,
 //%$#@enum,true,false,

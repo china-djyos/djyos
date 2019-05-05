@@ -31,6 +31,9 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
+
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
@@ -61,6 +64,9 @@ void Sys_ModuleInit(void)
 	#endif
 
 	//-------------------medium-------------------------//
+	extern bool_t ModuleInstall_TcpIp(void);
+	ModuleInstall_TcpIp( );
+
 	extern bool_t ModuleInstall_Timer(void);
 	ModuleInstall_Timer();
 
@@ -69,11 +75,21 @@ void Sys_ModuleInit(void)
 	kernel_command();
 	#endif
 
+	extern bool_t LAN8720_ResetInit(void);
+	LAN8720_RESET( );
+	LAN8720_ResetInit( );
+
+	extern bool_t ModuleInstall_ETH(void);
+	ModuleInstall_ETH( );
+
 	//-------------------later-------------------------//
 	#if(CFG_STDIO_STDIOFILE == true)
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 	#endif
+
+	extern void ModuleInstall_InitNet( );
+	ModuleInstall_InitNet( );
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");

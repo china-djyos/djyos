@@ -164,12 +164,21 @@ typedef struct tcp_ready {
 
 
 /*user config start, when use sftp server.  to config the encrypt file and server listen port, username and password*/
+#ifndef serverKeyRsaPemFile
 #define serverKeyRsaPemFile "/efs/server-key-rsa.pem" /*locate in  wolfssh-1.3.0/keys */
+#endif
+#ifndef serverKeyEccDerFile
 #define serverKeyEccDerFile "/efs/server-key-ecc.der"
+#endif
+#ifndef serverKeyRsaDerFile
 #define serverKeyRsaDerFile "/efs/server-key-rsa.der"
-
+#endif
+#ifndef SFTP_SERVER_DEFAULT_LISTEN_PORT
 #define SFTP_SERVER_DEFAULT_LISTEN_PORT        22222      // ssh server listen port
+#endif
+#ifndef SFTP_SERVER_USERNAME_PASSWORD_STRINGS
 #define SFTP_SERVER_USERNAME_PASSWORD_STRINGS  "jill:upthehill\n jack:fetchapail\n"
+#endif
 /*end user config*/
 
 static INLINE void InitTcpReady(tcp_ready* ready)

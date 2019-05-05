@@ -2,6 +2,21 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+
+
+//#define ADD_TO_ROUTINE_SHELL(cmdname,fun,help) \
+//                __attribute__((section(".ro_shell_cmd")))\
+//                const struct shell_cmd djysh_##cmdname = \
+//                        {.shell_fun_addr  = fun,.shell_help_addr = help,}
+//#if BUILDING_SFTPC
+//bool_t sftp_client(char *Param);
+//ADD_TO_ROUTINE_SHELL(sftpc,sftp_client,"start the sftp client,usage: sftpc -h host -p port -u user -P password\n example:  sftpc -h 192.168.0.1 -p 2323 -u user -P user");
+//#endif
+//#if BUILDING_SFTPD
+//bool_t sftp_server(char *Param);
+//ADD_TO_ROUTINE_SHELL(sftpd,sftp_server,"start the sftp server,usage: sftpd -p port\n example:  sftpd -p 22222");
+//#endif
+
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -27,15 +42,17 @@
 #ifndef BUILDING_WOLFSSL   //****检查参数是否已经配置好
 //#warning    “网络配置”组件参数未配置，使用默认值
 //%$#@num,0,65535
-#define SFTP_SERVER_DEFAULT_LISTEN_PORT        22222      //"ssh server listen port"
+#define SFTP_SERVER_DEFAULT_LISTEN_PORT        22222      //"sftpd默认监听端口"
 //%$#@enum,true,false
+#define BUILDING_SFTPC          false
+#define BUILDING_SFTPD          false
 //%$#@select
 //%$#@string,1,16
 #define serverKeyRsaPemFile "/efs/server-key-rsa.pem"   //"rsa.pem file"，不使用文件系统则不需要配置
 #define serverKeyEccDerFile "/efs/server-key-ecc.der"   //"ecc.der file"
 #define serverKeyRsaDerFile "/efs/server-key-rsa.der"   //"rsa.der file"
 
-#define SFTP_SERVER_USERNAME_PASSWORD_STRINGS  "jill:upthehill\n jack:fetchapail\n" //"server username and password"
+#define SFTP_SERVER_USERNAME_PASSWORD_STRINGS  "jill:upthehill\n jack:fetchapail\n" //"用户名密码，格式为: username:password\n"
 //%$#@SYMBOL
 #define SIZEOF_LONG_LONG 8
 #define NO_WRITEV
