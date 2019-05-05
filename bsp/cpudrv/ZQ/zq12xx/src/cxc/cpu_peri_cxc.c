@@ -1,4 +1,4 @@
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "cpu_peri.h"
 #include "cpu_peri_cxc.h"
 #include "lock.h"

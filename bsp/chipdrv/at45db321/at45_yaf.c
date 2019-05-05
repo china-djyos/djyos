@@ -118,11 +118,6 @@ int yaf_at45_write(struct yaffs_dev *yaf2dev, int chunk,
         return (YAFFS_FAIL);
 #endif
 
-    if(yaf2dev->param.use_nand_ecc)
-    {
-        opt.hecc = 1;
-        opt.secc = 1;
-    }
 
     main = nordescription->BytesPerPage;
     __at45_req(sparebytes, (ptu32_t)&spare);
@@ -132,14 +127,12 @@ int yaf_at45_write(struct yaffs_dev *yaf2dev, int chunk,
         memset(at45_umedia->ubuf, 0xFF, main+spare);
         if(data)
         {
-            opt.main = 1;
             memcpy(at45_umedia->ubuf, data, data_len);
             data += main;
         }
 
         if(oob)
         {
-            opt.spare = 1;
             memcpy(at45_umedia->ubuf+main, oob, oob_len);
         }
 
@@ -181,20 +174,9 @@ int yaf_at45_read(struct yaffs_dev *yaf2dev, int chunk,
         return (YAFFS_FAIL);
 #endif
 
-
-
-    if(yaf2dev->param.use_nand_ecc)
-    {
-        opt.hecc = 1;
-        opt.secc = 1;
-    }
-
     main = nordescription->BytesPerPage;;
     __at45_req(sparebytes, (ptu32_t)&spare);
     __at45_req(lock, -1);
-    opt.main = 1;
-    if(oob)
-        opt.spare = 1;
 
     for(i = 0; i < (s32)(yaf2dev->driver_context); i++)
     {

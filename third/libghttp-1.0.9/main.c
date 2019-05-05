@@ -215,7 +215,7 @@ int Ghttp_main(int argc, char *argv[])
     return 0;
 }
 
-ADD_TO_ROUTINE_SHELL ("ie",IeShell,"usage:ie + http://host:port/dir?param");
+ADD_TO_ROUTINE_SHELL (ie,IeShell,"usage:ie + http://host:port/dir?param");
 
 
 

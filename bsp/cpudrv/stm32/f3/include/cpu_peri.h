@@ -72,6 +72,7 @@ extern "C" {
 #include "cpu_peri_gpio.h"
 #include "cpu_peri_iic.h"
 //#include "cpu_peri_adc.h"
+#include "get_cpuid.h"
 
 //#include "cpu_peri_pio.h"
 //#include "cpu_peri_timer.h"   //CPUDRV里没有该.h

@@ -43,12 +43,12 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 
-
 #include "stdint.h"
 #include "stddef.h"
 //#include "cpu_peri_gpio.h"
 //#include "cpu_peri_iic.h"
 #include "IoIicBus.h"
+#include "pcf8574.h"
 #include "board.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -369,7 +369,6 @@ void FT5X26_Pin_Init(void)
 
 }
 
-#if 0
 void PCF8574_Pin_Init(void)
 {
     GPIO_InitTypeDef GPIO_Initure;
@@ -378,7 +377,7 @@ void PCF8574_Pin_Init(void)
     GPIO_Initure.Pin=GPIO_PIN_12;           //PB12
     GPIO_Initure.Mode=GPIO_MODE_INPUT;      //输入
     GPIO_Initure.Pull=GPIO_PULLUP;          //上拉
-    GPIO_Initure.Speed=GPIO_SPEED_HIGH;     //高速
+    GPIO_Initure.Speed=GPIO_SPEED_FREQ_VERY_HIGH;     //高速
     HAL_GPIO_Init(GPIOB,&GPIO_Initure);     //初始化
 
     //IIC初始化
@@ -387,7 +386,7 @@ void PCF8574_Pin_Init(void)
     GPIO_Initure.Pin=GPIO_PIN_4|GPIO_PIN_5;
     GPIO_Initure.Mode=GPIO_MODE_OUTPUT_PP;  //推挽输出
     GPIO_Initure.Pull=GPIO_PULLUP;          //上拉
-    GPIO_Initure.Speed=GPIO_SPEED_FAST;     //快速
+    GPIO_Initure.Speed=GPIO_SPEED_FREQ_VERY_HIGH;     //快速
     HAL_GPIO_Init(GPIOH,&GPIO_Initure);
 
 
@@ -399,7 +398,6 @@ void PCF8574_Pin_Init(void)
 //    PCF8574_WriteOneByte(0XFF);             //默认情况下所有IO输出高电平
 //    return temp;
 }
-#endif
 
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 {
@@ -450,9 +448,9 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 // =============================================================================
 void Board_GpioInit(void)
 {
-    bool_t ETH_RESE(void);
+    bool_t LAN8720_RESET(void);
 #if 0
-    ETH_RESE( );//网口复位
+    LAN8720_RESET( );//网口复位
 #endif
     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
 //   PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
@@ -487,3 +485,14 @@ unsigned char  NAND_RB_Get(void)
 {
     return PIO_Get(&FmcNandPins[0]);
 }
+
+//网口的 PHY 芯片：LAN8720复位
+bool_t LAN8720_RESET(void)
+{
+    PCF8574_WriteBit(ETH_RESET_IO,1);
+    Djy_DelayUs(100*mS);
+    PCF8574_WriteBit(ETH_RESET_IO,0);
+    Djy_DelayUs(100*mS);
+    return true;
+}
+

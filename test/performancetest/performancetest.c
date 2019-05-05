@@ -713,6 +713,7 @@ void Test_IntISRTest(EN_INT_FLAG MeaType)
 }
 
 extern void *TimerReg;
+extern bool_t TimerStarted;
 void SysPerformTest(void)
 {
     u32 RunTime,RunTime1;
@@ -724,13 +725,17 @@ void SysPerformTest(void)
     IntLine = IntLine>>16;
     u32g_TimerFreq = HardTimer_GetFreq(TimerHandle);   //获取定时器频率
     HardTimer_Ctrl(TimerHandle,EN_TIMER_SETCYCLE,u32g_TimerFreq/10000);  //中断周期=0.1mS
-    HardTimer_Ctrl(TimerHandle,EN_TIMER_ENINT,true);           //中断使能
+    //HardTimer_Ctrl(TimerHandle,EN_TIMER_ENINT,true);           //中断使能
     HardTimer_Ctrl(TimerHandle,EN_TIMER_STARTCOUNT,0);         //开始计数
     printf("<<<<<<<<<<<<<<<<<系统性能测试开始：>>>>>>>>>>>>>>>\r\n\n");
+    TimerStarted = true;
     __Test_TimerEnd(&RunTime);
+    TimerStarted = true;
     __Test_TimerEnd(&RunTime1);
     u32g_GetTimeCost = RunTime1 - RunTime;
-
+    HardTimer_Ctrl(TimerHandle,EN_TIMER_PAUSECOUNT,0);         //开始计数
+    HardTimer_Ctrl(TimerHandle,EN_TIMER_STARTCOUNT,0);
+    HardTimer_Ctrl(TimerHandle,EN_TIMER_ENINT,true);           //中断使能
     printf("测试的板件名为:%s\r\n",DJY_BOARD);
     printf("测试主频为:%d\r\n",CFG_CORE_MCLK);
 

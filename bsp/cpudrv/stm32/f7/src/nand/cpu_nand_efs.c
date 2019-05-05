@@ -124,7 +124,7 @@ s32 efs_nand_erase(struct __ecore *core, s64 units, s64 size)
 
     sz.unit = 1;
     sz.block = 0;
-    erases = 1 << (core->media->esz - core->media->usz); // 可擦除空间所含有的unit数量
+    erases = 1 << (core->blacksize - core->pagesize); // 可擦除空间所含有的unit数量
     if((size % erases) || (units % erases))
     {
         printf("\r\n: warn : efs    : not aligned area will be erased(%d, %d)", (u32)units, (u32)size); // 擦除的数据并没有对齐，可能存在问题

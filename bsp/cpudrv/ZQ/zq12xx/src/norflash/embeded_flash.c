@@ -42,7 +42,7 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 /*#include "norflash.h"*/
 #include "silan_m0_cache.h"
 #include "silan_irq.h"
@@ -53,11 +53,12 @@
 #include "dbug.h"
 #include <device/include/unit_media.h>
 #include "filesystems.h"
-
+#include "device.h"
+#include "norflash.h"
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
+//    s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
 //    ModuleInstall_EmbededFlash(CFG_EFLASH_FSMOUNT_NAME,CFG_EFLASH_PART_START, CFG_EFLASH_PART_END, CFG_EFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
@@ -118,8 +119,6 @@ typedef enum EN_LINK_STATUS{
 
 }EN_LinkStatus;
 
-static EN_LinkStatus en_gStaus = EN_DOWN_APP_DEBUG_MODE;
-
 enum EN_SPI_OPT{
     EN_OPT_START = 0,
     EN_OPT_END,
@@ -134,38 +133,7 @@ enum EN_SPI_OPT{
  * */
 
 //默认 是升级app
-static volatile u32 g_Map_Add_Start = 0;
-
 static struct umedia *emflash_um;
-extern int32_t EraseSomeBlocks(uint32_t addr, uint32_t size);
-extern int32_t ProgramOnePackage(char *data, uint32_t addr, uint32_t size);
-
-/*为使分块时为2^n Iboot Code 开始存放地址为0x800 = 2048,iboot 大小为256k
- *那么app 开始存放地址为0x800 + 256k = 40000 + 0x800 = 0x40800 = 264192
- *为1024的整数倍-方便划分块。现一块大小划分6k,一页大小划分为512字节。相关宏定义如下：
- *那么：app的起地址为:0x40800 / (2*1024) = 129 块。开始
-*/
-
-#define FLASH_PAGE_SIZE        (0x100)       /* 256 byte */  //256   bytes
-//#define SECTOR_SIZE          (0x1000)      /* 4 Kbyte */  //         bytes
-#define FLASH_BLOCK_SIZE       (0x800)       /* 2K*/   //         bytes
-#define S_FLASH_SIZE           (0x400000)    /* 2 MBytes */
-
-
-
-#define CN_APP_START_ADDR      (0x00000000)    //IAP文件系统分区开始地址
-#define CN_APP_END_ADDR        (0x200000)     /*2M 空间*/
-#define CN_FLASH_RANGE         (CN_APP_END_ADDR - CN_APP_START_ADDR)
-
-//写之前擦除操作
-#define CN_REASE_RISC_START (0x100000)
-#define CN_REASE_RISC_LEN   (0x80000)
-
-#define CN_REASE_APP_START  (0x40800)
-#define CN_REASE_APP_LEN    (1024*256)////包括256bytes 文件头
-
-#define CN_REASE_DSP_START  (0x100000 + CN_REASE_RISC_LEN)
-#define CN_REASE_DSP_LEN    (0x100000 + 0x80000)
 
 static const char *EmflashName = "emflash";      //该flash在obj在的名字
 extern struct obj *s_ptDeviceRoot;
@@ -178,25 +146,13 @@ static struct EmbdFlashDescr
     u32     PagesPerBlock;               //每块中的页数
     u32     TotalPages;                  //总页数量
     u32     BytesPerBlock;               //一块中的字节数
-    u16     ToltalBlock;				 //总块数量
+    u16     ToltalBlock;                 //总块数量
     u32     RemainBytes;                 //剩余字节数
-	u32     MappedStAddr;
+    u32     MappedStAddr;
 }*sp_tFlashDesrc;
-
-
-extern u32 gc_ptIbootSize;
-extern u32 gc_ptFlashOffset;
-extern u32 gc_ptFlashRange;
-
 
 extern u32 Lock_Cache_Add_Start;
 extern u32 Lock_Cache_Add_End;
-
-static struct EmbdFlashDescr *sp_tFlashDesrc;
-
-
-extern u32 gc_ptIbootSize;
-
 // ============================================================================
 // 功能：喂狗
 // 参数：
@@ -217,36 +173,19 @@ bool_t BrdWdt_FeedDog(void)
 // ============================================================================
 static s32 Flash_Init(struct EmbdFlashDescr *Description)
 {
+      iap_norflash_init();
 
-      Description->BytesPerPage     = FLASH_PAGE_SIZE;                    //一页中包含的字节数
-      Description->PagesPerBlock    = FLASH_BLOCK_SIZE / FLASH_PAGE_SIZE;       //12Pages
-//      Description->PagesPerSector   = SECTOR_SIZE / FLASH_PAGE_SIZE;
-//      Description->SectorsPerBlock  = FLASH_BLOCK_SIZE / SECTOR_SIZE;
-      Description->ToltalBlock      = CN_FLASH_RANGE / FLASH_BLOCK_SIZE;  //2097152/2048=1024
+      Description->BytesPerPage     = PAGE_SIZE;                    //一页中包含的字节数
+      Description->BytesPerBlock    = BLOCK_SIZE;                    //一页中包含的字节数
+      Description->PagesPerBlock    = BLOCK_SIZE / PAGE_SIZE;       //12Pages
+      Description->ToltalBlock      =  FLASH_SIZE /  BLOCK_SIZE;  //2097152/2048=1024
       Description->TotalPages       = (Description->PagesPerBlock)*(Description->ToltalBlock);    //2097152/512=4096
-      Description->RemainBytes      = CN_FLASH_RANGE % FLASH_PAGE_SIZE;   //898Page
-      
+      Description->RemainBytes      = 0;   //898Page
+
       Description->MappedStAddr = 0x00000000;
-    return (0);
+     return (0);
 }
-
-
 // ============================================================================
-// 功能：获取内置FLASH的信息
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-static s32 Flash_GetDescr(struct EmFlashDescr *Description)
-{
-    Description->BytesPerPage = sp_tFlashDesrc->BytesPerPage;
-    Description->TotalPages   = sp_tFlashDesrc->TotalPages;
-                                
-    Description->MappedStAddr = sp_tFlashDesrc->MappedStAddr;
-    
-    return (0);
-}
-
 
 // ============================================================================
 // 功能：进入flash 操作模式(操作模式包括写、擦除)
@@ -289,26 +228,20 @@ static void SpiFlashOptMode(u8 Mode)
 }
 
 
-
-// ============================================================================
 // 功能：块擦除
 // 参数：SectorNo -- 扇区号;
 // 返回："0" -- 成功;"-1" -- 失败;
 // 备注：
 // ============================================================================
-static s32 Flash_SectorEarse(u32 SectorNo)
+static s32 Flash_BlockEarse(u32 SectorNo)
 {
     u32 Addr;
-    u8 retry = 0; // 擦除有可能会失败；
     s32 Ret = 0;
-    u32 SECTORError=0;//保存出错类型信息
     atom_high_t high_atom;
     high_atom =Int_HighAtomStart();
     SpiFlashOptMode(EN_OPT_START);
-
-    Addr = SectorNo * FLASH_BLOCK_SIZE + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
-    EraseSomeSectors(Addr,FLASH_BLOCK_SIZE);
-
+    Addr = SectorNo * BLOCK_SIZE + sp_tFlashDesrc->MappedStAddr ;
+    EraseSomeBlocks(Addr,BLOCK_SIZE);
     SpiFlashOptMode(EN_OPT_END);
     Int_HighAtomEnd(high_atom);
     return Ret;
@@ -329,20 +262,10 @@ static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 {
     u32 datLen;
     u32 DatAddr;
+    Flags =Flags;
     atom_high_t high_atom;
-    if(en_gStaus == EN_DOWN_APP_DEBUG_MODE || \
-       en_gStaus == EN_DOWN_RISC_MODE || \
-       en_gStaus == EN_DOWN_DSP_MODE)//App 下载
-    {
+    DatAddr = (Page) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr ;
 
-        DatAddr = (Page-1) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
-
-    }else//app rease
-    {
-        DatAddr = Page * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start;
-    }
-
-    u32 DatToWrite = 0;
     high_atom =Int_HighAtomStart();
     SpiFlashOptMode(EN_OPT_START);
 
@@ -366,18 +289,10 @@ s32 Flash_PageRead(u32 PageNo, u8 *Data, u32 Flags)
 {
     u8  *ptReadAddr;
     u32 readDatNo;
-    u32 loop;    
-    
-    if(en_gStaus == EN_DOWN_APP_DEBUG_MODE || \
-           en_gStaus == EN_DOWN_RISC_MODE || \
-           en_gStaus == EN_DOWN_DSP_MODE)//App 下载
-    {
-        ptReadAddr   = (u8*)((PageNo - 1) * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start);
-    }else
-    {
-        ptReadAddr   = (u8*)(PageNo * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr + g_Map_Add_Start);
-    }
+    u32 loop;
+    Flags = Flags;
 
+    ptReadAddr   = (u8*)(PageNo * sp_tFlashDesrc->BytesPerPage + sp_tFlashDesrc->MappedStAddr );
     readDatNo    = sp_tFlashDesrc->BytesPerPage;
 
     if(Data)
@@ -388,31 +303,7 @@ s32 Flash_PageRead(u32 PageNo, u8 *Data, u32 Flags)
         }
 
     }
-
     return (sp_tFlashDesrc->BytesPerPage);
-}
-
-// ============================================================================
-// 功能：查找page所在sector
-// 参数：PageNo -- 页号
-//       Remains -- 剩余页数
-//       SectorNo -- 页所在sector
-// 返回：
-// 备注： sector0和normal sector大小时一样的，将其区分开来，只是为了便于阅读理解
-// ============================================================================
-s32 Flash_PageToSector(u32 PageNo, u32 *Remains, u32 *SectorNo)
-{
-    s32 ret;
-    u16 secNum;
-    u16 remainPage;
-
-    //该页处于第几扇区
-//    secNum      = PageNo * sp_tFlashDesrc->BytesPerPage / SECTOR_SIZE;
-//    remainPage  = PageNo * sp_tFlashDesrc->BytesPerPage % SECTOR_SIZE /FLASH_PAGE_SIZE;
-//    SectorNo[0] = secNum;
-//    Remains [0] = remainPage;
-
-    return secNum;
 }
 
 // ============================================================================
@@ -428,7 +319,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 
     switch(cmd)
     {
-  
+
         case whichblock:   //找出该页所在块,现划分一块=4Pages
         {
             va_list list;
@@ -463,7 +354,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 
         case blockunits:                              //每块中的页数量
         {
-          
+
             *((u32*)args)  = sp_tFlashDesrc->PagesPerBlock;
             break;
         }
@@ -478,7 +369,7 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
         case format:                                  //格式
         {
             va_list list;
-            u32 start, end;
+            s32 start,end;
             struct uesz *sz;
 
             start = (u32)args;
@@ -522,7 +413,6 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             va_list list;
             u32 *left;
             s64 *unit;
-            u16 blkNum;
 
             left = (u32*)args;
             va_start(list, args);
@@ -532,8 +422,8 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
             if(*unit < sp_tFlashDesrc->TotalPages)
             {
                 //求出该页所在的块
-                blkNum = *unit / sp_tFlashDesrc->PagesPerBlock;
-                *left = (blkNum + 1) * (sp_tFlashDesrc->PagesPerBlock) - *unit;
+
+                *left = (sp_tFlashDesrc->PagesPerBlock - (*unit%sp_tFlashDesrc->PagesPerBlock))%sp_tFlashDesrc->PagesPerBlock;
             }
             else
                 res = -1;
@@ -556,11 +446,10 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 s32 __embed_read(s64 unit, void *data, struct uopt opt)
 {
     s32 res;
-
+    opt = opt;
     res = Flash_PageRead((u32)unit, data, 0);
     if(res!=sp_tFlashDesrc->BytesPerPage)
         return (-1);
-
     return (0);
 }
 
@@ -575,11 +464,10 @@ s32 __embed_read(s64 unit, void *data, struct uopt opt)
 s32 __embed_write(s64 unit, void *data, struct uopt opt)
 {
     s32 res;
-
+    opt = opt;
     res = Flash_PageProgram((u32)unit, data, 0);
     if(res!=sp_tFlashDesrc->BytesPerPage)
         return (-1);
-
     return (0);
 }
 
@@ -602,7 +490,7 @@ s32 __embed_erase(s64 unit, struct uesz sz)
     else
         block = (u32)unit;
 
-    return (Flash_SectorEarse(block));
+    return (Flash_BlockEarse(block));
 }
 
 // ============================================================================
@@ -612,18 +500,18 @@ s32 __embed_erase(s64 unit, struct uesz sz)
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend)
+s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
-    u32 units, total = 0,endblock = bend;
     char *FullPath,*notfind;
     struct obj *targetobj;
     struct FsCore *super;
     s32 res;
+    s32 BlockNum;
 
     targetobj = obj_matchpath(fs, &notfind);
     if(notfind)
     {
-        error_printf("embed"," not found need to install file system.");
+        error_printf("spiflash"," not found need to install file system.");
         return -1;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
@@ -639,111 +527,30 @@ s32 __embed_FsInstallInit(const char *fs, u32 bstart, u32 bend)
         error_printf("embed"," \"%s\" file system type nonsupport", super->pFsType->pType);
         return -1;
     }
-    if(-1 == (s32)endblock)
-        endblock = bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
 
-    do
+    if(bend == -1)
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, --endblock))
-        {
-            return (-1);
-        }
-
-        total += units;     //计算该分区一共有多少页
+        bend = sp_tFlashDesrc->ToltalBlock;
+        BlockNum = bend - bstart;
     }
-    while(endblock!=bstart);
-
-    super->AreaSize = total * sp_tFlashDesrc->BytesPerPage;
-    endblock = 0;
-    total = 1;
-
-    while(endblock<bstart)
+    else
     {
-        if(__embed_req(blockunits, (ptu32_t)&units, endblock++))
-        {
-            return (-1);
-        }
-
-        total += units;
+        BlockNum = bend - bstart;
     }
-    super->MediaStart = total; // 起始unit号
+    super->AreaSize = BlockNum * sp_tFlashDesrc->BytesPerBlock;
+    super->MediaStart = bstart * sp_tFlashDesrc->PagesPerBlock; // 起始unit号
 
-    res = strlen(EmflashName) + strlen(s_ptDeviceRoot->name) + 1;
+    res = strlen(EmflashName)+strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);   //获取该设备的全路径
-    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);      //获取设备的全路径
+    FsBeMedia(FullPath,fs);     //往该设备挂载文件系统
     free(FullPath);
 
     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
     return (0);
 
 }
-
- bool_t downapp(char *Param);
- bool_t downrisc(char *Param);
- bool_t downdsp(char *Param);
-
-#include "ymodem.h"
-#include "shell.h"
-
-//擦除都是以扇区的形式擦除，为4K的整数倍。升级各个模块时应注意升级该模块前其前4K没有内容
-//不然会把对应的内容擦除
-void PrepareForDownLoad(u32 startAddr,u32 len)
-{
-    u32 BytesPage;
-    atom_high_t high_atom;
-    BytesPage = sp_tFlashDesrc->BytesPerPage;
-    //下载前先擦除
-    high_atom =Int_HighAtomStart();
-    SpiFlashOptMode(EN_OPT_START);
-    //擦除应包括擦去前256字节的文件头
-    EraseSomeSectors(startAddr - BytesPage,len+BytesPage);
-    SpiFlashOptMode(EN_OPT_END);
-    Int_HighAtomEnd(high_atom);
-}
-
-//ADD_TO_IN_SHELL_HELP(downapp,"下载app    命令格式: downapp");
-bool_t downapp(char *Param)
-{
-
-    g_Map_Add_Start = 0;
-    PrepareForDownLoad(CN_REASE_APP_START,CN_REASE_APP_LEN);
-    if(CN_APP_DEBUG)
-    {
-        en_gStaus = EN_DOWN_APP_DEBUG_MODE;
-    }else
-        en_gStaus = EN_DOWN_APP_RELEASE_MODE;
-
-    downloadym(NULL);
-}
-
-//ADD_TO_IN_SHELL_HELP(downrisc,"下载risc    命令格式: downrisc");
-bool_t downrisc(char *Param)
-{
-    u32 BytesPage;
-    g_Map_Add_Start = 0x100000 - 0x40800;
-
-    PrepareForDownLoad(CN_REASE_RISC_START,CN_REASE_RISC_LEN);
-    en_gStaus = EN_DOWN_RISC_MODE;
-    downloadym(NULL);
-}
-
-//ADD_TO_IN_SHELL_HELP(downdsp,"下载dsp    命令格式: downdsp");
-bool_t downdsp(char *Param)
-{
-    g_Map_Add_Start = 0x100000 + 0x80000 - 0x40800;
-    //下载前先擦除
-    PrepareForDownLoad(CN_REASE_DSP_START,CN_REASE_DSP_LEN);
-    en_gStaus = EN_DOWN_DSP_MODE;
-    downloadym(NULL);
-}
-
-bool_t Module_Install_Update()
-{
-    return true;
-}
-
 //-----------------------------------------------------------------------------
 // 功能：安装片内Flash驱动
 // 参数：TargetFs -- 要挂载的文件系统
@@ -751,11 +558,9 @@ bool_t Module_Install_Update()
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
+s32 ModuleInstall_EmbededFlash(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
 {
-    struct uopt opt;
     static u8 emflashinit = 0;
-    u32 units;
 
     if(!sp_tFlashDesrc)
     {
@@ -784,24 +589,7 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 do
             return (-1);
         }
 
-        opt.hecc = 1;
-        opt.main = 1;
-        opt.necc = 1;
-        opt.secc = 0;
-        opt.spare = 0;
-
-        if(-1 == bend)
-            bend = sp_tFlashDesrc->ToltalBlock; // 最大块号
-
-        emflash_um->asz = sp_tFlashDesrc->TotalPages * sp_tFlashDesrc->BytesPerPage;
-        emflash_um->esz = 0; // 各个区域不同
-        //um->usz = log2(embeddescription->BytesPerPage);
-        emflash_um->usz = 8;  //每页改为256字节
-        emflash_um->merase = __embed_erase;
-        emflash_um->mread = __embed_read;
         emflash_um->mreq = __embed_req;
-        emflash_um->mwrite = __embed_write;
-        emflash_um->opt = opt;
         emflash_um->type = embed;
         emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
 
@@ -824,10 +612,6 @@ s32 ModuleInstall_EmbededFlash(const char *TargetFs,u32 bstart, u32 bend, u32 do
 
     return 0;
 }
-
-ADD_TO_ROUTINE_SHELL(downapp,downapp,"下载app    命令格式: downapp");
-ADD_TO_ROUTINE_SHELL(downrisc,downrisc,"下载risc    命令格式: downrisc");
-ADD_TO_ROUTINE_SHELL(downdsp,downdsp,"下载dsp    命令格式: downdsp");
 
 #endif
 

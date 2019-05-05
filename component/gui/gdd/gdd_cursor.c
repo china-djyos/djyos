@@ -180,8 +180,7 @@ void Cursor_Move( s32 absX , s32 absY )
 //-----------------------------------------------------------------------------
 void Cursor_SetHost(HWND HostWin)
 {
-//    GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
-    GDD_AdoptWin( g_ptCursorHwnd , HostWin);
+    GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
 }
 //光标消息处理函数链表
 static struct MsgProcTable s_gCursorMsgProcTable[]=

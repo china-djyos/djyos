@@ -80,6 +80,8 @@ extern "C" {
 //#include "cpu_peri_timer.h"
 #include "stm32f4xx_hal_conf.h"
 #include "stm32f4xx_hal_tim.h"
+#include "get_cpuid.h"
+
 extern struct DMA_StReg volatile * const pg_dma1_reg;
 extern struct DMA_StReg volatile * const pg_dma2_reg;
 

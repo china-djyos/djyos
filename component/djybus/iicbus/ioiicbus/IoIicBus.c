@@ -98,7 +98,7 @@
 //%$#@configue      ****参数配置开始
 //%$#@target = header      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,
-#define IO_IIC_USER_TAG      0    //用户自己的标签用作在回调用户提供的IO控制函数的第二个参数
+#define IO_IIC_USER_TAG      0    //用户自己的标签，用作在回调用户提供的IO控制函数的第二个参数
 //%$#@string,1,32,
 #define IO_IIC_BUS_NAME "IoIic"  //该IIC总线的名字
 //%$#select,        ***定义无值的宏，仅用于第三方组件

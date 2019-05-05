@@ -373,7 +373,7 @@ s32 __stdio_tag(struct objhandle *hdl, u32 acts, u32 flags)
 // ============================================================================
 static s32 __stdio_stat(struct obj *ob, struct stat *data)
 {
-    memset(data, 0x0, sizeof(*stat));
+    memset(data, 0x0, sizeof(struct stat));
 
     data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
 

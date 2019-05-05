@@ -153,9 +153,9 @@ struct MsgProcTable
 // LinkNext == NULL才结束处理。
 struct MsgTableLink
 {
-    struct MsgTableLink *LinkPrev;
-    struct MsgTableLink **pLinkNext;    //消息处理函数继承时，备份链表用。
-    struct MsgTableLink *LinkAdd;
+//    struct MsgTableLink *LinkPrev;
+//    struct MsgTableLink **pLinkTab;    //消息处理函数继承时，备份链表用。
+//    struct MsgTableLink *LinkAdd;
 //    list_t TableLink;
     struct MsgProcTable *myTable;
     u32 MsgNum;

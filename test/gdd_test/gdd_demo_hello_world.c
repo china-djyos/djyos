@@ -18,7 +18,7 @@ static ptu32_t HmiCreate(struct WindowMsg *pMsg)
    //创建一个按钮。
     CreateButton("关闭",     //按钮名
                  WS_CHILD|BS_NORMAL|WS_BORDER|WS_VISIBLE,    //按钮风格
-                 RectW(&rc0)-64,RectH(&rc0)-28,60,24,    //按钮位置和大小
+                 RectW(&rc0)/2,RectH(&rc0)/2-28,60,48,    //按钮位置和大小
                  hwnd,ID_CLOSE,NULL,NULL);   //按钮所属的父窗口，ID,附加数据
     return true;
 }
@@ -49,7 +49,7 @@ static ptu32_t HmiPaint(struct WindowMsg *pMsg)
     SetFillColor(hdc,RGB(255,255,255)); //设置填充色。
     FillRect(hdc,&rc0);                 //填充矩形。
     SetTextColor(hdc,RGB(255,0,0));     //设置文字颜色。
-    TextOut(hdc,10,20,"Hello World!",-1);  //在客户区10,20的位置输出文字。
+    TextOut(hdc,100,100,"Hello World!",-1);  //在客户区10,20的位置输出文字。
     EndPaint(hwnd,hdc); //结束绘制并释放绘图上下文。
     return true;
 

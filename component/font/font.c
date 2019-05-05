@@ -102,16 +102,17 @@
 #warning    font组件参数未配置，使用默认值
 //%$#@num,0,100,
 //%$#@enum,true,false,
-//%$#@string,1,10,
+//%$#@string,1,128,
+#define CFG_FONT_DEFAULT  "gb2312_song_16"      //"默认字体",字体名在include/font目录中找
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#define CFG_FONT_DEFAULT  CN_FONT_GB2312_SONG_16      //"默认字体",字体名在include/font目录中找
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
 static struct FontObj *s_ptCurFont;
 struct obj *pFontRoot;
+static bool_t g_bUserSetFont = false;
 
 //----获取字体资源-------------------------------------------------------------
 //功能: 根据字体名称获取字体资源，"C"是默认字体的代号。
@@ -151,6 +152,15 @@ bool_t Font_InstallFont(struct FontObj *font,const char* name)
 
     if(!s_ptCurFont)
         s_ptCurFont = font;
+    {
+        //当前字体如果是调用API设置的，则维持，否则，如果新安装的字符集是默认字体，
+        //则更新当前字体
+        if( ! g_bUserSetFont)
+        {
+            if(strcmp(name,CFG_FONT_DEFAULT) == 0)
+                s_ptCurFont = font;
+        }
+    }
 
     return (TRUE);
 }
@@ -205,6 +215,7 @@ struct FontObj* Font_SetCurFont(struct FontObj* font)
     if(rsc != NULL)
     {
         s_ptCurFont = (struct FontObj*)rsc;
+        g_bUserSetFont = true;
     }
     return s_ptCurFont;
 }

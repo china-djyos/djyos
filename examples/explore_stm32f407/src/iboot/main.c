@@ -55,10 +55,11 @@
 
 ptu32_t djy_main(void)
 {
+    u32 n = 0;
     while(1)
     {
-        printf("hello world!\r\n");
-        Djy_EventDelay(1000*1000);
+        printf("hello world %d!\r\n",n++);
+        Djy_EventDelay(200*1000);
     }
     return 0;
 }

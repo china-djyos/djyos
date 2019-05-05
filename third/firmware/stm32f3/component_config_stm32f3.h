@@ -30,8 +30,11 @@
 //%$#@enum,1,2,3,4,5,6,7,8
 #define CFG_STM32_HAL_TIMER     6//配置HAL库使用的定时器
 //%$#@string,1,16
-//%$#@select,2
+//%$#@SYMBOL
+#define CFG_CPU_STM32F3
+//%$#@select,1
 #define     USE_HAL_DRIVER          //是否使用hal库
+//%$#@select,1
 //#define STM32F301x8             //只能选中其中一个
 //#define STM32F302x8
 //#define STM32F302xC

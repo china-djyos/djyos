@@ -63,8 +63,8 @@
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL         // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01          // Iboot发布版本号
 //*******************************  Configure cpu_peri_emflash  ******************************************//
-#define     CFG_EFLASH_PART_START            0x80                  // 分区起始
-#define     CFG_EFLASH_PART_END              -1                 // 分区结束
+#define     CFG_EFLASH_PART_START            4                  // 分区起始
+#define     CFG_EFLASH_PART_END              16                 // 分区结束
 #define     CFG_EFLASH_PART_FORMAT           false              // 分区选项,是否需要格式化该分区。
 #define     CFG_EFLASH_FSMOUNT_NAME          EN_XIP_APP_TARGET  // 需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //******************************* Core Clock ******************************************//

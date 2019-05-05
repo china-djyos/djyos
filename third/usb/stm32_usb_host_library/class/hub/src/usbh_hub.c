@@ -54,7 +54,7 @@
 #include "../../../../usb.h"
 #include <lock.h>
 #include <systime.h>
-
+#include <djyos.h>
 //
 //
 //

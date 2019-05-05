@@ -76,8 +76,6 @@ extern "C" {
 #define CN_NLS_CHARSET_UTF8             "utf8"
 #define CN_NLS_CHARSET_CYRIL            "cyril"     //西里尔字符集
 
-#define CN_NLS_CHARSET_DEFAULT          CN_NLS_CHARSET_GB2312
-
 /* 多字节字符编码资源 */
 struct Charset
 {

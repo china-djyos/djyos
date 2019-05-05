@@ -86,7 +86,7 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_NETPKG_MEMSIZE   //****检查参数是否已经配置好
+#ifndef CFG_TCP_REORDER   //****检查参数是否已经配置好
 #warning    tcpip组件参数未配置，使用默认值
 //%$#@num,,,
 //%$#@enum,true,false,
@@ -257,7 +257,7 @@ struct ClienCB
     //the send window member
     u16                       mss;         //you could send the most data one time
     u8                        sndwndscale; //the remote window scale,update by the handshake
-    s32                       cwnd;        //the conggest avoiding window
+    s32                       cwnd;        //the congest avoiding window
     s32                       ssthresh;    //slow thresh,default 65535
     s32                       sndwnd;      //the remote receive window,update by the receive frame
     //round trip time measure
@@ -2556,7 +2556,7 @@ static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
 {
     u32                ackno;
     s32                acklen;
-    struct ClienCB            *ccb;
+    struct ClienCB    *ccb;
     s32                err;
     s32                uerr;
     u32                usedtime;
@@ -2591,7 +2591,8 @@ static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
         }
     }
     //1,sndnxtno > unackno, then ackno must be between them
-    //2,sndnxtno <= unackno,then ackno must be bigger than unack no or less than sndnxtno
+    //2,sndnxtno <= unackno,then ackno must be bigger than unack no or less than
+    //  sndnxtno
     else if(((ccb->sbuf.sndnxtno > ccb->sbuf.unackno)&&\
        ((ackno >ccb->sbuf.unackno)&&(ackno <= ccb->sbuf.sndnxtno)))||\
             ((ccb->sbuf.sndnxtno < ccb->sbuf.unackno)&&\
@@ -2620,6 +2621,8 @@ static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
         {
             ccb->cwnd += ccb->mss;
         }
+        if(ccb->cwnd < 0)
+            ccb->cwnd = CN_LIMIT_SINT32;
         if(ccb->resndtimes == 0)
         {
             //no resend happens,so measure the rto time

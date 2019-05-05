@@ -71,8 +71,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//   s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat);
-//   ModuleInstall_NAND(CFG_NFLASH_FSMOUNT_NAME, CFG_NFLASH_PART_START, CFG_NFLASH_PART_END, CFG_NFLASH_PART_OPTION);
+//   s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
+//   ModuleInstall_NAND(CFG_NFLASH_FSMOUNT_NAME, CFG_NFLASH_PART_START, CFG_NFLASH_PART_END, CFG_NFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -95,16 +95,19 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-
+#ifndef CFG_NFLASH_FSMOUNT_NAME   //****检查参数是否已经配置好
+#warning    cpu_peri_nand 组件参数未配置，使用默认值
 //%$#@num,0,100,
 //%$#@string,1,10,
 #define CFG_NFLASH_FSMOUNT_NAME     "yaf2" //需安装的文件系统的mount的名字
-//%$#@enum_config
-#define CFG_NFLASH_PART_START      0      //分区起始
-#define CFG_NFLASH_PART_END        -1     //分区结束
-#define CFG_NFLASH_PART_OPTION     0      //分区选项
+//%$#@num,-1,2048
+#define CFG_NFLASH_PART_START      0      //分区起始，填写块号，块号从0开始计算
+#define CFG_NFLASH_PART_END        -1     //分区结束，-1表示最后一块
+//%$#@enum,true,false,
+#define CFG_NFLASH_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表
@@ -144,13 +147,13 @@ static struct MutexLCB *NandFlashLock;
 struct umedia *nand_umedia;
 static s32 gb_NandFlashReady=-3;
 
-const char *NandName = "nand";      //该flash在obj在的名字
+static const char *NandFlashName = "nand";      //该flash在obj在的名字
 
 //新接口
-static u32 *badstable;
-static u32 badslocation = 0;
+static u32 *badstable = NULL;
+static s32 badslocation = 0;
 extern struct obj *s_ptDeviceRoot;
-s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bcount, u32 doformat);
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bcount);
 static s32 __nand_init(void);
 
 //-----------------------------------------------------------------------------
@@ -793,13 +796,13 @@ static bool_t WaitNandReady(void)
 // 参数：  TargetFs -- 要挂载的文件系统
 //      parts -- 分区数；
 //      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，结束块数（擦除时不包括该块，只擦到该块的上一块），是否格式化；
+//      分区数据 -- 起始块，结束块数（如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块，不包括第六块），是否格式化；
 // 返回：成功（0）；失败（-1）；
 // 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
 //-----------------------------------------------------------------------------
-s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
+s32 ModuleInstall_NAND(const char *TargetFs,s32 bstart, s32 bend, u32 doformat)
 {
-    struct uopt opt;
+//    struct uopt opt;
     static u8 nandinit = 0;
 
     if(!__nandescription)
@@ -809,6 +812,14 @@ s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
             printf("\r\n: erro : device : nand initialization failed(init).");
             return (-1);
         }
+    }
+
+    if(doformat)
+    {
+        struct uesz sz;
+        sz.unit = 0;
+        sz.block = 1;
+        __nand_req(format, bstart , bend, &sz);
     }
 
     if(!badstable)
@@ -823,30 +834,17 @@ s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
     if(nandinit == 0)
     {
         nand_umedia = malloc(sizeof(struct umedia)+__nandescription->BytesPerPage+__nandescription->OOB_Size);
+        memset(nand_umedia,0,sizeof(struct umedia));
         if(!nand_umedia)
             return (-1);
 
-        opt.hecc = 0;
-        opt.main = 1;
-        opt.necc = 1;
-        opt.secc = 0;
-        opt.spare = 1;
-        nand_umedia->esz = log2(__nandescription->BytesPerPage * __nandescription->PagesPerBlk); //
-        nand_umedia->usz = log2(__nandescription->BytesPerPage);
         nand_umedia->mreq = __nand_req;
-        nand_umedia->merase = __nand_erase;
-        nand_umedia->mread = __nand_read;
-        nand_umedia->mwrite = __nand_write;
-        nand_umedia->opt = opt;
         nand_umedia->type = nand;
         nand_umedia->ubuf = (u8*)nand_umedia + sizeof(struct umedia);
 
-        nand_umedia->asz = __nandescription->BytesPerPage * __nandescription->PagesPerBlk *
-                                            __nandescription->BlksPerLUN * __nandescription->LUNs;
-
-        if(!dev_Create((const char*)NandName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
+        if(!dev_Create((const char*)NandFlashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)nand_umedia)))
         {
-            printf("\r\n: erro : device : %s addition failed.", NandName);
+            printf("\r\n: erro : device : %s addition failed.", NandFlashName);
             free(nand_umedia);
             return (-1);
         }
@@ -855,7 +853,7 @@ s32 ModuleInstall_NAND(const char *TargetFs,u32 bstart, u32 bend, u32 doformat)
 
     if(TargetFs != NULL)
     {
-        if(__nand_FsInstallInit(TargetFs, bstart, bend, doformat))
+        if(__nand_FsInstallInit(TargetFs, bstart, bend))
         {
             return -1;
         }
@@ -1479,7 +1477,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
 
         case checkbad:
         {
-            if(badslocation==(u32)args)
+            if(badslocation == (s32)args)
                 res = 1;
             else
                 res = stm32f7_BadChk((u32)args); // args = block
@@ -1524,7 +1522,7 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
         case format:
         {
             va_list list;
-            u32 start, end;
+            s32 start, end;
             u8 *tmp, escape = 0;
             struct uesz *sz;
             struct uopt opt = {0};
@@ -1548,12 +1546,12 @@ s32 __nand_req(enum ucmd cmd, ptu32_t args, ...)
                 if(nandvalidbads((u32*)tmp))
                     escape = 1; // 存在坏块表，不擦除；
 
-                if(-1==(s32)end)
+                if(-1 == end)
                     end = __nandescription->BlksPerLUN * __nandescription->LUNs;
 
                 do
                 {
-                    if((badslocation==(--end))&&escape) // 坏块表在第一页
+                    if((badslocation == (--end)) && escape) // 坏块表在第一页
                         continue;
 
                     if(__nand_erase((s64)end, *sz))
@@ -1740,17 +1738,16 @@ static s32 __nand_init(void)
 // ============================================================================
 // 功能：把nand和文件系统关联起来
 // 参数：fs -- 需要挂载的文件系统，MountPart -- 挂载到该媒体的第几个分区（分区从0开始）
-//		 bstart -- 起始块，bend -- 结束块数（擦除时不包括该块，只擦到该块的上一块），doformat -- 该分区是否格式化
+//		 bstart -- 起始块，bend -- 结束块数（不包括该块，只到该块的上一块）
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
+s32 __nand_FsInstallInit(const char *fs, s32 bstart, s32 bend)
 {
     char *FullPath,*notfind;
     struct obj *targetobj;
     struct FsCore *super;
-    s32 res;
-    u32 BlockNum;
+    s32 res,BlockNum;
     targetobj = obj_matchpath(fs, &notfind);
     if(notfind)
     {
@@ -1758,10 +1755,10 @@ s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
         return -1;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
-    super->MediaInfo = nand_umedia;
+    super->MediaInfo = nand_umedia;             //把nand的信息放到文件系统的核心数据结构当中
     if(strcmp(super->pFsType->pType, "YAF2") == 0)      //这里的"YAF2"为文件系统的类型名，在文件系统的filesystem结构中
     {
-        super->MediaDrv = &YAF_NAND_DRV;
+        super->MediaDrv = &YAF_NAND_DRV;        //把文件系统对nand的操作函数放到文件系统的核心数据结构当中
     }
     else if(strcmp(super->pFsType->pType, "EFS") == 0)
     {
@@ -1773,30 +1770,23 @@ s32 __nand_FsInstallInit(const char *fs, u32 bstart, u32 bend, u32 doformat)
         error_printf("nand"," \"%s\" file system type nonsupport", super->pFsType->pType);
         return -1;
     }
-    if(doformat)
-    {
-        struct uesz sz;
-        sz.unit = 0;
-        sz.block = 1;
-        __nand_req(format, bstart , bend, &sz);
-    }
 
     if(-1 == (s32)bend)
     {
-        bend = __nandescription->BlksPerLUN * __nandescription->LUNs;
-        BlockNum = bend - bstart;
+        bend = __nandescription->BlksPerLUN * __nandescription->LUNs;  //计算文件系统所有区域的结束块
+        BlockNum = bend - bstart;       //计算一共有多少块
     }
     else
     {
         BlockNum = bend - bstart;
     }
-    super->AreaSize = __nandescription->BytesPerPage * __nandescription->PagesPerBlk * BlockNum;
+    super->AreaSize = __nandescription->BytesPerPage * __nandescription->PagesPerBlk * BlockNum;        //计算文件系统所用区域一共有多少字节
     super->MediaStart = bstart*__nandescription->PagesPerBlk; // 起始unit号
 
-    res = strlen(NandName)+strlen(s_ptDeviceRoot->name) + 1;
+    res = strlen(NandFlashName)+strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
-    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandName);	//获取该设备的全路径
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,NandFlashName);	//获取该设备的全路径
     FsBeMedia(FullPath,fs);	//往该设备挂载文件系统
     free(FullPath);
 

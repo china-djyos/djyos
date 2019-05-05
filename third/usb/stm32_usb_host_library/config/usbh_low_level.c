@@ -1,6 +1,7 @@
 
 #include "../core/inc/usbh_core.h"
 #include "../../usbh_lowlevel.h"
+#include <systime.h>
 
 struct USBH_LowLevel USBH_HS, USBH_FS; // TODO: 改变为动态
 

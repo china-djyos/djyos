@@ -50,6 +50,7 @@
 //#include "cpu_peri_iic.h"
 #include "IoIicBus.h"
 #include "board.h"
+#include "pcf8574.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -109,7 +110,6 @@ static const Pin uart2_pin[] = {
 //        {GPIO_D,PIN5,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
 //        {GPIO_D,PIN6,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
 };
-
 
 static const Pin uart3_pin[] = {
 //        {GPIO_D,PIN8,GPIO_MODE_AF,GPIO_OTYPE_PP,GPIO_SPEED_VH,GPIO_PUPD_NONE,AF7},
@@ -449,7 +449,7 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 void Board_GpioInit(void)
 {
 #if 0
-    ETH_RESE( );//网口复位
+    LAN8720_RESET( );//网口复位
 #endif
     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
 //   PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
@@ -484,3 +484,14 @@ unsigned char  NAND_RB_Get(void)
 {
     return PIO_Get(&FmcNandPins[0]);
 }
+
+//网口的 PHY 芯片：LAN8720复位
+bool_t LAN8720_RESET(void)
+{
+    PCF8574_WriteBit(ETH_RESET_IO,1);
+    Djy_DelayUs(100*mS);
+    PCF8574_WriteBit(ETH_RESET_IO,0);
+    Djy_DelayUs(100*mS);
+    return true;
+}
+

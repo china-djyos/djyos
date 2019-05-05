@@ -110,17 +110,8 @@ struct ustatistics{     //没见哪里用到
 };
 
 struct umedia{
-    void *media;
     enum utype type;
-    struct uopt opt;
-    s32 usz; // unit单位大小, 2的幂次方
-    s32 esz; // 可擦除的单位大小，2的幂次方
-//    s64 ustart; // 起始unit,unit为单位；
-    s64 asz; // all size；总大小；Byte为单位；
     u8 *ubuf;
-    s32 (*mread)(s64 unit, void *data, struct uopt opt); // 成功（0）；失败（-1）；
-    s32 (*mwrite)(s64 unit, void *data, struct uopt opt); // 成功（0）；失败（-1）；
-    s32 (*merase)(s64 unit, struct uesz sz); // 成功（0）；失败（-1）；
     s32 (*mreq)(enum ucmd cmd, ptu32_t args, ...); // 成功（0）；失败（-1）；
 };
 

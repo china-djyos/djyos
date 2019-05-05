@@ -103,9 +103,9 @@ struct filesystem{
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
     s32 (*install)(struct FsCore *pFsCore, u32 dwOpt, void *data);
     s32 (*uninstall)();
-    s32 (*format)();
+    s32 (*format)(void *core);
     char *pType;
-} *pFileSystemTypes;
+};
 
 struct FsCore
 {

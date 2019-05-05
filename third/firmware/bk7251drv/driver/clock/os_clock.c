@@ -8,6 +8,10 @@
 #define FCLK_PWM_ID           PWM0
 #define FCLK_DURATION_MS      1
 #define FCLK_SECOND           (1000/FCLK_DURATION_MS)
+
+static volatile UINT64 current_clock = 0;
+//static volatile UINT32 current_seconds = 0;
+
 extern void Exp_SystickTickHandler(void);
 
 static void fclk_hdl(UINT8 param)
@@ -16,10 +20,21 @@ static void fclk_hdl(UINT8 param)
 	GLOBAL_INT_DISABLE();
 
     /*rt_tick_increase();*/
+	current_clock++;
     Exp_SystickTickHandler();
 	GLOBAL_INT_RESTORE();
 }
 
+
+UINT32 fclk_get_tick(void)
+{
+    return (uint32_t)current_clock;
+}
+
+UINT32 fclk_get_second(void)
+{
+    return current_clock/1000;
+}
 
 UINT32 fclk_cal_endvalue(UINT32 mode)
 {

@@ -790,22 +790,20 @@ s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
 //      MountPart -- 文件系统安装在第几个分区
 //      dwStart -- 起始块；
 //      dwEnd -- 结束块数（擦除时不包括该块，只擦到该块的上一块）；
-//      dwSpecial -- 擦除该区域（1）；不擦除该区域（0）；
 // 返回：成功初始化（0）；初始化失败（-1）；
 // 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
 // ============================================================================
-s32 __AT45_FsInstallInit(const char *fs, u32 dwStart, u32 dwEnd, u32 dwSpecial)
+s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd)
 {
     char *FullPath,*notfind;
     struct obj *targetobj;
     struct FsCore *super;
-    s32 res;
-    u32 BlockNum;
+    s32 res,BlockNum;
 
     targetobj = obj_matchpath(fs, &notfind);
     if(notfind)
     {
-        error_printf("nand"," not found need to install file system.");
+        error_printf("at45"," not found need to install file system.");
         return -1;
     }
     super = (struct FsCore *)obj_GetPrivate(targetobj);
@@ -825,14 +823,6 @@ s32 __AT45_FsInstallInit(const char *fs, u32 dwStart, u32 dwEnd, u32 dwSpecial)
         return -1;
     }
 
-    if(dwSpecial)
-    {
-        struct uesz sz;
-        sz.unit = 0;
-        sz.block = 1;
-        __at45_req(format, dwStart , dwEnd, &sz);
-    }
-
     if((s32)dwEnd == -1)
     {
         dwEnd = nordescription->Blks;
@@ -843,9 +833,9 @@ s32 __AT45_FsInstallInit(const char *fs, u32 dwStart, u32 dwEnd, u32 dwSpecial)
         BlockNum = dwEnd - dwStart;
     }
     super->AreaSize = BlockNum * (nordescription->BytesPerPage * nordescription->SectorsPerBlk);
-    super->MediaStart = dwStart * 8; // 起始unit号
+    super->MediaStart = dwStart * nordescription->SectorsPerBlk; // 起始unit号
 
-    res = strlen(At45Name)+strlen(s_ptDeviceRoot->name);
+    res = strlen(At45Name) + strlen(s_ptDeviceRoot->name) + 1;
     FullPath = malloc(res);
     memset(FullPath, 0, res);
     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,At45Name);		//获取设备的全路径

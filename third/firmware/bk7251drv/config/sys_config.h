@@ -39,7 +39,7 @@
 #define CFG_UDISK_MP3                              0
 
 /*section 3-----driver macro config-----*/
-#define CFG_MAC_PHY_BAPASS                         0
+#define CFG_MAC_PHY_BAPASS                         1
 
 #define CFG_SDIO                                   0
 #define CFG_SDIO_TRANS                             0
@@ -122,7 +122,7 @@
 #define CFG_USE_DEEP_PS                            1
 
 /*section 17-----support sta power sleep*/
-#define CFG_USE_STA_PS                             0
+#define CFG_USE_STA_PS                             1
 
 /*section 18-----AP support stas in power save*/
 #define CFG_USE_AP_PS                              0

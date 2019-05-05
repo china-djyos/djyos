@@ -38,7 +38,7 @@
 //%$#@num,0,100,
 #define CFG_IBOOT_VERSION       01        //Iboot发布版本号
 //%$#@string,1,128,
-#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"ymodem传输设备，std表示使用标准输入输出设备"
+#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"Iboot保存"
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 

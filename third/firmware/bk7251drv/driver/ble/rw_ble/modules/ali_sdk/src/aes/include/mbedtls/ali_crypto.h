@@ -1,7 +1,7 @@
 #ifndef _ALI_CRYPTO_H_
 #define _ALI_CRYPTO_H_
 
-#include "ali_crypto_types.h"
+//#include "ali_crypto_types.h"
 
 typedef enum _ali_crypto_result
 {

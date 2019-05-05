@@ -60,6 +60,7 @@
 #include <dirent.h>
 #include <objhandle.h>
 #include <stdio.h>
+#include <math.h>
 #include <device/include/unit_media.h>
 #include "../filesystems.h"
 #include "component_config_efs.h"
@@ -254,8 +255,8 @@ static struct __loc *__getloc(enum locmove movon, struct __ecore *core, struct _
         }
         else
         {
-            eccesz = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内的ECC数据量；
-            eccesz = (core->fsz << core->media->usz) - (core->fsz * eccesz); // 除去ECC数据的文件空间大小；
+            eccesz = (1 << (core->pagesize - BUFBITS)) * 4; // 一个unit内的ECC数据量；
+            eccesz = (core->fsz << core->pagesize) - (core->fsz * eccesz); // 除去ECC数据的文件空间大小；
             movs = offset / eccesz;
             ret = &(loc->list);
             while(movs--)
@@ -686,8 +687,8 @@ static s32 __e_recycle(struct __ecore *core)
         return (-1);
     }
 
-    sizes = ((1 << core->media->usz) - (core->nsz + 4)) / sizeof(struct __esize); // 文件信息空间内可以存size次数;
-    idxs = (1 << core->media->usz) / sizeof(*idx); // 一页中能存放多少个index；
+    sizes = ((1 << core->pagesize) - (core->nsz + 4)) / sizeof(struct __esize); // 文件信息空间内可以存size次数;
+    idxs = (1 << core->pagesize) / sizeof(*idx); // 一页中能存放多少个index；
     new = core->serial;
     __lock(core);
 
@@ -725,7 +726,7 @@ __RETRY_RECYCLE:
     if(res || __fix(core, estruct, (sizeof(*estruct)-SYS_NOECCSIZE), &(estruct->ecc))) // 系统头部存在问题，直接构建；
     {
         printf("\r\n: dbug : efs    : recycle (bad estruct).");
-        memset(estruct, 0xFF, (1<<core->media->usz));
+        memset(estruct, 0xFF, (1<<core->pagesize));
         memcpy(estruct->signature, ESIGN, ESIG_LEN);
         estruct->age = 0xFFFFFFFF; // 当头部被破坏时的专用age；
         estruct->files = core->fmax;
@@ -912,7 +913,7 @@ static s32 __e_markidx(struct __ecore *core, s32 loc, char *name, u32 order)
     struct __eidx idx; // 不使用指针，是防止写失败了，又需要重新计算；
     u32 idxs;
 
-    idxs = (1 << core->media->usz) / sizeof(struct __eidx); // 一个unit内可存放idx的数量；
+    idxs = (1 << core->pagesize) / sizeof(struct __eidx); // 一个unit内可存放idx的数量；
     units = loc / idxs + 1; // idx所在unit, unit对齐；
     idxs = sizeof(struct __eidx) * (loc % idxs); // idx在unit内的偏置；
     if(name&&order)
@@ -928,7 +929,7 @@ static s32 __e_markidx(struct __ecore *core, s32 loc, char *name, u32 order)
         memset(&idx, 0x0, sizeof(struct __eidx));
     }
 
-    memset(core->ebuf, 0xFF, (1<<core->media->usz));
+    memset(core->ebuf, 0xFF, (1<<core->pagesize));
     memcpy((core->ebuf + idxs), &idx, sizeof(struct __eidx));
     if(core->drv->efs_write_media(core, (core->serial*core->ssz+units), core->ebuf))
     {
@@ -936,7 +937,7 @@ static s32 __e_markidx(struct __ecore *core, s32 loc, char *name, u32 order)
         if(__e_recycle(core)) // 写失败，尝试回收，换一个系统区；
             return (-1);
 
-        memset(core->ebuf, 0xFF, (1<<core->media->usz));
+        memset(core->ebuf, 0xFF, (1<<core->pagesize));
         memcpy((core->ebuf + idxs), &idx, sizeof(struct __eidx));
         if(core->drv->efs_write_media(core, (core->serial*core->ssz+units), core->ebuf))
             return (-1);
@@ -1034,7 +1035,7 @@ static s32 __e_scan(struct __ecore *core)
 
     estruct = (struct __ecstruct*)core->ebuf;
     eldest = 0;
-    size = 1 << core->media->usz;
+    size = 1 << core->pagesize;
 
     // 检查系统信息有效性；
     for(i = 0; i < SYS_LOOPS; i++)
@@ -1137,13 +1138,13 @@ static s32 __e_build(struct __ecore *core)
 {
     struct __ecstruct *estruct;
     s32 res, erases, esz;
-    u8 i, once;
+    u32 i, once;
     s64 offset = 0;
 
     // 只格式化系统区
     printf("\r\n: info : efs    : new system is building...");
     erases = core->ssz * SYS_LOOPS;
-    esz = (1 << (core->media->esz - core->media->usz)) << 1; // 一次擦除的unit数量；
+    esz = (1 << (core->blacksize - core->pagesize)) << 1; // 一次擦除的unit数量；
     while(erases)
     {
         if(erases > esz)
@@ -1172,7 +1173,7 @@ static s32 __e_build(struct __ecore *core)
 
     printf("\b\b\b\b\b\b\b\b\b\b\bformated.");
     // 建立系统结构
-    memset(core->ebuf, 0xFF, (1<<core->media->usz));
+    memset(core->ebuf, 0xFF, (1<<core->pagesize));
     estruct = (struct __ecstruct*)core->ebuf;
     estruct->age = 0;
     estruct->files = core->fmax;
@@ -1222,7 +1223,7 @@ static s32 __e_lookupfree(struct __ecore *core)
     u8 *tmp, recycle = 0;
 
     size = sizeof(struct __eidx);
-    idxs = (1 << core->media->usz) / size; // 一个unit中能存放多少个idx
+    idxs = (1 << core->pagesize) / size; // 一个unit中能存放多少个idx
     __lock(core);
 
 __RETRY_LOOKUPFREE:
@@ -1310,7 +1311,7 @@ static inline struct __efile *__e_cachefile(struct __ecore *core, struct __loc *
     }
 
     // 获取size记录位置
-    szmax = (1 << core->media->usz) - (core->nsz + 4); // 一个unit内的可容纳size记录数量
+    szmax = (1 << core->pagesize) - (core->nsz + 4); // 一个unit内的可容纳size记录数量
     for(i = 0; i < szmax; i++)
     {
         if((-1 == (s32)fstruct.size[i].s) && (-1 == (s32)fstruct.size[i].e))
@@ -1375,7 +1376,7 @@ static s32 __e_allocfile(struct __ecore *core, u32 *loc, const char *name, u32 o
     s64 units;
     s32 max, res, i;
 
-    max = 1 << core->media->usz;
+    max = 1 << core->pagesize;
     while(1)
     {
         units = core->ssz * core->serial + core->finfo + *loc;
@@ -1399,7 +1400,7 @@ static s32 __e_allocfile(struct __ecore *core, u32 *loc, const char *name, u32 o
             if(!res)
             {
                 // 是可用的区域，先写信息
-                memset(core->ebuf, 0xFF, (1<<core->media->usz));
+                memset(core->ebuf, 0xFF, (1<<core->pagesize));
                 __e_structfile(core, &fstruct, core->ebuf);
                 strcpy(fstruct.name.n, name);
                 __gen(core, fstruct.name.n, (strlen(name)+1), fstruct.name.e);
@@ -1497,15 +1498,15 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
     eloc = __getloc(position, core, file->loc, -1);
     if(size<file->size) // 尺寸减少
     {
-        eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
+        eccu = (1 << (core->pagesize - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
         ecce = core->fsz * eccu; // 一个文件空间内被ECC占用掉的空间；
         dels = file->size - size; // 需要删除的大小
         // 需减少的部分，判断是否大于等于文件在最后一个文件空间的已使用量；
         // 如果大于等于，则需要删除至少最后一个文件空间；
-        dels -= (file->size % ((core->fsz << core->media->usz) - ecce));
+        dels -= (file->size % ((core->fsz << core->pagesize) - ecce));
         if(dels>=0) // 大于， 则需要至少删除最后一个区域
         {
-            dels = dels / ((core->fsz << core->media->usz) - ecce) + 1; // 总体需要删除的区域数，此处"+1"表示至少要删除一个文件空间；
+            dels = dels / ((core->fsz << core->pagesize) - ecce) + 1; // 总体需要删除的区域数，此处"+1"表示至少要删除一个文件空间；
             while(dels--)
             {
                 // 从最后一个区域开始删除文件内容（索引）
@@ -1566,7 +1567,7 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
         }
 
         __e_structfile(core, &fstruct, core->ebuf);
-        szmax = ((1 << core->media->usz) - (core->nsz + 4)) / sizeof(struct __esize); // 可以存放file size的次数
+        szmax = ((1 << core->pagesize) - (core->nsz + 4)) / sizeof(struct __esize); // 可以存放file size的次数
         for(i = 0; i < szmax; i++ )
         {
             if((-1 == (s32)fstruct.size[i].s) && (-1 == (s32)fstruct.size[i].e))
@@ -1589,7 +1590,7 @@ static s32 __e_updatefilesz(struct __ecore *core, struct __efile *file, s64 size
             i = 1; // size的新位置；回收时，第一个位置肯定是被用掉了的
         }
 
-        memset(core->ebuf, 0xFF, (1<<core->media->usz));
+        memset(core->ebuf, 0xFF, (1<<core->pagesize));
         file->size = size;
         fstruct.size[i].s = file->size;
         __gen(core, &(fstruct.size[i].s), sizeof(fstruct.size[i].s), &(fstruct.size[i].e));
@@ -1622,7 +1623,7 @@ static s32 __e_destroyfile(struct __ecore *core, struct __loc *loc)
     struct __eidx *idx;
     struct __loc *eloc;
 
-    idxmax = (1 << core->media->usz) / sizeof(struct __eidx); // 一个unit内可存放idx的数量
+    idxmax = (1 << core->pagesize) / sizeof(struct __eidx); // 一个unit内可存放idx的数量
     eloc = __getloc(position, core, loc, -1);
     if(!eloc)
     {
@@ -1719,14 +1720,14 @@ static s32 __e_sync(struct objhandle *hdl)
             return (-1);
         }
 
-        eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
+        eccu = (1 << (core->pagesize - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
         eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos));
         units = (core->ssz*SYS_LOOPS) + (core->fsz * eloc->loc);
-        units += (cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz; // 此时cx->pos逻辑上是保证wbuf对齐的；
-        bufsmax = 1 << (core->media->usz - BUFBITS); // 一个unit内有多少个buffer区；
+        units += (cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz; // 此时cx->pos逻辑上是保证wbuf对齐的；
+        bufsmax = 1 << (core->pagesize - BUFBITS); // 一个unit内有多少个buffer区；
         bufc = (cx->pos / BUFLEN) % bufsmax; // 一个unit内已使用了多少个buffer区；
         bufo = bufc << BUFBITS; // 文件指针在一个unit内的偏置,buffer区对齐；
-        memset(core->ebuf, 0xFF, (1<<core->media->usz));
+        memset(core->ebuf, 0xFF, (1<<core->pagesize));
         memcpy(core->ebuf+bufo, cx->wbuf, cx->wpos); // 不做ECC；
         if(core->drv->efs_write_media(core, units, core->ebuf))
             return (-1);
@@ -1762,7 +1763,7 @@ static s32 __e_lookupfile(struct __ecore *core, const char *name, struct __loc *
     }
 
     __key(name, key);
-    idxs = (1 << core->media->usz) / sizeof(*idx); // 一个unit中能存放多少个idx
+    idxs = (1 << core->pagesize) / sizeof(*idx); // 一个unit中能存放多少个idx
     __lock(core);
     for(i = 0; (u32)i < core->fmax; i++)
     {
@@ -1982,9 +1983,9 @@ static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
             if(cx->pos % BUFLEN)
             {
                 // 最后一部分数据不对齐，将其缓存到buf；
-                eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间
+                eccu = (1 << (core->pagesize - BUFBITS)) * 4; // 一个unit内被ECC占用的空间
                 loc = __getloc(position, core, file->loc, -1);
-                units = (core->ssz * SYS_LOOPS) + (loc->loc * core->fsz) + ((cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz);
+                units = (core->ssz * SYS_LOOPS) + (loc->loc * core->fsz) + ((cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz);
                 res = core->drv->efs_read_media(core, units, core->ebuf); // 文件内容
                 if(res)
                 {
@@ -1993,7 +1994,7 @@ static struct objhandle *__e_open(struct obj *ob, u32 flags, char *uncached)
                     return (NULL);
                 }
 
-                bufs = (1 << core->media->usz) / (BUFLEN+3); // 一个unit内有多少个buffer
+                bufs = (1 << core->pagesize) / (BUFLEN+3); // 一个unit内有多少个buffer
                 bufs = (cx->pos / BUFLEN) % bufs; // 在一个unit内的需要缓冲的位置
                 cx->wpos = cx->pos % BUFLEN; // 需要缓冲的量；
                 cx->pos -= cx->wpos;
@@ -2126,9 +2127,9 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
         return (0);
     }
 
-    eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
+    eccu = (1 << (core->pagesize - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
     ecce = core->fsz * eccu; // 一个文件空间内被ECC占用掉的空间；
-    bufsmax = 1 << (core->media->usz - BUFBITS); // 一个unit内有多少个buffer区；
+    bufsmax = 1 << (core->pagesize - BUFBITS); // 一个unit内有多少个buffer区；
     __lock(core);
     eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos+1)); // 获取文件位置；(+1的逻辑，是防止当前位置正好在边界，那么此时需要申请空间)
     if(!eloc)
@@ -2136,7 +2137,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
         // 文件位置不存在，是由于seek引起的空洞，即逻辑上是依靠seek是无法拓展文件尺寸的，必须结合写的动作；因此在写时才会申请空间；
         // 另外，文件上次一次写入时，正好是在文件空间的结束位置。在写完成时，不会拓展文件空间，在下一次写时拓展；
         eloc = __getloc(position, core, file->loc, -1); // 获取文件实际末尾；
-        sz =  cx->pos + cx->wpos -  (eloc->order * ((core->fsz << core->media->usz) - ecce)); // 相差空间的尺寸；
+        sz =  cx->pos + cx->wpos -  (eloc->order * ((core->fsz << core->pagesize) - ecce)); // 相差空间的尺寸；
         if(sz<0)
         {
             printf("\r\n: erro : efs    : \"%s\" write failed(unknown, %ld, %d).", handle_name(hdl), (long)cx->pos, (u32)cx->wpos);
@@ -2147,10 +2148,10 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
         if(sz) // 当前位置大于文件实际尺寸（等于零的情况就是上述的"另外.."部分）
         {
             // 需要扩展文件容量数量
-            if(sz%((core->fsz<<core->media->usz)-ecce))
-                sz = sz / ((core->fsz << core->media->usz) - ecce) + 1;
+            if(sz%((core->fsz<<core->pagesize)-ecce))
+                sz = sz / ((core->fsz << core->pagesize) - ecce) + 1;
             else
-                sz = sz / ((core->fsz << core->media->usz) - ecce);
+                sz = sz / ((core->fsz << core->pagesize) - ecce);
         }
         else
         {
@@ -2191,7 +2192,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
         if((cx->pos<=file->size)||((cx->pos-sz)<file->size)) // 只有有数据才会读（逻辑上存在一个可能，就是将其seek扩展到某个不对齐位置，此时没有必要读）
         {
             // 最后一部分数据不对齐，将其缓存到buf；可能是此前的fsync等操作引起的；
-            units = (core->ssz * core->serial) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz);
+            units = (core->ssz * core->serial) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz);
             if(core->drv->efs_read_media(core, units, core->ebuf))
             {
                 printf("\r\n: erro : efs    : \"%s\" write failed(read back).", handle_name(hdl));
@@ -2221,11 +2222,11 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
     while(len) // 按文件空间对齐分批写入
     {
         // 计算单批次写出的大小（文件空间大小）
-        sz = ((cx->pos + cx->wpos) % ((core->fsz << core->media->usz) - ecce)); // 已存在的文件空间不对齐部分，去除了ECC空间的
-        if((len+sz)>((core->fsz<<core->media->usz)-ecce))
+        sz = ((cx->pos + cx->wpos) % ((core->fsz << core->pagesize) - ecce)); // 已存在的文件空间不对齐部分，去除了ECC空间的
+        if((len+sz)>((core->fsz<<core->pagesize)-ecce))
         {
             // 需写出大小，是需要跨文件空间的，按文件空间对齐计算写出大小；
-            sz = ((core->fsz << core->media->usz) - ecce) - sz;
+            sz = ((core->fsz << core->pagesize) - ecce) - sz;
         }
         else
         {
@@ -2266,7 +2267,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
                     }
 
                     updatesz = -1; // 防止逻辑重复进入；
-                    memset(core->ebuf, 0xFF, (1 << core->media->usz)); // 第一次重置ebuf；
+                    memset(core->ebuf, 0xFF, (1 << core->pagesize)); // 第一次重置ebuf；
                 }
 
                 cx->wpos = 0;
@@ -2278,7 +2279,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
                 memcpy((core->ebuf + bufo + BUFLEN), (u8*)&ecc, 4);
                 if(!(((++bufc)<bufsmax)&&(sz>BUFLEN))) // 除了剩余容量仍然可以写出这个unit的情况外，其他都写出到介质；
                 {
-                    units = (core->ssz * SYS_LOOPS) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->media->usz) - eccu)) % core->fsz);
+                    units = (core->ssz * SYS_LOOPS) + (eloc->loc * core->fsz) + ((cx->pos / ((1 << core->pagesize) - eccu)) % core->fsz);
                     if(core->drv->efs_write_media(core, units, core->ebuf))
                     {
                         printf("\r\n: erro : efs    : write failed.");
@@ -2302,7 +2303,7 @@ static s32 __e_write(struct objhandle *hdl, u8 *data, u32 len)
 
                     bufs = 0;
                     if(len>=BUFLEN)
-                        memset(core->ebuf, 0xFF, (1 << core->media->usz)); // 缓存已刷入，重置缓存；
+                        memset(core->ebuf, 0xFF, (1 << core->pagesize)); // 缓存已刷入，重置缓存；
                 }
 
                 memset(cx->wbuf, 0xFF, BUFLEN);
@@ -2372,9 +2373,9 @@ static s32 __e_read(struct objhandle *hdl, u8 *data, u32 len)
     if(len>(file->size-cx->pos-cx->wpos)) // 读越界了；
         len = file->size - cx->pos - cx->wpos;
 
-    eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
+    eccu = (1 << (core->pagesize - BUFBITS)) * 4; // 一个unit内被ECC占用的空间；
     ecce = core->fsz * eccu; // 一个文件空间内被ECC占用掉的空间；
-    bufsmax = 1 << (core->media->usz - BUFBITS); // 一个unit内有多少个wbuf区；
+    bufsmax = 1 << (core->pagesize - BUFBITS); // 一个unit内有多少个wbuf区；
     rebuf = (cx->pos + cx->wpos + len) % BUFLEN; // 计算读完后，结尾不对齐的部分，读完后需将从data缓存到wbuf；
     if((cx->wpos)&&((cx->wpos+len)>=BUFLEN)) // 存在缓冲，同时读数据会超出缓冲范围，则先将数据刷下去；
     {
@@ -2394,16 +2395,16 @@ static s32 __e_read(struct objhandle *hdl, u8 *data, u32 len)
 
     do // 按文件空间尺寸，分批读入data空间
     {
-        sz = ((cx->pos + cx->wpos) % ((core->fsz << core->media->usz) - ecce)); // 当前位置在文件空间不对齐部分，去除了ECC空间的；
-        if((len+sz)>((core->fsz<<core->media->usz)-ecce))
-            sz = ((core->fsz << core->media->usz) -ecce) - sz; // 需读入大小，需要跨文件空间，按文件空间对齐计算单次大小；
+        sz = ((cx->pos + cx->wpos) % ((core->fsz << core->pagesize) - ecce)); // 当前位置在文件空间不对齐部分，去除了ECC空间的；
+        if((len+sz)>((core->fsz<<core->pagesize)-ecce))
+            sz = ((core->fsz << core->pagesize) -ecce) - sz; // 需读入大小，需要跨文件空间，按文件空间对齐计算单次大小；
         else
             sz = len; // 小于一个文件空间内的数据量
 
         len -= sz;
         eloc = __getloc(position, core, file->loc, (cx->pos+cx->wpos)); // 文件位置;
         units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc)
-                + (((cx->pos / ((1 << core->media->usz)- eccu))) % core->fsz); // 当前位置所在的unit
+                + (((cx->pos / ((1 << core->pagesize)- eccu))) % core->fsz); // 当前位置所在的unit
         do // 按文件空间尺寸对齐，一次循环读一个unit；
         {
             if(core->drv->efs_read_media(core, units++, core->ebuf)) // 文件内容；
@@ -2413,9 +2414,9 @@ static s32 __e_read(struct objhandle *hdl, u8 *data, u32 len)
                 return (rdsz);
             }
 
-            szu = ((cx->pos + cx->wpos) % ((1 << core->media->usz) - eccu)); // 当前位置在unit不对齐部分，去除了ECC空间的；
-            if((sz+szu)>((1<<core->media->usz)-eccu))
-                szu = ((1 << core->media->usz) -eccu) - szu; // 需读入大小，是需要跨unit的，按unit对齐计算大小；
+            szu = ((cx->pos + cx->wpos) % ((1 << core->pagesize) - eccu)); // 当前位置在unit不对齐部分，去除了ECC空间的；
+            if((sz+szu)>((1<<core->pagesize)-eccu))
+                szu = ((1 << core->pagesize) -eccu) - szu; // 需读入大小，是需要跨unit的，按unit对齐计算大小；
             else
                 szu = sz; // 小于一个unit内的数据量
 
@@ -2490,7 +2491,7 @@ static off_t __e_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     struct __ecore *core = (struct __ecore*)corefs(handle_GetHostObj(hdl));
     struct __efile *file = (struct __efile *)handle_GetHostObjectPrivate(hdl);
 
-    eccu = (1 << (core->media->usz - BUFBITS)) * 4; // 一个unit内被ECC占用的空间
+    eccu = (1 << (core->pagesize - BUFBITS)) * 4; // 一个unit内被ECC占用的空间
     switch(whence)
     {
         case SEEK_END:
@@ -2540,14 +2541,14 @@ static off_t __e_seek(struct objhandle *hdl, off_t *offset, s32 whence)
                 else if(npos%BUFLEN)
                 {
                     eloc = __getloc(position, core, file->loc, npos);
-                    units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc) + ((npos / ((1 << core->media->usz) - eccu)) % core->fsz);
+                    units = (core->ssz * SYS_LOOPS) + (core->fsz * eloc->loc) + ((npos / ((1 << core->pagesize) - eccu)) % core->fsz);
                     if(core->drv->efs_read_media(core, units, core->ebuf))
                     {
                         printf("\r\n: erro : efs    : \"%s\"'s data cannot read(%ld).", handle_name(hdl), (long)npos);
                         return (-1);
                     }
 
-                    bufsmax = 1 << (core->media->usz - BUFBITS); // 一个unit内有多少个buffer区；
+                    bufsmax = 1 << (core->pagesize - BUFBITS); // 一个unit内有多少个buffer区；
                     bufo = ((npos / BUFLEN) % bufsmax) << BUFBITS; // wbuf区内偏置(含ECC)
                     if((file->size-(npos-(npos%BUFLEN)))>BUFLEN)
                     {
@@ -2734,7 +2735,7 @@ static s32 __cachedentry(struct __ecore *core, struct __dentrys *dentrys)
     struct __eidx *idx;
     s64 units;
 
-    idxs = (1 << core->media->usz) / sizeof(*idx); // 一个unit中能存放多少个idx
+    idxs = (1 << core->pagesize) / sizeof(*idx); // 一个unit中能存放多少个idx
     __lock(core);
     do
     {
@@ -3005,6 +3006,7 @@ int efs_install_drv(struct __ecore *core, struct __efs_drv *drv)
     if (!core || !drv)
          return (-1);
 
+    core->drv = malloc(sizeof(*drv));
     core->drv->efs_erase_media = drv->efs_erase_media;
     core->drv->efs_read_media = drv->efs_read_media;
     core->drv->efs_write_media = drv->efs_write_media;
@@ -3025,12 +3027,16 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
     struct __ecore *core;
     s32 res, idxs, tmp, sys, i;
     s32 fileblock = (s32)config; // 文件块尺寸
-//    static u8 installs;
-//    char *lock = "efs0";
-//    installs++;
+    u32 flash_block_size,flash_page_size,block_page_number;
 
     media = (struct umedia*)pSuper->MediaInfo;
-    core = malloc(sizeof(*core) + (1 << media->usz));
+    media->mreq(blockunits,(ptu32_t)&block_page_number);             //获取flash中一块有多少页
+    media->mreq(unitbytes,(ptu32_t)&flash_page_size);                //获取flash的页大小
+    flash_block_size = block_page_number * flash_page_size;  //获取flash的块大小
+    if((flash_block_size == 0) || (block_page_number == 0) || (flash_page_size == 0))
+        return (-1);
+
+    core = malloc(sizeof(*core));
     if(!core)
     {
         printf("\r\n: erro : efs    : install failed(memory out).");
@@ -3046,12 +3052,13 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
         return (-1);
     }
 
-    core->media = media;
+    core->pagesize = log2(flash_page_size);
+    core->blacksize = log2(flash_block_size);
     efs_install_drv(core,pSuper->MediaDrv);
     core->MStart = pSuper->MediaStart;
     core->ASize = pSuper->AreaSize;
-    core->ebuf = (u8*)core + sizeof(*core);
-    if(media->usz>9)
+    core->ebuf = media->ubuf;
+    if(flash_page_size > 512)
     {
         core->nsz = 256;
     }
@@ -3060,17 +3067,17 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
         core->nsz = 128; // units尺寸小于512bytes时，名字长度缩小为128；
     }
 
-    if(fileblock&((1<<media->esz)-1)) // fileblock按可擦除大小对齐
+    if(fileblock & (flash_block_size-1)) // fileblock按可擦除大小对齐
     {
         printf("\r\n: info : efs    : single file space's range expand from %d to ", fileblock);
-        fileblock -= fileblock & ((1 << media->esz) - 1); // 剔除不对齐
-        fileblock += 1 << media->esz; // 总体增加一个可擦除空间，对齐了
+        fileblock -= fileblock & (flash_block_size - 1); // 剔除不对齐
+        fileblock += flash_block_size; // 总体增加一个可擦除空间，对齐了
         printf("%d.", fileblock);
     }
 
-    core->fsz = fileblock >> media->usz; // 单文件的容量，unit为单位；
+    core->fsz = fileblock / flash_page_size; // 单文件的容量，unit为单位；
     core->fmax = core->ASize / fileblock; // 预估文件数
-    tmp = (1 << media->usz) / sizeof(struct __eidx); // 单个unit能存放的索引数
+    tmp = flash_page_size / sizeof(struct __eidx); // 单个unit能存放的索引数
     if(core->fmax%tmp) // 索引空间按单个unit对齐操作
     {
         idxs = core->fmax / tmp + 1; // 索引空间需占用的unit数，unit为单位；
@@ -3082,7 +3089,7 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 
     core->finfo = 1 + idxs; // 文件信息的偏置，unit为单位;
     sys = 1 + idxs + core->fmax; // 预估系统空间大小（系统信息+索引+文件信息）,unit为单位
-    tmp = ((1 << media->esz) >> media->usz); // 可擦除空间转为unit单位；
+    tmp = block_page_number; // 可擦除空间转为unit单位；
     if(sys%tmp) // 系统尺寸按可擦除大小对齐,unit为单位
     {
         sys = (sys - sys % tmp) + tmp;
@@ -3090,9 +3097,9 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 
     core->ssz = sys; // 对齐后的系统空间，unit为单位
     sys = core->ssz * 6; // 全部系统部分逻辑所占用的空间（可擦除空间对齐，unit为单位）；
-    tmp = (core->ASize - ((core->fmax * core->fsz) << media->usz)); // 预估系统可用空间的剩余空间
-    tmp = tmp & (0xFFFFFFFF - ((1 << media->esz) -1)); // 预估系统可用空间的剩余空间, 可擦除对齐
-    tmp = tmp >> media->usz; // // 预估系统可用空间的剩余空间，unit为单位
+    tmp = (core->ASize - ((core->fmax * core->fsz) * flash_page_size)); // 预估系统可用空间的剩余空间
+    tmp = tmp & (0xFFFFFFFF - (flash_block_size -1)); // 预估系统可用空间的剩余空间, 可擦除对齐
+    tmp = tmp / flash_page_size; // // 预估系统可用空间的剩余空间，unit为单位
     if(tmp<sys) // 预估的系统空间不够，从文件空间里获取
     {
         i = 1;

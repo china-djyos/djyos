@@ -1,43 +1,79 @@
-// =============================================================================
+//----------------------------------------------------
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
-// 文件名     ：cpu_peri_eth.c
-// 模块描述: GMAC模块底层硬件驱动，为DJYIP的协议栈特定的驱动
-// 模块版本: V1.00
-// 创建人员: HM
-// 创建时间: 02/13.2017
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//-----------------------------------------------------------------------------
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+//
+// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
+// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
+//
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
+//    及下述的免责声明。
+// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
+//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    的免责声明。
+
+// 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
+// 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
+// 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
+// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
+// 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
+// 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
+// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
+//-----------------------------------------------------------------------------
 // =============================================================================
 #include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-
-#include <sys/socket.h>
 #include <cpu_peri.h>
 #include <board-config.h>
-#include "dbug.h"
+#include <sys/socket.h>
+#include <netbsp.h>
+#include <dbug.h>
 #include "shell.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_eth.h"
-#include <netbsp.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle);
-//    ModuleInstall_ETH(CFG_GMAC_NAME,CFG_GMAC_LOOP_MODE,CFG_GMAC_LOOP_CYCLE);
+//    extern bool_t ModuleInstall_ETH(void);
+//    ModuleInstall_ETH( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_eth"  //CPU的mac驱动
-//parent:"djyip"                 //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu_peri_eth" //CPU的mac驱动
+//parent:"tcpip"                //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"int","djyip","heap","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"int","tcpip","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -49,27 +85,34 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_GMAC_LOOP_MODE  //****检查参数是否已经配置好
+#ifndef CFG_ETH_LOOP_ENABLE     //****检查参数是否已经配置好
 #warning    cpu_peri_eth组件参数未配置，使用默认值
-//%$#@num,0,10000,
-#define CFG_GMAC_LOOP_MODE         1            //"是否使用loop模式",
-#define CFG_GMAC_LOOP_CYCLE        1000         //"loop的时间",
-#define CFG_GMAC_MAC_ADDR0         00           //"MAC ADDR0",
-#define CFG_GMAC_MAC_ADDR1         00           //"MAC ADDR1",
-#define CFG_GMAC_MAC_ADDR2         00           //"MAC ADDR2",
-#define CFG_GMAC_MAC_ADDR3         00           //"MAC ADDR3",
-#define CFG_GMAC_MAC_ADDR4         00           //"MAC ADDR4",
-#define CFG_GMAC_MAC_ADDR5         00           //"MAC ADDR5",
-//%$#@enum,true,false,
 //%$#@string,1,32,
-#define CFG_GMAC_NAME              ("STM32F4_ETH")   //"网卡设备名称",
+#define CFG_ETH_NETCARD_NAME    "STM32F4_ETH"   //"网卡名称",
+//%$#@num,1000,10000,
+#define CFG_ETH_LOOP_CYCLE      1000         //"网卡轮询周期(uS)",中断模式无须填写
+//%$#@enum,true,false,
+#define CFG_ETH_LOOP_ENABLE     true            //"网卡接收是否轮询",
+#define CFG_ETH_HARD_MAC_ADDR   true            //"硬件生成Mac地址",
+//%$#@num,0,255,
+#define CFG_ETH_MAC_ADDR0      00           //"MAC ADDR0",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR1      02           //"MAC ADDR1",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR2      03           //"MAC ADDR2",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR3      04           //"MAC ADDR3",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR4      05           //"MAC ADDR4",若选中"硬件生成Mac地址",则无须填写
+#define CFG_ETH_MAC_ADDR5      06           //"MAC ADDR5",若选中"硬件生成Mac地址",则无须填写
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
 // =============================================================================
 
+bool_t MacReset(char *param);
 #define CN_DEVNAME_LEN 32
 //this is the mac receive hook, if any hook rcv,then the data will goto the hook
 //the receive data goto the stack default
@@ -113,8 +156,8 @@ typedef struct
     }macstat;
     u8            macaddr[CN_MACADDR_LEN];    //storage the mac address
     //dev method
-    vu32 loop:1;          //1 use the loop mode while 0 interrupt mode
-    vu32 loopcycle:31;    //unit:ms
+    u8 loop;          //1 use the loop mode while 0 interrupt mode
+    u32 loopcycle;    //unit:uS
     fnRcvDeal     fnrcvhook;                  //rcv hook function
     tagMacDebug   debuginfo;                  //debug info
 }tagMacDriver;
@@ -125,8 +168,8 @@ static tagMacDriver  gMacDriver;
 //define the descriptors and buffers
 #define EthRxDescs      8
 #define EthTxDescs      8
-#define EthRxBufSize    1524
-#define EthTxBufSize    1524
+#define EthRxBufSize    (1528UL)
+#define EthTxBufSize    (1528UL)
 ETH_DMADescTypeDef  DMARxDscrTab[EthRxDescs];
 ETH_DMADescTypeDef  DMATxDscrTab[EthTxDescs];
 
@@ -191,7 +234,7 @@ static void __MacReset(tagMacDriver *pDrive)
     return ;
 }
 
-static struct NetPkg *__MacRcv(ptu32_t devhandle)
+static struct NetPkg *__MacRcv(struct NetDev *devhandle)
 {
     struct NetPkg         *pkg = NULL;
     tagMacDriver      *pDrive;
@@ -239,6 +282,19 @@ static struct NetPkg *__MacRcv(ptu32_t devhandle)
 //      pkg->datalen = len;
         EthHandle->RxFrameInfos.SegCount =0;
     }
+    else        //if malloc pkg failed
+    {
+        dmarxdesc = EthHandle->RxFrameInfos.FSRxDesc;
+        while(CopyBytes > EthRxBufSize)
+        {
+            CopyBytes -= EthRxBufSize;
+
+            dmarxdesc->Status |= ETH_DMARXDESC_OWN;     //release Des to DMA
+            dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
+        }
+        dmarxdesc->Status |= ETH_DMARXDESC_OWN;
+        EthHandle->RxFrameInfos.SegCount =0;
+    }
 
     // When Rx Buffer unavailable flag is set: clear it and resume reception
     if ((EthHandle->Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)
@@ -254,7 +310,7 @@ static struct NetPkg *__MacRcv(ptu32_t devhandle)
     return pkg;
 }
 
-static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
+static bool_t MacSnd(struct NetDev* handle,struct NetPkg * pkg,u32 framelen, u32 netdevtask)
 {
     bool_t             result;
     tagMacDriver      *pDrive;
@@ -268,7 +324,7 @@ static bool_t MacSnd(ptu32_t handle,struct NetPkg * pkg,u32 framelen, u32 netdev
     pDrive = &gMacDriver;
     EthHandle = pDrive->EthHandle;
     pDrive->debuginfo.sndTimes++;
-    if((0 == handle)||(NULL == pkg))
+    if((NULL == handle)||(NULL == pkg))
         return result;
 
     if(Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER))
@@ -343,7 +399,7 @@ NODESCERROR:
 
 //u32 ETH_SendData(u8 *buf,u32 len)
 //{
-//    struct NetPkg          pkg;
+//    struct NetPkg      pkg;
 //    tagMacDriver      *pDrive;
 //
 //    pDrive = &gMacDriver;
@@ -402,12 +458,21 @@ u32 ETH_IntHandler(ufast_t IntLine)
     }
     return 0;
 }
+
+__attribute__((weak)) void GMAC_InLowPowerPinCfg(void)
+{
+    printf("\r\n请在板件驱动中提供进入低功耗时配置网卡引脚的函数。");
+}
+__attribute__((weak))  void GMAC_OutLowPowerPinCfg(void)
+{
+    printf("\r\n请在板件驱动中提供离开低功耗时配置网卡引脚的函数。");
+}
+
 //mac control function
-static bool_t MacCtrl(struct NetDev   *devhandle,u8 cmd,ptu32_t para)
+static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
 {
     bool_t result = false;
     tagMacDriver   *pDrive;
-#if 1
     pDrive = &gMacDriver;
     if((pDrive->devhandle == devhandle)&&\
         (Lock_MutexPend(pDrive->protect,CN_TIMEOUT_FOREVER)))
@@ -466,11 +531,11 @@ static bool_t MacCtrl(struct NetDev   *devhandle,u8 cmd,ptu32_t para)
             case EN_NETDEV_SETRECV:
                 if(para)
                 {
-//                  HAL_ETH_StartReceive(pDrive->EthHandle);
+                    HAL_ETH_Start(pDrive->EthHandle);
                 }
                 else
                 {
-//                  HAL_ETH_StopReceive(pDrive->EthHandle);
+                    HAL_ETH_Stop(pDrive->EthHandle);
                 }
                 result = true;
                 break;
@@ -492,6 +557,9 @@ static bool_t MacCtrl(struct NetDev   *devhandle,u8 cmd,ptu32_t para)
                 break;
             case EN_NETDEV_SETMULTIMAC:
                 break;
+            case EN_NETDEV_SETHOOK:
+                pDrive->fnrcvhook = (fnRcvDeal)para;
+                break;
             case EN_NETDEV_GTETMAC:
                 if((u8 *)para != NULL)
                 {
@@ -507,6 +575,32 @@ static bool_t MacCtrl(struct NetDev   *devhandle,u8 cmd,ptu32_t para)
                     result = true;
                 }
                 break;
+            case EN_NETDEV_LOWPOWER:
+                if(para == 1)
+                {
+                    RCC->AHB1ENR&=~(1<<25);  //禁能ETHMAC时钟
+                    GMAC_InLowPowerPinCfg();
+                }
+                else
+                {
+                     RCC->AHB1ENR|=1<<25;  //使能ETHMAC时钟
+                     GMAC_OutLowPowerPinCfg();
+                     MacReset(0);
+                }
+                result = true;
+                break;
+            case (EN_NETDEV_ADDRFILTER):    //增加一条是否接收所有包
+                if(para)
+                {
+                    __macbitsclear(&pDrive->EthHandle->Instance->MACFFR,
+                            ETH_MACFFR_RA);//addr filter
+                }
+                else
+                {
+                    __macbitsset(&pDrive->EthHandle->Instance->MACFFR,
+                                               ETH_MACFFR_RA);//pass all pkg
+                }
+                break;
             default:
                 result = false;
                 break;
@@ -515,23 +609,43 @@ static bool_t MacCtrl(struct NetDev   *devhandle,u8 cmd,ptu32_t para)
     }
 
     return result;
-#endif
-    return true;
 }
 
 //this is the receive task
 static ptu32_t __MacRcvTask(void)
 {
     struct NetPkg *pkg;
-    ptu32_t    handle;
+    struct NetDev *handle;
     u8        *rawbuf;
     u16        len;
     tagMacDriver      *pDrive;
     pDrive = &gMacDriver;
 
-    Djy_GetEventPara(&handle,NULL);
+
+
+    u32 *addr;
+    u32 value;
+    u32 resettimes= 0;
+    time_t printtime;
+
+    Djy_GetEventPara((ptu32_t *)&handle,NULL);
+    value = pDrive->EthHandle->Instance->MMCRFCECR;
+//  addr = (u32 *)((u32)ETH + 0x194);
+//  value =*addr;
+    if(value > 0)
+    {
+        printtime = time(NULL);
+        printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x start\n\r",\
+                ctime(&printtime),resettimes++,value);
+        MacReset(NULL);
+        Djy_EventDelay(10*mS);
+    }
+
     while(1)
     {
+        //中断模式下，loopcycle = CN_TIMEOUT_FOREVER，信号量将被中断post。
+        //轮询模式下，没人会post信号量，则固定按loopcycle为周期轮询网卡。
+        //故，中断模式和轮询模式，源码是一样的。
         Lock_SempPend(pDrive->rcvsync,pDrive->loopcycle);
         pDrive->debuginfo.rxTaskRun++;
         while(1)
@@ -544,7 +658,7 @@ static ptu32_t __MacRcvTask(void)
             if(NULL != pkg)
             {
                 //maybe we have another method like the hardware
-//                NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
+//              NetDevFlowCounter(handle,NetDevFrameType(pkg->buf+ pkg->offset,pkg->datalen));
                 //you could alse use the soft method
                 if(NULL != pDrive->fnrcvhook)
                 {
@@ -562,11 +676,25 @@ static ptu32_t __MacRcvTask(void)
             }
             else
             {
-                  //here we still use the counter to do the time state check
-//                  NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
+                //here we still use the counter to do the time state check
+//              NetDevFlowCounter(handle,EN_NETDEV_FRAME_LAST);
                 break;
             }
         }
+
+        //check if any crc error get then reset the mac
+        value = pDrive->EthHandle->Instance->MMCRFCECR;
+//      addr = (u32 *)((u32)ETH + 0x194);
+//      value =*addr;
+        if(value > 0)
+        {
+            printtime = time(NULL);
+            printf("[MACRESET:%s Num:0x%08x] CRCERRORCONTER:0x%08x running\n\r",\
+                    ctime(&printtime),resettimes++,value);
+            MacReset(NULL);
+            Djy_EventDelay(10*mS);
+        }
+
     }
     return 0;
 }
@@ -594,12 +722,9 @@ static bool_t __CreateRcvTask(ptu32_t handle)
     return result;
 }
 
-
 //show the gmac status
 //bool_t macdebuginfo(char *param)
-
 bool_t mac(char *param)
-
 {
     s64  time;
     u32  timeS;
@@ -615,38 +740,37 @@ bool_t mac(char *param)
     u32 rcvSpeed = pDrive->debuginfo.rcvPkgTimes/timeS;
     u32 intSpeed = pDrive->debuginfo.Ints/timeS;
 
-    info_printf("eth","*********MAC DEBUG INFO***********\n\r");
+    printf("*********MAC DEBUG INFO***********\n\r");
     if(pDrive->loop)
     {
-        info_printf("eth","loop/int      :loop\n\r");
-        info_printf("eth","loopcycle     :%d mS\n\r",pDrive->loopcycle);
+        printf("loop/int      :loop\n\r");
+        printf("loopcycle     :%d mS\n\r",pDrive->loopcycle);
     }
     else
     {
-        info_printf("eth","loop/int      :int\n\r");
+        printf("loop/int      :int\n\r");
     }
 
-    info_printf("eth","EthInts       :%d\n\r",pDrive->debuginfo.Ints);
-    info_printf("eth","rcvInts       :%d\n\r",pDrive->debuginfo.rcvInts);
-    info_printf("eth","rcvPkgCnt     :%d\n\r",pDrive->debuginfo.rcvPkgTimes);
-    info_printf("eth","rxoInts       :%d\n\r",pDrive->debuginfo.rxoverInts);
-    info_printf("eth","dmaerrcnt     :%d\n\r",pDrive->debuginfo.dmaerr);
-    info_printf("eth","snd           :%d\n\r",pDrive->debuginfo.sndTimes);
-    info_printf("eth","sndInts       :%d\n\r",pDrive->debuginfo.sndInts);
-    info_printf("eth","sndTimes      :%d\n\r",pDrive->debuginfo.sndTimes);
-    info_printf("eth","sndOkTime     :%d\n\r",pDrive->debuginfo.sndOkTimes);
-    info_printf("eth","sndnobdCnt    :%d\n\r",pDrive->debuginfo.sndnobdCnt);
-    info_printf("eth","rxTaskRun     :%d\n\r",pDrive->debuginfo.rxTaskRun);
-    info_printf("eth","rcvSpeed      :%d\n\r",rcvSpeed);
-    info_printf("eth","intSpeed      :%d\n\r",intSpeed);
-    info_printf("eth","rstTimes      :%d\n\r",pDrive->debuginfo.rsttimes);
-    info_printf("eth","**********************************\n\r");
+    printf("EthInts       :%d\n\r",pDrive->debuginfo.Ints);
+    printf("rcvInts       :%d\n\r",pDrive->debuginfo.rcvInts);
+    printf("rcvPkgCnt     :%d\n\r",pDrive->debuginfo.rcvPkgTimes);
+    printf("rxoInts       :%d\n\r",pDrive->debuginfo.rxoverInts);
+    printf("dmaerrcnt     :%d\n\r",pDrive->debuginfo.dmaerr);
+    printf("snd           :%d\n\r",pDrive->debuginfo.sndTimes);
+    printf("sndInts       :%d\n\r",pDrive->debuginfo.sndInts);
+    printf("sndTimes      :%d\n\r",pDrive->debuginfo.sndTimes);
+    printf("sndOkTime     :%d\n\r",pDrive->debuginfo.sndOkTimes);
+    printf("sndnobdCnt    :%d\n\r",pDrive->debuginfo.sndnobdCnt);
+    printf("rcvnopkgCnt   :%d\n\r",pDrive->debuginfo.nopkgCnts);
+    printf("rxTaskRun     :%d\n\r",pDrive->debuginfo.rxTaskRun);
+    printf("rcvSpeed      :%d\n\r",rcvSpeed);
+    printf("intSpeed      :%d\n\r",intSpeed);
+    printf("rstTimes      :%d\n\r",pDrive->debuginfo.rsttimes);
+    printf("**********************************\n\r");
     return true;
 }
 
-#define CN_GMAC_REG_BASE   ((u32)ETH)
-//bool_t MacReg(char *param)
-
+#define CN_ETH_REG_BASE   ((u32)ETH)
 bool_t macreg(char *param)
 {
     vu32    i;
@@ -654,78 +778,78 @@ bool_t macreg(char *param)
     vu32    value;
     u32     num;
 
-    info_printf("eth","%-10s%-10s\n\r",\
+    printf("%-10s%-10s\n\r",\
             "Addr(Hex)","Value(Hex)");
-    addr = (u32 *)CN_GMAC_REG_BASE;
+    addr = (u32 *)CN_ETH_REG_BASE;
     num = 8;
     for(i=0;i < num;i++)
     {
         value =*addr;
-        info_printf("eth","%08x  %08x\n\r",(u32)addr,value);
+        printf("%08x  %08x\n\r",(u32)addr,value);
         addr++;
     }
 
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x34);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x34);
     num = 11;
     for(i=0;i < num;i++)
     {
         value =*addr;
-        info_printf("eth","%08x  %08x\n\r",(u32)addr,value);
+        printf("%08x  %08x\n\r",(u32)addr,value);
         addr++;
     }
 
-    info_printf("eth","ETH_MMC CR/SR Register Below:\r\n");
+    printf("ETH_MMC CR/SR Register Below:\r\n");
 
-    info_printf("eth","%-10s%-10s\n\r",\
+    printf("%-10s%-10s\n\r",\
             "Addr(Hex)","Value(Hex)");
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x100);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x100);
     num = 7;
     for(i=0;i < num;i++)
     {
         value =*addr;
-        info_printf("eth","%08x  %08x\n\r",(u32)addr,value);
+        printf("%08x  %08x\n\r",(u32)addr,value);
         addr++;
     }
 
-    info_printf("eth","ETH_MMC Statistics Register Below:\r\n");
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x14C);
+    printf("ETH_MMC Statistics Register Below:\r\n");
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x14C);
     value =*addr;
-    info_printf("eth","%08x  %08x\n\r",(u32)addr,value);
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x150);
+    printf("%08x  %08x\n\r",(u32)addr,value);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x150);
     value =*addr;
-    info_printf("eth","%08x  %08x\n\r",(u32)addr,value);
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x168);
+    printf("%08x  %08x\n\r",(u32)addr,value);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x168);
     value =*addr;
-    info_printf("eth","%08x  %08x  Transmitted good frames \n\r",(u32)addr,value);
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x194);
+    printf("%08x  %08x  Transmitted good frames \n\r",(u32)addr,value);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x194);
     value =*addr;
-    info_printf("eth","%08x  %08x  Receive frames with CRC error\n\r",(u32)addr,value);
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x198);
+    printf("%08x  %08x  Receive frames with CRC error\n\r",(u32)addr,value);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x198);
     value =*addr;
-    info_printf("eth","%08x  %08x  Receive frames with alignment error\n\r",(u32)addr,value);
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x1C4);
+    printf("%08x  %08x  Receive frames with alignment error\n\r",(u32)addr,value);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x1C4);
     value =*addr;
-    info_printf("eth","%08x  %08x  Received good unicast frames\n\r",(u32)addr,value);
+    printf("%08x  %08x  Received good unicast frames\n\r",(u32)addr,value);
 
-    info_printf("eth","ETH_DMA Register Below:\r\n");
-    info_printf("eth","%-10s%-10s\n\r",\
+    printf("ETH_DMA Register Below:\r\n");
+    printf("%-10s%-10s\n\r",\
             "Addr(Hex)","Value(Hex)");
-    addr = (u32 *)(CN_GMAC_REG_BASE + 0x1000);
+    addr = (u32 *)(CN_ETH_REG_BASE + 0x1000);
     num = 10;
     for(i=0;i < num;i++)
     {
         value =*addr;
-        if((u32)addr == CN_GMAC_REG_BASE + 0x101c)
+        if((u32)addr == CN_ETH_REG_BASE + 0x101c)
         {
-            info_printf("eth","%08x  %08x  ETH_DMAIER Register\n\r",(u32)addr,value);
+            printf("%08x  %08x  ETH_DMAIER Register\n\r",(u32)addr,value);
         }
-        else if((u32)addr == CN_GMAC_REG_BASE + 0x1020)
+        else if((u32)addr == CN_ETH_REG_BASE + 0x1020)
         {
-            info_printf("eth","%08x  %08x  Missed frames and buffer overflow counter\n\r",(u32)addr,value);
+            printf("%08x  %08x  Missed frames and buffer overflow counter\n\r",(u32)addr,value);
         }
         else
         {
-            info_printf("eth","%08x  %08x\n\r",(u32)addr,value);
+            printf("%08x  %08x\n\r",(u32)addr,value);
         }
         addr++;
     }
@@ -733,8 +857,7 @@ bool_t macreg(char *param)
     return true;
 }
 
-//bool_t MacReset(char *param)
-bool_t macreset(char *param)
+bool_t MacReset(char *param)
 {
     tagMacDriver   *pDrive = &gMacDriver;
 
@@ -742,7 +865,6 @@ bool_t macreset(char *param)
     return true;
 }
 
-//bool_t MacSndEn(char *param)
 bool_t macsnden(char *param)
 {
     tagMacDriver      *pDrive;
@@ -756,8 +878,6 @@ bool_t macsnden(char *param)
     }
     return true;
 }
-
-//bool_t MacSndDis(char *param)
 bool_t macsnddis(char *param)
 {
     tagMacDriver      *pDrive;
@@ -771,29 +891,62 @@ bool_t macsnddis(char *param)
     return true;
 }
 
+bool_t macfilten(char *param)
+{
+    tagMacDriver      *pDrive;
+
+    pDrive = &gMacDriver;
+    MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,1);//开通地址过滤功能
+    return true;
+}
+bool_t macfiltdis(char *param)
+{
+    tagMacDriver      *pDrive;
+
+    pDrive = &gMacDriver;
+    MacCtrl(pDrive->devhandle,EN_NETDEV_ADDRFILTER,0);//关闭地址过滤功能
+    return true;
+}
+
 
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
 // 返回值  ：true成功  false失败。
 // =============================================================================
-bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
-                          bool_t loop,u32 loopcycle,\
-                          bool_t (*rcvHook)(u8 *buf, u16 len))
+bool_t ModuleInstall_ETH(void)
 {
     tagMacDriver   *pDrive = &gMacDriver;
     struct NetDevPara   devpara;
+    //GET THE SIGNATURE OF THE DEVICE
+#if (CFG_ETH_HARD_MAC_ADDR == true)
+    u32  signature[3];
+    u8 gc_NetMac[CN_MACADDR_LEN];
+    memset(signature,0,sizeof(signature));
+    GetCpuID(&signature[0],&signature[1],&signature[2]);
+    printk("CPU SIGNATURE:%08X-%08X-%08X-%08X\n\r",signature[0],signature[1],signature[2],signature[3]);
+    //use the signature as the mac address
+    signature[0] = signature[1]+signature[2];
+    memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
+    gc_NetMac[0]=0x00;      //根据mac的规定，第一字节某位置为1表示广播或者组播
+#else
+    u8 gc_NetMac[CN_MACADDR_LEN] ={CFG_ETH_MAC_ADDR0,CFG_ETH_MAC_ADDR1,
+                                   CFG_ETH_MAC_ADDR2,CFG_ETH_MAC_ADDR3,
+                                   CFG_ETH_MAC_ADDR4,CFG_ETH_MAC_ADDR5};
+#endif
 
     memset((void *)pDrive,0,sizeof(tagMacDriver));
     //copy the config para to the pDrive
-    memcpy(pDrive->devname,devname,CN_DEVNAME_LEN-1);
-    memcpy((void *)pDrive->macaddr,macaddress,CN_MACADDR_LEN);
-    if(loop)
+    memcpy(pDrive->devname,CFG_ETH_NETCARD_NAME,CN_DEVNAME_LEN-1);
+    pDrive->devname[CN_DEVNAME_LEN-1] = '\0';
+    memcpy((void *)pDrive->macaddr,gc_NetMac,CN_MACADDR_LEN);
+    if(CFG_ETH_LOOP_ENABLE)
     {
-        pDrive->loop = 1;
+        pDrive->loopcycle = CFG_ETH_LOOP_CYCLE;
     }
-    pDrive->loopcycle = loopcycle;
-    pDrive->fnrcvhook = rcvHook;
+    else
+        pDrive->loopcycle = CN_TIMEOUT_FOREVER;
+    pDrive->fnrcvhook = NULL;
     //set the work mode and speed
     pDrive->macstat.pm = 0;         //primmiscuous mode:= 1,no MAC addr filte
     pDrive->macstat.duplex = 1;    //duplex full
@@ -833,12 +986,12 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     devpara.ifsend = MacSnd;
     devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = CN_IPDEV_ALL;
-    memcpy(devpara.mac,macaddress,6);
+    memcpy(devpara.mac,gc_NetMac,CN_MACADDR_LEN);
     devpara.name = (char *)pDrive->devname;
     devpara.mtu = 1522;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
-    if(0 == pDrive->devhandle)
+    if(NULL == pDrive->devhandle)
     {
         goto NetInstallFailed;
     }
@@ -847,7 +1000,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         goto RcvTaskFailed;
     }
 
-    if(false == loop)
+    if(false == CFG_ETH_LOOP_ENABLE)
     {
         Int_Register(CN_INT_LINE_ETH);
         Int_SettoAsynSignal(CN_INT_LINE_ETH);
@@ -855,12 +1008,11 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
         Int_IsrConnect(CN_INT_LINE_ETH,ETH_IntHandler);
         Int_ContactLine(CN_INT_LINE_ETH);
     }
-
-    info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
+    info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,pDrive->devname);
     return true;
 
 RcvTaskFailed:
-    NetDevUninstall(devname);
+    NetDevUninstall(pDrive->devname);
 NetInstallFailed:
     Lock_MutexDelete(pDrive->protect);
     pDrive->protect = NULL;
@@ -868,7 +1020,7 @@ DEVPROTECT_FAILED:
     Lock_SempDelete(pDrive->rcvsync);
     pDrive->rcvsync = NULL;
 RCVSYNC_FAILED:
-    error_printf("bspETH","Install Net Device %s failed\n\r",devname);
+    error_printf("bspETH","Install Net Device %s failed\n\r",pDrive->devname);
     return false;
 }
 
@@ -893,8 +1045,12 @@ u8 GMAC_MdioW(u8 dev,u8 reg, u16 value)
         return 0;
     return 1;
 }
-ADD_TO_ROUTINE_SHELL(mac,mac,"usage:gmac");
-ADD_TO_ROUTINE_SHELL(macreg,macreg,"usage:MacReg");
-ADD_TO_ROUTINE_SHELL(macreset,macreset,"usage:reset gmac");
+
+
+ADD_TO_ROUTINE_SHELL(macfiltdis,macfiltdis,"usage:MacAddrDis, receive all frame(don't care MAC filter)");
+ADD_TO_ROUTINE_SHELL(macfilten,macfilten,"usage:MacAddrEn, don't receive all frame(MAC filter)");
 ADD_TO_ROUTINE_SHELL(macsnden,macsnden,"usage:MacSndEn");
 ADD_TO_ROUTINE_SHELL(macsnddis,macsnddis,"usage:MacSndDis");
+ADD_TO_ROUTINE_SHELL(macreset,MacReset,"usage:reset gmac");
+ADD_TO_ROUTINE_SHELL(macreg,macreg,"usage:MacReg");
+ADD_TO_ROUTINE_SHELL(mac,mac,"usage:gmac");

@@ -112,7 +112,7 @@ bool_t SysClockInit(void)
       RCC_OscInitStruct.PLL.PLLN = 2*(CN_CFG_MCLK/5000000);
       RCC_OscInitStruct.PLL.PLLP = 2;
       RCC_OscInitStruct.PLL.PLLR = 2;
-      RCC_OscInitStruct.PLL.PLLQ = 4;
+      RCC_OscInitStruct.PLL.PLLQ = 2;
 
       RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
       RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;
@@ -121,8 +121,12 @@ bool_t SysClockInit(void)
           while(1);
 
       /* Select PLL as system clock source and configure  bus clocks dividers */
-      RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_D1PCLK1|RCC_CLOCKTYPE_PCLK1|\
-        RCC_CLOCKTYPE_PCLK2 |RCC_CLOCKTYPE_D3PCLK1);
+      RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK|\
+                                    RCC_CLOCKTYPE_HCLK|\
+                                    RCC_CLOCKTYPE_D1PCLK1|\
+                                    RCC_CLOCKTYPE_PCLK1|\
+                                    RCC_CLOCKTYPE_PCLK2 |\
+                                    RCC_CLOCKTYPE_D3PCLK1);
       RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
       RCC_ClkInitStruct.SYSCLKDivider  = RCC_SYSCLK_DIV1;
       RCC_ClkInitStruct.AHBCLKDivider  = RCC_HCLK_DIV2;
@@ -133,6 +137,9 @@ bool_t SysClockInit(void)
       ret = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4);
       if(ret != HAL_OK)
           while(1);
+      __HAL_RCC_CSI_ENABLE() ;
+      __HAL_RCC_SYSCFG_CLK_ENABLE() ;
+      HAL_EnableCompensationCell();
       return true;
 }
 
@@ -141,7 +148,6 @@ bool_t SysClockInit(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-
 void HAL_SDRAM_MspInit(SDRAM_HandleTypeDef *hsdram)
 {
     GPIO_InitTypeDef GPIO_Initure;
@@ -155,8 +161,8 @@ void HAL_SDRAM_MspInit(SDRAM_HandleTypeDef *hsdram)
     __HAL_RCC_GPIOG_CLK_ENABLE();
 
 
-//  HAL_SYSCFG_AnalogSwitchConfig(SYSCFG_SWITCH_PC2,SYSCFG_SWITCH_PC2_CLOSE);
-//  HAL_SYSCFG_AnalogSwitchConfig(SYSCFG_SWITCH_PC3,SYSCFG_SWITCH_PC3_CLOSE);
+  HAL_SYSCFG_AnalogSwitchConfig(SYSCFG_SWITCH_PC2,SYSCFG_SWITCH_PC2_CLOSE);
+  HAL_SYSCFG_AnalogSwitchConfig(SYSCFG_SWITCH_PC3,SYSCFG_SWITCH_PC3_CLOSE);
 
     GPIO_Initure.Pin=GPIO_PIN_0|GPIO_PIN_2|GPIO_PIN_3;
     GPIO_Initure.Mode=GPIO_MODE_AF_PP;
@@ -234,8 +240,8 @@ void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram)
     //刷新频率计数器(以SDCLK频率计数),计算方法:
     //COUNT=SDRAM刷新周期/行数-20=SDRAM刷新周期(us)*SDCLK频率(Mhz)/行数
     //我们使用的SDRAM刷新周期为64ms,SDCLK=216/2=108Mhz,行数为8192(2^13).
-    //所以,COUNT=64*1000*108/8192-20=823
-    HAL_SDRAM_ProgramRefreshRate(&hsdram,677);
+    //所以,COUNT=64*1000*100/8192-20=761.25
+    HAL_SDRAM_ProgramRefreshRate(hsdram,677);
 }
 
 //SDRAM初始化

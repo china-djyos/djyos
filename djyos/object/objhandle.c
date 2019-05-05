@@ -760,6 +760,11 @@ struct objhandle *__open(char *path, u32 flags, u32 mode)
     OpenMode = ( (u64)mode << 32) | flags;
     __lock_handle_sys();
     ob = obj_matchpath(path, &uncached);
+    if(ob == NULL)
+    {
+        __unlock_handle_sys();
+        return NULL;
+    }
     obj_InuseUpFullPath(ob);        // 防止文件操作过程中，被删除了；
 
 //  __unlock_handle_sys();
@@ -967,7 +972,7 @@ off_t lseek(s32 fd, off_t offset, s32 whence)
 {
     struct objhandle *hdl;
     s32 res;
-    off_t result;
+    off_t result = -1;
 
     if((SEEK_SET != whence) && (SEEK_CUR != whence) && (SEEK_END != whence))
         return (-1); // 错误的参数

@@ -71,7 +71,7 @@ void ps_pwm0_reconfig(UINT32 period, UINT8 clk_mux)
     ps_pwm0_set_period(period, clk_mux);
     //reenable
     ps_pwm0_enable();
-    delay(5);
+//    delay(5);
 
     REG_WRITE(PWM_INTERRUPT_STATUS,0x3f);
 #endif

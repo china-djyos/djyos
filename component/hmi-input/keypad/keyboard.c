@@ -165,17 +165,18 @@ ptu32_t KeyBoard_Scan(void)
 {
     struct HMI_InputDeviceObj *KeyboardObj,*StdinObj;
     struct KeyBoardPrivate *keyboard_pr;
+    struct obj *ob;
     struct KeyBoardMsg key_msg;
     u32 keyvalue;
-
-    StdinObj = (struct HMI_InputDeviceObj *)obj_search_child(obj_root(),"hmi input device");
+    ob = obj_search_child(obj_root(),"hmi input device");
+    StdinObj = (struct HMI_InputDeviceObj *)obj_GetPrivate(ob);
     while(1)
     {
         KeyboardObj = StdinObj;
         while(1)
         {
-            KeyboardObj = (struct HMI_InputDeviceObj*)
-                obj_foreach_scion(StdinObj->HostObj,KeyboardObj->HostObj);
+            ob = obj_foreach_scion(StdinObj->HostObj,KeyboardObj->HostObj);
+            KeyboardObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
             if(KeyboardObj == NULL)
                 break;
             if(KeyboardObj->input_type != EN_HMIIN_KEYBOARD)

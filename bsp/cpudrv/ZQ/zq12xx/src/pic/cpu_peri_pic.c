@@ -49,7 +49,7 @@
 // 创建人员:
 // 创建时间:
 // =============================================================================
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "cpu_peri.h"
 #include "int.h"
 #include "string.h"

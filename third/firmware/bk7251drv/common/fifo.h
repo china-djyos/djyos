@@ -3,7 +3,9 @@
 
 #include "include.h"
 #include "generic.h"
-//#include "mem_pub.h"
+#include "mem_pub.h"
+#include <stdlib.h>
+#include <string.h>
 //#include "mem_pub.h"
 #if CFG_SUPPORT_ALIOS
 #include "ll.h"

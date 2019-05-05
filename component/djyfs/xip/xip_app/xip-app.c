@@ -62,6 +62,46 @@
 #include <stdio.h>
 #include "../../filesystems.h"
 #include "Iboot_info.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
+//    ModuleInstall_XIP_APP_FS(0,NULL);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"xip_app"      //用于app的在线升级
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //如果依赖多个组件，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@free,
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
+//@#$%component end configure
 
 // 底层接口函数
 //
@@ -595,13 +635,13 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
             return size;
         }
     }
-    left = (s32)size;
     xip_app_lock(core);
     if(cx->pos<=core->inhead) // 缓存中剩余可写空间；（连续写和不连续写会有这么处理，256时）
         free = core->inhead - cx->pos; // 在开始的区域中，文件头部占据了固定空间；
     else
         free = core->bufsz - ((cx->pos - core->inhead) % core->bufsz);
 
+    left = (s32)size;
     while(left)
     {
         once = left;
@@ -963,6 +1003,7 @@ int xip_app_install_drv(struct __icore *core, struct __xip_drv *drv)
 {
     if (!core || !drv)
          return (-1);
+
     core->drv = malloc(sizeof(*drv));
     core->drv->xip_erase_media = drv->xip_erase_media;
     core->drv->xip_read_media = drv->xip_read_media;
@@ -982,8 +1023,7 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 
     struct __icore *core;
     struct umedia *um;
-
-
+    u32 flash_page_size;
 
     config = config;
     opt = opt;
@@ -1001,11 +1041,12 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
         free(core);
         return (-1);
     }
+    um->mreq(unitbytes,(ptu32_t)&flash_page_size);
     xip_app_install_drv(core,super->MediaDrv);
     core->ASize = super->AreaSize;
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
-    core->bufsz = 1 << um->usz; // xip文件系统文件的缓存大小依据unit的尺寸；
+    core->bufsz = (s16)flash_page_size; // xip文件系统文件的缓存大小依据unit的尺寸；
     if(core->bufsz<(s16)Get_AppHeadSize())
     {
         free(core);

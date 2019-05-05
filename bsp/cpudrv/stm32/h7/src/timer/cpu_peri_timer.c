@@ -102,7 +102,7 @@
 
 
 #define CN_PIT_MAX_COUNTER     0xFFFFFFFF
-#define CN_PIT_MAX_TIME_US     (0xFFFFFFFF/108)
+#define CN_PIT_MAX_TIME_US     (0xFFFFFFFF/200)
 
 
 #define tagTimerReg TIM_TypeDef
@@ -780,9 +780,9 @@ bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
 // =============================================================================
 u32  __STM32Timer_GetFreq(ptu32_t timerhandle)
 {
-    //定时器TIM25 时钟源为低速外设时钟PCLK1，速度为54M
-    //定时器分频配置为108，
-    return CN_CFG_PCLK1*2;//108MHz
+    //定时器TIM25 时钟源为低速外设时钟APB1，速度为100M
+    //定时器分频配置为200，
+    return CN_CFG_APB1_CLK*2;//200MHz
 }
 // =============================================================================
 // 函数功能:module_init_timer

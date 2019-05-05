@@ -54,6 +54,7 @@
 #include <lock.h>
 #include "./stm32_usb_host_library/core/inc/usbh_def.h"
 #include "usbh_lowlevel.h"
+#include <djyos.h>
 
 #define BUFFER_SIZE                128
 

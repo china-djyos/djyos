@@ -265,6 +265,7 @@ int32_t ProgramOnePackage(char *data, uint32_t addr, uint32_t size)
 		if(remain != 0)
 			iap_spiflash_pagewrite(ptr, faddr, remain);
 	}
+	return 0;
 }
 
 uint32_t GetFlashCapacity(void)

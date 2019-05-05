@@ -57,18 +57,15 @@
 #include <filesystems.h>
 #include <dbug.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//  extern s32 ModuleInstall_MMC(u32 dwArgC, ...);
-//  if(0 != ModuleInstall_MMC(CFG_EMMC_ARGC,CFG_EMMC_NAME,CFG_EMMC_OPTION,CFG_EMMC_SPEED))
-//  {
-//      printf("cpu_peri_emmc init error ！！");
-//      while(1);
-//  }
+//  extern s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed);
+//  ModuleInstall_MMC(CFG_EMMC_FSMOUNT_NAME,CFG_EMMC_FORMAT,CFG_EMMC_SPEED);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -91,15 +88,14 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_EMMC_ARGC   //****检查参数是否已经配置好
+#ifndef CFG_EMMC_FSMOUNT_NAME   //****检查参数是否已经配置好
 #warning    cpu_peri_emmc 组件参数未配置，使用默认值
-//%$#@num,0,100,
-#define CFG_EMMC_ARGC            3       //"EMMC参数个数",
-#define CFG_EMMC_SPEED           0       //"EMMC速度",0或者非零
-#define CFG_EMMC_OPTION          0       //"EMMC操作",1擦除其他不擦除
+//%$#@num,0,255,
+#define CFG_EMMC_SPEED           1       //"EMMC速度",指定SDMMC控制器的时钟频率。
 //%$#@enum,true,false,
+#define CFG_EMMC_FORMAT          false    //是否需要器件格式化。
 //%$#@string,1,10,
-#define CFG_EMMC_NAME            "emmc"    //"EMMC的注释名称",
+#define CFG_EMMC_FSMOUNT_NAME    "fat"    //需安装的文件系统的mount的名字
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
@@ -395,23 +391,20 @@ s32 MMC_HardInit(void)
 
 // ============================================================================
 // 功能：安装MMC类设备
-// 参数： target -- 要挂载的文件系统
-//      opt -- 文件系统配置选项；  如MS_INSTALLCREAT
-//      data -- 传递给YAF2安装逻辑的数据；
+// 参数： targetfs -- 要挂载文件系统的mount点名字
+//      doformat -- 器件格式化;"1"--是;"0"--否。
+//      speed -- SDMMC控制器的时钟频率；
 // 返回：0 -- 成功； 其他 -- 失败；
 // 备注：
 // ============================================================================
-s32 ModuleInstall_MMC(const char *TargetFs, u32 doformat, u32 speed)
+s32 ModuleInstall_MMC(const char *targetfs, u8 doformat, u32 speed)
 {
     char *defaultName = "emmc"; // 设备缺省名;
     char *FullPath,*notfind;
     struct obj *targetobj;
     struct FsCore *super;
 
-    if(speed)
-        SDMMC_BUS_CLK_DIV = 0;
-    else
-        SDMMC_BUS_CLK_DIV = 1;
+    SDMMC_BUS_CLK_DIV = speed;
 
     pOperationMutex = (void*)Lock_MutexCreate("MMC");
     if(!pOperationMutex)
@@ -432,7 +425,7 @@ s32 ModuleInstall_MMC(const char *TargetFs, u32 doformat, u32 speed)
         return (-1); // 失败
     }
 
-    if(1 == doformat) // 擦除整个设备
+    if(true == doformat) // 擦除整个设备
     {
         if(HAL_MMC_Erase(&handleMMC, 0, handleMMC.MmcCard.LogBlockNbr-1))
         {
@@ -441,9 +434,9 @@ s32 ModuleInstall_MMC(const char *TargetFs, u32 doformat, u32 speed)
         Djy_EventDelay(3000000); // 等待一段时间
     }
 
-    if(TargetFs != NULL)
+    if(targetfs != NULL)
     {
-        targetobj = obj_matchpath(TargetFs, &notfind);
+        targetobj = obj_matchpath(targetfs, &notfind);
         if(notfind)
         {
             error_printf("mmc"," not found need to install file system.");
@@ -464,12 +457,12 @@ s32 ModuleInstall_MMC(const char *TargetFs, u32 doformat, u32 speed)
 
         FullPath = malloc(strlen(defaultName)+strlen(s_ptDeviceRoot->name));  //获取msc的完整路径
         sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,defaultName);
-        FsBeMedia(FullPath,TargetFs);     //在msc上挂载文件系统
+        FsBeMedia(FullPath,targetfs);     //在msc上挂载文件系统
         free(FullPath);
     }
     else
     {
-        warning_printf("usb", "  No file system is installed");
+        warning_printf("mmc", "  No file system is installed");
     }
     return (0);
 }
