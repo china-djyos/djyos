@@ -64,7 +64,9 @@ extern "C" {
 
 void MacRcv(void *p);
 void DjyWifi_StaConnect(char *ssid,char *connect_key);
+void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key);
 void DjyWifi_StaDisConnect(void);
+void DjyWifi_StaConnectDone(void);
 void DjyWifi_ApOpen(char *ap_ssid, char *ap_key);
 void DjyWifi_ApClose(void);
 bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\

@@ -528,9 +528,9 @@ bool_t NetDevUnRegisterEventHook(struct NetDev * handle)
 bool_t NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event)
 {
     bool_t result = false;
-    struct NetDev* iface = NULL;
+    struct NetDev* iface = handle;
     fnNetDevEventHook hook= NULL;
-    if(NULL != handle)
+    if(NULL == handle)
     {
         return false;
     }

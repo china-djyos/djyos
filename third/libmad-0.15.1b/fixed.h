@@ -69,7 +69,7 @@ typedef mad_fixed_t mad_sample_t;
  * supported, and must be done with care.
  */
 
-#define FPM_ARM
+#define FPM_DEFAULT
 
 
 # define MAD_F_FRACBITS		28

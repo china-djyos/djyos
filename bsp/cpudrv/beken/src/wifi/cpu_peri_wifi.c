@@ -46,6 +46,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <error.h>
 #include <cpu_peri.h>
 #include <board-config.h>
 #include <sys/socket.h>
@@ -59,6 +60,7 @@
 #include "lwip/pbuf.h"
 #include "lwip/memp.h"
 #include "ieee802_11_demo.h"
+#include "wlan_ui_pub.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -369,6 +371,81 @@ void DjyWifi_ApClose(void)
     bk_wlan_stop(SOFT_AP);
 }
 
+extern int wpa_get_psk(char *psk);
+void DjyWifi_StaConnectDone(void)
+{
+    LinkStatusTypeDef link_status;
+    struct wlan_fast_connect ap_info;
+    uint8_t len = 0;
+    if ((bk_wlan_get_link_status(&link_status) == kNoErr) && (SECURITY_TYPE_WEP != link_status.security))
+    {
+        len = strnlen(link_status.ssid, 32);
+        if(len<32)
+            len += 1;
+        memcpy(ap_info.ssid, link_status.ssid, len);
+        memcpy(ap_info.bssid, link_status.bssid, 6);
+        ap_info.channel = link_status.channel;
+        ap_info.security = link_status.security;
+        wpa_get_psk(ap_info.psk);
+        wlan_fast_connect_info_write(&ap_info);
+    }
+}
+
+void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
+{
+    struct wlan_fast_connect ap_info;
+    memset(&ap_info, 0, sizeof(struct wlan_fast_connect));
+    if (wlan_fast_connect_info_read(&ap_info) == 0)
+    {
+        if (strcmp(ssid, ap_info.ssid) == 0)
+        {
+            network_InitTypeDef_adv_st  wNetConfigAdv;
+            memset(&wNetConfigAdv, 0x0, sizeof(network_InitTypeDef_adv_st));
+            strncpy(wNetConfigAdv.ap_info.ssid, ap_info.ssid, 32);
+            memcpy(wNetConfigAdv.ap_info.bssid, ap_info.bssid, 6);
+            wNetConfigAdv.ap_info.security = ap_info.security;
+            wNetConfigAdv.ap_info.channel = ap_info.channel;
+            {
+                int i = 0;
+                char tmp[68];
+                memset(tmp, 0, sizeof(tmp));
+                for (i = 0; i < 32; i ++)
+                {
+                    sprintf(&tmp[i * 2], "%02x",  ap_info.psk[i]);
+                }
+                memcpy(wNetConfigAdv.key, tmp, 64);
+                wNetConfigAdv.key_len =  64; // strnlen(passwd, 32);
+            }
+            wNetConfigAdv.dhcp_mode = DHCP_CLIENT;
+            wNetConfigAdv.wifi_retry_interval = 100;
+            bk_wlan_start_sta_adv(&wNetConfigAdv);
+        }
+        else
+        {
+            demo_sta_app_init(ssid, connect_key);
+        }
+    }
+    else
+    {
+        demo_sta_app_init(ssid, connect_key);
+    }
+}
+
+bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum NetDevEvent event)
+{
+    switch(event)
+     {
+         case EN_NETDEVEVENT_IPGET:
+             mhdr_set_station_status(6/*MSG_GOT_IP*/); //for rf power save;
+             break;
+         default:
+             break;
+     }
+     return true;
+
+}
+
+
 // =============================================================================
 // 功能：GMAC网卡和DJYIP驱动初始化函数
 // 参数：para
@@ -433,6 +510,7 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
         goto NetInstallFailed;
     }
 
+	NetDevRegisterEventHook(pDrive->devhandle, FnNetDevEventHookEvent);
     info_printf("eth","%s:Install Net Device %s success\n\r",__FUNCTION__,devname);
     return true;
 

@@ -25,7 +25,7 @@
 
 # include "global.h"
 
-# include "version.h"
+# include "libmad_version.h"
 
 char const mad_version[]   = "MPEG Audio Decoder " MAD_VERSION;
 char const mad_copyright[] = "Copyright (C) " MAD_PUBLISHYEAR " " MAD_AUTHOR;

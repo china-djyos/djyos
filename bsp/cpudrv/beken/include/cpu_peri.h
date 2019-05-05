@@ -73,6 +73,8 @@ extern "C" {
 #include "cpu_peri_gpio.h"
 #include "cpu_peri_audio_mic.h"
 #include "cpu_peri_audio_dac.h"
+#include "cpu_peri_wifi.h"
+#include "cpu_peri_wifi_fast_connect.h"
 
 #ifdef __cplusplus
 }

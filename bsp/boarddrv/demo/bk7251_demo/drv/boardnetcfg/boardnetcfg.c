@@ -97,7 +97,7 @@
 #endif
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 
-#define CFG_DHCPD_IPV4      "192.168.0.179"
+#define CFG_DHCPD_IPV4      "192.168.0.253"
 #define CFG_DHCPD_SUBMASK   "255.255.255.0"
 #define CFG_DHCPD_GATWAY    "192.168.0.1"
 #define CFG_DHCPD_DNS       "192.168.0.1"   //"DNS"

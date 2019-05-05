@@ -69,7 +69,7 @@ ptu32_t djy_main(void)
         Djy_EventDelay(2000*1000);
     }while(i>0);
     DjyWifi_ApClose();
-    DjyWifi_StaConnect("djyos-ap", "djyos12345");
+    DjyWifi_StaAdvancedConnect("djyos-ap", "djyos12345");
     if(DhcpAddClientTask(CFG_NETCARD_NAME))
    {
       printf("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
@@ -84,6 +84,7 @@ ptu32_t djy_main(void)
        printf("wait connect!\r\n");
        Djy_EventDelay(2000*1000);
    }while(DHCP_ConnetStatus(EN_DHCP_GET_STATUS_CMD,0)!=EN_DHCP_CONNET_STATUS);
+   DjyWifi_StaConnectDone();
    while(1)
    {
       printf("sta mode!\r\n");
