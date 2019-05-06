@@ -116,19 +116,19 @@ struct BlackBoxThrowPara
 ////////////////////////异常抛出信息解析器模型及其注册注销////////////////////////
 //具体异常信息的解析器模型，参数定义和抛出时一模一样，我相信自己搜集的信息一定
 //能够解析自己一定能够判断出是不是自己搜集的信息
-typedef bool_t (*fntBlackBox_ThrowInfoParse)(struct BlackBoxThrowPara *para, u32 endian);
+typedef bool_t (*fnBlackBox_ThrowInfoParse)(struct BlackBoxThrowPara *para, u32 endian);
 
 struct BlackBoxInfoDecoder
 {
     struct dListNode DecoderList;
-    fntBlackBox_ThrowInfoParse MyDecoder;
+    fnBlackBox_ThrowInfoParse MyDecoder;
     char *DecoderName;  //异常解析器名字,解析时按照这个来查找解析器,不得超过15字节
 };
 
 //struct BlackBoxHookfunc
 //{
 //    struct sListNode HookList;
-//    fntBlackBox_ThrowInfoParse MyHook;
+//    fnBlackBox_ThrowInfoParse MyHook;
 //};
 
 // =============================================================================
@@ -161,7 +161,7 @@ bool_t BlackBox_RegisterThrowInfoDecoder(struct BlackBoxInfoDecoder *Decoder);
 //           该钩子的返回结果将会和BSP的处理结果一起作为异常结构的判断依据(一般而言
 //           采用木桶原则，由严重程度大的来决定)
 // =============================================================================
-typedef  enum EN_BlackBoxAction (*fntBlackBox_Hook)( struct BlackBoxThrowPara *throwpara,\
+typedef  enum EN_BlackBoxAction (*fnBlackBox_Hook)( struct BlackBoxThrowPara *throwpara,\
                                           ptu32_t *infoaddr,u32 *infolen);
 
 // =============================================================================
@@ -173,12 +173,12 @@ typedef  enum EN_BlackBoxAction (*fntBlackBox_Hook)( struct BlackBoxThrowPara *t
 // 输出参数：无
 // 返回值  ：true成功  false 失败（没有注册等因素）
 // =============================================================================
-typedef  bool_t (*fntBlackBox_HookParse)(struct BlackBoxThrowPara *throwpara,\
+typedef  bool_t (*fnBlackBox_HookParse)(struct BlackBoxThrowPara *throwpara,\
                                         ptu32_t infoaddr, u32 infolen,u32 endian);
 
 //用户注册或者注销HOOK的方法
-bool_t BlackBox_RegisterHook(fntBlackBox_Hook  fnHookFunc,\
-                            fntBlackBox_HookParse fnHookParse);
+bool_t BlackBox_RegisterHook(fnBlackBox_Hook  fnHookFunc,\
+                            fnBlackBox_HookParse fnHookParse);
 bool_t BlackBox_UnRegisterHook(void);
 
 ////////////////////////存储方案模型及其注册注销//////////////////////
@@ -199,7 +199,7 @@ struct BlackBoxRecordPara
 // 输出参数：
 // 返回值  ：见enum EN_BlackBoxDealResult
 // =============================================================================
-typedef  enum EN_BlackBoxDealResult (*fntBlackBox_RecordSave)(\
+typedef  enum EN_BlackBoxDealResult (*fnBlackBox_RecordSave)(\
                                        struct BlackBoxRecordPara  *recordpara);
 // =============================================================================
 // 函数功能：fnBlackBox_RecordCleanModule
@@ -208,7 +208,7 @@ typedef  enum EN_BlackBoxDealResult (*fntBlackBox_RecordSave)(\
 // 输出参数：无
 // 返回值  ：TRUE 成功， FALSE失败
 // =============================================================================
-typedef  bool_t (*fntBlackBox_RecordClean)(void);
+typedef  bool_t (*fnBlackBox_RecordClean)(void);
 
 // =============================================================================
 // 函数功能：fnBlackBox_RecordCheckNumModule
@@ -217,7 +217,7 @@ typedef  bool_t (*fntBlackBox_RecordClean)(void);
 // 输出参数：recordnum,存储的异常信息条目数
 // 返回值  ：FALSE,失败 TRUE成功
 // =============================================================================
-typedef  bool_t (*fntBlackBox_RecordCheckNum)(u32 *recordnum);
+typedef  bool_t (*fnBlackBox_RecordCheckNum)(u32 *recordnum);
 
 // =============================================================================
 // 函数功能：fnBlackBox_RecordCheckLenModule
@@ -226,7 +226,7 @@ typedef  bool_t (*fntBlackBox_RecordCheckNum)(u32 *recordnum);
 // 输出参数：recordlen,该条目的长度
 // 返回值  ：FALSE,失败 TRUE成功
 // =============================================================================
-typedef  bool_t (*fntBlackBox_RecordCheckLen)(u32 assignedno, u32 *recordlen);
+typedef  bool_t (*fnBlackBox_RecordCheckLen)(u32 assignedno, u32 *recordlen);
 
 // =============================================================================
 // 函数功能：fnBlackBox_RecordGetModule
@@ -237,7 +237,7 @@ typedef  bool_t (*fntBlackBox_RecordCheckLen)(u32 assignedno, u32 *recordlen);
 //          recordpara,异常信息存储时的参数，在此是对buf的各个部分的定义
 // 返回值  ：FALSE,失败 TRUE成功
 // =============================================================================
-typedef  bool_t (*fntBlackBox_RecordGet)(u32 assignedno,u32 buflen,u8 *buf,\
+typedef  bool_t (*fnBlackBox_RecordGet)(u32 assignedno,u32 buflen,u8 *buf,\
                                          struct BlackBoxRecordPara *recordpara);
 
 // =============================================================================
@@ -247,16 +247,16 @@ typedef  bool_t (*fntBlackBox_RecordGet)(u32 assignedno,u32 buflen,u8 *buf,\
 // 输出参数：无
 // 返回值  ：空
 // =============================================================================
-typedef  void (*fntBlackBox_RecordScan)(void);
+typedef  void (*fnBlackBox_RecordScan)(void);
 
 struct BlackBoxRecordOperate
 {
-    fntBlackBox_RecordScan        fnBlackBoxRecordScan;    //开机存储区扫描，
-    fntBlackBox_RecordSave        fnBlackBoxRecordSave;    //记录一条异常信息
-    fntBlackBox_RecordClean       fnBlackBoxRecordClean;   //清除所有异常信息
-    fntBlackBox_RecordCheckNum    fnBlackBoxRecordCheckNum;//获取存储异常信息的条目数
-    fntBlackBox_RecordCheckLen    fnBlackBoxRecordCheckLen;//获取指定条目的长度
-    fntBlackBox_RecordGet         fnBlackBoxRecordGet;     //获取指定条目的异常信息
+    fnBlackBox_RecordScan        fnBlackBoxRecordScan;    //开机存储区扫描，
+    fnBlackBox_RecordSave        fnBlackBoxRecordSave;    //记录一条异常信息
+    fnBlackBox_RecordClean       fnBlackBoxRecordClean;   //清除所有异常信息
+    fnBlackBox_RecordCheckNum    fnBlackBoxRecordCheckNum;//获取存储异常信息的条目数
+    fnBlackBox_RecordCheckLen    fnBlackBoxRecordCheckLen;//获取指定条目的长度
+    fnBlackBox_RecordGet         fnBlackBoxRecordGet;     //获取指定条目的异常信息
 };
 // =============================================================================
 // 函数功能：BlackBox_RegisterRecordOpt

@@ -169,7 +169,7 @@ static void RTC_Configuration(void)
 // 参数：DateTime,系统时间，需换算成秒
 // 返回：1
 // =============================================================================
-bool_t RTC_TimeUpdate(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     u32 rtc_cnt;
 
@@ -186,7 +186,7 @@ bool_t RTC_TimeUpdate(s64 time)
 // 参数：DateTime,返回的时间
 // 返回：true
 // =============================================================================
-bool_t RTC_TimeGet(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     s64 rtc_cnt;
     rtc_cnt = RTC->TSR;
@@ -213,7 +213,7 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
         RTC_Configuration();
     }
 
-    Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate);
+    Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);
 
     return true;
 }

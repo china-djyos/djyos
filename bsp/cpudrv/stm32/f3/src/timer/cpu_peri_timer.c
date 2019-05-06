@@ -113,7 +113,7 @@ struct STM32TimerHandle
     u32     irqline;          //中断号
     u32     cycle;            //定时周期
     u32     timerstate;       //定时器标识
-    fntTimerIsr UserIsr;      //用户中断响应函数
+    fnTimerIsr UserIsr;      //用户中断响应函数
 };
 
 static struct STM32TimerHandle  stgTimerHandle;
@@ -347,7 +347,7 @@ __attribute__((weak)) u32 __STM32Timer_isr(ptu32_t TimerHandle)   //OK
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)  //OK
+ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)  //OK
 {
     u8 timerno;
     u8 irqline;

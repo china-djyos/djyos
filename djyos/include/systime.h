@@ -61,13 +61,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef u32 (*fntSysTimeHard32)(void);
-typedef u64 (*fntSysTimeHard64)(void);
+typedef u32 (*fnSysTimeHard32)(void);
+typedef u64 (*fnSysTimeHard64)(void);
 
 #define CN_TIMEOUT_FOREVER  0xffffffff  //无限延时
 #define mS      1000    //系统时间单位是微秒，想用ms就得*1000
 
-void SysTimeConnect(fntSysTimeHard32 GetSysTime32,fntSysTimeHard64 GetSysTime64,
+void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle);
 s64 DjyGetSysTime(void);
 s64 DjyGetSysTimeCycle(void);

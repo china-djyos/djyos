@@ -68,8 +68,8 @@ extern s64 __DjyGetSysTime(void);
 #if (!CN_USE_TICKLESS_MODE)
 extern s64  g_s64OsTicks;               //操作系统运行ticks数
 #endif
-static fntSysTimeHard32  fnSysTimeHard32 = NULL;
-static fntSysTimeHard64  fnSysTimeHard64 = NULL;
+static fnSysTimeHard32  fnSysTimeHard32 = NULL;
+static fnSysTimeHard64  fnSysTimeHard64 = NULL;
 static u32 s_u32SysTimeFreq = 1000000;  //系统时钟的输入时钟频率
                                         //1000000是tick时基的默认值
 static u32 s_u32SysTimeCycle = CN_CFG_TICK_US;  //系统时钟走时周期，CN_CFG_TICK_US
@@ -93,7 +93,7 @@ static u32 s_u32BakCounter = 0;         //计数值的备份
 // 返回值  ：
 // 说明：该函数务必在系统初始化的时候调用，务必不能在系统启动后再调用
 // =============================================================================
-void SysTimeConnect(fntSysTimeHard32 GetSysTime32,fntSysTimeHard64 GetSysTime64,
+void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
                     u32 Freq,u32 Cycle)
 {
     //不要判GetSysTime32和GetSysTime64是否为NULL，NULL也是一个正确选项。

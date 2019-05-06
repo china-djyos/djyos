@@ -133,7 +133,7 @@ struct CPUTimerHandle
     u32     irqline;          //中断号
     u32     cycle;            //定时周期
     u32     timerstate;       //定时器标识
-    fntTimerIsr UserIsr;      //用户中断响应函数,对于多个定时器共用 一条中断线,,操作句柄参数传进的永远只有一个
+    fnTimerIsr UserIsr;      //用户中断响应函数,对于多个定时器共用 一条中断线,,操作句柄参数传进的永远只有一个
 };
 
 enum TIM_RELOAD_SET{
@@ -332,7 +332,7 @@ __attribute__((weak)) u32 __CPUTimer_isr(ptu32_t TimerHandle)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __CPUTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t __CPUTimer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;
@@ -805,7 +805,7 @@ struct CPUTimerHandle
     u32     cycle;            //定时周期
     u32     timerstate;       //定时器标识
     bool_t  auto_reload;      //自动重装载
-    fntTimerIsr UserIsr;            //用户中断响应函数,对于多个定时器共用 一条中断线,,操作句柄参数传进的永远只有一个
+    fnTimerIsr UserIsr;            //用户中断响应函数,对于多个定时器共用 一条中断线,,操作句柄参数传进的永远只有一个
 };
 
 #define CN_CPUTIMER_NUM   (EN_CPU_TIMER_2 +1)
@@ -977,7 +977,7 @@ __attribute__((weak)) u32 __CPUTimer_isr(ptu32_t TimerHandle)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __CPUTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t __CPUTimer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;

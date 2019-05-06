@@ -96,7 +96,7 @@ static bool_t RTC_Init_Mode(void)
 // 参数：time, 时间值，需把日历时间转换成1970年1月1日0:0:0到现在的时间差
 // 返回：true,正常操作，否则出错
 // =============================================================================
-bool_t Rtc_GetTime(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     struct tm dtm;
     u32 year,month,date,hour,min,sec;
@@ -137,7 +137,7 @@ bool_t Rtc_GetTime(s64 *time)
 // 参数：time, 时间值
 // 返回：true,正常操作，否则出错
 // =============================================================================
-bool_t Rtc_SetTime(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     atom_low_t  atom_bak;
 
@@ -339,7 +339,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
     Djy_EventPop(evtt,NULL,0,NULL,0,0);
     //弹出事件
 
-    Rtc_GetTime(&rtc_time);  //从RTC设备中读取RTC时间，单位是us,
+    RTC_GetTime(&rtc_time);  //从RTC设备中读取RTC时间，单位是us,
                              //读取的值放到&rtc_time中
 
     tv.tv_sec  = rtc_time/1000000;   //把读取的时间中s的部分留下
@@ -348,7 +348,7 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
     settimeofday(&tv,NULL);      //????
 
     //注册RTC时间
-    if(!Rtc_RegisterDev(NULL,Rtc_SetTime))
+    if(!Rtc_RegisterDev(NULL,RTC_SetTime))
         return false;
     return true;
 }

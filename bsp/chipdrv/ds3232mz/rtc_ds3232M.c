@@ -163,7 +163,7 @@ static s64  UpdateTime = 0;                     //需更新的时间
 
 
 ptu32_t Rtc_UpdateTime(void);
-static bool_t Rtc_GetTime(s64 *time);
+static bool_t RTC_GetTime(s64 *time);
 
 
 
@@ -461,7 +461,7 @@ static bool_t DS3232MZ_Init(char *BusName)
 // 参数：time, 时间值，需把日历时间转换成1970年1月1日0:0:0到现在的时间差
 // 返回：true,正常操作，否则出错
 // =============================================================================
-static bool_t Rtc_GetTime(s64 *time)
+static bool_t RTC_GetTime(s64 *time)
 {
     struct tm dtm;
     RTC_DS3232MZ_GetTime(&dtm);
@@ -474,7 +474,7 @@ static bool_t Rtc_GetTime(s64 *time)
 // 参数：time, 时间值
 // 返回：true,正常操作，否则出错
 // =============================================================================
-static bool_t Rtc_SetTime(s64 time)
+static bool_t RTC_SetTime(s64 time)
 {
     atom_low_t  atom_bak;
 
@@ -536,7 +536,7 @@ ptu32_t ModuleInstall_RTCDS3232M(void)
     }
     Djy_EventPop(evtt,NULL,0,NULL,0,0);
 
-    Rtc_GetTime(&rtc_time);
+    RTC_GetTime(&rtc_time);
 
     tv.tv_sec  = rtc_time/1000000;
     tv.tv_usec = rtc_time%1000000;
@@ -545,7 +545,7 @@ ptu32_t ModuleInstall_RTCDS3232M(void)
 
 //  RTC_Shell_Module_Install();
     //注册RTC时间
-    if(!Rtc_RegisterDev(NULL,Rtc_SetTime))
+    if(!Rtc_RegisterDev(NULL,RTC_SetTime))
         return false;
     else
         return true;

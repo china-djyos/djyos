@@ -95,25 +95,25 @@ enum _DRV_ERROR_CODE_
 
 //操纵设备时，通过这些指针，间接调用设备驱动提供的函数。
 //打开设备，如设备无须打开即可工作，置空即可
-typedef s32 (*fntDevOpen)(struct objhandle *hdl, u32 mode, u32 timeout);
+typedef s32 (*fnDevOpen)(struct objhandle *hdl, u32 mode, u32 timeout);
 //关闭设备，如果设备部需要关闭操作，置空即可
-typedef s32 (*fntDevClose)(struct objhandle *hdl);
+typedef s32 (*fnDevClose)(struct objhandle *hdl);
 //返回值:成功写入的字节数。
 //以串口为例，如果调用dev_WriteDevice时BlockOption = CN_BLOCK_BUFFER，则返回值表
 //示函数返回时成功写入到设备缓冲区的数据量，并不确定是否已经从物理串口传输出去了。
 //如果BlockOption = CN_BLOCK_COMPLETE，则能确保传输完成才返回。
-typedef s32 (*fntDevWrite)(struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
+typedef s32 (*fnDevWrite)(struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值:成功读取的字节数
-typedef s32 (*fntDevRead) (struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
+typedef s32 (*fnDevRead) (struct objhandle *hdl, u8 *data, u32 size, u32 offset, u32 timeout);
 //返回值: CN_OBJ_CMD_UNSUPPORT 或 CN_OBJ_CMD_EXECUTED
-typedef s32 (*fntDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
+typedef s32 (*fnDevCntl) (struct objhandle *hdl, u32 cmd, va_list *args);
 
 
 s32 handle_IsBlockComplete(u32 flags);
 const char *dev_Name(struct Object *devo);
 //ptu32_t dev_GetDrvTagFromObj(struct obj *devo);
-struct Object *dev_Create(const char *name, fntDevOpen dopen, fntDevClose dclose,
-                        fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl,
+struct Object *dev_Create(const char *name, fnDevOpen dopen, fnDevClose dclose,
+                        fnDevWrite dwrite, fnDevRead dread, fnDevCntl dcntl,
                         ptu32_t DrvTag);
 s32 dev_Delete(struct obj *dev);
 s32 dev_DeleteByName(const char *name);

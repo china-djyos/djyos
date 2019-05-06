@@ -278,7 +278,7 @@ bool_t  __AtTimer_SetAutoReload(struct AtTimerHandle  *timer, bool_t autoreload)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __AtTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t __AtTimer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;

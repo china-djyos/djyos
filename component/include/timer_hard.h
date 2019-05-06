@@ -82,7 +82,7 @@ enum HardTimerCmdCode
     EN_TIMER_LASTOPCODE,
 };
 
-typedef u32 (*fntTimerIsr)(ptu32_t TimerHandle);
+typedef u32 (*fnTimerIsr)(ptu32_t TimerHandle);
 
 //当注册定时器时，需要使用下述函数原型
 // =============================================================================
@@ -97,7 +97,7 @@ typedef u32 (*fntTimerIsr)(ptu32_t TimerHandle);
 //           刚开始分配的定时器应该是各种属性都关闭的，因此属性必须自己重新设置
 //           默认：停止计数，异步中断，reload,中断禁止
 // =============================================================================
-typedef ptu32_t (*fntHardTimerAlloc)(fntTimerIsr timerisr);
+typedef ptu32_t (*fnHardTimerAlloc)(fnTimerIsr timerisr);
 // =============================================================================
 // 函数功能：fnHardTimerFree
 //           定时器释放
@@ -105,14 +105,14 @@ typedef ptu32_t (*fntHardTimerAlloc)(fntTimerIsr timerisr);
 // 输出参数：无
 // 返回值  ：true 成功 false失败
 // =============================================================================
-typedef bool_t  (*fntHardTimerFree)(ptu32_t timerhandle);
+typedef bool_t  (*fnHardTimerFree)(ptu32_t timerhandle);
 // =============================================================================
 // 函数功能：检查定时器计数频率
 // 输入参数：timerhandle，被检查的定时器
 // 输出参数：无
 // 返回值  ：频率，Hz为单位
 // =============================================================================
-typedef u32  (*fntHardTimerGetFreq)(ptu32_t timerhandle);
+typedef u32  (*fnHardTimerGetFreq)(ptu32_t timerhandle);
 // =============================================================================
 // 函数功能：fnHardTimerCtrl
 //           操作定时器
@@ -122,22 +122,22 @@ typedef u32  (*fntHardTimerGetFreq)(ptu32_t timerhandle);
 // 返回值  ：true 操作成功 false操作失败
 // 说明：ctrlcmd对应的inoutpara的属性定义说明参看enum HeadTimerCmdCode定义
 // =============================================================================
-typedef bool_t  (*fntHardTimerCtrl)(ptu32_t timerhandle,\
+typedef bool_t  (*fnHardTimerCtrl)(ptu32_t timerhandle,\
                                    enum HardTimerCmdCode ctrlcmd, \
                                    ptu32_t inoutpara);
 
 struct TimerChip
 {
     char               *chipname;        //chip名字，必须为静态定义
-    fntHardTimerAlloc  HardTimerAlloc;   //分配定时器
-    fntHardTimerFree   HardTimerFree;    //释放定时器
-    fntHardTimerGetFreq HardTimerGetFreq; //获取定时器计数频率
-    fntHardTimerCtrl   HardTimerCtrl;    //控制定时器
+    fnHardTimerAlloc  HardTimerAlloc;   //分配定时器
+    fnHardTimerFree   HardTimerFree;    //释放定时器
+    fnHardTimerGetFreq HardTimerGetFreq; //获取定时器计数频率
+    fnHardTimerCtrl   HardTimerCtrl;    //控制定时器
 };
 
 bool_t  HardTimer_RegisterChip(struct TimerChip *timerchip);
 bool_t  HardTimer_UnRegisterChip(void);
-ptu32_t HardTimer_Alloc(fntTimerIsr timerhardisr);
+ptu32_t HardTimer_Alloc(fnTimerIsr timerhardisr);
 bool_t  HardTimer_Free(ptu32_t timerhandle);
 u32  HardTimer_GetFreq(ptu32_t timerhandle);
 bool_t  HardTimer_Ctrl(ptu32_t timerhandle, \

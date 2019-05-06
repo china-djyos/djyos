@@ -196,7 +196,7 @@ void RTC_Configuration(void)
 // 参数：time,时间，单位为微秒
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t RTC_TimeGet(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     s64 time_s;
     u32 time_us;
@@ -214,7 +214,7 @@ bool_t RTC_TimeGet(s64 *time)
 // 参数：time,时间，单位为微秒
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t RTC_TimeUpdate(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     u32 time_s;
 
@@ -241,13 +241,13 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
 
     RTC_Configuration();    // 配置RTC
 
-    RTC_TimeGet(&rtc_time);
+    RTC_GetTime(&rtc_time);
 
     tv.tv_sec  = rtc_time/1000000;//us ---> s
     tv.tv_usec = rtc_time%1000000;
 
     settimeofday(&tv,NULL);
-    if(!Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate))
+    if(!Rtc_RegisterDev(RTC_GetTime,RTC_SetTime))
         return false;
     return true;
 }

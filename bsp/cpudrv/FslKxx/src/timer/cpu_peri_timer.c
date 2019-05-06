@@ -342,7 +342,7 @@ bool_t  __FslPit_SetAutoReload(struct FslPitHandle  *timer, bool_t autoreload)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __FslPit_Alloc(fntTimerIsr timerisr)
+ptu32_t __FslPit_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;

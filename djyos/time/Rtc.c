@@ -58,8 +58,8 @@
 #include "component_config_time.h"
 static s64 sgRtcTimeSet = 946684800000000;//手动设置或从RTC中读取的时间，初始值=2000/1/1
 static s64               sgRtcUpdateTime2SysTime;  //读取或者设置RTC时间时系统的运行时刻
-static fntRtc_GetTime    fnRtcGetTime = NULL;      //获取RTC设备RTC时间
-static fntRtc_SetTime    fnRtcSetTime = NULL;      //设置RTC设备RTC时间
+static fnRtc_GetTime    fnRtcGetTime = NULL;      //获取RTC设备RTC时间
+static fnRtc_SetTime    fnRtcSetTime = NULL;      //设置RTC设备RTC时间
 // =============================================================================
 // 函数功能：Rtc_RegisterDev
 //        注册RTC设备
@@ -70,8 +70,8 @@ static fntRtc_SetTime    fnRtcSetTime = NULL;      //设置RTC设备RTC时间
 // 返回值  ：true 注册成功  false注册失败
 // 说明：必须同时提供两个才能注册成功，即使不提供RTC设置功能，也应该设置为空函数，返回false
 // =============================================================================
-bool_t Rtc_RegisterDev(fntRtc_GetTime fnGetTime,
-                       fntRtc_SetTime fnSetTime)
+bool_t Rtc_RegisterDev(fnRtc_GetTime fnGetTime,
+                       fnRtc_SetTime fnSetTime)
 {
     bool_t result = false;
 

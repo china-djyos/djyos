@@ -58,8 +58,8 @@
 #include "blackbox.h"
 #include "blackbox_hook.h"
 
-static fntBlackBox_Hook   s_fnBlackBoxHookDealer = NULL;
-static fntBlackBox_HookParse  s_fnBlackBoxHookInfoDecoder = NULL;
+static fnBlackBox_Hook   s_fnBlackBoxHookDealer = NULL;
+static fnBlackBox_HookParse  s_fnBlackBoxHookInfoDecoder = NULL;
 
 // =============================================================================
 // 函数功能:BlackBox_HookDealer
@@ -112,7 +112,7 @@ bool_t BlackBox_HookInfoDecoder(struct BlackBoxThrowPara *throwpara,\
 
 // =============================================================================
 // 函数功能：注册APP提供的异常处理HOOK，当异常发生后，将调用fnHookFunc函数，
-//           详见 fntBlackBox_Hook类型定义的注释。fnHookFunc函数可以通过infoaddr指针
+//           详见 fnBlackBox_Hook类型定义的注释。fnHookFunc函数可以通过infoaddr指针
 //           返回一些信息，这些信息如果不是字符串，可以进一步提供fnHookParse，
 //           用于把信息解析成可读信息。
 // 输入参数:fnHookFunc，异常处理器
@@ -120,8 +120,8 @@ bool_t BlackBox_HookInfoDecoder(struct BlackBoxThrowPara *throwpara,\
 // 输出参数:无
 // 返回值  ：true成功  false失败
 // =============================================================================
-bool_t BlackBox_RegisterHook(fntBlackBox_Hook  fnHookFunc,
-                        fntBlackBox_HookParse fnHookParse)
+bool_t BlackBox_RegisterHook(fnBlackBox_Hook  fnHookFunc,
+                        fnBlackBox_HookParse fnHookParse)
 {
     s_fnBlackBoxHookDealer = fnHookFunc;
     s_fnBlackBoxHookInfoDecoder = fnHookParse;

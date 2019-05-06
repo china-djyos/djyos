@@ -95,9 +95,9 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
     //以下建立windows 终端输入设备
     sg_ptCmdDev = dev_Create("windows_cmd",
                                 NULL,NULL,cmd_Open,NULL,
-                               (fntDevWrite) cmd_DriverWrite,
-                               (fntDevRead ) cmd_DriverRead,
-                               (fntDevCtrl ) cmd_DriverCtrl,
+                               (fnDevWrite) cmd_DriverWrite,
+                               (fnDevRead ) cmd_DriverRead,
+                               (fnDevCtrl ) cmd_DriverCtrl,
                                0
                                );
     if((sg_ptCmdDev == NULL) || (s_ptRecvRingBufSemp == NULL))

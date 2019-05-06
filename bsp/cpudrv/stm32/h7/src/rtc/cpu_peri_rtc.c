@@ -61,7 +61,7 @@ RTC_HandleTypeDef RTC_Handler;
 // 参数：time, 时间值，需把日历时间转换成1970年1月1日0:0:0到现在的时间差
 // 返回：true,正常操作，否则出错
 // =============================================================================
-bool_t Rtc_GetTime(u8 *time)
+bool_t RTC_GetTime(u8 *time)
 {
     RTC_TimeTypeDef RTC_TimeStruct;
     RTC_DateTypeDef RTC_DateStruct;

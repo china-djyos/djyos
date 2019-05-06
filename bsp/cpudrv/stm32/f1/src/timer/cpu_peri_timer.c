@@ -347,7 +347,7 @@ bool_t  __STM32Timer_SetAutoReload(struct STM32TimerHandle  *timer, bool_t autor
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
+ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;

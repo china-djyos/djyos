@@ -222,7 +222,7 @@ static bool_t rtc_time_get(struct tm *DateTime)
 //参数：time,存放着需更新RTC的时间信息
 //返回：无
 //-----------------------------------------------------------------------------
-bool_t rtc_update_time(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     struct tm DateTime;
 
@@ -266,7 +266,7 @@ ptu32_t ModuleInstall_RTC(void)
         tv.tv_usec = rtc_time%1000000;
 
         settimeofday(&tv,NULL);
-        if(!Rtc_RegisterDev(NULL,rtc_update_time))
+        if(!Rtc_RegisterDev(NULL,RTC_SetTime))
             return false;
         else
             return true;

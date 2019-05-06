@@ -311,7 +311,7 @@ bool_t  __LPCTimer_SetAutoReload(struct LPCTimerHandle  *timer, bool_t autoreloa
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __LPCTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t __LPCTimer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;

@@ -171,7 +171,7 @@ struct SCM6xxTimerHandle
     u32     cycle;            //定时周期
     u32     timerstate;       //定时器标识
     bool_t  autoReload;       //自动重装载标记 true 使能  false 使能
-    fntTimerIsr UserIsr;      //用户中断响应函数
+    fnTimerIsr UserIsr;      //用户中断响应函数
 };
 #define CN_SCM6XXTIMER_NUM   (EN_SCM6XXTIMER_C +1)
 #define CN_SCM6XXTIMER_MAX    EN_SCM6XXTIMER_C
@@ -445,7 +445,7 @@ __attribute__((weak))  u32 __SCM6xxTimer_isr(ptu32_t TimerHandle)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __SCM6xxTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t __SCM6xxTimer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;

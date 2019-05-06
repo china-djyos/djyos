@@ -108,7 +108,7 @@ static void RTC_Configuration(void)
 // 参数：DateTime,系统时间，需换算成秒
 // 返回：1
 // =============================================================================
-bool_t RTC_TimeUpdate(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     bool_t result = false;
     struct tm *DateTime;
@@ -133,10 +133,11 @@ bool_t RTC_TimeUpdate(s64 time)
 // 参数：DateTime,系统时间，需换算成秒
 // 返回：1
 // =============================================================================
-bool_t RTC_TimeGet(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     struct tm DateTime;
 
+    DateTime.tm_us   = 0;
     DateTime.tm_sec = LPC_RTC->SEC;
     DateTime.tm_min = LPC_RTC->MIN;
     DateTime.tm_hour = LPC_RTC->HOUR;
@@ -171,7 +172,7 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
         RTC_Configuration();
     }
 
-    Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate);
+    Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);
 
     return true;
 }

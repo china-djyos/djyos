@@ -124,7 +124,7 @@
 // 参数：dtm，更新时间
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t RTC_TimeUpdate(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     bool_t result = false;
     struct tm dtm;
@@ -154,7 +154,7 @@ bool_t RTC_TimeUpdate(s64 time)
 // 参数：dtm，更新时间
 // 返回：true
 // =============================================================================
-bool_t RTC_TimeGet(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     struct tm dtm;
 
@@ -165,6 +165,7 @@ bool_t RTC_TimeGet(s64 *time)
     dtm.tm_hour = BcdToHex(rBCDHOUR);
     dtm.tm_min  = BcdToHex(rBCDMIN);
     dtm.tm_sec  = BcdToHex(rBCDSEC);
+    dtm.tm_us   = 0;
     rRTCCON &= ~1 ;     //RTC read and write disable
 
     *time = 1000000 * Tm_MkTime(&dtm);
@@ -196,9 +197,9 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
         DateTime.tm_mday = 1;
         DateTime.tm_mon  = 1;
         DateTime.tm_year = 2000;
-//      RTC_TimeUpdate(&DateTime);
+//      RTC_SetTime(&DateTime);
         Tm_SetDateTime(&DateTime);
     }
-    Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate);
+    Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);
     return true;
 }

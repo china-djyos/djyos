@@ -84,11 +84,11 @@
 
 struct __device
 {
-    fntDevOpen dOpen; //
-    fntDevClose dClose; //
-    fntDevWrite dWrite; //
-    fntDevRead dRead; //
-    fntDevCntl dCntl; //
+    fnDevOpen dOpen; //
+    fnDevClose dClose; //
+    fnDevWrite dWrite; //
+    fnDevRead dRead; //
+    fnDevCntl dCntl; //
     ptu32_t DrvTag;        // 本设备驱动程序设置的标签
     ptu32_t UserTag;       // 应用程序设置的标签
 };
@@ -736,9 +736,9 @@ ptu32_t dev_GetUserTag(s32 fd)
 //    return (dev_group_delo(ob));
 //}
 
-struct Object *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
-                               fntDevWrite dwrite, fntDevRead dread,
-                               fntDevCntl dcntl, ptu32_t DrvTag)
+struct Object *dev_Create(const char *name,fnDevOpen dopen, fnDevClose dclose,
+                               fnDevWrite dwrite, fnDevRead dread,
+                               fnDevCntl dcntl, ptu32_t DrvTag)
 {
 
    struct Object *devo;
@@ -773,9 +773,9 @@ struct Object *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
 //// 备注：
 //// ============================================================================
 //struct Object *dev_addo(struct Object *grpo, const char *name,
-//                               fntDevOpen dopen, fntDevClose dclose,
-//                               fntDevWrite dwrite, fntDevRead dread,
-//                               fntDevCntl dcntl, ptu32_t DrvTag)
+//                               fnDevOpen dopen, fnDevClose dclose,
+//                               fnDevWrite dwrite, fnDevRead dread,
+//                               fnDevCntl dcntl, ptu32_t DrvTag)
 //{
 //
 //    struct Object *devo;
@@ -819,8 +819,8 @@ struct Object *dev_Create(const char *name,fntDevOpen dopen, fntDevClose dclose,
 //// 返回：成功（0）；失败（-1）；
 //// 备注：
 //// ============================================================================
-//s32 dev_add(const char *grp, const char *name, fntDevOpen dopen, fntDevClose dclose,
-//            fntDevWrite dwrite, fntDevRead dread, fntDevCntl dcntl, ptu32_t dtag)
+//s32 dev_add(const char *grp, const char *name, fnDevOpen dopen, fnDevClose dclose,
+//            fnDevWrite dwrite, fnDevRead dread, fnDevCntl dcntl, ptu32_t dtag)
 //{
 //    struct Object *ob = s_ptDeviceRoot;
 //    char *left, *tmp;

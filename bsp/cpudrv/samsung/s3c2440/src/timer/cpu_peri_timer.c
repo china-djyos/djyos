@@ -110,7 +110,7 @@ typedef struct{
     u8 intr_line;
     u16 state;
     u32 cycle;
-    fntTimerIsr isr;
+    fnTimerIsr isr;
 }tagTIMER_CTX;
 
 static tagTIMER_CTX timer_ctx[TIMER_NUM];
@@ -377,7 +377,7 @@ uint16_t Timer_Read(ufast_t timer)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-static ptu32_t __timer_alloc(fntTimerIsr timerisr)
+static ptu32_t __timer_alloc(fnTimerIsr timerisr)
 {
     s32 i;
     tagTIMER_CTX *tmr_ctx=NULL;
