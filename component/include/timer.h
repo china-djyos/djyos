@@ -63,7 +63,7 @@ extern "C" {
 
 struct Timer;
 typedef struct Timer tagTimer;
-typedef void (*fnTimerIsr)(struct Timer *timer);
+typedef void (*fnTimerRecall)(struct Timer *timer);
 
 enum TimerCmdCode
 {
@@ -74,9 +74,9 @@ enum TimerCmdCode
 };
 
 tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
-                                  u32 cycle, fnTimerIsr isr);
+                                  u32 cycle, fnTimerRecall isr);
 tagTimer*  Timer_Delete_s(tagTimer* timer);
-tagTimer*  Timer_Create(const char *name,u32 cycle,fnTimerIsr isr);
+tagTimer*  Timer_Create(const char *name,u32 cycle,fnTimerRecall isr);
 bool_t Timer_Delete(tagTimer* timer);
 bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, ptu32_t para);
 char *Timer_GetName(tagTimer* timer);

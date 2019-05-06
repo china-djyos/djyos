@@ -197,7 +197,7 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
         DateTime.tm_mday = 1;
         DateTime.tm_mon  = 1;
         DateTime.tm_year = 2000;
-//      RTC_SetTime(&DateTime);
+        RTC_SetTime(&DateTime);
         Tm_SetDateTime(&DateTime);
     }
     Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);

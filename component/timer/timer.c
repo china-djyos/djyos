@@ -111,7 +111,7 @@ struct Timer
     struct Timer  *nxt;
     char          *name;
     u32           cycle;        //定时器周期 (单位是微秒)
-    fnTimerIsr    isr;          //定时器定时时间节点钩子函数
+    fnTimerRecall isr;          //定时器定时时间节点钩子函数
     u32           stat;         //定时器状态标志，参见CN_TIMER_ENCOUNT等常数
     ptu32_t       TimerTag;     //私有标签
     s64           deadline;     //定时器定时时间(单位是微秒)
@@ -412,7 +412,7 @@ u32 Timer_ISR(ptu32_t irq_no)
 //           创建的定时器还是处于pause状态，需要手动开启该定时器
 // =============================================================================
 tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
-                                  u32 cycle, fnTimerIsr isr)
+                                  u32 cycle, fnTimerRecall isr)
 {
     tagTimer*      result = NULL;
     u32                waittime;
@@ -533,7 +533,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
 //           创建的定时器默认的reload模式，如果需要手动的话，那么创建之后自己设置；
 //           创建的定时器还是处于pause状态，需要手动开启该定时器
 // =============================================================================
-tagTimer* Timer_Create(const char *name, u32 cycle,fnTimerIsr isr)
+tagTimer* Timer_Create(const char *name, u32 cycle,fnTimerRecall isr)
 {
     tagTimer *timer;
     tagTimer *result;

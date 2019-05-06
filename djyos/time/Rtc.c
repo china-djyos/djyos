@@ -61,14 +61,12 @@ static s64               sgRtcUpdateTime2SysTime;  //读取或者设置RTC时间时系统的
 static fnRtc_GetTime    fnRtcGetTime = NULL;      //获取RTC设备RTC时间
 static fnRtc_SetTime    fnRtcSetTime = NULL;      //设置RTC设备RTC时间
 // =============================================================================
-// 函数功能：Rtc_RegisterDev
+//功能：Rtc_RegisterDev
 //        注册RTC设备
-// 输入参数：gettimefunc，获取RTC设备时间，获取成功true,失败false
-//        settimefunc,设置RTC设备时间，设置成功true,失败false
+//参数：fnGetTime，获取RTC设备时间的函数
+//        fnSetTime,设置RTC设备时间的函数
 //        时间均是距离1970年开始的微秒数
-// 输出参数：
-// 返回值  ：true 注册成功  false注册失败
-// 说明：必须同时提供两个才能注册成功，即使不提供RTC设置功能，也应该设置为空函数，返回false
+// 返回值  ：true 注册成功  false = 两个参数均为NULL
 // =============================================================================
 bool_t Rtc_RegisterDev(fnRtc_GetTime fnGetTime,
                        fnRtc_SetTime fnSetTime)
@@ -92,14 +90,10 @@ bool_t Rtc_RegisterDev(fnRtc_GetTime fnGetTime,
 
 #define CN_RTC_UNIT_SECOND        1000000
 // =============================================================================
-// 函数功能：Rtc_Time
-//        获取日历时间，单位秒
-// 输入参数：
-// 输出参数：rtctime,存储获取的RTC时间，秒数
-// 返回值  ：获取的RTC时间，秒数
-// 说明：距离1970年的时间;当连续的多次获取RTC时间时，可能获取的值相同，因为我们
-//      近似的认为在一秒内的值差不多，所以用同一个无可厚非，因为本身都是用的秒，
-//      精度自然在秒级
+//功能：获取距离1970年的秒数
+//参数：
+//输出参数：rtctime,存储获取的RTC时间，秒数
+//返回值  ：获取的RTC时间，秒数
 // =============================================================================
 s64 __Rtc_Time(s64 *rtctime)
 {
