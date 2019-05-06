@@ -51,6 +51,7 @@
 #include <lock.h>
 #include <dbug.h>
 #include <device.h>
+#include <djyos.h>
 #include "./stm32_usb_host_library/core/inc/usbh_core.h"
 #include "./stm32_usb_host_library/class/msc/inc/usbh_msc.h"
 #include "./stm32_usb_host_library/class/cdc/inc/usbh_cdc.h"

@@ -229,7 +229,6 @@ struct FontObj* Font_SetCurFont(struct FontObj* font)
 struct FontObj* Font_SearchFont(const char* name)
 {
     struct Object *rsc;
-
     rsc = OBJ_SearchTree(CN_FONT_RSC_TREE);
     if(rsc == NULL)
         return NULL;       //字体资源树未创建

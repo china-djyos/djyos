@@ -89,6 +89,7 @@
 #include "djyos.h"
 #include "stdio.h"
 #include "dbug.h"
+#include "systime.h"
 #include <shell.h>
 
 #include "component_config_heap.h"

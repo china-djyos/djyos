@@ -99,6 +99,7 @@
 #include <lock.h>
 #include <stdio.h>
 #include <dirent.h>
+#include <objhandle.h>
 #include "component_config_objfile.h"
 
 // OBJ双向链表初始化

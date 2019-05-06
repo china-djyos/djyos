@@ -599,17 +599,28 @@ HAL_StatusTypeDef HAL_MMC_ReadBlocks(MMC_HandleTypeDef *hmmc, uint8_t *pData, ui
 			if(__HAL_MMC_GET_FLAG(hmmc, SDMMC_FLAG_RXFIFOHF))
 			{
 				/* Read data from SDMMC Rx FIFO */
-				for(count = 0U; count < 8U; count++)
-				{
-					*(tempbuff + count) = SDMMC_ReadFIFO(hmmc->Instance);
-				}
-				tempbuff += 8U;
+			    //使用fat文件系统时，可能会出现强制转换会出现不对齐的情况，tempbuff是u32类型的pData是u8类型的
+//				for(count = 0U; count < 8U; count++)
+//				{
+//					*(tempbuff + count) = SDMMC_ReadFIFO(hmmc->Instance);
+//				}
+//				tempbuff += 8U;
+              for(count = 0U; count < 8U; count++)
+              {
+                  fill_little_32bit(pData + count * 4, 0, SDMMC_ReadFIFO(hmmc->Instance));
+              }
+              pData += 32U;
+
 				bytes += 32;
 			}
 			else if(__HAL_MMC_GET_FLAG(hmmc, SDMMC_FLAG_RXDAVL))
 			{
-				*(tempbuff) = SDMMC_ReadFIFO(hmmc->Instance);
-				tempbuff += 1;
+//				*(tempbuff) = SDMMC_ReadFIFO(hmmc->Instance);
+//				tempbuff += 1;
+
+                fill_little_32bit(pData, 0, SDMMC_ReadFIFO(hmmc->Instance));
+                pData += 4U;
+
 				bytes +=4;
 			}
 			else if(__HAL_MMC_GET_FLAG(hmmc, SDMMC_FLAG_DATAEND))
@@ -675,9 +686,11 @@ HAL_StatusTypeDef HAL_MMC_ReadBlocks(MMC_HandleTypeDef *hmmc, uint8_t *pData, ui
 		/* Empty FIFO if there is still any data */
 		while ((__HAL_MMC_GET_FLAG(hmmc, SDMMC_FLAG_RXDAVL)))
 		{
-			*tempbuff = SDMMC_ReadFIFO(hmmc->Instance);
-			tempbuff++;
+//			*tempbuff = SDMMC_ReadFIFO(hmmc->Instance);
+//			tempbuff++;
 
+            fill_little_32bit(pData, 0, SDMMC_ReadFIFO(hmmc->Instance));
+            pData += 4U;
 #if 0
 			if((Timeout == 0U)||((HAL_GetTick()-tickstart) >=  Timeout))
 			{

@@ -67,6 +67,7 @@
 #include <object.h>
 #include <device.h>
 #include <systime.h>
+#include <djyos.h>
 #include <int.h>
 #include "dbug.h"
 #include "component_config_stdio.h"
@@ -111,8 +112,8 @@ static struct __stdio{
 static struct objhandle *__stdio_lookup[3];
 
 FILE *stdin  = (FILE*)&__stdio_filestruct[0];
-FILE *stderr = (FILE*)&__stdio_filestruct[1];
-FILE *stdout = (FILE*)&__stdio_filestruct[2];
+FILE *stdout = (FILE*)&__stdio_filestruct[1];
+FILE *stderr = (FILE*)&__stdio_filestruct[2];
 
 // ============================================================================
 // ¹¦ÄÜ£º

@@ -61,6 +61,8 @@
 #include "ring.h"
 #include "shell.h"
 #include "dbug.h"
+#include "systime.h"
+
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -234,7 +236,7 @@ struct CANBusCB * CAN_BusAdd_s(struct CanDev *pNewCanDev,\
     if((NULL == NewCAN) || (NULL == pNewCanDev))
         goto exit_from_param;
     //避免重复建立同名的CAN总线
-    if(NULL != OBJ_SearchChild(s_ptCANBusType,pNewCanDev->ChipName))
+   if(NULL != OBJ_SearchChild(s_ptCANBusType,pNewCanDev->ChipName))
         goto exit_from_readd;
     //将总线结点挂接到总线类型结点的子结点上
     OBJ_AddChild(s_ptCANBusType,NULL,(ptu32_t)NewCAN,pNewCanDev->ChipName);

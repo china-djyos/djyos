@@ -75,8 +75,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_at45db321(char *pBusName, u32 doformat);
-//    ModuleInstall_at45db321(CFG_AT45_BUSNAME, CFG_AT45_PART_FORMAT);
+//    extern bool_t ModuleInstall_at45db321(void);
+//    ModuleInstall_at45db321();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -1035,12 +1035,11 @@ bool_t AT45_FLASH_Ready(void)
 
 // =============================================================================
 // 功能：安装at45驱动
-// 参数：   pBusName -- AT45所要用的通信线
-//      doformat -- 是否擦除该芯片；
+// 参数：
 // 返回：成功（true）；失败（false）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_at45db321(char *pBusName, u32 doformat)
+bool_t ModuleInstall_at45db321(void)
 {
     pAT45_Lock = Lock_MutexCreate("AT45 Lock");
     if(!pAT45_Lock)
@@ -1049,7 +1048,7 @@ bool_t ModuleInstall_at45db321(char *pBusName, u32 doformat)
         return false;
     }
 
-    s_ptAT45_Dev = SPI_DevAdd(pBusName,At45Name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
+    s_ptAT45_Dev = SPI_DevAdd(CFG_AT45_BUSNAME,At45Name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
     if(s_ptAT45_Dev != NULL)
     {
         SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
@@ -1091,7 +1090,7 @@ bool_t ModuleInstall_at45db321(char *pBusName, u32 doformat)
         nordescription->ReservedBlks = 0;
     }
 
-    if(doformat)
+    if(CFG_AT45_PART_FORMAT)
     {
         struct uesz sz;
         sz.unit = 0;

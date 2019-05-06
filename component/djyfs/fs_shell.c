@@ -306,10 +306,13 @@ static bool_t FS_List(char *Param)
                         len = strlen(temp);
                         for(i = len; i < 10; i++)
                             printf(" ");
-
-                        itoa(DirentStat.st_size, size, 10);
-                        len = strlen(size);
-                        printf("%s", size);
+                        len = 0;
+                        if(temp != s_cDIR)
+                        {
+                            itoa(DirentStat.st_size, size, 10);
+                            len = strlen(size);
+                            printf("%s", size);
+                        }
                         for(i = len; i < 16; i++)
                             printf(" ");
 

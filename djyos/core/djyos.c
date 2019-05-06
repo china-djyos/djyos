@@ -136,6 +136,7 @@
 #include "djyos.h"
 #include "blackbox.h"
 #include "dbug.h"
+#include "heap.h"
 
 
 #if (CN_USE_TICKLESS_MODE)

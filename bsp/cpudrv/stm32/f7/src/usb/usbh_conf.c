@@ -57,8 +57,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_USB(u8 bController);
-//    ModuleInstall_USB(CFG_USB_CONTROLLER);
+//    extern s32 ModuleInstall_USB(const char *TargetFs,u8 controller);
+//    ModuleInstall_USB(CFG_USB_UDISK_FS,CFG_USB_CONTROLLER);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

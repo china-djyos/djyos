@@ -63,6 +63,7 @@
 #include "object.h"
 #include "gkernel.h"
 #include "gk_win.h"
+#include "heap.h"
 #include <gui/gkernel/gk_display.h>
 #include <string.h>
 

@@ -75,9 +75,8 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#if(CFG_TCP_REORDER == false)
+#ifndef CFG_TPL_PROTONUM
 #warning    tcpip tpl组件参数未配置，使用默认值
-#define CFG_TCP_REORDER  false
 //%$#@num,,,
 //%$#@enum,true,false,
 //%$#@num,,,
