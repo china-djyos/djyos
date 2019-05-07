@@ -317,16 +317,12 @@ bool_t __Djy_CheckStack(s16 event_id)
 //返回：无
 //-----------------------------------------------------------------------------
 void __DjyMaintainSysTime(void);
-#if (CN_USE_TICKLESS_MODE)
-void  Djy_IsrTimeBase(u32 inc_ticks)
-#else
-void  Djy_IsrTick(u32 inc_ticks)
-#endif
+void  Djy_ScheduleIsr(u32 inc_ticks)
 {
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
 #if (CN_USE_TICKLESS_MODE)
     u32 event=0;
-    djytickless_sys_param.cur_cnt = DjyTickless_RefreshTotalCnt(inc_ticks);
+    djytickless_sys_param.cur_cnt = DjyTickless_GetTotalCntIsr(inc_ticks);
 #else
     g_s64OsTicks += (s64)inc_ticks;    //系统时钟,默认永不溢出
 #endif
@@ -341,7 +337,7 @@ void  Djy_IsrTick(u32 inc_ticks)
         while(1)
         {
 #if (CN_USE_TICKLESS_MODE)
-            if(pl_ecb->delay_end_cnt < djytickless_sys_param.cur_cnt + DjyTickless_GetCntMin()) //默认64位ticks不会溢出
+            if(pl_ecb->delay_end_cnt < djytickless_sys_param.cur_cnt + DjyTickless_GetPrecision()) //默认64位ticks不会溢出
 #else
             if(pl_ecb->delay_end_tick <= g_s64OsTicks) //默认64位ticks不会溢出
 #endif
@@ -417,7 +413,7 @@ void  Djy_IsrTick(u32 inc_ticks)
                     &&(g_ptEventRunning != g_ptEventRunning->next) )
         {//该优先级有多个事件，看轮转时间是否到
 #if (CN_USE_TICKLESS_MODE)
-            if(djytickless_sys_param.next_rrs_cnt < djytickless_sys_param.cur_cnt+DjyTickless_GetCntMin()) //时间片用完
+            if(djytickless_sys_param.next_rrs_cnt < djytickless_sys_param.cur_cnt+DjyTickless_GetPrecision()) //时间片用完
 #else
             if((u32)g_s64OsTicks % s_u32RRS_Slice == 0) //时间片用完
 #endif
@@ -727,7 +723,7 @@ void __Djy_SelectEventToRun(void)
         djytickless_sys_param.cur_cnt = DjyTickless_GetTotalCnt();
         temp = djytickless_sys_param.cur_cnt%s_u64RRS_Slice;
 
-        if(temp+DjyTickless_GetCntMin()>s_u64RRS_Slice)
+        if(temp+DjyTickless_GetPrecision()>s_u64RRS_Slice)
             djytickless_sys_param.next_rrs_cnt = djytickless_sys_param.cur_cnt + 2*s_u64RRS_Slice-temp;
         else
             djytickless_sys_param.next_rrs_cnt = djytickless_sys_param.cur_cnt + s_u64RRS_Slice-temp;

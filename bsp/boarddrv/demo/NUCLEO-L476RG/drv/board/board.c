@@ -125,19 +125,9 @@ static void DjyBsp_UserTimerStart(void)
     djybsp_user_timer.reload_value = CN_LIMIT_UINT16;
 }
 
-static uint32_t DjyBsp_UserTimerGetCntMax(void)
-{
-    return (CN_LIMIT_UINT16>>1);
-}
-
-static uint32_t DjyBsp_UserTimerGetCntMin(void)
-{
-    return TIME_BASE_MIN_GAP;
-}
-
 static void DjyBsp_UserTimerSetReload(uint32_t cnt)
 {
-    if(cnt>DjyBsp_UserTimerGetCntMax() || cnt==0)
+    if(cnt>(CN_LIMIT_UINT16>>1)  || cnt==0)
     {
         //理论上不可能出现此事件
         return;
@@ -151,12 +141,7 @@ static uint32_t Djybsp_UserTimerReadCnt(void)
     return DjyBsp_LptimerReadCnt(0);
 }
 
-static uint32_t DjyBsp_UserTimerGetReload(void)
-{
-    return (djybsp_user_timer.reload_value);
-}
-
-static uint64_t DjyBsp_UserTimerRefreshTotalCnt(uint32_t cnt)
+static uint64_t DjyBsp_UserTimerGetTotalCntIsr(uint32_t cnt)
 {
     return (djybsp_user_timer.total_cnt + cnt);
 }
@@ -177,42 +162,20 @@ static uint64_t DjyBsp_UserTimerGetTotalCnt(void)
     return temp;
 }
 
-static uint64_t DjyBsp_UserTimerUsToCnt(uint64_t us)
-{
-    uint64_t temp = 0;
-    temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (us*TIME_GLUE):
-            ((us*FAST_TIME_GLUE + 32768))>>16);
-    if( temp < TIME_BASE_MIN_GAP )
-        temp = TIME_BASE_MIN_GAP;
-    return temp;
-}
-
-static uint64_t DjyBsp_UserTimerCntToUs(u64 cnt)
-{
-    return ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (cnt/(uint32_t)TIME_GLUE):
-            ((uint64_t)(cnt*TIME_GLUE))>>16);
-}
-
 static struct djytickless_op_t djyticklss_user_timer_op =
 {
-    .get_cnt_max = DjyBsp_UserTimerGetCntMax,
-    .get_cnt_min = DjyBsp_UserTimerGetCntMin,
-    .get_reload =  DjyBsp_UserTimerGetReload,
-    .refresh_total_cnt = DjyBsp_UserTimerRefreshTotalCnt,
     .get_total_cnt = DjyBsp_UserTimerGetTotalCnt,
-    .us_to_cnt = DjyBsp_UserTimerUsToCnt,
-    .cnt_to_us = DjyBsp_UserTimerCntToUs,
-    .reset = DjyBsp_UserTimerReset,
-    .start = DjyBsp_UserTimerStart,
+    .get_total_cnt_isr = DjyBsp_UserTimerGetTotalCntIsr,
     .set_reload = DjyBsp_UserTimerSetReload,
 };
 
-void DjyTickless_UserTimerRegisterOp(struct djytickless_op_t **op)
+static struct djytickless_register_param_t djyticklss_user_timer =
 {
-    *op = &djyticklss_user_timer_op;
-}
+     .op = &djyticklss_user_timer_op,
+     .freq = CN_CFG_TIME_BASE_HZ,
+     .max_reload_value = (CN_LIMIT_UINT16>>1),
+     .min_reload_value = TIME_BASE_MIN_GAP,
+};
 
 static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param)
 {
@@ -237,12 +200,12 @@ static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param)
                 djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt + cnt + CN_LIMIT_UINT16;
             else
                 djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt + cnt;
-            Djy_IsrTimeBase(djybsp_user_timer.cnt_before - djybsp_user_timer.total_cnt);
+            Djy_ScheduleIsr(djybsp_user_timer.cnt_before - djybsp_user_timer.total_cnt);
             break;
         case CN_LPTIMER_RELOAD_AND_CMP:
             djybsp_user_timer.total_cnt += CN_LIMIT_UINT16;
             djybsp_user_timer.cnt_before = djybsp_user_timer.total_cnt;
-            Djy_IsrTimeBase(0);
+            Djy_ScheduleIsr(0);
             break;
     }
 
@@ -258,10 +221,14 @@ static uint32_t DjyBsp_UserTimerIsrHandle(uint32_t param)
 /*只需重写__InitTimeBase函数就足够了*/
 void __InitTimeBase(void)
 {
-    DjyTickless_RegisterOp(&djyticklss_user_timer_op);
-    DjyTickless_Reset();
+    DjyTickless_Register(&djyticklss_user_timer);
+    DjyBsp_UserTimerReset();
 }
 
+void __DjyInitTick(void)
+{
+    DjyBsp_UserTimerStart();
+}
 ///////////////////////////////////////////////djy-api end//////////////////////////////////
 #endif
 #endif

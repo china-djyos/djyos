@@ -174,21 +174,11 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 // =============================================================================
 void Exp_SystickTickHandler(void)
 {
-#if (CN_USE_TICKLESS_MODE)
-    u32 tick=0;
-#endif
     g_bScheduleEnable = false;
-//    tg_int_global.en_asyn_signal = false;
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
-#if (CN_USE_TICKLESS_MODE)
-    tick = DjyTickless_GetReload();
-    user_systick(tick);
-#else
-    user_systick(1);
-#endif
+    user_systick((CN_USE_TICKLESS_MODE==1)?0:1);
     tg_int_global.nest_asyn_signal = 0;
-//    tg_int_global.en_asyn_signal = true;
     tg_int_global.en_asyn_signal_counter = 0;
     if(g_ptEventReady != g_ptEventRunning)
         __Djy_ScheduleAsynSignal();       //执行中断内调度

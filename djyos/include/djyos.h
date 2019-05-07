@@ -361,11 +361,7 @@ struct EventType
 extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
-#if (CN_USE_TICKLESS_MODE)
-void Djy_IsrTimeBase(u32 inc_ticks);
-#else
-void Djy_IsrTick(u32 inc_ticks);
-#endif
+void Djy_ScheduleIsr(u32 inc_ticks);
 void Djy_SetRRS_Slice(u32 slices);
 u32 Djy_GetRRS_Slice(void);
 void Djy_CreateProcessVm(void);
