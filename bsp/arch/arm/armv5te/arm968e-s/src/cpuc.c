@@ -91,7 +91,7 @@ __attribute__((weak)) void __InitTimeBase(void)
 // =============================================================================
 __attribute__((weak)) void __DjyInitTick(void)
 {
-    HardExp_ConnectSystick(Djy_IsrTick);
+    HardExp_ConnectSystick(Djy_ScheduleIsr);
 }
 
 // =============================================================================
