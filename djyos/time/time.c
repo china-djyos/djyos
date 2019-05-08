@@ -270,7 +270,7 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
         }
     }
 
-    month = 1;
+    month = 0;                      // 0~11
     tmp_month_days = g_u32MonthDays[month-1];
     while (dayth > tmp_month_days)
     {
@@ -290,7 +290,7 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
     result->tm_wday = day_of_week;   // days since Sunday - [0,6]
     result->tm_mday = day;           // day of the month - [1,31]
     result->tm_mon  = month;         // months since January - [0,11]
-    result->tm_year = year;          // years 1970-
+    result->tm_year = year - 1900;   // years 1970-，表示为与1900年的差值
 
     return result;
 }
@@ -618,10 +618,10 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
     struct tm *myresult;
     myresult = Tm_GmTime_r(timep,result);
-    if(NULL != result)
+    if(NULL != myresult)
     {
-        result->tm_year -= 1900;
-        result->tm_mon -= 1;
+        myresult->tm_year -= 1900;
+        myresult->tm_mon -= 1;
     }
     return myresult;
 }
