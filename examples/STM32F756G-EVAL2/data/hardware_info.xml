@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<hardware>
-   <baord>STM32F756G-EVAL2</baord>
-   <cpu>stm32f756xx</cpu>
-   <core>cortex-m7</core>
-</hardware>

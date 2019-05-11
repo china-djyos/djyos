@@ -1,0 +1,43 @@
+{
+	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"M487JIDAE",
+		"board":"NuvotonM487"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["component black box",
+		"component buffer",
+		"component dbug",
+		"component flash",
+		"component uart",
+		"device file system",
+		"component file system",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"os Obj file",
+		"os memory poll",
+		"component time",
+		"board driver",
+		"component loader",
+		"third lib Nuvoton M480",
+		"third lib C",
+		"cpu driver dma",
+		"cpu driver uart"]
+	}
+}

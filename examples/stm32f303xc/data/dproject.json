@@ -1,0 +1,41 @@
+{
+	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"stm32f303xc",
+		"board":"stm32f3-empty"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["component black box",
+		"component buffer",
+		"component uart",
+		"device file system",
+		"component iicbus",
+		"component djybus",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component kernel",
+		"component heap",
+		"component lock",
+		"component Message queue",
+		"os memory poll",
+		"board driver",
+		"component loader",
+		"third lib stm32f3",
+		"third lib C",
+		"cpu driver dma",
+		"cpu driver gpio",
+		"cpu driver iic",
+		"cpu driver uart"]
+	}
+}

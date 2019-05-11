@@ -1,0 +1,55 @@
+{
+	"ide_version":"DIDE-V1.6_20190126",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m7",
+		"cpu":"stm32h743xx",
+		"board":"NUCLEO-H743ZI"
+	},
+	"components_checked":{
+		"app":["component black box",
+		"device file system",
+		"component multiplex",
+		"component kernel",
+		"component heap",
+		"component lock",
+		"component Message queue",
+		"os memory poll",
+		"board driver",
+		"component loader",
+		"third lib stm32h7",
+		"third lib C",
+		"cpu driver gpio"],
+		"iboot":["component black box",
+		"component buffer",
+		"component uart",
+		"device file system",
+		"component file system",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component tcpip",
+		"component ymodem",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"os memory poll",
+		"board driver",
+		"board driver net config",
+		"component loader",
+		"third lib stm32h7",
+		"third lib C",
+		"cpu driver eth",
+		"cpu driver gpio",
+		"cpu driver uart"]
+	}
+}

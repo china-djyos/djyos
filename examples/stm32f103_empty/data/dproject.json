@@ -1,0 +1,39 @@
+{
+	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m3",
+		"cpu":"stm32f103xe",
+		"board":"stm32f103-empty"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["component black box",
+		"component buffer",
+		"component uart",
+		"device file system",
+		"component lowpower",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component kernel",
+		"component heap",
+		"component lock",
+		"component Message queue",
+		"os memory poll",
+		"board driver",
+		"component loader",
+		"third lib stm32f1",
+		"third lib C",
+		"cpu driver gpio",
+		"cpu driver lowpower",
+		"cpu driver uart"]
+	}
+}

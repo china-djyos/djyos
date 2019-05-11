@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<hardware>
-   <baord>stm32f3-empty</baord>
-   <cpu>stm32f303xc</cpu>
-   <core>cortex-m4</core>
-</hardware>

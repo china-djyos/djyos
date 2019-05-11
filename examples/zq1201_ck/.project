@@ -26,6 +26,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>src/userlib</name>
+			<type>2</type>
+			<location>D:/SoftWare/DIDE_Builder/djysrc/userlib</location>
+		</link>
+		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>
 			<locationURI>DJYOS_SRC_LOCATION/bsp</locationURI>
