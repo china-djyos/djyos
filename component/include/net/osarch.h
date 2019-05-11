@@ -68,14 +68,11 @@ void mutex_del(mutex_t mutex);
 typedef struct SemaphoreLCB*  semp_t;
 semp_t semp_init(u32 limit,u32 value,const char *name);
 void   semp_del(semp_t);
-void   semp_reset(semp_t semp);
 bool_t semp_pend(semp_t semp);
 bool_t semp_pendtimeout(semp_t semp,unsigned int timeout);
 bool_t semp_post(semp_t semp);
 //task
 bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),void* para);
-//some lib
-u32 get_random(void);
 //some string deal functions in the tcp ip
 char* mac2string(u8 *mac);
 bool_t string2mac(char *str,u8 *mac);

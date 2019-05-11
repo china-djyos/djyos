@@ -1,5 +1,9 @@
 {
 	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
 	"libs_checked":{
 		"app":[],
 		"iboot":[]

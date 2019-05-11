@@ -1,5 +1,9 @@
 {
 	"ide_version":"DIDE-V1.6_20190404",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
 	"libs_checked":{
 		"app":[],
 		"iboot":[]
