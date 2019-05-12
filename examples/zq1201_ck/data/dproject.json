@@ -1,0 +1,62 @@
+{
+	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"ck803s",
+		"cpu":"zq1201",
+		"board":"zq1201"
+	},
+	"components_checked":{
+		"app":["component black box",
+		"component buffer",
+		"component uart",
+		"device file system",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"os memory poll",
+		"board driver",
+		"component loader",
+		"third lib csky",
+		"third lib silan",
+		"third lib C",
+		"cpu driver gpio",
+		"cpu driver isr",
+		"cpu driver uart"],
+		"iboot":["component black box",
+		"component buffer",
+		"component uart",
+		"device file system",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component Software Timers",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"os memory poll",
+		"board driver",
+		"component loader",
+		"third lib csky",
+		"third lib silan",
+		"third lib C",
+		"cpu driver gpio",
+		"cpu driver isr",
+		"cpu driver timer",
+		"cpu driver uart"]
+	}
+}

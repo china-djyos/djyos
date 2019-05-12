@@ -1,0 +1,34 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m0",
+		"cpu":"zq1201",
+		"board":"zq1201"
+	},
+	"components_checked":{
+		"app":["component black box",
+		"component multiplex",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"os Obj file",
+		"os memory poll",
+		"board driver",
+		"component loader",
+		"third lib sldrv",
+		"third lib C",
+		"cpu driver gpio",
+		"cpu driver isr"],
+		"iboot":[]
+	}
+}

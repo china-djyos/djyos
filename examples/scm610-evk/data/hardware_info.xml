@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<hardware>
-   <baord>scm610-evk</baord>
-   <cpu>scm610</cpu>
-   <core>cortex-m4</core>
-</hardware>

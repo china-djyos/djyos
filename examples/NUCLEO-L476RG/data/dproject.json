@@ -1,0 +1,41 @@
+{
+	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"stm32l476xx",
+		"board":"NUCLEO-L476RG"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["component black box",
+		"component buffer",
+		"component dbug",
+		"component flash",
+		"component uart",
+		"device file system",
+		"component lowpower",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component kernel",
+		"component heap",
+		"component lock",
+		"component Message queue",
+		"os Obj file",
+		"os memory poll",
+		"board driver",
+		"component loader",
+		"third lib stm32L4",
+		"third lib C",
+		"component lowpower",
+		"cpu driver uart"]
+	}
+}

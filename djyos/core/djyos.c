@@ -1384,7 +1384,7 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
 #if (CN_USE_TICKLESS_MODE)
     delay_event->delay_end_cnt = djytickless_sys_param.cur_cnt;
 #else
-    delay_event->delay_end_tick = __DjyGetSchTime();
+    delay_event->delay_end_tick = __DjyGetSysTick();
 #endif
 }
 

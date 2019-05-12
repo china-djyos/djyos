@@ -1,0 +1,57 @@
+{
+	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m7",
+		"cpu":"imxrt1052",
+		"board":"imxrt1052-evk"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["component black box",
+		"component buffer",
+		"component gb2312 charset",
+		"component Nls Charset",
+		"component dbug",
+		"component flash",
+		"component uart",
+		"device file system",
+		"component iicbus",
+		"component djybus",
+		"component black box",
+		"component file system",
+		"component gb2312 dot",
+		"component font",
+		"component gdd",
+		"component gkernel",
+		"component touch",
+		"third hm input",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"third lib C",
+		"os memory poll",
+		"component time",
+		"board driver",
+		"component loader",
+		"third lib imxrt1052",
+		"third lib C",
+		"third lib ft5406",
+		"cpu driver clock",
+		"cpu driver iic",
+		"cpu driver lcd",
+		"cpu driver uart"]
+	}
+}

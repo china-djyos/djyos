@@ -115,7 +115,7 @@ const char *dev_Name(struct Object *devo);
 struct Object *dev_Create(const char *name, fnDevOpen dopen, fnDevClose dclose,
                         fnDevWrite dwrite, fnDevRead dread, fnDevCntl dcntl,
                         ptu32_t DrvTag);
-s32 dev_Delete(struct obj *dev);
+s32 dev_Delete(struct Object *dev);
 s32 dev_DeleteByName(const char *name);
 void dev_SetDrvTag(s32 fd,ptu32_t DrvTag);
 ptu32_t dev_SetUserTag(s32 fd,ptu32_t UserTag);

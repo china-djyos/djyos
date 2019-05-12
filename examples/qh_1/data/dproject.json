@@ -1,0 +1,59 @@
+{
+	"ide_version":"V1.6_20190123",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m3",
+		"cpu":"stm32f103xe",
+		"board":"qh_1"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["component black box",
+		"component buffer",
+		"component font ascii charset",
+		"component Nls Charset",
+		"component dbug",
+		"component flash",
+		"component uart",
+		"device file system",
+		"component iicbus",
+		"component djybus",
+		"component black box",
+		"component file system",
+		"component font ascii charset",
+		"component font",
+		"component gdd",
+		"component gkernel",
+		"component touch",
+		"component touch",
+		"component lowpower",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"os Obj file",
+		"os memory poll",
+		"component time",
+		"board driver",
+		"component loader",
+		"third lib stm32f1",
+		"third lib C",
+		"chip driver ili9325",
+		"chip driver stmpe811",
+		"cpu driver gpio",
+		"cpu driver iic",
+		"cpu driver lowpower",
+		"cpu driver uart"]
+	}
+}

@@ -1,0 +1,43 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"arm968e-s",
+		"cpu":"bk7251",
+		"board":"bk7251_demo"
+	},
+	"components_checked":{
+		"app":["component black box",
+		"component buffer",
+		"component uart",
+		"device file system",
+		"component multiplex",
+		"shell",
+		"component stdio",
+		"component tcpip",
+		"component kernel",
+		"component heap",
+		"component int",
+		"component lock",
+		"component Message queue",
+		"os memory poll",
+		"board driver",
+		"board driver net config",
+		"component loader",
+		"third lib bk7251",
+		"third lib C",
+		"cpu driver audio micgpio",
+		"cpu driver flash",
+		"cpu driver gpio",
+		"cpu driver uart",
+		"cpu driver eth"],
+		"iboot":[]
+	}
+}
