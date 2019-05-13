@@ -21,7 +21,7 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //%$#@end initcode  ****初始化代码结束
 //%$#@describe      ****组件描述开始
-//component name:"cpu driver hal"//stm32的hal库补丁
+//component name:"STM32 HAL lib support"//stm32的hal库补丁
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，

@@ -65,6 +65,11 @@ void Sys_ModuleInit(void)
     ModuleInstall_HardTimer();
 
     //-------------------medium-------------------------//
+    #if(CFG_OS_TINY == flase)
+        extern s32 kernel_command(void);
+        kernel_command();
+    #endif
+
     extern bool_t ModuleInstall_Timer(void);
     ModuleInstall_Timer();
 

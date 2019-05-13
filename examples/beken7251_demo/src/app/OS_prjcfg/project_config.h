@@ -8,18 +8,18 @@
 #include "stdint.h"
 
 #define CFG_RUNMODE_BAREAPP    1
-//*******************************  Configure component lock  ******************************************//
+//*******************************  Configure System: lock  ******************************************//
 #define CFG_LOCK_LIMIT          40       // "锁的数量",定义锁的数量，包含信号量和互斥量
-//*******************************  Configure component heap  ******************************************//
+//*******************************  Configure System: heap  ******************************************//
 #define CFG_DYNAMIC_MEM true   // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
 //*******************************  Configure device file system  ******************************************//
 #define CFG_DEVFILE_LIMIT       10       // "设备数量",定义设备数量
-//*******************************  Configure component stdio  ******************************************//
+//*******************************  Configure System: stdio  ******************************************//
 #define     CFG_STDIO_RUN_MODE               (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW) // "STDIO模式",
 #define     CFG_STDIO_IN_NAME                "/dev/UART2"       // "标准输入设备名",
 #define     CFG_STDIO_OUT_NAME               "/dev/UART2"       // "标准输出设备名",
 #define     CFG_STDIO_ERR_NAME               "/dev/UART2"       // "标准err输出设备名",
-//*******************************  Configure cpu_peri_component uart  ******************************************//
+//*******************************  Configure cpu_peri_System: uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN       64       // "UART1发送环形缓冲区大小",
 #define CFG_UART1_RECVBUF_LEN       64       // "UART1接收环形缓冲区大小",
 #define CFG_UART1_DMABUF_LEN        64       // "UART1 DMA环形缓冲区大小",
@@ -41,7 +41,7 @@
 #define     CFG_ADD_EXPAND_SHELL             true               // "是否添加拓展shell命令"
 #define     CFG_ADD_GLOBAL_FUN               false              // "添加全局函数到shell"
 #define     CFG_SHOW_ADD_SHEELL              true               // "显示在编译窗口添加的shell命令"
-//*******************************  Configure component tcpip  ******************************************//
+//*******************************  Configure System: tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE          0x4000  //
 #define     CFG_ARP_HASHLEN             32      //占用一个指针
 #define     CFG_TPL_PROTONUM            5       //占用一个 tagTplProtoItem 结构
@@ -77,21 +77,21 @@
 #define     CFG_DHCPD_DNS               "192.168.0.253"  //
 #define     CFG_DHCPD_DOMAINNAME       "domain"        //
 #define     CFG_PPP_ENABLE             false         //是否需要 ppp 协议
-//*******************************  Configure component kernel  ******************************************//
+//*******************************  Configure System: kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         20       // "事件数量限值",事件数量
 #define CFG_EVENT_TYPE_LIMIT    20       // "事件类型数限值",事件类型数
 #define CFG_MAINSTACK_LIMIT     4096     // "main函数栈尺寸",main函数运行所需的栈尺寸
 #define CFG_IDLESTACK_LIMIT     1024     // "IDLE事件栈尺寸",IDLE事件处理函数运行的栈尺寸，一般按默认值就可以了
 #define CFG_OS_TINY             false    // "tiny版内核",true=用于资源紧缺的场合，内核会裁剪掉：事件类型名字，事件处理时间统计。
-//*******************************  Configure os memory poll  ******************************************//
+//*******************************  Configure System: memory pool  ******************************************//
 #define CFG_MEMPOOL_LIMIT       10       // "内存池数量",允许建立10个内存池
-//*******************************  Configure component loader  ******************************************//
+//*******************************  Configure System: loader  ******************************************//
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN      // EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL       // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01         // Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"            // "Iboot保存"
-//*******************************  Configure cpu driver eth  ******************************************//
+//*******************************  Configure cpu onchip MAC  ******************************************//
 #define CFG_MAC_ADDR0           00           //
 #define CFG_MAC_ADDR1           00           //
 #define CFG_MAC_ADDR2           00           //
@@ -101,7 +101,7 @@
 #define CFG_ETH_LOOP_CYCLE      1000         //
 #define CFG_ETH_LOOP_ENABLE     true        //
 #define CFG_ETH_DEV_NAME        "STM32F7_ETH"//
-//*******************************  Configure board driver net config  ******************************************//
+//*******************************  Configure network config  ******************************************//
 #define     CFG_STATIC_IP                    false             //true=使用静态IPfalse=动态IP
 #define     CFG_NETCARD_NAME                 "BK7251_WIFI"     //
 #define     CFG_MY_IPV4                      "192.168.0.179"   //

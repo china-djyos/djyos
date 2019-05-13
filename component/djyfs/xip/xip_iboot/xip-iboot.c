@@ -73,7 +73,7 @@
 //%$#@end initcode  ****初始化代码结�?
 
 //%$#@describe      ****组件描述�?�?
-//component name:"component xip iboot file system"//用于iboot的在线升�?
+//component name:"System: xip iboot file system"//用于iboot的在线升�?
 //parent:"component file system"//填写该组件的父组件名字，none表示没有父组�?
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分�?
 //select:choosable              //选填“required、choosable、none”，若填必�?�且�?要配置参数，则IDE裁剪界面中默认勾取，

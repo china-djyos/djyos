@@ -8,23 +8,23 @@
 #include "stdint.h"
 
 #define CFG_RUNMODE_BAREAPP    1
-//*******************************  Configure component lock  ******************************************//
+//*******************************  Configure System: lock  ******************************************//
 #define     CFG_LOCK_LIMIT                   3                     // "锁的数量",定义锁的数量，包含信号量和互斥量
-//*******************************  Configure component heap  ******************************************//
+//*******************************  Configure System: heap  ******************************************//
 #define     CFG_DYNAMIC_MEM                  false               // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
-//*******************************  Configure component kernel  ******************************************//
+//*******************************  Configure System: kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     256          // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         3            // "事件数量限值",事件数量
 #define CFG_EVENT_TYPE_LIMIT    3            // "事件类型数限值",事件类型数
 #define CFG_MAINSTACK_LIMIT     1024          // "main函数栈尺寸",main函数运行所需的栈尺寸
 #define CFG_IDLESTACK_LIMIT     1024          // "IDLE事件栈尺寸",IDLE事件处理函数运行的栈尺寸，一般按默认值就可以了
 #define CFG_OS_TINY             true         // "tiny版内核",true=用于资源紧缺的场合，内核会裁剪掉：事件类型名字，事件处理时间统计。
-//*******************************  Configure os Obj file  ******************************************//
+//*******************************  Configure kernel object system  ******************************************//
 #define     CFG_OBJECT_LIMIT                 5                   // "对象数初始值"，用完会自动扩充
 #define     CFG_HANDLE_LIMIT                 5                   // "句柄数初始值"，用完会自动扩充
-//*******************************  Configure os memory poll  ******************************************//
+//*******************************  Configure System: memory pool  ******************************************//
 #define     CFG_MEMPOOL_LIMIT                5                   // "内存池数量限值",
-//*******************************  Configure component loader  ******************************************//
+//*******************************  Configure System: loader  ******************************************//
 #define     CFG_APP_RUNMODE                  EN_DIRECT_RUN           // EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 #define     CFG_APP_VERIFICATION             VERIFICATION_NULL       // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define     CFG_IBOOT_VERSION                01                      // Iboot发布版本号

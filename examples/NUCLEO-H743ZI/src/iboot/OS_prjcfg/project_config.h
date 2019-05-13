@@ -7,20 +7,20 @@
 
 #include "stdint.h"
 
-//*******************************  Configure component lock  ******************************************//
+//*******************************  Configure System: lock  ******************************************//
 #define CFG_LOCK_LIMIT          40       // "锁的数量",定义锁的数量，包含信号量和互斥量
-//*******************************  Configure component heap  ******************************************//
+//*******************************  Configure System: heap  ******************************************//
 #define CFG_DYNAMIC_MEM true   // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
 //*******************************  Configure device file system  ******************************************//
 #define CFG_DEVFILE_LIMIT       10       // "设备数量",定义设备数量
-//*******************************  Configure component file system  ******************************************//
+//*******************************  Configure System: file system  ******************************************//
 #define     CFG_CLIB_BUFFERSIZE              512                // "C库文件用户态缓冲区尺寸"
-//*******************************  Configure component stdio  ******************************************//
+//*******************************  Configure System: stdio  ******************************************//
 #define CFG_STDIO_RUN_MODE            (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW)  // "STDIO模式",
 #define CFG_STDIO_IN_NAME              "/dev/UART3"     // "标准输入设备名",
 #define CFG_STDIO_OUT_NAME             "/dev/UART3"     // "标准输出设备名",
 #define CFG_STDIO_ERR_NAME             "/dev/UART3"     // "标准err输出设备名",
-//*******************************  Configure cpu_peri_component uart  ******************************************//
+//*******************************  Configure cpu_peri_System: uart  ******************************************//
 #define CFG_UART_SENDBUF_LEN            32                   // "串口发送环形缓冲区大小",
 #define CFG_UART_RECVBUF_LEN            32                   // "串口接收环形缓冲区大小",
 #define CFG_UART1_ENABLE                false                 // "配置是否使用UART1",
@@ -34,7 +34,7 @@
 //*******************************  Configure shell  ******************************************//
 #define     CFG_SHELL_LEVEL                  SHELL_LEVEL_BASE   // "shell命令实现级别",用于定义shell支持的命令数量
 #define     CFG_SHOW_ADD_SHEELL              true               // #define CFG_SHOW_ADD_SHEELL        true        
-//*******************************  Configure component tcpip  ******************************************//
+//*******************************  Configure System: tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE               0x4000            //
 #define     CFG_ARP_HASHLEN                  32                //占用一个指针
 #define     CFG_TPL_PROTONUM                 5                 //占用一个 tagTplProtoItem 结构
@@ -70,26 +70,26 @@
 #define     CFG_DHCPD_DNS                    "192.168.0.253"   //"   // ",
 #define     CFG_DHCPD_DOMAINNAME             "domain"          //"         // ",
 #define     CN_PPP_ENABLE                    null              //是否需要 ppp 协议
-//*******************************  Configure component ymodem  ******************************************//
+//*******************************  Configure System: ymodem  ******************************************//
 #define     CFG_YMODEM_BUF_NUM               32                 // "缓存ymodem包数量",每包1024字节
 #define     CFG_YMODEM_PKG_TIMEOUT           (15*1000*1000)     // "包间隔超时时间",微秒
 #define     CFG_YMODEM_TIMEOUT               (300*1000*1000)    // "ymodem传输总超时时间",微秒
 #define     CFG_YMODEM_DEVNAME               "std"              // "ymodem传输设备，std表示使用标准输入输出设备"
 #define     CFG_YMODEM_TIMEOUT               (600*1000*1000)    // #define CFG_YMODEM_TIMEOUT (600*1000*1000)
-//*******************************  Configure component kernel  ******************************************//
+//*******************************  Configure System: kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096     // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         15       // "事件数量限值",事件数量
 #define CFG_EVENT_TYPE_LIMIT    15       // "事件类型数限值",事件类型数
 #define CFG_MAINSTACK_LIMIT     4096     // "main函数栈尺寸",main函数运行所需的栈尺寸
 #define CFG_IDLESTACK_LIMIT     1024     // "IDLE事件栈尺寸",IDLE事件处理函数运行的栈尺寸，一般按默认值就可以了
 #define CFG_OS_TINY             false    // "tiny版内核",true=用于资源紧缺的场合，内核会裁剪掉：事件类型名字，事件处理时间统计。
-//*******************************  Configure os memory poll  ******************************************//
+//*******************************  Configure System: memory pool  ******************************************//
 #define CFG_MEMPOOL_LIMIT       10       // "内存池数量",允许建立10个内存池
-//*******************************  Configure component loader  ******************************************//
+//*******************************  Configure System: loader  ******************************************//
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN      // EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL       // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01         // Iboot发布版本号
-//*******************************  Configure cpu driver eth  ******************************************//
+//*******************************  Configure cpu onchip MAC  ******************************************//
 #define CFG_MAC_ADDR0           00            // "网卡地址0",
 #define CFG_MAC_ADDR1           00            // "网卡地址1",
 #define CFG_MAC_ADDR2           00            // "网卡地址2",
@@ -99,7 +99,7 @@
 #define CFG_ETH_LOOP_CYCLE      1000          // "网卡轮询接收周期",
 #define CFG_ETH_LOOP_ENABLE     true         // "网卡接收是否轮询",
 #define CFG_ETH_DEV_NAME        "STM32H7_ETH" // "网卡名称",
-//*******************************  Configure board driver net config  ******************************************//
+//*******************************  Configure network config  ******************************************//
 #define     CFG_STATIC_IP                    true              //true=使用静态IPfalse=动态IP
 #define     CFG_NETCARD_NAME                 "NUCLEO_H743_ETH" //
 #define     CFG_MY_IPV4                      "192.168.0.179"   //

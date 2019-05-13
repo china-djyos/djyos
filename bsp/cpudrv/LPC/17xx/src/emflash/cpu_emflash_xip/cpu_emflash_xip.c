@@ -69,7 +69,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"emflash_install_xip"//片内flash安装xip
+//component name:"emflash insatall xip"//片内flash安装xip
 //parent:"cpu drive inner flash"//填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -89,7 +89,7 @@
 //%$#@configue      ****参数配置开始
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_EFLASH_XIPFSMOUNT_NAME   //****检查参数是否已经配置好
-#warning    emflash_install_xip 组件参数未配置，使用默认值
+#warning    emflash insatall xip 组件参数未配置，使用默认值
 //%$#@num,-1,12,
 #define CFG_EFLASH_XIP_PART_START      6          //分区起始，填写块号，块号从0开始计算
 #define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
