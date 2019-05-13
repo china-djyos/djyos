@@ -1384,7 +1384,7 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
 #if (CN_USE_TICKLESS_MODE)
     delay_event->delay_end_cnt = djytickless_sys_param.cur_cnt;
 #else
-    delay_event->delay_end_tick = DjyGetSysTick();
+    delay_event->delay_end_tick = __DjyGetSysTick();
 #endif
 }
 
@@ -1415,7 +1415,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
     }
     djytickless_sys_param.cur_cnt = g_ptEventRunning->delay_start_cnt;
 #else
-    g_ptEventRunning->delay_start_tick = DjyGetSysTick(); //事件延时开始时间
+    g_ptEventRunning->delay_start_tick = __DjyGetSysTick(); //事件延时开始时间
     g_ptEventRunning->delay_end_tick = g_ptEventRunning->delay_start_tick
                   + ((s64)u32l_uS + CN_CFG_TICK_US -(u32)1)/CN_CFG_TICK_US; //闹铃时间
 #endif
@@ -1802,7 +1802,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
 #if (CN_USE_TICKLESS_MODE)
             g_ptEventRunning->delay_start_cnt = DjyTickless_GetTotalCnt();//闹铃时间
 #else
-            g_ptEventRunning->delay_start_tick = DjyGetSysTick();//闹铃时间
+            g_ptEventRunning->delay_start_tick = __DjyGetSysTick();//闹铃时间
 #endif
             __Djy_CutReadyEvent(g_ptEventRunning);          //从ready队列取出
             __Djy_EventReady(g_ptEventRunning);             //放回同步队列尾部
@@ -1823,7 +1823,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
         }
         djytickless_sys_param.cur_cnt = g_ptEventRunning->delay_start_cnt;
 #else
-        g_ptEventRunning->delay_start_tick =DjyGetSysTick();//设定闹铃的时间
+        g_ptEventRunning->delay_start_tick =__DjyGetSysTick();//设定闹铃的时间
         g_ptEventRunning->delay_end_tick = g_ptEventRunning->delay_start_tick
                   + ((s64)u32l_uS + CN_CFG_TICK_US -(u32)1)/CN_CFG_TICK_US; //闹铃时间
 #endif
@@ -1881,7 +1881,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
 #if (CN_USE_TICKLESS_MODE)
     us_return = (uint32_t)DjyTickless_CntToUs((DjyTickless_GetTotalCnt() - g_ptEventRunning->delay_start_cnt));
 #else
-    us_return = (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
+    us_return = (__DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
 #endif
     return us_return;
 }
@@ -1910,7 +1910,7 @@ s64 Djy_EventDelayTo(s64 s64l_uS)
     djytickless_sys_param.cur_cnt = g_ptEventRunning->delay_start_cnt;
     if(g_ptEventRunning->delay_end_cnt <= g_ptEventRunning->delay_start_cnt)
 #else
-    g_ptEventRunning->delay_start_tick =DjyGetSysTick();//设定闹铃的时间
+    g_ptEventRunning->delay_start_tick =__DjyGetSysTick();//设定闹铃的时间
     g_ptEventRunning->delay_end_tick =(s64l_uS +CN_CFG_TICK_US -1)/CN_CFG_TICK_US;
     if(g_ptEventRunning->delay_end_tick <= g_ptEventRunning->delay_start_tick)
 #endif
@@ -1971,7 +1971,7 @@ s64 Djy_EventDelayTo(s64 s64l_uS)
 #if (CN_USE_TICKLESS_MODE)
     return DjyTickless_CntToUs(DjyTickless_GetTotalCnt() - g_ptEventRunning->delay_start_cnt);
 #else
-    return (DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
+    return (__DjyGetSysTick() -g_ptEventRunning->delay_start_tick)*CN_CFG_TICK_US;
 #endif
 }
 

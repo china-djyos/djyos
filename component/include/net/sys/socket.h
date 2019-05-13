@@ -433,8 +433,8 @@ int getsockopt(int sockfd, int level, int optname, void *optval,int *optlen);
 bool_t Socket_MultiplexAdd(struct MultiplexSetsCB *MultiplexSets,
                            int sock,u32 SensingBit);
 bool_t Socket_MultiplexDel(struct MultiplexSetsCB *MultiplexSets,int sock);
-ptu32_t socket_setprivate(int sock, ptu32_t Private);
-ptu32_t socket_getprivate(int sock);
+ptu32_t socket_SetUserTag(int sock, ptu32_t Private);
+ptu32_t socket_GetUserTag(int sock);
 void sockinfo(int sockfd,char *filter);
 bool_t sockallinfo(char *param);
 int getsockname(int sockfd,struct sockaddr *addr,socklen_t *addrlen);

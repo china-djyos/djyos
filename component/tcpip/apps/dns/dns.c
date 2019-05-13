@@ -47,6 +47,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 #include <netdb.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netbsp.h>
 #include "dbug.h"

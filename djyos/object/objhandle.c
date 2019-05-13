@@ -1350,7 +1350,7 @@ s32 fcntl(s32 fd, s32 cmd, ...)
     res = __handle_cntl(hdl, cmd, args);
     if(CN_OBJ_CMD_UNSUPPORT == res)
     {
-        if((cmd == F_DUPFD)||(cmd == F_GETFD)||(cmd == F_GETFL)||(cmd == F_GETFL))
+        if((cmd == F_DUPFD)||(cmd == F_GETFD)||(cmd == F_GETFL)||(cmd == F_GETOWN))
         {
             res = hdl->HostObj->ops((void *)hdl, CN_OBJ_FCNTL,0,
                                     (ptu32_t)cmd,(ptu32_t)&result);

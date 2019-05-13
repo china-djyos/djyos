@@ -65,19 +65,14 @@ static fnRtc_SetTime    fnRtcSetTime = NULL;      //设置RTC设备RTC时间
 //        注册RTC设备
 //参数：fnGetTime，获取RTC设备时间的函数
 //        fnSetTime,设置RTC设备时间的函数
-//        时间均是距离1970年开始的微秒数
-// 返回值  ：true 注册成功  false = 两个参数均为NULL
+// 返回值  ：fnTimerIsr
 // =============================================================================
 bool_t Rtc_RegisterDev(fnRtc_GetTime fnGetTime,
                        fnRtc_SetTime fnSetTime)
 {
     bool_t result = false;
 
-    if(NULL != fnGetTime)
-    {
-        fnRtcGetTime = fnGetTime;
-        result = true;
-    }
+    fnRtcGetTime = fnGetTime;
 
     if( (NULL != fnSetTime))
     {

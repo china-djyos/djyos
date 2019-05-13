@@ -1,4 +1,4 @@
-�?//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -24,27 +24,27 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统�?源开发团队所有�?�著作权人保留一切权利�??
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
-// 这份授权条款，在使用者符合以下三条件的情形下，授予使用�?�使用及再散播本
-// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然�?
+// 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
+// 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
 //
 // 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
-//    及下述的免责声明�?
-// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或�?�其他附
-//    于散播包装中的媒介方式，重制上述之版权宣告�?�本条件列表，以及下�?
-//    的免责声明�??
-// 3. 本软件作为都江堰操作系统的组成部分，未获事前取得的书面许可，不允许移植到�?
-//    都江堰操作系统环境下运行�?
+//    及下述的免责声明。
+// 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
+//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
+//    的免责声明。
+// 3. 本软件作为都江堰操作系统的组成部分，未获事前取得的书面许可，不允许移植到非
+//    都江堰操作系统环境下运行。
 
-// 免责声明：本软件是本软件版权持有人以及贡献�?�以现状�?"as is"）提供，
-// 本软件包装不负任何明示或默示之担保责任，包括但不限于就�?�售性以及特定目
-// 的的适用性为默示性担保�?�版权持有人及本软件之贡献�?�，无论任何条件�?
-// 无论成因或任何责任主义�?�无论此责任为因合约关系、无过失责任主义或因非违
-// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生�?
-// 任何直接性�?�间接�?��?�偶发�?��?�特殊�?��?�惩罚�?�或任何结果的损害（包括但不�?
-// 于替代商品或劳务之购用�?�使用损失�?�资料损失�?�利益损失�?�业务中断等等）�?
-// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然�?
+// 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
+// 本软件包装不负任何明示或默示之担保责任，包括但不限于就适售性以及特定目
+// 的的适用性为默示性担保。版权持有人及本软件之贡献者，无论任何条件、
+// 无论成因或任何责任主义、无论此责任为因合约关系、无过失责任主义或因非违
+// 约之侵权（包括过失或其他原因等）而起，对于任何因使用本软件包装所产生的
+// 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
+// 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
+// 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 //TODO: 支持多个文件，那么就可以支持multiboot
 #include <systime.h>
@@ -62,39 +62,38 @@
 #include <stdio.h>
 #include "../../filesystems.h"
 #include "Iboot_info.h"
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中�?
-                                //允许是个空文件，�?有配置将按默认�?�配置�??
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-//@#$%component configure   ****组件配置�?始，用于 DIDE 中图形化配置界面
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
-//%$#@initcode      ****初始化代码开始，�? DIDE 删除�?//”后copy到初始化文件�?
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
 //    ModuleInstall_XIP_APP_FS(0,NULL);
-//%$#@end initcode  ****初始化代码结�?
+//%$#@end initcode  ****初始化代码结束
 
-//%$#@describe      ****组件描述�?�?
-//component name:"System: xip app file system"//用于app的在线升�?
-//parent:"component file system"//填写该组件的父组件名字，none表示没有父组�?
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分�?
-//select:choosable              //选填“required、choosable、none”，若填必�?�且�?要配置参数，则IDE裁剪界面中默认勾取，
-                                //不可取消，必选且不需要配置参数的，或是不可�?�的，IDE裁剪界面中不显示�?
-//init time:early               //初始化时机，可�?��?�：early，medium，later�?
-                                //表示初始化时间，分别是早期�?�中期�?�后�?
+//%$#@describe      ****组件描述开始
+//component name:"System: xip app file system"//用于app的在线升级
+//parent:"component file system"//填写该组件的父组件名字，none表示没有父组件?
+//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early               //初始化时机，可选值：early，medium，later。
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制�?�中�?
-                                //如果依赖多个组件，则依次列出，用�?,”分�?
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
-//%$#@configue      ****参数配置�?�?
-//%$#@target = header           //header = 生成头文�?,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无�?�的宏，仅用于第三方组件
+//%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 
@@ -113,15 +112,15 @@ s32 xip_app_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //
 //
 //
-#define __FILE_NAME_MAX_LEN               (240) // 支持的最大文件名长度(包括结束�?)
+#define __FILE_NAME_MAX_LEN               (240) // 支持的最大文件名长度(包括结束符)
 
 //
-// xip文件用�?�标�?
+// xip文件用途标签
 //
 #define __TAG_RELEASE                      ((u32)0x61707000) // 发布模式的文件；
 #define __TAG_DEBUG                        ((u32)0x00676264) // 调试模式的文件；
 
-// xip文件状�??
+// xip文件状态
 #define __STATUS_TEMP                   ((u32)0x1)
 #define __STATUS_UPDATING                    ((u32)0x2)
 #define __STATUS_UPDATED                     ((u32)0x3)
@@ -132,11 +131,11 @@ s32 xip_app_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //extern s32 __ll_erase(struct __icore *core, u32 bytes, u32 pos);
 //extern u32 __ll_crc32(struct __icore *core, u32 pos, u32 len);
 // ============================================================================
-// 功能：解析文件格�?(头部)�?
-// 参数：head -- xip文件头部格式�?
-//      file -- xip文件�?
-// 返回：xip文件�?
-// 备注�?
+// 功能：解析文件格式(头部)；
+// 参数：head -- xip文件头部格式；
+//      file -- xip文件；
+// 返回：xip文件；
+// 备注：
 // ============================================================================
 struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
 {
@@ -154,10 +153,10 @@ struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
 }
 
 //==========================================================================
-// 功能：文件上�?
-// 参数�?
-// 返回�?
-// 备注�?
+// 功能：文件上锁
+// 参数：
+// 返回：
+// 备注：
 // ============================================================================
 static inline void xip_app_lock(struct __icore *core)
 {
@@ -165,10 +164,10 @@ static inline void xip_app_lock(struct __icore *core)
 }
 
 // ============================================================================
-// 功能：文件解�?
-// 参数�?
-// 返回�?
-// 备注�?
+// 功能：文件解锁
+// 参数：
+// 返回：
+// 备注：
 // ============================================================================
 static inline void xip_app_unlock(struct __icore *core)
 {
@@ -177,9 +176,9 @@ static inline void xip_app_unlock(struct __icore *core)
 
 // ============================================================================
 // 功能：新建xip文件
-// 参数：core -- xip文件系统信息�?
+// 参数：core -- xip文件系统信息；
 // 返回：成功（xip文件）； 失败(NULL);
-// 备注�?
+// 备注：
 // ============================================================================
 static struct __ifile *xip_app_newfile(struct __icore *core)
 {
@@ -198,10 +197,10 @@ static struct __ifile *xip_app_newfile(struct __icore *core)
 }
 
 // ============================================================================
-// 功能�? 文件头部位置
+// 功能： 文件头部位置
 // 参数：file -- xip文件
-// 返回：文件头部位置偏�?
-// 备注�?
+// 返回：文件头部位置偏置
+// 备注：
 // ============================================================================
 static inline u32 xip_app_locatefilehead(struct __ifile *file)
 {
@@ -209,11 +208,11 @@ static inline u32 xip_app_locatefilehead(struct __ifile *file)
 }
 
 // ============================================================================
-// 功能�? 格式化xip文件（头部）
-// 参数：core -- xip文件系统信息�?
-//      file -- xip文件�?
-// 返回：失败（-1）；成功�?0）�??
-// 备注�?
+// 功能： 格式化xip文件（头部）
+// 参数：core -- xip文件系统信息；
+//      file -- xip文件；
+// 返回：失败（-1）；成功（0）。
+// 备注：
 // ============================================================================
 s32 xip_app_formatfilehead(struct __icore *core, struct __ifile *file)
 {
@@ -226,12 +225,12 @@ s32 xip_app_formatfilehead(struct __icore *core, struct __ifile *file)
 }
 
 // ============================================================================
-// 功能：建立文件格式（头部�?
-// 参数：core -- xip文件系统信息�?
-//      file -- xip文件�?
+// 功能：建立文件格式（头部）
+// 参数：core -- xip文件系统信息；
+//      file -- xip文件；
 //      name -- xip文件名；
-// 返回：失败（-1）；成功�?0）�??
-// 备注�?
+// 返回：失败（-1）；成功（0）。
+// 备注：
 // ============================================================================
 s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __ifile *file, const char *name)
 {
@@ -248,9 +247,9 @@ s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __if
 
 // ============================================================================
 // 功能：扫描xip文件
-// 参数：core -- xip文件系统信息�?
-// 返回：失败，未找到文件（-1）；成功找到文件�?0）�??
-// 备注�?
+// 参数：core -- xip文件系统信息；
+// 返回：失败，未找到文件（-1）；成功找到文件（0）。
+// 备注：
 // ============================================================================
 static s32 xip_app_scanfiles(struct __icore *core)
 {
@@ -264,17 +263,17 @@ static s32 xip_app_scanfiles(struct __icore *core)
     if(res)
         goto Error;
 
-    // 当前只有�?个文�?
+    // 当前只有一个文件
     file = xip_app_newfile(core);
     if(NULL == xip_app_decodefilehead(structFileHead, file))
     {
-        // 当前逻辑不在上电�?索文件的时�?�格式整个空�?,而只格式�?个头部�??
-        // 必须要这个�?�辑，因为在升级过程的中断，�?�?是头部不存在，�?�后续有内容。�?�第�?次写入时，并不想照顾这个逻辑�?
+        // 当前逻辑不在上电检索文件的时候格式整个空间,而只格式一个头部。
+        // 必须要这个逻辑，因为在升级过程的中断，往往是头部不存在，而后续有内容。而第一次写入时，并不想照顾这个逻辑。
         res = xip_app_formatfilehead(core, file);
-        goto Error; // 当前系统已无文件，后续�?�辑不执�?
+        goto Error; // 当前系统已无文件，后续逻辑不执行
     }
     name = Get_AppName(structFileHead);
-    // 将内容接入文件系�?
+    // 将内容接入文件系统
     if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, name))
     {
         free(file);
@@ -290,8 +289,8 @@ Error:
 
 // ============================================================================
 // 功能：释放xip文件（内存中的空间）
-// 参数：file -- xip文件�?
-// 返回�?
+// 参数：file -- xip文件；
+// 返回：
 // 备注：INLINE
 // ============================================================================
 static void xip_app_freefile(struct __ifile *file)
@@ -305,10 +304,10 @@ static void xip_app_freefile(struct __ifile *file)
 }
 
 // ============================================================================
-// 功能：删除xip文件，包括存储介质上的数�?
-// 参数：core -- xip文件系统信息�?
-//      file -- xip文件�?
-// 返回：失败（-1）；成功�?0）�??
+// 功能：删除xip文件，包括存储介质上的数据
+// 参数：core -- xip文件系统信息；
+//      file -- xip文件；
+// 返回：失败（-1）；成功（0）。
 // 备注：INLINE
 // ============================================================================
 static s32 xip_app_delfile(struct __icore *core, struct __ifile *file)
@@ -322,9 +321,9 @@ static s32 xip_app_delfile(struct __icore *core, struct __ifile *file)
 
 // ============================================================================
 // 功能：新建xip文件上下文；
-// 参数：core -- xip文件系统信息�?
+// 参数：core -- xip文件系统信息；
 // 返回：成功（xip文件上下文）；失败（NULL）；
-// 备注�?
+// 备注：
 // ============================================================================
 static struct __icontext *xip_app_newcontext(struct __icore *core)
 {
@@ -345,9 +344,9 @@ static struct __icontext *xip_app_newcontext(struct __icore *core)
 }
 
 // ============================================================================
-// 功能：释放xip文件上下�?
+// 功能：释放xip文件上下文
 // 参数：pContext -- xip文件上下文；
-// 返回�?
+// 返回：
 // 备注：INLINE
 // ============================================================================
 void xip_app_freecontext(struct __icontext *pContext)
@@ -356,12 +355,12 @@ void xip_app_freecontext(struct __icontext *pContext)
 }
 
 // ============================================================================
-// 功能：打�?文件
-// 参数：ob -- 文件对象�?
+// 功能：打开文件
+// 参数：ob -- 文件对象；
 //      flags -- 文件操作标志位；
-//      uncached -- �?新建的文件名称；
+//      uncached -- 需新建的文件名称；
 // 返回：成功（xip文件上下文）；失败（NULL）；
-// 备注�?
+// 备注：
 // ============================================================================
 static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncached)
 {
@@ -373,7 +372,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
     struct __icore *core = (struct __icore*)corefs(ob);
     mode_t mode;
     xip_app_lock(core);
-    if((!uncached)&&(obj_isMount(ob))) // 根目�?
+    if((!uncached)&&(obj_isMount(ob))) // 根目录
     {
         if(!test_directory(flags))
         {
@@ -383,7 +382,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
     }
     if(uncached)
     {
-    //关闭文件后文件的obj会从mount点的obj中删除，�?以如果mount点的obj中没有文件的obj则先从flash中获取该文件信息
+    //关闭文件后文件的obj会从mount点的obj中删除，所以如果mount点的obj中没有文件的obj则先从flash中获取该文件信息
         xip_app_scanfiles(core);//扫描文件
         do
         {
@@ -403,16 +402,16 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
     if(test_directory(flags)) // 目录逻辑
     {
         xip_app_scanfiles(core);//扫描文件
-        if(uncached)// 不支持新建目�?
+        if(uncached)// 不支持新建目录
         {
             printf("\r\n: info : xipfs  : do not support create directory.");
             xip_app_unlock(core);
             return (NULL);
         }
     }
-    else // 文件的�?�辑
+    else // 文件的逻辑
     {
-        if(uncached) // 文件不存在，�?要新建�?�（文件都是已缓存的�?
+        if(uncached) // 文件不存在，需要新建。（文件都是已缓存的）
         {
             if(!test_creat(flags))
             {
@@ -420,7 +419,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
                 return (NULL); // 打开操作中无新建要求，则返回不存在；
             }
 
-            // 判断xip文件系统是不是已经有文件了，如果存在是否正在使用�?
+            // 判断xip文件系统是不是已经有文件了，如果存在是否正在使用；
             tmp = obj_child(core->root);
             if(tmp)
             {
@@ -448,7 +447,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
 
             xip_app_formatfilehead(core, file);
 #if 0
-            if(of_virtualize(ob, &file->basic, uncached)) // xip文件，链入文件系�?
+            if(of_virtualize(ob, &file->basic, uncached)) // xip文件，链入文件系统
                 return (NULL);
 #else
             if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, uncached))
@@ -458,12 +457,12 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
             }
 #endif
         }
-        else // 文件已存�?
+        else // 文件已存在
         {
             if(test_onlycreat(flags))
             {
                 xip_app_unlock(core);
-                return (NULL); // 必须新建逻辑，但文件已存�?
+                return (NULL); // 必须新建逻辑，但文件已存在
             }
 
             file = (struct __ifile*)obj_GetPrivate(ob);
@@ -490,7 +489,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
             return (NULL);
         }
 
-        // 预缓存�?�辑
+        // 预缓存逻辑
         if(file->sz<core->inhead)
         {
             size = file->sz;
@@ -540,9 +539,9 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
 
     if(hdl)
     {
-        //TODO：从yaffs2中读取权限等，暂时赋予全部权限�??
-        mode = S_IALLUGO | S_IFREG;     //建立的路径，属�?�是目录�?
-        //继承操作方法，对象的私有成员保存访问模式（即 stat �? st_mode �?
+        //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
+        mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
+        //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
         ob = obj_buildpath(ob, xip_app_ops, mode,uncached);
         obj_LinkHandle(hdl, ob);
     }
@@ -551,10 +550,10 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
 }
 
 // ============================================================================
-// 功能：关闭文�?
-// 参数：hdl -- xip文件对象句柄�?
-// 返回：成功（0）；失败�?-1）；
-// 备注�?
+// 功能：关闭文件
+// 参数：hdl -- xip文件对象句柄；
+// 返回：成功（0）；失败（-1）；
+// 备注：
 // ============================================================================
 static s32 xip_app_close(struct objhandle *hdl)
 {
@@ -563,12 +562,12 @@ static s32 xip_app_close(struct objhandle *hdl)
     struct __ifile *file;
     struct __icontext *cx = (struct __icontext*)handle_context(hdl);
 
-    if(cx) // NULL时表示目�?
+    if(cx) // NULL时表示目录
     {
         core = (struct __icore*)corefs(handle_GetHostObj(hdl));
         file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
         xip_app_lock(core);
-        if(__STATUS_UPDATED != file->status) // 数据存在写入操作或�?�文件是新建�?
+        if(__STATUS_UPDATED != file->status) // 数据存在写入操作或者文件是新建的
         {
             if(cx->bufed)
             {
@@ -584,7 +583,7 @@ static s32 xip_app_close(struct objhandle *hdl)
                 }
             }
 
-            if(!iscontender(hdl)) // �?后一个文件使用�?�关闭文件时，才会设置文件头
+            if(!iscontender(hdl)) // 最后一个文件使用者关闭文件时，才会设置文件头
             {
                 if(xip_app_makefilehead(cx,core, file, handle_name(hdl)))
                 {
@@ -604,11 +603,11 @@ static s32 xip_app_close(struct objhandle *hdl)
 
 // ============================================================================
 // 功能：写文件
-// 参数：hdl -- xip文件对象句柄�?
-//      data -- �?写入数据的空间；
-//      size -- �?写入数据的大小；
+// 参数：hdl -- xip文件对象句柄；
+//      data -- 需写入数据的空间；
+//      size -- 需写入数据的大小；
 // 返回：实际写入的字节数；
-// 备注�?
+// 备注：
 // ============================================================================
 static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 {
@@ -649,23 +648,23 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
             once = free;
         memcpy(cx->buf+cx->bufed, data, once);
         cx->bufed += once;
-        if((cx->bufed==core->bufsz) || // 缓冲已满，刷�?
-           ((cx->bufed==(s16)core->inhead) // 文件头部占据了固定空间，此情况也满（对齐�?
+        if((cx->bufed==core->bufsz) || // 缓冲已满，刷入
+           ((cx->bufed==(s16)core->inhead) // 文件头部占据了固定空间，此情况也满（对齐）
              &&(((cx->pos+once)<=core->inhead)))) // (等于零的情况用于存在于seek逻辑)
         {
             pos = cx->pos - (cx->bufed - once) + file->cxbase; // 当前位置写入时的位置，缓存对齐了的；
-            res = core->drv->xip_write_media(core, cx->buf, cx->bufed, pos);// 此时bufed的大小为bufsz或�?�inhead�?
+            res = core->drv->xip_write_media(core, cx->buf, cx->bufed, pos);// 此时bufed的大小为bufsz或者inhead；
             if(-1==res) // 写错误；
             {
                 break;
             }
             else if(-2==res) // 将要没有可写空间，删除一些；
             {
-                if(core->drv->xip_erase_media(core, core->bufsz, (pos+cx->bufed+1)))// '+1'表示下一个要写的空间地址�?
+                if(core->drv->xip_erase_media(core, core->bufsz, (pos+cx->bufed+1)))// '+1'表示下一个要写的空间地址；
                     break;
             }
 
-            // 缓存重置，将后续的缓存预取进来（第一个head区域是不会在这里�?要缓存的�?
+            // 缓存重置，将后续的缓存预取进来（第一个head区域是不会在这里需要缓存的）
             // 此后seek就直接移动bufed;
             if(left<core->bufsz)
             {
@@ -686,7 +685,7 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
         file->sz = cx->pos;
 
     if((__STATUS_UPDATING!=file->status)&&(left!=(s32)size))
-        file->status = __STATUS_UPDATING; // 文件数据发生变改�?
+        file->status = __STATUS_UPDATING; // 文件数据发生变改变
 
     xip_app_unlock(core);
     return (wsize+size-left);
@@ -698,7 +697,7 @@ static s32 xip_app_sync(struct objhandle *hdl)
     struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
     xip_app_lock(core);
-    if(__STATUS_UPDATED != file->status) // 数据存在写入操作或�?�文件是新建�?
+    if(__STATUS_UPDATED != file->status) // 数据存在写入操作或者文件是新建的
     {
         if(cx->bufed)
         {
@@ -721,11 +720,11 @@ static s32 xip_app_sync(struct objhandle *hdl)
 
 // ============================================================================
 // 功能：读文件
-// 参数：hdl -- xip文件对象句柄�?
-//      data -- �?读出数据的存放空间；
-//      size -- �?读出数据的大小；
+// 参数：hdl -- xip文件对象句柄；
+//      data -- 需读出数据的存放空间；
+//      size -- 需读出数据的大小；
 // 返回：实际读出的单元数；
-// 备注�?
+// 备注：
 // ============================================================================
 static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 {
@@ -736,9 +735,9 @@ static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 
     xip_app_lock(core);
     if((cx->pos+size)>file->sz)
-        size = file->sz - cx->pos; // 不能读越�?
+        size = file->sz - cx->pos; // 不能读越界
 
-    // 获取预缓存空间；�?方面文件是预先缓存在buf中，且是对齐；另�?方面size是不会大于文件大小；
+    // 获取预缓存空间；一方面文件是预先缓存在buf中，且是对齐；另一方面size是不会大于文件大小；
     if(cx->pos<=core->inhead)
         once = core->inhead - cx->pos; // 在开始的区域中，文件头部占据了固定空间；
     else
@@ -746,20 +745,20 @@ static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 
     if(once>=(s32)size)
     {
-        // 这里会存在一个隐患，就是读的数据可能和介质中的不�?样，
-        // 不执行这个�?�辑，效率就差，而且在ecc上可能会有麻烦；
+        // 这里会存在一个隐患，就是读的数据可能和介质中的不一样，
+        // 不执行这个逻辑，效率就差，而且在ecc上可能会有麻烦；
         memcpy(data, cx->buf+cx->bufed, size);
         cx->pos += size;
         cx->bufed += size;
         return (size);
     }
 #if 0
-    // 缓冲的剩余空间容纳不了回读的数据，则先将数据刷下去，再回读�??
+    // 缓冲的剩余空间容纳不了回读的数据，则先将数据刷下去，再回读。
     pos = cx->pos - cx->bufed + file->cxbase; // 缓存对齐
-    if(-1 == core->drv->xip_write_media(core, cx->buf, (cx->bufed+once), pos)) // 缓存整体�?
+    if(-1 == core->drv->xip_write_media(core, cx->buf, (cx->bufed+once), pos)) // 缓存整体写
     {
         xip_app_unlock(core);
-        return (0); // 缓存数据刷入失败�?
+        return (0); // 缓存数据刷入失败；
     }
 #endif
     memcpy(data, cx->buf+cx->bufed, once); // 将缓存上数据线提取出来；
@@ -773,7 +772,7 @@ static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
         if(core->drv->xip_read_media(core, cx->buf, core->bufsz, cx->pos+file->cxbase))
         {
             xip_app_unlock(core);
-            return (size - left); // 缓存数据刷入失败�?
+            return (size - left); // 缓存数据刷入失败；
         }
 
         if(left>core->bufsz)
@@ -794,11 +793,11 @@ static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 
 // ============================================================================
 // 功能：设置文件当前位置；
-// 参数：hdl -- xip文件对象句柄�?
-//      offset -- 移动位置的量�?
+// 参数：hdl -- xip文件对象句柄；
+//      offset -- 移动位置的量；
 //      whence -- 移动位置的起点；
-// 返回：成功（0�?*pOffset指向新的当前位置）；失败�?-1）；
-// 备注�?
+// 返回：成功（0，*pOffset指向新的当前位置）；失败（-1）；
+// 备注：
 // ============================================================================
 static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 {
@@ -807,7 +806,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     struct __icore *core;
     s32  npos, movs, pos;
     off_t position = *offset;
-#if 0 // 应该由上级�?�辑判断
+#if 0 // 应该由上级逻辑判断
     if(isDirectory(hdl))
     {
         printf("\r\n: dbug : xipfs  : cannot seek directory.");
@@ -829,7 +828,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
                 position = 0; // 新位置越界了
         }
 
-        case SEEK_SET: // 转为当前位置的SEEK的�?�辑
+        case SEEK_SET: // 转为当前位置的SEEK的逻辑
         {
             position = position - cx->pos;
             if((position+cx->pos)<0)
@@ -842,7 +841,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
             if(npos<0)
                 npos = 0;
 
-            // 如果是在缓存范围内的移动，则直接返回�?
+            // 如果是在缓存范围内的移动，则直接返回；
             movs = npos - cx->pos; // 移动的方向；
             if(movs<0)
             {
@@ -880,7 +879,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
                 return (position);
             }
 
-            // 如果超出在缓存范围内的移动，将缓存刷入介�?
+            // 如果超出在缓存范围内的移动，将缓存刷入介质
             pos = cx->pos - cx->bufed + file->cxbase;
             if(cx->pos<core->inhead)
             {
@@ -932,8 +931,8 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 
 // ============================================================================
 // 功能：删除文件；
-// 参数：ob -- xip文件对象�?
-// 返回：成功（0）；失败�?-1）；
+// 参数：ob -- xip文件对象；
+// 返回：成功（0）；失败（-1）；
 // 备注：未考虑互斥；当pName为NULL时，表示文件正在被使用；
 // ============================================================================
 static s32 xip_app_remove(struct Object *ob)
@@ -947,10 +946,10 @@ static s32 xip_app_remove(struct Object *ob)
 }
 
 // ============================================================================
-// 功能：文件查�?
-// 参数：ob -- xip文件对象�?
-// 返回：成功（0）；失败�?-1）；
-// 备注�?
+// 功能：文件查询
+// 参数：ob -- xip文件对象；
+// 返回：成功（0）；失败（-1）；
+// 备注：
 // ============================================================================
 static s32 xip_app_stat(struct Object *ob, struct stat *data)
 {
@@ -973,10 +972,10 @@ static s32 xip_app_stat(struct Object *ob, struct stat *data)
 
 // ============================================================================
 // 功能：读xip文件系统目录项；
-// 参数：hdl -- xip文件对象句柄�?
+// 参数：hdl -- xip文件对象句柄；
 //      dentry -- 目录项；
-// 返回：全部读完（1）；失败�?-1）；读了�?项（0）；
-// 备注�?
+// 返回：全部读完（1）；失败（-1）；读了一项（0）；
+// 备注：
 // ============================================================================
 static s32 xip_app_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
@@ -994,10 +993,10 @@ static s32 xip_app_readdentry(struct objhandle *hdl, struct dirent *dentry)
     return (1);
 }
 // ============================================================================
-// 功能：初始化xip对media的驱�?
-// 参数：core -- efs文件系统管理�?  drv -- media的操作函数集
-// 返回�?0 -- 成功�?  -1 --失败
-// 备注�?
+// 功能：初始化xip对media的驱动
+// 参数：core -- efs文件系统管理；  drv -- media的操作函数集
+// 返回：0 -- 成功；  -1 --失败
+// 备注：
 // ============================================================================
 int xip_app_install_drv(struct __icore *core, struct __xip_drv *drv)
 {
@@ -1012,11 +1011,11 @@ int xip_app_install_drv(struct __icore *core, struct __xip_drv *drv)
 }
 // ============================================================================
 // 功能：安装xip文件系统
-// 参数：super -- 文件系统管理信息�?
+// 参数：super -- 文件系统管理信息；
 //      opt -- 安装逻辑标志位；
 //      config -- 自定义数据；
-// 返回：成�?(0)�? 失败(-1)�?
-// 备注�?
+// 返回：成功(0)； 失败(-1)。
+// 备注：
 // ============================================================================
 static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 {
@@ -1055,7 +1054,7 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 
     core->inhead = core->bufsz - Get_AppHeadSize();
     core->root = super->pTarget;
-    xip_app_scanfiles(core); // 扫描已存在文�?
+    xip_app_scanfiles(core); // 扫描已存在文件
     core->lock = Lock_MutexCreate("xip-app fs");
     if(!core->lock)
     {
@@ -1069,8 +1068,8 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 
 // ============================================================================
 // 功能：xip文件操作接口
-// 参数：标准�?�辑，查看接口说明；
-// 返回：标准�?�辑，查看接口说明；
+// 参数：标准逻辑，查看接口说明；
+// 返回：标准逻辑，查看接口说明；
 // 备注:
 // ============================================================================
 s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
@@ -1149,7 +1148,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         {
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
-                return (-1); // 查询的文件不存在�?
+                return (-1); // 查询的文件不存在；
             if(xip_app_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
@@ -1178,10 +1177,10 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
 // ============================================================================
 // 功能：安装xip文件系统
-// 参数：target -- 安装目录�?
+// 参数：target -- 安装目录；
 //      opt -- 文件系统配置选项；如MS_INSTALLCREAT
-//      data -- 传�?�给xip安装逻辑的数据；
-// 返回：失�?(-1)�? 成功(0)�?
+//      data -- 传递给xip安装逻辑的数据；
+// 返回：失败(-1)； 成功(0)。
 // 备注:
 // ============================================================================
 s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)

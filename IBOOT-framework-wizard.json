@@ -1,0 +1,15 @@
+{
+    "图形应用":{
+        "components":["time","blackbox","dbug"],
+        "help":"根据板件所配置的显示器驱动的名称，√选显示器驱动；根据硬件配置，√选触摸屏、键盘驱动、鼠标等外设；根据所需要显示的文字，√选相应的字符集和字体组件",
+    },
+    "网络应用":{
+        "components":["time",
+        "dbug"],
+        "help":"与DHCP相关的组件",
+     },
+    "shell终端":{
+        "components":["shell","DevFile","stdio"],
+        "help":"视情况√“uart”组件、“tcpip”组件、“Telnet”组件，或者两者均√",
+    }
+}

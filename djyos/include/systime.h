@@ -72,9 +72,6 @@ void SysTimeConnect(fnSysTimeHard32 GetSysTime32,fnSysTimeHard64 GetSysTime64,
 s64 DjyGetSysTime(void);
 s64 DjyGetSysTimeCycle(void);
 u32 DjyGetSysTimeFreq(void);
-#if (!CN_USE_TICKLESS_MODE)
-s64 DjyGetSysTick(void);
-#endif
 
 #ifdef __cplusplus
 }

@@ -575,7 +575,7 @@ bool_t  NetDevSend(struct NetDev* handle,struct NetPkg *pkglst,u32 netdevtask)
 //      para£¬ÃüÁî²ÎÊı
 //·µ»Ø: true or false
 //-----------------------------------------------------------------------------
-bool_t  NetDevCtrl(struct NetDev* handle,enNetDevCmd cmd, ptu32_t para)
+bool_t  NetDevCtrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para)
 {
     bool_t     ret = false;
     struct NetDev* dev;

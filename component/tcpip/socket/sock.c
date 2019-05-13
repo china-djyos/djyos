@@ -701,7 +701,7 @@ s32 getsockopt(s32 sockfd, s32 level, s32 optname, void *optval,\
 }
 
 //返回以前设置的app关联数据
-ptu32_t socket_setprivate(s32 sockfd, ptu32_t private)
+ptu32_t socket_SetUserTag(s32 sockfd, ptu32_t UserTag)
 {
     ptu32_t result;
     struct Socket *sock;
@@ -711,12 +711,12 @@ ptu32_t socket_setprivate(s32 sockfd, ptu32_t private)
     if(NULL != sock)
     {
         result = sock->SockUserTag;
-        sock->SockUserTag = private;
+        sock->SockUserTag = UserTag;
     }
 
     return result;
 }
-ptu32_t socket_getprivate(s32 sockfd)
+ptu32_t socket_GetUserTag(s32 sockfd)
 {
     ptu32_t result;
     struct Socket *sock;

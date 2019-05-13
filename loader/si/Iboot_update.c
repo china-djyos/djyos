@@ -82,7 +82,6 @@ static struct SemaphoreLCB *ptUpdateIbootSemp;
 // 返回：
 // 备注：
 // ============================================================================
-
 bool_t  runiboot(char *param)
 {
     Set_RunIbootFlag();
@@ -100,7 +99,6 @@ bool_t  runiboot(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-
 bool_t  runapp(char *param)
 {
     Set_RunAppFlag();
@@ -165,10 +163,6 @@ bool_t updateapp(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-#if !defined(CFG_IBOOT_UPDATE_NAME)
-#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"
-#endif
-
 char iapibootname[512];
 #define IAPBUF_SIZE   512
 bool (*Update_and_run_mode)(char *param);

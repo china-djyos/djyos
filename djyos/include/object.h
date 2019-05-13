@@ -225,7 +225,7 @@ void obj_SetPrivate(struct Object *ob, ptu32_t Private);
 fnObjOps obj_GetOps(struct Object *ob);
 s32 obj_SetOps(struct Object *ob, fnObjOps ops);
 const char *obj_name(struct Object *ob);
-char *obj_rename(struct obj *ob,char *NewName);
+char *obj_rename(struct Object *ob,char *NewName);
 struct Object *obj_parent(struct Object *ob);
 struct Object *obj_child(struct Object *ob);
 struct Object *obj_prev(struct Object *ob);

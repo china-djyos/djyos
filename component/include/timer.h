@@ -80,6 +80,7 @@ tagTimer*  Timer_Create(const char *name,u32 cycle,fnTimerRecall isr);
 bool_t Timer_Delete(tagTimer* timer);
 bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, ptu32_t para);
 char *Timer_GetName(tagTimer* timer);
+bool_t Timer_SetTag(tagTimer* timer,ptu32_t Tag);
 ptu32_t Timer_GetTag(tagTimer* timer);
 bool_t ModuleInstall_Timer(void);
 

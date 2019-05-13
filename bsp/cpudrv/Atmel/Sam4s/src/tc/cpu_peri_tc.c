@@ -53,7 +53,6 @@
 // 备注：由于提供给timer_core.c使用，所以不再做参数检查之类的
 
 #include "misc_config.h"
-#if (CN_CFG_SYSTIMER == 1)
 #include "cpu_peri.h"
 #include "int.h"
 #include "cpu.h"
@@ -681,4 +680,4 @@ void ModuleInstall_HardTimer(void)
 
     return ;
 }
-#endif
+
