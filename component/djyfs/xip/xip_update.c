@@ -53,7 +53,7 @@
 #include <device.h>
 #include "xip.h"
 #include "dbug.h"
-#include <include/unit_media.h>
+#include <device/include/unit_media.h>
 #if 0
 #define LOCAL_BUF_SIZE        512
 // ============================================================================

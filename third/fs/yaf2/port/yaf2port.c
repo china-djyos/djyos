@@ -405,7 +405,7 @@ s32 YAF2DirRead(struct FileContext *FileCt, struct Dirent *Content)
 #include <stddef.h>
 #include <dirent.h>
 #include <device/include/unit_media.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <math.h>
 #include "../yaffs2-583dbd9/yaffs2-583dbd9/direct/yaffsfs.h"
 #include "../yaffs2-583dbd9/yaffs2-583dbd9/direct/yportenv.h"
