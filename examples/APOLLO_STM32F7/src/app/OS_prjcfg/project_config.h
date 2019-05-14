@@ -37,7 +37,7 @@
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL        // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01          // Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"            // "Iboot保存"
-//*******************************  Configure cpu_peri_System: uart  ******************************************//
+//*******************************  Configure cpu_peri_System: uart device file  ******************************************//
 #define CFG_UART1_SENDBUF_LEN       64        // "UART1发送环形缓冲区大小",
 #define CFG_UART1_RECVBUF_LEN       64        // "UART1接收环形缓冲区大小",
 #define CFG_UART1_DMABUF_LEN        64        // "UART1 DMA环形缓冲区大小",

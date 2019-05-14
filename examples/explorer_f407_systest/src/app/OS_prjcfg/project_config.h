@@ -89,7 +89,7 @@
 #define CFG_HANDLE_LIMIT        8            // "句柄数初始值"，用完会自动扩充
 //*******************************  Configure System: memory pool  ******************************************//
 #define CFG_MEMPOOL_LIMIT       10                  // "内存池数量限值",
-//*******************************  Configure cpu_peri_System: uart  ******************************************//
+//*******************************  Configure cpu_peri_System: uart device file  ******************************************//
 #define     CFG_UART1_SENDBUF_LEN            32                            // "UART1发送环形缓冲区大小",
 #define     CFG_UART1_RECVBUF_LEN            32                            // "UART1接收环形缓冲区大小",
 #define     CFG_UART1_DMABUF_LEN             32                            // "UART1 DMA缓冲区大小",

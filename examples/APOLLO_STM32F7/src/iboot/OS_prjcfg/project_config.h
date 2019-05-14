@@ -20,7 +20,7 @@
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"    //
 #define CFG_STDIO_FLOAT_PRINT       true        //"支持浮点打印"
 #define CFG_STDIO_STDIOFILE         true        //"支持标准IO文件"
-//*******************************  Configure cpu_peri_System: uart  ******************************************//
+//*******************************  Configure cpu_peri_System: uart device file  ******************************************//
 #define CFG_UART1_SENDBUF_LEN       64      //
 #define CFG_UART1_RECVBUF_LEN       64      //
 #define CFG_UART1_DMABUF_LEN        64      //

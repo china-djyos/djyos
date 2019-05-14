@@ -33,7 +33,7 @@
 		"System: gb2312 charset",
 		"System: Nls Charset",
 		"System: debug",
-		"System: uart",
+		"System: uart device file",
 		"device file system",
 		"System: io analog iic bus",
 		"System: iicbus",

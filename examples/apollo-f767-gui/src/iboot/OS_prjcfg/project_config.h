@@ -74,7 +74,7 @@
 #define     CFG_STDIO_ERR_NAME               "/dev/UART1"        // "标准err输出设备名",
 #define CFG_STDIO_FLOAT_PRINT       true        //"支持浮点打印"
 #define CFG_STDIO_STDIOFILE         true        //"支持标准IO文件"
-//*******************************  Configure cpu_peri_System: uart  ******************************************//
+//*******************************  Configure cpu_peri_System: uart device file  ******************************************//
 #define     CFG_UART1_SENDBUF_LEN            64                       // "UART1发送环形缓冲区大小",
 #define     CFG_UART1_RECVBUF_LEN            64                       // "UART1接收环形缓冲区大小",
 #define     CFG_UART1_DMABUF_LEN             64                       // "UART1 DMA环形缓冲区大小",
