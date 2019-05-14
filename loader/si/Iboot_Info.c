@@ -65,11 +65,6 @@ extern void * gc_pAppOffset;
 extern void __asm_bl_fun(void * fun_addr);
 //版本号
 #define APP_HEAD_VERSION        1
-#if defined(DEBUG)
-#define BUILD_IS_DEBUG     (1)//当前APP版本debug
-#else
-#define BUILD_IS_DEBUG     (0)//当前APP版本release
-#endif
 
 struct AppHead
 {
@@ -83,13 +78,13 @@ struct AppHead
     #define VERIFICATION_SSL      3  //SSL安全证书
     u32  Verification;    //校验方法默认校验方法为不校验，由外部工具根据配置修改
     u32  appbinsize;      //app bin文件大小 由外部工具填充
-    u32  VirtAddr;        //运行地址
+    u64  VirtAddr;        //运行地址
     u32  appheadsize;     //信息块的大小
-    u32  isdebug;          //是否为debug版本
     u32  reserved;          //保留
     char appname[96];      //app的文件名 由外部工具填充该bin文件的文件名
     char VerifBuf[128];     //校验码与校验方法对应的具体内容 由工具填充
-}const Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
+};
+const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 {
         .djyflag[0]    = 'd',
         .djyflag[1]    = 'j',
@@ -98,9 +93,8 @@ struct AppHead
         .filesize      = 0xffffffff,
         .Verification  = CFG_APP_VERIFICATION,
         .appbinsize    = 0xffffffff,
-        .VirtAddr      = (u32)&Djy_App_Head,
+        .VirtAddr      = (u64)&Djy_App_Head,
         .appheadsize   = sizeof(struct AppHead),
-        .isdebug       = BUILD_IS_DEBUG,
         .reserved      = 0xffffffff,
         .appname       = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
@@ -174,7 +168,8 @@ struct IbootAppInfo
     u8   ibootisdebug;
     char boardname[23];    //组件名
     u8   rsvbuf[12];  //保留
-}Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
+};
+struct IbootAppInfo Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 
 
 //==============================================================================
@@ -812,10 +807,10 @@ bool_t XIP_AppFileChack(void * apphead)
 //参数：无
 //返回：APP信息头的大小。
 //==============================================================================
-u32 XIP_GetAPPStartAddr(void * apphead)
+void * XIP_GetAPPStartAddr(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
-    return  p_apphead->VirtAddr;
+    return  (void *)p_apphead->VirtAddr;
 }
 
 u32 XIP_GetAPPSize(void * apphead)
@@ -826,10 +821,11 @@ u32 XIP_GetAPPSize(void * apphead)
 
 bool_t XIP_APPIsDebug(void * apphead)
 {
-    struct AppHead*  p_apphead = apphead;
-    if(p_apphead->isdebug)
-        return true;
+#if defined(DEBUG)
+    return true;
+#else
     return false;
+#endif
 }
 
 u32 Get_AppSize(void * apphead)
