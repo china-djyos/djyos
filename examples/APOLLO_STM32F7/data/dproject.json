@@ -16,7 +16,7 @@
 	"components_checked":{
 		"app":["System: black box",
 		"System: ring buffer and line buffer",
-		"System: debug",
+		"System: debug information",
 		"System: uart device file",
 		"device file system",
 		"System: multiplex",

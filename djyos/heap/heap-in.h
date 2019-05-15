@@ -85,14 +85,15 @@ struct HeapCession
     //第一部分，每页分配一个16位字记录拥有本页内存的事件的ID。不允许跨事件分配和
     //释放局部内存，这是一个容易造成混乱的操作。
     //本表还用于标示该次分配的页数,free据此查询待释放的字节数.
-    //如果djy_event_completed函数发现事件仍有未释放的局部内存块，依据此表强制释
-    //放之，格式如下:
+    //如果__Djy_EventExit或__Djy_EventFinal函数发现事件仍有未释放的局部内存块，依据
+    //index_event_id 释放之，格式如下:
     //1.单页局部内存:事件id,
-    //2.双页局部内存:0xffff+事件id
-    //3.多页局部内存:0xfffe+事件id+阶号
-    //4.单页全局内存:0xfffd,全局内存没有所属事件id,只需要知道内存大小
-    //5.双(多)页全局内存:0xfffc+阶号.
-    //6.空闲内存:0xfffb
+    //2.单页全局内存:事件id + CN_EVTT_ID_MASK,
+    //3.双页局部内存:CN_MEM_DOUBLE_PAGE_LOCAL+事件id
+    //4.多页局部内存:CN_MEM_MANY_PAGE_LOCAL+事件id+阶号
+    //5.双页全局内存:CN_MEM_DOUBLE_PAGE_GLOBAL+事件id,
+    //6.双(多)页全局内存:CN_MEM_MANY_PAGE_GLOBAL+事件id+阶号.
+    //7.空闲内存:CN_MEM_FREE_PAGE
     u16     *index_event_id;
     ufast_t *p_classes;     //第二部分,各阶块空闲金字塔级数表
     ucpu_t  ***ppp_bitmap;  //第三部分,指向"空闲金字塔位图指针的指针",

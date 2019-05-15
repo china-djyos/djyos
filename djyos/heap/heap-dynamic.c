@@ -235,9 +235,12 @@ static struct EventECB *s_ptGenMemSync;
 //分配栈的同步指针，如果线程在分配栈时被互斥量阻塞，将进入本队列。
 static struct EventECB *s_ptStackSync;
 
+//0~16383，是event ID，代表该ID事件分配的单页局部内存。
 #define CN_MEM_DOUBLE_PAGE_LOCAL    0xffff
 #define CN_MEM_MANY_PAGE_LOCAL      0xfffe
-#define CN_MEM_SINGLE_PAGE_GLOBAL   0xfffd
+//16384~32767：去掉最高位后，是event ID，代表该ID事件分配的单页全局内存。
+//#define CN_MEM_SINGLE_PAGE_GLOBAL   0xfffd
+#define CN_MEM_DOUBLE_PAGE_GLOBAL   0xfffd
 #define CN_MEM_MANY_PAGE_GLOBAL     0xfffc
 #define CN_MEM_FREE_PAGE            0xfffb
 
@@ -429,24 +432,33 @@ bool_t heap_spy(void)
                 switch(pl_eid[m])
                 {
                     case CN_MEM_DOUBLE_PAGE_LOCAL:
-                    {//双页局部分配,-1+id
-                        printf("%10d = %-10d 局部  0x%08x %05d\n\r", m, m + 1, Cession->PageSize*2,pl_eid[m + 1]);
+                    {//双页局部分配,CN_MEM_DOUBLE_PAGE_LOCAL+event id
+                        printf("%10d = %-10d 局部  0x%08x %05d\n\r", m, m + 1,
+                                    Cession->PageSize*2,pl_eid[m + 1]);
                         m += 2;
                     }break;
                     case CN_MEM_MANY_PAGE_LOCAL:
-                    {//多页局部分配:-2+id+阶号
+                    {//多页局部分配:CN_MEM_MANY_PAGE_LOCAL+event id+阶号
                         printf("%10d = %-10d 局部   0x%08x %05d\n\r",
-                                    m,m+(1<<pl_eid[m+2])-1, Cession->PageSize*(1<<pl_eid[m+2]),pl_eid[m+1]);
+                                    m,m+(1<<pl_eid[m+2])-1, Cession->PageSize*(1<<pl_eid[m+2]),
+                                    pl_eid[m+1]);
                         m += 1<<pl_eid[m+2];
                     }break;
-                    case CN_MEM_SINGLE_PAGE_GLOBAL:
-                    {//单页全局内存:-3
-                        printf("%10d - %-10d 全局   0x%08x\n\r",m,m,Cession->PageSize);
+//                  case CN_MEM_SINGLE_PAGE_GLOBAL:
+//                  {//单页全局内存:-3
+//                      printf("%10d - %-10d 全局   0x%08x\n\r",m,m,Cession->PageSize);
+//                      m++;
+//                  }break;
+                    case CN_MEM_DOUBLE_PAGE_GLOBAL:
+                    {//双页全局内存:CN_MEM_DOUBLE_PAGE_GLOBAL + event id
+                        printf("%10d - %-10d 全局   0x%08x %05d\n\r",m,m+1,
+                                    Cession->PageSize*2,pl_eid[m + 1]);
                         m++;
                     }break;
                     case CN_MEM_MANY_PAGE_GLOBAL:
-                    {//双(多)页全局内存:-4+阶号.
-                        printf("%10d - %-10d 全局   0x%08x\n\r",m,m+(1<<pl_eid[m+1])-1, Cession->PageSize*(1<<pl_eid[m+1]));
+                    {//双(多)页全局内存:CN_MEM_MANY_PAGE_GLOBAL+event id+阶号
+                        printf("%10d - %-10d 全局   0x%08x %05d\n\r",m,m+(1<<pl_eid[m+1])-1,
+                                    Cession->PageSize*(1<<pl_eid[m+1]),pl_eid[m + 1]);
                         m += 1<<pl_eid[m+1];
                     }break;
                     case CN_MEM_FREE_PAGE:
@@ -461,7 +473,18 @@ bool_t heap_spy(void)
                     }break;
                     default :
                     {
-                        printf("%10d = %-10d 局部   0x%08x %05d\n\r",m,m,Cession->PageSize,pl_eid[m]);
+                        //单页局部内存:event id
+                        //单页全局内存:event id + CN_EVTT_ID_MASK
+                        if(pl_eid[m] < CN_EVTT_ID_MASK)
+                        {
+                            printf("%10d = %-10d 局部   0x%08x %05d\n\r",m,m,
+                                            Cession->PageSize,pl_eid[m]);
+                        }else
+                        {
+                            printf("%10d = %-10d 全局   0x%08x %05d\n\r",m,m,
+                                   Cession->PageSize,pl_eid[m] - CN_EVTT_ID_MASK);
+                        }
+//                      printf("%10d = %-10d 局部   0x%08x %05d\n\r",m,m,Cession->PageSize,pl_eid[m]);
                         m++;
                     }break;
                 }
@@ -482,12 +505,12 @@ bool_t heap_spy(void)
 //参数: mp,动态分配的内存指针.
 //返回: 内存块尺寸,返回0有几种含义:1.非法指针,2.mp是由准静态分配的指针.
 //-----------------------------------------------------------------------------
+ptu32_t __M_StaticCheckSize(void * mp);
 ptu32_t __M_CheckSize(void * mp)
 {
     struct HeapCB *Heap;
     struct HeapCession *Cession;
     ptu32_t ua_pages_number;
-    ptu32_t *temp;
     uint16_t *pl_id;
     ufast_t uf_free_grade_th;
 
@@ -528,27 +551,35 @@ ptu32_t __M_CheckSize(void * mp)
                         {//多页局部分配:-2+id+阶号
                             uf_free_grade_th = (ufast_t)pl_id[2];
                         }break;
-                        case CN_MEM_SINGLE_PAGE_GLOBAL :
+//                      case CN_MEM_SINGLE_PAGE_GLOBAL :
+//                      {//单页全局内存:-3
+//                          uf_free_grade_th = 0;
+//                      }break;
+                        case CN_MEM_DOUBLE_PAGE_GLOBAL :
                         {//单页全局内存:-3
-                            uf_free_grade_th = 0;
+                            uf_free_grade_th = 1;
                         }break;
                         case CN_MEM_MANY_PAGE_GLOBAL :
                         {//双(多)页全局内存:-4+阶号.
-                            uf_free_grade_th = (ufast_t)pl_id[1];
+                            uf_free_grade_th = (ufast_t)pl_id[2];
                         }break;
                         case CN_MEM_FREE_PAGE :
-                        {//双(多)页全局内存:-4+阶号.
+                        {
                             uf_free_grade_th = CN_LIMIT_UFAST;
                         }break;
                         default :
                         {
-                            if(pl_id[0] <= CN_EVENT_ID_LIMIT)
-                                uf_free_grade_th = 0;       //单页局部分配:id,
-                            else
-                            {
-                                Djy_SaveLastError(EN_MEM_ERROR);
-                                return 0;
-                            }
+                            //单页局部内存:event id
+                            //单页全局内存:event id + CN_EVTT_ID_MASK
+                            uf_free_grade_th = 0;       //单页局部分配:id,
+
+//                          if(pl_id[0] <= CN_EVENT_ID_LIMIT)
+//                              uf_free_grade_th = 0;       //单页局部分配:id,
+//                          else
+//                          {
+//                              Djy_SaveLastError(EN_MEM_ERROR);
+//                              return 0;
+//                          }
                         }break;
                     }
                     if(uf_free_grade_th == CN_LIMIT_UFAST)
@@ -1179,7 +1210,7 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
     struct HeapCession *Cession;
     void *ua_address;
     ufast_t  uf_grade_th;
-    uint16_t    *pl_id;
+    uint16_t    *pl_id,id;
     bool_t   en_scheduler;
     void *result;
 
@@ -1209,13 +1240,31 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
             pl_id = &Cession->index_event_id
                     [(ptu32_t)((u8*)ua_address-Cession->heap_bottom)
                             /Cession->PageSize];
-            if(0==uf_grade_th)
-                *pl_id = CN_MEM_SINGLE_PAGE_GLOBAL;
-            else
-            {
+            id = g_ptEventRunning->event_id;
+//          if(0==uf_grade_th)
+//              *pl_id = CN_MEM_SINGLE_PAGE_GLOBAL;
+//          else
+//          {
+//              *pl_id++ = CN_MEM_MANY_PAGE_GLOBAL;
+//              *pl_id = uf_grade_th;
+//          }
+
+            if(uf_grade_th==0)
+            {//分配1页
+                *pl_id = id + CN_EVTT_ID_MASK;
+            }else if(uf_grade_th==1)
+            {//分配2页
+                *pl_id++ = CN_MEM_DOUBLE_PAGE_GLOBAL;
+                *pl_id = id;
+            }else
+            {   //分配多页
                 *pl_id++ = CN_MEM_MANY_PAGE_GLOBAL;
+                *pl_id++ = id;
                 *pl_id = uf_grade_th;
             }
+
+
+
             result = ua_address;
         }
     }
@@ -1327,7 +1376,7 @@ void *__M_MallocStack(struct EventECB *event, u32 size)
     struct HeapCession *Cession;
     void *ua_address;
     ufast_t  uf_grade_th;
-    u16    *pl_id;
+    u16    *pl_id,id;
     void *result;
 
     if( (size == 0) || (tg_pSysHeap == NULL))
@@ -1357,13 +1406,28 @@ void *__M_MallocStack(struct EventECB *event, u32 size)
             pl_id = &Cession->index_event_id
                     [(ptu32_t)((u8*)ua_address-Cession->heap_bottom)
                               /Cession->PageSize];
-            if(0==uf_grade_th)
-                *pl_id = CN_MEM_SINGLE_PAGE_GLOBAL;
-            else
-            {
+            id = event->event_id;
+//          if(0==uf_grade_th)
+//              *pl_id = CN_MEM_SINGLE_PAGE_GLOBAL;
+//          else
+//          {
+//              *pl_id++ = CN_MEM_MANY_PAGE_GLOBAL;
+//              *pl_id = uf_grade_th;
+//          }
+            if(uf_grade_th==0)
+            {//分配1页
+                *pl_id = id + CN_EVTT_ID_MASK;
+            }else if(uf_grade_th==1)
+            {//分配2页
+                *pl_id++ = CN_MEM_DOUBLE_PAGE_GLOBAL;
+                *pl_id = id;
+            }else
+            {   //分配多页
                 *pl_id++ = CN_MEM_MANY_PAGE_GLOBAL;
+                *pl_id++ = id;
                 *pl_id = uf_grade_th;
             }
+
             result = ua_address;
         }
     }
@@ -1493,7 +1557,7 @@ void *__M_MallocBlock(ufast_t grade,struct HeapCession *Cession)
             uf_classes= pl_classes[uf_grade_th];        //第uf_grade_th阶总级数
             ppl_bitmap   = pppl_bitmap[uf_grade_th];    //位图索引表指针
             pl_bitmap    = ppl_bitmap[uf_classes-1];    //最高级位图指针
-            if(*pl_bitmap != (~0))
+            if(*pl_bitmap != (u32)(~0))
             {//路径顶端只要不是全1就表示该阶肯定有空闲块.
                 //根据阶号计算最大空闲块的尺寸.
                 Cession->ua_free_block_max=Cession->PageSize<<uf_grade_th;
@@ -1733,31 +1797,41 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
             pl_id[1] = CN_MEM_FREE_PAGE;
             pl_id[2] = CN_MEM_FREE_PAGE;
         }break;
-        case CN_MEM_SINGLE_PAGE_GLOBAL :
-        {   //单页全局内存:-3
-            uf_free_grade_th = 0;
+//      case CN_MEM_SINGLE_PAGE_GLOBAL :
+//      {   //单页全局内存:-3
+//          uf_free_grade_th = 0;
+//      }break;
+        case CN_MEM_DOUBLE_PAGE_GLOBAL :
+        {   //双页全局内存:-3
+            pl_id[1] = CN_MEM_FREE_PAGE;
+            uf_free_grade_th = 1;
         }break;
         case CN_MEM_MANY_PAGE_GLOBAL :
         {   //双(多)页全局内存:-4+阶号.
-            uf_free_grade_th = (ufast_t)pl_id[1];
+            uf_free_grade_th = (ufast_t)pl_id[2];
             pl_id[1] = CN_MEM_FREE_PAGE;
+            pl_id[2] = CN_MEM_FREE_PAGE;
         }break;
         default :
         {
-            if(pl_id[0] <= CN_EVENT_ID_LIMIT)
-            {   //单页局部内存:id,
-//                id = pl_id[0];
-                pl_id[0] = CN_MEM_FREE_PAGE;
-                uf_free_grade_th = 0;
-            }else
-            {
-                pl_id[0] = CN_MEM_FREE_PAGE;
-                Djy_SaveLastError(EN_MEM_ERROR);   //指针有错,直接退出
-                Lock_MutexPost(&(CurHeap->HeapMutex) );
-                __M_CheckSTackSync( );
-                return;
-
-            }
+            //单页局部内存:event id
+            //单页全局内存:event id + CN_EVTT_ID_MASK
+            pl_id[0] = CN_MEM_FREE_PAGE;
+            uf_free_grade_th = 0;
+//            if(pl_id[0] <= CN_EVENT_ID_LIMIT)
+//            {   //单页局部内存:id,
+////                id = pl_id[0];
+//                pl_id[0] = CN_MEM_FREE_PAGE;
+//                uf_free_grade_th = 0;
+//            }else
+//            {
+//                pl_id[0] = CN_MEM_FREE_PAGE;
+//                Djy_SaveLastError(EN_MEM_ERROR);   //指针有错,直接退出
+//                Lock_MutexPost(&(CurHeap->HeapMutex) );
+//                __M_CheckSTackSync( );
+//                return;
+//
+//            }
         }break;
     }
     pl_id[0] = CN_MEM_FREE_PAGE;
@@ -1811,7 +1885,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
             }else
             {//前一次操作使一个字从全1->有0，该字对应的下一级路径相应位清0
                 pl_bitmap[ua_word_offset] &= ~(1<<u32WordShift);
-                if(pl_bitmap[ua_word_offset] == ~(1<<u32WordShift))
+                if(pl_bitmap[ua_word_offset] == (u32)~(1<<u32WordShift))
                 {
                 //被清0的位所在的字全1->有0，该字对应的下一级位图相应位清0
                 }
@@ -1848,7 +1922,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
             u32WordShift=ua_word_offset&cn_low_xbit_msk[CN_CPU_BITS_SUFFIX_ZERO];
             ua_word_offset=ua_word_offset>>CN_CPU_BITS_SUFFIX_ZERO;  //字偏移
             pl_bitmap[ua_word_offset] &= ~(1<<u32WordShift);
-            if(pl_bitmap[ua_word_offset] == ~(1<<u32WordShift))
+            if(pl_bitmap[ua_word_offset] == (u32)~(1<<u32WordShift))
             {
             //被清0的位所在的字全1->有0，该字对应的下一级位图相应位清0
             }
@@ -1863,7 +1937,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
         uf_classes   = pl_classes[uf_grade_th];     //第uf_grade_th阶的总级数
         ppl_bitmap   = pppl_bitmap[uf_grade_th];    //位图索引表指针
         pl_bitmap    = ppl_bitmap[uf_classes-1];    //最高级位图指针
-        if(*pl_bitmap != (~0))
+        if(*pl_bitmap != (u32)(~0))
         {//路径顶端只要不是全1就表示该阶肯定有空闲块.
             //根据阶号计算最大空闲块的尺寸.
             Cession->ua_free_block_max=Cession->PageSize<<uf_grade_th;
@@ -2088,6 +2162,6 @@ ptu32_t  __M_GetFreeMem(void)
 
 #endif
 
-ADD_TO_ROUTINE_SHELL(heap_spy,heap_spy,"显示动态内存详细分配情况");
+ADD_TO_ROUTINE_SHELL(heapdetail,heap_spy,"显示动态内存详细分配情况");
 ADD_TO_ROUTINE_SHELL(heap,heap,"显示堆使用情况");
 
