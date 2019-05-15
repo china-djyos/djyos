@@ -458,7 +458,7 @@ bool_t heap_spy(void)
                     case CN_MEM_MANY_PAGE_GLOBAL:
                     {//双(多)页全局内存:CN_MEM_MANY_PAGE_GLOBAL+event id+阶号
                         printf("%10d - %-10d 全局   0x%08x %05d\n\r",m,m+(1<<pl_eid[m+1])-1,
-                                    Cession->PageSize*(1<<pl_eid[m+1]),pl_eid[m + 1]);
+                                    Cession->PageSize*(1<<pl_eid[m+2]),pl_eid[m + 1]);
                         m += 1<<pl_eid[m+1];
                     }break;
                     case CN_MEM_FREE_PAGE:
@@ -544,11 +544,11 @@ ptu32_t __M_CheckSize(void * mp)
                     switch(pl_id[0])
                     {
                         case CN_MEM_DOUBLE_PAGE_LOCAL :
-                        {//双页局部分配,-1+id
+                        {//双页局部分配,CN_MEM_DOUBLE_PAGE_LOCAL+event id
                             uf_free_grade_th = 1;
                         }break;
                         case CN_MEM_MANY_PAGE_LOCAL :
-                        {//多页局部分配:-2+id+阶号
+                        {//多页局部分配:CN_MEM_MANY_PAGE_LOCAL+event id+阶号
                             uf_free_grade_th = (ufast_t)pl_id[2];
                         }break;
 //                      case CN_MEM_SINGLE_PAGE_GLOBAL :
@@ -556,11 +556,11 @@ ptu32_t __M_CheckSize(void * mp)
 //                          uf_free_grade_th = 0;
 //                      }break;
                         case CN_MEM_DOUBLE_PAGE_GLOBAL :
-                        {//单页全局内存:-3
+                        {//双页全局内存:CN_MEM_DOUBLE_PAGE_GLOBAL + event id
                             uf_free_grade_th = 1;
                         }break;
                         case CN_MEM_MANY_PAGE_GLOBAL :
-                        {//双(多)页全局内存:-4+阶号.
+                        {//多页全局内存:CN_MEM_MANY_PAGE_GLOBAL+(event id)|CN_EVTT_ID_MASK+阶号.
                             uf_free_grade_th = (ufast_t)pl_id[2];
                         }break;
                         case CN_MEM_FREE_PAGE :
@@ -1787,12 +1787,12 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     switch(pl_id[0])
     {
         case CN_MEM_DOUBLE_PAGE_LOCAL :
-        {   //双页局部内存,-1+id
+        {   //双页局部内存,CN_MEM_DOUBLE_PAGE_LOCAL + event id
             pl_id[1] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 1;
         }break;
         case CN_MEM_MANY_PAGE_LOCAL :
-        {   //多页局部内存:-2+id+阶号
+        {   //多页局部内存:CN_MEM_MANY_PAGE_LOCAL+event id+阶号
             uf_free_grade_th = (ufast_t)pl_id[2];
             pl_id[1] = CN_MEM_FREE_PAGE;
             pl_id[2] = CN_MEM_FREE_PAGE;
@@ -1802,12 +1802,12 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 //          uf_free_grade_th = 0;
 //      }break;
         case CN_MEM_DOUBLE_PAGE_GLOBAL :
-        {   //双页全局内存:-3
+        {//双页全局内存:CN_MEM_DOUBLE_PAGE_GLOBAL + event id
             pl_id[1] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 1;
         }break;
         case CN_MEM_MANY_PAGE_GLOBAL :
-        {   //双(多)页全局内存:-4+阶号.
+        {//多页全局内存:CN_MEM_MANY_PAGE_GLOBAL+(event id)|CN_EVTT_ID_MASK+阶号.
             uf_free_grade_th = (ufast_t)pl_id[2];
             pl_id[1] = CN_MEM_FREE_PAGE;
             pl_id[2] = CN_MEM_FREE_PAGE;
