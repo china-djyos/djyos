@@ -453,13 +453,13 @@ bool_t heap_spy(void)
                     {//双页全局内存:CN_MEM_DOUBLE_PAGE_GLOBAL + event id
                         printf("%10d - %-10d 全局   0x%08x %05d\n\r",m,m+1,
                                     Cession->PageSize*2,pl_eid[m + 1]);
-                        m++;
+                        m+=2;
                     }break;
                     case CN_MEM_MANY_PAGE_GLOBAL:
                     {//双(多)页全局内存:CN_MEM_MANY_PAGE_GLOBAL+event id+阶号
                         printf("%10d - %-10d 全局   0x%08x %05d\n\r",m,m+(1<<pl_eid[m+1])-1,
                                     Cession->PageSize*(1<<pl_eid[m+2]),pl_eid[m + 1]);
-                        m += 1<<pl_eid[m+1];
+                        m += 1<<pl_eid[m+2];
                     }break;
                     case CN_MEM_FREE_PAGE:
                     {//空闲内存
