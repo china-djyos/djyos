@@ -1,44 +1,44 @@
 {
     "图形应用":{
-				"app":true,
-				"iboot":false,
+				"app":"true",
+				"iboot":"false",
 		    "components":["System: time","System: graphical decorate development(gdd)","System: graphical kernel","System: Message queue"],
 		    "help":"根据板件所配置的显示器驱动的名称，√选显示器驱动；根据硬件配置，√选触摸屏、键盘驱动、鼠标等外设；根据所需要显示的文字，√选相应的字符集和字体组件",
     },
     "OTA：Iboot升级APP":{
-				"app":false,
-				"iboot":true,
+				"app":"false",
+				"iboot":"true",
 		    "components":["System: time","System: file system","System: xip app file system"],
 		    "help":"",
     },
     "OTA：APP升级Iboot":{
-				"app":false,
-				"iboot":true,
+				"app":"true",
+				"iboot":"false",
 		    "components":["System: time","System: file system","System: xip iboot file system"],
-		    "help":"",
+		    "help":" ",
     },
     "网络应用":{
-				"app":true,
-				"iboot":true,
+				"app":"true",
+				"iboot":"true",
 		    "components":["System: time","System: tcpip","System: tcp"],
 		    "help":"与DHCP相关的组件",
      },
     "用串口的shell终端":{
-				"app":true,
-				"iboot":true,
+				"app":"true",
+				"iboot":"true",
 		    "components":["shell","System: stdio","device file system","System: uart device file"],
 		    "help":"须√选和配置所使用的串口",
-    }
+    },
     "用网口的shell终端":{
-				"app":true,
-				"iboot":true,
+				"app":"true",
+				"iboot":"true",
 		    "components":["shell","System: stdio","System: tcpip","System: tcp","telnet"],
 		    "help":"",
-    }
-    "用网口的shell终端":{
-				"app":true,
-				"iboot":true,
+    },
+    "同时用串口和网口的shell终端":{
+				"app":"true",
+				"iboot":"true",
 		    "components":["shell","System: stdio","System: tcpip","System: tcp","telnet","System: uart device file"],
 		    "help":"须√选和配置所使用的串口",
-    }
+    },
 }

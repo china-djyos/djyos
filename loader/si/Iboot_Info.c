@@ -78,7 +78,12 @@ struct AppHead
     #define VERIFICATION_SSL      3  //SSL安全证书
     u32  Verification;    //校验方法默认校验方法为不校验，由外部工具根据配置修改
     u32  appbinsize;      //app bin文件大小 由外部工具填充
+#if(CN_PTR_BITS < 64)
+    u32  VirtAddr;        //运行地址
+    u32  reserved32;      //保留
+#else
     u64  VirtAddr;        //运行地址
+#endif
     u32  appheadsize;     //信息块的大小
     u32  reserved;          //保留
     char appname[96];      //app的文件名 由外部工具填充该bin文件的文件名
@@ -93,7 +98,12 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
         .filesize      = 0xffffffff,
         .Verification  = CFG_APP_VERIFICATION,
         .appbinsize    = 0xffffffff,
-        .VirtAddr      = (u64)&Djy_App_Head,
+#if(CN_PTR_BITS < 64)
+        .VirtAddr      = (u32)(&Djy_App_Head),
+        .reserved32    = 0xffffffff,
+#else
+        .VirtAddr      = (u64)(&Djy_App_Head),
+#endif
         .appheadsize   = sizeof(struct AppHead),
         .reserved      = 0xffffffff,
         .appname       = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
@@ -1030,7 +1040,11 @@ bool_t Si_IbootAppInfoInit()
 
         Iboot_App_Info.ibootVer = IBOOT_APP_INFO_VER;         //iboot 版本
         Iboot_App_Info.ibootstartaddr = Init_Cpu;   //iboot启动地址
-        Iboot_App_Info.ibootisdebug   = BUILD_IS_DEBUG;   //iboot启动地址
+#if defined(DEBUG)
+        Iboot_App_Info.ibootisdebug   = 1;
+#else
+        Iboot_App_Info.ibootisdebug   = 0;
+#endif
 
         Fill_boardname(DJY_BOARD,Iboot_App_Info.boardname,sizeof(Iboot_App_Info.boardname));
     }

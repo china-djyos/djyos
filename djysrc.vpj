@@ -6023,6 +6023,114 @@
 					<F N="third/fs/yaf2/component_config_yaf2.h"/>
 				</Folder>
 			</Folder>
+			<Folder Name="goahead-4.0.1">
+				<Folder Name="build">
+					<Folder Name="djyos-default">
+						<Folder Name="inc">
+							<F N="third/goahead-4.0.1/build/djyos-default/inc/me.h"/>
+						</Folder>
+					</Folder>
+					<Folder Name="linux-x64-default">
+						<Folder Name="inc">
+							<F N="third/goahead-4.0.1/build/linux-x64-default/inc/embedtls.h"/>
+							<F N="third/goahead-4.0.1/build/linux-x64-default/inc/goahead.h"/>
+							<F N="third/goahead-4.0.1/build/linux-x64-default/inc/js.h"/>
+							<F N="third/goahead-4.0.1/build/linux-x64-default/inc/mbedtls.h"/>
+							<F N="third/goahead-4.0.1/build/linux-x64-default/inc/me.h"/>
+							<F N="third/goahead-4.0.1/build/linux-x64-default/inc/osdep.h"/>
+						</Folder>
+					</Folder>
+				</Folder>
+				<Folder Name="installs">
+					<Folder Name="macosx">
+						<F N="third/goahead-4.0.1/installs/macosx/distribution.xml"/>
+					</Folder>
+					<Folder Name="windows">
+						<F N="third/goahead-4.0.1/installs/windows/removeFiles.c"/>
+					</Folder>
+				</Folder>
+				<Folder Name="paks">
+					<Folder Name="goahead-mbedtls">
+						<F N="third/goahead-4.0.1/paks/goahead-mbedtls/goahead-mbedtls.c"/>
+					</Folder>
+					<Folder Name="goahead-openssl">
+						<F N="third/goahead-4.0.1/paks/goahead-openssl/goahead-openssl.c"/>
+					</Folder>
+					<Folder Name="mbedtls">
+						<Folder Name="dist">
+							<F N="third/goahead-4.0.1/paks/mbedtls/dist/embedtls.h"/>
+							<F N="third/goahead-4.0.1/paks/mbedtls/dist/mbedtls.c"/>
+							<F N="third/goahead-4.0.1/paks/mbedtls/dist/mbedtls.h"/>
+						</Folder>
+					</Folder>
+					<Folder Name="osdep">
+						<Folder Name="dist">
+							<F N="third/goahead-4.0.1/paks/osdep/dist/osdep.h"/>
+						</Folder>
+					</Folder>
+				</Folder>
+				<Folder Name="projects">
+					<F N="third/goahead-4.0.1/projects/goahead-freebsd-default-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-freebsd-static-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-linux-default-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-linux-static-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-macosx-default-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-macosx-static-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-vxworks-default-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-vxworks-static-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-windows-default-me.h"/>
+					<F N="third/goahead-4.0.1/projects/goahead-windows-static-me.h"/>
+				</Folder>
+				<Folder Name="src">
+					<Folder Name="goahead-mbedtls">
+						<F N="third/goahead-4.0.1/src/goahead-mbedtls/goahead-mbedtls.c"/>
+					</Folder>
+					<Folder Name="goahead-openssl">
+						<F N="third/goahead-4.0.1/src/goahead-openssl/goahead-openssl.c"/>
+					</Folder>
+					<Folder Name="mbedtls">
+						<F N="third/goahead-4.0.1/src/mbedtls/embedtls.h"/>
+						<F N="third/goahead-4.0.1/src/mbedtls/mbedtls.c"/>
+						<F N="third/goahead-4.0.1/src/mbedtls/mbedtls.h"/>
+					</Folder>
+					<Folder Name="osdep">
+						<F N="third/goahead-4.0.1/src/osdep/osdep.h"/>
+					</Folder>
+					<Folder Name="utils">
+						<F N="third/goahead-4.0.1/src/utils/gopass.c"/>
+						<F N="third/goahead-4.0.1/src/utils/webcomp.c"/>
+					</Folder>
+					<F N="third/goahead-4.0.1/src/action.c"/>
+					<F N="third/goahead-4.0.1/src/alloc.c"/>
+					<F N="third/goahead-4.0.1/src/auth.c"/>
+					<F N="third/goahead-4.0.1/src/cgi.c"/>
+					<F N="third/goahead-4.0.1/src/crypt.c"/>
+					<F N="third/goahead-4.0.1/src/file.c"/>
+					<F N="third/goahead-4.0.1/src/fs.c"/>
+					<F N="third/goahead-4.0.1/src/goahead.c"/>
+					<F N="third/goahead-4.0.1/src/goahead.h"/>
+					<F N="third/goahead-4.0.1/src/http.c"/>
+					<F N="third/goahead-4.0.1/src/js.c"/>
+					<F N="third/goahead-4.0.1/src/js.h"/>
+					<F N="third/goahead-4.0.1/src/jst.c"/>
+					<F N="third/goahead-4.0.1/src/options.c"/>
+					<F N="third/goahead-4.0.1/src/osdep.c"/>
+					<F N="third/goahead-4.0.1/src/rom.c"/>
+					<F N="third/goahead-4.0.1/src/route.c"/>
+					<F N="third/goahead-4.0.1/src/runtime.c"/>
+					<F N="third/goahead-4.0.1/src/socket.c"/>
+					<F N="third/goahead-4.0.1/src/time.c"/>
+					<F N="third/goahead-4.0.1/src/upload.c"/>
+				</Folder>
+				<Folder Name="test">
+					<Folder Name="web">
+						<F N="third/goahead-4.0.1/test/web/test.xml"/>
+					</Folder>
+					<F N="third/goahead-4.0.1/test/cgitest.c"/>
+					<F N="third/goahead-4.0.1/test/test.c"/>
+				</Folder>
+				<F N="third/goahead-4.0.1/component_config_goahead401.h"/>
+			</Folder>
 		</Folder>
 		<Folder Name="userlib">
 			<Folder Name="platform">

@@ -84,7 +84,7 @@
                                         //不可取消，必选且不需要配置参数的，IDE裁剪界面中不显示
 //init time:medium                      //初始化时机，可选值：none，init，main。none表示无须初始化，
                                         //init表示在调用main之前，main表示在main函数中初始化
-//dependence:"System: lock","System: spi bus"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"System:lock","System:spi bus"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），

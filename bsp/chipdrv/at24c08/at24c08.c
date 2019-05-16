@@ -73,7 +73,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"System: lock","System: iicbus","cpu driver iic"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"System:lock","System:iicbus","cpu driver iic"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -140,7 +140,7 @@ __attribute__((weak))  void AT24_WPEn(u8 En)
 // =============================================================================
 u32 __AT24_PageProgram(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
 {
-	u32 DelayMs;
+    u32 DelayMs;
 
     if(((wAddr%CN_AT24_PAGE_SIZE) + wBytesNum) > CN_AT24_PAGE_SIZE)
         return 0;
@@ -150,9 +150,9 @@ u32 __AT24_PageProgram(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
     //AT24内部写时间，最大为5mS
     DelayMs = 1000 / CN_CFG_TICK_HZ;
     if(DelayMs >= 6)
-    	DelayMs = DelayMs + 1;
+        DelayMs = DelayMs + 1;
     else
-    	DelayMs = 6;
+        DelayMs = 6;
 
     Djy_EventDelay(DelayMs*mS);
 
@@ -168,7 +168,7 @@ u32 __AT24_PageProgram(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
 // =============================================================================
 u32 __AT24_PageRead(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
 {
-	u32 DelayMs;
+    u32 DelayMs;
 
     if(((wAddr%CN_AT24_PAGE_SIZE) + wBytesNum) > CN_AT24_PAGE_SIZE)
         return 0;
@@ -178,9 +178,9 @@ u32 __AT24_PageRead(u32 wAddr, u8 *pbyBuf, u32 wBytesNum)
     //AT24内部写时间，最大为5mS
     DelayMs = 1000 / CN_CFG_TICK_HZ;
     if(DelayMs >= 6)
-    	DelayMs = DelayMs + 1;
+        DelayMs = DelayMs + 1;
     else
-    	DelayMs = 6;
+        DelayMs = 6;
 
     Djy_EventDelay(DelayMs*mS);
 
