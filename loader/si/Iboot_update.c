@@ -67,6 +67,7 @@
 #include "version.h"
 #include "cpu_peri.h"
 #include "cpu-optional.h"
+#include "component_config_iboot.h"
 #if(CN_CPU_OPTIONAL_CACHE==1)
 #include "set-cache.h"
 #endif
