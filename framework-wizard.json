@@ -34,11 +34,5 @@
 				"iboot":"true",
 		    "components":["shell","System: stdio","System: tcpip","System: tcp","telnet"],
 		    "help":"",
-    },
-    "同时用串口和网口的shell终端":{
-				"app":"true",
-				"iboot":"true",
-		    "components":["shell","System: stdio","System: tcpip","System: tcp","telnet","System: uart device file"],
-		    "help":"须√选和配置所使用的串口",
-    },
+    }
 }
