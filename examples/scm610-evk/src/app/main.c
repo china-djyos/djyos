@@ -57,7 +57,7 @@ ptu32_t djy_main(void)
 {
 	while(1)
 	{
-		printf("hello world!\r\n");
+		printf("app hello world!\r\n");
 		Djy_EventDelay(1000*1000);
 	}
 	return 0;

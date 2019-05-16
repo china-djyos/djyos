@@ -611,7 +611,8 @@ static s32 xip_app_close(struct objhandle *hdl)
 // ============================================================================
 static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 pos, once, free, res, left = (s32)size;
+    s32 pos, once, free, res;
+    u32 left;
     struct __icontext *cx = (struct __icontext *)handle_context(hdl);
     struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
@@ -634,7 +635,8 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
             return size;
         }
     }
-
+    
+    left = size;               //第一次应该减去文件头信息.故需要写的字节数应放这里
     xip_app_lock(core);
     if(cx->pos<=core->inhead) // 缓存中剩余可写空间；（连续写和不连续写会有这么处理，256时）
         free = core->inhead - cx->pos; // 在开始的区域中，文件头部占据了固定空间；

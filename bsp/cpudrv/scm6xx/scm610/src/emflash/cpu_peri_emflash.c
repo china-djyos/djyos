@@ -65,20 +65,20 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu drive inner flash"//片内flash
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu_peri_emflash"     //片内flash
+//parent:"none"                          //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                       //初始化时机，可选值：early，medium，later。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","component lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"devfile","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出
 //weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+//mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
                                         //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
@@ -105,7 +105,7 @@ static const char *EmflashName = "emflash";      //该flash在obj在的名字
 extern struct Object *s_ptDeviceRoot;
 
 #define CN_FLASH_SIZE    (0x100000)      //1Mbytes
-#define CN_PAGE_SIZE     (256*2)         //set page size
+#define CN_PAGE_SIZE     (256)         //set page size
 #define CN_SECTOR_SIZE   (512)           //set sector size 4k
 //set block size 4k
 #define CN_BLOCK_SIZE    (CN_SECTOR_SIZE * 2 *4)
@@ -180,24 +180,42 @@ static s32 Flash_GetDescr(struct EmFlashDescr *Description)
 // 返回："0" -- 成功;"-1" -- 失败;
 // 备注：
 // ============================================================================
-static s32 Flash_BlockEarse(u32 BlockNo)
+s32 Flash_BlockEarse(u32 BlockNo)
 {
     u8 retry = 0; // 擦除有可能会失败；
     s32 sRet = -1;
     u16 SectorNo;
     u16 tmpLoop = 0;
     u32 tmpEreaseAddBase = 0;
+    u32 tmpCurAddress;
     u8  Status = 0;
+    u16 tmpCnt = 0;
 
     //get the base of the erease address
     tmpEreaseAddBase = BlockNo * CN_BLOCK_SIZE;
+
     //the numbers of sectors need to be ereased
     SectorNo = CN_BLOCK_SIZE / embeddescription->BytesPerSector;
-    while(tmpLoop++ < SectorNo)
+//    while(tmpLoop < SectorNo)
+    for(tmpLoop = 0;tmpLoop < SectorNo;tmpLoop++)
     {
-        Int_CutTrunk();
-        Status = FLASH_Sector_Erase((u32*)tmpEreaseAddBase);
-        Int_ContactTrunk();
+        tmpCurAddress = tmpEreaseAddBase + 512*tmpLoop;
+        atom_high_t atomic_low = Int_LowAtomStart();
+        Status = FLASH_Sector_Erase(tmpCurAddress);
+        Int_LowAtomEnd(atomic_low);
+        for(tmpCnt = 0;tmpCnt < (embeddescription->BytesPerSector)/4;tmpCnt++)
+        {
+            u32 *tmpRead = (u32*)tmpCurAddress;
+            if(tmpRead[tmpCnt] != 0xffffffff)
+            {
+                Status = -1;
+                break;
+            }
+
+            Status = 1;
+
+        }
+
         if(Status != 1)
         {
             printf("erease address %x failed\r\n",tmpEreaseAddBase);
@@ -205,8 +223,9 @@ static s32 Flash_BlockEarse(u32 BlockNo)
         }else{
             sRet = 0;
         }
-        tmpEreaseAddBase += embeddescription->BytesPerSector;
-        BrdWdt_FeedDog();
+
+//        BrdWdt_FeedDog();
+//        tmpLoop++;
     }
 
     return sRet;
@@ -222,7 +241,7 @@ static s32 Flash_BlockEarse(u32 BlockNo)
 //       "-2" -- 写失败;
 // 备注：
 // ============================================================================
-static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
+s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 {
     u32 Ret = 0,i;
     u32 *pData = (u32*)Data;
@@ -235,9 +254,16 @@ static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
     //write 4 bytes each time
     while(tmpDatNum < embeddescription->BytesPerPage)
     {
-        Int_CutTrunk();
+        //地址检测
+        if(Addr > 1024 * 1024)
+        {
+            printf("out of range of flash,please check it\r\n");
+            return -1;
+        }
+        atom_low_t atomic_low = Int_LowAtomStart();
+//        bStatus = FLASH_Program_Word_In_Page((u32*)Addr, pData, 1);
         bStatus = FLASH_Program_Single_Word((u32*)Addr, pData[0]);
-        Int_ContactTrunk();
+        Int_LowAtomEnd(atomic_low);
         BrdWdt_FeedDog();
         if(bStatus)
         {
