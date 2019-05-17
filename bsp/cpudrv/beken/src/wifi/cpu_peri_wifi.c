@@ -431,6 +431,33 @@ void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
     }
 }
 
+void DjyWifi_StartScan(FUNC_2PARAM_PTR ind_cb)
+{
+    bk_wlan_scan_ap_reg_cb(ind_cb);
+    bk_wlan_start_scan();
+}
+
+uint32_t DjyWifi_GetScanResult(struct sta_scan_res **scan_result)
+{
+    struct sta_scan_res *scan_rst_table;
+    char scan_rst_ap_num = 0;
+    scan_rst_ap_num = bk_wlan_get_scan_ap_result_numbers();
+    if (scan_rst_ap_num == 0)
+    {
+        *scan_result = NULL;
+        return 0;
+    }
+    scan_rst_table = (struct sta_scan_res *)malloc(sizeof(struct sta_scan_res) * scan_rst_ap_num);
+    if (scan_rst_table == NULL)
+    {
+        *scan_result = NULL;
+        return 0;
+    }
+    bk_wlan_get_scan_ap_result(scan_rst_table, scan_rst_ap_num);
+    *scan_result =  scan_rst_table;
+    return scan_rst_ap_num;
+}
+
 bool_t __attribute__((weak)) FnNetDevEventHookEvent(struct NetDev* iface,enum NetDevEvent event)
 {
     switch(event)

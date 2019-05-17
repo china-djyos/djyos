@@ -57,10 +57,18 @@
 #include <sys/dhcp.h>
 #include <sys/socket.h>
 
+static struct sta_scan_res *scan_result = NULL;
+
+static void scan_ap_callback(void *ctxt, uint8_t param)
+{
+    uint32_t ap_num = DjyWifi_GetScanResult(&scan_result);
+}
+
 ptu32_t djy_main(void)
 {
     int i = 0;
     DjyWifi_ApOpen("djyos-yunap","djyos12345");
+    DjyWifi_StartScan(scan_ap_callback);
     i = 40;
     do
     {
