@@ -70,7 +70,7 @@ __attribute__((weak)) void __InitTimeBase(void)
 // =============================================================================
 __attribute__((weak)) void __DjyInitTick(void)
 {
-    HardExp_ConnectSystick(Djy_IsrTick);
+    HardExp_ConnectSystick(Djy_ScheduleIsr);
     CORET->LOAD = CN_CFG_FCLK/CN_CFG_TICK_HZ;
     CORET->VAL =CN_CFG_FCLK/CN_CFG_TICK_HZ;
     CORET->CTRL = CORET_CTRL_CLKSOURCE_Msk |
