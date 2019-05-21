@@ -12,6 +12,7 @@
 #include "icu_pub.h"
 #include "bk_timer_pub.h"
 #include "drv_model_pub.h"
+#include "cpu.h"
 
 #if CFG_USE_MCU_PS
 
@@ -162,7 +163,8 @@ UINT32 mcu_power_save(UINT32 sleep_tick)
     {
     }
 
-    fclk_update_tick(miss_ticks);
+    DjyUpdateTicks(miss_ticks);
+    DjySetUpdateTickFlag(true);
     GLOBAL_INT_RESTORE();
     ASSERT(miss_ticks >= 0);
     return miss_ticks;

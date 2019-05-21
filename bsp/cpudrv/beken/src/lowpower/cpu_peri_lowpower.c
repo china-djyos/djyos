@@ -42,59 +42,41 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: CPU相关低功耗功能
-//作者:  罗侍田.
-//版本：V1.0.0
-//文件描述: cpu相关的低功耗管理,实现lowpower.h文件中规定bsp需要提供的函数,这里
-//          实现跟板件相关的,跟CPU相关的函数,到cpudrv目录下找.
-//其他说明:
-//修订历史:
-//2. ...
-//1. 日期: 2009-01-04
-//   作者:  罗侍田.
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-
 #include "stdint.h"
-#include "stddef.h"
-#include "cpu_peri.h"
 #include "lowpower.h"
+#include "cpu_peri.h"
+#include "cpu.h"
+#include "djyos.h"
+#include "mcu_ps_pub.h"
+#include "manual_ps_pub.h"
+#include "wlan_ui_pub.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-
-bool_t __LP_BSP_HardInit(void)
-{
-    return true;
-}
-
-u32 __LP_BSP_GetSleepLevel(void)
-{
-    return CN_SLEEP_L1;
-}
+static struct gpio_to_wakeup_t{
+    u32 index_map;
+    u32 edge_map;
+}gGpioToWakeUpL4;
 
 void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 {
-
+    if(pend_ticks>=LP_GetTriggerTick())
+        mcu_power_save(pend_ticks);
 }
 
-void __LP_BSP_EntrySleepL1(u32 pend_ticks)
+void __LP_BSP_EntrySleepL1(u32 pend_ticks){}
+void __LP_BSP_EntrySleepL2(u32 pend_ticks){}
+void __LP_BSP_EntrySleepL3(void){}
+
+void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map)
 {
-
-}
-
-void __LP_BSP_EntrySleepL2(u32 pend_ticks)
-{
-
-}
-
-void __LP_BSP_EntrySleepL3(void)
-{
-
+    gGpioToWakeUpL4.index_map = gpio_index_map;
+    gGpioToWakeUpL4.edge_map = gpio_edge_map;
 }
 
 void __LP_BSP_EntrySleepL4(void)
 {
-
+    bk_enter_deep_sleep(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
 }
 
 bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
@@ -107,13 +89,9 @@ bool_t __LP_BSP_SaveRamL3(void)
     return true;
 }
 
-u32 TQ2440_EntrySleepReCall(u32 SleepLevel)
+void LP_DeepSleep(void)
 {
-    return CN_SLEEP_L1;
-}
-
-u32 TQ2440_ExitSleepReCall(u32 SleepLevel)
-{
-    return CN_SLEEP_L1;
+    LP_SetSleepLevel(CN_SLEEP_L4);
+    Djy_EventDelay(2000*1000);
 }
 

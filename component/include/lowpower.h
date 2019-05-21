@@ -113,9 +113,9 @@ bool_t __LP_BSP_RestoreRamL3(void);     //返回true=成功恢复,false=失败
 //把RAM存储到非易失存储器中,L4级低功耗使用,如果返回false,系统将不进入休眠
 bool_t __LP_BSP_SaveRamL3(void);     //返回true=成功恢复,false=失败
 
-void __LP_BSP_EntrySleepL0(void);
-void __LP_BSP_EntrySleepL1(void);
-void __LP_BSP_EntrySleepL2(void);
+void __LP_BSP_EntrySleepL0(u32 pend_ticks);
+void __LP_BSP_EntrySleepL1(u32 pend_ticks);
+void __LP_BSP_EntrySleepL2(u32 pend_ticks);
 void __LP_BSP_EntrySleepL3(void);
 void __LP_BSP_EntrySleepL4(void);
 
@@ -133,7 +133,9 @@ u32 LP_EnableSleep(void);
 // 行,且休眠没有被禁止时,才会进入相应的休眠模式
 u32 LP_SetSleepLevel(u32 Level);
 u32 LP_GetSleepLevel(void);
-void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),\
+void LP_SetTriggerTick(u32 tick);
+u32 LP_GetTriggerTick(void);
+void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
                 u32 (*ExitSleepReCall)(u32 SleepLevel));
 //安装低功耗组件
 void ModuleInstall_LowPower (void);

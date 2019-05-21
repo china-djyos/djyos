@@ -44,9 +44,11 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#define LP_DEFAULT_TRIGGER_TICK         (2U)
 struct LowPowerCtrl
 {
     u32 SleepLevel;                             //当前低功耗级别
+    u32 TriggerTick;
     u32 DisableCounter;     //禁止低功耗次数计数,0才可以进入L1及以上级别低功耗
     u32 (*EntrySleepReCall)(u32 SleepLevel);      //进入低功耗状态前的回调函数
     u32 (*ExitSleepReCall)(u32 SleepLevel);       //从低功耗状态唤醒后的回调函数
@@ -63,14 +65,14 @@ struct LowPowerCtrl g_tLowPower;
 //      不能正常工作，或者中作状态不正确。因此，必须充分利用EntrySleepReCall和
 //      ExitSleepReCall两个函数。
 //----------------------------------------------------------------------------
-u32 LP_EntryLowPower(struct ThreadVm *vm)
+u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
 {
     atom_low_t  atom_bak;
 
     if(g_tLowPower.DisableCounter != 0)
     {
         g_tLowPower.EntrySleepReCall(CN_SLEEP_L0);
-        __LP_BSP_EntrySleepL0( );
+        __LP_BSP_EntrySleepL0(pend_ticks);
         g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
         return CN_SLEEP_L0;
     }
@@ -79,7 +81,7 @@ u32 LP_EntryLowPower(struct ThreadVm *vm)
        case CN_SLEEP_L0:
            Int_CutTrunk();
            g_tLowPower.EntrySleepReCall(CN_SLEEP_L0);
-           __LP_BSP_EntrySleepL0( );
+           __LP_BSP_EntrySleepL0(pend_ticks);
            g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
            Int_ContactTrunk();
            return CN_SLEEP_L0;
@@ -87,14 +89,14 @@ u32 LP_EntryLowPower(struct ThreadVm *vm)
        case CN_SLEEP_L1:
            Int_CutTrunk();
            g_tLowPower.EntrySleepReCall(CN_SLEEP_L1);
-           __LP_BSP_EntrySleepL1( );
+           __LP_BSP_EntrySleepL1(pend_ticks);
            g_tLowPower.ExitSleepReCall(CN_SLEEP_L1);
            Int_ContactTrunk();
            return CN_SLEEP_L1;
            break;
        case CN_SLEEP_L2:
            g_tLowPower.EntrySleepReCall(CN_SLEEP_L2);
-           __LP_BSP_EntrySleepL2( );
+           __LP_BSP_EntrySleepL2(pend_ticks);
            g_tLowPower.ExitSleepReCall(CN_SLEEP_L2);
            return CN_SLEEP_L2;
            break;
@@ -163,6 +165,22 @@ u32 LP_GetSleepLevel(void)
     return g_tLowPower.SleepLevel;
 }
 
+void LP_SetTriggerTick(u32 tick)
+{
+    atom_low_t atom_bak;
+    atom_bak = Int_LowAtomStart();
+    if(tick<LP_DEFAULT_TRIGGER_TICK)
+        return;
+    else
+        g_tLowPower.TriggerTick = tick;
+    Int_LowAtomEnd(atom_bak);
+}
+
+u32 LP_GetTriggerTick(void)
+{
+    return g_tLowPower.TriggerTick;
+}
+
 void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
                 u32 (*ExitSleepReCall)(u32 SleepLevel))
 {
@@ -182,12 +200,13 @@ u32 EmptyReCall(u32 SleepLevel)
 //      ExitSleepReCall, 离开低功耗状态时调用的回调函数
 //返回: 无意义
 //-----------------------------------------------------------------------------
-extern u32 (*g_fnEntryLowPower)(struct ThreadVm *vm);  //进入低功耗状态的函数指针。
+extern u32 (*g_fnEntryLowPower)(struct ThreadVm *vm,u32 pend_ticks);  //进入低功耗状态的函数指针。
 void ModuleInstall_LowPower (void)
 {
     g_tLowPower.EntrySleepReCall = EmptyReCall;
     g_tLowPower.ExitSleepReCall = EmptyReCall;
     g_tLowPower.SleepLevel = CN_SLEEP_NORMAL;
+    g_tLowPower.TriggerTick = CN_LIMIT_UINT32;
     g_tLowPower.DisableCounter = 0;
     g_fnEntryLowPower = LP_EntryLowPower;
     return ;

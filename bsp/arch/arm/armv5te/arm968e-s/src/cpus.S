@@ -138,4 +138,10 @@ __asm_delay_cycle:
 .type   __asm_bl_fun, %function
 __asm_bl_fun:
     BX   R0
+
+.global __LP_BSP_AsmSaveReg
+.type   __LP_BSP_AsmSaveReg, %function
+__LP_BSP_AsmSaveReg:
+    BX   LR
+
 .end

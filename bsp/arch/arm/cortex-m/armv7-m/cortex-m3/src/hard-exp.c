@@ -67,6 +67,7 @@
 #include "cpu_peri.h"
 #include "int.h"
 #include "djyos.h"
+#include "cpu.h"
 #include "dbug.h"
 #include "board-config.h"
 #if (CN_USE_TICKLESS_MODE)
@@ -171,6 +172,10 @@ void Exp_SystickTickHandler(void)
     g_bScheduleEnable = false;
     tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal = 1;
+    if(!DjyGetUpdateTickFlag())
+        DjyUpdateTicks(1);
+    else
+        DjySetUpdateTickFlag(false);
     user_systick((CN_USE_TICKLESS_MODE==1)?0:1);
     tg_int_global.nest_asyn_signal = 0;
     tg_int_global.en_asyn_signal_counter = 0;

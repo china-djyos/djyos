@@ -63,6 +63,7 @@
 #include "arch_feature.h"
 #include "djyos.h"
 #include "int.h"
+#include "cpu.h"
 //#include "core_cm0.h"
 #include "hard-exp.h"
 #include "board-config.h"
@@ -130,6 +131,10 @@ void HardExp_EsrTick(void)
         return;
     g_bScheduleEnable = false;
     tg_int_global.nest_asyn_signal++;
+    if(!DjyGetUpdateTickFlag())
+        DjyUpdateTicks(1);
+    else
+        DjySetUpdateTickFlag(false);
     user_systick((CN_USE_TICKLESS_MODE==1)?0:1);
     tg_int_global.nest_asyn_signal--;
     if(g_ptEventReady != g_ptEventRunning)
