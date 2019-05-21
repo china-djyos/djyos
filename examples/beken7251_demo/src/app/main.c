@@ -67,6 +67,8 @@ static void scan_ap_callback(void *ctxt, uint8_t param)
 ptu32_t djy_main(void)
 {
     int i = 0;
+    LP_SetTriggerTick(2);
+    LP_BSP_ResigerGpioToWakeUpL4(0x80,0x80);
     DjyWifi_ApOpen("djyos-yunap","djyos12345");
     DjyWifi_StartScan(scan_ap_callback);
     i = 40;
@@ -86,7 +88,8 @@ ptu32_t djy_main(void)
    {
        printf("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
    }
-
+   Djy_EventDelay(4000*1000);
+   LP_DeepSleep();
    do
    {
        printf("wait connect!\r\n");
