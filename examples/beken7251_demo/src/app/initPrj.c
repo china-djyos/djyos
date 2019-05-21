@@ -74,7 +74,9 @@ void Sys_ModuleInit(void)
 
 	extern void ModuleInstall_InitNet( );
 	ModuleInstall_InitNet( );
-
+    
+    extern void ModuleInstall_LowPower(void);
+    ModuleInstall_LowPower();
 	//-------------------later-------------------------//
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);

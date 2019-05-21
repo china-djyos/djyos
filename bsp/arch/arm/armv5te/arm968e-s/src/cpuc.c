@@ -57,8 +57,9 @@ extern void __Djy_VmEngine(ptu32_t (*thread_routine)(void));
 uint32_t djy_switch_interrupt_flag = 0;
 uint32_t *djy_interrupt_from_thread = NULL;
 uint32_t *djy_interrupt_to_thread = NULL;
-
-/*整个栈帧按地址从大到小排列是：pc,lr,r12-r4,r3-r0,spsr*/
+static uint64_t gRunTicks = 0;
+static bool_t gResumeTickFlag = false;
+/*??????????????:pc,lr,r12-r4,r3-r0,spsr*/
 void *__asm_reset_thread(ptu32_t (*thread_routine)(void),
                             struct ThreadVm  *vm)
 {
@@ -101,12 +102,34 @@ __attribute__((weak)) void __DjyInitTick(void)
 // =============================================================================
 __attribute__((weak))   uint64_t __DjyGetSysTime(void)
 {
-    extern s64  g_s64OsTicks;
     s64 time = 0;
-    time = g_s64OsTicks;
-    time = time*CN_CFG_TICK_US;
+    time = gRunTicks*CN_CFG_TICK_US;
     return (uint64_t)time;
 }
+
+__attribute__((weak)) uint64_t __DjyGetTicks(void)
+{
+    return gRunTicks;
+}
+
+//??????????
+__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
+{
+    gResumeTickFlag = flag;
+}
+
+__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
+{
+    return gResumeTickFlag;
+}
+
+//??????????
+__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
+{
+    gRunTicks += ticks;
+}
+
+
 
 //void reboot(u32 key)
 //{

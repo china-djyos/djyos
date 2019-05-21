@@ -165,7 +165,7 @@ bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
 //参数: 无
 //返回: 无
 //-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL0(void)
+void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 {
     //Sleep
 //    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
@@ -178,7 +178,7 @@ void __LP_BSP_EntrySleepL0(void)
 //参数: 无
 //返回: 无
 //-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL1(void)
+void __LP_BSP_EntrySleepL1(u32 pend_ticks)
 {
     //Mode : Run --> lprun--->lpsleep
 //  HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
@@ -189,7 +189,7 @@ void __LP_BSP_EntrySleepL1(void)
 //参数: 无
 //返回: 无
 //-----------------------------------------------------------------------------
-void __LP_BSP_EntrySleepL2(void)
+void __LP_BSP_EntrySleepL2(u32 pend_ticks)
 {
     //stop2 mode : exit this mode by exti_line int or wakeup
   HAL_PWREx_EnterSTOP2Mode(PWR_SLEEPENTRY_WFI);

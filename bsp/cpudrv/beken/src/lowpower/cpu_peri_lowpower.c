@@ -1,6 +1,5 @@
-
 //----------------------------------------------------
-// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -23,15 +22,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
-// 这份授权条款，在使用者符合以下二条件的情形下，授予使用者使用及再散播本
+// 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
 //
-// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、此三条件表列，以
+// 1. 对于本软件源代码的再散播，必须保留上述的版权宣告、本条件列表，以
 //    及下述的免责声明。
 // 2. 对于本套件二进位可执行形式的再散播，必须连带以文件以及／或者其他附
-//    于散播包装中的媒介方式，重制上述之版权宣告、此三条件表列，以及下述
+//    于散播包装中的媒介方式，重制上述之版权宣告、本条件列表，以及下述
 //    的免责声明。
 
 // 免责声明：本软件是本软件版权持有人以及贡献者以现状（"as is"）提供，
@@ -43,66 +42,56 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-/*
- * app_main.c
- *
- *  Created on: 2014-5-28
- *      Author: Administrator
- */
-
 #include "stdint.h"
-#include "stddef.h"
+#include "lowpower.h"
 #include "cpu_peri.h"
-#include "cpu_peri_wifi.h"
-#include <sys/dhcp.h>
-#include <sys/socket.h>
-#include <project_config.h>
+#include "cpu.h"
+#include "djyos.h"
+#include "mcu_ps_pub.h"
+#include "manual_ps_pub.h"
+#include "wlan_ui_pub.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
-static struct sta_scan_res *scan_result = NULL;
+static struct gpio_to_wakeup_t{
+    u32 index_map;
+    u32 edge_map;
+}gGpioToWakeUpL4;
 
-static void scan_ap_callback(void *ctxt, uint8_t param)
+void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 {
-    uint32_t ap_num = DjyWifi_GetScanResult(&scan_result);
+    if(pend_ticks>=LP_GetTriggerTick())
+        mcu_power_save(pend_ticks);
 }
 
-ptu32_t djy_main(void)
+void __LP_BSP_EntrySleepL1(u32 pend_ticks){}
+void __LP_BSP_EntrySleepL2(u32 pend_ticks){}
+void __LP_BSP_EntrySleepL3(void){}
+
+void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map)
 {
-    int i = 0;
-    LP_SetTriggerTick(2);
-    LP_BSP_ResigerGpioToWakeUpL4(0x80,0x80);
-    DjyWifi_ApOpen("djyos-yunap","djyos12345");
-    DjyWifi_StartScan(scan_ap_callback);
-    i = 40;
-    do
-    {
-        i--;
-        printf("ap mode!\r\n");
-        Djy_EventDelay(2000*1000);
-    }while(i>0);
-    DjyWifi_ApClose();
-    DjyWifi_StaAdvancedConnect("djyos-ap", "djyos12345");
-    if(DhcpAddClientTask(CFG_NETCARD_NAME))
-   {
-      printf("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-   }
-   else
-   {
-       printf("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-   }
-   Djy_EventDelay(4000*1000);
-   LP_DeepSleep();
-   do
-   {
-       printf("wait connect!\r\n");
-       Djy_EventDelay(2000*1000);
-   }while(DHCP_ConnetStatus(EN_DHCP_GET_STATUS_CMD,0)!=EN_DHCP_CONNET_STATUS);
-   DjyWifi_StaConnectDone();
-   while(1)
-   {
-      printf("sta mode!\r\n");
-      Djy_EventDelay(2000*1000);
-   }
-    return 0;
+    gGpioToWakeUpL4.index_map = gpio_index_map;
+    gGpioToWakeUpL4.edge_map = gpio_edge_map;
 }
 
+void __LP_BSP_EntrySleepL4(void)
+{
+    bk_enter_deep_sleep(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
+}
+
+bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
+{
+    return true;
+}
+
+bool_t __LP_BSP_SaveRamL3(void)
+{
+    return true;
+}
+
+void LP_DeepSleep(void)
+{
+    LP_SetSleepLevel(CN_SLEEP_L4);
+    Djy_EventDelay(2000*1000);
+}
 

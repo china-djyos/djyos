@@ -75,7 +75,7 @@ extern "C" {
 #include "cpu_peri_audio_dac.h"
 #include "cpu_peri_wifi.h"
 #include "cpu_peri_wifi_fast_connect.h"
-
+#include "cpu_peri_lowpower.h"
 #ifdef __cplusplus
 }
 #endif

@@ -248,6 +248,32 @@ static struct djytickless_register_param_t djyticklss_systick =
 #endif
 #endif
 ///////////////////////////////////////////////djy-api start//////////////////////////////////
+
+static uint64_t gRunTicks = 0;
+static bool_t gResumeTickFlag = false;
+
+__attribute__((weak)) uint64_t __DjyGetTicks(void)
+{
+    return gRunTicks;
+}
+
+//由调用者保证调用安全
+__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
+{
+    gResumeTickFlag = flag;
+}
+
+__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
+{
+    return gResumeTickFlag;
+}
+
+//由调用者保证原子操作
+__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
+{
+    gRunTicks += ticks;
+}
+
 // =============================================================================
 // 功能：获取系统时间
 // 参数：无

@@ -282,7 +282,7 @@ void deep_sleep_wakeup_with_gpio(UINT32 gpio_index_map,UINT32 gpio_edge_map)
     deep_param.param = gpio_index_map;
     deep_param.gpio_lv= gpio_edge_map;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_RTOS_DEEP_SLEEP, &deep_param);
-//    delay(5);
+    delay(5);
     GLOBAL_INT_RESTORE();
     os_printf("exit gpio ps\r\n");
 }

@@ -54,6 +54,7 @@ enum djytimer_status_e
     DJYTIMER_INIT,
     DJYTIMER_STOP,
     DJYTIMER_RUNNIG,
+    DJYTIMER_ISR,
 };
 
 struct djytimer_t

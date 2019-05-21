@@ -61,6 +61,7 @@
 #include "stddef.h"
 #include "atomic.h"
 #include "int.h"
+#include "cpu.h"
 #include "systime.h"
 #include "component_config_time.h"
 
@@ -219,7 +220,7 @@ s64 __DjyGetSysTick(void)
     atom_low = Int_LowAtomStart();
 #endif
 
-    time = g_s64OsTicks;
+    time = __DjyGetTicks();
 
 #if (64 > CN_CPU_BITS)
     //若处理器字长不是64位,需要多个周期才能读取os_ticks,该过程不能被时钟中断打断.

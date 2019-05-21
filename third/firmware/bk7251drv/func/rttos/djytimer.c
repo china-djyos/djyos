@@ -46,12 +46,14 @@
 #include "djytimer.h"
 #include "djyq.h"
 #include "djyos.h"
+#include "lock.h"
 #include "systime.h"
 #include "int.h"
 
 static struct djytimer_info_t
 {
     struct djyq_t timerlist;
+    struct SemaphoreLCB *sem;
 }djytimer;
 
 enum djytimer_status_e djytimer_get_status(struct djytimer_t *timer)
@@ -73,13 +75,17 @@ void djytimer_stop(struct djytimer_t *timer)
 
 void djytimer_start(struct djytimer_t *timer)
 {
+    struct djytimer_t *tmp_timer = NULL;
     atom_low_t low = 0;
     timer->node.addr = timer->interval + (uint32_t)(DjyGetSysTime()/1000);
+    tmp_timer = djytimer.timerlist.head;
     djytimer_stop(timer);
 
     low = Int_LowAtomStart();
     djyq_enqueue(&djytimer.timerlist, &timer->node);
     timer->status = DJYTIMER_RUNNIG;
+    if((timer==(struct djytimer_t *)djytimer.timerlist.head) && (tmp_timer!=timer))
+        Lock_SempPost(djytimer.sem);
     Int_LowAtomEnd(low);
 }
 
@@ -121,15 +127,22 @@ static bool_t djytimer_should_trigger(uint32_t cur_tick, uint32_t timer)
 
 static ptu32_t djytimer_thread(void)
 {
-    uint32_t cur_tick = (uint32_t)(DjyGetSysTime()/1000);
+    uint32_t cur_tick = 0;
+    uint32_t delay_ms = 0;
     struct djytimer_t *timer = NULL;
     while(1)
     {
+        cur_tick = (uint32_t)(DjyGetSysTime()/1000);
         timer = (struct djytimer_t *)djytimer.timerlist.head;
         while(timer != NULL)
         {
             if(djytimer_should_trigger(cur_tick, timer->node.addr))
             {
+                timer->status = DJYTIMER_ISR;
+                if(timer->cb != NULL)
+                {
+                    timer->cb(timer->param);
+                }
                 if (timer->trigger_cnt > 0)
                 {
                     timer->trigger_cnt--;
@@ -140,11 +153,8 @@ static ptu32_t djytimer_thread(void)
                 }
                 else
                 {
-                    djytimer_free(timer);
-                }
-                if(timer->cb != NULL)
-                {
-                    timer->cb(timer->param);
+                    if(timer->status == DJYTIMER_ISR)
+                        djytimer_stop(timer);
                 }
                 timer = (struct djytimer_t *)djytimer.timerlist.head;
             }
@@ -153,8 +163,16 @@ static ptu32_t djytimer_thread(void)
                 break;
             }
         }
-        Djy_EventDelay(1*mS);
-        cur_tick++;
+        timer = (struct djytimer_t *)djytimer.timerlist.head;
+        if(timer==NULL)
+        {
+            Lock_SempPend(djytimer.sem,CN_TIMEOUT_FOREVER);
+            timer = (struct djytimer_t *)djytimer.timerlist.head;
+        }
+        cur_tick = (uint32_t)(DjyGetSysTime()/1000);
+        delay_ms = timer->node.addr > cur_tick ?
+                (timer->node.addr - cur_tick) : (CN_LIMIT_SINT32 - cur_tick + timer->node.addr);
+        Lock_SempPend(djytimer.sem,delay_ms*mS);
     }
     return 0;
 }
@@ -163,8 +181,22 @@ void djytimer_init(void)
 {
     uint16_t evtt_timer;
     djyq_init(&djytimer.timerlist);
+    djytimer.sem = Lock_SempCreate(1,0,CN_BLOCK_FIFO,NULL);
+    if(djytimer.sem==NULL)
+        goto SEM_INIT_ERR;
     evtt_timer = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
             djytimer_thread,NULL,4096, "timer function");
-    Djy_EventPop(evtt_timer,NULL,0,NULL,0,0);
+    if(evtt_timer==CN_EVTT_ID_INVALID)
+        goto EVTT_REGIST_ERR;
+    if(Djy_EventPop(evtt_timer,NULL,0,NULL,0,0)==CN_EVTT_ID_INVALID)
+        goto EVENT_POP_ERR;
+    else
+        return;
+EVENT_POP_ERR:
+    Djy_EvttUnregist(evtt_timer);
+EVTT_REGIST_ERR:
+    Lock_SempDelete(djytimer.sem);
+SEM_INIT_ERR:
+    return;
 }
 
