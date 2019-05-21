@@ -8,11 +8,11 @@
 #include "stdint.h"
 
 #define CFG_RUNMODE_BAREAPP    1
-//*******************************  Configure System: lock  ******************************************//
+//*******************************  Configure lock  ******************************************//
 #define     CFG_LOCK_LIMIT                   3                     // "锁的数量",定义锁的数量，包含信号量和互斥量
-//*******************************  Configure System: heap  ******************************************//
+//*******************************  Configure heap  ******************************************//
 #define     CFG_DYNAMIC_MEM                  false               // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
-//*******************************  Configure System: kernel  ******************************************//
+//*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     256          // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         3            // "事件数量限值",事件数量
 #define CFG_EVENT_TYPE_LIMIT    3            // "事件类型数限值",事件类型数
@@ -22,9 +22,9 @@
 //*******************************  Configure kernel object system  ******************************************//
 #define     CFG_OBJECT_LIMIT                 5                   // "对象数初始值"，用完会自动扩充
 #define     CFG_HANDLE_LIMIT                 5                   // "句柄数初始值"，用完会自动扩充
-//*******************************  Configure System: memory pool  ******************************************//
+//*******************************  Configure memory pool  ******************************************//
 #define     CFG_MEMPOOL_LIMIT                5                   // "内存池数量限值",
-//*******************************  Configure System: loader  ******************************************//
+//*******************************  Configure loader  ******************************************//
 #define     CFG_APP_RUNMODE                  EN_DIRECT_RUN           // EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 #define     CFG_APP_VERIFICATION             VERIFICATION_NULL       // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define     CFG_IBOOT_VERSION                01                      // Iboot发布版本号

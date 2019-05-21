@@ -56,6 +56,7 @@
 #include "cpu_peri_wifi.h"
 #include <sys/dhcp.h>
 #include <sys/socket.h>
+#include <project_config.h>
 
 static struct sta_scan_res *scan_result = NULL;
 
