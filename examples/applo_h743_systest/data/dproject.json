@@ -34,7 +34,7 @@
 		"time",
 		"board config",
 		"loader",
-		"third lib stm32f7",
+		"stm32f7",
 		"lib C",
 		"cpu onchip dma",
 		"cpu peri gpio",

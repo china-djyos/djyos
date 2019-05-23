@@ -15,7 +15,7 @@
 #define CFG_DYNAMIC_MEM true         // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
 //*******************************  Configure device file system  ******************************************//
 #define CFG_DEVFILE_LIMIT       10             // "设备数量",定义设备数量
-//*******************************  Configure io analog iic bus  ******************************************//
+//*******************************  Configure io iic config  ******************************************//
 #define     IO_IIC_USER_TAG                  1                 // 用户自己的标签，用作在回调用户提供的IO控制函数的第二个参数
 #define     IO_IIC_BUS_NAME                  "IoIic"           // 该IIC总线的名字
 #define     IIC_IOCTRL_FUN                   IIC_IoCtrlFunc    // 用户实现的IO控制函数名
@@ -56,7 +56,7 @@
     #define CFG_GB2312_32_FANG_FILENAME "zk_gb2316_32fang.bin"      // "字库文件名",若从文件读取，则配置文件名
 //*******************************  Configure graphical kernel  ******************************************//
 #define CFG_GKERNEL_CMD_DEEP        1024           // "缓冲区长度",gdd向gkernel传递命令的缓冲区长度（字节数）
-//*******************************  Configure graphical decorate development(gdd)  ******************************************//
+//*******************************  Configure System: graphical decorate development(gdd)  ******************************************//
 #define     CFG_DESKTOP_WIDTH                0                        // "桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define     CFG_DESKTOP_HEIGHT               0                        // "桌面高度",桌面尺寸（像素数）高度，0=显示器高度
 #define     CFG_DISPLAY_NAME                 "LCD_F7"                 // "显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
@@ -74,7 +74,7 @@
 #define     CFG_STDIO_ERR_NAME               "/dev/UART1"        // "标准err输出设备名",
 #define CFG_STDIO_FLOAT_PRINT       true        //"支持浮点打印"
 #define CFG_STDIO_STDIOFILE         true        //"支持标准IO文件"
-//*******************************  Configure cpu_peri_uart device file  ******************************************//
+//*******************************  Configure uart device file  ******************************************//
 #define     CFG_UART1_SENDBUF_LEN            64                       // "UART1发送环形缓冲区大小",
 #define     CFG_UART1_RECVBUF_LEN            64                       // "UART1接收环形缓冲区大小",
 #define     CFG_UART1_DMABUF_LEN             64                       // "UART1 DMA环形缓冲区大小",

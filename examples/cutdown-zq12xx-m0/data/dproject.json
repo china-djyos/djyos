@@ -14,21 +14,21 @@
 		"board":"zq1201"
 	},
 	"components_checked":{
-		"app":["System: black box",
-		"System: multiplex",
-		"System: kernel",
-		"System: heap",
-		"System: int",
-		"System: lock",
-		"System: message queue",
+		"app":["black box",
+		"multiplex",
+		"kernel",
+		"heap",
+		"int",
+		"lock",
+		"message queue",
 		"kernel object system",
-		"System: memory pool",
+		"memory pool",
 		"board config",
-		"System: loader",
-		"third lib sldrv",
+		"loader",
+		"sldrv",
 		"lib C",
 		"cpu peri gpio",
-		"System: cpu onchip isr"],
+		"cpu onchip isr"],
 		"iboot":[]
 	}
 }

@@ -55,6 +55,32 @@
 extern s64  g_s64OsTicks;             //操作系统运行ticks数
 extern void Init_Cpu(void);
 extern void Load_Preload(void);
+
+static uint64_t gRunTicks = 0;
+static bool_t gResumeTickFlag = false;
+
+__attribute__((weak)) uint64_t __DjyGetTicks(void)
+{
+    return gRunTicks;
+}
+
+//由调用者保证调用安全
+__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
+{
+    gResumeTickFlag = flag;
+}
+
+__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
+{
+    return gResumeTickFlag;
+}
+
+//由调用者保证原子操作
+__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
+{
+    gRunTicks += ticks;
+}
+
 // =============================================================================
 // 功能：在系统起来以后需把各种标志复位
 // 参数：无
@@ -70,7 +96,7 @@ __attribute__((weak)) void __InitTimeBase(void)
 // =============================================================================
 __attribute__((weak)) void __DjyInitTick(void)
 {
-    HardExp_ConnectSystick(Djy_IsrTick);
+    HardExp_ConnectSystick(Djy_ScheduleIsr);
     CORET->LOAD = CN_CFG_FCLK/CN_CFG_TICK_HZ;
     CORET->VAL =CN_CFG_FCLK/CN_CFG_TICK_HZ;
     CORET->CTRL = CORET_CTRL_CLKSOURCE_Msk |

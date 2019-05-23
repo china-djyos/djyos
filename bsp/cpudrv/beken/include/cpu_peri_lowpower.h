@@ -42,78 +42,27 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: CPU相关低功耗功能
-//作者:  罗侍田.
+//所属模块: CPU外设定义
+//作者:  lst
 //版本：V1.0.0
-//文件描述: cpu相关的低功耗管理,实现lowpower.h文件中规定bsp需要提供的函数,这里
-//          实现跟板件相关的,跟CPU相关的函数,到cpudrv目录下找.
 //其他说明:
 //修订历史:
-//2. ...
-//1. 日期: 2009-01-04
-//   作者:  罗侍田.
+//1. 日期: 2013-05-29
+//   作者:  lst.
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
+#ifndef __CPU_PERI_LOWPOWER_H__
+#define __CPU_PERI_LOWPOWER_H__
 
-#include "stdint.h"
-#include "stddef.h"
-#include "cpu_peri.h"
-#include "lowpower.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-
-bool_t __LP_BSP_HardInit(void)
-{
-    return true;
+void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map);
+void LP_DeepSleep(void);
+#ifdef __cplusplus
 }
+#endif
 
-u32 __LP_BSP_GetSleepLevel(void)
-{
-    return CN_SLEEP_L1;
-}
-
-void __LP_BSP_EntrySleepL0(u32 pend_ticks)
-{
-
-}
-
-void __LP_BSP_EntrySleepL1(u32 pend_ticks)
-{
-
-}
-
-void __LP_BSP_EntrySleepL2(u32 pend_ticks)
-{
-
-}
-
-void __LP_BSP_EntrySleepL3(void)
-{
-
-}
-
-void __LP_BSP_EntrySleepL4(void)
-{
-
-}
-
-bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
-{
-    return true;
-}
-
-bool_t __LP_BSP_SaveRamL3(void)
-{
-    return true;
-}
-
-u32 TQ2440_EntrySleepReCall(u32 SleepLevel)
-{
-    return CN_SLEEP_L1;
-}
-
-u32 TQ2440_ExitSleepReCall(u32 SleepLevel)
-{
-    return CN_SLEEP_L1;
-}
-
+#endif //__CPU_PERI_LOWPOWER_H__

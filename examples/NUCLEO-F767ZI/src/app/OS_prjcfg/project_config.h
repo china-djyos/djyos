@@ -7,20 +7,20 @@
 
 #include "stdint.h"
 
-//*******************************  Configure System: lock  ******************************************//
+//*******************************  Configure lock  ******************************************//
 #define CFG_LOCK_LIMIT          40      //定义锁的数量包含信号量和互斥量
-//*******************************  Configure System: heap  ******************************************//
+//*******************************  Configure heap  ******************************************//
 #define     CFG_DYNAMIC_MEM                  true              //即使选false也允许使用malloc-free分配内存但使用有差别详见 《……用户手册》内存分配章节
 //*******************************  Configure device file system  ******************************************//
 #define CFG_DEVFILE_LIMIT       10      //定义设备数量
-//*******************************  Configure System: file system  ******************************************//
+//*******************************  Configure file system  ******************************************//
 #define     CFG_CLIB_BUFFERSIZE              512               //
-//*******************************  Configure System: stdio  ******************************************//
+//*******************************  Configure stdio  ******************************************//
 #define     CFG_STDIO_RUN_MODE               (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW)//
 #define     CFG_STDIO_IN_NAME                "/dev/UART3"      //
 #define     CFG_STDIO_OUT_NAME               "/dev/UART3"      //
 #define     CFG_STDIO_ERR_NAME               "/dev/UART3"      //
-//*******************************  Configure cpu_peri_System: uart  ******************************************//
+//*******************************  Configure cpu peri uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN       64      //
 #define CFG_UART1_RECVBUF_LEN       64      //
 #define CFG_UART1_DMABUF_LEN        64      //
@@ -58,7 +58,7 @@
 #define     CFG_ADD_EXPAND_SHELL             true              //
 #define     CFG_ADD_GLOBAL_FUN               false             //
 #define     CFG_SHOW_ADD_SHEELL              true              //
-//*******************************  Configure System: tcpip  ******************************************//
+//*******************************  Configure tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE               0x4000            //
 #define     CFG_ARP_HASHLEN                  32                //占用一个指针
 #define     CFG_TPL_PROTONUM                 5                 //占用一个 tagTplProtoItem 结构
@@ -96,21 +96,21 @@
 #define     CN_PPP_ENABLE                    true              //是否需要 ppp 协议
 #define     CFG_MYCONFIG6                                      //我的配置
 #define     CFG_MYCONFIG7                    CN_CONFIG         //我的配置
-//*******************************  Configure System: ymodem  ******************************************//
+//*******************************  Configure ymodem  ******************************************//
 #define     CFG_YMODEM_BUF_NUM               32                //每包1024字节
 #define     CFG_YMODEM_PKG_TIMEOUT           (15*1000*1000)    //微秒
 #define     CFG_YMODEM_TIMEOUT               (300*1000*1000)   //微秒
 #define     CFG_YMODEM_DEVNAME               "std"             //
-//*******************************  Configure System: kernel  ******************************************//
+//*******************************  Configure kernel  ******************************************//
 #define     CFG_INIT_STACK_SIZE              4096              //定义初始化过程使用的栈空间一般按默认值就可以了
 #define     CFG_EVENT_LIMIT                  15                //事件数量
 #define     CFG_EVENT_TYPE_LIMIT             15                //事件类型数
 #define     CFG_MAINSTACK_LIMIT              4096              //main函数运行所需的栈尺寸
 #define     CFG_IDLESTACK_LIMIT              1024              //IDLE事件处理函数运行的栈尺寸一般按默认值就可以了
 #define     CFG_OS_TINY                      false             //true=用于资源紧缺的场合内核会裁剪掉：事件类型名字事件处理时间统计。
-//*******************************  Configure System: memory pool  ******************************************//
+//*******************************  Configure memory pool  ******************************************//
 #define CFG_MEMPOOL_LIMIT       10      //允许建立10个内存池
-//*******************************  Configure System: loader  ******************************************//
+//*******************************  Configure loader  ******************************************//
 #define     CFG_APP_RUNMODE                  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 #define     CFG_APP_VERIFICATION             VERIFICATION_NULL //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define     CFG_IBOOT_VERSION                01                //Iboot发布版本号

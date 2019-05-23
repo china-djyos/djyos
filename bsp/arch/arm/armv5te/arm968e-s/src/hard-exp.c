@@ -70,6 +70,10 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 void Exp_SystickTickHandler(void)
 {
     tg_int_global.en_asyn_signal_counter = 1;
+    if(!DjyGetUpdateTickFlag())
+        DjyUpdateTicks(1);
+    else
+        DjySetUpdateTickFlag(false);
     if(user_systick!=NULL)
         user_systick(1);
     tg_int_global.en_asyn_signal_counter = 0;

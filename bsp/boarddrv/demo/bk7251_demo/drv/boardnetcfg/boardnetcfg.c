@@ -104,6 +104,22 @@
 
 static u8   gc_NetMac[CN_MACADDR_LEN] = DEFAULT_MAC_ADDR;
 
+void DhcpStaStartIp(void)
+{
+    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+    {
+       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+    }
+    else
+    {
+        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+    }
+}
+
+void DhcpStaClearIp(void)
+{
+
+}
 
 //please refers the following function in the module-trim in proper place.
 //make sure that that os kernel has been initialize ok and the interrupt system intialize ok

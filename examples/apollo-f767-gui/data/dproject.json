@@ -29,7 +29,7 @@
 		"message queue",
 		"multiplex",
 		"stdio",
-		"third lib stm32f7"],
+		"stm32f7"],
 		"iboot":["board config",
 		"board driver lcd config",
 		"cpu onchip dma",
@@ -57,7 +57,7 @@
 		"heap",
 		"iicbus",
 		"int",
-		"io analog iic bus",
+		"io iic config",
 		"kernel",
 		"loader",
 		"lock",
@@ -72,7 +72,7 @@
 		"time",
 		"touch",
 		"uart device file",
-		"third lib stm32f7",
+		"stm32f7",
 		"touchscreen FT5X26"]
 	}
 }

@@ -105,3 +105,8 @@ void Board_Init(void)
     os_clk_init();
 }
 
+void Init_Cpu(void);
+void SoftReset(void)
+{
+    Init_Cpu();
+}

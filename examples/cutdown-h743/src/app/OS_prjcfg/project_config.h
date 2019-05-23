@@ -8,18 +8,18 @@
 #include "stdint.h"
 
 #define CFG_RUNMODE_BAREAPP    1
-//*******************************  Configure System: lock  ******************************************//
+//*******************************  Configure lock  ******************************************//
 #define     CFG_LOCK_LIMIT                   3                      // "锁的数量",定义锁的数量，包含信号量和互斥量
-//*******************************  Configure System: heap  ******************************************//
+//*******************************  Configure heap  ******************************************//
 #define     CFG_DYNAMIC_MEM                  false                // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
-//*******************************  Configure System: stdio  ******************************************//
+//*******************************  Configure stdio  ******************************************//
 #define     CFG_STDIO_FLOAT_PRINT            false             //
 #define     CFG_STDIO_STDIOFILE              false             //
 #define     CFG_STDIO_RUN_MODE               (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW)//
 #define     CFG_STDIO_IN_NAME                "/dev/UART1"      //
 #define     CFG_STDIO_OUT_NAME               "/dev/UART1"      //
 #define     CFG_STDIO_ERR_NAME               "/dev/UART1"      //
-//*******************************  Configure System: kernel  ******************************************//
+//*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     256           // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         3             // "事件数量限值",事件数量
 #define CFG_EVENT_TYPE_LIMIT    3             // "事件类型数限值",事件类型数
@@ -29,7 +29,7 @@
 //*******************************  Configure kernel object system  ******************************************//
 #define     CFG_OBJECT_LIMIT                 5                 //用完会自动扩充
 #define     CFG_HANDLE_LIMIT                 5                 //用完会自动扩充
-//*******************************  Configure System: memory pool  ******************************************//
+//*******************************  Configure memory pool  ******************************************//
 #define     CFG_MEMPOOL_LIMIT                5                    // "内存池数量限值",
 //******************************* Core Clock ******************************************//
 #define  CFG_CORE_MCLK                   (400*Mhz)         //主频，内核要用，必须定义

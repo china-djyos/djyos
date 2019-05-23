@@ -57,10 +57,20 @@
 #include <sys/dhcp.h>
 #include <sys/socket.h>
 
+static struct sta_scan_res *scan_result = NULL;
+
+static void scan_ap_callback(void *ctxt, uint8_t param)
+{
+    uint32_t ap_num = DjyWifi_GetScanResult(&scan_result);
+}
+
 ptu32_t djy_main(void)
 {
     int i = 0;
+    LP_SetTriggerTick(2);
+    LP_BSP_ResigerGpioToWakeUpL4(0x80,0x80);
     DjyWifi_ApOpen("djyos-yunap","djyos12345");
+    DjyWifi_StartScan(scan_ap_callback);
     i = 40;
     do
     {
@@ -70,21 +80,14 @@ ptu32_t djy_main(void)
     }while(i>0);
     DjyWifi_ApClose();
     DjyWifi_StaAdvancedConnect("djyos-ap", "djyos12345");
-    if(DhcpAddClientTask(CFG_NETCARD_NAME))
-   {
-      printf("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-   }
-   else
-   {
-       printf("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-   }
-
    do
    {
        printf("wait connect!\r\n");
        Djy_EventDelay(2000*1000);
    }while(DHCP_ConnetStatus(EN_DHCP_GET_STATUS_CMD,0)!=EN_DHCP_CONNET_STATUS);
    DjyWifi_StaConnectDone();
+   Djy_EventDelay(4000*1000);
+   LP_DeepSleep();
    while(1)
    {
       printf("sta mode!\r\n");
