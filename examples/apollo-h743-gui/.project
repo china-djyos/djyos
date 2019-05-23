@@ -28,12 +28,17 @@
 		<link>
 			<name>src/userlib</name>
 			<type>2</type>
-			<location>D:/SoftWare/DIDE_Builder/djysrc/userlib</location>
+			<locationURI>DJYOS_SRC_LOCATION/userlib</locationURI>
 		</link>
 		<link>
-			<name>src/iboot/gdd_test</name>
+			<name>src/iboot/multiplex.c</name>
+			<type>1</type>
+			<locationURI>DJYOS_SRC_LOCATION/component/multiplex/multiplex.c</locationURI>
+		</link>
+		<link>
+			<name>src/iboot/tcpip</name>
 			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/test/gdd_test</locationURI>
+			<locationURI>DJYOS_SRC_LOCATION/component/tcpip</locationURI>
 		</link>
 		<link>
 			<name>src/libos/bsp</name>

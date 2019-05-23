@@ -7,15 +7,6 @@ void keep_shell(void)
 
 	volatile void *keep;
 
-	extern void *djysh_linemem;
-	keep = (void *)djysh_linemem;
-
-	extern void *djysh_blackboxrtest;
-	keep = (void *)djysh_blackboxrtest;
-
-	extern void *djysh_blackboxi;
-	keep = (void *)djysh_blackboxi;
-
 	extern void *djysh_help;
 	keep = (void *)djysh_help;
 
@@ -36,18 +27,6 @@ void keep_shell(void)
 
 	extern void *djysh_rout;
 	keep = (void *)djysh_rout;
-
-	extern void *djysh_tcpipver;
-	keep = (void *)djysh_tcpipver;
-
-	extern void *djysh_evtt;
-	keep = (void *)djysh_evtt;
-
-	extern void *djysh_bootmsg;
-	keep = (void *)djysh_bootmsg;
-
-	extern void *djysh_heap;
-	keep = (void *)djysh_heap;
 
 	extern void *djysh_mac;
 	keep = (void *)djysh_mac;

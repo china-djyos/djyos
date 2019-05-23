@@ -7,7 +7,7 @@
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
+			<triggers>full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -29,36 +29,6 @@
 			<name>src/userlib</name>
 			<type>2</type>
 			<location>D:/SoftWare/DIDE_Builder/djysrc/userlib</location>
-		</link>
-		<link>
-			<name>src/libos/bsp</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/bsp</locationURI>
-		</link>
-		<link>
-			<name>src/libos/component</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/component</locationURI>
-		</link>
-		<link>
-			<name>src/libos/djyos</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/djyos</locationURI>
-		</link>
-		<link>
-			<name>src/libos/libc</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/libc</locationURI>
-		</link>
-		<link>
-			<name>src/libos/loader</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/loader</locationURI>
-		</link>
-		<link>
-			<name>src/libos/third</name>
-			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/third</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>

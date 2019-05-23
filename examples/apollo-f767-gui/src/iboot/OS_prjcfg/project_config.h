@@ -7,21 +7,21 @@
 
 #include "stdint.h"
 
-//*******************************  Configure System: Nls Charset  ******************************************//
+//*******************************  Configure Nls Charset  ******************************************//
 #define     CFG_LOCAL_CHARSET                "gb2312"                 // "本地字符集",
-//*******************************  Configure System: lock  ******************************************//
+//*******************************  Configure lock  ******************************************//
 #define CFG_LOCK_LIMIT          40             // "锁的数量",定义锁的数量，包含信号量和互斥量
-//*******************************  Configure System: heap  ******************************************//
+//*******************************  Configure heap  ******************************************//
 #define CFG_DYNAMIC_MEM true         // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
 //*******************************  Configure device file system  ******************************************//
 #define CFG_DEVFILE_LIMIT       10             // "设备数量",定义设备数量
-//*******************************  Configure System: io analog iic bus  ******************************************//
+//*******************************  Configure io analog iic bus  ******************************************//
 #define     IO_IIC_USER_TAG                  1                 // 用户自己的标签，用作在回调用户提供的IO控制函数的第二个参数
 #define     IO_IIC_BUS_NAME                  "IoIic"           // 该IIC总线的名字
 #define     IIC_IOCTRL_FUN                   IIC_IoCtrlFunc    // 用户实现的IO控制函数名
-//*******************************  Configure System: font  ******************************************//
+//*******************************  Configure font  ******************************************//
 #define     CFG_FONT_DEFAULT                 "gb2312_song_16"     // "默认字体",字体名在include/font目录中找
-//*******************************  Configure System: gb2312 dot  ******************************************//
+//*******************************  Configure gb2312 dot  ******************************************//
 #define     CFG_GB2312_12_SONG               zk_disable             // "12点阵宋体",GB2312字体,zk_disable：不需要，from_array：从数组读取，from_file：从文件读
     #define CFG_GB2312_12_SONG_FILENAME "zk_gb2316_12song.bin"      // "字库文件名",若从文件读取，则配置文件名
 #define CFG_GB2312_16_SONG              from_array                  // "16点阵宋体",GB2312字体,zk_disable：不需要，from_array：从数组读取，from_file：从文件读
@@ -54,9 +54,9 @@
     #define CFG_GB2312_32_HEI_FILENAME  "zk_gb2316_32hei.bin"       // "字库文件名",若从文件读取，则配置文件名
 #define CFG_GB2312_32_FANG              zk_disable                  // "32点阵仿宋体",GB2312字体,zk_disable：不需要，from_array：从数组读取，from_file：从文件读
     #define CFG_GB2312_32_FANG_FILENAME "zk_gb2316_32fang.bin"      // "字库文件名",若从文件读取，则配置文件名
-//*******************************  Configure System: graphical kernel  ******************************************//
+//*******************************  Configure graphical kernel  ******************************************//
 #define CFG_GKERNEL_CMD_DEEP        1024           // "缓冲区长度",gdd向gkernel传递命令的缓冲区长度（字节数）
-//*******************************  Configure System: graphical decorate development(gdd)  ******************************************//
+//*******************************  Configure graphical decorate development(gdd)  ******************************************//
 #define     CFG_DESKTOP_WIDTH                0                        // "桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define     CFG_DESKTOP_HEIGHT               0                        // "桌面高度",桌面尺寸（像素数）高度，0=显示器高度
 #define     CFG_DISPLAY_NAME                 "LCD_F7"                 // "显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
@@ -67,14 +67,14 @@
 #define     CFG_FILL_COLOR                   CN_COLOR_BLUE            // "填充色",创建桌面时的填充色，用888格式，可在gkernel.h中找到常用颜色定义
 //*******************************  Configure human machine interface  ******************************************//
 #define     CFG_HMIIN_DEV_LIMIT              2                        // "name",人机交互输入设备数量，如键盘、鼠标等
-//*******************************  Configure System: stdio  ******************************************//
+//*******************************  Configure stdio  ******************************************//
 #define     CFG_STDIO_RUN_MODE               (CN_STDIO_STDIN_MULTI|CN_STDIO_STDOUT_FOLLOW)  // "STDIO模式",
 #define     CFG_STDIO_IN_NAME                "/dev/UART1"        // "标准输入设备名",
 #define     CFG_STDIO_OUT_NAME               "/dev/UART1"        // "标准输出设备名",
 #define     CFG_STDIO_ERR_NAME               "/dev/UART1"        // "标准err输出设备名",
 #define CFG_STDIO_FLOAT_PRINT       true        //"支持浮点打印"
 #define CFG_STDIO_STDIOFILE         true        //"支持标准IO文件"
-//*******************************  Configure cpu_peri_System: uart device file  ******************************************//
+//*******************************  Configure cpu_peri_uart device file  ******************************************//
 #define     CFG_UART1_SENDBUF_LEN            64                       // "UART1发送环形缓冲区大小",
 #define     CFG_UART1_RECVBUF_LEN            64                       // "UART1接收环形缓冲区大小",
 #define     CFG_UART1_DMABUF_LEN             64                       // "UART1 DMA环形缓冲区大小",
@@ -113,7 +113,7 @@
 #define     CFG_ADD_GLOBAL_FUN               false               // "添加全局函数到shell"
 #define     CFG_SHOW_ADD_SHEELL              true                // "显示在编译窗口添加的shell命令"
 #define CFG_MODULE_ENABLE_SHELL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//*******************************  Configure System: tcpip  ******************************************//
+//*******************************  Configure tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE               0x4000                  // "数据包缓冲区尺寸"
 #define     CFG_ARP_HASHLEN                  32                      // "ARP哈希表长度"，占用一个指针
 #define     CFG_TPL_PROTONUM                 5                       // "支持的传输协议数"，占用一个 tagTplProtoItem 结构
@@ -149,25 +149,25 @@
 #define     CFG_DHCPD_DNS               "192.168.0.253"   // "DHCP DNSSERVER IP"
 #define     CFG_DHCPD_DOMAINNAME       "domain"         // "DHCP domain name"
 #define     CFG_PPP_ENABLE             false          // 是否需要 ppp 协议
-//*******************************  Configure System: tcp  ******************************************//
+//*******************************  Configure tcp  ******************************************//
 #define     CFG_TCP_REORDER                  true                    // "TCP乱序重组使能",资源充足才打开
 #define     CFG_TCP_CCBNUM                   10                      // "tcp 客户端数限值"，占一个 指针 和 struct ClienCB
 #define     CFG_TCP_SCBNUM                   5                       // "tcp 服务器数限值"，占一个 指针 和 struct ServerCB
 //*******************************  Configure cpu peri timer  ******************************************//
 #define CFG_TIMER_SOUCE     1              // "时钟源",1=由硬件计时器提供时钟源，0=由tick提供时钟源
 #define CFG_TIMERS_LIMIT    5              // "定时器数量",可创建的定时器数量（不包含图形界面的定时器）
-//*******************************  Configure System: kernel  ******************************************//
+//*******************************  Configure kernel  ******************************************//
 #define     CFG_INIT_STACK_SIZE              4096                    // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define     CFG_EVENT_LIMIT                  30                      // "事件数量限值",事件数量
 #define     CFG_EVENT_TYPE_LIMIT             30                      // "事件类型数限值",事件类型数
 #define     CFG_MAINSTACK_LIMIT              4096                    // "main函数栈尺寸",main函数运行所需的栈尺寸
 #define     CFG_IDLESTACK_LIMIT              1024                    // "IDLE事件栈尺寸",IDLE事件处理函数运行的栈尺寸，一般按默认值就可以了
 #define     CFG_OS_TINY                      false                   // "tiny版内核",true=用于资源紧缺的场合，内核会裁剪掉：事件类型名字，事件处理时间统计。
-//*******************************  Configure System: memory pool  ******************************************//
+//*******************************  Configure memory pool  ******************************************//
 #define CFG_MEMPOOL_LIMIT       10             // "内存池数量",允许建立10个内存池
-//*******************************  Configure System: time  ******************************************//
+//*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8             // "时区",北京时间是东8区
-//*******************************  Configure System: loader  ******************************************//
+//*******************************  Configure loader  ******************************************//
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN            // EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL             // 是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 #define CFG_IBOOT_VERSION       01               // Iboot发布版本号
@@ -202,7 +202,7 @@
 #define     CFG_DESKTOP_NAME                 "desktop"                // "桌面名称",配置触摸屏所在显示器桌面的名称
 //*******************************  Configure IIC to 8gpio pcf8574  ******************************************//
 #define     CFG_PCF8574_BUS_NAME             "IoIic"                  // "name"
-//*******************************  Configure System: black box  ******************************************//
+//*******************************  Configure black box  ******************************************//
 #define     CFG_LCD_XSIZE                    1024               // "LCD水平像素宽度",
 #define     CFG_LCD_YSIZE                    600                // "LCD竖直像素宽度",
 #define     CFG_DISPLAY_NAME                 "LCD_F7"           // "显示器LCD名称",

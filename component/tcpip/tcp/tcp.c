@@ -65,14 +65,14 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"System:tcp"//tcp协议
-//parent:"System:tcpip"     //填写该组件的父组件名字，none表示没有父组件
+//component name:"tcp"//tcp协议
+//parent:"tcpip"     //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"System:lock","System:heap","System:tpl"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock","heap","System:tpl"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -308,7 +308,7 @@ typedef struct
 {
     s32                          tablen;     //how long the hash tab is
     struct MutexLCB             *tabsync;    //used to peotect the hash tab
-    struct Socket                   *array[0];   //this is the hash tab
+    struct Socket               *array[0];   //this is the hash tab
 }tagTcpHashTab;
 static tagTcpHashTab   *pTcpHashTab = NULL;
 static void *pTcpTicker = NULL;
@@ -432,9 +432,9 @@ static bool_t __hashSocketAdd(struct Socket *sock)
 {
     struct Socket  *tmp;
     u32         hashKey;
+    tagSockElementV4  *v4 = &sock->element.v4;
 
-    hashKey = sock->element.v4.iplocal+sock->element.v4.portlocal+\
-              sock->element.v4.ipremote + sock->element.v4.portremote;
+    hashKey = v4->iplocal + v4->portlocal + v4->ipremote + v4->portremote;
     hashKey = hashKey%pTcpHashTab->tablen;
     tmp = pTcpHashTab->array[hashKey];
     if(NULL == tmp)
@@ -512,44 +512,38 @@ static struct ServerCB          *pSCBFreeList = NULL; //this is used for the net
 //after the initialize, we net_malloc CB from the net_free queue
 static bool_t  __initCB(s32 ccbnum, s32 scbnum)
 {
-    bool_t result = false;
     s32 i = 0;
 
+    if((ccbnum <= 0) || (scbnum <= 0))
+        return false;
     pCBSync = mutex_init(NULL);
 
     //do the ccb initialize
     pCCBFreeList = net_malloc(ccbnum *sizeof(struct ClienCB));
-    if((ccbnum > 0)&&(NULL == pCCBFreeList))
+    if(NULL == pCCBFreeList)
     {
         goto CCB_MEM;
     }
     //do ClienCB initialize
-    if(ccbnum > 1)
+    for(i=0;i <(ccbnum -1);i++)
     {
-        //do the initialize
-        for(i=0;i <(ccbnum -1);i++)
-        {
-            pCCBFreeList[i].nxt = &pCCBFreeList[i +1];
-        }
+        pCCBFreeList[i].nxt = &pCCBFreeList[i +1];
     }
-    //do the scb initialize
+    pCCBFreeList[i].nxt = NULL;
+   //do the scb initialize
     pSCBFreeList = net_malloc(scbnum *sizeof(struct ServerCB));
-    if((scbnum > 0)&&(NULL == pSCBFreeList))
+    if(NULL == pSCBFreeList)
     {
         goto SCB_MEM;
     }
     //do ServerCB initialize
-    if(scbnum > 1)
+    for(i=0;i <(scbnum -1);i++)
     {
-        //do the initialize
-        for(i=0;i <(scbnum -1);i++)
-        {
-            pSCBFreeList[i].nxt = &pSCBFreeList[i +1];
-        }
+        pSCBFreeList[i].nxt = &pSCBFreeList[i +1];
     }
+    pSCBFreeList[i].nxt = NULL;
 
-    result = true;
-    return result;
+    return true;
 
 SCB_MEM:
     net_free((void *)pCCBFreeList);
@@ -557,9 +551,9 @@ SCB_MEM:
 CCB_MEM:
     mutex_del(pCBSync);
     pCBSync = NULL;
-    result = false;
-    return result;
+    return false;
 }
+
 //net_malloc a ccb
 static struct ClienCB  *mallocccb(void)
 {
@@ -978,13 +972,15 @@ static s32 __tcplisten(struct Socket *sock, s32 backlog)
 }
 
 //find an new client which is stable in the scb client queue
-static struct Socket *__acceptclient(struct ServerCB *scb)
+static struct Socket *__acceptclient(struct Socket *sock)
 {
     struct Socket    *result;
     struct Socket    *client;
     struct Socket    *pre;
     struct ClienCB       *ccb;
+    struct ServerCB  *scb;
 
+    scb = (struct ServerCB *)sock->TplCB;
     result = NULL;
     client = scb->clst;
     pre = client;
@@ -1014,6 +1010,8 @@ static struct Socket *__acceptclient(struct ServerCB *scb)
             pre = client;
         }
     }
+    if(scb->clst == NULL)
+       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
     return result;
 }
 
@@ -1039,7 +1037,7 @@ static struct Socket *__tcpaccept(struct Socket *sock, struct sockaddr *addr, s3
        mutex_lock(sock->SockSync))
     {
         scb = (struct ServerCB *)sock->TplCB;
-        result = __acceptclient(scb);
+        result = __acceptclient(sock);
         waittime = scb->accepttime;
         if((NULL == result)&&(0 != waittime))
         {
@@ -1049,13 +1047,13 @@ static struct Socket *__tcpaccept(struct Socket *sock, struct sockaddr *addr, s3
             {
                 if(mutex_lock(sock->SockSync))
                 {
-                    result = __acceptclient(scb);
+                    result = __acceptclient(sock);
                 }
             }
         }
         if(NULL== result)  //no one to accept
         {
-            handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
+//          handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
         }
         else
         {
@@ -2357,7 +2355,7 @@ static void dealtcpoption(struct ClienCB *ccb, struct TcpHdr *hdr)
 //which means how many data received
 
 //------------------------------------------------------------------------------
-//功能：注册一个传输层协议
+//功能：接收数据，并把数据推送到上一层
 //参数：client，接收数据的socket
 //     seqno，数据序号
 //     pkg，数据包
@@ -2487,7 +2485,7 @@ static u32 __rcvdata(struct Socket *client, u32 seqno,struct NetPkg *pkg)
     //in the combination queue, if mathes then move it to the receive buffer, else drops now
     if(rcvlen > 0)
     {
-        if(CFG_TCP_REORDER)
+#if(CFG_TCP_REORDER == true)
         {
             while(NULL != ccb->pkgrecomblst)
             {
@@ -2521,12 +2519,12 @@ static u32 __rcvdata(struct Socket *client, u32 seqno,struct NetPkg *pkg)
                 }
                 else
                 {
-                    //drops it now
-                    PkgTryFreePart(pkgcomb);
+                    PkgTryFreePart(pkgcomb);        //drops it now
                 }
                 ccb->pkgrecomblen = 0;
             }
         }
+#endif      //for (CFG_TCP_REORDER == true)
         if(ccb->rbuf.buflen > ccb->rbuf.trigerlevel)
         {
             handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);

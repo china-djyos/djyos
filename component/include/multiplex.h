@@ -77,6 +77,7 @@ extern "C" {
 #define CN_MULTIPLEX_SENSINGBIT_READ        (1<<0)  //对象可读
 #define CN_MULTIPLEX_SENSINGBIT_WRITE       (1<<1)  //对象可写
 #define CN_MULTIPLEX_SENSINGBIT_ERROR       (1<<2)  //对象出错
+#define CN_MULTIPLEX_SENSINGBIT_USERBASE    (1<<16)  // bit16~23由用户定义
 
 //触发模式，利用SensingBit.24~31
 #define CN_MULTIPLEX_SENSINGBIT_ONESHOT     (1<<28) //1=只监听一次事件，0=监听多次

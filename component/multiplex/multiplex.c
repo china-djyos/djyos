@@ -74,14 +74,14 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"System:multiplex"//多路复用
+//component name:"multiplex"//多路复用
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"System:lock"  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -590,7 +590,8 @@ s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
             //把Object从Sets->ActiveQ队列拿出，放到ObjectQ队列中
 //            Object->PendingBit = 0;
             //取出上次触发时未触发，而本次变位为已触发的位
-            Object->PendingBit &= ~CN_MULTIPLEX_OBJECT_ACTIVED;
+            Object->PendingBit &= CN_MULTIPLEX_STATUSMSK;
+//          Object->PendingBit &= ~CN_MULTIPLEX_OBJECT_ACTIVED;
             Object->ET_SaveBit = (~Object->ET_SaveBit) & Object->PendingBit;
             if (Status != NULL)
                 *Status = Object->ET_SaveBit;

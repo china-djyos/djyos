@@ -8,13 +8,13 @@
 #include "stdint.h"
 
 #define CFG_RUNMODE_BAREAPP    1
-//*******************************  Configure System: lock  ******************************************//
+//*******************************  Configure lock  ******************************************//
 #define CFG_LOCK_LIMIT          40                  // "锁的数量",定义锁的数量，包含信号量和互斥量
-//*******************************  Configure System: heap  ******************************************//
+//*******************************  Configure heap  ******************************************//
 #define CFG_DYNAMIC_MEM true              // "全功能动态分配",即使选false，也允许使用malloc-free分配内存，但使用有差别，详见 《……用户手册》内存分配章节
 //*******************************  Configure device file system  ******************************************//
 #define    CFG_DEVFILE_LIMIT               10                 // "设备数量",定义设备数量
-//*******************************  Configure System: stdio  ******************************************//
+//*******************************  Configure stdio  ******************************************//
 #define CFG_STDIO_STDIN_MULTI      true     // "是否支持多种输入设备",
 #define CFG_STDIO_STDOUT_FOLLOW    true     // "stdout是否跟随stdin",
 #define CFG_STDIO_STDERR_FOLLOW    true     // "stderr是否跟随stdin",
@@ -44,7 +44,7 @@
 #define    CFG_DHCPD_DNS                   "192.168.0.253"   //
 #define    CFG_DHCPD_DOMAINNAME            "domain"          //
 #define  CFG_MODULE_ENABLE_DHCP          true
-//*******************************  Configure System: tcp  ******************************************//
+//*******************************  Configure tcp  ******************************************//
 #define     CFG_TCP_REORDER             true    //资源充足才打开
 #define     CFG_TCP_CCBNUM              10      //占一个 指针 和 struct ClienCB
 #define     CFG_TCP_SCBNUM              5       //占一个 指针 和 struct ServerCB
@@ -52,7 +52,7 @@
 //*******************************  Configure tpl  ******************************************//
 #define CFG_TCP_REORDER  false
 #define     CFG_TPL_PROTONUM            5       //占用一个 tagTplProtoItem 结构
-//*******************************  Configure System: tcpip  ******************************************//
+//*******************************  Configure tcpip  ******************************************//
 #define     CFG_NETPKG_MEMSIZE          0x4000  //
 #define  CFG_MODULE_ENABLE_TCPIP         true
 #define  CFG_MODULE_ENABLE_TCPIP         true
@@ -74,10 +74,10 @@
 #define    CFG_UDP_PKGMSGLEN               1472              //udp最大包长度
 #define    CFG_UDP_BUFLENDEFAULT           0x2000            //8KB
 #define  CFG_MODULE_ENABLE_UDP           true
-//*******************************  Configure System: Software Timers  ******************************************//
+//*******************************  Configure Software Timers  ******************************************//
 #define CFG_TIMERS_LIMIT        5        // "定时器数量",可创建的定时器数量（不包含图形界面的定时器）
 #define CFG_TIMER_SOUCE_HARD    true     // "硬件定时器提供时钟源",选择专用硬件还是tick/tickless做时钟源
-//*******************************  Configure System: kernel  ******************************************//
+//*******************************  Configure kernel  ******************************************//
 #define CFG_INIT_STACK_SIZE     4096                // "初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         15                  // "事件数量限值",事件数量
 #define CFG_EVENT_TYPE_LIMIT    15                  // "事件类型数限值",事件类型数
@@ -87,9 +87,9 @@
 //*******************************  Configure kernel object system  ******************************************//
 #define CFG_OBJECT_LIMIT        8            // "对象数初始值"，用完会自动扩充
 #define CFG_HANDLE_LIMIT        8            // "句柄数初始值"，用完会自动扩充
-//*******************************  Configure System: memory pool  ******************************************//
+//*******************************  Configure memory pool  ******************************************//
 #define CFG_MEMPOOL_LIMIT       10                  // "内存池数量限值",
-//*******************************  Configure cpu_peri_System: uart device file  ******************************************//
+//*******************************  Configure cpu_peri_uart device file  ******************************************//
 #define     CFG_UART1_SENDBUF_LEN            32                            // "UART1发送环形缓冲区大小",
 #define     CFG_UART1_RECVBUF_LEN            32                            // "UART1接收环形缓冲区大小",
 #define     CFG_UART1_DMABUF_LEN             32                            // "UART1 DMA缓冲区大小",

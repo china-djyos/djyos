@@ -384,6 +384,7 @@ void handle_init(struct objhandle *hdl, struct Object *ob, u32 flags, ptu32_t co
     hdl->HostObj = ob;
     hdl->context = context;
     hdl->flags = flags;
+    dListInsertAfter(&ob->handles, &hdl->list);
 }
 
 // ============================================================================

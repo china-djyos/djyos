@@ -174,7 +174,7 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-#if defined (CFG_MODULE_ENABLE_TCP)
+#if (CFG_MODULE_ENABLE_TCP == true)
   //install the tcp protocol
     extern bool_t TcpInit(void);
     ret = TcpInit();
@@ -186,7 +186,7 @@ bool_t ModuleInstall_TcpIp(void)
 #endif
 
     //install the udp protocol
-#if defined (CFG_MODULE_ENABLE_UDP)
+#if (CFG_MODULE_ENABLE_UDP == true)
     extern bool_t UdpInit(void);
     ret = UdpInit();
     __LoadLog("UDP",ret);
@@ -213,7 +213,7 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //add the ppp module
-#if defined (CFG_MODULE_ENABLE_PPP)
+#if (CFG_MODULE_ENABLE_PPP == true)
         extern bool_t PppInit(void);
         ret = PppInit();
         __LoadLog("PPP",ret);

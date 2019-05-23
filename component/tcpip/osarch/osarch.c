@@ -304,7 +304,7 @@ bool_t string2mac(char *str,u8 *mac)
 char* mac2string(u8 *mac)
 {
     int i =0;
-    static char  str[20];
+    static char  str[30];
 
     unsigned int data[6];
 
