@@ -56,7 +56,6 @@
 #include "cpu_peri_wifi.h"
 #include <sys/dhcp.h>
 #include <sys/socket.h>
-#include <project_config.h>
 
 static struct sta_scan_res *scan_result = NULL;
 
@@ -81,22 +80,14 @@ ptu32_t djy_main(void)
     }while(i>0);
     DjyWifi_ApClose();
     DjyWifi_StaAdvancedConnect("djyos-ap", "djyos12345");
-    if(DhcpAddClientTask(CFG_NETCARD_NAME))
-   {
-      printf("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-   }
-   else
-   {
-       printf("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-   }
-   Djy_EventDelay(4000*1000);
-   LP_DeepSleep();
    do
    {
        printf("wait connect!\r\n");
        Djy_EventDelay(2000*1000);
    }while(DHCP_ConnetStatus(EN_DHCP_GET_STATUS_CMD,0)!=EN_DHCP_CONNET_STATUS);
    DjyWifi_StaConnectDone();
+   Djy_EventDelay(4000*1000);
+   LP_DeepSleep();
    while(1)
    {
       printf("sta mode!\r\n");
