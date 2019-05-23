@@ -17,6 +17,16 @@
 #define RTOS_DBG(...)
 #endif
 
+void delay(INT32 num)
+{
+    volatile INT32 i,j;
+
+    for(i = 0; i < num; i ++)
+    {
+        for(j = 0; j < 100; j ++)
+            ;
+    }
+}
 
 /******************************************************
  *               Function Definitions
