@@ -38,6 +38,32 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
+	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
+	#if CFG_UART1_ENABLE ==1
+	ModuleInstall_UART(CN_UART1);
+	#endif
+	#if CFG_UART2_ENABLE ==1
+	ModuleInstall_UART(CN_UART2);
+	#endif
+	#if CFG_UART3_ENABLE ==1
+	ModuleInstall_UART(CN_UART3);
+	#endif
+	#if CFG_UART4_ENABLE ==1
+	ModuleInstall_UART(CN_UART4);
+	#endif
+	#if CFG_UART5_ENABLE ==1
+	ModuleInstall_UART(CN_UART5);
+	#endif
+	#if CFG_UART6_ENABLE ==1
+	ModuleInstall_UART(CN_UART6);
+	#endif
+	#if CFG_UART7_ENABLE ==1
+	ModuleInstall_UART(CN_UART7);
+	#endif
+	#if CFG_UART8_ENABLE ==1
+	ModuleInstall_UART(CN_UART8);
+	#endif
+
 	//-------------------medium-------------------------//
 	#if(CFG_OS_TINY == flase)
 	extern s32 kernel_command(void);

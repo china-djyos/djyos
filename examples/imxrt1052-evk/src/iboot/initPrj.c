@@ -8,6 +8,7 @@
 #include "stddef.h"
 #include "cpu_peri.h"
 extern ptu32_t djy_main(void);
+#include <filesystems.h>
 
 ptu32_t __djy_main(void)
 {
@@ -33,11 +34,11 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
+
 	extern bool_t ModuleInstall_DjyBus(void);
 	ModuleInstall_DjyBus ( );
-
-	extern bool_t ModuleInstall_IICBus(void);
-	ModuleInstall_IICBus ( );
 
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
@@ -47,6 +48,20 @@ void Sys_ModuleInit(void)
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
+
+	extern bool_t IIC_Init(u8 iic_port);
+	#if (CFG_IIC1_ENABLE == 1)
+	IIC_Init(CN_IIC1);
+	#endif
+	#if (CFG_IIC2_ENABLE == 1)
+	IIC_Init(CN_IIC2);
+	#endif
+	#if (CFG_IIC3_ENABLE == 1)
+	IIC_Init(CN_IIC3);
+	#endif
+	#if (CFG_IIC4_ENABLE == 1)
+	IIC_Init(CN_IIC4);
+	#endif
 
 	extern ptu32_t ModuleInstall_UART(u8 port);
 	#if (CFG_UART1_ENABLE == 1)
@@ -74,29 +89,7 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART8);
 	#endif
 
-	extern bool_t IIC_Init(u8 iic_port);
-	#if (CFG_IIC1_ENABLE == 1)
-	IIC_Init(CN_IIC1);
-	#endif
-	#if (CFG_IIC2_ENABLE == 1)
-	IIC_Init(CN_IIC2);
-	#endif
-	#if (CFG_IIC3_ENABLE == 1)
-	IIC_Init(CN_IIC3);
-	#endif
-	#if (CFG_IIC4_ENABLE == 1)
-	IIC_Init(CN_IIC4);
-	#endif
-
 	//-------------------medium-------------------------//
-	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
-	ModuleInstall_Charset(0);
-	extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
-	ModuleInstall_CharsetNls("C");
-
-	extern bool_t ModuleInstall_CharsetGb2312(void);
-	ModuleInstall_CharsetGb2312 ( );
-
 	extern bool_t ModuleInstall_Font(void);
 	ModuleInstall_Font ( );
 
@@ -112,8 +105,18 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_Touch(void);
 	ModuleInstall_Touch();    //初始化人机界面输入模块
 
-	ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
+	#if(CFG_OS_TINY == flase)
+	extern s32 kernel_command(void);
+	kernel_command();
+	#endif
+
+	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
+	ModuleInstall_Charset(0);
+	extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
+	ModuleInstall_CharsetNls("C");
+
+	extern bool_t ModuleInstall_CharsetGb2312(void);
+	ModuleInstall_CharsetGb2312 ( );
 
 	extern struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
 	const char* HeapName);
@@ -123,30 +126,31 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_Gdd_AND_Desktop(void);
 	ModuleInstall_Gdd_AND_Desktop();
 
+	#if(CFG_STDIO_STDIOFILE == true)
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
+	#endif
 
-	extern bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,char *touch_dev_name);
+	extern bool_t ModuleInstall_FT5406(struct GkWinObj *desktop);
 	struct GkWinObj *ptouchdesktop;
 	ptouchdesktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-	if(false == ModuleInstall_FT5406(CFG_FT5406_BUS_NAME,ptouchdesktop,CFG_FT5406_TOUCH_NAME))
+	if(false == ModuleInstall_FT5406(ptouchdesktop))
 	{
 	printf("FT5406 Install Failed!\r\n");
 	while(1);
 	}
 	extern bool_t GDD_AddInputDev(const char *InputDevName);
-	GDD_AddInputDev(CFG_INPUTDEV_NAME);
+	GDD_AddInputDev(CFG_FT5406_TOUCH_NAME);
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
 	//事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
 	Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
 
+	#if ((CFG_DYNAMIC_MEM == true))
 	extern bool_t Heap_DynamicModuleInit(void);
 	Heap_DynamicModuleInit ( );
-
-	printf("\r\n: info : all modules are configured.");
-	printf("\r\n: info : os starts.\r\n");
+	#endif
 
 	return ;
 }

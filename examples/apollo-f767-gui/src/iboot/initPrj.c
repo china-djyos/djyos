@@ -8,7 +8,6 @@
 #include "stddef.h"
 #include "cpu_peri.h"
 extern ptu32_t djy_main(void);
-#include "IoIicBus.h"
 
 ptu32_t __djy_main(void)
 {
@@ -19,22 +18,9 @@ ptu32_t __djy_main(void)
 void Sys_ModuleInit(void)
 {
 	uint16_t evtt_main;
-//	  u32 loop,sum;
-//	  u32 *pppp;
-//	  for(sum = 0; sum < 1000000; sum++)
-//	  {
-//	      for(pppp = 0xc0000000; pppp < (u32*)0xc2000000; pppp++)
-//	          *pppp = (u32)pppp;
-//	        for(pppp = 0xc0000000; pppp < (u32*)0xc2000000; pppp++)
-//	            if(*pppp != (u32)pppp)
-//	                loop = 100;
-//	  }
 
 	extern void Board_GpioInit(void);
 	Board_GpioInit();
-
-	extern bool_t ModuleInstall_Keyboard(const char *dev_name);
-	ModuleInstall_Keyboard(CFG_KEYBOARD_NAME);
 
 	extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
 	Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
@@ -45,25 +31,29 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
+
 	extern bool_t ModuleInstall_DjyBus(void);
 	ModuleInstall_DjyBus ( );
 
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
 
-	struct IO_IIC_Init IoIic;
-	u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
-	IoIic.BusName     =  IO_IIC_BUS_NAME;//总线名称，如IIC1
-	IoIic.tag         =  IO_IIC_USER_TAG; //用户自己的标记
-	IoIic.IIC_IoCtrl  =  IIC_IOCTRL_FUN; //控制函数
-	//模块接口
-	ModuleInstall_IO_IICBus(&IoIic);
+	bool_t ModuleInstall_init_ioiic(const char * busname);
+	ModuleInstall_init_ioiic(IO_IIC_BUS_NAME);
+
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
+
+	extern bool_t ModuleInstall_HardTimer(void);
+	ModuleInstall_HardTimer();
 
 	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
 	#if CFG_UART1_ENABLE ==1
@@ -91,27 +81,10 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART8);
 	#endif
 
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
-
-	extern bool_t ModuleInstall_PCF8574(char *BusName);
-	ModuleInstall_PCF8574(CFG_PCF8574_BUS_NAME);
-
-	extern bool_t MoudleInit_Systime(ptu32_t para);
-	MoudleInit_Systime(0);
-
-	extern bool_t ModuleInstall_HardTimer(void);
-	ModuleInstall_HardTimer();
+	extern bool_t ModuleInstall_PCF8574(void);
+	ModuleInstall_PCF8574();
 
 	//-------------------medium-------------------------//
-	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
-	ModuleInstall_Charset(0);
-	extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
-	ModuleInstall_CharsetNls("C");
-
-	extern bool_t ModuleInstall_CharsetGb2312(void);
-	ModuleInstall_CharsetGb2312 ( );
-
 	extern bool_t ModuleInstall_Font(void);
 	ModuleInstall_Font ( );
 
@@ -127,33 +100,46 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_Touch(void);
 	ModuleInstall_Touch();    //初始化人机界面输入模块
 
+	#if(CFG_OS_TINY == flase)
+	extern s32 kernel_command(void);
+	kernel_command();
+	#endif
+
+	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
+	ModuleInstall_Charset(0);
+	extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
+	ModuleInstall_CharsetNls("C");
+
+	extern bool_t ModuleInstall_CharsetGb2312(void);
+	ModuleInstall_CharsetGb2312 ( );
+
 	extern bool_t ModuleInstall_TcpIp(void);
 	ModuleInstall_TcpIp( );
 
-	extern bool_t TcpInit(void);
-	TcpInit();
+	extern bool_t LAN8720_ResetInit(void);
+	LAN8720_RESET( );
+	LAN8720_ResetInit( );
 
-	extern bool_t ModuleInstall_Timer(void);
-	ModuleInstall_Timer();
+	extern bool_t ModuleInstall_ETH(void);
+	ModuleInstall_ETH( );
 
-	extern s32 kernel_command(void);
-	kernel_command();
-
-	extern void ModuleInstall_InitNet( );
-	ModuleInstall_InitNet( );
-
-	extern struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapName);
-	ModuleInstall_LCD(CFG_DISPLAY_NAME,CFG_LCD_HEAP_NAME);
+	extern bool_t ModuleInstall_Keyboard(const char *dev_name);
+	ModuleInstall_Keyboard(CFG_KEYBOARD_NAME);
 
 	//-------------------later-------------------------//
 	extern void ModuleInstall_Gdd_AND_Desktop(void);
 	ModuleInstall_Gdd_AND_Desktop();
 
+	#if(CFG_STDIO_STDIOFILE == true)
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
+	#endif
+
+	extern void ModuleInstall_InitNet( );
+	ModuleInstall_InitNet( );
 
 	extern struct GkWinObj;
-	extern bool_t ModuleInstall_FT5X26(char *BusName,struct GkWinObj *desktop,char *touch_dev_name );
+	extern bool_t ModuleInstall_FT5X26(struct GkWinObj *desktop);
 	struct GkWinObj *desktop;
 	desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
 	if(NULL == desktop)
@@ -162,7 +148,7 @@ void Sys_ModuleInit(void)
 	}
 	else
 	{
-	ModuleInstall_FT5X26(CFG_FT5X26_BUS_NAME,desktop,CFG_FT5X26_TOUCH_NAME);
+	ModuleInstall_FT5X26(desktop);
 	}
 	extern bool_t GDD_AddInputDev(const char *InputDevName);
 	GDD_AddInputDev(CFG_FT5X26_TOUCH_NAME);
@@ -172,8 +158,10 @@ void Sys_ModuleInit(void)
 	//事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
 	Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
 
+	#if ((CFG_DYNAMIC_MEM == true))
 	extern bool_t Heap_DynamicModuleInit(void);
 	Heap_DynamicModuleInit ( );
+	#endif
 
 	return ;
 }
