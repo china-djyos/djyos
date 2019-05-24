@@ -31,11 +31,17 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
+
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
+
+	extern bool_t ModuleInstall_HardTimer(void);
+	ModuleInstall_HardTimer();
 
 	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
 	#if CFG_UART1_ENABLE ==1
@@ -51,43 +57,35 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART4);
 	#endif
 
-//	extern s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat);
-//	extern s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat),
-//			u8 parts, ...);
-//	ModuleInstall_UnitMedia(__embed_part_init,1,0,150,1);
-//
-//	extern s32 ModuleInstall_IAP_FS(const char *target, const char *source, u32 opt);
-////	ModuleInstall_IAP_FS("iboot","/dev/unit media/embed part 0",0);
-//	ModuleInstall_IAP_FS("iboot", "/dev/embed part 0", 0);
-//
-//
-//	extern ptu32_t ModuleInstall_IAP(void);
-//	ModuleInstall_IAP();
-//
-//	extern bool_t ModuleInstall_Ymodem(void);
-//	ModuleInstall_Ymodem();
-
-	extern bool_t ModuleInstall_HardTimer(void);
-	ModuleInstall_HardTimer();
+	#if !defined (CFG_RUNMODE_BAREAPP)
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+	#endif
 
 	//-------------------medium-------------------------//
+	#if(CFG_OS_TINY == flase)
+	extern s32 kernel_command(void);
+	kernel_command();
+	#endif
+
 	extern bool_t ModuleInstall_Timer(void);
 	ModuleInstall_Timer();
 
 	//-------------------later-------------------------//
+	#if(CFG_STDIO_STDIOFILE == true)
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
+	#endif
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
 	//事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
 	Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
 
+	#if ((CFG_DYNAMIC_MEM == true))
 	extern bool_t Heap_DynamicModuleInit(void);
 	Heap_DynamicModuleInit ( );
-
-	printf("\r\n: info : all modules are configured.");
-	printf("\r\n: info : os starts.\r\n");
+	#endif
 
 	return ;
 }

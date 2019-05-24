@@ -1,4 +1,12 @@
 eclipse.preferences.version=1
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/CPATH/delimiter=;
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/CPATH/operation=remove
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/CPLUS_INCLUDE_PATH/delimiter=;
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/CPLUS_INCLUDE_PATH/operation=remove
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/C_INCLUDE_PATH/delimiter=;
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/C_INCLUDE_PATH/operation=remove
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/append=true
+environment/buildEnvironmentInclude/com.djyos.csky.abiv2.managedbuild.cross.config.elf.debug.1794416552.503636377.286198769/appendContributed=true
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.132666235/CPATH/delimiter=;
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.132666235/CPATH/operation=remove
 environment/buildEnvironmentInclude/ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.2133757667.132666235/CPLUS_INCLUDE_PATH/delimiter=;

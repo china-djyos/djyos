@@ -37,7 +37,4 @@ void keep_shell(void)
 	extern void *djysh_time;
 	keep = (void *)djysh_time;
 
-	extern void *djysh_downloada;
-	keep = (void *)djysh_downloada;
-
 }

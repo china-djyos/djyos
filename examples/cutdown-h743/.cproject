@@ -74,7 +74,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.nostdinc.1334706683" name="Do not search system directories (-nostdinc)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.nostdinc" useByScannerDiscovery="true" value="false" valueType="boolean"/>
@@ -167,7 +166,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1769481568" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
@@ -263,7 +261,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.429369705" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
@@ -293,8 +290,8 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostart.1176497071" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostart" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.usenewlibnano.1114161538" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.usenewlibnano" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.libs.847951818" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.libs" useByScannerDiscovery="false" valueType="libs">
-									<listOptionValue builtIn="false" value="os_App"/>
-									<listOptionValue builtIn="false" value="gcc"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="os_App"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="gcc"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs.1748938315" name="Do not use default libraries (-nodefaultlibs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs.146696212" name="No startup or default libs (-nostdlib)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -404,7 +401,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.nostdinc.1142979937" name="Do not search system directories (-nostdinc)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.nostdinc" useByScannerDiscovery="true" value="false" valueType="boolean"/>
@@ -497,7 +493,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.308220685" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
@@ -593,7 +588,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1271584887" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
@@ -623,8 +617,8 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostart.1337341827" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostart" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.usenewlibnano.1691810801" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.usenewlibnano" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.libs.1199041075" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.libs" useByScannerDiscovery="false" valueType="libs">
-									<listOptionValue builtIn="false" value="os_App"/>
-									<listOptionValue builtIn="false" value="gcc"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="os_App"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="gcc"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs.40461608" name="Do not use default libraries (-nodefaultlibs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs.1531400951" name="No startup or default libs (-nostdlib)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -716,7 +710,7 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.571355542" name="Endianness" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.1362399201" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1143977542" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="SHELL=cmd.exe " autoBuildTarget="all" buildPath="${workspace_loc:/IbootApp}/libos_App_Debug" cleanBuildTarget="clean" command="${cross_make}" enableCleanBuild="false" id="org.eclipse.cdt.build.core.internal.builder.1210806290" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+							<builder arguments="SHELL=cmd.exe" buildPath="${workspace_loc:/cutdown-h743}/libos_App_Debug" enableCleanBuild="false" id="ilg.gnuarmeclipse.managedbuild.cross.builder.248043786" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1095918334" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1698501899" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1427528150" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
@@ -737,7 +731,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1533855889" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
@@ -829,7 +822,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.1666117785" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -927,7 +919,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.1541589260" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1114,7 +1105,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1123539117" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
@@ -1206,7 +1196,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.757654989" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1304,7 +1293,6 @@
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32H743xx"/>
-									<listOptionValue builtIn="false" value="STM32H753xx"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.2100049081" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>

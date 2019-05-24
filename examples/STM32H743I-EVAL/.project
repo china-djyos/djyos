@@ -7,7 +7,7 @@
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>full,incremental,</triggers>
+			<triggers>clean,full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -28,7 +28,7 @@
 		<link>
 			<name>src/userlib</name>
 			<type>2</type>
-			<location>D:/SoftWare/DIDE_Builder/djysrc/userlib</location>
+			<locationURI>DJYOS_SRC_LOCATION/userlib</locationURI>
 		</link>
 		<link>
 			<name>src/libos/bsp</name>

@@ -31,14 +31,17 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
-	extern bool_t ModuleInstall_Multiplex(void);
-	ModuleInstall_Multiplex ();
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
+
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
 
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
 
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
+	extern bool_t ModuleInstall_Multiplex(void);
+	ModuleInstall_Multiplex ();
 
 	extern bool_t MoudleInit_Systime(ptu32_t para);
 	MoudleInit_Systime(0);
@@ -73,13 +76,13 @@ void Sys_ModuleInit(void)
 	#endif
 
 	//-------------------medium-------------------------//
-	extern bool_t ModuleInstall_Timer(void);
-	ModuleInstall_Timer();
-
 	#if(CFG_OS_TINY == flase)
 	extern s32 kernel_command(void);
 	kernel_command();
 	#endif
+
+	extern bool_t ModuleInstall_Timer(void);
+	ModuleInstall_Timer();
 
 	//-------------------later-------------------------//
 	#if(CFG_STDIO_STDIOFILE == true)

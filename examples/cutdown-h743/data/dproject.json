@@ -14,18 +14,19 @@
 		"board":"APOLLO-STM32H7"
 	},
 	"components_checked":{
-		"app":["stdio",
-		"kernel",
+		"app":["board config",
+		"cpu peri gpio",
 		"heap",
 		"int",
-		"lock",
-		"message queue",
+		"kernel",
 		"kernel object system",
-		"memory pool",
-		"board config",
-		"stm32h7",
 		"lib C",
-		"cpu peri gpio"],
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"stdio",
+		"stm32h7"],
 		"iboot":[]
 	}
 }
