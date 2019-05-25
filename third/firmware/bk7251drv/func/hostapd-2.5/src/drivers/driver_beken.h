@@ -716,7 +716,7 @@ struct prism2_hostapd_param {
         
 		struct {
 			u8 len;
-			u8 *data;
+			u8 *data[0];
 		} generic_elem;
         
 		struct {

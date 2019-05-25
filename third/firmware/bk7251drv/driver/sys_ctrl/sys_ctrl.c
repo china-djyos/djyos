@@ -229,7 +229,7 @@ void sctrl_flash_select_dco(void)
     ASSERT(DD_HANDLE_UNVALID != flash_hdl);
     ddev_control(flash_hdl, CMD_FLASH_SET_DCO, 0);
     //flash get id  shouldn't remove
-    ddev_control(flash_hdl, CMD_FLASH_GET_ID, 0);
+    ddev_control(flash_hdl, CMD_FLASH_GET_ID, &status);
 }
 
 void sctrl_sta_ps_init(void)
