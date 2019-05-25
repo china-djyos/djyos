@@ -379,11 +379,12 @@ s32 handle_Delete(struct objhandle *hdl)
 // ============================================================================
 void handle_init(struct objhandle *hdl, struct Object *ob, u32 flags, ptu32_t context)
 {
-    memset(hdl, 0, sizeof(struct objhandle));
+    //memset(hdl, 0, sizeof(struct objhandle));
     hdl->timeout = CN_TIMEOUT_FOREVER;
     hdl->HostObj = ob;
     hdl->context = context;
     hdl->flags = flags;
+    dListInsertAfter(&ob->handles, &hdl->list);
 }
 
 // ============================================================================
