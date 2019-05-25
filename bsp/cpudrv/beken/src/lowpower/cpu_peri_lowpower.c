@@ -92,6 +92,6 @@ bool_t __LP_BSP_SaveRamL3(void)
 void LP_DeepSleep(void)
 {
     LP_SetSleepLevel(CN_SLEEP_L4);
-    Djy_EventDelay(2000*1000);
+    Djy_EventDelay(1000*1000);
 }
 

@@ -666,21 +666,21 @@ UINT8 power_save_sm_set_all_bcmc(UINT8 bcmc )
     {
         vif_entry = &vif_info_tab[i];
 
-//        if(vif_entry->active && vif_entry->type != VIF_STA)
-//        {
-//            os_printf("%s:%d %d is %d not STA!!!!\r\n", __FUNCTION__, __LINE__, i, vif_entry->type);
-//            return 0;
-//        }
+        if(vif_entry->active && vif_entry->type != VIF_STA)
+        {
+            os_printf("%s:%d %d is %d not STA!!!!\r\n", __FUNCTION__, __LINE__, i, vif_entry->type);
+            return 0;
+        }
     }
 
     for(i = 0; i < NX_VIRT_DEV_MAX; i++)
     {
         vif_entry = &vif_info_tab[i];
 
-//        if(vif_entry->active )
-//        {
-//            power_save_sm_set_bcmc(bcmc, i);
-//        }
+        if(vif_entry->active )
+        {
+            power_save_sm_set_bcmc(bcmc, i);
+        }
     }
 
     return 0;
@@ -690,32 +690,32 @@ UINT8 power_save_sm_set_all_bcmc(UINT8 bcmc )
 
 UINT8 power_save_me_ps_set_all_state(UINT8 state )
 {
-//    VIF_INF_PTR vif_entry = NULL;
-//    UINT8 vif_idx = 0xff;
-//    UINT32 i;
+    VIF_INF_PTR vif_entry = NULL;
+    UINT8 vif_idx = 0xff;
+    UINT32 i;
 //
-//    if(state == false)
-//    {
-//        for(i = 0; i < NX_VIRT_DEV_MAX; i++)
-//        {
-//            vif_entry = &vif_info_tab[i];
+    if(state == false)
+    {
+        for(i = 0; i < NX_VIRT_DEV_MAX; i++)
+        {
+            vif_entry = &vif_info_tab[i];
 //
-//            if(vif_entry->active && vif_entry->type != VIF_STA)
-//            {
-//                os_printf("%s:%d %d is %d not STA!!!!\r\n", __FUNCTION__, __LINE__, i, vif_entry->type);
-//                return 0;
-//            }
-//        }
-//    }
+            if(vif_entry->active && vif_entry->type != VIF_STA)
+            {
+                os_printf("%s:%d %d is %d not STA!!!!\r\n", __FUNCTION__, __LINE__, i, vif_entry->type);
+                return 0;
+            }
+        }
+    }
 //
-//    for(i = 0; i < NX_VIRT_DEV_MAX; i++)
-//    {
-//        vif_entry = &vif_info_tab[i];
-//        if(vif_entry->type == VIF_STA)
-//        {
-//            power_save_me_ps_set_state(state, i);
-//        }
-//    }
+    for(i = 0; i < NX_VIRT_DEV_MAX; i++)
+    {
+        vif_entry = &vif_info_tab[i];
+        if(vif_entry->type == VIF_STA)
+        {
+            power_save_me_ps_set_state(state, i);
+        }
+    }
 
     return 0;
 }

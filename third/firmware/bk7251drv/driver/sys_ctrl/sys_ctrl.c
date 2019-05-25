@@ -698,7 +698,7 @@ void sctrl_mcu_sleep(UINT32 peri_clk)
     else
     {
         PS_DEBUG_DOWN_TRIGER;
-//        delay(1);
+        delay(1);
 #if PS_CLOSE_PERI_CLK
         /* close all peri clock*/
         ps_saves[0].peri_clk_cfg= REG_READ(ICU_PERI_CLK_PWD);        
@@ -712,7 +712,7 @@ void sctrl_mcu_sleep(UINT32 peri_clk)
 #endif
         WFI();              
     }
-//    delay(5);
+    delay(5);
 }
 UINT32 sctrl_mcu_wakeup(void)
 {
@@ -736,7 +736,7 @@ UINT32 sctrl_mcu_wakeup(void)
     else
     {
     	PS_DEBUG_BCN_TRIGER;   
-//        delay(2);
+        delay(2);
     	PS_DEBUG_BCN_TRIGER;   
     
         #if PS_CLOSE_PERI_CLK
