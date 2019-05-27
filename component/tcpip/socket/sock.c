@@ -100,28 +100,28 @@
 //@#$%component end configure
 
 
-typedef struct Socket  tagItemCB; //each socket is a item
+typedef struct tagSocket  tagItemCB; //each socket is a item
 static struct Object *s_ptSocketObject;
 static struct MemCellPool *s_ptSocketPool;  //socket控制块内存池头指针
 
-static struct Socket *__Fd2Sock(s32 fd)
+static struct tagSocket *__Fd2Sock(s32 fd)
 {
     struct objhandle *hdl;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     hdl = fd2Handle(fd);
-    sock = (struct Socket *)handle_context(hdl);
+    sock = (struct tagSocket *)handle_context(hdl);
     return sock;
 }
 
-struct Socket *SocketBuild(void)
+struct tagSocket *SocketBuild(void)
 {
     struct objhandle *SocketFile;
-    struct Socket *sock;
+    struct tagSocket *sock;
     sock = Mb_Malloc(s_ptSocketPool, 0);
     if(sock)
     {
-        memset(sock, 0, sizeof(struct Socket));
+        memset(sock, 0, sizeof(struct tagSocket));
         sock->SockSync = mutex_init(NULL);
         SocketFile = handle_new( );
         if(SocketFile != NULL)
@@ -142,7 +142,7 @@ struct Socket *SocketBuild(void)
     return sock;
 }
 
-bool_t SocketFree(struct Socket *sock)
+bool_t SocketFree(struct tagSocket *sock)
 {
     handle_Delete(fd2Handle(sock->sockfd));
     Mb_Free(s_ptSocketPool, sock);
@@ -161,7 +161,7 @@ s32 socket(s32 family, s32 type, s32 protocol)
 {
     s32 result = -1;
     struct TPL_ProtocalOps  *ProtocolOps = NULL;
-    struct Socket       *sock = NULL;
+    struct tagSocket       *sock = NULL;
     ProtocolOps = TPL_GetProto(family, type, protocol);
     if(NULL != ProtocolOps)
     {
@@ -217,7 +217,7 @@ s32 socket(s32 family, s32 type, s32 protocol)
 s32 bind(s32 sockfd,struct sockaddr *addr, s32 addrlen)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     sock = __Fd2Sock(sockfd);
@@ -251,7 +251,7 @@ s32 bind(s32 sockfd,struct sockaddr *addr, s32 addrlen)
 s32 listen(s32 sockfd, s32 backlog)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     sock = __Fd2Sock(sockfd);
@@ -276,8 +276,8 @@ s32 listen(s32 sockfd, s32 backlog)
 // =============================================================================
 s32 accept(s32 sockfd, struct sockaddr *addr, s32 *addrlen)
 {
-    struct Socket *sock;
-    struct Socket *result;
+    struct tagSocket *sock;
+    struct tagSocket *result;
     s32        client = -1;
 
     sock = __Fd2Sock(sockfd);
@@ -315,7 +315,7 @@ s32 accept(s32 sockfd, struct sockaddr *addr, s32 *addrlen)
 s32 connect(s32 sockfd, struct sockaddr *addr, s32 addrlen)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     sock = __Fd2Sock(sockfd);
@@ -351,7 +351,7 @@ s32 connect(s32 sockfd, struct sockaddr *addr, s32 addrlen)
 s32 send(s32 sockfd, const void *msg, s32 len, s32 flags)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     if((NULL != msg)&&(len > 0))
@@ -459,7 +459,7 @@ bool_t recvexact(s32 sock,u8 *buf,s32 len)
 s32 recv(s32 sockfd, void *buf,s32 len, u32 flags)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
 
@@ -507,7 +507,7 @@ s32 sendto(s32 sockfd, const void *msg,s32 len, u32 flags,\
           const struct sockaddr *addr, s32 addrlen)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     if((NULL != msg)&&(len > 0))
@@ -553,7 +553,7 @@ s32 recvfrom(s32 sockfd,void *buf, s32 len, u32 flags,\
             struct sockaddr *addr, s32 *addrlen)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     if((NULL != buf)&&(len > 0))
@@ -595,7 +595,7 @@ s32 recvfrom(s32 sockfd,void *buf, s32 len, u32 flags,\
 bool_t  shutdown(s32 sockfd, u32 how)
 {
     bool_t  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = false;
     sock = __Fd2Sock(sockfd);
@@ -621,7 +621,7 @@ bool_t  shutdown(s32 sockfd, u32 how)
 bool_t closesocket(s32 sockfd)
 {
     bool_t  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = false;
     sock = __Fd2Sock(sockfd);
@@ -652,7 +652,7 @@ s32 setsockopt(s32 sockfd, s32 level, s32 optname,\
                const void *optval, s32 optlen)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     sock = __Fd2Sock(sockfd);
@@ -684,7 +684,7 @@ s32 getsockopt(s32 sockfd, s32 level, s32 optname, void *optval,\
                s32 *optlen)
 {
     s32  result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result = -1;
     sock = __Fd2Sock(sockfd);
@@ -704,7 +704,7 @@ s32 getsockopt(s32 sockfd, s32 level, s32 optname, void *optval,\
 ptu32_t socket_SetUserTag(s32 sockfd, ptu32_t UserTag)
 {
     ptu32_t result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result =(ptu32_t)NULL;
     sock = __Fd2Sock(sockfd);
@@ -719,7 +719,7 @@ ptu32_t socket_SetUserTag(s32 sockfd, ptu32_t UserTag)
 ptu32_t socket_GetUserTag(s32 sockfd)
 {
     ptu32_t result;
-    struct Socket *sock;
+    struct tagSocket *sock;
 
     result =(ptu32_t)NULL;
     sock = __Fd2Sock(sockfd);
@@ -733,7 +733,7 @@ ptu32_t socket_GetUserTag(s32 sockfd)
 s32 getsockname(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
     s32 result = -1;
-    struct Socket *sock;
+    struct tagSocket *sock;
     struct sockaddr_in *addrin;
 
     sock = __Fd2Sock(sockfd);
@@ -755,7 +755,7 @@ s32 getsockname(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 s32 getpeername(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 {
     s32 result = -1;
-    struct Socket *sock;
+    struct tagSocket *sock;
     struct sockaddr_in *addrin;
 
     sock = __Fd2Sock(sockfd);
@@ -774,7 +774,7 @@ s32 getpeername(s32 sockfd,struct sockaddr *addr,socklen_t *addrlen)
 
 void sockinfo(s32 sockfd,char *filter)
 {
-    struct Socket *sock;
+    struct tagSocket *sock;
     sock = __Fd2Sock(sockfd);
     if(NULL != sock)
     {
@@ -867,7 +867,7 @@ s32 Socket_ObjOps(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 bool_t SocketInit(void)
 {
 
-    s_ptSocketPool = Mb_CreatePool(NULL, 0, sizeof(struct Socket), 10, 1000, "sockmem");
+    s_ptSocketPool = Mb_CreatePool(NULL, 0, sizeof(struct tagSocket), 10, 1000, "sockmem");
     if(NULL == s_ptSocketPool)
     {
         printf("%s:分配socket控制块内存不足\n\r",__FUNCTION__);
@@ -880,7 +880,7 @@ bool_t SocketInit(void)
         goto EXIT_CREATE_OBJ;
     }
 
-//    tcpipmemlog("sockmem",sizeof(struct Socket),CFG_SOCKET_NUM);
+//    tcpipmemlog("sockmem",sizeof(struct tagSocket),CFG_SOCKET_NUM);
 
     return true;
 EXIT_CREATE_OBJ:

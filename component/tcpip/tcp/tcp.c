@@ -246,7 +246,7 @@ typedef struct
 struct ClienCB
 {
     struct ClienCB           *nxt;          //used for the list
-    struct Socket            *server;       //if this is an accept one
+    struct tagSocket         *server;       //if this is an accept one
     u16                       machinestat;  //the machine stat of the tcb
     u16                       channelstat;  //the stat of the channel,which mean we could recv or send
     tagRecvBuf                rbuf;         //rcv buffer
@@ -288,7 +288,7 @@ struct ServerCB
     s32                        backlog;             //which limit the pending num
     s32                        pendnum;             //which means how much still in pending
     u32                        accepttime;          //block time for the accept
-    struct Socket             *clst;                //all the client including the pending stat
+    struct tagSocket             *clst;                //all the client including the pending stat
     struct SemaphoreLCB       *acceptsemp;          //if block, then wait this num
 };  //tcp server control block
 //we use this structure to statistics the tcp state
@@ -308,7 +308,7 @@ typedef struct
 {
     s32                          tablen;     //how long the hash tab is
     struct MutexLCB             *tabsync;    //used to peotect the hash tab
-    struct Socket               *array[0];   //this is the hash tab
+    struct tagSocket               *array[0];   //this is the hash tab
 }tagTcpHashTab;
 static tagTcpHashTab   *pTcpHashTab = NULL;
 static void *pTcpTicker = NULL;
@@ -322,12 +322,12 @@ static void *pTcpTicker = NULL;
 static bool_t __hashTabInit(u32 len)
 {
     bool_t result = false;
-    pTcpHashTab = net_malloc(sizeof(tagTcpHashTab) + len *sizeof(struct Socket *));
+    pTcpHashTab = net_malloc(sizeof(tagTcpHashTab) + len *sizeof(struct tagSocket *));
     if(NULL == pTcpHashTab)
     {
         goto ERR_ARRAYMEM;
     }
-    memset((void *)pTcpHashTab,0,sizeof(tagTcpHashTab) + len *sizeof(struct Socket *));
+    memset((void *)pTcpHashTab,0,sizeof(tagTcpHashTab) + len *sizeof(struct tagSocket *));
 
     pTcpHashTab->tabsync = mutex_init(NULL);
     if(NULL == pTcpHashTab->tabsync)
@@ -361,11 +361,11 @@ ERR_ARRAYMEM:
 //      portremote，远程端口
 //返回: socket指针，或NULL
 //-----------------------------------------------------------------------------
-static struct Socket *__hashSocketSearch(u32 iplocal, u16 portlocal,u32 ipremote,u16 portremote)
+static struct tagSocket *__hashSocketSearch(u32 iplocal, u16 portlocal,u32 ipremote,u16 portremote)
 {
-    struct Socket *result = NULL;
+    struct tagSocket *result = NULL;
 
-    struct Socket *tmp;
+    struct tagSocket *tmp;
     u32 hashKey;
 
     hashKey = iplocal+portlocal + ipremote +portremote;
@@ -391,12 +391,12 @@ static struct Socket *__hashSocketSearch(u32 iplocal, u16 portlocal,u32 ipremote
 //this function is only used for the bind function
 //when we bind a address,we must make sure than if any socket with the same address
 //if any socket find with the same address, then bind failed
-static struct Socket *__hashSocketLocalSearch(u32 iplocal, u16 portlocal)
+static struct tagSocket *__hashSocketLocalSearch(u32 iplocal, u16 portlocal)
 {
-    struct Socket *result = NULL;
+    struct tagSocket *result = NULL;
 
     s32 i = 0;
-    struct Socket *tmp;
+    struct tagSocket *tmp;
 
     for(i =0; i < pTcpHashTab->tablen;i++ )
     {
@@ -428,9 +428,9 @@ static struct Socket *__hashSocketLocalSearch(u32 iplocal, u16 portlocal)
 // RETURN  :the hash item we create
 // INSTRUCT:add the create item to the last
 // =============================================================================
-static bool_t __hashSocketAdd(struct Socket *sock)
+static bool_t __hashSocketAdd(struct tagSocket *sock)
 {
-    struct Socket  *tmp;
+    struct tagSocket  *tmp;
     u32         hashKey;
     tagSockElementV4  *v4 = &sock->element.v4;
 
@@ -461,14 +461,14 @@ static bool_t __hashSocketAdd(struct Socket *sock)
 // RETURN  :the hash item we create
 // INSTRUCT:add the create item to the last
 // =============================================================================
-static bool_t __hashSocketRemove(struct Socket *sock)
+static bool_t __hashSocketRemove(struct tagSocket *sock)
 {
 
-    struct Socket  *tmp;
+    struct tagSocket  *tmp;
     u32         hashKey;
+    tagSockElementV4  *v4 = &sock->element.v4;
 
-    hashKey = sock->element.v4.iplocal+sock->element.v4.portlocal+\
-              sock->element.v4.ipremote + sock->element.v4.portremote;
+    hashKey = v4->iplocal+ v4->portlocal+ v4->ipremote + v4->portremote;
     hashKey = hashKey%pTcpHashTab->tablen;
     tmp = pTcpHashTab->array[hashKey];
     if(sock == tmp)
@@ -800,9 +800,9 @@ static bool_t __ReseSCB(struct ServerCB* scb)
 static u16 gPortEngineTcp = 1024;//usually, the dynamic port is more than 1024
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-static struct Socket * __tcpsocket(s32 family, s32 type, s32 protocal)
+static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
 {
-    struct Socket    *sock,*tmp;
+    struct tagSocket    *sock,*tmp;
     u16           findtime = 0;
     if(AF_INET == family)
     {
@@ -811,7 +811,7 @@ static struct Socket * __tcpsocket(s32 family, s32 type, s32 protocal)
         {
             sock->ProtocolOps = &gTcpProto;
             handle_SetMultiplexEvent(fd2Handle(sock->sockfd), 0);
-//          memset(sock, 0, sizeof(struct Socket));
+//          memset(sock, 0, sizeof(struct tagSocket));
 //          sock->SockSync = mutex_init(NULL);
             if(mutex_lock(pTcpHashTab->tabsync))
             {
@@ -864,13 +864,13 @@ static struct Socket * __tcpsocket(s32 family, s32 type, s32 protocal)
 // RETURN  :0 success while -1 failed
 // INSTRUCT:
 // =============================================================================
-static s32 __tcpbind(struct Socket *sock,struct sockaddr *addr, s32 addrlen)
+static s32 __tcpbind(struct tagSocket *sock,struct sockaddr *addr, s32 addrlen)
 {
     s32  result;
     u32 ip;
     u16 port;
     struct sockaddr_in *sockaddrin;
-    struct Socket  *tmp;
+    struct tagSocket  *tmp;
 
     result = -1;
     if((NULL == addr)||(addrlen != sizeof(struct sockaddr))||\
@@ -939,7 +939,7 @@ static s32 __tcpbind(struct Socket *sock,struct sockaddr *addr, s32 addrlen)
 // RETURN  :0 success while -1 failed
 // INSTRUCT:this function to make the socket to become an server terminal
 // =============================================================================
-static s32 __tcplisten(struct Socket *sock, s32 backlog)
+static s32 __tcplisten(struct tagSocket *sock, s32 backlog)
 {
     s32  result;
     struct ServerCB  *scb;
@@ -972,11 +972,11 @@ static s32 __tcplisten(struct Socket *sock, s32 backlog)
 }
 
 //find an new client which is stable in the scb client queue
-static struct Socket *__acceptclient(struct Socket *sock)
+static struct tagSocket *__acceptclient(struct tagSocket *sock)
 {
-    struct Socket    *result;
-    struct Socket    *client;
-    struct Socket    *pre;
+    struct tagSocket    *result;
+    struct tagSocket    *client;
+    struct tagSocket    *pre;
     struct ClienCB       *ccb;
     struct ServerCB  *scb;
 
@@ -1022,9 +1022,9 @@ static struct Socket *__acceptclient(struct Socket *sock)
 // RETURN  :
 // INSTRUCT:if any ternimal hung on the server is established, then will return
 // =============================================================================
-static struct Socket *__tcpaccept(struct Socket *sock, struct sockaddr *addr, s32 *addrlen)
+static struct tagSocket *__tcpaccept(struct tagSocket *sock, struct sockaddr *addr, s32 *addrlen)
 {
-    struct Socket           *result;
+    struct tagSocket           *result;
     struct ServerCB             *scb;
     struct sockaddr_in  *addrin;
     u32                  waittime;
@@ -1079,7 +1079,7 @@ static struct Socket *__tcpaccept(struct Socket *sock, struct sockaddr *addr, s3
 }
 
 //use this function to send a packge or pakage list to the ip layer
-static bool_t __sendmsg(struct Socket *sock, struct NetPkg *pkg,u16 translen)
+static bool_t __sendmsg(struct tagSocket *sock, struct NetPkg *pkg,u16 translen)
 {
     bool_t       result;
     struct TcpHdr    *hdr;
@@ -1103,7 +1103,7 @@ static bool_t __sendmsg(struct Socket *sock, struct NetPkg *pkg,u16 translen)
 }
 
 //use this function to make a tcp header
-static struct NetPkg  *__buildhdr(struct Socket *sock, u8 flags,\
+static struct NetPkg  *__buildhdr(struct tagSocket *sock, u8 flags,\
         void *option, u8 optionlen,u32 pkgflag,u32 sndno)
 {
     struct NetPkg  *result;
@@ -1141,7 +1141,7 @@ static struct NetPkg  *__buildhdr(struct Socket *sock, u8 flags,\
     return result;
 }
 //build a tcp header and as your wish to send it
-static bool_t __sendflag(struct Socket *sock, u8 flags, void *option, u8 optionlen,u32 sndno)
+static bool_t __sendflag(struct tagSocket *sock, u8 flags, void *option, u8 optionlen,u32 sndno)
 {
     bool_t              result;
     struct NetPkg          *pkg;
@@ -1168,7 +1168,7 @@ static bool_t __sendflag(struct Socket *sock, u8 flags, void *option, u8 optionl
 // =============================================================================
 //make sure this is the client, so we should do the handshaker with the server
 //much more, we must adjust its handle in the hash tab
-static s32 __tcpconnect(struct Socket *sock, struct sockaddr *serveraddr, s32 addrlen)
+static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32 addrlen)
 {
     s32  result;
     struct sockaddr_in *addrin;
@@ -1231,7 +1231,7 @@ static s32 __tcpconnect(struct Socket *sock, struct sockaddr *serveraddr, s32 ad
 }
 //we use this function to copy the data to the buffer,the len has been specified by the
 //buflenleft,we write from the data off, may be round over
-static void __cpy2sndbuf(struct Socket *sock, const void *msg, s32 len)
+static void __cpy2sndbuf(struct tagSocket *sock, const void *msg, s32 len)
 {
     struct ClienCB           *ccb;
     u8               *src;
@@ -1281,7 +1281,7 @@ static void __cpy2sndbuf(struct Socket *sock, const void *msg, s32 len)
 //check how many data could send in the current state
 //consider how many data in the buffer and the channel could send most
 //the result is the little one during them
-static s32 __chkchannelsendlen(struct Socket *sock)
+static s32 __chkchannelsendlen(struct tagSocket *sock)
 {
     s32      result;
     s32      datalen;
@@ -1328,7 +1328,7 @@ static s32 __chkchannelsendlen(struct Socket *sock)
 }
 
 //use this function to send the new data or the data with the fin flag
-static void __senddata(struct Socket *sock,s32 length)
+static void __senddata(struct tagSocket *sock,s32 length)
 {
     u16                 datalen;
     struct NetPkg          *pkghdr;
@@ -1464,7 +1464,7 @@ static void __senddata(struct Socket *sock,s32 length)
     return;
 }
 //use this function to resend the data,we just resend the unacknowledge data
-static void __resenddata(struct Socket *sock)
+static void __resenddata(struct tagSocket *sock)
 {
     u16                 datalen;
     struct NetPkg          *pkghdr;
@@ -1535,7 +1535,7 @@ static void __resenddata(struct Socket *sock)
 // =============================================================================
 //1,first we must got the SockSync,
 //2,then got the mutex to copy data
-static s32 __tcpsend(struct Socket *sock, const void *msg, s32 len, s32 flags)
+static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags)
 {
     s32        result;
     s32        sndlen;
@@ -1658,7 +1658,7 @@ static s32 __cpyfromrcvbuf(struct ClienCB *ccb, void *buf, s32 len)
 // INSTRUCT:0 means the socket is closed or fin receive -1 means no data,others means
 //          the data length copy from the socket
 // =============================================================================
-static s32 __tcprecv(struct Socket *sock, void *buf,s32 len, u32 flags)
+static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
 {
     s32        result;
     struct ClienCB    *ccb;
@@ -1733,7 +1733,7 @@ static s32 __tcprecv(struct Socket *sock, void *buf,s32 len, u32 flags)
 // RETURN  :
 // INSTRUCT:0 success while -1 failed
 // =============================================================================
-static s32 __shutdownRD(struct Socket *sock)
+static s32 __shutdownRD(struct tagSocket *sock)
 {
     s32 result;
     struct ClienCB *ccb;
@@ -1767,7 +1767,7 @@ static s32 __shutdownRD(struct Socket *sock)
 // RETURN  :
 // INSTRUCT:0 success while -1 failed
 // =============================================================================
-static s32 __shutdownWR(struct Socket *sock)
+static s32 __shutdownWR(struct tagSocket *sock)
 {
     s32 result;
     struct ClienCB     *ccb;
@@ -1810,7 +1810,7 @@ static s32 __shutdownWR(struct Socket *sock)
 // RETURN  :
 // INSTRUCT:0 success while -1 failed
 // =============================================================================
-static s32 __tcpshutdown(struct Socket *sock, u32 how)
+static s32 __tcpshutdown(struct tagSocket *sock, u32 how)
 {
     s32    result;
 
@@ -1852,13 +1852,13 @@ static s32 __tcpshutdown(struct Socket *sock, u32 how)
 //             is still some data in the send buffer,then send the rst, otherwise
 //            do the close handshake
 // =============================================================================
-static s32 __closesocket(struct Socket *sock)
+static s32 __closesocket(struct tagSocket *sock)
 {
     s32       result;
     struct ClienCB   *ccb;
     struct ServerCB   *scb;
-    struct Socket *client;
-    struct Socket *server;
+    struct tagSocket *client;
+    struct tagSocket *server;
     result = -1;
 
     if(mutex_lock(pTcpHashTab->tabsync))
@@ -1913,7 +1913,7 @@ static s32 __closesocket(struct Socket *sock)
 }
 
 //this function deal with SOL_SOCK
-static s32 __setsockopt_sol(struct Socket *sock,s32 optname,const void *optval, s32 optlen)
+static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optval, s32 optlen)
 {
     bool_t result;
     struct ClienCB *ccb;
@@ -2111,7 +2111,7 @@ static s32 __setsockopt_sol(struct Socket *sock,s32 optname,const void *optval, 
     return result;
 }
 //this function deal with the IPPROTO_IP
-static s32 __setsockopt_ip(struct Socket *sock,s32 optname,const void *optval, s32 optlen)
+static s32 __setsockopt_ip(struct tagSocket *sock,s32 optname,const void *optval, s32 optlen)
 {
     bool_t result;
 
@@ -2133,7 +2133,7 @@ static s32 __setsockopt_ip(struct Socket *sock,s32 optname,const void *optval, s
     return result;
 }
 //this function deal with ipproto_tcp
-static s32 __setsockopt_tcp(struct Socket *sock,s32 optname,const void *optval, s32 optlen)
+static s32 __setsockopt_tcp(struct tagSocket *sock,s32 optname,const void *optval, s32 optlen)
 {
     bool_t result;
     struct ClienCB *ccb;
@@ -2180,7 +2180,7 @@ static s32 __setsockopt_tcp(struct Socket *sock,s32 optname,const void *optval, 
 // RETURN  :
 // INSTRUCT:0 success while -1 failed
 // =============================================================================
-static s32 __tcpsetsockopt(struct Socket *sock, s32 level, s32 optname,\
+static s32 __tcpsetsockopt(struct tagSocket *sock, s32 level, s32 optname,\
                const void *optval, s32 optlen)
 {
     s32  result;
@@ -2217,7 +2217,7 @@ static s32 __tcpsetsockopt(struct Socket *sock, s32 level, s32 optname,\
 // RETURN  :
 // INSTRUCT:0 success while -1 failed
 // =============================================================================
-static s32 __tcpgetsockopt(struct Socket *sock, s32 level, s32 optname, void *optval,\
+static s32 __tcpgetsockopt(struct tagSocket *sock, s32 level, s32 optname, void *optval,\
                s32 *optlen)
 {
     s32  result = -1;
@@ -2362,7 +2362,7 @@ static void dealtcpoption(struct ClienCB *ccb, struct TcpHdr *hdr)
 //     proto，传输协议接口函数集
 //返回：true or false
 //------------------------------------------------------------------------------
-static u32 __rcvdata(struct Socket *client, u32 seqno,struct NetPkg *pkg)
+static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
 {
     struct ClienCB   *ccb;
     u32        pkgstart;
@@ -2549,7 +2549,7 @@ static u32 __rcvdata(struct Socket *client, u32 seqno,struct NetPkg *pkg)
 //     hdr，tcp头
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
+static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
 {
     u32                ackno;
     s32                acklen;
@@ -2687,11 +2687,11 @@ static bool_t __ackdata(struct Socket *client, struct TcpHdr *hdr)
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __rcvsyn_ms(struct Socket *client, struct TcpHdr *hdr, struct NetPkg *pkg)
+static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct NetPkg *pkg)
 {
     struct ClienCB   *ccb;
     struct ServerCB   *scb;
-    struct Socket *server;
+    struct tagSocket *server;
 
     //ack the data
     if(hdr->flags|CN_TCP_FLAG_ACK)
@@ -2723,7 +2723,7 @@ static bool_t __rcvsyn_ms(struct Socket *client, struct TcpHdr *hdr, struct NetP
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __sndsyn_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     struct ClienCB   *ccb;
 
@@ -2758,7 +2758,7 @@ static bool_t __sndsyn_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPk
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __stable_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __stable_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     u32       seqno;
     struct ClienCB  *ccb;
@@ -2824,7 +2824,7 @@ static bool_t __stable_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPk
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __finwait1_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     u32      seqno;
     struct ClienCB  *ccb;
@@ -2892,7 +2892,7 @@ static bool_t __finwait1_ms(struct Socket *client, struct TcpHdr *hdr,struct Net
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __finwait2_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __finwait2_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     u32      seqno;
     struct ClienCB  *ccb;
@@ -2947,7 +2947,7 @@ static bool_t __finwait2_ms(struct Socket *client, struct TcpHdr *hdr,struct Net
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __closing_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __closing_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     struct ClienCB  *ccb;
 
@@ -2983,7 +2983,7 @@ static bool_t __closing_ms(struct Socket *client, struct TcpHdr *hdr,struct NetP
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __timewait_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __timewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     struct ClienCB  *ccb;
     ccb = (struct ClienCB *)client->TplCB;
@@ -3007,7 +3007,7 @@ static bool_t __timewait_ms(struct Socket *client, struct TcpHdr *hdr,struct Net
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __closewait_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __closewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     struct ClienCB  *ccb;
     ccb = (struct ClienCB *)client->TplCB;
@@ -3042,7 +3042,7 @@ static bool_t __closewait_ms(struct Socket *client, struct TcpHdr *hdr,struct Ne
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __lastack_ms(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __lastack_ms(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     struct ClienCB         *ccb;
 
@@ -3077,7 +3077,7 @@ static bool_t __lastack_ms(struct Socket *client, struct TcpHdr *hdr,struct NetP
 //     pkg，偏移已经越过tcp头的网络包
 //返回：true or false
 //------------------------------------------------------------------------------
-static bool_t __dealrecvpkg(struct Socket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
+static bool_t __dealrecvpkg(struct tagSocket *client, struct TcpHdr *hdr,struct NetPkg *pkg)
 {
     struct ClienCB  *ccb;
     ccb = (struct ClienCB *)client->TplCB;
@@ -3129,12 +3129,12 @@ static bool_t __dealrecvpkg(struct Socket *client, struct TcpHdr *hdr,struct Net
     return true;
 }
 
-static struct Socket* __newclient(struct Socket *server, struct TcpHdr *hdr,\
+static struct tagSocket* __newclient(struct tagSocket *server, struct TcpHdr *hdr,\
                           u32 ipdst,u16 portdst,u32 ipsrc, u16 portsrc)
 {
     struct ServerCB *scb;
     struct ClienCB *ccb;
-    struct Socket *result= NULL;
+    struct tagSocket *result= NULL;
 
     scb = (struct ServerCB *)server->TplCB;
     if((0 ==(CN_SOCKET_CLOSE&server->sockstat))&&\
@@ -3148,7 +3148,7 @@ static struct Socket* __newclient(struct Socket *server, struct TcpHdr *hdr,\
         {
             result->ProtocolOps = &gTcpProto;
             handle_SetMultiplexEvent(fd2Handle(result->sockfd), 0);
-//          memset(result, 0, sizeof(struct Socket));
+//          memset(result, 0, sizeof(struct tagSocket));
 //          result->SockSync = mutex_init(NULL);
             ccb = __CreateCCB();
             if(NULL == ccb)
@@ -3188,10 +3188,10 @@ static struct Socket* __newclient(struct Socket *server, struct TcpHdr *hdr,\
     return result;
 
 }
-static struct Socket* __tcpmatchclient(struct Socket *server, u32 ip, u16 port)
+static struct tagSocket* __tcpmatchclient(struct tagSocket *server, u32 ip, u16 port)
 {
-    struct Socket *result = NULL;
-    struct Socket *client;
+    struct tagSocket *result = NULL;
+    struct tagSocket *client;
     struct ServerCB   *scb;
 
     scb = (struct ServerCB *)server->TplCB;
@@ -3217,9 +3217,9 @@ static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devf
     u16         portdst;
     u16         portsrc;
     struct TcpHdr  *hdr;
-    struct Socket  *server;
-    struct Socket  *client;
-    struct Socket  *sock;
+    struct tagSocket  *server;
+    struct tagSocket  *client;
+    struct tagSocket  *sock;
     u32         cpyhdr[15];
 
     if(0 == (devfunc &CN_IPDEV_TCPICHKSUM))
@@ -3348,7 +3348,7 @@ static bool_t __rcvdeal(tagIpAddr *addr,struct NetPkg *pkglst, u32 devfunc)
 // RETURN  :
 // INSTRUCT:true success while false failed
 // =============================================================================
-static bool_t __dealclienttimer(struct Socket *client)
+static bool_t __dealclienttimer(struct tagSocket *client)
 {
     u8        flag;
     struct ClienCB   *ccb;
@@ -3506,11 +3506,11 @@ static bool_t __dealclienttimer(struct Socket *client)
 // =============================================================================
 static void __tcptick(void)
 {
-    struct Socket    *sock;
-    struct Socket    *server;
-    struct Socket    *client;
-    struct Socket    *clientnxt;
-    struct Socket    *clientpre;
+    struct tagSocket    *sock;
+    struct tagSocket    *server;
+    struct tagSocket    *client;
+    struct tagSocket    *clientnxt;
+    struct tagSocket    *clientpre;
     struct ServerCB       *scb;
     struct ClienCB       *ccb;
     s32 i;
@@ -3620,7 +3620,7 @@ static char *gCCBLinkStat[]=
     "EN_TCP_MC_2FREE"
 };
 
-static void __tcpdebugsockinfo(struct Socket *sock,char *prefix)
+static void __tcpdebugsockinfo(struct tagSocket *sock,char *prefix)
 {
     debug_printf("tcp","%s:iplocal :%s    portlocal :%d\r\n",\
             prefix,inet_ntoa(*(struct in_addr*)&sock->element.v4.iplocal),ntohs(sock->element.v4.portlocal));
@@ -3686,7 +3686,7 @@ static void __tcpdebugscb(struct ServerCB *scb,char *prefix)
 }
 
 #define CN_TCP_DEBUG_PREFIX  "         "
-static void __tcpdebug(struct Socket *sock,char *filter)
+static void __tcpdebug(struct tagSocket *sock,char *filter)
 {
     struct ClienCB   *ccb;
     struct ServerCB   *scb;

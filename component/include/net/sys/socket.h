@@ -342,47 +342,47 @@ typedef union
 struct TPL_ProtocalOps
 {
     //创建一个套接字
-    struct Socket* (*__socket)(int family, int type, int protocol);
+    struct tagSocket* (*__socket)(int family, int type, int protocol);
     //绑定一个端口号
-    int (*__bind)(struct Socket *sockfd,struct sockaddr *myaddr, int addrlen);
+    int (*__bind)(struct tagSocket *sockfd,struct sockaddr *myaddr, int addrlen);
     //让一个端口处于监听状态
-    int (*__listen)(struct Socket *sockfd, int backlog);
+    int (*__listen)(struct tagSocket *sockfd, int backlog);
     //让一个主机端处于接收状态(服务器才会)
-    struct Socket* (*__accept)(struct Socket *sockfd, struct sockaddr *addr, int *addrlen);
+    struct tagSocket* (*__accept)(struct tagSocket *sockfd, struct sockaddr *addr, int *addrlen);
     //让一个客户端去链接服务器
-    int (*__connect)(struct Socket *sockfd, struct sockaddr *serv_addr, int addrlen);
+    int (*__connect)(struct tagSocket *sockfd, struct sockaddr *serv_addr, int addrlen);
     //发送数据
-    int (*__send)(struct Socket *sockfd, const void *msg, int len, int flags);
+    int (*__send)(struct tagSocket *sockfd, const void *msg, int len, int flags);
     //接收数据
-    int (*__recv)(struct Socket *sockfd, void *buf,int len, unsigned int flags);
+    int (*__recv)(struct tagSocket *sockfd, void *buf,int len, unsigned int flags);
     //直接发送数据到目的端
-    int (*__sendto)(struct Socket * sockfd, const void *msg,int len, unsigned int flags,\
+    int (*__sendto)(struct tagSocket * sockfd, const void *msg,int len, unsigned int flags,\
               const struct sockaddr *addr, int addrlen);
     //直接从目的端读取数据
-    int (*__recvfrom)(struct Socket * sockfd,void *buf, int len, unsigned int flags,\
+    int (*__recvfrom)(struct tagSocket * sockfd,void *buf, int len, unsigned int flags,\
                 struct sockaddr *addr, int *addrlen);
     //关闭一个套接口
 #define SHUT_RD   0  //关闭读
 #define SHUT_WR   1  //关闭写
 #define SHUT_RDWR 2  //关闭读写
-    int (*__shutdown)(struct Socket *sockfd, u32 how);
-    int (*__close)(struct Socket *sockfd);
-    int (*isactive)(struct Socket *sockfd,int mode);
+    int (*__shutdown)(struct tagSocket *sockfd, u32 how);
+    int (*__close)(struct tagSocket *sockfd);
+    int (*isactive)(struct tagSocket *sockfd,int mode);
     //设置套接字选项
-    int (*__setsockopt)(struct Socket *sockfd, int level, int optname,\
+    int (*__setsockopt)(struct tagSocket *sockfd, int level, int optname,\
                    const void *optval, int optlen);
     //获取套接字选项
-    int (*__getsockopt)(struct Socket *sockfd, int level, int optname, void *optval,\
+    int (*__getsockopt)(struct tagSocket *sockfd, int level, int optname, void *optval,\
                    int *optlen);
-    void (*__debuginfo)(struct Socket *sockfd,char *filter);
+    void (*__debuginfo)(struct tagSocket *sockfd,char *filter);
 };
 
-struct Socket
+struct tagSocket
 {
     //the following used by the proto
 //  void                           *SockObj;      //used for the socket layqueue
     s32                             sockfd;       //socket对应的文件指针
-    struct Socket                  *Nextsock;     //nxt node
+    struct tagSocket               *Nextsock;     //nxt node
     struct MutexLCB                *SockSync;     //used to protect the socket
     struct TPL_ProtocalOps         *ProtocolOps;  //传输层操作函数集
     void                           *TplCB;        //传输层协议控制块指针，类型由具体传输层解析
@@ -408,8 +408,8 @@ struct linger
 #define CN_SOCKET_PORT_INVALID   0x0
 #define CN_SOCKET_PORT_LIMIT     0xFFFF
 
-struct Socket *SocketBuild(void);
-bool_t SocketFree(struct Socket *sock);
+struct tagSocket *SocketBuild(void);
+bool_t SocketFree(struct tagSocket *sock);
 
 //FOR ALL THE APPLICATIONS, ONLY THE FOLLOWING INTERFACE COULD BE USED
 int socket(int family, int type, int protocol);
