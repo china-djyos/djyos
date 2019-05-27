@@ -137,6 +137,7 @@ struct tagSocket *SocketBuild(void)
         {
 //          errno = ENOENT;
             Mb_Free(s_ptSocketPool, sock);
+            sock = NULL;
         }
     }
     return sock;

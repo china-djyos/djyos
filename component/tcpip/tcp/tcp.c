@@ -1012,8 +1012,8 @@ static struct tagSocket *__acceptclient(struct tagSocket *sock)
         }
         else
         {
-            client = client->Nextsock;
             pre = client;
+            client = client->Nextsock;
         }
     }
     if(scb->clst == NULL)
