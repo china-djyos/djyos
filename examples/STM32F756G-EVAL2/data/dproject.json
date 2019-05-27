@@ -1,5 +1,5 @@
 {
-	"ide_version":"V1.6_20190123",
+	"ide_version":"DIDE-V1.6_20190304",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
@@ -16,27 +16,28 @@
 	"components_checked":{
 		"app":[],
 		"iboot":["black box",
-		"ring buffer and line buffer",
-		"uart device file",
+		"board config",
+		"cpu onchip dma",
+		"cpu onchip iic",
+		"cpu peri gpio",
+		"cpu peri uart",
 		"device file system",
-		"iicbus",
 		"djybus",
+		"heap",
+		"iicbus",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
 		"multiplex",
+		"ring buffer and line buffer",
 		"shell",
 		"stdio",
-		"kernel",
-		"heap",
-		"int",
-		"lock",
-		"message queue",
-		"memory pool",
-		"board config",
-		"loader",
 		"stm32f7",
-		"lib C",
-		"cpu onchip dma",
-		"cpu peri gpio",
-		"cpu onchip iic",
-		"cpu peri uart"]
+		"uart device file"]
 	}
 }

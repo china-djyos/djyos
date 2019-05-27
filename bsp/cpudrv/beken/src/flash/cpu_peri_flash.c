@@ -113,7 +113,7 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
     flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_write((char *)data, size, address);
     flash_protection_op(0,FLASH_PROTECT_ALL);
-    Lock_MutexPost(&flash_mutex);
+    Lock_MutexPost(flash_mutex);
 }
 
 /*Ò»¸ösectorÊÇ4K*/

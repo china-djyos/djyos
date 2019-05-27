@@ -77,11 +77,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1494761559" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.758697805" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -171,11 +171,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.86459" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.17410795" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.1300822958" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -271,11 +271,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.149537354" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2019724367" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.944647718" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1610454532" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -455,11 +455,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1272976018" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.420667959" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -549,11 +549,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.576479793" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1769481568" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -647,11 +647,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.562305016" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1311632395" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.429369705" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -788,11 +788,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1033376135" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1951978568" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -882,11 +882,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1472411991" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.308220685" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -980,11 +980,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1445491555" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2067850758" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1271584887" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -1121,11 +1121,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1954110412" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1601896545" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1212,11 +1212,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1588187403" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.462330839" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -1307,11 +1307,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1081858792" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.448488494" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1253780681" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -1448,11 +1448,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.582620925" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1366963866" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1539,11 +1539,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1806742167" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.824881988" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -1634,11 +1634,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1664161319" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.365195092" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.820853400" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -1777,11 +1777,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1944386163" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1270976184" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1868,11 +1868,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1375750575" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.1953073749" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.2070061252" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1965,11 +1965,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.150397694" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.405156835" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.872339386" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1495854982" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2151,11 +2151,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.22991104" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1612026939" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -2245,11 +2245,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1176820893" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.519292794" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.662276119" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2345,11 +2345,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.2048765015" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.781913709" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.1126913106" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1962825572" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2531,11 +2531,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.131975683" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.957445245" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -2622,11 +2622,11 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.107101811" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.1314031022" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.2029192965" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -2719,11 +2719,11 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.192322797" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.189137760" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F7"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="STM32F767xx"/>
-									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.1328101295" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.2078957150" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>

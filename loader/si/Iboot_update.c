@@ -74,6 +74,7 @@
 #include <osboot.h>
 #include <device/flash/flash.h>
 #include "dbug.h"
+#include "project_config.h"
 #if !defined (CFG_RUNMODE_BAREAPP)
 
 static struct SemaphoreLCB *ptUpdateIbootSemp;

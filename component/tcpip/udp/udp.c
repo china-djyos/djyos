@@ -1252,10 +1252,10 @@ static bool_t __rcvdealv4(u32 ipsrc, u32 ipdst, struct NetPkg *pkg, u32 devfunc)
         ucb = (tagUdpCB *)sock->TplCB;
         result = true;
 
-        if((ipdst == INADDR_BROAD)&&(0 == (CN_SOCKET_PROBROAD &sock->sockstat)))
-        {
-            result = false;    //could not receive broad info
-        }
+//        if((ipdst == INADDR_BROAD)&&(0 == (CN_SOCKET_PROBROAD &sock->sockstat)))
+//        {
+//            result = false;    //could not receive broad info
+//        }
 
         if(CN_UDP_CHANNEL_STATCONGEST&ucb->channelstat)
         {

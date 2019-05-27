@@ -73,23 +73,23 @@ extern   uint32_t   msp_top[ ];
 //extern void __set_CONTROL(uint32_t control);
 
 extern void IAP_SelectLoadProgam(void);
-static void __set_PSP(uint32_t topOfProcStack)
-{
-  __asm volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) : "sp");
-}
-static void __set_MSP(uint32_t topOfMainStack)
-{
-  __asm volatile ("MSR msp, %0\n" : : "r" (topOfMainStack) : "sp");
-}
-
-static void __set_PRIMASK(uint32_t priMask)
-{
-  __asm volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
-}
-static void __set_CONTROL(uint32_t control)
-{
-  __asm volatile ("MSR control, %0" : : "r" (control) : "memory");
-}
+//static void __set_PSP(uint32_t topOfProcStack)
+//{
+//  __asm volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) : "sp");
+//}
+//static void __set_MSP(uint32_t topOfMainStack)
+//{
+//  __asm volatile ("MSR msp, %0\n" : : "r" (topOfMainStack) : "sp");
+//}
+//
+//static void __set_PRIMASK(uint32_t priMask)
+//{
+//  __asm volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
+//}
+//static void __set_CONTROL(uint32_t control)
+//{
+//  __asm volatile ("MSR control, %0" : : "r" (control) : "memory");
+//}
 void Startup_NMI(void)
 {
     while(1);

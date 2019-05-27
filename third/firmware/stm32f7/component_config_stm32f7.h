@@ -23,6 +23,7 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+
 //%$#@target = cmdline   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //#ifndef CFG_STM32_HAL_TIMER   //****检查参数是否已经配置好
 //#warning   固件参数未配置，使用默认值

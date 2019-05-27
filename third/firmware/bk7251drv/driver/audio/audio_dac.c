@@ -321,7 +321,7 @@ static void audio_dac_config_dma(void)
     
     memset(&cfg, 0, sizeof(GDMACFG_TPYES_ST));
     
-    cfg.dstdat_width = 32;
+    cfg.dstdat_width = 16;
     cfg.srcdat_width = 32;
     cfg.dstptr_incr = 0;
     cfg.srcptr_incr = 1;
