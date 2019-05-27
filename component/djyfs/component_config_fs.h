@@ -36,5 +36,8 @@
 //%$#@select
 //%$#@free
 #endif
+//%$#@include path
+///;/efs;
+//%$#@end include path
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //@#$%component end configure

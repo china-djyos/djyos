@@ -779,7 +779,7 @@ static u32 __IIC_ISR(ufast_t i2c_int_line)
 // ·µ»Ø£ºÎÞ
 // =============================================================================
 
-bool_t IIC_ModuleInstall(u8 iic_port)
+bool_t ModuleInstall_I2C(u8 iic_port)
 {
 
     struct IIC_Param IIC_Config[CN_IIC_NUM];

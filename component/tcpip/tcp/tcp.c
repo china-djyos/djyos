@@ -65,8 +65,8 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"tcp"					//tcp协议
-//parent:"tcpip"     						//填写该组件的父组件名字，none表示没有父组件
+//component name:"tcp"          //tcp协议
+//parent:"tcpip"                //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -245,7 +245,7 @@ typedef struct
 //each client has an ClienCB for the tcp state control
 struct ClienCB
 {
-    struct ClienCB           *nxt;          //used for the list
+    struct ClienCB           *nxt;          //用于动态分配内存块
     struct tagSocket         *server;       //if this is an accept one
     u16                       machinestat;  //the machine stat of the tcb
     u16                       channelstat;  //the stat of the channel,which mean we could recv or send
@@ -284,7 +284,7 @@ struct ClienCB
 //each server has an ServerCB
 struct ServerCB
 {
-    struct ServerCB           *nxt;                 //used for the list
+    struct ServerCB           *nxt;                 //用于动态分配内存块
     s32                        backlog;             //which limit the pending num
     s32                        pendnum;             //which means how much still in pending
     u32                        accepttime;          //block time for the accept
@@ -524,6 +524,9 @@ static bool_t  __initCB(s32 ccbnum, s32 scbnum)
     {
         goto CCB_MEM;
     }
+
+    memset(pCCBFreeList, 0, (ccbnum *sizeof(struct ClienCB)));
+
     //do ClienCB initialize
     for(i=0;i <(ccbnum -1);i++)
     {
@@ -536,6 +539,9 @@ static bool_t  __initCB(s32 ccbnum, s32 scbnum)
     {
         goto SCB_MEM;
     }
+
+    memset(pSCBFreeList, 0, (scbnum *sizeof(struct ServerCB)));
+
     //do ServerCB initialize
     for(i=0;i <(scbnum -1);i++)
     {
