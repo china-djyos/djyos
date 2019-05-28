@@ -69,7 +69,7 @@ bool_t ServiceInit(void)
 {
     bool_t result = true;
 
-#if defined (CFG_MODULE_ENABLE_DHCP)
+#if  (CFG_MODULE_ENABLE_DHCP == true)
 
     if((CFG_DHCPC_ENABLE)&&(false == ServiceDhcpcInit()))
     {
@@ -84,9 +84,9 @@ bool_t ServiceInit(void)
     }
 #endif
 
- 
 
-#if defined (CFG_MODULE_ENABLE_FTP)
+
+#if (CFG_MODULE_ENABLE_FTP == true)
     if(false == ServiceFtpInit())
     {
         error_printf("tcpip","###err: service ftp failed");
@@ -94,7 +94,7 @@ bool_t ServiceInit(void)
     }
 #endif
 
-#if defined (CFG_MODULE_ENABLE_TELNET)
+#if  (CFG_MODULE_ENABLE_TELNET == true)
     if(false == ServiceInit_Telnetd())
     {
         error_printf("tcpip","###err: service telnet failed\n\r");
@@ -102,7 +102,7 @@ bool_t ServiceInit(void)
     }
 #endif
 
-#if defined (CFG_MODULE_ENABLE_TFTP)
+#if  (CFG_MODULE_ENABLE_TFTP == true)
     if(false == ServiceTftpInit())
     {
         error_printf("tcpip","###err: service tftp failed");
