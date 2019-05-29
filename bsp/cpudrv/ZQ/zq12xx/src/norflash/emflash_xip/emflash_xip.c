@@ -96,8 +96,8 @@
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#@string,1,32,
-//%$#@enum,EN_XIP_APP_TARGET,EN_XIP_IBOOT_TARGET,NULL
-#define CFG_EFLASH_XIPFSMOUNT_NAME   EN_XIP_APP_TARGET    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
+//%$#@enum,"xip-app","xip-iboot",NULL
+#define CFG_EFLASH_XIPFSMOUNT_NAME   "xip-app"    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,

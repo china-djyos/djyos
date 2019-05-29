@@ -59,7 +59,6 @@
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //@#$%component end configure
 
-extern u32 SystemCoreClock;
 void Board_GpioInit(void)
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
@@ -182,7 +181,6 @@ void Board_GpioInit(void)
 
     //IO0~IO8
 
-    SystemCoreClock = CN_CFG_MCLK;
 }
 
 

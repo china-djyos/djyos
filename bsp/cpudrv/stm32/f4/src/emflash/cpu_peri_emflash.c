@@ -141,7 +141,7 @@ bool_t BrdWdt_FeedDog(void)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 EmFlash_Init(struct EmbdFlashDescr *Description)
+static s32 Flash_Init(struct EmbdFlashDescr *Description)
 {
     Description->BytesPerPage = 512;
     Description->PagesPerSmallSect = 32;
@@ -161,7 +161,7 @@ static s32 EmFlash_Init(struct EmbdFlashDescr *Description)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 EmFlash_GetDescr(struct EmFlashDescr *Description)
+static s32 Flash_GetDescr(struct EmFlashDescr *Description)
 {
     Description->BytesPerPage = s_ptEmbdFlash->BytesPerPage;
     Description->TotalPages = (s_ptEmbdFlash->PagesPerSmallSect *
@@ -182,7 +182,7 @@ static s32 EmFlash_GetDescr(struct EmFlashDescr *Description)
 // 返回： "0" -- 成功;"-1" -- 失败;
 // 备注：
 // ============================================================================
-static s32 EmFlash_SectorEarse(u32 SectorNo)
+static s32 Flash_SectorEarse(u32 SectorNo)
 {
     s32 Ret;
     u32 SECTORError=0;//保存出错类型信息
@@ -217,7 +217,7 @@ static s32 EmFlash_SectorEarse(u32 SectorNo)
 //       "-2" -- 写失败;
 // 备注：
 // ============================================================================
-static s32 EmFlash_PageProgram(u32 Page, u8 *Data, u32 Flags)
+static s32 Flash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 {
     u32 Ret,i;
     u32 *pData = (u32*)Data;
@@ -261,7 +261,7 @@ static s32 EmFlash_PageProgram(u32 Page, u8 *Data, u32 Flags)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 EmFlash_PageRead(u32 Page, u8 *Data, u32 Flags)
+static s32 Flash_PageRead(u32 Page, u8 *Data, u32 Flags)
 {
     u32 Addr = Page * s_ptEmbdFlash->BytesPerPage + s_ptEmbdFlash->MappedStAddr;
 
@@ -279,7 +279,7 @@ static s32 EmFlash_PageRead(u32 Page, u8 *Data, u32 Flags)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 EmFlash_PageToSector(u32 PageNo, u32 *Remains, u32 *SectorNo)
+static s32 Flash_PageToSector(u32 PageNo, u32 *Remains, u32 *SectorNo)
 {
 
     u32 PagesLeft, PagesDone;
@@ -345,7 +345,7 @@ s32 ModuleInstall_EmbededFlash(u32 doformat)
     if(!s_ptEmbdFlash)
         return (-1);
 
-    EmFlash_Init(s_ptEmbdFlash);
+    Flash_Init(s_ptEmbdFlash);
 
     if(doformat)
     {
@@ -480,8 +480,9 @@ s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
 
         case totalblocks:
         {
-            *((u32*)args) = s_ptEmbdFlash->NormalSectorsPerPlane + s_ptEmbdFlash->LargeSectorsPerPlane
-                                                                        + s_ptEmbdFlash->SmallSectorsPerPlane;
+            *((u32*)args) = s_ptEmbdFlash->NormalSectorsPerPlane
+                            + s_ptEmbdFlash->LargeSectorsPerPlane
+                            + s_ptEmbdFlash->SmallSectorsPerPlane;
             break;
         }
 
