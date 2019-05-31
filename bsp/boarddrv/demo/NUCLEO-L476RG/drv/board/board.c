@@ -58,7 +58,6 @@
 //@#$%component end configure
 
 
-extern u32 SystemCoreClock;
 void Board_GpioInit(void)
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
@@ -74,8 +73,6 @@ void Board_GpioInit(void)
     GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
     GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_3;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    SystemCoreClock = CN_CFG_MCLK;
 }
 
 #if (CN_USE_TICKLESS_MODE)

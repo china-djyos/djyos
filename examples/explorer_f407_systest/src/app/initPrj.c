@@ -8,6 +8,7 @@
 #include "stddef.h"
 #include "cpu_peri.h"
 extern ptu32_t djy_main(void);
+#include <filesystems.h>
 
 ptu32_t __djy_main(void)
 {
@@ -28,17 +29,25 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-	extern void ModuleInstall_BlackBox(void);
-	ModuleInstall_BlackBox( );
-
 	extern s32 ModuleInstall_dev(void);
 	ModuleInstall_dev();    // 安装设备文件系统；
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
+
+	extern bool_t ModuleInstall_DjyBus(void);
+	ModuleInstall_DjyBus ( );
 
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
+
+	#if !defined (CFG_RUNMODE_BAREAPP)
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+	#endif
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
 
 	extern bool_t ModuleInstall_HardTimer(void);
 	ModuleInstall_HardTimer();
@@ -63,17 +72,30 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART6);
 	#endif
 
+	extern s32 ModuleInstall_YAF2(const char *target, u32 opt, void *data);
+	ModuleInstall_YAF2(CFG_YAF_MOUNT_POINT, CFG_YAF_INSTALL_OPTION, CFG_YAF_ECC);
+
+	s32 ModuleInstall_EmbededFlash(u32 doformat);
+	ModuleInstall_EmbededFlash(CFG_EFLASH_PART_FORMAT);
+
+	extern s32 ModuleInstall_EmFlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
+	ModuleInstall_EmFlashInstallXIP(CFG_EFLASH_XIPFSMOUNT_NAME,CFG_EFLASH_XIP_PART_START,
+	CFG_EFLASH_XIP_PART_END, CFG_EFLASH_XIP_PART_FORMAT);
+
+	extern s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data);
+	ModuleInstall_XIP_IBOOT_FS(0,NULL);
+
 	//-------------------medium-------------------------//
 	extern bool_t ModuleInstall_TcpIp(void);
 	ModuleInstall_TcpIp( );
-
-	extern bool_t ModuleInstall_Timer(void);
-	ModuleInstall_Timer();
 
 	#if(CFG_OS_TINY == flase)
 	extern s32 kernel_command(void);
 	kernel_command();
 	#endif
+
+	extern bool_t ModuleInstall_Timer(void);
+	ModuleInstall_Timer();
 
 	extern bool_t LAN8720_ResetInit(void);
 	LAN8720_RESET( );

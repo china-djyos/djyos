@@ -59,7 +59,6 @@
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //@#$%component end configure
 
-extern u32 SystemCoreClock;
 void Board_GpioInit(void)
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
@@ -93,7 +92,6 @@ void Board_GpioInit(void)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 
-    SystemCoreClock = CN_CFG_MCLK;
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC
                                         |RCC_PERIPHCLK_LPUART1
                                         |RCC_PERIPHCLK_LPTIM1
