@@ -136,6 +136,8 @@ void HAL_ResumeTick(void)
     HAL_TIM_Base_Start(&HalTimHandle);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 //------------------------------------------------------------------------------
 //功能：替换hal库中被weak修饰的同名函数，因djyos不使用stm32的hal库中的延时功能，故在此
 //     把它定义为空函数.
@@ -144,6 +146,7 @@ HAL_StatusTypeDef HAL_InitTick (uint32_t TickPriority)
 {
     return HAL_OK;
 }
+#pragma GCC diagnostic pop
 
 //------------------------------------------------------------------------------
 //功能：

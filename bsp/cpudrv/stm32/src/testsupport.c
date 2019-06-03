@@ -50,6 +50,7 @@
 //ĞŞ¶©ÀúÊ·:
 //
 #include "cpu_peri.h"
+#include <djyos.h>
 #include <int.h>
 #include <systime.h>
 
