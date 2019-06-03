@@ -1,0 +1,43 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"stm32f303xc",
+		"board":"stm32f3-empty"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["black box",
+		"board config",
+		"cpu onchip dma",
+		"cpu onchip iic",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"device file system",
+		"djybus",
+		"heap",
+		"iicbus",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32f3",
+		"uart device file"]
+	}
+}

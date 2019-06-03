@@ -65,20 +65,20 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_rtc"      //CPU的rtc外设驱动
-//parent:"rtc"                       //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu peri rtc"//CPU的rtc外设驱动
+//parent:"rtc"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                      //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                   //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium                   //初始化时机，可选值：early，medium，later。
                                      //表示初始化时间，分别是早期、中期、后期
-//dependence:"int","lock","time",    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"component int","component lock","component time"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                      //如果依赖多个组件，则依次列出
 //weakdependence:"none"              //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                      //选中该组件时，被依赖组件不会被强制选中，
                                      //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                       //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                     //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                     //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -92,28 +92,28 @@
 #define HexToBcd(x) ((((x) / 10) <<4) + ((x) % 10))
 #define BcdToHex(x) ((((x) & 0xF0) >>4) * 10 + ((x) & 0x0F))
 
-// =============================================================================
-// 功能：RTC中断，使用RTC模块的TICK计数器，配置为每一秒中断一次，并在中断中读取RTC
-//       时钟，并配置系统时钟
-// 参数：中断线号
-// 返回：0
-// =============================================================================
-u32 RTC_ISR(ufast_t rtc_int_line)
-{
-    struct tm dtm;
-
-    rRTCCON = 1 ;       //RTC read and write enable
-    dtm.tm_year = BcdToHex(rBCDYEAR) + 2000;
-    dtm.tm_mon  = BcdToHex(rBCDMON);
-    dtm.tm_mday = BcdToHex(rBCDDATE);
-    dtm.tm_hour = BcdToHex(rBCDHOUR);
-    dtm.tm_min  = BcdToHex(rBCDMIN);
-    dtm.tm_sec  = BcdToHex(rBCDSEC);
-    rRTCCON &= ~1 ;     //RTC read and write disable
-
-    Tm_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
-    return 0;
-}
+//// =============================================================================
+//// 功能：RTC中断，使用RTC模块的TICK计数器，配置为每一秒中断一次，并在中断中读取RTC
+////       时钟，并配置系统时钟
+//// 参数：中断线号
+//// 返回：0
+//// =============================================================================
+//u32 RTC_ISR(ufast_t rtc_int_line)
+//{
+//    struct tm dtm;
+//
+//    rRTCCON = 1 ;       //RTC read and write enable
+//    dtm.tm_year = BcdToHex(rBCDYEAR) + 2000;
+//    dtm.tm_mon  = BcdToHex(rBCDMON);
+//    dtm.tm_mday = BcdToHex(rBCDDATE);
+//    dtm.tm_hour = BcdToHex(rBCDHOUR);
+//    dtm.tm_min  = BcdToHex(rBCDMIN);
+//    dtm.tm_sec  = BcdToHex(rBCDSEC);
+//    rRTCCON &= ~1 ;     //RTC read and write disable
+//
+//    Tm_SetDateTime(&dtm); // 向OS的Clock模块传递新的时间值
+//    return 0;
+//}
 
 // =============================================================================
 // 功能：RTC时钟更新，将系统时间更新到RTC模块，由于时钟模块的年存储的最大值为99，因此
@@ -121,7 +121,7 @@ u32 RTC_ISR(ufast_t rtc_int_line)
 // 参数：dtm，更新时间
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t RTC_TimeUpdate(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     bool_t result = false;
     struct tm dtm;
@@ -151,7 +151,7 @@ bool_t RTC_TimeUpdate(s64 time)
 // 参数：dtm，更新时间
 // 返回：true
 // =============================================================================
-bool_t RTC_TimeGet(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     struct tm dtm;
 
@@ -162,6 +162,7 @@ bool_t RTC_TimeGet(s64 *time)
     dtm.tm_hour = BcdToHex(rBCDHOUR);
     dtm.tm_min  = BcdToHex(rBCDMIN);
     dtm.tm_sec  = BcdToHex(rBCDSEC);
+    dtm.tm_us   = 0;
     rRTCCON &= ~1 ;     //RTC read and write disable
 
     *time = 1000000 * Tm_MkTime(&dtm);
@@ -186,16 +187,17 @@ ptu32_t RTC_ModuleInit(ptu32_t para)
 
     if(RtcIsReset == true)
     {
+        DateTime.tm_us = 0;
         DateTime.tm_sec = 0;
         DateTime.tm_min = 0;
         DateTime.tm_hour = 0;
         DateTime.tm_mday = 1;
         DateTime.tm_mon  = 1;
-        DateTime.tm_yday = 2000;
-        RTC_TimeUpdate(&DateTime);
+        DateTime.tm_year = 2000;
+        RTC_SetTime(&DateTime);
         Tm_SetDateTime(&DateTime);
     }
-    Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate);
+    Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);
     return true;
 }
 

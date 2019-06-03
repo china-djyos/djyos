@@ -73,21 +73,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"iicbus"       //iicbus
-//parent:"djybus"               //填写该组件的父组件名字，none表示没有父组件
+//component name:"iicbus"//iicbus
+//parent:"djybus"    //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"djybus"           //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"djybus"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -95,7 +95,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -103,7 +103,7 @@
 //IIC总线器件结构体
 struct IIC_Device
 {
-    struct obj         *HostObj;                 //宿主对象
+    struct Object         *HostObj;                 //宿主对象
 
     u8 DevAddr;                 //七位的器件地址,最低的0~2bit可能是器件内部地址。
     u8 BitOfMemAddrInDevAddr;   //器件地址中内部地址所占比特位数
@@ -120,7 +120,7 @@ struct IICBuf
 //IIC总线控制块结构体,本模块可见
 struct IIC_CB
 {
-    struct obj           *HostObj;               //宿主对象
+    struct Object           *HostObj;               //宿主对象
     struct IICBuf           IIC_Buf;                //缓冲区,用于异步发送
     struct SemaphoreLCB     *IIC_BusSemp;           //IIC总线保护信号量
     struct SemaphoreLCB     *IIC_BufSemp;           //简易缓冲区保护信号量
@@ -136,7 +136,7 @@ struct IIC_CB
     IICBusCtrlFunc          pBusCtrl;
 };
 
-static struct obj *s_ptIICBusType;
+static struct Object *s_ptIICBusType;
 
 //ICB的成员FLAG的位标记
 #define CN_IIC_FLAG_R    (1<<0)         //读写标志位
@@ -170,7 +170,7 @@ bool_t ModuleInstall_IICBus(void)
 // =============================================================================
 struct IIC_CB *IIC_BusAdd(struct IIC_Param *NewIICParam)
 {
-    struct obj *IICDev;
+    struct Object *IICDev;
     struct IIC_CB *NewIIC;
     if(NULL == NewIICParam)
         goto exit_from_param;
@@ -261,7 +261,7 @@ bool_t IIC_BusDelete(struct IIC_CB *DelIIC)
 // =============================================================================
 struct IIC_CB *IIC_BusFind(const char *BusName)
 {
-    struct obj *IIC_Obj;
+    struct Object *IIC_Obj;
     IIC_Obj = obj_search_child(s_ptIICBusType,BusName);
     if(IIC_Obj)
         return (struct IIC_CB *)obj_GetPrivate(IIC_Obj);
@@ -344,7 +344,7 @@ bool_t IIC_DevDelete(struct IIC_Device *DelDev)
 // =============================================================================
 struct IIC_Device *IIC_DevFind(const char *BusName ,const char *DevName)
 {
-    struct obj *IIC_DevObj;
+    struct Object *IIC_DevObj;
     struct IIC_CB *IIC_Bus;
 
     IIC_Bus = IIC_BusFind(BusName);
@@ -393,9 +393,12 @@ s32  IIC_Write(struct IIC_Device *Dev, u32 addr,u8 *buf,u32 len,
         return CN_IIC_EXIT_TIMEOUT;
 
     rel_timeout = timeout - ((u32)DjyGetSysTime() - base_time);
+    //DevAddr = Dev->DevAddr |
+    //        ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+    //        & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
     DevAddr = Dev->DevAddr |
-            ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
-            & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
+              (((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+              & ~(0xFF<<Dev->BitOfMemAddrInDevAddr))<<1);//the lowest is read or write in dev address
     //计算发送地址字节数
     //change by lst
 //    MemAddrLen = (Dev->BitOfMemAddr)/8 +
@@ -525,9 +528,13 @@ s32  IIC_Read(struct IIC_Device *Dev,u32 addr,u8 *buf,u32 len,u32 timeout)
     Lock_SempPend(IIC->IIC_BufSemp,0);                          //相当于清二值信号量
 
     rel_timeout = timeout - ((u32)DjyGetSysTime() - base_time);
-    DevAddr = Dev->DevAddr |
-            ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
-            & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
+    //DevAddr = Dev->DevAddr |
+    //        ((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+    //        & ~(0xFF<<Dev->BitOfMemAddrInDevAddr));
+     DevAddr = Dev->DevAddr |
+              (((u8)(addr >> (Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr))
+              & ~(0xFF<<Dev->BitOfMemAddrInDevAddr))<<1);//the lowest is read or write in dev address
+
     //计算发送地址字节数
 //    MemAddrLen = (Dev->BitOfMemAddr)/8 +
 //            ((Dev->BitOfMemAddr - Dev->BitOfMemAddrInDevAddr)%8 ? 1:0);

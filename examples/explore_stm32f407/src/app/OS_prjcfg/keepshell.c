@@ -16,11 +16,11 @@ void keep_shell(void)
 	extern void *djysh_blackboxi;
 	keep = (void *)djysh_blackboxi;
 
-	extern void *djysh_help;
-	keep = (void *)djysh_help;
+	extern void *djysh_cp;
+	keep = (void *)djysh_cp;
 
-	extern void *djysh_time;
-	keep = (void *)djysh_time;
+	extern void *djysh_heap;
+	keep = (void *)djysh_heap;
 
 	extern void *djysh_evtt;
 	keep = (void *)djysh_evtt;
@@ -28,13 +28,16 @@ void keep_shell(void)
 	extern void *djysh_bootmsg;
 	keep = (void *)djysh_bootmsg;
 
-	extern void *djysh_heap;
-	keep = (void *)djysh_heap;
-
 	extern void *djysh_iapmode;
 	keep = (void *)djysh_iapmode;
 
 	extern void *djysh_updateiboot;
 	keep = (void *)djysh_updateiboot;
+
+	extern void *djysh_help;
+	keep = (void *)djysh_help;
+
+	extern void *djysh_time;
+	keep = (void *)djysh_time;
 
 }

@@ -63,7 +63,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern struct GkWinObj;
-//    extern bool_t ModuleInstall_FT5X26(char *BusName,struct GkWinObj *desktop,char *touch_dev_name );
+//    extern bool_t ModuleInstall_FT5X26(struct GkWinObj *desktop);
 //    struct GkWinObj *desktop;
 //    desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
 //    if(NULL == desktop)
@@ -72,28 +72,28 @@
 //    }
 //    else
 //    {
-//        ModuleInstall_FT5X26(CFG_FT5X26_BUS_NAME,desktop,CFG_FT5X26_TOUCH_NAME);
+//        ModuleInstall_FT5X26(desktop);
 //    }
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_FT5X26_TOUCH_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"FT5X26"       //iic接口的触摸屏控制
+//component name:"touchscreen FT5X26"//iic接口的触摸屏控制
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:later              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"ioiicbus","gkernel"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"io analog iic bus","component gkernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"GDD"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -108,7 +108,7 @@
 #define CFG_FT5X26_BUS_NAME     "IoIic"        //"IIC总线名称",触摸芯片使用的IIC总线名称
 #define CFG_FT5X26_TOUCH_NAME   "FT5X26"       //"触摸屏名称",配置触摸屏名称
 #define CFG_DESKTOP_NAME        "desktop"      //"桌面名称",配置触摸屏所在显示器桌面的名称
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -352,13 +352,13 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 // 参数：无
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t ModuleInstall_FT5X26(char *BusName,struct GkWinObj *desktop,char *touch_dev_name )
+bool_t ModuleInstall_FT5X26(struct GkWinObj *desktop)
 {
     bool_t result = false;
     static struct IIC_Device* s_FT5X26_Dev;
 
     //添加FT5X26到IIC总线
-    s_FT5X26_Dev = IIC_DevAdd(BusName,"IIC_Dev_FT5X26",FT_CMD_WR>>1,0,8);
+    s_FT5X26_Dev = IIC_DevAdd(CFG_FT5X26_BUS_NAME,"IIC_Dev_FT5X26",FT_CMD_WR>>1,0,8);
     if(NULL != s_FT5X26_Dev)
     {
         IIC_BusCtrl(s_FT5X26_Dev,CN_IIC_SET_CLK,100*1000,0);
@@ -373,7 +373,7 @@ bool_t ModuleInstall_FT5X26(char *BusName,struct GkWinObj *desktop,char *touch_d
 
         FT5X26.read_touch = FT5X26_Scan;//读触摸点的坐标函数
         FT5X26.touch_loc.display = NULL;     //NULL表示用默认桌面
-        result=Touch_InstallDevice(touch_dev_name,&FT5X26);//添加驱动到Touch
+        result=Touch_InstallDevice(CFG_FT5X26_TOUCH_NAME,&FT5X26);//添加驱动到Touch
         if(!result)
             return false;
 

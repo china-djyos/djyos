@@ -5,6 +5,7 @@
 /*
 ; * void WFI(void);
 ; */
+	.code 32
     .globl WFI
     .type WFI, %function
 WFI:

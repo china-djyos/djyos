@@ -34,7 +34,7 @@ RevSectors = 0;                                 /*保留块数，保留位于flash末尾块*
 
 MEMORY
 {
-    InnerFlash(RX)   : org = 0x08000000,           len = 1024k   
+    InnerFlash(RX)   : org = 0x08000000,           len = 2048k   
     RAM1(RXW)        : org = 0x00000000,           len = 64K
     RAM2(RXW)        : org = 0x20000000,           len = 128K
     RAM3(RXW)        : org = 0x24000000,           len = 512K-32K

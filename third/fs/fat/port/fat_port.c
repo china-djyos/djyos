@@ -440,12 +440,24 @@ s32 FATDirRead(struct FileContext *pFileCt, struct Dirent *pContent)
 #include "../ff11/src/ff.h"
 #include <djyfs/file.h>
 #include <djyfs/filesystems.h>
-
+#include <dbug.h>
 #define SORTLEN    20      //媒体类型名的最大长度
 
 s32 __fat_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 static s32 __fat_install(struct FsCore *super, u32 opt, void *pData);
+
+// ============================================================================
+// 功能：格式化fat文件系统
+// 参数：
+// 返回：0 -- 成功; -1 -- 失败;
+// 备注：
+// ============================================================================
+static s32 __fatformat(void *core)
+{
+    debug_printf("fat","Formatting is not supported.");
+    return -1;
+}
 
 // ============================================================================
 // 功能：安装FAT文件系统
@@ -544,14 +556,14 @@ static u8 __deflags(u32 flags)
 // 返回：成功（FAT文件）；失败（NULL）;
 // 备注：
 // ============================================================================
-static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
+static struct objhandle *__fat_open(struct Object *ob, u32 flags, char *full)
 {
     char *path, *part_path, *mount_name = NULL;
     void *context;
     u8 mode;
     mode_t obj_mode, property = 0;
     struct objhandle *hdl = NULL;
-    struct obj *temp =  ob;
+    struct Object *temp =  ob;
     FRESULT res = FR_OK;
     char *volume = (char*)corefs(ob);
     char entirepath[DJYFS_PATH_BUFFER_SIZE];
@@ -568,8 +580,8 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
     if((!volume) && (!mount_name))
         return (NULL);
 
-    if(!full)
-        full = "/"; // 根目录
+//    if(!full)
+//        full = "/"; // 根目录
     memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
     GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
     res = strlen(entirepath) + strlen(volume) + 1;
@@ -579,7 +591,7 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
     memset(path, 0, res);
     part_path = strstr(entirepath, mount_name);     //找出mount点名字的所在位置
     part_path += strlen(mount_name);
-	//用volume中的设备名替换entirepath中的mount点名，因为fat只识别几种特定的设备
+    //用volume中的设备名替换entirepath中的mount点名，因为fat只识别几种特定的设备
     sprintf(path,"%s%s", volume, part_path);
 
     mode = __deflags(flags);
@@ -636,7 +648,6 @@ static struct objhandle *__fat_open(struct obj *ob, u32 flags, char *full)
             //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
             ob = obj_buildpath(ob, __fat_operations, obj_mode,full);
             obj_mode = S_IALLUGO | property;     //最末端的也许是文件
-            obj_SetPrivate(ob, mode);
             obj_LinkHandle(hdl, ob);
         }
     }
@@ -732,17 +743,38 @@ static off_t __fat_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __fat_remove(struct obj *ob, char *full)
+static s32 __fat_remove(struct Object *ob, char *full)
 {
     FRESULT res;
-    char *path;
+    char *path, *part_path, *mount_name = NULL;
     char *volume = (char*)corefs(ob);
+    struct Object *temp =  ob;
+    char entirepath[DJYFS_PATH_BUFFER_SIZE];
+    while(temp != obj_root())
+    {
+        if(obj_isMount(temp))
+        {
+            mount_name = (char*)obj_name(temp);    //找出mount点的名字
+            break;
+        }
+        temp = obj_parent(temp);
+    }
+    if((!volume) && (!mount_name))
+        return (-1);
 
-    path = malloc(strlen(volume) + strlen(full) + 1);
+    memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
+    GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
+    res = strlen(entirepath) + strlen(volume) + 1;
+    path = malloc(res);
     if(!path)
         return (-1);
 
-    sprintf(path,  "%s%s", (char*)volume, full);
+    memset(path, 0, res);
+    part_path = strstr(entirepath, mount_name);     //找出mount点名字的所在位置
+    part_path += strlen(mount_name);
+    //用volume中的设备名替换entirepath中的mount点名，因为fat只识别几种特定的设备
+    sprintf(path,"%s%s", volume, part_path);
+
     res = f_unlink(path);
     free(path);
     if(FR_OK != res)
@@ -837,13 +869,12 @@ static s32 __fat_readdentry(struct objhandle *hdl, struct dirent *dentry)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
+static s32 __fat_stat(struct Object *ob, struct stat *data, char *uncached)
 {
     FILINFO fatstat = {0};// 要初始化，否则源程序会跑飞；
     struct objhandle *myhandle;
     char *mount_name = NULL, *part_path;
-    struct obj *temp =  ob;
-    s32 res;
+    struct Object *temp =  ob;
 
     while(temp != obj_root())
     {
@@ -926,7 +957,7 @@ static s32 __fat_stat(struct obj *ob, struct stat *data, char *uncached)
 static s32 __fat_rename(const char *oldpath, const char *newpath)
 {
     s32 res;
-    struct obj *ob;
+    struct Object *ob;
     char *OPath = NULL, *NPath = NULL, *uncached, *volume = NULL, *mount_name = NULL;
 
     ob = obj_matchpath(oldpath, &uncached);     //找出原路径的OBJ
@@ -979,7 +1010,7 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __fat_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = __fat_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -1034,7 +1065,7 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(__fat_remove((struct obj*)opsTarget, (char *)OpsArgs3) == 0)
+            if(__fat_remove((struct Object*)opsTarget, (char *)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -1043,7 +1074,7 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_STAT:
         {
-            if(__fat_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1,
+            if(__fat_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1,
                             (char*)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
@@ -1089,21 +1120,21 @@ s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
 {
     s32 res;
     char *mountpoint = "fat";
-    struct obj * mountobj;
+    struct Object * mountobj;
     static struct filesystem *typeFAT = NULL;
     if(dir)
         mountpoint = (char*)dir;
 
     if(typeFAT == NULL)
-	{
-	    typeFAT = malloc(sizeof(*typeFAT));
+    {
+        typeFAT = malloc(sizeof(*typeFAT));
 
-	    typeFAT->fileOps = __fat_operations;
-	    typeFAT->install = __fat_install;
-	    typeFAT->pType = "FAT";
-	    typeFAT->format = NULL;
-	    typeFAT->uninstall = NULL;
-	}
+        typeFAT->fileOps = __fat_operations;
+        typeFAT->install = __fat_install;
+        typeFAT->pType = "FAT";
+        typeFAT->format = __fatformat;
+        typeFAT->uninstall = NULL;
+    }
     res = regfs(typeFAT);
     if(-1==res)
     {
@@ -1118,8 +1149,8 @@ s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
         return (-1);
     }
 
-    obj_InuseUpFullPath(mountobj);
-    opt |= MS_DIRECTMOUNT;			//直接挂载不用备份
+//    __InuseUpFullPath(mountobj);
+    opt |= MS_DIRECTMOUNT;          //直接挂载不用备份
     res = mountfs(NULL, mountpoint, "FAT", opt, data);
     if(res == -1)
     {

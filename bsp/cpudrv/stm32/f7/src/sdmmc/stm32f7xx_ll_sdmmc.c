@@ -303,7 +303,13 @@ uint32_t SDMMC_ReadFIFO(SDMMC_TypeDef *SDMMCx)
 HAL_StatusTypeDef SDMMC_WriteFIFO(SDMMC_TypeDef *SDMMCx, uint32_t *pWriteData)
 { 
   /* Write data to FIFO */ 
-  SDMMCx->FIFO = *pWriteData;
+  uint32_t FIFO = 0;
+  
+  //使用fat文件系统时，pWriteData可能是u8类型的数据强制转换过来的。这里先转换成u8类型，再拿出数据
+  uint8_t *data = (uint8_t *)pWriteData;
+  FIFO = pick_little_32bit(data , 0);
+
+  SDMMCx->FIFO = FIFO;
 
   return HAL_OK;
 }

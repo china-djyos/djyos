@@ -63,21 +63,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"unit media"        //模块名
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//component name:"component uint media"//模块名
+//parent:"non"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"stdio"            //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"component stdio" //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"non"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果互斥多个组件，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -85,7 +85,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -114,7 +114,7 @@ static void __um_stats(enum ustatstype type)
 {
     ;
 }
-#endif
+
 
 // ============================================================================
 // 功能：打开unit media设备文件;
@@ -354,10 +354,10 @@ static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 //// 返回：
 //// 备注：只会调用一次；
 //// ============================================================================
-//static inline struct obj *__isbuild(void)
+//static inline struct Object *__isbuild(void)
 //{
 //    static u8 inited = 0;
-//    static struct obj *mm;
+//    static struct Object *mm;
 //
 //    if(inited)
 //        return (mm);
@@ -382,7 +382,7 @@ static s32 __um_cntl(struct objhandle *hdl, u32 cmd, ptu32_t arg1, ptu32_t arg2)
 // ============================================================================
 s32 um_add(const char *name, struct umedia *media)
 {
-    struct obj *mmo;
+    struct Object *mmo;
 
 //  mmo = __isbuild();
 //  if(!mmo)
@@ -438,3 +438,4 @@ s32 ModuleInstall_UnitMedia(s32(*dev_init)(u32 bstart, u32 bcount, u32 doformat)
     va_end(list);
     return (res);
 }
+#endif

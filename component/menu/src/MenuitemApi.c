@@ -56,7 +56,7 @@
 
 #define                            cn_limit_menuitem        1000 //max menuitem num
 static struct menu_item             sMenuitemRsc[cn_limit_menuitem];  // todo:
-static struct obj             *pg_menuitem_root;  // the menuitem tree
+static struct Object             *pg_menuitem_root;  // the menuitem tree
 struct MemCellPool               *pg_menuitem_pool;// the menuitem pool
 //static struct menu_item             *pg_operating_menuitem;// the current operating menuitem ,for the visible
 
@@ -73,11 +73,11 @@ static  u8                         menuitem_tree_count=0;     //the current node
 // =========================================================================
 ptu32_t module_init_menu(ptu32_t para)
 {
-   static struct obj sMenuitemRoot;
+   static struct Object sMenuitemRoot;
    bool_t  result=false;
 
    //init the menuitem tree
-   pg_menuitem_root= OBJ_AddTree(&sMenuitemRoot, sizeof(struct obj),RSC_RSCNODE,"MenuItem_root");
+   pg_menuitem_root= OBJ_AddTree(&sMenuitemRoot, sizeof(struct Object),RSC_RSCNODE,"MenuItem_root");
    if(NULL==pg_menuitem_root)
    {
       printf("create the pg_menuitem_root failed!\n");
@@ -189,9 +189,9 @@ struct menu_item *CreateMenuitemTreeNode(char * pTreeName)
      strcpy(result->name,pTreeName);
    }
 
-   OBJ_Clean((struct obj *) result);
-   OBJ_AddChildHead((struct obj *)(pg_menuitem_root),\
-       (struct obj *) result, sizeof(struct menu_item),\
+   OBJ_Clean((struct Object *) result);
+   OBJ_AddChildHead((struct Object *)(pg_menuitem_root),\
+       (struct Object *) result, sizeof(struct menu_item),\
         RSCTYPE_USER,(const char*)(result->name));
    menuitem_tree_count++;
    printf("menuitem_tree_node:%s\n",result->node.name);
@@ -272,7 +272,7 @@ struct menu_item* SearchSubMenuitemByName(struct menu_item * pParent, const char
 {
    struct menu_item *result=NULL;
 
-   result=(struct menu_item*)obj_search_child((struct obj * )pParent, name);//已经做了参数的检查
+   result=(struct menu_item*)obj_search_child((struct Object * )pParent, name);//已经做了参数的检查
    return result;
 }
 
@@ -288,7 +288,7 @@ struct menu_item * SearchBroMenuitemByName(struct menu_item * pBrother, const ch
 
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_search_sibling((struct obj *)pBrother,  name);
+    result=(struct menu_item *)obj_search_sibling((struct Object *)pBrother,  name);
 
     return result;
 }
@@ -305,7 +305,7 @@ struct menu_item * SearchBroMenuitemByName(struct menu_item * pBrother, const ch
 bool_t AddSubMenuitem(struct menu_item * pParent, struct menu_item *pNewmenuitem, bool_t head)
 {
     bool_t  result=false;
-    struct obj  *temp_node;
+    struct Object  *temp_node;
 
     //check if any sub menuitem named this
     if(NULL!=SearchSubMenuitemByName(pParent,pNewmenuitem->name))
@@ -315,12 +315,12 @@ bool_t AddSubMenuitem(struct menu_item * pParent, struct menu_item *pNewmenuitem
     }
     if (head)
     {
-        temp_node= OBJ_AddChildHead((struct obj *)pParent, (struct obj *)pNewmenuitem, \
+        temp_node= OBJ_AddChildHead((struct Object *)pParent, (struct Object *)pNewmenuitem, \
             sizeof(struct menu_item),RSCTYPE_USER,(const char*)(pNewmenuitem->name));
     }
     else
     {
-        temp_node= OBJ_AddChild((struct obj *)pParent, (struct obj *)pNewmenuitem, \
+        temp_node= OBJ_AddChild((struct Object *)pParent, (struct Object *)pNewmenuitem, \
             sizeof(struct menu_item),RSCTYPE_USER,(const char*)(pNewmenuitem->name));
     }
 
@@ -340,7 +340,7 @@ bool_t AddSubMenuitem(struct menu_item * pParent, struct menu_item *pNewmenuitem
 bool_t AddBroMenuitem(struct menu_item * pBrother, struct menu_item *pNewmenuitem, bool_t insert)
 {
     bool_t result=false;
-    struct obj *temp_node;
+    struct Object *temp_node;
 
     //check any brother menuitem named this
     if(NULL!=SearchBroMenuitemByName(pBrother, pNewmenuitem->name))
@@ -350,7 +350,7 @@ bool_t AddBroMenuitem(struct menu_item * pBrother, struct menu_item *pNewmenuite
     }
     if(insert)
     {
-         temp_node=OBJ_AddToPrevious((struct obj *)pBrother, (struct obj *)pNewmenuitem,\
+         temp_node=OBJ_AddToPrevious((struct Object *)pBrother, (struct Object *)pNewmenuitem,\
             sizeof(struct menu_item), RSCTYPE_USER,(const char*)(pNewmenuitem->name));
     }
     else
@@ -375,7 +375,7 @@ struct menu_item* SearchSubTernalMenuitem(struct menu_item * pMenuitem)
 {
 
    struct menu_item* result=NULL;
-   result=(struct menu_item *)obj_twig((struct  obj *)pMenuitem);
+   result=(struct menu_item *)obj_twig((struct Object *)pMenuitem);
    return result;
 }
 
@@ -392,7 +392,7 @@ bool_t DelMenuBranchCompletely(struct menu_item * pMenuitem)
    bool_t             result=false;
    struct menu_item    *temp_menuitem=pMenuitem;
 
-  if((struct obj *)pMenuitem==pg_menuitem_root)//this is an menuitem root node
+  if((struct Object *)pMenuitem==pg_menuitem_root)//this is an menuitem root node
   {
      printf("Invalid para---DelMenuBranchCompletely\n");
     return result;
@@ -400,15 +400,15 @@ bool_t DelMenuBranchCompletely(struct menu_item * pMenuitem)
   while((temp_menuitem=SearchSubTernalMenuitem(pMenuitem))!=NULL)
   {
     printf("begin to delete the menuitem=%s\n",temp_menuitem->node.name);
-    obj_Delete((struct obj *)temp_menuitem);
+    obj_Delete((struct Object *)temp_menuitem);
     Mb_Free(pg_menuitem_pool, temp_menuitem);
   }
-  if(obj_parent((struct obj *)pMenuitem)==pg_menuitem_root)
+  if(obj_parent((struct Object *)pMenuitem)==pg_menuitem_root)
   {
      menuitem_tree_count--;
   }
   printf("begin to delete the menuitem=%s\n",pMenuitem->node.name);
-  obj_Delete((struct obj *)(&(pMenuitem->node)));
+  obj_Delete((struct Object *)(&(pMenuitem->node)));
   Mb_Free(pg_menuitem_pool, pMenuitem);
   result=true;
 
@@ -428,7 +428,7 @@ bool_t DelMenuBranch(struct menu_item * pMenuitem)
    bool_t             result=false;
    struct menu_item    *temp_menuitem=pMenuitem;
 
-  if((struct obj *)pMenuitem==pg_menuitem_root)//this is an menuitem root node
+  if((struct Object *)pMenuitem==pg_menuitem_root)//this is an menuitem root node
   {
      printf("Invalid para---DelMenuBranchCompletely\n");
     return result;
@@ -436,7 +436,7 @@ bool_t DelMenuBranch(struct menu_item * pMenuitem)
   while((temp_menuitem=SearchSubTernalMenuitem(pMenuitem))!=NULL)
   {
     printf("begin to delete the menuitem=%s\n",temp_menuitem->node.name);
-    obj_Delete((struct obj *)temp_menuitem);
+    obj_Delete((struct Object *)temp_menuitem);
     Mb_Free(pg_menuitem_pool, temp_menuitem);
   }
   result=true;
@@ -456,7 +456,7 @@ struct menu_item *GetNextMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_next((struct obj *)pMenuitem);
+    result=(struct menu_item *)obj_next((struct Object *)pMenuitem);
 
     return result;
 
@@ -474,7 +474,7 @@ struct menu_item *GetPreMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_prev((struct obj *)pMenuitem);
+    result=(struct menu_item *)obj_prev((struct Object *)pMenuitem);
 
     return result;
 
@@ -491,7 +491,7 @@ struct menu_item *GetPreMenuitem(struct menu_item * pMenuitem)
 struct menu_item *GetSonMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
-    result=(struct menu_item *)obj_child((struct obj *)pMenuitem);
+    result=(struct menu_item *)obj_child((struct Object *)pMenuitem);
     return result;
 }
 // =========================================================================
@@ -506,7 +506,7 @@ struct menu_item *GetParMenuitem(struct menu_item * pMenuitem)
 {
     struct menu_item * result=NULL;
 
-    result=(struct menu_item *)obj_parent((struct obj *)pMenuitem);
+    result=(struct menu_item *)obj_parent((struct Object *)pMenuitem);
 
     return result;
 }
@@ -539,7 +539,7 @@ struct menu_item * GetBBmenuitem(struct menu_item  *menuitem)
 {
     struct menu_item   *result=NULL;
 
-    result=(struct menu_item *)obj_head((struct obj *)menuitem);
+    result=(struct menu_item *)obj_head((struct Object *)menuitem);
     return  result;
 }
 // =========================================================================

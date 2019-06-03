@@ -49,7 +49,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "component_config_tcpip.h"
+#include "component_config_tftp.h"
 
 #include "tftplib.h"
 #include "dbug.h"

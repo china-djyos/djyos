@@ -7,9 +7,14 @@
 
 /* Settings */
 
+#include "component_config_goahead401.h"
+
 #define __djyos__  1
 #define __arm__  1
+
+#ifndef  HOME_DIRECTORY_NAME
 #define HOME_DIRECTORY_NAME "/fat"
+#endif
 
 #ifndef ME_AUTHOR
     #define ME_AUTHOR "Embedthis Software"

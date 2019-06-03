@@ -46,23 +46,28 @@
 #include "stddef.h"
 #include "board-config.h"
 
-struct djytickless_t {
-    struct djytickless_op_t *op;
-}static djytickless = {
+static struct djytickless_register_param_t
+djytickless =
+{
     .op = NULL,
+    .freq = 0,
+    .max_reload_value = 0,
+    .min_reload_value = 0,
 };
 
 #define DJYTICKLESS_DEBUG      (0U)
 /*调试用的，不用管*/
 #if     DJYTICKLESS_DEBUG
-struct djytickless_debug_t{
+struct djytickless_debug_t
+{
     uint64_t pre_cur_cnt;
     uint64_t next_int_cnt;
     uint64_t pre_next_int_cnt;
     uint32_t pre_reload;
     uint8_t  evt;
     bool_t return_flag;
-}djytickless_debug={
+};
+struct djytickless_debug_t djytickless_debug={
     0,
     0,
     0,
@@ -71,58 +76,28 @@ struct djytickless_debug_t{
     false,
 };
 #endif
-// =============================================================================
-// 功能：获取定时器能定时的最大cnt数
-// 参数：无
-// 返回：最大cnt数
-// =============================================================================
-uint32_t DjyTickless_GetCntMax(void)
-{
-    if(djytickless.op != NULL)
-    {
-        return djytickless.op->get_cnt_max();
-    }
-    return 0;
-}
 
 // =============================================================================
 // 功能：获取定时器能定时的最小cnt数
 // 参数：无
 // 返回：最小cnt数
 // =============================================================================
-uint32_t DjyTickless_GetCntMin(void)
+uint32_t Djytickless_GetPrecision(void)
 {
-    if(djytickless.op != NULL)
-    {
-        return djytickless.op->get_cnt_min();
-    }
-    return 0;
+    return djytickless.min_reload_value;
 }
 
 // =============================================================================
-// 功能：设置systick的定时周期
-// 参数：要设置的值
-// 返回：无
+// 功能：在中断里获取累计的cnt值
+// 参数：cnt：中断时传进来的cnt值
+// 返回：当前累计的cnt值
 // =============================================================================
-uint32_t DjyTickless_GetReload(void)
-{
-    if(djytickless.op != NULL)
-    {
-        return djytickless.op->get_reload();
-    }
-    return 0;
-}
 
-// =============================================================================
-// 功能：刷新当前累计的cnt值
-// 参数：新增的cnt数
-// 返回：当前累计的cnt数
-// =============================================================================
-uint64_t DjyTickless_RefreshTotalCnt(uint32_t cnt)
+uint64_t Djytickless_GetTotalCntIsr(uint32_t cnt)
 {
     if(djytickless.op != NULL)
     {
-        return djytickless.op->refresh_total_cnt(cnt);
+        return djytickless.op->get_total_cnt_isr(cnt);
     }
     return 0;
 }
@@ -132,7 +107,7 @@ uint64_t DjyTickless_RefreshTotalCnt(uint32_t cnt)
 // 参数：无
 // 返回：当前累计的cnt值
 // =============================================================================
-uint64_t DjyTickless_GetTotalCnt(void)
+uint64_t Djytickless_GetTotalCnt(void)
 {
     if(djytickless.op != NULL)
     {
@@ -142,45 +117,26 @@ uint64_t DjyTickless_GetTotalCnt(void)
 }
 
 // =============================================================================
-// 功能：复位tickless模块
-// 参数：无
-// 返回：无
-// =============================================================================
-void DjyTickless_Reset(void)
-{
-    if(djytickless.op != NULL)
-    {
-        djytickless.op->reset();
-    }
-    return;
-}
-
-// =============================================================================
-// 功能：启动tickless模块
-// 参数：无
-// 返回：无
-// =============================================================================
-void DjyTickless_Start(void)
-{
-    if(djytickless.op != NULL)
-    {
-        djytickless.op->start();
-    }
-    return;
-}
-
-// =============================================================================
 // 功能：把cnt值转化为us数
 // 参数：cnt值
 // 返回：us数
 // =============================================================================
 uint64_t DjyTickless_CntToUs(uint64_t cnt)
 {
-    if(djytickless.op != NULL)
+    uint64_t temp = 0;
+    uint32_t freq = djytickless.freq;
+    if(freq!=0)
     {
-        return djytickless.op->cnt_to_us(cnt);
+        if(freq>Mhz)
+        {
+            temp = cnt/(freq/Mhz);
+        }
+        else
+        {
+            temp = cnt*(Mhz/freq);
+        }
     }
-    return 0;
+    return temp;
 }
 
 // =============================================================================
@@ -190,11 +146,22 @@ uint64_t DjyTickless_CntToUs(uint64_t cnt)
 // =============================================================================
 uint64_t DjyTickless_UsToCnt(uint64_t us)
 {
-    if(djytickless.op != NULL)
+    uint64_t temp = 0;
+    uint32_t freq = djytickless.freq;
+    if(freq!=0)
     {
-        return djytickless.op->us_to_cnt(us);
+        if(freq>Mhz)
+        {
+            temp = us*(freq/Mhz);
+        }
+        else
+        {
+            temp = us/(Mhz/freq);
+        }
+        if(temp <= djytickless.min_reload_value)
+            temp = djytickless.min_reload_value;
     }
-    return 0;
+    return temp;
 }
 
 // =============================================================================
@@ -221,7 +188,7 @@ void DjyTickless_SetReload(struct djytickless_param *param,uint8_t evt)
         //2.此时系统有延时事件或者轮转事件，但是其延时时间比系统时钟的一个周期的延时时间还长，
         //此时也会把reload值设为最大值
             if(next_int_cnt==CN_LIMIT_UINT64 || \
-                ((next_int_cnt-(param->cur_cnt))>(djytickless.op->get_cnt_max())))
+                ((next_int_cnt-(param->cur_cnt))>(djytickless.max_reload_value)))
                 //判断next_int_cnt与当前时间的差值是否还比最大延时值还大
                 return; //否则就是第二种情况，需在switch外面判断next_int_cntUs值是否还比最大延时值还大
                         //直接退出
@@ -250,8 +217,8 @@ void DjyTickless_SetReload(struct djytickless_param *param,uint8_t evt)
             //取消RRS轮转，当前正在运行的任务的优先级和他下一个任务的优先级不一样的情况下会被触发
             //说明此时已经不需要进行轮转调度，在DJY_SELECT_EVENT_TO_RUN中会被判断触发
             temp_u64 = ((param->next_delay_cnt)>(param->next_rrs_cnt))?(param->next_rrs_cnt):(param->next_delay_cnt);
-            if((next_int_cnt>=temp_u64 && ((next_int_cnt - temp_u64)<(djytickless.op->get_cnt_min()))) || \
-                (next_int_cnt<temp_u64 && ((temp_u64 - next_int_cnt)<(djytickless.op->get_cnt_min()))))
+            if((next_int_cnt>=temp_u64 && ((next_int_cnt - temp_u64)<(djytickless.min_reload_value))) || \
+                (next_int_cnt<temp_u64 && ((temp_u64 - next_int_cnt)<(djytickless.min_reload_value))))
             return;
             next_int_cnt = temp_u64;
             break;
@@ -281,10 +248,10 @@ void DjyTickless_SetReload(struct djytickless_param *param,uint8_t evt)
     djytickless_debug.return_flag = false;
 #endif
     //计算需要设置的定时时间长度，其最大值不能比定时器的最大定时时间还长
-    cnt=((next_int_cnt-(param->cur_cnt))>(djytickless.op->get_cnt_max()))?    \
-            (djytickless.op->get_cnt_max()):(next_int_cnt-(param->cur_cnt));
-    if(cnt<(djytickless.op->get_cnt_min()))
-        cnt = djytickless.op->get_cnt_min();
+    cnt=((next_int_cnt-(param->cur_cnt))>(djytickless.max_reload_value))?    \
+            (djytickless.max_reload_value):(next_int_cnt-(param->cur_cnt));
+    if(cnt<(djytickless.min_reload_value))
+        cnt = djytickless.min_reload_value;
 #if     DJYTICKLESS_DEBUG
     djytickless_debug.pre_cur_cnt = param->cur_cnt;
     djytickless_debug.pre_reload = cnt;
@@ -305,9 +272,9 @@ void DjyTickless_CheckCnt(struct djytickless_param *param,uint32_t cnt)
     /*这个函数在djyos.c里面的定时器中断函数里被调用，需注意的是，此逻辑与定时中断函数里面的*/
     /*下面判断下一次delay时间以及下一次轮转时间是否到来的逻辑是互斥的，这里是小于等于，那边是大于*/
     /*也就是说，进了这里，是绝对进不了那边下面的判断，否则就不对*/
-    if(cnt==djytickless.op->get_cnt_max() && \
-            (param->cur_cnt)<=((param->next_delay_cnt) - (djytickless.op->get_cnt_min())) && \
-            (param->cur_cnt)<=((param->next_rrs_cnt) - (djytickless.op->get_cnt_min())) )
+    if(cnt==djytickless.max_reload_value && \
+            (param->cur_cnt)<=((param->next_delay_cnt) - (djytickless.min_reload_value)) && \
+            (param->cur_cnt)<=((param->next_rrs_cnt) - (djytickless.min_reload_value)) )
     {
         DjyTickless_SetReload(param,ISR_TICK_DELAY_TOO_LONG);
         return;
@@ -319,9 +286,12 @@ void DjyTickless_CheckCnt(struct djytickless_param *param,uint32_t cnt)
 // 参数：op
 // 返回：无
 // =============================================================================
-void DjyTickless_RegisterOp(struct djytickless_op_t* op)
+void DjyTickless_Register(struct djytickless_register_param_t* param)
 {
-    djytickless.op = op;
+    djytickless.op = param->op;
+    djytickless.freq = param->freq;
+    djytickless.max_reload_value = param->max_reload_value;
+    djytickless.min_reload_value = param->min_reload_value;
 }
 
 

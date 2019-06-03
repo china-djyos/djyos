@@ -1,0 +1,122 @@
+#
+#opyright (c) 2019, Djyos Open source Development team. All rights reserved.
+#2019.02.28 by longjianwu
+#makefile to build the static library libwolfssh.a and sftp client, depends on libwolfssl.a
+#
+
+CC=gcc
+AR=ar
+
+SSL_SOURCE_DIR=/home/wolfssl-3.15.7/wolfssl-3.15.7/
+
+INCLUDE=-I. -I./src -I$(SSL_SOURCE_DIR)
+
+MACRO_SSH_FLAGS= -DBUILDING_WOLFSSH -DHAVE_CYASSL_OPTIONS -DWOLFSSH_SFTP -DSIZEOF_LONG=8
+
+MACRO_SSL_FLAGS= -DNO_WRITEV -DBUILDING_WOLFSSL -DWOLFSSL_PUBLIC_MP -D_POSIX_THREADS  -DHAVE_THREAD_LS -DTFM_TIMING_RESISTANT -DECC_TIMING_RESISTANT -DWC_RSA_BLINDING -DHAVE_AESGCM -DWOLFSSL_SHA512 -DWOLFSSL_SHA384 -DNO_DSA -DHAVE_ECC -DTFM_ECC256 -DECC_SHAMIR -DWOLFSSL_BASE64_ENCODE -DNO_RC4 -DNO_HC128 -DNO_RABBIT -DWOLFSSL_SHA224 -DWOLFSSL_SHA3 -DHAVE_POLY1305 -DHAVE_ONE_TIME_AUTH -DHAVE_CHACHA -DHAVE_HASHDRBG -DHAVE_TLS_EXTENSIONS -DHAVE_SUPPORTED_CURVES -DHAVE_EXTENDED_MASTER -DNO_PSK -DNO_MD4 -DNO_PWDBASED -DUSE_FAST_MATH -DWOLFSSL_X86_64_BUILD -DWC_NO_ASYNC_THREADING -DNO_DES3  -DHAVE___UINT128_T
+
+MACRO_FLAGS=-DHAVE_CONFIG_H -DNDEBUG
+MACRO_FLAGS+=$(MACRO_SSH_FLAGS)
+MACRO_FLAGS+=$(MACRO_SSL_FLAGS)
+
+COMPILE_FLAGS=-fvisibility=hidden -Wno-unused -O2 -fomit-frame-pointer -pthread -Wno-pragmas -Wall -Wno-strict-aliasing -Wextra -Wunknown-pragmas --param=ssp-buffer-size=1 -Waddress -Warray-bounds -Wbad-function-cast -Wchar-subscripts -Wcomment -Wfloat-equal -Wformat-security -Wformat=2 -Wmaybe-uninitialized -Wmissing-field-initializers -Wmissing-noreturn -Wmissing-prototypes -Wnested-externs -Wnormalized=id -Woverride-init -Wpointer-arith -Wpointer-sign -Wredundant-decls -Wshadow -Wsign-compare -Wstrict-overflow=1 -Wswitch-enum -Wundef -Wunused -Wunused-result -Wunused-variable -Wwrite-strings -fwrapv
+
+
+CFLAGS=$(INCLUDE) $(MACRO_FLAGS) $(COMPILE_FLAGS)
+
+SSL_SOURCE=
+SSL_SOURCE+=src/wolfio.c 
+SSL_SOURCE+=src/keys.c 
+SSL_SOURCE+=src/ssl.c 
+SSL_SOURCE+=src/internal.c 
+SSL_SOURCE+=src/tls.c
+
+SSL_SOURCE+=wolfcrypt/src/hmac.c
+SSL_SOURCE+=wolfcrypt/src/hash.c
+#SSL_SOURCE+=wolfcrypt/src/cpuid.c
+SSL_SOURCE+=wolfcrypt/src/random.c
+SSL_SOURCE+=wolfcrypt/src/sha256.c
+SSL_SOURCE+=wolfcrypt/src/rsa.c
+SSL_SOURCE+=wolfcrypt/src/aes.c
+SSL_SOURCE+=wolfcrypt/src/sha.c
+SSL_SOURCE+=wolfcrypt/src/sha512.c
+SSL_SOURCE+=wolfcrypt/src/sha3.c
+SSL_SOURCE+=wolfcrypt/src/logging.c
+SSL_SOURCE+=wolfcrypt/src/wc_encrypt.c
+SSL_SOURCE+=wolfcrypt/src/wc_port.c
+SSL_SOURCE+=wolfcrypt/src/error.c
+SSL_SOURCE+=wolfcrypt/src/signature.c
+SSL_SOURCE+=wolfcrypt/src/wolfmath.c
+SSL_SOURCE+=wolfcrypt/src/memory.c
+SSL_SOURCE+=wolfcrypt/src/dh.c
+SSL_SOURCE+=wolfcrypt/src/asn.c
+SSL_SOURCE+=wolfcrypt/src/coding.c
+SSL_SOURCE+=wolfcrypt/src/poly1305.c
+SSL_SOURCE+=wolfcrypt/src/md5.c
+SSL_SOURCE+=wolfcrypt/src/chacha.c
+SSL_SOURCE+=wolfcrypt/src/chacha20_poly1305.c
+SSL_SOURCE+=wolfcrypt/src/tfm.c
+SSL_SOURCE+=wolfcrypt/src/ecc.c
+
+SSL_SOURCE_CODE=$(patsubst %, $(SSL_SOURCE_DIR)%, $(SSL_SOURCE))
+
+SOURCE=
+SOURCE+=src/internal.c 
+SOURCE+=src/io.c 
+SOURCE+=src/log.c 
+SOURCE+=src/memory.c 
+SOURCE+=src/port.c 
+SOURCE+=src/ssh.c 
+SOURCE+=src/wolfscp.c 
+SOURCE+=src/wolfsftp.c
+
+SOURCE+=$(SSL_SOURCE_CODE)
+
+BUILD_TARGET_SRC=wolfsftp/client/sftpclient.c
+SOURCE+=$(BUILD_TARGET_SRC)
+
+TARGET_DIR=target
+
+OBJS=$(patsubst %.c, %.o, $(SOURCE))
+OBJS_DEBUG=$(patsubst %.c, %.E, $(SOURCE))
+BUILD_TARGET=$(TARGET_DIR)/sftpc
+BUILD_TARGET_OBJ=$(patsubst %.c, %.o, $(BUILD_TARGET_SRC))
+
+
+LIBS=-Wl,--start-group \
+$(TARGET_DIR)/libwolfssh.a $(TARGET_DIR)/libwolfssl.a  \
+-lm  \
+-Wl,--end-group 
+
+#LDFLAGS=$(LIBS)
+LDFLAGS=-lm
+
+all:$(OBJS)
+	mkdir -p $(TARGET_DIR)
+	$(CC) $(CFLAGS) -o $(BUILD_TARGET) $(OBJS) $(LDFLAGS)
+	@echo ""
+	@echo "Done!!!"
+	@echo $(BUILD_TARGET)
+	@echo ""
+
+#below is not need
+$(OBJS):%.o:%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+debug:$(OBJS_DEBUG)
+	mkdir -p $(TARGET_DIR)
+	@echo ""
+	@echo "Done!!!"
+	@echo location in $(TARGET_DIR)
+	@echo ""
+
+$(OBJS_DEBUG):%.E:%.c
+	$(CC) $(CFLAGS) -E -o $@ $<
+	cp -rf $@ $(TARGET_DIR)
+
+clean:
+	rm -rf $(OBJS)
+	rm -rf $(TARGET_DIR)/*.o
+	rm -rf $(BUILD_TARGET)
+	
+	

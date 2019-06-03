@@ -51,6 +51,7 @@
 #include <lock.h>
 #include <dbug.h>
 #include <device.h>
+#include <djyos.h>
 #include "./stm32_usb_host_library/core/inc/usbh_core.h"
 #include "./stm32_usb_host_library/class/msc/inc/usbh_msc.h"
 #include "./stm32_usb_host_library/class/cdc/inc/usbh_cdc.h"
@@ -599,7 +600,8 @@ s32 ModuleInstall_USB(const char *TargetFs,u8 controller)
         error_printf("usb", "too big ID(%d) for usb controller.", controller);
         return (-1);
     }
-
+    if(strcmp(TargetFs,"NULL") == 0)
+        TargetFs = NULL;
 //  if(!dev_group_addo("usb"))
 //  {
 //      error_printf("usb", "cannot create \"usb\" group.");

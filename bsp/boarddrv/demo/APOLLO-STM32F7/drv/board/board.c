@@ -50,6 +50,7 @@
 //#include "cpu_peri_iic.h"
 #include "IoIicBus.h"
 #include "board.h"
+#include "pcf8574.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -61,21 +62,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"board"    //板件特性配置
+//component name:"board config"//组件名
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:required               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"kernel","stm32f7","cpu_peri_gpio"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"kernel","stm32f7","cpu peri gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -83,7 +84,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -448,7 +449,7 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 void Board_GpioInit(void)
 {
 #if 0
-    ETH_RESE( );//网口复位
+    LAN8720_RESET( );//网口复位
 #endif
     PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
 //   PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
@@ -483,3 +484,14 @@ unsigned char  NAND_RB_Get(void)
 {
     return PIO_Get(&FmcNandPins[0]);
 }
+
+//网口的 PHY 芯片：LAN8720复位
+bool_t LAN8720_RESET(void)
+{
+    PCF8574_WriteBit(ETH_RESET_IO,1);
+    Djy_DelayUs(100*mS);
+    PCF8574_WriteBit(ETH_RESET_IO,0);
+    Djy_DelayUs(100*mS);
+    return true;
+}
+

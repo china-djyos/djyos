@@ -63,6 +63,7 @@
 #include "arch_feature.h"
 #include "djyos.h"
 #include "int.h"
+#include "cpu.h"
 //#include "core_cm0.h"
 #include "hard-exp.h"
 #include "board-config.h"
@@ -126,24 +127,16 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 
 void HardExp_EsrTick(void)
 {
-#if (CN_USE_TICKLESS_MODE)
-    u32 tick=0;
-#endif
     if((pg_systick_reg->ctrl & bm_systick_ctrl_tickint) == 0)
         return;
     g_bScheduleEnable = false;
-//    tg_int_global.en_asyn_signal = false;
-//    tg_int_global.en_asyn_signal_counter = 1;
     tg_int_global.nest_asyn_signal++;
-#if (CN_USE_TICKLESS_MODE)
-    tick = DjyTickless_GetReload();
-    user_systick(tick);
-#else
-    user_systick(1);
-#endif
+    if(!DjyGetUpdateTickFlag())
+        DjyUpdateTicks(1);
+    else
+        DjySetUpdateTickFlag(false);
+    user_systick((CN_USE_TICKLESS_MODE==1)?0:1);
     tg_int_global.nest_asyn_signal--;
-//    tg_int_global.en_asyn_signal = true;
-//    tg_int_global.en_asyn_signal_counter = 0;
     if(g_ptEventReady != g_ptEventRunning)
         __Djy_ScheduleAsynSignal();       //执行中断内调度
     g_bScheduleEnable = true;

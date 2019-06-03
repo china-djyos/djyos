@@ -229,7 +229,7 @@ void sctrl_flash_select_dco(void)
     ASSERT(DD_HANDLE_UNVALID != flash_hdl);
     ddev_control(flash_hdl, CMD_FLASH_SET_DCO, 0);
     //flash get id  shouldn't remove
-    ddev_control(flash_hdl, CMD_FLASH_GET_ID, 0);
+    ddev_control(flash_hdl, CMD_FLASH_GET_ID, &status);
 }
 
 void sctrl_sta_ps_init(void)
@@ -1596,6 +1596,47 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
         reg |= (((*(UINT32 *)param) & LINE_IN_GAIN_MASK) << LINE_IN_GAIN_POSI);
         sctrl_analog_set(SCTRL_ANALOG_CTRL8, reg);
         break;
+
+    case CMD_SCTRL_SET_VOLUME_PORT:
+        if((*(UINT32 *)param) == AUDIO_DAC_VOL_DIFF_MODE)
+        {
+            reg = sctrl_analog_get(SCTRL_ANALOG_CTRL9);
+            reg |= (DAC_DIFF_EN);
+            sctrl_analog_set(SCTRL_ANALOG_CTRL9, reg);
+
+            reg = sctrl_analog_get(SCTRL_ANALOG_CTRL10);
+            reg |= (DAC_N_END_OUPT_L | DAC_N_END_OUPT_R);
+            reg &= ~(DAC_VSEL_MASK << DAC_VSEL_POSI);
+            reg |= ((0x3 & DAC_VSEL_MASK) << DAC_VSEL_POSI);;
+            sctrl_analog_set(SCTRL_ANALOG_CTRL10, reg);
+        }
+        else if((*(UINT32 *)param) == AUDIO_DAC_VOL_SINGLE_MODE)
+        {
+            reg = sctrl_analog_get(SCTRL_ANALOG_CTRL9);
+            reg &= ~(DAC_DIFF_EN);
+            sctrl_analog_set(SCTRL_ANALOG_CTRL9, reg);
+
+            reg = sctrl_analog_get(SCTRL_ANALOG_CTRL10);
+            reg &= ~(DAC_N_END_OUPT_L | DAC_N_END_OUPT_R);
+            reg &= ~(DAC_VSEL_MASK << DAC_VSEL_POSI);
+            reg |= ((0 & DAC_VSEL_MASK) << DAC_VSEL_POSI);;
+            sctrl_analog_set(SCTRL_ANALOG_CTRL10, reg);
+        }
+        break;
+
+//    case CMD_SCTRL_SET_AUD_DAC_MUTE:
+//        reg = sctrl_analog_get(SCTRL_ANALOG_CTRL8);
+//        if((*(UINT32 *)param) == AUDIO_DAC_ANALOG_MUTE)
+//        {
+//            reg |= (AUD_DAC_MUTE_EN);
+//            sctrl_analog_set(SCTRL_ANALOG_CTRL8, reg);
+//        }
+//        else if((*(UINT32 *)param) == AUDIO_DAC_ANALOG_UNMUTE)
+//        {
+//            reg &= ~(AUD_DAC_MUTE_EN);
+//            sctrl_analog_set(SCTRL_ANALOG_CTRL8, reg);
+//        }
+//        break;
         
 #endif // (CFG_SOC_NAME == SOC_BK7221U)
     default:

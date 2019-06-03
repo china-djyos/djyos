@@ -71,13 +71,13 @@ extern "C" {
 
 struct objhandle{
     list_t list;            // 句柄所关联的对象的句柄链表；
-    u32 flags;              // 当前文件操作标志；
-    struct obj *HostObj;    // 关联的对象
+    u32 flags;              // 当前文件操作标志，如O_RDONLY等，在fcntl.h中定义。
+    struct Object *HostObj;    // 关联的对象
     u32 timeout;            // 同步访问的timeout，单位us，不超过1.19小时；
     struct MultiplexObjectCB * pMultiplexHead; // 多路复用目标对象头指针；
     u32 MultiplexEvents;    // 对象的当前访问状态，如可读，可写等。24bit，高8位无效，
                             // 可用于多路复用；
-    ptu32_t tag;            // 用户标签，由用户设定该标签用途；
+    ptu32_t UserTag;            // 用户标签，由用户设定该标签用途；
     ptu32_t context;        // handle访问上下文
 };
 
@@ -91,25 +91,25 @@ s32 test_append(u32 flags);
 s32 test_trunc(u32 flags);
 s32 test_readable(u32 flags);
 s32 test_writeable(u32 flags);
-bool_t isDirectory(struct objhandle *hdl);
+s32 test_IsBlockComplete(u32 flags);
 s32 handle_isAppend(struct objhandle *hdl);
 s32 handle_isReadable(struct objhandle *hdl);
 s32 handle_isWritable(struct objhandle *hdl);
 s32 iscontender(struct objhandle *hdl);
 struct objhandle *handle_new(void);
 s32 handle_Delete(struct objhandle *hdl);
-void handle_init(struct objhandle *hdl, struct obj *ob, u32 flags, ptu32_t context);
+void handle_init(struct objhandle *hdl, struct Object *ob, u32 flags, ptu32_t context);
 const char *handle_name(struct objhandle *hdl);
 ptu32_t handle_context(struct objhandle *hdl);
 void handle_SetContext(struct objhandle *hdl, ptu32_t context);
-void *handle_GetHostObjectPrivate(struct objhandle *hdl);
-struct MultiplexObjectCB *handle_GetMultiplexHead(struct objhandle *hdl);
-void handle_setmultiplex(struct objhandle *hdl, struct MultiplexObjectCB *cb);
+ptu32_t handle_GetHostObjectPrivate(struct objhandle *hdl);
+struct MultiplexObjectCB *__handle_GetMultiplexHead(struct objhandle *hdl);
+void __handle_SetMultiplexHead(struct objhandle *hdl, struct MultiplexObjectCB *cb);
 u32 handle_gettimeout(struct objhandle *hdl);
 void handle_settimeout(struct objhandle *hdl, u32 timeout);
 u32 handle_GetMode(struct objhandle *hdl);
 void handle_SetMode(struct objhandle *hdl, u32 mode);
-struct obj *handle_GetHostObj(struct objhandle *hdl);
+struct Object *handle_GetHostObj(struct objhandle *hdl);
 u32 handle_multievents(struct objhandle *hdl);
 void handle_SetMultiplexEvent(struct objhandle *hdl, u32 events);
 void handle_ClrMultiplexEvent(struct objhandle *hdl, u32 events);

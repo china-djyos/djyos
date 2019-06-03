@@ -70,21 +70,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_rtc" //CPU的rtc外设驱动
-//parent:"rtc"                  //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu peri rtc"//CPU的rtc外设驱动
+//parent:"rtc"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"int","time","lock" //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"component int","component time","component lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -92,7 +92,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -196,7 +196,7 @@ void RTC_Configuration(void)
 // 参数：time,时间，单位为微秒
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t RTC_TimeGet(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     s64 time_s;
     u32 time_us;
@@ -214,7 +214,7 @@ bool_t RTC_TimeGet(s64 *time)
 // 参数：time,时间，单位为微秒
 // 返回：true,成功;false,失败
 // =============================================================================
-bool_t RTC_TimeUpdate(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     u32 time_s;
 
@@ -241,13 +241,13 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
 
     RTC_Configuration();    // 配置RTC
 
-    RTC_TimeGet(&rtc_time);
+    RTC_GetTime(&rtc_time);
 
     tv.tv_sec  = rtc_time/1000000;//us ---> s
     tv.tv_usec = rtc_time%1000000;
 
     settimeofday(&tv,NULL);
-    if(!Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate))
+    if(!Rtc_RegisterDev(RTC_GetTime,RTC_SetTime))
         return false;
     return true;
 }

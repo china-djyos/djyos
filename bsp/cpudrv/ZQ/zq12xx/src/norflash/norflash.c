@@ -8,7 +8,7 @@
 //#include "common.h"
 
 #ifdef __DEBUG__
-#define FLASH_LOG(x)		printk(x)
+#define FLASH_LOG(x)		//printk(x)
 #else
 #define FLASH_LOG(x)
 #endif
@@ -265,6 +265,7 @@ int32_t ProgramOnePackage(char *data, uint32_t addr, uint32_t size)
 		if(remain != 0)
 			iap_spiflash_pagewrite(ptr, faddr, remain);
 	}
+	return 0;
 }
 
 uint32_t GetFlashCapacity(void)

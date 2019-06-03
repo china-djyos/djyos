@@ -60,26 +60,26 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk);
-//    ModuleInstall_NOR(CFG_W25QXX_BUS_NAME,CFG_W25QXX_FLAG,CFG_W25QXX_START_BLK);
+//    extern s32 ModuleInstall_NOR(void);
+//    ModuleInstall_NOR();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"W25QXX"       //SPI接口的nor flash芯片
-//parent:"djyfs"                //填写该组件的父组件名字，none表示没有父组件
+//component name:"norflash W25QXX"//SPI接口的nor flash芯片
+//parent:"file system"//填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"djyfs","heap","spibus","cpu_peri_spi"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"file system","heap","spi bus","cpu driver spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -91,7 +91,7 @@
 //%$#@enum,1,2,
 #define CFG_W25QXX_FLAG                   (2)        //"FLASH标记位",FLASH_BUFFERED(2) OR FLASH_ERASE_ALL(1)
 //%$#@string,1,20,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #define CFG_W25QXX_BUS_NAME               ""         //"总线名称",FLASH总线接口名称
 #endif
@@ -508,22 +508,20 @@ s32 Nor_Init(struct FlashChip *Nor)
 }
 //-----------------------------------------------------------------------------
 //功能: Nor模块安装
-//参数: DevName -- 设备名;
-//      Flags -- 保留;
-//      StartBlk -- 起始块;
+//参数:
 //返回: 0 -- 成功; -1 -- 参数失败; -2 -- 内存不足;
 //备注:
 //-----------------------------------------------------------------------------
 
-s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk)
+s32 ModuleInstall_NOR(void)
 {
     u32 Len;
     struct FlashChip *Chip;
 
-    if(NULL == DevName)
+    if(NULL == CFG_W25QXX_BUS_NAME)
         return (-1);
 
-    Len = strlen(DevName) + 1;
+    Len = strlen(CFG_W25QXX_BUS_NAME) + 1;
 
     Chip = (struct FlashChip*)malloc(sizeof(*Chip) + Len);
     if(NULL == Chip)
@@ -533,9 +531,9 @@ s32 ModuleInstall_NOR(const char *DevName, u32 Flags, u8 StartBlk)
     }
     memset(Chip, 0x0, sizeof(*Chip));
     s_pChip = Chip;
-    strcpy(Chip->Name, DevName); // 设备别名
+    strcpy(Chip->Name, CFG_W25QXX_BUS_NAME); // 设备别名
     Chip->Type = F_NOR;
-    Chip->Descr.Nor.ReservedBlks = StartBlk; //
+    Chip->Descr.Nor.ReservedBlks = CFG_W25QXX_START_BLK; //
 
     if(Nor_Init(Chip))
     {

@@ -296,7 +296,7 @@ struct GkWinProperty
 //微言:原来定义了光标和输入焦点,但考虑到光标应该是应用程序的事,删除了.
 struct GkWinObj                  //窗口资源定义
 {
-    struct obj *HostObj;   //窗口的宿主Object
+    struct Object *HostObj;   //窗口的宿主Object
     void *UserTag;            //用户设置的标识，通常指向一个数据结构,
                               //如果=NULL，则指向gkwin自身
     struct GkWinObj *z_back;  //窗口Z序链表，从最前端往回看

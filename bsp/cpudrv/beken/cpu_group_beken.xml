@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<cpu>
+   <core id="1">
+      <name>arm968e-s</name>
+      <type>arm</type>
+      <arch>armv5te</arch>
+      <family>arm968e-s</family>
+   </core>
+</cpu>

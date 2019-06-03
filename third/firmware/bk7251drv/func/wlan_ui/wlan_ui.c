@@ -657,7 +657,7 @@ void bk_wlan_sta_init_adv(network_InitTypeDef_adv_st *inNetworkInitParaAdv)
 {
     if(!g_sta_param_ptr)
     {
-        g_sta_param_ptr = (sta_param_t *)os_malloc(sizeof(sta_param_t));
+        g_sta_param_ptr = (sta_param_t *)os_zalloc(sizeof(sta_param_t));
         ASSERT(g_sta_param_ptr);
     }
 
@@ -678,7 +678,7 @@ void bk_wlan_sta_init_adv(network_InitTypeDef_adv_st *inNetworkInitParaAdv)
 
     if(!g_wlan_general_param)
     {
-        g_wlan_general_param = (general_param_t *)os_malloc(sizeof(general_param_t));
+        g_wlan_general_param = (general_param_t *)os_zalloc(sizeof(general_param_t));
     }
     g_wlan_general_param->role = CONFIG_ROLE_STA;
     bk_wlan_set_coexist_at_init_phase(CONFIG_ROLE_STA);
@@ -990,10 +990,10 @@ OSStatus bk_wlan_get_link_status(LinkStatusTypeDef *outStatus)
     int ret;
     u8 vif_idx = 0, ssid_len;
 
-    if( !sta_ip_is_start() )
-    {
-        return kGeneralErr;
-    }
+//    if( !sta_ip_is_start() )
+//    {
+//        return kGeneralErr;
+//    }
     
 #if CFG_SUPPORT_ALIOS
 	sta_stat = mhdr_get_station_status();
@@ -1031,7 +1031,7 @@ OSStatus bk_wlan_get_link_status(LinkStatusTypeDef *outStatus)
     os_memcpy(outStatus->bssid, cfm->bssid, 6);
     ssid_len = MIN(SSID_MAX_LEN, os_strlen(cfm->ssid));
     os_memcpy(outStatus->ssid, cfm->ssid, ssid_len);
-
+    outStatus->ssid[ssid_len] = '\0';
     os_free(cfm);
 
     return kNoErr;

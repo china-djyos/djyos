@@ -76,7 +76,7 @@ extern u32 debuglevel;
 #define debug_printf(module,fmt, ...) do{\
 if (debuglevel >= (CN_DEBUG)) \
 {\
-    printf("\r\n: dbug : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\ndbug : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
 }\
 }while (0)
 
@@ -84,7 +84,7 @@ if (debuglevel >= (CN_DEBUG)) \
 #define info_printf(module, fmt, ...) do{\
 if (debuglevel >= CN_INFO) \
 {\
-    printf("\r\n: info : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\ninfo : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
 } \
 }while (0)
 
@@ -97,9 +97,9 @@ do{ if (debuglevel >= (CN_NOTICE)) printf("\r\n: note : %-6.6s : "fmt"", module,
 #define warning_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_WARNING)) \
 {\
-    printf("\r\n: warn : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n         FILE: %s", __FILE__); \
-    printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\nwarn : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n       FILE: %s", __FILE__); \
+    printf("\r\n       LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -108,9 +108,9 @@ if (debuglevel >= (CN_WARNING)) \
 #define error_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_ERR)) \
 {\
-    printf("\r\n: erro : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n         FILE: %s", __FILE__); \
-    printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\nerro : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n       FILE: %s", __FILE__); \
+    printf("\r\n       LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -118,9 +118,9 @@ if (debuglevel >= (CN_ERR)) \
 #define critical_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_CRIT)) \
 {\
-    printf("\r\n: crit : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n         FILE: %s", __FILE__); \
-    printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\ncrit : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n       FILE: %s", __FILE__); \
+    printf("\r\n       LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -128,9 +128,9 @@ if (debuglevel >= (CN_CRIT)) \
 #define alert_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_ALERT)) \
 {\
-    printf("\r\n: alet : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n         FILE: %s", __FILE__); \
-    printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\nalet : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n       FILE: %s", __FILE__); \
+    printf("\r\n       LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 
@@ -138,9 +138,9 @@ if (debuglevel >= (CN_ALERT)) \
 #define emergency_printf(module,fmt, ...) do { \
 if (debuglevel >= (CN_EMERG)) \
 {\
-    printf("\r\n: emer : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
-    printf("\r\n         FILE: %s", __FILE__); \
-    printf("\r\n         LINE: %d\r\n", __LINE__); \
+    printf("\r\nemer : %-6.6s : "fmt"", module, ##__VA_ARGS__); \
+    printf("\r\n       FILE: %s", __FILE__); \
+    printf("\r\n       LINE: %d\r\n", __LINE__); \
 }\
 } while (0)
 

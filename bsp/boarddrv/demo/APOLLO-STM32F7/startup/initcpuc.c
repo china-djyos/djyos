@@ -132,10 +132,13 @@ void Init_Cpu(void)
     SCB_EnableDCache();
 #endif
 
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
-extern void Load_Preload(void);
 //-----------------------------------------------------------------
 //功能：APP应用程序的入口函数，iboot程序中不调用，app的lds文件中，须将该函数
 //     的链接地址放在IbootSize + 512的起始位置。该函数配置栈指针并加载程序

@@ -1,5 +1,5 @@
-//-----------------------------------------------------------------------------
-// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
+//----------------------------------------------------
+// Copyright (c) 2014, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
+// Copyright (c) 2014 著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合以下三条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -46,152 +46,112 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
+//所属模块:文件系统
+//作者：lst
+//版本：V1.0.0
+//文件描述:easynor文件系统主模块
+//其他说明:
+//修订历史:
+//2. ...
+//1. 日期: 2009-01-04
+//   作者: 贺敏
+//   新版本号: V1.0.0
+//   修改说明: 原始版本
+//------------------------------------------------------
 #ifndef __EFS_H__
 #define __EFS_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-//
-//
-//
-#include "stddef.h"
 
-#define ESIG_LEN                20
-#define ESIGN                   "easy file system v0" // 包括结束符是20个字节
-#define SYS_LOOPS               6
-#define SYS_TMP                 ((u64)-1)
-#define BUFLEN                  (252) // 文件缓存大小,每写这么多数据会存一个4字节的ECC值
-#define BUFBITS                 (8)
-#define KEYLEN                  (6) // 文件key值大小；
+#include <stdint.h>
+
+#define EFS_NAME_LIMIT            63 // 分区名最大长度,最后一个字节'\0'
+
+// 说明：文件名区域为64字节，61字节为'\0'，后三字节为文件名的ECC
+#define FILENAME_LIMIT            60 // 分区名最大长度,最后一个字节'\0'
+#define ECC_LIMIT                 3
+#define EFS_ITEM_LIMIT            256 // 每个配置项的长度
+
+//文件分配表各成员偏移量
+#define FILE_NAME_OFF             (0 ) // 文件名，size=64
+#define FILE_STARTBLOCK_OFF       (64) // 文件起始块，size=4
+#define FILE_MAXSIZE_OFF          (68) // 文件最大长度
+#define FILE_FILESIZE_OFF         (72) // 文件尺寸，正反码，size=4，共44个
+#define FILE_FILESIZE_END         (244) // 最后一个文件尺寸
+#define FILE_VERIFITY_OFF         (248) // 校验符，="easyfile"
+#define FILE_FILESIZE_NUM         (44)  // 文件尺寸个数
+
+#define EFS_SUPPORT_MAXFILESIZE   0x3FFFFFFF            //efs文件系统所支持的最大文件大小
+#define EFS_FILESIZE_BYTE_NUMBER   4                    //文件大小的存储占几个字节
 //
 // efs文件系统对flash的操作函数集
 //
-struct __efs_drv{
-    s32 (*efs_write_media) (struct __ecore *core, s64 units, void *buf);
-    s32 (*efs_read_media) (struct __ecore *core, s64 units, void *buf);
-    s32 (*efs_erase_media) (struct __ecore *core, s64 units, s64 size);
+struct __efs_media_drv{
+    u32 (*efs_write_media) (u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
+    u32 (*efs_read_media) (u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags);
+    bool_t (*efs_erase_media) (u32 dwBlock);
+    bool_t (*efs_check_block_ready) (u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize);
 };
-//
-// 文件系统控制结构体
-//
-struct __ecore{
-    u32 ssz; // 系统信息大小,（包括文件系统信息、idx表和文件信息；块对齐，以unit为单位）；
-    u8 serial; // 当前使用的系统信息区（包括系统和文件）;
-    u8 finfo; // 文件信息所在的偏置；（以unit为单位；）
-    u8 ecc[256]; // 用于ECC校验；
-    u8 eccu; // 一个unit内的文件内容被ECC占用的空间，（以字节为单位）
-    u8 *ebuf; // 缓冲，media的unit大小
-    u16 nsz; // 文件名长度
-    u32 fmax; // 可容纳文件数最大值（最大时是一个文件块存放一个文件）；
-    u32 fsz; // 文件块容量;（块对齐，以unit为单位）；
-    s64 MStart;             // 在媒体中的起始unit,unit为单位；
-    s64 ASize;               // 所在区域的总大小；Byte为单位；
+typedef struct EasyFS
+{
+    u32 block_sum; // 总块数
+    u64 block_size; // 块尺寸
+    u32 start_block; // 用于存储文件系统的首块块号
+    u32 files_sum; // 文件数
+    u8 *file_list_buf; // 文件分配表的缓冲区，size= 文件分配表大小
+    struct MutexLCB *block_buf_mutex; // 缓冲区互斥
+    char name[EFS_NAME_LIMIT+1]; // 挂载点的名字
+
+    // 以下是典型的flash操作函数指针，编写一个具体芯片的驱动时，设为具体芯片的
+    // 操作函数,这些函数并不是每一种芯片都需要，不需要的用NULL。
+    // 检查把参数规定的内容写入flash前，是否需要擦除。如果buf=NULL则检查由offset
+    // 和size设定的区域是否被擦除
+    // true = 已准备好，不需要擦除(或空块),false = 需要擦除；
     struct umedia *media;
-    struct MutexLCB *mutex;
-    struct __efs_drv *drv;
-};
+    struct __efs_media_drv *drv;
+}tagEFS;
 
-//
-// 索引
-//
-struct __eidx{
-    u8 key[KEYLEN];
-    u8 bakup[KEYLEN];
-    u32 order;
-    u32 ecc;
-};
+typedef struct EfsFileInfo
+{
+    u32 start_block; // 存储本文件的首块号。
+    u64 max_size; // 本文件最大长度，filesize不能超过这个长度。
+    u32 item; // 该文件分配表在分配表中的位置
+    u64 filesize; // 文件实际大小
+}tagEfsFileInfo;
 
-//
-// 文件系统信息（介质中）
-//
-struct __ecstruct{
-    char signature[ESIG_LEN];
-    s64 range; // 文件系统总体容量
-    u32 files; // 文件数；
-    u64 age; //
-    u32 ecc; // 前面的CRC校验值；
-    u32 status; //
-#define SYS_UPDATING        0xFFFFFFFF
-#define SYS_UPDATED         0x55555555
-#define SYS_NOECCSIZE       8
-};
 
-//
-// 文件信息
-//
-struct __esize{
-    s64 s;
-    u32 e;
-};
+#define EF_WR_NOECC         (0x00)
+#define EF_WR_ECC           (0x01)
 
-struct __ename{
-    char *n;
-    u32 *e;
-};
+// 从原来的file.h中修改而来的
+// =============================================================================
+// =============================================================================
+// =============================================================================
+// =============================================================================
+// =============================================================================
+// =============================================================================
+// =============================================================================
+//这么长的单个文件名对嵌入式系统并无多大意义，为兼容大多数长文件名系统。
+#define     CN_FILE_NAME_LIMIT       255
+#define     CN_FILE_BUF_LEN          (256)
+#define     CN_FILE_BUF_LIMIT        (CN_FILE_BUF_LEN + 3)
+typedef struct FileRsc
+{
+    ptu32_t private; // 与媒体相关的标记，其含义由特定文件系统，driver解释，如flash file driver)中，保存该文件(目录)的FDT项目号。
+    sint64_t file_size; // 文件尺寸,字节数，含仍在缓冲区的数据
+    u8 *wr_buf; // 写缓冲区，ecc需要
+    u32  buf_off; // 写缓冲区指针
+                 // 模块维护
+    sint64_t ptr; // 当前读指针，由驱动维护和使用。
+    char     name[CN_FILE_NAME_LIMIT+1]; // 文件名（目录名）,具体所支持的文件名长                                  //度是驱动模块决定的，故由驱动模块维护。
+}tagFileRsc;
 
-struct __efstruct{
-    struct __ename name; //
-    struct __esize *size; //
-};
-
-//
-// 文件内容位置
-//
-struct __loc{
-    list_t list;
-    u32 loc;
-    u32 order; // 从一计
-};
-
-//
-// 接入文件系统结构
-//
-struct __efile{
-//    struct __portBasic basic; // 接入文件系统用
-    u32 flags; // 文件控制标志位；
-    s64 size;
-    struct __loc *loc; // 文件所在位置；即idx的偏置；
-};
-
-struct __econtext{
-    u8 wbuf[BUFLEN];
-    u8 wpos; // wbuf使用量；
-    u8 dirty; // 缓存数据是否已被改写；
-    s64 pos; // 当前位置为wpos+pos;
-};
-
-//
-// 扫描逻辑
-//
-struct __scanlogic{
-    enum escan{
-        nosys,
-        badsys,
-        brokensys,
-        goodsys,
-    }stat;
-    u32 age;
-};
-
-enum locmove{
-    position,
-    direct,
-};
-
-struct __dentry{
-    char *name;
-    struct __dentry *nxt;
-};
-
-struct __dentrys{
-    u32 items;
-    u32 scans;
-    struct __dentry *item;
-};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // __EASY_FLASHFILE_H__
+

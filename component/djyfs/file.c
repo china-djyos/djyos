@@ -1003,7 +1003,7 @@ void rewind(FILE *stream)
 // ============================================================================
 int rename(const char *oldpath, const char *newpath)
 {
-    struct obj *ob;
+    struct Object *ob;
     s32 result;
     char *uncached;
     ob = obj_matchpath(oldpath, &uncached);

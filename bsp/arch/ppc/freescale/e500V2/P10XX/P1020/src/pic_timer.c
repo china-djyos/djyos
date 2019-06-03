@@ -372,7 +372,7 @@ bool_t  __P1020PicTimer_SetAutoReload(struct P1020PicTimerHandle  *timer, bool_t
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __P1020PicTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t __P1020PicTimer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;

@@ -65,20 +65,20 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_rtc"      //CPU的rtc外设驱动
-//parent:"rtc"                       //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu peri rtc"//CPU的rtc外设驱动
+//parent:"rtc"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                      //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                   //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                      //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium                   //初始化时机，可选值：early，medium，later。
                                      //表示初始化时间，分别是早期、中期、后期
-//dependence:"int","lock","time",    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"component int","component lock","component time"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                      //如果依赖多个组件，则依次列出
 //weakdependence:"none"              //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                      //选中该组件时，被依赖组件不会被强制选中，
                                      //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                       //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                     //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                     //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -169,7 +169,7 @@ static void RTC_Configuration(void)
 // 参数：DateTime,系统时间，需换算成秒
 // 返回：1
 // =============================================================================
-bool_t RTC_TimeUpdate(s64 time)
+bool_t RTC_SetTime(s64 time)
 {
     u32 rtc_cnt;
 
@@ -186,7 +186,7 @@ bool_t RTC_TimeUpdate(s64 time)
 // 参数：DateTime,返回的时间
 // 返回：true
 // =============================================================================
-bool_t RTC_TimeGet(s64 *time)
+bool_t RTC_GetTime(s64 *time)
 {
     s64 rtc_cnt;
     rtc_cnt = RTC->TSR;
@@ -213,7 +213,7 @@ ptu32_t ModuleInstall_RTC(ptu32_t para)
         RTC_Configuration();
     }
 
-    Rtc_RegisterDev(RTC_TimeGet,RTC_TimeUpdate);
+    Rtc_RegisterDev(RTC_GetTime,RTC_SetTime);
 
     return true;
 }

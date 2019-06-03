@@ -65,6 +65,9 @@
 #include "systime.h"
 #include <math.h>
 #include <stdlib.h>
+#include <dbug.h>
+#include <filesystems.h>
+#include <device.h>
 #include <device/include/unit_media.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -72,41 +75,39 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    ModuleInstall_at45db321(CFG_AT45_BUSNAME, CFG_AT45_FSNAME, CFG_AT45_START, CFG_AT45_END, CFG_AT45_OPTION);
+//    extern bool_t ModuleInstall_at45db321(void);
+//    ModuleInstall_at45db321();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"at45db321"    //spi接口的norflash
+//component name:"nor flash at45db321"//spi接口的norflash
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"lock","spibus","heap",,"cpu_peri_spi"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock","spi bus","component heap","cpu driver spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"yaf2filesystem","easyfilesystem"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_AT45_ARGC           //****检查参数是否已经配置好
+#ifndef CFG_AT45_BUSNAME           //****检查参数是否已经配置好
 #warning   at45db321组件参数未配置，使用默认值
 //%$#@enum,512,528,
-#define CFG_AT45_PAGE_SIZE           528//"pagesize",配置AT45的页大小，默认为528
+#define CFG_AT45_PAGE_SIZE                  512       //配置AT45的页大小，默认为512
 //%$#@string,1,10,
-#define CFG_AT45_BUSNAME             "SPI4"//"SPI总线名称",AT45使用的总线名称
-//%$#@string,1,10,
-#define CFG_AT45_FSNAME              "efs" //"文件系统mount点名字",需要挂载的文件系统mount点名字
-//%$#@enum_config
-#define CFG_AT45_START                  0  //分区起始
-#define CFG_AT45_END                   -1  //分区结束
-#define CFG_AT45_OPTION                 0  //分区选项
+#define CFG_AT45_BUSNAME                   "SPI4"     //"SPI总线名称",AT45使用的总线名称
+//%$#@num,-1,1024,
+//%$#@enum,true,false,
+#define CFG_AT45_PART_FORMAT               false      //分区选项,是否需要擦除该芯片。
 //%$#@select
 //%$#@free,
 #endif
@@ -199,13 +200,10 @@ struct MutexLCB *pAT45_Lock;   //芯片互斥访问保护
 struct NorDescr *nordescription;
 char *At45Name = "AT45DB321E";
 struct umedia *at45_umedia;
-extern s32 __at45_write(s64 unit, void *data, struct uopt opt);
-extern s32 __at45_read(s64 unit, void *data, struct uopt opt);
-extern s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
-extern s32 __at45_erase(s64 unit, struct uesz sz);
-extern s32 __AT45_FsInstallInit(const char *fs, u32 dwStart, u32 dwSize, u32 dwSpecial);
+extern struct Object *s_ptDeviceRoot;
 
-
+s32 __at45_req(enum ucmd cmd, ptu32_t args, ...);
+s32 __at45_erase(u32 unit, struct uesz sz);
 bool_t at45db321_Wait_Ready(u32 Time_Out);
 /*---------------------test use only----------------------
 #define test_buff_size  10240
@@ -213,19 +211,18 @@ section("seg_int_data") u32 Data_write[test_buff_size]={0};
 section("seg_int_data") u32 Data_read[test_buff_size]={0};
 u32 buff1_cnt=0,buff2_cnt=0;
 ---------------------test use only----------------------*/
-void _at45db321_cs_active(void)
+bool_t _at45db321_cs_active(void)
 {
-    SPI_CsActive(s_ptAT45_Dev,AT45_OP_TIMEOUT);
+    return SPI_CsActive(s_ptAT45_Dev,AT45_OP_TIMEOUT);
 }
 void _at45db321_cs_inactive(void)
 {
     SPI_CsInactive(s_ptAT45_Dev);
     Djy_DelayUs(20);
 }
-u32 _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
+bool_t _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
 {
     struct SPI_DataFrame data;
-    s32 result;
 
     data.RecvBuf = rdata;
     data.RecvLen = rlen;
@@ -233,10 +230,7 @@ u32 _at45db321_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen)
     data.SendBuf = sdata;
     data.SendLen = slen;
 
-    result = SPI_Transfer(s_ptAT45_Dev,&data,true,AT45_OP_TIMEOUT);
-    if(result != CN_SPI_EXIT_NOERR)
-        return 0;
-    return 1;
+    return SPI_Transfer(s_ptAT45_Dev,&data,true,AT45_OP_TIMEOUT);
 }
 
 //note: 应用程序中的Address实际为虚拟地址，需要经过转换才能成为AT45中的实际地址
@@ -321,12 +315,15 @@ u32 _at45db321_Continuous_Array_Read(u32 page_addr,u32 byte_offset_addr,u8 *data
     _at45db321_Command[3] = byte_offset_addr & 0xFF;
     _at45db321_Command[4] = 0xFF;
 
-    _at45db321_cs_active();
+    if(false == _at45db321_cs_active())
+        return 0;
 
-    _at45db321_TxRx(_at45db321_Command,5,data,data_len);
-
+    if(_at45db321_TxRx(_at45db321_Command,5,data,data_len))
+    {
+        _at45db321_cs_inactive();
+        return 0;
+    }
     _at45db321_cs_inactive();
-
     return data_len;
 }
 
@@ -353,11 +350,21 @@ u32 _at45db321_Buff_Write(u32 buff_num,u32 buff_addr,u8 *data,u32 data_len)
     _at45db321_Command[2] = (buff_addr>>8)&0xFF;
     _at45db321_Command[3] = (buff_addr)&0xFF;
 
-    _at45db321_cs_active();
+    if(FALSE ==_at45db321_cs_active())
+    {
+        return 0;
+    }
 
-    _at45db321_TxRx(_at45db321_Command,4,NULL,0);
-    _at45db321_TxRx(data,data_len,NULL,0);
-
+    if(_at45db321_TxRx(_at45db321_Command,4,NULL,0))
+    {
+        _at45db321_cs_inactive();
+        return 0;
+    }
+    if(_at45db321_TxRx(data,data_len,NULL,0))
+    {
+        _at45db321_cs_inactive();
+        return 0;
+    }
     _at45db321_cs_inactive();
 
     return data_len;
@@ -387,7 +394,8 @@ u32 _at45db321_Buff_Read(u32 buff_num,u32 buff_addr,u8 *data,u32 data_len)
     _at45db321_Command[3] = (buff_addr)&0xFF;
     _at45db321_Command[4] = 0xFF;
 
-    _at45db321_cs_active();
+    if(false == _at45db321_cs_active())
+        return 0;
 
     _at45db321_TxRx(_at45db321_Command,5,data,data_len);
 
@@ -420,14 +428,18 @@ bool_t _at45db321_Page_to_Buff(u32 buff_num,u32 page_addr)
     _at45db321_Command[1] = (page_addr>>6)&0xFF;
     _at45db321_Command[2] = (page_addr<<2)&0xFF;
 #endif
-    _at45db321_Command[3] = 0xFF;
+    _at45db321_Command[3] = 0x0;
 
-    _at45db321_cs_active();
+    if(false == _at45db321_cs_active())
+        return 0;
 
-    _at45db321_TxRx(_at45db321_Command,4,NULL,0);
+    if(_at45db321_TxRx(_at45db321_Command,4,NULL,0))
+    {
+        _at45db321_cs_inactive();
+        return 0;
+    }
 
     _at45db321_cs_inactive();
-
     return true;
 }
 
@@ -475,14 +487,18 @@ bool_t _at45db321_Buff_to_Page(u32 buff_num,u32 page_addr,u32 With_Erase)
     _at45db321_Command[1] = (page_addr>>6)&0xFF;
     _at45db321_Command[2] = (page_addr<<2)&0xFF;
 #endif
-    _at45db321_Command[3] = 0xFF;
+    _at45db321_Command[3] = 0x0;
 
-    _at45db321_cs_active();
+    if(false == _at45db321_cs_active())
+        return 0;
 
-    _at45db321_TxRx(_at45db321_Command,4,NULL,0);
+    if(_at45db321_TxRx(_at45db321_Command,4,NULL,0))
+    {
+        _at45db321_cs_inactive();
+        return 0;
+    }
 
     _at45db321_cs_inactive();
-
     return true;
 }
 
@@ -538,7 +554,8 @@ bool_t AT45_Page_Erase(u32 Address)
 #endif
     _at45db321_Command[3] = 0xFF;
 
-    _at45db321_cs_active();
+    if(false == _at45db321_cs_active())
+        return 0;
 
     _at45db321_TxRx(_at45db321_Command,4,NULL,0);
 
@@ -554,35 +571,49 @@ bool_t AT45_Page_Erase(u32 Address)
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
-bool_t AT45_Block_Erase(u32 Address)
+s32 AT45_Block_Erase(u32 Address)
 {
     u32 block_addr;
+    s32 res;
+    struct SPI_DataFrame frame;
+    u8 command[] = {0, 0 ,0 ,0};
     if(false == Lock_MutexPend(pAT45_Lock, AT45_OP_TIMEOUT))
     {
-        return false;
+        return -1;
     }
-
-    if(false == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
-        return false;//超时，退出
 
     block_addr = _at45db321_Page_Caculate(Address);
     block_addr = _at45db321_Block_Caculate(block_addr);
 
-    _at45db321_Command[0] = AT45_Block_Erase_Cmd;
-    _at45db321_Command[1] = (block_addr>>4)&0xFF;
-    _at45db321_Command[2] = (block_addr<<4)&0xFF;
-    _at45db321_Command[3] = 0xFF;
+    command[0] = AT45_Block_Erase_Cmd;
+    command[1] = (block_addr>>4)&0x3F;
+    command[2] = (block_addr<<4)&0xF0;
+    command[3] = 0x0;
 
-    _at45db321_cs_active();
+    frame.RecvBuf = NULL;
+    frame.RecvLen = 0;
+    frame.RecvOff = 0;
+    frame.SendBuf = command;
+    frame.SendLen = 4;
 
-    _at45db321_TxRx(_at45db321_Command,4,NULL,0);
+    if(false == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
+    {
+        Lock_MutexPost(pAT45_Lock);
+        return -1;//超时，退出
+    }
+
+    if(FALSE == _at45db321_cs_active())
+    {
+        Lock_MutexPost(pAT45_Lock);
+        return -1;//超时，退出
+    }
+    res = SPI_Transfer(s_ptAT45_Dev, &frame, TRUE, AT45_OP_TIMEOUT);
 
     _at45db321_cs_inactive();
 
-    Djy_EventDelay(100000);
     Lock_MutexPost(pAT45_Lock);
 
-    return true;
+    return res;
 }
 
 //----SPI FLASH全片擦除--------------------------------------------------------
@@ -882,11 +913,14 @@ u32 AT45_FLASH_Read(u32 Address,u8 *data,u32 data_len)
     byte_offset_addr=_at45db321_Offset_Caculate(Address);
 
     if(false == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
+    {
+        Lock_MutexPost(pAT45_Lock);
         return false;//超时，退出
+    }
 
     _at45db321_Continuous_Array_Read(page_addr,byte_offset_addr,data,data_len);
 
-    Djy_EventDelay(10000);
+//    Djy_EventDelay(10000);
     Lock_MutexPost(pAT45_Lock);
 
     return data_len;
@@ -999,192 +1033,358 @@ bool_t AT45_FLASH_Ready(void)
     return sAT45Inited;
 }
 
-#if 1
 // =============================================================================
 // 功能：安装at45驱动
-// 参数：   pBusName -- AT45所要用的通信线
-//      TargetFs -- 要挂载的文件系统
-//      parts -- 分区数；
-//      TargetPart -- 指定要挂到哪个分区下，分区从0开始
-//      分区数据 -- 起始块，结束块数（擦除时不包括该块，只擦到该块的上一块），是否格式化；
-// 返回：成功（0）；失败（-1）；
+// 参数：
+// 返回：成功（true）；失败（false）；
 // 备注：
 // =============================================================================
-bool_t ModuleInstall_at45db321(char *pBusName, const char *TargetFs, u32 bstart, u32 bend, u32 doformat)
+bool_t ModuleInstall_at45db321(void)
 {
-    static u8 at45init = 0;
-    struct uopt opt;
-    if(at45init == 0)
-    {
-        pAT45_Lock = Lock_MutexCreate("AT45 Lock");
-        if(!pAT45_Lock)
-        {
-            printf("\r\n: error : device : cannot create AT45 flash lock.");
-            return false;
-        }
-
-        s_ptAT45_Dev = SPI_DevAdd(pBusName,At45Name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
-        if(s_ptAT45_Dev != NULL)
-        {
-            SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
-        }
-        else
-        {
-            printf("\r\n: error  : device : AT45DB321E init failed.\n\r");
-            return false;
-        }
-
-        if(false == _at45db321_Check_ID())  //校验芯片ID
-            return false;
-
-        if( !(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ) )//转换成512字节
-        {
-            _at45db321_Binary_Page_Size_512();//不可逆，且需重新上电
-            printf("\r\n: info  : device : AT45DB321 page size 改变，请重新上电\n\r");
-        }
-        sAT45Inited = true;
-        if(bstart == bend)
-        {
-            return (0); // 不做处理
-        }
-
-        if(!nordescription) //初始化nor的信息
-        {
-            nordescription = malloc(sizeof(struct NorDescr));
-            if(!nordescription)
-            {
-                printf("\r\n: erro : device : memory out.\r\n");
-                return (-1);
-            }
-
-            memset(nordescription, 0x0, (sizeof(struct NorDescr)));
-
-            // AT45的sector比block大，而且sector的大小不一致。这里逻辑上就将sector等于page，
-            // 忽然sector,block最大。
-            nordescription->PortType = NOR_SPI;
-            nordescription->Port = s_ptAT45_Dev;
-            nordescription->BytesPerPage = 512;
-            nordescription->PagesPerSector = 1;
-            nordescription->SectorsPerBlk = 8;
-            nordescription->Blks = 1024; // 全部器件的容量
-            nordescription->ReservedBlks = 0;
-        }
-        at45_umedia = malloc(sizeof(struct umedia)+512);
-        if(!at45_umedia)
-            return (-1);
-
-        opt.hecc = 0;
-        opt.main = 1;
-        opt.necc = 1;
-        opt.secc = 0;
-        opt.spare = 0;
-        at45_umedia->esz = log2(nordescription->BytesPerPage * nordescription->SectorsPerBlk); // 4KB
-        at45_umedia->usz = log2(nordescription->BytesPerPage);; // 512B;
-        at45_umedia->mreq = __at45_req;
-        at45_umedia->merase = __at45_erase;
-        at45_umedia->mread = __at45_read;
-        at45_umedia->mwrite = __at45_write;
-        at45_umedia->opt = opt; // 驱动操作逻辑
-        at45_umedia->type = nor;
-        at45_umedia->ubuf = (u8*)at45_umedia + sizeof(struct umedia);
-        at45_umedia->asz = nordescription->BytesPerPage * nordescription->SectorsPerBlk * nordescription->Blks;
-
-        if(!dev_Create((const char*)At45Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)at45_umedia)))
-        {
-            printf("\r\n: erro : device : %s addition failed.", At45Name);
-            free(at45_umedia);
-            return (-1);
-        }
-        at45init = 1;
-    }
-
-    if(TargetFs != NULL)
-    {
-        if(__AT45_FsInstallInit(TargetFs, bstart, bend, doformat))
-        {
-            return -1;
-        }
-    }
-
-    return sAT45Inited;
-}
-#else
-// =============================================================================
-// 功能：初始化SPI FLASH模块，校验芯片ID是否正确
-// 参数：bArgC -- 参数个数；
-//      参数1 -- SPI端口（必须）；
-//      参数2 -- 分区1起始块；
-//      参数3 -- 分区1大小（块为单位）；
-//      参数4 -- 分区1用途；用于EFS（2）；用于其他文件系统（1）；
-//      参数n -- 重复上述分区逻辑；
-// 返回：成功（0）；失败（-1）；
-// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
-// =============================================================================
-s32 ModuleInstall_AT45DB321E(u8 bArgC, ...)
-{
-    va_list ap;
-    char *bus = NULL;
-    u32 start[3] = {0};
-    u32 size[3] = {0};
-    u32 special[3] = {0};
-    u8 partitions = 0, i;
-    static char *name = "AT45DB321E";
-    extern s32 __AT45_MakePartition(char *pName, u32 dwStart, u32 dwSize, u32 dwSpecial, void *pPrivate);
-
-    va_start(ap, bArgC);
-    for(i = 0; i < bArgC; i++)
-    {
-        switch(i)
-        {
-            case 0 : bus = (char*)va_arg(ap, u32); break;
-            case 1 : start[0] = va_arg(ap, u32); break;
-            case 2 : size[0] = va_arg(ap, u32); ; break;
-            case 3 : special[0] = va_arg(ap, u32); partitions++;break;
-            case 4 : start[1] = va_arg(ap, u32); break;
-            case 5 : size[1] = va_arg(ap, u32); break;
-            case 6 : special[1] = va_arg(ap, u32); partitions++;break;
-            case 7 : start[2] = va_arg(ap, u32); break;
-            case 8 : size[2] = va_arg(ap, u32); ;break;
-            case 9 : special[2] = va_arg(ap, u32); partitions++;break;
-            default: break;
-        }
-    }
-    va_end(ap);
-
-    if(((size[0]+size[1]+size[2]) > 1024) || (!bus))
-    {
-        printf("\r\n: error : device : bad parameters for install flash <at45db321e>.");
-        return (-1);
-    }
-
     pAT45_Lock = Lock_MutexCreate("AT45 Lock");
     if(!pAT45_Lock)
     {
         printf("\r\n: error : device : cannot create AT45 flash lock.");
-        return (-1);
+        return false;
     }
 
-    s_ptAT45_Dev = SPI_DevAdd(bus,name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
+    s_ptAT45_Dev = SPI_DevAdd(CFG_AT45_BUSNAME,At45Name,0,8,SPI_MODE_0,SPI_SHIFT_MSB,AT45_SPI_SPEED,false);
     if(s_ptAT45_Dev != NULL)
     {
         SPI_BusCtrl(s_ptAT45_Dev, CN_SPI_SET_POLL, 0, 0);
     }
-
-    if(FALSE == _at45db321_Check_ID())  //校验芯片ID
+    else
     {
-        printf("\r\n: error : device : bad ID check for <at45db321e>.");
-        return (-1);
+        printf("\r\n: error  : device : AT45DB321E init failed.\n\r");
+        return false;
     }
 
-    if(!(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ)) //转换成512字节
-        _at45db321_Binary_Page_Size_512();
+    if(false == _at45db321_Check_ID())  //校验芯片ID
+        return false;
 
-    sAT45Inited = TRUE;
+    if( !(_at45db321_Read_Status() & AT45_Status_Reg_Bit_PGSZ) )//转换成512字节
+    {
+        _at45db321_Binary_Page_Size_512();//不可逆，且需重新上电
+        printf("\r\n: info  : device : AT45DB321 page size 改变，请重新上电\n\r");
+    }
 
-    for(i = 0; i < partitions; i++)
-        __AT45_MakePartition(name, start[i], size[i], special[i], s_ptAT45_Dev);
+    if(!nordescription) //初始化nor的信息
+    {
+        nordescription = malloc(sizeof(struct NorDescr));
+        if(!nordescription)
+        {
+            printf("\r\n: erro : device : memory out.\r\n");
+            return false;
+        }
 
+        memset(nordescription, 0x0, (sizeof(struct NorDescr)));
+
+        // AT45的sector比block大，而且sector的大小不一致。这里逻辑上就将sector等于page，
+        // 忽然sector,block最大。
+        nordescription->PortType = NOR_SPI;
+        nordescription->Port = s_ptAT45_Dev;
+        nordescription->BytesPerPage = CFG_AT45_PAGE_SIZE;
+        nordescription->PagesPerSector = 1;
+        nordescription->SectorsPerBlk = 8;
+        nordescription->Blks = 1024; // 全部器件的容量
+        nordescription->ReservedBlks = 0;
+    }
+
+    if(CFG_AT45_PART_FORMAT)
+    {
+        struct uesz sz;
+        sz.unit = 0;
+        sz.block = 1;
+        if(-1 == __at45_req(format, 0 , -1, &sz))
+        {
+            warning_printf("at45"," Format failure.");
+        }
+    }
+
+    at45_umedia = malloc(sizeof(struct umedia)+nordescription->BytesPerPage);
+    if(!at45_umedia)
+        return false;
+
+    at45_umedia->mreq = __at45_req;
+    at45_umedia->type = nor;
+    at45_umedia->ubuf = (u8*)at45_umedia + sizeof(struct umedia);
+
+    if(!dev_Create((const char*)At45Name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)at45_umedia)))
+    {
+        printf("\r\n: erro : device : %s addition failed.", At45Name);
+        free(at45_umedia);
+        return false;
+    }
+
+    sAT45Inited = true;
+    return true;
+}
+// =============================================================================
+// 功能：判断at45是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t At45_is_install(void)
+{
     return sAT45Inited;
 }
-#endif
 
+//文件系统使用的相关接口
+#if 1
+// ============================================================================
+// 功能：at45命令
+// 参数：cmd -- 命令；
+//      args -- 可变参，命令参数；
+// 返回：
+// 备注：
+// ============================================================================
+s32 __at45_req(enum ucmd cmd, ptu32_t args, ...)
+{
+    s32 res = 0;
+
+    switch(cmd)
+    {
+        case whichblock:
+        {
+            va_list list;
+            u32 *block;
+            s64 *unit;
+
+            block = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+            *block = *unit / nordescription->SectorsPerBlk;     //获取当前页属于哪一块
+            break;
+        }
+
+        case totalblocks:
+        {
+            *((u32*)args) =  nordescription->Blks;      //1个扇区里有多少块
+            break;
+        }
+
+        case blockunits:
+        {
+            *((u32*)args) = nordescription->SectorsPerBlk;      //1个块里有多少页
+            break;
+        }
+
+        case unitbytes:
+        {
+            *((u32*)args) = nordescription->BytesPerPage;   //每页的字节数
+            break;
+        }
+
+        case format:
+        {
+            va_list list;
+            s32 start, end;
+            struct uesz *sz;
+
+            start = (u32)args;
+            va_start(list, args);
+            end = va_arg(list, u32);
+            sz = (struct uesz*)va_arg(list, u32);
+            va_end(list);
+
+            if(!sz->block)
+                return (-1);
+
+            if(-1==end)
+                end = nordescription->Blks;
+
+            do
+            {
+                if(__at45_erase((s64)--end, *sz))
+                {
+                    res = -1;
+                    break;
+                }
+            }
+            while(end!=start);      //擦除指定区域
+
+            break;
+        }
+
+        case remain:
+        {
+            va_list list;
+            u32 *left;
+            s64 *unit;
+
+            left = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+            //当前页所属的块在还中还有多少页没用
+            *left = (nordescription->SectorsPerBlk - 1)- (*unit % nordescription->SectorsPerBlk);
+
+            break;
+        }
+
+        case checkbad: break; // 检查坏块
+        default: res = -1; break;
+    }
+
+    return (res);
+}
+// ============================================================================
+// 功能：差AT45的页或块
+// 参数：unit -- 页或者块；
+//      sz -- 页或者块；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：
+// ============================================================================
+s32 __at45_erase(u32 unit, struct uesz sz)
+{
+    u32 Address;
+
+    if(sz.unit)
+        Address = unit / 8; // 当前页属于第几块
+    else if (sz.block)
+        Address = unit;
+
+    Address = (Address << 3) * CFG_AT45_PAGE_SIZE;      //获取擦除块的首地址
+    return (AT45_Block_Erase(Address));
+}
+// ============================================================================
+// 功能：读AT45
+// 参数：unit -- 页号；data --存读到数据的缓存；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：
+// ============================================================================
+s32 __at45_read(u32 unit, void *data, struct uopt opt)
+{
+    s32 res;
+    u32 Address;
+    Address = unit * CFG_AT45_PAGE_SIZE;    //算出当前页的首地址
+    res = AT45_FLASH_Read(Address, (u8*)data, CFG_AT45_PAGE_SIZE);
+    if(res != CFG_AT45_PAGE_SIZE)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+// ============================================================================
+// 功能：写AT45
+// 参数：unit -- 页号；data -- 要写的数据；
+// 返回：成功 -- （0）；失败 -- （-1）
+// 备注：用于文件系统的at45写操作没有直接用上面的接口，而是重新写了。这是因为文件系统设计的对flash的写操作和
+// AT45_FLASH_Write函数存在冲突。文件系统写flash时每次往里面写的数据长短不一，并且会写多次，当1页满后换
+// 下一页，所以会出现往1页中多次写数据的情况，并且文件系统每次都是按页来操作的，当文件系统对1页写第二次时。
+// 会自动偏移到第一次写完数据的后面，不会覆盖第一次写的数据，第一次写的数据位置会自动填充0XFF（flash的位只能由1变为0）.
+// 而AT45_FLASH_Write接口在写数据时，会从指定的地址开始写，写之前会从指定的地址开始读数据，读指定长度，当发现
+// 这段地址范围里的数据不是全FF时会把该范围擦除，然后写入数据。
+// 这样就会产生一个问题文件系统会往一个页中写多次，页的地址是固定的，当文件系统第二次写该页的时候，然后用AT45_FLASH_Write
+// 的话，AT45_FLASH_Write会先把数据读出来，发现里面不是全FF（因为有第一次写的数据），所有会擦除一遍，这样会导致第一次
+// 写的内容没了。
+// ============================================================================
+s32 __at45_write(u32 unit, void *data, struct uopt opt)
+{
+    s32 res;
+    struct SPI_DataFrame frame;
+    u8 command[] = {0, 0 ,0 ,0};
+
+    command[0] = JEDEC_PAGE_WRITE_DIRECT_BY_BUF1;
+    command[1] = (unit >> 0x7) & 0x3F;
+    command[2] = (unit << 0x1) & 0xFE;
+    command[3] = 0x00;
+
+    frame.RecvBuf = NULL;
+    frame.RecvLen = 0;
+    frame.RecvOff = 0;
+    frame.SendBuf = command;
+    frame.SendLen = 4;
+
+    if(true == Lock_MutexPend(pAT45_Lock, AT45_OP_TIMEOUT))
+    {
+        if(true == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
+        {
+            if(true == _at45db321_cs_active())
+            {
+                res = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);    //先发送命令
+                if(CN_SPI_EXIT_NOERR == res)
+                {
+                    frame.RecvBuf = NULL;
+                    frame.RecvLen = 0;
+                    frame.RecvOff = 0;
+                    frame.SendBuf = data;
+                    frame.SendLen = nordescription->BytesPerPage;
+
+                    res = SPI_Transfer(nordescription->Port, &frame, TRUE, AT45_OP_TIMEOUT);    //再发送要想的数据
+//                    if(CN_SPI_EXIT_NOERR == res)
+//                        res = nordescription->BytesPerPage;
+                }
+                _at45db321_cs_inactive();
+//                Djy_EventDelay(4000);// 延时切出. 4ms
+//                if(true == at45db321_Wait_Ready(500000))       //查忙，若超时则返回false
+//                {
+                Lock_MutexPost(pAT45_Lock);
+                if(res != CN_SPI_EXIT_NOERR)
+                {
+                    return -1;
+                }
+                return 0;
+//                }
+            }
+            Lock_MutexPost(pAT45_Lock);
+        }
+    }
+    return -1;
+}
+
+// ============================================================================
+// 功能：初始化SPI FLASH模块，用做文件系统
+// 参数：   fs -- 该媒体所要安装文件系统mount点名字；
+//      mediadrv -- 媒体驱动
+//      dwStart -- 起始块；
+//      dwEnd -- 结束块数（擦除时不包括该块，只擦到该块的上一块）；
+// 返回：成功初始化（0）；初始化失败（-1）；
+// 备注：分区逻辑用于文件系统，直接访问逻辑不用设置分区。
+// ============================================================================
+s32 __AT45_FsInstallInit(const char *fs, s32 dwStart, s32 dwEnd, void *mediadrv)
+{
+    char *FullPath,*notfind;
+    struct Object *targetobj;
+    struct FsCore *super;
+    s32 res,BlockNum;
+
+    if(mediadrv == NULL)
+        return -1;
+
+    targetobj = obj_matchpath(fs, &notfind);    //根据mount点名字找mount点的obj
+    if(notfind)
+    {
+        error_printf("at45"," not found need to install file system.");
+        return -1;
+    }
+    super = (struct FsCore *)obj_GetPrivate(targetobj); //获取obj的私有数据
+    super->MediaInfo = at45_umedia;
+    super->MediaDrv = mediadrv;
+
+    if((s32)dwEnd == -1)
+    {
+        dwEnd = nordescription->Blks;
+        BlockNum = dwEnd - dwStart;     //获取文件系统一共用了多少块
+    }
+    else
+    {
+        BlockNum = dwEnd - dwStart;
+    }
+    super->AreaSize = BlockNum * (nordescription->BytesPerPage * nordescription->SectorsPerBlk);
+    super->MediaStart = dwStart * nordescription->SectorsPerBlk; // 起始unit号
+
+    res = strlen(At45Name) + strlen(s_ptDeviceRoot->name) + 1;
+    FullPath = malloc(res);
+    memset(FullPath, 0, res);
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,At45Name);      //获取设备的全路径
+    FsBeMedia(FullPath,fs);     //往该设备挂载文件系统
+    free(FullPath);
+
+    printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, dwStart, dwEnd);
+    return (0);
+}
+#endif

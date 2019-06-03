@@ -53,7 +53,6 @@
 // 备注：由于提供给timer_core.c使用，所以不再做参数检查之类的
 
 #include "misc_config.h"
-#if (CN_CFG_SYSTIMER == 1)
 #include "cpu_peri.h"
 #include "int.h"
 #include "cpu.h"
@@ -278,7 +277,7 @@ bool_t  __AtTimer_SetAutoReload(struct AtTimerHandle  *timer, bool_t autoreload)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __AtTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t __AtTimer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;
@@ -681,4 +680,4 @@ void ModuleInstall_HardTimer(void)
 
     return ;
 }
-#endif
+

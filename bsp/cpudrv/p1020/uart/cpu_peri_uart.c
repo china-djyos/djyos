@@ -83,21 +83,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_uart"        //CPU的uart外设驱动
-//parent:"uart"                         //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu peri uart"//CPU的uart外设驱动
+//parent:"component uart"      //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                         //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium                      //初始化时机，可选值：early，medium，later。
                                         //表示初始化时间，分别是早期、中期、后期
-//dependence:"uart","devfile","heap"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"component uart","device file system","component heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件将强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                         //选中该组件时，被依赖组件不会被强制选中，
                                         //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                          //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                        //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                        //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -114,7 +114,7 @@
 #define CFG_UART0_ENABLE                 true                 //"是否配置使用UART0",
 #define CFG_UART1_ENABLE                 false                //"是否配置使用UART1",
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -130,7 +130,7 @@
 //#define UART1_SendBufLen  2048
 //#define UART1_RecvBufLen  2048
 
-static struct obj *pUartCB[CN_UART_NUM];
+static struct Object *pUartCB[CN_UART_NUM];
 //用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
 //依此类推，1表示初始化，0表示未初始化
 static u8 sUartInited = 0;
@@ -375,7 +375,7 @@ u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
 //-----------------------------------------------------------------------------
 uint32_t UART_ISR(ptu32_t IntLine)
 {
-    struct obj *UCB = NULL;
+    struct Object *UCB = NULL;
     tagUartReg *Reg;
     uint32_t recv_trans,num;
     uint8_t ch[20],IIR=0;

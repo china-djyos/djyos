@@ -66,7 +66,7 @@ void os_daemonize_terminate(const char *pid_file)
 
 int os_get_random(unsigned char *buf, size_t len)
 {
-	srand(fclk_get_second());
+//	srand(fclk_get_second());
 	while(len--){
 		*buf++ = rand()%255;
 	}

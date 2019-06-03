@@ -10,7 +10,7 @@
 #include "silan_types.h"
 #include "silan_config.h"
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 #include "silan_core_m0.h"
 #endif
 

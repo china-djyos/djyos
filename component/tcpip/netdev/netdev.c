@@ -55,10 +55,33 @@
 
 #include "../common/link.h"
 
+typedef struct
+{
+//  vu32       enable:1;             //enable it or not
+//  vu32       uaction:1;            //if more than the upperlimit then set it
+//  vu32       laction:1;            //if less than lower limit then set it
+//  vu32       lactionb:5;           //low begin message
+//  vu32       lactione:5;           //low end message
+//  vu32       uactionb:5;           //upper begin message
+//  vu32       uactione:5;           //upper end message
+
+    bool_t     en;                   //means the filter en or not
+    bool_t     overaction;           //means over the upper limit and action now
+    bool_t     lackaction;           //means less than the floor limit and action
+    vu32       overevent;            //means over action event to post
+    vu32       lackevent;            //means lack action event to post
+    vu32       actiontimes;          //which means the action total times
+    vu32       fcounter;             //which means how many frame received
+    vu32       fulimit;              //which means the upper limit
+    vu32       fllimit;              //which means the lower limit
+    vu32       period;               //which means the measure period
+    vu64       ftotal;               //which means the total frame of the type
+    vs64       deadtime;             //which means the measure end time
+}tagNetDevRcvFilter;
 //first we should implement the device layer
 struct NetDev
 {
-    void                *nxt;                    //dev chain
+    struct NetDev      *nxt;                    //dev chain
     char                name[CN_TCPIP_NAMELEN]; //dev name
     u8                  iftype;   //dev type
     fnIfSend            ifsend;   //dev snd function
@@ -75,16 +98,14 @@ struct NetDev
     u32                 pkgsnderr;  //frame snd failed
     u32                 pkgrcv;     //frame receive
     u32                 pkgrcverr;  //frame receive err
+    tagNetDevRcvFilter  rfilter[EN_NETDEV_FRAME_LAST];  //the recv filter
 };
-typedef struct
+struct NetDevCB
 {
     mutex_t   lock;
     struct NetDev *lst;
-}tagNetDevCB; //interface controller
-static tagNetDevCB gIfaceCB;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+}; //interface controller
+static struct NetDevCB gIfaceCB;
 
 void NetDevPkgsndInc(struct NetDev *iface)
 {
@@ -111,7 +132,7 @@ void NetDevPkgrcvErrInc(struct NetDev *iface)
 //参数: name，网卡名，NULL则返回第一块网卡
 //返回: 网卡指针
 //-----------------------------------------------------------------------------
-static struct NetDev* __IfGet(const char *name)
+static struct NetDev* __NetDevGet(const char *name)
 {
     struct NetDev* ret = NULL;
     struct NetDev* tmp = gIfaceCB.lst;
@@ -198,7 +219,7 @@ struct NetDev *NetDevGet(const char *ifname)
     struct NetDev * ret = NULL;
     if(mutex_lock(gIfaceCB.lock))
     {
-        ret = __IfGet(ifname);
+        ret = __NetDevGet(ifname);
         mutex_unlock(gIfaceCB.lock);
     }
     return ret;
@@ -328,7 +349,7 @@ static bool_t __NetdevEventHook(struct NetDev *iface,enum NetDevEvent event)
             //maybe some err happened to the device,should reset
             debug_printf("netdev","flow over has come\n\r");
             break;
-        case EN_NETDEVEVENT_FLOW_LACKNetDevSend:
+        case EN_NETDEVEVENT_FLOW_LACK:
             //the net work comes to normal
             debug_printf("netdev","flow lack has COME,reset the net device\n\r");
             break;
@@ -363,7 +384,7 @@ struct NetDev* NetDevInstall(struct NetDevPara *para)
 
     if(mutex_lock(gIfaceCB.lock))
     {
-        iface = __IfGet(para->name);
+        iface = __NetDevGet(para->name);
         if(NULL == iface)
         {
             iface = net_malloc(sizeof(struct NetDev));
@@ -382,9 +403,27 @@ struct NetDev* NetDevInstall(struct NetDevPara *para)
                 iface->iftype = para->iftype;
                 iface->mtu= para->mtu;
                 iface->devfunc= para->devfunc;
+                //initialize the dev filter part
+                iface->rfilter[EN_NETDEV_FRAME_POINT].en = false;
+                iface->rfilter[EN_NETDEV_FRAME_POINT].overevent =EN_NETDEVEVENT_POINT_OVER;
+                iface->rfilter[EN_NETDEV_FRAME_POINT].lackevent =EN_NETDEVEVENT_POINT_LACK;
+                iface->rfilter[EN_NETDEV_FRAME_MULTI].en = false;
+                iface->rfilter[EN_NETDEV_FRAME_MULTI].overevent =EN_NETDEVEVENT_MULTI_OVER;
+                iface->rfilter[EN_NETDEV_FRAME_MULTI].lackevent =EN_NETDEVEVENT_MULTI_LACK;
+                iface->rfilter[EN_NETDEV_FRAME_BROAD].en = false;
+                iface->rfilter[EN_NETDEV_FRAME_BROAD].overevent =EN_NETDEVEVENT_BROAD_OVER;
+                iface->rfilter[EN_NETDEV_FRAME_BROAD].lackevent =EN_NETDEVEVENT_BROAD_LACK;
+                iface->rfilter[EN_NETDEV_FRAME_ALL   ].en = false;
+                iface->rfilter[EN_NETDEV_FRAME_ALL   ].overevent =EN_NETDEVEVENT_FLOW_OVER;
+                iface->rfilter[EN_NETDEV_FRAME_ALL   ].lackevent =EN_NETDEVEVENT_FLOW_LACK;
                 //add it to the dev chain
                 iface->nxt = gIfaceCB.lst;
                 gIfaceCB.lst = iface;
+            }
+            else
+            {
+                //no more mem for the dev, so failed
+                printf("%s:failed--no mem\r\n",__FUNCTION__);
             }
         }
         mutex_unlock(gIfaceCB.lock);
@@ -489,9 +528,9 @@ bool_t NetDevUnRegisterEventHook(struct NetDev * handle)
 bool_t NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event)
 {
     bool_t result = false;
-    struct NetDev* iface = NULL;
+    struct NetDev* iface = handle;
     fnNetDevEventHook hook= NULL;
-    if(NULL != handle)
+    if(NULL == handle)
     {
         return false;
     }
@@ -518,13 +557,13 @@ bool_t NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event)
 //      netdevtask，网卡功能
 //返回: true or false
 //-----------------------------------------------------------------------------
-bool_t  NetDevSend(struct NetDev* handle,struct NetPkg *pkglst,u32 framlen,u32 netdevtask)
+bool_t  NetDevSend(struct NetDev* handle,struct NetPkg *pkglst,u32 netdevtask)
 {
     bool_t     ret = false;
 
     if(NULL !=handle)
     {
-        ret = handle->ifsend(handle,pkglst,framlen,netdevtask);
+        ret = handle->ifsend(handle,pkglst,netdevtask);
     }
     return ret;
 }
@@ -536,7 +575,7 @@ bool_t  NetDevSend(struct NetDev* handle,struct NetPkg *pkglst,u32 framlen,u32 n
 //      para，命令参数
 //返回: true or false
 //-----------------------------------------------------------------------------
-bool_t  NetDevCtrl(struct NetDev* handle,enNetDevCmd cmd, ptu32_t para)
+bool_t  NetDevCtrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para)
 {
     bool_t     ret = false;
     struct NetDev* dev;
@@ -553,6 +592,185 @@ bool_t  NetDevCtrl(struct NetDev* handle,enNetDevCmd cmd, ptu32_t para)
     return ret;
 }
 
+// =============================================================================
+//功能：配置网卡的流量控制参数
+//参数：handle，网卡设备句柄
+//     type，被控制的包类型，netbsp.h中定义
+//     llimit，流量下限，在period时间内，收到type类型的包数低于此限，即发送网卡事件
+//     ulimit，流量上限，在period时间内，收到type类型的包数超过此限，即发送网卡事件
+//     period，流量统计周期
+//     enable :1 true while 0 false
+// 返回：true success while false failed
+// =============================================================================
+bool_t NetDevFlowSet(struct NetDev* handle,enNetDevFramType type,\
+                     u32 llimit,u32 ulimit,u32 period,int enable)
+{
+    bool_t result = false;
+    tagNetDevRcvFilter *filter;
+
+    if(Lock_MutexPend(gIfaceCB.lock, CN_TIMEOUT_FOREVER))
+    {
+        if(NULL != handle)
+        {
+            filter = &handle->rfilter[type];
+            filter->period = period;
+            filter->fulimit =ulimit;
+            filter->fllimit =llimit;
+            filter->fcounter = 0;
+            filter->deadtime = DjyGetSysTime() + period;
+            filter->en = enable?1:0;
+            result = true;
+        }
+        Lock_MutexPost(gIfaceCB.lock);
+    }
+    return result;
+}
+
+// =============================================================================
+// FUNCTION   :use this function to check the frame type
+// PARAMS IN  :buf, the frame buffer
+// PARAMS OUT :
+// RETURN     :enNetDevFramType,which type of the frame
+// DESCRIPTION:
+// =============================================================================
+enNetDevFramType NetDevFrameType(u8 *buf,u16 len)
+{
+    enNetDevFramType result = EN_NETDEV_FRAME_LAST;
+    if((NULL != buf)&&(len > CN_MACADDR_LEN))
+    {
+        if(0 == memcmp(buf,CN_MAC_BROAD,CN_MACADDR_LEN))
+        {
+            result = EN_NETDEV_FRAME_BROAD;
+        }
+        else if(buf[0]&0x01)
+        {
+            result = EN_NETDEV_FRAME_MULTI;
+        }
+        else
+        {
+            result = EN_NETDEV_FRAME_POINT;
+        }
+    }
+    return result;
+}
+
+//THE OLD ONE IS NOT CORRECT, ONLY THE FRAME BETWEEN THE UPPER AND FLOOR LIMIT IS PROPER
+static void __NetDevFlowCheck(struct NetDev* handle,tagNetDevRcvFilter *filter,s64 timenow)
+{
+    if(filter->en)
+    {
+        if(timenow > filter->deadtime) //should check if the floor limit is reached
+        {
+            //check the upper limit
+            if(filter->fllimit > filter->fcounter)
+            {
+                NetDevPostEvent(handle,filter->lackevent);//post a lack message
+                filter->lackaction = true;
+                filter->actiontimes++;
+            }
+            else
+            {
+                filter->lackaction = false;
+            }
+            filter->overaction = false;
+            filter->fcounter = 0;
+            filter->deadtime = timenow + filter->period;
+        }
+        else
+        {
+            //check the upper limit
+            if(filter->fulimit < filter->fcounter)
+            {
+                filter->actiontimes++;
+                filter->fcounter = 0;
+                filter->overaction = true;
+                NetDevPostEvent(handle,filter->overevent);//post a begin message
+            }
+        }
+    }
+}
+bool_t NetDevFlowCtrl(struct NetDev* handle,enNetDevFramType type)
+{
+    bool_t result = false;
+    tagNetDevRcvFilter *filter;
+    s64 timenow;
+    u32 looptype;
+    if(NULL != handle)
+    {
+        if(type < EN_NETDEV_FRAME_LAST)
+        {
+            filter = &handle->rfilter[type];
+            if(filter->en)
+            {
+                filter->fcounter ++;
+                filter->ftotal++;
+            }
+            //any data will inc the frame filter
+            if(type != EN_NETDEV_FRAME_ALL   )
+            {
+                filter = &handle->rfilter[EN_NETDEV_FRAME_ALL   ];
+                if(filter->en)
+                {
+                    filter->fcounter ++;
+                    filter->ftotal++;
+                }
+            }
+        }
+        //check all the filter
+        timenow = DjyGetSysTime();
+        for(looptype =0;looptype < EN_NETDEV_FRAME_LAST;looptype++)
+        {
+            filter = &handle->rfilter[looptype];
+            __NetDevFlowCheck(handle,filter,timenow);
+        }
+    }
+    return result;
+}
+
+
+const char *pFilterItemName[EN_NETDEV_FRAME_LAST]=
+{
+    "BROAD",
+    "POINT",
+    "MULTI",
+    "FRAME",
+};
+//we use this function to show the net device filter state
+static bool_t NetDevFlowStat(char *param)
+{
+    bool_t      result = false;
+    struct NetDev* handle;
+    tagNetDevRcvFilter *filter;
+    u32         type;
+
+    handle = NetDevGet(param);
+    if(NULL != handle)
+    {
+        printf("NETDEVFLOW:UNIT FOR CYCLE AND DEADLINE IS US\n\r");
+        printf("%-6s%-3s%-3s%-3s%-9s%-9s%-9s%-9s%-9s%-9s%-9s\n\r",\
+                "Name","EN","LS","US","FC","FU","FL","ACTIONS","CYCLE","DEADLINE","FT");
+        for(type =0; type < EN_NETDEV_FRAME_LAST;type++)
+        {
+            filter = &handle->rfilter[type];
+            printf("%-6s%-3s%-3s%-3s%-8x %-8x %-8x %-8x %-8x %-8llx %-8llx\n\r",\
+                    pFilterItemName[type],\
+                    filter->en==true?"Y":"N",\
+                    filter->lackaction?"Y":"N",\
+                    filter->overaction?"Y":"N",\
+                    filter->fcounter,\
+                    filter->fulimit,\
+                    filter->fllimit,\
+                    filter->actiontimes,\
+                    filter->period,\
+                    filter->deadtime,\
+                    filter->ftotal
+                    );
+        }
+        result =true;
+    }
+    return result;
+}
+
 //-----------------------------------------------------------------------------
 //功能: 取网卡的私有指针
 //参数: DevFace，由 NetDevInstall 返回的网卡控制块指针
@@ -567,6 +785,9 @@ void * NetDevPrivate(struct NetDev *iface)
     }
     return ret;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //netdev shell here
 //static bool_t __IfconfigShell(char *param)
@@ -593,6 +814,8 @@ bool_t ifconfig(char *param)
     OsPrintSplit('*',100);
     return true;
 }
+#pragma GCC diagnostic pop
+
 //-----------------------------------------------------------------------------
 //功能: 网络设备接口初始化
 //参数: 无
@@ -618,4 +841,4 @@ EXIT_MUTEX:
 }
 
 ADD_TO_ROUTINE_SHELL(ifconfig,ifconfig,"usage:ifconfig");
-#pragma GCC diagnostic pop
+ADD_TO_ROUTINE_SHELL(netflow,NetDevFlowStat,"usage:netflow [net card name]");

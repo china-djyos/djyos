@@ -67,6 +67,62 @@
 #include <device.h>
 //#include "at24c128b.h"
 #include "Touch.h"
+
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern struct GkWinObj;
+//    extern bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_dev_name);
+//    struct GkWinObj *desktop;
+//    desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
+//    if(NULL == desktop)
+//    {
+//        printf("Desktop Not Exist !\r\n");
+//    }
+//    else
+//    {
+//        ModuleInstall_LCM240128Touch(desktop);
+//    }
+//    extern bool_t GDD_AddInputDev(const char *InputDevName);
+//    GDD_AddInputDev(CFG_LCM240128_TOUCH_NAME);
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"chip driver lcm240128c"//iic接口的触摸屏控制
+//parent:"non"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:later              //初始化时机，可选值：early，medium，later。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"component io iic","component gkernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"GDD"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"non"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_LCM240128_TOUCH_NAME        //****检查参数是否已经配置好
+#warning    LCM240128C组件参数未配置，使用默认值
+//%$#@num,1,100,
+//%$#@enum,true,false,
+//%$#@string,1,128,
+#define CFG_LCM240128_TOUCH_NAME   "LCM240128C"       //"触摸屏名称",配置触摸屏名称
+#define CFG_DESKTOP_NAME        "desktop"      //"桌面名称",配置触摸屏所在显示器桌面的名称
+//%$#select,        ***从列出的选项中选择若干个定义成宏
+//%$#@free,
+#endif
+//%$#@end configue  ****参数配置结束
+//@#$%component end configure
+
 #define SPI_BUS_NAME           "SPI5"
 #define CN_TOUCH_TIMEOUT        10000*mS
 struct AdjustValue
@@ -659,7 +715,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
 //      touch_dev_name:触摸屏设备名.
 //返回: 无
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_dev_name)
+bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop)
 {
     static struct SingleTouchPrivate touch_dev;
     u16 evtt_id;
@@ -670,7 +726,7 @@ bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_d
     Djy_EventDelay(100*mS);
 
     //修改byzhb20170325   原来是1M改为500k，触摸点在边缘时不准。
-    s_ptTouch_Dev = SPI_DevAdd(SPI_BUS_NAME,touch_dev_name,0,8,SPI_MODE_0,
+    s_ptTouch_Dev = SPI_DevAdd(SPI_BUS_NAME,CFG_LCM240128_TOUCH_NAME,0,8,SPI_MODE_0,
                                 SPI_SHIFT_MSB,500000,false)
     if(NULL != s_ptTouch_Dev)
     {
@@ -687,7 +743,7 @@ bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_d
 
     touch_dev.read_touch = ReadTouch;
     touch_dev.touch_loc.display = NULL;     //NULL表示用默认桌面
-    Touch_InstallDevice(touch_dev_name,&touch_dev);
+    Touch_InstallDevice(CFG_LCM240128_TOUCH_NAME,&touch_dev);
 
     evtt_id = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
                                 ScanTouch,NULL,1024,

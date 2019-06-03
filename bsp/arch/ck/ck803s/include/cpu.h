@@ -73,6 +73,10 @@ void __asm_turnto_context(struct ThreadVm  *new_vm);
 void __asm_switch_context(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 void __asm_switch_context_int(struct ThreadVm *new_vm,struct ThreadVm *old_vm);
 void __asm_delay_cycle(u64 timeCoreClock);
+uint64_t __DjyGetTicks(void);
+void DjyUpdateTicks(uint32_t ticks);
+void DjySetUpdateTickFlag(bool_t flag);
+bool_t DjyGetUpdateTickFlag(void);
 #ifdef __cplusplus
 }
 #endif

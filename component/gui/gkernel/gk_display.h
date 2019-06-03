@@ -262,7 +262,7 @@ struct DispDraw
 
 struct DisplayObj
 {
-    struct obj  *HostObj;//注:镜像显示器作为子资源结点挂在这里
+    struct Object  *HostObj;//注:镜像显示器作为子资源结点挂在这里
     float xmm,ymm;          //用毫米表示的显示器尺寸
     s32   width,height;     //按像素表示的显示器尺寸
     u32   pixel_format;     //像素格式，在gk_win.h中定义

@@ -56,6 +56,8 @@
 #define CN_PKLGLST_END   (1<<0)
 struct NetPkg;
 struct NetDev;
+struct RoutItem4;
+struct RoutItem6;
 
 struct NetPkg *PkgMalloc(u16 bufsize,u8 flags);
 bool_t     PkgTryFreePart(struct NetPkg *pkg);
@@ -92,7 +94,7 @@ typedef enum
 
 /////////////////////////////////USED FOR THE INTERFACE///////////////////////////////////////
 
-typedef enum
+enum NetDevCmd
 {
     EN_NETDEV_SETNOPKG = 0,     //PARA IS NOT CARE
     EN_NETDEV_SETBORAD,         //para is int,0 disable else enable
@@ -103,28 +105,22 @@ typedef enum
     EN_NETDEV_SETMAC,           //para point to an buf which contains the mac
                                 //driver must modify the dev struct mac at the same time
     EN_NETDEV_SETMULTIMAC,      //para point to an buf which contains the mac
+    EN_NETDEV_SETHOOK,          //para is a receive hook fucntion name
     EN_NETDEV_GTETMAC,          //para point to an buf which used to contain the mac
     EN_NETDEV_RESET,            //para must be true
+    EN_NETDEV_LOWPOWER,         //para is int,0 disable else enable
     EN_NETDEV_ADDRFILTER,       //开启网卡Mac地址过滤功能
     EN_NETDEV_CMDLAST,          //which means the max command
-}enNetDevCmd;
+};
 
 typedef enum
 {
-    EN_NETDEV_FRAME_BROAD = 0,
-    EN_NETDEV_FRAME_POINT,
-    EN_NETDEV_FRAME_MULTI,
+    EN_NETDEV_FRAME_BROAD = 0,                      //broad flow control type
+    EN_NETDEV_FRAME_POINT,                          //multi flow control type
+    EN_NETDEV_FRAME_MULTI,                          //point flow control type
+    EN_NETDEV_FRAME_ALL,                            //frame flow control type
     EN_NETDEV_FRAME_LAST,
 }enNetDevFramType;
-
-typedef enum
-{
-    EN_NETDEV_FLOW_BROAD = EN_NETDEV_FRAME_BROAD,   //broad flow control type
-    EN_NETDEV_FLOW_POINT = EN_NETDEV_FRAME_POINT,   //multi flow control type
-    EN_NETDEV_FLOW_MULTI = EN_NETDEV_FRAME_MULTI,   //point flow control type
-    EN_NETDEV_FLOW_FRAME,                           //frame flow control type
-    EN_NETDEV_FLOW_LAST,
-}enNetDevFlowType;
 
 enum enLinkType
 {
@@ -159,20 +155,20 @@ enum NetDevEvent
     EN_NETDEVEVENT_POINT_OVER,   //means the point over
     EN_NETDEVEVENT_POINT_LACK,   //means the point lack,
     EN_NETDEVEVENT_FLOW_OVER,    //means the FLOW over
-    EN_NETDEVEVENT_FLOW_LACKNetDevSend,    //means the FLOW lack,
+    EN_NETDEVEVENT_FLOW_LACK,    //means the FLOW lack,
     EN_NETDEVEVENT_RESERVED,     //which means nothing
 };
+typedef bool_t (*fnNetDevEventHook)(struct NetDev* iface,enum NetDevEvent event);
 //net device type
 //netdev snd module function
 //return means the data has put out or put into the net card buffer
 //pkg maybe an lst or not,you could use the PkgIsEnd to check
 //pkglen is fram len
-typedef bool_t (*fnIfSend)(struct NetDev* iface,struct NetPkg *pkglst,u32 framlen,u32 netdevtask);
+typedef bool_t (*fnIfSend)(struct NetDev* iface,struct NetPkg *pkglst,u32 netdevtask);
 typedef struct NetPkg* (*fnIfRecv)(struct NetDev* iface);
 
-typedef bool_t (*fnNetDevEventHook)(struct NetDev* iface,enum NetDevEvent event);
 //used to ctrl the dev or get the dev stat
-typedef bool_t (*fnIfCtrl)(struct NetDev* iface,enNetDevCmd cmd,ptu32_t para);
+typedef bool_t (*fnIfCtrl)(struct NetDev* iface,enum NetDevCmd cmd,ptu32_t para);
 struct NetDevPara
 {
     const char    *name;    //dev name
@@ -190,7 +186,7 @@ bool_t  NetDevUninstall(const char *name);
 const u8 *NetDevGetMac(struct NetDev *iface);
 const char *NetDevName(struct NetDev *iface);
 struct NetDev *NetDevGet(const char *ifname);
-bool_t NetDevSend(struct NetDev *iface,struct NetPkg *pkg,u32 framelen,u32 devtask);
+bool_t NetDevSend(struct NetDev *iface,struct NetPkg *pkg,u32 devtask);
 bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg);//if you get a package,you could call this function
 //handle :the netdevice you install (returned by NetDevInstall)
 //devname:if the netdevice is NULL,then we use the devname to search the device
@@ -200,7 +196,12 @@ bool_t  NetDevRegisterEventHook(struct NetDev *handle, fnNetDevEventHook hook);
 //devname:if the netdevice is NULL,then we use the devname to search the device
 //event  :the message want to send to the device
 bool_t  NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event);
-bool_t  NetDevCtrl(struct NetDev* handle,enNetDevCmd cmd, ptu32_t para);
+bool_t  NetDevCtrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para);
+bool_t NetDevFlowSet(struct NetDev* handle,enNetDevFramType type,\
+                     u32 llimit,u32 ulimit,u32 period,int enable);
+enNetDevFramType NetDevFrameType(u8 *buf,u16 len);
+bool_t NetDevFlowCtrl(struct NetDev* handle,enNetDevFramType type);
+
 void   *NetDevPrivate(struct NetDev *iface);
 
 ////////////////////////defines for the link////////////////////////////////////////
@@ -246,7 +247,7 @@ typedef struct
     u16 mtu;
 }tagRouterPara;
 void  *RouterCreate(tagRouterPara *para);
-void   RouterRemoveByHandle(void *rout);
+void   RouterRemoveByHandle(struct RoutItem4 *rout);
 void   RouterRemove(tagRouterPara *para);
 
 typedef struct

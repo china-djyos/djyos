@@ -100,7 +100,7 @@ struct djybsp_systick_tickless_t
 // =============================================================================
 static void DjyBsp_SystickReset(void)
 {
-    HardExp_ConnectSystick(Djy_IsrTimeBase);
+    HardExp_ConnectSystick(Djy_ScheduleIsr);
     pg_systick_reg->reload = 0;
     pg_systick_reg->current = 0;
     pg_systick_reg->ctrl =   ~((1<<bo_systick_ctrl_enable)    //ê1?ü
@@ -128,25 +128,6 @@ static void DjyBsp_SystickStart(void)
                                 |(1<<bo_systick_ctrl_clksource);//ó??úo?ê±?ó
 }
 
-// =============================================================================
-// 功能：获取systick定时器能定时的最大cnt数
-// 参数：无
-// 返回：最大cnt数
-// =============================================================================
-static uint32_t DjyBsp_SystickGetCntMax(void)
-{
-    return CN_LIMIT_UINT24;
-}
-
-// =============================================================================
-// 功能：获取systick定时器能定时的最小cnt数
-// 参数：无
-// 返回：最小cnt数
-// =============================================================================
-static uint32_t DjyBsp_SystickGetCntMin(void)
-{
-    return TIME_BASE_MIN_GAP;
-}
 
 // =============================================================================
 // 功能：设置systick的定时周期
@@ -200,25 +181,15 @@ static uint32_t DjyBsp_SystickReadCnt(void)
 }
 
 // =============================================================================
-// 功能：获取systick的reload值
-// 参数：无
-// 返回：systick的reload值
-// =============================================================================
-static uint32_t DjyBsp_SystickGetReload(void)
-{
-    return (djybsp_systick.reload_value);
-}
-
-// =============================================================================
 // 功能：刷新systick当前累计的cnt值
 // 参数：新增的cnt数
 // 返回：当前累计的cnt数
 // =============================================================================
-static uint64_t DjyBsp_SystickRefreshTotalCnt(uint32_t cnt)
+static uint64_t Djybsp_SystickGetTotalCntIsr(uint32_t cnt)
 {
     djybsp_systick.reload_flag = GETTIMEBASECNT_FLAG;
     djybsp_systick.int_flag = false;
-    djybsp_systick.total_cnt += cnt;
+    djybsp_systick.total_cnt += djybsp_systick.reload_value;
     return ((djybsp_systick.total_cnt) + DjyBsp_SystickReadCnt());
 }
 
@@ -256,61 +227,53 @@ static uint64_t DjyBsp_SystickGetTotalCnt(void)
     }
 }
 
-// =============================================================================
-// 功能：把us数转化成对应的cnt值
-// 参数：us数
-// 返回：cnt值
-// =============================================================================
-static uint64_t DjyBsp_SystickUsToCnt(uint64_t us)
-{
-    uint64_t temp = 0;
-    temp = ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (us*TIME_GLUE):
-            ((us*FAST_TIME_GLUE + 32768))>>16);
-    if( temp < TIME_BASE_MIN_GAP )
-        temp = TIME_BASE_MIN_GAP;
-    return temp;
-}
 
-// =============================================================================
-// 功能：把cnt值转化为us数
-// 参数：cnt值
-// 返回：us数
-// =============================================================================
-static uint64_t DjyBsp_SystickCntToUs(uint64_t cnt)
-{
-    return ((CN_CFG_TIME_BASE_HZ>Mhz)?
-            (cnt/(u32)TIME_GLUE):
-            (((u64)(cnt*TIME_GLUE))>>16));
-}
 
 /*上述OPS通过这个结构体注册到tickless模块里面*/
 static struct djytickless_op_t djyticklss_systick_op =
 {
-    .get_cnt_max = DjyBsp_SystickGetCntMax,
-    .get_cnt_min = DjyBsp_SystickGetCntMin,
-    .get_reload =  DjyBsp_SystickGetReload,
-    .refresh_total_cnt = DjyBsp_SystickRefreshTotalCnt,
     .get_total_cnt = DjyBsp_SystickGetTotalCnt,
-    .us_to_cnt = DjyBsp_SystickUsToCnt,
-    .cnt_to_us = DjyBsp_SystickCntToUs,
-    .reset = DjyBsp_SystickReset,
-    .start = DjyBsp_SystickStart,
+    .get_total_cnt_isr = Djybsp_SystickGetTotalCntIsr,
     .set_reload = DjyBsp_SystickSetReload,
 };
 
-// =============================================================================
-// 功能：注册tickless的ops
-// 参数：op
-// 返回：无
-// =============================================================================
-void DjyTickless_SystickRegisterOp(struct djytickless_op_t **op)
+static struct djytickless_register_param_t djyticklss_systick =
 {
-    *op = &djyticklss_systick_op;
-}
+     .op = &djyticklss_systick_op,
+     .freq = CN_CFG_TIME_BASE_HZ,
+     .max_reload_value = CN_LIMIT_UINT24,
+     .min_reload_value = TIME_BASE_MIN_GAP,
+};
+
 #endif
 #endif
 ///////////////////////////////////////////////djy-api start//////////////////////////////////
+
+static uint64_t gRunTicks = 0;
+static bool_t gResumeTickFlag = false;
+
+__attribute__((weak)) uint64_t __DjyGetTicks(void)
+{
+    return gRunTicks;
+}
+
+//由调用者保证调用安全
+__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
+{
+    gResumeTickFlag = flag;
+}
+
+__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
+{
+    return gResumeTickFlag;
+}
+
+//由调用者保证原子操作
+__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
+{
+    gRunTicks += ticks;
+}
+
 // =============================================================================
 // 功能：获取系统时间
 // 参数：无
@@ -351,8 +314,8 @@ __attribute__((weak))   void __InitTimeBase(void)
 {
 #if     CN_USE_TICKLESS_MODE
 #if (!CN_CFG_USE_USERTIMER)
-    DjyTickless_RegisterOp(&djyticklss_systick_op);
-    DjyTickless_Reset();
+    DjyTickless_Register(&djyticklss_systick);
+    DjyBsp_SystickReset();
 #endif
 #endif
 }
@@ -365,9 +328,9 @@ __attribute__((weak))   void __InitTimeBase(void)
 __attribute__((weak))   void __DjyInitTick(void)
 {
 #if     CN_USE_TICKLESS_MODE
-    DjyTickless_Start();
+    DjyBsp_SystickStart();
 #else
-    HardExp_ConnectSystick(Djy_IsrTick);
+    HardExp_ConnectSystick(Djy_ScheduleIsr);
     pg_systick_reg->reload = CN_CFG_FCLK/CN_CFG_TICK_HZ;
     pg_systick_reg->current =CN_CFG_FCLK/CN_CFG_TICK_HZ;
     pg_systick_reg->ctrl =   (1<<bo_systick_ctrl_enable)    //ê1?ü

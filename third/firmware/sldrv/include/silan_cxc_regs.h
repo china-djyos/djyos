@@ -24,7 +24,7 @@
 #define CXC_DSP_INT_STATUS          __REG32(SCFG_APB_CXC_ADDR_BASE+0x81c)
 #define CXC_MCU_INT_STATUS          __REG32(SCFG_APB_CXC_ADDR_BASE+0x820)
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM) ||  defined ( __GNUC__ )
 #define CXC_CORE_HOST               SILAN_CXC_CORE_M0
 #define CXC_INT_MASK                CXC_MCU_INT_MASK
 #define CXC_INT_STATUS              CXC_MCU_INT_STATUS

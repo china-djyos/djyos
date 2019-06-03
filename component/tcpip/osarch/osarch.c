@@ -155,12 +155,6 @@ void semp_del(semp_t semp)
     return;
 }
 
-void semp_reset(semp_t semp)
-{
-    semp->lamp_counter = 0;
-    return ;
-}
-
 //-----------------------------------------------------------------------------
 //功能:use this function to create a task
 //参数:
@@ -189,16 +183,7 @@ EXIT_EVENTFAILED:
 EXIT_EVTTFAILED:
     return false;
 }
-//-----------------------------------------------------------------------------
-//功能:use this function to get a random data, which got from the system time
-//参数:NULL
-//返回:the random data
-//备注:
-//-----------------------------------------------------------------------------
-u32 get_random(void)
-{
-    return (u32)DjyGetSysTime();
-}
+
 //this function is used to format the char string to the argc mode
 //this function will changed the original string, used it carefully
 int string2arg(int *argc, char *argv[],char *string)
@@ -319,7 +304,7 @@ bool_t string2mac(char *str,u8 *mac)
 char* mac2string(u8 *mac)
 {
     int i =0;
-    static char  str[20];
+    static char  str[30];
 
     unsigned int data[6];
 

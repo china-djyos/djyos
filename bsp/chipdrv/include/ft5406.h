@@ -64,8 +64,7 @@ extern "C" {
 
 #include "gkernel.h"
 
-extern bool_t ModuleInstall_FT5406(char *BusName,struct GkWinObj *desktop,\
-                     char *touch_dev_name );
+extern bool_t ModuleInstall_FT5406(struct GkWinObj *desktop);
 
 #ifdef __cplusplus
 }

@@ -67,12 +67,15 @@
 #include "version.h"
 #include "cpu_peri.h"
 #include "cpu-optional.h"
+#include "component_config_iboot.h"
 #if(CN_CPU_OPTIONAL_CACHE==1)
 #include "set-cache.h"
 #endif
 #include <osboot.h>
 #include <device/flash/flash.h>
 #include "dbug.h"
+#include "project_config.h"
+#if !defined (CFG_RUNMODE_BAREAPP)
 
 static struct SemaphoreLCB *ptUpdateIbootSemp;
 // ============================================================================
@@ -81,7 +84,6 @@ static struct SemaphoreLCB *ptUpdateIbootSemp;
 // 返回：
 // 备注：
 // ============================================================================
-
 bool_t  runiboot(char *param)
 {
     Set_RunIbootFlag();
@@ -99,7 +101,6 @@ bool_t  runiboot(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-
 bool_t  runapp(char *param)
 {
     Set_RunAppFlag();
@@ -164,10 +165,6 @@ bool_t updateapp(char *param)
 // 返回：
 // 备注：
 // ============================================================================
-#if !defined(CFG_IBOOT_UPDATE_NAME)
-#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"
-#endif
-
 char iapibootname[512];
 #define IAPBUF_SIZE   512
 bool (*Update_and_run_mode)(char *param);
@@ -286,7 +283,7 @@ ADD_TO_ROUTINE_SHELL(runapp,runapp,"直接运行APP(仅在采取内存标示确定加载项目时有
 //ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
 ADD_TO_ROUTINE_SHELL(updateiboot,updateiboot,"Update Iboot.");
 
-
+#endif
 
 
 

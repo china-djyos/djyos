@@ -81,20 +81,6 @@ extern void Touch_GetTouchPoint(void);
 extern void InitLCM240128C(void);
 extern u8 LCD_GetStatus(void);
 
-
-
-
-/*******************************************************************************
-功能:LCD操作shell模块
-参数:无.
-返回值:1。
-*********************************************************************************/
-ptu32_t LCD_Shell_Module_Install(void)
-{
-    return 1;
-}
-
-
 //static void Sh_LCD_Reset(void)
 bool_t lcdrst(void)
 {

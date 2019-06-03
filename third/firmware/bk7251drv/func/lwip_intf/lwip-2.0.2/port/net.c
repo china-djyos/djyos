@@ -523,7 +523,7 @@ int net_configure_address(struct ipv4_config *addr, void *intrfc_handle)
          sta_set_default_netif();
 	} else {
 		// softap IP up, start dhcp server;
-		dhcp_server_start(net_get_uap_handle());
+//		dhcp_server_start(net_get_uap_handle());
 		up_iface = 0;
 
         // as the default netif is sta's netif, so ap need to send
@@ -644,7 +644,7 @@ void net_wlan_add_netif(void *mac)
 {
     VIF_INF_PTR vif_entry = NULL;  
     struct interface *wlan_if = NULL;
-    err_t err;
+    err_t err = 0;
     u8 vif_idx;
     u8 *b = (u8*)mac;
     

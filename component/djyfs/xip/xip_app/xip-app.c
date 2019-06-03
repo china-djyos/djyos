@@ -1,4 +1,4 @@
-ï»¿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -24,29 +24,29 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018ï¼Œè‘—ä½œæƒç”±éƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿå¼€æºå¼€å‘å›¢é˜Ÿæ‰€æœ‰ã€‚è‘—ä½œæƒäººä¿ç•™ä¸€åˆ‡æƒåˆ©ã€‚
+// Copyright (c) 2018£¬Öø×÷È¨ÓÉ¶¼½­Ñß²Ù×÷ÏµÍ³¿ªÔ´¿ª·¢ÍÅ¶ÓËùÓÐ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇÐÈ¨Àû¡£
 //
-// è¿™ä»½æŽˆæƒæ¡æ¬¾ï¼Œåœ¨ä½¿ç”¨è€…ç¬¦åˆä»¥ä¸‹ä¸‰æ¡ä»¶çš„æƒ…å½¢ä¸‹ï¼ŒæŽˆäºˆä½¿ç”¨è€…ä½¿ç”¨åŠå†æ•£æ’­æœ¬
-// è½¯ä»¶åŒ…è£…åŽŸå§‹ç åŠäºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„æƒåˆ©ï¼Œæ— è®ºæ­¤åŒ…è£…æ˜¯å¦ç»æ”¹ä½œçš†ç„¶ï¼š
+// Õâ·ÝÊÚÈ¨Ìõ¿î£¬ÔÚÊ¹ÓÃÕß·ûºÏÒÔÏÂÈýÌõ¼þµÄÇéÐÎÏÂ£¬ÊÚÓèÊ¹ÓÃÕßÊ¹ÓÃ¼°ÔÙÉ¢²¥±¾
+// Èí¼þ°ü×°Ô­Ê¼Âë¼°¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÈ¨Àû£¬ÎÞÂÛ´Ë°ü×°ÊÇ·ñ¾­¸Ä×÷½ÔÈ»£º
 //
-// 1. å¯¹äºŽæœ¬è½¯ä»¶æºä»£ç çš„å†æ•£æ’­ï¼Œå¿…é¡»ä¿ç•™ä¸Šè¿°çš„ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥
-//    åŠä¸‹è¿°çš„å…è´£å£°æ˜Žã€‚
-// 2. å¯¹äºŽæœ¬å¥—ä»¶äºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„å†æ•£æ’­ï¼Œå¿…é¡»è¿žå¸¦ä»¥æ–‡ä»¶ä»¥åŠï¼æˆ–è€…å…¶ä»–é™„
-//    äºŽæ•£æ’­åŒ…è£…ä¸­çš„åª’ä»‹æ–¹å¼ï¼Œé‡åˆ¶ä¸Šè¿°ä¹‹ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥åŠä¸‹è¿°
-//    çš„å…è´£å£°æ˜Žã€‚
-// 3. æœ¬è½¯ä»¶ä½œä¸ºéƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿçš„ç»„æˆéƒ¨åˆ†ï¼ŒæœªèŽ·äº‹å‰å–å¾—çš„ä¹¦é¢è®¸å¯ï¼Œä¸å…è®¸ç§»æ¤åˆ°éž
-//    éƒ½æ±Ÿå °æ“ä½œç³»ç»ŸçŽ¯å¢ƒä¸‹è¿è¡Œã€‚
+// 1. ¶ÔÓÚ±¾Èí¼þÔ´´úÂëµÄÔÙÉ¢²¥£¬±ØÐë±£ÁôÉÏÊöµÄ°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ
+//    ¼°ÏÂÊöµÄÃâÔðÉùÃ÷¡£
+// 2. ¶ÔÓÚ±¾Ì×¼þ¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÔÙÉ¢²¥£¬±ØÐëÁ¬´øÒÔÎÄ¼þÒÔ¼°£¯»òÕßÆäËû¸½
+//    ÓÚÉ¢²¥°ü×°ÖÐµÄÃ½½é·½Ê½£¬ÖØÖÆÉÏÊöÖ®°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ¼°ÏÂÊö
+//    µÄÃâÔðÉùÃ÷¡£
+// 3. ±¾Èí¼þ×÷Îª¶¼½­Ñß²Ù×÷ÏµÍ³µÄ×é³É²¿·Ö£¬Î´»ñÊÂÇ°È¡µÃµÄÊéÃæÐí¿É£¬²»ÔÊÐíÒÆÖ²µ½·Ç
+//    ¶¼½­Ñß²Ù×÷ÏµÍ³»·¾³ÏÂÔËÐÐ¡£
 
-// å…è´£å£°æ˜Žï¼šæœ¬è½¯ä»¶æ˜¯æœ¬è½¯ä»¶ç‰ˆæƒæŒæœ‰äººä»¥åŠè´¡çŒ®è€…ä»¥çŽ°çŠ¶ï¼ˆ"as is"ï¼‰æä¾›ï¼Œ
-// æœ¬è½¯ä»¶åŒ…è£…ä¸è´Ÿä»»ä½•æ˜Žç¤ºæˆ–é»˜ç¤ºä¹‹æ‹…ä¿è´£ä»»ï¼ŒåŒ…æ‹¬ä½†ä¸é™äºŽå°±é€‚å”®æ€§ä»¥åŠç‰¹å®šç›®
-// çš„çš„é€‚ç”¨æ€§ä¸ºé»˜ç¤ºæ€§æ‹…ä¿ã€‚ç‰ˆæƒæŒæœ‰äººåŠæœ¬è½¯ä»¶ä¹‹è´¡çŒ®è€…ï¼Œæ— è®ºä»»ä½•æ¡ä»¶ã€
-// æ— è®ºæˆå› æˆ–ä»»ä½•è´£ä»»ä¸»ä¹‰ã€æ— è®ºæ­¤è´£ä»»ä¸ºå› åˆçº¦å…³ç³»ã€æ— è¿‡å¤±è´£ä»»ä¸»ä¹‰æˆ–å› éžè¿
-// çº¦ä¹‹ä¾µæƒï¼ˆåŒ…æ‹¬è¿‡å¤±æˆ–å…¶ä»–åŽŸå› ç­‰ï¼‰è€Œèµ·ï¼Œå¯¹äºŽä»»ä½•å› ä½¿ç”¨æœ¬è½¯ä»¶åŒ…è£…æ‰€äº§ç”Ÿçš„
-// ä»»ä½•ç›´æŽ¥æ€§ã€é—´æŽ¥æ€§ã€å¶å‘æ€§ã€ç‰¹æ®Šæ€§ã€æƒ©ç½šæ€§æˆ–ä»»ä½•ç»“æžœçš„æŸå®³ï¼ˆåŒ…æ‹¬ä½†ä¸é™
-// äºŽæ›¿ä»£å•†å“æˆ–åŠ³åŠ¡ä¹‹è´­ç”¨ã€ä½¿ç”¨æŸå¤±ã€èµ„æ–™æŸå¤±ã€åˆ©ç›ŠæŸå¤±ã€ä¸šåŠ¡ä¸­æ–­ç­‰ç­‰ï¼‰ï¼Œ
-// ä¸è´Ÿä»»ä½•è´£ä»»ï¼Œå³åœ¨è¯¥ç§ä½¿ç”¨å·²èŽ·äº‹å‰å‘ŠçŸ¥å¯èƒ½ä¼šé€ æˆæ­¤ç±»æŸå®³çš„æƒ…å½¢ä¸‹äº¦ç„¶ã€‚
+// ÃâÔðÉùÃ÷£º±¾Èí¼þÊÇ±¾Èí¼þ°æÈ¨³ÖÓÐÈËÒÔ¼°¹±Ï×ÕßÒÔÏÖ×´£¨"as is"£©Ìá¹©£¬
+// ±¾Èí¼þ°ü×°²»¸ºÈÎºÎÃ÷Ê¾»òÄ¬Ê¾Ö®µ£±£ÔðÈÎ£¬°üÀ¨µ«²»ÏÞÓÚ¾ÍÊÊÊÛÐÔÒÔ¼°ÌØ¶¨Ä¿
+// µÄµÄÊÊÓÃÐÔÎªÄ¬Ê¾ÐÔµ£±£¡£°æÈ¨³ÖÓÐÈË¼°±¾Èí¼þÖ®¹±Ï×Õß£¬ÎÞÂÛÈÎºÎÌõ¼þ¡¢
+// ÎÞÂÛ³ÉÒò»òÈÎºÎÔðÈÎÖ÷Òå¡¢ÎÞÂÛ´ËÔðÈÎÎªÒòºÏÔ¼¹ØÏµ¡¢ÎÞ¹ýÊ§ÔðÈÎÖ÷Òå»òÒò·ÇÎ¥
+// Ô¼Ö®ÇÖÈ¨£¨°üÀ¨¹ýÊ§»òÆäËûÔ­ÒòµÈ£©¶øÆð£¬¶ÔÓÚÈÎºÎÒòÊ¹ÓÃ±¾Èí¼þ°ü×°Ëù²úÉúµÄ
+// ÈÎºÎÖ±½ÓÐÔ¡¢¼ä½ÓÐÔ¡¢Å¼·¢ÐÔ¡¢ÌØÊâÐÔ¡¢³Í·£ÐÔ»òÈÎºÎ½á¹ûµÄËðº¦£¨°üÀ¨µ«²»ÏÞ
+// ÓÚÌæ´úÉÌÆ·»òÀÍÎñÖ®¹ºÓÃ¡¢Ê¹ÓÃËðÊ§¡¢×ÊÁÏËðÊ§¡¢ÀûÒæËðÊ§¡¢ÒµÎñÖÐ¶ÏµÈµÈ£©£¬
+// ²»¸ºÈÎºÎÔðÈÎ£¬¼´ÔÚ¸ÃÖÖÊ¹ÓÃÒÑ»ñÊÂÇ°¸æÖª¿ÉÄÜ»áÔì³É´ËÀàËðº¦µÄÇéÐÎÏÂÒàÈ»¡£
 //-----------------------------------------------------------------------------
-//TODO: æ”¯æŒå¤šä¸ªæ–‡ä»¶ï¼Œé‚£ä¹ˆå°±å¯ä»¥æ”¯æŒmultiboot
+//TODO: Ö§³Ö¶à¸öÎÄ¼þ£¬ÄÇÃ´¾Í¿ÉÒÔÖ§³Ömultiboot
 #include <systime.h>
 #include <stddef.h>
 #include <string.h>
@@ -62,8 +62,47 @@
 #include <stdio.h>
 #include "../../filesystems.h"
 #include "Iboot_info.h"
+#include "project_config.h"     //±¾ÎÄ¼þÓÉIDEÖÐÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖÐ¡£
+                                //ÔÊÐíÊÇ¸ö¿ÕÎÄ¼þ£¬ËùÓÐÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
 
-// åº•å±‚æŽ¥å£å‡½æ•°
+//@#$%component configure   ****×é¼þÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖÐÍ¼ÐÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼þ£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ý¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼þÖÐ
+//    extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
+//    ModuleInstall_XIP_APP_FS(0,NULL);
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
+
+//%$#@describe      ****×é¼þÃèÊö¿ªÊ¼
+//component name:"xip app file system"//ÓÃÓÚappµÄÔÚÏßÉý¼¶
+//parent:"file system"//ÌîÐ´¸Ã×é¼þµÄ¸¸×é¼þÃû×Ö£¬none±íÊ¾Ã»ÓÐ¸¸×é¼þ
+//attribute:system              //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôÐÔÓÃÓÚÔÚIDEÖÐ·Ö×é
+//select:choosable              //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒÐèÒªÅäÖÃ²ÎÊý£¬ÔòIDE²Ã¼ô½çÃæÖÐÄ¬ÈÏ¹´È¡£¬
+                                //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ÐèÒªÅäÖÃ²ÎÊýµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖÐ²»ÏÔÊ¾£¬
+//init time:early               //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later¡£
+//dependence:"file system"             //¸Ã×é¼þµÄÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö
+//weakdependence:"none"         //¸Ã×é¼þµÄÈõÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ²»»á±»Ç¿ÖÆÑ¡ÖÐ£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                  //¸Ã×é¼þµÄ»¥³â×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞ»¥³â×é¼þ£©£¬
+                                //Èç¹ûÓë¶à¸ö×é¼þ»¥³â£¬ÔòÒÀ´ÎÁÐ³ö
+//%$#@end describe  ****×é¼þÃèÊö½áÊø
+
+//%$#@configue      ****²ÎÊýÅäÖÃ¿ªÊ¼
+//%$#@target = header           //header = Éú³ÉÍ·ÎÄ¼þ,cmdline = ÃüÁîÐÐ±äÁ¿£¬DJYOS×ÔÓÐÄ£¿é½ûÓÃ
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***¶¨ÒåÎÞÖµµÄºê£¬½öÓÃÓÚµÚÈý·½×é¼þ
+//%$#@free,
+//%$#@end configue  ****²ÎÊýÅäÖÃ½áÊø
+
+//%$#@exclude       ****±àÒëÅÅ³ýÎÄ¼þÁÐ±í
+//%$#@end exclude   ****×é¼þÃèÊö½áÊø
+
+//@#$%component end configure
+
+// µ×²ã½Ó¿Úº¯Êý
 //
 
 static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config);
@@ -73,15 +112,15 @@ s32 xip_app_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //
 //
 //
-#define __FILE_NAME_MAX_LEN               (240) // æ”¯æŒçš„æœ€å¤§æ–‡ä»¶åé•¿åº¦(åŒ…æ‹¬ç»“æŸç¬¦)
+#define __FILE_NAME_MAX_LEN               (240) // Ö§³ÖµÄ×î´óÎÄ¼þÃû³¤¶È(°üÀ¨½áÊø·û)
 
 //
-// xipæ–‡ä»¶ç”¨é€”æ ‡ç­¾
+// xipÎÄ¼þÓÃÍ¾±êÇ©
 //
-#define __TAG_RELEASE                      ((u32)0x61707000) // å‘å¸ƒæ¨¡å¼çš„æ–‡ä»¶ï¼›
-#define __TAG_DEBUG                        ((u32)0x00676264) // è°ƒè¯•æ¨¡å¼çš„æ–‡ä»¶ï¼›
+#define __TAG_RELEASE                      ((u32)0x61707000) // ·¢²¼Ä£Ê½µÄÎÄ¼þ£»
+#define __TAG_DEBUG                        ((u32)0x00676264) // µ÷ÊÔÄ£Ê½µÄÎÄ¼þ£»
 
-// xipæ–‡ä»¶çŠ¶æ€
+// xipÎÄ¼þ×´Ì¬
 #define __STATUS_TEMP                   ((u32)0x1)
 #define __STATUS_UPDATING                    ((u32)0x2)
 #define __STATUS_UPDATED                     ((u32)0x3)
@@ -92,11 +131,11 @@ s32 xip_app_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //extern s32 __ll_erase(struct __icore *core, u32 bytes, u32 pos);
 //extern u32 __ll_crc32(struct __icore *core, u32 pos, u32 len);
 // ============================================================================
-// åŠŸèƒ½ï¼šè§£æžæ–‡ä»¶æ ¼å¼(å¤´éƒ¨)ï¼›
-// å‚æ•°ï¼šhead -- xipæ–‡ä»¶å¤´éƒ¨æ ¼å¼ï¼›
-//      file -- xipæ–‡ä»¶ï¼›
-// è¿”å›žï¼šxipæ–‡ä»¶ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º½âÎöÎÄ¼þ¸ñÊ½(Í·²¿)£»
+// ²ÎÊý£ºhead -- xipÎÄ¼þÍ·²¿¸ñÊ½£»
+//      file -- xipÎÄ¼þ£»
+// ·µ»Ø£ºxipÎÄ¼þ£»
+// ±¸×¢£º
 // ============================================================================
 struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
 {
@@ -114,10 +153,10 @@ struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
 }
 
 //==========================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶ä¸Šé”
-// å‚æ•°ï¼š
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þÉÏËø
+// ²ÎÊý£º
+// ·µ»Ø£º
+// ±¸×¢£º
 // ============================================================================
 static inline void xip_app_lock(struct __icore *core)
 {
@@ -125,10 +164,10 @@ static inline void xip_app_lock(struct __icore *core)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶è§£é”
-// å‚æ•°ï¼š
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þ½âËø
+// ²ÎÊý£º
+// ·µ»Ø£º
+// ±¸×¢£º
 // ============================================================================
 static inline void xip_app_unlock(struct __icore *core)
 {
@@ -136,10 +175,10 @@ static inline void xip_app_unlock(struct __icore *core)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–°å»ºxipæ–‡ä»¶
-// å‚æ•°ï¼šcore -- xipæ–‡ä»¶ç³»ç»Ÿä¿¡æ¯ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆxipæ–‡ä»¶ï¼‰ï¼› å¤±è´¥(NULL);
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÐÂ½¨xipÎÄ¼þ
+// ²ÎÊý£ºcore -- xipÎÄ¼þÏµÍ³ÐÅÏ¢£»
+// ·µ»Ø£º³É¹¦£¨xipÎÄ¼þ£©£» Ê§°Ü(NULL);
+// ±¸×¢£º
 // ============================================================================
 static struct __ifile *xip_app_newfile(struct __icore *core)
 {
@@ -158,10 +197,10 @@ static struct __ifile *xip_app_newfile(struct __icore *core)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼š æ–‡ä»¶å¤´éƒ¨ä½ç½®
-// å‚æ•°ï¼šfile -- xipæ–‡ä»¶
-// è¿”å›žï¼šæ–‡ä»¶å¤´éƒ¨ä½ç½®åç½®
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º ÎÄ¼þÍ·²¿Î»ÖÃ
+// ²ÎÊý£ºfile -- xipÎÄ¼þ
+// ·µ»Ø£ºÎÄ¼þÍ·²¿Î»ÖÃÆ«ÖÃ
+// ±¸×¢£º
 // ============================================================================
 static inline u32 xip_app_locatefilehead(struct __ifile *file)
 {
@@ -169,11 +208,11 @@ static inline u32 xip_app_locatefilehead(struct __ifile *file)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼š æ ¼å¼åŒ–xipæ–‡ä»¶ï¼ˆå¤´éƒ¨ï¼‰
-// å‚æ•°ï¼šcore -- xipæ–‡ä»¶ç³»ç»Ÿä¿¡æ¯ï¼›
-//      file -- xipæ–‡ä»¶ï¼›
-// è¿”å›žï¼šå¤±è´¥ï¼ˆ-1ï¼‰ï¼›æˆåŠŸï¼ˆ0ï¼‰ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º ¸ñÊ½»¯xipÎÄ¼þ£¨Í·²¿£©
+// ²ÎÊý£ºcore -- xipÎÄ¼þÏµÍ³ÐÅÏ¢£»
+//      file -- xipÎÄ¼þ£»
+// ·µ»Ø£ºÊ§°Ü£¨-1£©£»³É¹¦£¨0£©¡£
+// ±¸×¢£º
 // ============================================================================
 s32 xip_app_formatfilehead(struct __icore *core, struct __ifile *file)
 {
@@ -186,12 +225,12 @@ s32 xip_app_formatfilehead(struct __icore *core, struct __ifile *file)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå»ºç«‹æ–‡ä»¶æ ¼å¼ï¼ˆå¤´éƒ¨ï¼‰
-// å‚æ•°ï¼šcore -- xipæ–‡ä»¶ç³»ç»Ÿä¿¡æ¯ï¼›
-//      file -- xipæ–‡ä»¶ï¼›
-//      name -- xipæ–‡ä»¶åï¼›
-// è¿”å›žï¼šå¤±è´¥ï¼ˆ-1ï¼‰ï¼›æˆåŠŸï¼ˆ0ï¼‰ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º½¨Á¢ÎÄ¼þ¸ñÊ½£¨Í·²¿£©
+// ²ÎÊý£ºcore -- xipÎÄ¼þÏµÍ³ÐÅÏ¢£»
+//      file -- xipÎÄ¼þ£»
+//      name -- xipÎÄ¼þÃû£»
+// ·µ»Ø£ºÊ§°Ü£¨-1£©£»³É¹¦£¨0£©¡£
+// ±¸×¢£º
 // ============================================================================
 s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __ifile *file, const char *name)
 {
@@ -207,10 +246,10 @@ s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __if
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ‰«æxipæ–‡ä»¶
-// å‚æ•°ï¼šcore -- xipæ–‡ä»¶ç³»ç»Ÿä¿¡æ¯ï¼›
-// è¿”å›žï¼šå¤±è´¥ï¼Œæœªæ‰¾åˆ°æ–‡ä»¶ï¼ˆ-1ï¼‰ï¼›æˆåŠŸæ‰¾åˆ°æ–‡ä»¶ï¼ˆ0ï¼‰ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÉ¨ÃèxipÎÄ¼þ
+// ²ÎÊý£ºcore -- xipÎÄ¼þÏµÍ³ÐÅÏ¢£»
+// ·µ»Ø£ºÊ§°Ü£¬Î´ÕÒµ½ÎÄ¼þ£¨-1£©£»³É¹¦ÕÒµ½ÎÄ¼þ£¨0£©¡£
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_app_scanfiles(struct __icore *core)
 {
@@ -224,17 +263,17 @@ static s32 xip_app_scanfiles(struct __icore *core)
     if(res)
         goto Error;
 
-    // å½“å‰åªæœ‰ä¸€ä¸ªæ–‡ä»¶
+    // µ±Ç°Ö»ÓÐÒ»¸öÎÄ¼þ
     file = xip_app_newfile(core);
     if(NULL == xip_app_decodefilehead(structFileHead, file))
     {
-        // å½“å‰é€»è¾‘ä¸åœ¨ä¸Šç”µæ£€ç´¢æ–‡ä»¶çš„æ—¶å€™æ ¼å¼æ•´ä¸ªç©ºé—´,è€Œåªæ ¼å¼ä¸€ä¸ªå¤´éƒ¨ã€‚
-        // å¿…é¡»è¦è¿™ä¸ªé€»è¾‘ï¼Œå› ä¸ºåœ¨å‡çº§è¿‡ç¨‹çš„ä¸­æ–­ï¼Œå¾€å¾€æ˜¯å¤´éƒ¨ä¸å­˜åœ¨ï¼Œè€ŒåŽç»­æœ‰å†…å®¹ã€‚è€Œç¬¬ä¸€æ¬¡å†™å…¥æ—¶ï¼Œå¹¶ä¸æƒ³ç…§é¡¾è¿™ä¸ªé€»è¾‘ã€‚
+        // µ±Ç°Âß¼­²»ÔÚÉÏµç¼ìË÷ÎÄ¼þµÄÊ±ºò¸ñÊ½Õû¸ö¿Õ¼ä,¶øÖ»¸ñÊ½Ò»¸öÍ·²¿¡£
+        // ±ØÐëÒªÕâ¸öÂß¼­£¬ÒòÎªÔÚÉý¼¶¹ý³ÌµÄÖÐ¶Ï£¬ÍùÍùÊÇÍ·²¿²»´æÔÚ£¬¶øºóÐøÓÐÄÚÈÝ¡£¶øµÚÒ»´ÎÐ´ÈëÊ±£¬²¢²»ÏëÕÕ¹ËÕâ¸öÂß¼­¡£
         res = xip_app_formatfilehead(core, file);
-        goto Error; // å½“å‰ç³»ç»Ÿå·²æ— æ–‡ä»¶ï¼ŒåŽç»­é€»è¾‘ä¸æ‰§è¡Œ
+        goto Error; // µ±Ç°ÏµÍ³ÒÑÎÞÎÄ¼þ£¬ºóÐøÂß¼­²»Ö´ÐÐ
     }
     name = Get_AppName(structFileHead);
-    // å°†å†…å®¹æŽ¥å…¥æ–‡ä»¶ç³»ç»Ÿ
+    // ½«ÄÚÈÝ½ÓÈëÎÄ¼þÏµÍ³
     if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, name))
     {
         free(file);
@@ -249,10 +288,10 @@ Error:
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šé‡Šæ”¾xipæ–‡ä»¶ï¼ˆå†…å­˜ä¸­çš„ç©ºé—´ï¼‰
-// å‚æ•°ï¼šfile -- xipæ–‡ä»¶ï¼›
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼šINLINE
+// ¹¦ÄÜ£ºÊÍ·ÅxipÎÄ¼þ£¨ÄÚ´æÖÐµÄ¿Õ¼ä£©
+// ²ÎÊý£ºfile -- xipÎÄ¼þ£»
+// ·µ»Ø£º
+// ±¸×¢£ºINLINE
 // ============================================================================
 static void xip_app_freefile(struct __ifile *file)
 {
@@ -265,11 +304,11 @@ static void xip_app_freefile(struct __ifile *file)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šåˆ é™¤xipæ–‡ä»¶ï¼ŒåŒ…æ‹¬å­˜å‚¨ä»‹è´¨ä¸Šçš„æ•°æ®
-// å‚æ•°ï¼šcore -- xipæ–‡ä»¶ç³»ç»Ÿä¿¡æ¯ï¼›
-//      file -- xipæ–‡ä»¶ï¼›
-// è¿”å›žï¼šå¤±è´¥ï¼ˆ-1ï¼‰ï¼›æˆåŠŸï¼ˆ0ï¼‰ã€‚
-// å¤‡æ³¨ï¼šINLINE
+// ¹¦ÄÜ£ºÉ¾³ýxipÎÄ¼þ£¬°üÀ¨´æ´¢½éÖÊÉÏµÄÊý¾Ý
+// ²ÎÊý£ºcore -- xipÎÄ¼þÏµÍ³ÐÅÏ¢£»
+//      file -- xipÎÄ¼þ£»
+// ·µ»Ø£ºÊ§°Ü£¨-1£©£»³É¹¦£¨0£©¡£
+// ±¸×¢£ºINLINE
 // ============================================================================
 static s32 xip_app_delfile(struct __icore *core, struct __ifile *file)
 {
@@ -281,10 +320,10 @@ static s32 xip_app_delfile(struct __icore *core, struct __ifile *file)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–°å»ºxipæ–‡ä»¶ä¸Šä¸‹æ–‡ï¼›
-// å‚æ•°ï¼šcore -- xipæ–‡ä»¶ç³»ç»Ÿä¿¡æ¯ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆxipæ–‡ä»¶ä¸Šä¸‹æ–‡ï¼‰ï¼›å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÐÂ½¨xipÎÄ¼þÉÏÏÂÎÄ£»
+// ²ÎÊý£ºcore -- xipÎÄ¼þÏµÍ³ÐÅÏ¢£»
+// ·µ»Ø£º³É¹¦£¨xipÎÄ¼þÉÏÏÂÎÄ£©£»Ê§°Ü£¨NULL£©£»
+// ±¸×¢£º
 // ============================================================================
 static struct __icontext *xip_app_newcontext(struct __icore *core)
 {
@@ -305,10 +344,10 @@ static struct __icontext *xip_app_newcontext(struct __icore *core)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šé‡Šæ”¾xipæ–‡ä»¶ä¸Šä¸‹æ–‡
-// å‚æ•°ï¼špContext -- xipæ–‡ä»¶ä¸Šä¸‹æ–‡ï¼›
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼šINLINE
+// ¹¦ÄÜ£ºÊÍ·ÅxipÎÄ¼þÉÏÏÂÎÄ
+// ²ÎÊý£ºpContext -- xipÎÄ¼þÉÏÏÂÎÄ£»
+// ·µ»Ø£º
+// ±¸×¢£ºINLINE
 // ============================================================================
 void xip_app_freecontext(struct __icontext *pContext)
 {
@@ -316,24 +355,24 @@ void xip_app_freecontext(struct __icontext *pContext)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ‰“å¼€æ–‡ä»¶
-// å‚æ•°ï¼šob -- æ–‡ä»¶å¯¹è±¡ï¼›
-//      flags -- æ–‡ä»¶æ“ä½œæ ‡å¿—ä½ï¼›
-//      uncached -- éœ€æ–°å»ºçš„æ–‡ä»¶åç§°ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆxipæ–‡ä»¶ä¸Šä¸‹æ–‡ï¼‰ï¼›å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º´ò¿ªÎÄ¼þ
+// ²ÎÊý£ºob -- ÎÄ¼þ¶ÔÏó£»
+//      flags -- ÎÄ¼þ²Ù×÷±êÖ¾Î»£»
+//      uncached -- ÐèÐÂ½¨µÄÎÄ¼þÃû³Æ£»
+// ·µ»Ø£º³É¹¦£¨xipÎÄ¼þÉÏÏÂÎÄ£©£»Ê§°Ü£¨NULL£©£»
+// ±¸×¢£º
 // ============================================================================
-static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
+static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncached)
 {
     s32 size;
     struct objhandle *hdl;
-    struct obj *tmp;
+    struct Object *tmp;
     struct __ifile *file = NULL;
     struct __icontext *cx = NULL;
     struct __icore *core = (struct __icore*)corefs(ob);
     mode_t mode;
     xip_app_lock(core);
-    if((!uncached)&&(obj_isMount(ob))) // æ ¹ç›®å½•
+    if((!uncached)&&(obj_isMount(ob))) // ¸ùÄ¿Â¼
     {
         if(!test_directory(flags))
         {
@@ -343,8 +382,8 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
     }
     if(uncached)
     {
-    //å…³é—­æ–‡ä»¶åŽæ–‡ä»¶çš„objä¼šä»Žmountç‚¹çš„objä¸­åˆ é™¤ï¼Œæ‰€ä»¥å¦‚æžœmountç‚¹çš„objä¸­æ²¡æœ‰æ–‡ä»¶çš„objåˆ™å…ˆä»Žflashä¸­èŽ·å–è¯¥æ–‡ä»¶ä¿¡æ¯
-        xip_app_scanfiles(core);//æ‰«ææ–‡ä»¶
+    //¹Ø±ÕÎÄ¼þºóÎÄ¼þµÄobj»á´ÓmountµãµÄobjÖÐÉ¾³ý£¬ËùÒÔÈç¹ûmountµãµÄobjÖÐÃ»ÓÐÎÄ¼þµÄobjÔòÏÈ´ÓflashÖÐ»ñÈ¡¸ÃÎÄ¼þÐÅÏ¢
+        xip_app_scanfiles(core);//É¨ÃèÎÄ¼þ
         do
         {
             if(strcmp(uncached,obj_name(ob)) == 0)
@@ -360,27 +399,27 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
             ob = tmp;
         }while(1);
     }
-    if(test_directory(flags)) // ç›®å½•é€»è¾‘
+    if(test_directory(flags)) // Ä¿Â¼Âß¼­
     {
-        xip_app_scanfiles(core);//æ‰«ææ–‡ä»¶
-        if(uncached)// ä¸æ”¯æŒæ–°å»ºç›®å½•
+        xip_app_scanfiles(core);//É¨ÃèÎÄ¼þ
+        if(uncached)// ²»Ö§³ÖÐÂ½¨Ä¿Â¼
         {
             printf("\r\n: info : xipfs  : do not support create directory.");
             xip_app_unlock(core);
             return (NULL);
         }
     }
-    else // æ–‡ä»¶çš„é€»è¾‘
+    else // ÎÄ¼þµÄÂß¼­
     {
-        if(uncached) // æ–‡ä»¶ä¸å­˜åœ¨ï¼Œéœ€è¦æ–°å»ºã€‚ï¼ˆæ–‡ä»¶éƒ½æ˜¯å·²ç¼“å­˜çš„ï¼‰
+        if(uncached) // ÎÄ¼þ²»´æÔÚ£¬ÐèÒªÐÂ½¨¡££¨ÎÄ¼þ¶¼ÊÇÒÑ»º´æµÄ£©
         {
             if(!test_creat(flags))
             {
                 xip_app_unlock(core);
-                return (NULL); // æ‰“å¼€æ“ä½œä¸­æ— æ–°å»ºè¦æ±‚ï¼Œåˆ™è¿”å›žä¸å­˜åœ¨ï¼›
+                return (NULL); // ´ò¿ª²Ù×÷ÖÐÎÞÐÂ½¨ÒªÇó£¬Ôò·µ»Ø²»´æÔÚ£»
             }
 
-            // åˆ¤æ–­xipæ–‡ä»¶ç³»ç»Ÿæ˜¯ä¸æ˜¯å·²ç»æœ‰æ–‡ä»¶äº†ï¼Œå¦‚æžœå­˜åœ¨æ˜¯å¦æ­£åœ¨ä½¿ç”¨ï¼›
+            // ÅÐ¶ÏxipÎÄ¼þÏµÍ³ÊÇ²»ÊÇÒÑ¾­ÓÐÎÄ¼þÁË£¬Èç¹û´æÔÚÊÇ·ñÕýÔÚÊ¹ÓÃ£»
             tmp = obj_child(core->root);
             if(tmp)
             {
@@ -408,7 +447,7 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
 
             xip_app_formatfilehead(core, file);
 #if 0
-            if(of_virtualize(ob, &file->basic, uncached)) // xipæ–‡ä»¶ï¼Œé“¾å…¥æ–‡ä»¶ç³»ç»Ÿ
+            if(of_virtualize(ob, &file->basic, uncached)) // xipÎÄ¼þ£¬Á´ÈëÎÄ¼þÏµÍ³
                 return (NULL);
 #else
             if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, uncached))
@@ -418,12 +457,12 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
             }
 #endif
         }
-        else // æ–‡ä»¶å·²å­˜åœ¨
+        else // ÎÄ¼þÒÑ´æÔÚ
         {
             if(test_onlycreat(flags))
             {
                 xip_app_unlock(core);
-                return (NULL); // å¿…é¡»æ–°å»ºé€»è¾‘ï¼Œä½†æ–‡ä»¶å·²å­˜åœ¨
+                return (NULL); // ±ØÐëÐÂ½¨Âß¼­£¬µ«ÎÄ¼þÒÑ´æÔÚ
             }
 
             file = (struct __ifile*)obj_GetPrivate(ob);
@@ -444,13 +483,13 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
         if(!cx)
         {
             if(uncached)
-                xip_app_freefile(file); // é‡Šæ”¾æŽ‰ä¸Šé¢åˆ›å»ºçš„
+                xip_app_freefile(file); // ÊÍ·ÅµôÉÏÃæ´´½¨µÄ
 
             xip_app_unlock(core);
             return (NULL);
         }
 
-        // é¢„ç¼“å­˜é€»è¾‘
+        // Ô¤»º´æÂß¼­
         if(file->sz<core->inhead)
         {
             size = file->sz;
@@ -481,7 +520,7 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
         if(core->drv->xip_read_media(core, cx->buf, size, (cx->pos+file->cxbase-cx->bufed)))
         {
             if(uncached)
-                xip_app_freefile(file); // é‡Šæ”¾æŽ‰ä¸Šé¢åˆ›å»ºçš„
+                xip_app_freefile(file); // ÊÍ·ÅµôÉÏÃæ´´½¨µÄ
 
             xip_app_unlock(core);
             return (NULL);
@@ -493,16 +532,16 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
     {
         xip_app_freecontext(cx);
         if(uncached)
-            xip_app_freefile(file); // é‡Šæ”¾æŽ‰ä¸Šé¢åˆ›å»ºçš„
+            xip_app_freefile(file); // ÊÍ·ÅµôÉÏÃæ´´½¨µÄ
     }
 
     handle_init(hdl, NULL, flags, (ptu32_t)cx);
 
     if(hdl)
     {
-        //TODOï¼šä»Žyaffs2ä¸­è¯»å–æƒé™ç­‰ï¼Œæš‚æ—¶èµ‹äºˆå…¨éƒ¨æƒé™ã€‚
-        mode = S_IALLUGO | S_IFREG;     //å»ºç«‹çš„è·¯å¾„ï¼Œå±žæ€§æ˜¯ç›®å½•ã€‚
-        //ç»§æ‰¿æ“ä½œæ–¹æ³•ï¼Œå¯¹è±¡çš„ç§æœ‰æˆå‘˜ä¿å­˜è®¿é—®æ¨¡å¼ï¼ˆå³ stat çš„ st_mode ï¼‰
+        //TODO£º´Óyaffs2ÖÐ¶ÁÈ¡È¨ÏÞµÈ£¬ÔÝÊ±¸³ÓèÈ«²¿È¨ÏÞ¡£
+        mode = S_IALLUGO | S_IFREG;     //½¨Á¢µÄÂ·¾¶£¬ÊôÐÔÊÇÄ¿Â¼¡£
+        //¼Ì³Ð²Ù×÷·½·¨£¬¶ÔÏóµÄË½ÓÐ³ÉÔ±±£´æ·ÃÎÊÄ£Ê½£¨¼´ stat µÄ st_mode £©
         ob = obj_buildpath(ob, xip_app_ops, mode,uncached);
         obj_LinkHandle(hdl, ob);
     }
@@ -511,10 +550,10 @@ static struct objhandle *xip_app_open(struct obj *ob, u32 flags, char *uncached)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå…³é—­æ–‡ä»¶
-// å‚æ•°ï¼šhdl -- xipæ–‡ä»¶å¯¹è±¡å¥æŸ„ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¹Ø±ÕÎÄ¼þ
+// ²ÎÊý£ºhdl -- xipÎÄ¼þ¶ÔÏó¾ä±ú£»
+// ·µ»Ø£º³É¹¦£¨0£©£»Ê§°Ü£¨-1£©£»
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_app_close(struct objhandle *hdl)
 {
@@ -523,12 +562,12 @@ static s32 xip_app_close(struct objhandle *hdl)
     struct __ifile *file;
     struct __icontext *cx = (struct __icontext*)handle_context(hdl);
 
-    if(cx) // NULLæ—¶è¡¨ç¤ºç›®å½•
+    if(cx) // NULLÊ±±íÊ¾Ä¿Â¼
     {
         core = (struct __icore*)corefs(handle_GetHostObj(hdl));
         file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
         xip_app_lock(core);
-        if(__STATUS_UPDATED != file->status) // æ•°æ®å­˜åœ¨å†™å…¥æ“ä½œæˆ–è€…æ–‡ä»¶æ˜¯æ–°å»ºçš„
+        if(__STATUS_UPDATED != file->status) // Êý¾Ý´æÔÚÐ´Èë²Ù×÷»òÕßÎÄ¼þÊÇÐÂ½¨µÄ
         {
             if(cx->bufed)
             {
@@ -544,7 +583,7 @@ static s32 xip_app_close(struct objhandle *hdl)
                 }
             }
 
-            if(!iscontender(hdl)) // æœ€åŽä¸€ä¸ªæ–‡ä»¶ä½¿ç”¨è€…å…³é—­æ–‡ä»¶æ—¶ï¼Œæ‰ä¼šè®¾ç½®æ–‡ä»¶å¤´
+            if(!iscontender(hdl)) // ×îºóÒ»¸öÎÄ¼þÊ¹ÓÃÕß¹Ø±ÕÎÄ¼þÊ±£¬²Å»áÉèÖÃÎÄ¼þÍ·
             {
                 if(xip_app_makefilehead(cx,core, file, handle_name(hdl)))
                 {
@@ -563,16 +602,17 @@ static s32 xip_app_close(struct objhandle *hdl)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå†™æ–‡ä»¶
-// å‚æ•°ï¼šhdl -- xipæ–‡ä»¶å¯¹è±¡å¥æŸ„ï¼›
-//      data -- éœ€å†™å…¥æ•°æ®çš„ç©ºé—´ï¼›
-//      size -- éœ€å†™å…¥æ•°æ®çš„å¤§å°ï¼›
-// è¿”å›žï¼šå®žé™…å†™å…¥çš„å­—èŠ‚æ•°ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÐ´ÎÄ¼þ
+// ²ÎÊý£ºhdl -- xipÎÄ¼þ¶ÔÏó¾ä±ú£»
+//      data -- ÐèÐ´ÈëÊý¾ÝµÄ¿Õ¼ä£»
+//      size -- ÐèÐ´ÈëÊý¾ÝµÄ´óÐ¡£»
+// ·µ»Ø£ºÊµ¼ÊÐ´ÈëµÄ×Ö½ÚÊý£»
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 {
-    s32 pos, once, free, res, left;
+    s32 pos, once, free, res;
+    u32 left;
     struct __icontext *cx = (struct __icontext *)handle_context(hdl);
     struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
@@ -595,38 +635,39 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
             return size;
         }
     }
-    left = (s32)size;
+    
+    left = size;               //µÚÒ»´ÎÓ¦¸Ã¼õÈ¥ÎÄ¼þÍ·ÐÅÏ¢.¹ÊÐèÒªÐ´µÄ×Ö½ÚÊýÓ¦·ÅÕâÀï
     xip_app_lock(core);
-    if(cx->pos<=core->inhead) // ç¼“å­˜ä¸­å‰©ä½™å¯å†™ç©ºé—´ï¼›ï¼ˆè¿žç»­å†™å’Œä¸è¿žç»­å†™ä¼šæœ‰è¿™ä¹ˆå¤„ç†ï¼Œ256æ—¶ï¼‰
-        free = core->inhead - cx->pos; // åœ¨å¼€å§‹çš„åŒºåŸŸä¸­ï¼Œæ–‡ä»¶å¤´éƒ¨å æ®äº†å›ºå®šç©ºé—´ï¼›
+    if(cx->pos<=core->inhead) // »º´æÖÐÊ£Óà¿ÉÐ´¿Õ¼ä£»£¨Á¬ÐøÐ´ºÍ²»Á¬ÐøÐ´»áÓÐÕâÃ´´¦Àí£¬256Ê±£©
+        free = core->inhead - cx->pos; // ÔÚ¿ªÊ¼µÄÇøÓòÖÐ£¬ÎÄ¼þÍ·²¿Õ¼¾ÝÁË¹Ì¶¨¿Õ¼ä£»
     else
         free = core->bufsz - ((cx->pos - core->inhead) % core->bufsz);
 
     while(left)
     {
         once = left;
-        if(once>free) // å•æ¬¡å…ˆå†™å…¥åˆ°ç¼“å­˜ä¸­ï¼›
+        if(once>free) // µ¥´ÎÏÈÐ´Èëµ½»º´æÖÐ£»
             once = free;
         memcpy(cx->buf+cx->bufed, data, once);
         cx->bufed += once;
-        if((cx->bufed==core->bufsz) || // ç¼“å†²å·²æ»¡ï¼Œåˆ·å…¥
-           ((cx->bufed==(s16)core->inhead) // æ–‡ä»¶å¤´éƒ¨å æ®äº†å›ºå®šç©ºé—´ï¼Œæ­¤æƒ…å†µä¹Ÿæ»¡ï¼ˆå¯¹é½ï¼‰
-             &&(((cx->pos+once)<=core->inhead)))) // (ç­‰äºŽé›¶çš„æƒ…å†µç”¨äºŽå­˜åœ¨äºŽseeké€»è¾‘)
+        if((cx->bufed==core->bufsz) || // »º³åÒÑÂú£¬Ë¢Èë
+           ((cx->bufed==(s16)core->inhead) // ÎÄ¼þÍ·²¿Õ¼¾ÝÁË¹Ì¶¨¿Õ¼ä£¬´ËÇé¿öÒ²Âú£¨¶ÔÆë£©
+             &&(((cx->pos+once)<=core->inhead)))) // (µÈÓÚÁãµÄÇé¿öÓÃÓÚ´æÔÚÓÚseekÂß¼­)
         {
-            pos = cx->pos - (cx->bufed - once) + file->cxbase; // å½“å‰ä½ç½®å†™å…¥æ—¶çš„ä½ç½®ï¼Œç¼“å­˜å¯¹é½äº†çš„ï¼›
-            res = core->drv->xip_write_media(core, cx->buf, cx->bufed, pos);// æ­¤æ—¶bufedçš„å¤§å°ä¸ºbufszæˆ–è€…inheadï¼›
-            if(-1==res) // å†™é”™è¯¯ï¼›
+            pos = cx->pos - (cx->bufed - once) + file->cxbase; // µ±Ç°Î»ÖÃÐ´ÈëÊ±µÄÎ»ÖÃ£¬»º´æ¶ÔÆëÁËµÄ£»
+            res = core->drv->xip_write_media(core, cx->buf, cx->bufed, pos);// ´ËÊ±bufedµÄ´óÐ¡Îªbufsz»òÕßinhead£»
+            if(-1==res) // Ð´´íÎó£»
             {
                 break;
             }
-            else if(-2==res) // å°†è¦æ²¡æœ‰å¯å†™ç©ºé—´ï¼Œåˆ é™¤ä¸€äº›ï¼›
+            else if(-2==res) // ½«ÒªÃ»ÓÐ¿ÉÐ´¿Õ¼ä£¬É¾³ýÒ»Ð©£»
             {
-                if(core->drv->xip_erase_media(core, core->bufsz, (pos+cx->bufed+1)))// '+1'è¡¨ç¤ºä¸‹ä¸€ä¸ªè¦å†™çš„ç©ºé—´åœ°å€ï¼›
+                if(core->drv->xip_erase_media(core, core->bufsz, (pos+cx->bufed+1)))// '+1'±íÊ¾ÏÂÒ»¸öÒªÐ´µÄ¿Õ¼äµØÖ·£»
                     break;
             }
 
-            // ç¼“å­˜é‡ç½®ï¼Œå°†åŽç»­çš„ç¼“å­˜é¢„å–è¿›æ¥ï¼ˆç¬¬ä¸€ä¸ªheadåŒºåŸŸæ˜¯ä¸ä¼šåœ¨è¿™é‡Œéœ€è¦ç¼“å­˜çš„ï¼‰
-            // æ­¤åŽseekå°±ç›´æŽ¥ç§»åŠ¨bufed;
+            // »º´æÖØÖÃ£¬½«ºóÐøµÄ»º´æÔ¤È¡½øÀ´£¨µÚÒ»¸öheadÇøÓòÊÇ²»»áÔÚÕâÀïÐèÒª»º´æµÄ£©
+            // ´Ëºóseek¾ÍÖ±½ÓÒÆ¶¯bufed;
             if(left<core->bufsz)
             {
                 if(core->drv->xip_read_media(core, cx->buf, core->bufsz, pos+cx->bufed))
@@ -646,7 +687,7 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
         file->sz = cx->pos;
 
     if((__STATUS_UPDATING!=file->status)&&(left!=(s32)size))
-        file->status = __STATUS_UPDATING; // æ–‡ä»¶æ•°æ®å‘ç”Ÿå˜æ”¹å˜
+        file->status = __STATUS_UPDATING; // ÎÄ¼þÊý¾Ý·¢Éú±ä¸Ä±ä
 
     xip_app_unlock(core);
     return (wsize+size-left);
@@ -658,7 +699,7 @@ static s32 xip_app_sync(struct objhandle *hdl)
     struct __icore *core = (struct __icore*)corefs(handle_GetHostObj(hdl));
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
     xip_app_lock(core);
-    if(__STATUS_UPDATED != file->status) // æ•°æ®å­˜åœ¨å†™å…¥æ“ä½œæˆ–è€…æ–‡ä»¶æ˜¯æ–°å»ºçš„
+    if(__STATUS_UPDATED != file->status) // Êý¾Ý´æÔÚÐ´Èë²Ù×÷»òÕßÎÄ¼þÊÇÐÂ½¨µÄ
     {
         if(cx->bufed)
         {
@@ -680,12 +721,12 @@ static s32 xip_app_sync(struct objhandle *hdl)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šè¯»æ–‡ä»¶
-// å‚æ•°ï¼šhdl -- xipæ–‡ä»¶å¯¹è±¡å¥æŸ„ï¼›
-//      data -- éœ€è¯»å‡ºæ•°æ®çš„å­˜æ”¾ç©ºé—´ï¼›
-//      size -- éœ€è¯»å‡ºæ•°æ®çš„å¤§å°ï¼›
-// è¿”å›žï¼šå®žé™…è¯»å‡ºçš„å•å…ƒæ•°ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¶ÁÎÄ¼þ
+// ²ÎÊý£ºhdl -- xipÎÄ¼þ¶ÔÏó¾ä±ú£»
+//      data -- Ðè¶Á³öÊý¾ÝµÄ´æ·Å¿Õ¼ä£»
+//      size -- Ðè¶Á³öÊý¾ÝµÄ´óÐ¡£»
+// ·µ»Ø£ºÊµ¼Ê¶Á³öµÄµ¥ÔªÊý£»
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 {
@@ -696,34 +737,34 @@ static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 
     xip_app_lock(core);
     if((cx->pos+size)>file->sz)
-        size = file->sz - cx->pos; // ä¸èƒ½è¯»è¶Šç•Œ
+        size = file->sz - cx->pos; // ²»ÄÜ¶ÁÔ½½ç
 
-    // èŽ·å–é¢„ç¼“å­˜ç©ºé—´ï¼›ä¸€æ–¹é¢æ–‡ä»¶æ˜¯é¢„å…ˆç¼“å­˜åœ¨bufä¸­ï¼Œä¸”æ˜¯å¯¹é½ï¼›å¦ä¸€æ–¹é¢sizeæ˜¯ä¸ä¼šå¤§äºŽæ–‡ä»¶å¤§å°ï¼›
+    // »ñÈ¡Ô¤»º´æ¿Õ¼ä£»Ò»·½ÃæÎÄ¼þÊÇÔ¤ÏÈ»º´æÔÚbufÖÐ£¬ÇÒÊÇ¶ÔÆë£»ÁíÒ»·½ÃæsizeÊÇ²»»á´óÓÚÎÄ¼þ´óÐ¡£»
     if(cx->pos<=core->inhead)
-        once = core->inhead - cx->pos; // åœ¨å¼€å§‹çš„åŒºåŸŸä¸­ï¼Œæ–‡ä»¶å¤´éƒ¨å æ®äº†å›ºå®šç©ºé—´ï¼›
+        once = core->inhead - cx->pos; // ÔÚ¿ªÊ¼µÄÇøÓòÖÐ£¬ÎÄ¼þÍ·²¿Õ¼¾ÝÁË¹Ì¶¨¿Õ¼ä£»
     else
         once = (core->bufsz - (cx->pos - core->inhead)) % core->bufsz;
 
     if(once>=(s32)size)
     {
-        // è¿™é‡Œä¼šå­˜åœ¨ä¸€ä¸ªéšæ‚£ï¼Œå°±æ˜¯è¯»çš„æ•°æ®å¯èƒ½å’Œä»‹è´¨ä¸­çš„ä¸ä¸€æ ·ï¼Œ
-        // ä¸æ‰§è¡Œè¿™ä¸ªé€»è¾‘ï¼Œæ•ˆçŽ‡å°±å·®ï¼Œè€Œä¸”åœ¨eccä¸Šå¯èƒ½ä¼šæœ‰éº»çƒ¦ï¼›
+        // ÕâÀï»á´æÔÚÒ»¸öÒþ»¼£¬¾ÍÊÇ¶ÁµÄÊý¾Ý¿ÉÄÜºÍ½éÖÊÖÐµÄ²»Ò»Ñù£¬
+        // ²»Ö´ÐÐÕâ¸öÂß¼­£¬Ð§ÂÊ¾Í²î£¬¶øÇÒÔÚeccÉÏ¿ÉÄÜ»áÓÐÂé·³£»
         memcpy(data, cx->buf+cx->bufed, size);
         cx->pos += size;
         cx->bufed += size;
         return (size);
     }
 #if 0
-    // ç¼“å†²çš„å‰©ä½™ç©ºé—´å®¹çº³ä¸äº†å›žè¯»çš„æ•°æ®ï¼Œåˆ™å…ˆå°†æ•°æ®åˆ·ä¸‹åŽ»ï¼Œå†å›žè¯»ã€‚
-    pos = cx->pos - cx->bufed + file->cxbase; // ç¼“å­˜å¯¹é½
-    if(-1 == core->drv->xip_write_media(core, cx->buf, (cx->bufed+once), pos)) // ç¼“å­˜æ•´ä½“å†™
+    // »º³åµÄÊ£Óà¿Õ¼äÈÝÄÉ²»ÁË»Ø¶ÁµÄÊý¾Ý£¬ÔòÏÈ½«Êý¾ÝË¢ÏÂÈ¥£¬ÔÙ»Ø¶Á¡£
+    pos = cx->pos - cx->bufed + file->cxbase; // »º´æ¶ÔÆë
+    if(-1 == core->drv->xip_write_media(core, cx->buf, (cx->bufed+once), pos)) // »º´æÕûÌåÐ´
     {
         xip_app_unlock(core);
-        return (0); // ç¼“å­˜æ•°æ®åˆ·å…¥å¤±è´¥ï¼›
+        return (0); // »º´æÊý¾ÝË¢ÈëÊ§°Ü£»
     }
 #endif
-    memcpy(data, cx->buf+cx->bufed, once); // å°†ç¼“å­˜ä¸Šæ•°æ®çº¿æå–å‡ºæ¥ï¼›
-    cx->pos += once; // æ­¤åŽposé€»è¾‘ä¸Šæ˜¯ç¼“å­˜å¯¹é½çš„ï¼›
+    memcpy(data, cx->buf+cx->bufed, once); // ½«»º´æÉÏÊý¾ÝÏßÌáÈ¡³öÀ´£»
+    cx->pos += once; // ´ËºóposÂß¼­ÉÏÊÇ»º´æ¶ÔÆëµÄ£»
     left -= once;
     data += once;
     cx->bufed += once;
@@ -733,7 +774,7 @@ static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
         if(core->drv->xip_read_media(core, cx->buf, core->bufsz, cx->pos+file->cxbase))
         {
             xip_app_unlock(core);
-            return (size - left); // ç¼“å­˜æ•°æ®åˆ·å…¥å¤±è´¥ï¼›
+            return (size - left); // »º´æÊý¾ÝË¢ÈëÊ§°Ü£»
         }
 
         if(left>core->bufsz)
@@ -753,12 +794,12 @@ static s32 xip_app_read(struct objhandle *hdl, u8 *data, u32 size)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šè®¾ç½®æ–‡ä»¶å½“å‰ä½ç½®ï¼›
-// å‚æ•°ï¼šhdl -- xipæ–‡ä»¶å¯¹è±¡å¥æŸ„ï¼›
-//      offset -- ç§»åŠ¨ä½ç½®çš„é‡ï¼›
-//      whence -- ç§»åŠ¨ä½ç½®çš„èµ·ç‚¹ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼Œ*pOffsetæŒ‡å‘æ–°çš„å½“å‰ä½ç½®ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÉèÖÃÎÄ¼þµ±Ç°Î»ÖÃ£»
+// ²ÎÊý£ºhdl -- xipÎÄ¼þ¶ÔÏó¾ä±ú£»
+//      offset -- ÒÆ¶¯Î»ÖÃµÄÁ¿£»
+//      whence -- ÒÆ¶¯Î»ÖÃµÄÆðµã£»
+// ·µ»Ø£º³É¹¦£¨0£¬*pOffsetÖ¸ÏòÐÂµÄµ±Ç°Î»ÖÃ£©£»Ê§°Ü£¨-1£©£»
+// ±¸×¢£º
 // ============================================================================
 static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 {
@@ -767,7 +808,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     struct __icore *core;
     s32  npos, movs, pos;
     off_t position = *offset;
-#if 0 // åº”è¯¥ç”±ä¸Šçº§é€»è¾‘åˆ¤æ–­
+#if 0 // Ó¦¸ÃÓÉÉÏ¼¶Âß¼­ÅÐ¶Ï
     if(isDirectory(hdl))
     {
         printf("\r\n: dbug : xipfs  : cannot seek directory.");
@@ -782,18 +823,18 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
     xip_app_lock(core);
     switch(whence)
     {
-        case SEEK_END: // è½¬ä¸ºä»Žå¤´SEEKé€»è¾‘
+        case SEEK_END: // ×ªÎª´ÓÍ·SEEKÂß¼­
         {
             position = file->sz + position;
             if(position<0)
-                position = 0; // æ–°ä½ç½®è¶Šç•Œäº†
+                position = 0; // ÐÂÎ»ÖÃÔ½½çÁË
         }
 
-        case SEEK_SET: // è½¬ä¸ºå½“å‰ä½ç½®çš„SEEKçš„é€»è¾‘
+        case SEEK_SET: // ×ªÎªµ±Ç°Î»ÖÃµÄSEEKµÄÂß¼­
         {
             position = position - cx->pos;
             if((position+cx->pos)<0)
-                position = cx->pos; // æ–°ä½ç½®è¶Šç•Œäº†
+                position = cx->pos; // ÐÂÎ»ÖÃÔ½½çÁË
         }
 
         case SEEK_CUR:
@@ -802,8 +843,8 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
             if(npos<0)
                 npos = 0;
 
-            // å¦‚æžœæ˜¯åœ¨ç¼“å­˜èŒƒå›´å†…çš„ç§»åŠ¨ï¼Œåˆ™ç›´æŽ¥è¿”å›žï¼›
-            movs = npos - cx->pos; // ç§»åŠ¨çš„æ–¹å‘ï¼›
+            // Èç¹ûÊÇÔÚ»º´æ·¶Î§ÄÚµÄÒÆ¶¯£¬ÔòÖ±½Ó·µ»Ø£»
+            movs = npos - cx->pos; // ÒÆ¶¯µÄ·½Ïò£»
             if(movs<0)
             {
                 if((movs+cx->bufed)>=0)
@@ -834,13 +875,13 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
                     }
                 }
             }
-            else // ä¸éœ€è¦ç§»åŠ¨ï¼›
+            else // ²»ÐèÒªÒÆ¶¯£»
             {
                 position = cx->pos;
                 return (position);
             }
 
-            // å¦‚æžœè¶…å‡ºåœ¨ç¼“å­˜èŒƒå›´å†…çš„ç§»åŠ¨ï¼Œå°†ç¼“å­˜åˆ·å…¥ä»‹è´¨
+            // Èç¹û³¬³öÔÚ»º´æ·¶Î§ÄÚµÄÒÆ¶¯£¬½«»º´æË¢Èë½éÖÊ
             pos = cx->pos - cx->bufed + file->cxbase;
             if(cx->pos<core->inhead)
             {
@@ -853,7 +894,7 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
                     return (-1);
             }
 
-            if(npos<=(s32)core->inhead) // ç¼“å­˜æ–°çš„ä½ç½®
+            if(npos<=(s32)core->inhead) // »º´æÐÂµÄÎ»ÖÃ
             {
                 if(core->drv->xip_read_media(core, cx->buf, core->inhead, file->cxbase))
                 {
@@ -891,12 +932,12 @@ static off_t xip_app_seek(struct objhandle *hdl, off_t *offset, s32 whence)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šåˆ é™¤æ–‡ä»¶ï¼›
-// å‚æ•°ï¼šob -- xipæ–‡ä»¶å¯¹è±¡ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼šæœªè€ƒè™‘äº’æ–¥ï¼›å½“pNameä¸ºNULLæ—¶ï¼Œè¡¨ç¤ºæ–‡ä»¶æ­£åœ¨è¢«ä½¿ç”¨ï¼›
+// ¹¦ÄÜ£ºÉ¾³ýÎÄ¼þ£»
+// ²ÎÊý£ºob -- xipÎÄ¼þ¶ÔÏó£»
+// ·µ»Ø£º³É¹¦£¨0£©£»Ê§°Ü£¨-1£©£»
+// ±¸×¢£ºÎ´¿¼ÂÇ»¥³â£»µ±pNameÎªNULLÊ±£¬±íÊ¾ÎÄ¼þÕýÔÚ±»Ê¹ÓÃ£»
 // ============================================================================
-static s32 xip_app_remove(struct obj *ob)
+static s32 xip_app_remove(struct Object *ob)
 {
     struct __ifile *file;
     struct __icore *core;
@@ -907,12 +948,12 @@ static s32 xip_app_remove(struct obj *ob)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶æŸ¥è¯¢
-// å‚æ•°ï¼šob -- xipæ–‡ä»¶å¯¹è±¡ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þ²éÑ¯
+// ²ÎÊý£ºob -- xipÎÄ¼þ¶ÔÏó£»
+// ·µ»Ø£º³É¹¦£¨0£©£»Ê§°Ü£¨-1£©£»
+// ±¸×¢£º
 // ============================================================================
-static s32 xip_app_stat(struct obj *ob, struct stat *data)
+static s32 xip_app_stat(struct Object *ob, struct stat *data)
 {
     struct __ifile *file;
 
@@ -932,15 +973,15 @@ static s32 xip_app_stat(struct obj *ob, struct stat *data)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šè¯»xipæ–‡ä»¶ç³»ç»Ÿç›®å½•é¡¹ï¼›
-// å‚æ•°ï¼šhdl -- xipæ–‡ä»¶å¯¹è±¡å¥æŸ„ï¼›
-//      dentry -- ç›®å½•é¡¹ï¼›
-// è¿”å›žï¼šå…¨éƒ¨è¯»å®Œï¼ˆ1ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›è¯»äº†ä¸€é¡¹ï¼ˆ0ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¶ÁxipÎÄ¼þÏµÍ³Ä¿Â¼Ïî£»
+// ²ÎÊý£ºhdl -- xipÎÄ¼þ¶ÔÏó¾ä±ú£»
+//      dentry -- Ä¿Â¼Ïî£»
+// ·µ»Ø£ºÈ«²¿¶ÁÍê£¨1£©£»Ê§°Ü£¨-1£©£»¶ÁÁËÒ»Ïî£¨0£©£»
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_app_readdentry(struct objhandle *hdl, struct dirent *dentry)
 {
-    struct obj *ob = handle_GetHostObj(hdl);
+    struct Object *ob = handle_GetHostObj(hdl);
 
     ob = obj_child(ob);
     if((ob)&&(dentry->d_ino!=(long)ob))
@@ -954,15 +995,16 @@ static s32 xip_app_readdentry(struct objhandle *hdl, struct dirent *dentry)
     return (1);
 }
 // ============================================================================
-// åŠŸèƒ½ï¼šåˆå§‹åŒ–xipå¯¹mediaçš„é©±åŠ¨
-// å‚æ•°ï¼šcore -- efsæ–‡ä»¶ç³»ç»Ÿç®¡ç†ï¼›  drv -- mediaçš„æ“ä½œå‡½æ•°é›†
-// è¿”å›žï¼š0 -- æˆåŠŸï¼›  -1 --å¤±è´¥
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º³õÊ¼»¯xip¶ÔmediaµÄÇý¶¯
+// ²ÎÊý£ºcore -- efsÎÄ¼þÏµÍ³¹ÜÀí£»  drv -- mediaµÄ²Ù×÷º¯Êý¼¯
+// ·µ»Ø£º0 -- ³É¹¦£»  -1 --Ê§°Ü
+// ±¸×¢£º
 // ============================================================================
 int xip_app_install_drv(struct __icore *core, struct __xip_drv *drv)
 {
     if (!core || !drv)
          return (-1);
+
     core->drv = malloc(sizeof(*drv));
     core->drv->xip_erase_media = drv->xip_erase_media;
     core->drv->xip_read_media = drv->xip_read_media;
@@ -970,20 +1012,19 @@ int xip_app_install_drv(struct __icore *core, struct __xip_drv *drv)
     return (0);
 }
 // ============================================================================
-// åŠŸèƒ½ï¼šå®‰è£…xipæ–‡ä»¶ç³»ç»Ÿ
-// å‚æ•°ï¼šsuper -- æ–‡ä»¶ç³»ç»Ÿç®¡ç†ä¿¡æ¯ï¼›
-//      opt -- å®‰è£…é€»è¾‘æ ‡å¿—ä½ï¼›
-//      config -- è‡ªå®šä¹‰æ•°æ®ï¼›
-// è¿”å›žï¼šæˆåŠŸ(0)ï¼› å¤±è´¥(-1)ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º°²×°xipÎÄ¼þÏµÍ³
+// ²ÎÊý£ºsuper -- ÎÄ¼þÏµÍ³¹ÜÀíÐÅÏ¢£»
+//      opt -- °²×°Âß¼­±êÖ¾Î»£»
+//      config -- ×Ô¶¨ÒåÊý¾Ý£»
+// ·µ»Ø£º³É¹¦(0)£» Ê§°Ü(-1)¡£
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 {
 
     struct __icore *core;
     struct umedia *um;
-
-
+    u32 flash_page_size;
 
     config = config;
     opt = opt;
@@ -1001,11 +1042,12 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
         free(core);
         return (-1);
     }
+    um->mreq(unitbytes,(ptu32_t)&flash_page_size);
     xip_app_install_drv(core,super->MediaDrv);
     core->ASize = super->AreaSize;
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
-    core->bufsz = 1 << um->usz; // xipæ–‡ä»¶ç³»ç»Ÿæ–‡ä»¶çš„ç¼“å­˜å¤§å°ä¾æ®unitçš„å°ºå¯¸ï¼›
+    core->bufsz = (s16)flash_page_size; // xipÎÄ¼þÏµÍ³ÎÄ¼þµÄ»º´æ´óÐ¡ÒÀ¾ÝunitµÄ³ß´ç£»
     if(core->bufsz<(s16)Get_AppHeadSize())
     {
         free(core);
@@ -1014,7 +1056,7 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 
     core->inhead = core->bufsz - Get_AppHeadSize();
     core->root = super->pTarget;
-    xip_app_scanfiles(core); // æ‰«æå·²å­˜åœ¨æ–‡ä»¶
+    xip_app_scanfiles(core); // É¨ÃèÒÑ´æÔÚÎÄ¼þ
     core->lock = Lock_MutexCreate("xip-app fs");
     if(!core->lock)
     {
@@ -1027,10 +1069,10 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šxipæ–‡ä»¶æ“ä½œæŽ¥å£
-// å‚æ•°ï¼šæ ‡å‡†é€»è¾‘ï¼ŒæŸ¥çœ‹æŽ¥å£è¯´æ˜Žï¼›
-// è¿”å›žï¼šæ ‡å‡†é€»è¾‘ï¼ŒæŸ¥çœ‹æŽ¥å£è¯´æ˜Žï¼›
-// å¤‡æ³¨:
+// ¹¦ÄÜ£ºxipÎÄ¼þ²Ù×÷½Ó¿Ú
+// ²ÎÊý£º±ê×¼Âß¼­£¬²é¿´½Ó¿ÚËµÃ÷£»
+// ·µ»Ø£º±ê×¼Âß¼­£¬²é¿´½Ó¿ÚËµÃ÷£»
+// ±¸×¢:
 // ============================================================================
 s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3)
@@ -1042,7 +1084,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = xip_app_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = xip_app_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -1097,7 +1139,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_DELETE:
         {
-            if(xip_app_remove((struct obj*)opsTarget) == 0)
+            if(xip_app_remove((struct Object*)opsTarget) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -1108,8 +1150,8 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         {
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
-                return (-1); // æŸ¥è¯¢çš„æ–‡ä»¶ä¸å­˜åœ¨ï¼›
-            if(xip_app_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+                return (-1); // ²éÑ¯µÄÎÄ¼þ²»´æÔÚ£»
+            if(xip_app_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -1136,16 +1178,16 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå®‰è£…xipæ–‡ä»¶ç³»ç»Ÿ
-// å‚æ•°ï¼štarget -- å®‰è£…ç›®å½•ï¼›
-//      opt -- æ–‡ä»¶ç³»ç»Ÿé…ç½®é€‰é¡¹ï¼›å¦‚MS_INSTALLCREAT
-//      data -- ä¼ é€’ç»™YAF2å®‰è£…é€»è¾‘çš„æ•°æ®ï¼›
-// è¿”å›žï¼šå¤±è´¥(-1)ï¼› æˆåŠŸ(0)ã€‚
-// å¤‡æ³¨:
+// ¹¦ÄÜ£º°²×°xipÎÄ¼þÏµÍ³
+// ²ÎÊý£ºtarget -- °²×°Ä¿Â¼£»
+//      opt -- ÎÄ¼þÏµÍ³ÅäÖÃÑ¡Ïî£»ÈçMS_INSTALLCREAT
+//      data -- ´«µÝ¸øxip°²×°Âß¼­µÄÊý¾Ý£»
+// ·µ»Ø£ºÊ§°Ü(-1)£» ³É¹¦(0)¡£
+// ±¸×¢:
 // ============================================================================
 s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
 {
-    struct obj * mountobj;
+    struct Object * mountobj;
     static struct filesystem *typeXIPAPP = NULL;
     s32 res;
 
@@ -1163,7 +1205,7 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"XIP-APP\"(file system type).");
-        return (-1); // å¤±è´¥;
+        return (-1); // Ê§°Ü;
     }
 
     mountobj = obj_newchild(obj_root(), __mount_ops, 0, EN_XIP_APP_TARGET);
@@ -1172,8 +1214,8 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_APP_TARGET);
         return (-1);
     }
-    obj_InuseUpFullPath(mountobj);
-    opt |= MS_DIRECTMOUNT;      //ç›´æŽ¥æŒ‚è½½ä¸ç”¨å¤‡ä»½
+//    __InuseUpFullPath(mountobj);
+    opt |= MS_DIRECTMOUNT;      //Ö±½Ó¹ÒÔØ²»ÓÃ±¸·Ý
     res = mountfs(NULL, EN_XIP_APP_TARGET, "XIP-APP", opt, data);
     if(res == -1)
     {

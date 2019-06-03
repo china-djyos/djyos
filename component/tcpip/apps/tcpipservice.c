@@ -55,7 +55,6 @@
 #include <shell.h>
 
 
-
 extern bool_t ServiceDhcpcInit(void);
 extern bool_t ServiceDhcpdInit(void);
 extern bool_t ServiceDnsInit(void);
@@ -65,52 +64,61 @@ extern bool_t ServiceFtpInit(void);
 extern bool_t ServiceInit_Telnetd(void);
 extern bool_t ServiceTftpInit(void);
 
+//bit0 开启DHCP客户端 bit1 开启DHCP server
+__attribute__((weak))  u32 Get_DhcpInitflag(void)
+{
+    return 1;
+}
+
 //THIS IS THE TCP IP SERVICE LOAD MODULE
 bool_t ServiceInit(void)
 {
     bool_t result = true;
 
-    if((CFG_DHCPC_ENABLE)&&(false == ServiceDhcpcInit()))
+#if  (CFG_MODULE_ENABLE_DHCP == true)
+    u32 flag = Get_DhcpInitflag();
+    if((flag&(1<<0)) &&CFG_DHCPC_ENABLE)
     {
-        error_printf("tcpip","###err: service dhcpc failed");
-        result = false;
+        if((false == ServiceDhcpcInit()))
+        {
+            error_printf("tcpip","###err: service dhcpc failed");
+            result = false;
+        }
     }
-    if((CFG_DHCPD_ENABLE)&&(false == ServiceDhcpdInit()))
+    if((flag&(1<<1))&&CFG_DHCPD_ENABLE)
     {
-        error_printf("tcpip","###err: service dhcpd failed");
-        result = false;
+        if((false == ServiceDhcpdInit()))
+        {
+            error_printf("tcpip","###err: service dhcpd failed");
+            result = false;
+        }
     }
+#endif
 
-    if(false == ServiceDnsInit())
-    {
-        error_printf("tcpip","###err: service dns failed");
-        result = false;
-    }
-    if(false == ServicePingInit())
-    {
-        error_printf("tcpip","###err: service ping failed");
-        result = false;
-    }
-    if(false == ServiceSntpInit())
-    {
-        error_printf("tcpip","###err: service sntp failed");
-        result = false;
-    }
 
-    if((CFG_FTP_ENABLE)&&(false == ServiceFtpInit()))
+
+#if (CFG_MODULE_ENABLE_FTP == true)
+    if(false == ServiceFtpInit())
     {
         error_printf("tcpip","###err: service ftp failed");
         result = false;
     }
-    if((CFG_TELNET_ENABLE)&&(false == ServiceInit_Telnetd()))
+#endif
+
+#if  (CFG_MODULE_ENABLE_TELNET == true)
+    if(false == ServiceInit_Telnetd())
     {
         error_printf("tcpip","###err: service telnet failed\n\r");
         result = false;
     }
-    if((CFG_TFTP_ENABLE)&&(false == ServiceTftpInit()))
+#endif
+
+#if  (CFG_MODULE_ENABLE_TFTP == true)
+    if(false == ServiceTftpInit())
     {
         error_printf("tcpip","###err: service tftp failed");
         result = false;
     }
+#endif
     return result;
 }

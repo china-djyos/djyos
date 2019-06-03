@@ -1,0 +1,42 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"stm32l476xx",
+		"board":"NUCLEO-L476RG"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["black box",
+		"board config",
+		"cpu onchip peripheral lowpower control",
+		"cpu peri uart",
+		"debug information",
+		"device file system",
+		"flash",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"lowpower",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32L4",
+		"uart device file"]
+	}
+}

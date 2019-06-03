@@ -1,0 +1,32 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m7",
+		"cpu":"stm32h743xx",
+		"board":"APOLLO-STM32H7"
+	},
+	"components_checked":{
+		"app":["board config",
+		"cpu peri gpio",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"stdio",
+		"stm32h7"],
+		"iboot":[]
+	}
+}

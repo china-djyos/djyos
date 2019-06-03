@@ -1,0 +1,61 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m7",
+		"cpu":"stm32f767xx",
+		"board":"APOLLO-STM32F7"
+	},
+	"components_checked":{
+		"app":["black box",
+		"board config",
+		"cpu onchip dma",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"debug information",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32f7",
+		"uart device file"],
+		"iboot":["black box",
+		"board config",
+		"cpu onchip dma",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32f7",
+		"uart device file"]
+	}
+}

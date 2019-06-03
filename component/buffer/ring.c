@@ -503,7 +503,7 @@ u32 Ring_SearchStr(struct RingBuf *ring, char *string,u32 str_len)
 // 返回: ring中剩余容量（字节数）
 // 备注：
 // ============================================================================
-u32 Ring_Capacity2(struct RingBuf *ring)
+u32 Ring_CheckFree(struct RingBuf *ring)
 {
     return (ring->max_len - ring->len);
 }

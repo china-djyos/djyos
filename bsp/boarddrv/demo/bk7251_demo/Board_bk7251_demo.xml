@@ -2,6 +2,12 @@
 <board>
   <boardName>bk7251_demo</boardName>
   <cpu>
-    <cpuName>bk7251_demo</cpuName>
+    <cpuName>bk7251</cpuName>
+    <mianClk>26.0</mianClk>
+    <peripheral>cpu_peri_audio_mic</peripheral>
+    <peripheral>cpu_peri_flash</peripheral>
+    <peripheral>cpu_peri_gpio</peripheral>
+    <peripheral>cpu_peri_uart</peripheral>
+    <peripheral>cpu_peri_eth</peripheral>
   </cpu>
 </board>

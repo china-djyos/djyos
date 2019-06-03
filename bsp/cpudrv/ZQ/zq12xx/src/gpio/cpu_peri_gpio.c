@@ -22,86 +22,86 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018é”›å²ƒæ†²æµ£æ»„æ½ˆé¢éå…˜å§¹ç†·ç‰¥éŽ¿å¶„ç¶”ç»¯è¤ç²ºå¯®ï¿½å©§æ„¬ç´‘é™æˆæ´Ÿé—ƒç†¸å¢éˆå¤ˆï¿½å‚æ†²æµ£æ»„æ½ˆæµœè½°ç¹šé£æ¬Žç«´é’å›¨æ½ˆé’â”¿ï¿½ï¿½
+// Copyright (c) 2018£¬Öø×÷È¨ÓÉ¶¼½­Ñß²Ù×÷ÏµÍ³¿ªÔ´¿ª·¢ÍÅ¶ÓËùÓÐ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇÐÈ¨Àû¡£
 //
-// æ©æ¬Žå”¤éŽºå Ÿæ½ˆé‰â„ƒîƒ™é”›å±½æ¹ªæµ£è·¨æ•¤é‘°å‘¯îƒéšå œç¬…é’æ¥æ½¯æµ å‰æ®‘éŽ¯å‘­èˆ°æ¶“å¬¶ç´éŽºå œç°£æµ£è·¨æ•¤é‘°å‘¬å¨‡é¢ã„¥å¼·éå¶†æšŽéŽ¾î…Ÿæ¹°
-// æžîˆ™æ¬¢é–å‘°î—Šé˜ç†·îé®ä½¸å¼·æµœå²ƒç¹˜æµ£å¶…å½²éŽµÑ†î”‘è¤°ãˆ ç´¡é¨å‹¬æ½ˆé’â•‹ç´éƒçŠºî†‘å§ã‚…å¯˜ç‘å‘®æ§¸éšï¸¾ç²¡é€é€›ç¶”é¨å—™åŠ§é”›ï¿½
+// Õâ·ÝÊÚÈ¨Ìõ¿î£¬ÔÚÊ¹ÓÃÕß·ûºÏÏÂÁÐÌõ¼þµÄÇéÐÎÏÂ£¬ÊÚÓèÊ¹ÓÃÕßÊ¹ÓÃ¼°ÔÙÉ¢²¥±¾
+// Èí¼þ°ü×°Ô­Ê¼Âë¼°¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÈ¨Àû£¬ÎÞÂÛ´Ë°ü×°ÊÇ·ñ¾­¸Ä×÷½ÔÈ»£º
 //
-// 1. ç€µé€›ç°¬éˆî„ƒè’‹æµ èˆµç°®æµ ï½‡çˆœé¨å‹«å•€éï½†æŒ±é”›å±½ç¹€æ¤¤è®³ç¹šé£æ¬Žç¬‚æ©æ‰®æ®‘é—å Ÿæ½ˆç€¹ï½…æ†¡éŠ†ä½¹æ¹°é‰â€²æ¬¢é’æ¥„ã€ƒé”›å±¼äº’
-//    é™å©ç¬…æ©æ‰®æ®‘éå¶ˆçŸ—æ¾¹ç‰ˆæ§‘éŠ†ï¿½
-// 2. ç€µé€›ç°¬éˆî„€îšœæµ æœµç°©æ©æ¶—ç¶…é™îˆ›å¢½ç›å±½èˆ°å¯®å¿•æ®‘éå¶†æšŽéŽ¾î…¨ç´è¹‡å‘´ã€æ©ç‚²ç”«æµ ãƒ¦æžƒæµ æœµäº’é™å©ç´¡éŽ´æ ¬ï¿½å‘­å¾æµ æ ­æª®
-//    æµœåº¢æšŽéŽ¾î…žå¯˜ç‘å‘¬è…‘é¨å‹«çŸæµ å¬«æŸŸå¯®å¿¥ç´é–²å¶…åŸ—æ¶“å©…å ªæ¶”å¬¬å¢—é‰å†¨î…ºé›å¨¿ï¿½ä½¹æ¹°é‰â€²æ¬¢é’æ¥„ã€ƒé”›å±¼äº’é™å©ç¬…æ©ï¿½
-//    é¨å‹«åŽ¤ç’ï½…ï¼é„åº›ï¿½ï¿½
+// 1. ¶ÔÓÚ±¾Èí¼þÔ´´úÂëµÄÔÙÉ¢²¥£¬±ØÐë±£ÁôÉÏÊöµÄ°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ
+//    ¼°ÏÂÊöµÄÃâÔðÉùÃ÷¡£
+// 2. ¶ÔÓÚ±¾Ì×¼þ¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÔÙÉ¢²¥£¬±ØÐëÁ¬´øÒÔÎÄ¼þÒÔ¼°£¯»òÕßÆäËû¸½
+//    ÓÚÉ¢²¥°ü×°ÖÐµÄÃ½½é·½Ê½£¬ÖØÖÆÉÏÊöÖ®°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ¼°ÏÂÊö
+//    µÄÃâÔðÉùÃ÷¡£
 
-// éå¶ˆçŸ—æ¾¹ç‰ˆæ§‘é”›æ°­æ¹°æžîˆ™æ¬¢é„îˆ›æ¹°æžîˆ™æ¬¢é—å Ÿæ½ˆéŽ¸ä½¹æ¹æµœè½°äº’é™å©…ç¡€éšî†¿ï¿½å‘¬äº’éœæ‰®å§¸é”›ï¿½"as is"é”›å¤‹å½æ¸šæ¶³ç´
-// éˆî„ƒè’‹æµ è·ºå¯˜ç‘å‘¬ç¬‰ç’ç†¶æ¢æµ£æ›Ÿæ§‘ç»€çƒ˜åž¨æ¦›æ¨¼ãšæ¶”å¬«åª´æ·‡æ¿ŠçŸ—æµ ä¼™ç´é–å‘®å«­æµ£å—•ç¬‰é—„æ„ªç°¬çéï¿½å‚šæ•­éŽ¬Ñ‚äº’é™å©„å£’ç€¹æ°±æ´°
-// é¨å‹­æ®‘é–«å‚œæ•¤éŽ¬Ñ‚è´Ÿæ¦›æ¨¼ãšéŽ¬Ñ„åª´æ·‡æ¿„ï¿½å‚œå¢—é‰å†©å¯”éˆå¤‰æ±‰é™å©ƒæ¹°æžîˆ™æ¬¢æ¶”å¬­ç¡€éšî†¿ï¿½å’ƒç´éƒçŠºî†‘æµ è®³ç¶é‰â€²æ¬¢éŠ†ï¿½
-// éƒçŠºî†‘éŽ´æ„¬æ´œéŽ´æ ¦æ¢æµ£æ›¡çŸ—æµ è®³å¯Œæ¶”å¤ˆï¿½ä½¹æ£¤ç’çƒ˜î„ç’ï½„æ¢æ¶“å“„æ´œéšå ¢å®³éå´‡éƒ´éŠ†ä½¹æ£¤æ©å›§ã‘ç’ï½„æ¢æ¶“è®³ç®ŸéŽ´æ §æ´œé—ˆç‚¶ç¹š
-// ç»¾ï¸¿ç®£æ¸šåž«æ½ˆé”›å å¯˜éŽ·î„ƒç¹ƒæ¾¶è¾¨åž¨éæœµç²¬é˜ç†·æ´œç»›å¤›ç´šé‘°å²ƒæ£é”›å±½î‡®æµœåºæ¢æµ£æ›žæ´œæµ£è·¨æ•¤éˆî„ƒè’‹æµ è·ºå¯˜ç‘å‘®å¢æµœÑ…æ•“é¨ï¿½
-// æµ è®³ç¶é©å­˜å¸´éŽ¬Ñï¿½ä¾€æ£¿éŽºãƒ¦ï¿½Ñï¿½ä½¸ä¼“é™æˆžï¿½Ñï¿½ä½ºå£’å¨ˆå©ƒï¿½Ñï¿½ä½¹å„µç¼ƒæ°­ï¿½Ñ„åž¨æµ è®³ç¶ç¼æ’´ç‰é¨å‹¬å´¯ç€¹ç­¹ç´™é–å‘®å«­æµ£å—•ç¬‰é—„ï¿½
-// æµœåº¢æµ›æµ ï½…æ™¢éä½¹åž¨é”å†²å§Ÿæ¶”å¬­å–˜é¢ã„£ï¿½ä½·å¨‡é¢ã„¦å´¯æ¾¶ä¾¿ï¿½ä½½ç¥«é‚æ¬å´¯æ¾¶ä¾¿ï¿½ä½¸åŸ„é©å©ƒå´¯æ¾¶ä¾¿ï¿½ä½·ç¬Ÿé”â€²è…‘é‚î… ç“‘ç»›å¤›ç´šé”›ï¿½
-// æ¶“å¶ˆç¤‹æµ è®³ç¶ç’ï½„æ¢é”›å±½åµ†é¦ã„¨î‡šç»‰å¶„å¨‡é¢ã„¥å‡¡é‘¾èœ‚ç°¨é“å¶…æ†¡é­ãƒ¥å½²é‘³æˆ’ç´°é–«çŠ³åžšå§ã‚‡è¢«éŽ¹ç†·î†Šé¨å‹¬å„è¤°î­ç¬…æµœï¸¾åŠ§éŠ†ï¿½
+// ÃâÔðÉùÃ÷£º±¾Èí¼þÊÇ±¾Èí¼þ°æÈ¨³ÖÓÐÈËÒÔ¼°¹±Ï×ÕßÒÔÏÖ×´£¨"as is"£©Ìá¹©£¬
+// ±¾Èí¼þ°ü×°²»¸ºÈÎºÎÃ÷Ê¾»òÄ¬Ê¾Ö®µ£±£ÔðÈÎ£¬°üÀ¨µ«²»ÏÞÓÚ¾ÍÊÊÊÛÐÔÒÔ¼°ÌØ¶¨Ä¿
+// µÄµÄÊÊÓÃÐÔÎªÄ¬Ê¾ÐÔµ£±£¡£°æÈ¨³ÖÓÐÈË¼°±¾Èí¼þÖ®¹±Ï×Õß£¬ÎÞÂÛÈÎºÎÌõ¼þ¡¢
+// ÎÞÂÛ³ÉÒò»òÈÎºÎÔðÈÎÖ÷Òå¡¢ÎÞÂÛ´ËÔðÈÎÎªÒòºÏÔ¼¹ØÏµ¡¢ÎÞ¹ýÊ§ÔðÈÎÖ÷Òå»òÒò·ÇÎ¥
+// Ô¼Ö®ÇÖÈ¨£¨°üÀ¨¹ýÊ§»òÆäËûÔ­ÒòµÈ£©¶øÆð£¬¶ÔÓÚÈÎºÎÒòÊ¹ÓÃ±¾Èí¼þ°ü×°Ëù²úÉúµÄ
+// ÈÎºÎÖ±½ÓÐÔ¡¢¼ä½ÓÐÔ¡¢Å¼·¢ÐÔ¡¢ÌØÊâÐÔ¡¢³Í·£ÐÔ»òÈÎºÎ½á¹ûµÄËðº¦£¨°üÀ¨µ«²»ÏÞ
+// ÓÚÌæ´úÉÌÆ·»òÀÍÎñÖ®¹ºÓÃ¡¢Ê¹ÓÃËðÊ§¡¢×ÊÁÏËðÊ§¡¢ÀûÒæËðÊ§¡¢ÒµÎñÖÐ¶ÏµÈµÈ£©£¬
+// ²»¸ºÈÎºÎÔðÈÎ£¬¼´ÔÚ¸ÃÖÖÊ¹ÓÃÒÑ»ñÊÂÇ°¸æÖª¿ÉÄÜ»áÔì³É´ËÀàËðº¦µÄÇéÐÎÏÂÒàÈ»¡£
 //-----------------------------------------------------------------------------
 // =============================================================================
 
-// é‚å›¦æ¬¢éšï¿½     é”›æ­pu_peri_gpio.h
-// å¦¯â€³æ½¡éŽ»å¿šå ª: STM32F7xxé¨å‡£PIOæ¤¹åžå§©
-// å¦¯â€³æ½¡é—å Ÿæ¹°:
-// é’æ¶˜ç¼“æµœå“„æ†³:
-// é’æ¶˜ç¼“éƒå •æ£¿: 10/28.2016
+// ÎÄ¼þÃû     £ºcpu_peri_gpio.h
+// Ä£¿éÃèÊö: STM32F7xxµÄGPIOÇý¶¯
+// Ä£¿é°æ±¾:
+// ´´½¨ÈËÔ±:
+// ´´½¨Ê±¼ä: 10/28.2016
 // =============================================================================
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "stdint.h"
 #include "silan_iomux.h"
 #include "cpu_peri_isr.h"
 #include "cpu_peri_gpio.h"
 #include "cpu_peri.h"
 
-#include "project_config.h"     //éˆî„æžƒæµ å‰æ•±IDEæ¶“î…¢åŽ¤ç¼ƒî†¾æ™«é—ˆãˆ¢æ•“éŽ´æ„¶ç´ç€›æ¨»æ–é¦Ë‹PPé¨å‹«ä¼ç»‹å¬¬æ´°è¤°æ›šè…‘éŠ†ï¿½
-                                //éä½½î†é„îˆ™é‡œç»Œçƒ˜æžƒæµ è®¹ç´éŽµï¿½éˆå¤åŽ¤ç¼ƒî†¼çš¢éŽ¸å¤ç²¯ç’ã‚…ï¿½å¥¸åŽ¤ç¼ƒî†ºï¿½ï¿½
+#include "project_config.h"     //±¾ÎÄ¼þÓÉIDEÖÐÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖÐ¡£
+                                //ÔÊÐíÊÇ¸ö¿ÕÎÄ¼þ£¬ËùÓÐÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
 
-//@#$%component configure   ****ç¼å‹ªæ¬¢é–°å¶‡ç–†å¯®ï¿½æ¿®å¬¶ç´é¢ã„¤ç°¬ DIDE æ¶“î…žæµ˜è¤°ãˆ å¯²é–°å¶‡ç–†é£å²„æ½°
-//****é–°å¶‡ç–†é§æ¥ƒæ®‘ç’‡î…Ÿç¡¶éœå±¼å¨‡é¢ã„¦æŸŸå¨‰æ›ªç´é™å‚î†å©§æ„®çˆœéåœ­æ´°è¤°æ›šç¬…é¨å‹¬æžƒæµ è®¹ç´°component_config_readme.txt****
-//%$#@initcode      ****é’æ¿†îé–æ ¦å”¬é®ä½¸ç´‘æ¿®å¬¶ç´é¢ï¿½ DIDE é’çŠ»æ«Žéˆ¥ï¿½//éˆ¥æ¿†æ‚—copyé’æ¿åžµæ¿®å¬ªå¯²é‚å›¦æ¬¢æ¶“ï¿½
+//@#$%component configure   ****×é¼þÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖÐÍ¼ÐÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼þ£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ý¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼þÖÐ
 
-//%$#@end initcode  ****é’æ¿†îé–æ ¦å”¬é®ä½ºç²¨é‰ï¿½
-//%$#@describe      ****ç¼å‹ªæ¬¢éŽ»å¿šå ªå¯®ï¿½æ¿®ï¿½
-//component name:"cpu_peri_gpio" //gpioéŽ¿å¶„ç¶”é‘èŠ¥æšŸé—†ï¿½
-//parent:"none"                  //æ¿‰î‚¢å•“ç’‡ãƒ§ç²æµ å‰æ®‘é–å‰ç²æµ è·ºæ‚•ç€›æ¥‹ç´noneç›ã„§ãšå¨Œâ„ƒæ¹é–å‰ç²æµ ï¿½
-//attribute:bsp                  //é–«å¤Šï½žéˆ¥æ¸¢hirdéŠ†ä¹»ysteméŠ†ä¹¥spéŠ†ä¹½seréˆ¥æ¿“ç´éˆî„€ç˜éŽ¬Ñ…æ•¤æµœåº¡æ¹ªIDEæ¶“î…žåžŽç¼ï¿½
-//select:choosable               //é–«å¤Šï½žéˆ¥æ¸žequiredéŠ†ä¹§hoosableéŠ†ä¹¶oneéˆ¥æ¿“ç´é‘»ãƒ¥ï½žè¹‡å‘´ï¿½å¤‰ç¬–é—‡ï¿½ç‘•ä¾€åŽ¤ç¼ƒî†¼å¼¬éå¸®ç´é’æ©§DEç‘ä½¸å£€é£å²„æ½°æ¶“î…¢ç²¯ç’ã‚…å¬€é™æ µç´
-                                 //æ¶“å¶…å½²é™æ ¨ç§·é”›å±½ç¹€é–«å¤‰ç¬–æ¶“å¶‰æ¸¶ç‘•ä¾€åŽ¤ç¼ƒî†¼å¼¬éæ‰®æ®‘é”›å±¾åž¨é„îˆ™ç¬‰é™îˆžï¿½å¤Œæ®‘é”›å­–DEç‘ä½¸å£€é£å²„æ½°æ¶“î…ç¬‰é„å‰§ãšé”›ï¿½
-//init time:none                 //é’æ¿†îé–æ ¨æ¤‚éˆçŒ´ç´é™îˆžï¿½å¤Šï¿½ç¡·ç´°earlyé”›å®®ediumé”›å®­ateréŠ†ï¿½
-                                 //ç›ã„§ãšé’æ¿†îé–æ ¨æ¤‚é—‚è¾¾ç´é’å——åŸ†é„îˆ›æ£­éˆç†´ï¿½ä½·è…‘éˆç†´ï¿½ä½¸æ‚—éˆï¿½
-//dependence:none                //ç’‡ãƒ§ç²æµ å‰æ®‘æ¸šæ¿Šç¦†ç¼å‹ªæ¬¢éšå¶ç´™é™îˆ™äº’é„ç—­oneé”›å²ƒã€ƒç»€çƒ˜æ£¤æ¸šæ¿Šç¦†ç¼å‹ªæ¬¢é”›å¤›ç´
-                                 //é–«å¤‰è…‘ç’‡ãƒ§ç²æµ èˆµæ¤‚é”›å²ƒî¦æ¸šæ¿Šç¦†ç¼å‹ªæ¬¢çå——å·±é’å •ï¿½å¤‰è…‘é”›ï¿½
-                                 //æ¿¡å‚›ç‰æ¸šæ¿Šç¦†æ¾¶æ°«é‡œç¼å‹ªæ¬¢é”›å±½åž¯æ¸šæ¿‡î‚¼é’æ¥€åš­
-//weakdependence:"none"          //ç’‡ãƒ§ç²æµ å‰æ®‘å¯®å˜ç··ç’§æ «ç²æµ è·ºæ‚•é”›å å½²æµ ãƒ¦æ§¸noneé”›å²ƒã€ƒç»€çƒ˜æ£¤æ¸šæ¿Šç¦†ç¼å‹ªæ¬¢é”›å¤›ç´
-                                 //é–«å¤‰è…‘ç’‡ãƒ§ç²æµ èˆµæ¤‚é”›å²ƒî¦æ¸šæ¿Šç¦†ç¼å‹ªæ¬¢æ¶“å¶„ç´°çšî‚¢å·±é’å •ï¿½å¤‰è…‘é”›ï¿½
-                                 //æ¿¡å‚›ç‰æ¸šæ¿Šç¦†æ¾¶æ°«é‡œç¼å‹ªæ¬¢é”›å±½åž¯æ¸šæ¿‡î‚¼é’æ¥€åš­é”›å²€æ•¤éˆ¥ï¿½,éˆ¥æ¿†åžŽé—…ï¿½
-//mutex:"none"                   //ç’‡ãƒ§ç²æµ å‰æ®‘æ¸šæ¿Šç¦†ç¼å‹ªæ¬¢éšå¶ç´™é™îˆ™äº’é„ç—­oneé”›å²ƒã€ƒç»€çƒ˜æ£¤æ¸šæ¿Šç¦†ç¼å‹ªæ¬¢é”›å¤›ç´
-                                 //æ¿¡å‚›ç‰æ¸šæ¿Šç¦†æ¾¶æ°«é‡œç¼å‹ªæ¬¢é”›å±½åž¯æ¸šæ¿‡î‚¼é’æ¥€åš­
-//%$#@end describe  ****ç¼å‹ªæ¬¢éŽ»å¿šå ªç¼æ’´æ½«
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
+//%$#@describe      ****×é¼þÃèÊö¿ªÊ¼
+//component name:"cpu peri gpio"//gpio²Ù×÷º¯Êý¼¯
+//parent:"none"                 //ÌîÐ´¸Ã×é¼þµÄ¸¸×é¼þÃû×Ö£¬none±íÊ¾Ã»ÓÐ¸¸×é¼þ
+//attribute:bsp                  //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôÐÔÓÃÓÚÔÚIDEÖÐ·Ö×é
+//select:choosable               //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒÐèÒªÅäÖÃ²ÎÊý£¬ÔòIDE²Ã¼ô½çÃæÖÐÄ¬ÈÏ¹´È¡£¬
+                                 //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ÐèÒªÅäÖÃ²ÎÊýµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖÐ²»ÏÔÊ¾£¬
+//init time:none                 //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later¡£
+                                 //±íÊ¾³õÊ¼»¯Ê±¼ä£¬·Ö±ðÊÇÔçÆÚ¡¢ÖÐÆÚ¡¢ºóÆÚ
+//dependence                   //¸Ã×é¼þµÄÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                 //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ½«Ç¿ÖÆÑ¡ÖÐ£¬
+                                 //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö
+//weakdependence:"none"          //¸Ã×é¼þµÄÈõÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                 //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ²»»á±»Ç¿ÖÆÑ¡ÖÐ£¬
+                                 //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                  //¸Ã×é¼þµÄ»¥³â×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞ»¥³â×é¼þ£©£¬
+                                 //Èç¹ûÓë¶à¸ö×é¼þ»¥³â£¬ÔòÒÀ´ÎÁÐ³ö
+//%$#@end describe  ****×é¼þÃèÊö½áÊø
 
-//%$#@configue      ****é™å‚›æšŸé–°å¶‡ç–†å¯®ï¿½æ¿®ï¿½
-//%$#@target = header           //header = é¢ç†¸åžšæ¾¶å­˜æžƒæµ ï¿½,cmdline = é›æˆ’æŠ¤ç›å±½å½‰é–²å¿¥ç´DJYOSé‘·î…æ¹å¦¯â€³æ½¡ç»‚ä½ºæ•¤
+//%$#@configue      ****²ÎÊýÅäÖÃ¿ªÊ¼
+//%$#@target = header           //header = Éú³ÉÍ·ÎÄ¼þ,cmdline = ÃüÁîÐÐ±äÁ¿£¬DJYOS×ÔÓÐÄ£¿é½ûÓÃ
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***ç€¹æ°«ç®ŸéƒçŠ²ï¿½è‚©æ®‘ç€¹å¿¥ç´æµ å‘¯æ•¤æµœåº£îƒ‡æ¶“å¤‹æŸŸç¼å‹ªæ¬¢
+//%$#select,        ***´ÓÁÐ³öµÄÑ¡ÏîÖÐÑ¡ÔñÈô¸É¸ö¶¨Òå³Éºê
 //%$#@free,
-//%$#@end configue  ****é™å‚›æšŸé–°å¶‡ç–†ç¼æ’´æ½«
+//%$#@end configue  ****²ÎÊýÅäÖÃ½áÊø
 //@#$%component end configure
 
 /*Gpio Module*/
 
 typedef struct
 {
-	volatile u32 GPIO_DATA;//0x000
+    volatile u32 GPIO_DATA;//0x000
 }tagRegGpioData;
 
 
-typedef struct 
+typedef struct
 {
    volatile u32 GPIO_DIR; //0x400
    volatile u32 GPIO_IS;  //0x404
@@ -163,13 +163,13 @@ static volatile u32 *spg_RegIntEnable[2] = {
 static volatile tagRegBaseInfo s_RegGpioInfo[CN_GPIO_GROUP_NUM] =
 {
     {   //Gpio Group 1
-    	(volatile u32 *)GPIO1_REG_DATA,
-    	(volatile tagRegGpio*)GPIO1_REG_BASE,
+        (volatile u32 *)GPIO1_REG_DATA,
+        (volatile tagRegGpio*)GPIO1_REG_BASE,
     },
        //Gpio Group 2
     {
-    	(volatile u32 *)GPIO2_REG_DATA,
-    	(volatile tagRegGpio*)GPIO2_REG_BASE,
+        (volatile u32 *)GPIO2_REG_DATA,
+        (volatile tagRegGpio*)GPIO2_REG_BASE,
     }
 };
 
@@ -178,8 +178,8 @@ static volatile tagRegBaseInfo s_RegGpioInfo[CN_GPIO_GROUP_NUM] =
 // =============================================================================
 // Function Describe:
 // Config io to input
-// 
-// é–°å¶‡ç–†ç€µç‘°ç°² é¨å‡¦Oæ¶“é¸¿ç·­éãƒ¦Äå¯®ï¿½
+//
+// ÅäÖÃ¶ÔÓ¦ µÄIOÎªÊäÈëÄ£Ê½
 // =============================================================================
 
 void Gpio_Input_Config(u8 io)
@@ -192,17 +192,17 @@ void Gpio_Input_Config(u8 io)
    //turn to gpio
    byGpio = IO_TO_GPIO_PIN(io);
 
-   //get Pin which Group 
+   //get Pin which Group
    byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
    //get offence
    byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
    GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
-   
+
    if(GpioRegBase != NULL)
    {
-   	   GpioRegBase->GPIO_DIR &= ~(1 << byPinRegLoc);
+       GpioRegBase->GPIO_DIR &= ~(1 << byPinRegLoc);
    }
 
 }
@@ -211,8 +211,8 @@ void Gpio_Input_Config(u8 io)
 // =============================================================================
 // Function Describe:
 // Config io to output
-// 
-// 
+//
+//
 // =============================================================================
 
 void Gpio_Output_Config(u8 io)
@@ -225,17 +225,17 @@ void Gpio_Output_Config(u8 io)
    //turn to gpio
    byGpio = IO_TO_GPIO_PIN(io);
 
-   //get Pin which Group 
+   //get Pin which Group
    byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
    //get offence
    byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
    GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
-   
+
    if(GpioRegBase != NULL)
    {
-   	   GpioRegBase->GPIO_DIR |= (1 << byPinRegLoc);
+       GpioRegBase->GPIO_DIR |= (1 << byPinRegLoc);
    }
 }
 
@@ -251,10 +251,10 @@ void Gpio_Derection_Config(u8 io,bool_t bDerection)
 {
     if(bDerection)
     {
-    	Gpio_Output_Config(io);
+        Gpio_Output_Config(io);
     }else
     {
-    	Gpio_Input_Config(io);
+        Gpio_Input_Config(io);
     }
 }
 
@@ -268,7 +268,7 @@ void Gpio_Derection_Config(u8 io,bool_t bDerection)
 
 void Gpio_Set_Value_Hight(u8 io)
 {
-	u8 byPinRegLoc;
+    u8 byPinRegLoc;
     u8 byPinGroupLoc;
     u8 byGpio;
     volatile tagRegGpioData* GpioRegData  = NULL;
@@ -276,17 +276,17 @@ void Gpio_Set_Value_Hight(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegData = (volatile tagRegGpioData*)s_RegGpioInfo[byPinGroupLoc].pRegGpioData;
-   
+
     if(GpioRegData != NULL)
     {
-   	    GpioRegData->GPIO_DATA |= (1 << byPinRegLoc);
+        GpioRegData->GPIO_DATA |= (1 << byPinRegLoc);
     }
 }
 
@@ -308,14 +308,14 @@ void Gpio_Set_Value_Low(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegData = (volatile tagRegGpioData*)s_RegGpioInfo[byPinGroupLoc].pRegGpioData;
-   
+
     if(GpioRegData != NULL)
     {
         GpioRegData->GPIO_DATA &= ~(1 << byPinRegLoc);
@@ -341,18 +341,18 @@ u8 Gpio_Get_Level(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegData = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioData;
 
     if(GpioRegData != NULL)
     {
         if(GpioRegData->GPIO_DATA & (1 << byPinRegLoc))
-           
+
            byRet = 1;
         else
            byRet = 0;
@@ -379,14 +379,14 @@ void Gpio_Enable_Int(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
-   
+
     if(GpioRegBase != NULL)
     {
         GpioRegBase->GPIO_IE |= (1 << byPinRegLoc);
@@ -394,7 +394,7 @@ void Gpio_Enable_Int(u8 io)
         *(spg_RegIntEnable[byPinRegLoc]) = 1 << byPinRegLoc;
     }
 
-   
+
 }
 
 
@@ -415,14 +415,14 @@ void Gpio_Disable_Int(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
-   
+
     if(GpioRegBase != NULL)
     {
         GpioRegBase->GPIO_IE &= ~(1 << byPinRegLoc);
@@ -449,14 +449,14 @@ void Gpio_Clear_Irq(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
-   
+
     if(GpioRegBase != NULL)
     {
         GpioRegBase->GPIO_IC |= (1 << byPinRegLoc);
@@ -466,10 +466,10 @@ void Gpio_Clear_Irq(u8 io)
 
 // =============================================================================
 // Function Describe:
-// ç’å‰§ç–†æ¾¶æ ­å„´æ¶“î…ŸæŸ‡ç‘™ï¹€å½‚å¦¯â€³ç´¡
-// io:é—‡ï¿½ç‘•ä¾€åŽ¤ç¼ƒî†¾æ®‘io
-// trugleMethod:    æˆè§„éƒ¨ç‘™ï¹€å½‚ æ©æ¨»æ§¸ é¢é›é’©ç‘™ï¹€å½‚
-// edgeTrugleMethod:éèœ‚ç¶‹é„îˆžç®éŠ†ä½·ç¶†é¢é›é’©ç‘™ï¹€å½‚æ©æ¨»æ§¸æ¶“å©‚å´Œå¨ŒæŒŽåž¨é‘°å‘¬ç¬…é—„å¶†éƒ¨ç‘™ï¹€å½‚
+// ÉèÖÃÍâ²¿ÖÐ¶Ï´¥·¢Ä£Ê½
+// io:ÐèÒªÅäÖÃµÄio
+// trugleMethod:    ±ßÑØ´¥·¢ »¹ÊÇ µçÆ½´¥·¢
+// edgeTrugleMethod:¾ßÌåÊÇ¸ß¡¢µÍµçÆ½´¥·¢»¹ÊÇÉÏÉýÑØ»òÕßÏÂ½µÑØ´¥·¢
 // =============================================================================
 
 void Gpio_Set_Iqr_Mode(u8 io,u8 trugleMethod,u8 edgeTrugleMethod)
@@ -482,57 +482,57 @@ void Gpio_Set_Iqr_Mode(u8 io,u8 trugleMethod,u8 edgeTrugleMethod)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
-   
+
     switch(trugleMethod)
     {
-        case EN_EDGE:   //æˆè§„éƒ¨ç‘™ï¹€å½‚
+        case EN_EDGE:   //±ßÑØ´¥·¢
              GpioRegBase->GPIO_IS &= ~(1<<byPinRegLoc);
-             if(edgeTrugleMethod == EN_BOTH_EDGE)           //é™å²ƒç«Ÿå¨Œèƒ¯Ð•é™ï¿½
+             if(edgeTrugleMethod == EN_BOTH_EDGE)           //Ë«±ßÑØ´¥·¢
              {
-                GpioRegBase->GPIO_IBE |= (1<<byPinRegLoc);  //é™å²ƒç«Ÿå¨Œèƒ¯Ð•é™ï¿½
+                GpioRegBase->GPIO_IBE |= (1<<byPinRegLoc);  //Ë«±ßÑØ´¥·¢
              }
-             else if(edgeTrugleMethod == EN_RISING_EDGE)    //æ¶“å©‚å´Œå¨Œèƒ¯Ð•é™ï¿½
+             else if(edgeTrugleMethod == EN_RISING_EDGE)    //ÉÏÉýÑØ´¥·¢
              {
-                 //é–«å¤‹å«¨æ¶“å©‚å´Œå¨ŒæŒŽåž¨é‘°å‘¬ç¬…é—„å¶†éƒ¨ç‘™ï¹€å½‚
+                 //Ñ¡ÔñÉÏÉýÑØ»òÕßÏÂ½µÑØ´¥·¢
                  GpioRegBase->GPIO_IBE &= ~(1<<byPinRegLoc);
-                 //é–«å¤‹å«¨æ¥‚æ¨¼æ•¸éªžè™«åž¨é‘°å‘¬ç¬‚é—å›¨éƒ¨ç‘™ï¹€å½‚
+                 //Ñ¡Ôñ¸ßµçÆ½»òÕßÉÏÉýÑØ´¥·¢
                  GpioRegBase->GPIO_IEV |= (1<<byPinRegLoc);
-             }else if(edgeTrugleMethod == EN_FALLING_EDGE)  //æ¶“å¬®æª·å¨Œèƒ¯Ð•é™ï¿½
+             }else if(edgeTrugleMethod == EN_FALLING_EDGE)  //ÏÂ½µÑØ´¥·¢
              {
-                 //é–«å¤‹å«¨æ¶“å©‚å´Œå¨ŒæŒŽåž¨é‘°å‘¬ç¬…é—„å¶†éƒ¨ç‘™ï¹€å½‚
+                 //Ñ¡ÔñÉÏÉýÑØ»òÕßÏÂ½µÑØ´¥·¢
                  GpioRegBase->GPIO_IBE &= ~(1<<byPinRegLoc);
-                 //é–«å¤‹å«¨æµ£åº£æ•¸éªžè™«åž¨é‘°å‘¬ç¬…é—„å¶†éƒ¨ç‘™ï¹€å½‚
+                 //Ñ¡ÔñµÍµçÆ½»òÕßÏÂ½µÑØ´¥·¢
                  GpioRegBase->GPIO_IEV &= ~(1<<byPinRegLoc);
              }
              break;
-        case EN_LEVEL:                                      //é¢é›é’©ç‘™ï¹€å½‚
+        case EN_LEVEL:                                      //µçÆ½´¥·¢
              GpioRegBase->GPIO_IS |= (1<<byPinRegLoc);
 
              if(edgeTrugleMethod == EN_HIGHT_LAVEL_EDGE)
              {
-                GpioRegBase->GPIO_IEV |= (1<<byPinRegLoc); //æ¥‚æ¨¼æ•¸éªžå® Ð•é™ï¿½
+                GpioRegBase->GPIO_IEV |= (1<<byPinRegLoc); //¸ßµçÆ½´¥·¢
              }else if(edgeTrugleMethod == EN_LOW_LEVEL_EDGE)
              {
-                GpioRegBase->GPIO_IEV &= ~(1<<byPinRegLoc);//æµ£åº£æ•¸éªžå® Ð•é™ï¿½
+                GpioRegBase->GPIO_IEV &= ~(1<<byPinRegLoc);//µÍµçÆ½´¥·¢
              }
              break;
     }
- 
+
 }
 
 
 // =============================================================================
 // Function Describe:
-// æ¿ å¨¿å€–çæ¿‹å´šé¡æ¶±æš¥é—î‚¢î˜°ç€šï¿½
-// 
-// 
+// æ»¤æ³¢åˆ†é¢‘é€‰æ‹©
+//
+//
 // =============================================================================
 
 void Gpio_Io_Filter_Config_Div(u8 io,u8 div)
@@ -545,24 +545,24 @@ void Gpio_Io_Filter_Config_Div(u8 io,u8 div)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
 
     GpioRegBase->GPIODIV |= ((div&0xf)<<1)|0x1;
-  
+
 }
 
 
 // =============================================================================
 // Function Describe:
-// Gpio éŽµæ’³ç´‘é“æˆžå°é–°å¶‡ç–†
-// 
-// 
+// Gpio ´ò¿ªÂÇ²¨ÅäÖÃ
+//
+//
 // =============================================================================
 
 
@@ -577,12 +577,12 @@ void Gpio_io_Filter_Open(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
 
     GpioRegBase->GPIOFILSEL |= 1<<byPinRegLoc ;
@@ -593,9 +593,9 @@ void Gpio_io_Filter_Open(u8 io)
 
 // =============================================================================
 // Function Describe:
-// éæŠ½æ£´ Gpio å©Šã‚†å°é–°å¶‡ç–†
-// 
-// 
+// ¹Ø±Õ Gpio ÂË²¨ÅäÖÃ
+//
+//
 // =============================================================================
 
 void Gpio_io_Filter_Close(u8 io)
@@ -608,12 +608,12 @@ void Gpio_io_Filter_Close(u8 io)
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
 
     GpioRegBase->GPIOFILSEL &= ~(1<<byPinRegLoc) ;
@@ -623,9 +623,9 @@ void Gpio_io_Filter_Close(u8 io)
 
 // =============================================================================
 // Function Describe:
-// Gpio æ¾¶æ ­å„´æ¶“î…ŸæŸ‡ç’‡é”‹çœ°é¡•ï¿½
-// 
-// 
+// Gpio Íâ²¿ÖÐ¶ÏÇëÇó¯·
+//
+//
 // =============================================================================
 
 enum EN_GPIO_INTLINE{
@@ -639,21 +639,21 @@ void Register_Gpio_Irq(u8 io,fnGpioHandle_t IsrHandle)
     u8 byPinGroupLoc;
     u8 byGpio;
     volatile tagRegGpio* GpioRegBase  = NULL;
-    u8 intLine;      //æ¶“î…ŸæŸ‡ç»¾ï¿½
-    u8 subIntLine;   //ç€›æ„ªè…‘é‚î… åšŽ
+    u8 intLine;      //ÖÐ¶ÏÏß
+    u8 subIntLine;   //×ÓÖÐ¶ÏÏß
 
     //turn to gpio
     byGpio = IO_TO_GPIO_PIN(io);
 
-    //get Pin which Group 
+    //get Pin which Group
     byPinGroupLoc = GET_GPIO_PIN_GROUP(byGpio);
 
     //get offence
     byPinRegLoc = GET_GPIO_REG_OFFSET(byGpio);
-   
+
     GpioRegBase = (volatile tagRegGpio*)s_RegGpioInfo[byPinGroupLoc].pRegGpioBase;
 
-    //Gpio1 æ¶“ï¿½6é™èœ‚è…‘é‚î… åšŽ Gpio2 æ¶“ï¿½7é™ï¿½ æ¶“î…ŸæŸ‡ç»¾ï¿½
+    //Gpio1 Îª6ºÅÖÐ¶ÏÏß Gpio2 Îª7ºÅ ÖÐ¶ÏÏß
     switch(byPinGroupLoc)
     {
         case EN_GPIO1_INT_LINE:
@@ -675,31 +675,4 @@ void Register_Gpio_Irq(u8 io,fnGpioHandle_t IsrHandle)
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

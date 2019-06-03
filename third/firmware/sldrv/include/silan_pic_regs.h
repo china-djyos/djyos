@@ -16,7 +16,7 @@
 #define INTR_STS_MSK_M0(id)     __REG32(SCFG_APB_INTR_ADDR_BASE+0x500+id*4)
 #define INTR_CTR_MSK_M0(id)     __REG32(SCFG_APB_INTR_ADDR_BASE+0x600+id*4)
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 #define INTR_STS_MSK(id)        INTR_STS_MSK_M0(id)
 #define INTR_CTR_MSK(id)        INTR_CTR_MSK_M0(id)
 #endif

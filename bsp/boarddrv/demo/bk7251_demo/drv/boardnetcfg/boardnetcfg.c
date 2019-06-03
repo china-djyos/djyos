@@ -61,21 +61,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"netconfig"    //网络配置
-//parent:"tcpip"                //填写该组件的父组件名字，none表示没有父组件
+//component name:"network config"//网络配置
+//parent:"System:tcpip"       //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"cpu_peri_eth","lan8720","tcpip"     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu driver eth","chip driver lan8720","component tcpip"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -97,9 +97,29 @@
 #endif
 //%$#@end configue  ****参数配置结束
 
+#define CFG_DHCPD_IPV4      "192.168.0.253"
+#define CFG_DHCPD_SUBMASK   "255.255.255.0"
+#define CFG_DHCPD_GATWAY    "192.168.0.1"
+#define CFG_DHCPD_DNS       "192.168.0.1"   //"DNS"
 
 static u8   gc_NetMac[CN_MACADDR_LEN] = DEFAULT_MAC_ADDR;
 
+void DhcpStaStartIp(void)
+{
+    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+    {
+       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+    }
+    else
+    {
+        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+    }
+}
+
+void DhcpStaClearIp(void)
+{
+
+}
 
 //please refers the following function in the module-trim in proper place.
 //make sure that that os kernel has been initialize ok and the interrupt system intialize ok
@@ -111,42 +131,14 @@ void ModuleInstall_InitNet(void)   //static ip example
                               bool_t (*rcvHook)(u8 *buf, u16 len));
     ModuleInstall_Wifi(CFG_NETCARD_NAME,gc_NetMac,false,1*mS,NULL);
 
-#if CFG_STATIC_IP == 1
     tagHostAddrV4  ipv4addr;
     //we use the static ip we like
     memset((void *)&ipv4addr,0,sizeof(ipv4addr));
-    ipv4addr.ip      = inet_addr(CFG_MY_IPV4);
-    ipv4addr.submask = inet_addr(CFG_MY_SUBMASK);
-    ipv4addr.gatway  = inet_addr(CFG_MY_GATWAY);
-    ipv4addr.dns     = inet_addr(CFG_MY_DNS);
-    ipv4addr.broad   = inet_addr("192.168.0.255");
-    if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
-    {
-        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
-    }
-    else
-    {
-        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
-    }
-    //下一个路由，用于生产测试用，利用CPU ID 随机生成主机地址，网络地址用 192.168.1
-    //WE WILL ADD A ROUT DIFFERENT FOR EACH DEVICE USE THE CPU SIGNATURE
-    //USE THE NET:192.168.1.xx
-    u8 value8 = 0;
-    value8 = +((u8)signature[0]>>0)+((u8)signature[0]>>8)+((u8)signature[0]>>16)+((u8)signature[0]>>24);
-    if((value8==0)||(value8==1)||(value8==255))
-    {
-        value8=253;
-    }
-    u32 value32 = 0;
-    memset((void *)&ipv4addr,0,sizeof(ipv4addr));
-    value32 = inet_addr("192.168.1.0");
-    value32 = ntohl(value32);
-    value32 =(value32&0xffffff00) + value8;
-    ipv4addr.ip      = htonl(value32);
-    ipv4addr.submask = inet_addr("255.255.255.0");
-    ipv4addr.gatway  = inet_addr("192.168.1.1");
-    ipv4addr.dns     = inet_addr("192.168.1.1");
-    ipv4addr.broad   = inet_addr("192.168.1.255");
+    ipv4addr.ip      = inet_addr(CFG_DHCPD_IPV4);
+    ipv4addr.submask = inet_addr(CFG_DHCPD_SUBMASK);
+    ipv4addr.gatway  = inet_addr(CFG_DHCPD_GATWAY);
+    ipv4addr.dns     = inet_addr(CFG_DHCPD_DNS);
+    ipv4addr.broad   = inet_addr("255.255.255.255");
     if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
     {
         printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
@@ -156,16 +148,14 @@ void ModuleInstall_InitNet(void)   //static ip example
         printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
     }
 
-#else
-    if(DhcpAddClientTask(CFG_NETCARD_NAME))
-    {
-       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-    }
-    else
-    {
-        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-    }
+//    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+//    {
+//       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+//    }
+//    else
+//    {
+//        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+//    }
 
-#endif
 }
 

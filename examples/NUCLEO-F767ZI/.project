@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><projectDescription>
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
 	<name>NUCLEO-F767ZI</name>
-	<comment/>
+	<comment></comment>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -24,6 +25,11 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
 	<linkedResources>
+		<link>
+			<name>src/userlib</name>
+			<type>2</type>
+			<location>D:/SoftWare/DIDE_Builder/djysrc/userlib</location>
+		</link>
 		<link>
 			<name>src/libos/bsp</name>
 			<type>2</type>

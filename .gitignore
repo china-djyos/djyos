@@ -9,3 +9,6 @@ user
 *.a
 *.map
 /*.vpw
+/*.vpwhist
+/*.vpj
+draft-prj

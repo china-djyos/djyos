@@ -74,21 +74,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"multiplex"    //多路复用
+//component name:"multiplex"//多路复用
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:required              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"lock"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -96,7 +96,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -263,7 +263,7 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
         return false;
 
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    temp = handle_GetMultiplexHead(Kfp);
+    temp = __handle_GetMultiplexHead(Kfp);
     InitStatus = handle_multievents(Kfp);
     //循环检查一个Object是否重复加入同一个MultiplexSets
     //如果ObjectHead=NULL,检查结果是不重复，后续处理能够正确运行。
@@ -322,8 +322,8 @@ bool_t Multiplex_AddObject(struct MultiplexSetsCB *Sets,s32 Fd, u32 SensingBit)
             }
             //同一个对象被多个MultiplexSets包含，用NextSets链接。
             //NextSets是单向链表，新对象插入链表头部
-            temp->NextSets = handle_GetMultiplexHead(Kfp);
-            handle_setmultiplex(Kfp, temp);
+            temp->NextSets = __handle_GetMultiplexHead(Kfp);
+            __handle_SetMultiplexHead(Kfp, temp);
             Lock_MutexPost(&MultiplexMutex);
             if (IsActived)
             {
@@ -363,7 +363,7 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
     if ((Sets == NULL) || (Kfp == NULL))
         return false;
     Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = handle_GetMultiplexHead(Kfp);
+    Object = __handle_GetMultiplexHead(Kfp);
     following = NULL;
     while (Object != NULL)
     {       //查找被删除的对象控制块
@@ -417,7 +417,7 @@ bool_t Multiplex_DelObject(struct MultiplexSetsCB *Sets,s32 Fd)
             }
         }
         if(following == NULL)       // Fd是链表头
-            handle_setmultiplex(Kfp, Object->NextSets);
+            __handle_SetMultiplexHead(Kfp, Object->NextSets);
         else
             following->NextSets = Object->NextSets;
         Mb_Free(g_ptMultiplexObjectPool, Object);
@@ -444,7 +444,7 @@ bool_t __Multiplex_Set(s32 Fd, u32 Status)
     if (Kfp == NULL)
         return false;
 //  Lock_MutexPend(&MultiplexMutex, CN_TIMEOUT_FOREVER);
-    Object = handle_GetMultiplexHead(Kfp);
+    Object = __handle_GetMultiplexHead(Kfp);
     while (Object != NULL)
     {
         Int_SaveAsynSignal();
@@ -590,7 +590,8 @@ s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
             //把Object从Sets->ActiveQ队列拿出，放到ObjectQ队列中
 //            Object->PendingBit = 0;
             //取出上次触发时未触发，而本次变位为已触发的位
-            Object->PendingBit &= ~CN_MULTIPLEX_OBJECT_ACTIVED;
+            Object->PendingBit &= CN_MULTIPLEX_STATUSMSK;
+//          Object->PendingBit &= ~CN_MULTIPLEX_OBJECT_ACTIVED;
             Object->ET_SaveBit = (~Object->ET_SaveBit) & Object->PendingBit;
             if (Status != NULL)
                 *Status = Object->ET_SaveBit;

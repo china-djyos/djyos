@@ -88,19 +88,6 @@ bool_t ModuleInstall_TcpIp(void)
 {
     bool_t ret;
     tcpipver(NULL);
-    u8 enable_tcp = 0, enable_udp = 0, enable_ppp = 0;
-
-#if CFG_TCP_ENABLE == true
-    enable_tcp = 1;
-#endif
-
-#if CFG_UDP_ENABLE == true
-    enable_udp = 1;
-#endif
-
-#if CFG_PPP_ENABLE == true
-    enable_ppp = 1;
-#endif
 
     extern bool_t OsArchInit();
     ret = OsArchInit();
@@ -163,7 +150,6 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-
     //do the ip initialize
     extern  bool_t IpInit(void);
     ret = IpInit();
@@ -188,29 +174,27 @@ bool_t ModuleInstall_TcpIp(void)
     {
         goto TCPIP_INITERR;
     }
-//  //install the tcp protocol
-//  if(enable_tcp)
-//  {
-//      extern bool_t TcpInit(void);
-//      ret = TcpInit();
-//      __LoadLog("TCP",ret);
-//      if(false == ret)
-//      {
-//          goto TCPIP_INITERR;
-//      }
-//  }
+#if (CFG_MODULE_ENABLE_TCP == true)
+  //install the tcp protocol
+    extern bool_t TcpInit(void);
+    ret = TcpInit();
+    __LoadLog("TCP",ret);
+    if(false == ret)
+    {
+      goto TCPIP_INITERR;
+    }
+#endif
 
     //install the udp protocol
-    if(enable_udp)
+#if (CFG_MODULE_ENABLE_UDP == true)
+    extern bool_t UdpInit(void);
+    ret = UdpInit();
+    __LoadLog("UDP",ret);
+    if(false == ret)
     {
-        extern bool_t UdpInit(void);
-        ret = UdpInit();
-        __LoadLog("UDP",ret);
-        if(false == ret)
-        {
-            goto TCPIP_INITERR;
-        }
+        goto TCPIP_INITERR;
     }
+#endif
 
     //install the icmp protocol
     extern bool_t IcmpInit(void);
@@ -229,8 +213,7 @@ bool_t ModuleInstall_TcpIp(void)
         goto TCPIP_INITERR;
     }
     //add the ppp module
-    if(enable_ppp)
-    {
+#if (CFG_MODULE_ENABLE_PPP == true)
         extern bool_t PppInit(void);
         ret = PppInit();
         __LoadLog("PPP",ret);
@@ -238,8 +221,8 @@ bool_t ModuleInstall_TcpIp(void)
         {
             goto TCPIP_INITERR;
         }
-    }
-    //add the tcpip service
+#endif
+        //add the tcpip service
     extern bool_t ServiceInit(void);
     ret = ServiceInit();
     __LoadLog("SERVICE",ret);

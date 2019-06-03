@@ -61,12 +61,9 @@ extern "C" {
 
 #include "stdint.h"
 
-#define CN_TIMER_SOURCE_TICK   0
-#define CN_TIMER_SOURCE_HARD   1
-
 struct Timer;
 typedef struct Timer tagTimer;
-typedef void (*fnTimerIsr)(struct Timer *timer);
+typedef void (*fnTimerRecall)(struct Timer *timer);
 
 enum TimerCmdCode
 {
@@ -77,12 +74,13 @@ enum TimerCmdCode
 };
 
 tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
-                                  u32 cycle, fnTimerIsr isr);
+                                  u32 cycle, fnTimerRecall isr);
 tagTimer*  Timer_Delete_s(tagTimer* timer);
-tagTimer*  Timer_Create(const char *name,u32 cycle,fnTimerIsr isr);
+tagTimer*  Timer_Create(const char *name,u32 cycle,fnTimerRecall isr);
 bool_t Timer_Delete(tagTimer* timer);
 bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, ptu32_t para);
 char *Timer_GetName(tagTimer* timer);
+bool_t Timer_SetTag(tagTimer* timer,ptu32_t Tag);
 ptu32_t Timer_GetTag(tagTimer* timer);
 bool_t ModuleInstall_Timer(void);
 

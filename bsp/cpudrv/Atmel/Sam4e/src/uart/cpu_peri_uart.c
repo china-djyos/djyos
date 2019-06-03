@@ -79,17 +79,17 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_uart"    //CPU的uart外设驱动
-//parent:"uart"                     //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu peri uart"//CPU的uart外设驱动
+//parent:"System:uart"      //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                   //初始化时机，可选值：early，medium，later。
                                      //表示初始化时间，分别是早期、中期、后期
-//dependence:"driver","lock","uart","heap","cpu_peri_pmc",  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"device file system","lock","System:uart","component heap","cpu drver Power management"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //如果依赖多个组件，则依次列出
-//mutex:"none"                      //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                    //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -118,7 +118,7 @@
 #define CFG_USART0_ENABLE       false         //"是否配置USART0",
 #define CFG_USART1_ENABLE       false         //"是否配置USART1",
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束

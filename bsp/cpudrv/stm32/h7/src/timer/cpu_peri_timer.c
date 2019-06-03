@@ -72,21 +72,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_timer"//CPU的定时器外设驱动
-//parent:"timer"                //填写该组件的父组件名字，none表示没有父组件
+//component name:"cpu peri timer"//CPU的定时器外设驱动
+//parent:"component Software Timers"//填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"timer","int",     //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"component Software Timers","component int"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -94,7 +94,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -102,7 +102,7 @@
 
 
 #define CN_PIT_MAX_COUNTER     0xFFFFFFFF
-#define CN_PIT_MAX_TIME_US     (0xFFFFFFFF/108)
+#define CN_PIT_MAX_TIME_US     (0xFFFFFFFF/200)
 
 
 #define tagTimerReg TIM_TypeDef
@@ -127,7 +127,7 @@ struct STM32TimerHandle
     u32     irqline;          //中断号
     u32     cycle;            //定时周期
     u32     timerstate;       //定时器标识,如 CN_TIMER_ENCOUNT 等标志位
-    fntTimerIsr UserIsr;      //用户中断响应函数
+    fnTimerIsr UserIsr;      //用户中断响应函数
 };
 
 //当开了辅助定时器的时候会使用TIM5做辅助定时器
@@ -374,7 +374,7 @@ __attribute__((weak)) u32 __STM32Timer_isr(ptu32_t TimerHandle)
 // 返回值  :分配的定时器句柄，NULL则分配不成功
 // 说明    :
 // =============================================================================
-ptu32_t __STM32Timer_Alloc(fntTimerIsr timerisr)
+ptu32_t __STM32Timer_Alloc(fnTimerIsr timerisr)
 {
     u8 timerno;
     u8 irqline;
@@ -780,9 +780,9 @@ bool_t __STM32Timer_Ctrl(ptu32_t timerhandle, \
 // =============================================================================
 u32  __STM32Timer_GetFreq(ptu32_t timerhandle)
 {
-    //定时器TIM25 时钟源为低速外设时钟PCLK1，速度为54M
-    //定时器分频配置为108，
-    return CN_CFG_PCLK1*2;//108MHz
+    //定时器TIM25 时钟源为低速外设时钟APB1，速度为100M
+    //定时器分频配置为200，
+    return CN_CFG_APB1_CLK*2;//200MHz
 }
 // =============================================================================
 // 函数功能:module_init_timer

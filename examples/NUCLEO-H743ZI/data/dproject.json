@@ -1,0 +1,58 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m7",
+		"cpu":"stm32h743xx",
+		"board":"NUCLEO-H743ZI"
+	},
+	"components_checked":{
+		"app":["black box",
+		"board config",
+		"cpu peri gpio",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"stm32h7"],
+		"iboot":["black box",
+		"board config",
+		"cpu onchip MAC",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"device file system",
+		"file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"network config",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32h7",
+		"tcpip",
+		"uart device file",
+		"ymodem"]
+	}
+}

@@ -1,17 +1,17 @@
-Ôªø/**
+/**
   ******************************************************************************
   * @file    stm32f7xx_hal_hcd.c
   * @author  MCD Application Team
   * @version V1.1.2
-  * @date    23-September-2016 
+  * @date    23-September-2016
   * @brief   HCD HAL module driver.
-  *          This file provides firmware functions to manage the following 
+  *          This file provides firmware functions to manage the following
   *          functionalities of the USB Peripheral Controller:
   *           + Initialization and de-initialization functions
   *           + IO operation functions
-  *           + Peripheral Control functions 
+  *           + Peripheral Control functions
   *           + Peripheral State functions
-  *         
+  *
   @verbatim
   ==============================================================================
                     ##### How to use this driver #####
@@ -19,21 +19,21 @@
   [..]
     (#)Declare a HCD_HandleTypeDef handle structure, for example:
        HCD_HandleTypeDef  hhcd;
-        
+
     (#)Fill parameters of Init structure in HCD handle
-  
-    (#)Call HAL_HCD_Init() API to initialize the HCD peripheral (Core, Host core, ...) 
+
+    (#)Call HAL_HCD_Init() API to initialize the HCD peripheral (Core, Host core, ...)
 
     (#)Initialize the HCD low level resources through the HAL_HCD_MspInit() API:
         (##) Enable the HCD/USB Low Level interface clock using the following macros
              (+++) __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
              (+++) __HAL_RCC_USB_OTG_HS_CLK_ENABLE(); (For High Speed Mode)
              (+++) __HAL_RCC_USB_OTG_HS_ULPI_CLK_ENABLE(); (For High Speed Mode)
-           
+
         (##) Initialize the related GPIO clocks
         (##) Configure HCD pin-out
         (##) Configure HCD NVIC interrupt
-    
+
     (#)Associate the Upper USB Host stack to the HAL HCD Driver:
         (##) hhcd.pData = phost;
 
@@ -69,7 +69,7 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */ 
+  */
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"
@@ -81,7 +81,7 @@
   * @{
   */
 
-/** @defgroup HCD HCD 
+/** @defgroup HCD HCD
   * @brief HCD HAL module driver
   * @{
   */
@@ -97,7 +97,7 @@ extern tagInt intRecord;
   * @{
   */
 static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum);
-static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum); 
+static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum);
 static void HCD_RXQLVL_IRQHandler(HCD_HandleTypeDef *hhcd);
 static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd);
 /**
@@ -109,15 +109,15 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd);
   * @{
   */
 
-/** @defgroup HCD_Exported_Functions_Group1 Initialization and de-initialization functions 
- *  @brief    Initialization and Configuration functions 
+/** @defgroup HCD_Exported_Functions_Group1 Initialization and de-initialization functions
+ *  @brief    Initialization and Configuration functions
  *
-@verbatim    
+@verbatim
  ===============================================================================
           ##### Initialization and de-initialization functions #####
  ===============================================================================
     [..]  This section provides functions allowing to:
- 
+
 @endverbatim
   * @{
   */
@@ -128,35 +128,35 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd);
   * @retval HAL status
   */
 HAL_StatusTypeDef HAL_HCD_Init(HCD_HandleTypeDef *hhcd)
-{ 
+{
   /* Check the HCD handle allocation */
   if(hhcd == NULL)
   {
     return HAL_ERROR;
   }
-  
+
   /* Check the parameters */
   assert_param(IS_HCD_ALL_INSTANCE(hhcd->Instance));
 
   hhcd->State = HAL_HCD_STATE_BUSY;
-  
+
   /* Init the low level hardware : GPIO, CLOCK, NVIC... */
-  HAL_HCD_MspInit(hhcd); // ÈÖçÁΩÆIO,‰ΩøËÉΩÊó∂Èíü
+  HAL_HCD_MspInit(hhcd); // ≈‰÷√IO, πƒ‹ ±÷”
 
   /* Disable the Interrupts */
  __HAL_HCD_DISABLE(hhcd);
- 
+
  /*Init the Core (common init.) */
  USB_CoreInit(hhcd->Instance, hhcd->Init); //
- 
+
  /* Force Host Mode*/
- USB_SetCurrentMode(hhcd->Instance, USB_OTG_HOST_MODE); // ËÆæÁΩÆ‰∏∫HOSTÊ®°Âºè
- 
+ USB_SetCurrentMode(hhcd->Instance, USB_OTG_HOST_MODE); // …Ë÷√Œ™HOSTƒ£ Ω
+
  /* Init Host */
- USB_HostInit(hhcd->Instance, hhcd->Init); // USB‰∏ªÊ®°ÂºèÂàùÂßãÂåñ
- 
+ USB_HostInit(hhcd->Instance, hhcd->Init); // USB÷˜ƒ£ Ω≥ı ºªØ
+
  hhcd->State= HAL_HCD_STATE_READY; //
- 
+
  return HAL_OK;
 }
 
@@ -184,7 +184,7 @@ HAL_StatusTypeDef HAL_HCD_Init(HCD_HandleTypeDef *hhcd)
   *          This parameter can be a value from 0 to32K
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_HCD_HC_Init(HCD_HandleTypeDef *hhcd,  
+HAL_StatusTypeDef HAL_HCD_HC_Init(HCD_HandleTypeDef *hhcd,
                                   uint8_t ch_num,
                                   uint8_t epnum,
                                   uint8_t dev_address,
@@ -193,9 +193,9 @@ HAL_StatusTypeDef HAL_HCD_HC_Init(HCD_HandleTypeDef *hhcd,
                                   uint16_t mps)
 {
   HAL_StatusTypeDef status = HAL_OK;
-  
-  __HAL_LOCK(hhcd); 
-  
+
+  __HAL_LOCK(hhcd);
+
   hhcd->hc[ch_num].dev_addr = dev_address;
   hhcd->hc[ch_num].max_packet = mps;
   hhcd->hc[ch_num].ch_num = ch_num;
@@ -204,15 +204,15 @@ HAL_StatusTypeDef HAL_HCD_HC_Init(HCD_HandleTypeDef *hhcd,
   hhcd->hc[ch_num].ep_is_in = ((epnum & 0x80) == 0x80);
   hhcd->hc[ch_num].speed = speed;
 
-  status =  USB_HC_Init(hhcd->Instance, 
+  status =  USB_HC_Init(hhcd->Instance,
                         ch_num,
                         epnum,
                         dev_address,
                         speed,
                         ep_type,
                         mps);
-  __HAL_UNLOCK(hhcd); 
-  
+  __HAL_UNLOCK(hhcd);
+
   return status;
 }
 
@@ -226,11 +226,11 @@ HAL_StatusTypeDef HAL_HCD_HC_Init(HCD_HandleTypeDef *hhcd,
 HAL_StatusTypeDef HAL_HCD_HC_Halt(HCD_HandleTypeDef *hhcd, uint8_t ch_num)
 {
   HAL_StatusTypeDef status = HAL_OK;
-  
-  __HAL_LOCK(hhcd);   
-  USB_HC_Halt(hhcd->Instance, ch_num);   
+
+  __HAL_LOCK(hhcd);
+  USB_HC_Halt(hhcd->Instance, ch_num);
   __HAL_UNLOCK(hhcd);
-  
+
   return status;
 }
 
@@ -246,16 +246,16 @@ HAL_StatusTypeDef HAL_HCD_DeInit(HCD_HandleTypeDef *hhcd)
   {
     return HAL_ERROR;
   }
-  
+
   hhcd->State = HAL_HCD_STATE_BUSY;
-  
+
   /* DeInit the low level hardware */
   HAL_HCD_MspDeInit(hhcd);
-  
+
    __HAL_HCD_DISABLE(hhcd);
-  
-  hhcd->State = HAL_HCD_STATE_RESET; 
-  
+
+  hhcd->State = HAL_HCD_STATE_RESET;
+
   return HAL_OK;
 }
 
@@ -269,7 +269,7 @@ __weak void  HAL_HCD_MspInit(HCD_HandleTypeDef *hhcd)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hhcd);
-  
+
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_HCD_MspInit could be implemented in the user file
    */
@@ -285,7 +285,7 @@ __weak void  HAL_HCD_MspDeInit(HCD_HandleTypeDef *hhcd)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hhcd);
-  
+
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_HCD_MspDeInit could be implemented in the user file
    */
@@ -302,15 +302,15 @@ __weak void  HAL_HCD_MspDeInit(HCD_HandleTypeDef *hhcd)
  ===============================================================================
                       ##### IO operation functions #####
  ===============================================================================
- [..] This subsection provides a set of functions allowing to manage the USB Host Data 
+ [..] This subsection provides a set of functions allowing to manage the USB Host Data
     Transfer
-       
+
 @endverbatim
   * @{
   */
-  
-/**                                
-  * @brief  Submit a new URB for processing. 
+
+/**
+  * @brief  Submit a new URB for processing.
   * @param  hhcd: HCD handle
   * @param  ch_num: Channel number.
   *         This parameter can be a value from 1 to 15
@@ -330,21 +330,21 @@ __weak void  HAL_HCD_MspDeInit(HCD_HandleTypeDef *hhcd)
   * @param  length: Length of URB data
   * @param  do_ping: activate do ping protocol (for high speed only).
   *          This parameter can be one of these values:
-  *           0 : do ping inactive / 1 : do ping active 
+  *           0 : do ping inactive / 1 : do ping active
   * @retval HAL status
   */
 HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
-                                            uint8_t ch_num, 
+                                            uint8_t ch_num,
                                             uint8_t direction ,
-                                            uint8_t ep_type,  
-                                            uint8_t token, 
-                                            uint8_t* pbuff, 
+                                            uint8_t ep_type,
+                                            uint8_t token,
+                                            uint8_t* pbuff,
                                             uint16_t length,
-                                            uint8_t do_ping) 
+                                            uint8_t do_ping)
 {
   hhcd->hc[ch_num].ep_is_in = direction;
-  hhcd->hc[ch_num].ep_type  = ep_type; 
-  
+  hhcd->hc[ch_num].ep_type  = ep_type;
+
   if(token == 0)
   {
     hhcd->hc[ch_num].data_pid = HC_PID_SETUP;
@@ -353,7 +353,7 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
   {
     hhcd->hc[ch_num].data_pid = HC_PID_DATA1;
   }
-  
+
   /* Manage Data Toggle */
   switch(ep_type)
   {
@@ -364,11 +364,11 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
       { /* For Status OUT stage, Length==0, Status Out PID = 1 */
         hhcd->hc[ch_num].toggle_out = 1;
       }
-      
+
       /* Set the Data Toggle bit as per the Flag */
       if ( hhcd->hc[ch_num].toggle_out == 0)
       { /* Put the PID 0 */
-        hhcd->hc[ch_num].data_pid = HC_PID_DATA0;    
+        hhcd->hc[ch_num].data_pid = HC_PID_DATA0;
       }
       else
       { /* Put the PID 1 */
@@ -380,14 +380,14 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
       }
     }
     break;
-  
+
   case EP_TYPE_BULK:
     if(direction == 0) // OUT
     {
       /* Set the Data Toggle bit as per the Flag */
       if ( hhcd->hc[ch_num].toggle_out == 0)
       { /* Put the PID 0 */
-        hhcd->hc[ch_num].data_pid = HC_PID_DATA0;    
+        hhcd->hc[ch_num].data_pid = HC_PID_DATA0;
       }
       else
       { /* Put the PID 1 */
@@ -409,7 +409,7 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
         hhcd->hc[ch_num].data_pid = HC_PID_DATA1;
       }
     }
-    
+
     break;
   case EP_TYPE_INTR:
     if(direction == 0)
@@ -417,7 +417,7 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
       /* Set the Data Toggle bit as per the Flag */
       if ( hhcd->hc[ch_num].toggle_out == 0)
       { /* Put the PID 0 */
-        hhcd->hc[ch_num].data_pid = HC_PID_DATA0;    
+        hhcd->hc[ch_num].data_pid = HC_PID_DATA0;
       }
       else
       { /* Put the PID 1 */
@@ -436,19 +436,19 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
       }
     }
     break;
-    
-  case EP_TYPE_ISOC: 
+
+  case EP_TYPE_ISOC:
     hhcd->hc[ch_num].data_pid = HC_PID_DATA0;
-    break;      
+    break;
   }
-  
+
   hhcd->hc[ch_num].xfer_buff = pbuff;
   hhcd->hc[ch_num].xfer_len  = length;
-  hhcd->hc[ch_num].urb_state =   URB_IDLE;  
+  hhcd->hc[ch_num].urb_state =   URB_IDLE;
   hhcd->hc[ch_num].xfer_count = 0 ;
   hhcd->hc[ch_num].ch_num = ch_num;
   hhcd->hc[ch_num].state = HC_IDLE;
-  
+
   return USB_HC_StartXfer(hhcd->Instance, &(hhcd->hc[ch_num]), hhcd->Init.dma_enable);
 }
 
@@ -465,15 +465,15 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
     uint32_t i = 0 , interrupt = 0;
 
     /* ensure that we are in device mode */
-    if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST) // ‰∏ªÊú∫Ê®°Âºè
+    if (USB_GetMode(hhcd->Instance) == USB_OTG_MODE_HOST) // ÷˜ª˙ƒ£ Ω
     {
         /* avoid spurious interrupt */
-        if(__HAL_HCD_IS_INVALID_INTERRUPT(hhcd)) // USBËøòÊú™ÂàùÂßãÂåñ
+        if(__HAL_HCD_IS_INVALID_INTERRUPT(hhcd)) // USBªπŒ¥≥ı º ∆
         {
             return;
         }
 
-        // Incomplete periodic transferÔºåÊú™ÂÆåÊàêÂë®Êúü‰º†Ëæì
+        // Incomplete periodic transfer£¨Œ¥ÕÍ≥…÷‹∆⁄¥´ ‰
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_PXFR_INCOMPISOOUT))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -482,7 +482,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
                 intRecord.dwINCOMPISOOUT++;
         }
 
-        // Incomplete isochronous IN transferÔºåÊú™ÂÆåÊàêINÂêåÊ≠•‰º†Ëæì
+        // Incomplete isochronous IN transfer£¨Œ¥ÕÍ≥…INÕ¨≤Ω¥´ ‰
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_IISOIXFR))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -495,10 +495,10 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         {
             // TODO
             __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_NPTXFE);
-            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_NPTXFE); // Â±èËîΩ‰∏≠Êñ≠
+            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_NPTXFE); // ∆¡±Œ÷–∂œ
         }
 
-        // Periodic TxFIFO emptyÔºåÂë®ÊúüÊÄßTX FIFO‰∏∫Á©∫
+        // Periodic TxFIFO empty£¨÷‹∆⁄ÇfTX FIFOŒ™ø’
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_PTXFE))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -507,7 +507,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
                 intRecord.dwPTXFE++;
         }
 
-        // Mode mismatch interruptÔºåÊ®°Âºè‰∏çÂåπÈÖç
+        // Mode mismatch interrupt£¨ƒ£ Ω≤ª∆•≈‰
         if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_MMIS))
         {
             /* incorrect mode, acknowledge the interrupt */
@@ -517,30 +517,30 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         }
 
         /* Handle Host Disconnect Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT)) // Ê£ÄÊµãÂà∞Êñ≠ÂºÄÈìæÊé•
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT)) // óU≤‚µΩ∂œø™¡¥Ω”
         {
             /* Cleanup HPRT */
             USBx_HPRT0 &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |\
-            USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // ‰∏ªÊú∫Á´ØÂè£ÂØÑÂ≠òÂô®ÔºåÁ¶ÅÊ≠¢Á´ØÂè£ | Á´ØÂè£ÈìæÊé• | Á´ØÂè£‰ΩøËÉΩÂèòÂåñ | ËøáÊµÅ
+            USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // ÷˜ª˙∂Àø⁄ºƒ¥Ê∆˜£¨Ω˚÷π∂Àø⁄ | ∂Àø⁄¡¥Ω” | ∂Àø⁄ πƒ‹±‰ªØ | π˝¡˜
 
             /* Handle Host Port Interrupts */
-            HAL_HCD_Disconnect_Callback(hhcd); // usb_core.cËøõË°åÂ§ÑÁêÜ
+            HAL_HCD_Disconnect_Callback(hhcd); // usb_core.cΩ¯––¥¶¿Ì
             USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_48_MHZ );
-            __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT); // Ê∏Ö‰∏≠Êñ≠
+            __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_DISCINT); // «Â÷–’˛
             if(ON == intRecord.state)
                 intRecord.dwDISCINT++;
         }
 
         /* Handle Host Port Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HPRTINT)) // ‰∏ªÊú∫Á´ØÂè£ÁªàÁ´Ø
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HPRTINT)) // ÷˜ª˙∂Àø⁄÷’∂À
         {
-            HCD_Port_IRQHandler (hhcd); // Â§ÑÁêÜÁ´ØÂè£‰∏≠Êñ≠,ÂèëÁîüËøûÊé•Á≠âÊÉÖÂÜµ
+            HCD_Port_IRQHandler (hhcd); // ¥¶¿Ì∂Àø⁄÷–∂œ,∑¢…˙¡¨Ω”µ»«È∂˘
             if(ON == intRecord.state)
                 intRecord.dwHPRTINT++;
-		}
+        }
 
         /* Handle Host SOF Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_SOF)) // ÂèëÈÄÅ‰∫ÜSOFÂ∏ß
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_SOF)) // ∑¢ŒÃ¡ÀSOFé]
         {
             HAL_HCD_SOF_Callback(hhcd);
             __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_SOF);
@@ -549,14 +549,14 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         }
 
         /* Handle Host channel Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HCINT)) // ‰∏ªÊú∫ÈÄöÈÅì‰∏≠Êñ≠
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_HCINT)) // ÷˜ª˙Õ®µ¿÷–∂œ
         {
-            interrupt = USB_HC_ReadInterrupt(hhcd->Instance); // Ëé∑ÂèñÈÄöÈÅìÂè∑
+            interrupt = USB_HC_ReadInterrupt(hhcd->Instance); // ªÒ»°Õ®µ¿«‰
             for (i = 0; i < hhcd->Init.Host_channels ; i++)
             {
                 if (interrupt & (1 << i))
                 {
-                    if ((USBx_HC(i)->HCCHAR) &  USB_OTG_HCCHAR_EPDIR) // Ëé∑ÂèñÁ´ØÁÇπÊñπÂêë
+                    if ((USBx_HC(i)->HCCHAR) &  USB_OTG_HCCHAR_EPDIR) // ªÒ»°∂Àµ„∑ΩœÚ
                     {
                         HCD_HC_IN_IRQHandler (hhcd, i);
                     }
@@ -572,13 +572,13 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         }
 
         /* Handle Rx Queue Level Interrupts */
-        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_RXFLVL)) // RX FIFOÈùûÁ©∫ÔºåÊúâÊï∞ÊçÆÂèØËØª
+        if(__HAL_HCD_GET_FLAG(hhcd, USB_OTG_GINTSTS_RXFLVL)) // RX FIFO∑«ø’£¨”– ˝æ›ø…∂¡
         {
-            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); // Â±èËîΩ‰∏≠Êñ≠
+            USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); // ∆¡±Œ÷–∂œ
 
-            HCD_RXQLVL_IRQHandler (hhcd); // ËØªRX FIFOÊï∞ÊçÆ
+            HCD_RXQLVL_IRQHandler (hhcd); // ∂¡RX FIFO ˝æ›
 
-            USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); // ‰ΩøËÉΩ‰∏≠Êñ≠
+            USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_RXFLVL); //  πƒ‹÷–∂œ
             if(ON == intRecord.state)
                 intRecord.dwRXFLVL++;
         }
@@ -594,7 +594,7 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
             USBx_HPRT0 = settings;
             __HAL_HCD_CLEAR_FLAG(hhcd, USB_OTG_GINTSTS_WKUINT);
 
-            bNoRemoteWakeupTemp = 1; // Â§ç‰ΩçÊ®°Âùó
+            bNoRemoteWakeupTemp = 1; // ∏¥Œªƒ£øÈ
         }
     }
 }
@@ -609,7 +609,7 @@ __weak void HAL_HCD_SOF_Callback(HCD_HandleTypeDef *hhcd)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hhcd);
-  
+
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_HCD_SOF_Callback could be implemented in the user file
    */
@@ -625,7 +625,7 @@ __weak void HAL_HCD_Connect_Callback(HCD_HandleTypeDef *hhcd)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hhcd);
-  
+
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_HCD_Connect_Callback could be implemented in the user file
    */
@@ -641,11 +641,11 @@ __weak void HAL_HCD_Disconnect_Callback(HCD_HandleTypeDef *hhcd)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hhcd);
-  
+
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_HCD_Disconnect_Callback could be implemented in the user file
    */
-} 
+}
 #endif
 /**
   * @brief  Notify URB state change callback.
@@ -657,16 +657,16 @@ __weak void HAL_HCD_Disconnect_Callback(HCD_HandleTypeDef *hhcd)
   *            URB_IDLE/
   *            URB_DONE/
   *            URB_NOTREADY/
-  *            URB_NYET/ 
-  *            URB_ERROR/  
-  *            URB_STALL/    
+  *            URB_NYET/
+  *            URB_ERROR/
+  *            URB_STALL/
   * @retval None
   */
 __weak void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, uint8_t chnum, HCD_URBStateTypeDef urb_state)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hhcd);
-  
+
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_HCD_HC_NotifyURBChange_Callback could be implemented in the user file
    */
@@ -676,15 +676,15 @@ __weak void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, uint8_t
   * @}
   */
 
-/** @defgroup HCD_Exported_Functions_Group3 Peripheral Control functions 
- *  @brief   Management functions 
+/** @defgroup HCD_Exported_Functions_Group3 Peripheral Control functions
+ *  @brief   Management functions
  *
-@verbatim   
+@verbatim
  ===============================================================================
                       ##### Peripheral Control functions #####
- ===============================================================================  
+ ===============================================================================
     [..]
-    This subsection provides a set of functions allowing to control the HCD data 
+    This subsection provides a set of functions allowing to control the HCD data
     transfers.
 
 @endverbatim
@@ -697,11 +697,11 @@ __weak void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, uint8_t
   * @retval HAL status
   */
 HAL_StatusTypeDef HAL_HCD_Start(HCD_HandleTypeDef *hhcd)
-{ 
-  __HAL_LOCK(hhcd); // TODO:Ëé∑ÂèñÈîÅ
-  __HAL_HCD_ENABLE(hhcd); // TODO:ÂºÄÂêØ‰∏≠Êñ≠
-  USB_DriveVbus(hhcd->Instance, 1); // Á´ØÂè£,‰∏äÁîµÔºàÂ•ΩÂÉè‰∏çÊòØVBUSÁöÑÁîµÊ∫êÁ∫øÔºâ
-  __HAL_UNLOCK(hhcd); // Ëß£ÈîÅ
+{
+  __HAL_LOCK(hhcd); // TODO:ªÒ»°Ó‰
+  __HAL_HCD_ENABLE(hhcd); // TODO:é¯∆Ù÷–’˛
+  USB_DriveVbus(hhcd->Instance, 1); // ∂Àø⁄,…œµÁ£®∫√œÒ≤ª «VBUSµƒµÁ‘¥œﬂ?
+  __HAL_UNLOCK(hhcd); // Ω‚À¯
   return HAL_OK;
 }
 
@@ -712,10 +712,10 @@ HAL_StatusTypeDef HAL_HCD_Start(HCD_HandleTypeDef *hhcd)
   */
 
 HAL_StatusTypeDef HAL_HCD_Stop(HCD_HandleTypeDef *hhcd)
-{ 
-  __HAL_LOCK(hhcd); 
-  USB_StopHost(hhcd->Instance); // Âà∑Êñ∞FIFOÔºåÊ∏ÖÈÄöÈÅìÔºåÊ∏Ö‰∏≠Êñ≠
-  __HAL_UNLOCK(hhcd); 
+{
+  __HAL_LOCK(hhcd);
+  USB_StopHost(hhcd->Instance); // À¢–¬FIFO£¨«ÂÕ®µ¿£¨«Â÷–∂œ
+  __HAL_UNLOCK(hhcd);
   return HAL_OK;
 }
 
@@ -726,22 +726,22 @@ HAL_StatusTypeDef HAL_HCD_Stop(HCD_HandleTypeDef *hhcd)
   */
 HAL_StatusTypeDef HAL_HCD_ResetPort(HCD_HandleTypeDef *hhcd)
 {
-  return (USB_ResetPort(hhcd->Instance)); // Á´ØÂè£Â§ç‰Ωç
+  return (USB_ResetPort(hhcd->Instance)); // ∂Àø⁄∏¥Œª
 }
 
 /**
   * @}
   */
 
-/** @defgroup HCD_Exported_Functions_Group4 Peripheral State functions 
- *  @brief   Peripheral State functions 
+/** @defgroup HCD_Exported_Functions_Group4 Peripheral State functions
+ *  @brief   Peripheral State functions
  *
-@verbatim   
+@verbatim
  ===============================================================================
                       ##### Peripheral State functions #####
- ===============================================================================  
+ ===============================================================================
     [..]
-    This subsection permits to get in run-time the status of the peripheral 
+    This subsection permits to get in run-time the status of the peripheral
     and the data flow.
 
 @endverbatim
@@ -768,13 +768,13 @@ HCD_StateTypeDef HAL_HCD_GetState(HCD_HandleTypeDef *hhcd)
   *            URB_IDLE/
   *            URB_DONE/
   *            URB_NOTREADY/
-  *            URB_NYET/ 
-  *            URB_ERROR/  
+  *            URB_NYET/
+  *            URB_ERROR/
   *            URB_STALL
   */
 HCD_URBStateTypeDef HAL_HCD_HC_GetURBState(HCD_HandleTypeDef *hhcd, uint8_t chnum)
 {
-  return hhcd->hc[chnum].urb_state; // channelÁä∂ÊÄÅ
+  return hhcd->hc[chnum].urb_state; // channel◊¥ π
 }
 
 
@@ -787,9 +787,9 @@ HCD_URBStateTypeDef HAL_HCD_HC_GetURBState(HCD_HandleTypeDef *hhcd, uint8_t chnu
   */
 uint32_t HAL_HCD_HC_GetXferCount(HCD_HandleTypeDef *hhcd, uint8_t chnum)
 {
-  return hhcd->hc[chnum].xfer_count; 
+  return hhcd->hc[chnum].xfer_count;
 }
-  
+
 /**
   * @brief  Return the Host Channel state.
   * @param  hhcd: HCD handle
@@ -800,12 +800,12 @@ uint32_t HAL_HCD_HC_GetXferCount(HCD_HandleTypeDef *hhcd, uint8_t chnum)
   *            HC_IDLE/
   *            HC_XFRC/
   *            HC_HALTED/
-  *            HC_NYET/ 
-  *            HC_NAK/  
-  *            HC_STALL/ 
-  *            HC_XACTERR/  
-  *            HC_BBLERR/  
-  *            HC_DATATGLERR   
+  *            HC_NYET/
+  *            HC_NAK/
+  *            HC_STALL/
+  *            HC_XACTERR/
+  *            HC_BBLERR/
+  *            HC_DATATGLERR
   */
 HCD_HCStateTypeDef  HAL_HCD_HC_GetState(HCD_HandleTypeDef *hhcd, uint8_t chnum)
 {
@@ -855,101 +855,101 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
   USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
   uint32_t tmpreg = 0;
   static u32 countNAK = 0;
-  
-  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_AHBERR) // ÔºàÈ´òÈÄüÊ®°Âºè‰∏ãÔºâ
+
+  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_AHBERR) // £®∏ﬂÀŸƒ£ Ωœ¬?
   {
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_AHBERR);
     __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
     if(ON == intRecord.state)
-	  intRecord.in.dwAHBERR++;
-  }  
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) // Êî∂Âà∞/ÂèëÂá∫ACKÂìçÂ∫î‰∏≠Êñ≠
+      intRecord.in.dwAHBERR++;
+  }
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) //  ’µΩ/∑¢≥ˆACKœÏ”¶÷–∂œ
   {
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_ACK);
     if(ON == intRecord.state)
-	  intRecord.in.dwACK++;
+      intRecord.in.dwACK++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) // Êî∂Âà∞STALLÂìçÂ∫î‰∏≠Êñ≠
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) //  ’µΩSTALLœÏ”¶÷–∂œ
   {
     __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
     hhcd->hc[chnum].state = HC_STALL;
-    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // Ê∏ÖNAK‰∏≠Êñ≠
-    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_STALL); // Ê∏ÖSTALL‰∏≠Êñ≠
-    USB_HC_Halt(hhcd->Instance, chnum); // Á¶ÅÊ≠¢ÈÄöÈÅì
+    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // «ÂNAK÷–∂œ
+    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_STALL); // «ÂSTALL÷–∂œ
+    USB_HC_Halt(hhcd->Instance, chnum); // Ω˚÷πÕ®µ¿
     if(ON == intRecord.state)
-	  intRecord.in.dwSTALL++;
+      intRecord.in.dwSTALL++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) // Êï∞ÊçÆÂêåÊ≠•ÈîôËØØ
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) //  ˝æ›Õ¨≤Ω¥ÌŒÛ
   {
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-    USB_HC_Halt(hhcd->Instance, chnum); // Á¶ÅÊ≠¢ÈÄöÈÅì
-    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // Ê∏ÖNAK‰∏≠Êñ≠
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+    USB_HC_Halt(hhcd->Instance, chnum); // Ω˚÷πÕ®µ¿
+    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK); // «ÂNAK÷–∂œ
     hhcd->hc[chnum].state = HC_DATATGLERR;
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_DTERR);
     if(ON == intRecord.state)
-	  intRecord.in.dwDTERR++;
-  }    
-  
-  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // Â∏ßÊ∫¢Âá∫
+      intRecord.in.dwDTERR++;
+  }
+
+  if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // ÷°“ÁÉœ
   {
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-    USB_HC_Halt(hhcd->Instance, chnum); // Á¶ÅÊ≠¢ÈÄöÈÅì
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+    USB_HC_Halt(hhcd->Instance, chnum); // Ω˚÷πÕ®µ¿
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_FRMOR);
     if(ON == intRecord.state)
-	  intRecord.in.dwFRMOR++;
+      intRecord.in.dwFRMOR++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // ‰º†ËæìÂÆåÊàê
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // ¥´ ‰ÕÍ≥…
   {
     if (hhcd->Init.dma_enable)
     {
       hhcd->hc[chnum].xfer_count = hhcd->hc[chnum].xfer_len - \
-                               (USBx_HC(chnum)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ); // Ââ©‰ΩôÂèëÈÄÅÂ≠óËäÇÊï∞
+                               (USBx_HC(chnum)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ); //  £”‡∑¢ŒÃ◊÷Ω⁄ ˝
     }
-    
+
     hhcd->hc[chnum].state = HC_XFRC;
     hhcd->hc[chnum].ErrCnt = 0;
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_XFRC);
-    
-    
+
+
     if ((hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)||
-        (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // ÊéßÂà∂ÊàñÊâπÈáè
+        (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // øÿ÷∆ªÚ≈˙ƒ
     {
-      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-      USB_HC_Halt(hhcd->Instance, chnum); // Á¶ÅÊ≠¢ÈÄöÈÅì
+      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+      USB_HC_Halt(hhcd->Instance, chnum); // Ω˚÷πÕ®µ¿
       __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
-      
+
     }
-    else if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // ‰∏≠Êñ≠‰º†Ëæì
+    else if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // ÷–∂œ¥´ ‰
     {
-      USBx_HC(chnum)->HCCHAR |= USB_OTG_HCCHAR_ODDFRM; // Â•áÊï∞Â∏ß
-      hhcd->hc[chnum].urb_state = URB_DONE; 
+      USBx_HC(chnum)->HCCHAR |= USB_OTG_HCCHAR_ODDFRM; // ∆Ê ˝é]
+      hhcd->hc[chnum].urb_state = URB_DONE;
       HAL_HCD_HC_NotifyURBChange_Callback(hhcd, chnum, hhcd->hc[chnum].urb_state);
     }
     hhcd->hc[chnum].toggle_in ^= 1;
     if(ON == intRecord.state)
-	  intRecord.in.dwXFRC++;
-    
-    countNAK = 0; // ËÆ°Êï∞Ê∏ÖÈõ∂
+      intRecord.in.dwXFRC++;
+
+    countNAK = 0; // º∆ ˝«Â¡„
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_CHH) // Á¶ÅÊ≠¢ÈÄöÈÅì
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_CHH) // Ω˚÷πÕ®µ¿
   {
-    __HAL_HCD_MASK_HALT_HC_INT(chnum); // Â±èËîΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠
-    
-    if(hhcd->hc[chnum].state == HC_XFRC) // ‰º†ËæìÂ∑≤ÂÆåÊàê
+    __HAL_HCD_MASK_HALT_HC_INT(chnum); // ∆¡±ŒÕ®µ¿Õ£÷π÷–∂œ
+
+    if(hhcd->hc[chnum].state == HC_XFRC) // ¥´ ‰“—ÕÍë¢
     {
-      hhcd->hc[chnum].urb_state  = URB_DONE;      
+      hhcd->hc[chnum].urb_state  = URB_DONE;
     }
-    
-    else if (hhcd->hc[chnum].state == HC_STALL) // ‰º†ËæìÂÅúÊ≠¢
+
+    else if (hhcd->hc[chnum].state == HC_STALL) // ¥´ ‰Õ£÷π
     {
       hhcd->hc[chnum].urb_state = URB_STALL;
-    }   
-    
+    }
+
     else if((hhcd->hc[chnum].state == HC_XACTERR) ||
-            (hhcd->hc[chnum].state == HC_DATATGLERR)) // ÂèëÁîüÈîôËØØ
+            (hhcd->hc[chnum].state == HC_DATATGLERR)) // ∑¢…˙¥ÌŒÛ
     {
       if(hhcd->hc[chnum].ErrCnt++ > 3)
-      {      
+      {
         hhcd->hc[chnum].ErrCnt = 0;
         hhcd->hc[chnum].urb_state = URB_ERROR;
       }
@@ -957,52 +957,52 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
       {
         hhcd->hc[chnum].urb_state = URB_NOTREADY;
       }
-      
+
       /* re-activate the channel  */
       tmpreg = USBx_HC(chnum)->HCCHAR;
       tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-      tmpreg |= USB_OTG_HCCHAR_CHENA; // ‰ΩøËÉΩÈÄöÈÅì
-      USBx_HC(chnum)->HCCHAR = tmpreg;    
+      tmpreg |= USB_OTG_HCCHAR_CHENA; //  πƒ‹Õ®µ¿
+      USBx_HC(chnum)->HCCHAR = tmpreg;
     }
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_CHH);
     HAL_HCD_HC_NotifyURBChange_Callback(hhcd, chnum, hhcd->hc[chnum].urb_state);
     if(ON == intRecord.state)
-	  intRecord.in.dwCHH++;
-  }  
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // ÈÄö‰ø°‰∫ãÂä°ÈîôËØØ
+      intRecord.in.dwCHH++;
+  }
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // Õ®–≈ ¬ŒÒ¥ÌŒÛ
   {
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
      hhcd->hc[chnum].ErrCnt++;
      hhcd->hc[chnum].state = HC_XACTERR;
-     USB_HC_Halt(hhcd->Instance, chnum); // ÂÅúÊ≠¢ÈÄöÈÅì
+     USB_HC_Halt(hhcd->Instance, chnum); // Õ£÷πÕ®µ¿
      __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR);
      if(ON == intRecord.state)
-	  intRecord.in.dwTXERR++;
+      intRecord.in.dwTXERR++;
   }
-  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) // Êî∂Âà∞NAKÂìçÂ∫î
-  {  
-    if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // ‰∏≠Êñ≠Ê®°Âºè
+  else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) //  ’µΩNAKœÏ”¶
+  {
+    if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR) // ÷–∂œƒ£ Ω
     {
-      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-      USB_HC_Halt(hhcd->Instance, chnum); // ÂÅúÊ≠¢ÈÄöÈÅì
+      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+      USB_HC_Halt(hhcd->Instance, chnum); // Õ£÷πÕ®µ¿
     }
-#if 0 // ËøôÈáåÊúâBUGÔºåINÂ¶ÇÊûúÊî∂Âà∞NAKÂåÖÂêéÔºåÁ°¨‰ª∂‰ºö‰∏ÄÁõ¥‰∏çÊñ≠ÈáçÂèëÔºå‰ªéËÄåÂØºËá¥‰∏≠Êñ≠‰∏çÊå∫
+#if 0 // ’‚¿Ô”–BUG£¨IN»Áπ˚ ’µΩNAK∞¸∫Û£¨”≤º˛ª·?÷±≤ª∂œ÷ÿ∑¢£¨¥”ùÍµº÷¬÷–∂œ≤ª√Ú
     else if  ((hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)||
-         (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // ÊéßÂà∂ÊàñÊâπÈáèÊ®°Âºè
+         (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)) // øÿ÷∆ªÚ≈˙¡øƒ£é¯
     {
       /* re-activate the channel  */
       tmpreg = USBx_HC(chnum)->HCCHAR;
-      tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // ‰ΩøËÉΩÈÄöÈÅì
-      tmpreg |= USB_OTG_HCCHAR_CHENA; // ‰ΩøËÉΩÈÄöÈÅì
+      tmpreg &= ~USB_OTG_HCCHAR_CHDIS; //  πƒ‹Õ®µ¿
+      tmpreg |= USB_OTG_HCCHAR_CHENA; //  πƒ‹Õ®µ¿
       USBx_HC(chnum)->HCCHAR = tmpreg;
     }
 #else
     else if(hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)
     {
       tmpreg = USBx_HC(chnum)->HCCHAR;
-	  tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // ‰ΩøËÉΩÈÄöÈÅì
-	  tmpreg |= USB_OTG_HCCHAR_CHENA; // ‰ΩøËÉΩÈÄöÈÅì
-	  USBx_HC(chnum)->HCCHAR = tmpreg;
+      tmpreg &= ~USB_OTG_HCCHAR_CHDIS; //  πƒ‹Õ®µ¿
+      tmpreg |= USB_OTG_HCCHAR_CHENA; //  πƒ‹Õ®µ¿
+      USBx_HC(chnum)->HCCHAR = tmpreg;
     }
     else if(hhcd->hc[chnum].ep_type == EP_TYPE_BULK)
     {
@@ -1010,23 +1010,23 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
       u32 retrys = 10;
 
       if(USBH_MSC_CLASS == pHost->pActiveClass)
-    	  retrys = -1; // TODO ‰∏≠Êñ≠Ëß¶ÂèëËøáÈ¢ëÁπÅ
+          retrys = -1; // TODO ÷–∂œ¥•∑¢π˝∆µøD
 
-      // Êî∂Âà∞NAKÂåÖ‰ª•ÂêéÔºåÂè™Â∞ùËØïÈáçÂèë10Ê¨°INÔºåÂ¶ÇÊûúËøòÊ≤°ÊúâÔºåÂàô‰∏çÂú®ÂèëÈÄÅ
+      //  ’µΩNAK∞¸“‘∫Û£¨÷ª≥¢ ‘÷ÿ«‰10¥ŒIN£¨»Áπ˚ªπ√ª”–£¨‘Ú≤ª‘⁄∑¢¡Z
       if(countNAK++ > retrys)
       {
-		tmpreg = USBx_HC(chnum)->HCCHAR;
-		tmpreg |= USB_OTG_HCCHAR_CHDIS; // ÂÖ≥Èó≠ÈÄöÈÅì, Èò≤Ê≠¢ÂÖ∂‰∏ÄÁõ¥ÂèëÈÄÅINÂëΩ‰ª§
-		USBx_HC(chnum)->HCCHAR = tmpreg;
-		countNAK = 0;
+        tmpreg = USBx_HC(chnum)->HCCHAR;
+        tmpreg |= USB_OTG_HCCHAR_CHDIS; // πÿ±’Õ®µ¿, ∑¿÷π∆‰“ª÷±∑¢ÀÕIN√¸¡Ó
+        USBx_HC(chnum)->HCCHAR = tmpreg;
+        countNAK = 0;
       }
       else
       {
-    	// TODO: ËØÑ‰º∞‰∏≠Êñ≠Ê®°ÂºèÁ´ØÁÇπÊî∂Âà∞NAKÁöÑÊÉÖÂÜµ,ÁõÆÂâçÊ≤°ÊúâÂèëÁé∞ÈáçÂ§çËß¶Âèë‰∏≠Êñ≠ÁöÑÊÉÖÂÜµ
-    	tmpreg = USBx_HC(chnum)->HCCHAR;
-		tmpreg &= ~USB_OTG_HCCHAR_CHDIS; // ‰ΩøËÉΩÈÄöÈÅì
-		tmpreg |= USB_OTG_HCCHAR_CHENA; // ‰ΩøËÉΩÈÄöÈÅì
-		USBx_HC(chnum)->HCCHAR = tmpreg;
+        // TODO: ∆¿π¿÷–∂œƒ£ Ω∂Àµ„ ’µΩNAKµƒ«È∂˘,ƒø«∞√ª”–∑¢œ÷÷ÿ∏¥¥•∑¢÷–∂œµƒ«È∂˘
+        tmpreg = USBx_HC(chnum)->HCCHAR;
+        tmpreg &= ~USB_OTG_HCCHAR_CHDIS; //  πƒ‹Õ®µ¿
+        tmpreg |= USB_OTG_HCCHAR_CHENA; //  πƒ‹Õ®µ¿
+        USBx_HC(chnum)->HCCHAR = tmpreg;
       }
 
     }
@@ -1034,7 +1034,7 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
     hhcd->hc[chnum].state = HC_NAK;
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
     if(ON == intRecord.state)
-	  intRecord.in.dwNAK++;
+      intRecord.in.dwNAK++;
   }
 }
 
@@ -1049,173 +1049,173 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
 {
   USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
   uint32_t tmpreg = 0;
-  
+
   if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_AHBERR) //
   {
     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_AHBERR);
-    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
+    __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
     if(ON == intRecord.state)
-	  intRecord.out.dwAHBERR++;
-  }  
+      intRecord.out.dwAHBERR++;
+  }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) // Êî∂Âà∞ÊàñËÄÖÂèëÂá∫ACK
-	{
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_ACK);
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_ACK) //  ’µΩªÚù‰∑¢≥ˆACK
+    {
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_ACK);
 
-		if( hhcd->hc[chnum].do_ping == 1)
-		{
-			hhcd->hc[chnum].state = HC_NYET;
-			__HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-			USB_HC_Halt(hhcd->Instance, chnum); // ÂÅúÊ≠¢ÈÄöÈÅì
-			hhcd->hc[chnum].urb_state  = URB_NOTREADY;
-		}
+        if( hhcd->hc[chnum].do_ping == 1)
+        {
+            hhcd->hc[chnum].state = HC_NYET;
+            __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+            USB_HC_Halt(hhcd->Instance, chnum); // Õ£÷πÕ®µ¿
+            hhcd->hc[chnum].urb_state  = URB_NOTREADY;
+        }
 
-		if(ON == intRecord.state)
-			intRecord.out.dwACK++;
-	}
+        if(ON == intRecord.state)
+            intRecord.out.dwACK++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NYET) // ÔºàHSÊ®°Âºè‰∏ãÔºâÊî∂Âà∞Â∞öÊú™Â∞±Áª™
-	{
-		hhcd->hc[chnum].state = HC_NYET;
-		hhcd->hc[chnum].ErrCnt= 0;
-		__HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-		USB_HC_Halt(hhcd->Instance, chnum); // ÂÅúÊ≠¢ÈÄöÈÅì
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NYET);
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NYET) // £®HSƒ£ Ωœ¬£© ’µΩ…–Œ¥æÕ–˜
+    {
+        hhcd->hc[chnum].state = HC_NYET;
+        hhcd->hc[chnum].ErrCnt= 0;
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+        USB_HC_Halt(hhcd->Instance, chnum); // Õ£÷πÕ®µ¿
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NYET);
 
-		if(ON == intRecord.state)
-			intRecord.out.dwNYET++;
-	}
+        if(ON == intRecord.state)
+            intRecord.out.dwNYET++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // Â∏ßÊ∫¢Âá∫
-	{
-		__HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-		USB_HC_Halt(hhcd->Instance, chnum);
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_FRMOR);
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_FRMOR) // ÷°“ÁÉœ
+    {
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+        USB_HC_Halt(hhcd->Instance, chnum);
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_FRMOR);
 
-		if(ON == intRecord.state)
-			intRecord.out.dwFRMOR++;
-	}
+        if(ON == intRecord.state)
+            intRecord.out.dwFRMOR++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // ‰º†ËæìÂÆåÊàê
-	{
-		hhcd->hc[chnum].ErrCnt = 0;
-		__HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-		USB_HC_Halt(hhcd->Instance, chnum);
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_XFRC);
-		hhcd->hc[chnum].state = HC_XFRC;
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_XFRC) // ¥´ ‰ÕÍ≥…
+    {
+        hhcd->hc[chnum].ErrCnt = 0;
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+        USB_HC_Halt(hhcd->Instance, chnum);
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_XFRC);
+        hhcd->hc[chnum].state = HC_XFRC;
 
-		if(ON == intRecord.state)
-			intRecord.out.dwXFRC++;
-	}
+        if(ON == intRecord.state)
+            intRecord.out.dwXFRC++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) // Êî∂Âà∞STALLÂìçÂ∫î
-	{
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_STALL);
-		__HAL_HCD_UNMASK_HALT_HC_INT(chnum);
-		USB_HC_Halt(hhcd->Instance, chnum);
-		hhcd->hc[chnum].state = HC_STALL;
-		if(ON == intRecord.state)
-			intRecord.out.dwSTALL++;
-	}
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_STALL) //  ’µΩSTALLœÏ”¶
+    {
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_STALL);
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
+        USB_HC_Halt(hhcd->Instance, chnum);
+        hhcd->hc[chnum].state = HC_STALL;
+        if(ON == intRecord.state)
+            intRecord.out.dwSTALL++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) // Êî∂Âà∞NAKÂìçÂ∫î
-	{
-		hhcd->hc[chnum].ErrCnt = 0;
-		__HAL_HCD_UNMASK_HALT_HC_INT(chnum);
-		USB_HC_Halt(hhcd->Instance, chnum);
-		hhcd->hc[chnum].state = HC_NAK;
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK) //  ’µΩNAKœÏ”¶
+    {
+        hhcd->hc[chnum].ErrCnt = 0;
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
+        USB_HC_Halt(hhcd->Instance, chnum);
+        hhcd->hc[chnum].state = HC_NAK;
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
 
-		if(ON == intRecord.state)
-			intRecord.out.dwNAK++;
-	}
+        if(ON == intRecord.state)
+            intRecord.out.dwNAK++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // ÈÄö‰ø°‰∫ãÂä°ÈîôËØØ
-	{
-		__HAL_HCD_UNMASK_HALT_HC_INT(chnum);
-		USB_HC_Halt(hhcd->Instance, chnum);
-		hhcd->hc[chnum].state = HC_XACTERR;
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR);
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_TXERR) // Õ®–≈ ¬ŒÒ¥ÌŒÛ
+    {
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
+        USB_HC_Halt(hhcd->Instance, chnum);
+        hhcd->hc[chnum].state = HC_XACTERR;
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR);
 
-		if(ON == intRecord.state)
-			intRecord.out.dwTXERR++;
-	}
+        if(ON == intRecord.state)
+            intRecord.out.dwTXERR++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) // Êï∞ÊçÆÂêåÊ≠•ÈîôËØØ
-	{
-		__HAL_HCD_UNMASK_HALT_HC_INT(chnum); // ‰ΩøËÉΩÈÄöÈÅìÂÅúÊ≠¢‰∏≠Êñ≠ÔºåÂÖ∂‰ªñ‰∏≠Êñ≠ÈÉΩÂ±èËîΩ
-		USB_HC_Halt(hhcd->Instance, chnum);
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_DTERR);
-		hhcd->hc[chnum].state = HC_DATATGLERR;
+    else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_DTERR) //  ˝æ›Õ¨≤Ω¥ÌŒÛ
+    {
+        __HAL_HCD_UNMASK_HALT_HC_INT(chnum); //  πƒ‹Õ®µ¿Õ£÷π÷–∂œ£¨∆‰À˚÷–∂œ∂º∆¡±Œ
+        USB_HC_Halt(hhcd->Instance, chnum);
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_DTERR);
+        hhcd->hc[chnum].state = HC_DATATGLERR;
 
-		if(ON == intRecord.state)
-			intRecord.out.dwDTERR++;
-	}
+        if(ON == intRecord.state)
+            intRecord.out.dwDTERR++;
+    }
 
-	else if ((USBx_HC(chnum)->HCINT) & USB_OTG_HCINT_CHH) // ÈÄöÈÅìÂÅúÊ≠¢
-	{
-		__HAL_HCD_MASK_HALT_HC_INT(chnum); // Á¶ÅÊ≠¢‰ΩøËÉΩÈÄöÈÅì‰∏≠Êñ≠
+    else if ((USBx_HC(chnum)->HCINT) & USB_OTG_HCINT_CHH) // Õ®µ¿Õ£÷π
+    {
+        __HAL_HCD_MASK_HALT_HC_INT(chnum); // Ω˚÷π πƒ‹Õ®µ¿÷–∂œ
 
-		if(hhcd->hc[chnum].state == HC_XFRC)
-		{
-			hhcd->hc[chnum].urb_state  = URB_DONE;
-			if (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)
-			{
-				hhcd->hc[chnum].toggle_out ^= 1;
-			}
-		}
-		else if (hhcd->hc[chnum].state == HC_NAK)
-		{
-			hhcd->hc[chnum].urb_state  = URB_NOTREADY;
-		}
-		else if (hhcd->hc[chnum].state == HC_NYET)
-		{
-			hhcd->hc[chnum].urb_state  = URB_NOTREADY;
-			hhcd->hc[chnum].do_ping = 0;
-		}
-		else if (hhcd->hc[chnum].state == HC_STALL)
-		{
-			hhcd->hc[chnum].urb_state  = URB_STALL;
-		}
-		else if((hhcd->hc[chnum].state == HC_XACTERR) || // ÈÄö‰ø°‰∫ãÂä°ÈîôËØØ
-				(hhcd->hc[chnum].state == HC_DATATGLERR)) // ÂèëÈÄÅÈîôËØØ
-		{
-			if(hhcd->hc[chnum].ErrCnt++ > 3)
-			{
-				hhcd->hc[chnum].ErrCnt = 0;
-				hhcd->hc[chnum].urb_state = URB_ERROR;
-			}
-			else
-			{
-				// hhcd->hc[chnum].urb_state = URB_NOTREADY;
-				hhcd->hc[chnum].urb_state = URB_ERROR; // Áõ¥Êé•Êä•Èîô
-			}
+        if(hhcd->hc[chnum].state == HC_XFRC)
+        {
+            hhcd->hc[chnum].urb_state  = URB_DONE;
+            if (hhcd->hc[chnum].ep_type == EP_TYPE_BULK)
+            {
+                hhcd->hc[chnum].toggle_out ^= 1;
+            }
+        }
+        else if (hhcd->hc[chnum].state == HC_NAK)
+        {
+            hhcd->hc[chnum].urb_state  = URB_NOTREADY;
+        }
+        else if (hhcd->hc[chnum].state == HC_NYET)
+        {
+            hhcd->hc[chnum].urb_state  = URB_NOTREADY;
+            hhcd->hc[chnum].do_ping = 0;
+        }
+        else if (hhcd->hc[chnum].state == HC_STALL)
+        {
+            hhcd->hc[chnum].urb_state  = URB_STALL;
+        }
+        else if((hhcd->hc[chnum].state == HC_XACTERR) || // Õ®–≈ ¬ŒÒ¥ÌŒÛ
+                (hhcd->hc[chnum].state == HC_DATATGLERR)) // ∑¢ŒÃ¥Ì◊w
+        {
+            if(hhcd->hc[chnum].ErrCnt++ > 3)
+            {
+                hhcd->hc[chnum].ErrCnt = 0;
+                hhcd->hc[chnum].urb_state = URB_ERROR;
+            }
+            else
+            {
+                // hhcd->hc[chnum].urb_state = URB_NOTREADY;
+                hhcd->hc[chnum].urb_state = URB_ERROR; // ÷±Ω”±®¥Ì
+            }
 
-			/* re-activate the channel  */
-			tmpreg = USBx_HC(chnum)->HCCHAR;
-			tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-			tmpreg |= USB_OTG_HCCHAR_CHENA;
-			USBx_HC(chnum)->HCCHAR = tmpreg;
-		}
+            /* re-activate the channel  */
+            tmpreg = USBx_HC(chnum)->HCCHAR;
+            tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
+            tmpreg |= USB_OTG_HCCHAR_CHENA;
+            USBx_HC(chnum)->HCCHAR = tmpreg;
+        }
 
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_CHH);
-		HAL_HCD_HC_NotifyURBChange_Callback(hhcd, chnum, hhcd->hc[chnum].urb_state);
-		if(ON == intRecord.state)
-			intRecord.out.dwCHH++;
-	}
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_CHH);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, chnum, hhcd->hc[chnum].urb_state);
+        if(ON == intRecord.state)
+            intRecord.out.dwCHH++;
+    }
 
-	else if((USBx_HC(chnum)->HCINT) &USB_OTG_HCINT_BBERR)
-	{
-		__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_BBERR);
-		// TODO: ÁõÆÂâçËøò‰∏çÁü•ÈÅìÊÄé‰πàÂ§ÑÁêÜËøô‰∏™ÈîôËØØÔºå‰∏éÁ°¨‰ª∂Â∏ÉÁ∫øÊúâÂÖ≥
-	}
+    else if((USBx_HC(chnum)->HCINT) &USB_OTG_HCINT_BBERR)
+    {
+        __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_BBERR);
+        // TODO: ƒø«∞ªπ≤ª÷™µ¿‘ı√¥¥¶¿Ì’‚∏ˆ¥ÌŒÛ£¨”Î”≤º˛≤ºœﬂ”–πÿ
+    }
 
-	else
-	{
-		tmpreg = 0; // Êú™Áü•‰∏≠Êñ≠
-	}
-} 
+    else
+    {
+        tmpreg = 0; // Œ¥÷™÷–∂œ
+    }
+}
 
 /**
   * @brief  Handle Rx Queue Level interrupt requests.
@@ -1224,76 +1224,76 @@ static void HCD_HC_OUT_IRQHandler  (HCD_HandleTypeDef *hhcd, uint8_t chnum)
   */
 static void HCD_RXQLVL_IRQHandler  (HCD_HandleTypeDef *hhcd)
 {
-  USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;  
-  uint8_t                       channelnum =0;  
+  USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
+  uint8_t                       channelnum =0;
   uint32_t                      pktsts;
-  uint32_t                      pktcnt; 
+  uint32_t                      pktcnt;
   uint32_t                      temp = 0;
   uint32_t tmpreg = 0;
-  
+
   temp = hhcd->Instance->GRXSTSP ;
-  channelnum = temp &  USB_OTG_GRXSTSP_EPNUM; // ÂΩìÂâçÊé•Êî∂ÁöÑÊï∞ÊçÆÂåÖÊâÄÂ±ûÈÄöÈÅì
-  pktsts = (temp &  USB_OTG_GRXSTSP_PKTSTS) >> 17; // Êï∞ÊçÆÂåÖÁä∂ÊÄÅ
-  pktcnt = (temp &  USB_OTG_GRXSTSP_BCNT) >> 4; // ÂåÖÁöÑÂ≠óËäÇÊï∞
-    
+  channelnum = temp &  USB_OTG_GRXSTSP_EPNUM; // µ±«∞Ω” ’µƒ ˝æ›∞¸‹≤ Ù¡öµ¿
+  pktsts = (temp &  USB_OTG_GRXSTSP_PKTSTS) >> 17; //  ˝æ›∞¸◊¥è‹
+  pktcnt = (temp &  USB_OTG_GRXSTSP_BCNT) >> 4; // ∞¸µƒ◊÷Ω⁄î`
+
   switch (pktsts)
   {
-  case GRXSTS_PKTSTS_IN: // Êé•Êî∂ÁöÑÊï∞ÊçÆÂåÖÁöÑÁä∂ÊÄÅ
+  case GRXSTS_PKTSTS_IN: // Ω” ’µƒ ˝æ›∞¸µƒ◊¥è‹
     /* Read the data into the host buffer. */
-	if(!hhcd->hc[channelnum].async)
-	{
-		if ((pktcnt > 0) && (hhcd->hc[channelnum].xfer_buff != (void  *)0)) // Â≠òÂú®ÁºìÂÜ≤
-		{
+    if(!hhcd->hc[channelnum].async)
+    {
+        if ((pktcnt > 0) && (hhcd->hc[channelnum].xfer_buff != (void  *)0)) // ¥Ê‘⁄ª∫≥Â
+        {
 
-		  USB_ReadPacket(hhcd->Instance, hhcd->hc[channelnum].xfer_buff, pktcnt); // ËØªRX FIFO
+          USB_ReadPacket(hhcd->Instance, hhcd->hc[channelnum].xfer_buff, pktcnt); // ∂¡RX FIFO
 
-		  /*manage multiple Xfer */
-		  hhcd->hc[channelnum].xfer_buff += pktcnt;
-		  hhcd->hc[channelnum].xfer_count  += pktcnt;
+          /*manage multiple Xfer */
+          hhcd->hc[channelnum].xfer_buff += pktcnt;
+          hhcd->hc[channelnum].xfer_count  += pktcnt;
 
-		  if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) // Êï∞ÊçÆÂåÖËÆ°Êï∞
-		  {
-			/* re-activate the channel when more packets are expected */
-			tmpreg = USBx_HC(channelnum)->HCCHAR;
-			tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-			tmpreg |= USB_OTG_HCCHAR_CHENA;
-			USBx_HC(channelnum)->HCCHAR = tmpreg; // ÈáçÊñ∞ÊøÄÊ¥ªÈÄöÈÅì
-			hhcd->hc[channelnum].toggle_in ^= 1;
-		  }
-		}
-	}
-	else // ÂºÇÊ≠•Ê®°ÂºèÔºåÊï∞ÊçÆÁºìÂ≠òÂú®È©±Âä®Â±Ç
-	{
-		u8 buffer[128];
-		if(pktcnt > 0)
-		{
-			void USBH_Store(u8 bPipe, u8 *pData, u32 dwLen);
+          if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) //  ˝æ›∞¸º∆î`
+          {
+            /* re-activate the channel when more packets are expected */
+            tmpreg = USBx_HC(channelnum)->HCCHAR;
+            tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
+            tmpreg |= USB_OTG_HCCHAR_CHENA;
+            USBx_HC(channelnum)->HCCHAR = tmpreg; // ÷ÿ–¬ù¨ªÓ¡öµ¿
+            hhcd->hc[channelnum].toggle_in ^= 1;
+          }
+        }
+    }
+    else // “Ï≤Ωƒ£ Ω£¨ ˝æ›ª∫¥Ê‘⁄«˝∂Ø Ÿ
+    {
+        u8 buffer[128];
+        if(pktcnt > 0)
+        {
+            void USBH_Store(u8 bPipe, u8 *pData, u32 dwLen);
 
-			USB_ReadPacket(hhcd->Instance, buffer, pktcnt);
-			USBH_Store(channelnum, buffer, pktcnt);
-		}
+            USB_ReadPacket(hhcd->Instance, buffer, pktcnt);
+            USBH_Store(channelnum, buffer, pktcnt);
+        }
 
-		/*manage multiple Xfer */
-		hhcd->hc[channelnum].xfer_buff += pktcnt;
-		hhcd->hc[channelnum].xfer_count  += pktcnt;
+        /*manage multiple Xfer */
+        hhcd->hc[channelnum].xfer_buff += pktcnt;
+        hhcd->hc[channelnum].xfer_count  += pktcnt;
 
-		if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) // Êï∞ÊçÆÂåÖËÆ°Êï∞
-		{
-			/* re-activate the channel when more packets are expected */
-			tmpreg = USBx_HC(channelnum)->HCCHAR;
-			tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-			tmpreg |= USB_OTG_HCCHAR_CHENA;
-			USBx_HC(channelnum)->HCCHAR = tmpreg; // ÈáçÊñ∞ÊøÄÊ¥ªÈÄöÈÅì
-			hhcd->hc[channelnum].toggle_in ^= 1;
-		}
+        if((USBx_HC(channelnum)->HCTSIZ & USB_OTG_HCTSIZ_PKTCNT) > 0) //  ˝æ›∞¸º∆î`
+        {
+            /* re-activate the channel when more packets are expected */
+            tmpreg = USBx_HC(channelnum)->HCCHAR;
+            tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
+            tmpreg |= USB_OTG_HCCHAR_CHENA;
+            USBx_HC(channelnum)->HCCHAR = tmpreg; // ÷ÿ–¬ù¨ªÓ¡öµ¿
+            hhcd->hc[channelnum].toggle_in ^= 1;
+        }
 
-	}
+    }
     break;
 
-  case GRXSTS_PKTSTS_DATA_TOGGLE_ERR: // Êï∞ÊçÆÂêåÊ≠•ÈîôËØØ
+  case GRXSTS_PKTSTS_DATA_TOGGLE_ERR: //  ˝æ›Õ¨≤Ω¥ÌŒÛ
     break;
-  case GRXSTS_PKTSTS_IN_XFER_COMP: // IN‰º†ËæìÂÆåÊàê
-  case GRXSTS_PKTSTS_CH_HALTED: // ÊöÇÂÅúÈÄöÈÅì
+  case GRXSTS_PKTSTS_IN_XFER_COMP: // IN¥´ ‰ÕÍ≥…
+  case GRXSTS_PKTSTS_CH_HALTED: // ‘›Õ£Õ®µ¿
   default:
     break;
   }
@@ -1306,48 +1306,48 @@ static void HCD_RXQLVL_IRQHandler  (HCD_HandleTypeDef *hhcd)
   */
 static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
 {
-  USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;  
+  USB_OTG_GlobalTypeDef *USBx = hhcd->Instance;
   __IO uint32_t hprt0, hprt0_dup;
-  
+
   /* Handle Host Port Interrupts */
   hprt0 = USBx_HPRT0;
   hprt0_dup = USBx_HPRT0;
-  
+
   hprt0_dup &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |\
-                 USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // Á¶ÅÊ≠¢PENA(Á´ØÂè£)| Á´ØÂè£ÈìæÊé• ÂèòÂåñ| PENA‰ΩçÂèòÂåñ | ËøáÊµÅÂèòÂåñ
-  
+                 USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG ); // Ω˚÷πPENA(∂Àø⁄)| ∂Àø⁄¡¥Ω” ±‰ªØ| PENAŒª±‰ ∆ | π˝¡˜±‰ªØ
+
   /* Check whether Port Connect detected */
-  if((hprt0 & USB_OTG_HPRT_PCDET) == USB_OTG_HPRT_PCDET) // Á´ØÂè£ÈìæÊé•ÂèòÂåñ
-  {  
-    if((hprt0 & USB_OTG_HPRT_PCSTS) == USB_OTG_HPRT_PCSTS) // ÈìæÊé•
+  if((hprt0 & USB_OTG_HPRT_PCDET) == USB_OTG_HPRT_PCDET) // ∂Àø⁄¡¥Ω”±‰ªØ
+  {
+    if((hprt0 & USB_OTG_HPRT_PCSTS) == USB_OTG_HPRT_PCSTS) // ¡¥Ω”
     {
       // USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT);
-      HAL_HCD_Connect_Callback(hhcd); // ÂèëÁîüÈìæÊé•
+      HAL_HCD_Connect_Callback(hhcd); // ∑¢…˙¡¥Ω”
     }
-    hprt0_dup  |= USB_OTG_HPRT_PCDET; // Ê∏Ö‰∏≠Êñ≠
-    // Âè™Ë¶ÅÊòØÁ´ØÂè£ÂèòÂåñÔºåÂ∞±ÂºÄÂêØËøô‰∏™‰∏≠Êñ≠„ÄÇÔºàÂΩìÁ´ØÂè£ÈìæÊé•Áä∂ÊÄÅÂø´ÈÄüÂèòÂåñÊó∂ÔºåÂ¶ÇÊûú‰∏çÂºÄÂêØËøô‰∏™‰∏≠Êñ≠Ôºå‰ºöÂà∞Êó∂hostÁ´ØÊ£ÄÊµã‰∏çÂà∞Êñ≠ÂºÄÈìæÊé•ÁöÑÂä®‰ΩúÔºâ
+    hprt0_dup  |= USB_OTG_HPRT_PCDET; // «Â÷–’˛
+    // ÷ª“™ «∂Àø⁄±‰ªØ£¨æÕø™∆Ù’‚∏ˆ÷–∂œ?£®µ±∂Àø⁄¡¥Ω”◊¥Ã¨øÏÀŸ±‰ªØ ±£¨»Áπ˚≤ªé¯∆Ù’‚∏ˆ÷–∂œ£¨ª·µΩ ±host∂ÀºÏ≤‚≤ªµΩ∂œé¯¡¥Ω”µƒ∂Ø◊˜£©
     USB_MASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT);
   }
-  
+
   /* Check whether Port Enable Changed */
-  if((hprt0 & USB_OTG_HPRT_PENCHNG) == USB_OTG_HPRT_PENCHNG) // Á´ØÂè£‰ΩøËÉΩ‰ΩçÂèëÁîüÂèòÂåñ
+  if((hprt0 & USB_OTG_HPRT_PENCHNG) == USB_OTG_HPRT_PENCHNG) // ∂Àø⁄ πƒ‹Œª∑¢…˙±‰ ∆
   {
     hprt0_dup |= USB_OTG_HPRT_PENCHNG; // TODO
-    
-    if((hprt0 & USB_OTG_HPRT_PENA) == USB_OTG_HPRT_PENA) // ‰ΩøËÉΩÁ´ØÂè£
-    {    
-      if(hhcd->Init.phy_itface  == USB_OTG_EMBEDDED_PHY) // ÂµåÂÖ•ÂºèÁöÑUSB PHY
+
+    if((hprt0 & USB_OTG_HPRT_PENA) == USB_OTG_HPRT_PENA) //  πƒ‹∂Àø⁄
+    {
+      if(hhcd->Init.phy_itface  == USB_OTG_EMBEDDED_PHY) // «∂»Î ΩµƒUSB PHY
       {
         if ((hprt0 & USB_OTG_HPRT_PSPD) == (HPRT0_PRTSPD_LOW_SPEED << 17))
         {
-          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_6_MHZ ); // ‰ΩéÈÄü
+          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_6_MHZ ); // µÕÀŸ
         }
         else
         {
-          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_48_MHZ ); // È´òÈÄü
+          USB_InitFSLSPClkSel(hhcd->Instance ,HCFG_48_MHZ ); // ∏ﬂÀŸ
         }
       }
-      else // Â§ñÁΩÆÁöÑUSB PHY
+      else // Õ‚÷√µƒUSB PHY
       {
         if(hhcd->Init.speed == HCD_SPEED_FULL)
         {
@@ -1355,23 +1355,23 @@ static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
         }
       }
       HAL_HCD_Connect_Callback(hhcd);
-      
+
     }
-    else // Á¶ÅÊ≠¢Á´ØÂè£
+    else // Ω˚÷π∂Àø⁄
     {
       /* Cleanup HPRT */
       USBx_HPRT0 &= ~(USB_OTG_HPRT_PENA | USB_OTG_HPRT_PCDET |\
         USB_OTG_HPRT_PENCHNG | USB_OTG_HPRT_POCCHNG );
-      
-      USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT); // Â±èËîΩÊ£ÄÊµãÂà∞Êñ≠ÂºÄÈìæÊé•‰∏≠Êñ≠
-    }    
+
+      USB_UNMASK_INTERRUPT(hhcd->Instance, USB_OTG_GINTSTS_DISCINT); // ∆¡±ŒóU≤‚µΩ∂œø™¡¥Ω”÷–∂œ
+    }
   }
-  
+
   /* Check For an overcurrent */
-  if((hprt0 & USB_OTG_HPRT_POCCHNG) == USB_OTG_HPRT_POCCHNG) // ËøáÊµÅ
+  if((hprt0 & USB_OTG_HPRT_POCCHNG) == USB_OTG_HPRT_POCCHNG) // π˝¡˜
   {
     hprt0_dup |= USB_OTG_HPRT_POCCHNG;
-    // TODO: ËøáÊµÅÈÄªËæë
+    // TODO: π˝¡˜¬ﬂº≠
   }
 
   /* Clear Port Interrupts */
@@ -1385,7 +1385,7 @@ static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
 /**
   * @}
   */
-  
+
 #endif /* HAL_HCD_MODULE_ENABLED */
 /**
   * @}
@@ -1396,3 +1396,4 @@ static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
   */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

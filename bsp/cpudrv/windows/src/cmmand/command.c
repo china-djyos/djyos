@@ -26,7 +26,7 @@
 #define cmd_buf_len  1024
 
 HANDLE win32_scanf;
-struct obj * sg_ptCmdDev;
+struct Object * sg_ptCmdDev;
 
 char cmd_ptcl_recv_buf[cmd_buf_len];
 //static struct DjyDevice * pg_cmd_hdl;
@@ -95,9 +95,9 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
     //以下建立windows 终端输入设备
     sg_ptCmdDev = dev_Create("windows_cmd",
                                 NULL,NULL,cmd_Open,NULL,
-                               (fntDevWrite) cmd_DriverWrite,
-                               (fntDevRead ) cmd_DriverRead,
-                               (fntDevCtrl ) cmd_DriverCtrl,
+                               (fnDevWrite) cmd_DriverWrite,
+                               (fnDevRead ) cmd_DriverRead,
+                               (fnDevCtrl ) cmd_DriverCtrl,
                                0
                                );
     if((sg_ptCmdDev == NULL) || (s_ptRecvRingBufSemp == NULL))
@@ -125,7 +125,7 @@ ptu32_t ModuleInstall_Cmd(ptu32_t para)
 
 exit_from_add_device:
     Lock_SempDelete(s_ptRecvRingBufSemp);
-    dev_DeleteAtObject(sg_ptCmdDev);
+    dev_Delete(sg_ptCmdDev);
     return 0;
 }
 

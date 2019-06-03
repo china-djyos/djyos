@@ -1,0 +1,41 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m3",
+		"cpu":"stm32f103xe",
+		"board":"stm32f103-empty"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["black box",
+		"board config",
+		"cpu onchip peripheral lowpower control",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"lowpower",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32f1",
+		"uart device file"]
+	}
+}

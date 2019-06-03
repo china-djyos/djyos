@@ -216,7 +216,7 @@ struct protoent
   char **p_aliases;    /* A pointer to an array of pointers to
                             * alternative protocol names, terminated by a
                             * null pointer. */
-  int        p_proto;      /* The protocol number. */
+  int    p_proto;      /* The protocol number. */
 };
 
 struct servent
@@ -225,7 +225,7 @@ struct servent
   char **s_aliases;    /* A pointer to an array of pointers to
                             * alternative service names, terminated by a
                             * null pointer.  */
-  int        s_port;       /* The port number at which the service resides,
+  int    s_port;       /* The port number at which the service resides,
                             * in network byte order. */
   char  *s_proto;      /* The name of the protocol to use when
                             * contacting the service. */
@@ -252,7 +252,6 @@ struct servent *getservbyname(const char *name, const char *proto);
 struct hostent *gethostbyname(const char *name);
 int  gethostname(char *name, int len);
 int sethostname(const char *name, size_t len);
-const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
 
 int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result );
 void freeaddrinfo (struct addrinfo*ai);

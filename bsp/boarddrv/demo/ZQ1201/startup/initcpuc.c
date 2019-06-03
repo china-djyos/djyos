@@ -55,7 +55,7 @@
 //   新版本号：V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "arch_feature.h"
 #include "stdint.h"
 #include "int.h"
@@ -73,23 +73,23 @@ extern   uint32_t   msp_top[ ];
 //extern void __set_CONTROL(uint32_t control);
 
 extern void IAP_SelectLoadProgam(void);
-static void __set_PSP(uint32_t topOfProcStack)
-{
-  __asm volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) : "sp");
-}
-static void __set_MSP(uint32_t topOfMainStack)
-{
-  __asm volatile ("MSR msp, %0\n" : : "r" (topOfMainStack) : "sp");
-}
-
-static void __set_PRIMASK(uint32_t priMask)
-{
-  __asm volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
-}
-static void __set_CONTROL(uint32_t control)
-{
-  __asm volatile ("MSR control, %0" : : "r" (control) : "memory");
-}
+//static void __set_PSP(uint32_t topOfProcStack)
+//{
+//  __asm volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) : "sp");
+//}
+//static void __set_MSP(uint32_t topOfMainStack)
+//{
+//  __asm volatile ("MSR msp, %0\n" : : "r" (topOfMainStack) : "sp");
+//}
+//
+//static void __set_PRIMASK(uint32_t priMask)
+//{
+//  __asm volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
+//}
+//static void __set_CONTROL(uint32_t control)
+//{
+//  __asm volatile ("MSR control, %0" : : "r" (control) : "memory");
+//}
 void Startup_NMI(void)
 {
     while(1);
@@ -167,7 +167,11 @@ void Init_Cpu(void)
 
     SDRAM_Init();
 
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
 extern void Load_Preload(void);
@@ -218,7 +222,7 @@ bool_t IAP_IsForceIboot(void)
 }
 #endif
 
-#ifdef CFG_CK803S
+#ifdef CFG_CPU_ZQ12XX_CK
 #include "csi_core.h"
 #include "arch_feature.h"
 #include "project_config.h"
@@ -232,7 +236,11 @@ void Init_Cpuc(void)
 //  csi_cache_set_range(1, 0x22000000, CACHE_CRCR_8M, 1);
 //  csi_dcache_enable();
 
+#if (CFG_RUNMODE_BAREAPP == 1)
+    Load_Preload();
+#else
     IAP_SelectLoadProgam();
+#endif
 }
 
 void IAP_GpioPinInit(void)

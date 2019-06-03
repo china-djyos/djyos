@@ -366,12 +366,35 @@ ptu32_t _GoAheadMain(void)
     return true;
 }
 
+int goahead_create(pthread_t  *threadId, const pthread_attr_t *attr,\
+       ptu32_t (*taskroutine)(void ),void *arg)
+{
+    int result = -1;
+    u16 evttID;
+    u16 eventID;
+
+    evttID = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,\
+                           taskroutine,NULL,0x2000,NULL);
+    if(evttID != CN_EVTT_ID_INVALID)
+    {
+        eventID = Djy_EventPop(evttID,NULL,0,(ptu32_t)arg,0,0);
+        if(CN_EVENT_ID_INVALID != eventID)
+        {
+            if(NULL != threadId)
+            {
+                *threadId = (evttID<<16)|eventID;
+            }
+            result = 0;
+        }
+    }
+    return result;
+}
+
 bool_t GoAheadMain(char *buf)
 {
-    pthread_create(NULL,NULL,_GoAheadMain,NULL);
+    goahead_create(NULL,NULL,_GoAheadMain,NULL);
     return true;
 }
-ADD_TO_EXPAND_SHELL(GoAheadMain,GoAheadMain,"start goahead");
 
 void GoAheadStart(void)
 {

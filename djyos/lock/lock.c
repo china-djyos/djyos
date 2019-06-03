@@ -86,7 +86,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"lock"         //锁模块，含互斥量和信号量
+//component name:"lock"//锁模块，含互斥量和信号量
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -95,12 +95,12 @@
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -154,11 +154,11 @@ s32 Lock_MutexObjOps(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
 //-----------------------------------------------------------------------------
 //ptu32_t ModuleInstall_Lock1(ptu32_t para)
 //{
-//    static struct obj semp_root;
-//    static struct obj mutex_root;
+//    static struct Object semp_root;
+//    static struct Object mutex_root;
 //    para = para;        //消除编译器告警
-//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct obj),"semaphore");
-//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct obj),"mutex");
+//    s_ptMutexObject = __Lock_RscAddLockTree(&semp_root,sizeof(struct Object),"semaphore");
+//    s_ptSempObject = __Lock_RscAddLockTree(&mutex_root,sizeof(struct Object),"mutex");
 //    return 1;
 //}
 
@@ -627,6 +627,7 @@ struct MutexLCB *Lock_MutexCreate_s( struct MutexLCB *mutex,const char *name)
     return mutex;
 }
 
+struct EventECB *__Djy_GetIdle(void);
 //----释放一个互斥量-----------------------------------------------------------
 //功能：释放互斥量，只有互斥量的拥有者才能释放互斥量。
 //参数：mutex,互斥量指针
@@ -654,7 +655,7 @@ void Lock_MutexPost(struct MutexLCB *mutex)
         }
     }
     if((mutex->owner != g_ptEventRunning)   //互斥量只能由拥有者释放
-        &&(mutex->owner != Djy_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
+        &&(mutex->owner != __Djy_GetIdle( ))) //考虑多事件调度开始前 pend 的互斥量
         return;
     Int_SaveAsynSignal();
     if(mutex->enable > 0)

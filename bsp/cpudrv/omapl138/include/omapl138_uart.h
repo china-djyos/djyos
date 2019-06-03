@@ -147,7 +147,7 @@ enum _UART_ERROR_NO_
 #define cn_uart_disconnect_recv_evtt  1  //断开右手事件
 #define cn_uart_connect_send_evtt     2  //设备被从左手写入数据时弹出本类型事件
 #define cn_uart_disconnect_send_evtt  3  //断开左手事件
-#define CN_UART_START                 4  //启动串口
+//#define CN_UART_START                 4  //启动串口
 #define CN_UART_STOP                  5  //停止串口
 #define CN_UART_SET_BAUD              6  //设置uartBaud.
 #define CN_UART_SEND_DATA             7  //发送数据

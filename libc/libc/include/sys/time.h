@@ -66,9 +66,9 @@
 extern "C" {
 #endif
 
-typedef bool_t (*fntRtc_GetTime)(s64 *time); //从RTC设备中读取RTC时间，单位微秒
+typedef bool_t (*fnRtc_GetTime)(s64 *time); //从RTC设备中读取RTC时间，单位微秒
                                                //取从1970年1月1日0:0:0到现在的时间差
-typedef bool_t (*fntRtc_SetTime)(s64 time);  //设置RTC设备RTC时间，单位微秒
+typedef bool_t (*fnRtc_SetTime)(s64 time);  //设置RTC设备RTC时间，单位微秒
                                                //该时间从1970年1月1日0:0:0到现在的时间差
 
 //时钟模块错误信息定义
@@ -125,8 +125,8 @@ extern int Tm_SetDateTimeStr(char *buf);
 void Tm_SetDateTime(struct tm *tm);
 struct tm *Tm_GmTime(const s64 *time);
 
-bool_t Rtc_RegisterDev(fntRtc_GetTime gettimefunc,
-        fntRtc_SetTime settimefunc);
+bool_t Rtc_RegisterDev(fnRtc_GetTime gettimefunc,
+        fnRtc_SetTime settimefunc);
 
 
 //the c lib interface for time  --modified by zqf

@@ -142,7 +142,7 @@ struct InputDeviceMsg
 
 struct HMI_InputDeviceObj
 {
-    struct obj *HostObj;
+    struct Object *HostObj;
     enum _STDIN_INPUT_TYPE_ input_type;   //输入设备类型
     s32 device_id;                      //输入设备id
     u32 input_counter;                  //本输入设备累计输入了多少消息
@@ -162,7 +162,6 @@ bool_t HmiIn_ReadDefaultMsg(struct InputDeviceMsg *MsgBuf,u32 TimeOut);
 bool_t HmiIn_SetFocus(const char *device_name,tpInputMsgQ FocusMsgQ);
 enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name);
 void HmiIn_SetFocusDefault(tpInputMsgQ FocusMsgQ);
-void HmiIn_SetFocusAll(tpInputMsgQ FocusMsgQ);
 tpInputMsgQ HmiIn_GetFocusDefault(void);
 bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size);
 

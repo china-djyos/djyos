@@ -77,21 +77,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"uart"         //uart设备系统
+//component name:"uart device file"//uart设备系统
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:none                //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"devfile","lock","heap","buffer",             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"device file system","lock","heap","ring buffer and line buffer"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -99,7 +99,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -108,7 +108,7 @@
 //一般模式状态结构
 struct UartGeneralCB
 {
-    struct obj *Host;
+    struct Object *Host;
     struct SemaphoreLCB *BlockingSemp;         // 阻塞信号量
 //  struct MultiplexObjectCB * pMultiplexUart;      // 多路复用目标对象头指针
     u32 Baud;                                  // 串口当前波特率
@@ -132,7 +132,7 @@ struct UartGeneralCB
 // 串口状态控制结构
 struct UartPollCB
 {
-    struct obj *Host;
+    struct Object *Host;
     struct SemaphoreLCB *BlockingSemp;              //阻塞信号量
 //  struct MultiplexObjectCB * pMultiplexUart;      //多路复用目标对象头指针
     u32 Baud;                                       //串口当前波特率
@@ -211,7 +211,7 @@ s32 UART_Open(struct objhandle *hdl, u32 Mode, u32 timeout)
 s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 timeout)
 {
     struct UartGeneralCB *UGCB;
-    struct obj *UartObj;
+    struct Object *UartObj;
     u32 Mode;
     u32 completed = 0,written;
     uint8_t *buf;
@@ -251,7 +251,7 @@ s32 UART_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, u32 t
         }
         else // 至此，需发送的数据已经全部copy到串口设备缓冲区
         {
-            if(handle_IsBlockComplete(Mode)) // 需要block complete
+            if(test_IsBlockComplete(Mode)) // 需要block complete
             {
                 //如果阻塞选项是complete，还要等待发送完成的信号量。
                 Lock_SempPend(UGCB->BlockingSemp,rel_timeout);
@@ -416,7 +416,7 @@ u32 UART_ErrHandle(struct UartGeneralCB *pUGCB, u32 dwErrNo)
 
 //----串口设备控制函数---------------------------------------------------------
 //功能: 串口设备的控制函数,由应用程序调用，UART被注册为设备，调用设备操作函数
-//      Driver_CtrlDevice，实质就是调用了该函数，函数调用过程:
+//      Dev_Ctrl，实质就是调用了该函数，函数调用过程:
 //      Dev_Ctrl() ---> Dev->dCtrl() ---> UART_Ctrl()
 //      该函数实现的功能根据命令字符决定，说明如下:
 //      1.启动停止串口，由底层驱动实现
@@ -669,9 +669,9 @@ s32 UART_Poll_Ctrl(struct objhandle* hdl,u32 cmd, va_list *arg0)
 //返回：串口控制块指针，NULL失败
 //-----------------------------------------------------------------------------
 #if 0
-struct obj * __UART_InstallGeneral(struct UartParam *Param)
+struct Object * __UART_InstallGeneral(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartGeneralCB *UGCB;
     struct MutexLCB *uart_mutexR,*uart_mutexT;
     u8 *pRxRingBuf,*pTxRingBuf;
@@ -769,7 +769,7 @@ exit_from_ucb:
 #else
 struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartGeneralCB *UGCB;
     u8 *pRxRingBuf,*pTxRingBuf;
 
@@ -874,9 +874,9 @@ exit_from_ucb:
 #endif
 
 #if 0
-struct obj * __UART_InstallPoll(struct UartParam *Param)
+struct Object * __UART_InstallPoll(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartPollCB *UPCB;
     struct MutexLCB *uart_mutexR,*uart_mutexT;
 
@@ -932,7 +932,7 @@ exit_from_ucb:
 #else
 struct UartPollCB *UART_InstallPoll(struct UartParam *Param)
 {
-    struct obj * uart_dev;
+    struct Object * uart_dev;
     struct UartPollCB *UPCB;
     struct MutexLCB *uart_mutexR,*uart_mutexT;
 
@@ -1000,7 +1000,7 @@ exit_from_ucb:
 //      Param,包含初始化UART所需参数，具体参数请查看tagUartParam结构体
 //返回：串口控制块指针，NULL失败
 //-----------------------------------------------------------------------------
-struct obj * UART_InstallPort(struct UartParam *Param)
+struct Object * UART_InstallPort(struct UartParam *Param)
 {
     if(Param == NULL)
         return NULL;

@@ -1,0 +1,43 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"arm968e-s",
+		"cpu":"bk7251",
+		"board":"bk7251_demo"
+	},
+	"components_checked":{
+		"app":["black box",
+		"ring buffer and line buffer",
+		"uart device file",
+		"device file system",
+		"multiplex",
+		"shell",
+		"stdio",
+		"tcpip",
+		"kernel",
+		"heap",
+		"int",
+		"lock",
+		"message queue",
+		"memory pool",
+		"board config",
+		"network config",
+		"loader",
+		"bk7251",
+		"lib C",
+		"cpu onchip audio in-out",
+		"cpu onchip flash",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"cpu onchip MAC"],
+		"iboot":[]
+	}
+}

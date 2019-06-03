@@ -100,7 +100,7 @@ typedef struct EthernetHdr
 //备注:
 //作者:zhangqf@下午8:55:19/2016年12月28日
 //-----------------------------------------------------------------------------
-static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32 devtask,\
+static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
                            u16 proto,enum_ipv_t ver,ipaddr_t ipdst,ipaddr_t ipsrc)
 {
     bool_t            ret;
@@ -140,10 +140,10 @@ static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 framlen,u32 
             PkgSetDataLen(ethpkg, CN_ETHERNET_HEADLEN_UNVLAN);
 //          ethpkg->datalen = CN_ETHERNET_HEADLEN;
 //          ethpkg->partnext = pkg;
-            framlen += CN_ETHERNET_HEADLEN_UNVLAN;
+//          framlen += CN_ETHERNET_HEADLEN_UNVLAN;
 //          ret = NetDevSend(iface,ethpkg,framlen,devtask);
             NetDevPkgsndInc(iface);
-            ret = NetDevSend(iface,ethpkg,framlen,devtask);
+            ret = NetDevSend(iface,ethpkg,devtask);
             if(ret == false)
             {
                 NetDevPkgsndErrInc(iface);

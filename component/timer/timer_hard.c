@@ -105,7 +105,7 @@ bool_t HardTimer_UnRegisterChip(void)
 //        刚开始分配的定时器应该是各种属性都关闭的，因此属性必须自己重新设置
 //        默认：停止计数，异步中断，reload,中断禁止
 // =============================================================================
-ptu32_t HardTimer_Alloc(fntTimerIsr timerisr)
+ptu32_t HardTimer_Alloc(fnTimerIsr timerisr)
 {
     if(NULL == s_tHardTimerChip.HardTimerAlloc)
     {

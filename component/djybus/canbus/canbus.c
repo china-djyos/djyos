@@ -61,6 +61,8 @@
 #include "ring.h"
 #include "shell.h"
 #include "dbug.h"
+#include "systime.h"
+
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -72,21 +74,21 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"canbus"       //canbus
-//parent:"djybus"               //填写该组件的父组件名字，none表示没有父组件
+//component name:"can bus"//canbus
+//parent:"djybus"    //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"djybus"           //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"djybus"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -97,14 +99,14 @@
 #define CFG_CAN_BUS_RCV_RING_LEN    100     //"接收buffer消息数",
 //%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
 bool_t cbstat(char *param);
 
-static struct obj *s_ptCANBusType;
+static struct Object *s_ptCANBusType;
 static struct MsgQueue * gs_ptCanSndMsgQ;
 static uint8_t CAN_BusSndStack[0x1000];
 #define CN_CAN_BUS_MSGQ_LEN        18
@@ -118,10 +120,10 @@ void __CAN_BusPrintfStat(struct CANBusCB * CANBus);
 // 参数：para,无实际意义。
 // 返回：返回建立的资源结点指针，失败时返回NULL。
 // =============================================================================
-struct obj * ModuleInstall_CANBus()
+struct Object * ModuleInstall_CANBus()
 {
     uint16_t evtt_id;
-    struct obj *CANBusType = NULL;
+    struct Object *CANBusType = NULL;
     CANBusType = DjyBus_BusTypeAdd("CANBusType");
     if(CANBusType==NULL)
     {
@@ -234,7 +236,7 @@ struct CANBusCB * CAN_BusAdd_s(struct CanDev *pNewCanDev,\
     if((NULL == NewCAN) || (NULL == pNewCanDev))
         goto exit_from_param;
     //避免重复建立同名的CAN总线
-    if(NULL != OBJ_SearchChild(s_ptCANBusType,pNewCanDev->ChipName))
+   if(NULL != OBJ_SearchChild(s_ptCANBusType,pNewCanDev->ChipName))
         goto exit_from_readd;
     //将总线结点挂接到总线类型结点的子结点上
     OBJ_AddChild(s_ptCANBusType,NULL,(ptu32_t)NewCAN,pNewCanDev->ChipName);
@@ -631,7 +633,7 @@ void CAN_BusGetStat(struct CANBusCB * CANBus,CanStatDef *CanStat)
 
 bool_t cbstat(char *param)
 {
-    struct obj *Object=NULL;
+    struct Object *Object=NULL;
     struct CANBusCB * CANBus;
     Object=obj_foreach_child(s_ptCANBusType,s_ptCANBusType);
     if(Object==NULL)

@@ -72,17 +72,17 @@ u32 __LP_BSP_GetSleepLevel(void)
     return CN_SLEEP_L1;
 }
 
-void __LP_BSP_EntrySleepL0(void)
+void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 {
 
 }
 
-void __LP_BSP_EntrySleepL1(void)
+void __LP_BSP_EntrySleepL1(u32 pend_ticks)
 {
 
 }
 
-void __LP_BSP_EntrySleepL2(void)
+void __LP_BSP_EntrySleepL2(u32 pend_ticks)
 {
 
 }

@@ -118,6 +118,7 @@ enum _KNL_ERROR_CODE_
     EN_KNL_EVTT_HOMONYMY,         //事件类型重名
     EN_KNL_EVENT_FREE,            //企图使用空闲事件控制块
     EN_KNL_EVTT_FREE,             //企图使用空闲事件类型控制块
+    EN_KNL_EVENTID_LIMIT,         //事件id越限
     EN_KNL_EVTTID_LIMIT,          //事件类型id越限
     EN_KNL_EVTT_UNREGISTER,       //事件类型未登记
     EN_KNL_EVENT_SYNC_EXIT,       //事件同步中，被同步的事件异常结束
@@ -360,11 +361,7 @@ struct EventType
 extern struct EventECB  *g_ptEventReady;
 extern struct EventECB  *g_ptEventRunning;   //当前正在执行的事件
 extern bool_t g_bScheduleEnable;
-#if (CN_USE_TICKLESS_MODE)
-void Djy_IsrTimeBase(u32 inc_ticks);
-#else
-void Djy_IsrTick(u32 inc_ticks);
-#endif
+void Djy_ScheduleIsr(u32 inc_ticks);
 void Djy_SetRRS_Slice(u32 slices);
 u32 Djy_GetRRS_Slice(void);
 void Djy_CreateProcessVm(void);
@@ -399,17 +396,14 @@ u16 Djy_EventPop(  u16  hybrid_id,
 u32 Djy_GetEvttPopTimes(u16 evtt_id);
 ptu32_t Djy_GetEventResult(void);
 void Djy_GetEventPara(ptu32_t *Param1,ptu32_t *Param2);
-void Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action);
+void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action);
 void Djy_EventComplete(ptu32_t result);
-void Djy_EventSessionComplete(ptu32_t result);
-//void Djy_ParaUsed(ptu32_t result);
 u32 Djy_WakeUpFrom(void);
 u16 Djy_MyEvttId(void);
 u16 Djy_MyEventId(void);
 void Djy_ApiStart(u32 api_no);
 void Djy_DelayUs(u32 time);
 void Djy_DelayNano(u32 time);
-struct EventECB *Djy_GetIdle(void);
 
 bool_t Djy_GetEventInfo(u16 id, struct EventInfo *info);
 bool_t Djy_GetEvttName(u16 evtt_id, char *dest, u32 len);

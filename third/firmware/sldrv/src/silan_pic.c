@@ -31,7 +31,7 @@ static hdl_t misc_hdl[MISC_HDL_NUM];
 #define PMU_HDL_NUM        11
 static hdl_t pmu_hdl[PMU_HDL_NUM];
 
-inline void pic_do_hdl(u32 stat, hdl_t *hdl)
+void pic_do_hdl(u32 stat, hdl_t *hdl)
 {
 	int subid = 0;
 	
@@ -45,7 +45,7 @@ inline void pic_do_hdl(u32 stat, hdl_t *hdl)
 	}
 }
 
-inline void pic_hdl_spdif(u32 irqid)
+void pic_hdl_spdif(u32 irqid)
 {
 	u32 stat;
 
@@ -53,7 +53,7 @@ inline void pic_hdl_spdif(u32 irqid)
 	pic_do_hdl(stat, spdif_hdl);
 }
 
-inline void pic_hdl_sdmac(u32 irqid)
+void pic_hdl_sdmac(u32 irqid)
 {
 	u32 stat;
 
@@ -61,7 +61,7 @@ inline void pic_hdl_sdmac(u32 irqid)
 	pic_do_hdl(stat, sdmac_hdl);
 }
 
-inline void pic_hdl_admac(u32 irqid)
+void pic_hdl_admac(u32 irqid)
 {
 	u32 stat;
 
@@ -69,7 +69,7 @@ inline void pic_hdl_admac(u32 irqid)
 	pic_do_hdl(stat, admac_hdl);
 }
 
-inline void pic_hdl_gpio1(u32 irqid)
+void pic_hdl_gpio1(u32 irqid)
 {
 	u32 stat;
 
@@ -77,7 +77,7 @@ inline void pic_hdl_gpio1(u32 irqid)
 	pic_do_hdl(stat, gpio1_hdl);
 }
 
-inline void pic_hdl_gpio2(u32 irqid)
+void pic_hdl_gpio2(u32 irqid)
 {
 	u32 stat;
 
@@ -85,7 +85,7 @@ inline void pic_hdl_gpio2(u32 irqid)
 	pic_do_hdl(stat, gpio2_hdl);
 }
 
-inline void pic_hdl_misc(u32 irqid)
+void pic_hdl_misc(u32 irqid)
 {
 	u32 stat;
 
@@ -93,7 +93,7 @@ inline void pic_hdl_misc(u32 irqid)
 	pic_do_hdl(stat, misc_hdl);
 }
 
-inline void pic_hdl_pmu(u32 irqid)
+void pic_hdl_pmu(u32 irqid)
 {
 	u32 stat;
 
@@ -101,7 +101,7 @@ inline void pic_hdl_pmu(u32 irqid)
 	pic_do_hdl(stat, pmu_hdl);
 }
 
-inline void pic_hdl_timer(u32 irqid)
+void pic_hdl_timer(u32 irqid)
 {
 	u32 stat;
 

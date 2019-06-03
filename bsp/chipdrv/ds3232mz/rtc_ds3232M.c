@@ -69,43 +69,43 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//   extern ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para);
-//    ModuleInstall_RTCDS3232M(CFG_DS3232M_BUS_NAME);
+//   extern ptu32_t ModuleInstall_RTCDS3232M(void);
+//   ModuleInstall_RTCDS3232M( );
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"rtc_ds3232M"  //spi接口的rtc芯片
-//parent:none                   //填写该组件的父组件名字，none表示没有父组件
+//component name:"RTC chip ds3232M"//spi接口的rtc芯片
+//parent                       //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"spibus","lock","cpu_peri_spi"    //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock","cpu driver iic"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_DS3232M_BUS_NAME    //****检查参数是否已经配置好
 #warning    rtc_ds3232M组件参数未配置，使用默认值
-//%$#@num,0,100,
 //%$#@enum,true,false,
-//%$#@string,1,10,
-#define CFG_DS3232M_BUS_NAME              "SPI0"      //"SPI总线名称",DS3232M使用的SPI总线名称
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#@string,1,32,
+#define CFG_DS3232M_BUS_NAME              "IIC2"      //"SPI总线名称",DS3232M使用的SPI总线名称
+//%$#@num,0,255,
+#define CFG_DS3232MZ_ADDR   (0xD0>>1)       //"器件地址"，
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
-ptu32_t RTC_Shell_Module_Install(void);
 bool_t rtcst(char *param);
 bool_t rtcgt(void);
 
@@ -163,7 +163,7 @@ static s64  UpdateTime = 0;                     //需更新的时间
 
 
 ptu32_t Rtc_UpdateTime(void);
-static bool_t Rtc_GetTime(s64 *time);
+static bool_t RTC_GetTime(s64 *time);
 
 
 
@@ -441,7 +441,7 @@ static bool_t DS3232MZ_Init(char *BusName)
         return false;
     }
 
-    s_ptDS3232MZ_Dev = IIC_DevAdd(BusName,"DS3232MZ",DS3232MZ_ADDR,0,8);
+    s_ptDS3232MZ_Dev = IIC_DevAdd(BusName,"DS3232MZ",CFG_DS3232MZ_ADDR,0,8);
     if(s_ptDS3232MZ_Dev)
     {
         IIC_BusCtrl(s_ptDS3232MZ_Dev,CN_IIC_SET_CLK,DS3232MZ_CLK_FRE,0);//设置时钟大小
@@ -461,7 +461,7 @@ static bool_t DS3232MZ_Init(char *BusName)
 // 参数：time, 时间值，需把日历时间转换成1970年1月1日0:0:0到现在的时间差
 // 返回：true,正常操作，否则出错
 // =============================================================================
-static bool_t Rtc_GetTime(s64 *time)
+static bool_t RTC_GetTime(s64 *time)
 {
     struct tm dtm;
     RTC_DS3232MZ_GetTime(&dtm);
@@ -474,7 +474,7 @@ static bool_t Rtc_GetTime(s64 *time)
 // 参数：time, 时间值
 // 返回：true,正常操作，否则出错
 // =============================================================================
-static bool_t Rtc_SetTime(s64 time)
+static bool_t RTC_SetTime(s64 time)
 {
     atom_low_t  atom_bak;
 
@@ -516,13 +516,13 @@ ptu32_t Rtc_UpdateTime(void)
 }
 
 
-ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
+ptu32_t ModuleInstall_RTCDS3232M(void)
 {
     u16 evtt;
     s64 rtc_time;
     struct timeval tv;
 
-    DS3232MZ_Init(RTC_IIC_BUS_NAME);
+    DS3232MZ_Init(CFG_DS3232M_BUS_NAME);
     pRtcSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"RTC_SEMP");
     if(NULL == pRtcSemp)
          return -1;
@@ -536,16 +536,16 @@ ptu32_t ModuleInstall_RTCDS3232M(ptu32_t para)
     }
     Djy_EventPop(evtt,NULL,0,NULL,0,0);
 
-    Rtc_GetTime(&rtc_time);
+    RTC_GetTime(&rtc_time);
 
     tv.tv_sec  = rtc_time/1000000;
     tv.tv_usec = rtc_time%1000000;
 
     settimeofday(&tv,NULL);
 
-    RTC_Shell_Module_Install();
+//  RTC_Shell_Module_Install();
     //注册RTC时间
-    if(!Rtc_RegisterDev(NULL,Rtc_SetTime))
+    if(!Rtc_RegisterDev(NULL,RTC_SetTime))
         return false;
     else
         return true;
@@ -600,9 +600,5 @@ bool_t rtcgt(void)
 }
 
 
-ptu32_t RTC_Shell_Module_Install(void)
-{
-    return 1;
-}
 ADD_TO_ROUTINE_SHELL(rtcst,rtcst,"设置RTC时间   格式:2017/08/20,21:00:00");
 ADD_TO_ROUTINE_SHELL(rtcgt,rtcgt,"获取RTC时间");

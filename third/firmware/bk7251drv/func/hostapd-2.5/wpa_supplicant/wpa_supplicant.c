@@ -122,6 +122,8 @@ int wpa_debug_timestamp = 0;
 extern struct wpa_ssid_value *wpas_connect_ssid;
 extern void sta_ip_down(void);
 extern void sta_ip_start(void);
+extern void DhcpStaStartIp(void);
+extern void DhcpStaClearIp(void);
 extern void wpa_hostapd_queue_poll(uint32_t param);
 
 /* Configure default/group WEP keys for static WEP */
@@ -747,7 +749,7 @@ void wpa_supplicant_set_state(struct wpa_supplicant *wpa_s,
 		wpa_s->normal_scans = 0;
         wpa_drv_sta_set_flags(wpa_s, wpa_s->bssid, ~0, WPA_STA_AUTHORIZED, ~0);
 
-//		sta_ip_start();
+		DhcpStaStartIp();
 	}
 	if(state == WPA_DISCONNECTED && state != wpa_s->wpa_state){
 		wpa_config_set_network_defaults(wpa_s->conf->ssid);
@@ -758,7 +760,7 @@ void wpa_supplicant_set_state(struct wpa_supplicant *wpa_s,
 		#endif
 
         wpa_s->conf->ssid->mem_only_psk = 1; // set psk, to enable rescan. 
-//		sta_ip_down();
+		DhcpStaClearIp();
 	}
 
 #ifdef CONFIG_P2P

@@ -1,0 +1,57 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m3",
+		"cpu":"stm32f103xe",
+		"board":"qh_1"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["ascii charset",
+		"ascii dot font",
+		"black box",
+		"board config",
+		"cpu onchip iic",
+		"cpu onchip peripheral lowpower control",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"debug information",
+		"device file system",
+		"djybus",
+		"flash",
+		"font",
+		"graphical decorate development(gdd)",
+		"graphical kernel",
+		"heap",
+		"human machine interface",
+		"iicbus",
+		"int",
+		"kernel",
+		"kernel object system",
+		"LCD driver ili9325",
+		"lib C",
+		"loader",
+		"lock",
+		"lowpower",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"Nls Charset",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32f1",
+		"stmpe811",
+		"time",
+		"touch",
+		"uart device file"]
+	}
+}

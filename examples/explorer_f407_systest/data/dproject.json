@@ -1,0 +1,62 @@
+{
+	"ide_version":"DIDE-V1.6_20190404",
+	"frameworks_checked":{
+		"app":["OTA£ºAPPÉý¼¶Iboot"],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m4",
+		"cpu":"stm32f407xx",
+		"board":"EXPLORER-stm32f4"
+	},
+	"components_checked":{
+		"app":["arp",
+		"black box",
+		"board config",
+		"cpu drive inner flash",
+		"cpu onchip dma",
+		"cpu onchip MAC",
+		"cpu peri gpio",
+		"cpu peri timer",
+		"cpu peri uart",
+		"debug information",
+		"device file system",
+		"dhcp",
+		"djybus",
+		"emflash insatall xip",
+		"ethernet phy lan8720",
+		"file system",
+		"ftp",
+		"heap",
+		"icmp",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"network config",
+		"ring buffer and line buffer",
+		"router",
+		"shell",
+		"Software Timers",
+		"stdio",
+		"stm32f4",
+		"tcp",
+		"tcpip",
+		"time",
+		"tpl",
+		"uart device file",
+		"udp",
+		"xip iboot file system",
+		"yaf2 file system"],
+		"iboot":[]
+	}
+}

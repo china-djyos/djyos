@@ -11,7 +11,7 @@ RoutSetUpAsm:
     lis    r3,(MSR_ME|MSR_DE)@h
     ori    r3,r3,(MSR_ME|MSR_DE)@l
     mtmsr  r3
-    isync 
+    isync
 //test the ddr
     lis  r3, 0x5555555@h
     ori  r3, r3,  0x5555555@l
@@ -30,7 +30,7 @@ DDR_FAILED:
     ori  sp, sp, usr_top@l
     subi sp, sp, 0x10
     //before we cpy the code, we must unlock the l1 cache, else any cpy will be invalid
-    bl   __AsmEnableL1Cache   
+    bl   __AsmEnableL1Cache
     bl   LoadLoader2Mem
     lis  r3, __AsmRamStart@h
     ori  r3, r3, __AsmRamStart@l
@@ -80,8 +80,8 @@ __AsmEnableL1Cache:
     mtspr  l1csr0, r4
     isync
     msync
-    
-    blr     
+
+    blr
 
 /*
 @-------------------------------------------------------------------------------

@@ -67,9 +67,17 @@
 #include <object.h>
 #include <device.h>
 #include <systime.h>
+#include <djyos.h>
 #include <int.h>
 #include "dbug.h"
 #include "component_config_stdio.h"
+
+//以下参数在初始化module时确定，运行中不可更改
+//如果定义了多stdin以及stdout跟随，则可以实现uart和Telnet均可以作为终端使用，且
+//根据用户的输入命令的设备自动切换。注意，设为跟随时，stdin必须是可读写的。
+#define CN_STDIO_STDOUT_FOLLOW      2       // stdout跟随stdin
+#define CN_STDIO_STDERR_FOLLOW      4       // stderr跟随stdin
+#define CN_STDIO_STDIN_MULTI        8       // 允许stdin多源，典型地是uart和telnet
 
 s32 (* PutStrDirect)(const char *buf,u32 len);
 char (* GetCharDirect)(void);
@@ -104,8 +112,8 @@ static struct __stdio{
 static struct objhandle *__stdio_lookup[3];
 
 FILE *stdin  = (FILE*)&__stdio_filestruct[0];
-FILE *stderr = (FILE*)&__stdio_filestruct[1];
-FILE *stdout = (FILE*)&__stdio_filestruct[2];
+FILE *stdout = (FILE*)&__stdio_filestruct[1];
+FILE *stderr = (FILE*)&__stdio_filestruct[2];
 
 // ============================================================================
 // 功能：
@@ -197,7 +205,7 @@ static s32 __stdio_read(struct objhandle *hdl, u8 *buf, u32 size)
 // 返回：成功（STDIO对象句柄）；失败（NULL）；
 // 备注：
 // ============================================================================
-static struct objhandle *__stdio_open(struct obj *ob, u32 mode)
+static struct objhandle *__stdio_open(struct Object *ob, u32 mode)
 {
     struct __stdio *stdio;
     struct objhandle *hdl;
@@ -364,64 +372,64 @@ s32 __stdio_tag(struct objhandle *hdl, u32 acts, u32 flags)
 // 返回：
 // 备注：
 // ============================================================================
-static s32 __stdio_stat(struct obj *ob, struct stat *data)
+static s32 __stdio_stat(struct Object *ob, struct stat *data)
 {
-    memset(data, 0x0, sizeof(*stat));
+    memset(data, 0x0, sizeof(struct stat));
 
     data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
 
     return (0);
 }
-
-// ============================================================================
-// 功能：STDIO timeout操作
-// 参数：hdl -- stdio对象句柄；
-//      act -- 1 设置时间；0 获取时间；
-//      timeout -- 时间；
-// 返回：
-// 备注：
-// ============================================================================
-static s32 __stdio_timeout(struct objhandle *hdl, u32 acts, u32 *timeout)
-{
-    struct __stdio *stdio;
-    s32 fd, res = 0;
-
-    if(isDirectory(hdl))
-    {
-        // 只有STDIO是目录
-        if(1 == acts)
-            handle_settimeout(hdl, *timeout);
-        else
-            *timeout = handle_gettimeout(hdl);
-    }
-    else
-    {
-        stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
-        if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
-            fd = *stdio->fd.follow;
-        else
-            fd = stdio->fd.direct;
-
-        switch (acts)
-        {
-            case 1:
-                    res = fcntl(fd,  F_SETTIMEOUT, *timeout); // 设置被定向文件的timeout
-                    if(!res)
-                        handle_settimeout(hdl, *timeout);
-                    break;
-
-            case 0:
-                    res = fcntl(fd,  F_GETTIMEOUT, timeout);
-                    break;
-
-            default:
-                    res = -1;
-                    break;
-        }
-    }
-
-    return (res);
-}
+//
+//// ============================================================================
+//// 功能：STDIO timeout操作
+//// 参数：hdl -- stdio对象句柄；
+////      act -- 1 设置时间；0 获取时间；
+////      timeout -- 时间；
+//// 返回：
+//// 备注：
+//// ============================================================================
+//static s32 __stdio_timeout(struct objhandle *hdl, u32 acts, u32 *timeout)
+//{
+//    struct __stdio *stdio;
+//    s32 fd, res = 0;
+//
+//    if(isDirectory(hdl))
+//    {
+//        // 只有STDIO是目录
+//        if(1 == acts)
+//            handle_settimeout(hdl, *timeout);
+//        else
+//            *timeout = handle_gettimeout(hdl);
+//    }
+//    else
+//    {
+//        stdio = (struct __stdio*)handle_GetHostObjectPrivate(hdl);
+//        if(stdio->runmode & (CN_STDIO_STDOUT_FOLLOW | CN_STDIO_STDERR_FOLLOW))
+//            fd = *stdio->fd.follow;
+//        else
+//            fd = stdio->fd.direct;
+//
+//        switch (acts)
+//        {
+//            case 1:
+//                    res = fcntl(fd,  F_SETTIMEOUT, *timeout); // 设置被定向文件的timeout
+//                    if(!res)
+//                        handle_settimeout(hdl, *timeout);
+//                    break;
+//
+//            case 0:
+//                    res = fcntl(fd,  F_GETTIMEOUT, timeout);
+//                    break;
+//
+//            default:
+//                    res = -1;
+//                    break;
+//        }
+//    }
+//
+//    return (res);
+//}
 
 // ============================================================================
 // 功能：stdio对象集合（类）操作集
@@ -438,7 +446,7 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = __stdio_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2));
+            hdl = __stdio_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2));
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -488,7 +496,7 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
             char * path = (char*)OpsArgs2;
             if(path&&('\0'!=*path))
                 return (-1); // 查询的文件不存在；
-            if(__stdio_stat((struct obj*)opsTarget, (struct stat *)OpsArgs1) == 0)
+            if(__stdio_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;
@@ -502,17 +510,6 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 //          list = (va_list)va_arg(list, va_list);
             switch(cmd)
             {
-                case F_SETTIMEOUT:
-                {
-                    u32 timeout = va_arg(*(va_list*)OpsArgs3, u32);
-                    handle_settimeout(hdl, timeout);
-                    *(s32*)OpsArgs1 = CN_OBJ_CMD_TRUE;
-                    break;
-                }
-
-                case F_GETTIMEOUT:
-                    *(u32*)OpsArgs1 = handle_gettimeout(hdl);
-                    break;
                 case F_STDIO_MULTI_ADD:
                 {
                     s32 fd = va_arg(*(va_list*)OpsArgs3, s32);
@@ -612,7 +609,7 @@ s32 __stdio_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 static s32 __stdio_set(u32 type, FILE *fp, u32 mode, u32 runmode)
 {
     char *notfound;
-    struct obj *ob;
+    struct Object *ob;
     struct stat info;
     s32 res;
     FILE *new_fp;
@@ -761,7 +758,7 @@ static void __stdio_destory(void)
 // ============================================================================
 static s32 __stdio_build(u32 runmode)
 {
-    struct obj *stdio_root;
+    struct Object *stdio_root;
     u8 i;
 
     stdio_root = obj_newchild(obj_root(), __stdio_ops, 0, "stdio");
@@ -815,10 +812,17 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
     char *inname, *outname, *errname;
     s32 res;
     FILE *inFD, *fd;
-    u32 runmode = CFG_STDIO_RUN_MODE;
+    u32 runmode = 0;
     char *mode;
 
-    res = __stdio_build(CFG_STDIO_RUN_MODE);
+    if(CFG_STDIO_STDIN_MULTI == true)
+        runmode |= CN_STDIO_STDIN_MULTI;
+    if(CFG_STDIO_STDOUT_FOLLOW == true)
+        runmode |= CN_STDIO_STDOUT_FOLLOW;
+    if(CFG_STDIO_STDERR_FOLLOW == true)
+        runmode |= CN_STDIO_STDERR_FOLLOW;
+
+    res = __stdio_build(runmode);
     if(res)
     {
         debug_printf("module","STDIO install failed(cannot build).");

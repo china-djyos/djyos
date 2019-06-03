@@ -50,49 +50,59 @@
 #include <cpu_peri.h>
 #include <stm32l4xx_hal_flash.h>
 #include <int.h>
+#include <math.h>
+#include <dbug.h>
+#include <xip.h>
+#include <filesystems.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages);
-//    ModuleInstall_EmbededFlash(CFG_FLASH_CHIP_NAME,CFG_FLASH_FLAG,CFG_FLASH_RES);
+//s32 ModuleInstall_EmbededFlash(u32 doformat);
+//ModuleInstall_EmbededFlash(CFG_EFLASH_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu_peri_emflash" //片内flash读写
-//parent:"iapfs"                    //填写该组件的父组件名字，none表示没有父组件
-//attribute:bsp                     //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable                  //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                    //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early                   //初始化时机，可选值：early，medium，later。
-                                    //表示初始化时间，分别是早期、中期、后期
-//dependence:"int","devfile","heap","lock"    //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //选中该组件时，被依赖组件将强制选中，
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"             //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                    //选中该组件时，被依赖组件不会被强制选中，
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                      //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                    //如果依赖多个组件，则依次列出，用“,”分隔
+//component name:"cpu drive inner flash"//片内flash
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                         //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable                      //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                        //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:early                       //初始化时机，可选值：early，medium，later。
+                                        //表示初始化时间，分别是早期、中期、后期
+//dependence:"device file system","component lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
+                                        //选中该组件时，被依赖组件将强制选中，
+                                        //如果依赖多个组件，则依次列出
+//weakdependence:"xip_app","xip_iboot"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                        //选中该组件时，被依赖组件不会被强制选中，
+                                        //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                          //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                        //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-//%$#@target = header               //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_FLASH_FLAG              //****检查参数是否已经配置好
-#warning    cpu_peri_emflash组件参数未配置，使用默认值
-//%$#@num,0,100,
-#define CFG_FLASH_FLAG                   (2)        //"标记号",2表示使用缓冲区，1表示擦除全部块
-#define CFG_FLASH_RES                    (0)        //"保留页数或块数",
+//%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_EFLASH_PART_FORMAT   //****检查参数是否已经配置好
+#warning    cpu_peri_emflash 组件参数未配置，使用默认值
 //%$#@enum,true,false,
+#define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
 //%$#@string,1,32,
-#define CFG_FLASH_CHIP_NAME              "embedded flash"    //"flash芯片名称",
+//%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
+// ============================================================================
+
+//上面的分区起始和分区结束我写的是-1到10000，具体数值为（NormalSectorsPerPlane）
+
 static struct EmbdFlashDescr{
     u16     BytesPerPage;                   // 页中包含的字节数
     u16     PagesPerSmallSect;           // small sector的页数
@@ -108,6 +118,16 @@ static struct EmbdFlashDescr{
 extern u32 gc_ptIbootSize;
 //extern u32 gc_ptFlashOffset;
 extern u32 gc_ptFlashRange;
+
+static const char *EmflashName = "emflash";      //该flash在obj在的名字
+static struct umedia *emflash_um;
+extern struct Object *s_ptDeviceRoot;
+static bool_t sEmflashInited = false;
+s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
+s32 __embed_read(s64 unit, void *data, struct uopt opt);
+s32 __embed_req(enum ucmd cmd, ptu32_t args, ...);
+s32 __embed_write(s64 unit, void *data, struct uopt opt);
+s32 __embed_erase(s64 unit, struct uesz sz);
 
 // ============================================================================
 // 功能: 喂狗
@@ -322,25 +342,14 @@ DONE:
     *Remains = PagesLeft - 1; // page从零计
     return (0);
 }
-// ============================================================================
-// 功能:
-// 参数: ResPages：保留页数
-// 返回:
-// 备注:
-// ============================================================================
-
-s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
+//-----------------------------------------------------------------------------
+// 功能：安装片内Flash驱动
+// 参数：doformat -- 是否格式化；
+// 返回：成功（0）；失败（-1）；
+// 备注：如果还不知道要安装什么文件系统，或者不安装文件系统TargetFs填NULL，TargetPart填-1；
+//-----------------------------------------------------------------------------
+s32 ModuleInstall_EmbededFlash(u32 doformat)
 {
-    u32 Len;
-    struct FlashChip *Chip;
-    struct EmFlashDescr FlashDescr;
-    struct MutexLCB *FlashLock;
-    u8 *Buf;
-    s32 Ret = 0;
-
-    if (!ChipName)
-        return (-1);
-
     if(s_ptEmbdFlash)
         return (-4); // 设备已注册
 
@@ -349,70 +358,283 @@ s32 ModuleInstall_EmbededFlash(const char *ChipName, u32 Flags, u16 ResPages)
         return (-1);
 
     EmFlash_Init(s_ptEmbdFlash);
-    Flash_GetDescr(&FlashDescr);// 获取FLASH信息
-    if(ResPages > FlashDescr.TotalPages)
+
+    if(doformat)
     {
-        Ret = -1;
-        goto FAILURE;
+        struct uesz sz;
+        sz.unit = 0;
+        sz.block = 1;
+        __embed_req(format, (ptu32_t)0 , -1, &sz);           //格式化指定区域
     }
 
-    FlashDescr.ReservedPages += ResPages;
-    Len = strlen (ChipName) + 1;
-    Chip = (struct FlashChip*)malloc(sizeof(struct FlashChip) + Len);
-    if (NULL == Chip)
+    emflash_um = malloc(sizeof(struct umedia)+s_ptEmbdFlash->BytesPerPage);
+    if(!emflash_um)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-        Ret = -2;
-        goto FAILURE;
+        return (-1);
     }
 
-    memset(Chip, 0x00, sizeof(*Chip));
-    Chip->dwPageBytes             = FlashDescr.BytesPerPage;
-    Chip->dwPagesReserved         = FlashDescr.ReservedPages;
-    Chip->dwTotalPages              = FlashDescr.TotalPages;
-    Chip->Type                    = F_ALIEN;
-    Chip->Descr.Embd              = FlashDescr;
-    Chip->Ops.ErsBlk              = Flash_SectorEarse;
-    Chip->Ops.WrPage              = Flash_PageProgram;
-    Chip->Ops.RdPage              = Flash_PageRead;
-    Chip->Ops.PageToBlk              = Flash_PageToSector;
-    strcpy(Chip->Name, ChipName); // 设备名
-    if(Flags & FLASH_BUFFERED)
+    emflash_um->mreq = __embed_req;
+    emflash_um->type = embed;
+    emflash_um->ubuf = (u8*)emflash_um + sizeof(struct umedia);
+
+    if(!dev_Create((const char*)EmflashName, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)emflash_um)))
     {
-        Buf = (u8*)malloc(s_ptEmbdFlash->BytesPerPage); // NAND底层缓冲
-        if(!Buf)
-        {
-            TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
-            Ret = -2;
-            goto FAILURE;
-        }
-
-        FlashLock = Lock_MutexCreate("Embedded Flash Lock");
-        if(!FlashLock)
-        {
-            Ret = -3;
-            goto FAILURE;
-        }
-
-        Chip->Buf = Buf;
-        Chip->Lock =(void*)FlashLock;
+        printf("\r\n: erro : device : %s addition failed.", EmflashName);
+        free(emflash_um);
+        return (-1);
     }
-
-    dev_Create(Chip->Name, NULL, NULL, NULL, NULL, NULL, (ptu32_t)Chip); // 设备接入"/dev"
-    if(Flags & FLASH_ERASE_ALL)
-        EarseWholeChip(Chip);
-
-FAILURE:
-    if(Ret)
-    {
-        if(s_ptEmbdFlash)
-            free(s_ptEmbdFlash);
-        if(FlashLock)
-            Lock_MutexDelete(FlashLock);
-        if(Buf)
-            free(Buf);
-        if(Chip)
-            free(Chip);
-    }
-    return (Ret);
+    sEmflashInited = true;
+    return (0);
 }
+// =============================================================================
+// 功能：判断emflash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t emflash_is_install(void)
+{
+    return sEmflashInited;
+}
+// ============================================================================
+// 功能：embeded flash 命令
+// 参数：ucmd -- 命令；
+//      其他 -- 命令参数；
+// 返回：
+// 备注：
+// ============================================================================
+s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
+{
+    s32 res = 0;
+
+    switch(cmd)
+    {
+        case remain:
+        {
+            va_list list;
+            u32 *left;
+            s64 *unit , unitlocation;
+
+
+            left = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+
+            if(*unit < (s_ptEmbdFlash->NormalSectorsPerPlane * s_ptEmbdFlash->PagesPerNormalSect))
+            {
+                //求出该页在所在块中的位置
+                unitlocation = *unit % s_ptEmbdFlash->PagesPerNormalSect;
+                *left = s_ptEmbdFlash->PagesPerNormalSect - unitlocation + 1;   //加1是因为页号是从0开始算的
+            }
+            else
+                res = -1;
+
+            break;
+        }
+
+        case whichblock:
+        {
+            va_list list;
+            s64 *unit;
+            u32 *block;
+
+            block = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+
+            if(*unit < (s_ptEmbdFlash->NormalSectorsPerPlane * s_ptEmbdFlash->PagesPerNormalSect))
+            {
+                *block = *unit / s_ptEmbdFlash->PagesPerNormalSect;
+            }
+            else
+                res = -1;
+
+            break;
+        }
+
+        case totalblocks:
+        {
+            *((u32*)args) =  s_ptEmbdFlash->NormalSectorsPerPlane;
+            break;
+        }
+
+        case blockunits:
+        {
+            va_list list;
+            u32 *units = (u32*)args;
+            u32 block;
+
+            va_start(list, args);
+            block = (u32)va_arg(list, u32);
+            va_end(list);
+
+            if(*block <= s_ptEmbdFlash->NormalSectorsPerPlane)
+            {
+                *units = s_ptEmbdFlash->PagesPerNormalSect;;
+            }
+            else
+                res = -1;
+
+            break;
+        }
+
+        case unitbytes:
+        {
+            // args = &bytes
+            *((u32*)args) = s_ptEmbdFlash->BytesPerPage;
+            break;
+        }
+
+        case format:
+        {
+            va_list list;
+            s32 start, end;
+            struct uesz *sz;
+
+            start = (u32)args;
+            va_start(list, args);
+            end = va_arg(list, u32);
+            sz = (struct uesz*)va_arg(list, u32);
+            va_end(list);
+
+            if(!sz->block)
+                return (-1);
+
+            if(-1==(s32)end)
+                end = s_ptEmbdFlash->NormalSectorsPerPlane;; // 结束的号；
+
+            do
+            {
+                if(__embed_erase((s64)--end, *sz))
+                {
+                    res = -1;
+                    break;
+                }
+            }
+            while(end!=start);
+
+            break;
+        }
+
+        case mapaddr:
+        {
+
+            *((u32*)args) = s_ptEmbdFlash->MappedStAddr;
+            break;
+        }
+        case checkbad: break;
+        default: res = -1; break;
+    }
+
+    return (res);
+}
+
+// ============================================================================
+// 功能：embed 读；
+// 参数：unit -- 读的序号（页）；
+//      data -- 读的数据；
+//      opt -- 读的方式；
+// 备注：
+// ============================================================================
+s32 __embed_read(s64 unit, void *data, struct uopt opt)
+{
+    s32 res;
+
+    res = Flash_PageRead((u32)unit, data, 0);
+    if(res!=s_ptEmbdFlash->BytesPerPage)
+        return (-1);
+
+    return (0);
+}
+
+// ============================================================================
+// 功能：embed 写；
+// 参数：unit -- 写的序号（页）；
+//      data -- 写的数据；
+//      opt -- 写的方式；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+s32 __embed_write(s64 unit, void *data, struct uopt opt)
+{
+    s32 res;
+
+    res = Flash_PageProgram((u32)unit, data, 0);
+    if(res!=s_ptEmbdFlash->BytesPerPage)
+        return (-1);
+
+    return (0);
+}
+
+// ============================================================================
+// 功能：embed 擦除
+// 参数：unit -- 擦除的序号；
+//      sz -- 擦除的单位（unit或block）
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+s32 __embed_erase(s64 unit, struct uesz sz)
+{
+    u32 block;
+
+    if(sz.unit)
+    {
+        if(__embed_req(whichblock, (ptu32_t)&block, &unit))
+            return (-1);
+    }
+    else
+        block = (u32)unit;
+
+    return (Flash_SectorEarse(block));
+}
+
+
+// ============================================================================
+// 功能：初始化片内flash
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
+// 返回：0 -- 成功， -1 -- 失败
+// 备注：
+// ============================================================================
+s32 __embed_FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
+{
+    char *FullPath,*notfind;
+    struct Object *targetobj;
+    struct FsCore *super;
+    s32 res,BlockNum;
+    targetobj = obj_matchpath(fs, &notfind);
+    if(notfind)
+    {
+        error_printf("embed"," not found need to install file system.");
+        return -1;
+    }
+    super = (struct FsCore *)obj_GetPrivate(targetobj);
+    super->MediaInfo = emflash_um;
+    super->MediaDrv = mediadrv;
+    if((s32)bend == -1)
+    {
+        bend = s_ptEmbdFlash->NormalSectorsPerPlane; // 最大块号
+        BlockNum = bend - bstart;
+    }
+    else
+    {
+        BlockNum = bend - bstart;
+    }
+    super->AreaSize = BlockNum * s_ptEmbdFlash->PagesPerSmallSect * s_ptEmbdFlash->PagesPerNormalSect;
+    super->MediaStart = bstart * s_ptEmbdFlash->PagesPerSmallSect; // 起始unit号
+
+
+    res = strlen(EmflashName) + strlen(s_ptDeviceRoot->name) + 1;
+    FullPath = malloc(res);
+    memset(FullPath, 0, res);
+    sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,EmflashName);   //获取该设备的全路径
+    FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+    free(FullPath);
+
+    printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
+    return (0);
+
+}
+

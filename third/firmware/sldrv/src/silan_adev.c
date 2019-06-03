@@ -30,7 +30,7 @@ static DMA_LLI		__dma_lli[ADEV_MAX_DMAC_CHNL][ADEV_LLI_NUM]						__attribute__ (
 
 #endif
 
-#if defined(__CC_ARM)
+#if defined(__CC_ARM)||  defined ( __GNUC__ )
 static int			__buf[ADEV_MAX_DMAC_CHNL][ADEV_MAX_LLI_SIZE*ADEV_LLI_NUM/sizeof(int)];
 static DMA_LLI		__dma_lli[ADEV_MAX_DMAC_CHNL][ADEV_LLI_NUM];
 #endif

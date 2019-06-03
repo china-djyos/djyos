@@ -57,8 +57,9 @@ extern void __Djy_VmEngine(ptu32_t (*thread_routine)(void));
 uint32_t djy_switch_interrupt_flag = 0;
 uint32_t *djy_interrupt_from_thread = NULL;
 uint32_t *djy_interrupt_to_thread = NULL;
-
-/*整个栈帧按地址从大到小排列是：pc,lr,r12-r4,r3-r0,spsr*/
+static uint64_t gRunTicks = 0;
+static bool_t gResumeTickFlag = false;
+/*??????????????:pc,lr,r12-r4,r3-r0,spsr*/
 void *__asm_reset_thread(ptu32_t (*thread_routine)(void),
                             struct ThreadVm  *vm)
 {
@@ -77,36 +78,58 @@ void *__asm_reset_thread(ptu32_t (*thread_routine)(void),
 }
 
 // =============================================================================
-// 鍔熻兘锛氬湪绯荤粺璧锋潵浠ュ悗闇?鎶婂悇绉嶆爣蹇楀浣?
-// 鍙傛暟锛氭棤
-// 杩斿洖锛氭棤
+// 功能：在系统起来以后需把各种标志复位
+// 参数：无
+// 返回：无
 // =============================================================================
 __attribute__((weak)) void __InitTimeBase(void)
 {}
 
 // =============================================================================
-// 鍔熻兘锛氬垵濮嬪寲systick
-// 鍙傛暟锛氭棤
-// 杩斿洖锛氭棤
+// 功能：初始化systick
+// 参数：无
+// 返回：无
 // =============================================================================
 __attribute__((weak)) void __DjyInitTick(void)
 {
-    HardExp_ConnectSystick(Djy_IsrTick);
+    HardExp_ConnectSystick(Djy_ScheduleIsr);
 }
 
 // =============================================================================
-// 鍔熻兘锛氳幏鍙栫郴缁熸椂闂?
-// 鍙傛暟锛氭棤
-// 杩斿洖锛氬綋鍓島s鏁?
+// 功能：获取系统时间
+// 参数：无
+// 返回：当前us数
 // =============================================================================
 __attribute__((weak))   uint64_t __DjyGetSysTime(void)
 {
-    extern s64  g_s64OsTicks;
     s64 time = 0;
-    time = g_s64OsTicks;
-    time = time*CN_CFG_TICK_US;
+    time = gRunTicks*CN_CFG_TICK_US;
     return (uint64_t)time;
 }
+
+__attribute__((weak)) uint64_t __DjyGetTicks(void)
+{
+    return gRunTicks;
+}
+
+//??????????
+__attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
+{
+    gResumeTickFlag = flag;
+}
+
+__attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
+{
+    return gResumeTickFlag;
+}
+
+//??????????
+__attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
+{
+    gRunTicks += ticks;
+}
+
+
 
 //void reboot(u32 key)
 //{

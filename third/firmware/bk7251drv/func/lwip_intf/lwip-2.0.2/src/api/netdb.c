@@ -35,8 +35,8 @@
  *
  */
 
+#if 0
 #include "lwip/netdb.h"
-
 #if LWIP_DNS && LWIP_SOCKET
 
 #include "lwip/err.h"
@@ -411,3 +411,4 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
 }
 
 #endif /* LWIP_DNS && LWIP_SOCKET */
+#endif

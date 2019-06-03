@@ -1,4 +1,4 @@
-ï»¿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -24,29 +24,29 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018ï¼Œè‘—ä½œæƒç”±éƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿå¼€æºå¼€å‘å›¢é˜Ÿæ‰€æœ‰ã€‚è‘—ä½œæƒäººä¿ç•™ä¸€åˆ‡æƒåˆ©ã€‚
+// Copyright (c) 2018£¬Öø×÷È¨ÓÉ¶¼½­Ñß²Ù×÷ÏµÍ³¿ªÔ´¿ª·¢ÍÅ¶ÓËùÓÐ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇÐÈ¨Àû¡£
 //
-// è¿™ä»½æŽˆæƒæ¡æ¬¾ï¼Œåœ¨ä½¿ç”¨è€…ç¬¦åˆä»¥ä¸‹ä¸‰æ¡ä»¶çš„æƒ…å½¢ä¸‹ï¼ŒæŽˆäºˆä½¿ç”¨è€…ä½¿ç”¨åŠå†æ•£æ’­æœ¬
-// è½¯ä»¶åŒ…è£…åŽŸå§‹ç åŠäºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„æƒåˆ©ï¼Œæ— è®ºæ­¤åŒ…è£…æ˜¯å¦ç»æ”¹ä½œçš†ç„¶ï¼š
+// Õâ·ÝÊÚÈ¨Ìõ¿î£¬ÔÚÊ¹ÓÃÕß·ûºÏÒÔÏÂÈýÌõ¼þµÄÇéÐÎÏÂ£¬ÊÚÓèÊ¹ÓÃÕßÊ¹ÓÃ¼°ÔÙÉ¢²¥±¾
+// Èí¼þ°ü×°Ô­Ê¼Âë¼°¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÈ¨Àû£¬ÎÞÂÛ´Ë°ü×°ÊÇ·ñ¾­¸Ä×÷½ÔÈ»£º
 //
-// 1. å¯¹äºŽæœ¬è½¯ä»¶æºä»£ç çš„å†æ•£æ’­ï¼Œå¿…é¡»ä¿ç•™ä¸Šè¿°çš„ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥
-//    åŠä¸‹è¿°çš„å…è´£å£°æ˜Žã€‚
-// 2. å¯¹äºŽæœ¬å¥—ä»¶äºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„å†æ•£æ’­ï¼Œå¿…é¡»è¿žå¸¦ä»¥æ–‡ä»¶ä»¥åŠï¼æˆ–è€…å…¶ä»–é™„
-//    äºŽæ•£æ’­åŒ…è£…ä¸­çš„åª’ä»‹æ–¹å¼ï¼Œé‡åˆ¶ä¸Šè¿°ä¹‹ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥åŠä¸‹è¿°
-//    çš„å…è´£å£°æ˜Žã€‚
-// 3. æœ¬è½¯ä»¶ä½œä¸ºéƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿçš„ç»„æˆéƒ¨åˆ†ï¼ŒæœªèŽ·äº‹å‰å–å¾—çš„ä¹¦é¢è®¸å¯ï¼Œä¸å…è®¸ç§»æ¤åˆ°éž
-//    éƒ½æ±Ÿå °æ“ä½œç³»ç»ŸçŽ¯å¢ƒä¸‹è¿è¡Œã€‚
+// 1. ¶ÔÓÚ±¾Èí¼þÔ´´úÂëµÄÔÙÉ¢²¥£¬±ØÐë±£ÁôÉÏÊöµÄ°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ
+//    ¼°ÏÂÊöµÄÃâÔðÉùÃ÷¡£
+// 2. ¶ÔÓÚ±¾Ì×¼þ¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÔÙÉ¢²¥£¬±ØÐëÁ¬´øÒÔÎÄ¼þÒÔ¼°£¯»òÕßÆäËû¸½
+//    ÓÚÉ¢²¥°ü×°ÖÐµÄÃ½½é·½Ê½£¬ÖØÖÆÉÏÊöÖ®°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ¼°ÏÂÊö
+//    µÄÃâÔðÉùÃ÷¡£
+// 3. ±¾Èí¼þ×÷Îª¶¼½­Ñß²Ù×÷ÏµÍ³µÄ×é³É²¿·Ö£¬Î´»ñÊÂÇ°È¡µÃµÄÊéÃæÐí¿É£¬²»ÔÊÐíÒÆÖ²µ½·Ç
+//    ¶¼½­Ñß²Ù×÷ÏµÍ³»·¾³ÏÂÔËÐÐ¡£
 
-// å…è´£å£°æ˜Žï¼šæœ¬è½¯ä»¶æ˜¯æœ¬è½¯ä»¶ç‰ˆæƒæŒæœ‰äººä»¥åŠè´¡çŒ®è€…ä»¥çŽ°çŠ¶ï¼ˆ"as is"ï¼‰æä¾›ï¼Œ
-// æœ¬è½¯ä»¶åŒ…è£…ä¸è´Ÿä»»ä½•æ˜Žç¤ºæˆ–é»˜ç¤ºä¹‹æ‹…ä¿è´£ä»»ï¼ŒåŒ…æ‹¬ä½†ä¸é™äºŽå°±é€‚å”®æ€§ä»¥åŠç‰¹å®šç›®
-// çš„çš„é€‚ç”¨æ€§ä¸ºé»˜ç¤ºæ€§æ‹…ä¿ã€‚ç‰ˆæƒæŒæœ‰äººåŠæœ¬è½¯ä»¶ä¹‹è´¡çŒ®è€…ï¼Œæ— è®ºä»»ä½•æ¡ä»¶ã€
-// æ— è®ºæˆå› æˆ–ä»»ä½•è´£ä»»ä¸»ä¹‰ã€æ— è®ºæ­¤è´£ä»»ä¸ºå› åˆçº¦å…³ç³»ã€æ— è¿‡å¤±è´£ä»»ä¸»ä¹‰æˆ–å› éžè¿
-// çº¦ä¹‹ä¾µæƒï¼ˆåŒ…æ‹¬è¿‡å¤±æˆ–å…¶ä»–åŽŸå› ç­‰ï¼‰è€Œèµ·ï¼Œå¯¹äºŽä»»ä½•å› ä½¿ç”¨æœ¬è½¯ä»¶åŒ…è£…æ‰€äº§ç”Ÿçš„
-// ä»»ä½•ç›´æŽ¥æ€§ã€é—´æŽ¥æ€§ã€å¶å‘æ€§ã€ç‰¹æ®Šæ€§ã€æƒ©ç½šæ€§æˆ–ä»»ä½•ç»“æžœçš„æŸå®³ï¼ˆåŒ…æ‹¬ä½†ä¸é™
-// äºŽæ›¿ä»£å•†å“æˆ–åŠ³åŠ¡ä¹‹è´­ç”¨ã€ä½¿ç”¨æŸå¤±ã€èµ„æ–™æŸå¤±ã€åˆ©ç›ŠæŸå¤±ã€ä¸šåŠ¡ä¸­æ–­ç­‰ç­‰ï¼‰ï¼Œ
-// ä¸è´Ÿä»»ä½•è´£ä»»ï¼Œå³åœ¨è¯¥ç§ä½¿ç”¨å·²èŽ·äº‹å‰å‘ŠçŸ¥å¯èƒ½ä¼šé€ æˆæ­¤ç±»æŸå®³çš„æƒ…å½¢ä¸‹äº¦ç„¶ã€‚
+// ÃâÔðÉùÃ÷£º±¾Èí¼þÊÇ±¾Èí¼þ°æÈ¨³ÖÓÐÈËÒÔ¼°¹±Ï×ÕßÒÔÏÖ×´£¨"as is"£©Ìá¹©£¬
+// ±¾Èí¼þ°ü×°²»¸ºÈÎºÎÃ÷Ê¾»òÄ¬Ê¾Ö®µ£±£ÔðÈÎ£¬°üÀ¨µ«²»ÏÞÓÚ¾ÍÊÊÊÛÐÔÒÔ¼°ÌØ¶¨Ä¿
+// µÄµÄÊÊÓÃÐÔÎªÄ¬Ê¾ÐÔµ£±£¡£°æÈ¨³ÖÓÐÈË¼°±¾Èí¼þÖ®¹±Ï×Õß£¬ÎÞÂÛÈÎºÎÌõ¼þ¡¢
+// ÎÞÂÛ³ÉÒò»òÈÎºÎÔðÈÎÖ÷Òå¡¢ÎÞÂÛ´ËÔðÈÎÎªÒòºÏÔ¼¹ØÏµ¡¢ÎÞ¹ýÊ§ÔðÈÎÖ÷Òå»òÒò·ÇÎ¥
+// Ô¼Ö®ÇÖÈ¨£¨°üÀ¨¹ýÊ§»òÆäËûÔ­ÒòµÈ£©¶øÆð£¬¶ÔÓÚÈÎºÎÒòÊ¹ÓÃ±¾Èí¼þ°ü×°Ëù²úÉúµÄ
+// ÈÎºÎÖ±½ÓÐÔ¡¢¼ä½ÓÐÔ¡¢Å¼·¢ÐÔ¡¢ÌØÊâÐÔ¡¢³Í·£ÐÔ»òÈÎºÎ½á¹ûµÄËðº¦£¨°üÀ¨µ«²»ÏÞ
+// ÓÚÌæ´úÉÌÆ·»òÀÍÎñÖ®¹ºÓÃ¡¢Ê¹ÓÃËðÊ§¡¢×ÊÁÏËðÊ§¡¢ÀûÒæËðÊ§¡¢ÒµÎñÖÐ¶ÏµÈµÈ£©£¬
+// ²»¸ºÈÎºÎÔðÈÎ£¬¼´ÔÚ¸ÃÖÖÊ¹ÓÃÒÑ»ñÊÂÇ°¸æÖª¿ÉÄÜ»áÔì³É´ËÀàËðº¦µÄÇéÐÎÏÂÒàÈ»¡£
 //-----------------------------------------------------------------------------
-//TODO: æ”¯æŒå¤šä¸ªæ–‡ä»¶ï¼Œé‚£ä¹ˆå°±å¯ä»¥æ”¯æŒmultiboot
+//TODO: Ö§³Ö¶à¸öÎÄ¼þ£¬ÄÇÃ´¾Í¿ÉÒÔÖ§³Ömultiboot
 #include <systime.h>
 #include <stddef.h>
 #include <string.h>
@@ -62,10 +62,51 @@
 #include <stdio.h>
 #include "../../filesystems.h"
 #include "Iboot_info.h"
+#include "project_config.h"     //±¾ÎÄ¼þÓÉIDEÖÐÅäÖÃ½çÃæÉú³É£¬´æ·ÅÔÚAPPµÄ¹¤³ÌÄ¿Â¼ÖÐ¡£
+                                //ÔÊÐíÊÇ¸ö¿ÕÎÄ¼þ£¬ËùÓÐÅäÖÃ½«°´Ä¬ÈÏÖµÅäÖÃ¡£
+
+//@#$%component configure   ****×é¼þÅäÖÃ¿ªÊ¼£¬ÓÃÓÚ DIDE ÖÐÍ¼ÐÎ»¯ÅäÖÃ½çÃæ
+//****ÅäÖÃ¿éµÄÓï·¨ºÍÊ¹ÓÃ·½·¨£¬²Î¼ûÔ´Âë¸ùÄ¿Â¼ÏÂµÄÎÄ¼þ£ºcomponent_config_readme.txt****
+//%$#@initcode      ****³õÊ¼»¯´úÂë¿ªÊ¼£¬ÓÉ DIDE É¾³ý¡°//¡±ºócopyµ½³õÊ¼»¯ÎÄ¼þÖÐ
+//    extern s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data);
+//    ModuleInstall_XIP_IBOOT_FS(0,NULL);
+//%$#@end initcode  ****³õÊ¼»¯´úÂë½áÊø
+
+//%$#@describe      ****×é¼þÃèÊö×é¼þÃèÊö¿ªÊ¼
+//component name:"xip iboot file system"//ÓÃÓÚibootµÄÔÚÏßÉý¼¶
+//parent:"file system"//ÌîÐ´¸Ã×é¼þµÄ¸¸×é¼þÃû×Ö£¬none±íÊ¾Ã»ÓÐ¸¸×é¼þ
+//attribute:system              //Ñ¡Ìî¡°third¡¢system¡¢bsp¡¢user¡±£¬±¾ÊôÐÔÓÃÓÚÔÚIDEÖÐ·Ö×é
+//select:choosable              //Ñ¡Ìî¡°required¡¢choosable¡¢none¡±£¬ÈôÌî±ØÑ¡ÇÒÐèÒªÅäÖÃ²ÎÊý£¬ÔòIDE²Ã¼ô½çÃæÖÐÄ¬ÈÏ¹´È¡£¬
+                                //²»¿ÉÈ¡Ïû£¬±ØÑ¡ÇÒ²»ÐèÒªÅäÖÃ²ÎÊýµÄ£¬»òÊÇ²»¿ÉÑ¡µÄ£¬IDE²Ã¼ô½çÃæÖÐ²»ÏÔÊ¾£¬
+//init time:early               //³õÊ¼»¯Ê±»ú£¬¿ÉÑ¡Öµ£ºearly£¬medium£¬later¡£
+                                //±íÊ¾³õÊ¼»¯Ê±¼ä£¬·Ö±ðÊÇÔçÆÚ¡¢ÖÐÆÚ¡¢ºóÆÚ
+//dependence:"file system"             //¸Ã×é¼þµÄÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö
+//weakdependence:"none"         //¸Ã×é¼þµÄÈõÒÀÀµ×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞÒÀÀµ×é¼þ£©£¬
+                                //Ñ¡ÖÐ¸Ã×é¼þÊ±£¬±»ÒÀÀµ×é¼þ²»»á±»Ç¿ÖÆÑ¡ÖÐ£¬
+                                //Èç¹ûÒÀÀµ¶à¸ö×é¼þ£¬ÔòÒÀ´ÎÁÐ³ö£¬ÓÃ¡°,¡±·Ö¸ô
+//mutex:"none"                  //¸Ã×é¼þµÄ»¥³â×é¼þÃû£¨¿ÉÒÔÊÇnone£¬±íÊ¾ÎÞ»¥³â×é¼þ£©£¬
+                                //Èç¹ûÓë¶à¸ö×é¼þ»¥³â£¬ÔòÒÀ´ÎÁÐ³ö
+//%$#@end describe  ****×é¼þÃèÊö½áÊø
+
+//%$#@configue      ****²ÎÊýÅäÖÃ¿ªÊ¼
+//%$#@target = header           //header = Éú³ÉÍ·ÎÄ¼þ,cmdline = ÃüÁîÐÐ±äÁ¿£¬DJYOS×ÔÓÐÄ£¿é½ûÓÃ
+//%$#@num,0,100,
+//%$#@enum,true,false,
+//%$#@string,1,10,
+//%$#select,        ***¶¨ÒåÎÞÖµµÄºê£¬½öÓÃÓÚµÚÈý·½×é¼þ
+//%$#@free,
+//%$#@end configue  ****²ÎÊýÅäÖÃ½áÊø
+
+//%$#@exclude       ****±àÒëÅÅ³ýÎÄ¼þÁÐ±í
+//%$#@end exclude   ****×é¼þÃèÊö½áÊø
+
+//@#$%component end configure
+
 
 u64 FileNowPos = 0;
 //static const char *xip_iboot_target = "xip-iboot";
-// åº•å±‚æŽ¥å£å‡½æ•°
+// µ×²ã½Ó¿Úº¯Êý
 //
 extern s32 xip_fs_format(struct __icore *core);
 static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config);
@@ -73,10 +114,10 @@ s32 xip_iboot_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 
 //==========================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶ä¸Šé”
-// å‚æ•°ï¼š
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þÉÏËø
+// ²ÎÊý£º
+// ·µ»Ø£º
+// ±¸×¢£º
 // ============================================================================
 static inline void xip_iboot_lock(struct __icore *core)
 {
@@ -84,10 +125,10 @@ static inline void xip_iboot_lock(struct __icore *core)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶è§£é”
-// å‚æ•°ï¼š
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þ½âËø
+// ²ÎÊý£º
+// ·µ»Ø£º
+// ±¸×¢£º
 // ============================================================================
 static inline void xip_iboot_unlock(struct __icore *core)
 {
@@ -95,14 +136,14 @@ static inline void xip_iboot_unlock(struct __icore *core)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ‰“å¼€æ–‡ä»¶
-// å‚æ•°ï¼šob -- æ–‡ä»¶å¯¹è±¡ï¼›
-//      flags -- æ–‡ä»¶æ“ä½œæ ‡å¿—ä½ï¼›
-//      uncached -- éœ€æ–°å»ºçš„æ–‡ä»¶åç§°ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆxip-ibootæ–‡ä»¶å¥æŸ„ï¼‰ï¼›å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º´ò¿ªÎÄ¼þ
+// ²ÎÊý£ºob -- ÎÄ¼þ¶ÔÏó£»
+//      flags -- ÎÄ¼þ²Ù×÷±êÖ¾Î»£»
+//      uncached -- ÐèÐÂ½¨µÄÎÄ¼þÃû³Æ£»
+// ·µ»Ø£º³É¹¦£¨xip-ibootÎÄ¼þ¾ä±ú£©£»Ê§°Ü£¨NULL£©£»
+// ±¸×¢£º
 // ============================================================================
-static struct objhandle *xip_iboot_open(struct obj *ob, u32 flags, char *uncached)
+static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *uncached)
 {
     struct objhandle *hdl = NULL;
     struct __icore *core = (struct __icore*)corefs(ob);
@@ -110,14 +151,14 @@ static struct objhandle *xip_iboot_open(struct obj *ob, u32 flags, char *uncache
 
     if(test_writeable(flags) == 0)
     {
-        return (NULL);    //xip-ibootåªæ”¯æŒå†™æ¨¡å¼
+        return (NULL);    //xip-ibootÖ»Ö§³ÖÐ´Ä£Ê½
     }
 
     xip_iboot_lock(core);
 
-    if(strcmp(obj_name(ob),EN_XIP_IBOOT_TARGET) == 0)      //åˆ¤æ–­è®¿é—®çš„è·¯å¾„æ˜¯ä¸æ˜¯xip-ibootï¼Œå¦‚æžœä¸æ˜¯åˆ™ç›´æŽ¥è¿”å›žNULL
-    {
-        xip_fs_format(core);        //æ“¦é™¤ibootæ‰€åœ¨çš„flashåŒºåŸŸ
+//    if(strcmp(obj_name(ob),EN_XIP_IBOOT_TARGET) == 0)      //ÅÐ¶Ï·ÃÎÊµÄÂ·¾¶ÊÇ²»ÊÇxip-iboot£¬Èç¹û²»ÊÇÔòÖ±½Ó·µ»ØNULL
+//    {
+        xip_fs_format(core);        //²Á³ýibootËùÔÚµÄflashÇøÓò
 
         if(!obj_newchild(core->root, xip_iboot_ops, (ptu32_t)0, uncached))
         {
@@ -135,22 +176,22 @@ static struct objhandle *xip_iboot_open(struct obj *ob, u32 flags, char *uncache
 
         if(hdl)
         {
-            //TODOï¼šä»Žyaffs2ä¸­è¯»å–æƒé™ç­‰ï¼Œæš‚æ—¶èµ‹äºˆå…¨éƒ¨æƒé™ã€‚
-            mode = S_IALLUGO | S_IFREG;     //å»ºç«‹çš„è·¯å¾„ï¼Œå±žæ€§æ˜¯ç›®å½•ã€‚
-            //ç»§æ‰¿æ“ä½œæ–¹æ³•ï¼Œå¯¹è±¡çš„ç§æœ‰æˆå‘˜ä¿å­˜è®¿é—®æ¨¡å¼ï¼ˆå³ stat çš„ st_mode ï¼‰
+            //TODO£º´Óyaffs2ÖÐ¶ÁÈ¡È¨ÏÞµÈ£¬ÔÝÊ±¸³ÓèÈ«²¿È¨ÏÞ¡£
+            mode = S_IALLUGO | S_IFREG;     //½¨Á¢µÄÂ·¾¶£¬ÊôÐÔÊÇÄ¿Â¼¡£
+            //¼Ì³Ð²Ù×÷·½·¨£¬¶ÔÏóµÄË½ÓÐ³ÉÔ±±£´æ·ÃÎÊÄ£Ê½£¨¼´ stat µÄ st_mode £©
             ob = obj_buildpath(ob, xip_iboot_ops, mode,uncached);
             obj_LinkHandle(hdl, ob);
         }
-    }
+//    }
     xip_iboot_unlock(core);
     return (hdl);
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå…³é—­æ–‡ä»¶
-// å‚æ•°ï¼šhdl -- xip-ibootæ–‡ä»¶å¯¹è±¡å¥æŸ„ï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¹Ø±ÕÎÄ¼þ
+// ²ÎÊý£ºhdl -- xip-ibootÎÄ¼þ¶ÔÏó¾ä±ú£»
+// ·µ»Ø£º³É¹¦£¨0£©£»Ê§°Ü£¨-1£©£»
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_iboot_close(struct objhandle *hdl)
 {
@@ -160,12 +201,12 @@ static s32 xip_iboot_close(struct objhandle *hdl)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå†™æ–‡ä»¶
-// å‚æ•°ï¼šhdl -- xip-ibootæ–‡ä»¶å¯¹è±¡å¥æŸ„ï¼›
-//      data -- éœ€å†™å…¥æ•°æ®çš„ç©ºé—´ï¼›
-//      size -- éœ€å†™å…¥æ•°æ®çš„å¤§å°ï¼›
-// è¿”å›žï¼šå®žé™…å†™å…¥çš„å­—èŠ‚æ•°ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÐ´ÎÄ¼þ
+// ²ÎÊý£ºhdl -- xip-ibootÎÄ¼þ¶ÔÏó¾ä±ú£»
+//      data -- ÐèÐ´ÈëÊý¾ÝµÄ¿Õ¼ä£»
+//      size -- ÐèÐ´ÈëÊý¾ÝµÄ´óÐ¡£»
+// ·µ»Ø£ºÊµ¼ÊÐ´ÈëµÄ×Ö½ÚÊý£»
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_iboot_write(struct objhandle *hdl, u8 *data, u32 size)
 {
@@ -190,10 +231,26 @@ static s32 xip_iboot_write(struct objhandle *hdl, u8 *data, u32 size)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šåˆå§‹åŒ–xipå¯¹mediaçš„é©±åŠ¨
-// å‚æ•°ï¼šcore -- efsæ–‡ä»¶ç³»ç»Ÿç®¡ç†ï¼›  drv -- mediaçš„æ“ä½œå‡½æ•°é›†
-// è¿”å›žï¼š0 -- æˆåŠŸï¼›  -1 --å¤±è´¥
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º²éÑ¯xip-iboot×´Ì¬£»
+// ²ÎÊý£ºob -- stdio¶ÔÏó£»
+//      data -- stdio×´Ì¬£»
+// ·µ»Ø£º
+// ±¸×¢£º
+// ============================================================================
+static s32 xip_iboot_stat(struct Object *ob, struct stat *data)
+{
+    memset(data, 0x0, sizeof(struct stat));
+
+    data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
+
+    return (0);
+}
+
+// ============================================================================
+// ¹¦ÄÜ£º³õÊ¼»¯xip¶ÔmediaµÄÇý¶¯
+// ²ÎÊý£ºcore -- efsÎÄ¼þÏµÍ³¹ÜÀí£»  drv -- mediaµÄ²Ù×÷º¯Êý¼¯
+// ·µ»Ø£º0 -- ³É¹¦£»  -1 --Ê§°Ü
+// ±¸×¢£º
 // ============================================================================
 int xip_iboot_install_drv(struct __icore *core, struct __xip_drv *drv)
 {
@@ -207,19 +264,19 @@ int xip_iboot_install_drv(struct __icore *core, struct __xip_drv *drv)
     return (0);
 }
 // ============================================================================
-// åŠŸèƒ½ï¼šå®‰è£…xipæ–‡ä»¶ç³»ç»Ÿ
-// å‚æ•°ï¼šsuper -- æ–‡ä»¶ç³»ç»Ÿç®¡ç†ä¿¡æ¯ï¼›
-//      opt -- å®‰è£…é€»è¾‘æ ‡å¿—ä½ï¼›
-//      config -- è‡ªå®šä¹‰æ•°æ®ï¼›
-// è¿”å›žï¼šæˆåŠŸ(0)ï¼› å¤±è´¥(-1)ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º°²×°xipÎÄ¼þÏµÍ³
+// ²ÎÊý£ºsuper -- ÎÄ¼þÏµÍ³¹ÜÀíÐÅÏ¢£»
+//      opt -- °²×°Âß¼­±êÖ¾Î»£»
+//      config -- ×Ô¶¨ÒåÊý¾Ý£»
+// ·µ»Ø£º³É¹¦(0)£» Ê§°Ü(-1)¡£
+// ±¸×¢£º
 // ============================================================================
 static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config)
 {
 
     struct __icore *core;
     struct umedia *um;
-
+    u32 flash_page_size;
     config = config;
     opt = opt;
     core = malloc(sizeof(*core));
@@ -236,14 +293,15 @@ static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config)
         free(core);
         return (-1);
     }
+    um->mreq(unitbytes,(ptu32_t)&flash_page_size);
     xip_iboot_install_drv(core,super->MediaDrv);
     core->ASize = super->AreaSize;
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
-    core->bufsz = 1 << um->usz; // xipæ–‡ä»¶ç³»ç»Ÿæ–‡ä»¶çš„ç¼“å­˜å¤§å°ä¾æ®unitçš„å°ºå¯¸ï¼›
-    core->inhead = 0;  //inheadè¿™éƒ¨åˆ†ä¸ºéƒ¨åˆ†å†…å®¹çš„å¤§å°
+    core->bufsz = (s16)flash_page_size; // xipÎÄ¼þÏµÍ³ÎÄ¼þµÄ»º´æ´óÐ¡ÒÀ¾ÝunitµÄ³ß´ç£»
+    core->inhead = 0;  //inheadÕâ²¿·ÖÎª²¿·ÖÄÚÈÝµÄ´óÐ¡
     core->root = super->pTarget;
-    core->lock = Lock_MutexCreate("xip-ibootã€ fs");
+    core->lock = Lock_MutexCreate("xip-iboot¡¢ fs");
     if(!core->lock)
     {
         free(core);
@@ -255,10 +313,10 @@ static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šxipæ–‡ä»¶æ“ä½œæŽ¥å£
-// å‚æ•°ï¼šæ ‡å‡†é€»è¾‘ï¼ŒæŸ¥çœ‹æŽ¥å£è¯´æ˜Žï¼›
-// è¿”å›žï¼šæ ‡å‡†é€»è¾‘ï¼ŒæŸ¥çœ‹æŽ¥å£è¯´æ˜Žï¼›
-// å¤‡æ³¨:
+// ¹¦ÄÜ£ºxipÎÄ¼þ²Ù×÷½Ó¿Ú
+// ²ÎÊý£º±ê×¼Âß¼­£¬²é¿´½Ó¿ÚËµÃ÷£»
+// ·µ»Ø£º±ê×¼Âß¼­£¬²é¿´½Ó¿ÚËµÃ÷£»
+// ±¸×¢:
 // ============================================================================
 s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3)
@@ -269,7 +327,7 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         case CN_OBJ_CMD_OPEN:
         {
             struct objhandle *hdl;
-            hdl = xip_iboot_open((struct obj *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
+            hdl = xip_iboot_open((struct Object *)opsTarget, (u32)(*(u64*)OpsArgs2), (char*)OpsArgs3);
             *(struct objhandle **)OpsArgs1 = hdl;
             break;
         }
@@ -294,7 +352,14 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
         }
         case CN_OBJ_CMD_STAT:
         {
-            result = CN_OBJ_CMD_TRUE;   //xip-ibootæ–‡ä»¶ç³»ç»Ÿä¸éœ€è¦statï¼Œç›´æŽ¥è¿”å›žtrue
+            char * path = (char*)OpsArgs2;
+            if(path&&('\0'!=*path))
+                return (-1); // ²éÑ¯µÄÎÄ¼þ²»´æÔÚ£»
+            if(xip_iboot_stat((struct Object*)opsTarget, (struct stat *)OpsArgs1) == 0)
+                result = CN_OBJ_CMD_TRUE;
+            else
+                result = CN_OBJ_CMD_FALSE;
+            break;
             break;
         }
         default:
@@ -308,18 +373,17 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå®‰è£…xipæ–‡ä»¶ç³»ç»Ÿ
-// å‚æ•°ï¼š opt -- æ–‡ä»¶ç³»ç»Ÿé…ç½®é€‰é¡¹ï¼›å¦‚MS_INSTALLCREAT
-//      data -- ä¼ é€’ç»™xip-ibootå®‰è£…é€»è¾‘çš„æ•°æ®ï¼›
-// è¿”å›žï¼šå¤±è´¥(-1)ï¼› æˆåŠŸ(0)ã€‚
-// å¤‡æ³¨:
+// ¹¦ÄÜ£º°²×°xipÎÄ¼þÏµÍ³
+// ²ÎÊý£º opt -- ÎÄ¼þÏµÍ³ÅäÖÃÑ¡Ïî£»ÈçMS_INSTALLCREAT
+//      data -- ´«µÝ¸øxip-iboot°²×°Âß¼­µÄÊý¾Ý£»
+// ·µ»Ø£ºÊ§°Ü(-1)£» ³É¹¦(0)¡£
+// ±¸×¢:
 // ============================================================================
-s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data)
+s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
 {
-    struct obj * mountobj;
+    struct Object * mountobj;
     static struct filesystem *typeXIPIBOOT = NULL;
     s32 res;
-
     if(typeXIPIBOOT == NULL)
     {
         typeXIPIBOOT = malloc(sizeof(*typeXIPIBOOT));
@@ -334,26 +398,37 @@ s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data)
     if(-1==res)
     {
         printf("\r\n: dbug : module : cannot register \"XIP-APP\"(file system type).");
-        return (-1); // å¤±è´¥;
+        return (-1); // Ê§°Ü;
     }
 
-    mountobj = obj_newchild(obj_root(), __mount_ops, 0, EN_XIP_IBOOT_TARGET);
+    mountobj = obj_newchild(obj_root(), __mount_ops, 0, xip_target);
     if(NULL == mountobj)
     {
-        printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", EN_XIP_IBOOT_TARGET);
+        printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", xip_target);
         return (-1);
     }
-    obj_InuseUpFullPath(mountobj);
-    opt |= MS_DIRECTMOUNT;      //ç›´æŽ¥æŒ‚è½½ä¸ç”¨å¤‡ä»½
-    res = mountfs(NULL, EN_XIP_IBOOT_TARGET, "XIP-IBOOT", opt, data);
+//    __InuseUpFullPath(mountobj);
+    opt |= MS_DIRECTMOUNT;      //Ö±½Ó¹ÒÔØ²»ÓÃ±¸·Ý
+    res = mountfs(NULL, xip_target, "XIP-IBOOT", opt, data);
     if(res == -1)
     {
         printf("\r\n: dbug : module : mount \"XIP-IBOOT\" failed, cannot install.");
         obj_Delete(mountobj);
         return (-1);
     }
-
     return (0);
 }
 
+// ============================================================================
+// ¹¦ÄÜ£º°²×°xipÎÄ¼þÏµÍ³
+// ²ÎÊý£º opt -- ÎÄ¼þÏµÍ³ÅäÖÃÑ¡Ïî£»ÈçMS_INSTALLCREAT
+//      data -- ´«µÝ¸øxip-iboot°²×°Âß¼­µÄÊý¾Ý£»
+// ·µ»Ø£ºÊ§°Ü(-1)£» ³É¹¦(0)¡£
+// ±¸×¢:
+// ============================================================================
+s32 ModuleInstall_XIP_IBOOT_FS(u32 opt, void *data)
+{
+    ModuleInstall_XIP_FS(opt,data,EN_XIP_IBOOT_TARGET);
+    return 0;
+}
 

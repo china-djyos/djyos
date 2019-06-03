@@ -60,16 +60,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+typedef  uint32_t (*djybsp_isr_hdl_t)(uint32_t);
 #include "cpu_peri.h"
-#ifdef CFG_CORTEX_M0
+#ifdef CFG_CPU_ZQ12XX_M0
 #include "silan_irq.h"
 #include "silan_pic_regs.h"
 #endif
-typedef  uint32_t (*djybsp_isr_hdl_t)(uint32_t);
+
 int djybsp_isr_hdl_register(uint32_t id, int subid, djybsp_isr_hdl_t hdl,uint32_t param);
 void djybsp_isr_hdl_unregister(uint32_t id, int subid);
 void djybsp_isr_init(void);

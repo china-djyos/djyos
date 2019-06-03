@@ -71,33 +71,33 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"timer"        //软件定时器组件
+//component name:"Software Timers"//软件定时器组件
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"MsgQueue"         //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"System:Message queue"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_TIMER_SOUCE   //****检查参数是否已经配置好
+#ifndef CFG_TIMER_SOUCE_HARD   //****检查参数是否已经配置好
 #warning    timer组件参数未配置，使用默认值
 //%$#@num,0,100,
-#define CFG_TIMER_SOUCE     1       //"时钟源",1=由硬件计时器提供时钟源，0=由tick提供时钟源
-#define CFG_TIMERS_LIMIT    5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
+#define CFG_TIMERS_LIMIT        5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
 //%$#@enum,true,false,
+#define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick/tickless做时钟源
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -111,7 +111,7 @@ struct Timer
     struct Timer  *nxt;
     char          *name;
     u32           cycle;        //定时器周期 (单位是微秒)
-    fnTimerIsr    isr;          //定时器定时时间节点钩子函数
+    fnTimerRecall isr;          //定时器定时时间节点钩子函数
     u32           stat;         //定时器状态标志，参见CN_TIMER_ENCOUNT等常数
     ptu32_t       TimerTag;     //私有标签
     s64           deadline;     //定时器定时时间(单位是微秒)
@@ -128,7 +128,7 @@ struct Timer
 static u32 s_u32TimerPrecision;     //主频1000clk对应的uS数，取整
 static u32 s_u32Precision2Tclk;     //取整后的s_u32TimerPrecision对应的定时器的周期数
 static u32 s_u32TimerFreq;          //所用的硬件定时器频率
-static bool_t  sbUsingHardTimer = false;
+//static bool_t  sbUsingHardTimer = false;
 static tagTimer* ptTimerHead = NULL;                 //软定时器队列头
 static tagTimer* ptTimerTail = NULL;                 //软件定时器队尾
 static tagTimer           *ptTimerMem = NULL;        //动态分配内存
@@ -412,7 +412,7 @@ u32 Timer_ISR(ptu32_t irq_no)
 //           创建的定时器还是处于pause状态，需要手动开启该定时器
 // =============================================================================
 tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
-                                  u32 cycle, fnTimerIsr isr)
+                                  u32 cycle, fnTimerRecall isr)
 {
     tagTimer*      result = NULL;
     u32                waittime;
@@ -423,7 +423,8 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
     }
     else
     {
-        if(sbUsingHardTimer)
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
+//      if(sbUsingHardTimer)
         {
            if(Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER))
             {
@@ -449,7 +450,7 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
                 result = timer;
             }
         }
-        else
+#else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
             timer->name = (char*)name;
             timer->cycle = cycle;
@@ -464,6 +465,7 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
                 result = timer;
             }
         }
+#endif       //for #if CFG_TIMER_SOUCE_HARD == true
     }
     return result;
 }
@@ -485,7 +487,8 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
     }
     else
     {
-        if(sbUsingHardTimer)
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
+//      if(sbUsingHardTimer)
         {
            if(Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER))
             {
@@ -505,7 +508,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
                 result = (tagTimer*)timer;
             }
         }
-        else
+#else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
             msg.timer = timer;
             msg.type = EN_TIMERSOFT_REMOVE;
@@ -515,6 +518,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
                 result = timer;
             }
         }
+#endif       //for #if CFG_TIMER_SOUCE_HARD == true
     }
     return result;
 }
@@ -529,7 +533,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
 //           创建的定时器默认的reload模式，如果需要手动的话，那么创建之后自己设置；
 //           创建的定时器还是处于pause状态，需要手动开启该定时器
 // =============================================================================
-tagTimer* Timer_Create(const char *name, u32 cycle,fnTimerIsr isr)
+tagTimer* Timer_Create(const char *name, u32 cycle,fnTimerRecall isr)
 {
     tagTimer *timer;
     tagTimer *result;
@@ -586,7 +590,8 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
     tagTimerMsg msg;
     if(timer)                      //参数检查
     {
-        if(sbUsingHardTimer)
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
+//      if(sbUsingHardTimer)
         {
             Lock_MutexPend(ptTimerQSync,CN_TIMEOUT_FOREVER);
             //暂停闹钟，进行中断互斥
@@ -639,8 +644,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
                     result = false;
                     break;
             }
-            //上述操作可能会有定时器超时,做定时器队列的超时处理
-            //做定时器队列的超时处理
+            //上述操作可能会有定时器超时,要做定时器队列的超时处理
             waittime = __Timer_DealTimeout();
             if(waittime != CN_TIMEOUT_FOREVER)
             {
@@ -650,7 +654,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
             }
             Lock_MutexPost(ptTimerQSync);
         }
-        else
+#else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
             msg.timer = timer;
             msg.type = opcode;
@@ -658,6 +662,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
             result = MsgQ_Send(ptTimerMsgQ,(u8 *)&msg, sizeof(msg),\
                                CN_TIMEOUT_FOREVER, CN_MSGQ_PRIO_NORMAL);
         }
+#endif       //for #if CFG_TIMER_SOUCE_HARD == true
     }
 
     return result;
@@ -749,8 +754,25 @@ ptu32_t  Timer_VMTask(void)
 }
 
 //-----------------------------------------------------------------------------
+//功能：设置定时器私有标签
+//参数：timer,定时器指针.
+//      Tag，新的标签
+//返回：定时器的私有标签
+//-----------------------------------------------------------------------------
+bool_t Timer_SetTag(tagTimer* timer,ptu32_t Tag)
+{
+    if(timer != NULL)
+    {
+        timer->TimerTag = Tag;
+        return true;
+    }
+    else
+        return false;
+}
+
+//-----------------------------------------------------------------------------
 //功能：取定时器私有标签
-//参数：timersoft,定时器指针.
+//参数：timer,定时器指针.
 //返回：定时器的私有标签
 //-----------------------------------------------------------------------------
 ptu32_t Timer_GetTag(tagTimer* timer)
@@ -795,7 +817,7 @@ bool_t ModuleInstall_Timer(void)
     {
         goto EXIT_POOLFAILED;
     }
-#if CFG_TIMER_SOUCE == 1        //由硬件计时器提供时钟源
+#if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
         //使用硬件定时器的时候才会使用该同步标记
         ptTimerQSync = Lock_MutexCreate("Timer");
         if(NULL == ptTimerQSync)
@@ -818,7 +840,7 @@ bool_t ModuleInstall_Timer(void)
         //使能定时器中断，但是没有使能定时器,坐等API的调用
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_ENINT,(ptu32_t)NULL);
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_SETRELOAD,(ptu32_t)false);
-#else   //CFG_TIMER_SOUCE == 1      由tick提供时钟源
+#else   //CFG_TIMER_SOUCE_HARD == true      由tick提供时钟源
 
         //建立通信用的消息队列
         ptTimerMsgQ = MsgQ_Create(CN_TIMERSOFT_MSGLEN, \
@@ -850,7 +872,7 @@ bool_t ModuleInstall_Timer(void)
                 }
             }
         }
-#endif  //CFG_TIMER_SOUCE == 1
+#endif  //CFG_TIMER_SOUCE_HARD == true
 
     printk("Timer:Init Success\n\r");
     return true;

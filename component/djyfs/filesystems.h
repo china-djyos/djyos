@@ -103,17 +103,17 @@ struct filesystem{
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
     s32 (*install)(struct FsCore *pFsCore, u32 dwOpt, void *data);
     s32 (*uninstall)();
-    s32 (*format)();
+    s32 (*format)(void *core);
     char *pType;
-} *pFileSystemTypes;
+};
 
 struct FsCore
 {
-    struct obj *pTarget;        // 挂载点
+    struct Object *pTarget;        // 挂载点
     void *MediaInfo;          // 文件系统设备信息
     void *MediaDrv;           // 文件系统设备驱动
     void *pCore;                // 具体的文件系统控制信息
-    struct obj *MountBak;       // 用于隐藏原目录内容，如果 flags 带 MS_DIRECTMOUNT
+    struct Object *MountBak;       // 用于隐藏原目录内容，如果 flags 带 MS_DIRECTMOUNT
                                 // 参数，则置空
     struct filesystem *pFsType; // 所属文件系统类型
     u32 InstallWay;             // 文件系统的安装方式，如MS_INSTALLCREAT；
@@ -124,11 +124,11 @@ struct FsCore
 
 
 s32 regfs(struct filesystem *type);
-bool_t GetEntirePath(struct obj *BaseObject, char * PathTail, char * EntirePath,
+bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePath,
                      u32 BufSize);
-bool_t obj_isMount(struct obj *obj);
+bool_t obj_isMount(struct Object *obj);
 s32 mountfs(const char *source, const char *target, const char *type, u32 flags, void *data);
-void *corefs(struct obj *ob);
+void *corefs(struct Object *ob);
 s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                        ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 void FsBeMedia(const char *source, const char *target);

@@ -63,6 +63,7 @@
 #include "object.h"
 #include "gkernel.h"
 #include "gk_win.h"
+#include "heap.h"
 #include <gui/gkernel/gk_display.h>
 #include <string.h>
 
@@ -77,7 +78,7 @@
 //-----------------------------------------------------------------------------
 bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
 {
-    struct obj *Obj;
+    struct Object *Obj;
     struct RectBitmap *frame_bitmap;
     struct GkWinObj *frame_buffer;
     u32 msk_size;
@@ -162,7 +163,7 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
 bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
                                struct DisplayObj *mirror_display,char *name)
 {
-    struct obj *Obj;
+    struct Object *Obj;
     Obj = obj_newchild(base_display->HostObj, (fnObjOps)-1, (ptu32_t)mirror_display, name);
     if(NULL != Obj)
     {
@@ -180,7 +181,7 @@ bool_t GK_InstallDisplayMirror(struct DisplayObj *base_display,
 //-----------------------------------------------------------------------------
 bool_t GK_SetDefaultDisplay(const char *name)
 {
-    struct obj *Obj;
+    struct Object *Obj;
     Obj = obj_search_child(obj_root(), "display");     //取显示器目录
     Obj = obj_search_child(Obj,name);     //找到被操作的显示器对象
     if(Obj == NULL)

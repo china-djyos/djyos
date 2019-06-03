@@ -1,0 +1,39 @@
+{
+	"ide_version":"DIDE-V1.6_20190304",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"cortex-m7",
+		"cpu":"stm32h743xx",
+		"board":"STM32H743I-EVAL"
+	},
+	"components_checked":{
+		"app":[],
+		"iboot":["black box",
+		"board config",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"stm32h7",
+		"uart device file"]
+	}
+}

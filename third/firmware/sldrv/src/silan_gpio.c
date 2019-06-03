@@ -17,23 +17,23 @@
 #define GPIO_CONFIG_PIN(x)       (x % (GPIO1_MAX_NUM+1))
 #define IO_TO_GPIO(x)            ((x>=8) ? (x-8) : (34+x))
 
-inline void silan_gpio_input(u32 addr, u32 pin)
+void silan_gpio_input(u32 addr, u32 pin)
 {
 	__sREG32(addr, GPIO_DIR) &= ~pin;
 }
-inline void silan_gpio_output(u32 addr, u32 pin)
+void silan_gpio_output(u32 addr, u32 pin)
 {
 	__sREG32(addr, GPIO_DIR) |= pin;
 }
-inline void silan_gpio_set_high(u32 addr, u32 pin)
+void silan_gpio_set_high(u32 addr, u32 pin)
 {
 	__sREG32(addr, GPIO_DATA) |= pin;
 }
-inline void silan_gpio_set_low(u32 addr, u32 pin)
+void silan_gpio_set_low(u32 addr, u32 pin)
 {
 	__sREG32(addr, GPIO_DATA) &= ~pin;
 }
-inline int silan_gpio_get(u32 addr, u32 pin)
+int silan_gpio_get(u32 addr, u32 pin)
 {
 	if (__sREG32(addr, GPIO_DATA) & pin)
 	{
@@ -42,7 +42,7 @@ inline int silan_gpio_get(u32 addr, u32 pin)
     return 0;
 }
 
-inline void silan_gpio_irq_enable(u32 addr, u32 pin)
+void silan_gpio_irq_enable(u32 addr, u32 pin)
 {
 	__sREG32(addr, GPIO_IE) |= pin;
 }
@@ -78,17 +78,17 @@ void silan_gpio_irq_mode(u32 addr, u32 pin, int mode)
     }
 }
 
-static inline void silan_gpio_filsel_open(u32 addr,u32 pin)
+static void silan_gpio_filsel_open(u32 addr,u32 pin)
 {
 	__sREG32(addr, GPIO_FILSEL) |= pin;		
 }
 
-static inline void silan_gpio_filsel_close(u32 addr,u32 pin)
+static void silan_gpio_filsel_close(u32 addr,u32 pin)
 {
 	__sREG32(addr, GPIO_FILSEL) &= ~pin;		
 }
 
-static inline void silan_gpio_filsel_div(u32 addr,int div)
+static void silan_gpio_filsel_div(u32 addr,int div)
 {
 	__sREG32(addr, GPIO_FILDIV) |= ((div&0xf)<<1)|0x1;		
 }

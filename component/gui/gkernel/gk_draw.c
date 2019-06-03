@@ -2084,7 +2084,7 @@ void __GK_SetPixelScreen(struct DisplayObj *display,s32 x,s32 y,
 {
 // TODO: 检查逻辑
     struct DisplayObj *MirrorDisplay;
-    struct obj *mirror,*current;
+    struct Object *mirror,*current;
 
     display->draw.SetPixelToScreen(x,y,color,Rop2Code);//在screen上画点
     mirror = display->HostObj;
@@ -2111,7 +2111,7 @@ void __GK_LinetoScreen(struct DisplayObj *display,struct Rectangle *limit,
                    s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 Rop2Code)
 {
     struct DisplayObj *MirrorDisplay;
-    struct obj *mirror,*current;
+    struct Object *mirror,*current;
     s32 x,y,ax,ay,s1,s2,p,interchange,i;
 
     if(display->draw.LineToScreen(limit, x1, y1, x2, y2, color,Rop2Code))
@@ -2220,7 +2220,7 @@ void __GK_BltBmToScreen(struct DisplayObj *display,struct Rectangle *rect,
     s32 x_bmap,y_bmap,x_rect,y_rect;
 
     struct DisplayObj *MirrorDisplay;
-    struct obj *mirror,*current;
+    struct Object *mirror,*current;
 
     if(display->draw.CopyBitmapToScreen(rect,bitmap,x,y))
     {
@@ -2935,7 +2935,7 @@ void __GK_DrawCircleScreen(struct DisplayObj *display,struct Rectangle *limit,
     s32 left,right,top,bottom;
     u32 flag;
     struct DisplayObj *MirrorDisplay;
-    struct obj *mirror,*current;
+    struct Object *mirror,*current;
     struct DispDraw *mydraw;
 
     mydraw = &display->draw;
@@ -4336,7 +4336,7 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
         {
             do{
                 struct DisplayObj *MirrorDisplay;
-                struct obj *mirror,*current;
+                struct Object *mirror,*current;
                 //只填充窗口可视域与要绘制的区域的交集
                 if(__GK_GetRectInts(&clip->rect,Rect,&ins_rect))
                 {
@@ -4467,7 +4467,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
         {
             do{
                 struct DisplayObj *MirrorDisplay;
-                struct obj *mirror,*current;
+                struct Object *mirror,*current;
                 //只填充窗口可视域与要绘制的区域的交集
                 if(__GK_GetRectInts(&clip->rect,&target,&ins_rect))
                 {
@@ -4563,7 +4563,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
         {
             do{
                 struct DisplayObj *MirrorDisplay;
-                struct obj *mirror,*current;
+                struct Object *mirror,*current;
                 if(!my_draw_fun->FillRectToScreen(&rect,&clip->rect,
                                             para->color,0,CN_FILLRECT_MODE_N))
                 {

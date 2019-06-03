@@ -71,7 +71,8 @@
 #define STM32H7
 #endif /* STM32H7 */
 
-   
+#define UID_BASE              0x1FF1E800U                   /*!< Unique device ID register base address */
+
 /* Uncomment the line below according to the target STM32H7 device used in your
    application
   */
