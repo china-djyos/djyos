@@ -41,11 +41,11 @@
 #warning stdio模块未配置，使用默认配置
 //%$#@num,0,100,
 //%$#@enum,true,false,
-#define CFG_STDIO_STDIN_MULTI      true    //"是否支持多种输入设备",
-#define CFG_STDIO_STDOUT_FOLLOW    true    //"stdout是否跟随stdin",
-#define CFG_STDIO_STDERR_FOLLOW    true    //"stderr是否跟随stdin",
-#define CFG_STDIO_FLOAT_PRINT       true        //"支持浮点打印"
-#define CFG_STDIO_STDIOFILE         true        //"支持标准IO文件"
+#define CFG_STDIO_STDIN_MULTI      true         //"是否支持多种输入设备",
+#define CFG_STDIO_STDOUT_FOLLOW    true         //"stdout是否跟随stdin",
+#define CFG_STDIO_STDERR_FOLLOW    true         //"stderr是否跟随stdin",
+#define CFG_STDIO_FLOAT_PRINT      true         //"支持浮点打印"
+#define CFG_STDIO_STDIOFILE        true         //"支持标准IO文件"
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
