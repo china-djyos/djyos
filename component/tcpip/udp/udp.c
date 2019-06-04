@@ -48,6 +48,7 @@
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <objhandle.h>
 #include <netdb.h>
 #include "dbug.h"
 
@@ -154,8 +155,6 @@ typedef struct
     struct tagSocket            *array[0];
 }tagUdpHashTab;
 static tagUdpHashTab   *pUdpHashTab = NULL;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // FUNCTION：this function is used to initialize the udpv4 hash tab
 // PARA  IN：len ,this parameter limites the hashtab lenth
@@ -422,6 +421,9 @@ static  tagUdpCB * __UdpCbMalloc(void )
     }
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // FUNCTION：this function is used to generate an socket
 // PARA  IN：family:such as AF_INET AF_INET6  AF_LOCAL
@@ -635,6 +637,7 @@ static int __msgsnd(struct tagSocket *sock, const void *msg, int len, int flags,
     }
     return result;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // FUNCTION:use this function for the connect,
@@ -739,6 +742,9 @@ static int __cpyfromrbuf(struct tagSocket *sock, void *buf, int len,\
     PkgTryFreePart(pkg);
     return cpylen;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 函数功能：  __udprecv
 //        读取接字数据
@@ -1343,6 +1349,7 @@ static void __udpdebug(struct tagSocket *sock,char *filter)
         debug_printf("udp","%s:no control block yet\n\r",prefix);
     }
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // FUNCTION：this function is used to initialize the udp protocol
@@ -1390,4 +1397,3 @@ bool_t UdpInit(void)
     return result;
 }
 
-#pragma GCC diagnostic pop
