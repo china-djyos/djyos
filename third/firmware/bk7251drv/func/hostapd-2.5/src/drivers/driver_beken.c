@@ -1042,14 +1042,15 @@ static void *hostap_init(struct hostapd_data *hapd,
     }
 
     drv->hapd = hapd;
-    drv->ioctl_sock = 0;
-    drv->sock = 0;
+    drv->ioctl_sock = -1;
+    drv->sock = -1;
     os_memcpy(drv->iface, params->ifname, sizeof(drv->iface));
     os_memcpy(drv->own_addr, params->own_addr, ETH_ALEN);
 
     ret = wpa_driver_hostap_init_vif(drv, NL80211_IFTYPE_AP);
     if(ret || (drv->vif_index == 0xff)) {
         os_printf("Could not found vif indix: %d\n", drv->vif_index);
+        os_free(drv);
         return NULL;
     }
 
@@ -1423,6 +1424,7 @@ static void *wpa_driver_init(void *ctx, const char *ifname)
     ret = wpa_driver_hostap_init_vif(drv, NL80211_IFTYPE_STATION);
     if(ret || (drv->vif_index == 0xff)) {
         os_printf("Could not found vif indix: %d\n", drv->vif_index);
+        os_free(drv);
         return NULL;
     }
     
