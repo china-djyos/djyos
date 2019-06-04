@@ -135,6 +135,7 @@ static enum EN_BlackBoxAction  __BlackBox_ResultMerge(enum EN_BlackBoxAction Res
     if(EN_BLACKBOX_DEAL_DEFAULT == Result_Hook)
     {
         result = Result_Throw;
+        result = Result_Throw;
     }
     else
     {
