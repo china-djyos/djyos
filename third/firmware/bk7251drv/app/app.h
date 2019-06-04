@@ -49,7 +49,7 @@ typedef struct bus_message
     beken_semaphore_t sema;
 } BUS_MSG_T;
 
-#define CORE_QITEM_COUNT          (64)
+#define CORE_QITEM_COUNT          (128)
 #if CFG_SUPPORT_ALIOS
 #define CORE_STACK_SIZE           (4 * 1024)
 #else

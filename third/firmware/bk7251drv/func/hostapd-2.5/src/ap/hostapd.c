@@ -1032,6 +1032,10 @@ static int setup_interface(struct hostapd_iface *iface)
 		}
 	}
 
+    if (iface->num_bss != iface->conf->num_bss) {
+        os_printf("%s num_bss=%d vs %d\n", __FUNCTION__, iface->num_bss, iface->conf->num_bss);
+        return -1;
+    }
 	/*
 	 * Make sure that all BSSes get configured with a pointer to the same
 	 * driver interface.
