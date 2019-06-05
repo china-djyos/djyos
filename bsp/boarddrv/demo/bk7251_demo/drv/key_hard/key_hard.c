@@ -1,5 +1,5 @@
 //----------------------------------------------------
-// Copyright (c) 2018, SHENZHEN PENGRUI SOFT CO LTD. All rights reserved.
+// Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018，著作权由深圳鹏瑞软件有限公司所有。著作权人保留一切权利。
+// Copyright (c) 2018，著作权由都江堰操作系统开源开发团队所有。著作权人保留一切权利。
 //
 // 这份授权条款，在使用者符合下列条件的情形下，授予使用者使用及再散播本
 // 软件包装原始码及二进位可执行形式的权利，无论此包装是否经改作皆然：
@@ -42,119 +42,133 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块:
-//作者：
+//所属模块:键盘
+//作者：lst
 //版本：V1.0.0
-//文件描述:
+//文件描述: 扫描硬件读按键函数，只需直接给出按键当前值，无须防抖。
 //其他说明:
 //修订历史:
-//2. ...
-//1. 日期: 
-//   作者: 
+//2. 日期: 2019-06-05
+//   作者: lm
+//   新版本号: V1.0.0
+//   修改说明:移植到ZQ1401中来
+//1. 日期: 2009-03-10
+//   作者: lst
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-
-#include "typedef.h"
-#include "pwm_pub.h"
-#include "drv_model_pub.h"
-
+#include "stdint.h"
+#include "stddef.h"
+#include "cpu_peri.h"
+#include "keyboard.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_Keyboard(const char *dev_name);
+//    ModuleInstall_Keyboard(CFG_KEYBOARD_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:""       //环形和线性缓冲区
-//parent:""                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//component name:"keyboard hard driver"//板件的键盘驱动
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:               //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:""             //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
-//weakdependence:""         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//dependence:"key board"//该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:""                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_KEYBOARD_NAME       //****检查参数是否已经配置好
+#warning    key_hard组件参数未配置，使用默认值
 //%$#@num,0,100,
-//%$#@enum,true,flase,
+//%$#@enum,true,false,
 //%$#@string,1,10,
-//%$#select,        ***定义无值的宏，仅用于第三方组件
+#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"name",配置键盘名称
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
-
-//%$#@exclude       ****编译排除文件列表
-//%$#@end exclude   ****组件描述结束
-
 //@#$%component end configure
 
-int djy_pwm_init(uint8_t channel, uint32_t frequency, float duty_cycle)
+
+u32 keyboard_scan(void);
+//----初始化键盘模块-----------------------------------------------------------
+//功能: 初始化一个由windows的键盘和按钮模拟的键盘，该键盘供8个键。
+//参数: 无
+//返回: 无
+//-----------------------------------------------------------------------------
+bool_t ModuleInstall_Keyboard(const char *dev_name)
 {
-    uint32_t ret;
-    pwm_param_t param;
+    static struct KeyBoardPrivate key_brd;
 
-    /*init pwm*/
-    param.channel         = (uint8_t)channel;
-    param.cfg.bits.en     = PWM_DISABLE;
-    param.cfg.bits.int_en = PWM_INT_DIS;
-    param.cfg.bits.mode   = PMODE_PWM;
-    param.cfg.bits.clk    = PWM_CLK_26M;
-    param.p_Int_Handler   = 0;
-    param.duty_cycle      = duty_cycle;
-    param.end_value       = frequency;  // ?????
+    bk_gpio_config_input_pup(GPIO2);
+    bk_gpio_config_input_pup(GPIO3);
+    bk_gpio_config_input_pup(GPIO4);
+    bk_gpio_config_input_pup(GPIO6);
 
-    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
-    if (DRV_SUCCESS == ret)
-    {
-        return 0;
-    }
 
-    return -1;
+    key_brd.read_keyboard = keyboard_scan;
+    Keyboard_InstallDevice(dev_name,&key_brd);
+    key_brd.vtime_limit = 0;
+    key_brd.vtime_count = 100;
+    key_brd.key_bak = 0;
+    key_brd.key_now = 0;
+    return true;
 }
 
-int djy_pwm_start(uint8_t channel)
+
+//----键盘硬件扫描------------------------------------------------------------
+//功能: 读取键盘按键状态，每个按键用8bit表示，32位返回值可以存放4个按键。扫描到
+//      的第一个按键放在最低8位，第四个按键放在最高8位。扫描到4个按键后，不再继
+//      续，若同时按下超过4个按键，只记录4个。
+//注：
+//KEY_0---上拉------H3
+//KEY_1---上拉------H2
+//KEY_2---上拉-----C13
+//KEY_UP--下拉-----A0
+//返回:  参见 struct KeyBoardPrivate中注释
+//----------------------------------------------------------------------------
+u32 keyboard_scan(void)
 {
-    uint32_t ret;
-    uint32_t param;
+    u32 readed;
+    uint8_t i = 0;
+    readed = 0;
 
-    param = channel;
-    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_ENABLE, &param);
-
-    if (DRV_SUCCESS == ret)
+    if (gpio_input(GPIO2))
     {
-        return 0;
+        readed |= (u32)(1<<(i<<3));
+        i++;
     }
 
-    return -1;
-}
-
-int djy_pwm_stop(uint8_t channel)
-{
-    uint32_t ret;
-    uint32_t param;
-
-    param = channel;
-    ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UINT_DISABLE, &param);
-
-    if (DRV_SUCCESS == ret)
+    if (gpio_input(GPIO3))
     {
-        return 0;
+        readed |= (u32)(2<<(i<<3));
+        i++;
     }
 
-    return -1;
-}
+    if (gpio_input(GPIO4))
+    {
+        readed |= (u32)(3<<(i<<3));
+        i++;
+    }
 
-void ModuleInstall_PWM(void)
-{
-
+    if (gpio_input(GPIO6))
+    {
+        readed |= (u32)(4<<(i<<3));
+        i++;
+    }
+    return(readed);
 }

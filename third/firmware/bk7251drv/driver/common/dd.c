@@ -101,7 +101,7 @@ static DD_INIT_S dd_init_tbl[] =
 //
 //    {FFT_DEV_NAME,          fft_init,                   fft_exit},
 //    {I2S_DEV_NAME,          i2s_init,                   i2s_exit},
-//    {SARADC_DEV_NAME,       saradc_init,                saradc_exit},
+    {SARADC_DEV_NAME,       saradc_init,                saradc_exit},
 //    {IRDA_DEV_NAME,         irda_init,                  irda_exit},
 
 #if CFG_MAC_PHY_BAPASS
