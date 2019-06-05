@@ -291,7 +291,7 @@ static int __initSocket(void)
         goto SOCKET_EXIT_FAILED;
     }
     int opt = 1;
-    if(0 != setsockopt(result,SOL_SOCKET,SO_NOBLOCK,&opt, sizeof(opt)))
+    if(0 != setsockopt(result,SOL_SOCKET,SO_NONBLOCK,&opt, sizeof(opt)))
     {
         closesocket(result);
         goto SOCKET_EXIT_FAILED;

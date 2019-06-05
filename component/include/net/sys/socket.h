@@ -254,10 +254,10 @@ enum _EN_SOL_SOCKET_OPTNAME
     SO_SNDLOWAT,       //发送缓冲区下限　　　　　　　　　　　　　int
     SO_RCVTIMEO,       //接收超时　　　　　　　　　　　　　　　　struct timeval
     SO_SNDTIMEO,       //发送超时　　　　　　　　　　　　　　　　struct timeval
-    SO_REUSEADDR,     //允许重用本地地址和端口　　　　　　　　　  int
+    SO_REUSEADDR,      //允许重用本地地址和端口　　　　　　　　　  int
     SO_TYPE,           // 获得套接字类型　　　　　　　　　　　　  int
     SO_BSDCOMPAT,      //与BSD系统兼容　　　　　　　　　　　　　 int
-    SO_NOBLOCK,        //DJY 非阻塞                                                    int
+    SO_NONBLOCK,       //DJY 非阻塞                                                    int
 };
 //IPPROTO_IP
 enum _EN_IPPROTO_IP_OPTNAME

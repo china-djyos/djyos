@@ -72,7 +72,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"lock","heap","devfile"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"lock","heap","device file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -2037,7 +2037,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
                 }
             }
             break;
-        case SO_RCVTIMEO:
+        case SO_RCVTIMEO:       // *optval ==0等效于非阻塞模式接收
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
                 ccb = (struct ClienCB *)sock->TplCB;
@@ -2057,7 +2057,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
                 }
             }
             break;
-        case SO_SNDTIMEO:
+        case SO_SNDTIMEO:       // *optval ==0等效于非阻塞模式发送
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
                 ccb = (struct ClienCB *)sock->TplCB;
@@ -2077,7 +2077,8 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_BSDCOMPAT:
             result = 0;
             break;
-        case SO_NOBLOCK:
+        case SO_NONBLOCK:
+            //*optval == 0表示设为阻塞模式，!=0表示设为非阻塞模式
             if(*(s32 *)optval)
             {
                 sock->sockstat &= (~CN_SOCKET_PROBLOCK);

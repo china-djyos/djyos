@@ -318,6 +318,7 @@ int hapd_intf_add_vif(struct prism2_hostapd_param *param, int len)
     if(ret || (cfm->status != CO_OK))
     {
         SAAP_PRT("MM_ADD_IF_REQ failed!\r\n");
+        os_free(cfm);
         return -1;
     }
     SAAP_PRT("hapd_intf_add_vif,type:%d, s:%d, id:%d\r\n",
