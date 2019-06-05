@@ -88,7 +88,7 @@
                                     //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium                  //初始化时机，可选值：early，medium，later。
                                     //表示初始化时间，分别是早期、中期、后期
-//dependence:"component tcpip","component lock","component int"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"tcpip","lock","int"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                     //如果依赖多个组件，则依次列出
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
                                     //如果与多个组件互斥，则依次列出
