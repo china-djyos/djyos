@@ -14317,7 +14317,7 @@ cleanup:
  */
 static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
                               const mbedtls_ecp_group *grp,
-                              const int pf, 
+                              const int pf,
                               const mbedtls_ecp_point *G,
                               const mbedtls_mpi *x,
                               const mbedtls_ecp_point *X,
@@ -24936,18 +24936,18 @@ int mbedtls_fcntl(int fd,int cmd,...)
     u32 opcode;
     u32 optvalue;
     int result = 0;
-	if(cmd == F_SETFL)
-	{
-	    va_start (args, cmd);
+    if(cmd == F_SETFL)
+    {
+        va_start (args, cmd);
         opcode = va_arg(args, u32);
-	    va_end (args);
-	    if(opcode&O_NONBLOCK)
-	    {
-	    	optvalue = 1;
-	    	result = setsockopt(fd,SOL_SOCKET,SO_NOBLOCK,&optvalue,sizeof(optvalue));
-	    }
-	}
-	return result;
+        va_end (args);
+        if(opcode&O_NONBLOCK)
+        {
+            optvalue = 1;
+            result = setsockopt(fd,SOL_SOCKET,SO_NONBLOCK,&optvalue,sizeof(optvalue));
+        }
+    }
+    return result;
 }
 #endif
 
@@ -36651,7 +36651,7 @@ static void ssl_cli_write_supported_point_formats_ext( mbedtls_ssl_context *ssl,
 
     *olen = 6;
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || 
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -37526,7 +37526,7 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
         {
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
-#endif            
+#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             ssl->handshake->ecjpake_ctx.point_format = p[0];
 #endif
@@ -37541,7 +37541,7 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "no point format in common" ) );
     return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || 
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)

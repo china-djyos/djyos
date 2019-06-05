@@ -1087,7 +1087,7 @@ static int __sol_socket(struct tagSocket *sock,int optname,const void *optval, i
             break;
         case SO_BSDCOMPAT:
             break;
-        case SO_NOBLOCK:
+        case SO_NONBLOCK:
             if(*(int *)optval)
             {
                 sock->sockstat &=(~CN_SOCKET_PROBLOCK);

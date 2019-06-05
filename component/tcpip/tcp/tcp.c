@@ -2037,7 +2037,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
                 }
             }
             break;
-        case SO_RCVTIMEO:
+        case SO_RCVTIMEO:       // *optval ==0等效于非阻塞模式接收
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
                 ccb = (struct ClienCB *)sock->TplCB;
@@ -2057,7 +2057,7 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
                 }
             }
             break;
-        case SO_SNDTIMEO:
+        case SO_SNDTIMEO:       // *optval ==0等效于非阻塞模式发送
             if(CN_SOCKET_CLIENT&sock->sockstat)
             {
                 ccb = (struct ClienCB *)sock->TplCB;
@@ -2077,7 +2077,8 @@ static s32 __setsockopt_sol(struct tagSocket *sock,s32 optname,const void *optva
         case SO_BSDCOMPAT:
             result = 0;
             break;
-        case SO_NOBLOCK:
+        case SO_NONBLOCK:
+            //*optval == 0表示设为阻塞模式，!=0表示设为非阻塞模式
             if(*(s32 *)optval)
             {
                 sock->sockstat &= (~CN_SOCKET_PROBLOCK);

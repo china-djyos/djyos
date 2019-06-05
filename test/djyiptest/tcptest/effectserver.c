@@ -163,7 +163,7 @@ ptu32_t tcptstserver(void)
     //测试MULTIIO，不断的监视服务器端
     //设置为非阻塞
 //  sndopt = 1;
-//  if(0 == setsockopt(sockfd,SOL_SOCKET ,SO_NOBLOCK,&sndopt,4))
+//  if(0 == setsockopt(sockfd,SOL_SOCKET ,SO_NONBLOCK,&sndopt,4))
 //  {
 //      printf("Server:Set server noblock success!\n\r");
 //  }
@@ -299,7 +299,7 @@ ptu32_t tcptstserver(void)
             }
             //设置为非阻塞
             sndopt = 1;
-            if(0 == setsockopt(clientfd,SOL_SOCKET ,SO_NOBLOCK,&sndopt,4))
+            if(0 == setsockopt(clientfd,SOL_SOCKET ,SO_NONBLOCK,&sndopt,4))
             {
                 printf("Client:Set noblock success!\n\r");
             }

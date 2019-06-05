@@ -31,9 +31,9 @@ int socketFindSid(int fid)
     int     i;
     int ret = -1;
 
-    for (i = socketMax; i >= 0; i--) 
+    for (i = socketMax; i >= 0; i--)
     {
-        if (socketList && socketList[i]) 
+        if (socketList && socketList[i])
         {
             if(socketList[i]->sock == fid)
             {
@@ -821,7 +821,7 @@ PUBLIC int socketSetBlock(int sid, int on)
         setsockopt((SOCKET)sp->sock, SOL_SOCKET, SO_BLOCKING, &on, sizeof(on));
 #elif __djyos__
         ulong flag = !on;
-        setsockopt(sp->sock,SOL_SOCKET,SO_NOBLOCK,&flag,sizeof(flag));
+        setsockopt(sp->sock,SOL_SOCKET,SO_NONBLOCK,&flag,sizeof(flag));
 #else
         fcntl(sp->sock, F_SETFL, fcntl(sp->sock, F_GETFL) & ~O_NONBLOCK);
 #endif
@@ -841,7 +841,7 @@ PUBLIC int socketSetBlock(int sid, int on)
         setsockopt((SOCKET)sp->sock, SOL_SOCKET, SO_BLOCKING, &on, sizeof(on));
 #elif __djyos__
         ulong flag = !on;
-        setsockopt(sp->sock,SOL_SOCKET,SO_NOBLOCK,&flag,sizeof(flag));
+        setsockopt(sp->sock,SOL_SOCKET,SO_NONBLOCK,&flag,sizeof(flag));
 #else
         fcntl(sp->sock, F_SETFL, fcntl(sp->sock, F_GETFL) | O_NONBLOCK);
 #endif

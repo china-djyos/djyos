@@ -383,7 +383,7 @@ static int __sockfdinit(void)
         goto ERR_SOCKET;
     }
     int opt = 1;
-    if(0 != setsockopt(ret,SOL_SOCKET,SO_NOBLOCK,&opt, sizeof(opt)))
+    if(0 != setsockopt(ret,SOL_SOCKET,SO_NONBLOCK,&opt, sizeof(opt)))
     {
         closesocket(ret);
         goto ERR_SOCKET;
