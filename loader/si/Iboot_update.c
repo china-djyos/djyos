@@ -75,7 +75,7 @@
 #include <device/flash/flash.h>
 #include "dbug.h"
 #include "project_config.h"
-#if !defined (CFG_RUNMODE_BAREAPP)
+#if (CFG_RUNMODE_BAREAPP == 0)
 
 static struct SemaphoreLCB *ptUpdateIbootSemp;
 // ============================================================================
@@ -283,7 +283,7 @@ ADD_TO_ROUTINE_SHELL(runapp,runapp,"直接运行APP(仅在采取内存标示确定加载项目时有
 //ADD_TO_ROUTINE_SHELL(updateapp,updateapp,"update app lication");
 ADD_TO_ROUTINE_SHELL(updateiboot,updateiboot,"Update Iboot.");
 
-#endif
+#endif      //for (CFG_RUNMODE_BAREAPP == 0)
 
 
 

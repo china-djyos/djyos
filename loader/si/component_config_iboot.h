@@ -11,7 +11,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"loader"//加载器
+//component name:"loader"       //加载器
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -33,6 +33,8 @@
 #ifndef CFG_IBOOT_VERSION
 #warning stdio模块未配置，使用默认配置
 //%$#@num,0,100,
+//%$#@enum,true,false,
+#define CFG_UPDATEIBOOT_EN      false       //"是否支持在线更新Iboot"，
 //%$#@enum,EN_FORM_FILE,EN_DIRECT_RUN,
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL,

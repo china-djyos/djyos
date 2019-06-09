@@ -63,7 +63,7 @@
 #include "hard-exp.h"
 #include "lowpower.h"
 #include "djyos.h"
-#include "core_cmFunc.h"
+//#include "core_cmFunc.h"
 #include "project_config.h"
 
 extern   uint32_t   msp_top[ ];

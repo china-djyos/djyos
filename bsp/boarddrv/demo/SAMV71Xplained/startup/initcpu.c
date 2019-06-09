@@ -61,7 +61,7 @@
 #include "hard-exp.h"
 #include "arch_feature.h"
 #include <samv71.h>
-#include "core_cmFunc.h"
+//#include "core_cmFunc.h"
 #include "iap.h"
 #include "cpu_peri.h"
 #include "arm32_feature.h"

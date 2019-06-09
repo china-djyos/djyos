@@ -34,8 +34,10 @@ void Sys_ModuleInit(void)
 	extern s32 ModuleInstall_dev(void);
 	ModuleInstall_dev();    // 安装设备文件系统；
 
+	#if !defined (CFG_RUNMODE_BAREAPP)
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
+	#endif
 
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );

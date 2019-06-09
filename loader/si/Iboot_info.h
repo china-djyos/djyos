@@ -83,7 +83,7 @@ bool_t Set_RunIbootUpdateIboot();
 bool_t Set_RunIbootUpdateApp();
 bool_t Set_RunAppFlag();
 bool_t Set_RunIbootFlag();
-bool_t clear_resentflag();
+bool_t clear_resetflag();
 bool_t Update_ToRun();
 bool_t Si_IbootAppInfoInit();
 bool_t XIP_IsRamIbootFlag();

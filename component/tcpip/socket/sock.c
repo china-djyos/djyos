@@ -52,7 +52,6 @@
 #include "../component_config_tcpip.h"
 #include  <fcntl.h>
 #include  "../common/tpl.h"
-#include "sockfile.h"
 #include "dbug.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -643,7 +642,7 @@ bool_t closesocket(s32 sockfd)
 // 输入参数：  sockfd,目的套接字
 //        level,设置的层次，支持SOL_SOCKET、IPPROTO_TCP、IPPROTO_IP和IPPROTO_IPV6
 //        optname,需设置选项
-//        optval,缓冲区
+//        optval,选项参数缓冲区
 //        optlen,缓冲区长度
 // 输出参数：
 // 返回值  ：0 成功 -1失败

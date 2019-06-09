@@ -56,7 +56,7 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "shell.h"
-#if !defined (CFG_RUNMODE_BAREAPP)
+#if (CFG_RUNMODE_BAREAPP == 0)
 extern void AppStart(void);
 extern void Init_Cpu(void);
 extern void reboot();
@@ -1143,7 +1143,7 @@ bool_t Update_ToRun()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t clear_resentflag()
+bool_t clear_resetflag()
 {
     Iboot_App_Info.runflag.soft_reset_flag = 0;
     Iboot_App_Info.runflag.instructions_reset = 0;//指令引起的复位
@@ -1301,4 +1301,4 @@ ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
 ADD_TO_ROUTINE_SHELL(iapmode,iapmode,NULL);
 
-#endif
+#endif      //for (CFG_RUNMODE_BAREAPP == 0)
