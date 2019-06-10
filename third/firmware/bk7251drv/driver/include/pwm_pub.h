@@ -83,8 +83,8 @@ typedef struct
         } bits;
     } cfg;
 
-    UINT16 end_value;
-    UINT16 duty_cycle;
+    UINT32 end_value;
+    UINT32 duty_cycle;
     PFUNC p_Int_Handler;
 } pwm_param_t;
 

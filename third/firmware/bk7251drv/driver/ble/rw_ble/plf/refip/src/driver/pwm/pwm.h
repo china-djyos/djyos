@@ -104,8 +104,8 @@ typedef struct
 	*/
     unsigned char     mode;
     unsigned char     pre_divid;	// PWM pre-divide clk
-    unsigned short    end_value;    // PWM counter end value
-    unsigned short    duty_cycle;   // PWM counter duty cycle, 
+    unsigned int    end_value;    // PWM counter end value
+    unsigned int    duty_cycle;   // PWM counter duty cycle,
                                     // this value must smaller or equal to end value
     void (*p_Int_Handler)(unsigned char ucChannel);     // PWM channel Interrupt Handler
 } PWM_DRV_DESC;
