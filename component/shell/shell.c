@@ -107,10 +107,10 @@
 //%$#@end describe  ****组件描述结束
 //%$#@configue      ****参数配置开始
 #if ( CFG_MODULE_ENABLE_SHELL == false )
-#warning  " shell  组件参数未配置使用默认配置"
+#warning  " shell  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_SHELL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,100,
+//%$#@num,0,0x10000,
 #define CFG_SHELL_STACK            0x1000      //"执行shell命令的栈尺寸"
 //%$#@enum,true,false,
 #define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令"

@@ -48,6 +48,7 @@
 //-----------------------------------------------------------------------------
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <objhandle.h>
 #include <netdb.h>
 #include "dbug.h"
 
@@ -64,8 +65,8 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"udp"         //tcp协议
-//parent:"tcpip"     //填写该组件的父组件名字，none表示没有父组件
+//component name:"udp"          //udp协议
+//parent:"tcpip"                //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -154,8 +155,6 @@ typedef struct
     struct tagSocket            *array[0];
 }tagUdpHashTab;
 static tagUdpHashTab   *pUdpHashTab = NULL;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // FUNCTION：this function is used to initialize the udpv4 hash tab
 // PARA  IN：len ,this parameter limites the hashtab lenth
@@ -422,6 +421,9 @@ static  tagUdpCB * __UdpCbMalloc(void )
     }
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // FUNCTION：this function is used to generate an socket
 // PARA  IN：family:such as AF_INET AF_INET6  AF_LOCAL
@@ -635,6 +637,7 @@ static int __msgsnd(struct tagSocket *sock, const void *msg, int len, int flags,
     }
     return result;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // FUNCTION:use this function for the connect,
@@ -739,6 +742,9 @@ static int __cpyfromrbuf(struct tagSocket *sock, void *buf, int len,\
     PkgTryFreePart(pkg);
     return cpylen;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 函数功能：  __udprecv
 //        读取接字数据
@@ -1081,7 +1087,7 @@ static int __sol_socket(struct tagSocket *sock,int optname,const void *optval, i
             break;
         case SO_BSDCOMPAT:
             break;
-        case SO_NOBLOCK:
+        case SO_NONBLOCK:
             if(*(int *)optval)
             {
                 sock->sockstat &=(~CN_SOCKET_PROBLOCK);
@@ -1343,6 +1349,7 @@ static void __udpdebug(struct tagSocket *sock,char *filter)
         debug_printf("udp","%s:no control block yet\n\r",prefix);
     }
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // FUNCTION：this function is used to initialize the udp protocol
@@ -1390,4 +1397,3 @@ bool_t UdpInit(void)
     return result;
 }
 
-#pragma GCC diagnostic pop

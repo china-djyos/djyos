@@ -103,7 +103,7 @@ __attribute__((weak))  bool_t IAP_IsForceIboot()
 //----------------------------------------------------------------------------
 void IAP_SelectLoadProgam(void)
 {
-#if defined (CFG_RUNMODE_BAREAPP)
+#if (CFG_RUNMODE_BAREAPP == 1)
         Load_Preload();   //运行Iboot
 #else
 
@@ -126,7 +126,7 @@ void IAP_SelectLoadProgam(void)
     #error "error ： 没有定义APP加载方式！！";
 #endif
         Run_Iboot(CHACK_ERROR);
-#endif
+#endif      //for (CFG_RUNMODE_BAREAPP == 1)
 
 }
 

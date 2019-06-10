@@ -60,8 +60,10 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART5);
 	#endif
 
+	#if !defined (CFG_RUNMODE_BAREAPP)
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
+	#endif
 
 	//-------------------medium-------------------------//
 	#if(CFG_OS_TINY == flase)

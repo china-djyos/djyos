@@ -193,6 +193,9 @@ struct hostapd_config * hostapd_config_read(const char *fname)
 	struct hostapd_bss_config *bss;
 	
 	conf = hostapd_cfg_defaults();
+	if (NULL == conf) {
+	    return NULL;
+	}
 
 	conf->last_bss = conf->bss[0];
 	bss = conf->last_bss;
@@ -476,13 +479,15 @@ int hostapd_main_exit(void)
 			   WPA_DRIVER_FLAGS_AP_TEARDOWN_SUPPORT);
 		
 		hostapd_interface_deinit_free(g_hapd_interfaces.iface[i]);
+		g_hapd_interfaces.iface[i] = NULL;
 	}
 	os_free(g_hapd_interfaces.iface);
+    g_hapd_interfaces.iface = NULL;
+    g_hapd_interfaces.count = 0;
 
 	eloop_cancel_timeout(hostapd_periodic, &g_hapd_interfaces, NULL);
 	hostapd_global_deinit(NULL);
 
-    g_hapd_interfaces.count = 0;
 
 	return 0;
 }
@@ -624,8 +629,11 @@ int hostapd_main_entry(int argc, char *argv[])
 			   WPA_DRIVER_FLAGS_AP_TEARDOWN_SUPPORT);
 		
 		hostapd_interface_deinit_free(g_hapd_interfaces.iface[i]);
+		g_hapd_interfaces.iface[i] = NULL;
 	}
 	os_free(g_hapd_interfaces.iface);
+	g_hapd_interfaces.iface = NULL;
+	g_hapd_interfaces.count = 0;
 
 	eloop_cancel_timeout(hostapd_periodic, &g_hapd_interfaces, NULL);
 	hostapd_global_deinit(pid_file);
@@ -662,7 +670,7 @@ static void hostapd_thread_start(void)
     	ret = rtos_init_queue(&wpah_queue, 
     							"wpah_queue",
     							sizeof(WPAH_MSG_ST),
-    							10);
+    							40);
         ASSERT(kNoErr == ret);    
     }
 

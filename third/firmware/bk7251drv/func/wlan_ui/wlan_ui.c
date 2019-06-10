@@ -402,6 +402,7 @@ OSStatus bk_wlan_start_ap(network_InitTypeDef_st *inNetworkInitParaAP)
     if(ret)
     {
         os_printf("bk_wlan_start softap failed!!\r\n");
+        bk_wlan_stop(SOFT_AP);
         return -1;
     }
 
@@ -816,7 +817,8 @@ OSStatus bk_wlan_start_ap_adv(network_InitTypeDef_ap_st *inNetworkInitParaAP)
     ret = hostapd_main_entry(2, 0);
     if(ret)
     {
-        os_printf("bk_wlan_start softap failed!!\r\n");
+        os_printf("bk_wlan_start_ap_adv failed!!\r\n");
+        bk_wlan_stop(SOFT_AP);
         return -1;
     }
 

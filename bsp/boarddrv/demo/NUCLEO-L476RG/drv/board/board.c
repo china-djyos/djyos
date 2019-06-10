@@ -37,7 +37,7 @@
                                             //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                           //初始化时机，可选值：early，medium，later。
                                             //表示初始化时间，分别是早期、中期、后期
-//dependence:"component kernel","third lib stm32L4","cpu driver gpio","cpu driver lowpower"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"kernel","stm32L4","cpu peri gpio","cpu onchip peripheral lowpower control"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                             //选中该组件时，被依赖组件将强制选中，
                                             //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                     //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -58,7 +58,6 @@
 //@#$%component end configure
 
 
-extern u32 SystemCoreClock;
 void Board_GpioInit(void)
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
@@ -74,8 +73,6 @@ void Board_GpioInit(void)
     GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
     GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_3;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    SystemCoreClock = CN_CFG_MCLK;
 }
 
 #if (CN_USE_TICKLESS_MODE)

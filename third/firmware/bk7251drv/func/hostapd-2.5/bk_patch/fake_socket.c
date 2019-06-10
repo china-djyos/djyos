@@ -185,8 +185,12 @@ SOCKET fsocket_init(int af, int type, int protocol)
 	GLOBAL_INT_DECLARATION();
 
 	sk = af + type + protocol;
-	ASSERT(0 ==  sk_get_sk_element(sk));
-	
+	//ASSERT(0 ==  sk_get_sk_element(sk));
+	if (0 != sk_get_sk_element(sk))
+	{
+	    os_printf("%s sk=%d exist\n", __FUNCTION__, sk);
+	    return sk;
+	}
 	sk_ptr = (BK_SOCKET *)os_malloc(sizeof(BK_SOCKET));
 	if(0 == sk_ptr)
 	{

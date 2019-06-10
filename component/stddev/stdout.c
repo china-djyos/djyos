@@ -644,7 +644,8 @@ u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 Pos
 {
     if(Position >= CN_BUF_LENGTH)
     {
-        PutStrDirect((const char *)TempBuf,CN_BUF_LENGTH);
+        if (PutStrDirect != NULL)
+            PutStrDirect((const char *)TempBuf,CN_BUF_LENGTH);
         Position = 1;
         *TempBuf = ch;
     }
@@ -942,13 +943,15 @@ repeat:
                 *(char*)(Target + position) = '\0';
                 break;
             case PRINT_TO_DIRECT:
-                PutStrDirect((const char *)TempBuf,position);
+                if (PutStrDirect != NULL)
+                    PutStrDirect((const char *)TempBuf,position);
                 break;
             case PRINT_TO_FILE_OR_DEV:
                 fwrite((const void *)TempBuf,position,1,(FILE*)Target);
                 break;
             default:
-                PutStrDirect((const char *)TempBuf,position);
+                if (PutStrDirect != NULL)
+                    PutStrDirect((const char *)TempBuf,position);
                 break;
         }
     }

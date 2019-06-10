@@ -1,5 +1,5 @@
 {
-	"ide_version":"DIDE-V1.6_20190304",
+	"ide_version":"DIDE-V1.6_20190316",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
@@ -14,7 +14,27 @@
 		"board":"STM32H743I-EVAL"
 	},
 	"components_checked":{
-		"app":[],
+		"app":["black box",
+		"board config",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"STM32 commond code",
+		"stm32h7",
+		"uart device file"],
 		"iboot":["black box",
 		"board config",
 		"cpu peri gpio",
@@ -33,6 +53,7 @@
 		"ring buffer and line buffer",
 		"shell",
 		"stdio",
+		"STM32 commond code",
 		"stm32h7",
 		"uart device file"]
 	}

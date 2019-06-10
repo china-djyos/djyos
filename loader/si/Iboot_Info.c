@@ -56,7 +56,7 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "shell.h"
-#if !defined (CFG_RUNMODE_BAREAPP)
+#if (CFG_RUNMODE_BAREAPP == 0)
 extern void AppStart(void);
 extern void Init_Cpu(void);
 extern void reboot();
@@ -186,9 +186,9 @@ struct IbootAppInfo Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 //功能：获取硬件上的标志
 //参数：POWER_ON_FLAG：获取上电复位硬件标志，0=无此硬件；1=有此硬件，
 //                  但无标志；2=有标志，阅后即焚；3=有，非阅后即焚
-//     HEAD_RESET_FLAG： 获取硬件复位标志没有/不支持返回0
-//     HEAD_WDT_RESE： 获取硬件看门狗复位标志没有/不支持返回0
-//     LOW_POWER_WAKEUP： 低功耗唤醒没有/不支持返回0
+//     HEAD_RESET_FLAG： 获取硬件复位标志，没有/不支持返回0
+//     HEAD_WDT_RESE： 获取硬件看门狗复位标志，没有/不支持返回0
+//     LOW_POWER_WAKEUP： 低功耗唤醒，没有/不支持返回0
 //==============================================================================
 __attribute__((weak))  u8  Get_Hardflag(enum hardflag flag)
 {
@@ -983,24 +983,24 @@ static bool_t Fill_boardname(char* boardname,char* buf,u8 maxlen)
 ==============================================================================*/
 bool_t Si_IbootAppInfoInit()
 {
-    bool_t initflag = false;
+    bool_t PowerUp = false;
     u8 hardflag = Get_Hardflag(POWER_ON_FLAG);
     switch (hardflag)
     {
         case 0: //0=无此硬件
             if((Iboot_App_Info.PreviouReset != PREVIOURESET_APP) && \
                (Iboot_App_Info.PreviouReset != PREVIOURESET_IBOOT))
-                initflag = true;
+                PowerUp = true;
             break;
         case 1: break; //1=有此硬件，但无标志；
-        case 2: break; //2=有标志，阅后即焚；
-        case 3: break; //3=有，非阅后即焚
+        case 2: PowerUp = true;break; //2=有标志，阅后即焚；
+        case 3: PowerUp = true;break; //3=有，非阅后即焚
         default: //错误
-            initflag = true;
+            PowerUp = true;
             break;
     }
 
-    if(initflag)//上电复位初始化
+    if(PowerUp == true)                        //上电复位初始化
     {
         Iboot_App_Info.PreviouReset = 0;//复位前运行模式
         Iboot_App_Info.runflag.heard_set_run_iboot   = 0;//硬件设置运行iboot
@@ -1143,7 +1143,7 @@ bool_t Update_ToRun()
 //参数：null
 //返回值：true
 //==============================================================================
-bool_t clear_resentflag()
+bool_t clear_resetflag()
 {
     Iboot_App_Info.runflag.soft_reset_flag = 0;
     Iboot_App_Info.runflag.instructions_reset = 0;//指令引起的复位
@@ -1301,4 +1301,4 @@ ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
 ADD_TO_ROUTINE_SHELL(iapmode,iapmode,NULL);
 
-#endif
+#endif      //for (CFG_RUNMODE_BAREAPP == 0)

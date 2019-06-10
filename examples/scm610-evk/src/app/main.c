@@ -55,9 +55,31 @@
 
 ptu32_t djy_main(void)
 {
+
+    extern void test_Led(void);
+    test_Led();
+
+    extern  void test_Timer(void);
+    test_Timer();
+
+    extern void test_Rtc(void);
+    test_Rtc();
+
+//    extern void test_Wdt(void);
+//    test_Wdt();
+
+    extern bool_t test_Uart(void);
+    test_Uart();
+
+    extern void test_At24c08(void);
+    test_At24c08();
+
+    extern void TCB_TestTask(void);
+    TCB_TestTask();
+
 	while(1)
 	{
-		printf("app hello world!\r\n");
+//		printf("hello world!\r\n");
 		Djy_EventDelay(1000*1000);
 	}
 	return 0;

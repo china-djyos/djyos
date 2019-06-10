@@ -31,13 +31,13 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip MAC"//CPU的mac驱动
-//parent:"System:tcpip"       //填写该组件的父组件名字，none表示没有父组件
+//parent:"tcpip"     //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"component int","component tcpip","component heap","component lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"int","tcpip","heap","lock"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -794,7 +794,7 @@ static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
 // =============================================================================
 static ptu32_t __MacRcvTask(void)
 {
-    struct NetPkg *pkg;
+    struct NetPkg *pkg = NULL;
     struct NetDev *handle;
     u8        *rawbuf;
     u16        len;
@@ -1068,18 +1068,23 @@ bool_t macsnddis(char *param)
 // 参数：para
 // 返回值  ：true成功  false失败。
 // =============================================================================
-bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
-                          bool_t loop,u32 loopcycle,\
-                          bool_t (*rcvHook)(u8 *buf, u16 len))
+bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle)
 {
     tagMacDriver   *pDrive = &gMacDriver;
     struct NetDevPara   devpara;
     u8 intLine;
 
+    u8 macAddress[6] =
+    {
+         CFG_GMAC_MAC_ADDR0,CFG_GMAC_MAC_ADDR1,
+         CFG_GMAC_MAC_ADDR2,CFG_GMAC_MAC_ADDR3,
+         CFG_GMAC_MAC_ADDR4,CFG_GMAC_MAC_ADDR5
+    };
+
     memset((void *)pDrive,0,sizeof(tagMacDriver));
     //copy the config para to the pDrive
     memcpy(pDrive->devname,devname,CN_DEVNAME_LEN-1);
-    memcpy((void *)pDrive->macaddr,macaddress,CN_MACADDR_LEN);
+    memcpy((void *)pDrive->macaddr,macAddress,CN_MACADDR_LEN);
 
     if(loop)
     {
@@ -1087,7 +1092,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     }
 
     pDrive->loopcycle = loopcycle;
-    pDrive->fnrcvhook = rcvHook;
+    pDrive->fnrcvhook = NULL;
     //set the work mode and speed
     pDrive->macstat.pm = 0;         //primmiscuous mode:= 1,no MAC addr filte
     pDrive->macstat.duplex = 1;    //duplex full
@@ -1120,7 +1125,7 @@ bool_t ModuleInstall_ETH(const char *devname, u8 *macaddress,\
     devpara.ifsend = MacSnd;
     devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = CN_IPDEV_ALL;
-    memcpy(devpara.mac,macaddress,6);
+    memcpy(devpara.mac,macAddress,6);
     devpara.name = (char *)pDrive->devname;
     devpara.mtu = 1520;                     //Max Transmit Unit
     devpara.Private = (ptu32_t)pDrive;

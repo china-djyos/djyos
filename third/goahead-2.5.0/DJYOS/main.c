@@ -218,17 +218,7 @@ ptu32_t GoAheadMain(void)
 
 bool_t GoAheadStart(char *para)
 {
-    pthread_create(NULL,NULL,GoAheadMain,NULL);
-    return true;
+    return pthread_create(NULL,NULL,GoAheadMain,NULL);
 }
 
 #include "shell.h"
-
-//static struct ShellCmdRsc gGoAheadCmdRsc[CN_GOAHEAD_CMDNUM];
-int Goahead_main(int argc, char *argv[])
-{
-
-    return 1;
-}
-
-

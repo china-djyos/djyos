@@ -60,7 +60,7 @@
 #include "cpu_peri.h"
 #include "hard-exp.h"
 #include "arch_feature.h"
-#include "core_cmFunc.h"
+//#include "core_cmFunc.h"
 #include "cpu-optional.h"
 #include "core_cm7.h"
 #include "arm32_feature.h"

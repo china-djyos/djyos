@@ -62,7 +62,7 @@
 #include "hard-exp.h"
 #include "arch_feature.h"
 #include "stm32f4xx.h"
-#include "core_cmFunc.h"
+//#include "core_cmFunc.h"
 #include "arm32_feature.h"
 #include "project_config.h"
 

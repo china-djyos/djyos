@@ -95,6 +95,18 @@
 // 参数：无
 // 返回：无
 // =============================================================================
+u8 power_flag;
+
+void Set_Power(u8 statue)
+{
+    power_flag = statue;
+}
+
+u8 Get_Power(void)
+{
+    return power_flag;
+}
+
 void Board_Init(void)
 {
     extern void os_clk_init(void);
@@ -103,6 +115,9 @@ void Board_Init(void)
     g_dd_init();
     intc_init();
     os_clk_init();
+
+    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);   //上电检测管脚
+    Set_Power(djy_gpio_read(GPIO10));
 }
 
 void Init_Cpu(void);

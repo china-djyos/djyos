@@ -1,3 +1,7 @@
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
+
+
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
@@ -6,7 +10,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"webserver goahead401"//webserver
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"System:tcpip"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:third               //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -23,19 +27,25 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-//%$#@target = cmdline   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+//%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 //#ifndef CFG_STATIC_IP   //****检查参数是否已经配置好
 //#warning    “网络配置”组件参数未配置，使用默认值
+
+#define CFG_MODULE_ENABLE_GOAHEAD true
+
 //%$#@num,0,100
 //%$#@enum,true,false
-//%$#@string,1,16
+#define ME_COM_SSL true        //use https
+//%$#@string,1,100
+#define HOME_DIRECTORY_NAME "/efs"                     //root directory
+
 //%$#@select
 //%$#@free
 //#endif
 //%$#@end configue  ****参数配置结束
 //%$#@exclude
-///test;/src/utils;/src/goahead-openssl;
+///installs;/paks;/test;/src/utils;/src/goahead-openssl;
 //%$#@end exclude
 //%$#@include path
-///src;/build/djyos-default/inc;/src/osdep;
+///src;/build/djyos-default/inc;/src/osdep;/src/mbedtls;
 //%$#@end include path

@@ -269,7 +269,10 @@ static void audio_adc_config_dma(void)
     memset(&cfg, 0, sizeof(GDMACFG_TPYES_ST));
     
     cfg.dstdat_width = 32;
-    cfg.srcdat_width = 32;
+    if(aud_adc.channels == 1)
+        cfg.srcdat_width = 16;
+    else
+        cfg.srcdat_width = 32;
     cfg.dstptr_incr = 1;
     cfg.srcptr_incr = 0;
     
@@ -505,6 +508,27 @@ UINT32 audio_adc_read(char *user_buf, UINT32 count, UINT32 op_flag)
     }
 
     return fill_size;
+}
+
+
+UINT32 audio_adc_clear(void)
+{
+    int fill_size;
+
+    if(aud_adc.status != AUD_ADC_STA_PLAYING)
+        return 0;
+    if(aud_adc.mode & AUD_ADC_MODE_DMA_BIT)
+    {
+        #if CFG_GENERAL_DMA
+        RB_DMA_WR_PTR rb;
+        rb = &aud_adc.u.rb_dma_wr;
+        fill_size = rb_get_fill_size_dma_write(rb);
+        if(fill_size > 0)
+            rb_clear_dma_write(rb);
+        #endif
+    }
+
+    return 1;
 }
 
  UINT32 audio_adc_get_fill_buf_size(void)

@@ -254,10 +254,10 @@ enum _EN_SOL_SOCKET_OPTNAME
     SO_SNDLOWAT,       //发送缓冲区下限　　　　　　　　　　　　　int
     SO_RCVTIMEO,       //接收超时　　　　　　　　　　　　　　　　struct timeval
     SO_SNDTIMEO,       //发送超时　　　　　　　　　　　　　　　　struct timeval
-    SO_REUSEADDR,     //允许重用本地地址和端口　　　　　　　　　  int
+    SO_REUSEADDR,      //允许重用本地地址和端口　　　　　　　　　  int
     SO_TYPE,           // 获得套接字类型　　　　　　　　　　　　  int
     SO_BSDCOMPAT,      //与BSD系统兼容　　　　　　　　　　　　　 int
-    SO_NOBLOCK,        //DJY 非阻塞                                                    int
+    SO_NONBLOCK,       //DJY 非阻塞                                                    int
 };
 //IPPROTO_IP
 enum _EN_IPPROTO_IP_OPTNAME
@@ -382,7 +382,8 @@ struct tagSocket
     //the following used by the proto
 //  void                           *SockObj;      //used for the socket layqueue
     s32                             sockfd;       //socket对应的文件指针
-    struct tagSocket               *Nextsock;     //nxt node
+    struct tagSocket               *Nextsock;     //用于hash表，client在进入hash表前，
+                                                  //用此链表挂在SCB的clst指针上。
     struct MutexLCB                *SockSync;     //used to protect the socket
     struct TPL_ProtocalOps         *ProtocolOps;  //传输层操作函数集
     void                           *TplCB;        //传输层协议控制块指针，类型由具体传输层解析

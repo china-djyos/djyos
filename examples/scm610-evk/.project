@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <projectDescription>
 	<name>scm610-evk</name>
-	<comment></comment>
+	<comment/>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -28,22 +28,7 @@
 		<link>
 			<name>src/userlib</name>
 			<type>2</type>
-			<locationURI>DJYOS_SRC_LOCATION/userlib</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/SCM6XX_FLASH.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/third/firmware/scm6xx/src/SCM6XX_FLASH.c</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/cpu_peri_emflash.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/bsp/cpudrv/scm6xx/scm610/src/emflash/cpu_peri_emflash.c</locationURI>
-		</link>
-		<link>
-			<name>src/iboot/ymodem.c</name>
-			<type>1</type>
-			<locationURI>DJYOS_SRC_LOCATION/component/ymodem/ymodem.c</locationURI>
+			<location>D:/DIDE/djysrc/userlib</location>
 		</link>
 		<link>
 			<name>src/libos/bsp</name>
