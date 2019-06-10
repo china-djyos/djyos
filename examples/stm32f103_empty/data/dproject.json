@@ -1,5 +1,5 @@
 {
-	"ide_version":"DIDE-V1.6_20190304",
+	"ide_version":"DIDE-V1.6_20190316",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
@@ -14,7 +14,29 @@
 		"board":"stm32f103-empty"
 	},
 	"components_checked":{
-		"app":[],
+		"app":["black box",
+		"board config",
+		"cpu onchip peripheral lowpower control",
+		"cpu peri gpio",
+		"cpu peri uart",
+		"device file system",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"lowpower",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"STM32 commond code",
+		"stm32f1",
+		"uart device file"],
 		"iboot":["black box",
 		"board config",
 		"cpu onchip peripheral lowpower control",
@@ -35,6 +57,7 @@
 		"ring buffer and line buffer",
 		"shell",
 		"stdio",
+		"STM32 commond code",
 		"stm32f1",
 		"uart device file"]
 	}

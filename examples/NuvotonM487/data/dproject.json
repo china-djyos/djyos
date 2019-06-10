@@ -1,5 +1,5 @@
 {
-	"ide_version":"DIDE-V1.6_20190304",
+	"ide_version":"DIDE-V1.6_20190316",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
@@ -14,7 +14,29 @@
 		"board":"NuvotonM487"
 	},
 	"components_checked":{
-		"app":[],
+		"app":["black box",
+		"board config",
+		"cpu onchip dma",
+		"cpu peri uart",
+		"debug information",
+		"device file system",
+		"flash",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"lib C",
+		"loader",
+		"lock",
+		"memory pool",
+		"message queue",
+		"multiplex",
+		"Nuvoton M480",
+		"ring buffer and line buffer",
+		"shell",
+		"stdio",
+		"time",
+		"uart device file"],
 		"iboot":["black box",
 		"board config",
 		"cpu onchip dma",
