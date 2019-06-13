@@ -657,6 +657,13 @@ static int wpa_set_ssids_from_scan_req(struct wpa_supplicant *wpa_s,
 	return 1;
 }
 
+int is_fast_connect()
+{
+    if (g_sta_param_ptr)
+        return g_sta_param_ptr->fast_connect_set;
+    return 0;
+}
+
 static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 {
 	struct wpa_supplicant *wpa_s = eloop_ctx;
