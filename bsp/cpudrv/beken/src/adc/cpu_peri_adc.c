@@ -99,59 +99,83 @@
 
 //@#$%component end configure
 
+DD_HANDLE djy_adc_open(uint8_t channel, saradc_desc_t *adcDesc, uint8_t cntOfDataBuff)
+{
+    uint8_t status;
+    DD_HANDLE retHdl = DD_HANDLE_UNVALID;
+
+    if (channel > 7) // TODO merlin 到底有多少个ADC？ 有12个？不确定，所以现在写死了先  SARADC_ADC_CHNL_MAX)
+    {
+        return 0;
+    }
+
+    if (0 == adcDesc)
+    {
+        return 0;
+    }
+
+    adcDesc->channel = channel;
+    adcDesc->data_buff_size = cntOfDataBuff;
+    adcDesc->mode = (ADC_CONFIG_MODE_CONTINUE << 0) | (ADC_CONFIG_MODE_8CLK_DELAY << 2);
+
+    adcDesc->has_data                = 0;
+    adcDesc->current_read_data_cnt   = 0;
+    adcDesc->current_sample_data_cnt = 0;
+    adcDesc->pre_div = 0x10;
+    adcDesc->samp_rate = 0x20;
+//    memset(adcDesc->pData, 0, cntOfDataBuff*sizeof(*adcDesc->pData));
+
+    retHdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)adcDesc);
+
+    return retHdl;
+}
+
+void djy_adc_fill_buffer(DD_HANDLE handle, saradc_desc_t *adcDescOpened, uint32_t delayUs)
+{
+    s64 startTimeUs = 0;
+    s64 tmpDelayUs = delayUs;
+    uint32_t hasDelayMs = 0;
+    uint32_t cmd;
+    uint8_t run_stop;
+
+    if (0 == adcDescOpened)
+    {
+        return ;
+    }
+
+    adcDescOpened->current_read_data_cnt   = 0;
+    adcDescOpened->current_sample_data_cnt = 0;
+
+    cmd = SARADC_CMD_RUN_OR_STOP_ADC;
+    run_stop = 1;
+    ddev_control(handle, cmd, &run_stop);
+
+//    startTimeUs = DjyGetSysTime();
+//    while ((DjyGetSysTime()-startTimeUs) < tmpDelayUs)
+//    {
+//        if (adcDescOpened->current_sample_data_cnt == adcDescOpened->data_buff_size)
+//        {
+//            ddev_close(handle);
+//            break;
+//        }
+//    }
+}
+
+void djy_adc_close(DD_HANDLE handle)
+{
+    ddev_close(handle);
+}
+
+
+
+
 
 static saradc_desc_t tmp_single_desc;
 static UINT16 tmp_single_buff[10];//ADC_TEMP_BUFFER_SIZE];
 static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
 
-
-void djy_adc_mode(uint32_t channel, uint32_t mode)
-{
-//    switch (mode)
-//    {
-//    case PIN_MODE_INPUT:
-//        bk_gpio_config_input(pin);
-//        break;
-//
-//    case PIN_MODE_INPUT_PULLUP:
-//        bk_gpio_config_input_pup(pin);
-//        break;
-//
-//    case PIN_MODE_INPUT_PULLDOWN:
-//        bk_gpio_config_input_pdwn(pin);
-//        break;
-//
-//    case PIN_MODE_OUTPUT:
-//        bk_gpio_config_output(pin);
-//        break;
-//    }
-}
-
 float djy_adc_read(uint16_t pin)
 {
-//    return saradc_calculate(pin);
-//    UINT32 cmd;
-//    UINT8 mode;
-//
-//    cmd = SARADC_CMD_SET_MODE;
-//    mode = 3;
-//    UINT32 retDdev = ddev_control(tmp_single_hdl, cmd, &mode);
-//
-//    cmd = SARADC_CMD_SET_CHANNEL;
-//    saradc_chan_t chnl;
-//    chnl.enable = 1;
-//    chnl.channel = 1;
-//    retDdev = ddev_control(tmp_single_hdl, cmd, &chnl);
-//
-//    cmd = SARADC_CMD_RUN_OR_STOP_ADC;
-//    UINT8 run_stop = 1;
-//    retDdev = ddev_control(tmp_single_hdl, cmd, &run_stop);
-//
-//
-//    printf("Can't open saradc, have you register this device?\r\n");
-
-
-
     UINT32 status;
     UINT32 cmd;
     UINT8 run_stop;
@@ -194,43 +218,8 @@ float djy_adc_read(uint16_t pin)
 
     printf("voltage is [%f]\r\n", voltage);
 
-
-
     return SARADC_SUCCESS;
-//    extern UINT32 ddev_control(DD_HANDLE handle, UINT32 cmd, VOID *param);
 }
-
-//int djy_adc_attach_irq(GPIO_INDEX pin,uint32_t mode,
-//                            void (*hdr)(void *args), void *args)
-//{
-//    if (pin >= GPIONUM)
-//        return -1;
-//
-//    gpio_dev.irq_desc[pin].handler = hdr;
-//    gpio_dev.irq_desc[pin].param   = args;
-//    if (mode == PIN_IRQ_MODE_RISING)
-//    {
-//        gpio_dev.irq_desc[pin].mode = GMODE_INPUT_PULLDOWN;
-//    }
-//    else if (mode == PIN_IRQ_MODE_FALLING)
-//    {
-//        gpio_dev.irq_desc[pin].mode = GMODE_INPUT_PULLUP;
-//    }
-//    return 0;
-//}
-//
-//
-//int djy_adc_irq_enable( GPIO_INDEX pin, uint32_t enabled)
-//{
-//    if (pin >= GPIONUM)
-//        return -1;
-//
-//    if (enabled)
-//        gpio_int_enable(pin, gpio_dev.irq_desc[pin].mode, gpio_irq_dispatch);
-//    else
-//        gpio_int_disable(pin);
-//    return 0;
-//}
 
 static void temp_single_detect_handler2(void)
 {

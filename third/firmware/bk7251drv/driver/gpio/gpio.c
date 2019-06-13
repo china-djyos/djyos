@@ -441,6 +441,11 @@ void gpio_output(UINT32 id, UINT32 val)
         goto output_exit;
     }
 
+    #if (CFG_SOC_NAME != SOC_BK7231)
+    if(id >= GPIO32)
+        id += 16;
+    #endif // (CFG_SOC_NAME != SOC_BK7231)
+
     gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
     reg_val = REG_READ(gpio_cfg_addr);
 

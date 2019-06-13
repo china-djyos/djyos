@@ -116,8 +116,8 @@ void Board_Init(void)
     intc_init();
     os_clk_init();
 
-    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);   //上电检测管脚
-    Set_Power(djy_gpio_read(GPIO10));
+//    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);   //上电检测管脚
+//    Set_Power(djy_gpio_read(GPIO10));
 }
 
 void Init_Cpu(void);
