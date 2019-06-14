@@ -115,6 +115,11 @@ void DhcpStaStartIp(void)
         printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
     }
 }
+//timeout: microsecond
+int PendDhcpDone(unsigned int timeout)
+{
+    return WaitDhcpDone(CFG_NETCARD_NAME, timeout);
+}
 
 void DhcpStaClearIp(void)
 {
