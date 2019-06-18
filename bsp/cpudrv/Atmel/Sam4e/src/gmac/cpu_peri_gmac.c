@@ -926,7 +926,7 @@ tagNetDev *GMAC_AddNetDev(void)
     tagHostIpv4Addr devaddr;
 
     devpara.ifsend = GMAC_SendPacket;
-    devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
+    devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = 0x00;//0xFF;//所有属性都配置上
     memcpy(devpara.mac, sgNetHardMac,6);
     devpara.name = "SAM4E_MAC";

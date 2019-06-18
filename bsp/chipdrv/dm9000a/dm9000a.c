@@ -645,7 +645,7 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
     devpara.devfunc = 0x00;//COULD DO NO CRC
     memcpy(devpara.mac, dm9000->devmac,CN_MACADDR_LEN);
     devpara.name = dm9000->devname;
-    devpara.mtu = 14;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)dm9000;
     dm9000->handle = NetDevInstall(&devpara);
 

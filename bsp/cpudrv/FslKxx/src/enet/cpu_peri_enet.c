@@ -127,7 +127,6 @@ static tagEnetCfg s_EnetConfig = {"ENET",MAC_RMII,AUTONEG_ON,MII_100BASET,
                                     0,{CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,\
                                     CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5}};
 
-#define CN_PKG_MAX_LEN  1522
 // =============================================================================
 static struct SemaphoreLCB *pEnetRcvSync;
 static struct MutexLCB     *pEnetSndSync;
@@ -944,7 +943,7 @@ static bool_t Enet_AddNetDev(void)
     devpara.devfunc = 0;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, s_EnetConfig.mac,6);
     devpara.name = (char *)(s_EnetConfig.name);
-    devpara.mtu = CN_PKG_MAX_LEN;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (u32)NULL;
     gEnetHandle = NetDevInstall(&devpara);
     if(0 == gEnetHandle)

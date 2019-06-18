@@ -88,7 +88,7 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #ifndef CFG_AT24_ADDRESS   //****检查参数是否已经配置好
 #warning    at24c02组件参数未配置，使用默认值
-//%$#@num,0,0xFFFFFFFF,
+//%$#@num,,
 #define CFG_AT24_TIMEOUT           (-1)   //"超时时间",-1表示无穷
 //%$#@enum,0xA0,0xA2,0xA4,0xA6,0xA8,0xAC,0xAA,0xAE
 #define CFG_AT24_ADDRESS            0xA0                //"设备地址",硬件配置AT24的IIC设备地址

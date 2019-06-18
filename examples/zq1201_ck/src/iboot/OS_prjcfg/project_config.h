@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -44,7 +44,7 @@
 //*******************************  Configure Software Timers  ******************************************//
 #define CFG_TIMERS_LIMIT        5       //可创建的定时器数量（不包含图形界面的定时器）
 #define CFG_TIMER_SOUCE_HARD    true    //选择专用硬件还是tick/tickless做时钟源
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN            32                 //
 #define CFG_UART1_RECVBUF_LEN            32                 //
 #define CFG_UART1_DMABUF_LEN             32                 //

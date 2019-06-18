@@ -529,7 +529,7 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac,macaddress,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.mtu = 1522;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(NULL == pDrive->devhandle)

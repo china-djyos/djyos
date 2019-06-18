@@ -433,6 +433,16 @@ static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
 }
 
 // =============================================================================
+// 功能: 禁止iic中断,接收与发送共用一个中断源。
+// 参数: reg,被操作的寄存器组指针
+// 返回: 无
+// =============================================================================
+static void __IIC_IntDisable(tagI2CReg *reg)
+{
+    reg->CR1 &= ~(I2C_CR1_RXIE| I2C_CR1_TXIE);
+}
+
+// =============================================================================
 // 功能：轮询方式读写IIC设备
 // 参数：reg,寄存器基址
 //       DevAddr,设备地址
@@ -446,6 +456,7 @@ static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
 static bool_t __IIC_WriteReadPoll(tagI2CReg *reg,u8 DevAddr,u32 MemAddr,\
                                 u8 MemAddrLen,u8* Buf, u32 Length,u8 WrRdFlag)
 {
+    __IIC_IntDisable(reg);
     if(WrRdFlag == CN_IIC_WRITE_FLAG)   //写
     {
         if(Length == __IIC_WritePoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))

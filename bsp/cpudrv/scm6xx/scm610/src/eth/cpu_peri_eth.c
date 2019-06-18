@@ -1127,7 +1127,7 @@ bool_t ModuleInstall_ETH(const char *devname, bool_t loop,u32 loopcycle)
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,macAddress,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.mtu = 1520;                     //Max Transmit Unit
+    devpara.mtu = CN_ETH_MTU;                     //Max Transmit Unit
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
 

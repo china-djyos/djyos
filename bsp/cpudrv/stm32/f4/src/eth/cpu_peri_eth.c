@@ -988,7 +988,7 @@ bool_t ModuleInstall_ETH(void)
     devpara.devfunc = CN_IPDEV_ALL;
     memcpy(devpara.mac,gc_NetMac,CN_MACADDR_LEN);
     devpara.name = (char *)pDrive->devname;
-    devpara.mtu = 1522;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(NULL == pDrive->devhandle)
