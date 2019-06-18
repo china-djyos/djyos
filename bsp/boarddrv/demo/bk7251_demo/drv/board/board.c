@@ -116,8 +116,18 @@ void Board_Init(void)
     intc_init();
     os_clk_init();
 
+    djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);  //蓝牙
+
+    djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);   //语音按键
+
     djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);   //上电检测管脚
     Set_Power(djy_gpio_read(GPIO10));
+
+    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);         //喇叭使能
+    djy_gpio_write(GPIO9,1);
+
+    djy_gpio_mode(GPIO12,PIN_MODE_OUTPUT);        //LED
+    djy_gpio_write(GPIO12,0);
 }
 
 void Init_Cpu(void);
