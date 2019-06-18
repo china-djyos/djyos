@@ -112,20 +112,20 @@ static ptu32_t __LoopTask(void)
     }
     return 0;
 }
-
-//implement the device io functions
-//device receive function
-static struct NetPkg * __LoopIn(struct NetDev *iface)
-{
-    struct NetPkg *pkg = NULL;
-    if(mutex_lock(gLoopCB.lock))
-    {
-        pkg = gLoopCB.pkg;
-        gLoopCB.pkg = NULL;
-        mutex_unlock(gLoopCB.lock);
-    }
-    return pkg;
-}
+//
+////implement the device io functions
+////device receive function
+//static struct NetPkg * __LoopIn(struct NetDev *iface)
+//{
+//    struct NetPkg *pkg = NULL;
+//    if(mutex_lock(gLoopCB.lock))
+//    {
+//        pkg = gLoopCB.pkg;
+//        gLoopCB.pkg = NULL;
+//        mutex_unlock(gLoopCB.lock);
+//    }
+//    return pkg;
+//}
 //device send function
 static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
 {
@@ -193,7 +193,7 @@ bool_t LoopInit(void)
     //then we will register a loop device to the stack
     memset((void *)&devpara,0,sizeof(devpara));
     devpara.ifsend = __LoopOut;
-    devpara.ifrecv = __LoopIn;
+//  devpara.ifrecv = __LoopIn;
     devpara.iftype = EN_LINK_RAW;
     devpara.name = CN_LOOP_DEVICE;
     devpara.Private = 0;

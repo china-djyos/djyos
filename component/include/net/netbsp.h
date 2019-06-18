@@ -51,6 +51,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
+
+#define CN_ETH_MTU      1500
 //一个PKGLST在传输的过程中，当某个PKG拥有CN_PKLGLST_END标记或者NULL == partnext，即可认为
 //该PKGLST结束，该特性在发送的时候尤其明显
 #define CN_PKLGLST_END   (1<<0)
@@ -65,7 +67,35 @@ bool_t     PkgTryFreeLst(struct NetPkg  *pkglst);
 bool_t     PkgTryFreeQ(struct NetPkg  *pkglst);
 bool_t     PkgCachedPart(struct NetPkg  *pkg);
 bool_t     PkgCachedLst(struct NetPkg   *pkglst);
-#define    PKG_ISLISTEND(pkg)      (pkg->pkgflag&CN_PKLGLST_END)
+void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf);
+//struct NetPkg *PkgMalloc(u16 bufsize, u8 flags);
+//bool_t PkgTryFreePart(struct NetPkg *pkg);
+struct NetPkg *PkgGetNextUnit(struct NetPkg *NextUnit);
+void PkgSetNextUnit(struct NetPkg *pkg,struct NetPkg *NextUnit);
+u8* PkgGetCurrentBuffer(struct NetPkg *pkg);
+u8* PkgGetBuffer(struct NetPkg *pkg);
+void PkgSetBuffer(struct NetPkg *pkg, u8 *buf);
+u16 PkgGetDataLen(struct NetPkg *pkg);
+void PkgSetDataLen(struct NetPkg *pkg,u16 len);
+u16 PkgGetOffset(struct NetPkg *pkg);
+void PkgSetOffset(struct NetPkg *pkg,u16 offset);
+ptu32_t PkgGetPrivate(struct NetPkg *pkg);
+void PkgSetPrivate(struct NetPkg *pkg,ptu32_t PkgPrivate);
+bool_t PkgIsBufferEnd(struct NetPkg *pkg);
+void PkgMoveOffsetUp(struct NetPkg *pkg, u16 len);
+void PkgMoveOffsetDown(struct NetPkg *pkg, u16 len);
+u16 PkgListDatastatistics(struct NetPkg *pkg);
+u16 PkgFrameDatastatistics(struct NetPkg *pkg);
+u16 PkgListDataCopy(struct NetPkg *pkg,u8 *dst);
+u16 PkgFrameDataCopy(struct NetPkg *pkg,u8 *dst);
+void PkgCopyListToPkg(struct NetPkg *pkg,struct NetPkg *dst);
+void PkgCopyFrameToPkg(struct NetPkg *pkg,struct NetPkg *dst);
+//bool_t PkgTryFreeLst(struct NetPkg  *pkglst);
+//bool_t PkgTryFreeQ(struct NetPkg  *pkglst);
+//bool_t PkgCachedPart(struct NetPkg  *pkg);
+//bool_t PkgCachedLst(struct NetPkg   *pkglst);
+bool_t PkgModuleInit(void);
+//#define    PKG_ISLISTEND(pkg)      (pkg->pkgflag&CN_PKLGLST_END)
 
 //used to defines the net device task
 #define CN_IPDEV_TCPOCHKSUM  (1<<0)
@@ -113,14 +143,14 @@ enum NetDevCmd
     EN_NETDEV_CMDLAST,          //which means the max command
 };
 
-typedef enum
+enum EthFramType
 {
-    EN_NETDEV_FRAME_BROAD = 0,                      //broad flow control type
-    EN_NETDEV_FRAME_POINT,                          //multi flow control type
-    EN_NETDEV_FRAME_MULTI,                          //point flow control type
-    EN_NETDEV_FRAME_ALL,                            //frame flow control type
+    EN_NETDEV_FRAME_BROAD = 0,  //广播包流控
+    EN_NETDEV_FRAME_POINT,      //多播包流控
+    EN_NETDEV_FRAME_MULTI,      //单播包流控
+    EN_NETDEV_FRAME_ALL,        //包含所有数据包流控
     EN_NETDEV_FRAME_LAST,
-}enNetDevFramType;
+};
 
 enum enLinkType
 {
@@ -165,16 +195,17 @@ typedef bool_t (*fnNetDevEventHook)(struct NetDev* iface,enum NetDevEvent event)
 //pkg maybe an lst or not,you could use the PkgIsEnd to check
 //pkglen is fram len
 typedef bool_t (*fnIfSend)(struct NetDev* iface,struct NetPkg *pkglst,u32 netdevtask);
-typedef struct NetPkg* (*fnIfRecv)(struct NetDev* iface);
+//typedef struct NetPkg* (*fnIfRecv)(struct NetDev* iface);
 
 //used to ctrl the dev or get the dev stat
+//控制码请参考 EN_NETDEV_SETNOPKG 等枚举常量
 typedef bool_t (*fnIfCtrl)(struct NetDev* iface,enum NetDevCmd cmd,ptu32_t para);
 struct NetDevPara
 {
-    const char    *name;    //dev name
-    u8             iftype;   //dev type，详见：enum _EN_LINK_INTERFACE_TYPE
+    const char    *name;     //dev name
+    enum enLinkType iftype;  //dev type
     fnIfSend       ifsend;   //dev snd function
-    fnIfRecv       ifrecv;   //dev receive function，暂不用，考虑多路复用
+//  fnIfRecv       ifrecv;   //dev receive function，暂不用，考虑多路复用
     fnIfCtrl       ifctrl;   //dev ctrl or stat get fucntion
     u32            devfunc;  //dev hard function,such as tcp chksum
     u16            mtu;      //dev mtu
@@ -197,10 +228,10 @@ bool_t  NetDevRegisterEventHook(struct NetDev *handle, fnNetDevEventHook hook);
 //event  :the message want to send to the device
 bool_t  NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event);
 bool_t  NetDevCtrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para);
-bool_t NetDevFlowSet(struct NetDev* handle,enNetDevFramType type,\
-                     u32 llimit,u32 ulimit,u32 period,int enable);
-enNetDevFramType NetDevFrameType(u8 *buf,u16 len);
-bool_t NetDevFlowCtrl(struct NetDev* handle,enNetDevFramType type);
+bool_t NetDevFlowSet(struct NetDev* handle,enum EthFramType type,\
+                     u32 llimit,u32 ulimit,u32 period,s32 enable);
+enum EthFramType NetDevFrameType(u8 *buf,u16 len);
+bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type);
 
 void   *NetDevPrivate(struct NetDev *iface);
 

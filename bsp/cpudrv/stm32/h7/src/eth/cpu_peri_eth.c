@@ -674,8 +674,6 @@ static ptu32_t __MacRcvTask(void)
 
 
 //  u32 value;
-    u32 resettimes= 0;
-    time_t printtime;
 
     Djy_GetEventPara((ptu32_t *)&handle,NULL);
     //没发现H7有统计CRC错误的功能
@@ -773,6 +771,9 @@ static bool_t __CreateRcvTask(struct NetDev * handle)
     }
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //show the gmac status
 //bool_t macdebuginfo(char *param)
@@ -960,6 +961,8 @@ bool_t macfiltdis(char *param)
     return true;
 }
 
+#pragma GCC diagnostic pop
+
 void djybsp_eth_get_mac_config(ETH_MACConfigTypeDef *macconf)
 {
     HAL_ETH_GetMACConfig(&sEthHandle, macconf);
@@ -1124,7 +1127,7 @@ bool_t ModuleInstall_ETH(void)
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac,gc_NetMac,CN_MACADDR_LEN);
     devpara.name = (char *)pDrive->devname;
-    devpara.mtu = 1528;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(NULL == pDrive->devhandle)

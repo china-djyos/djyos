@@ -813,14 +813,14 @@ tagAx88796Pri *Ax88796Install(tagAx88796Para *para)
 
     //ÏòÐ­ÒéÕ»×¢²áÍø¿¨°É
     devpara.ifsend = Ax88796Snd;
-    devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
+    devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = CN_IPDEV_NONE;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, ax88796->mac,CN_MACADDR_LEN);
     devpara.name = ax88796->name;
     devpara.Private = (ptu32_t)ax88796;
     devpara.linklen = 14;
     devpara.pkglen = 1500;
-    ax88796->devhandle = (void *) NetDev_InstallDev(&devpara);
+    ax88796->devhandle = (void *) NetDevInstall(&devpara);
     if(NULL == ax88796->devhandle)
     {
         goto DEV_FAILED;

@@ -351,7 +351,7 @@ typedef struct
 {
     u32                     magic;                 //网卡标志，避免被修改
     //系统申请量
-    void                   *devhandle;             //注册的网卡句柄
+    struct NetDev          *devhandle;             //注册的网卡句柄
     struct MutexLCB        *devsync;               //用于同步网卡
     struct SemaphoreLCB    *rcvsync;               //接收信号
     u16                     taskRcvID;             //接收任务ID

@@ -1443,7 +1443,7 @@ bool_t ModuleInstall_GMAC(const char *devname, u8 *mac,\
     devpara.devfunc = 0;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, pDrive->macaddr,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.mtu = 1522;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(0 == pDrive->devhandle)

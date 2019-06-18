@@ -602,7 +602,7 @@ bool_t DM9000_AddNetDev(void)
     tagHostIpv4Addr devaddr;
 
     devpara.ifsend = DM9000_Send;
-    devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
+    devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = 0x00;//0xFF;//所有属性都配置上
     memcpy(devpara.mac, sgNetHardMac,6);
     devpara.name = "DM9000NetDriver";
