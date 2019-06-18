@@ -74,7 +74,7 @@
 #define    CFG_MY_SUBMASK                  "255.255.255.0"   //
 #define    CFG_MY_GATWAY                   "192.168.0.1"     //
 #define    CFG_MY_DNS                      "192.168.0.1"     //
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART1_SENDBUF_LEN           64                //
 #define    CFG_UART1_RECVBUF_LEN           64                //
 #define    CFG_UART1_DMABUF_LEN            64                //

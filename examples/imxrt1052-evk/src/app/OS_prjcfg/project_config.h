@@ -112,7 +112,7 @@
 //*******************************  Configure cpu onchip lcd  ******************************************//
 #define    CFG_LCD_DISPLAY_NAME            "LCD_DISPLAY"     //
 #define    CFG_LCD_HEAP_NAME               "sys"             //
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART1_SENDBUF_LEN           64                //
 #define    CFG_UART1_RECVBUF_LEN           64                //
 #define    CFG_UART2_SENDBUF_LEN           64                //

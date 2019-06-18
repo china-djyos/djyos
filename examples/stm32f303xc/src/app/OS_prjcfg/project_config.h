@@ -50,7 +50,7 @@
 #define CFG_IIC_BUF_LEN           32       //≈‰÷√IICª∫≥Â«¯¥Û–°
 #define CFG_IIC1_ENABLE           false     //
 #define CFG_IIC2_ENABLE           false     //
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN            32                 //
 #define CFG_UART1_RECVBUF_LEN            32                 //
 #define CFG_UART1_DMABUF_LEN             32                 //

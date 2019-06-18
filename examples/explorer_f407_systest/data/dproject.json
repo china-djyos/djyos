@@ -21,9 +21,9 @@
 		"cpu onchip dma",
 		"cpu onchip iic",
 		"cpu onchip MAC",
-		"cpu peri gpio",
-		"cpu peri timer",
-		"cpu peri uart",
+		"cpu onchip gpio",
+		"cpu onchip timer",
+		"cpu onchip uart",
 		"debug information",
 		"device file system",
 		"dhcp",
@@ -58,7 +58,8 @@
 		"uart device file",
 		"udp",
 		"xip iboot file system",
-		"yaf2 file system"],
+		"yaf2 file system",
+		"STM32 commond code"],
 		"iboot":[]
 	}
 }

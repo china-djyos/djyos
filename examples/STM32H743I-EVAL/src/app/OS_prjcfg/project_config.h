@@ -46,7 +46,7 @@
 #define    CFG_ADD_GLOBAL_FUN              false             //
 #define    CFG_SHOW_ADD_SHEELL             true              //
 #define  CFG_MODULE_ENABLE_SHELL         true
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART_SENDBUF_LEN            32                //
 #define    CFG_UART_RECVBUF_LEN            32                //
 #define    CFG_UART1_ENABLE                true              //
