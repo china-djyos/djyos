@@ -28,17 +28,8 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-	extern void ModuleInstall_BlackBox(void);
-	ModuleInstall_BlackBox( );
-
 	extern s32 ModuleInstall_dev(void);
 	ModuleInstall_dev();    // 安装设备文件系统；
-
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
-	extern bool_t ModuleInstall_Multiplex(void);
-	ModuleInstall_Multiplex ();
 
 	extern ptu32_t ModuleInstall_UART(u32 serial_no);
 	#if CFG_UART1_ENABLE ==1
@@ -57,8 +48,19 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART5);
 	#endif
 
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
+
+	#if !defined (CFG_RUNMODE_BAREAPP)
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
+	#endif
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
+	extern bool_t ModuleInstall_Multiplex(void);
+	ModuleInstall_Multiplex ();
 
 	//-------------------medium-------------------------//
 	#if(CFG_OS_TINY == flase)

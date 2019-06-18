@@ -31,23 +31,11 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-	extern void ModuleInstall_BlackBox(void);
-	ModuleInstall_BlackBox( );
-
-	extern s32 ModuleInstall_dev(void);
-	ModuleInstall_dev();    // 安装设备文件系统；
-
 	extern bool_t ModuleInstall_DjyBus(void);
 	ModuleInstall_DjyBus ( );
 
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
-
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
-	extern bool_t ModuleInstall_Multiplex(void);
-	ModuleInstall_Multiplex ();
+	extern bool_t ModuleInstall_IICBus(void);
+	ModuleInstall_IICBus ( );
 
 	extern bool_t IIC_Init(u8 iic_port);
 	#if (CFG_IIC1_ENABLE == 1)
@@ -62,6 +50,9 @@ void Sys_ModuleInit(void)
 	#if (CFG_IIC4_ENABLE == 1)
 	IIC_Init(CN_IIC4);
 	#endif
+
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
 
 	extern ptu32_t ModuleInstall_UART(u8 port);
 	#if (CFG_UART1_ENABLE == 1)
@@ -89,26 +80,44 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART8);
 	#endif
 
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
+	#if !defined (CFG_RUNMODE_BAREAPP)
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+	#endif
+
+	extern bool_t ModuleInstall_Multiplex(void);
+	ModuleInstall_Multiplex ();
+
 	//-------------------medium-------------------------//
+	#if(CFG_OS_TINY == flase)
+	extern s32 kernel_command(void);
+	kernel_command();
+	#endif
+
+	extern bool_t ModuleInstall_GK(void);
+	ModuleInstall_GK();
+
+	extern struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
+	const char* HeapName);
+	ModuleInstall_LCD(CFG_LCD_DISPLAY_NAME,CFG_LCD_HEAP_NAME);
+
 	extern bool_t ModuleInstall_Font(void);
 	ModuleInstall_Font ( );
 
 	extern void ModuleInstall_FontGB2312(void);
 	ModuleInstall_FontGB2312();
 
-	extern bool_t ModuleInstall_GK(void);
-	ModuleInstall_GK();
-
 	extern bool_t ModuleInstall_HmiIn(void);
 	ModuleInstall_HmiIn();      //初始化人机界面输入模块
 
 	extern bool_t ModuleInstall_Touch(void);
 	ModuleInstall_Touch();    //初始化人机界面输入模块
-
-	#if(CFG_OS_TINY == flase)
-	extern s32 kernel_command(void);
-	kernel_command();
-	#endif
 
 	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
 	ModuleInstall_Charset(0);
@@ -118,10 +127,6 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_CharsetGb2312(void);
 	ModuleInstall_CharsetGb2312 ( );
 
-	extern struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
-	const char* HeapName);
-	ModuleInstall_LCD(CFG_LCD_DISPLAY_NAME,CFG_LCD_HEAP_NAME);
-
 	//-------------------later-------------------------//
 	extern void ModuleInstall_Gdd_AND_Desktop(void);
 	ModuleInstall_Gdd_AND_Desktop();
@@ -130,17 +135,6 @@ void Sys_ModuleInit(void)
 	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
 	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
 	#endif
-
-	extern bool_t ModuleInstall_FT5406(struct GkWinObj *desktop);
-	struct GkWinObj *ptouchdesktop;
-	ptouchdesktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-	if(false == ModuleInstall_FT5406(ptouchdesktop))
-	{
-	printf("FT5406 Install Failed!\r\n");
-	while(1);
-	}
-	extern bool_t GDD_AddInputDev(const char *InputDevName);
-	GDD_AddInputDev(CFG_FT5406_TOUCH_NAME);
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");

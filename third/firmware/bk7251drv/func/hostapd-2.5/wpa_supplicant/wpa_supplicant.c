@@ -3372,12 +3372,20 @@ int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s)
 		}
 		
 #ifndef ANDROID
-		if (!wpa_s->p2p_mgmt &&
-		    wpa_supplicant_delayed_sched_scan(wpa_s,
-						      interface_count % 3,
-						      100000))
-			wpa_supplicant_req_scan(wpa_s, interface_count % 3,
-						100000);
+        if (!wpa_s->p2p_mgmt &&
+            wpa_supplicant_delayed_sched_scan(wpa_s,
+                              interface_count % 3,
+                              300000)) {
+            extern int is_fast_connect();
+            if (is_fast_connect()) {
+                wpa_supplicant_req_scan(wpa_s, interface_count % 3,
+                            0);
+            }
+            else {
+                wpa_supplicant_req_scan(wpa_s, interface_count % 3,
+                            300000);
+            }
+        }
 #endif /* ANDROID */
 
 		interface_count++;

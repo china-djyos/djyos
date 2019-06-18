@@ -28,23 +28,11 @@ void Sys_ModuleInit(void)
 	ModuleInstall_Shell(0);
 
 	//-------------------early-------------------------//
-	extern void ModuleInstall_BlackBox(void);
-	ModuleInstall_BlackBox( );
-
-	extern s32 ModuleInstall_dev(void);
-	ModuleInstall_dev();    // 安装设备文件系统；
-
 	extern bool_t ModuleInstall_DjyBus(void);
 	ModuleInstall_DjyBus ( );
 
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
-
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
-	extern bool_t ModuleInstall_Multiplex(void);
-	ModuleInstall_Multiplex ();
 
 	#if CFG_I2C1_ENABLE==1
 	extern bool_t IIC1_Init(void);
@@ -54,6 +42,9 @@ void Sys_ModuleInit(void)
 	extern bool_t IIC2_Init(void);
 	IIC2_Init();
 	#endif
+
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
 
 	extern ptu32_t ModuleInstall_UART(u32 serial_no);
 	#if CFG_UART1_ENABLE ==1
@@ -72,15 +63,28 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART5);
 	#endif
 
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
+	extern void ModuleInstall_BlackBox(void);
+	ModuleInstall_BlackBox( );
+
+	#if !defined (CFG_RUNMODE_BAREAPP)
 	extern ptu32_t ModuleInstall_IAP(void);
 	ModuleInstall_IAP( );
+	#endif
+
+	extern bool_t ModuleInstall_Multiplex(void);
+	ModuleInstall_Multiplex ();
 
 	//-------------------medium-------------------------//
-	extern bool_t ModuleInstall_Font(void);
-	ModuleInstall_Font ( );
+	#if(CFG_OS_TINY == flase)
+	extern s32 kernel_command(void);
+	kernel_command();
+	#endif
 
-	extern void ModuleInstall_FontAscii(void);
-	ModuleInstall_FontAscii();
+	extern void ModuleInstall_LowPower (void);
+	ModuleInstall_LowPower();
 
 	extern bool_t ModuleInstall_GK(void);
 	ModuleInstall_GK();
@@ -91,13 +95,14 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_Touch(void);
 	ModuleInstall_Touch();    //初始化人机界面输入模块
 
-	#if(CFG_OS_TINY == flase)
-	extern s32 kernel_command(void);
-	kernel_command();
-	#endif
+	extern ptu32_t ModuleInstall_ili9325(void);
+	ModuleInstall_ili9325();
 
-	extern void ModuleInstall_LowPower (void);
-	ModuleInstall_LowPower();
+	extern bool_t ModuleInstall_Font(void);
+	ModuleInstall_Font ( );
+
+	extern void ModuleInstall_FontAscii(void);
+	ModuleInstall_FontAscii();
 
 	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
 	ModuleInstall_Charset(0);
@@ -107,17 +112,9 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_CharsetAscii(void);
 	ModuleInstall_CharsetAscii ( );
 
-	extern ptu32_t ModuleInstall_ili9325(void);
-	ModuleInstall_ili9325();
-
 	//-------------------later-------------------------//
 	extern void ModuleInstall_Gdd_AND_Desktop(void);
 	ModuleInstall_Gdd_AND_Desktop();
-
-	#if(CFG_STDIO_STDIOFILE == true)
-	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
-	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
-	#endif
 
 	struct GkWinObj;
 	extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop);
@@ -134,6 +131,11 @@ void Sys_ModuleInit(void)
 	}
 	extern bool_t GDD_AddInputDev(const char *InputDevName);
 	GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
+
+	#if(CFG_STDIO_STDIOFILE == true)
+	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
+	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
+	#endif
 
 	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
 	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");

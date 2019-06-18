@@ -31,20 +31,11 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
-	extern s32 ModuleInstall_dev(void);
-	ModuleInstall_dev();    // 安装设备文件系统；
-
 	extern bool_t ModuleInstall_DjyBus(void);
 	ModuleInstall_DjyBus ( );
 
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
-
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
-
-	extern bool_t ModuleInstall_Multiplex(void);
-	ModuleInstall_Multiplex ();
 
 	bool_t IIC_Init(u8 iic_port);
 	#if CFG_IIC1_ENABLE== true
@@ -59,6 +50,20 @@ void Sys_ModuleInit(void)
 	#if CFG_IIC4_ENABLE== true
 	ModuleInstall_IIC(CN_IIC4);
 	#endif
+
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
+
+	#if !defined (CFG_RUNMODE_BAREAPP)
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+	#endif
+
+	extern bool_t ModuleInstall_MsgQ(void);
+	ModuleInstall_MsgQ ( );
+
+	extern bool_t ModuleInstall_Multiplex(void);
+	ModuleInstall_Multiplex ();
 
 	extern ptu32_t ModuleInstall_UART(u32 serial_no,u32 SendBufLen, u32 RecvBufLen,u8 mode);
 	#if CFG_UART1_ENABLE ==1
@@ -76,9 +81,6 @@ void Sys_ModuleInit(void)
 	#if CFG_UART5_ENABLE ==1
 	ModuleInstall_UART(CN_UART5,CFG_UART5_SENDBUF_LEN,CFG_UART5_RECVBUF_LEN,CFG_UART5_MODE);
 	#endif
-
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
 
 	//-------------------medium-------------------------//
 	#if(CFG_OS_TINY == flase)
