@@ -3892,6 +3892,10 @@
 							<F N="/djyos-prj/draft-prj/bk7251-RemoteControl/src/app/initPrj.c"/>
 							<F N="/djyos-prj/draft-prj/bk7251-RemoteControl/src/app/main.c"/>
 						</Folder>
+						<Folder Name="lds">
+							<F N="/djyos-prj/draft-prj/bk7251-RemoteControl/src/lds/app.lds"/>
+							<F N="/djyos-prj/draft-prj/bk7251-RemoteControl/src/lds/memory.lds"/>
+						</Folder>
 					</Folder>
 				</Folder>
 			</Folder>
@@ -9235,7 +9239,5 @@
 				<F N="userlib/platform/component_config_platform.h"/>
 			</Folder>
 		</Folder>
-		<F N="/djyos-prj/draft-prj/bk7251-RemoteControl/src/lds/app.lds"/>
-		<F N="/djyos-prj/draft-prj/bk7251-RemoteControl/src/lds/memory.lds"/>
 	</Files>
 </Project>

@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -134,7 +134,7 @@
 #define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 #define CFG_EFLASH_XIPFSMOUNT_NAME   "xip-app"    //需安装的文件系统的mount的名字，NULL表示该flash不挂载文件系统
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN            32                 //
 #define CFG_UART1_RECVBUF_LEN            32                 //
 #define CFG_UART1_DMABUF_LEN             32                 //

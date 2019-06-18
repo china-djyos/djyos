@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -41,7 +41,7 @@
 #define     CFG_ADD_GLOBAL_FUN               false               // "添加全局函数到shell"
 #define     CFG_SHOW_ADD_SHEELL              true                // "显示在编译窗口添加的shell命令"
 #define  CFG_MODULE_ENABLE_SHELL         true
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART_SENDBUF_LEN     (256)          //
 #define CFG_UART_RECVBUF_LEN     (256)          //
 #define CFG_USART1_ENABLE         true           //

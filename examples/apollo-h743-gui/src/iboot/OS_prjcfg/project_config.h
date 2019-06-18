@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -144,10 +144,10 @@
 #define CFG_LCD_YSIZE                   480 //
 #define CFG_DISPLAY_NAME        "LCD_F7"    //
 #define CFG_LCD_HEAP_NAME       "extram"    //
-//*******************************  Configure cpu peri random  ******************************************//
+//*******************************  Configure cpu onchip random  ******************************************//
 #define CFG_RNG_NUM_MAX      65535         //
 #define CFG_RNG_NUM_MIN      1024          //
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART_SENDBUF_LEN            32                  //
 #define CFG_UART_RECVBUF_LEN            32                  //
 #define CFG_UART1_ENABLE                true                //
