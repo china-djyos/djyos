@@ -18,7 +18,7 @@
 		"iboot":["black box",
 		"board config",
 		"cpu onchip peripheral lowpower control",
-		"cpu peri uart",
+		"cpu onchip uart",
 		"debug information",
 		"device file system",
 		"flash",
@@ -37,6 +37,7 @@
 		"shell",
 		"stdio",
 		"stm32L4",
-		"uart device file"]
+		"uart device file",
+		"STM32 commond code"]
 	}
 }

@@ -26,9 +26,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_FILE_SYSTEM == false )
+//#warning  " file_system  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_CLIB_BUFFERSIZE        //****检查参数是否已经配置好
-#warning    文件系统参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,16384
 #define CFG_CLIB_BUFFERSIZE            512      //"C库文件用户态缓冲区尺寸"
 //%$#@enum,true,false

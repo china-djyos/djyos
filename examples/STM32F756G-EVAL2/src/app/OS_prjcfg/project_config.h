@@ -52,7 +52,7 @@
 #define CFG_IIC2_ENABLE           false     //
 #define CFG_IIC3_ENABLE           false     //
 #define CFG_IIC4_ENABLE           false     //
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN       64      //
 #define CFG_UART1_RECVBUF_LEN       64      //
 #define CFG_UART1_DMABUF_LEN        64      //

@@ -86,9 +86,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_BOARD_CONFIGURE_OF_MCB1700 == false )
+//#warning  " board_configure_of_mcb1700  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_LCD_HEAP_NAME   //****检查参数是否已经配置好
-#warning    mcb1700lcd组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_BOARD_CONFIGURE_OF_MCB1700    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   240             //"LCD宽度",
 #define CFG_LCD_YSIZE   128             //"LCD高度",

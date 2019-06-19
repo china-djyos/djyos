@@ -95,9 +95,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CANBUS_CHIP_MCP2515 == false )
+//#warning  " CANbus_chip_mcp2515  组件参数未配置，使用默认配置"
 //%$#@target = header           //配置后生成头文件还是命令行变量
-#ifndef CFG_MCP2515_SAM_MODE   //****检查参数是否已经配置好
-#warning    MCP2515组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CANBUS_CHIP_MCP2515    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 #define CFG_MCP2515_SPEED                 (10*1000*1000)     //"SPI总线速度",配置MCP2515的SPI总线速度
 //%$#@enum,true,false,

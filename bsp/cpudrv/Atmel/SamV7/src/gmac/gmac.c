@@ -92,9 +92,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_GMAC == false )
+//#warning  " cpu_onchip_GMAC  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_GMAC_LOOP_MODE   //****检查参数是否已经配置好
-#warning    cpu_peri_gmac组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_GMAC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,5000,
 #define CFG_GMAC_LOOP_CYCLE        1000         //"loop的时间",单位为us
 #define CFG_GMAC_MAC_ADDR0         00           //"MAC ADDR0",MAC地址0

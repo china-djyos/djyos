@@ -82,9 +82,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_FLASH == false )
+//#warning  " cpu_onchip_flash  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_FLASH_FLAG          //****检查参数是否已经配置好
-#warning    cpu_peri_eefc组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_FLASH    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 #define CFG_FLASH_FLAG                   (2)        //"标记号"，1表示擦除芯片全部，2表示缓存
 #define CFG_FLASH_RES                    (0)        //"保留页数或块数",

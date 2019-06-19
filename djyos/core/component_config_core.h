@@ -29,9 +29,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_KERNEL == false )
+//#warning  " kernel  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_OS_TINY   //****检查参数是否已经配置好
-#warning    kernel组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_KERNEL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,8192,
 #define CFG_INIT_STACK_SIZE     4096    //"初始化栈空间",定义初始化过程使用的栈空间，一般按默认值就可以了
 #define CFG_EVENT_LIMIT         15      //"事件数量限值",事件数量
