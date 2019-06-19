@@ -241,7 +241,7 @@ static void gpio_enable_second_function(UINT32 func_mode)
 
     case GFUNC_MODE_UART1:
         start_index = 10;
-        end_index = 13;
+        end_index = 11;
         pmode = PERIAL_MODE_1;
         config_pull_up = 1;
         break;
