@@ -55,6 +55,11 @@ void bk_secrity_exit(void);
 #include "security_pub.h"
 #endif
 
+__attribute__((weak))  void djy_audio_init(void)
+{
+}
+
+
 static DD_INIT_S dd_init_tbl[] =
 {
     /* name*/              /* init function*/          /* exit function*/
@@ -70,14 +75,19 @@ static DD_INIT_S dd_init_tbl[] =
     {UART1_DEV_NAME,        uart1_init,                 uart1_exit},
 #endif
 
-    //为了让开机尽快进入录音状态，将该函数放到main函数中跑，函数占用时间50ms
-//    {FLASH_DEV_NAME,        flash_init,                 flash_exit},
-
-
+    
 #if CFG_GENERAL_DMA
     {GDMA_DEV_NAME,         gdma_init,                  gdma_exit},
 #endif
-    //=============================== 50 ms====================================
+
+#if CFG_USE_AUDIO
+    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},
+#endif
+
+    {"djy audio init",        djy_audio_init,             NULLPTR},
+
+    {FLASH_DEV_NAME,        flash_init,                 flash_exit},
+     
 #if CFG_USE_SPIDMA
     {SPIDMA_DEV_NAME,       spidma_init,                spidma_uninit},
 #endif
@@ -88,9 +98,7 @@ static DD_INIT_S dd_init_tbl[] =
     {I2C2_DEV_NAME,         i2c2_init,                  i2c2_exit},
 #endif
 
-#if CFG_USE_AUDIO
-    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},
-#endif
+
 
 #if CFG_SDIO || CFG_SDIO_TRANS
     {SDIO_DEV_NAME,         sdio_init,                  sdio_exit},
@@ -120,7 +128,7 @@ static DD_INIT_S dd_init_tbl[] =
 
 #if CFG_USE_STA_PS
     //依赖flash_init，也放到main函数中跑
-//    {"power_save",       sctrl_sta_ps_init,                NULLPTR},
+    {"power_save",       sctrl_sta_ps_init,                NULLPTR},
 #endif
 
 #ifdef CFG_SUPPORT_BLE
