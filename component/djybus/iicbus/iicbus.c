@@ -694,6 +694,7 @@ s32 IIC_BusCtrl(struct IIC_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
         result = 1;
         break;
     case CN_IIC_SET_POLL:
+        result = IIC->pBusCtrl(IIC->SpecificFlag,cmd,data1,data2);
         IIC->Flag |=  CN_IIC_FLAG_POLL;
         break;
     case CN_IIC_SET_INT:

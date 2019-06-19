@@ -3,5 +3,21 @@
    <cpuName>bk7251</cpuName>
    <core id="1">
       <resetAddr>0x0</resetAddr>
+      <coreClk>180.0</coreClk>
+      <memory>
+         <type>FLASH</type>
+         <startAddr>0</startAddr>
+         <size>0x3b6000k</size>
+      </memory>
+      <memory>
+         <type>RAM</type>
+         <startAddr>0x400000</startAddr>
+         <size>0x40000k</size>
+      </memory>
+      <memory>
+         <type>RAM</type>
+         <startAddr>0x900000</startAddr>
+         <size>0x40000k</size>
+      </memory>
    </core>
 </cpu>
