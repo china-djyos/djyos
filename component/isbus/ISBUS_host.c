@@ -47,7 +47,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_ISBUS_HOST == false )
+//#warning  " isbus_host  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_ISBUS_HOST    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,

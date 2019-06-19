@@ -90,9 +90,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_SPI == false )
+//#warning  " cpu_onchip_spi  组件参数未配置，使用默认配置"
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_SPI_BUF_LEN
-#warning    cpu_peri_spi 组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_SPI    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,32,512,
 #define CFG_SPI_BUF_LEN               128       //"SPI缓冲区大小",
 //%$#@enum,true,false,

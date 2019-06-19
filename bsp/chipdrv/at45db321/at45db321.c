@@ -98,9 +98,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_NOR_FLASH_AT45DB321 == false )
+//#warning  " nor_flash_at45db321  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_AT45_BUSNAME           //****检查参数是否已经配置好
-#warning   at45db321组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_NOR_FLASH_AT45DB321    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,512,528,
 #define CFG_AT45_PAGE_SIZE                  512       //配置AT45的页大小，默认为512
 //%$#@string,1,10,

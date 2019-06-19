@@ -97,9 +97,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_TOUCHSCREEN_FT5X26 == false )
+//#warning  " touchscreen_FT5X26  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CT_MAX_TOUCH        //****检查参数是否已经配置好
-#warning    FT5X26组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_TOUCHSCREEN_FT5X26    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,1,100,
 #define CT_MAX_TOUCH  5                         //"触控数",支持最多5点触摸
 //%$#@enum,true,false,

@@ -71,9 +71,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_FAT_FILE_SYSTEM == false )
+//#warning  " fat_file_system  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_FAT_MOUNT_POINT   //****检查参数是否已经配置好
-#warning    fatfilesystem组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_FAT_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,"MS_INSTALLUSE",
 #define CFG_FAT_MS_INSTALLUSE       MS_INSTALLUSE       //使用时才发生安装动作
 //%$#@enum,"MSC","EMMC",

@@ -86,9 +86,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_WDT == false )
+//#warning  " cpu_onchip_wdt  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_WDT_WDTCYCLE   //****检查参数是否已经配置好
-#warning    cpu_peri_wdt组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_WDT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,500000,20000000,
 #define CFG_WDT_WDTCYCLE        (3*1000*1000)       //"狗叫时间",
 //%$#@enum,true,false,

@@ -83,9 +83,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_EEPROM_AT24C02A == false )
+//#warning  " EEPROM_at24c02a  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_AT24C_ADDRESS       //****检查参数是否已经配置好
-#warning    at24c02a组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_EEPROM_AT24C02A    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,0xFFFFFFFF,
 #define CFG_AT24_TIMEOUT           (-1)   //"超时时间",-1表示无穷
 //%$#@enum,0xA0,0xA2,0xA4,0xA6,0xA8,0xAC,0xAA,0xAE

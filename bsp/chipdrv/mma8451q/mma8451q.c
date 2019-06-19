@@ -84,9 +84,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_3_AXIS_ACCELEROMETER_MMA8451Q == false )
+//#warning  " 3_axis_accelerometer_mma8451q  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_MMA_ADDRESS         //****检查参数是否已经配置好
-#warning   mma8451q组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_3_AXIS_ACCELEROMETER_MMA8451Q    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 #define CFG_MMA_ADDRESS                0x50      //"设备地址",IIC总线设备地址
 //%$#@enum,true,false,

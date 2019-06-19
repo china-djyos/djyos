@@ -104,9 +104,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_UART_DEVICE_FILE == false )
+//#warning  " uart_device_file  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_UART0_SENDBUF_LEN   //****检查参数是否已经配置好
-#warning    cpu_peri_uart组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_UART_DEVICE_FILE    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,32,512,
 #define CFG_UART0_SENDBUF_LEN            256                    //"UART0发送环形缓冲区大小",
 #define CFG_UART0_RECVBUF_LEN            256                    //"UART0接收环形缓冲区大小",
