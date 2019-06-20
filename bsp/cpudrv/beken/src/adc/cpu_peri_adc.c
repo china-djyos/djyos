@@ -69,27 +69,27 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:""       //环形和线性缓冲区
-//parent:""                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//component name:"cpu onchip adc"       //adc组件
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:               //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:""             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu onchip gpio"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //如果依赖多个组件，则依次列出
-//weakdependence:""         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:""                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_ == false )
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_ADC == false )
 //#warning  "   组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_ADC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,flase,
 //%$#@string,1,10,
