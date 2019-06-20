@@ -102,7 +102,8 @@
 #define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#endif//%$#@end configue  ****参数配置结束
+#endif
+//%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****组件描述结束

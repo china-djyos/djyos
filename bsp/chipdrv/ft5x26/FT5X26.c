@@ -89,7 +89,7 @@
 //dependence:"io analog iic bus","graphical kernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"graphical decorate development(gdd)"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"graphical decorate development"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），

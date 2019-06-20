@@ -130,6 +130,7 @@ Rule
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 s32 Utf8MbToUcs4(u32* pwc, const char* s, s32 n);

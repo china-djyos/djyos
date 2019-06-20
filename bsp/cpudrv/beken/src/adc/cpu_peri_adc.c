@@ -87,7 +87,7 @@
 
 //%$#@configue      ****参数配置开始
 #if ( CFG_MODULE_ENABLE_CPU_ONCHIP_ADC == false )
-//#warning  "   组件参数未配置，使用默认配置"
+//#warning  "   ADC组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_ADC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
@@ -95,6 +95,7 @@
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表

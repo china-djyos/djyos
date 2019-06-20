@@ -36,5 +36,6 @@
 //%$#@string,1,10
 //%$#@select
 //%$#@free
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //@#$%component end configure

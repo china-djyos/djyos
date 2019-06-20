@@ -37,8 +37,9 @@
 //%$#@select
 //%$#@free
 #endif
+//%$#@end configue  ****参数配置结束
+
 //%$#@include path
 ///;/efs;
 //%$#@end include path
-//%$#@end configue  ****参数配置结束
 //@#$%component end configure
