@@ -58,6 +58,7 @@
 #define CFG_ADM1032_BUS         "iic1"//"name",配置adm1032的总线
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 

@@ -41,7 +41,7 @@
 //#defined __SAMV71Q20__
 //#defined __SAMV71Q21__
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //../source/gmac.c

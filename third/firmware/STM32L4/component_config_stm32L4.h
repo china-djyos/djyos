@@ -50,7 +50,7 @@
 //#define STM32L485xx
 //#define STM32L486xx
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude

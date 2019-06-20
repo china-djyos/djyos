@@ -51,7 +51,7 @@
 //#define STM32F105xC
 //#define STM32F107xC
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude

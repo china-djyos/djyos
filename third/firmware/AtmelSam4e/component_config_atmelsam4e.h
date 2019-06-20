@@ -32,7 +32,7 @@
 //%$#@string,1,16
 //%$#@select
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude

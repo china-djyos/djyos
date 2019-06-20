@@ -34,7 +34,7 @@
 #define CFG_CPU_ZQ12XX_M0
 //%$#@select
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude

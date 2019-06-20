@@ -54,6 +54,7 @@
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****组件描述结束

@@ -49,7 +49,7 @@
 //#define     STM32F777xx
 //#define     STM32F779xx
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude

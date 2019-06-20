@@ -39,7 +39,7 @@
 //#define STM32H743xx         //只能选中其中一个
 //#define STM32H753xx
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****参数配置结束
 //%$#@exclude
 //%$#@end exclude

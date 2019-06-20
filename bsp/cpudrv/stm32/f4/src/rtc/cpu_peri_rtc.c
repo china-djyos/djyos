@@ -51,6 +51,7 @@
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 #define LSE_Flag_Reg 0xA5A5   //标志，板件掉电之后

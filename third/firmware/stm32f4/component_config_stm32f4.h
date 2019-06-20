@@ -60,7 +60,7 @@
 //#define STM32F413xx
 //#define STM32F423xx
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude

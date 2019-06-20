@@ -51,7 +51,7 @@
 //#define STM32F378xx
 //#define STM32F398xx
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 //%$#@end exclude

@@ -33,6 +33,7 @@
 //%$#@SYMBOL
 //%$#@select
 //%$#@free
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //%$#@exclude
 ./wolfcrypt/benchmark;./wolfcrypt/test;./wolfcrypt/user-crypto;./tirtos;./testsuite;./tests;

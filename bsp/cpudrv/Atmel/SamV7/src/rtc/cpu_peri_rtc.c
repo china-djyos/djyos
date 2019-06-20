@@ -50,6 +50,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
+#endif
 //%$#@end configue  ****²ÎÊıÅäÖÃ½áÊø
 //@#$%component end configure
 

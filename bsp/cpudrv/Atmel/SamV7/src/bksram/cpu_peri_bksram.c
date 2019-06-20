@@ -50,6 +50,7 @@
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 #define BACKUPSRAM_ADDR     (0x40074000)        //片内的1K Backup SRAM起始地址
