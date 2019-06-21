@@ -111,6 +111,32 @@ u8 Get_Power(void)
     return power_flag;
 }
 
+
+
+static struct SemaphoreLCB* p7_sem=0;
+void p7_sem_init()
+{
+    if (p7_sem==0) {
+        p7_sem = semp_init(1,1,"p7_sem");
+    }
+}
+
+void p7_isr_hdr(void *args)
+{
+    if (p7_sem) {
+         semp_post(p7_sem);
+    }
+}
+
+int pend_p7_down(unsigned int timeout)
+{
+    int ret = 0;
+    ret = semp_pendtimeout(p7_sem, timeout);
+    return ret;
+}
+
+
+
 void Board_Init(void)
 {
     extern void os_clk_init(void);
@@ -122,7 +148,10 @@ void Board_Init(void)
 
     djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);  //¿∂—¿
 
+    p7_sem_init();
     djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);   //”Ô“Ù∞¥º¸
+    djy_gpio_attach_irq(GPIO7, PIN_IRQ_MODE_FALLING, p7_isr_hdr, NULL);
+    djy_gpio_irq_enable( GPIO7, 1);
 
     djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);   //…œµÁºÏ≤‚π‹Ω≈
     Set_Power(djy_gpio_read(GPIO10));
