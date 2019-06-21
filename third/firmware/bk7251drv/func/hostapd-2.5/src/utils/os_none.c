@@ -22,22 +22,22 @@ void os_sleep(os_time_t sec, os_time_t usec)
 {
 }
 
-
+UINT32 fclk_get_millisecond(void);
 int os_get_time(struct os_time *t)
 {
-	t->sec = fclk_get_second();
-	t->usec = 0;
-	
-	return 0;
+    t->sec = fclk_get_second();
+    t->usec = fclk_get_millisecond()*1000;
+
+    return 0;
 }
 
 
 int os_get_reltime(struct os_reltime *t)
 {
-	t->sec = fclk_get_second();
-	t->usec = 0;
-	
-	return 0;
+    t->sec = fclk_get_second();
+    t->usec = fclk_get_millisecond()*1000;
+
+    return 0;
 }
 
 

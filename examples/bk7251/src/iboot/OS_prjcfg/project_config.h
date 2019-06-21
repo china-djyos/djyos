@@ -39,7 +39,7 @@
 #define    CFG_ETH_LOOP_CYCLE              1000              //
 #define    CFG_ETH_LOOP_ENABLE             true              //
 #define    CFG_ETH_DEV_NAME                "STM32F7_ETH"     //
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART1_SENDBUF_LEN           64                //
 #define    CFG_UART1_RECVBUF_LEN           64                //
 #define    CFG_UART1_DMABUF_LEN            64                //

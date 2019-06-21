@@ -89,12 +89,16 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_GMAC == false )
+//#warning  " cpu_onchip_GMAC  组件参数未配置，使用默认配置"
 //%$#@target = header              //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_GMAC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
@@ -926,7 +930,7 @@ tagNetDev *GMAC_AddNetDev(void)
     tagHostIpv4Addr devaddr;
 
     devpara.ifsend = GMAC_SendPacket;
-    devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
+    devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = 0x00;//0xFF;//所有属性都配置上
     memcpy(devpara.mac, sgNetHardMac,6);
     devpara.name = "SAM4E_MAC";

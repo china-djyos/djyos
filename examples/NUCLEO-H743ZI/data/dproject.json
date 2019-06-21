@@ -16,7 +16,7 @@
 	"components_checked":{
 		"app":["black box",
 		"board config",
-		"cpu peri gpio",
+		"cpu onchip gpio",
 		"device file system",
 		"heap",
 		"int",
@@ -28,12 +28,13 @@
 		"memory pool",
 		"message queue",
 		"multiplex",
-		"stm32h7"],
+		"stm32h7",
+		"STM32 commond code"],
 		"iboot":["black box",
 		"board config",
 		"cpu onchip MAC",
-		"cpu peri gpio",
-		"cpu peri uart",
+		"cpu onchip gpio",
+		"cpu onchip uart",
 		"device file system",
 		"file system",
 		"heap",
@@ -53,6 +54,7 @@
 		"stm32h7",
 		"tcpip",
 		"uart device file",
-		"ymodem"]
+		"ymodem",
+		"STM32 commond code"]
 	}
 }

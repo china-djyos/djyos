@@ -89,7 +89,10 @@
 #ifndef CFG_MAC_ADDR0   //****检查参数是否已经配置好
 #warning    cpu_peri_enet组件参数未配置，使用默认值
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_MAC == false )
+//#warning  " cpu_onchip_MAC  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_MAC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,255,
 #define CFG_MAC_ADDR0           0x00//"网络地址0",
 #define CFG_MAC_ADDR1           0x01//"网络地址1",
@@ -127,7 +130,6 @@ static tagEnetCfg s_EnetConfig = {"ENET",MAC_RMII,AUTONEG_ON,MII_100BASET,
                                     0,{CFG_MAC_ADDR0,CFG_MAC_ADDR1,CFG_MAC_ADDR2,\
                                     CFG_MAC_ADDR3,CFG_MAC_ADDR4,CFG_MAC_ADDR5}};
 
-#define CN_PKG_MAX_LEN  1522
 // =============================================================================
 static struct SemaphoreLCB *pEnetRcvSync;
 static struct MutexLCB     *pEnetSndSync;
@@ -944,7 +946,7 @@ static bool_t Enet_AddNetDev(void)
     devpara.devfunc = 0;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, s_EnetConfig.mac,6);
     devpara.name = (char *)(s_EnetConfig.name);
-    devpara.mtu = CN_PKG_MAX_LEN;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (u32)NULL;
     gEnetHandle = NetDevInstall(&devpara);
     if(0 == gEnetHandle)

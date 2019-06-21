@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -54,7 +54,7 @@
 #define     CFG_TPL_PROTONUM            5        // "支持的传输协议数"，占用一个 tagTplProtoItem 结构
 //*******************************  Configure time  ******************************************//
 #define CFG_LOCAL_TIMEZONE      8         // "时区",北京时间是东8区
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART_SENDBUF_LEN            32                  //
 #define CFG_UART_RECVBUF_LEN            32                  //
 #define CFG_UART1_ENABLE                true                //

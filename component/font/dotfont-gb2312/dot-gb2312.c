@@ -98,9 +98,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_GB2312_DOT == false )
+//#warning  " gb2312_dot  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_GB2312_12_SONG   //****检查参数是否已经配置好
-#warning    gb2312_font组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_GB2312_DOT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,zk_disable,from_file,from_array
 #define CFG_GB2312_12_SONG              zk_disable              //"12点阵宋体",GB2312字体,zk_disable：不需要，from_array：从数组读取，from_file：从文件读
 //%$#@string,0,255,

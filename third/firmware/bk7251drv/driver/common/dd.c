@@ -49,6 +49,17 @@
 #include "ble_pub.h"
 #endif
 
+#if (CFG_SOC_NAME == SOC_BK7221U)
+void bk_secrity_init(void);
+void bk_secrity_exit(void);
+#include "security_pub.h"
+#endif
+
+__attribute__((weak))  void djy_audio_init(void)
+{
+}
+
+
 static DD_INIT_S dd_init_tbl[] =
 {
     /* name*/              /* init function*/          /* exit function*/
@@ -56,34 +67,38 @@ static DD_INIT_S dd_init_tbl[] =
     {ICU_DEV_NAME,          icu_init,                   icu_exit},
 //    {WDT_DEV_NAME,          wdt_init,                   wdt_exit},
     {GPIO_DEV_NAME,         gpio_init,                  gpio_exit},
-    
-#ifndef KEIL_SIMULATOR    
+#ifndef KEIL_SIMULATOR
     {UART2_DEV_NAME,        uart2_init,                 uart2_exit},
-#endif    
+#endif
 
 #if CFG_USE_UART1
     {UART1_DEV_NAME,        uart1_init,                 uart1_exit},
 #endif
 
-    {FLASH_DEV_NAME,        flash_init,                 flash_exit},
     
 #if CFG_GENERAL_DMA
     {GDMA_DEV_NAME,         gdma_init,                  gdma_exit},
 #endif
 
+#if CFG_USE_AUDIO
+    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},
+#endif
+
+    {"djy audio init",        djy_audio_init,             NULLPTR},
+
+    {FLASH_DEV_NAME,        flash_init,                 flash_exit},
+     
 #if CFG_USE_SPIDMA
     {SPIDMA_DEV_NAME,       spidma_init,                spidma_uninit},
 #endif
 
 #if CFG_USE_CAMERA_INTF
     {EJPEG_DEV_NAME,        ejpeg_init,                 ejpeg_exit},
-    {I2C1_DEV_NAME,         i2c1_init,                  i2c1_exit},        
-    {I2C2_DEV_NAME,         i2c2_init,                  i2c2_exit},            
+    {I2C1_DEV_NAME,         i2c1_init,                  i2c1_exit},
+    {I2C2_DEV_NAME,         i2c2_init,                  i2c2_exit},
 #endif
 
-#if CFG_USE_AUDIO
-    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},        
-#endif
+
 
 #if CFG_SDIO || CFG_SDIO_TRANS
     {SDIO_DEV_NAME,         sdio_init,                  sdio_exit},
@@ -103,7 +118,6 @@ static DD_INIT_S dd_init_tbl[] =
 //    {I2S_DEV_NAME,          i2s_init,                   i2s_exit},
     {SARADC_DEV_NAME,       saradc_init,                saradc_exit},
 //    {IRDA_DEV_NAME,         irda_init,                  irda_exit},
-
 #if CFG_MAC_PHY_BAPASS
     {MPB_DEV_NAME,          mpb_init,                   mpb_exit},
 #endif
@@ -113,11 +127,16 @@ static DD_INIT_S dd_init_tbl[] =
 #endif
 
 #if CFG_USE_STA_PS
+    //依赖flash_init，也放到main函数中跑
     {"power_save",       sctrl_sta_ps_init,                NULLPTR},
 #endif
 
 #ifdef CFG_SUPPORT_BLE
-	{BLE_DEV_NAME,			ble_init,					ble_exit}, //sean
+    {BLE_DEV_NAME,          ble_init,                   ble_exit}, //sean
+#endif
+
+#if (CFG_SOC_NAME == SOC_BK7221U)
+    {SEC_DEV_NAME,          bk_secrity_init,                    bk_secrity_exit}, //sean
 #endif
 
     {NULL,                  NULLPTR,                    NULLPTR}

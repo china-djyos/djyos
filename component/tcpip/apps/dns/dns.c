@@ -282,7 +282,7 @@ static void  __DnsUnpackageData(unsigned char *data, unsigned int datalen)
                 if(*p == 0xc0)
                 {
                     //this is the offset name
-                    debug_printf("dns","%s:answer domain name:offset:%d\n\r",__FUNCTION__,p[1]);
+//                    debug_printf("dns","%s:answer domain name:offset:%d\n\r",__FUNCTION__,p[1]);
                     p += 2;
                 }
                 else

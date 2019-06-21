@@ -234,7 +234,7 @@ UINT32 pwm_ctrl(UINT32 cmd, void *param)
         REG_WRITE(PWM_CTL, value);
         break;
     case CMD_PWM_IR_ENABLE:
-        ucChannel = (*(UINT32 *)param);
+        ucChannel = (*(UINT8 *)param);//强制类型转换错误修改
         if(ucChannel > 5)
         {
             ret = PWM_FAILURE;

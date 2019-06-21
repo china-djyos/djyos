@@ -65,9 +65,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_ETHERNET_AX88796 == false )
+//#warning  " ethernet_AX88796  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_AX88796_IRQ_USE     //****检查参数是否已经配置好
-#warning    AX88796组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_ETHERNET_AX88796    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,1000,1000000,
 #define CFG_AX88796_LOOP_CYCLE                (1000*1000) //"looptime",配置循环读网卡接收的时间
 //%$#@enum,true,false,
@@ -813,14 +814,14 @@ tagAx88796Pri *Ax88796Install(tagAx88796Para *para)
 
     //向协议栈注册网卡吧
     devpara.ifsend = Ax88796Snd;
-    devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
+    devpara.iftype = EN_LINK_ETHERNET;
     devpara.devfunc = CN_IPDEV_NONE;    //NO FUNC FOR THE DEV
     memcpy(devpara.mac, ax88796->mac,CN_MACADDR_LEN);
     devpara.name = ax88796->name;
     devpara.Private = (ptu32_t)ax88796;
     devpara.linklen = 14;
     devpara.pkglen = 1500;
-    ax88796->devhandle = (void *) NetDev_InstallDev(&devpara);
+    ax88796->devhandle = (void *) NetDevInstall(&devpara);
     if(NULL == ax88796->devhandle)
     {
         goto DEV_FAILED;

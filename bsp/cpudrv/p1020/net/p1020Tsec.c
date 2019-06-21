@@ -1135,12 +1135,12 @@ bool_t ModuleInstall_Tsec(ptu32_t para)
                 devpara.linklen = 14;
                 devpara.pkglen = 1500;
                 devpara.devfunc = CN_IPDEV_TCPOCHKSUM|CN_IPDEV_IPOCHKSUM;
-                devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
+                devpara.iftype = EN_LINK_ETHERNET;
                 memcpy(devpara.mac, sgMacAddr[devno],6);
                 devpara.name = "TsecDriver";
                 devpara.Private = devno;
 
-                pgTsecNetDev[devno] = NetDev_InstallDev(&devpara);
+                pgTsecNetDev[devno] = NetDevInstall(&devpara);
                 if(pgTsecNetDev[devno]!= NULL)
                 {
                     result = true;

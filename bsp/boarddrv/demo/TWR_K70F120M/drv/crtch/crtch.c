@@ -95,7 +95,7 @@
 //dependence:"touch","graphical kernel","iicbus"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                                     //选中该组件时，被依赖组件将强制选中，
                                                     //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"graphical decorate development(gdd)"                              //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"graphical decorate development"                              //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                                     //选中该组件时，被依赖组件不会被强制选中，
                                                     //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -103,9 +103,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_BOARD_DRIVER_TOUCH == false )
+//#warning  " board_driver_touch  组件参数未配置，使用默认配置"
 //%$#@target = header                              //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_DESKTOP_NAME                           //****检查参数是否已经配置好
-#warning    crtch组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_BOARD_DRIVER_TOUCH    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,

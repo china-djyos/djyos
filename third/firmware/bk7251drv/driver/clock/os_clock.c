@@ -35,6 +35,10 @@ UINT32 fclk_get_second(void)
 {
     return current_clock/1000;
 }
+UINT32 fclk_get_millisecond(void)
+{
+    return current_clock%1000;
+}
 
 UINT32 fclk_cal_endvalue(UINT32 mode)
 {

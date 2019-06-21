@@ -83,7 +83,7 @@ struct NetDev
 {
     struct NetDev      *nxt;                    //dev chain
     char                name[CN_TCPIP_NAMELEN]; //dev name
-    u8                  iftype;   //dev type
+    enum enLinkType     iftype;   //dev type
     fnIfSend            ifsend;   //dev snd function
 //  fnIfRecv            ifrecv;   //dev receive function
     fnIfCtrl            ifctrl;   //dev ctrl or stat get fucntion
@@ -554,7 +554,7 @@ bool_t NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event)
 //参数: handle，由 NetDevInstall 返回的网卡控制块指针
 //      pkglst，待发送的包
 //      framlen，发送数据长度
-//      netdevtask，网卡功能
+//      netdevtask，需要网卡完成的任务，如 CN_IPDEV_NONE 等的定义
 //返回: true or false
 //-----------------------------------------------------------------------------
 bool_t  NetDevSend(struct NetDev* handle,struct NetPkg *pkglst,u32 netdevtask)
@@ -596,14 +596,14 @@ bool_t  NetDevCtrl(struct NetDev* handle,enum NetDevCmd cmd, ptu32_t para)
 //功能：配置网卡的流量控制参数
 //参数：handle，网卡设备句柄
 //     type，被控制的包类型，netbsp.h中定义
-//     llimit，流量下限，在period时间内，收到type类型的包数低于此限，即发送网卡事件
-//     ulimit，流量上限，在period时间内，收到type类型的包数超过此限，即发送网卡事件
+//     llimit，流量下限，在period时间内，收到type类型的包数低于此限，即 NetDevPostEvent 网卡事件
+//     ulimit，流量上限，在period时间内，收到type类型的包数超过此限，即 NetDevPostEvent 网卡事件
 //     period，流量统计周期
 //     enable :1 true while 0 false
 // 返回：true success while false failed
 // =============================================================================
-bool_t NetDevFlowSet(struct NetDev* handle,enNetDevFramType type,\
-                     u32 llimit,u32 ulimit,u32 period,int enable)
+bool_t NetDevFlowSet(struct NetDev* handle,enum EthFramType type,\
+                     u32 llimit,u32 ulimit,u32 period,s32 enable)
 {
     bool_t result = false;
     tagNetDevRcvFilter *filter;
@@ -630,12 +630,12 @@ bool_t NetDevFlowSet(struct NetDev* handle,enNetDevFramType type,\
 // FUNCTION   :use this function to check the frame type
 // PARAMS IN  :buf, the frame buffer
 // PARAMS OUT :
-// RETURN     :enNetDevFramType,which type of the frame
+// RETURN     :enum EthFramType,which type of the frame
 // DESCRIPTION:
 // =============================================================================
-enNetDevFramType NetDevFrameType(u8 *buf,u16 len)
+enum EthFramType NetDevFrameType(u8 *buf,u16 len)
 {
-    enNetDevFramType result = EN_NETDEV_FRAME_LAST;
+    enum EthFramType result = EN_NETDEV_FRAME_LAST;
     if((NULL != buf)&&(len > CN_MACADDR_LEN))
     {
         if(0 == memcmp(buf,CN_MAC_BROAD,CN_MACADDR_LEN))
@@ -689,7 +689,9 @@ static void __NetDevFlowCheck(struct NetDev* handle,tagNetDevRcvFilter *filter,s
         }
     }
 }
-bool_t NetDevFlowCtrl(struct NetDev* handle,enNetDevFramType type)
+
+//TODO：这里有个问题，只有收到数据包才调用本函数，流量下限检查将失效，可考虑去掉下限检查功能
+bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type)
 {
     bool_t result = false;
     tagNetDevRcvFilter *filter;

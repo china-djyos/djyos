@@ -23,9 +23,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_STM32L4 == false )
+//#warning  " stm32L4  组件参数未配置，使用默认配置"
 //%$#@target = cmdline   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//#ifndef CFG_STATIC_IP   //****检查参数是否已经配置好
-//#warning    “网络配置”组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_STM32L4    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100
 //%$#@enum,1,2,3,4,5,6,7,8
 #define CFG_STM32_HAL_TIMER     6//配置HAL库使用的定时器
@@ -49,7 +50,7 @@
 //#define STM32L485xx
 //#define STM32L486xx
 //%$#@free
-//#endif
+#endif
 //%$#@end configue  ****参数配置结束
 //%$#@exclude
 //%$#@end exclude

@@ -97,15 +97,18 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_IIC == false )
+//#warning  " cpu_onchip_iic  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_I2C1_BUF_LEN  //****检查参数是否已经配置好
-#warning    cpu_peri_iic组件参数未配置，使用默认值
-//%$#@num,16,512,
-#define CFG_I2C1_BUF_LEN         128           //"IIC1缓冲区大小",
-#define CFG_I2C2_BUF_LEN         128           //"IIC2缓冲区大小",
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_IIC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false,
 #define CFG_I2C1_ENABLE          false         //"是否配置使用IIC1",
+//%$#@num,16,512,
+#define CFG_I2C1_BUF_LEN         128           //"IIC1缓冲区大小",
+//%$#@enum,true,false,
 #define CFG_I2C2_ENABLE          false         //"是否配置使用IIC2",
+//%$#@num,16,512,
+#define CFG_I2C2_BUF_LEN         128           //"IIC2缓冲区大小",
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,

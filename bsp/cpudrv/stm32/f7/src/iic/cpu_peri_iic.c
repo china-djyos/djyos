@@ -43,7 +43,7 @@
 //-----------------------------------------------------------------------------
 // =============================================================================
 
-// 文件名     ：stm32_iic_type1.c
+// 文件名     ：stm32_IIC_type1.c
 // 作者         ：czz
 // 模块描述: IIC模块底层硬件驱动，寄存器级别的操作
 // 创建时间: 2018/08/16
@@ -66,18 +66,18 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    bool_t IIC_Init(u8 iic_port);
+//    bool_t IIC_Init(u8 IIC_port);
 //    #if CFG_IIC1_ENABLE== true
-//     ModuleInstall_IIC(CN_IIC1);
+//     ModuleInstall_IIC_Drv(CN_IIC1);
 //    #endif
 //    #if CFG_IIC2_ENABLE== true
-//    ModuleInstall_IIC(CN_IIC2);
+//    ModuleInstall_IIC_Drv(CN_IIC2);
 //    #endif
 //    #if CFG_IIC3_ENABLE== true
-//    ModuleInstall_IIC(CN_IIC3);
+//    ModuleInstall_IIC_Drv(CN_IIC3);
 //    #endif
 //    #if CFG_IIC4_ENABLE== true
-//    ModuleInstall_IIC(CN_IIC4);
+//    ModuleInstall_IIC_Drv(CN_IIC4);
 //    #endif
 //%$#@end initcode  ****初始化代码结束
 
@@ -99,9 +99,10 @@
                                          //如果与多个组件互斥，则依次列出
 //%$#@end describe  ****组件描述结束
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_IIC == false )
+//#warning  " cpu_onchip_iic  组件参数未配置，使用默认配置"
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_IIC_BUF_LEN
-#warning    cpu_peri_iic 组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_IIC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,16,512,
 #define CFG_IIC_BUF_LEN           32       //"IIC缓冲区大小",配置IIC缓冲区大小
 //%$#@enum,true,false,
@@ -450,19 +451,19 @@ const static struct TYPE1_i2c_spec i2c_specs[] = {
 };
 // =============================================================================
 // 功能： 进入或退出低功耗模式
-// 参数： iic_port IIC 端口号
+// 参数： IIC_port IIC 端口号
 //     flag 进入还是退出低功耗模式
 // 返回：true/false
 // =============================================================================
 //
-bool_t IIC_LowPowerConfig(ptu32_t iic_port,u8 flag)
+bool_t IIC_LowPowerConfig(ptu32_t IIC_port,u8 flag)
 {
    return false;
 }
 
 //==============================================================================
-static u32 iic_dmarx_isr(ptu32_t port);//IIC DMA接收中断服务函数
-static u32 iic_dmatx_isr(ptu32_t port);//IIC DMA发送中断服务函数
+static u32 IIC_dmarx_isr(ptu32_t port);//IIC DMA接收中断服务函数
+static u32 IIC_dmatx_isr(ptu32_t port);//IIC DMA发送中断服务函数
 static bool_t IIC_IntEnable(ptu32_t port);
 //==============================================================================
 //中断方式收发启动函数
@@ -641,7 +642,7 @@ static bool_t IIC_RxTxDMA_Init(ptu32_t port)
 // =============================================================================
 // 功能: 启动写时序，启动写时序的过程为：器件地址（写）、存储地址（写），当存储地址完
 //       成时，需打开中断，重新配置寄存器为接收模式，之后将会发生发送中断，在中断服务
-//       函数中，每次发送一定的字节数，直到len数据量，post信号量iic_bus_semp，并产生
+//       函数中，每次发送一定的字节数，直到len数据量，post信号量IIC_bus_semp，并产生
 //       停止时序
 // 参数: SpecificFlag,个性标记，本模块内即IIC寄存器基址
 //      DevAddr,器件地址的前7比特，已将内部地址所占的bit位更新，该函数需将该地址左
@@ -650,7 +651,7 @@ static bool_t IIC_RxTxDMA_Init(ptu32_t port)
 //               比特位；
 //      MenAddrLen,存储器内部地址的长度，字节单位，未包含在器件地址里面的比特位；
 //      Length,接收的数据总量，接收数据的倒数第一字节，即count-1，停止产生ACK信号，
-//          当接收的字节数为count时，产生停止时序，并释放信号量iic_semp;
+//          当接收的字节数为count时，产生停止时序，并释放信号量IIC_semp;
 //      IIC_BusSemp,发送完成时驱动需释放的信号量。发送程序读IIC_PortRead时，若读不到数
 //          则需释放该信号量，产生结束时序
 // 返回: TRUE，启动读时序成功，FALSE失败
@@ -680,7 +681,7 @@ static bool_t IIC_WriteStartFunc(ptu32_t port,u8 DevAddr,\
 // 功能: 启动读时序，启动读时序的过程为：器件地址（写）、存储地址（写）、器件地址（读）
 //       当器件地址（读）完成时，需打开中断，重新配置寄存器为接收模式，之后将会发生
 //       接收数据中断，在中断中将接收到的数据调用IIC_PortWrite写入缓冲，接收到len字
-//       节数的数据后，释放信号量iic_semp
+//       节数的数据后，释放信号量IIC_semp
 // 参数: SpecificFlag,个性标记，本模块内即IIC寄存器基址
 //      DevAddr,器件地址的前7比特，已将内部地址所占的bit位更新，该函数需将该地址左
 //               移一位增加增加最后一位读/写比特;
@@ -688,7 +689,7 @@ static bool_t IIC_WriteStartFunc(ptu32_t port,u8 DevAddr,\
 //               比特位；
 //      MenAddrLen,存储器内部地址的长度，字节单位，未包含在器件地址里面的比特位；
 //      Length,接收的数据总量，接收数据的倒数第一字节，即count-1，停止产生ACK信号，当接
-//          收的字节数为count时，产生停止时序，并释放信号量iic_semp;
+//          收的字节数为count时，产生停止时序，并释放信号量IIC_semp;
 //     IIC_BusSemp,读完成时，驱动需释放的信号量（缓冲区信号量）
 // 返回: TRUE，启动读时序成功，FALSE失败
 // =============================================================================
@@ -958,7 +959,7 @@ static bool_t Set_IIC_DMA_USED(ptu32_t port)
     ufl_line = config[port].DmaRxIntLine;
     Int_Register(ufl_line);//注册发送DMA中断
     Int_SetClearType(ufl_line,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(ufl_line,iic_dmarx_isr);
+    Int_IsrConnect(ufl_line,IIC_dmarx_isr);
     Int_SetIsrPara(ufl_line,port);
     Int_ClearLine(ufl_line);
     Int_SettoAsynSignal(ufl_line);
@@ -967,7 +968,7 @@ static bool_t Set_IIC_DMA_USED(ptu32_t port)
     ufl_line = config[port].DmaTxIntLine;
     Int_Register(ufl_line);//注册接收DMA中断
     Int_SetClearType(ufl_line,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(ufl_line,iic_dmatx_isr);//关联中断
+    Int_IsrConnect(ufl_line,IIC_dmatx_isr);//关联中断
     Int_SetIsrPara(ufl_line,port);
     Int_ClearLine(ufl_line);
     Int_SettoAsynSignal(ufl_line);
@@ -1280,7 +1281,7 @@ static void IIC_HardInit(ptu32_t port)
 //       Add_mode 寻址模式
 // 返回：无
 // =============================================================================
-static u32 iic_dmarx_isr(ptu32_t port)
+static u32 IIC_dmarx_isr(ptu32_t port)
 {
     u32 num;
     num = IIC_PortWrite(pStm32Icb[port].pIIC_CB,pStm32Icb[port].Dmabuf,\
@@ -1306,11 +1307,11 @@ static u32 iic_dmarx_isr(ptu32_t port)
 
 // =============================================================================
 // 功能：IIC DMA发送中断包括发送地址发送数据
-// 参数：iic_port  IIC编号 CN_IIC1
+// 参数：IIC_port  IIC编号 CN_IIC1
 //       Add_mode 寻址模式
 // 返回：无
 // =============================================================================
-static u32 iic_dmatx_isr(ptu32_t port)
+static u32 IIC_dmatx_isr(ptu32_t port)
 {
     u32 num;
     DMA_ClearIntFlag(config[port].DmaTxTag);
@@ -1344,7 +1345,7 @@ static u32 iic_dmatx_isr(ptu32_t port)
 // 参数： port  IIC编号 CN_IIC1
 // 返回：无
 // =============================================================================
-static void iic_reload(ptu32_t port)
+static void IIC_reload(ptu32_t port)
 {
     u32 cr2;
     I2CType*reg = (I2CType*) config[port].iicBaseAddr;
@@ -1368,7 +1369,7 @@ static void iic_reload(ptu32_t port)
 // 参数：port  IIC编号 CN_IIC1
 // 返回：无
 // =============================================================================
-static u32 iic_event_error_isr(ptu32_t port)
+static u32 IIC_event_error_isr(ptu32_t port)
 {
     I2CType* reg = (I2CType*) config[port].iicBaseAddr;
     s32 num;
@@ -1452,7 +1453,7 @@ static u32 iic_event_error_isr(ptu32_t port)
      * data.
      */
     if (reg->ISR & TYPE1_I2C_ISR_TCR)/*传输完成等待重载*/
-        iic_reload(port);
+        IIC_reload(port);
 
     if (reg->ISR & TYPE1_I2C_ISR_BERR) /* 总线错误 */
     {
@@ -1488,7 +1489,7 @@ static void IIC_Int_Init(ptu32_t port)
     IntLine = config[port].iicEvIntLine;
     Int_Register(IntLine);
     Int_SetClearType(IntLine,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(IntLine,iic_event_error_isr);
+    Int_IsrConnect(IntLine,IIC_event_error_isr);
     Int_SettoAsynSignal(IntLine);
     Int_ClearLine(IntLine);
     Int_SetIsrPara(IntLine,port);
@@ -1497,7 +1498,7 @@ static void IIC_Int_Init(ptu32_t port)
     IntLine = config[port].iicErIntLine;
     Int_Register(IntLine);
     Int_SetClearType(IntLine,CN_INT_CLEAR_AUTO);
-    Int_IsrConnect(IntLine,iic_event_error_isr);
+    Int_IsrConnect(IntLine,IIC_event_error_isr);
     Int_SettoAsynSignal(IntLine);
     Int_ClearLine(IntLine);
     Int_SetIsrPara(IntLine,port);
@@ -1543,22 +1544,18 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
 
     return true;
 }
-//为了接口兼容
-bool_t IIC_Init(u8 iic_port)
-{
-    return ModuleInstall_IIC(iic_port);
-}
+
 // =============================================================================
 // 功能：IIC底层驱动的初始化，完成整个IIC总线的初始化，其主要工作如下：
 //       1.初始化总线控制块IIC_CB，回调函数和缓冲区的初始化赋值；
 //       2.默认的硬件初始化，如GPIO或IIC寄存器等；
 //       3.中断初始化，完成读写中断配置；
 //       4.调用IICBusAdd或IICBusAdd_r增加总线结点；
-// 参数：iic_port  IIC编号 CN_IIC1
+// 参数：IIC_port  IIC编号 CN_IIC1
 //       Add_mode 寻址模式
 // 返回：无
 // =============================================================================
-bool_t ModuleInstall_IIC(ptu32_t port)
+bool_t ModuleInstall_IIC_Drv(ptu32_t port)
 {
     struct IIC_Param IIC_Config;
     u8 *buf;

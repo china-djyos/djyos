@@ -89,9 +89,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_SOFTWARE_TIMERS == false )
+//#warning  " Software_Timers  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_TIMER_SOUCE_HARD   //****检查参数是否已经配置好
-#warning    timer组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_SOFTWARE_TIMERS    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 #define CFG_TIMERS_LIMIT        5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
 //%$#@enum,true,false,

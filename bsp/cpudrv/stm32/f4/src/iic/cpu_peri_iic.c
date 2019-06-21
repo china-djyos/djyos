@@ -99,9 +99,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_IIC == false )
+//#warning  " cpu_onchip_iic  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_I2C_BUF_LEN  //****检查参数是否已经配置好
-#warning    cpu_peri_iic组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_IIC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,16,512,
 #define CFG_I2C_BUF_LEN         128         //"IIC缓冲区大小",
 //%$#@enum,true,false,
@@ -433,6 +434,16 @@ static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
 }
 
 // =============================================================================
+// 功能: 禁止iic中断,接收与发送共用一个中断源。
+// 参数: reg,被操作的寄存器组指针
+// 返回: 无
+// =============================================================================
+static void __IIC_IntDisable(tagI2CReg *reg)
+{
+    reg->CR1 &= ~(I2C_CR1_RXIE| I2C_CR1_TXIE);
+}
+
+// =============================================================================
 // 功能：轮询方式读写IIC设备
 // 参数：reg,寄存器基址
 //       DevAddr,设备地址
@@ -446,6 +457,7 @@ static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
 static bool_t __IIC_WriteReadPoll(tagI2CReg *reg,u8 DevAddr,u32 MemAddr,\
                                 u8 MemAddrLen,u8* Buf, u32 Length,u8 WrRdFlag)
 {
+    __IIC_IntDisable(reg);
     if(WrRdFlag == CN_IIC_WRITE_FLAG)   //写
     {
         if(Length == __IIC_WritePoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))

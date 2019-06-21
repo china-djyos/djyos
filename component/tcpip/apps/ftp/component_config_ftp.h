@@ -81,14 +81,14 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_FTP == false )
+//#warning  " ftp  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#if(CFG_MODULE_ENABLE_FTP == false)//****检查参数是否已经配置好
-#warning    tcpip ftp组件参数未配置，使用默认值
-#define CFG_MODULE_ENABLE_FTP  false
+#define CFG_MODULE_ENABLE_FTP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,,,
 //%$#@enum,true,false,
-#define     CFG_FTPD_ENABLE            false   //"tftp 服务器使能",暂未实现
-#define     CFG_FTPC_ENABLE            true    //"tftp 客户端使能"
+#define     CFG_FTPD_ENABLE            false   //"ftp 服务器使能",暂未实现
+#define     CFG_FTPC_ENABLE            true    //"ftp 客户端使能"
 //%$#@string,1,256,
 //%$#@select
 //%$#@free

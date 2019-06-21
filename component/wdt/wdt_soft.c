@@ -97,9 +97,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_WATCH_DOG == false )
+//#warning  " watch_dog  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_WDT_LIMIT   //****检查参数是否已经配置好
-#warning    wdt组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_WATCH_DOG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,1,100,
 #define CFG_WDT_LIMIT           10      //"看门狗数量",允许养狗数量
 #define CFG_WDTMSG_LIMIT        3       //"消息队列长度"，操作看门狗的消息队列的最大长度

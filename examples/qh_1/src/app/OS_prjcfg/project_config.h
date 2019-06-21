@@ -87,7 +87,7 @@
 #define    CFG_I2C2_BUF_LEN                128               //
 #define    CFG_I2C1_ENABLE                 false             //
 #define    CFG_I2C2_ENABLE                 false             //
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART1_SENDBUF_LEN           32                //
 #define    CFG_UART1_RECVBUF_LEN           32                //
 #define    CFG_UART1_DMABUF_LEN            32                //

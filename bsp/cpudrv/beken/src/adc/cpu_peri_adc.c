@@ -69,29 +69,33 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:""       //环形和线性缓冲区
-//parent:""                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//component name:"cpu onchip adc"       //adc组件
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:               //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:""             //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu onchip gpio"  //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //如果依赖多个组件，则依次列出
-//weakdependence:""         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:""                  //该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //如果依赖多个组件，则依次列出
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_ADC == false )
+//#warning  "   ADC组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_ADC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,flase,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表
@@ -169,23 +173,29 @@ void djy_adc_close(DD_HANDLE handle)
 
 
 
-
+// 这个ADC系统不能重入，同一时刻只能只有一个ADC通道在运行
+#define ADC_TEMP_BUFFER_SIZE 2
 static saradc_desc_t tmp_single_desc;
-static UINT16 tmp_single_buff[10];//ADC_TEMP_BUFFER_SIZE];
+static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
 static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
 
-float djy_adc_read(uint16_t pin)
+uint32_t djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 {
+    int tryTimes = 1000;
     UINT32 status;
     UINT32 cmd;
     UINT8 run_stop;
+    uint32_t tmpData = 0xFFFFFFFF;
 
-    os_memset(&tmp_single_desc, 0x00, sizeof(saradc_desc_t));
-    tmp_single_desc.channel = 1;
-    tmp_single_desc.data_buff_size = 10;
-    tmp_single_desc.mode = (ADC_CONFIG_MODE_CONTINUE << 0)
-                           | (ADC_CONFIG_MODE_8CLK_DELAY << 2);
+    if (channel > 7) // TODO merlin 到底有多少个ADC？ 有12个？不确定，所以现在写死了先  SARADC_ADC_CHNL_MAX)
+    {
+        return tmpData;
+    }
 
+    memset(&tmp_single_desc, 0x00, sizeof(saradc_desc_t));
+    tmp_single_desc.channel = channel;
+    tmp_single_desc.data_buff_size = ADC_TEMP_BUFFER_SIZE;
+    tmp_single_desc.mode = (ADC_CONFIG_MODE_CONTINUE << 0) | (ADC_CONFIG_MODE_8CLK_DELAY << 2);
     tmp_single_desc.has_data                = 0;
     tmp_single_desc.current_read_data_cnt   = 0;
     tmp_single_desc.current_sample_data_cnt = 0;
@@ -200,25 +210,25 @@ float djy_adc_read(uint16_t pin)
     run_stop = 1;
     ddev_control(tmp_single_hdl, cmd, &run_stop);
 
-    while (1)
+    while (tryTimes--)
     {
         if (tmp_single_desc.current_sample_data_cnt == tmp_single_desc.data_buff_size)
         {
             ddev_close(tmp_single_hdl);
+
+            tmpData = 0;
+            for (int i=0; i<tmp_single_desc.current_sample_data_cnt; i++)
+            {
+                tmpData += tmp_single_desc.pData[i];
+            }
+            tmpData /= tmp_single_desc.current_sample_data_cnt;
+
             break;
         }
     }
 
-    printf("buff:%p,%d,%d,%d,%d,%d\r\n", tmp_single_desc.pData,
-                   tmp_single_desc.pData[0], tmp_single_desc.pData[1],
-                   tmp_single_desc.pData[2], tmp_single_desc.pData[3],
-                   tmp_single_desc.pData[4]);
 
-    float voltage = saradc_calculate(tmp_single_desc.pData[4]);
-
-    printf("voltage is [%f]\r\n", voltage);
-
-    return SARADC_SUCCESS;
+    return tmpData;
 }
 
 static void temp_single_detect_handler2(void)

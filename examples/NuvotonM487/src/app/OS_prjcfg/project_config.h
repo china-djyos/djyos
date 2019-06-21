@@ -48,7 +48,7 @@
 #define  CFG_MODULE_ENABLE_SHELL         true
 //*******************************  Configure time  ******************************************//
 #define    CFG_LOCAL_TIMEZONE              8                 //北京时间是东8区
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART0_SENDBUF_LEN           32                //
 #define    CFG_UART0_RECVBUF_LEN           32                //
 #define    CFG_UART0_DMABUF_LEN            32                //

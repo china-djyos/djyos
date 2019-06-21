@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -25,7 +25,7 @@
 #define CFG_OS_TINY             false   //true=用于资源紧缺的场合内核会裁剪掉：事件类型名字事件处理时间统计。
 //*******************************  Configure device file system  ******************************************//
 #define CFG_DEVFILE_LIMIT       10      //定义设备数量
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART1_SENDBUF_LEN           32                //
 #define    CFG_UART1_RECVBUF_LEN           32                //
 #define    CFG_UART1_DMABUF_LEN            32                //

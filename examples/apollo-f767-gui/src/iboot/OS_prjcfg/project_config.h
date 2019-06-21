@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -129,7 +129,7 @@
 #define CFG_ETH_MAC_ADDR3      04           //若选中"硬件生成Mac地址"则无须填写
 #define CFG_ETH_MAC_ADDR4      05           //若选中"硬件生成Mac地址"则无须填写
 #define CFG_ETH_MAC_ADDR5      06           //若选中"硬件生成Mac地址"则无须填写
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN       64      //
 #define CFG_UART1_RECVBUF_LEN       64      //
 #define CFG_UART1_DMABUF_LEN        64      //

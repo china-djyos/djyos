@@ -90,7 +90,7 @@ const char *LinkTypeName(enum enLinkType type);
 bool_t LinkInit(void);
 bool_t LinkPushRegister(u16 protocol,fnLinkProtoDealer dealer);//ip and arp intall their push functions
 bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protocol); //and the linker layer call this function
-bool_t LinkDeal(struct NetDev *iface,struct NetPkg *pkg);//the net device layer call this function
+//bool_t LinkDeal(struct NetDev *iface,struct NetPkg *pkg);//the net device layer call this function
 
 
 #endif /* TCPIP_LINK_H_ */
