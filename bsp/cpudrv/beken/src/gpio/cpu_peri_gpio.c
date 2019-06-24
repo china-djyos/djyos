@@ -157,11 +157,11 @@ int djy_gpio_attach_irq(GPIO_INDEX pin,uint32_t mode,
     gpio_dev.irq_desc[pin].param   = args;
     if (mode == PIN_IRQ_MODE_RISING)
     {
-        gpio_dev.irq_desc[pin].mode = GMODE_INPUT_PULLDOWN;
+        gpio_dev.irq_desc[pin].mode = GPIO_INT_LEVEL_RISING;
     }
     else if (mode == PIN_IRQ_MODE_FALLING)
     {
-        gpio_dev.irq_desc[pin].mode = GMODE_INPUT_PULLUP;
+        gpio_dev.irq_desc[pin].mode = GPIO_INT_LEVEL_FALLING;
     }
     return 0;
 }

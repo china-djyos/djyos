@@ -110,7 +110,7 @@ static DD_INIT_S dd_init_tbl[] =
 
     {PWM_DEV_NAME,          pwm_init,                   pwm_exit},
 #if (CFG_SOC_NAME != SOC_BK7231)
-//    {TIMER_DEV_NAME,        bk_timer_init,              bk_timer_exit},
+    {TIMER_DEV_NAME,        bk_timer_init,              bk_timer_exit},
 #endif
 //    {SPI_DEV_NAME,          spi_init,                   spi_exit},
 //

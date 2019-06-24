@@ -97,6 +97,32 @@ static void saradc_gpio_config(void)
 	        sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
             break;
         }
+#if (SOC_BK7221U == CFG_SOC_NAME)
+        case 4:
+        {
+            param = GFUNC_MODE_ADC4;
+            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+            break;
+        }
+        case 5:
+        {
+            param = GFUNC_MODE_ADC5;
+            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+            break;
+        }
+        case 6:
+        {
+            param = GFUNC_MODE_ADC6;
+            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+            break;
+        }
+        case 7:
+        {
+            param = GFUNC_MODE_ADC7;
+            sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+            break;
+        }
+#endif
         default:    
             break;
     }

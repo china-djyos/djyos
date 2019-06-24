@@ -104,6 +104,12 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#define TOUCH_KEY_DISINFECTANT  GPIO1   // 【消毒】按键
+#define TOUCH_KEY_WATER1        GPIO11  // 【记忆水量1】按键
+#define TOUCH_KEY_WATER2        GPIO10  // 【记忆水量2】按键
+#define TOUCH_KEY_LOCK_UNLOCK   GPIO9   // 【锁定解锁】按键
+#define TOUCH_KEY_TEMP_MINUS    GPIO6   // 【水温-】按键
+#define TOUCH_KEY_TEMP_PLUS     GPIO28  // 【水温+】按键
 
 u32 keyboard_scan(void);
 //----初始化键盘模块-----------------------------------------------------------
@@ -115,14 +121,15 @@ bool_t ModuleInstall_Keyboard(const char *dev_name)
 {
     static struct KeyBoardPrivate key_brd;
 
-    bk_gpio_config_input_pup(GPIO2);
-    bk_gpio_config_input_pup(GPIO3);
-    bk_gpio_config_input_pup(GPIO4);
-    bk_gpio_config_input_pup(GPIO6);
-
+    bk_gpio_config_input_pup(TOUCH_KEY_DISINFECTANT);
+    bk_gpio_config_input_pup(TOUCH_KEY_WATER1);
+    bk_gpio_config_input_pup(TOUCH_KEY_WATER2);
+    bk_gpio_config_input_pup(TOUCH_KEY_LOCK_UNLOCK);
+    bk_gpio_config_input_pup(TOUCH_KEY_TEMP_MINUS);
+    bk_gpio_config_input_pup(TOUCH_KEY_TEMP_PLUS);
 
     key_brd.read_keyboard = keyboard_scan;
-    Keyboard_InstallDevice(dev_name,&key_brd);
+    Keyboard_InstallDevice(dev_name, &key_brd);
     key_brd.vtime_limit = 0;
     key_brd.vtime_count = 100;
     key_brd.key_bak = 0;
@@ -135,11 +142,6 @@ bool_t ModuleInstall_Keyboard(const char *dev_name)
 //功能: 读取键盘按键状态，每个按键用8bit表示，32位返回值可以存放4个按键。扫描到
 //      的第一个按键放在最低8位，第四个按键放在最高8位。扫描到4个按键后，不再继
 //      续，若同时按下超过4个按键，只记录4个。
-//注：
-//KEY_0---上拉------H3
-//KEY_1---上拉------H2
-//KEY_2---上拉-----C13
-//KEY_UP--下拉-----A0
 //返回:  参见 struct KeyBoardPrivate中注释
 //----------------------------------------------------------------------------
 u32 keyboard_scan(void)
@@ -148,28 +150,46 @@ u32 keyboard_scan(void)
     uint8_t i = 0;
     readed = 0;
 
-    if (gpio_input(GPIO2))
+    if (0 == gpio_input(TOUCH_KEY_LOCK_UNLOCK))
     {
         readed |= (u32)(1<<(i<<3));
         i++;
     }
 
-    if (gpio_input(GPIO3))
+    if (0 == gpio_input(TOUCH_KEY_WATER1))
     {
         readed |= (u32)(2<<(i<<3));
         i++;
     }
 
-    if (gpio_input(GPIO4))
+    if (0 == gpio_input(TOUCH_KEY_WATER2))
     {
         readed |= (u32)(3<<(i<<3));
         i++;
     }
 
-    if (gpio_input(GPIO6))
+    if (0 == gpio_input(TOUCH_KEY_DISINFECTANT))
     {
         readed |= (u32)(4<<(i<<3));
         i++;
+    }
+
+    if (i < 4)
+    {
+        if (0 == gpio_input(TOUCH_KEY_TEMP_MINUS))
+        {
+            readed |= (u32)(5<<(i<<3));
+            i++;
+        }
+    }
+
+    if (i < 4)
+    {
+        if (0 == gpio_input(TOUCH_KEY_TEMP_PLUS))
+        {
+            readed |= (u32)(6<<(i<<3));
+            i++;
+        }
     }
     return(readed);
 }

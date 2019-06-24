@@ -323,14 +323,14 @@ static void gpio_enable_second_function(UINT32 func_mode)
         break;
 
     case GFUNC_MODE_ADC4:
-        start_index = 2;
-        end_index = 2;
+        start_index = 3;
+        end_index = 3;
         pmode = PERIAL_MODE_2;
         break; 
 
     case GFUNC_MODE_ADC5:
-        start_index = 3;
-        end_index = 3;
+        start_index = 2;
+        end_index = 2;
         pmode = PERIAL_MODE_2;
         break;
 
@@ -440,6 +440,11 @@ void gpio_output(UINT32 id, UINT32 val)
 //        WARN_PRT("gpio_output_fail\r\n");
         goto output_exit;
     }
+
+    #if (CFG_SOC_NAME != SOC_BK7231)
+    if(id >= GPIO32)
+        id += 16;
+    #endif // (CFG_SOC_NAME != SOC_BK7231)
 
     gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
     reg_val = REG_READ(gpio_cfg_addr);
