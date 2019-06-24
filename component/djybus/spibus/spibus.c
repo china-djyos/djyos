@@ -164,6 +164,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
     NewSPI->HostObj           = SpiDev;
     NewSPI->ErrorPopEvtt      = CN_EVTT_ID_INVALID;
     NewSPI->SpecificFlag      = NewSPIParam->SpecificFlag;
+    NewSPI->MultiCsReg        = NewSPIParam->MultiCSRegFlag;
     NewSPI->pTransferTxRx     = NewSPIParam->pTransferTxRx;
     NewSPI->pCsActive         = NewSPIParam->pCsActive;
     NewSPI->pCsInActive       = NewSPIParam->pCsInActive;
@@ -736,6 +737,7 @@ s32 SPI_BusCtrl(struct SPI_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
         SPI->ErrorPopEvtt = data1;
         break;
     case CN_SPI_SET_POLL:
+        result = SPI->pBusCtrl(SPI->SpecificFlag,cmd,data1,data2);
         SPI->Flag |=  CN_SPI_FLAG_POLL;
         break;
     case CN_SPI_SET_INT:

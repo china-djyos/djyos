@@ -155,10 +155,11 @@ typedef struct
     ptu32_t       para;         //操作类型指定的参数
 }tagWdtMsg;
 
+#define CN_WDTEXP_NAMELEN_LIMIT 16
 //看门狗异常信息组织结构
 struct WdtExpInfo
 {
-    char       wdtname[CN_BLACKBOX_NAMELEN_LIMIT];    //异常的看门狗的名字
+    char       wdtname[CN_WDTEXP_NAMELEN_LIMIT];    //异常的看门狗的名字
     tagWdt     wdt;                              //异常的看门狗
 };
 
@@ -221,13 +222,13 @@ enum EN_BlackBoxAction __Wdt_TrowWdtExp(enum EN_BlackBoxAction WdtAction,
     struct BlackBoxThrowPara  parahead;
     struct WdtExpInfo wdtexp;
     wdtexp.wdt = *wdt;
-    memcpy(wdtexp.wdtname,wdt->pname,CN_BLACKBOX_NAMELEN_LIMIT);
+    memcpy(wdtexp.wdtname,wdt->pname,CN_WDTEXP_NAMELEN_LIMIT);
     parahead.DecoderName = CN_WDT_EXPDECODERNAME;
     parahead.BlackBoxAction = WdtAction;
     parahead.BlackBoxInfo = (u8 *)&wdtexp;
     parahead.BlackBoxInfoLen = sizeof(wdtexp);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_WDT;
-    return BlackBox_Recorder(&parahead);
+    return BlackBox_ThrowExp(&parahead);
 }
 
 // =============================================================================

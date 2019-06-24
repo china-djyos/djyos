@@ -77,13 +77,12 @@ void __memcpyByteByByte(u8 *dest, u8 *src, u32 len)
 }
 
 // =============================================================================
-// 函数功能：BlackBox_Record
-//           记录一帧异常信息
+// 函数功能：记录一帧异常信息
 // 输入参数：recordpara，需要记录的异常信息
 // 输出参数：
 // 返回值  ：见enum EN_BlackBoxDealResult定义
 // =============================================================================
-enum EN_BlackBoxDealResult BlackBox_Record(struct BlackBoxRecordPara *recordpara)
+enum EN_BlackBoxDealResult __BlackBox_Record(struct BlackBoxRecordPara *recordpara)
 {
     u32 result;
     if(NULL != s_tBlackBoxRecordOpt.fnBlackBoxRecordSave)
@@ -97,8 +96,7 @@ enum EN_BlackBoxDealResult BlackBox_Record(struct BlackBoxRecordPara *recordpara
     return result;
 }
 // =============================================================================
-// 函数功能：BlackBox_RecordClear
-//          清除所有的异常信息，清除异常信息存储区域
+// 函数功能：清除所有的异常信息，清除异常信息存储区域
 // 输入参数：无
 // 输出参数：无
 // 返回值  ：true 成功， false失败
@@ -115,8 +113,7 @@ bool_t BlackBox_RecordClear(void)
     }
 }
 // =============================================================================
-// 函数功能：BlackBox_RecordCheckNum
-//          查看一共存储了多少条异常信息
+// 函数功能：查看一共存储了多少条异常信息
 // 输入参数：无
 // 输出参数：recordnum,返回的异常信息条目数
 // 返回值  ：false,失败 true成功
@@ -135,8 +132,7 @@ bool_t BlackBox_RecordCheckNum(u32 *recordnum)
 }
 
 // =============================================================================
-// 函数功能：BlackBox_RecordCheckLen
-//          查看指定条目的异常信息的长度
+// 函数功能：查看指定条目的异常信息的长度
 // 输入参数：assignedno,指定的异常帧条目
 // 输出参数：recordlen,用于存储指定异常条目的长度
 // 返回值  ：false,失败 true成功
@@ -155,10 +151,9 @@ bool_t BlackBox_RecordCheckLen(u32 assignedno, u32 *recordlen)
     return result;
 }
 // =============================================================================
-// 函数功能：BlackBox_RecordGet
-//          从存储介质中获取指定条目的异常帧信息
+// 函数功能：从存储介质中获取指定条目的异常帧信息
 // 输入参数：assignedno,指定的异常帧条目(第几条异常条目)
-//          buflenlimit,系统异常帧的长度，限制长度是因为避免拷贝越界
+//          buflenlimit,缓冲区长度
 // 输出参数：buf,用于存储获取指定条目的异常信息
 //          recordpara,异常信息存储时的参数，在此是对buf的各个部分的定义
 // 返回值  ：true 成功 false失败
@@ -178,8 +173,7 @@ bool_t BlackBox_RecordGet(u32 assignedno, u32 buflenlimit, u8 *buf, \
     return result;
 }
 // =============================================================================
-// 函数功能：BlackBox_RegisterRecordOpt
-//          注册异常信息处理方法
+// 函数功能：注册异常信息存储方法
 // 输入参数：opt,需要注册的异常信息处理方法
 // 输出参数：无
 // 返回值  ：false,失败  true成功
@@ -226,8 +220,7 @@ bool_t  BlackBox_RegisterRecorder(struct BlackBoxRecordOperate *opt)
     return result;
 }
 // =============================================================================
-// 函数功能：BlackBox_UnRegisterRecordOpt
-//           注销异常信息处理方法
+// 函数功能：注销异常信息处理方法
 // 输入参数：无
 // 输出参数：无
 // 返回值  ：true成功  false失败

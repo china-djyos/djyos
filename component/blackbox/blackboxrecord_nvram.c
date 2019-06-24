@@ -48,8 +48,10 @@
 //-----------------------------------------------------------------------------
 // =============================================================================
 
-// 文件名     ：brdblackbox.c
-// 模块描述: 异常模块存储与解读，将AT45的最好1M配置为异常存储
+// 文件名  ：brdblackbox.c
+// 模块描述: 黑盒子模块异常信息存储模块，适用场合：1、NVRAM中存储异常信息，有些工程设计
+//          有一小片RAM，是由RTC电池供电的（例如STM32片内有4K），掉电不丢失。2、对于
+//          允许字节为单位擦写的EEPROM，也可以参照这个编写。
 // 模块版本: V1.00
 // 创建人员: HM
 // 创建时间: 12/03.2016
@@ -63,12 +65,7 @@
 #include <blackbox.h>
 #include <shell.h>
 #include "dbug.h"
-//for some cpu or project,they has some external or internal memory which will
-//maintain their data when the board power off(they use the back up power)
-//for the ST mcu,they has a 4KB internal ram on the chip use the back up power
-//and generally,you could use the module for all the line memory
-//you could also use it on the media of nor or nand flash,if the flash could read
-//or write in bytes, and the header of the flash could write many many times
+
 #define CN_ITEM_STATE_INUSE  (1<<0)
 #define CN_ITEM_STATE_HEAD   (1<<1)
 #define CN_ITEM_STATE_TAIL   (1<<2)
@@ -696,6 +693,7 @@ static void __RecordScan(void)
         if(ret == false)
         {
             debug_printf("null","Item Get Failed,will do the format!\n\r");
+            __LineMemDiskFormat();
         }
     }
     return;
@@ -801,7 +799,7 @@ bool_t linemem(char *param)
 // 输出参数：
 // 返回值  ：
 // =============================================================================
-bool_t LineMemBlackBoxRecord_Config(tagBlackBoxLowLevelOpt *lopt,u16 memsize)
+bool_t BlackBox_NvramRecordRegister(tagBlackBoxLowLevelOpt *lopt,u16 memsize)
 {
     bool_t ret = false;
     struct BlackBoxRecordOperate BlackBoxOpt;
@@ -847,7 +845,7 @@ bool_t LineMemBlackBoxRecord_Config(tagBlackBoxLowLevelOpt *lopt,u16 memsize)
 // 输出参数：
 // 返回值  ：true configure success while false failed
 // =============================================================================
-bool_t LineMemBlackBoxRecord_ConfigTest(tagBlackBoxLowLevelOpt *lopt,u16 memsize,u32 maxlen,bool_t autotest,bool_t debugmsg)
+bool_t BlackBox_NvramRecordRegisterTest(tagBlackBoxLowLevelOpt *lopt,u16 memsize,u32 maxlen,bool_t autotest,bool_t debugmsg)
 {
 
     bool_t ret = false;

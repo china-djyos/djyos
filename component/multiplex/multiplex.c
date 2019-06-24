@@ -577,16 +577,20 @@ s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
     //判断或等待直到MultiplexSets被触发。
     if (!Sets->SetsActived)
     {
-        if(false ==Lock_SempPend(&Sets->Lock, Timeout))
-        {
-            return ret; //没有触发行为且原来是未触发状态
-        }
+        Lock_SempPend(&Sets->Lock, Timeout);
+        //下列代码注释原因：如果已经有fd被触发，但还没达到ActiveLevel，这种情况也要在超时
+        //之时返回fd
+//      if(false ==Lock_SempPend(&Sets->Lock, Timeout))
+//      {
+//          return ret; //没有触发行为且原来是未触发状态
+//      }
     }
     Int_SaveAsynSignal();
     if (Sets->ActiveQ != NULL)
     {   //阻塞等待结束后，Actived非空即视为触发。Lock_SempPend超时返回，此时
-        //ActiveQ可能NULL（无对象被触发），也可能非空（有对象触发，但未达到ActiveLevel）
-
+        //ActiveQ可能NULL（无对象被触发），也可能非空（有对象触发，但未达到ActiveLevel，
+        //此时要人工设为已触发）
+        Sets->SetsActived = true;
         Object = Sets->ActiveQ;
         ret = Object->Fd;
         if(Object->SensingBit & CN_MULTIPLEX_SENSINGBIT_ET)

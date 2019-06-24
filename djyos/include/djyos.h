@@ -315,6 +315,7 @@ enum enSwitchType
 };
 typedef void (*SchHookFunc)(ucpu_t SchType);
 
+#define CN_EVTTNAME_LIMIT   32
 struct EventType
 {
     //同一类型的事件可以有多条正在执行或等待调度,但这些事件有相同的属性.
@@ -329,7 +330,7 @@ struct EventType
     // event_id: 切入或切离的事件ID
     SchHookFunc SchHook;
 #if CFG_OS_TINY == false
-    char evtt_name[32]; //事件类型允许没有名字，但只要有名字，就不允许同名
+    char evtt_name[CN_EVTTNAME_LIMIT]; //事件类型允许没有名字，但只要有名字，就不允许同名
                         //如果一个类型只在模块内部使用，可以不用名字。
                         //如模块间需要交叉弹出事件，用名字访问。
 #endif  //CFG_OS_TINY == false
