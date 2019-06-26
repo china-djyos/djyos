@@ -280,7 +280,7 @@ enum EN_BlackBoxAction Exp_MemManageFaultHandler(u32 fpu_used,u32 *core_info)
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_MEMMANAGE_FAULT;
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
-   Action = BlackBox_Recorder(&head);
+   Action = BlackBox_ThrowExp(&head);
 
    //recovethe shedule
     g_bScheduleEnable = shedule_bak;
@@ -354,7 +354,7 @@ enum EN_BlackBoxAction Exp_HardFaultHandler(u32 fpu_used,u32 *core_info)
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_HARD_FAULT;
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
-   Action = BlackBox_Recorder(&head);
+   Action = BlackBox_ThrowExp(&head);
 
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
@@ -489,7 +489,7 @@ enum EN_BlackBoxAction Exp_BusFaultHandler(u32 fpu_used,u32 *core_info)
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_BUS_FAULT;
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
-   Action = BlackBox_Recorder(&head);
+   Action = BlackBox_ThrowExp(&head);
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
 
@@ -577,7 +577,7 @@ enum EN_BlackBoxAction Exp_UsageFaultHandler(u32 fpu_used,u32 *core_info)
    head.DecoderName = CN_HARDEXP_DECODERNAME;
    head.BlackBoxType = CN_EXP_TYPE_USAGE_FAULT;
 
-   Action = BlackBox_Recorder(&head);
+   Action = BlackBox_ThrowExp(&head);
    HardExp_Analysis(&head,CN_CFG_BYTE_ORDER);
     //recovethe shedule
     g_bScheduleEnable = shedule_bak;
