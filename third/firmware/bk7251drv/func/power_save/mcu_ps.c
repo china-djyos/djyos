@@ -91,9 +91,10 @@ UINT32 mcu_power_save(UINT32 sleep_tick)
 {
     UINT32 sleep_ms, sleep_pwm_t, param, miss_ticks = 0;
     UINT32 real_sleep_ms, start_sleep, ret, front_ms, wkup_type,reg;
-    GLOBAL_INT_DECLARATION();
-    GLOBAL_INT_DISABLE();
+//  GLOBAL_INT_DECLARATION();   //by djyos
+//  GLOBAL_INT_DISABLE();   //by djyos
 
+//    printf("sp = %s \n\r",&reg);
     if(mcu_ps_info.mcu_ps_on == 1
             && (peri_busy_count_get() == 0)
             && (mcu_prevent_get() == 0)
@@ -165,7 +166,7 @@ UINT32 mcu_power_save(UINT32 sleep_tick)
 
     DjyUpdateTicks(miss_ticks);
     DjySetUpdateTickFlag(true);
-    GLOBAL_INT_RESTORE();
+//  GLOBAL_INT_RESTORE();       //by djyos
     ASSERT(miss_ticks >= 0);
     return miss_ticks;
 }
@@ -283,13 +284,13 @@ void timer3_isr(UINT8 param)
 
 void mcu_init_timer3(void)
 {
-	timer_param_t param;
-	param.channel = 3;
-	param.div = 1;
-	param.period = 50 * 32;
-	param.t_Int_Handler= timer3_isr;
+    timer_param_t param;
+    param.channel = 3;
+    param.div = 1;
+    param.period = 50 * 32;
+    param.t_Int_Handler= timer3_isr;
 
-	sddev_control(TIMER_DEV_NAME, CMD_TIMER_INIT_PARAM, &param);
+    sddev_control(TIMER_DEV_NAME, CMD_TIMER_INIT_PARAM, &param);
 }
 #endif
 

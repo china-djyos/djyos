@@ -52,7 +52,7 @@
 struct LowPowerCtrl
 {
     u32 SleepLevel;                             //当前低功耗级别
-    u32 TriggerTick;
+//  u32 TriggerTick;
     u32 DisableCounter;     //禁止低功耗次数计数,0才可以进入L1及以上级别低功耗
     u32 (*EntrySleepReCall)(u32 SleepLevel);      //进入低功耗状态前的回调函数
     u32 (*ExitSleepReCall)(u32 SleepLevel);       //从低功耗状态唤醒后的回调函数
@@ -169,22 +169,22 @@ u32 LP_GetSleepLevel(void)
     return g_tLowPower.SleepLevel;
 }
 
-void LP_SetTriggerTick(u32 tick)
-{
-    atom_low_t atom_bak;
-    atom_bak = Int_LowAtomStart();
-    if(tick<LP_DEFAULT_TRIGGER_TICK)
-        return;
-    else
-        g_tLowPower.TriggerTick = tick;
-    Int_LowAtomEnd(atom_bak);
-}
-
-u32 LP_GetTriggerTick(void)
-{
-    return g_tLowPower.TriggerTick;
-}
-
+//void LP_SetTriggerTick(u32 tick)
+//{
+//    atom_low_t atom_bak;
+//    atom_bak = Int_LowAtomStart();
+//    if(tick<LP_DEFAULT_TRIGGER_TICK)
+//        return;
+//    else
+//        g_tLowPower.TriggerTick = tick;
+//    Int_LowAtomEnd(atom_bak);
+//}
+//
+//u32 LP_GetTriggerTick(void)
+//{
+//    return g_tLowPower.TriggerTick;
+//}
+//
 void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
                 u32 (*ExitSleepReCall)(u32 SleepLevel))
 {
@@ -210,7 +210,7 @@ void ModuleInstall_LowPower (void)
     g_tLowPower.EntrySleepReCall = EmptyReCall;
     g_tLowPower.ExitSleepReCall = EmptyReCall;
     g_tLowPower.SleepLevel = CN_SLEEP_NORMAL;
-    g_tLowPower.TriggerTick = CN_LIMIT_UINT32;
+//    g_tLowPower.TriggerTick = CN_LIMIT_UINT32;
     g_tLowPower.DisableCounter = 0;
     g_fnEntryLowPower = LP_EntryLowPower;
     return ;

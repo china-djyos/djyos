@@ -3456,7 +3456,7 @@ ptu32_t __Djy_Service(void)
         {
             now_tick = __DjyGetTicks();
             int_tick = (gSchduleTick.DelayTick<gSchduleTick.RRSTicks)?(gSchduleTick.DelayTick):(gSchduleTick.RRSTicks);
-            while(int_tick<now_tick);
+//          while(int_tick<now_tick);
             pend_ticks = int_tick - now_tick;
             g_fnEntryLowPower(g_ptEventRunning->vm,pend_ticks);      //½øÈëµÍ¹¦ºÄ×´Ì¬
 
