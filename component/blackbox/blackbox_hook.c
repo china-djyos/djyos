@@ -62,15 +62,14 @@ static fnBlackBox_Hook   s_fnBlackBoxHookDealer = NULL;
 static fnBlackBox_HookParse  s_fnBlackBoxHookInfoDecoder = NULL;
 
 // =============================================================================
-// 函数功能:BlackBox_HookDealer
-//          执行HOOKDealer
+// 函数功能: 执行HOOKDealer
 // 输入参数:throwpara,异常抛出者抛出的异常参数
 // 输出参数:infoaddr, 存储异常信息的地址
 //          infolen,存储搜集信息长度
 //          BlackBoxAction,保存处理结果，当没有HOOK时，该值无效
 // 返回值  :true成功  false 失败（没有注册等因素，钩子结果不用采纳）
 // =============================================================================
-bool_t BlackBox_HookDealer(struct BlackBoxThrowPara *throwpara,\
+bool_t __BlackBox_HookDealer(struct BlackBoxThrowPara *throwpara,\
                           ptu32_t *infoaddr,u32 *infolen,enum EN_BlackBoxAction *BlackBoxAction)
 {
     if(NULL != s_fnBlackBoxHookDealer)
@@ -87,8 +86,7 @@ bool_t BlackBox_HookDealer(struct BlackBoxThrowPara *throwpara,\
     }
 }
 // =============================================================================
-// 函数功能:BlackBox_HookInfoDecoder
-//          执行HOOKDecoder
+// 函数功能: 执行HOOKDecoder
 // 输入参数:throwpara, 异常参数，hook能解就解，不能解就算了
 //          infoaddr, 信息存储地址
 //          infolen, 信息有效长度
@@ -96,7 +94,7 @@ bool_t BlackBox_HookDealer(struct BlackBoxThrowPara *throwpara,\
 // 输出参数:无
 // 返回值  :true成功  false 失败（没有注册等因素）
 // =============================================================================
-bool_t BlackBox_HookInfoDecoder(struct BlackBoxThrowPara *throwpara,\
+bool_t __BlackBox_HookInfoDecoder(struct BlackBoxThrowPara *throwpara,\
                            ptu32_t infoaddr, u32 infolen,u32 endian)
 {
     if(NULL != s_fnBlackBoxHookInfoDecoder)
@@ -121,7 +119,7 @@ bool_t BlackBox_HookInfoDecoder(struct BlackBoxThrowPara *throwpara,\
 // 返回值  ：true成功  false失败
 // =============================================================================
 bool_t BlackBox_RegisterHook(fnBlackBox_Hook  fnHookFunc,
-                        fnBlackBox_HookParse fnHookParse)
+                             fnBlackBox_HookParse fnHookParse)
 {
     s_fnBlackBoxHookDealer = fnHookFunc;
     s_fnBlackBoxHookInfoDecoder = fnHookParse;

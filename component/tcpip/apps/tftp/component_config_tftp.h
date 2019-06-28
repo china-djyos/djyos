@@ -81,14 +81,12 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_TFTP == false )
+//#warning  " tftp  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#if(CFG_MODULE_ENABLE_TFTP == false)//****检查参数是否已经配置好
-#warning    tcpip tftp组件参数未配置，使用默认值
-#define CFG_MODULE_ENABLE_TFTP  false
+#define CFG_MODULE_ENABLE_TFTP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,,,
 //%$#@enum,true,false,
-#define     CFG_FTPD_ENABLE             true    //"ftp 服务器使能"
-#define     CFG_FTPC_ENABLE             false   //"ftp 客户端使能"
 //%$#@string,1,256,
 #define     CFG_TFTP_PATHDEFAULT       "/"   //TFTP默认工作目录
 //%$#@select

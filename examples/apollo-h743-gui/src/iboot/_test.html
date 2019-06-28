@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <title>智家卫士</title>
+    <style>body, html {
+        height: 100%
+    }
+
+    body {
+        background: #f6f6f6;
+        color: #333;
+        font-size: 9pt
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        border-radius: 10px
+    }
+
+    a {
+        color: #30b0f8;
+        text-decoration: none
+    }
+
+    img {
+        border: 0
+    }
+
+    th, var {
+        font-weight: 400;
+        font-style: normal
+    }
+
+    ul {
+        list-style: none;
+        margin-left: 5px;
+        margin-right: 5px
+    }
+
+    th {
+        text-align: left
+    }
+
+    input[type=password], input[type=text] {
+        height: 38px;
+        border: none;
+        margin-left: 8px;
+        font-size: 20px;
+        color: #5a6779 !important
+    }
+
+    input:-webkit-autofill {
+        box-shadow: 0 0 0 750pt #fff inset
+    }
+
+    .ft .current {
+        color: #9b9b9b
+    }
+
+    .ft-b a {
+        padding: 0 10px
+    }
+
+    .G-main {
+        min-height: 250px;
+        font-family: fantasy
+    }
+
+    .G-btn, .btn-blue {
+        display: block;
+        height: 60px;
+        border-radius: 10px;
+        background-color: #0097e5;
+        background-clip: padding-box;
+        color: #fff;
+        text-align: center;
+        font-size: 18px;
+        line-height: 60px
+    }
+
+    .G-form-list {
+        border: 1px solid #c9caca;
+        background: #fff
+    }
+
+    .G-form-list li {
+        border-bottom: 1px solid #c9caca;
+        position: relative;
+        padding-left: 5pc;
+        height: 60px;
+        line-height: 61px
+    }
+
+    .G-form-list li:last-child {
+        border: none
+    }
+
+    .G-form-list li .label {
+        float: left;
+        margin-left: -60px;
+        font-size: 1.7em;
+        color: #929292
+    }
+
+    .G-form-list li .flow-error {
+        position: absolute;
+        top: 0;
+        right: 10px;
+        height: 50px;
+        line-height: 50px
+    }
+
+    .G-function-panel dt {
+        padding: 0 10px;
+        height: 40px;
+        color: #9b9b9b;
+        font-size: 9pt;
+        line-height: 40px
+    }
+
+    .G-btn-bar, .btn-bar {
+        margin-top: 15px;
+        padding: 0 10px;
+        text-align: center
+    }
+
+    .G-dialog {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, .5)
+    }
+
+    .G-dialog .inner {
+        margin: 30% auto 0;
+        width: 75%;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        background: #fff
+    }
+
+    .G-confirm-btn-bar {
+        margin: 20px auto;
+        width: 75%;
+        font-family: sans-serif
+    }
+
+    .G-confirm-btn-bar .btn {
+        display: inline-block;
+        width: 48%;
+        height: 40px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 1pc;
+        line-height: 40px
+    }
+
+    .G-confirm-btn-bar .btn-ok {
+        float: right;
+        background: #1898e2;
+        color: #fff
+    }
+
+    .G-confirm-btn-bar .btn-cancel {
+        background: #fff;
+        color: #474545
+    }
+
+    .G-dialog .tip-text {
+        margin: 10px 0;
+        color: #1898e2;
+        text-align: center;
+        font-size: 1pc
+    }
+
+    .G-dialog .tip-info {
+        margin: 10px 0;
+        color: #595757;
+        text-align: center;
+        font-size: 9pt
+    }
+
+    .G-head-tit {
+        margin-bottom: 10px;
+        font-size: 1.8em
+    }
+
+    .net-head-info {
+        padding: 35px 0 25px;
+        text-align: center;
+        font-size: 14px
+    }
+
+    .check-list ul {
+        padding-left: 10px
+    }
+
+    .check-list li {
+        height: 40px;
+        border-bottom: 1px solid #c9caca;
+        color: #1898e2;
+        text-indent: 60px;
+        font-size: 1pc;
+        line-height: 40px
+    }
+
+    .search-handl {
+        position: absolute;
+        right: 0;
+        width: 5pc;
+        border-left: 1px solid #c9caca;
+        text-align: center;
+        font-size: 1pc
+    }
+
+    .G-select-dialog {
+        z-index: 9;
+        margin: auto;
+        height: 15pc;
+        border: 1px solid #90bfdb;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        background: #fff;
+        font-family: sans-serif
+    }
+
+    .G-select-dialog.normal {
+        z-index: 9;
+        overflow: hidden
+    }
+
+    .G-select-dialog li {
+        position: relative;
+        overflow: hidden;
+        padding: 2px 60px 10px 20px;
+        height: 45px;
+        border-bottom: 1px solid #90bfdb;
+        word-wrap: break-word;
+        line-height: 45px;
+        word-break: break-all
+    }
+
+    .G-select-dialog li p {
+        overflow: hidden;
+        height: 20px;
+        line-height: 20px
+    }
+
+    .G-select-dialog li a {
+        text-decoration: none
+    }
+
+    .G-select-dialog li .name {
+        color: #474545
+    }
+
+    .G-select-dialog li .right {
+        float: right;
+        margin-right: -55px
+    }
+
+    .G-select-dialog li.current {
+        background: #e3f3ff
+    }
+
+    .G-select-dialog li.current .G-radio span {
+        visibility: visible
+    }
+
+    .wifi-list {
+        overflow: hidden;
+        height: 366px
+    }
+
+    .wifi-list .wifi-list-inner {
+        position: relative;
+        overflow-y: scroll;
+        height: 300px
+    }
+
+    .wifi-list .wifi-list-inner ul {
+        padding-bottom: 9pt
+    }
+
+    .wifi-list li .text {
+        overflow: hidden;
+        height: 34px;
+        word-wrap: break-word;
+        line-height: 34px;
+        word-break: break-all
+    }
+
+    .wifi-list li {
+        overflow: inherit;
+        padding-left: 10px;
+        height: 23px;
+        font-size: 18px;
+        line-height: 34px;
+        border-radius: 0
+    }
+
+    .wifi-list li.current {
+        background: 0 0;
+        font-weight: 700
+    }
+
+    .wifi-list .tit {
+        position: relative;
+        padding: 10px 20px;
+        height: 40px;
+        border-bottom: 1px solid #90bfdb;
+        text-align: center;
+        font-size: 20px;
+        line-height: 40px;
+        border-radius: 0
+    }
+
+    .wifi-list li .right {
+        position: absolute;
+        right: 20px;
+        right: 8px;
+        margin-right: 0;
+        width: 60px
+    }</style>
+    <script type="text/javascript">function getHttpObj() {
+        var e = null;
+        try {
+            e = new ActiveXObject("Msxml2.XMLHTTP")
+        } catch (t) {
+            try {
+                e = new ActiveXObject("Microsoft.XMLHTTP")
+            } catch (n) {
+                e = new XMLHttpRequest
+            }
+        }
+        return e
+    }
+
+    function getWiFiInfo() {
+        if (0 != exitCount && (exitCount++, exitCount > 5 && (exitCount = 0, close())), 0 == curStatus) {
+            var oAjax = new XMLHttpRequest;
+            oAjax.onreadystatechange = function () {
+                if (4 == oAjax.readyState && 200 == oAjax.status) {
+                    var str = oAjax.responseText;
+                    json = eval("(" + str + ")")
+                }
+            }, oAjax.open("GET", "getwifiinfo.html", !0), oAjax.send()
+        } else if (1 == curStatus) {
+            var ns = document.getElementsByName("conbtn");
+            ns[0].innerHTML = "正在连接", ns[0].style.backgroundColor = "#d4d4d4";
+            var oAjax = new XMLHttpRequest;
+            oAjax.onreadystatechange = function () {
+                if (4 == oAjax.readyState && 200 == oAjax.status) {
+                    var str = oAjax.responseText, xjson = eval("(" + str + ")");
+                    curStatus = 0
+                }
+            }, oAjax.open("GET", "conwifi.html?ssid=" + choseSSID + "&pwd=" + chosePWD, !0), oAjax.send()
+        }
+        1 == wificlick && (wificlick = 0);
+        var ns = document.getElementsByName("wisp_conn_status");
+        if (null == json) ns[0].innerHTML = "搜索网络中"; else {
+            var cs = parseInt(json.CS);
+            if (vmac = json.MAC, vtype = json.TYPE, pass = json.PASS, 0 == cs ? ns[0].innerHTML = "等待配置" : 1 == cs ? ns[0].innerHTML = "配置中，请稍后..." : 2 == cs ? ns[0].innerHTML = "配置成功" : 3 == cs && (ns[0].innerHTML = "网络配置失败，请重新操作"), 2 == cs) {
+                var u = navigator.userAgent, xurl, isAndroid = -1 < u.indexOf("Android") || -1 < u.indexOf("Adr");
+                if (isAndroid) {
+                    var xhr = getHttpObj();
+                    console.log("start android app"), xurl = "http://127.0.0.1:8856/openwith?did=" + vmac + "&type=" + vtype + "&pass=" + pass, xhr.open("GET", xurl, !0), xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;"), xhr.onreadystatechange = function () {
+                        console.log(xhr.responseText), 4 == xhr.readyState && 200 == xhr.status && console.log(xhr.responseText)
+                    }, xhr.send(null)
+                } else onsole.log("start ios app"), xurl = "mqttsmart://mqttsmart.app/openwith?did=" + vmac + "&type=" + vtype + "&pass=" + pass, window.location.href = xurl
+            }
+        }
+    }
+
+    function GetLength(e) {
+        return e.replace(/[\u0391-\uFFE5]/g, "aa").length
+    }
+
+    function conWifi() {
+        var e = document.getElementsByName("key"), t = document.getElementsByName("ssid");
+        -1 != t[0].value.indexOf(" ") && alert("SSID中不能含有空格"), -1 != e[0].value.indexOf(" ") && alert("密码中不能含有空格"), null != e[0] && 8 <= GetLength(e[0].value) && null != t[0] && 0 < GetLength(t[0].value) ? (curStatus = 1, chosePWD = e[0].value, choseSSID = t[0].value, console.trace("SSID:" + t[0].value + " PWD:" + e[0].value + " Len:" + GetLength(e[0].value))) : alert("账号或密码异常!"), wificlick = 1, exitCount = 1
+    }
+
+    function search_wifi() {
+        var e = document.getElementsByName("ssid"), t = new Array;
+        if (null == json) alert("正在搜索中,请稍后或手动输入..."); else {
+            for (var n = parseInt(json.APLEN), s = 0; n > s; s++) {
+                var a = json.AP[s].AP;
+                t.push(a)
+            }
+            var o = '<div class="G-select-dialog wifi-list"><div class="tit">请选择您的WiFi</div><div class="wifi-list-inner"><ul style="text-align: left;">';
+            for (s = 0; s < t.length; s++) o += '<li  ><a href="javascript:;" class="J_click_area"><div class="text">' + t[s] + "</div></a></li>";
+            o += "</ul></div>", HiWiFi.dialog({
+                type: "confirm",
+                content: o,
+                disable_touchmove: !1,
+                buttons: {
+                    ok: {
+                        click: function () {
+                            e[0].value = choseSSID, HiWiFi.dialog.close()
+                        }
+                    }, cancel: {}
+                },
+                click: function (e) {
+                    var t = e.target.parentNode, n = document.getElementsByClassName("J_click_area"),
+                        s = document.getElementsByClassName("right");
+                    if (null != t && "J_click_area" == t.className) {
+                        for (var a = 0; a < n.length; a++) n[a].parentNode.classList.remove("current");
+                        null != s && 0 < s.length && s[0].parentNode.removeChild(s[0]), choseSSID = t.text, t.parentNode.classList.add("current");
+                        var o = document.createElement("div");
+                        o.setAttribute("class", "right");
+                        var i = document.createTextNode("√");
+                        o.appendChild(i), t.insertBefore(o, t.childNodes[0]), console.trace("ssid:" + t.parentNode.innerHTML + "Len:" + t.childNodes.length)
+                    }
+                }
+            }).show()
+        }
+    }
+
+    var timer = window.setInterval(getWiFiInfo, 1e3), choseSSID, chosePWD, vtype = null, vmac = null, json = null,
+        pass = null, curStatus = 0, exitCount = 0;
+    wificlick = 0;</script>
+</head>
+<body>
+<div class="G-main">
+    <form id="wisp_setup_form"><input type="hidden" name="bssid">
+        <div class="net-head-info"><img
+                src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAACigAwAEAAAAAQAAACgAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIACgAKAMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/3QAEAAP/2gAMAwEAAhEDEQA/APEqKKA6ggiRB/wIV/YR/MCTZ0vg34a+KfiDLJH4c8P6jrZiOJGsrcukZ9GkOEU+xYH2q14x+EXjP4f2y3PiLwzqekWrEAXNzBmHJ6DzULICfQsCa9H+G/xTsNe0W20LxTcaY1rpdvstE128mh0S1tkRQf8AQLXDXt27kn94eRkgggg6nib4s6N4F0pH8G3OhG7u0Ko/hX7TbadNGHCzQaho90WVdynKSIdxIPKgc/Mzx2PjifYxpK1+zt/4Hey81y37JrU+rhl+AeF9rKpra+6v/wCA9dfP/I+delFFFfTnyh//0PFre4ktJ45onKSxsHRh1DAgg/gQDXvvw3+L/wAXPiLrjWn/AAsK/wBJ0m0ha81XWJobXy9PtE/1kzZgwT/Cq/xMQOgbHgMUZllVAVBYhRuYKMk45J4A9zwOtfT3i34P6lpngiw8FeEtd8Jy6bIY7/W9UfxHbQvqd6B8iBSSRbwZwin7zZcjPJ/qHN54ZKFOtGPNK9nJJqK6vXrtZdXbom1+B5PHE3nOlJ8sbXSdrvov8/L5HnHxQ+Llx8YfirpeoMskWmWc1tY6fDcBfOECzp80xAG6Vz87dgSFH3cnL/aKUJ8dPHqqAqjWrjCgYA5HaqeteAL34beKdBj1S+0ifzp4pg+manFeIirMmS7J93156gE9jUvx+v7bU/jX44u7O4iu7WbWLh4p4XDo6kjBBHBHvTwlOjTr0o4X+GoSStt8Uf8Agjxk608NUeJ+NzV/uZwFFFFfQHzR/9HxLB9KNg/55p/3wP8ACpaK/sM/mJabEW3HRQv+6uKNp9MfQVLRQIiwfQ0YPoalopBY/9k="
+                style="height:60px;border-radius:33px">
+            <p class="G-head-tit">设置网络</p>
+            <p>输入名称/选择网络 -> 输入密码 -> 连接</p></div>
+        <div class="form-box" style="padding-left:10px;padding-right:10px">
+            <ul class="G-form-list i18n-en-wisp_G-form-list">
+                <li><label class="label">无线名称</label><input style="width:50%" type="text" name="ssid" placeholder=""
+                                                            class="input"> <a onclick="search_wifi()"><span
+                        class="search-handl">选择网络</span></a></li>
+                <li><label for="" class="label">无线密码</label><input style="width:80%" type="text" name="key"
+                                                                   placeholder="" class="input"></li>
+            </ul>
+        </div>
+        <div class="wisp-status-show" style="text-align:center;font-size:1pc;margin-top:15px"><span>连接状态:</span> <span
+                name="wisp_conn_status">...</span></div>
+        <div class="G-btn-bar"><a name="conbtn" href="javascript:;" class="btn-blue" onclick="conWifi()">连接</a></div>
+    </form>
+</div>
+<script>!function (e) {
+    var t;
+    t = "dialog_" + Math.floor(1e6 * Math.random());
+    var n = [], i = /[\t\r\n\f]/g, o = null, a = !0, c = function (e) {
+        var t = "";
+        if ("object" != typeof e) return "";
+        for (var n in e) t += n + ":" + e[n] + ";";
+        return t
+    }, r = function (e) {
+        for (var t in n) if (n[t] && n[t].type === e) return n[t].img_src
+    }, l = function (e, t) {
+        return t = " " + t + " ", 1 === (e = e || {}).nodeType && 0 <= (" " + e.className + " ").replace(i, " ").indexOf(t)
+    }, d = function (e) {
+        e && (e.preventDefault ? e.preventDefault() : e.returnValue = !1)
+    }, s = function (e, t, n) {
+        e && t && "object" == typeof e && 1 === e.nodeType && (n = "function" == typeof n ? n : function () {
+        }, e.addEventListener ? e.addEventListener(t, n, !1) : e.attachEvent && e.attachEvent("on" + t, n))
+    }, u = e.HiWiFi || {};
+    u.dialog = function (e) {
+        return u.dialog.content(e), u.dialog
+    }, u.dialog.content = function (n) {
+        if ("object" == typeof n) {
+            var i = n.type || "", d = (n.title, n.content || ""), s = n.buttons || {},
+                f = (n.position, document.getElementById(t)), p = {}, m = {}, g = {}, b = {}, h = {};
+            if (o = n.closeCallback || null, a = !1 !== n.disable_touchmove, r(i) || "general" === i || "confirm" === i) return f ? (p = f.getElementsByClassName("inner")[0], m = f.getElementsByClassName("G-confirm-btn-bar")[0]) : ((f = document.createElement("div")).className = "G-dialog", f.id = t, f.style.cssText = c({
+                background: "rgba(0,0,0,0.5)",
+                position: "fixed",
+                width: "100%",
+                height: "100%",
+                left: "0",
+                top: "0",
+                display: "none",
+                "z-index": "9999"
+            }), (p = document.createElement("div")).className = "inner", p.style.cssText = c({
+                background: "#fff",
+                "border-radius": "5px",
+                "-moz-border-radius": "5px",
+                width: "75%",
+                margin: "20% auto 0 auto",
+                overflow: "hidden"
+            }), (m = document.createElement("div")).className = "G-confirm-btn-bar", m.style.cssText = c({
+                width: "75%",
+                margin: "20px auto"
+            }), f.appendChild(p), f.appendChild(m), document.body.appendChild(f)), f.onclick = function (t) {
+                var i = (t = t || e.event).target || t.srcElement;
+                l(i, "btn-ok") ? s && s.ok && "function" == typeof s.ok.click ? s.ok.click(t) : u.dialog.close() : l(i, "btn-cancel") ? s && s.cancel && "function" == typeof s.cancel.click ? s.cancel.click(t) : u.dialog.close() : "function" == typeof n.click && n.click(t)
+            }, p.innerHTML = "", m.innerHTML = "", "confirm" === i && ((g = document.createElement("div")).style.cssText = c({
+                padding: "0 0",
+                "text-align": "center",
+                "font-size": "16px"
+            }), g.innerHTML = d, (b = document.createElement("a")).className = "btn btn-ok", b.href = "javascript:;", b.innerHTML = "确定", b.style.cssText = c({
+                "border-radius": "33px",
+                "-webkit-border-radius": "33px",
+                "-moz-border-radius": "33pxx",
+                height: "40px",
+                "line-height": "40px",
+                "text-align": "center",
+                width: "48%",
+                display: "inline-block",
+                "font-size": "16px",
+                "text-decoration": "none",
+                background: "#1898e2",
+                color: "#fff",
+                "float": "right"
+            }), (h = document.createElement("a")).className = "btn btn-cancel", h.href = "javascript:;", h.innerHTML = "取消", h.style.cssText = c({
+                "border-radius": "33px",
+                "-webkit-border-radius": "33px",
+                "-moz-border-radius": "33px",
+                height: "40px",
+                "line-height": "40px",
+                "text-align": "center",
+                width: "48%",
+                display: "inline-block",
+                "font-size": "16px",
+                "text-decoration": "none",
+                background: "#fff",
+                color: "#474545"
+            }), p.appendChild(g), m.appendChild(b), m.appendChild(h), m.style.display = "block"), u.dialog
+        }
+    }, u.dialog.show = function () {
+        var e = document.getElementById(t);
+        return e ? (s(e, "touchmove", function (n) {
+            ((n.target || n.srcElement).id === t || l(e, "btn-cancel") || l(e, "btn-ok") || a) && d(n)
+        }), e.style.display = "", u.dialog) : void 0
+    }, u.dialog.close = function () {
+        var e = document.getElementById(t);
+        return e ? (s(e, "touchmove", function () {
+        }), "function" == typeof o && o(), e.style.display = "none", u.dialog) : void 0
+    }, e.HiWiFi = u
+}(window);</script>
+</body>
+</html>

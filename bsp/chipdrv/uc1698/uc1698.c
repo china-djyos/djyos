@@ -63,9 +63,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_UC1698 == false )
+//#warning  " uc1698  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#if ( CFG_MODULE_ENABLE_UC1698 == false )   //****检查组件是否被勾选
-#define CFG_MODULE_ENABLE_UC1698 false   //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_UC1698    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   240             //"LCD宽度",
 #define CFG_LCD_YSIZE   128             //"LCD高度",

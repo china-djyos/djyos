@@ -14,7 +14,7 @@
 
 typedef ptu32_t (*TransferFunc)(ptu32_t SpecificFlag,u32 sendlen,u32 recvlen,u32 recvoff);
 typedef bool_t (*TransferPoll)(ptu32_t SpecificFlag,u8* srcaddr,u32 sendlen,
-        u8* destaddr,u32 recvlen,u32 recvoff,u8 cs);
+                               u8* destaddr,u32 recvlen,u32 recvoff,u8 cs);
 typedef bool_t (*CsActiveFunc)(ptu32_t SpecificFlag, u8 cs);
 typedef bool_t (*CsInActiveFunc)(ptu32_t SpecificFlag, u8 cs);
 typedef ptu32_t (*SPIBusCtrlFunc)(ptu32_t SpecificFlag,u32 cmd,ptu32_t data1,ptu32_t data2);
@@ -92,9 +92,7 @@ typedef struct SpiConfig
 bool_t ModuleInstall_SPIBus(void);
 
 struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam);
-struct SPI_CB *SPI_BusAdd_s(struct SPI_CB *NewSPI,struct SPI_Param *NewSPIParam);
 bool_t SPI_BusDelete(struct SPI_CB *DelSPI);
-bool_t SPI_BusDelete_s(struct SPI_CB *DelSPI);
 struct SPI_CB *SPI_BusFind(const char *BusName);
 
 struct SPI_Device *SPI_DevAdd(const char *BusName ,const char *DevName,u8 cs,u8 charlen,

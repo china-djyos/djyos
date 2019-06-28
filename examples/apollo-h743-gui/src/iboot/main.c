@@ -57,11 +57,9 @@ ptu32_t djy_main(void)
 {
     //gdd_test( );
     printf("hello world!\r\n");
-    bool_t ModuleInstall_Portal();
-    ModuleInstall_Portal();
-	while(1)
-	{
-		Djy_EventDelay(1000*1000);
-	}
-	return 0;
+    while(1)
+    {
+        Djy_EventDelay(1000*1000);
+    }
+    return 0;
 }

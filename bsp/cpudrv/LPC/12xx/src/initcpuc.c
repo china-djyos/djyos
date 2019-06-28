@@ -59,7 +59,7 @@
 #include "cortexm0.h"
 #include "cpu_peri.h"
 #include "LPC12xx.h"
-#include "core_cmFunc.h"
+//#include "core_cmFunc.h"
 
 #define SYSOSCCTRL_Val      0x00000000      //bit0:0=¾§Ìå£¬1=¾§Õñ
                                             //bit1:0=1~20M,1=15~25M

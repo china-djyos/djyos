@@ -60,7 +60,7 @@ static struct gpio_to_wakeup_t{
 
 void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 {
-    if(pend_ticks>=LP_GetTriggerTick())
+//  if(pend_ticks>=LP_GetTriggerTick())
         mcu_power_save(pend_ticks);
 }
 

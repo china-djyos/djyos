@@ -69,6 +69,7 @@ typedef struct
     struct RoutItem4          *routlan;       //for the local router
     u32                        offerip;
     u32                        offerserver;
+    struct SemaphoreLCB*       sem; //notify dhcp get ip successfully
 }tagTaskItem;
 typedef enum
 {
@@ -114,6 +115,43 @@ enDHCPStatus DHCP_ConnetStatus(enDHCPCmd cmd,enDHCPStatus status)
             break;
     }
     return temp_flag;
+}
+//WaitDhcpDone
+//ifname: interface name of net card
+//timeout: microsecond
+int WaitDhcpDone(char *ifname, unsigned int timeout)
+{
+    int ret = 0;
+    tagTaskItem     *tmp;
+
+    s64 timemark = DjyGetSysTime(); //microsecond
+    unsigned int spend=0;
+    while (mutex_lock(gClientCB.lock))
+    {
+        tmp = gClientCB.lst;
+        while(NULL != tmp) {
+            if(strcmp(tmp->ifname,  ifname) == 0) {
+                mutex_unlock(gClientCB.lock);
+                if (tmp->sem) {
+                    ret = semp_pendtimeout(tmp->sem, timeout-spend);
+                }
+                return ret;
+            }
+            else {
+                tmp = tmp->nxt;
+            }
+        }
+        mutex_unlock(gClientCB.lock);
+        spend = DjyGetSysTime()-timemark;
+        if (spend > timeout) {
+            break;
+        }
+        else {
+            Djy_EventDelay(1); //re-schedule
+        }
+    }
+
+    return ret;
 }
 
 //do the reply message deal
@@ -195,6 +233,9 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
                 DnsSet(EN_IPV_4,&reply.dns1,&reply.dns2);
                 NetDevPostEvent(NetDevGet(tmp->ifname),EN_NETDEVEVENT_IPGET);
                 DHCP_ConnetStatus(EN_DHCP_SET_STATUS_CMD,EN_DHCP_CONNET_STATUS);
+                if(tmp->sem) {
+                    semp_post(tmp->sem);
+                }
             }
             else if(reply.msgtype == DHCP_NAK)
             {
@@ -316,6 +357,11 @@ bool_t DhcpAddClientTask(const char *ifname)
     task->stat = EN_CLIENT_DICOVER;
     task->timeout = 0;
     task->ifname = ifname;
+    task->sem = semp_init(1,0,ifname);
+    if(!task->sem) {
+        error_printf("dhcp","%s: sem_init FAILED\n\r",__FUNCTION__);
+        goto EXIT_ROUTWAN;
+    }
     memcpy(task->mac,NetDevGetMac(NetDevGet(ifname)),CN_MACADDR_LEN);
     task->transID = gClientCB.txid++;
     task->routwan = RouterCreate(&routpara); //has create one
@@ -343,6 +389,10 @@ EXIT_QUEERR:
     RouterRemoveByHandle(task->routwan);
     task->routwan = NULL;
 EXIT_ROUTWAN:
+    if(task->sem) {
+       semp_del(task->sem);
+       task->sem = NULL;
+    }
     net_free(task);
 EXIT_MEM:
     return ret;

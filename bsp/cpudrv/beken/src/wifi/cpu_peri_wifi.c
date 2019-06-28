@@ -87,9 +87,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_MAC == false )
+//#warning  " cpu_onchip_MAC  组件参数未配置，使用默认配置"
 //%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef cpu_peri_eth   //****检查参数是否已经配置好
-#warning    cpu_peri_eth组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_MAC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,255,
 #define CFG_MAC_ADDR0           00           //"网卡地址0",
 #define CFG_MAC_ADDR1           00           //"网卡地址1",
@@ -529,7 +530,7 @@ bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac,macaddress,6);
     devpara.name = (char *)pDrive->devname;
-    devpara.mtu = 1522;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(NULL == pDrive->devhandle)

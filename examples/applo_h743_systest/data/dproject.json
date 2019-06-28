@@ -1,5 +1,5 @@
 {
-	"ide_version":"DIDE-V1.6_20190304",
+	"ide_version":"DIDE-V1.6_20190404",
 	"frameworks_checked":{
 		"app":[],
 		"iboot":[]
@@ -18,16 +18,15 @@
 		"iboot":["black box",
 		"board config",
 		"cpu onchip dma",
-		"cpu peri gpio",
-		"cpu peri systime",
-		"cpu peri timer",
-		"cpu peri uart",
+		"cpu onchip gpio",
+		"cpu onchip systime",
+		"cpu onchip timer",
+		"cpu onchip uart",
 		"device file system",
 		"heap",
 		"int",
 		"kernel",
 		"kernel object system",
-		"lib C",
 		"loader",
 		"lock",
 		"memory pool",
@@ -40,6 +39,7 @@
 		"stm32h7",
 		"time",
 		"tpl",
-		"uart device file"]
+		"uart device file",
+		"STM32 commond code"]
 	}
 }

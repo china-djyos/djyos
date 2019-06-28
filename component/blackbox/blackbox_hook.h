@@ -57,10 +57,10 @@
 #include "stdint.h"
 #include "blackbox.h"
 
-bool_t BlackBox_HookDealer(struct BlackBoxThrowPara *throwpara,\
+bool_t __BlackBox_HookDealer(struct BlackBoxThrowPara *throwpara,\
                       ptu32_t *infoaddr,u32 *infolen,enum EN_BlackBoxAction *BlackBoxAction);
 
-bool_t BlackBox_HookInfoDecoder(struct BlackBoxThrowPara *throwpara,\
+bool_t __BlackBox_HookInfoDecoder(struct BlackBoxThrowPara *throwpara,\
                       ptu32_t infoaddr, u32 infolen,u32 endian);
 
 #endif /* BLACKBOX_HOOK_H_ */

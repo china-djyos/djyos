@@ -79,10 +79,10 @@
                                           //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium                        //初始化时机，可选值：early，medium，later。
                                           //表示初始化时间，分别是早期、中期、后期
-//dependence:"key board","cpu peri gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"key board","cpu onchip gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件将强制选中，
                                           //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"graphical decorate development(gdd)"                    //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"graphical decorate development"                    //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件不会被强制选中，
                                           //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -90,9 +90,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_KEYBOARD_HARD_DRIVER == false )
+//#warning  " keyboard_hard_driver  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_KEYBOARD_VTIME   //****检查参数是否已经配置好
-#warning    key_hard组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_KEYBOARD_HARD_DRIVER    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100000,
 #define CFG_KEYBOARD_VTIME              (100*1000)   //"防抖时间",配置键盘100mS的防抖时间
 //%$#@enum,true,false

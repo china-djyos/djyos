@@ -50,12 +50,16 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_SPI_BUS == false )
+//#warning  " spi_bus  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_SPI_BUS    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
@@ -160,6 +164,7 @@ struct SPI_CB *SPI_BusAdd(struct SPI_Param *NewSPIParam)
     NewSPI->HostObj           = SpiDev;
     NewSPI->ErrorPopEvtt      = CN_EVTT_ID_INVALID;
     NewSPI->SpecificFlag      = NewSPIParam->SpecificFlag;
+    NewSPI->MultiCsReg        = NewSPIParam->MultiCSRegFlag;
     NewSPI->pTransferTxRx     = NewSPIParam->pTransferTxRx;
     NewSPI->pCsActive         = NewSPIParam->pCsActive;
     NewSPI->pCsInActive       = NewSPIParam->pCsInActive;
@@ -732,6 +737,7 @@ s32 SPI_BusCtrl(struct SPI_Device *Dev,u32 cmd,ptu32_t data1,ptu32_t data2)
         SPI->ErrorPopEvtt = data1;
         break;
     case CN_SPI_SET_POLL:
+        result = SPI->pBusCtrl(SPI->SpecificFlag,cmd,data1,data2);
         SPI->Flag |=  CN_SPI_FLAG_POLL;
         break;
     case CN_SPI_SET_INT:

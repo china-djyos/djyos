@@ -96,9 +96,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_HUMAN_MACHINE_INTERFACE == false )
+//#warning  " human_machine_interface  组件参数未配置，使用默认配置"
 //%$#@target = header                      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_HMIIN_DEV_LIMIT                //****检查参数是否已经配置好
-#warning    HmiInput组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_HUMAN_MACHINE_INTERFACE    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 #define CFG_HMIIN_DEV_LIMIT     2       //"name",人机交互输入设备数量，如键盘、鼠标等
 //%$#@enum,true,false,

@@ -62,7 +62,7 @@
 #include "hard-exp.h"
 #include "arch_feature.h"
 #include "stm32L4xx.h"
-#include "core_cmFunc.h"
+//#include "core_cmFunc.h"
 #include "project_config.h"
 
 #ifndef __CHECK_DEVICE_DEFINES

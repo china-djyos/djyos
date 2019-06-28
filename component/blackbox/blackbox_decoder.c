@@ -87,7 +87,7 @@ struct BlackBoxInfoDecoder *  __BlackBox_FindDecoderNoByName(const char *name)
 }
 
 // =============================================================================
-// 函数功能:BlackBox_ThrowInfodecode
+// 函数功能:__BlackBox_ThrowInfodecode
 //          抛出异常信息解析
 // 输入参数:parahead,抛出异常时参数
 //          endian, 信息的大小端
@@ -95,7 +95,7 @@ struct BlackBoxInfoDecoder *  __BlackBox_FindDecoderNoByName(const char *name)
 // 返回值  :true,成功设置;false,设置失败，主要是因为参数错误
 // 说明    :内部调用
 // =============================================================================
-bool_t  BlackBox_ThrowInfodecode(struct BlackBoxThrowPara *parahead,u32 endian)
+bool_t  __BlackBox_ThrowInfodecode(struct BlackBoxThrowPara *parahead,u32 endian)
 {
     bool_t result;
     u32 n;

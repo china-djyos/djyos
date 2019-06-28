@@ -92,18 +92,16 @@ const char *BlackBoxActionName(enum EN_BlackBoxAction action)
         return NULL;
     }
 }
-
+extern bool_t HardExp_InfoDecoderInit(void);
+#define CN_DECODER_NAMELEN_LIMIT 16
 //全部相同，那么不涉及到大小端的问题
 #define CN_BLACKBOX_HEADINFO_MAGICNUMBER    ((u32)(0x77777777))
 #define CN_BLACKBOX_PARTIALINFO_VALID       ((u32)(0x12345678))
-
-extern bool_t HardExp_InfoDecoderInit(void);
-
 struct BlackBoxHeadInfo
 {
     u32   recordendian;     //异常记录是大端还是小端,利于离线分析异常记录
     u32   magicnumber;      //用于检查信息是否有效
-    u32   BlackBoxType;          //异常类型
+    u32   BlackBoxType;     //异常类型
     u32   osstatevalid;     //CN_BLACKBOX_PARTIALINFO_VALID=操作系统运行状态信息有效
     u32   osstateinfolen;   //操作系统运行状态信息长度
     u32   hookvalid;        //CN_BLACKBOX_PARTIALINFO_VALID=hook收集的信息有效
@@ -113,7 +111,7 @@ struct BlackBoxHeadInfo
     u32   throwinfolen;     //抛出的信息长度
     u32   ThrowAction;      //抛出时要求的处理动作,由enum EN_BlackBoxAction定义
     u32   BlackBoxAction;        //最终采取的动作.,由enum EN_BlackBoxAction定义
-    char  decodername[CN_BLACKBOX_NAMELEN_LIMIT];  //异常解码器名字,长度不得超过15
+    char  decodername[CN_DECODER_NAMELEN_LIMIT];  //异常解码器名字,长度不得超过15
                             //如果是个NULL指针,则表示无解码器
 };//可以考虑使用bit位来省存储空间，但是考虑下来，根本省不了几个字节，改动意义不大
 
@@ -161,7 +159,7 @@ static enum EN_BlackBoxDealResult  __BlackBox_ExecAction(u32 FinalAction,\
                                     struct BlackBoxRecordPara *blackboxinfo)
 {
     enum EN_BlackBoxDealResult result;
-    result = BlackBox_Record(blackboxinfo);
+    result = __BlackBox_Record(blackboxinfo);
     if(result != EN_BLACKBOX_RESULT_SUCCESS)
     {
         printk("blackboxresultdealer:RECORD FAILED!\n\r");
@@ -192,7 +190,7 @@ static enum EN_BlackBoxDealResult  __BlackBox_ExecAction(u32 FinalAction,\
 // 返回值  :异常处理需采取的行动，如果有hook，可能会被hook的返回值替代
 // 说明    :本函数很可能不返回，直接复位
 // =============================================================================
-enum EN_BlackBoxDealResult  BlackBox_Recorder(struct BlackBoxThrowPara *throwpara)
+enum EN_BlackBoxDealResult  BlackBox_ThrowExp(struct BlackBoxThrowPara *throwpara)
 {
     bool_t result;
     enum EN_BlackBoxAction   HookAction;
@@ -212,7 +210,7 @@ enum EN_BlackBoxDealResult  BlackBox_Recorder(struct BlackBoxThrowPara *throwpar
         //抛出信息处理
         if(NULL != throwpara->DecoderName)
         {
-            strncpy(headinfo.decodername, throwpara->DecoderName, CN_BLACKBOX_NAMELEN_LIMIT);
+            strncpy(headinfo.decodername, throwpara->DecoderName, CN_DECODER_NAMELEN_LIMIT);
         }
         else
         {
@@ -229,7 +227,7 @@ enum EN_BlackBoxDealResult  BlackBox_Recorder(struct BlackBoxThrowPara *throwpar
         recordpara.headinfolen = (u32)(sizeof(headinfo));
 
         //HOOK信息的搜集（如果搜集不成功，并且抛出者无意记录，则直接返回）
-        result = BlackBox_HookDealer(throwpara, &infoaddr, &infolen, &HookAction);
+        result = __BlackBox_HookDealer(throwpara, &infoaddr, &infolen, &HookAction);
         if(false == result)
         {
             HookAction = EN_BLACKBOX_DEAL_DEFAULT;
@@ -403,7 +401,7 @@ bool_t  BlackBox_InfoDecoder(struct BlackBoxRecordPara *recordpara)
             }
             else
             {
-                result = BlackBox_ThrowInfodecode(&throwpara,endian);
+                result = __BlackBox_ThrowInfodecode(&throwpara,endian);
             }
             //HOOK解析,解析器自己判断包的长度是否完整，包的内容是否被破坏
             if(recordpara->hookinfolen != headinfo->hookinfolen)
@@ -412,7 +410,7 @@ bool_t  BlackBox_InfoDecoder(struct BlackBoxRecordPara *recordpara)
             }
             else
             {
-                result = BlackBox_HookInfoDecoder(&throwpara,recordpara->hookinfoaddr,\
+                result = __BlackBox_HookInfoDecoder(&throwpara,recordpara->hookinfoaddr,\
                                              recordpara->hookinfolen, endian);
             }
         }

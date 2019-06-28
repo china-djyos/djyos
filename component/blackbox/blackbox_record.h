@@ -62,7 +62,7 @@ bool_t BlackBox_RecordCheckNum(u32 *recordnum);
 bool_t BlackBox_RecordCheckLen(u32 assignedno, u32 *recordlen);
 bool_t BlackBox_RecordGet(u32 assignedno, u32 buflenlimit, u8 *buf, \
                      struct BlackBoxRecordPara  *recordpara);
-enum EN_BlackBoxDealResult    BlackBox_Record(struct BlackBoxRecordPara *recordpara);
+enum EN_BlackBoxDealResult    __BlackBox_Record(struct BlackBoxRecordPara *recordpara);
 bool_t BlackBox_RecordClear(void);
 void   BlackBox_Recordscan(void);
 

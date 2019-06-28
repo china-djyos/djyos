@@ -306,7 +306,7 @@ bool_t __Djy_CheckStack(s16 event_id)
             parahead.BlackBoxInfoLen = sizeof(StackExp);
             parahead.BlackBoxType = CN_BLACKBOX_TYPE_STACK_OVER;
             printk("%s\n\r",StackExp);
-            BlackBox_Recorder(&parahead);
+            BlackBox_ThrowExp(&parahead);
         }
     }
     else
@@ -940,7 +940,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
         parahead.BlackBoxInfo = (u8*)ExpStr;
         parahead.BlackBoxInfoLen = sizeof(ExpStr);
         parahead.BlackBoxType = CN_BLACKBOX_TYPE_ETCB_EXHAUSTED;
-        BlackBox_Recorder(&parahead);
+        BlackBox_ThrowExp(&parahead);
         Djy_SaveLastError(EN_KNL_ETCB_EXHAUSTED);
         info_printf("djyos","没有空闲事件控制块: %s\n\r",evtt_name);
         Int_RestoreAsynSignal();
@@ -1015,7 +1015,7 @@ u16 Djy_EvttRegist(enum enEventRelation relation,
 //                parahead.BlackBoxInfo = (u8*)ExpStr;
 //                parahead.BlackBoxInfoLen = sizeof(ExpStr);
 //                parahead.BlackBoxType = CN_BLACKBOX_TYPE_MEM_EVTT;
-//                BlackBox_Recorder(&parahead);
+//                BlackBox_ThrowExp(&parahead);
 //                Djy_SaveLastError(EN_MEM_TRIED);
 //                info_printf("djyos","%s\n\r",evtt_name);
 //                Int_RestoreAsynSignal();
@@ -2482,7 +2482,7 @@ u16 Djy_EventPop(   u16  hybrid_id,
             parahead.BlackBoxInfo = (u8*)ExpStr;
             parahead.BlackBoxInfoLen = sizeof(ExpStr);
             parahead.BlackBoxType = CN_BLACKBOX_TYPE_ECB_EXHAUSTED;
-            BlackBox_Recorder(&parahead);
+            BlackBox_ThrowExp(&parahead);
             Djy_SaveLastError(EN_KNL_ECB_EXHAUSTED);
             if(pop_result != NULL)
                 *pop_result = (u32)EN_KNL_ECB_EXHAUSTED;
@@ -2863,7 +2863,7 @@ void __Djy_EventExit(struct EventECB *event, u32 exit_code,u32 action)
     parahead.BlackBoxInfo = (u8*)ExpStr;
     parahead.BlackBoxInfoLen = sizeof(ExpStr);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_EVENT_EXIT;
-    BlackBox_Recorder(&parahead);
+    BlackBox_ThrowExp(&parahead);
     //此处不用int_save_asyn_signal函数，可以在应用程序有bug，没有成对调用
     //int_save_asyn_signal和int_restore_asyn_signal的情况下，确保错误到此为止。
     __Int_ResetAsynSignal();  //直到__vm_engine函数才再次打开.
@@ -3456,7 +3456,7 @@ ptu32_t __Djy_Service(void)
         {
             now_tick = __DjyGetTicks();
             int_tick = (gSchduleTick.DelayTick<gSchduleTick.RRSTicks)?(gSchduleTick.DelayTick):(gSchduleTick.RRSTicks);
-            while(int_tick<now_tick);
+//          while(int_tick<now_tick);
             pend_ticks = int_tick - now_tick;
             g_fnEntryLowPower(g_ptEventRunning->vm,pend_ticks);      //进入低功耗状态
 

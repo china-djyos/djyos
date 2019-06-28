@@ -12,7 +12,7 @@
 #include "hard-exp.h"
 #include "arch_feature.h"
 #include "lpc17xx.h"
-#include "core_cmFunc.h"
+//#include "core_cmFunc.h"
 
 #include "core_cm3.h"
 #include "project_config.h"

@@ -182,7 +182,7 @@ bool_t NetHard_AddNetDev(void)
     module_tsec_init(1,10);
 
     devpara.ifsend = NetHard_Send;
-    devpara.iftype = EN_LINK_INTERFACE_ETHERNET;
+    devpara.iftype = EN_LINK_ETHERNET;
     memcpy(devpara.mac, sgNetHardMac,6);
     devpara.name = "TestDriver";
     devpara.Private = 0;
@@ -191,7 +191,7 @@ bool_t NetHard_AddNetDev(void)
     devpara.devfunc = 0;
 
     result = false;
-    pgChkNetDev = NetDev_InstallDev(&devpara);
+    pgChkNetDev = NetDevInstall(&devpara);
     if(pgChkNetDev != NULL)
     {
         result = true;

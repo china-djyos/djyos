@@ -324,6 +324,14 @@ bool_t LinkPushRegister(u16 protocol,fnLinkProtoDealer dealer)
     }
     return ret;
 }
+
+//-----------------------------------------------------------------------------
+//功能：链路层往IP层等生成协议push数据，由802.3、raw等链路层设备调用。
+//参数：iface，网卡设备指针
+//      pkg，待上送的包
+//      protocol，协议代号，如 IPV4、IPV6、ARP、RARP、自定义等
+//返回：true = 上层协议成功调用，false = 上层协议调用失败
+//-----------------------------------------------------------------------------
 bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protocol)
 {
     bool_t          ret=true;
@@ -356,13 +364,23 @@ bool_t LinkPush(struct NetDev  *iface,struct NetPkg *pkg,enum enLinkProto protoc
     }
     return ret;
 }
+
+//------------------------------------------------------------------------------
+//功能：网卡设备推送数据到链路层，由网卡驱动调用，本函数只是个转接，将转向该网卡对应的链路
+//      层（由 enum enLinkType 定义，例如 以太网、裸数据接口等）
 bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
 {
     bool_t ret = false;
+    struct LinkOps *ops;
     if(NULL != iface)
     {
         NetDevPkgrcvInc(iface);
-        ret = LinkDeal(iface,pkg);
+//      ret = LinkDeal(iface,pkg);
+        ops = NetDevLinkOps(iface);
+        if(NULL != ops)
+        {
+            ret = ops->linkin(iface,pkg);
+        }
         if(ret == false)
         {
             NetDevPkgrcvErrInc(iface);
@@ -370,18 +388,19 @@ bool_t NetDevPush(struct NetDev *iface,struct NetPkg *pkg)
     }
     return ret;
 }
+
 //the net device layer will call this function to do more deal
-bool_t LinkDeal(struct NetDev *iface,struct NetPkg *pkg)
-{
-    bool_t ret = false;
-    struct LinkOps *ops;
-    ops = NetDevLinkOps(iface);
-    if(NULL != ops)
-    {
-        ret = ops->linkin(iface,pkg);
-    }
-    return ret;
-}
+//bool_t LinkDeal(struct NetDev *iface,struct NetPkg *pkg)
+//{
+//    bool_t ret = false;
+//    struct LinkOps *ops;
+//    ops = NetDevLinkOps(iface);
+//    if(NULL != ops)
+//    {
+//        ret = ops->linkin(iface,pkg);
+//    }
+//    return ret;
+//}
 //find a link ops here
 struct LinkOps  *LinkFindOps(enum enLinkType type)
 {

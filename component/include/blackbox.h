@@ -58,9 +58,6 @@
 #include "list.h"
 #include "hard-exp.h"
 
-//异常信息解析器名字长度15字节,缓冲区16字节(含\0)
-#define CN_BLACKBOX_NAMELEN_LIMIT    16
-
 //异常处理行动,不允许调整定义顺序
 enum EN_BlackBoxAction
 {
@@ -107,14 +104,14 @@ enum EN_BlackBoxDealResult
 struct BlackBoxThrowPara
 {
     u32     BlackBoxType;                 //异常类型，参考CN_BLACKBOX_TYPE_HARD_START
-    char    *DecoderName;            //异信息解析器常名字,≤15字节
+    char    *DecoderName;                 //异信息解析器常名字,≤15字节
     u8      *BlackBoxInfo;                //异常信息地址
     u32     BlackBoxInfoLen;              //信息长度
     enum EN_BlackBoxAction BlackBoxAction;     //异常处理类型,参考enum EN_BlackBoxAction
 };
 
-////////////////////////异常抛出信息解析器模型及其注册注销////////////////////////
-//具体异常信息的解析器模型，参数定义和抛出时一模一样，我相信自己搜集的信息一定
+////////////////////////异常抛出信息解析器及其注册注销////////////////////////
+//具体异常信息的解析器，参数定义和抛出时一模一样，我相信自己搜集的信息一定
 //能够解析自己一定能够判断出是不是自己搜集的信息
 typedef bool_t (*fnBlackBox_ThrowInfoParse)(struct BlackBoxThrowPara *para, u32 endian);
 
@@ -202,8 +199,7 @@ struct BlackBoxRecordPara
 typedef  enum EN_BlackBoxDealResult (*fnBlackBox_RecordSave)(\
                                        struct BlackBoxRecordPara  *recordpara);
 // =============================================================================
-// 函数功能：fnBlackBox_RecordCleanModule
-//          清除所有的异常信息，清除异常信息存储区域
+// 函数功能：清除所有的异常信息，清除异常信息存储区域
 // 输入参数：无
 // 输出参数：无
 // 返回值  ：TRUE 成功， FALSE失败
@@ -211,8 +207,7 @@ typedef  enum EN_BlackBoxDealResult (*fnBlackBox_RecordSave)(\
 typedef  bool_t (*fnBlackBox_RecordClean)(void);
 
 // =============================================================================
-// 函数功能：fnBlackBox_RecordCheckNumModule
-//          查看一共存储了多少条异常信息
+// 函数功能：查看一共存储了多少条异常信息
 // 输入参数：
 // 输出参数：recordnum,存储的异常信息条目数
 // 返回值  ：FALSE,失败 TRUE成功
@@ -220,8 +215,7 @@ typedef  bool_t (*fnBlackBox_RecordClean)(void);
 typedef  bool_t (*fnBlackBox_RecordCheckNum)(u32 *recordnum);
 
 // =============================================================================
-// 函数功能：fnBlackBox_RecordCheckLenModule
-//          产看指定异常条目的长度
+// 函数功能：产看指定异常条目的长度
 // 输入参数：assignedno,指定的条目
 // 输出参数：recordlen,该条目的长度
 // 返回值  ：FALSE,失败 TRUE成功
@@ -229,8 +223,7 @@ typedef  bool_t (*fnBlackBox_RecordCheckNum)(u32 *recordnum);
 typedef  bool_t (*fnBlackBox_RecordCheckLen)(u32 assignedno, u32 *recordlen);
 
 // =============================================================================
-// 函数功能：fnBlackBox_RecordGetModule
-//          从存储介质中获取指定条目的异常帧信息
+// 函数功能：从存储介质中获取指定条目的异常帧信息
 // 输入参数：assignedno,指定的异常帧条目
 //           buflen,缓冲区长度
 // 输出参数：buf,用于存储获取指定条目的异常信息
@@ -241,8 +234,7 @@ typedef  bool_t (*fnBlackBox_RecordGet)(u32 assignedno,u32 buflen,u8 *buf,\
                                          struct BlackBoxRecordPara *recordpara);
 
 // =============================================================================
-// 函数功能：fnBlackBox_RecordScanModule
-//           开机的时候扫描异常存储记录，获取关键信息方便以后存储
+// 函数功能：开机的时候扫描异常存储记录，获取关键信息方便以后存储
 // 输入参数：无
 // 输出参数：无
 // 返回值  ：空
@@ -258,45 +250,9 @@ struct BlackBoxRecordOperate
     fnBlackBox_RecordCheckLen    fnBlackBoxRecordCheckLen;//获取指定条目的长度
     fnBlackBox_RecordGet         fnBlackBoxRecordGet;     //获取指定条目的异常信息
 };
-// =============================================================================
-// 函数功能：BlackBox_RegisterRecordOpt
-//          注册异常信息处理方法
-// 输入参数：opt,需要注册的异常信息处理方法
-// 输出参数：
-// 返回值  ：FALSE,失败  TRUE成功，失败的话会使用BSP默认的处理方法
-// 注意    ：理论上参数结构里面指定的处理方法都应该提供，否则的话会注册不成功
-// =============================================================================
 bool_t  BlackBox_RegisterRecorder(struct BlackBoxRecordOperate *opt);
-
-// =============================================================================
-// 函数功能：BlackBox_UnRegisterRecordOpt
-//           注销异常信息处理方法
-// 输入参数：无
-// 输出参数：无
-// 返回值  ：TRUE成功  FALSE失败,会使用默认的存储方案
-// =============================================================================
 bool_t BlackBox_UnRegisterRecorder(void);
-
-////////////////////////////异常抛出模块////////////////////////////////////////
-// =============================================================================
-// 函数功能:BlackBox_Recorder
-//          处理所有异常的入口
-// 输入参数:throwpara,抛出的异常信息参数
-// 输出参数:BlackBoxAction,该异常的最终处理结果
-// 返回值  :true，成功， false，失败(参数或者存储等未知原因)
-// 说明    :本函数可以在bsp中调用，也可以在系统中调用
-//          此设计是为了异常模块处理的统一，版本之间差异缩减为最低，同时方便移植
-//          各个异常处理者之间相互独立，不相互干扰
-// =============================================================================
-enum EN_BlackBoxDealResult  BlackBox_Recorder(struct BlackBoxThrowPara *throwpara);
-// =============================================================================
-// 函数功能:ModuleInstall_BlackBox
-//         系统异常组件初始化
-// 输入参数:para
-// 输出参数:无
-// 返回值  :ptu32_t 暂时无定义
-// 说明    :主要是初始化存储方案
-// =============================================================================
+enum EN_BlackBoxDealResult  BlackBox_ThrowExp(struct BlackBoxThrowPara *throwpara);
 void ModuleInstall_BlackBox(void);
 const char *BlackBoxActionName(enum EN_BlackBoxAction action); //获取异常动作名字
 
@@ -318,9 +274,9 @@ typedef struct
     fnInit     init;
 }tagBlackBoxLowLevelOpt;
 //CONFIGUER A LINE MEMORY TO THE EXCEPTION RECORDER
-bool_t LineMemBlackBoxRecord_Config(tagBlackBoxLowLevelOpt *lopt,u16 memsize);
+bool_t BlackBox_NvramRecordRegister(tagBlackBoxLowLevelOpt *lopt,u16 memsize);
 //CONFIGUER A LINE MEMORY TO THE EXCEPTION RECORDER FOR THE AUTO OR MANUAL TEST
-bool_t LineMemBlackBoxRecord_ConfigTest(tagBlackBoxLowLevelOpt *lopt,u16 memsize,u32 maxlen,bool_t autotest,bool_t debugmsg);
+bool_t BlackBox_NvramRecordRegisterTest(tagBlackBoxLowLevelOpt *lopt,u16 memsize,u32 maxlen,bool_t autotest,bool_t debugmsg);
 //THIS IS A EXCEPTION RECORDER TEST ENGINE
 bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 maxlen,bool_t autotest,bool_t debugmsg);
 #endif /* __BLACKBOX_H__ */

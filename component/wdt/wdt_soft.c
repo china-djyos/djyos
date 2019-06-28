@@ -97,9 +97,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_WATCH_DOG == false )
+//#warning  " watch_dog  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_WDT_LIMIT   //****检查参数是否已经配置好
-#warning    wdt组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_WATCH_DOG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,1,100,
 #define CFG_WDT_LIMIT           10      //"看门狗数量",允许养狗数量
 #define CFG_WDTMSG_LIMIT        3       //"消息队列长度"，操作看门狗的消息队列的最大长度
@@ -154,10 +155,11 @@ typedef struct
     ptu32_t       para;         //操作类型指定的参数
 }tagWdtMsg;
 
+#define CN_WDTEXP_NAMELEN_LIMIT 16
 //看门狗异常信息组织结构
 struct WdtExpInfo
 {
-    char       wdtname[CN_BLACKBOX_NAMELEN_LIMIT];    //异常的看门狗的名字
+    char       wdtname[CN_WDTEXP_NAMELEN_LIMIT];    //异常的看门狗的名字
     tagWdt     wdt;                              //异常的看门狗
 };
 
@@ -220,13 +222,13 @@ enum EN_BlackBoxAction __Wdt_TrowWdtExp(enum EN_BlackBoxAction WdtAction,
     struct BlackBoxThrowPara  parahead;
     struct WdtExpInfo wdtexp;
     wdtexp.wdt = *wdt;
-    memcpy(wdtexp.wdtname,wdt->pname,CN_BLACKBOX_NAMELEN_LIMIT);
+    memcpy(wdtexp.wdtname,wdt->pname,CN_WDTEXP_NAMELEN_LIMIT);
     parahead.DecoderName = CN_WDT_EXPDECODERNAME;
     parahead.BlackBoxAction = WdtAction;
     parahead.BlackBoxInfo = (u8 *)&wdtexp;
     parahead.BlackBoxInfoLen = sizeof(wdtexp);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_WDT;
-    return BlackBox_Recorder(&parahead);
+    return BlackBox_ThrowExp(&parahead);
 }
 
 // =============================================================================

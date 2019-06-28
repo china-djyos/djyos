@@ -182,7 +182,7 @@ bool_t ThrowOsBootInfo(enBootMode mode)
     parahead.BlackBoxInfo = (u8 *)&dumpinfo;
     parahead.BlackBoxInfoLen = sizeof(dumpinfo);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_SYS_START+11;
-    BlackBox_Recorder(&parahead);
+    BlackBox_ThrowExp(&parahead);
     return true;
 }
 
@@ -364,7 +364,7 @@ static bool_t __OsBootModeLog(void)
     parahead.BlackBoxInfo = (u8 *)&gBootMode;
     parahead.BlackBoxInfoLen =sizeof(gBootMode);
     parahead.BlackBoxType = CN_BLACKBOX_TYPE_SYS_START+10;
-    BlackBox_Recorder(&parahead);
+    BlackBox_ThrowExp(&parahead);
     return true;
 }
 //----安装系统启动模块-----------------------------------------------------------

@@ -30,7 +30,7 @@ typedef struct cfg80211_connect_params
 {
     uint32_t flags;
     uint32_t vif_idx;
-	uint8_t auth_type;
+    uint8_t auth_type;
     struct mac_addr bssid;
     struct mac_ssid ssid;
     struct scan_chan_tag chan;
@@ -50,7 +50,7 @@ typedef struct cfg80211_fast_scan_params
 {
     struct mac_ssid ssid;
     struct mac_addr bssid;
-	
+
     uint16_t probe_delay;
     uint16_t min_ch_time;
     uint16_t max_ch_time;
@@ -74,36 +74,36 @@ typedef struct sta_scan_res
 {
     UINT8 bssid[6];
     char ssid[32];  /**< The SSID of an access point. */
-    char on_channel; // 1: ds IE channel=center_freq, 0: !=   
+    char on_channel; // 1: ds IE channel=center_freq, 0: !=
     char channel;
     UINT16 beacon_int;
     UINT16 caps;
     int level;
-	int security; // security type
+    int security; // security type
     UINT8 tsf[8];
     UINT32 ie_len;
     /* Followed by ie_len of IE data */
 }SCAN_RST_ITEM_T, *SCAN_RST_ITEM_PTR;
 
 
-typedef struct 
-{  
-    char ssid[MAC_SSID_LEN]; 
-    char ap_power; 
+typedef struct
+{
+    char ssid[MAC_SSID_LEN];
+    char ap_power;
 }AP_INFO_T;
 
 typedef  struct
-{  
-	uint16_t ap_num;   
-	uint16_t ap_max;  
-  
-   AP_INFO_T *ap_list; 
-} SCAN_RESULT_SET; 
+{
+    uint16_t ap_num;
+    uint16_t ap_max;
+
+   AP_INFO_T *ap_list;
+} SCAN_RESULT_SET;
 
 typedef struct
 {
-	FUNC_2PARAM_PTR cb;
-	void *ctxt_arg;
+    FUNC_2PARAM_PTR cb;
+    void *ctxt_arg;
 }IND_CALLBACK_T;
 
 typedef struct
@@ -115,32 +115,32 @@ typedef struct
 }BSS_INFO_T;
 
 typedef enum {
-	MSG_IDLE = 0,
-	MSG_CONNECTING,
-	MSG_PASSWD_WRONG,
-	MSG_NO_AP_FOUND,
-	MSG_CONN_FAIL,
-	MSG_CONN_SUCCESS,
-	MSG_GOT_IP,
+    MSG_IDLE = 0,
+    MSG_CONNECTING,
+    MSG_PASSWD_WRONG,
+    MSG_NO_AP_FOUND,
+    MSG_CONN_FAIL,
+    MSG_CONN_SUCCESS,
+    MSG_GOT_IP,
 }msg_sta_states;
 
 enum nl80211_iftype {
-	NL80211_IFTYPE_UNSPECIFIED,
-	NL80211_IFTYPE_ADHOC,
-	NL80211_IFTYPE_STATION,
-	NL80211_IFTYPE_AP,
-	NL80211_IFTYPE_AP_VLAN,
-	NL80211_IFTYPE_WDS,
-	NL80211_IFTYPE_MONITOR,
-	NL80211_IFTYPE_MESH_POINT,
-	NL80211_IFTYPE_P2P_CLIENT,
-	NL80211_IFTYPE_P2P_GO,
-	NL80211_IFTYPE_P2P_DEVICE,
-	NL80211_IFTYPE_OCB,
+    NL80211_IFTYPE_UNSPECIFIED,
+    NL80211_IFTYPE_ADHOC,
+    NL80211_IFTYPE_STATION,
+    NL80211_IFTYPE_AP,
+    NL80211_IFTYPE_AP_VLAN,
+    NL80211_IFTYPE_WDS,
+    NL80211_IFTYPE_MONITOR,
+    NL80211_IFTYPE_MESH_POINT,
+    NL80211_IFTYPE_P2P_CLIENT,
+    NL80211_IFTYPE_P2P_GO,
+    NL80211_IFTYPE_P2P_DEVICE,
+    NL80211_IFTYPE_OCB,
 
-	/* keep last */
-	NUM_NL80211_IFTYPES,
-	NL80211_IFTYPE_MAX = NUM_NL80211_IFTYPES - 1
+    /* keep last */
+    NUM_NL80211_IFTYPES,
+    NL80211_IFTYPE_MAX = NUM_NL80211_IFTYPES - 1
 };
 
 enum rw_evt_type
@@ -164,10 +164,10 @@ struct rw_evt_payload
 };
 
 struct add_sta_st {
-	u16 aid;
-	u16 capability;
+    u16 aid;
+    u16 capability;
     void *sta_addr;
-	u8 tx_supp_rates;
+    u8 tx_supp_rates;
     u8 ap_vif_idx;
 } ;
 
@@ -194,11 +194,11 @@ typedef struct bcn_param_st {
     u32 *bcn_ptr;
     u16 bcn_len;
     u16 tim_oft;
-    
+
     u8 tim_len;
-    u8 vif_idx; 
-    u16 flag;  
-    
+    u8 vif_idx;
+    u16 flag;
+
     u8* csa_oft;
 } BCN_PARAM_ST, *BCN_PARAM_PTR;
 
@@ -233,9 +233,9 @@ extern msg_sta_states mhdr_get_station_status(void);
 
 //
 extern void user_callback_func_register(FUNC_1PARAM_PTR sta_connect_start_func,
-								 FUNC_1PARAM_PTR connection_lost_func,
-								 FUNC_1PARAM_PTR auth_fail_func,
-								 FUNC_1PARAM_PTR assoc_fail_func );
+                                 FUNC_1PARAM_PTR connection_lost_func,
+                                 FUNC_1PARAM_PTR auth_fail_func,
+                                 FUNC_1PARAM_PTR assoc_fail_func );
 extern void user_callback_func_unregister(void);
 extern void rw_evt_set_callback(enum rw_evt_type evt_type, rw_event_handler handler);
 
@@ -251,7 +251,7 @@ extern int rw_msg_send_remove_if(u8 vif_index);
 extern int rw_msg_send_apm_start_req(u8 vif_index, u8 channel,
                      struct apm_start_cfm *cfm);
 extern int rw_msg_send_bcn_change(void *bcn_param);
-extern int rw_msg_send_me_sta_add(struct add_sta_st *param, 
+extern int rw_msg_send_me_sta_add(struct add_sta_st *param,
                      struct me_sta_add_cfm *cfm);
 extern int rw_msg_send_me_sta_del(u8 sta_idx, bool tdls_sta);
 extern int rw_msg_me_set_control_port_req(bool opened, u8 sta_idx);

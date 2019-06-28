@@ -79,12 +79,16 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_ETHERNET_DM9000A == false )
+//#warning  " ethernet_dm9000a  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_ETHERNET_DM9000A    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
@@ -645,7 +649,7 @@ static bool_t __dm9000CreateDev(tagDm9000Dev *dm9000)
     devpara.devfunc = 0x00;//COULD DO NO CRC
     memcpy(devpara.mac, dm9000->devmac,CN_MACADDR_LEN);
     devpara.name = dm9000->devname;
-    devpara.mtu = 14;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)dm9000;
     dm9000->handle = NetDevInstall(&devpara);
 

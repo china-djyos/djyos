@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -57,7 +57,7 @@
 #define     CFG_YMODEM_PKG_TIMEOUT           (15*1000*1000)       // "包间隔超时时间",微秒
 #define     CFG_YMODEM_TIMEOUT               (300*1000*1000)      // "ymodem传输总超时时间",微秒
 #define     CFG_YMODEM_DEVNAME               "std"                // "ymodem传输设备，std表示使用标准输入输出设备"
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART_SENDBUF_LEN            32                  //
 #define CFG_UART_RECVBUF_LEN            32                  //
 #define CFG_UART1_ENABLE                true                //

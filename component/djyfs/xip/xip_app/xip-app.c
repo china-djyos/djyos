@@ -89,12 +89,16 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_XIP_APP_FILE_SYSTEM == false )
+//#warning  " xip_app_file_system  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_XIP_APP_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表
@@ -635,7 +639,7 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
             return size;
         }
     }
-    
+
     left = size;               //第一次应该减去文件头信息.故需要写的字节数应放这里
     xip_app_lock(core);
     if(cx->pos<=core->inhead) // 缓存中剩余可写空间；（连续写和不连续写会有这么处理，256时）

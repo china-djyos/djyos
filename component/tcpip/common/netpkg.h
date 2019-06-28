@@ -50,34 +50,4 @@
 #ifndef __NETPKG_H__
 #define __NETPKG_H__
 struct NetPkg;
-void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf);
-bool_t Pkg_SetAlignOffset(u16 alignsize);
-u16 PkgAlignSize(u16 size);
-struct NetPkg *PkgMalloc(u16 bufsize, u8 flags);
-bool_t PkgTryFreePart(struct NetPkg *pkg);
-struct NetPkg *PkgGetNextUnit(struct NetPkg *NextUnit);
-void PkgSetNextUnit(struct NetPkg *pkg,struct NetPkg *NextUnit);
-u8* PkgGetCurrentBuffer(struct NetPkg *pkg);
-u8* PkgGetBuffer(struct NetPkg *pkg);
-void PkgSetBuffer(struct NetPkg *pkg, u8 *buf);
-u16 PkgGetDataLen(struct NetPkg *pkg);
-void PkgSetDataLen(struct NetPkg *pkg,u16 len);
-u16 PkgGetOffset(struct NetPkg *pkg);
-void PkgSetOffset(struct NetPkg *pkg,u16 offset);
-ptu32_t PkgGetPrivate(struct NetPkg *pkg);
-void PkgSetPrivate(struct NetPkg *pkg,ptu32_t PkgPrivate);
-bool_t PkgIsBufferEnd(struct NetPkg *pkg);
-void PkgMoveOffsetUp(struct NetPkg *pkg, u16 len);
-void PkgMoveOffsetDown(struct NetPkg *pkg, u16 len);
-u16 PkgListDatastatistics(struct NetPkg *pkg);
-u16 PkgFrameDatastatistics(struct NetPkg *pkg);
-u16 PkgListDataCopy(struct NetPkg *pkg,u8 *dst);
-u16 PkgFrameDataCopy(struct NetPkg *pkg,u8 *dst);
-void PkgCopyListToPkg(struct NetPkg *pkg,struct NetPkg *dst);
-void PkgCopyFrameToPkg(struct NetPkg *pkg,struct NetPkg *dst);
-bool_t PkgTryFreeLst(struct NetPkg  *pkglst);
-bool_t PkgTryFreeQ(struct NetPkg  *pkglst);
-bool_t PkgCachedPart(struct NetPkg  *pkg);
-bool_t PkgCachedLst(struct NetPkg   *pkglst);
-bool_t PkgModuleInit(void);
 #endif // for __NETPKG_H__

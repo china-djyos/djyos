@@ -17,8 +17,8 @@
 		"app":["black box",
 		"board config",
 		"cpu onchip dma",
-		"cpu peri gpio",
-		"cpu peri uart",
+		"cpu onchip gpio",
+		"cpu onchip uart",
 		"debug information",
 		"device file system",
 		"heap",
@@ -35,12 +35,13 @@
 		"shell",
 		"stdio",
 		"stm32f7",
-		"uart device file"],
+		"uart device file",
+		"STM32 commond code"],
 		"iboot":["black box",
 		"board config",
 		"cpu onchip dma",
-		"cpu peri gpio",
-		"cpu peri uart",
+		"cpu onchip gpio",
+		"cpu onchip uart",
 		"device file system",
 		"heap",
 		"int",
@@ -56,6 +57,7 @@
 		"shell",
 		"stdio",
 		"stm32f7",
-		"uart device file"]
+		"uart device file",
+		"STM32 commond code"]
 	}
 }

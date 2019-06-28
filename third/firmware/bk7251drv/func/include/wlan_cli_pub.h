@@ -19,12 +19,12 @@
 #define SEND_WAIT       BEKEN_WAIT_FOREVER
 
 #define RET_CHAR        '\n'
-#define END_CHAR		'\r'
-#define PROMPT			"\r\n# "
-#define EXIT_MSG		"exit"
+#define END_CHAR        '\r'
+#define PROMPT          "\r\n# "
+#define EXIT_MSG        "exit"
 
-#define NUM_BUFFERS		1
-#define MAX_COMMANDS	64
+#define NUM_BUFFERS     1
+#define MAX_COMMANDS    64
 #define INBUF_SIZE      128
 #define OUTBUF_SIZE     2048
 
@@ -47,10 +47,10 @@ struct cli_st
     const struct cli_command *commands[MAX_COMMANDS];
     unsigned int num_commands;
     int echo_disabled;
-	
-    unsigned int bp;	/* buffer pointer */
+
+    unsigned int bp;    /* buffer pointer */
     char inbuf[INBUF_SIZE];
-	
+
     char outbuf[OUTBUF_SIZE];
 } ;
 

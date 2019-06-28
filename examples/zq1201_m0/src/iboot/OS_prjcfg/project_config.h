@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -51,7 +51,7 @@
 #define     CFG_YMODEM_DEVNAME               "std"                  // "ymodem传输设备，std表示使用标准输入输出设备"
 //*******************************  Configure cpu drive inner flash  ******************************************//
 #define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define CFG_UART1_SENDBUF_LEN            32                 //
 #define CFG_UART1_RECVBUF_LEN            32                 //
 #define CFG_UART1_DMABUF_LEN             32                 //

@@ -9,7 +9,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"graphical decorate development(gdd)"//填写该组件的名字
+//component name:"graphical decorate development"//填写该组件的名字
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system                          //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                          //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -27,9 +27,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == false )
+//#warning  " graphical_decorate_development  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_DESKTOP_WIDTH        //****检查参数是否已经配置好
-#warning    gdd组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,800,
 #define CFG_DESKTOP_WIDTH       0           //"桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度

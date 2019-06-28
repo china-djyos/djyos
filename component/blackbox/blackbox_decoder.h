@@ -59,6 +59,6 @@
 #include "list.h"
 extern struct dListNode BlackBoxDecoderListHead;
 
-bool_t BlackBox_ThrowInfodecode(struct BlackBoxThrowPara  *throwpara, u32 endian);
+bool_t __BlackBox_ThrowInfodecode(struct BlackBoxThrowPara  *throwpara, u32 endian);
 
 #endif /* BLACKBOX_THROWDECODER_H_ */

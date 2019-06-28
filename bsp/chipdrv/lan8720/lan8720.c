@@ -36,16 +36,17 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_ETHERNET_PHY_LAN8720 == false )
+//#warning  " ethernet_phy_lan8720  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-//#ifndef CFG_VLAN_VALUE0         //****检查参数是否已经配置好
-//#warning    lan8720组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_ETHERNET_PHY_LAN8720    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,255,
 #define CFG_LAN8720_PHY_ADDRESS     0   //phy的物理地址，硬件一般设计为 0
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
-//#endif
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 

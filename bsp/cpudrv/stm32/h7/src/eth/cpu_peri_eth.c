@@ -84,9 +84,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_MAC == false )
+//#warning  " cpu_onchip_MAC  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_ETH_LOOP_ENABLE     //****检查参数是否已经配置好
-#warning    cpu_peri_eth组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_MAC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@string,1,32,
 #define CFG_ETH_NETCARD_NAME    "STM32H7_ETH"   //"网卡名称",
 //%$#@num,1000,10000,
@@ -674,8 +675,6 @@ static ptu32_t __MacRcvTask(void)
 
 
 //  u32 value;
-    u32 resettimes= 0;
-    time_t printtime;
 
     Djy_GetEventPara((ptu32_t *)&handle,NULL);
     //没发现H7有统计CRC错误的功能
@@ -773,6 +772,9 @@ static bool_t __CreateRcvTask(struct NetDev * handle)
     }
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //show the gmac status
 //bool_t macdebuginfo(char *param)
@@ -960,6 +962,8 @@ bool_t macfiltdis(char *param)
     return true;
 }
 
+#pragma GCC diagnostic pop
+
 void djybsp_eth_get_mac_config(ETH_MACConfigTypeDef *macconf)
 {
     HAL_ETH_GetMACConfig(&sEthHandle, macconf);
@@ -1124,7 +1128,7 @@ bool_t ModuleInstall_ETH(void)
     devpara.devfunc = CN_IPDEV_NONE;
     memcpy(devpara.mac,gc_NetMac,CN_MACADDR_LEN);
     devpara.name = (char *)pDrive->devname;
-    devpara.mtu = 1528;
+    devpara.mtu = CN_ETH_MTU;
     devpara.Private = (ptu32_t)pDrive;
     pDrive->devhandle = NetDevInstall(&devpara);
     if(NULL == pDrive->devhandle)

@@ -71,9 +71,10 @@ extern "C" {
 
 struct objhandle{
     list_t list;            // 句柄所关联的对象的句柄链表；
-    u32 flags;              // 当前文件操作标志，如O_RDONLY等，在fcntl.h中定义。
+    u32 flags;              // 当前文件操作标志，如 O_RDONLY等，在fcntl.h中定义。
     struct Object *HostObj;    // 关联的对象
     u32 timeout;            // 同步访问的timeout，单位us，不超过1.19小时；
+                            //注意，socket不适用，posix有特殊规定。
     struct MultiplexObjectCB * pMultiplexHead; // 多路复用目标对象头指针；
     u32 MultiplexEvents;    // 对象的当前访问状态，如可读，可写等。24bit，高8位无效，
                             // 可用于多路复用；

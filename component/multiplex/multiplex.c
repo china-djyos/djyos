@@ -92,12 +92,16 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_MULTIPLEX == false )
+//#warning  " multiplex  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_MULTIPLEX    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
@@ -573,16 +577,20 @@ s32 Multiplex_Wait(struct MultiplexSetsCB *Sets, u32 *Status, u32 Timeout)
     //判断或等待直到MultiplexSets被触发。
     if (!Sets->SetsActived)
     {
-        if(false ==Lock_SempPend(&Sets->Lock, Timeout))
-        {
-            return ret; //没有触发行为且原来是未触发状态
-        }
+        Lock_SempPend(&Sets->Lock, Timeout);
+        //下列代码注释原因：如果已经有fd被触发，但还没达到ActiveLevel，这种情况也要在超时
+        //之时返回fd
+//      if(false ==Lock_SempPend(&Sets->Lock, Timeout))
+//      {
+//          return ret; //没有触发行为且原来是未触发状态
+//      }
     }
     Int_SaveAsynSignal();
     if (Sets->ActiveQ != NULL)
     {   //阻塞等待结束后，Actived非空即视为触发。Lock_SempPend超时返回，此时
-        //ActiveQ可能NULL（无对象被触发），也可能非空（有对象触发，但未达到ActiveLevel）
-
+        //ActiveQ可能NULL（无对象被触发），也可能非空（有对象触发，但未达到ActiveLevel，
+        //此时要人工设为已触发）
+        Sets->SetsActived = true;
         Object = Sets->ActiveQ;
         ret = Object->Fd;
         if(Object->SensingBit & CN_MULTIPLEX_SENSINGBIT_ET)

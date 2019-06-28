@@ -90,9 +90,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_EASY_FILE_SYSTEM == false )
+//#warning  " easy_file_system  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_EFS_MOUNT_POINT   //****检查参数是否已经配置好
-#warning    efsfilesystem组件参数未配置，使用默认值
+#define CFG_MODULE_ENABLE_EASY_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,1073741823,
 #define CFG_EFS_FILE_BLOCK_SIZE           4096                 // 单个文件大小的上限
 //%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,
@@ -101,7 +102,8 @@
 #define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
-#endif//%$#@end configue  ****参数配置结束
+#endif
+//%$#@end configue  ****参数配置结束
 
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****组件描述结束

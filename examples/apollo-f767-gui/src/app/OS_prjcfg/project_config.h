@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -39,7 +39,7 @@
 #define CFG_STDIO_IN_NAME              "/dev/UART1"         // "标准输入设备名",
 #define CFG_STDIO_OUT_NAME             "/dev/UART1"         // "标准输出设备名",
 #define CFG_STDIO_ERR_NAME             "/dev/UART1"         // "标准err输出设备名",
-//*******************************  Configure cpu peri uart  ******************************************//
+//*******************************  Configure cpu onchip uart  ******************************************//
 #define    CFG_UART1_SENDBUF_LEN           64                //
 #define    CFG_UART1_RECVBUF_LEN           64                //
 #define    CFG_UART1_DMABUF_LEN            64                //
