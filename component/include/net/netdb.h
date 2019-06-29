@@ -1,4 +1,4 @@
-//----------------------------------------------------
+//-----------------------------------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,8 @@
 // 任何直接性、间接性、偶发性、特殊性、惩罚性或任何结果的损害（包括但不限
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 //author:zhangqf
 //date  :下午12:51:14/2017年2月19日
@@ -197,6 +199,28 @@ struct hostent
                             * addresses (in network byte order) for the host,
                             * terminated by a null pointer. */
 };
+
+//添加hostent支持可重入问题。
+#define CN_RESULT_NUM     10
+#define DNS_NAME_LEN_MAX     64
+
+typedef struct StDnsResult{
+    unsigned char      arrDnsCNameAddr[CN_RESULT_NUM+1][DNS_NAME_LEN_MAX];
+    unsigned char      arrDnsINameAddrV4[CN_RESULT_NUM+1][4];
+}StDnsResult;
+
+typedef struct hostent_ext
+{
+    char *h_name; 
+    char **h_aliases; 
+    int h_addrtype;
+    int h_length;
+    char **h_addr_list; 
+    char arr_name[100];
+    char *arr_aliases[CN_RESULT_NUM+1];
+    char *arr_addr_list[CN_RESULT_NUM+1];
+    struct StDnsResult dns_res;
+}hostent_ext;
 
 #define h_addr h_addr_list[0] /* For backward compatibility */
 

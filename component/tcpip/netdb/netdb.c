@@ -314,6 +314,72 @@ struct hostent *gethostbyname(const char *name)
 }
 
 
+void init_hostent_ext(struct hostent_ext *phostent_ext)
+{
+    int i=0;
+    if(phostent_ext) {
+        memset(phostent_ext, 0, sizeof(struct hostent_ext));
+        phostent_ext->h_name = &phostent_ext->arr_name[0];
+        for (i=0; i<CN_RESULT_NUM+1; i++)
+        {
+            phostent_ext->arr_aliases[i] = &phostent_ext->dns_res.arrDnsCNameAddr[i][0];
+            phostent_ext->arr_addr_list[i] = &phostent_ext->dns_res.arrDnsINameAddrV4[i][0];
+        }
+        phostent_ext->h_aliases = (char **)phostent_ext->arr_aliases;
+        phostent_ext->h_addr_list = (char **)phostent_ext->arr_addr_list;
+    }
+}
+
+int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext);
+struct hostent * gethostbyname_malloc(const char *name)
+{
+    int len=0;
+    struct in_addr temp;
+    struct hostent_ext *pnew = (struct hostent_ext*)malloc(sizeof(struct hostent_ext));
+    if(pnew==NULL) return 0;
+    init_hostent_ext(pnew);
+
+    struct hostent *ret;
+    if((NULL == name)||(0 == strcmp(name,"localhost")))
+    {
+        pnew->h_addrtype = AF_INET;
+        pnew->h_length = sizeof(struct in_addr);
+        len = sizeof(pnew->arr_name)-1;
+        len = (len<strlen(name))?len:strlen(name);
+        memcpy(pnew->h_name, name, len);
+        inet_aton("127.0.0.1", &gLocalAddr);
+        memcpy(&pnew->dns_res.arrDnsINameAddrV4[0], &gLocalAddr, 4);
+        memcpy(&pnew->dns_res.arrDnsINameAddrV4[1], &gHostAddr, 4);
+        memset(&pnew->dns_res.arrDnsINameAddrV4[2], 0x00, 4);//结束标志
+    }
+    else if(0==strcmp(name,gHostName))
+    {
+        pnew->h_addrtype = AF_INET;
+        pnew->h_length = sizeof(struct in_addr);
+        len = sizeof(pnew->arr_name)-1;
+        len = (len<strlen(name))?len:strlen(name);
+        memcpy(pnew->h_name, name, len);
+        temp.s_addr = INADDR_LOOPBACK;
+        memcpy(&pnew->dns_res.arrDnsINameAddrV4[0], &temp, 4);
+        memcpy(&pnew->dns_res.arrDnsINameAddrV4[1], &gLocalAddr, 4);
+        memset(&pnew->dns_res.arrDnsINameAddrV4[2], 0x00, 4);//结束标志
+    }
+    else
+    {
+        DnsNameResolveExt(name, pnew);
+    }
+    return (struct hostent *)pnew;
+}
+
+void gethostbyname_free(struct hostent *phostent)
+{
+    if(phostent) {
+        free(phostent);
+    }
+}
+
+
+
 //these functions must be implement,but not now;
 //the gethostbyname only used for the ipv4,and this one is used for both ipv4
 //and ipv6,you also can request for the service and port
