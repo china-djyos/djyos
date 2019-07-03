@@ -101,6 +101,26 @@ void djy_audio_adc_open(uint16_t buf_len,uint16_t channel,
     aud_adc.linein_detect_pin = linein_detect_pin;
     aud_adc.freq = freq;
     audio_adc_open((uint32_t)(&aud_adc));
+
+    audio_adc_ctrl(AUD_ADC_CMD_PLAY,0);
+}
+
+void djy_linein_adc_open(uint16_t buf_len,uint16_t channel,
+        audio_sample_rate_e freq,uint32_t linein_detect_pin)
+{
+    if(channel>2)
+        return;
+    aud_adc.buf = malloc(buf_len);
+    if(aud_adc.buf==NULL)
+        return;
+    aud_adc.buf_len = buf_len;
+    aud_adc.channels = channel;
+    aud_adc.mode |= AUD_ADC_MODE_DMA_BIT;
+    aud_adc.linein_detect_pin = linein_detect_pin;
+    aud_adc.freq = freq;
+    audio_adc_open((uint32_t)(&aud_adc));
+    audio_adc_ctrl(AUD_ADC_CMD_DO_LINEIN_DETECT,0);
+
     audio_adc_ctrl(AUD_ADC_CMD_PLAY,0);
 }
 

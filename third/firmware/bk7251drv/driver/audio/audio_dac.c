@@ -318,10 +318,12 @@ static void audio_dac_config_dma(void)
 
     if(!aud_dac.buf)
         return;
-    
+
     memset(&cfg, 0, sizeof(GDMACFG_TPYES_ST));
-    
-    cfg.dstdat_width = 16;
+    if(aud_dac.channels == 1)
+        cfg.dstdat_width = 16;
+    else
+        cfg.dstdat_width = 32;
     cfg.srcdat_width = 32;
     cfg.dstptr_incr = 0;
     cfg.srcptr_incr = 1;

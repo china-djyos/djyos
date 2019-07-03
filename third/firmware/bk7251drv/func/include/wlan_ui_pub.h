@@ -393,7 +393,7 @@ extern int is_apm_bss_config_empty(void);
  *              gpio_edge_map is hex and every bits is map to gpio0-gpio31.
  *              0:rising,1:falling.
  */
-void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map);
+void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map,UINT32 time);
 
 /** @brief  Enable dtim power save,close rf,and wakeup by ieee dtim dynamical
  *

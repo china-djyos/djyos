@@ -1254,7 +1254,7 @@ extern void bmsg_ps_sender(uint8_t ioctl);
  *              0:rising,1:falling.
  */
 #if CFG_USE_DEEP_PS
-void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map)
+void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map,UINT32 time)
 {
     UINT32 param;
     UINT32 i;
@@ -1275,8 +1275,11 @@ void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map)
             }
         }
     }
-
+#ifndef DEEP_SLEEP_TEST_RTC_WAKEUP
     deep_sleep_wakeup_with_gpio(gpio_index_map,gpio_edge_map);
+#else
+	deep_sleep_wakeup_with_xtal_32K(time);
+#endif
 }
 #endif
 
@@ -1418,7 +1421,7 @@ int bk_wlan_power_save_set_level(BK_PS_LEVEL level)
 #endif
         rtos_delay_milliseconds(100);
 #if CFG_USE_DEEP_PS
-        bk_enter_deep_sleep(0xc000,0x0);
+        bk_enter_deep_sleep(0xc000,0x0,0);
 #endif
     }
 

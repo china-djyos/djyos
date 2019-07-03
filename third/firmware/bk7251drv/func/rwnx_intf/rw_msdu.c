@@ -189,6 +189,14 @@ MSDU_NODE_T *rwm_tx_node_alloc(UINT32 len)
         goto alloc_exit;
     }
 
+    #if(CFG_SOC_NAME == SOC_BK7221U)
+    if(((UINT32)node_ptr) >= 0x900000u)
+    {
+        os_free(node_ptr);
+        node_ptr = NULL;
+        goto alloc_exit;
+    }
+    #endif // #if(CFG_SOC_NAME == SOC_BK7221U)
     buff_ptr = (UINT8 *)((UINT32)node_ptr + sizeof(MSDU_NODE_T));
 
     node_ptr->msdu_ptr = buff_ptr;
