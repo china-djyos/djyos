@@ -1117,23 +1117,56 @@ void sctrl_enter_rtos_deep_sleep(PS_DEEP_CTRL_PARAM deep_param)
 
     uart2_exit();
     uart1_exit();
-
-    reg = REG_READ(SCTRL_ROSC_TIMER);
-    reg &= ~ (ROSC_TIMER_ENABLE_BIT);
-    REG_WRITE(SCTRL_ROSC_TIMER,reg);
-
-    REG_WRITE(SCTRL_GPIO_WAKEUP_EN,0x0); 
-
-    REG_WRITE(SCTRL_BLOCK_EN_MUX, 0x0);  
-
-
-    reg = REG_READ(SCTRL_LOW_PWR_CLK);
-    reg &=~(LPO_CLK_MUX_MASK);
-    reg |=(LPO_SRC_ROSC << LPO_CLK_MUX_POSI);
-    REG_WRITE(SCTRL_LOW_PWR_CLK, reg);
+#if 1
+    /*ana_reg set*/
+    REG_WRITE(SCTRL_ANALOG_CTRL0, 0x7819a59b);
+    REG_WRITE(SCTRL_ANALOG_CTRL1, 0x7819a59b);
+    REG_WRITE(SCTRL_ANALOG_CTRL2, 0x84036080);
+    REG_WRITE(SCTRL_ANALOG_CTRL3, 0x180004a0);
+    REG_WRITE(SCTRL_ANALOG_CTRL4, 0x84200e52);
+    REG_WRITE(SCTRL_ANALOG_CTRL5, 0x3b13b13b);
+    REG_WRITE(SCTRL_ANALOG_CTRL6, 0xb09350);
+    REG_WRITE(SCTRL_ANALOG_CTRL7, 0x441a7f0);
+    REG_WRITE(SCTRL_ANALOG_CTRL8, 0x3b187c);
+    REG_WRITE(SCTRL_ANALOG_CTRL9, 0x82204007);
+    REG_WRITE(SCTRL_ANALOG_CTRL10, 0x80801432);
+    ps_delay(10);
+#endif
 
     /* close all peri int*/
     REG_WRITE(ICU_INTERRUPT_ENABLE, 0);
+
+//  reg = REG_READ(SCTRL_ROSC_TIMER);
+//  reg &= ~ (ROSC_TIMER_ENABLE_BIT);
+//  REG_WRITE(SCTRL_ROSC_TIMER,reg);
+
+    REG_WRITE(SCTRL_GPIO_WAKEUP_EN,0x0); 
+
+    REG_WRITE(SCTRL_BLOCK_EN_MUX, 0x0);
+#if 1
+    /* ROSC_POWER DOWN*/
+    reg = REG_READ(SCTRL_SLEEP);
+    reg = reg| ROSC_PWD_DEEPSLEEP_BIT ;
+    REG_WRITE(SCTRL_SLEEP,reg);
+
+    /* ROSC_TIMER_int_clear*/
+    reg = REG_READ(SCTRL_ROSC_TIMER);
+    reg = reg| ROSC_TIMER_INT_STATUS_BIT ;
+    REG_WRITE(SCTRL_ROSC_TIMER,reg);      //sys_ctrl : 0x47;
+
+    /*ROSC_TIMER close */
+    reg = REG_READ(SCTRL_ROSC_TIMER);
+    reg = reg & (~ROSC_TIMER_ENABLE_BIT);                                                                  //'C'
+    REG_WRITE(SCTRL_ROSC_TIMER,reg);
+#endif
+    reg = REG_READ(SCTRL_LOW_PWR_CLK);
+    reg &=~(LPO_CLK_MUX_MASK);
+    //reg |=(LPO_SRC_ROSC << LPO_CLK_MUX_POSI);
+    reg |=(LPO_SRC_32K_XTAL << LPO_CLK_MUX_POSI);
+    REG_WRITE(SCTRL_LOW_PWR_CLK, reg);
+
+    /* close all peri int*/
+//  REG_WRITE(ICU_INTERRUPT_ENABLE, 0);
 
     /* MAC pwd*/
     REG_WRITE(SCTRL_PWR_MAC_MODEM, MAC_PWD << MAC_PWD_POSI); 
@@ -1168,10 +1201,16 @@ void sctrl_enter_rtos_deep_sleep(PS_DEEP_CTRL_PARAM deep_param)
     reg = REG_READ(SCTRL_CONTROL);
     reg &= ~(MCLK_MUX_MASK << MCLK_MUX_POSI);
     reg &= ~(MCLK_DIV_MASK << MCLK_DIV_POSI);
-    REG_WRITE(SCTRL_CONTROL, reg);    
-
+    REG_WRITE(SCTRL_CONTROL, reg);
+#if 1
+    reg = REG_READ(SCTRL_CONTROL);
+    reg =(reg & (~0xF0) |(0<<4));
+    reg =(reg & (~0x03) |(0<<MCLK_MUX_POSI));
+    reg =(reg & (~0x100) |FLASH_26M_MUX_BIT);
+    REG_WRITE(SCTRL_CONTROL,reg); //sys_ctrl : 0x02;
+#endif
     ps_delay(10);
-
+#if 0
     /* ALL disable*/
     reg = 0x0;
     reg &= ~(BLOCK_EN_WORD_MASK << BLOCK_EN_WORD_POSI);
@@ -1180,8 +1219,8 @@ void sctrl_enter_rtos_deep_sleep(PS_DEEP_CTRL_PARAM deep_param)
     REG_WRITE(SCTRL_BLOCK_EN_CFG, reg); 
 
     reg = 0xFFFFFFFF;
-    REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS,reg);    
-
+    REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS,reg);
+#endif
     if(deep_param.deep_wkway == PS_DEEP_WAKEUP_RTC
         && deep_param.param != 0xffffffff)
     {

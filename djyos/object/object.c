@@ -1049,6 +1049,7 @@ struct Object *obj_matchpath(const char *match, char **left)
     else
     {
         Base = obj_current();   // 其他都是相对路径
+        result = Base;              //根目录是第一个匹配项
     }
     current = Base;
     *left = (char*)match;

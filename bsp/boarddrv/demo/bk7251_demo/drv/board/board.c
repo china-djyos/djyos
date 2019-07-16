@@ -99,16 +99,27 @@
 // 参数：无
 // 返回：无
 // =============================================================================
-u8 power_flag;
 
-void Set_Power(u8 statue)
+static struct SemaphoreLCB* p7_sem=0;
+void p7_sem_init()
 {
-    power_flag = statue;
+    if (p7_sem==0) {
+        p7_sem = semp_init(1,1,"p7_sem");
+    }
 }
 
-u8 Get_Power(void)
+void p7_isr_hdr(void *args)
 {
-    return power_flag;
+    if (p7_sem) {
+         semp_post(p7_sem);
+    }
+}
+
+int pend_p7_down(unsigned int timeout)
+{
+    int ret = 0;
+    ret = semp_pendtimeout(p7_sem, timeout);
+    return ret;
 }
 
 void Board_Init(void)
@@ -120,8 +131,19 @@ void Board_Init(void)
     intc_init();
     os_clk_init();
 
-//    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);   //上电检测管脚
-//    Set_Power(djy_gpio_read(GPIO10));
+    djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);  //wifi一键配置
+//    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);  //读取蓝牙状态
+
+    p7_sem_init();
+    djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);   //语音按键
+    djy_gpio_attach_irq(GPIO7, PIN_IRQ_MODE_FALLING, p7_isr_hdr, NULL);
+    djy_gpio_irq_enable( GPIO7, 1);
+
+    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);         //喇叭使能
+    djy_gpio_write(GPIO9,1);
+
+    djy_gpio_mode(GPIO12,PIN_MODE_OUTPUT);        //LED
+    djy_gpio_write(GPIO12,0);
 }
 
 void Init_Cpu(void);

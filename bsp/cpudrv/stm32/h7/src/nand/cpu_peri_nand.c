@@ -63,7 +63,7 @@
 #include <filesystems.h>
 #include <device/include/unit_media.h>
 #include <board.h>
-#include <libc/misc/ecc/ecc_256.h>
+#include <misc/ecc/ecc_256.h>
 
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面

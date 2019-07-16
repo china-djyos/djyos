@@ -26,6 +26,7 @@ SCAN_RST_UPLOAD_T *scan_rst_set_ptr = 0;
 IND_CALLBACK_T scan_cfm_cb = {0};
 IND_CALLBACK_T assoc_cfm_cb = {0};
 IND_CALLBACK_T deassoc_evt_cb = {0};
+IND_CALLBACK_T djyos_deassoc_evt_cb = {0};
 IND_CALLBACK_T deauth_evt_cb = {0};
 IND_CALLBACK_T wlan_connect_user_cb = {0};
 
@@ -235,6 +236,12 @@ void mhdr_deassoc_evt_cb(FUNC_2PARAM_PTR ind_cb, void *ctxt)
     deassoc_evt_cb.ctxt_arg = ctxt;
 }
 
+void mhdr_deassoc_evt_cb_for_djyos(FUNC_2PARAM_PTR ind_cb, void *ctxt)
+{
+    djyos_deassoc_evt_cb.cb = ind_cb;
+    djyos_deassoc_evt_cb.ctxt_arg = ctxt;
+}
+
 void mhdr_disconnect_ind(void *msg)
 {
     struct ke_msg *msg_ptr;
@@ -250,6 +257,10 @@ void mhdr_disconnect_ind(void *msg)
     if(deassoc_evt_cb.cb)
     {
         (*deassoc_evt_cb.cb)(deassoc_evt_cb.ctxt_arg, disc->vif_idx);
+    }
+    if(djyos_deassoc_evt_cb.cb)
+    {
+        (*djyos_deassoc_evt_cb.cb)(djyos_deassoc_evt_cb.ctxt_arg, disc->vif_idx);
     }
 }
 
