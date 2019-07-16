@@ -217,7 +217,7 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
             break;
         }
     }
-	
+
     return (result);
 }
 
@@ -233,16 +233,16 @@ inline static s32 __objsys_default_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs
 // ============================================================================
 static struct objhandle *__objsys_open(struct Object *ob, u32 flags, char *uncached)
 {
-	struct objhandle *hdl;
+    struct objhandle *hdl;
 
-	hdl = handle_new();
-	if(!hdl)
+    hdl = handle_new();
+    if(!hdl)
     {
         printf("\r\n : erro : efs    : open failed(memory out).");
         return (NULL);
     }
-	handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
-    return (hdl);	
+    handle_init(hdl, ob, flags, (ptu32_t)NULL);     //将obj和hdl关联起来
+    return (hdl);
 }
 #pragma GCC diagnostic pop
 
@@ -256,7 +256,7 @@ static struct objhandle *__objsys_open(struct Object *ob, u32 flags, char *uncac
 static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentry)
 {
     struct Object *ob = (struct Object *)dentry->d_ino;
-	if(!ob) // 第一次读；
+    if(!ob) // 第一次读；
     {
         ob = obj_child(handle_GetHostObj(directory));
         if(!ob)
@@ -268,11 +268,11 @@ static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentr
         if(ob==obj_child(handle_GetHostObj(directory)))
             return (1); // 全部读完；
     }
-	if(!obj_GetPrivate(ob))
+    if(!obj_GetPrivate(ob))
         dentry->d_type = DIRENT_IS_DIR;
     else
         dentry->d_type = DIRENT_IS_REG;
-	
+
     strcpy(dentry->d_name, obj_name(ob));
     dentry->d_ino = (long)ob;
     return (0);
@@ -908,7 +908,7 @@ void __InuseUpFullPath(struct Object *Obj)
 // 功能：沿路径减对象引用计数；关闭一次文件，则从根开始沿到被打开的文件，沿途所有对象
 //      的引用次数均减 1
 // 参数：ob -- 对象；
-// 返回：减少后的对象引用次数；
+// 返回：无
 // 备注：有引用后则不可删除
 // ============================================================================
 void __InuseDownFullPath(struct Object *Obj)
@@ -923,37 +923,50 @@ void __InuseDownFullPath(struct Object *Obj)
 }
 
 // ============================================================================
+// 功能：关闭一个对象，对象的引用次数均减 1
+// 参数：ob -- 对象；
+// 返回：减少后的对象引用次数；
+// 备注：有引用后则不可删除
+// ============================================================================
+void obj_Close(struct Object *Obj)
+{
+    if(Obj->inuse != 0)
+        Obj->inuse--;
+    return ;
+}
+
+// ============================================================================
 // 功能：删除对象
 // 参数：ob -- 对象；
 // 返回：成功（0），失败（-1）；
 // 备注：
 // ============================================================================
-s32 obj_Delete(struct Object *ob)
+s32 obj_Delete(struct Object *Obj)
 {
-    if(!ob)
+    if(!Obj)
         return (-1);
 
     obj_lock();
 
-    if(obj_isonduty(ob))
+    if(obj_isonduty(Obj))
     {
         obj_unlock();
         return (-1); // 正在使用
     }
 
-    if(ob->next==ob) // 说明该节点没有兄弟节点.
+    if(Obj->next==Obj) // 说明该节点没有兄弟节点.
     {
-        ob->parent->child = NULL;
+        Obj->parent->child = NULL;
     }
     else
     {
-        if(ob->parent->child==ob)
-            ob->parent->child = ob->next; // 说明该节点是队列头节点,需要改变队列头节点
+        if(Obj->parent->child==Obj)
+            Obj->parent->child = Obj->next; // 说明该节点是队列头节点,需要改变队列头节点
 
-        __OBJ_LIST_REMOVE(ob);
+        __OBJ_LIST_REMOVE(Obj);
     }
 
-    __freeobj(ob);
+    __freeobj(Obj);
     obj_unlock();
     return (0);
 }

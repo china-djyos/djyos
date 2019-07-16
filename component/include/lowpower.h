@@ -80,11 +80,11 @@ extern "C" {
 //   注:对许多CPU来说,L0和L1可能是相同的,但有些外设也许有区别
 //L2.每次系统服务事件执行,不执行栈检查,进入深度睡眠,保持内存,时钟停止,仅中断能
 //   唤醒CPU,唤醒后,处理中断,然后继续运行,直到下一次进入低功耗状态。
-//L3.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,CPU运行
-//   状态保存到栈中,调用回调函数,把全部内存数据保存到非易失存储器中.复位唤醒
-//   CPU后,重新启动,把保存到非易失存储器中的内容恢复到RAM,然后继续运行。
-//L4.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,调用回调
-//   函数,把关键数据保存到非易失存储器中,中断唤醒CPU后,重新启动并加载运行。
+//L3.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,调用回调函数,把全
+//   部内存数据保存到非易失存储器中.复位唤醒CPU后,重新启动,把保存到非易失存储器中的内容
+//   恢复到RAM,然后继续运行。
+//L4.每次系统服务事件执行,不执行栈检查,进入深度睡眠,内存掉电,时钟停止,硬件唤醒CPU后,重新
+//   启动并加载运行。
 
 #define CN_SLEEP_NORMAL    0       //休眠方式:正常
 #define CN_SLEEP_ERROR     0xff    //休眠方式:错误
@@ -100,6 +100,7 @@ struct LowPowerCtrl;
 //如果跟cpu有关,则在bsp\cpudrv目录提供,移植新系统时灵活处置.
 //跟低功耗相关的硬件初始化
 bool_t __LP_BSP_HardInit(void);
+
 // 程序boot后调用本函数可知是从L3还是从L4唤醒,或者是正常启动.
 // 返回值是为CN_WAKEUP_NORMAL、CN_WAKEUP_ERROR、 CN_WAKEUP_L3、CN_WAKEUP_L4之一。
 // 特别注意:如果硬件在重新上电或复位时,没有自动清除低功耗状态启动标识,则无论
@@ -110,8 +111,8 @@ u32 __LP_BSP_GetSleepLevel(void);
 bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel);    //返回true=成功,false=失败
 //从非易失存储器中恢复RAM,L3级低功耗使用,如果本函数返回失败,系统按normal方式启动
 bool_t __LP_BSP_RestoreRamL3(void);     //返回true=成功恢复,false=失败
-//把RAM存储到非易失存储器中,L4级低功耗使用,如果返回false,系统将不进入休眠
-bool_t __LP_BSP_SaveRamL3(void);     //返回true=成功恢复,false=失败
+//把RAM存储到非易失存储器中,L3级低功耗使用,如果返回false,系统将不进入休眠
+bool_t __LP_BSP_SaveRamL3(void);     //返回true=成功保存,false=失败
 
 void __LP_BSP_EntrySleepL0(u32 pend_ticks);
 void __LP_BSP_EntrySleepL1(u32 pend_ticks);

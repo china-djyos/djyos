@@ -270,7 +270,7 @@ __attribute__((weak)) uint64_t __DjyGetTicks(void)
     return gRunTicks;
 }
 
-//??????????
+//由调用者保证调用安全
 __attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
 {
     gResumeTickFlag = flag;
@@ -281,7 +281,7 @@ __attribute__((weak)) bool_t DjyGetUpdateTickFlag(void)
     return gResumeTickFlag;
 }
 
-//??????????
+//由调用者保证原子操作
 __attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
 {
     gRunTicks += ticks;

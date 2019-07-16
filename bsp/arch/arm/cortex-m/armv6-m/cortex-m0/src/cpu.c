@@ -338,6 +338,7 @@ __attribute__((weak))   void __DjyInitTick(void)
     HardExp_ConnectSystick(Djy_ScheduleIsr);
     pg_systick_reg->reload = CN_CFG_FCLK/CN_CFG_TICK_HZ;
     pg_systick_reg->current =CN_CFG_FCLK/CN_CFG_TICK_HZ;
+    //因M0没有 basepri 寄存器做异步信号开关，systick 中断线使能了，就直接使能了
     pg_systick_reg->ctrl =   (1<<bo_systick_ctrl_enable)    //使能
                                // |(1<<bo_systick_ctrl_tickint)   //M0,此时不允许产生中断
                                 |(1<<bo_systick_ctrl_clksource);//用使用外部时钟

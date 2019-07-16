@@ -3443,19 +3443,22 @@ ptu32_t __Djy_Service(void)
     while(1)
     {
         //注：改成tickless模式后，因没有tick中断，不再需要判断，每次运行直接跑栈检查
-//      level=LP_GetSleepLevel();
-//      if(level==CN_SLEEP_NORMAL)
-//      {
-//
+        level=LP_GetSleepLevel();
+        if(level==CN_SLEEP_NORMAL)
+        {
           for(loop = 0; loop<CFG_EVENT_LIMIT; loop++)
           {
                 __Djy_CheckStack(loop);
           }
-//      }
+        }
         if(g_fnEntryLowPower != NULL)
         {
             now_tick = __DjyGetTicks();
-            int_tick = (gSchduleTick.DelayTick<gSchduleTick.RRSTicks)?(gSchduleTick.DelayTick):(gSchduleTick.RRSTicks);
+            if(gSchduleTick.DelayTick<gSchduleTick.RRSTicks)
+                int_tick = gSchduleTick.DelayTick;
+            else
+                int_tick = gSchduleTick.RRSTicks;
+//          int_tick = (gSchduleTick.DelayTick<gSchduleTick.RRSTicks)?(gSchduleTick.DelayTick):(gSchduleTick.RRSTicks);
 //          while(int_tick<now_tick);
             pend_ticks = int_tick - now_tick;
             g_fnEntryLowPower(g_ptEventRunning->vm,pend_ticks);      //进入低功耗状态

@@ -140,12 +140,12 @@ u32 __LP_BSP_GetSleepLevel(void)
     RTC_Handler.Instance=RTC;
     if(__HAL_PWR_GET_FLAG(PWR_FLAG_WU+PWR_FLAG_SB)& PWR_FLAG_WU)
     {
-        bkt_DR = HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR2);//todo
+        bkt_DR = HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR0);//todo
 //        bkt_DR = Stm32SleepModel4;
-        if(bkt_DR == Stm32SleepModel4)
-            return CN_SLEEP_L4;
+        if( (bkt_DR == CN_SLEEP_L3) || (bkt_DR == CN_SLEEP_L4) )
+            return bkt_DR;
         else
-            return CN_SLEEP_L3;
+            return CN_SLEEP_NORMAL;
     }
     else
         return CN_SLEEP_NORMAL;
@@ -163,7 +163,7 @@ bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
 
     if((SleepLevel!= CN_SLEEP_L3) && (SleepLevel!= CN_SLEEP_L4))
         return false;
-    HAL_RTCEx_BKUPWrite(&RTC_Handler,RTC_BKP_DR2,SleepLevel);//todo
+    HAL_RTCEx_BKUPWrite(&RTC_Handler,RTC_BKP_DR0,SleepLevel);
     return true;
 
 }

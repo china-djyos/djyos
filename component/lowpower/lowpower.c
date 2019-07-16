@@ -54,8 +54,9 @@ struct LowPowerCtrl
     u32 SleepLevel;                             //当前低功耗级别
 //  u32 TriggerTick;
     u32 DisableCounter;     //禁止低功耗次数计数,0才可以进入L1及以上级别低功耗
-    u32 (*EntrySleepReCall)(u32 SleepLevel);      //进入低功耗状态前的回调函数
-    u32 (*ExitSleepReCall)(u32 SleepLevel);       //从低功耗状态唤醒后的回调函数
+    u32 (*EntrySleepReCall)(u32 SleepLevel);    //进入低功耗状态前的回调函数
+                                                //返回值表示是否允许进入相应级别低功耗
+    u32 (*ExitSleepReCall)(u32 SleepLevel);     //从低功耗状态唤醒后的回调函数
 
 };
 
@@ -73,56 +74,73 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
 {
     atom_low_t  atom_bak;
 
-    if(g_tLowPower.DisableCounter != 0)
+    if(g_tLowPower.DisableCounter == 0)
     {
-        g_tLowPower.EntrySleepReCall(CN_SLEEP_L0);
-        __LP_BSP_EntrySleepL0(pend_ticks);
-        g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
-        return CN_SLEEP_L0;
-    }
-    switch(g_tLowPower.SleepLevel)
-    {
-       case CN_SLEEP_L0:
-           Int_CutTrunk();
-           g_tLowPower.EntrySleepReCall(CN_SLEEP_L0);
-           __LP_BSP_EntrySleepL0(pend_ticks);
-           g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
-           Int_ContactTrunk();
-           return CN_SLEEP_L0;
-           break;
-       case CN_SLEEP_L1:
-           Int_CutTrunk();
-           g_tLowPower.EntrySleepReCall(CN_SLEEP_L1);
-           __LP_BSP_EntrySleepL1(pend_ticks);
-           g_tLowPower.ExitSleepReCall(CN_SLEEP_L1);
-           Int_ContactTrunk();
-           return CN_SLEEP_L1;
-           break;
-       case CN_SLEEP_L2:
-           g_tLowPower.EntrySleepReCall(CN_SLEEP_L2);
-           __LP_BSP_EntrySleepL2(pend_ticks);
-           g_tLowPower.ExitSleepReCall(CN_SLEEP_L2);
-           return CN_SLEEP_L2;
-           break;
-       case CN_SLEEP_L3:
-           g_tLowPower.EntrySleepReCall(CN_SLEEP_L3);
-           __LP_BSP_SaveSleepLevel(CN_SLEEP_L3);
-           atom_bak = Int_LowAtomStart();
-           __LP_BSP_AsmSaveReg(vm,__LP_BSP_SaveRamL3,__LP_BSP_EntrySleepL3);
-           Int_LowAtomEnd(atom_bak);
-           g_tLowPower.ExitSleepReCall(CN_SLEEP_L3);
-           return CN_SLEEP_L3;
-           break;
-       case CN_SLEEP_L4:
-           g_tLowPower.EntrySleepReCall(CN_SLEEP_L4);
-           __LP_BSP_SaveSleepLevel(CN_SLEEP_L4);
-           __LP_BSP_EntrySleepL4( );    //进入低功耗,并且不会返回这里
-           break;
+        switch(g_tLowPower.SleepLevel)
+        {
+           case CN_SLEEP_L0:
+               atom_bak = Int_LowAtomStart();
+               if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L0))
+               {
+                   __LP_BSP_EntrySleepL0(pend_ticks);
+                   g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
+               }
+               Int_LowAtomEnd(atom_bak);
+               return CN_SLEEP_L0;
+               break;
+           case CN_SLEEP_L1:
+               atom_bak = Int_LowAtomStart();
+               if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L1))
+               {
+                   __LP_BSP_EntrySleepL1(pend_ticks);
+                   g_tLowPower.ExitSleepReCall(CN_SLEEP_L1);
+               }
+               Int_LowAtomEnd(atom_bak);
+               return CN_SLEEP_L1;
+               break;
+           case CN_SLEEP_L2:
+               atom_bak = Int_LowAtomStart();
+               if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L2))
+               {
+                   __LP_BSP_EntrySleepL2(pend_ticks);
+                   g_tLowPower.ExitSleepReCall(CN_SLEEP_L2);
+               }
+               Int_LowAtomEnd(atom_bak);
+               return CN_SLEEP_L2;
+               break;
+           case CN_SLEEP_L3:
+               atom_bak = Int_LowAtomStart();
+               if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L3))
+               {
+                   __LP_BSP_SaveSleepLevel(CN_SLEEP_L3);
+                   __LP_BSP_AsmSaveReg(vm,__LP_BSP_SaveRamL3,__LP_BSP_EntrySleepL3);
+                   //若正确调用，上面的函数并不返回，而是等待复位，下面的代码，是为了在上述
+                   //函数执行不正常而返回时，不使系统紊乱。
+                   g_tLowPower.ExitSleepReCall(CN_SLEEP_L3);
+               }
+               Int_LowAtomEnd(atom_bak);
+               return CN_SLEEP_L3;
+               break;
+           case CN_SLEEP_L4:
+               atom_bak = Int_LowAtomStart();
+               if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L4))
+               {
+                   __LP_BSP_SaveSleepLevel(CN_SLEEP_L4);
+                   __LP_BSP_EntrySleepL4( );    //进入低功耗,并且不会返回这里
+                   //若正确调用，上面的函数并不返回，而是等待复位，下面的代码，是为了在上述
+                   //函数执行不正常而返回时，不使系统紊乱。
+                   g_tLowPower.ExitSleepReCall(CN_SLEEP_L3);
+               }
+               Int_LowAtomEnd(atom_bak);
+               break;
 
-       default:
-           break;
+           default:
+               return CN_SLEEP_NORMAL;
+               break;
+        }
     }
-    return 0;
+    else
+        return CN_SLEEP_NORMAL;
 }
 
 //----禁止进入低功耗状态------------------------------------------------------
@@ -209,7 +227,7 @@ void ModuleInstall_LowPower (void)
 {
     g_tLowPower.EntrySleepReCall = EmptyReCall;
     g_tLowPower.ExitSleepReCall = EmptyReCall;
-    g_tLowPower.SleepLevel = CN_SLEEP_NORMAL;
+    g_tLowPower.SleepLevel = CN_SLEEP_L0;
 //    g_tLowPower.TriggerTick = CN_LIMIT_UINT32;
     g_tLowPower.DisableCounter = 0;
     g_fnEntryLowPower = LP_EntryLowPower;

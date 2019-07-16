@@ -142,16 +142,20 @@ bool_t __LP_BSP_HardInit(void)
 //----------------------------------------------------------------------------
 u32 __LP_BSP_GetSleepLevel(void)
 {
-//    u32 bkt_DR;
-//    RTC_HandleTypeDef RTC_Handler;  //RTC¾ä±ú
-//    RTC_Handler.Instance=RTC;
-//    if(__HAL_PWR_GET_FLAG(PWR_FLAG_WU+PWR_FLAG_SB)& PWR_FLAG_WU)
-//    {
-//        bkt_DR = HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR0);
-//        return bkt_DR;
-//    }
-//    else
-//        return CN_SLEEP_NORMAL;
+    u32 bkt_DR;
+    RTC_HandleTypeDef RTC_Handler;  //RTC¾ä±ú
+    RTC_Handler.Instance=RTC;
+    if(__HAL_PWR_GET_FLAG(PWR_FLAG_WU+PWR_FLAG_SB)& PWR_FLAG_WU)
+    {
+        bkt_DR = HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR0);//todo
+//        bkt_DR = Stm32SleepModel4;
+        if( (bkt_DR == CN_SLEEP_L3) || (bkt_DR == CN_SLEEP_L4) )
+            return bkt_DR;
+        else
+            return CN_SLEEP_NORMAL;
+    }
+    else
+        return CN_SLEEP_NORMAL;
 }
 
 //----±£´æÐÝÃß¼¶±ð-------------------------------------------------------------

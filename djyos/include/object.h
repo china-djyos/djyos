@@ -246,6 +246,7 @@ void __InuseUpFullPath(struct Object *Obj);
 //u32 obj_InuseDown(struct Object *ob);
 //void obj_InuseDownRange(struct Object *start, struct Object *end);
 void __InuseDownFullPath(struct Object *Obj);
+void obj_Close(struct Object *Obj);
 
 s32 obj_Delete(struct Object *ob);
 struct Object *obj_detach(struct Object *branch);
