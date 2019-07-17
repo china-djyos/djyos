@@ -50,6 +50,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include "param_config.h"
+#include "cpu_peri_flash.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -103,7 +104,12 @@
 #define CFG_DHCPD_GATWAY    "192.168.0.1"
 #define CFG_DHCPD_DNS       "192.168.0.1"   //"DNS"
 
-static u8   gc_NetMac[CN_MACADDR_LEN] = DEFAULT_MAC_ADDR;
+static u8   gc_NetMac[CN_MACADDR_LEN];
+
+u8 *getnetmacaddr()
+{
+    return gc_NetMac;
+}
 
 void DhcpStaStartIp(void)
 {
@@ -135,6 +141,14 @@ void ModuleInstall_InitNet(void)   //static ip example
     extern bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
                               bool_t loop,u32 loopcycle,\
                               bool_t (*rcvHook)(u8 *buf, u16 len));
+    wifi_get_mac_address((char*)gc_NetMac,CONFIG_ROLE_NULL);//防止重新设置MAC地址
+
+    djy_flash_read(0x1e1000,gc_NetMac,CN_MACADDR_LEN);
+    if(gc_NetMac[0] == 0xff)
+    {
+        memcpy(gc_NetMac,DEFAULT_MAC_ADDR,sizeof(gc_NetMac));
+    }
+    wifi_set_mac_address((char*)gc_NetMac);
     ModuleInstall_Wifi(CFG_NETCARD_NAME,gc_NetMac,false,1*mS,NULL);
 
     tagHostAddrV4  ipv4addr;
