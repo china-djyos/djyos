@@ -151,6 +151,9 @@ static s32 __close(struct objhandle *hdl)
     }
     return ret;
 }
+
+#pragma GCC diagnostic pop
+
 //install the device as an io device
 static s32 __write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeout)
 {
@@ -374,4 +377,3 @@ EXIT_RING:
     return ret;
 }
 
-#pragma GCC diagnostic pop

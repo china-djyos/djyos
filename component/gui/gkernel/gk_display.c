@@ -194,6 +194,9 @@ bool_t GK_SetDefaultDisplay(const char *name)
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //----取显示器的默认显示设置---------------------------------------------------
 //功能: 取一个显示器的默认显示设置，实际上就是桌面窗口的资源节点
 //参数: display，显示器指针
@@ -227,4 +230,4 @@ struct RectBitmap *GK_CreateFrameBuffer(struct DisplayObj *display)
     return NULL;
 }
 
-
+#pragma GCC diagnostic pop

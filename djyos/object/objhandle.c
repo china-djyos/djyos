@@ -50,6 +50,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <int.h>
 #include <string.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -61,16 +62,13 @@
 #include <multiplex.h>
 #include <dbug.h>
 #include <math.h>
-#include "../include/object.h"
-#include "../include/objhandle.h"
+#include <object.h>
+#include <objhandle.h>
 #include "component_config_objfile.h"
 
 static struct MutexLCB s_tHandleMutex; // 文件系统互斥锁
 static struct MemCellPool s_tHandlePool; // 文件预分配池
 static struct objhandle s_tHandleInitPool[CFG_HANDLE_LIMIT];
-
-static s32 __rf_operations(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
-                            ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 
 // ============================================================================
 // 功能：对象句柄系统上锁；
@@ -439,7 +437,7 @@ ptu32_t handle_GetHostObjectPrivate(struct objhandle *hdl)
     if(hdl&&hdl->HostObj)
         return (obj_GetPrivate(hdl->HostObj));
 
-    return (NULL);
+    return (0);
 }
 
 // ============================================================================

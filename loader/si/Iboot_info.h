@@ -93,7 +93,7 @@ u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);
 void * XIP_GetAPPStartAddr(void * apphead);
 char*  Get_AppName(void * apphead);
-bool_t XIP_APPIsDebug(void * apphead);
+bool_t XIP_APPIsDebug(void );
 bool_t XIP_AppFileChack(void * apphead);
 bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
 

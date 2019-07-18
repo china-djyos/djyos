@@ -331,15 +331,15 @@ void init_hostent_ext(struct hostent_ext *phostent_ext)
 }
 
 int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext);
-struct hostent * gethostbyname_malloc(const char *name)
+struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew)
 {
-    int len=0;
+    u32 len=0;
     struct in_addr temp;
-    struct hostent_ext *pnew = (struct hostent_ext*)malloc(sizeof(struct hostent_ext));
-    if(pnew==NULL) return 0;
+//  struct hostent_ext *pnew = (struct hostent_ext*)malloc(sizeof(struct hostent_ext));
+    if(pnew==NULL)
+        return NULL;
     init_hostent_ext(pnew);
 
-    struct hostent *ret;
     if((NULL == name)||(0 == strcmp(name,"localhost")))
     {
         pnew->h_addrtype = AF_INET;
@@ -371,12 +371,12 @@ struct hostent * gethostbyname_malloc(const char *name)
     return (struct hostent *)pnew;
 }
 
-void gethostbyname_free(struct hostent *phostent)
-{
-    if(phostent) {
-        free(phostent);
-    }
-}
+//void gethostbyname_free(struct hostent *phostent)
+//{
+//    if(phostent) {
+//        free(phostent);
+//    }
+//}
 
 
 

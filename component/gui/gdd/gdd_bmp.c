@@ -488,7 +488,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
         bm->linebytes =line_bytes;
         bm->ExColor =(ptu32_t)0;
 //      bm->bm_bits =malloc(line_bytes);
-        bm->bm_bits =rd->pData + bfOffsetBits;
+        bm->bm_bits =(char *)rd->pData + bfOffsetBits;
         DrawBitmap(hdc,x,y,bm,0,RopCode);
 
 //      if(bm->bm_bits!=NULL)

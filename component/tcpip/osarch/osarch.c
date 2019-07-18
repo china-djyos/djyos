@@ -64,9 +64,6 @@ typedef struct
 }tagOsCB;
 static tagOsCB gOsCB;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 //use this function for the statistics
 void *net_malloc(int size)
 {
@@ -437,6 +434,9 @@ static ptu32_t __NetTickerTask(void)
     return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //this is the nettick shell function:use it for the debug
 //static bool_t  __NetTickShell(char *param)
 
@@ -479,6 +479,7 @@ bool_t tcpipmem(char *para)
     return true;
 }
 
+#pragma GCC diagnostic pop
 
 __attribute__((weak))  const u8 CN_NETTICKER_PRIOR = CN_PRIO_RRS;
 __attribute__((weak))  const u32 CN_NETTICKER_STACKSIZE = 0x800;
@@ -549,5 +550,4 @@ bool_t OsArchInit()
 ADD_TO_ROUTINE_SHELL(tcpipmem,tcpipmem,"usage:tcpipmem");
 ADD_TO_ROUTINE_SHELL(netticker,netticker,"usage:netticker");
 
-#pragma GCC diagnostic pop
 

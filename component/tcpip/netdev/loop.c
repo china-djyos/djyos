@@ -86,9 +86,6 @@ typedef struct
 }tagLoopCB;
 static tagLoopCB gLoopCB;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 //for the tempory, we will create a loop task here
 static ptu32_t __LoopTask(void)
 {
@@ -127,6 +124,10 @@ static ptu32_t __LoopTask(void)
 //    return pkg;
 //}
 //device send function
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
 {
     bool_t  ret = false;
@@ -174,6 +175,9 @@ static bool_t __LoopOut(struct NetDev *iface,struct NetPkg *pkg,u32 netdevtask)
     }
     return ret;
 }
+
+#pragma GCC diagnostic pop
+
 //-----------------------------------------------------------------------------
 //功能:
 //参数:
@@ -212,4 +216,4 @@ bool_t LoopInit(void)
 EXIT_LOOPDEV:
     return false;
 }
-#pragma GCC diagnostic pop
+

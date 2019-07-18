@@ -15,8 +15,8 @@
 #include <sys/socket.h>
 #include "dbug.h"
 //base64 encode and decode
-extern char * base64_encode( unsigned char * bindata, char * base64, s32 binlength );
-extern s32 base64_decode( const char * base64, unsigned char * bindata );
+extern char * base64_encode( char * bindata, char * base64, s32 binlength );
+extern s32 base64_decode( char * base64, char * bindata );
 
 #undef  ERROR
 #undef  OK
@@ -30,20 +30,20 @@ extern s32 base64_decode( const char * base64, unsigned char * bindata );
 /* This structure contains the message we should send one transmit */
 struct SmtpState
 {
-    const char  *host;    //the pc we used
-    const char  *server;  //the smtp server
-    const char  *user;    //the user to login the smtp server
-    const char  *passwd;  //the user passwd
-    const char  **to;     //we permit send multi persons .end with NULL if not NULL
-    const char  **cc;     //we also permit to copy to multi persons .end with NULL if not NULL
-    const char  **bcc;    //we also permit to send to multi person secrectly
-    const char  *from;    //only one person could write the mail
-    const char  *subject; //only subject to need or NULL
-    const char  **files;  //multi files attachment
-    const char  *html;    //maybe a html need to send
-    const char  *msg;     //the message to send,end with NULL
-    const char  *inl;     //inline,should be a picture
-    char         buffer[SMTP_INPUT_BUFFER_SIZE];
+    char  *host;    //the pc we used
+    char  *server;  //the smtp server
+    char  *user;    //the user to login the smtp server
+    char  *passwd;  //the user passwd
+    char  **to;     //we permit send multi persons .end with NULL if not NULL
+    char  **cc;     //we also permit to copy to multi persons .end with NULL if not NULL
+    char  **bcc;    //we also permit to send to multi person secrectly
+    char  *from;    //only one person could write the mail
+    char  *subject; //only subject to need or NULL
+    char  **files;  //multi files attachment
+    char  *html;    //maybe a html need to send
+    char  *msg;     //the message to send,end with NULL
+    char  *inl;     //inline,should be a picture
+    char  buffer[SMTP_INPUT_BUFFER_SIZE];
 };
 
 /****************************************************************************
@@ -62,7 +62,7 @@ static const char g_smtpcc[]             = "Cc";
 static const char g_smtpbcc[]            = "Bcc";
 
 //socket io
-static s32 socksnd(s32 sockfd,const char *buf)    //snd
+static s32 socksnd(s32 sockfd,char *buf)    //snd
 {
     debug_printf("smtp","SND:%s",buf);
     s32 len;
@@ -93,7 +93,7 @@ static inline s32 sockrcv(s32 sockfd,unsigned char *buf,s32 len)  //rcv
     debug_printf("smtp","RCV:%s",(char *)buf);
     return ret;
 }
-static inline s32 sndbufbase64(s32 sockfd,struct SmtpState *smtp,const u8 *buf, s32 len)
+static inline s32 sndbufbase64(s32 sockfd,struct SmtpState *smtp,char *buf, s32 len)
 {
     memset(smtp->buffer,0,SMTP_INPUT_BUFFER_SIZE);
     base64_encode(buf,smtp->buffer,len);
@@ -104,7 +104,7 @@ static inline s32 sndbufbase64(s32 sockfd,struct SmtpState *smtp,const u8 *buf, 
     return OK;
 }
 //snd a item
-static inline s32 snditem(s32 sockfd,struct SmtpState *smtp,const char *type,const char *value)
+static inline s32 snditem(s32 sockfd,struct SmtpState *smtp,char *type,char *value)
 {
     memset(smtp->buffer,0,SMTP_INPUT_BUFFER_SIZE);
     snprintf(smtp->buffer, SMTP_INPUT_BUFFER_SIZE, "%s: %s\r\n", type, value);
@@ -115,9 +115,9 @@ static inline s32 snditem(s32 sockfd,struct SmtpState *smtp,const char *type,con
     return OK;
 }
 //snd list
-static inline s32 sndlist(s32 sockfd,struct SmtpState *smtp,const char *type,const char **list)
+static inline s32 sndlist(s32 sockfd,struct SmtpState *smtp,char *type,char **list)
 {
-    const char *value;
+    char *value;
     if(NULL != list)
     {
         while(*list != NULL)
@@ -148,7 +148,7 @@ static inline s32 rcvcode(s32 sockfd,struct SmtpState *smtp)
 
 
 //snd a command and check the return code:return the code if success or -1 faild
-static inline s32 snditemandcheck(s32 sockfd,struct SmtpState *smtp,const char *cmd,const char *para,s32 codecmp)
+static inline s32 snditemandcheck(s32 sockfd,struct SmtpState *smtp,char *cmd,char *para,s32 codecmp)
 {
     s32 ret = ERROR;
     s32 code;
@@ -162,11 +162,11 @@ static inline s32 snditemandcheck(s32 sockfd,struct SmtpState *smtp,const char *
     }
     return ret;
 }
-static inline s32 sndlistandcheck(s32 sockfd,struct SmtpState *smtp,const char *cmd,const char **para,s32 codecmp)
+static inline s32 sndlistandcheck(s32 sockfd,struct SmtpState *smtp,char *cmd,char **para,s32 codecmp)
 {
     s32 ret = ERROR;
     s32 code;
-    const char *value;
+    char *value;
 
     if(NULL == para)
     {
@@ -196,7 +196,7 @@ static inline s32 sndlistandcheck(s32 sockfd,struct SmtpState *smtp,const char *
     return ret;
 }
 
-static inline s32 sndstrandcheck(s32 sockfd,struct SmtpState *smtp,const char *str,s32 codecmp)
+static inline s32 sndstrandcheck(s32 sockfd,struct SmtpState *smtp,char *str,s32 codecmp)
 {
     s32 ret = ERROR;
     s32 code;
@@ -213,40 +213,40 @@ static inline s32 sndstrandcheck(s32 sockfd,struct SmtpState *smtp,const char *s
 
 static inline s32 sendheader(s32 sockfd,struct SmtpState *smtp)
 {
-    const char *value;
-    const char *type;
-    const char **strstr;
+    char *value;
+    char *type;
+    char **strstr;
     //now send the mail from
     value = smtp->from;
-    type = g_smtpfrom;
+    type = (char*)g_smtpfrom;
     if(OK !=snditem(sockfd,smtp,type,value))
     {
         return ERROR;
     }
     //header-to
     strstr = smtp->to;
-    type = g_smtpto;
+    type = (char*)g_smtpto;
     if(OK != sndlist(sockfd,smtp,type,strstr))
     {
         return ERROR;
     }
     //header --cc
     strstr = smtp->cc;
-    type = g_smtpcc;
+    type = (char*)g_smtpcc;
     if(OK != sndlist(sockfd,smtp,type,strstr))
     {
         return ERROR;
     }
     //header --bcc
     strstr = smtp->bcc;
-    type = g_smtpbcc;
+    type = (char*)g_smtpbcc;
     if(OK != sndlist(sockfd,smtp,type,strstr))
     {
         return ERROR;
     }
     //header-subject
     value = smtp->subject;
-    type = g_smtpsubject;
+    type = (char*)g_smtpsubject;
     if(OK !=snditem(sockfd,smtp,type,value))
     {
         return ERROR;
@@ -266,7 +266,7 @@ static inline s32 sendheader(s32 sockfd,struct SmtpState *smtp)
     }
     return OK;
 }
-static inline s32 sndclassheader(s32 sockfd,struct SmtpState *smtp,const char *type,const char *boundary)
+static inline s32 sndclassheader(s32 sockfd,struct SmtpState *smtp, char *type, char *boundary)
 {
     memset(smtp->buffer,0,SMTP_INPUT_BUFFER_SIZE);
     snprintf(smtp->buffer, SMTP_INPUT_BUFFER_SIZE, "Content-Type: %s; boundary=\"%s\"\r\n",type,boundary);
@@ -276,7 +276,7 @@ static inline s32 sndclassheader(s32 sockfd,struct SmtpState *smtp,const char *t
     }
     return OK;
 }
-static inline s32 sndsessiontext(s32 sockfd,struct SmtpState *smtp,const char *type,const char *charset,const char *encode)
+static inline s32 sndsessiontext(s32 sockfd,struct SmtpState *smtp, char *type, char *charset, char *encode)
 {
     memset(smtp->buffer,0,SMTP_INPUT_BUFFER_SIZE);
     snprintf(smtp->buffer, SMTP_INPUT_BUFFER_SIZE, "Content-Type: %s; charset=\"%s\"\r\nContent-Transfer-Encoding: %s\r\n\r\n",\
@@ -288,7 +288,7 @@ static inline s32 sndsessiontext(s32 sockfd,struct SmtpState *smtp,const char *t
     return OK;
 }
 
-static inline s32 sndboundary(s32 sockfd,struct SmtpState *smtp,const char *bs,const char *be)
+static inline s32 sndboundary(s32 sockfd,struct SmtpState *smtp, char *bs, char *be)
 {
     if(NULL != bs)
     {
@@ -312,9 +312,9 @@ static inline s32 sndboundary(s32 sockfd,struct SmtpState *smtp,const char *bs,c
 }
 //send a session header
 static inline s32 sndbodytext(s32 sockfd,struct SmtpState *smtp,char *type,\
-                  const char *text,const char *charset,const char *boundary)
+                  char *text, char *charset, char *boundary)
 {
-    const char *src;
+    char *src;
     u32 len = 0;
     s32 sessionlen;
     if(NULL == text)
@@ -357,8 +357,8 @@ static inline s32 sndbodytext(s32 sockfd,struct SmtpState *smtp,char *type,\
     return OK;
 }
 
-static inline s32 sndsessionfile(s32 sockfd,struct SmtpState *smtp,const char *type,const char *typename,\
-                                 const char *encode,const char *position,const char *filename)
+static inline s32 sndsessionfile(s32 sockfd,struct SmtpState *smtp, char *type, char *typename,\
+                                  char *encode, char *position, char *filename)
 {
     memset(smtp->buffer,0,SMTP_INPUT_BUFFER_SIZE);
     snprintf(smtp->buffer, SMTP_INPUT_BUFFER_SIZE, "Content-Type: %s; name=\"%s\"\r\nContent-Transfer-Encoding: %s\r\nContent-Disposition: %s; filename=\"%s\"\r\n\r\n",\
@@ -371,7 +371,7 @@ static inline s32 sndsessionfile(s32 sockfd,struct SmtpState *smtp,const char *t
 }
 //send a file
 static inline s32 sndbodyfile(s32 sockfd,struct SmtpState *smtp,char *type,\
-        const char *filename,const char *position,const char *boundary)
+         char *filename, char *position, char *boundary)
 {
     s32 len = 0;
     s32 sessionlen;
@@ -390,7 +390,7 @@ static inline s32 sndbodyfile(s32 sockfd,struct SmtpState *smtp,char *type,\
 
     //we should open the file first then read page by page
     s32 fd;
-    unsigned char buf[SMTP_INPUT_BIN];
+    char buf[SMTP_INPUT_BIN];
     fd = open(filename,O_RDONLY);
     if(fd < 0)
     {
@@ -412,9 +412,9 @@ static inline s32 sndbodyfile(s32 sockfd,struct SmtpState *smtp,char *type,\
 
 //send filelist
 static inline s32 sndbodyfilelist(s32 sockfd,struct SmtpState *smtp,char *type,\
-        const char **filelist,const char *position,const char *boundary)
+         char **filelist, char *position, char *boundary)
 {
-    const char *filename;
+    char *filename;
 
     if(filelist == NULL)
     {
@@ -462,7 +462,7 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
 {
     s32 code;
     char strarray[128];
-    const char *type,*value,**list;
+    char *type,*value,**list;
     //when connect, we will get the server information here
     code = rcvcode(sockfd,smtp);
     if(code != 220)
@@ -491,7 +491,7 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
     //then send our username in the base64
     memset(smtp->buffer,0,SMTP_INPUT_BUFFER_SIZE);
     memset(strarray,0,64);
-    base64_encode((const unsigned char *)smtp->user,(char *)strarray,strlen(smtp->user));
+    base64_encode(smtp->user,strarray,strlen(smtp->user));
     snprintf(smtp->buffer, SMTP_INPUT_BUFFER_SIZE, "%s\r\n", (char *)strarray);
     if(OK != sndstrandcheck(sockfd,smtp,smtp->buffer,334))
     {
@@ -502,7 +502,7 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
     //then send our passwd in the base64
     memset(smtp->buffer,0,SMTP_INPUT_BUFFER_SIZE);
     memset(strarray,0,64);
-    base64_encode((const unsigned char *)smtp->passwd,(char *)strarray,strlen(smtp->passwd));
+    base64_encode(smtp->passwd,strarray,strlen(smtp->passwd));
     snprintf(smtp->buffer, SMTP_INPUT_BUFFER_SIZE, "%s\r\n", (char *)strarray);
     if(OK != sndstrandcheck(sockfd,smtp,smtp->buffer,235))
     {
@@ -511,7 +511,7 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
     }
     //now send the mail from
     value = smtp->from;
-    type = g_smtpmailfrom;
+    type = (char*)g_smtpmailfrom;
     if(OK != snditemandcheck(sockfd,smtp,type,value,250))
     {
         debug_printf("smtp","snd from command error\n\r");
@@ -519,7 +519,7 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
     }
     //now send the mail to
     list = smtp->to;
-    type = g_smtprcptto;
+    type = (char*)g_smtprcptto;
     if(OK != sndlistandcheck(sockfd,smtp,type,list,250))
     {
         debug_printf("smtp","snd to command error\n\r");
@@ -527,7 +527,7 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
     }
     //now send the cc
     list = smtp->cc;
-    type = g_smtprcptto;
+    type = (char*)g_smtprcptto;
     if(OK != sndlistandcheck(sockfd,smtp,type,list,250))
     {
         debug_printf("smtp","snd to command error\n\r");
@@ -535,14 +535,14 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
     }
     //now send the bcc
     list = smtp->bcc;
-    type = g_smtprcptto;
+    type = (char*)g_smtprcptto;
     if(OK != sndlistandcheck(sockfd,smtp,type,list,250))
     {
         debug_printf("smtp","snd to command error\n\r");
         return ERROR;
     }
     //now send the data
-    if(OK != sndstrandcheck(sockfd,smtp,g_smtpdata,354))
+    if(OK != sndstrandcheck(sockfd,smtp,(char*)g_smtpdata,354))
     {
         debug_printf("smtp","snd data command error\n\r");
         return ERROR;
@@ -552,9 +552,9 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
         return ERROR;
     }
 
-    const char *mixedb="mixed boundary";
-    const char *relatedb="related boundary";
-    const char *alternativeb = "alternative boundary";
+    char *mixedb="mixed boundary";
+    char *relatedb="related boundary";
+    char *alternativeb = "alternative boundary";
     //mixed header--boundary
     if(OK != sndclassheader(sockfd,smtp,"multipart/mixed",mixedb))
     {
@@ -618,13 +618,13 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
 
     //body--file attachment
     //body --end
-    if(OK != sndstrandcheck(sockfd,smtp,g_smtpcrnlperiodcrnl,250))
+    if(OK != sndstrandcheck(sockfd,smtp,(char*)g_smtpcrnlperiodcrnl,250))
     {
         debug_printf("smtp","accept message error\n\r");
         return ERROR;
     }
     //send the quit
-    if(OK != sndstrandcheck(sockfd,smtp,g_smtpquit,221))
+    if(OK != sndstrandcheck(sockfd,smtp,(char*)g_smtpquit,221))
     {
         debug_printf("smtp","quit error\n\r");
         return ERROR;
@@ -638,10 +638,10 @@ static inline s32 smtp_send_message(s32 sockfd, struct SmtpState *smtp)
 /* Specificy an SMTP server and hostname.
  *
  */
-bool_t smtp_configure( void *handle,  const char *host,const char *server,\
-        const char *user,const char *passwd,const char **to,const char **cc,\
-        const char  **bcc,const char *from,const char *subject,const char **files,\
-        const char *msg,const char *html,const char *inl)
+bool_t smtp_configure( void *handle, char *host, char *server,\
+         char *user, char *passwd, char **to, char **cc,\
+         char  **bcc, char *from, char *subject, char **files,\
+         char *msg, char *html, char *inl)
 {
     bool_t result = false;
     struct SmtpState *smtp = ( struct SmtpState *)handle;
@@ -747,31 +747,31 @@ void smtp_close(void *handle)
 typedef struct
 {
     s32 cur;
-    const char *list[CN_LIST_LIMIT];
+    char *list[CN_LIST_LIMIT];
 }tagListCtrl;
 
 //-h host -s server -u user -p passwd -to to -from from -topic topic -m msg
 //bool_t sendemail(char *param)
 bool_t smtp(char *param)
 {
-    const char *host ="DJYOS_BOARD";
-    const char *server = NULL;
-    const char *user= NULL;
-    const char *passwd= NULL;
-    const char *from= NULL;
-    const char *subject="DJYOS SMTP TEST";
-    const char *msg="HELLO,THIS IS FROM DJYOS SMTP:www.djyos.com\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline";
-    const char *html="<html><body>"\
+    char *host ="DJYOS_BOARD";
+    char *server = NULL;
+    char *user= NULL;
+    char *passwd= NULL;
+    char *from= NULL;
+    char *subject="DJYOS SMTP TEST";
+    char *msg="HELLO,THIS IS FROM DJYOS SMTP:www.djyos.com\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline\r\nline";
+    char *html="<html><body>"\
         "<p><img src=\"http://www.djyos.com/wp-content/themes/wpressmonster/images/logo.png\"></p><br/>"\
         "<h1>hello,djyos users.</h1>"\
-        "<h4>濡傛灉浣犺兘鏀跺埌杩欏皝淇★紝閭ｇ湡鏄お濂戒簡锛屽洜涓鸿繖灏佷俊鏉ヨ嚜浜巇jyos鐨剆mtp</h4>"\
-        "<h4>鐗规?у涓嬶細鏀寔鍙戦?佸浜猴紝鏀寔鎶勯?佸浜猴紝涔熸敮鎸佸瘑閫佸浜猴紝褰撶劧涔熸敮鎸佸涓檮浠讹紝杩樻敮鎸乭tml,杩欏皝淇″氨鏄痟tml鏍煎紡锛?</h4>"\
-        "<h4>璇︽儏鍙傝?僺mtp.c鏂囦欢锛屾爤绌洪棿锛氭甯告枃鏈椂1KB宸﹀彸锛涘彂閫侀檮浠跺湪2KB宸﹀彸锛岃鍔″繀棰勭暀瓒冲绌洪棿</h4>"\
-        "<h4>浣跨敤鏂规硶锛氳皟鐢╯mtp_open鑾峰彇鍙ユ焺锛屼娇鐢╯mtp_configure閰嶇疆鎵?瑕佸彂閫佸唴瀹癸紝璋冪敤smtp_send鍙戦?侀偖浠讹紝璋冪敤smtp_close鍏抽棴鍙ユ焺</h4>"\
-        "<h4>鍙互浣跨敤瀹冩潵鍙戦?佷竴灏侀偖浠舵潵鎶ュ憡褰撳墠鐨勮繍琛岀姸鎬侊紝杩欏浜庢嫹鏈烘潵璇存槸涓笉閿欑殑涓绘剰</h4>"\
-        "<h1>娆㈣繋浣跨敤</h1>"\
+        "<h4>如果你能收到这封信，那真是太好了，因为这封信来自于djyos的smtp</h4>"\
+        "<h4>特性如下：支持发送多人，支持抄送多人，也支持密送多人，当然也支持多个附件，还支持html,这封信就是html格式！</h4>"\
+        "<h4>详情参考smtp.c文件，栈空间：正常文本时1KB左右；发送附件在2KB左右，请务必预留足够空间</h4>"\
+        "<h4>使用方法：调用smtp_open获取句柄，使用smtp_configure配置所要发送内容，调用smtp_send发送邮件，调用smtp_close关闭句柄</h4>"\
+        "<h4>可以使用它来发送一封邮件来报告当前的运行状态，这对于拷机来说是个不错的主意</h4>"\
+        "<h1>欢迎使用</h1>"\
         "</body></html>";
-    const char *inl = NULL;
+    char *inl = NULL;
     tagListCtrl *listto;
     tagListCtrl *listcc;
     tagListCtrl *listbcc;
@@ -800,7 +800,7 @@ bool_t smtp(char *param)
 
     s32 argc = 16;
     char *argv[16];
-    string2arg(&argc,(const char *)argv,param);
+    string2arg(&argc,argv,param);
     s32 i =0;
     while(i <argc)
     {
@@ -917,11 +917,11 @@ bool_t smtp(char *param)
 //static bool_t base64encodeshell(char *param)
 bool_t enbase64file(char *param)
 {
-    const char *srcfile;
-    const char *dstfile;
+    char *srcfile;
+    char *dstfile;
     s32 srcfd;
     s32 dstfd;
-    u8 srcbuf[SMTP_INPUT_BIN];
+    char srcbuf[SMTP_INPUT_BIN];
     char dstbuf[SMTP_INPUT_BUFFER_SIZE];
     s32 argc =2;
     char *argv[2];
@@ -969,9 +969,9 @@ bool_t enbase64file(char *param)
 
 
 // =============================================================================
-// 鍔熻兘锛歛dd the SmtpClient debug to the system
-// 鍙傛暟锛歱ara
-// 杩斿洖鍊?  锛歵rue鎴愬姛  false澶辫触銆?
+// 功能：add the SmtpClient debug to the system
+// 参数：para
+// 返回值  ：true成功  false失败。
 // =============================================================================
 bool_t ServiceSmtpClient()
 {

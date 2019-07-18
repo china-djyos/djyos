@@ -863,6 +863,9 @@ static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
     }//end if AF_INET == family
     return sock;
 }
+
+#pragma GCC diagnostic pop
+
 // =============================================================================
 // FUNCTION:this function used to bind a address for the socket
 // PARA  IN:the parameters has the same meaning as bind
@@ -3692,6 +3695,9 @@ static void __tcpdebugscb(struct ServerCB *scb,char *prefix)
     debug_printf("tcp","%s:accepttm :0x%08x acceptsync:%d\n\r",prefix,scb->accepttime,scb->acceptsemp->lamp_counter);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #define CN_TCP_DEBUG_PREFIX  "         "
 static void __tcpdebug(struct tagSocket *sock,char *filter)
 {
@@ -3713,6 +3719,8 @@ static void __tcpdebug(struct tagSocket *sock,char *filter)
         __tcpdebugscb(scb,CN_TCP_DEBUG_PREFIX);
     }
 }
+
+#pragma GCC diagnostic pop
 
 //------------------------------------------------------------------------------
 //功能：tcp协议初始化
@@ -3775,4 +3783,4 @@ EXIT_REGISTERTCPFAILED:
 //    __LoadLog("TCP",ret);
     return ret;
 }
-#pragma GCC diagnostic pop
+

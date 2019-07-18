@@ -683,6 +683,7 @@ static int __CmdRestDeal(tagFtpClient* client,char *para)
     __SndResponse(client,CN_CMDFAILED,"rest cmd execute failed");
     return 0;
 }
+#pragma GCC diagnostic pop
 
 //use this function mkd
 static int __CmdMkdDeal(tagFtpClient* client,char *para)
@@ -968,5 +969,4 @@ bool_t ServiceFtpdInit(void)
     return ret;
 }
 ADD_TO_ROUTINE_SHELL(ftpd,ftpd,"usage:ftpd subcmd [subpara]");
-#pragma GCC diagnostic pop
 

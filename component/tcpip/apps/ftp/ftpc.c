@@ -64,9 +64,6 @@
 #include "ftp.h"
 #include "dbug.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 //------------------------------------------------------------------------------
 //功能：字符串地址转整数IPV4地址，字符串可以是点分十进制的，也可以是主机名?
 //参数：string，IPV4 地址，或者主机名

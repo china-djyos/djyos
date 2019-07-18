@@ -170,9 +170,6 @@ static tagArpCB gArpCB;
 #define CN_ARPITEM_PRO_STABLE  (1<<1)         //which means the mac could be use
 #define CN_ARPITEM_PRO_NONE    (0)            //no property
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 //use this function to match an item in the arp tab with specified ip address
 static tagArpItem *__ItemMatch(u32 ippeer)
 {
@@ -192,6 +189,7 @@ static tagArpItem *__ItemMatch(u32 ippeer)
     }
     return ret;
 }
+
 //use this function to net_malloc mem and insert an arpitem to the arp item tab
 static tagArpItem *__ItemCreate(u32 ippeer,u32 iphost,struct NetDev  *iface)
 {
@@ -773,4 +771,3 @@ EXIT_ITEMMUTEX:
 
 ADD_TO_ROUTINE_SHELL(arp,arp,"usage:arp [-a]/[-d] [-i interface] [-p peeraddr] [-h hostaddr]");
 
-#pragma GCC diagnostic pop

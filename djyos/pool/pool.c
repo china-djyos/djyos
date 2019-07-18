@@ -179,6 +179,9 @@ s32 Mb_CreateObject(void)
     return (-1);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //----内存池文件操作函数-------------------------------------------------------
 //功能：只实现了一个功能，即：列出全部内存池，以及当前内存池状态（空闲多少，
 //      总容量，块尺寸等）
@@ -220,6 +223,8 @@ s32 Mb_PoolObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     }
     return (result);
 }
+
+#pragma GCC diagnostic pop
 
 //----创建一个内存池-------------------------------------------------------
 //功能: 初始化一个内存池，原始内存池的内存由用户提供。如果系统有对齐要求，则起始

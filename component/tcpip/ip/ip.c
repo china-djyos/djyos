@@ -122,6 +122,8 @@ bool_t IpUnInstallProto(const char *name,u8 proto,fnIpProto handler)
     return false;
 }
 
+#pragma GCC diagnostic pop
+
 //find the the hash
 tagIpProto *IpProtoFind(u8 proto)
 {
@@ -376,4 +378,3 @@ bool_t IpInit(void)
     return ret;
 }
 
-#pragma GCC diagnostic pop

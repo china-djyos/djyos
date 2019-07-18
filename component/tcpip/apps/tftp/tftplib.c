@@ -108,6 +108,8 @@ bool_t tftppath(char *param)
     return true;
 }
 
+#pragma GCC diagnostic pop
+
 //make the request message
 int MakeRequestMsg(u8 *buf, int buflen,u16 opcode,char *filename,char *mode,\
                    int blksize,int timeout,int tsize)
@@ -995,4 +997,4 @@ int TftpTransEngine(tagTftpClient *client)
 
 ADD_TO_ROUTINE_SHELL(tftppath,tftppath,"usage:tftppath");
 ADD_TO_ROUTINE_SHELL(tftppathset,tftppathset,"usage:tftppathset workpath");
-#pragma GCC diagnostic pop
+

@@ -12,7 +12,7 @@
 
 const char * base64char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-char * base64_encode( u8 * bindata, char * base64, int binlength )
+char * base64_encode( char * bindata, char * base64, int binlength )
 {
     int i, j;
     unsigned char current;
@@ -51,7 +51,7 @@ char * base64_encode( u8 * bindata, char * base64, int binlength )
     return base64;
 }
 
-int base64_decode( const char * base64, unsigned char * bindata )
+int base64_decode( const char * base64, char * bindata )
 {
     int i, j;
     unsigned char k;

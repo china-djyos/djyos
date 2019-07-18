@@ -99,6 +99,8 @@ static bool_t __LinkOut(struct NetDev *iface,struct NetPkg *pkg,u32 devtask,\
     return ret;
 }
 
+#pragma GCC diagnostic pop
+
 //-----------------------------------------------------------------------------
 //功能:the link layer will call this function to deal the loop in package
 //参数:
@@ -133,5 +135,4 @@ bool_t LinkRawInit(void)
     }
     return ret;
 }
-#pragma GCC diagnostic pop
 

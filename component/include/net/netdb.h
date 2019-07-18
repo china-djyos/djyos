@@ -205,17 +205,17 @@ struct hostent
 #define DNS_NAME_LEN_MAX     64
 
 typedef struct StDnsResult{
-    unsigned char      arrDnsCNameAddr[CN_RESULT_NUM+1][DNS_NAME_LEN_MAX];
-    unsigned char      arrDnsINameAddrV4[CN_RESULT_NUM+1][4];
+    char      arrDnsCNameAddr[CN_RESULT_NUM+1][DNS_NAME_LEN_MAX];
+    char      arrDnsINameAddrV4[CN_RESULT_NUM+1][4];
 }StDnsResult;
 
 typedef struct hostent_ext
 {
-    char *h_name; 
-    char **h_aliases; 
+    char *h_name;
+    char **h_aliases;
     int h_addrtype;
     int h_length;
-    char **h_addr_list; 
+    char **h_addr_list;
     char arr_name[100];
     char *arr_aliases[CN_RESULT_NUM+1];
     char *arr_addr_list[CN_RESULT_NUM+1];
@@ -274,6 +274,7 @@ void NetDevPkgrcvInc(struct NetDev *iface);
 void NetDevPkgrcvErrInc(struct NetDev *iface);
 struct servent *getservbyname(const char *name, const char *proto);
 struct hostent *gethostbyname(const char *name);
+struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew);
 int  gethostname(char *name, int len);
 int sethostname(const char *name, size_t len);
 

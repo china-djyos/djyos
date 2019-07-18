@@ -101,6 +101,8 @@ bool_t dhcpdclient(char *param)
     return true;
 }
 
+#pragma GCC diagnostic pop
+
 //return -1 invalid while others ok
 static int __mallocIp()
 {
@@ -422,4 +424,3 @@ bool_t ServiceDhcpdInit(void)
 }
 ADD_TO_ROUTINE_SHELL(dhcpdclient,dhcpdclient,"usage:dhcpdclient:show all the client");
 
-#pragma GCC diagnostic pop

@@ -76,11 +76,11 @@ typedef struct{
 
 typedef struct{
     list_t list;
-    u32 ItemNum;
-    u32 TopIndex;
-    u32 CurSel;
-    u32 ItemHeight;
-    u32 xpos,ypos;
+    s32 ItemNum;
+    s32 TopIndex;
+    s32 CurSel;
+    s32 ItemHeight;
+    s32 xpos,ypos;
 }LISTBOX_DATA;
 //---------------创建列表-------------------------------------------------------
 //功能：略
@@ -118,7 +118,7 @@ static  LISTBOX_ITEM*   ListBox_GetItem(LISTBOX_DATA *pLB,u32 idx)
 {
     LISTBOX_ITEM *item=NULL;
     list_t *n;
-    s32 i;
+    u32 i;
 
     if(idx<pLB->ItemNum)
     {
@@ -149,7 +149,7 @@ static  bool_t  ListBox_AddString(struct WindowMsg *pMsg)
 {
     HWND hwnd;
     LISTBOX_DATA *pLB;
-    s32 i;
+    u32 i;
     char *text;
     list_t *n;
     LISTBOX_ITEM *item;
@@ -622,7 +622,7 @@ static  bool_t    ListBox_MouseMove(struct WindowMsg *pMsg)
         return true;
     }
 
-    if((y-pLB->ypos)<(-(s32)pLB->ItemHeight))
+    if((y-pLB->ypos)<(-pLB->ItemHeight))
     {
         pLB->xpos =x;
         pLB->ypos =y;

@@ -607,6 +607,8 @@ static void Transform (u32_t *buf, u32_t *in)
 
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static bool_t Verification_AppExit(void * apphead)
 {
@@ -631,9 +633,6 @@ static bool_t Verification_AppExit(void * apphead)
     return true;
 }
 
-
-
-
 static bool_t Verification_AppRun(void * apphead, u8 * buf, u32 len)
 {
     struct AppHead*  p_apphead = apphead;
@@ -648,6 +647,8 @@ static bool_t Verification_AppRun(void * apphead, u8 * buf, u32 len)
 #endif
     return true;
 }
+
+#pragma GCC diagnostic pop
 
 static bool_t Verification_AppInit(void * apphead)
 {
@@ -687,7 +688,8 @@ static bool_t  Verification_compare(void *apphead,void *appheadcmp)
     u32 i;
     for(i=0;i<sizeof(p_apphead->VerifBuf);i++)
     {
-        if(p_apphead->VerifBuf[i]!=p_appheadcmp->VerifBuf[i]&&p_apphead->VerifBuf[i]!=0xFF)
+        if(p_apphead->VerifBuf[i]!=p_appheadcmp->VerifBuf[i]
+                    &&p_apphead->VerifBuf[i]!=(char)0xFF)
             return false;
     }
     return true;
@@ -829,7 +831,7 @@ u32 XIP_GetAPPSize(void * apphead)
     return  p_apphead->filesize;
 }
 
-bool_t XIP_APPIsDebug(void * apphead)
+bool_t XIP_APPIsDebug(void )
 {
 #if defined(DEBUG)
     return true;
@@ -1039,7 +1041,7 @@ bool_t Si_IbootAppInfoInit()
         &Iboot_App_Info.buildhour,&Iboot_App_Info.buildmin,&Iboot_App_Info.buildsec);
 
         Iboot_App_Info.ibootVer = IBOOT_APP_INFO_VER;         //iboot 版本
-        Iboot_App_Info.ibootstartaddr = Init_Cpu;   //iboot启动地址
+        Iboot_App_Info.ibootstartaddr = (u64)Init_Cpu;   //iboot启动地址
 #if defined(DEBUG)
         Iboot_App_Info.ibootisdebug   = 1;
 #else

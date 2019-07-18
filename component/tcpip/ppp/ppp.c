@@ -140,9 +140,6 @@ typedef struct
     tagOptItem *tab;
 } tagOpts;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 //use this function to initialize all the options in lcp ncp
 static void __OptItemInit(tagOptItem *item, u8 type, u8 *value, u8 len,
         u8 status)
@@ -1553,4 +1550,3 @@ bool_t PppDevAdd(char *namenet, char *nameio, const char *user,
 }
 ADD_TO_ROUTINE_SHELL(ppp,ppp,"usage:ppp [subcmd subparam]/help");
 
-#pragma GCC diagnostic pop

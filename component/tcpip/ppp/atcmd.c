@@ -63,9 +63,6 @@
 #include "dbug.h"
 #include "iodev.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 static char pAtDevName[32]; //use this var to storage the at command device
 //-----------------------------------------------------------------------------
 //¹¦ÄÜ:use this function to set the default at command device name
@@ -800,6 +797,10 @@ s32 AtGetSignal(const char *atdev)
     }
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //static bool_t AtGetSignalShell(char *param)
 bool_t atsignal(char *param)
 {

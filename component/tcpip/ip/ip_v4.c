@@ -99,9 +99,6 @@ typedef struct
 }tagV4CB;
 static tagV4CB gV4CB;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 // =============================================================================
 // FUNCTION£ºThis function is used to compute the pseudo header chksum
 // PARA  IN£º
@@ -428,6 +425,8 @@ bool_t IpV4Process(struct NetPkg *pkg,u32 devfunc)
 }
 //static bool_t _V4Show(char *param)
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 bool_t ipv4(char *param)
 {
@@ -447,12 +446,5 @@ bool_t ipv4(char *param)
 }
 
 ADD_TO_ROUTINE_SHELL(ipv4,ipv4,"usage:ipv4");
-
-
-
-
-
-
-
 
 #pragma GCC diagnostic pop
