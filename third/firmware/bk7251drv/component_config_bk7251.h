@@ -46,7 +46,7 @@
 //../func/lwip_intf/lwip-2.0.2/test;//../func/lwip_intf/platform_stub.c;
 //../func/rttos/ate;../func/rttos/source;../func/rttos/os_clock.c;../func/rttos/target_util.c;
 //../func/user_driver/BkDriverGpio.c;../func/user_driver/BkDriverPwm.c;
-//../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;
+//../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;../func/mem_arch.c;
 //../func/wlan_ui/lsig_monitor.c;
 //../ip;
 //%$#@end exclude
