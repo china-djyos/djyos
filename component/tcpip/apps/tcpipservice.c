@@ -120,5 +120,6 @@ bool_t ServiceInit(void)
         result = false;
     }
 #endif
+    ServicePingInit();
     return result;
 }

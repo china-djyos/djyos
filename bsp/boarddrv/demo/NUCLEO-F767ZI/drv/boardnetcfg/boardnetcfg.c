@@ -111,7 +111,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     ipv4addr.submask = inet_addr(CFG_MY_SUBMASK);
     ipv4addr.gatway  = inet_addr(CFG_MY_GATWAY);
     ipv4addr.dns     = inet_addr(CFG_MY_DNS);
-    ipv4addr.broad   = inet_addr("192.168.0.255");
+    ipv4addr.broad   = inet_addr("255.255.255.255");
     if(RoutCreate(CFG_SELECT_NETCARD,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
     {
         printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_SELECT_NETCARD,inet_ntoa(ipv4addr.ip));

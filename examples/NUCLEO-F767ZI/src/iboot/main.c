@@ -59,20 +59,22 @@ void led_init(void)
     GPIO_PowerOn(GPIO_B);
     GPIO_CfgPinFunc(GPIO_B,PIN0|PIN7|PIN14 ,GPIO_MODE_OUT,GPIO_OTYPE_PP,GPIO_SPEED_100M,GPIO_PUPD_NONE);
 }
-
+u32 Get_DhcpInitflag(void)
+{
+   return 3;
+}
 ptu32_t djy_main(void)
 {
     led_init();
-    GPIO_SettoHigh(GPIO_B, PIN0);
     printf("hello world!\r\n");
+    u8 flag = 0;
     while(1)
     {
-        GPIO_SettoHigh(GPIO_B, PIN7);
-        GPIO_SettoLow(GPIO_B, PIN14);
+        if(flag&(1<<0)) GPIO_SettoHigh(GPIO_B, PIN0);else GPIO_SettoLow(GPIO_B, PIN0);
+        if(flag&(1<<1)) GPIO_SettoHigh(GPIO_B, PIN7);else GPIO_SettoLow(GPIO_B, PIN7);
+        if(flag&(1<<2)) GPIO_SettoHigh(GPIO_B, PIN14);else GPIO_SettoLow(GPIO_B, PIN14);
         Djy_EventDelay(1000*1000);
-        GPIO_SettoLow(GPIO_B, PIN7);
-        GPIO_SettoHigh(GPIO_B, PIN14);
-        Djy_EventDelay(1000*1000);
+        flag++;
     }
     return 0;
 }

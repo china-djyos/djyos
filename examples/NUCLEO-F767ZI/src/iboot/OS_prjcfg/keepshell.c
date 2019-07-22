@@ -7,6 +7,9 @@ void keep_shell(void)
 
 	volatile void *keep;
 
+	extern void *djysh_arp;
+	keep = (void *)djysh_arp;
+
 	extern void *djysh_linemem;
 	keep = (void *)djysh_linemem;
 
@@ -18,6 +21,15 @@ void keep_shell(void)
 
 	extern void *djysh_mac;
 	keep = (void *)djysh_mac;
+
+	extern void *djysh_dhcpdclient;
+	keep = (void *)djysh_dhcpdclient;
+
+	extern void *djysh_ftpc;
+	keep = (void *)djysh_ftpc;
+
+	extern void *djysh_ftpd;
+	keep = (void *)djysh_ftpd;
 
 	extern void *djysh_heap;
 	keep = (void *)djysh_heap;
@@ -34,6 +46,18 @@ void keep_shell(void)
 	extern void *djysh_updateiboot;
 	keep = (void *)djysh_updateiboot;
 
+	extern void *djysh_atdial;
+	keep = (void *)djysh_atdial;
+
+	extern void *djysh_iodebug;
+	keep = (void *)djysh_iodebug;
+
+	extern void *djysh_ppp;
+	keep = (void *)djysh_ppp;
+
+	extern void *djysh_rout;
+	keep = (void *)djysh_rout;
+
 	extern void *djysh_help;
 	keep = (void *)djysh_help;
 
@@ -42,6 +66,12 @@ void keep_shell(void)
 
 	extern void *djysh_tcpipver;
 	keep = (void *)djysh_tcpipver;
+
+	extern void *djysh_tftp;
+	keep = (void *)djysh_tftp;
+
+	extern void *djysh_tftppathset;
+	keep = (void *)djysh_tftppathset;
 
 	extern void *djysh_downloada;
 	keep = (void *)djysh_downloada;

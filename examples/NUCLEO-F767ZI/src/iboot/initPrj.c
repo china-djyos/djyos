@@ -31,14 +31,19 @@ void Sys_ModuleInit(void)
 	extern void ModuleInstall_BlackBox(void);
 	ModuleInstall_BlackBox( );
 
-	extern s32 ModuleInstall_dev(void);
-	ModuleInstall_dev();    // 安装设备文件系统；
-
 	extern bool_t ModuleInstall_DjyBus(void);
 	ModuleInstall_DjyBus ( );
 
 	extern bool_t ModuleInstall_IICBus(void);
 	ModuleInstall_IICBus ( );
+
+	extern s32 ModuleInstall_dev(void);
+	ModuleInstall_dev();    // 安装设备文件系统；
+
+	#if !defined (CFG_RUNMODE_BAREAPP)
+	extern ptu32_t ModuleInstall_IAP(void);
+	ModuleInstall_IAP( );
+	#endif
 
 	extern bool_t ModuleInstall_MsgQ(void);
 	ModuleInstall_MsgQ ( );
@@ -46,22 +51,22 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_Multiplex(void);
 	ModuleInstall_Multiplex ();
 
-	s32 ModuleInstall_EmbededFlash(u32 doformat);
-	ModuleInstall_EmbededFlash(CFG_EFLASH_PART_FORMAT);
-
-	bool_t IIC_Init(u8 iic_port);
+	bool_t IIC_Init(u8 IIC_port);
 	#if CFG_IIC1_ENABLE== true
-	ModuleInstall_IIC(CN_IIC1);
+	ModuleInstall_IIC_Drv(CN_IIC1);
 	#endif
 	#if CFG_IIC2_ENABLE== true
-	ModuleInstall_IIC(CN_IIC2);
+	ModuleInstall_IIC_Drv(CN_IIC2);
 	#endif
 	#if CFG_IIC3_ENABLE== true
-	ModuleInstall_IIC(CN_IIC3);
+	ModuleInstall_IIC_Drv(CN_IIC3);
 	#endif
 	#if CFG_IIC4_ENABLE== true
-	ModuleInstall_IIC(CN_IIC4);
+	ModuleInstall_IIC_Drv(CN_IIC4);
 	#endif
+
+	s32 ModuleInstall_EmbededFlash(u32 doformat);
+	ModuleInstall_EmbededFlash(CFG_EFLASH_PART_FORMAT);
 
 	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
 	#if CFG_UART1_ENABLE ==1
@@ -89,9 +94,6 @@ void Sys_ModuleInit(void)
 	ModuleInstall_UART(CN_UART8);
 	#endif
 
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
-
 	//-------------------medium-------------------------//
 	#if(CFG_OS_TINY == flase)
 	extern s32 kernel_command(void);
@@ -101,11 +103,11 @@ void Sys_ModuleInit(void)
 	extern bool_t ModuleInstall_TcpIp(void);
 	ModuleInstall_TcpIp( );
 
-	extern bool_t ModuleInstall_Ymodem(void);
-	ModuleInstall_Ymodem();
-
 	extern bool_t ModuleInstall_ETH(void);
 	ModuleInstall_ETH( );
+
+	extern bool_t ModuleInstall_Ymodem(void);
+	ModuleInstall_Ymodem();
 
 	//-------------------later-------------------------//
 	#if(CFG_STDIO_STDIOFILE == true)
