@@ -93,6 +93,8 @@ struct NetDev
     u16                 mtu;      //dev mtu
     void                *Private;  //the dev driver use this to has its owner property
     u8                  mac[CN_MACADDR_LEN];   //mac address
+    int (*cb_ip_get)(u32 *ip); //for dhcp (no use the discorver)
+    int (*cb_ip_set)(u32 ip); //for dhcp (no use the discorver)
     //the following used to debug the net device,show some main status
     u32                 pkgsnd;     //frame send
     u32                 pkgsnderr;  //frame snd failed
@@ -728,6 +730,39 @@ bool_t NetDevFlowCtrl(struct NetDev* handle,enum EthFramType type)
     }
     return result;
 }
+
+int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip))
+{
+    struct NetDev *pNetDev = NetDevGet(ifname);
+    if(pNetDev==NULL) return  -1;
+    pNetDev->cb_ip_get =  cb_ip_get;
+    return 1;
+}
+
+int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip))
+{
+    struct NetDev *pNetDev = NetDevGet(ifname);
+    if(pNetDev==NULL) return  -1;
+    pNetDev->cb_ip_set = cb_ip_set;
+    return 1;
+}
+
+int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp)
+{
+    if (pNetDev && pNetDev->cb_ip_get && pNetDev->cb_ip_get(ip_temp)){
+        return 1;
+    }
+    return 0;
+}
+
+int net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp)
+{
+    if (pNetDev && pNetDev->cb_ip_set && pNetDev->cb_ip_set(ip_temp)){
+        return 1;
+    }
+    return 0;
+}
+
 
 
 const char *pFilterItemName[EN_NETDEV_FRAME_LAST]=

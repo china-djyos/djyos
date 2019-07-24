@@ -113,12 +113,13 @@ void makeDhcpRequestMsg(tagDhcpMsg *msg,tagDhcpRequestPara *para)
         memcpy(&((tagDhcpOpt *)p)->data[0],&data32,4);
         p += sizeof(tagDhcpOpt) + ((tagDhcpOpt *)p)->len;
 
-        ((tagDhcpOpt *)p)->type = dhcpServerIdentifier;
-        ((tagDhcpOpt *)p)->len = 4;
-        data32 = para->dhcpserver;
-        memcpy(&((tagDhcpOpt *)p)->data[0],&data32,4);
-        p += sizeof(tagDhcpOpt) + ((tagDhcpOpt *)p)->len;
-
+        if(para->dhcpserver) {
+            ((tagDhcpOpt *)p)->type = dhcpServerIdentifier;
+            ((tagDhcpOpt *)p)->len = 4;
+            data32 = para->dhcpserver;
+            memcpy(&((tagDhcpOpt *)p)->data[0],&data32,4);
+            p += sizeof(tagDhcpOpt) + ((tagDhcpOpt *)p)->len;
+        }
     }
     //dhcp parameter request
     ((tagDhcpOpt *)p)->type = dhcpParamRequest;

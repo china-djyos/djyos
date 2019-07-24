@@ -69,6 +69,7 @@ typedef struct
     struct RoutItem4          *routlan;       //for the local router
     u32                        offerip;
     u32                        offerserver;
+    int                        is_exist_ip; //IP Got previous.
     struct SemaphoreLCB*       sem; //notify dhcp get ip successfully
 }tagTaskItem;
 typedef enum
@@ -147,13 +148,13 @@ int WaitDhcpDone(char *ifname, unsigned int timeout)
             break;
         }
         else {
-            Djy_EventDelay(1); //re-schedule
+            Djy_EventDelay(1000); //re-schedule
         }
     }
 
     return ret;
 }
-
+int net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp);
 //do the reply message deal
 static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
 {
@@ -236,10 +237,13 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
                 if(tmp->sem) {
                     semp_post(tmp->sem);
                 }
+                net_set_dhcp_ip(NetDevGet(tmp->ifname), reply.offerip);
+                tmp->is_exist_ip = 0;
             }
             else if(reply.msgtype == DHCP_NAK)
             {
                 tmp->stat = EN_CLIENT_DICOVER;
+                tmp->is_exist_ip = 0;
                 tmp->timeout = 0;
             }
             break;
@@ -283,7 +287,12 @@ static void __dealTask(void)
                 reqpara.msgtype = DHCP_REQUEST;
                 reqpara.transaction = task->transID;
                 reqpara.reqip = task->offerip;
-                reqpara.dhcpserver = task->offerserver;
+                if (task->is_exist_ip) {
+                    reqpara.dhcpserver = 0;
+                }
+                else {
+                    reqpara.dhcpserver = task->offerserver;
+                }
 
                 makeDhcpRequestMsg(&gClientCB.msg,&reqpara);
                 send(gClientCB.sockfd,(void *)&gClientCB.msg,sizeof(gClientCB.msg),0);
@@ -327,6 +336,9 @@ static void __DhcpclientTicker(void)
     return ;
 }
 
+int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(unsigned int *ip));
+int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(unsigned int ip));
+int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp);
 //if you want to use the interface to get a ipv4 dynamic, then call this function
 bool_t DhcpAddClientTask(const char *ifname)
 {
@@ -354,7 +366,16 @@ bool_t DhcpAddClientTask(const char *ifname)
         goto EXIT_MEM;
     }
     memset((void *)task, 0, sizeof(tagTaskItem));
-    task->stat = EN_CLIENT_DICOVER;
+    u32 ip_temp = 0;
+    if(net_get_dhcp_ip(NetDevGet(ifname), &ip_temp)){
+        task->stat = EN_CLIENT_REQUEST;
+        task->offerip = ip_temp;
+        task->is_exist_ip = 1;
+    }
+    else {
+        task->stat = EN_CLIENT_DICOVER;
+        task->is_exist_ip = 0;
+    }
     task->timeout = 0;
     task->ifname = ifname;
     task->sem = semp_init(1,0,ifname);

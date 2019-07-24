@@ -111,8 +111,21 @@ u8 *getnetmacaddr()
     return gc_NetMac;
 }
 
+//默认不指定IP获取DHCP, 需要四个步骤
+__attribute__((weak)) int cb_ip_get(u32 *ip)
+{
+    return 0;
+}
+__attribute__((weak)) int cb_ip_set(u32 ip){
+    return 0;
+}
+
+int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip));
+int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip));
 void DhcpStaStartIp(void)
 {
+    dhcp_getip_cb(CFG_NETCARD_NAME, cb_ip_get);
+    dhcp_setip_cb(CFG_NETCARD_NAME, cb_ip_set);
     if(DhcpAddClientTask(CFG_NETCARD_NAME))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
