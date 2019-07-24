@@ -16,10 +16,10 @@
 #define SPI_BASE                           (0x00802700)
 
 #define SPI_CTRL                           (SPI_BASE + 0 * 4)
-#define TXINT_MODE                         (0x01UL << 0)
-#define RXINT_MODE                         (0x01UL << 1)
-#define TXFIFO_CLR                         (0x01UL << 2)
-#define RXFIFO_CLR                         (0x01UL << 3)
+#define TXINT_MODE_POSI                    (0)
+#define TXINT_MODE_MASK                    (0x3)
+#define RXINT_MODE_POSI                    (2)
+#define RXINT_MODE_MASK                    (0x3)
 #define TXOVR_EN                           (0x01UL << 4)
 #define RXOVR_EN                           (0x01UL << 5)
 #define TXINT_EN                           (0x01UL << 6)
@@ -27,7 +27,7 @@
 #define SPI_CKR_POSI                       (8)
 #define SPI_CKR_MASK                       (0xFF)
 #define NSSMD_POSI                         (16)
-#define NSSMD_MASK                         (0x2)
+#define NSSMD_MASK                         (0x3)
 #define BIT_WDTH                           (0x01UL << 18)
 #define CKPOL                              (0x01UL << 20)
 #define CKPHA                              (0x01UL << 21)
@@ -50,6 +50,10 @@
 #define SPI_DAT                            (SPI_BASE + 2 * 4)
 #define SPI_DAT_POSI                       (0)
 #define SPI_DAT_MASK                       (0xFFFF)
+
+#define SPI_SLAVE_CTRL                     (SPI_BASE + 3 * 4)
+#define SPI_S_CS_UP_INT_EN                 (0x01UL << 1)
+#define SPI_S_CS_UP_INT_STATUS             (0x01UL << 4)
 
 typedef struct
 {

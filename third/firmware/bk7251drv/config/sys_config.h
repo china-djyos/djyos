@@ -156,5 +156,12 @@
 #define CFG_USE_AUD_DAC                            1
 #define CFG_USE_AUD_ADC                            1
 
+/*section 26 ----- general spi master/slave */
+#define CFG_USE_SPI_MASTER                         1
+#define CFG_USE_SPI_MST_FLASH                      0
+#define CFG_USE_SPI_MST_PSRAM                      0
+#define CFG_USE_SPI_SLAVE                          0
+
+#define CFG_USE_QSPI                               1
 
 #endif // _SYS_CONFIG_H_

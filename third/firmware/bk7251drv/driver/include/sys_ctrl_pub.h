@@ -78,9 +78,24 @@ enum
     CMD_SCTRL_SET_DAC_VOLUME_ANALOG,
     CMD_SCTRL_SET_LINEIN_VOLUME_ANALOG,    
     CMD_SCTRL_SET_VOLUME_PORT,
-    
+
+    CMD_QSPI_VDDRAM_VOLTAGE,
+    CMD_QSPI_IO_VOLTAGE,
+    CMD_SCTRL_SET_VDD_VALUE,
+
 	#endif // (CFG_SOC_NAME == SOC_BK7221)
 };
+
+/*PSRAM_VDDPAD_VOLT */
+#define PSRAM_VDD_1_8V                                       (0x0)
+#define PSRAM_VDD_2_5V                                       (0x1)
+#define PSRAM_VDD_3_3V                                       (0x2)
+#define PSRAM_VDD_3_3V_DEF                                   (0x3)
+
+#define QSPI_IO_1_8V                                         (0x0)
+#define QSPI_IO_2_5V                                         (0x1)
+#define QSPI_IO_3_3V                                         (0x2)
+#define QSPI_IO_3V_DEF                                       (0x3)
 
 /*CMD_SCTRL_MCLK_SELECT*/
 #define MCLK_SELECT_DCO                                      (0x0)

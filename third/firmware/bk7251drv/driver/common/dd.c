@@ -59,6 +59,9 @@ __attribute__((weak))  void djy_audio_init(void)
 {
 }
 
+#ifdef CFG_USE_QSPI
+#include "qspi/qspi_pub.h"
+#endif
 
 static DD_INIT_S dd_init_tbl[] =
 {
@@ -97,7 +100,9 @@ static DD_INIT_S dd_init_tbl[] =
     {I2C1_DEV_NAME,         i2c1_init,                  i2c1_exit},
     {I2C2_DEV_NAME,         i2c2_init,                  i2c2_exit},
 #endif
-
+#if CFG_USE_QSPI
+    {QSPI_DEV_NAME,       qspi_init,                	qspi_exit},
+#endif
 
 
 #if CFG_SDIO || CFG_SDIO_TRANS
@@ -112,7 +117,7 @@ static DD_INIT_S dd_init_tbl[] =
 #if (CFG_SOC_NAME != SOC_BK7231)
     {TIMER_DEV_NAME,        bk_timer_init,              bk_timer_exit},
 #endif
-//    {SPI_DEV_NAME,          spi_init,                   spi_exit},
+    {SPI_DEV_NAME,          spi_init,                   spi_exit},
 //
 //    {FFT_DEV_NAME,          fft_init,                   fft_exit},
 //    {I2S_DEV_NAME,          i2s_init,                   i2s_exit},

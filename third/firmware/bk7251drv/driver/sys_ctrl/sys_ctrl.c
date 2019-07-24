@@ -1571,6 +1571,20 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
         ret = sctrl_read_efuse(param);
         break; 
         
+    case CMD_QSPI_VDDRAM_VOLTAGE:
+        reg = REG_READ(SCTRL_CONTROL);
+        reg &= ~(PSRAM_VDDPAD_VOLT_MASK << PSRAM_VDDPAD_VOLT_POSI);
+        reg |=(((*(UINT32 *)param) & PSRAM_VDDPAD_VOLT_MASK) << PSRAM_VDDPAD_VOLT_POSI);
+        REG_WRITE(SCTRL_CONTROL, reg);
+        break;
+
+    case CMD_QSPI_IO_VOLTAGE:
+        reg = REG_READ(SCTRL_CONTROL);
+        reg &= ~(QSPI_IO_VOLT_MASK << QSPI_IO_VOLT_POSI);
+        reg |=(((*(UINT32 *)param) & QSPI_IO_VOLT_MASK) << QSPI_IO_VOLT_POSI);
+        REG_WRITE(SCTRL_CONTROL, reg);
+        break;
+
 #endif // (CFG_SOC_NAME != SOC_BK7231)
 
 #if (CFG_SOC_NAME == SOC_BK7221U)
