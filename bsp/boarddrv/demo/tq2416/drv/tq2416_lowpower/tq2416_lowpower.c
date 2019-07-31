@@ -108,7 +108,7 @@ bool_t __LP_BSP_HardInit(void)
 
 u32 __LP_BSP_GetSleepLevel(void)
 {
-    return CN_SLEEP_L1;
+    return CN_SLEEP_NORMAL;
 }
 
 void __LP_BSP_EntrySleepL0(u32 pend_ticks)

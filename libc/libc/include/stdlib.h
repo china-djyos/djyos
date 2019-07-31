@@ -172,6 +172,8 @@ extern ptu32_t (*M_GetMaxFreeBlock)(void);
 extern ptu32_t M_GetHeapSizeHeap(pHeap_t Heap);
 extern ptu32_t M_GetHeapSize(void);
 pHeap_t M_FindHeap(const char *HeapName);
+pHeap_t Heap_Add(void* bottom, u32 size, u32 PageSize,u32 AlignSize,
+                        bool_t proper,char *name);
 extern ptu32_t (*M_GetFreeMem)(void);
 extern ptu32_t (*M_GetFreeMemHeap)(pHeap_t Heap);
 extern ptu32_t (*M_CheckSize)(void * mp);

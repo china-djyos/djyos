@@ -70,6 +70,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1272976018" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -183,6 +184,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.576479793" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -299,6 +301,7 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.562305016" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1311632395" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -318,6 +321,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart.259856331" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano.481950654" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano" value="true" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other.793198201" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other" value="-Wl,--start-group -los_App -Wl,--end-group" valueType="string"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS} &amp;&amp; addsh.exe ${ConfigName}.elf" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.732210749" name="Cross ARM GNU C++ Linker" outputPrefix="" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections.116622534" name="Remove unused sections (-Xlinker --gc-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -336,6 +340,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs.1748938315" name="Do not use default libraries (-nodefaultlibs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs.146696212" name="No startup or default libs (-nostdlib)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs" useByScannerDiscovery="false" value="false" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.other.199767815" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.other" useByScannerDiscovery="false" value="-Wl,--start-group -los_App -Wl,--end-group" valueType="string"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.input.1265904384" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -438,6 +443,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1033376135" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -551,6 +557,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1472411991" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -667,6 +674,7 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.1445491555" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2067850758" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -686,6 +694,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart.216031495" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.nostart" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano.1213704042" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.usenewlibnano" value="true" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other.1205397997" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other" value="-Wl,--start-group -los_App -Wl,--end-group" valueType="string"/>
 							</tool>
 							<tool commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS} &amp;&amp; addsh.exe ${ConfigName}.elf" id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.68931654" name="Cross ARM GNU C++ Linker" outputPrefix="" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections.1997957102" name="Remove unused sections (-Xlinker --gc-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -704,6 +713,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs.40461608" name="Do not use default libraries (-nodefaultlibs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs.1531400951" name="No startup or default libs (-nostdlib)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostdlibs" useByScannerDiscovery="false" value="false" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.other.584016424" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.other" value="-Wl,--start-group -los_App -Wl,--end-group" valueType="string"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.input.1550043507" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -792,7 +802,7 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.571355542" name="Endianness" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.1362399201" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1143977542" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="SHELL=cmd.exe" buildPath="${workspace_loc:/explorer_f407_systest}/libos_App_Debug" enableCleanBuild="false" id="ilg.gnuarmeclipse.managedbuild.cross.builder.1725889012" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder arguments="SHELL=cmd.exe " autoBuildTarget="all" buildPath="${workspace_loc:/explorer_f407_systest}/libos_App_Debug" cleanBuildTarget="clean" command="${cross_make}" enableCleanBuild="false" id="org.eclipse.cdt.build.core.internal.builder.1703135107" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1095918334" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1698501899" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1427528150" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
@@ -809,6 +819,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1832834646" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -921,6 +932,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1515815875" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -1039,6 +1051,7 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.742480333" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1497814180" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -1079,7 +1092,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool commandLinePattern="$(call loop, 50, ${INPUTS}, ${COMMAND} ${FLAGS} ${OUTPUT})" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.1273306584" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.1273306584" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
 								<option id="gnu.both.lib.option.flags.1006194853" name="Archiver flags" superClass="gnu.both.lib.option.flags" useByScannerDiscovery="false" value="-rPu" valueType="string"/>
 								<outputType id="cdt.managedbuild.tool.gnu.archiver.output.2019313055" outputPrefix="" superClass="cdt.managedbuild.tool.gnu.archiver.output"/>
 							</tool>
@@ -1224,6 +1237,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1410159519" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -1336,6 +1350,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1320191694" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -1454,6 +1469,7 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.49514502" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.1827068328" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_STM32F4=false"/>
 									<listOptionValue builtIn="false" value="CFG_CPU_STM32F4"/>
 									<listOptionValue builtIn="false" value="CFG_STM32_HAL_TIMER=6"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
@@ -1494,7 +1510,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool commandLinePattern="$(call loop, 50, ${INPUTS}, ${COMMAND} ${FLAGS} ${OUTPUT})" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.341316099" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.341316099" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver">
 								<option id="gnu.both.lib.option.flags.949764937" name="Archiver flags" superClass="gnu.both.lib.option.flags" useByScannerDiscovery="false" value="-rPu" valueType="string"/>
 								<outputType id="cdt.managedbuild.tool.gnu.archiver.output.1602716466" outputPrefix="" superClass="cdt.managedbuild.tool.gnu.archiver.output"/>
 							</tool>

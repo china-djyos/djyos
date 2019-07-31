@@ -36,9 +36,24 @@
 #endif
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //%$#@exclude
-./wolfcrypt/benchmark;./wolfcrypt/test;./wolfcrypt/user-crypto;./tirtos;./testsuite;./tests;
-./swig;./sslSniffer;./mqx;./mplabx;./mcapi;./IDE;./examples;./ctaocrypt;./src/bio.c;./src/crl.c ./src/ocsp.c;./src/sniffer,c;./src/tls13.c;./wolfcrypt/src/port;./wolfcrypt/src/aes_asm.S;./wolfcrypt/src/arc4.c ./wolfcrypt/src/asm.c ./wolfcrypt/src/async.c ./wolfcrypt/src/blake2b.c ./wolfcrypt/src/camellia.c ./wolfcrypt/src/cmac.c ./wolfcrypt/src/compress.c  ./wolfcrypt/src/cpuid.c ./wolfcrypt/src/cryptodev.c ./wolfcrypt/src/curve25519.c ./wolfcrypt/src/des3.c ./wolfcrypt/src/dsa.c ./wolfcrypt/src/ecc_fp.c ./wolfcrypt/src/ed25519.c ./wolfcrypt/src/evp.c ./wolfcrypt/src/fe_low_mem.c ./wolfcrypt/src/fe_operations.c ./wolfcrypt/src/fips.c ./wolfcrypt/src/fips_test.c wolfcrypt/src/ge_low_mem.c wolfcrypt/src/ge_operations.c wolfcrypt/src/hc128.c wolfcrypt/src/idea.c wolfcrypt/src/integer.c wolfcrypt/src/md2.c wolfcrypt/src/md4.c wolfcrypt/src/misc.c wolfcrypt/src/pkcs7.c wolfcrypt/src/pkcs12.c wolfcrypt/src/pwdbased.c wolfcrypt/src/rabbit.c wolfcrypt/src/ripemd.c wolfcrypt/src/selftest.c wolfcrypt/src/sp_arm32.c wolfcrypt/src/sp_arm64.c wolfcrypt/src/sp_armthumb.c wolfcrypt/src/sp_c32.c wolfcrypt/src/sp_c64.c wolfcrypt/src/sp_int.c wolfcrypt/src/sp_x86_64.c wolfcrypt/src/srp.c wolfcrypt/src/wc_pkcs11.c wolfcrypt/src/wolfcrypt_first.c wolfcrypt/src/wolfcrypt_last.c wolfcrypt/src/wolfevent.c
- 
+//./wolfcrypt/benchmark;./wolfcrypt/test;./wolfcrypt/user-crypto;./tirtos;./testsuite;./tests;
+//./swig;./sslSniffer;./mqx;./mplabx;./mcapi;./IDE;./examples;./ctaocrypt;
+//./src/bio.c;./src/crl.c;./src/ocsp.c;./src/sniffer.c;./src/tls13.c;
+//./wolfcrypt/src/port;./wolfcrypt/src/aes_asm.S;./wolfcrypt/src/arc4.c;./wolfcrypt/src/asm.c;
+//./wolfcrypt/src/async.c;./wolfcrypt/src/blake2b.c;./wolfcrypt/src/camellia.c;./wolfcrypt/src/cmac.c;
+//./wolfcrypt/src/compress.c;./wolfcrypt/src/cpuid.c;./wolfcrypt/src/cryptodev.c;
+//./wolfcrypt/src/curve25519.c;./wolfcrypt/src/des3.c;./wolfcrypt/src/dsa.c;
+//./wolfcrypt/src/ecc_fp.c;./wolfcrypt/src/ed25519.c;./wolfcrypt/src/evp.c;
+//./wolfcrypt/src/fe_low_mem.c;./wolfcrypt/src/fe_operations.c;./wolfcrypt/src/fips.c;
+//./wolfcrypt/src/fips_test.c;./wolfcrypt/src/ge_low_mem.c;./wolfcrypt/src/ge_operations.c;
+//./wolfcrypt/src/hc128.c;./wolfcrypt/src/idea.c;./wolfcrypt/src/integer.c;./wolfcrypt/src/md2.c;
+//./wolfcrypt/src/md4.c;./wolfcrypt/src/misc.c;./wolfcrypt/src/pkcs7.c;./wolfcrypt/src/pkcs12.c;
+//./wolfcrypt/src/pwdbased.c;./wolfcrypt/src/rabbit.c;./wolfcrypt/src/ripemd.c;./wolfcrypt/src/selftest.c;
+//./wolfcrypt/src/sp_arm32.c;./wolfcrypt/src/sp_arm64.c;./wolfcrypt/src/sp_armthumb.c;
+//./wolfcrypt/src/sp_c32.c;./wolfcrypt/src/sp_c64.c;./wolfcrypt/src/sp_int.c;./wolfcrypt/src/sp_x86_64.c;
+//./wolfcrypt/src/srp.c;./wolfcrypt/src/wc_pkcs11.c;./wolfcrypt/src/wolfcrypt_first.c;
+//./wolfcrypt/src/wolfcrypt_last.c;./wolfcrypt/src/wolfevent.c
+
 //%$#@endexclude
 //%$#@includepath
 //./;

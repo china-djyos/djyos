@@ -123,9 +123,12 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #if CFG_ASCII_8X8 == true
 #include "dot-ascii8x8.h"
+
 
 bool_t __Font_Ascii8x8LoadFont(void *zk_addr);
 void __Font_Ascii8x8UnloadFont(void);
@@ -150,7 +153,7 @@ void __Font_Ascii8x8UnloadFont(void)
 //功能: 提取ascii 8*8点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -266,7 +269,7 @@ void __Font_Ascii8x16UnloadFont(void)
 //功能: 提取ascii 8*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -382,7 +385,7 @@ void __Font_Ascii6x12UnloadFont(void)
 //功能: 提取ascii 8*16点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -508,7 +511,7 @@ bool_t __Font_Ascii12x24GetCharBitMap(u32 charcode, u32 size,u32 resv,
 //功能: 提取ascii 12*24点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -625,7 +628,7 @@ bool_t __Font_Ascii16x32GetCharBitMap(u32 charcode, u32 size,u32 resv,
 //功能: 提取ascii 12*24点阵字体，如果charcode超出0~0xff的范围，显示编码为0x00的字
 //      符，ascii包含扩展的ascii码
 //参数: charcode，待显示的ascii码得ucs4编码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -728,6 +731,7 @@ bool_t ModuleInstall_FontAscii16x32(void)
 
 #endif      //CFG_ASCII_16X32_FANG == true
 
+#pragma GCC diagnostic pop
 
 void ModuleInstall_FontAscii(void)
 {

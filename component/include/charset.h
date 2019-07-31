@@ -141,7 +141,7 @@ struct Charset
 };
 
 
-ptu32_t ModuleInstall_Charset(ptu32_t para);
+ptu32_t ModuleInstall_Charset(void);
 bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name);
 struct Charset* Charset_NlsGetCurCharset(void);
 struct Charset* Charset_NlsSetCurCharset(struct Charset* encoding);

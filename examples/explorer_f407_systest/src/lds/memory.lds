@@ -17,5 +17,5 @@ MEMORY
     
     RAM1(RXW)       : org = 0x20000000,                 len = 128k
     RAM2(RXW)       : org = 0x10000000,                 len = 64k
-    extram(RXW)     : org = 0x68000000,                 len = 0x100000
+    extram(RXW)     : org = 0x68000000,                 len = 0x100000-64k
 }

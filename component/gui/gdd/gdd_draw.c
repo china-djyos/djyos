@@ -499,7 +499,8 @@ void    DrawLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
 void    DrawDottedLine(HDC hdc,s32 x0,s32 y0,s32 x1,s32 y1)
 {
     POINT pt[2];
-    u32 i,num,dot;
+    u32 i,num;
+    s32 dot;
     s8 temp=1;
     if(BeginDraw(hdc))
     {

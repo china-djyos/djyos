@@ -52,9 +52,15 @@
 
 #include "stdint.h"
 #include "stddef.h"
+#include <stdlib.h>
 #include "time.h"
 ptu32_t djy_main(void)
 {
+    struct HeapCB *h;
+    void *t;
+    h = heap_Add(0x680f0000,0x1000,32,0,true,"testheap");
+    h = M_FindHeap("testheap");
+    t = M_MallocHeap(1000,h,0);
     SysPerformTest();
     printf("\\>\r\n");
     while(1)

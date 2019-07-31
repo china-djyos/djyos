@@ -91,6 +91,7 @@ struct FontObj
 // 如果font_bitmap参数中的bm_bits参数为NULL，则本函数退化为查询函数。在
 // font_bitmap参数中返回图像参数，利用它可以计算bm_bits所需内存尺寸，这在一个文
 // 档中使用多种尺寸的文字时，特别有用。
+// size,字号，一般矢量字库才支持字号
 // resv,保留参数。
 // 返回: true = 成功执行，false=不支持字符
     bool_t (*GetBitmap)(u32 charcode, u32 size, u32 resv,

@@ -67,6 +67,7 @@
 //------------------------------------------------------
 
 #include <stdint.h>
+#include <ctype.h>
 #include <dbug.h>
 #include <djyos.h>
 #include <lock.h>
@@ -424,8 +425,6 @@ static bool_t __variable_assignment(struct dataclass *data_class,union param *Da
 // ============================================================================
 static bool_t __show_data(struct dataclass *data_class,union param *DataAddr)
 {
-    union param Data;
-
     switch (data_class->datatype)
     {
          case flag_c   :
@@ -441,7 +440,7 @@ static bool_t __show_data(struct dataclass *data_class,union param *DataAddr)
              printf("%d \n\r",*(u32*)DataAddr);
              break;
          case flag_u64 :
-              printf("%d \n\r",DataAddr->data_u64);
+              printf("%llu \n\r",DataAddr->data_u64);
              break;
          case flag_s8  :
              printf("%d \n\r",*(s8*)DataAddr);
@@ -454,7 +453,7 @@ static bool_t __show_data(struct dataclass *data_class,union param *DataAddr)
              break;
          case flag_s64 :
 //             printf("%d \n\r",*(s64*)DataAddr);
-             printf("%d   \n\r",DataAddr->data_s64);
+             printf("%lld   \n\r",DataAddr->data_s64);
              break;
          case flag_b   :
              printf("%d \n\r",*(bool_t*)DataAddr);
@@ -507,9 +506,9 @@ static enum param_typr __str2type(char *word)
         datatype = flag_f;
     else if(strcmp(word,"d") == 0)
         datatype = flag_d;
-    else if((word[0] == "'") && (word[strlen(word)-1] =="'" ) && (strlen(word)==2))
+    else if((word[0] == '\'') && (word[strlen(word)-1] =='\'' ) && (strlen(word)==2))
         datatype = flag_c;
-    else if((word[0] == '"') && (word[strlen(word)-1] =='"' ) )//""" == 0x22;
+    else if((word[0] == '\"') && (word[strlen(word)-1] =='\"' ) )//""" == 0x22;
         datatype = flag_str;
     else
         datatype = flag_error;

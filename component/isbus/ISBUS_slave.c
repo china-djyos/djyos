@@ -569,7 +569,7 @@ u32 Slave_ISBUS_SendPkg(struct Slave_FunctionSocket  *Slave_FunctionSocket, u8 d
     struct Slave_ISBUSPort *Port;
     u8 *SendBuf;
     u16 SendLen;
-    u32 Completed;
+    s32 Completed;
     if(Slave_FunctionSocket == NULL)
         return 0;
     if(len > Slave_FunctionSocket->ProtocolSendLen)

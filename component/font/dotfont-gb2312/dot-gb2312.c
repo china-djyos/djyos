@@ -178,6 +178,9 @@ static struct Charset* s_ptGb2312Set;
 s32 Gb2312Ucs4ToMb (u8* mb, u32 wc);
 #define FONT_GB2312_DEF_CHAR      0xa1a1
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #if CFG_GB2312_12_SONG != zk_disable
 #include "../dotfont-ascii/dot-ascii8x12song.h"
 
@@ -201,7 +204,7 @@ u8 *pg_Ascii8x12Song;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -400,7 +403,7 @@ u8 *pg_Ascii8x16Song;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -593,7 +596,7 @@ u8 *pg_Ascii8x16Fang;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -785,7 +788,7 @@ u8 *pg_Ascii8x16Hei;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -978,7 +981,7 @@ u8 *pg_Ascii8x16Kai;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -1171,7 +1174,7 @@ u8 *pg_Ascii8x16Yuan;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -1370,7 +1373,7 @@ u8 *pg_Ascii12x24Song;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -1564,7 +1567,7 @@ u8 *pg_Ascii12x24Fang;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -1756,7 +1759,7 @@ u8 *pg_Ascii12x24Hei;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -1949,7 +1952,7 @@ u8 *pg_Ascii12x24Kai;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -2142,7 +2145,7 @@ u8 *pg_Ascii12x24Yuan;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -2341,7 +2344,7 @@ u8 *pg_Ascii16x32Song;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -2535,7 +2538,7 @@ u8 *pg_Ascii16x32Fang;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -2727,7 +2730,7 @@ u8 *pg_Ascii16x32Hei;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -2920,7 +2923,7 @@ u8 *pg_Ascii16x32Kai;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -3113,7 +3116,7 @@ u8 *pg_Ascii16x32Yuan;
 //      不予显示
 //      如果bitmap参数中的bm_bits参数为NULL，则不copy点阵
 //参数: charcode，ucs4字符编码，可能是gb2312字符集内的汉字，也可能是ascii码
-//      size，无效
+//      size，字号，本函数不用
 //      resv，无效
 //      bitmap，保存所提取的点阵的位图，缓冲区由调用者提供
 //返回: true=正常，false=charcode不是该字体所支持的字符集范围，但此时仍然返回
@@ -3288,6 +3291,8 @@ bool_t ModuleInstall_FontGb2312_32_Yuan(void)
 }
 
 #endif      //CFG_GB2312_32_YUAN != zk_disable
+
+#pragma GCC diagnostic pop
 
 void ModuleInstall_FontGB2312(void)
 {

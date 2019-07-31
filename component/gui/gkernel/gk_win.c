@@ -2150,7 +2150,7 @@ ptu32_t __GK_UsercallServer(void)
 
                 default:
                 {
-                    printk("unknow usercall id: %08XH\r\n",id);
+                    printf("unknow usercall id: %08XH\r\n",id);
                 }
                 break;
                 ////

@@ -5,7 +5,7 @@
 #include "lowpower.h"
 #include "int.h"
 #include "int_hard.h"
-
+#include <shell.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -113,9 +113,15 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
                if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L3))
                {
                    __LP_BSP_SaveSleepLevel(CN_SLEEP_L3);
+                   //当系统从L3模式唤醒时，系统应从__LP_BSP_AsmSaveReg的返回地址，即
+                   //下一行代码处继续运行。要实现以下顺序指定：
+                   //step1：__LP_BSP_AsmSaveReg获取含自己的返回地址在内的上下文并保存到栈中。
+                   //step2：__LP_BSP_SaveRamL3把执行过step1的内存保存到flash中。
+                   //step3：__LP_BSP_EntrySleepL3进入低功耗
+                   //step4：从低功耗唤醒后，恢复内存和上下文，程序继续运行
+                   //似乎只有把__LP_BSP_SaveRamL3和__LP_BSP_EntrySleepL3函数按参数
+                   //传入才能实现。
                    __LP_BSP_AsmSaveReg(vm,__LP_BSP_SaveRamL3,__LP_BSP_EntrySleepL3);
-                   //若正确调用，上面的函数并不返回，而是等待复位，下面的代码，是为了在上述
-                   //函数执行不正常而返回时，不使系统紊乱。
                    g_tLowPower.ExitSleepReCall(CN_SLEEP_L3);
                }
                Int_LowAtomEnd(atom_bak);
@@ -214,7 +220,7 @@ void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
 
 u32 EmptyReCall(u32 SleepLevel)
 {
-    return 0;
+    return 1;
 }
 //----初始化-------------------------------------------------------------------
 //功能: 初始化低功耗组件

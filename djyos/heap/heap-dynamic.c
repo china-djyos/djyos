@@ -948,6 +948,210 @@ void __M_CleanUp(uint16_t event_id)
     return ;
 }
 
+
+bool_t __M_InitCession(struct HeapCession *Cession)
+{
+    ptu32_t ua_temp,ua_temp1=0,ua_temp2,ua_temp3 = 0,ua_faction;
+    ptu32_t ua_pages,ua_table_size=0;
+    ufast_t uf_classes,uf_grades;
+    ucpu_t  ***pppl_bitmap,**ppl_bitmap,*pl_bitmap;
+    ufast_t *pl_classes;
+
+    ua_faction=(ptu32_t)(Cession->heap_top-Cession->heap_bottom);
+    //计算堆的总页数，取整页，舍去余数部分
+    ua_pages = ua_faction / Cession->PageSize;
+    ua_faction = ua_faction % Cession->PageSize;
+    //计算堆页数调整后的余数，可用于内存控制结构使用。
+    Cession->heap_top -=ua_faction;
+
+    if(ua_pages < 2) //如果堆中页数小于2页,控制结构可能还要占用1页,还有意义吗?
+    {
+        Cession->ua_pages_num = 0;
+        Cession->free_pages_num = 0;
+        Cession->ua_block_max = 0;
+        Cession->ua_free_block_max = 0;
+        Cession->uf_grades = 0;
+        Cession = Cession->Next;
+        return false;
+    }
+
+    ua_temp = __M_CalculateExpense(ua_pages); //初估控制结构需要的字节数
+    if(ua_faction < ua_temp)
+    {
+        //初估控制结构除ua_faction外还需要的页数
+        ua_temp = (ua_temp-ua_faction+Cession->PageSize-1)
+                    /Cession->PageSize;
+        for(ua_temp1 = ua_temp; ua_temp1 > 0; ua_temp1--)
+        {//初估的页数肯定大于或等于实际需要的页数,尤其是内存页数较多时.
+         //估计值从初估的页数开始逐一减小,直到合适为止.
+            //重估控制结构字节数
+            ua_temp2 = __M_CalculateExpense(ua_pages-ua_temp1);
+            ua_temp3 = (ua_temp2-ua_faction+Cession->PageSize-1)
+                    /Cession->PageSize;         //重新计算控制结构页数
+            if(ua_temp3 >= ua_temp1)
+            //当所需页数刚好大于或等于估计值时,循环终止
+                break;
+        }
+        //实际可分配的页数,u32_temp3为控制结构页数
+        ua_pages = ua_pages -ua_temp3;
+        Cession->heap_top -= ua_temp3 * Cession->PageSize;  //调整堆顶
+    }
+    Cession->ua_pages_num = ua_pages;
+    Cession->free_pages_num = ua_pages;
+    //内存控制结构清零
+    memset(Cession->heap_top,0,ua_faction+(ua_temp3 *Cession->PageSize));
+
+    //计算总阶数，即一共有多少种页尺寸,方法:地址长度减去ua_pages中前导0
+    //的数量例如,ua_pages=5,最高位位置是bit2,有29个前导0，页尺寸有1,2,4
+    //页3种,阶数=3
+    uf_grades=CN_PTR_BITS-__M_LeadingZero((u8 *)&ua_pages,sizeof(ptu32_t));
+
+    Cession->uf_grades = uf_grades;    //总阶数
+    Cession->ua_block_max=Cession->PageSize<<(uf_grades-1);//最高阶块尺寸
+    Cession->ua_free_block_max=Cession->ua_block_max; //最大可用块尺寸
+
+    //计算位图指针表所需的指针数
+    ua_table_size=0;
+    for(ua_temp=0;ua_temp<uf_grades;ua_temp++)
+    {//遍历各阶
+        ua_temp1 = ua_pages>>ua_temp;   //计算ua_temp阶0级位图位数
+        do
+        {
+            //计算下一级位图的位数
+            ua_temp1=(ua_temp1+CN_CPU_BITS-1)>>CN_CPU_BITS_SUFFIX_ZERO;
+            ua_table_size++;        //需要一个指针指向该级位图首地址
+        //下一级位图超过1位(本级超过cn_cpu_bits位),继续循环
+        }while(ua_temp1>1);
+    }
+
+    //事件指针id表,详细说明见mem_global_t类型定义部分.
+    Cession->index_event_id=(uint16_t*)Cession->heap_top;
+    for(ua_temp = 0; ua_temp<ua_pages; ua_temp++)
+        Cession->index_event_id[ua_temp] = CN_MEM_FREE_PAGE;
+    //各阶的位图级数表指针，每阶用一个ufast_t型的数表示该阶的位图级数
+    ua_temp = (ptu32_t)(Cession->index_event_id+ua_pages);
+    ua_temp = (ua_temp+sizeof(ufast_t)-1)&(~(sizeof(ufast_t)-1)); //对齐
+    pl_classes=(ufast_t *)ua_temp;
+    Cession->p_classes=pl_classes;     //各阶空闲金字塔级数表首指针
+
+    //随后是各级分配表指针的指针首址
+    ua_temp = (ptu32_t)(pl_classes+uf_grades);
+    ua_temp = (ua_temp+sizeof(void *)-1)&(~(sizeof(void *)-1));  //对齐
+    pppl_bitmap=(void*)ua_temp;
+    //各阶金字塔位图指针表的指针表的首指针
+    Cession->ppp_bitmap=pppl_bitmap;
+
+    //金字塔位图指针表的指针
+    ppl_bitmap=(ucpu_t **)(pppl_bitmap+uf_grades);
+    pl_bitmap=(ucpu_t *)(ppl_bitmap+ua_table_size); //金字塔位图指针表
+
+    //填充各索引表和分配表
+    for(ua_temp=0;ua_temp<uf_grades;ua_temp++)  //遍历各阶
+    {
+        ua_temp1 = ua_pages>>ua_temp;       //ua_temp阶位图总位数
+        uf_classes=0;                       //ua_temp阶的位图级数
+        pppl_bitmap[ua_temp]=ppl_bitmap;    //ua_temp阶位图表的指针
+        do
+        {
+            ucpu_t  msk=~0;     //类型位宽未知,用此方法置全1
+            ua_temp3=ua_temp1>>CN_CPU_BITS_SUFFIX_ZERO; //本级表的大小(整数部分)
+            ua_temp1=ua_temp1%CN_CPU_BITS;    //本路径级表的大小(余数部分)
+            if(ua_temp1==0)
+            //表中没有多余的位,无需处理
+                ua_temp1=ua_temp3;  //本级位图所占字数是下一级的位数
+            else
+            {//表中有多余的位,置1,使多余的位等同于已分配的位.
+                msk=msk<<ua_temp1;              //使多余的位置1
+                *(pl_bitmap+ua_temp3) |=msk;    //修改位图中相应的位
+                ua_temp1=ua_temp3+1;    //路径表修正,加上余数部分
+            }
+            *ppl_bitmap++ = pl_bitmap;  //记录本级位图指针
+            pl_bitmap +=ua_temp1;       //位图指针指向下一级位图起始地址
+            uf_classes++;                //ua_temp阶的级数增量
+        }while(ua_temp1>1);             //直到遍历本阶所有位图级
+        pl_classes[ua_temp]=uf_classes; //该级路径表深度
+    }
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//功能：添加heap到系统中，用于malloc等函数分配。一般来说，建议在lds文件中定义heap，但
+//     有些特殊情况需要手动添加堆。在加载主系统之前，就调用了Heap_StaticModuleInit
+//     函数，而调用此函数前，lds中配置的heap的内存应该是可读写的。但有些ram，特别是qspi接口
+//     的ram，此时往往不可访问，故不能在lds中配置，而应该在后面调用Heap_Add函数添加。
+//     djyos允许创建多个heap，本函数是添加一个新heap，不是望现有heap中添加内存。
+//参数：bottom，新建heap的起始地址。
+//     size，heap的尺寸。
+//     PageSize，页尺寸
+//     AlignSize，要求的对齐尺寸，0表示用系统的对齐尺寸
+//     proper，true表示专用heap，false表示通用heap
+//     name，新建的heap名字。
+//返回：新建的heap指针，创建heap失败的返回NULL
+//特别注意：新添加的heap，不允许与现有heap的内容重合，绝对不允许从另一个heap中malloc一大
+//         块内存，然后做作为heap添加到系统中。
+//------------------------------------------------------------------------------
+struct HeapCB *Heap_Add(void* bottom, u32 size, u32 PageSize,u32 AlignSize,
+                        bool_t proper,char *name)
+{
+    struct HeapCB *HeapTemp;
+    struct HeapCession *Cession;
+    void* HeapBottom;
+    u32 ctrlsize;
+
+    ctrlsize = sizeof( struct HeapCB ) + sizeof(struct HeapCession);
+    if(bottom == NULL)
+       return NULL;
+    HeapTemp = (struct HeapCB *)(bottom + size - ctrlsize);
+    HeapTemp = (struct HeapCB *)align_down_sys(HeapTemp);
+    HeapBottom = (void*)align_up_sys(bottom);
+    if((u32)((void*)HeapTemp - HeapBottom) < PageSize)
+        return NULL;
+    if(tg_pHeapList == NULL)
+    {
+        tg_pHeapList = HeapTemp;
+        tg_pHeapList->NextHeap = HeapTemp;
+        tg_pHeapList->PreHeap = HeapTemp;
+        //第一个堆可做系统堆。
+        tg_pSysHeap = tg_pHeapList;
+    }
+    else
+    {
+        HeapTemp->NextHeap = tg_pHeapList;
+        HeapTemp->PreHeap = tg_pHeapList->PreHeap;
+        tg_pHeapList->PreHeap->NextHeap = HeapTemp;
+        tg_pHeapList->PreHeap = HeapTemp;
+    }
+
+    Cession = (struct HeapCession *)(HeapTemp+1);
+    HeapTemp->Cession = Cession;
+    HeapTemp->CessionNum = 1;
+    if(AlignSize == 0)
+        HeapTemp->AlignSize = CN_ALIGN_SIZE;
+    else
+        HeapTemp->AlignSize = AlignSize;
+    HeapTemp->HeapProperty = proper;
+    HeapTemp->HeapName = name;
+#if ((CFG_DYNAMIC_MEM == true))
+    HeapTemp->mem_sync = NULL;
+#endif
+    Cession->static_bottom = HeapBottom;
+    Cession->heap_bottom = HeapBottom;
+    Cession->heap_top = (void*)HeapTemp;
+    Cession->last = (list_t *)HeapBottom;
+    dListInit(Cession->last);
+#if ((CFG_DYNAMIC_MEM == true))
+    Cession->PageSize = PageSize;
+#endif
+    Cession->Next = NULL;
+    if(__M_InitCession(Cession))
+    {
+        Lock_MutexCreate_s(&(HeapTemp->HeapMutex),(const char*)(HeapTemp->HeapName));
+        return(HeapTemp);
+    }
+    else
+        return NULL;
+}
+
 //----初始化内存堆-------------------------------------------------------------
 //功能：1.从堆中分配访问控制结构所需的内存，位置在堆的顶部，占用整数块
 //      2.初始化内存分配控制结构,初始化全局内存结构 struct MemGlobal
@@ -959,11 +1163,6 @@ void __M_CleanUp(uint16_t event_id)
 //-----------------------------------------------------------------------------
 bool_t Heap_DynamicModuleInit(void)
 {
-    ptu32_t ua_temp,ua_temp1=0,ua_temp2,ua_temp3 = 0,ua_faction;
-    ptu32_t ua_pages,ua_table_size=0;
-    ufast_t uf_classes,uf_grades;
-    ucpu_t  ***pppl_bitmap,**ppl_bitmap,*pl_bitmap;
-    ufast_t *pl_classes;
 
     struct HeapCB *Heap;
     struct HeapCession *Cession;
@@ -978,120 +1177,7 @@ bool_t Heap_DynamicModuleInit(void)
 
         while(Cession != NULL)
         {
-            ua_faction=(ptu32_t)(Cession->heap_top-Cession->heap_bottom);
-            //计算堆的总页数，取整页，舍去余数部分
-            ua_pages = ua_faction / Cession->PageSize;
-            ua_faction = ua_faction % Cession->PageSize;
-            //计算堆页数调整后的余数，可用于内存控制结构使用。
-            Cession->heap_top -=ua_faction;
-
-            if(ua_pages < 2) //如果堆中页数小于2页,控制结构可能还要占用1页,还有意义吗?
-            {
-                Cession->ua_pages_num = 0;
-                Cession->free_pages_num = 0;
-                Cession->ua_block_max = 0;
-                Cession->ua_free_block_max = 0;
-                Cession->uf_grades = 0;
-                Cession = Cession->Next;
-                continue;
-            }
-
-            ua_temp = __M_CalculateExpense(ua_pages); //初估控制结构需要的字节数
-            if(ua_faction < ua_temp)
-            {
-                //初估控制结构除ua_faction外还需要的页数
-                ua_temp = (ua_temp-ua_faction+Cession->PageSize-1)
-                            /Cession->PageSize;
-                for(ua_temp1 = ua_temp; ua_temp1 > 0; ua_temp1--)
-                {//初估的页数肯定大于或等于实际需要的页数,尤其是内存页数较多时.
-                 //估计值从初估的页数开始逐一减小,直到合适为止.
-                    //重估控制结构字节数
-                    ua_temp2 = __M_CalculateExpense(ua_pages-ua_temp1);
-                    ua_temp3 = (ua_temp2-ua_faction+Cession->PageSize-1)
-                            /Cession->PageSize;         //重新计算控制结构页数
-                    if(ua_temp3 >= ua_temp1)
-                    //当所需页数刚好大于或等于估计值时,循环终止
-                        break;
-                }
-                //实际可分配的页数,u32_temp3为控制结构页数
-                ua_pages = ua_pages -ua_temp3;
-                Cession->heap_top -= ua_temp3 * Cession->PageSize;  //调整堆顶
-            }
-            Cession->ua_pages_num = ua_pages;
-            Cession->free_pages_num = ua_pages;
-            //内存控制结构清零
-            memset(Cession->heap_top,0,ua_faction+(ua_temp3 *Cession->PageSize));
-
-            //计算总阶数，即一共有多少种页尺寸,方法:地址长度减去ua_pages中前导0
-            //的数量例如,ua_pages=5,最高位位置是bit2,有29个前导0，页尺寸有1,2,4
-            //页3种,阶数=3
-            uf_grades=CN_PTR_BITS-__M_LeadingZero((u8 *)&ua_pages,sizeof(ptu32_t));
-
-            Cession->uf_grades = uf_grades;    //总阶数
-            Cession->ua_block_max=Cession->PageSize<<(uf_grades-1);//最高阶块尺寸
-            Cession->ua_free_block_max=Cession->ua_block_max; //最大可用块尺寸
-
-            //计算位图指针表所需的指针数
-            ua_table_size=0;
-            for(ua_temp=0;ua_temp<uf_grades;ua_temp++)
-            {//遍历各阶
-                ua_temp1 = ua_pages>>ua_temp;   //计算ua_temp阶0级位图位数
-                do
-                {
-                    //计算下一级位图的位数
-                    ua_temp1=(ua_temp1+CN_CPU_BITS-1)>>CN_CPU_BITS_SUFFIX_ZERO;
-                    ua_table_size++;        //需要一个指针指向该级位图首地址
-                //下一级位图超过1位(本级超过cn_cpu_bits位),继续循环
-                }while(ua_temp1>1);
-            }
-
-            //事件指针id表,详细说明见mem_global_t类型定义部分.
-            Cession->index_event_id=(uint16_t*)Cession->heap_top;
-            for(ua_temp = 0; ua_temp<ua_pages; ua_temp++)
-                Cession->index_event_id[ua_temp] = CN_MEM_FREE_PAGE;
-            //各阶的位图级数表指针，每阶用一个ufast_t型的数表示该阶的位图级数
-            ua_temp = (ptu32_t)(Cession->index_event_id+ua_pages);
-            ua_temp = (ua_temp+sizeof(ufast_t)-1)&(~(sizeof(ufast_t)-1)); //对齐
-            pl_classes=(ufast_t *)ua_temp;
-            Cession->p_classes=pl_classes;     //各阶空闲金字塔级数表首指针
-
-            //随后是各级分配表指针的指针首址
-            ua_temp = (ptu32_t)(pl_classes+uf_grades);
-            ua_temp = (ua_temp+sizeof(void *)-1)&(~(sizeof(void *)-1));  //对齐
-            pppl_bitmap=(void*)ua_temp;
-            //各阶金字塔位图指针表的指针表的首指针
-            Cession->ppp_bitmap=pppl_bitmap;
-
-            //金字塔位图指针表的指针
-            ppl_bitmap=(ucpu_t **)(pppl_bitmap+uf_grades);
-            pl_bitmap=(ucpu_t *)(ppl_bitmap+ua_table_size); //金字塔位图指针表
-
-            //填充各索引表和分配表
-            for(ua_temp=0;ua_temp<uf_grades;ua_temp++)  //遍历各阶
-            {
-                ua_temp1 = ua_pages>>ua_temp;       //ua_temp阶位图总位数
-                uf_classes=0;                       //ua_temp阶的位图级数
-                pppl_bitmap[ua_temp]=ppl_bitmap;    //ua_temp阶位图表的指针
-                do
-                {
-                    ucpu_t  msk=~0;     //类型位宽未知,用此方法置全1
-                    ua_temp3=ua_temp1>>CN_CPU_BITS_SUFFIX_ZERO; //本级表的大小(整数部分)
-                    ua_temp1=ua_temp1%CN_CPU_BITS;    //本路径级表的大小(余数部分)
-                    if(ua_temp1==0)
-                    //表中没有多余的位,无需处理
-                        ua_temp1=ua_temp3;  //本级位图所占字数是下一级的位数
-                    else
-                    {//表中有多余的位,置1,使多余的位等同于已分配的位.
-                        msk=msk<<ua_temp1;              //使多余的位置1
-                        *(pl_bitmap+ua_temp3) |=msk;    //修改位图中相应的位
-                        ua_temp1=ua_temp3+1;    //路径表修正,加上余数部分
-                    }
-                    *ppl_bitmap++ = pl_bitmap;  //记录本级位图指针
-                    pl_bitmap +=ua_temp1;       //位图指针指向下一级位图起始地址
-                    uf_classes++;                //ua_temp阶的级数增量
-                }while(ua_temp1>1);             //直到遍历本阶所有位图级
-                pl_classes[ua_temp]=uf_classes; //该级路径表深度
-            }
+            __M_InitCession(Cession);
             Cession = Cession->Next;
         }       //for while(Cession != NULL)
         Heap = Heap->NextHeap;

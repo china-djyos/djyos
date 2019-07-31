@@ -268,10 +268,12 @@ struct Object *obj_newhead(struct Object *loc,fnObjOps ops,
                            ptu32_t ObjPrivate, const char *name);
 s32 obj_move2last(struct Object *ob);
 s32 obj_move2head(struct Object *ob);
+struct Object *obj_insert2child(struct Object *loc, struct Object *child);
 s32 obj_insert2next(struct Object *loc, struct Object *next);
 s32 obj_insert2prev(struct Object *loc, struct Object *prev);
 s32 obj_child_move2prev(struct Object *parent);
 s32 obj_child_move2next(struct Object *parent);
+struct Object *obj_twig(struct Object *ob);
 struct Object *obj_foreach_child(struct Object *parent, struct Object *child);
 struct Object * obj_foreach_scion(struct Object *ancester, struct Object *scion);
 struct Object *obj_search_sibling(struct Object *ob, const char *name);

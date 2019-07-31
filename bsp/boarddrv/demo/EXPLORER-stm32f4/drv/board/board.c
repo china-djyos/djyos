@@ -322,6 +322,9 @@ void Board_UartHalfDuplexRecv(u8 SerialNo)
 #define PAout(n)                       BIT_ADDR(GPIOA_ODR_Addr,n)  //Êä³ö
 #define PBout(n)                       BIT_ADDR(GPIOB_ODR_Addr,n)  //Êä³ö
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
 {
     switch(SPIPort)
@@ -336,6 +339,8 @@ bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level)
     }
     return true;
 }
+#pragma GCC diagnostic pop
+
 static void Board_NORGpioInit (void )
 {
 

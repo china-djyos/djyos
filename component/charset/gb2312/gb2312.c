@@ -1281,11 +1281,16 @@ s32 GB2312MbToUcs4 (u32 *pwc, const char *mbs, s32 n)
         return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // 注释参照 charset.h-> struct Charset -> MbsToUcs4s
+// todo:待实现
 s32 GB2312MbsToUcs4s(u32* pwcs, const char* mbs, s32 n)
 {
     return 0;
 }
+#pragma GCC diagnostic pop
 
 //按unicode升序排列的EUC-CN编码表
 static const u16 gb2312_2charset[7445] = {
@@ -2728,7 +2733,7 @@ s32 GB2312Ucs4ToMb (char* mb, u32 wc)
 //gb2312编码
     summary = NULL;
 
-    if (wc >= 0x0000 && wc < 0x0460)
+    if (wc > 0x0000 && wc < 0x0460)
         summary = &gb2312_uni2indx_page00[(wc>>4)];
     else if (wc >= 0x2000 && wc < 0x2650)
         summary = &gb2312_uni2indx_page20[(wc>>4)-0x200];
@@ -2764,11 +2769,17 @@ __illegal:
     return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // 注释参照 charset.h-> struct Charset -> Ucs4sToMbs
+//TODO:待实现
 s32 GB2312Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n)
 {
     return 0;
 }
+
+#pragma GCC diagnostic pop
 
 //----安装gb2312字符集----------------------------------------------------------
 //功能: 安装gb2312字符集，当系统使用西方字符界面时，使用这个字符集。特别注意，

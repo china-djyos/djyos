@@ -105,7 +105,7 @@ bool_t  Charset_NlsInstallCharset(struct Charset *encoding,const char* name)
 //----字符集模块初始化-------------------------------------------------------
 //功能: 初始化字符集管理模块
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Charset(ptu32_t para)
+ptu32_t ModuleInstall_Charset(void)
 {
     s_ptCurCharset = NULL;
     // 创建字符集目录

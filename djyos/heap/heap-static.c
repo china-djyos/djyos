@@ -146,7 +146,7 @@ void __memHeapScan(void)
     u32 CessionNum,Ctrlsize,NameLen,n;
     u8  *Offset;
     u32 *u32Offset;
-    u32 HeapNo=0;
+//  u32 HeapNo=0;
     u32 AlignSize;
     u32 Property;
     Offset = (u8*)&pHeapList;
@@ -188,7 +188,7 @@ void __memHeapScan(void)
                     Cession->Next = Cession+1;
                 Cession++;
             }
-            //找到了第一个符合要求的session
+            //找到了第一个符合要求的session，在此之前的session的size小于Ctrlsize，丢弃之。
             if((Cession == NULL) && ((*(u32Offset+1) - *u32Offset) >=Ctrlsize))
             {
                 HeapTemp = (struct HeapCB *)(*(u32Offset+1) - Ctrlsize);
@@ -199,7 +199,7 @@ void __memHeapScan(void)
                     tg_pHeapList->NextHeap = HeapTemp;
                     tg_pHeapList->PreHeap = HeapTemp;
                     //第一个堆可做系统堆。
-                    if(HeapNo == 0)
+//                  if(HeapNo == 0)
                         tg_pSysHeap = tg_pHeapList;
                 }
                 else
@@ -235,13 +235,13 @@ void __memHeapScan(void)
                     Cession->Next = Cession+1;
                 Cession++;
             }
-            Ctrlsize -= sizeof(struct HeapCession);
+//          Ctrlsize -= sizeof(struct HeapCession);
             u32Offset += 3;
         }
         Offset += NameLen + 1;      //+1跨过串结束符
         Offset = (u8*)align_up(sizeof(u32),Offset);
         CessionNum = *(u32*)Offset;
-        HeapNo++;
+//      HeapNo++;
     }
 }
 //----内存结构初始化-----------------------------------------------------------
@@ -330,6 +330,10 @@ void *__M_StaticMallocHeapIn(ptu32_t size,struct HeapCB *Heap)
     Int_LowAtomEnd(atom_m);
     return(result);
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //----准静态内存分配-----------------------------------------------------------
 //功能：执行准静态分配的方法，在指定的堆内分配一块内存，该方法实际上是模拟编译
 //      器分配行为，再加上对齐。如果指定的堆是通用堆,则优先从该堆分配,分配失败
@@ -402,6 +406,9 @@ void *__M_StaticMalloc(ptu32_t size,u32 timeout)
 {
     return __M_StaticMallocHeap(size,tg_pSysHeap,0);
 }
+
+#pragma GCC diagnostic pop
+
 //----重新分配一块内存---------------------------------------------------------
 //功能: 用新的尺寸,给p指针重新分配一块内存.
 //      如果扩大,则把原有数据全部copy到新分配的内存中.
@@ -442,7 +449,7 @@ void *__M_StaticRealloc(void *p, ptu32_t NewSize)
         return p;
     else
     {
-        NewP = __M_StaticMalloc(NewSize,CN_TIMEOUT_FOREVER);
+        NewP = __M_StaticMalloc(NewSize,0);
         if(NewP)
         {
             memcpy(NewP,p,NewSize < OldSize ? NewSize:OldSize);
@@ -559,7 +566,7 @@ ptu32_t __M_StaticGetMaxFreeBlockHeapIn(struct HeapCB *Heap)
     Cession = Heap->Cession;
     while(Cession != NULL)
     {
-        if(result < (Cession->heap_top - Cession->heap_bottom))
+        if(result < (ptu32_t)(Cession->heap_top - Cession->heap_bottom))
             result = Cession->heap_top - Cession->heap_bottom;
         Cession = Cession->Next;
     }

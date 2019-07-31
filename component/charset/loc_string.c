@@ -117,9 +117,9 @@ s32 mblen  (const char* mbs, u32 n)
 //      -1:长度n内包含非法多字节字符
 //      其他：多字节字符串包含的字节数
 //-----------------------------------------------------------------------------
-s32 mbslen  (const char* mbs, u32 n)
+s32 mbslen  (const char* mbs, s32 n)
 {
-    u32 len = 0,charlen;
+    s32 len = 0,charlen;
     struct Charset* cur_enc;
 
     if(mbs == NULL)
@@ -244,9 +244,9 @@ s32 mblen_l(const char* mbs, u32 n, struct Charset* locale)
 //      -1:长度n内包含非法多字节字符
 //      其他：多字节字符串包含的字节数
 //-----------------------------------------------------------------------------
-s32 mbslen_l  (const char* mbs, u32 n, struct Charset* locale)
+s32 mbslen_l  (const char* mbs, s32 n, struct Charset* locale)
 {
-    u32 len = 0,charlen;
+    s32 len = 0,charlen;
     struct Charset* cur_enc;
 
     if(mbs == NULL)
@@ -316,7 +316,7 @@ s32 mbtowc(u32* pwc, const char* mbs, u32 n)
 //-----------------------------------------------------------------------------
 s32 btowc(char c)
 {
-    #warning  待实现
+    //todo:  待实现
     return 0;
 }
 //----多字节字符转为ucs4字符---------------------------------------------------

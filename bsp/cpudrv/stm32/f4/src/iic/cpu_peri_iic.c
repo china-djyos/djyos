@@ -337,7 +337,7 @@ void __IIC_GpioConfig(u8 IIC_NO)
 //       len,数据长度，字节
 // 返回：len,读取成功;-1,读取失败
 // =============================================================================
-static s32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
+static u32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
                         u8 maddrlen, u8 *buf, u32 len)
 {
     u32 i;
@@ -383,6 +383,10 @@ static s32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
     Djy_DelayUs(1000);
     return len;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // =============================================================================
 // 功能：轮询方式向IIC从设备的写数据
 // 参数：reg,寄存器基址
@@ -393,7 +397,7 @@ static s32 __IIC_ReadPoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
 //       len,数据长度，字节
 // 返回：len,读取成功;-1,读取失败
 // =============================================================================
-static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
+static u32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
                         u8 maddrlen, u8 *buf, u32 len)
 {
     u8 mem_addr_buf[4];
@@ -432,15 +436,17 @@ static s32 __IIC_WritePoll(volatile tagI2CReg *reg,u8 devaddr,u32 memaddr,
     Djy_DelayUs(1000);
     return len;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 功能: 禁止iic中断,接收与发送共用一个中断源。
 // 参数: reg,被操作的寄存器组指针
 // 返回: 无
+// 注：F4的寄存器定义与F1/F3/F7/H7/L4均不一样。
 // =============================================================================
 static void __IIC_IntDisable(tagI2CReg *reg)
 {
-    reg->CR1 &= ~(I2C_CR1_RXIE| I2C_CR1_TXIE);
+    reg->CR2 &= ~(I2C_IT_EVT);
 }
 
 // =============================================================================
@@ -454,20 +460,20 @@ static void __IIC_IntDisable(tagI2CReg *reg)
 //       WrRdFlag,读写标记，为0时写，1时为读
 // 返回：len,读取成功;-1,读取失败
 // =============================================================================
-static bool_t __IIC_WriteReadPoll(tagI2CReg *reg,u8 DevAddr,u32 MemAddr,\
+static bool_t __IIC_WriteReadPoll(ptu32_t reg,u8 DevAddr,u32 MemAddr,\
                                 u8 MemAddrLen,u8* Buf, u32 Length,u8 WrRdFlag)
 {
-    __IIC_IntDisable(reg);
+    __IIC_IntDisable((tagI2CReg *)reg);
     if(WrRdFlag == CN_IIC_WRITE_FLAG)   //写
     {
-        if(Length == __IIC_WritePoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
+        if(Length == __IIC_WritePoll((tagI2CReg *)reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
             return true;
         else
             return false;
     }
     else                                //读
     {
-        if(Length == __IIC_ReadPoll(reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
+        if(Length == __IIC_ReadPoll((tagI2CReg *)reg,DevAddr,MemAddr,MemAddrLen,Buf,Length))
             return true;
         else
             return false;

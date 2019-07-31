@@ -101,10 +101,12 @@ struct LowPowerCtrl;
 //跟低功耗相关的硬件初始化
 bool_t __LP_BSP_HardInit(void);
 
+// 设置硬件模式，由于低功耗硬件五花八门，不可穷举，故由BSP提供一个模式设置函数，函数的功能
+// 由BSP规定，这里只给个接口，APP遵循BSP的设计手册使用本函数。
+bool_t __LP_BSP_SetSleepMode(ptu32_t param);
+
 // 程序boot后调用本函数可知是从L3还是从L4唤醒,或者是正常启动.
 // 返回值是为CN_WAKEUP_NORMAL、CN_WAKEUP_ERROR、 CN_WAKEUP_L3、CN_WAKEUP_L4之一。
-// 特别注意:如果硬件在重新上电或复位时,没有自动清除低功耗状态启动标识,则无论
-// 调用本函数返回什么,函数返回前,启动模式都被改为 CN_WAKEUP_NORMAL.
 // 本函数必须加载到startup中.
 u32 __LP_BSP_GetSleepLevel(void);
 //把SleepLevel保存到专用硬件或者flash中,只有L3和L4需要.

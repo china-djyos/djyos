@@ -1629,37 +1629,6 @@ struct Object *obj_newhead(struct Object *loc, fnObjOps ops,
     return (head);
 }
 
-// ============================================================================
-// 功能：将队列child插入到对象loc下，成为其子对象；
-// 参数：loc -- 被插入对象；
-//      child -- 将插入的对象；
-// 返回：成功（被插入的对象）；失败（NULL）；
-// 备注：
-// ============================================================================
-struct Object *obj_insert2child(struct Object *loc, struct Object *child)
-{
-    if((loc==NULL)||(child==NULL))
-        return (NULL);
-
-    obj_lock();
-
-    obj_detach(child); // 就对象从原对象树中分离；
-    child->parent = loc;
-    if(loc->child==NULL)
-    {
-        loc->child = child;
-        __OBJ_LIST_INIT(child);
-    }
-    else
-    {
-        __OBJ_LIST_INS_BEFORE(loc->child, child);
-        loc->child = child;
-    }
-
-    obj_unlock();
-    return (child);
-}
-
 #if 0
 // ============================================================================
 // 功能：移动一个对象树枝到别的节点下面成为其子树；
@@ -1750,6 +1719,37 @@ s32 obj_move2head(struct Object *ob)
 
     obj_unlock();
     return (0);
+}
+
+// ============================================================================
+// 功能：将队列child插入到对象loc下，成为其子对象；
+// 参数：loc -- 被插入对象；
+//      child -- 将插入的对象；
+// 返回：成功（被插入的对象）；失败（NULL）；
+// 备注：
+// ============================================================================
+struct Object *obj_insert2child(struct Object *loc, struct Object *child)
+{
+    if((loc==NULL)||(child==NULL))
+        return (NULL);
+
+    obj_lock();
+
+    obj_detach(child); // 就对象从原对象树中分离；
+    child->parent = loc;
+    if(loc->child==NULL)
+    {
+        loc->child = child;
+        __OBJ_LIST_INIT(child);
+    }
+    else
+    {
+        __OBJ_LIST_INS_BEFORE(loc->child, child);
+        loc->child = child;
+    }
+
+    obj_unlock();
+    return (child);
 }
 
 // ============================================================================

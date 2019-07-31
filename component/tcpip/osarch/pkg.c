@@ -469,6 +469,9 @@ bool_t PkgCachedLst(struct NetPkg   *pkglst)
     return true;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // =============================================================================
 // FUNCTION   :we use this function browse the package module status
 // PARAMS IN  :param,NO USE NOW
@@ -491,6 +494,7 @@ bool_t pkgmem(char *param)
     }
     return true;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // FUNCTION:this function is used to initialize the package memory
