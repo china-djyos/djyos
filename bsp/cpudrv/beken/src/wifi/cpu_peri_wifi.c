@@ -57,8 +57,7 @@
 #include "rwnx.h"
 #include "role_launch.h"
 #include "djytimer.h"
-#include "lwip/pbuf.h"
-#include "lwip/memp.h"
+#include "djy_wifi_config.h"
 #include "ieee802_11_demo.h"
 #include "wlan_ui_pub.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。

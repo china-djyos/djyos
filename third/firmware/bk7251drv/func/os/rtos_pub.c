@@ -1,10 +1,9 @@
+#include <djytimer.h>
+#include <error.h>
+#include <rtos_pub.h>
 #include <stddef.h>
-#include "sys_rtos.h"
-#include "error.h"
-#include "rtos_pub.h"
-
+#include <sys_rtos.h>
 #include "systime.h"
-#include "djytimer.h"
 //#include "finsh.h"
 
 #define THREAD_TIMESLICE 5

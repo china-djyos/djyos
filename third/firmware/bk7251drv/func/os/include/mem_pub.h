@@ -2,9 +2,9 @@
 #define _MEM_PUB_H_
 
 #include <stdarg.h>
+#include <sys_rtos.h>
 #include <typedef.h>
 
-#include "sys_rtos.h"
 
 INT32 os_memcmp(const void *s1, const void *s2, UINT32 n);
 void *os_memmove(void *out, const void *in, UINT32 n);

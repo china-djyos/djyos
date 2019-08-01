@@ -162,6 +162,6 @@
 #define CFG_USE_SPI_MST_PSRAM                      0
 #define CFG_USE_SPI_SLAVE                          0
 
-#define CFG_USE_QSPI                               1
+//#define CFG_USE_QSPI                               1
 
 #endif // _SYS_CONFIG_H_
