@@ -283,6 +283,7 @@ static s32 xip_app_scanfiles(struct __icore *core)
         free(file);
         goto Error;
     }
+    obj_Close(core->root->child);   //  把子节点引用次数减一，因为xip的文件并没有打开，只是事先加到obj里
     printf("\r\n: info : xipfs  : valid file found, name(%s), size(%dKB).", name, (file->sz>>10));
     free(structFileHead);
     return (0);
@@ -427,18 +428,20 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
             tmp = obj_child(core->root);
             if(tmp)
             {
-                if(obj_isonduty(tmp))
+                if(test_writeable(flags))
                 {
-                    printf("\r\n: info : xipfs  : cannot create new for old are using.");
-                    xip_app_unlock(core);
-                    return (NULL);
-                }
-
-                if(obj_Delete(tmp))
-                {
-                    printf("\r\n: info : xipfs  : cannot create new for old cannot delete.");
-                    xip_app_unlock(core);
-                    return (NULL);
+                    if(obj_isonduty(tmp))
+                    {
+                        printf("\r\n: info : xipfs  : cannot create new for old are using.");
+                        xip_app_unlock(core);
+                        return (NULL);
+                    }
+                    if(obj_Delete(tmp))        //xip文件系统，只要存在写一个不存在文件的操作，则直接覆盖里面原来的文件
+                    {
+                        printf("\r\n: info : xipfs  : cannot create new for old cannot delete.");
+                        xip_app_unlock(core);
+                        return (NULL);
+                    }
                 }
             }
 

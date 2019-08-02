@@ -42,38 +42,33 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-#include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
 
-//该定义用于检查堆栈使用的内存是否是合法地址
-typedef struct
-{
-    const u8   *start;
-    const u32   len;
-}tagVmMemItem;
-//该定义用于定义了我们的启动模式
-typedef enum
-{
-    EN_BOOT_POWERDOWN = 0,//WHICH MEANS BOOT FROM POWER DOWN
-    EN_BOOT_HRST,         //WHICH MEANS BOOT FROM EXTERNAL HARD RESET BUT POWERON
-    EN_BOOT_SRST,         //WHICH MEANS BOOT FROM INTERNAL SOFT RESET
-    EN_BOOT_REBOOT,       //WHICH MEANS BOOT FROM SOFT REBOOT
-    EN_BOOT_RELOAD,       //WHICH MEANS BOOT FROM RELOAD
-    EN_BOOT_UNKNOWN,      //WHICH MEANS BOOT FROM UNKNOWN REASON
-    EN_BOOT_NOTIMPLEMENT, //WHICH MEANS BOOT BSP NOT IMPLEMENT
-    EN_BOOT_LAST,
-}enBootMode;
+// 文件名     ：cpu_peri_spi.h
+// 模块描述: SPI模块底层硬件驱动头文件
+// 模块版本: V1.00
+// 创建人员: HM
+// 创建时间: 16/10.2015
+// =============================================================================
 
-#define CN_BOOT_LEGALKEY   0XAA55AA55  //调用reboot、reset、reload传输该key，不会记录，否则会作为异常记录
-typedef enBootMode  (*fnGetBootMode)(void); //用于获取我们的CPU启动模式的函数原型
-//安装系统启动记录存储模块：tab是我们的栈可能使用的内存范围，可以是多个，NULL结束,不可更改；GetOsBootModeHard是软件启动标志，需要BSP提供；GetOsBootModeSoft是
-//软件启动标志，需要BSP提供
-bool_t ModuleInstall_OsBoot(const tagVmMemItem *tab[],fnGetBootMode GetOsBootModeHard,fnGetBootMode GetOsBootModeSoft);
-//抛出异常重启信息，当调用系统的reboot、reset、reload等提供非法的KEY的时候
-//合法的KEY是0xaa55aa55,其他的均会认为是非法的，这部分需要cpu的bsp 的port的支持
-bool_t ThrowOsBootInfo(enBootMode mode);
+#ifndef CPU_PERI_SPI_H_
+#define CPU_PERI_SPI_H_
 
+#include "stdint.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+bool_t SPI_TxRx_Int(u8* sdata,u32 slen,u8* rdata, u32 rlen);
+bool_t SPI_TxRx_Poll(u8* srcAddr,u32 wrSize,u8* destAddr, u32 rdSize, u32 recvoff);
+void SPI_Flash_Deinit(void);
+int ModuleInstall_SPI(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
 
 
 
