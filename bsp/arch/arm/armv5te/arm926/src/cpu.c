@@ -246,7 +246,7 @@ void reset(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_system(void)
+void restart_app(void)
 {
 
 }

@@ -164,7 +164,7 @@ void reset( )
 
 }
 
-void restart_system(u32 key)
+void restart_app(u32 key)
 {
     Load_Preload();
 }
