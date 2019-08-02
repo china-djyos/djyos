@@ -43,6 +43,7 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
+#include <typedef.h>
 #include "cpu_peri.h"
 #include <device/include/uart.h>
 #include "stdlib.h"
@@ -231,7 +232,12 @@ int ModuleInstall_SPI(void)
 	
 	mode = (CFG_SPI_CPOL | (CFG_SPI_CPHA << 1));
 	
-	return bk_spi_master_init(CFG_SPI_CLK, mode);
+	if(bk_spi_master_init(CFG_SPI_CLK, mode))
+	{
+	    info_printf("SPI","SPI init fail.\r\n");
+	    return 0;
+	}
+	return 1;
 }
 
 

@@ -43,6 +43,9 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 // =============================================================================
+#include <typedef.h>
+#include <stdlib.h>
+#include <dbug.h>
 #include "qspi/qspi_pub.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -74,6 +77,19 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#ifndef CFG_QSPI_RAM_SIZE           //****检查参数是否已经配置好
+#warning   qspi组件参数未配置，使用默认值
+//%$#@num,0,8388608,
+#define CFG_QSPI_RAM_SIZE                   8388608       //RAM的尺寸，默认8M。
+#define CFG_QSPI_RAM_PAGE_SIZE              1024          //RAM的页尺寸，默认1K。
+#define CFG_QSPI_RAM_ALIGNMENT              0             //要求的对齐尺寸，0表示用系统的对齐尺寸
+//%$#@enum,true,false,
+#define CFG_QSPI_RAM_DEDICATED              true         //true表示专用heap，false表示通用heap。
+//%$#@string,1,10,
+#define CFG_QSPI_RAM_HEAP_NAME              "PSRAM"      //新建的heap名字。
+//%$#@select
+//%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure						
 	
@@ -96,7 +112,18 @@ int ModuleInstall_QSPI_PSRAM(void)
 
     bk_qspi_mode_start(1, 0);
     if(bk_qspi_dcache_configure(&qspi_cfg))
+    {
+        info_printf("QSPI","QSPI init fail.\r\n");
         return 0;
+    }
+
+    if(Heap_Add(QSPI_DCACHE_BASE, CFG_QSPI_RAM_SIZE, CFG_QSPI_RAM_PAGE_SIZE, CFG_QSPI_RAM_ALIGNMENT,
+            CFG_QSPI_RAM_DEDICATED, CFG_QSPI_RAM_HEAP_NAME) == 0)       //把QSPI接的RAM添加到heap当中
+    {
+        info_printf("QSPI","QSPI add heap fail.\r\n");
+        return 0;
+    }
+
     return 1;
 }
 
