@@ -89,9 +89,23 @@ bool_t __LP_BSP_SaveRamL3(void)
     return true;
 }
 
+u32 BekenEntrySleepReCall(u32 SleepLevel)
+{
+    return true;
+}
+
+u32 BekenExitSleepReCall(u32 SleepLevel)
+{
+    return true;
+}
+
 void LP_DeepSleep(void)
 {
+    LP_SetHook(BekenEntrySleepReCall,BekenExitSleepReCall);
     LP_SetSleepLevel(CN_SLEEP_L4);
     Djy_EventDelay(1000*1000);
 }
+
+
+
 
