@@ -32,7 +32,7 @@ int rw_msg_send(const void *msg_params, uint16_t reqid, void *cfm)
     uint8_t need_cfm = 0;
     MSG_SND_NODE_PTR tx_msg;
 
-    printf("%s:reqid = %d\r\n",__FUNCTION__, reqid);
+    //printf("%s:reqid = %d\r\n",__FUNCTION__, reqid);
 
     GLOBAL_INT_DECLARATION();
 
