@@ -647,7 +647,13 @@ UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
             ASSERT(param);
             audio_adc_set_volume(*((UINT32 *)param));
             break;
-            
+        case AUD_ADC_CMD_SET_CHANNEL:
+            if (*((UINT32 *)param) == 1 || *((UINT32 *)param) == 2) {
+                if (aud_adc.channels != *((UINT32 *)param))
+                    aud_adc.channels = *((UINT32 *)param);
+            }
+            break;
+
         default:
             break;
     }
