@@ -59,8 +59,7 @@
 extern "C" {
 #endif
 
-bool_t SPI_TxRx_Int(u8* sdata,u32 slen,u8* rdata, u32 rlen);
-bool_t SPI_TxRx_Poll(u8* srcAddr,u32 wrSize,u8* destAddr, u32 rdSize, u32 recvoff);
+bool_t SPI_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen, u32 recvoff);
 void SPI_Flash_Deinit(void);
 int ModuleInstall_SPI(void);
 

@@ -101,6 +101,9 @@ typedef struct EasyFS
     u32 start_block; // 用于存储文件系统的首块块号
     u32 files_sum; // 文件数
     u8 *file_list_buf; // 文件分配表的缓冲区，size= 文件分配表大小
+
+    bool_t file_sys_install;  //文件系统是否已经安装，安装为true，为安装为false
+    u32 install_options;
     struct MutexLCB *block_buf_mutex; // 缓冲区互斥
     char name[EFS_NAME_LIMIT+1]; // 挂载点的名字
 
