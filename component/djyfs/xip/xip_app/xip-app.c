@@ -283,7 +283,7 @@ static s32 xip_app_scanfiles(struct __icore *core)
         free(file);
         goto Error;
     }
-    obj_Close(core->root->child);   //  把子节点引用次数减一，因为xip的文件并没有打开，只是事先加到obj里
+//  obj_Close(core->root->child);   //  把子节点引用次数减一，因为xip的文件并没有打开，只是事先加到obj里
     printf("\r\n: info : xipfs  : valid file found, name(%s), size(%dKB).", name, (file->sz>>10));
     free(structFileHead);
     return (0);
