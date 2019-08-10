@@ -41,9 +41,12 @@
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL,
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
 //%$#@num,0,100,
-#define CFG_IBOOT_VERSION       01        //Iboot发布版本号
+#define CFG_IBOOT_VERSION_SMALL       00        //Iboot发布版本号,xx.xx.__
+#define CFG_IBOOT_VERSION_MEDIUM      00        //Iboot发布版本号,xx.__.xx
+#define CFG_IBOOT_VERSION_LARGE       01        //Iboot发布版本号,__.xx.xx
 //%$#@string,1,128,
-#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"Iboot保存"
+#define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"待升级iboot默认存储路径"
+#define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"           //"待升级app默认存储路径"
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 

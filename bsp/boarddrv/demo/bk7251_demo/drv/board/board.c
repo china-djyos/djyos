@@ -131,19 +131,34 @@ void Board_Init(void)
     intc_init();
     os_clk_init();
 
+#if 0
+    djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);  //wifi一键配置
+    djy_gpio_mode(GPIO3,PIN_MODE_INPUT_PULLUP);  //音效模式
+    djy_gpio_mode(GPIO4,PIN_MODE_INPUT_PULLUP);  //变声模式
+
+    djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);   //语音按键
+
+    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);        //LED
+    djy_gpio_write(GPIO9,0);
+
+    djy_gpio_mode(GPIO8,PIN_MODE_OUTPUT);        //WIFI连接状态
+    djy_gpio_write(GPIO8,0);
+#else
     djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);  //wifi一键配置
-//    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);  //读取蓝牙状态
+    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);  //读取蓝牙状态
 
     p7_sem_init();
     djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);   //语音按键
     djy_gpio_attach_irq(GPIO7, PIN_IRQ_MODE_FALLING, p7_isr_hdr, NULL);
     djy_gpio_irq_enable( GPIO7, 1);
 
-    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);         //喇叭使能
-    djy_gpio_write(GPIO9,1);
+//    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);         //喇叭使能
+//    djy_gpio_write(GPIO9,1);
 
     djy_gpio_mode(GPIO12,PIN_MODE_OUTPUT);        //LED
     djy_gpio_write(GPIO12,0);
+#endif
+
 }
 
 void Init_Cpu(void);

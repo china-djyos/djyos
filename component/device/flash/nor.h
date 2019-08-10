@@ -60,11 +60,14 @@ extern "C" {
 // NOR器件基本描述
 //
 struct NorDescr{
-    u16 BytesPerPage;                   // 页的字节数
-    u16 PagesPerSector;                 // 有多少个sector
-    u16 SectorsPerBlk;                  // 一个块有多少页
-    u16 Blks;                           // 1个sector里有多少块
-    u8 ReservedBlks;                    // 保留页数
+    u32 BytesPerPage;                   // 页的字节数
+    u32 SectorNum;                      // 有多少个扇区
+    u32 BlockNum;                       // 有多少个块
+    u32 BlocksPerSector;                // 一个扇区有多少块,如果为0则表示该flash的块比扇区大
+    u32 PagesPerSector;                 // 一个扇区有多少页
+    u32 SectorsPerBlock;                // 一个块有多少扇区，如果为0则表示该flash的扇区比块大
+    u32 PagesPerBlock;                  // 一个块有多少页
+    u32 ReservedBlks;                    // 保留页数
     u8 PortType;                        // Nor接口类型
 #define NOR_CFI     (0x0)               // 并口
 #define NOR_SPI     (0x1)               // SPI串口

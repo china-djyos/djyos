@@ -432,7 +432,7 @@ static bool_t Remove(char *Param)
         {
             Ret = remove(PathParam);
             if(Ret)
-                printf("文件无法删除(文件使用中)\r\n");
+                printf("文件删除失败\r\n");
         }
     }
     free(Path);

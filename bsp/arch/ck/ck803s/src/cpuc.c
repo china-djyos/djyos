@@ -134,7 +134,6 @@ __attribute__((weak))   uint64_t __DjyGetSysTime(void)
 
 extern void Load_Preload(void);
 #include <blackbox.h>
-#include <osboot.h>
 #include <Iboot_info.h>
 //extern tagIapVar pg_IapVar;
 
@@ -165,7 +164,7 @@ void reset( )
 
 }
 
-void restart_system(u32 key)
+void restart_app(u32 key)
 {
     Load_Preload();
 }

@@ -53,6 +53,7 @@
 #define __SI_INFO_H__
 #include "stdio.h"
 
+#define MutualPathLen   40   //在交互信息中存待升级文件路径的最大长度
 enum runibootmode{
     HEARD_SET_RUN_IBOOT,
     RAM_SET_RUN_IBOOT,
@@ -72,7 +73,63 @@ enum hardflag
     HEAD_RESET_FLAG,
     HEAD_WDT_RESET,
     LOW_POWER_WAKEUP,
+    POWER_ON_RESET,
 
+};
+//#define IBOOT_APP_INFO_VER                 (1)
+struct IbootAppInfo
+{
+    #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
+    #define PREVIOURESET_APP     (0x87654321)//复位前运行APP
+    u32 PreviouReset;//复位前运行模式
+    struct{
+        u32 heard_set_run_iboot   :1;//硬件设置运行iboot
+        u32 restart_run_iboot     :1;//指示启动后运行Iboot
+        u32 restart_run_app       :1;//指示启动后运行APP
+        u32 runmode_iboot         :1;//当前运行模式是iboot
+        u32 runmode_app           :1;//当前运行模式为app
+        u32 Before_run_iboot      :1;//之前运行模式为iboot
+        u32 Before_run_app        :1;//之前运行模式为app
+        u32 run_app_form_file     :1;//从文件中加载app
+        u32 run_iboot_update_app  :1;//启动（Iboot）后，自动升级APP
+        u32 run_app_update_iboot  :1;//启app后升级iboot自身
+        u32 update_from           :2;//升级文件来源0文件 1——3待定义
+        u32 update_runmode        :1;//升级完成后运行0.iboot --  1.app
+        u32 error_app_check       :1;//校验出错
+        u32 error_app_no_file     :1;//没有这个文件或文件格式错误
+        u32 error_app_size        :1;//app文件大小错误
+        //上电复位硬件标志0=无此硬件 1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
+        u32 power_on_flag         :2;
+        u32 head_wdt_reset        :1;//看门狗复位标志
+        u32 soft_reset_flag       :1;//软件引起的内部复位
+        u32 reboot_flag           :1;//reboot 标志
+        u32 restart_app_flag      :1;//restart_app标志
+        u32 head_reset_flag       :1;//外部硬件复位标志
+        u32 low_power_wakeup      :1;//低功耗深度休眠中断唤醒标志
+        u32 call_fun_resent       :1;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
+        u32 power_on_resent_flag  :1;//上电复位标志，结合b18~19以及“上电标志”字判定
+    }runflag; //运行标志
+    u64  reserved;//保留
+    u16  iboot_buildyear;    /* years since 1900 */
+    u8   iboot_buildmon;     /* months since January [0-11] */
+    u8   iboot_buildmday;    /* day of the month [1-31] */
+    u8   iboot_buildhour;    /* hours since midnight [0-23] */
+    u8   iboot_buildmin;     /* minutes after the hour [0-59] */
+    u8   iboot_buildsec;     /* seconds after the minute [0-60] */
+    u16  app_buildyear;    /* years since 1900 */
+    u8   app_buildmon;     /* months since January [0-11] */
+    u8   app_buildmday;    /* day of the month [1-31] */
+    u8   app_buildhour;    /* hours since midnight [0-23] */
+    u8   app_buildmin;     /* minutes after the hour [0-59] */
+    u8   app_buildsec;     /* seconds after the minute [0-60] */
+    u8   ibootVer_small;         //iboot 版本 xx.xx.__
+    u8   ibootVer_medium;        //iboot 版本 xx.__.xx
+    u8   ibootVer_large;         //iboot 版本 __.xx.xx
+    u8   appVer_small;           //app 版本 xx.xx.__
+    u8   appVer_medium;          //app 版本 xx.__.xx
+    u8   appVer_large;           //app 版本 __.xx.xx
+    char boardname[20];    //组件名
+    char update_path[40];    //待升级文件路径
 };
 
 bool_t Run_Iboot(enum runibootmode mode);
@@ -82,12 +139,19 @@ bool_t Set_UpdateRunModet(u8 mode);
 bool_t Set_RunIbootUpdateIboot();
 bool_t Set_RunIbootUpdateApp();
 bool_t Set_RunAppFlag();
+bool_t Set_RebootFlag();
 bool_t Set_RunIbootFlag();
+bool_t Set_SoftResetFlag();
+bool_t Set_PreviouResetFlag();
+bool_t Clear_RunIbootUpdateApp();
+char Get_RunMode(void);
+char * Get_MutualAppPath(void);
+char Get_UpdateApp(void);
 bool_t clear_resetflag();
 bool_t Update_ToRun();
 bool_t Si_IbootAppInfoInit();
 bool_t XIP_IsRamIbootFlag();
-
+bool_t Fill_MutualUpdatePath(char* Path);
 
 u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);

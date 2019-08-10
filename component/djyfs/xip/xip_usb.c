@@ -53,7 +53,7 @@
 #include <wdt_soft.h>
 #include <dirent.h>
 #include <stdlib.h>
-#include <osboot.h>
+#include <blackbox.h>
 
 #define RW_SIZE                      512
 #define APPLICATION_FILE_NAME        "PRS-7573.bin"
@@ -71,7 +71,7 @@ static u32 dwDeamonInspect;
 //extern void USB_UDiskReset(void);
 extern void Amend_IBootFlag_RunIBoot(void);
 extern void Amend_IBootFlag_RunAPP(void);
-extern enBootMode GetBootMethodSoft(void);
+extern enStartMode GetBootMethodSoft(void);
 extern s32 MSC_DeviceReady(u8 bID);
 extern bool_t  Sh_RunAPP(char *param);
 extern bool_t HAL_ClrUpdateFlag(void);

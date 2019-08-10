@@ -76,6 +76,7 @@
 #include "cpu_peri.h"
 #include "dbug.h"
 #include <board-config.h>
+#include "Iboot_info.h"
 
 extern   uint32_t   msp_top[ ];
 extern void __set_PSP(uint32_t topOfProcStack);
@@ -354,7 +355,6 @@ __attribute__((weak))   void __DjyInitTick(void)
 
 extern void Load_Preload(void);
 #include <blackbox.h>
-#include <osboot.h>
 #include <Iboot_Info.h>
 
 #define CN_BOOT_SOFTREBOOT_FLAG         (CN_BOOT_LEGALKEY <<1)
@@ -413,6 +413,8 @@ typedef struct
 void reboot()
 {
     u32 InitCpu_Addr;
+    Set_RebootFlag();
+    Set_PreviouResetFlag();
     InitCpu_Addr = (u32)Init_Cpu;
     ((void (*)(void))(InitCpu_Addr))();
 
@@ -425,6 +427,8 @@ void reboot()
 // =============================================================================
 void reset()
 {
+    Set_SoftResetFlag();
+    Set_PreviouResetFlag();
     pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
     return;
 }
@@ -433,9 +437,8 @@ void reset()
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_system()
+void restart_app()
 {
-
     Djy_DelayUs(10);
     __set_PSP((uint32_t)msp_top);
     __set_MSP((uint32_t)msp_top);
@@ -443,9 +446,9 @@ void restart_system()
     return;
 }
 
-enBootMode GetBootMethodSoft(void)
+enStartMode GetBootMethodSoft(void)
 {
-    enBootMode result;
+    enStartMode result;
     return result;
 }
 enum
@@ -457,9 +460,9 @@ enum
     EN_RESET_USERRST,
     EN_RESET_RES,
 }enResetType;
-enBootMode GetBootMethodHard(void)
+enStartMode GetBootMethodHard(void)
 {
-    enBootMode result;
+    enStartMode result;
     tagRstc rstc;
     rstc.cr.value = *(vu32 *)(0x400e1800);
     rstc.sr.value = *(vu32 *)(0x400e1804);
@@ -468,27 +471,27 @@ enBootMode GetBootMethodHard(void)
     {
         case EN_RESET_GENERALRST:
             printk("General RESET\n\r");
-            result =EN_BOOT_POWERDOWN;
+            result =EN_Start_POWERDOWN;
             break;
         case EN_RESET_BACKUPRST:
             printk("BackUp RESET\n\r");
-            result =EN_BOOT_UNKNOWN;
+            result =EN_Start_UNKNOWN;
             break;
         case EN_RESET_WDTRST:
             printk("WDT RESET\n\r");
-            result =EN_BOOT_UNKNOWN;
+            result =EN_Start_UNKNOWN;
             break;
         case EN_RESET_SOFTRST:
             printk("SOFT RESET\n\r");
-            result =EN_BOOT_SRST;
+            result =EN_Start_SRST;
             break;
         case EN_RESET_USERRST:
             printk("USER RESET\n\r");
-            result =EN_BOOT_HRST;
+            result =EN_Start_HRST;
             break;
         default:
             printk("UNKOWN MODE\n\r");
-            result =EN_BOOT_UNKNOWN;
+            result =EN_Start_UNKNOWN;
             break;
     }
     return result;

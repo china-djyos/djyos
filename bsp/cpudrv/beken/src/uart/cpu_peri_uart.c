@@ -131,7 +131,7 @@ static uart_config_t djybsp_uart[CN_UART_NUM] = {
     {
         .baud_rate = UART_BAUDRATE_115200,
         .data_width = DATA_WIDTH_8BIT,
-        .parity = BK_PARITY_NO,
+        .parity = BK_PARITY_EVEN,
         .stop_bits = BK_STOP_BITS_1,
         .flow_control = FLOW_CTRL_DISABLED,
     },
@@ -157,6 +157,7 @@ static const uint8_t volatile *sUartReg[CN_UART_NUM] = {
                                             CN_UART1,
                                             CN_UART2,
 };
+static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2);
 // =============================================================================
 // 功能: 硬件参数配置和寄存器的初始化，包括波特率、停止位、校验位、数据位，默认情况下:
 //       波特率:115200  ； 停止位:1 ; 校验:无 ; 数据位:8bit
@@ -168,10 +169,11 @@ static void __UART_HardInit(u8 SerialNo)
     switch(SerialNo)
     {
         case CN_UART1:
-            uart1_init();
+//            uart1_init();
+            __UART_Ctrl(CN_UART1,CN_UART_COM_SET,115200,CN_UART_DATABITS_8);
             break;
         case CN_UART2:
-            uart2_init();
+//            uart2_init();
             break;
     }
 }
@@ -203,8 +205,8 @@ static void __UART_ComConfig(u32 port,ptu32_t data)
     struct COMParam *COM;
     if((data == 0) || (port > CN_UART2))
         return;
-    COM = (struct COMParam *)data;
-    djybsp_uart[port].baud_rate = COM->BaudRate;
+//    COM = (struct COMParam *)data;
+    djybsp_uart[port].baud_rate =data;
 
     switch(COM->DataBits)               // data bits
     {
@@ -419,7 +421,7 @@ ptu32_t ModuleInstall_UART(u32 port)
         pUartCB[port] = UART_InstallGeneral(&UART_Param);
         if( pUartCB[port] != NULL)
         {
-//            __UART_HardInit(port);              //硬件初始化
+            __UART_HardInit(port);              //硬件初始化
             __UART_IntInit(port);
             Ret = true;
         }

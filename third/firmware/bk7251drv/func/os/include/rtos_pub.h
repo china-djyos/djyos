@@ -95,8 +95,8 @@ typedef struct
     timer_2handler_t function;
     void *          left_arg;
     void *          right_arg;
-	uint32_t        beken_magic;
-	uint32_t        time_ms;
+    uint32_t        beken_magic;
+    uint32_t        time_ms;
 }beken2_timer_t;
 
 typedef ptu32_t (*beken_thread_function_t)( beken_thread_arg_t arg );
@@ -593,10 +593,10 @@ uint32_t rtos_get_time(void);
   */
 OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_t function, void* arg );
 OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer, 
-									uint32_t time_ms, 
-									timer_2handler_t function,
-									void* larg, 
-									void* rarg );
+                                    uint32_t time_ms,
+                                    timer_2handler_t function,
+                                    void* larg,
+                                    void* rarg );
 OSStatus rtos_deinit_oneshot_timer( beken2_timer_t* timer );
 OSStatus rtos_stop_oneshot_timer( beken2_timer_t* timer );
 BOOL rtos_is_oneshot_timer_running( beken2_timer_t* timer );

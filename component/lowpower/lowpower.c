@@ -220,7 +220,7 @@ void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
 
 u32 EmptyReCall(u32 SleepLevel)
 {
-    return 1;
+    return 0;
 }
 //----初始化-------------------------------------------------------------------
 //功能: 初始化低功耗组件

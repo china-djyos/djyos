@@ -1,9 +1,15 @@
 #include "include.h"
 #include "arm_arch.h"
 #include <string.h>
+#include <stdlib.h>
+//#include <rtthread.h>
 
-#include "sys_rtos.h"
-#include "uart_pub.h"
+static struct HeapCB *pMemHeap = NULL;
+
+void os_meminit(void)
+{
+    pMemHeap = M_FindHeap("dtcm");
+}
 
 INT32 os_memcmp(const void *s1, const void *s2, UINT32 n)
 {
@@ -25,70 +31,47 @@ void *os_memset(void *b, int c, UINT32 len)
     return (void *)memset(b, c, (unsigned int)len);
 }
 
+void *os_malloc(size_t size)
+{
+    void *ptr = NULL;
+    if(pMemHeap==NULL)
+        return NULL;
+    ptr = M_MallocHeap(size,pMemHeap,0);
+    return ptr;
+}
+
+void * os_zalloc(size_t size)
+{
+	void *n = (void *)os_malloc(size);
+	if (n)
+		memset(n, 0, size);
+	return n;
+}
+
 void *os_realloc(void *ptr, size_t size)
 {
-	#ifdef FIX_REALLOC_ISSUE
-    return pvPortRealloc(ptr, size);
-	#else
 	void *tmp;
 
-    if(platform_is_in_interrupt_context())
-    {
-        os_printf("realloc_risk\r\n");
-    }
-
-	tmp = (void *)pvPortMalloc(size);
+	tmp = (void *)os_malloc(size);
 	if(tmp)
 	{
-		os_memcpy(tmp, ptr, size);
-		vPortFree(ptr);
+		memcpy(tmp, ptr, size);
+		os_free(ptr);
 	}
 
 	return tmp;
-	#endif
+}
+
+void os_free(void *ptr)
+{
+    if(ptr)
+    {
+        M_FreeHeap(ptr,pMemHeap);
+    }
 }
 
 int os_memcmp_const(const void *a, const void *b, size_t len)
 {
     return memcmp(a, b, len);
 }
-
-#if !OSMALLOC_STATISTICAL
-void *os_malloc(size_t size)
-{
-    if(platform_is_in_interrupt_context())
-    {
-        os_printf("malloc_risk\r\n");
-    }
-    
-    return (void *)pvPortMalloc(size);
-}
-
-void * os_zalloc(size_t size)
-{
-	void *n = (void *)pvPortMalloc(size);
-    
-    if(platform_is_in_interrupt_context())
-    {
-        os_printf("zalloc_risk\r\n");
-    }
-    
-	if (n)
-		os_memset(n, 0, size);
-	return n;
-}
-
-void os_free(void *ptr)
-{
-    if(platform_is_in_interrupt_context())
-    {
-        os_printf("free_risk\r\n");
-    }
-    
-    if(ptr)
-    {        
-        vPortFree(ptr);
-    }
-}
-#endif
 // EOF

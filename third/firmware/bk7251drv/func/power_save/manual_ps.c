@@ -268,11 +268,11 @@ void deep_sleep_wakeup_with_gpio(UINT32 gpio_index_map,UINT32 gpio_edge_map)
     PS_DEEP_CTRL_PARAM deep_param;
     UINT64 i;
 
-    if(power_save_ps_mode_get() != PS_NO_PS_MODE)
-    {
-        os_printf("can't gpio ps,ps in mode %d!\r\n", power_save_ps_mode_get());
-        return ;
-    }
+//    if(power_save_ps_mode_get() != PS_NO_PS_MODE)
+//    {
+//        os_printf("can't gpio ps,ps in mode %d!\r\n", power_save_ps_mode_get());
+//        return ;
+//    }
 
     os_printf("enter deep with gpio ps %x %x\r\n",gpio_index_map,gpio_edge_map);
 

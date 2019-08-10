@@ -1334,6 +1334,7 @@ int bk_wlan_dtim_rf_ps_mode_disable(void)
     {
         if ( power_save_ps_mode_get() == PS_NO_PS_MODE)
         {
+            os_printf("PS_NO_PS_MODE\r\n");
             break;
         }
         else
