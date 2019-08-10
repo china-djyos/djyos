@@ -285,7 +285,7 @@ static s32 __objsys_readdentry(struct objhandle *directory, struct dirent *dentr
 // ============================================================================
 static s32 __objsys_close(struct objhandle *hdl)
 {
-    return handle_Delete(hdl);
+//  return handle_Delete(hdl);
 }
 
 //static s32 __objsys_stat(struct Object *ob, struct stat *data, char *uncached)
@@ -426,6 +426,41 @@ s32 obj_SetOps(struct Object *ob, fnObjOps ops)
 
     ob->ops = ops;
     return (0);
+}
+
+// ============================================================================
+// 功能：设置对象为临时对象，临时对象在close时，只要引用数是0，即被删除。注意，如果子孙
+//      对象中存在非临时对象，则不能设置为临时对象。
+// 参数：ob -- 对象；
+// 返回：成功（0）；失败（-1）；
+// 备注：次函数没有逆操作，临时对象属性不能清除
+// ============================================================================
+s32 obj_SetToTemp(struct Object *ob)
+{
+    struct Object *current;
+    bool_t temp = true;
+    if(ob != NULL)
+    {
+        current = ob;
+        current = obj_foreach_scion(ob,current);
+        while(current)
+        {
+            if(!current->BitFlag.temporary)
+            {
+                temp = false;
+                break;
+            }
+            else
+                current = obj_foreach_scion(ob,current);
+        }
+    }
+    if(temp == true)
+    {
+        ob->BitFlag.temporary = 1;
+        return 0;
+    }
+    else
+        return -1;
 }
 
 // ============================================================================
@@ -652,8 +687,8 @@ s32 obj_ModuleInit(void)
 //  s_ptRootObject->rights = S_IRWXUGO;       //根的默认权限是拥有所有权限
     s_ptRootObject->parent = NULL;
     s_ptRootObject->ops = (fnObjOps)__objsys_default_ops;
-    s_ptRootObject->inuse = 2;  //从1开始计数，正常的成对“open-close”调用不会被删掉。
-                                //被设为当前目录，故初始化为2
+    s_ptRootObject->BitFlag.temporary = 0;
+    s_ptRootObject->BitFlag.inuse = 1;  //被设为当前目录，故初始化为1
     s_ptCurrentObject = s_ptRootObject;
     return (0);
 }
@@ -703,7 +738,7 @@ s32 obj_isonduty(struct Object *ob)
     if(!ob)
         return (0);
 
-    if((ob->inuse) || (ob->child))
+    if((ob->BitFlag.inuse) || (ob->child))
         return (1);
     else
         return (0);
@@ -845,12 +880,12 @@ s32 obj_isonduty(struct Object *ob)
 // 返回：无
 // 备注：有引用后则不可删除
 // ============================================================================
-void __InuseUpFullPath(struct Object *Obj)
+void obj_DutyUp(struct Object *Obj)
 {
     while(Obj != NULL)
     {
-        if(Obj->inuse != CN_LIMIT_UINT32)
-            Obj->inuse++;
+        if(Obj->BitFlag.inuse != 0xffffff)
+            Obj->BitFlag.inuse++;
         Obj = Obj->parent;
     }
     return;
@@ -911,27 +946,14 @@ void __InuseUpFullPath(struct Object *Obj)
 // 返回：无
 // 备注：有引用后则不可删除
 // ============================================================================
-void __InuseDownFullPath(struct Object *Obj)
+void obj_DutyDown(struct Object *Obj)
 {
     while(Obj != NULL)
     {
-        if(Obj->inuse != 0)
-            Obj->inuse--;
+        if(Obj->BitFlag.inuse != 0)
+            Obj->BitFlag.inuse--;
         Obj = Obj->parent;
     }
-    return ;
-}
-
-// ============================================================================
-// 功能：关闭一个对象，对象的引用次数均减 1
-// 参数：ob -- 对象；
-// 返回：减少后的对象引用次数；
-// 备注：有引用后则不可删除
-// ============================================================================
-void obj_Close(struct Object *Obj)
-{
-    if(Obj->inuse != 0)
-        Obj->inuse--;
     return ;
 }
 
@@ -1158,7 +1180,7 @@ struct Object *obj_matchpath(const char *match, char **left)
 // 返回：新创建的最低一级的对象；
 // 备注：这里新建时，有对重名做判断；
 // ============================================================================
-struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
+struct Object *obj_BuildTempPath(struct Object *begin, fnObjOps ops,
                             ptu32_t Private, char *path)
 {
     char *segst, *name;
@@ -1209,6 +1231,7 @@ struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
                 obj_unlock();
                 return (NULL);
             }
+            obj_SetToTemp(current);
         }
     }
     free(name);
@@ -1222,7 +1245,7 @@ struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
 // 返回：释放了的对象数量；
 // 备注：
 // ============================================================================
-s32 obj_releasepath(struct Object *start)
+s32 obj_ReleaseTempPath(struct Object *start)
 {
     s32 dels = 0;
     struct Object *parent, *current = start;
@@ -1231,11 +1254,12 @@ s32 obj_releasepath(struct Object *start)
 
     while(1)
     {
-        if(!current->inuse) // 无人使用
+        if((current->BitFlag.temporary == 1)
+                && (current->BitFlag.inuse == 0)) // 无人使用,且是临时对象
         {
             parent = obj_parent(current);
             obj_Delete(current);
-            __freeobj(current);
+//          __freeobj(current);
             current = parent;
             dels++;
         }
@@ -1268,9 +1292,9 @@ struct Object * obj_current(void)
 // ============================================================================
 void obj_setcurrent(struct Object *ob)
 {
-    __InuseDownFullPath(s_ptCurrentObject);
+    obj_DutyDown(s_ptCurrentObject);
     s_ptCurrentObject = ob;
-    __InuseUpFullPath(ob);
+    obj_DutyUp(ob);
 }
 
 // ============================================================================
@@ -1344,7 +1368,8 @@ struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
     prev->parent = loc->parent;
     prev->child = NULL;
     prev->ObjPrivate = represent;
-    prev->inuse = 1;
+    prev->BitFlag.temporary = 0;
+    prev->BitFlag.inuse = 0;
     if(ops)
     {
         if(-1==(s32)ops)
@@ -1424,7 +1449,8 @@ struct Object *obj_newnext(struct Object *loc, fnObjOps ops,
     next->parent = loc->parent;
     next->child = NULL;
     next->ObjPrivate = represent;
-    next->inuse = 1;
+    next->BitFlag.temporary = 0;
+    next->BitFlag.inuse = 0;
     if(ops)
     {
         if(-1==(s32)ops)
@@ -1502,7 +1528,8 @@ struct Object *obj_newchild(struct Object *parent, fnObjOps ops,
     child->parent = parent;
     child->child = NULL;
     child->ObjPrivate = ObjPrivate;
-    child->inuse = 1;
+    child->BitFlag.temporary = 0;
+    child->BitFlag.inuse = 0;
 
     if(ops)
     {
@@ -1583,7 +1610,8 @@ struct Object *obj_newhead(struct Object *loc, fnObjOps ops,
     head->parent = loc->parent;
     head->child = NULL;
     head->ObjPrivate = ObjPrivate;
-    head->inuse = 1;
+    head->BitFlag.temporary = 0;
+    head->BitFlag.inuse = 0;
     if(ops)
     {
         if(-1==(s32)ops)
@@ -2343,8 +2371,6 @@ s32 SetPWD(const char *Path)
     ob = hdl->HostObj;      // 目录的节点
     if(NULL == ob)
         res = -1;
-    else if(ob->inuse == CN_LIMIT_UINT32)
-        res = -2;
 
     obj_setcurrent(ob);
     closedir(dir);// 关闭目录

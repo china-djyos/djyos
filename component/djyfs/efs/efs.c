@@ -724,7 +724,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
     //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
     mode = S_IALLUGO | S_IFDIR | property;     //建立的路径，属性是目录。
     //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-    ob = obj_buildpath(ob, e_operations, mode,uncached);
+    ob = obj_BuildTempPath(ob, e_operations, mode,uncached);
     obj_LinkHandle(hdl, ob);
 
     Lock_MutexPost(efs->block_buf_mutex);
@@ -1038,7 +1038,7 @@ static s8 Efs_Close (struct objhandle *hdl)
         free(fp);//todo ---- 不应该在此处释放，在efs/port.c里面释放，因为在那里malloc
         tgOpenedSum --;
     }
-    handle_Delete(hdl);    //是目录的话啥也不干直接删除句柄
+//  handle_Delete(hdl);    //是目录的话啥也不干直接删除句柄
 exit:
     Lock_MutexPost(efs->block_buf_mutex);
     return (ret);
@@ -1865,7 +1865,7 @@ s32 ModuleInstall_EFS(const char *target, u32 opt, u32 config)
         printf("\r\n: dbug : module : mount \"EFS\" failed, cannot create \"%s\"<group point>.", target);
         return (-1);
     }
-//    __InuseUpFullPath(mountobj);
+//    obj_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;
     res = mountfs(NULL, target, "EFS", opt, (void *)config);
     if(res == -1)

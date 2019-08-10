@@ -265,7 +265,8 @@ static s32 __stdio_close(struct objhandle *hdl)
         warning_printf("stdio","\"err\"(2) is closed.");
     }
 
-    return (handle_Delete(hdl));
+//  return (handle_Delete(hdl));
+    return;
 }
 
 // ============================================================================

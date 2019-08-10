@@ -286,7 +286,7 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
     {
 #if 0
         // 未找到安装点
-        targetobj = obj_buildpath(targetobj, notfind); // 建立安装点
+        targetobj = obj_BuildTempPath(targetobj, notfind); // 建立安装点
 #else
         return (-1); // 安装点必须准备好。
 #endif
@@ -309,6 +309,7 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
             super->pTarget = tmpobj;
             super->MountBak = targetobj;
         }
+        obj_DutyUp(tmpobj);
         super->InstallWay = opt;
         super->Config = data;
     }

@@ -183,7 +183,7 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
             //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
             mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
             //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-            ob = obj_buildpath(ob, xip_iboot_ops, mode,uncached);
+            ob = obj_BuildTempPath(ob, xip_iboot_ops, mode,uncached);
             obj_LinkHandle(hdl, ob);
         }
 //    }
@@ -200,7 +200,7 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
 static s32 xip_iboot_close(struct objhandle *hdl)
 {
     FileNowPos = 0;
-    handle_Delete(hdl);
+//  handle_Delete(hdl);
     return (0);
 }
 
@@ -411,7 +411,7 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
         printf("\r\n: dbug : module : mount \"xip\" failed, cannot create \"%s\"(target).", xip_target);
         return (-1);
     }
-//    __InuseUpFullPath(mountobj);
+//    obj_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;      //直接挂载不用备份
     res = mountfs(NULL, xip_target, "XIP-IBOOT", opt, data);
     if(res == -1)
