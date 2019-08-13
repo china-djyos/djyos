@@ -192,9 +192,9 @@ u32 efs_gd25_write(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
 // ============================================================================
 u32 efs_gd25_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
 {
-    s32 res ;
+    s32 res , rdLen = (s32)dwSize;
     u32 page = (dwBlock * qflashdescription->PagesPerSector) + (dwOffset / qflashdescription->BytesPerPage); // 页号
-    u32 offset = dwOffset & 0xFF, rdLen = dwSize; // 页内的偏置
+    u32 offset = dwOffset & 0xFF; // 页内的偏置
     u8 data[qflashdescription->BytesPerPage];
     struct uopt opt = {0};
     if(!pBuf)
@@ -203,7 +203,7 @@ u32 efs_gd25_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
     if(__gd25q16c_read(page, data, opt) != 0)       //读出当前页的所有数据
         return (0);     //读失败
 
-    if(rdLen < (qflashdescription->BytesPerPage - offset))
+    if(rdLen < (s32)(qflashdescription->BytesPerPage - offset))
         memcpy(pBuf, data + offset, rdLen);        //需要读的数据全在当前页中
     else
         memcpy(pBuf, data + offset, qflashdescription->BytesPerPage - offset);  //需要读的数据只有一部分在当前页中，先读这一部分
@@ -223,7 +223,7 @@ u32 efs_gd25_read(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwSize, u8 bFlags)
         if(res < 0)
             break; // 错误
 
-        if(rdLen >= qflashdescription->BytesPerPage)
+        if(rdLen >= (s32)(qflashdescription->BytesPerPage))
             memcpy(pBuf, data, qflashdescription->BytesPerPage);       //需要读的数据大于1页大小，则先读取1页的数据量
         else
         {

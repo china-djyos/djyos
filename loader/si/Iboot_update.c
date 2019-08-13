@@ -122,19 +122,19 @@ bool_t  runapp(char *param)
 // 返回：
 // 备注：
 // ============================================================================
- bool_t  updateruniboot(char *param)
-{
-    Set_RunIbootUpdateIboot();
-#if(CN_CPU_OPTIONAL_CACHE==1)
-     Cache_CleanData();
-     Cache_InvalidInst();
-#endif
-     reset();
-    return false;
-}
+// bool_t  updateruniboot(char *param)
+//{
+//    Set_RunIbootUpdateIboot();
+//#if(CN_CPU_OPTIONAL_CACHE==1)
+//     Cache_CleanData();
+//     Cache_InvalidInst();
+//#endif
+//     reset();
+//    return false;
+//}
 
  // ============================================================================
- // 功能：判断升级成功后是运行app还是iboot
+ // 功能：根据字符串设置升级成功后是运行app还是iboot
  // 参数：
  // 返回：true -- 设置成功；false -- 没有设置
  // 备注：
@@ -223,7 +223,7 @@ bool_t Iboot_UpdateApp(void)
     if((Get_UpdateSource() == 0) && (Get_UpdateApp() == 0))
     {
         info_printf("IAP","app update start.\r\n");
-        strcpy(apppath,Get_MutualAppPath());
+        strcpy(apppath, Get_MutualUpdatePath());
         srcapp = fopen(apppath, "r+");
         if(srcapp != NULL)
         {
@@ -366,7 +366,7 @@ bool_t App_UpdateIboot(char *param)
     if(Get_Updateiboot() == 0)
     {
         info_printf("IAP","iboot update start.\r\n");
-        strcpy(iapibootname,Get_MutualAppPath());
+        strcpy(iapibootname, Get_MutualUpdatePath());
         Update_and_run_mode = NULL;
 
         srciboot = fopen(iapibootname, "r+");

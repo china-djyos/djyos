@@ -136,29 +136,36 @@ bool_t Run_Iboot(enum runibootmode mode);
 bool_t Run_App(enum runappmode mode);
 
 bool_t Set_UpdateRunModet(u8 mode);
-bool_t Set_RunIbootUpdateIboot();
+//bool_t Set_RunIbootUpdateIboot();
 bool_t Set_RunIbootUpdateApp();
 bool_t Set_RunAppFlag();
 bool_t Set_RebootFlag();
 bool_t Set_RunIbootFlag();
 bool_t Set_SoftResetFlag();
+bool_t Set_RestartAppFlag();
 bool_t Set_PreviouResetFlag();
 bool_t Clear_RunIbootUpdateApp();
 char Get_RunMode(void);
-char * Get_MutualAppPath(void);
+char * Get_MutualUpdatePath(void);
 char Get_UpdateApp(void);
+char Get_Updateiboot(void);
+u32 Get_AppSize(void * apphead);
 bool_t clear_resetflag();
+bool_t Set_UpdateSource(char *param);
+u32 Get_UpdateSource(void);
 bool_t Update_ToRun();
 bool_t Si_IbootAppInfoInit();
 bool_t XIP_IsRamIbootFlag();
 bool_t Fill_MutualUpdatePath(char* Path);
-
+void Get_IbootAppInfo(struct IbootAppInfo *get_info);
 u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);
 void * XIP_GetAPPStartAddr(void * apphead);
 char*  Get_AppName(void * apphead);
-bool_t XIP_APPIsDebug(void );
+//bool_t XIP_APPIsDebug(void );
 bool_t XIP_AppFileChack(void * apphead);
 bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
+bool_t Set_AppVerFlag(u8 small, u8 medium, u8 large);
+bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec);
 
 #endif /* __IICBUS_H__ */
