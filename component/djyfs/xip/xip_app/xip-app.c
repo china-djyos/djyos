@@ -375,7 +375,7 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
     struct __ifile *file = NULL;
     struct __icontext *cx = NULL;
     struct __icore *core = (struct __icore*)corefs(ob);
-    mode_t mode;
+//    mode_t mode;
     xip_app_lock(core);
     if((!uncached)&&(obj_isMount(ob))) // 根目录
     {
@@ -443,6 +443,12 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
                         return (NULL);
                     }
                 }
+                else
+                {
+                    printf("\r\n: info : xipfs  : \"%s\"  file nonentity.", uncached);
+                    xip_app_unlock(core);
+                    return (NULL);
+                }
             }
 
             file = xip_app_newfile(core);
@@ -456,12 +462,12 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
 #if 0
             if(of_virtualize(ob, &file->basic, uncached)) // xip文件，链入文件系统
                 return (NULL);
-#else
-            if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, uncached))
-            {
-                xip_app_unlock(core);
-                return (NULL);
-            }
+//#else
+//            if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, uncached))
+//            {
+//                xip_app_unlock(core);
+//                return (NULL);
+//            }
 #endif
         }
         else // 文件已存在
@@ -547,9 +553,9 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
     if(hdl)
     {
         //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
-        mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
+//        mode = S_IALLUGO | S_IFREG;     //建立的路径，属性是目录。
         //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-        ob = obj_BuildTempPath(ob, xip_app_ops, mode,uncached);
+        ob = obj_BuildTempPath(ob, xip_app_ops, (ptu32_t)file,uncached);
         obj_LinkHandle(hdl, ob);
     }
     xip_app_unlock(core);

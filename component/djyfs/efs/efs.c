@@ -601,7 +601,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
     u8 *hsize,*buf;
     bool_t found = false;
     struct objhandle *hdl;
-    mode_t mode, property = 0;
+//    mode_t mode, property = 0;
     if(ob == NULL)
         return NULL;
 
@@ -635,7 +635,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 
     if(test_directory(flags))
     {
-        property = S_IFDIR;     // 目录逻辑不做其它操作，直接把obj和hal关联就行了
+//        property = S_IFDIR;     // 目录逻辑不做其它操作，直接把obj和hal关联就行了
     }
     else
     {
@@ -721,13 +721,13 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
             fp->ptr = 0;
 
         fp->private = (ptu32_t)fileinfo;
-        property = S_IFREG;
+//        property = S_IFREG;
 //        tgOpenedSum ++;
-        if(!obj_newchild(ob, e_operations, (ptu32_t)fp, uncached))
-        {
-            printf("\r\n: erro : efs    : new file \"%s\"(virtual).", uncached);
-            goto exit;
-        }
+//        if(!obj_newchild(ob, e_operations, (ptu32_t)fp, uncached))
+//        {
+//            printf("\r\n: erro : efs    : new file \"%s\"(virtual).", uncached);
+//            goto exit;
+//        }
     }
 
     hdl = handle_new();
@@ -739,9 +739,9 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 
     handle_init(hdl, NULL, flags, (ptu32_t)0);
     //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
-    mode = S_IALLUGO | S_IFDIR | property;     //建立的路径，属性是目录。
+//    mode = S_IALLUGO | S_IFDIR | property;     //建立的路径，属性是目录。
     //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-    ob = obj_BuildTempPath(ob, e_operations, mode,uncached);
+    ob = obj_BuildTempPath(ob, e_operations, (ptu32_t)fp,uncached);
     obj_LinkHandle(hdl, ob);
 
     Lock_MutexPost(efs->block_buf_mutex);
