@@ -72,20 +72,30 @@ http_trans_connect(http_trans_conn *a_conn)
 	     sizeof(unsigned long));
     }
   /* set up the socket */
-  if ((a_conn->sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((a_conn->sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-      a_conn->error_type = http_trans_err_type_errno;
-      a_conn->error = errno;
-      goto ec;
+        a_conn->error_type = http_trans_err_type_errno;
+        a_conn->error = errno;
+        goto ec;
     }
   /* set up the socket */
-  if (connect(a_conn->sock,
-	      (struct sockaddr *)&a_conn->saddr,
-	      sizeof(struct sockaddr)) < 0)
+    if (connect(a_conn->sock,
+        (struct sockaddr *)&a_conn->saddr,
+        sizeof(struct sockaddr)) < 0)
     {
-      a_conn->error_type = http_trans_err_type_errno;
-      a_conn->error = errno;
-      goto ec;
+        a_conn->error_type = http_trans_err_type_errno;
+        a_conn->error = errno;
+        goto ec;
+    }
+
+    int sockopt = 5*1000*mS;  //time out time
+    if(0 != setsockopt(a_conn->sock, SOL_SOCKET, SO_SNDTIMEO, &sockopt, sizeof(sockopt)))
+    {
+        printf("warning: SO_SNDTIMEO[%d(ms)] failed!\r\n", sockopt);
+    }
+    if(0 != setsockopt(a_conn->sock, SOL_SOCKET, SO_RCVTIMEO, &sockopt, sizeof(sockopt)))
+    {
+        printf("warning: SO_RCVTIMEO[%d(ms)] failed!\r\n", sockopt);
     }
   
   return 0;
@@ -164,47 +174,60 @@ http_trans_append_data_to_buf(http_trans_conn *a_conn,
 int
 http_trans_read_into_buf(http_trans_conn *a_conn)
 {
-  int l_read = 0;
-  int l_bytes_to_read = 0;
+    int l_read = 0;
+    int l_bytes_to_read = 0;
 
-  /* set the length if this is the first time */
-  if (a_conn->io_buf_io_left == 0)
+    /* set the length if this is the first time */
+    if (a_conn->io_buf_io_left == 0)
     {
-      a_conn->io_buf_io_left = a_conn->io_buf_chunksize;
-      a_conn->io_buf_io_done = 0;
+        a_conn->io_buf_io_left = a_conn->io_buf_chunksize;
+        a_conn->io_buf_io_done = 0;
     }
-  /* make sure there's enough space */
-  if (http_trans_buf_free(a_conn) < a_conn->io_buf_io_left)
+    /* make sure there's enough space */
+    if (http_trans_buf_free(a_conn) < a_conn->io_buf_io_left)
     {
-      a_conn->io_buf = realloc(a_conn->io_buf,
-			       a_conn->io_buf_len + a_conn->io_buf_io_left);
-      a_conn->io_buf_len += a_conn->io_buf_io_left;
+        a_conn->io_buf = realloc(a_conn->io_buf,
+                a_conn->io_buf_len + a_conn->io_buf_io_left);
+        a_conn->io_buf_len += a_conn->io_buf_io_left;
     }
-  /* check to see how much we should try to read */
-  if (a_conn->io_buf_io_left > a_conn->io_buf_chunksize)
-    l_bytes_to_read = a_conn->io_buf_chunksize;
-  else
-    l_bytes_to_read = a_conn->io_buf_io_left;
-  /* read in some data */
-  if ((a_conn->last_read = l_read = recv(a_conn->sock,
-					 &a_conn->io_buf[a_conn->io_buf_alloc],
-					 l_bytes_to_read,0)) < 0)
+    /* check to see how much we should try to read */
+    if (a_conn->io_buf_io_left > a_conn->io_buf_chunksize)
     {
-      if (errno == EINTR)
-	l_read = 0;
-      else
-	return HTTP_TRANS_ERR;
+        l_bytes_to_read = a_conn->io_buf_chunksize;
     }
-  else if (l_read == 0)
-    return HTTP_TRANS_DONE;
-  /* mark the buffer */
-  a_conn->io_buf_io_left -= l_read;
-  a_conn->io_buf_io_done += l_read;
-  a_conn->io_buf_alloc += l_read;
-  /* generate the result */
-  if (a_conn->io_buf_io_left == 0)
-    return HTTP_TRANS_DONE;
-  return HTTP_TRANS_NOT_DONE;
+    else
+    {
+        l_bytes_to_read = a_conn->io_buf_io_left;
+    }
+    /* read in some data */
+    if ((a_conn->last_read = l_read = recv(a_conn->sock,
+                                            &a_conn->io_buf[a_conn->io_buf_alloc],
+                                            l_bytes_to_read,0)) < 0)
+    {
+        if (errno == EINTR)
+        {
+            l_read = 0;
+        }
+        else
+        {
+            return HTTP_TRANS_ERR;
+        }
+    }
+    else if (l_read == 0)
+    {
+        return HTTP_TRANS_DONE;
+    }
+    /* mark the buffer */
+    a_conn->io_buf_io_left -= l_read;
+    a_conn->io_buf_io_done += l_read;
+    a_conn->io_buf_alloc += l_read;
+    /* generate the result */
+    if (a_conn->io_buf_io_left == 0)
+    {
+        return HTTP_TRANS_DONE;
+    }
+
+    return HTTP_TRANS_NOT_DONE;
 }
 
 int
