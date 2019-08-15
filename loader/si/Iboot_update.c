@@ -79,7 +79,9 @@
 #if (CFG_RUNMODE_BAREAPP == 0)
 
 #define IAPBUF_SIZE   512
-
+extern void reboot();
+extern void reset();
+extern void restart_app(u32 key);
 // ============================================================================
 // 功能：设置运行iboot
 // 参数：
@@ -361,7 +363,7 @@ bool_t App_UpdateIboot(char *param)
     struct stat test_stat;
     s64 srcsize;
     char iapibootname[MutualPathLen];
-    char *word_param, *next_param;
+//  char *word_param, *next_param;
 
     if(Get_Updateiboot() == 0)
     {
@@ -429,6 +431,33 @@ bool_t App_UpdateIboot(char *param)
     }
     return TRUE;
 }
+bool_t ModuleInstall_XIP(void)
+{
+    uint16_t evtt_Update;
+    char run_mode = Get_RunMode();
+
+    if(run_mode == 0)
+    {
+        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                   Iboot_UpdateApp, NULL, CFG_MAINSTACK_LIMIT, "update app");
+        info_printf("XIP","add app update function.\r\n");
+    }
+    else if(run_mode == 1)
+    {
+        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                    App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
+        info_printf("XIP","add iboot update function.\r\n");
+    }
+    else
+        return false;
+
+    if(evtt_Update != CN_EVTT_ID_INVALID)
+    {
+        if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
+            return true;
+    }
+    return false;
+}
 
 
 ADD_TO_ROUTINE_SHELL(runiboot,runiboot,NULL);
@@ -442,9 +471,6 @@ ADD_TO_ROUTINE_SHELL(updateiboot,updateiboot,"Update Iboot.");
 
 
 //add some boot commands
-extern void reboot();
-extern void reset();
-extern void restart_app(u32 key);
 //static bool_t rebootshell(char *param)
 bool_t rebootshell(char *param)
 {
