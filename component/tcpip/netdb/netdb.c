@@ -330,6 +330,25 @@ void init_hostent_ext(struct hostent_ext *phostent_ext)
     }
 }
 
+void ended_hostent_ext(struct hostent_ext *phostent_ext)
+{
+    int i=0;
+    if(phostent_ext) {
+        for (i=0; i<CN_RESULT_NUM+1; i++)
+        {
+            if (*(int*)phostent_ext->arr_addr_list[i] == 0) {
+                phostent_ext->arr_addr_list[i] = 0;
+                phostent_ext->arr_aliases[i] = 0;
+                break;
+            }
+        }
+        if(i = CN_RESULT_NUM+1) {
+            phostent_ext->arr_addr_list[CN_RESULT_NUM] = 0;
+            phostent_ext->arr_aliases[CN_RESULT_NUM] = 0;
+        }
+    }
+}
+
 int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext);
 struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew)
 {
@@ -368,6 +387,7 @@ struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew)
     {
         DnsNameResolveExt(name, pnew);
     }
+    ended_hostent_ext(pnew);
     return (struct hostent *)pnew;
 }
 
