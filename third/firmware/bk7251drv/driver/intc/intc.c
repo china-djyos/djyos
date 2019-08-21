@@ -70,7 +70,7 @@ void intc_hdl_entry(UINT32 int_status)
         }
     }
 }
-
+#if 0
 void intc_service_register(UINT8 int_num, UINT8 int_pri, FUNCPTR isr)
 {
     LIST_HEADER_T *pos, *n;
@@ -132,6 +132,57 @@ error:
 
     return;
 }
+#include "cpu_peri_reg.h"
+#include "int.h"
+#include "bk_uart.h"
+#include "pwm.h"
+#include "../icu/icu.h"
+void Disable_AllPeri()
+{
+    REG32_CLEAR_BIT(REG_UART1_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
+    REG32_CLEAR_BIT(REG_UART2_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
+//    REG32_CLEAR_BIT(PWM_CTL,(PWM0_EN_BIT|PWM1_EN_BIT|PWM2_EN_BIT|PWM3_EN_BIT|PWM4_EN_BIT|PWM5_EN_BIT));
+    REG32_CLEAR_REG(PWM_CTL);
+    REG32_CLEAR_REG(0x0802800+ 34*4);//gpio
+
+    REG32_CLEAR_REG(ICU_INTERRUPT_ENABLE);//disable all icu reg
+
+}
+#else
+
+#include "cpu_peri_reg.h"
+#include "int.h"
+#include "bk_uart.h"
+#include "pwm.h"
+#include "../icu/icu.h"
+void intc_service_register(UINT8 int_num, UINT8 int_pri, FUNCPTR isr)
+{
+    (void)int_pri;
+    Int_Register(int_num);
+    Int_SetClearType(int_num,CN_INT_CLEAR_AUTO);
+    Int_IsrConnect(int_num,isr);
+    Int_SettoAsynSignal(int_num);
+    Int_ClearLine(int_num);
+    Int_RestoreAsynLine(int_num);
+
+}
+
+
+
+
+void Disable_AllPeri()
+{
+    REG32_CLEAR_BIT(REG_UART1_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
+    REG32_CLEAR_BIT(REG_UART2_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
+//    REG32_CLEAR_BIT(PWM_CTL,(PWM0_EN_BIT|PWM1_EN_BIT|PWM2_EN_BIT|PWM3_EN_BIT|PWM4_EN_BIT|PWM5_EN_BIT));
+    REG32_CLEAR_REG(PWM_CTL);
+    REG32_CLEAR_REG(0x0802800+ 34*4);//gpio
+    REG32_CLEAR_REG(ICU_INTERRUPT_ENABLE);//disable all icu reg
+}
+
+
+
+#endif
 
 void intc_service_change_handler(UINT8 int_num, FUNCPTR isr)
 {
