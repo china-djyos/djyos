@@ -95,7 +95,8 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_EASY_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,1073741823,
-#define CFG_EFS_FILE_BLOCK_SIZE           4096                 // 单个文件大小的上限
+#define CFG_EFS_FILE_SIZE_Limit           4096                 // 单个文件大小的上限
+#define CFG_EFS_FILE_CREATE_NUM           50                   // 默认支持的创建最大文件数
 //%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,
 #define CFG_EFS_INSTALL_OPTION            MS_INSTALLFORMAT      //EFS文件系统安装选项，16777216:文件系统不存在时则新建；256：格式化文件系统
 //%$#@string,1,10,
@@ -116,10 +117,11 @@
 s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                  ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 tagEFS *s_pEfsList[CN_EFS_MAX]; // 简易文件系统列表
-static u8 tgOpenedSum = 0; // 打开的文件数
+//static u8 tgOpenedSum = 0; // 打开的文件数
 static char NameBuf[256];
 static void NameECC(char *Name, u8 *Ecc);
 static s32 ChkOrRecNameByECC(char *Name, u8 *Ecc);
+static s32 Efs_Verify_Install(struct FsCore *pSuper);
 static u32 dwFileMaxSize,EfsCgfLimit,IndexesNum,CreateMax;
 
 // =============================================================================
@@ -481,11 +483,11 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
         block_addr = block_no * efs->block_size;
 
         efs->drv->efs_erase_media(block_no);       //擦主区中该文件信息所属的块
-        efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+        efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
         efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp,2,EF_WR_NOECC);
 
         efs->drv->efs_erase_media(block_no + cfg_blocks);        //擦副区中该文件信息所属的块
-        efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+        efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
         efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC);
 
 
@@ -531,11 +533,11 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
             fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
 //            //added,将最后的CRC写到文件系统信息的最后两个字节
             efs->drv->efs_erase_media(block_no);       //擦主区中该文件信息所属的块
-            efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+            efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
             efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
 
             efs->drv->efs_erase_media(block_no + cfg_blocks);       //擦副区中该文件信息所属的块
-            efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, efs->block_size, EF_WR_NOECC);
+            efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
             efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
             break;
         }
@@ -599,13 +601,28 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
     u8 *hsize,*buf;
     bool_t found = false;
     struct objhandle *hdl;
-    mode_t mode, property = 0;
+//    mode_t mode, property = 0;
     if(ob == NULL)
         return NULL;
 
     efs = (tagEFS*)corefs(ob);
     if (efs == NULL)
         return NULL;
+
+    if(efs->file_sys_install == false)
+    {
+        struct Object *current;
+        current = ob;
+        while( (!obj_isMount(current)) && (current != obj_root()))
+        {
+            current = obj_parent(current);
+        }
+        if(Efs_Verify_Install((struct FsCore *)obj_GetPrivate(current)))
+        {
+            warning_printf("efs", "file system set up fail");
+            return (NULL);     //文件系统建立失败
+        }
+    }
 
     if((!uncached)&&(obj_isMount(ob)))
     {
@@ -618,7 +635,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 
     if(test_directory(flags))
     {
-        property = S_IFDIR;     // 目录逻辑不做其它操作，直接把obj和hal关联就行了
+//        property = S_IFDIR;     // 目录逻辑不做其它操作，直接把obj和hal关联就行了
     }
     else
     {
@@ -704,13 +721,13 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
             fp->ptr = 0;
 
         fp->private = (ptu32_t)fileinfo;
-        property = S_IFREG;
-        tgOpenedSum ++;
-        if(!obj_newchild(ob, e_operations, (ptu32_t)fp, uncached))
-        {
-            printf("\r\n: erro : efs    : new file \"%s\"(virtual).", uncached);
-            goto exit;
-        }
+//        property = S_IFREG;
+//        tgOpenedSum ++;
+//        if(!obj_newchild(ob, e_operations, (ptu32_t)fp, uncached))
+//        {
+//            printf("\r\n: erro : efs    : new file \"%s\"(virtual).", uncached);
+//            goto exit;
+//        }
     }
 
     hdl = handle_new();
@@ -722,9 +739,9 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 
     handle_init(hdl, NULL, flags, (ptu32_t)0);
     //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
-    mode = S_IALLUGO | S_IFDIR | property;     //建立的路径，属性是目录。
+//    mode = S_IALLUGO | S_IFDIR | property;     //建立的路径，属性是目录。
     //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-    ob = obj_buildpath(ob, e_operations, mode,uncached);
+    ob = obj_BuildTempPath(ob, e_operations, (ptu32_t)fp,uncached);
     obj_LinkHandle(hdl, ob);
 
     Lock_MutexPost(efs->block_buf_mutex);
@@ -1036,9 +1053,9 @@ static s8 Efs_Close (struct objhandle *hdl)
         free(fileinfo);
         free(fp->wr_buf);
         free(fp);//todo ---- 不应该在此处释放，在efs/port.c里面释放，因为在那里malloc
-        tgOpenedSum --;
+//        tgOpenedSum --;
     }
-    handle_Delete(hdl);    //是目录的话啥也不干直接删除句柄
+//  handle_Delete(hdl);    //是目录的话啥也不干直接删除句柄
 exit:
     Lock_MutexPost(efs->block_buf_mutex);
     return (ret);
@@ -1360,7 +1377,7 @@ int efs_install_drv(tagEFS *core, struct __efs_media_drv *drv)
 // 返回：其他 -- 成功； NULL --失败
 // 备注：
 // ============================================================================
-tagEFS *EfsInfo(struct FsCore *pSuper)
+tagEFS *EfsInfo(struct FsCore *pSuper, u32 opts)
 {
     struct umedia *media;
     tagEFS *core;
@@ -1374,13 +1391,15 @@ tagEFS *EfsInfo(struct FsCore *pSuper)
     media->mreq(unitbytes,(ptu32_t)&flash_page_size);                //获取flash的页大小
     flash_black_size = black_page_number * flash_page_size;  //获取flash的块大小
     allblocknum = pSuper->AreaSize / flash_black_size;      //总块数
-    filedatablocks = (CFG_EFS_FILE_BLOCK_SIZE + flash_black_size - 1) / flash_black_size; // EFS单个文件实际数据所需要的块数
+    filedatablocks = (CFG_EFS_FILE_SIZE_Limit + flash_black_size - 1) / flash_black_size; // EFS单个文件实际数据所需要的块数
     num = allblocknum / filedatablocks;     //预计可以创建的最大文件数
     do
     {
         num--;
         filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_black_size - 1) / flash_black_size;
     }while(((num * filedatablocks) + (filelistblock * 2)) > allblocknum);       //计算实际能创建的最大文件数
+    if(num > CFG_EFS_FILE_CREATE_NUM)
+        num = CFG_EFS_FILE_CREATE_NUM;
     CreateMax = num;
     IndexesNum = num + 1;
     EfsCgfLimit = IndexesNum * EFS_ITEM_LIMIT;
@@ -1405,7 +1424,8 @@ tagEFS *EfsInfo(struct FsCore *pSuper)
         printf("\r\n: erro : efs    : install failed(cannot create lock).");
         return NULL;
     }
-
+    core->install_options = opts;
+    pSuper->pCore = (void*)core;
     core->media = media;
     efs_install_drv(core,pSuper->MediaDrv);
     core->file_list_buf = (u8*)core + sizeof(*core);
@@ -1471,8 +1491,8 @@ static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
         //每次新建都将fs存放到全局变量tgNorDisk，用于后面操作
         s_pEfsList[0] = efs;
         strncpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
-        pSuper->pCore = (void*)efs;
     }
+    efs->file_sys_install = true;
     Lock_MutexPost(efs->block_buf_mutex);
     return 0;
 }
@@ -1598,45 +1618,32 @@ static s32 Efs_Format(void *core)
     tagEFS *efs = (tagEFS *)core;
     return Efs_Mkfs(efs,NULL);
 }
-
 // ============================================================================
-// 功能：安装文件系统；
-// 参数：super -- 文件系统结构；
-//      opts -- 安装方式；
-//      config -- 文件系统配置；
+// 功能：校验或安装文件系统；
+// 参数：core -- 文件系统的核心数据结构
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
+static s32 Efs_Verify_Install(struct FsCore *pSuper)
 {
-    tagEFS *core;
     u32 loop, blocks, end_block, fileInfoSize;
     u8 *bakbuf, *block_buf;
     u8 mainblockerr = 0,bakblockerr = 0;
     u16 crc16_check,temp;
 
-    dwFileMaxSize = CFG_EFS_FILE_BLOCK_SIZE; // 文件大小上限
-    if(dwFileMaxSize > EFS_SUPPORT_MAXFILESIZE)
-    {
-        dwFileMaxSize = EFS_SUPPORT_MAXFILESIZE;
-        warning_printf("efs","The file size exceeds the maximum file size supported by efs "
-                                            "and now forces the maximum file size to be 0x3fffffff");
-    }
-    core = EfsInfo(pSuper);
-    if(core == NULL)
-    {
-        free(core);
+    if(pSuper == NULL)
         return -1;
-    }
 
-    if(opts & MS_INSTALLFORMAT)
+    tagEFS *efs = (tagEFS *)pSuper->pCore;
+
+    if(efs->install_options & MS_INSTALLFORMAT)
     {
-        if(Efs_Mkfs(core,pSuper) == 0)//设备上不存在文件系统，则新建
+        if(Efs_Mkfs(efs,pSuper) == 0)    //安装时会格式化整个文件系统
             return 0;
         else
         {
             error_printf("efs","format fail.\r\n");
-            free(core);
+            free(efs);
             return -1;
         }
     }
@@ -1644,25 +1651,25 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
     bakbuf = M_MallocLc(EfsCgfLimit, 0);//只需文件信息大小
     if (bakbuf == NULL)
     {
-        free(core);
+        free(efs);
         return -1;
     }
-    blocks = (EfsCgfLimit + core->block_size-1) / core->block_size; // EFS文件分配表所需要使用的块数
-    end_block = core->start_block + blocks; //
+    blocks = (EfsCgfLimit + efs->block_size-1) / efs->block_size; // EFS文件分配表所需要使用的块数
+    end_block = efs->start_block + blocks; //
     fileInfoSize = EfsCgfLimit;
-    block_buf = core->file_list_buf;
+    block_buf = efs->file_list_buf;
 
-   if(false == Lock_MutexPend(core->block_buf_mutex,MUTEX_WAIT_TIME))
+   if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
    {
        free(bakbuf);
-       free(core);
+       free(efs);
        return -1;
    }
 
     //检查文件系统是否已经建立
-    if(!core->drv->efs_read_media(core->start_block, 0, block_buf, fileInfoSize,EF_WR_NOECC))
+    if(!efs->drv->efs_read_media(efs->start_block, 0, block_buf, fileInfoSize,EF_WR_NOECC))
         goto fail;
-    if(!core->drv->efs_read_media(end_block, 0, bakbuf, fileInfoSize,EF_WR_NOECC))
+    if(!efs->drv->efs_read_media(end_block, 0, bakbuf, fileInfoSize,EF_WR_NOECC))
         goto fail;
     //主备区都被破坏，则需要重新建立文件系统
     if ((memcmp(bakbuf, "easyfile", 8) ||
@@ -1671,15 +1678,15 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
             memcmp(block_buf + FILE_VERIFITY_OFF, "easyfile", 8)) )
     {
         printf("文件系统未建立!\r\n");
-        Lock_MutexPost(core->block_buf_mutex);
+        Lock_MutexPost(efs->block_buf_mutex);
         goto exit;
     }
 
     //检查文件系统信息区最后两字节CRC是否正确
-    if(!core->drv->efs_read_media(core->start_block + blocks - 1, core->block_size-2,
+    if(!efs->drv->efs_read_media(efs->start_block + blocks - 1, efs->block_size-2,
             block_buf+fileInfoSize-2, 2,EF_WR_NOECC))
         goto fail;
-    if(!core->drv->efs_read_media(end_block + blocks - 1, core->block_size-2,
+    if(!efs->drv->efs_read_media(end_block + blocks - 1, efs->block_size-2,
             bakbuf+fileInfoSize-2, 2,EF_WR_NOECC))
         goto fail;
 
@@ -1692,137 +1699,169 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
         bakblockerr = 1;
 
     //以下检查数据正确性
-    loop = core->start_block;
+    loop = efs->start_block;
 
     switch((mainblockerr << 1) + (bakblockerr << 0))
     {
     case 0x03:      //两个缓冲区校验均出错，表明文件系统已经损坏，报错
-        Lock_MutexPost(core->block_buf_mutex);
+        Lock_MutexPost(efs->block_buf_mutex);
         goto exit;
         break;
     case 0x02:      //mainbuf error, bak校验正确
-        temp = __Efs_CheckSingleBuf(bakbuf, loop, core);
+        temp = __Efs_CheckSingleBuf(bakbuf, loop, efs);
         if (temp == 0)
         {
             crc16_check = crc16(bakbuf,16);
             fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(core->start_block, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(efs->start_block, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
         }
         else if (temp == 1)
         {
             crc16_check = crc16(bakbuf,16);
             fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(core->start_block, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(efs->start_block, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
 
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(loop, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(loop, 0, bakbuf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop + blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
         }
         else
         {
-            Lock_MutexPost(core->block_buf_mutex);
+            Lock_MutexPost(efs->block_buf_mutex);
             goto exit;
         }
         break;
     case 0x01:          //主校验正确, bakbuf error
-        temp = __Efs_CheckSingleBuf(block_buf, loop,core);
+        temp = __Efs_CheckSingleBuf(block_buf, loop,efs);
         if (temp == 0)
         {
             crc16_check = crc16(block_buf,16);
             fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
 
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop + blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
         }
         else if (temp == 1)
         {
             crc16_check = crc16(block_buf,16);
             fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(core->start_block, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(efs->start_block, 0, block_buf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
 
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop + blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
         }
         else
         {
-            Lock_MutexPost(core->block_buf_mutex);
+            Lock_MutexPost(efs->block_buf_mutex);
             goto exit;
         }
         break;
     case 0x00:          //主/备区域全错
-        if(true == __Efs_CheckBlock(block_buf,loop, bakbuf, loop+blocks, core) )
+        if(true == __Efs_CheckBlock(block_buf,loop, bakbuf, loop+blocks, efs) )
         {
             crc16_check = crc16(block_buf,16);
             fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
             //分配表信息错或filesize满，则写入flash
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(core->start_block, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop);       //擦主区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(efs->start_block, 0, block_buf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
 
-            for (loop = core->start_block; loop < end_block; loop++)
-                    core->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
-            if(!core->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
+            for (loop = efs->start_block; loop < end_block; loop++)
+                    efs->drv->efs_erase_media(loop + blocks);       //擦备份区，然后重新写入所有文件索引;
+            if(!efs->drv->efs_write_media(loop, 0, block_buf, fileInfoSize, EF_WR_NOECC))
                 goto fail;
-            if(!core->drv->efs_write_media(loop + blocks - 1, core->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
+            if(!efs->drv->efs_write_media(loop + blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC))
                 goto fail;
         }
         break;
     default:
-        Lock_MutexPost(core->block_buf_mutex);
+        Lock_MutexPost(efs->block_buf_mutex);
         goto exit;
         break;
     }
-    if(!core->drv->efs_read_media(core->start_block, 0, block_buf, fileInfoSize,EF_WR_NOECC))       //读文件分配表到缓存中
+    if(!efs->drv->efs_read_media(efs->start_block, 0, block_buf, fileInfoSize,EF_WR_NOECC))       //读文件分配表到缓存中
         goto fail;
-    s_pEfsList[0] = core;
+    s_pEfsList[0] = efs;
     strncpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
-    Lock_MutexPost(core->block_buf_mutex);
+    Lock_MutexPost(efs->block_buf_mutex);
     free(bakbuf);
-    pSuper->pCore = (void*)core;
+//    pSuper->pCore = (void*)efs;
+    efs->file_sys_install = true;
     return 0;
 exit:
     free(bakbuf);
-    if(opts & MS_INSTALLCREAT)
+    if(efs->install_options & MS_INSTALLCREAT)
     {
-        if(Efs_Mkfs(core,pSuper) == 0)//设备上不存在文件系统，则新建
+        if(Efs_Mkfs(efs,pSuper) == 0)//设备上不存在文件系统，则新建
             return 0;
     }
-    free(core);
+    free(efs);
     return -1;
 fail:
     free(bakbuf);
-    free(core);
-    Lock_MutexPost(core->block_buf_mutex);
+    free(efs);
+    Lock_MutexPost(efs->block_buf_mutex);
     return -1;
+}
+// ============================================================================
+// 功能：安装文件系统；
+// 参数：super -- 文件系统结构；
+//      opts -- 安装方式；
+//      config -- 文件系统配置；
+// 返回：成功（0）；失败（-1）；
+// 备注：
+// ============================================================================
+s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
+{
+    tagEFS *core;
+
+    dwFileMaxSize = CFG_EFS_FILE_SIZE_Limit; // 文件大小上限
+    if(dwFileMaxSize > EFS_SUPPORT_MAXFILESIZE)
+    {
+        dwFileMaxSize = EFS_SUPPORT_MAXFILESIZE;
+        warning_printf("efs","The file size exceeds the maximum file size supported by efs "
+                                            "and now forces the maximum file size to be 0x3fffffff");
+    }
+    core = EfsInfo(pSuper, opts);
+    if(core == NULL)
+    {
+        free(core);
+        return -1;
+    }
+
+    if(opts & MS_INSTALLUSE)
+        return 0;
+    else
+        return Efs_Verify_Install(pSuper);
 }
 // ============================================================================
 // 功能：安装EASY文件系统
@@ -1865,7 +1904,7 @@ s32 ModuleInstall_EFS(const char *target, u32 opt, u32 config)
         printf("\r\n: dbug : module : mount \"EFS\" failed, cannot create \"%s\"<group point>.", target);
         return (-1);
     }
-//    __InuseUpFullPath(mountobj);
+//    obj_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;
     res = mountfs(NULL, target, "EFS", opt, (void *)config);
     if(res == -1)

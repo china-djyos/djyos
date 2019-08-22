@@ -5,8 +5,8 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //#if !defined (CFG_RUNMODE_BAREAPP)
-//    extern ptu32_t ModuleInstall_IAP(void);
-//    ModuleInstall_IAP( );
+//    extern bool_t ModuleInstall_XIP(void);
+//    ModuleInstall_XIP( );
 //#endif
 //%$#@end initcode  ****初始化代码结束
 

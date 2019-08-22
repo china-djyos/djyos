@@ -107,70 +107,91 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
 //    GLOBAL_INT_DECLARATION();
 
 
-    while(total_len) 
+    if((rxbuf == NULL) && (spi_dev->rx_len == 0))
     {
-        tx_ok = 0;
-        
-        if(tx_len)
+        total_len -= tx_len;
+        while(tx_len)
         {
-            data = *tx_ptr;
-            if(spi_write_txfifo(data) == 1)
+            if((REG_READ(SPI_STAT) & TXFIFO_FULL) == 0)
             {
-                tx_ok = 1;
-                
+                REG_WRITE(SPI_DAT, *tx_ptr++);
                 tx_len --;
-                tx_ptr ++;
             }
         }
-        else
+        while(spi_read_rxfifo(&data) == 1);
+        if(total_len == 0)
         {
-            data = 0xff;
-            if(spi_write_txfifo(data) == 1)
-            {
-                tx_ok = 1;
-            }
+            UINT32 enable = 0;
+            spi_ctrl(CMD_SPI_TXINT_EN, (void *)&enable);
         }
+    }
+    else
+    {
+        while(total_len)
+        {
+            tx_ok = 0;
 
-        /* check rx data to prevent rx over flow */
-        if(spi_read_rxfifo(&data) == 1)
-        {
-            if(rxbuf)
+            if(tx_len)
             {
-                if(drop != 0)
+                data = *tx_ptr;
+                if(spi_write_txfifo(data) == 1)
                 {
-                    drop--;
+                    tx_ok = 1;
+
+                    tx_len --;
+                    tx_ptr ++;
                 }
-                else
+            }
+            else
+            {
+                data = 0xff;
+                if(spi_write_txfifo(data) == 1)
                 {
-                    if(offset < spi_dev->rx_len)
+                    tx_ok = 1;
+                }
+            }
+
+            /* check rx data to prevent rx over flow */
+            if(spi_read_rxfifo(&data) == 1)
+            {
+                if(rxbuf)
+                {
+                    if(drop != 0)
                     {
-                        rxbuf[offset] = data;
-                        offset++;
+                        drop--;
                     }
                     else
                     {
-//                        BK_SPI_WPRT("0 rx over flow:%02x, %d\r\n", data, spi_dev->rx_len);
-                        warning_printf("gd25","0 rx over flow:%02x, %d\r\n", data, spi_dev->rx_len);
+                        if(offset < spi_dev->rx_len)
+                        {
+                            rxbuf[offset] = data;
+                            offset++;
+                        }
+                        else
+                        {
+    //                        BK_SPI_WPRT("0 rx over flow:%02x, %d\r\n", data, spi_dev->rx_len);
+                            warning_printf("gd25","0 rx over flow:%02x, %d\r\n", data, spi_dev->rx_len);
+                        }
                     }
                 }
             }
-        }
 
-        if(tx_ok == 1)
-        {
-            total_len --;
-            if(total_len == 0) 
+            if(tx_ok == 1)
             {
-                UINT32 enable = 0;
-                spi_ctrl(CMD_SPI_TXINT_EN, (void *)&enable);
-                
-                //BK_SPI_PRT("tx fin\r\n");
+                total_len --;
+                if(total_len == 0)
+                {
+                    UINT32 enable = 0;
+                    spi_ctrl(CMD_SPI_TXINT_EN, (void *)&enable);
+
+                    //BK_SPI_PRT("tx fin\r\n");
+                    break;
+                }
+            }
+            else
+            {
                 break;
             }
-        }
-        else
-        {
-            break;
         }
     }
 

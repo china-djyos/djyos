@@ -103,7 +103,7 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 // OpsArgs1：无用。
 // OpsArgs2：无用。
 // OpsArgs3：无用。
-// 返回：CN_OBJ_CMD_SUCCESS 或 CN_OBJ_CMD_FALSE 或 CN_OBJ_CMD_UNSUPPORT
+// 返回：CN_OBJ_CMD_TRUE 或 CN_OBJ_CMD_FALSE 或 CN_OBJ_CMD_UNSUPPORT
 //----------------CN_OBJ_CMD_SHOW----------------------------------
 //功能：显示文件（目录）内容，注意，目录的内容，不是子目录列表，可能是目录的说明，
 //      也可能是其他内容，由CN_OBJ_CMD_SHOW目录的实现者决定
@@ -200,23 +200,22 @@ typedef s32 (*fnObjOps)(void *opsTarget, u32 opscmd, ptu32_t OpsArgs1,
 //    u32 a;
 //};
 //
+#define CN_OBJ_TEMPORARY    0x80000000
+struct __ObjBitFlag
+{
+    u32 inuse:24;           // 对象被引用计数
+    u32 temporary:1;        //是否临时对象
+};
 struct Object
 {
     char *name;             // 对象名；当用于文件系统为文件名或目录名，用于设备是
                             //设备名，用于gui则是窗口名；
     ptu32_t ObjPrivate;     // 对象私有数据；可以是一个数，也可以指向描述对象的结构；
     fnObjOps ops;           // 对象方法；即对象的操作；
-    u32 inuse;              // 多用户同时引用计数
-//  union __rights rights;  // 对象权限管理，stat.h的 S_IRUSR 等
+    struct __ObjBitFlag BitFlag;    //对象属性位标志
     list_t handles;         // 对象句柄链表；对象被打开，系统会给用户分配一个句柄；
                             // 句柄的数据结构接入此链表；
     struct Object *prev,*next, *parent, *child; // 对象关系；构建对象树；
-//  struct Object *seton;      // 对象关系；某个新的对象集合(类)建立于某个旧对象之上，
-//                          //形成一个闭环单向链；当具体文件系统被mount到某对象；原
-//                          //节点在这里备份，以备unmount时恢复旧对象。-1被作为特别
-//                          //用处，表示该对象之上不可建立新的对象集合（类）；
-//  struct Object *set;        // 对象关系；集合点（类）；如果对象本身就是对象集合（类），
-//                          //则指向自己；其他则指向对象的集合点（类）；
 };
 
 struct objhandle;
@@ -242,19 +241,18 @@ void obj_unlock(void);
 
 //u32 obj_InuseUp(struct Object *ob);
 //void obj_InuseUpRange(struct Object *start, struct Object *end);
-void __InuseUpFullPath(struct Object *Obj);
+void obj_DutyUp(struct Object *Obj);
 //u32 obj_InuseDown(struct Object *ob);
 //void obj_InuseDownRange(struct Object *start, struct Object *end);
-void __InuseDownFullPath(struct Object *Obj);
-void obj_Close(struct Object *Obj);
+void obj_DutyDown(struct Object *Obj);
 
 s32 obj_Delete(struct Object *ob);
 struct Object *obj_detach(struct Object *branch);
 s32 obj_checkname(const char *name);
 struct Object *obj_matchpath(const char *match, char **left);
-struct Object *obj_buildpath(struct Object *begin, fnObjOps ops,
+struct Object *obj_BuildTempPath(struct Object *begin, fnObjOps ops,
                             ptu32_t ObjPrivate, char *path);
-s32 obj_releasepath(struct Object *start);
+s32 obj_ReleaseTempPath(struct Object *start);
 struct Object *obj_current(void);
 void obj_setcurrent(struct Object *ob);
 struct Object *obj_root(void);

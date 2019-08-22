@@ -480,7 +480,7 @@ struct objhandle *__yaf2open(struct Object *ob, u32 flags, char *uncached)
         //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
         mode = S_IALLUGO | S_IFDIR;     //建立的路径，属性是目录。
         //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-        ob = obj_buildpath(ob, YAF2_Ops, mode,uncached);
+        ob = obj_BuildTempPath(ob, YAF2_Ops, mode,uncached);
         mode = S_IALLUGO | property;     //最末端的也许是文件
         if(!obj_isMount(ob))
         {
@@ -515,7 +515,7 @@ static s32 __yaf2close(struct objhandle *hdl)
 
     if(!res)
     {
-        handle_Delete(hdl); // 成功；
+//      handle_Delete(hdl); // 成功；
         return (0);
     }
 
@@ -1059,7 +1059,7 @@ s32 ModuleInstall_YAF2(const char *target, u32 opt, u32 data)
         printf("\r\n: dbug : module : mount \"YAF2\" failed, cannot create \"%s\"<mount point>.", target);
         return (-1); // 失败;
     }
-//    __InuseUpFullPath(mountobj);
+//    obj_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;              //直接挂载不用备份
     res = mountfs(NULL, target, "YAF2", opt, (void *)data);
    if(res == -1)

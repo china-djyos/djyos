@@ -52,7 +52,7 @@
 #ifndef __SI_INFO_H__
 #define __SI_INFO_H__
 #include "stdio.h"
-
+#include <project_config.h>
 #define MutualPathLen   40   //在交互信息中存待升级文件路径的最大长度
 enum runibootmode{
     HEARD_SET_RUN_IBOOT,
@@ -132,33 +132,46 @@ struct IbootAppInfo
     char update_path[40];    //待升级文件路径
 };
 
-bool_t Run_Iboot(enum runibootmode mode);
-bool_t Run_App(enum runappmode mode);
 
-bool_t Set_UpdateRunModet(u8 mode);
-bool_t Set_RunIbootUpdateIboot();
-bool_t Set_RunIbootUpdateApp();
-bool_t Set_RunAppFlag();
+//bool_t Set_RunIbootUpdateIboot();
 bool_t Set_RebootFlag();
-bool_t Set_RunIbootFlag();
 bool_t Set_SoftResetFlag();
-bool_t Set_PreviouResetFlag();
-bool_t Clear_RunIbootUpdateApp();
-char Get_RunMode(void);
-char * Get_MutualAppPath(void);
-char Get_UpdateApp(void);
+bool_t Set_RestartAppFlag();
 bool_t clear_resetflag();
-bool_t Update_ToRun();
 bool_t Si_IbootAppInfoInit();
+void Get_IbootAppInfo(struct IbootAppInfo *get_info);
+//bool_t XIP_APPIsDebug(void );
+bool_t Set_AppVerFlag(u8 small, u8 medium, u8 large);
+bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec);
+
+#if (CFG_RUNMODE_BAREAPP == 0)
+bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
+u32  Get_AppHeadSize(void);
+bool_t XIP_AppFileChack(void * apphead);
+void * XIP_GetAPPStartAddr(void * apphead);
+u32  XIP_GetAPPSize(void * apphead);
+u32 Get_AppSize(void * apphead);
+char*  Get_AppName(void * apphead);
 bool_t XIP_IsRamIbootFlag();
 bool_t Fill_MutualUpdatePath(char* Path);
-
+bool_t Run_Iboot(enum runibootmode mode);
+bool_t Run_App(enum runappmode mode);
+bool_t Update_ToRun();
+bool_t Set_PreviouResetFlag();
+bool_t Set_RunIbootFlag();
+bool_t Set_RunAppFlag();
+bool_t Set_RunIbootUpdateApp();
+bool_t Set_RunAppUpdateIboot();
+bool_t Clear_RunIbootUpdateApp();
+bool_t Clear_RunAppUpdateIboot();
+bool_t Set_UpdateSource(char *param);
+u32 Get_UpdateSource(void);
+char Get_RunMode(void);
+char * Get_MutualUpdatePath(void);
+char Get_UpdateApp(void);
+char Get_Updateiboot(void);
+bool_t Set_UpdateRunModet(u8 mode);
 u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);
-void * XIP_GetAPPStartAddr(void * apphead);
-char*  Get_AppName(void * apphead);
-bool_t XIP_APPIsDebug(void );
-bool_t XIP_AppFileChack(void * apphead);
-bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
-
+#endif
 #endif /* __IICBUS_H__ */

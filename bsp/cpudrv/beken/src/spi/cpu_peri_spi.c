@@ -47,8 +47,11 @@
 #include "cpu_peri.h"
 #include <device/include/uart.h>
 #include "stdlib.h"
+#include "gpio_pub.h"
+#include "icu_pub.h"
+#include "spi/spi.h"
 #include "dbug.h"
-#include <driver/include/spi_pub.h>
+#include "spi_pub.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -88,6 +91,7 @@
 #define CFG_SPI_CPHA                     1           //spi时钟相位（1：在SCK周期的第二个边沿采样数据。0：在SCK周期的第一个边沿采样数据）
 //%$#@enum,true,false,
 #define CFG_SPI_FLASH_RAM_POWER         true         //是否打开flash和ram的电源。
+#define CFG_SPI_WORK_MODE_INTE          false        //设置SPI的工作模式，true为中断模式通信，false为普通模式。
 //%$#@select
 //%$#@free,
 #endif
@@ -135,86 +139,155 @@ void SPI_Flash_Deinit(void)
     bk_spi_master_deinit();
 }
 
-bool_t SPI_TxRx_Int(u8* sdata,u32 slen,u8* rdata, u32 rlen)
+bool_t SPI_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen, u32 recvoff)
 {
     s32 result;
+    u32 i, len_limit, value;
+    u8 ch;
+
     struct spi_message spi_msg;
 
     if( (!sdata) || ((rlen != 0) && (!rdata)))
         return false;
 
-    spi_msg.recv_buf = rdata;
-    spi_msg.recv_len = rlen;
-    spi_msg.send_buf = sdata;
-    spi_msg.send_len = slen;
-
-    Djy_EventDelay(5);
-
-    result = bk_spi_master_xfer(&spi_msg);
-    if(result != (s32)rlen)
+    if(CFG_SPI_WORK_MODE_INTE)
     {
-        return false;
+        spi_msg.recv_buf = rdata;
+        spi_msg.recv_len = rlen;
+        spi_msg.send_buf = sdata;
+        spi_msg.send_len = slen;
+
+        result = bk_spi_master_xfer(&spi_msg);
+        if(result != (s32)rlen)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        if((rlen == 0) && (rdata == NULL))
+        {
+            for (i=0; i < slen; i++)
+            {
+                while(1)
+                {
+                    value = REG_READ(SPI_STAT);
+
+                    if((value & TXFIFO_FULL) == 0)
+                    {
+                        REG_WRITE(SPI_DAT, sdata[i]);
+                       break;
+                    }
+                    Djy_EventDelay(2);
+                }
+            }
+            while(spi_read_rxfifo(&ch) == 1);
+        }
+        else
+        {
+            while(spi_read_rxfifo(&ch) == 1);
+            len_limit = MAX(slen, rlen + recvoff);
+            for (i=0; i < len_limit; i++)
+            {
+                if (i < slen)
+                {
+                    while(spi_write_txfifo(sdata[i]) == 0)
+                    {
+                        Djy_EventDelay(2);
+                    }
+                }
+                else if((i >= slen)&&(i < len_limit))
+                {
+                    while(spi_write_txfifo(0xff) == 0)
+                    {
+                        Djy_EventDelay(2);
+                    }
+                }
+
+                if((rdata) && (i>=recvoff))
+                {
+
+                    while(spi_read_rxfifo(&ch) == 0)
+                    {
+                        Djy_EventDelay(2);
+                    }
+                    rdata[i-recvoff] = ch;
+                }
+                else
+                {
+                    while(spi_read_rxfifo(&ch) == 0)
+                    {
+                        Djy_EventDelay(2);
+                    }
+                }
+            }
+        }
     }
 
     return true;
 }
 
-//bool_t SPI_TxRx_Poll(u8* srcAddr,u32 wrSize,u8* destAddr, u32 rdSize, u32 recvoff)
-//{
-//    u32 param, i, len_limit;
-//    u8 ch;
-//
-//    Lock_MutexPend(spi_mutex, CN_TIMEOUT_FOREVER);
-//    if( (!srcAddr) || ((rdSize != 0) && (!destAddr)))
-//    {
-//        Lock_MutexPost(spi_mutex);
-//        return false;
-//    }
-//
-//    len_limit = MAX(wrSize, rdSize + recvoff);
-//
-//    param = 0x2;
-//    spi_ctrl(CMD_SPI_SET_NSSID, (void *)&param);
-//
-//    for (i=0; i < len_limit; i++)
-//    {
-//        Djy_EventDelay(1000);
-//        if (i < wrSize)
-//        {
-//            while(spi_write_txfifo(srcAddr[i]) == 0)
-//            {
-//                Djy_EventDelay(5);
-//            }
-//        }
-//        else if((i >= wrSize)&&(i < len_limit))
-//        {
-//            while(spi_write_txfifo(0xff) == 0)
-//            {
-//                Djy_EventDelay(5);
-//            }
-//        }
-//
-//        if((destAddr) && (i>=recvoff))
-//        {
-//
-//            while(spi_read_rxfifo(&ch) == 0)
-//            {
-//                Djy_EventDelay(5);
-//            }
-//            destAddr[i-recvoff] = ch;
-//        }
-//        else
-//        {
-//            spi_read_rxfifo(&ch);
-//        }
-//    }
-//
-//
-//    param = 0x3;
-//    spi_ctrl(CMD_SPI_SET_NSSID, (void *)&param);
-//    Lock_MutexPost(spi_mutex);
-//    return true;
-//}
+static void Spi_Configure(UINT32 rate, UINT32 mode)
+{
+    UINT32 param;
+
+    /* data bit width */
+    param = 0;
+    spi_ctrl(CMD_SPI_SET_BITWIDTH, (void *)&param);
+
+    /* baudrate */
+//    printf("max_hz = %d \n", rate);
+    spi_ctrl(CMD_SPI_SET_CKR, (void *)&rate);
+
+    /* mode */
+    if (mode & BK_SPI_CPOL)
+    {
+        param = 1;
+        spi_ctrl(CMD_SPI_SET_CKPOL, (void *)&param);
+    }
+    else
+    {
+        param = 0;
+        spi_ctrl(CMD_SPI_SET_CKPOL, (void *)&param);
+    }
+
+    /* CPHA */
+    if (mode & BK_SPI_CPHA)
+    {
+        param = 1;
+        spi_ctrl(CMD_SPI_SET_CKPHA, (void *)&param);
+    }
+    else
+    {
+        param = 0;
+        spi_ctrl(CMD_SPI_SET_CKPHA, (void *)&param);
+    }
+
+    /* Master */
+    param = 1;
+    spi_ctrl(CMD_SPI_SET_MSTEN, (void *)&param);
+    param = 3;
+    spi_ctrl(CMD_SPI_SET_NSSID, (void *)&param);
+    param = 1;
+    spi_ctrl(CMD_SPI_INIT_MSTEN, (void *)&param);
+
+    param = PWD_SPI_CLK_BIT;
+    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
+
+    param = (IRQ_SPI_BIT);
+    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+
+    param = GFUNC_MODE_SPI;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+
+
+    /* enable spi */
+    param = 1;
+    spi_ctrl(CMD_SPI_UNIT_ENABLE, (void *)&param);
+
+//    printf("[CTRL]:0x%08x \n", REG_READ(SPI_CTRL));
+}
+
 
 // =============================================================================
 // 功能：初始化SPI模块
@@ -231,12 +304,18 @@ int ModuleInstall_SPI(void)
     Spi_Init_Extral_Gpio();
 	
 	mode = (CFG_SPI_CPOL | (CFG_SPI_CPHA << 1));
-	
-	if(bk_spi_master_init(CFG_SPI_CLK, mode))
+
+	if(CFG_SPI_WORK_MODE_INTE)
 	{
-	    info_printf("SPI","SPI init fail.\r\n");
-	    return 0;
+        if(bk_spi_master_init(CFG_SPI_CLK, mode))
+        {
+            info_printf("SPI","SPI init fail.\r\n");
+                return 0;
+        }
 	}
+	else
+	    Spi_Configure(CFG_SPI_CLK, mode);
+
 	return 1;
 }
 

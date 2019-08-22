@@ -199,21 +199,39 @@ http_req_send(http_req *a_req, http_trans_conn *a_conn)
   /* reset the buffer */
   http_trans_buf_reset(a_conn);
   l_content = http_hdr_get_value(a_req->headers, http_hdr_Content_Length);
-  if (l_content)
+    if (l_content)
     {
-      /* append the information to the buffer */
-      http_trans_append_data_to_buf(a_conn, a_req->body, a_req->body_len);
-      a_req->state = http_req_state_sending_body;
-    http_req_state_sending_body_jump:
-      do {
-	l_rv = http_trans_write_buf(a_conn);
-	if ((a_conn->sync == HTTP_TRANS_ASYNC) && (l_rv == HTTP_TRANS_NOT_DONE))
-	  return HTTP_TRANS_NOT_DONE;
-	if ((l_rv == HTTP_TRANS_DONE) && (a_conn->last_read == 0))
-	  return HTTP_TRANS_ERR;
-      } while (l_rv == HTTP_TRANS_NOT_DONE);
-      /* reset the buffer */
-      http_trans_buf_reset(a_conn);
+        int sendByteCnt = 0;
+
+        while (a_req->body_len > sendByteCnt)
+        {
+            int allocSize = a_req->body_len - sendByteCnt;
+            if (allocSize > 1024)
+            {
+                allocSize = 1024;
+            }
+            /* append the information to the buffer */
+            http_trans_append_data_to_buf(a_conn, &a_req->body[sendByteCnt], allocSize);
+            sendByteCnt += allocSize;
+            a_req->state = http_req_state_sending_body;
+
+http_req_state_sending_body_jump:
+            do {
+                l_rv = http_trans_write_buf(a_conn);
+
+                if ((a_conn->sync == HTTP_TRANS_ASYNC) && (l_rv == HTTP_TRANS_NOT_DONE))
+                {
+                    return HTTP_TRANS_NOT_DONE;
+                }
+
+                if ((l_rv == HTTP_TRANS_DONE) && (a_conn->last_read == 0))
+                {
+                    return HTTP_TRANS_ERR;
+                }
+            } while (l_rv == HTTP_TRANS_NOT_DONE);
+            /* reset the buffer */
+            http_trans_buf_reset(a_conn);
+        }
     }
   return HTTP_TRANS_DONE;
 }

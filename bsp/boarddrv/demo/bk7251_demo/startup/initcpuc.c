@@ -4,7 +4,7 @@
 
 extern void Load_Preload(void);
 
-void Init_Cpuc(void)
+void Init_Cpu(void)
 {
     /* Here we may setting exception vector, MGU, cache, and so on. */
 //  csi_cache_set_range(0, 0x00000000, CACHE_CRCR_4M, 1);

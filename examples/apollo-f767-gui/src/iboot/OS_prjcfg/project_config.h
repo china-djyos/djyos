@@ -50,7 +50,7 @@
     #define CFG_GB2312_32_FANG_FILENAME "zk_gb2316_32fang.bin"  //若从文件读取则配置文件名
 //*******************************  Configure graphical kernel  ******************************************//
 #define CFG_GKERNEL_CMD_DEEP        1024    //gdd向gkernel传递命令的缓冲区长度（字节数）
-//*******************************  Configure graphical decorate development(gdd)  ******************************************//
+//*******************************  Configure graphical decorate development  ******************************************//
 #define CFG_DESKTOP_WIDTH       0           //桌面尺寸（像素数）宽度0=显示器宽度
 #define CFG_DESKTOP_HEIGHT      0           //桌面尺寸（像素数）高度0=显示器高度
 #define CFG_DISPLAY_NAME        "DISPLAY_NAME"         //须与bsp中显示器驱动模块配置的显示器名字相同

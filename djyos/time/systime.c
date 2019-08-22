@@ -210,7 +210,6 @@ u32 DjyGetSysTimeFreq(void)
 //参数：无
 //返回：当前时钟
 //-----------------------------------------------------------------------------
-#if (!CN_USE_TICKLESS_MODE)
 s64 __DjyGetSysTick(void)
 {
     s64 time;
@@ -228,5 +227,4 @@ s64 __DjyGetSysTick(void)
 #endif
     return time;
 }
-#endif
 

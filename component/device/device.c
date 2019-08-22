@@ -184,8 +184,8 @@ static s32 __devclose(struct objhandle *hdl)
     if(dev && dev->dClose)
         res = (s32)dev->dClose(hdl);
 
-    if(!res)
-        handle_Delete(hdl);
+//  if(!res)
+//      handle_Delete(hdl);
 
     return (res);
 }
@@ -372,7 +372,7 @@ s32 Dev_DirObjOps(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     {
         case CN_OBJ_CMD_OPEN:
         {
-            __InuseUpFullPath((struct Object*)opsTarget);
+            obj_DutyUp((struct Object*)opsTarget);
             *(struct objhandle **)OpsArgs1 = s_ptDeviceDirHandle;
         }break;
         case CN_OBJ_CMD_READDIR:

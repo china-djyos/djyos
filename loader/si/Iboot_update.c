@@ -79,7 +79,9 @@
 #if (CFG_RUNMODE_BAREAPP == 0)
 
 #define IAPBUF_SIZE   512
-
+extern void reboot();
+extern void reset();
+extern void restart_app(u32 key);
 // ============================================================================
 // 功能：设置运行iboot
 // 参数：
@@ -122,19 +124,19 @@ bool_t  runapp(char *param)
 // 返回：
 // 备注：
 // ============================================================================
- bool_t  updateruniboot(char *param)
-{
-    Set_RunIbootUpdateIboot();
-#if(CN_CPU_OPTIONAL_CACHE==1)
-     Cache_CleanData();
-     Cache_InvalidInst();
-#endif
-     reset();
-    return false;
-}
+// bool_t  updateruniboot(char *param)
+//{
+//    Set_RunIbootUpdateIboot();
+//#if(CN_CPU_OPTIONAL_CACHE==1)
+//     Cache_CleanData();
+//     Cache_InvalidInst();
+//#endif
+//     reset();
+//    return false;
+//}
 
  // ============================================================================
- // 功能：判断升级成功后是运行app还是iboot
+ // 功能：根据字符串设置升级成功后是运行app还是iboot
  // 参数：
  // 返回：true -- 设置成功；false -- 没有设置
  // 备注：
@@ -223,7 +225,7 @@ bool_t Iboot_UpdateApp(void)
     if((Get_UpdateSource() == 0) && (Get_UpdateApp() == 0))
     {
         info_printf("IAP","app update start.\r\n");
-        strcpy(apppath,Get_MutualAppPath());
+        strcpy(apppath, Get_MutualUpdatePath());
         srcapp = fopen(apppath, "r+");
         if(srcapp != NULL)
         {
@@ -361,12 +363,12 @@ bool_t App_UpdateIboot(char *param)
     struct stat test_stat;
     s64 srcsize;
     char iapibootname[MutualPathLen];
-    char *word_param, *next_param;
+//  char *word_param, *next_param;
 
     if(Get_Updateiboot() == 0)
     {
         info_printf("IAP","iboot update start.\r\n");
-        strcpy(iapibootname,Get_MutualAppPath());
+        strcpy(iapibootname, Get_MutualUpdatePath());
         Update_and_run_mode = NULL;
 
         srciboot = fopen(iapibootname, "r+");
@@ -429,6 +431,33 @@ bool_t App_UpdateIboot(char *param)
     }
     return TRUE;
 }
+bool_t ModuleInstall_XIP(void)
+{
+    uint16_t evtt_Update;
+    char run_mode = Get_RunMode();
+
+    if(run_mode == 0)
+    {
+        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                   Iboot_UpdateApp, NULL, CFG_MAINSTACK_LIMIT, "update app");
+        info_printf("XIP","add app update function.\r\n");
+    }
+    else if(run_mode == 1)
+    {
+        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                    App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
+        info_printf("XIP","add iboot update function.\r\n");
+    }
+    else
+        return false;
+
+    if(evtt_Update != CN_EVTT_ID_INVALID)
+    {
+        if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
+            return true;
+    }
+    return false;
+}
 
 
 ADD_TO_ROUTINE_SHELL(runiboot,runiboot,NULL);
@@ -442,9 +471,6 @@ ADD_TO_ROUTINE_SHELL(updateiboot,updateiboot,"Update Iboot.");
 
 
 //add some boot commands
-extern void reboot();
-extern void reset();
-extern void restart_app(u32 key);
 //static bool_t rebootshell(char *param)
 bool_t rebootshell(char *param)
 {

@@ -58,7 +58,7 @@
 #include "shell.h"
 #include "string.h"
 #include "stdlib.h"
-#if (CFG_RUNMODE_BAREAPP == 0)
+
 extern void AppStart(void);
 extern void Init_Cpu(void);
 extern void reboot();
@@ -68,6 +68,7 @@ extern void __asm_bl_fun(void * fun_addr);
 //版本号
 #define APP_HEAD_VERSION        1
 
+#if (CFG_RUNMODE_BAREAPP == 0)
 struct AppHead
 {
     char djyflag[3];        //"djy"标志                    固定标志
@@ -134,62 +135,7 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff}
 };
 
-
-////#define IBOOT_APP_INFO_VER                 (1)
-//struct IbootAppInfo
-//{
-//    #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
-//    #define PREVIOURESET_APP     (0x87654321)//复位前运行APP
-//    u32 PreviouReset;//复位前运行模式
-//    struct{
-//        u32 heard_set_run_iboot   :1;//硬件设置运行iboot
-//        u32 restart_run_iboot     :1;//指示启动后运行Iboot
-//        u32 restart_run_app       :1;//指示启动后运行APP
-//        u32 runmode_iboot         :1;//当前运行模式是iboot
-//        u32 runmode_app           :1;//当前运行模式为app
-//        u32 Before_run_iboot      :1;//之前运行模式为iboot
-//        u32 Before_run_app        :1;//之前运行模式为app
-//        u32 run_app_form_file     :1;//从文件中加载app
-//        u32 run_iboot_update_app  :1;//启动（Iboot）后，自动升级APP
-//        u32 run_app_update_iboot  :1;//启app后升级iboot自身
-//        u32 update_from           :2;//升级文件来源0文件 1——3待定义
-//        u32 update_runmode        :1;//升级完成后运行0.iboot --  1.app
-//        u32 error_app_check       :1;//校验出错
-//        u32 error_app_no_file     :1;//没有这个文件或文件格式错误
-//        u32 error_app_size        :1;//app文件大小错误
-//        //上电复位硬件标志0=无此硬件 1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
-//        u32 power_on_flag         :2;
-//        u32 head_wdt_reset        :1;//看门狗复位标志
-//        u32 soft_reset_flag       :1;//软件引起的内部复位
-//        u32 reboot_flag           :1;//reboot 标志
-//        u32 restart_app_flag      :1;//restart_app标志
-//        u32 head_reset_flag       :1;//外部硬件复位标志
-//        u32 low_power_wakeup      :1;//低功耗深度休眠中断唤醒标志
-//        u32 call_fun_resent       :1;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
-//        u32 power_on_resent_flag  :1;//上电复位标志，结合b18~19以及“上电标志”字判定
-//    }runflag; //运行标志
-//    u64  reserved;//保留
-//    u16  iboot_buildyear;    /* years since 1900 */
-//    u8   iboot_buildmon;     /* months since January [0-11] */
-//    u8   iboot_buildmday;    /* day of the month [1-31] */
-//    u8   iboot_buildhour;    /* hours since midnight [0-23] */
-//    u8   iboot_buildmin;     /* minutes after the hour [0-59] */
-//    u8   iboot_buildsec;     /* seconds after the minute [0-60] */
-//    u16  app_buildyear;    /* years since 1900 */
-//    u8   app_buildmon;     /* months since January [0-11] */
-//    u8   app_buildmday;    /* day of the month [1-31] */
-//    u8   app_buildhour;    /* hours since midnight [0-23] */
-//    u8   app_buildmin;     /* minutes after the hour [0-59] */
-//    u8   app_buildsec;     /* seconds after the minute [0-60] */
-//    u8   ibootVer_small;         //iboot 版本 xx.xx.__
-//    u8   ibootVer_medium;        //iboot 版本 xx.__.xx
-//    u8   ibootVer_large;         //iboot 版本 __.xx.xx
-//    u8   appVer_small;           //app 版本 xx.xx.__
-//    u8   appVer_medium;          //app 版本 xx.__.xx
-//    u8   appVer_large;           //app 版本 __.xx.xx
-//    char boardname[20];    //组件名
-//    char update_path[40];    //待升级文件路径
-//};
+#endif      //for (CFG_RUNMODE_BAREAPP == 0)
 struct IbootAppInfo Iboot_App_Info __attribute__ ((section(".IbootAppInfo"))) ;
 
 
@@ -219,14 +165,14 @@ __attribute__((weak))  u8  Get_Hardflag(enum hardflag flag)
 //检查APP的版本是debug
 //
 //==============================================================================
-bool_t Chack_AppTypeIsDebug(void * apphead)
-{
-    struct AppHead*  p_apphead = apphead;
-
-    if(p_apphead->Verification&1)
-        return true;
-    return false;
-}
+//bool_t Chack_AppTypeIsDebug(void * apphead)
+//{
+//    struct AppHead*  p_apphead = apphead;
+//
+//    if(p_apphead->Verification&1)
+//        return true;
+//    return false;
+//}
 //=============================================================================
 //=============================================================================
 #if (CFG_APP_VERIFICATION == VERIFICATION_CRC)
@@ -276,7 +222,7 @@ static const u32 crc32_tab[] = {     // CRC polynomial 0xedb88320
 0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
-
+#if (CFG_RUNMODE_BAREAPP == 0)
 // ============================================================================
 // 功能：CRC32分步计算初始化
 // 参数：crc -- CRC值
@@ -333,6 +279,7 @@ static s32 iboot_Crc32exit(u32 *crc)
 
     return (-1);
 }
+#endif
 #elif( CFG_APP_VERIFICATION  == VERIFICATION_MD5 )
 //define for the data types
 typedef unsigned int u32_t;
@@ -620,7 +567,7 @@ static void Transform (u32_t *buf, u32_t *in)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-
+#if (CFG_RUNMODE_BAREAPP == 0)
 static bool_t Verification_AppExit(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
@@ -705,7 +652,11 @@ static bool_t  Verification_compare(void *apphead,void *appheadcmp)
     }
     return true;
 }
-
+//==============================================================================
+//功能：重写APP文件信息块
+//参数：apphead：App信息块地址；name：新的名字；filesize：新的文件大小
+//返回：true：成功；false：失败。
+//==============================================================================
 bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize)
 {
     struct AppHead*  p_apphead = apphead;
@@ -726,7 +677,7 @@ bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize)
 }
 
 //==============================================================================
-//功能：获取APP文件头信息的大小
+//功能：获取APP文件信息块的大小
 //参数：无
 //返回：APP信息头的大小。
 //==============================================================================
@@ -735,9 +686,11 @@ u32 Get_AppHeadSize(void)
    return (u32)sizeof(struct AppHead);
 }
 
+
 //==============================================================================
-//App 头文件初步检查
-//
+//功能：App 文件信息块初步检查
+//参数：apphead：App信息块地址
+//返回：true：成功；false：失败。
 //==============================================================================
 bool_t XIP_AppFileChack(void * apphead)
 {
@@ -754,37 +707,49 @@ bool_t XIP_AppFileChack(void * apphead)
 }
 
 //==============================================================================
-//功能：获取APP文件大小
-//参数：无
-//返回：APP信息头的大小。
+//功能：获取APP的运行地址
+//参数：apphead：App信息块地址
+//返回：APP的运行地址。
 //==============================================================================
 void * XIP_GetAPPStartAddr(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  (void *)p_apphead->VirtAddr;
 }
-
+//==============================================================================
+//功能：获取APP文件大小
+//参数：apphead：App信息块地址
+//返回：APP信息头的大小，该大小是升级时文件系统读到的大小。
+//==============================================================================
 u32 XIP_GetAPPSize(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  p_apphead->filesize;
 }
 
-bool_t XIP_APPIsDebug(void )
-{
-#if defined(DEBUG)
-    return true;
-#else
-    return false;
-#endif
-}
-
+//bool_t XIP_APPIsDebug(void )
+//{
+//#if defined(DEBUG)
+//    return true;
+//#else
+//    return false;
+//#endif
+//}
+//==============================================================================
+//功能：获取APP文件大小
+//参数：apphead：App信息块地址
+//返回：APP信息头的大小，该大小是app.bin文件的大小，由外部工具填充。
+//==============================================================================
 u32 Get_AppSize(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     return  p_apphead->appbinsize;
 }
-//获取APP名字
+//==============================================================================
+//功能：获取APP文件文件名
+//参数：apphead：App信息块地址
+//返回：APP的文件名。
+//==============================================================================
 char* Get_AppName(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
@@ -794,25 +759,25 @@ char* Get_AppName(void * apphead)
 
 
 //运行APP
-bool_t File_Run_App(void * apphead)
-{
-    struct AppHead*  p_apphead = apphead;
-    Iboot_App_Info.runflag.runmode_iboot= 0;
-    Iboot_App_Info.runflag.runmode_app  = 1;
-    Iboot_App_Info.runflag.restart_run_app = 0;
-
-    Iboot_App_Info.runflag.error_app_no_file = 0;
-    Iboot_App_Info.runflag.error_app_check = 0;
-    Iboot_App_Info.runflag.error_app_size = 0;
-
-    Iboot_App_Info.runflag.run_iboot_update_app = 0;
-
-    __asm_bl_fun((void*)p_apphead+sizeof(struct AppHead));
-    return false;
-}
+//bool_t File_Run_App(void * apphead)
+//{
+//    struct AppHead*  p_apphead = apphead;
+//    Iboot_App_Info.runflag.runmode_iboot= 0;
+//    Iboot_App_Info.runflag.runmode_app  = 1;
+//    Iboot_App_Info.runflag.restart_run_app = 0;
+//
+//    Iboot_App_Info.runflag.error_app_no_file = 0;
+//    Iboot_App_Info.runflag.error_app_check = 0;
+//    Iboot_App_Info.runflag.error_app_size = 0;
+//
+//    Iboot_App_Info.runflag.run_iboot_update_app = 0;
+//
+//    __asm_bl_fun((void*)p_apphead+sizeof(struct AppHead));
+//    return false;
+//}
 
 //==============================================================================
-//功能：判断是否为ram中标记运行iboot
+//功能：判断重启后是否强制运行Iboot
 //参数：
 //返回： true/false
 //==============================================================================
@@ -890,6 +855,7 @@ static bool_t Get_IbootBulid_Time(u16 *pyear,u8 *pmon,u8 *pday,u8 *phour,u8 *pmi
         return false;
     return true;
 }
+#endif
 //==============================================================================
 //功能：设置app编译时间
 //参数：年月日时分秒
@@ -915,7 +881,7 @@ bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec)
 }
 //==============================================================================
 //功能：填充板件名到交互信息
-//参数：boardname 板件名 被填充的地址 填充最大长度包括结束符
+//参数：boardname：板件名称；buf：待写入的地址；maxlen：板件名称最大长度。
 //返回： true/false
 //==============================================================================
 static bool_t Fill_boardname(char* boardname,char* buf,u8 maxlen)
@@ -934,34 +900,6 @@ static bool_t Fill_boardname(char* boardname,char* buf,u8 maxlen)
     if(i==maxlen)
     {
         buf[maxlen-1] = 0;
-        return false;
-    }
-    return true;
-
-
-}
-
-//==============================================================================
-//功能：填待升级文件路径到交互信息
-//参数：AppPath -- 待升级的app路径；
-//返回： true/false
-//==============================================================================
-bool_t Fill_MutualUpdatePath(char* Path)
-{
-    u8 i;
-    for(i=0; i<MutualPathLen; i++)
-    {
-        if(*Path != 0)
-            Iboot_App_Info.update_path[i] = *Path++;
-        else
-        {
-            Iboot_App_Info.update_path[i] = *Path++;
-            break;
-        }
-    }
-    if(i==MutualPathLen)
-    {
-        Iboot_App_Info.update_path[MutualPathLen-1] = 0;
         return false;
     }
     return true;
@@ -994,11 +932,13 @@ bool_t Si_IbootAppInfoInit()
             PowerUp = true;
             break;
     }
+#if (CFG_RUNMODE_BAREAPP == 0)
     Get_IbootBulid_Time(&Iboot_App_Info.iboot_buildyear,&Iboot_App_Info.iboot_buildmon,&Iboot_App_Info.iboot_buildmday,\
     &Iboot_App_Info.iboot_buildhour,&Iboot_App_Info.iboot_buildmin,&Iboot_App_Info.iboot_buildsec);
     Iboot_App_Info.ibootVer_small = CFG_IBOOT_VERSION_SMALL;         //iboot 版本
     Iboot_App_Info.ibootVer_medium = CFG_IBOOT_VERSION_MEDIUM;         //iboot 版本
     Iboot_App_Info.ibootVer_large = CFG_IBOOT_VERSION_LARGE;         //iboot 版本
+#endif
     Fill_boardname(DJY_BOARD,Iboot_App_Info.boardname,sizeof(Iboot_App_Info.boardname));
     if(PowerUp == true)                        //上电复位初始化
     {
@@ -1070,130 +1010,6 @@ bool_t Si_IbootAppInfoInit()
     return true;
 }
 
-//=============================================================================
-//功能：根据启动模式填充信息
-//参数：
-//返回：
-//=============================================================================
-bool_t Run_Iboot(enum runibootmode mode)
-{
-    Iboot_App_Info.runflag.heard_set_run_iboot  = 0;
-    Iboot_App_Info.runflag.restart_run_iboot    = 0;
-//    Iboot_App_Info.runflag.reboot_flag    = 0;
-    Iboot_App_Info.runflag.runmode_iboot =1;
-    Iboot_App_Info.runflag.runmode_app   =0;
-    switch(mode)
-    {
-        case HEARD_SET_RUN_IBOOT :
-            Iboot_App_Info.runflag.heard_set_run_iboot  = 1;
-            break;
-        case RAM_SET_RUN_IBOOT   :
-//            Iboot_App_Info.runflag.reboot_flag    = 1;
-            break;
-        case CHACK_ERROR :
-            break;
-        case UPDATE_APP_RUN_IBOOT:
-
-            break;
-        default : break;
-    }
-    Load_Preload();
-    return false;
-}
-
-//==============================================================================
-//功能：Direct模式运行APP
-//参数：
-//返回：
-//==============================================================================
-static bool_t __RunApp(void * apphead)
-{
-    struct AppHead*  p_apphead = apphead;
-    struct AppHead app_head;
-
-    u8 * buf = (u8*)&app_head;
-    u8 *bufapp = apphead;
-    u32 i;
-    if(p_apphead->djyflag[0]!='d' ||p_apphead->djyflag[1]!='j' ||p_apphead->djyflag[2]!='y' )
-    {
-        Iboot_App_Info.runflag.error_app_no_file = 1;
-        return false;
-    }
-    for(i=0;i<sizeof(struct AppHead);i++)
-        buf[i] = bufapp[i];
-    Iboot_App_Info.runflag.restart_run_app = 0;
-    Iboot_App_Info.runflag.error_app_check = 0;
-    Iboot_App_Info.runflag.error_app_size  = 0;
-    if(p_apphead->appbinsize != p_apphead->filesize)
-    {
-        Iboot_App_Info.runflag.error_app_size  = 1;
-    }
-    if(p_apphead->Verification !=VERIFICATION_NULL)
-    {
-        Verification_AppInit(&app_head);
-        Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
-        Verification_AppExit(&app_head);
-        if(false == Verification_compare(apphead,&app_head))
-        {
-            Iboot_App_Info.runflag.error_app_check = 1;
-            return false;
-        }
-    }
-    Iboot_App_Info.runflag.runmode_iboot        = 0;
-    Iboot_App_Info.runflag.runmode_app     = 1;
-    __asm_bl_fun((u32)p_apphead+sizeof(struct AppHead));
-    return false;
-}
-
-//==============================================================================
-//功能:启动APP
-//
-//
-//
-//
-//==============================================================================
-bool_t Run_App(enum runappmode mode)
-{
-    Iboot_App_Info.runflag.heard_set_run_iboot  = 0;
-
-    switch (mode)
-    {
-        case RUN_APP_FROM_FILE   :
-            Iboot_App_Info.runflag.runmode_iboot        = 0;
-            Iboot_App_Info.runflag.runmode_app          = 1;
-            Load_Preload();
-            return false;
-        case RUN_APP_FROM_DIRECT :
-            __RunApp(gc_pAppOffset);
-            return false;
-        default:          break;
-    }
-    return false;
-}
-
-
-//=============================================================================
-//功能：文件升级后更新升级标志执行相应的iboot或APP
-//参数：
-//返回：
-//=============================================================================
-bool_t Update_ToRun()
-{
-
-    if(Iboot_App_Info.runflag.update_runmode ==0)//iboot
-    {
-
-        Iboot_App_Info.runflag.restart_run_iboot = 1;
-    }
-    else
-    {
-        Iboot_App_Info.runflag.restart_run_app = 1;
-    }
-    Djy_EventDelay(5000*1000);		//延时一下，让升级过程中的信息能打印出来
-    reset();
-    return true;
-}
-
 //==============================================================================
 //功能：清除重启不更新的一些标志复位信息标志shell函数
 //参数：null
@@ -1203,20 +1019,6 @@ bool_t clear_resetflag()
 {
     Iboot_App_Info.runflag.soft_reset_flag = 0;
     Iboot_App_Info.runflag.call_fun_resent = 0;//指令引起的复位
-    return true;
-}
-//==============================================================================
-//功能：设置复位前的运行模式
-//参数：null
-//返回值：true
-//==============================================================================
-bool_t Set_PreviouResetFlag()
-{
-    if(Iboot_App_Info.runflag.runmode_app == 1)
-        Iboot_App_Info.PreviouReset = PREVIOURESET_APP;
-    if(Iboot_App_Info.runflag.runmode_iboot == 1)
-        Iboot_App_Info.PreviouReset = PREVIOURESET_IBOOT;
-
     return true;
 }
 
@@ -1266,6 +1068,169 @@ bool_t Set_RebootFlag()
 bool_t Set_RestartAppFlag()
 {
     Iboot_App_Info.runflag.restart_app_flag = 1;
+    return true;
+}
+#if (CFG_RUNMODE_BAREAPP == 0)
+//==============================================================================
+//功能：填待升级文件路径到交互信息
+//参数：AppPath -- 待升级的app路径；
+//返回： true/false
+//==============================================================================
+bool_t Fill_MutualUpdatePath(char* Path)
+{
+    u8 i;
+    for(i=0; i<MutualPathLen; i++)
+    {
+        if(*Path != 0)
+            Iboot_App_Info.update_path[i] = *Path++;
+        else
+        {
+            Iboot_App_Info.update_path[i] = *Path++;
+            break;
+        }
+    }
+    if(i==MutualPathLen)
+    {
+        Iboot_App_Info.update_path[MutualPathLen-1] = 0;
+        return false;
+    }
+    return true;
+
+
+}
+//=============================================================================
+//功能：根据启动模式填充信息
+//参数：mode：iboot的启动模式
+//返回：true/false
+//=============================================================================
+bool_t Run_Iboot(enum runibootmode mode)
+{
+    Iboot_App_Info.runflag.heard_set_run_iboot  = 0;
+    Iboot_App_Info.runflag.restart_run_iboot    = 0;
+//    Iboot_App_Info.runflag.reboot_flag    = 0;
+    Iboot_App_Info.runflag.runmode_iboot =1;
+    Iboot_App_Info.runflag.runmode_app   =0;
+    switch(mode)
+    {
+        case HEARD_SET_RUN_IBOOT :
+            Iboot_App_Info.runflag.heard_set_run_iboot  = 1;
+            break;
+        case RAM_SET_RUN_IBOOT   :
+//            Iboot_App_Info.runflag.reboot_flag    = 1;
+            break;
+        case CHACK_ERROR :
+            break;
+        case UPDATE_APP_RUN_IBOOT:
+
+            break;
+        default : break;
+    }
+    Load_Preload();
+    return true;
+}
+
+//==============================================================================
+//功能：Direct模式运行APP
+//参数：apphead：App信息块地址
+//返回：true/false
+//==============================================================================
+static bool_t __RunApp(void * apphead)
+{
+    struct AppHead*  p_apphead = apphead;
+    struct AppHead app_head;
+
+    u8 * buf = (u8*)&app_head;
+    u8 *bufapp = apphead;
+    u32 i;
+    if(p_apphead->djyflag[0]!='d' ||p_apphead->djyflag[1]!='j' ||p_apphead->djyflag[2]!='y' )
+    {
+        Iboot_App_Info.runflag.error_app_no_file = 1;
+        return false;
+    }
+    for(i=0;i<sizeof(struct AppHead);i++)
+        buf[i] = bufapp[i];
+    Iboot_App_Info.runflag.restart_run_app = 0;
+    Iboot_App_Info.runflag.error_app_check = 0;
+    Iboot_App_Info.runflag.error_app_size  = 0;
+    if(p_apphead->appbinsize != p_apphead->filesize)
+    {
+        Iboot_App_Info.runflag.error_app_size  = 1;
+    }
+    if(p_apphead->Verification !=VERIFICATION_NULL)
+    {
+        Verification_AppInit(&app_head);
+        Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
+        Verification_AppExit(&app_head);
+        if(false == Verification_compare(apphead,&app_head))
+        {
+            Iboot_App_Info.runflag.error_app_check = 1;
+            return false;
+        }
+    }
+    Iboot_App_Info.runflag.runmode_iboot        = 0;
+    Iboot_App_Info.runflag.runmode_app     = 1;
+    __asm_bl_fun((u32)p_apphead+sizeof(struct AppHead));
+    return true;
+}
+
+//==============================================================================
+//功能:启动APP
+//参数：mode：app的启动模式
+//返回：true/false
+//==============================================================================
+bool_t Run_App(enum runappmode mode)
+{
+    Iboot_App_Info.runflag.heard_set_run_iboot  = 0;
+
+    switch (mode)
+    {
+        case RUN_APP_FROM_FILE   :
+            Iboot_App_Info.runflag.runmode_iboot        = 0;
+            Iboot_App_Info.runflag.runmode_app          = 1;
+            Load_Preload();
+            return true;
+        case RUN_APP_FROM_DIRECT :
+            __RunApp(gc_pAppOffset);
+            return true;
+        default:          break;
+    }
+    return false;
+}
+
+
+//=============================================================================
+//功能：文件升级后根据升级标志执行相应的iboot或APP
+//参数：无
+//返回：true/false
+//=============================================================================
+bool_t Update_ToRun()
+{
+
+    if(Iboot_App_Info.runflag.update_runmode ==0)//iboot
+    {
+
+        Iboot_App_Info.runflag.restart_run_iboot = 1;
+    }
+    else
+    {
+        Iboot_App_Info.runflag.restart_run_app = 1;
+    }
+    Djy_EventDelay(5000*1000);		//延时一下，让升级过程中的信息能打印出来
+    reset();
+    return true;
+}
+//==============================================================================
+//功能：设置复位前的运行模式
+//参数：null
+//返回值：true
+//==============================================================================
+bool_t Set_PreviouResetFlag()
+{
+    if(Iboot_App_Info.runflag.runmode_app == 1)
+        Iboot_App_Info.PreviouReset = PREVIOURESET_APP;
+    if(Iboot_App_Info.runflag.runmode_iboot == 1)
+        Iboot_App_Info.PreviouReset = PREVIOURESET_IBOOT;
+
     return true;
 }
 //==============================================================================
@@ -1346,7 +1311,7 @@ u32 Get_UpdateSource(void)
      return Iboot_App_Info.runflag.update_from;
 }
 //==============================================================================
-//功能：清除运行iboot并更新app标志
+//功能：清除运行app并更新iboot标志
 //参数：null
 //返回值：true
 //==============================================================================
@@ -1374,9 +1339,9 @@ char Get_RunMode(void)
 //==============================================================================
 //功能：获取交互信息中的App路径
 //参数：无
-//返回值：buf -- 待升级app路径
+//返回值：待升级app路径
 //==============================================================================
-char * Get_MutualAppPath(void)
+char * Get_MutualUpdatePath(void)
 {
     return (char *)Iboot_App_Info.update_path;
 }
@@ -1405,19 +1370,6 @@ char Get_Updateiboot(void)
     else
         return -1;
 }
-//==============================================================================
-//功能：获取iboot和APP的信息
-//参数：无
-//返回值：0 -- 需要升级app；-1 -- 不需要升级app
-//==============================================================================
-void Get_IbootAppInfo(struct IbootAppInfo *get_info)
-{
-    struct IbootAppInfo *info = get_info;
-
-    strncpy((char *)info, (const char *)&Iboot_App_Info, sizeof(struct IbootAppInfo));
-}
-
-
 //========================SHELL================================================
 static bool_t ibootinfo( )
 {
@@ -1451,10 +1403,33 @@ static bool_t appinfo( )
 
     return true;
 }
+//==============================================================================
+//功能：设置更新后运行指定模式
+//参数：0 -- 运行iboot；1 -- 运行app
+//返回值：true
+//==============================================================================
+bool_t Set_UpdateRunModet(u8 mode)
+{
+    Iboot_App_Info.runflag.update_runmode = mode;
+
+    return true;
+}
+#endif
+//==============================================================================
+//功能：获取iboot和APP的信息
+//参数：共享信息结构体地址
+//返回值：无
+//==============================================================================
+void Get_IbootAppInfo(struct IbootAppInfo *get_info)
+{
+    struct IbootAppInfo *info = get_info;
+
+    strncpy((char *)info, (const char *)&Iboot_App_Info, sizeof(struct IbootAppInfo));
+}
 
 static bool_t iapmode( )
 {
-
+#if (CFG_RUNMODE_BAREAPP == 0)
     if(Iboot_App_Info.runflag.heard_set_run_iboot)
         printf( "硬件件设置运行iboot\n\r");
     if(Iboot_App_Info.runflag.restart_run_iboot)
@@ -1478,13 +1453,16 @@ static bool_t iapmode( )
     if(Iboot_App_Info.runflag.update_from)
         printf( "升级文件来源    %d   \r\n", Iboot_App_Info.runflag.update_from); //升级文件来源（默认为0不打印） 1——3待定义
     if(Iboot_App_Info.runflag.update_runmode        )
-        printf( "升级完成后运行0.iboot --  1.app \r\n");
+        printf( "升级完成后运行  app \r\n");
+    else
+        printf( "升级完成后运行  iboot \r\n");
     if(Iboot_App_Info.runflag.error_app_check       )
         printf( "校验出错     \r\n");
     if(Iboot_App_Info.runflag.error_app_no_file     )
-        printf( "没有这个文件或文件格式错误      \r\n");
+        printf( "没有app文件或文件格式错误      \r\n");
     if(Iboot_App_Info.runflag.error_app_size  )
         printf( "App文件大小错误   \r\n");
+#endif
      //上电复位硬件标志0=无此硬件；1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
     if(Iboot_App_Info.runflag.head_wdt_reset)
         printf( "看门狗复位 \r\n");
@@ -1505,22 +1483,10 @@ static bool_t iapmode( )
 
     return true;
 }
-
-//==============================================================================
-//功能：设置更新后运行指定模式
-//参数：0 -- 运行iboot；1 -- 运行app
-//返回值：true
-//==============================================================================
-bool_t Set_UpdateRunModet(u8 mode)
-{
-    Iboot_App_Info.runflag.update_runmode = mode;
-
-    return true;
-}
-
+#if (CFG_RUNMODE_BAREAPP == 0)
 ADD_TO_ROUTINE_SHELL(ibootinfo,ibootinfo,NULL);
 ADD_TO_ROUTINE_SHELL(appinfo,appinfo,NULL);
-ADD_TO_ROUTINE_SHELL(iapmode,iapmode,NULL);
 ADD_TO_ROUTINE_SHELL(filesource,Set_UpdateSource,NULL);
-
 #endif      //for (CFG_RUNMODE_BAREAPP == 0)
+ADD_TO_ROUTINE_SHELL(iapmode,iapmode,NULL);
+

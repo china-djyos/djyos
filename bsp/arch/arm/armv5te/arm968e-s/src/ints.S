@@ -12,7 +12,7 @@
 .equ BOOT_FIQ_IRQ_MASK,                 0xC0
 .equ BOOT_IRQ_MASK,                     0x80
 
-.section ".rom1", "ax"
+.equ    INTSTATUS , (0x00802000 + 19 * 4)
 /*
 @----进入低级原子操作---------------------------------------------------------
 @功能：读取当前异步信号开关状态，然后禁止异步信号。低级级原子操作可用来防止临界
@@ -28,6 +28,7 @@
 @函数原型:atom_low_t Int_LowAtomStart(void)
 @-----------------------------------------------------------------------------
 */
+.text
 .align 2
 .globl Int_LowAtomStart
 .type Int_LowAtomStart, %function
@@ -51,6 +52,7 @@ Int_LowAtomStart:
 @函数原型:void Int_LowAtomEnd(atom_low_t low)
 @-----------------------------------------------------------------------------
 */
+.text
 .align 2
 .globl Int_LowAtomEnd
 .type Int_LowAtomEnd, %function
@@ -69,6 +71,7 @@ Int_LowAtomEnd:
 @函数原型:atom_high_t Int_HighAtomStart(void)
 @-----------------------------------------------------------------------------
 */
+.text
 .align 2
 .globl Int_HighAtomStart
 .type Int_HighAtomStart, %function
@@ -89,6 +92,7 @@ Int_HighAtomStart:
 @函数原型:void Int_HighAtomEnd(atom_high_t high)
 @-----------------------------------------------------------------------------
 */
+.text
 .align 2
 .globl Int_HighAtomEnd
 .type Int_HighAtomEnd, %function
@@ -96,8 +100,9 @@ Int_HighAtomEnd:
     MSR     CPSR_c, R0
     BX      LR
 
-    .globl portENABLE_IRQ
-    .type portENABLE_IRQ, %function
+.text
+.globl portENABLE_IRQ
+.type portENABLE_IRQ, %function
 portENABLE_IRQ:
     MRS     R0, CPSR
     BIC     R1, R0, #0x80
@@ -107,8 +112,9 @@ portENABLE_IRQ:
 ;/*
 ; * void portENABLE_FIQ( void );
 ; */
-    .globl portENABLE_FIQ
-    .type portENABLE_FIQ, %function
+.text
+.globl portENABLE_FIQ
+.type portENABLE_FIQ, %function
 portENABLE_FIQ:
     MRS     R0, CPSR
     BIC     R1, R0, #0x40
@@ -118,8 +124,9 @@ portENABLE_FIQ:
 ;/*
 ; * int portDISABLE_IRQ( void );
 ; */
-    .globl portDISABLE_IRQ
-    .type portDISABLE_IRQ, %function
+.text
+.globl portDISABLE_IRQ
+.type portDISABLE_IRQ, %function
 portDISABLE_IRQ:
     MRS     R2, CPSR
     ORR     R1, R2, #0x80
@@ -130,8 +137,9 @@ portDISABLE_IRQ:
 ;/*
 ; * int portDISABLE_FIQ( void );
 ; */
-    .globl portDISABLE_FIQ
-    .type portDISABLE_FIQ, %function
+.text
+.globl portDISABLE_FIQ
+.type portDISABLE_FIQ, %function
 portDISABLE_FIQ:
     MRS     R2, CPSR
     ORR     R1, R2, #0x40
@@ -200,7 +208,8 @@ boot_reserved:
     BL boot_reserved
     B       .
 
-        .align  5
+
+ .align  5
 .globl irq_handler
 .type irq_handler, %function
 irq_handler:
@@ -211,9 +220,13 @@ irq_handler:
     orr r1, r4, #NOINT          @; disable interrupt
     msr cpsr_c, r1
 
-    /*BL      rt_interrupt_enter*/
     BL      djy_irq_dispatch
-    /*BL      rt_interrupt_leave*/
+
+@    LDR R0,=INTSTATUS
+@    LDR R0,[R0]
+@    LDR     R2, =intertab         /* 取异步信号地址 */
+@    MOV     LR,PC               /* 这执行4G空间内的函数调用 */
+@    LDR     PC,[R2]             /* INTN状态用R0传递 */
 
     LDR     R0, =djy_switch_interrupt_flag
     LDR     R1, [R0]
@@ -273,15 +286,19 @@ djy_context_switch_interrupt_do:
     /*从栈里面弹出r0-r12,lr,pc，弹出pc后是立即跳转到线程里面执行了*/
     LDMFD   SP!, {R0-R12,LR,PC}^
 
-        .align  5
+
+.align  5
 .globl fiq_handler
 .type fiq_handler, %function
 fiq_handler:
     STMFD   SP!,{R0-R7,LR}
 
-    /*BL      rt_interrupt_enter*/
-    BL      djy_fiq_dispatch
-    /*BL      rt_interrupt_leave*/
+	BL      djy_fiq_dispatch
+@    LDR R0,=INTSTATUS
+@    LDR R0,[R0]
+@    LDR     R2, =intertab         /* 取异步信号地址 */
+@    MOV     LR,PC               /* 这执行4G空间内的函数调用 */
+@    LDR     PC,[R2]             /* INTN状态用R0传递 */
 
     MRS R3, spsr
     AND R2, R3, #0x1F
@@ -333,3 +350,64 @@ djy_context_switch_interrupt_fiq_do:
     MSR     SPSR_cxsf, R4
 
     LDMFD   SP!, {R0-R12,LR,PC}^
+
+@ .text
+@ .align  2
+@ .globl irq_handler
+@ .type irq_handler, %function
+@ irq_handler:
+@     /*把R0-R12,LR存到SP栈里面*/
+@     STMFD   SP!,{R0-R12,LR}          /* 保护寄存器,以及返回地址 */
+@     LDR R0,=INTSTATUS
+@     LDR R0,[R0]
+@
+@     MRS     R1,SPSR
+@     STMFD   SP!,{R1}                 /* 保护SPSR，以支持中断嵌套 */
+@
+@     MSR     CPSR,#SF_SVCMODE|SF_IRQ_BIT|SF_FIQ_BIT   /* 进入SVCMODE,以便允许中断嵌套 */
+@     STMFD   SP!,{R0,LR}             /* 保存LR_SVC,R0是保持栈8字节对齐的填充物 */
+@     /*LDR     R2,=IRQ_BOTTOM                     取异步信号地址 */
+@     LDR         R2, =intertab         /* 取异步信号地址 */
+@     MOV     LR,PC               /* 这执行4G空间内的函数调用 */
+@     LDR     PC,[R2]             /* INTN用R0传递,mode R1传递 */
+@     LDMFD   SP!,{R0,LR}     /* 恢复LR_SVC, */
+@     MSR     CPSR,#SF_IRQMODE|SF_IRQ_BIT|SF_FIQ_BIT /* 更新CPSR,进入IRQ模式并禁止中断,由于LR寄存
+@                                         器的问题,进入IRQ或者FIQ模式，均要禁止中断以防嵌套，
+@                                         只有在进入SVC状态才允许嵌套 */
+@     LDMFD   SP!,{R0}        /* SPSR->R0 */
+@     MSR     SPSR,R0    /* 恢复SPSR */
+@     LDMFD   SP!,{R0-R12,LR}
+@     SUBS    PC,LR,#4        /* 此后，中断被重新打开 */
+@
+@ .text
+@ .align  2
+@ .globl fiq_handler
+@ .type fiq_handler, %function
+@ fiq_handler:
+@ 	/*把R0-R12,LR存到SP栈里面*/
+@     STMFD   SP!,{R0-R12,LR}          /* 保护寄存器,以及返回地址 */
+@     LDR R0,=INTSTATUS
+@     LDR R0,[R0]
+@     MRS     R1,SPSR
+@     STMFD   SP!,{R1}                 /* 保护SPSR_IRQ，以支持中断嵌套 */
+@
+@     MSR     CPSR,#SF_SVCMODE|SF_IRQ_BIT|SF_FIQ_BIT    /* 进入SVCMODE,以便允许中断嵌套 */
+@     STMFD   SP!,{R0,LR}             /* 保存LR_SVC,R0是保持栈8字节对齐的填充物 */
+@
+@     /*LDR     R2,=IRQ_BOTTOM                     取异步信号地址 */
+@     LDR         R2, =intertab+4         /* 取异步信号地址 */
+@
+@     MOV     LR,PC               /* 这执行4G空间内的函数调用 */
+@     LDR     PC,[R2]             /* INTN用R0传递 */
+@
+@     LDMFD   SP!,{R0,LR}     /* 恢复LR_SVC, */
+@     MSR     CPSR,#SF_FIQMODE|SF_FIQ_BIT|SF_IRQ_BIT   /* 更新CPSR,进入IRQ模式并禁止中断,由于LR寄存
+@                                         器的问题,进入IRQ或者FIQ模式，均要禁止中断以防嵌套，
+@                                         只有在进入SVC状态才允许嵌套 */
+@     LDMFD   SP!,{R0}        /* SPSR->R0 */
+@     MSR     SPSR,R0    /* 恢复SPSR */
+@     LDMFD   SP!,{R0-R12,LR}
+@     SUBS    PC,LR,#4        /* 此后，中断被重新打开 */
+
+
+.end

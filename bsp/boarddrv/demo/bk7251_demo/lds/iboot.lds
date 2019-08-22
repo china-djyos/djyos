@@ -1,26 +1,5 @@
-OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
-OUTPUT_ARCH(arm)
 ENTRY(isr_vector);
-
-/*由于MEMORY命令不能使用符号，这些常量的定义，必须与MEMORY命令处一致 */
-IbootSize = 1500k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
-FlashOffset = 0x00000000;
-FlashSize = 2000K;
-RamStart = 0x00410000;
-RamSize = 192K;
-DtcmStart = 0x00400000;
-DtcmSize = 64K;
-SDRamStart = 0x00900000;
-SDRamSize = 256K;
-
-/* Split memory into area for vectors and ram */
-MEMORY
-{
-        flash  (rx) : ORIGIN = 0x00000000, LENGTH = 1500k /* 1216KB - 96B */
-        dtcm  (rw!x): ORIGIN = 0x00400000, LENGTH = 64k
-        ram   (rw!x): ORIGIN = 0x00410000, LENGTH = 192k
-        sdram (rw!x): ORIGIN = 0x00900000, LENGTH = 256k
-}
+INCLUDE  ../src/lds/memory.lds
 
 SECTIONS
 {
@@ -37,38 +16,49 @@ SECTIONS
         KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))    
     }>ram
 
+	/*中断异常所需要的栈*/
 	stack_rRAM1_lRAM1 (NOLOAD) :
     {
+    	. = ALIGN(0x04);
+    	 KEEP(* (.data.isrtab))
         . = ALIGN(0x02);
         msp_bottom = .;
         KEEP(* (.data.InitStack))
-		/*. = ALIGN(0x08);*/
-        msp_top = .;
+		 . = ALIGN(0x08); 
+        msp_top = .; 
+
+	    . += 0x10;
+        _stack_unused = .;
+        
+        . += 0x3F0;
+        _stack_svc = .;
+        
+        . += 0xFF0;
+        _stack_irq = .;
+        
+        . += 0x7F0;
+        _stack_fiq = .;
+        
+        . += 0x3F0;
+        _stack_sys = .;
     }>ram
 	
-	Rom_Start :
-    {
-        restore = .; 
-    }>flash
-    
-    /* vectors go to vectors region */
-    /*. = ORIGIN(flash);*/
     .vectors :
     {
         KEEP(*(*.vectors))
         KEEP( *(*.rom1))
         . = ALIGN(4);
-	   KEEP(*initcpus.o(.text .text.* .rodata .rodata.*))
+	   KEEP(*initcpu.o(.text .text.* .rodata .rodata.*))
 	   KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
 	   . = ALIGN(10);
     } > flash
 
-text_preload_rIbootRom_lIbootRom :
+	text_preload_rIbootRom_lIbootRom :
 	{
 		. = ALIGN(0x08);
 		g_pAppCodeStartRamAddr = .;
         *loader.o (.text .text.* .rodata .rodata.*)
-        *int_hard.o (.text .text.* .rodata .rodata.*)
+        *int-hard.o (.text .text.* .rodata .rodata.*)
 		KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
         *hard-exp.o (.text .text.* .rodata .rodata.*)
         *int.o (.text .text.* .rodata .rodata.*)
@@ -98,7 +88,7 @@ text_preload_rIbootRom_lIbootRom :
     {
        . = ALIGN(0x08);
         *loader.o (.data .data.*)
-        *int_hard.o (.data .data.*)
+        *int-hard.o (.data .data.*)
         KEEP(*:hard-exps.o (.data .data.*))
         *hard-exp.o (.data .data.*)
         *int.o (.data .data.*)
@@ -137,6 +127,16 @@ text_preload_rIbootRom_lIbootRom :
 		. = ALIGN(0x4) ;
     }>ram
 	
+    routine_shell_data_section :
+    {
+             KEEP(* (.ro_shell_data))
+     }>ram AT>flash
+        
+    expand_shell_data_section :
+    {
+         KEEP(* (.ex_shell_data))
+     }>ram AT>flash
+         
 	preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -170,7 +170,7 @@ text_preload_rIbootRom_lIbootRom :
        . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(3)
+        LONG(4)
 
         LONG(LOADADDR(text_sysload_rIbootRom_lIbootRom))
         LONG(ADDR(text_sysload_rIbootRom_lIbootRom))
@@ -186,30 +186,34 @@ text_preload_rIbootRom_lIbootRom :
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
+        
+        LONG(LOADADDR(expand_shell_data_section))
+        LONG(ADDR(expand_shell_data_section))
+        LONG(SIZEOF(expand_shell_data_section))
+        LONG(1)
     }>flash
 	
 	heap_rRAM_lRAM (NOLOAD) :
     {
        . = ALIGN(0x08);
         sys_heap_bottom = .;
-		/*__heap_start = .;*/
     }>ram
-    sys_heap_top = RamStart + RamSize;
-	/*__heap_end = RamStart + RamSize;*/
+    sys_heap_top = ORIGIN(ram) + LENGTH(ram);
+	 
 	
 	heap_Dtcm (NOLOAD) :
 	{
 		. = ALIGN(0x08);
 		dtcm_heap_bottom = .;
 	}>dtcm
-	dtcm_heap_top = DtcmStart + DtcmSize;
+	dtcm_heap_top =  ORIGIN(dtcm) + LENGTH(dtcm);
 	
 	SDRAM_lRAM (NOLOAD) :
     {
        . = ALIGN(0x08);
         sdram_bottom = .;
     }>sdram
-    sdram_top = SDRamStart + SDRamSize;
+    sdram_top =  ORIGIN(sdram) + LENGTH(sdram);
 	
 	heap_cp_table :
     {
@@ -271,7 +275,7 @@ text_preload_rIbootRom_lIbootRom :
         gc_pAppOffset = .;          /* APP空间偏置 */
         LONG(IbootSize)
         gc_pAppRange = .;           /* APP空间范围 */
-        LONG(FlashSize - IbootSize)       
+        LONG(LENGTH(flash) - IbootSize)       
     }>flash
     
    Iboot_AppInfo :
@@ -299,13 +303,11 @@ text_preload_rIbootRom_lIbootRom :
     routine_shell_section :
 	{
    		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
  	}>flash
  	
     expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
  	      . = ALIGN(0x08);
  	}>flash
  	
@@ -316,13 +318,4 @@ text_preload_rIbootRom_lIbootRom :
         LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
     }>flash 
 
-    /* _stack symbol defines initial stack bottom addres. Stack grows to lower addresses.
-       Typically you set this to be top of your RAM. Note: code never checks, if stack
-       grows into heap area!
-    */
-    PROVIDE(_stack_unused      = 0x440000 - 0x3F0 - 0x7F0 - 0xFF0 - 0x3F0 - 0x10); /* 0x10*/
-    PROVIDE(_stack_svc         = 0x440000 - 0x3F0 - 0x7F0 - 0xFF0 - 0x3F0); /* 0x3F0*/
-    PROVIDE(_stack_irq         = 0x440000 - 0x3F0 - 0x7F0 - 0xFF0); /* 0xFF0*/
-    PROVIDE(_stack_fiq         = 0x440000 - 0x3F0 - 0x7F0); /* 0x7F0*/
-    PROVIDE(_stack_sys         = 0x440000 - 0x3F0); /* 0x3F0*/
 }

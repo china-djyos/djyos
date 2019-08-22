@@ -646,7 +646,7 @@ static struct objhandle *__fat_open(struct Object *ob, u32 flags, char *full)
             //TODO：从yaffs2中读取权限等，暂时赋予全部权限。
             obj_mode = S_IALLUGO | S_IFDIR;     //建立的路径，属性是目录。
             //继承操作方法，对象的私有成员保存访问模式（即 stat 的 st_mode ）
-            ob = obj_buildpath(ob, __fat_operations, obj_mode,full);
+            ob = obj_BuildTempPath(ob, __fat_operations, obj_mode,full);
             obj_mode = S_IALLUGO | property;     //最末端的也许是文件
             obj_LinkHandle(hdl, ob);
         }
@@ -680,7 +680,7 @@ static s32 __fat_close(struct objhandle *hdl)
         return (-1);
 
     free(context);
-    handle_Delete(hdl);
+//  handle_Delete(hdl);
     return (0);
 }
 
@@ -1149,7 +1149,7 @@ s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
         return (-1);
     }
 
-//    __InuseUpFullPath(mountobj);
+//    obj_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;          //直接挂载不用备份
     res = mountfs(NULL, mountpoint, "FAT", opt, data);
     if(res == -1)

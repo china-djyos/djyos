@@ -1497,7 +1497,6 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
         gkwin->disp->z_topmost = gkwin->z_back;
     gkwin->z_back->z_top = gkwin->z_top;
     gkwin->z_top->z_back = gkwin->z_back;
-    obj_Close(gkwin->HostObj);
     obj_Delete(gkwin->HostObj);
     if(gkwin->visible_clip != NULL)
         gkwin->disp->reset_clip = true;

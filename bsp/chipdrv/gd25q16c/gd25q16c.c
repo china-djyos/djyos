@@ -126,7 +126,7 @@ static void gd25q16c_CsInActive(void)
 //=====================================================================
 static s32 gd25q16c_TxRx(u8* sdata,u32 slen,u8* rdata, u32 rlen,u32 RecvOff)
 {
-    if(SPI_TxRx_Int(sdata, slen, rdata, rlen) == false)
+    if(SPI_TxRx(sdata, slen, rdata, rlen, RecvOff) == false)
         return -1;
     return 0;
 }

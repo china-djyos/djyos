@@ -59,23 +59,6 @@ uint32_t *djy_interrupt_from_thread = NULL;
 uint32_t *djy_interrupt_to_thread = NULL;
 static uint64_t gRunTicks = 0;
 static bool_t gResumeTickFlag = false;
-/*??????????????:pc,lr,r12-r4,r3-r0,spsr*/
-void *__asm_reset_thread(ptu32_t (*thread_routine)(void),
-                            struct ThreadVm  *vm)
-{
-    uint32_t *stk = vm->stack_top;
-    *(--stk) = (uint32_t)__Djy_VmEngine;         /* entry point */
-    *(--stk) = (uint32_t)__Djy_VmEngine;          /* lr */
-    stk -=12;
-    *(--stk) = (uint32_t)thread_routine;           /*R0*/
-    /* cpsr */
-	if ((uint32_t)thread_routine & 0x01)
-		*(--stk) = SVCMODE | 0x20;			/* thumb mode */
-	else
-		*(--stk) = SVCMODE;					/* arm mode   */
-    vm->stack = stk;
-    return stk;
-}
 
 // =============================================================================
 // 功能：在系统起来以后需把各种标志复位
@@ -138,7 +121,7 @@ __attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
 
 void reset(u32 key)
 {
-
+	_start();
 }
 
 void restart_app(u32 key)

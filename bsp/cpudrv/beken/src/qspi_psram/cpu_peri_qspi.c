@@ -84,7 +84,7 @@
 #define CFG_QSPI_RAM_PAGE_SIZE              1024          //RAM的页尺寸，默认1K。
 #define CFG_QSPI_RAM_ALIGNMENT              0             //要求的对齐尺寸，0表示用系统的对齐尺寸
 //%$#@enum,true,false,
-#define CFG_QSPI_RAM_DEDICATED              true         //true表示专用heap，false表示通用heap。
+#define CFG_QSPI_RAM_DEDICATED              false         //true表示专用heap，false表示通用heap。
 //%$#@string,1,10,
 #define CFG_QSPI_RAM_HEAP_NAME              "PSRAM"      //新建的heap名字。
 //%$#@select

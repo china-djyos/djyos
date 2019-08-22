@@ -1,0 +1,70 @@
+厂商ID:5cb1a97975afb0166f531abf
+可使用的测试
+SN：djyosSN1
+djyosSN2
+djyosSN3
+djyosSN4
+djyosSN5
+五个
+
+
+
+1,获取账号的appkey 、appsecret
+	http://regsrv1.guogee.com:86/api/user/CheckLogin?UserName=djyostest&UserPwd=zhongqin123&cid=0
+	{"result":true,
+	"value":{
+		"MobileNo":"0",
+		"UserPwd":"835b2fd6a02698ce0ab1d288d7322ab2",
+		"LastLoginTime":"Tue Apr 16 18:42:26 CST 2019",
+		"UserName":"djyostest","Email":"chengzhao33@qq.com",
+		"UserLevel":"0","LoginTimes":"0",
+		"AllowLogin":"true",
+		"id":"5cb19b9d75afb0166f52f5ce",
+		"userType":"0",
+		"FirstLoginTime":"Sat Apr 13 16:19:41 CST 2019"}}
+		
+	再调用
+	http://regsrv1.guogee.com:86/api/user/startAppkey
+	
+	{"result":true,
+	"appKey":"5cb2ccd975afb0166f545e9a",
+	"appSecret":"v7j08wrpti76k1f0tulv",
+	"userName":"djyostest"}
+	
+	
+2,获取access_token 
+	http://regsrv1.guogee.com/guogee/user/auth/robot/access_token/58d4a7860cf2e5f57668c6f7/t1lesde8afmfppgztexw/7?vendorId=58d1de990cf2ce4865be008a&sn=guogeeSN17	
+	http://regsrv1.guogee.com/guogee/user/auth/robot/access_token/{appKey}/{appSecret}/{type}?vendorId=5cb1a97975afb0166f531abf&sn=djyosSN1
+	
+	http://regsrv1.guogee.com/guogee/user/auth/robot/access_token/5cb2ccd975afb0166f545e9a/v7j08wrpti76k1f0tulv/7?vendorId=5cb1a97975afb0166f531abf&sn=djyosSN1
+	
+{"result":true,"token":"85775b29d76b60451ae144573363d351"}
+
+
+
+ws://regsrv1.guogee.com/guogee/voice/api/robot/10000/1.0/f2acd7e8efbaf0d3b330525d642a9a58
+ wss://regsrv1.guogee.com/guogee/voice/api/robot/10000/1.0/8968a2a3781750e5bd548efed617ee1b 
+{"voiceText":"关闭灯"}
+
+
+
+
+{"result":
+	{"recvWavTime":2750,
+	"var":"打开 电视",
+	"processedWavTime":2560,
+	"eof":0,
+	"res":"foxconn_gpu_v01_beta"},
+"eof":0}
+
+
+
+
+
+{"result":
+	{"recvWavTime":2750,
+	"var":"打开 电视",
+	"processedWavTime":2560,
+	"eof":0,
+	"res":"foxconn_gpu_v01_beta"},
+"eof":0}
