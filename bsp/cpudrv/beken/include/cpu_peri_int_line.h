@@ -69,7 +69,7 @@ extern "C" {
 #define CN_INT_LINE_I2C2                              (5)
 #define CN_INT_LINE_SPI                               (6)
 #define CN_INT_LINE_GPIO                              (7)
-#define CN_INT_LINE_TL410_WATCHDOG                    (8)
+#define CN_INT_LINE_TIMER                             (8)
 #define CN_INT_LINE_PWM                               (9)
 #define CN_INT_LINE_AUDIO                             (10)
 #define CN_INT_LINE_SARADC                            (11)
