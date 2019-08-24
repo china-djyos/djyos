@@ -85,6 +85,8 @@ extern "C" {
 
 #define EFS_SUPPORT_MAXFILESIZE   0x3FFFFFFF            //efs文件系统所支持的最大文件大小
 #define EFS_FILESIZE_BYTE_NUMBER   4                    //文件大小的存储占几个字节
+
+#define EFS_RAM_ITEM_BYTE          4    //在RAM中存储文件分配表位置所占的字节数
 //
 // efs文件系统对flash的操作函数集
 //
@@ -121,6 +123,7 @@ typedef struct EfsFileInfo
     u32 start_block; // 存储本文件的首块号。
     u64 max_size; // 本文件最大长度，filesize不能超过这个长度。
     u32 item; // 该文件分配表在分配表中的位置
+    u32 temp_item; //在内存中缓存的分配表中的位置
     u64 filesize; // 文件实际大小
 }tagEfsFileInfo;
 

@@ -95,8 +95,9 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_EASY_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,1073741823,
-#define CFG_EFS_FILE_SIZE_Limit           4096                 // 单个文件大小的上限
-#define CFG_EFS_FILE_CREATE_NUM           50                   // 默认支持的创建最大文件数
+#define CFG_EFS_FILE_SIZE_LIMIT           4096                 // 单个文件大小的上限
+#define CFG_EFS_MAX_CREATE_FILE_NUM       50                   // 默认支持的创建最大文件数
+#define CFG_EFS_MAX_OPEN_FILE_NUM         10                   // 默认支持的同时打开最大文件数
 //%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,
 #define CFG_EFS_INSTALL_OPTION            MS_INSTALLFORMAT      //EFS文件系统安装选项，16777216:文件系统不存在时则新建；256：格式化文件系统
 //%$#@string,1,10,
@@ -117,12 +118,12 @@
 s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                  ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 tagEFS *s_pEfsList[CN_EFS_MAX]; // 简易文件系统列表
-//static u8 tgOpenedSum = 0; // 打开的文件数
+static u8 tgOpenedSum = 0; // 打开的文件数
 static char NameBuf[256];
 static void NameECC(char *Name, u8 *Ecc);
 static s32 ChkOrRecNameByECC(char *Name, u8 *Ecc);
 static s32 Efs_Verify_Install(struct FsCore *pSuper);
-static u32 dwFileMaxSize,EfsCgfLimit,IndexesNum,CreateMax;
+static u32 dwFileMaxSize, EfsCgfLimit, IndexesNum, CreateMax, FileInfoList, Ram_file_info_len;
 
 // =============================================================================
 // 功能：通过ECC修复文件名
@@ -255,8 +256,8 @@ static u32 __Efs_CheckSingleBuf(u8 *buf, u32 index, struct EasyFS *efs)
     u32 temp_files_sum = 0;
     u32 ret = 0;
 
-    item_num = (EfsCgfLimit > efs->block_size)?
-            efs->block_size:EfsCgfLimit;
+    item_num = (FileInfoList > efs->block_size)?
+            efs->block_size:FileInfoList;
     item_num = item_num / EFS_ITEM_LIMIT;       //一个块中存了多少文件索引
     if(index == efs->start_block)
         item_no = 1;            //如果是efs文件系统的起始块，则从第二条开始检查，第一条存的是文件系统信息
@@ -298,8 +299,8 @@ static bool_t __Efs_CheckBlock(u8 *buf_main,u32 index_main, u8 *buf_bak,
     u32 temp_files_sum = 0;
     u8 * correct_filesize;
 
-    item_num = (EfsCgfLimit > efs->block_size)?
-            efs->block_size:EfsCgfLimit;
+    item_num = (FileInfoList > efs->block_size)?
+            efs->block_size:FileInfoList;
     item_num = item_num / EFS_ITEM_LIMIT;       //一个块中存了多少文件索引
     if(index_main == efs->start_block)
         item_no = 1;        //如果是efs文件系统的起始块，则从第二条开始检查，第一条存的是文件系统信息
@@ -404,7 +405,7 @@ static bool_t __Efs_CheckBlock(u8 *buf_main,u32 index_main, u8 *buf_bak,
 //-----------------------------------------------------------------------------
 static bool_t __Efs_CheckAllNameECC(u8 *FileInfoBuf)
 {
-    u32 offset,loop;
+    u32 offset, loop;
     u8 *buf;
 
     for (loop = 1; loop < IndexesNum; loop++)
@@ -418,6 +419,52 @@ static bool_t __Efs_CheckAllNameECC(u8 *FileInfoBuf)
         }
     }
     return true;
+}
+//-----------------------------------------------------------------------------
+//功能: 整理一个flash块中的文件大小空间，文件信息里会有44个文件大小，最后一个才是用的，该函数的作用
+//就是把一个块中，所有的文件信息中的文件大小整理一个，例如某个文件信息里有10个文件大小，只有最后一个是有效的
+//则把前9个文件大小删除，只留下有效的文件大小。
+//参数: core -- efs文件系统管理；file_info_buf某个块中的数据
+//返回:
+//-----------------------------------------------------------------------------
+static void __Efs_Reset_File_Size(struct EasyFS *efs, u8 *file_info_buf)
+{
+    u8 *hsize, *buf;
+    u32 loop, item, block_info_num, file_size = 0;
+    if(FileInfoList > efs->block_size)
+        block_info_num = efs->block_size / EFS_ITEM_LIMIT;
+    else
+        block_info_num = FileInfoList / EFS_ITEM_LIMIT;
+
+    for (loop = 0; loop < block_info_num; loop++)
+    {
+        buf = file_info_buf + (loop * EFS_ITEM_LIMIT);
+        if (memcmp(buf, "easyfile", 8) || memcmp(buf + FILE_VERIFITY_OFF, "easyfile", 8))
+        {
+            if((*buf != 0x00) && (*buf != 0xFF))
+            {
+                for (item = 0; item < FILE_FILESIZE_NUM; item++)
+                {
+                    hsize = (buf + FILE_FILESIZE_END - item * EFS_FILESIZE_BYTE_NUMBER);
+                    if ((pick_little_32bit(hsize,0) == CN_LIMIT_UINT32) ||
+                        (pick_little_32bit(hsize,0) == 0))
+                        continue;
+                    if (__EfsFileSize_verify(*(u32 *)hsize) == 0)
+                    {   //获取目标文件的大小
+                        file_size = (pick_little_32bit(buf,     //从44个文件大小中，找正确的文件大小，从最后开始找
+                                (FILE_FILESIZE_END - item * EFS_FILESIZE_BYTE_NUMBER) >> 2));
+                        break;
+                    }
+                }
+                if(item != 43)
+                {
+                    memset(buf + FILE_FILESIZE_OFF, 0xFF, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);
+//                    file_size = __EfsFileSize_odd_even_check(file_size); //加上校验后的文件大小
+                    fill_little_32bit(buf, FILE_FILESIZE_OFF >> 2, file_size);
+                }
+            }
+        }
+    }
 }
 
 //----修改文件尺寸-------------------------------------------------------------
@@ -442,8 +489,8 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
     efs = (struct EasyFS *)corefs(ob);
     fileinfo = (struct EfsFileInfo *) fp->private;
 
-    cfg_blocks = (EfsCgfLimit + efs->block_size - 1) / efs->block_size;  //文件分配表所占块数
-    block_buf = efs->file_list_buf + (fileinfo->item * EFS_ITEM_LIMIT);
+    cfg_blocks = (FileInfoList + efs->block_size - 1) / efs->block_size;  //文件分配表所占块数
+    block_buf = efs->file_list_buf + (fileinfo->temp_item * Ram_file_info_len);
     ChkOrRecNameByECC((char *)block_buf,block_buf+FILENAME_LIMIT+1);
     //文件尺寸不能大于文件最大尺寸
     file_max_size = pick_little_32bit(block_buf,FILE_MAXSIZE_OFF >> 2);
@@ -453,9 +500,9 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
     fileoffset = fileinfo->item * EFS_ITEM_LIMIT;
     sizeoffset = FILE_FILESIZE_OFF;
     newsize = __EfsFileSize_odd_even_check(newsize); //加上校验后的文件大小
-    for (filesize_no = 0; filesize_no < FILE_FILESIZE_NUM;filesize_no++)
+    for (filesize_no = 0; filesize_no < FILE_FILESIZE_NUM; filesize_no++)
     {
-        if (pick_little_32bit(block_buf + sizeoffset,0) == CN_LIMIT_UINT32) //在主分配表找到空闲位置
+        if (pick_little_32bit(block_buf + sizeoffset, 0) == CN_LIMIT_UINT32) //在主分配表找到空闲位置
         {
             fill_little_32bit(block_buf, sizeoffset >> 2, newsize);
             efs->drv->efs_write_media(efs->start_block, fileoffset + sizeoffset,
@@ -469,28 +516,48 @@ static void __Efs_ChangeFileSize(struct Object *ob, u32 newsize)
 
     if (filesize_no == FILE_FILESIZE_NUM) //主分配表没有空余位置
     {
+        memset(block_buf + FILE_FILESIZE_OFF, 0xFF, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);
+        fill_little_32bit(block_buf, FILE_FILESIZE_OFF >> 2, newsize);
         //先读出整块数据到buf,并擦除
-        efs->drv->efs_read_media(efs->start_block, 0, efs->file_list_buf, EfsCgfLimit, EF_WR_NOECC);
-        __Efs_CheckAllNameECC(efs->file_list_buf);
+        block_buf = NULL;
+        block_buf = malloc(FileInfoList);
+        if(block_buf == NULL)
+        {
+            warning_printf("efs", "failed to modify file size \r\n");
+            return ;
+        }
+        efs->drv->efs_read_media(efs->start_block, 0, block_buf, FileInfoList, EF_WR_NOECC);
+        __Efs_CheckAllNameECC(block_buf);
 
         sizeoffset = fileinfo->item * EFS_ITEM_LIMIT + FILE_FILESIZE_OFF;      //该文件，文件大小的位置
-        memset(efs->file_list_buf + sizeoffset, 0xFF, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);  //把该文件原来存的26个文件大小清除
-        fill_little_32bit(efs->file_list_buf, sizeoffset >> 2, newsize);     //把新的文件大小填进去
-        crc16_check = crc16(efs->file_list_buf, 16);
-        fill_little_16bit((u8*)&temp, 0, crc16_check);    //转化为小端
+        memset(block_buf + sizeoffset, 0xFF, FILE_VERIFITY_OFF - FILE_FILESIZE_OFF);  //把该文件原来存的26个文件大小清除
+        fill_little_32bit(block_buf, sizeoffset >> 2, newsize);     //把新的文件大小填进去
 
         block_no = fileoffset / efs->block_size;
         block_addr = block_no * efs->block_size;
 
-        efs->drv->efs_erase_media(block_no);       //擦主区中该文件信息所属的块
-        efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
-        efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp,2,EF_WR_NOECC);
+        efs->drv->efs_erase_media(efs->start_block + block_no);       //擦主区中该文件信息所属的块
+        __Efs_Reset_File_Size(efs, block_buf + block_addr);
+        if((FileInfoList - block_addr) < efs->block_size)   //如果要写的数据小于一块的大小，那就休实际需要写的大小
+            efs->drv->efs_write_media(efs->start_block + block_no, 0, block_buf + block_addr, FileInfoList - block_addr, EF_WR_NOECC);
+        else
+            efs->drv->efs_write_media(efs->start_block + block_no, 0, block_buf + block_addr, efs->block_size, EF_WR_NOECC);
+        if((efs->start_block + cfg_blocks - 1) == (efs->start_block + block_no))   //如果被擦除的块，是存了CRC校验码的，则重新写如CRC
+        {
+            crc16_check = crc16(block_buf, 16);
+            fill_little_16bit((u8*)&temp, 0, crc16_check);    //转化为小端
+            efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp,2,EF_WR_NOECC);
+        }
 
-        efs->drv->efs_erase_media(block_no + cfg_blocks);        //擦副区中该文件信息所属的块
-        efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
-        efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC);
+        efs->drv->efs_erase_media(efs->start_block + block_no + cfg_blocks);        //擦副区中该文件信息所属的块
+        if((FileInfoList - block_addr) < efs->block_size)
+            efs->drv->efs_write_media(efs->start_block + block_no + cfg_blocks, 0, block_buf + block_addr, FileInfoList - block_addr, EF_WR_NOECC);
+        else
+            efs->drv->efs_write_media(efs->start_block + block_no + cfg_blocks, 0, block_buf + block_addr, efs->block_size, EF_WR_NOECC);
+        if((efs->start_block + 2*cfg_blocks - 1) == (efs->start_block + block_no + cfg_blocks))
+            efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2, EF_WR_NOECC);
 
-
+        free(block_buf);
     }
 }
 
@@ -503,8 +570,11 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
                         tagEfsFileInfo *fileinfo)
 {
     struct EasyFS *efs;
+    u8 *file_info_buf;
+    static u8 seat = 0;
     u32 block_no, start_block, offset,block_addr;
-    u8 cfg_blocks, item;
+    u8 cfg_blocks, item, loop, fill = 0;
+    u64 index_offset;
     u16 crc16_check, temp;
     if( (ob == NULL) || (strlen(filename) > FILENAME_LIMIT) )//文件名太长
     {
@@ -518,37 +588,57 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
 
     offset = 0;
     //计算文件系统文件分配表主分配所使用的blocks
-    cfg_blocks = (EfsCgfLimit + efs->block_size-1) / efs->block_size;
-    __Efs_CheckAllNameECC(efs->file_list_buf);
+    cfg_blocks = (FileInfoList + efs->block_size-1) / efs->block_size;
     //查找为全0或全FF的位置
+    file_info_buf = malloc(FileInfoList);
+    if(file_info_buf == NULL)
+    {
+        warning_printf("efs", "memory request failed \r\n");
+        return NULL;
+    }
+    efs->drv->efs_read_media(efs->start_block, 0, file_info_buf, FileInfoList, EF_WR_NOECC);
+    __Efs_CheckAllNameECC(file_info_buf);
     for(item = 1; item < IndexesNum; item++)  //第一个文件的索引是在文件分配表的第二个位置，所以这里加1
     {
         offset = item * EFS_ITEM_LIMIT;
-        if(efs->file_list_buf[offset] == 0x00)  //若为0，则表示该文件被删除,可用于新建文件
+        if(file_info_buf[offset] == 0x00)  //若为0，则表示该文件被删除,可用于新建文件
         {
             block_no = offset / efs->block_size;
             block_addr = block_no * efs->block_size;
-            memset(efs->file_list_buf+offset,0xFF,EFS_ITEM_LIMIT);
-            crc16_check = crc16(efs->file_list_buf,16);
-            fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
+            memset(file_info_buf+offset,0xFF,EFS_ITEM_LIMIT);
+            __Efs_Reset_File_Size(efs, file_info_buf + block_addr);
 //            //added,将最后的CRC写到文件系统信息的最后两个字节
-            efs->drv->efs_erase_media(block_no);       //擦主区中该文件信息所属的块
-            efs->drv->efs_write_media(block_no, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
-            efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
-
-            efs->drv->efs_erase_media(block_no + cfg_blocks);       //擦副区中该文件信息所属的块
-            efs->drv->efs_write_media(block_no + cfg_blocks, 0, efs->file_list_buf + block_addr, EfsCgfLimit, EF_WR_NOECC);
-            efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
+            efs->drv->efs_erase_media(efs->start_block + block_no);       //擦主区中该文件信息所属的块
+            if((FileInfoList - block_addr) < efs->block_size)   //如果要写的数据小于一块的大小，那就休实际需要写的大小
+                efs->drv->efs_write_media(efs->start_block + block_no, 0, file_info_buf + block_addr, FileInfoList - block_addr, EF_WR_NOECC);
+            else
+                efs->drv->efs_write_media(efs->start_block + block_no, 0, file_info_buf + block_addr, efs->block_size, EF_WR_NOECC);
+            if((efs->start_block + cfg_blocks - 1) == (efs->start_block + block_no))//如果被擦除的块，是存了CRC校验码的，则重新写如CRC
+            {
+                crc16_check = crc16(file_info_buf,16);
+                fill_little_16bit((u8*)&temp,0,crc16_check);    //转化为小端
+                efs->drv->efs_write_media(efs->start_block + cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
+            }
+            efs->drv->efs_erase_media(efs->start_block + block_no + cfg_blocks);       //擦副区中该文件信息所属的块
+            if((FileInfoList - block_addr) < efs->block_size)
+                efs->drv->efs_write_media(efs->start_block + block_no + cfg_blocks, 0, file_info_buf + block_addr, FileInfoList - block_addr, EF_WR_NOECC);
+            else
+                efs->drv->efs_write_media(efs->start_block + block_no + cfg_blocks, 0, file_info_buf + block_addr, efs->block_size, EF_WR_NOECC);
+            if((efs->start_block + 2*cfg_blocks - 1) == (efs->start_block + block_no + cfg_blocks))
+                efs->drv->efs_write_media(efs->start_block + 2*cfg_blocks - 1, efs->block_size-2, (u8*)&temp, 2,EF_WR_NOECC);
             break;
         }
-        if(efs->file_list_buf[offset] == 0xFF) //从名称判断是否有用到该文件配置
+        if(file_info_buf[offset] == 0xFF) //从名称判断是否有用到该文件配置
         {
             break;          //空闲位置
         }
     }
 
     if(item == IndexesNum)        //没有找到空闲位置或文件数量达到上限
+    {
+        free(file_info_buf);
         return NULL;
+    }
 
     //计算新建的文件内容存储位置
     start_block = efs->start_block + 2*cfg_blocks + (item - 1)*((dwFileMaxSize + efs->block_size-1)/efs->block_size);
@@ -560,17 +650,17 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
     }
     block_no = efs->start_block;
     //以下初始化文件分配表并写入flash
-    memset((char *)efs->file_list_buf + offset, 0xff, EFS_ITEM_LIMIT);
-    strncpy((char *)efs->file_list_buf + offset, filename, FILENAME_LIMIT+1);        //写入文件名
-    efs->file_list_buf[FILENAME_LIMIT + offset] = '\0';
-    NameECC((char *)filename,efs->file_list_buf + offset + FILENAME_LIMIT+1);        //文件名ECC
-    fill_little_32bit(efs->file_list_buf + offset, FILE_STARTBLOCK_OFF >> 2,start_block);      //文件内容起始块
-    fill_little_32bit(efs->file_list_buf + offset, FILE_MAXSIZE_OFF >> 2, dwFileMaxSize);      //文件最大大小
-    fill_little_32bit(efs->file_list_buf + offset, FILE_FILESIZE_OFF >> 2, 0xc0000000);               //因为是新建的文件，文件大小先写0
-    memcpy(efs->file_list_buf + offset + FILE_VERIFITY_OFF, "easyfile", 8);              //文件索引末尾写easyfile
-    efs->drv->efs_write_media(block_no, offset, efs->file_list_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
-    efs->drv->efs_write_media(block_no+cfg_blocks, offset, efs->file_list_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
-    strncpy(fp->name,filename,FILENAME_LIMIT+1);
+    memset((char *)file_info_buf + offset, 0xff, EFS_ITEM_LIMIT);
+    memcpy((char *)file_info_buf + offset, filename, FILENAME_LIMIT+1);        //写入文件名
+    file_info_buf[FILENAME_LIMIT + offset] = '\0';
+    NameECC((char *)filename,file_info_buf + offset + FILENAME_LIMIT+1);        //文件名ECC
+    fill_little_32bit(file_info_buf + offset, FILE_STARTBLOCK_OFF >> 2,start_block);      //文件内容起始块
+    fill_little_32bit(file_info_buf + offset, FILE_MAXSIZE_OFF >> 2, dwFileMaxSize);      //文件最大大小
+    fill_little_32bit(file_info_buf + offset, FILE_FILESIZE_OFF >> 2, 0xc0000000);               //因为是新建的文件，文件大小先写0
+    memcpy(file_info_buf + offset + FILE_VERIFITY_OFF, "easyfile", 8);              //文件索引末尾写easyfile
+    efs->drv->efs_write_media(block_no, offset, file_info_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
+    efs->drv->efs_write_media(block_no+cfg_blocks, offset, file_info_buf + offset, EFS_ITEM_LIMIT, EF_WR_NOECC);
+    memcpy(fp->name,filename,FILENAME_LIMIT+1);
     //更新文件信息，创建即打开
     fp->private = (ptu32_t)fileinfo;
     fp->file_size = 0;
@@ -582,6 +672,29 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
     fileinfo->item = item;
     fileinfo->filesize = 0;
 
+    for (loop = 0; loop < CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
+    {
+        index_offset = loop * Ram_file_info_len;
+        if(efs->file_list_buf[index_offset] == 0x00)  //如果为空则表示这段文件信息为空
+        {
+            memcpy((char *)efs->file_list_buf + index_offset, (const char *)(file_info_buf + offset), EFS_ITEM_LIMIT);
+            fill = 1;
+            fileinfo->temp_item = loop;
+            fill_little_32bit(efs->file_list_buf + index_offset + EFS_ITEM_LIMIT, 0, item);
+            break;
+        }
+    }
+    if(fill == 0)
+    {
+        memcpy((char *)efs->file_list_buf + (seat * Ram_file_info_len), (const char *)(file_info_buf + offset), EFS_ITEM_LIMIT);
+        fill_little_32bit(efs->file_list_buf + (seat * Ram_file_info_len) + EFS_ITEM_LIMIT, 0, item);
+        fileinfo->temp_item = seat;
+        seat++;
+        if(seat > 9)
+            seat = 0;
+    }
+
+    free(file_info_buf);
     return fp;
 }
 // =============================================================================
@@ -596,7 +709,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
     tagEFS *efs;
     tagFileRsc *fp;
     struct EfsFileInfo *fileinfo;
-    u32 loop;
+    u32 loop,item;
     u64 index_offset;
     u8 *hsize,*buf;
     bool_t found = false;
@@ -630,8 +743,8 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
             return (NULL);  //如果不是打开目录的操作则直接返回失败
     }
 
-//    if(tgOpenedSum >= CFG_EFS_MAX_OPENED_FILE_NUM)
-//        return NULL;
+    if(tgOpenedSum >= CFG_EFS_MAX_OPEN_FILE_NUM)
+        return NULL;
 
     if(test_directory(flags))
     {
@@ -652,17 +765,69 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
         memset(fileinfo, 0, sizeof(struct EfsFileInfo));
         memset(buf, 0xFF, CN_FILE_BUF_LIMIT);
         //扫描固定文件数
-        for (loop = 1; loop < IndexesNum; loop++)
+//        for (loop = 1; loop < IndexesNum; loop++)
+        for (loop = 0; loop < CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
         {
-            index_offset = loop * EFS_ITEM_LIMIT;
+            index_offset = loop * Ram_file_info_len;
             efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
             ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset), efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
             if (strncmp((const char*)efs->file_list_buf + index_offset, uncached, FILENAME_LIMIT) == 0)
             {
                 found = true;
-                fileinfo->item = loop;      //把该文件索引在文件分配表中的位置保存下来
+                fileinfo->temp_item = loop;
+                fileinfo->item = pick_little_32bit(efs->file_list_buf + index_offset + EFS_ITEM_LIMIT, 0 );
                 break;
             }
+        }
+        if(!found)
+        {
+            u8 *file_info_buf, fill = 0;
+            static u8 seat = 0;
+            file_info_buf = malloc(EFS_ITEM_LIMIT);
+            if(file_info_buf == NULL)
+            {
+                warning_printf("efs", "memory request failed \r\n");
+                goto exit;
+            }
+            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+            for (loop = 1; loop < IndexesNum; loop++)
+            {
+                if(!efs->drv->efs_read_media(efs->start_block, loop * EFS_ITEM_LIMIT, file_info_buf, EFS_ITEM_LIMIT,EF_WR_NOECC))
+                {
+                    warning_printf("efs", "read file info fail \r\n");
+                    goto exit;
+                }
+                file_info_buf[FILENAME_LIMIT] = '\0';
+                ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
+                if (strncmp((const char*)file_info_buf, uncached, FILENAME_LIMIT) == 0)
+                {
+                    found = true;
+                    for (item = 0; item < CFG_EFS_MAX_OPEN_FILE_NUM; item++)
+                    {
+                        index_offset = item * Ram_file_info_len;
+                        if(efs->file_list_buf[index_offset] == 0x00)  //如果为空则表示这段文件信息为空
+                        {
+                            memcpy((char *)efs->file_list_buf + index_offset, (const char *)file_info_buf, EFS_ITEM_LIMIT);
+                            fill = 1;
+                            fileinfo->temp_item = item;
+                            fill_little_32bit(efs->file_list_buf + index_offset + EFS_ITEM_LIMIT, 0, loop);
+                        }
+                    }
+                    if(fill == 0)
+                    {
+                        memcpy((char *)efs->file_list_buf + (seat * Ram_file_info_len), (const char *)file_info_buf, EFS_ITEM_LIMIT);
+                        fill_little_32bit(efs->file_list_buf + (seat * Ram_file_info_len) + EFS_ITEM_LIMIT, 0, loop);
+                        index_offset = seat * Ram_file_info_len;
+                        fileinfo->temp_item = seat;
+                        seat++;
+                        if(seat > 9)
+                            seat = 0;
+                    }
+                    fileinfo->item = loop;      //把该文件索引在文件分配表中的位置保存下来
+                    break;
+                }
+            }
+            free(file_info_buf);
         }
         if (!found)
         {
@@ -710,7 +875,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
             fileinfo->start_block = pick_little_32bit(efs->file_list_buf + index_offset, FILE_STARTBLOCK_OFF >> 2);          //获取文件内容的开始块
             fileinfo->max_size = pick_little_32bit(efs->file_list_buf + index_offset, FILE_MAXSIZE_OFF >> 2);       //获取文件最大大小
             fileinfo->filesize = fp->file_size;     //获取文件当前大小
-            strncpy(fp->name, (const char *)(efs->file_list_buf + index_offset), FILENAME_LIMIT+1);
+            memcpy(fp->name, (const char *)(efs->file_list_buf + index_offset), FILENAME_LIMIT+1);
         }
 
         fp->wr_buf = buf;       //文件写缓存
@@ -722,7 +887,7 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 
         fp->private = (ptu32_t)fileinfo;
 //        property = S_IFREG;
-//        tgOpenedSum ++;
+        tgOpenedSum ++;
 //        if(!obj_newchild(ob, e_operations, (ptu32_t)fp, uncached))
 //        {
 //            printf("\r\n: erro : efs    : new file \"%s\"(virtual).", uncached);
@@ -763,6 +928,7 @@ exit:
 static s32 Efs_DirRead(struct objhandle *hdl,struct dirent *dentry)
 {
     s32 result = -1;
+    static u8 *file_info_buf = NULL;
     tagEFS *efs;
     u32 loop = 1;
     u64 index_offset;
@@ -779,17 +945,28 @@ static s32 Efs_DirRead(struct objhandle *hdl,struct dirent *dentry)
 
     //判断是否存在该文件
     if(dentry->d_off < 1)
+    {
         dentry->d_off = 1;
+        file_info_buf = malloc(EFS_ITEM_LIMIT);
+    }
+    if(file_info_buf == NULL)
+    {
+        warning_printf("efs", "memory request failed \r\n");
+        return -1;
+    }
     loop = dentry->d_off;   //文件分配表中的偏移
     for(; loop < IndexesNum; loop++ )       //查找fname下一个文件或第一个文件
     {
-        index_offset = loop * EFS_ITEM_LIMIT;;
-        efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
-        ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset), efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
+        index_offset = loop * EFS_ITEM_LIMIT;
+        if(!efs->drv->efs_read_media(efs->start_block, index_offset, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
+            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+
+        file_info_buf[FILENAME_LIMIT] = '\0';
+        ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
         //查找下一个有效的文件
-        if((efs->file_list_buf[index_offset] != 0x00) && (efs->file_list_buf[index_offset] != 0xFF))
+        if((*file_info_buf != 0x00) && (*file_info_buf != 0xFF))
         {
-            memcpy((char *)dentry->d_name, efs->file_list_buf + index_offset, FILENAME_LIMIT+1);     //获取文件名
+            memcpy((char *)dentry->d_name, file_info_buf, FILENAME_LIMIT+1);     //获取文件名
             result = 0;
             break;
         }
@@ -799,7 +976,11 @@ static s32 Efs_DirRead(struct objhandle *hdl,struct dirent *dentry)
     {
         dentry->d_off = 1;
         if(result == 0)
+        {
             result = 1;  //遍历完所有文件
+            free(file_info_buf);
+            file_info_buf = NULL;
+        }
         else
             result = -1;
     }
@@ -1053,7 +1234,7 @@ static s8 Efs_Close (struct objhandle *hdl)
         free(fileinfo);
         free(fp->wr_buf);
         free(fp);//todo ---- 不应该在此处释放，在efs/port.c里面释放，因为在那里malloc
-//        tgOpenedSum --;
+        tgOpenedSum --;
     }
 //  handle_Delete(hdl);    //是目录的话啥也不干直接删除句柄
 exit:
@@ -1145,8 +1326,9 @@ static off_t Efs_Seek(struct objhandle *hdl, off_t *file_offset, s32 whence)
 static s32 Efs_Remove(struct Object *ob, char *uncached)
 {
     tagEFS *efs;
-    u64 index_offset;
+    u64 index_offset,ram_offset;
     u8 cfg_blocks,loop;
+    u8 *file_info_buf;
     char *fname;
     if(ob == NULL)
         return -1;
@@ -1162,17 +1344,26 @@ static s32 Efs_Remove(struct Object *ob, char *uncached)
     else
         fname = ob->name;
 
-    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+    file_info_buf = malloc(EFS_ITEM_LIMIT);
+    if(file_info_buf == NULL)
     {
-       return -1;
+        warning_printf("efs", "memory request failed \r\n");
+        return -1;
     }
-    cfg_blocks = (EfsCgfLimit+ efs->block_size-1) / efs->block_size;      //文件分配表所占的块数
+
+    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
+       return -1;
+
+    cfg_blocks = (FileInfoList+ efs->block_size-1) / efs->block_size;      //文件分配表所占的块数
     for (loop = 1; loop < IndexesNum; loop++)
     {
         index_offset = loop * EFS_ITEM_LIMIT;
-        efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
-        ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset),efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
-        if (strncmp((const char*)(efs->file_list_buf + index_offset), fname, FILENAME_LIMIT) == 0)
+        if(!efs->drv->efs_read_media(efs->start_block, index_offset, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
+            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+
+        file_info_buf[index_offset + FILENAME_LIMIT] = '\0';
+        ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
+        if (strncmp((const char*)file_info_buf, fname, FILENAME_LIMIT) == 0)
         {
             break;//找到该文件
         }
@@ -1181,36 +1372,47 @@ static s32 Efs_Remove(struct Object *ob, char *uncached)
     if(loop == IndexesNum)
     {
         printf("cannot find :%s\r\n", fname);
+        free(file_info_buf);
+        Lock_MutexPost(efs->block_buf_mutex);
         return -1;
     }
 
     if(loop < IndexesNum)
     {
+        for (loop = 0; loop < CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
+        {
+            ram_offset = loop * Ram_file_info_len;
+            efs->file_list_buf[ram_offset + FILENAME_LIMIT] = '\0';
+            ChkOrRecNameByECC((char *)(efs->file_list_buf + ram_offset), efs->file_list_buf + ram_offset + FILENAME_LIMIT + 1);
+            if (strncmp((const char*)efs->file_list_buf + ram_offset, fname, FILENAME_LIMIT) == 0)
+                memset(efs->file_list_buf + ram_offset, 0x0, Ram_file_info_len);
+        }
+
         //删除的文件信息，写全0
-        memset(efs->file_list_buf + index_offset, 0x0, EFS_ITEM_LIMIT);
-        efs->drv->efs_write_media(efs->start_block, index_offset, efs->file_list_buf + index_offset,
+        memset(file_info_buf, 0x0, EFS_ITEM_LIMIT);
+        efs->drv->efs_write_media(efs->start_block, index_offset, file_info_buf,
                 EFS_ITEM_LIMIT,EF_WR_NOECC);
         efs->drv->efs_write_media(efs->start_block+cfg_blocks, index_offset,
-                efs->file_list_buf + index_offset,EFS_ITEM_LIMIT,EF_WR_NOECC);
+                file_info_buf,EFS_ITEM_LIMIT,EF_WR_NOECC);
         efs->files_sum --;
 #if 1
 {       //判断文件索引在主/备是否都写为了0
         u16 CountTemp;
-        efs->drv->efs_read_media(efs->start_block, index_offset, efs->file_list_buf + index_offset,
+        efs->drv->efs_read_media(efs->start_block, index_offset, file_info_buf,
                 EFS_ITEM_LIMIT, EF_WR_NOECC);
         for(CountTemp = 0; CountTemp < EFS_ITEM_LIMIT; CountTemp++)
         {
-            if(efs->file_list_buf[CountTemp + index_offset] != 0x0)
+            if(file_info_buf[CountTemp] != 0x0)
             {
                 printf("\r\nremove error in \"%s\"\r\n", fname);
                 break;
             }
         }
-        efs->drv->efs_read_media(efs->start_block+cfg_blocks, index_offset, efs->file_list_buf + index_offset,
+        efs->drv->efs_read_media(efs->start_block+cfg_blocks, index_offset, file_info_buf,
                 EFS_ITEM_LIMIT, EF_WR_NOECC);
         for(CountTemp = 0; CountTemp < EFS_ITEM_LIMIT; CountTemp++)
         {
-            if(efs->file_list_buf[CountTemp + index_offset] != 0x0)
+            if(file_info_buf[CountTemp] != 0x0)
             {
                 printf("\r\nremove error in \"%s\"\r\n", fname);
                 break;
@@ -1219,7 +1421,7 @@ static s32 Efs_Remove(struct Object *ob, char *uncached)
 }
 #endif
     }
-
+    free(file_info_buf);
     Lock_MutexPost(efs->block_buf_mutex);
     return 0;
 }
@@ -1238,6 +1440,7 @@ static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
     u8 found = false;
     char *fname;
     u8 *hsize;
+    u8 *file_info_buf;
     if(ob == NULL)
         return -1;
 
@@ -1268,13 +1471,21 @@ static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
     if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
        return -1;
 
+    file_info_buf = malloc(EFS_ITEM_LIMIT);
+    if(file_info_buf == NULL)
+    {
+        warning_printf("efs", "memory request failed \r\n");
+        return -1;
+    }
     //判断是否存在该文件
     for (loop = 1; loop < IndexesNum; loop++)
     {
         index_offset = loop * EFS_ITEM_LIMIT;
-        efs->file_list_buf[index_offset + FILENAME_LIMIT] = '\0';
-        ChkOrRecNameByECC((char *)(efs->file_list_buf + index_offset),efs->file_list_buf + index_offset + FILENAME_LIMIT + 1);
-        if (strncmp((const char*)efs->file_list_buf + index_offset,fname,FILENAME_LIMIT) == 0)
+        if(!efs->drv->efs_read_media(efs->start_block, index_offset, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
+            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+        file_info_buf[FILENAME_LIMIT] = '\0';
+        ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
+        if (strncmp((const char*)file_info_buf ,fname,FILENAME_LIMIT) == 0)
         {
             found = true;       //找到目标文件
             break;
@@ -1285,22 +1496,23 @@ static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
     {
         for (loop = 0; loop < FILE_FILESIZE_NUM; loop++)
         {
-            hsize = (efs->file_list_buf + index_offset + FILE_FILESIZE_END - loop * EFS_FILESIZE_BYTE_NUMBER);
+            hsize = (file_info_buf + FILE_FILESIZE_END - loop * EFS_FILESIZE_BYTE_NUMBER);
             if ((pick_little_32bit(hsize,0) == CN_LIMIT_UINT32) ||
                 (pick_little_32bit(hsize,0) == 0))
                 continue;
             if (__EfsFileSize_verify(*(u32 *)hsize) == 0)
             {   //获取目标文件的大小
-                data->st_size = (pick_little_32bit(efs->file_list_buf + index_offset,     //从44个文件大小中，找正确的文件大小，从最后开始找
+                data->st_size = (pick_little_32bit(file_info_buf,     //从44个文件大小中，找正确的文件大小，从最后开始找
                         (FILE_FILESIZE_END - loop * EFS_FILESIZE_BYTE_NUMBER) >> 2) & EFS_SUPPORT_MAXFILESIZE);
                 break;
             }
         }
         data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;    //efs里只有文件没有目录，所有里面找到的文件，属性全都赋值为文件
+        free(file_info_buf);
         Lock_MutexPost(efs->block_buf_mutex);
         return 0;
     }
-
+    free(file_info_buf);
     Lock_MutexPost(efs->block_buf_mutex);
     return -1;
 }
@@ -1391,18 +1603,18 @@ tagEFS *EfsInfo(struct FsCore *pSuper, u32 opts)
     media->mreq(unitbytes,(ptu32_t)&flash_page_size);                //获取flash的页大小
     flash_black_size = black_page_number * flash_page_size;  //获取flash的块大小
     allblocknum = pSuper->AreaSize / flash_black_size;      //总块数
-    filedatablocks = (CFG_EFS_FILE_SIZE_Limit + flash_black_size - 1) / flash_black_size; // EFS单个文件实际数据所需要的块数
+    filedatablocks = (CFG_EFS_FILE_SIZE_LIMIT + flash_black_size - 1) / flash_black_size; // EFS单个文件实际数据所需要的块数
     num = allblocknum / filedatablocks;     //预计可以创建的最大文件数
     do
     {
         num--;
         filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_black_size - 1) / flash_black_size;
     }while(((num * filedatablocks) + (filelistblock * 2)) > allblocknum);       //计算实际能创建的最大文件数
-    if(num > CFG_EFS_FILE_CREATE_NUM)
-        num = CFG_EFS_FILE_CREATE_NUM;
+    if(num > CFG_EFS_MAX_CREATE_FILE_NUM)
+        num = CFG_EFS_MAX_CREATE_FILE_NUM;
     CreateMax = num;
     IndexesNum = num + 1;
-    EfsCgfLimit = IndexesNum * EFS_ITEM_LIMIT;
+    FileInfoList = IndexesNum * EFS_ITEM_LIMIT;
     if((CreateMax == 0) || (IndexesNum == 0) || (EfsCgfLimit == 0))
     {
         error_printf("efs","file system core parameters calculated incorrectly.\r\n");
@@ -1416,7 +1628,7 @@ tagEFS *EfsInfo(struct FsCore *pSuper, u32 opts)
         printf("\r\n: erro : efs    : install failed(memory out).");
         return NULL;
     }
-    memset(core, 0x0, sizeof(*core));
+    memset(core, 0x0, sizeof(*core) + EfsCgfLimit);
     core->block_buf_mutex = Lock_MutexCreate("EFS_BLOCK_BUF_SEMP");
     if(!core->block_buf_mutex)
     {
@@ -1455,15 +1667,18 @@ static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
         return -1;
     }
 
-    blocks = (EfsCgfLimit + efs->block_size-1) / efs->block_size;
+    blocks = (FileInfoList + efs->block_size-1) / efs->block_size;
     cfg_end_block = efs->start_block + blocks;
-    block_buf = efs->file_list_buf;
+//    block_buf = efs->file_list_buf;
     if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
-    {
        return -1;
-    }
+
+    block_buf = M_MallocLc(FileInfoList, 0);
+    if(!block_buf)
+        return -1;
+
     //写好efs文件系统的核心信息到flash里
-    memset(block_buf, 0xff, EfsCgfLimit);
+    memset(block_buf, 0xff, FileInfoList);
     memcpy(block_buf, "easyfile", 8);
     memcpy(block_buf + FILE_VERIFITY_OFF, "easyfile", 8);
     fill_little_32bit(block_buf, 2, efs->block_sum);
@@ -1476,8 +1691,8 @@ static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
         efs->drv->efs_erase_media(loop);       //efs用到的整个区域擦一遍
         efs->drv->efs_erase_media(loop + blocks);       //efs用到的整个区域擦一遍
     }
-    efs->drv->efs_write_media(efs->start_block, 0, block_buf,EfsCgfLimit,EF_WR_NOECC);
-    efs->drv->efs_write_media(cfg_end_block, 0, block_buf, EfsCgfLimit,EF_WR_NOECC);
+    efs->drv->efs_write_media(efs->start_block, 0, block_buf, FileInfoList ,EF_WR_NOECC);
+    efs->drv->efs_write_media(cfg_end_block, 0, block_buf, FileInfoList ,EF_WR_NOECC);
     //added,将最后的CRC写到文件系统信息的最后两个字节
     efs->drv->efs_write_media(efs->start_block + blocks - 1,
             efs->block_size-2, (u8*)&temp,2,EF_WR_NOECC);
@@ -1490,9 +1705,10 @@ static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
     {
         //每次新建都将fs存放到全局变量tgNorDisk，用于后面操作
         s_pEfsList[0] = efs;
-        strncpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
+        memcpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
     }
     efs->file_sys_install = true;
+    free(block_buf);
     Lock_MutexPost(efs->block_buf_mutex);
     return 0;
 }
@@ -1630,6 +1846,7 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
     u8 *bakbuf, *block_buf;
     u8 mainblockerr = 0,bakblockerr = 0;
     u16 crc16_check,temp;
+    u64 index_offset;
 
     if(pSuper == NULL)
         return -1;
@@ -1648,16 +1865,23 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
         }
     }
 
-    bakbuf = M_MallocLc(EfsCgfLimit, 0);//只需文件信息大小
-    if (bakbuf == NULL)
+    bakbuf = M_MallocLc(FileInfoList, 0);//只需文件信息大小
+    if(bakbuf == NULL)
     {
         free(efs);
         return -1;
     }
-    blocks = (EfsCgfLimit + efs->block_size-1) / efs->block_size; // EFS文件分配表所需要使用的块数
+    block_buf = M_MallocLc(FileInfoList, 0);
+    if(block_buf == NULL)
+    {
+        free(bakbuf);
+        free(efs);
+        return -1;
+    }
+    blocks = (FileInfoList + efs->block_size-1) / efs->block_size; // EFS文件分配表所需要使用的块数
     end_block = efs->start_block + blocks; //
-    fileInfoSize = EfsCgfLimit;
-    block_buf = efs->file_list_buf;
+    fileInfoSize = FileInfoList;
+//    block_buf = efs->file_list_buf;
 
    if(false == Lock_MutexPend(efs->block_buf_mutex,MUTEX_WAIT_TIME))
    {
@@ -1808,17 +2032,24 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
         goto exit;
         break;
     }
-    if(!efs->drv->efs_read_media(efs->start_block, 0, block_buf, fileInfoSize,EF_WR_NOECC))       //读文件分配表到缓存中
-        goto fail;
+    for(loop = 0; loop < CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
+    {
+        index_offset = loop * Ram_file_info_len;
+        if(!efs->drv->efs_read_media(efs->start_block, EFS_ITEM_LIMIT, efs->file_list_buf + index_offset, EFS_ITEM_LIMIT,EF_WR_NOECC))       //读文件分配表到缓存中
+            goto fail;
+        fill_little_32bit(efs->file_list_buf + index_offset + EFS_ITEM_LIMIT, 0, loop + 1);
+    }
     s_pEfsList[0] = efs;
-    strncpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
+    memcpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);
     Lock_MutexPost(efs->block_buf_mutex);
     free(bakbuf);
+    free(block_buf);
 //    pSuper->pCore = (void*)efs;
     efs->file_sys_install = true;
     return 0;
 exit:
     free(bakbuf);
+    free(block_buf);
     if(efs->install_options & MS_INSTALLCREAT)
     {
         if(Efs_Mkfs(efs,pSuper) == 0)//设备上不存在文件系统，则新建
@@ -1828,6 +2059,7 @@ exit:
     return -1;
 fail:
     free(bakbuf);
+    free(block_buf);
     free(efs);
     Lock_MutexPost(efs->block_buf_mutex);
     return -1;
@@ -1844,13 +2076,15 @@ s32 e_install(struct FsCore *pSuper, u32 opts, void *config)
 {
     tagEFS *core;
 
-    dwFileMaxSize = CFG_EFS_FILE_SIZE_Limit; // 文件大小上限
+    dwFileMaxSize = CFG_EFS_FILE_SIZE_LIMIT; // 文件大小上限
     if(dwFileMaxSize > EFS_SUPPORT_MAXFILESIZE)
     {
         dwFileMaxSize = EFS_SUPPORT_MAXFILESIZE;
         warning_printf("efs","The file size exceeds the maximum file size supported by efs "
                                             "and now forces the maximum file size to be 0x3fffffff");
     }
+    Ram_file_info_len = EFS_RAM_ITEM_BYTE + EFS_ITEM_LIMIT;
+    EfsCgfLimit = Ram_file_info_len * CFG_EFS_MAX_OPEN_FILE_NUM;   //efs,在缓存中存文件信息的大小
     core = EfsInfo(pSuper, opts);
     if(core == NULL)
     {

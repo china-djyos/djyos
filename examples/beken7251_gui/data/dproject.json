@@ -1,0 +1,44 @@
+{
+	"ide_version":"DIDE-V1.6_20190404",
+	"frameworks_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"libs_checked":{
+		"app":[],
+		"iboot":[]
+	},
+	"hardware":{
+		"core":"arm968e-s",
+		"cpu":"bk7251",
+		"board":"bk7251_demo"
+	},
+	"components_checked":{
+		"app":["bk7251",
+		"black box",
+		"board config",
+		"cpu onchip flash",
+		"cpu onchip gpio",
+		"cpu onchip uart",
+		"debug information",
+		"device file system",
+		"djybus",
+		"graphical kernel",
+		"heap",
+		"int",
+		"kernel",
+		"kernel object system",
+		"LCD driver st7796s",
+		"loader",
+		"lock",
+		"memory pool",
+		"multiplex",
+		"ring buffer and line buffer",
+		"shell",
+		"spi",
+		"spi bus",
+		"stdio",
+		"uart device file"],
+		"iboot":[]
+	}
+}

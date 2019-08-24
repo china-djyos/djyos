@@ -51,15 +51,8 @@
 #include "board-config.h"
 
 extern struct IntMasterCtrl  tg_int_global;
-extern uint32_t *isr_vector;
 
 void (*user_systick)(u32 inc_ticks) = NULL;
-
-static void __Exp_TableSet(void)
-{
-    uint32_t *temp = isr_vector;
-    temp = *(&temp);
-}
 
 
 void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
@@ -81,7 +74,6 @@ void Exp_SystickTickHandler(void)
 
 void HardExp_Init(void)
 {
-    __Exp_TableSet();
 }
 
 enum EN_BlackBoxAction Exp_MemManageFaultHandler(u32 fpu_used,u32 *core_info)

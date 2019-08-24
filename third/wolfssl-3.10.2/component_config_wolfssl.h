@@ -37,5 +37,5 @@
 //%$#@exclude
 //%$#@end exclude
 //%$#@include path
-//../wolfssl;../wolfssl/openssl;../wolfssl/wolfcrypt;
+//../;../wolfssl;../wolfssl/openssl;../wolfssl/wolfcrypt;
 //%$#@end include path
