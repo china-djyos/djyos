@@ -127,6 +127,7 @@ void __LP_BSP_AsmSaveReg(struct ThreadVm *running_vm,
                             bool_t (*SaveRamL3)(void),
                             void (*EntrySleepL3)(void));
 
+bool_t __LP_BSP_SetSleepMode(ptu32_t param);
 //禁止sleep,使DisableCounter+1
 u32 LP_DisableSleep(void);
 //使能sleep,使DisableCounter-1,达到0则允许sleep.在禁止状态下,只允许CN_SLEEP_L0

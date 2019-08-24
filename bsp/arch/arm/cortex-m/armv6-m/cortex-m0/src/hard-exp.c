@@ -120,29 +120,6 @@ void HardExp_ConnectNmi(void (*esr)(void))
 {
 }
 
-void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
-{
-    user_systick = tick;
-}
-
-void HardExp_EsrTick(void)
-{
-    if((pg_systick_reg->ctrl & bm_systick_ctrl_tickint) == 0)
-        return;
-    g_bScheduleEnable = false;
-    tg_int_global.nest_asyn_signal++;
-    if(!DjyGetUpdateTickFlag())
-        DjyUpdateTicks(1);
-    else
-        DjySetUpdateTickFlag(false);
-    user_systick((CN_USE_TICKLESS_MODE==1)?0:1);
-    tg_int_global.nest_asyn_signal--;
-    if(g_ptEventReady != g_ptEventRunning)
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
-    g_bScheduleEnable = true;
-}
-
-
 //异常处理
 
 void Exp_HardHandle(u32 spValue ,u8 intNum,u32 pcVal)

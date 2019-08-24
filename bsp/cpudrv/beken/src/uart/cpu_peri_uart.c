@@ -157,7 +157,16 @@ static const uint8_t volatile *sUartReg[CN_UART_NUM] = {
                                             CN_UART1,
                                             CN_UART2,
 };
-static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2);
+static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, va_list *arg0);
+
+static void __UART_BaudSet(uint8_t port,uint32_t data)
+{
+    if((data == 0) || (port > CN_UART2))
+        return;
+    djybsp_uart[port].baud_rate = data;
+        uart_hw_set_change(port,&djybsp_uart[port]);
+}
+
 // =============================================================================
 // 功能: 硬件参数配置和寄存器的初始化，包括波特率、停止位、校验位、数据位，默认情况下:
 //       波特率:115200  ； 停止位:1 ; 校验:无 ; 数据位:8bit
@@ -170,7 +179,7 @@ static void __UART_HardInit(u8 SerialNo)
     {
         case CN_UART1:
 //            uart1_init();
-            __UART_Ctrl(CN_UART1,CN_UART_COM_SET,115200,CN_UART_DATABITS_8);
+            __UART_BaudSet(SerialNo, 115200);
             break;
         case CN_UART2:
 //            uart2_init();
@@ -200,13 +209,13 @@ static void __UART_Disable(u32 port)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(u32 port,ptu32_t data)
+static void __UART_ComConfig(u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (port > CN_UART2))
+//  struct COMParam *COM;
+    if((COM == 0) || (port > CN_UART2))
         return;
 //    COM = (struct COMParam *)data;
-    djybsp_uart[port].baud_rate =data;
+    djybsp_uart[port].baud_rate = COM->BaudRate;
 
     switch(COM->DataBits)               // data bits
     {
@@ -227,14 +236,6 @@ static void __UART_ComConfig(u32 port,ptu32_t data)
         default:break;
     }
     uart_hw_set_change(port,&djybsp_uart[port]);
-}
-
-static void __UART_SetBaud(uint8_t port,uint32_t data)
-{
-    if((data == 0) || (port > CN_UART2))
-        return;
-    djybsp_uart[port].baud_rate = data;
-        uart_hw_set_change(port,&djybsp_uart[port]);
 }
 
 // =============================================================================
@@ -337,7 +338,7 @@ static void __UART_IntInit(u32 port)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
 
@@ -359,7 +360,11 @@ static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_SetBaud(port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(port, data);
+        }
             break;
         case CN_UART_EN_RTS:
             break;
@@ -374,7 +379,11 @@ static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, u32 data1,u32 data2)
         case CN_UART_DMA_UNUSED:
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(port,COM);
+        }
             break;
         default: break;
     }

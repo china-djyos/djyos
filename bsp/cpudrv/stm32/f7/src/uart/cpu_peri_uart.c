@@ -492,7 +492,7 @@ static void __UART_ClkConfig(u8 SerialNo)
 // =============================================================================
 static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    if((COM == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 

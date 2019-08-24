@@ -811,7 +811,7 @@ static s32 __stdio_build(u32 runmode)
 s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
 {
     char *inname, *outname, *errname;
-    s32 res;
+    s32 res = -1;
     FILE *inFD, *fd;
     u32 runmode = 0;
     char *mode;
@@ -843,12 +843,20 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
 
     inFD = fopen(in,mode);
     inname = (char*)in;
-    res = __stdio_set(0, inFD, O_RDWR, runmode);
-    if(res)
+    if(inFD != NULL)
+    {
+        res = __stdio_set(0, inFD, O_RDWR, runmode);
+    }
+    else
+    {
+        res = -1;
+    }
+    if(res == -1)
     {
         debug_printf("module","STDIO install failed(\"in\" cannot set).");
         goto __INSTALL_STDIO_ERR;
     }
+
 
      // STDOUT ≥ı ºªØ
     if (runmode & CN_STDIO_STDOUT_FOLLOW)
@@ -862,8 +870,15 @@ s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err)
         outname = (char*)out;
     }
 
-    res = __stdio_set(1, fd, (O_RDWR | O_APPEND), runmode);
-    if(res)
+    if(fd != NULL)
+    {
+        res = __stdio_set(1, fd, (O_RDWR | O_APPEND), runmode);
+    }
+    else
+    {
+        res = -1;
+    }
+    if(res == -1)
     {
         debug_printf("module","STDIO install failed(\"out\" cannot set).");
         goto __INSTALL_STDIO_ERR;

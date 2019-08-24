@@ -163,7 +163,7 @@ void __Uart_SendIntDisable(tag_UartReg volatile *reg)
 //参数: reg,被操作的寄存器组指针
 //返回: 无
 //-----------------------------------------------------------------------------
-void __Uart_SetBaud(tag_UartReg volatile *reg,u32 baud)
+void __UART_BaudSet(tag_UartReg volatile *reg,u32 baud)
 {
     u32 temp;
     if((u32)reg == cn_uart0_base)       //串口0,不受ASYNC3_CLKSRC控制
@@ -232,7 +232,7 @@ ptu32_t module_init_uart0(ptu32_t para)
     //系统初始化时已经使中断处于禁止状态，无需再禁止和清除中断。
     //初始化uart硬件控制数据结构
     tg_uart0_CB.my_reg = (tag_UartReg *)cn_uart0_base;
-    __Uart_SetBaud(tg_uart0_CB.my_reg,9600);
+    __UART_BaudSet(tg_uart0_CB.my_reg,9600);
     temp = tg_uart0_CB.my_reg->IIR_FCR;     //读一下清除所有中断标志
 //    tg_uart0_CB.my_reg->IIR_FCR |= 1;   //set FIFOEN
     tg_uart0_CB.my_reg->IIR_FCR = 0xcf; //接收14字节触发中断，清收发fifo。
@@ -338,7 +338,7 @@ ptu32_t module_init_uart1(ptu32_t para)
     //系统初始化时已经使中断处于禁止状态，无需再禁止和清除中断。
     //初始化uart硬件控制数据结构
     tg_uart1_CB.my_reg = (tag_UartReg *)cn_uart1_base;
-    __Uart_SetBaud(tg_uart1_CB.my_reg,9600);
+    __UART_BaudSet(tg_uart1_CB.my_reg,9600);
     temp = tg_uart1_CB.my_reg->IIR_FCR;     //读一下清除所有中断标志
 //    tg_uart1_CB.my_reg->IIR_FCR |= 1;   //set FIFOEN
     tg_uart1_CB.my_reg->IIR_FCR = 0xcf; //接收14字节触发中断，清收发fifo。
@@ -443,7 +443,7 @@ ptu32_t module_init_uart2(ptu32_t para)
     //系统初始化时已经使中断处于禁止状态，无需再禁止和清除中断。
     //初始化uart硬件控制数据结构
     tg_uart2_CB.my_reg = (tag_UartReg *)cn_uart2_base;
-    __Uart_SetBaud(tg_uart2_CB.my_reg,9600);
+    __UART_BaudSet(tg_uart2_CB.my_reg,9600);
     temp = tg_uart2_CB.my_reg->IIR_FCR;     //读一下清除所有中断标志
 //    tg_uart2_CB.my_reg->IIR_FCR |= 1;   //set FIFOEN
     tg_uart2_CB.my_reg->IIR_FCR = 0xcf; //接收14字节触发中断，清收发fifo。
@@ -850,7 +850,7 @@ ptu32_t Uart_Ctrl(struct PanDevice *uart_dev,uint32_t cmd,
             if(uart_port->baud !=data1)
             {
                 uart_port->baud = data1;
-                __Uart_SetBaud((tag_UartReg *)uart_port->my_reg,data1);
+                __UART_BaudSet((tag_UartReg *)uart_port->my_reg,data1);
             }
             break;
         case CN_UART_SEND_DATA:     //启动发送

@@ -280,7 +280,7 @@ static bool_t __UART_RxHadChar(tagUartReg volatile *reg)
 //参数: reg,被操作的寄存器组指针
 //返回: 无
 //-----------------------------------------------------------------------------
-void __UART_SetBaud(tagUartReg volatile *reg,u32 baud)
+void __UART_BaudSet(tagUartReg volatile *reg,u32 baud)
 {
     reg->UART_BRGR = (CN_CFG_MCLK/baud)/16;
     if(tg_UART_Reg[TxDirectPort] == reg)
@@ -506,7 +506,7 @@ void __UART_HardInit(u8 SerialNo)
     __UART_GpioInit(SerialNo);
 
     reg = (tagUartReg *)tg_UART_Reg[SerialNo];
-    __UART_SetBaud(reg,115200);            //波特率设置
+    __UART_BaudSet(reg,115200);            //波特率设置
     reg->UART_MR = 0x000;                  //偶校验，正常模式
     reg->UART_CR = ((1<<2)|(1<<3)|(1<<5)|
                     (1<<7)|(1<<8));         //接收发送都除能了
@@ -522,7 +522,7 @@ void __UART_HardInit(u8 SerialNo)
 //       data,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     u8 Port;
     switch((u32)Reg)
@@ -551,7 +551,12 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-                __UART_SetBaud(Reg,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg, data);
+        }
+                __UART_BaudSet(Reg,data1);
             break;
 //        case CN_UART_RX_PAUSE:      //暂停接收
 //            __UART_RecvIntEnable(Reg,s_UART_DmaUsed[Port]);
@@ -560,7 +565,11 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 //            __UART_RecvIntDisable(Reg,s_UART_DmaUsed[Port]);
 //            break;
         case CN_UART_RECV_HARD_LEVEL:    //因为UART没有FIFO，因此配置DMA接收
-            __UART_dma_recv_config(Reg,Port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_dma_recv_config(Reg,Port,data);
+        }
             break;
         case CN_UART_HALF_DUPLEX_SEND:
             __UART_half_duplex_send(Port);

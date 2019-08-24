@@ -378,12 +378,11 @@ static void __UART_BaudSet(tagUartReg volatile *Reg,u32 port,u32 baud)
 // 返回: 无
 // =============================================================================
 
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
     struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     //数据位不可配-固定为8BIT
@@ -610,7 +609,7 @@ u32 __UART_DMA_SendStart(u32 port)
 // 返回: 无意义.
 // =============================================================================
 
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
     u32 port;
@@ -640,7 +639,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             __UART_Disable(port);
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-             __UART_BaudSet(Reg,port, data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg,port, data);
+        }
             break;
         case CN_UART_EN_RTS:
 
@@ -661,7 +664,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
 
         default: break;

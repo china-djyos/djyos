@@ -143,6 +143,7 @@
 #include "../heap/component_config_heap.h"
 #include <stdlib.h>
 ptu32_t __Djy_Service(void);
+s64 __DjyGetSysTick(void);
 
 struct ProcessVm *  g_ptMyProcess;
 //为cn_events_limit条事件控制块分配内存
@@ -158,18 +159,19 @@ static u32 s_u32StackCheckLevel = 10;      //栈报警水平，百分数
 struct EventECB  *g_ptEventReady;      //就绪队列头
 struct EventECB  *g_ptEventRunning;    //当前正在执行的事件
 struct EventECB  *g_ptEventDelay;      //闹钟同步队列表头
-typedef struct
-{
-    uint64_t DelayTick;
-    uint64_t RRSTicks;
-}tagSchduleTick;
-static tagSchduleTick gSchduleTick = {
-    .DelayTick = CN_LIMIT_UINT64,
-    .RRSTicks = CN_LIMIT_UINT64,
-};
-s64 g_s64RunningStartTime;        //当前运行中事件的开始执行时间.
-s64  g_s64OsTicks;            //操作系统运行ticks
-bool_t g_bScheduleEnable;     //系统当前运行状态是否允许调
+//typedef struct
+//{
+//    u64 DelayTick;
+//    u64 RRSTicks;
+//}tagSchduleTick;
+//static tagSchduleTick gSchduleTick = {
+//    .DelayTick = CN_LIMIT_UINT64,
+//    .RRSTicks = CN_LIMIT_UINT64,
+//};
+s64 g_s64RunningStartTime;              //当前运行中事件的开始执行时间.
+s64  g_s64OsTicks = 0;                  //操作系统运行ticks，由tick中断增量，表示从
+                                        //系统启动到最后一次响应tick中断的ticks数
+bool_t g_bScheduleEnable;               //系统当前运行状态是否允许调
 bool_t g_bMultiEventStarted = false;    //多事件(线程)调度是否已经开始
 u32 g_u32OsRunMode;     //运行模式，参看 CN_RUNMODE_SI 系列定义
 
@@ -311,7 +313,7 @@ void  Djy_ScheduleIsr(u32 inc_ticks)
 {
     struct EventECB *pl_ecb,*pl_ecbp,*pl_ecbn;
     s64 now_tick;
-    now_tick = __DjyGetTicks();
+    now_tick = __DjyGetSysTick();
     //用于维护系统时钟运转，使读系统时间的间隔，小于硬件定时器循环周期。
     __DjyMaintainSysTime( );
     if(g_ptEventDelay != NULL)
@@ -357,7 +359,7 @@ void  Djy_ScheduleIsr(u32 inc_ticks)
                 {
                     g_ptEventDelay = NULL;
                     __Djy_EventReady(pl_ecb);
-                    gSchduleTick.DelayTick = CN_LIMIT_UINT64;
+//                  gSchduleTick.DelayTick = CN_LIMIT_UINT64;
                     break;
                 }else
                 {
@@ -366,7 +368,7 @@ void  Djy_ScheduleIsr(u32 inc_ticks)
                     pl_ecb->previous->next = pl_ecb->next;
                     __Djy_EventReady(pl_ecb);
                     pl_ecb = g_ptEventDelay;
-                    gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//                  gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
                 }
             }else
                 break;
@@ -411,7 +413,7 @@ void  Djy_ScheduleIsr(u32 inc_ticks)
                 g_ptEventRunning->next = pl_ecbn;
                 pl_ecbn->previous->next = g_ptEventRunning;
                 pl_ecbn->previous = g_ptEventRunning;
-                gSchduleTick.RRSTicks = CN_LIMIT_UINT64;
+//              gSchduleTick.RRSTicks = CN_LIMIT_UINT64;
             }
         }
     }
@@ -655,16 +657,16 @@ void __Djy_SelectEventToRun(void)
     }
     if(s_u32RRS_Slice==0)
         return;
-    if(g_ptEventReady->prio==g_ptEventReady->next->prio \
-          && (g_ptEventReady != g_ptEventReady->next))
-    {
-//        gSchduleTick.RRSTicks = g_s64OsTicks + s_u32RRS_Slice;
-        gSchduleTick.RRSTicks = __DjyGetTicks() + s_u32RRS_Slice;
-    }
-    else
-    {
-        gSchduleTick.RRSTicks = CN_LIMIT_UINT64;
-    }
+//    if(g_ptEventReady->prio==g_ptEventReady->next->prio \
+//          && (g_ptEventReady != g_ptEventReady->next))
+//    {
+////        gSchduleTick.RRSTicks = g_s64OsTicks + s_u32RRS_Slice;
+//        gSchduleTick.RRSTicks = __DjyGetSysTick() + s_u32RRS_Slice;
+//    }
+//    else
+//    {
+//        gSchduleTick.RRSTicks = CN_LIMIT_UINT64;
+//  }
 }
 
 //----创建进程-----------------------------------------------------------
@@ -1257,14 +1259,14 @@ void __Djy_ResumeDelay(struct EventECB *delay_event)
     if(g_ptEventDelay->next == g_ptEventDelay)  //队列中只有一个事件
     {
         g_ptEventDelay = NULL;
-        gSchduleTick.DelayTick = CN_LIMIT_UINT64;
+//      gSchduleTick.DelayTick = CN_LIMIT_UINT64;
     }
     else
     {
         if(delay_event == g_ptEventDelay)
         {
             g_ptEventDelay = g_ptEventDelay->next;
-            gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//          gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
         }
         delay_event->next->previous = delay_event->previous;
         delay_event->previous->next = delay_event->next;
@@ -1297,7 +1299,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
         g_ptEventRunning->next = g_ptEventRunning;
         g_ptEventRunning->previous = g_ptEventRunning;
         g_ptEventDelay=g_ptEventRunning;
-        gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//      gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
     }else
     {
         event = g_ptEventDelay;
@@ -1323,7 +1325,7 @@ void __Djy_AddToDelay(u32 u32l_uS)
         {
             //新事件延时小于原队列中的最小延时.
             g_ptEventDelay = g_ptEventRunning;
-            gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//          gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
         }
     }
 }
@@ -1680,7 +1682,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
             g_ptEventRunning->next = g_ptEventRunning;
             g_ptEventRunning->previous = g_ptEventRunning;
             g_ptEventDelay=g_ptEventRunning;
-            gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//          gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
         }else
         {
             event = g_ptEventDelay;
@@ -1703,7 +1705,7 @@ u32 Djy_EventDelay(u32 u32l_uS)
             //新事件延时小于原队列中的最小延时.
             {
                 g_ptEventDelay = g_ptEventRunning;
-                gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//              gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
             }
         }
     }
@@ -1746,7 +1748,7 @@ s64 Djy_EventDelayTo(s64 s64l_uS)
         g_ptEventRunning->next = g_ptEventRunning;
         g_ptEventRunning->previous = g_ptEventRunning;
         g_ptEventDelay=g_ptEventRunning;
-        gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//      gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
     }else
     {
         event = g_ptEventDelay;
@@ -1769,7 +1771,7 @@ s64 Djy_EventDelayTo(s64 s64l_uS)
         {
             //新事件延时小于原队列中的最小延时.
             g_ptEventDelay = g_ptEventRunning;
-            gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
+//          gSchduleTick.DelayTick = g_ptEventDelay->delay_end_tick;
         }
     }
     Int_RestoreAsynSignal();
@@ -2440,7 +2442,6 @@ void __StartOs(void)
 {
     //本句为容错性质，以防用户模块初始化过程中没有成对调用异步信号使能与禁止函数
     __Int_ResetAsynSignal();
-    __DjyInitTick();
     __Djy_SelectEventToRun();
     g_ptEventRunning = g_ptEventReady;
     g_bScheduleEnable = true;
@@ -3154,13 +3155,17 @@ struct EventECB *__Djy_GetIdle(void)
 //返回: 永不返回.
 //惨痛教训:这是一个不允许阻塞的函数，深夜3点调出来的教训。
 //-----------------------------------------------------------------------------
+void CleanWakeupEvent(void);
+u64 buff[256] = {0};
 ptu32_t __Djy_Service(void)
 {
     u32 loop;
+    u8 i = 0;
     u8 level;
-    u64 now_tick = 0;
-    u64 int_tick = 0;
-    u32 pend_ticks = 0;
+    u64 now_tick;
+    u64 int_tick;
+    u64 AllowPendTicks;     //允许休眠的时间，从上一次tick中断起计
+    atom_low_t  atom_bak;
     while(1)
     {
         //注：改成tickless模式后，因没有tick中断，不再需要判断，每次运行直接跑栈检查
@@ -3174,16 +3179,23 @@ ptu32_t __Djy_Service(void)
         }
         if(g_fnEntryLowPower != NULL)
         {
-            now_tick = __DjyGetTicks();
-            if(gSchduleTick.DelayTick<gSchduleTick.RRSTicks)
-                int_tick = gSchduleTick.DelayTick;
+            CleanWakeupEvent();
+            atom_bak = Int_LowAtomStart();
+            now_tick = __DjyGetSysTick();
+            if(g_ptEventDelay != NULL)
+                int_tick = g_ptEventDelay->delay_end_tick;
             else
-                int_tick = gSchduleTick.RRSTicks;
-//          int_tick = (gSchduleTick.DelayTick<gSchduleTick.RRSTicks)?(gSchduleTick.DelayTick):(gSchduleTick.RRSTicks);
-//          while(int_tick<now_tick);
-            pend_ticks = int_tick - now_tick;
-            g_fnEntryLowPower(g_ptEventRunning->vm,pend_ticks);      //进入低功耗状态
+                int_tick = CN_LIMIT_UINT64;
 
+            AllowPendTicks = int_tick - now_tick;       //具体休眠多少时间，由BSP决定
+            if(AllowPendTicks > CN_LIMIT_UINT32)
+                AllowPendTicks = CN_LIMIT_UINT32;
+            buff[i++] = AllowPendTicks;
+            buff[i] = __DjyGetSysTime();
+            g_fnEntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
+            buff[i] = __DjyGetSysTime() - buff[i];
+            i++;
+            Int_LowAtomEnd(atom_bak);
         }
     }
     return 0;//消除编译警告

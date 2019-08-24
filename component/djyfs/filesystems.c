@@ -301,6 +301,7 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
             obj_SetPrivate(targetobj, (ptu32_t)super);
             super->pTarget = targetobj;
             super->MountBak = NULL;
+            obj_DutyUp(targetobj);
         }
         else
         {
@@ -308,8 +309,8 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
             obj_detach(targetobj);
             super->pTarget = tmpobj;
             super->MountBak = targetobj;
+            obj_DutyUp(tmpobj);
         }
-        obj_DutyUp(tmpobj);
         super->InstallWay = opt;
         super->Config = data;
     }

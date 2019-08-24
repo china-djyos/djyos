@@ -178,7 +178,7 @@ void __Uart_SendIntDisable(tag_UartReg volatile *reg)
 //参数: reg,被操作的寄存器组指针
 //返回: 无
 //-----------------------------------------------------------------------------
-void __Uart_SetBaud(tag_UartReg volatile *reg,u32 baud)
+void __UART_BaudSet(tag_UartReg volatile *reg,u32 baud)
 {
     u32 temp;
     /* Sets the Baud rate for UART0 */
@@ -195,7 +195,7 @@ void __Uart_SetBaud(tag_UartReg volatile *reg,u32 baud)
 //-----------------------------------------------------------------------------
 void __Uart_DefaultSet(tag_UartReg volatile *reg)
 {
-    __Uart_SetBaud(reg,115200);            //波特率设置
+    __UART_BaudSet(reg,115200);            //波特率设置
 
     /* Configures UART0 LCR */
     reg->rUART0LCR = UARTWLS8;              // word length 8
@@ -250,11 +250,11 @@ ptu32_t __Uart_Ctrl(djy_handle_t uart_dev,
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            if(uart_port->baud !=data1)
-            {
-                uart_port->baud = data1;
-                __Uart_SetBaud((tag_UartReg *)uart_port->my_reg,data1);
-            }
+        if(uart_port->baud !=data1)
+        {
+            uart_port->baud = data1;
+            __UART_BaudSet((tag_UartReg *)uart_port->my_reg,data1);
+        }
             break;
         case CN_UART_RX_PAUSE:      //暂停接收
             __Uart_RecvIntDisable((tag_UartReg *)uart_port->my_reg);

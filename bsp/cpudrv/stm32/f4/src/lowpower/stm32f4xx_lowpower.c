@@ -68,6 +68,7 @@
 #include "stddef.h"
 #include "lowpower.h"
 #include "cpu_peri.h"
+#include <core_cm4.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -78,7 +79,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip peripheral lowpower control"//低功耗组件外设驱动
-//parent:"lowpower"  //填写该组件的父组件名字，none表示没有父组件
+//parent:"lowpower"                      //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                          //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                       //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                          //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
@@ -106,6 +107,10 @@
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
 
 
@@ -119,6 +124,7 @@
 //----------------------------------------------------------------------------
 bool_t __LP_BSP_HardInit(void)
 {
+
     HAL_PWR_DeInit();               //PWR模块使能
     HAL_PWR_EnableBkUpAccess();//后备区使能
     return true;
@@ -174,8 +180,9 @@ bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
 //-----------------------------------------------------------------------------
 void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 {
-
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+    SCB->SCR |= SCB_SCR_SEVONPEND_Msk;
+    SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+    __WFE();
 }
 
 //----进入L1级低功耗-----------------------------------------------------------
@@ -186,8 +193,9 @@ void __LP_BSP_EntrySleepL0(u32 pend_ticks)
 //-----------------------------------------------------------------------------
 void __LP_BSP_EntrySleepL1(u32 pend_ticks)
 {
-
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFE);
+    SCB->SCR |= SCB_SCR_SEVONPEND_Msk;
+    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+    __WFE();
 }
 
 //----进入L2级低功耗-----------------------------------------------------------
@@ -201,7 +209,7 @@ void __LP_BSP_EntrySleepL2(u32 pend_ticks)
 
     //清所有外部中断标志和RTC闹钟标志
     EXTI->PR = 0xFFFFF;
-    HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
+    HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 
 }
 
@@ -226,4 +234,15 @@ void __LP_BSP_EntrySleepL4(void)
 {
     HAL_PWR_EnterSTANDBYMode( );
 }
+
+
+bool_t __LP_BSP_RestoreRamL3(void)
+{
+    return true;
+}
+bool_t __LP_BSP_SaveRamL3(void)
+{
+   return true;
+}
+
 

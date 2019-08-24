@@ -85,8 +85,6 @@ extern "C" {
 
 bool_t HardExp_Init(void);
 void HardExp_ConnectNmi(void (*esr)(void));
-void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks));
-void HardExp_EsrTick(void);
 
 #ifdef __cplusplus
 }

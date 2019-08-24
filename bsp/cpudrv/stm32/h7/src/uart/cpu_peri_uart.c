@@ -370,12 +370,10 @@ static void __UART_Stop(u8 port)
 //      data，参数
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(u32 port,ptu32_t data)
+static void __UART_ComConfig(u32 port, struct COMParam *COM)
 {
-    struct COMParam *COM;
     if(port < CN_UART_NUM)
     {
-        COM = (struct COMParam *)data;
         sHuart[port].Init.BaudRate = COM->BaudRate;
         switch(COM->DataBits)               // data bits
         {
@@ -612,7 +610,7 @@ void __UART_SetDmaUsed(u8 port,u8 enable)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(u32 port,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(u32 port,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
     u32 timeout = 100000;
@@ -628,10 +626,18 @@ static ptu32_t __UART_Ctrl(u32 port,u32 cmd, u32 data1,u32 data2)
             __UART_Stop(port);
             break;
         case CN_UART_SET_BAUD:
-            __UART_BaudSet(port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(port, data);
+        }
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(port,COM);
+        }
             break;
 
         case CN_UART_DMA_USED:

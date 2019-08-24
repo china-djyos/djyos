@@ -297,12 +297,11 @@ static void __UART_BaudSet(tagUartReg *Reg,u8 port,u32 baudrate)
 //      data，参数
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
     struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     __UART_Enable(Reg,0);
@@ -451,7 +450,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd,va_list *arg0)
 {
     ptu32_t result = 0;
     u32 port;
@@ -472,10 +471,18 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
 //          __UART_Enable(Reg,0);
 //            break;
         case CN_UART_SET_BAUD:
-            __UART_BaudSet(Reg,port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg,port, data);
+        }
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         case CN_UART_HALF_DUPLEX_SEND: //发送数据
             Board_UartHalfDuplexSend(port);
@@ -494,7 +501,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
     }
     return result;
 }
-u8 g_testBuf[256] = {0};u16 g_Cnt = 0;u8 g_flag = true;u8 test_flag = false;u8 g_Ch;
+
 // =============================================================================
 // 功能：UART中断,若为idle中断，则从DMA缓冲区中读出数据，并重新启动DMA，否则调用HAL中断
 //       处理函数，最终会调用到HAL_UART_XXXXCallback（）

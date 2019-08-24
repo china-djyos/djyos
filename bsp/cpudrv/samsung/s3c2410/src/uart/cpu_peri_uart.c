@@ -217,7 +217,7 @@ bool_t __UART_TxTranEmpty(struct UART_REG *Reg)
 //参数: reg,被操作的寄存器组指针
 //返回: 无
 //-----------------------------------------------------------------------------
-void __UART_SetBaud(struct UART_REG *Reg,u32 baud)
+void __UART_BaudSet(struct UART_REG *Reg,u32 baud)
 {
     volatile int i;
 
@@ -419,7 +419,7 @@ u32 __UART_SendStart(struct UART_REG *Reg,u32 timeout)
 //      data,含义依cmd而定
 //返回: 无意义.
 //-----------------------------------------------------------------------------
-ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, u32 data1,u32 data2)
+ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, va_list *arg0)
 {
     u32  port;
 
@@ -449,7 +449,11 @@ ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-            __UART_SetBaud(Reg,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg, data);
+        }
             break;
         case CN_UART_RX_PAUSE:      //暂停接收
             __UART_SubIntDisable(port,SUB_RXD_FLG);
@@ -459,8 +463,10 @@ ptu32_t __UART_Ctrl(struct UART_REG *Reg,u32 cmd, u32 data1,u32 data2)
             break;
         case CN_UART_SEND_HARD_LEVEL:    //设置发送fifo触发水平
         {
+            u32 data;
+            data = va_arg(*arg0, u32);
             Reg->UFCON &= 0x3f;
-            switch (data1)
+            switch (data)
             {
                 case 0:
                     break;
@@ -824,7 +830,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         __UART_IntConfig(port_stdio);
 
         __UART_DefaultConfig(reg_stdio);
-        __UART_SetBaud(reg_stdio,115200);
+        __UART_BaudSet(reg_stdio,115200);
 
         PutStrDirect = Uart_PutStrDirect;
         GetCharDirect = Uart_GetCharDirect;

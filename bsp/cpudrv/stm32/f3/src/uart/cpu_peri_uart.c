@@ -387,12 +387,10 @@ static void __UART_GpioConfig(u8 SerialNo)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
-    struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = data;
     __UART_BaudSet(Reg,port,COM->BaudRate);
 
     Reg->CR1 &= ~(1);//禁止串口
@@ -865,7 +863,6 @@ void __UART_SetDmaUnUsed(u32 port)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-u32 CN1=0,CN2=0,CN3=0,CN4=0,CN5=0;
 static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
 {
     ptu32_t result = 0;
@@ -900,8 +897,9 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
             break;
         case CN_UART_SET_BAUD:  //设置Baud
         {
-            len = va_arg(*args, u32);
-             __UART_BaudSet(Reg,port, len);
+            u32 data;
+            data = va_arg(*args, u32);
+             __UART_BaudSet(Reg,port, data);
             break;
         }
         case CN_UART_EN_RTS:
@@ -962,7 +960,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                               break;
                        default:  break;
                     }
-                    CN1++;
                     break;
                 case 2:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -989,7 +986,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                        default:  break;
                     }
-                    CN2++;
                     break;
                 case 3:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -1026,7 +1022,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                        default:  break;
                         }
-                    CN3++;
                     break;
                 case 4:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -1073,7 +1068,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                        default:  break;
                         }
-                    CN4++;
                         break;
                 case 5:
                     switch (pUartPollCB[port]->NowRecvbuf)
@@ -1130,7 +1124,6 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *args)
                                break;
                     default:                break;
                 }
-                CN5++;
                 break;
                 default:    break;
             }

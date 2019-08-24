@@ -5,6 +5,8 @@
 #include "lowpower.h"
 #include "int.h"
 #include "int_hard.h"
+#include "cpu_peri.h"
+#include <core_cm4.h>
 #include <shell.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -76,16 +78,15 @@ u32 LP_EntryLowPower(struct ThreadVm *vm,u32 pend_ticks)
 
     if(g_tLowPower.DisableCounter == 0)
     {
+        Tick_SetNextTimeTick(pend_ticks);       //具体设置为多少时间，由BSP决定
         switch(g_tLowPower.SleepLevel)
         {
            case CN_SLEEP_L0:
-               atom_bak = Int_LowAtomStart();
                if(g_tLowPower.EntrySleepReCall(CN_SLEEP_L0))
                {
                    __LP_BSP_EntrySleepL0(pend_ticks);
                    g_tLowPower.ExitSleepReCall(CN_SLEEP_L0);
                }
-               Int_LowAtomEnd(atom_bak);
                return CN_SLEEP_L0;
                break;
            case CN_SLEEP_L1:
@@ -220,7 +221,7 @@ void LP_SetHook(u32 (*EntrySleepReCall)(u32 SleepLevel),
 
 u32 EmptyReCall(u32 SleepLevel)
 {
-    return 0;
+    return 1;
 }
 //----初始化-------------------------------------------------------------------
 //功能: 初始化低功耗组件
@@ -240,3 +241,7 @@ void ModuleInstall_LowPower (void)
     return ;
 }
 
+__attribute__((weak)) bool_t __LP_BSP_SetSleepMode(ptu32_t param)
+{
+    return false;
+}

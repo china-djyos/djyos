@@ -331,6 +331,13 @@ void init_hostent_ext(struct hostent_ext *phostent_ext)
 }
 
 int DnsNameResolveExt(const char *name, struct hostent_ext *phostent_ext);
+
+//------------------------------------------------------------------------------
+//功能：gethostbyname的多线程安全版本，由调用方提供 hostent_ext 结构。
+//参数：name，给定的主机名。
+//     pnew，调用方提供的 hostent_ext 结构的指针
+//返回：struct hostent *
+//------------------------------------------------------------------------------
 struct hostent * gethostbyname_r(const char *name,struct hostent_ext *pnew)
 {
     u32 len=0;

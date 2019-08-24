@@ -99,7 +99,8 @@ void _fini(void)
 //---------------------------------------------------------------------------
 void Sys_Start(void)
 {
-    __InitTimeBase();
+//  __InitTimeBase();
+    __DjyInitTick();
     __InitSys( );
     __InitMB();
     // Mb_ModuleInit函数需要创建信号量，调用ModuleInstall_Lock之前，创建信号量是允许的，

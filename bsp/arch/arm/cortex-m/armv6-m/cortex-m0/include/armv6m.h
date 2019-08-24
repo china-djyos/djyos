@@ -56,8 +56,8 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 
-#ifndef __CORTEXM0_H__
-#define __CORTEXM0_H__
+#ifndef __ARMV6M_H__
+#define __ARMV6M_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -131,6 +131,6 @@ struct ScbReg
 }
 #endif
 
-#endif /*__CORTEXM0_H__*/
+#endif /*__ARMV6M_H__*/
 
 

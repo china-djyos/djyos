@@ -42,69 +42,30 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块: 调度器
+//所属模块: BSP
 //作者：lst
-//版本：V1.0.1
-//文件描述: 调度器中与CPU直接相关的代码。
+//版本：V1.0.0
+//文件描述: 利用cortex-m系列CPU的systick作为系统ticks时钟源，默认勾选，但dynamic-tick
+//         模式会有误差。低功耗要求高的场合，应使用低功耗定时器以替代之。
 //其他说明:
-//修订历史:
-//2. 日期: 2009-04-24
-//   作者: lst
-//   新版本号: V1.0.1
-//   修改说明: 删除了一些为dlsp版本准备的东西
-//1. 日期: 2009-01-04
+//1. 日期: 2019-08-11
 //   作者: lst
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
+#ifndef __CORTEX_M_H__
+#define __CORTEX_M_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "align.h"
-#include "stdint.h"
-#include "board-config.h"
-#include "stdlib.h"
-#include "int.h"
-#include "hard-exp.h"
-#include "string.h"
-#include "arch_feature.h"
-#include "cpu.h"
-#include "djyos.h"
+__attribute__((weak))   u64 __DjyGetSysTime(void);
+void Exp_SystickTickHandler(void);
+void CleanWakeupEvent(void);
+__attribute__((weak))   u64 __DjyGetSysTime(void);
+__attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks);
 
-void __start_systick(void);
-//struct SystickReg volatile * const pg_systick_reg
- //                       = (struct SystickReg *)0xE000E010;
-
-//struct ScbReg volatile * const pg_scb_reg
-//                        = (struct ScbReg *)0xe000ed00;
-
-extern void Init_Cpu(void);
-extern void Load_Preload(void);
-// =============================================================================
-// 功能：运行到选择系统运行方式前，对于M3/M4的CPU，即PC跳转到Init_CPU()
-// 参数：无
-// 返回：无
-// =============================================================================
-void reboot(void)
-{
-    u32 InitCpu_Addr;
-    InitCpu_Addr = *(u32*)0x00000004;
-    ((void (*)(void))(InitCpu_Addr))();
+#ifdef __cplusplus
 }
-// =============================================================================
-// 功能：Reset硬件CPU，相当于上电重新启动，硬件软件都得到复位
-// 参数：无
-// 返回：无
-// =============================================================================
-void reset(void)
-{
-    pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
-}
-// =============================================================================
-// 功能：运行到CPU加载代码前，即pre_load()前
-// 参数：无
-// 返回：无
-// =============================================================================
-void restart_app(void)
-{
-    Load_Preload();
-}
+#endif
 

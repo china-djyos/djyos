@@ -364,15 +364,14 @@ static void __UART_BaudSet(u8 port,u32 baud)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile * reg,u8 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile * reg,u8 port,struct COMParam *COM)
 {
     struct COMParam *COM;
 
     if(tg_UART_Reg[port]!=reg)
         return;
-    if(data == 0)
+    if(COM == NULL)
         return;
-     COM = (struct COMParam *)data;
 
      LPUART_GetDefaultConfig(&tg_UART_Config[port]);
      tg_UART_Config[port].baudRate_Bps = COM->BaudRate;
@@ -533,7 +532,7 @@ static u32 __UART_SendStart (tagUartReg *reg,u32 timeout)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, va_list *arg0)
 {
     u8 port=0;
     ptu32_t result = 0;
@@ -565,7 +564,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, u32 data1,u32 data2)
             __UART_Disable(port);
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-             __UART_BaudSet(port, data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(port, data);
+        }
             break;
         case CN_UART_EN_RTS:
             tg_UART_Config[port].enableRxRTS = true;
@@ -592,7 +595,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, u32 data1,u32 data2)
             break;
 */
         case CN_UART_COM_SET:
-            __UART_ComConfig(reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         default: break;
     }

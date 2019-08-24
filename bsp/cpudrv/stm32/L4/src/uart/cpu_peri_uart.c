@@ -285,12 +285,11 @@ static void __UART_Stop(u8 port)
 //      data，参数
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *COM)
 {
     struct COMParam *COM;
     if(port < CN_UART_NUM)
     {
-        COM = (struct COMParam *)data;
         phuart[port]->Init.BaudRate = COM->BaudRate;
         switch(COM->Parity)                 // parity
         {
@@ -544,7 +543,7 @@ void __UART_SetDmaUsed(u8 port,u8 enable)
 //       data1,data2,含义依cmd而定
 // 返回: 无意义.
 // =============================================================================
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     ptu32_t result = 0;
     u32 port;
@@ -571,10 +570,18 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:
-            __UART_BaudSet(port,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(port, data);
+        }
             break;
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,port,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,port,COM);
+        }
             break;
         case CN_UART_HALF_DUPLEX_SEND: //发送数据
             Board_UartHalfDuplexSend(port);

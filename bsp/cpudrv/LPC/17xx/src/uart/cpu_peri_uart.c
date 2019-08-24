@@ -274,12 +274,11 @@ static void __UART_GpioConfig(u8 SerialNo)
 //        data,结构体tagCOMParam类型的指针数值
 // 返回: 无
 // =============================================================================
-static void __UART_ComConfig(tagUartReg volatile *Reg,ptu32_t data)
+static void __UART_ComConfig(tagUartReg volatile *Reg,struct COMParam *COM)
 {
     struct COMParam *COM;
-    if((data == 0) || (Reg == NULL))
+    if((COM == NULL) || (Reg == NULL))
         return;
-    COM = (struct COMParam *)data;
     __UART_BaudSet(Reg,COM->BaudRate);
 
     switch(COM->DataBits)               // data bits
@@ -450,7 +449,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 //      data,含义依cmd而定
 //返回: 无意义.
 //-----------------------------------------------------------------------------
-static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
+static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 {
     u8 i;
     for(i =0; i < CN_UART_NUM;i++)
@@ -477,7 +476,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
         case CN_DEV_CTRL_RESUME:
             break;
         case CN_UART_SET_BAUD:  //设置Baud
-                __UART_BaudSet(Reg,data1);
+        {
+            u32 data;
+            data = va_arg(*arg0, u32);
+            __UART_BaudSet(Reg, data);
+        }
             break;
         case CN_UART_RX_PAUSE:      //暂停接收
             __UART_RxIntDisable(Reg);
@@ -507,7 +510,11 @@ static ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, u32 data1,u32 data2)
             break;
         }
         case CN_UART_COM_SET:
-            __UART_ComConfig(Reg,data1);
+        {
+            struct COMParam *COM;
+            COM = va_arg(*arg0, void *);
+            __UART_ComConfig(Reg,COM);
+        }
             break;
         case CN_UART_HALF_DUPLEX_RECV:
             Board_UartHalfDuplexRecv(i);
