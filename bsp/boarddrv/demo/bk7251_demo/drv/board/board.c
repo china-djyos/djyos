@@ -145,7 +145,7 @@ void Board_Init(void)
     djy_gpio_write(GPIO8,0);
 #else
     djy_gpio_mode(GPIO13,PIN_MODE_INPUT_PULLUP);  //wifi“ªº¸≈‰÷√
-    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);  //∂¡»°¿∂—¿◊¥Ã¨
+//    djy_gpio_mode(GPIO10,PIN_MODE_INPUT_PULLUP);  //∂¡»°¿∂—¿◊¥Ã¨
 
     p7_sem_init();
     djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);   //”Ô“Ù∞¥º¸

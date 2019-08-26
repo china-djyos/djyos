@@ -4,6 +4,12 @@
   <cpu>
     <cpuName>bk7251</cpuName>
     <mianClk>26.0</mianClk>
+    <chip>
+      <chipName>st7796s</chipName>
+    </chip>
+    <chip>
+      <chipName>gd25q16c</chipName>
+    </chip>
     <peripheral>cpu_peri_audio_mic</peripheral>
     <peripheral>cpu_peri_flash</peripheral>
     <peripheral>cpu_peri_gpio</peripheral>
