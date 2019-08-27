@@ -828,7 +828,7 @@ ptu32_t ModuleInstall_st7796s(void)
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
 
-    //tg_lcd_display.DisplayHeap = M_FindHeap(CFG_ILI9325_HEAP_NAME);
+//    tg_lcd_display.DisplayHeap = M_FindHeap(CFG_ST7796S_HEAP_NAME);
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,CFG_ST7796S_DISPLAY_NAME);

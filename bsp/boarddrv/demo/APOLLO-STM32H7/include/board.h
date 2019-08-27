@@ -48,7 +48,7 @@
 
 //#include "./include/ctiic.h"
 #include "cpu_peri.h"
-
+#include "IoIicBus.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

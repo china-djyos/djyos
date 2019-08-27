@@ -115,7 +115,7 @@ bool_t ModuleInstall_init_ioiic(const char * busname)
     struct IO_IIC_Init IoIic;
 
     IoIic.BusName     =  busname;//总线名称，如IIC1
-    IoIic.tag         =  0; //用户自己的标记
+    IoIic.tag         =  1; //用户自己的标记
     IoIic.IIC_IoCtrl  =  IIC_IoCtrlFunc; //控制函数
     //模块接口
     ModuleInstall_IO_IICBus(&IoIic);

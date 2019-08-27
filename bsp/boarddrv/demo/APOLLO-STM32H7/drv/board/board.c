@@ -456,8 +456,8 @@ void Board_GpioInit(void)
 #if 0
     LAN8720_RESET( );//Íø¿Ú¸´Î»
 #endif
-    PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
-//   PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
+//    PIO_Configure(uart1_pin, PIO_LISTSIZE(uart1_pin));
+   PIO_Configure(uart2_pin, PIO_LISTSIZE(uart2_pin));
 //    PIO_Configure(uart3_pin, PIO_LISTSIZE(uart3_pin));
 //     PIO_Configure(uart8_pin, PIO_LISTSIZE(uart8_pin));
 //     PIO_Configure(SDMMC_Pins, PIO_LISTSIZE(SDMMC_Pins));
