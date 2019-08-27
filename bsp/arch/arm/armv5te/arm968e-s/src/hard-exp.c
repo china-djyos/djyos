@@ -50,6 +50,7 @@
 
 #include "board-config.h"
 
+/*
 extern struct IntMasterCtrl  tg_int_global;
 
 void (*user_systick)(u32 inc_ticks) = NULL;
@@ -59,18 +60,19 @@ void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks))
 {
     user_systick = tick;
 }
+*/
 
-void Exp_SystickTickHandler(void)
-{
-    tg_int_global.en_asyn_signal_counter = 1;
-    if(!DjyGetUpdateTickFlag())
-        DjyUpdateTicks(1);
-    else
-        DjySetUpdateTickFlag(false);
-    if(user_systick!=NULL)
-        user_systick(1);
-    tg_int_global.en_asyn_signal_counter = 0;
-}
+//void Exp_SystickTickHandler(void)
+//{
+//    tg_int_global.en_asyn_signal_counter = 1;
+//    if(!DjyGetUpdateTickFlag())
+//        DjyUpdateTicks(1);
+//    else
+//        DjySetUpdateTickFlag(false);
+//    if(user_systick!=NULL)
+//        user_systick(1);
+//    tg_int_global.en_asyn_signal_counter = 0;
+//}
 
 void HardExp_Init(void)
 {

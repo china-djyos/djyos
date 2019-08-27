@@ -78,8 +78,26 @@ void os_clk_init(void)
 	param.end_value       = fclk_cal_endvalue((UINT32)param.cfg.bits.clk);
 	
 	ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
-//	ASSERT(PWM_SUCCESS == ret);
 }
 
 // eof
+#include "pwm.h"
+
+
+u32 Git_SysTickCnt()
+{
+    return REG_READ(REG_APB_BK_PWMn_CAP_ADDR(FCLK_PWM_ID));
+}
+
+void Set_SysTickEnd(u32 value)
+{
+    REG_WRITE(REG_APB_BK_PWMn_END_ADDR(FCLK_PWM_ID), value);
+}
+
+
+
+
+
+
+
 

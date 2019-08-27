@@ -68,32 +68,12 @@ static bool_t gResumeTickFlag = false;
 __attribute__((weak)) void __InitTimeBase(void)
 {}
 
-// =============================================================================
-// 功能：初始化systick
-// 参数：无
-// 返回：无
-// =============================================================================
-__attribute__((weak)) void __DjyInitTick(void)
-{
-    HardExp_ConnectSystick(Djy_ScheduleIsr);
-}
 
-// =============================================================================
-// 功能：获取系统时间
-// 参数：无
-// 返回：当前us数
-// =============================================================================
-__attribute__((weak))   uint64_t __DjyGetSysTime(void)
-{
-    s64 time = 0;
-    time = gRunTicks*CN_CFG_TICK_US;
-    return (uint64_t)time;
-}
 
-__attribute__((weak)) uint64_t __DjyGetTicks(void)
-{
-    return gRunTicks;
-}
+//__attribute__((weak)) uint64_t __DjyGetTicks(void)
+//{
+//    return gRunTicks;
+//}
 
 //??????????
 __attribute__((weak)) void DjySetUpdateTickFlag(bool_t flag)
