@@ -656,6 +656,7 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
     else
         free = core->bufsz - ((cx->pos - core->inhead) % core->bufsz);
 
+    memset(cx->buf, 0xff, core->bufsz);
     while(left)
     {
         once = left;
@@ -686,8 +687,8 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
                 if(core->drv->xip_read_media(core, cx->buf, core->bufsz, pos+cx->bufed))
                     break;
             }
-
             cx->bufed = 0;
+            memset(cx->buf, 0xff, core->bufsz);
         }
 
         left -= once;

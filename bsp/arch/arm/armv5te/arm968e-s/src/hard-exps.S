@@ -164,5 +164,30 @@ _start:
 
     ldr     pc, =Init_Cpu
 
+.text
+.align 5
+.globl __asm_reset_msp
+.type __asm_reset_msp, %function
+__asm_reset_msp:
+    BOOT_CHANGE_MODE 0x13 0x1F  /*Undefined mode管理模式*/
+	ldr     sp,=msp_top
+    bic     sp,sp,#0x07
+    //==================
+    //Clear Registers
+    MOV R0,  #0
+    MOV R1,  #0
+    MOV R2,  #0
+    MOV R3,  #0
+    MOV R4,  #0
+    MOV R5,  #0
+    MOV R6,  #0
+    MOV R7,  #0
+    MOV R8,  #0
+    MOV R9,  #0
+    MOV R10, #0
+    MOV R11, #0
+    MOV R12, #0
+    mov pc ,lr
+
 .end
 

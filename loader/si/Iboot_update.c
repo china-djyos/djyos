@@ -222,75 +222,72 @@ bool_t Iboot_UpdateApp(void)
     u32 readsize,res;
     char *file;
 
-    if((Get_UpdateSource() == 0) && (Get_UpdateApp() == 0))
+    info_printf("IAP","app update start.\r\n");
+    strcpy(apppath, Get_MutualUpdatePath());
+    srcapp = fopen(apppath, "r+");
+    if(srcapp != NULL)
     {
-        info_printf("IAP","app update start.\r\n");
-        strcpy(apppath, Get_MutualUpdatePath());
-        srcapp = fopen(apppath, "r+");
-        if(srcapp != NULL)
+        file = strrchr(apppath, '/');
+        if(file)
         {
-            file = strrchr(apppath, '/');
-            if(file)
+            sprintf(xipapppath, "%s%s", "/xip-app", file);
+            xipapp = fopen(xipapppath, "w+");
+            if(xipapp != NULL)
             {
-                sprintf(xipapppath, "%s%s", "/xip-app", file);
-                xipapp = fopen(xipapppath, "w+");
-                if(xipapp != NULL)
+                stat(apppath,&test_stat);
+                srcsize = test_stat.st_size;
+                while(1)
                 {
-                    stat(apppath,&test_stat);
-                    srcsize = test_stat.st_size;
-                    while(1)
+                    readsize = fread(buf, 1, IAPBUF_SIZE, srcapp);
+                    if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
                     {
-                        readsize = fread(buf, 1, IAPBUF_SIZE, srcapp);
-                        if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
-                        {
-                            printf("Iap read file %s error \n\r",apppath);
-                            break;
-                        }
-                        if(readsize != IAPBUF_SIZE)
-                        {
-                            printf("read file %s End \r\n ",apppath);
-                        }
+                        printf("Iap read file %s error \n\r",apppath);
+                        break;
+                    }
+                    if(readsize != IAPBUF_SIZE)
+                    {
+                        printf("read file %s End \r\n ",apppath);
+                    }
 
-                        res = fwrite(buf, 1, readsize, xipapp);
-                        if(res != readsize)
-                        {
-                            printf("write file xip-app error  \r\n ");
-                        }
-                        srcsize -= readsize;
-                        if(srcsize == 0)
-                        {
-                            info_printf("IAP","App update success.\r\n");
-                            Clear_RunIbootUpdateApp();
-                            break;
-                        }
-                    }
-                    fclose(srcapp);
-                    fclose(xipapp);
-                    if(srcsize !=0)
+                    res = fwrite(buf, 1, readsize, xipapp);
+                    if(res != readsize)
                     {
-                        error_printf("IAP","app update error .\r\n");
-                        Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+                        printf("write file xip-app error  \r\n ");
                     }
-                    else
-                        Update_ToRun();
+                    srcsize -= readsize;
+                    if(srcsize == 0)
+                    {
+                        info_printf("IAP","App update success.\r\n");
+                        Clear_RunIbootUpdateApp();
+                        break;
+                    }
                 }
-                else
+                fclose(srcapp);
+                fclose(xipapp);
+                if(srcsize !=0)
                 {
-                    error_printf("IAP","cannot open source file xip-app .\r\n");
+                    error_printf("IAP","app update error .\r\n");
                     Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
                 }
+                else
+                    Update_ToRun();
             }
             else
             {
-                error_printf("IAP","App file error .\r\n");
+                error_printf("IAP","cannot open source file xip-app .\r\n");
                 Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
             }
         }
         else
         {
-            error_printf("IAP","file \"%s\" is not found.\r\n", apppath);
+            error_printf("IAP","App file error .\r\n");
             Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
         }
+    }
+    else
+    {
+        error_printf("IAP","file \"%s\" is not found.\r\n", apppath);
+        Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
     }
 
     return TRUE;
@@ -365,88 +362,89 @@ bool_t App_UpdateIboot(char *param)
     char iapibootname[MutualPathLen];
 //  char *word_param, *next_param;
 
-    if(Get_Updateiboot() == 0)
+    info_printf("IAP","iboot update start.\r\n");
+    strcpy(iapibootname, Get_MutualUpdatePath());
+    Update_and_run_mode = NULL;
+
+    srciboot = fopen(iapibootname, "r+");
+    if(srciboot != NULL)
     {
-        info_printf("IAP","iboot update start.\r\n");
-        strcpy(iapibootname, Get_MutualUpdatePath());
-        Update_and_run_mode = NULL;
-
-        srciboot = fopen(iapibootname, "r+");
-        if(srciboot != NULL)
-        {
-           xipiboot = fopen("/xip-iboot/iboot.bin", "w+");
-           if(xipiboot != NULL)
+       xipiboot = fopen("/xip-iboot/iboot.bin", "w+");
+       if(xipiboot != NULL)
+       {
+           stat(iapibootname,&test_stat);
+           srcsize = test_stat.st_size;
+           while(1)
            {
-               stat(iapibootname,&test_stat);
-               srcsize = test_stat.st_size;
-               while(1)
+               readsize = fread(buf, 1, IAPBUF_SIZE, srciboot);
+               if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
                {
-                   readsize = fread(buf, 1, IAPBUF_SIZE, srciboot);
-                   if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
-                   {
-                       printf("Iap read file %s error \n\r",iapibootname);
-                       break;
-                   }
-                   if(readsize != IAPBUF_SIZE)
-                   {
-                       printf("read file %s End \r\n ",iapibootname);
-                   }
+                   printf("Iap read file %s error \n\r",iapibootname);
+                   break;
+               }
+               if(readsize != IAPBUF_SIZE)
+               {
+                   printf("read file %s End \r\n ",iapibootname);
+               }
 
-                   res = fwrite(buf, 1, readsize, xipiboot);
-                   if(res != readsize)
-                   {
-                       printf("write file xip-iboot error  \r\n ");
-                   }
-                   srcsize -= readsize;
-                   if(srcsize == 0)
-                   {
-                       info_printf("IAP","Iboot update success.\r\n");
-                       Clear_RunAppUpdateIboot();
-                       break;
-                   }
-               }
-               fclose(srciboot);
-               fclose(xipiboot);
-               if(srcsize !=0)
+               res = fwrite(buf, 1, readsize, xipiboot);
+               if(res != readsize)
                {
-                   error_printf("IAP","Iboot update error .\r\n");
-                   Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
+                   printf("write file xip-iboot error  \r\n ");
                }
-               else if(Update_and_run_mode != NULL)
-                   Update_and_run_mode(NULL);
-               if(srcsize ==0)
-                   Update_ToRun();
+               srcsize -= readsize;
+               if(srcsize == 0)
+               {
+                   info_printf("IAP","Iboot update success.\r\n");
+                   Clear_RunAppUpdateIboot();
+                   break;
+               }
            }
-           else
+           fclose(srciboot);
+           fclose(xipiboot);
+           if(srcsize !=0)
            {
-               error_printf("IAP","cannot open source file xip-iboot .\r\n");
+               error_printf("IAP","Iboot update error .\r\n");
                Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
            }
-        }
-        else
-        {
-           error_printf("IAP","file \"%s\" is not found.\r\n", iapibootname);
+           else if(Update_and_run_mode != NULL)
+               Update_and_run_mode(NULL);
+           if(srcsize ==0)
+               Update_ToRun();
+       }
+       else
+       {
+           error_printf("IAP","cannot open source file xip-iboot .\r\n");
            Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
-        }
+       }
+    }
+    else
+    {
+       error_printf("IAP","file \"%s\" is not found.\r\n", iapibootname);
+       Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
     }
     return TRUE;
 }
 bool_t ModuleInstall_XIP(void)
 {
-    uint16_t evtt_Update;
+    uint16_t evtt_Update = CN_EVTT_ID_INVALID;
     char run_mode = Get_RunMode();
 
     if(run_mode == 0)
     {
-        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                                   Iboot_UpdateApp, NULL, CFG_MAINSTACK_LIMIT, "update app");
-        info_printf("XIP","add app update function.\r\n");
+        if((Get_UpdateSource() == 0) && (Get_UpdateApp() == 0))
+        {
+            evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                       Iboot_UpdateApp, NULL, CFG_MAINSTACK_LIMIT, "update app");
+        }
     }
     else if(run_mode == 1)
     {
-        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                                    App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
-        info_printf("XIP","add iboot update function.\r\n");
+        if(Get_Updateiboot() == 0)
+        {
+            evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                        App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
+        }
     }
     else
         return false;
@@ -454,7 +452,14 @@ bool_t ModuleInstall_XIP(void)
     if(evtt_Update != CN_EVTT_ID_INVALID)
     {
         if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
+        {
+            if(run_mode == 0)
+                info_printf("XIP","add app update function.\r\n");
+            else
+                info_printf("XIP","add iboot update function.\r\n");
+
             return true;
+        }
     }
     return false;
 }

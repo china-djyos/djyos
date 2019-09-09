@@ -47,6 +47,10 @@
 #include "lock.h"
 #include "systime.h"
 #include "stdlib.h"
+#include <xip.h>
+#include <dbug.h>
+#include <filesystems.h>
+#include <device/include/unit_media.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -93,6 +97,33 @@
 //@#$%component end configure
 
 struct MutexLCB *flash_mutex = NULL;
+static bool_t sflashInited = false;
+static struct umedia *flash_um;
+const char *flash_name = "emflash";      //该flash在obj在的名字
+extern struct Object *s_ptDeviceRoot;
+
+static struct FlashDescr{
+    u32     BytesPerPage;                // 页中包含的字节数
+    u32     PagesPerSector;               //  sector的页数
+    u32     AllSectorNum;               //  所有的sector数
+    u32     MappedStAddr;
+} *description;
+
+// ============================================================================
+// 功能：设置内置FLASH的信息
+// 参数：
+// 返回：
+// 备注：
+// ============================================================================
+static s32 SetFlash_Init(struct FlashDescr *Description)
+{
+    Description->BytesPerPage = 256;
+    Description->PagesPerSector = 16;
+    Description->AllSectorNum = 1024;
+    Description->MappedStAddr = 0x0;
+    return (0);
+}
+
 
 void djy_flash_read(uint32_t address, void *data, uint32_t size)
 {
@@ -113,7 +144,6 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
     {
         return;
     }
-
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
     flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_write((char *)data, size, address);
@@ -126,19 +156,212 @@ void djy_flash_erase(uint32_t address)
 {
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
     address &= (0xFFF000);
+
     flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_ctrl(CMD_FLASH_ERASE_SECTOR, &address);
     flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
 
+
+// ============================================================================
+// 功能：embeded flash 命令
+// 参数：ucmd -- 命令；
+//      其他 -- 命令参数；
+// 返回：
+// 备注：
+// ============================================================================
+s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
+{
+    s32 res = 0;
+
+    switch(cmd)
+    {
+        case remain:
+        {
+            va_list list;
+            u32 *left,  *unit;
+
+            left = (u32*)args;
+            va_start(list, args);
+            unit = (u32*)va_arg(list, u32);
+            va_end(list);
+            //PagesPerSector减1是因为页号从0开始
+            *left = (description->PagesPerSector - 1) - ((*unit / description->BytesPerPage) % description->PagesPerSector);
+            break;
+        }
+        case whichblock:
+        {
+            va_list list;
+            s64 *unit;
+            u32 *block;
+
+            block = (u32*)args;
+            va_start(list, args);
+            unit = (s64*)va_arg(list, u32);
+            va_end(list);
+
+            *block = *unit / (description->BytesPerPage * description->PagesPerSector);
+
+            break;
+        }
+        case unitbytes:
+        {
+            // args = &bytes
+            *((u32*)args) = description->BytesPerPage;
+            break;
+        }
+
+        case format:
+        {
+            va_list list;
+            s32 start, end;
+
+            start = (u32)args;
+            va_start(list, args);
+            end = va_arg(list, u32);
+            va_end(list);
+
+
+            if(-1== end)
+                end = description->AllSectorNum;// 结束的号；
+
+            do
+            {
+                djy_flash_erase((u32)((--end * ((u32)(description->BytesPerPage * description->PagesPerSector)))+description->MappedStAddr));
+            }
+            while(end!=start);
+
+            break;
+        }
+
+        case mapaddr:
+        {
+
+            *((u32*)args) = description->MappedStAddr;
+            break;
+        }
+        case totalblocks:
+        {
+            *((u32*)args) = description->PagesPerSector;
+            break;
+        }
+        case lock:
+        {
+            u32 time_ou = args;
+            Lock_MutexPend(flash_mutex, time_ou);
+            break;
+        }
+        case unlock:
+        {
+            Lock_MutexPost(flash_mutex);
+            break;
+        }
+
+        case checkbad: break;
+        default: res = -1; break;
+    }
+
+    return (res);
+}
+
+// ============================================================================
+// 功能：在内flash安装文件系统
+// 参数：fs -- 需要挂载的文件系统，mediadrv -- 媒体驱动，
+//       bstart -- 起始块，bend -- 结束块（不包括该块，只到该块的上一块）
+// 返回：0 -- 成功， -1 -- 失败
+// 备注：
+// ============================================================================
+s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
+{
+    u32 units, total = 0;
+     char *FullPath,*notfind;
+     struct Object *targetobj;
+     struct FsCore *super;
+     s32 res,endblock = bend;
+
+     if(mediadrv == NULL)
+         return -1;
+     targetobj = obj_matchpath(fs, &notfind);
+     if(notfind)
+     {
+         error_printf("embed"," not found need to install file system.\r\n");
+         return -1;
+     }
+     super = (struct FsCore *)obj_GetPrivate(targetobj);
+     super->MediaInfo = flash_um;
+     super->MediaDrv = mediadrv;
+
+     if(-1 == (s32)endblock)
+         endblock = bend = description->AllSectorNum; // 最大块号
+
+     super->AreaSize = (bend - bstart) * description->BytesPerPage * description->PagesPerSector;
+     super->MediaStart = (bstart * description->BytesPerPage * description->PagesPerSector) + description->MappedStAddr; // 起始unit号
+     super->MediaStart = super->MediaStart * 34 / 32;
+     if(super->AreaSize + super->MediaStart > description->AllSectorNum * description->BytesPerPage * description->PagesPerSector)
+     {
+         error_printf("embed","fileOS beyond the flash range.\r\n");
+         return -1;
+     }
+     res = strlen(flash_name) + strlen(s_ptDeviceRoot->name) + 1;
+     FullPath = malloc(res);
+     memset(FullPath, 0, res);
+     sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,flash_name);   //获取该设备的全路径
+     FsBeMedia(FullPath,fs); //往该设备挂载文件系统
+     free(FullPath);
+
+     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
+     return (0);
+}
+// ============================================================================
+// 功能：初始化片内flash
+// 参数：无
+// 返回：0 -- 成功， -1 -- 失败
+// 备注：
+// ============================================================================
 int ModuleInstall_Flash(void)
 {
+    description = malloc(sizeof(*description));
+    if(!description)
+        return (-1);
+
+    SetFlash_Init(description);
+
+    flash_um = malloc(sizeof(struct umedia)+description->BytesPerPage);
+    if(!flash_um)
+        return (-1);
+
+    flash_um->mreq = djy_flash_req;
+    flash_um->type = embed;
+    flash_um->ubuf = (u8*)flash_um + sizeof(struct umedia);
+
+    if(!dev_Create((const char*)flash_name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)flash_um)))
+    {
+        printf("\r\n: erro : device : %s addition failed.", flash_name);
+        free(flash_um);
+        return (-1);
+    }
+
     flash_mutex = Lock_MutexCreate("flash_mutex");
     if(flash_mutex==NULL)
         return -1;
     else
+    {
+        sflashInited = true;
         return 0;
+    }
+
+}
+
+// =============================================================================
+// 功能：判断flash是否安装
+// 参数：  无
+// 返回：已成功安装（true）；未成功安装（false）；
+// 备注：
+// =============================================================================
+bool_t flash_is_install(void)
+{
+    return sflashInited;
 }
 
 ///////////////////////////////////////////IAP FS/////////////////////////////////////////////

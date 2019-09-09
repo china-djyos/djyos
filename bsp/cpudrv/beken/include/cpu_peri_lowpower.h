@@ -55,6 +55,8 @@
 #ifndef __CPU_PERI_LOWPOWER_H__
 #define __CPU_PERI_LOWPOWER_H__
 
+#include <typedef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

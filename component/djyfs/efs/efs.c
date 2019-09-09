@@ -98,8 +98,10 @@
 #define CFG_EFS_FILE_SIZE_LIMIT           4096                 // 单个文件大小的上限
 #define CFG_EFS_MAX_CREATE_FILE_NUM       50                   // 默认支持的创建最大文件数
 #define CFG_EFS_MAX_OPEN_FILE_NUM         10                   // 默认支持的同时打开最大文件数
-//%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,
-#define CFG_EFS_INSTALL_OPTION            MS_INSTALLFORMAT      //EFS文件系统安装选项，16777216:文件系统不存在时则新建；256：格式化文件系统
+//%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,MS_INSTALLUSE
+#define CFG_EFS_INSTALL_OPTION            MS_INSTALLFORMAT      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统
+//%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,MS_INSTALLUSE,0
+#define CFG_EFS_INSTALL_OPTION_APPEND     MS_INSTALLUSE      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统,0:无附加安装选项
 //%$#@string,1,10,
 #define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
@@ -1605,11 +1607,12 @@ tagEFS *EfsInfo(struct FsCore *pSuper, u32 opts)
     allblocknum = pSuper->AreaSize / flash_black_size;      //总块数
     filedatablocks = (CFG_EFS_FILE_SIZE_LIMIT + flash_black_size - 1) / flash_black_size; // EFS单个文件实际数据所需要的块数
     num = allblocknum / filedatablocks;     //预计可以创建的最大文件数
-    do
+    filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_black_size - 1) / flash_black_size;
+    while(((num * filedatablocks) + (filelistblock * 2)) > allblocknum)//计算实际能创建的最大文件数
     {
         num--;
         filelistblock = (((num + 1) * EFS_ITEM_LIMIT) + flash_black_size - 1) / flash_black_size;
-    }while(((num * filedatablocks) + (filelistblock * 2)) > allblocknum);       //计算实际能创建的最大文件数
+    }
     if(num > CFG_EFS_MAX_CREATE_FILE_NUM)
         num = CFG_EFS_MAX_CREATE_FILE_NUM;
     CreateMax = num;
@@ -1675,7 +1678,10 @@ static s32 Efs_Mkfs(tagEFS* efs,struct FsCore *pSuper)
 
     block_buf = M_MallocLc(FileInfoList, 0);
     if(!block_buf)
+    {
+        Lock_MutexPost(efs->block_buf_mutex);
         return -1;
+    }
 
     //写好efs文件系统的核心信息到flash里
     memset(block_buf, 0xff, FileInfoList);
@@ -2140,6 +2146,7 @@ s32 ModuleInstall_EFS(const char *target, u32 opt, u32 config)
     }
 //    obj_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;
+    opt |= CFG_EFS_INSTALL_OPTION_APPEND;
     res = mountfs(NULL, target, "EFS", opt, (void *)config);
     if(res == -1)
     {

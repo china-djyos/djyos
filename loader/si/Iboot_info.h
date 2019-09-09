@@ -146,7 +146,6 @@ bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec);
 
 #if (CFG_RUNMODE_BAREAPP == 0)
 bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
-u32  Get_AppHeadSize(void);
 bool_t XIP_AppFileChack(void * apphead);
 void * XIP_GetAPPStartAddr(void * apphead);
 u32  XIP_GetAPPSize(void * apphead);

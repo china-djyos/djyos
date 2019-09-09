@@ -13,7 +13,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))    
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
     }>ram
 
 	/*中断异常所需要的栈*/
@@ -21,6 +21,7 @@ SECTIONS
     {
     	. = ALIGN(0x04);
     	 KEEP(* (.data.isrtab))
+    	 KEEP(* (.data.interrupt))
         . = ALIGN(0x02);
         msp_bottom = .;
         KEEP(* (.data.InitStack))
@@ -104,7 +105,7 @@ SECTIONS
         KEEP(* (.table.exceptions .table.exceptions.*))
         KEEP(* (.table.vectors .table.vectors.*))
         *loader.o (.bss .bss.* COMMON)
-        *int_hard.o (.bss .bss.* COMMON)
+        *int-hard.o (.bss .bss.* COMMON)
         KEEP(*hard-exps.o (.bss .bss.* COMMON))
         *hard-exp.o (.bss .bss.* COMMON)
         *int.o (.bss .bss.* COMMON)
@@ -142,7 +143,7 @@ SECTIONS
        . = ALIGN(0x08);
         preload_copy_table = .;
         LONG(16)
-        LONG(4)
+        LONG(6)
 
         LONG(LOADADDR(text_preload_rIbootRom_lIbootRom))
         LONG(ADDR(text_preload_rIbootRom_lIbootRom))
@@ -159,6 +160,17 @@ SECTIONS
         LONG(SIZEOF(rw_preload_rRAM1_lIbootRom))
         LONG(1)
 
+		
+        LONG(LOADADDR(routine_shell_data_section))
+        LONG(ADDR(routine_shell_data_section))
+        LONG(SIZEOF(routine_shell_data_section))
+        LONG(1)
+		
+		LONG(LOADADDR(expand_shell_data_section))
+        LONG(ADDR(expand_shell_data_section))
+        LONG(SIZEOF(expand_shell_data_section))
+        LONG(1)
+		
         LONG(LOADADDR(zi_preload_rRAM1_lRAM1))
         LONG(ADDR(zi_preload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_preload_rRAM1_lRAM1))
@@ -170,7 +182,7 @@ SECTIONS
        . = ALIGN(0x08);
         sysload_copy_table = .;
         LONG(16)
-        LONG(4)
+        LONG(3)
 
         LONG(LOADADDR(text_sysload_rIbootRom_lIbootRom))
         LONG(ADDR(text_sysload_rIbootRom_lIbootRom))
@@ -187,10 +199,7 @@ SECTIONS
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
         LONG(0)
         
-        LONG(LOADADDR(expand_shell_data_section))
-        LONG(ADDR(expand_shell_data_section))
-        LONG(SIZEOF(expand_shell_data_section))
-        LONG(1)
+ 
     }>flash
 	
 	heap_rRAM_lRAM (NOLOAD) :

@@ -24,7 +24,7 @@
 #include <device/include/unit_media.h>
 #include <device.h>
 #include <djyfs/filesystems.h>
-#include <driver/include/spi_pub.h>
+#include <include/spi_pub.h>
 #include "dbug.h"
 #include "cpu_peri_spi.h"
 

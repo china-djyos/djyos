@@ -1,32 +1,17 @@
-OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
-OUTPUT_ARCH(arm)
-ENTRY(isr_vector);
-
-/*由于MEMORY命令不能使用符号，这些常量的定义，必须与MEMORY命令处一致 */
-IbootSize = 1500k;   /*此处定义应与相应板件的APP的memory.lds中定义一致 */
-FlashOffset = 0x00000000;
-FlashSize = 2000K;
-RamStart = 0x00410000;
-RamSize = 192K;
-DtcmStart = 0x00400000;
-DtcmSize = 64K;
-SDRamStart = 0x00900000;
-SDRamSize = 256K;
-
-/* Split memory into area for vectors and ram */
-MEMORY
-{
-        flash  (rx) : ORIGIN = 0x00000000, LENGTH = 1500k /* 1216KB - 96B */
-        dtcm  (rw!x): ORIGIN = 0x00400000, LENGTH = 64k
-        ram   (rw!x): ORIGIN = 0x00410000, LENGTH = 192k
-        sdram (rw!x): ORIGIN = 0x00900000, LENGTH = 256k
-}
-
+ENTRY(AppStart);
+INCLUDE  ../src/lds/memory.lds
 SECTIONS
 {
-	Rom_Start :
+    Iboot_IbootFill :        
     {
-        restore = .; 
+        gc_IbootStart = .;
+        . += IbootSize; 
+    }>flash
+	
+	Iboot_Apphead :
+    {
+        gc_AppStart = .;          
+        KEEP(*(.DjyAppHead .DjyAppHead.*))   
     }>flash
 
     /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
@@ -34,29 +19,42 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-        KEEP(*(.IapBootFlgRam .IapBootFlgRam.*))    
+        KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
     }>ram
 
 	stack_rRAM1_lRAM1 (NOLOAD) :
     {
+    	. = ALIGN(0x04);
+    	 KEEP(* (.data.isrtab))
+    	 KEEP(* (.data.interrupt))
         . = ALIGN(0x02);
         msp_bottom = .;
         KEEP(* (.data.InitStack))
-		/*. = ALIGN(0x08);*/
-        msp_top = .;
+		 . = ALIGN(0x08); 
+        msp_top = .; 
+
+	    . += 0x10;
+        _stack_unused = .;
+        
+        . += 0x3F0;
+        _stack_svc = .;
+        
+        . += 0xFF0;
+        _stack_irq = .;
+        
+        . += 0x7F0;
+        _stack_fiq = .;
+        
+        . += 0x3F0;
+        _stack_sys = .;
     }>ram
-	
-	Rom_Start :
-    {
-        restore = .; 
-    }>flash
+
     
     /* vectors go to vectors region */
     /*. = ORIGIN(flash);*/
     .vectors :
     {
-        KEEP(*(*.vectors))
-        KEEP( *(*.rom1))
+        KEEP(*(*.text.AppStart))
         . = ALIGN(4);
 	   KEEP(*initcpus.o(.text .text.* .rodata .rodata.*))
 	   KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
@@ -68,7 +66,7 @@ text_preload_rIbootRom_lIbootRom :
 		. = ALIGN(0x08);
 		g_pAppCodeStartRamAddr = .;
         *loader.o (.text .text.* .rodata .rodata.*)
-        *int_hard.o (.text .text.* .rodata .rodata.*)
+        *int-hard.o (.text .text.* .rodata .rodata.*)
 		KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
         *hard-exp.o (.text .text.* .rodata .rodata.*)
         *int.o (.text .text.* .rodata .rodata.*)
@@ -98,7 +96,7 @@ text_preload_rIbootRom_lIbootRom :
     {
        . = ALIGN(0x08);
         *loader.o (.data .data.*)
-        *int_hard.o (.data .data.*)
+        *int-hard.o (.data .data.*)
         KEEP(*:hard-exps.o (.data .data.*))
         *hard-exp.o (.data .data.*)
         *int.o (.data .data.*)
@@ -137,12 +135,22 @@ text_preload_rIbootRom_lIbootRom :
 		. = ALIGN(0x4) ;
     }>ram
 	
+	 routine_shell_data_section :
+    {
+             KEEP(* (.ro_shell_data))
+     }>ram AT>flash
+        
+    expand_shell_data_section :
+    {
+         KEEP(* (.ex_shell_data))
+     }>ram AT>flash
+	 
 	preload_cp_table :
     {
        . = ALIGN(0x08);
         preload_copy_table = .;
         LONG(16)
-        LONG(4)
+        LONG(6)
 
         LONG(LOADADDR(text_preload_rIbootRom_lIbootRom))
         LONG(ADDR(text_preload_rIbootRom_lIbootRom))
@@ -159,6 +167,17 @@ text_preload_rIbootRom_lIbootRom :
         LONG(SIZEOF(rw_preload_rRAM1_lIbootRom))
         LONG(1)
 
+		
+        LONG(LOADADDR(routine_shell_data_section))
+        LONG(ADDR(routine_shell_data_section))
+        LONG(SIZEOF(routine_shell_data_section))
+        LONG(1)
+		
+		LONG(LOADADDR(expand_shell_data_section))
+        LONG(ADDR(expand_shell_data_section))
+        LONG(SIZEOF(expand_shell_data_section))
+        LONG(1)
+		
         LONG(LOADADDR(zi_preload_rRAM1_lRAM1))
         LONG(ADDR(zi_preload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_preload_rRAM1_lRAM1))
@@ -194,22 +213,22 @@ text_preload_rIbootRom_lIbootRom :
         sys_heap_bottom = .;
 		/*__heap_start = .;*/
     }>ram
-    sys_heap_top = RamStart + RamSize;
-	/*__heap_end = RamStart + RamSize;*/
+    sys_heap_top = ORIGIN(ram) + LENGTH(ram);
+	 
 	
 	heap_Dtcm (NOLOAD) :
 	{
 		. = ALIGN(0x08);
 		dtcm_heap_bottom = .;
 	}>dtcm
-	dtcm_heap_top = DtcmStart + DtcmSize;
+	dtcm_heap_top =  ORIGIN(dtcm) + LENGTH(dtcm);
 	
 	SDRAM_lRAM (NOLOAD) :
     {
        . = ALIGN(0x08);
         sdram_bottom = .;
     }>sdram
-    sdram_top = SDRamStart + SDRamSize;
+   sdram_top =  ORIGIN(sdram) + LENGTH(sdram);
 	
 	heap_cp_table :
     {
@@ -271,25 +290,9 @@ text_preload_rIbootRom_lIbootRom :
         gc_pAppOffset = .;          /* APP空间偏置 */
         LONG(IbootSize)
         gc_pAppRange = .;           /* APP空间范围 */
-        LONG(FlashSize - IbootSize)       
+        LONG(LENGTH(flash) - IbootSize)       
     }>flash
     
-   Iboot_AppInfo :
-    {
-       /* . = restore + IbootSize;*/
-        gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
-        LONG( restore + IbootSize)
-        . += 256;
-        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
-        LONG( restore + IbootSize + 256)
-        . += 256;
-        gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
-        LONG( restore + IbootSize + 256 + 256)
-        __AppStart = .;           /*函数指针变量，指向APP的Preload函数*/
-        LONG( restore + IbootSize + 256 + 256)
-    }>flash
-
-
 	
     shell_config_section :
 	{
@@ -299,30 +302,18 @@ text_preload_rIbootRom_lIbootRom :
     routine_shell_section :
 	{
    		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
  	}>flash
  	
     expand_shell_section :
 	{
  	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
  	      . = ALIGN(0x08);
  	}>flash
  	
  	Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
+        LONG(gc_AppStart) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
+        LONG(LENGTH(flash)) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
     }>flash 
-
-    /* _stack symbol defines initial stack bottom addres. Stack grows to lower addresses.
-       Typically you set this to be top of your RAM. Note: code never checks, if stack
-       grows into heap area!
-    */
-    PROVIDE(_stack_unused      = 0x440000 - 0x3F0 - 0x7F0 - 0xFF0 - 0x3F0 - 0x10); /* 0x10*/
-    PROVIDE(_stack_svc         = 0x440000 - 0x3F0 - 0x7F0 - 0xFF0 - 0x3F0); /* 0x3F0*/
-    PROVIDE(_stack_irq         = 0x440000 - 0x3F0 - 0x7F0 - 0xFF0); /* 0xFF0*/
-    PROVIDE(_stack_fiq         = 0x440000 - 0x3F0 - 0x7F0); /* 0x7F0*/
-    PROVIDE(_stack_sys         = 0x440000 - 0x3F0); /* 0x3F0*/
 }

@@ -54,9 +54,9 @@ extern void Load_Preload(void);
 
 extern void __Djy_VmEngine(ptu32_t (*thread_routine)(void));
 
-uint32_t djy_switch_interrupt_flag = 0;
-uint32_t *djy_interrupt_from_thread = NULL;
-uint32_t *djy_interrupt_to_thread = NULL;
+uint32_t djy_switch_interrupt_flag __attribute__ ((section(".data.interrupt")));
+uint32_t *djy_interrupt_from_thread __attribute__ ((section(".data.interrupt")));
+uint32_t *djy_interrupt_to_thread __attribute__ ((section(".data.interrupt")));
 static uint64_t gRunTicks = 0;
 static bool_t gResumeTickFlag = false;
 
@@ -66,7 +66,11 @@ static bool_t gResumeTickFlag = false;
 // ·µ»Ø£ºÎÞ
 // =============================================================================
 __attribute__((weak)) void __InitTimeBase(void)
-{}
+{
+    djy_switch_interrupt_flag = 0;
+    djy_interrupt_from_thread = NULL;
+    djy_interrupt_to_thread = NULL;
+}
 
 
 
@@ -101,7 +105,12 @@ __attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
 
 void reset(u32 key)
 {
-	_start();
+    Set_SoftResetFlag();
+    Set_PreviouResetFlag();
+    void (*fn_start)();
+    fn_start = 0x0;
+    fn_start();
+//	_start();
 }
 
 void restart_app(u32 key)

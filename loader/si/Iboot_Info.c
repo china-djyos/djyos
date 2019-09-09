@@ -1190,8 +1190,7 @@ bool_t Run_App(enum runappmode mode)
             Load_Preload();
             return true;
         case RUN_APP_FROM_DIRECT :
-            __RunApp(gc_pAppOffset);
-            return true;
+            return __RunApp((void * )gc_pAppOffset);
         default:          break;
     }
     return false;

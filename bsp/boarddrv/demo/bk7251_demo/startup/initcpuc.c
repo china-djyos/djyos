@@ -10,8 +10,8 @@ void Init_Cpu(void)
 //  csi_cache_set_range(0, 0x00000000, CACHE_CRCR_4M, 1);
 //  csi_cache_set_range(1, 0x22000000, CACHE_CRCR_8M, 1);
 //  csi_dcache_enable();
-    
-    Load_Preload();
+    void IAP_SelectLoadProgam(void);
+    IAP_SelectLoadProgam();
 }
 
 void IAP_GpioPinInit(void)
@@ -24,5 +24,10 @@ bool_t IAP_IsForceIboot(void)
     return false;
 }
 
-
+void AppStart()
+{
+    void __asm_reset_msp();
+    __asm_reset_msp();
+    Load_Preload();
+}
 
