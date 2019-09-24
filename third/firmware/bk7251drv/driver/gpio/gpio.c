@@ -543,15 +543,15 @@ void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned c
         return;
     }
 
-    mode &= 0x03;
-    if ((mode == 0) || (mode == 3))
-    {
-        gpio_config(index, GMODE_INPUT_PULLUP);
-    }
-    else
-    {
-        gpio_config(index, GMODE_INPUT_PULLDOWN);
-    }
+//    mode &= 0x03;
+//    if ((mode == 0) || (mode == 3))
+//    {
+//        gpio_config(index, GMODE_INPUT_PULLUP);
+//    }
+//    else
+//    {
+//        gpio_config(index, GMODE_INPUT_PULLDOWN);
+//    }
 
     if (index < 16)
     {

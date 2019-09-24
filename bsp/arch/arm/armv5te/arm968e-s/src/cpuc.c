@@ -49,6 +49,7 @@
 #include "int.h"
 #include "hard-exp.h"
 #include "board-config.h"
+#include <Iboot_Info.h>
 
 extern void Load_Preload(void);
 
@@ -106,7 +107,9 @@ __attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
 void reset(u32 key)
 {
     Set_SoftResetFlag();
+#if (CFG_RUNMODE_BAREAPP == 0)
     Set_PreviouResetFlag();
+#endif
     void (*fn_start)();
     fn_start = 0x0;
     fn_start();

@@ -317,6 +317,48 @@ s32 mountfs(const char *source, const char *target, const char *type, u32 opt, v
 
     return (0);
 }
+// ============================================================================
+// 功能：文件系统注销功能
+// 参数：
+//      target -- 文件系统所要挂载的目标对象（目录）；
+//      type -- 文件系统类型；
+// 返回：成功（0）；失败（-1）；还未挂载到具体的媒体上去（-2）；
+// 备注：
+// ============================================================================
+s32 unmountfs(const char *target, const char *type)
+{
+    struct filesystem *fstype;
+    struct Object *targetobj;
+    struct FsCore *super;
+    char *notfind;
+
+    fstype = __findtype(type);
+    if(!fstype)
+    {
+        debug_printf("fs","mount failed(cannot find type \"%s\")", type);
+        return (-1);
+    }
+
+    targetobj = obj_matchpath(target, &notfind);
+    if(notfind)
+    {
+#if 0
+        // 未找到安装点
+        targetobj = obj_BuildTempPath(targetobj, notfind); // 建立安装点
+#else
+        return (-1); // 安装点必须准备好。
+#endif
+    }
+    else
+    {
+        obj_DutyDown(targetobj);
+        super = (struct FsCore *)obj_GetPrivate(targetobj);
+        super->pFsType->uninstall(super->Config);
+        memset(super, 0, sizeof(*super));
+        free(super);
+    }
+    return (0);
+}
 
 //-----------------------------------------------------------------------------
 //功能: 格式化文件系统

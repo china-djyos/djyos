@@ -38,7 +38,7 @@
 #endif
 
 #if CFG_USE_SDCARD_HOST
-#include "sdcard_pub.h"
+#include "sdcard/sdcard_pub.h"
 #endif
 
 #if CFG_USE_STA_PS

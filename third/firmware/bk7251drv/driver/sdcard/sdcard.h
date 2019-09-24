@@ -1,6 +1,7 @@
 #ifndef _SDCARD_H_
 #define _SDCARD_H_
-
+#include <sys_config.h>
+#include <typedef.h>
 #if CFG_USE_SDCARD_HOST
 #include "sdcard_pub.h"
 
@@ -13,7 +14,7 @@ typedef struct _sdcard_
     UINT16  card_rca;
     UINT16  init_flag;
 	UINT16	Addr_shift_bit;
-    SD_DETECT_FUN detect_func;
+//    SD_DETECT_FUN detect_func;
 }SDCARD_S, *SDCARD_PTR;
 
 /* API */
@@ -28,6 +29,8 @@ extern UINT32 sdcard_read(char *user_buf, UINT32 count, UINT32 op_flag);
 extern UINT32 sdcard_write(char *user_buf, UINT32 count, UINT32 op_flag);
 
 extern UINT32 sdcard_ctrl(UINT32 cmd, void *parm);
+
+u16 get_sdcard_is_ready(void);
 
 #endif // CFG_USE_SDCARD_HOST
 

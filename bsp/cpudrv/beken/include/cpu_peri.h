@@ -76,6 +76,8 @@ extern "C" {
 #include "cpu_peri_wifi.h"
 #include "cpu_peri_wifi_fast_connect.h"
 #include "cpu_peri_lowpower.h"
+#include "cpu_peri_spi.h"
+#include "cpu_peri_sdcard.h"
 #ifdef __cplusplus
 }
 #endif

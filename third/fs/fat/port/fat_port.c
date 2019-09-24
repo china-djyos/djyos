@@ -518,6 +518,39 @@ static s32 __fat_install(struct FsCore *super, u32 opt, void *data)
 }
 
 // ============================================================================
+// 功能：注销FAT文件系统
+// 参数：super -- 文件系统管理信息；opt -- 文件系统的安装方式；data -- 文件系统的私有配置
+// 返回：0 -- 成功; -1 -- 失败;
+// 备注：
+// ============================================================================
+static s32 __fat_uninstall(void *data)
+{
+    const char *name;
+    char *volume, *temp;
+    FRESULT res;
+    s32 volumeNum;
+
+    name = data;
+    temp = volume = malloc(strlen(name)+2);
+    sprintf(volume, "%s:", name);
+
+    volumeNum = get_ldnumber((const char**)&temp); // 需要ffconf.h中定义"_VOLUME_STRS"
+    if (volumeNum < 0)
+    {
+        printf("\r\n: debug : fatfs : mount failed, can not find the predefined volume (%s).", volume);
+        free(volume);
+        return (-1);
+    }
+    res = f_mount(NULL, volume, 0); // 注销
+    if(res != FR_OK)
+    {
+        free(volume);
+        return (-1);
+    }
+    return (0);
+}
+
+// ============================================================================
 // 功能：将系统的flags逻辑转非FAT的mode逻辑
 // 参数：
 // 返回：
@@ -583,7 +616,7 @@ static struct objhandle *__fat_open(struct Object *ob, u32 flags, char *full)
 //    if(!full)
 //        full = "/"; // 根目录
     memset(entirepath, 0, DJYFS_PATH_BUFFER_SIZE);
-    GetEntirePath(ob,full,entirepath,DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
+    GetEntirePath(ob, full, entirepath, DJYFS_PATH_BUFFER_SIZE); //获取文件的完整路径
     res = strlen(entirepath) + strlen(volume) + 1;
     path = malloc(res);
     if(!path)
@@ -1110,20 +1143,20 @@ s32 __fat_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
 // ============================================================================
 // 功能：安装FAT文件系统
-// 参数：  dir -- fat文件系统所挂载的目录；缺省为“fat”
+// 参数：  dir -- fat文件系统所挂载的目录的名字；缺省为“fat”
 //      opt -- 文件系统设置选项；如MS_INSTALLCREAT
 //      data -- 媒体所属类别（"RAM","NAND","CF","SD", "MSC", "EMMC"）
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
+s32 ModuleInstall_FAT(const char *dir_name, u32 opt, void *data)
 {
     s32 res;
     char *mountpoint = "fat";
     struct Object * mountobj;
     static struct filesystem *typeFAT = NULL;
-    if(dir)
-        mountpoint = (char*)dir;
+    if(dir_name)
+        mountpoint = (char*)dir_name;
 
     if(typeFAT == NULL)
     {
@@ -1133,7 +1166,7 @@ s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
         typeFAT->install = __fat_install;
         typeFAT->pType = "FAT";
         typeFAT->format = __fatformat;
-        typeFAT->uninstall = NULL;
+        typeFAT->uninstall = __fat_uninstall;
     }
     res = regfs(typeFAT);
     if(-1==res)
@@ -1158,5 +1191,35 @@ s32 ModuleInstall_FAT(const char *dir, u32 opt, void *data)
         obj_Delete(mountobj);
         return (-1);// 失败
     }
+    return (0);
+}
+
+// ============================================================================
+// 功能：注销FAT文件系统
+// 参数：dir_path -- 文件系统的安装路径
+// 备注：
+// ============================================================================
+s32 UnfileSystem_FAT(const char *dir_path)
+{
+    struct Object *targetobj;
+    char *mountpoint = "/fat";
+    char *notfind;
+    if(dir_path)
+        mountpoint = (char*)dir_path;
+
+    targetobj = obj_matchpath(mountpoint, &notfind);
+    if(notfind)
+    {
+        error_printf("fat"," not found \"%s\".\r\n",mountpoint);
+        return (-1); // 安装点必须准备好。
+    }
+
+    unmountfs(mountpoint, "FAT");
+    if(obj_Delete(targetobj) != 0)
+    {
+        error_printf("fat"," fat obj delete fail.\r\n");
+        return (-1); // 删除节点失败。
+    }
+
     return (0);
 }
