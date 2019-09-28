@@ -744,7 +744,7 @@ bool_t GK_SetHyalineColor(struct GkWinObj *gkwin,u32 HyalineColor)
     struct GkscParaSetHyalineColor para;
     if(NULL == gkwin)
         return false;
-    if(HyalineColor == gkwin->HyalineColor)
+    if((HyalineColor == gkwin->HyalineColor) && (1 == gkwin->RopCode.HyalineEn))
         return true;
     para.gkwin = gkwin;
     para.HyalineColor = HyalineColor;

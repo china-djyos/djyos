@@ -524,19 +524,38 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
         bm->height =1;
         bm->linebytes =line_bytes;
         bm->ExColor =(ptu32_t)0;
+
+#if 0
         bm->bm_bits =malloc(line_bytes);
 
         if(bm->bm_bits!=NULL)
         {
             for (i = 0; i < h; i++)
             {
+
                 rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
                 DrawBitmap(hdc,x,y+i,bm,0,RopCode);
+//                Djy_EventDelay(10*mS);//todo:
                 offset -= line_bytes;
             }
 
             free(bm->bm_bits);
         }
+#else
+        u8 * addr = malloc(line_bytes *h);
+        if(addr != NULL)
+        {
+            for (i = 0; i < h; i++)
+            {
+                bm->bm_bits = addr+(line_bytes*i);
+                rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
+                DrawBitmap(hdc,x,y+i,bm,0,RopCode);
+                offset -= line_bytes;
+            }
+            free(addr);
+        }
+
+#endif
         return TRUE;
         ////////
 

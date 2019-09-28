@@ -83,6 +83,7 @@ typedef struct
     u32 BGColor;//进度条背景色
     u32 TextColor;//字体颜色
     u32 DrawTextFlag;//字体风格
+    char * text;//进度条显示文本
 
 }PROGRESSBAR_DATA;
 

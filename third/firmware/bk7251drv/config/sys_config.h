@@ -128,7 +128,7 @@
 #define CFG_USE_AP_PS                              0
 
 /*section 19-----for SDCARD HOST*/
-#define CFG_USE_SDCARD_HOST                        1
+#define CFG_USE_SDCARD_HOST                        0
 
 /*section 20 ----- support mp3 decoder*/
 #define CONFIG_APP_MP3PLAYER 			           0

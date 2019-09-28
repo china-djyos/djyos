@@ -10,6 +10,9 @@
     <chip>
       <chipName>gd25q16c</chipName>
     </chip>
+    <chip>
+      <chipName>ft6236</chipName>
+    </chip>
     <peripheral>cpu_peri_audio_mic</peripheral>
     <peripheral>cpu_peri_flash</peripheral>
     <peripheral>cpu_peri_gpio</peripheral>

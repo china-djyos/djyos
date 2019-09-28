@@ -42,22 +42,42 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-//所属模块:图形
-//作者：lst
-//版本：V1.0.0
-//文件描述: lil9325驱动程序
-//其他说明:
-//修订历史:
-//1. 日期: 2009-03-10
-//   作者: lst
-//   新版本号: V1.0.0
-//   修改说明: 原始版本
-//------------------------------------------------------
-#ifndef __LCD_ST7796S_H__
-#define __LCD_ST7796S_H__
 
-ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName);
-void lcd_display_on(void);
-void lcd_display_off(void);
+#ifndef __BOARD__H__
+#define __BOARD__H__
 
-#endif//__LCD_ST7796S_H__防止重复包含
+//#include "./include/ctiic.h"
+#include "cpu_peri.h"
+#include "IoIicBus.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**********************************ft5x26********************************************/
+//IO方向设置
+#define CT_SCL_OUT() djy_gpio_mode(GPIO4,PIN_MODE_OUTPUT)  //输出模式
+#define CT_SDA_IN()  djy_gpio_mode(GPIO2,PIN_MODE_INPUT_PULLUP)  //输入模式
+#define CT_SDA_OUT() djy_gpio_mode(GPIO2,PIN_MODE_OUTPUT)  //输出模式
+//IO操作函数
+#define CT_IIC_SCL(n) djy_gpio_write(GPIO4,n)//SCL
+#define CT_IIC_SDA(n) djy_gpio_write(GPIO2,n)//SDA
+#define CT_READ_SDA   djy_gpio_read(GPIO2)//输入SDA
+
+/*触摸屏芯片接口IO*/
+#define FT_RST(n)  djy_gpio_write(GPIO6,n)
+#define FT_INT     djy_gpio_read(GPIO7)
+/*************************************************************************************/
+void Board_Init(void);
+void FT6236_Pin_Init(void);
+u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
+
+#ifdef __cplusplus
+}
+#endif
+#endif
+
+
+
+
+
+

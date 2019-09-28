@@ -75,8 +75,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern ptu32_t ModuleInstall_st7796s(void);
-//    ModuleInstall_st7796s();
+//  extern ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName);
+//  ModuleInstall_st7796s(CFG_ST7796S_DISPLAY_NAME,CFG_ST7796S_HEAP_NAME);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -122,13 +122,24 @@
 #define cn_frame_buffer_size    (cn_lcd_line_size * CFG_LCD_YSIZE)
 #define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
 
-u8 u8g_frame_buffer[0/*cn_frame_buffer_size*/];
+u8 u8g_frame_buffer[cn_frame_buffer_size];
 struct DisplayObj tg_lcd_display;
 
+static u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
+
+
+#define ROW_TEMP 1
+#define COLO_DEP 2
+#define ROW_BUFFER   40*240*2
+#if 0
+unsigned char screen_2[CFG_LCD_XSIZE][COLO_DEP];
+//#else
+unsigned char screen[ROW_TEMP][240][COLO_DEP];
+#endif
 
 #define SPI_RST(x)   djy_gpio_write(GPIO19,(x))
-#define SPI_RS(x)    djy_gpio_write(GPIO18,(x))
-#define SPI_CS(x)    djy_gpio_write(GPIO12,(x))
+#define SPI_RS(x)    djy_gpio_write(GPIO15,(x))
+#define SPI_CS(x)    djy_gpio_write(GPIO3,(x))
 #define LED_ON(x)    djy_gpio_write(GPIO36,!(x))
 #if 0
 void SPI_CS (int stat)
@@ -247,14 +258,14 @@ void __st7796s_write_data(unsigned char data)
 
 void spi_init_extral_gpio(void)
 {
-    bk_gpio_config_output(GPIO18);
-    bk_gpio_output(GPIO18, GPIO_INT_LEVEL_HIGH);
+    bk_gpio_config_output(GPIO15);
+    bk_gpio_output(GPIO15, GPIO_INT_LEVEL_HIGH);
 
     bk_gpio_config_output(GPIO19);
     bk_gpio_output(GPIO19, GPIO_INT_LEVEL_HIGH);
 
-    bk_gpio_config_output(GPIO12);
-    bk_gpio_output(GPIO12, GPIO_INT_LEVEL_HIGH);
+    bk_gpio_config_output(GPIO3);
+    bk_gpio_output(GPIO3, GPIO_INT_LEVEL_HIGH);
 
     bk_gpio_config_output(GPIO36);
     bk_gpio_output(GPIO36, GPIO_INT_LEVEL_LOW);
@@ -311,7 +322,7 @@ void __lcd_st7796s_init(void)
     {
         return;
     }
-
+#if 0
     //************* Start Initial Sequence **********//
     WriteComm(0xE0);
     WriteData(0x00);
@@ -360,7 +371,7 @@ void __lcd_st7796s_init(void)
     WriteData(0x80);
 
     WriteComm(0x36);
-    WriteData(0x48); //WriteData(0x48);
+    WriteData(0x08); //WriteData(0x48);
 
     WriteComm(0x3A); //Interface Mode Control
     WriteData(0x55);//WriteData(0x66);
@@ -398,6 +409,127 @@ void __lcd_st7796s_init(void)
     WriteComm(0x11);
     Djy_DelayUs(120);
     WriteComm(0x29);
+#else
+    WriteComm(0x11);   //sleep out
+//    delay_ms(200);
+
+    WriteComm(0x36);   //memory access control
+    WriteData(0x00);   //MY MX MV ML MH=0,BGR=1
+
+    WriteComm(0x3A);
+    WriteData(0x05);
+
+    WriteComm(0x21);   //IPS
+
+//    WriteComm(0xB0);  //RAM CONTROL
+//    WriteData(0x11);
+//    WriteData(0xF0);
+
+//    WriteComm(0xB1);  //RGB CONTROL
+//    WriteData(0x40);
+//    WriteData(0x02);
+//    WriteData(0x14);
+
+    WriteComm(0xB2);
+    WriteData(0x05);
+    WriteData(0x05);
+    WriteData(0x00);
+    WriteData(0x33);
+    WriteData(0x33);
+
+    WriteComm(0xB7);
+    WriteData(0x35);
+
+    WriteComm(0xB8);
+    WriteData(0x2F);
+    WriteData(0x2B);
+    WriteData(0x2F);
+
+    WriteComm(0xBb);
+    WriteData(0x20);
+
+    WriteComm(0xc0);
+    WriteData(0x2c);
+
+    WriteComm(0xc2);
+    WriteData(0x01);
+
+    WriteComm(0xc3);
+    WriteData(0x0B);
+
+    WriteComm(0xc4);
+    WriteData(0x20);
+
+    WriteComm(0xc6);
+    WriteData(0x11);
+
+    WriteComm(0xd0);
+    WriteData(0xa4);
+    WriteData(0xa1);
+
+    WriteComm(0xE8);
+    WriteData(0x03);
+
+    WriteComm(0xE9);
+    WriteData(0x0D);
+    WriteData(0x12);
+    WriteData(0x00);
+
+    WriteComm(0xE0);   //positive gamma correction
+    WriteData(0xd0);
+    WriteData(0x06);
+    WriteData(0x0B);
+    WriteData(0x0A);
+    WriteData(0x09);
+    WriteData(0x05);
+    WriteData(0x2E);
+    WriteData(0x43);
+    WriteData(0x44);
+    WriteData(0x09);
+    WriteData(0x16);
+    WriteData(0x15);
+    WriteData(0x23);
+    WriteData(0x27);
+
+    WriteComm(0xE1);   //negative gamma correction
+    WriteData(0xd0);
+    WriteData(0x06);
+    WriteData(0x0B);
+    WriteData(0x09);
+    WriteData(0x08);
+    WriteData(0x06);
+    WriteData(0x2E);
+    WriteData(0x44);
+    WriteData(0x44);
+    WriteData(0x3A);
+    WriteData(0x15);
+    WriteData(0x15);
+    WriteData(0x23);
+    WriteData(0x26);
+
+    WriteComm(0x29);   //display on
+
+    WriteComm(0x2A);   //column address set
+    WriteData(0x00);
+    WriteData(0x00);
+    WriteData(0x00);
+    WriteData(0xEF);
+
+    WriteComm(0x2B);   //page address set
+    WriteData(0x00);
+    WriteData(0x00);
+    WriteData(0x01);
+    WriteData(0x3F);
+
+    //WriteComm(0x2C);     //memory write
+
+
+
+//    delay_ms(50);
+    WriteComm(0x11);       //Exit Sleep
+//    delay_ms(120);
+    WriteComm(0x29);       //Displa
+#endif
 }
 
 /*---------------------------------------------------------------------------
@@ -409,6 +541,8 @@ void __st7796s_set_pixel(u32 x, u32 y, u16 color)
     unsigned int Xend = x;
     unsigned int Ystart = y;
     unsigned int Yend = y;
+    unsigned int xx[2];
+
     WriteComm(0x2a);
     WriteData(Xstart>>8);
     WriteData(Xstart&0xff);
@@ -422,8 +556,11 @@ void __st7796s_set_pixel(u32 x, u32 y, u16 color)
     WriteData(Yend&0xff);
 
     WriteComm(0x2c);
+//    color = (color>>8)|(color&0xFF00);
+    xx[0] = (unsigned char)((color>>8) & 0xff);
+    xx[1] = (unsigned char)(color & 0xff);
 
-    WriteDataBytes((unsigned char*)&color, 2);
+    WriteDataBytes(xx, 2);
 }
 
 void BlockWrite(unsigned int Xstart,unsigned int Xend,unsigned int Ystart,unsigned int Yend)
@@ -449,6 +586,7 @@ void BlockWrite(unsigned int Xstart,unsigned int Xend,unsigned int Ystart,unsign
 ---------------------------------------------------------------------------*/
 u16 __st7796s_get_pixel(u32 x, u32 y)
 {
+    printf("__st7796s_get_pixel\r\n");
     return 0;
 }
 
@@ -484,9 +622,9 @@ void __st7796s_set_cursor(u32 x, u32 y)
 void __st7796s_set_window(u32 x,u32 y, u32 wide,u32 high)
 {
     unsigned int Xstart = x;
-    unsigned int Xend = x+wide;
+    unsigned int Xend = x+wide-1;
     unsigned int Ystart = y;
-    unsigned int Yend = y+high;
+    unsigned int Yend = y+high-1;
 
     WriteComm(0x2a);
     WriteData(Xstart>>8);
@@ -511,8 +649,6 @@ void __st7796s_close_window(void)
     __st7796s_set_cursor(0, 0);//光标设在左上角
 }
 
-#define ROW_TEMP 10
-#define COLO_DEP 2
 void lcd_clear(u32 color)
 {
     u32 i = 0, j = 0, n = 0;
@@ -552,36 +688,83 @@ void lcd_display_off(void)
 
 }
 
-
+//----位图中画像素-------------------------------------------------------------
+//功能: 在位图中画一个像素，只有在bitmap的像素格式为cn_custom_pf时，才需要绘制。
+//      如果显卡不打算支持自定义格式，本函数直接返回。
+//参数: bitmap，目标位图
+//      limit，限制矩形，只绘制在该矩形内部的部分
+//      x、y，坐标
+//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      r2_code，二元光栅操作码
+//返回: 无
 bool_t __lcd_set_pixel_bm(struct RectBitmap *bitmap,
                          s32 x,s32 y,u32 color,u32 r2_code)
 {
+    printf("__lcd_set_pixel_bm\r\n");
     return false;
 }
+
+//----位图中画线---------------------------------------------------------------
+//功能: 在位图中画一条直线，不绘制(x2,y2)点，只绘制在limit限定的区域内的部分。
+//参数: bitmap，目标位图
+//      limit，限制矩形，只绘制在该矩形内部的部分
+//      x1、y1、x2、y2，起点终点坐标
+//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      r2_code，二元光栅操作码
+//返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
+//-----------------------------------------------------------------------------
 bool_t __lcd_line_bm(struct RectBitmap *bitmap,struct Rectangle *limit,
                         s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code)
 {
+//    printf("__lcd_line_bm\r\n");
     return false;
 }
+
+//----位图中画线(含端点)-------------------------------------------------------
+//功能: 在位图中画一条直线，只绘制在limit限定的区域内的部分。
+//参数: bitmap，目标位图
+//      limit，限制矩形，只绘制在该矩形内部的部分
+//      x1、y1、x2、y2，起点终点坐标
+//      color，绘图用的颜色，cn_sys_pf_e8r8g8b8格式
+//      r2_code，二元光栅操作码
+//返回: true=成功绘制，false=失败，无硬件加速或不支持按r2_code画线
+//-----------------------------------------------------------------------------
 bool_t __lcd_line_bm_ie(struct RectBitmap *bitmap,struct Rectangle *limit,
                         s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code)
 {
+//    printf("__lcd_line_bm_ie\r\n");
     return false;
 }
+
+//----位图中填充矩形----------------------------------------------------------------
+//Bitmap中矩形填充,支持渐变色
+//什么情况下应该实现本函数的功能,参见本结构前面的注释
+//镜像显示器无须实现本函数,直接返回false即可
+//参数:
+// DstBitmap: 绘制的目标位图
+// Target: 目标填充区域,渐变色填充时用它的坐标做计算颜色的起点和终点
+// Focus: 实际填充区域,gkernel确保其在Target矩形内部
+// Color0,Color1: Target左上角和右下角颜色值,如果不是渐变填充,Color1将被忽略,
+//              像素格式是CN_SYS_PF_ERGB8888
+//Mode: 填充模式,CN_FILLRECT_MODE_N族常数
+//返回: true=成功绘制，false=失败
 bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
                           struct Rectangle *Target,
                           struct Rectangle *Focus,
                           u32 Color0,u32 Color1,u32 Mode)
 {
-    u32 y;
+    u32 y,x;
     u16 pixel;
     u16 *dst_offset;
+
+//    printf("__lcd_fill_rect_bm\r\n");
     if(Mode != CN_FILLRECT_MODE_N)
         return false;
     if(dst_bitmap->PixelFormat != CN_SYS_PF_RGB565)
         return false;
-    pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,Color0);
 
+    pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,Color0);
+//    printf("pixel = %4x\r\n",pixel);
     dst_offset = (u16*)((ptu32_t)dst_bitmap->bm_bits
                               + Focus->top * dst_bitmap->linebytes);
     dst_offset += Focus->left;
@@ -606,8 +789,9 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
 {
     u16 *src_offset,*dst_offset;    //源位图点阵缓冲区可能不对齐!!!
     struct RopGroup Rop = { 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
-
     u32 y;
+
+//    printf("__lcd_blt_bm_to_bm\r\n");
     if((dst_bitmap->PixelFormat != CN_SYS_PF_RGB565)
              ||(src_bitmap->PixelFormat != CN_SYS_PF_RGB565)
              ||(memcmp(&RopCode, &Rop ,sizeof(struct RopGroup))!=0))
@@ -639,27 +823,37 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
     return true;
 }
 
+//----screen中画像素-----------------------------------------------------------
+//功能: 在screen中画一个像素.
+//参数: x、y，像素坐标
+//      color，颜色
+//      r2_code，二元光栅操作码
+//返回: true=成功绘制，false=没有绘制，或无需绘制
 bool_t __lcd_set_pixel_screen(s32 x,s32 y,u32 color,u32 r2_code)
 {
     u16 dest,pixel;
+
     pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,color);
     if(CN_R2_COPYPEN == r2_code)
     {
         __st7796s_set_pixel(x,y,pixel);
     }else
     {
+        printf("__st7796s_get_pixel\r\n");
         dest = __st7796s_get_pixel(x,y);
         pixel = GK_BlendRop2(dest, pixel, r2_code);
         __st7796s_set_pixel(x,y,pixel);
     }
     return true;
 }
+
 //在screen中画一条任意直线，不含端点，如硬件加速不支持在screen上画线，或者有
 //frame_buffer，driver可以简化，直接返回false即可
 //镜像显示器的driver须提供这个函数
 bool_t __lcd_line_screen(struct Rectangle *limit,
                     s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code)
 {
+    printf("__lcd_line_screen\r\n");
     return false;
 }
 
@@ -669,49 +863,79 @@ bool_t __lcd_line_screen(struct Rectangle *limit,
 bool_t __lcd_line_screen_ie(struct Rectangle *limit,
                        s32 x1,s32 y1,s32 x2,s32 y2,u32 color,u32 r2_code)
 {
+//    printf("__lcd_line_screen_ie\r\n");
     return false;
 }
+
 //screen中矩形填充，如硬件加速不支持在screen上矩形填充，或者有frame_buffer，
 //driver可以简化，直接返回false即可
 bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
                               struct Rectangle *Focus,
                               u32 Color0,u32 Color1,u32 Mode)
 {
-    u32 x,y,width,height;
+
+    u32 width,height;
     u16 pixel;
-    s32 n,m;
+    unsigned int i,j;
+    u32 x,y;
+
     if(Mode != CN_FILLRECT_MODE_N)
+    {
+        printf("Mode = %d!\r\n",Mode);
         return false;
+    }
     pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,Color0);
     width = Focus->right-Focus->left;
     height = Focus->bottom-Focus->top;
     __st7796s_set_window(Focus->left,Focus->top,width,height);
-    __st7796s_write_cmd(0x0022);
-
-
-    n = (width+7)/8;
-
-    for(y = 0; y < height; y++)
+    printf("Focus->right = %d,Focus->left = %d\r\n",Focus->right,Focus->left);
+    printf("Focus->bottom = %d,Focus->top = %d\r\n",Focus->bottom,Focus->top);
+#if 0
+    for(j=0;j<CFG_LCD_XSIZE;j++)
     {
-        m = width%8;
-        for(x = 0; x < n; x++)
-        {
-            switch(m)
-            {
-                case 0: __st7796s_write_data(pixel);
-                case 7: __st7796s_write_data(pixel);
-                case 6: __st7796s_write_data(pixel);
-                case 5: __st7796s_write_data(pixel);
-                case 4: __st7796s_write_data(pixel);
-                case 3: __st7796s_write_data(pixel);
-                case 2: __st7796s_write_data(pixel);
-                case 1: __st7796s_write_data(pixel);
-            }
-            m = 0;
-        }
+        screen_2[j][0] = (unsigned char)((pixel>>8) & 0xff);
+        screen_2[j][1] = (unsigned char)(pixel & 0xff);
+//            screen[i%ROW_TEMP][j][0] = color1;
+//            screen[i%ROW_TEMP][j][1] = color2;
+//            screen[i%ROW_TEMP][j][2] = color3;
     }
-    __st7796s_close_window();
+
+    for (i=0; i<width; i++) {
+        WriteDataBytes(screen_2, sizeof(screen_2));
+    }
+
+//#else
+     x=(height*width)/240;
+     y=(height*width)%240;
+
+     printf("x= %d\r\n",x);
+     printf("y= %d\r\n",y);
+    while(x--)
+    {
+        for(j = 0;j < 240;j++)
+        {
+            screen_2[j][0] = (unsigned char)((pixel>>8) & 0xff);
+            screen_2[j][1] = (unsigned char)(pixel & 0xff);
+        }
+
+        WriteDataBytes(screen_2, sizeof(screen_2));
+     }
+
+    if(y>0)
+    {
+        for(j = 0;j < y;j++)
+        {
+            screen_2[j][0] = (unsigned char)((pixel>>8) & 0xff);
+            screen_2[j][1] = (unsigned char)(pixel & 0xff);
+        }
+
+        WriteDataBytes(screen_2, y*COLO_DEP);
+    }
+//    WriteDataBytes(screen, (i%ROW_TEMP+1)*240*COLO_DEP);
+
+
     return true;
+#endif
 }
 
 //从内存缓冲区到screen位块传送，只支持块拷贝，不支持rop操作。
@@ -719,51 +943,69 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
 bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
             struct RectBitmap *src_bitmap,s32 xsrc,s32 ysrc)
 {
-    s32 x,y,width,height;
-    u16 *lineoffset;
-    s32 n,m;
-    register u16 *lineP;
-    if(src_bitmap->PixelFormat != CN_SYS_PF_RGB565)
-        return false;
+    u32 width,height;
+    u32 pixel,use=0;
+    unsigned int i,j,x,y;
+    unsigned char *buf;
+
     width = dst_rect->right-dst_rect->left;
     height = dst_rect->bottom-dst_rect->top;
-    //正常坐标，
-    lineoffset = (u16*)((u32)src_bitmap->bm_bits + ysrc*src_bitmap->linebytes);
-    lineoffset +=xsrc;
-    //正常坐标，
-    __st7796s_set_window(dst_rect->left,dst_rect->top,width,height);
-    __st7796s_write_cmd(0x0022);
+    __st7796s_set_window(xsrc,ysrc,width,height);
 
-
-
-    n = (width+7)/8;
-    for(y = 0; y < height; y++)
-    {   m = width%8;
-        lineP = lineoffset;
-        for(x = 0; x < n; x++)
-        {
-            switch(m)
-            {
-                case 0: __st7796s_write_data(*lineP++);
-                case 7: __st7796s_write_data(*lineP++);
-                case 6: __st7796s_write_data(*lineP++);
-                case 5: __st7796s_write_data(*lineP++);
-                case 4: __st7796s_write_data(*lineP++);
-                case 3: __st7796s_write_data(*lineP++);
-                case 2: __st7796s_write_data(*lineP++);
-                case 1: __st7796s_write_data(*lineP++);
-            }
-            m = 0;
-        }
-        lineoffset += (src_bitmap->linebytes)>>1;
+#if 1
+    u32 max = width * height * 2;
+    if(max>=ROW_BUFFER){
+        buf = malloc(ROW_BUFFER);
+        memset(buf,0,ROW_BUFFER);
+    }else{
+        buf = malloc(max);
+        memset(buf,0,max);
     }
-    __st7796s_close_window();
+//    printf("xsrc = %d,ysrc = %d,width = %d ,height = %d\r\n",xsrc,ysrc,width,height);
+
+    y=0;
+    for(i = dst_rect->top;i < dst_rect->bottom;i++)
+    {
+        x=0;
+        for(j = dst_rect->left;j < dst_rect->right;j++)
+        {
+//            if(src_bitmap->ExColor == 10)
+//                pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,CN_COLOR_WHITE);
+//            else
+//            {
+                pixel = GK_GetPixelBm(src_bitmap,j,i);
+//                pixel =GK_ConvertColorToRGB24(src_bitmap->PixelFormat,pixel,src_bitmap->ExColor);
+//            }
+            *(buf+y*width*2+x) = (unsigned char)((pixel>>8) & 0xff);
+            *(buf+y*width*2+x+1) = (unsigned char)(pixel & 0xff);
+            x = x+2;
+            use =use+2;
+        }
+        y++;
+
+        if (use>=ROW_BUFFER) {
+            y=0;
+            use=0;
+            WriteDataBytes(buf,ROW_BUFFER);
+            memset(buf,0,ROW_BUFFER);
+        }
+    }
+
+    if(use>0)
+    {
+        WriteDataBytes(buf, use);
+    }
+
+    free(buf);
+//    printf("__lcd_bm_to_screen\r\n");
+#endif
     return true;
 }
 
 //从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8
 u32 __lcd_get_pixel_screen(s32 x,s32 y)
 {
+    printf("__lcd_get_pixel_screen\r\n");
     return GK_ConvertColorToRGB24(CN_SYS_PF_RGB565,
                         __st7796s_get_pixel(x,y),0);
 }
@@ -771,6 +1013,7 @@ u32 __lcd_get_pixel_screen(s32 x,s32 y)
 //把screen内矩形区域的内容复制到bitmap，调用前，先设置好dest的pf_type
 bool_t __lcd_get_rect_screen(struct Rectangle *rect,struct RectBitmap *dest)
 {
+    printf("__lcd_get_rect_screen\r\n");
     return false;
 }
 
@@ -782,6 +1025,7 @@ bool_t __lcd_get_rect_screen(struct Rectangle *rect,struct RectBitmap *dest)
 //-----------------------------------------------------------------------------
 bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 {
+    printf("__lcd_disp_ctrl\r\n");
     return true;
 }
 
@@ -790,12 +1034,33 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 //参数: 无
 //返回: 显示器资源指针
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_st7796s(void)
+ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 {
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
+
+
+    struct HeapCB *heap;
+
     __lcd_st7796s_init( );
+
+#if 0
+    heap =M_FindHeap(HeapName);
+    if(heap==NULL){
+        printf("M_FindHeapd  ERROR!\r\n");
+        return NULL;
+    }
+    //多申请64字节如果显存不是64字节对齐描点的时候会有闪屏的现象
+    pLTDCBufferFG1 =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*2*3,heap,0);
+
+    printf("M_FindHeapd  pLTDCBufferFG1!\r\n");
+//    pLTDCBufferFG2 =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*lcd.pixsize,heap,0);//先用一层
+//    if(0x3f&(u32)pLTDCBufferFG1)
+//        pLTDCBufferFG1+=(0x40-(0x3f&(u32)pLTDCBufferFG1));
+    FrameBitmap.bm_bits = (u8 *)pLTDCBufferFG1;
+#else
     FrameBitmap.bm_bits = u8g_frame_buffer;
+#endif
     FrameBitmap.width = CFG_LCD_XSIZE;
     FrameBitmap.height = CFG_LCD_YSIZE;
     FrameBitmap.PixelFormat = CN_LCD_PIXEL_FORMAT;
@@ -828,10 +1093,10 @@ ptu32_t ModuleInstall_st7796s(void)
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
 
-//    tg_lcd_display.DisplayHeap = M_FindHeap(CFG_ST7796S_HEAP_NAME);
+//    tg_lcd_display.DisplayHeap = heap;
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
-    GK_InstallDisplay(&tg_lcd_display,CFG_ST7796S_DISPLAY_NAME);
+    GK_InstallDisplay(&tg_lcd_display,DisplayName);
     return (ptu32_t)&tg_lcd_display;
 }
 

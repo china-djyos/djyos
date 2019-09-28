@@ -429,10 +429,10 @@ bool_t ModuleInstall_IO_IICBus(struct IO_IIC_Init * init)
     IicIoCb->delay_us              = (u32)(5);//默认值芯片添加时会设置
     IicIoCb->IOCtrl                = init->IIC_IoCtrl ;
     IicIoCb->tag                   = init->tag ;
-    IicIoCb->IOCtrl(sda_set_out,IicIoCb->tag);
-    IicIoCb->IOCtrl(scl_set_out,IicIoCb->tag);
-    IicIoCb->IOCtrl(sda_set_High,IicIoCb->tag);
-    IicIoCb->IOCtrl(sda_set_High,IicIoCb->tag);
+//    IicIoCb->IOCtrl(sda_set_out,IicIoCb->tag);
+//    IicIoCb->IOCtrl(scl_set_out,IicIoCb->tag);
+//    IicIoCb->IOCtrl(sda_set_High,IicIoCb->tag);
+//    IicIoCb->IOCtrl(scl_set_High,IicIoCb->tag);
 
     IIC_Config.BusName             = init->BusName;
     IIC_Config.IICBuf              = NULL;

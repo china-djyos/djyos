@@ -616,7 +616,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     {
         return NULL;
     }
-    if(display->frame_buffer == NULL)
+    if(parent->wm_bitmap == NULL)
     {
         if(para->buf_mode == CN_WINBUF_BUF)
         {
@@ -1448,12 +1448,15 @@ bool_t __GK_SetRopCode(struct GkscParaSetRopCode *para)
 //-----------------------------------------------------------------------------
 bool_t __GK_SetHyalineColor(struct GkscParaSetHyalineColor *para)
 {
+    u32 color;
     //桌面不需要KeyColor
     if(para->gkwin->disp->desktop == para->gkwin)
         return false;
     if(para->gkwin->wm_bitmap == NULL)
         return false;
-    para->gkwin->HyalineColor = para->HyalineColor;
+    color = GK_ConvertRGB24ToPF(para->gkwin->wm_bitmap->PixelFormat,para->HyalineColor);
+    para->gkwin->HyalineColor =
+        GK_ConvertColorToRGB24(para->gkwin->wm_bitmap->PixelFormat, color, para->gkwin->wm_bitmap->ExColor);
 
     if((para->gkwin->RopCode.HyalineEn == 1)
        && (para->gkwin->HyalineColor == para->HyalineColor))

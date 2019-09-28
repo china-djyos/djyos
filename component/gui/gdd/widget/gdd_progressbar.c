@@ -248,7 +248,14 @@ static  bool_t ProgressBar_Paint(struct WindowMsg *pMsg)
         if(pPB->Flag&PBF_SHOWTEXT)
         {
             SetTextColor(hdc,pPB->TextColor);
-            DrawText(hdc,hwnd->Text,-1,&rc0,pPB->DrawTextFlag);
+            if(pPB->text != NULL)
+            {
+                DrawText(hdc,(char*)pPB->text,-1,&rc0,pPB->DrawTextFlag);
+            }
+            else
+            {
+                DrawText(hdc,hwnd->Text,-1,&rc0,pPB->DrawTextFlag);
+            }
         }
         EndPaint(hwnd,hdc);
         return true;
