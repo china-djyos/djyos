@@ -97,6 +97,7 @@ typedef enum{
     EN_ADC_VREF_IN24,
 }tagVef;
 
+int vbat_voltage_get(void);
 void ModuleInstall_ADC(void);
 //extern void appADC_Ctrl(u32 handle,u32 cmd, u32 data1,u32 data2);
 

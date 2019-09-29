@@ -223,10 +223,11 @@ bool_t Iboot_UpdateApp(void)
     u32 readsize,res;
     char *file;
 
-    if(!stat(FORCED_UPDATE_PATH,&test_stat))
-        srcapp = fopen(FORCED_UPDATE_PATH, "r+");
-    if((srcapp) || ((Get_UpdateSource() == 0) && (Get_UpdateApp() == 0)))
+    if((Get_UpdateSource() == 0) && (Get_UpdateApp() == 0))
     {
+        if(!stat(FORCED_UPDATE_PATH,&test_stat))
+            srcapp = fopen(FORCED_UPDATE_PATH, "r+");
+
         info_printf("IAP","app update start.\r\n");
         if(srcapp == NULL)
         {
@@ -443,12 +444,13 @@ bool_t ModuleInstall_XIP(void)
 {
     uint16_t evtt_Update = CN_EVTT_ID_INVALID;
     char run_mode = Get_RunMode();
-    if(run_mode == 0)
-    {
-        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                                   Iboot_UpdateApp, NULL, CFG_MAINSTACK_LIMIT, "update app");
-    }
-    else if(run_mode == 1)
+//    if(run_mode == 0)
+//    {
+//        evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+//                                   Iboot_UpdateApp, NULL, CFG_MAINSTACK_LIMIT, "update app");
+//    }
+//    else
+    if(run_mode == 1)
     {
         if(Get_Updateiboot() == 0)
         {
@@ -463,9 +465,9 @@ bool_t ModuleInstall_XIP(void)
     {
         if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
         {
-            if(run_mode == 0)
-                info_printf("XIP","add app update function.\r\n");
-            else
+            if(run_mode == 1)
+//                info_printf("XIP","add app update function.\r\n");
+//            else
                 info_printf("XIP","add iboot update function.\r\n");
 
             return true;

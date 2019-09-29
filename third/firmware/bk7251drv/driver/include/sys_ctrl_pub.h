@@ -82,7 +82,9 @@ enum
     CMD_QSPI_VDDRAM_VOLTAGE,
     CMD_QSPI_IO_VOLTAGE,
     CMD_SCTRL_SET_VDD_VALUE,
-
+    CMD_SCTRL_USB_CHARGE_CAL,
+    CMD_SCTRL_USB_CHARGE_START,
+    CMD_SCTRL_USB_CHARGE_STOP,
 	#endif // (CFG_SOC_NAME == SOC_BK7221)
 };
 
@@ -187,6 +189,13 @@ typedef struct efuse_oper_st
     UINT8 addr;
     UINT8 data;    
 } EFUSE_OPER_ST, *EFUSE_OPER_PTR;
+
+typedef struct charge_oper_st
+{
+    UINT8 type;
+    UINT8 oper;
+    UINT8 cal[3];
+} CHARGE_OPER_ST, *CHARGE_OPER_PTR;
 
 #define AUDIO_DAC_VOL_DIFF_MODE                      (0)
 #define AUDIO_DAC_VOL_SINGLE_MODE                    (1)
