@@ -132,9 +132,9 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
         return;
     }
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-    flash_protection_op(0,FLASH_PROTECT_NONE);
+//    flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_read(data, size, address);
-    flash_protection_op(0,FLASH_PROTECT_ALL);
+//    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
 
@@ -145,9 +145,9 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
         return;
     }
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-    flash_protection_op(0,FLASH_PROTECT_NONE);
+//    flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_write((char *)data, size, address);
-    flash_protection_op(0,FLASH_PROTECT_ALL);
+//    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
 
@@ -157,9 +157,9 @@ void djy_flash_erase(uint32_t address)
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
     address &= (0xFFF000);
 
-    flash_protection_op(0,FLASH_PROTECT_NONE);
+//    flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_ctrl(CMD_FLASH_ERASE_SECTOR, &address);
-    flash_protection_op(0,FLASH_PROTECT_ALL);
+//    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
 
@@ -300,8 +300,7 @@ s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      super->MediaStart = super->MediaStart * 34 / 32;
      if(super->AreaSize + super->MediaStart > description->AllSectorNum * description->BytesPerPage * description->PagesPerSector)
      {
-         error_printf("embed","fileOS beyond the flash range.\r\n");
-         return -1;
+         super->AreaSize = description->AllSectorNum * description->BytesPerPage * description->PagesPerSector - super->MediaStart;
      }
      res = strlen(flash_name) + strlen(s_ptDeviceRoot->name) + 1;
      FullPath = malloc(res);
