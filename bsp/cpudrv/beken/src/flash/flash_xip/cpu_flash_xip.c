@@ -132,6 +132,7 @@ struct __xip_drv XIP_FLASH_DRV =
     .xip_read_media = xip_flash_read,
     .xip_write_media = xip_flash_write
 };
+u8 is_close_protect = 0;   //0 -- 没关，1-- 关了
 // ============================================================================
 // 功能：写数据
 // 参数：core -- xip文件系统管理信息
@@ -184,6 +185,8 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             data += offset;
             bytes -= offset;
             unit = start + pos + core->MStart;
+            if(is_close_protect == 0)
+                flash_protection_op(0,FLASH_PROTECT_NONE);
         }
 
         if(pos == 0)
@@ -225,6 +228,8 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             calc_crc((u32 *)app_head, Get_AppHeadSize() / 32);
             djy_flash_write(unit, app_head, app_head_size);
             free(app_head);
+            if(is_close_protect == 1)
+                flash_protection_op(0,FLASH_PROTECT_ALL);
         }
         else
         {
@@ -307,6 +312,9 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
     s64 unit;
     u32 page_size, page_num, start, all;
     s32 left = bytes;
+
+    if(is_close_protect == 0)
+        flash_protection_op(0,FLASH_PROTECT_NONE);
 
     djy_flash_req(mapaddr,(ptu32_t)&start);
     unit = start + pos + core->MStart;

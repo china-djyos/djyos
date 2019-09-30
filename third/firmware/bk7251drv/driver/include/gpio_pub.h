@@ -223,6 +223,22 @@ __inline static void bk_gpio_output_reverse(GPIO_INDEX id)
 extern void gpio_usb_second_function(void);
 #endif
 
+#if(SOC_BK7221U == CFG_SOC_NAME)
+#define USB_PLUG_NO_EVENT            0
+#define USB_PLUG_IN_EVENT            1
+#define USB_PLUG_OUT_EVENT           2
+
+typedef void (*usb_plug_inout_handler)(void *usr_data, UINT32 event);
+typedef struct usb_plug_inout {
+    usb_plug_inout_handler handler;
+    void *usr_data;
+}USB_PLUG_INOUT_ST;
+
+extern USB_PLUG_INOUT_ST usb_plug;
+void usb_plug_inout_isr(void);
+UINT32 usb_is_plug_in(void);
+#endif
+
 extern UINT32 gpio_ctrl(UINT32 cmd, void *param);
 extern UINT32 gpio_input(UINT32 id);
 extern void gpio_init(void);

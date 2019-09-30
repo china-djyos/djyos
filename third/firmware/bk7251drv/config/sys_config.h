@@ -60,7 +60,7 @@
 #define CFG_SUPPORT_CCD                            0
 #define CFG_SUPPORT_UVC                            0
 #endif
-
+#define CFG_USE_USB_CHARGE                         1
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
 #define CFG_UART_DEBUG_COMMAND_LINE                1
@@ -128,7 +128,7 @@
 #define CFG_USE_AP_PS                              0
 
 /*section 19-----for SDCARD HOST*/
-#define CFG_USE_SDCARD_HOST                        0
+#define CFG_USE_SDCARD_HOST                        1
 
 /*section 20 ----- support mp3 decoder*/
 #define CONFIG_APP_MP3PLAYER 			           0

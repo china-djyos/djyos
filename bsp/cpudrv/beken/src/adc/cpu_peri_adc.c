@@ -179,13 +179,15 @@ static saradc_desc_t tmp_single_desc;
 static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
 static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
 
-uint32_t djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
+int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 {
     int tryTimes = 1000;
     UINT32 status;
     UINT32 cmd;
     UINT8 run_stop;
-    uint32_t tmpData = 0xFFFFFFFF;
+    u16 ad_date;
+    int tmpData = 0xFFFFFFFF;
+    float voltage = 0.0;
 
     if (channel > 7) // TODO merlin 到底有多少个ADC？ 有12个？不确定，所以现在写死了先  SARADC_ADC_CHNL_MAX)
     {
@@ -216,13 +218,14 @@ uint32_t djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
         {
             ddev_close(tmp_single_hdl);
 
-            tmpData = 0;
+            ad_date = 0;
             for (int i=0; i<tmp_single_desc.current_sample_data_cnt; i++)
             {
-                tmpData += tmp_single_desc.pData[i];
+                ad_date += tmp_single_desc.pData[i];
             }
-            tmpData /= tmp_single_desc.current_sample_data_cnt;
-
+            ad_date /= tmp_single_desc.current_sample_data_cnt;
+            voltage = saradc_calculate(ad_date);
+            tmpData = voltage * 1000;
             break;
         }
     }
@@ -262,6 +265,17 @@ static void temp_single_detect_handler2(void)
     }
 }
 
+
+
+
+
+int vbat_voltage_get(void)
+{
+    int Vbat = 0;
+    Vbat = djy_adc_read(0);
+    Vbat = Vbat * 2;
+    return Vbat;
+}
 static void temp_single_get_desc_init(void)
 {
 //    os_memset(&tmp_single_buff[0], 0, sizeof(tmp_single_buff));

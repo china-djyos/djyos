@@ -170,6 +170,8 @@
 #endif // (CFG_SOC_NAME == SOC_BK7231)
 
 #define SCTRL_ANALOG_CTRL3                    (SCTRL_BASE + 25 * 4)
+#define CHARGE_LCP_MASK                        (0x1F)
+#define CHARGE_LCP_POS                         (8)
 
 #define SCTRL_ANALOG_CTRL4                    (SCTRL_BASE + 26 * 4)
 #define VSEL_SYS_LDO_POSI                        (27)
@@ -199,6 +201,12 @@
 #define SCTRL_BLE_SUBSYS_RESET_REQ            (SCTRL_BASE + 0x20*4)
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #define SCTRL_CHARGE_STATUS                   (SCTRL_BASE + 0x21*4)
+#define CHARGE_VCAL_MASK                        (0x3F)
+#define CHARGE_VCAL_POS                         (5)
+#define CHARGE_LCAL_MASK                        (0x1F)
+#define CHARGE_LCAL_POS                         (11)
+#define CHARGE_VCVCAL_MASK                      (0x1F)
+#define CHARGE_VCVCAL_POS                       (0)
 
 #define SCTRL_ANALOG_CTRL7                    (SCTRL_BASE + 0x22*4)
 

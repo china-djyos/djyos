@@ -31,6 +31,12 @@
 #if (CFG_SOC_NAME == SOC_BK7221U)  
 #define DCO_CLK_SELECT          DCO_CALIB_180M
 #define USE_DCO_CLK_POWON       1
+
+UINT8  calib_charger[3] = {
+    0x23,   //vlcf
+    0x15,   //icp
+    0x1b    //vcv
+    };
 #else
 #define DCO_CLK_SELECT          DCO_CALIB_120M
 #define USE_DCO_CLK_POWON       0
@@ -1355,6 +1361,270 @@ static int sctrl_write_efuse(void *param)
 }
 #endif // (CFG_SOC_NAME != SOC_BK7231)
 
+#if CFG_USE_USB_CHARGE
+#if (CFG_SOC_NAME == SOC_BK7221U)
+UINT32 usb_is_pluged(void)
+{
+    UINT32 reg;
+    reg = sctrl_analog_get(SCTRL_CHARGE_STATUS);
+    return (reg & (1 << 21));
+}
+
+void charger_module_enable(UINT32 enable)
+{
+    if(! usb_is_pluged())
+    {
+        return;
+    }
+
+    sctrl_analog_set(SCTRL_ANALOG_CTRL4, (sctrl_analog_get(SCTRL_ANALOG_CTRL4) & ~(1 << 12)) | (!!enable << 12));
+}
+
+void charger_vlcf_calibration(UINT32 type)
+{
+    if(! usb_is_pluged())
+    {
+        return;
+    }
+    if(type == 0)
+    {
+        /*Internal hardware calibration*/
+        /*vlcf calibration*/
+        /*>>> Added 4.2V voltage on vbattery*/
+        /*>>> Set pwd=0*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 12));
+        /*calEn*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 21));
+        /*softCalen*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(1 << 20));
+        /*vlcfSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 18));
+        /*IcalSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 17));
+        /*vcvSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 16));
+        /*vlcf_caltrig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 21));
+        /*vlcf_caltrig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 21));
+        /*Wait for at least 4 clock cycles*/
+        Djy_EventDelay(1000);
+        /*vlcf_caltrig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 21));
+        /*Waiting for 1ms, calibration finished*/
+        Djy_EventDelay(1000);
+        /*Read the value vcal<5:0>, Recorded*/
+        calib_charger[0] = (sctrl_analog_get(SCTRL_CHARGE_STATUS) >> CHARGE_VCAL_POS) & CHARGE_VCAL_MASK ;
+
+        printf("calib_charger[0] = 0x%02x\r\n", calib_charger[0]);
+    }
+    else
+    {
+        /*External software calibration*/
+        /*TODO*/
+    }
+}
+
+void charger_icp_calibration(UINT32 type)
+{
+    if(! usb_is_pluged())
+    {
+        return;
+    }
+    if(type == 0)
+    {
+        /*Internal hardware calibration*/
+        /*Icp calibration*/
+        /*>>> Added parallel 60ohm resistor and 100nF capacitor from vbattery to ground.(Removed the external 4.2V)*/
+        /*>>> Set pwd=0*/
+        /*>>> Porb=0*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 12));
+        /*Icp=60mA*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)\
+                                              & ~(CHARGE_LCP_MASK << CHARGE_LCP_POS)) | (0x4 << CHARGE_LCP_POS));
+        /*calEn*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 21));
+        /*softCalen*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(1 << 20));
+        /*vlcfSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 18));
+        /*vcal<5:0>=previous vlcf calibration value*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)\
+                                              & ~(CHARGE_VCAL_MASK << 0)) | (calib_charger[0] << 0));
+        /*IcalSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 17));
+        /*vcvSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 16));
+        /*Ical_trig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 20));
+        /*Ical_trig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 20));
+        /*Wait for at least 4 clock cycles*/
+        Djy_EventDelay(1000);
+        /*Ical_trig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 20));
+        /*Waiting for 1ms, calibration finished*/
+        Djy_EventDelay(1000);
+        /*Read the value Ical<4:0>, Recorded*/
+        calib_charger[1] = (sctrl_analog_get(SCTRL_CHARGE_STATUS) >> CHARGE_LCAL_POS) & CHARGE_LCAL_MASK ;
+
+        printf("calib_charger[1] = 0x%02x\r\n", calib_charger[1]);
+    }
+    else
+    {
+        /*External software calibration*/
+        /*TODO*/
+    }
+}
+
+void charger_vcv_calibration(UINT32 type)
+{
+    if(! usb_is_pluged())
+    {
+        return;
+    }
+    if(type == 0)
+    {
+        /*Internal hardware calibration*/
+        /*vcv calibration*/
+        /*>>> Added 4.2V voltage on vbattery*/
+        /*>>> Set pwd=0*/
+        /*>>> Porb=0*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 12));
+        /*Icp=60mA*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)\
+                                              & ~(CHARGE_LCP_MASK << CHARGE_LCP_POS)) | (0x4 << CHARGE_LCP_POS));
+        /*calEn*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 21));
+        /*softCalen*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(1 << 20));
+        /*vlcfSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 18));
+        /*vcal<5:0>=previous vlcf calibration value*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)\
+                                              & ~(CHARGE_VCAL_MASK << 0)) | (calib_charger[0] << 0));
+        /*IcalSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 17));
+        /*Ical<4:0>=previous Ical calibration value*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, (sctrl_analog_get(SCTRL_ANALOG_CTRL4)\
+                                              & ~(CHARGE_LCAL_MASK << 27)) | (calib_charger[1] << 27));
+        /*vcvSel*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 16));
+        /*vcv_caltrig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 19));
+        /*vcv_caltrig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 19));
+        /*Wait for at least 4 clock cycles*/
+        Djy_EventDelay(1000);
+        /*vcv_caltrig*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(1 << 19));
+        /*Waiting for 1ms, calibration finished*/
+        Djy_EventDelay(1000);
+        /*Read the value vcvcal<4:0>, Recorded*/
+        calib_charger[2] = (sctrl_analog_get(SCTRL_CHARGE_STATUS) >> CHARGE_VCVCAL_POS) & CHARGE_VCVCAL_MASK ;
+
+        printf("calib_charger[2] = 0x%02x\r\n", calib_charger[2]);
+    }
+    else
+    {
+        /*External software calibration*/
+        /*TODO*/
+    }
+}
+
+void charger_calib_get(UINT8 value[])
+{
+    value[0] = calib_charger[0];
+    value[1] = calib_charger[1];
+    value[2] = calib_charger[2];
+    return;
+}
+
+void charger_calib_set(UINT8 value[])
+{
+    if(!value[0] || !value[1] || !value[2])
+    {
+        return;
+    }
+
+    calib_charger[0] = value[0];
+    calib_charger[1] = value[1];
+    calib_charger[2] = value[2];
+    return;
+}
+
+UINT32 charger_is_full(void)
+{
+    UINT32 reg;
+    reg = sctrl_analog_get(SCTRL_CHARGE_STATUS);
+    return (reg & (1 << 20));
+}
+
+void charger_start(void * param)
+{
+    UINT32 charge_cal_type ;
+    CHARGE_OPER_ST *chrg;
+
+    chrg = (CHARGE_OPER_ST *)param;
+
+    if(! usb_is_pluged())
+    {
+        return;
+    }
+
+    charger_calib_set(chrg->cal);
+    printf("%s(%d) %x %x %x %x\r\n", __FUNCTION__, chrg->type,chrg->oper, calib_charger[0], calib_charger[1], calib_charger[2]);
+
+    if(chrg->type == 0)
+    {
+        /*Internal*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(1 << 21));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 27));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 12));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(1 << 11));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 18));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 17));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 16));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(CHARGE_LCP_MASK << CHARGE_LCP_POS)) | (chrg->oper << CHARGE_LCP_POS));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(CHARGE_VCAL_MASK << 0)) | (calib_charger[0] << 0));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, (sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(CHARGE_LCAL_MASK << 27)) | (calib_charger[1] << 27));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, (sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(CHARGE_LCAL_MASK << 22)) | (calib_charger[2] << 22));
+
+    }
+    else
+    {
+        /*External*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 27));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 12));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, sctrl_analog_get(SCTRL_ANALOG_CTRL4) | (1 << 11));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 18));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 17));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, sctrl_analog_get(SCTRL_ANALOG_CTRL3) | (1 << 16));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(CHARGE_LCP_MASK << CHARGE_LCP_POS)) | (chrg->oper << CHARGE_LCP_POS));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL3, (sctrl_analog_get(SCTRL_ANALOG_CTRL3)& ~(CHARGE_VCAL_MASK << 0)) | (calib_charger[0] << 0));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, (sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(CHARGE_LCAL_MASK << 27)) | (calib_charger[1] << 27));
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, (sctrl_analog_get(SCTRL_ANALOG_CTRL4)& ~(CHARGE_LCAL_MASK << 22)) | (calib_charger[2] << 22));
+    }
+}
+
+void charger_stop(UINT32 type)
+{
+    printf("%s(%d)\r\n", __FUNCTION__, type);
+
+    charger_module_enable(0);
+    if(type == 0)
+    {
+        /*Internal*/
+    }
+    else
+    {
+        /*External*/
+        sctrl_analog_set(SCTRL_ANALOG_CTRL4, (sctrl_analog_get(SCTRL_ANALOG_CTRL4) & ~(1 << 11)));
+    }
+}
+#endif
+#endif
+
 UINT32 sctrl_ctrl(UINT32 cmd, void *param)
 {
     UINT32 ret;
@@ -1677,6 +1947,24 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
         }
         break;
 
+#if CFG_USE_USB_CHARGE
+    case CMD_SCTRL_USB_CHARGE_CAL:
+        if(1 == ((CHARGE_OPER_PTR)param)->oper)
+            charger_vlcf_calibration(0);
+        else if(2 == ((CHARGE_OPER_PTR)param)->oper)
+            charger_icp_calibration(0);
+        else if(3 == ((CHARGE_OPER_PTR)param)->oper)
+            charger_vcv_calibration(0);
+        else if(4 == ((CHARGE_OPER_PTR)param)->oper)
+            charger_calib_get(((CHARGE_OPER_PTR)param)->cal);
+        break;
+    case CMD_SCTRL_USB_CHARGE_START:
+        charger_start(param);
+        break;
+    case CMD_SCTRL_USB_CHARGE_STOP:
+        charger_stop((*(UINT32 *)param));
+        break;
+#endif
 //    case CMD_SCTRL_SET_AUD_DAC_MUTE:
 //        reg = sctrl_analog_get(SCTRL_ANALOG_CTRL8);
 //        if((*(UINT32 *)param) == AUDIO_DAC_ANALOG_MUTE)
