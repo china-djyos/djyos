@@ -122,10 +122,13 @@
 #define cn_frame_buffer_size    (cn_lcd_line_size * CFG_LCD_YSIZE)
 #define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
 
-u8 u8g_frame_buffer[cn_frame_buffer_size];
-struct DisplayObj tg_lcd_display;
-
+#define LCD_PSRAM 0
+#if LCD_PSRAM
 static u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
+#else
+u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__ ((section(".LcdRam")));
+#endif
+struct DisplayObj tg_lcd_display;
 
 
 #define ROW_TEMP 1
@@ -414,7 +417,7 @@ void __lcd_st7796s_init(void)
 //    delay_ms(200);
 
     WriteComm(0x36);   //memory access control
-    WriteData(0x00);   //MY MX MV ML MH=0,BGR=1
+    WriteData(0xc0);   //MY MX MV ML MH=0,BGR=1,屏幕坐标设置
 
     WriteComm(0x3A);
     WriteData(0x05);
@@ -802,21 +805,37 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
     {
         if((ptu32_t)src_bitmap->bm_bits & 1)    //源位图缓冲区非对齐模型
         {
+            return false;
         }else
         {
             dst_offset = (u16*)((ptu32_t)dst_bitmap->bm_bits
                                       + DstRect->top * dst_bitmap->linebytes);
             dst_offset += DstRect->left;
 
-            src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
-                                      +SrcRect->top * src_bitmap->linebytes);
-            src_offset += SrcRect->left;
 
-            for(y = DstRect->top; y < DstRect->bottom; y++)
+            if(src_bitmap->reversal == true)
             {
-                memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
-                dst_offset += dst_bitmap->linebytes >> 1;
-                src_offset += src_bitmap->linebytes >> 1;
+                src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                                  +(SrcRect->bottom-1) * src_bitmap->linebytes);
+                src_offset += SrcRect->left;
+                for(y = DstRect->top; y < DstRect->bottom; y++)
+                {
+                    memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
+                    dst_offset += dst_bitmap->linebytes >> 1;
+                    src_offset -= src_bitmap->linebytes >> 1;
+                }
+            }
+            else
+            {
+                src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                                          +SrcRect->top * src_bitmap->linebytes);
+                src_offset += SrcRect->left;
+                for(y = DstRect->top; y < DstRect->bottom; y++)
+                {
+                    memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
+                    dst_offset += dst_bitmap->linebytes >> 1;
+                    src_offset += src_bitmap->linebytes >> 1;
+                }
             }
         }
     }
@@ -1044,7 +1063,7 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 
     __lcd_st7796s_init( );
 
-#if 0
+#if LCD_PSRAM
     heap =M_FindHeap(HeapName);
     if(heap==NULL){
         printf("M_FindHeapd  ERROR!\r\n");
@@ -1092,8 +1111,9 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
     tg_lcd_display.draw.GetRectFromScreen = __lcd_get_rect_screen;
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
-
-//    tg_lcd_display.DisplayHeap = heap;
+#if LCD_PSRAM
+    tg_lcd_display.DisplayHeap = heap;
+#endif
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,DisplayName);

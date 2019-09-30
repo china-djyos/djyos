@@ -1961,7 +1961,7 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
             struct GkscParaDrawBitmapRop para;
             memcpy(&para,ParaAddr,
                     sizeof(struct GkscParaDrawBitmapRop));
-            __GK_DrawBitMapt(&para);
+            __GK_DrawBitMap(&para);
             result = sizeof(struct GkscParaDrawBitmapRop);
         } break;
         case CN_GKSC_FILL_WIN:

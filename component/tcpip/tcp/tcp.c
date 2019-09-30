@@ -3727,13 +3727,19 @@ static void __tcpdebug(struct tagSocket *sock,char *filter)
 //参数：无
 //返回：true or false
 //------------------------------------------------------------------------------
+u16 rand_port() __attribute__ ((weak));
+u16 rand_port()
+{
+    return (u16)(rand() >> 16)%(0xffff-1024)+1024;
+}
 bool_t TcpInit(void)
 {
     bool_t ret = false;
 
     //do the port random initialize
 //    gPortEngineTcp = (u16)RNG_Get_RandomRange(1024,65535);
-    gPortEngineTcp = (u16)(rand() >> 16)%(0xffff-1024)+1024;
+    //gPortEngineTcp = (u16)(rand() >> 16)%(0xffff-1024)+1024;
+    gPortEngineTcp = rand_port();
     if(false == __hashTabInit(CFG_TCP_CCBNUM+CFG_TCP_SCBNUM))
     {
         goto EXIT_REGISTERTCPFAILED;

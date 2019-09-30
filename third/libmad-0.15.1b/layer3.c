@@ -907,8 +907,8 @@ mad_fixed_t III_requantize(unsigned int value, signed int exp)
     if (exp >= 5) {
       /* overflow */
 # if defined(DEBUG)
-      fprintf(stderr, "requantize overflow (%f * 2^%d)\n",
-	      mad_f_todouble(requantized), exp);
+//      fprintf(stderr, "requantize overflow (%f * 2^%d)\n",
+//	      mad_f_todouble(requantized), exp);
 # endif
       requantized = MAD_F_MAX;
     }

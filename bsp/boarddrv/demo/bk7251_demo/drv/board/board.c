@@ -187,6 +187,9 @@ void Board_Init(void)
 //    djy_gpio_attach_irq(GPIO7, PIN_IRQ_MODE_FALLING, p7_isr_hdr, NULL);
 //    djy_gpio_irq_enable( GPIO7, 1);
 
+    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);         //喇叭使能
+    djy_gpio_write(GPIO9,1);
+
     djy_gpio_mode(GPIO10,PIN_MODE_OUTPUT);         //喇叭使能
     djy_gpio_write(GPIO10,1);
 

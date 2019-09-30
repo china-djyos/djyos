@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#define FLASH_FAST_DATA_ADDR        (0x1FF000)
+#define FLASH_FAST_DATA_ADDR        (0x300000)
 
 struct wlan_fast_connect
 {

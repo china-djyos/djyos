@@ -3740,6 +3740,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
     bitmap_para.RopCode.HyalineEn = 1;
     bitmap_para.RopCode.Rop2Mode = para->Rop2Code;
     bitmap_para.bitmap.ExColor = para->color;
+    bitmap_para.bitmap.reversal = false;
     dbuf = NULL;
     size_bak = 0;
     for(; ;)
@@ -3790,7 +3791,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
                 bitmap_para.bitmap.bm_bits = dbuf;
             }
             cur_font->GetBitmap(wc,0,0,&(bitmap_para.bitmap));
-            __GK_DrawBitMapt(&bitmap_para);
+            __GK_DrawBitMap(&bitmap_para);
 
             bitmap_para.x += bitmap_para.bitmap.width;
         }
@@ -3811,7 +3812,7 @@ void __GK_DrawText(struct GkscParaDrawText *para,const char *text,u32 *Bytes)
 //      rop_code，光栅操作码
 //返回: 无
 //-----------------------------------------------------------------------------
-void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
+void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
 {
 //    u32 HyalineColor;
     s32 x_src,y_src,x_dst,y_dst;
@@ -3828,7 +3829,7 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
 //    HyalineColor = para->HyalineColor;
     DstBitmap = DstGkwin->wm_bitmap;
     SrcBitmap = &para->bitmap;
-    SrcBitmap->reversal=true;
+//    SrcBitmap->reversal=true;
     //待绘制的位图要绘制的位置相对于目标窗口的坐标
     SrcRect.left = 0;
     SrcRect.top = 0;
@@ -3874,22 +3875,37 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
         {
             //驱动不支持 BltBitmapToBitmap 绘制，改由代码实现
             y_dst= DstRect.top;
-            for(y_src= 0;
-                y_src < DstRect.bottom-DstRect.top;
-                y_src++)
+            if(SrcBitmap->reversal == true)
             {
-                x_dst = DstRect.left;
-                for(x_src = 0;
-                    x_src < DstRect.right-DstRect.left;
-                    x_src++)
+                for(y_src= DstRect.top-1;y_src >= DstRect.bottom;y_src--)
                 {
-                    __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
-                                            x_dst,y_dst,SrcRect.left+x_src,
-                                            SrcRect.top+y_src,
-                                            para->RopCode,para->HyalineColor);
-                    x_dst++;
+                    x_dst = DstRect.left;
+                    for(x_src = 0;x_src < DstRect.right-DstRect.left;x_src++)
+                    {
+                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                x_dst,y_dst,SrcRect.left+x_src,
+                                                SrcRect.top+y_src,
+                                                para->RopCode,para->HyalineColor);
+                        x_dst++;
+                    }
+                    y_dst++;
                 }
-                y_dst++;
+            }
+            else
+            {
+                for(y_src= 0;y_src < DstRect.bottom-DstRect.top;y_src++)
+                {
+                    x_dst = DstRect.left;
+                    for(x_src = 0;x_src < DstRect.right-DstRect.left;x_src++)
+                    {
+                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                x_dst,y_dst,SrcRect.left+x_src,
+                                                SrcRect.top+y_src,
+                                                para->RopCode,para->HyalineColor);
+                        x_dst++;
+                    }
+                    y_dst++;
+                }
             }
         }
         __GK_ShadingRect(DstGkwin,&DstRect);    //设置绘制部分的changed_msk
@@ -3922,8 +3938,8 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
                 {
                     SrcRect.left = InsRect.left-InsOffset.x;
                     SrcRect.top = InsRect.top-InsOffset.y;
-                    SrcRect.right = InsRect.left-InsOffset.x;
-                    SrcRect.bottom = InsRect.top-InsOffset.y;
+                    SrcRect.right = InsRect.right-InsOffset.x;
+                    SrcRect.bottom = InsRect.bottom-InsOffset.y;
                     if(!fb_gkwin->disp->draw.BltBitmapToBitmap(
                                         DstBitmap,&InsRect,
                                         SrcBitmap,&SrcRect,
@@ -3937,40 +3953,85 @@ void __GK_DrawBitMapt(struct GkscParaDrawBitmapRop *para)
                                 && (para->RopCode.HyalineEn == 0)
                                 && (para->RopCode.Rop2Mode == CN_R2_COPYPEN ) )
                         {
-                            for(y_src= InsRect.top-DstRect.top;
-                                y_src < InsRect.bottom-DstRect.top;
-                                y_src++)
+                            if(SrcBitmap->reversal == true)
                             {
-                                x_dst = InsRect.left;
-                                for(x_src = InsRect.left-DstRect.left;
-                                    x_src < InsRect.right-DstRect.left;
-                                    x_src++)
+                                for(y_src= InsRect.bottom-DstRect.top -1;
+                                    y_src >= InsRect.top-DstRect.top;
+                                    y_src--)
                                 {
-                                    __GK_CopyPixelBm(DstBitmap,SrcBitmap,
-                                                     x_dst,y_dst,x_src, y_src);
-                                    x_dst++;
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelBm(DstBitmap,SrcBitmap,
+                                                         x_dst,y_dst,x_src, y_src);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
                                 }
-                                y_dst++;
+
+                            }
+                            else
+                            {
+                                for(y_src= InsRect.top-DstRect.top;
+                                    y_src < InsRect.bottom-DstRect.top;
+                                    y_src++)
+                                {
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelBm(DstBitmap,SrcBitmap,
+                                                         x_dst,y_dst,x_src, y_src);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
+                                }
                             }
                         }
                         else
                         {
-                            for(y_src= InsRect.top-DstRect.top;
-                                y_src < InsRect.bottom-DstRect.top;
-                                y_src++)
+                            if(SrcBitmap->reversal == true)
                             {
-                                x_dst = InsRect.left;
-                                for(x_src = InsRect.left-DstRect.left;
-                                    x_src < InsRect.right-DstRect.left;
-                                    x_src++)
+                                for(y_src= InsRect.bottom-DstRect.top -1;
+                                    y_src >= InsRect.top-DstRect.top;
+                                    y_src--)
                                 {
-                                    __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
-                                                        x_dst,y_dst,x_src,
-                                                        y_src,para->RopCode,
-                                                        para->HyalineColor);
-                                    x_dst++;
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                            x_dst,y_dst,x_src,
+                                                            y_src,para->RopCode,
+                                                            para->HyalineColor);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
                                 }
-                                y_dst++;
+                            }
+                            else
+                            {
+                                for(y_src= InsRect.top-DstRect.top;
+                                    y_src < InsRect.bottom-DstRect.top;
+                                    y_src++)
+                                {
+                                    x_dst = InsRect.left;
+                                    for(x_src = InsRect.left-DstRect.left;
+                                        x_src < InsRect.right-DstRect.left;
+                                        x_src++)
+                                    {
+                                        __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
+                                                            x_dst,y_dst,x_src,
+                                                            y_src,para->RopCode,
+                                                            para->HyalineColor);
+                                        x_dst++;
+                                    }
+                                    y_dst++;
+                                }
                             }
                         }
                     }

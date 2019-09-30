@@ -60,6 +60,7 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 
+#include <align.h>
 #include    <gui/gdd/gdd_private.h>
 
 #pragma pack(1)
@@ -293,7 +294,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
     u32 buf[64 / 4];
     BITMAPHEADER_V4 *pBmp;
     tagBITMAPFILEHEADER *p_bmp_hdr;
-    BITMAP *bm;
+    struct RectBitmap *bm;
     s32 i, line_bytes, w, h, bfOffsetBits, xoff, yoff;
     u32 offset;
     struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
@@ -470,18 +471,21 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 
     case 16:
 
-        line_bytes = pBmp->biWidth * 2;
-        if (line_bytes & 0x03)
-        {
-            line_bytes += 4 - (line_bytes & 0x03);
-        }
+      line_bytes = pBmp->biWidth * 2;
+//      if (line_bytes & 0x03)
+//      {
+//          line_bytes += 4 - (line_bytes & 0x03);
+//      }
 
-        offset  = bfOffsetBits;
-        offset += pBmp->biHeight * line_bytes - line_bytes;
-        offset -= yoff * line_bytes;
-        offset += xoff * 2;
+//      offset  = bfOffsetBits;
+//      offset += pBmp->biHeight * line_bytes - line_bytes;
+//      offset -= yoff * line_bytes;
+//      offset += xoff * 2;
+
+      line_bytes = align_up(4, line_bytes);
 
         bm = (BITMAP*)buf;
+        bm->reversal = true;
         bm->PixelFormat =CN_SYS_PF_RGB565;
         bm->width  =w;
         bm->height =h;
@@ -507,23 +511,28 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 
     case 24:
 
-        line_bytes = pBmp->biWidth * 3;
-        if (line_bytes & 0x03)
-        {
-            line_bytes += 4 - (line_bytes & 0x03);
-        }
+      line_bytes = pBmp->biWidth * 3;
+//      if (line_bytes & 0x03)
+//      {
+//          line_bytes += 4 - (line_bytes & 0x03);
+//      }
 
-        offset  = bfOffsetBits;
-        offset += pBmp->biHeight * line_bytes - line_bytes;
-        offset -= yoff * line_bytes;
-        offset += xoff * 3;
+        line_bytes = align_up(4, line_bytes);
+
+//      offset  = bfOffsetBits;
+//      offset += pBmp->biHeight * line_bytes - line_bytes;
+//      offset -= yoff * line_bytes;
+//      offset += xoff * 3;
 
         bm = (BITMAP*)buf;
+        bm->reversal = true;
         bm->PixelFormat =CN_SYS_PF_RGB888;
         bm->width  =w;
-        bm->height =1;
+        bm->height =h;
         bm->linebytes =line_bytes;
         bm->ExColor =(ptu32_t)0;
+        bm->bm_bits = rd->pData + bfOffsetBits;
+        DrawBitmap(hdc,x,y,bm,0,RopCode);
 
 #if 0
         bm->bm_bits =malloc(line_bytes);
@@ -542,18 +551,18 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
             free(bm->bm_bits);
         }
 #else
-        u8 * addr = malloc(line_bytes *h);
-        if(addr != NULL)
-        {
-            for (i = 0; i < h; i++)
-            {
-                bm->bm_bits = addr+(line_bytes*i);
-                rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
-                DrawBitmap(hdc,x,y+i,bm,0,RopCode);
-                offset -= line_bytes;
-            }
-            free(addr);
-        }
+//      u8 * addr = malloc(line_bytes *h);
+//      if(addr != NULL)
+//      {
+//          for (i = 0; i < h; i++)
+//          {
+//              bm->bm_bits = addr+(line_bytes*i);
+//              rd->pfReadData((u8*)bm->bm_bits,offset,line_bytes,rd->pData);
+//              DrawBitmap(hdc,x,y+i,bm,0,RopCode);
+//              offset -= line_bytes;
+//          }
+//          free(addr);
+//      }
 
 #endif
         return TRUE;
