@@ -1,0 +1,1 @@
+encrypt.exe Ai_EasyTalk_Iboot_Debug/Ai_EasyTalk_Iboot_Debug.bin 00000000

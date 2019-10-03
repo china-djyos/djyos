@@ -1,0 +1,1 @@
+encrypt.exe Ai_EasyTalk_App_Debug/Ai_EasyTalk_App_Debug.bin 00000000
