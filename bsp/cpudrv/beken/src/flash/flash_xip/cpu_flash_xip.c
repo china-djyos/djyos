@@ -186,7 +186,10 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             bytes -= offset;
             unit = start + pos + core->MStart;
             if(is_close_protect == 0)
+            {
+                is_close_protect = 1;
                 flash_protection_op(0,FLASH_PROTECT_NONE);
+            }
         }
 
         if(pos == 0)
@@ -229,7 +232,10 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             djy_flash_write(unit, app_head, app_head_size);
             free(app_head);
             if(is_close_protect == 1)
+            {
+                is_close_protect = 0;
                 flash_protection_op(0,FLASH_PROTECT_ALL);
+            }
         }
         else
         {
@@ -314,7 +320,10 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
     s32 left = bytes;
 
     if(is_close_protect == 0)
+    {
+        is_close_protect = 1;
         flash_protection_op(0,FLASH_PROTECT_NONE);
+    }
 
     djy_flash_req(mapaddr,(ptu32_t)&start);
     unit = start + pos + core->MStart;
