@@ -172,5 +172,6 @@ char Get_Updateiboot(void);
 bool_t Set_UpdateRunModet(u8 mode);
 u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);
+bool_t Get_SoftResetFlag();
 #endif
 #endif /* __IICBUS_H__ */

@@ -108,14 +108,6 @@ void IAP_SelectLoadProgam(void)
 #if (CFG_RUNMODE_BAREAPP == 1)
         Load_Preload();   //运行Iboot
 #else
-#if (CFG_SOC_NAME == SOC_BK7221U)
-    gpio_config(5, GMODE_INPUT_PULLUP);
-    if(!djy_gpio_read(5))
-    {
-        Set_RunIbootUpdateApp();
-        Set_RunIbootFlag();
-    }
-#endif
     Si_IbootAppInfoInit();
 
     if(IAP_IsForceIboot())//硬件设置运行iboot

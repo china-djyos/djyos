@@ -973,6 +973,9 @@ bool_t Si_IbootAppInfoInit()
         Iboot_App_Info.runflag.power_on_resent_flag  = 1;//上电复位标志，结合b18~19以及“上电标志”字判定
 
         Iboot_App_Info.reserved = 0;//保留
+#if (CFG_SOC_NAME == SOC_BK7221U)
+        Set_RunIbootFlag();
+#endif
     }
     else//非上电复位
     {
@@ -1319,7 +1322,18 @@ bool_t Clear_RunAppUpdateIboot()
     Iboot_App_Info.runflag.run_app_update_iboot =0;
     return true;
 }
-
+//==============================================================================
+//功能：获取是否是软件内部复位标志
+//参数：null
+//返回值：true
+//==============================================================================
+bool_t Get_SoftResetFlag()
+{
+    if(Iboot_App_Info.runflag.soft_reset_flag == 1)
+        return true;
+    else
+        return false;
+}
 //==============================================================================
 //功能：获取当前运行的模式
 //参数：无

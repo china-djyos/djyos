@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><IncludeFiles>
-  
-<file>/component/misc/select.c</file><file>/bsp/cpudrv/beken/src/sdcard</file><file>/loader/si</file><file>/bsp/cpudrv/beken/src/gpio</file><file>/bsp/cpudrv/beken/src/spi</file><file>/bsp/cpudrv/beken/src/uart</file><file>/third/firmware/bk7251drv/func/power_save</file><file>/bsp/cpudrv/beken/src/flash/flash_xip</file><file>/bsp/cpudrv/beken/src/flash/cpu_peri_flash.c</file><file>/component/misc</file><file>/bsp/cpudrv/beken/src/lowpower</file><file>/third/cjson-code-73</file><file>/third/fs/fat</file></IncludeFiles>
