@@ -196,6 +196,7 @@ int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf,
 
 void WriteDataBytes(unsigned char *data, int len)
 {
+    u32 param;
     SPI_CS(0);
     SPI_RS(1);
     s32 result;
@@ -204,7 +205,12 @@ void WriteDataBytes(unsigned char *data, int len)
     spi_msg.recv_len = 0;
     spi_msg.send_buf = data;
     spi_msg.send_len = len;
+//  param = 1;
+//  spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
     result = bk_spi_master_xfer(&spi_msg);
+//  param = 0;
+//  spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
+
     SPI_CS(1);
     return 0;
 }
@@ -417,7 +423,8 @@ void __lcd_st7796s_init(void)
 //    delay_ms(200);
 
     WriteComm(0x36);   //memory access control
-    WriteData(0xc0);   //MY MX MV ML MH=0,BGR=1,ÆÁÄ»×ø±êÉèÖÃ
+    WriteData(0x00);   //MY MX MV ML MH=0,BGR=1
+//    WriteData(0xc0);   //MY MX MV ML MH=0,BGR=1,ÆÁÄ»×ø±êÉèÖÃ
 
     WriteComm(0x3A);
     WriteData(0x05);
@@ -963,59 +970,96 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
             struct RectBitmap *src_bitmap,s32 xsrc,s32 ysrc)
 {
     u32 width,height;
-    u32 pixel,use=0;
-    unsigned int i,j,x,y;
-    unsigned char *buf;
+    u32 pixel,use=0,linelen;
+    u32 i,j,x,y;
+    u16 *line;
+    u8 buf[CFG_LCD_XSIZE*2];
+    u8 x0,x1;
 
+    if(src_bitmap->PixelFormat != CN_SYS_PF_RGB565)
+        return;
     width = dst_rect->right-dst_rect->left;
     height = dst_rect->bottom-dst_rect->top;
     __st7796s_set_window(xsrc,ysrc,width,height);
 
 #if 1
-    u32 max = width * height * 2;
-    if(max>=ROW_BUFFER){
-        buf = malloc(ROW_BUFFER);
-        memset(buf,0,ROW_BUFFER);
-    }else{
-        buf = malloc(max);
-        memset(buf,0,max);
-    }
+//  u32 max = width * height * 2;
+//  if(max>=ROW_BUFFER){
+//      buf = malloc(ROW_BUFFER);
+//      memset(buf,0,ROW_BUFFER);
+//  }else{
+//      buf = malloc(max);
+//      memset(buf,0,max);
+//  }
 //    printf("xsrc = %d,ysrc = %d,width = %d ,height = %d\r\n",xsrc,ysrc,width,height);
-
-    y=0;
-    for(i = dst_rect->top;i < dst_rect->bottom;i++)
+    linelen = src_bitmap->linebytes;
+//  buf = src_bitmap->bm_bits;
+//  for(y = 0; y < 320; y++)
+//  {
+//      for(x = 0;x < 240; x++)
+//      {
+//          x0 = buf[y*linelen+x*2];
+//          x1 = buf[y*linelen+x*2+1];
+//          buf[y*linelen+x*2] = x1;
+//          buf[y*linelen+x*2+1] = x0;
+//      }
+//  }
+    line = (u16*)(src_bitmap->bm_bits + ysrc*linelen + xsrc*2);
+//  y=0;
+    for(y = 0;y < height;y++)
     {
-        x=0;
-        for(j = dst_rect->left;j < dst_rect->right;j++)
+//        x=0;
+//        for(j = dst_rect->left;j < dst_rect->right;j++)
+//        {
+////            if(src_bitmap->ExColor == 10)
+////                pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,CN_COLOR_WHITE);
+////            else
+////            {
+//                pixel = GK_GetPixelBm(src_bitmap,j,i);
+////                pixel =GK_ConvertColorToRGB24(src_bitmap->PixelFormat,pixel,src_bitmap->ExColor);
+////            }
+//            *(buf+y*width*2+x) = (unsigned char)((pixel>>8) & 0xff);
+//            *(buf+y*width*2+x+1) = (unsigned char)(pixel & 0xff);
+//            x = x+2;
+//            use =use+2;
+//        }
+//        y++;
+
+//      if (use>=ROW_BUFFER) {
+//          y=0;
+//          use=0;
+//          WriteDataBytes(buf,ROW_BUFFER);
+//          memset(buf,0,ROW_BUFFER);
+//      }
+        for(x = 0; x < width; x++)
         {
-//            if(src_bitmap->ExColor == 10)
-//                pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,CN_COLOR_WHITE);
-//            else
-//            {
-                pixel = GK_GetPixelBm(src_bitmap,j,i);
-//                pixel =GK_ConvertColorToRGB24(src_bitmap->PixelFormat,pixel,src_bitmap->ExColor);
-//            }
-            *(buf+y*width*2+x) = (unsigned char)((pixel>>8) & 0xff);
-            *(buf+y*width*2+x+1) = (unsigned char)(pixel & 0xff);
-            x = x+2;
-            use =use+2;
+            u16 org;
+            org = line[x];
+            buf[2*x] = org>>8;
+            buf[2*x+1] = org;
         }
-        y++;
-
-        if (use>=ROW_BUFFER) {
-            y=0;
-            use=0;
-            WriteDataBytes(buf,ROW_BUFFER);
-            memset(buf,0,ROW_BUFFER);
-        }
+        WriteDataBytes(buf,width*2);
+        line += linelen/2;
+//        WriteDataBytes(buf,width*2);
     }
+//  buf = src_bitmap->bm_bits;
+//  for(y = 0; y < 320; y++)
+//  {
+//      for(x = 0;x < 240; x++)
+//      {
+//          x0 = buf[y*linelen+x*2];
+//          x1 = buf[y*linelen+x*2+1];
+//          buf[y*linelen+x*2] = x1;
+//          buf[y*linelen+x*2+1] = x0;
+//      }
+//  }
 
-    if(use>0)
-    {
-        WriteDataBytes(buf, use);
-    }
+//    if(use>0)
+//    {
+//        WriteDataBytes(buf, use);
+//    }
 
-    free(buf);
+//    free(buf);
 //    printf("__lcd_bm_to_screen\r\n");
 #endif
     return true;

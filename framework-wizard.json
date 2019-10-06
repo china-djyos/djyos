@@ -2,7 +2,7 @@
     "图形应用":{
 				"app":"true",
 				"iboot":"false",
-		    "components":["time","graphical decorate development(gdd)","graphical kernel","Message queue"],
+		    "components":["time","graphical decorate development","graphical kernel","Message queue"],
 		    "help":"根据板件所配置的显示器驱动的名称，√选显示器驱动；根据硬件配置，√选触摸屏、键盘驱动、鼠标等外设；根据所需要显示的文字，√选相应的字符集和字体组件",
     },
     "OTA：Iboot升级APP":{

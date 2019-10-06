@@ -1074,7 +1074,8 @@ void DestroyAllChild(HWND hwnd)
         Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         while(Current != NULL)
         {
-            PostMessage(Current, MSG_CLOSE, 0, 0);
+//            SetWindowHide(Current);     //MSG_CLOSE消息是最后处理的，先隐藏窗口
+          PostMessage(Current, MSG_CLOSE, 0, 0);
             Current = (HWND)GK_GetUserTag(GK_TraveChild(hwnd->pGkWin,Current->pGkWin));
         }
         __GDD_Unlock();

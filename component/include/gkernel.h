@@ -355,11 +355,11 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
                                   u32 BaseColor);
 struct GkWinObj *GK_GetDesktop(const char *display_name);
 bool_t GK_CreateWin(struct GkWinObj *parent,
-                                        struct GkWinObj *newwin,
-                                        s32 left,s32 top,s32 right,s32 bottom,
-                                        u32 color,u32 buf_mode,
-                                        const char *name,u16 PixelFormat,u32 HyalineColor,
-                                        u32 BaseColor,struct RopGroup RopCode);
+                    struct GkWinObj *newwin,
+                    s32 left,s32 top,s32 right,s32 bottom,
+                    u32 color,u32 buf_mode,
+                    const char *name,u16 PixelFormat,u32 HyalineColor,
+                    u32 BaseColor,struct RopGroup RopCode);
 void GK_FillWin(struct GkWinObj *gkwin,u32 color,u32 sync_time);
 void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 sync_time);

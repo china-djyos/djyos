@@ -216,25 +216,26 @@ typedef enum{
 
 #define MSG_BODY_MASK           0xffffff        //消息体掩码
 // 通用窗口消息定义
-#define MSG_CREATE              0x0001  //窗口创建消息; Param1:由WindowCreate的pdata传入;Param2:忽略.
-#define MSG_ERASEBKGND          0x0002  //窗口背景擦除; Param1:绘图上下文; Param2:忽略.
-#define MSG_NCPAINT             0x0003  //窗口非客户区绘制; Param1:忽略; Param2:忽略.
-#define MSG_PAINT               0x0004  //窗口客户区绘制; Param1:忽略; Param2:忽略.
+#define MSG_CREATE              0x0001  //窗口创建消息; Param1:由WindowCreate的pdata传入;Param2:用户定义
+#define MSG_ERASEBKGND          0x0002  //窗口背景擦除; Param1:绘图上下文; Param2:用户定义
+#define MSG_NCPAINT             0x0003  //窗口非客户区绘制; Param1:用户定义; Param2:用户定义
+#define MSG_PAINT               0x0004  //窗口客户区绘制; Param1:用户定义; Param2:用户定义
 #define MSG_TIMER               0x0005  //定时器消息: Param1:定时Id; Param2:定时器对象.
 #define MSG_SETTEXT             0x0006  //设置窗口文字
 #define MSG_GETTEXT             0x0007  //获得窗口文字
 #define MSG_GETTEXTFLENGTH      0x0008  //获得窗口文字长度
+#define MSG_REFRESH             0x0009  //刷新窗口; Param1:用户定义; Param2:用户定义
 
 //close消息的hwnd和param2比较特殊：MSG_CLOSE自带继承属性，那么调用用户的消息处理
 //函数时，窗口本身已经被销毁，消息的hwnd成员将被清除
 //发送MSG_CLOSE消息时，param2不用考虑，但调用用户定义的消息处理函数，该函数收到
-//的消息中，param2 == hwnd->Private，这是系统添加的。
-#define MSG_CLOSE       (MSG_ADOPT_NORMAL+0x0009)  //窗口关闭消息，Param1:忽略;
+//的消息中，param2 == hwnd->PrivateData，这是系统添加的，便于用户完成些特定操作。
+#define MSG_CLOSE       (MSG_ADOPT_NORMAL+0x000A)  //窗口关闭消息，Param1:忽略;
 //#define MSG_DESTROY             0x000A  //窗口销毁消息
 //#define MSG_QUIT                0x000B  //窗口退出消息
-#define MSG_NOTIFY              0x000C  //通知消息; Param1:控件Id(L16),通知码(H16); Param2:控件HWND.
-#define MSG_SETFOCUS            0x000D  //窗口获得焦点; Param1:忽略; Param2:忽略;
-#define MSG_KILLFOCUS           0x000E  //窗口失去焦点; Param1:忽略; Param2:忽略;
+#define MSG_NOTIFY              0x000B  //通知消息; Param1:控件Id(L16),通知码(H16); Param2:控件HWND.
+#define MSG_SETFOCUS            0x000C  //窗口获得焦点; Param1:忽略; Param2:忽略;
+#define MSG_KILLFOCUS           0x000D  //窗口失去焦点; Param1:忽略; Param2:忽略;
 #define MSG_LBUTTON_DOWN        0x0100  //鼠标左键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_LBUTTON_UP          0x0101  //鼠标左键弹起; Param1:忽略; Param2:x坐标(L16),y坐标(H16).
 #define MSG_RBUTTON_DOWN        0x0102  //鼠标右键按下; Param1:忽略; Param2:x坐标(L16),y坐标(H16).

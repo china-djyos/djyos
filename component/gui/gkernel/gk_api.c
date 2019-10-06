@@ -181,7 +181,7 @@ bool_t GK_CreateWin(struct GkWinObj *parent,
     para.RopCode = RopMode;
     __GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
                             &para,sizeof(para),NULL,0);
-    if(para.result == NULL)
+    if(*para.result == NULL)
         return false;
     else
     {

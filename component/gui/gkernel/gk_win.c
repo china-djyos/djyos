@@ -1662,7 +1662,7 @@ void __GK_OutputRedraw(struct DisplayObj *display)
         {
             __GK_ShadingClear(frame_buf);
             frame_buf->redraw_clip = clip;
-            mirror = gkwin->disp->HostObj;
+//          mirror = gkwin->disp->HostObj;
             do{
                 if(display->framebuf_direct == false)
                 {
@@ -1689,16 +1689,17 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                         }
                     }
                 }
-                current = mirror;
 
-                while(current != NULL)  //遍历全部镜像窗口
+                //处理镜像显示
+                mirror = display->HostObj;
+                current = obj_child(mirror);
+                while(current != NULL)
                 {
                     MirrorDisplay = (struct DisplayObj*)obj_GetPrivate(current);
-                    //硬件加速不支持填充矩形，则用软件实现
                     MirrorDisplay->draw.CopyBitmapToScreen(&clip->rect,
                                                 frame_buf->wm_bitmap,
                                                 clip->rect.left,clip->rect.top);
-                    current = obj_foreach_scion(mirror,current);
+                    current = obj_foreach_child(mirror, current);
                 }
                 clip = clip->next;
             }while(clip != frame_buf->redraw_clip);
