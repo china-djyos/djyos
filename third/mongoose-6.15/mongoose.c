@@ -3906,11 +3906,13 @@ void mg_set_non_blocking_mode(sock_t sock) {
 #elif defined(DJYOS)
 //…Ë÷√∑¢ÀÕª∫≥Â«¯
   int opt = 0;
+/*
   opt = 10*1000;
   if(0 != setsockopt(sock,SOL_SOCKET ,SO_SNDBUF,&opt, 4))
   {
       printf("error: Client:set client sndbuf failed!\r\n");
   }
+*/
   opt = 1;
   if(0 != setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, &opt,4))
   {

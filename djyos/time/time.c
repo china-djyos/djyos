@@ -251,7 +251,7 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
         years--;
         temp += 365;
     }
-    dayth = temp - leap_years + 1;    // 本年度第x天（如1月1日0时为第1天）
+    dayth = temp - leap_years;    // 本年度第x天（如1月1日0时为第1天）
 
     year = 1970 + years;    //未作闰年调整，1400多年后会出错。
 
@@ -273,24 +273,23 @@ struct tm *Tm_LocalTime_r(const s64 *time,struct tm *result)
     month = 0;                      // 0~11
     day = dayth;
     tmp_month_days = g_u32MonthDays[month];
-    while (dayth > tmp_month_days)
+    while (dayth >= tmp_month_days)
     {
         dayth -= tmp_month_days;
-        tmp_month_days = g_u32MonthDays[month];
         month++;
+        tmp_month_days = g_u32MonthDays[month];
     }
-    //day = dayth;
 
     day_of_week = (days + 4) % 7;
 
-    result->tm_yday = day-1;           // days since January 1 -[0,365]
+    result->tm_yday = day;           // days since January 1 -[0,365]
     result->tm_us = 0;               // us清零
-    result->tm_sec  = second;        // seconds after the minute - [0,59]
-    result->tm_min  = minute;        // minutes after the hour - [0,59]
+    result->tm_sec = second;        // seconds after the minute - [0,59]
+    result->tm_min = minute;        // minutes after the hour - [0,59]
     result->tm_hour = hour;          // hours since midnight - [0,23]
     result->tm_wday = day_of_week;   // days since Sunday - [0,6]
-    result->tm_mday = dayth;           // day of the month - [1,31]
-    result->tm_mon  = month;         // months since January - [0,11]
+    result->tm_mday = dayth+1;           // day of the month - [1,31]
+    result->tm_mon = month;         // months since January - [0,11]
     result->tm_year = year - 1900;   // years 1970-，表示为与1900年的差值
 
     return result;
