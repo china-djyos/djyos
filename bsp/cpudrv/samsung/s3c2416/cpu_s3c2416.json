@@ -1,0 +1,6 @@
+{
+	"cpu_name":"s3c2416",
+	"cores":[{
+		"name":"arm9"
+	}]
+}

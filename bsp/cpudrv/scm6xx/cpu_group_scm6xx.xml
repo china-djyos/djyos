@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<cpu>
-   <core id="1">
-      <name>cortex-m4</name>
-      <type>arm</type>
-      <arch>armv7e-m</arch>
-      <family>cortex-m4</family>
-   </core>
-</cpu>

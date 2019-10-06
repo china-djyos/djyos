@@ -1,0 +1,15 @@
+{
+	"cores":[{
+		"resetAddr":"0x0",
+		"name":"cortex-m0",
+		"arch":"armv6-m",
+		"type":"arm",
+		"family":"cortex-m0"
+	},
+	{
+		"resetAddr":"0x0",
+		"name":"ck803s",
+		"type":"ck",
+		"family":"ck803s"
+	}]
+}

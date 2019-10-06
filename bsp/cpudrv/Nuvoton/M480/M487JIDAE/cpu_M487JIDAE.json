@@ -1,0 +1,20 @@
+{
+	"cpu_name":"M487JIDAE",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"512k",
+				"type":"FLASH",
+				"startAddr":"0"
+			},
+			"memory2":{
+				"size":"160k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			}
+		},
+		"arch":"armv7e-m",
+		"type":"arm",
+		"family":"cortex-m4"
+	}]
+}

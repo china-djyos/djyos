@@ -1,0 +1,25 @@
+{
+	"board_name":"stm32l433-empty",
+	"cpus":{
+		"stm32l433xx":{
+			"clocks":{
+				
+			},
+			"chips":[],
+			"peripherals":["emflash",
+			"iic",
+			"lowpwer",
+			"spi",
+			"timer",
+			"uart",
+			"wdt"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

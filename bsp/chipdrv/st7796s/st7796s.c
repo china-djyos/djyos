@@ -122,13 +122,10 @@
 #define cn_frame_buffer_size    (cn_lcd_line_size * CFG_LCD_YSIZE)
 #define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
 
-#define LCD_PSRAM 0
-#if LCD_PSRAM
-static u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
-#else
-u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__ ((section(".LcdRam")));
-#endif
+u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__((section(".lcdram")));
 struct DisplayObj tg_lcd_display;
+
+static u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
 
 
 #define ROW_TEMP 1
@@ -424,7 +421,6 @@ void __lcd_st7796s_init(void)
 
     WriteComm(0x36);   //memory access control
     WriteData(0x00);   //MY MX MV ML MH=0,BGR=1
-//    WriteData(0xc0);   //MY MX MV ML MH=0,BGR=1,屏幕坐标设置
 
     WriteComm(0x3A);
     WriteData(0x05);
@@ -1107,14 +1103,14 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 
     __lcd_st7796s_init( );
 
-#if LCD_PSRAM
+#if 0
     heap =M_FindHeap(HeapName);
     if(heap==NULL){
         printf("M_FindHeapd  ERROR!\r\n");
         return NULL;
     }
-    //多申请64字节如果显存不是64字节对齐描点的时候会有闪屏的现象
-    pLTDCBufferFG1 =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*2*3,heap,0);
+
+    pLTDCBufferFG1 = M_MallocHeap(cn_frame_buffer_size,heap,0);
 
     printf("M_FindHeapd  pLTDCBufferFG1!\r\n");
 //    pLTDCBufferFG2 =M_MallocHeap(CN_LCD_XSIZE*CN_LCD_YSIZE*lcd.pixsize,heap,0);//先用一层
@@ -1155,9 +1151,8 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
     tg_lcd_display.draw.GetRectFromScreen = __lcd_get_rect_screen;
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
-#if LCD_PSRAM
-    tg_lcd_display.DisplayHeap = heap;
-#endif
+
+//    tg_lcd_display.DisplayHeap = heap;
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,DisplayName);

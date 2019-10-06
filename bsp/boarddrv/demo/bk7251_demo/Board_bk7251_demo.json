@@ -1,0 +1,25 @@
+{
+	"board_name":"bk7251_demo",
+	"cpus":{
+		"bk7251":{
+			"clocks":{
+				
+			},
+			"chips":["st7796s",
+			"gd25q16c",
+			"ft6236"],
+			"peripherals":["cpu_peri_audio_mic",
+			"cpu_peri_flash",
+			"cpu_peri_gpio",
+			"cpu_peri_uart",
+			"cpu_peri_eth"],
+			"mian_freq":0,
+			"memories":{
+				
+			}
+		}
+	},
+	"shared_memories":{
+		
+	}
+}

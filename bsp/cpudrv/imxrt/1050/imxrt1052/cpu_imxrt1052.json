@@ -1,0 +1,27 @@
+{
+	"cpu_name":"imxrt1052",
+	"cores":[{
+		"resetAddr":"0x60000000",
+		"name":"cortex-m7",
+		"memories":{
+			"memory1":{
+				"size":"128k",
+				"type":"RAM",
+				"startAddr":"0"
+			},
+			"memory2":{
+				"size":"128k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			},
+			"memory3":{
+				"size":"256k",
+				"type":"RAM",
+				"startAddr":"0x20200000"
+			}
+		},
+		"arch":"armv7e-m",
+		"type":"arm",
+		"family":"cortex-m7"
+	}]
+}

@@ -1,0 +1,17 @@
+{
+	"cpu_name":"ATSAMV70xxx",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"2048k",
+				"type":"FLASH",
+				"startAddr":"0x00400000"
+			},
+			"memory2":{
+				"size":"384k",
+				"type":"RAM",
+				"startAddr":"0x20400000"
+			}
+		}
+	}]
+}

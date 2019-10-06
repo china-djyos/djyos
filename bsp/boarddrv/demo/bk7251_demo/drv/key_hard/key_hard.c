@@ -104,6 +104,7 @@
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
+#if 0       //以下是秒热茶机板件的代码
 #define TOUCH_KEY_DISINFECTANT  GPIO1   // 【消毒】按键
 #define TOUCH_KEY_WATER1        GPIO11  // 【记忆水量1】按键
 #define TOUCH_KEY_WATER2        GPIO10  // 【记忆水量2】按键
@@ -192,4 +193,59 @@ u32 keyboard_scan(void)
         }
     }
     return(readed);
+}
+
+#endif
+typedef enum
+{
+    NO_KEY = 0,
+    PAUSE_PLAY_KEY,
+    VOL_UP_KEY,
+    VOL_DOWN_KEY,
+    RECORD_KEY,
+    POWER_KEY,
+} KEY_ID;
+extern int djy_adc_read(uint16_t channel);
+u32 keyboard_scan(void);
+//----初始化键盘模块-----------------------------------------------------------
+//功能: 初始化一个由windows的键盘和按钮模拟的键盘，该键盘供8个键。
+//参数: 无
+//返回: 无
+//-----------------------------------------------------------------------------
+bool_t ModuleInstall_Keyboard(const char *dev_name)
+{
+    static struct KeyBoardPrivate key_brd;
+
+    key_brd.read_keyboard = keyboard_scan;
+    Keyboard_InstallDevice(dev_name, &key_brd);
+    key_brd.vtime_limit = 0;
+    key_brd.vtime_count = 100;
+    key_brd.key_bak = 0;
+    key_brd.key_now = 0;
+    return true;
+}
+u32 keyboard_scan(void)
+{
+    int Vol;
+    KEY_ID current_key;
+    Vol = djy_adc_read(2);
+    if(Vol > 1550)
+    {
+        if(Vol < 2200)
+            current_key = RECORD_KEY;
+        else
+            current_key = NO_KEY;
+    }
+    else if(Vol > 950)
+        current_key = VOL_DOWN_KEY;
+    else if(Vol > 300)
+        current_key = VOL_UP_KEY;
+    else if(Vol >= 0)
+        current_key = PAUSE_PLAY_KEY;
+
+    if(!djy_gpio_read(13))
+        current_key = POWER_KEY;
+
+//    printf("key = %d\r\n", current_key);
+    return current_key;
 }

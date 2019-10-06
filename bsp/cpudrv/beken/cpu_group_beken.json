@@ -1,0 +1,8 @@
+{
+	"cores":[{
+		"name":"arm968e-s",
+		"arch":"armv5te",
+		"type":"arm",
+		"family":"arm968e-s"
+	}]
+}

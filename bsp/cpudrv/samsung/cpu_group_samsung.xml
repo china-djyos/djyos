@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<cpu>
-   <core id="1">
-      <type>arm</type>
-      <resetAddr>0</resetAddr>
-   </core>
-</cpu>

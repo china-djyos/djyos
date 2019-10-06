@@ -1,0 +1,17 @@
+{
+	"cpu_name":"stm32f756xx",
+	"cores":[{
+		"memories":{
+			"memory1":{
+				"size":"1024k",
+				"type":"FLASH",
+				"startAddr":"0x08000000"
+			},
+			"memory2":{
+				"size":"320k",
+				"type":"RAM",
+				"startAddr":"0x20000000"
+			}
+		}
+	}]
+}

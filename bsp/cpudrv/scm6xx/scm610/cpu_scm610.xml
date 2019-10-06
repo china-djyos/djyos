@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<cpu>
-   <cpuName>scm610</cpuName>
-   <core id="1">
-      <fpuType>fpv4-sp-d16</fpuType>
-      <resetAddr>0x00000004</resetAddr>
-   </core>
-</cpu>
