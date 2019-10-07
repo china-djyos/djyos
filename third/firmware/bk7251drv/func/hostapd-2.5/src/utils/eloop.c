@@ -311,6 +311,7 @@ int eloop_is_timeout_registered(eloop_timeout_handler handler,
 	return 0;
 }
 
+extern int aaaa;
 int eloop_deplete_timeout(unsigned int req_secs, unsigned int req_usecs,
 			  eloop_timeout_handler handler, void *eloop_data,
 			  void *user_data)
@@ -318,26 +319,34 @@ int eloop_deplete_timeout(unsigned int req_secs, unsigned int req_usecs,
 	struct os_reltime now, requested, remaining;
 	struct eloop_timeout *tmp;
 
-	dl_list_for_each(tmp, &eloop.timeout, struct eloop_timeout, list) {
-		if (tmp->handler == handler &&
-			tmp->eloop_data == eloop_data &&
-			tmp->user_data == user_data) {
-			requested.sec = req_secs;
-			requested.usec = req_usecs;
-			os_get_reltime(&now);
-			os_reltime_sub(&tmp->time, &now, &remaining);
-			if (os_reltime_before(&requested, &remaining)) {
-				eloop_cancel_timeout(handler, eloop_data,
-							 user_data);
-				eloop_register_timeout(requested.sec,
-							   requested.usec,
-							   handler, eloop_data,
-							   user_data);
-				return 1;
-			}
-			return 0;
-		}
-	}
+    dl_list_for_each(tmp, &eloop.timeout, struct eloop_timeout, list) {
+        if (tmp->handler == handler &&
+            tmp->eloop_data == eloop_data &&
+            tmp->user_data == user_data) {
+            requested.sec = req_secs;
+            requested.usec = req_usecs;
+            os_get_reltime(&now);
+            os_reltime_sub(&tmp->time, &now, &remaining);
+
+            if (os_reltime_before(&requested, &remaining)) {
+                eloop_cancel_timeout(handler, eloop_data,
+                             user_data);
+                eloop_register_timeout(requested.sec,
+                               requested.usec,
+                               handler, eloop_data,
+                               user_data);
+                return 1;
+            }
+            if (aaaa == 1) {
+                printf("tmp->time: %d.%d!\r\n", tmp->time.sec, tmp->time.usec);
+                printf("requested: %d.%d!\r\n", requested.sec, requested.usec);
+                printf("now: %d.%d!\r\n", now.sec, now.usec);
+                printf("remaining: %d.%d!\r\n", remaining.sec, remaining.usec);
+
+            }
+            return 0;
+        }
+    }
 
 	return -1;
 }

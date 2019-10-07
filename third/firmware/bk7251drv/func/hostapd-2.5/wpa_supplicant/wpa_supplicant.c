@@ -5236,38 +5236,74 @@ void wpas_connection_failed(struct wpa_supplicant *wpa_s, const u8 *bssid)
 		}
 	}
 
-	/*
-	 * Add previous failure count in case the temporary blacklist was
-	 * cleared due to no other BSSes being available.
-	 */
-	count += wpa_s->extra_blacklist_count;
+    /*
+     * Add previous failure count in case the temporary blacklist was
+     * cleared due to no other BSSes being available.
+     */
+    count += wpa_s->extra_blacklist_count;
+#if 0
+    if (count > 3 && wpa_s->current_ssid) {
+        wpa_printf(MSG_DEBUG, "Continuous association failures - "
+               "consider temporary network disabling");
+        wpas_auth_failed(wpa_s, "CONN_FAILED");
+    }
 
-	if (count > 3 && wpa_s->current_ssid) {
-		wpa_printf(MSG_DEBUG, "Continuous association failures - "
-			   "consider temporary network disabling");
-		wpas_auth_failed(wpa_s, "CONN_FAILED");
-	}
+    switch (count) {
+    case 1:
+        timeout = 100;
+        break;
+    case 2:
+        timeout = 500;
+        break;
+    case 3:
+        timeout = 1000;
+        break;
+    case 4:
+        timeout = 5000;
+        break;
+    default:
+        timeout = 10000;
+        break;
+    }
+#else
+    if (count > 8 && wpa_s->current_ssid) {
+        wpa_printf(MSG_DEBUG, "Continuous association failures - "
+               "consider temporary network disabling");
+        wpas_auth_failed(wpa_s, "CONN_FAILED");
+    }
 
-	switch (count) {
-	case 1:
-		timeout = 100;
-		break;
-	case 2:
-		timeout = 500;
-		break;
-	case 3:
-		timeout = 1000;
-		break;
-	case 4:
-		timeout = 5000;
-		break;
-	default:
-		timeout = 10000;
-		break;
-	}
-
-	wpa_dbg(wpa_s, MSG_DEBUG, "Blacklist count %d --> request scan in %d "
-		"ms", count, timeout);
+    switch (count) {
+    case 1:
+        timeout = 100;
+        break;
+    case 2:
+        timeout = 200;
+        break;
+    case 3:
+        timeout = 300;
+        break;
+    case 4:
+        timeout = 400;
+        break;
+    case 5:
+        timeout = 500;
+        break;
+    case 6:
+        timeout = 1000;
+        break;
+    case 7:
+        timeout = 2000;
+        break;
+    case 8:
+        timeout = 5000;
+        break;
+    default:
+        timeout = 10000;
+        break;
+    }
+#endif
+    wpa_dbg(wpa_s, MSG_DEBUG, "Blacklist count %d --> request scan in %d "
+        "ms", count, timeout);
 
 	/*
 	 * TODO: if more than one possible AP is available in scan results,
