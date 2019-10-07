@@ -71,6 +71,16 @@ void Board_Init(void);
 void FT6236_Pin_Init(void);
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
 
+enum EasyKeyValue
+{
+    NO_KEY = 0,
+    PAUSE_PLAY_KEY,
+    VOL_UP_KEY,
+    VOL_DOWN_KEY,
+    COMEBACK_KEY,
+    POWER_KEY,
+} ;
+
 #ifdef __cplusplus
 }
 #endif

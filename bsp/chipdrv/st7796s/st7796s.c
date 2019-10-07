@@ -99,15 +99,16 @@
 
 //%$#@configue      ****参数配置开始
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_ST7796S_DISPLAY_NAME        //****检查参数是否已经配置好
-#warning    st7796s组件参数未配置，使用默认值
+#if ( CFG_MODULE_ENABLE_LCD_DRIVER_ST7796 == false )
+//#warning  " keyboard_hard_driver  组件参数未配置，使用默认配置"
+#define CFG_MODULE_ENABLE_LCD_DRIVER_ST7796    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   320             //"LCD宽度",
 #define CFG_LCD_YSIZE   480             //"LCD高度",
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_ST7796S_DISPLAY_NAME              "lcdst7796s"    //"显示器名称",配置液晶显示的名称
-#define CFG_ST7796S_HEAP_NAME                 "extram"        //"驱动使用堆名",配置液晶驱动所使用的堆名称
+#define CFG_ST7796S_DISPLAY_NAME        "lcdst7796s"    //"显示器名称",配置液晶显示的名称
+#define CFG_ST7796S_HEAP_NAME           "extram"        //"驱动使用堆名",配置液晶驱动所使用的堆名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -122,11 +123,7 @@
 #define cn_frame_buffer_size    (cn_lcd_line_size * CFG_LCD_YSIZE)
 #define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
 
-u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__((section(".lcdram")));
 struct DisplayObj tg_lcd_display;
-
-static u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
-
 
 #define ROW_TEMP 1
 #define COLO_DEP 2
@@ -1097,13 +1094,15 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 {
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
+    u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
+//  static u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__((section(".lcdram")));
 
 
     struct HeapCB *heap;
 
     __lcd_st7796s_init( );
 
-#if 0
+#if 1
     heap =M_FindHeap(HeapName);
     if(heap==NULL){
         printf("M_FindHeapd  ERROR!\r\n");
@@ -1118,7 +1117,8 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 //        pLTDCBufferFG1+=(0x40-(0x3f&(u32)pLTDCBufferFG1));
     FrameBitmap.bm_bits = (u8 *)pLTDCBufferFG1;
 #else
-    FrameBitmap.bm_bits = u8g_frame_buffer;
+//  FrameBitmap.bm_bits = u8g_frame_buffer;
+    FrameBitmap.bm_bits = (u8*)0x3000000;
 #endif
     FrameBitmap.width = CFG_LCD_XSIZE;
     FrameBitmap.height = CFG_LCD_YSIZE;
@@ -1152,7 +1152,7 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
 
-//    tg_lcd_display.DisplayHeap = heap;
+    tg_lcd_display.DisplayHeap = heap;
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,DisplayName);

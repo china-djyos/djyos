@@ -252,8 +252,8 @@ typedef enum{
 #define MSG_NCMOUSE_MOVE        0x010D  //非客户区鼠标移动; Param1:鼠标按键状态; Param2:x坐标(L16),y坐标(H16).
 #define MSG_SETATTR             0x010E  //窗口属性设置；
 
-#define MSG_KEY_DOWN            0x0120  //键盘按下; 高16位(H16)WinID,Param1:按键值(L16); Param2:事件产生的时间(毫秒单位).
-#define MSG_KEY_UP              0x0121  //键盘弹起; Param1:按键值(L16); Param2:事件产生的时间(毫秒单位).
+#define MSG_KEY_DOWN            0x0120  //键盘按下;Param1: 按键值; Param2:事件产生的时间(毫秒单位).
+#define MSG_KEY_UP              0x0121  //键盘弹起;Param1: 按键值; Param2:事件产生的时间(毫秒单位).
 #define MSG_KEY_PRESS           0x0122
 
 #define MSG_TOUCH_DOWN          0x0130   //触摸屏触摸下触摸点

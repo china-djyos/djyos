@@ -598,7 +598,7 @@ HWND    GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt)
 //描述: 略.
 //参数：hwnd: 待设置的窗口
 //      NewName，新的名字
-//返回：旧的焦点窗口.
+//返回：无
 //------------------------------------------------------------------------------
 void SetWindowName(HWND hwnd, char *NewName)
 {

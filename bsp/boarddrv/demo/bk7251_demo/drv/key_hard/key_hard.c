@@ -61,6 +61,7 @@
 #include "stddef.h"
 #include "cpu_peri.h"
 #include "keyboard.h"
+#include "board.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -97,7 +98,7 @@
 //%$#@num,0,100,
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"name",配置键盘名称
+#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"键盘名",配置键盘名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -196,15 +197,6 @@ u32 keyboard_scan(void)
 }
 
 #endif
-typedef enum
-{
-    NO_KEY = 0,
-    PAUSE_PLAY_KEY,
-    VOL_UP_KEY,
-    VOL_DOWN_KEY,
-    RECORD_KEY,
-    POWER_KEY,
-} KEY_ID;
 extern int djy_adc_read(uint16_t channel);
 u32 keyboard_scan(void);
 //----初始化键盘模块-----------------------------------------------------------
@@ -224,15 +216,16 @@ bool_t ModuleInstall_Keyboard(const char *dev_name)
     key_brd.key_now = 0;
     return true;
 }
+
 u32 keyboard_scan(void)
 {
     int Vol;
-    KEY_ID current_key;
+    enum EasyKeyValue current_key;
     Vol = djy_adc_read(2);
     if(Vol > 1550)
     {
         if(Vol < 2200)
-            current_key = RECORD_KEY;
+            current_key = COMEBACK_KEY;
         else
             current_key = NO_KEY;
     }
