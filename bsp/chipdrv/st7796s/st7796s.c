@@ -121,8 +121,9 @@
 #define cn_lcd_line_size        (CFG_LCD_XSIZE<<1)
 #define cn_frame_buffer_size    (cn_lcd_line_size * CFG_LCD_YSIZE)
 #define CN_LCD_PIXEL_FORMAT     CN_SYS_PF_RGB565
-
+#if 0
 u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__((section(".lcdram")));
+#endif
 struct DisplayObj tg_lcd_display;
 
 static u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
@@ -1103,7 +1104,7 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 
     __lcd_st7796s_init( );
 
-#if 0
+#if 1
     heap =M_FindHeap(HeapName);
     if(heap==NULL){
         printf("M_FindHeapd  ERROR!\r\n");
