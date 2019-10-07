@@ -1117,8 +1117,7 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 //        pLTDCBufferFG1+=(0x40-(0x3f&(u32)pLTDCBufferFG1));
     FrameBitmap.bm_bits = (u8 *)pLTDCBufferFG1;
 #else
-//  FrameBitmap.bm_bits = u8g_frame_buffer;
-    FrameBitmap.bm_bits = (u8*)0x3000000;
+    FrameBitmap.bm_bits = u8g_frame_buffer;
 #endif
     FrameBitmap.width = CFG_LCD_XSIZE;
     FrameBitmap.height = CFG_LCD_YSIZE;
@@ -1152,7 +1151,7 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 
 //    tg_lcd_display.bmmalloc = lcd_bmmalloc;
 
-    tg_lcd_display.DisplayHeap = heap;
+//  tg_lcd_display.DisplayHeap = heap;
     tg_lcd_display.disp_ctrl = __lcd_disp_ctrl;
 
     GK_InstallDisplay(&tg_lcd_display,DisplayName);

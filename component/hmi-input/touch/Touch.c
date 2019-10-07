@@ -159,7 +159,7 @@ ptu32_t Touch_Scan(void)
                 }
             }
         }
-        Djy_EventDelay(10*mS);
+        Djy_EventDelay(50*mS);
     }
 }
 
