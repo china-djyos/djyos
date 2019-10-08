@@ -155,13 +155,13 @@ void ModuleInstall_InitNet(void)   //static ip example
                               bool_t loop,u32 loopcycle,\
                               bool_t (*rcvHook)(u8 *buf, u16 len));
 
-    wifi_get_mac_address((char*)gc_NetMac,CONFIG_ROLE_NULL);//防止重新设置MAC地址
+//  wifi_get_mac_address((char*)gc_NetMac,CONFIG_ROLE_NULL);//防止重新设置MAC地址
 
-    djy_flash_read(0x1e1000,gc_NetMac,CN_MACADDR_LEN);
-    if(gc_NetMac[0] == 0xff)
-    {
-        memcpy(gc_NetMac,DEFAULT_MAC_ADDR,sizeof(gc_NetMac));
-    }
+ //   djy_flash_read(0x1e1000,gc_NetMac,CN_MACADDR_LEN);
+ //   if(gc_NetMac[0] == 0xff)
+ //   {
+ //       memcpy(gc_NetMac,DEFAULT_MAC_ADDR,sizeof(gc_NetMac));
+ //   }
     wifi_set_mac_address((char*)gc_NetMac);
     ModuleInstall_Wifi(CFG_NETCARD_NAME,gc_NetMac,false,1*mS,NULL);
 

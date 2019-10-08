@@ -341,7 +341,6 @@ bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
     tpInputMsgQ InputMsgQ;
 
     current = s_ptHmiInDeviceDir;
-
     //在资源队列中查找stdin_id对应的输入设备
     while((current = obj_foreach_child(s_ptHmiInDeviceDir, current)) != NULL)
     {

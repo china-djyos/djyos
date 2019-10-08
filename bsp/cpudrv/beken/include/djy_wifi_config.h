@@ -207,6 +207,8 @@ enum lwip_internal_netif_client_data_index
    LWIP_NETIF_CLIENT_DATA_INDEX_MAX
 };
 
+struct netif;
+enum netif_mac_filter_action;
 typedef void (*netif_status_callback_fn)(struct netif *netif);
 typedef err_t (*netif_igmp_mac_filter_fn)(struct netif *netif,
        const ip4_addr_t *group, enum netif_mac_filter_action action);
@@ -214,6 +216,7 @@ typedef err_t (*netif_linkoutput_fn)(struct netif *netif, struct pbuf *p);
 typedef err_t (*netif_input_fn)(struct pbuf *p, struct netif *inp);
 typedef err_t (*netif_output_fn)(struct netif *netif, struct pbuf *p,
        const ip4_addr_t *ipaddr);
+
 /** Generic data structure used for all lwIP network interfaces.
  *  The following fields should be filled in by the initialization
  *  function for the device driver: hwaddr_len, hwaddr[], mtu, flags */

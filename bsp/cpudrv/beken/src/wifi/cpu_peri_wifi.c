@@ -308,7 +308,7 @@ static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
             pDrive->debuginfo.sndPkgTooLongCnt++;
         }
 
-NODESCERROR:
+
         Lock_MutexPost(pDrive->protect);
     }
 

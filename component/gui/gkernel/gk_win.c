@@ -2177,6 +2177,7 @@ ptu32_t __GK_Server(void)
 //  Djy_SetEventPrio(249);
     while(1)
     {
+//      printf("> round gkernel\r\n");
         //一次读取全部命令，因为发送时有互斥量保护，所以管道中的数据肯定是完整的
         //命令，不存在半条命令的可能。
         num = Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,

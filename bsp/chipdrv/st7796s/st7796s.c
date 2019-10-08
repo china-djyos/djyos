@@ -1095,14 +1095,14 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
     u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
-//  static u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__((section(".lcdram")));
+    static u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__((section(".lcdram")));
 
 
     struct HeapCB *heap;
 
     __lcd_st7796s_init( );
 
-#if 1
+#if 0
     heap =M_FindHeap(HeapName);
     if(heap==NULL){
         printf("M_FindHeapd  ERROR!\r\n");
