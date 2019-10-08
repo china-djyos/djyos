@@ -56,6 +56,7 @@
 #include "iicbus.h"
 //#include "ctiic.h"
 #include "board.h"
+#include "app_flash.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -293,7 +294,6 @@ static bool_t touch_check(void)
     }
     return 0;
 }
-
 //----触摸屏校准---------------------------------------------------------------
 //功能: 触摸屏的尺寸可能与液晶可显示区域不完全一致，安装也可能有偏差，需要计算
 //      校准系数和偏移量。为获得更高精度，使用定点小数。
@@ -303,16 +303,28 @@ static bool_t touch_check(void)
 static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 {
     struct SingleTouchMsg touch_xyz0,touch_xyz1;
-    FILE *touch_init;
     s32 limit_left,limit_top,limit_right,limit_bottom;
-
+#if (CFG_SOC_NAME == SOC_BK7221U)
+    memset(&tg_touch_adjust, 0, sizeof(struct ST_TouchAdjust));
+    djy_flash_read(TOUCH_RATIO_ADJUST, &tg_touch_adjust, sizeof(struct ST_TouchAdjust));
+//    printf("读    offset_x = %d, offset_y = %d, ratio_x = %d, ratio_y = %d. \r\n",tg_touch_adjust.offset_x, tg_touch_adjust.offset_y,
+//            tg_touch_adjust.ratio_x, tg_touch_adjust.ratio_y);
+    if((tg_touch_adjust.offset_x != (s32)0xffffffff) || (tg_touch_adjust.offset_y != (s32)0xffffffff) ||
+            (tg_touch_adjust.ratio_x != (s32)0xffffffff) || (tg_touch_adjust.ratio_y != (s32)0xffffffff))
+    {
+        return true;
+    }
+#else
+    FILE *touch_init;
     if((touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"r")) != NULL)
     {
 
         fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
     }
+#endif
     else
     {
+        memset(&tg_touch_adjust, 0, sizeof(struct ST_TouchAdjust));
         limit_left = desktop->limit_left;
         limit_top = desktop->limit_top;
         limit_right = desktop->limit_right;
@@ -357,13 +369,27 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
         tg_touch_adjust.offset_y= (touch_xyz0.y<<16) - 20*tg_touch_adjust.ratio_y;
         GK_FillWin(desktop,CN_COLOR_BLUE,0);
         GK_SyncShow(CN_TIMEOUT_FOREVER);
-
+//        printf("写     offset_x = %d, offset_y = %d, ratio_x = %d, ratio_y = %d. \r\n",tg_touch_adjust.offset_x, tg_touch_adjust.offset_y,
+//                tg_touch_adjust.ratio_x, tg_touch_adjust.ratio_y);
+#if (CFG_SOC_NAME == SOC_BK7221U)
+        u8 touch_adjust_buf[34];
+        memset(touch_adjust_buf, 0xff, 34);
+        memcpy(touch_adjust_buf, (u8 *)(&tg_touch_adjust), sizeof(struct ST_TouchAdjust));
+        encrypt((u32 *)touch_adjust_buf, touch_adjust_buf, 1);
+        calc_crc((u32 *)touch_adjust_buf, 1);
+        flash_protection_op(0,FLASH_PROTECT_NONE);
+        djy_flash_write(TOUCH_RATIO_ADJUST, touch_adjust_buf, 34);
+        flash_protection_op(0,FLASH_PROTECT_ALL);
+#else
         touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"w+");
         if(touch_init)
             fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+#endif
         return true;
     }
+#if (CFG_SOC_NAME != SOC_BK7221U)
     fclose(touch_init);
+#endif
     return false;
 }
 
