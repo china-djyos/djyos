@@ -104,7 +104,7 @@
 #define CFG_DHCPD_GATWAY    "192.168.0.1"
 #define CFG_DHCPD_DNS       "192.168.0.1"   //"DNS"
 
-static u8   gc_NetMac[CN_MACADDR_LEN];
+static u8   gc_NetMac[CN_MACADDR_LEN] = { 0xC8, 0x47, 0x8C, 0x00, 0x00, 0x00};
 
 u8 *getnetmacaddr()
 {
@@ -154,6 +154,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     extern bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
                               bool_t loop,u32 loopcycle,\
                               bool_t (*rcvHook)(u8 *buf, u16 len));
+
     wifi_get_mac_address((char*)gc_NetMac,CONFIG_ROLE_NULL);//防止重新设置MAC地址
 
     djy_flash_read(0x1e1000,gc_NetMac,CN_MACADDR_LEN);
