@@ -148,7 +148,7 @@ int WaitDhcpDone(char *ifname, unsigned int timeout)
             break;
         }
         else {
-            Djy_EventDelay(1000); //re-schedule
+            Djy_EventDelay(300*1000); //re-schedule
         }
     }
 
