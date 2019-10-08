@@ -1130,7 +1130,7 @@ void wpa_supplicant_update_scan_int(struct wpa_supplicant *wpa_s, int sec)
  * This function is used to schedule a scan for neighboring access points after
  * the specified time.
  */
-int aaaa = 0;
+
 void wpa_supplicant_req_scan(struct wpa_supplicant *wpa_s, int sec, int usec)
 {
     int res;
@@ -1144,13 +1144,12 @@ void wpa_supplicant_req_scan(struct wpa_supplicant *wpa_s, int sec, int usec)
             sec, usec);
         return;
     }
-    aaaa = 1;
+
     res = eloop_deplete_timeout(sec,
                                 usec,
                                 wpa_supplicant_scan,
                                 wpa_s,
                                 NULL);
-    aaaa = 0;
     if (res == 1)
     {
         os_printf("Rescheduling scan request: %d.%06d sec\r\n",
