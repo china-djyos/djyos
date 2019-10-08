@@ -156,9 +156,9 @@ void ModuleInstall_InitNet(void)   //static ip example
     extern bool_t ModuleInstall_Wifi(const char *devname, u8 *macaddress,\
                               bool_t loop,u32 loopcycle,\
                               bool_t (*rcvHook)(u8 *buf, u16 len));
-#if 0
-    wifi_get_mac_address((char*)gc_NetMac,CONFIG_ROLE_NULL);//防止重新设置MAC地址
 
+    wifi_get_mac_address((char*)gc_NetMac,CONFIG_ROLE_NULL);//防止重新设置MAC地址
+#if 0
     djy_flash_read(0x1e1000,gc_NetMac,CN_MACADDR_LEN);
     if(gc_NetMac[0] == 0xff)
     {
@@ -169,7 +169,7 @@ void ModuleInstall_InitNet(void)   //static ip example
     memcpy(&gc_NetMac[2], &mac_rand, 4);
     gc_NetMac[0] = 0x00;
     gc_NetMac[1] = 0x01;
-    printf("==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
+    printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
         gc_NetMac[0], gc_NetMac[1], gc_NetMac[2], gc_NetMac[3], gc_NetMac[4], gc_NetMac[5]);
 #endif
     wifi_set_mac_address((char*)gc_NetMac);
