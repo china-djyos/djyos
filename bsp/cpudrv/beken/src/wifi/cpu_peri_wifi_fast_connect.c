@@ -144,8 +144,10 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
     {
         memcpy(data, data_info, sizeof(struct wlan_fast_connect));
         data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4] = crc1;
+        flash_protection_op(0,FLASH_PROTECT_NONE);
         djy_flash_erase(FLASH_FAST_DATA_ADDR);
         djy_flash_write(FLASH_FAST_DATA_ADDR, (uint8_t *)data, sizeof(struct wlan_fast_connect) + 4);
+        flash_protection_op(0,FLASH_PROTECT_ALL);
     }
     return 0;
 }
