@@ -417,7 +417,7 @@ void __lcd_st7796s_init(void)
 //    delay_ms(200);
 
     WriteComm(0x36);   //memory access control
-    WriteData(0x00);   //MY MX MV ML MH=0,BGR=1
+    WriteData(0xC0);   //MY MX MV ML MH=0,BGR=1
 
     WriteComm(0x3A);
     WriteData(0x05);
