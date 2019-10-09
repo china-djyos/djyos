@@ -143,6 +143,15 @@ void Get_IbootAppInfo(struct IbootAppInfo *get_info);
 //bool_t XIP_APPIsDebug(void );
 bool_t Set_AppVerFlag(u8 small, u8 medium, u8 large);
 bool_t Set_AppBulid_Time(u16 pyear,u8 pmon,u8 pday,u8 phour,u8 pmin,u8 psec);
+bool_t Get_PowerOnResentFlag(void);
+bool_t Get_CallFunResent();
+bool_t Get_SoftResetFlag();
+char Get_PowerOnFlag(void);
+bool_t Get_HeadWdtReset(void);
+bool_t Get_RebootFlag();
+bool_t Get_RestartAppFlag();
+bool_t Get_HeadResetFlag();
+bool_t Get_LowPowerWakeup();
 
 #if (CFG_RUNMODE_BAREAPP == 0)
 bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
@@ -165,15 +174,21 @@ bool_t Clear_RunIbootUpdateApp();
 bool_t Clear_RunAppUpdateIboot();
 bool_t Set_UpdateSource(char *param);
 u32 Get_UpdateSource(void);
+bool_t Get_RestartRunApp();
+char Get_RunAppFormFile();
 char Get_RunMode(void);
 char Get_LastRunMode(void);
+bool_t Get_HeardSetRunIboot(void);
 char * Get_MutualUpdatePath(void);
-char Get_UpdateApp(void);
-char Get_Updateiboot(void);
+bool_t Get_UpdateApp(void);
+bool_t Get_Updateiboot(void);
 bool_t Set_UpdateRunModet(u8 mode);
 char Get_UpdateRunModet(void);
 u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);
-bool_t Get_SoftResetFlag();
+bool_t Get_ErrorAppCheck(void);
+bool_t Get_ErrorAppNoFile(void);
+bool_t Get_ErrorAppSize(void);
+bool_t Get_HeardSetRunIboot(void);
 #endif
 #endif /* __IICBUS_H__ */
