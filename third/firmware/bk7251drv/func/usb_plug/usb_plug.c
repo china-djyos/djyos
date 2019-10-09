@@ -40,7 +40,14 @@ void usb_charge_start()
     {
         printf("load charge cal %x %x %x\r\n", chrg.cal[0], chrg.cal[1], chrg.cal[2]);
     }
-    chrg.oper = usb_charge_oper_val(charge_elect);
+    if(chrg.type == 1)
+    {
+        chrg.oper = usb_charge_oper_val(charge_elect);
+    }
+    else
+    {
+        chrg.oper = 0x1f;
+    }
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_USB_CHARGE_START, (void *)&chrg);
 }
 
@@ -69,7 +76,7 @@ void usb_charge_check_cb(void)
                 charge_started = 0;
                 printf("charger_is_full %d\r\n",vol);
             }
-            else if(charge_started == 0 && vol < 4000)
+            else if(charge_started == 0 && vol < 4160)
             {
                 usb_charge_start();
                 charge_started = 1;
@@ -78,6 +85,15 @@ void usb_charge_check_cb(void)
 
 //            last_second = tmp;
 //        }
+    }
+    else
+    {
+        if(charge_started == 1)
+        {
+            usb_charge_stop();
+            charge_started = 0;
+            printf("Charger removal.\r\n");
+        }
     }
 
 }
