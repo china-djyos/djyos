@@ -129,8 +129,8 @@ void FT6236_Pin_Init(void)
     djy_gpio_mode(GPIO4,PIN_MODE_OUTPUT);        //SCL
     djy_gpio_mode(GPIO2,PIN_MODE_OUTPUT);        //SDA
 
-    djy_gpio_mode(GPIO7,PIN_MODE_INPUT_PULLUP);  //RT_INT
-    djy_gpio_mode(GPIO6,PIN_MODE_OUTPUT);        //RT_RST
+    djy_gpio_mode(GPIO6,PIN_MODE_INPUT_PULLUP);  //RT_INT
+    djy_gpio_mode(GPIO7,PIN_MODE_OUTPUT);        //RT_RST
 }
 
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)

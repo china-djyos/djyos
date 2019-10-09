@@ -64,8 +64,8 @@ extern "C" {
 #define CT_READ_SDA   djy_gpio_read(GPIO2)// ‰»ÎSDA
 
 /*¥•√˛∆¡–æ∆¨Ω”ø⁄IO*/
-#define FT_RST(n)  djy_gpio_write(GPIO6,n)
-#define FT_INT     djy_gpio_read(GPIO7)
+#define FT_RST(n)  djy_gpio_write(GPIO7,n)
+#define FT_INT     djy_gpio_read(GPIO6)
 /*************************************************************************************/
 void Board_Init(void);
 void FT6236_Pin_Init(void);

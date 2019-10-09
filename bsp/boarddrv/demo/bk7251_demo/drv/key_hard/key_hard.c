@@ -230,9 +230,9 @@ u32 keyboard_scan(void)
             current_key = NO_KEY;
     }
     else if(Vol > 950)
-        current_key = VOL_DOWN_KEY;
-    else if(Vol > 300)
         current_key = VOL_UP_KEY;
+    else if(Vol > 300)
+        current_key = VOL_DOWN_KEY;
     else if(Vol >= 0)
         current_key = PAUSE_PLAY_KEY;
 
