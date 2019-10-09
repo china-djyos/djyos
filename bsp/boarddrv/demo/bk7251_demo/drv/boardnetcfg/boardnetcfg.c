@@ -165,10 +165,15 @@ void ModuleInstall_InitNet(void)   //static ip example
         memcpy(gc_NetMac,DEFAULT_MAC_ADDR,sizeof(gc_NetMac));
     }
 #else
-    u32 mac_rand =  trng_get_random();
-    memcpy(&gc_NetMac[2], &mac_rand, 4);
-    gc_NetMac[0] = 0x00;
-    gc_NetMac[1] = 0x01;
+    wifi_mac_flash_read(gc_NetMac, 6);
+    if(gc_NetMac[0] == 0xff)
+    {
+        u32 mac_rand =  trng_get_random();
+        memcpy(&gc_NetMac[2], &mac_rand, 4);
+        gc_NetMac[0] = 0x00;
+        gc_NetMac[1] = 0x01;
+        wifi_mac_flash_write(gc_NetMac, 6);
+    }
     printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
         gc_NetMac[0], gc_NetMac[1], gc_NetMac[2], gc_NetMac[3], gc_NetMac[4], gc_NetMac[5]);
 #endif
