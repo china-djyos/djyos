@@ -346,8 +346,10 @@ u32 GetSyncTime(HDC hdc);
 s32  GetStrLineCount(const char *str);
 void AdjustTextRect(HDC hdc,const char *text,int count, RECT *prc,u32 flag);
 
-HFONT   SetFont(HDC hdc,HFONT hFont);
-HFONT   GetFont(HDC hdc);
+struct FontObj *SetFont(HDC hdc,HFONT hFont);
+struct FontObj *GetFont(HDC hdc);
+struct Charset *SetCharset(HDC hdc,struct Charset *pCharset);
+struct Charset *GetCharset(HDC hdc);
 
 
 void    SetPixel(HDC hdc,s32 x,s32 y,u32 color);
