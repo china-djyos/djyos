@@ -59,7 +59,7 @@
 //static u16 gPkgHdrSizeAlign = CN_ALIGN_DEFAULT;         //the package aligned size
 
 //tagNetPkg的原理
-//bufsize在申请时指定，使用过程中一直不变;data一直指向buf的起始位置，保持不变
+//bufsize在申请时指定，使用过程中一直不变;pkgbuf 一直指向buf的起始位置，保持不变
 //当向PKG写入数据时，offset不变，从buf的offset+datalen的地方开始写新数据，写完之后
 //                  datalen +=len(len为写入数据长度)
 //当从PKG读取数据时，从buf的offset开始cpy，cpy完成之后，

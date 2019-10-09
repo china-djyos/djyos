@@ -140,7 +140,7 @@ enum _EN_TCPSTATE
 #define CN_TCP_CHANNEL_STATASND    (1<<0)  //APP COULD SND DATA
 #define CN_TCP_CHANNEL_STATARCV    (1<<1)  //APP COULD NOT SND DATA
 #define CN_TCP_CHANNEL_STATKSND    (1<<2)  //STACK COULD SND DATA
-#define CN_TCP_CHANNEL_STATKRCV    (1<<3)  //STAK COULD RCV DATA
+#define CN_TCP_CHANNEL_STATKRCV    (1<<3)  //STACK COULD RCV DATA
 #define CN_TCP_CHANNEL_STATCONGEST (1<<4)  //the rcv window is full or channel is bad
 
 //define for the tcp timer
@@ -2380,6 +2380,8 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
     u32        rcvlen;
     u32        pkgdataoff;
     struct NetPkg *pkgcomb;
+    u32 distance;
+    struct NetPkg *current,*pre,*ins = NULL;
 
     rcvlen = 0;
     ccb = (struct ClienCB *)client->TplCB;
@@ -2388,6 +2390,7 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
 //  pkgstop = seqno + pkg->datalen;
     if(ccb->rbuf.rcvnxt == pkgstart)
     {
+        //收到的包刚好就是期待的包
         //this is just the pkg what we want to receive next
         PkgCachedPart(pkg); //cached the package
         //and add it to the receive queue
@@ -2408,8 +2411,10 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
 //      ccb->rbuf.rcvnxt+= pkg->datalen;
 //      rcvlen += pkg->datalen;
     }
-    else if((pkgstop > pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)&&(ccb->rbuf.rcvnxt < pkgstop)))
+    else if((pkgstop > pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)
+                                   &&(ccb->rbuf.rcvnxt < pkgstop)))
     {
+        //tcp序号未回绕，期待接收的序号在数据包范围内。
         //this is only part of the package data valid
         pkgdataoff = ccb->rbuf.rcvnxt - pkgstart;
         PkgMoveOffsetUp(pkg,pkgdataoff);
@@ -2437,6 +2442,7 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
     }
     else if((pkgstop < pkgstart)&&((ccb->rbuf.rcvnxt > pkgstart)||(ccb->rbuf.rcvnxt < pkgstop)))
     {
+        //tcp序号发生回绕，期待接收的序号在数据包范围内。
         //this is only part of the package data valid and the seqo turn over
         pkgdataoff = ccb->rbuf.rcvnxt - pkgstart;
         PkgMoveOffsetUp(pkg,pkgdataoff);
@@ -2466,75 +2472,116 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
     {
 
     }
-    else
+    else if((ccb->rbuf.rcvnxt - pkgstop) > 0x80000000)
     {
-        //this data is out of sequence, we'd better to cached it in the recombination queue
-        //could cached in the recombination queue
-        if(CFG_TCP_REORDER)
+        //收到的包序号超前于待接收的序号
+        //this data is out of sequence, we'd better to cached it in the
+        //recombination queue could cached in the recombination queue
+#if(CFG_TCP_REORDER == true)
+        PkgCachedPart(pkg);
+        PkgSetPrivate(pkg, seqno);
+        distance  = seqno - ccb->rbuf.rcvnxt;
+        current = ccb->pkgrecomblst;
+        if(current != NULL)
         {
-            PkgCachedPart(pkg);
-            PkgSetPrivate(pkg, seqno);
-//          pkg->Private = seqno;
-            //find an proplace to insert the pkg
-            if(NULL == ccb->pkgrecomblst)//this queue is empty
+            if(PkgGetPrivate(current) - ccb->rbuf.rcvnxt > distance)
             {
-                PkgSetNextUnit(pkg,NULL);
-//              pkg->partnext = NULL;
+                PkgSetNextUnit(pkg,current);
                 ccb->pkgrecomblst = pkg;
             }
             else
             {
-                PkgSetNextUnit(pkg,ccb->pkgrecomblst);
-//              pkg->partnext = ccb->pkgrecomblst;
-                ccb->pkgrecomblst = pkg;
-            }
-            ccb->pkgrecomblen++;
-        }
-    }
-    //if we have receive some data to the receive buffer, then we check all the data
-    //in the combination queue, if mathes then move it to the receive buffer, else drops now
-    if(rcvlen > 0)
-    {
-#if(CFG_TCP_REORDER == true)
-        {
-            while(NULL != ccb->pkgrecomblst)
-            {
-                pkgcomb = ccb->pkgrecomblst;
-                ccb->pkgrecomblst = PkgGetNextUnit(pkgcomb);
-                PkgSetNextUnit(pkgcomb,NULL);
-//              pkgcomb->partnext = NULL;
-                pkgstart = (u32)PkgGetPrivate(pkgcomb);
-//              pkgstart = pkgcomb->Private;
-                pkgstop = pkgstart + PkgGetDataLen(pkgcomb);
-//              pkgstop = pkgstart + pkgcomb->datalen;
-                if(pkgstart == ccb->rbuf.rcvnxt)
+                while(1)
                 {
-                    //and add it to the receive queue
-                    if(NULL == ccb->rbuf.pt)
+                    pre = current;
+                    current = PkgGetNextUnit(current);
+                    if(current != NULL)
                     {
-                        ccb->rbuf.ph = pkgcomb;
+                        if(PkgGetPrivate(current) - ccb->rbuf.rcvnxt > distance)
+                        {
+                            ins = current;
+                            break;
+                        }
                     }
                     else
-                    {
-                        PkgSetNextUnit(ccb->rbuf.pt,pkgcomb);
-//                      ccb->rbuf.pt->partnext = pkgcomb;
-                    }
-                    ccb->rbuf.pt = pkgcomb;
-                    ccb->rbuf.buflen += PkgGetDataLen(pkgcomb);
-                    ccb->rbuf.rcvnxt+= PkgGetDataLen(pkgcomb);
-                    rcvlen += PkgGetDataLen(pkgcomb);
-//                  ccb->rbuf.buflen += pkgcomb->datalen;
-//                  ccb->rbuf.rcvnxt+= pkgcomb->datalen;
-//                  rcvlen += pkgcomb->datalen;
+                        break;
+                }
+                PkgSetNextUnit(pre,pkg);
+                if(ins == NULL)
+                {
+                    PkgSetNextUnit(pkg,NULL);
                 }
                 else
                 {
-                    PkgTryFreePart(pkgcomb);        //drops it now
+                    PkgSetNextUnit(pkg,current);
                 }
-                ccb->pkgrecomblen = 0;
+
             }
         }
+        else
+        {
+            PkgSetNextUnit(pkg,NULL);
+//              pkg->partnext = NULL;
+            ccb->pkgrecomblst = pkg;
+        }
+//      ccb->pkgrecomblen++;
+#else
+//      PkgTryFreePart(pkg);
 #endif      //for (CFG_TCP_REORDER == true)
+    }
+    else
+    {
+//      PkgTryFreePart(pkg);
+    }
+
+    //if we have receive some data to the receive buffer, then we check all the data
+    //in the combination queue, if matches then move it to the receive buffer, else drops now
+#if(CFG_TCP_REORDER == true)
+    pkgcomb = ccb->pkgrecomblst;
+    while(NULL != pkgcomb)
+    {
+//        PkgSetNextUnit(pkgcomb,NULL);
+//              pkgcomb->partnext = NULL;
+        pkgstart = (u32)PkgGetPrivate(pkgcomb);
+//              pkgstart = pkgcomb->Private;
+        pkgstop = pkgstart + PkgGetDataLen(pkgcomb);
+//              pkgstop = pkgstart + pkgcomb->datalen;
+        if(pkgstart == ccb->rbuf.rcvnxt)
+        {
+            //and add it to the receive queue
+            if(NULL == ccb->rbuf.pt)
+            {
+                ccb->rbuf.ph = pkgcomb;
+            }
+            else
+            {
+                PkgSetNextUnit(ccb->rbuf.pt,pkgcomb);
+//                      ccb->rbuf.pt->partnext = pkgcomb;
+            }
+            ccb->rbuf.pt = pkgcomb;
+            ccb->rbuf.buflen += PkgGetDataLen(pkgcomb);
+            ccb->rbuf.rcvnxt+= PkgGetDataLen(pkgcomb);
+            rcvlen += PkgGetDataLen(pkgcomb);
+//                  ccb->rbuf.buflen += pkgcomb->datalen;
+//                  ccb->rbuf.rcvnxt+= pkgcomb->datalen;
+//                  rcvlen += pkgcomb->datalen;
+            ccb->pkgrecomblst = PkgGetNextUnit(ccb->pkgrecomblst);
+            pkgcomb = ccb->pkgrecomblst;
+        }
+        else if((ccb->rbuf.rcvnxt - pkgstop) <0x80000000)
+        {
+            break;
+//          PkgTryFreePart(pkgcomb);        //drops it now
+        }
+        else
+        {
+            break;
+        }
+//      ccb->pkgrecomblen = 0;
+    }
+#endif      //for (CFG_TCP_REORDER == true)
+    if(rcvlen > 0)
+    {
         if(ccb->rbuf.buflen > ccb->rbuf.trigerlevel)
         {
             handle_SetMultiplexEvent(fd2Handle(client->sockfd),CN_SOCKET_IOREAD);
@@ -3224,8 +3271,8 @@ static struct tagSocket* __tcpmatchclient(struct tagSocket *server, u32 ip, u16 
 static bool_t __tcprcvdealv4(u32 ipsrc, u32 ipdst,  struct NetPkg *pkg, u32 devfunc)
 {
 
-    u16         portdst;
-    u16         portsrc;
+    u16    portdst;
+    u16    portsrc;
     struct TcpHdr  *hdr;
     struct tagSocket  *server;
     struct tagSocket  *client;
@@ -3499,12 +3546,12 @@ static bool_t __dealclienttimer(struct tagSocket *client)
     {
         __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
     }
-    if(NULL != ccb->pkgrecomblst)
-    {
-        PkgTryFreeQ(ccb->pkgrecomblst);
-        ccb->pkgrecomblst = NULL;
-        ccb->pkgrecomblen = 0;
-    }
+//    if(NULL != ccb->pkgrecomblst)
+//    {
+//        PkgTryFreeQ(ccb->pkgrecomblst);
+//        ccb->pkgrecomblst = NULL;
+////      ccb->pkgrecomblen = 0;
+//    }
     return true;
 }
 // =============================================================================
