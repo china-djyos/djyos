@@ -207,6 +207,65 @@ char * mbstrchr( char const *mbs, char const *mbchar, s32 *count )
 
 }
 
+//----指定字符集中查找一个字符---------------------------------------------------
+//功能: 从指定字符集的字符串中，查找指定字符的位置，并计算比较了多少字符（不
+//      被查找的字符），功能与strchr类似。
+//参数: mbs，保存多字节字符的缓冲区指针
+//      mbchar，待查找的字符指针
+//      count，用于返回被查找的字符数，非字节数数
+//      locale，指定的字符集
+//返回: 指向被查找的字符位置的指针，没找到则返回NULL。
+//-----------------------------------------------------------------------------
+char * mbstrchr_l( char const *mbs, char const *mbchar, s32 *count,struct Charset* locale)
+{
+    struct Charset* cur_enc = locale;
+    char *result = (char *)mbs;
+    s32 len;
+    s32 num = 0;
+    if((mbs == NULL) || (mbchar == NULL) || (count == NULL) ||(locale == NULL) )
+        return NULL;
+//    if(cur_enc == NULL)
+//        return 0;
+    if(cur_enc->max_len == 1)
+    {
+        result = strchr(mbs, *mbchar);
+        if(result != NULL)
+            num = (s32)(result - mbs);
+    }
+    else
+    {
+        while(1)
+        {
+            len = (cur_enc->GetOneMb(result, -1));
+            if((len == -1) || (len == 0))
+            {
+                result = NULL;      //遇到非法字符
+                break;
+            }
+            else
+            {
+                if(memcmp(result, mbchar, len) == 0)    //找到字符，或串结束
+                {
+                    break;
+                }
+                else if(memcmp(result, "\0", cur_enc->EOC_Size) == 0) //没找到，串结束
+                {
+                    result = NULL;
+                    break;
+                }
+                else
+                {
+                    result += len;
+                    num ++;
+                }
+            }
+        }
+    }
+    *count = num;
+    return result;
+
+}
+
 //----计算字符长度-------------------------------------------------------------
 //功能: 计算一个指定字符集多字节字符的长度(字节数)。
 //参数: mbs，保存多字节字符的缓冲区指针

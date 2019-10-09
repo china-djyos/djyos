@@ -140,13 +140,15 @@ s32 Utf8Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
 
 //计算给定首字节的UTF-8编码字符字节数
 #define utf8_len(c)\
-    (((u8)c < 0x80) ? 1 : \
-        (((u8)c < 0xc2) ? 0 : \
-            (((u8)c < 0xe0) ? 2 : \
-                (((u8)c < 0xf0) ? 3 : \
-                    (((u8)c < 0xf8) ? 4 : \
-                        (((u8)c < 0xfc) ? 5 : \
-                            (((u8)c < 0xfe) ? 6 : 0)\
+    (((u8)c == 0x00) ? 0 : \
+        (((u8)c < 0x80) ? 1 : \
+            (((u8)c < 0xc2) ? 0 : \
+                (((u8)c < 0xe0) ? 2 : \
+                    (((u8)c < 0xf0) ? 3 : \
+                        (((u8)c < 0xf8) ? 4 : \
+                            (((u8)c < 0xfc) ? 5 : \
+                                (((u8)c < 0xfe) ? 6 : 7)\
+                            )\
                         )\
                     )\
                 )\
@@ -158,24 +160,30 @@ s32 Utf8Ucs4sToMbs(char* mbs, const u32* pwcs, s32 n);
 //功能: 判断给定的UTF-8字节序列是否合法
 //参数: src 字节序列指针
 //      len 字节序列的长度
-//返回: 0, 非法UTF-8字符
+//返回: 0, 字符串结束
+//      -1, 非法UTF-8字符
 //      合法字符返回第一个UTF-8字符的字节数
 //-----------------------------------------------------------------
-static u8 Utf8IsLegal(const char* src, s32 len)
+static s8 Utf8IsLegal(const char* src, s32 len)
 {
     u8 a;
     const char *trail;
     s32 length;
 
-    if(len <= 0 /*|| src == NULL*/)
-        goto __illegal;
+//  if(len <= 0 /*|| src == NULL*/)
+//      goto __illegal;
 
     // 计算合法UTF-8字符的字节数
     length = utf8_len(*src);
 
     // 判断长度
-    if(length > len)
+    if((length > len) && (len >0))
         goto __illegal;
+
+    if(length == 0)
+        return 0;
+    if(length >= 6)
+        return -1;
 
     // 指向最后一个字节的后一个字节
     trail = (src + length);
@@ -209,7 +217,7 @@ static u8 Utf8IsLegal(const char* src, s32 len)
     return length;
 
 __illegal:
-    return 0;
+    return -1;
 }
 
 // 注释参照 charset.h-> struct Charset -> GetOneMb
@@ -220,12 +228,9 @@ s32 Utf8GetOneMb(const char* mbs,s32 n)
     if(mbs == NULL)
         return -1;
     if(*mbs == 0)
-        return 1;       //串结束符也是合法字符
+        return 0;
     count = Utf8IsLegal(mbs, n);
-    if(count == 0)
-        return -1;
-    else
-        return count;
+    return count;
 
 }
 
@@ -237,7 +242,7 @@ s32 Utf8MbToUcs4(u32* pwc, const char* mbs, s32 n)
 
     if(mbs == NULL)
         return -1;
-    if(!(count = Utf8IsLegal(mbs, n)))
+    if((count = Utf8IsLegal(mbs, n)) == -1)
         goto __illegal;
 
     if(count == 1)

@@ -76,6 +76,7 @@ s32 mbstowcs(u32* pwc, const char* s, u32 n);
 s32 wctomb(char* s, u32 wc);
 s32 wcstombs(char* s, const u32* pwc, u32 n);
 char * mbstrchr( char const *mbs, char const *mbchar, s32 *count );
+char * mbstrchr_l( char const *mbs, char const *mbchar, s32 *count,struct Charset* locale);
 s32 mblen_l(const char* s, u32 n, struct Charset* locale);
 s32 mbslen_l  (const char* mbs, s32 n, struct Charset* locale);
 s32 mbtowc_l(u32* pwc, const char* s, u32 n, struct Charset* locale);

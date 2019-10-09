@@ -1196,7 +1196,12 @@ s32 GB2312GetOneMb(const char* mbs,s32 n)
     }
     c1 = mbs[0];
 
-    if(c1 < 0x80)       //串结束符也是合法字符
+    if(c1 == 0x0)
+    {
+        return 0;
+    }
+
+    if(c1 < 0x80)
     {
         return 1;
     }

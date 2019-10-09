@@ -75,14 +75,14 @@
 // 输出参数: 无。
 // 返回值  :获取到有效字符字节数。
 // =============================================================================
-static s16 __GetValidStrLen(char *str)
+static s16 __GetValidStrLen(struct Charset * myCharset, char *str)
 {
     u8 cnt=0;
     char ch;
     s16 str_len=0;
     if(str==NULL)
         return -1;
-    cnt=GetStrLineCount(str);
+    cnt=GetStrLineCount(myCharset,str);
     if(cnt>1)
     {
         while(1)
@@ -123,12 +123,12 @@ static u32 __GetCharByIndex(char *str,u8 idx)
     u8 cnt=0;
     if(str==NULL)
         return false;
-    str_len=__GetValidStrLen(str);
+    cur_enc = Charset_NlsGetCurCharset();
+    str_len=__GetValidStrLen(cur_enc, str);
     if(str_len==-1)
         return false;
      //计算字符串中字符数
     cur_font = Font_GetCurFont();
-    cur_enc = Charset_NlsGetCurCharset();
     for(; str_len > 0;)
     {
        len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -173,12 +173,12 @@ static bool_t __GetValidStrInfo(char *str,u16 *pChunm,u16 *pChWidthSum)
     u32 wc;
     if(str==NULL)
         return false;
-    str_len=__GetValidStrLen(str);
+    cur_enc = Charset_NlsGetCurCharset();
+    str_len=__GetValidStrLen(cur_enc, str);
     if(str_len==-1)
         return false;
      //计算字符串中字符数
      cur_font = Font_GetCurFont();
-     cur_enc = Charset_NlsGetCurCharset();
      for(; str_len > 0;)
      {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -230,14 +230,14 @@ static s16 __GetStrWidth(char *str,u16 idx)
     s16 str_len=0;
     if(str==NULL)
          return -1;
-    str_len=__GetValidStrLen(str);
+    cur_enc = Charset_NlsGetCurCharset();
+    str_len=__GetValidStrLen(cur_enc, str);
     if(str_len==-1)
          return -1;
     if(idx==0)
         return 0;
     //计算字符串中字符数
     cur_font = Font_GetCurFont();
-    cur_enc = Charset_NlsGetCurCharset();
     for(; str_len > 0;)
     {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -366,13 +366,13 @@ static s16 __CharToBytes(char *str,u8 num)
      struct Charset* cur_enc;
      if(str==NULL)
           return -1;
-     str_len=__GetValidStrLen(str);
+     cur_enc = Charset_NlsGetCurCharset();
+     str_len=__GetValidStrLen(cur_enc, str);
      if(str_len==-1)
         return -1;
      if(num==0)
          return -1;
      cur_font = Font_GetCurFont();
-     cur_enc = Charset_NlsGetCurCharset();
      for(; str_len > 0;)
      {
         len= cur_enc->MbToUcs4(&wc, str, -1);
@@ -429,11 +429,11 @@ static bool_t TextBox_AddChar(HWND hwnd,char *str )
      if(pTB->EditProperty==WS_TEXTBOX_R_O)
         return false;
      text=hwnd->Text;
-     len=__GetValidStrLen(text);
+     len=__GetValidStrLen(Charset_NlsGetCurCharset(), text);
      if(len==-1)
           return false;
      //检查一下str的合法性
-      str_len=__GetValidStrLen(str);
+      str_len=__GetValidStrLen(Charset_NlsGetCurCharset(), str);
       if(str_len==-1)
           return false;
       ret=__GetValidStrInfo(str,&num,NULL);
@@ -481,7 +481,7 @@ static bool_t TextBox_DeleteChar(HWND hwnd,u8 idx,u8 count)
          return false;
      text=hwnd->Text;
      cnt=pTB->ChNum;
-     str_len=__GetValidStrLen(text);
+     str_len=__GetValidStrLen(Charset_NlsGetCurCharset(), text);
      if(str_len==-1)
          return false;
      if(count>idx)
@@ -559,7 +559,7 @@ static bool_t TextBox_InsertChar(HWND hwnd,u8 idx,char *str)
      if(pTB->EditProperty==WS_TEXTBOX_R_O)
         return false;
      text=hwnd->Text;
-     str_len=__GetValidStrLen(text);
+     str_len=__GetValidStrLen(Charset_NlsGetCurCharset(), text);
      if(str_len==-1)
         return false;
      ret=__GetValidStrInfo(str,&num,NULL);

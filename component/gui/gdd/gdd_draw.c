@@ -416,7 +416,7 @@ u32 GetSyncTime(HDC hdc)
 //------------------------------------------------------------------------------
 struct FontObj *SetFont(HDC hdc, struct FontObj *hFont)
 {
-    struct FontObj old;
+    struct FontObj *old;
 
     if(hdc!=NULL)
     {
@@ -449,7 +449,6 @@ struct FontObj *GetFont(HDC hdc)
         old =NULL;
     }
     return old;
-
 }
 
 //----设置字符集------------------------------------------------------------
@@ -465,14 +464,13 @@ struct Charset *SetCharset(HDC hdc,struct Charset *pCharset)
     if(hdc!=NULL)
     {
         old = hdc->pCharset;
-        hdc->pFont = pCharset;
+        hdc->pCharset = pCharset;
     }
     else
     {
         old =NULL;
     }
     return old;
-
 }
 
 //----获得字符集---------------------------------------------------------------
@@ -493,7 +491,6 @@ struct Charset *GetCharset(HDC hdc)
         old =NULL;
     }
     return old;
-
 }
 
 //----设置指定位置像素颜色-------------------------------------------------------
@@ -813,7 +810,7 @@ void AdjustTextRect(HDC hdc,const char *text,s32 count, RECT *prc,u32 flag)
 //参数：str: 字符串指针
 //返回：字符串行数.
 //------------------------------------------------------------------------------
-s32  GetStrLineCount(const char *str)
+s32  GetStrLineCount(struct Charset *myCharset, const char *str)
 {
     s32 count,linenum = 0;
     const char *line=str;
@@ -821,7 +818,7 @@ s32  GetStrLineCount(const char *str)
     count=0;
     while(1)
     {
-        linenext = mbstrchr(line, "\n", &count);
+        linenext = mbstrchr_l(line, "\n", &count, myCharset);
         if(linenext != NULL)
         {
             linenum++;
@@ -863,7 +860,7 @@ bool_t    DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag)
         return FALSE;
     }
 
-    line_count =GetStrLineCount(text);
+    line_count = GetStrLineCount(hdc->pCharset, text);
 
     if(BeginDraw(hdc))
     {
@@ -934,7 +931,7 @@ bool_t    DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag)
             p0 =(char*)text;
             while(p0!=NULL)
             {
-                p1 = mbstrchr(p0,"\n",&charnum);
+                p1 = mbstrchr_l(p0, "\n", &charnum, hdc->pCharset);
 
                 if(p1 == p0)    //遇到连续换行符
                 {

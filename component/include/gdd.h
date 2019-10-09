@@ -343,7 +343,7 @@ u32 GetTextColor(HDC hdc);
 u32 SetSyncTime(HDC hdc,u32 sync_time);
 u32 GetSyncTime(HDC hdc);
 
-s32  GetStrLineCount(const char *str);
+s32  GetStrLineCount(struct Charset *myCharset, const char *str);
 void AdjustTextRect(HDC hdc,const char *text,int count, RECT *prc,u32 flag);
 
 struct FontObj *SetFont(HDC hdc,HFONT hFont);

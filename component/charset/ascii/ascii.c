@@ -120,8 +120,10 @@ s32 AsciiGetOneMb(const char* mbs,s32 n)
     {
         return 0;
     }
-    else if(*mbs >= 0x80)       //串结束符也是合法字符
+    else if(*mbs >= 0x80)
         return -1;
+    else if(*mbs == 0)
+        return 0;
     else
         return 1;
 }
