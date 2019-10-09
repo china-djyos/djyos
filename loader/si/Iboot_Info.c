@@ -1047,6 +1047,7 @@ bool_t Set_AppVerFlag(u8 small, u8 medium, u8 large)
 //==============================================================================
 bool_t Set_SoftResetFlag()
 {
+    Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.soft_reset_flag = 1;
     Iboot_App_Info.runflag.reboot_flag = 0;
     Iboot_App_Info.runflag.restart_app_flag = 0;
@@ -1059,6 +1060,7 @@ bool_t Set_SoftResetFlag()
 //==============================================================================
 bool_t Set_RebootFlag()
 {
+    Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.reboot_flag = 1;
     Iboot_App_Info.runflag.restart_app_flag = 0;
     return true;
@@ -1070,9 +1072,108 @@ bool_t Set_RebootFlag()
 //==============================================================================
 bool_t Set_RestartAppFlag()
 {
+    Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.restart_app_flag = 1;
     return true;
 }
+
+//==============================================================================
+//功能：获取是否为异常重启
+//参数：无
+//返回值：true -- 是；false -- 否
+//==============================================================================
+bool_t Get_CallFunResent()
+{
+    if(Iboot_App_Info.runflag.call_fun_resent == 0)
+        return true;
+    else
+        return false;
+}
+
+//==============================================================================
+//功能：获取是否是软件内部复位标志
+//参数：无
+//返回值：true -- 是；false -- 否
+//==============================================================================
+bool_t Get_SoftResetFlag()
+{
+    if(Iboot_App_Info.runflag.soft_reset_flag == 1)
+        return true;
+    else
+        return false;
+}
+//==============================================================================
+//功能：获取是否有reboot标志
+//参数：无
+//返回值：true -- 有；false -- 无
+//==============================================================================
+bool_t Get_RebootFlag()
+{
+    if(Iboot_App_Info.runflag.reboot_flag == 1)
+        return true;
+    else
+        return false;
+}
+//==============================================================================
+//功能：获取是否有restart_app标志
+//参数：无
+//返回值：true -- 有；false -- 无
+//==============================================================================
+bool_t Get_RestartAppFlag()
+{
+    if(Iboot_App_Info.runflag.restart_app_flag == 1)
+        return true;
+    else
+        return false;
+}
+//==============================================================================
+//功能：获取是否由外部硬件引起的复位
+//参数：无
+//返回值：true -- 是；false -- 否
+//==============================================================================
+bool_t Get_HeadResetFlag()
+{
+    if(Iboot_App_Info.runflag.head_reset_flag == 1)
+        return true;
+    else
+        return false;
+}
+//==============================================================================
+//功能：获取低功耗深度休眠是否由中断唤醒
+//参数：无
+//返回值：true -- 是；false -- 否
+//==============================================================================
+bool_t Get_LowPowerWakeup()
+{
+    if(Iboot_App_Info.runflag.low_power_wakeup == 1)
+        return true;
+    else
+        return false;
+}
+
+//==============================================================================
+//功能：获取上电复位硬件标志
+//参数：无
+//返回值：0=无此硬件 1=有此硬件，但无标志；2=有标志，阅后即焚；3=有，非阅后即焚；
+//==============================================================================
+char Get_PowerOnFlag(void)
+{
+    return Iboot_App_Info.runflag.power_on_flag;
+}
+
+//==============================================================================
+//功能：获取是否由看门狗引起的复位
+//参数：无
+//返回值：true -- 是；false -- 否
+//==============================================================================
+bool_t Get_HeadWdtReset(void)
+{
+    if(Iboot_App_Info.runflag.head_wdt_reset == 1)
+        return true;
+    else
+        return false;
+}
+
 #if (CFG_RUNMODE_BAREAPP == 0)
 //==============================================================================
 //功能：填待升级文件路径到交互信息
@@ -1322,18 +1423,30 @@ bool_t Clear_RunAppUpdateIboot()
     Iboot_App_Info.runflag.run_app_update_iboot =0;
     return true;
 }
+
 //==============================================================================
-//功能：获取是否是软件内部复位标志
-//参数：null
-//返回值：true
+//功能：获取启动后是否运行app
+//参数：无
+//返回值：true -- 是；false -- 否
 //==============================================================================
-bool_t Get_SoftResetFlag()
+bool_t Get_RestartRunApp()
 {
-    if(Iboot_App_Info.runflag.soft_reset_flag == 1)
+    if(Iboot_App_Info.runflag.restart_run_app == 1)
         return true;
     else
         return false;
 }
+
+//==============================================================================
+//功能：获取app的加载方式
+//参数：无
+//返回值：0 -- 直接运行；1 -- 从文件中加载
+//==============================================================================
+char Get_RunAppFormFile()
+{
+    return Iboot_App_Info.runflag.run_app_form_file;
+}
+
 //==============================================================================
 //功能：获取当前运行的模式
 //参数：无
@@ -1366,6 +1479,18 @@ char Get_LastRunMode(void)
     return -1;
 }
 //==============================================================================
+//功能：获取是否是由硬件设置运行iboot
+//参数：无
+//返回值：true -- 不是硬件决定的；false -- 是硬件决定的；
+//==============================================================================
+bool_t Get_HeardSetRunIboot(void)
+{
+    if(Iboot_App_Info.runflag.heard_set_run_iboot == 1)
+        return true;
+    else
+        return false;
+}
+//==============================================================================
 //功能：获取交互信息中的App路径
 //参数：无
 //返回值：待升级app路径
@@ -1377,28 +1502,66 @@ char * Get_MutualUpdatePath(void)
 //==============================================================================
 //功能：判断是否需要升级app
 //参数：无
-//返回值：0 -- 需要升级app；-1 -- 不需要升级app
+//返回值：true -- 需要升级app；false -- 不需要升级app
 //==============================================================================
-char Get_UpdateApp(void)
+bool_t Get_UpdateApp(void)
 {
     if(Iboot_App_Info.runflag.run_iboot_update_app == 1)
-        return 0;
+        return true;
     else
-        return -1;
+        return false;
 }
 
 //==============================================================================
 //功能：判断是否需要升级iboot
 //参数：无
-//返回值：0 -- 需要升级iboot；-1 -- 不需要升级iboot
+//返回值：true -- 需要升级iboot；false -- 不需要升级iboot
 //==============================================================================
-char Get_Updateiboot(void)
+bool_t Get_Updateiboot(void)
 {
     if(Iboot_App_Info.runflag.run_app_update_iboot == 1)
-        return 0;
+        return true;
     else
-        return -1;
+        return false;
 }
+//==============================================================================
+//功能：获取app是否校验出错
+//参数：无
+//返回值：true -- app校验出错；false -- app检验正确
+//==============================================================================
+bool_t Get_ErrorAppCheck(void)
+{
+    if(Iboot_App_Info.runflag.error_app_check == 1)
+        return true;
+    else
+        return false;
+}
+//==============================================================================
+//功能：获取是否存在app文件
+//参数：无
+//返回值：true -- app不存在或者文件格式错误；false -- app存在且正常
+//==============================================================================
+bool_t Get_ErrorAppNoFile(void)
+{
+    if(Iboot_App_Info.runflag.error_app_no_file == 1)
+        return true;
+    else
+        return false;
+}
+//==============================================================================
+//功能：获取是否app文件大小是否正确
+//参数：无
+//返回值：true -- app文件大小错误；false -- app文件大小正确
+//==============================================================================
+bool_t Get_ErrorAppSize(void)
+{
+    if(Iboot_App_Info.runflag.error_app_size == 1)
+        return true;
+    else
+        return false;
+}
+
+
 //========================SHELL================================================
 static bool_t ibootinfo( )
 {
@@ -1444,7 +1607,7 @@ bool_t Set_UpdateRunModet(u8 mode)
     return true;
 }
 //==============================================================================
-//功能：获取更新后运行指定模式
+//功能：获取在完成程序升级后，指定的运行模式
 //参数：无
 //返回值：0 -- 运行iboot；1 -- 运行app
 //==============================================================================
@@ -1463,6 +1626,18 @@ void Get_IbootAppInfo(struct IbootAppInfo *get_info)
     struct IbootAppInfo *info = get_info;
 
     strncpy((char *)info, (const char *)&Iboot_App_Info, sizeof(struct IbootAppInfo));
+}
+//==============================================================================
+//功能：获取上电复位标志
+//参数：无
+//返回值：true -- 上电复位；false -- 非上电复位
+//==============================================================================
+bool_t Get_PowerOnResentFlag(void)
+{
+    if(Iboot_App_Info.runflag.power_on_resent_flag == 1)
+        return true;
+    else
+        return false;
 }
 
 static bool_t iapmode( )

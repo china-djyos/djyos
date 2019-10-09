@@ -223,7 +223,7 @@ bool_t Iboot_UpdateApp(void)
     u32 readsize,res;
     char *file;
 
-    if((Get_UpdateSource() == 0) && (Get_UpdateApp() == 0))
+    if((Get_UpdateSource() == 0) && (Get_UpdateApp() == true))
     {
         if(!stat(FORCED_UPDATE_PATH,&test_stat))
             srcapp = fopen(FORCED_UPDATE_PATH, "r+");
@@ -452,7 +452,7 @@ bool_t ModuleInstall_XIP(void)
 //    else
     if(run_mode == 1)
     {
-        if(Get_Updateiboot() == 0)
+        if(Get_Updateiboot() == true)
         {
             evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
                                         App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");

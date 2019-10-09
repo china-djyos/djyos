@@ -48,11 +48,22 @@
 
 static AUD_DAC_CFG_ST aud_dac;
 
+void djy_audio_dac_close(void);
 void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
                                     audio_sample_rate_e freq)
 {
     if(channel>2)
         return;
+
+    if(aud_dac.buf &&
+       buf_len == aud_dac.buf_len &&
+       channel == aud_dac.channels &&
+       freq == aud_dac.freq) {
+       return ;
+    }
+    if(aud_dac.buf) {
+        djy_audio_dac_close();
+    }
     aud_dac.buf = malloc(buf_len);
     if(aud_dac.buf == NULL)
         return;
@@ -66,16 +77,21 @@ void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
 
 uint32_t djy_audio_dac_ctrl(uint32_t cmd, void *param)
 {
+    if(aud_dac.buf == NULL) return 0;
     return audio_dac_ctrl(cmd, param);
 }
 
 uint32_t djy_audio_dac_write(char *user_buf, uint32_t count)
 {
+    if(aud_dac.buf == NULL) return 0;
     return audio_dac_write(user_buf, count, (uint32_t)&aud_dac);
 }
 
 void djy_audio_dac_close(void)
 {
     audio_dac_close();
-    free(aud_dac.buf);
+    if(aud_dac.buf) {
+        free(aud_dac.buf);
+    }
+    memset(&aud_dac,  0,  sizeof(aud_dac));
 }
