@@ -416,7 +416,7 @@ u32 GetSyncTime(HDC hdc)
 //------------------------------------------------------------------------------
 struct FontObj *SetFont(HDC hdc, struct FontObj *hFont)
 {
-    struct FontObj old;
+    struct FontObj *old;
 
     if(hdc!=NULL)
     {
