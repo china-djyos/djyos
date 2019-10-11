@@ -70,6 +70,7 @@ void usb_charge_check_cb(void)
 //        {
             vol = vbat_voltage_get();
             /*check per second,if charge full*/
+//          printf("内部充电检测到的电压 = %d.   charge_started = %d.\r\n",vol,charge_started);
             if(charge_started == 1 && vol > 4300)
             {
                 usb_charge_stop();
@@ -88,6 +89,7 @@ void usb_charge_check_cb(void)
     }
     else
     {
+//      printf("检测到拔掉充电器时 charge_started = %d.\r\n",charge_started);
         if(charge_started == 1)
         {
             usb_charge_stop();

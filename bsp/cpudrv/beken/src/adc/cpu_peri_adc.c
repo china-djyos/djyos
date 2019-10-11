@@ -271,10 +271,19 @@ static void temp_single_detect_handler2(void)
 
 int vbat_voltage_get(void)
 {
-    int Vbat = 0;
-    Vbat = djy_adc_read(0);
-    Vbat = Vbat * 2;
-    return Vbat;
+    int i, j = 0, Vbat = 0, AverageVbat = 0;
+    for(i = 0; i < 10; i++)
+    {
+        Vbat = djy_adc_read(0);
+        Vbat = Vbat * 2;
+        if((Vbat > 2700) && (Vbat < 4400))	//去掉一些错误电压
+        {
+            AverageVbat += Vbat;
+            j++;
+        }
+    }
+    AverageVbat = AverageVbat / j;
+    return AverageVbat;
 }
 static void temp_single_get_desc_init(void)
 {
