@@ -1213,12 +1213,22 @@ s32 UnfileSystem_FAT(const char *dir_path)
         error_printf("fat"," not found \"%s\".\r\n",mountpoint);
         return (-1); // 安装点必须准备好。
     }
-
-    unmountfs(mountpoint, "FAT");
-    if(obj_Delete(targetobj) != 0)
+    obj_DutyDown(targetobj);
+    if(obj_isonduty(targetobj))
     {
-        error_printf("fat"," fat obj delete fail.\r\n");
-        return (-1); // 删除节点失败。
+        obj_DutyUp(targetobj);
+        error_printf("fat"," \"%s\" device not logged off.\r\n",mountpoint);
+        return (-1);
+    }
+    else
+    {
+        unmountfs(mountpoint, "FAT");
+        if(obj_Delete(targetobj) != 0)
+        {
+            obj_DutyUp(targetobj);
+            error_printf("fat"," fat obj delete fail.\r\n");
+            return (-1); // 删除节点失败。
+        }
     }
 
     return (0);

@@ -351,7 +351,6 @@ s32 unmountfs(const char *target, const char *type)
     }
     else
     {
-        obj_DutyDown(targetobj);
         super = (struct FsCore *)obj_GetPrivate(targetobj);
         super->pFsType->uninstall(super->Config);
         memset(super, 0, sizeof(*super));
