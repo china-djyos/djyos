@@ -306,7 +306,7 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
                        "请准确点击十字交叉点", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
         GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
-        GK_SyncShow(CN_TIMEOUT_FOREVER);
+        UpdateDisplay(CN_TIMEOUT_FOREVER);
         while(!FT5X26_Scan(&touch_xyz0));//等待触摸
         printf("采集坐标1:(%d,%d)\n\r",touch_xyz0.x,touch_xyz0.y);
         touch_check();
@@ -323,7 +323,7 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
         GK_Lineto(desktop,limit_right-20,limit_bottom-40,
                       limit_right-20,limit_bottom,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_SyncShow(CN_TIMEOUT_FOREVER);
+        UpdateDisplay(CN_TIMEOUT_FOREVER);
 
         while(!FT5X26_Scan(&touch_xyz1)); //记录触摸屏第二点校正值
         printf("采集坐标2:(%d,%d)\n\r",touch_xyz1.x,touch_xyz1.y);
@@ -337,7 +337,7 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
                         /(limit_bottom- limit_top-40);
         tg_touch_adjust.offset_y= (touch_xyz0.y<<16) - 20*tg_touch_adjust.ratio_y;
         GK_FillWin(desktop,CN_COLOR_BLUE,0);
-        GK_SyncShow(CN_TIMEOUT_FOREVER);
+        UpdateDisplay(CN_TIMEOUT_FOREVER);
 
         touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"w+");
         if(touch_init)

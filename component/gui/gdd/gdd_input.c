@@ -143,7 +143,6 @@ void GDD_HmiInput(void)
 
     if(HmiIn_ReadMsg(sg_ptGddMsgQ, &msg, 0) == true)
     {
-//      printf("> get input msg\r\n");
         //单点触摸屏消息，模拟成鼠标消息
         if(msg.input_type == EN_HMIIN_SINGLE_TOUCH)
         {

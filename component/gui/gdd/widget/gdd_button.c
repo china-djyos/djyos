@@ -150,7 +150,7 @@ static  bool_t ButtonPaint(struct WindowMsg *pMsg)
 
     DrawText(hdc,hwnd->Text,-1,&rc,DT_VCENTER|DT_CENTER);
 
-    UpdateDisplay(0);
+//    UpdateDisplay(0);
 
     EndPaint(hwnd,hdc);
 

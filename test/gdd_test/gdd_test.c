@@ -133,7 +133,7 @@ void gdd_test(void)
     }
     Desktop = GetDesktopWindow();
     GK_FillWin(Desktop->pGkWin,CN_COLOR_BLUE,0);
-    GK_SyncShow(CN_TIMEOUT_FOREVER);
+    UpdateDisplay(CN_TIMEOUT_FOREVER);
 
 }
 

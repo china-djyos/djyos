@@ -77,7 +77,7 @@ extern HWND g_CursorHwnd;         //光标窗口
 extern void GK_SetVisible(struct GkWinObj *gkwin, u32 visible,u32 SyncTime);
 /*============================================================================*/
 
-static  HWND HWND_Desktop=NULL;
+HWND HWND_Desktop=NULL;
 u16 sg_MainWindEvtt;
 
 static ptu32_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg);
@@ -986,7 +986,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                 GK_SetUserTag(pGkWin,pGddWin);
                 //初始化窗口数据
                 __InitWindow(pGddWin,Style,WinId);
-                GK_SyncShow(CN_TIMEOUT_FOREVER);
+                UpdateDisplay(CN_TIMEOUT_FOREVER);
                 //将新窗口添加到父窗口
             }
         }

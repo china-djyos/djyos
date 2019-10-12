@@ -367,6 +367,59 @@ void ModuleInstall_DebugInfo(ptu32_t para)
 #endif  //CFG_OS_TINY == false
 }
 #endif
+bool_t spy(char *param)
+{
+    u16 pl_ecb;
+    u32 loop,StackSize,pads;
+    u32 *stack;
+    char *name;
+
+    printf("\r\n事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名");
+    pl_ecb = atoi(param);
+    if(g_tECB_Table[pl_ecb].previous !=
+                    (struct EventECB*)&s_ptEventFree)
+    {
+        printf("\n\r");
+        printf("%05d  ",pl_ecb);
+        if(g_tECB_Table[pl_ecb].vm)
+            printf("已分配 ");
+        else
+        {
+            printf("未分配 ");
+            return true ;
+        }
+        StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+        pads = 0x64646464;
+        stack = (u32*)(&(g_tECB_Table[pl_ecb].vm[1]));
+        for(loop = 0; loop < (StackSize>>2)-1; loop++)
+        {
+            if(stack[loop] != pads)
+            {
+                break;
+            }
+        }
+        name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+        printf("%08x %08x %08x %08x %s",
+                    (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
+                    (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
+                    StackSize,(loop<<2),name);
+        printf("\n\r");
+        for(loop = g_tECB_Table[pl_ecb].vm->stack;
+                loop < g_tECB_Table[pl_ecb].vm->stack_top; loop+=4)
+        {
+            if(loop % 32 == 0)
+                printf("\n\r%x: ",loop);
+            printf(" %08x",*(u32*)loop);
+        }
+    }
+    else
+    {
+        printf("knlshell","%05d  空闲事件控制块",pl_ecb);
+    }
+    return (TRUE);
+}
+
+ADD_TO_ROUTINE_SHELL(spy,spy,"");
 ADD_TO_ROUTINE_SHELL(stack,stack,"显示系统中所有已经分配线程的事件的栈信息");
 ADD_TO_ROUTINE_SHELL(event,event,"显示事件表");
 ADD_TO_ROUTINE_SHELL(evtt,evtt,"显示事件类型表");
