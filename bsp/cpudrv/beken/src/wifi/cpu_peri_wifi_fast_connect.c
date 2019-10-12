@@ -47,7 +47,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <cpu_peri.h>
-
+#include <app_flash.h>
 /** Swap the bytes in an uint16_t: much like lwip_htons() for little-endian */
 #ifndef SWAP_BYTES_IN_WORD
 #define SWAP_BYTES_IN_WORD(w) (((w) & 0xff) << 8) | (((w) & 0xff00) >> 8)
