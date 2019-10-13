@@ -610,7 +610,10 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     width = para->right - para->left;
     height = para->bottom - para->top;
     display = para->parent_gkwin->disp;
-    gkwin = para->gkwin;    //para->gkwin由调用者提供内存，传指针过来
+//  gkwin = para->gkwin;    //para->gkwin由调用者提供内存，传指针过来
+    gkwin = M_MallocLcHeap(sizeof(struct GkWinObj),  display->DisplayHeap, 0);
+    if(gkwin == NULL)
+        return NULL;
     parent = para->parent_gkwin;
     if((parent == NULL)||(width < 0) || (height < 0))
     {
@@ -1530,9 +1533,10 @@ void __GK_DestroyWin(struct GkWinObj *gkwin)
     while((CurWin = (struct GkWinObj *)obj_GetPrivate((struct Object*)obj_twig(gkwin->HostObj))) != NULL)
     {
         __gk_destroy_win(CurWin);
+        M_FreeHeap(CurWin,CurWin->disp->DisplayHeap);
     }
     __gk_destroy_win(gkwin);
-
+    M_FreeHeap(gkwin,gkwin->disp->DisplayHeap);
 }
 
 //----输出窗口redraw部分-------------------------------------------------------
@@ -1931,9 +1935,8 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
         case CN_GKSC_CREAT_GKWIN:
         {
             struct GkscParaCreateGkwin para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaCreateGkwin));
-            *(para.result) = (void*)__GK_CreateWin(&para);
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaCreateGkwin));
+            *(para.result) = __GK_CreateWin(&para);
             result = sizeof(struct GkscParaCreateGkwin);
         } break;
         case CN_GKSC_SET_PIXEL:
@@ -1960,16 +1963,14 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
         case CN_GKSC_DRAW_BITMAP_ROP:
         {
             struct GkscParaDrawBitmapRop para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaDrawBitmapRop));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaDrawBitmapRop));
             __GK_DrawBitMap(&para);
             result = sizeof(struct GkscParaDrawBitmapRop);
         } break;
         case CN_GKSC_FILL_WIN:
         {
             struct GkscParaFillWin para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaFillWin));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaFillWin));
             __GK_FillWin(&para);
             result = sizeof(struct GkscParaFillWin);
         } break;
@@ -1977,8 +1978,7 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
         case CN_GKSC_FILL_PART_WIN:
         {
             struct GkscParaFillPartWin para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaFillPartWin));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaFillPartWin));
             GK_FillPartWin(&para);
             result = sizeof(struct GkscParaFillPartWin);
         } break;
@@ -1986,16 +1986,14 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
         case CN_GKSC_FILL_RECT:
         {
             struct GkscParaGradientFillWin para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaGradientFillWin));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaGradientFillWin));
             __GK_GradientFillRect(&para);
             result = sizeof(struct GkscParaGradientFillWin);
         } break;
         case CN_GKSC_SET_ROP_CODE:
         {
             struct GkscParaSetRopCode para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaSetRopCode));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaSetRopCode));
             __GK_SetRopCode(&para);
             result = sizeof(struct GkscParaSetRopCode);
         } break;
@@ -2003,8 +2001,7 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
         {
             struct GkscParaDrawText para;
             u32 len;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaDrawText));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaDrawText));
             result = sizeof(struct GkscParaDrawText);
             ParaAddr+=result;
             __GK_DrawText(&para,(char*)ParaAddr,&len);
@@ -2013,96 +2010,84 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
         case CN_GKSC_SET_HYALINE_COLOR:
         {
             struct GkscParaSetHyalineColor para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaSetHyalineColor));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaSetHyalineColor));
             __GK_SetHyalineColor(&para);
             result = sizeof(struct GkscParaSetHyalineColor);
         } break;
         case CN_GKSC_DESTROY_WIN:
         {
             struct GkWinObj *gkwin;
-            memcpy(&gkwin,ParaAddr,
-                    sizeof(struct GkWinObj *));
+            memcpy(&gkwin,ParaAddr,sizeof(struct GkWinObj *));
             __GK_DestroyWin(gkwin);
             result = sizeof(struct GkWinObj *);
         } break;
         case CN_GKSC_SET_PRIO:
         {
             struct GkscParaSetPrio para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaSetPrio));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaSetPrio));
             __GK_SetPrio(&para);
             result = sizeof(struct GkscParaSetPrio);
         } break;
         case CN_GKSC_SET_VISIBLE:
         {
             struct GkscParaSetVisible para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaSetVisible));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaSetVisible));
             __GK_SetVisible(&para);
             result = sizeof(struct GkscParaSetVisible);
         } break;
         case CN_GKSC_SET_BOUND_MODE:
         {
             struct GkscParaSetBoundMode para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaSetBoundMode));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaSetBoundMode));
             __GK_SetBoundMode(&para);
             result = sizeof(struct GkscParaSetBoundMode);
         }break;
         case CN_GKSC_ADOPT_WIN:
         {
             struct GkscParaAdoptWin para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaAdoptWin));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaAdoptWin));
             __GK_AdoptWin(&para);
             result = sizeof(struct GkscParaAdoptWin);
         }break;
         case CN_GKSC_MOVE_WIN:
         {
             struct GkscParaMoveWin para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaMoveWin));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaMoveWin));
             __GK_MoveWin(&para);
             result = sizeof(struct GkscParaMoveWin);
         }break;
         case CN_GKSC_CHANGE_WIN_AREA:
         {
             struct GkscParaChangeWinArea para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaChangeWinArea));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaChangeWinArea));
             __GK_ChangeWinArea(&para);
             result = sizeof(struct GkscParaChangeWinArea);
         }break;
         case CN_GKSC_DRAW_CIRCLE:
         {
             struct GkscParaDrawCircle para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaDrawCircle));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaDrawCircle));
             __GK_DrawCircle(&para);
             result = sizeof(struct GkscParaDrawCircle);
         } break;
         case CN_GKSC_BEZIER:
         {
             struct GkscParaBezier para;
-            memcpy(&para,ParaAddr,
-                    sizeof(struct GkscParaBezier));
+            memcpy(&para,ParaAddr,sizeof(struct GkscParaBezier));
             __GK_Bezier(&para);
             result = sizeof(struct GkscParaBezier);
         } break;
         case CN_GKSC_SET_DIRECT_SCREEN:
         {
             struct GkWinObj *gkwin;
-            memcpy(&gkwin,ParaAddr,
-                    sizeof(struct GkWinObj *));
+            memcpy(&gkwin,ParaAddr,sizeof(struct GkWinObj *));
             __GK_SetDirectScreen(gkwin);
             result = sizeof(struct GkWinObj *);
         } break;
         case CN_GKSC_SET_UNDIRECT_SCREEN:
         {
             struct GkWinObj *gkwin;
-            memcpy(&gkwin,ParaAddr,
-                    sizeof(struct GkWinObj *));
+            memcpy(&gkwin,ParaAddr,sizeof(struct GkWinObj *));
             __GK_SetUnDirectScreen(gkwin);
             result = sizeof(struct GkWinObj *);
         } break;
@@ -2113,8 +2098,7 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
         case CN_GKSC_DSP_REFRESH:
         {
             struct DisplayObj *Display;
-            memcpy(&Display,ParaAddr,
-                    sizeof(struct DisplayObj *));
+            memcpy(&Display,ParaAddr,sizeof(struct DisplayObj *));
             __gk_RefreshDisplay(Display);
             result = sizeof(struct DisplayObj *);
         } break;

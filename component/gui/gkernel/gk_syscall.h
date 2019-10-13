@@ -116,7 +116,7 @@ struct GkscParaCreateDesktop
 struct GkscParaCreateGkwin
 {
     struct GkWinObj *parent_gkwin;   //新窗口的父窗口
-    struct GkWinObj *gkwin;          //新窗口,由调用者分配结构体
+//  struct GkWinObj *gkwin;          //新窗口,由调用者分配结构体
     struct GkWinObj **result;        //用于返回结果
     s32 left,top,right,bottom;          //新窗口的位置，相对于父窗口的坐标
     u32 color;                          //创建窗口时填充的颜色

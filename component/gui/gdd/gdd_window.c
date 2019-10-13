@@ -913,14 +913,19 @@ HWND    CreateWindow(const char *Text,u32 Style,
 
     if(__GDD_Lock())
     {
-        pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinObj),100*mS);
+//      pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinObj),100*mS);
+        pGddWin=M_Malloc(sizeof(struct WINDOW), 100*mS);
         if(NULL!=pGddWin)
         {
-            pGkWin = (struct GkWinObj*)(pGddWin+1);
-
-            if(!GK_CreateWin(hParent->pGkWin, pGkWin,x,y,x+w,y+h,
+//          pGkWin = (struct GkWinObj*)(pGddWin+1);
+//
+//          if(!GK_CreateWin(hParent->pGkWin, pGkWin,x,y,x+w,y+h,
+//                              RGB(0,0,0), BufProperty, Text,
+//                              CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode))
+            pGkWin = GK_CreateWin(hParent->pGkWin,x,y,x+w,y+h,
                                 RGB(0,0,0), BufProperty, Text,
-                                CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode))
+                                CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode);
+            if(!pGkWin)
             {
                 free(pGddWin);
                 pGddWin = NULL;
@@ -966,7 +971,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                     Lock_MutexDelete(pGddWin->mutex_lock);
                     __GUI_DeleteMsgQ(pGddWin->pMsgQ);
                     GK_DestroyWin(pGkWin);
-                    free(pGkWin);
+//                  free(pGkWin);
                     __GDD_Unlock( );
                     return NULL;
                 }
@@ -1018,8 +1023,8 @@ void __DeleteChildWindowData(HWND hwnd)
 //    GK_DestroyWin(hwnd->pGkWin);
 
     free(hwnd->MyMsgTableLink);
-    free(hwnd->pGkWin);
-    hwnd->pGkWin =NULL;
+//  free(hwnd->pGkWin);
+//  hwnd->pGkWin =NULL;
     hwnd->mutex_lock =NULL; //子窗口没有私有的 mutex_lock,不用释放.
     free(hwnd);
 
@@ -1042,8 +1047,8 @@ void __DeleteMainWindowData(HWND hwnd)
     Lock_MutexDelete(hwnd->mutex_lock);
 
     free(hwnd->MyMsgTableLink);
-    free(hwnd->pGkWin);
-    hwnd->pGkWin =NULL;
+//  free(hwnd->pGkWin);
+//  hwnd->pGkWin =NULL;
     hwnd->mutex_lock =NULL;
     free(hwnd);
 

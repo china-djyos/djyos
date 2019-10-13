@@ -154,8 +154,7 @@ struct GkWinObj *GK_GetDesktop(const char *display_name)
 //      RopMode, 混合码，参见 CN_ROP_ALPHA_SRC_MSK 族常量定义,0表示无特殊功能
 //返回: true=创建成功，false=创建失败
 //-----------------------------------------------------------------------------
-bool_t GK_CreateWin(struct GkWinObj *parent,
-                         struct GkWinObj *newwin,
+struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
@@ -163,10 +162,10 @@ bool_t GK_CreateWin(struct GkWinObj *parent,
 {
     struct GkscParaCreateGkwin para;
     struct GkWinObj *result;
-    if((NULL == parent) || (NULL == newwin))
+    if(NULL == parent)
         return false;
     para.parent_gkwin = parent;
-    para.gkwin = newwin;
+//  para.gkwin = newwin;
     para.result = &result;
     para.left = left;
     para.top = top;
@@ -182,7 +181,7 @@ bool_t GK_CreateWin(struct GkWinObj *parent,
     __GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
                             &para,sizeof(para),NULL,0);
     if(*para.result == NULL)
-        return false;
+        return NULL;
     else
     {
         //gui kernel创建窗口时,如果是buf窗口,则在创建的同时完成了填充,否则,
@@ -190,12 +189,12 @@ bool_t GK_CreateWin(struct GkWinObj *parent,
         //非buf窗口不能再创建同时填充的原因是,填充非buf窗口是直接绘制在screen
         //或者framebuffer上的,而创建窗口时,剪切域尚未建立.直到调用 GK_SyncShow
         //后，可视域才能创建好。
-        if(newwin->wm_bitmap == NULL)   //wm_bitmap==NULL 表示无窗口缓冲区。
+        if((result)->wm_bitmap == NULL)   //wm_bitmap==NULL 表示无窗口缓冲区。
         {
             GK_SyncShow(CN_TIMEOUT_FOREVER);
-            GK_FillWin(newwin,color,0);
+            GK_FillWin(result,color,0);
         }
-        return true;
+        return result;
     }
 }
 //----异步填充窗口-------------------------------------------------------------
