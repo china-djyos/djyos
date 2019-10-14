@@ -10,6 +10,7 @@
 #include "usb_pub.h"
 #include "net_param_pub.h"
 #include "fake_clock_pub.h"
+#include "board.h"
 
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #if CFG_USE_USB_CHARGE
@@ -272,6 +273,7 @@ char vol_to_percentage(int assign)
         {
             printf("电量不足，准备关机\r\n");
             Djy_EventDelay(3000*1000);
+            CloseScreen();
             LP_DeepSleep();
         }
         else

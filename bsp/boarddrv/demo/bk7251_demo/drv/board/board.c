@@ -156,6 +156,17 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
     return 0;
 }
 
+void OpenScreen()
+{
+    djy_gpio_write(GPIO10,1);
+    FT_RST(1);
+}
+
+void CloseScreen()
+{
+    djy_gpio_write(GPIO10,0);
+    FT_RST(0);
+}
 
 void Board_Init(void)
 {
