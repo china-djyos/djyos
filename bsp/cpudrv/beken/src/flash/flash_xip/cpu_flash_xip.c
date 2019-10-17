@@ -66,7 +66,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
+//    extern bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
 //    ModuleInstall_FlashInstallXIP(CFG_EFLASH_XIPFSMOUNT_NAME,CFG_EFLASH_XIP_PART_START,
 //                                              CFG_EFLASH_XIP_PART_END, CFG_EFLASH_XIP_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
@@ -132,7 +132,7 @@ struct __xip_drv XIP_FLASH_DRV =
     .xip_read_media = xip_flash_read,
     .xip_write_media = xip_flash_write
 };
-u8 is_close_protect = 0;   //0 -- 没关，1-- 关了
+u8 is_protect = 1;   //1 -- 有写保护，0-- 无写保护
 // ============================================================================
 // 功能：写数据
 // 参数：core -- xip文件系统管理信息
@@ -156,15 +156,15 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     unit = start + pos + core->MStart;
     djy_flash_req(unitbytes,(ptu32_t)&page_size);
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
-    if(bytes > 0)
+    if(bytes > 0)   //bytes不会大于一页的大小，所以每次只要检查一页大小的数据
     {
         djy_flash_read(unit, um->ubuf, page_size);
 
         for(j=0; j<page_size; j++)
         {
-            if(um->ubuf[j]!=data[j])
+            if(0xFF!=um->ubuf[j])        //判断当前页是否为FF
             {
-                if(0xFF!=um->ubuf[j])        //判断当前页是否为FF
+                if(um->ubuf[j]!=data[j])
                 {
                     djy_flash_req(unlock, 0);
                     return (-1);
@@ -174,87 +174,90 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 
         if(pos == offset)
         {
-            offset = (offset * 34 / 32) - offset;
-            app_head = malloc(offset + Get_AppHeadSize());
-            if(app_head == NULL)
-                return (-1);
-            memcpy(app_head, cx->apphead, cx->Wappsize);
-            memcpy(app_head + cx->Wappsize, data, offset);
-
-            pos += offset;
-            data += offset;
-            bytes -= offset;
-            unit = start + pos + core->MStart;
-            if(is_close_protect == 0)
+//            offset = (offset * 34 / 32) - offset;
+//            app_head = malloc(offset + Get_AppHeadSize());
+//            if(app_head == NULL)
+//                return (-1);
+//            memcpy(app_head, cx->apphead, cx->Wappsize);
+//            memcpy(app_head + cx->Wappsize, data, offset);
+//
+//            pos += offset;
+//            data += offset;
+//            bytes -= offset;
+//            unit = start + pos + core->MStart;
+            if(is_protect == 1)
             {
-                is_close_protect = 1;
+                is_protect = 0;
                 flash_protection_op(0,FLASH_PROTECT_NONE);
             }
         }
 
+//        if(pos == 0)
+//        {
+//            offset = (offset * 34 / 32) - offset;
+//            if(app_head == NULL)
+//                return (-1);
+//            u8 *name = (u8 *)core->root->child->name;
+//            u8 flag = 1;
+//            u32 app_head_size = offset + Get_AppHeadSize();
+//            u8 *rbuf = NULL, *wbuf = NULL;
+//            rbuf = malloc (Get_AppHeadSize());
+//            wbuf = malloc (app_head_size);
+//            memset(rbuf, 0xff, Get_AppHeadSize());
+//            memset(wbuf, 0xff, app_head_size);
+//
+//            file->sz += file->cxbase;
+//            fill_little_32bit(app_head + 4, 0, file->sz);
+//            app_head += 32; //32为文件头信息的前32个字节
+//            for(j = 0; j < 96 + 8; j++)     //这个96是在文件头里存app文件名数组的大小,加6是多出来的6个字节的CRC
+//            {
+//                if((j % 34) == 0)
+//                    j += 2;
+//                if(flag)
+//                    app_head[j] = *name;
+//                else
+//                    app_head[j] = 0xff;
+//                if(*name++ == 0)
+//                    flag=0;
+//            }
+//            app_head -= 32;
+//            j = 0;
+//            while(j < app_head_size)
+//            {
+//                j += 32;
+//                memset(app_head + j, 0xff, 2);
+//                j += 2;
+//            }
+//            calc_crc((u32 *)app_head, Get_AppHeadSize() / 32);
+//            djy_flash_write(unit, app_head, app_head_size);
+//            free(app_head);
+//        }
+//        else
+//        {
+            djy_flash_write(unit, data, bytes);
+//        }
         if(pos == 0)
         {
-            offset = (offset * 34 / 32) - offset;
-            if(app_head == NULL)
-                return (-1);
-            u8 *name = (u8 *)core->root->child->name;
-            u8 flag = 1;
-            u32 app_head_size = offset + Get_AppHeadSize();
-            u8 *rbuf = NULL, *wbuf = NULL;
-            rbuf = malloc (Get_AppHeadSize());
-            wbuf = malloc (app_head_size);
-            memset(rbuf, 0xff, Get_AppHeadSize());
-            memset(wbuf, 0xff, app_head_size);
-
-            file->sz += file->cxbase;
-            fill_little_32bit(app_head + 4, 0, file->sz);
-            app_head += 32; //32为文件头信息的前32个字节
-            for(j = 0; j < 96 + 8; j++)     //这个96是在文件头里存app文件名数组的大小,加6是多出来的6个字节的CRC
+            if(is_protect == 0)
             {
-                if((j % 34) == 0)
-                    j += 2;
-                if(flag)
-                    app_head[j] = *name;
-                else
-                    app_head[j] = 0xff;
-                if(*name++ == 0)
-                    flag=0;
-            }
-            app_head -= 32;
-            j = 0;
-            while(j < app_head_size)
-            {
-                j += 32;
-                memset(app_head + j, 0xff, 2);
-                j += 2;
-            }
-            calc_crc((u32 *)app_head, Get_AppHeadSize() / 32);
-            djy_flash_write(unit, app_head, app_head_size);
-            free(app_head);
-            if(is_close_protect == 1)
-            {
-                is_close_protect = 0;
+                is_protect = 1;
                 flash_protection_op(0,FLASH_PROTECT_ALL);
             }
-        }
-        else
-        {
-            djy_flash_write(unit, data, bytes);
         }
     }
 
     // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
     // (page+1)用于防止格式化了不属于xip的空间
-    djy_flash_req(remain, (ptu32_t)&more, &unit);
-    if(!more)
-    {
-        // +1是表示当前unit的后面一个
-        if(pos + bytes >= core->ASize)
-            return (-2);
-        djy_flash_req(whichblock, (ptu32_t)&block, &unit);
-        //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
-        djy_flash_req(format, block+1, block+1+1);
-    }
+//    djy_flash_req(remain, (ptu32_t)&more, &unit);
+//    if(!more)
+//    {
+//        // +1是表示当前unit的后面一个
+//        if(pos + bytes >= core->ASize)
+//            return (-2);
+//        djy_flash_req(whichblock, (ptu32_t)&block, &unit);
+//        //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
+//        djy_flash_req(format, block+1, block+1+1);
+//    }
 
     djy_flash_req(unlock, 0); //
     return (0);
@@ -280,25 +283,25 @@ s32 xip_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
     if(left > 0)
     {
-        if(pos == 0)
-        {
-            left = left * 34 / 32;
-            rbuf = malloc (left);
-            if(rbuf == NULL)
-                return -1;
-            memset(rbuf, 0xff, left);
-            djy_flash_read(unit, rbuf, left);
-            for(i = 0; i < (u32)(left / 34); i++)
-            {
-                memcpy(data + (i * 32), rbuf + (i * 34), 32);
-            }
-            free(rbuf);
-
-        }
-        else
-        {
+//        if(pos == 0)
+//        {
+//            left = left * 34 / 32;
+//            rbuf = malloc (left);
+//            if(rbuf == NULL)
+//                return -1;
+//            memset(rbuf, 0xff, left);
+//            djy_flash_read(unit, rbuf, left);
+//            for(i = 0; i < (u32)(left / 34); i++)
+//            {
+//                memcpy(data + (i * 32), rbuf + (i * 34), 32);
+//            }
+//            free(rbuf);
+//
+//        }
+//        else
+//        {
             djy_flash_read(unit, data, left);
-        }
+//        }
     }
 
     djy_flash_req(unlock, 0); //
@@ -319,14 +322,14 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
     u32 page_size, page_num, start, all;
     s32 left = bytes;
 
-    if(is_close_protect == 0)
+    if(is_protect == 1)
     {
-        is_close_protect = 1;
+        is_protect = 0;
         flash_protection_op(0,FLASH_PROTECT_NONE);
     }
 
     djy_flash_req(mapaddr,(ptu32_t)&start);
-    unit = start + pos + core->MStart;
+    unit = start + pos + (core->MStart * 34 / 32);
     djy_flash_req(unitbytes,(ptu32_t)&page_size);
     djy_flash_req(totalblocks,(ptu32_t)&page_num);
     all = page_size * page_num;
@@ -350,10 +353,15 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
 // ============================================================================
 s32 xip_fs_format(struct __icore *core)
 {
-    s32 left = core->ASize, start = core->MStart, all, page_size, page_num;
+    s32 left = core->ASize, start = core->MStart * 34 / 32, all, page_size, page_num;
     djy_flash_req(unitbytes,(ptu32_t)&page_size);
     djy_flash_req(totalblocks,(ptu32_t)&page_num);
     all = page_size * page_num;
+    if(is_protect == 1)
+    {
+        is_protect = 0;
+        flash_protection_op(0,FLASH_PROTECT_NONE);
+    }
     while(left > 0)
     {
         djy_flash_erase(start);
@@ -386,10 +394,12 @@ bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, 
                 sz.unit = 0;
                 sz.block = 1;
                 warning_printf("xip"," Format flash.\r\n");
+                flash_protection_op(0,FLASH_PROTECT_NONE);
                 if(-1 == djy_flash_req(format, bstart , bend, &sz))
                 {
                     warning_printf("xip"," Format failure.\r\n");
                 }
+                flash_protection_op(0,FLASH_PROTECT_ALL);
             }
             targetobj = obj_matchpath(TargetFs, &notfind);
             if(notfind)

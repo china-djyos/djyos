@@ -262,7 +262,7 @@ static s32 xip_app_scanfiles(struct __icore *core)
     u8 * structFileHead = malloc(size);
     char *name;
     struct __ifile *file;
-
+    memset(structFileHead, 0xff, size);
     res = core->drv->xip_read_media(core, structFileHead,size, 0);
     if(res)
         goto Error;
@@ -1192,6 +1192,11 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     return result;
 }
 
+__attribute__((weak)) s32 xip_fs_format(struct __icore *core)
+{
+    return 0;
+}
+
 // ============================================================================
 // 功能：安装xip文件系统
 // 参数：target -- 安装目录；
@@ -1213,7 +1218,7 @@ s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data)
         typeXIPAPP->fileOps = xip_app_ops;
         typeXIPAPP->install = xip_app_fs_install;
         typeXIPAPP->pType = "XIP-APP";
-        typeXIPAPP->format = NULL;
+        typeXIPAPP->format = xip_fs_format;
         typeXIPAPP->uninstall = NULL;
     }
     res = regfs(typeXIPAPP);

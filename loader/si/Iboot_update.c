@@ -79,7 +79,6 @@
 #if (CFG_RUNMODE_BAREAPP == 0)
 
 #define IAPBUF_SIZE   512
-#define FORCED_UPDATE_PATH   "/SD/djyapp.bin"    //强制升级的文件路径
 extern void reboot();
 extern void reset();
 extern void restart_app(u32 key);
@@ -225,8 +224,8 @@ bool_t Iboot_UpdateApp(void)
 
     if((Get_UpdateSource() == 0) && (Get_UpdateApp() == true))
     {
-        if(!stat(FORCED_UPDATE_PATH,&test_stat))
-            srcapp = fopen(FORCED_UPDATE_PATH, "r+");
+        if(!stat(CFG_FORCED_UPDATE_PATH,&test_stat))
+            srcapp = fopen(CFG_FORCED_UPDATE_PATH, "r+");
 
         info_printf("IAP","app update start.\r\n");
         if(srcapp == NULL)
@@ -236,7 +235,7 @@ bool_t Iboot_UpdateApp(void)
         }
         else
         {
-            strcpy(apppath, FORCED_UPDATE_PATH);
+            strcpy(apppath, CFG_FORCED_UPDATE_PATH);
             Set_UpdateRunModet(1);
         }
         if(srcapp != NULL)
