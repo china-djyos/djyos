@@ -158,6 +158,7 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
 
 void OpenScreen()
 {
+    djy_gpio_write(GPIO11,1);
     djy_gpio_write(GPIO10,1);
     FT_RST(1);
 }
@@ -166,6 +167,12 @@ void CloseScreen()
 {
     djy_gpio_write(GPIO10,0);
     FT_RST(0);
+    djy_gpio_write(GPIO11,0);
+}
+
+void CloseSpeaker()
+{
+    djy_gpio_write(GPIO9,0);
 }
 
 void Board_Init(void)
@@ -201,10 +208,10 @@ void Board_Init(void)
     djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);         //喇叭使能
     djy_gpio_write(GPIO9,1);
 
-    djy_gpio_mode(GPIO10,PIN_MODE_OUTPUT);         //喇叭使能
+    djy_gpio_mode(GPIO10,PIN_MODE_OUTPUT);         //液晶背光
     djy_gpio_write(GPIO10,1);
 
-    djy_gpio_mode(GPIO11,PIN_MODE_OUTPUT);        //LED
+    djy_gpio_mode(GPIO11,PIN_MODE_OUTPUT);        //液晶+触摸屏电源控制管脚
     djy_gpio_write(GPIO11,1);
 #endif
 

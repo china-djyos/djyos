@@ -125,11 +125,11 @@
 
 struct DisplayObj tg_lcd_display;
 
-#define ROW_TEMP 1
+#define ROW_TEMP 50
 #define COLO_DEP 2
-#define ROW_BUFFER   40*240*2
+//#define ROW_BUFFER   40*240*2
 #if 0
-unsigned char screen_2[CFG_LCD_XSIZE][COLO_DEP];
+//unsigned char screen_2[CFG_LCD_XSIZE][COLO_DEP];
 //#else
 unsigned char screen[ROW_TEMP][240][COLO_DEP];
 #endif
@@ -1083,6 +1083,31 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 {
     printf("__lcd_disp_ctrl\r\n");
     return true;
+}
+
+void DispMainInterface(unsigned char *pic)
+{
+    int offset = 0;
+    unsigned int i,j;
+    unsigned char screen[ROW_TEMP][240][COLO_DEP];
+
+    __st7796s_set_window(0,0,240,320);
+
+    for(i=0;i<320;i++)
+    {
+
+        for(j=0;j<240;j++)
+        {
+            screen[i%ROW_TEMP][j][0] = pic[offset];
+            offset++;
+            screen[i%ROW_TEMP][j][1] = pic[offset];
+            offset++;
+        }
+        if ((i+1)%ROW_TEMP==0) {
+            WriteDataBytes(screen, sizeof(screen));
+        }
+    }
+    WriteDataBytes(screen, (i%ROW_TEMP+1)*240*COLO_DEP);
 }
 
 //----初始化lcd设备------------------------------------------------------------
