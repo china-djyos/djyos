@@ -6732,7 +6732,7 @@ void mg_http_handler(struct mg_connection *nc, int ev,
     if (req_len > 0 &&
         (s = mg_get_http_header(hm, "Transfer-Encoding")) != NULL &&
         mg_vcasecmp(s, "chunked") == 0) {
-      mg_handle_chunked(nc, hm, io->buf + req_len, io->len - req_len);
+      //mg_handle_chunked(nc, hm, io->buf + req_len, io->len - req_len);
       chunked_ret = mg_handle_chunked(nc, hm, io->buf + req_len, io->len - req_len);
       if (chunked_ret < 0) return;
     }
