@@ -6561,6 +6561,9 @@ MG_INTERNAL size_t mg_handle_chunked(struct mg_connection *nc,
           (size_t) pd->chunk.body_len + blen - i + (hm->body.p - hm->message.p);
     }
   }
+  if (blen < data_len) {
+    body_len = -1;
+  }
 
   return body_len;
 }
@@ -6639,6 +6642,7 @@ void mg_http_handler(struct mg_connection *nc, int ev,
                      void *ev_data MG_UD_ARG(void *user_data)) {
   struct http_message shm, *hm = &shm;
 #endif /* __XTENSA__ */
+  int chunked_ret = 0;
   struct mg_http_proto_data *pd = mg_http_get_proto_data(nc);
   struct mbuf *io = &nc->recv_mbuf;
   int req_len;
@@ -6729,6 +6733,8 @@ void mg_http_handler(struct mg_connection *nc, int ev,
         (s = mg_get_http_header(hm, "Transfer-Encoding")) != NULL &&
         mg_vcasecmp(s, "chunked") == 0) {
       mg_handle_chunked(nc, hm, io->buf + req_len, io->len - req_len);
+      chunked_ret = mg_handle_chunked(nc, hm, io->buf + req_len, io->len - req_len);
+      if (chunked_ret < 0) return;
     }
 
 #if MG_ENABLE_HTTP_STREAMING_MULTIPART
