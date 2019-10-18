@@ -125,57 +125,57 @@ static s32 SetFlash_Init(struct FlashDescr *Description)
 }
 
 
-static void djy_flash_read_crc(uint32_t address, void *data, uint32_t size)
+void djy_flash_read(uint32_t address, void *data, uint32_t size)
 {
-//    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
 //    flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_read(data, size, address);
 //    flash_protection_op(0,FLASH_PROTECT_ALL);
-//    Lock_MutexPost(flash_mutex);
-}
-
-void djy_flash_read(uint32_t address, void *data, uint32_t size)
-{
-    u32 i = 0, j = 0, practical_addr = address * 34 / 32;
-    u8 buf[272];
-    if (size == 0)
-    {
-        return;
-    }
-    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-    while(size)
-    {
-        memset(buf, 0xFF, 272);
-        djy_flash_read_crc(practical_addr, buf, 272);
-        i = j = 0;
-        while(i < 272)
-        {
-            if(size > 32)
-                memcpy(data + j, buf + i, 32);
-            else
-            {
-                memcpy(data + j, buf + i, size);
-                size = 0;
-                break;
-            }
-            j += 32;
-            i += 34;
-            size -= 32;
-        }
-        practical_addr += 272;
-//        Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-//    //    flash_protection_op(0,FLASH_PROTECT_NONE);
-//        flash_read(data, size, practical_addr);
-//    //    flash_protection_op(0,FLASH_PROTECT_ALL);
-//        Lock_MutexPost(flash_mutex);
-    }
     Lock_MutexPost(flash_mutex);
 }
 
+//void djy_flash_read(uint32_t address, void *data, uint32_t size)
+//{
+//    u32 i = 0, j = 0, practical_addr = address * 34 / 32;
+//    u8 buf[272];
+//    if (size == 0)
+//    {
+//        return;
+//    }
+//    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+//    while(size)
+//    {
+//        memset(buf, 0xFF, 272);
+//        djy_flash_read_crc(practical_addr, buf, 272);
+//        i = j = 0;
+//        while(i < 272)
+//        {
+//            if(size > 32)
+//                memcpy(data + j, buf + i, 32);
+//            else
+//            {
+//                memcpy(data + j, buf + i, size);
+//                size = 0;
+//                break;
+//            }
+//            j += 32;
+//            i += 34;
+//            size -= 32;
+//        }
+//        practical_addr += 272;
+////        Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+////    //    flash_protection_op(0,FLASH_PROTECT_NONE);
+////        flash_read(data, size, practical_addr);
+////    //    flash_protection_op(0,FLASH_PROTECT_ALL);
+////        Lock_MutexPost(flash_mutex);
+//    }
+//    Lock_MutexPost(flash_mutex);
+//}
+
 void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 {
-    u32 i, j, len, practical_addr = address * 34 / 32;
-    u8 buf_crc[272],buf[256];
+//    u32 i, j, len, practical_addr = address * 34 / 32;
+//    u8 buf_crc[272],buf[256];
     if (size == 0)
         return;
 
@@ -208,37 +208,37 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 //            }
 //
 //        }
-    while(size)
-    {
-        memset(buf_crc, 0xff, 272);
-        if(size >= 256)
-        {
-            encrypt((u32 *)data, buf_crc, 256 / 32);
-            size -= 256;
-            data += 256;
-            len = 272;
-            calc_crc((u32 *)buf_crc, 256 / 32);
-        }
-        else
-        {
-            memset(buf, 0xff, 256);
-            memcpy(buf, data, size);
-            if(size % 32)
-                i = (size + 32) - (size % 32);
-            else
-                i = size;
-            encrypt((u32 *)buf, buf_crc, i / 32);
-            size = 0;
-            len = i * 34 / 32;
-            calc_crc((u32 *)buf_crc, i / 32);
-        }
+//    while(size)
+//    {
+//        memset(buf_crc, 0xff, 272);
+//        if(size >= 256)
+//        {
+//            encrypt((u32 *)data, buf_crc, 256 / 32);
+//            size -= 256;
+//            data += 256;
+//            len = 272;
+//            calc_crc((u32 *)buf_crc, 256 / 32);
+//        }
+//        else
+//        {
+//            memset(buf, 0xff, 256);
+//            memcpy(buf, data, size);
+//            if(size % 32)
+//                i = (size + 32) - (size % 32);
+//            else
+//                i = size;
+//            encrypt((u32 *)buf, buf_crc, i / 32);
+//            size = 0;
+//            len = i * 34 / 32;
+//            calc_crc((u32 *)buf_crc, i / 32);
+//        }
+//
+//        flash_write((char *)buf_crc, len, practical_addr);
+//        practical_addr += len;
+//    }
 
-        flash_write((char *)buf_crc, len, practical_addr);
-        practical_addr += len;
-    }
 
-
-//    flash_write((char *)data, size, practical_addr);
+    flash_write((char *)data, size, address);
 //    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
@@ -388,13 +388,13 @@ s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      if(-1 == (s32)endblock)
          endblock = bend = description->AllSectorNum; // 最大块号
 
-//     super->AreaSize = (bend - bstart) * description->BytesPerPage * description->PagesPerSector;
+     super->AreaSize = (bend - bstart) * description->BytesPerPage * description->PagesPerSector;
      super->MediaStart = (bstart * description->BytesPerPage * description->PagesPerSector) + description->MappedStAddr; // 起始unit号
-//     super->MediaStart = super->MediaStart * 34 / 32;
-     super->AreaSize = ((bend * description->BytesPerPage * description->PagesPerSector)- super->MediaStart) * 34 / 32;
+     super->MediaStart = super->MediaStart * 34 / 32;
+//     super->AreaSize = ((bend * description->BytesPerPage * description->PagesPerSector)- super->MediaStart) * 34 / 32;
      if(super->AreaSize + super->MediaStart > description->AllSectorNum * description->BytesPerPage * description->PagesPerSector)
      {
-         super->AreaSize = description->AllSectorNum * description->BytesPerPage * description->PagesPerSector - (super->MediaStart * 34 / 32);
+         super->AreaSize = description->AllSectorNum * description->BytesPerPage * description->PagesPerSector - super->MediaStart;
      }
      res = strlen(flash_name) + strlen(s_ptDeviceRoot->name) + 1;
      FullPath = malloc(res);
