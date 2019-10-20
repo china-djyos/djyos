@@ -127,10 +127,6 @@ static s32 SetFlash_Init(struct FlashDescr *Description)
 
 void djy_flash_read(uint32_t address, void *data, uint32_t size)
 {
-    if (size == 0)
-    {
-        return;
-    }
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
 //    flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_read(data, size, address);
@@ -138,14 +134,110 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
     Lock_MutexPost(flash_mutex);
 }
 
+//void djy_flash_read(uint32_t address, void *data, uint32_t size)
+//{
+//    u32 i = 0, j = 0, practical_addr = address * 34 / 32;
+//    u8 buf[272];
+//    if (size == 0)
+//    {
+//        return;
+//    }
+//    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+//    while(size)
+//    {
+//        memset(buf, 0xFF, 272);
+//        djy_flash_read_crc(practical_addr, buf, 272);
+//        i = j = 0;
+//        while(i < 272)
+//        {
+//            if(size > 32)
+//                memcpy(data + j, buf + i, 32);
+//            else
+//            {
+//                memcpy(data + j, buf + i, size);
+//                size = 0;
+//                break;
+//            }
+//            j += 32;
+//            i += 34;
+//            size -= 32;
+//        }
+//        practical_addr += 272;
+////        Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+////    //    flash_protection_op(0,FLASH_PROTECT_NONE);
+////        flash_read(data, size, practical_addr);
+////    //    flash_protection_op(0,FLASH_PROTECT_ALL);
+////        Lock_MutexPost(flash_mutex);
+//    }
+//    Lock_MutexPost(flash_mutex);
+//}
+
 void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 {
+//    u32 i, j, len, practical_addr = address * 34 / 32;
+//    u8 buf_crc[272],buf[256];
     if (size == 0)
-    {
         return;
-    }
+
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
 //    flash_protection_op(0,FLASH_PROTECT_NONE);
+
+//    while(size)
+//    {
+//        memset(buf, 0xff, 272);
+//        if(size >= 256)
+//        {
+//            for(i = 0; i < 8; i++)
+//            {
+//                memcpy(buf + (i * 34), data + (i * 32), 32);
+//            }
+//            size -= 256;
+//            len = 272;
+//            calc_crc((u32 *)buf, 256 / 32);
+//        }
+//        else
+//        {
+//            for(i = 0; i < (size / 32); i++)
+//            {
+//                memcpy(buf + (i * 34), data + (i * 32), 32);
+//            }
+//            j = size % 32;
+//            if(j)
+//            {
+//                memcpy(buf + (i * 34), data + (i * 32), j);
+//            }
+//
+//        }
+//    while(size)
+//    {
+//        memset(buf_crc, 0xff, 272);
+//        if(size >= 256)
+//        {
+//            encrypt((u32 *)data, buf_crc, 256 / 32);
+//            size -= 256;
+//            data += 256;
+//            len = 272;
+//            calc_crc((u32 *)buf_crc, 256 / 32);
+//        }
+//        else
+//        {
+//            memset(buf, 0xff, 256);
+//            memcpy(buf, data, size);
+//            if(size % 32)
+//                i = (size + 32) - (size % 32);
+//            else
+//                i = size;
+//            encrypt((u32 *)buf, buf_crc, i / 32);
+//            size = 0;
+//            len = i * 34 / 32;
+//            calc_crc((u32 *)buf_crc, i / 32);
+//        }
+//
+//        flash_write((char *)buf_crc, len, practical_addr);
+//        practical_addr += len;
+//    }
+
+
     flash_write((char *)data, size, address);
 //    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
@@ -154,6 +246,7 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 /*一个sector是4K*/
 void djy_flash_erase(uint32_t address)
 {
+//    u32 practical_addr = address * 34 / 32;
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
     address &= (0xFFF000);
 
@@ -298,6 +391,7 @@ s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      super->AreaSize = (bend - bstart) * description->BytesPerPage * description->PagesPerSector;
      super->MediaStart = (bstart * description->BytesPerPage * description->PagesPerSector) + description->MappedStAddr; // 起始unit号
      super->MediaStart = super->MediaStart * 34 / 32;
+//     super->AreaSize = ((bend * description->BytesPerPage * description->PagesPerSector)- super->MediaStart) * 34 / 32;
      if(super->AreaSize + super->MediaStart > description->AllSectorNum * description->BytesPerPage * description->PagesPerSector)
      {
          super->AreaSize = description->AllSectorNum * description->BytesPerPage * description->PagesPerSector - super->MediaStart;
@@ -363,291 +457,5 @@ bool_t flash_is_install(void)
     return sflashInited;
 }
 
-///////////////////////////////////////////IAP FS/////////////////////////////////////////////
-//#include <device/include/unit_media.h>
-//
-////flash 信息描述
-//static struct EmbdFlashDescr
-//{
-//    u16     BytesPerPage;                //一页中包含的字节数
-//    u16     PagesPerBlock;               //每块中的页数
-//    u16     TotalPages;                  //总页数量
-//    u32     BytesPerBlock;               //一块中的字节数
-//    u16     ToltalBlock;                 //总块数量
-//    u32     RemainBytes;                 //剩余字节数
-//    u32     MappedStAddr;
-//}*sp_tFlashDesrc;
-//
-//s32 __embed_req(enum ucmd cmd, ptu32_t args, ...)
-//{
-//    s32 res = 0;
-//
-//    switch(cmd)
-//    {
-//
-//        case remain:
-//        {
-//            va_list list;
-//            u32 *left;
-//            s64 *unit;
-//
-//            left = (u32*)args;
-//            va_start(list, args);
-//            unit = (s64*)va_arg(list, u32);
-//            va_end(list);
-////            if((*unit<64)&&(*unit>=0))
-////                *left = 63 - *unit;
-////            else if((*unit<128)&&(*unit>=64))
-////                *left = 127 - *unit;
-////            else if((*unit<192)&&(*unit>=128))
-////                *left = 191 - *unit;
-////            else if((*unit<256)&&(*unit>=192))
-////                *left = 255 - *unit;
-////            else
-////                res = -1;
-//            if(*unit > sp_tFlashDesrc->TotalPages)
-//                res = -1;
-//            else
-//                *left = sp_tFlashDesrc->PagesPerBlock - 1 - (*unit)%sp_tFlashDesrc->PagesPerBlock;
-//
-//            break;
-//        }
-//
-//        case whichblock:                              //哪一块
-//        {
-//            va_list list;
-//            s64  *unit;
-//            u32 *block;
-//
-//            block = (u32*)args;
-//            va_start(list, args);
-//            unit = (s64*)va_arg(list, u32);
-//            va_end(list);
-//            *block = (*unit)/sp_tFlashDesrc->PagesPerBlock;
-//            break;
-//        }
-//
-//        case totalblocks:                             //总块数量
-//        {
-//            // args = &blocks
-//            *((u32*)args) =  sp_tFlashDesrc->ToltalBlock;
-//            break;
-//        }
-//
-//        case blockunits:                              //每块中的页数量
-//        {
-//
-//            *((u32*)args)  = sp_tFlashDesrc->PagesPerBlock;
-//            break;
-//        }
-//
-//        case unitbytes:                               //每一页中的字节数
-//        {
-//            // args = &bytes
-//            *((u32*)args) = sp_tFlashDesrc->BytesPerPage;
-//            break;
-//        }
-//
-//        case format:                                  //格式
-//        {
-//            va_list list;
-//            u32 start, end;
-//            struct uesz *sz;
-//
-//            start = (u32)args;
-//            va_start(list, args);
-//            end = va_arg(list, u32);
-//            sz = (struct uesz*)va_arg(list, u32);
-//            va_end(list);
-//
-//            if(!sz->block)
-//                return (-1);
-//
-////            tmp = malloc(sp_tFlashDesrc->BytesPerPage);
-////            if(!tmp)
-////                return (-1);
-//
-//            if(-1==end)                                //挂在区域全部擦除
-//                    end = sp_tFlashDesrc->ToltalBlock;
-//            else if (start)
-//                    end += start;
-//
-//            do
-//            {
-//                if(__embed_erase((s64)--end, *sz))
-//                {
-//                    res = -1;
-//                    break;
-//                }
-//            }
-//            while(end!=start);
-//
-//            break;
-//        }
-//
-//        case mapaddr:
-//        {
-//
-//            *((u32*)args) = sp_tFlashDesrc->MappedStAddr;
-//            break;
-//        }
-//        case checkbad: break;
-//        default: res = -1; break;
-//    }
-//
-//    return (res);
-//}
-//
-//// ============================================================================
-//// 功能：embed 读；
-//// 参数：unit -- 读的序号（页）；
-////      data -- 读的数据；
-////      opt -- 读的方式；
-//// 备注：
-//// ============================================================================
-//static s32 __embed_read(s64 unit, void *data, struct uopt opt)
-//{
-//    uint32_t start_addr = 0x80000 + 1024 * unit;
-//    djy_flash_read(start_addr, data, 1024);
-//    return 0;
-//}
-//
-//// ============================================================================
-//// 功能：embed 写；
-//// 参数：unit -- 写的序号（页）；
-////      data -- 写的数据；
-////      opt -- 写的方式；
-//// 返回：成功（0）；失败（-1）；
-//// 备注：
-//// ============================================================================
-//static s32 __embed_write(s64 unit, void *data, struct uopt opt)
-//{
-//    if(sp_tFlashDesrc==NULL)
-//        return -1;
-//    if(unit>(sp_tFlashDesrc->TotalPages))
-//        return -1;
-//    uint32_t start_addr = 0x80000 + 1024 * unit;
-//    djy_flash_write(start_addr, data, 1024);
-//    return 0;
-//}
-//
-//// ============================================================================
-//// 功能：nand 擦除
-//// 参数：unit -- 擦除的序号；
-////      sz -- 擦除的单位（unit或block）
-//// 返回：成功（0）；失败（-1）；
-//// 备注：
-//// ============================================================================
-//s32 __embed_erase(s64 unit, struct uesz sz)
-//{
-//    u32 block;
-//    if(sp_tFlashDesrc==NULL)
-//        return -1;
-//    if(unit>(sp_tFlashDesrc->TotalPages))
-//        return -1;
-//    if(sz.unit)
-//    {
-//        if(__embed_req(whichblock, (ptu32_t)&block, &unit))
-//            return (-1);
-//    }
-//    else
-//        block = (u32)unit;
-//
-//    uint32_t start_addr = 0x80000 + 4096 * block;
-//    djy_flash_erase(start_addr);
-//    return 0;
-//}
-//
-//static s32 Flash_Init(struct EmbdFlashDescr *Description)
-//{
-//
-//      Description->BytesPerPage     = 1024;
-//      Description->PagesPerBlock    = 4;
-////      Description->PagesPerSector   = SECTOR_SIZE / PAGE_SIZE;
-////      Description->SectorsPerBlock  = BLOCK_SIZE / SECTOR_SIZE;
-//      Description->TotalPages       = 600;
-//      Description->ToltalBlock      = 150;
-//      Description->RemainBytes      = 0;
-//
-//      Description->MappedStAddr = 0;
-//    return (0);
-//}
-//
-//s32 __embed_part_init(u32 bstart, u32 bcount, u32 doformat)
-//{
-//    struct umedia *um;
-//    struct uopt opt;
-//    char name[16], part[3];
-//    u32 units, total = 0;
-//    static u8 count;
-//
-//    if(!sp_tFlashDesrc)
-//    {
-//        sp_tFlashDesrc = malloc(sizeof(*sp_tFlashDesrc));
-//        if(!sp_tFlashDesrc)
-//        {
-//            return (-1);
-//        }
-//        Flash_Init(sp_tFlashDesrc);
-////        djy_flash_init();
-//    }
-//
-////    if(doformat)
-////    {
-////            djybsp_spiflash_step(DJYBSP_SPIFLASH_START);
-////            djybsp_erase_some_sectors(0xc0000,SECTOR_SIZE);
-////            djybsp_spiflash_step(DJYBSP_SPIFLASH_END);
-////    }
-//
-//    um = malloc(sizeof(struct umedia)+sp_tFlashDesrc->BytesPerPage);
-//    if(!um)
-//    {
-//        return (-1);
-//    }
-//
-//    opt.hecc = 0;
-//    opt.main = 1;
-//    opt.necc = 1;
-//    opt.secc = 0;
-//    opt.spare = 1;
-//    if(-1 == bcount)//最大块数
-//    {
-//        bcount = sp_tFlashDesrc->ToltalBlock;
-//        bcount -= bstart;
-//        um->asz = sp_tFlashDesrc->BytesPerPage * sp_tFlashDesrc->PagesPerBlock * bcount;
-//    }
-//    else
-//        um->asz = sp_tFlashDesrc->BytesPerPage * sp_tFlashDesrc->PagesPerBlock * bcount;
-//
-//
-////    um->esz = log2(sp_tFlashDesrc->BytesPerPage * sp_tFlashDesrc->PagesPerBlock); //
-////    um->usz = log2(sp_tFlashDesrc->BytesPerPage);
-//    um->esz = 12;
-//    um->usz = 10;
-//    //um->esz = 0; // 各个区域不同
-//    um->merase = __embed_erase;
-//    um->mread = __embed_read;
-//    um->mreq = __embed_req;
-//    um->mwrite = __embed_write;
-//    um->opt = opt;
-//    um->type = nand;
-//    um->ubuf = (u8*)um + sizeof(struct umedia);
-//    um->ustart = bstart*sp_tFlashDesrc->PagesPerBlock; // 起始unit号
-//    bcount = 0;
-//    total = 0;
-//
-//    um->ustart = total; // 起始unit号
-//    itoa(count++, part, 10);
-//    sprintf(name, "embed part %s", part);
-//    if(um_add((const char*)name, um))
-//    {
-//        printf("\r\n: erro : device : %s addition failed.", name);
-//        return (-1);
-//    }
-//
-//    printf("\r\n: info : device : %s added(start:%d, blocks:%d).", name, bstart, bcount);
-//    return (0);
-//
-//}
 
 

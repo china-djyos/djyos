@@ -46,7 +46,8 @@
 #define CFG_IBOOT_VERSION_LARGE       01        //Iboot发布版本号,__.xx.xx
 //%$#@string,1,128,
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"待升级iboot默认存储路径"
-#define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"           //"待升级app默认存储路径"
+#define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"            //"待升级app默认存储路径"
+#define CFG_FORCED_UPDATE_PATH     "/SD/djyapp.bin"           //强制升级的文件路径
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 

@@ -139,6 +139,7 @@ ptu32_t Touch_Scan(void)
                     ||(touch_temp.y != touch_pr->touch_loc.y)
                     ||(touch_temp.z != touch_pr->touch_loc.z))
                 {
+                    printf("touch_temp.x = %d ,touch_temp.y = %d\r\n",touch_temp.x,touch_temp.y);
                     touch_temp.time = DjyGetSysTime();
                     HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp,
                                                         sizeof(touch_temp));

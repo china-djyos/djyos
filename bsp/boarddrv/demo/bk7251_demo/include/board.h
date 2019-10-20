@@ -70,7 +70,9 @@ extern "C" {
 void Board_Init(void);
 void FT6236_Pin_Init(void);
 u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
-
+void OpenScreen();
+void CloseScreen();
+void ClosePower();
 enum EasyKeyValue
 {
     NO_KEY = 0,

@@ -66,7 +66,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern s32 ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
+//    extern bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
 //    ModuleInstall_FlashInstallXIP(CFG_EFLASH_XIPFSMOUNT_NAME,CFG_EFLASH_XIP_PART_START,
 //                                              CFG_EFLASH_XIP_PART_END, CFG_EFLASH_XIP_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
@@ -132,7 +132,7 @@ struct __xip_drv XIP_FLASH_DRV =
     .xip_read_media = xip_flash_read,
     .xip_write_media = xip_flash_write
 };
-u8 is_close_protect = 0;   //0 -- 没关，1-- 关了
+u8 is_protect = 1;   //1 -- 有写保护，0-- 无写保护
 // ============================================================================
 // 功能：写数据
 // 参数：core -- xip文件系统管理信息
@@ -156,15 +156,15 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     unit = start + pos + core->MStart;
     djy_flash_req(unitbytes,(ptu32_t)&page_size);
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
-    if(bytes > 0)
+    if(bytes > 0)   //bytes不会大于一页的大小，所以每次只要检查一页大小的数据
     {
         djy_flash_read(unit, um->ubuf, page_size);
 
         for(j=0; j<page_size; j++)
         {
-            if(um->ubuf[j]!=data[j])
+            if(0xFF!=um->ubuf[j])        //判断当前页是否为FF
             {
-                if(0xFF!=um->ubuf[j])        //判断当前页是否为FF
+                if(um->ubuf[j]!=data[j])
                 {
                     djy_flash_req(unlock, 0);
                     return (-1);
@@ -185,9 +185,9 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             data += offset;
             bytes -= offset;
             unit = start + pos + core->MStart;
-            if(is_close_protect == 0)
+            if(is_protect == 1)
             {
-                is_close_protect = 1;
+                is_protect = 0;
                 flash_protection_op(0,FLASH_PROTECT_NONE);
             }
         }
@@ -231,15 +231,18 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             calc_crc((u32 *)app_head, Get_AppHeadSize() / 32);
             djy_flash_write(unit, app_head, app_head_size);
             free(app_head);
-            if(is_close_protect == 1)
-            {
-                is_close_protect = 0;
-                flash_protection_op(0,FLASH_PROTECT_ALL);
-            }
         }
         else
         {
             djy_flash_write(unit, data, bytes);
+        }
+        if(pos == 0)
+        {
+            if(is_protect == 0)
+            {
+                is_protect = 1;
+                flash_protection_op(0,FLASH_PROTECT_ALL);
+            }
         }
     }
 
@@ -319,9 +322,9 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
     u32 page_size, page_num, start, all;
     s32 left = bytes;
 
-    if(is_close_protect == 0)
+    if(is_protect == 1)
     {
-        is_close_protect = 1;
+        is_protect = 0;
         flash_protection_op(0,FLASH_PROTECT_NONE);
     }
 
@@ -354,6 +357,11 @@ s32 xip_fs_format(struct __icore *core)
     djy_flash_req(unitbytes,(ptu32_t)&page_size);
     djy_flash_req(totalblocks,(ptu32_t)&page_num);
     all = page_size * page_num;
+    if(is_protect == 1)
+    {
+        is_protect = 0;
+        flash_protection_op(0,FLASH_PROTECT_NONE);
+    }
     while(left > 0)
     {
         djy_flash_erase(start);
@@ -386,10 +394,12 @@ bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, 
                 sz.unit = 0;
                 sz.block = 1;
                 warning_printf("xip"," Format flash.\r\n");
+                flash_protection_op(0,FLASH_PROTECT_NONE);
                 if(-1 == djy_flash_req(format, bstart , bend, &sz))
                 {
                     warning_printf("xip"," Format failure.\r\n");
                 }
+                flash_protection_op(0,FLASH_PROTECT_ALL);
             }
             targetobj = obj_matchpath(TargetFs, &notfind);
             if(notfind)
