@@ -377,7 +377,8 @@ ptu32_t GDD_TimerScan(void)
             if(timer->Alarm > NowTime)
             {
                 Lock_MutexPost(s_ptGddTimerQSync);
-                //改为等待信号量，新增定时器时触发该信号量。
+                //改为等待信号量，新增定时器时触发该信号量，队列头部的定时器定时时间到
+                //则超时返回。
                 Lock_SempPend( s_ptGddTimerRun, timer->Alarm - NowTime);
             }
             else

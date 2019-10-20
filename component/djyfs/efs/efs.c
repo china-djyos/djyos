@@ -709,11 +709,11 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
 static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
 {
     tagEFS *efs;
-    tagFileRsc *fp;
-    struct EfsFileInfo *fileinfo;
+    tagFileRsc *fp=NULL;
+    struct EfsFileInfo *fileinfo=NULL;
     u32 loop,item;
     u64 index_offset;
-    u8 *hsize,*buf;
+    u8 *hsize,*buf=NULL;
     bool_t found = false;
     struct objhandle *hdl;
 //    mode_t mode, property = 0;
@@ -1043,7 +1043,10 @@ static u32 Efs_Read (struct objhandle *hdl, u8 *buf, u32 len)
             blk_off -= buf_off;     //一次读取256字节，这里减去buf_off是为了对齐
 
         if(rd_point >= fileinfo->filesize)
+        {
             memcpy(rDataBuf,fp->wr_buf, CN_FILE_BUF_LEN);    //文件读取位置比文件的实际大小大，则从写缓存里读数据
+            readlen = CN_FILE_BUF_LEN;
+        }
         else
             readlen = efs->drv->efs_read_media(block, blk_off, rDataBuf, CN_FILE_BUF_LEN,EF_WR_ECC);    //从flash中读数据
 
@@ -1328,7 +1331,7 @@ static off_t Efs_Seek(struct objhandle *hdl, off_t *file_offset, s32 whence)
 static s32 Efs_Remove(struct Object *ob, char *uncached)
 {
     tagEFS *efs;
-    u64 index_offset,ram_offset;
+    u64 index_offset=0,ram_offset;
     u8 cfg_blocks,loop;
     u8 *file_info_buf;
     char *fname;

@@ -456,8 +456,8 @@ bool_t heap_spy(void)
                         m+=2;
                     }break;
                     case CN_MEM_MANY_PAGE_GLOBAL:
-                    {//双(多)页全局内存:CN_MEM_MANY_PAGE_GLOBAL+event id+阶号
-                        printf("%10d - %-10d 全局   0x%08x %05d\n\r",m,m+(1<<pl_eid[m+1])-1,
+                    {//多页全局内存:CN_MEM_MANY_PAGE_GLOBAL+event id+阶号
+                        printf("%10d - %-10d 全局   0x%08x %05d\n\r",m,m+(1<<pl_eid[m+2])-1,
                                     Cession->PageSize*(1<<pl_eid[m+2]),pl_eid[m + 1]);
                         m += 1<<pl_eid[m+2];
                     }break;
@@ -1811,6 +1811,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     struct EventECB  *event;
     ptu32_t ua_bit_num;
     ucpu_t  uc_msk;
+    bool_t Lc;
 
     u8    event_mem_stage = 0;
 
@@ -1861,9 +1862,15 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
         return;
     }
 
+    ua_temp1 = (ptu32_t)((ptu32_t)pl_mem-(ptu32_t)Cession->heap_bottom);
+    //检查被释放内存是否页边界对齐
+    if(ua_temp1 % Cession->PageSize != 0)
+    {
+        Djy_SaveLastError(EN_MEM_ERROR);  //欲释放的内存非页边界对齐,直接退出.
+        return;
+    }
     //计算释放的内存块的首页页号
-    ua_pages_no=(ptu32_t)((ptu32_t)pl_mem-(ptu32_t)Cession->heap_bottom)
-                                            / Cession->PageSize;
+    ua_pages_no=ua_temp1 / Cession->PageSize;
 
     Lock_MutexPend(&(CurHeap->HeapMutex),CN_TIMEOUT_FOREVER);
     //查找释放的内存块的阶号,从0起计.通过阶号也可以确定内存块的大小.
@@ -1876,12 +1883,14 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
         {   //双页局部内存,CN_MEM_DOUBLE_PAGE_LOCAL + event id
             pl_id[1] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 1;
+            Lc = true;
         }break;
         case CN_MEM_MANY_PAGE_LOCAL :
         {   //多页局部内存:CN_MEM_MANY_PAGE_LOCAL+event id+阶号
             uf_free_grade_th = (ufast_t)pl_id[2];
             pl_id[1] = CN_MEM_FREE_PAGE;
             pl_id[2] = CN_MEM_FREE_PAGE;
+            Lc = true;
         }break;
 //      case CN_MEM_SINGLE_PAGE_GLOBAL :
 //      {   //单页全局内存:-3
@@ -1891,33 +1900,34 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
         {//双页全局内存:CN_MEM_DOUBLE_PAGE_GLOBAL + event id
             pl_id[1] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 1;
+            Lc = false;
         }break;
         case CN_MEM_MANY_PAGE_GLOBAL :
         {//多页全局内存:CN_MEM_MANY_PAGE_GLOBAL+(event id)|CN_EVTT_ID_MASK+阶号.
             uf_free_grade_th = (ufast_t)pl_id[2];
             pl_id[1] = CN_MEM_FREE_PAGE;
             pl_id[2] = CN_MEM_FREE_PAGE;
+            Lc = false;
         }break;
         default :
         {
             //单页局部内存:event id
             //单页全局内存:event id + CN_EVTT_ID_MASK
-            pl_id[0] = CN_MEM_FREE_PAGE;
+//          pl_id[0] = CN_MEM_FREE_PAGE;
             uf_free_grade_th = 0;
-//            if(pl_id[0] <= CN_EVENT_ID_LIMIT)
-//            {   //单页局部内存:id,
-////                id = pl_id[0];
-//                pl_id[0] = CN_MEM_FREE_PAGE;
-//                uf_free_grade_th = 0;
-//            }else
-//            {
-//                pl_id[0] = CN_MEM_FREE_PAGE;
-//                Djy_SaveLastError(EN_MEM_ERROR);   //指针有错,直接退出
-//                Lock_MutexPost(&(CurHeap->HeapMutex) );
-//                __M_CheckSTackSync( );
-//                return;
-//
-//            }
+            //检查事件号记录是否合法
+            if((pl_id[0] & (~CN_EVTT_ID_MASK)) >= CFG_EVENT_LIMIT)
+            {
+//              pl_id[0] = CN_MEM_FREE_PAGE;
+                Djy_SaveLastError(EN_MEM_ERROR);   //指针有错,直接退出
+                Lock_MutexPost(&(CurHeap->HeapMutex) );
+                __M_CheckSTackSync( );
+                return;
+            }
+            if(pl_id[0] & CN_EVTT_ID_MASK)      //检查是局部内存还是全局内存
+                Lc = false;
+            else
+                Lc = true;
         }break;
     }
     pl_id[0] = CN_MEM_FREE_PAGE;
@@ -2033,12 +2043,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 
     Lock_MutexPost( &(CurHeap->HeapMutex) );
     __M_CheckSTackSync( );
-    //we don't konw if it is local memory, so we could not sub it directly ,
-    //the local_memory must be used with the __M_MallocLc, so it should sub in
-    //the matched __M_FreeLc, but up tills now, we have no __M_FreeLc--TODO
-    //suggest we should branch it in the free function or new a function name
-    //M_FreeLc
-    if(g_ptEventRunning->local_memory > 0)
+    if((g_ptEventRunning->local_memory > 0) && (Lc))
     {
         g_ptEventRunning->local_memory--;
     }

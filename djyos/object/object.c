@@ -1183,7 +1183,7 @@ struct Object *obj_matchpath(const char *match, char **left)
 struct Object *obj_BuildTempPath(struct Object *begin, fnObjOps ops,
                             ptu32_t Private, char *path)
 {
-    char *segst, *name;
+    char *segst, *name=NULL;
     struct Object *current, *find;
     u16 i, seglen;
 
@@ -2412,7 +2412,7 @@ s32 CurWorkPath(char *Buf, u32 BufSize)
 {
     struct Object *Obj;
     u32 ObjNameLen, Offset;
-    char *PathTemp, *ObjName;
+    char *PathTemp=NULL, *ObjName;
     s32 Ret = 0;
 
     obj_lock();// 进互斥(防止操作过程当前工作路径被更改)

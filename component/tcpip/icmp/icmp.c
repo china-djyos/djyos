@@ -418,7 +418,7 @@ bool_t __Icmp_EchoReply(u32 ipsrc, tagIcmpHdr *hdr,struct NetPkg *pkg)
 // =============================================================================
 bool_t __Icmp_EchoRequest(u32 ipsrc, u32 ipdst,tagIcmpHdr *hdr,struct NetPkg *pkglst)
 {
-    bool_t              result;
+    bool_t              result=false;
     u16                 pkglen;
     struct NetPkg           *pkg;
     struct NetPkg           *pkg2snd;

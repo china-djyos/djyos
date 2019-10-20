@@ -252,7 +252,7 @@ bool_t rout(char *param)
     enRoutOperation  opt = enRoutOperation_print;
     tagHostAddrV4 v4addr;
     struct in_addr  ipmatchv4;
-    const char *ifname;
+    const char *ifname=NULL;
     tagRouterPara para;
     int argc = 12;
     char *argv[12];

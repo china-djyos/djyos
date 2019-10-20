@@ -224,8 +224,7 @@ typedef enum{
 #define MSG_SETTEXT             0x0006  //设置窗口文字
 #define MSG_GETTEXT             0x0007  //获得窗口文字
 #define MSG_GETTEXTFLENGTH      0x0008  //获得窗口文字长度
-#define MSG_REFRESH             0x0009  //刷新窗口; Param1:用户定义; Param2:用户定义
-
+#define MSG_SYNC_DISPLAY        0x0009  //同步窗口，把显示数据刷新到显示器上。
 //close消息的hwnd和param2比较特殊：MSG_CLOSE自带继承属性，那么调用用户的消息处理
 //函数时，窗口本身已经被销毁，消息的hwnd成员将被清除
 //发送MSG_CLOSE消息时，param2不用考虑，但调用用户定义的消息处理函数，该函数收到
@@ -258,7 +257,7 @@ typedef enum{
 
 #define MSG_TOUCH_DOWN          0x0130   //触摸屏触摸下触摸点
 #define MSG_TOUCH_UP            0x0131   //触摸屏离开触摸点
-#define MSG_TOUCH_MOVE          0x0132
+#define MSG_TOUCH_MOVE          0x0132   //手指在屏上滑动，Param1：X方向1mS滑动的mm数，Param2：Y方向1mS滑动的mm数
 #define MSG_NCTOUCH_DOWN        0x0133
 #define MSG_NCTOUCH_UP          0x0134
 #define MSG_NCTOUCH_MOVE        0x0135
@@ -318,6 +317,7 @@ typedef enum{
                                 //窗口必须指定了 WS_CAPTION标志时,才有效.
 #define WS_SHOW_CURSOR  (1<<23) //窗口光标是否显示
 #define WS_CAN_FOCUS    (1<<24) //窗口是否允许成为focus窗口
+#define WS_UNFILL       (1<<25) //创建窗口时是否填充，0=填充，1=不填充
 
 //#define WS_MAIN_WINDOW  (WS_BORDER|WS_DLGFRAME|WS_CAPTION|WS_SYSMENU)
 

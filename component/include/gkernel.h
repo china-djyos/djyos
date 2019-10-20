@@ -347,6 +347,22 @@ struct GkWinObj                  //窗口资源定义
 
 };
 
+//用户调用消息队列参数配置
+#define CN_USERCALL_MSGQ_SIZE   16  //用户调用消息队列容纳的最大消息数量
+#define CN_USERCALL_MSG_SIZE    64  //用户调用消息队列的每条消息最大字节数
+
+//gui kernel的user call编码,由gui kernel传给上层应用，例如gdd
+#define CN_GKUC_NULL            0   //无命令
+#define CN_GKUC_REPAINT         1   //重绘窗口
+
+struct GkucParaRepaint
+{
+    u16 command;
+    struct GkWinObj *gk_win;          //绘制的目标窗口
+    struct ClipRect *redraw_clip;  //需重绘的剪切域链表
+};
+
+
 //原始窗口操作函数组
 struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
                                   const char *DesktopName,
@@ -355,10 +371,11 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
                                   u32 BaseColor);
 struct GkWinObj *GK_GetDesktop(const char *display_name);
 struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
-                    s32 left,s32 top,s32 right,s32 bottom,
-                    u32 color,u32 buf_mode,
-                    const char *name,u16 PixelFormat,u32 HyalineColor,
-                    u32 BaseColor,struct RopGroup RopCode);
+                         s32 left,s32 top,s32 right,s32 bottom,
+                         u32 color,u32 buf_mode,
+                         const char *name,u16 PixelFormat,u32 HyalineColor,
+                         u32 BaseColor,struct RopGroup RopMode,
+                         bool_t unfill);
 void GK_FillWin(struct GkWinObj *gkwin,u32 color,u32 sync_time);
 void GK_FillRect(struct GkWinObj *gkwin,struct Rectangle *rect,
                             u32 Color0,u32 Color1,u32 Mode,u32 sync_time);

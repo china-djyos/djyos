@@ -84,6 +84,7 @@ static ptu32_t DefWindowProc_NCPAINT(struct WindowMsg *pMsg);
 static ptu32_t DefWindowProc_ERASEBKGND(struct WindowMsg *pMsg);
 static ptu32_t DefWindowProc_PAINT(struct WindowMsg *pMsg);
 static ptu32_t DefWindowProc_CLOSE(struct WindowMsg *pMsg);
+static ptu32_t DefWindowProc_SYNC(struct WindowMsg *pMsg);
 
 //默认窗口消息处理函数表，处理用户窗口过程没有处理的消息。
 static struct MsgProcTable s_gDefWindowMsgProcTable[] =
@@ -91,6 +92,7 @@ static struct MsgProcTable s_gDefWindowMsgProcTable[] =
     {MSG_NCPAINT,DefWindowProc_NCPAINT},
     {MSG_ERASEBKGND,DefWindowProc_ERASEBKGND},
     {MSG_PAINT,DefWindowProc_PAINT},
+    {MSG_SYNC_DISPLAY,DefWindowProc_SYNC},
     {MSG_CLOSE&MSG_BODY_MASK,DefWindowProc_CLOSE},
 //  {MSG_DESTROY,DefWindowProc_DESTROY},
 };
@@ -105,7 +107,7 @@ static struct MsgTableLink  s_gDefWindowMsgLink;
 //------------------------------------------------------------------------------
 bool_t    __HWND_Lock(HWND hwnd)
 {
-    bool_t result;
+    bool_t result = false;
     if(__GDD_Lock())    //不先锁住GDD，可能会死锁的
     {
         result = Lock_MutexPend(hwnd->mutex_lock, CN_TIMEOUT_FOREVER);
@@ -580,7 +582,7 @@ HWND    GetDlgItem(HWND hwnd,u16 Id)
 //------------------------------------------------------------------------------
 HWND    GetWindowFromPoint(struct GkWinObj *desktop, POINT *pt)
 {
-    struct GkWinObj *GkWin;
+    struct GkWinObj *GkWin = NULL;
     if((NULL == desktop) || (NULL == pt))
         return NULL;
     if(__GDD_Lock( ))
@@ -924,7 +926,8 @@ HWND    CreateWindow(const char *Text,u32 Style,
 //                              CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode))
             pGkWin = GK_CreateWin(hParent->pGkWin,x,y,x+w,y+h,
                                 RGB(0,0,0), BufProperty, Text,
-                                CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode);
+                                CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode,
+                                (Style & WS_UNFILL)==WS_UNFILL);
             if(!pGkWin)
             {
                 free(pGddWin);
@@ -991,7 +994,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                 GK_SetUserTag(pGkWin,pGddWin);
                 //初始化窗口数据
                 __InitWindow(pGddWin,Style,WinId);
-                UpdateDisplay(CN_TIMEOUT_FOREVER);
+//              UpdateDisplay(CN_TIMEOUT_FOREVER);
                 //将新窗口添加到父窗口
             }
         }
@@ -1043,7 +1046,7 @@ void __DeleteMainWindowData(HWND hwnd)
     __RemoveWindowTimer(hwnd);
     __GUI_DeleteMsgQ(hwnd->pMsgQ);
 //    GK_DestroyWin(hwnd->pGkWin);
-    UpdateDisplay(CN_TIMEOUT_FOREVER);
+//  UpdateDisplay(CN_TIMEOUT_FOREVER);
     Lock_MutexDelete(hwnd->mutex_lock);
 
     free(hwnd->MyMsgTableLink);
@@ -1456,8 +1459,8 @@ HDC BeginPaint(HWND hwnd)
 //------------------------------------------------------------------------------
 bool_t    EndPaint(HWND hwnd,HDC hdc)
 {
-    UpdateDisplay(CN_TIMEOUT_FOREVER);
-
+//  UpdateDisplay(CN_TIMEOUT_FOREVER);
+    PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return  DeleteDC(hdc);
 }
 
@@ -1550,6 +1553,11 @@ static ptu32_t DefWindowProc_PAINT(struct WindowMsg *pMsg)
     return true;
 }
 
+static ptu32_t DefWindowProc_SYNC(struct WindowMsg *pMsg)
+{
+    GK_SyncShow(CN_TIMEOUT_FOREVER);
+    return true;
+}
 void __InitMsg(struct WindowMsg *msg,HWND hwnd,u32 code,u32 param1,ptu32_t param2);
 //----默认的窗口关闭消息处理函数-------------------------------------
 //描述: 关闭窗口，如果是焦点窗口或者是焦点窗口的祖先窗口，就把焦点窗口转移到桌面。

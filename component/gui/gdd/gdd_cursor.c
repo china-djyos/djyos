@@ -118,15 +118,19 @@ bool_t Cursor_CheckStatus(HWND hwnd)
 //-----------------------------------------------------------------------------
 static bool_t Cursor_Flash(struct WindowMsg *pMsg)
 {
-    if(IsWindowVisible(g_ptCursorHwnd))
+    if(g_ptCursorHwnd != NULL)
     {
-         SetWindowHide(g_ptCursorHwnd);
-         UpdateDisplay(CN_TIMEOUT_FOREVER);
-    }
-    else
-    {
-         SetWindowShow(g_ptCursorHwnd);
-         UpdateDisplay(CN_TIMEOUT_FOREVER);
+        if(IsWindowVisible(g_ptCursorHwnd))
+        {
+             SetWindowHide(g_ptCursorHwnd);
+//           UpdateDisplay(CN_TIMEOUT_FOREVER);
+        }
+        else
+        {
+             SetWindowShow(g_ptCursorHwnd);
+//           UpdateDisplay(CN_TIMEOUT_FOREVER);
+        }
+        PostMessage(g_ptCursorHwnd, MSG_SYNC_DISPLAY,0,0);
     }
     return true;
 }
@@ -138,8 +142,11 @@ static bool_t Cursor_Flash(struct WindowMsg *pMsg)
 //-----------------------------------------------------------------------------
 void Cursor_SetShow( void )
 {
-    SetWindowShow(g_ptCursorHwnd);
-    GDD_StartTimer( sg_tpCursorTimer );
+    if(g_ptCursorHwnd != NULL)
+    {
+        SetWindowShow(g_ptCursorHwnd);
+        GDD_StartTimer( sg_tpCursorTimer );
+    }
 }
 
 //----隐藏光标-----------------------------------------------------------------
@@ -149,8 +156,11 @@ void Cursor_SetShow( void )
 //-----------------------------------------------------------------------------
 void Cursor_SetHide( void )
 {
-    SetWindowHide(g_ptCursorHwnd);
-    GDD_StopTimer( sg_tpCursorTimer );
+    if(g_ptCursorHwnd != NULL)
+   {
+         SetWindowHide(g_ptCursorHwnd);
+         GDD_StopTimer( sg_tpCursorTimer );
+    }
 }
 
 //----移动光标-----------------------------------------------------------------
@@ -160,7 +170,8 @@ void Cursor_SetHide( void )
 //-----------------------------------------------------------------------------
 void Cursor_Offset( s32 deltaX , s32 deltaY )
 {
-    OffsetWindow(g_ptCursorHwnd, deltaX, deltaY);
+    if(g_ptCursorHwnd != NULL)
+        OffsetWindow(g_ptCursorHwnd, deltaX, deltaY);
 }
 
 //----移动光标-----------------------------------------------------------------
@@ -170,7 +181,8 @@ void Cursor_Offset( s32 deltaX , s32 deltaY )
 //-----------------------------------------------------------------------------
 void Cursor_Move( s32 absX , s32 absY )
 {
-    MoveWindow(g_ptCursorHwnd, absX, absY);
+    if(g_ptCursorHwnd != NULL)
+        MoveWindow(g_ptCursorHwnd, absX, absY);
 }
 
 //----设置光标的宿主窗口-------------------------------------------------------
@@ -180,7 +192,8 @@ void Cursor_Move( s32 absX , s32 absY )
 //-----------------------------------------------------------------------------
 void Cursor_SetHost(HWND HostWin)
 {
-    GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
+    if(g_ptCursorHwnd != NULL)
+        GK_AdoptWin(g_ptCursorHwnd->pGkWin, HostWin->pGkWin);
 }
 //光标消息处理函数链表
 static struct MsgProcTable s_gCursorMsgProcTable[]=

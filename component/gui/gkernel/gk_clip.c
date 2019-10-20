@@ -975,7 +975,7 @@ void __GK_ClipLinkSub(struct ClipRect *src,struct ClipRect *sub,
     *different = difftemp;
     *ins = clip_ints;
 }
-//----取得新增可视域-----------------------------------------------------------
+//----取得新增重绘域-----------------------------------------------------------
 //功能: 出现在visible_clip中且不在visible_bak的区域，加入redraw_clip。
 //      同时出现在visible_clip和visible_bak中的部分，留在visible_clip中
 //      如果dest_blend==true，则仅在visible_bak出现的部分留在visible_bak
@@ -1045,6 +1045,7 @@ struct ClipRect *__GK_GetClipLinkInts(struct ClipRect **srcclip,
 //      8、合并前几步产生的redraw_clip队列。
 //      9、从z_top起，对任一dest_blend == true的win的visible_clip，扫描z轴中在其
 //         后面的win的redraw_clip，重叠的部分加入redraw_clip队列，并合并之。
+//      10、从copy_clip中恢复visible_clip
 //参数: display，被扫描的显示器
 //返回: false=失败，一般是因为剪切域池容量不够
 //-----------------------------------------------------------------------------
@@ -1216,7 +1217,7 @@ bool_t __GK_GetRedrawClipAll(struct DisplayObj *display)
         special_win = special_win->z_back;
     }while(special_win != display->desktop);
 
-    //恢复visible_clip
+    //执行step10，从copy_clip中恢复visible_clip
     tempwin = display->z_topmost;
     while(1)
     {

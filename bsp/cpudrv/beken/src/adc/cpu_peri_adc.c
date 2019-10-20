@@ -239,7 +239,7 @@ static void temp_single_detect_handler2(void)
     if(tmp_single_desc.current_sample_data_cnt >= tmp_single_desc.data_buff_size)
     {
         #if (CFG_SOC_NAME != SOC_BK7231)
-        UINT32 sum = 0, sum1, sum2;
+        UINT32 sum = 0, sum1, sum2=0;
         //turnon_PA_in_temp_dect();
 //        temp_single_get_disable();
         printf("buff:%p,%d,%d,%d,%d,%d\r\n", tmp_single_desc.pData,

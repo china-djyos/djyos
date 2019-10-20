@@ -69,6 +69,7 @@
 #include "systime.h"
 #include "gkernel.h"
 #include "gk_syscall.h"
+#include "gk_usercall.h"
 #include "gk_win.h"
 #include <gui/gkernel/gk_display.h>
 //----创建桌面-----------------------------------------------------------------
@@ -158,7 +159,8 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,
                          u32 color,u32 buf_mode,
                          const char *name,u16 PixelFormat,u32 HyalineColor,
-                         u32 BaseColor,struct RopGroup RopMode)
+                         u32 BaseColor,struct RopGroup RopMode,
+                         bool_t unfill)
 {
     struct GkscParaCreateGkwin para;
     struct GkWinObj *result;
@@ -178,6 +180,7 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
     para.HyalineColor = HyalineColor;
     para.BaseColor = BaseColor;
     para.RopCode = RopMode;
+    para.unfill = unfill;
     __GK_SyscallChunnel(CN_GKSC_CREAT_GKWIN,CN_TIMEOUT_FOREVER,
                             &para,sizeof(para),NULL,0);
     if(*para.result == NULL)
@@ -189,11 +192,11 @@ struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
         //非buf窗口不能再创建同时填充的原因是,填充非buf窗口是直接绘制在screen
         //或者framebuffer上的,而创建窗口时,剪切域尚未建立.直到调用 GK_SyncShow
         //后，可视域才能创建好。
-        if((result)->wm_bitmap == NULL)   //wm_bitmap==NULL 表示无窗口缓冲区。
-        {
-            GK_SyncShow(CN_TIMEOUT_FOREVER);
-            GK_FillWin(result,color,0);
-        }
+//      if((result)->wm_bitmap == NULL)   //wm_bitmap==NULL 表示无窗口缓冲区。
+//      {
+//          GK_SyncShow(CN_TIMEOUT_FOREVER);
+//          GK_FillWin(result,color,0);
+//      }
         return result;
     }
 }
@@ -970,3 +973,27 @@ bool_t GK_IsWinVisible(struct GkWinObj *gkwin)
     else
         return true;
 }
+
+extern struct GkChunnel g_tGkChunnel;
+
+u32 GK_ReadRequest(u8 *Request, u16 bufsize, u32 timeout)
+{
+    u16 id,size;
+
+    if(bufsize > CN_USERCALL_MSG_SIZE)
+        size = CN_USERCALL_MSG_SIZE;
+    else
+        size = bufsize;
+
+    if(MsgQ_Receive(g_tGkChunnel.usercall_msgq,Request,size,timeout))
+    {
+//      id   = *Request + *((Request+1)<<8);
+//      size = Request[1];
+//      Request = &Request[4];
+        id = *(u16*)Request;
+        return id;
+    }
+    else
+        return CN_GKUC_NULL;
+}
+

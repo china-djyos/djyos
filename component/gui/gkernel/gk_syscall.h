@@ -129,6 +129,7 @@ struct GkscParaCreateGkwin
     u32 BaseColor  ;                //灰度图基色(当pf_type == CN_SYS_PF_GRAY1 ~8)
                                     //pf_type取其他值时不需要此参数
     struct RopGroup RopCode;        //窗口的光栅属性，在windows的光栅操作码的基础上有扩展
+    bool_t unfill;                  //true表示新建窗口不填充。
 };
 struct GkscParaFillWin
 {

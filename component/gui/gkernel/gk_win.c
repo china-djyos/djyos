@@ -107,7 +107,7 @@ extern struct MemCellPool *g_ptClipRectPool; //from gk_clip.c
 struct ClipRect g_tClipRect[CN_CLIP_INIT_NUM];
 struct GkWinObj *g_ptZ_Topmost;
 
-struct SemaphoreLCB *g_ptUsercallSemp;
+//struct SemaphoreLCB *g_ptUsercallSemp;
 //如果调用方希望gui kernel服务完成再返回，使用这个信号量
 struct SemaphoreLCB *g_ptSyscallSemp;
 struct SemaphoreLCB *g_ptGkServerSync;
@@ -119,8 +119,8 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr);
 // 2、z_prio成员影响win在其兄弟结点中的位置，越小越前端
 // 3、z_prio一般设为0，<=0均遮盖父窗口，若>0则被父窗口遮盖
 
-u8 draw_chunnel_buf[CFG_GKERNEL_CMD_DEEP];
-u8 writh_chunnel_buf[CFG_GKERNEL_CMD_DEEP];
+static u8 draw_chunnel_buf[CFG_GKERNEL_CMD_DEEP];   //把环形缓冲区中的数据一次全部读出
+static u8 write_chunnel_buf[CFG_GKERNEL_CMD_DEEP];  //用于和上层交互的环形缓冲区
 //----初始化gui模块---------------------------------------------------------
 //功能: 初始化gui模块，在资源队列中增加必要的资源结点
 //参数: 模块初始化函数，没有参数
@@ -131,7 +131,7 @@ bool_t ModuleInstall_GK(void)
     s_ptDisplayDir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "display");
     s_ptWindowDir = obj_newchild(obj_root(), (fnObjOps)-1, 0, "gkwindow");
 
-    Ring_Init(&g_tGkChunnel.ring_syscall,(u8 *)writh_chunnel_buf,CFG_GKERNEL_CMD_DEEP);
+    Ring_Init(&g_tGkChunnel.ring_syscall,(u8 *)write_chunnel_buf,CFG_GKERNEL_CMD_DEEP);
 
     g_tGkChunnel.syscall_mutex = Lock_MutexCreate("gui chunnel to gk mutex");
 //  g_tGkChunnel.syscall_semp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gui chunnel to gk semp");
@@ -139,17 +139,15 @@ bool_t ModuleInstall_GK(void)
 
     g_tGkChunnel.usercall_msgq = MsgQ_Create(CN_USERCALL_MSGQ_SIZE,CN_USERCALL_MSG_SIZE,0);
 
-
-
 //  g_ptGkServerSync = Lock_MutexCreate("gk server sync");
     g_ptGkServerSync = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk server sync");
-    g_ptUsercallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait repaint");
+//  g_ptUsercallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait repaint");
     g_ptSyscallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait job");
     g_u16GkServerEvtt = Djy_EvttRegist(EN_CORRELATIVE,249,0,0,__GK_Server,
                                     NULL,8120,"gui kernel server");
 
-    g_u16GkUsercallServerEvtt= Djy_EvttRegist(EN_CORRELATIVE,249,0,0,
-                    __GK_UsercallServer,NULL,4096,"gkernel usercall server");
+//  g_u16GkUsercallServerEvtt= Djy_EvttRegist(EN_CORRELATIVE,249,0,0,
+//                  __GK_UsercallServer,NULL,4096,"gkernel usercall server");
 
     g_ptClipRectPool = Mb_CreatePool(&g_tClipRect,
                                   CN_CLIP_INIT_NUM,
@@ -157,13 +155,13 @@ bool_t ModuleInstall_GK(void)
                                   100,2000, "clip area");
 
     g_u16GkServerEvent = Djy_EventPop(g_u16GkServerEvtt,NULL,0,0,0,0);
-    g_u16GkUsercallServerEvent = Djy_EventPop(g_u16GkUsercallServerEvtt,NULL,0,0,0,0);
+//  g_u16GkUsercallServerEvent = Djy_EventPop(g_u16GkUsercallServerEvtt,NULL,0,0,0,0);
 
     if(    (g_ptClipRectPool == NULL)
         || (g_u16GkServerEvent == CN_EVENT_ID_INVALID)
         || (g_u16GkUsercallServerEvent == CN_EVENT_ID_INVALID)
         || (g_ptSyscallSemp == NULL)
-        || (g_ptUsercallSemp == NULL)
+//      || (g_ptUsercallSemp == NULL)
         || (g_ptGkServerSync == NULL)
         || (g_tGkChunnel.usercall_semp == NULL)
 //      || (g_tGkChunnel.syscall_semp == NULL)
@@ -180,7 +178,7 @@ exit_error:
     Djy_EvttUnregist(g_u16GkServerEvtt);
     Djy_EvttUnregist(g_u16GkUsercallServerEvtt);
     Lock_SempDelete(g_ptSyscallSemp);
-    Lock_SempDelete(g_ptUsercallSemp);
+//  Lock_SempDelete(g_ptUsercallSemp);
     Lock_SempDelete(g_ptGkServerSync);
 //  Lock_MutexDelete(g_ptGkServerSync);
     Lock_SempDelete(g_tGkChunnel.usercall_semp);
@@ -573,7 +571,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     clip->rect.right = display->width;
     clip->rect.bottom = display->height;
     desktop->visible_clip = clip;
-    desktop->visible_bak = NULL;
+    desktop->visible_bak = clip;
 
     //用给定的颜色填充桌面
     para_fill.gkwin = desktop;
@@ -794,13 +792,14 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     }
     //设置窗口的可见边界，不受窗口互相遮挡影响，必须设置资源队列后才能调用
     __GK_SetBound(gkwin);
-
     gkwin->visible_clip = NULL;
     gkwin->visible_bak = NULL;
-    display->reset_clip = true;
+    __GK_ScanNewVisibleClip(display);
+//  display->reset_clip = true;
     para_fill.gkwin = gkwin;
     para_fill.color = para->color;
-    __GK_FillWin(&para_fill); //对于无缓冲的窗口，因visible_clip空，本句实际无效。
+    if( ! para->unfill)
+        __GK_FillWin(&para_fill);
 
     return gkwin;
 }
@@ -1565,33 +1564,41 @@ void __GK_OutputRedraw(struct DisplayObj *display)
         //在没有缓冲区的情况下，绘制操作是不会生成redraw_clip的，只有窗口管理
         //操作才会要求重绘。
         gkwin = desktop_gkwin;
-        do{
+        while(1)
+        {
             clip = gkwin->redraw_clip;
             if(clip != NULL)
             {
+                repaint.command = CN_GKUC_REPAINT;
                 repaint.gk_win = (void*)gkwin;
                 repaint.redraw_clip = clip;
 
-                __GK_PostUsercall(CN_GKUC_REPAINT,(void*)&repaint,sizeof(struct GkucParaRepaint));
+                __GK_UsercallChunnel((void*)&repaint,sizeof(struct GkucParaRepaint),
+                                     1000*mS);
 
-                //等待用户完成重绘操作，超时(1秒)不候
-                gkwin->redraw_clip = __GK_FreeClipQueue(gkwin->redraw_clip);
+                gkwin->redraw_clip = __GK_FreeClipQueue(clip);
             }
-            gkwin = gkwin->z_top;
-        }while(gkwin != topwin->z_top);
+            if(gkwin != topwin)
+                gkwin = gkwin->z_top;
+            else
+                break;
+        }
     }else                                           //有帧缓冲
     {
         gkwin = desktop_gkwin;
-        do{
+        while(1)
+        {
             clip = gkwin->redraw_clip;
             if(clip != NULL)
             {
                 if(gkwin->wm_bitmap == NULL)   //无窗口缓冲
                 {
+                    repaint.command = CN_GKUC_REPAINT;
                     repaint.gk_win = (void*)gkwin;
                     repaint.redraw_clip = clip;
 
-                    __GK_PostUsercall(CN_GKUC_REPAINT,(void*)&repaint,sizeof(struct GkucParaRepaint));
+                    __GK_UsercallChunnel((void*)&repaint,sizeof(struct GkucParaRepaint),
+                                            1000*mS);
 
                     //等待用户完成重绘操作，超时(1秒)不候
                 }else                                   //有窗口缓冲
@@ -1658,8 +1665,11 @@ void __GK_OutputRedraw(struct DisplayObj *display)
                 }
                 gkwin->redraw_clip = __GK_FreeClipQueue(gkwin->redraw_clip);
             }
-            gkwin = gkwin->z_top;
-        }while(gkwin != topwin->z_top);
+            if(gkwin != topwin)
+                gkwin = gkwin->z_top;
+            else
+                break;
+        }
         //以下把帧缓冲区输出到显示器
         clip = __GK_GetChangedClip(frame_buf);  //获取帧缓冲中被修改的可视域
         if(clip != NULL)
@@ -1762,19 +1772,24 @@ void __gk_RefreshDisplay(struct DisplayObj *Display)
     {
         //在没有缓冲区的情况下，直接把visible_clip作为重绘域上传。
         gkwin = desktop_gkwin;
-        do{
+        while(1)
+        {
             clip = gkwin->visible_clip;
             if(clip != NULL)
             {
+                repaint.command = CN_GKUC_REPAINT;
                 repaint.gk_win = (void*)gkwin;
                 repaint.redraw_clip = clip;
-                __GK_PostUsercall(CN_GKUC_REPAINT,
-                                  (void*)&repaint,sizeof(struct GkucParaRepaint));
+                __GK_UsercallChunnel((void*)&repaint,sizeof(struct GkucParaRepaint),
+                                        1000*mS);
                 //等待用户完成重绘操作，超时(1秒)不候
-                Lock_SempPend(g_ptUsercallSemp,0);
+//              Lock_SempPend(g_ptUsercallSemp,0);
             }
-            gkwin = gkwin->z_top;
-        }while(gkwin != topwin->z_top);
+            if(gkwin != topwin)
+                gkwin = gkwin->z_top;
+            else
+                break;
+        }
     }else                                           //有帧缓冲
     {
         rect.left = 0;
@@ -1909,20 +1924,23 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
 //      size: 消息参数内容字节数(不包括消息ID所占字节)
 //返回: ture:成功; false:失败
 //-----------------------------------------------------------------------------
-bool_t  __GK_PostUsercall(u16 usercall_id,void *pdata,u16 size)
+bool_t  __GK_UsercallChunnel(void *pdata,u16 size,u32 timeout)
 {
-    u8 buf[2+2+CN_USERCALL_MSG_SIZE];
+//  printf("call usercall\r\n");
+//  u8 buf[CN_USERCALL_MSG_SIZE];
+//
+//  if((size + 4) > CN_USERCALL_MSG_SIZE)
+//  {
+//      return false;
+//  }
+//
+//  memcpy(&buf[0],&usercall_id,2);
+//  memcpy(&buf[2],&size,2);
+//  *(u16 *)&buf[0] = usercall_id;
+//  *(u16 *)&buf[2] = size;
+//  memcpy(&buf[4],pdata,size);
 
-    if(size>CN_USERCALL_MSG_SIZE)
-    {
-        return false;
-    }
-
-    memcpy(&buf[0],&usercall_id,2);
-    memcpy(&buf[2],&size,2);
-    memcpy(&buf[4],pdata,size);
-
-    return  MsgQ_Send(g_tGkChunnel.usercall_msgq,buf,size+2+2,1000*mS,true);
+//  return  MsgQ_Send(g_tGkChunnel.usercall_msgq,pdata,size,timeout,CN_MSGQ_PRIO_NORMAL);
 }
 
 
@@ -2107,44 +2125,43 @@ u32 __ExecOneCommand(u16 DrawCommand,u8 *ParaAddr)
     return result;
 }
 
-ptu32_t __GK_UsercallServer(void)
-{
-    u16 buf[CN_USERCALL_MSG_SIZE/2];
-    u16 id,size;
-
-    while(1)
-    {
-        if(MsgQ_Receive(g_tGkChunnel.usercall_msgq,(u8*)buf,CN_USERCALL_MSG_SIZE,1000*mS))
-        {
-            id   =buf[0];
-            size =buf[1];
-
-            switch(id)
-            {
-                case CN_GKUC_REPAINT:
-                {
-                    struct GkucParaRepaint *repaint;
-
-                    if(size==sizeof(struct GkucParaRepaint))
-                    {
-                        repaint =(struct GkucParaRepaint*)&buf[2];
-#warning liuwei,代码空缺，补全。
-                        //printk("usercall:CN_GKUC_REPAINT,gkwin=%08XH\r\n",repaint->gk_win);
-                    }
-                }
-                break;
-                ////
-
-                default:
-                {
-                    printf("unknow usercall id: %08XH\r\n",id);
-                }
-                break;
-                ////
-            }
-        }
-    }
-}
+//ptu32_t __GK_UsercallServer(void)
+//{
+//    u16 buf[CN_USERCALL_MSG_SIZE/2];
+//    u16 id,size;
+//
+//    while(1)
+//    {
+//        if(MsgQ_Receive(g_tGkChunnel.usercall_msgq,(u8*)buf,CN_USERCALL_MSG_SIZE,1000*mS))
+//        {
+//            id   =buf[0];
+//            size =buf[1];
+//
+//            switch(id)
+//            {
+//                case CN_GKUC_REPAINT:
+//                {
+//                    struct GkucParaRepaint *repaint;
+//
+//                    if(size==sizeof(struct GkucParaRepaint))
+//                    {
+//                        repaint =(struct GkucParaRepaint*)&buf[2];
+//                        //printk("usercall:CN_GKUC_REPAINT,gkwin=%08XH\r\n",repaint->gk_win);
+//                    }
+//                }
+//                break;
+//                ////
+//
+//                default:
+//                {
+//                    printf("unknow usercall id: %08XH\r\n",id);
+//                }
+//                break;
+//                ////
+//            }
+//        }
+//    }
+//}
 
 //----gui kernel服务器---------------------------------------------------------
 //功能: 从缓冲区取出显示请求，并处理之。

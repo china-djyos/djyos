@@ -48,6 +48,7 @@
 #include <string.h>
 #include "heap.h"
 #include "int.h"
+#include "align.h"
 
 #ifdef    DEBUG
 #define   HEAP_AEESRT(x)   while(!(x));
@@ -202,10 +203,15 @@ static tagBlockHeader * BlockPrev(const tagBlockHeader * block)
 static tagBlockHeader * BlockNext(tagHeadControl * control,const tagBlockHeader * block)
 {
     tagBlockHeader * next = OffsetToBlock(BlockToPtr(block), BlockGetSize(block));
-    HEAP_AEESRT(!BlockIsLast(block));
-    if((size_t)next>=(size_t)(control->last_addr))
-          return NULL;
-    return next;
+//  HEAP_AEESRT(!BlockIsLast(block));
+    if(!BlockIsLast(block))
+    {
+        if((size_t)next>=(size_t)(control->last_addr))
+            return NULL;
+        else
+            return next;
+    }
+    return NULL;
 }
 
 // =============================================================================
@@ -287,34 +293,12 @@ static uint16_t BlockFindFitLevel(size_t size)
     return i;
 }
 
-// =============================================================================
-// 功能：向上对齐
-// 参数：
-// 返回：
-// =============================================================================
-size_t AlignUp(size_t x, size_t align)
-{
-    HEAP_AEESRT(0 == (align & (align - 1)) && "must align to a power of two");
-    return (x + (align - 1)) & ~(align - 1);
-}
-
-// =============================================================================
-// 功能：向下对齐
-// 参数：
-// 返回：
-// =============================================================================
-size_t AlignDown(size_t x, size_t align)
-{
-    HEAP_AEESRT(0 == (align & (align - 1)) && "must align to a power of two");
-    return x - (x & (align - 1));
-}
-
-void * AlignPtr(const void * ptr, size_t align)
-{
-    const size_t *aligned = (size_t*)(((size_t)ptr + (align - 1)) & ~(align - 1));
-    HEAP_AEESRT(0 == (align & (align - 1)) && "must align to a power of two");
-    return (void*)aligned;
-}
+//void * AlignPtr(const void * ptr, size_t align)
+//{
+//    const size_t *aligned = (size_t*)(((size_t)ptr + (align - 1)) & ~(align - 1));
+//    HEAP_AEESRT(0 == (align & (align - 1)) && "must align to a power of two");
+//    return (void*)aligned;
+//}
 
 // =============================================================================
 // 功能：把找到size值所对应的档位
@@ -326,7 +310,7 @@ static uint32_t AdjustRequestSize(size_t size, size_t align)
     uint32_t adjust_id = 0;
     if (size)
     {
-        const size_t aligned = AlignUp(size, align);
+        const size_t aligned = align_up(align, size);
         adjust_id = BlockFindFitLevel(aligned);
     }
     return adjust_id;
@@ -340,8 +324,8 @@ static uint32_t AdjustRequestSize(size_t size, size_t align)
 static void BlockRemove(tagHeadControl * control, tagBlockHeader * block)
 {
     uint16_t id = 0;
-    HEAP_AEESRT(!((block->next_free==NULL)&&(block->prev_free!=NULL)));
-    HEAP_AEESRT(!((block->next_free!=NULL)&&(block->prev_free==NULL)));
+//  HEAP_AEESRT(!((block->next_free==NULL)&&(block->prev_free!=NULL)));
+//  HEAP_AEESRT(!((block->next_free!=NULL)&&(block->prev_free==NULL)));
     if(block->next_free!=NULL)
     {
         block->prev_free->next_free = block->next_free;
@@ -407,16 +391,22 @@ BlockSplit(tagHeadControl * control,tagBlockHeader * block, uint32_t level)
     tagBlockHeader* remaining = OffsetToBlock(BlockToPtr(block), size);
     const size_t remain_size = BlockGetSize(block) - (size + BLOCK_HEADER_OFFSET);
 
-    HEAP_AEESRT(BlockToPtr(remaining) ==
-            AlignPtr(BlockToPtr(remaining), BLOCK_ALIGN_SIZE) && "remaining block not aligned properly");
-    HEAP_AEESRT(BlockGetSize(block) == remain_size + size + BLOCK_HEADER_OFFSET);
-    BlockSetSize(remaining, remain_size);
-    HEAP_AEESRT(BlockGetSize(remaining) >= heap_mem_list[0] && "block split with invalid size");
-
-    BlockSetSize(block, size);
-    BlockMarkAsFree(control,remaining);
-
-    return remaining;
+    if(BlockToPtr(remaining) ==align_down(BLOCK_ALIGN_SIZE, BlockToPtr(remaining)))
+    {
+//      HEAP_AEESRT(BlockGetSize(block) == remain_size + size + BLOCK_HEADER_OFFSET);
+        BlockSetSize(remaining, remain_size);
+//      HEAP_AEESRT(BlockGetSize(remaining) >= heap_mem_list[0] && "block split with invalid size");
+        if(BlockGetSize(remaining) >= heap_mem_list[0])
+        {
+            BlockSetSize(block, size);
+            BlockMarkAsFree(control,remaining);
+            return remaining;
+        }
+        else
+            return NULL;
+    }
+    else
+        return NULL;
 }
 
 // =============================================================================
@@ -427,10 +417,15 @@ BlockSplit(tagHeadControl * control,tagBlockHeader * block, uint32_t level)
 static tagBlockHeader *
 BlockAbsorb(tagHeadControl * control,tagBlockHeader * prev, tagBlockHeader * block)
 {
-    HEAP_AEESRT(!BlockIsLast(prev) && "previous block can't be last!");
-    prev->size += BlockGetSize(block) + BLOCK_HEADER_OFFSET;
-    BlockLinkNext(control,prev);
-    return prev;
+//  HEAP_AEESRT(!BlockIsLast(prev) && "previous block can't be last!");
+    if(!BlockIsLast(prev))
+    {
+        prev->size += BlockGetSize(block) + BLOCK_HEADER_OFFSET;
+        BlockLinkNext(control,prev);
+        return prev;
+    }
+    else
+        return NULL;
 }
 
 // =============================================================================
@@ -443,8 +438,12 @@ static tagBlockHeader * BlockMergePrev(tagHeadControl * control, tagBlockHeader 
     if (BlockIsPrevFree(block))
     {
         tagBlockHeader* prev = BlockPrev(block);
-        HEAP_AEESRT(prev && "prev physical block can't be null");
-        HEAP_AEESRT(BlockIsFree(prev) && "prev block is not free though marked as such");
+        if(prev == NULL)
+            return NULL;
+//      HEAP_AEESRT(prev && "prev physical block can't be null");
+        if( ! BlockIsFree(prev))
+            return NULL;
+//      HEAP_AEESRT(BlockIsFree(prev) && "prev block is not free though marked as such");
         BlockRemove(control, prev);
         block = BlockAbsorb(control,prev, block);
     }
@@ -464,7 +463,9 @@ static tagBlockHeader * BlockMergeNext(tagHeadControl * control, tagBlockHeader 
         return NULL;
     if (BlockIsFree(next))
     {
-        HEAP_AEESRT(!BlockIsLast(block) && "previous block can't be last!");
+//      HEAP_AEESRT(!BlockIsLast(block) && "previous block can't be last!");
+        if(BlockIsLast(block))
+            return NULL;
         BlockRemove(control, next);
         block = BlockAbsorb(control,block, next);
     }
@@ -478,13 +479,15 @@ static tagBlockHeader * BlockMergeNext(tagHeadControl * control, tagBlockHeader 
 // =============================================================================
 static void BlockTrimFree(tagHeadControl * control, tagBlockHeader * block, uint32_t level)
 {
-    HEAP_AEESRT(BlockIsFree(block) && "block must be free");
-    if (BlockCanSplit(block, level))
+    if(BlockIsFree(block))
     {
-        tagBlockHeader* remaining_block = BlockSplit(control,block, level);
-        BlockLinkNext(control,block);
-        BlockSetPrevFree(remaining_block);
-        BlockInsert(control, remaining_block);
+        if (BlockCanSplit(block, level))
+        {
+            tagBlockHeader* remaining_block = BlockSplit(control,block, level);
+            BlockLinkNext(control,block);
+            BlockSetPrevFree(remaining_block);
+            BlockInsert(control, remaining_block);
+        }
     }
 }
 
@@ -496,28 +499,34 @@ static void BlockTrimFree(tagHeadControl * control, tagBlockHeader * block, uint
 static tagBlockHeader * BlockLocateFree(tagHeadControl * control, uint32_t level)
 {
     tagBlockHeader * block = NULL;
-    HEAP_AEESRT(level<HEAD_LIST_NUM);
-SEARCH_MEM:
-    if(level>=HEAD_LIST_NUM)
+//  HEAP_AEESRT(level<HEAD_LIST_NUM);
+    if(!(level<HEAD_LIST_NUM))
         return NULL;
-    if(control->mem_lst[level]!=NULL)
+//SEARCH_MEM:
+    while(1)
     {
-        block = control->mem_lst[level];
-        if(block->next_free==block)
-            control->mem_lst[level] = NULL;
+        if(level>=HEAD_LIST_NUM)
+            return NULL;
+        if(control->mem_lst[level]!=NULL)
+        {
+            block = control->mem_lst[level];
+            if(block->next_free==block)
+                control->mem_lst[level] = NULL;
+            else
+            {
+                block->next_free->prev_free = block->prev_free;
+                block->prev_free->next_free = block->next_free;
+                control->mem_lst[level] = block->next_free;
+            }
+            block->next_free = NULL;
+            block->prev_free = NULL;
+            break;
+        }
         else
         {
-            block->next_free->prev_free = block->prev_free;
-            block->prev_free->next_free = block->next_free;
-            control->mem_lst[level] = block->next_free;
+            level++;
+//            goto SEARCH_MEM;
         }
-        block->next_free = NULL;
-        block->prev_free = NULL;
-    }
-    else
-    {
-        level++;
-        goto SEARCH_MEM;
     }
     return block;
 }
@@ -568,7 +577,8 @@ static void __Free(tagHeadControl * control, void * ptr)
     if (ptr)
     {
         tagBlockHeader * block = BlockFromPtr(ptr);
-        HEAP_AEESRT(!BlockIsFree(block) && "block already marked as free");
+        if(BlockIsFree(block))
+            return;
         BlockMarkAsFree(control,block);
         block = BlockMergePrev(control, block);
         block = BlockMergeNext(control, block);
@@ -606,10 +616,10 @@ bool_t DjyMemInit(tagHeadControl *control,void *mem,size_t size)
         return false;
     low = Int_LowAtomStart();
     ControlConstruct(control);
-    block = (tagBlockHeader*)AlignUp((size_t)mem,BLOCK_ALIGN_SIZE);
-    HEAP_AEESRT((size_t)block<=(size_t)mem);
-    if((size_t)block<(size_t)mem)
-        return false;
+    block = (tagBlockHeader*)align_up(BLOCK_ALIGN_SIZE,(size_t)mem);
+//  HEAP_AEESRT((size_t)block<=(size_t)mem);
+//  if((size_t)block<(size_t)mem)
+//      return false;
     block->size = size +  (size_t)block - (size_t)mem - sizeof(tagBlockHeader);
     block->prev_phys_block = NULL;
     block->next_free = block;

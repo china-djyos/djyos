@@ -162,7 +162,7 @@ void GDD_HmiInput(void)
             else
                 hwnd = GetWindowFromPoint(GetDesktopWindow()->pGkWin, &pt);
             //MoveWindow(sg_pMouseHwnd, pt.x-4, pt.y-4);
-            UpdateDisplay(CN_TIMEOUT_FOREVER);
+//          UpdateDisplay(CN_TIMEOUT_FOREVER);
             if(hwnd != NULL)
             {
                 GetClientRectToScreen(hwnd,&rc);

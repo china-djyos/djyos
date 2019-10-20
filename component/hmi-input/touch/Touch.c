@@ -126,9 +126,9 @@ ptu32_t Touch_Scan(void)
         while(1)
         {
             ob = obj_foreach_scion(StdinObj->HostObj,TouchObj->HostObj);
-            TouchObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
-            if(TouchObj == NULL)
+            if(ob == NULL)
                 break;
+            TouchObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
 
             if(TouchObj->input_type != EN_HMIIN_SINGLE_TOUCH)
                 continue;

@@ -285,16 +285,16 @@ OSStatus test_flash_read_time(volatile uint32_t start_addr, uint32_t len)
     flash_hdl = ddev_open(FLASH_DEV_NAME, &status, 0);
     ASSERT(DD_HANDLE_UNVALID != flash_hdl);
 //    beken_time_get_time((beken_time_t *)&time_start);
-    os_printf("read time start:%d\r\n", time_start);
+//    os_printf("read time start:%d\r\n", time_start);
 	for(;addr<tmp;addr+=256)
 	{
 		os_memset(buf,0,256);
     	ddev_read(flash_hdl, buf, 256, addr);
 	}
 //    beken_time_get_time((beken_time_t *)&time_end);
-    os_printf("read time end:%d\r\n", time_end);
+//    os_printf("read time end:%d\r\n", time_end);
 
-    os_printf("cost time:%d\r\n", time_end - time_start);
+//    os_printf("cost time:%d\r\n", time_end - time_start);
 	
 	return kNoErr;
 }

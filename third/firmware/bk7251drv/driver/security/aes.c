@@ -42,7 +42,7 @@ void hal_aes_encrypt(void *ctx, const u8 *plain, u8 *cipher)
 
     aes_drv_desc->aes_block = (unsigned long *)plain;
     aes_drv_desc->encode    = ENCODE;
-    if (security_aes_init(aes_drv_desc) != 0)
+    if (i = security_aes_init(aes_drv_desc) != 0)
     {
         os_printf("aes %d encrypt failed\r\n", i);
         return;
@@ -66,7 +66,7 @@ void hal_aes_decrypt(void *ctx, const u8 *cipher, u8 *plain)
 
     aes_drv_desc->aes_block = (unsigned long *)cipher;
     aes_drv_desc->encode    = DECODE;
-    if (security_aes_init(aes_drv_desc) != 0)
+    if (i = security_aes_init(aes_drv_desc) != 0)
     {
         os_printf("aes %d encrypt failed\r\n", i);
         return;

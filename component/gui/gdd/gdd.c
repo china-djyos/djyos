@@ -108,14 +108,24 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
     GDD_WindowInit();
     GDD_TimerInit();
     GDD_InputDevInit( );
-    if(pGddWin != NULL)
-    {
-        if(Cursor_Init())
-            SetFocusWindow(pGddWin);
-    }
-    ////gdd_input
+//  if(pGddWin != NULL)
+//  {
+//      if(Cursor_Init())
+//          SetFocusWindow(pGddWin);
+//  }
+    SetFocusWindow(pGddWin);
+
+    //gdd¶¨Ê±Æ÷É¨Ãè
     evtt = Djy_EvttRegist(  EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
                           GDD_TimerScan, NULL,2048,"gdd timer");
+    if (evtt != CN_EVTT_ID_INVALID)
+    {
+        Djy_EventPop(evtt, NULL, 0, 0, 0, 0);
+    }
+
+
+    evtt = Djy_EvttRegist(  EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                          GDD_GetGK_Message, NULL,2048,"wait gk task");
     if (evtt != CN_EVTT_ID_INVALID)
     {
         Djy_EventPop(evtt, NULL, 0, 0, 0, 0);

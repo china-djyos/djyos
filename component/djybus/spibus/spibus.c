@@ -666,7 +666,7 @@ s32 SPI_PortRead( struct SPI_CB *SPI,u8 *buf,u32 len)
 // =============================================================================
 s32 SPI_PortWrite(struct SPI_CB *SPI,u8 *buf,u32 len)
 {
-    u32 cpylen;
+    u32 cpylen=0;
     if((len > 0) && (SPI->Frame.RecvLen > 0))
     {
         cpylen = SPI->Frame.RecvLen >= len ?len:SPI->Frame.RecvLen;

@@ -808,7 +808,7 @@ static u16 gPortEngineTcp = 1024;//usually, the dynamic port is more than 1024
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static struct tagSocket * __tcpsocket(s32 family, s32 type, s32 protocal)
 {
-    struct tagSocket    *sock,*tmp;
+    struct tagSocket    *sock = NULL,*tmp;
     u16           findtime = 0;
     if(AF_INET == family)
     {
@@ -1821,7 +1821,7 @@ static s32 __shutdownWR(struct tagSocket *sock)
 // =============================================================================
 static s32 __tcpshutdown(struct tagSocket *sock, u32 how)
 {
-    s32    result;
+    s32    result = -1;
 
     if((CN_SOCKET_CLIENT&sock->sockstat)&&\
         mutex_lock(sock->SockSync))
@@ -2193,7 +2193,7 @@ static s32 __setsockopt_tcp(struct tagSocket *sock,s32 optname,const void *optva
 static s32 __tcpsetsockopt(struct tagSocket *sock, s32 level, s32 optname,\
                const void *optval, s32 optlen)
 {
-    s32  result;
+    s32  result = -1;
 
     if(mutex_lock(sock->SockSync))
     {

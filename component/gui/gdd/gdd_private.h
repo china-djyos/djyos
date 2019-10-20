@@ -216,6 +216,7 @@ void __DeleteChildWindowData(HWND hwnd);
 struct WinMsgQueueCB *__GetWindowMsgQ(HWND hwnd);
 bool_t __WinMsgProc(struct WindowMsg *pMsg);
 u32         __GetWindowEvent(HWND hwnd);
+ptu32_t GDD_GetGK_Message(void);
 
 /*============================================================================*/
 

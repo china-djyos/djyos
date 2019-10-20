@@ -127,7 +127,7 @@ tpInputMsgQ tg_pHmiInputMsgQ;    //  标准输入设备的消息队列
 bool_t ModuleInstall_HmiIn(void)
 {
     static struct HMI_InputDeviceObj root;
-    struct HMI_InputDeviceObj *StdinDeviceMem;
+    struct HMI_InputDeviceObj *StdinDeviceMem = NULL;
 
     tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10,"HmiInDev");
     if(tg_pHmiInputMsgQ == NULL)

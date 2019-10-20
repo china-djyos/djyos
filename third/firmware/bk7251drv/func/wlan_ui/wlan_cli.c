@@ -1096,7 +1096,7 @@ static void Gpio_op_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, 
         id = (uint32_t)(cmd0 * 10 + cmd1);
         os_printf("---%x,%x----\r\n", id, mode);
 //        ret = BKGpioOp(cmd, id, mode);
-        os_printf("gpio op:%x\r\n", ret);
+//        os_printf("gpio op:%x\r\n", ret);
     }
     else
         os_printf("cmd param error\r\n");
@@ -1436,11 +1436,11 @@ void http_client_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 //        HTTPCLIENT_GET,
 //        5000,
 //        &httpclient_data);
-    if (0 != ret) { 
-        os_printf("request epoch time from remote server failed.");
-        } else {  
-        os_printf("sucess.\r\n");
-    }
+//    if (0 != ret) {
+//        os_printf("request epoch time from remote server failed.");
+//        } else {
+//        os_printf("sucess.\r\n");
+//    }
 
     return;
 HTTP_CMD_ERR:

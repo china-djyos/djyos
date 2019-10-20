@@ -586,7 +586,7 @@ static void  __ArpTicker(void)
 bool_t ResolveMacByArp(u32 ippeer,u32 iphost,struct NetDev *iface,u8 *macbuf)
 {
     bool_t      ret = false;
-    tagArpItem *tmp;
+    tagArpItem *tmp=NULL;
 
     if(ippeer==INADDR_BROAD)
     {

@@ -200,7 +200,7 @@ bool_t evtt(char *param)
 //bool_t Sh_ShowStack(char *param)
 bool_t stack(char *param)
 {
-    u16 pl_ecb;
+    u32 pl_ecb;
     u32 loop,StackSize,pads;
     u32 *stack;
     char *name;
@@ -253,41 +253,6 @@ bool_t stack(char *param)
 }
 
 // ============================================================================
-// 功能：
-// 参数：
-// 返回：
-// 备注：
-// ============================================================================
-#if CFG_OS_TINY == false
-ptu32_t Debug_Scan(void)
-{
-    u32 pl_ecb;
-
-    while(1)
-    {
-
-        for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
-        {
-#if (CN_USE_TICKLESS_MODE)
-            g_tECB_Table[pl_ecb].consumed_cnt_second =
-                              (u32)g_tECB_Table[pl_ecb].consumed_cnt
-                            - g_tECB_Table[pl_ecb].consumed_cnt_record;
-            g_tECB_Table[pl_ecb].consumed_cnt_record =
-                            (u32)g_tECB_Table[pl_ecb].consumed_cnt;
-#else
-            g_tECB_Table[pl_ecb].consumed_time_second =
-                              (u32)g_tECB_Table[pl_ecb].consumed_time
-                            - g_tECB_Table[pl_ecb].consumed_time_record;
-            g_tECB_Table[pl_ecb].consumed_time_record =
-                            (u32)g_tECB_Table[pl_ecb].consumed_time;
-#endif
-        }
-        Djy_EventDelay(1000*mS);
-    }
-}
-#endif  //CFG_OS_TINY == false
-
-// ============================================================================
 // 功能：统计一定内事件运行占用率
 // 参数：无；
 // 返回：无；
@@ -305,19 +270,11 @@ ptu32_t kernel_spy(void)
 
         for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
         {
-#if (CN_USE_TICKLESS_MODE)
-            g_tECB_Table[pl_ecb].consumed_cnt_second =
-                              (u32)g_tECB_Table[pl_ecb].consumed_cnt
-                            - g_tECB_Table[pl_ecb].consumed_cnt_record;
-            g_tECB_Table[pl_ecb].consumed_cnt_record =
-                            (u32)g_tECB_Table[pl_ecb].consumed_cnt;
-#else
            g_tECB_Table[pl_ecb].consumed_time_second =
                               (u32)g_tECB_Table[pl_ecb].consumed_time
                             - g_tECB_Table[pl_ecb].consumed_time_record;
            g_tECB_Table[pl_ecb].consumed_time_record =
                             (u32)g_tECB_Table[pl_ecb].consumed_time;
-#endif
         }
 
         Djy_EventDelay(cycle*mS); // 延时1秒；
@@ -347,26 +304,6 @@ s32 kernel_command(void)
     return (0);
 }
 
-#if 0
-// ============================================================================
-// 功能：初始化调试信息模块，创建调试信息事件类型并启动之
-// 参数：无
-// 返回：无
-// 备注：
-// ============================================================================
-void ModuleInstall_DebugInfo(ptu32_t para)
-{
-    u16 evtt_debug;
-    para = para;        //消除编译器告警
-#if CFG_OS_TINY == false
-    evtt_debug = Djy_EvttRegist(EN_CORRELATIVE,1,0,0,
-                                 Debug_Scan,NULL,1024,"debug_info");
-    if(evtt_debug == CN_EVTT_ID_INVALID)
-        return;
-    Djy_EventPop(evtt_debug,NULL,0,0,0,0);
-#endif  //CFG_OS_TINY == false
-}
-#endif
 bool_t spy(char *param)
 {
     u16 pl_ecb;
@@ -398,14 +335,18 @@ bool_t spy(char *param)
                 break;
             }
         }
+#if CFG_OS_TINY == false
         name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+        name = "unkown";
+#endif  //CFG_OS_TINY == false
         printf("%08x %08x %08x %08x %s",
                     (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
                     (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
                     StackSize,(loop<<2),name);
-        printf("\n\r");
-        for(loop = g_tECB_Table[pl_ecb].vm->stack;
-                loop < g_tECB_Table[pl_ecb].vm->stack_top; loop+=4)
+        loop = g_tECB_Table[pl_ecb].vm->stack;
+        printf("\n\r%x: ",loop);
+        for(;loop < g_tECB_Table[pl_ecb].vm->stack_top; loop+=4)
         {
             if(loop % 32 == 0)
                 printf("\n\r%x: ",loop);

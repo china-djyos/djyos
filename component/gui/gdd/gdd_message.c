@@ -60,6 +60,8 @@
 //   修改说明: 原始版本
 //------------------------------------------------------
 #include    <gui/gdd/gdd_private.h>
+#include <gkernel.h>
+#include <align.h>
 #include <shell.h>
 
 /*============================================================================*/
@@ -79,7 +81,7 @@ struct WinMsgQueueCB
 
     //同步和退出消息，一个主窗口只有一条，直接定义。
     struct WindowMsg     sync_msg;          //同步消息
-    struct WindowMsg     quit_msg;          //退出消息
+//  struct WindowMsg     quit_msg;          //退出消息
     //以下四种消息，因有多条，且要优先于post消息处理，故单独成链表。
     list_t  list_msg_close;                 //CLOSE消息链表
     list_t  list_msg_ncpaint;               //NCPAINT消息链表
@@ -181,7 +183,7 @@ struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size)
     dListInit(&pMsgQ->list_msg_timer);
 
     __InitMsg(&pMsgQ->sync_msg,0,0,0,0);
-    __InitMsg(&pMsgQ->quit_msg,0,0,0,0);
+//  __InitMsg(&pMsgQ->quit_msg,0,0,0,0);
 
     return pMsgQ;
 
@@ -241,7 +243,7 @@ ptu32_t __MessageLoop( void )
 {
     struct WindowMsg msg;
     bool_t SyncMsg;
-    u32 result;
+    u32 result = 0;
     HWND MyHwnd;
     Djy_GetEventPara((ptu32_t *)&MyHwnd,NULL);
     while(GetMessage(&msg,MyHwnd,&SyncMsg))
@@ -251,7 +253,7 @@ ptu32_t __MessageLoop( void )
         //里的hwnd在调用DispatchMessage后已经被清除。
         if( (msg.Code == MSG_CLOSE) && (msg.hwnd == MyHwnd) )
         {
-            DispatchMessage(&msg);
+            result = DispatchMessage(&msg);
             break;
         }
         else
@@ -766,16 +768,10 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 if(__PeekCloseMessage(pMsgQ,pMsg))
                 {
                 }
-//                  __HWND_Unlock(hwnd);
                 else if(__PeekSyncMessage(pMsgQ,pMsg))
                 {
                     *SyncMsg = true;
                 }
-//                  __HWND_Lock(hwnd);
-                else if(__PeekPostMessage(pMsgQ,pMsg))
-                {
-                }
-
                 else if(__PeekNCPaintMessage(pMsgQ,pMsg))
                 {
                 }
@@ -785,6 +781,9 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 }
 
                 else if(__PeekTimerMessage(pMsgQ,pMsg))
+                {
+                }
+                else if(__PeekPostMessage(pMsgQ,pMsg))
                 {
                 }
                 else
@@ -817,4 +816,26 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
     return res;
 }
 
-/*============================================================================*/
+ptu32_t GDD_GetGK_Message(void)
+{
+    define_align_buf(TaskBuffer,CN_USERCALL_MSG_SIZE);
+//    u8 TaskBuffer[CN_USERCALL_MSG_SIZE];
+    HWND hwnd;
+    u16 command;
+    while(1)
+    {
+        command = GK_ReadRequest((u8*)TaskBuffer, CN_USERCALL_MSG_SIZE, CN_TIMEOUT_FOREVER);
+        switch(command)
+        {
+            case CN_GKUC_REPAINT:
+            {
+                struct GkucParaRepaint *Param = (struct GkucParaRepaint *)(TaskBuffer);
+                hwnd = (HWND)GK_GetUserTag(Param->gk_win);
+                PostMessage(hwnd,MSG_NCPAINT,0,0);
+                PostMessage(hwnd,MSG_PAINT,0,0);
+            }break;
+            default:
+                break;
+        }
+    }
+}

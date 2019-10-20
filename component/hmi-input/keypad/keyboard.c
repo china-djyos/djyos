@@ -180,9 +180,9 @@ ptu32_t KeyBoard_Scan(void)
         while(1)
         {
             ob = obj_foreach_scion(StdinObj->HostObj,KeyboardObj->HostObj);
-            KeyboardObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
-            if(KeyboardObj == NULL)
+            if(ob == NULL)
                 break;
+            KeyboardObj = (struct HMI_InputDeviceObj*)obj_GetPrivate(ob);
             if(KeyboardObj->input_type != EN_HMIIN_KEYBOARD)
                 continue;
             keyboard_pr = (struct KeyBoardPrivate*)KeyboardObj->stdin_private;

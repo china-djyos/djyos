@@ -331,9 +331,9 @@ int DecodeOAckMsg(u8 *buf, int buflen,int *blksize,int *timeout, int *tsize)
     int i =0;
     int len;
 
-    int otimeout;
-    int oblksize;
-    int otsize;
+    int otimeout=0;
+    int oblksize=0;
+    int otsize=0;
 
     i =0;
     while(i < buflen)

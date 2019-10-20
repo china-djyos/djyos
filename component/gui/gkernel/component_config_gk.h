@@ -31,8 +31,9 @@
 //#warning  " graphical_kernel  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_GRAPHICAL_KERNEL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,256,16384,
-#define CFG_GKERNEL_CMD_DEEP        1024    //"缓冲区长度",gdd向gkernel传递命令的缓冲区长度（字节数）
+//%$#@num,128,16384,
+#define CFG_GKERNEL_CMD_DEEP        1024    //"命令缓冲区长度",上层应用（例如gdd）向gkernel传递命令的缓冲区长度（字节数）
+#define CFG_USER_REQUEST_DEEP       128     //"请求缓冲区长度",gkernel向上层请求命令的缓冲区长度（字节数）
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
