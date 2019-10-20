@@ -1087,27 +1087,33 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 
 void DispMainInterface(unsigned char *pic)
 {
-    int offset = 0;
-    unsigned int i,j;
-    unsigned char screen[ROW_TEMP][240][COLO_DEP];
+    struct Rectangle dst_rect = {0,0,240,320};
+    struct RectBitmap src_bitmap;
 
-    __st7796s_set_window(0,0,240,320);
-
-    for(i=0;i<320;i++)
-    {
-
-        for(j=0;j<240;j++)
-        {
-            screen[i%ROW_TEMP][j][0] = pic[offset];
-            offset++;
-            screen[i%ROW_TEMP][j][1] = pic[offset];
-            offset++;
-        }
-        if ((i+1)%ROW_TEMP==0) {
-            WriteDataBytes(screen, sizeof(screen));
-        }
-    }
-    WriteDataBytes(screen, (i%ROW_TEMP+1)*240*COLO_DEP);
+    src_bitmap.bm_bits = pic;
+    src_bitmap.width = 240;
+    src_bitmap.height = 320;
+    src_bitmap.linebytes = 240*2;
+    src_bitmap.reversal = 0;
+    src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
+    __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
+//  __st7796s_set_window(0,0,240,320);
+//
+//  for(i=0;i<320;i++)
+//  {
+//
+//      for(j=0;j<240;j++)
+//      {
+//          screen[i%ROW_TEMP][j][0] = pic[offset];
+//          offset++;
+//          screen[i%ROW_TEMP][j][1] = pic[offset];
+//          offset++;
+//      }
+//      if ((i+1)%ROW_TEMP==0) {
+//          WriteDataBytes(screen, sizeof(screen));
+//      }
+//  }
+//  WriteDataBytes(screen, (i%ROW_TEMP+1)*240*COLO_DEP);
 }
 
 //----初始化lcd设备------------------------------------------------------------
