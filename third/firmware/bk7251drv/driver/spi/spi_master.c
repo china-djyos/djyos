@@ -99,6 +99,7 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
     atom_high_t atom;
     UINT8 *rxbuf;
     UINT32 offset, drop;
+    UINT32 value;
     
     rxbuf = spi_dev->rx_ptr;
     drop = spi_dev->rx_drop;
@@ -110,12 +111,25 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
     if((rxbuf == NULL) && (spi_dev->rx_len == 0))
     {
         total_len -= tx_len;
+        value = REG_READ(SPI_CTRL);
         while(tx_len)
         {
-            if((REG_READ(SPI_STAT) & TXFIFO_FULL) == 0)
+            if(value & BIT_WDTH)
             {
-                REG_WRITE(SPI_DAT, *tx_ptr++);
-                tx_len --;
+                if((REG_READ(SPI_STAT) & TXFIFO_FULL) == 0)
+                {
+                    REG_WRITE(SPI_DAT, *(UINT16 *)tx_ptr);
+                    tx_ptr += 2;
+                    tx_len -= 2;
+                }
+            }
+            else
+            {
+                if((REG_READ(SPI_STAT) & TXFIFO_FULL) == 0)
+                {
+                    REG_WRITE(SPI_DAT, *tx_ptr++);
+                    tx_len --;
+                }
             }
         }
         while(spi_read_rxfifo(&data) == 1);
@@ -223,7 +237,7 @@ static void bk_spi_configure(UINT32 rate, UINT32 mode)
     struct spi_callback_des spi_dev_cb;
 
     /* data bit width */
-    param = 0;
+    param = 0;  //数据宽度，1：16位，0: 8位
     spi_ctrl(CMD_SPI_SET_BITWIDTH, (void *)&param);
 
     /* baudrate */

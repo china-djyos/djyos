@@ -199,11 +199,12 @@ void WriteDataBytes(unsigned char *data, int len)
     spi_msg.recv_len = 0;
     spi_msg.send_buf = data;
     spi_msg.send_len = len;
-//  param = 1;
-//  spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
+
+    param = 1;
+    spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
     result = bk_spi_master_xfer(&spi_msg);
-//  param = 0;
-//  spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
+    param = 0;
+    spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
 
     SPI_CS(1);
     return 0;
@@ -964,9 +965,8 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 {
     u32 width,height;
     u32 pixel,use=0,linelen;
-    u32 i,j,x,y;
+    u32 j,y;
     u16 *line;
-    u8 buf[CFG_LCD_XSIZE*2];
     u8 x0,x1;
 
     if(src_bitmap->PixelFormat != CN_SYS_PF_RGB565)
@@ -1024,14 +1024,14 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
 //          WriteDataBytes(buf,ROW_BUFFER);
 //          memset(buf,0,ROW_BUFFER);
 //      }
-        for(x = 0; x < width; x++)
-        {
-            u16 org;
-            org = line[x];
-            buf[2*x] = org>>8;
-            buf[2*x+1] = org;
-        }
-        WriteDataBytes(buf,width*2);
+//        for(x = 0; x < width; x++)
+//        {
+//            u16 org;
+//            org = line[x];
+//            buf[2*x] = org>>8;
+//            buf[2*x+1] = org;
+//        }
+        WriteDataBytes(line,width*2);
         line += linelen/2;
 //        WriteDataBytes(buf,width*2);
     }

@@ -65,8 +65,6 @@
 #endif
 #include "dbug.h"
 #include "iboot_info.h"
-#include <gpio_pub.h>
-#include <cpu_peri_gpio.h>
 
 struct CopyRecord{
     u32 load_start_address;
