@@ -76,9 +76,6 @@
 #include "dbug.h"
 #include "project_config.h"
 #include "Iboot_info.h"
-#if (CFG_SOC_NAME == SOC_BK7221U)
-#include "qspi/qspi_pub.h"
-#endif
 #if (CFG_RUNMODE_BAREAPP == 0)
 
 #define IAPBUF_SIZE   512
@@ -442,90 +439,43 @@ bool_t App_UpdateIboot(char *param)
     }
     return TRUE;
 }
+
+//用户可以写该函数来指定怎么升级iboot
+__attribute__((weak)) bool_t user_update_iboot(char *param)
+{
+    return false;
+}
+
 bool_t ModuleInstall_XIP(void)
 {
     uint16_t evtt_Update = CN_EVTT_ID_INVALID;
     char run_mode = Get_RunMode();
-//    if(run_mode == 1)
-//    {
-//        if(Get_Updateiboot() == true)
-//        {
-//            evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-//                                        App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
-//        }
-//    }
-//    else
-//        return false;
-//
-//    if(evtt_Update != CN_EVTT_ID_INVALID)
-//    {
-//        if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
-//        {
-//            if(run_mode == 1)
-//                info_printf("XIP","add iboot update function.\r\n");
-//
-//            return true;
-//        }
-//    }
-
-    char updateiboot[MutualPathLen];
-    char *psram_update_addr = NULL;
-    char i;
-    u32 file_size = 0, res;
-    FILE *xipiboot = 0;
-    if(run_mode == 1)
+    if(user_update_iboot(0) == false)
     {
-        if(Get_Updateiboot() == true)
+        if(run_mode == 1)
         {
-            qspi_dcache_drv_desc qspi_cfg;
-
-            qspi_cfg.mode = 0;        // 0: 1 line mode    3: 4 line mode
-            qspi_cfg.clk_set = 0x0;
-            qspi_cfg.wr_command = 0x02;        //write
-            qspi_cfg.rd_command = 0x03;        //read
-            qspi_cfg.wr_dummy_size = 0;
-            qspi_cfg.rd_dummy_size = 0x00;
-
-            bk_qspi_mode_start(1, 0);
-            if(bk_qspi_dcache_configure(&qspi_cfg))
+            if(Get_Updateiboot() == true)
             {
-                printk("QSPI init fail.\r\n");
-            }
-
-            strcpy(updateiboot, Get_MutualUpdatePath());
-            for(i = 0; i < 22; i ++)
-            {
-                if(updateiboot[i] == -1)
-                {
-                    updateiboot[i] = 0;
-                }
-            }
-            psram_update_addr = (char *)atoi(updateiboot);
-            printk("psram_update_addr   = %x,\r\n",psram_update_addr);
-            if(psram_update_addr)
-            {
-                file_size = atoi(updateiboot + 11);
-                printf("file_size   = %d,\r\n",file_size);
-                if(file_size)
-                {
-                    xipiboot = fopen("/xip-iboot/iboot.bin", "w+");
-                    if(xipiboot)
-                    {
-                        res = fwrite(psram_update_addr, 1, file_size, xipiboot);
-                        if(res != file_size)
-                            printk("升级失败    res  =%d ,\r\n",res);
-                        else
-                            printk("升级成功,\r\n");
-
-                        fclose(xipiboot);
-                        Clear_RunAppUpdateIboot();
-                    }
-                }
+                evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                            App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
             }
         }
+        else
+            return false;
 
-    return false;
+        if(evtt_Update != CN_EVTT_ID_INVALID)
+        {
+            if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
+            {
+                if(run_mode == 1)
+                    info_printf("XIP","add iboot update function.\r\n");
+
+                return true;
+            }
+        }
+        return false;
     }
+    return true;
 }
 
 
