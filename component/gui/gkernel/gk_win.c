@@ -1839,22 +1839,19 @@ void __gk_RefreshDisplay(struct DisplayObj *Display)
 //      size，参数长度
 //返回: 实际写入管道的数据量，0或者size。
 //-----------------------------------------------------------------------------
-extern u16 eng_CurrentWindow;
 u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
                                                 void *param2,u16 size2)
 {
-    u16 cmd,len;
-    u16 completed = 0,offset;
+    u16 completed = 0;
     u8 buf[4];
     u32 base_time,rel_timeout = sync_time;
     base_time = (u32)DjyGetSysTime();
     //管道访问互斥，用于多个上层应用并发调用之间的互斥
-    if(! Lock_MutexPend(g_tGkChunnel.syscall_mutex,rel_timeout))
-        return 0;
+    Lock_MutexPend(g_tGkChunnel.syscall_mutex,rel_timeout);
     while(1)
     {
         if((Ring_Capacity(&g_tGkChunnel.ring_syscall)
-                    - Ring_Check(&g_tGkChunnel.ring_syscall)) <(u32)(size1+size2+2))
+                    - Ring_Check(&g_tGkChunnel.ring_syscall)) <(u32)(size1+size2+4))
         {
             //管道容量不足，先执行管道内的命令：提升gkserver的优先级，令其立即执行，因
             //本线程也处于就绪态，gkserver在执行一个时间片后将返回，此时不管是否执行完毕，
@@ -1865,42 +1862,12 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
             if(Lock_SempQueryFree(g_ptSyscallSemp) == 0)
                 Lock_SempPost(g_ptSyscallSemp);
 
-            //以下代码用于捕捉界面连续发命令的错误
-            completed = Ring_Read(&g_tGkChunnel.ring_syscall,(u8*)draw_chunnel_buf,
-                                            CFG_GKERNEL_CMD_DEEP);
-            offset = 0;
-            printf("--------entry gk syscall error!\r\n");
-            while(completed > offset)
-            {
-                //由于管道中的数据可能不对齐，故必须把数据copy出来，不能直接用指针
-                //指向或强制类型转换
-                len =   draw_chunnel_buf[offset+2] + ((u16)draw_chunnel_buf[offset+3]<<8);
-                cmd = draw_chunnel_buf[offset] + ((u16)draw_chunnel_buf[offset+1]<<8);
-                printf("command = %d, len= %d, winpage = %d\r\n", cmd, len,eng_CurrentWindow);
-                offset += 4;
-                offset +=len;
-            }   //for while(num != offset)
-            Ring_RecedeRead(&g_tGkChunnel.ring_syscall,CFG_GKERNEL_CMD_DEEP,NULL);
-            Djy_EventDelay(rel_timeout);
-
-
-
             //先PEND一次信号量，防止事先已经被释放过
             Lock_SempPend(g_ptGkServerSync,0);
             Djy_RaiseTempPrio(g_u16GkServerEvent);
-//          Djy_EventDelay(rel_timeout);
-            if(Lock_SempPend(g_ptGkServerSync,rel_timeout))
-            {
-                Djy_SetEventPrio(g_u16GkServerEvent, 249);
-            }
-            else
-            {
-                rel_timeout = sync_time - ((u32)DjyGetSysTime() - base_time);
-                if(rel_timeout > 0x80000000)
-                {
-                    return 0;
-                }
-            }
+            Djy_EventDelay(0);
+//          Lock_SempPend(g_ptGkServerSync,sync_time);
+            Djy_SetEventPrio(g_u16GkServerEvent, 249);
 
             continue;       //再次检查管道容量
         }
@@ -1947,7 +1914,6 @@ u16 __GK_SyscallChunnel(u16 command,u32 sync_time,void *param1,u16 size1,
     Lock_MutexPost(g_tGkChunnel.syscall_mutex);    //管道访问互斥解除
     return completed;
 }
-
 
 //----Usercall消息发送----------------------------------------------------------
 //功能: 本函数是gk_syscall_chunnle函数的逆操作函数，当gui kernel需要上层应用程序
@@ -2235,9 +2201,10 @@ ptu32_t __GK_Server(void)
         {
             //由于管道中的数据可能不对齐，故必须把数据copy出来，不能直接用指针
             //指向或强制类型转换
-            command = draw_chunnel_buf[offset] + ((u16)draw_chunnel_buf[offset+1]<<8);
             len =   draw_chunnel_buf[offset+2] + ((u16)draw_chunnel_buf[offset+3]<<8);
-            offset += 4;
+            command = draw_chunnel_buf[offset] + ((u16)draw_chunnel_buf[offset+1]<<8);
+            //sizeof(u16)不可用2替代，在cn_byte_bits>=16的机器上，sizeof(u16)=1.
+            offset += sizeof(u32);
 //            sync_draw = draw_chunnel_buf[offset];
 //            offset += 1;
             size= __ExecOneCommand(command,(u8 *)draw_chunnel_buf + offset);
