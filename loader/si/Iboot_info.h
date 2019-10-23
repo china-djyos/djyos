@@ -190,5 +190,8 @@ bool_t Get_ErrorAppCheck(void);
 bool_t Get_ErrorAppNoFile(void);
 bool_t Get_ErrorAppSize(void);
 bool_t Get_HeardSetRunIboot(void);
+
+bool_t  runiboot(char *param);
+bool_t  runapp(char *param);
 #endif
 #endif /* __IICBUS_H__ */
