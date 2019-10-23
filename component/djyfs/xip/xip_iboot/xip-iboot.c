@@ -375,7 +375,10 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
     return result;
 }
-
+__attribute__((weak)) s32 xip_fs_format(struct __icore *core)
+{
+    return 0;
+}
 // ============================================================================
 // 功能：安装xip文件系统
 // 参数： opt -- 文件系统配置选项；如MS_INSTALLCREAT
@@ -395,7 +398,7 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
         typeXIPIBOOT->fileOps = xip_iboot_ops;
         typeXIPIBOOT->install = xip_iboot_fs_install;
         typeXIPIBOOT->pType = "XIP-IBOOT";
-        typeXIPIBOOT->format = NULL;
+        typeXIPIBOOT->format = xip_fs_format;
         typeXIPIBOOT->uninstall = NULL;
     }
     res = regfs(typeXIPIBOOT);
