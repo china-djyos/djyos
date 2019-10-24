@@ -155,7 +155,7 @@ bool_t ModuleInstall_HmiIn(void);
 s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_type,
                         void *myprivate);
 bool_t HmiIn_UnInstallDevice(const char *device_name);
-tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum,const char *Name);
+tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum);
 bool_t HmiIn_DeleteInputMsgQ(tpInputMsgQ InputMsgQ);
 bool_t HmiIn_ReadMsg(tpInputMsgQ InputMsgQ,
                      struct InputDeviceMsg *MsgBuf,u32 TimeOut);
@@ -164,7 +164,7 @@ bool_t HmiIn_SetFocus(const char *device_name,tpInputMsgQ FocusMsgQ);
 enum _STDIN_INPUT_TYPE_ HmiIn_CheckDevType(const char *device_name);
 void HmiIn_SetFocusDefault(tpInputMsgQ FocusMsgQ);
 tpInputMsgQ HmiIn_GetFocusDefault(void);
-bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size);
+bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data);
 
 #ifdef __cplusplus
 }

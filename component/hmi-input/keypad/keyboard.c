@@ -222,8 +222,7 @@ ptu32_t KeyBoard_Scan(void)
                         key_msg.time = DjyGetSysTime();
                         key_msg.key_value[1] = 0;
                         key_msg.key_value[0] = key;
-                        HmiIn_InputMsg(KeyboardObj->device_id,
-                                            (u8*)&key_msg,sizeof(key_msg));
+                        HmiIn_InputMsg(KeyboardObj->device_id,(u8*)&key_msg);
                     }
                 }
 
@@ -247,8 +246,7 @@ ptu32_t KeyBoard_Scan(void)
                         key_msg.time = DjyGetSysTime();
                         key_msg.key_value[1] = CN_BREAK_CODE;
                         key_msg.key_value[0] = key;
-                        HmiIn_InputMsg(KeyboardObj->device_id,
-                                            (u8*)&key_msg,sizeof(key_msg));
+                        HmiIn_InputMsg(KeyboardObj->device_id,(u8*)&key_msg);
                     }
                 }
                 keyboard_pr->key_bak = keyboard_pr->key_now;

@@ -123,7 +123,7 @@ bool_t GDD_InputDevInit(void)
 {
     GDD_StartTimer(GDD_CreateTimer(GetDesktopWindow( ), CN_HMIINPUT_TIMER_ID, 30));
 
-    sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20,"input_msg");
+    sg_ptGddMsgQ = HmiIn_CreatInputMsgQ(20);
 
     if(sg_ptGddMsgQ == NULL)
     {

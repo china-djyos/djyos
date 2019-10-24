@@ -170,7 +170,7 @@ ptu32_t Touch_Scan(void)
 //                  touch_pr->touch_loc.time = DjyGetSysTime();
                     touch_pr->TouchStatus = CN_TOUCHING;
                 }
-                else if(touch_pr->TouchStatus != CN_NO_TOUCH)   //已经接触，判断是否滑动
+                else   //已经接触，判断是否滑动
                 {
                     s32 DeltaX,DeltaY,Distance;
                     DeltaX = touch_temp.x - touch_pr->touch_loc.x;  //计算像素距离
@@ -189,8 +189,7 @@ ptu32_t Touch_Scan(void)
                             printf("touch: x = %d ,y = %d \r\n",
                                 touch_temp.x, touch_temp.y);
                             //发滑动数据=0的消息，即按下消息
-                            HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp,
-                                                                sizeof(touch_temp));
+                            HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
                         }
                     }
                     else
@@ -204,8 +203,7 @@ ptu32_t Touch_Scan(void)
                         printf("move: x = %d ,y = %d ,movx = %d ,movy = %d\r\n",
                             touch_temp.x, touch_temp.y, touch_temp.MoveX, touch_temp.MoveY);
                         //发包含滑动数据的消息，即滑动消息
-                        HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp,
-                                                            sizeof(touch_temp));
+                        HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
                         //检测到滑动，300mS内不检测，以免连续快速发滑动消息
                         Djy_EventDelay(300*mS);
                     }
@@ -222,8 +220,7 @@ ptu32_t Touch_Scan(void)
                     touch_pr->TouchStatus = CN_NO_TOUCH;
                     printf("touch left: x = %d ,y = %d \r\n",
                         touch_pr->touch_loc.x, touch_pr->touch_loc.y);
-                    HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_pr->touch_loc,
-                                                        sizeof(touch_pr->touch_loc));
+                    HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_pr->touch_loc);
                 }
             }
         }

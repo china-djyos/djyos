@@ -947,7 +947,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                 else
                 {
                     pGddWin->mutex_lock =Lock_MutexCreate(NULL);
-                    pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
+                    pGddWin->pMsgQ      =__GUI_CreateMsgQ(128);
                     pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
                     pGddWin->FillColor = CN_DEF_FILL_COLOR;
                     pGddWin->TextColor = CN_DEF_TEXT_COLOR;

@@ -129,7 +129,7 @@ bool_t ModuleInstall_HmiIn(void)
     static struct HMI_InputDeviceObj root;
     struct HMI_InputDeviceObj *StdinDeviceMem = NULL;
 
-    tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10,"HmiInDev");
+    tg_pHmiInputMsgQ = HmiIn_CreatInputMsgQ(10);
     if(tg_pHmiInputMsgQ == NULL)
         goto ExitMsgQ;
     s_ptHmiInDeviceDir = obj_newchild(obj_root(), (fnObjOps)-1, (ptu32_t)&root, "hmi input device");
@@ -216,7 +216,7 @@ s32 HmiIn_InstallDevice(const char *device_name,enum _STDIN_INPUT_TYPE_ stdin_ty
 //      Name, 输入消息队列的名字
 //返回: 新创建的输入消息队列指针
 //----------------------------------------------------------------------------
-tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum,const char *Name)
+tpInputMsgQ HmiIn_CreatInputMsgQ(u32 MsgNum)
 {
     return MsgQ_Create(MsgNum,sizeof(struct InputDeviceMsg),CN_MSGQ_TYPE_FIFO);
 }
@@ -333,7 +333,7 @@ tpInputMsgQ HmiIn_GetFocusDefault(void)
 //      msg_size，输入消息的长度，字节数
 //返回: true=成功，false=失败，一般是因为输入设备未安装。
 //-----------------------------------------------------------------------------
-bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data, u32 msg_size)
+bool_t HmiIn_InputMsg(s32 stdin_id,u8 *msg_data)
 {
     struct Object  *current;
     struct HMI_InputDeviceObj *InputDevice;
