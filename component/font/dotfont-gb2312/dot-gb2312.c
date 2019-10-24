@@ -111,6 +111,10 @@
 //%$#@string,0,255,
     #define CFG_GB2312_16_SONG_FILENAME "zk_gb2316_16song.bin"  //"字库文件名",若从文件读取，则配置文件名
 //%$#@enum,zk_disable,from_file,from_array
+#define CFG_GB2312_16_YAHEI             zk_disable              //"16点阵微软雅黑",GB2312字体,zk_disable：不需要，from_array：从数组读取，from_file：从文件读
+//%$#@string,0,255,
+    #define CFG_GB2312_16_YAHEI_FILENAME "zk_gb2316_16yahei.bin"  //"字库文件名",若从文件读取，则配置文件名
+//%$#@enum,zk_disable,from_file,from_array
 #define CFG_GB2312_16_YUAN              zk_disable              //"16点阵圆体",GB2312字体,zk_disable：不需要，from_array：从数组读取，from_file：从文件读
 //%$#@string,0,255,
     #define CFG_GB2312_16_YUAN_FILENAME "zk_gb2316_16yuan.bin"  //"字库文件名",若从文件读取，则配置文件名

@@ -70,18 +70,8 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    struct GkWinObj;
-//    extern ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop);
-//    extern struct GkWinObj *GK_GetDesktop(const char *display_name);
-//    struct GkWinObj *stmpe811_desktop;
-//    stmpe811_desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-//    if(NULL == stmpe811_desktop)
-//    {
-//        printf("stmpe811_desktop Not Exist !\r\n");
-//    }
-//    else
-//    {
-//        ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
-//    }
+//    extern ptu32_t ModuleInstall_Touch_Stmpe811(void);
+//    ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
 //%$#@end initcode  ****初始化代码结束
@@ -115,8 +105,8 @@
 //%$#@enum,0x41,0x44,
 #define CFG_STMPE811_DEVADDR            0x41            //"设备地址"，IIC总线上的设备地址
 //%$#@string,1,30,
-#define CFG_STMPE811_TOUCH_DEV_NAME      "TOUCH_STMPE811"     //"触摸设备名称",触摸设备的名称
-#define CFG_STMPE811_DESKTOP_NAME  "LCD_DESKTOP_STMPE811"     //"触摸显示桌面",触摸屏所在桌面的名称
+#define CFG_STMPE811_TOUCH_DEV_NAME   "TOUCH_STMPE811"       //"触摸屏名称",配置触摸屏名称
+#define CFG_STMPE811_DISPLAY_NAME        "LCD_DESKTOP_STMPE811"      //"显示器名称",配置触摸屏所在显示器的名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -480,17 +470,19 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
 //参数: display_name,本触摸屏对应的显示器名(资源名)
 //返回: true,成功;false,失败
 //-----------------------------------------------------------------------------
-ptu32_t ModuleInstall_Touch_Stmpe811(struct GkWinObj *desktop)
+ptu32_t ModuleInstall_Touch_Stmpe811(void)
 {
+    struct GkWinObj *desktop;
     static struct SingleTouchPrivate stmpe811;
 
+    desktop = GK_GetDesktop(CFG_STMPE811_DISPLAY_NAME);
     if(!STMPE811_Init("IIC2" ))//将器件挂到IIC2总线上
         return false;
     if(!touch_hard_init())//触摸屏初始化
          return false;
     touch_ratio_adjust(desktop);          //屏幕校准
     stmpe811.read_touch = read_touch_stmpe811;//读触摸点的坐标函数
-    stmpe811.touch_loc.display = NULL;     //NULL表示用默认桌面
+    stmpe811.touch_loc.display = GK_GetDisplay(CFG_STMPE811_DISPLAY_NAME);
     Touch_InstallDevice(CFG_STMPE811_TOUCH_DEV_NAME,&stmpe811);//添加驱动到Touch
     return true;
 }

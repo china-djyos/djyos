@@ -72,8 +72,7 @@
 #define CFG_LCD_YSIZE   128             //"LCD高度",
 //%$#@enum,true,false,
 //%$#@string,1,10,
-#define CFG_DISPLAY_NAME               "UC1698"   //"触摸设备名称",
-#define CFG_DESKTOP_NAME               "UC1698"   //"触摸所在桌面的名称",
+#define CFG_DISPLAY_NAME               "UC1698"   //"显示器名称",
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -658,8 +657,8 @@ ptu32_t ModuleInstall_UC1698(void)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.Width_um = 0;
+    tg_lcd_display.height_um = 0;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_GRAY4;

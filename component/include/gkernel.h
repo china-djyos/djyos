@@ -369,6 +369,7 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
                                   s32 width,s32 height,u32 color,
                                   u32 buf_mode,u16 PixelFormat,
                                   u32 BaseColor);
+struct DisplayObj *GK_GetDisplay(const char *display_name);
 struct GkWinObj *GK_GetDesktop(const char *display_name);
 struct GkWinObj * GK_CreateWin(struct GkWinObj *parent,
                          s32 left,s32 top,s32 right,s32 bottom,

@@ -62,7 +62,7 @@ extern "C"{
 #endif
 #endif /* __cplusplus */
 
-bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_dev_name);
+bool_t ModuleInstall_LCM240128Touch(void);
 
 
 #ifdef __cplusplus

@@ -105,10 +105,11 @@ struct Mouse3D_Msg
 //单点触摸屏，即最常用的触摸屏
 struct SingleTouchMsg
 {
-    s64 time;              //按键事件发生时间,US数
+    s64 time;               //按键事件发生时间,US数
     //指明触摸事件对应的屏幕，NULL表示默认显示器，如果只有一个屏也可设为NULL。
     struct DisplayObj *display;
-    s32 x,y,z;  //x,y表示触摸位置，z>0标志触摸压力，0标志未触摸
+    s32 x,y,z;              //x,y表示触摸位置，z>0标志触摸压力，0标志未触摸
+    s32 MoveX,MoveY;        //每ms移动的微米数
 };
 
 //多点触摸屏

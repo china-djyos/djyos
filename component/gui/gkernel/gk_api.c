@@ -117,6 +117,27 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     return result;
 }
 
+//----获取显示器指针-------------------------------------------------------------
+//功能: 根据显示器名，获得显示器的指针。
+//参数: display_name，显示器的名字
+//返回: 如果找到，则返回指针，否则返回NULL
+//-----------------------------------------------------------------------------
+struct DisplayObj *GK_GetDisplay(const char *display_name)
+{
+    struct DisplayObj *display = NULL;
+    struct Object *DispObj;
+    DispObj = obj_search_child(obj_root( ),"display");
+    if(DispObj != NULL)
+    {
+        DispObj = obj_search_child(DispObj,display_name);
+        if(DispObj != NULL)
+        {
+            display = (struct DisplayObj *)obj_GetPrivate(DispObj);
+        }
+    }
+    return display;
+}
+
 //----获取桌面指针-------------------------------------------------------------
 //功能: 根据显示器名，获得桌面的指针。该指针指向一个窗口控制块
 //参数: display_name，桌面所在显示器的名字

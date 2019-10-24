@@ -618,8 +618,8 @@ struct DisplayRsc* ModuleInstall_LCD(const char *DisplayName,\
     lcd_display.frame_buffer =&frame_win;
     lcd_display.framebuf_direct = true;
 
-    lcd_display.xmm = 0;
-    lcd_display.ymm = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     lcd_display.width = CN_LCD_XSIZE;
     lcd_display.height = CN_LCD_YSIZE;
     lcd_display.pixel_format = lcd.LcdPixelFormat;

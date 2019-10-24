@@ -532,6 +532,8 @@ bool_t    __PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1
         Lock_SempPost(pMsgQ->sem_msg);
         res =TRUE;
     }
+    else
+        printf("------left message num = %d\r\n", Lock_SempQueryFree(pMsgQ->sem_msg));
 
     return res;
 }

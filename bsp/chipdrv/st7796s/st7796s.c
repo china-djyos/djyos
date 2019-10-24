@@ -103,8 +103,11 @@
 //#warning  " keyboard_hard_driver  组件参数未配置，使用默认配置"
 #define CFG_MODULE_ENABLE_LCD_DRIVER_ST7796    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,65536,
-#define CFG_LCD_XSIZE   320             //"LCD宽度",
-#define CFG_LCD_YSIZE   480             //"LCD高度",
+#define CFG_LCD_XSIZE   320             //"LCD宽度-像素数",
+#define CFG_LCD_YSIZE   480             //"LCD高度-像素数",
+//%$#@num,0,0,
+#define CFG_LCD_XSIZE_UM   36720            //"LCD宽度-微米数",
+#define CFG_LCD_YSIZE_UM   48960            //"LCD高度-微米数",
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_ST7796S_DISPLAY_NAME        "lcdst7796s"    //"显示器名称",配置液晶显示的名称
@@ -1158,8 +1161,8 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;

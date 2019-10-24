@@ -60,23 +60,10 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    struct GkWinObj;
-//    extern bool_t ModuleInstall_TOUCH_S3C2416(struct GkWinObj *desktop,\
-//      const char *touch_dev_name);
-//    extern struct GkWinObj *GK_GetDesktop(const char *display_name)；
-//
-//    struct GkWinObj *desktop;
-//    desktop = GK_GetDesktop(CFG_DESKTOP_NAME);
-//    if(NULL == desktop)
-//    {
-//        printf("Desktop Not Exist !\r\n");
-//    }
-//    else
-//    {
-//        ModuleInstall_TOUCH_S3C2416(desktop,CFG_TOUCH_DEV_NAME);
-//    }
-//%$#@end initcode  ****初始化代码结束
-
+//    extern bool_t ModuleInstall_TOUCH_S3C2440(svoid);
+//  ModuleInstall_TOUCH_S3C2440( );
+//    extern bool_t GDD_AddInputDev(const char *InputDevName);
+//    GDD_AddInputDev(CFG_FT6236_TOUCH_NAME);
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip touch"//CPU触摸屏外设驱动
 //parent:"touch"     //填写该组件的父组件名字，none表示没有父组件
@@ -104,7 +91,7 @@
 //%$#@enum,true,false,
 //%$#@string,1,10,
 #define CFG_TOUCH_DEV_NAME               "TOUCH"   //"触摸设备名称",
-#define CFG_DESKTOP_NAME                  "LCD"    //"触摸所在桌面的名称",
+#define CFG_DISPLAY_NAME                  "LCD"    //"触摸所在桌面的名称",
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -297,10 +284,12 @@ static bool_t touch_hard_init(void);
 //      touch_dev_name:触摸屏设备名.
 //返回: 无
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_TOUCH_S3C2440(struct GkWinObj *desktop,const char *touch_dev_name)
+bool_t ModuleInstall_TOUCH_S3C2440(void)
 {
+    struct GkWinObj *desktop;
     static struct SingleTouchPrivate touch_dev;
 
+    desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
     ts_xsize =desktop->right-desktop->left;
     ts_ysize =desktop->bottom-desktop->top;
 
@@ -319,8 +308,8 @@ bool_t ModuleInstall_TOUCH_S3C2440(struct GkWinObj *desktop,const char *touch_de
     }
     touch_ratio_adjust(desktop);
     touch_dev.read_touch = read_touch_data;
-    touch_dev.touch_loc.display = NULL;     //NULL表示用默认桌面
-    Touch_InstallDevice(touch_dev_name,&touch_dev);
+    touch_dev.touch_loc.display = GK_GetDisplay(CFG_DISPLAY_NAME);
+    Touch_InstallDevice(CFG_TOUCH_DEV_NAME,&touch_dev);
     return true;
 }
 

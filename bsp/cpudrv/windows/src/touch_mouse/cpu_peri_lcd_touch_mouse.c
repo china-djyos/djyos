@@ -494,8 +494,8 @@ ptu32_t ModuleInstall_Lcd(char *DisplayName,char *HeapName)
     tg_lcd_display.frame_buffer = &frame_win;
 
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = CFG_LCD_XSIZE_UM;
+    tg_lcd_display.height_um = CFG_LCD_YSIZE_UM;
     tg_lcd_display.width = CN_LCD_XSIZE;
     tg_lcd_display.height = CN_LCD_YSIZE;
 //  tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;

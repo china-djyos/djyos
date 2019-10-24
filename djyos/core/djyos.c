@@ -1570,6 +1570,8 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
             pl_ecb->prio = new_prio;
             __Djy_ChangeBlockQueue(pl_ecb);
         }
+        else
+            pl_ecb->prio = new_prio;
     }
     Int_RestoreAsynSignal();
     return true;
@@ -1607,6 +1609,8 @@ bool_t Djy_RaiseTempPrio(u16 event_id)
             pl_ecb->prio = g_ptEventRunning->prio;
             __Djy_ChangeBlockQueue(pl_ecb);
         }
+        else
+            pl_ecb->prio = g_ptEventRunning->prio;
     }
     Int_RestoreAsynSignal();
     return true;

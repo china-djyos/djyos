@@ -74,18 +74,8 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern struct GkWinObj;
-//    extern bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop,const char *touch_dev_name);
-//    struct GkWinObj *desktop;
-//    desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-//    if(NULL == desktop)
-//    {
-//        printf("Desktop Not Exist !\r\n");
-//    }
-//    else
-//    {
-//        ModuleInstall_LCM240128Touch(desktop);
-//    }
+//    extern bool_t ModuleInstall_LCM240128Touch(void);
+//    ModuleInstall_LCM240128Touch( );
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_LCM240128_TOUCH_NAME);
 //%$#@end initcode  ****初始化代码结束
@@ -115,8 +105,8 @@
 //%$#@num,1,100,
 //%$#@enum,true,false,
 //%$#@string,1,128,
-#define CFG_LCM240128_TOUCH_NAME   "LCM240128C"       //"触摸屏名称",配置触摸屏名称
-#define CFG_DESKTOP_NAME        "desktop"      //"桌面名称",配置触摸屏所在显示器桌面的名称
+#define CFG_LCM240128_TOUCH_NAME   "LCM240128C"  //"触摸设备名称",
+#define CFG_DISPLAY_NAME           "display"       //"触摸所在桌面的名称",
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -715,8 +705,9 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
 //      touch_dev_name:触摸屏设备名.
 //返回: 无
 //-----------------------------------------------------------------------------
-bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop)
+bool_t ModuleInstall_LCM240128Touch(void)
 {
+    struct GkWinObj *desktop;
     static struct SingleTouchPrivate touch_dev;
     u16 evtt_id;
     s16 tmp_x=0,tmp_y=0;
@@ -737,12 +728,13 @@ bool_t ModuleInstall_LCM240128Touch(struct GkWinObj *desktop)
         printf("安装触摸屏SPI驱动出错\n\r");
         return false;
     }
+    desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
 
     Touch_ReadXY(&tmp_x, &tmp_y);
     touch_ratio_adjust(desktop);
 
     touch_dev.read_touch = ReadTouch;
-    touch_dev.touch_loc.display = NULL;     //NULL表示用默认桌面
+    touch_dev.touch_loc.display = GK_GetDisplay(CFG_DISPLAY_NAME);
     Touch_InstallDevice(CFG_LCM240128_TOUCH_NAME,&touch_dev);
 
     evtt_id = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,

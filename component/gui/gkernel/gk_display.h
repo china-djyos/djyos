@@ -262,11 +262,11 @@ struct DispDraw
 
 struct DisplayObj
 {
-    struct Object  *HostObj;//注:镜像显示器作为子资源结点挂在这里
-    float xmm,ymm;          //用毫米表示的显示器尺寸
-    s32   width,height;     //按像素表示的显示器尺寸
-    u32   pixel_format;     //像素格式，在gk_win.h中定义
-    bool_t reset_clip;      //true = 本显示器需要重新生成可视域
+    struct Object  *HostObj;            //注:镜像显示器作为子资源结点挂在这里
+    u32 width_um,height_um;             //用微米表示的显示器尺寸，最大4294米。
+    s32   width,height;                 //按像素表示的显示器尺寸
+    u32   pixel_format;                 //像素格式，在gk_win.h中定义
+    bool_t reset_clip;                  //true = 本显示器需要重新生成可视域
     //帧缓冲直接显示。有些cpu使用系统内存做显存，设计driver时，可将显存直接作为
     //帧缓冲用。true=显存与帧缓冲重合
     bool_t framebuf_direct;

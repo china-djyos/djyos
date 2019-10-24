@@ -148,7 +148,7 @@ void GDD_HmiInput(void)
         {
             struct SingleTouchMsg *TouchMsg;
             static s32 z=0;
-            s32 Touch_Msg;
+            u16 Touch_Msg;
             bool_t NC;
             POINT pt;
             RECT rc;
@@ -171,33 +171,64 @@ void GDD_HmiInput(void)
                 else
                     NC = true;
 
-                if(z == TouchMsg->z)    //相等，必然是按下并拖动
+                z = TouchMsg->z;
+                if(z>0)     //touch按下或者滑动
                 {
-                    if(NC )
-                        Touch_Msg = MSG_TOUCH_MOVE;
-                    else
-                        Touch_Msg = MSG_NCTOUCH_MOVE;
-                    PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
-                }
-                else
-                {
-                    z = TouchMsg->z;
-                    if(z>0)     //touch按下，模拟成鼠标左键按下
+                    if((TouchMsg->MoveX ==0) && (TouchMsg->MoveY ==0))
                     {
                         if(NC)
                             Touch_Msg = MSG_NCTOUCH_DOWN;
                         else
                             Touch_Msg = MSG_TOUCH_DOWN;
                     }
-                    else        //touch离开，模拟成鼠标左键松开
+                    else
                     {
                         if(NC)
-                            Touch_Msg = MSG_NCTOUCH_UP;
+                            Touch_Msg = MSG_NCTOUCH_MOVE;
                         else
-                            Touch_Msg = MSG_TOUCH_UP;
+                            Touch_Msg = MSG_TOUCH_MOVE;
                     }
-                    PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
                 }
+                else        //touch离开
+                {
+                    if(NC)
+                        Touch_Msg = MSG_NCTOUCH_UP;
+                    else
+                        Touch_Msg = MSG_TOUCH_UP;
+                }
+                PostMessage(hwnd, Touch_Msg,
+                            (TouchMsg->MoveY << 16) | TouchMsg->MoveX,
+                            (pt.y << 16) | pt.x);
+
+
+//
+//              if(z == TouchMsg->z)    //相等，必然是按下并拖动
+//              {
+//                  if(NC )
+//                      Touch_Msg = MSG_TOUCH_MOVE;
+//                  else
+//                      Touch_Msg = MSG_NCTOUCH_MOVE;
+//                  PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
+//              }
+//              else
+//              {
+//                  z = TouchMsg->z;
+//                  if(z>0)     //touch按下，模拟成鼠标左键按下
+//                  {
+//                      if(NC)
+//                          Touch_Msg = MSG_NCTOUCH_DOWN;
+//                      else
+//                          Touch_Msg = MSG_TOUCH_DOWN;
+//                  }
+//                  else        //touch离开，模拟成鼠标左键松开
+//                  {
+//                      if(NC)
+//                          Touch_Msg = MSG_NCTOUCH_UP;
+//                      else
+//                          Touch_Msg = MSG_TOUCH_UP;
+//                  }
+//                  PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
+//              }
             }
             __GDD_Unlock();
         }

@@ -2201,10 +2201,9 @@ ptu32_t __GK_Server(void)
         {
             //由于管道中的数据可能不对齐，故必须把数据copy出来，不能直接用指针
             //指向或强制类型转换
-            len =   draw_chunnel_buf[offset+2] + ((u16)draw_chunnel_buf[offset+3]<<8);
             command = draw_chunnel_buf[offset] + ((u16)draw_chunnel_buf[offset+1]<<8);
-            //sizeof(u16)不可用2替代，在cn_byte_bits>=16的机器上，sizeof(u16)=1.
-            offset += sizeof(u32);
+            len =   draw_chunnel_buf[offset+2] + ((u16)draw_chunnel_buf[offset+3]<<8);
+            offset += 4;
 //            sync_draw = draw_chunnel_buf[offset];
 //            offset += 1;
             size= __ExecOneCommand(command,(u8 *)draw_chunnel_buf + offset);

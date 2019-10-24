@@ -255,12 +255,13 @@ typedef enum{
 #define MSG_KEY_UP              0x0121  //键盘弹起;Param1: 按键值; Param2:事件产生的时间(毫秒单位).
 #define MSG_KEY_PRESS           0x0122
 
-#define MSG_TOUCH_DOWN          0x0130   //触摸屏触摸下触摸点
+#define MSG_TOUCH_DOWN          0x0130   //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
 #define MSG_TOUCH_UP            0x0131   //触摸屏离开触摸点
-#define MSG_TOUCH_MOVE          0x0132   //手指在屏上滑动，Param1：X方向1mS滑动的mm数，Param2：Y方向1mS滑动的mm数
-#define MSG_NCTOUCH_DOWN        0x0133
+#define MSG_TOUCH_MOVE          0x0132   //手指在屏上滑动，Param1：X方向1mS滑动的微米数(L16)，Y方向1mS滑动的mm数(H16)
+                                         //               param2：x坐标(L16),y坐标(H16)
+#define MSG_NCTOUCH_DOWN        0x0133   //触摸屏触摸下触摸点，param1：忽略；param2：x坐标(L16),y坐标(H16)
 #define MSG_NCTOUCH_UP          0x0134
-#define MSG_NCTOUCH_MOVE        0x0135
+#define MSG_NCTOUCH_MOVE        0x0135   //同 MSG_TOUCH_MOVE 消息
 
 #define MSG_TIMER_START         0x0140  //定时器消息: Param1:定时Id; Param2:定时器对象.
 #define MSG_TIMER_STOP          0x0141  //定时器消息: Param1:定时Id; Param2:定时器对象.
