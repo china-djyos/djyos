@@ -206,6 +206,8 @@ ptu32_t Touch_Scan(void)
                         //发包含滑动数据的消息，即滑动消息
                         HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp,
                                                             sizeof(touch_temp));
+                        //检测到滑动，300mS内不检测，以免连续快速发滑动消息
+                        Djy_EventDelay(300*mS);
                     }
                 }
             }
