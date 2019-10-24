@@ -177,18 +177,21 @@ static  bool_t Button_Down(struct WindowMsg *pMsg)
             hwnd->Style |= BS_PUSHED;
 //          InvalidateWindow(hwnd,FALSE);   //父窗口消息处理可能导致按钮被删除，
 //                                          //InvalidateWindow不能在SendMessage之后调用
-            PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,(MSG_BTN_DOWN<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+            PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,
+                                (MSG_BTN_DOWN<<16)|(hwnd->WinId),(ptu32_t)hwnd);
             break;
             ////
         case    BS_HOLD:    //自锁按钮
             hwnd->Style ^= BS_PUSHED;
             if(hwnd->Style&BS_PUSHED)
             {
-                PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,(MSG_BTN_DOWN<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+                PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,
+                                (MSG_BTN_DOWN<<16)|(hwnd->WinId),(ptu32_t)hwnd);
             }
             else
             {
-                PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,(MSG_BTN_UP<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+                PostMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,
+                                (MSG_BTN_UP<<16)|(hwnd->WinId),(ptu32_t)hwnd);
             }
             break;
             ////
@@ -218,7 +221,8 @@ static  bool_t Button_Up(struct WindowMsg *pMsg)
             hwnd->Style &= ~BS_PUSHED;
             InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除，
                                             //InvalidateWindow不能在SendMessage之后调用
-            SendMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,(MSG_BTN_UP<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+            SendMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,
+                                (MSG_BTN_PEN_MOVE<<16)|(hwnd->WinId),(ptu32_t)hwnd);
             break;
             ////
         case    BS_HOLD:
@@ -243,12 +247,13 @@ static bool_t Button_Move(struct WindowMsg *pMsg)
     {
         switch(_get_button_type(hwnd))
         {
-                case    BS_NORMAL:
-                    hwnd->Style &= ~BS_PUSHED;
-                    InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除
-                    break;
-                case BS_HOLD:
-                    break;
+            case    BS_NORMAL:
+                InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除
+                SendMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,
+                        (MSG_BTN_PEN_MOVE << 16) | (hwnd->WinId), pMsg->Param2);
+                break;
+            case BS_HOLD:
+                break;
         }
     }
     return true;

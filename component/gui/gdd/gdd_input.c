@@ -197,8 +197,8 @@ void GDD_HmiInput(void)
                         Touch_Msg = MSG_TOUCH_UP;
                 }
                 PostMessage(hwnd, Touch_Msg,
-                            (TouchMsg->MoveY << 16) | TouchMsg->MoveX,
-                            (pt.y << 16) | pt.x);
+                            ((u16)(TouchMsg->MoveY) << 16) | (u16)(TouchMsg->MoveX),
+                            ((u16)(pt.y) << 16) | (u16)(pt.x));
 
 
 //

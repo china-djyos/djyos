@@ -296,8 +296,9 @@ typedef enum{
 //// 控件通知码
 
 //Button
-#define MSG_BTN_DOWN    1    //按下
-#define MSG_BTN_UP      2    //弹起
+#define MSG_BTN_DOWN        1   //按下
+#define MSG_BTN_UP          2   //弹起
+#define MSG_BTN_PEN_MOVE    3   //触摸滑动
 
 //ListBox
 //#define LBN_SELCHANGE   1   //当前选择项目补改变
