@@ -104,6 +104,7 @@ struct GkWinObj *GK_CreateDesktop(const char *DisplayName,
     desktop = malloc(sizeof(struct GkWinObj));
     if((NULL == DisplayObject) || (NULL == desktop))
         return result;
+    memset(desktop, 0, sizeof(struct GkWinObj));
     para.display = (struct DisplayObj *)obj_GetPrivate(DisplayObject);
     para.desktop = desktop;
     para.name = (char *)DesktopName;

@@ -3306,6 +3306,9 @@ void ModuleInstall_FontGB2312(void)
     #if CFG_GB2312_16_SONG != zk_disable
     ModuleInstall_FontGb2312_16_Song( );
     #endif      //CFG_GB2312_16_SONG != zk_disable
+    #if CFG_GB2312_16_YAHEI != zk_disable
+    ModuleInstall_FontGb2312_16_Yahei( );
+    #endif      //CFG_GB2312_16_YAHEI != zk_disable
     #if CFG_GB2312_16_YUAN != zk_disable
     ModuleInstall_FontGb2312_16_Yuan( );
     #endif      //CFG_GB2312_16_YUAN != zk_disable

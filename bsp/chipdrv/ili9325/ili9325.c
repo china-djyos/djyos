@@ -729,8 +729,8 @@ ptu32_t ModuleInstall_ili9325(void)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = 0;
+    tg_lcd_display.height_um = 0;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;

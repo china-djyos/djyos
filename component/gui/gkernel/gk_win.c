@@ -273,6 +273,7 @@ bool_t __gk_vmalloc(struct DisplayObj *disp,struct GkWinObj *gkwin,
                             disp->DisplayHeap,0);
     if(mem != NULL)
     {
+        memset(mem, 0, buf_size + sizeof(struct RectBitmap));
         gkwin->wm_bitmap = (struct RectBitmap*)mem;
         gkwin->wm_bitmap->PixelFormat = PixelFormat;
         gkwin->wm_bitmap->width = xsize;
@@ -339,6 +340,7 @@ bool_t __gk_vrmalloc(struct DisplayObj *disp,struct GkWinObj *gkwin)
         mem =(u8*) M_MallocLcHeap(newsize,disp->DisplayHeap,0);
         if(mem != NULL)
         {
+            memset(mem, 0, newsize);
             gkwin->wm_bitmap = (struct RectBitmap*)mem;
             gkwin->wm_bitmap->width = xsize;
             gkwin->wm_bitmap->height = ysize;
@@ -577,7 +579,6 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     para_fill.gkwin = desktop;
     para_fill.color = para->color;
     __GK_FillWin(&para_fill);
-
     //返回新窗口指针
     return desktop;
 }
@@ -610,6 +611,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     display = para->parent_gkwin->disp;
 //  gkwin = para->gkwin;    //para->gkwin由调用者提供内存，传指针过来
     gkwin = M_MallocLcHeap(sizeof(struct GkWinObj),  display->DisplayHeap, 0);
+    memset(gkwin, 0, sizeof(struct GkWinObj));
     if(gkwin == NULL)
         return NULL;
     parent = para->parent_gkwin;
