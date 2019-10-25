@@ -222,7 +222,7 @@ static  bool_t Button_Up(struct WindowMsg *pMsg)
             InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除，
                                             //InvalidateWindow不能在SendMessage之后调用
             SendMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,
-                                (MSG_BTN_PEN_MOVE<<16)|(hwnd->WinId),(ptu32_t)hwnd);
+                                            (MSG_BTN_UP<<16)|(hwnd->WinId),(ptu32_t)hwnd);
             break;
             ////
         case    BS_HOLD:
@@ -243,7 +243,7 @@ static bool_t Button_Move(struct WindowMsg *pMsg)
     if(hwnd==NULL)
         return false;
 
-    if(pMsg->Code==MSG_NCTOUCH_MOVE)
+    if(pMsg->Code==MSG_TOUCH_MOVE)
     {
         switch(_get_button_type(hwnd))
         {
