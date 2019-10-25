@@ -787,8 +787,8 @@ ptu32_t LCD_ModuleInit(ptu32_t para)
     __lcd_mcbqvga_init( );
     tg_lcd_display.frame_buffer = NULL;
 
-    tg_lcd_display.xmm = 0;
-    tg_lcd_display.ymm = 0;
+    tg_lcd_display.width_um = 0;
+    tg_lcd_display.height_um = 0;
     tg_lcd_display.width = CN_LCD_XSIZE;
     tg_lcd_display.height = CN_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;

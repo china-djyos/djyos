@@ -4574,7 +4574,6 @@ void __GK_FillWin(struct GkscParaFillWin *para)
     struct RectBitmap *bitmap;
 
     struct DispDraw *my_draw_fun;
-
     fpwin = para->gkwin;
     bitmap = fpwin->wm_bitmap;
     my_draw_fun = &fpwin->disp->draw;

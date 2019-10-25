@@ -917,6 +917,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
     {
 //      pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinObj),100*mS);
         pGddWin=M_Malloc(sizeof(struct WINDOW), 100*mS);
+        memset(pGddWin, 0, sizeof(struct WINDOW));
         if(NULL!=pGddWin)
         {
 //          pGkWin = (struct GkWinObj*)(pGddWin+1);
