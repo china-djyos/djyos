@@ -2533,12 +2533,6 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
       return -1;
     }
   }
-#ifdef DJYOS
-  if (frame->overlap) {
-    memset(frame->overlap, 0, 2 * 32 * 18 * sizeof(mad_fixed_t));
-  }
-#endif
-
   if (frame->overlap == 0) {
     frame->overlap = calloc(2 * 32 * 18, sizeof(mad_fixed_t));
     if (frame->overlap == 0) {
