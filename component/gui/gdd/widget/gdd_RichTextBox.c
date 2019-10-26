@@ -589,7 +589,7 @@ static ptu32_t RichTextBox_Create(struct WindowMsg *pMsg)
             pRTB=(RichTextBox *)malloc(sizeof(RichTextBox));
             if(pRTB==NULL)
                 return false;
-
+            memset(pRTB, 0, sizeof(RichTextBox));
             pRTB->cur_byte_idx=16;//此处修改每一排的字符数
             SetWindowPrivateData(hwnd,(void *)pRTB);
         }

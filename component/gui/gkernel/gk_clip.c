@@ -406,8 +406,8 @@ bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display)
     sort_array_x = M_MallocLc(num,0);
     if(sort_array_x == NULL)
         return false;
-    sort_array_y = sort_array_x + display->width+1;
     memset(sort_array_x,0,num);
+    sort_array_y = sort_array_x + display->width+1;
     tempwin = display->z_topmost;
 //    rect_left = 0;
 //    rect_top = 0;

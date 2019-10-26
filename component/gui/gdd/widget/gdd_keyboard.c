@@ -137,9 +137,11 @@ static bool_t VirKeyBoard_Create(struct WindowMsg *pMsg)
        pVKB=(VirKeyBoard *)malloc(sizeof(VirKeyBoard));
        if(pVKB==NULL)
            return false;
+       memset(pVKB, 0, sizeof(VirKeyBoard));
        pkbp=(struct KeyBoardPrivate *)malloc(sizeof(struct KeyBoardPrivate));
        if(pkbp==NULL)
            return false;
+       memset(pkbp, 0, sizeof(struct KeyBoardPrivate));
        pVKB->cols=gs_KeyBoardRowsDef;
        pVKB->rows=gs_KeyBoardColsDef;
        pVKB->keyspace=gs_KeySpaceDef;

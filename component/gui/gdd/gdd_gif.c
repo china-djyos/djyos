@@ -1021,6 +1021,7 @@ struct GIF_DECODE*    OpenGIF(const void *dat,u32 size)
     {
         return NULL;
     }
+    memset(hgif, 0, sizeof(struct GIF_DECODE));
     hgif->pSrcData    =(u8*)dat;
     hgif->NumBytes    =size;
     if(!gif_init(hgif))

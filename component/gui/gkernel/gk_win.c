@@ -611,6 +611,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     display = para->parent_gkwin->disp;
 //  gkwin = para->gkwin;    //para->gkwin由调用者提供内存，传指针过来
     gkwin = M_MallocLcHeap(sizeof(struct GkWinObj),  display->DisplayHeap, 0);
+    //todo:加空指针判断
     memset(gkwin, 0, sizeof(struct GkWinObj));
     if(gkwin == NULL)
         return NULL;

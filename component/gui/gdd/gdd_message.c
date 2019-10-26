@@ -145,13 +145,14 @@ struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size)
     {
         return NULL;
     }
+    memset(pMsgQ, 0, sizeof(struct WinMsgQueueCB));
 
     //创建消息队列锁
     pMsgQ->mutex_lock =Lock_MutexCreate(NULL);
 
     //创建消息信号量
 //  pMsgQ->sem_msg  =Lock_SempCreate(1000,0,CN_BLOCK_PRIO,NULL);
-    pMsgQ->sem_msg  =Lock_SempCreate(size,0,CN_BLOCK_PRIO,NULL);
+    pMsgQ->sem_msg  =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
 
     pMsgQ->sem_sync_send =Lock_SempCreate(1,1,CN_BLOCK_PRIO,NULL);
     pMsgQ->sem_sync_recv =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
@@ -164,7 +165,7 @@ struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size)
     {
         goto ErrorExit;
     }
-
+    memset(pMsgQ->post_pbuf, 0, size*sizeof(struct MsgList));
     //初始化post消息链表缓冲区
     pMsgQ->post_free =(struct MsgList*)pMsgQ->post_pbuf;
     for(i=0;i<(size-1);i++)
@@ -443,14 +444,11 @@ static void    __PostPaintMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,bool_t b
 //参数：ptmr: 定时器结构指针.
 //返回：无.
 //------------------------------------------------------------------------------
-void    __PostTimerMessage(struct WinTimer *ptmr)
+void    __PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr)
 {
-    struct WinMsgQueueCB *pMsgQ;
-    HWND hwnd=ptmr->hwnd;
-
     if(__HWND_Lock(hwnd))
     {
-        pMsgQ =__GetWindowMsgQ(hwnd);
+//      pMsgQ =__GetWindowMsgQ(hwnd);
 
         if(dListIsEmpty(&ptmr->node_msg_timer))
         {
@@ -533,7 +531,15 @@ bool_t    __PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1
         res =TRUE;
     }
     else
-        printf("------left message num = %d\r\n", Lock_SempQueryFree(pMsgQ->sem_msg));
+    {
+        new_msg = pMsgQ->post_first;
+        printf("************ %s message num = %d\r\n", hwnd->Text, Lock_SempQueryFree(pMsgQ->sem_msg));
+        while(new_msg != NULL)
+        {
+            printf("------%s code = %d\r\n", new_msg->Msg.hwnd->Text, new_msg->Msg.Code);
+            new_msg = new_msg->Next;
+        }
+    }
 
     return res;
 }
@@ -562,24 +568,25 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
                     __PostPaintMessage(pMsgQ,hwnd,param1);
                     res=TRUE;
                     break;
-                    ////
 
                 case MSG_NCPAINT:
                     __PostNCPaintMessage(pMsgQ,hwnd);
                     res=TRUE;
                     break;
-                    ////
 
                 case MSG_CLOSE:
                     __PostCloseMessage(pMsgQ,hwnd);
                     res=TRUE;
                     break;
-                    ////
+
+                case MSG_TIMER:
+                    __PostTimerMessage(pMsgQ,hwnd,param2);
+                    res=TRUE;
+                    break;
 
                 default:
                     res=__PostMessage(pMsgQ,hwnd,msg,param1,param2);
                     break;
-                    ////
             }
 
         }
@@ -800,8 +807,6 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
         }
         else
         {
-            struct WinMsgQueueCB *pMsgQ;
-
             if(__HWND_Lock(hwnd))
             {
                 pMsgQ =__GetWindowMsgQ(hwnd);

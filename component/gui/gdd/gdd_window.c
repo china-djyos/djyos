@@ -768,7 +768,7 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
     pGddWin=malloc(sizeof(struct WINDOW));
     if(NULL!=pGddWin)
     {
-
+        memset(pGddWin, 0, sizeof(struct WINDOW));
         Style = WS_VISIBLE | WS_CAN_FOCUS;
 //      s_gDesktopMsgLink.LinkNext = NULL;
 //      s_gDesktopMsgLink.MsgNum = sizeof(s_gDesktopMsgProcTable) / sizeof(struct MsgProcTable);
@@ -917,9 +917,9 @@ HWND    CreateWindow(const char *Text,u32 Style,
     {
 //      pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinObj),100*mS);
         pGddWin=M_Malloc(sizeof(struct WINDOW), 100*mS);
-        memset(pGddWin, 0, sizeof(struct WINDOW));
         if(NULL!=pGddWin)
         {
+            memset(pGddWin, 0, sizeof(struct WINDOW));
 //          pGkWin = (struct GkWinObj*)(pGddWin+1);
 //
 //          if(!GK_CreateWin(hParent->pGkWin, pGkWin,x,y,x+w,y+h,
@@ -948,7 +948,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                 else
                 {
                     pGddWin->mutex_lock =Lock_MutexCreate(NULL);
-                    pGddWin->pMsgQ      =__GUI_CreateMsgQ(128);
+                    pGddWin->pMsgQ      =__GUI_CreateMsgQ(32);
                     pGddWin->DrawColor = CN_DEF_DRAW_COLOR;
                     pGddWin->FillColor = CN_DEF_FILL_COLOR;
                     pGddWin->TextColor = CN_DEF_TEXT_COLOR;
@@ -968,7 +968,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
 
                 num = (pUserMsgTableLink != NULL)? 2:1;
                 pGddWin->MyMsgTableLink = (struct MsgTableLink **)\
-                  malloc(num*sizeof( struct MsgTableLink *));
+                            malloc(num*sizeof( struct MsgTableLink *));
 
                 if(pGddWin->MyMsgTableLink == NULL)
                 {
@@ -1380,6 +1380,7 @@ HDC GetWindowDC(HWND hwnd)
     pdc =malloc(sizeof(DC));
     if(pdc!=NULL)
     {
+        memset(pdc, 0, sizeof(DC));
         __InitDC(pdc,hwnd->pGkWin,hwnd,DC_TYPE_WINDOW);
     }
     return DC2HDC(pdc);
@@ -1398,6 +1399,7 @@ HDC GetDC(HWND hwnd)
     pdc =malloc(sizeof(DC));
     if(pdc!=NULL)
     {
+        memset(pdc, 0, sizeof(DC));
         __InitDC(pdc,hwnd->pGkWin,hwnd,DC_TYPE_CLIENT);
     }
     return DC2HDC(pdc);
@@ -1427,6 +1429,7 @@ HDC BeginPaint(HWND hwnd)
     hdc =malloc(sizeof(DC));
     if(hdc!=NULL)
     {
+        memset(hdc, 0, sizeof(DC));
         __InitDC(hdc,hwnd->pGkWin,hwnd,DC_TYPE_PAINT);
 
         if(__HWND_Lock(hwnd))

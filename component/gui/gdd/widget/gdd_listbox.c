@@ -97,6 +97,7 @@ static bool_t ListBox_Create(struct WindowMsg *pMsg)
          pLB =(LISTBOX_DATA*)malloc(sizeof(LISTBOX_DATA));
          if(pLB==NULL)
               return false;
+         memset(pLB, 0, sizeof(LISTBOX_DATA));
          pMsg->Param1=(ptu32_t)pLB;
          dListInit(&pLB->list);
          pLB->ItemNum =0;
@@ -169,6 +170,7 @@ static  bool_t  ListBox_AddString(struct WindowMsg *pMsg)
     {
         return (s32)-1;
     }
+    memset(item, 0, sizeof(LISTBOX_ITEM) + i);
     strcpy(item->szText,text);
     item->Flag =0;
     item->Data =0;

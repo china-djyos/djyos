@@ -619,6 +619,7 @@ static bool_t TextBox_Create(struct WindowMsg *pMsg)
         pTB=(TextBox *)malloc(sizeof(TextBox));
         if(pTB==NULL)
             return false;
+        memset(pTB, 0, sizeof(TextBox));
         pTB->ChNum=0;
         pTB->CharNumLimit=CN_CHAR_NUM_MAX;
         if(Style&&WS_TEXTBOX_R_O)

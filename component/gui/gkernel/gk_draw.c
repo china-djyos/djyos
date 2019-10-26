@@ -4045,7 +4045,7 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
         //带rop操作的位图不支持直接写屏，无win buffer，也无frame buffer，
         //或者直接写屏属性为true的情况，将退化为GK_DrawBitMap的功能
         {
-            //为与可视域坐标保持一致，将待位图要绘制的位置的
+            //为与可视域坐标保持一致，将位图要绘制的位置的
             //坐标调整成以screen原点为原点的坐标
             DstRect.left += DstGkwin->absx0;
             DstRect.right += DstGkwin->absx0;

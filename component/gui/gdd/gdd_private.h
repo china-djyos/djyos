@@ -204,7 +204,7 @@ bool_t  __PtInRect(const RECT *prc,const POINT *pt);
 
 
 bool_t  __PostMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,u32 msg,u32 param1,ptu32_t param2);
-void    __PostTimerMessage(struct WinTimer *ptmr);
+void    __PostTimerMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd,struct WinTimer *ptmr);
 
 void    __InvalidateWindow(HWND hwnd,bool_t bErase);
 struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size);

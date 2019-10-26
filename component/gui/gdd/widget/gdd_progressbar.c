@@ -277,6 +277,8 @@ static bool_t ProgressBar_Create(struct WindowMsg *pMsg)
      if(pMsg->Param1==0)
      {
          pPB =(PROGRESSBAR_DATA*)malloc(sizeof(PROGRESSBAR_DATA));
+         //todo:此处加空指针判断
+         memset(pPB, 0, sizeof(PROGRESSBAR_DATA));
          pMsg->Param1=(ptu32_t)pPB;
          pPB->Flag =0;
          pPB->Range =100;

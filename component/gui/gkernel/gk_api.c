@@ -446,7 +446,7 @@ void GK_DrawBitMap(struct GkWinObj *gkwin,
                     u32 HyalineColor,struct RopGroup RopCode,u32 SyncTime)
 {
     struct GkscParaDrawBitmapRop para;
-    memset(&para,sizeof(para),0);
+    memset(&para,0,sizeof(para));
     if(NULL == gkwin)
         return;
     else
@@ -745,7 +745,7 @@ bool_t GK_SetRopCode(struct GkWinObj *gkwin,
                         struct RopGroup RopCode,u32 SyncTime)
 {
     struct GkscParaSetRopCode para;
-    memset(&para,sizeof(para),0);
+    memset(&para,0,sizeof(para));
     if(NULL == gkwin)
         return false;
     if(memcmp(&RopCode, &gkwin->RopCode, sizeof(RopCode) )== 0)

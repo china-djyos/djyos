@@ -78,6 +78,8 @@ static  struct WinTimer*  __gdd_TimerAlloc(void)
     struct WinTimer *tmr;
 
     tmr =malloc(sizeof(struct WinTimer));
+    //todo:此处加空指针判断
+    memset(tmr, 0, sizeof(struct WinTimer));
     return tmr;
 }
 
@@ -254,6 +256,7 @@ void GDD_ResetTimer(struct WinTimer *ptmr,u32 IntervalMS)
     __gdd_TimerAdd(ptmr);
     if(&ptmr->node_sys == dListGetAfter(&sg_GddTimerList))
     {
+        //如果是队列头，则立即释放信号量，使定时器扫描函数更新定时时间
         Lock_SempPost(s_ptGddTimerRun);
     }
     Lock_MutexPost(s_ptGddTimerQSync);
@@ -295,6 +298,7 @@ void GDD_StartTimer(struct WinTimer *ptmr)
     //看新启动的定时器是否放在队列头，
     if(&ptmr->node_sys == dListGetAfter(&sg_GddTimerList))
     {
+        //如果是队列头，则立即释放信号量，使定时器扫描函数更新定时时间
         Lock_SempPost(s_ptGddTimerRun);
     }
     return ;
@@ -366,6 +370,7 @@ ptu32_t GDD_TimerScan(void)
     {
         if(dListIsEmpty(&sg_GddTimerList))
         {
+            //定时器队列空，只有创建定时器才释放信号量
             Lock_SempPend(s_ptGddTimerRun, CN_TIMEOUT_FOREVER);
         }
         else

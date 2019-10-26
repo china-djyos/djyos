@@ -174,14 +174,15 @@ static  void ListView_Reset(listview_t *pLV)
 
 static bool_t ListView_Create(struct WindowMsg *pMsg)
 {
-     listview_t *pLV;
-     HWND hwnd;
-     hwnd =pMsg->hwnd;
-     pLV =(listview_t*)malloc(sizeof(listview_t));
+    listview_t *pLV;
+    HWND hwnd;
+    hwnd =pMsg->hwnd;
+    pLV =(listview_t*)malloc(sizeof(listview_t));
     if(pLV==NULL)
     {
         return false;
     }
+    memset(pLV, 0, sizeof(listview_t));
     ListView_Reset(pLV);
     SetWindowPrivateData(hwnd,(void*)pLV);
     return true;
@@ -203,6 +204,7 @@ static bool_t ListView_AddCol(struct WindowMsg *pMsg)
     col =(list_col_cel_t*)malloc(sizeof(list_col_cel_t));
     if(col!=NULL)
     {
+        memset(col, 0, sizeof(list_col_cel_t));
         dListInit(&col->node);
         col->Text =lv_col->pszText;
         col->Width =lv_col->Width;
@@ -234,6 +236,7 @@ static bool_t ListView_AddRow(struct WindowMsg *pMsg)
     row =(list_row_cel_t*)malloc(sizeof(list_row_cel_t));
     if(row!=NULL)
     {
+        memset(row, 0, sizeof(list_row_cel_t));
         dListInit(&row->node);
         row->Text =lv_row->pszText;
         row->Height =lv_row->Height;
@@ -243,6 +246,8 @@ static bool_t ListView_AddRow(struct WindowMsg *pMsg)
         pLV->row_num++;
         ////
         row->cell_item =(list_cell_t*)malloc(sizeof(list_cell_t)*pLV->col_num);
+        //todo:¼Ó¿ÕÖ¸ÕëÅÐ¶Ï
+        memset(row->cell_item, 0, (sizeof(list_cell_t)*pLV->col_num));
 
         for(i=0;i<pLV->col_num;i++)
         {
