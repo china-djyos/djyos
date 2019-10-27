@@ -125,7 +125,7 @@ struct GkscParaCreateGkwin
     //以下成员只在buf_mode=true时有效，否则忽略之。
     u16 PixelFormat;                //像素格式，不允许用编号大于CN_GKWIN_PF_LIMIT的格式
     u16 rsv;                        //保留用于4字节对齐
-    u32  HyalineColor;                  //透明色，gkwin中的rop_code允许透明色时有用
+    u32  HyalineColor;              //透明色，gkwin中的rop_code允许透明色时有用
     u32 BaseColor  ;                //灰度图基色(当pf_type == CN_SYS_PF_GRAY1 ~8)
                                     //pf_type取其他值时不需要此参数
     struct RopGroup RopCode;        //窗口的光栅属性，在windows的光栅操作码的基础上有扩展

@@ -70,6 +70,7 @@ struct ClipRect * __GK_CombineClip_s(struct ClipRect *clipq);
 struct ClipRect * __GK_CombineClip(struct ClipRect *clipq);
 bool_t __GK_GetRectInts(struct Rectangle *rect1,struct Rectangle *rect2,
                      struct Rectangle *result);
+extern bool_t __GK_ScanVisibleClip(struct GkWinObj *newwin);
 extern bool_t __GK_ScanNewVisibleClip(struct DisplayObj *display);
 bool_t __GK_GetVisibleClip(struct DisplayObj *display);
 struct ClipRect *  __GK_CopyClipLink(struct ClipRect *clip_link);

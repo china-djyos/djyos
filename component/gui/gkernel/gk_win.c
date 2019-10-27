@@ -795,14 +795,17 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     }
     //设置窗口的可见边界，不受窗口互相遮挡影响，必须设置资源队列后才能调用
     __GK_SetBound(gkwin);
-    gkwin->visible_clip = NULL;
     gkwin->visible_bak = NULL;
-    __GK_ScanNewVisibleClip(display);
-//  display->reset_clip = true;
-    para_fill.gkwin = gkwin;
-    para_fill.color = para->color;
-    if( ! para->unfill)
+    gkwin->visible_clip = NULL;
+    if(!para->unfill)
+    {
+        para_fill.gkwin = gkwin;
+        para_fill.color = para->color;
+        __GK_ScanVisibleClip(gkwin);
         __GK_FillWin(&para_fill);
+        gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
+    }
+    display->reset_clip = true;
 
     return gkwin;
 }

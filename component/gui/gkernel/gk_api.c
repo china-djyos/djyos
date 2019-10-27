@@ -990,7 +990,7 @@ bool_t GK_IsWinVisible(struct GkWinObj *gkwin)
 {
     if(NULL == gkwin)
         return false;
-    if(gkwin->visible_clip == NULL)
+    if(gkwin->WinProperty.Visible == 0)
         return false;
     else
         return true;
