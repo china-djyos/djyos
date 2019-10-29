@@ -154,7 +154,8 @@ struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size)
 //  pMsgQ->sem_msg  =Lock_SempCreate(1000,0,CN_BLOCK_PRIO,NULL);
     pMsgQ->sem_msg  =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
 
-    pMsgQ->sem_sync_send =Lock_SempCreate(1,1,CN_BLOCK_PRIO,NULL);
+//    pMsgQ->sem_sync_send =Lock_SempCreate(1,1,CN_BLOCK_PRIO,NULL);
+    pMsgQ->sem_sync_send =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
     pMsgQ->sem_sync_recv =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
 
     //创建post消息链表缓冲区
@@ -291,10 +292,13 @@ static u32 __PostSyncMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
     __InitMsg(&pMsgQ->sync_msg,hwnd,msg,param1,param2);
 
 
-    Lock_SempPost(pMsgQ->sem_sync_recv);
+//    Lock_SempPost(pMsgQ->sem_sync_recv);
+
     Lock_SempPost(pMsgQ->sem_msg);    //发送消息信号量
 
     Lock_SempPend(pMsgQ->sem_sync_send,CN_TIMEOUT_FOREVER);
+
+
     res=pMsgQ->sync_msg.Param1;
 
     Lock_MutexPost(pMsgQ->mutex_lock);
@@ -311,34 +315,35 @@ static u32 __PostSyncMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 //------------------------------------------------------------------------------
 static bool_t __PeekSyncMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
 {
-    if(Lock_SempPend(pMsgQ->sem_sync_recv, 0))
+//    if(Lock_SempPend(pMsgQ->sem_sync_recv, 0))
+    if(pMsgQ->sync_msg.hwnd != NULL)
     {
         __CopyMsg(pMsg,&pMsgQ->sync_msg);
-
+        pMsgQ->sync_msg.hwnd = NULL;
         return true;
     }
     else
         return false;
 }
 
-//----处理同步消息--------------------------------------------------------------
-//描述: 该函数为内部调用,不检查函数参数的合法性.
-//参数：pMsgQ:消息队列指针.
-//返回：无.
-//------------------------------------------------------------------------------
-static void __HandleSyncMessage(struct WinMsgQueueCB *pMsgQ)
-{
-    if(Lock_SempPend(pMsgQ->sem_sync_recv, 0))
-    {
-        struct WindowMsg *pMsg;
-
-        pMsg =&pMsgQ->sync_msg;
-        pMsgQ->sync_msg.Param1 = __WinMsgProc(pMsg);
-
-        Lock_SempPost(pMsgQ->sem_sync_send);
-
-    }
-}
+////----处理同步消息--------------------------------------------------------------
+////描述: 该函数为内部调用,不检查函数参数的合法性.
+////参数：pMsgQ:消息队列指针.
+////返回：无.
+////------------------------------------------------------------------------------
+//static void __HandleSyncMessage(struct WinMsgQueueCB *pMsgQ)
+//{
+//    if(Lock_SempPend(pMsgQ->sem_sync_recv, 0))
+//    {
+//        struct WindowMsg *pMsg;
+//
+//        pMsg =&pMsgQ->sync_msg;
+//        pMsgQ->sync_msg.Param1 = __WinMsgProc(pMsg);
+//
+//        Lock_SempPost(pMsgQ->sem_sync_send);
+//
+//    }
+//}
 
 //----发送消息------------------------------------------------------------------
 //描述: 同步处理,直到该消息被窗口过程处理完成,函数才会返回,该函数会自动处理本线程
@@ -752,19 +757,6 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
     *SyncMsg = false;
     while(1)
     {
-//      if(PeekMessage(pMsg,hwnd))
-//      {
-//          if(pMsg->Code == MSG_QUIT)
-//          {
-//              res=FALSE;
-//          }
-//          else
-//          {
-//              res=TRUE;
-//          }
-//          break;
-//      }
-//      else
 
         if(__HWND_Lock(hwnd))
         {

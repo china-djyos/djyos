@@ -1003,7 +1003,8 @@ HWND    CreateWindow(const char *Text,u32 Style,
 
         if(NULL!=pGddWin)
         {
-            SendMessage(pGddWin,MSG_CREATE,(u32)pdata,0);
+//          SendMessage(pGddWin,MSG_CREATE,(u32)pdata,0);
+            PostMessage(pGddWin,MSG_CREATE,(u32)pdata,0);
             PostMessage(pGddWin,MSG_NCPAINT,0,0);
             InvalidateWindow(pGddWin,TRUE);
         }
@@ -1089,8 +1090,8 @@ void DestroyAllChild(HWND hwnd)
         }
         __GDD_Unlock();
     }
+    PostMessage(hwnd, MSG_SYNC_DISPLAY,0,0);
     return ;
-
 }
 
 //----Æ«ÒÆ´°¿Ú------------------------------------------------------------------
