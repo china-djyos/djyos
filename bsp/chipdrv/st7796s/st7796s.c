@@ -820,7 +820,7 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
             if(src_bitmap->reversal == true)
             {
                 src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
-                                  +(SrcRect->bottom-1) * src_bitmap->linebytes);
+                            +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
                 src_offset += SrcRect->left;
                 for(y = DstRect->top; y < DstRect->bottom; y++)
                 {

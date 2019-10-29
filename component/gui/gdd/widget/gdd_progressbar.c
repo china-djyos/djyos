@@ -288,6 +288,7 @@ static bool_t ProgressBar_Create(struct WindowMsg *pMsg)
          pPB->DrawTextFlag =DT_VCENTER|DT_CENTER;
      }
      SetWindowPrivateData(hwnd,(void*)pMsg->Param1);
+     InvalidateWindow(hwnd,FALSE);
      return true;
 
 }

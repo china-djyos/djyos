@@ -797,13 +797,13 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     __GK_SetBound(gkwin);
     gkwin->visible_bak = NULL;
     gkwin->visible_clip = NULL;
+    __GK_ScanVisibleClip(gkwin);
     if(!para->unfill)
     {
         para_fill.gkwin = gkwin;
         para_fill.color = para->color;
-        __GK_ScanVisibleClip(gkwin);
         __GK_FillWin(&para_fill);
-        gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
+//      gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
     }
     display->reset_clip = true;
 

@@ -3877,14 +3877,15 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
             y_dst= DstRect.top;
             if(SrcBitmap->reversal == true)
             {
-                for(y_src= DstRect.top-1;y_src >= DstRect.bottom;y_src--)
+                for(y_src= SrcBitmap->height - SrcRect.top;
+                            y_src > SrcBitmap->height - SrcRect.bottom;y_src--)
                 {
                     x_dst = DstRect.left;
                     for(x_src = 0;x_src < DstRect.right-DstRect.left;x_src++)
                     {
                         __GK_CopyPixelRopBm(DstBitmap,SrcBitmap,
                                                 x_dst,y_dst,SrcRect.left+x_src,
-                                                SrcRect.top+y_src,
+                                                y_src,
                                                 para->RopCode,para->HyalineColor);
                         x_dst++;
                     }
@@ -3955,8 +3956,8 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         {
                             if(SrcBitmap->reversal == true)
                             {
-                                for(y_src= InsRect.bottom-DstRect.top -1;
-                                    y_src >= InsRect.top-DstRect.top;
+                                for(y_src= SrcBitmap->height - SrcRect.top;
+                                    y_src > SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
                                     x_dst = InsRect.left;
@@ -3995,8 +3996,8 @@ void __GK_DrawBitMap(struct GkscParaDrawBitmapRop *para)
                         {
                             if(SrcBitmap->reversal == true)
                             {
-                                for(y_src= InsRect.bottom-DstRect.top -1;
-                                    y_src >= InsRect.top-DstRect.top;
+                                for(y_src= SrcBitmap->height - SrcRect.top;
+                                    y_src > SrcBitmap->height - SrcRect.bottom;
                                     y_src--)
                                 {
                                     x_dst = InsRect.left;
