@@ -471,7 +471,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 
     case 16:
 
-      line_bytes = pBmp->biWidth * 2;
+        line_bytes = pBmp->biWidth * 2;
 //      if (line_bytes & 0x03)
 //      {
 //          line_bytes += 4 - (line_bytes & 0x03);
@@ -482,7 +482,7 @@ bool_t __DrawBMP(HDC hdc, s32 x, s32 y, GUI_GET_DATA *rd)
 //      offset -= yoff * line_bytes;
 //      offset += xoff * 2;
 
-      line_bytes = align_up(4, line_bytes);
+        line_bytes = align_up(4, line_bytes);
 
         bm = (BITMAP*)buf;
         bm->reversal = true;

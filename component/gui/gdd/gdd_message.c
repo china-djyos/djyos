@@ -77,7 +77,7 @@ struct WinMsgQueueCB
     struct MutexLCB *mutex_lock;            //消息队列锁
     struct SemaphoreLCB   *sem_msg;         //消息信号量
     struct SemaphoreLCB   *sem_sync_send;   //同步消息发送信号量
-    struct SemaphoreLCB   *sem_sync_recv;   //同步消息接收信号量
+//  struct SemaphoreLCB   *sem_sync_recv;   //同步消息接收信号量
 
     //同步和退出消息，一个主窗口只有一条，直接定义。
     struct WindowMsg     sync_msg;          //同步消息
@@ -156,13 +156,13 @@ struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size)
 
 //    pMsgQ->sem_sync_send =Lock_SempCreate(1,1,CN_BLOCK_PRIO,NULL);
     pMsgQ->sem_sync_send =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
-    pMsgQ->sem_sync_recv =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
+//  pMsgQ->sem_sync_recv =Lock_SempCreate(1,0,CN_BLOCK_PRIO,NULL);
 
     //创建post消息链表缓冲区
     pMsgQ->post_pbuf =(void*)malloc(size*sizeof(struct MsgList));
     if( (NULL==pMsgQ->post_pbuf)||(NULL==pMsgQ->mutex_lock)
-            ||(NULL==pMsgQ->sem_msg)||(NULL==pMsgQ->sem_sync_send)
-            ||(NULL==pMsgQ->sem_sync_recv) )
+            ||(NULL==pMsgQ->sem_msg)||(NULL==pMsgQ->sem_sync_send))
+//          ||(NULL==pMsgQ->sem_sync_recv) )
     {
         goto ErrorExit;
     }
@@ -191,7 +191,7 @@ struct WinMsgQueueCB*   __GUI_CreateMsgQ(s32 size)
 
 ErrorExit:
     free(pMsgQ->post_pbuf);
-    Lock_SempDelete(pMsgQ->sem_sync_recv);
+//  Lock_SempDelete(pMsgQ->sem_sync_recv);
     Lock_SempDelete(pMsgQ->sem_sync_send);
     Lock_SempDelete(pMsgQ->sem_msg);
     Lock_MutexDelete(pMsgQ->mutex_lock);
@@ -205,7 +205,7 @@ void    __GUI_DeleteMsgQ(struct WinMsgQueueCB *pMsgQ)
     {
         Lock_SempDelete(pMsgQ->sem_msg);
         Lock_SempDelete(pMsgQ->sem_sync_send);
-        Lock_SempDelete(pMsgQ->sem_sync_recv);
+//      Lock_SempDelete(pMsgQ->sem_sync_recv);
 
         Lock_MutexDelete(pMsgQ->mutex_lock);
 

@@ -1387,7 +1387,7 @@ void __GK_SetPixel(struct GkscParaSetPixel *para)
                                 pf_color,para->Rop2Code);      //绘制像素
         }
         __GK_ShadingPixel(pixelwin,para->x,para->y);//标志像素的changed_msk
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = pixelwin->visible_clip;
         if(clip == NULL)        //可视域为空，直接返回
@@ -3112,20 +3112,17 @@ void __GK_DrawCircle(struct GkscParaDrawCircle *para)//确认
 //    my_draw_fun = &cirwin->disp->draw;
     //说明有win buffer，且直接写屏属性为false
 //todo 修改by zhb 20160602
-    if(cirwin->wm_bitmap!=NULL)
-    {
-        if((cirwin->wm_bitmap->bm_bits!=NULL)&&(cirwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
-      {   //处理方法:在win buffer中绘图，标志changed_msk
+    if((cirwin->wm_bitmap!=NULL)&&(cirwin->WinProperty.DirectDraw == CN_GKWIN_UNDIRECT_DRAW))
+    {   //处理方法:在win buffer中绘图，标志changed_msk
         limit.left = 0;
         limit.top = 0;
         limit.right = cirwin->wm_bitmap->width;
         limit.bottom = cirwin->wm_bitmap->height;
         //以硬件加速不支持圆的绘制考虑，用软件实现
         __GK_DrawCircleBm(cirwin,&limit,para->x0,para->y0,para->r,
-                                    para->color,para->Rop2Code);
-        }
+                para->color,para->Rop2Code);
     }
-    else
+    else       //无win buffer，或直接写屏属性为true
     {
         clip = cirwin->visible_clip;
         if(clip == NULL)
@@ -3298,7 +3295,7 @@ void __GK_Bezier(struct GkscParaBezier *para)
         __GK_BezierBm(bzrwin,&limit,para->x1,para->y1,para->x2,para->y2,
                             para->x3,para->y3,para->x4,para->y4,
                             para->color,para->Rop2Code);
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = bzrwin->visible_clip;
         if(clip == NULL)
@@ -3375,7 +3372,7 @@ void __GK_Lineto(struct GkscParaLineto *para)
                                 para->x1,para->y1,para->x2,para->y2);
         }
     }
-    else
+    else       //无win buffer，或直接写屏属性为true
     {
         clip = lintowin->visible_clip;
         if(clip == NULL)
@@ -3475,7 +3472,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
             }
 
         }
-        else
+        else       //无win buffer，或直接写屏属性为true
         {
             clip = lintoiewin->visible_clip;
             if(clip == NULL)
@@ -3552,7 +3549,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
                                 para->x1,para->y1,para->x2,para->y2+1);
             }
         }
-        else
+        else       //无win buffer，或直接写屏属性为true
         {
             clip = lintoiewin->visible_clip;
             if(clip == NULL)
@@ -3642,7 +3639,7 @@ void __GK_LinetoIe(struct GkscParaLineto *para)
             }
 
         }
-        else
+        else       //无win buffer，或直接写屏属性为true
         {
             clip = lintoiewin->visible_clip;
             if(clip == NULL)
@@ -4359,7 +4356,7 @@ void __GK_FillPartWin(struct GkWinObj *Gkwin,struct Rectangle *Rect,u32 Color)
             __GK_FillRect(bitmap,Rect,Color);
         }
         __GK_ShadingRect(Gkwin,Rect);//着色填充区域的changed_msk
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = Gkwin->visible_clip;
         if(clip == NULL)                //窗口可视域为空，直接返回
@@ -4491,7 +4488,7 @@ void __GK_GradientFillRect(struct GkscParaGradientFillWin *para)
             __GK_GradientFillRectSoft(bitmap,&target,&target,Color0,Color1,Mode);
         }
         __GK_ShadingRect(fpwwin,&para->rect);//着色填充区域的changed_msk
-    }else
+    }else       //无win buffer，或直接写屏属性为true
     {
         clip = fpwwin->visible_clip;
         if(clip == NULL)                //窗口可视域为空，直接返回
@@ -4593,7 +4590,7 @@ void __GK_FillWin(struct GkscParaFillWin *para)
         }
         fpwin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
     }
-    else
+    else       //无win buffer，或直接写屏属性为true
     {
         clip = fpwin->visible_clip;
         if(clip == NULL)

@@ -170,7 +170,7 @@ struct GkscParaDrawBitmapRop
 {
     struct GkWinObj *gkwin;         //绘制的目标窗口
     struct RectBitmap bitmap;       //待绘制的位图
-    u32 HyalineColor;                   //透明色,与bitmap相同格式
+    u32 HyalineColor;               //透明色,与bitmap相同格式
     s32 x,y;                        //绘制位置的左上角坐标
     struct RopGroup RopCode;        //光栅操作码
 };

@@ -1388,6 +1388,14 @@ void __Djy_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status)
     event->event_status |= Status;
 }
 
+void testprio(void)
+{
+    if(g_tECB_Table[0].prio != 250)
+    {
+        printk("--------prio error_no\r\n");
+        while(g_tECB_Table[0].prio == 250);
+    }
+}
 //----从ready事件继承优先级-----------------------------------------------------
 //功能: 如果 src_id 的优先级较高，event_id临时以 src_id 的优先级，运行，直到调用
 //      Djy_RestorePrio，否则不改变优先级。本函数专用在创建线程时，从堆中分配栈的
@@ -1423,6 +1431,7 @@ bool_t __Djy_RaiseTempPrioForStack(u16 event_id)
             __Djy_ChangeBlockQueue(pl_ecb);
         }
     }
+    testprio();
     return true;
 }
 
@@ -1574,6 +1583,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
             pl_ecb->prio = new_prio;
     }
     Int_RestoreAsynSignal();
+    testprio();
     return true;
 }
 
@@ -1613,6 +1623,7 @@ bool_t Djy_RaiseTempPrio(u16 event_id)
             pl_ecb->prio = g_ptEventRunning->prio;
     }
     Int_RestoreAsynSignal();
+    testprio();
     return true;
 }
 
@@ -1634,6 +1645,7 @@ bool_t Djy_RestorePrio(void)
         __Djy_EventReady(g_ptEventRunning);
     }
     Int_RestoreAsynSignal();
+    testprio();
     return true;
 }
 
