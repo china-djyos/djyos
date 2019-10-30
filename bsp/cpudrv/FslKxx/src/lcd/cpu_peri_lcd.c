@@ -613,7 +613,6 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapNam
     tg_lcd_display.width = CN_LCD_XSIZE;
     tg_lcd_display.height = CN_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_ERGB8888;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = true;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 

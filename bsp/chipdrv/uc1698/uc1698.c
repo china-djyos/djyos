@@ -657,12 +657,11 @@ ptu32_t ModuleInstall_UC1698(void)
     frame_win.wm_bitmap = &FrameBitmap;
     tg_lcd_display.frame_buffer = &frame_win;
 
-    tg_lcd_display.Width_um = 0;
+    tg_lcd_display.width_um = 0;
     tg_lcd_display.height_um = 0;
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_GRAY4;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 

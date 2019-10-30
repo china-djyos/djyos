@@ -1090,7 +1090,7 @@ void DestroyAllChild(HWND hwnd)
         }
         __GDD_Unlock();
     }
-    PostMessage(hwnd, MSG_SYNC_DISPLAY,0,0);
+//  PostMessage(hwnd, MSG_SYNC_DISPLAY,0,0);
     return ;
 }
 

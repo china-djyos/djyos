@@ -792,7 +792,6 @@ ptu32_t LCD_ModuleInit(void)
     tg_lcd_display.width = CFG_LCD_XSIZE;
     tg_lcd_display.height = CFG_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_RGB565;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 

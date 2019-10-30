@@ -573,7 +573,8 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     clip->rect.right = display->width;
     clip->rect.bottom = display->height;
     desktop->visible_clip = clip;
-    desktop->visible_bak = clip;
+    desktop->visible_bak = NULL;
+    display->reset_clip = true;
 
     //用给定的颜色填充桌面
     para_fill.gkwin = desktop;
@@ -797,7 +798,7 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
     __GK_SetBound(gkwin);
     gkwin->visible_bak = NULL;
     gkwin->visible_clip = NULL;
-    __GK_ScanVisibleClip(gkwin);
+    __GK_ScanNewVisibleClip(display);
     if(!para->unfill)
     {
         para_fill.gkwin = gkwin;
@@ -954,6 +955,7 @@ bool_t __GK_ChangeWinArea(struct GkscParaChangeWinArea *para)
         temp->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
         current = obj_foreach_scion(changing, current);
     }
+    __GK_ScanNewVisibleClip(cwawin->disp);
     cwawin->disp->reset_clip = true;
     return true;
 }
@@ -1031,6 +1033,7 @@ void __GK_AdoptWin(struct GkscParaAdoptWin *para)
     foremost->z_top = Ztarget->z_top;
     Ztarget->z_top = last;
     last->z_back = Ztarget;
+    __GK_ScanNewVisibleClip(display);
     display->reset_clip = true;
 }
 
@@ -1113,8 +1116,6 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
 //          delta_left = 0;
         __GK_SetBound(movewin);                        //设置可显示边界
     }
-    movewin->disp->reset_clip = true;
-    movewin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
     moving = movewin->HostObj;
     current = obj_foreach_scion(moving, moving);
     //遍历gkwin的所有子孙窗口
@@ -1134,6 +1135,9 @@ void __GK_MoveWin(struct GkscParaMoveWin *para)
         movewin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
         current = obj_foreach_scion(moving, current);
     }
+    __GK_ScanNewVisibleClip(movewin->disp);
+    movewin->WinProperty.ChangeFlag = CN_GKWIN_CHANGE_ALL;
+    movewin->disp->reset_clip = true;
 }
 
 //----设置可显示边界-----------------------------------------------------------
@@ -1234,6 +1238,7 @@ void __GK_SetBoundMode(struct GkscParaSetBoundMode *para)
         current = (struct GkWinObj*)obj_GetPrivate(Scion);
         __GK_SetBound(current);
     }
+    __GK_ScanNewVisibleClip(para->gkwin->disp);
     para->gkwin->disp->reset_clip = true;
 }
 
@@ -1254,6 +1259,7 @@ void __GK_SetVisible(struct GkscParaSetVisible *para)
         return;
     gkwin->WinProperty.Visible = para->Visible;
 
+    __GK_ScanNewVisibleClip(gkwin->disp);
     gkwin->disp->reset_clip = true;
 
 }
@@ -1324,6 +1330,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
                 parent->z_back = section_end;
 
                 gkwin->WinProperty.Zprio = para->prio;
+                __GK_ScanNewVisibleClip(display);
                 display->reset_clip = true;
             }
             else if((gkwin->WinProperty.Zprio > CN_ZPRIO_DEFAULT)
@@ -1346,6 +1353,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
                 parent->z_top = section_start;
 
                 gkwin->WinProperty.Zprio = para->prio;
+                __GK_ScanNewVisibleClip(display);
                 display->reset_clip = true;
             }
             else    //其他情况，无须移动z轴
@@ -1379,6 +1387,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
             target_win->z_top = section_start;
 
             gkwin->WinProperty.Zprio = para->prio;
+            __GK_ScanNewVisibleClip(display);
             display->reset_clip = true;
         }
     }
@@ -1411,6 +1420,7 @@ void __GK_SetPrio(struct GkscParaSetPrio *para)
         target_win->z_back = section_end;
 
         gkwin->WinProperty.Zprio = para->prio;
+        __GK_ScanNewVisibleClip(display);
         display->reset_clip = true;
     }
 }
@@ -1511,14 +1521,14 @@ void __gk_destroy_win(struct GkWinObj *gkwin)
     obj_Delete(gkwin->HostObj);
     if(gkwin->visible_clip != NULL)
         gkwin->disp->reset_clip = true;
+    gkwin->visible_clip = __GK_FreeClipQueue(gkwin->visible_clip);
+    gkwin->visible_bak =  __GK_FreeClipQueue(gkwin->visible_bak);
     if(gkwin->disp->frame_buffer != NULL)
     {
         if(gkwin->wm_bitmap != NULL)//有帧缓冲在缓冲模式下
         {
             __gk_vfree(gkwin->disp,gkwin);
             M_FreeHeap(gkwin->changed_msk.bm_bits,gkwin->disp->DisplayHeap);
-            gkwin->visible_clip =
-                            __GK_FreeClipQueue(gkwin->visible_clip);
             return;
         }
         else
@@ -1542,6 +1552,10 @@ void __GK_DestroyWin(struct GkWinObj *gkwin)
     }
     __gk_destroy_win(gkwin);
     M_FreeHeap(gkwin,gkwin->disp->DisplayHeap);
+    if(gkwin->disp->reset_clip == true)
+    {
+        __GK_ScanNewVisibleClip(gkwin->disp);
+    }
 }
 
 //----输出窗口redraw部分-------------------------------------------------------
@@ -2178,6 +2192,7 @@ ptu32_t __GK_Server(void)
     u16 command;
     u16 len;
     u32 num,offset,size;
+
 //    Lock_MutexPend(g_ptGkServerSync,CN_TIMEOUT_FOREVER);
 //  Djy_SetEventPrio(249);
     while(1)

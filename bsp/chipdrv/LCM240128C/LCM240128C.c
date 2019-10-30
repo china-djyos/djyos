@@ -470,7 +470,6 @@ ptu32_t ModuleInstall_LCM240128C(const char *ChipName)
     tg_lcd_display.width = CN_LCD_XSIZE;
     tg_lcd_display.height = CN_LCD_YSIZE;
     tg_lcd_display.pixel_format = CN_SYS_PF_GRAY4;
-    tg_lcd_display.reset_clip = false;
     tg_lcd_display.framebuf_direct = false;
     //无须初始化frame_buffer和desktop，z_topmost三个成员
 
