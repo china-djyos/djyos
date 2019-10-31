@@ -132,7 +132,6 @@ static struct IIC_Device *ps_FT6236_Dev = NULL;
 static u32 s_FT6236_Timeout = CN_TIMEOUT_FOREVER;
 static struct SingleTouchPrivate FT6236;
 static struct ST_TouchAdjust tg_touch_adjust;
-extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 __attribute__((weak))  void FT6236_Pin_Init(void)
 {
     return;
@@ -294,24 +293,13 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 {
     struct SingleTouchMsg touch_xyz0,touch_xyz1;
     s32 limit_left,limit_top,limit_right,limit_bottom;
-#if (CFG_SOC_NAME == SOC_BK7221U)
-    memset(&tg_touch_adjust, 0, sizeof(struct ST_TouchAdjust));
-    djy_flash_read(TOUCH_RATIO_ADJUST, &tg_touch_adjust, sizeof(struct ST_TouchAdjust));
-//    printf("读    offset_x = %d, offset_y = %d, ratio_x = %d, ratio_y = %d. \r\n",tg_touch_adjust.offset_x, tg_touch_adjust.offset_y,
-//            tg_touch_adjust.ratio_x, tg_touch_adjust.ratio_y);
-    if((tg_touch_adjust.offset_x != (s32)0xffffffff) || (tg_touch_adjust.offset_y != (s32)0xffffffff) ||
-            (tg_touch_adjust.ratio_x != (s32)0xffffffff) || (tg_touch_adjust.ratio_y != (s32)0xffffffff))
-    {
-        return true;
-    }
-#else
     FILE *touch_init;
     if((touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"r")) != NULL)
     {
 
         fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+        fclose(touch_init);
     }
-#endif
     else
     {
         memset(&tg_touch_adjust, 0, sizeof(struct ST_TouchAdjust));
@@ -359,55 +347,18 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
         tg_touch_adjust.offset_y= (touch_xyz0.y<<16) - 20*tg_touch_adjust.ratio_y;
         GK_FillWin(desktop,CN_COLOR_BLUE,0);
         UpdateDisplay(CN_TIMEOUT_FOREVER);
-//        printf("写     offset_x = %d, offset_y = %d, ratio_x = %d, ratio_y = %d. \r\n",tg_touch_adjust.offset_x, tg_touch_adjust.offset_y,
-//                tg_touch_adjust.ratio_x, tg_touch_adjust.ratio_y);
-#if (CFG_SOC_NAME == SOC_BK7221U)
-        extern void encrypt(u32 *rx, u8 *tx, u32 num);
-        extern void calc_crc(u32 *buf, u32 packet_num);
-        u8 touch_adjust_buf[34];
-        memset(touch_adjust_buf, 0xff, 34);
-        memcpy(touch_adjust_buf, (u8 *)(&tg_touch_adjust), sizeof(struct ST_TouchAdjust));
-        encrypt((u32 *)touch_adjust_buf, touch_adjust_buf, 1);
-        calc_crc((u32 *)touch_adjust_buf, 1);
-        flash_protection_op(0,FLASH_PROTECT_NONE);
-        djy_flash_write(TOUCH_RATIO_ADJUST, touch_adjust_buf, 34);
-        flash_protection_op(0,FLASH_PROTECT_ALL);
-#else
         touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"w+");
         if(touch_init)
-            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
-#endif
-        return true;
-    }
-#if (CFG_SOC_NAME != SOC_BK7221U)
-    fclose(touch_init);
-#endif
-    return false;
-}
-//-----------------------------------------------------------------------------
-//功能: 删除屏幕的校准信息，以便再次校准。
-//参数: 无
-//返回: 无
-//-----------------------------------------------------------------------------
-void delete_touch_adjust(void)
-{
-    u8 touch_adjust_buf[34];
-    u8 i;
-//    struct ST_TouchAdjust touch_adjust;
-    memset(touch_adjust_buf, 0xff, 34);
-    djy_flash_read(TOUCH_RATIO_ADJUST,touch_adjust_buf, 34);
-//    memcpy((u8 *)(&touch_adjust), touch_adjust_buf, sizeof(struct ST_TouchAdjust));
-//    printf("擦除    offset_x = %d, offset_y = %d, ratio_x = %d, ratio_y = %d. \r\n",touch_adjust.offset_x, touch_adjust.offset_y,
-//            touch_adjust.ratio_x, touch_adjust.ratio_y);
-    for(i = 0; i < 34; i++)
-    {
-        if(touch_adjust_buf[i] != 0xff)
         {
-            flash_protection_op(0,FLASH_PROTECT_NONE);
-            djy_flash_erase(TOUCH_RATIO_ADJUST);
-            flash_protection_op(0,FLASH_PROTECT_ALL);
+            fwrite(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
+            fclose(touch_init);
+        }
+        else
+        {
+            return false;
         }
     }
+    return true;
 }
 
 // =============================================================================

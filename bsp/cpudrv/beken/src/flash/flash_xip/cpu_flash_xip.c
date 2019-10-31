@@ -94,9 +94,9 @@
 //#warning  " emflash_insatall_xip  组件参数未配置，使用默认配置"
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,-1,1000,
+//%$#@num,0,963,
 #define CFG_EFLASH_XIP_PART_START      128          //分区起始，填写块号，块号从0开始计算
-#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
+#define CFG_EFLASH_XIP_PART_END        963         //分区结束，963表示最后一块
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#@string,1,32,
@@ -113,18 +113,23 @@
 
 //@#$%component end configure
 // ============================================================================
-
+extern struct NorDescr *nordescription;
+bool_t addition_crc_data = false;
+u8 is_protect = 1;   //1 -- 有写保护，0 -- 无写保护
+extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 extern bool_t flash_is_install(void);
+
+extern void calc_crc(u32 *buf, u32 packet_num);
+
 extern void djy_flash_read(uint32_t address, void *data, uint32_t size);
 extern void djy_flash_write(uint32_t address, const void *data, uint32_t size);
 extern void djy_flash_erase(uint32_t address);
 extern s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...);
-extern s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
-
+extern s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv);
+extern void djy_flash_read_crc(uint32_t address, void *data, uint32_t size);
 s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos);
 s32 xip_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos);
 s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos);
-
 
 struct __xip_drv XIP_FLASH_DRV =
 {
@@ -132,7 +137,6 @@ struct __xip_drv XIP_FLASH_DRV =
     .xip_read_media = xip_flash_read,
     .xip_write_media = xip_flash_write
 };
-u8 is_protect = 1;   //1 -- 有写保护，0-- 无写保护
 // ============================================================================
 // 功能：写数据
 // 参数：core -- xip文件系统管理信息
@@ -149,18 +153,29 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     struct objhandle *hdl = (struct objhandle *)core->root->child->handles.next;
     struct __icontext *cx = (struct __icontext *)hdl->context;
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
-    u32 j, more, start, block = 0, page_size, offset = Get_AppHeadSize();
+    u32 j, more, block = 0, page_size, offset = Get_AppHeadSize();
     u32 unit;
 
-    djy_flash_req(mapaddr,(ptu32_t)&start);
-    unit = start + pos + core->MStart;
-    djy_flash_req(unitbytes,(ptu32_t)&page_size);
+    if(addition_crc_data == true)
+    {
+        unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;    //算好crc的数据只需要把起始地址 * 34 / 32就可以了，后面的数据直接写就行了，因为已经有crc了
+    }
+    else
+    {
+        unit = (pos + (core->MStart * nordescription->BytesPerPage)) * 34 / 32;  //没有算好crc的数据则需要先算出数据地址，再整体 * 34 / 32，因为数据里没有crc，需要这里整体算好
+    }
+//    printf("unit = %x\r\n",unit);
+//    djy_flash_req(unitbytes,(ptu32_t)&page_size);
+    page_size = nordescription->BytesPerPage;
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
     if(strstr("xip-app",core->root->name))
     {
         if(bytes > 0)   //bytes不会大于一页的大小，所以每次只要检查一页大小的数据
         {
-            djy_flash_read(unit, um->ubuf, page_size);
+            if(addition_crc_data == true)
+                djy_flash_read_crc(unit, um->ubuf, page_size);
+            else
+                djy_flash_read(unit, um->ubuf, page_size);
 
             for(j=0; j<page_size; j++)
             {
@@ -176,68 +191,84 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 
             if(pos == offset)
             {
-                offset = (offset * 34 / 32) - offset;
-                app_head = malloc(offset + Get_AppHeadSize());
-                if(app_head == NULL)
-                    return (-1);
-                memcpy(app_head, cx->apphead, cx->Wappsize);
-                memcpy(app_head + cx->Wappsize, data, offset);
+                if(addition_crc_data == true)
+                {
+                    offset = (offset * 34 / 32) - offset;   //存在crc的bin文件，app的文件头要在这里先保留下来
+                    app_head = malloc(offset + Get_AppHeadSize());
+                    if(app_head == NULL)
+                        return (-1);
+                    memcpy(app_head, cx->apphead, cx->Wappsize);
+                    memcpy(app_head + cx->Wappsize, data, offset);
 
-                pos += offset;
-                data += offset;
-                bytes -= offset;
-                unit = start + pos + core->MStart;
+                    pos += offset;
+                    data += offset;
+                    bytes -= offset;
+                    if(addition_crc_data == true)
+                    {
+                        unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;
+                    }
+                    else
+                    {
+                        unit = pos + (core->MStart * nordescription->BytesPerPage);
+                        unit = unit * 34 / 32;
+                    }
+                }
                 if(is_protect == 1)
                 {
                     is_protect = 0;
                     flash_protection_op(0,FLASH_PROTECT_NONE);
                 }
             }
-
-            if(pos == 0)
+            if(addition_crc_data == true)
             {
-                offset = (offset * 34 / 32) - offset;
-                if(app_head == NULL)
-                    return (-1);
-                u8 *name = (u8 *)core->root->child->name;
-                u8 flag = 1;
-                u32 app_head_size = offset + Get_AppHeadSize();
-                u8 *rbuf = NULL, *wbuf = NULL;
-                rbuf = malloc (Get_AppHeadSize());
-                wbuf = malloc (app_head_size);
-                memset(rbuf, 0xff, Get_AppHeadSize());
-                memset(wbuf, 0xff, app_head_size);
+                if(pos == 0)
+                {
+                    offset = (offset * 34 / 32) - offset;       //保留下来的文件头，在这里重新填充数据，并计算crc
+                    if(app_head == NULL)
+                        return (-1);
+                    u8 *name = (u8 *)core->root->child->name;
+                    u8 flag = 1;
+                    u32 app_head_size = offset + Get_AppHeadSize();
+                    u8 *rbuf = NULL, *wbuf = NULL;
+                    rbuf = malloc (Get_AppHeadSize());
+                    wbuf = malloc (app_head_size);
+                    memset(rbuf, 0xff, Get_AppHeadSize());
+                    memset(wbuf, 0xff, app_head_size);
 
-                file->sz += file->cxbase;
-                fill_little_32bit(app_head + 4, 0, file->sz);
-                app_head += 32; //32为文件头信息的前32个字节
-                for(j = 0; j < 96 + 8; j++)     //这个96是在文件头里存app文件名数组的大小,加6是多出来的6个字节的CRC
-                {
-                    if((j % 34) == 0)
+                    file->sz += file->cxbase;
+                    fill_little_32bit(app_head + 4, 0, file->sz);
+                    app_head += 32; //32为文件头信息的前32个字节
+                    for(j = 0; j < 96 + 8; j++)     //这个96是在文件头里存app文件名数组的大小,加6是多出来的6个字节的CRC
+                    {
+                        if((j % 34) == 0)
+                            j += 2;
+                        if(flag)
+                            app_head[j] = *name;
+                        else
+                            app_head[j] = 0xff;
+                        if(*name++ == 0)
+                            flag=0;
+                    }
+                    app_head -= 32;
+                    j = 0;
+                    while(j < app_head_size)
+                    {
+                        j += 32;
+                        memset(app_head + j, 0xff, 2);
                         j += 2;
-                    if(flag)
-                        app_head[j] = *name;
-                    else
-                        app_head[j] = 0xff;
-                    if(*name++ == 0)
-                        flag=0;
+                    }
+                    calc_crc((u32 *)app_head, Get_AppHeadSize() / 32);
+                    djy_flash_write(unit, app_head, app_head_size);
+                    free(app_head);
                 }
-                app_head -= 32;
-                j = 0;
-                while(j < app_head_size)
+                else
                 {
-                    j += 32;
-                    memset(app_head + j, 0xff, 2);
-                    j += 2;
+                    djy_flash_write(unit, data, bytes);
                 }
-                calc_crc((u32 *)app_head, Get_AppHeadSize() / 32);
-                djy_flash_write(unit, app_head, app_head_size);
-                free(app_head);
             }
             else
-            {
                 djy_flash_write(unit, data, bytes);
-            }
+
             if(pos == 0)
             {
                 if(is_protect == 0)
@@ -250,15 +281,18 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 
         // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
         // (page+1)用于防止格式化了不属于xip的空间
-        djy_flash_req(remain, (ptu32_t)&more, &unit);
-        if(!more)
+        if(addition_crc_data == true)
         {
-            // +1是表示当前unit的后面一个
-            if(pos + bytes >= core->ASize)
-                return (-2);
-            djy_flash_req(whichblock, (ptu32_t)&block, &unit);
-            //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
-            djy_flash_req(format, block+1, block+1+1);
+            djy_flash_req(remain, (ptu32_t)&more, &unit);
+            if(!more)
+            {
+                // +1是表示当前unit的后面一个
+                if(pos + bytes >= core->ASize)
+                    return (-2);
+                djy_flash_req(whichblock, (ptu32_t)&block, &unit);
+                //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
+                djy_flash_req(format, block+1, block+1+1);
+            }
         }
     }
     else
@@ -284,33 +318,15 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 s32 xip_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     s64 unit;
-    u32 start, i;
+    u32 i;
     s32 left = bytes;
     u8 *rbuf;
-    djy_flash_req(mapaddr,(ptu32_t)&start);
-    unit = start + pos + core->MStart;
+    unit = pos + (core->MStart * nordescription->BytesPerPage) * 34 / 32;
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
     if(left > 0)
     {
-        if(pos == 0)
-        {
-            left = left * 34 / 32;
-            rbuf = malloc (left);
-            if(rbuf == NULL)
-                return -1;
-            memset(rbuf, 0xff, left);
-            djy_flash_read(unit, rbuf, left);
-            for(i = 0; i < (u32)(left / 34); i++)
-            {
-                memcpy(data + (i * 32), rbuf + (i * 34), 32);
-            }
-            free(rbuf);
 
-        }
-        else
-        {
             djy_flash_read(unit, data, left);
-        }
     }
 
     djy_flash_req(unlock, 0); //
@@ -328,7 +344,7 @@ s32 xip_flash_read(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
 {
     s64 unit;
-    u32 page_size, page_num, start, all;
+    u32 page_size, page_num, all;
     s32 left = bytes;
 
     if(is_protect == 1)
@@ -337,10 +353,10 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
         flash_protection_op(0,FLASH_PROTECT_NONE);
     }
 
-    djy_flash_req(mapaddr,(ptu32_t)&start);
-    unit = start + pos + core->MStart;
-    djy_flash_req(unitbytes,(ptu32_t)&page_size);
-    djy_flash_req(totalblocks,(ptu32_t)&page_num);
+    unit = pos + ((core->MStart * nordescription->BytesPerPage) * 34 / 32);
+
+    page_size = nordescription->BytesPerPage;
+    page_num = nordescription->PagesPerSector;
     all = page_size * page_num;
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
     while(left > 0)
@@ -350,6 +366,7 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
         left -= all;
     }
     djy_flash_req(unlock, 0);
+
     return (0);
 }
 
@@ -362,9 +379,10 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
 // ============================================================================
 s32 xip_fs_format(struct __icore *core)
 {
-    s32 left = core->ASize, start = core->MStart, all, page_size, page_num;
-    djy_flash_req(unitbytes,(ptu32_t)&page_size);
-    djy_flash_req(totalblocks,(ptu32_t)&page_num);
+    s32 left = core->ASize, start, all, page_size, page_num;
+    start = (core->MStart * nordescription->BytesPerPage) * 34 / 32;
+    page_size = nordescription->BytesPerPage;
+    page_num = nordescription->PagesPerSector;
     all = page_size * page_num;
     if(is_protect == 1)
     {
@@ -419,7 +437,7 @@ bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, 
             super = (struct FsCore *)obj_GetPrivate(targetobj);
             if((strcmp(super->pFsType->pType, "XIP-APP") == 0) || (strcmp(super->pFsType->pType, "XIP-IBOOT") == 0))
             {
-                if(FsInstallInit(TargetFs,bstart,bend,&XIP_FLASH_DRV) == 0)
+                if(EmbFsInstallInit(TargetFs,bstart,bend,&XIP_FLASH_DRV) == 0)
                     return true;
             }
             error_printf("EmFlash"," need to install file system not XIP.");

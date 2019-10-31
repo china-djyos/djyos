@@ -58,6 +58,7 @@
 #include "shell.h"
 #include "string.h"
 #include "stdlib.h"
+#include <dbug.h>
 
 extern void AppStart(void);
 extern void Init_Cpu(void);
@@ -1311,11 +1312,12 @@ bool_t Update_ToRun()
 
     if(Iboot_App_Info.runflag.update_runmode ==0)//iboot
     {
-
+        info_printf("IAP","Run iboot in 5 seconds.\r\n");
         Iboot_App_Info.runflag.restart_run_iboot = 1;
     }
     else
     {
+        info_printf("IAP","Run app in 5 seconds.\r\n");
         Iboot_App_Info.runflag.restart_run_app = 1;
     }
     Djy_EventDelay(5000*1000);		//延时一下，让升级过程中的信息能打印出来

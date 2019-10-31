@@ -101,13 +101,16 @@ static bool_t sflashInited = false;
 static struct umedia *flash_um;
 const char *flash_name = "emflash";      //该flash在obj在的名字
 extern struct Object *s_ptDeviceRoot;
+extern bool_t addition_crc_data;
 
-static struct FlashDescr{
-    u32     BytesPerPage;                // 页中包含的字节数
-    u32     PagesPerSector;               //  sector的页数
-    u32     AllSectorNum;               //  所有的sector数
-    u32     MappedStAddr;
-} *description;
+struct NorDescr *nordescription;
+
+//static struct FlashDescr{
+//    u32     BytesPerPage;                // 页中包含的字节数
+//    u32     PagesPerSector;               //  sector的页数
+//    u32     AllSectorNum;               //  所有的sector数
+//    u32     MappedStAddr;
+//} *description;
 
 // ============================================================================
 // 功能：设置内置FLASH的信息
@@ -115,17 +118,30 @@ static struct FlashDescr{
 // 返回：
 // 备注：
 // ============================================================================
-static s32 SetFlash_Init(struct FlashDescr *Description)
+//static s32 SetFlash_Init(struct FlashDescr *Description)
+//{
+//    Description->BytesPerPage = 256;
+//    Description->PagesPerSector = 16;
+//    Description->AllSectorNum = 1024;
+//    Description->MappedStAddr = 0x0;
+//    return (0);
+//}
+static s32 SetFlash_Init(struct NorDescr *Description)
 {
     Description->BytesPerPage = 256;
     Description->PagesPerSector = 16;
-    Description->AllSectorNum = 1024;
-    Description->MappedStAddr = 0x0;
+    Description->SectorNum = 1024;
+//    Description->MappedStAddr = 0x0;
     return (0);
 }
 
-
-void djy_flash_read(uint32_t address, void *data, uint32_t size)
+// ============================================================================
+// 功能：读取带crc的flash数据
+// 参数：address -- 地址；data -- 读数据缓存；size -- 读取的字节数
+// 返回：无
+// 备注：
+// ============================================================================
+void djy_flash_read_crc(uint32_t address, void *data, uint32_t size)
 {
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
 //    flash_protection_op(0,FLASH_PROTECT_NONE);
@@ -133,53 +149,71 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
 //    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
+// ============================================================================
+// 功能：读取不带crc的flash数据
+// 参数：address -- 地址；data -- 读数据缓存；size -- 读取的字节数
+// 返回：无
+// 备注：
+// ============================================================================
+void djy_flash_read(uint32_t address, void *data, uint32_t size)
+{
+    u32 i = 0, j = 0;   //读的时候这里也不做偏移，和擦除一样，在xip里做好偏移。
+    u8 buf[272];
+    if (size == 0)
+    {
+        return;
+    }
+    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+    while(size)
+    {
+        memset(buf, 0xFF, 272);
+//        djy_flash_read_crc(address, buf, 272);  //读取带crc的256个数据，因为带crc，所以要读272
+        flash_read(buf, 272, address);//读取带crc的256个数据，因为带crc，所以要读272
+        i = j = 0;
+        while(i < 272)  //把crc数据去掉，只留有效数据
+        {
+            if(size > 32)
+                memcpy(data + j, buf + i, 32);
+            else
+            {
+                memcpy(data + j, buf + i, size);
+                size = 0;
+                break;
+            }
+            j += 32;
+            i += 34;
+            size -= 32;
+        }
+        address += 272;
+//        Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+//    //    flash_protection_op(0,FLASH_PROTECT_NONE);
+//        flash_read(data, size, practical_addr);
+//    //    flash_protection_op(0,FLASH_PROTECT_ALL);
+//        Lock_MutexPost(flash_mutex);
+    }
+    Lock_MutexPost(flash_mutex);
+}
 
-//void djy_flash_read(uint32_t address, void *data, uint32_t size)
-//{
-//    u32 i = 0, j = 0, practical_addr = address * 34 / 32;
-//    u8 buf[272];
-//    if (size == 0)
-//    {
-//        return;
-//    }
-//    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-//    while(size)
-//    {
-//        memset(buf, 0xFF, 272);
-//        djy_flash_read_crc(practical_addr, buf, 272);
-//        i = j = 0;
-//        while(i < 272)
-//        {
-//            if(size > 32)
-//                memcpy(data + j, buf + i, 32);
-//            else
-//            {
-//                memcpy(data + j, buf + i, size);
-//                size = 0;
-//                break;
-//            }
-//            j += 32;
-//            i += 34;
-//            size -= 32;
-//        }
-//        practical_addr += 272;
-////        Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
-////    //    flash_protection_op(0,FLASH_PROTECT_NONE);
-////        flash_read(data, size, practical_addr);
-////    //    flash_protection_op(0,FLASH_PROTECT_ALL);
-////        Lock_MutexPost(flash_mutex);
-//    }
-//    Lock_MutexPost(flash_mutex);
-//}
-
+// ============================================================================
+// 功能：写入带crc的flash数据
+// 参数：address -- 地址；data -- 读数据缓存；size -- 读取的字节数
+// 返回：无
+// 备注：
+// ============================================================================
 void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 {
-//    u32 i, j, len, practical_addr = address * 34 / 32;
-//    u8 buf_crc[272],buf[256];
+    u32 i, j, len;
+    u8 buf_crc[272],buf[256];
     if (size == 0)
         return;
 
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
+    if(addition_crc_data == true)
+    {
+        flash_write((char *)data, size, address);   //写带crc的数据，需要再调用该函数之前先算好crc
+    }
+    else
+    {
 //    flash_protection_op(0,FLASH_PROTECT_NONE);
 
 //    while(size)
@@ -208,37 +242,37 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 //            }
 //
 //        }
-//    while(size)
-//    {
-//        memset(buf_crc, 0xff, 272);
-//        if(size >= 256)
-//        {
-//            encrypt((u32 *)data, buf_crc, 256 / 32);
-//            size -= 256;
-//            data += 256;
-//            len = 272;
-//            calc_crc((u32 *)buf_crc, 256 / 32);
-//        }
-//        else
-//        {
-//            memset(buf, 0xff, 256);
-//            memcpy(buf, data, size);
-//            if(size % 32)
-//                i = (size + 32) - (size % 32);
-//            else
-//                i = size;
-//            encrypt((u32 *)buf, buf_crc, i / 32);
-//            size = 0;
-//            len = i * 34 / 32;
-//            calc_crc((u32 *)buf_crc, i / 32);
-//        }
-//
-//        flash_write((char *)buf_crc, len, practical_addr);
-//        practical_addr += len;
-//    }
+        while(size)             //写不带crc的数据，这种方式会自动算好crc再写入flash
+        {
+            memset(buf_crc, 0xff, 272);
+            if(size >= 256)
+            {
+                encrypt((u32 *)data, buf_crc, 256 / 32);
+                size -= 256;
+                data += 256;
+                len = 272;
+                calc_crc((u32 *)buf_crc, 256 / 32);     //计算256字节的crc数据
+            }
+            else
+            {
+                memset(buf, 0xff, 256);
+                memcpy(buf, data, size);
+                if(size % 32)
+                    i = (size + 32) - (size % 32);
+                else
+                    i = size;
+                encrypt((u32 *)buf, buf_crc, i / 32);
+                size = 0;
+                len = i * 34 / 32;
+                calc_crc((u32 *)buf_crc, i / 32);
+            }
 
+            flash_write((char *)buf_crc, len, address);
+            address += len;
+        }
+    }
 
-    flash_write((char *)data, size, address);
+//    flash_write((char *)data, size, practical_addr);
 //    flash_protection_op(0,FLASH_PROTECT_ALL);
     Lock_MutexPost(flash_mutex);
 }
@@ -280,7 +314,7 @@ s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
             unit = (u32*)va_arg(list, u32);
             va_end(list);
             //PagesPerSector减1是因为页号从0开始
-            *left = (description->PagesPerSector - 1) - ((*unit / description->BytesPerPage) % description->PagesPerSector);
+            *left = (nordescription->PagesPerSector - 1) - ((*unit / nordescription->BytesPerPage) % nordescription->PagesPerSector);
             break;
         }
         case whichblock:
@@ -294,14 +328,14 @@ s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
             unit = (s64*)va_arg(list, u32);
             va_end(list);
 
-            *block = *unit / (description->BytesPerPage * description->PagesPerSector);
+            *block = *unit / (nordescription->BytesPerPage * nordescription->PagesPerSector);
 
             break;
         }
         case unitbytes:
         {
             // args = &bytes
-            *((u32*)args) = description->BytesPerPage;
+            *((u32*)args) = nordescription->BytesPerPage;
             break;
         }
 
@@ -317,26 +351,20 @@ s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
 
 
             if(-1== end)
-                end = description->AllSectorNum;// 结束的号；
+                end = nordescription->SectorNum;// 结束的号；
 
             do
             {
-                djy_flash_erase((u32)((--end * ((u32)(description->BytesPerPage * description->PagesPerSector)))+description->MappedStAddr));
+                djy_flash_erase((u32)((--end * ((u32)(nordescription->BytesPerPage * nordescription->PagesPerSector)))));
             }
             while(end!=start);
 
             break;
         }
-
-        case mapaddr:
-        {
-
-            *((u32*)args) = description->MappedStAddr;
-            break;
-        }
+        case blockunits:
         case totalblocks:
         {
-            *((u32*)args) = description->PagesPerSector;
+            *((u32*)args) = nordescription->PagesPerSector;
             break;
         }
         case lock:
@@ -365,7 +393,7 @@ s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
+s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
     u32 units, total = 0;
      char *FullPath,*notfind;
@@ -378,7 +406,7 @@ s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      targetobj = obj_matchpath(fs, &notfind);
      if(notfind)
      {
-         error_printf("embed"," not found need to install file system.\r\n");
+         error_printf("embedflash"," not found need to install file system.\r\n");
          return -1;
      }
      super = (struct FsCore *)obj_GetPrivate(targetobj);
@@ -386,15 +414,17 @@ s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      super->MediaDrv = mediadrv;
 
      if(-1 == (s32)endblock)
-         endblock = bend = description->AllSectorNum; // 最大块号
+         endblock = bend = nordescription->SectorNum; // 最大块号
 
-     super->AreaSize = (bend - bstart) * description->BytesPerPage * description->PagesPerSector;
-     super->MediaStart = (bstart * description->BytesPerPage * description->PagesPerSector) + description->MappedStAddr; // 起始unit号
-     super->MediaStart = super->MediaStart * 34 / 32;
-//     super->AreaSize = ((bend * description->BytesPerPage * description->PagesPerSector)- super->MediaStart) * 34 / 32;
-     if(super->AreaSize + super->MediaStart > description->AllSectorNum * description->BytesPerPage * description->PagesPerSector)
+     super->MediaStart = bstart * nordescription->PagesPerSector; // 起始unit号
+
+     //计算总容量，，如果计算的总容量大于芯片的总容量了，则把芯片的总容量减起始位置
+     super->AreaSize = ((bend * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage)) * 34 / 32;
+     if(super->AreaSize + ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32)  >
+                                 nordescription->SectorNum * nordescription->BytesPerPage * nordescription->PagesPerSector)
      {
-         super->AreaSize = description->AllSectorNum * description->BytesPerPage * description->PagesPerSector - super->MediaStart;
+         super->AreaSize = nordescription->SectorNum * nordescription->BytesPerPage *
+                 nordescription->PagesPerSector - ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32);
      }
      res = strlen(flash_name) + strlen(s_ptDeviceRoot->name) + 1;
      FullPath = malloc(res);
@@ -402,8 +432,8 @@ s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,flash_name);   //获取该设备的全路径
      FsBeMedia(FullPath,fs); //往该设备挂载文件系统
      free(FullPath);
-
-     printf("\r\n: info : device : %s added(start:%d, end:%d).", fs, bstart, bend);
+     info_printf("embedflash","device : %s added(start:%d, end:%d).", fs, bstart, bend);
+     info_printf("embedflash","%s fileOS total capacity(size : %lld)， available capacity (size : %lld).", fs, super->AreaSize,super->AreaSize / 34 * 32);
      return (0);
 }
 // ============================================================================
@@ -414,13 +444,21 @@ s32 FsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 // ============================================================================
 int ModuleInstall_Flash(void)
 {
-    description = malloc(sizeof(*description));
-    if(!description)
-        return (-1);
 
-    SetFlash_Init(description);
+    if(!nordescription) //初始化nor的信息
+    {
+        nordescription = malloc(sizeof(struct NorDescr));
+        if(!nordescription)
+        {
+            printf("\r\n: erro : device : memory out.\r\n");
+            return -1;
+        }
+        memset(nordescription, 0x0, (sizeof(struct NorDescr)));
+    }
+    SetFlash_Init(nordescription);
 
-    flash_um = malloc(sizeof(struct umedia)+description->BytesPerPage);
+
+    flash_um = malloc(sizeof(struct umedia)+nordescription->BytesPerPage);
     if(!flash_um)
         return (-1);
 
@@ -430,7 +468,7 @@ int ModuleInstall_Flash(void)
 
     if(!dev_Create((const char*)flash_name, NULL, NULL, NULL, NULL, NULL, ((ptu32_t)flash_um)))
     {
-        printf("\r\n: erro : device : %s addition failed.", flash_name);
+        error_printf("embedflash","device : %s addition failed.", flash_name);
         free(flash_um);
         return (-1);
     }
