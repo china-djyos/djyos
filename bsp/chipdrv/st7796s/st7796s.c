@@ -792,16 +792,20 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
                             struct Rectangle *DstRect,
                             struct RectBitmap *src_bitmap,
                             struct Rectangle *SrcRect,
-                            struct RopGroup RopCode, u32 KeyColor)
+                            struct RopGroup RopCode, u32 HyalineColor)
 {
     u16 *src_offset,*dst_offset;    //源位图点阵缓冲区可能不对齐!!!
-    struct RopGroup Rop = { 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
-    u32 y;
+    struct RopGroup Rop0 = { 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
+    struct RopGroup Rop1 = { 0, 0, 0, CN_R2_COPYPEN, 0, 1, 0  };
+    u32 x,y;
+    bool_t RopSupport;
 
+    RopSupport = (memcmp(&RopCode,&Rop0,sizeof(struct RopGroup)) == 0)
+                    || (memcmp(&RopCode,&Rop1,sizeof(struct RopGroup)) == 0);
 //    printf("__lcd_blt_bm_to_bm\r\n");
     if((dst_bitmap->PixelFormat != CN_SYS_PF_RGB565)
              ||(src_bitmap->PixelFormat != CN_SYS_PF_RGB565)
-             ||(memcmp(&RopCode, &Rop ,sizeof(struct RopGroup))!=0))
+             ||! RopSupport)
      {
         return false;
     }
@@ -816,29 +820,66 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
                                       + DstRect->top * dst_bitmap->linebytes);
             dst_offset += DstRect->left;
 
-
-            if(src_bitmap->reversal == true)
+            if(RopCode.HyalineEn)
             {
-                src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
-                            +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
-                src_offset += SrcRect->left;
-                for(y = DstRect->top; y < DstRect->bottom; y++)
+                if(src_bitmap->reversal == true)
                 {
-                    memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
-                    dst_offset += dst_bitmap->linebytes >> 1;
-                    src_offset -= src_bitmap->linebytes >> 1;
+                    src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                        +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
+                    src_offset += SrcRect->left;
+                    for(y = DstRect->top; y < DstRect->bottom; y++)
+                    {
+                        for(x = 0; x < (DstRect->right-DstRect->left); x++)
+                        {
+                            if(src_offset[x] != HyalineColor)
+                                dst_offset[x] = src_offset[x];
+                        }
+                        dst_offset += dst_bitmap->linebytes >> 1;
+                        src_offset -= src_bitmap->linebytes >> 1;
+                    }
+                }
+                else
+                {
+                    src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                                              +SrcRect->top * src_bitmap->linebytes);
+                    src_offset += SrcRect->left;
+                    for(y = DstRect->top; y < DstRect->bottom; y++)
+                    {
+                        for(x = 0; x < (DstRect->right-DstRect->left); x++)
+                        {
+                            if(src_offset[x] != HyalineColor)
+                                dst_offset[x] = src_offset[x];
+                        }
+                        dst_offset += dst_bitmap->linebytes >> 1;
+                        src_offset += src_bitmap->linebytes >> 1;
+                    }
                 }
             }
             else
             {
-                src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
-                                          +SrcRect->top * src_bitmap->linebytes);
-                src_offset += SrcRect->left;
-                for(y = DstRect->top; y < DstRect->bottom; y++)
+                if(src_bitmap->reversal == true)
                 {
-                    memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
-                    dst_offset += dst_bitmap->linebytes >> 1;
-                    src_offset += src_bitmap->linebytes >> 1;
+                    src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                        +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
+                    src_offset += SrcRect->left;
+                    for(y = DstRect->top; y < DstRect->bottom; y++)
+                    {
+                        memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
+                        dst_offset += dst_bitmap->linebytes >> 1;
+                        src_offset -= src_bitmap->linebytes >> 1;
+                    }
+                }
+                else
+                {
+                    src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+                                              +SrcRect->top * src_bitmap->linebytes);
+                    src_offset += SrcRect->left;
+                    for(y = DstRect->top; y < DstRect->bottom; y++)
+                    {
+                        memcpy(dst_offset,src_offset,(DstRect->right-DstRect->left)<<1);
+                        dst_offset += dst_bitmap->linebytes >> 1;
+                        src_offset += src_bitmap->linebytes >> 1;
+                    }
                 }
             }
         }
@@ -913,52 +954,6 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
     __st7796s_set_window(Focus->left,Focus->top,width,height);
     printf("Focus->right = %d,Focus->left = %d\r\n",Focus->right,Focus->left);
     printf("Focus->bottom = %d,Focus->top = %d\r\n",Focus->bottom,Focus->top);
-#if 0
-    for(j=0;j<CFG_LCD_XSIZE;j++)
-    {
-        screen_2[j][0] = (unsigned char)((pixel>>8) & 0xff);
-        screen_2[j][1] = (unsigned char)(pixel & 0xff);
-//            screen[i%ROW_TEMP][j][0] = color1;
-//            screen[i%ROW_TEMP][j][1] = color2;
-//            screen[i%ROW_TEMP][j][2] = color3;
-    }
-
-    for (i=0; i<width; i++) {
-        WriteDataBytes(screen_2, sizeof(screen_2));
-    }
-
-//#else
-     x=(height*width)/240;
-     y=(height*width)%240;
-
-     printf("x= %d\r\n",x);
-     printf("y= %d\r\n",y);
-    while(x--)
-    {
-        for(j = 0;j < 240;j++)
-        {
-            screen_2[j][0] = (unsigned char)((pixel>>8) & 0xff);
-            screen_2[j][1] = (unsigned char)(pixel & 0xff);
-        }
-
-        WriteDataBytes(screen_2, sizeof(screen_2));
-     }
-
-    if(y>0)
-    {
-        for(j = 0;j < y;j++)
-        {
-            screen_2[j][0] = (unsigned char)((pixel>>8) & 0xff);
-            screen_2[j][1] = (unsigned char)(pixel & 0xff);
-        }
-
-        WriteDataBytes(screen_2, y*COLO_DEP);
-    }
-//    WriteDataBytes(screen, (i%ROW_TEMP+1)*240*COLO_DEP);
-
-
-    return true;
-#endif
 }
 
 //从内存缓冲区到screen位块传送，只支持块拷贝，不支持rop操作。
@@ -978,86 +973,13 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     height = dst_rect->bottom-dst_rect->top;
     __st7796s_set_window(xsrc,ysrc,width,height);
 
-#if 1
-//  u32 max = width * height * 2;
-//  if(max>=ROW_BUFFER){
-//      buf = malloc(ROW_BUFFER);
-//      memset(buf,0,ROW_BUFFER);
-//  }else{
-//      buf = malloc(max);
-//      memset(buf,0,max);
-//  }
-//    printf("xsrc = %d,ysrc = %d,width = %d ,height = %d\r\n",xsrc,ysrc,width,height);
     linelen = src_bitmap->linebytes;
-//  buf = src_bitmap->bm_bits;
-//  for(y = 0; y < 320; y++)
-//  {
-//      for(x = 0;x < 240; x++)
-//      {
-//          x0 = buf[y*linelen+x*2];
-//          x1 = buf[y*linelen+x*2+1];
-//          buf[y*linelen+x*2] = x1;
-//          buf[y*linelen+x*2+1] = x0;
-//      }
-//  }
     line = (u16*)(src_bitmap->bm_bits + ysrc*linelen + xsrc*2);
-//  y=0;
     for(y = 0;y < height;y++)
     {
-//        x=0;
-//        for(j = dst_rect->left;j < dst_rect->right;j++)
-//        {
-////            if(src_bitmap->ExColor == 10)
-////                pixel = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,CN_COLOR_WHITE);
-////            else
-////            {
-//                pixel = GK_GetPixelBm(src_bitmap,j,i);
-////                pixel =GK_ConvertColorToRGB24(src_bitmap->PixelFormat,pixel,src_bitmap->ExColor);
-////            }
-//            *(buf+y*width*2+x) = (unsigned char)((pixel>>8) & 0xff);
-//            *(buf+y*width*2+x+1) = (unsigned char)(pixel & 0xff);
-//            x = x+2;
-//            use =use+2;
-//        }
-//        y++;
-
-//      if (use>=ROW_BUFFER) {
-//          y=0;
-//          use=0;
-//          WriteDataBytes(buf,ROW_BUFFER);
-//          memset(buf,0,ROW_BUFFER);
-//      }
-//        for(x = 0; x < width; x++)
-//        {
-//            u16 org;
-//            org = line[x];
-//            buf[2*x] = org>>8;
-//            buf[2*x+1] = org;
-//        }
         WriteDataBytes(line,width*2);
         line += linelen/2;
-//        WriteDataBytes(buf,width*2);
     }
-//  buf = src_bitmap->bm_bits;
-//  for(y = 0; y < 320; y++)
-//  {
-//      for(x = 0;x < 240; x++)
-//      {
-//          x0 = buf[y*linelen+x*2];
-//          x1 = buf[y*linelen+x*2+1];
-//          buf[y*linelen+x*2] = x1;
-//          buf[y*linelen+x*2+1] = x0;
-//      }
-//  }
-
-//    if(use>0)
-//    {
-//        WriteDataBytes(buf, use);
-//    }
-
-//    free(buf);
-//    printf("__lcd_bm_to_screen\r\n");
-#endif
     return true;
 }
 
@@ -1100,23 +1022,6 @@ void DispMainInterface(unsigned char *pic)
     src_bitmap.reversal = 0;
     src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
     __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
-//  __st7796s_set_window(0,0,240,320);
-//
-//  for(i=0;i<320;i++)
-//  {
-//
-//      for(j=0;j<240;j++)
-//      {
-//          screen[i%ROW_TEMP][j][0] = pic[offset];
-//          offset++;
-//          screen[i%ROW_TEMP][j][1] = pic[offset];
-//          offset++;
-//      }
-//      if ((i+1)%ROW_TEMP==0) {
-//          WriteDataBytes(screen, sizeof(screen));
-//      }
-//  }
-//  WriteDataBytes(screen, (i%ROW_TEMP+1)*240*COLO_DEP);
 }
 
 //----初始化lcd设备------------------------------------------------------------

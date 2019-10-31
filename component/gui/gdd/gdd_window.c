@@ -905,9 +905,10 @@ HWND    CreateWindow(const char *Text,u32 Style,
     HWND pGddWin=NULL;
     struct GkWinObj *pGkWin=NULL;
     u32 num;
+    bool_t unfill;
 
     struct RopGroup RopCode = (struct RopGroup){ 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
-
+    unfill = (Style & WS_UNFILL)==WS_UNFILL;
     if(NULL==hParent)
     {
         hParent = HWND_Desktop;
@@ -928,7 +929,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
             pGkWin = GK_CreateWin(hParent->pGkWin,x,y,x+w,y+h,
                                 RGB(0,0,0), BufProperty, Text,
                                 CN_SYS_PF_DISPLAY, 0,RGB(255, 255, 255),RopCode,
-                                (Style & WS_UNFILL)==WS_UNFILL);
+                                unfill);
             if(!pGkWin)
             {
                 free(pGddWin);
@@ -1006,7 +1007,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
 //          SendMessage(pGddWin,MSG_CREATE,(u32)pdata,0);
             PostMessage(pGddWin,MSG_CREATE,(u32)pdata,0);
             PostMessage(pGddWin,MSG_NCPAINT,0,0);
-            InvalidateWindow(pGddWin,TRUE);
+            InvalidateWindow(pGddWin,!unfill);
         }
 
     }
