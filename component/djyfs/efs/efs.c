@@ -99,9 +99,9 @@
 #define CFG_EFS_MAX_CREATE_FILE_NUM       50                   // 默认支持的创建最大文件数
 #define CFG_EFS_MAX_OPEN_FILE_NUM         10                   // 默认支持的同时打开最大文件数
 //%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,MS_INSTALLUSE
-#define CFG_EFS_INSTALL_OPTION            MS_INSTALLFORMAT      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统
+#define CFG_EFS_INSTALL_OPTION            MS_INSTALLCREAT      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统
 //%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,MS_INSTALLUSE,0
-#define CFG_EFS_INSTALL_OPTION_APPEND     MS_INSTALLUSE      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统,0:无附加安装选项
+#define CFG_EFS_INSTALL_OPTION_APPEND     0      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统,0:无附加安装选项
 //%$#@string,1,10,
 #define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
@@ -751,6 +751,8 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
     if(test_directory(flags))
     {
 //        property = S_IFDIR;     // 目录逻辑不做其它操作，直接把obj和hal关联就行了
+        if((uncached) || (!obj_isMount(ob)))
+            return NULL;
     }
     else
     {

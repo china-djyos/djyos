@@ -165,8 +165,7 @@ void ModuleInstall_InitNet(void)   //static ip example
         memcpy(gc_NetMac,DEFAULT_MAC_ADDR,sizeof(gc_NetMac));
     }
 #else
-    wifi_mac_flash_read(gc_NetMac, 6);
-    if(gc_NetMac[0] == 0xff)
+    if(wifi_mac_flash_read(gc_NetMac, 6) == false)
     {
         u32 mac_rand =  trng_get_random();
         memcpy(&gc_NetMac[2], &mac_rand, 4);

@@ -221,6 +221,7 @@ bool_t Iboot_UpdateApp(void)
     u8 buf[IAPBUF_SIZE];
     u32 readsize,res;
     char *file;
+    char percentage_last = 0, percentage = 0;
 
     if((Get_UpdateSource() == 0) && (Get_UpdateApp() == true))
     {
@@ -249,8 +250,15 @@ bool_t Iboot_UpdateApp(void)
                 {
                     stat(apppath,&test_stat);
                     srcsize = test_stat.st_size;
+                    printf("\r\nloading       ");
                     while(1)
                     {
+                        percentage = 100 - ((char)((srcsize * 100)/ test_stat.st_size));
+                        if(percentage != percentage_last)
+                        {
+                            printf("\b\b\b%2d%%",percentage);
+                            percentage_last = percentage;
+                        }
                         readsize = fread(buf, 1, IAPBUF_SIZE, srcapp);
                         if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
                         {
@@ -270,7 +278,7 @@ bool_t Iboot_UpdateApp(void)
                         srcsize -= readsize;
                         if(srcsize == 0)
                         {
-                            info_printf("IAP","App update success.\r\n");
+                            info_printf("IAP","App update success.  waiting to restart.\r\n");
                             Clear_RunIbootUpdateApp();
                             break;
                         }
@@ -374,7 +382,7 @@ bool_t App_UpdateIboot(char *param)
     struct stat test_stat;
     s64 srcsize;
     char iapibootname[MutualPathLen];
-//  char *word_param, *next_param;
+    char percentage_last = 0, percentage = 0;
 
     info_printf("IAP","iboot update start.\r\n");
     strcpy(iapibootname, Get_MutualUpdatePath());
@@ -388,8 +396,15 @@ bool_t App_UpdateIboot(char *param)
        {
            stat(iapibootname,&test_stat);
            srcsize = test_stat.st_size;
+           printf("\r\nloading       ");
            while(1)
            {
+               percentage = 100 - ((char)((srcsize * 100)/ test_stat.st_size));
+               if(percentage != percentage_last)
+               {
+                   printf("\b\b\b%2d%%",percentage);
+                   percentage_last = percentage;
+               }
                readsize = fread(buf, 1, IAPBUF_SIZE, srciboot);
                if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
                {
