@@ -95,9 +95,9 @@
 //%$#@enum,512,528,
 //%$#@string,1,10,
 #define CFG_EMBFLASH_EFS_MOUNT_NAME            "efs"      //"文件系统mount点名字",需要挂载的efs文件系统mount点名字
-//%$#@num,0,963
+//%$#@num,-1,1024
 #define CFG_EMBFLASH_EFS_PART_START                  0        //分区起始，填写块号，块号从0开始计算
-#define CFG_EMBFLASH_EFS_PART_END                   963        //分区结束，963是最后一块
+#define CFG_EMBFLASH_EFS_PART_END                   -1        //分区结束，-1是最后一块
 //%$#@enum,true,false,
 #define CFG_EMBFLASH_EFS_PART_FORMAT               false      //分区选项,是否需要格式化该分区。
 //%$#@select

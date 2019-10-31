@@ -94,9 +94,9 @@
 //#warning  " emflash_insatall_xip  组件参数未配置，使用默认配置"
 //%$#@target = header   //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,963,
+//%$#@num,-1,1024,
 #define CFG_EFLASH_XIP_PART_START      128          //分区起始，填写块号，块号从0开始计算
-#define CFG_EFLASH_XIP_PART_END        963         //分区结束，963表示最后一块
+#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#@string,1,32,
