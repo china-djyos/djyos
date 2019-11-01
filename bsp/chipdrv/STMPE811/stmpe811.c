@@ -384,7 +384,7 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
                        "TOUCH", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
         GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
         GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
-        UpdateDisplay(CN_TIMEOUT_FOREVER);
+        GK_SyncShow(CN_TIMEOUT_FOREVER);
         while(!read_touch_stmpe811(&touch_xyz0));           //记录触摸屏第一点校正值
         Djy_DelayUs(300);
 //这里的松手检测是通过读检查fifo中是否有坐标点数据来实现的，
@@ -417,7 +417,7 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
         GK_Lineto(desktop,limit_right-20,limit_bottom-40,
                       limit_right-20,limit_bottom,
                       CN_COLOR_RED,CN_R2_COPYPEN,0);
-        UpdateDisplay(CN_TIMEOUT_FOREVER);
+        GK_SyncShow(CN_TIMEOUT_FOREVER);
 
         if (TS_Read(FIFO_SIZE, 1))
         {
@@ -456,7 +456,7 @@ static void touch_ratio_adjust(struct GkWinObj *desktop)
                         /(limit_bottom- limit_top-40);
         tg_touch_adjust.offset_y= (touch_xyz0.y<<16) - 20*tg_touch_adjust.ratio_y;
         GK_FillWin(desktop,CN_COLOR_GREEN,0);
-        UpdateDisplay(CN_TIMEOUT_FOREVER);
+        GK_SyncShow(CN_TIMEOUT_FOREVER);
     //    GK_DestroyWin(desktop);
 //        touch_init = fopen("/sys/touch_init.dat","w+");
 //        if(touch_init)
