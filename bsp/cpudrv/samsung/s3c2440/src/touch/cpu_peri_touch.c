@@ -499,7 +499,7 @@ static  void draw_cursor(struct GkWinObj *desktop,int x,int y)
     GK_Lineto(desktop,x,y,x,y+20-1,CN_COLOR_RED,CN_R2_COPYPEN,0); //об
     GK_Lineto(desktop,x,y,x+20-1,y,CN_COLOR_RED,CN_R2_COPYPEN,0);//ср
     GK_Lineto(desktop,x,y,x-20+1,y,CN_COLOR_RED,CN_R2_COPYPEN,0); //вС
-    UpdateDisplay(1000*mS);
+    GK_SyncShow(1000*mS);
 }
 
 static  void clr_cursor(struct GkWinObj *desktop,int x,int y)
@@ -508,7 +508,7 @@ static  void clr_cursor(struct GkWinObj *desktop,int x,int y)
     GK_Lineto(desktop,x,y,x,y+20-1,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //об
     GK_Lineto(desktop,x,y,x+20-1,y,CN_COLOR_WHITE,CN_R2_COPYPEN,0);//ср
     GK_Lineto(desktop,x,y,x-20+1,y,CN_COLOR_WHITE,CN_R2_COPYPEN,0); //вС
-    UpdateDisplay(1000*mS);
+    GK_SyncShow(1000*mS);
 
 }
 
@@ -608,7 +608,7 @@ void touch_ratio_adjust(struct GkWinObj *desktop)
         }
 
         GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        UpdateDisplay(1000*mS);
+        GK_SyncShow(1000*mS);
         while(ts_is_down())
         {
             Djy_DelayUs(100*mS);
