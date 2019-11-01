@@ -285,6 +285,8 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
     {
         UART_READ_BYTE(port, val);
         fifo[num++] = val;
+        if(num >= sizeof(fifo))
+            break;
     }
     if(num > 0)
     {

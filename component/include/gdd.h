@@ -455,7 +455,7 @@ bool_t    WindowToScreen(HWND hwnd,POINT *pt,s32 count);
 void    ModuleInstall_GDD(struct GkWinObj *desktop);
 
 u32     AlphaBlendColor(u32 bk_c,u32 fr_c,u8 alpha);
-void    UpdateDisplay(u32 timeout);
+void    UpdateDisplay(HWND hwnd);
 void GDD_WaitGuiAppExit(char *AppName);
 HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
                       u32 MemSize, u32 WinBuf,u32 Style);
