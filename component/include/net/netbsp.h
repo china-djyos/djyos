@@ -52,7 +52,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define CN_ETH_MTU      1500
+#define CN_ETH_MTU      1400
 //一个PKGLST在传输的过程中，当某个PKG拥有CN_PKLGLST_END标记或者NULL == partnext，即可认为
 //该PKGLST结束，该特性在发送的时候尤其明显
 #define CN_PKLGLST_END   (1<<0)
