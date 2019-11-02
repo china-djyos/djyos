@@ -130,7 +130,7 @@ static bool_t Cursor_Flash(struct WindowMsg *pMsg)
              SetWindowShow(g_ptCursorHwnd);
 //           UpdateDisplay(CN_TIMEOUT_FOREVER);
         }
-        PostMessage(g_ptCursorHwnd, MSG_SYNC_DISPLAY,0,0);
+        UpdateDisplay(pMsg->hwnd);
     }
     return true;
 }

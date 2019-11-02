@@ -300,8 +300,8 @@ static bool_t __MoveCursor(HWND hwnd,u8 idx)
     Cursor_Move(x,y);
 
 //    MoveWindow(g_CursorHwnd,x,y);
-//  UpdateDisplay(CN_TIMEOUT_FOREVER);
-    PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    UpdateDisplay(hwnd);
+//  PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return true;
 }
 // =============================================================================

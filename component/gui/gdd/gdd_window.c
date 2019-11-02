@@ -1466,7 +1466,7 @@ HDC BeginPaint(HWND hwnd)
 bool_t    EndPaint(HWND hwnd,HDC hdc)
 {
 //  UpdateDisplay(CN_TIMEOUT_FOREVER);
-//  PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    PostMessage(hwnd, MSG_SYNC_DISPLAY, 0, 0);
     return  DeleteDC(hdc);
 }
 

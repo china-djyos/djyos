@@ -79,10 +79,12 @@ struct WinMsgQueueCB
     struct SemaphoreLCB   *sem_sync_send;   //同步消息发送信号量
 //  struct SemaphoreLCB   *sem_sync_recv;   //同步消息接收信号量
 
-    //同步和退出消息，一个主窗口只有一条，直接定义。
+    //同步和刷新显示消息，一个主窗口只有一条，直接定义。
     struct WindowMsg     sync_msg;          //同步消息
+    struct WindowMsg     refresh_msg;       //刷新显示消息，必须在最后，以确保所有
+                                            //绘制消息都执行了才刷新显示
 //  struct WindowMsg     quit_msg;          //退出消息
-    //以下四种消息，因有多条，且要优先于post消息处理，故单独成链表。
+    //以下四种消息，因每个窗口（及子窗口）只有一条，故单独成链表。
     list_t  list_msg_close;                 //CLOSE消息链表
     list_t  list_msg_ncpaint;               //NCPAINT消息链表
     list_t  list_msg_paint;                 //PAINT消息链表
@@ -490,6 +492,17 @@ void __PostCloseMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
 
 }
 
+//----发送刷新显示消息----------------------------------------------------------
+//描述: 该函数为内部调用,仅用于跨线程发送同步消息.
+//参数：pMsgQ: 消息队列
+//返回：消息处理结果.
+//------------------------------------------------------------------------------
+static void __PostRefreshMessage(struct WinMsgQueueCB *pMsgQ,HWND hwnd)
+{
+    __InitMsg(&pMsgQ->refresh_msg, hwnd, MSG_SYNC_DISPLAY, 0, 0);
+    return ;
+}
+
 //----发送异步消息--------------------------------------------------------------
 //描述: 发送消息到消息队列中,不等待处理,立即返回.该函数为内部调用,不检查函数参数合法性.
 //参数：pMsgQ:消息队列指针.
@@ -586,6 +599,11 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
                 case MSG_TIMER:
                     __PostTimerMessage(pMsgQ,hwnd,param2);
+                    res=TRUE;
+                    break;
+
+                case MSG_SYNC_DISPLAY:
+                    __PostRefreshMessage(pMsgQ,hwnd);
                     res=TRUE;
                     break;
 
@@ -740,6 +758,25 @@ static  bool_t    __PeekCloseMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMs
     return FALSE;
 }
 
+//----获取刷新显示消息-----------------------------------------------------------
+//描述: 把窗口的刷新显示消息取出
+//参数：pMsgQ: 消息队列指针.
+//      pMsg: 消息缓冲区指针,获得的消息会存放到该消息缓冲区中.
+//返回：TRUE:成功获取了消息; FALSE:没有获得消息.
+//------------------------------------------------------------------------------
+static bool_t __PeekRefreshMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg *pMsg)
+{
+//    if(Lock_SempPend(pMsgQ->sem_sync_recv, 0))
+    if(pMsgQ->refresh_msg.hwnd != NULL)
+    {
+        __CopyMsg(pMsg,&pMsgQ->refresh_msg);
+        pMsgQ->refresh_msg.hwnd = NULL;
+        return true;
+    }
+    else
+        return false;
+}
+
 /*============================================================================*/
 
 //----获取消息------------------------------------------------------------------
@@ -773,6 +810,9 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 {
                     *SyncMsg = true;
                 }
+                else if(__PeekPostMessage(pMsgQ,pMsg))
+                {
+                }
                 else if(__PeekNCPaintMessage(pMsgQ,pMsg))
                 {
                 }
@@ -780,11 +820,10 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 else if(__PeekPaintMessage(pMsgQ,pMsg))
                 {
                 }
-
                 else if(__PeekTimerMessage(pMsgQ,pMsg))
                 {
                 }
-                else if(__PeekPostMessage(pMsgQ,pMsg))
+                else if(__PeekRefreshMessage(pMsgQ,pMsg))
                 {
                 }
                 else
