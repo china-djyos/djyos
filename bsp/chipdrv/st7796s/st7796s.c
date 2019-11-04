@@ -822,6 +822,7 @@ bool_t __lcd_blt_bm_to_bm( struct RectBitmap *dst_bitmap,
 
             if(RopCode.HyalineEn)
             {
+                HyalineColor = GK_ConvertRGB24ToPF(CN_SYS_PF_RGB565,HyalineColor);
                 if(src_bitmap->reversal == true)
                 {
                     src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
