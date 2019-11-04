@@ -68,7 +68,7 @@ static DD_INIT_S dd_init_tbl[] =
     /* name*/              /* init function*/          /* exit function*/
     {SCTRL_DEV_NAME,        sctrl_init,                 sctrl_exit},
     {ICU_DEV_NAME,          icu_init,                   icu_exit},
-//    {WDT_DEV_NAME,          wdt_init,                   wdt_exit},
+    {WDT_DEV_NAME,          wdt_init,                   wdt_exit},
     {GPIO_DEV_NAME,         gpio_init,                  gpio_exit},
 #ifndef KEIL_SIMULATOR
     {UART2_DEV_NAME,        uart2_init,                 uart2_exit},

@@ -130,6 +130,7 @@ bool_t obj_isMount(struct Object *obj);
 s32 mountfs(const char *source, const char *target, const char *type, u32 flags, void *data);
 s32 unmountfs(const char *target, const char *type);
 void *corefs(struct Object *ob);
+s32 Format(const char *MountPath);
 s32 __mount_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
                        ptu32_t OpsArgs2, ptu32_t OpsArgs3);
 void FsBeMedia(const char *source, const char *target);
