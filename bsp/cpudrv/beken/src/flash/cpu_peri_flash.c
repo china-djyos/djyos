@@ -50,6 +50,7 @@
 #include <xip.h>
 #include <dbug.h>
 #include <djyfs/filesystems.h>
+#include <device.h>
 #include <device/include/unit_media.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -105,6 +106,8 @@ extern bool_t addition_crc_data;
 
 struct NorDescr *nordescription;
 
+extern void calc_crc(u32 *buf, u32 packet_num);
+void encrypt(u32 *rx, u8 *tx, u32 num);
 //static struct FlashDescr{
 //    u32     BytesPerPage;                // 页中包含的字节数
 //    u32     PagesPerSector;               //  sector的页数
@@ -168,7 +171,7 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
     {
         memset(buf, 0xFF, 272);
 //        djy_flash_read_crc(address, buf, 272);  //读取带crc的256个数据，因为带crc，所以要读272
-        flash_read(buf, 272, address);//读取带crc的256个数据，因为带crc，所以要读272
+        flash_read((char *)buf, 272, address);//读取带crc的256个数据，因为带crc，所以要读272
         i = j = 0;
         while(i < 272)  //把crc数据去掉，只留有效数据
         {
@@ -202,13 +205,16 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
 // ============================================================================
 void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 {
-    u32 i, j, len;
+    u32 i, len;
     u8 buf_crc[272],buf[256];
     if (size == 0)
         return;
 
     if(address + size >= 0x400000)
+    {
+        error_printf("embedflash"," write address out of range.\r\n");
         return;
+    }
 
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
     if(addition_crc_data == true)
@@ -399,7 +405,6 @@ s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...)
 // ============================================================================
 s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 {
-    u32 units, total = 0;
      char *FullPath,*notfind;
      struct Object *targetobj;
      struct FsCore *super;
