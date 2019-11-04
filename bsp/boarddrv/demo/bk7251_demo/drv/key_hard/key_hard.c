@@ -236,7 +236,7 @@ u32 keyboard_scan(void)
     else if(Vol >= 0)
         current_key = PAUSE_PLAY_KEY;
 
-    if(!djy_gpio_read(13))
+    if(djy_gpio_read(13))
         current_key = POWER_KEY;
 
 //    printf("key = %d\r\n", current_key);
