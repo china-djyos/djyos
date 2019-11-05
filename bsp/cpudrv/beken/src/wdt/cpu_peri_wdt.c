@@ -77,12 +77,16 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_WDT_FEED_CYCLE == false )
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
+#define CFG_MODULE_ENABLE_WDT_FEED_CYCLE    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,30000000,
+#define CFG_WDT_FEED_CYCLE          12000       //配置看门狗，狗叫时间单位ms
 //%$#@num,0,1,
 //%$#@enum,true,false,
 //%$#@select
 //%$#@free,
+#endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
 
@@ -90,7 +94,6 @@
 // BOARD WDT
 // =============================================================================
 
-#define WDT_FEED_CYCLE  (1000*1000) //1S
 static u32 sBootDogFeedTime = 0;
 // =============================================================================
 // 功能：板上看门狗喂狗函数,max706的喂狗时间是1.6s,根据手册，喂狗是边沿触发
@@ -107,9 +110,9 @@ bool_t BrdWdt_FeedDog(void)
 
 bool_t BrdBoot_FeedStart(u32 bootfeedtime)
 {
-    sBootDogFeedTime = bootfeedtime;
-    sddev_control(WDT_DEV_NAME, WCMD_POWER_UP, 0);      //开看门狗
-    sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &sBootDogFeedTime);    //设置看门狗，狗叫时间
+//    sBootDogFeedTime = bootfeedtime;
+//    sddev_control(WDT_DEV_NAME, WCMD_POWER_UP, 0);      //开看门狗
+//    sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &sBootDogFeedTime);    //设置看门狗，狗叫时间
     return true;
 }
 
@@ -126,7 +129,10 @@ bool_t BrdBoot_FeedEnd(void)
 // =============================================================================
 void ModuleInstall_BrdWdt(void)
 {
-    WdtHal_RegisterWdtChip("Wdt_BK7251", WDT_FEED_CYCLE/4, BrdWdt_FeedDog,\
+    sBootDogFeedTime = CFG_WDT_FEED_CYCLE * 10 / 6;
+    sddev_control(WDT_DEV_NAME, WCMD_POWER_UP, 0);      //开看门狗
+    sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &sBootDogFeedTime);    //设置看门狗，狗叫时间
+    WdtHal_RegisterWdtChip("Wdt_BK7251", CFG_WDT_FEED_CYCLE/4, BrdWdt_FeedDog,\
             BrdBoot_FeedStart,BrdBoot_FeedEnd);
 }
 
