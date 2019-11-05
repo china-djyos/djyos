@@ -246,7 +246,7 @@ static bool_t Button_Move(struct WindowMsg *pMsg)
     switch(_get_button_type(hwnd))
     {
         case    BS_NORMAL:
-            InvalidateWindow(hwnd,TRUE);   //父窗口消息处理可能导致按钮被删除
+            InvalidateWindow(hwnd,false);   //父窗口消息处理可能导致按钮被删除
             SendMessage(Gdd_GetWindowParent(hwnd),MSG_NOTIFY,
                     (MSG_BTN_PEN_MOVE << 16) | (hwnd->WinId), pMsg->Param1);
             break;
