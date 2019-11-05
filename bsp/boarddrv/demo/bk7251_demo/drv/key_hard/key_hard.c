@@ -220,7 +220,7 @@ bool_t ModuleInstall_Keyboard(const char *dev_name)
 u32 keyboard_scan(void)
 {
     int Vol;
-    enum EasyKeyValue current_key;
+    enum EasyKeyValue current_key = NO_KEY;
     Vol = djy_adc_read(2);
     if(Vol > 1550)
     {

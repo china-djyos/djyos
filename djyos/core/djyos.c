@@ -1057,23 +1057,25 @@ bool_t Djy_EvttUnregist(u16 evtt_id)
     return result;
 }
 const struct EventECB cn_sys_event = {
-                        NULL,NULL,//next,previous
-                        NULL,NULL,//multi_next,multi_previous
+                        NULL,NULL,                  //next,previous
+                        NULL,NULL,                  //multi_next,multi_previous
                         NULL,                       //vm
                         0,0,                        //param1,param2
-                       NULL,                       //sync
+                        NULL,                       //sync
                         NULL,                       //sync_head
+#if CFG_OS_TINY == false
                         0,                          //EventStartTime
                         0,                          //consumed_time
-//#if(CN_CFG_DEBUG_INFO == 1)
                         0,                          //consumed_time_second
                         0,                          //consumed_time_record
-//#endif
+#endif
                         0,                          //delay_start_tick
                         0,                          //delay_end_tick
-                        EN_KNL_NO_ERROR,          //error_no
+                        EN_KNL_NO_ERROR,            //error_no
                         0,                          //event_result
                         0,                          //wait_mem_size
+                        0,                          //HeapSize
+                        0,                          //HeapSizeMax
                         CN_STS_EVENT_NORUN,          //wakeup_from
                         CN_STS_EVENT_READY,         //event_status
                         CN_PRIO_SYS_SERVICE,        //prio_base
@@ -1392,8 +1394,8 @@ void testprio(void)
 {
     if(g_tECB_Table[0].prio != 250)
     {
-        printk("--------prio error_no\r\n");
-        while(g_tECB_Table[0].prio == 250);
+        printk("--------prio error_no %d\r\n",Djy_MyEventId());
+        while(g_tECB_Table[0].prio != 250);
     }
 }
 //----从ready事件继承优先级-----------------------------------------------------
@@ -2303,6 +2305,8 @@ u16 Djy_EventPop(   u16  hybrid_id,
             pl_ecb->delay_end_tick = 0;
             pl_ecb->error_no = 0;
             pl_ecb->wait_mem_size = 0;
+            pl_ecb->HeapSize = 0;
+            pl_ecb->HeapSizeMax = 0;
             pl_ecb->wakeup_from = CN_STS_EVENT_NORUN;
             pl_ecb->event_status = CN_STS_EVENT_READY;
             pl_ecb->evtt_id = evtt_offset | CN_EVTT_ID_MASK;    //设置事件类型

@@ -1248,6 +1248,9 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
             uf_grade_th=__M_GetFreeGrade(size,Heap,&Cession);    //取阶号
             ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
             g_ptEventRunning->local_memory++;
+            g_ptEventRunning->HeapSize += Cession->PageSize * (1<<uf_grade_th);
+            if(g_ptEventRunning->HeapSize > g_ptEventRunning->HeapSizeMax)
+                g_ptEventRunning->HeapSizeMax = g_ptEventRunning->HeapSize;
 
             //阅读以下条件句请结合struct HeapCession中index_event_id的注释.
             pl_id = Cession->index_event_id;
@@ -1320,6 +1323,9 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
         {
             uf_grade_th=__M_GetFreeGrade(size,Heap,&Cession);    //取阶号
             ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
+            g_ptEventRunning->HeapSize += Cession->PageSize * (1<<uf_grade_th);
+            if(g_ptEventRunning->HeapSize > g_ptEventRunning->HeapSizeMax)
+                g_ptEventRunning->HeapSizeMax = g_ptEventRunning->HeapSize;
 
             //以下在id表中记录本次分配的性质
             //阅读本段代码请结合 struct HeapCession 中index_event_id成员定义的注释.
@@ -1486,6 +1492,9 @@ void *__M_MallocStack(struct EventECB *event, u32 size)
         {
             uf_grade_th=__M_GetFreeGrade(size,tg_pSysHeap,&Cession);    //取阶号
             ua_address=__M_MallocBlock(uf_grade_th,Cession);     //申请内存
+            event->HeapSize += Cession->PageSize * (1<<uf_grade_th);
+            if(event->HeapSize > event->HeapSizeMax)
+                event->HeapSizeMax = event->HeapSize;
 
             //以下在id表中记录本次分配的性质
             //阅读本段代码请结合mem_global_t中index_event_id成员定义的注释.
@@ -2046,6 +2055,10 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     if((g_ptEventRunning->local_memory > 0) && (Lc))
     {
         g_ptEventRunning->local_memory--;
+    }
+    if(g_ptEventRunning->HeapSize > 0)
+    {
+        g_ptEventRunning->HeapSize -= Cession->PageSize * (1 << uf_free_grade_th);
     }
     //把内存等待队列中申请内存之和小于当前可用最大内存的几个事件放到ready队列
     //等待队列是双向循环链表
