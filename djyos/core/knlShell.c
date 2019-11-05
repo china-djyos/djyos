@@ -93,7 +93,7 @@ bool_t event(char *param)
     char *name;
 
     MemSize = 0;
-    printf("事件号  类型号  优先级 CPU  栈尺寸   类型名");
+    printf("事件号  类型号  优先级 CPU  栈尺寸   分配内存 最大内存   类型名");
     for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
     {
         if(g_tECB_Table[pl_ecb].previous !=
@@ -103,11 +103,7 @@ bool_t event(char *param)
             // printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
             // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
 #if CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-            time1 = g_tECB_Table[pl_ecb].consumed_cnt_second/(CN_CFG_TIME_BASE_HZ/100);
-#else
             time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
-#endif
             name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
 #else
             time1 = 0;
@@ -126,12 +122,13 @@ bool_t event(char *param)
             }
 //            printf("knlshell","\n\r");
 
-            printf("\r\n%05d   %05d   %03d    %02d%%  %08x %s",\
+            printf("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s",\
                    pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
                     g_tECB_Table[pl_ecb].prio,time1,\
-                    StackSize,name);
+                    StackSize, g_tECB_Table[pl_ecb].HeapSize,
+                    g_tECB_Table[pl_ecb].HeapSizeMax, name);
 
-            MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
+            MemSize += StackSize;
         }
         else
         {

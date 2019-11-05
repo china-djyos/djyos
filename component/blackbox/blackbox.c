@@ -582,23 +582,14 @@ static bool_t __CpuDumpDecoder(struct BlackBoxThrowPara  *exppara,u32 endian)
         debug_printf("SysStart","Param1:0x%08x Param2:0x%08x\n\r",ecb->param1,ecb->param2);
         debug_printf("SysStart","Sync:0x%08x SyncHead:0x%08x SyncCounter:0x%08x\n\r",(u32)ecb->sync,(u32)ecb->sync_head,ecb->sync_counter);
 #if CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-        debug_printf("SysStart","EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartCnt,ecb->consumed_cnt);
-        debug_printf("SysStart","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_cnt_second,ecb->consumed_cnt_record);
-#else
-        debug_printf("SysStart","EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartTime,ecb->consumed_time);
-        debug_printf("SysStart","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_time_record,ecb->consumed_time_record);
-#endif
+    debug_printf("SysStart","EventStartTime:0x%llx  EventConsumeTime:0x%llx\n\r",ecb->EventStartTime,ecb->consumed_time);
+    debug_printf("SysStart","ConsumedTimeSecond:0x%08x ComsumeTimeRecord:0x%08x\n\r",ecb->consumed_time_record,ecb->consumed_time_record);
 #endif  //CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-        debug_printf("SysStart","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_cnt,ecb->delay_end_cnt);
-#else
-        debug_printf("SysStart","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_tick,ecb->delay_end_tick);
-#endif
-        debug_printf("SysStart","ErrNo:%d EventResult:0x%08x\n\r",ecb->error_no,ecb->event_result);
-        debug_printf("SysStart","WaitMemSize:%d\n\r",ecb->wait_mem_size);
-        debug_printf("SysStart","WakeupFrom:0x%08x Status:0x%08x\n\r",ecb->wakeup_from,ecb->event_status);
-        debug_printf("SysStart","Prior:%d\n\r",ecb->prio);
+    debug_printf("SysStart","DelayStartTick:0x%llx DelayEndTick:0x%llx\n\r",ecb->delay_start_tick,ecb->delay_end_tick);
+    debug_printf("SysStart","ErrNo:%d EventResult:0x%08x\n\r",ecb->error_no,ecb->event_result);
+    debug_printf("SysStart","WaitMemSize:%d\n\r",ecb->wait_mem_size);
+    debug_printf("SysStart","WakeupFrom:0x%08x Status:0x%08x\n\r",ecb->wakeup_from,ecb->event_status);
+    debug_printf("SysStart","Prior:%d\n\r",ecb->prio);
 #if CFG_OS_TINY == false
         debug_printf("SysStart","EvttID:%d Name:%s\n\r",(ecb->evtt_id&(~CN_EVTT_ID_MASK)),\
                 (ecb->evtt_id&(~CN_EVTT_ID_MASK)) < CFG_EVENT_TYPE_LIMIT?\

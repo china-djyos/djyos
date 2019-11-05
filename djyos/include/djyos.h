@@ -241,30 +241,20 @@ struct EventECB
                                         //返回时从该同步队列取出事件
 
 #if CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-    u64    EventStartCnt;              //事件发生时间，uS
-    u64    consumed_cnt;               //事件消耗的总时间
-    u32    consumed_cnt_second;        //最近1秒消耗的时间
-    u32    consumed_cnt_record;        //上次整秒时，消耗的时间快照
-#else
     s64    EventStartTime;              //事件发生时间，uS
     s64    consumed_time;               //事件消耗的总时间
     u32    consumed_time_second;        //最近1秒消耗的时间
     u32    consumed_time_record;        //上次整秒时，消耗的时间快照
-#endif
 #endif  //CFG_OS_TINY == false
-#if (CN_USE_TICKLESS_MODE)
-    u64    delay_start_cnt;    //设定闹铃时间
-    u64    delay_end_cnt;      //闹铃响时间
-#else
     s64    delay_start_tick;    //设定闹铃时间
     s64    delay_end_tick;      //闹铃响时间
-#endif
     u32    error_no;            //本事件执行产生的最后一个错误号
     ptu32_t event_result;       //如果本事件处理时弹出了事件，并且等待处理结果
                                 //(即调用pop函数时，timeout !=0)，且正常返回，这
                                 //里保存该事件处理结果。
     u32    wait_mem_size;       //等待分配的内存数量.
+    u32    HeapSize;            //本线程从heap中分配的内存总量
+    u32    HeapSizeMax;         //本线程从heap中分配的内存总量的历史最大值
     //以下两行参见CN_STS_EVENT_READY系列定义
     u32 wakeup_from;            //用于查询事件进入就绪态的原因,todo,直接返回状态
     u32 event_status;           //当前状态,本变量由操作系统内部使用,
