@@ -1251,6 +1251,9 @@ void *__M_MallocLcHeap(ptu32_t size,struct HeapCB *Heap,u32 timeout)
             g_ptEventRunning->HeapSize += Cession->PageSize * (1<<uf_grade_th);
             if(g_ptEventRunning->HeapSize > g_ptEventRunning->HeapSizeMax)
                 g_ptEventRunning->HeapSizeMax = g_ptEventRunning->HeapSize;
+            if(g_ptEventRunning->HeapSize > 0x800000)
+                printf("---- malloc GB %x ,heapsize %x,id %x\r\n",
+                    (1 << uf_grade_th) * Cession->PageSize, g_ptEventRunning->HeapSize, g_ptEventRunning->event_id);
 
             //阅读以下条件句请结合struct HeapCession中index_event_id的注释.
             pl_id = Cession->index_event_id;
@@ -1326,6 +1329,9 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
             g_ptEventRunning->HeapSize += Cession->PageSize * (1<<uf_grade_th);
             if(g_ptEventRunning->HeapSize > g_ptEventRunning->HeapSizeMax)
                 g_ptEventRunning->HeapSizeMax = g_ptEventRunning->HeapSize;
+            if(g_ptEventRunning->HeapSize > 0x800000)
+                printf("---- malloc GB %x ,heapsize %x,id %x\r\n",
+                    (1 << uf_grade_th) * Cession->PageSize, g_ptEventRunning->HeapSize, g_ptEventRunning->event_id);
 
             //以下在id表中记录本次分配的性质
             //阅读本段代码请结合 struct HeapCession 中index_event_id成员定义的注释.
@@ -1463,6 +1469,7 @@ void __M_WaitMemoryStack(struct EventECB *event,u32 size)
 extern void __M_WaitMemoryStack(struct EventECB *event,u32 size);
 bool_t __Djy_RaiseTempPrioForStack(u16 event_id);
 void __Djy_AddToBlockForStack(struct EventECB **Head,bool_t Qsort,u32 Status);
+u32 stackmalloc = 0;
 void *__M_MallocStack(struct EventECB *event, u32 size)
 {
     struct HeapCession *Cession;
@@ -1495,7 +1502,8 @@ void *__M_MallocStack(struct EventECB *event, u32 size)
             event->HeapSize += Cession->PageSize * (1<<uf_grade_th);
             if(event->HeapSize > event->HeapSizeMax)
                 event->HeapSizeMax = event->HeapSize;
-
+            if(g_ptEventRunning->HeapSize > 0x800000)
+                stackmalloc += Cession->PageSize * (1<<uf_grade_th);
             //以下在id表中记录本次分配的性质
             //阅读本段代码请结合mem_global_t中index_event_id成员定义的注释.
             pl_id = &Cession->index_event_id
@@ -2056,10 +2064,14 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
     {
         g_ptEventRunning->local_memory--;
     }
-    if(g_ptEventRunning->HeapSize > 0)
+    ua_temp1 = Cession->PageSize * (1 << uf_free_grade_th);
+//  if(g_ptEventRunning->HeapSize > ua_temp1)   //允许负数，更易于查问题
     {
-        g_ptEventRunning->HeapSize -= Cession->PageSize * (1 << uf_free_grade_th);
+        g_ptEventRunning->HeapSize -= ua_temp1;
     }
+    if(g_ptEventRunning->HeapSize > 0x800000)
+        printf("---- malloc GB %x ,heapsize %x,id %x\r\n",
+            (1 << uf_grade_th) * Cession->PageSize, g_ptEventRunning->HeapSize, g_ptEventRunning->event_id);
     //把内存等待队列中申请内存之和小于当前可用最大内存的几个事件放到ready队列
     //等待队列是双向循环链表
     Int_SaveAsynSignal();

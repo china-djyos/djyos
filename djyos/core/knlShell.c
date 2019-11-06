@@ -89,7 +89,7 @@ bool_t stack(char *param);
 bool_t event(char *param)
 {
     u16 pl_ecb;
-    u32 time1,MemSize,StackSize;
+    u32 time1,MemSize,StackSize,heapsize=0,maxsize=0;
     char *name;
 
     MemSize = 0;
@@ -127,7 +127,8 @@ bool_t event(char *param)
                     g_tECB_Table[pl_ecb].prio,time1,\
                     StackSize, g_tECB_Table[pl_ecb].HeapSize,
                     g_tECB_Table[pl_ecb].HeapSizeMax, name);
-
+            heapsize += g_tECB_Table[pl_ecb].HeapSize;
+            maxsize += g_tECB_Table[pl_ecb].HeapSizeMax;
             MemSize += StackSize;
         }
         else
@@ -136,7 +137,7 @@ bool_t event(char *param)
         }
     }
 
-    printf("\r\n所有事件栈尺寸总计:         %08x", MemSize);
+    printf("\r\n所有事件栈尺寸总计:         %08x %08x %08x", MemSize,heapsize,maxsize);
     printf("\r\n允许的事件总数:             %d", CFG_EVENT_LIMIT);
     return true;
 }
