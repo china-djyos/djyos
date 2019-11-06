@@ -214,8 +214,8 @@ void Board_Init(void)
     djy_gpio_mode(GPIO11,PIN_MODE_OUTPUT);        //液晶+触摸屏电源控制管脚
     djy_gpio_write(GPIO11,1);
 #endif
-    void uart1_exit(void);
-    uart1_exit();
+//    void uart1_exit(void);
+//    uart1_exit();
 }
 
 void Init_Cpu(void);
