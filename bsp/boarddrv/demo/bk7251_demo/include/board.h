@@ -49,23 +49,33 @@
 //#include "./include/ctiic.h"
 #include "cpu_peri.h"
 #include "IoIicBus.h"
+#include <gpio_pub.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**********************************ft5x26********************************************/
 //IO方向设置
-#define CT_SCL_OUT() djy_gpio_mode(GPIO4,PIN_MODE_OUTPUT)  //输出模式
-#define CT_SDA_IN()  djy_gpio_mode(GPIO2,PIN_MODE_INPUT_PULLUP)  //输入模式
-#define CT_SDA_OUT() djy_gpio_mode(GPIO2,PIN_MODE_OUTPUT)  //输出模式
+//#define CT_SCL_OUT() djy_gpio_mode(GPIO4,PIN_MODE_OUTPUT)  //输出模式
+#define CT_SCL_OUT() gpio_config(GPIO4, GMODE_OUTPUT);
+//#define CT_SDA_IN()  djy_gpio_mode(GPIO2,PIN_MODE_INPUT_PULLUP)  //输入模式
+#define CT_SDA_IN()  gpio_config(GPIO2, GMODE_INPUT_PULLUP)  //输入模式
+//#define CT_SDA_OUT() djy_gpio_mode(GPIO2,PIN_MODE_OUTPUT)  //输出模式
+#define CT_SDA_OUT() gpio_config(GPIO2, GMODE_OUTPUT)  //输出模式
+
 //IO操作函数
-#define CT_IIC_SCL(n) djy_gpio_write(GPIO4,n)//SCL
-#define CT_IIC_SDA(n) djy_gpio_write(GPIO2,n)//SDA
-#define CT_READ_SDA   djy_gpio_read(GPIO2)//输入SDA
+//#define CT_IIC_SCL(n) djy_gpio_write(GPIO4,n)//SCL
+#define CT_IIC_SCL(n) gpio_output(GPIO4,n)//SCL
+//#define CT_IIC_SDA(n) djy_gpio_write(GPIO2,n)//SDA
+#define CT_IIC_SDA(n) gpio_output(GPIO2,n)//SDA
+//#define CT_READ_SDA   djy_gpio_read(GPIO2)//输入SDA
+#define CT_READ_SDA   gpio_input(GPIO2)//输入SDA
 
 /*触摸屏芯片接口IO*/
-#define FT_RST(n)  djy_gpio_write(GPIO7,n)
-#define FT_INT     djy_gpio_read(GPIO6)
+//#define FT_RST(n)  djy_gpio_write(GPIO7,n)
+#define FT_RST(n)  gpio_output(GPIO7,n)
+//#define FT_INT     djy_gpio_read(GPIO6)
+#define FT_INT     gpio_input(GPIO6)
 /*************************************************************************************/
 void Board_Init(void);
 void FT6236_Pin_Init(void);
