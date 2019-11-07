@@ -3378,7 +3378,7 @@ int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s)
                               300000)) {
             extern int is_fast_connect();
             if (is_fast_connect()) {
-                wpa_supplicant_req_scan(wpa_s, interface_count % 3,
+                wpa_supplicant_req_scan(wpa_s, 0/*interface_count % 3*/,
                             0);
             }
             else {

@@ -1573,7 +1573,7 @@ void charger_start(void * param)
     }
 
     charger_calib_set(chrg->cal);
-    printf("%s(%d) %x %x %x %x\r\n", __FUNCTION__, chrg->type,chrg->oper, calib_charger[0], calib_charger[1], calib_charger[2]);
+    //printf("%s(%d) %x %x %x %x\r\n", __FUNCTION__, chrg->type,chrg->oper, calib_charger[0], calib_charger[1], calib_charger[2]);
 
     if(chrg->type == 0)
     {
@@ -1609,7 +1609,7 @@ void charger_start(void * param)
 
 void charger_stop(UINT32 type)
 {
-    printf("%s(%d)\r\n", __FUNCTION__, type);
+    //printf("%s(%d)\r\n", __FUNCTION__, type);
 
     charger_module_enable(0);
     if(type == 0)
