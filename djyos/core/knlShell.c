@@ -143,8 +143,8 @@ bool_t event(char *param)
     printf("\r\n所有事件栈尺寸总计:         %08x %08x %08x", MemSize,heapsize,maxsize);
     printf("\r\n允许的事件总数:             %d", CFG_EVENT_LIMIT);
     if(native == true)
-        printf("温馨提示：个别事件使用的动态内存统计出现非常大的值，请不要惊慌，说明您的代码中存在\r\n"
-               "非对称内存分配与释放的情况，即A事件分配的内存，在B事件释放\r\n");
+        printf("\r\n温馨提示：个别事件使用的动态内存统计出现非常大的值，请不要惊慌，说明您的代码中存在"
+               "\r\n非对称内存分配与释放的情况，即A事件分配的内存，在B事件释放");
     return true;
 }
 
