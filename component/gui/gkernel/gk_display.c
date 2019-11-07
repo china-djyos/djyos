@@ -85,6 +85,7 @@ bool_t GK_InstallDisplay(struct DisplayObj *display,const char *name)
     if(display == NULL)
         return false;
     display->desktop = NULL;
+    display->z_topmost = NULL;
     display->reset_clip = false;
     //用户没有指定显存专用的堆，则使用系统堆。
     if(display->DisplayHeap == NULL)
