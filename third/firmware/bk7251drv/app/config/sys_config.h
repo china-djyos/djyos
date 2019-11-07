@@ -18,17 +18,17 @@
 #define CFG_OS_FREERTOS                            1
 
 #if CFG_OS_FREERTOS
-#define THD_APPLICATION_PRIORITY                   3
-#define THD_CORE_PRIORITY                          2
+#define THD_APPLICATION_PRIORITY                   133
+#define THD_CORE_PRIORITY                          132
 #define THD_UMP3_PRIORITY                          4
 #define THD_UBG_PRIORITY                           5
 #define THD_LWIP_PRIORITY                          4
 #define THD_INIT_PRIORITY                          4
 #define THD_RECONNECT_PRIORITY                     4
-#define THD_MEDIA_PRIORITY						   4
-#define THD_WPAS_PRIORITY                          5
+#define THD_MEDIA_PRIORITY                         4
+#define THD_WPAS_PRIORITY                          135
 #define THD_HOSTAPD_PRIORITY                       5
-#define THDD_KEY_SCAN_PRIORITY					   7
+#define THDD_KEY_SCAN_PRIORITY                     7
 #endif // CFG_OS_FREERTOS
 
 /*section 2-----function macro config-----*/
@@ -131,7 +131,7 @@
 #define CFG_USE_SDCARD_HOST                        1
 
 /*section 20 ----- support mp3 decoder*/
-#define CONFIG_APP_MP3PLAYER 			           0
+#define CONFIG_APP_MP3PLAYER                       0
 
 /*section 21 ----- support ota*/
 #if CFG_SUPPORT_BOOTLOADER
@@ -162,6 +162,6 @@
 #define CFG_USE_SPI_MST_PSRAM                      0
 #define CFG_USE_SPI_SLAVE                          0
 
-#define CFG_USE_QSPI							   1
+#define CFG_USE_QSPI                               1
 
 #endif // _SYS_CONFIG_H_

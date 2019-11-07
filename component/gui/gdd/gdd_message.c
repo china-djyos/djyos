@@ -250,6 +250,8 @@ ptu32_t __MessageLoop( void )
     u32 result = 0;
     HWND MyHwnd;
     Djy_GetEventPara((ptu32_t *)&MyHwnd,NULL);
+    MyHwnd->EventID   = Djy_MyEventId();
+
     while(GetMessage(&msg,MyHwnd,&SyncMsg))
     {
         //如果被处理的是发给主窗口的close消息，处理完成后退出消息循环

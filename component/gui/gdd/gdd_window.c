@@ -63,6 +63,7 @@
 #include    <gui/gdd/gdd_private.h>
 #include <gkernel.h>
 #include "dbug.h"
+#include "project_config.h"
 /*
 typedef struct  __WNDCLASS  //窗口类数据结构
 {
@@ -826,14 +827,14 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
         __InitWindow(pGddWin,Style,0);
         HWND_Desktop = pGddWin;
 
-        MyEvtt = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, __MessageLoop,
+        MyEvtt = Djy_EvttRegist(EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0, __MessageLoop,
                                 NULL, 2048, "desktop");
         if(MyEvtt != CN_EVTT_ID_INVALID)
         {
             MyEventid=Djy_EventPop(MyEvtt, NULL, 0, (ptu32_t)pGddWin, 0, 0);
             if(MyEventid!= CN_EVENT_ID_INVALID)
             {
-                pGddWin->EventID   = MyEventid;
+//              pGddWin->EventID   = MyEventid;
                 SetWindowShow(pGddWin); //显示窗口
             }
             else
@@ -1801,14 +1802,13 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
     if(result != NULL)
     {
 
-        MyEvtt = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0, __MessageLoop,
+        MyEvtt = Djy_EvttRegist(EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0, __MessageLoop,
                                 NULL, MemSize, AppName);
         if(MyEvtt != CN_EVTT_ID_INVALID)
         {
             MyEventId=Djy_EventPop(MyEvtt, NULL, 0, (ptu32_t)result, 0, 0);
             if(MyEventId != CN_EVENT_ID_INVALID)
             {
-                result->EventID   = MyEventId;
                 SetFocusWindow(result);
                 SetWindowShow(result); //显示窗口
             }

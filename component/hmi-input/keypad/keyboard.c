@@ -126,7 +126,7 @@ bool_t ModuleInstall_KeyBoard(void)
     s16 evtt_key;
     if(!obj_search_child(obj_root(),"hmi input device"))   //标准输入设备未初始化
         return false;
-    evtt_key = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+    evtt_key = Djy_EvttRegist(EN_CORRELATIVE,CFG_GUI_RUN_PRIO,0,0,
                                     KeyBoard_Scan,NULL,1024,"keyboard");
     if(evtt_key == CN_EVTT_ID_INVALID)
     {

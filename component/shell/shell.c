@@ -1119,7 +1119,7 @@ s32 ModuleInstall_Shell(ptu32_t para)
         return (-1);
 
     shell_evtt = Djy_EvttRegist(EN_CORRELATIVE, // 关联型事件
-                                CN_PRIO_REAL, // 默认优先级
+                                2, // 默认优先级
                                 0, // 线程保留数，关联型无效
                                 0, // 线程上限，关联型无效
                                 Sh_Service, // 入口函数

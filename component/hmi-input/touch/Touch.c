@@ -249,7 +249,7 @@ bool_t ModuleInstall_Touch(void)
     u16 touch_scan_evtt;
     if(!obj_search_child(obj_root( ),"hmi input device"))      //标准输入设备未初始化
         return false;
-    touch_scan_evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+    touch_scan_evtt = Djy_EvttRegist(EN_CORRELATIVE,CFG_GUI_RUN_PRIO,0,0,
                             Touch_Scan,NULL,2048,"touch");
     if(touch_scan_evtt == CN_EVTT_ID_INVALID)
     {
