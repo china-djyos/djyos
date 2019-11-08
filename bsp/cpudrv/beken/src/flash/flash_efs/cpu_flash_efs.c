@@ -107,7 +107,7 @@
 //@#$%component end configure
 
 extern bool_t flash_is_install(void);
-extern void djy_flash_read(uint32_t address, void *data, uint32_t size);
+//extern void djy_flash_read(uint32_t address, void *data, uint32_t size);
 extern void djy_flash_write(uint32_t address, const void *data, uint32_t size);
 extern void djy_flash_erase(uint32_t address);
 extern s32 djy_flash_req(enum ucmd cmd, ptu32_t args, ...);

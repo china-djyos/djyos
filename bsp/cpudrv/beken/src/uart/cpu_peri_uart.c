@@ -126,6 +126,7 @@
 //@#$%component end configure
 // =============================================================================
 
+extern void uart_hw_set_change(UINT8 uport, uart_config_t *uart_config);
 
 static uart_config_t djybsp_uart[CN_UART_NUM] = {
     {
@@ -251,7 +252,7 @@ static u32 __UART_SendStart (uint8_t port,u32 timeout)
     uart_set_tx_fifo_needwr_int(port,1);
     while(uart_is_tx_fifo_full(port)==0)
     {
-        if(0 != UART_PortRead(pUartCB[port],&val,1))
+        if(0 != UART_PortRead((struct UartGeneralCB *)pUartCB[port],&val,1))
         {
             uart_write_byte(port,val);
         }
@@ -290,9 +291,9 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
     }
     if(num > 0)
     {
-        if(num != UART_PortWrite(pUartCB[port],fifo,num))
+        if(num != UART_PortWrite((struct UartGeneralCB *)pUartCB[port],fifo,num))
         {
-            UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
+            UART_ErrHandle((struct UartGeneralCB *)pUartCB[port],CN_UART_BUF_OVER_ERR);
             printk("uart idle over!\r\n");
         }
     }
@@ -307,7 +308,7 @@ static uint32_t djybsp_uart_tx_isr(uint32_t port)
 
     while(uart_is_tx_fifo_full(port)==0)
     {
-        if(0 != UART_PortRead(pUartCB[port],&val,1))
+        if(0 != UART_PortRead((struct UartGeneralCB *)pUartCB[port],&val,1))
         {
             uart_write_byte(port,val);
         }
@@ -329,8 +330,8 @@ static void __UART_IntInit(u32 port)
 {
     if(port>CN_UART2)
        return ;
-    uart_rx_callback_set(port, djybsp_uart_rx_isr, port);
-    uart_tx_fifo_needwr_callback_set(port,djybsp_uart_tx_isr,port);
+    uart_rx_callback_set(port, djybsp_uart_rx_isr, (void *)port);
+    uart_tx_fifo_needwr_callback_set(port,djybsp_uart_tx_isr,(void *)port);
 }
 
 // =============================================================================
@@ -465,7 +466,7 @@ char Uart_GetCharDirect(void)
     u8 result;
     while(1)
     {
-        if( (result = uart_read_byte(RxDirectPort))!=-1 )
+        if( ((char)(result = uart_read_byte(RxDirectPort)))!=-1 )
         {
             break;
         }
@@ -499,7 +500,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         PutStrDirect = NULL ;
     }
 
-    if(TxDirectPort >= 0)
+    if((s32)TxDirectPort >= 0)
     {
 //        __UART_HardInit(TxDirectPort);
         PutStrDirect = Uart_PutStrDirect;
@@ -518,7 +519,7 @@ void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut)
         GetCharDirect = NULL ;
     }
 
-    if(RxDirectPort >= 0)
+    if((s32)RxDirectPort >= 0)
     {
 //        if(TxDirectPort != RxDirectPort)
 //            __UART_HardInit(RxDirectPort);
