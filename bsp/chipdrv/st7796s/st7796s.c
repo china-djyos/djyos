@@ -140,7 +140,7 @@ unsigned char screen[ROW_TEMP][240][COLO_DEP];
 #define SPI_RST(x)   djy_gpio_write(GPIO19,(x))
 #define SPI_RS(x)    djy_gpio_write(GPIO15,(x))
 #define SPI_CS(x)    djy_gpio_write(GPIO3,(x))
-#define LED_ON(x)    djy_gpio_write(GPIO36,!(x))
+//#define LED_ON(x)    djy_gpio_write(GPIO36,!(x))
 #if 0
 void SPI_CS (int stat)
 {
@@ -274,8 +274,8 @@ void spi_init_extral_gpio(void)
     bk_gpio_config_output(GPIO3);
     bk_gpio_output(GPIO3, GPIO_INT_LEVEL_HIGH);
 
-    bk_gpio_config_output(GPIO36);
-    bk_gpio_output(GPIO36, GPIO_INT_LEVEL_LOW);
+//    bk_gpio_config_output(GPIO36);
+//    bk_gpio_output(GPIO36, GPIO_INT_LEVEL_LOW);
 }
 
 static void spi_flash_enable_voltage(void)

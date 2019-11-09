@@ -2135,7 +2135,7 @@ int c_sscanf(const char *ibuf, const char *fmt, ...);
 typedef int sock_t;
 #define INVALID_SOCKET (-1)
 
-#define SOMAXCONN 8
+#define SOMAXCONN 128
 
 #define to64(x) strtoll(x, NULL, 10)
 #define INT64_FMT "lld"

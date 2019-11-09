@@ -683,7 +683,7 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
 
             // 缓存重置，将后续的缓存预取进来（第一个head区域是不会在这里需要缓存的）
             // 此后seek就直接移动bufed;
-            if(left<core->bufsz)
+            if(left < (u32)core->bufsz)
             {
                 if(core->drv->xip_read_media(core, cx->buf, core->bufsz, pos+cx->bufed))
                     break;
@@ -701,7 +701,7 @@ static s32 xip_app_write(struct objhandle *hdl, u8 *data, u32 size)
     if(file->sz<cx->pos)
         file->sz = cx->pos;
 
-    if((__STATUS_UPDATING!=file->status)&&(left!=(s32)size))
+    if((__STATUS_UPDATING != file->status)&&(left != size))
         file->status = __STATUS_UPDATING; // 文件数据发生变改变
 
     xip_app_unlock(core);
