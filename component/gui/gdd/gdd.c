@@ -124,12 +124,12 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
     }
 
 
-    evtt = Djy_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
-                          GDD_GetGK_Message, NULL,2048,"wait gk task");
-    if (evtt != CN_EVTT_ID_INVALID)
-    {
-        Djy_EventPop(evtt, NULL, 0, 0, 0, 0);
-    }
+//  evtt = Djy_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
+//                        GDD_GetGK_Message, NULL,2048,"wait gk task");
+//  if (evtt != CN_EVTT_ID_INVALID)
+//  {
+//      Djy_EventPop(evtt, NULL, 0, 0, 0, 0);
+//  }
 
 }
 

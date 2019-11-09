@@ -148,7 +148,7 @@ static u16 UART_SndBufLen = 0;
 static u16 UART_RxBufLen = 0;
 static u32 TxDirectPort = 0;                  //用于printk发送的串口号
 static u32 RxDirectPort = 0;                  //用于直接接收的串口号
-static struct UartCB *pUartCB[CN_UART_NUM];
+static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static const char *sUartName[CN_UART_NUM] = {
         "UART1","UART2",
 };

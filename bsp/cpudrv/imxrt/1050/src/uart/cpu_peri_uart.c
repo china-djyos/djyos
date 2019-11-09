@@ -197,7 +197,7 @@ static lpuart_config_t tg_UART_Config[CN_UART_NUM];
 #define CN_UART_TX_RMPTY        2U
 #define CN_UART_TX_COMPLETE     3U
 
-static struct UartCB *pUartCB[CN_UART_NUM];
+static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static u8 sUartInited = 0;
 __attribute__((weak))  void Board_UartHalfDuplexSend(u8 port)
 {
@@ -616,7 +616,7 @@ static ptu32_t __UART_Ctrl(tagUartReg *reg,u32 cmd, va_list *arg0)
 // =============================================================================
 u32 UART_ISR(ptu32_t port)
 {
-    struct UartCB *UCB;
+    struct UartGeneralCB *UCB;
     u32 num;
     u8 ch;
 

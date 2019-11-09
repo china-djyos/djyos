@@ -548,7 +548,7 @@ static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
 {
     u8 port;
     u32 delay=0,len;
-    struct UartCB *UCB;
+    struct UartGeneralCB *UCB;
     u8 fifo[32];
     atom_low_t atom_low;
 
@@ -736,7 +736,7 @@ uint32_t UART_DmaRx_ISR(ptu32_t port)
 
 u32 UART_ISR(ptu32_t port)
 {
-    struct UartCB *UCB;
+    struct UartGeneralCB *UCB;
     tagUartReg *Reg;
     u32 num;
     u8 ch;

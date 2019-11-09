@@ -31,8 +31,6 @@
 //#warning  " graphical_decorate_development  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,1,248,
-#define CFG_GUI_RUN_PRIO        200         //"图形任务优先级",上层图形应用运行的优先级
 //%$#@num,0,800,
 #define CFG_DESKTOP_WIDTH       0           //"桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度

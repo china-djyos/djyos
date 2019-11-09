@@ -135,7 +135,7 @@ enum _KNL_ERROR_CODE_
 #define CN_PRIO_WDT         (1)
 #define CN_PRIO_SYS_SERVICE (250)
 #define CN_PRIO_INVALID     (255)   //非法优先级
-
+#define CFG_GUI_RUN_PRIO    (131)
 struct ProcessVm       //进程
 {
     u8  res;
