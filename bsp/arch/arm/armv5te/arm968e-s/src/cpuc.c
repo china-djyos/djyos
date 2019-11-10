@@ -61,18 +61,18 @@ uint32_t *djy_interrupt_to_thread __attribute__ ((section(".data.interrupt")));
 static uint64_t gRunTicks = 0;
 static bool_t gResumeTickFlag = false;
 
-// =============================================================================
-// 功能：在系统起来以后需把各种标志复位
-// 参数：无
-// 返回：无
-// =============================================================================
-__attribute__((weak)) void __InitTimeBase(void)
-{
-    djy_switch_interrupt_flag = 0;
-    djy_interrupt_from_thread = NULL;
-    djy_interrupt_to_thread = NULL;
-}
-
+//// =============================================================================
+//// 功能：在系统起来以后需把各种标志复位
+//// 参数：无
+//// 返回：无
+//// =============================================================================
+//__attribute__((weak)) void __InitTimeBase(void)
+//{
+//    djy_switch_interrupt_flag = 0;
+//    djy_interrupt_from_thread = NULL;
+//    djy_interrupt_to_thread = NULL;
+//}
+//
 
 
 //__attribute__((weak)) uint64_t __DjyGetTicks(void)
@@ -113,7 +113,7 @@ void reset(u32 key)
     void (*fn_start)();
     fn_start = 0x0;
     fn_start();
-//	_start();
+//  _start();
 }
 
 void restart_app(u32 key)

@@ -11,42 +11,42 @@
 .global isr_vector
 isr_vector:
     b   _start
-	ldr	pc, _undefined_instruction
-	ldr	pc, _software_interrupt
-	ldr	pc, _prefetch_abort
-	ldr	pc, _data_abort
-	ldr	pc, _not_used
-	ldr	pc, _irq
-	ldr	pc, _fiq
+    ldr pc, _undefined_instruction
+    ldr pc, _software_interrupt
+    ldr pc, _prefetch_abort
+    ldr pc, _data_abort
+    ldr pc, _not_used
+    ldr pc, _irq
+    ldr pc, _fiq
 
-_undefined_instruction:	.word HardExp_UndefHandler
-_software_interrupt:	.word HardExp_SwiHandler
-_prefetch_abort:		.word HardExp_PrefetchHandler
+_undefined_instruction: .word HardExp_UndefHandler
+_software_interrupt:    .word HardExp_SwiHandler
+_prefetch_abort:        .word HardExp_PrefetchHandler
 _data_abort:  .word HardExp_DataAbortHandler
-_not_used:	  .word HardExp_Not_UsedHandler
-_irq:	 .word irq_handler
-_fiq:	 .word fiq_handler
+_not_used:    .word HardExp_Not_UsedHandler
+_irq:    .word irq_handler
+_fiq:    .word fiq_handler
 
 /*
  * exception handlers
  */
- 	.align  5
+    .align  5
 HardExp_UndefHandler:
     B   .
     SUBS    PC,LR,#4
 
-	.align  5
+    .align  5
 HardExp_SwiHandler:
     B   .
 
-	.align  5
+    .align  5
 HardExp_PrefetchHandler:
     B   .
     NOP
     NOP
     SUBS        PC,LR,#0
 
-	.align  5
+    .align  5
 HardExp_DataAbortHandler:
     NOP
     NOP
@@ -55,9 +55,9 @@ HardExp_DataAbortHandler:
     NOP
     SUBS PC,LR,#0
 
-	.align  5
+    .align  5
 HardExp_Not_UsedHandler:
-	B     .
+    B     .
 
 /*
  * Macro for switching ARM mode
@@ -74,37 +74,15 @@ HardExp_Not_UsedHandler:
  *                      Stack and Heap Definitions
  * ========================================================================
  */
+/*各种异常不会嵌套，用同一个栈*/
     .section .data
-    .space 0x010
+    .space 0x0400
     .align 3
-    .global und_stack_start
-und_stack_start:
-
-    .space 0x010
-    .align 3
-    .global abt_stack_start
-abt_stack_start:
-
-    .space 0x1000
-    .align 3
-    .global fiq_stack_start
-fiq_stack_start:
-
-    .space 0x1000
-    .align 3
-    .global irq_stack_start
-irq_stack_start:
-
-    .skip 0x3F0
-    .align 3
-    .global sys_stack_start
-sys_stack_start:
-
-    .space 0x3F0
-    .align 3
-    .global svc_stack_start
-svc_stack_start:
-	.word 0x00000000
+    .global und_stack_top
+    .global abt_stack_top
+und_stack_top:
+abt_stack_top:
+    .word 0
 
 .text
 .align 5
@@ -117,23 +95,23 @@ _start:
     MSR   CPSR_c, R0
 
     BOOT_CHANGE_MODE 0x1F 0x1F  /*System mode 系统模式*/
-	ldr     sp,=sys_stack_start
+    ldr     sp,=msp_top
     bic     sp,sp,#0x07
 
     BOOT_CHANGE_MODE 0x17 0x1F /*Abort mode */
-    ldr     sp,=und_stack_start
+    ldr     sp,=abt_stack_top
     bic     sp,sp,#0x07
 
     BOOT_CHANGE_MODE 0x1B 0x1F  /*Undefined mode*/
-	ldr     sp,=und_stack_start
+    ldr     sp,=und_stack_top
     bic     sp,sp,#0x07
 
     BOOT_CHANGE_MODE 0x12 0x1F/*IRQ mode*/
-	ldr     sp,=irq_stack_start
+    ldr     sp,=msp_top
     bic     sp,sp,#0x07
 
     BOOT_CHANGE_MODE 0x11 0x1F /*FIQ mode*/
-	ldr     sp,=fiq_stack_start
+    ldr     sp,=msp_top
     bic     sp,sp,#0x07
 
     //Clear FIQ banked registers while in FIQ mode
@@ -143,8 +121,8 @@ _start:
     MOV     R11, #0
     MOV     R12, #0
 
-    BOOT_CHANGE_MODE 0x13 0x1F  /*Undefined mode管理模式*/
-	ldr     sp,=msp_top
+    BOOT_CHANGE_MODE 0x13 0x1F  /*svc mode管理模式*/
+    ldr     sp,=msp_top
     bic     sp,sp,#0x07
     //==================
     //Clear Registers
@@ -169,8 +147,11 @@ _start:
 .globl __asm_reset_msp
 .type __asm_reset_msp, %function
 __asm_reset_msp:
+    MRS   R0, CPSR
+    ORR   R0, R0, #0xC0
+    MSR   CPSR_c, R0
     BOOT_CHANGE_MODE 0x13 0x1F  /*Undefined mode管理模式*/
-	ldr     sp,=msp_top
+    ldr     sp,=msp_top
     bic     sp,sp,#0x07
     //==================
     //Clear Registers

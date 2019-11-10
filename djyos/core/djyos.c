@@ -3212,7 +3212,8 @@ ptu32_t __Djy_Service(void)
                 AllowPendTicks = CN_LIMIT_UINT32;
             buff[i++] = AllowPendTicks;
             buff[i] = __DjyGetSysTime();
-            g_fnEntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
+            if(AllowPendTicks != 0)
+                g_fnEntryLowPower(g_ptEventRunning->vm,AllowPendTicks); //进入低功耗状态
             buff[i] = __DjyGetSysTime() - buff[i];
             i++;
             Int_LowAtomEnd(atom_bak);

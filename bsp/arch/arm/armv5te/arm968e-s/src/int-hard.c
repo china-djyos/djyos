@@ -359,10 +359,6 @@ void _irq_Int_EngineAll(ufast_t intStatus)
           intStatus &=~(1<<ufl_line);
       }
     }
-    if(g_ptEventReady != g_ptEventRunning)
-    {
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
-    }
 }
 
 void _fiq_Int_EngineAll(ufast_t intStatus)
@@ -381,10 +377,6 @@ void _fiq_Int_EngineAll(ufast_t intStatus)
               __Int_EngineAsynSignal(ufl_line);         //是异步信号
           intStatus &=~(1<<ufl_line);
       }
-    }
-    if(g_ptEventReady != g_ptEventRunning)
-    {
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
     }
 }
 void __Int_InitHard()
@@ -515,6 +507,10 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);
     }
     tg_int_global.nest_asyn_signal--;
+    if(g_ptEventReady != g_ptEventRunning)
+    {
+        __Djy_ScheduleAsynSignal();       //执行中断内调度
+    }
     g_bScheduleEnable = true;
 }
 
