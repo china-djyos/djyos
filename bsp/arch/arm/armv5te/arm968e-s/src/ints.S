@@ -293,7 +293,7 @@ djy_context_switch_interrupt_do:
 fiq_handler:
     STMFD   SP!,{R0-R7,LR}
 
-	BL      djy_fiq_dispatch
+    BL      djy_fiq_dispatch
 @    LDR R0,=INTSTATUS
 @    LDR R0,[R0]
 @    LDR     R2, =intertab         /* 取异步信号地址 */

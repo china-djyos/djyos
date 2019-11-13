@@ -22,10 +22,10 @@ isr_vector:
 _undefined_instruction: .word HardExp_UndefHandler
 _software_interrupt:    .word HardExp_SwiHandler
 _prefetch_abort:        .word HardExp_PrefetchHandler
-_data_abort:  .word HardExp_DataAbortHandler
-_not_used:    .word HardExp_Not_UsedHandler
-_irq:    .word irq_handler
-_fiq:    .word fiq_handler
+_data_abort:            .word HardExp_DataAbortHandler
+_not_used:    	        .word HardExp_Not_UsedHandler
+_irq:                   .word irq_handler
+_fiq:                   .word fiq_handler
 
 /*
  * exception handlers
@@ -113,6 +113,7 @@ _start:
     BOOT_CHANGE_MODE 0x11 0x1F /*FIQ mode*/
     ldr     sp,=msp_top
     bic     sp,sp,#0x07
+    sub		sp,sp,#0x40        /*IRQ响应到禁止FIQ之前，要用56字节，必须避开，否则会被覆盖*/
 
     //Clear FIQ banked registers while in FIQ mode
     MOV     R8,  #0
