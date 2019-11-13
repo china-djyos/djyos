@@ -2046,9 +2046,9 @@ static s32 Efs_Verify_Install(struct FsCore *pSuper)
     for(loop = 0; loop < CFG_EFS_MAX_OPEN_FILE_NUM; loop++)
     {
         index_offset = loop * Ram_file_info_len;
-        if(!efs->drv->efs_read_media(efs->start_block, EFS_ITEM_LIMIT, efs->file_list_buf + index_offset, EFS_ITEM_LIMIT,EF_WR_NOECC))       //读文件分配表到缓存中
+        if(!efs->drv->efs_read_media(efs->start_block, loop*EFS_ITEM_LIMIT, efs->file_list_buf + index_offset, EFS_ITEM_LIMIT,EF_WR_NOECC))       //读文件分配表到缓存中
             goto fail;
-        fill_little_32bit(efs->file_list_buf + index_offset + EFS_ITEM_LIMIT, 0, loop + 1);
+        fill_little_32bit(efs->file_list_buf + index_offset + EFS_ITEM_LIMIT, 0, loop + 0);
     }
     s_pEfsList[0] = efs;
     memcpy(s_pEfsList[0]->name,pSuper->pTarget->name,EFS_NAME_LIMIT+1);

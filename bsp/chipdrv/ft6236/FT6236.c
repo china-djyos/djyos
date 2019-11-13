@@ -293,10 +293,10 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
 {
     struct SingleTouchMsg touch_xyz0,touch_xyz1;
     s32 limit_left,limit_top,limit_right,limit_bottom;
-    FILE *touch_init;
-    if((touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"r")) != NULL)
+    FILE *touch_init = NULL;
+    touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"r");
+    if(touch_init != NULL)
     {
-
         fread(&tg_touch_adjust,sizeof(struct ST_TouchAdjust),1,touch_init);
         fclose(touch_init);
     }
