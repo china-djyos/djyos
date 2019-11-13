@@ -121,8 +121,8 @@ void Int_CutAsynSignal(void)
 //-----------------------------------------------------------------------------
 void Int_ContactTrunk(void)
 {
-    portENABLE_FIQ();
-    portENABLE_IRQ();
+//    portENABLE_FIQ();
+//    portENABLE_IRQ();
 }
 
 //----断开总中断开关---------------------------------------------------------
@@ -133,8 +133,8 @@ void Int_ContactTrunk(void)
 //-----------------------------------------------------------------------------
 void Int_CutTrunk(void)
 {
-    portDISABLE_FIQ();
-    portDISABLE_IRQ();
+//    portDISABLE_FIQ();
+//    portDISABLE_IRQ();
 }
 
 //----接通单个中断线开关-------------------------------------------------------
