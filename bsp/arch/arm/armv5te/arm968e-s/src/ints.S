@@ -33,9 +33,10 @@
 .globl Int_LowAtomStart
 .type Int_LowAtomStart, %function
 Int_LowAtomStart:
-    MRS     R0, CPSR
-    ORR     R1, R0, #NOINT
-    MSR     CPSR_c, R1
+    ldr     r1,=0x802044
+    ldr     r0,[r1]
+    mov		r2,#0
+    str     r2,[r1]
     BX      LR
 
 /*
@@ -57,7 +58,8 @@ Int_LowAtomStart:
 .globl Int_LowAtomEnd
 .type Int_LowAtomEnd, %function
 Int_LowAtomEnd:
-    MSR     CPSR_c, R0
+    ldr     r1,=0x802044
+    str     r0,[r1]
     BX      LR
 
 /*
