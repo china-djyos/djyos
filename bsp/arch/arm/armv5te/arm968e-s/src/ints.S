@@ -279,14 +279,15 @@ djy_context_switch_interrupt_do:
 
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
-    /*把栈顶数值存到rt_interrupt_from_thread里*/
-    STR     SP,  [R5]
 
     ldr r6,[r5,#4]
     cmp sp,r5
     ble  .
     cmp sp,r6
     bge  .
+
+    /*把栈顶数值存到rt_interrupt_from_thread里*/
+    STR     SP,  [R5]
 
     LDR     R6,  =djy_interrupt_to_thread
     LDR     R6,  [R6]
@@ -298,6 +299,7 @@ djy_context_switch_interrupt_do:
     ble  .
     cmp sp,r7
     bge  .
+
 
     LDMFD   SP!, {R4}
     AND     R4,  R4, #0Xffffff3f
@@ -324,10 +326,10 @@ fiq_handler:
 @    MOV     LR,PC               /* 这执行4G空间内的函数调用 */
 @    LDR     PC,[R2]             /* INTN状态用R0传递 */
 
-    MRS R3, spsr
-    AND R2, R3, #0x1F
-    CMP R2, #BOOT_MODE_IRQ            @; fiq from irq(0x12)
-    BEQ fiq_handler_return
+@    MRS R3, spsr
+@    AND R2, R3, #0x1F
+@    CMP R2, #BOOT_MODE_IRQ            @; fiq from irq(0x12)
+@    BEQ fiq_handler_return
 
     LDR     R0, =djy_switch_interrupt_flag
     LDR     R1, [R0]
@@ -364,13 +366,14 @@ djy_context_switch_interrupt_fiq_do:
 
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
-    STR     SP,  [R5]
 
     ldr r6,[r5,#4]
     cmp sp,r5
     ble  .
     cmp sp,r6
     bge  .
+
+    STR     SP,  [R5]
 
     LDR     R6,  =djy_interrupt_to_thread
     LDR     R6,  [R6]
@@ -381,6 +384,7 @@ djy_context_switch_interrupt_fiq_do:
     ble  .
     cmp sp,r7
     bge  .
+
 
     LDMFD   SP!, {R4}
     AND     R4,  R4, #0Xffffff3f
