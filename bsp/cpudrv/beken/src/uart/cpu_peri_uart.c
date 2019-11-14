@@ -294,7 +294,7 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
         if(num != UART_PortWrite((struct UartGeneralCB *)pUartCB[port],fifo,num))
         {
             UART_ErrHandle((struct UartGeneralCB *)pUartCB[port],CN_UART_BUF_OVER_ERR);
-            printk("uart idle over!\r\n");
+            printk("uart%d idle over!\r\n",port+1);
         }
     }
     return 1;
