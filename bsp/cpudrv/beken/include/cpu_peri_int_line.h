@@ -90,10 +90,10 @@ extern "C" {
 #define CN_INT_LINE_MAC_WAKEUP                        (26)
 #define CN_INT_LINE_SPI_DMA                           (27)
 #define CN_INT_LINE_DPLL_UNLOCK                       (28)
-
-/*空出 几个空格*/
-
-#define CN_INT_LINE_LAST                              (32)
+#define CN_INT_LINE_JPEG                              (29)
+#define CN_INT_LINE_BLE                               (30)
+#define CN_INT_LINE_PSAM                              (31)
+#define CN_INT_LINE_LAST                              (31)
 #define INT_LINE_2_EN_BIT(x)                      (1 << x)
 
 

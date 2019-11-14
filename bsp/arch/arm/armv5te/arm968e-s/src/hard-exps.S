@@ -94,6 +94,10 @@ _start:
     ORR   R0, R0, #0xC0
     MSR   CPSR_c, R0
 
+    ldr     r1,=0x802044
+    mov		r2,#0
+    str     r2,[r1]
+
     BOOT_CHANGE_MODE 0x1F 0x1F  /*System mode ϵͳģʽ*/
     ldr     sp,=msp_top
     bic     sp,sp,#0x07

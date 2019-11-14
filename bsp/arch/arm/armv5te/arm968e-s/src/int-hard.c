@@ -94,9 +94,9 @@ void djy_fiq_dispatch(void)
 //-----------------------------------------------------------------------------
 void Int_ContactAsynSignal(void)
 {
-//    portENABLE_FIQ();
-//    portENABLE_IRQ();
-    *(u32*)0x802044 = 3;
+    portENABLE_FIQ();
+    portENABLE_IRQ();
+//    *(u32*)0x802044 = 3;
 }
 
 //----断开异步信号开关---------------------------------------------------------
@@ -110,9 +110,9 @@ void Int_ContactAsynSignal(void)
 //-----------------------------------------------------------------------------
 void Int_CutAsynSignal(void)
 {
-//    portDISABLE_FIQ();
-//    portDISABLE_IRQ();
-    *(u32*)0x802044 = 0;
+    portDISABLE_FIQ();
+    portDISABLE_IRQ();
+//    *(u32*)0x802044 = 0;
 }
 
 //----接通总中断开关-----------------------------------------------------------

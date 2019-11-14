@@ -33,10 +33,13 @@
 .globl Int_LowAtomStart
 .type Int_LowAtomStart, %function
 Int_LowAtomStart:
-    ldr     r1,=0x802044
-    ldr     r0,[r1]
-    mov		r2,#0
-    str     r2,[r1]
+@    ldr     r1,=0x802044
+@    ldr     r0,[r1]
+@    mov        r2,#0
+@    str     r2,[r1]
+    MRS     R0, CPSR
+    ORR     R1, R0, #NOINT
+    MSR     CPSR_c, R1
     BX      LR
 
 /*
@@ -58,8 +61,9 @@ Int_LowAtomStart:
 .globl Int_LowAtomEnd
 .type Int_LowAtomEnd, %function
 Int_LowAtomEnd:
-    ldr     r1,=0x802044
-    str     r0,[r1]
+@    ldr     r1,=0x802044
+@    str     r0,[r1]
+    MSR     CPSR_c, R0
     BX      LR
 
 /*
@@ -213,6 +217,7 @@ boot_reserved:
 
  .align  5
 .globl irq_handler
+.globl tg_int_global
 .type irq_handler, %function
 irq_handler:
     /*把R0-R12,LR存到SP栈里面*/
@@ -222,13 +227,12 @@ irq_handler:
     orr r1, r4, #NOINT          @; disable interrupt
     msr cpsr_c, r1
 
-    BL      djy_irq_dispatch
+    ldr r5,=tg_int_global
+    ldr r5,[r5,#20]
+    cmp r5,#0
+    bne .
 
-@    LDR R0,=INTSTATUS
-@    LDR R0,[R0]
-@    LDR     R2, =intertab         /* 取异步信号地址 */
-@    MOV     LR,PC               /* 这执行4G空间内的函数调用 */
-@    LDR     PC,[R2]             /* INTN状态用R0传递 */
+    BL      djy_irq_dispatch
 
     LDR     R0, =djy_switch_interrupt_flag
     LDR     R1, [R0]
@@ -245,6 +249,22 @@ djy_context_switch_interrupt_do:
     /*整个栈帧按地址从大到小排列是：pc,lr,r12-r4,r3-r0,spsr*/
     /*SP向下生长*/
     /*ARM9里面没有两个栈指针？这里的SP实际上是在用的是被中断打断的线程的栈*/
+    LDR R4,  =djy_interrupt_from_thread
+    ldr r5,[r4]
+    ldr r5,[r5,#4]
+    cmp sp,r4
+    ble  .
+    cmp sp,r5
+    bge  .
+
+    ldr r6,=djy_interrupt_to_thread
+    ldr r7,[r6]
+    ldr r7,[r7,#4]
+    cmp sp,r6
+    ble  .
+    cmp sp,r7
+    bge  .
+
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
     STR     R1,  [R0]
@@ -295,6 +315,11 @@ djy_context_switch_interrupt_do:
 fiq_handler:
     STMFD   SP!,{R0-R7,LR}
 
+    ldr r5,=tg_int_global
+    ldr r5,[r5,#20]
+    cmp r5,#0
+    bne .
+
     BL      djy_fiq_dispatch
 @    LDR R0,=INTSTATUS
 @    LDR R0,[R0]
@@ -317,6 +342,23 @@ fiq_handler_return:
     SUBS    PC, LR, #4
 
 djy_context_switch_interrupt_fiq_do:
+    LDR R4,  =djy_interrupt_from_thread
+    ldr r5,[r4]
+    ldr r5,[r5,#4]
+    cmp sp,r4
+    ble  .
+    cmp sp,r5
+    bge  .
+
+    ldr r6,=djy_interrupt_to_thread
+    ldr r7,[r6]
+    ldr r7,[r7,#4]
+    cmp sp,r6
+    ble  .
+    cmp sp,r7
+    bge  .
+
+
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
     STR     R1,  [R0]
@@ -386,7 +428,7 @@ djy_context_switch_interrupt_fiq_do:
 @ .globl fiq_handler
 @ .type fiq_handler, %function
 @ fiq_handler:
-@ 	/*把R0-R12,LR存到SP栈里面*/
+@   /*把R0-R12,LR存到SP栈里面*/
 @     STMFD   SP!,{R0-R12,LR}          /* 保护寄存器,以及返回地址 */
 @     LDR R0,=INTSTATUS
 @     LDR R0,[R0]

@@ -33,9 +33,9 @@ __asm_reset_thread:
     STMFD   R2!,{R3}            @存pc，
     SUB     R2,R2,#13*4         @后退13个寄存器,初始状态r1-r12随意，__vm_engine
                                 @函数不返回，lr也无意义
-							    @__vm_engine的参数，切换上下文时，service_routine将恢复到r0中，根据调用约
-							    @定，r0的值就是__vm_engine函数的参数。这只在创建并初始化线程上下文时需要这
-							    @样做，线程启动以后线程切换要保存上下文时，保存r0的实际值即可
+                                @__vm_engine的参数，切换上下文时，service_routine将恢复到r0中，根据调用约
+                                @定，r0的值就是__vm_engine函数的参数。这只在创建并初始化线程上下文时需要这
+                                @样做，线程启动以后线程切换要保存上下文时，保存r0的实际值即可
     STMFD   R2!,{R0}            @保存 thread_routine指针到r0的位置.
     LDR     R3,=BOOT_MODE_SVC   @取cpsr
     TST     R0, #0X01
@@ -91,7 +91,7 @@ __asm_start_thread:
     AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     LDMFD   SP!, {R0-R12, LR, PC}^  @; pop new task r0-r12, lr & pc
-    
+
 /*
 @----切入上下文---------------------------------------------------------------
 @功能:  不保存原上下文，直接切入新的上下文执行
@@ -135,12 +135,26 @@ __asm_switch_context:
 _ARM_MODE:
     STMFD   SP!, {R4}               @; push cpsr
     STR     SP, [R1]                @; store sp in preempted tasks tcb
+
+    ldr r4,[r1,#4]
+    cmp sp,r1
+    ble  .
+    cmp sp,r4
+    bge  .
+
     LDR     SP, [R0]                @; get new task stack pointer
+
+    ldr r4,[r0,#4]
+    cmp sp,r0
+    ble  .
+    cmp sp,r4
+    bge  .
+
     LDMFD   SP!, {R4}               @; pop new task spsr
     AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4
     LDMFD   SP!, {R0-R12, LR, PC}^  @; pop new task r0-r12, lr & pc
-    
+
 /*
 @----中断中的上下文切换-------------------------------------------------------
 @功能:  保存被中断线程的上下文，切换到新线程的上下文中继续执行。本函数虽然在中
@@ -151,7 +165,7 @@ _ARM_MODE:
 @返回:  无
 @函数原型: void __asm_switch_context_int(struct tagThreadVm *new_vm,struct tagThreadVm *old_vm)@
 @-----------------------------------------------------------------------------
-*/    
+*/
 .align 2
 .global __asm_switch_context_int
 .type   __asm_switch_context_int, %function
@@ -166,7 +180,7 @@ __asm_switch_context_int:
     /*LDR     R0, [R0]*/
     STR     R0, [R2]
     BX      LR
-    
+
 .align 2
 .global __asm_delay_cycle
 .type   __asm_delay_cycle, %function
@@ -197,8 +211,8 @@ __LP_BSP_AsmSaveReg:
 /*
 ; * void WFI(void);
 ; */
-	.text
-	.code 32
+    .text
+    .code 32
     .globl WFI
     .type WFI, %function
 WFI:
@@ -209,7 +223,7 @@ WFI:
 ;/*
 ; * void cp15_enable_alignfault(void)
 ; */
-	.text
+    .text
     .globl cp15_enable_alignfault
     .type cp15_enable_alignfault, %function
 cp15_enable_alignfault:
@@ -221,7 +235,7 @@ cp15_enable_alignfault:
 ;/*
 ; * void cp15_disable_alignfault(void)
 ; */
-	.text
+    .text
     .globl cp15_disable_alignfault
     .type cp15_disable_alignfault, %function
 cp15_disable_alignfault:
