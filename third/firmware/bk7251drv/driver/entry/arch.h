@@ -54,8 +54,8 @@
 
 #define GLOBAL_INT_DECLARATION()   rt_base_t irq_level
 #define GLOBAL_INT_DISABLE()       do{\
-										irq_level = rt_hw_interrupt_disable();\
-									}while(0)
+                                        irq_level = rt_hw_interrupt_disable();\
+                                    }while(0)
 
 
 #define GLOBAL_INT_RESTORE()       do{                         \
@@ -63,12 +63,12 @@
                                    }while(0)
 
 #else
-
+#if 0
 #define GLOBAL_INT_DECLARATION()   uint32_t fiq_tmp, irq_tmp
 #define GLOBAL_INT_DISABLE()       do{\
-										fiq_tmp = portDISABLE_FIQ();\
-										irq_tmp = portDISABLE_IRQ();\
-									}while(0)
+                                        fiq_tmp = portDISABLE_FIQ();\
+                                        irq_tmp = portDISABLE_IRQ();\
+                                    }while(0)
 
 
 #define GLOBAL_INT_RESTORE()       do{                         \
@@ -80,6 +80,16 @@
                                         {                      \
                                             portENABLE_IRQ();  \
                                         }                      \
+                                   }while(0)
+#endif
+#include "int.h"
+#define GLOBAL_INT_DECLARATION()   uint32_t irq_tmp
+#define GLOBAL_INT_DISABLE()       do{\
+                                        irq_tmp = Int_HighAtomStart();\
+                                    }while(0)
+
+#define GLOBAL_INT_RESTORE()       do{\
+                                        Int_HighAtomEnd(irq_tmp);\
                                    }while(0)
 #endif
 
