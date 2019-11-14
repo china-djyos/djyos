@@ -249,21 +249,6 @@ djy_context_switch_interrupt_do:
     /*整个栈帧按地址从大到小排列是：pc,lr,r12-r4,r3-r0,spsr*/
     /*SP向下生长*/
     /*ARM9里面没有两个栈指针？这里的SP实际上是在用的是被中断打断的线程的栈*/
-    LDR R4,  =djy_interrupt_from_thread
-    ldr r5,[r4]
-    ldr r5,[r5,#4]
-    cmp sp,r4
-    ble  .
-    cmp sp,r5
-    bge  .
-
-    ldr r6,=djy_interrupt_to_thread
-    ldr r7,[r6]
-    ldr r7,[r7,#4]
-    cmp sp,r6
-    ble  .
-    cmp sp,r7
-    bge  .
 
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
@@ -297,10 +282,22 @@ djy_context_switch_interrupt_do:
     /*把栈顶数值存到rt_interrupt_from_thread里*/
     STR     SP,  [R5]
 
+    ldr r6,[r5,#4]
+    cmp sp,r5
+    ble  .
+    cmp sp,r6
+    bge  .
+
     LDR     R6,  =djy_interrupt_to_thread
     LDR     R6,  [R6]
     /*把新的栈顶的值存到SP上面*/
     LDR     SP,  [R6]
+
+    ldr r7,[r6,#4]
+    cmp sp,r6
+    ble  .
+    cmp sp,r7
+    bge  .
 
     LDMFD   SP!, {R4}
     AND     R4,  R4, #0Xffffff3f
@@ -342,22 +339,6 @@ fiq_handler_return:
     SUBS    PC, LR, #4
 
 djy_context_switch_interrupt_fiq_do:
-    LDR R4,  =djy_interrupt_from_thread
-    ldr r5,[r4]
-    ldr r5,[r5,#4]
-    cmp sp,r4
-    ble  .
-    cmp sp,r5
-    bge  .
-
-    ldr r6,=djy_interrupt_to_thread
-    ldr r7,[r6]
-    ldr r7,[r7,#4]
-    cmp sp,r6
-    ble  .
-    cmp sp,r7
-    bge  .
-
 
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
@@ -385,9 +366,21 @@ djy_context_switch_interrupt_fiq_do:
     LDR     R5,  [R4]
     STR     SP,  [R5]
 
+    ldr r6,[r5,#4]
+    cmp sp,r5
+    ble  .
+    cmp sp,r6
+    bge  .
+
     LDR     R6,  =djy_interrupt_to_thread
     LDR     R6,  [R6]
     LDR     SP,  [R6]
+
+    ldr r7,[r6,#4]
+    cmp sp,r6
+    ble  .
+    cmp sp,r7
+    bge  .
 
     LDMFD   SP!, {R4}
     AND     R4,  R4, #0Xffffff3f
