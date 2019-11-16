@@ -94,8 +94,9 @@ void djy_fiq_dispatch(void)
 //-----------------------------------------------------------------------------
 void Int_ContactAsynSignal(void)
 {
-    portENABLE_FIQ();
-    portENABLE_IRQ();
+//  portENABLE_FIQ();
+//  portENABLE_IRQ();
+    portENABLE_INT();
 //    *(u32*)0x802044 = 3;
 }
 
@@ -110,8 +111,9 @@ void Int_ContactAsynSignal(void)
 //-----------------------------------------------------------------------------
 void Int_CutAsynSignal(void)
 {
-    portDISABLE_FIQ();
-    portDISABLE_IRQ();
+//  portDISABLE_FIQ();
+//  portDISABLE_IRQ();
+    portDISABLE_INT();
 //    *(u32*)0x802044 = 0;
 }
 
@@ -123,8 +125,9 @@ void Int_CutAsynSignal(void)
 //-----------------------------------------------------------------------------
 void Int_ContactTrunk(void)
 {
-    portENABLE_FIQ();
-    portENABLE_IRQ();
+//  portENABLE_FIQ();
+//  portENABLE_IRQ();
+    portENABLE_INT();
 }
 
 //----断开总中断开关---------------------------------------------------------
@@ -135,8 +138,9 @@ void Int_ContactTrunk(void)
 //-----------------------------------------------------------------------------
 void Int_CutTrunk(void)
 {
-    portDISABLE_FIQ();
-    portDISABLE_IRQ();
+//  portDISABLE_FIQ();
+//  portDISABLE_IRQ();
+    portDISABLE_INT();
 }
 
 //----接通单个中断线开关-------------------------------------------------------

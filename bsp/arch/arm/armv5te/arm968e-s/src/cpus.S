@@ -128,6 +128,10 @@ __asm_switch_context:
     STMFD   SP!, {LR}               @; push pc (lr should be pushed in place of pc)
     STMFD   SP!, {R0-R12, LR}       @; push lr & register file
     MRS     R4, CPSR
+    mov		r2,r4
+    and     r2,r2,#0xc0
+    cmp		r2,#0xc0
+    bne     .
     tst     lr, #0x01
     beq     _ARM_MODE
     orr     r4, r4, #0x20           @; it's thumb code set T=1
@@ -179,6 +183,12 @@ __asm_switch_context_int:
     LDR     R2, =djy_interrupt_to_thread     @; set rt_interrupt_to_thread
     /*LDR     R0, [R0]*/
     STR     R0, [R2]
+
+    ldr r1,=0x40d080
+    ldr r2,[r1]
+    add r2,r2,#1
+    str r2,[r1]
+
     BX      LR
 
 .align 2

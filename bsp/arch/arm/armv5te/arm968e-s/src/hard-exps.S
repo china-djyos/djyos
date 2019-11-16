@@ -23,7 +23,7 @@ _undefined_instruction: .word HardExp_UndefHandler
 _software_interrupt:    .word HardExp_SwiHandler
 _prefetch_abort:        .word HardExp_PrefetchHandler
 _data_abort:            .word HardExp_DataAbortHandler
-_not_used:    	        .word HardExp_Not_UsedHandler
+_not_used:              .word HardExp_Not_UsedHandler
 _irq:                   .word irq_handler
 _fiq:                   .word fiq_handler
 
@@ -75,6 +75,7 @@ HardExp_Not_UsedHandler:
  * ========================================================================
  */
 /*各种异常不会嵌套，用同一个栈*/
+    .global cp15_enable_alignfault
     .section .data
     .space 0x0400
     .align 3
@@ -95,7 +96,7 @@ _start:
     MSR   CPSR_c, R0
 
     ldr     r1,=0x802044
-    mov		r2,#0
+    mov     r2,#0
     str     r2,[r1]
 
     BOOT_CHANGE_MODE 0x1F 0x1F  /*System mode 系统模式*/
@@ -117,7 +118,7 @@ _start:
     BOOT_CHANGE_MODE 0x11 0x1F /*FIQ mode*/
     ldr     sp,=msp_top
     bic     sp,sp,#0x07
-    sub		sp,sp,#0x40        /*IRQ响应到禁止FIQ之前，要用56字节，必须避开，否则会被覆盖*/
+    sub     sp,sp,#0x44        /*IRQ响应到禁止FIQ之前，要用56字节，必须避开，否则会被覆盖*/
 
     //Clear FIQ banked registers while in FIQ mode
     MOV     R8,  #0
@@ -144,7 +145,7 @@ _start:
     MOV R10, #0
     MOV R11, #0
     MOV R12, #0
-
+    bl  cp15_enable_alignfault
     ldr     pc, =Init_Cpu
 
 .text

@@ -105,6 +105,27 @@ Int_HighAtomStart:
 Int_HighAtomEnd:
     MSR     CPSR_c, R0
     BX      LR
+.text
+.globl portENABLE_INT
+.type portENABLE_INT, %function
+portENABLE_INT:
+    MRS     R0, CPSR
+    BIC     R1, R0, #0xC0
+    MSR     CPSR_c, R1
+    BX      LR
+
+;/*
+; * int portDISABLE_IRQ( void );
+; */
+.text
+.globl portDISABLE_INT
+.type portDISABLE_INT, %function
+portDISABLE_INT:
+    MRS     R2, CPSR
+    ORR     R1, R2, #0xC0
+    MSR     CPSR_c, R1
+    AND     R0, R2, #0xC0
+    BX      LR
 
 .text
 .globl portENABLE_IRQ
@@ -227,6 +248,13 @@ irq_handler:
     orr r1, r4, #NOINT          @; disable interrupt
     msr cpsr_c, r1
 
+@    mrs r4, spsr
+@    and r1,r4,#0x1f
+@    cmp r1,#0x11
+@    beq .
+@    cmp r1,#0x12
+@    beq .
+
     ldr r5,=tg_int_global
     ldr r5,[r5,#20]
     cmp r5,#0
@@ -250,6 +278,11 @@ djy_context_switch_interrupt_do:
     /*SP向下生长*/
     /*ARM9里面没有两个栈指针？这里的SP实际上是在用的是被中断打断的线程的栈*/
 
+    ldr r1,=0x40d080
+    ldr r2,[r1]
+    sub r2,r2,#1
+    str r2,[r1]
+
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
     STR     R1,  [R0]
@@ -272,9 +305,9 @@ djy_context_switch_interrupt_do:
     /*这里是个坑，我还以为弹出的是R1到R4的值，实际上是R0-R3的值，只不过是保存在R1-R4里面而已*/
     /*这里SP指针已经切换到线程的栈指针了，之前还是IRQ自己的*/
     LDMFD   R1,  {R1-R4}
-    /*把R1-R4压入新的栈里*/
+    /*实际压入的是被切出事件的R0-R3*/
     STMFD   SP!, {R1-R4}
-    /*把R0的值压入新的栈里*/
+    /*把SPSR的值压入新的栈里*/
     STMFD   SP!, {R0}
 
     LDR     R4,  =djy_interrupt_from_thread
@@ -319,6 +352,16 @@ fiq_handler:
     cmp r5,#0
     bne .
 
+    mrs r4,spsr
+    and r1,r4,#0x1f
+    cmp r1,#0x11
+    beq .
+    cmp r1,#0x12
+    bne abc
+    cmp lr,#0x1000
+    ble abc
+    b .
+abc:
     BL      djy_fiq_dispatch
 @    LDR R0,=INTSTATUS
 @    LDR R0,[R0]
@@ -341,6 +384,11 @@ fiq_handler_return:
     SUBS    PC, LR, #4
 
 djy_context_switch_interrupt_fiq_do:
+
+    ldr r1,=0x40d080
+    ldr r2,[r1]
+    sub r2,r2,#1
+    str r2,[r1]
 
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
