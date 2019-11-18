@@ -13,6 +13,7 @@
 .equ BOOT_IRQ_MASK,                     0x80
 
 .equ    INTSTATUS , (0x00802000 + 19 * 4)
+
 /*
 @----进入低级原子操作---------------------------------------------------------
 @功能：读取当前异步信号开关状态，然后禁止异步信号。低级级原子操作可用来防止临界
@@ -244,6 +245,9 @@ irq_handler:
     /*把R0-R12,LR存到SP栈里面*/
     STMFD   SP!, {R0-R12,LR}
 
+@    cmp lr,#0xac
+@    beq .
+
     mrs r4, cpsr
     orr r1, r4, #NOINT          @; disable interrupt
     msr cpsr_c, r1
@@ -299,6 +303,10 @@ djy_context_switch_interrupt_do:
     MSR     CPSR_c, #BOOT_FIQ_IRQ_MASK|BOOT_MODE_SVC
     /*压R2,实际上R2现在等于PC的值*/
     STMFD   SP!, {R2}
+
+@    cmp r2,#0xac
+@    beq .
+
     /*压R4-R12,LR*/
     STMFD   SP!, {R4-R12,LR}
     /*R1是原来SP的值，弹出R1-R4*/
@@ -347,20 +355,24 @@ djy_context_switch_interrupt_do:
 fiq_handler:
     STMFD   SP!,{R0-R7,LR}
 
+@    cmp lr,#0xac
+@    beq .
+
     ldr r5,=tg_int_global
     ldr r5,[r5,#20]
     cmp r5,#0
     bne .
 
-    mrs r4,spsr
-    and r1,r4,#0x1f
-    cmp r1,#0x11
-    beq .
-    cmp r1,#0x12
-    bne abc
-    cmp lr,#0x1000
-    ble abc
-    b .
+@    nop
+@    mrs r4,spsr
+@    and r1,r4,#0x1f
+@    cmp r1,#0x11
+@    beq .
+@    cmp r1,#0x12
+@    bne abc
+@    cmp lr,#0x1000
+@    ble abc
+@    b .
 abc:
     BL      djy_fiq_dispatch
 @    LDR R0,=INTSTATUS
@@ -401,6 +413,11 @@ djy_context_switch_interrupt_fiq_do:
 
     /*取得SPSR的值*/
     MRS     R0,  SPSR
+@    and        r2,r0,#0x1f
+@    cmp r2,#0x12
+@    bne abcd
+@    b .
+abcd:
     /*取得PC的值*/
     SUB     R2,  LR, #4        @; Save old task's PC to R2
 

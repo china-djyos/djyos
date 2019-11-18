@@ -63,6 +63,7 @@ extern struct IntLine *tg_pIntLineTable[];       //中断线查找表
 void* intertab[2] __attribute__ ((section(".data.isrtab")));
 extern struct IntMasterCtrl  tg_int_global;
 typedef void (*inter_dispatch)(ufast_t intStatus);
+u32 Int_GetPreStatus(void);
 
 void djy_irq_dispatch(void)
 {
@@ -361,7 +362,13 @@ void _irq_Int_EngineAll(ufast_t intStatus)
           if(tg_pIntLineTable[ufl_line]->int_type == CN_REAL)
               __Int_EngineReal(ufl_line);                //是实时中断
           else
+          {
               __Int_EngineAsynSignal(ufl_line);         //是异步信号
+//            if(g_ptEventReady != g_ptEventRunning)
+//            {
+//                __Djy_ScheduleAsynSignal();       //执行中断内调度
+//            }
+          }
           intStatus &=~(1<<ufl_line);
       }
     }
@@ -470,7 +477,9 @@ void __Int_EngineReal(ufast_t ufl_line)
     tg_int_global.nest_real--;
 
 }
-
+#define CN_CPU_MODE_USR    0x10
+#define CN_CPU_MODE_SVC    0x13
+#define CN_CPU_MODE_SYS    0x1F
 //----异步事件中断引擎---------------------------------------------------------
 //功能：响应异步信号，根据中断号调用用户ISR，随后弹出中断线控制块的my_evtt_id
 //      成员指定的事件类型，最后在返回前查看是否需要做上下文切换，如需要则切换
@@ -483,7 +492,7 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
 {
     struct EventECB *event;
     struct IntLine *ptIntLine;
-    u32 isr_result;
+    u32 isr_result,CpuStatus;
 
     g_bScheduleEnable = false;
     tg_int_global.nest_asyn_signal++;
@@ -515,7 +524,10 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     tg_int_global.nest_asyn_signal--;
     if(g_ptEventReady != g_ptEventRunning)
     {
-        __Djy_ScheduleAsynSignal();       //执行中断内调度
+        CpuStatus = Int_GetPreStatus();
+        if((CpuStatus == CN_CPU_MODE_USR) || (CpuStatus == CN_CPU_MODE_SYS)
+                                          || (CpuStatus == CN_CPU_MODE_SVC))
+            __Djy_ScheduleAsynSignal();       //执行中断内调度
     }
     g_bScheduleEnable = true;
 }

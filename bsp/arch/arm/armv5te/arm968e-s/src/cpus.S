@@ -128,9 +128,9 @@ __asm_switch_context:
     STMFD   SP!, {LR}               @; push pc (lr should be pushed in place of pc)
     STMFD   SP!, {R0-R12, LR}       @; push lr & register file
     MRS     R4, CPSR
-    mov		r2,r4
+    mov     r2,r4
     and     r2,r2,#0xc0
-    cmp		r2,#0xc0
+    cmp     r2,#0xc0
     bne     .
     tst     lr, #0x01
     beq     _ARM_MODE
@@ -253,5 +253,14 @@ cp15_disable_alignfault:
     BIC R0, R0, #0x02
     MCR p15, 0, R0, c1, c0, 0
     BX LR
+
+.text
+.globl Int_GetPreStatus
+.type Int_GetPreStatus, %function
+Int_GetPreStatus:
+    MRS     R0, SPSR
+    and     R0,R0,#0x1f
+    BX      LR
+
 
 .end
