@@ -655,7 +655,7 @@ static tagFileRsc *__Efs_NewFile(tagFileRsc* fp,struct Object *ob,const char *fi
     memset((char *)file_info_buf + offset, 0xff, EFS_ITEM_LIMIT);
     memcpy((char *)file_info_buf + offset, filename, FILENAME_LIMIT+1);        //写入文件名
     file_info_buf[FILENAME_LIMIT + offset] = '\0';
-    NameECC((char *)filename,file_info_buf + offset + FILENAME_LIMIT+1);        //文件名ECC
+    NameECC((char *)filename, file_info_buf + offset + FILENAME_LIMIT+1);        //文件名ECC
     fill_little_32bit(file_info_buf + offset, FILE_STARTBLOCK_OFF >> 2,start_block);      //文件内容起始块
     fill_little_32bit(file_info_buf + offset, FILE_MAXSIZE_OFF >> 2, dwFileMaxSize);      //文件最大大小
     fill_little_32bit(file_info_buf + offset, FILE_FILESIZE_OFF >> 2, 0xc0000000);               //因为是新建的文件，文件大小先写0
@@ -793,10 +793,10 @@ static struct objhandle *Efs_Open(struct Object *ob, u32 flags, char *uncached)
                 warning_printf("efs", "memory request failed \r\n");
                 goto exit;
             }
-            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+            memset(file_info_buf, 0xFF, EFS_ITEM_LIMIT);
             for (loop = 1; loop < IndexesNum; loop++)
             {
-                if(!efs->drv->efs_read_media(efs->start_block, loop * EFS_ITEM_LIMIT, file_info_buf, EFS_ITEM_LIMIT,EF_WR_NOECC))
+                if(!efs->drv->efs_read_media(efs->start_block, loop * EFS_ITEM_LIMIT, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
                 {
                     warning_printf("efs", "read file info fail \r\n");
                     goto exit;
@@ -963,7 +963,7 @@ static s32 Efs_DirRead(struct objhandle *hdl,struct dirent *dentry)
     {
         index_offset = loop * EFS_ITEM_LIMIT;
         if(!efs->drv->efs_read_media(efs->start_block, index_offset, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
-            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+            memset(file_info_buf, 0xFF, EFS_ITEM_LIMIT);
 
         file_info_buf[FILENAME_LIMIT] = '\0';
         ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
@@ -1366,7 +1366,7 @@ static s32 Efs_Remove(struct Object *ob, char *uncached)
     {
         index_offset = loop * EFS_ITEM_LIMIT;
         if(!efs->drv->efs_read_media(efs->start_block, index_offset, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
-            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+            memset(file_info_buf, 0xFF, EFS_ITEM_LIMIT);
 
         file_info_buf[index_offset + FILENAME_LIMIT] = '\0';
         ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
@@ -1489,7 +1489,7 @@ static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
     {
         index_offset = loop * EFS_ITEM_LIMIT;
         if(!efs->drv->efs_read_media(efs->start_block, index_offset, file_info_buf, EFS_ITEM_LIMIT, EF_WR_NOECC))
-            memset(file_info_buf, 0xFF, CN_FILE_BUF_LIMIT);
+            memset(file_info_buf, 0xFF, EFS_ITEM_LIMIT);
         file_info_buf[FILENAME_LIMIT] = '\0';
         ChkOrRecNameByECC((char *)file_info_buf, file_info_buf + FILENAME_LIMIT + 1);
         if (strncmp((const char*)file_info_buf ,fname,FILENAME_LIMIT) == 0)
