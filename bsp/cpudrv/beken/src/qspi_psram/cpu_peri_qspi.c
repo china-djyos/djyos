@@ -91,8 +91,8 @@
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
-//@#$%component end configure						
-	
+//@#$%component end configure
+
 
 // =============================================================================
 // 功能：初始化QSPI使用psram模块
@@ -117,7 +117,9 @@ int ModuleInstall_QSPI_PSRAM(void)
         return 0;
     }
 
-    if(Heap_Add(QSPI_DCACHE_BASE, CFG_QSPI_RAM_SIZE, CFG_QSPI_RAM_PAGE_SIZE, CFG_QSPI_RAM_ALIGNMENT,
+//  if(Heap_Add(QSPI_DCACHE_BASE, CFG_QSPI_RAM_SIZE, CFG_QSPI_RAM_PAGE_SIZE, CFG_QSPI_RAM_ALIGNMENT,
+//          CFG_QSPI_RAM_DEDICATED, CFG_QSPI_RAM_HEAP_NAME) == 0)       //把QSPI接的RAM添加到heap当中
+    if(Heap_Add(QSPI_DCACHE_BASE, 0x7e0000, CFG_QSPI_RAM_PAGE_SIZE, CFG_QSPI_RAM_ALIGNMENT,
             CFG_QSPI_RAM_DEDICATED, CFG_QSPI_RAM_HEAP_NAME) == 0)       //把QSPI接的RAM添加到heap当中
     {
         info_printf("QSPI","QSPI add heap fail.\r\n");

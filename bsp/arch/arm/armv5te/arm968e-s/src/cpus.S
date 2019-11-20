@@ -184,11 +184,6 @@ __asm_switch_context_int:
     /*LDR     R0, [R0]*/
     STR     R0, [R2]
 
-    ldr r1,=0x40d080
-    ldr r2,[r1]
-    add r2,r2,#1
-    str r2,[r1]
-
     BX      LR
 
 .align 2
@@ -260,6 +255,12 @@ cp15_disable_alignfault:
 Int_GetPreStatus:
     MRS     R0, SPSR
     and     R0,R0,#0x1f
+    BX      LR
+.text
+.globl Int_GetStatus
+.type Int_GetStatus, %function
+Int_GetStatus:
+    MRS     R0, CPSR
     BX      LR
 
 

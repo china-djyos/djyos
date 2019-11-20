@@ -240,17 +240,23 @@ boot_reserved:
  .align  5
 .globl irq_handler
 .globl tg_int_global
+.globl SaveExp
 .type irq_handler, %function
 irq_handler:
     /*把R0-R12,LR存到SP栈里面*/
     STMFD   SP!, {R0-R12,LR}
-
 @    cmp lr,#0xac
 @    beq .
 
-    mrs r4, cpsr
-    orr r1, r4, #NOINT          @; disable interrupt
+    mrs r2, cpsr
+    orr r1, r2, #NOINT          @; disable interrupt
     msr cpsr_c, r1
+    mov r0,#5
+    mov r1,lr
+    mrs r2,spsr
+    ldr     r4,=0x409100
+    ldr     r4,[r4]
+    blx      r4
 
 @    mrs r4, spsr
 @    and r1,r4,#0x1f
@@ -259,10 +265,10 @@ irq_handler:
 @    cmp r1,#0x12
 @    beq .
 
-    ldr r5,=tg_int_global
-    ldr r5,[r5,#20]
-    cmp r5,#0
-    bne .
+@    ldr r5,=tg_int_global
+@    ldr r5,[r5,#20]
+@    cmp r5,#0
+@    bne .
 
     BL      djy_irq_dispatch
 
@@ -282,10 +288,10 @@ djy_context_switch_interrupt_do:
     /*SP向下生长*/
     /*ARM9里面没有两个栈指针？这里的SP实际上是在用的是被中断打断的线程的栈*/
 
-    ldr r1,=0x40d080
-    ldr r2,[r1]
-    sub r2,r2,#1
-    str r2,[r1]
+@    ldr r1,=0x40d080
+@    ldr r2,[r1]
+@    sub r2,r2,#1
+@    str r2,[r1]
 
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
@@ -321,11 +327,11 @@ djy_context_switch_interrupt_do:
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
 
-    ldr r6,[r5,#4]
-    cmp sp,r5
-    ble  .
-    cmp sp,r6
-    bge  .
+@    ldr r6,[r5,#4]
+@    cmp sp,r5
+@    ble  .
+@    cmp sp,r6
+@    bge  .
 
     /*把栈顶数值存到rt_interrupt_from_thread里*/
     STR     SP,  [R5]
@@ -335,11 +341,11 @@ djy_context_switch_interrupt_do:
     /*把新的栈顶的值存到SP上面*/
     LDR     SP,  [R6]
 
-    ldr r7,[r6,#4]
-    cmp sp,r6
-    ble  .
-    cmp sp,r7
-    bge  .
+@    ldr r7,[r6,#4]
+@    cmp sp,r6
+@    ble  .
+@    cmp sp,r7
+@    bge  .
 
 
     LDMFD   SP!, {R4}
@@ -354,14 +360,20 @@ djy_context_switch_interrupt_do:
 .type fiq_handler, %function
 fiq_handler:
     STMFD   SP!,{R0-R7,LR}
+    mov r0,#6
+    mov r1,lr
+    mrs r2,spsr
+    ldr     r4,=0x409100
+    ldr     r4,[r4]
+    blx      r4
 
 @    cmp lr,#0xac
 @    beq .
 
-    ldr r5,=tg_int_global
-    ldr r5,[r5,#20]
-    cmp r5,#0
-    bne .
+@    ldr r5,=tg_int_global
+@    ldr r5,[r5,#20]
+@    cmp r5,#0
+@    bne .
 
 @    nop
 @    mrs r4,spsr
@@ -397,10 +409,10 @@ fiq_handler_return:
 
 djy_context_switch_interrupt_fiq_do:
 
-    ldr r1,=0x40d080
-    ldr r2,[r1]
-    sub r2,r2,#1
-    str r2,[r1]
+@    ldr r1,=0x40d080
+@    ldr r2,[r1]
+@    sub r2,r2,#1
+@    str r2,[r1]
 
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
@@ -432,11 +444,11 @@ abcd:
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
 
-    ldr r6,[r5,#4]
-    cmp sp,r5
-    ble  .
-    cmp sp,r6
-    bge  .
+@    ldr r6,[r5,#4]
+@    cmp sp,r5
+@    ble  .
+@    cmp sp,r6
+@    bge  .
 
     STR     SP,  [R5]
 
@@ -444,11 +456,11 @@ abcd:
     LDR     R6,  [R6]
     LDR     SP,  [R6]
 
-    ldr r7,[r6,#4]
-    cmp sp,r6
-    ble  .
-    cmp sp,r7
-    bge  .
+@    ldr r7,[r6,#4]
+@    cmp sp,r6
+@    ble  .
+@    cmp sp,r7
+@    bge  .
 
 
     LDMFD   SP!, {R4}

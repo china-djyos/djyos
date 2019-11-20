@@ -30,33 +30,114 @@ _fiq:                   .word fiq_handler
 /*
  * exception handlers
  */
+.globl SaveExp
     .align  5
 HardExp_UndefHandler:
+    push    {r0-r3}
+    mrs     r0,cpsr
+    mov     r1,#0xd3
+    msr     cpsr_c,r1
+    mov     r2,sp
+    orr     r3,r0,#0xc0
+    msr     cpsr_c,r3
+    mrs     r0,spsr
+    push    {r4-r12}
+    push    {r2}
+    push    {r0}
+    sub     r1,lr,#4
+    mov     r0,#0
+    ldr     r4,=0x409100
+    ldr     r4,[r4]
+    blx      r4
     B   .
     SUBS    PC,LR,#4
 
     .align  5
 HardExp_SwiHandler:
+    push    {r0-r3}
+    mrs     r0,cpsr
+    mov     r1,#0xd3
+    msr     cpsr_c,r1
+    mov     r2,sp
+    orr     r3,r0,#0xc0
+    msr     cpsr_c,r3
+    mrs     r0,spsr
+    push    {r4-r12}
+    push    {r2}
+    push    {r0}
+    sub     r1,lr,#0
+    mov     r0,#1
+    ldr     r4,=0x409100
+    ldr     r4,[r4]
+    blx      r4
     B   .
 
     .align  5
 HardExp_PrefetchHandler:
+    push    {r0-r3}
+    mrs     r0,cpsr
+    mov     r1,#0xd3
+    msr     cpsr_c,r1
+    mov     r2,sp
+    orr     r3,r0,#0xc0
+    msr     cpsr_c,r3
+    mrs     r0,spsr
+    push    {r4-r12}
+    push    {r2}
+    push    {r0}
+    sub     r1,lr,#4
+    mov     r0,#2
+    ldr     r4,=0x409100
+    ldr     r4,[r4]
+    blx      r4
     B   .
     NOP
     NOP
-    SUBS        PC,LR,#0
+    SUBS        PC,LR,#4
 
     .align  5
 HardExp_DataAbortHandler:
     NOP
     NOP
+    push    {r0-r3}
+    mrs     r0,cpsr
+    mov     r1,#0xd3
+    msr     cpsr_c,r1
+    mov     r2,sp
+    orr     r3,r0,#0xc0
+    msr     cpsr_c,r3
+    mrs     r0,spsr
+    push    {r4-r12}
+    push    {r2}
+    push    {r0}
+    sub     r1,lr,#8
+    mov     r0,#3
+    ldr     r4,=0x409100
+    ldr     r4,[r4]
+    blx      r4
     B   .
     NOP
     NOP
-    SUBS PC,LR,#0
+    SUBS PC,LR,#4
 
     .align  5
 HardExp_Not_UsedHandler:
+    push    {r0-r3}
+    mrs     r0,cpsr
+    mov     r1,#0xd3
+    msr     cpsr_c,r1
+    mov     r2,sp
+    orr     r3,r0,#0xc0
+    msr     cpsr_c,r3
+    mrs     r0,spsr
+    push    {r4-r12}
+    push    {r2}
+    push    {r0}
+    sub     r1,lr,#0
+    mov     r0,#4
+    ldr     r4,=0x409100
+    ldr     r4,[r4]
+    blx      r4
     B     .
 
 /*
