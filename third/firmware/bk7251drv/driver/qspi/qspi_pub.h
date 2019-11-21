@@ -5,7 +5,7 @@
 #define QSPI_SUCCESS                (0)
 
 #define QSPI_DEV_NAME                "qspi"
-#define QSPI_DCACHE_BASE			(0x03000000)
+#define QSPI_DCACHE_BASE            (0x03020000)
 
 #define QSPI_CMD_MAGIC              (0xa250000)
 
@@ -13,7 +13,7 @@ enum
 {
     QSPI_CMD_SET_VOLTAGE = QSPI_CMD_MAGIC + 1,
     QSPI_CMD_DCACHE_CONFIG,
-    QSPI_CMD_GPIO_CONFIG, 
+    QSPI_CMD_GPIO_CONFIG,
     QSPI_CMD_DIV_CLK_SET,
     QSPI_CLK_SET_26M,
     QSPI_CLK_SET_DCO,
@@ -29,7 +29,7 @@ enum
 #else
 #define BK_QSPI_PRT               null_prf
 #define BK_QSPI_WPRT              null_prf
-#define BK_QSPIFATAL	          null_prf
+#define BK_QSPIFATAL              null_prf
 #endif
 
 
@@ -77,8 +77,8 @@ void qspi_isr(void);
 u32 qspi_ctrl(u32 cmd, void *param);
 
 /*
- *	mode: 1: 1 linemode
- *		  2: 4 linemode
+ *  mode: 1: 1 linemode
+ *        2: 4 linemode
  *  div：qspi clk freq div
  *
  */
