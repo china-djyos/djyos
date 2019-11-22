@@ -179,7 +179,7 @@ ptu32_t Touch_Scan(void)
                     //计算物理距离，这里假设像素是正方形的，且x和y方向等间距。
                     Distance = Distance * display->width_um / display->width;
                     touch_temp.time = DjyGetSysTime();
-                    if(Distance < 500)     //如果小于1mm，则认为没有移动,发按下消息
+                    if(Distance < 500)     //如果小于0.5mm，则认为没有移动,发按下消息
                     {
                         if(touch_pr->TouchStatus != CN_GOT_TOUCH)
                         {
@@ -204,7 +204,7 @@ ptu32_t Touch_Scan(void)
                             touch_temp.x, touch_temp.y, touch_temp.MoveX, touch_temp.MoveY);
                         //发包含滑动数据的消息，即滑动消息
                         HmiIn_InputMsg(TouchObj->device_id,(u8*)&touch_temp);
-                        //检测到滑动，300mS内不检测，以免连续快速发滑动消息
+                        //检测到滑动，200mS内不检测，以免连续快速发滑动消息
                         Djy_EventDelay(200*mS);
                     }
                 }
