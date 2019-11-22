@@ -5,7 +5,7 @@
 #define QSPI_SUCCESS                (0)
 
 #define QSPI_DEV_NAME                "qspi"
-#define QSPI_DCACHE_BASE            (0x03020000)
+#define QSPI_DCACHE_BASE            (0x03000000)
 
 #define QSPI_CMD_MAGIC              (0xa250000)
 
