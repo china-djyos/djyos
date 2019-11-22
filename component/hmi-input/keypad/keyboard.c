@@ -71,6 +71,7 @@
 #include "object.h"
 #include "hmi-input.h"
 #include "systime.h"
+#include "shell.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -126,7 +127,7 @@ bool_t ModuleInstall_KeyBoard(void)
     s16 evtt_key;
     if(!obj_search_child(obj_root(),"hmi input device"))   //标准输入设备未初始化
         return false;
-    evtt_key = Djy_EvttRegist(EN_CORRELATIVE,CFG_GUI_RUN_PRIO,0,0,
+    evtt_key = Djy_EvttRegist(EN_CORRELATIVE,130,0,0,
                                     KeyBoard_Scan,NULL,1024,"keyboard");
     if(evtt_key == CN_EVTT_ID_INVALID)
     {
@@ -155,6 +156,7 @@ s32 Keyboard_InstallDevice(char *keyboard_name,struct KeyBoardPrivate *keyboard_
         return 0;
     }
 }
+ADD_TO_IN_SHELL_DATA bool_t keydie = false;
 
 //----键盘扫描任务-------------------------------------------------------------
 //功能: 周期性地调用硬件扫描程序，获取用户敲击信息，合成标准键盘码，送到标准
@@ -176,6 +178,8 @@ ptu32_t KeyBoard_Scan(void)
     StdinObj = (struct HMI_InputDeviceObj *)obj_GetPrivate(ob);
     while(1)
     {
+        if(keydie)
+            continue;
         KeyboardObj = StdinObj;
         while(1)
         {
