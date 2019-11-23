@@ -3913,12 +3913,16 @@ void mg_set_non_blocking_mode(sock_t sock) {
       printf("error: Client:set client sndbuf failed!\r\n");
   }
 */
+  opt = 6 * 1024;
+  if (0 != setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &opt, 4))
+  {
+      printf("Client: setsockopt failed!\n\r");
+  }
   opt = 1;
   if(0 != setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, &opt,4))
   {
       printf("error: setsockopt, SO_NONBLOCK!\r\n");
   }
-
 #else
   int flags = fcntl(sock, F_GETFL, 0);
   fcntl(sock, F_SETFL, flags | O_NONBLOCK);
