@@ -30,14 +30,6 @@ void *djyos_realloc(void *p, size_t size)
   rp = realloc(p,  size);
   return rp;
 }
-#if 0
-void *djyos_calloc(unsigned int num,unsigned int size)
-{
-   void *xx = malloc(num *size);
-  memset(xx,  0,  num *size);
-  return xx;
-}
-#endif
 
 
 #ifndef CS_MONGOOSE_SRC_INTERNAL_H_
@@ -733,7 +725,7 @@ int cs_log_print_prefix(enum cs_log_level level, const char *file, int ln) {
 
 void cs_log_printf(const char *fmt, ...) WEAK;
 void cs_log_printf(const char *fmt, ...) {
-    char buf[1024]={0};
+    char buf[512]={0};
   va_list ap;
   va_start(ap, fmt);
   //vfprintf(cs_log_file, fmt, ap);
@@ -1631,10 +1623,7 @@ size_t mbuf_insert(struct mbuf *a, size_t off, const void *buf, size_t len) {
   assert(off <= a->len);
 
   /* check overflow */
-  if (~(size_t) 0 - (size_t) a->buf < len) {
-    printf("overflow ...\r\n");
-    return 0;
-  }
+  if (~(size_t) 0 - (size_t) a->buf < len) return 0;
 
   if (a->len + len <= a->size) {
     memmove(a->buf + off + len, a->buf + off, a->len - off);
@@ -1683,9 +1672,6 @@ size_t mbuf_append_and_free(struct mbuf *a, void *data, size_t len) {
     if (a->buf != NULL) free(a->buf);
     a->buf = (char *) data;
     a->len = a->size = len;
-    if (a->len > 100*1024) {
-        printf("3. a->len = %d!\r\n", a->len);
-    }
     return len;
   }
   ret = mbuf_insert(a, a->len, data, len);
@@ -1698,9 +1684,6 @@ void mbuf_remove(struct mbuf *mb, size_t n) {
   if (n > 0 && n <= mb->len) {
     memmove(mb->buf, mb->buf + n, mb->len - n);
     mb->len -= n;
-    if (mb->len > 100*1024) {
-        printf("0. mb->len = %d!\r\n", mb->len);
-    }
   }
 }
 
@@ -7564,9 +7547,6 @@ void mg_send_http_chunk(struct mg_connection *nc, const char *buf, size_t len) {
   char chunk_size[50];
   int n;
 
-  if (nc->mgr == 0) {
-      printf("xxxxxxxxxxx\r\n");
-  }
   n = snprintf(chunk_size, sizeof(chunk_size), "%lX\r\n", (unsigned long) len);
   mg_send(nc, chunk_size, n);
   mg_send(nc, buf, len);
