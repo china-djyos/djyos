@@ -128,10 +128,6 @@ __asm_switch_context:
     STMFD   SP!, {LR}               @; push pc (lr should be pushed in place of pc)
     STMFD   SP!, {R0-R12, LR}       @; push lr & register file
     MRS     R4, CPSR
-    mov     r2,r4
-    and     r2,r2,#0xc0
-    cmp     r2,#0xc0
-    bne     .
     tst     lr, #0x01
     beq     _ARM_MODE
     orr     r4, r4, #0x20           @; it's thumb code set T=1
@@ -140,19 +136,7 @@ _ARM_MODE:
     STMFD   SP!, {R4}               @; push cpsr
     STR     SP, [R1]                @; store sp in preempted tasks tcb
 
-    ldr r4,[r1,#4]
-    cmp sp,r1
-    ble  .
-    cmp sp,r4
-    bge  .
-
     LDR     SP, [R0]                @; get new task stack pointer
-
-    ldr r4,[r0,#4]
-    cmp sp,r0
-    ble  .
-    cmp sp,r4
-    bge  .
 
     LDMFD   SP!, {R4}               @; pop new task spsr
     AND     R4,  R4, #0Xffffff3f

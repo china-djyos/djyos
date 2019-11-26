@@ -240,35 +240,15 @@ boot_reserved:
  .align  5
 .globl irq_handler
 .globl tg_int_global
-.globl SaveExp
 .type irq_handler, %function
 irq_handler:
     /*把R0-R12,LR存到SP栈里面*/
     STMFD   SP!, {R0-R12,LR}
-@    cmp lr,#0xac
-@    beq .
 
     mrs r2, cpsr
     orr r1, r2, #NOINT          @; disable interrupt
     msr cpsr_c, r1
-    mov r0,#5
-    mov r1,lr
-    mrs r2,spsr
-    ldr     r4,=0x409100
-    ldr     r4,[r4]
-    blx      r4
 
-@    mrs r4, spsr
-@    and r1,r4,#0x1f
-@    cmp r1,#0x11
-@    beq .
-@    cmp r1,#0x12
-@    beq .
-
-@    ldr r5,=tg_int_global
-@    ldr r5,[r5,#20]
-@    cmp r5,#0
-@    bne .
 
     BL      djy_irq_dispatch
 
@@ -288,11 +268,6 @@ djy_context_switch_interrupt_do:
     /*SP向下生长*/
     /*ARM9里面没有两个栈指针？这里的SP实际上是在用的是被中断打断的线程的栈*/
 
-@    ldr r1,=0x40d080
-@    ldr r2,[r1]
-@    sub r2,r2,#1
-@    str r2,[r1]
-
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
     STR     R1,  [R0]
@@ -309,10 +284,6 @@ djy_context_switch_interrupt_do:
     MSR     CPSR_c, #BOOT_FIQ_IRQ_MASK|BOOT_MODE_SVC
     /*压R2,实际上R2现在等于PC的值*/
     STMFD   SP!, {R2}
-
-@    cmp r2,#0xac
-@    beq .
-
     /*压R4-R12,LR*/
     STMFD   SP!, {R4-R12,LR}
     /*R1是原来SP的值，弹出R1-R4*/
@@ -326,13 +297,6 @@ djy_context_switch_interrupt_do:
 
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
-
-@    ldr r6,[r5,#4]
-@    cmp sp,r5
-@    ble  .
-@    cmp sp,r6
-@    bge  .
-
     /*把栈顶数值存到rt_interrupt_from_thread里*/
     STR     SP,  [R5]
 
@@ -341,11 +305,6 @@ djy_context_switch_interrupt_do:
     /*把新的栈顶的值存到SP上面*/
     LDR     SP,  [R6]
 
-@    ldr r7,[r6,#4]
-@    cmp sp,r6
-@    ble  .
-@    cmp sp,r7
-@    bge  .
 
 
     LDMFD   SP!, {R4}
@@ -360,32 +319,8 @@ djy_context_switch_interrupt_do:
 .type fiq_handler, %function
 fiq_handler:
     STMFD   SP!,{R0-R7,LR}
-    mov r0,#6
-    mov r1,lr
-    mrs r2,spsr
-    ldr     r4,=0x409100
-    ldr     r4,[r4]
-    blx      r4
 
-@    cmp lr,#0xac
-@    beq .
 
-@    ldr r5,=tg_int_global
-@    ldr r5,[r5,#20]
-@    cmp r5,#0
-@    bne .
-
-@    nop
-@    mrs r4,spsr
-@    and r1,r4,#0x1f
-@    cmp r1,#0x11
-@    beq .
-@    cmp r1,#0x12
-@    bne abc
-@    cmp lr,#0x1000
-@    ble abc
-@    b .
-abc:
     BL      djy_fiq_dispatch
 @    LDR R0,=INTSTATUS
 @    LDR R0,[R0]
@@ -409,11 +344,6 @@ fiq_handler_return:
 
 djy_context_switch_interrupt_fiq_do:
 
-@    ldr r1,=0x40d080
-@    ldr r2,[r1]
-@    sub r2,r2,#1
-@    str r2,[r1]
-
     MOV     R1,  #0
     /*这里是把djy_switch_interrupt_flag置1*/
     STR     R1,  [R0]
@@ -425,11 +355,6 @@ djy_context_switch_interrupt_fiq_do:
 
     /*取得SPSR的值*/
     MRS     R0,  SPSR
-@    and        r2,r0,#0x1f
-@    cmp r2,#0x12
-@    bne abcd
-@    b .
-abcd:
     /*取得PC的值*/
     SUB     R2,  LR, #4        @; Save old task's PC to R2
 
@@ -443,25 +368,12 @@ abcd:
 
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
-
-@    ldr r6,[r5,#4]
-@    cmp sp,r5
-@    ble  .
-@    cmp sp,r6
-@    bge  .
-
     STR     SP,  [R5]
+
 
     LDR     R6,  =djy_interrupt_to_thread
     LDR     R6,  [R6]
     LDR     SP,  [R6]
-
-@    ldr r7,[r6,#4]
-@    cmp sp,r6
-@    ble  .
-@    cmp sp,r7
-@    bge  .
-
 
     LDMFD   SP!, {R4}
     AND     R4,  R4, #0Xffffff3f

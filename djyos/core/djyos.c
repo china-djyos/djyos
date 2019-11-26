@@ -715,7 +715,6 @@ bool_t __Djy_Schedule(void)
         g_s64RunningStartTime = time;
 #endif  //CFG_OS_TINY == false
         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
-        SaveExp(7, 0, 0);
         g_ptEventRunning=g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
@@ -756,7 +755,6 @@ void __Djy_ScheduleAsynSignal(void)
 #endif  //CFG_OS_TINY == false
 //         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
-         SaveExp(8, 0, 0);
          g_ptEventRunning=g_ptEventReady;
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);
 //         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
