@@ -156,7 +156,6 @@ s32 Keyboard_InstallDevice(char *keyboard_name,struct KeyBoardPrivate *keyboard_
         return 0;
     }
 }
-ADD_TO_IN_SHELL_DATA bool_t keydie = false;
 
 //----键盘扫描任务-------------------------------------------------------------
 //功能: 周期性地调用硬件扫描程序，获取用户敲击信息，合成标准键盘码，送到标准
@@ -178,8 +177,6 @@ ptu32_t KeyBoard_Scan(void)
     StdinObj = (struct HMI_InputDeviceObj *)obj_GetPrivate(ob);
     while(1)
     {
-        if(keydie)
-            continue;
         KeyboardObj = StdinObj;
         while(1)
         {
