@@ -787,6 +787,7 @@ static bool_t __PeekRefreshMessage(struct WinMsgQueueCB *pMsgQ,struct WindowMsg 
 //     hwnd: 窗口句柄.
 //返回：当获得了MSG_QUIT时,该函数返回FALSE,否则返回TRUE.
 //------------------------------------------------------------------------------
+void myrecord(u32 a, u32 b, u32 c, u32 d);
 bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
 {
     s32 res=FALSE;
@@ -807,6 +808,7 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 //注，if语句的顺序，就是各类消息的优先级，不得随意调整
                 if(__PeekCloseMessage(pMsgQ,pMsg))
                 {
+                    myrecord('c', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
                 else if(__PeekSyncMessage(pMsgQ,pMsg))
                 {
@@ -814,13 +816,15 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 }
                 else if(__PeekPostMessage(pMsgQ,pMsg))
                 {
+                    myrecord(('p'<<8) + 'o', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
                 else if(__PeekNCPaintMessage(pMsgQ,pMsg))
                 {
+                    myrecord(('n'<<8) + 'p', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
-
                 else if(__PeekPaintMessage(pMsgQ,pMsg))
                 {
+                    myrecord(('p'<<8) + 'a', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
                 else if(__PeekTimerMessage(pMsgQ,pMsg))
                 {

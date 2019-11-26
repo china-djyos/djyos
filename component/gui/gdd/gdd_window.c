@@ -1811,6 +1811,7 @@ HWND GDD_CreateGuiApp(char *AppName,struct MsgTableLink  *MyMsgLink,
             {
                 SetFocusWindow(result);
                 SetWindowShow(result); //ÏÔÊ¾´°¿Ú
+                *(u32*)0x400104 = MyEventId;
             }
             else
             {

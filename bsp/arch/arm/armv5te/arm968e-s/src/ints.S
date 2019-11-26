@@ -253,7 +253,10 @@ irq_handler:
     msr cpsr_c, r1
     mov r0,#5
     mov r1,lr
-    mrs r2,spsr
+    ldr r2,=0x80204c
+    ldr r2,[r2]
+    ldr r3,=0x802a00
+    ldr r3,[r3]
     ldr     r4,=0x409100
     ldr     r4,[r4]
     blx      r4
@@ -362,7 +365,10 @@ fiq_handler:
     STMFD   SP!,{R0-R7,LR}
     mov r0,#6
     mov r1,lr
-    mrs r2,spsr
+    ldr r2,=0x80204c
+    ldr r2,[r2]
+    ldr r3,=0x802a00
+    ldr r3,[r3]
     ldr     r4,=0x409100
     ldr     r4,[r4]
     blx      r4

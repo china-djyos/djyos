@@ -44,12 +44,17 @@ HardExp_UndefHandler:
     push    {r4-r12}
     push    {r2}
     push    {r0}
+    push    {lr}
     sub     r1,lr,#4
     mov     r0,#0
     ldr     r4,=0x409100
     ldr     r4,[r4]
     blx      r4
     B   .
+    pop     {lr}
+    pop     {r0-r1}
+    pop     {r4-r12}
+    pop     {r0-r3}
     SUBS    PC,LR,#4
 
     .align  5
@@ -65,6 +70,7 @@ HardExp_SwiHandler:
     push    {r4-r12}
     push    {r2}
     push    {r0}
+    push    {lr}
     sub     r1,lr,#0
     mov     r0,#1
     ldr     r4,=0x409100
@@ -85,14 +91,17 @@ HardExp_PrefetchHandler:
     push    {r4-r12}
     push    {r2}
     push    {r0}
+    push    {lr}
     sub     r1,lr,#4
     mov     r0,#2
     ldr     r4,=0x409100
     ldr     r4,[r4]
     blx      r4
     B   .
-    NOP
-    NOP
+    pop     {lr}
+    pop     {r0-r1}
+    pop     {r4-r12}
+    pop     {r0-r3}
     SUBS        PC,LR,#4
 
     .align  5
@@ -110,14 +119,17 @@ HardExp_DataAbortHandler:
     push    {r4-r12}
     push    {r2}
     push    {r0}
-    sub     r1,lr,#8
+    push    {lr}
+    sub     r1,lr,#4
     mov     r0,#3
     ldr     r4,=0x409100
     ldr     r4,[r4]
     blx      r4
     B   .
-    NOP
-    NOP
+    pop     {lr}
+    pop     {r0-r1}
+    pop     {r4-r12}
+    pop     {r0-r3}
     SUBS PC,LR,#4
 
     .align  5
@@ -133,6 +145,7 @@ HardExp_Not_UsedHandler:
     push    {r4-r12}
     push    {r2}
     push    {r0}
+    push    {lr}
     sub     r1,lr,#0
     mov     r0,#4
     ldr     r4,=0x409100

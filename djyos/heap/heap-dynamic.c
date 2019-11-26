@@ -1294,6 +1294,8 @@ void *__M_MallocLc(ptu32_t size,u32 timeout)
 //返回：分配的内存指针，NULL表示没有内存可以分配
 //备注: 用此函数分配的内存,并不会在事件完成时被收回.
 //-----------------------------------------------------------------------------
+void myrecord(u32 a, u32 b, u32 c, u32 d);
+extern u16 mainwinevent;
 void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
 {
     struct HeapCession *Cession;
@@ -1355,9 +1357,10 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
                 *pl_id = uf_grade_th;
             }
 
-
-
             result = ua_address;
+
+            if(g_ptEventRunning->event_id == *(u32*)0x400104)
+                myrecord('m', (u32)result,size,0);
         }
     }
     Lock_MutexPost(&Heap->HeapMutex);
@@ -1825,6 +1828,9 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 
     if( (pl_mem == NULL) || (Heap == NULL) )
         return;
+
+    if(g_ptEventRunning->event_id == *(u32*)0x400104)
+        myrecord('f', (u32)pl_mem,0,0);
 
     if( (Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {

@@ -316,16 +316,16 @@ void intc_init(void)
     *((volatile uint32_t *)0x400008) = &do_swi;
     *((volatile uint32_t *)0x40000C) = 1;
 #endif
-    intc_enable(FIQ_MAC_GENERAL);
-    intc_enable(FIQ_MAC_PROT_TRIGGER);
-
-    intc_enable(FIQ_MAC_TX_TRIGGER);
-    intc_enable(FIQ_MAC_RX_TRIGGER);
-
-    intc_enable(FIQ_MAC_TX_RX_MISC);
-    intc_enable(FIQ_MAC_TX_RX_TIMER);
-	
-    intc_enable(FIQ_MODEM);	
+//    intc_enable(FIQ_MAC_GENERAL);
+//    intc_enable(FIQ_MAC_PROT_TRIGGER);
+//
+//    intc_enable(FIQ_MAC_TX_TRIGGER);
+//    intc_enable(FIQ_MAC_RX_TRIGGER);
+//
+//    intc_enable(FIQ_MAC_TX_RX_MISC);
+//    intc_enable(FIQ_MAC_TX_RX_TIMER);
+//
+//    intc_enable(FIQ_MODEM);
 
     param = GINTR_FIQ_BIT | GINTR_IRQ_BIT;
     sddev_control(ICU_DEV_NAME, CMD_ICU_GLOBAL_INT_ENABLE, &param);
