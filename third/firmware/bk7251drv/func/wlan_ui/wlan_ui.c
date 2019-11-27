@@ -946,35 +946,35 @@ OSStatus bk_wlan_get_ip_status(IPStatusTypedef *outNetpara, WiFi_Interface inInt
 #endif
 {
     OSStatus ret = kNoErr;
-    struct wlan_ip_config addr;
-
-    os_memset(&addr, 0, sizeof(struct wlan_ip_config));
-
-    switch ( inInterface )
-    {
-    case SOFT_AP :
-        net_get_if_addr(&addr, net_get_uap_handle());
-        net_get_if_macaddr(outNetpara->mac, net_get_uap_handle());
-        break;
-
-    case STATION :
-        net_get_if_addr(&addr, net_get_sta_handle());
-        net_get_if_macaddr(outNetpara->mac, net_get_sta_handle());
-        break;
-
-    default:
-        ret = kGeneralErr;
-        break;
-    }
-
-    if ( ret == kNoErr )
-    {
-        outNetpara->dhcp = addr.ipv4.addr_type;
-        os_strcpy(outNetpara->ip, inet_ntoa(addr.ipv4.address));
-        os_strcpy(outNetpara->mask, inet_ntoa(addr.ipv4.netmask));
-        os_strcpy(outNetpara->gate, inet_ntoa(addr.ipv4.gw));
-        os_strcpy(outNetpara->dns, inet_ntoa(addr.ipv4.dns1));
-    }
+//    struct wlan_ip_config addr;
+//
+//    os_memset(&addr, 0, sizeof(struct wlan_ip_config));
+//
+//    switch ( inInterface )
+//    {
+//    case SOFT_AP :
+//        net_get_if_addr(&addr, net_get_uap_handle());
+//        net_get_if_macaddr(outNetpara->mac, net_get_uap_handle());
+//        break;
+//
+//    case STATION :
+//        net_get_if_addr(&addr, net_get_sta_handle());
+//        net_get_if_macaddr(outNetpara->mac, net_get_sta_handle());
+//        break;
+//
+//    default:
+//        ret = kGeneralErr;
+//        break;
+//    }
+//
+//    if ( ret == kNoErr )
+//    {
+//        outNetpara->dhcp = addr.ipv4.addr_type;
+//        os_strcpy(outNetpara->ip, inet_ntoa(addr.ipv4.address));
+//        os_strcpy(outNetpara->mask, inet_ntoa(addr.ipv4.netmask));
+//        os_strcpy(outNetpara->gate, inet_ntoa(addr.ipv4.gw));
+//        os_strcpy(outNetpara->dns, inet_ntoa(addr.ipv4.dns1));
+//    }
 
     return ret;
 }
@@ -1054,11 +1054,11 @@ void bk_wlan_ap_para_info_get(network_InitTypeDef_ap_st *ap_info)
     ap_info->channel = g_ap_param_ptr->chann;
     ap_info->security = g_ap_param_ptr->cipher_suite;
 
-    bk_wlan_get_ip_status(&ap_ips,SOFT_AP);
-    memcpy(ap_info->local_ip_addr,ap_ips.ip,16);
-    memcpy(ap_info->gateway_ip_addr,ap_ips.gate,16);
-    memcpy(ap_info->net_mask,ap_ips.mask,16);
-    memcpy(ap_info->dns_server_ip_addr,ap_ips.dns,16);
+//    bk_wlan_get_ip_status(&ap_ips,SOFT_AP);
+//    memcpy(ap_info->local_ip_addr,ap_ips.ip,16);
+//    memcpy(ap_info->gateway_ip_addr,ap_ips.gate,16);
+//    memcpy(ap_info->net_mask,ap_ips.mask,16);
+//    memcpy(ap_info->dns_server_ip_addr,ap_ips.dns,16);
 
      ap_info->dhcp_mode = g_wlan_general_param->dhcp_enable;
 }

@@ -15,7 +15,7 @@
 #define RTOS_SUCCESS                       (1)
 #define RTOS_FAILURE                       (0)
 
-#define BEKEN_DEFAULT_WORKER_PRIORITY      (6)
+#define BEKEN_DEFAULT_WORKER_PRIORITY      (200/*6*/)
 #define BEKEN_APPLICATION_PRIORITY         (7)
 
 #define kNanosecondsPerSecond              1000000000UUL

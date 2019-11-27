@@ -74,7 +74,7 @@ u32 airkiss_process(u8 start);
 
 #if CFG_SARADC_CALIBRATE
 static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
-#endif 
+#endif
 
 static void cli_rx_callback(int uport, void *param);
 
@@ -236,7 +236,7 @@ static int handle_input(char *inbuf)
 
     os_memset(pCli->outbuf, 0, OUTBUF_SIZE);
     cli_putstr("\r\n");
-	
+
     #if CFG_USE_STA_PS
     /*if cmd,exit dtim ps*/
     if (os_strncmp(command->name, "ps", 2))
@@ -331,7 +331,7 @@ static int get_input(char *inbuf, unsigned int *bp)
                 int left = (int)ch, len = 4 + (int)ch;
                 inbuf[*bp] = ch;
                 (*bp)++;
-                
+
                 while(left--) {
                     cli_getchar(&ch);
                     inbuf[*bp] = ch;
@@ -348,15 +348,15 @@ static int get_input(char *inbuf, unsigned int *bp)
 #endif
         if (inbuf[*bp] == RET_CHAR)
             continue;
-        if (inbuf[*bp] == END_CHAR)  	/* end of input line */
+        if (inbuf[*bp] == END_CHAR)     /* end of input line */
         {
             inbuf[*bp] = '\0';
             *bp = 0;
             return 1;
         }
 
-        if ((inbuf[*bp] == 0x08) ||	/* backspace */
-                (inbuf[*bp] == 0x7f))  	/* DEL */
+        if ((inbuf[*bp] == 0x08) || /* backspace */
+                (inbuf[*bp] == 0x7f))   /* DEL */
         {
             if (*bp > 0)
             {
@@ -433,15 +433,14 @@ static void cli_main( uint32_t data )
         int ret;
         char *msg = NULL;
 
-        rtos_get_semaphore(&log_rx_interrupt_sema, BEKEN_NEVER_TIMEOUT);
-
+        //rtos_get_semaphore(&log_rx_interrupt_sema, BEKEN_NEVER_TIMEOUT);
+        Djy_EventDelay(300*1000);
         if(get_input(pCli->inbuf, &pCli->bp))
         {
             msg = pCli->inbuf;
-
             if (os_strcmp(msg, EXIT_MSG) == 0)
                 break;
-   
+
             ret = handle_input(msg);
             if (ret == 1)
                 print_bad_command(msg);
@@ -521,9 +520,9 @@ void wifiscan_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char *
 
     param.req_type = LAUNCH_REQ_PURE_STA_SCAN;
     rl_sta_request_enter(&param, 0);
-#else	
+#else
     demo_scan_app_init();
-#endif 
+#endif
 }
 
 void wifiadvscan_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -649,11 +648,11 @@ void add_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 void del_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     char *type;
-    u8 role = 0xff; 
-	
-	#if CFG_ROLE_LAUNCH   
+    u8 role = 0xff;
+
+    #if CFG_ROLE_LAUNCH
     LAUNCH_REQ param;
-	#endif
+    #endif
 
     if(argc <= 1)
         return;
@@ -663,22 +662,22 @@ void del_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
     if (!os_strncmp(type, "softap", sizeof("softap")))
     {
         role = SOFT_AP;
-		
-		#if CFG_ROLE_LAUNCH
+
+        #if CFG_ROLE_LAUNCH
         param.req_type = LAUNCH_REQ_DELIF_AP;
 
-		rl_ap_request_enter(&param, 0);
-		#endif
+        rl_ap_request_enter(&param, 0);
+        #endif
     }
     else if(!os_strncmp(type, "sta", sizeof("sta")))
     {
         role = STATION;
-		
-		#if CFG_ROLE_LAUNCH
+
+        #if CFG_ROLE_LAUNCH
         param.req_type = LAUNCH_REQ_DELIF_STA;
 
-		rl_sta_request_enter(&param, 0);
-		#endif
+        rl_sta_request_enter(&param, 0);
+        #endif
     }
 
     if(role == 0xff)
@@ -689,7 +688,7 @@ void del_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 
 #if (0 == CFG_ROLE_LAUNCH)
     bk_wlan_stop(role);
-#endif	
+#endif
 }
 
 void show_virtual_intface(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -852,16 +851,16 @@ void sta_adv_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **
 
 void show_sta_psk(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
-	uint8_t *psk;
-	int i;
+    uint8_t *psk;
+    int i;
 
-	psk = wpas_get_sta_psk();
-	os_printf("John# show_sta_psk.r\n");
-	for ( i = 0 ; i < 32 ; i++ )
-	{
-	    os_printf("%02x ", psk[i]);
-	}
-	os_printf("\r\n");
+    psk = wpas_get_sta_psk();
+    os_printf("John# show_sta_psk.r\n");
+    for ( i = 0 ; i < 32 ; i++ )
+    {
+        os_printf("%02x ", psk[i]);
+    }
+    os_printf("\r\n");
 }
 
 void sta_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -894,7 +893,7 @@ void sta_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
 
 void easylink_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
-    /*	mxchip_easy_link_start(120);*/
+    /*  mxchip_easy_link_start(120);*/
 }
 
 void airkiss_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -927,7 +926,7 @@ void temp_detect_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 
     if(start == 0)
         temp_detect_pause_timer();
-    else 
+    else
         temp_detect_restart_detect();
 }
 #endif
@@ -1020,7 +1019,7 @@ void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     FUNCPTR reboot = 0;
     UINT32 wdt_val = 1;
-    
+
 #if CFG_USE_STA_PS
     GLOBAL_INT_DECLARATION();
 
@@ -1032,7 +1031,7 @@ void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
     }
     else
     {
-#endif        
+#endif
 
     os_printf("wdt reboot\r\n");
     sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &wdt_val);
@@ -1040,7 +1039,7 @@ void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 #if CFG_USE_STA_PS
     }
     GLOBAL_INT_RESTORE();
-#endif        
+#endif
 }
 
 static void echo_cmd_handler(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -1183,7 +1182,7 @@ static void sd_operate(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
 #endif
 /*
 format: FLASH  E/R/W  0xABCD
-example:	    FLASH  R  0x00100
+example:        FLASH  R  0x00100
 
 */
 
@@ -1197,47 +1196,47 @@ static void flash_command_test(char *pcWriteBuffer, int xWriteBufferLen, int arg
     char cmd = 0;
     uint32_t len = 0;
     uint32_t addr = 0;
-	
+
     if(argc == 4)
     {
         cmd = argv[1][0];
-		addr = atoi(argv[2]);
-		len = atoi(argv[3]);
+        addr = atoi(argv[2]);
+        len = atoi(argv[3]);
 
-       	switch(cmd)
+        switch(cmd)
         {
-	        case 'E':
-//				bk_flash_enable_security(NONE);
-//				test_flash_erase(addr,len);
-//				bk_flash_enable_security(ALL);
-	         break;
-			  
-        	case 'R':
-				test_flash_read(addr,len);
-	            break;
-	        case 'W':
-//		        bk_flash_enable_security(NONE);
-//				test_flash_write(addr,len);
-//				bk_flash_enable_security(ALL);
-	         break;
-	//to check whether protection mechanism can work
-			case 'N':
-				test_flash_erase(addr,len);
-				break;
-			case 'M':
-				test_flash_write(addr,len);
-				break;
+            case 'E':
+//              bk_flash_enable_security(NONE);
+//              test_flash_erase(addr,len);
+//              bk_flash_enable_security(ALL);
+             break;
+
+            case 'R':
+                test_flash_read(addr,len);
+                break;
+            case 'W':
+//              bk_flash_enable_security(NONE);
+//              test_flash_write(addr,len);
+//              bk_flash_enable_security(ALL);
+             break;
+    //to check whether protection mechanism can work
+            case 'N':
+                test_flash_erase(addr,len);
+                break;
+            case 'M':
+                test_flash_write(addr,len);
+                break;
             case 'T':
-				test_flash_read_time(addr,len);
-				break;
-        	default:
+                test_flash_read_time(addr,len);
+                break;
+            default:
             break;
         }
     }
-	else
-	{
-		os_printf("FLASH <R/W/E/M/N/T> <start_addr> <len>\r\n");
-	}
+    else
+    {
+        os_printf("FLASH <R/W/E/M/N/T> <start_addr> <len>\r\n");
+    }
 }
 
 /*UART  I  index
@@ -1283,16 +1282,16 @@ static void rx_sens_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc,
 static void efuse_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     uint8_t addr, data;
-    
+
     if(argc == 3)
     {
         if (os_strncmp(argv[1], "-r", 2) == 0) {
             hexstr2bin(argv[2], &addr, 1);
             os_printf("efuse read: addr-0x%02x, data-0x%02x\r\n",
                         addr, wifi_read_efuse(addr));
-        } 
-    } 
-    else if(argc == 4) 
+        }
+    }
+    else if(argc == 4)
     {
         if(os_strncmp(argv[1], "-w", 2) == 0)  {
             hexstr2bin(argv[2], &addr, 1);
@@ -1309,7 +1308,7 @@ static void efuse_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, c
 static void efuse_mac_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     uint8_t mac[6];
-    
+
     if (argc == 1)
     {
         if(wifi_get_mac_address_from_efuse(mac))
@@ -1322,9 +1321,9 @@ static void efuse_mac_cmd_test(char *pcWriteBuffer, int xWriteBufferLen, int arg
             if(wifi_get_mac_address_from_efuse(mac))
                 os_printf("MAC address: %02x-%02x-%02x-%02x-%02x-%02x\r\n",
                         mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-        } 
-    } 
-    else if(argc == 3) 
+        }
+    }
+    else if(argc == 3)
     {
         if(os_strncmp(argv[1], "-w", 2) == 0)  {
             hexstr2bin(argv[2], mac, 6);
@@ -1384,8 +1383,8 @@ extern void string_to_ip(char *s);
 static void tftp_ota_get_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     short len = 0,i;
-    extern char		BootFile[] ;
- 
+    extern char     BootFile[] ;
+
     if(argc > 3 )
         {
         os_printf("ota server_ip ota_file\r\n");
@@ -1422,12 +1421,12 @@ void http_client_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
     if ( argc != 2 )
     {
         goto HTTP_CMD_ERR;
-    }    
+    }
     os_memset(&httpclient, 0, sizeof(httpclient_t));
     os_memset(&httpclient_data, 0, sizeof(httpclient_data));
     os_memset(&http_content, 0, sizeof(HTTP_RESP_CONTENT_LEN));
-    httpclient.header = "Accept: text/xml,text/html,\r\n"; 
-    httpclient_data.response_buf = http_content; 
+    httpclient.header = "Accept: text/xml,text/html,\r\n";
+    httpclient_data.response_buf = http_content;
     httpclient_data.response_content_len = HTTP_RESP_CONTENT_LEN;
 //    ret = httpclient_common(&httpclient,
 //        argv[1],
@@ -1445,7 +1444,7 @@ void http_client_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
     return;
 HTTP_CMD_ERR:
     os_printf("Usage:httpc [url:]\r\n");
-        
+
 }
 
 static const struct cli_command built_ins[] =
@@ -1482,10 +1481,10 @@ static const struct cli_command built_ins[] =
     {"memshow", "print memory information", memory_show_Command},
     {"memdump", "<addr> <length>", memory_dump_Command},
     {"os_memset", "<addr> <value 1> [<value 2> ... <value n>]", memory_set_Command},
-    {"memp", "print memp list", memp_dump_Command},
+    //{"memp", "print memp list", memp_dump_Command},
 
     {"reboot", "reboot system", reboot},
-    
+
     {"time",     "system time",                 uptime_Command},
     {"flash",    "Flash memory map",            partShow_Command},
 
@@ -1507,19 +1506,19 @@ static const struct cli_command built_ins[] =
 
     {"easylink", "start easylink", easylink_Command},
     {"airkiss", "start airkiss", airkiss_Command},
-#if CFG_SUPPORT_OTA_TFTP	
-	{"tftpota", "tftpota [ip] [file]", tftp_ota_get_Command},
+#if CFG_SUPPORT_OTA_TFTP
+    {"tftpota", "tftpota [ip] [file]", tftp_ota_get_Command},
 #endif
 
 #if CFG_USE_SDCARD_HOST
-    {"sdtest", "sdtest <cmd>", sd_operate},
+//    {"sdtest", "sdtest <cmd>", sd_operate},
 #endif
 
 #if CFG_USE_TEMPERATURE_DETECT
     {"tmpdetect", "tmpdetect <cmd>", temp_detect_Command},
 #endif
 
-	{"httpc", "http client", http_client_Command},
+    {"httpc", "http client", http_client_Command},
 
 };
 
@@ -1736,7 +1735,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    
+
         gpio_index = os_strtoul(argv[2], NULL, 16);
         dtim = os_strtoul(argv[3], NULL, 16);
 
@@ -1750,7 +1749,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    
+
         dtim = os_strtoul(argv[2], NULL, 10);
         if(dtim == 1)
         {
@@ -1772,8 +1771,8 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         if(argc != 3)
         {
             goto IDLE_CMD_ERR;
-        }    
-        
+        }
+
         bk_wlan_dtim_rf_ps_mode_do_wakeup();
     }
     else if(0 == os_strcmp(argv[1], "rfdtim"))
@@ -1782,7 +1781,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    
+
         dtim = os_strtoul(argv[2], NULL, 10);
         if(dtim == 1)
         {
@@ -1791,7 +1790,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         else if(dtim == 0)
         {
             bk_wlan_dtim_rf_ps_disable_send_msg();
-        }        
+        }
         else
         {
             goto IDLE_CMD_ERR;
@@ -1835,7 +1834,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         {
             goto IDLE_CMD_ERR;
         }
-    }  
+    }
     else if(0 == os_strcmp(argv[1], "lingtm"))
     {
         if(argc != 3)
@@ -1893,7 +1892,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
             goto IDLE_CMD_ERR;
         }
         #endif
-    }    
+    }
     else if(0 == os_strcmp(argv[1], "listen"))
     {
         if(argc != 4)
@@ -1925,8 +1924,8 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         if(argc != 3)
         {
             goto IDLE_CMD_ERR;
-        }    
-        
+        }
+
         standby_time = os_strtoul(argv[2], NULL, 10);
         bk_wlan_ps_wakeup_with_timer(standby_time);
     }
@@ -1947,7 +1946,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         bk_wlan_ps_wakeup_with_peri(dtim, gpio_index);
 
     }
-    #endif    
+    #endif
     else
     {
         goto IDLE_CMD_ERR;
@@ -1997,7 +1996,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
     saradc_cal_val_t p_ADC_cal;
     float voltage = 0.0;
     saradc_desc_t *p_ADC_drv_desc = NULL;
-        
+
     if(argc < 2)
         goto IDLE_CMD_ERR;
 
@@ -2019,7 +2018,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
             os_printf("malloc1 failed!\r\n");
             return;
         }
-        
+
         saradc_config_param_init(p_ADC_drv_desc);
 
         p_ADC_drv_desc->data_buff_size = ADC_TEMP_BUFFER_SIZE;
@@ -2082,7 +2081,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         p_ADC_drv_desc = (saradc_desc_t *)os_malloc(sizeof(saradc_desc_t));
         if (p_ADC_drv_desc == NULL)
         {
-        	os_printf("malloc1 failed!\r\n");
+            os_printf("malloc1 failed!\r\n");
             return;
         }
 
@@ -2091,7 +2090,7 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         p_ADC_drv_desc->data_buff_size = ADC_TEMP_BUFFER_SIZE;
         p_ADC_drv_desc->mode = (ADC_CONFIG_MODE_CONTINUE << 0)
                                | (ADC_CONFIG_MODE_36DIV << 2);
-                               
+
         p_ADC_drv_desc->has_data                = 0;
         p_ADC_drv_desc->current_read_data_cnt   = 0;
         p_ADC_drv_desc->current_sample_data_cnt = 0;
@@ -2118,18 +2117,18 @@ static void adc_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
             }
         }
         voltage = saradc_calculate(p_ADC_drv_desc->pData[4]);
-        
+
         os_printf("voltage is [%f]\r\n", voltage);
         os_free(p_ADC_drv_desc->pData);
         os_free(p_ADC_drv_desc);
         return;
-        
+
     }*/
     else
     {
         goto IDLE_CMD_ERR;
     }
-    
+
     return;
 IDLE_CMD_ERR:
     os_printf("Usage:ps [func] [param]\r\n");
@@ -2138,8 +2137,8 @@ IDLE_CMD_ERR:
 
 static void cli_rx_callback(int uport, void *param)
 {
-	if(log_rx_interrupt_sema)
-    	rtos_set_semaphore(&log_rx_interrupt_sema);
+    if(log_rx_interrupt_sema)
+        rtos_set_semaphore(&log_rx_interrupt_sema);
 }
 
 /* ========= CLI input&output APIs ============ */
@@ -2170,7 +2169,9 @@ int cli_putstr(const char *msg)
 //    if (msg[0] != 0)
 //        bk_uart_send( CLI_UART, (const char *)msg, os_strlen(msg) );
 
-    return 0;
+//    return 0;
+    if (msg[0] != 0)
+        printf("%s", msg);
 }
 
 int cli_getchar(char *inbuf)
@@ -2178,7 +2179,15 @@ int cli_getchar(char *inbuf)
 //    if (bk_uart_recv(CLI_UART, inbuf, 1, BEKEN_WAIT_FOREVER) == 0)
 //        return 1;
 //    else
-        return 0;
+//        return 0;
+
+      int res = getc(stdin);
+      if (res == -1) {
+          return 0;
+      } else {
+          *inbuf = res & 0xFF;
+          return 1;
+      }
 }
 
 int cli_getchars(char *inbuf, int len)
@@ -2216,11 +2225,11 @@ static const struct cli_command user_clis[] =
 #ifdef TCP_CLIENT_DEMO
     {"tcp_cont", "tcp_cont [ip] [port]", tcp_make_connect_server_command},
 #endif
-    {"tcp_server", "tcp_server [ip] [port]",make_tcp_server_command },
+    //{"tcp_server", "tcp_server [ip] [port]",make_tcp_server_command },
 
 #if CFG_IPERF_TEST
     {"iperf", "iperf help", iperf },
-#endif // CFG_IPERF_TEST    
+#endif // CFG_IPERF_TEST
 };
 
 int cli_init(void)
@@ -2239,10 +2248,10 @@ int cli_init(void)
     {
         goto init_general_err;
     }
-
     cli_register_commands(user_clis, sizeof(user_clis) / sizeof(struct cli_command));
 
-    ret = rtos_create_thread(NULL,
+    beken_thread_t  cli_handle;
+    ret = rtos_create_thread(&cli_handle,
                              BEKEN_DEFAULT_WORKER_PRIORITY,
                              "cli",
                              (beken_thread_function_t)cli_main,
