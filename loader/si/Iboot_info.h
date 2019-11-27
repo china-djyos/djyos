@@ -132,6 +132,42 @@ struct IbootAppInfo
     char update_path[40];    //待升级文件路径
 };
 
+struct AppHead
+{
+    char djyflag[3];        //"djy"标志                    固定标志
+    u8   AppVer;            //信息块的版本
+    u32  filesize;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
+
+    #define VERIFICATION_NULL     0
+    #define VERIFICATION_CRC      1
+    #define VERIFICATION_MD5      2
+    #define VERIFICATION_SSL      3  //SSL安全证书
+    u32  Verification;    //校验方法默认校验方法为不校验，由外部工具根据配置修改
+    u32  appbinsize;      //app bin文件大小 由外部工具填充
+#if(CN_PTR_BITS < 64)
+    u32  VirtAddr;        //运行地址
+    u32  reserved32;      //保留
+#else
+    u64  VirtAddr;        //运行地址
+#endif
+    u32  appheadsize;     //信息块的大小
+    u32  reserved;          //保留
+    char appname[96];      //app的文件名 由外部工具填充该bin文件的文件名
+    char VerifBuf[128];     //校验码与校验方法对应的具体内容 由工具填充
+
+    const char ManufacturerName[65];  //厂商名称， DIDE中配置
+    const char DjyosTag[6];          //"djyos"串
+    const char ProductClassify[9];    //产品分类字符串，厂商在DIDE中配置
+    const char ProductType[9];        //产品型号字符串，厂商在DIDE中配置
+    char VersionNumber[3];      //APP版本xx.xx.xx，
+    const u32  TypeCode;           //产品型号数字编码
+    u32 ProductionNumber;   //产品序号，源码中填FF，生产时服务器下发，iboot写入
+    char ProductionTime[3];     //生产时间，BCD码，年+星期（3字节）.源码中填FF，生产时服务器下发，iboot写入
+//    u32 ProductionNumber;   //源码中填FF，生产时服务器下发，iboot写入
+    char Reserved[153];         //保留
+
+};
+
 
 //bool_t Set_RunIbootUpdateIboot();
 bool_t Set_RebootFlag();
@@ -154,14 +190,16 @@ bool_t Get_HeadResetFlag();
 bool_t Get_LowPowerWakeup();
 
 #if (CFG_RUNMODE_BAREAPP == 0)
-bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize);
-bool_t XIP_AppFileChack(void * apphead);
+bool_t Rewrite_AppHead_FileInfo(void * apphead,const char*name,u32 filesize);
+bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,u32 num);
+bool_t XIP_AppFileCheck_Easy(void * apphead);
+bool_t XIP_AppFileCheck(void * apphead);
 void * XIP_GetAPPStartAddr(void * apphead);
 u32  XIP_GetAPPSize(void * apphead);
 u32 Get_AppSize(void * apphead);
 char*  Get_AppName(void * apphead);
 bool_t XIP_IsRamIbootFlag();
-bool_t Fill_MutualUpdatePath(char* Path);
+bool_t Fill_MutualUpdatePath(char* Path,int len);
 bool_t Run_Iboot(enum runibootmode mode);
 bool_t Run_App(enum runappmode mode);
 bool_t Update_ToRun();

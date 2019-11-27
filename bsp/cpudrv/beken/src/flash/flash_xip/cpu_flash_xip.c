@@ -114,7 +114,7 @@
 //@#$%component end configure
 // ============================================================================
 extern struct NorDescr *nordescription;
-bool_t addition_crc_data = false;
+extern bool_t addition_crc_data;
 u8 is_protect = 1;   //1 -- 有写保护，0 -- 无写保护
 extern void flash_protection_op(UINT8 mode, PROTECT_TYPE type);
 extern bool_t flash_is_install(void);
@@ -150,11 +150,13 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
 {
     struct umedia *um = (struct umedia *)core->vol;
     static u8 *app_head = NULL;
+    static u32 last_block = 0,block = 0;
     struct objhandle *hdl = (struct objhandle *)core->root->child->handles.next;
     struct __icontext *cx = (struct __icontext *)hdl->context;
     struct __ifile *file = (struct __ifile*)handle_GetHostObjectPrivate(hdl);
-    u32 j, more, block = 0, page_size, offset = Get_AppHeadSize();
+    u32 j, more, page_size, offset = Get_AppHeadSize();
     u32 unit;
+    s32 check_len = (s32)bytes;
 
     if(addition_crc_data == true)
     {
@@ -164,29 +166,35 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
     {
         unit = (pos + (core->MStart * nordescription->BytesPerPage)) * 34 / 32;  //没有算好crc的数据则需要先算出数据地址，再整体 * 34 / 32，因为数据里没有crc，需要这里整体算好
     }
-//    printf("unit = %x\r\n",unit);
-//    djy_flash_req(unitbytes,(ptu32_t)&page_size);
-    page_size = nordescription->BytesPerPage;
     djy_flash_req(lock, CN_TIMEOUT_FOREVER);
     if(strstr("xip-app",core->root->name))
     {
-        if(bytes > 0)   //bytes不会大于一页的大小，所以每次只要检查一页大小的数据
+        if(bytes > 0)
         {
-            if(addition_crc_data == true)
-                djy_flash_read_crc(unit, um->ubuf, page_size);
-            else
-                djy_flash_read(unit, um->ubuf, page_size);
-
-            for(j=0; j<page_size; j++)
+            while(check_len > 0)
             {
-                if(0xFF!=um->ubuf[j])        //判断当前页是否为FF
+                if(check_len > nordescription->BytesPerPage)
+                    page_size = nordescription->BytesPerPage;
+                else
+                    page_size = check_len;
+                if(addition_crc_data == true)
+                    djy_flash_read_crc(unit, um->ubuf, page_size);
+                else
+                    djy_flash_read(unit, um->ubuf, page_size);
+
+                for(j=0; j<page_size; j++)
                 {
-                    if(um->ubuf[j]!=data[j])
+                    if(0xFF!=um->ubuf[j])        //判断当前页是否为FF
                     {
-                        djy_flash_req(unlock, 0);
-                        return (-1);
+                        if(um->ubuf[j]!=data[j])
+                        {
+                            djy_flash_req(unlock, 0);
+                            error_printf("EmFlash"," Data already exists in flash.\r\n");
+                            return (-1);
+                        }
                     }
                 }
+                check_len -= page_size;
             }
 
             if(pos == offset)
@@ -229,25 +237,23 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     u8 *name = (u8 *)core->root->child->name;
                     u8 flag = 1;
                     u32 app_head_size = offset + Get_AppHeadSize();
-                    u8 *rbuf = NULL, *wbuf = NULL;
-                    rbuf = malloc (Get_AppHeadSize());
-                    wbuf = malloc (app_head_size);
-                    memset(rbuf, 0xff, Get_AppHeadSize());
-                    memset(wbuf, 0xff, app_head_size);
 
-                    file->sz += file->cxbase;
+//                    file->sz += file->cxbase;
                     fill_little_32bit(app_head + 4, 0, file->sz);
                     app_head += 32; //32为文件头信息的前32个字节
-                    for(j = 0; j < 96 + 8; j++)     //这个96是在文件头里存app文件名数组的大小,加6是多出来的6个字节的CRC
+                    for(j = 0; j < 96 + 8; j++)     //这个96是在文件头里存app文件名数组的大小,加8是多出来的8个字节的CRC
                     {
                         if((j % 34) == 0)
                             j += 2;
-                        if(flag)
-                            app_head[j] = *name;
-                        else
-                            app_head[j] = 0xff;
-                        if(*name++ == 0)
-                            flag=0;
+                        if(j < 96 + 8)
+                        {
+                            if(flag)
+                                app_head[j] = *name;
+                            else
+                                app_head[j] = 0xff;
+                            if(*name++ == 0)
+                                flag=0;
+                        }
                     }
                     app_head -= 32;
                     j = 0;
@@ -279,21 +285,22 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
             }
         }
 
-        // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
-        // (page+1)用于防止格式化了不属于xip的空间
-        if(addition_crc_data == true)
-        {
-            djy_flash_req(remain, (ptu32_t)&more, &unit);
-            if(!more)
-            {
-                // +1是表示当前unit的后面一个
-                if(pos + bytes >= core->ASize)
-                    return (-2);
-                djy_flash_req(whichblock, (ptu32_t)&block, &unit);
-                //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
-                djy_flash_req(format, block+1, block+1+1);
-            }
-        }
+//        // 如果当前写入页是一个块中的最后一页，则预先删除后续的sector
+//        // (page+1)用于防止格式化了不属于xip的空间
+//        if(addition_crc_data == true)
+//        {
+//            djy_flash_req(whichblock, (ptu32_t)&block, &unit);
+//            djy_flash_req(remain, (ptu32_t)&more, &unit);
+//            if(!more)
+//            {
+//                // +1是表示当前unit的后面一个
+//                if(pos + bytes >= core->ASize)
+//                    return (-2);
+//                djy_flash_req(whichblock, (ptu32_t)&block, &unit);
+//                //block是当前页所在的块号，block+1是为了擦除下一个块（block+1是要擦除的块，擦到block+1+1块就不擦了）
+//                djy_flash_req(format, block+1, block+1+1);
+//            }
+//        }
     }
     else
     {
