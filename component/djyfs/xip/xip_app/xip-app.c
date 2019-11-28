@@ -148,7 +148,7 @@ struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
 
     if(false == XIP_AppFileCheck_Easy(head))
     {
-        printf("\r\n: info : xipfs  : No APP file on the chip ");
+        printf("\r\n: info : xipfs  : No APP file on the embed flash ");
         return (NULL);
     }
     file->sz = XIP_GetAPPSize(head);
