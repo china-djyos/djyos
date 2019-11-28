@@ -330,11 +330,11 @@ djy_context_switch_interrupt_do:
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
 
-@    ldr r6,[r5,#4]
-@    cmp sp,r5
-@    ble  .
-@    cmp sp,r6
-@    bge  .
+    ldr r6,[r5,#4]
+    cmp sp,r5
+    ble  .
+    cmp sp,r6
+    bge  .
 
     /*把栈顶数值存到rt_interrupt_from_thread里*/
     STR     SP,  [R5]
@@ -344,11 +344,11 @@ djy_context_switch_interrupt_do:
     /*把新的栈顶的值存到SP上面*/
     LDR     SP,  [R6]
 
-@    ldr r7,[r6,#4]
-@    cmp sp,r6
-@    ble  .
-@    cmp sp,r7
-@    bge  .
+    ldr r7,[r6,#4]
+    cmp sp,r6
+    ble  .
+    cmp sp,r7
+    bge  .
 
 
     LDMFD   SP!, {R4}
@@ -450,11 +450,11 @@ abcd:
     LDR     R4,  =djy_interrupt_from_thread
     LDR     R5,  [R4]
 
-@    ldr r6,[r5,#4]
-@    cmp sp,r5
-@    ble  .
-@    cmp sp,r6
-@    bge  .
+    ldr r6,[r5,#4]
+    cmp sp,r5
+    ble  .
+    cmp sp,r6
+    bge  .
 
     STR     SP,  [R5]
 
@@ -462,11 +462,11 @@ abcd:
     LDR     R6,  [R6]
     LDR     SP,  [R6]
 
-@    ldr r7,[r6,#4]
-@    cmp sp,r6
-@    ble  .
-@    cmp sp,r7
-@    bge  .
+    ldr r7,[r6,#4]
+    cmp sp,r6
+    ble  .
+    cmp sp,r7
+    bge  .
 
 
     LDMFD   SP!, {R4}

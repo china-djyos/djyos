@@ -263,5 +263,19 @@ Int_GetStatus:
     MRS     R0, CPSR
     BX      LR
 
+.text
+.globl GetMallocLR
+.type GetMallocLR, %function
+GetMallocLR:
+    ldr     R0, [sp,#76]
+    BX      LR
+
+.text
+.globl GetFreeLR
+.type GetFreeLR, %function
+GetFreeLR:
+    ldr     R0, [sp,#116]
+    BX      LR
+
 
 .end

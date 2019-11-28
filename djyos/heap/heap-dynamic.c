@@ -1295,6 +1295,7 @@ void *__M_MallocLc(ptu32_t size,u32 timeout)
 //备注: 用此函数分配的内存,并不会在事件完成时被收回.
 //-----------------------------------------------------------------------------
 void myrecord(u32 a, u32 b, u32 c, u32 d);
+u32 GetMallocLR(void);
 extern u16 mainwinevent;
 void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
 {
@@ -1360,7 +1361,7 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
             result = ua_address;
 
             if(g_ptEventRunning->event_id == *(u32*)0x400104)
-                myrecord('m', (u32)result,size,0);
+                myrecord('m', (u32)result,size,GetMallocLR());
         }
     }
     Lock_MutexPost(&Heap->HeapMutex);
@@ -1803,6 +1804,7 @@ ptu32_t __M_FormatSize(ptu32_t size)
 //           如果是通用堆,则从这个堆开始在所有通用堆中查找pl_mem所在的堆
 //返回：错误返回flase,正确时返回true
 //-----------------------------------------------------------------------------
+u32 GetFreeLR(void);
 void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
 {
     struct HeapCession *Cession;
@@ -1830,7 +1832,7 @@ void __M_FreeHeap(void * pl_mem,struct HeapCB *Heap)
         return;
 
     if(g_ptEventRunning->event_id == *(u32*)0x400104)
-        myrecord('f', (u32)pl_mem,0,0);
+        myrecord('f', (u32)pl_mem,0,GetFreeLR());
 
     if( (Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {

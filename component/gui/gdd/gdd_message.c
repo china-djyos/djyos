@@ -577,6 +577,8 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
     struct WinMsgQueueCB *pMsgQ;
     bool_t res=FALSE;
 
+    if(__M_CheckSize(hwnd) != 0x80)
+        res = false;
     if(__GDD_Lock())
     {
         pMsgQ =__GetWindowMsgQ(hwnd);
@@ -808,7 +810,7 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 //注，if语句的顺序，就是各类消息的优先级，不得随意调整
                 if(__PeekCloseMessage(pMsgQ,pMsg))
                 {
-                    myrecord('c', (u32)pMsg->hwnd, pMsg->Code,0);
+//                  myrecord('c', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
                 else if(__PeekSyncMessage(pMsgQ,pMsg))
                 {
@@ -816,15 +818,15 @@ bool_t    GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg)
                 }
                 else if(__PeekPostMessage(pMsgQ,pMsg))
                 {
-                    myrecord(('p'<<8) + 'o', (u32)pMsg->hwnd, pMsg->Code,0);
+//                  myrecord(('p'<<8) + 'o', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
                 else if(__PeekNCPaintMessage(pMsgQ,pMsg))
                 {
-                    myrecord(('n'<<8) + 'p', (u32)pMsg->hwnd, pMsg->Code,0);
+//                  myrecord(('n'<<8) + 'p', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
                 else if(__PeekPaintMessage(pMsgQ,pMsg))
                 {
-                    myrecord(('p'<<8) + 'a', (u32)pMsg->hwnd, pMsg->Code,0);
+//                  myrecord(('p'<<8) + 'a', (u32)pMsg->hwnd, pMsg->Code,0);
                 }
                 else if(__PeekTimerMessage(pMsgQ,pMsg))
                 {
