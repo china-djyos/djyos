@@ -497,8 +497,6 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     g_bScheduleEnable = false;
     tg_int_global.nest_asyn_signal++;
     ptIntLine = tg_pIntLineTable[ufl_line];
-   if(ptIntLine->clear_type == CN_INT_CLEAR_AUTO)
-        Int_ClearLine(ufl_line);        //中断应答,
     if(ptIntLine->ISR != NULL)
     {
         isr_result = ptIntLine->ISR(ptIntLine->para);
@@ -509,6 +507,8 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
         if(ptIntLine->clear_type == CN_INT_CLEAR_USER)
             Int_ClearLine(ufl_line);        //中断应答,
     }
+    if(ptIntLine->clear_type == CN_INT_CLEAR_AUTO)
+         Int_ClearLine(ufl_line);        //中断应答,
     event = ptIntLine->sync_event;
     if(event != NULL)   //看同步指针中有没有事件(注：单个事件，不是队列)
     {

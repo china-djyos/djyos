@@ -247,5 +247,12 @@ Int_GetStatus:
     MRS     R0, CPSR
     BX      LR
 
+.text
+.globl GetLR
+.type GetLR, %function
+GetLR:
+    mov     R0, LR
+    BX      LR
+
 
 .end

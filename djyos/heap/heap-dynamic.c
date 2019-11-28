@@ -1355,8 +1355,6 @@ void *__M_MallocHeap(ptu32_t size,struct HeapCB *Heap, u32 timeout)
                 *pl_id = uf_grade_th;
             }
 
-
-
             result = ua_address;
         }
     }
