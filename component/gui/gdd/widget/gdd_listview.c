@@ -605,6 +605,8 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
     pLV =(listview_t*)GetWindowPrivateData(hwnd);
     hdc =BeginPaint(hwnd);
+    if(hdc == NULL)
+        return false;
     RECT rc,rc0;
     list_t *lst,*n;
     list_col_cel_t *col;
@@ -761,6 +763,8 @@ static bool_t ListView_Paint(struct WindowMsg *pMsg)
         n =n->next;
 
     }
+    EndPaint(hwnd,hdc);
+
     return true;
 }
 

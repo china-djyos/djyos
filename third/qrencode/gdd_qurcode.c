@@ -204,6 +204,8 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
     if(hwnd==NULL)
         return false;
     hdc =BeginPaint(hwnd);
+    if(hdc == NULL)
+        return false;
     GetClientRect(hwnd,&rc0);
     SetDrawColor(hdc,CN_COLOR_BLACK);
     width=RectW(&rc0);
@@ -232,6 +234,7 @@ static bool_t HmiPaint_Qrcode(struct WindowMsg *pMsg)
    if(qrcode==NULL)//存储空间不足或数据容量超出规定范围
    {
        QRcode_free(qrcode);
+       EndPaint(hwnd,hdc);
        return false;
    }
     Data=Data_conversion(qrcode);//提取显示数据到Data

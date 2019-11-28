@@ -987,7 +987,8 @@ s32 obj_Delete(struct Object *Obj)
 
         __OBJ_LIST_REMOVE(Obj);
     }
-
+    if(Obj->name != __uname_obj)
+       free(Obj->name);
     __freeobj(Obj);
     obj_unlock();
     return (0);
@@ -1364,12 +1365,13 @@ struct Object *obj_newprev(struct Object *loc, fnObjOps ops,
         return (NULL);
 
     obj_lock();
-
     prev->parent = loc->parent;
     prev->child = NULL;
     prev->ObjPrivate = represent;
     prev->BitFlag.temporary = 0;
     prev->BitFlag.inuse = 0;
+
+
     if(ops)
     {
         if(-1==(s32)ops)
