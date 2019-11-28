@@ -945,19 +945,12 @@ UINT32 sdcard_read(char *user_buf, UINT32 count, UINT32 op_flag)
     {
         for(numb=0; numb<read_blk_numb; numb++)
         {
-            extern void Int_CutTrunk(void);
-            extern void Int_ContactTrunk(void);
-
-//            Int_CutTrunk();
             result = sdcard_read_single_block(read_data_buf, start_blk_addr, 
                         SD_DEFAULT_BLOCK_SIZE);
-//            Int_ContactTrunk();
-
             if(result!=SD_OK)
             {
                 info_printf("sdcard","sdcard_read err:%d, curblk:0x%x\r\n",result, start_blk_addr);
-//                count = 0;
-                read_blk_numb = 0;
+                count = 0;
                 goto exit;
             }
 
@@ -968,8 +961,7 @@ UINT32 sdcard_read(char *user_buf, UINT32 count, UINT32 op_flag)
     
 exit:
     peri_busy_count_dec();
-//    return count;
-    return read_blk_numb;
+    return count;
 }
 
 UINT32 sdcard_write(char *user_buf, UINT32 count, UINT32 op_flag)
@@ -982,13 +974,7 @@ UINT32 sdcard_write(char *user_buf, UINT32 count, UINT32 op_flag)
     // check operate parameter
     start_blk_addr = op_flag;
     write_size = count * SD_DEFAULT_BLOCK_SIZE;
-    extern void Int_CutTrunk(void);
-    extern void Int_ContactTrunk(void);
-
-//    Int_CutTrunk();
     err = sdcard_write_multi_block((u8 *)user_buf,start_blk_addr,write_size);
-//    Int_ContactTrunk();
-
     peri_busy_count_dec();
 
     return err;

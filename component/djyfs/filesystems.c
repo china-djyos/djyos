@@ -466,6 +466,7 @@ void FsBeMedia(const char *source, const char *target)
     else
     {
         error_printf("fs","file system \"%s\" installed fail on \"%s\".",targetobj->name,srcobj->name);
+        obj_Delete(targetobj);
     }
 
 }

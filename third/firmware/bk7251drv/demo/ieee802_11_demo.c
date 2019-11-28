@@ -236,6 +236,14 @@ void demo_wlan_app_init(VIF_ADDCFG_PTR cfg)
 
 }
 
+//int sta_ip_is_start()
+//{
+//   return 1;
+//}
+//int uap_ip_is_start()
+//{
+//    return 0;
+//}
 void demo_state_app_init(void)
 {
 	LinkStatusTypeDef linkStatus;

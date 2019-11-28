@@ -70,29 +70,7 @@ extern void __asm_bl_fun(void * fun_addr);
 #define APP_HEAD_VERSION        1
 
 #if (CFG_RUNMODE_BAREAPP == 0)
-struct AppHead
-{
-    char djyflag[3];        //"djy"标志                    固定标志
-    u8   AppVer;            //信息块的版本
-    u32  filesize;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
-
-    #define VERIFICATION_NULL     0
-    #define VERIFICATION_CRC      1
-    #define VERIFICATION_MD5      2
-    #define VERIFICATION_SSL      3  //SSL安全证书
-    u32  Verification;    //校验方法默认校验方法为不校验，由外部工具根据配置修改
-    u32  appbinsize;      //app bin文件大小 由外部工具填充
-#if(CN_PTR_BITS < 64)
-    u32  VirtAddr;        //运行地址
-    u32  reserved32;      //保留
-#else
-    u64  VirtAddr;        //运行地址
-#endif
-    u32  appheadsize;     //信息块的大小
-    u32  reserved;          //保留
-    char appname[96];      //app的文件名 由外部工具填充该bin文件的文件名
-    char VerifBuf[128];     //校验码与校验方法对应的具体内容 由工具填充
-};
+//const char djyos_tag [] = "djyos";
 const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 {
         .djyflag[0]    = 'd',
@@ -133,7 +111,38 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
-                          0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff}
+                          0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff},
+         .ManufacturerName = PRODUCT_MANUFACTURERNAME,
+         .DjyosTag     = "djyos",
+         .ProductClassify = PRODUCT_PRODUCTCLASSIFY,
+         .ProductType = PRODUCT_PRODUCTMODEL,
+         .VersionNumber[0] = PRODUCT_VERSION_LARGE,
+         .VersionNumber[1] = PRODUCT_VERSION_MEDIUM,
+         .VersionNumber[2] = PRODUCT_VERSION_SMALL,
+
+         .TypeCode = PRODUCT_PRODUCTMODELCODE,
+
+         .ProductionTime = {0xff,0xff,0xff},
+         .ProductionNumber = 0xffffffff,
+
+         .Reserved ={
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff
+                    },
 };
 
 #endif      //for (CFG_RUNMODE_BAREAPP == 0)
@@ -307,7 +316,8 @@ typedef struct {
 /* forward declaration */
 static void Transform (u32_t *buf, u32_t *in);
 
-static unsigned char PADDING[64] = {
+static unsigned char PADDING[64];
+static const unsigned char PADDINGbak[64] = {
   0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -365,6 +375,8 @@ static unsigned char PADDING[64] = {
  */
 static void MD5Init (MD5_CTX *mdContext)
 {
+    for(int i=0;i<sizeof(PADDINGbak)/sizeof(unsigned char);i++ )
+        PADDING[i] = PADDINGbak[i];
   mdContext->i[0] = mdContext->i[1] = (u32_t)0;
 
   /* Load magic initialization constants. */
@@ -614,7 +626,11 @@ static bool_t Verification_AppInit(void * apphead)
     struct AppHead*  p_apphead = apphead;
     u32 i;
 
-    p_apphead->filesize = 0xFFFFFFFF;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
+//    p_apphead->filesize = 0xFFFFFFFF;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
+    p_apphead->ProductionNumber = 0xFFFFFFFF;
+    for( i=0;i<sizeof(p_apphead->ProductionTime);i++)
+        p_apphead->ProductionTime[i]=0xff;
+
     for( i=0;i<sizeof(p_apphead->appname);i++)
         p_apphead->appname[i]=0xff;
 
@@ -654,11 +670,11 @@ static bool_t  Verification_compare(void *apphead,void *appheadcmp)
     return true;
 }
 //==============================================================================
-//功能：重写APP文件信息块
+//功能：重写APP文件信息块的文件信息。
 //参数：apphead：App信息块地址；name：新的名字；filesize：新的文件大小
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize)
+bool_t Rewrite_AppHead_FileInfo(void * apphead,const char*name,u32 filesize)
 {
     struct AppHead*  p_apphead = apphead;
     u8 flag = 1;
@@ -678,6 +694,36 @@ bool_t Rewrite_AppHead(void * apphead,const char*name,u32 filesize)
 }
 
 //==============================================================================
+//功能：重写APP文件信息块的产品序号和生产时间。
+//参数：apphead：App信息块地址；num：产品序号；time：生产时间
+//返回：true：成功；false：失败。
+//==============================================================================
+bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,u32 num)
+{
+    struct AppHead*  p_apphead = apphead;
+
+    p_apphead->ProductionNumber = num;
+    memcpy(p_apphead->ProductionTime, time, sizeof(p_apphead->ProductionTime));
+
+    return true;
+}
+
+//==============================================================================
+//功能：获取APP文件信息块。
+//参数：apphead：存App信息块的地址；
+//返回：true：成功；false：失败。
+//==============================================================================
+bool_t Get_AppHead(void * apphead)
+{
+    struct AppHead*  p_apphead = apphead;
+
+    memcpy(p_apphead, gc_pAppOffset,  sizeof(struct AppHead));
+
+    return true;
+}
+
+
+//==============================================================================
 //功能：获取APP文件信息块的大小
 //参数：无
 //返回：APP信息头的大小。
@@ -693,7 +739,7 @@ u32 Get_AppHeadSize(void)
 //参数：apphead：App信息块地址
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t XIP_AppFileChack(void * apphead)
+bool_t XIP_AppFileCheck_Easy(void * apphead)
 {
     struct AppHead*  p_apphead = apphead;
     if(p_apphead->djyflag[0]!='d' || \
@@ -706,6 +752,36 @@ bool_t XIP_AppFileChack(void * apphead)
 
     return true;
 }
+//==============================================================================
+//功能：App 文件的校验
+//参数：apphead：App信息块地址
+//返回：true：成功；false：失败。
+//==============================================================================
+bool_t XIP_AppFileCheck(void * apphead)
+{
+    struct AppHead*  p_apphead = apphead;
+    struct AppHead app_head;
+    u8 * buf = (u8*)&app_head;
+    u8 *bufapp = apphead;
+    u32 i;
+
+    for(i=0;i<sizeof(struct AppHead);i++)
+        buf[i] = bufapp[i];
+
+    if(p_apphead->Verification != VERIFICATION_NULL)
+    {
+        Verification_AppInit(&app_head);
+        Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
+        Verification_AppExit(&app_head);
+        if(false == Verification_compare(apphead,&app_head))
+        {
+            Iboot_App_Info.runflag.error_app_check = 1;
+            return false;
+        }
+    }
+    return true;
+}
+
 
 //==============================================================================
 //功能：获取APP的运行地址
@@ -1181,20 +1257,28 @@ bool_t Get_HeadWdtReset(void)
 //参数：AppPath -- 待升级的app路径；
 //返回： true/false
 //==============================================================================
-bool_t Fill_MutualUpdatePath(char* Path)
+bool_t Fill_MutualUpdatePath(char* Path, int len)
 {
-    u8 i;
-    for(i=0; i<MutualPathLen; i++)
+//    u8 i;
+
+    if(len > MutualPathLen)
     {
-        if(*Path != 0)
-            Iboot_App_Info.update_path[i] = *Path++;
-        else
-        {
-            Iboot_App_Info.update_path[i] = *Path++;
-            break;
-        }
+        error_printf("IAP"," len exceed MutualPathLen.\r\n");
+        return false;
     }
-    if(i==MutualPathLen)
+    memset(Iboot_App_Info.update_path, 0, MutualPathLen);
+    memcpy(Iboot_App_Info.update_path, Path, len);
+//    for(i=0; i<len; i++)
+//    {
+//        if(*Path != 0)
+//            Iboot_App_Info.update_path[i] = *Path++;
+//        else
+//        {
+//            Iboot_App_Info.update_path[i] = *Path++;
+//            break;
+//        }
+//    }
+    if(len == MutualPathLen)
     {
         Iboot_App_Info.update_path[MutualPathLen-1] = 0;
         return false;
@@ -1261,7 +1345,7 @@ static bool_t __RunApp(void * apphead)
     {
         Iboot_App_Info.runflag.error_app_size  = 1;
     }
-    if(p_apphead->Verification !=VERIFICATION_NULL)
+    if(p_apphead->Verification != VERIFICATION_NULL)
     {
         Verification_AppInit(&app_head);
         Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
@@ -1400,9 +1484,9 @@ bool_t Set_RunAppUpdateIboot()
 //==============================================================================
 bool_t Set_UpdateSource(char *param)
 {
-    char source;
+    int source;
     source = atoi(param);
-    Iboot_App_Info.runflag.update_from = source;
+    Iboot_App_Info.runflag.update_from = (u32)source;
     return true;
 }
 

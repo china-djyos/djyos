@@ -684,7 +684,8 @@ bool_t DesktopPaint(struct WindowMsg *pMsg)
 
     HWND hwnd=pMsg->hwnd;
     hdc =BeginPaint(hwnd);
-
+    if(hdc == NULL)
+        return false;
     GetClientRect(hwnd,&rc);
 
     GradientFillRect(hdc,&rc,RGB(120,120,255),RGB(20,20,80),CN_FILLRECT_MODE_UD);

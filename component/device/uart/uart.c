@@ -537,6 +537,7 @@ s32 UART_Poll_AppWrite(struct objhandle *hdl, u8* src_buf, u32 len, u32 offset, 
 //      len,读入长度,
 //返回: 实际读出长度
 //-----------------------------------------------------------------------------
+
 s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u32 timeout)
 {
     struct UartPollCB *UPCB;
@@ -552,7 +553,9 @@ s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u
     if(Lock_MutexPend(UPCB->ReadMutex,timeout)==false)
         return 0;
 //   Lock_SempPend(UPCB->RecvRingBufSemp,timeout);
-    Int_CutTrunk();
+    //Int_CutTrunk();
+    Int_SaveAsynSignal();
+
     if(UPCB->RecvLen <= len)
     {
         RcvLen = UPCB->RecvLen;
@@ -569,7 +572,8 @@ s32 UART_Poll_AppRead(struct objhandle *hdl, u8* dst_buf, u32 len, u32 offset, u
 
     handle_ClrMultiplexEvent(hdl, CN_MULTIPLEX_SENSINGBIT_READ);
     UPCB->RecvLen = 0;
-    Int_ContactTrunk();
+    //Int_ContactTrunk();
+    Int_RestoreAsynSignal();
 
     if(ErrorFlag)
         UART_Poll_PortRead(UPCB);

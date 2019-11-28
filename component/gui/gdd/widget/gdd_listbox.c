@@ -482,6 +482,8 @@ static  bool_t ListBox_Paint(struct WindowMsg *pMsg)
     pLB=(LISTBOX_DATA*)GetWindowPrivateData(hwnd);
 
     hdc =BeginPaint(hwnd);
+    if(hdc == NULL)
+        return false;
     GetClientRect(hwnd,&rc0);
     if(GetWindowStyle(hwnd)&LBS_FLAT)
     {

@@ -168,14 +168,14 @@ bool_t updateapp(char *param)
     word_param = shell_inputs(param,&next_param);
     if(word_param == NULL)
     {
-        res = Fill_MutualUpdatePath(CFG_APP_UPDATE_NAME);
+        res = Fill_MutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
         Set_UpdateRunModet(1);      //启动后运行app
     }
     else
     {
         if(runapp_or_runiboot(word_param) == false)
         {
-            res = Fill_MutualUpdatePath(word_param);
+            res = Fill_MutualUpdatePath(word_param, strlen(word_param));
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
             {
@@ -189,9 +189,9 @@ bool_t updateapp(char *param)
         {
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
-                res = Fill_MutualUpdatePath(word_param);
+                res = Fill_MutualUpdatePath(word_param, strlen(word_param));
             else
-                res = Fill_MutualUpdatePath(CFG_APP_UPDATE_NAME);
+                res = Fill_MutualUpdatePath(CFG_APP_UPDATE_NAME, sizeof(CFG_APP_UPDATE_NAME));
         }
     }
 
@@ -330,14 +330,14 @@ bool_t updateiboot(char *param)
     word_param = shell_inputs(param,&next_param);
     if(word_param == NULL)
     {
-        res = Fill_MutualUpdatePath(CFG_IBOOT_UPDATE_NAME);
+        res = Fill_MutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
         Set_UpdateRunModet(0);      //启动后运行iboot
     }
     else
     {
         if(runapp_or_runiboot(word_param) == false)
         {
-            res = Fill_MutualUpdatePath(word_param);
+            res = Fill_MutualUpdatePath(word_param, strlen(word_param));
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
             {
@@ -351,9 +351,9 @@ bool_t updateiboot(char *param)
         {
             word_param = shell_inputs(next_param,&next_param);
             if(word_param != NULL)
-                res = Fill_MutualUpdatePath(word_param);
+                res = Fill_MutualUpdatePath(word_param, strlen(word_param));
             else
-                res = Fill_MutualUpdatePath(CFG_IBOOT_UPDATE_NAME);
+                res = Fill_MutualUpdatePath(CFG_IBOOT_UPDATE_NAME, sizeof(CFG_IBOOT_UPDATE_NAME));
         }
     }
 
@@ -467,28 +467,33 @@ bool_t ModuleInstall_XIP(void)
     char run_mode = Get_RunMode();
     if(user_update_iboot(0) == false)
     {
-        if(run_mode == 1)
+        if(Get_UpdateSource() == 0)
         {
-            if(Get_Updateiboot() == true)
+            if(run_mode == 1)
             {
-                evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
-                                            App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
+                if(Get_Updateiboot() == true)
+                {
+                    evtt_Update = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_RRS, 0, 0,
+                                                App_UpdateIboot, NULL, CFG_MAINSTACK_LIMIT, "update iboot");
+                }
             }
+            else
+                return false;
+
+            if(evtt_Update != CN_EVTT_ID_INVALID)
+            {
+                if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
+                {
+                    if(run_mode == 1)
+                        info_printf("XIP","add iboot update function.\r\n");
+
+                    return true;
+                }
+            }
+            return false;
         }
         else
             return false;
-
-        if(evtt_Update != CN_EVTT_ID_INVALID)
-        {
-            if(Djy_EventPop(evtt_Update, NULL, 0, NULL, 0, 0) != CN_EVENT_ID_INVALID)
-            {
-                if(run_mode == 1)
-                    info_printf("XIP","add iboot update function.\r\n");
-
-                return true;
-            }
-        }
-        return false;
     }
     return true;
 }

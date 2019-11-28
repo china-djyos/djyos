@@ -102,7 +102,7 @@ static bool_t sflashInited = false;
 static struct umedia *flash_um;
 const char *flash_name = "emflash";      //该flash在obj在的名字
 extern struct Object *s_ptDeviceRoot;
-extern bool_t addition_crc_data;
+bool_t addition_crc_data = false;
 
 struct NorDescr *nordescription;
 
@@ -160,7 +160,7 @@ void djy_flash_read_crc(uint32_t address, void *data, uint32_t size)
 // ============================================================================
 void djy_flash_read(uint32_t address, void *data, uint32_t size)
 {
-    u32 i = 0, j = 0;   //读的时候这里也不做偏移，和擦除一样，在xip里做好偏移。
+    u32 i = 0;   //读的时候这里也不做偏移，和擦除一样，在xip里做好偏移。
     u8 buf[272];
     if (size == 0)
     {
@@ -172,18 +172,20 @@ void djy_flash_read(uint32_t address, void *data, uint32_t size)
         memset(buf, 0xFF, 272);
 //        djy_flash_read_crc(address, buf, 272);  //读取带crc的256个数据，因为带crc，所以要读272
         flash_read((char *)buf, 272, address);//读取带crc的256个数据，因为带crc，所以要读272
-        i = j = 0;
+//        i = j = 0;
+        i = 0;
         while(i < 272)  //把crc数据去掉，只留有效数据
         {
             if(size > 32)
-                memcpy(data + j, buf + i, 32);
+                memcpy(data, buf + i, 32);
             else
             {
-                memcpy(data + j, buf + i, size);
+                memcpy(data, buf + i, size);
                 size = 0;
                 break;
             }
-            j += 32;
+            data += 32;
+//            j += 32;
             i += 34;
             size -= 32;
         }

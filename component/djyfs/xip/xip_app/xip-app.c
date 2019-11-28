@@ -146,9 +146,9 @@ struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
     if(!file)
         return (NULL);
 
-    if(false == XIP_AppFileChack(head))
+    if(false == XIP_AppFileCheck_Easy(head))
     {
-        printf("\r\n: info : xipfs  : No APp file ");
+        printf("\r\n: info : xipfs  : No APP file on the embed flash ");
         return (NULL);
     }
     file->sz = XIP_GetAPPSize(head);
@@ -241,7 +241,7 @@ s32 xip_app_makefilehead(struct __icontext *cx,struct __icore *core, struct __if
     if(file->cxbase != cx->Wappsize)
         return -1;
     file->sz += file->cxbase;
-    Rewrite_AppHead(cx->apphead,name,file->sz);
+    Rewrite_AppHead_FileInfo(cx->apphead,name,file->sz);
     if(-1 == core->drv->xip_write_media(core, cx->apphead, file->cxbase, xip_app_locatefilehead(file)))
         return (-1);
 
@@ -280,14 +280,15 @@ static s32 xip_app_scanfiles(struct __icore *core)
     // 将内容接入文件系统
     if(!obj_newchild(core->root, xip_app_ops, (ptu32_t)file, name))
     {
-        free(file);
         goto Error;
     }
 //  obj_Close(core->root->child);   //  把子节点引用次数减一，因为xip的文件并没有打开，只是事先加到obj里
     printf("\r\n: info : xipfs  : valid file found, name(%s), size(%dKB).", name, (file->sz>>10));
+    free(file);
     free(structFileHead);
     return (0);
 Error:
+    free(file);
     free(structFileHead);
     return (-1);
 }
@@ -451,7 +452,6 @@ static struct objhandle *xip_app_open(struct Object *ob, u32 flags, char *uncach
                     return (NULL);
                 }
             }
-
             file = xip_app_newfile(core);
             if(!file)
             {
@@ -1057,12 +1057,12 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
         free(core);
         return (-1);
     }
-    um->mreq(unitbytes,(ptu32_t)&flash_page_size);
+//    um->mreq(unitbytes,(ptu32_t)&flash_page_size);
     xip_app_install_drv(core,super->MediaDrv);
     core->ASize = super->AreaSize;
     core->MStart = super->MediaStart;
     core->vol = (void*)um;
-    core->bufsz = (s16)flash_page_size; // xip文件系统文件的缓存大小依据unit的尺寸；
+    core->bufsz = (s16)512; // xip文件系统文件的缓存大小依据unit的尺寸；
     if(core->bufsz<(s16)Get_AppHeadSize())
     {
         free(core);

@@ -632,6 +632,8 @@ static ptu32_t RichTextBox_Paint(struct WindowMsg *pMsg)
     hwnd =pMsg->hwnd;
 
     hdc = BeginPaint(hwnd);
+    if(hdc == NULL)
+        return false;
     GetClientRect(hwnd,&rc0);
 
     SetRect(&rc,2,2,RectW(&rc0)-2*2,RectH(&rc0)-10);
