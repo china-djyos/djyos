@@ -1581,8 +1581,8 @@ static ptu32_t DefWindowProc_CLOSE(struct WindowMsg *pMsg)
     struct WindowMsg SubMsg;
     HWND hwnd,next;
 
-    if(__GDD_Lock())
-    {
+//  if(__GDD_Lock())
+//  {
         hwnd = pMsg->hwnd;
         //查找被删除窗口是否focus窗口的祖先窗口，如是，则需要转移focus窗口
         //从被删窗口的兄弟窗口中找到一个允许focus的窗口，设为新的focus窗口。
@@ -1625,8 +1625,8 @@ static ptu32_t DefWindowProc_CLOSE(struct WindowMsg *pMsg)
             Current = __GetWindowTwig(hwnd);
         }
         GK_DestroyWin(hwnd->pGkWin);
-        __GDD_Unlock();
-    }
+//      __GDD_Unlock();
+//  }
     return 0;
 }
 
@@ -1693,62 +1693,66 @@ ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
     struct MsgProcTable *MyTable;
     s32 num = 0;
 
-    hwnd = pMsg->hwnd;
-    MyTableLinkNode = hwnd->MyMsgTableLink[num];
-//    MyPrebak = &MyTableLinkNode;
-//    MyTableLinkNode->pLinkTab = NULL;
-//  MyTableLinkNode = Head;
-    //这是一级级消息处理继承机制，先从最低一级继承出发
-    //以控件的paint消息处理为例说明一下：
-    //一般来说，MyMsgTableLink直接指向的是用户的消息表，如果从用户表中找到了
-    //      paint消息函数，则调用后返回。否则：
-    //      MyMsgTableLink->LinkNext指向的是控件的消息表，里面一般能找到 paint
-    //      消息处理函数，调用后返回。否则：
-    //      从窗口系统的默认消息处理函数表 s_gDefWindowMsgProcTable中找。
-    //这就是类似C++的继承机制。相当于用户继承控件，控件继承窗口系统。
-
-    while(MyTableLinkNode != NULL)
+    if(__GDD_Lock())
     {
-        MyTable = MyTableLinkNode->myTable;
-        if(MyTable != NULL)
+        hwnd = pMsg->hwnd;
+        MyTableLinkNode = hwnd->MyMsgTableLink[num];
+    //    MyPrebak = &MyTableLinkNode;
+    //    MyTableLinkNode->pLinkTab = NULL;
+    //  MyTableLinkNode = Head;
+        //这是一级级消息处理继承机制，先从最低一级继承出发
+        //以控件的paint消息处理为例说明一下：
+        //一般来说，MyMsgTableLink直接指向的是用户的消息表，如果从用户表中找到了
+        //      paint消息函数，则调用后返回。否则：
+        //      MyMsgTableLink->LinkNext指向的是控件的消息表，里面一般能找到 paint
+        //      消息处理函数，调用后返回。否则：
+        //      从窗口系统的默认消息处理函数表 s_gDefWindowMsgProcTable中找。
+        //这就是类似C++的继承机制。相当于用户继承控件，控件继承窗口系统。
+
+        while(MyTableLinkNode != NULL)
         {
-            offset = GetWinMsgFunc(pMsg->Code & MSG_BODY_MASK, MyTableLinkNode);
-            if(offset != -1)
+            MyTable = MyTableLinkNode->myTable;
+            if(MyTable != NULL)
             {
-                MsgCtrl =  MyTable[offset].MsgCode & MSG_CONTROL_MSK;
-                if((MsgCtrl & MSG_ADOPT_MSK) == MSG_ADOPT_NONE) //不继承
+                offset = GetWinMsgFunc(pMsg->Code & MSG_BODY_MASK, MyTableLinkNode);
+                if(offset != -1)
                 {
-                    if(MyTable[offset].MsgProc !=NULL)
-                        result = MyTable[offset].MsgProc(pMsg);
-                    while((Adopt == true)&&(num!=0) )
+                    MsgCtrl =  MyTable[offset].MsgCode & MSG_CONTROL_MSK;
+                    if((MsgCtrl & MSG_ADOPT_MSK) == MSG_ADOPT_NONE) //不继承
                     {
-                        MyTableLinkNode = hwnd->MyMsgTableLink[--num];
-                        MyTable = MyTableLinkNode->myTable;
-                        offset = GetWinMsgFunc(pMsg->Code,MyTableLinkNode);
-                        if((offset != -1)&&(MyTable[offset].MsgProc !=NULL))
-                        {
+                        if(MyTable[offset].MsgProc !=NULL)
                             result = MyTable[offset].MsgProc(pMsg);
+                        while((Adopt == true)&&(num!=0) )
+                        {
+                            MyTableLinkNode = hwnd->MyMsgTableLink[--num];
+                            MyTable = MyTableLinkNode->myTable;
+                            offset = GetWinMsgFunc(pMsg->Code,MyTableLinkNode);
+                            if((offset != -1)&&(MyTable[offset].MsgProc !=NULL))
+                            {
+                                result = MyTable[offset].MsgProc(pMsg);
+                            }
                         }
+                        break;
                     }
-                    break;
-                }
-                else
-                {
-                    Adopt = true;
+                    else
+                    {
+                        Adopt = true;
+                    }
                 }
             }
+            if(MyTableLinkNode == &s_gDefWindowMsgLink)
+                MyTableLinkNode =NULL;
+            else
+                MyTableLinkNode = hwnd->MyMsgTableLink[++num];
         }
-        if(MyTableLinkNode == &s_gDefWindowMsgLink)
-            MyTableLinkNode =NULL;
-        else
-            MyTableLinkNode = hwnd->MyMsgTableLink[++num];
-    }
-    if(pMsg->Code == MSG_CLOSE)
-    {
-        if(hwnd->Style&WS_CHILD)
-            __DeleteChildWindowData(hwnd);
-        else
-            __DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些
+        if(pMsg->Code == MSG_CLOSE)
+        {
+            if(hwnd->Style&WS_CHILD)
+                __DeleteChildWindowData(hwnd);
+            else
+                __DeleteMainWindowData(hwnd);   //主窗口要删除的东西多一些
+        }
+        __GDD_Unlock();
     }
     return result;
 
