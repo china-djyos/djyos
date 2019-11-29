@@ -169,8 +169,6 @@ struct WINDOW
     list_t  node_msg_close;     //窗口CLOSE消息链表节点
     list_t  node_msg_ncpaint;   //窗口NCPAINT消息链表节点
     list_t  node_msg_paint;     //窗口PAINT消息链表节点
-
-
 };
 
 struct WinTimer

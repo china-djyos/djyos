@@ -64,10 +64,15 @@
 #include    <gui/gdd/gdd_private.h>
 #include    <gui/gdd_timer.h>
 #include "list.h"
+#include "pool.h"
 #include "component_config_gdd.h"
 
 extern HWND    InitGddDesktop(struct GkWinObj *desktop);
 extern bool_t Cursor_Init(void);
+
+#define CN_HWND_INIT_CAPACITAL 10
+struct MemCellPool *g_ptHwndPool;
+static struct WINDOW s_tHwndInitPool[CN_HWND_INIT_CAPACITAL];
 /*============================================================================*/
 
 static  struct MutexLCB *gdd_mutex_lock=NULL;
@@ -104,17 +109,13 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
     if(gdd_mutex_lock == NULL)
         return;
 
+    g_ptHwndPool = Mb_CreatePool(s_tHwndInitPool,CN_HWND_INIT_CAPACITAL,
+                    sizeof(struct WINDOW), 16, 1000, "hwnd");
     pGddWin=InitGddDesktop(desktop);
     GDD_WindowInit();
     GDD_TimerInit();
     GDD_InputDevInit( );
-//  if(pGddWin != NULL)
-//  {
-//      if(Cursor_Init())
-//          SetFocusWindow(pGddWin);
-//  }
     SetFocusWindow(pGddWin);
-
     //gdd定时器扫描
     evtt = Djy_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
                           GDD_TimerScan, NULL,2048,"gdd timer");
@@ -124,6 +125,7 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
     }
 
 
+//以下代码是用于响应从gkernel回送的消息，暂时空着。
 //  evtt = Djy_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
 //                        GDD_GetGK_Message, NULL,2048,"wait gk task");
 //  if (evtt != CN_EVTT_ID_INVALID)

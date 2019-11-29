@@ -63,7 +63,8 @@
 #include    <gui/gdd/gdd_private.h>
 #include <gkernel.h>
 #include "dbug.h"
-#include "project_config.h"
+#include "pool.h"
+#include "component_config_gdd.h"
 /*
 typedef struct  __WNDCLASS  //窗口类数据结构
 {
@@ -78,6 +79,7 @@ extern HWND g_CursorHwnd;         //光标窗口
 extern void GK_SetVisible(struct GkWinObj *gkwin, u32 visible,u32 SyncTime);
 /*============================================================================*/
 
+extern struct MemCellPool *g_ptHwndPool;
 HWND HWND_Desktop=NULL;
 u16 sg_MainWindEvtt;
 
@@ -767,7 +769,7 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
     u16 MyEvtt;
     u16 MyEventid;
 
-    pGddWin=malloc(sizeof(struct WINDOW));
+    pGddWin = Mb_Malloc(g_ptHwndPool, CN_TIMEOUT_FOREVER);
     if(NULL!=pGddWin)
     {
         memset(pGddWin, 0, sizeof(struct WINDOW));
@@ -919,7 +921,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
     if(__GDD_Lock())
     {
 //      pGddWin=M_Malloc(sizeof(struct WINDOW) + sizeof(struct GkWinObj),100*mS);
-        pGddWin=M_Malloc(sizeof(struct WINDOW), 100*mS);
+        pGddWin = Mb_Malloc(g_ptHwndPool, CN_TIMEOUT_FOREVER);
         if(NULL!=pGddWin)
         {
             memset(pGddWin, 0, sizeof(struct WINDOW));
@@ -1028,12 +1030,11 @@ void __DeleteChildWindowData(HWND hwnd)
     dListRemove(&hwnd->node_msg_ncpaint);
     dListRemove(&hwnd->node_msg_paint);
     __RemoveWindowTimer(hwnd);
-//    GK_DestroyWin(hwnd->pGkWin);
+//  __GUI_DeleteMsgQ(hwnd->pMsgQ);      //子窗口共享主窗口消息队列
+//  Lock_MutexDelete(hwnd->mutex_lock); //子窗口没有私有的 mutex_lock,不用释放.
 
     free(hwnd->MyMsgTableLink);
-//  free(hwnd->pGkWin);
-//  hwnd->pGkWin =NULL;
-    hwnd->mutex_lock =NULL; //子窗口没有私有的 mutex_lock,不用释放.
+    memset(hwnd, 0, sizeof(struct WINDOW));
     free(hwnd);
 
 }
@@ -1050,14 +1051,10 @@ void __DeleteMainWindowData(HWND hwnd)
     dListRemove(&hwnd->node_msg_paint);
     __RemoveWindowTimer(hwnd);
     __GUI_DeleteMsgQ(hwnd->pMsgQ);
-//    GK_DestroyWin(hwnd->pGkWin);
-//  UpdateDisplay(CN_TIMEOUT_FOREVER);
     Lock_MutexDelete(hwnd->mutex_lock);
 
     free(hwnd->MyMsgTableLink);
-//  free(hwnd->pGkWin);
-//  hwnd->pGkWin =NULL;
-    hwnd->mutex_lock =NULL;
+    memset(hwnd, 0, sizeof(struct WINDOW));
     free(hwnd);
 
 }
@@ -1696,6 +1693,11 @@ ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
     if(__GDD_Lock())
     {
         hwnd = pMsg->hwnd;
+        if(hwnd->pGkWin == NULL)        //无gkwin的句柄，一定是无效的。
+        {
+            __GDD_Unlock();
+            return 0;
+        }
         MyTableLinkNode = hwnd->MyMsgTableLink[num];
     //    MyPrebak = &MyTableLinkNode;
     //    MyTableLinkNode->pLinkTab = NULL;

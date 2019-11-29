@@ -367,13 +367,18 @@ u32 SendMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
     if(msg==MSG_CLOSE)
     {
-        //MSG_CLOSE 必须异步处理
+        //MSG_CLOSE 必须异步处理，在PostMessage函数里面有判非法hwnd的代码
         PostMessage(hwnd,msg,param1,param2);
     }
     else
     {
         if(__GDD_Lock())
         {
+            if(hwnd->pGkWin == NULL)        //无gkwin的句柄，一定是无效的。
+            {
+                __GDD_Unlock();
+                return false;
+            }
             if(__GetWindowEvent(hwnd) == Djy_MyEventId())
             {
                 //如果是同一线程内,直接调用窗口过程
@@ -579,6 +584,11 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
 
     if(__GDD_Lock())
     {
+        if(hwnd->pGkWin == NULL)        //无gkwin的句柄，一定是无效的。
+        {
+            __GDD_Unlock();
+            return false;
+        }
         pMsgQ =__GetWindowMsgQ(hwnd);
         if(NULL!=pMsgQ)
         {
