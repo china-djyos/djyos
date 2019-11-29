@@ -2090,6 +2090,7 @@ int c_sscanf(const char *ibuf, const char *fmt, ...);
 #undef ntohs
 #undef ntohl
 
+#if 0
 //系统字节序转换
  //----16位数据大小端对换---------------------------------------------------------
  //功能: 16位数据做大小端兑换
@@ -2105,6 +2106,7 @@ int c_sscanf(const char *ibuf, const char *fmt, ...);
 
 #define swapl(value)  ((((value)&((unsigned int)0xff000000))>>24)|(((value)&((unsigned int)0xff0000))>>8)|\
                       (((value)&((unsigned int)0xff00))<<8)|(((value)&((unsigned int)0xff))<<24))
+#endif
  //----16位数据本地端转换为小端---------------------------------------------------
  //功能: 16位数据本地端转换为小端
  //参数: value,输入的16位数据
@@ -2133,7 +2135,7 @@ int c_sscanf(const char *ibuf, const char *fmt, ...);
 #define MG_NET_IF MG_NET_IF_SOCKET
 
 typedef int sock_t;
-#define INVALID_SOCKET (-1)
+//#define INVALID_SOCKET (-1)
 
 #define SOMAXCONN 128
 

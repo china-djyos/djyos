@@ -83,6 +83,7 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
 void OpenScreen();
 void CloseScreen();
 void ClosePower();
+void CloseSpeaker();
 enum EasyKeyValue
 {
     NO_KEY = 0,
