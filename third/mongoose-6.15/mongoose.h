@@ -2090,20 +2090,24 @@ int c_sscanf(const char *ibuf, const char *fmt, ...);
 #undef ntohs
 #undef ntohl
 
-#if 0
+
 //系统字节序转换
  //----16位数据大小端对换---------------------------------------------------------
  //功能: 16位数据做大小端兑换
  //参数: value,输入的16位数据
  //返回: 转换后的16位数据
  //------------------------------------------------------------------------------
+#ifdef swaps
+#undef swaps
 #define swaps(value) ((((value)&((unsigned short)0xff00))>>8)|(((value)&((unsigned short)0x00ff))<<8))
+#endif
  //----32位数据大小端对换---------------------------------------------------------
  //功能: 32位数据做大小端兑换
  //参数: value,输入的32位数据
  //返回: 转换后的32位数据
  //------------------------------------------------------------------------------
-
+#ifdef swapl
+#undef swapl
 #define swapl(value)  ((((value)&((unsigned int)0xff000000))>>24)|(((value)&((unsigned int)0xff0000))>>8)|\
                       (((value)&((unsigned int)0xff00))<<8)|(((value)&((unsigned int)0xff))<<24))
 #endif
