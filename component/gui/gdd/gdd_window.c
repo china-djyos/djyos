@@ -784,7 +784,7 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
 
         if( pGddWin->MyMsgTableLink ==NULL)
         {
-           free(pGddWin);
+            Mb_Free(g_ptHwndPool,pGddWin);
            return NULL;
         }
         else
@@ -822,7 +822,7 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
             {
                 __GUI_DeleteMsgQ(pGddWin->pMsgQ);
             }
-            free(pGddWin);
+            Mb_Free(g_ptHwndPool,pGddWin);
             return NULL;
         }
 
@@ -843,13 +843,13 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
             else
             {
                 Djy_EvttUnregist( MyEvtt );
-                free(pGddWin);
+                Mb_Free(g_ptHwndPool,pGddWin);
                 pGddWin = NULL;
             }
         }
         else
         {
-            free(pGddWin);
+            Mb_Free(g_ptHwndPool,pGddWin);
             pGddWin = NULL;
         }
         SendMessage(pGddWin,MSG_CREATE,0,0);
@@ -936,7 +936,7 @@ HWND    CreateWindow(const char *Text,u32 Style,
                                 unfill);
             if(!pGkWin)
             {
-                free(pGddWin);
+                Mb_Free(g_ptHwndPool,pGddWin);
                 pGddWin = NULL;
             }
             else
@@ -1035,7 +1035,7 @@ void __DeleteChildWindowData(HWND hwnd)
 
     free(hwnd->MyMsgTableLink);
     memset(hwnd, 0, sizeof(struct WINDOW));
-    free(hwnd);
+    Mb_Free(g_ptHwndPool,hwnd);
 
 }
 
@@ -1055,7 +1055,7 @@ void __DeleteMainWindowData(HWND hwnd)
 
     free(hwnd->MyMsgTableLink);
     memset(hwnd, 0, sizeof(struct WINDOW));
-    free(hwnd);
+    Mb_Free(g_ptHwndPool,hwnd);
 
 }
 
