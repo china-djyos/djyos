@@ -175,13 +175,17 @@ void djy_adc_close(DD_HANDLE handle)
 
 
 // 这个ADC系统不能重入，同一时刻只能只有一个ADC通道在运行
-#define ADC_TEMP_BUFFER_SIZE 2
-static saradc_desc_t tmp_single_desc;
-static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
-static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
+//#define ADC_TEMP_BUFFER_SIZE 2
+//static saradc_desc_t tmp_single_desc;
+//static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
+//static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
 
 int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 {
+#define ADC_TEMP_BUFFER_SIZE 2
+    saradc_desc_t tmp_single_desc;
+    UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
+    DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
     int tryTimes = 1000;
     UINT32 status;
     UINT32 cmd;
@@ -234,7 +238,7 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 
     return tmpData;
 }
-
+#if 0
 static void temp_single_detect_handler2(void)
 {
     if(tmp_single_desc.current_sample_data_cnt >= tmp_single_desc.data_buff_size)
@@ -265,7 +269,7 @@ static void temp_single_detect_handler2(void)
 //        rtos_set_semaphore(&tmp_single_semaphore);
     }
 }
-
+#endif
 
 
 
@@ -277,7 +281,7 @@ int vbat_voltage_get(void)
     {
         Vbat = djy_adc_read(0);
         Vbat = Vbat * 2;
-        if((Vbat > 2700) && (Vbat < 4400))	//去掉一些错误电压
+        if((Vbat > 2700) && (Vbat < 4400))  //去掉一些错误电压
         {
             AverageVbat += Vbat;
             j++;
