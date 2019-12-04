@@ -153,17 +153,19 @@ void Int_RestoreAsynSignal(void)
         return;
     if(tg_int_global.en_asyn_signal_counter != 0)
         tg_int_global.en_asyn_signal_counter--;
-    if((tg_int_global.en_asyn_signal_counter==0)
-               && (!Int_IsLowAtom(tg_IntAsynStatus)))
+    if(tg_int_global.en_asyn_signal_counter==0)
     {
-        Int_LowAtomEnd(tg_IntAsynStatus);
         g_bScheduleEnable = true;
-        if(g_ptEventRunning !=  g_ptEventReady)
+        if( ! Int_IsLowAtom(tg_IntAsynStatus))
         {
-            __Djy_Schedule();
-//                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
-        }else
-            Int_ContactAsynSignal();
+            Int_LowAtomEnd(tg_IntAsynStatus);
+            if(g_ptEventRunning !=  g_ptEventReady)
+            {
+                __Djy_Schedule();
+    //                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
+            }else
+                Int_ContactAsynSignal();
+        }
     }else
     {
         Int_CutAsynSignal();    //防止counter>0期间意外(bug)打开
