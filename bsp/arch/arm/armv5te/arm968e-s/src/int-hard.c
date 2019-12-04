@@ -468,12 +468,10 @@ void Int_Init(void)
     tg_int_global.nest_real = 0;
 //    tg_int_global.en_asyn_signal = false;
     tg_int_global.en_asyn_signal_counter = 1;   //异步信号计数
-    //Int_CutAsynSignal();
-    Int_SaveAsynSignal();
+    Int_CutAsynSignal();
 //    tg_int_global.en_trunk = true;
     tg_int_global.en_trunk_counter = 0;   //总中断计数
     //Int_ContactTrunk();                //接通总中断开关
-    Int_RestoreAsynSignal();
 }
 
 
