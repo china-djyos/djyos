@@ -53,7 +53,6 @@
 #include "intc.h"
 #include "icu_pub.h"
 #include "drv_model_pub.h"
-#define UNUSED_VARIABLE(x) ((void)(x))
 
 extern void __Djy_ScheduleAsynSignal(void);
 void intc_enable(int index);
@@ -82,6 +81,32 @@ void djy_fiq_dispatch(void)
 
     isr_fun = intertab[1];
     isr_fun(intStatus);
+}
+
+//----原子状态检测--------------------------------------------------------------
+//功能：根据 Int_LowAtomStart 函数返回值，测试在调用该函数前的低级原子操作状态
+//参数：AtomStatus，Int_LowAtomStart 函数返回值
+//返回：true = 调用 Int_LowAtomStart 前已经处于原子操作状态，false 反之
+//-----------------------------------------------------------------------------
+bool_t Int_IsLowAtom(atom_low_t AtomStatus)
+{
+    if((AtomStatus & 0xc0) != 0xc0)
+        return false;
+    else
+        return true;
+}
+
+//----原子状态检测--------------------------------------------------------------
+//功能：根据 Int_HighAtomStart 函数返回值，测试在调用该函数前的低级原子操作状态
+//参数：AtomStatus，Int_HighAtomStart 函数返回值
+//返回：true = 调用 Int_HighAtomStart 前已经处于原子操作状态，false 反之
+//-----------------------------------------------------------------------------
+bool_t Int_IsHighAtom(atom_High_t AtomStatus)
+{
+    if((AtomStatus & 0xc0) != 0xc0)
+        return false;
+    else
+        return true;
 }
 
 //----接通异步信号开关---------------------------------------------------------
@@ -327,6 +352,9 @@ void Int_DisableNest(ufast_t ufl_line)
     return ;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //----设定抢占优先级-----------------------------------------------------------
 //功能: 设定指定中断线的嵌套优先级，本函数严重依赖硬件功能。如果硬件不支持，可返回false
 //参数：ufast ufl_line，指定被设置的中断线号
@@ -335,11 +363,10 @@ void Int_DisableNest(ufast_t ufl_line)
 //-----------------------------------------------------------------------------
 bool_t Int_SetPrio(ufast_t ufl_line,u32 prio)
 {
-    UNUSED_VARIABLE(ufl_line);
-    UNUSED_VARIABLE(prio);
-
     return false;
 }
+
+#pragma GCC diagnostic pop
 
 //----总中断引擎---------------------------------------------------------------
 //功能：有些系统，在中断向量表部分难于区分实时中断还是异步信号的，或者不希望在汇

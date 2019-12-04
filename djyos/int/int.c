@@ -85,6 +85,7 @@
 
 struct IntLine *tg_pIntLineTable[CN_INT_LINE_LAST+1];
 struct IntMasterCtrl  tg_int_global;
+atom_low_t tg_IntAsynStatus;
 
 extern void __Djy_CutReadyEvent(struct EventECB *event);
 extern bool_t __Djy_Schedule(void);
@@ -101,12 +102,14 @@ void Int_SaveAsynSignal(void)
     if(tg_int_global.nest_asyn_signal != 0)
         return;
 
-    Int_CutAsynSignal();
+//  Int_CutAsynSignal();
     //达上限后再加会回绕到0
     if(tg_int_global.en_asyn_signal_counter != CN_LIMIT_UCPU)
         tg_int_global.en_asyn_signal_counter++;
+    if(tg_int_global.en_asyn_signal_counter==1)
+        tg_IntAsynStatus = Int_LowAtomStart();
     //原算法是从0->1的过程中才进入，但如果在en_asyn_signal_counter != 0的状态下
-    //因故障使中断关闭，将使用户后续调用的en_asyn_signal_counter起不到作用
+    //因故障使调度打开，将使用户后续调用的en_asyn_signal_counter起不到作用
     g_bScheduleEnable = false;
     return;
 }
@@ -151,19 +154,16 @@ void Int_RestoreAsynSignal(void)
     if(tg_int_global.en_asyn_signal_counter != 0)
         tg_int_global.en_asyn_signal_counter--;
     if(tg_int_global.en_asyn_signal_counter==0)
+                ! (&& Int_IsLowAtom(tg_IntAsynStatus)) )
     {
-//        tg_int_global.en_asyn_signal = true;   //异步信号设为使能
-//        if(tg_int_global.en_trunk_counter == 0)
-//        {
-            g_bScheduleEnable = true;
-            if(g_ptEventRunning!= g_ptEventReady)
-            {
-                __Djy_Schedule();
+        Int_LowAtomEnd(tg_IntAsynStatus);
+        g_bScheduleEnable = true;
+        if(g_ptEventRunning !=  g_ptEventReady)
+        {
+            __Djy_Schedule();
 //                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
-            }else
-                Int_ContactAsynSignal();
-//        }else
-//            Int_ContactAsynSignal();
+        }else
+            Int_ContactAsynSignal();
     }else
     {
         Int_CutAsynSignal();    //防止counter>0期间意外(bug)打开
