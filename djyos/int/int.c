@@ -103,11 +103,11 @@ void Int_SaveAsynSignal(void)
         return;
 
 //  Int_CutAsynSignal();
+    if(tg_int_global.en_asyn_signal_counter==0)
+        tg_IntAsynStatus = Int_LowAtomStart();
     //达上限后再加会回绕到0
     if(tg_int_global.en_asyn_signal_counter != CN_LIMIT_UCPU)
         tg_int_global.en_asyn_signal_counter++;
-    if(tg_int_global.en_asyn_signal_counter==1)
-        tg_IntAsynStatus = Int_LowAtomStart();
     //原算法是从0->1的过程中才进入，但如果在en_asyn_signal_counter != 0的状态下
     //因故障使调度打开，将使用户后续调用的en_asyn_signal_counter起不到作用
     g_bScheduleEnable = false;
@@ -154,7 +154,7 @@ void Int_RestoreAsynSignal(void)
     if(tg_int_global.en_asyn_signal_counter != 0)
         tg_int_global.en_asyn_signal_counter--;
     if(tg_int_global.en_asyn_signal_counter==0)
-                ! (&& Int_IsLowAtom(tg_IntAsynStatus)) )
+                && (! Int_IsLowAtom(tg_IntAsynStatus)) )
     {
         Int_LowAtomEnd(tg_IntAsynStatus);
         g_bScheduleEnable = true;
