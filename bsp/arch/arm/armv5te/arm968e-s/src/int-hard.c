@@ -101,7 +101,7 @@ bool_t Int_IsLowAtom(atom_low_t AtomStatus)
 //参数：AtomStatus，Int_HighAtomStart 函数返回值
 //返回：true = 调用 Int_HighAtomStart 前已经处于原子操作状态，false 反之
 //-----------------------------------------------------------------------------
-bool_t Int_IsHighAtom(atom_High_t AtomStatus)
+bool_t Int_IsHighAtom(atom_high_t AtomStatus)
 {
     if((AtomStatus & 0xc0) != 0xc0)
         return false;

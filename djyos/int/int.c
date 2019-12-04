@@ -153,8 +153,8 @@ void Int_RestoreAsynSignal(void)
         return;
     if(tg_int_global.en_asyn_signal_counter != 0)
         tg_int_global.en_asyn_signal_counter--;
-    if(tg_int_global.en_asyn_signal_counter==0)
-                && (! Int_IsLowAtom(tg_IntAsynStatus)) )
+    if((tg_int_global.en_asyn_signal_counter==0)
+               && (!Int_IsLowAtom(tg_IntAsynStatus)))
     {
         Int_LowAtomEnd(tg_IntAsynStatus);
         g_bScheduleEnable = true;
