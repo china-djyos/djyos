@@ -234,7 +234,9 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
             break;
         }
     }
-
+    if (tryTimes <= 0) {
+        ddev_close(tmp_single_hdl);
+    }
 
     return tmpData;
 }
