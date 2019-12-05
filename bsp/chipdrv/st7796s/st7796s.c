@@ -1058,6 +1058,8 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
     FrameBitmap.bm_bits = (u8 *)pLTDCBufferFG1;
 #else
     FrameBitmap.bm_bits = u8g_frame_buffer;
+//  heap =M_FindHeap("PSRAM");
+//  FrameBitmap.bm_bits = M_MallocHeap(cn_frame_buffer_size,heap,0);;
 #endif
     FrameBitmap.width = CFG_LCD_XSIZE;
     FrameBitmap.height = CFG_LCD_YSIZE;
