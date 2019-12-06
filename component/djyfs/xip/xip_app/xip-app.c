@@ -148,7 +148,7 @@ struct __ifile *xip_app_decodefilehead(void *head, struct __ifile *file)
 
     if(false == XIP_AppFileCheck_Easy(head))
     {
-        printf("\r\n: info : xipfs  : No APP file on the embed flash ");
+        printf("\r\n: info : xipfs  : Error checking local app file header,检查本地的app时出错，不影响待升级的app。 \r\n");
         return (NULL);
     }
     file->sz = XIP_GetAPPSize(head);
