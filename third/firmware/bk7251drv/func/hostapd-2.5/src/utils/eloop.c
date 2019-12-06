@@ -484,12 +484,14 @@ int eloop_register_signal(int sig, eloop_signal_handler handler,
         return 0;
     }
 
-    GLOBAL_INT_DISABLE();
+//  GLOBAL_INT_DISABLE();
+    Int_SaveAsynSignal();        //by lst
     tmp = os_realloc_array(eloop.signals, eloop.signal_count + 1,
                    sizeof(struct eloop_signal));
     if (tmp == NULL)
     {
-        GLOBAL_INT_RESTORE();
+//      GLOBAL_INT_RESTORE();
+        Int_RestoreAsynSignal();        //by lst
         return -1;
     }
 
@@ -500,7 +502,8 @@ int eloop_register_signal(int sig, eloop_signal_handler handler,
 
     eloop.signal_count++;
     eloop.signals = tmp;
-    GLOBAL_INT_RESTORE();
+//  GLOBAL_INT_RESTORE();
+    Int_RestoreAsynSignal();        //by lst
 
     return 0;
 }
