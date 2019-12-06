@@ -158,7 +158,7 @@ void Int_RestoreAsynSignal(void)
         g_bScheduleEnable = true;
 //      if( ! Int_IsLowAtom(tg_IntAsynStatus))
 //      {
-            Int_LowAtomEnd(tg_IntAsynStatus);
+            //Int_LowAtomEnd(tg_IntAsynStatus);
             if(g_ptEventRunning !=  g_ptEventReady)
             {
                 __Djy_Schedule();
