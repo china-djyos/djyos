@@ -185,7 +185,7 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 #define ADC_TEMP_BUFFER_SIZE 2
     saradc_desc_t tmp_single_desc;
     UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
-    DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
+    volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
     int tryTimes = 1000;
     UINT32 status;
     UINT32 cmd;
@@ -219,6 +219,7 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 
     while (tryTimes--)
     {
+        Djy_EventDelay(10);
         if (tmp_single_desc.current_sample_data_cnt == tmp_single_desc.data_buff_size)
         {
             ddev_close(tmp_single_hdl);
