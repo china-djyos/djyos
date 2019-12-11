@@ -180,8 +180,14 @@ void djy_adc_close(DD_HANDLE handle)
 //static UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
 //static volatile DD_HANDLE tmp_single_hdl = DD_HANDLE_UNVALID;
 
+struct MutexLCB *adc_mutex = NULL;
+
 int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
 {
+    if (adc_mutex == NULL) {
+        adc_mutex = Lock_MutexCreate("adc_mutex");
+    }
+
 #define ADC_TEMP_BUFFER_SIZE 2
     saradc_desc_t tmp_single_desc;
     UINT16 tmp_single_buff[ADC_TEMP_BUFFER_SIZE];//ADC_TEMP_BUFFER_SIZE];
@@ -211,6 +217,9 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
     memset(tmp_single_buff, 0, sizeof(tmp_single_buff));
     tmp_single_desc.pData = &tmp_single_buff[0];
 
+    if (adc_mutex)
+        Lock_MutexPend(adc_mutex, 0xffffffff);
+
     tmp_single_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_single_desc);
 
     cmd = SARADC_CMD_RUN_OR_STOP_ADC;
@@ -238,6 +247,8 @@ int djy_adc_read(uint16_t channel) // 注意！！！ 不能再中断中使用！！！
     if (tryTimes <= 0) {
         ddev_close(tmp_single_hdl);
     }
+    if (adc_mutex)
+        Lock_MutexPost(adc_mutex);
 
     return tmpData;
 }
