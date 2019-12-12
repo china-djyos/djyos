@@ -46,9 +46,10 @@
 #include <typedef.h>
 #include <sys_ctrl_pub.h>
 #include <djyos.h>
+#include <gpio_pub.h>
 
 extern UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param);
-
+extern void sdcard_uninitialize(void);
 
 // =============================================================================
 // 功能：    开sd卡电源，
@@ -73,12 +74,24 @@ void sdcard_power_on(void)
 void sdcard_power_off(void)
 {
     u32 param;
+
+    sdcard_uninitialize();
+
     param = BLK_BIT_MIC_R_CHANNEL;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_DISABLE, &param);
 //    param = QSPI_IO_1_8V;
 //    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_IO_VOLTAGE, &param);
     param = PSRAM_VDD_1_8V;
     sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
+
+    gpio_config(GPIO34,GMODE_OUTPUT);
+    gpio_output(GPIO34, 0);
+    gpio_config(GPIO35,GMODE_OUTPUT);
+    gpio_output(GPIO35, 0);
+    gpio_config(GPIO36,GMODE_OUTPUT);
+    gpio_output(GPIO36, 0);
+    gpio_config(GPIO12,GMODE_OUTPUT);
+    gpio_output(GPIO12, 0);
 }
 // =============================================================================
 // 功能：    复位sd卡

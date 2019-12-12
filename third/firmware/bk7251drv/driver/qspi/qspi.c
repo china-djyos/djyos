@@ -409,6 +409,29 @@ void bk_qspi_mode_start(UINT32 mode, UINT32 div)
 	qspi_ctrl(QSPI_CMD_GPIO_CONFIG, (void *)&param);
 	
 }
+void djy_qspi_mode_end(void)    //djyos加的函数，用于关qspi
+{
+    UINT32 param;
+    qspi_close();
+
+    param = QSPI_IO_1_8V;
+    qspi_ctrl(QSPI_CMD_SET_VOLTAGE, (void *)&param);
+
+    gpio_config(GPIO24,GMODE_OUTPUT);
+    gpio_output(GPIO24, 0);
+    gpio_config(GPIO26,GMODE_OUTPUT);
+    gpio_output(GPIO26, 0);
+
+    gpio_config(GPIO20,GMODE_OUTPUT);
+    gpio_output(GPIO20, 0);
+    gpio_config(GPIO21,GMODE_OUTPUT);
+    gpio_output(GPIO21, 0);
+    gpio_config(GPIO22,GMODE_OUTPUT);
+    gpio_output(GPIO22, 0);
+    gpio_config(GPIO23,GMODE_OUTPUT);
+    gpio_output(GPIO23, 0);
+}
+
 
 
 
