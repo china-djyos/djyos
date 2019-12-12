@@ -430,12 +430,27 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      super->MediaStart = bstart * nordescription->PagesPerSector; // 起始unit号
 
      //计算总容量，，如果计算的总容量大于芯片的总容量了，则把芯片的总容量减起始位置
-     super->AreaSize = ((bend * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage)) * 34 / 32;
-     if(super->AreaSize + ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32)  >
-                                 nordescription->SectorNum * nordescription->BytesPerPage * nordescription->PagesPerSector)
+     if(strstr(super->pFsType->pType, "XIP"))      //这里的XIP是指XIP-APP和XIP-IBOOT，如果这两个文件系统的pType改了，这里也要做相应的修改
      {
-         super->AreaSize = nordescription->SectorNum * nordescription->BytesPerPage *
-                 nordescription->PagesPerSector - ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32);
+         super->AreaSize = ((bend * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage)) * 34 / 32;
+         if(super->AreaSize + ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32)  >
+                                     nordescription->SectorNum * nordescription->BytesPerPage * nordescription->PagesPerSector)
+         {
+             super->AreaSize = nordescription->SectorNum * nordescription->BytesPerPage *
+                     nordescription->PagesPerSector - ((super->MediaStart * nordescription->BytesPerPage) * 34 / 32);
+         }
+         info_printf("embedf","%s fileOS total capacity(size : %lld)， available capacity (size : %lld).", fs, super->AreaSize,super->AreaSize / 34 * 32);
+     }
+     else
+     {      //不是XIP的文件系统，填什么区域就是什么区域，不会去做*34/32的偏移，在使用时，需要自行计算好位置。
+         super->AreaSize = (bend * nordescription->BytesPerPage * nordescription->PagesPerSector)- (super->MediaStart * nordescription->BytesPerPage);
+         if(super->AreaSize + (super->MediaStart * nordescription->BytesPerPage) >
+                                     nordescription->SectorNum * nordescription->BytesPerPage * nordescription->PagesPerSector)
+         {
+             super->AreaSize = nordescription->SectorNum * nordescription->BytesPerPage *
+                     nordescription->PagesPerSector - (super->MediaStart * nordescription->BytesPerPage);
+         }
+         info_printf("embedf","%s fileOS available capacity (size : %lld).", fs, super->AreaSize);
      }
      res = strlen(flash_name) + strlen(s_ptDeviceRoot->name) + 1;
      FullPath = malloc(res);
@@ -443,8 +458,7 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
      sprintf(FullPath, "%s/%s", s_ptDeviceRoot->name,flash_name);   //获取该设备的全路径
      FsBeMedia(FullPath,fs); //往该设备挂载文件系统
      free(FullPath);
-     info_printf("embedflash","device : %s added(start:%d, end:%d).", fs, bstart, bend);
-     info_printf("embedflash","%s fileOS total capacity(size : %lld)， available capacity (size : %lld).", fs, super->AreaSize,super->AreaSize / 34 * 32);
+     info_printf("embedf","device : %s added(start:%d, end:%d).", fs, bstart, bend);
      return (0);
 }
 // ============================================================================

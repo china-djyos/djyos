@@ -68,12 +68,14 @@ extern "C" {
 
 #define CN_FONT_GB2312_SONG_12    "gb2312_song_12"  //ascii:6*12,ºº×Ö12*12£¬ËÎÌå
 
+#define CN_FONT_GB2312_YAHEI_16   "gb2312_yahei_16" //ascii:8*16,ºº×Ö16*16£¬Î¢ÈíÑÅºÚ
 #define CN_FONT_GB2312_SONG_16    "gb2312_song_16"  //ascii:8*16,ºº×Ö16*16£¬ËÎÌå
 #define CN_FONT_GB2312_FANG_16    "gb2312_fang_16"  //ascii:8*16,ºº×Ö16*16£¬·ÂËÎ
 #define CN_FONT_GB2312_HEI_16     "gb2312_hei_16"   //ascii:8*16,ºº×Ö16*16£¬ºÚÌå
 #define CN_FONT_GB2312_KAI_16     "gb2312_kai_16"   //ascii:8*16,ºº×Ö16*16£¬¿¬Ìå
 #define CN_FONT_GB2312_YUAN_16    "gb2312_yuan_16"  //ascii:8*16,ºº×Ö16*16£¬Ô²Ìå
 
+#define CN_FONT_GB2312_YAHEI_24  "gb2312_yahei_24"  //ascii:12*24,ºº×Ö24*24£¬Î¢ÈíÑÅºÚ
 #define CN_FONT_GB2312_SONG_24   "gb2312_song_24"   //ascii:12*24,ºº×Ö24*24£¬ËÎÌå
 #define CN_FONT_GB2312_FANG_24   "gb2312_fang_24"   //ascii:12*24,ºº×Ö24*24£¬·ÂËÎ
 #define CN_FONT_GB2312_HEI_24    "gb2312_hei_24"    //ascii:12*24,ºº×Ö24*24£¬ºÚÌå

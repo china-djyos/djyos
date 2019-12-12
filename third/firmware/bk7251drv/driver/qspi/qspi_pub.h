@@ -82,7 +82,8 @@ u32 qspi_ctrl(u32 cmd, void *param);
  *  div：qspi clk freq div
  *
  */
-extern void bk_qspi_mode_start(u32 mode, u32 div);
+void bk_qspi_mode_start(u32 mode, u32 div);
+void djy_qspi_mode_end(void);
 
 int bk_qspi_dcache_configure(qspi_dcache_drv_desc *qspi_cfg);
 int bk_qspi_dcache_write_data(u32 set_addr, u32 *wr_data, u32 data_length);
