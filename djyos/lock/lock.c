@@ -777,51 +777,10 @@ bool_t Lock_MutexPend(struct MutexLCB *mutex,u32 timeout)
     }
 
     __Djy_AddRunningToBlock(&(mutex->mutex_sync),CN_BLOCK_PRIO,timeout,CN_STS_WAIT_MUTEX);
-//  __Djy_CutReadyEvent(g_ptEventRunning);
-//  g_ptEventRunning->previous = NULL;
-//  g_ptEventRunning->next = NULL;
-//
-//  g_ptEventRunning->sync_head = &mutex->mutex_sync;
-//  if(mutex->mutex_sync == NULL)
-//  {//同步队列空,running事件自成双向循环链表
-//      g_ptEventRunning->multi_next = g_ptEventRunning;
-//      g_ptEventRunning->multi_previous = g_ptEventRunning;
-//      mutex->mutex_sync = g_ptEventRunning;
-//  }else
-//  {//同步队列非空,按优先级排序
-//      pl_ecb = mutex->mutex_sync;
-//      do
-//      { //找到一个优先级低于新事件的事件.
-//          if(pl_ecb->prio <= g_ptEventRunning->prio)
-//              pl_ecb = pl_ecb->multi_next;
-//          else
-//              break;
-//      }while(pl_ecb != mutex->mutex_sync);
-//      g_ptEventRunning->multi_next = pl_ecb;
-//      g_ptEventRunning->multi_previous = pl_ecb->multi_previous;
-//      pl_ecb->multi_previous->multi_next = g_ptEventRunning;
-//      pl_ecb->multi_previous = g_ptEventRunning;
-//      if(mutex->mutex_sync->prio > g_ptEventRunning->prio)
-//          mutex->mutex_sync = mutex->mutex_sync->multi_previous;
-//  }
-//  if(timeout != CN_TIMEOUT_FOREVER)
-//  {
-//      //事件状态设为等待信号量 + 超时
-//      g_ptEventRunning->event_status = CN_STS_WAIT_MUTEX +CN_STS_SYNC_TIMEOUT;
-//      __Djy_AddToDelay(timeout);
-//  }else
-//  {
-//      g_ptEventRunning->event_status = CN_STS_WAIT_MUTEX;  //事件状态设为等待信号量
-//  }
 
     //下面看看是否要做优先级继承
     pl_ecb = mutex->owner;
     Djy_RaiseTempPrio(pl_ecb->event_id);
-//    if(pl_ecb->prio > g_ptEventRunning->prio)  //需要继承优先级
-//    {
-////        Djy_SetEventTempPrio(pl_ecb->event_id,g_ptEventRunning->prio);
-//        pl_ecb->prio = g_ptEventRunning->prio;
-//    }
     Int_RestoreAsynSignal();  //恢复中断，将触发上下文切换
     //检查从哪里返回，是超时还是同步事件完成。
     if(g_ptEventRunning->wakeup_from & CN_STS_SYNC_TIMEOUT)

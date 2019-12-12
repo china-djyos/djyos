@@ -103,8 +103,8 @@ void Int_SaveAsynSignal(void)
         return;
 
     Int_CutAsynSignal();
-//  if(tg_int_global.en_asyn_signal_counter==0)
-//      tg_IntAsynStatus = Int_LowAtomStart();
+    if(tg_int_global.en_asyn_signal_counter==0)
+        tg_IntAsynStatus = Int_LowAtomStart();
     //达上限后再加会回绕到0
     if(tg_int_global.en_asyn_signal_counter != CN_LIMIT_UCPU)
         tg_int_global.en_asyn_signal_counter++;
@@ -158,13 +158,13 @@ void Int_RestoreAsynSignal(void)
         g_bScheduleEnable = true;
 //      if( ! Int_IsLowAtom(tg_IntAsynStatus))
 //      {
-//            Int_LowAtomEnd(tg_IntAsynStatus);
             if(g_ptEventRunning !=  g_ptEventReady)
             {
                 __Djy_Schedule();
     //                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
             }else
-                Int_ContactAsynSignal();
+                Int_LowAtomEnd(tg_IntAsynStatus);
+//              Int_ContactAsynSignal();
 //      }
     }else
     {
