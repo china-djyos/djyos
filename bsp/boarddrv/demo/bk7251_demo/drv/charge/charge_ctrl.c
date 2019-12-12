@@ -351,7 +351,7 @@ char vol_to_percentage(int assign)
     {
         percentage = 1;
     }
-    else if((vol < 3290) && (usb_is_pluged() == 0))
+    else if((vol < 3310) && (usb_is_pluged() == 0))
     {
         if(vol >= 2700)     //防止一些异常电压导致休眠
         {
