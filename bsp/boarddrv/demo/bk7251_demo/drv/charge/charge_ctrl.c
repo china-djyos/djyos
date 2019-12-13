@@ -127,7 +127,7 @@ char vol_to_percentage(int assign)
 //            percentage = 75;
         if(critical < 100)
         {
-            if(vol > 4040)
+            if(vol > 4155)
             {
                 percentage = 100;
                 critical = 100;
