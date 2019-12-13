@@ -406,7 +406,7 @@ void *Mb_Malloc(struct MemCellPool *pool,u32 timeout)
         return NULL;
     //没有取得信号量，表明内存池空,这个信号量是保护内存池的，确保被分配的内存块
     //不超过内存池的容量
-    if(Lock_SempPend(&pool->memb_semp,timeout) == false)  //无信号量，表明内存块已经用完
+    if(Lock_SempPend(&pool->memb_semp,0) == false)  //无信号量，表明内存块已经用完
     {
         //注意:上一行和下一行之间可能发生线程切换
         Int_SaveAsynSignal();

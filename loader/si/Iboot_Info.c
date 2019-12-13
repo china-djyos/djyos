@@ -67,7 +67,9 @@ extern void Load_Preload(void);
 extern void * gc_pAppOffset;
 extern void __asm_bl_fun(void * fun_addr);
 //版本号
-#define APP_HEAD_VERSION        1
+#define APP_HEAD_VERSION        2
+
+extern const char MANUFACTURERNAME_NAME[];
 
 #if (CFG_RUNMODE_BAREAPP == 0)
 //const char djyos_tag [] = "djyos";
@@ -87,7 +89,10 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
         .VirtAddr      = (u64)(&Djy_App_Head),
 #endif
         .appheadsize   = sizeof(struct AppHead),
-        .reserved      = 0xffffffff,
+        .VersionNumber[0] = PRODUCT_VERSION_LARGE,
+        .VersionNumber[1] = PRODUCT_VERSION_MEDIUM,
+        .VersionNumber[2] = PRODUCT_VERSION_SMALL,
+        .reserved      = {0xff,0xff,0xff},
         .appname       = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
@@ -112,19 +117,26 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff},
-         .ManufacturerName = PRODUCT_MANUFACTURERNAME,
-         .DjyosTag     = "djyos",
+//         .ManufacturerName = PRODUCT_MANUFACTURERNAME,
+//         .DjyosTag     = "djyos",
+#if CFG_PROJECT_MODE
+#if(CN_PTR_BITS < 64)
+        .ManufacturerNameAddr      = (u32)(&MANUFACTURERNAME_NAME),
+        .ManufacturerNamereserved32    = 0xffffffff,
+#else
+        .ManufacturerNameAddr      = (u64)(&MANUFACTURERNAME_NAME),
+#endif
+#endif
          .ProductClassify = PRODUCT_PRODUCTCLASSIFY,
          .ProductType = PRODUCT_PRODUCTMODEL,
-         .VersionNumber[0] = PRODUCT_VERSION_LARGE,
-         .VersionNumber[1] = PRODUCT_VERSION_MEDIUM,
-         .VersionNumber[2] = PRODUCT_VERSION_SMALL,
 
          .TypeCode = PRODUCT_PRODUCTMODELCODE,
 
-         .ProductionTime = {0xff,0xff,0xff},
-         .ProductionNumber = 0xffffffff,
-
+         .ProductionTime = {0xff,0xff,0xff,0xff},
+         .ProductionNumber = {0xff,0xff,0xff,0xff,0xff},
+         .reserved8 = 0,
+         .PanelType = PRODUCT_PANEL_TYPE,
+         .CPU_Type = PRODUCT_CPU_Type,
          .Reserved ={
                         0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                         0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
@@ -141,7 +153,10 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                         0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                         0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                         0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
-                        0xff,0xff,0xff
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
+                        0xff,0xff
                     },
 };
 
@@ -627,7 +642,18 @@ static bool_t Verification_AppInit(void * apphead)
     u32 i;
 
 //    p_apphead->filesize = 0xFFFFFFFF;          //文件系统读到的文件大小   在线升级时 由文件系统填充编译时由外部工具填充
-    p_apphead->ProductionNumber = 0xFFFFFFFF;
+//    p_apphead->ProductionNumber = 0xFFFFFFFF;
+
+//#if(CN_PTR_BITS < 64)
+//    p_apphead->ManufacturerNameAddr = 0xffffffff;
+//    p_apphead->ManufacturerNamereserved32    = 0xffffffff;
+//#else
+//    p_apphead->ManufacturerNameAddr      = 0xffffffffffffffff;
+//#endif
+
+    for( i=0;i<sizeof(p_apphead->ProductionNumber);i++)
+        p_apphead->ProductionNumber[i]=0xff;
+
     for( i=0;i<sizeof(p_apphead->ProductionTime);i++)
         p_apphead->ProductionTime[i]=0xff;
 
@@ -698,15 +724,17 @@ bool_t Rewrite_AppHead_FileInfo(void * apphead,const char*name,u32 filesize)
 //参数：apphead：App信息块地址；num：产品序号；time：生产时间
 //返回：true：成功；false：失败。
 //==============================================================================
-bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,u32 num)
+bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num)
 {
     struct AppHead*  p_apphead = apphead;
 
-    p_apphead->ProductionNumber = num;
+//    p_apphead->ProductionNumber = num;
+    memcpy(p_apphead->ProductionNumber, num, sizeof(p_apphead->ProductionNumber));
     memcpy(p_apphead->ProductionTime, time, sizeof(p_apphead->ProductionTime));
 
     return true;
 }
+
 
 //==============================================================================
 //功能：获取APP文件信息块。
@@ -721,7 +749,42 @@ bool_t Get_AppHead(void * apphead)
 
     return true;
 }
+char ProductSN[sizeof(Djy_App_Head.TypeCode) + sizeof(Djy_App_Head.ProductionTime) +
+                                                   sizeof(Djy_App_Head.ProductionNumber) + 1];
+//==============================================================================
+//功能：获取产品SN号。
+//参数：
+//返回：ProductSN -- SN号数组指针
+//==============================================================================
+char * Get_ProductSN(void)
+{
+    struct AppHead  p_apphead;
+//    p_apphead->ProductionNumber = num;
+    Get_AppHead(&p_apphead);
+    memset(ProductSN, 0, sizeof(p_apphead.TypeCode) + sizeof(p_apphead.ProductionTime) + sizeof(p_apphead.ProductionNumber) + 1);
 
+    memcpy(ProductSN, p_apphead.TypeCode, sizeof(p_apphead.TypeCode));
+
+    memcpy(ProductSN + sizeof(p_apphead.TypeCode), p_apphead.ProductionTime,
+                                                        sizeof(p_apphead.ProductionTime));
+
+    memcpy(ProductSN + sizeof(p_apphead.TypeCode) + sizeof(p_apphead.ProductionTime),
+                                p_apphead.ProductionNumber, sizeof(p_apphead.ProductionNumber));
+    return (char *)ProductSN;
+}
+//==============================================================================
+//功能：获取厂商名。
+//参数：apphead：App信息块地址；num：产品序号；time：生产时间
+//返回：true：成功；false：失败。
+//==============================================================================
+const char * Get_ManufacturerName(void)
+{
+    struct AppHead  p_apphead;
+//    p_apphead->ProductionNumber = num;
+    Get_AppHead(&p_apphead);
+
+    return (const char *)p_apphead.ManufacturerNameAddr;
+}
 
 //==============================================================================
 //功能：获取APP文件信息块的大小
@@ -765,11 +828,10 @@ bool_t XIP_AppFileCheck(void * apphead)
     u8 *bufapp = apphead;
     u32 i;
 
-    for(i=0;i<sizeof(struct AppHead);i++)
-        buf[i] = bufapp[i];
-
     if(p_apphead->Verification != VERIFICATION_NULL)
     {
+        for(i=0;i<sizeof(struct AppHead);i++)
+            buf[i] = bufapp[i];
         Verification_AppInit(&app_head);
         Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
         Verification_AppExit(&app_head);
