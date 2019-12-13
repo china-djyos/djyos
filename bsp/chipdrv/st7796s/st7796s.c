@@ -167,7 +167,7 @@ void  SendDataSPI(unsigned char dat)
 
    bk_spi_master_xfer(&spi_msg);
 
-   return 0;
+   //return 0;
 }
 
 int  SendRecvDataSPI(unsigned char *send_buf, int slen, unsigned char *recv_buf, int rlen)
@@ -210,7 +210,7 @@ void WriteDataBytes(unsigned char *data, int len)
     spi_ctrl(CMD_SPI_SET_BITWIDTH, &param);
 
     SPI_CS(1);
-    return 0;
+    //return 0;
 }
 
 
@@ -1034,11 +1034,11 @@ ptu32_t ModuleInstall_st7796s(const char *DisplayName,const char* HeapName)
 {
     static struct GkWinObj frame_win;
     static struct RectBitmap FrameBitmap;
-    u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
+    //u8 *pLTDCBufferFG1 =NULL;//缓冲区起始位置
     static u8 u8g_frame_buffer[cn_frame_buffer_size] __attribute__((section(".lcdram")));
 
 
-    struct HeapCB *heap;
+    //struct HeapCB *heap;
 
     __lcd_st7796s_init( );
 
