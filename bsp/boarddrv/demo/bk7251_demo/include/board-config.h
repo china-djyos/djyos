@@ -63,7 +63,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "dd_pub.h"
+//#include "dd_pub.h"
 
 #define Mhz 1000000
 #define CN_CFG_MCLK (216*Mhz)  //主频，内核要用，必须定义

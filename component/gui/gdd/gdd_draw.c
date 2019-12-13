@@ -899,8 +899,8 @@ bool_t    DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag)
             s32 x0,y0,line_h;
             char *p0,*p1;
 
-            line_h = Font_GetFontLineHeight(hdc->pFont);
-
+            line_h = Font_GetFontLineHeight(hdc->pFont)+5;
+//            printf("----line_h = %d----\r\n",line_h);
             CopyRect(&rc0,prc);
             CopyRect(&rc,prc);
             InflateRect(&rc,-1,-1);
@@ -974,8 +974,10 @@ bool_t    DrawText(HDC hdc,const char *text,s32 count,const RECT *prc,u32 flag)
                     }
 
                     p0 = p1++;      //跳过换行符，肯定是1个字节
+                    y0 += line_h;
                 }
-                y0 += line_h;
+
+//                printf("----y0 = %d----\r\n",y0);
             }
         }
 

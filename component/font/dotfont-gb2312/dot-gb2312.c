@@ -1519,7 +1519,7 @@ bool_t ModuleInstall_FontGb2312_16_Yuan(void)
         return false;
     }
 
-    pg_Ascii8x16Yuan = (u8*)cs_ascii_8x16;
+    pg_Ascii8x16Yuan = (u8*)cs_ascii_yuan_8x16;
     font_gb2312_8x16_1616.MaxWidth = FONT_HZ16_W;
     font_gb2312_8x16_1616.MaxHeight = FONT_HZ16_H;
     font_gb2312_8x16_1616.Attr = CN_FONT_TYPE_DOT;
