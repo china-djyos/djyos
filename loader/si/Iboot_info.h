@@ -150,22 +150,30 @@ struct AppHead
 #else
     u64  VirtAddr;        //运行地址
 #endif
-    u32  appheadsize;     //信息块的大小
-    u32  reserved;          //保留
+    u16  appheadsize;     //信息块的大小
+    char VersionNumber[3];      //APP版本xx.xx.xx，
+    char reserved[3];          //保留
     char appname[96];      //app的文件名 由外部工具填充该bin文件的文件名
     char VerifBuf[128];     //校验码与校验方法对应的具体内容 由工具填充
 
-    const char ManufacturerName[65];  //厂商名称， DIDE中配置
-    const char DjyosTag[6];          //"djyos"串
+//    const char ManufacturerName[65];  //厂商名称， DIDE中配置
+#if(CN_PTR_BITS < 64)
+    u32  ManufacturerNameAddr;        //厂商名地址
+    u32  ManufacturerNamereserved32;      //保留
+#else
+    u64  ManufacturerNameAddr;        //厂商名地址
+#endif
+//    const char DjyosTag[6];          //"djyos"串
     const char ProductClassify[9];    //产品分类字符串，厂商在DIDE中配置
     const char ProductType[9];        //产品型号字符串，厂商在DIDE中配置
-    char VersionNumber[3];      //APP版本xx.xx.xx，
-    const u32  TypeCode;           //产品型号数字编码
-    u32 ProductionNumber;   //产品序号，源码中填FF，生产时服务器下发，iboot写入
-    char ProductionTime[3];     //生产时间，BCD码，年+星期（3字节）.源码中填FF，生产时服务器下发，iboot写入
+    const char TypeCode[6];           //产品型号数字编码
+    char ProductionTime[4];     //生产时间，BCD码，年+星期（3字节）.源码中填FF，生产时服务器下发，iboot写入
+    char ProductionNumber[5];   //产品序号，源码中填FF，生产时服务器下发，iboot写入
+    char reserved8;             //保留
+    const char PanelType[16];   //板件型号
+    const char CPU_Type[16];   //cpu型号
 //    u32 ProductionNumber;   //源码中填FF，生产时服务器下发，iboot写入
-    char Reserved[153];         //保留
-
+    char Reserved[182];         //保留
 };
 
 
@@ -191,7 +199,7 @@ bool_t Get_LowPowerWakeup();
 
 #if (CFG_RUNMODE_BAREAPP == 0)
 bool_t Rewrite_AppHead_FileInfo(void * apphead,const char*name,u32 filesize);
-bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,u32 num);
+bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num);
 bool_t XIP_AppFileCheck_Easy(void * apphead);
 bool_t XIP_AppFileCheck(void * apphead);
 void * XIP_GetAPPStartAddr(void * apphead);
@@ -228,6 +236,8 @@ bool_t Get_ErrorAppCheck(void);
 bool_t Get_ErrorAppNoFile(void);
 bool_t Get_ErrorAppSize(void);
 bool_t Get_HeardSetRunIboot(void);
+char * Get_ProductSN(void);
+const char * Get_ManufacturerName(void);
 
 bool_t  runiboot(char *param);
 bool_t  runapp(char *param);
