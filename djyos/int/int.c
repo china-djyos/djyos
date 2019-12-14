@@ -78,6 +78,7 @@
 #include "string.h"
 #include "stddef.h"
 #include "int_hard.h"
+#include "blackbox.h"
 #include "int.h"
 #include "djyos.h"
 
@@ -102,7 +103,7 @@ void Int_SaveAsynSignal(void)
     if(tg_int_global.nest_asyn_signal != 0)
         return;
 
-    Int_CutAsynSignal();
+//  Int_CutAsynSignal();
     if(tg_int_global.en_asyn_signal_counter==0)
         tg_IntAsynStatus = Int_LowAtomStart();
     //达上限后再加会回绕到0
@@ -156,16 +157,27 @@ void Int_RestoreAsynSignal(void)
     if(tg_int_global.en_asyn_signal_counter==0)
     {
         g_bScheduleEnable = true;
-//      if( ! Int_IsLowAtom(tg_IntAsynStatus))
-//      {
-            if(g_ptEventRunning !=  g_ptEventReady)
-            {
-                __Djy_Schedule();
-    //                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
-            }else
-                Int_LowAtomEnd(tg_IntAsynStatus);
-//              Int_ContactAsynSignal();
-//      }
+        //禁止中断期间，如果请求调度，将抛出异常，但依然执行调度，只能如此，因为禁止调度
+        //的话，将使程序根本无法运行，有些第三方库直接控制中断的，没办法。
+#if DEBUG == 1
+        if( ! Int_IsLowAtom(tg_IntAsynStatus))
+        {
+            struct BlackBoxThrowPara  parahead;
+            parahead.DecoderName = NULL;
+            parahead.BlackBoxAction = EN_BLACKBOX_DEAL_RECORD;
+            parahead.BlackBoxInfo = (u8*)"禁止中断期间发生调度";
+            parahead.BlackBoxInfoLen = sizeof("禁止中断期间请求调度");
+            parahead.BlackBoxType = CN_BLACKBOX_TYPE_SCH_DISABLE_INT;
+            BlackBox_ThrowExp(&parahead);
+        }
+#endif
+        if(g_ptEventRunning !=  g_ptEventReady)
+        {
+            __Djy_Schedule();
+//                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
+        }   //else
+            Int_LowAtomEnd(tg_IntAsynStatus);
+//          Int_ContactAsynSignal();
     }else
     {
         Int_CutAsynSignal();    //防止counter>0期间意外(bug)打开

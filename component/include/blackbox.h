@@ -95,6 +95,7 @@ enum EN_BlackBoxDealResult
 #define CN_BLACKBOX_TYPE_ECB_EXHAUSTED   (CN_BLACKBOX_TYPE_SYS_START+3)     //事件控制块耗尽
 #define CN_BLACKBOX_TYPE_MEM_EVTT        (CN_BLACKBOX_TYPE_SYS_START+4)     //注册高优先级事件类型时,内存不足.
 #define CN_BLACKBOX_TYPE_EVENT_EXIT      (CN_BLACKBOX_TYPE_SYS_START+5)     //事件意外结束
+#define CN_BLACKBOX_TYPE_SCH_DISABLE_INT (CN_BLACKBOX_TYPE_SYS_START+6)     //禁止中断时请求调度
 
 //异常提示信息（用于抛出异常的时候使用）
 // 注：设置DecoderName的目的，是为了便于编写离线（例如PC上）异常信息阅读器。
