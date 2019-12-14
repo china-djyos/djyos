@@ -160,7 +160,7 @@ void Int_RestoreAsynSignal(void)
         //禁止中断期间，如果请求调度，将抛出异常，但依然执行调度，只能如此，因为禁止调度
         //的话，将使程序根本无法运行，有些第三方库直接控制中断的，没办法。
 #if DEBUG == 1
-        if( ! Int_IsLowAtom(tg_IntAsynStatus))
+        if( Int_IsLowAtom(tg_IntAsynStatus))
         {
             struct BlackBoxThrowPara  parahead;
             parahead.DecoderName = NULL;
