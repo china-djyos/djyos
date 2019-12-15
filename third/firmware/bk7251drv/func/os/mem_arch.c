@@ -8,7 +8,10 @@ static struct HeapCB *pMemHeap = NULL;
 
 void os_meminit(void)
 {
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     pMemHeap = M_FindHeap("dtcm");
+    GLOBAL_INT_RESTORE();
 }
 
 INT32 os_memcmp(const void *s1, const void *s2, UINT32 n)
@@ -36,37 +39,51 @@ void *os_malloc(size_t size)
     void *ptr = NULL;
     if(pMemHeap==NULL)
         return NULL;
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     ptr = M_MallocHeap(size,pMemHeap,0);
+    GLOBAL_INT_RESTORE();
     return ptr;
 }
 
 void * os_zalloc(size_t size)
 {
-	void *n = (void *)os_malloc(size);
-	if (n)
-		memset(n, 0, size);
-	return n;
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    void *n = (void *)os_malloc(size);
+    GLOBAL_INT_RESTORE();
+    if (n)
+        memset(n, 0, size);
+    return n;
 }
 
 void *os_realloc(void *ptr, size_t size)
 {
-	void *tmp;
+    void *tmp;
 
-	tmp = (void *)os_malloc(size);
-	if(tmp)
-	{
-		memcpy(tmp, ptr, size);
-		os_free(ptr);
-	}
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    tmp = (void *)os_malloc(size);
+    GLOBAL_INT_RESTORE();
+    if(tmp)
+    {
+        memcpy(tmp, ptr, size);
+        GLOBAL_INT_DISABLE();
+        os_free(ptr);
+        GLOBAL_INT_RESTORE();
+    }
 
-	return tmp;
+    return tmp;
 }
 
 void os_free(void *ptr)
 {
     if(ptr)
     {
+        GLOBAL_INT_DECLARATION();
+        GLOBAL_INT_DISABLE();
         M_FreeHeap(ptr,pMemHeap);
+        GLOBAL_INT_RESTORE();
     }
 }
 
