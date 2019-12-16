@@ -178,7 +178,7 @@ void ModuleInstall_InitNet(void)   //static ip example
 #endif
     wifi_set_mac_address((char*)gc_NetMac);
     ModuleInstall_Wifi(CFG_NETCARD_NAME,gc_NetMac,false,1*mS,NULL);
-
+#if 0
     int GetDHCPMode();
     if (GetDHCPMode()==1) {//dhcp server
         tagHostAddrV4  ipv4addr;
@@ -198,7 +198,7 @@ void ModuleInstall_InitNet(void)   //static ip example
             printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
         }
     }
-
+#endif
 //    if(DhcpAddClientTask(CFG_NETCARD_NAME))
 //    {
 //       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
@@ -208,5 +208,25 @@ void ModuleInstall_InitNet(void)   //static ip example
 //        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
 //    }
 
+}
+
+void dhcpd_route_add_default()
+{
+    tagHostAddrV4  ipv4addr;
+    //we use the static ip we like
+    memset((void *)&ipv4addr,0,sizeof(ipv4addr));
+    ipv4addr.ip      = inet_addr(CFG_DHCPD_IPV4);
+    ipv4addr.submask = inet_addr(CFG_DHCPD_SUBMASK);
+    ipv4addr.gatway  = inet_addr(CFG_DHCPD_GATWAY);
+    ipv4addr.dns     = inet_addr(CFG_DHCPD_DNS);
+    ipv4addr.broad   = inet_addr("255.255.255.255");
+    if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+    {
+        printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+    }
+    else
+    {
+        printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+    }
 }
 

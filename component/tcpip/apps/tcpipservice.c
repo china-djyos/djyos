@@ -70,32 +70,13 @@ extern bool_t ServiceTftpInit(void);
 //    return 1;
 //}
 
-static volatile int is_dhcp_client = -1;
 
 // dhcp_mode: 0->dhcp_client; 1->dhcp_server; -1: not use dhcp
-int SetDHCPMode(int dhcp_mode)
-{
-    is_dhcp_client = dhcp_mode;
-    printf("==info: SetDHCPMode:%d!==", is_dhcp_client);
-    return 0;
-}
-//return: 0: dhcp client;  1: dhcp server; -1: not use dhcp
-int GetDHCPMode()
-{
-    printf("==info: GetDHCPMode:%d!==", is_dhcp_client);
-    return is_dhcp_client;
-}
-
-//THIS IS THE TCP IP SERVICE LOAD MODULE
-bool_t ServiceInit(void)
+bool_t DhcpModeInit(int dhcp_mode)
 {
     bool_t result = true;
-
 #if  (CFG_MODULE_ENABLE_DHCP == true)
-    if(is_dhcp_client == -1) {
-        SetDHCPMode(0);
-    }
-    if(is_dhcp_client==0 &&CFG_DHCPC_ENABLE)
+    if(dhcp_mode==0 &&CFG_DHCPC_ENABLE)
     {
         printf("------dhcp client---------\r\n");
         if((false == ServiceDhcpcInit()))
@@ -104,7 +85,7 @@ bool_t ServiceInit(void)
             result = false;
         }
     }
-    if(is_dhcp_client==1&&CFG_DHCPD_ENABLE)
+    if(dhcp_mode==1&&CFG_DHCPD_ENABLE)
     {
         printf("------dhcp server---------\r\n");
         if((false == ServiceDhcpdInit()))
@@ -114,8 +95,13 @@ bool_t ServiceInit(void)
         }
     }
 #endif
+    return result;
+}
 
-
+//THIS IS THE TCP IP SERVICE LOAD MODULE
+bool_t ServiceInit(void)
+{
+    bool_t result = true;
 
 #if (CFG_MODULE_ENABLE_FTP == true)
     if(false == ServiceFtpInit())
