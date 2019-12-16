@@ -65,9 +65,25 @@ extern bool_t ServiceInit_Telnetd(void);
 extern bool_t ServiceTftpInit(void);
 
 //bit0 开启DHCP客户端 bit1 开启DHCP server
-__attribute__((weak))  u32 Get_DhcpInitflag(void)
+//__attribute__((weak))  u32 Get_DhcpInitflag(void)
+//{
+//    return 1;
+//}
+
+static volatile int is_dhcp_client = -1;
+
+// dhcp_mode: 0->dhcp_client; 1->dhcp_server; -1: not use dhcp
+int SetDHCPMode(int dhcp_mode)
 {
-    return 1;
+    is_dhcp_client = dhcp_mode;
+    printf("==info: SetDHCPMode:%d!==", is_dhcp_client);
+    return 0;
+}
+//return: 0: dhcp client;  1: dhcp server; -1: not use dhcp
+int GetDHCPMode()
+{
+    printf("==info: GetDHCPMode:%d!==", is_dhcp_client);
+    return is_dhcp_client;
 }
 
 //THIS IS THE TCP IP SERVICE LOAD MODULE
@@ -76,17 +92,21 @@ bool_t ServiceInit(void)
     bool_t result = true;
 
 #if  (CFG_MODULE_ENABLE_DHCP == true)
-    u32 flag = Get_DhcpInitflag();
-    if((flag&(1<<0)) &&CFG_DHCPC_ENABLE)
+    if(is_dhcp_client == -1) {
+        SetDHCPMode(0);
+    }
+    if(is_dhcp_client==0 &&CFG_DHCPC_ENABLE)
     {
+        printf("------dhcp client---------\r\n");
         if((false == ServiceDhcpcInit()))
         {
             error_printf("tcpip","###err: service dhcpc failed");
             result = false;
         }
     }
-    if((flag&(1<<1))&&CFG_DHCPD_ENABLE)
+    if(is_dhcp_client==1&&CFG_DHCPD_ENABLE)
     {
+        printf("------dhcp server---------\r\n");
         if((false == ServiceDhcpdInit()))
         {
             error_printf("tcpip","###err: service dhcpd failed");
