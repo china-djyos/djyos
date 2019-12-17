@@ -1629,7 +1629,7 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
 {
     UINT32 ret;
     UINT32 reg;
-
+    GLOBAL_INT_DECLARATION();
     ret = SCTRL_SUCCESS;
     switch(cmd)
     {
@@ -1766,9 +1766,13 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
 
     case CMD_SCTRL_BLK_DISABLE:
 //        CHECK_OPERATE_RF_REG_IF_IN_SLEEP();
+        GLOBAL_INT_DISABLE();
         reg = REG_READ(SCTRL_BLOCK_EN_CFG);
+        reg &= (~(BLOCK_EN_WORD_MASK << BLOCK_EN_WORD_POSI));
+        reg |= (BLOCK_EN_WORD_PWD & BLOCK_EN_WORD_MASK) << BLOCK_EN_WORD_POSI;
         reg &= ~((*(UINT32 *)param) & BLOCK_EN_VALID_MASK);
         REG_WRITE(SCTRL_BLOCK_EN_CFG, reg);
+        GLOBAL_INT_RESTORE();
 //        CHECK_OPERATE_RF_REG_IF_IN_SLEEP_END();
         break;
 

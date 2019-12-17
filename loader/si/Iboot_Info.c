@@ -1409,6 +1409,7 @@ static bool_t __RunApp(void * apphead)
     }
     if(p_apphead->Verification != VERIFICATION_NULL)
     {
+#if 0
         Verification_AppInit(&app_head);
         Verification_AppRun(&app_head,apphead+sizeof(struct AppHead),p_apphead->appbinsize-sizeof(struct AppHead));
         Verification_AppExit(&app_head);
@@ -1417,6 +1418,7 @@ static bool_t __RunApp(void * apphead)
             Iboot_App_Info.runflag.error_app_check = 1;
             return false;
         }
+#endif
     }
     Iboot_App_Info.runflag.runmode_iboot        = 0;
     Iboot_App_Info.runflag.runmode_app     = 1;
