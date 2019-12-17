@@ -282,7 +282,7 @@ static void spi_flash_enable_voltage(void)
 {
     UINT32 param;
 
-    param = BLK_BIT_MIC_R_CHANNEL;
+    param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_ENABLE, &param);
 
     param = QSPI_IO_3_3V;
@@ -296,7 +296,7 @@ static void spi_flash_disable_voltage(void)
 {
     UINT32 param;
 
-    param = BLK_BIT_MIC_R_CHANNEL;
+    param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_DISABLE, &param);
 }
 
