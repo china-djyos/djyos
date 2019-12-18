@@ -83,15 +83,6 @@ void sdcard_power_off(void)
 //    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_IO_VOLTAGE, &param);
     param = PSRAM_VDD_1_8V;
     sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
-
-    gpio_config(GPIO34,GMODE_OUTPUT);
-    gpio_output(GPIO34, 0);
-    gpio_config(GPIO35,GMODE_OUTPUT);
-    gpio_output(GPIO35, 0);
-    gpio_config(GPIO36,GMODE_OUTPUT);
-    gpio_output(GPIO36, 0);
-    gpio_config(GPIO12,GMODE_OUTPUT);
-    gpio_output(GPIO12, 0);
 }
 // =============================================================================
 // ¹¦ÄÜ£º    ¸´Î»sd¿¨

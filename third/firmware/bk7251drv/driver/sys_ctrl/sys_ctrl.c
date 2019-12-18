@@ -1346,11 +1346,8 @@ void sctrl_enter_rtos_deep_sleep(PS_DEEP_CTRL_PARAM deep_param)
     {
 		for(i=0; i<GPIONUM; i++)
 		{
-//		    if(i != GPIO11)
-//		    {
-                param = GPIO_CFG_PARAM(i, GMODE_SET_HIGH_IMPENDANCE);	/*set gpio 0~39 as high impendance*/
-                sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
-//		    }
+            param = GPIO_CFG_PARAM(i, GMODE_SET_HIGH_IMPENDANCE);	/*set gpio 0~39 as high impendance*/
+            sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
 		}
 
 		for (i = 0; i < GPIONUM; i++)
