@@ -22,19 +22,18 @@ static int charge_started = 0;  //1 -- 正在充电；0 -- 当前未在充电
 int Get_StabilizeVol(void)
 {
     int vol;
-    if(charge_started == 1)
+    if(usb_is_pluged() != 0)
     {
         usb_charge_stop();
-//                printf("停止充电.\r\n");
         Djy_EventDelay(6000*1000);
+        vol = vbat_voltage_get();
+
+        if(charge_started == 1)
+            usb_charge_start();
+        vol -= 80;
     }
-    vol = vbat_voltage_get();
-    if(charge_started == 1)
-    {
-        usb_charge_start();
-//                printf("开始充电.\r\n");
-    }
-    vol -= 80;
+    else
+        vol = vbat_voltage_get();
     return vol;
 }
 
@@ -105,16 +104,16 @@ void usb_charge_check_cb(void)
 //            last_second = tmp;
 //        }
     }
-    else
-    {
-//      printf("检测到拔掉充电器时 charge_started = %d.\r\n",charge_started);
-        if(charge_started == 1)
-        {
-            usb_charge_stop();
-            charge_started = 0;
-            printf("Charger removal.\r\n");
-        }
-    }
+//    else
+//    {
+////      printf("检测到拔掉充电器时 charge_started = %d.\r\n",charge_started);
+//        if(charge_started == 1)
+//        {
+//            usb_charge_stop();
+//            charge_started = 0;
+//            printf("Charger removal.\r\n");
+//        }
+//    }
 
 }
 

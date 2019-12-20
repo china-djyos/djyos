@@ -45,13 +45,18 @@
 //-----------------------------------------------------------------------------
 #include <cpu_peri_adc.h>
 #include <djyos.h>
+#include <typedef.h>
+
 extern void deep_sleep(void);
 extern int Get_StabilizeVol(void);
+extern UINT32 usb_is_pluged(void);
 char vol_to_percentage(int assign)
 {
-    int vol;
+    int vol = 0,vol_diff = 0;
+    int i, j, temp;
     char percentage = 0;
-    static char critical = 0;
+    static char critical = 0,num = 0;
+    static int vol_temp = 0,vol_last = 0;
     if(assign == 0)
     {
         if(usb_is_pluged() != 0)
@@ -127,7 +132,41 @@ char vol_to_percentage(int assign)
 //            percentage = 75;
         if(critical < 100)
         {
-            if(vol > 4155)
+            if(usb_is_pluged() != 0)
+            {
+                //printf(" =====  vol(%d) = %d ======\r\n",num,vol);
+
+                vol_temp += vol;
+                num++;
+                if(num >= 10)
+                {
+//                    //冒泡排序算法：进行 n-1 轮比较
+//                    for(i=0; i<10-1; i++){
+//                        //每一轮比较前 n-1-i 个，也就是说，已经排序好的最后 i 个不用比较
+//                        for(j=0; j<10-1-i; j++){
+//                            if(vol_temp[j] > vol_temp[j+1]){
+//                                temp = vol_temp[j];
+//                                vol_temp[j] = vol_temp[j+1];
+//                                vol_temp[j+1] = temp;
+//                            }
+//                        }
+//                    }
+                    vol_temp = vol_temp / num;
+                    vol_diff = vol_temp - vol_last;
+                    printf(" =====  vol_diff = %d ======\r\n",vol_diff);
+                    num = 0;
+                    vol_last = vol_temp;
+                    vol_temp = 0;
+                }
+            }
+            else
+            {
+                num = 0;
+//                memset(vol_temp, 0, 10);
+                vol_temp = 0;
+                vol_last = 0;
+            }
+            if((vol > 4155) || (vol_diff < 0))
             {
                 percentage = 100;
                 critical = 100;
