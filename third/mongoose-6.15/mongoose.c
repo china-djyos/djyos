@@ -8882,7 +8882,7 @@ struct mg_connection *mg_connect_http_opt(
   if (path.len == 0) path = mg_mk_str("/");
   if (host.len == 0) host = mg_mk_str("");
 
-  mg_printf(nc, "%s %.*s HTTP/1.1\r\nHost: %.*s\r\nContent-Length: %" SIZE_T_FMT
+  mg_printf(nc, "%s %.*s HTTP/1.0\r\nHost: %.*s\r\nContent-Length: %" SIZE_T_FMT
                 "\r\n%.*s%s\r\n%s",
             (post_data[0] == '\0' ? "GET" : "POST"), (int) path.len, path.p,
             (int) (path.p - host.p), host.p, strlen(post_data), (int) auth.len,
