@@ -175,7 +175,7 @@ __asm_switch_context_int:
 .type   __asm_delay_cycle, %function
 __asm_delay_cycle:
     subs    r0 ,#6      /*减去运算的周期数*/
-    lsr     r0 ,r0, #0  /*每次循环2个机械周期 每个机械周期 1个内核时钟*/
+    lsr     r0 ,r0, #2  /*每次循环4个机械周期 每个机械周期 1个内核时钟*/
  loop:
     subs    r0 ,#1
     bne     loop

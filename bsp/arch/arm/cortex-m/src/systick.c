@@ -122,7 +122,7 @@ void Exp_SystickTickHandler(void)
 //      DjySetUpdateTickFlag(false);
     g_s64OsTicks += s_gCurrentTicks;
     s_gCurrentTicks = 1;
-    pg_systick_reg->ctrl;
+    pg_systick_reg->ctrl;   //清零，与 __DjyGetSysTime 函数配合使用
     Djy_ScheduleIsr(0);
     tg_int_global.nest_asyn_signal--;
 //  tg_int_global.en_asyn_signal_counter--;
@@ -178,17 +178,18 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
 
 //----设置下次ticks中断时间-----------------------------------------------------
 //功能：恒定tick模式下，由于tick间隔恒等于1个tick，故直接返回1，定时器设置维持不变。
-//     动态tick模式下，通过修改定时器参数，把当次tick间隔设为参数Ticks。根据设计原理，
-//     当次定时结束后，须把中断间隔设为1。参数Ticks的含义，是从上次tick中断算起，定时器
-//     是持续不断在走的，因此需要考虑从上次tick中断依赖定时器已经走的时间，下述两类定时器
-//     有不同的处理。
+//     动态tick模式下，通过修改定时器参数，把当次tick间隔设为参数Ticks。由于只有idle
+//      事件运行时，才会重设tick间隔，而CPU被唤醒后，idle并不一定能及时获得运行时间，故
+//      每次定时结束后，须把中断间隔设为1。参数Ticks的含义，是从上次tick中断算起的，而
+//      定时器是持续不断在走的，因此需要考虑从上次tick中断以来定时器已经走的时间，下述
+//      两类定时器有不同的处理。
 //     定时器有两大类：
-//     1、从0计数到设定值，然后请求中断，定时器从0开始重新计时。这种定时器，只需要修改设
+//     1、从0计数到设定值，然后请求中断，定时器归0开始重新计时。这种定时器，只需要修改设
 //        定值即可，无须考虑当前已经走过的时间。把下次中断间隔设为1的工作在tick中断的ISR
 //        中完成。
 //     2、类似cortex-m的24位systick定时器，从reload开始减计数到0，然后从reload重新开始
 //        计数的，则设置完当次tick后，还要把reload设置到1个tick。特别注意，设置定时器
-//        时，要减去从上次ISR中断依赖定时器已经走过的时间。
+//        时，要减去从上次ISR中断以来定时器已经走过的时间。
 //
 //参数：无
 //返回：当前时钟

@@ -149,7 +149,7 @@ __attribute__((weak))   u64 __DjyGetSysTime(void)
     tick_cnt = Git_SysTickCnt();
     Int_LowAtomEnd(atom_low);
 
-   return (current*1000 + (tick_cnt*1000*1000)/26*1000*1000);
+   return (current*CN_CFG_TICK_US + (tick_cnt*1000*1000)/26*1000*1000);
 }
 
 

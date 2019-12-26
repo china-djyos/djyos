@@ -291,11 +291,16 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
     }
     if(num > 0)
     {
-        if(num != UART_PortWrite((struct UartGeneralCB *)pUartCB[port],fifo,num))
+        if(num != UART_PortWrite((struct UartGeneralCB *)pUartCB[port],fifo,num) && (port ==1))
         {
+            void EnJtag(void);
             UART_ErrHandle((struct UartGeneralCB *)pUartCB[port],CN_UART_BUF_OVER_ERR);
-            printk("uart%d idle over!\r\n",port+1);
-        }
+            printk("uart%d idle over!running=%d\r\n",port+1,g_ptEventRunning->event_id);
+            if(fifo[0] == 'p')
+            {
+                EnJtag();
+                while(1);
+            }
     }
     return 1;
 }
