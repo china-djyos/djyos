@@ -717,6 +717,11 @@ static UINT32 manual_cal_search_txpwr_tab(UINT32 type, UINT32 start_addr)
     DD_HANDLE flash_handle;
     TXPWR_ELEM_ST head;
 
+    status = manual_cal_search_opt_tab(&addr);
+    if(!status) {
+        return 0;
+    }
+
     flash_handle = ddev_open(FLASH_DEV_NAME, &status, 0);
     ddev_read(flash_handle, (char *)&head, sizeof(TXPWR_ELEM_ST), start_addr);
     addr = start_addr + sizeof(TXPWR_ELEM_ST);
@@ -1533,6 +1538,86 @@ void manual_cal_clear_otp_flash(void)
     os_free(buf);
 }
 
+int manual_cal_load_temp_tag_from_flash(void)
+{
+    UINT32 status, addr, addr_start;
+    DD_HANDLE flash_handle;
+    TXPWR_ELEM_ST head;
+	#if CFG_SUPPORT_ALIOS
+	hal_logic_partition_t *pt = hal_flash_get_info(HAL_PARTITION_RF_FIRMWARE);
+	#else
+	bk_logic_partition_t *pt = bk_flash_get_info(BK_PARTITION_RF_FIRMWARE);
+	#endif
+    UINT32 tem_in_flash = DEFAULT_TXID_THERMAL;
+
+    addr_start = manual_cal_search_txpwr_tab(TXID, pt->partition_start_addr);//TXPWR_TAB_FLASH_ADDR); 
+    if(!addr_start) {
+        MCAL_FATAL("NO TXID found in flash, use def temp:%d\r\n", DEFAULT_TXID_THERMAL); 
+        goto init_temp;
+    }
+    
+    addr = manual_cal_search_txpwr_tab(TXID_THERMAL, addr_start);  
+    if(!addr)
+    {
+        MCAL_FATAL("NO TXID_THERMAL found in flash, use def temp:%d\r\n", DEFAULT_TXID_THERMAL);
+        goto init_temp;
+    }
+
+    flash_handle = ddev_open(FLASH_DEV_NAME, &status, 0);
+    ddev_read(flash_handle, (char *)&head, sizeof(TXPWR_ELEM_ST), addr);
+    ddev_read(flash_handle, (char *)&status, head.len, addr + sizeof(TXPWR_ELEM_ST));
+    tem_in_flash = status;
+
+init_temp:
+    MCAL_FATAL("temp in flash is:%d\r\n", tem_in_flash);
+    return tem_in_flash;
+}
+
+void manual_cal_load_differ_tag_from_flash(void)
+{
+    UINT32 status, addr, addr_start;
+    DD_HANDLE flash_handle;
+    TXPWR_ELEM_ST head;
+	#if CFG_SUPPORT_ALIOS
+	hal_logic_partition_t *pt = hal_flash_get_info(HAL_PARTITION_RF_FIRMWARE);
+	#else
+	bk_logic_partition_t *pt = bk_flash_get_info(BK_PARTITION_RF_FIRMWARE);
+	#endif
+    UINT32 dif_n20 = MOD_DIST_G_BW_N20;
+    UINT32 dif_n40 = MOD_DIST_G_BW_N40;
+
+    addr_start = manual_cal_search_txpwr_tab(TXPWR_TAB_TAB, pt->partition_start_addr);//TXPWR_TAB_FLASH_ADDR); 
+    if(!addr_start) {
+        MCAL_FATAL("NO TXPWR_TAB_TAB found in flash, use def:%d, %d\r\n", 
+            MOD_DIST_G_BW_N20, MOD_DIST_G_BW_N40); 
+        goto load_diff;
+    }
+    
+    addr = manual_cal_search_txpwr_tab(TXPWR_TAB_DIF_GN20_ID, addr_start);  
+    if(!addr) {
+        MCAL_FATAL("NO TXPWR_TAB_DIF_GN20_ID found in flash, use def:%d\r\n", MOD_DIST_G_BW_N20);
+    } else {
+        flash_handle = ddev_open(FLASH_DEV_NAME, &status, 0);
+        ddev_read(flash_handle, (char *)&head, sizeof(TXPWR_ELEM_ST), addr);
+        ddev_read(flash_handle, (char *)&status, head.len, addr + sizeof(TXPWR_ELEM_ST));
+        dif_n20 = status;
+    }
+
+    addr = manual_cal_search_txpwr_tab(TXPWR_TAB_DIF_GN40_ID, addr_start);  
+    if(!addr) {
+        MCAL_FATAL("NO TXPWR_TAB_DIF_GN40_ID found in flash, use def:%d\r\n", TXPWR_TAB_DIF_GN40_ID);
+    } else {
+        flash_handle = ddev_open(FLASH_DEV_NAME, &status, 0);
+        ddev_read(flash_handle, (char *)&head, sizeof(TXPWR_ELEM_ST), addr);
+        ddev_read(flash_handle, (char *)&status, head.len, addr + sizeof(TXPWR_ELEM_ST));
+        dif_n40 = status;
+    }
+
+load_diff:
+    MCAL_FATAL("diff in flash:n20-%d, n40-%d\r\n", dif_n20, dif_n40);
+    return;
+}
+
 #endif  // CFG_SUPPORT_MANUAL_CALI
 
 
@@ -1701,43 +1786,12 @@ TMP_PWR_PTR manual_cal_set_tmp_pwr(UINT16 cur_val, UINT16 thre, UINT16 *last)
 
 UINT32 manual_cal_load_temp_tag_flash(void)
 {
-    UINT32 status, addr, addr_start;
-    DD_HANDLE flash_handle;
-    TXPWR_ELEM_ST head;
-	#if CFG_SUPPORT_ALIOS
-	hal_logic_partition_t *pt = hal_flash_get_info(HAL_PARTITION_RF_FIRMWARE);
-	#else
-	bk_logic_partition_t *pt = bk_flash_get_info(BK_PARTITION_RF_FIRMWARE);
-	#endif
-    UINT32 tem_in_flash = DEFAULT_TXID_THERMAL;
-
-    addr_start = manual_cal_search_txpwr_tab(TXID, pt->partition_start_addr);//TXPWR_TAB_FLASH_ADDR); 
-    if(!addr_start) {
-        TMP_DETECT_WARN("NO TXID found in flash, use def temp:%d\r\n", DEFAULT_TXID_THERMAL); 
-        goto init_temp;
-    }
-    
-    addr = manual_cal_search_txpwr_tab(TXID_THERMAL, addr_start);  
-    if(!addr)
-    {
-        TMP_DETECT_WARN("NO TXID_THERMAL found in flash, use def temp:%d\r\n", DEFAULT_TXID_THERMAL);
-        goto init_temp;
-    }
-
-    flash_handle = ddev_open(FLASH_DEV_NAME, &status, 0);
-    ddev_read(flash_handle, (char *)&head, sizeof(TXPWR_ELEM_ST), addr);
-    ddev_read(flash_handle, (char *)&status, head.len, addr + sizeof(TXPWR_ELEM_ST));
-    tem_in_flash = status;
-    TMP_DETECT_WARN("temp in flash is:%d\r\n", tem_in_flash);
-
-init_temp:
-
-    g_cur_temp = tem_in_flash;
+    g_cur_temp = g_cur_temp_flash= manual_cal_load_temp_tag_from_flash();
     // start temp dectect
-    manual_cal_tmp_pwr_init(tem_in_flash, ADC_TMEP_LSB_PER_10DEGREE, 
+    manual_cal_tmp_pwr_init(g_cur_temp, ADC_TMEP_LSB_PER_10DEGREE * ADC_TMEP_10DEGREE_PER_DBPWR, 
             ADC_TMEP_DIST_INTIAL_VAL);
     
-    return tem_in_flash;
+    return g_cur_temp;
 }
 
 #endif // CFG_USE_TEMPERATURE_DETECT

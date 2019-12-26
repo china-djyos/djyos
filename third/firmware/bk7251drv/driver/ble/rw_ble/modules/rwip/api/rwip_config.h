@@ -61,7 +61,7 @@
 // 		<3=> CENTRAL
 // 		<4=> ALLROLES
 //    <i> Select Role 
-#define CFG_ROLE 2
+#define CFG_ROLE 4
 
 #if ( CFG_ROLE == 0)
 #define CFG_BROADCASTER 
@@ -184,7 +184,7 @@
 //   <e> CFG_SLEEP
 //   <i> enable DEEP_SLEEP
 //   </e>
-#if ( 0 )
+#if (1)
 #define CFG_SLEEP 
 #endif
 
@@ -548,7 +548,8 @@
 /******************************************************************************************/
 
 /// DEEP SLEEP enable
-#if defined(CFG_SLEEP) && (BLE_EMB_PRESENT || BT_EMB_PRESENT) && (!BLE_DUT_TEST)
+#if defined(CFG_SLEEP) && (BLE_EMB_PRESENT || BT_EMB_PRESENT) 
+
     #define DEEP_SLEEP                              1
 #else
     #define DEEP_SLEEP                              0
@@ -556,7 +557,7 @@
 
 
 /// Use 32K Hz Clock if set to 1 else 32,768k is used
-#define HZ32000                                     0
+#define HZ32000                                     1
 
 
 /// Time to wake-up Radio Module (in us)
@@ -775,58 +776,58 @@
 enum KERNEL_EVENT_TYPE
 {
     #if DISPLAY_SUPPORT
-    KERNEL_EVENT_DISPLAY         ,
+    KERNEL_EVENT_DISPLAY       = 1  ,
     #endif //DISPLAY_SUPPORT
 
     #if RTC_SUPPORT
-    KERNEL_EVENT_RTC_1S_TICK     ,
+    KERNEL_EVENT_RTC_1S_TICK     = 2 ,
     #endif //RTC_SUPPORT
 
     #ifdef CFG_AUDIO_RSA
-    KERNEL_EVENT_RSA_SIGN,
+    KERNEL_EVENT_RSA_SIGN = 3,
     #endif // CFG_AUDIO_RSA
     
     #if SECURE_CONNECTIONS
-    KERNEL_EVENT_ECC_MULTIPLICATION,
+    KERNEL_EVENT_ECC_MULTIPLICATION = 4,
     #endif // SECURE_CONNECTIONS
 
     #if BLE_EMB_PRESENT
-    KERNEL_EVENT_BLE_CRYPT       ,
+    KERNEL_EVENT_BLE_CRYPT       = 5,
     #endif //BLE_EMB_PRESENT
 
-    KERNEL_EVENT_KERNEL_MESSAGE      ,
-    KERNEL_EVENT_KERNEL_TIMER        ,
+    KERNEL_EVENT_KERNEL_MESSAGE     = 6 ,
+    KERNEL_EVENT_KERNEL_TIMER        = 7,
 
     #if (AHI_TL_SUPPORT)
-    KERNEL_EVENT_AHI_TX_DONE     ,
+    KERNEL_EVENT_AHI_TX_DONE    = 8 ,
     #endif //(AHI_TL_SUPPORT)
 
 
     #if H4TL_SUPPORT
-    KERNEL_EVENT_H4TL_TX         ,
+    KERNEL_EVENT_H4TL_TX         = 9,
     #if (BLE_EMB_PRESENT || BT_EMB_PRESENT)
-    KERNEL_EVENT_H4TL_CMD_HDR_RX ,
-    KERNEL_EVENT_H4TL_CMD_PLD_RX ,
+    KERNEL_EVENT_H4TL_CMD_HDR_RX  = 10,
+    KERNEL_EVENT_H4TL_CMD_PLD_RX = 11,
     #endif //(BLE_EMB_PRESENT || BT_EMB_PRESENT)
     #endif //H4TL_SUPPORT
 
     #if (BLE_HOST_PRESENT)
     #if (BLE_L2CC)
-    KERNEL_EVENT_L2CAP_TX        ,
+    KERNEL_EVENT_L2CAP_TX       = 12 ,
     #endif //(BLE_L2CC)
     #endif// (BLE_HOST_PRESENT)
 
     #if BT_EMB_PRESENT
-    KERNEL_EVENT_BT_PSCAN_PROC   ,
+    KERNEL_EVENT_BT_PSCAN_PROC   = 13,
     #endif //BT_EMB_PRESENT
 
     #if BLE_EMB_PRESENT
-    KERNEL_EVENT_BLE_EVT_DEFER   ,
-    KERNEL_EVENT_BLE_EVT_DELETE  ,
+    KERNEL_EVENT_BLE_EVT_DEFER   = 14,
+    KERNEL_EVENT_BLE_EVT_DELETE  = 15,
     #endif //BLE_EMB_PRESENT
 
     #if defined(CFG_AUDIO_AOAHI)
-    KERNEL_EVENT_BLE_AUDIO_DEFER ,
+    KERNEL_EVENT_BLE_AUDIO_DEFER = 16,
     #endif // defined(CFG_AUDIO_AOAHI)
 
     KERNEL_EVENT_MAX             ,

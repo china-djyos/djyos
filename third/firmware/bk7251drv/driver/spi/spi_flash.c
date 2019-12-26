@@ -10,6 +10,9 @@
 
 #include "drv_model_pub.h"
 #include "mem_pub.h"
+#include "rtos_pub.h"
+
+//#include <rtdevice.h>
 
 #if CFG_USE_SPI_MST_FLASH
 
@@ -453,7 +456,7 @@ int spi_flash_erase(UINT32 addr, UINT32 size)
             erase_mode = ERASE_MODE_BLOCK_64K;
         }
 
-        spi_flash_earse(addr, erase_mode);
+        spi_flash_earse(addr, erase_mode);
         if(addr & (erase_size - 1))
         {
             size = erase_size - (addr & (erase_size - 1));

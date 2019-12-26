@@ -7,176 +7,184 @@
 #include "intc_pub.h"
 #include "drv_model_pub.h"
 
-#include "security_pub.h"
+#include "arm_arch.h"
+#include "security_reg.h"
 #include "security.h"
+#include "hal_aes.h"
 
-static volatile unsigned long sgul_security_flag = 0;
+static struct sec_done_des aes_done_callback = {NULL, NULL};
 
-int security_aes_init(SECURITY_AES_DRV_DESC *p_security_aes_drv_desc)
+int security_aes_start(unsigned int mode)
 {
-    int i;
-    UINT32 param;
-    UINT8 tmp_data[4];
+    UINT32 reg;
 
-    if (sgul_security_flag & 0x01)
-    {
-        return -1;
-    }
+    reg = REG_READ(SECURITY_AES_CONFIG);
+    if(mode == ENCODE)
+        reg |= SECURITY_AES_ENCODE_BIT;
+    else
+        reg &= ~(SECURITY_AES_ENCODE_BIT);
+    REG_WRITE(SECURITY_AES_CONFIG, reg);
 
-    REG_WRITE(SECURITY_AES_CTRL, 0);
+    reg = REG_READ(SECURITY_AES_CTRL);
+    reg |= SECURITY_AES_AUTEO_BIT;
+    REG_WRITE(SECURITY_AES_CTRL , reg);
 
-    param = FIQ_SECURITY_BIT;
-    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+    // wait
+    while((REG_READ(SECURITY_AES_STATUS) & SECURITY_AES_VALID) == 0);
 
-    for (i = 0; i < 8; i++)
-    {
-        PUT_UINT32_BE(p_security_aes_drv_desc->aes_key[i], tmp_data, 0);
-        REG_WRITE(SECURITY_AES_KEY_X(i), *((UINT32 *)tmp_data));
-    }
+    return AES_OK;
+}
 
-    for (i = 0; i < 4; i++)
-    {
-        PUT_UINT32_BE(p_security_aes_drv_desc->aes_block[i], tmp_data, 0);
-        REG_WRITE(SECURITY_AES_BLOCK_X(i), *((UINT32 *)tmp_data));
-    }
+int security_aes_init(sec_done_callback callback, void *param)
+{
+    UINT32 reg;
+    GLOBAL_INT_DECLARATION();
 
-    REG_WRITE(SECURITY_AES_CONFIG , (((p_security_aes_drv_desc->mode   & 0x03) << 1)
-                                     | ((p_security_aes_drv_desc->encode & 0x01) << 0)));
-    REG_WRITE(SECURITY_AES_CTRL , (1 << 3) | (1 << 2));
+    reg = REG_READ(SECURITY_AES_CTRL);
+    reg &= ~(SECURITY_AES_INT_EN_BIT | SECURITY_AES_AUTEO_BIT |
+               SECURITY_AES_NEXT_BIT | SECURITY_AES_INIT_BIT);
 
+    REG_WRITE(SECURITY_AES_CTRL , reg);
+
+    REG_WRITE(SECURITY_AES_CTRL , 0);
+
+    GLOBAL_INT_DISABLE();
+    aes_done_callback.callback = callback;
+    aes_done_callback.param = param;
+    GLOBAL_INT_RESTORE();
     return 0;
 }
 
-void get_security_aes_data(unsigned long *pul_data)
+int security_aes_set_key(const unsigned char *key, unsigned int keybits)
 {
-    int i;
-    UINT8 tmp_data[4];
+    UINT32 mode, reg;
+    int end_reg_pos = 0;
 
-    for (i = 0; i < 4; i++)
+    if(keybits == 128)
     {
-        PUT_UINT32_BE(REG_READ(SECURITY_AES_RESULT_X(i)), tmp_data, 0);
-        pul_data[i] = *((UINT32 *)tmp_data);
+        mode = AES128;
+        end_reg_pos = 3;
     }
-}
-
-
-
-int security_sha_init(SECURITY_SHA_DRV_DESC *p_security_sha_drv_desc)
-{
-    int i;
-    UINT32 param;
-    UINT8 tmp_data[4];
-
-    if (sgul_security_flag & 0x02)
+    else if(keybits == 192)
     {
-        return -1;
+        mode = AES192;
+        end_reg_pos = 5;
     }
-
-    REG_WRITE(SECURITY_SHA_CONFIG , 0);
-
-    REG_WRITE(SECURITY_SHA_CONFIG , (1 << 3) | p_security_sha_drv_desc->mode);
-
-    for (i = 0; i < 16; i++)
+    else if(keybits == 256)
     {
-        PUT_UINT32_BE(p_security_sha_drv_desc->sha_block[i], tmp_data, 0);
-        REG_WRITE(SECURITY_SHA_BLOCK_X(15 - i), *((UINT32 *)tmp_data));
-    }
-
-    REG_WRITE(SECURITY_SHA_CTRL , (0x01 << p_security_sha_drv_desc->step));
-
-#if (CFG_SOC_NAME == SOC_BK7221U)
-    param = FIQ_SECURITY_BIT;
-    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
-#endif
-
-    return 0;
-}
-
-void get_security_sha_data(hal_sha_context *ctx, unsigned long *pul_data)
-{
-    int i;
-    int result_len;
-    UINT8 tmp_data[4];
-
-    if(ctx->mode == SHA1)
-    {
-        result_len = 160;
+        mode = AES256;
+        end_reg_pos = 7;
     }
     else
     {
-        result_len = 256;
+        os_printf("key size:%d, only support 128/192/265 bits\r\n");
+        return AES_KEYLEN_ERR;
     }
 
-    result_len /= (8 * 4);
-
-    for (i = 0; i < result_len; i++)
+    for (int i=0,j=0; i<8; i++)
     {
-        PUT_UINT32_BE(REG_READ(SECURITY_SHA_DIGEST_X(result_len - 1 - i)), tmp_data, 0);
-        pul_data[i] = *((UINT32 *)tmp_data);
+        // reg SECURITY_AES_KEY0 is key's MSB, no mater how long the key is
+        // so key should set start from 0, end of end_reg_pos, others set to 0
+        if(i <= end_reg_pos)
+        {
+            // in SECURITY_AES_KEYx, MSB first.
+            // key's addr may no 4byte align, so copy like this
+            UINT8 *data = (UINT8 *)&reg;
+
+            data[0] = key[4*j + 3];
+            data[1] = key[4*j + 2];
+            data[2] = key[4*j + 1];
+            data[3] = key[4*j + 0];
+
+            REG_WRITE(SECURITY_AES_KEY_X(i), reg);
+            j++;
+        }
+        else
+        {
+            reg = 0;
+            REG_WRITE(SECURITY_AES_KEY_X(i), reg);
+        }
     }
+
+    reg = REG_READ(SECURITY_AES_CONFIG);
+    reg &= ~(SECURITY_AES_MODE_MASK << SECURITY_AES_MODE_POSI);
+    reg |= ((mode & SECURITY_AES_MODE_MASK) << SECURITY_AES_MODE_POSI);
+
+    REG_WRITE(SECURITY_AES_CONFIG , reg);
+
+    return AES_OK;
 }
 
+int security_aes_set_block_data(const unsigned char *block_data)
+{
+    UINT32 tmp_data;
+
+    for (int i=0; i<4; i++)
+    {
+        UINT8 *data = (UINT8 *)&tmp_data;
+
+        data[0] = block_data[4*i + 3];
+        data[1] = block_data[4*i + 2];
+        data[2] = block_data[4*i + 1];
+        data[3] = block_data[4*i + 0];
+
+        REG_WRITE(SECURITY_AES_BLOCK_X(i), tmp_data);
+    }
+
+    return AES_OK;
+}
+
+int security_aes_get_result_data(unsigned char *pul_data)
+{
+    UINT32 tmp_data;
+
+    for (int i=0; i<4; i++)
+    {
+        UINT8 *data = (UINT8 *)&tmp_data;
+
+        tmp_data = REG_READ(SECURITY_AES_RESULT_X(i));
+
+        pul_data[4*i + 0] = data[3];
+        pul_data[4*i + 1] = data[2];
+        pul_data[4*i + 2] = data[1];
+        pul_data[4*i + 3] = data[0];
+    }
+
+    return AES_OK;
+}
 
 void bk_secrity_isr(void)
 {
     unsigned long secrity_state;
 
     secrity_state = REG_READ(SECURITY_AES_STATUS);
-    if ((secrity_state & 0x07) == 0x07)
+    if ((secrity_state & SECURITY_AES_INT_FLAG) == SECURITY_AES_INT_FLAG)
     {
-        sgul_security_flag |= 0x01;
         REG_WRITE(SECURITY_AES_STATUS , secrity_state);
+        if(aes_done_callback.callback)
+            aes_done_callback.callback(aes_done_callback.param);
     }
 
     secrity_state = REG_READ(SECURITY_SHA_STATUS);
     if ((secrity_state & 0x05) == 0x05)
     {
-        sgul_security_flag |= 0x02;
         REG_WRITE(SECURITY_SHA_STATUS , secrity_state);
     }
 
     secrity_state = REG_READ(SECURITY_RSA_STATE);
     if ((secrity_state & 0x03) == 0x03)
     {
-        sgul_security_flag |= 0x04;
         REG_WRITE(SECURITY_RSA_STATE , secrity_state);
     }
 }
 
-
-int is_secrity_aes_busy(void)
-{
-    if ((sgul_security_flag & 0x01) == 0)
-    {
-        return 0;
-    }
-    sgul_security_flag &= (~0x01);
-    return -1;
-}
-
-int is_secrity_sha_busy(void)
-{
-    if ((sgul_security_flag & 0x02) == 0)
-    {
-        return 0;
-    }
-    sgul_security_flag &= (~0x02);
-    return -1;
-}
-
-int is_secrity_rsa_busy(void)
-{
-    if ((sgul_security_flag & 0x04) == 0)
-    {
-        return 0;
-    }
-    sgul_security_flag &= (~0x04);
-    return -1;
-}
-
-
 void bk_secrity_init(void)
 {
+    UINT32 param;
+
+    //param = FIQ_SECURITY_BIT;
+    //sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+
     intc_service_register(FIQ_SECURITY, PRI_FIQ_SECURITY, bk_secrity_isr);
 }
 

@@ -1,7 +1,7 @@
 #ifndef __SPI_DMA_PUB_H__
 #define __SPI_DMA_PUB_H__
 
-#if CFG_USE_SPIDMA
+#if CFG_USE_HSLAVE_SPI
 #include "rtos_pub.h"
 
 #define SPIDMA_FAILURE                (1)
@@ -28,6 +28,8 @@ enum
     SPIDMA_CMD_CONF_TXBUF_LEN,
     SPIDMA_CMD_CONF_TXBUF_VALID,
     SPIDMA_CMD_GET_RXBUF_VALID_DATALEN,
+    SPIDMA_CMD_START_TX_DMA,
+    SPIDMA_CMD_STOP_TX_DMA,
 };
 
 #define SPIDMA_DESC_SCK_MODE_MASK    (0x1)
@@ -103,9 +105,17 @@ typedef struct spidma_desc
     void (*end_frame_handler)(void);
 #if CFG_GENERAL_DMA
     void (*dma_rx_handler)(UINT32);
-    UINT32 dma_channel;
+    UINT32 dma_rx_channel;
+    void (*dma_tx_handler)(UINT32);
+    UINT32 dma_tx_channel;
+    
 #endif
 } SPIDMA_DESC_ST, *SPIDMA_DESC_PTR;
+
+typedef struct spidma_tx_ {
+    UINT8 *txbuf;
+    UINT32 tx_len;
+} SPIDMA_TXDMA_ST, *SPI_TXDMA_PTR;
 #endif
 
 #define SPIDMA_DEF_RXDATA_TIMEOUT_VAL       (800)  //  Unit is Tahb_clk
@@ -114,7 +124,7 @@ typedef struct spidma_desc
 void spidma_init(void);
 void spidma_uninit(void);
 
-#endif // CFG_USE_SPIDMA
+#endif // CFG_USE_HSLAVE_SPI
 
 #endif
 

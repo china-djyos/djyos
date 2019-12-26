@@ -9,14 +9,43 @@
 #define I2S_CMD_MAGIC              (0xe280000)
 enum
 {
-	I2S_HW_SET = I2S_CMD_MAGIC + 1,
+	I2S_CMD_UNIT_ENABLE = I2S_CMD_MAGIC + 1,
+	I2S_CMD_SET_MSTEN,
+	I2S_CMD_SELECT_MODE,
+	I2S_CMD_SET_LRCK,
+	I2S_CMD_SET_SCK_INV,
+	I2S_CMD_SET_SCK_LSB,
+	I2S_CMD_SET_SCK_SYNCLEN,
+	I2S_CMD_SET_PCM_DLEN,	
 	I2S_CMD_SET_FREQ_DATAWIDTH,
-    I2S_CMD_ACTIVE,
-    I2S_CMD_RXACTIVE,
-    I2S_CMD_SELECT_MODE,
-    I2S_CMD_SET_LEVEL
+    I2S_CMD_RXINT_EN,
+    I2S_CMD_TXINT_EN,
+    I2S_CMD_RXOVR_EN,
+    I2S_CMD_TXOVR_EN,
+    I2S_CMD_RXFIFO_CLR_EN,
+    I2S_CMD_TXFIFO_CLR_EN,
+    I2S_CMD_RXINT_MODE,
+    I2S_CMD_TXINT_MODE,
+    I2S_CMD_GET_BUSY,
+    I2S_CMD_ENABLE_INTERRUPT,
+    I2S_CMD_DISABLE_INTERRUPT,
+    I2S_CMD_MASTER_ENABLE,
+    I2S_CMD_SLAVE_ENABLE,
+    I2S_CMD_DISABLE_I2S,
+    I2S_CMD_DMA_MASTER_ENABLE,
+    I2S_CMD_DMA_ISR,
 };
 
+
+#define I2S_BIT_DEBUG
+#ifdef I2S_BIT_DEBUG
+#define bit_dbg(fmt, ...)   rt_kprintf(fmt, ##__VA_ARGS__)
+#else
+#define bit_dbg(fmt, ...)
+#endif
+
+#define TX_FINISH_FLAG              (1 << 31)
+#define I2S_SA
 enum
 {
     I2S_MODE_I2S = 0,
@@ -27,6 +56,23 @@ enum
     I2S_MODE_NORMAL_2B_D = 6,
     I2S_MODE_DELAY_2B_D = 7
 };
+struct i2s_message
+{
+	UINT32 *send_buf;
+	UINT32 send_len;
+		
+	UINT32 *recv_buf;
+	UINT32 recv_len;
+};
+
+typedef struct
+{
+    UINT32 *p_tx_buf;
+    UINT32 *p_rx_buf;
+    UINT32 trans_done;
+	volatile UINT32 tx_remain_data_cnt;
+    volatile UINT32 rx_remain_data_cnt;
+} i2s_trans_t;
 
 typedef struct
 {
@@ -37,13 +83,13 @@ typedef struct
 typedef struct
 {
     UINT32 freq;
-    UINT16 datawidth;
+    UINT32 datawidth;
 } i2s_rate_t;
 
 /*******************************************************************************
 * Function Declarations
 *******************************************************************************/
-void i2s_init(void);
+void i2s_init(int register_isr);
 void i2s_exit(void);
 void i2s_isr(void);
 UINT8 is_i2s_active(void);

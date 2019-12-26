@@ -20,7 +20,35 @@ void gpio_isr(void)
 {
     int i;
     unsigned long ulIntStatus;
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	ulIntStatus = *(volatile UINT32 *)REG_GPIO_INTSTA;
+    for (i = 0; i <= GPIO31; i++)
+    {
+        if (ulIntStatus & (0x01UL << i))
+        {
+            if (p_gpio_intr_handler[i] != NULL)
+            {
+                (void)p_gpio_intr_handler[i]((unsigned char)(i + GPIO0));
+            }
+        }
+    }
 
+    *(volatile UINT32 *)REG_GPIO_INTSTA = ulIntStatus;
+	
+	ulIntStatus = *(volatile UINT32 *)REG_GPIO_INTSTA2;
+    for (i = 0; i < (GPIONUM - GPIO32); i++)
+    {
+        if (ulIntStatus & (0x01UL << i))
+        {
+            if (p_gpio_intr_handler[(i + GPIO32)] != NULL)
+            {
+                (void)p_gpio_intr_handler[(i + GPIO32)]((unsigned char)(i + GPIO32));
+            }
+        }
+    }
+
+    *(volatile UINT32 *)REG_GPIO_INTSTA2 = ulIntStatus;
+#else
     ulIntStatus = *(volatile UINT32 *)REG_GPIO_INTSTA;
     for (i = 0; i < GPIONUM; i++)
     {
@@ -34,6 +62,7 @@ void gpio_isr(void)
     }
 
     *(volatile UINT32 *)REG_GPIO_INTSTA = ulIntStatus;
+#endif
 }
 
 static UINT32 gpio_ops_filter(UINT32 index)
@@ -80,12 +109,16 @@ void gpio_config(UINT32 index, UINT32 mode)
         goto cfg_exit;
     }
     
-    #if (CFG_SOC_NAME != SOC_BK7231)
-    if(index >= GPIO32)
-        index += 16;
-    #endif // (CFG_SOC_NAME != SOC_BK7231)
-    
-    gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + index * 4);
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	if(index < GPIO32) {
+	    gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + index * 4);
+	}
+	else if(index >= GPIO32) {
+		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (index - 32) * 4);
+	}
+#else
+	gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + index * 4);
+#endif
 
     switch(mode)
     {
@@ -98,7 +131,7 @@ void gpio_config(UINT32 index, UINT32 mode)
         break;
 
     case GMODE_SECOND_FUNC:
-        val = 0x40;
+        val = 0x48;
         break;
 
     case GMODE_INPUT_PULLUP:
@@ -110,11 +143,13 @@ void gpio_config(UINT32 index, UINT32 mode)
         break;
 	
     case GMODE_SECOND_FUNC_PULL_UP:
-        val = 0x70;
+        val = 0x78;
         break;
-    case GMODE_SET_HIGH_IMPENDANCE:
-        val = 0x08;
-        break;
+	
+	case GMODE_SET_HIGH_IMPENDANCE:
+		val = 0x08;
+		break;
+	
     default:
         overstep = 1;
 //        WARN_PRT("gpio_mode_exception:%d\r\n", mode);
@@ -355,6 +390,23 @@ static void gpio_enable_second_function(UINT32 func_mode)
         modul_select = GPIO_SD1_HOST_MODULE;
         pmask = GPIO_SD_MODULE_MASK;
         break;
+
+    case GFUNC_MODE_SPI1:
+        start_index = 30;
+        end_index = 33;
+        pmode = PERIAL_MODE_2;
+        modul_select = GPIO_SPI1_MODULE;
+        pmask = GPIO_SPI_MODULE_MASK;
+        break;
+        
+    case GFUNC_MODE_SPI_DMA1:
+        start_index = 30;
+        end_index = 33;
+        pmode = PERIAL_MODE_2;
+        modul_select = GPIO_SPI1_DMA_MODULE;
+        pmask = GPIO_SPI_MODULE_MASK;
+        break;
+		
     case GFUNC_MODE_QSPI_1LINE:
         start_index = 22;   //22 \ 16
         end_index = 23;     //23 \ 17
@@ -378,8 +430,6 @@ static void gpio_enable_second_function(UINT32 func_mode)
         end_index = 26;
         pmode = PERIAL_MODE_3;
         break;
-		
-        
 #endif // (CFG_SOC_NAME != SOC_BK7231)
 
     default:
@@ -449,9 +499,19 @@ UINT32 gpio_input(UINT32 id)
 //        WARN_PRT("gpio_input_fail\r\n");
         goto input_exit;
     }
+	
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	if(id <= GPIO31) {
+	    gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+	}
+	else if(id >= GPIO32) {
+		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
+	}
+#else
+	gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+#endif
 
-    gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
-    val = REG_READ(gpio_cfg_addr);
+	val = REG_READ(gpio_cfg_addr);
 
 input_exit:
     return (val & GCFG_INPUT_BIT);
@@ -467,13 +527,18 @@ void gpio_output(UINT32 id, UINT32 val)
 //        WARN_PRT("gpio_output_fail\r\n");
         goto output_exit;
     }
-
-    #if (CFG_SOC_NAME != SOC_BK7231)
-    if(id >= GPIO32)
-        id += 16;
-    #endif // (CFG_SOC_NAME != SOC_BK7231)
-
-    gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+	
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	if(id <= GPIO31) {
+		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+	}
+	else if(id >= GPIO32) {
+		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
+	}
+#else
+	gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+#endif
+	
     reg_val = REG_READ(gpio_cfg_addr);
 
     reg_val &= ~GCFG_OUTPUT_BIT;
@@ -494,10 +559,19 @@ static void gpio_output_reverse(UINT32 id)
 //        WARN_PRT("gpio_output_reverse_fail\r\n");
         goto reverse_exit;
     }
-
+	
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	if(id <= GPIO31) {
+		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
+	}
+	else if(id >= GPIO32) {
+		gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_32_CONFIG + (id - 32) * 4);
+	}
+#else
     gpio_cfg_addr = (volatile UINT32 *)(REG_GPIO_CFG_BASE_ADDR + id * 4);
-    reg_val = REG_READ(gpio_cfg_addr);
+#endif
 
+	reg_val = REG_READ(gpio_cfg_addr);
     reg_val ^= GCFG_OUTPUT_BIT;
     REG_WRITE(gpio_cfg_addr, reg_val);
 
@@ -528,7 +602,16 @@ void gpio_test_isr(unsigned char ucChannel)
 
 void gpio_int_disable(UINT32 index)
 {
-    *(volatile UINT32 *)REG_GPIO_INTEN &= ~(0x01 << index);
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	if(index <= GPIO31) {
+	    *(volatile UINT32 *)REG_GPIO_INTEN &= ~(0x01U << index);
+	}
+	else if(index >= GPIO32) {
+		 *(volatile UINT32 *)REG_GPIO_INTEN2 &= ~(0x01U << (index - 32));
+	}
+#else
+	*(volatile UINT32 *)REG_GPIO_INTEN &= ~(0x01U << index);
+#endif
 }
 
 void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned char))
@@ -547,7 +630,7 @@ void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned c
 
 //    mode &= 0x03;
 //    if ((mode == 0) || (mode == 3))
-//    {
+//   {
 //        gpio_config(index, GMODE_INPUT_PULLUP);
 //    }
 //    else
@@ -555,17 +638,29 @@ void gpio_int_enable(UINT32 index, UINT32 mode, void (*p_Int_Handler)(unsigned c
 //        gpio_config(index, GMODE_INPUT_PULLDOWN);
 //    }
 
-    if (index < 16)
-    {
+    if (index <= GPIO15) {
         *(volatile UINT32 *)REG_GPIO_INTLV0 = (*(volatile UINT32 *)REG_GPIO_INTLV0 & (~(0x03 << (index << 1)))) | (mode << (index << 1));
     }
-    else
-    {
+    else  if ((index >= GPIO16) &&(index <= GPIO31)) {
         *(volatile UINT32 *)REG_GPIO_INTLV1 = (*(volatile UINT32 *)REG_GPIO_INTLV1 & (~(0x03 << ((index - 16) << 1)))) | (mode << ((index - 16) << 1));
     }
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	else  if ((index >= GPIO32) &&(index <= GPIO39)) {
+		*(volatile UINT32 *)REG_GPIO_INTLV3 = (*(volatile UINT32 *)REG_GPIO_INTLV3 & (~(0x03U << ((index - 32) << 1)))) | (mode << ((index - 32) << 1));
+	}
+#endif
 
     p_gpio_intr_handler[index] = p_Int_Handler;
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME))
+	if(index <= GPIO31) {
+		*(volatile UINT32 *)REG_GPIO_INTEN |= (0x01U << index);
+	}
+	else if(index >= GPIO32) {
+		*(volatile UINT32 *)REG_GPIO_INTEN2 |= (0x01U << (index - GPIO32));
+	}
+#else
     *(volatile UINT32 *)REG_GPIO_INTEN |= (0x01 << index);
+#endif
 }
 
 /*******************************************************************/
@@ -664,10 +759,74 @@ UINT32 gpio_ctrl(UINT32 cmd, void *param)
         gpio_enable_second_function(second_mode);
         break;
     }
-
-    case CMD_GPIO_CLR_DPLL_UNLOOK_INT:
-        REG_WRITE(REG_GPIO_DPLL_UNLOCK, 0x1);
+    
+#if (SOC_BK7231 == CFG_SOC_NAME)
+    case CMD_GPIO_CLR_DPLL_UNLOOK_INT_BIT:
+        REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, DPLL_UNLOCK_INT);
         break;
+#else
+    case CMD_GPIO_CLR_DPLL_UNLOOK_INT_BIT:
+    {
+        UINT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+        reg &= ~GPIO_EXTRAL_INT_MASK;
+        reg |= DPLL_UNLOCK_INT;
+        REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+        break;
+    }
+        
+    case CMD_GPIO_EN_DPLL_UNLOOK_INT:
+    {
+        UINT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+        ASSERT(param);
+        UINT32 enable = *(UINT32 *)param;
+        if(enable) {
+            reg &= ~GPIO_EXTRAL_INT_MASK;
+            reg |= DPLL_UNLOCK_INT_EN;
+            REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+        } else {
+            reg &= ~GPIO_EXTRAL_INT_MASK;
+            reg &= ~DPLL_UNLOCK_INT_EN;
+            REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+        }
+        break;
+    }
+#if (SOC_BK7221U == CFG_SOC_NAME)
+    case CMD_GPIO_EN_USB_PLUG_IN_INT:
+    {
+        INT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+        ASSERT(param);
+        UINT32 enable = *(UINT32 *)param;
+        if(enable) {
+            reg &= ~GPIO_EXTRAL_INT_MASK;
+            reg |= USB_PLUG_IN_INT_EN;
+            REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+        } else {
+            reg &= ~GPIO_EXTRAL_INT_MASK;
+            reg &= ~USB_PLUG_IN_INT_EN;
+            REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+        }
+        break;
+    }
+    
+    case CMD_GPIO_EN_USB_PLUG_OUT_INT:
+    {
+        INT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+        ASSERT(param);
+        UINT32 enable = *(UINT32 *)param;
+        if(enable) {
+            reg &= ~GPIO_EXTRAL_INT_MASK;
+            reg |= USB_PLUG_OUT_INT_EN;
+            REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+        } else {
+            reg &= ~GPIO_EXTRAL_INT_MASK;
+            reg &= ~USB_PLUG_OUT_INT_EN;
+            REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+        }
+        break;
+    }
+
+#endif // (SOC_BK7221U == CFG_SOC_NAME)
+#endif // (SOC_BK7231 == CFG_SOC_NAME)
 
     case CMD_GPIO_INT_ENABLE:
     {
@@ -688,5 +847,44 @@ UINT32 gpio_ctrl(UINT32 cmd, void *param)
 
     return ret;
 }
+
+#if(SOC_BK7221U == CFG_SOC_NAME)
+UINT32 usb_is_plug_in(void)
+{
+    UINT32 reg = REG_READ(REG_GPIO_DETECT);
+
+    return (reg & IS_USB_PLUG_IN_BIT)? 1 : 0;
+}
+
+void usb_plug_inout_isr(void)
+{
+    UINT32 reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+    
+    if(reg & USB_PLUG_IN_INT) 
+    {
+        reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+        reg &= ~GPIO_EXTRAL_INT_MASK;
+        reg |= USB_PLUG_IN_INT;
+        REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+
+        if(usb_plug.handler) {
+            usb_plug.handler(usb_plug.usr_data, USB_PLUG_IN_EVENT);
+        }
+    }
+
+    reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+    if(reg & USB_PLUG_OUT_INT) 
+    {
+        reg = REG_READ(REG_GPIO_EXTRAL_INT_CFG);
+        reg &= ~GPIO_EXTRAL_INT_MASK;
+        reg |= USB_PLUG_OUT_INT;
+        REG_WRITE(REG_GPIO_EXTRAL_INT_CFG, reg);
+
+        if(usb_plug.handler) {
+            usb_plug.handler(usb_plug.usr_data, USB_PLUG_OUT_EVENT);
+        }
+    }
+}
+#endif
 
 // EOF

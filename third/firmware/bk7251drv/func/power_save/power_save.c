@@ -1,6 +1,5 @@
 #include "intc_pub.h"
 #include "rtos_pub.h"
-
 #include "wdt_pub.h"
 #include "gpio_pub.h"
 #include "pwm_pub.h"
@@ -352,30 +351,20 @@ void power_save_mac_idle_callback(void)
 {
     if(power_save_if_sleep_first())
     {
-#if (CFG_SOC_NAME == SOC_BK7231)
         power_save_wkup_time_cal(1);
         nxmac_tsf_mgt_disable_setf(0);
         nxmac_listen_interval_setf(1);
-#else
-        nxmac_radio_wake_up_time_setf(r_wakeup_time);
-        nxmac_dtim_period_setf(bk_ps_info.ps_dtim_period);
-//        delay(1);
-        nxmac_dtim_updated_by_sw_setf(1);
-        nxmac_tsf_mgt_disable_setf(0);
-        nxmac_wakeup_dtim_setf(1);
-#endif
 
         nxmac_atim_w_setf(512);
         nxmac_wake_up_sw_setf(0);
         /*first clear beacon interval,delay,then set beacon interval,to fix rw sleep wakeup time*/
         nxmac_beacon_int_setf(0);
-//        delay(1);
+        delay(1);
         nxmac_beacon_int_setf(bk_ps_info.ps_beacon_int);
         os_printf(" sleep_first %d\r\n", bk_ps_info.liston_mode);
         os_printf(" dtim period:%d multi:%d\r\n", bk_ps_info.ps_dtim_period, bk_ps_info.ps_dtim_multi);
         bk_ps_info.sleep_first = 0;
     }
-#if (CFG_SOC_NAME == SOC_BK7231)
     else
     {
         if(bk_ps_info.liston_mode == PS_LISTEN_MODE_DTIM)
@@ -402,7 +391,6 @@ void power_save_mac_idle_callback(void)
         }
 
     }
-#endif
 
     bk_ps_info.sleep_count ++;
 }
@@ -693,13 +681,13 @@ UINT8 power_save_me_ps_set_all_state(UINT8 state )
     VIF_INF_PTR vif_entry = NULL;
     UINT8 vif_idx = 0xff;
     UINT32 i;
-//
+
     if(state == false)
     {
         for(i = 0; i < NX_VIRT_DEV_MAX; i++)
         {
             vif_entry = &vif_info_tab[i];
-//
+
             if(vif_entry->active && vif_entry->type != VIF_STA)
             {
                 os_printf("%s:%d %d is %d not STA!!!!\r\n", __FUNCTION__, __LINE__, i, vif_entry->type);
@@ -707,7 +695,7 @@ UINT8 power_save_me_ps_set_all_state(UINT8 state )
             }
         }
     }
-//
+
     for(i = 0; i < NX_VIRT_DEV_MAX; i++)
     {
         vif_entry = &vif_info_tab[i];
@@ -760,7 +748,7 @@ void power_save_timer_init(void)
 void power_save_keep_timer_init(void)
 {
     UINT32 reg, err;
-    
+
 #if CFG_SUPPORT_ALIOS
     if(rtos_is_timer_init(&ps_keep_timer))
 #else
@@ -823,7 +811,7 @@ void power_save_dtim_ps_exit(void)
     bk_ps_info.PsDataWakeupWaitTimeMs = 0 ;
     bk_ps_info.PsPeriWakeupWaitTimeMs = 0 ;
     nxmac_beacon_int_setf(0);
-//    delay(1);
+    delay(1);
     bk_ps_info.ps_real_sleep = 0;
     bk_ps_info.sleep_count = 0;
     bk_ps_info.sleep_first = 1;
@@ -905,14 +893,9 @@ int power_save_dtim_disable_handler(void)
 
         if(power_save_wkup_event_get() & NEED_REBOOT_BIT)
         {
-#if CFG_SUPPORT_BOOTLOADER
             os_printf("wdt reboot\r\n");
             sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &wdt_val);
             sddev_control(WDT_DEV_NAME, WCMD_POWER_UP, NULL);
-#else
-            os_printf("reboot\r\n");
-            (*reboot)();
-#endif
         }
     }
 
@@ -960,7 +943,7 @@ void power_save_rf_dtim_manual_do_wakeup(void)
                 || bk_ps_info.ps_arm_wakeup_way == PS_ARM_WAKEUP_UPING)
             && (bk_ps_info.ps_real_sleep == 1))
     {
-//        delay(1);
+        delay(1);
         PS_DEBUG_UP_TRIGER;
 
         if(bk_ps_info.ps_arm_wakeup_way == PS_ARM_WAKEUP_UPING)
@@ -1141,7 +1124,7 @@ void power_save_keep_timer_real_handler()
     GLOBAL_INT_DISABLE();
     if(bk_ps_info.ps_arm_wakeup_way == PS_ARM_WAKEUP_RW && 0 == bk_ps_info.ps_real_sleep)
     {
-        if(0 == ps_reseted_moniter_flag 
+        if(0 == ps_reseted_moniter_flag
 #if CFG_SUPPORT_ALIOS
         && ps_bcn_loss_max_count < PS_BCN_MAX_LOSS_LIMIT
 #endif
@@ -1156,7 +1139,7 @@ void power_save_keep_timer_real_handler()
             ps_reseted_moniter_flag = 0;
         }
         GLOBAL_INT_RESTORE();
-//        delay(1);
+        delay(1);
         PS_DEBUG_PWM_TRIGER;
 
 #if CFG_USE_STA_PS
@@ -1207,9 +1190,9 @@ void power_save_rf_ps_wkup_semlist_wait(void)
     UINT32 ret;
     PS_DO_WKUP_SEM *sem_list = (PS_DO_WKUP_SEM *) os_malloc(sizeof(PS_DO_WKUP_SEM));
 #if CFG_SUPPORT_ALIOS
-    ret = rtos_init_semaphore(&sem_list->wkup_sema, 0);
+    ret = bk_rtos_init_semaphore(&sem_list->wkup_sema, 0);
 #else
-    ret = rtos_init_semaphore(&sem_list->wkup_sema, 1);
+    ret = bk_rtos_init_semaphore(&sem_list->wkup_sema, 1);
 #endif
     ASSERT(0 == ret);
     co_list_push_back(&bk_ps_info.wk_list, &sem_list->list);
@@ -1217,9 +1200,9 @@ void power_save_rf_ps_wkup_semlist_wait(void)
 
     if(sem_list)
     {
-        rtos_get_semaphore(&sem_list->wkup_sema, BEKEN_NEVER_TIMEOUT);
+        bk_rtos_get_semaphore(&sem_list->wkup_sema, BEKEN_NEVER_TIMEOUT);
         ASSERT(0 == ret);
-        ret = rtos_deinit_semaphore(&sem_list->wkup_sema);
+        ret = bk_rtos_deinit_semaphore(&sem_list->wkup_sema);
         ASSERT(0 == ret);
         os_free(sem_list);
         sem_list = NULL;
@@ -1238,7 +1221,7 @@ void power_save_rf_ps_wkup_semlist_set(void)
     {
         PS_DO_WKUP_SEM *sem_list;
         sem_list = list2sem(co_list_pop_front(&bk_ps_info.wk_list));
-        ret = rtos_set_semaphore(&sem_list->wkup_sema);
+        ret = bk_rtos_set_semaphore(&sem_list->wkup_sema);
         ASSERT(0 == ret);
     }
 }

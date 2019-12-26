@@ -22,16 +22,20 @@
 #include "arm_arch.h"
 #include "drv_model_pub.h"
 #include "icu_pub.h"
+#include "mem_pub.h"
 #include "uart_pub.h"
 #if CFG_SUPPORT_ALIOS
 #include "ll.h"
-
+#else
+#include "power_save_pub.h"
+#endif
 extern void do_irq( void );
 extern void do_fiq( void );
 extern void do_swi( void );
-#else
-//#include "power_save_pub.h"
-#endif
+extern void do_undefined( void );
+extern void do_pabort( void );
+extern void do_dabort( void );
+extern void do_reserved( void );
 
 ISR_T _isrs[INTC_MAX_COUNT] = {0,};
 static UINT32 isrs_mask = 0;
@@ -46,7 +50,7 @@ void intc_hdl_entry(UINT32 int_status)
     LIST_HEADER_T *pos;
 
     status = int_status & isrs_mask;
-//    INTC_PRT("intc:%x:%x\r\n", int_status, status);
+    INTC_PRT("intc:%x:%x\r\n", int_status, status);
 
     #if CFG_USE_STA_PS
     power_save_dtim_wake(status);
@@ -132,24 +136,7 @@ error:
 
     return;
 }
-#include "cpu_peri_reg.h"
-#include "int.h"
-#include "bk_uart.h"
-#include "pwm.h"
-#include "../icu/icu.h"
-void Disable_AllPeri()
-{
-    REG32_CLEAR_BIT(REG_UART1_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
-    REG32_CLEAR_BIT(REG_UART2_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
-//    REG32_CLEAR_BIT(PWM_CTL,(PWM0_EN_BIT|PWM1_EN_BIT|PWM2_EN_BIT|PWM3_EN_BIT|PWM4_EN_BIT|PWM5_EN_BIT));
-    REG32_CLEAR_REG(PWM_CTL);
-    REG32_CLEAR_REG(0x0802800+ 34*4);//gpio
-
-    REG32_CLEAR_REG(ICU_INTERRUPT_ENABLE);//disable all icu reg
-
-}
 #else
-
 #include "cpu_peri_reg.h"
 #include "int.h"
 #include "bk_uart.h"
@@ -164,12 +151,7 @@ void intc_service_register(UINT8 int_num, UINT8 int_pri, FUNCPTR isr)
     Int_SettoAsynSignal(int_num);
     Int_ClearLine(int_num);
     Int_RestoreAsynLine(int_num);
-
 }
-
-
-
-
 void Disable_AllPeri()
 {
     REG32_CLEAR_BIT(REG_UART1_CONFIG,(UART_TX_ENABLE|UART_RX_ENABLE));
@@ -179,9 +161,6 @@ void Disable_AllPeri()
     REG32_CLEAR_REG(0x0802800+ 34*4);//gpio
     REG32_CLEAR_REG(ICU_INTERRUPT_ENABLE);//disable all icu reg
 }
-
-
-
 #endif
 
 void intc_service_change_handler(UINT8 int_num, FUNCPTR isr)
@@ -279,7 +258,7 @@ void intc_irq(void)
 	if(0 == irq_status)
 	{
 	    #if (! CFG_USE_STA_PS)
-//		printf("irq:dead\r\n");
+		os_printf("irq:dead\r\n");
         #endif
 	}
 	

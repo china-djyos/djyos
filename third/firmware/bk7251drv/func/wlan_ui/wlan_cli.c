@@ -37,16 +37,14 @@
 #include "bk7011_cal_pub.h"
 #include "flash_pub.h"
 #include "mcu_ps_pub.h"
+#include "rtos_pub.h"
+#include "manual_ps_pub.h"
 
-#if CFG_SUPPORT_BOOTLOADER
-#include "wdt_pub.h"
-#include "lwip/sockets.h"
-#include "lwip/ip_addr.h"
-#include "lwip/inet.h"
-#endif
 
 #include "temp_detect_pub.h"
+#if CFG_SUPPORT_OTA_HTTP
 #include "utils_httpc.h"
+#endif
 
 #ifndef MOC
 static void task_Command( char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv );
@@ -62,6 +60,7 @@ extern int cli_putstr(const char *msg);
 static void bkreg_cmd_handle_input(char *inbuf, int len);
 extern int hexstr2bin(const char *hex, u8 *buf, size_t len);
 extern void make_tcp_server_command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
+#if CFG_SUPPORT_OTA_HTTP
 extern int httpclient_common(httpclient_t *client,
                              const char *url,
                              int port,
@@ -69,7 +68,7 @@ extern int httpclient_common(httpclient_t *client,
                              int method,
                              uint32_t timeout_ms,
                              httpclient_data_t *client_data);
-
+#endif
 u32 airkiss_process(u8 start);
 
 #if CFG_SARADC_CALIBRATE
@@ -427,17 +426,18 @@ static void print_bad_command(char *cmd_string)
 */
 static void cli_main( uint32_t data )
 {
-//    bk_uart_set_rx_callback(CLI_UART, cli_rx_callback, NULL);
+    bk_uart_set_rx_callback(CLI_UART, cli_rx_callback, NULL);
     while (1)
     {
         int ret;
         char *msg = NULL;
 
-        //rtos_get_semaphore(&log_rx_interrupt_sema, BEKEN_NEVER_TIMEOUT);
-        Djy_EventDelay(300*1000);
+        //bk_rtos_get_semaphore(&log_rx_interrupt_sema, BEKEN_NEVER_TIMEOUT);
+        bk_rtos_delay_milliseconds(300);
         if(get_input(pCli->inbuf, &pCli->bp))
         {
             msg = pCli->inbuf;
+
             if (os_strcmp(msg, EXIT_MSG) == 0)
                 break;
 
@@ -456,7 +456,7 @@ static void cli_main( uint32_t data )
     pCli = NULL;
 
 //    bk_uart_set_rx_callback(CLI_UART, NULL, NULL);
-//    rtos_delete_thread(NULL);
+//    bk_rtos_delete_thread(NULL);
 }
 
 #ifndef MOC
@@ -490,17 +490,17 @@ static void partShow_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc,
 
 static void uptime_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
-    os_printf("UP time %ldms\r\n", rtos_get_time());
+    os_printf("UP time %ldms\r\n", bk_rtos_get_time());
 }
 
 void tftp_ota_thread( beken_thread_arg_t arg )
 {
-    rtos_delete_thread( NULL );
+    bk_rtos_delete_thread( NULL );
 }
 
 void ota_Command( char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv )
 {
-    rtos_create_thread( NULL,
+    bk_rtos_create_thread( NULL,
                         BEKEN_APPLICATION_PRIORITY,
                         "LOCAL OTA",
                         (beken_thread_function_t)tftp_ota_thread,
@@ -778,7 +778,7 @@ void mtr_thread_main( void *arg )
             channel_num = 1;
         }
 
-        rtos_delay_milliseconds(100);
+        bk_rtos_delay_milliseconds(100);
         os_printf("channel:%d count:%x\r\n", channel_num, channel_count);
     }
 }
@@ -796,7 +796,7 @@ void mtr_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
 #if 0
     if(NULL == mtr_thread_handle)
     {
-        ret = rtos_create_thread(&mtr_thread_handle,
+        ret = bk_rtos_create_thread(&mtr_thread_handle,
                                  THD_MTR_PRIORITY,
                                  "mtr",
                                  (beken_thread_function_t)mtr_thread_main,
@@ -908,7 +908,7 @@ void airkiss_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **
 
     start = strtoul(argv[1], NULL, 0);
 
-//    airkiss_process(start);
+    airkiss_process(start);
 }
 
 #if CFG_USE_TEMPERATURE_DETECT
@@ -969,7 +969,7 @@ void socket_show_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
 
 void memory_show_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
-//    cmd_printf("free memory %d\r\n", xPortGetFreeHeapSize());
+    cmd_printf("free memory %d\r\n", xPortGetFreeHeapSize());
 }
 
 void memory_dump_Command( char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv )
@@ -1094,8 +1094,8 @@ static void Gpio_op_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, 
 
         id = (uint32_t)(cmd0 * 10 + cmd1);
         os_printf("---%x,%x----\r\n", id, mode);
-//        ret = BKGpioOp(cmd, id, mode);
-//        os_printf("gpio op:%x\r\n", ret);
+        ret = BKGpioOp(cmd, id, mode);
+        os_printf("gpio op:%x\r\n", ret);
     }
     else
         os_printf("cmd param error\r\n");
@@ -1125,7 +1125,7 @@ static void Gpio_int_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc,
         cmd1 = argv[2][1] - 0x30;
 
         id = (uint32_t)(cmd0 * 10 + cmd1);
-//        BKGpioIntcEn(cmd, id, mode, test_fun);
+        BKGpioIntcEn(cmd, id, mode, test_fun);
     }
     else
         os_printf("cmd param error\r\n");
@@ -1253,7 +1253,7 @@ static void Uart_command_test(char *pcWriteBuffer, int xWriteBufferLen, int argc
 
         if(cmd == 'I')
         {
-//            bk_uart_initialize_test(0, index, NULL);
+            bk_uart_initialize_test(0, index, NULL);
         }
     }
     else
@@ -1404,7 +1404,7 @@ static void tftp_ota_get_Command(char *pcWriteBuffer, int xWriteBufferLen, int a
 
 }
 #endif
-
+#if CFG_SUPPORT_OTA_HTTP
 #define HTTP_RESP_CONTENT_LEN   (256)
 /*
 *when HTTP_WR_TO_FLASH = 1 & CFG_SUPPORT_OTA_HTTP = 0 http data will write to flash ,addr #define HTTP_FLASH_ADDR  0xff000
@@ -1428,25 +1428,25 @@ void http_client_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
     httpclient.header = "Accept: text/xml,text/html,\r\n";
     httpclient_data.response_buf = http_content;
     httpclient_data.response_content_len = HTTP_RESP_CONTENT_LEN;
-//    ret = httpclient_common(&httpclient,
-//        argv[1],
-//        80,
-//        NULL,
-//        HTTPCLIENT_GET,
-//        5000,
-//        &httpclient_data);
-//    if (0 != ret) {
-//        os_printf("request epoch time from remote server failed.");
-//        } else {
-//        os_printf("sucess.\r\n");
-//    }
+    ret = httpclient_common(&httpclient,
+        argv[1],
+        80,
+        NULL,
+        HTTPCLIENT_GET,
+        5000,
+        &httpclient_data);
+    if (0 != ret) {
+        os_printf("request epoch time from remote server failed.");
+        } else {
+        os_printf("sucess.\r\n");
+    }
 
     return;
 HTTP_CMD_ERR:
     os_printf("Usage:httpc [url:]\r\n");
 
 }
-
+#endif
 static const struct cli_command built_ins[] =
 {
     {"help", NULL, help_command},
@@ -1481,7 +1481,7 @@ static const struct cli_command built_ins[] =
     {"memshow", "print memory information", memory_show_Command},
     {"memdump", "<addr> <length>", memory_dump_Command},
     {"os_memset", "<addr> <value 1> [<value 2> ... <value n>]", memory_set_Command},
-    //{"memp", "print memp list", memp_dump_Command},
+    {"memp", "print memp list", memp_dump_Command},
 
     {"reboot", "reboot system", reboot},
 
@@ -1511,14 +1511,15 @@ static const struct cli_command built_ins[] =
 #endif
 
 #if CFG_USE_SDCARD_HOST
-//    {"sdtest", "sdtest <cmd>", sd_operate},
+    {"sdtest", "sdtest <cmd>", sd_operate},
 #endif
 
 #if CFG_USE_TEMPERATURE_DETECT
     {"tmpdetect", "tmpdetect <cmd>", temp_detect_Command},
 #endif
-
+#if CFG_SUPPORT_OTA_HTTP
     {"httpc", "http client", http_client_Command},
+#endif
 
 };
 
@@ -1723,6 +1724,10 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
     UINT32 dtim_wait_time = 0;
     UINT32 dtim_data_wait_time = 0;
     UINT32 dtim_uart_wait_time = 0;
+    PS_DEEP_CTRL_PARAM deep_sleep_param;
+    deep_sleep_param.gpio_index_map = gpio_index;
+    deep_sleep_param.gpio_edge_map  = dtim;
+//  deep_sleep_param.deep_wkway = PS_DEEP_WAKEUP_GPIO;
 
     if(argc < 3)
     {
@@ -1739,7 +1744,7 @@ static void Ps_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         gpio_index = os_strtoul(argv[2], NULL, 16);
         dtim = os_strtoul(argv[3], NULL, 16);
 
-        bk_enter_deep_sleep(gpio_index,dtim,0);
+        bk_enter_deep_sleep_mode(&deep_sleep_param);
     }
 #endif
 #if CFG_USE_MCU_PS
@@ -2138,7 +2143,7 @@ IDLE_CMD_ERR:
 static void cli_rx_callback(int uport, void *param)
 {
     if(log_rx_interrupt_sema)
-        rtos_set_semaphore(&log_rx_interrupt_sema);
+        bk_rtos_set_semaphore(&log_rx_interrupt_sema);
 }
 
 /* ========= CLI input&output APIs ============ */
@@ -2166,28 +2171,18 @@ int cli_printf(const char *msg, ...)
 
 int cli_putstr(const char *msg)
 {
-//    if (msg[0] != 0)
-//        bk_uart_send( CLI_UART, (const char *)msg, os_strlen(msg) );
-
-//    return 0;
     if (msg[0] != 0)
-        printf("%s", msg);
+        bk_uart_send( CLI_UART, (const char *)msg, os_strlen(msg) );
+
+    return 0;
 }
 
 int cli_getchar(char *inbuf)
 {
-//    if (bk_uart_recv(CLI_UART, inbuf, 1, BEKEN_WAIT_FOREVER) == 0)
-//        return 1;
-//    else
-//        return 0;
-
-      int res = getc(stdin);
-      if (res == -1) {
-          return 0;
-      } else {
-          *inbuf = res & 0xFF;
-          return 1;
-      }
+    if (bk_uart_recv(CLI_UART, inbuf, 1, BEKEN_WAIT_FOREVER) == 0)
+        return 1;
+    else
+        return 0;
 }
 
 int cli_getchars(char *inbuf, int len)
@@ -2225,7 +2220,7 @@ static const struct cli_command user_clis[] =
 #ifdef TCP_CLIENT_DEMO
     {"tcp_cont", "tcp_cont [ip] [port]", tcp_make_connect_server_command},
 #endif
-    //{"tcp_server", "tcp_server [ip] [port]",make_tcp_server_command },
+    {"tcp_server", "tcp_server [ip] [port]",make_tcp_server_command },
 
 #if CFG_IPERF_TEST
     {"iperf", "iperf help", iperf },
@@ -2241,17 +2236,17 @@ int cli_init(void)
         return kNoMemoryErr;
 
     os_memset((void *)pCli, 0, sizeof(struct cli_st));
-    rtos_init_semaphore(&log_rx_interrupt_sema, 10);
+    bk_rtos_init_semaphore(&log_rx_interrupt_sema, 10);
 
     if (cli_register_commands(&built_ins[0],
                               sizeof(built_ins) / sizeof(struct cli_command)))
     {
         goto init_general_err;
     }
-    cli_register_commands(user_clis, sizeof(user_clis) / sizeof(struct cli_command));
 
+    cli_register_commands(user_clis, sizeof(user_clis) / sizeof(struct cli_command));
     beken_thread_t  cli_handle;
-    ret = rtos_create_thread(&cli_handle,
+    ret = bk_rtos_create_thread(&cli_handle,
                              BEKEN_DEFAULT_WORKER_PRIORITY,
                              "cli",
                              (beken_thread_function_t)cli_main,

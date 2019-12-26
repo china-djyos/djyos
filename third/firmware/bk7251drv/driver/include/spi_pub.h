@@ -54,7 +54,7 @@ enum
 
 #define BK_SPI_CPOL                 0x01
 #define BK_SPI_CPHA                 0x02
-#define SPI_DEF_MODE                (((BK_SPI_CPOL)|(BK_SPI_CPHA)))
+#define SPI_DEF_MODE                (~((BK_SPI_CPOL)|(BK_SPI_CPHA)))
 
 struct spi_message
 {

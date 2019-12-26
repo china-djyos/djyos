@@ -16,19 +16,16 @@
 #include "uart_pub.h"
 
 
-static DD_OPERATIONS qspi_op = {
-            qspi_open,
-            qspi_close,
-            NULL,
-            NULL,
-            qspi_ctrl
+static SDD_OPERATIONS qspi_op = 
+{
+	qspi_ctrl
 };
 
 
 void qspi_init(void)
 {
 	intc_service_register(FIQ_PSRAM, PRI_IRQ_QSPI, qspi_isr); 
-	ddev_register_dev(QSPI_DEV_NAME, &qspi_op);	
+	sddev_register_dev(QSPI_DEV_NAME, &qspi_op);	
 }
 
 void qspi_exit(void)
@@ -312,6 +309,8 @@ static UINT32 qspi_ctrl(UINT32 cmd, void *param)
 {
 	UINT32 ret = QSPI_SUCCESS;
 
+	qspi_dcache_drv_desc * p_param;
+	
     peri_busy_count_add();
 
 	switch(cmd){
@@ -319,7 +318,8 @@ static UINT32 qspi_ctrl(UINT32 cmd, void *param)
 		qspi_psram_set_voltage(*(UINT8 *)param);
 		break;
 	case QSPI_CMD_DCACHE_CONFIG:
-		ret = bk_qspi_dcache_configure((qspi_dcache_drv_desc *)param);
+		p_param = (qspi_dcache_drv_desc *)param;
+		ret = bk_qspi_dcache_configure(p_param);
 		break;
 	case QSPI_CMD_GPIO_CONFIG:
 		qspi_gpio_configuration(*(UINT8 *)param);
@@ -327,14 +327,20 @@ static UINT32 qspi_ctrl(UINT32 cmd, void *param)
 	case QSPI_CMD_DIV_CLK_SET:
 		qspi_div_clk_set(*(UINT8 *)param);
 		break;
-	case QSPI_CLK_SET_26M:
+	case QSPI_CMD_CLK_SET_26M:
 		qspi_clk_set_26M();
 		break;	
-	case QSPI_CLK_SET_DCO:
+	case QSPI_CMD_CLK_SET_DCO:
 		qspi_clk_set_dco();
 		break;	
-	case QSPI_CLK_SET_120M:
+	case QSPI_CMD_CLK_SET_120M:
 		qspi_clk_set_120M();
+		break;
+	case QSPI_DCACHE_CMD_OPEN:	
+		qspi_open(1);
+		break;	
+	case QSPI_DCACHE_CMD_CLOSE:
+		qspi_close();
 		break;
 	
 	default:
@@ -369,7 +375,7 @@ int bk_qspi_dcache_configure(qspi_dcache_drv_desc *qspi_cfg)
 	}
 	else
 	{
-		printf("[QSPI]:line mode error\r\n");
+		os_printf("[QSPI]:line mode error\r\n");
 		return QSPI_FAILURE;
 	}
 	
@@ -399,9 +405,9 @@ void bk_qspi_mode_start(UINT32 mode, UINT32 div)
 
 	param = QSPI_IO_3_3V;
 	qspi_ctrl(QSPI_CMD_SET_VOLTAGE, (void *)&param);
-
-	qspi_ctrl(QSPI_CLK_SET_26M, NULL);
-
+	
+	qspi_ctrl(QSPI_CMD_CLK_SET_26M, NULL);
+	
 	param = div;
 	qspi_ctrl(QSPI_CMD_DIV_CLK_SET,(void *)&param);
 
@@ -416,20 +422,6 @@ void djy_qspi_mode_end(void)    //djyos加的函数，用于关qspi
 
     param = QSPI_IO_1_8V;
     qspi_ctrl(QSPI_CMD_SET_VOLTAGE, (void *)&param);
-
-    gpio_config(GPIO24,GMODE_OUTPUT);
-    gpio_output(GPIO24, 0);
-    gpio_config(GPIO26,GMODE_OUTPUT);
-    gpio_output(GPIO26, 0);
-
-    gpio_config(GPIO20,GMODE_OUTPUT);
-    gpio_output(GPIO20, 0);
-    gpio_config(GPIO21,GMODE_OUTPUT);
-    gpio_output(GPIO21, 0);
-    gpio_config(GPIO22,GMODE_OUTPUT);
-    gpio_output(GPIO22, 0);
-    gpio_config(GPIO23,GMODE_OUTPUT);
-    gpio_output(GPIO23, 0);
 }
 
 

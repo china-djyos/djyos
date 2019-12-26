@@ -27,6 +27,10 @@
 #include "mcu_ps_pub.h"
 #include "manual_ps_pub.h"
 #include "gpio_pub.h"
+#include "rtos_pub.h"
+
+
+
 
 #if CFG_ROLE_LAUNCH
 #include "role_launch.h"
@@ -78,6 +82,17 @@ static void rwnx_remove_added_interface(void)
         os_free(cfm);
     }
 }
+//int bk_wlan_enter_powersave(struct rt_wlan_device *device, int level)
+//{
+//    int result = 0;
+//
+//    if (device == 0) return -8;
+//
+//    result = rt_device_control(RT_DEVICE(device), WIFI_ENTER_POWERSAVE, (void *)&level);
+//
+//    return result;
+//}
+
 
 void bk_wlan_connection_loss(void)
 {
@@ -390,7 +405,7 @@ OSStatus bk_wlan_start_ap(network_InitTypeDef_st *inNetworkInitParaAP)
         else
         {
             GLOBAL_INT_RESTORE();
-            rtos_delay_milliseconds(100);
+            bk_rtos_delay_milliseconds(100);
         }
     }
 
@@ -817,8 +832,8 @@ OSStatus bk_wlan_start_ap_adv(network_InitTypeDef_ap_st *inNetworkInitParaAP)
     ret = hostapd_main_entry(2, 0);
     if(ret)
     {
-        os_printf("bk_wlan_start_ap_adv failed!!\r\n");
-        bk_wlan_stop(SOFT_AP);
+        os_printf("bk_wlan_start softap failed!!\r\n");
+		bk_wlan_stop(SOFT_AP);
         return -1;
     }
 
@@ -946,35 +961,35 @@ OSStatus bk_wlan_get_ip_status(IPStatusTypedef *outNetpara, WiFi_Interface inInt
 #endif
 {
     OSStatus ret = kNoErr;
-//    struct wlan_ip_config addr;
-//
-//    os_memset(&addr, 0, sizeof(struct wlan_ip_config));
-//
-//    switch ( inInterface )
-//    {
-//    case SOFT_AP :
-//        net_get_if_addr(&addr, net_get_uap_handle());
-//        net_get_if_macaddr(outNetpara->mac, net_get_uap_handle());
-//        break;
-//
-//    case STATION :
-//        net_get_if_addr(&addr, net_get_sta_handle());
-//        net_get_if_macaddr(outNetpara->mac, net_get_sta_handle());
-//        break;
-//
-//    default:
-//        ret = kGeneralErr;
-//        break;
-//    }
-//
-//    if ( ret == kNoErr )
-//    {
-//        outNetpara->dhcp = addr.ipv4.addr_type;
-//        os_strcpy(outNetpara->ip, inet_ntoa(addr.ipv4.address));
-//        os_strcpy(outNetpara->mask, inet_ntoa(addr.ipv4.netmask));
-//        os_strcpy(outNetpara->gate, inet_ntoa(addr.ipv4.gw));
-//        os_strcpy(outNetpara->dns, inet_ntoa(addr.ipv4.dns1));
-//    }
+    struct wlan_ip_config addr;
+
+    os_memset(&addr, 0, sizeof(struct wlan_ip_config));
+
+    switch ( inInterface )
+    {
+    case SOFT_AP :
+        net_get_if_addr(&addr, net_get_uap_handle());
+        net_get_if_macaddr(outNetpara->mac, net_get_uap_handle());
+        break;
+
+    case STATION :
+        net_get_if_addr(&addr, net_get_sta_handle());
+        net_get_if_macaddr(outNetpara->mac, net_get_sta_handle());
+        break;
+
+    default:
+        ret = kGeneralErr;
+        break;
+    }
+
+    if ( ret == kNoErr )
+    {
+        outNetpara->dhcp = addr.ipv4.addr_type;
+        os_strcpy(outNetpara->ip, inet_ntoa(addr.ipv4.address));
+        os_strcpy(outNetpara->mask, inet_ntoa(addr.ipv4.netmask));
+        os_strcpy(outNetpara->gate, inet_ntoa(addr.ipv4.gw));
+        os_strcpy(outNetpara->dns, inet_ntoa(addr.ipv4.dns1));
+    }
 
     return ret;
 }
@@ -1054,11 +1069,11 @@ void bk_wlan_ap_para_info_get(network_InitTypeDef_ap_st *ap_info)
     ap_info->channel = g_ap_param_ptr->chann;
     ap_info->security = g_ap_param_ptr->cipher_suite;
 
-//    bk_wlan_get_ip_status(&ap_ips,SOFT_AP);
-//    memcpy(ap_info->local_ip_addr,ap_ips.ip,16);
-//    memcpy(ap_info->gateway_ip_addr,ap_ips.gate,16);
-//    memcpy(ap_info->net_mask,ap_ips.mask,16);
-//    memcpy(ap_info->dns_server_ip_addr,ap_ips.dns,16);
+    bk_wlan_get_ip_status(&ap_ips,SOFT_AP);
+    memcpy(ap_info->local_ip_addr,ap_ips.ip,16);
+    memcpy(ap_info->gateway_ip_addr,ap_ips.gate,16);
+    memcpy(ap_info->net_mask,ap_ips.mask,16);
+    memcpy(ap_info->dns_server_ip_addr,ap_ips.dns,16);
 
      ap_info->dhcp_mode = g_wlan_general_param->dhcp_enable;
 }
@@ -1253,35 +1268,7 @@ extern void bmsg_ps_sender(uint8_t ioctl);
  *              gpio_edge_map is hex and every bits is map to gpio0-gpio31.
  *              0:rising,1:falling.
  */
-#if CFG_USE_DEEP_PS
-void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map,UINT32 time)
-{
-    UINT32 param;
-    UINT32 i;
 
-    for (i = 0; i < GPIONUM; i++)
-    {
-        if (gpio_index_map & (0x01UL << i))
-        {
-            if(gpio_index_map & gpio_edge_map & (0x01UL << i))
-            {
-                param = GPIO_CFG_PARAM(i, GMODE_INPUT_PULLUP);
-                sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
-            }
-            else
-            {
-                param = GPIO_CFG_PARAM(i, GMODE_INPUT_PULLDOWN);
-                sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
-            }
-        }
-    }
-#ifndef DEEP_SLEEP_TEST_RTC_WAKEUP
-    deep_sleep_wakeup_with_gpio(gpio_index_map,gpio_edge_map);
-#else
-	deep_sleep_wakeup_with_xtal_32K(time);
-#endif
-}
-#endif
 
 #if CFG_USE_STA_PS
 /** @brief  Enable dtim power save,close rf,and wakeup by ieee dtim dynamical
@@ -1334,12 +1321,11 @@ int bk_wlan_dtim_rf_ps_mode_disable(void)
     {
         if ( power_save_ps_mode_get() == PS_NO_PS_MODE)
         {
-            os_printf("PS_NO_PS_MODE\r\n");
             break;
         }
         else
         {
-            rtos_delay_milliseconds(100);
+            bk_rtos_delay_milliseconds(100);
         }
     }
 
@@ -1406,6 +1392,11 @@ int bk_wlan_dtim_with_normal_close()
 BK_PS_LEVEL global_ps_level = 0;
 int bk_wlan_power_save_set_level(BK_PS_LEVEL level)
 {
+    PS_DEEP_CTRL_PARAM deep_sleep_param;
+    deep_sleep_param.gpio_index_map = 0xc000;
+    deep_sleep_param.gpio_edge_map  = 0x0;
+    deep_sleep_param.wake_up_way = PS_DEEP_WAKEUP_GPIO;
+
     if(level & PS_DEEP_SLEEP_BIT)
     {
 #if CFG_USE_STA_PS
@@ -1420,9 +1411,9 @@ int bk_wlan_power_save_set_level(BK_PS_LEVEL level)
             bk_wlan_mcu_ps_mode_disable();
         }
 #endif
-        rtos_delay_milliseconds(100);
+        bk_rtos_delay_milliseconds(100);
 #if CFG_USE_DEEP_PS
-        bk_enter_deep_sleep(0xc000,0x0,0);
+        bk_enter_deep_sleep_mode(&deep_sleep_param);
 #endif
     }
 

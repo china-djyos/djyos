@@ -14,6 +14,7 @@
 #include "ble_pub.h"
 #endif
 
+
 #define ICU_BASE                                     (0x00802000)
 #define ICU_INT_STATUS                               (ICU_BASE + 19 * 4)
 
@@ -385,15 +386,7 @@ uint32_t bk_wlan_ap_get_frequency(void);
 uint32_t bk_wlan_get_INT_status(void);
 
 extern int is_apm_bss_config_empty(void);
-/** @brief  Request deep sleep,and wakeup by gpio.
- *
- *  @param  gpio_index_map:The gpio bitmap which set 1 enable wakeup deep sleep.
- *              gpio_index_map is hex and every bits is map to gpio0-gpio31.
- *          gpio_edge_map:The gpio edge bitmap for wakeup gpios,
- *              gpio_edge_map is hex and every bits is map to gpio0-gpio31.
- *              0:rising,1:falling.
- */
-void bk_enter_deep_sleep(UINT32 gpio_index_map,UINT32 gpio_edge_map,UINT32 time);
+
 
 /** @brief  Enable dtim power save,close rf,and wakeup by ieee dtim dynamical
  *
@@ -425,6 +418,9 @@ extern int bk_wlan_dtim_rf_ps_set_linger_time(UINT32 );
 
 extern int bk_wlan_mcu_suppress_and_sleep(UINT32);
 
+/* enter power save level */
+int bk_wlan_enter_powersave(struct rt_wlan_device *device, int level);
+
 
 extern void user_callback_register(void);
 /** @brief  Enable mcu power save,close mcu ,and wakeup by irq
@@ -452,6 +448,10 @@ void bk_wlan_scan_ap_reg_cb(FUNC_2PARAM_PTR ind_cb);
 unsigned char bk_wlan_get_scan_ap_result_numbers(void);
 void bk_wlan_get_scan_ap_result(SCAN_RST_ITEM_PTR scan_rst_table,unsigned char get_scanu_num);
 void bk_wlan_ap_set_default_channel(uint8_t channel);
+/* enter power save level */
+//int bk_wlan_enter_powersave(struct rt_wlan_device *device, int level);
+
+
 
 #ifdef CONFIG_AOS_MESH
 void wlan_register_mesh_monitor_cb(monitor_data_cb_t fn);

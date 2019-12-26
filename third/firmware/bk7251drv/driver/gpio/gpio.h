@@ -83,8 +83,30 @@
 #define REG_GPIO_INTLV0                      (GPIO_BASE_ADDR + 34*4)
 #define REG_GPIO_INTLV1                      (GPIO_BASE_ADDR + 35*4)
 #define REG_GPIO_INTSTA                      (GPIO_BASE_ADDR + 36*4)
-#define REG_GPIO_DPLL_UNLOCK                 (GPIO_BASE_ADDR + 38*4)
+
+#define REG_GPIO_EXTRAL_INT_CFG              (GPIO_BASE_ADDR + 38*4)
+#if (CFG_SOC_NAME == SOC_BK7231)
+#define DPLL_UNLOCK_INT                       (1 << 0)
+#else
+#define DPLL_UNLOCK_INT_EN                    (1 << 0)
+#define AUDIO_DPLL_UNLOCK_INT_EN              (1 << 1)
+#define DPLL_UNLOCK_INT                       (1 << 2)
+#define AUDIO_DPLL_UNLOCK_INT                 (1 << 3)
+#if (CFG_SOC_NAME == SOC_BK7221U)
+#define USB_PLUG_IN_INT_EN                    (1 << 4)
+#define USB_PLUG_OUT_INT_EN                   (1 << 5)
+#define USB_PLUG_IN_INT                       (1 << 6)
+#define USB_PLUG_OUT_INT                      (1 << 7)
+#define GPIO_EXTRAL_INT_MASK                  (DPLL_UNLOCK_INT | AUDIO_DPLL_UNLOCK_INT | USB_PLUG_IN_INT | USB_PLUG_OUT_INT)
+#else
+#define GPIO_EXTRAL_INT_MASK                  (DPLL_UNLOCK_INT | AUDIO_DPLL_UNLOCK_INT)
+#endif
+#endif
+                 
 #define REG_GPIO_DETECT                      (GPIO_BASE_ADDR + 39*4)
+#define IS_OVER_TEMP_DECT_BIT                 (1 << 0)
+#define IS_USB_PLUG_IN_BIT                    (1 << 1)
+
 #define REG_GPIO_ENC_WORD                    (GPIO_BASE_ADDR + 40*4)
 #define REG_GPIO_DBG_MSG                     (GPIO_BASE_ADDR + 41*4)
 #define REG_GPIO_DBG_MUX                     (GPIO_BASE_ADDR + 42*4)
@@ -159,6 +181,17 @@
 #define REG_GPIO_37_CONFIG                   (GPIO_BASE_ADDR + 53*4)
 #define REG_GPIO_38_CONFIG                   (GPIO_BASE_ADDR + 54*4)
 #define REG_GPIO_39_CONFIG                   (GPIO_BASE_ADDR + 55*4)
+
+#define REG_GPIO_INTEN2                      (GPIO_BASE_ADDR + 56*4)
+#define REG_GPIO_INTLV3                      (GPIO_BASE_ADDR + 57*4)
+#define REG_GPIO_INTSTA2                     (GPIO_BASE_ADDR + 58*4)
+
+#if(!((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U)))
+#define REG_GPIO_X_CONGFIG_ADDR(x)			(GPIO_BASE_ADDR + (x)*4)
+#else
+#define REG_GPIO_X_CONGFIG_ADDR(x)			(GPIO_BASE_ADDR +  (((x)<32) ? (x) : ((x)+0x10)) * 4)
+#endif
+
 #endif // #if (CFG_SOC_NAME == SOC_BK7231)
 
 #endif // _GPIO_H_

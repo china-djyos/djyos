@@ -56,7 +56,12 @@ enum prevent_sleep
 	/// Flag indicating that controller shall not sleep due to not CSB LPO_Allowed 
 	RW_CSB_NOT_LPO_ALLOWED = 0x0040,
     /// Flag indicating the MWS/WLAN Event Generator is in operation
-    RW_MWS_WLAN_EVENT_GENERATOR_ACTIVE = 0x0080
+    RW_MWS_WLAN_EVENT_GENERATOR_ACTIVE = 0x0080,
+     /// Flag sleep ongoing
+    RW_SLEEP_EVENT_ONGOING = 0x0100,
+     /// Flag sleep ongoing
+    RW_GLOBEL_EVENT_ONGOING = 0x0200
+    
 };
 
 
