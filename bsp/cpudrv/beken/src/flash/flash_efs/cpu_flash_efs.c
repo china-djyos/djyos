@@ -226,6 +226,7 @@ bool_t efs_embflash_CheckBlockReady(u32 dwBlock, u32 dwOffset, u8 *pBuf, u32 dwS
                 if((0xFF != buf[i]) && (buf[i] != pBuf[i]))
                 {   //如果指定地址里面的数据既不是全FF又不是待判断的数据，则该区域没有准备好
                     free(buf);
+                    djy_flash_req(unlock, 0);
                     return (FALSE);
                 }
             }
