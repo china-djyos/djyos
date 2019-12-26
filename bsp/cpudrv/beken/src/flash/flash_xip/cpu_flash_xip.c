@@ -204,7 +204,10 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     offset = (offset * 34 / 32) - offset;   //存在crc的bin文件，app的文件头要在这里先保留下来
                     app_head = malloc(offset + Get_AppHeadSize());
                     if(app_head == NULL)
+                    {
+                        djy_flash_req(unlock, 0);
                         return (-1);
+                    }
                     memcpy(app_head, cx->apphead, cx->Wappsize);
                     memcpy(app_head + cx->Wappsize, data, offset);
 
@@ -233,7 +236,10 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                 {
                     offset = (offset * 34 / 32) - offset;       //保留下来的文件头，在这里重新填充数据，并计算crc
                     if(app_head == NULL)
+                    {
+                        djy_flash_req(unlock, 0);
                         return (-1);
+                    }
                     u8 *name = (u8 *)core->root->child->name;
                     u8 flag = 1;
                     u32 app_head_size = offset + Get_AppHeadSize();
