@@ -301,6 +301,7 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
                 EnJtag();
                 while(1);
             }
+        }
     }
     return 1;
 }

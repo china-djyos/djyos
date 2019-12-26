@@ -254,5 +254,44 @@ GetLR:
     mov     R0, LR
     BX      LR
 
+.globl EnJtag
+.type EnJtag, %function
+EnJtag:
+    push    {r0-r3}
+
+    ldr     r0,=(0x0802800 + 46*4)
+    ldr     r1,[r0]
+    ldr     r2,=0xFFFFFCFF
+    and     r1,r2
+    ldr     r2,=0x100
+    orr     r1,r2
+    str     r1,[r0]
+
+    ldr     r0,=(0x0802800 + 46*4)
+    ldr     r1,[r0]
+    ldr     r2,=0xFFFFF3FF
+    and     r1,r2
+    ldr     r2,=0x400
+    orr     r1,r2
+    str     r1,[r0]
+
+    ldr     r0,=(0x0802800 + 46*4)
+    ldr     r1,[r0]
+    ldr     r2,=0xFFFFCFFF
+    and     r1,r2
+    ldr     r2,=0x1000
+    orr     r1,r2
+    str     r1,[r0]
+
+    ldr     r0,=(0x0802800 + 46*4)
+    ldr     r1,[r0]
+    ldr     r2,=0xFFFF3FFF
+    and     r1,r2
+    ldr     r2,=0x4000
+    orr     r1,r2
+    str     r1,[r0]
+
+    pop     {r0-r3}
+    BX      LR
 
 .end
