@@ -137,13 +137,13 @@
 #define CONFIG_APP_MP3PLAYER                       0
 
 /*section 21 ----- support ota*/
-//#if CFG_SUPPORT_BOOTLOADER
-//#define CFG_SUPPORT_OTA_HTTP                       1
-//#define CFG_SUPPORT_OTA_TFTP                       1
-//#else
+#if CFG_SUPPORT_BOOTLOADER
+#define CFG_SUPPORT_OTA_HTTP                       1
+#define CFG_SUPPORT_OTA_TFTP                       1
+#else
 #define CFG_SUPPORT_OTA_HTTP                       0
 #define CFG_SUPPORT_OTA_TFTP                       0
-//#endif
+#endif
 
 /*section 22 ----- support adc calibrate*/
 #define CFG_SARADC_CALIBRATE                       0
@@ -164,6 +164,5 @@
 #define CFG_USE_SPI_MST_FLASH                      0
 #define CFG_USE_SPI_MST_PSRAM                      0
 #define CFG_USE_SPI_SLAVE                          0
-
 
 #endif // _SYS_CONFIG_H_
