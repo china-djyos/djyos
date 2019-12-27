@@ -83,7 +83,7 @@ extern "C" {
 /*____以下定义tick参数____*/
 #define CN_CFG_TICK_US 10000  //tick间隔，以us为单位。
 #define CN_CFG_TICK_HZ 100  //内核时钟频率，单位为hz。
-#define CN_USE_TICKLESS_MODE    (0U)
+//#define CN_USE_TICKLESS_MODE    (0U)
 
 #define CN_CFG_FINE_US 0x00009d9  //1/26M,tick输入时钟周期，以uS为单位，32位定点数整数、小数各占16位，这也限制了ticks最长不超过65535uS
 #define CN_CFG_FINE_HZ CN_CFG_MCLK  //tick输入时钟频率，是CN_CFG_FINE_US的倒数
