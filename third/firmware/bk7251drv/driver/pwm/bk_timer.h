@@ -1,6 +1,8 @@
 #ifndef _BK_TIMER_H_
 #define _BK_TIMER_H_
 
+#define BK_TIMER_FAILURE                (1)
+#define BK_TIMER_SUCCESS                (0)
 
 #include "pwm.h"
 
