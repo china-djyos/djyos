@@ -184,7 +184,7 @@ __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks)
     //由于调用本函数时没有关闭实时中断，故实时中断的ISR执行不能大于CFG_REAL_CRITICAL微秒
     if((temp +s_gCriticalCycle) <(s_gCurrentTicks*26*1000/1000*1000))
     {
-        Set_SysTickEnd(Ticks*26*1000);
+        Set_SysTickEnd(Ticks*26*10000);
         s_gCurrentTicks = Ticks;
     }
 
