@@ -1020,7 +1020,7 @@ void DispMainInterface(unsigned char *pic)
     src_bitmap.width = 240;
     src_bitmap.height = 320;
     src_bitmap.linebytes = 240*2;
-    src_bitmap.reversal = 1;
+    src_bitmap.reversal = 0;
     src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
     __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
 }

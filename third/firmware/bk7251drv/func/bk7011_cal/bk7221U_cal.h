@@ -32,7 +32,7 @@ void delay05us(INT32 num);
 
 //#define DPDCALILEN                  256
 
-#define cpu_delay(val)            delay(MAX(1, val/100))
+#define cpu_delay(val)            Djy_EventDelay(MAX(1000, val*1000)) //delay(MAX(1, val/100))
 #define DELAY1US                  100
 //#define DELAY05US               1
 

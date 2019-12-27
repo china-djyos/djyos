@@ -292,10 +292,10 @@ void djy_flash_write(uint32_t address, const void *data, uint32_t size)
 void djy_flash_erase(uint32_t address)
 {
 //    u32 practical_addr = address * 34 / 32;
-    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
     address &= (0xFFF000);
     if(address >= 0x400000)
         return;
+    Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
 //    flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_ctrl(CMD_FLASH_ERASE_SECTOR, &address);
 //    flash_protection_op(0,FLASH_PROTECT_ALL);

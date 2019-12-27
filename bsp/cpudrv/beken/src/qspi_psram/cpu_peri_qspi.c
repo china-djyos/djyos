@@ -46,7 +46,7 @@
 #include <typedef.h>
 #include <stdlib.h>
 #include <dbug.h>
-#include "qspi/qspi_pub.h"
+#include "qspi_pub.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -110,12 +110,15 @@ int ModuleInstall_QSPI_PSRAM(void)
     qspi_cfg.wr_dummy_size = 0;
     qspi_cfg.rd_dummy_size = 0x00;
 
-    bk_qspi_mode_start(1, 0);
-    if(bk_qspi_dcache_configure(&qspi_cfg))
-    {
-        info_printf("QSPI","QSPI init fail.\r\n");
-        return 0;
-    }
+    bk_qspi_dcache_initialize(&qspi_cfg);
+    bk_qspi_start();
+
+//    bk_qspi_mode_start(1, 0);
+//    if(bk_qspi_dcache_configure(&qspi_cfg))
+//    {
+//        info_printf("QSPI","QSPI init fail.\r\n");
+//        return 0;
+//    }
 
 //  if(Heap_Add(QSPI_DCACHE_BASE, CFG_QSPI_RAM_SIZE, CFG_QSPI_RAM_PAGE_SIZE, CFG_QSPI_RAM_ALIGNMENT,
 //          CFG_QSPI_RAM_DEDICATED, CFG_QSPI_RAM_HEAP_NAME) == 0)       //把QSPI接的RAM添加到heap当中

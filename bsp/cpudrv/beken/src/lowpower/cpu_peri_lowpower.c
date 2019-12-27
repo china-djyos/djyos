@@ -76,7 +76,8 @@ void LP_BSP_ResigerGpioToWakeUpL4(u32 gpio_index_map,u32 gpio_edge_map)
 
 void __LP_BSP_EntrySleepL4(void)
 {
-    bk_enter_deep_sleep(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map,0);
+//    bk_enter_deep_sleep(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map,0);
+    deep_sleep_wakeup_with_gpio(gGpioToWakeUpL4.index_map,gGpioToWakeUpL4.edge_map);
 }
 
 bool_t __LP_BSP_SaveSleepLevel(u32 SleepLevel)
