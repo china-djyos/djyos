@@ -14,41 +14,25 @@ SECTIONS
         KEEP(*(.DjyAppHead .DjyAppHead.*))   
     }>flash
 
-    /*RevRam是Ram保留区域，用于存储preload前使用或保存的内在数据,只有IAP_pload.c*/
-    /*的pg_IapVar变量从该段内分配，且该段在iboot.lds和debug/release.lds保持一致*/
-    Iboot_RevRam (NOLOAD):
+    /*share_rRAM1_lRAM1段保存的是Iboot和APP共享信息，必须确保在同一地址，*/
+    /*故在memory.lds中定义了一段指定地址的内存*/
+
+	  share_rRAM1_lRAM1 (NOLOAD) :
     {
         . = ALIGN(0x08);
         KEEP(*(.IbootAppInfo .IbootAppInfo.*))    
-    }>ram
-
-	stack_rRAM1_lRAM1 (NOLOAD) :
+    	  . = ALIGN(0x08);
+    	  KEEP(* (.data.isrtab))
+    	  KEEP(* (.data.interrupt))
+    }>share
+	  stack_rRAM1_lRAM1 (NOLOAD) :
     {
-    	. = ALIGN(0x04);
-    	 KEEP(* (.data.isrtab))
-    	 KEEP(* (.data.interrupt))
-        . = ALIGN(0x02);
+        . = ALIGN(0x08);
         msp_bottom = .;
         KEEP(* (.data.InitStack))
-		 . = ALIGN(0x08); 
+		    . = ALIGN(0x08); 
         msp_top = .; 
-
-	    . += 0x10;
-        _stack_unused = .;
-        
-        . += 0x3F0;
-        _stack_svc = .;
-        
-        . += 0xFF0;
-        _stack_irq = .;
-        
-        . += 0x7F0;
-        _stack_fiq = .;
-        
-        . += 0x3F0;
-        _stack_sys = .;
     }>ram
-
     
     /* vectors go to vectors region */
     /*. = ORIGIN(flash);*/
@@ -60,7 +44,14 @@ SECTIONS
 	   KEEP(*pre_loader.o(.text .text.* .rodata .rodata.*))
 	   . = ALIGN(10);
     } > flash
-
+    
+    wifi_lib :
+    {
+    	. = ALIGN(0x08);
+    	*librwnx.a* (.text .text.* .rodata .rodata.*)
+    	. = ALIGN(0x08);
+	} > flash
+	
 text_preload_rIbootRom_lIbootRom :
 	{
 		. = ALIGN(0x08);
@@ -75,7 +66,6 @@ text_preload_rIbootRom_lIbootRom :
         *list.o (.text .text.* .rodata .rodata.*)
 		. = ALIGN(0x08);
 	}>flash
-	
 	
 	test_debug :
     {       
@@ -134,8 +124,17 @@ text_preload_rIbootRom_lIbootRom :
         * (.bss .bss.* COMMON)
 		. = ALIGN(0x4) ;
     }>ram
-	
-	 routine_shell_data_section :
+
+    lcdbuffer (NOLOAD) :
+    {
+       . = ALIGN(0x04);
+        * (.lcdram)
+        . = ALIGN(0x4) ;
+    }>sdram
+
+
+
+     routine_shell_data_section :
     {
              KEEP(* (.ro_shell_data))
      }>ram AT>flash

@@ -132,7 +132,7 @@ static uart_config_t djybsp_uart[CN_UART_NUM] = {
     {
         .baud_rate = UART_BAUDRATE_115200,
         .data_width = DATA_WIDTH_8BIT,
-        .parity = BK_PARITY_EVEN,
+        .parity = BK_PARITY_NO,
         .stop_bits = BK_STOP_BITS_1,
         .flow_control = FLOW_CTRL_DISABLED,
     },
@@ -180,7 +180,7 @@ static void __UART_HardInit(u8 SerialNo)
     {
         case CN_UART1:
 //            uart1_init();
-            __UART_BaudSet(SerialNo, 115200);
+//            __UART_BaudSet(SerialNo, 115200);
             break;
         case CN_UART2:
 //            uart2_init();
@@ -439,7 +439,7 @@ ptu32_t ModuleInstall_UART(u32 port)
         pUartCB[port] = UART_InstallGeneral(&UART_Param);
         if( pUartCB[port] != NULL)
         {
-            __UART_HardInit(port);              //硬件初始化
+//            __UART_HardInit(port);              //硬件初始化
             __UART_IntInit(port);
             Ret = true;
         }

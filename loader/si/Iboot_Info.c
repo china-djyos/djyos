@@ -119,7 +119,7 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
                           0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff},
 //         .ManufacturerName = PRODUCT_MANUFACTURERNAME,
 //         .DjyosTag     = "djyos",
-#if CFG_PROJECT_MODE
+#if CFG_RUNMODE
 #if(CN_PTR_BITS < 64)
         .ManufacturerNameAddr      = (u32)(&MANUFACTURERNAME_NAME),
         .ManufacturerNamereserved32    = 0xffffffff,

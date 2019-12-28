@@ -292,15 +292,6 @@ static void spi_flash_enable_voltage(void)
     sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
 }
 
-static void spi_flash_disable_voltage(void)
-{
-    UINT32 param;
-
-    param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;
-    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_DISABLE, &param);
-}
-
-
 static int __st7796s_read_reg()
 {
     return 0x7796;
@@ -421,8 +412,11 @@ void __lcd_st7796s_init(void)
 //    delay_ms(200);
 
     WriteComm(0x36);   //memory access control
-    WriteData(0xC0);   //MY MX MV ML MH=0,BGR=1
-
+#if (CFG_LCD_XSIZE == 240)
+    WriteData(0xc0);   //MY MX MV ML MH=0,BGR=1
+#else
+    WriteData(0xa0);   //MY MX MV ML MH=0,BGR=1
+#endif
     WriteComm(0x3A);
     WriteData(0x05);
 
@@ -760,7 +754,7 @@ bool_t __lcd_fill_rect_bm(struct RectBitmap *dst_bitmap,
                           struct Rectangle *Focus,
                           u32 Color0,u32 Color1,u32 Mode)
 {
-    u32 y,x;
+    u32 y;
     u16 pixel;
     u16 *dst_offset;
 
@@ -941,8 +935,8 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
 
     u32 width,height;
     u16 pixel;
-    unsigned int i,j;
-    u32 x,y;
+//    unsigned int i,j;
+//    u32 x,y;
 
     if(Mode != CN_FILLRECT_MODE_N)
     {
@@ -969,7 +963,7 @@ bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
     u8 x0,x1;
 
     if(src_bitmap->PixelFormat != CN_SYS_PF_RGB565)
-        return;
+        return false;
     width = dst_rect->right-dst_rect->left;
     height = dst_rect->bottom-dst_rect->top;
     __st7796s_set_window(xsrc,ysrc,width,height);
@@ -1013,14 +1007,14 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
 
 void DispMainInterface(unsigned char *pic)
 {
-    struct Rectangle dst_rect = {0,0,240,320};
+    struct Rectangle dst_rect = {0,0,CFG_LCD_XSIZE,CFG_LCD_YSIZE};
     struct RectBitmap src_bitmap;
 
     src_bitmap.bm_bits = pic;
-    src_bitmap.width = 240;
-    src_bitmap.height = 320;
-    src_bitmap.linebytes = 240*2;
-    src_bitmap.reversal = 1;
+    src_bitmap.width = CFG_LCD_XSIZE;
+    src_bitmap.height = CFG_LCD_YSIZE;
+    src_bitmap.linebytes = CFG_LCD_XSIZE*2;
+    src_bitmap.reversal = 0;
     src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
     __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
 }
