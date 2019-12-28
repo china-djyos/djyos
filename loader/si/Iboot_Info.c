@@ -127,16 +127,16 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
         .ManufacturerNameAddr      = (u64)(&MANUFACTURERNAME_NAME),
 #endif
 #endif
-         .ProductClassify = PRODUCT_PRODUCTCLASSIFY,
-         .ProductType = PRODUCT_PRODUCTMODEL,
+         .ProductClassify = PRODUCT_PRODUCT_CLASSIFY,
+         .ProductType = PRODUCT_PRODUCT_MODEL,
 
-         .TypeCode = PRODUCT_PRODUCTMODELCODE,
+         .TypeCode = PRODUCT_PRODUCT_MODEL_CODE,
 
          .ProductionTime = {0xff,0xff,0xff,0xff},
          .ProductionNumber = {0xff,0xff,0xff,0xff,0xff},
          .reserved8 = 0,
-         .PanelType = PRODUCT_PANEL_TYPE,
-         .CPU_Type = PRODUCT_CPU_Type,
+         .PanelType = PRODUCT_BOARD_TYPE,
+         .CPU_Type = PRODUCT_CPU_TYPE,
          .Reserved ={
                         0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
                         0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,\
