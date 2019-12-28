@@ -90,7 +90,7 @@ static DD_INIT_S dd_init_tbl[] =
     {SPIDMA_DEV_NAME,       spidma_init,                spidma_uninit},
 #endif
 
-    {"djy audio init",        djy_audio_init,             NULLPTR},
+
 #if CFG_USE_QSPI
     {QSPI_DEV_NAME,       qspi_init,                	qspi_exit},
 #endif
@@ -102,7 +102,8 @@ static DD_INIT_S dd_init_tbl[] =
 #endif
 
 #if CFG_USE_AUDIO
-    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},        
+    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},    
+	{"djy audio init",        djy_audio_init,             NULLPTR},    
 #endif
 #if CFG_SDIO || CFG_SDIO_TRANS
     {SDIO_DEV_NAME,         sdio_init,                  sdio_exit},
