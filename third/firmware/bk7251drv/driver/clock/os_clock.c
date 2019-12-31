@@ -4,6 +4,11 @@
 #include "drv_model_pub.h"
 #include "arch.h"
 #include "sys_config.h"
+#include "power_save_pub.h"
+
+#if CFG_BK7221_MDM_WATCHDOG_PATCH
+void rc_reset_patch(void);
+#endif
 
 #define FCLK_PWM_ID           PWM0
 #define FCLK_DURATION_MS      10
@@ -20,10 +25,16 @@ static void fclk_hdl(UINT8 param)
     GLOBAL_INT_DISABLE();
 
     /*rt_tick_increase();*/
-    current_clock++;
+    current_clock ++;
+
+
     Exp_SystickTickHandler();
     GLOBAL_INT_RESTORE();
+
 }
+
+
+
 
 
 UINT32 fclk_get_tick(void)
@@ -35,6 +46,8 @@ UINT32 fclk_get_second(void)
 {
     return current_clock/1000;
 }
+
+
 UINT32 fclk_get_millisecond(void)
 {
     return current_clock%1000;
@@ -78,11 +91,11 @@ void os_clk_init(void)
     param.end_value       = fclk_cal_endvalue((UINT32)param.cfg.bits.clk);
 
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
+    ASSERT(PWM_SUCCESS == ret);
 }
 
 // eof
 #include "pwm.h"
-
 
 u32 Git_SysTickCnt()
 {
@@ -93,11 +106,3 @@ void Set_SysTickEnd(u32 value)
 {
     REG_WRITE(REG_APB_BK_PWMn_END_ADDR(FCLK_PWM_ID), value);
 }
-
-
-
-
-
-
-
-

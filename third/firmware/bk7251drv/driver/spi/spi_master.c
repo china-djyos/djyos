@@ -16,7 +16,7 @@
 #endif
 #include "sys_config.h"
 #include "error.h"
-
+#include "rtos_pub.h"
 #include "int_hard.h"
 #include "systime.h"
 #include "stdlib.h"
@@ -30,7 +30,7 @@ struct bk_spi_dev
 {
     UINT8 *tx_ptr;
     UINT32 tx_len;
-    struct SemaphoreLCB *tx_sem;
+    beken_semaphore_t tx_sem;
 
     UINT8 *rx_ptr;
     UINT32 rx_len;
@@ -39,8 +39,8 @@ struct bk_spi_dev
 
     UINT32 total_len;
     UINT32 flag;
-    
-    struct MutexLCB *mutex;
+
+    beken_mutex_t mutex;
 };
 
 static struct bk_spi_dev *spi_dev;
@@ -49,10 +49,9 @@ static void bk_spi_rx_callback(int is_rx_end, void *param)
 {
     UINT8 ch, *rxbuf;
     UINT32 offset, drop;
-    atom_high_t atom;
 
-//    GLOBAL_INT_DECLARATION();
-    
+    GLOBAL_INT_DECLARATION();
+
     rxbuf = spi_dev->rx_ptr;
     drop = spi_dev->rx_drop;
     offset = spi_dev->rx_offset;
@@ -84,28 +83,26 @@ static void bk_spi_rx_callback(int is_rx_end, void *param)
         }
     }
 
-//    GLOBAL_INT_DISABLE();
-    atom = Int_HighAtomStart();
+    GLOBAL_INT_DISABLE();
     spi_dev->rx_drop = drop;
     spi_dev->rx_offset = offset;
-//    GLOBAL_INT_RESTORE();
-    Int_HighAtomEnd(atom);
+    GLOBAL_INT_RESTORE();
 }
 
 static void bk_spi_tx_needwrite_callback(int port, void *param)
 {
     UINT8 *tx_ptr = spi_dev->tx_ptr, data;
     UINT32 tx_len = spi_dev->tx_len, total_len = spi_dev->total_len, tx_ok = 0;
-    atom_high_t atom;
+
     UINT8 *rxbuf;
     UINT32 offset, drop;
     UINT32 value;
-    
+
     rxbuf = spi_dev->rx_ptr;
     drop = spi_dev->rx_drop;
     offset = spi_dev->rx_offset;
 
-//    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DECLARATION();
 
 
     if((rxbuf == NULL) && (spi_dev->rx_len == 0))
@@ -208,16 +205,15 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
             }
         }
     }
-
-    atom = Int_HighAtomStart();
+    GLOBAL_INT_DISABLE();
     spi_dev->tx_ptr = tx_ptr;
     spi_dev->tx_len = tx_len;
     spi_dev->total_len = total_len;
 
     spi_dev->rx_drop = drop;
     spi_dev->rx_offset = offset;
-    Int_HighAtomEnd(atom);
-    
+    GLOBAL_INT_RESTORE();
+
 }
 
 static void bk_spi_tx_finish_callback(int port, void *param)
@@ -225,8 +221,7 @@ static void bk_spi_tx_finish_callback(int port, void *param)
     if((spi_dev->total_len == 0) && ((spi_dev->flag & TX_FINISH_FLAG) == 0))
     {
         spi_dev->flag |= TX_FINISH_FLAG;
-//        bk_rtos_set_semaphore(&spi_dev->tx_sem);
-        Lock_SempPost(spi_dev->tx_sem);
+        bk_rtos_set_semaphore(&spi_dev->tx_sem);
         //BK_SPI_PRT("tx end\r\n");
     }
 }
@@ -237,7 +232,7 @@ static void bk_spi_configure(UINT32 rate, UINT32 mode)
     struct spi_callback_des spi_dev_cb;
 
     /* data bit width */
-    param = 0;  //���ݿ��ȣ�1��16λ��0: 8λ
+    param = 0;  //Êý¾Ý¿í¶È£¬1£º16Î»£¬0: 8Î»
     spi_ctrl(CMD_SPI_SET_BITWIDTH, (void *)&param);
 
     /* baudrate */
@@ -304,24 +299,22 @@ static void bk_spi_unconfigure(void)
 int bk_spi_master_xfer(struct spi_message *msg)
 {
     UINT32 param, total_size;
-    atom_high_t atom;
+
     ASSERT(spi_dev != NULL);
     ASSERT(msg != NULL);
 
-//    bk_rtos_lock_mutex(&spi_dev->mutex);
-    Lock_MutexPend(spi_dev->mutex, CN_TIMEOUT_FOREVER);
+    bk_rtos_lock_mutex(&spi_dev->mutex);
     
     total_size = msg->recv_len + msg->send_len;
-    if(total_size) 
+    if(total_size)
     {
-//        GLOBAL_INT_DECLARATION();
+        GLOBAL_INT_DECLARATION();
 
         /* initial spi_dev */
-//        GLOBAL_INT_DISABLE();
-        atom = Int_HighAtomStart();
+        GLOBAL_INT_DISABLE();
         spi_dev->tx_ptr = msg->send_buf;
         spi_dev->tx_len = msg->send_len;
-        
+
         spi_dev->rx_ptr = msg->recv_buf;
         spi_dev->rx_len = msg->recv_len;
         spi_dev->rx_offset = 0;
@@ -329,8 +322,7 @@ int bk_spi_master_xfer(struct spi_message *msg)
 
         spi_dev->total_len = total_size;
         spi_dev->flag &= ~(TX_FINISH_FLAG);
-//        GLOBAL_INT_RESTORE();
-        Int_HighAtomEnd(atom);
+        GLOBAL_INT_RESTORE();
 
         /* take CS */
 //        param = 0x2;
@@ -344,8 +336,7 @@ int bk_spi_master_xfer(struct spi_message *msg)
         //os_printf("0 %d\r\n", total_size);
 
         /* wait tx finish */
-//        bk_rtos_get_semaphore(&spi_dev->tx_sem, BEKEN_NEVER_TIMEOUT);
-        Lock_SempPend(spi_dev->tx_sem, CN_TIMEOUT_FOREVER);
+        bk_rtos_get_semaphore(&spi_dev->tx_sem, BEKEN_NEVER_TIMEOUT);
 
         //os_printf("1 %d\r\n", total_size);
 
@@ -359,29 +350,26 @@ int bk_spi_master_xfer(struct spi_message *msg)
 //        spi_ctrl(CMD_SPI_SET_NSSID, (void *)&param);
 
         /* initial spi_dev with zero*/
-//        GLOBAL_INT_DISABLE();
-        atom = Int_HighAtomStart();
+        GLOBAL_INT_DISABLE();
         spi_dev->tx_ptr = NULL;
         spi_dev->tx_len = 0;
-        
+
         spi_dev->rx_ptr = NULL;
         spi_dev->rx_len = 0;
 
         spi_dev->total_len = 0;
         spi_dev->flag |= TX_FINISH_FLAG;
-//        GLOBAL_INT_RESTORE();
-        Int_HighAtomEnd(atom);
+        GLOBAL_INT_RESTORE();
     } 
 
-//    bk_rtos_unlock_mutex(&spi_dev->mutex);
-    Lock_MutexPost(spi_dev->mutex);
+    bk_rtos_unlock_mutex(&spi_dev->mutex);
 
     return msg->recv_len;
 }
 
 int bk_spi_master_init(UINT32 rate, UINT32 mode)
 {
-//    int result = 0;
+    OSStatus result = 0;
 
     if (spi_dev)
     {
@@ -392,47 +380,44 @@ int bk_spi_master_init(UINT32 rate, UINT32 mode)
     if (!spi_dev)
     {
         printf("[spi]:malloc memory for spi_dev failed\n");
-//        result = -1;
+        result = -1;
         goto _exit;
     }
     memset(spi_dev, 0, sizeof(struct bk_spi_dev));
 
 
-//#if CFG_SUPPORT_ALIOS
-//    result = bk_rtos_init_semaphore(&spi_dev->tx_sem, 0);
-//#else
-//    result = bk_rtos_init_semaphore(&spi_dev->tx_sem, 1);
-//#endif
-    spi_dev->tx_sem = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"spi semp");
-    if (spi_dev->tx_sem == kNoErr)
+#if CFG_SUPPORT_ALIOS
+    result = bk_rtos_init_semaphore(&spi_dev->tx_sem, 0);
+#else
+    result = bk_rtos_init_semaphore(&spi_dev->tx_sem, 1);
+#endif
+    if (result != kNoErr)
     {
         printf("[spi]: spi tx semp init failed\n");
         goto _exit;
     }
-    spi_dev->mutex = Lock_MutexCreate("spi mutex");
-//    result = bk_rtos_init_mutex(&spi_dev->mutex);
-    if (spi_dev->mutex == kNoErr)
+
+    result = bk_rtos_init_mutex(&spi_dev->mutex);
+    if (result != kNoErr)
     {
         printf("[spi]: spi mutex init failed\n");
         goto _exit;
     }
-    
+
     spi_dev->tx_ptr = NULL;
     spi_dev->tx_len = 0;
     spi_dev->flag |= TX_FINISH_FLAG;
 
     bk_spi_configure(rate, mode);
-    
+
     return 0;
 
 _exit:
     if(spi_dev->mutex)
-//        bk_rtos_deinit_mutex(&spi_dev->mutex);
-        Lock_MutexDelete(spi_dev->mutex);
+        bk_rtos_deinit_mutex(&spi_dev->mutex);
     
     if(spi_dev->tx_sem)
-//        bk_rtos_deinit_semaphore(&spi_dev->tx_sem);
-        Lock_SempDelete(spi_dev->tx_sem);
+        bk_rtos_deinit_semaphore(&spi_dev->tx_sem);
     
     if (spi_dev)
     {
@@ -451,21 +436,17 @@ int bk_spi_master_deinit(void)
     }
 
     if(spi_dev->mutex)
-//        bk_rtos_lock_mutex(&spi_dev->mutex);
-        Lock_MutexPend(spi_dev->mutex, CN_TIMEOUT_FOREVER);
+        bk_rtos_lock_mutex(&spi_dev->mutex);
     
     if(spi_dev->tx_sem)
-//        bk_rtos_deinit_semaphore(&spi_dev->tx_sem);
-        Lock_SempDelete(spi_dev->tx_sem);
+        bk_rtos_deinit_semaphore(&spi_dev->tx_sem);
 
     if(spi_dev->mutex) 
     {
-//        bk_rtos_unlock_mutex(&spi_dev->mutex);
-        Lock_MutexPost(spi_dev->mutex);
-//        bk_rtos_deinit_mutex(&spi_dev->mutex);
-        Lock_MutexDelete(spi_dev->mutex);
+        bk_rtos_unlock_mutex(&spi_dev->mutex);
+        bk_rtos_deinit_mutex(&spi_dev->mutex);
     }
-    
+
     if (spi_dev)
     {
         free(spi_dev);

@@ -102,10 +102,11 @@ void app_feb3_init(void);
  */
 void app_ais_add_feb3s(void);
 
+void feb3_ais_init(ais_bt_init_t *ais_init);
 
-ais_err_t feb3_send_fed6_ind_value(uint32_t len,uint8_t *buf,uint16_t seq_num);
+ble_err_t feb3_send_fed6_ind_value(uint32_t len,uint8_t *buf,uint16_t seq_num);
 
-ais_err_t feb3_send_fed8_ntf_value(uint32_t len,uint8_t *buf,uint16_t seq_num);
+ble_err_t feb3_send_fed8_ntf_value(uint32_t len,uint8_t *buf,uint16_t seq_num);
 
 
 /**

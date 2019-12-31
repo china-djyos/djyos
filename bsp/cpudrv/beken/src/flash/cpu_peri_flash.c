@@ -295,7 +295,6 @@ void djy_flash_erase(uint32_t address)
     address &= (0xFFF000);
     if(address >= 0x400000)
         return;
-
     Lock_MutexPend(flash_mutex, CN_TIMEOUT_FOREVER);
 //    flash_protection_op(0,FLASH_PROTECT_NONE);
     flash_ctrl(CMD_FLASH_ERASE_SECTOR, &address);

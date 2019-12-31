@@ -163,6 +163,14 @@ enum TASK_API_ID
 
 	 TASK_ID_FEB3S         = 73,   // FEB3S AIS Profile Server Task
 
+#if (BLE_MS_SERVER)
+       TASK_ID_MS              = 74,
+#endif //(BLE_MS_SERVER)
+
+#if (BLE_BTL_SERVER)
+    TASK_ID_BTL              = 75,
+#endif //(BLE_MS_SERVER)
+
     /* 240 -> 241 reserved for Audio Mode 0 */
     TASK_ID_AM0          = 240,  // BLE Audio Mode 0 Task
     TASK_ID_AM0_HAS      = 241,  // BLE Audio Mode 0 Hearing Aid Service Task

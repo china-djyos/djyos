@@ -4,7 +4,6 @@
 #include "str_pub.h"
 #include "mem_pub.h"
 #include "txu_cntrl.h"
-
 #include "lwip/pbuf.h"
 
 #include "arm_arch.h"
@@ -332,7 +331,7 @@ void rwm_flush_txing_list(UINT8 sta_idx)
     {
         os_printf("stop ap ps timer, staid:%d\r\n", sta_idx);
         ret = rtos_stop_timer(&g_ap_ps.sta_ps[sta_idx].timer);
-        ASSERT(0 == ret);
+        ASSERT(0 == ret);   
     }
 }
 
@@ -597,7 +596,6 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u8 flag)
 
     txdesc_new->lmac.agg_desc = NULL;
     txdesc_new->lmac.hw_desc->cfm.status = 0;
-
     rwm_push_tx_list(node);
     txu_cntrl_push(txdesc_new, queue_idx);
 

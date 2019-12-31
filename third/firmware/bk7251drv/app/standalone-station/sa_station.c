@@ -127,7 +127,7 @@ void sa_reconnect_main(void *arg)
     sa_station_init();
     os_printf("sa_reconnect_main\r\n");
 
-    rtos_delete_thread( NULL );
+    bk_rtos_delete_thread( NULL );
     reconnect_thread_handle = NULL;
 }
 
@@ -137,7 +137,7 @@ void sa_reconnect_init(void)
     return; // try it;
     if(NULL == reconnect_thread_handle)
     {
-        ret = rtos_create_thread(&reconnect_thread_handle,
+        ret = bk_rtos_create_thread(&reconnect_thread_handle,
                                  THD_RECONNECT_PRIORITY,
                                  "reconnect_thread",
                                  (beken_thread_function_t)sa_reconnect_main,

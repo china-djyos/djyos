@@ -2095,11 +2095,11 @@ void bk7011_band_timer_handler(void* data)
 void bk7011_band_detect(void)
 {
 #ifdef INCLUDE_OS
-    rtos_init_timer(&band_timer, 
+    bk_rtos_init_timer(&band_timer, 
                             BAND_CAL_TIMER_INTVAL, 
                             bk7011_band_timer_handler, 
                             (void *)0);
-	rtos_start_timer(&band_timer);
+	bk_rtos_start_timer(&band_timer);
 #endif
 }
 

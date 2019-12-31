@@ -66,11 +66,10 @@ enum
 
     CMD_EFUSE_WRITE_BYTE,
     CMD_EFUSE_READ_BYTE,
-
     CMD_QSPI_VDDRAM_VOLTAGE,
     CMD_QSPI_IO_VOLTAGE,
     CMD_SCTRL_SET_VDD_VALUE,
-    #endif // (CFG_SOC_NAME != SOC_BK7231)
+	#endif // (CFG_SOC_NAME != SOC_BK7231)
 
     #if (CFG_SOC_NAME == SOC_BK7221U)
     CMD_SCTRL_OPEN_DAC_ANALOG,
@@ -113,7 +112,6 @@ enum
     CMD_SCTRL_UNCONDITIONAL_RF_UP,
     CMD_SCTRL_UNCONDITIONAL_MAC_DOWN,
     CMD_SCTRL_UNCONDITIONAL_MAC_UP,
-    
 	#endif // (CFG_SOC_NAME == SOC_BK7221)
 };
 
@@ -122,12 +120,10 @@ enum
 #define PSRAM_VDD_2_5V                                       (0x1)
 #define PSRAM_VDD_3_3V                                       (0x2)
 #define PSRAM_VDD_3_3V_DEF                                   (0x3)
-
 #define QSPI_IO_1_8V                                         (0x0)
 #define QSPI_IO_2_5V                                         (0x1)
 #define QSPI_IO_3_3V                                         (0x2)
 #define QSPI_IO_3V_DEF                                       (0x3)
-
 /*CMD_SCTRL_MCLK_SELECT*/
 #define MCLK_SELECT_DCO                                      (0x0)
 #define MCLK_SELECT_26M_XTAL                                 (0x1)
@@ -135,11 +131,25 @@ enum
 #define MCLK_SELECT_LPO                                      (0x3)
 
 /*CMD_SCTRL_BLK_ENABLE CMD_SCTRL_BLK_DISABLE*/
+#if (CFG_SOC_NAME == SOC_BK7231)
 #define BLK_BIT_LINEIN                           (1 << 19)
 #define BLK_BIT_MIC_QSPI_RAM_OR_FLASH            (1 << 18)
 #define BLK_BIT_MIC_L_CHANNEL                    (1 << 17)
 #define BLK_BIT_AUDIO_R_CHANNEL                  (1 << 16)
 #define BLK_BIT_AUDIO_L_CHANNEL                  (1 << 15)
+#elif (CFG_SOC_NAME == SOC_BK7231U)
+#define BLK_BIT_NC                               (1 << 19)
+#define BLK_BIT_MIC_QSPI_RAM_OR_FLASH            (1 << 18)
+#define BLK_BIT_MIC_PGA                          (1 << 17)
+#define BLK_BIT_AUDIO_PLL                        (1 << 16)
+#define BLK_BIT_AUDIO_RANDOM_GENERATOR           (1 << 15)
+#elif (CFG_SOC_NAME == SOC_BK7221U)
+#define BLK_BIT_NC                               (1 << 19)
+#define BLK_BIT_MIC_QSPI_RAM_OR_FLASH            (1 << 18)
+#define BLK_BIT_AUDIO                            (1 << 17)
+#define BLK_BIT_AUDIO_PLL                        (1 << 16)
+#define BLK_BIT_AUDIO_RANDOM_GENERATOR           (1 << 15)
+#endif // (CFG_SOC_NAME == SOC_BK7231)
 #define BLK_BIT_USB                              (1 << 14)
 #define BLK_BIT_SARADC                           (1 << 13)
 #define BLK_BIT_TEMPRATURE_SENSOR                (1 << 12)
@@ -148,7 +158,7 @@ enum
 #define BLK_BIT_IO_LDO_LOW_POWER                 (1 << 09)
 #define BLK_BIT_ANALOG_SYS_LDO                   (1 << 08)
 #define BLK_BIT_DIGITAL_CORE_LDO_LOW_POWER       (1 << 07)
-#define BLK_BIT_NC0                              (1 << 06)
+#define BLK_BIT_DIGITAL_CORE                     (1 << 06)
 #define BLK_BIT_DPLL_480M                        (1 << 05)
 #define BLK_BIT_32K_XTAL                         (1 << 04)
 #define BLK_BIT_26M_XTAL                         (1 << 03)
@@ -226,7 +236,6 @@ typedef enum
     EXTERNAL_HW_MODE = 2,
     EXTERNAL_SW_MODE = 3,
 } CHARGE_TYPE;
-
 typedef enum
 {
     STEP_STOP = 0,
@@ -235,34 +244,28 @@ typedef enum
     STEP_EXTER_CC = 3,
     STEP_INTER_CC = 4,
     STEP_INTER_CV = 5,
-
 } CHARGE_STEP;
-
 typedef struct charge_oper_st
 {
     UINT8 type;
     UINT8 oper;
     UINT8 cal[3];
 } CHARGE_OPER_ST, *CHARGE_OPER_PTR;
-
 #define CHARGE_ANALOG_CTRL3_CAL_DEFAULT_VALUE       (0x180004A0)
 #define CHARGE_ANALOG_CTRL3_CHARGE_DEFAULT_VALUE    (0x180704A0)
 #define CHARGE_ANALOG_CTRL4_CAL_DEFAULT_VALUE       (0xC2400520)
 #define CHARGE_ANALOG_CTRL4_CHARGE_DEFAULT_VALUE    (0xC2401520)
-
-
 #define AUDIO_DAC_VOL_DIFF_MODE                      (0)
 #define AUDIO_DAC_VOL_SINGLE_MODE                    (1)
 
 #define AUDIO_DAC_ANALOG_UNMUTE                      (0)
 #define AUDIO_DAC_ANALOG_MUTE                        (1)
-
 #define EFUSE_ENCRYPT_WORD_ADDR                      (0)
 #define EFUSE_ENCRYPT_WORD_LEN                       (16)
 #define EFUSE_CHARGE_CAL_ADDR                        (16)
 #define EFUSE_CHARGE_CAL_LEN                         (4)
-#define EFUSE_UID_ADDR                               (20)
-#define EFUSE_UID_LEN                                (4)
+#define EFUSE_UID_ADDR                               (16)
+#define EFUSE_UID_LEN                                (8)
 #define EFUSE_MAC_START_ADDR                         (24)
 #define EFUSE_MAC_LEN                                (6)
 #define EFUSE_USER_AREA_ADDR                         (30)
@@ -298,5 +301,5 @@ extern void sctrl_rf_wakeup(void);
 extern void sctrl_sta_ps_init(void);
 extern void sctrl_flash_select_dco(void);
 extern UINT32 charger_is_full(void);
-extern UINT32 usb_power_is_pluged(void);
+extern UINT32 usb_is_pluged(void);
 #endif // _SCTRL_PUB_H_

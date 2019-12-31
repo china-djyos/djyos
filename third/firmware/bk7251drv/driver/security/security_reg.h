@@ -51,17 +51,25 @@
 
 
 #define SECURITY_AES_CTRL              (SECURITY_BASE + 0x08 * 4)
-#define SECURITY_AES_CTRL_MASK              0xFFFFFFFFUL
+#define SECURITY_AES_INT_EN_BIT             (1 << 3)
+#define SECURITY_AES_AUTEO_BIT              (1 << 2)
+#define SECURITY_AES_NEXT_BIT               (1 << 1)
+#define SECURITY_AES_INIT_BIT               (1 << 0)
 //#define SECURITY_AES_CTRL                   (*((volatile unsigned long *) SECURITY_AES_CTRL))
 
 
 #define SECURITY_AES_STATUS            (SECURITY_BASE + 0x09 * 4)
-#define SECURITY_AES_STATUS_MASK            0xFFFFFFFFUL
+#define SECURITY_AES_INT_FLAG               (1 << 2)
+#define SECURITY_AES_VALID                  (1 << 1)
+#define SECURITY_AES_READY                  (1 << 0)
 //#define SECURITY_AES_STATUS                 (*((volatile unsigned long *) SECURITY_AES_STATUS))
 
 
 #define SECURITY_AES_CONFIG            (SECURITY_BASE + 0x0A * 4)
-#define SECURITY_AES_CONFIG_MASK            0xFFFFFFFFUL
+#define SECURITY_AES_MODE_POSI              (1)
+#define SECURITY_AES_MODE_MASK              (0x3)
+#define SECURITY_AES_ENCODE_BIT             (1 << 0)
+
 //#define SECURITY_AES_CONFIG                 (*((volatile unsigned long *) SECURITY_AES_CONFIG))
 
 

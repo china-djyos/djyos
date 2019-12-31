@@ -199,7 +199,11 @@ bool appm_add_svc(void);
  * @brief Put the device in general discoverable and connectable mode
  ****************************************************************************************
  */
-ais_err_t appm_start_advertising(ais_adv_init_t *adv_info);
+#if (BLE_APP_MS)
+msm_result_t ms_start_advertising(msm_ble_adv_content_t *adv_info);
+#else
+ble_err_t appm_start_advertising(void);
+#endif //(BLE_APP_MS)
 /**
  ****************************************************************************************
  * @brief Put the device in general discoverable and connectable mode
@@ -212,7 +216,7 @@ void appm_start_direct_dvertising(void);
  * @brief Put the device in non discoverable and non connectable mode
  ****************************************************************************************
  */
-ais_err_t appm_stop_advertising(void);
+ble_err_t appm_stop_advertising(void);
 
 /**
  ****************************************************************************************

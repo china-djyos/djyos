@@ -19,6 +19,7 @@
 #include "irda_pub.h"
 #include "mac_phy_bypass_pub.h"
 #include "bk_timer_pub.h"
+#include "usb_pub.h"
 
 #if CFG_USE_CAMERA_INTF
 #include "jpeg_encoder_pub.h"
@@ -29,7 +30,7 @@
 #include "audio_pub.h"
 #endif
 
-#if CFG_USE_SPIDMA
+#if CFG_USE_HSLAVE_SPI
 #include "spidma_pub.h"
 #endif
 
@@ -38,7 +39,7 @@
 #endif
 
 #if CFG_USE_SDCARD_HOST
-#include "sdcard/sdcard_pub.h"
+#include "../sdcard/sdcard_pub.h"
 #endif
 
 #if CFG_USE_STA_PS
@@ -60,7 +61,7 @@ __attribute__((weak))  void djy_audio_init(void)
 }
 
 #ifdef CFG_USE_QSPI
-#include "qspi/qspi_pub.h"
+#include "qspi_pub.h"
 #endif
 
 static DD_INIT_S dd_init_tbl[] =
@@ -70,41 +71,40 @@ static DD_INIT_S dd_init_tbl[] =
     {ICU_DEV_NAME,          icu_init,                   icu_exit},
     {WDT_DEV_NAME,          wdt_init,                   wdt_exit},
     {GPIO_DEV_NAME,         gpio_init,                  gpio_exit},
-#ifndef KEIL_SIMULATOR
+    
+#ifndef KEIL_SIMULATOR    
     {UART2_DEV_NAME,        uart2_init,                 uart2_exit},
-#endif
+#endif    
 
 #if CFG_USE_UART1
     {UART1_DEV_NAME,        uart1_init,                 uart1_exit},
 #endif
 
+    {FLASH_DEV_NAME,        flash_init,                 flash_exit},
     
 #if CFG_GENERAL_DMA
     {GDMA_DEV_NAME,         gdma_init,                  gdma_exit},
 #endif
 
-#if CFG_USE_AUDIO
-    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},
-#endif
-
-    {"djy audio init",        djy_audio_init,             NULLPTR},
-
-    {FLASH_DEV_NAME,        flash_init,                 flash_exit},
-     
-#if CFG_USE_SPIDMA
+#if CFG_USE_HSLAVE_SPI
     {SPIDMA_DEV_NAME,       spidma_init,                spidma_uninit},
 #endif
 
-#if CFG_USE_CAMERA_INTF
-    {EJPEG_DEV_NAME,        ejpeg_init,                 ejpeg_exit},
-    {I2C1_DEV_NAME,         i2c1_init,                  i2c1_exit},
-    {I2C2_DEV_NAME,         i2c2_init,                  i2c2_exit},
-#endif
+
 #if CFG_USE_QSPI
     {QSPI_DEV_NAME,       qspi_init,                	qspi_exit},
 #endif
 
+#if CFG_USE_CAMERA_INTF
+    {EJPEG_DEV_NAME,        ejpeg_init,                 ejpeg_exit},
+    {I2C1_DEV_NAME,         i2c1_init,                  i2c1_exit},        
+    {I2C2_DEV_NAME,         i2c2_init,                  i2c2_exit},            
+#endif
 
+#if CFG_USE_AUDIO
+    {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},    
+	{"djy audio init",        djy_audio_init,             NULLPTR},    
+#endif
 #if CFG_SDIO || CFG_SDIO_TRANS
     {SDIO_DEV_NAME,         sdio_init,                  sdio_exit},
 #endif
@@ -112,6 +112,10 @@ static DD_INIT_S dd_init_tbl[] =
 #if CFG_USB
     {USB_DEV_NAME,          usb_init,                   usb_exit},
 #endif
+
+//#if (CFG_SOC_NAME == SOC_BK7221U)
+//    {USB_PLUG_DEV_NAME,     usb_plug_inout_init,        usb_plug_inout_exit},
+//#endif
 
     {PWM_DEV_NAME,          pwm_init,                   pwm_exit},
 #if (CFG_SOC_NAME != SOC_BK7231)
@@ -132,7 +136,6 @@ static DD_INIT_S dd_init_tbl[] =
 #endif
 
 #if CFG_USE_STA_PS
-    //依赖flash_init，也放到main函数中跑
     {"power_save",       sctrl_sta_ps_init,                NULLPTR},
 #endif
 

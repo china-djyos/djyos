@@ -462,7 +462,9 @@ static void gdma_congfig_type0(GDMACFG_TPYES_PTR cfg)
     gdma_cfg_srcdata_width(cfg->channel, cfg->srcdat_width);
     gdma_cfg_dstdata_width(cfg->channel, cfg->dstdat_width);
     gdma_set_channel_prioprity(cfg->channel, cfg->prio);
-    //gdma_cfg_finish_inten(cfg->channel, 1);
+    #if (CFG_SOC_NAME == SOC_BK7231)
+    gdma_cfg_finish_inten(cfg->channel, 1);
+    #endif
 
     gdma_set_dst_start_addr(cfg->channel, cfg->dst_start_addr);
     gdma_set_src_start_addr(cfg->channel, cfg->src_start_addr);
@@ -486,7 +488,9 @@ static void gdma_congfig_type1(GDMACFG_TPYES_PTR cfg)
     gdma_cfg_srcdata_width(cfg->channel, cfg->srcdat_width);
     gdma_cfg_dstdata_width(cfg->channel, cfg->dstdat_width);
     gdma_set_channel_prioprity(cfg->channel, cfg->prio);
-    //gdma_cfg_finish_inten(cfg->channel, 1);
+    #if (CFG_SOC_NAME == SOC_BK7231)
+    gdma_cfg_finish_inten(cfg->channel, 1);
+    #endif
 
     gdma_set_dst_start_addr(cfg->channel, cfg->dst_start_addr);
     gdma_set_src_start_addr(cfg->channel, cfg->src_start_addr);
@@ -513,7 +517,9 @@ static void gdma_congfig_type2(GDMACFG_TPYES_PTR cfg)
     gdma_cfg_srcdata_width(cfg->channel, cfg->srcdat_width);
     gdma_cfg_dstdata_width(cfg->channel, cfg->dstdat_width);
     gdma_set_channel_prioprity(cfg->channel, cfg->prio);
-    //gdma_cfg_finish_inten(cfg->channel, 1);
+    #if (CFG_SOC_NAME == SOC_BK7231)
+    gdma_cfg_finish_inten(cfg->channel, 1);
+    #endif
 
     gdma_set_dst_start_addr(cfg->channel, cfg->dst_start_addr);
     gdma_set_src_start_addr(cfg->channel, cfg->src_start_addr);
@@ -542,7 +548,9 @@ static void gdma_congfig_type3(GDMACFG_TPYES_PTR cfg)
     gdma_cfg_srcdata_width(cfg->channel, cfg->srcdat_width);
     gdma_cfg_dstdata_width(cfg->channel, cfg->dstdat_width);
     gdma_set_channel_prioprity(cfg->channel, cfg->prio);
-    //gdma_cfg_finish_inten(cfg->channel, 1);
+    #if (CFG_SOC_NAME == SOC_BK7231)
+    gdma_cfg_finish_inten(cfg->channel, 1);
+    #endif
 
     gdma_set_dst_start_addr(cfg->channel, cfg->dst_start_addr);
     gdma_set_src_start_addr(cfg->channel, cfg->src_start_addr);
@@ -673,6 +681,27 @@ static UINT32 gdma_enable( GDMA_DO_PTR do_st )
 }
 
 /*---------------------------------------------------------------------------*/
+void gdma_flush(void)
+{
+	UINT32 status;
+
+	gdma_set_dma_en(GDMA_CHANNEL_0, 0);
+	gdma_set_dma_en(GDMA_CHANNEL_1, 0);
+	gdma_set_dma_en(GDMA_CHANNEL_2, 0);
+	gdma_set_dma_en(GDMA_CHANNEL_3, 0);
+	
+	#if (CFG_SOC_NAME != SOC_BK7231)
+	gdma_set_dma_en(GDMA_CHANNEL_4, 0);
+	gdma_set_dma_en(GDMA_CHANNEL_5, 0);
+
+    status = REG_READ(GENER_DMA_REG38_DMA_INT_STATUS);
+	REG_WRITE(GENER_DMA_REG38_DMA_INT_STATUS, status);
+    #else
+    status = REG_READ(GENER_DMA_REG20_DMA_INT_STATUS);
+	REG_WRITE(GENER_DMA_REG20_DMA_INT_STATUS, status);
+	#endif
+}
+
 void gdma_init(void)
 {
     GDMACFG_TPYES_ST cfg;
@@ -688,6 +717,7 @@ void gdma_init(void)
     #endif // (CFG_SOC_NAME != SOC_BK7231)
     
     os_memset(&cfg, 0, sizeof(GDMACFG_TPYES_ST));
+	gdma_flush();
 
     cfg.dstdat_width = 32;
     cfg.srcdat_width = 32;

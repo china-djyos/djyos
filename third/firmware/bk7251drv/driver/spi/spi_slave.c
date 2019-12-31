@@ -16,6 +16,7 @@
 #endif
 #include "sys_config.h"
 #include "error.h"
+#include "rtos_pub.h"
 
 #if CFG_USE_SPI_SLAVE
 

@@ -218,39 +218,7 @@ static bool_t mosquittoconfig(char *param)
     return true;
 }
 
+ADD_TO_ROUTINE_SHELL(sub,subshell,"usage:sub");
+ADD_TO_ROUTINE_SHELL(pub,pubshell,"usage:pub [message]");
+ADD_TO_ROUTINE_SHELL(moscfg,mosquittoconfig,"config the environment,usage:moscfg -h[host] -p[port] -u[user] -P[passwd] -I[subID] -i[pubid] -t[topic] -m[message]");
 
-
-#include <os.h>
-#include <shell.h>
-static struct shell_debug gMosquittoCmd[] =
-{
-    {
-        "sub",
-        subshell,
-        "usage:sub",
-        "usage:sub"
-    },
-    {
-        "pub",
-        pubshell,
-        "usage:pub [message]",
-        "usage:pub [message]"
-    },
-    {
-        "moscfg",
-        mosquittoconfig,
-        "usage:moscfg -h[host] -p[port] -u[user] -P[passwd] -I[subID] -i[pubid] -t[topic] -m[message]",
-        "usage:moscfg config the environment"
-    },
-};
-
-#define CN_Mosquitto_CMDNUM  ((sizeof(gMosquittoCmd))/(sizeof(struct shell_debug)))
-//static struct ShellCmdRsc gMosquittoCmdRsc[CN_Mosquitto_CMDNUM];
-int Mosquitto_main(int argc, char *argv[])
-{
-    bool_t result;
-
-    result = shell_debug_add(gMosquittoCmd, CN_Mosquitto_CMDNUM);
-
-    return result;
-}

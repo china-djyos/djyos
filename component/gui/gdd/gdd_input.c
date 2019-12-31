@@ -200,35 +200,6 @@ void GDD_HmiInput(void)
                             ((u16)(TouchMsg->MoveY) << 16) | (u16)(TouchMsg->MoveX),
                             ((u16)(pt.y) << 16) | (u16)(pt.x));
 
-
-//
-//              if(z == TouchMsg->z)    //相等，必然是按下并拖动
-//              {
-//                  if(NC )
-//                      Touch_Msg = MSG_TOUCH_MOVE;
-//                  else
-//                      Touch_Msg = MSG_NCTOUCH_MOVE;
-//                  PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
-//              }
-//              else
-//              {
-//                  z = TouchMsg->z;
-//                  if(z>0)     //touch按下，模拟成鼠标左键按下
-//                  {
-//                      if(NC)
-//                          Touch_Msg = MSG_NCTOUCH_DOWN;
-//                      else
-//                          Touch_Msg = MSG_TOUCH_DOWN;
-//                  }
-//                  else        //touch离开，模拟成鼠标左键松开
-//                  {
-//                      if(NC)
-//                          Touch_Msg = MSG_NCTOUCH_UP;
-//                      else
-//                          Touch_Msg = MSG_TOUCH_UP;
-//                  }
-//                  PostMessage(hwnd, Touch_Msg, 0, (pt.y << 16) | pt.x);
-//              }
             }
             __GDD_Unlock();
         }

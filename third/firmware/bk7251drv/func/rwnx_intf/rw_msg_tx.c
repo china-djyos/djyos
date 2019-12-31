@@ -19,6 +19,7 @@
 #include "scanu_task.h"
 #include "wlan_ui_pub.h"
 #include "param_config.h"
+#include "rtos_pub.h"
 #if CFG_ROLE_LAUNCH
 #include "role_launch.h"
 #endif
@@ -48,9 +49,9 @@ int rw_msg_send(const void *msg_params, uint16_t reqid, void *cfm)
         tx_msg->cfm = cfm;
 
 #if CFG_SUPPORT_ALIOS
-        ret = rtos_init_semaphore(&tx_msg->semaphore, 0);
+        ret = bk_rtos_init_semaphore(&tx_msg->semaphore, 0);
 #else
-        ret = rtos_init_semaphore(&tx_msg->semaphore, 1);
+        ret = bk_rtos_init_semaphore(&tx_msg->semaphore, 1);
 #endif
         ASSERT(0 == ret);
 
@@ -66,10 +67,10 @@ int rw_msg_send(const void *msg_params, uint16_t reqid, void *cfm)
 
     if(need_cfm)
     {
-        ret = rtos_get_semaphore(&tx_msg->semaphore, BEKEN_WAIT_FOREVER);
+        ret = bk_rtos_get_semaphore(&tx_msg->semaphore, BEKEN_WAIT_FOREVER);
         ASSERT(0 == ret);
 
-        ret = rtos_deinit_semaphore(&tx_msg->semaphore);
+        ret = bk_rtos_deinit_semaphore(&tx_msg->semaphore);
         ASSERT(0 == ret);
 
         os_free(tx_msg);
@@ -120,7 +121,7 @@ int rw_msg_send_me_config_req(void)
     struct ieee80211_sta_vht_cap *vht_cap = &wiphy->bands[IEEE80211_BAND_2GHZ].vht_cap;
     uint8_t *ht_mcs = (uint8_t *)&ht_cap->mcs;
     int i;
-#endif // CFG_IEEE80211N    
+#endif // CFG_IEEE80211N
 
     /* Build the ME_CONFIG_REQ message */
     req = ke_msg_alloc(ME_CONFIG_REQ, TASK_ME, TASK_API,
@@ -218,8 +219,8 @@ int rw_msg_send_me_chan_config_req(void)
 }
 
 int rw_msg_send_add_if(const unsigned char *mac,
-                       enum nl80211_iftype iftype, 
-                       bool p2p, 
+                       enum nl80211_iftype iftype,
+                       bool p2p,
                        struct mm_add_if_cfm *cfm)
 {
     struct mm_add_if_req *add_if_req_param;
@@ -245,7 +246,7 @@ int rw_msg_send_add_if(const unsigned char *mac,
     case NL80211_IFTYPE_AP:
         add_if_req_param->type = VIF_AP;
         break;
-		
+
     case NL80211_IFTYPE_MESH_POINT:
         add_if_req_param->type = VIF_MESH_POINT;
         break;
@@ -297,8 +298,8 @@ int rw_msg_send_apm_start_req(u8 vif_index, u8 channel,
 
     req->chan.band = 0;
     req->chan.flags = 0;
-	req->chan.freq = rw_ieee80211_get_centre_frequency(channel);
-	req->center_freq1 = rw_ieee80211_get_centre_frequency(channel);
+    req->chan.freq = rw_ieee80211_get_centre_frequency(channel);
+    req->center_freq1 = rw_ieee80211_get_centre_frequency(channel);
     req->center_freq2 = 0;
     req->ch_width = 0;
 
@@ -330,34 +331,34 @@ int rw_msg_send_apm_start_req(u8 vif_index, u8 channel,
 int rw_msg_send_apm_stop_req(u8 vif_index)
 {
     struct apm_stop_req *req;
-	struct apm_stop_cfm *cfm
-			= (struct apm_stop_cfm *)os_malloc(sizeof(struct apm_stop_cfm));
-	int ret;
+    struct apm_stop_cfm *cfm
+            = (struct apm_stop_cfm *)os_malloc(sizeof(struct apm_stop_cfm));
+    int ret;
     /* Build the APM_STOP_REQ message */
     req = ke_msg_alloc(APM_STOP_REQ, TASK_APM, TASK_API,
                        sizeof(struct apm_stop_req));
     if ((!req) || (!cfm))
     {
-    	if(cfm)
-			os_free(cfm);
-		if(req)
-			os_free(req);
+        if(cfm)
+            os_free(cfm);
+        if(req)
+            os_free(req);
         return -1;
     }
 
     /* Set parameters for the APM_STOP_REQ message */
     req->vif_idx = vif_index;
-	bk_printf("[msg]rw_msg_send_apm_stop_req\n");
+    bk_printf("[msg]rw_msg_send_apm_stop_req\n");
 
     /* Send the APM_STOP_REQ message to LMAC FW */
     //ret = rw_msg_send(req, APM_STOP_CFM, NULL);
     ret = rw_msg_send(req, APM_STOP_CFM, cfm);
-	if(cfm->status)
-	{
-		bk_printf("[T]APM_STOP_CFM\n");
-	}
-	os_free(cfm);
-	return ret;
+    if(cfm->status)
+    {
+        bk_printf("[T]APM_STOP_CFM\n");
+    }
+    os_free(cfm);
+    return ret;
 }
 
 int rw_msg_send_bcn_change(void *bcn_param)
@@ -524,13 +525,13 @@ int rw_msg_send_scanu_req(SCAN_PARAM_T *scan_param)
     struct scanu_start_req *req;
     int i;
     UINT32 channel_id;
-	
+
 #if CFG_ROLE_LAUNCH
-		if(rl_pre_sta_set_status(RL_STATUS_STA_SCANNING))
-		{
-			return 0;
-		}
-#endif   
+        if(rl_pre_sta_set_status(RL_STATUS_STA_SCANNING))
+        {
+            return 0;
+        }
+#endif
 
     /* Build the SCANU_START_REQ message */
     req = ke_msg_alloc(SCANU_START_REQ, TASK_SCANU, TASK_API,
@@ -722,9 +723,9 @@ int rw_msg_send_sm_connect_req( CONNECT_PARAM_T *sme, void *cfm)
                        sizeof(struct sm_connect_req));
     if (!req)
         return -1;
-	
-	ke_msg_send_basic(SM_CONNCTION_START_IND, TASK_API, TASK_SM);
-	
+
+    ke_msg_send_basic(SM_CONNCTION_START_IND, TASK_API, TASK_SM);
+
     /* Set parameters for the SM_CONNECT_REQ message */
     req->ssid.length = sme->ssid.length;
     os_memcpy(req->ssid.array, sme->ssid.array, sme->ssid.length);
@@ -742,7 +743,7 @@ int rw_msg_send_sm_connect_req( CONNECT_PARAM_T *sme, void *cfm)
 
     /* Send the SM_CONNECT_REQ message to LMAC FW */
     return rw_msg_send(req, SM_CONNECT_CFM, cfm);
-	
+
 }
 
 int rw_msg_send_tim_update(u8 vif_idx, u16 aid, u8 tx_status)

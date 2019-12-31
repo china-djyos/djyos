@@ -4,7 +4,7 @@
 #include "error.h"
 #if CFG_USE_SDCARD_HOST
 #include "sdio_driver.h"
-//#include "bk_rtos_pub.h"
+#include "rtos_pub.h"
 #include "sys_rtos.h"
 #include "sdcard.h"
 #include "sdcard_pub.h"
@@ -17,10 +17,9 @@
 #include "gpio_pub.h"
 #include "mcu_ps_pub.h"
 #include "target_util_pub.h"
-#include <cpu_peri.h>
+
 #include "dbug.h"
 #include <systime.h>
-#include <filesystems.h>
 
 /* Standard sd  commands (  )           type  argument     response */
 #define GO_IDLE_STATE             0   /* bc                          */
@@ -102,7 +101,7 @@ static DD_OPERATIONS sdcard_op =
 //static uint8 sd_online = SD_CARD_OFFLINE;
 //static uint32 sd_clk_pin = SD_CLK_PIN;
 //static uint32 sd_cd_pin = SD_DETECT_DEFAULT_GPIO;
-void sdcard_uninitialize(void);
+
 static uint16 NoneedInitflag = 0;
 //uint8 SD_det_gpio_flag = 1;
 //static uint16 Sd_MMC_flag = 0;
@@ -194,7 +193,7 @@ cmd1_loop:
         if(response & OCR_MSK_HC)
             sdcard.Addr_shift_bit = 0;
         else
-            sdcard.Addr_shift_bit = 9;
+            sdcard.Addr_shift_bit = 9;//ÒÆÎ»
     }
     reg = REG_READ(REG_SDCARD_FIFO_THRESHOLD);
     reg |= 20;
@@ -573,13 +572,15 @@ static SDIO_Error sdcard_cmd17_process(uint32 addr)
     cmd.err = sdio_wait_cmd_response(cmd.index);
     return cmd.err;
 }
+
+
 SDIO_Error sdcard_initialize(void)
 {
     SDIO_Error err = SD_OK;
     sdio_sw_init();
-    Djy_EventDelay(20*mS);
+	bk_rtos_delay_milliseconds(20);
     sdio_hw_init();
-    Djy_EventDelay(30*mS);
+	bk_rtos_delay_milliseconds(30);
     // rest card
     err = sdcard_cmd0_process();
     if(err != SD_OK)
@@ -587,16 +588,16 @@ SDIO_Error sdcard_initialize(void)
         error_printf("sdcard","send cmd0 err\r\n");
         goto err_return;
     }
-    Djy_EventDelay(5*mS);
+    bk_rtos_delay_milliseconds(5);
 
-    Djy_EventDelay(50*mS);
+    bk_rtos_delay_milliseconds(50);
     err = sdcard_cmd1_process();
     info_printf("sdcard","cmd 1:%x \r\n", err);
     if(err == SD_OK)
     {
         goto MMC_init;
     }
-    Djy_EventDelay(5*mS);
+    bk_rtos_delay_milliseconds(5);
 
 
     // check support voltage
@@ -629,7 +630,7 @@ SDIO_Error sdcard_initialize(void)
                 break;
             }
 
-            Djy_EventDelay(2*mS);
+			bk_rtos_delay_milliseconds(2);
             retry_time--;
         }
         if(!retry_time)
@@ -664,7 +665,7 @@ SDIO_Error sdcard_initialize(void)
             sdio_get_cmdresponse_argument(0, &resp0);
             if(resp0 & OCR_MSK_BUSY)
                 break;
-            Djy_EventDelay(2*mS);
+			bk_rtos_delay_milliseconds(2);
             retry_time--;
         }
         if(!retry_time)
@@ -675,7 +676,7 @@ SDIO_Error sdcard_initialize(void)
         }
         info_printf("sdcard","send cmd55&cmd41 complete, SD V1.X card is ready\r\n");
     }
-    Djy_EventDelay(2*mS);
+	bk_rtos_delay_milliseconds(2);
     // get CID, return R2
     err = sdcard_cmd2_process();
     if(err != SD_OK)
@@ -683,7 +684,7 @@ SDIO_Error sdcard_initialize(void)
         error_printf("sdcard","send cmd2 err:%d\r\n", err);
         goto err_return;
     }
-    Djy_EventDelay(2*mS);
+	bk_rtos_delay_milliseconds(2);
     // get RCA,
     err = sdcard_cmd3_process();
     if(err != SD_OK)
@@ -694,7 +695,7 @@ SDIO_Error sdcard_initialize(void)
 
     // change to high speed clk
     sdio_set_high_clk();
-    Djy_EventDelay(2*mS);
+	bk_rtos_delay_milliseconds(2);
     // get CSD
     err = sdcard_cmd9_process(SD_CARD);
     if(err != SD_OK)
@@ -702,7 +703,7 @@ SDIO_Error sdcard_initialize(void)
         error_printf("sdcard","send cmd9 err:%d\r\n", err);
         goto err_return;
     }
-    Djy_EventDelay(2*mS);
+	bk_rtos_delay_milliseconds(2);
     // select card
     err = sdcard_cmd7_process();
     if(err != SD_OK)
@@ -710,7 +711,7 @@ SDIO_Error sdcard_initialize(void)
         error_printf("sdcard","send cmd7 err:%d\r\n", err);
         goto err_return;
     }
-    Djy_EventDelay(2*mS);
+	bk_rtos_delay_milliseconds(2);
     // change bus width, for high speed
     err = sdcard_acmd6_process();
     if(err != SD_OK)
@@ -974,7 +975,7 @@ UINT32 sdcard_write(char *user_buf, UINT32 count, UINT32 op_flag)
     // check operate parameter
     start_blk_addr = op_flag;
     write_size = count * SD_DEFAULT_BLOCK_SIZE;
-    err = sdcard_write_multi_block((u8 *)user_buf,start_blk_addr,write_size);
+    err = sdcard_write_multi_block(user_buf,start_blk_addr,write_size);
     peri_busy_count_dec();
 
     return err;
@@ -986,8 +987,8 @@ UINT32 sdcard_ctrl(UINT32 cmd, void *parm)
 
     switch(cmd)
     {
-        default:
-            break;
+    default:
+        break;
     }
 
     peri_busy_count_dec();

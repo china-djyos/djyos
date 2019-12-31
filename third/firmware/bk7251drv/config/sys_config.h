@@ -1,7 +1,7 @@
 #ifndef _SYS_CONFIG_H_
 #define _SYS_CONFIG_H_
 
-#define CFG_SUPPORT_BOOTLOADER                     0
+//#define CFG_SUPPORT_BOOTLOADER                     0
 
 /*SUMMARY: macro--1: OPEN; --0:CLOSE*/
 
@@ -61,6 +61,7 @@
 #define CFG_SUPPORT_UVC                            0
 #endif
 #define CFG_USE_USB_CHARGE                         1
+#define CFG_USE_QSPI							   1
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
 #define CFG_UART_DEBUG_COMMAND_LINE                1
@@ -105,6 +106,7 @@
 #define CFG_USE_TEMPERATURE_DETECT                 0
 
 /*section 12-----for SPIDMA interface*/
+#define CFG_USE_HSLAVE_SPI                         0
 #define CFG_USE_SPIDMA                             0
 #define CFG_USE_CAMERA_INTF                        0
 
@@ -115,7 +117,8 @@
 #define CFG_USE_FTPD_UPGRADE                       0
 
 /*section 15-----support customer macro*/
-#define CFG_SUPPORT_TIANZHIHENG_DRONE              0
+//#define CFG_SUPPORT_TIANZHIHENG_DRONE              0
+#define CFG_USE_APP_DEMO_VIDEO_TRANSFER            1
 
 /*section 16-----support mcu & deep sleep*/
 #define CFG_USE_MCU_PS                             1
@@ -161,7 +164,5 @@
 #define CFG_USE_SPI_MST_FLASH                      0
 #define CFG_USE_SPI_MST_PSRAM                      0
 #define CFG_USE_SPI_SLAVE                          0
-
-#define CFG_USE_QSPI                               1
 
 #endif // _SYS_CONFIG_H_

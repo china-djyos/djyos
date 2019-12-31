@@ -10,7 +10,7 @@
 #include "mem_pub.h"
 #include "icu_pub.h"
 #include "gpio_pub.h"
-//#include "bk_rtos_pub.h"
+#include "rtos_pub.h"
 
 #include "dbug.h"
 #include <systime.h>
@@ -54,7 +54,7 @@ void sdio_gpio_config(void)
 
     param = GFUNC_MODE_SD1_HOST;
  #else
- 	param = GFUNC_MODE_SD_HOST;
+    param = GFUNC_MODE_SD_HOST;
  #endif
     sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
 }
@@ -108,7 +108,7 @@ void sdio_register_reenable(void)
     reg |= (SDCARD_FIFO_RX_FIFO_RST | SDCARD_FIFO_TX_FIFO_RST | SDCARD_FIFO_SD_STA_RST);
     REG_WRITE(REG_SDCARD_FIFO_THRESHOLD, reg);
 
-    Djy_EventDelay(5*mS);
+    bk_rtos_delay_milliseconds(5);
     /*Config tx/rx fifo threshold*/
     reg = ((SDCARD_RX_FIFO_THRD & SDCARD_FIFO_RX_FIFO_THRESHOLD_MASK)
            << SDCARD_FIFO_RX_FIFO_THRESHOLD_POSI)
@@ -344,12 +344,12 @@ SDIO_Error sdcard_write_data(UINT8 *writebuff, UINT32 block)
 
     REG_WRITE(REG_SDCARD_DATA_REC_TIMER,DEF_HIGH_SPEED_DATA_TIMEOUT * block);
     reg = (SD_DEFAULT_BLOCK_SIZE << SDCARD_DATA_REC_CTRL_BLK_SIZE_POSI)|
-            SDCARD_DATA_REC_CTRL_DATA_MUL_BLK | SDCARD_DATA_REC_CTRL_DATA_BYTE_SEL | 
+            SDCARD_DATA_REC_CTRL_DATA_MUL_BLK | SDCARD_DATA_REC_CTRL_DATA_BYTE_SEL |
             SDCARD_DATA_REC_CTRL_DATA_WR_DATA_EN
 #if CONFIG_SDCARD_BUSWIDTH_4LINE
            | SDCARD_DATA_REC_CTRL_DATA_BUS
 #endif
-		;
+        ;
     REG_WRITE(REG_SDCARD_DATA_REC_CTRL,reg);
 
     do
@@ -387,7 +387,7 @@ SDIO_Error sdcard_write_data(UINT8 *writebuff, UINT32 block)
         {
             return SD_ERROR;
         }
-    }	
+    }
 
     // 3. after the last block,write zero
     while(1)
@@ -411,7 +411,7 @@ SDIO_Error sdcard_write_data(UINT8 *writebuff, UINT32 block)
     {
         return SD_ERROR;
     }
-    
+
     return SD_OK;
 }
 

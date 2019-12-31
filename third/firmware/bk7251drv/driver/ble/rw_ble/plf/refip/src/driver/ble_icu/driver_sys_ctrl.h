@@ -282,6 +282,13 @@ extern "C" {
 #define REG_BLE_XVR_SLOT_TIME_MASK          0xFFFFFFFF
 #define REG_BLE_XVR_SLOT_TIME               (*((volatile unsigned long *) REG_BLE_XVR_SLOT_TIME_ADDR))
 
+#define REG_BLE_XVR_TX_CONFIG_ADDR          (REG_BLE_XVR_BASE_ADDR + 0x30 * 4)
+#define REG_BLE_XVR_TX_CONFIG_MASK          0xFFFFFFFF
+#define REG_BLE_XVR_TX_CONFIG               (*((volatile unsigned long *) REG_BLE_XVR_AGC_CONFIG_ADDR))
+
+#define REG_BLE_XVR_AGC_CONFIG_ADDR          (REG_BLE_XVR_BASE_ADDR + 0x3c * 4)
+#define REG_BLE_XVR_AGC_CONFIG_MASK          0xFFFFFFFF
+#define REG_BLE_XVR_AGC_CONFIG               (*((volatile unsigned long *) REG_BLE_XVR_AGC_CONFIG_ADDR))
 
 #ifdef __cplusplus
 }

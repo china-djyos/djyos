@@ -92,7 +92,7 @@
 #endif // (CFG_SOC_NAME == SOC_BK7231)
 
 
-#if CFG_USE_SPIDMA
+#if CFG_USE_HSLAVE_SPI
 static void spidma_isr(void);
 static void spidma_rx_callback(UINT16 used_data_len);
 static UINT32 spidma_open(UINT32 op_flag);

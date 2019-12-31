@@ -179,7 +179,7 @@ ptu32_t Touch_Scan(void)
                     //计算物理距离，这里假设像素是正方形的，且x和y方向等间距。
                     Distance = Distance * display->width_um / display->width;
                     touch_temp.time = DjyGetSysTime();
-                    if(Distance < 500)     //如果小于0.5mm，则认为没有移动,发按下消息
+                    if(Distance < 1000)     //如果小于1mm，则认为没有移动,发按下消息
                     {
                         if(touch_pr->TouchStatus != CN_GOT_TOUCH)
                         {

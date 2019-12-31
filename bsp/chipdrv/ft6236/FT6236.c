@@ -231,7 +231,7 @@ static bool_t FT6236_Scan(struct SingleTouchMsg *touch_data)
     for(i=0;i<CT_MAX_TOUCH;i++)
     {
        FT6236_RD_Reg(FT6236_TPX_TBL[i],buf,4); //¶ÁÈ¡XY×ø±êÖµ
-       if((buf[0]&0XF0)==0X80)
+       if( ((buf[0]&0XF0)==0X80) && ((buf[2]&0XF0)!=0Xf0))
        {
            tch_x +=((s32)(buf[0]&0X0F)<<8)+buf[1];
            tch_y +=((s32)(buf[2]&0X0F)<<8)+buf[3];

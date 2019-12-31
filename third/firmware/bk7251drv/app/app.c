@@ -48,8 +48,13 @@
 #endif
 #include "app_music_pub.h"
 
+//#if (CFG_SUPPORT_ALIOS || CFG_SUPPORT_RTT)
 beken_thread_t  init_thread_handle;
 beken_thread_t  app_thread_handle;
+//#else
+//xTaskHandle  init_thread_handle;
+//xTaskHandle  app_thread_handle;
+//#endif
 uint32_t  init_stack_size = 4000;
 uint32_t  app_stack_size = 4048;
 
@@ -71,7 +76,7 @@ void app_init(void)
 void app_set_sema(void)
 {
     OSStatus ret;
-    ret = rtos_set_semaphore(&app_sema);
+    ret = bk_rtos_set_semaphore(&app_sema);
 
     (void)ret;
 }
@@ -83,7 +88,7 @@ static void kmsg_bk_thread_main( void *arg )
     mr_kmsg_init();
     while(1)
     {
-        ret = rtos_get_semaphore(&app_sema, BEKEN_WAIT_FOREVER);
+        ret = bk_rtos_get_semaphore(&app_sema, BEKEN_WAIT_FOREVER);
         ASSERT(kNoErr == ret);
 
         rwnx_recv_msg();
@@ -98,7 +103,7 @@ static void init_thread_main( void *arg )
     app_init();
     os_printf("app_init finished\r\n");
 
-//    rtos_delete_thread( NULL );
+//    bk_rtos_delete_thread( NULL );
 }
 
 /** @brief  When in dtim rf off mode,user can manual wakeup before dtim wakeup time.
@@ -162,63 +167,63 @@ tx_handler_exit:
 #if CFG_SUPPORT_ALIOS
 void bmsg_tx_raw_handler(BUS_MSG_T *msg)
 {
-	OSStatus ret;
-	uint8_t *pkt = (uint8_t *)msg->arg;
-	uint16_t len = msg->len;
-	MSDU_NODE_T *node;
-	UINT8 *content_ptr;
-	UINT32 queue_idx = AC_VI;
-	struct txdesc *txdesc_new;
-	struct umacdesc *umac;
+    OSStatus ret;
+    uint8_t *pkt = (uint8_t *)msg->arg;
+    uint16_t len = msg->len;
+    MSDU_NODE_T *node;
+    UINT8 *content_ptr;
+    UINT32 queue_idx = AC_VI;
+    struct txdesc *txdesc_new;
+    struct umacdesc *umac;
 
-	node = rwm_tx_node_alloc(len);
-	if (node == NULL) {
-		goto exit;
-	}
+    node = rwm_tx_node_alloc(len);
+    if (node == NULL) {
+        goto exit;
+    }
 
-	rwm_tx_msdu_renew(pkt, len, node->msdu_ptr);
-	content_ptr = rwm_get_msdu_content_ptr(node);
+    rwm_tx_msdu_renew(pkt, len, node->msdu_ptr);
+    content_ptr = rwm_get_msdu_content_ptr(node);
 
-	txdesc_new = tx_txdesc_prepare(queue_idx);
-	if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
-		rwm_node_free(node);
-		goto exit;
-	}
+    txdesc_new = tx_txdesc_prepare(queue_idx);
+    if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
+        rwm_node_free(node);
+        goto exit;
+    }
 
-	txdesc_new->status = TXDESC_STA_USED;
-	txdesc_new->host.flags = TXU_CNTRL_MGMT;
-	txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
-	txdesc_new->host.packet_addr = (UINT32)content_ptr;
-	txdesc_new->host.packet_len = len;
-	txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
-	txdesc_new->host.tid = 0xff;
+    txdesc_new->status = TXDESC_STA_USED;
+    txdesc_new->host.flags = TXU_CNTRL_MGMT;
+    txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
+    txdesc_new->host.packet_addr = (UINT32)content_ptr;
+    txdesc_new->host.packet_len = len;
+    txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
+    txdesc_new->host.tid = 0xff;
 
-	umac = &txdesc_new->umac;
-	umac->payl_len = len;
-	umac->head_len = 0;
-	umac->tail_len = 0;
-	umac->hdr_len_802_2 = 0;
+    umac = &txdesc_new->umac;
+    umac->payl_len = len;
+    umac->head_len = 0;
+    umac->tail_len = 0;
+    umac->hdr_len_802_2 = 0;
 
-	umac->buf_control = &txl_buffer_control_24G;
+    umac->buf_control = &txl_buffer_control_24G;
 
-	txdesc_new->lmac.agg_desc = NULL;
-	txdesc_new->lmac.hw_desc->cfm.status = 0;
+    txdesc_new->lmac.agg_desc = NULL;
+    txdesc_new->lmac.hw_desc->cfm.status = 0;
 
     ps_set_data_prevent();
 #if CFG_USE_STA_PS
     bmsg_ps_handler_rf_ps_mode_real_wakeup();
 #endif
 
-	rwm_push_tx_list(node);
-	txl_cntrl_push(txdesc_new, queue_idx);
+    rwm_push_tx_list(node);
+    txl_cntrl_push(txdesc_new, queue_idx);
 
 exit:
-	os_free(pkt);
+    os_free(pkt);
 }
 
 void bmsg_rx_lsig_handler(BUS_MSG_T *msg)
 {
-	lsig_input((msg->arg&0xFFFF0000)>>16, msg->arg&0xFF, msg->len);
+    lsig_input((msg->arg&0xFFFF0000)>>16, msg->arg&0xFF, msg->len);
 }
 #endif
 
@@ -244,7 +249,7 @@ void bmsg_skt_tx_sender(void *arg)
     msg.len = 0;
     msg.sema = NULL;
 
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
         os_printf("bmsg_rx_sender_failed\r\n");
@@ -314,12 +319,12 @@ void bmsg_null_sender(void)
     msg.len = 0;
     msg.sema = NULL;
 
-    if(!rtos_is_queue_empty(&g_wifi_core.io_queue))
+    if(!bk_rtos_is_queue_empty(&g_wifi_core.io_queue))
     {
         return;
     }
 
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
         os_printf("bmsg_null_sender_failed\r\n");
@@ -347,7 +352,7 @@ void bmsg_rx_sender(void *arg)
     bmsg_rx_count += 1;
     GLOBAL_INT_RESTORE();
 
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
         APP_PRT("bmsg_rx_sender_failed\r\n");
@@ -365,7 +370,7 @@ int bmsg_tx_sender(struct pbuf *p, uint32_t vif_idx)
     msg.sema = NULL;
 
     pbuf_ref(p);
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
     if(kNoErr != ret)
     {
         APP_PRT("bmsg_tx_sender failed\r\n");
@@ -378,34 +383,34 @@ int bmsg_tx_sender(struct pbuf *p, uint32_t vif_idx)
 #if CFG_SUPPORT_ALIOS
 int bmsg_tx_raw_sender(uint8_t *payload, uint16_t length)
 {
-	OSStatus ret;
-	BUS_MSG_T msg;
+    OSStatus ret;
+    BUS_MSG_T msg;
 
-	msg.type = BMSG_TX_RAW_TYPE;
-	msg.arg = (uint32_t)payload;
-	msg.len = length;
-	msg.sema = NULL;
+    msg.type = BMSG_TX_RAW_TYPE;
+    msg.arg = (uint32_t)payload;
+    msg.len = length;
+    msg.sema = NULL;
 
-	ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1*SECONDS);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1*SECONDS);
 
-	if(ret != kNoErr) 
-	{
-		APP_PRT("bmsg_tx_sender failed\r\n");
-		os_free(payload);
-	}
+    if(ret != kNoErr)
+    {
+        APP_PRT("bmsg_tx_sender failed\r\n");
+        os_free(payload);
+    }
 
-	return ret;
+    return ret;
 }
 
 void bmsg_rx_lsig(uint16_t len, uint8_t rssi)
 {
-	BUS_MSG_T msg;
+    BUS_MSG_T msg;
 
-	msg.type = BMSG_RX_LSIG;
-	msg.arg = (uint32_t)((len << 16) | rssi);
-	msg.len = rtos_get_time();
-	msg.sema = NULL;
-	rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    msg.type = BMSG_RX_LSIG;
+    msg.arg = (uint32_t)((len << 16) | rssi);
+    msg.len =  bk_rtos_get_time();
+    msg.sema = NULL;
+    bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
 }
 #endif
 
@@ -419,7 +424,7 @@ void bmsg_ioctl_sender(void *arg)
     msg.len = 0;
     msg.sema = NULL;
 
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
         APP_PRT("bmsg_ioctl_sender_failed\r\n");
@@ -440,7 +445,7 @@ void bmsg_music_sender(void *arg)
     msg.len = 0;
     msg.sema = NULL;
 
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
         APP_PRT("bmsg_media_sender_failed\r\n");
@@ -458,7 +463,7 @@ void bmsg_txing_sender(uint8_t sta_idx)
     msg.len = 0;
     msg.sema = NULL;
 
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
         APP_PRT("bmsg_txing_sender failed\r\n");
@@ -484,7 +489,7 @@ void bmsg_ps_sender(uint8_t arg)
     msg.len = 0;
     msg.sema = NULL;
 
-    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
         os_printf("bmsg_ps_sender failed\r\n");
@@ -502,7 +507,6 @@ void bmsg_ps_handler(BUS_MSG_T *msg)
     ps_msg_process(arg);
 }
 #endif
-
 static void core_thread_main( void *arg )
 {
     OSStatus ret;
@@ -512,7 +516,7 @@ static void core_thread_main( void *arg )
 
     while(1)
     {
-        ret = rtos_pop_from_queue(&g_wifi_core.io_queue, &msg, BEKEN_WAIT_FOREVER);
+        ret = bk_rtos_pop_from_queue(&g_wifi_core.io_queue, &msg, BEKEN_WAIT_FOREVER);
         if(kNoErr == ret)
         {
             switch(msg.type)
@@ -571,11 +575,11 @@ static void core_thread_main( void *arg )
                 case BMSG_TX_RAW_TYPE:
                     bmsg_tx_raw_handler(&msg);
                     break;
-					
-				case BMSG_RX_LSIG:
-					bmsg_rx_lsig_handler(&msg);
-					break;
-					
+
+                case BMSG_RX_LSIG:
+                    bmsg_rx_lsig_handler(&msg);
+                    break;
+
 #endif
             default:
 //                APP_PRT("unknown_msg\r\n");
@@ -584,7 +588,7 @@ static void core_thread_main( void *arg )
 
             if (msg.sema != NULL)
             {
-                rtos_set_semaphore(&msg.sema);
+                bk_rtos_set_semaphore(&msg.sema);
             }
             if(!ke_skip)
                 ke_evt_core_scheduler();
@@ -611,7 +615,7 @@ void core_thread_init(void)
     g_wifi_core.queue_item_count = CORE_QITEM_COUNT;
     g_wifi_core.stack_size = CORE_STACK_SIZE;
 
-    ret = rtos_init_queue(&g_wifi_core.io_queue,
+    ret = bk_rtos_init_queue(&g_wifi_core.io_queue,
                           "core_queue",
                           sizeof(BUS_MSG_T),
                           g_wifi_core.queue_item_count);
@@ -621,7 +625,7 @@ void core_thread_init(void)
         goto fail;
     }
 
-    ret = rtos_create_thread(&g_wifi_core.handle,
+    ret = bk_rtos_create_thread(&g_wifi_core.handle,
                              THD_CORE_PRIORITY,
                              "core_thread",
                              (beken_thread_function_t)core_thread_main,
@@ -645,13 +649,13 @@ void core_thread_uninit(void)
 {
     if(g_wifi_core.handle)
     {
-        rtos_delete_thread(&g_wifi_core.handle);
+        bk_rtos_delete_thread(&g_wifi_core.handle);
         g_wifi_core.handle = 0;
     }
 
     if(g_wifi_core.io_queue)
     {
-        rtos_deinit_queue(&g_wifi_core.io_queue);
+        bk_rtos_deinit_queue(&g_wifi_core.io_queue);
         g_wifi_core.io_queue = 0;
     }
 
@@ -667,7 +671,7 @@ static void init_app_thread( void *arg )
 //        application_start();
 //    }
 //
-//    rtos_delete_thread( NULL );
+//    bk_rtos_delete_thread( NULL );
 }
 #endif
 
@@ -676,13 +680,13 @@ void app_pre_start(void)
     OSStatus ret;
 
 #if CFG_SUPPORT_ALIOS
-    ret = rtos_init_semaphore(&app_sema, 0);
+    ret = bk_rtos_init_semaphore(&app_sema, 0);
 #else
-    ret = rtos_init_semaphore(&app_sema, 1);
+    ret = bk_rtos_init_semaphore(&app_sema, 1);
 #endif
     ASSERT(kNoErr == ret);
 
-    ret = rtos_create_thread(&app_thread_handle,
+    ret = bk_rtos_create_thread(&app_thread_handle,
                              THD_APPLICATION_PRIORITY,
                              "kmsgbk",
                              (beken_thread_function_t)kmsg_bk_thread_main,
@@ -692,7 +696,7 @@ void app_pre_start(void)
 
     init_thread_main(NULL);
 
-//    ret = rtos_create_thread(&init_thread_handle,
+//    ret = bk_rtos_create_thread(&init_thread_handle,
 //                             THD_INIT_PRIORITY,
 //                             "init_thread",
 //                             (beken_thread_function_t)init_thread_main,
@@ -708,7 +712,7 @@ void app_pre_start(void)
 #endif
 
 #if (!CFG_SUPPORT_ALIOS && !CFG_SUPPORT_RTT)
-//    ret = rtos_create_thread(NULL,
+//    ret = bk_rtos_create_thread(NULL,
 //                             THD_INIT_PRIORITY,
 //                             "app",
 //                             (beken_thread_function_t)init_app_thread,
@@ -735,7 +739,7 @@ void wifi_start(void)
     {
         OSStatus ret;
         extern void user_main( beken_thread_arg_t args );
-        ret = rtos_create_thread(NULL,
+        ret = bk_rtos_create_thread(NULL,
                                  BEKEN_APPLICATION_PRIORITY,
                                  "app",
                                  (beken_thread_function_t)user_main,
@@ -748,7 +752,7 @@ void wifi_start(void)
 
 int bmsg_is_empty(void)
 {
-    if(!rtos_is_queue_empty(&g_wifi_core.io_queue))
+    if(!bk_rtos_is_queue_empty(&g_wifi_core.io_queue))
     {
         return 0;
     }

@@ -681,7 +681,7 @@ void eloop_run(void)
         }
 
         if(wpah_queue) {
-            ret = rtos_pop_from_queue(&wpah_queue, &msg, timeout_ms);
+            ret = bk_rtos_pop_from_queue(&wpah_queue, &msg, timeout_ms);
             if(kNoErr == ret)
             {
                 flag = msg.argu;

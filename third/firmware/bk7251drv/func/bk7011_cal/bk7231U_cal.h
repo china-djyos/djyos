@@ -1,7 +1,7 @@
 #ifndef _BK7231U_CAL_H_
 #define _BK7231U_CAL_H_
 
-#if (CFG_SOC_NAME != SOC_BK7231)
+#if (CFG_SOC_NAME == SOC_BK7231U)
 
 #define INCLUDE_OS
 

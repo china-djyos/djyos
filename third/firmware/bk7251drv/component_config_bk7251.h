@@ -47,7 +47,9 @@
 //../func/rttos/ate;../func/rttos/source;../func/rttos/os_clock.c;../func/rttos/target_util.c;
 //../func/user_driver/BkDriverGpio.c;../func/user_driver/BkDriverPwm.c;
 //../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;../func/mem_arch.c;
-//../func/wlan_ui/lsig_monitor.c;
+//../func/wlan_ui/lsig_monitor.c;../func/voice_transfer;../func/vad;../func/user_driver;
+//../func/saradc_intf;../func/misc;../func/music_player;../func/app_demo;
+//../func/airkiss
 //../ip;
 //%$#@end exclude
 //%$#@include path
@@ -59,7 +61,7 @@
 //../driver;
 //../driver/audio;../driver/common;../driver/common/reg;../driver/demo;
 //../driver/dma;../driver/flash;../driver/entry;../driver/include;
-//../driver/phy;../driver/pwm;../driver/sys_ctrl;../driver/uart;
+//../driver/phy;../driver/pwm;../driver/sys_ctrl;../driver/uart;../driver/qspi;
 //../func/ethernet_intf;../func/hostapd-2.5;../func/hostapd-2.5/bk_patch;
 //../func/hostapd-2.5/hostapd;../func/hostapd-2.5/src;../func/hostapd-2.5/src/ap;
 //../func/hostapd-2.5/src/common;../func/hostapd-2.5/src/drivers;../func/hostapd-2.5/src/utils;

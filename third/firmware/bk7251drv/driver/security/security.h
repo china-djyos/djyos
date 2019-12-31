@@ -2,18 +2,27 @@
 #define _SEC_H_
 
 #if (CFG_SOC_NAME == SOC_BK7221U)
-#include "security_reg.h"
-#include "sha.h"
-#include "aes.h"
 
-extern int is_secrity_sha_busy(void);
-extern int is_secrity_rsa_busy(void);
-extern int is_secrity_aes_busy(void);
-int security_aes_init(SECURITY_AES_DRV_DESC *p_security_aes_drv_desc);
-int security_sha_init(SECURITY_SHA_DRV_DESC *p_security_sha_drv_desc);
-void get_security_aes_data(unsigned long *pul_data);
-void get_security_sha_data(hal_sha_context *ctx, unsigned long *pul_data);
+typedef enum AES_RETURN_E
+{
+    AES_OK              = 0,
+    AES_BUSY,
+    AES_KEYLEN_ERR,
+} AES_RETURN;
 
+typedef void (*sec_done_callback)(void *param);
+struct sec_done_des
+{
+    sec_done_callback callback;
+    void  *param;
+};
+
+int security_aes_busy(void);
+int security_aes_start(unsigned int mode);
+int security_aes_init(sec_done_callback callback, void *param);
+int security_aes_set_key(const unsigned char *key, unsigned int keybits);
+int security_aes_set_block_data(const unsigned char *block_data);
+int security_aes_get_result_data(unsigned char *pul_data);
 #endif //(CFG_SOC_NAME == SOC_BK7221U)
 
 #endif

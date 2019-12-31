@@ -73,10 +73,17 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/Nuvoton/M480/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NuvotonM487/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1494761559" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.758697805" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -132,10 +139,37 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.86459" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.17410795" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.1300822958" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -193,6 +227,31 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1449867666" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.2131068148" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -200,7 +259,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.149537354" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.2019724367" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.944647718" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1610454532" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1362,10 +1423,17 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/Nuvoton/M480/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NuvotonM487/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1944386163" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1270976184" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1421,10 +1489,37 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1375750575" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.1953073749" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.2070061252" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1482,6 +1577,31 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1841401919" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1356638244" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -1489,7 +1609,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.150397694" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.405156835" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.872339386" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1495854982" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1619,10 +1741,17 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/Nuvoton/M480/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NuvotonM487/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.22991104" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1612026939" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1678,10 +1807,37 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1176820893" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.519292794" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.662276119" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1739,6 +1895,31 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/app/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.1229356408" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1932152147" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -1746,7 +1927,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.2048765015" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.781913709" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.1126913106" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.1962825572" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1876,10 +2059,17 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/cpudrv/Nuvoton/M480/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/boarddrv/demo/NuvotonM487/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/libos/bsp/chipdrv/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/libc/libc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/bsp/chipdrv/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.131975683" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.957445245" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
@@ -1935,10 +2125,37 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.107101811" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting.1314031022" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps.2029192965" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -1996,6 +2213,31 @@
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/stddev&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/djyos/time&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}/component/device/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/iboot/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/blackbox&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/boarddrv/demo/NuvotonM487/drv/board&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/dma&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/bsp/cpudrv/Nuvoton/M480/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/dbug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/flash&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/heap&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/int&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/core&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/object&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/libc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/loader/si&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/lock&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/pool&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/msgqueue&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/multiplex&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/third/firmware/NuvotonM480/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/buffer&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/shell&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/stddev&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/djyos/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${DJYOS_SRC_LOCATION}D:/DIDE/djysrc/component/device/uart&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.944746953" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.658648950" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -2003,7 +2245,9 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics.192322797" name="Do not use thread-safe statics (-fno-threadsafe-statics)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nothreadsafestatics" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.189137760" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG=1"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_LIB_C=false"/>
 									<listOptionValue builtIn="false" value="HAVE_INITFINI_ARRAY"/>
+									<listOptionValue builtIn="false" value="CFG_MODULE_ENABLE_NUVOTON_M480=false"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting.1328101295" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.asmlisting" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps.2078957150" name="Save temporary files (--save-temps Use with caution!)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.savetemps" useByScannerDiscovery="false" value="false" valueType="boolean"/>
