@@ -252,7 +252,6 @@ struct ClienCB
     tagRecvBuf                rbuf;         //rcv buffer
     tagSendBuf                sbuf;         //sendbuffer
     struct NetPkg            *pkgrecomblst; //the package recomb queue
-    u16                       pkgrecomblen; //the package recomb queue length
     //the send window member
     u16                       mss;         //you could send the most data one time
     u8                        sndwndscale; //the remote window scale,update by the handshake
@@ -672,7 +671,6 @@ static struct ClienCB  *__CreateCCB(void)
     result->rbuf.pt = NULL;
 
     result->pkgrecomblst = NULL;
-    result->pkgrecomblen = 0;
     //set the local mss to default
     //the window initialize
     result->ssthresh    = 65535;
@@ -725,7 +723,6 @@ static void  __ResetCCB(struct ClienCB *ccb,u16 machinestat)
     //reset the recomb queue
     PkgTryFreeQ(ccb->pkgrecomblst);
     ccb->pkgrecomblst = NULL;
-    ccb->pkgrecomblen = 0;
     //init the stat
     ccb->channelstat =0;
     ccb->machinestat = machinestat;
@@ -1532,6 +1529,10 @@ static void __resenddata(struct tagSocket *sock)
     }
     return;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 // =============================================================================
 // FUNCTION:this function used to send data to the socket
 // PARA  IN:sock, the socket to send
@@ -1636,6 +1637,8 @@ static s32 __cpyfromrcvbuf(struct ClienCB *ccb, void *buf, s32 len)
 //      cpylen = len > pkg->datalen?pkg->datalen:len;
         cpybuf = (u8 *)PkgGetCurrentBuffer(pkg);
 //      cpybuf = (u8 *)(pkg->buf + pkg->offset);
+//      if(ccb->rbuf.buflen < cpylen)
+//          stub_debug();
         memcpy(srcbuf, cpybuf,cpylen);
         PkgMoveOffsetUp(pkg,cpylen);
 //      pkg->offset += cpylen;
@@ -1764,7 +1767,6 @@ static s32 __shutdownRD(struct tagSocket *sock)
     //net_free all the recomblst
     PkgTryFreeQ(ccb->pkgrecomblst);
     ccb->pkgrecomblst = NULL;
-    ccb->pkgrecomblen = 0;
     result = 0;
 
     return result;
@@ -2363,7 +2365,8 @@ static void dealtcpoption(struct ClienCB *ccb, struct TcpHdr *hdr)
 //bit of the ccb is set then could use this function to deal with the data received
 //check the krcv bit and the pkg.data len > 0
 //which means how many data received
-
+//struct ClienCB ccbbak;
+//struct NetPkg *phtable[10],*pttable[10],*comtable[10];
 //------------------------------------------------------------------------------
 //功能：接收数据，并把数据推送到上一层
 //参数：client，接收数据的socket
@@ -2375,16 +2378,48 @@ static void dealtcpoption(struct ClienCB *ccb, struct TcpHdr *hdr)
 static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
 {
     struct ClienCB   *ccb;
+    tagRecvBuf *recbuf;
     u32        pkgstart;
     u32        pkgstop;
+    u32        pkglen;
     u32        rcvlen;
     u32        pkgdataoff;
     struct NetPkg *pkgcomb;
     u32 distance;
-    struct NetPkg *current,*pre,*ins = NULL;
+    struct NetPkg *current,*pre;
 
     rcvlen = 0;
     ccb = (struct ClienCB *)client->TplCB;
+
+//  ccbbak = *ccb;
+//  current = ccb->rbuf.ph;
+//  distance = 0;
+//  while((current) && (distance < 9))
+//  {
+//      phtable[distance] = current;
+//      distance++;
+//      current = PkgGetNextUnit(current);
+//  }
+//  phtable[distance] = NULL;
+//  current = ccb->rbuf.pt;
+//  distance = 0;
+//  while((current) && (distance < 9))
+//  {
+//      pttable[distance] = current;
+//      distance++;
+//      current = PkgGetNextUnit(current);
+//  }
+//  pttable[distance] = NULL;
+//  current = ccb->pkgrecomblst;
+//  distance = 0;
+//  while((current) && (distance < 9))
+//  {
+//      comtable[distance] = current;
+//      distance++;
+//      current = PkgGetNextUnit(current);
+//  }
+//  comtable[distance] = NULL;
+
     pkgstart = seqno;
     pkgstop = PkgGetDataLen(pkg)+seqno;
 //  pkgstop = seqno + pkg->datalen;
@@ -2499,21 +2534,29 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
                     {
                         if(PkgGetPrivate(current) - ccb->rbuf.rcvnxt > distance)
                         {
-                            ins = current;
+//                          ins = current;
                             break;
                         }
                     }
                     else
                         break;
                 }
-                PkgSetNextUnit(pre,pkg);
-                if(ins == NULL)
+                if((seqno == PkgGetPrivate(pre)) && (PkgGetDataLen(pkg)==PkgGetDataLen(pre)))
                 {
-                    PkgSetNextUnit(pkg,NULL);
+                    PkgTryFreePart(pkg);  //丢弃重复包，产生于多次重发同一个包
+                                          //注意，部分数据重叠的包不能丢弃
                 }
                 else
                 {
-                    PkgSetNextUnit(pkg,current);
+                    PkgSetNextUnit(pre,pkg);
+                    if(current == NULL)
+                    {
+                        PkgSetNextUnit(pkg,NULL);
+                    }
+                    else
+                    {
+                        PkgSetNextUnit(pkg,current);
+                    }
                 }
 
             }
@@ -2524,7 +2567,6 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
 //              pkg->partnext = NULL;
             ccb->pkgrecomblst = pkg;
         }
-//      ccb->pkgrecomblen++;
 #else
 //      PkgTryFreePart(pkg);
 #endif      //for (CFG_TCP_REORDER == true)
@@ -2540,44 +2582,65 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
     pkgcomb = ccb->pkgrecomblst;
     while(NULL != pkgcomb)
     {
-//        PkgSetNextUnit(pkgcomb,NULL);
-//              pkgcomb->partnext = NULL;
         pkgstart = (u32)PkgGetPrivate(pkgcomb);
-//              pkgstart = pkgcomb->Private;
-        pkgstop = pkgstart + PkgGetDataLen(pkgcomb);
-//              pkgstop = pkgstart + pkgcomb->datalen;
-        if(pkgstart == ccb->rbuf.rcvnxt)
+        pkglen = PkgGetDataLen(pkgcomb);
+        pkgstop = pkgstart + pkglen;
+        recbuf = &ccb->rbuf;
+        if(pkgstart == recbuf->rcvnxt)      //包头无重叠数据
         {
             //and add it to the receive queue
-            if(NULL == ccb->rbuf.pt)
+            if(NULL == recbuf->pt)
             {
-                ccb->rbuf.ph = pkgcomb;
+                recbuf->ph = pkgcomb;
             }
             else
             {
                 PkgSetNextUnit(ccb->rbuf.pt,pkgcomb);
-//                      ccb->rbuf.pt->partnext = pkgcomb;
             }
-            ccb->rbuf.pt = pkgcomb;
-            ccb->rbuf.buflen += PkgGetDataLen(pkgcomb);
-            ccb->rbuf.rcvnxt+= PkgGetDataLen(pkgcomb);
-            rcvlen += PkgGetDataLen(pkgcomb);
-//                  ccb->rbuf.buflen += pkgcomb->datalen;
-//                  ccb->rbuf.rcvnxt+= pkgcomb->datalen;
-//                  rcvlen += pkgcomb->datalen;
-            ccb->pkgrecomblst = PkgGetNextUnit(ccb->pkgrecomblst);
-            pkgcomb = ccb->pkgrecomblst;
+            recbuf->pt = pkgcomb;
+            recbuf->buflen += pkglen;
+            recbuf->rcvnxt += pkglen;
+            rcvlen += pkglen;
         }
-        else if((ccb->rbuf.rcvnxt - pkgstop) <0x80000000)
+        else if((pkgstart - recbuf->rcvnxt) > 0x80000000)       //有数据重叠
+        {
+            //数据重叠是如何产生的呢？假设序号从0开始
+            //对方发包序号   本方收包序号            对方收到应答序号
+            //0~999         0~999（接收并确认）      1000
+            //1000~1999     未收到                   1000
+            //2000~2999     2000~2999（进重组队列）  1000
+            //3000~3999     3000~3999（进重组队列）  1000
+            //1000~2460     1000~2460（接收并确认）  2460
+            //此时，重组队列中（2000~2999）这个包将有460字节与已接收数据重叠
+            if((recbuf->rcvnxt - pkgstart) >= pkglen)
+            {
+                PkgTryFreePart(pkg);  //包中全部数据已经接收
+            }
+            else
+            {
+                //and add it to the receive queue
+                if(NULL == recbuf->pt)
+                {
+                    recbuf->ph = pkgcomb;
+                }
+                else
+                {
+                    PkgSetNextUnit(ccb->rbuf.pt,pkgcomb);
+                }
+                recbuf->pt = pkgcomb;
+                pkglen = pkglen - (recbuf->rcvnxt - pkgstart);
+                PkgMoveOffsetUp(pkgcomb,recbuf->rcvnxt - pkgstart);
+                recbuf->buflen += pkglen;
+                recbuf->rcvnxt += pkglen;
+                rcvlen += pkglen;
+            }
+        }
+        else    //重组队列中没有可接收包了。
         {
             break;
-//          PkgTryFreePart(pkgcomb);        //drops it now
         }
-        else
-        {
-            break;
-        }
-//      ccb->pkgrecomblen = 0;
+        ccb->pkgrecomblst = PkgGetNextUnit(ccb->pkgrecomblst);
+        pkgcomb = ccb->pkgrecomblst;
     }
 #endif      //for (CFG_TCP_REORDER == true)
     if(rcvlen > 0)
@@ -2592,6 +2655,7 @@ static u32 __rcvdata(struct tagSocket *client, u32 seqno,struct NetPkg *pkg)
             ccb->channelstat |= CN_TCP_CHANNEL_STATCONGEST;
         }
     }
+    PkgSetNextUnit(ccb->rbuf.pt,NULL);
     return rcvlen;
 }
 #define __TCPCHKINTARGETNOE(target,start,stop) (stop>=start?((target>start)&&(target<stop)):\
@@ -3056,6 +3120,8 @@ static bool_t __timewait_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
     }
     return true;
 }
+
+#pragma GCC diagnostic pop
 
 //------------------------------------------------------------------------------
 //功能：被动关闭收到了对面的FIN，任何数据都会被当做重传数据。
@@ -3546,12 +3612,6 @@ static bool_t __dealclienttimer(struct tagSocket *client)
     {
         __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
     }
-//    if(NULL != ccb->pkgrecomblst)
-//    {
-//        PkgTryFreeQ(ccb->pkgrecomblst);
-//        ccb->pkgrecomblst = NULL;
-////      ccb->pkgrecomblen = 0;
-//    }
     return true;
 }
 // =============================================================================
@@ -3716,8 +3776,6 @@ static void __tcpdebugccb(struct ClienCB *ccb,char *prefix)
             prefix,ccb->rbuf.buflenlimit,ccb->rbuf.buflen,ccb->rbuf.trigerlevel);
     debug_printf("tcp","%s:rcvbuf:rcvnxtno:0x%08x timeout:0x%08x SockSync:%s\n\r",prefix,\
             ccb->rbuf.rcvnxt,ccb->rbuf.timeout,ccb->rbuf.bufsync->lamp_counter?"enable":"disable");
-    //recomb queue
-    debug_printf("tcp","%s:recomb:len:%d\n\r",prefix,ccb->pkgrecomblen);
     //windows
     debug_printf("tcp","%s:mss:%04d sndwnd:%d sndwndscale:%d\n\r",prefix,ccb->mss,ccb->sndwnd,ccb->sndwndscale);
     debug_printf("tcp","%s:cwnd :%d ssh:%d \r\n",prefix,ccb->cwnd,ccb->ssthresh);

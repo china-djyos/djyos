@@ -438,13 +438,13 @@ void * mqttcreate(char *devname,char *id,char *host,char *user,char *passwd,\
     }
     memset(dev,0,sizeof(tagMqttDev));
 
-    dev->rbuf.sempr = semp_init();
+    dev->rbuf.sempr = semp_init(1,0,NULL);
     if(NULL == dev->rbuf.sempr)
     {
         printf("%s:rbuf-rsemperr\n\r",__FUNCTION__);
         goto EXIT_RBUFR;
     }
-    dev->rbuf.sempw = semp_init();
+    dev->rbuf.sempw = semp_init(1,0,NULL);
     if(NULL == dev->rbuf.sempw)
     {
         printf("%s:rbuf-wsemperr\n\r",__FUNCTION__);

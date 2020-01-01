@@ -223,3 +223,20 @@ void SoftReset(void)
 {
     Init_Cpu();
 }
+
+//由于板件的jtag口被psram占用，导致出了问题无法插入仿真器，本函数禁止psram，使能jtag，
+//关闭中断后进入死循环，允许仿真器插入调试，用法有两种：
+//1、如果shell还有响应，可以执行jtag命令调用本函数。
+//2、插入监视代码，当检测到错误时，主动调用本函数，等待仿真器插入。
+void stub_debug(void)
+{
+    atom_high_t atom;
+    volatile u32 t = 1;
+    atom = Int_HighAtomStart();
+    printk("+++++++++enable jtag，you can contact ICE debuger++++++++++++\r\n");
+    EnJtag();
+    if(t)
+        while(1);
+    Int_HighAtomEnd(atom);
+}
+

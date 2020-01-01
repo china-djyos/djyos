@@ -73,7 +73,7 @@ struct NetPkg
     u8   refers;        // 缓存的次数
     u16  datalen;       // buf中的有效数据长度
     u16  bufsize;       // buf的长度
-    u16  pkgoffset;     // 有效数据偏离buf的位置，offset之前的数据无效,当分拆数据或者数据对齐的时候很有用
+    u16  pkgoffset;     // 有效数据偏离pkgbuf的位置，offset之前的数据无效,当分拆数据或者数据对齐的时候很有用
     u8   *pkgbuf;       // pkg的buf（数据缓存区）
 };
 
@@ -89,7 +89,7 @@ static tagHeadControl pkg_heap_control;
 void PkgInit(struct NetPkg *pkg, u8 flag, u16 offset, u16 datalen, u8* buf)
 {
     pkg->partnext = NULL;
-    pkg->pkgflag  = flag;  //只有一个包
+    pkg->pkgflag  = flag;
     pkg->pkgoffset   = offset;
     pkg->datalen  = datalen;
     pkg->pkgbuf      = buf;
