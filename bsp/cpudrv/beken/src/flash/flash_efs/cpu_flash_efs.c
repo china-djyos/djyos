@@ -64,8 +64,8 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t ModuleInstall_EmbFlashInstallEfs(const char *TargetFs, s32 bstart, s32 bend, u32 doformat);
-//    ModuleInstall_EmbFlashInstallEfs(CFG_AT45_EFS_MOUNT_NAME,
-//                  CFG_AT45_EFS_PART_START, CFG_AT45_EFS_PART_END, CFG_AT45_EFS_PART_FORMAT);
+//    ModuleInstall_EmbFlashInstallEfs(CFG_EMBFLASH_EFS_MOUNT_NAME, CFG_EMBFLASH_EFS_PART_START,
+//                                                        CFG_EMBFLASH_EFS_PART_END, CFG_EMBFLASH_EFS_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

@@ -1,4 +1,4 @@
-ï»¿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Copyright (c) 2018, Djyos Open source Development team. All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -24,27 +24,27 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018ï¼Œè‘—ä½œæƒç”±éƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿå¼€æºå¼€å‘å›¢é˜Ÿæ‰€æœ‰ã€‚è‘—ä½œæƒäººä¿ç•™ä¸€åˆ‡æƒåˆ©ã€‚
+// Copyright (c) 2018£¬Öø×÷È¨ÓÉ¶¼½­Ñß²Ù×÷ÏµÍ³¿ªÔ´¿ª·¢ÍÅ¶ÓËùÓÐ¡£Öø×÷È¨ÈË±£ÁôÒ»ÇÐÈ¨Àû¡£
 //
-// è¿™ä»½æŽˆæƒæ¡æ¬¾ï¼Œåœ¨ä½¿ç”¨è€…ç¬¦åˆä»¥ä¸‹ä¸‰æ¡ä»¶çš„æƒ…å½¢ä¸‹ï¼ŒæŽˆäºˆä½¿ç”¨è€…ä½¿ç”¨åŠå†æ•£æ’­æœ¬
-// è½¯ä»¶åŒ…è£…åŽŸå§‹ç åŠäºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„æƒåˆ©ï¼Œæ— è®ºæ­¤åŒ…è£…æ˜¯å¦ç»æ”¹ä½œçš†ç„¶ï¼š
+// Õâ·ÝÊÚÈ¨Ìõ¿î£¬ÔÚÊ¹ÓÃÕß·ûºÏÒÔÏÂÈýÌõ¼þµÄÇéÐÎÏÂ£¬ÊÚÓèÊ¹ÓÃÕßÊ¹ÓÃ¼°ÔÙÉ¢²¥±¾
+// Èí¼þ°ü×°Ô­Ê¼Âë¼°¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÈ¨Àû£¬ÎÞÂÛ´Ë°ü×°ÊÇ·ñ¾­¸Ä×÷½ÔÈ»£º
 //
-// 1. å¯¹äºŽæœ¬è½¯ä»¶æºä»£ç çš„å†æ•£æ’­ï¼Œå¿…é¡»ä¿ç•™ä¸Šè¿°çš„ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥
-//    åŠä¸‹è¿°çš„å…è´£å£°æ˜Žã€‚
-// 2. å¯¹äºŽæœ¬å¥—ä»¶äºŒè¿›ä½å¯æ‰§è¡Œå½¢å¼çš„å†æ•£æ’­ï¼Œå¿…é¡»è¿žå¸¦ä»¥æ–‡ä»¶ä»¥åŠï¼æˆ–è€…å…¶ä»–é™„
-//    äºŽæ•£æ’­åŒ…è£…ä¸­çš„åª’ä»‹æ–¹å¼ï¼Œé‡åˆ¶ä¸Šè¿°ä¹‹ç‰ˆæƒå®£å‘Šã€æœ¬æ¡ä»¶åˆ—è¡¨ï¼Œä»¥åŠä¸‹è¿°
-//    çš„å…è´£å£°æ˜Žã€‚
-// 3. æœ¬è½¯ä»¶ä½œä¸ºéƒ½æ±Ÿå °æ“ä½œç³»ç»Ÿçš„ç»„æˆéƒ¨åˆ†ï¼ŒæœªèŽ·äº‹å‰å–å¾—çš„ä¹¦é¢è®¸å¯ï¼Œä¸å…è®¸ç§»æ¤åˆ°éž
-//    éƒ½æ±Ÿå °æ“ä½œç³»ç»ŸçŽ¯å¢ƒä¸‹è¿è¡Œã€‚
+// 1. ¶ÔÓÚ±¾Èí¼þÔ´´úÂëµÄÔÙÉ¢²¥£¬±ØÐë±£ÁôÉÏÊöµÄ°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ
+//    ¼°ÏÂÊöµÄÃâÔðÉùÃ÷¡£
+// 2. ¶ÔÓÚ±¾Ì×¼þ¶þ½øÎ»¿ÉÖ´ÐÐÐÎÊ½µÄÔÙÉ¢²¥£¬±ØÐëÁ¬´øÒÔÎÄ¼þÒÔ¼°£¯»òÕßÆäËû¸½
+//    ÓÚÉ¢²¥°ü×°ÖÐµÄÃ½½é·½Ê½£¬ÖØÖÆÉÏÊöÖ®°æÈ¨Ðû¸æ¡¢±¾Ìõ¼þÁÐ±í£¬ÒÔ¼°ÏÂÊö
+//    µÄÃâÔðÉùÃ÷¡£
+// 3. ±¾Èí¼þ×÷Îª¶¼½­Ñß²Ù×÷ÏµÍ³µÄ×é³É²¿·Ö£¬Î´»ñÊÂÇ°È¡µÃµÄÊéÃæÐí¿É£¬²»ÔÊÐíÒÆÖ²µ½·Ç
+//    ¶¼½­Ñß²Ù×÷ÏµÍ³»·¾³ÏÂÔËÐÐ¡£
 
-// å…è´£å£°æ˜Žï¼šæœ¬è½¯ä»¶æ˜¯æœ¬è½¯ä»¶ç‰ˆæƒæŒæœ‰äººä»¥åŠè´¡çŒ®è€…ä»¥çŽ°çŠ¶ï¼ˆ"as is"ï¼‰æä¾›ï¼Œ
-// æœ¬è½¯ä»¶åŒ…è£…ä¸è´Ÿä»»ä½•æ˜Žç¤ºæˆ–é»˜ç¤ºä¹‹æ‹…ä¿è´£ä»»ï¼ŒåŒ…æ‹¬ä½†ä¸é™äºŽå°±é€‚å”®æ€§ä»¥åŠç‰¹å®šç›®
-// çš„çš„é€‚ç”¨æ€§ä¸ºé»˜ç¤ºæ€§æ‹…ä¿ã€‚ç‰ˆæƒæŒæœ‰äººåŠæœ¬è½¯ä»¶ä¹‹è´¡çŒ®è€…ï¼Œæ— è®ºä»»ä½•æ¡ä»¶ã€
-// æ— è®ºæˆå› æˆ–ä»»ä½•è´£ä»»ä¸»ä¹‰ã€æ— è®ºæ­¤è´£ä»»ä¸ºå› åˆçº¦å…³ç³»ã€æ— è¿‡å¤±è´£ä»»ä¸»ä¹‰æˆ–å› éžè¿
-// çº¦ä¹‹ä¾µæƒï¼ˆåŒ…æ‹¬è¿‡å¤±æˆ–å…¶ä»–åŽŸå› ç­‰ï¼‰è€Œèµ·ï¼Œå¯¹äºŽä»»ä½•å› ä½¿ç”¨æœ¬è½¯ä»¶åŒ…è£…æ‰€äº§ç”Ÿçš„
-// ä»»ä½•ç›´æŽ¥æ€§ã€é—´æŽ¥æ€§ã€å¶å‘æ€§ã€ç‰¹æ®Šæ€§ã€æƒ©ç½šæ€§æˆ–ä»»ä½•ç»“æžœçš„æŸå®³ï¼ˆåŒ…æ‹¬ä½†ä¸é™
-// äºŽæ›¿ä»£å•†å“æˆ–åŠ³åŠ¡ä¹‹è´­ç”¨ã€ä½¿ç”¨æŸå¤±ã€èµ„æ–™æŸå¤±ã€åˆ©ç›ŠæŸå¤±ã€ä¸šåŠ¡ä¸­æ–­ç­‰ç­‰ï¼‰ï¼Œ
-// ä¸è´Ÿä»»ä½•è´£ä»»ï¼Œå³åœ¨è¯¥ç§ä½¿ç”¨å·²èŽ·äº‹å‰å‘ŠçŸ¥å¯èƒ½ä¼šé€ æˆæ­¤ç±»æŸå®³çš„æƒ…å½¢ä¸‹äº¦ç„¶ã€‚
+// ÃâÔðÉùÃ÷£º±¾Èí¼þÊÇ±¾Èí¼þ°æÈ¨³ÖÓÐÈËÒÔ¼°¹±Ï×ÕßÒÔÏÖ×´£¨"as is"£©Ìá¹©£¬
+// ±¾Èí¼þ°ü×°²»¸ºÈÎºÎÃ÷Ê¾»òÄ¬Ê¾Ö®µ£±£ÔðÈÎ£¬°üÀ¨µ«²»ÏÞÓÚ¾ÍÊÊÊÛÐÔÒÔ¼°ÌØ¶¨Ä¿
+// µÄµÄÊÊÓÃÐÔÎªÄ¬Ê¾ÐÔµ£±£¡£°æÈ¨³ÖÓÐÈË¼°±¾Èí¼þÖ®¹±Ï×Õß£¬ÎÞÂÛÈÎºÎÌõ¼þ¡¢
+// ÎÞÂÛ³ÉÒò»òÈÎºÎÔðÈÎÖ÷Òå¡¢ÎÞÂÛ´ËÔðÈÎÎªÒòºÏÔ¼¹ØÏµ¡¢ÎÞ¹ýÊ§ÔðÈÎÖ÷Òå»òÒò·ÇÎ¥
+// Ô¼Ö®ÇÖÈ¨£¨°üÀ¨¹ýÊ§»òÆäËûÔ­ÒòµÈ£©¶øÆð£¬¶ÔÓÚÈÎºÎÒòÊ¹ÓÃ±¾Èí¼þ°ü×°Ëù²úÉúµÄ
+// ÈÎºÎÖ±½ÓÐÔ¡¢¼ä½ÓÐÔ¡¢Å¼·¢ÐÔ¡¢ÌØÊâÐÔ¡¢³Í·£ÐÔ»òÈÎºÎ½á¹ûµÄËðº¦£¨°üÀ¨µ«²»ÏÞ
+// ÓÚÌæ´úÉÌÆ·»òÀÍÎñÖ®¹ºÓÃ¡¢Ê¹ÓÃËðÊ§¡¢×ÊÁÏËðÊ§¡¢ÀûÒæËðÊ§¡¢ÒµÎñÖÐ¶ÏµÈµÈ£©£¬
+// ²»¸ºÈÎºÎÔðÈÎ£¬¼´ÔÚ¸ÃÖÖÊ¹ÓÃÒÑ»ñÊÂÇ°¸æÖª¿ÉÄÜ»áÔì³É´ËÀàËðº¦µÄÇéÐÎÏÂÒàÈ»¡£
 //-----------------------------------------------------------------------------
 #include <stdint.h>
 #include <stdlib.h>
@@ -61,25 +61,25 @@
 #include <shell.h>
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæµ‹è¯•æ˜¯å¦æ˜¯æœ‰æ•ˆçš„çš„æ–‡ä»¶æµï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šæ˜¯ï¼ˆ1ï¼‰ï¼›ä¸æ˜¯ï¼ˆ0ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º²âÊÔÊÇ·ñÊÇÓÐÐ§µÄµÄÎÄ¼þÁ÷£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£ºÊÇ£¨1£©£»²»ÊÇ£¨0£©£»
+// ±¸×¢£º
 // ============================================================================
 s32 isvalid(FILE* stream)
 {
-    if((!stream) // éžæ³•å‚æ•°
-       ||(-1==stream->fd)) // æœªåˆå§‹åŒ–çš„STDIOæ–‡ä»¶æµ
+    if((!stream) // ·Ç·¨²ÎÊý
+       ||(-1==stream->fd)) // Î´³õÊ¼»¯µÄSTDIOÎÄ¼þÁ÷
         return (0);
 
     return (1);
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–°å»ºæ–‡ä»¶ç¼“å†²ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÐÂ½¨ÎÄ¼þ»º³å£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£º³É¹¦£¨0£©£»Ê§°Ü£¨-1£©£»
+// ±¸×¢£º
 // ============================================================================
 s32 __filebuf_new(FILE *stream)
 {
@@ -100,27 +100,27 @@ s32 __filebuf_new(FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šåˆ é™¤æ–‡ä»¶ç¼“å†²ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÉ¾³ýÎÄ¼þ»º³å£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£º
+// ±¸×¢£º
 // ============================================================================
 void __filebuf_del(FILE *stream)
 {
     if((stream->buf != NULL))
     {
-        free(stream->buf);//bufä¸æ˜¯å’Œfpä¸€èµ·ç”³è¯·çš„ï¼Œé¡»å•ç‹¬é‡Šæ”¾
-                        //fopenä¸­bufå’Œfpæ˜¯ä¸€èµ·ç”³è¯·çš„ï¼Œä½†freopenå¯èƒ½å¯¼è‡´åˆ†å¼€ç”³è¯·
+        free(stream->buf);//buf²»ÊÇºÍfpÒ»ÆðÉêÇëµÄ£¬Ðëµ¥¶ÀÊÍ·Å
+                        //fopenÖÐbufºÍfpÊÇÒ»ÆðÉêÇëµÄ£¬µ«freopen¿ÉÄÜµ¼ÖÂ·Ö¿ªÉêÇë
         stream->current = stream->buf = 0;
     }
     stream->bufsize = 0;
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶ç¼“å†²ç©ºé—²é‡ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šç¼“å†²ç©ºé—²é‡ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þ»º³å¿ÕÏÐÁ¿£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£º»º³å¿ÕÏÐÁ¿£»
+// ±¸×¢£º
 // ============================================================================
 s32 __filebuf_frees(FILE *stream)
 {
@@ -128,10 +128,10 @@ s32 __filebuf_frees(FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶ç¼“å†²é¢„å–é‡ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼š
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þ»º³åÔ¤È¡Á¿£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£º
+// ±¸×¢£º
 // ============================================================================
 s32 __filebuf_fetched(FILE *stream)
 {
@@ -139,10 +139,10 @@ s32 __filebuf_fetched(FILE *stream)
 }
 #if 0
 // ============================================================================
-// åŠŸèƒ½ï¼šèŽ·å–æ–‡ä»¶æµé¢„è¯»çš„é‡ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šæ–‡ä»¶æµé¢„è¯»çš„é‡ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º»ñÈ¡ÎÄ¼þÁ÷Ô¤¶ÁµÄÁ¿£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£ºÎÄ¼þÁ÷Ô¤¶ÁµÄÁ¿£»
+// ±¸×¢£º
 // ============================================================================
 s32 __filebuf_mark(FILE *stream)
 {
@@ -150,10 +150,10 @@ s32 __filebuf_mark(FILE *stream)
 }
 #endif
 // ============================================================================
-// åŠŸèƒ½ï¼šæ–‡ä»¶æµå·²ç¼“å­˜çš„é‡ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šå·²ç¼“å­˜çš„é‡ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÎÄ¼þÁ÷ÒÑ»º´æµÄÁ¿£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£ºÒÑ»º´æµÄÁ¿£»
+// ±¸×¢£º
 // ============================================================================
 s32 __filebuf_used(FILE*stream)
 {
@@ -161,10 +161,10 @@ s32 __filebuf_used(FILE*stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæµ‹è¯•æ˜¯å¦å­˜åœ¨æ–‡ä»¶ç¼“å†²ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šä¸å­˜åœ¨ç¼“å†²ï¼ˆNULLï¼‰ï¼›å­˜åœ¨ç¼“å†²ï¼ˆç¼“å†²ç©ºé—´ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º²âÊÔÊÇ·ñ´æÔÚÎÄ¼þ»º³å£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£º²»´æÔÚ»º³å£¨NULL£©£»´æÔÚ»º³å£¨»º³å¿Õ¼ä£©£»
+// ±¸×¢£º
 // ============================================================================
 s32 __isfilebufed(FILE*stream)
 {
@@ -176,10 +176,10 @@ s32 __isfilebufed(FILE*stream)
 }
 
 //// ============================================================================
-//// åŠŸèƒ½ï¼šæ–‡ä»¶ç¼“å­˜æ¸…ç†ï¼›
-//// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-//// è¿”å›žï¼šæ— 
-//// å¤‡æ³¨ï¼š
+//// ¹¦ÄÜ£ºÎÄ¼þ»º´æÇåÀí£»
+//// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+//// ·µ»Ø£ºÎÞ
+//// ±¸×¢£º
 //// ============================================================================
 //void __isfilebufclean(FILE*stream)
 //{
@@ -189,18 +189,18 @@ s32 __isfilebufed(FILE*stream)
 //}
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ¨¡å¼è½¬æ¢
-// å‚æ•°ï¼špMode -- Cåº“æ ‡å‡†æ–‡ä»¶æ“ä½œæ¨¡å¼ï¼›
-//      pFlags -- POSIXæ ‡å‡†æ–‡ä»¶æ“ä½œæ ‡å¿—ï¼›
-//      pCFlags -- è‡ªå®šä¹‰æ ‡å¿—
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼› å¤±è´¥ï¼ˆ-1ï¼‰;
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÄ£Ê½×ª»»
+// ²ÎÊý£ºpMode -- C¿â±ê×¼ÎÄ¼þ²Ù×÷Ä£Ê½£»
+//      pFlags -- POSIX±ê×¼ÎÄ¼þ²Ù×÷±êÖ¾£»
+//      pCFlags -- ×Ô¶¨Òå±êÖ¾
+// ·µ»Ø£º³É¹¦£¨0£©£» Ê§°Ü£¨-1£©;
+// ±¸×¢£º
 // ============================================================================
 s32 __transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
 {
     bool_t WhileContinue = true;
 
-    //æ³¨ï¼šO_RDONLYã€O_WRONLYã€O_RDWR é¡»ç¬¦åˆPOSIXï¼ˆ2016ï¼‰çš„æœ€æ–°å®šä¹‰
+    //×¢£ºO_RDONLY¡¢O_WRONLY¡¢O_RDWR Ðë·ûºÏPOSIX£¨2016£©µÄ×îÐÂ¶¨Òå
     switch (*pMode)
     {
         case 'r':
@@ -263,10 +263,10 @@ s32 __transform(const char *pMode, s32 *pFlags, s32 *pCFlags)
 
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå°†æ–‡ä»¶ç¼“å†²åŒºæ•°æ®å†™å›žæ–‡ä»¶æ‰€åœ¨è®¾å¤‡
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµ;
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰ï¼›å‡ºé”™ï¼ˆEOFï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º½«ÎÄ¼þ»º³åÇøÊý¾ÝÐ´»ØÎÄ¼þËùÔÚÉè±¸
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷;
+// ·µ»Ø£º³É¹¦£¨0£©£»³ö´í£¨EOF£©£»
+// ±¸×¢£º
 // ============================================================================
 s32 fflush(FILE *stream)
 {
@@ -276,16 +276,16 @@ s32 fflush(FILE *stream)
     off_t offset;
 
     if(!stream)
-        return (EOF); // Cåº“ä¸Šæ˜¯æ›´æ–°æ‰€æœ‰çš„stream
+        return (EOF); // C¿âÉÏÊÇ¸üÐÂËùÓÐµÄstream
 
-    if(0 != stream->wrt_end)    //æ¡ä»¶æˆç«‹ï¼Œåˆ™å¿…æœ‰ buffer
+    if(0 != stream->wrt_end)    //Ìõ¼þ³ÉÁ¢£¬Ôò±ØÓÐ buffer
     {
         offset = ftell(stream);
         lseek(stream->fd, stream->FilePos - (s32)(stream->current - stream->buf) - stream->wrt_start, SEEK_SET);
         res = write(stream->fd, stream->buf + stream->wrt_start, stream->wrt_end - stream->wrt_start);
         if(res != stream->wrt_end - stream->wrt_start)
         {
-            buffed = (stream->wrt_end - stream->wrt_start) - res; // æœªåˆ·ä¸‹åŽ»çš„éƒ¨åˆ†
+            buffed = (stream->wrt_end - stream->wrt_start) - res; // Î´Ë¢ÏÂÈ¥µÄ²¿·Ö
             src = stream->buf + res;
             des = stream->buf;
             for(i = 0; i < buffed; i++)
@@ -310,11 +310,11 @@ s32 fflush(FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ‰“å¼€æ–‡ä»¶ ã€‚
-// å‚æ•°ï¼šfilename -- æ–‡ä»¶æ‰€åœ¨è·¯å¾„;
-//      mode -- æ–‡ä»¶æ“ä½œæ¨¡å¼;
-// è¿”å›žï¼šæˆåŠŸï¼ˆæ–‡ä»¶æµï¼‰; å¤±è´¥ï¼ˆNULLï¼‰;
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º´ò¿ªÎÄ¼þ ¡£
+// ²ÎÊý£ºfilename -- ÎÄ¼þËùÔÚÂ·¾¶;
+//      mode -- ÎÄ¼þ²Ù×÷Ä£Ê½;
+// ·µ»Ø£º³É¹¦£¨ÎÄ¼þÁ÷£©; Ê§°Ü£¨NULL£©;
+// ±¸×¢£º
 // ============================================================================
 FILE *fopen(const char *filename, const char *mode)
 {
@@ -359,8 +359,8 @@ FILE *fopen(const char *filename, const char *mode)
         return (NULL);
     }
     memset(stream, 0, sizeof(FILE) );
-    //å•è¿›ç¨‹æ¨¡å¼ä¸‹ï¼Œä¸å­˜åœ¨å†…æ ¸æ€ç”¨æˆ·æ€é—´åˆ‡æ¢ï¼Œcåº“ä¸åšbufï¼Œä¹Ÿä¸æ€Žä¹ˆå½±å“æ•ˆçŽ‡ã€‚
-    //æµå¼æ•°æ®æ–‡ä»¶ä¸èƒ½å†™ç¼“å†²ï¼Œå¦‚æžœä¸èƒ½è¯»ï¼Œäº¦ä¸éœ€è¦bufã€‚
+    //µ¥½ø³ÌÄ£Ê½ÏÂ£¬²»´æÔÚÄÚºËÌ¬ÓÃ»§Ì¬¼äÇÐ»»£¬c¿â²»×öbuf£¬Ò²²»ÔõÃ´Ó°ÏìÐ§ÂÊ¡£
+    //Á÷Ê½Êý¾ÝÎÄ¼þ²»ÄÜÐ´»º³å£¬Èç¹û²»ÄÜ¶Á£¬Òà²»ÐèÒªbuf¡£
     if((Djy_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
     {
 
@@ -393,10 +393,10 @@ FILE *fopen(const char *filename, const char *mode)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå…³é—­æ–‡ä»¶ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆ0ï¼‰;å¤±è´¥ï¼ˆ-1ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¹Ø±ÕÎÄ¼þ£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£º³É¹¦£¨0£©;Ê§°Ü£¨-1£©£»
+// ±¸×¢£º
 // ============================================================================
 int fclose(FILE *stream)
 {
@@ -404,7 +404,7 @@ int fclose(FILE *stream)
         return (-1);
 
 //    if(IsSTDIO(stream))
-//        return (-1); // STDIOæ–‡ä»¶ä¸å…è®¸å…³é—­ï¼›
+//        return (-1); // STDIOÎÄ¼þ²»ÔÊÐí¹Ø±Õ£»
 
     if(EOF==fflush(stream))
     {
@@ -430,21 +430,21 @@ int fclose(FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šåˆ›å»ºä¸´æ—¶æ–‡ä»¶ï¼›
-// å‚æ•°ï¼š
-// è¿”å›žï¼šæˆåŠŸï¼ˆä¸´æ—¶æ–‡ä»¶ï¼‰;å¤±è´¥ï¼ˆNULLï¼‰ï¼›
-// å¤‡æ³¨ï¼šæ–‡ä»¶åé€šè¿‡tmpnameäº§ç”Ÿï¼Œæˆ–è€…ä¸å…³å¿ƒï¼›
+// ¹¦ÄÜ£º´´½¨ÁÙÊ±ÎÄ¼þ£»
+// ²ÎÊý£º
+// ·µ»Ø£º³É¹¦£¨ÁÙÊ±ÎÄ¼þ£©;Ê§°Ü£¨NULL£©£»
+// ±¸×¢£ºÎÄ¼þÃûÍ¨¹ýtmpname²úÉú£¬»òÕß²»¹ØÐÄ£»
 // ============================================================================
 FILE *tmpfile(void)
 {
-    return (NULL); // åˆ™ä¸€ä¸ªç‰¹å®šç›®å½•/tempä¸‹ï¼Œå»ºç«‹ä¸´æ—¶æ–‡ä»¶ï¼›
+    return (NULL); // ÔòÒ»¸öÌØ¶¨Ä¿Â¼/tempÏÂ£¬½¨Á¢ÁÙÊ±ÎÄ¼þ£»
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šç”Ÿæˆä¸´æ—¶æ–‡ä»¶åï¼›
-// å‚æ•°ï¼šç”¨æˆ·æŒ‡å®šçš„ä¸´æ—¶æ–‡ä»¶åç©ºé—´ï¼›
-// è¿”å›žï¼šæ–°ç”Ÿæˆçš„ä¸´æ—¶æ–‡ä»¶åï¼›
-// å¤‡æ³¨ï¼šsæ˜¯ç”±ç”¨æˆ·æä¾›çš„æ•°æ®ç©ºé—´ï¼Œä½†æ˜¯å…¶å®žé™…å¤§å°å¿…é¡»æ»¡è¶³L_tmpnamï¼›
+// ¹¦ÄÜ£ºÉú³ÉÁÙÊ±ÎÄ¼þÃû£»
+// ²ÎÊý£ºÓÃ»§Ö¸¶¨µÄÁÙÊ±ÎÄ¼þÃû¿Õ¼ä£»
+// ·µ»Ø£ºÐÂÉú³ÉµÄÁÙÊ±ÎÄ¼þÃû£»
+// ±¸×¢£ºsÊÇÓÉÓÃ»§Ìá¹©µÄÊý¾Ý¿Õ¼ä£¬µ«ÊÇÆäÊµ¼Ê´óÐ¡±ØÐëÂú×ãL_tmpnam£»
 // ============================================================================
 char *tmpname(char *s)
 {
@@ -453,12 +453,12 @@ char *tmpname(char *s)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæŠŠä¸€ä¸ªå­—ç¬¦é€€å›žç»™è¾“å…¥æµï¼Œè¾“å…¥æµçš„æŒ‡é’ˆä»Žå½“å‰ä½ç½®å›žé€€ä¸€ä¸ªå­—ç¬¦ï¼Œå¹¶ç”¨ä¼ å…¥çš„
-//      å­—ç¬¦ c è¦†ç›–è¯¥å­—ç¬¦ã€‚åªæ”¹å˜ç¼“å†²åŒºæ•°æ®ï¼Œå³ä½¿fflushå’Œfcloseæ–‡ä»¶ï¼Œæ‰€é€€å›žçš„
-//      å­—ç¬¦ä¹Ÿä¸ä¼šå†™å…¥æ–‡ä»¶ã€‚
-// å‚æ•°ï¼šc -- å¾…è¿”å›žç»™è¾“å…¥æµçš„å­—ç¬¦ï¼›
-//      stream -- ç›®æ ‡è¾“å…¥æµï¼›
-// è¿”å›žï¼šæˆåŠŸæ‰§è¡Œè¿”å›žå‚æ•°cï¼Œå¦åˆ™è¿”å›žEOFï¼›
+// ¹¦ÄÜ£º°ÑÒ»¸ö×Ö·ûÍË»Ø¸øÊäÈëÁ÷£¬ÊäÈëÁ÷µÄÖ¸Õë´Óµ±Ç°Î»ÖÃ»ØÍËÒ»¸ö×Ö·û£¬²¢ÓÃ´«ÈëµÄ
+//      ×Ö·û c ¸²¸Ç¸Ã×Ö·û¡£Ö»¸Ä±ä»º³åÇøÊý¾Ý£¬¼´Ê¹fflushºÍfcloseÎÄ¼þ£¬ËùÍË»ØµÄ
+//      ×Ö·ûÒ²²»»áÐ´ÈëÎÄ¼þ¡£
+// ²ÎÊý£ºc -- ´ý·µ»Ø¸øÊäÈëÁ÷µÄ×Ö·û£»
+//      stream -- Ä¿±êÊäÈëÁ÷£»
+// ·µ»Ø£º³É¹¦Ö´ÐÐ·µ»Ø²ÎÊýc£¬·ñÔò·µ»ØEOF£»
 // ============================================================================
 s32 ungetc(s32 c, FILE *stream)
 {
@@ -467,7 +467,7 @@ s32 ungetc(s32 c, FILE *stream)
 
     if(EOF == stream->ungetbuf)
     {
-        stream->ungetbuf = c;                   //ungetcç¼“å†²åŒºæ˜¯ç©ºçš„
+        stream->ungetbuf = c;                   //ungetc»º³åÇøÊÇ¿ÕµÄ
         stream->flags &= ~FP_IOEOF;
         return ((u8)c);
     }
@@ -476,14 +476,14 @@ s32 ungetc(s32 c, FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šè¯»æ–‡ä»¶ï¼›
-// å‚æ•°ï¼šbuf -- æµç¼“å†²;
-//      size -- éœ€è¦è¯»çš„å•ä½æ•°;
-//      count -- å•ä½æ•°;
-//      stream -- æ–‡ä»¶æµ;
-// è¿”å›žï¼šè¯»å–çš„è®°å½•æ•°ï¼ˆå–æ•´ï¼‰ï¼Œå¦‚æžœæ–‡ä»¶å‰©ä½™æ•°æ®ä¸è¶³ï¼Œå°†å…¨éƒ¨è¯»å–ï¼Œå¹¶ä¸æŒ‰ç…§æ•´æ•°ä¸ª
-//      è®°å½•æˆªå–æ•°æ®ï¼Œæ­¤æ—¶å°†æ— æ³•çŸ¥é“ç©¶ç«Ÿè¯»å–äº†å¤šå°‘æ•°æ®ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¶ÁÎÄ¼þ£»
+// ²ÎÊý£ºbuf -- Á÷»º³å;
+//      size -- ÐèÒª¶ÁµÄµ¥Î»Êý;
+//      count -- µ¥Î»Êý;
+//      stream -- ÎÄ¼þÁ÷;
+// ·µ»Ø£º¶ÁÈ¡µÄ¼ÇÂ¼Êý£¨È¡Õû£©£¬Èç¹ûÎÄ¼þÊ£ÓàÊý¾Ý²»×ã£¬½«È«²¿¶ÁÈ¡£¬²¢²»°´ÕÕÕûÊý¸ö
+//      ¼ÇÂ¼½ØÈ¡Êý¾Ý£¬´ËÊ±½«ÎÞ·¨ÖªµÀ¾¿¾¹¶ÁÈ¡ÁË¶àÉÙÊý¾Ý¡£
+// ±¸×¢£º
 // ============================================================================
 size_t fread(void *buf, size_t size, size_t count, FILE *stream)
 {
@@ -501,7 +501,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
 
     if(EOF != stream->ungetbuf)
     {
-        *(u8*)buf++ = (u8)stream->ungetbuf;        //å…ˆè¯»å–ungetcç¼“å†²åŒºä¸­å­—ç¬¦
+        *(u8*)buf++ = (u8)stream->ungetbuf;        //ÏÈ¶ÁÈ¡ungetc»º³åÇøÖÐ×Ö·û
         stream->ungetbuf = EOF;
         result += 1;
         read_size--;
@@ -513,9 +513,9 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         i = 1;
     }
 
-    if(!isvalid(stream)) // æ–‡ä»¶æµæ˜¯æœªåˆå§‹åŒ–çš„STDIO
+    if(!isvalid(stream)) // ÎÄ¼þÁ÷ÊÇÎ´³õÊ¼»¯µÄSTDIO
     {
-        if(GetCharDirect) // å‡½æ•°å·²æ³¨å†Œï¼›ï¼ˆTODO:è¿™ä¸ªé€»è¾‘ä¸åº”è¯¥é˜²æ­¢è¿™é‡Œå®žçŽ°ï¼‰
+        if(GetCharDirect) // º¯ÊýÒÑ×¢²á£»£¨TODO:Õâ¸öÂß¼­²»Ó¦¸Ã·ÀÖ¹ÕâÀïÊµÏÖ£©
         {
             for(; i < (s32)(size * count); i++)
             {
@@ -528,7 +528,7 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
 
                 ((u8*)buf)[i] = ch;
 #if 0
-                if(PutStrDirect) // å‡½æ•°å·²æ³¨å†Œï¼›
+                if(PutStrDirect) // º¯ÊýÒÑ×¢²á£»
                     PutStrDirect((const char*)&ch, 1);
 #endif
             }
@@ -537,20 +537,20 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         }
     }
 
-    if(__isfilebufed(stream) == 0)          //æ— bufï¼Œæ³¨æ„ï¼Œä¸èƒ½ç”¨ stream->buf == NULL åˆ¤å®šï¼Œå‚è€ƒfreopen
+    if(__isfilebufed(stream) == 0)          //ÎÞbuf£¬×¢Òâ£¬²»ÄÜÓÃ stream->buf == NULL ÅÐ¶¨£¬²Î¿¼freopen
     {
         res = read(stream->fd, buf, read_size);
         if(-1 != (s32)res)
             result += res;
         else
-            res = 0; // å‡ºé”™ï¼›
+            res = 0; // ³ö´í£»
     }
     else
     {
         buffered = stream->count;
-        if(read_size <= buffered)         //åˆ¤æ–­é¢„è¯»å–çš„æ•°æ®é‡æ˜¯å¦å¤§äºŽæœ¬æ¬¡éœ€è¦è¯»å–çš„æ•°æ®é‡
+        if(read_size <= buffered)         //ÅÐ¶ÏÔ¤¶ÁÈ¡µÄÊý¾ÝÁ¿ÊÇ·ñ´óÓÚ±¾´ÎÐèÒª¶ÁÈ¡µÄÊý¾ÝÁ¿
         {
-            // å·²é¢„è¯»çš„æ–‡ä»¶è¶³å¤Ÿæœ¬æ¬¡è¯»
+            // ÒÑÔ¤¶ÁµÄÎÄ¼þ×ã¹»±¾´Î¶Á
             memcpy(buf, stream->current, read_size);
             stream->count -= read_size;
             stream->current += read_size;
@@ -558,10 +558,10 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         }
         else
         {
-            //bufferä¸­æ²¡æœ‰è¶³å¤Ÿæ•°æ®çš„å¤„ç†æ–¹æ¡ˆï¼š
-            //1ã€å…ˆcopyæ•´æ•°nmembæ•°æ®åˆ°ç”¨æˆ·buf
-            //2ã€çœ‹bufä¸­æ˜¯å¦æœ‰éœ€è¦fflushåˆ°æ–‡ä»¶ä¸­çš„æ•°æ®ã€‚
-            res = fflush(stream);       //æŠŠæ–‡ä»¶ç¼“å­˜å…ˆå…¨éƒ½å†™åˆ°flashä¸­
+            //bufferÖÐÃ»ÓÐ×ã¹»Êý¾ÝµÄ´¦Àí·½°¸£º
+            //1¡¢ÏÈcopyÕûÊýnmembÊý¾Ýµ½ÓÃ»§buf
+            //2¡¢¿´bufÖÐÊÇ·ñÓÐÐèÒªfflushµ½ÎÄ¼þÖÐµÄÊý¾Ý¡£
+            res = fflush(stream);       //°ÑÎÄ¼þ»º´æÏÈÈ«¶¼Ð´µ½flashÖÐ
             if(EOF==res)
             {
                 debug_printf("clib","\"fread\" file failed(buffer flash).");
@@ -569,23 +569,23 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
             }
             if(buffered > 0)
             {
-                memcpy(buf, stream->current, buffered);   //æŠŠæ–‡ä»¶ç¼“å­˜é‡Œçš„æ•°æ®è¯»å‡ºæ¥
+                memcpy(buf, stream->current, buffered);   //°ÑÎÄ¼þ»º´æÀïµÄÊý¾Ý¶Á³öÀ´
                 buf += buffered;
                 stream->count -= buffered;
                 result += buffered;
-                read_size -= buffered;               //è¿˜è¦è¯»æ•°æ®é‡
+                read_size -= buffered;               //»¹Òª¶ÁÊý¾ÝÁ¿
             }
-//            __isfilebufclean(stream);          //æ¸…ç†æ–‡ä»¶ç¼“å­˜
+//            __isfilebufclean(stream);          //ÇåÀíÎÄ¼þ»º´æ
 
-            round = read_size - read_size % stream->bufsize;      //éœ€è¦è¯»å–çš„æ•´æ•°ä¸ªbufsize
+            round = read_size - read_size % stream->bufsize;      //ÐèÒª¶ÁÈ¡µÄÕûÊý¸öbufsize
             reads = 0;
             if(round != 0)
             {
-                reads = read(stream->fd, buf, round);   //è¯»å–æ•´æ•°ä¸ªbufsize
+                reads = read(stream->fd, buf, round);   //¶ÁÈ¡ÕûÊý¸öbufsize
                 buf += reads;
                 result += reads;
             }
-            if(reads < round)       //å·²åˆ°æ–‡ä»¶å°¾éƒ¨
+            if(reads < round)       //ÒÑµ½ÎÄ¼þÎ²²¿
             {
                 result += reads;
                 stream->current = stream->buf;
@@ -593,15 +593,15 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
             }
             else
             {
-                reads = read(stream->fd, stream->buf, stream->bufsize); //è¯»å– bufsize
-                if(reads > (read_size - round))             //è¯»å‡ºäº†è¶…è¿‡éœ€æ±‚çš„æ•°æ®
+                reads = read(stream->fd, stream->buf, stream->bufsize); //¶ÁÈ¡ bufsize
+                if(reads > (read_size - round))             //¶Á³öÁË³¬¹ýÐèÇóµÄÊý¾Ý
                 {
                     memcpy(buf, stream->buf, (read_size - round));
                     stream->count = reads - (read_size - round);
                     stream->current = stream->buf + (read_size - round);
                     result += read_size-round;
                 }
-                else                                        //è¯»å‡ºçš„æ•°æ®å°‘äºŽè¯·æ±‚æ•°æ®
+                else                                        //¶Á³öµÄÊý¾ÝÉÙÓÚÇëÇóÊý¾Ý
                 {
                     memcpy(buf, stream->buf, reads);
                     stream->current = stream->buf;
@@ -621,13 +621,13 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šå†™countä¸ªå•ä½å…¥æ–‡ä»¶æµï¼›
-// å‚æ•°ï¼šbuf -- éœ€å†™å…¥çš„ç©ºé—´ï¼›
-//      size -- å•ä½çš„å­—èŠ‚æ•°ï¼Œå³å•ä½çš„å°ºå¯¸ï¼›
-//      count -- å•ä½çš„æ€»æ•°;
-//      stream -- æ–‡ä»¶æµ;
-// è¿”å›žï¼š å®žé™…å†™å…¥çš„å•ä½æ€»æ•°ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÐ´count¸öµ¥Î»ÈëÎÄ¼þÁ÷£»
+// ²ÎÊý£ºbuf -- ÐèÐ´ÈëµÄ¿Õ¼ä£»
+//      size -- µ¥Î»µÄ×Ö½ÚÊý£¬¼´µ¥Î»µÄ³ß´ç£»
+//      count -- µ¥Î»µÄ×ÜÊý;
+//      stream -- ÎÄ¼þÁ÷;
+// ·µ»Ø£º Êµ¼ÊÐ´ÈëµÄµ¥Î»×ÜÊý£»
+// ±¸×¢£º
 // ============================================================================
 size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
 {
@@ -645,25 +645,25 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
         return (0);
 
     if(EOF != stream->ungetbuf)
-        stream->ungetbuf = EOF; // æŠ›å¼ƒæŽ‰ungetcçš„å†…å®¹
+        stream->ungetbuf = EOF; // Å×ÆúµôungetcµÄÄÚÈÝ
 
     if(!isvalid(stream)) // TODO
     {
-        if(PutStrDirect) // å‡½æ•°å·²æ³¨å†Œï¼›
+        if(PutStrDirect) // º¯ÊýÒÑ×¢²á£»
         {
             PutStrDirect((const char*)buf, WriteSize);
         }
 
         return (count);
     }
-    //æ³¨æ„ï¼Œä¸èƒ½ç”¨ stream->buf == NULL åˆ¤å®šæœ‰æ²¡æœ‰bufï¼Œå‚è€ƒfreopen
+    //×¢Òâ£¬²»ÄÜÓÃ stream->buf == NULL ÅÐ¶¨ÓÐÃ»ÓÐbuf£¬²Î¿¼freopen
     if(__isfilebufed(stream) == 0)
     {
         res = write(stream->fd, buf, WriteSize);
         if(-1!=res)
             result += res;
         else
-            res = 0; // å‡ºé”™ï¼›
+            res = 0; // ³ö´í£»
     }
     else
     {
@@ -672,7 +672,7 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
         BufRest = __filebuf_frees(stream);
         if(WriteSize <= BufRest)
         {
-            //æ¬²å†™å…¥çš„æ•°æ®æœªè¶…å‡º bufï¼Œåªæ›´æ–° buffer å‚æ•°ï¼Œä¸å†™å…¥æ–‡ä»¶ã€‚
+            //ÓûÐ´ÈëµÄÊý¾ÝÎ´³¬³ö buf£¬Ö»¸üÐÂ buffer ²ÎÊý£¬²»Ð´ÈëÎÄ¼þ¡£
             memcpy(stream->current, buf, WriteSize);
             stream->count -= WriteSize;
             if(stream->count < 0)
@@ -687,20 +687,20 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
         }
         else
         {
-            //å¾…å†™å…¥æ•°æ®ï¼Œè¶…å‡º buf ç©ºé—´ï¼Œéœ€è¦å†™å…¥æ–‡ä»¶
+            //´ýÐ´ÈëÊý¾Ý£¬³¬³ö buf ¿Õ¼ä£¬ÐèÒªÐ´ÈëÎÄ¼þ
             memcpy(stream->current, buf, BufRest);
-            //å…ˆseekåˆ°bufä¸­wrt_startå¯¹åº”ä½ç½®
+            //ÏÈseekµ½bufÖÐwrt_start¶ÔÓ¦Î»ÖÃ
             lseek(stream->fd, stream->FilePos - (s32)(stream->current - stream->buf) - stream->wrt_start, SEEK_SET);
-            //æŠŠå½“å‰bufä¸­è¢«ä¿®æ”¹çš„æ•°æ®å†™å…¥æ–‡ä»¶ã€‚
+            //°Ñµ±Ç°bufÖÐ±»ÐÞ¸ÄµÄÊý¾ÝÐ´ÈëÎÄ¼þ¡£
             res = write(stream->fd, stream->buf + stream->wrt_start,  stream->bufsize - stream->wrt_start);
             result += res;
             WriteSize -= res;
-            //è®¡ç®—å‰©ä½™æ•°æ®ä¸­éžæ•´ bufsize éƒ¨åˆ†ï¼ˆå³ä½™æ•°ï¼‰
+            //¼ÆËãÊ£ÓàÊý¾ÝÖÐ·ÇÕû bufsize ²¿·Ö£¨¼´ÓàÊý£©
             BufRest = WriteSize % stream->bufsize;
-            //æŠŠæ•´æ•°ä¸ªbufsizeæ•°æ®å†™å…¥æ–‡ä»¶ï¼Œå‰©ä½™éžæ•´bufsizeéƒ¨åˆ†åˆ™copyåˆ°bufä¸­ã€‚
+            //°ÑÕûÊý¸öbufsizeÊý¾ÝÐ´ÈëÎÄ¼þ£¬Ê£Óà·ÇÕûbufsize²¿·ÖÔòcopyµ½bufÖÐ¡£
             res = write(stream->fd, buf+result, WriteSize - BufRest);
             result += res;
-            if(BufRest != 0)        //ä½™æ•°éž0
+            if(BufRest != 0)        //ÓàÊý·Ç0
             {
                 memcpy(stream->buf, buf+result, BufRest);
                 result += BufRest;
@@ -723,10 +723,10 @@ size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šä»Žæ–‡ä»¶è¾“å…¥ä¸€ä¸ªå­—ç¬¦ï¼Œgetcå’Œfgetcæ˜¯ç­‰ä»·çš„ï¼Œæžç¬‘çš„cæ ‡å‡†ã€‚
-// å‚æ•°ï¼šstreamï¼Œè¾“å‡ºç›®æ ‡æ–‡ä»¶ï¼Œå¦‚æžœæ˜¯stdinï¼Œåˆ™è¦åˆ¤æ–­æ˜¯å¦è®¾å¤‡ã€‚
-// è¿”å›žï¼šè¯»å–çš„å­—ç¬¦ï¼Œé”™è¯¯åˆ™è¿”å›žEOF
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º´ÓÎÄ¼þÊäÈëÒ»¸ö×Ö·û£¬getcºÍfgetcÊÇµÈ¼ÛµÄ£¬¸ãÐ¦µÄc±ê×¼¡£
+// ²ÎÊý£ºstream£¬Êä³öÄ¿±êÎÄ¼þ£¬Èç¹ûÊÇstdin£¬ÔòÒªÅÐ¶ÏÊÇ·ñÉè±¸¡£
+// ·µ»Ø£º¶ÁÈ¡µÄ×Ö·û£¬´íÎóÔò·µ»ØEOF
+// ±¸×¢£º
 // ============================================================================
 s32 getc(FILE *stream)     //getc = fgetc
 {
@@ -749,13 +749,13 @@ s32 getc(FILE *stream)     //getc = fgetc
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šä»Žæ–‡ä»¶è¾“å…¥ä¸€è¡Œå­—ç¬¦ä¸²ï¼ŒæŒç»­è¾“å…¥ç›´åˆ°å›žè½¦ï¼ŒåŒ…å«ç©ºæ ¼ã€‚
-// å‚æ•°ï¼šbuf -- è¾“å…¥å­—ç¬¦ä¸²çš„ç¼“å†²åŒºï¼›
-//      size -- bufçš„é•¿åº¦ï¼›
-//      stream -- è¾“å…¥æºæ–‡ä»¶ï¼›
-// è¿”å›žï¼š1ã€æˆåŠŸï¼Œåˆ™è¿”å›žç¬¬ä¸€ä¸ªå‚æ•°bufï¼›
-//      2ã€å¦‚æžœå‘ç”Ÿè¯»å…¥é”™è¯¯ï¼ŒerroræŒ‡ç¤ºå™¨è¢«è®¾ç½®ï¼Œè¿”å›žNULLï¼Œbufçš„å†…å®¹å¯èƒ½è¢«æ”¹å˜ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º´ÓÎÄ¼þÊäÈëÒ»ÐÐ×Ö·û´®£¬³ÖÐøÊäÈëÖ±µ½»Ø³µ£¬°üº¬¿Õ¸ñ¡£
+// ²ÎÊý£ºbuf -- ÊäÈë×Ö·û´®µÄ»º³åÇø£»
+//      size -- bufµÄ³¤¶È£»
+//      stream -- ÊäÈëÔ´ÎÄ¼þ£»
+// ·µ»Ø£º1¡¢³É¹¦£¬Ôò·µ»ØµÚÒ»¸ö²ÎÊýbuf£»
+//      2¡¢Èç¹û·¢Éú¶ÁÈë´íÎó£¬errorÖ¸Ê¾Æ÷±»ÉèÖÃ£¬·µ»ØNULL£¬bufµÄÄÚÈÝ¿ÉÄÜ±»¸Ä±ä¡£
+// ±¸×¢£º
 // ============================================================================
 char *fgets(char *buf, s32 size, FILE *stream)
 {
@@ -780,13 +780,13 @@ char *fgets(char *buf, s32 size, FILE *stream)
        }
 
        // TODO:
-       // å¿½ç•¥å›žè½¦ï¼Œä»¥æ¢è¡Œç¬¦ç»“æŸï¼Œèƒ½å…¼å®¹WINDOWSå’ŒLINUXæ ¼å¼æ–‡ä»¶ã€‚
-       // MACä¸ç”¨è€ƒè™‘ï¼Œä»Ž OSxå¼€å§‹å·²ç»å…¼å®¹LINUXäº†ã€‚
+       // ºöÂÔ»Ø³µ£¬ÒÔ»»ÐÐ·û½áÊø£¬ÄÜ¼æÈÝWINDOWSºÍLINUX¸ñÊ½ÎÄ¼þ¡£
+       // MAC²»ÓÃ¿¼ÂÇ£¬´Ó OSx¿ªÊ¼ÒÑ¾­¼æÈÝLINUXÁË¡£
        if('\r' == ch)
        {
-           continue; // WINDOWSæ ¼å¼æ–‡æœ¬æ–‡ä»¶æœ‰ '\r'ï¼Œè·³è¿‡
+           continue; // WINDOWS¸ñÊ½ÎÄ±¾ÎÄ¼þÓÐ '\r'£¬Ìø¹ý
        }
-       else if('\n' == ch) // é‡æ¢è¡Œç¬¦ï¼Œè¾“å…¥ç»“æŸ
+       else if('\n' == ch) // Óö»»ÐÐ·û£¬ÊäÈë½áÊø
        {
            buf[i] = '\0';
            break;
@@ -801,11 +801,11 @@ char *fgets(char *buf, s32 size, FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šè¾“å‡ºä¸€ä¸ªå­—ç¬¦åˆ°æ–‡ä»¶ï¼Œputcå’Œfputcæ˜¯ç­‰ä»·çš„ï¼Œæžç¬‘çš„cæ ‡å‡†
-// å‚æ•°ï¼šch -- å¾…è¾“å‡ºçš„å­—ç¬¦
-//      stream -- è¾“å‡ºç›®æ ‡æ–‡ä»¶æˆ–è®¾å¤‡ã€‚
-// è¿”å›žï¼šæ­£ç¡®è¾“å‡ºåˆ™è¿”å›žè¢«è¾“å‡ºçš„å­—ç¬¦ï¼Œé”™è¯¯åˆ™è¿”å›žEOF
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÊä³öÒ»¸ö×Ö·ûµ½ÎÄ¼þ£¬putcºÍfputcÊÇµÈ¼ÛµÄ£¬¸ãÐ¦µÄc±ê×¼
+// ²ÎÊý£ºch -- ´ýÊä³öµÄ×Ö·û
+//      stream -- Êä³öÄ¿±êÎÄ¼þ»òÉè±¸¡£
+// ·µ»Ø£ºÕýÈ·Êä³öÔò·µ»Ø±»Êä³öµÄ×Ö·û£¬´íÎóÔò·µ»ØEOF
+// ±¸×¢£º
 // ============================================================================
 s32 putc(s32 ch, FILE *stream)     //putc = fputc
 {
@@ -818,11 +818,11 @@ s32 putc(s32 ch, FILE *stream)     //putc = fputc
     return ((u8)ch);
 }
 // ============================================================================
-// åŠŸèƒ½ï¼šè¾“å‡ºä¸€ä¸ªå­—ç¬¦åˆ°æ–‡ä»¶ï¼Œputcå’Œfputcæ˜¯ç­‰ä»·çš„ï¼Œæžç¬‘çš„cæ ‡å‡†
-// å‚æ•°ï¼šch -- å¾…è¾“å‡ºçš„å­—ç¬¦
-//      stream -- è¾“å‡ºç›®æ ‡æ–‡ä»¶æˆ–è®¾å¤‡ã€‚
-// è¿”å›žï¼šæ­£ç¡®è¾“å‡ºåˆ™è¿”å›žè¢«è¾“å‡ºçš„å­—ç¬¦ï¼Œé”™è¯¯åˆ™è¿”å›žEOF
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÊä³öÒ»¸ö×Ö·ûµ½ÎÄ¼þ£¬putcºÍfputcÊÇµÈ¼ÛµÄ£¬¸ãÐ¦µÄc±ê×¼
+// ²ÎÊý£ºch -- ´ýÊä³öµÄ×Ö·û
+//      stream -- Êä³öÄ¿±êÎÄ¼þ»òÉè±¸¡£
+// ·µ»Ø£ºÕýÈ·Êä³öÔò·µ»Ø±»Êä³öµÄ×Ö·û£¬´íÎóÔò·µ»ØEOF
+// ±¸×¢£º
 // ============================================================================
 s32 fputc(s32 ch, FILE *stream)     //putc = fputc
 {
@@ -836,11 +836,11 @@ s32 fputc(s32 ch, FILE *stream)     //putc = fputc
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šè¾“å‡ºä¸€ä¸ªå­—ç¬¦ä¸²åˆ°æ–‡ä»¶ï¼Œæ³¨æ„ï¼Œä¸åŒ…å«ä¸²ç»“æŸç¬¦ï¼Œä¹Ÿä¸ä¼šæ·»åŠ å›žè½¦æ¢è¡Œç¬¦
-// å‚æ•°ï¼šs -- å¾…è¾“å‡ºçš„å­—ç¬¦ä¸²ï¼›
-//      stream -- è¾“å‡ºç›®æ ‡æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šæ­£ç¡®è¾“å‡ºè¿”å›žè¾“å‡ºçš„å­—èŠ‚æ•°ï¼›é”™è¯¯è¿”å›žEOFï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£ºÊä³öÒ»¸ö×Ö·û´®µ½ÎÄ¼þ£¬×¢Òâ£¬²»°üº¬´®½áÊø·û£¬Ò²²»»áÌí¼Ó»Ø³µ»»ÐÐ·û
+// ²ÎÊý£ºs -- ´ýÊä³öµÄ×Ö·û´®£»
+//      stream -- Êä³öÄ¿±êÎÄ¼þÁ÷£»
+// ·µ»Ø£ºÕýÈ·Êä³ö·µ»ØÊä³öµÄ×Ö½ÚÊý£»´íÎó·µ»ØEOF£»
+// ±¸×¢£º
 // ============================================================================
 s32 fputs(const char *s, FILE *stream)
 {
@@ -858,12 +858,12 @@ s32 fputs(const char *s, FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šç§»åŠ¨è¯»å†™ä½ç½®ï¼Œå¦‚æžœcåº“æ²¡æœ‰bufï¼Œå°†ç›´æŽ¥è°ƒç”¨ç³»ç»Ÿçš„ lseekã€‚
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµ;
-//      offset -- éœ€ç§»åŠ¨ç›¸å¯¹åç½®;
-//      whence -- offsetçš„èµ·ç‚¹;
-// è¿”å›žï¼š 0 æˆåŠŸ; -1 å¤±è´¥;
-// å¤‡æ³¨ï¼šä¸æ”¯æŒè®¾å¤‡æ–‡ä»¶
+// ¹¦ÄÜ£ºÒÆ¶¯¶ÁÐ´Î»ÖÃ£¬Èç¹ûc¿âÃ»ÓÐbuf£¬½«Ö±½Óµ÷ÓÃÏµÍ³µÄ lseek¡£
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷;
+//      offset -- ÐèÒÆ¶¯Ïà¶ÔÆ«ÖÃ;
+//      whence -- offsetµÄÆðµã;
+// ·µ»Ø£º 0 ³É¹¦; -1 Ê§°Ü;
+// ±¸×¢£º²»Ö§³ÖÉè±¸ÎÄ¼þ
 // ============================================================================
 int fseeko(FILE *stream, off_t offset, int whence)
 {
@@ -903,7 +903,7 @@ int fseeko(FILE *stream, off_t offset, int whence)
             if(((offset < 0) && ((__filebuf_used(stream) + offset) >= 0)) ||
                ((offset > 0) && (__filebuf_fetched(stream) - offset >= 0)))
             {
-                // åç½®é‡åœ¨ç¼“å­˜å†…éƒ¨ç§»åŠ¨ï¼›
+                // Æ«ÖÃÁ¿ÔÚ»º´æÄÚ²¿ÒÆ¶¯£»
                 stream->current += offset;
 #if 0
                 if(stream->buf->movs > stream->buf->prefetched)
@@ -922,7 +922,7 @@ int fseeko(FILE *stream, off_t offset, int whence)
             if(-1 == offset)
                 return (EOF);
 
-            stream->FilePos = offset; // è¿™é‡Œä¸äº‹å…ˆåšç¼“å­˜ï¼Œç­‰è¯»æˆ–å†™æ—¶å†åšã€‚
+            stream->FilePos = offset; // ÕâÀï²»ÊÂÏÈ×ö»º´æ£¬µÈ¶Á»òÐ´Ê±ÔÙ×ö¡£
             return (0);
         }
 
@@ -933,12 +933,12 @@ int fseeko(FILE *stream, off_t offset, int whence)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šç§»åŠ¨è¯»å†™ä½ç½®ï¼Œå¦‚æžœcåº“æ²¡æœ‰bufï¼Œå°†ç›´æŽ¥è°ƒç”¨ç³»ç»Ÿçš„ lseekã€‚å¦åˆ™ï¼Œ
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµ;
-//      offset -- éœ€ç§»åŠ¨ç›¸å¯¹åç½®;
-//      whence -- offsetçš„èµ·ç‚¹;
-// è¿”å›žï¼š æˆåŠŸï¼ˆå½“å‰ä½ç½®ï¼‰; å¤±è´¥ï¼ˆEOFï¼‰;
-// å¤‡æ³¨ï¼šoff_tæ˜¯POSIXæ ‡å‡†
+// ¹¦ÄÜ£ºÒÆ¶¯¶ÁÐ´Î»ÖÃ£¬Èç¹ûc¿âÃ»ÓÐbuf£¬½«Ö±½Óµ÷ÓÃÏµÍ³µÄ lseek¡£·ñÔò£¬
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷;
+//      offset -- ÐèÒÆ¶¯Ïà¶ÔÆ«ÖÃ;
+//      whence -- offsetµÄÆðµã;
+// ·µ»Ø£º ³É¹¦£¨µ±Ç°Î»ÖÃ£©; Ê§°Ü£¨EOF£©;
+// ±¸×¢£ºoff_tÊÇPOSIX±ê×¼
 // ============================================================================
 int fseek(FILE *stream, long offset, int whence)
 {
@@ -954,10 +954,10 @@ int fseek(FILE *stream, long offset, int whence)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ ¹æ®æ–‡ä»¶æµèŽ·å¾—æ–‡ä»¶æè¿°ç¬¦ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šæˆåŠŸï¼ˆæ–‡ä»¶å·ï¼‰ï¼›å‡ºé”™ï¼ˆ-1ï¼‰
-// å¤‡æ³¨ï¼šPOSIX
+// ¹¦ÄÜ£º¸ù¾ÝÎÄ¼þÁ÷»ñµÃÎÄ¼þÃèÊö·û£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£º³É¹¦£¨ÎÄ¼þºÅ£©£»³ö´í£¨-1£©
+// ±¸×¢£ºPOSIX
 // ============================================================================
 int fileno(FILE *stream)
 {
@@ -967,10 +967,10 @@ int fileno(FILE *stream)
         return -1;
 }
 // ============================================================================
-// åŠŸèƒ½ï¼šèŽ·å–æ–‡ä»¶çš„è¯»å†™ä½ç½®;
-// å‚æ•°ï¼šstreamï¼Œæ–‡ä»¶æŒ‡é’ˆ
-// è¿”å›žï¼šè¯»å†™ä½ç½®ï¼Œå‡ºé”™åˆ™è¿”å›ž-1
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º»ñÈ¡ÎÄ¼þµÄ¶ÁÐ´Î»ÖÃ;
+// ²ÎÊý£ºstream£¬ÎÄ¼þÖ¸Õë
+// ·µ»Ø£º¶ÁÐ´Î»ÖÃ£¬³ö´íÔò·µ»Ø-1
+// ±¸×¢£º
 // ============================================================================
 off_t ftell(FILE *stream)
 {
@@ -981,10 +981,10 @@ off_t ftell(FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæµ‹è¯•æ˜¯å¦è¾¾åˆ°æ–‡ä»¶å°¾ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šåˆ°è¾¾æ–‡ä»¶å°¾ï¼ˆ1ï¼‰ï¼›å…¶å®ƒæƒ…å†µè¿”å›žï¼ˆ0ï¼‰ï¼›
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º²âÊÔÊÇ·ñ´ïµ½ÎÄ¼þÎ²£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£ºµ½´ïÎÄ¼þÎ²£¨1£©£»ÆäËüÇé¿ö·µ»Ø£¨0£©£»
+// ±¸×¢£º
 // ============================================================================
 s32 feof(FILE *stream)
 {
@@ -1002,10 +1002,10 @@ s32 feof(FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šé‡è®¾æ–‡ä»¶æµè¯»å†™ä½ç½®ä¸ºæ–‡ä»¶å¼€å¤´ï¼›
-// å‚æ•°ï¼šstream -- æ–‡ä»¶æµï¼›
-// è¿”å›žï¼šæ— 
-// å¤‡æ³¨ï¼šæ–‡ä»¶é”™è¯¯æ¸…æ¥šï¼›åˆ·æ–°æ‰€æœ‰è¾“å‡ºé˜»å¡žï¼›
+// ¹¦ÄÜ£ºÖØÉèÎÄ¼þÁ÷¶ÁÐ´Î»ÖÃÎªÎÄ¼þ¿ªÍ·£»
+// ²ÎÊý£ºstream -- ÎÄ¼þÁ÷£»
+// ·µ»Ø£ºÎÞ
+// ±¸×¢£ºÎÄ¼þ´íÎóÇå³þ£»Ë¢ÐÂËùÓÐÊä³ö×èÈû£»
 // ============================================================================
 void rewind(FILE *stream)
 {
@@ -1013,11 +1013,11 @@ void rewind(FILE *stream)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ›´æ”¹æ–‡ä»¶åç§°æˆ–ä½ç½®
-// å‚æ•°ï¼šoldpath -- åŽŸè·¯å¾„ï¼›
-//      newpath -- æ–°è·¯å¾„ï¼›
-// è¿”å›žï¼šæˆåŠŸ -- 0ï¼Œå¤±è´¥ -- -1ã€‚
-// å¤‡æ³¨ï¼š
+// ¹¦ÄÜ£º¸ü¸ÄÎÄ¼þÃû³Æ»òÎ»ÖÃ
+// ²ÎÊý£ºoldpath -- Ô­Â·¾¶£»
+//      newpath -- ÐÂÂ·¾¶£»
+// ·µ»Ø£º³É¹¦ -- 0£¬Ê§°Ü -- -1¡£
+// ±¸×¢£º
 // ============================================================================
 int rename(const char *oldpath, const char *newpath)
 {
@@ -1032,13 +1032,13 @@ int rename(const char *oldpath, const char *newpath)
 }
 
 // ============================================================================
-// åŠŸèƒ½ï¼šæ‰“å¼€æ–‡ä»¶
-// å‚æ•°ï¼š
-// è¿”å›žï¼šéžNULL -- æˆåŠŸ; NULL -- å¤±è´¥;
-// å¤‡æ³¨ï¼šå¦‚æžœ stream åŽŸæ¥æ˜¯æœ‰bufçš„ï¼Œä½†æ–°æ‰“å¼€çš„æ–‡ä»¶ä¸éœ€è¦bufï¼Œå¦‚æžœfpå’Œbufæ˜¯ä¸€èµ·ç”³è¯·çš„ï¼Œ
-//      æ— æ³•å•ç‹¬é‡Šæ”¾bufï¼Œæ•…ä¸ä¼šé‡Šæ”¾bufï¼›å¦‚æžœä¸æ˜¯ä¸€èµ·ç”³è¯·çš„ï¼Œåˆ™é‡Šæ”¾ä¹‹ã€‚å¦‚æžœè€fp
-//      ä¸å¸¦bufï¼Œè€Œæ–°fpéœ€è¦ï¼Œåˆ™è¦å•ç‹¬ç”³è¯·bufï¼Œè¿™æ˜¯å¯¼è‡´fpå’Œbufåˆ†åˆ«ç”³è¯·çš„åŽŸå› ã€‚c
-//      æ ‡å‡†è§„å®šï¼Œfreopenä¸èƒ½ä¿®æ”¹fpæŒ‡é’ˆï¼Œæ•…ä¸å…è®¸é‡æ–°malloc streamã€‚
+// ¹¦ÄÜ£º´ò¿ªÎÄ¼þ
+// ²ÎÊý£º
+// ·µ»Ø£º·ÇNULL -- ³É¹¦; NULL -- Ê§°Ü;
+// ±¸×¢£ºÈç¹û stream Ô­À´ÊÇÓÐbufµÄ£¬µ«ÐÂ´ò¿ªµÄÎÄ¼þ²»ÐèÒªbuf£¬Èç¹ûfpºÍbufÊÇÒ»ÆðÉêÇëµÄ£¬
+//      ÎÞ·¨µ¥¶ÀÊÍ·Åbuf£¬¹Ê²»»áÊÍ·Åbuf£»Èç¹û²»ÊÇÒ»ÆðÉêÇëµÄ£¬ÔòÊÍ·ÅÖ®¡£Èç¹ûÀÏfp
+//      ²»´øbuf£¬¶øÐÂfpÐèÒª£¬ÔòÒªµ¥¶ÀÉêÇëbuf£¬ÕâÊÇµ¼ÖÂfpºÍbuf·Ö±ðÉêÇëµÄÔ­Òò¡£c
+//      ±ê×¼¹æ¶¨£¬freopen²»ÄÜÐÞ¸ÄfpÖ¸Õë£¬¹Ê²»ÔÊÐíÖØÐÂmalloc stream¡£
 // ============================================================================
 FILE *freopen(const char *filename, const char *mode, FILE *stream)
 {
@@ -1078,8 +1078,8 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
 
     fflush(stream);
     close(stream->fd);
-    //å•è¿›ç¨‹æ¨¡å¼ä¸‹ï¼Œä¸å­˜åœ¨å†…æ ¸æ€ç”¨æˆ·æ€é—´åˆ‡æ¢ï¼Œcåº“ä¸åšbufï¼Œä¹Ÿä¸æ€Žä¹ˆå½±å“æ•ˆçŽ‡ã€‚
-    //æµå¼æ•°æ®æ–‡ä»¶ä¸èƒ½å†™ç¼“å†²ï¼Œå¦‚æžœä¸èƒ½è¯»ï¼Œäº¦ä¸éœ€è¦bufã€‚
+    //µ¥½ø³ÌÄ£Ê½ÏÂ£¬²»´æÔÚÄÚºËÌ¬ÓÃ»§Ì¬¼äÇÐ»»£¬c¿â²»×öbuf£¬Ò²²»ÔõÃ´Ó°ÏìÐ§ÂÊ¡£
+    //Á÷Ê½Êý¾ÝÎÄ¼þ²»ÄÜÐ´»º³å£¬Èç¹û²»ÄÜ¶Á£¬Òà²»ÐèÒªbuf¡£
     if((Djy_GetRunMode( ) < CN_RUNMODE_MP ) || (!(cflags & FP_IOREAD) && (S_ISFLOW(info.st_mode))))
     {
 
@@ -1103,7 +1103,7 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
         }
     }
 
-    stream->flags = cflags; // æ–°çš„flag
+    stream->flags = cflags; // ÐÂµÄflag
     stream->ungetbuf = EOF;
     stream->wrt_start = -1;
     if(info.st_mode & FP_IOAPPEND)
@@ -1119,13 +1119,13 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
 
 
 //=============================================================================
-//æ–‡ä»¶ç³»ç»Ÿç›¸å…³çš„shellæŒ‡ä»¤
+//ÎÄ¼þÏµÍ³Ïà¹ØµÄshellÖ¸Áî
 //=============================================================================
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½:
-//å‚æ•°:
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ:
+//²ÎÊý:
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 const char *s_cREG = "file";
 const char *s_cLINK = "link";
@@ -1153,10 +1153,10 @@ static char *PropertyToStr(u32 Mode)
 }
 
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½: æ–‡ä»¶ç³»ç»Ÿæ ¼å¼åŒ–
-//å‚æ•°:
-//è¿”å›ž:
-//å¤‡æ³¨: todo: é€»è¾‘å¾…å®Œå–„
+//¹¦ÄÜ: ÎÄ¼þÏµÍ³¸ñÊ½»¯
+//²ÎÊý:
+//·µ»Ø:
+//±¸×¢: todo: Âß¼­´ýÍêÉÆ
 //-----------------------------------------------------------------------------
 static bool_t FSformat(char *Param)
 {
@@ -1165,22 +1165,22 @@ static bool_t FSformat(char *Param)
     if(NULL == Param)
         return (FALSE);
 
-    printf("æ–‡ä»¶ç³»ç»Ÿæ ¼å¼åŒ– ----");
+    printf("ÎÄ¼þÏµÍ³¸ñÊ½»¯ ----");
 
     if(Format(Param))
-        printf("å¤±è´¥!");
+        printf("Ê§°Ü!");
     else
-        printf("æˆåŠŸ!");
+        printf("³É¹¦!");
 
     printf("\r\n");
     return (TRUE);
 }
 
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½: æ›´æ”¹å½“å‰å·¥ä½œè·¯å¾„
-//å‚æ•°:
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ: ¸ü¸Äµ±Ç°¹¤×÷Â·¾¶
+//²ÎÊý:
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 static bool_t ChangeDir(char *Param)
 {
@@ -1191,16 +1191,16 @@ static bool_t ChangeDir(char *Param)
         return (FALSE);
 
     while(*Path == ' ')
-        Path = Path + 1; // åŽ»é™¤å¤šä½™çš„ç©ºæ ¼ç¬¦
+        Path = Path + 1; // È¥³ý¶àÓàµÄ¿Õ¸ñ·û
 
     Ret = SetPWD(Path);
     if(Ret)
     {
-        printf("é”™è¯¯ï¼šå½“å‰å·¥ä½œè·¯å¾„å˜æ›´å¤±è´¥");
+        printf("´íÎó£ºµ±Ç°¹¤×÷Â·¾¶±ä¸üÊ§°Ü");
         if(-1 == Ret)
-            printf("-- ç›®å½•ä¸å­˜åœ¨æˆ–æ— æ³•è¿›å…¥");
+            printf("-- Ä¿Â¼²»´æÔÚ»òÎÞ·¨½øÈë");
         else if(-2 == Ret)
-            printf("-- ç›®å½•æ— æ³•è¿›å…¥");
+            printf("-- Ä¿Â¼ÎÞ·¨½øÈë");
         printf("\r\n");
         return (TRUE);
     }
@@ -1208,10 +1208,10 @@ static bool_t ChangeDir(char *Param)
     return (TRUE);
 }
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½: åˆ›å»ºç›®å½•
-//å‚æ•°: -p -- è¯•å›¾åˆ›å»ºè·¯å¾„ä¸­æ‰€æœ‰ä¸å­˜åœ¨çš„ç›®å½•é¡¹
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ: ´´½¨Ä¿Â¼
+//²ÎÊý: -p -- ÊÔÍ¼´´½¨Â·¾¶ÖÐËùÓÐ²»´æÔÚµÄÄ¿Â¼Ïî
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 static bool_t MkDir(char *Param)
 {
@@ -1226,7 +1226,7 @@ static bool_t MkDir(char *Param)
 
     Temp = strstr(Param, "-p ");
     if(Temp)
-        Path = (char*)Temp + 3; // åŽ»é™¤"-p"å‚æ•°é¡¹
+        Path = (char*)Temp + 3; // È¥³ý"-p"²ÎÊýÏî
     else
     {
         Path = (char*)Param;
@@ -1234,7 +1234,7 @@ static bool_t MkDir(char *Param)
     }
 
     while(*Path == ' ')
-        Path = Path + 1; // åŽ»é™¤å¤šä½™çš„ç©ºæ ¼ç¬¦,å¯¹äºŽæ–‡ä»¶ç³»ç»Ÿè·¯å¾„è€Œè¨€,æ˜¯ä¸å¯èƒ½ä»¥ç©ºæ ¼å¼€å§‹çš„
+        Path = Path + 1; // È¥³ý¶àÓàµÄ¿Õ¸ñ·û,¶ÔÓÚÎÄ¼þÏµÍ³Â·¾¶¶øÑÔ,ÊÇ²»¿ÉÄÜÒÔ¿Õ¸ñ¿ªÊ¼µÄ
 
     FullPath = malloc(strlen(Path)+1);
     strcpy(FullPath, Path);
@@ -1242,15 +1242,15 @@ static bool_t MkDir(char *Param)
         res = mkdir(FullPath,0);
     else
     {
-        // èŽ·å–è·¯å¾„çš„æ¯ä¸ªèŠ‚ç‚¹,ä¾‹å¦‚/aa/bb/ccçš„è·¯å¾„ï¼Œåˆ†åˆ«ä¼šèŽ·å–/aaã€/aa/bbã€/aa//bb/ccå¹¶è¯•å›¾åˆ›å»º
+        // »ñÈ¡Â·¾¶µÄÃ¿¸ö½Úµã,ÀýÈç/aa/bb/ccµÄÂ·¾¶£¬·Ö±ð»á»ñÈ¡/aa¡¢/aa/bb¡¢/aa//bb/cc²¢ÊÔÍ¼´´½¨
         SlashPos = FullPath;
         do
         {
             while(*SlashPos == '/')
-                SlashPos = SlashPos + 1; // åŽ»é™¤å¤šä½™'/'
+                SlashPos = SlashPos + 1; // È¥³ý¶àÓà'/'
 
             while((*SlashPos != '/') && (*SlashPos != '\0'))
-                SlashPos = SlashPos + 1; // èŽ·å–ä¸€ä¸ªsegment
+                SlashPos = SlashPos + 1; // »ñÈ¡Ò»¸ösegment
 
             PathLen = SlashPos - FullPath;
             if('/' == FullPath[PathLen])
@@ -1267,16 +1267,16 @@ static bool_t MkDir(char *Param)
     }
 
     if(-1 == res)
-        printf("åˆ›å»ºå¤±è´¥æˆ–ç›®å½•å·²å­˜åœ¨\r\n");
+        printf("´´½¨Ê§°Ü»òÄ¿Â¼ÒÑ´æÔÚ\r\n");
 
     free(FullPath);
     return (TRUE);
 }
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½: æ˜¾ç¤ºç›®å½•é¡¹
-//å‚æ•°: -l -- æ˜¾ç¤ºç›®å½•æ–‡ä»¶çš„æ‰€æœ‰ä¿¡æ¯
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ: ÏÔÊ¾Ä¿Â¼Ïî
+//²ÎÊý: -l -- ÏÔÊ¾Ä¿Â¼ÎÄ¼þµÄËùÓÐÐÅÏ¢
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 static bool_t FS_List(char *Param)
 {
@@ -1290,13 +1290,13 @@ static bool_t FS_List(char *Param)
     u8 len, i;
 
     if(Param && strstr(Param, "-l"))
-        Flags = 1; // æ˜¾ç¤ºå®Œæ•´ä¿¡æ¯
+        Flags = 1; // ÏÔÊ¾ÍêÕûÐÅÏ¢
 
     Len = CurWorkPathLen();
     CWP = malloc(257);
     if(NULL == CWP)
     {
-        printf("å†…å­˜ä¸è¶³\r\n");
+        printf("ÄÚ´æ²»×ã\r\n");
         return (TRUE);
     }
     memset(CWP, 0, 257);
@@ -1316,7 +1316,7 @@ static bool_t FS_List(char *Param)
                         for(i = 0; i < 24; i++)
                             printf(" ");
 
-                        printf("<æ— æ³•è§£æž>");
+                        printf("<ÎÞ·¨½âÎö>");
                         for(i = 0; i < 2; i++)
                             printf(" ");
 
@@ -1364,24 +1364,24 @@ static bool_t FS_List(char *Param)
     return (TRUE);
 }
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½:æ˜¾ç¤ºå½“ç„¶çš„å·¥ä½œè·¯å¾„
-//å‚æ•°:
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ:ÏÔÊ¾µ±È»µÄ¹¤×÷Â·¾¶
+//²ÎÊý:
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 bool_t PrintWorkPath(void)
 {
     char WokingPath[257];
     CurWorkPath(WokingPath, 257);
-    printf("ç”¨æˆ·å½“å‰å·¥ä½œè·¯å¾„ï¼š\"%s\"", WokingPath);
+    printf("ÓÃ»§µ±Ç°¹¤×÷Â·¾¶£º\"%s\"", WokingPath);
     return (TRUE);
 }
 
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½: åˆ é™¤æ–‡ä»¶æˆ–ç›®å½•
-//å‚æ•°: -r é€’å½’åˆ é™¤(å¯åˆ é™¤ç›®å½•é¡¹)
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ: É¾³ýÎÄ¼þ»òÄ¿Â¼
+//²ÎÊý: -r µÝ¹éÉ¾³ý(¿ÉÉ¾³ýÄ¿Â¼Ïî)
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 static bool_t Remove(char *Param)
 {
@@ -1398,17 +1398,17 @@ static bool_t Remove(char *Param)
     Temp = strstr(PathParam, "-r");
     if(Temp)
     {
-        PathParam = (char*)Temp + 2; // åŽ»é™¤"-p"å‚æ•°é¡¹
+        PathParam = (char*)Temp + 2; // È¥³ý"-p"²ÎÊýÏî
         RemoveAll = 1;
     }
 
     while(*PathParam == ' ')
-        PathParam = PathParam + 1; // åŽ»é™¤å¤šä½™çš„ç©ºæ ¼ç¬¦
+        PathParam = PathParam + 1; // È¥³ý¶àÓàµÄ¿Õ¸ñ·û
 
     Path = malloc(257);
     if(NULL == Path)
     {
-        printf("å†…å­˜ä¸è¶³\r\n");
+        printf("ÄÚ´æ²»×ã\r\n");
         return (TRUE);
     }
 
@@ -1424,7 +1424,7 @@ static bool_t Remove(char *Param)
 
             Ret = stat(PathParam, &Info);
             if(Ret)
-                printf("æ ¼å¼é”™è¯¯\r\n");
+                printf("¸ñÊ½´íÎó\r\n");
 
             if((!Ret) && S_ISDIR(Info.st_mode))
             {
@@ -1442,7 +1442,7 @@ static bool_t Remove(char *Param)
                         Ret = remove(Path);
                         if(Ret)
                         {
-                            printf("æ–‡ä»¶\"%s\"æ— æ³•åˆ é™¤(æ–‡ä»¶ä½¿ç”¨ä¸­)\r\n", Dirent->d_name);
+                            printf("ÎÄ¼þ\"%s\"ÎÞ·¨É¾³ý(ÎÄ¼þÊ¹ÓÃÖÐ)\r\n", Dirent->d_name);
                             break;
                         }
                     }
@@ -1455,17 +1455,17 @@ static bool_t Remove(char *Param)
         {
             Ret = remove(PathParam);
             if(Ret)
-                printf("æ–‡ä»¶åˆ é™¤å¤±è´¥\r\n");
+                printf("ÎÄ¼þÉ¾³ýÊ§°Ü\r\n");
         }
     }
     free(Path);
     return (TRUE);
 }
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½: è¯»æ–‡ä»¶
-//å‚æ•°:
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ: ¶ÁÎÄ¼þ
+//²ÎÊý:
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 static bool_t ReaFile(char *Param)
 {
@@ -1479,17 +1479,17 @@ static bool_t ReaFile(char *Param)
         return (FALSE);
 
     while(*Path == ' ')
-        Path = Path + 1; // åŽ»é™¤å¤šä½™çš„ç©ºæ ¼ç¬¦,å¯¹äºŽæ–‡ä»¶ç³»ç»Ÿè·¯å¾„è€Œè¨€,æ˜¯ä¸å¯èƒ½ä»¥ç©ºæ ¼å¼€å§‹çš„
+        Path = Path + 1; // È¥³ý¶àÓàµÄ¿Õ¸ñ·û,¶ÔÓÚÎÄ¼þÏµÍ³Â·¾¶¶øÑÔ,ÊÇ²»¿ÉÄÜÒÔ¿Õ¸ñ¿ªÊ¼µÄ
 
 
     FH = open(Param, O_RDONLY, 0);
     if(-1 == FH)
     {
-        printf("\"cat\": æ–‡ä»¶æ— æ³•æ‰“å¼€");
+        printf("\"cat\": ÎÄ¼þÎÞ·¨´ò¿ª");
         return (FALSE);
     }
 
-    printf("16è¿›åˆ¶æ˜¾ç¤ºæ¨¡å¼:\r\n");
+    printf("16½øÖÆÏÔÊ¾Ä£Ê½:\r\n");
     do{
         Ret = read(FH, Buf, 64);
         for(i = 0; i < Ret; i++)
@@ -1502,10 +1502,10 @@ static bool_t ReaFile(char *Param)
 }
 
 //-----------------------------------------------------------------------------
-//åŠŸèƒ½: æ‹·è´æ–‡ä»¶
-//å‚æ•°: "cp /fat/abc /yaffs/abc"
-//è¿”å›ž:
-//å¤‡æ³¨:
+//¹¦ÄÜ: ¿½±´ÎÄ¼þ
+//²ÎÊý: "cp /fat/abc /yaffs/abc"
+//·µ»Ø:
+//±¸×¢:
 //-----------------------------------------------------------------------------
 #define RW_SIZE  256
 static bool_t CopyFile(char *Param)
@@ -1528,15 +1528,15 @@ static bool_t CopyFile(char *Param)
     }
 
     while(*PathTemp == ' ')
-        PathTemp = PathTemp + 1; // åŽ»é™¤å¤šä½™çš„ç©ºæ ¼ç¬¦,å¯¹äºŽæ–‡ä»¶ç³»ç»Ÿè·¯å¾„è€Œè¨€,æ˜¯ä¸å¯èƒ½ä»¥ç©ºæ ¼å¼€å§‹çš„
+        PathTemp = PathTemp + 1; // È¥³ý¶àÓàµÄ¿Õ¸ñ·û,¶ÔÓÚÎÄ¼þÏµÍ³Â·¾¶¶øÑÔ,ÊÇ²»¿ÉÄÜÒÔ¿Õ¸ñ¿ªÊ¼µÄ
 
-    PathDes = PathTemp; // ä¸´æ—¶ä¿å­˜å¤´ä½ç½®
+    PathDes = PathTemp; // ÁÙÊ±±£´æÍ·Î»ÖÃ
     PathSrc = PathTemp;
     while(*PathTemp != ' ')
-        PathTemp = PathTemp + 1; // æ‰¾åˆ°ç©ºæ ¼
+        PathTemp = PathTemp + 1; // ÕÒµ½¿Õ¸ñ
 
     Length = PathTemp - PathSrc;
-    PathSrc = malloc(Length + 1); // å«ç»“æŸç¬¦
+    PathSrc = malloc(Length + 1); // º¬½áÊø·û
     if(!PathSrc)
     {
         printf("\"cp\": memory out!\r\n");
@@ -1564,7 +1564,7 @@ static bool_t CopyFile(char *Param)
     {
         Res = read(HandleSrc, Buf, RW_SIZE);
         if(!Res)
-            break; // å…¨éƒ¨è¯»å®Œ
+            break; // È«²¿¶ÁÍê
 
         if(Res != write(HandleDes, Buf, Res))
         {
@@ -1573,7 +1573,7 @@ static bool_t CopyFile(char *Param)
         }
 
         if(Res != RW_SIZE)
-            break; // å…¨éƒ¨è¯»å®Œ
+            break; // È«²¿¶ÁÍê
     }
 
     Res = close(HandleDes);
@@ -1587,11 +1587,11 @@ static bool_t CopyFile(char *Param)
     return (TRUE);
 }
 
-ADD_TO_ROUTINE_SHELL(format,FSformat,"æ ¼å¼åŒ–æ–‡ä»¶ç³»ç»Ÿï¼ŒCOMMAND:format+æ–‡ä»¶ç³»ç»Ÿmountç‚¹å+enter.");
-ADD_TO_ROUTINE_SHELL(cd,ChangeDir,"æ›´æ”¹å½“å‰å·¥ä½œè·¯å¾„ï¼ŒCOMMAND:cd+æ–°å·¥ä½œè·¯å¾„+enter.");
-ADD_TO_ROUTINE_SHELL(pwd,PrintWorkPath,"æ˜¾ç¤ºç”¨æˆ·å½“å‰å·¥ä½œè·¯å¾„ï¼ŒCOMMAND:pwd+enter.");
-ADD_TO_ROUTINE_SHELL(mkdir,MkDir,"åˆ›å»ºç›®å½•ï¼ŒCOMMAND:mkdir+enter.");
-ADD_TO_ROUTINE_SHELL(ls,FS_List,"æ˜¾ç¤ºç›®å½•é¡¹ï¼ŒCOMMAND:format+(-l æ˜¾ç¤ºæ–‡ä»¶æ‰€æœ‰ä¿¡æ¯)+enter.");
-ADD_TO_ROUTINE_SHELL(rm,Remove,"åˆ é™¤æ–‡ä»¶æˆ–è€…ç›®å½•ï¼ŒCOMMAND:rm + (-r é€’å½’åˆ é™¤)è·¯å¾„ + enter.");
-ADD_TO_ROUTINE_SHELL(cat,ReaFile,"è¯»æ–‡ä»¶å¹¶æ‰“å°ï¼ŒCOMMAND:cat + æ–‡ä»¶è·¯å¾„ + enter.");
-ADD_TO_ROUTINE_SHELL(cp,CopyFile,"æ‹·è´æ–‡ä»¶ï¼ŒCOMMAND:cp + /fat/abc + /yaffs/abc + enter.");
+ADD_TO_ROUTINE_SHELL(format,FSformat,"¸ñÊ½»¯ÎÄ¼þÏµÍ³£¬COMMAND:format+ÎÄ¼þÏµÍ³mountµãÃû+enter.");
+ADD_TO_ROUTINE_SHELL(cd,ChangeDir,"¸ü¸Äµ±Ç°¹¤×÷Â·¾¶£¬COMMAND:cd+ÐÂ¹¤×÷Â·¾¶+enter.");
+ADD_TO_ROUTINE_SHELL(pwd,PrintWorkPath,"ÏÔÊ¾ÓÃ»§µ±Ç°¹¤×÷Â·¾¶£¬COMMAND:pwd+enter.");
+ADD_TO_ROUTINE_SHELL(mkdir,MkDir,"´´½¨Ä¿Â¼£¬COMMAND:mkdir+enter.");
+ADD_TO_ROUTINE_SHELL(ls,FS_List,"ÏÔÊ¾Ä¿Â¼Ïî£¬COMMAND:format+(-l ÏÔÊ¾ÎÄ¼þËùÓÐÐÅÏ¢)+enter.");
+ADD_TO_ROUTINE_SHELL(rm,Remove,"É¾³ýÎÄ¼þ»òÕßÄ¿Â¼£¬COMMAND:rm + (-r µÝ¹éÉ¾³ý)Â·¾¶ + enter.");
+ADD_TO_ROUTINE_SHELL(cat,ReaFile,"¶ÁÎÄ¼þ²¢´òÓ¡£¬COMMAND:cat + ÎÄ¼þÂ·¾¶ + enter.");
+ADD_TO_ROUTINE_SHELL(cp,CopyFile,"¿½±´ÎÄ¼þ£¬COMMAND:cp + /fat/abc + /yaffs/abc + enter.");

@@ -47,9 +47,9 @@
 //../func/rttos/ate;../func/rttos/source;../func/rttos/os_clock.c;../func/rttos/target_util.c;
 //../func/user_driver/BkDriverGpio.c;../func/user_driver/BkDriverPwm.c;
 //../func/user_driver/BkDriverUart.c;../func/user_driver/BkDriverWdg.c;../func/mem_arch.c;
-//../func/wlan_ui/lsig_monitor.c;../func/voice_transfer;../func/vad;../func/user_driver;
-//../func/saradc_intf;../func/misc;../func/music_player;../func/app_demo;
-//../func/airkiss
+//../func/wlan_ui/lsig_monitor.c;../func/voice_transfer;../func/vad;
+//../func/saradc_intf;../func/misc;../func/music_player;../app/app_demo;
+//../app/airkiss;../app/config;
 //../ip;
 //%$#@end exclude
 //%$#@include path
