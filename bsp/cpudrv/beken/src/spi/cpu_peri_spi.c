@@ -68,7 +68,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","spi bus","component heap","cpu driver spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -96,10 +96,10 @@
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
-//@#$%component end configure						
-	
+//@#$%component end configure
 
-//spi的物理脚和QSPI重合，这里的设置是关闭QSPI的IO2和IO3	
+
+//spi的物理脚和QSPI重合，这里的设置是关闭QSPI的IO2和IO3
 static void Spi_Init_Extral_Gpio(void)
 {
     bk_gpio_config_output(SPI_FLASH_WP_GPIO_NUM);
@@ -296,27 +296,27 @@ static void Spi_Configure(UINT32 rate, UINT32 mode)
 // =============================================================================
 int ModuleInstall_SPI(void)
 {
-	u8 mode;
-	
-	if(CFG_SPI_FLASH_RAM_POWER)
-        SPI_Flash_Enable_Voltage();
-	
-    Spi_Init_Extral_Gpio();
-	
-	mode = (CFG_SPI_CPOL | (CFG_SPI_CPHA << 1));
+    u8 mode;
 
-	if(CFG_SPI_WORK_MODE_INTE)
-	{
+    if(CFG_SPI_FLASH_RAM_POWER)
+        SPI_Flash_Enable_Voltage();
+
+    Spi_Init_Extral_Gpio();
+
+    mode = (CFG_SPI_CPOL | (CFG_SPI_CPHA << 1));
+
+    if(CFG_SPI_WORK_MODE_INTE)
+    {
         if(bk_spi_master_init(CFG_SPI_CLK, mode))
         {
             info_printf("SPI","SPI init fail.\r\n");
                 return 0;
         }
-	}
-	else
-	    Spi_Configure(CFG_SPI_CLK, mode);
+    }
+    else
+        Spi_Configure(CFG_SPI_CLK, mode);
 
-	return 1;
+    return 1;
 }
 
 

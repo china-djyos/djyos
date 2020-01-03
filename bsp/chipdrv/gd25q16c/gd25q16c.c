@@ -41,7 +41,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"lock","spi bus","component heap","cpu driver spi"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -719,14 +719,14 @@ void gd25q16c_Qspi_Enable(void)
     if((sr2 & 0X02)==0)           //QE位未使能
     {
         gd25q16c_Write_Enable();   //写使能
-		if(gd25q16c_WriteEnableWait() == -1)
+        if(gd25q16c_WriteEnableWait() == -1)
         {
             printf("\r\n gd25q16c Write Enable fail.\r\n");
         }
         sr1=gd25q16c_ReadSR(StatusReg1);       //先读出配置寄存器1的原始值
         reg_w_buf[0]=sr1 ;
         sr2 |= 1<<1;              //使能QE位
-		reg_w_buf[1]=sr2 ;
+        reg_w_buf[1]=sr2 ;
 
         gd25q16c_Write_SR1_SR2(reg_w_buf); //写状态寄存器
     }
@@ -898,27 +898,27 @@ s32 ModuleInstall_gd25q16c(void)
 //    }
 
     if(!qflashdescription)
-	{
-		qflashdescription = malloc(sizeof(struct NorDescr));
+    {
+        qflashdescription = malloc(sizeof(struct NorDescr));
         if(!qflashdescription)
         {
             printf("\r\n: erro : device : memory out.\r\n");
             return false;
         }
-		memset(qflashdescription, 0x0, (sizeof(struct NorDescr)));
+        memset(qflashdescription, 0x0, (sizeof(struct NorDescr)));
         qflashdescription->PortType = NOR_SPI;
         qflashdescription->Port = NULL;
         qflashdescription->BytesPerPage = gd25q16c_PageSize;
         qflashdescription->SectorNum = 512;
-		qflashdescription->BlockNum = 32;
-		qflashdescription->BlocksPerSector = 0;
-		qflashdescription->PagesPerSector = 16;
-		qflashdescription->SectorsPerBlock = 16;
-		qflashdescription->PagesPerBlock = 256;
+        qflashdescription->BlockNum = 32;
+        qflashdescription->BlocksPerSector = 0;
+        qflashdescription->PagesPerSector = 16;
+        qflashdescription->SectorsPerBlock = 16;
+        qflashdescription->PagesPerBlock = 256;
         qflashdescription->ReservedBlks = 0;
-	}
-	
-	if(CFG_GD25_PART_FORMAT)
+    }
+
+    if(CFG_GD25_PART_FORMAT)
     {
         struct uesz sz;
         sz.unit = 0;
@@ -928,10 +928,10 @@ s32 ModuleInstall_gd25q16c(void)
             warning_printf("at45"," Format failure.");
         }
     }
-	
-	gd25_umedia = malloc(sizeof(struct umedia)+qflashdescription->BytesPerPage);
+
+    gd25_umedia = malloc(sizeof(struct umedia)+qflashdescription->BytesPerPage);
     if(!gd25_umedia)
-	    return false;
+        return false;
 
     gd25_umedia->mreq = __gd25q16c_req;
     gd25_umedia->type = nor;
@@ -943,7 +943,7 @@ s32 ModuleInstall_gd25q16c(void)
         free(gd25_umedia);
         return false;
     }
-	
+
     gd25q16c_Init_Flag = TRUE;
     return TRUE;
 }

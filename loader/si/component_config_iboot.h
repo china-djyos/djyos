@@ -14,11 +14,11 @@
 //component name:"loader"       //加载器
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+//select:required               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later。
+//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"heap"  //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"heap"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -39,7 +39,7 @@
 //%$#@enum,EN_FORM_FILE,EN_DIRECT_RUN,
 #define  CFG_APP_RUNMODE  EN_DIRECT_RUN     //EN_DIRECT_RUN=直接从flash中运行；EN_FORM_FILE=从文件系统加载到内存运行，
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL,
-#define  CFG_APP_VERIFICATION   VERIFICATION_NULL      //是否对APP程序进行CRC校验，需要极快速启动才不需要CRC校验
+#define  CFG_APP_VERIFICATION   VERIFICATION_NULL   //启动时校验 APP 的方法
 //%$#@num,0,100,
 #define CFG_IBOOT_VERSION_SMALL       00        //Iboot发布版本号,xx.xx.__
 #define CFG_IBOOT_VERSION_MEDIUM      00        //Iboot发布版本号,xx.__.xx
