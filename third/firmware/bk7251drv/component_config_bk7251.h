@@ -81,3 +81,9 @@
 //../ip/umac/src/mfp;../ip/umac/src/rc;../ip/umac/src/rxu;../ip/umac/src/scanu;
 //../ip/umac/src/llc;../ip/umac/src/sm;../ip/umac/src/txu;
 //%$#@end include path
+
+//%$#@library path
+//../ip/libip_7221u.a
+//%$#@end library path
+
+//@#$%component end configure

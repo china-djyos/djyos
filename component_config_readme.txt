@@ -1,27 +1,27 @@
 DJYOS的内核以及组件、bsp等的裁剪和配置功能，由源码和IDE配合完成，手痒难耐的hacker，也可以自己裁剪。
 源码中（c/cpp或h/hpp）中放置一段特定格式的描述文本，IDE扫描得到配置信息，以图形化的方式进行配置、裁剪。
 IDE中有图形配置界面，配置完成后，会生成 projec_config.h 文件放在工程目录中
+这样做的好处：
+1、不管如何配置，djysrc保持不变，不需要为特定工程修改djysrc，使djysrc能够维持一份copy，便于维护。
+2、即使不创建工程，单独打开djysrc，源码也是可读的，不会出现找不到#define的常量而导致代码不可读的问题。
 具体又分两种情况：
 1、只包含1个C文件的组件。
 2、2个以上文件组成的组件。
 
-对于第一种情况，c/cpp文件格式为：
-文件头（注释）
-#include    xxxx.h
+对于第一种情况，c/cpp文件在组件配置块之前增加这句：
 #include  "projec_config.h"
-组件配置块
-代码正文
 
-对于第二种情况，整个组件和目录是唯一对应的，即组件全部代码必须在一个目录树中，且该目录树只包含一个组件。
+对于第二种情况，整个组件和目录是唯一对应的，即组件全部代码必须在一个目录树中。
 该目录中，必须有一个名为component_config_myname.h的头文件，不允许放在子目录中。
 component_config_myname.h文件的内容，与第一种情况的c/cpp文件一致。
-c/cpp文件则包含component_config_myname.h文件即可。
+c/cpp文件在组件配置块之前增加这句：
+#include component_config_myname.h
 
 配置语法：
 
 1、组件配置块
 
-把2、3、4、5项内容包含在“//@#$%component configure” 和 “//@#$%component end configure”两个标签中间，每个文件中只能出现一次
+整个配置内容包含在“//@#$%component configure” 和 “//@#$%component end configure”两个标签中间，这对标签每个文件中只能出现一次
 
 2、组件初始化代码描述块
 
@@ -85,6 +85,11 @@ ANY_PARAM是本模块配置的任一参数。
 //%$#@include path
 //../include;                   ————路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符
 //%$#@end include path
+
+7、选中某组件后，链接APP时需要添加的二进制库
+//%$#@library path
+//../ip/my_lib_name.a
+//%$#@end library path
 
 //@#$%component end configure
 
