@@ -287,7 +287,7 @@ static bool_t ProgressBar_Create(struct WindowMsg *pMsg)
          pPB->BGColor =RGB(0,0,200);
          pPB->DrawTextFlag =DT_VCENTER|DT_CENTER;
      }
-     SetWindowPrivateData(hwnd,(void*)pMsg->Param1);
+     SetWindowPrivateData(hwnd,(ptu32_t)pMsg->Param1);
      InvalidateWindow(hwnd,FALSE);
      return true;
 
@@ -434,7 +434,7 @@ static struct MsgTableLink  s_gProgressBarMsgLink;
 
 HWND CreateProgressBar(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;

@@ -184,7 +184,7 @@ static bool_t ListView_Create(struct WindowMsg *pMsg)
     }
     memset(pLV, 0, sizeof(listview_t));
     ListView_Reset(pLV);
-    SetWindowPrivateData(hwnd,(void*)pLV);
+    SetWindowPrivateData(hwnd,(ptu32_t)pLV);
     return true;
 }
 
@@ -790,7 +790,7 @@ static struct MsgTableLink  s_gListViewMsgLink;
 
 HWND CreateListView(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;

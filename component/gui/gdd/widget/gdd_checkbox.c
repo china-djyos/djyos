@@ -199,7 +199,7 @@ static struct MsgTableLink  s_gCheckBoxMsgLink;
 
 HWND CreateCheckBox(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;

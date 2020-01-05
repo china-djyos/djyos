@@ -85,7 +85,7 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
+//init time:pre-main            //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"graphical kernel","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -105,7 +105,7 @@
 //%$#@num,0,65536,
 #define CFG_LCD_XSIZE   320             //"LCD宽度-像素数",
 #define CFG_LCD_YSIZE   480             //"LCD高度-像素数",
-//%$#@num,0,0,
+//%$#@num,,,
 #define CFG_LCD_XSIZE_UM   36720            //"LCD宽度-微米数",
 #define CFG_LCD_YSIZE_UM   48960            //"LCD高度-微米数",
 //%$#@enum,true,false,

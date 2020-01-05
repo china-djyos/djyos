@@ -148,9 +148,9 @@ struct WINDOW
 //  list_t MsgProcFuncTable;
     char    *Text;
     struct MutexLCB *mutex_lock;        //窗口互斥锁
-    struct WinMsgQueueCB    *pMsgQ;        //窗口消息队列
+    struct WinMsgQueueCB *pMsgQ;        //窗口消息队列
     struct GkWinObj *pGkWin;   //继承GkWin
-    void    *PrivateData;      //窗口私有数据
+    ptu32_t PrivateData;      //窗口私有数据
 
     u16     EventID;        //窗口所属事件ID
     u16     WinId;          //窗口ID

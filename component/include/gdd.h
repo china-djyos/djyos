@@ -392,8 +392,8 @@ bool_t  GetMessage(struct WindowMsg *pMsg,HWND hwnd,bool_t *SyncMsg);
 
 HWND    GetDesktopWindow(void);
 u32     GetWindowStyle(HWND hwnd);
-void*   GetWindowPrivateData(HWND hwnd);
-void    SetWindowPrivateData(HWND hwnd,void *data);
+ptu32_t   GetWindowPrivateData(HWND hwnd);
+void    SetWindowPrivateData(HWND hwnd,ptu32_t data);
 HWND    InitGddDesktop(struct GkWinObj *desktop);
 
 //DC²Ù×÷º¯Êý
@@ -408,7 +408,7 @@ void AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink);
 HWND    CreateWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
                      HWND hParent,u32 WinId,
-                     u32 BufProperty, void *pdata,
+                     u32 BufProperty, ptu32_t pdata,
                      struct MsgTableLink *pUserMsgTableLink);
 void    DestroyWindow(HWND hwnd);
 void    DestroyAllChild(HWND hwnd);

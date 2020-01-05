@@ -105,7 +105,7 @@ static bool_t ListBox_Create(struct WindowMsg *pMsg)
          pLB->CurSel =-1;
          pLB->ItemHeight =20;//ÐÐ¸ß
      }
-     SetWindowPrivateData(hwnd,(void*)pMsg->Param1);
+     SetWindowPrivateData(hwnd,(ptu32_t)pMsg->Param1);
      return true;
 }
 
@@ -713,7 +713,7 @@ static struct MsgTableLink  s_gListBoxMsgLink;
 
 HWND CreateListBox(  const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;

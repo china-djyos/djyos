@@ -639,7 +639,7 @@ static bool_t TextBox_Create(struct WindowMsg *pMsg)
         pTB->IsMultiLines=false;
         pTB->MaxLines=1;
         pTB->CharWidthSum=0;
-        SetWindowPrivateData(hwnd,(void *)pTB);
+        SetWindowPrivateData(hwnd,(ptu32_t)pTB);
     }
 
     return true;
@@ -843,7 +843,7 @@ static bool_t TextBox_KeyDown(struct WindowMsg *pMsg)
          }
     }
 
-    SetWindowPrivateData( hwnd, (void *)pTB);
+    SetWindowPrivateData( hwnd, (ptu32_t)pTB);
     return true;
 }
 
@@ -949,7 +949,7 @@ static bool_t TextBox_TouchDown(struct WindowMsg *pMsg)
            __MoveCursor(hwnd,idx);
         }
     }
-    SetWindowPrivateData(hwnd,(void *)pTB);
+    SetWindowPrivateData(hwnd,(ptu32_t)pTB);
 
     Cursor_SetHost(hwnd);
 
@@ -1109,7 +1109,7 @@ static struct MsgTableLink  s_gTextBoxMsgLink;
 // =============================================================================
 HWND CreateTextBox(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;

@@ -369,9 +369,9 @@ u32 GetWindowStyle(HWND hwnd)
 //参数：hwnd:窗口句柄
 //返回：窗口私有数据.
 //------------------------------------------------------------------------------
-void* GetWindowPrivateData(HWND hwnd)
+ptu32_t GetWindowPrivateData(HWND hwnd)
 {
-    void *data;
+    ptu32_t data;
 
     data=NULL;
     if(__HWND_Lock(hwnd))
@@ -388,7 +388,7 @@ void* GetWindowPrivateData(HWND hwnd)
 //      data: 私有数据
 //返回：无.
 //------------------------------------------------------------------------------
-void SetWindowPrivateData(HWND hwnd,void *data)
+void SetWindowPrivateData(HWND hwnd,ptu32_t data)
 {
     if(__HWND_Lock(hwnd))
     {
@@ -903,7 +903,7 @@ void AddProcFuncTable(HWND hwnd,struct MsgTableLink *pNewMsgTableLink)
 HWND    CreateWindow(const char *Text,u32 Style,
                      s32 x,s32 y,s32 w,s32 h,
                      HWND hParent,u32 WinId,
-                     u32 BufProperty,void *pdata,
+                     u32 BufProperty,ptu32_t pdata,
                      struct MsgTableLink *pUserMsgTableLink)
 {
     HWND pGddWin=NULL;

@@ -516,7 +516,7 @@ static bool_t RichTextBox_TouchDown(struct WindowMsg *pMsg)
            __MoveCursor(hwnd,idx);
         }
     }
-    SetWindowPrivateData(hwnd,(void *)pRTB);
+    SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
 
     Cursor_SetHost(hwnd);
 
@@ -591,7 +591,7 @@ static ptu32_t RichTextBox_Create(struct WindowMsg *pMsg)
                 return false;
             memset(pRTB, 0, sizeof(RichTextBox));
             pRTB->cur_byte_idx=16;//此处修改每一排的字符数
-            SetWindowPrivateData(hwnd,(void *)pRTB);
+            SetWindowPrivateData(hwnd,(ptu32_t)pRTB);
         }
     GetClientRect(hwnd,&rc0);
 //    Cursor_Init();

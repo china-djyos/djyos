@@ -153,7 +153,7 @@ static bool_t VirKeyBoard_Create(struct WindowMsg *pMsg)
        pkbp->read_keyboard=__VirKeyBoardRead;
        pVKB->pKBP=pkbp;
 
-       SetWindowPrivateData(hwnd,(void *)pVKB);
+       SetWindowPrivateData(hwnd,(ptu32_t)pVKB);
        itoa(gs_KeyBoardId,buf,10);
        name="vir single touch keyboard";
        Keyboard_InstallDevice(name, pkbp);
@@ -474,7 +474,7 @@ static bool_t VirKeyBoard_NotifyHandle(struct WindowMsg *pMsg)
      id&=0xff;
 
      Hwnd=key_hwnd[id];
-     pdata=GetWindowPrivateData(Hwnd);
+     pdata=(char *)GetWindowPrivateData(Hwnd);
 
      keyval=*pdata;
 
@@ -527,7 +527,7 @@ static struct MsgTableLink  s_gVirKeyBoardMsgLink;
 // =============================================================================
 HWND CreateVirKeyBoard(const char *Text,u32 Style,
                     s32 x,s32 y,s32 w,s32 h,
-                    HWND hParent,u32 WinId,void *pdata,
+                    HWND hParent,u32 WinId,ptu32_t pdata,
                     struct MsgTableLink *UserMsgTableLink)
 {
     HWND pGddWin;
