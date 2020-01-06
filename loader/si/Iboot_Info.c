@@ -772,6 +772,29 @@ char * Get_ProductSN(void)
                                 p_apphead.ProductionNumber, sizeof(p_apphead.ProductionNumber));
     return (char *)ProductSN;
 }
+
+char ProductVersion[6];
+//==============================================================================
+//功能：获取产品版本号。
+//参数：
+//返回：ProductVersion -- Version号数组指针
+//==============================================================================
+char * Get_ProductVersion(void * apphead)
+{
+    struct AppHead  p_apphead;
+    if(apphead == NULL)
+        Get_AppHead(&p_apphead);
+    else
+        memcpy(&p_apphead, apphead,  sizeof(struct AppHead));
+
+    memset(ProductVersion, 0, 6);
+
+    sprintf(ProductVersion, "%d.%d.%d", (int)p_apphead.VersionNumber[0],
+                (int)p_apphead.VersionNumber[1] ,(int)p_apphead.VersionNumber[2]);
+
+    return (char *)ProductVersion;
+}
+
 //==============================================================================
 //功能：获取厂商名。
 //参数：apphead：App信息块地址；num：产品序号；time：生产时间

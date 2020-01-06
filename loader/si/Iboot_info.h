@@ -237,6 +237,7 @@ bool_t Get_ErrorAppNoFile(void);
 bool_t Get_ErrorAppSize(void);
 bool_t Get_HeardSetRunIboot(void);
 char * Get_ProductSN(void);
+char * Get_ProductVersion(void * apphead);
 const char * Get_ManufacturerName(void);
 
 bool_t  runiboot(char *param);
