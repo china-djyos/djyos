@@ -232,6 +232,7 @@ bool_t Set_UpdateRunModet(u8 mode);
 char Get_UpdateRunModet(void);
 u32  XIP_GetAPPSize(void * apphead);
 u32  Get_AppHeadSize(void);
+bool_t Get_AppHead(void * apphead);
 bool_t Get_ErrorAppCheck(void);
 bool_t Get_ErrorAppNoFile(void);
 bool_t Get_ErrorAppSize(void);
