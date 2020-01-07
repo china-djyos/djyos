@@ -1451,26 +1451,27 @@ static s32 Efs_Stat(struct Object *ob, struct stat *data, char *uncached)
     if(ob == NULL)
         return -1;
 
-    if(((*uncached == '\0') || (uncached == NULL)) && (obj_isMount(ob)))
+    if((uncached == NULL) || ((*uncached == '\0') ))
     {
-        data->st_size = 0; // 安装点；
-        data->st_mode = S_IFDIR;
-        return 0;
-    }
-
-    if((*uncached == '\0') || (uncached == NULL))
-    {
-        fp = (tagFileRsc *)obj_GetPrivate(ob);      //获取以打开文件的状态
-        data->st_size = fp->file_size;
-        data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
+        if(obj_isMount(ob))
+        {
+            data->st_size = 0; // 安装点；
+            data->st_mode = S_IFDIR;
+        }
+        else
+        {
+            fp = (tagFileRsc *)obj_GetPrivate(ob);      //获取以打开文件的状态
+            data->st_size = fp->file_size;
+            data->st_mode = S_IFREG|S_IRUGO|S_IWUGO;
+        }
         return 0;
     }
 
     efs = (tagEFS*)corefs(ob);
-    if(uncached)
+//    if(uncached)
         fname = uncached;
-    else
-        fname = ob->name;
+//    else
+//        fname = ob->name;
 
     if(NULL == efs)
         return -1;
@@ -1788,8 +1789,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_SEEK:
         {
-            *(off_t*)OpsArgs1 = Efs_Seek((struct objhandle *)opsTarget,
-                                        (off_t*)OpsArgs2, (s32)OpsArgs3);
+            *(off_t*)OpsArgs1 = Efs_Seek((struct objhandle *)opsTarget, (off_t*)OpsArgs2, (s32)OpsArgs3);
             break;
         }
 
@@ -1804,8 +1804,7 @@ s32 e_operations(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
 
         case CN_OBJ_CMD_STAT:
         {
-            if(Efs_Stat((struct Object*)opsTarget, (struct stat *)OpsArgs1,
-                                                (char*)OpsArgs3) == 0)
+            if(Efs_Stat((struct Object*)opsTarget, (struct stat *)OpsArgs1, (char*)OpsArgs3) == 0)
                 result = CN_OBJ_CMD_TRUE;
             else
                 result = CN_OBJ_CMD_FALSE;

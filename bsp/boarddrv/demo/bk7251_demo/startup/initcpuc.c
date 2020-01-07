@@ -23,7 +23,7 @@ bool_t IAP_IsForceIboot(void)
 {
     return false;
 }
-
+void AppStart() __attribute__((optimize("O0")));
 void AppStart()
 {
     void __asm_reset_msp();
