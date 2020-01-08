@@ -90,13 +90,6 @@
 //#warning  " cpu_onchip_MAC  组件参数未配置，使用默认配置"
 //%$#@target = header    //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_MAC    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,255,
-#define CFG_MAC_ADDR0           00           //"网卡地址0",
-#define CFG_MAC_ADDR1           00           //"网卡地址1",
-#define CFG_MAC_ADDR2           00           //"网卡地址2",
-#define CFG_MAC_ADDR3           00           //"网卡地址3",
-#define CFG_MAC_ADDR4           00           //"网卡地址4",
-#define CFG_MAC_ADDR5           00           //"网卡地址5",
 //%$#@num,1000,10000,
 #define CFG_ETH_LOOP_CYCLE      1000         //"网卡轮询接收周期",
 //%$#@enum,true,false,

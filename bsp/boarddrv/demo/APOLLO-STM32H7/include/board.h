@@ -115,7 +115,7 @@ bool_t Board_SpiCsCtrl(u8 SPIPort,u8 cs,u8 level);
 //bool_t ModuleInstall_Touch_FT5206(struct GkWinObj *desktop,\
 //        const char *touch_dev_name );
 //
-//bool_t ModuleInstall_Keyboard(const char *dev_name);
+//bool_t ModuleInstall_KeyBoardHal(const char *dev_name);
 //u32 keyboard_scan(void);
 //
 //bool_t lan8720Init(void);

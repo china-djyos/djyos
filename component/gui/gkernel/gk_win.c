@@ -484,6 +484,7 @@ struct GkWinObj *__GK_CreateDesktop(struct GkscParaCreateDesktop *para)
     desktop->z_back = desktop;
     desktop->z_top = desktop;
     strncpy(desktop->win_name,para->name,CN_GKWIN_NAME_LIMIT);
+    desktop->win_name[CN_GKWIN_NAME_LIMIT] = '\0';
     desktop->redraw_clip = NULL;
     desktop->changed_clip = NULL;
     desktop->disp = display;            //所属显示器
@@ -644,9 +645,8 @@ struct GkWinObj *__GK_CreateWin(struct GkscParaCreateGkwin *para)
 
     *gkwin = *parent;               //新窗口拷贝父窗口的属性
 
-    size = strnlen(para->name,CN_GKWIN_NAME_LIMIT);
-    memcpy(gkwin->win_name,para->name,size);
-    gkwin->win_name[size] = '\0';       //串结束符\0。
+    strncpy(gkwin->win_name,para->name,CN_GKWIN_NAME_LIMIT);
+    gkwin->win_name[CN_GKWIN_NAME_LIMIT] = '\0';
 
     //给定的新窗口的坐标是相对其父窗口的
     gkwin->left = para->left;

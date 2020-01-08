@@ -76,7 +76,7 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip spi"//SPI总线驱动
-//parent:"component spi bus"   //填写该组件的父组件名字，none表示没有父组件
+//parent:"spi bus"   //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                    //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                 //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                    //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，

@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #ifndef __PROJECT_CONFFIG_H__
@@ -82,7 +82,7 @@
 #define CFG_IBOOT_VERSION       01        //Iboot发布版本号
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //
 //*******************************  Configure netconfig  ******************************************//
-#define    CFG_STATIC_IP                   true               // "IP属性",true=使用静态IP，false=动态IP
+#define    CFG_STATIC_IP                   true               // "静态IP",true=使用静态IP，false=动态IP
 #define    CFG_NETCARD_NAME                "SCM610_ETH"       // "网卡名",
 #define    CFG_MY_IPV4                     "192.168.0.179"    // "静态IP",
 #define    CFG_MY_SUBMASK                  "255.255.255.0"    // "子网掩码",

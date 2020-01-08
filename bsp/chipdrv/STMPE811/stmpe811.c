@@ -72,8 +72,10 @@
 //    struct GkWinObj;
 //    extern ptu32_t ModuleInstall_Touch_Stmpe811(void);
 //    ModuleInstall_Touch_Stmpe811(stmpe811_desktop);
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_STMPE811_TOUCH_DEV_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始

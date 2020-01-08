@@ -123,8 +123,8 @@ void Sys_ModuleInit(void)
     extern bool_t ModuleInstall_ETH(void);
     ModuleInstall_ETH( );
 
-    extern bool_t ModuleInstall_Keyboard(const char *dev_name);
-    ModuleInstall_Keyboard(CFG_KEYBOARD_NAME);
+    extern bool_t ModuleInstall_KeyBoardHal(const char *dev_name);
+    ModuleInstall_KeyBoardHal(CFG_KEYBOARD_NAME);
 
     //-------------------later-------------------------//
     extern void ModuleInstall_Gdd_AND_Desktop(void);

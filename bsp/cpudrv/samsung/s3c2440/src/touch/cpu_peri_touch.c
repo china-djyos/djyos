@@ -62,8 +62,10 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t ModuleInstall_TOUCH_S3C2440(svoid);
 //  ModuleInstall_TOUCH_S3C2440( );
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
-//    GDD_AddInputDev(CFG_FT6236_TOUCH_NAME);
+//    GDD_AddInputDev(CFG_TOUCH_DEV_NAME);
+//#endif
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip touch"//CPU触摸屏外设驱动
 //parent:"touch"     //填写该组件的父组件名字，none表示没有父组件

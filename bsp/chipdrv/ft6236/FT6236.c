@@ -65,8 +65,10 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t ModuleInstall_FT6236(void);
 //    ModuleInstall_FT6236( );
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
 //    extern bool_t GDD_AddInputDev(const char *InputDevName);
 //    GDD_AddInputDev(CFG_FT6236_TOUCH_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -77,10 +79,10 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:later              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"io analog iic bus","graphical kernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"io analog iic bus","touch"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"graphical decorate development"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"none"          //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -96,7 +98,7 @@
 #define CT_MAX_TOUCH  5                         //"触控数",支持最多5点触摸
 //%$#@enum,true,false,
 //%$#@string,1,128,
-#define CFG_TOUCH_ADJUST_FILE   "/yaf2/touch_init.dat"  //保存触摸屏矫正参数的文件
+#define CFG_TOUCH_ADJUST_FILE   "/efs/touch_init.dat"  //保存触摸屏矫正参数的文件
 #define CFG_FT6236_BUS_NAME     "IoIic"        //"IIC总线名称",触摸芯片使用的IIC总线名称
 #define CFG_FT6236_TOUCH_NAME   "FT6236"       //"触摸屏名称",配置触摸屏名称
 #define CFG_DISPLAY_NAME        "display"      //"显示器名称",配置触摸屏所在显示器的名称

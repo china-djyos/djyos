@@ -86,7 +86,7 @@
 #define CFG_MODULE_ENABLE_NETWORK_CONFIG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100
 //%$#@enum,true,false
-#define CFG_STATIC_IP       false            //"IP属性",true=使用静态IP，false=动态IP
+#define CFG_STATIC_IP       false            //"静态IP",true=使用静态IP，false=动态IP
 //%$#@string,1,16
 #define CFG_NETCARD_NAME    "BK7251_WIFI"    //"网卡名",
 //%$#@string,7,15

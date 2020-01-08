@@ -69,6 +69,10 @@
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern bool_t ModuleInstall_KeyBoardHard(ptu32_t para);
 //    ModuleInstall_KeyBoardHard(CFG_KEYBOARD_VTIME);
+//#if(CFG_MODULE_ENABLE_GRAPHICAL_DECORATE_DEVELOPMENT == true)
+//    extern bool_t GDD_AddInputDev(const char *InputDevName);
+//    GDD_AddInputDev(CFG_KEYBOARD_NAME);
+//#endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -98,6 +102,7 @@
 #define CFG_KEYBOARD_VTIME              (100*1000)   //"防抖时间",配置键盘100mS的防抖时间
 //%$#@enum,true,false
 //%$#@string,1,10,
+#define CFG_KEYBOARD_NAME              "KEYBOARD"        //"name",配置键盘名称
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif

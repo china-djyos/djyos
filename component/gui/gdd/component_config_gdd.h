@@ -14,12 +14,12 @@
 //attribute:system                          //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable                          //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                             //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:later                           //初始化时机，可选值：early，medium，later, pre-main。
+//init time:medium                          //初始化时机，可选值：early，medium，later, pre-main。
                                             //表示初始化时间，分别是早期、中期、后期
-//dependence:"graphical kernel","System:Message queue"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"graphical kernel","Message queue"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                             //选中该组件时，被依赖组件将强制选中，
                                             //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"HmiInput"                 //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:                           //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                             //选中该组件时，被依赖组件不会被强制选中，
                                             //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -35,10 +35,9 @@
 #define CFG_DESKTOP_WIDTH       0           //"桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度
 //%$#@enum,true,false,
-//%$#@string,1,256,
+//%$#@string,1,127,
 #define CFG_DISPLAY_NAME        "DISPLAY_NAME"         //"显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
-#define CFG_DESKTOP_NAME        "DESKTOP_NAME"         //"桌面名"
-#define CFG_INPUTDEV_NAME       "INPUTDEV_NAME"         //"输入设备名称",使用bsp中输入设备所配置的名字，多输入设备的话，每个设备间用逗号隔开
+#define CFG_DESKTOP_NAME        "DESKTOP_NAME"         //"给桌面起个名字"，
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #define CFG_DESKTOP_FORMAT      CN_SYS_PF_RGB565    //"像素格式",桌面窗口像素格式，常数在gkernel.h中定义，一般使用与显示器相同颜色

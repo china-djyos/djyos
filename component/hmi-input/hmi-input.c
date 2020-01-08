@@ -85,7 +85,7 @@
                                           //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium                        //初始化时机，可选值：early，medium，later, pre-main。
                                           //表示初始化时间，分别是早期、中期、后期
-//dependence:"message queue","graphical kernel"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"message queue"              //该组件的依赖组件名（可以是none，表示无依赖组件），
                                           //选中该组件时，被依赖组件将强制选中，
                                           //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"                   //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -101,7 +101,7 @@
 //%$#@target = header                      //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_HUMAN_MACHINE_INTERFACE    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100,
-#define CFG_HMIIN_DEV_LIMIT     2       //"name",人机交互输入设备数量，如键盘、鼠标等
+#define CFG_HMIIN_DEV_LIMIT     2       //"输入设备数量上限",人机交互输入设备数量，如键盘、鼠标等
 //%$#@enum,true,false,
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
