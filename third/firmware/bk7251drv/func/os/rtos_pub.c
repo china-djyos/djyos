@@ -30,7 +30,7 @@ void delay(INT32 num)
 /******************************************************
  *               Function Definitions
  ******************************************************/
-OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const char* name, 
+OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const char* name,
                         beken_thread_function_t function, uint32_t stack_size, beken_thread_arg_t arg )
 {
     if(thread == NULL)
@@ -69,7 +69,10 @@ OSStatus rtos_delete_thread( beken_thread_t* thread )
 
 void rtos_thread_sleep(uint32_t seconds)
 {
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     Djy_EventDelay(seconds*1000*mS);
+    GLOBAL_INT_RESTORE();
 }
 
 static uint32_t rtos_sem_cnt = 0;
@@ -77,7 +80,10 @@ static uint32_t rtos_mutex_cnt = 0;
 
 OSStatus rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
 {
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     *semaphore = Lock_SempCreate(maxCount,0,CN_BLOCK_FIFO,NULL);
+    GLOBAL_INT_RESTORE();
     rtos_sem_cnt++;
     RTOS_DBG("rtos_init_semaphore:%d\r\n",rtos_sem_cnt);
     return (*semaphore != NULL) ? kNoErr : kGeneralErr;
@@ -87,10 +93,13 @@ OSStatus rtos_get_semaphore(beken_semaphore_t* semaphore, uint32_t timeout_ms )
 {
     bool_t result;
     RTOS_DBG("rtos_get_semaphore:%dms\r\n",timeout_ms);
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     if(timeout_ms==BEKEN_WAIT_FOREVER)
         result = Lock_SempPend(*semaphore,CN_TIMEOUT_FOREVER);
     else
         result = Lock_SempPend(*semaphore,timeout_ms*mS);
+    GLOBAL_INT_RESTORE();
 
     if(result)
     {
@@ -98,35 +107,49 @@ OSStatus rtos_get_semaphore(beken_semaphore_t* semaphore, uint32_t timeout_ms )
     }
     else
     {
-        printf("take semaphore failed %d \n", result);
+        RTOS_DBG("take semaphore failed %d \n", result);
         return kTimeoutErr;
     }
 }
 
 int rtos_get_sema_count(beken_semaphore_t* semaphore )
 {
+    int n;
     RTOS_DBG("rtos_get_sema_count\n");
-    return (int)Lock_SempQueryFree(*semaphore);
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    n = Lock_SempQueryFree(*semaphore);
+    GLOBAL_INT_RESTORE();
+    return n;
 }
 
 int rtos_set_semaphore( beken_semaphore_t* semaphore)
 {
     RTOS_DBG("rtos_get_sema_count\r\n");
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     Lock_SempPost(*semaphore);
-    return kNoErr;    
+    GLOBAL_INT_RESTORE();
+    return kNoErr;
 }
 
 OSStatus rtos_deinit_semaphore( beken_semaphore_t* semaphore )
 {
     RTOS_DBG("rtos_deinit_semaphore:%8x\n", *semaphore);
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     Lock_SempDelete(*semaphore);
+    GLOBAL_INT_RESTORE();
     return kNoErr;
 }
 
 OSStatus rtos_init_mutex( beken_mutex_t* mutex )
 {
     RTOS_DBG("rtos_init_mutex\n");
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     *mutex = Lock_MutexCreate(NULL);
+    GLOBAL_INT_RESTORE();
     if ( *mutex == NULL )
     {
         return kGeneralErr;
@@ -140,20 +163,29 @@ OSStatus rtos_init_mutex( beken_mutex_t* mutex )
 OSStatus rtos_lock_mutex( beken_mutex_t* mutex)
 {
     RTOS_DBG("rtos_lock_mutex\n");
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     Lock_MutexPend(*mutex,CN_TIMEOUT_FOREVER);
+    GLOBAL_INT_RESTORE();
     return kNoErr;
 }
 
 OSStatus rtos_unlock_mutex( beken_mutex_t* mutex)
 {
     RTOS_DBG("rtos_unlock_mutex\n");
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     Lock_MutexPost(*mutex);
+    GLOBAL_INT_RESTORE();
     return kNoErr;
 }
 
 OSStatus rtos_deinit_mutex( beken_mutex_t* mutex)
 {
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     Lock_MutexDelete(*mutex);
+    GLOBAL_INT_RESTORE();
     return kNoErr;
 }
 
@@ -161,7 +193,10 @@ OSStatus rtos_deinit_mutex( beken_mutex_t* mutex)
 OSStatus rtos_init_queue(beken_queue_t* queue, const char* name, uint32_t message_size, uint32_t number_of_messages)
 {
     RTOS_DBG("rtos_init_queue:%s,%d,%d\r\n",name,message_size,number_of_messages);
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     *queue = MsgQ_Create(number_of_messages,message_size,CN_MSGQ_TYPE_FIFO);
+    GLOBAL_INT_RESTORE();
     if(*queue == NULL)
         return kGeneralErr;
     return kNoErr;
@@ -171,10 +206,13 @@ OSStatus rtos_push_to_queue(beken_queue_t* queue, void* message, uint32_t timeou
 {
     bool result = false;
     RTOS_DBG("rtos_push_to_queue:%dms\r\n",timeout_ms);
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     if(timeout_ms==BEKEN_WAIT_FOREVER)
         result = MsgQ_Send(*queue,message,(*queue)->MsgSize,CN_TIMEOUT_FOREVER,CN_MSGQ_PRIO_NORMAL);
     else
         result = MsgQ_Send(*queue,message,(*queue)->MsgSize,timeout_ms*1000,CN_MSGQ_PRIO_NORMAL);
+    GLOBAL_INT_RESTORE();
     if(result)
         return kNoErr;
     else
@@ -183,18 +221,32 @@ OSStatus rtos_push_to_queue(beken_queue_t* queue, void* message, uint32_t timeou
 
 OSStatus rtos_push_to_queue_front(beken_queue_t* queue, void* message, uint32_t timeout_ms)
 {
-    return kGeneralErr;
-    // return rt_mq_urgent(mq, message, mq->msg_size);
+    bool result = false;
+    RTOS_DBG("rtos_push_to_queue_front:%dms\r\n",timeout_ms);
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    if(timeout_ms==BEKEN_WAIT_FOREVER)
+        result = MsgQ_Send(*queue, message, (*queue)->MsgSize, CN_TIMEOUT_FOREVER, CN_MSGQ_PRIO_URGENT);
+    else
+        result = MsgQ_Send(*queue,message,(*queue)->MsgSize,timeout_ms*1000,CN_MSGQ_PRIO_URGENT);
+    GLOBAL_INT_RESTORE();
+    if(result)
+        return kNoErr;
+    else
+        return kGeneralErr;
 }
 
 OSStatus rtos_pop_from_queue(beken_queue_t* queue, void* message, uint32_t timeout_ms)
 {
     bool result = false;
     RTOS_DBG("rtos_pop_from_queue:%dms\r\n",timeout_ms);
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     if(timeout_ms==BEKEN_WAIT_FOREVER)
         result = MsgQ_Receive(*queue,message,(*queue)->MsgSize,CN_TIMEOUT_FOREVER);
     else
         result = MsgQ_Receive(*queue,message,(*queue)->MsgSize,timeout_ms*1000);
+    GLOBAL_INT_RESTORE();
     if(result)
         return kNoErr;
     else
@@ -203,7 +255,10 @@ OSStatus rtos_pop_from_queue(beken_queue_t* queue, void* message, uint32_t timeo
 
 OSStatus rtos_deinit_queue(beken_queue_t* queue)
 {
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     MsgQ_Delete(*queue);
+    GLOBAL_INT_RESTORE();
     return kNoErr;
 }
 
@@ -230,7 +285,7 @@ BOOL rtos_is_queue_full(beken_queue_t* queue)
 OSStatus rtos_init_queue(beken_queue_t* queue, const char* name, uint32_t message_size, uint32_t number_of_messages)
 {
     *queue = rt_mq_create(name, message_size, number_of_messages, RT_IPC_FLAG_FIFO);
-    
+
     if(*queue == RT_NULL)
     {
         rt_kprintf("create queue failed\n");
@@ -244,7 +299,7 @@ OSStatus rtos_push_to_queue(beken_queue_t* queue, void* message, uint32_t timeou
 {
     rt_mq_t mq = *queue;
     rt_err_t result;
-    
+
     result = rt_mq_send(mq, message, mq->msg_size);
     if(result != RT_EOK)
     {
@@ -258,7 +313,7 @@ OSStatus rtos_push_to_queue(beken_queue_t* queue, void* message, uint32_t timeou
 OSStatus rtos_push_to_queue_front( beken_queue_t* queue, void* message, uint32_t timeout_ms )
 {
     rt_mq_t mq = *queue;
-    
+
     return rt_mq_urgent(mq, message, mq->msg_size);
 }
 
@@ -302,10 +357,10 @@ BOOL rtos_is_queue_empty(beken_queue_t* queue )
     {
         /* enable interrupt */
         rt_hw_interrupt_enable(level);
-        
+
         return true;
     }
-    
+
     rt_hw_interrupt_enable(level);
 
     return false;
@@ -340,9 +395,12 @@ BOOL rtos_is_queue_full(beken_queue_t* queue )
 
 OSStatus rtos_delay_milliseconds( uint32_t num_ms)
 {
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
     Djy_EventDelay(num_ms*mS);
+    GLOBAL_INT_RESTORE();
     return kNoErr;
-} 
+}
 
 static void timer_oneshot_callback(void* parameter)
 {
@@ -350,10 +408,10 @@ static void timer_oneshot_callback(void* parameter)
 
     RTOS_DBG("one shot callback\n");
 
-	if(BEKEN_MAGIC_WORD != timer->beken_magic)
-	{
-		return;
-	}
+    if(BEKEN_MAGIC_WORD != timer->beken_magic)
+    {
+        return;
+    }
     if (timer->function)
     {
         timer->function(timer->left_arg, timer->right_arg );
@@ -405,21 +463,21 @@ OSStatus rtos_oneshot_reload_timer( beken2_timer_t* timer)
     return kNoErr;
 }
 
-OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer, 
-									uint32_t time_ms, 
-									timer_2handler_t function,
-									void* larg, 
-									void* rarg )
+OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
+                                    uint32_t time_ms,
+                                    timer_2handler_t function,
+                                    void* larg,
+                                    void* rarg )
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("create oneshot_timer \n");
     timer->function = function;
     timer->left_arg = larg;
-    timer->right_arg = rarg;	
-	timer->beken_magic = BEKEN_MAGIC_WORD;
-	timer->time_ms = time_ms;
-	timer->handle = djytimer_create(time_ms, 1,timer_oneshot_callback, timer);
+    timer->right_arg = rarg;
+    timer->beken_magic = BEKEN_MAGIC_WORD;
+    timer->time_ms = time_ms;
+    timer->handle = djytimer_create(time_ms, 1,timer_oneshot_callback, timer);
     if ( timer->handle == NULL )
     {
         ret = kGeneralErr;
@@ -430,7 +488,7 @@ OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
 
 OSStatus rtos_deinit_oneshot_timer( beken2_timer_t* timer )
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("delete oneshot_timer \n");
     djytimer_free(timer->handle);
@@ -508,7 +566,7 @@ OSStatus rtos_change_period( beken_timer_t* timer, uint32_t time_ms)
 
 OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_t function, void* arg)
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("create period_timer \n");
     timer->function = function;
@@ -525,7 +583,7 @@ OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_
 
 OSStatus rtos_deinit_timer( beken_timer_t* timer )
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("delete period_timer \n");
     djytimer_free(timer->handle);

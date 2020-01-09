@@ -57,6 +57,9 @@ static SDD_OPERATIONS sctrl_op =
     sctrl_ctrl
 };
 
+UINT32 rf_sleeped = 0;
+UINT32 sta_rf_sleeped = 0;
+
 extern void WFI( void );
 /**********************************************************************/
 #if DPLL_DELAY_EN
@@ -311,14 +314,7 @@ void sctrl_init(void)
     sctrl_ctrl(CMD_SCTRL_MAC_POWERUP, NULL);
     sctrl_ctrl(CMD_SCTRL_MODEM_POWERUP, NULL);
 
-    /*sys_ctrl <0x16>, trig spi */
-    //170209,from 0x819A54B to 0x819A55B for auto detect dpll unlock
-    //170614 from 0x819A55B to 0x819A59B for more easy to trigger
-    #if (CFG_SOC_NAME == SOC_BK7231)  
     param = 0x819A59B;
-    #else
-    param = 0xF819A59B;//0x819A59B;
-    #endif // (CFG_SOC_NAME == SOC_BK7231) 
     sctrl_analog_set(SCTRL_ANALOG_CTRL0, param);
     
     sctrl_cali_dpll(0);
@@ -339,14 +335,20 @@ void sctrl_init(void)
     param |= ((0x10&XTALH_CTUNE_MASK) << XTALH_CTUNE_POSI);
     #endif // (CFG_SOC_NAME == SOC_BK7231)
     sctrl_analog_set(SCTRL_ANALOG_CTRL2, param);
-    
+
+    #if (CFG_SOC_NAME == SOC_BK7221U)
+    param = CHARGE_ANALOG_CTRL3_CHARGE_DEFAULT_VALUE;
+    #else
     param = 0x4FE06C50;
+    #endif
     sctrl_analog_set(SCTRL_ANALOG_CTRL3, param);
 
     /*sys_ctrl <0x1a> */
     #if (CFG_SOC_NAME == SOC_BK7231)
     param = 0x59E04520;
-    #else	
+    #elif (CFG_SOC_NAME == SOC_BK7221U)
+    param = CHARGE_ANALOG_CTRL4_CHARGE_DEFAULT_VALUE;
+    #else
     param = 0x59C04520;  // 0x59E04520 
     #endif // (CFG_SOC_NAME == SOC_BK7231)
     sctrl_analog_set(SCTRL_ANALOG_CTRL4, param);
@@ -360,14 +362,12 @@ void sctrl_init(void)
 	REG_WRITE(SCTRL_CLK_GATING, 0x3f);
 
 	/* increase VDD voltage*/
-	reg = REG_READ(SCTRL_DIGTAL_VDD);
-	reg &= (~(DIG_VDD_ACTIVE_MASK << DIG_VDD_ACTIVE_POSI));
     #if CFG_SYS_REDUCE_NORMAL_POWER
-	reg |= (4 << DIG_VDD_ACTIVE_POSI);
+	param = 4;
     #else
-	reg |= (5 << DIG_VDD_ACTIVE_POSI);
+	param = 5;
     #endif
-	REG_WRITE(SCTRL_DIGTAL_VDD, reg);
+    sctrl_ctrl(CMD_SCTRL_SET_VDD_VALUE, &param);
 
 	#if CFG_USE_STA_PS
 	/*32K Rosc calib*/
@@ -376,15 +376,16 @@ void sctrl_init(void)
 
     #if (CFG_SOC_NAME == SOC_BK7221U)
     #if (CFG_USE_AUDIO)
-    sctrl_analog_set(SCTRL_ANALOG_CTRL8, 0x0033187C);
-    sctrl_analog_set(SCTRL_ANALOG_CTRL9, 0x82204007);
-    sctrl_analog_set(SCTRL_ANALOG_CTRL10, 0x80801427);
+    sctrl_analog_set(SCTRL_ANALOG_CTRL8, 0x0033587C);
+    sctrl_analog_set(SCTRL_ANALOG_CTRL9, 0x82204607);
+    sctrl_analog_set(SCTRL_ANALOG_CTRL10, 0x80801027);
     #endif // CFG_USE_AUDIO
     #endif // (CFG_SOC_NAME == SOC_BK7221U)
 
 	#if (RHINO_CONFIG_CPU_PWR_MGMT & CFG_USE_STA_PS)
 	sctrl_mcu_init();
 	#endif
+
 }
 
 void sctrl_exit(void)
@@ -411,6 +412,52 @@ void ps_delay(volatile UINT16 times)
 	UINT32	delay = times;
     while(delay--) ;
 }
+
+static void sctrl_unconditional_mac_sleep(void)
+{
+    UINT32 reg;
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+
+    if(sta_rf_sleeped == 0)
+    {
+        /* MAC AHB slave clock disable */
+        reg = REG_READ(SCTRL_MODEM_CORE_RESET_PHY_HCLK);
+        reg &= ~MAC_HCLK_EN_BIT;
+        REG_WRITE(SCTRL_MODEM_CORE_RESET_PHY_HCLK, reg);
+        /* Mac Subsystem clock 480m disable*/
+        reg = REG_READ(SCTRL_CONTROL);
+        REG_WRITE(SCTRL_CONTROL, reg | MAC_CLK480M_PWD_BIT);
+        PS_DEBUG_CK_TRIGER;
+
+        sta_rf_sleeped = 1;
+    }
+    
+    GLOBAL_INT_RESTORE();
+}
+static void sctrl_unconditional_mac_wakeup(void)
+{
+    UINT32 reg;
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    if( sta_rf_sleeped == 1 )
+    {
+        
+        /* MAC AHB slave clock enable*/
+        reg = REG_READ(SCTRL_MODEM_CORE_RESET_PHY_HCLK);
+        REG_WRITE(SCTRL_MODEM_CORE_RESET_PHY_HCLK, reg | MAC_HCLK_EN_BIT);
+        
+        /* Mac Subsystem clock 480m enable*/
+        reg = REG_READ(SCTRL_CONTROL);
+        reg &= ~MAC_CLK480M_PWD_BIT;
+        REG_WRITE(SCTRL_CONTROL, reg);
+        sta_rf_sleeped = 0;
+    }
+    GLOBAL_INT_RESTORE();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 
 void sctrl_ps_dump()
 {
@@ -447,6 +494,9 @@ void sctrl_hw_sleep(UINT32 peri_clk)
         flash_set_line_mode(2);
     }
 
+    reg = REG_READ(ICU_INTERRUPT_ENABLE);
+    reg &= ~(CO_BIT(FIQ_DPLL_UNLOCK));
+    REG_WRITE(ICU_INTERRUPT_ENABLE, reg);
 
     if(power_save_if_rf_sleep())
     {
@@ -454,6 +504,16 @@ void sctrl_hw_sleep(UINT32 peri_clk)
         reg |= (MAC_ARM_WAKEUP_EN_BIT);
     	REG_WRITE(ICU_ARM_WAKEUP_EN, reg);      
     }
+    
+    #if CFG_USE_BLE_PS
+    if(if_ble_sleep())
+    {
+        reg = REG_READ(ICU_ARM_WAKEUP_EN);
+        reg |= (BLE_ARM_WAKEUP_EN_BIT);
+        REG_WRITE(ICU_ARM_WAKEUP_EN, reg);
+    }
+    #endif
+    
     PS_DEBUG_DOWN_TRIGER;
 
 #if (CFG_SOC_NAME == SOC_BK7231)
@@ -583,6 +643,11 @@ void sctrl_hw_wakeup()
     REG_WRITE(SCTRL_ROSC_CAL, 0x35);
     REG_WRITE(SCTRL_ROSC_CAL, 0x37);
 #endif
+
+    reg = REG_READ(ICU_INTERRUPT_ENABLE);
+    reg |= (CO_BIT(FIQ_DPLL_UNLOCK));
+    REG_WRITE(ICU_INTERRUPT_ENABLE, reg);
+    
     if(4 == flash_get_line_mode())
     {
         flash_set_line_mode(4);
@@ -590,6 +655,15 @@ void sctrl_hw_wakeup()
 	PS_DEBUG_BCN_TRIGER;       
 }
 
+UINT8 sctrl_if_rf_sleep(void)
+{
+    UINT32 value;
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    value =  rf_sleeped;
+    GLOBAL_INT_RESTORE();
+    return value;
+}
 #if CFG_USE_STA_PS
 void sctrl_rf_sleep(void)
 {
@@ -686,13 +760,13 @@ void sctrl_mcu_sleep(UINT32 peri_clk)
 #if (CHIP_U_MCU_WKUP_USE_TIMER && (CFG_SOC_NAME != SOC_BK7231))
         reg |= (TIMER_ARM_WAKEUP_EN_BIT | UART2_ARM_WAKEUP_EN_BIT
             #if (!PS_NO_USE_UART1_WAKE)
-            | UART1_ARM_WAKEUP_EN_BIT
+            | UART1_ARM_WAKEUP_EN_BIT| GPIO_ARM_WAKEUP_EN_BIT
             #endif
             );
 #else
         reg |= (PWM_ARM_WAKEUP_EN_BIT | UART2_ARM_WAKEUP_EN_BIT
             #if (!PS_NO_USE_UART1_WAKE)
-            | UART1_ARM_WAKEUP_EN_BIT
+            | UART1_ARM_WAKEUP_EN_BIT| GPIO_ARM_WAKEUP_EN_BIT
             #endif
             );
 #endif
@@ -732,11 +806,6 @@ UINT32 sctrl_mcu_wakeup(void)
         #if PS_CLOSE_PERI_CLK
         REG_WRITE(ICU_PERI_CLK_PWD, ps_saves[0].peri_clk_cfg);
         #endif
-        
-        reg = REG_READ(ICU_ARM_WAKEUP_EN); 
-        reg &= ~(PWM_ARM_WAKEUP_EN_BIT);
-    	REG_WRITE(ICU_ARM_WAKEUP_EN, reg);   
-
         wkup_type = 1;
     }
     else
@@ -829,12 +898,18 @@ void sctrl_subsys_power(UINT32 cmd)
 
     case CMD_SCTRL_USB_POWERDOWN:
         reg = SCTRL_USB_PWR;
-        reg_word = USB_PWD;
+        reg_val = REG_READ(SCTRL_USB_PWR);
+        reg_val &= ~(USB_PWD_MASK << USB_PWD_POSI);
+        reg_val |= USB_PWD << USB_PWD_POSI;
+        reg_word = reg_val;
         break;
 
     case CMD_SCTRL_USB_POWERUP:
         reg = SCTRL_USB_PWR;
-        reg_word = USB_PWU;
+        reg_val = REG_READ(SCTRL_USB_PWR);
+        reg_val &= ~(USB_PWD_MASK << USB_PWD_POSI);
+        reg_val |= USB_PWU << USB_PWD_POSI;
+        reg_word = reg_val;
         break;
 
     case CMD_SCTRL_MAC_POWERDOWN:
@@ -1145,10 +1220,15 @@ void sctrl_enter_rtos_deep_sleep(PS_DEEP_CTRL_PARAM deep_param)
 //  reg = REG_READ(SCTRL_ROSC_TIMER);
 //  reg &= ~ (ROSC_TIMER_ENABLE_BIT);
 //  REG_WRITE(SCTRL_ROSC_TIMER,reg);
+	/*  disable gpio0~31*/
+    REG_WRITE(SCTRL_GPIO_WAKEUP_EN,0x0);  //sys_ctrl : 0x48;
+    REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS,0xFFFFFFFF);  //sys_ctrl : 0x4a; 
+    
+	/*	disable gpio32~39*/
+	REG_WRITE(SCTRL_GPIO_WAKEUP_EN1,0x0);  //sys_ctrl : 0x51;
+	REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS1,0xFF);  //sys_ctrl : 0x53; 
 
-    REG_WRITE(SCTRL_GPIO_WAKEUP_EN,0x0); 
-
-    REG_WRITE(SCTRL_BLOCK_EN_MUX, 0x0);
+    REG_WRITE(SCTRL_BLOCK_EN_MUX, 0x0);   //sys_ctrl : 0x4F;
 #if 1
     /* ROSC_POWER DOWN*/
     reg = REG_READ(SCTRL_SLEEP);
@@ -1216,61 +1296,146 @@ void sctrl_enter_rtos_deep_sleep(PS_DEEP_CTRL_PARAM deep_param)
     REG_WRITE(SCTRL_CONTROL,reg); //sys_ctrl : 0x02;
 #endif
     ps_delay(10);
-#if 0
-    /* ALL disable*/
-    reg = 0x0;
-    reg &= ~(BLOCK_EN_WORD_MASK << BLOCK_EN_WORD_POSI);
-    reg = reg | (BLOCK_EN_WORD_PWD << BLOCK_EN_WORD_POSI);
-    reg &= ~(BLOCK_EN_VALID_MASK);
-    REG_WRITE(SCTRL_BLOCK_EN_CFG, reg); 
-
-    reg = 0xFFFFFFFF;
-    REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS,reg);
-#endif
-    if(deep_param.deep_wkway == PS_DEEP_WAKEUP_RTC
-        && deep_param.param != 0xffffffff)
+    if (((deep_param.wake_up_way == PS_DEEP_WAKEUP_RTC) || (deep_param.wake_up_way & PS_DEEP_WAKEUP_GPIO_RTC))
+		&& (deep_param.sleep_time!= 0xffffffff))
     {
+	/*ROSC_TIMER  init*/
+#if (CFG_SOC_NAME == SOC_BK7221U)
+		reg = (deep_param.sleep_time >> 16)& 0xffff;                                          //'A'
+		REG_WRITE(SCTRL_ROSC_TIMER_PERIOD_HIGH,reg);
+#endif
+
+        reg = REG_READ(SCTRL_SLEEP);
+        reg &= reg & (~ROSC_PWD_DEEPSLEEP_BIT);
+        REG_WRITE(SCTRL_SLEEP, reg);  
+
         reg = REG_READ(SCTRL_ROSC_TIMER);
-        reg |= ROSC_TIMER_INT_STATUS_BIT;
-        REG_WRITE(SCTRL_ROSC_TIMER,reg);
+        reg |= ROSC_TIMER_INT_STATUS_BIT;                                                                   //'C'
+        REG_WRITE(SCTRL_ROSC_TIMER,reg);  //sys_ctrl : 0x47;
+		
         reg = REG_READ(SCTRL_ROSC_TIMER);
         reg &= ~(ROSC_TIMER_PERIOD_MASK << ROSC_TIMER_PERIOD_POSI);
-        reg |= (deep_param.param << ROSC_TIMER_PERIOD_POSI);
-        REG_WRITE(SCTRL_ROSC_TIMER,reg);
+        reg |= ((deep_param.sleep_time & ROSC_TIMER_PERIOD_MASK) << ROSC_TIMER_PERIOD_POSI);
+        REG_WRITE(SCTRL_ROSC_TIMER,reg);   //sys_ctrl : 0x47;                         //'D'
+		
         reg = REG_READ(SCTRL_ROSC_TIMER);
-        reg |= ROSC_TIMER_ENABLE_BIT;
-        REG_WRITE(SCTRL_ROSC_TIMER,reg);
-
-        reg = REG_READ(SCTRL_SLEEP);
-        reg &= ~(ROSC_PWD_DEEPSLEEP_BIT);
-        REG_WRITE(SCTRL_SLEEP, reg); 
-
+        reg |= ROSC_TIMER_ENABLE_BIT;                                                                              
+        REG_WRITE(SCTRL_ROSC_TIMER,reg);  //sys_ctrl : 0x47;                             //'B'
+    
         reg = 0x0;
-        reg &= ~(BLOCK_EN_WORD_MASK << BLOCK_EN_WORD_POSI);
-        reg = reg | (BLOCK_EN_WORD_PWD << BLOCK_EN_WORD_POSI);
-        reg |= (BLK_EN_ANALOG_SYS_LDO | BLK_EN_NC0);
-        REG_WRITE(SCTRL_BLOCK_EN_CFG, reg); 
-        reg = REG_READ(SCTRL_BLOCK_EN_MUX);
-        reg &= (~0x1FF);
-        reg |= (0x1 << 8);
-        REG_WRITE(SCTRL_BLOCK_EN_MUX, reg);        
-    }    
-    else if(deep_param.deep_wkway == PS_DEEP_WAKEUP_GPIO)
-    {
-        reg = 0xFFFFFFFF;
-        REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS,reg);        
-        reg = deep_param.gpio_lv;
-        REG_WRITE(SCTRL_GPIO_WAKEUP_TYPE,reg);
-        reg = deep_param.param;
-        REG_WRITE(SCTRL_GPIO_WAKEUP_EN,reg); 
-
-        reg = REG_READ(SCTRL_SLEEP);
-        reg |= (ROSC_PWD_DEEPSLEEP_BIT);
-        REG_WRITE(SCTRL_SLEEP, reg); 
+       // reg &= ~(BLOCK_EN_WORD_MASK << BLOCK_EN_WORD_POSI);
+        //reg = reg | (BLOCK_EN_WORD_PWD << BLOCK_EN_WORD_POSI);
+       // reg |= (BLK_EN_ANALOG_SYS_LDO | BLK_EN_DIGITAL_CORE);
+       	reg = (reg &(~(BLOCK_EN_WORD_MASK << 20))&(~(0x7FFFUL<<5)) &(~(0x01UL<<1)));
+       	reg = (reg |(BLOCK_EN_WORD_PWD<< 20 )|BLK_EN_FLASH|BLK_EN_ROSC32K|BLK_EN_26M_XTAL|BLK_EN_32K_XTAL|BLK_EN_DIGITAL_CORE|BLK_EN_ANALOG_SYS_LDO);
+        REG_WRITE(SCTRL_BLOCK_EN_CFG, reg);                  //sys_ctrl : 0x4B;                   //'E'
+        
+        reg = REG_READ(SCTRL_ROSC_CAL);                           //ROSC Calibration disable
+        reg =(reg  & (~0x01));
+        REG_WRITE(SCTRL_ROSC_CAL, reg);   
+		
+		REG_WRITE(SCTRL_CONTROL, 0x330100);
+        REG_WRITE(SCTRL_BLOCK_EN_CFG, (0x15D|(0xA5C<<20)));
+        REG_WRITE(SCTRL_ROSC_CAL, 0x30);
+        REG_WRITE(SCTRL_LOW_PWR_CLK, 0x01);
+        REG_WRITE(SCTRL_MODEM_CORE_RESET_PHY_HCLK, 0x03);
+        REG_WRITE(SCTRL_CLK_GATING, 0x1ff);
     }
 
-    ps_delay(10);
-    /* arm clock disable */
+	if ((deep_param.wake_up_way == PS_DEEP_WAKEUP_GPIO) || (deep_param.wake_up_way & PS_DEEP_WAKEUP_GPIO_RTC))
+    {
+		for(i=0; i<GPIONUM; i++)
+		{
+            param = GPIO_CFG_PARAM(i, GMODE_SET_HIGH_IMPENDANCE);	/*set gpio 0~39 as high impendance*/
+            sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+		}
+
+		for (i = 0; i < GPIONUM; i++)
+    	{		
+        	if (deep_param.gpio_index_map & (0x01UL << i))			/*set gpio 0~31 mode*/
+        	{
+            	if(deep_param.gpio_index_map & deep_param.gpio_edge_map & (0x01UL << i))
+            	{
+            		param = GPIO_CFG_PARAM(i, GMODE_INPUT_PULLUP);
+                    sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+                    if(0x1 != (UINT32)gpio_ctrl( CMD_GPIO_INPUT, &i))
+                    {   /*check gpio really input value,to correct wrong edge setting*/
+                        deep_param.gpio_edge_map &= ~(0x01UL << i);
+                    }
+            	}
+            	else
+            	{
+                	param = GPIO_CFG_PARAM(i, GMODE_INPUT_PULLDOWN);
+                    sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+                    if(0x0 != (UINT32)gpio_ctrl( CMD_GPIO_INPUT, &i))
+                    {   /*check gpio really input value,to correct wrong edge setting*/
+                        deep_param.gpio_edge_map |= (0x01UL << i);
+                    }
+            	}
+        	}
+			
+			if (deep_param.gpio_last_index_map & (0x01UL << i))				/*set gpio 32~39 mode*/
+        	{	
+            	if(deep_param.gpio_last_index_map & deep_param.gpio_last_edge_map  & (0x01UL << i))
+            	{
+            		param = GPIO_CFG_PARAM(i+32, GMODE_INPUT_PULLUP);
+            		sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param); 
+                    reg = i+32;
+                    if(0x1 != (UINT32)gpio_ctrl( CMD_GPIO_INPUT, &reg))
+                    {   /*check gpio really input value,to correct wrong edge setting*/
+                        deep_param.gpio_last_edge_map &= ~(0x01UL << i);
+                    }
+            	}
+            	else
+            	{
+                	param = GPIO_CFG_PARAM(i+32, GMODE_INPUT_PULLDOWN);
+                	sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);  
+                    reg = i+32;
+                    if(0x0 != (UINT32)gpio_ctrl( CMD_GPIO_INPUT, &reg))
+                    {   /*check gpio really input value,to correct wrong edge setting*/
+                        deep_param.gpio_last_edge_map |= (0x01UL << i);
+                    }
+            	}
+        	}			
+    	}
+		/* set gpio 0~31 mode*/
+        reg = 0xFFFFFFFF;
+        REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS,reg);        
+        reg = deep_param.gpio_edge_map;
+        REG_WRITE(SCTRL_GPIO_WAKEUP_TYPE,reg);
+        reg = deep_param.gpio_index_map;
+        REG_WRITE(SCTRL_GPIO_WAKEUP_EN,reg); 
+		
+		/* set gpio 31~32 mode*/
+        reg = 0xFF;
+        REG_WRITE(SCTRL_GPIO_WAKEUP_INT_STATUS1,reg);        
+        reg = deep_param.gpio_last_edge_map;
+        REG_WRITE(SCTRL_GPIO_WAKEUP_TYPE1,reg);
+        reg = deep_param.gpio_last_index_map;
+        REG_WRITE(SCTRL_GPIO_WAKEUP_EN1,reg); 	
+    }	
+   
+#ifdef BK_DEEP_SLEEP_DEBUG
+	BK_DEEP_SLEEP_PRT("SCTRL_CONTROL=0x%08X\r\n", REG_READ(SCTRL_CONTROL)); 
+	BK_DEEP_SLEEP_PRT("SCTRL_SLEEP=0x%08X\r\n", REG_READ(SCTRL_SLEEP)); 
+	BK_DEEP_SLEEP_PRT("SCTRL_ROSC_TIMER=0x%08X\r\n", REG_READ(SCTRL_ROSC_TIMER));
+	BK_DEEP_SLEEP_PRT("SCTRL_BLOCK_EN_CFG=0x%08X\r\n", REG_READ(SCTRL_BLOCK_EN_CFG));
+	BK_DEEP_SLEEP_PRT("SCTRL_ROSC_CAL=0x%08X\r\n", REG_READ(SCTRL_ROSC_CAL));
+	BK_DEEP_SLEEP_PRT("SCTRL_BLOCK_EN_MUX=0x%08X\r\n", REG_READ(SCTRL_BLOCK_EN_MUX));
+	BK_DEEP_SLEEP_PRT("SCTRL_LOW_PWR_CLK=0x%08X\r\n", REG_READ(SCTRL_LOW_PWR_CLK));
+	BK_DEEP_SLEEP_PRT("SCTRL_PWR_MAC_MODEM=0x%08X\r\n", REG_READ(SCTRL_PWR_MAC_MODEM));
+	BK_DEEP_SLEEP_PRT("SCTRL_MODEM_CORE_RESET_PHY_HCLK=0x%08X\r\n", REG_READ(SCTRL_MODEM_CORE_RESET_PHY_HCLK));
+	BK_DEEP_SLEEP_PRT("SCTRL_CLK_GATING=0x%08X\r\n", REG_READ(SCTRL_CLK_GATING));
+	BK_DEEP_SLEEP_PRT("SCTRL_GPIO_WAKEUP_INT_STATUS=0x%08X\r\n", REG_READ(SCTRL_GPIO_WAKEUP_INT_STATUS));
+	BK_DEEP_SLEEP_PRT("SCTRL_GPIO_WAKEUP_TYPE=0x%08X\r\n", REG_READ(SCTRL_GPIO_WAKEUP_TYPE));
+	BK_DEEP_SLEEP_PRT("SCTRL_GPIO_WAKEUP_EN=0x%08X\r\n", REG_READ(SCTRL_GPIO_WAKEUP_EN));
+	BK_DEEP_SLEEP_PRT("SCTRL_GPIO_WAKEUP_INT_STATUS1=0x%08X\r\n", REG_READ(SCTRL_GPIO_WAKEUP_INT_STATUS1));
+	BK_DEEP_SLEEP_PRT("SCTRL_GPIO_WAKEUP_TYPE1=0x%08X\r\n", REG_READ(SCTRL_GPIO_WAKEUP_TYPE1));
+	BK_DEEP_SLEEP_PRT("SCTRL_GPIO_WAKEUP_EN1=0x%08X\r\n", REG_READ(SCTRL_GPIO_WAKEUP_EN1));	
+#endif      
+
+    /* enter deep_sleep mode */
+
     reg = REG_READ(SCTRL_SLEEP);
     reg &= ~(SLEEP_MODE_MASK << SLEEP_MODE_POSI);
     reg = reg | SLEEP_MODE_CFG_DEEP_WORD;
@@ -1310,6 +1475,29 @@ static int sctrl_read_efuse(void *param)
     return ret;
 }
 
+static int check_efuse_can_write(UINT8 new_byte, UINT8 old_byte)
+{
+    if(new_byte == old_byte) 
+    {
+        // no need to read
+        return 1;
+    }
+
+    for(int i=0; i<8; i++) 
+    {
+        UINT8 old_bit = ((old_byte >> i) & 0x01);
+        UINT8 new_bit = ((new_byte >> i) & 0x01);
+
+        if ((old_bit) && (!new_bit))
+        {
+            // can not change old from 1 to 0
+            return 0;
+        } 
+    }
+
+    return 2;
+}
+
 static int sctrl_write_efuse(void *param)
 {
     UINT32 reg, ret = -1;
@@ -1320,9 +1508,12 @@ static int sctrl_write_efuse(void *param)
         efuse_bak.addr = efuse->addr;
         efuse_bak.data = efuse->data;        
         if(sctrl_read_efuse(&efuse_bak) == 0) {
-             //read before write, ensure this byte no wrote
-             if(EFUSE_INIT_VAL != efuse_bak.data)
+             //read before write, ensure this byte and this bit no wrote
+             ret = check_efuse_can_write(efuse->data, efuse_bak.data);
+             if(ret == 0)
                 return -1; 
+             else if(ret == 1)
+                return 0;
         }      
 
         // enable vdd2.5v first
@@ -1629,7 +1820,7 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
 {
     UINT32 ret;
     UINT32 reg;
-
+    GLOBAL_INT_DECLARATION();
     ret = SCTRL_SUCCESS;
     switch(cmd)
     {
@@ -1766,9 +1957,13 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
 
     case CMD_SCTRL_BLK_DISABLE:
 //        CHECK_OPERATE_RF_REG_IF_IN_SLEEP();
+        GLOBAL_INT_DISABLE();
         reg = REG_READ(SCTRL_BLOCK_EN_CFG);
+        reg &= (~(BLOCK_EN_WORD_MASK << BLOCK_EN_WORD_POSI));
+        reg |= (BLOCK_EN_WORD_PWD & BLOCK_EN_WORD_MASK) << BLOCK_EN_WORD_POSI;
         reg &= ~((*(UINT32 *)param) & BLOCK_EN_VALID_MASK);
         REG_WRITE(SCTRL_BLOCK_EN_CFG, reg);
+        GLOBAL_INT_RESTORE();
 //        CHECK_OPERATE_RF_REG_IF_IN_SLEEP_END();
         break;
 
@@ -1947,6 +2142,120 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
         }
         break;
 
+    case CMD_SCTRL_SET_AUD_DAC_MUTE:
+        reg = sctrl_analog_get(SCTRL_ANALOG_CTRL8);
+        if((*(UINT32 *)param) == AUDIO_DAC_ANALOG_MUTE)
+        {
+            reg |= (AUD_DAC_MUTE_EN);
+            sctrl_analog_set(SCTRL_ANALOG_CTRL8, reg);
+        }
+        else if((*(UINT32 *)param) == AUDIO_DAC_ANALOG_UNMUTE)
+        {
+            reg &= ~(AUD_DAC_MUTE_EN);
+            sctrl_analog_set(SCTRL_ANALOG_CTRL8, reg);
+        }        
+        break;
+	case CMD_SCTRL_SET_ANALOG6:
+		reg = sctrl_analog_get(SCTRL_ANALOG_CTRL6);
+		reg |= (DPLL_CLK_FOR_AUDIO_EN | DPLL_DIVIDER_CLK_SEL | DPLL_RESET );
+		sctrl_analog_set(SCTRL_ANALOG_CTRL6, reg);
+		break;
+	case CMD_SCTRL_SET_ANALOG0:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL0, 0x7819A59B);
+		break;
+	case CMD_SCTRL_SET_ANALOG1:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL1, 0x6AC03102);
+		break;
+	case CMD_SCTRL_SET_ANALOG2:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL2, (*(UINT32 *)param));
+		break;
+	case CMD_SCTRL_SET_ANALOG3:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL3, (*(UINT32 *)param));
+		break;
+	case CMD_SCTRL_SET_ANALOG4:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL4, (*(UINT32 *)param));
+		break;
+	case CMD_SCTRL_SET_ANALOG5:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL5, 0x3B13B13B);
+		break;
+	case CMD_SCTRL_SET_ANALOG7:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL7, (*(UINT32 *)param));
+		break;
+	case CMD_SCTRL_SET_ANALOG8:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL8, 0x003B187C);
+		break;
+	case CMD_SCTRL_SET_ANALOG9:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL9, 0x82204007);
+		break;	
+	case CMD_SCTRL_SET_ANALOG10:
+		sctrl_analog_set(SCTRL_ANALOG_CTRL10, 0x80801432);
+		break;
+	case CMD_SCTRL_GET_ANALOG0:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL0);
+		break;
+	case CMD_SCTRL_GET_ANALOG1:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL1);
+		break;
+	case CMD_SCTRL_GET_ANALOG2:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL2);
+		break;
+	case CMD_SCTRL_GET_ANALOG3:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL3);
+		break;
+	case CMD_SCTRL_GET_ANALOG4:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL4);
+		break;
+	case CMD_SCTRL_GET_ANALOG5:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL5);
+		break;
+	case CMD_SCTRL_GET_ANALOG7:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL7);
+		break;
+	case CMD_SCTRL_GET_ANALOG8:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL8);
+		break;
+	case CMD_SCTRL_GET_ANALOG9:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL9);
+		break;	
+	case CMD_SCTRL_GET_ANALOG10:
+		ret = sctrl_analog_get(SCTRL_ANALOG_CTRL10);
+		break;
+        
+	case CMD_SCTRL_AUDIO_PLL:	
+		if((*(UINT32 *)param) == 48000000)						//48MHz
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3B13B13B);
+		}
+		else if((*(UINT32 *)param) == 48128000)					//48.128MHz
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3B3C05AC);
+		}
+		else if((*(UINT32 *)param) == 48384000)					//48.384MHz
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3B8CAE8E);
+		}
+		else if((*(UINT32 *)param) == 49152000)					//49.152MHz
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3C7EA932);
+		}
+		else if((*(UINT32 *)param) == 49392000)					//49.392MHz
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3CCA4785);
+		}
+		else if((*(UINT32 *)param) == 50688000)					//50.688MHz
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3E629E7C);
+		}
+		else if((*(UINT32 *)param) == 50803200)					//50.8032MHz
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3E86EA7A);
+		}
+		else
+		{
+			sctrl_analog_set(SCTRL_ANALOG_CTRL5,0x3B13B13B);
+		}		
+		break;
+
 #if CFG_USE_USB_CHARGE
     case CMD_SCTRL_USB_CHARGE_CAL:
         if(1 == ((CHARGE_OPER_PTR)param)->oper)
@@ -1980,6 +2289,29 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
 //        break;
         
 #endif // (CFG_SOC_NAME == SOC_BK7221U)
+
+    case CMD_SCTRL_SET_VDD_VALUE:
+    	reg = REG_READ(SCTRL_DIGTAL_VDD);
+    	reg &= (~(DIG_VDD_ACTIVE_MASK << DIG_VDD_ACTIVE_POSI));
+        reg |=((*(UINT32 *)param) << DIG_VDD_ACTIVE_POSI);
+    	REG_WRITE(SCTRL_DIGTAL_VDD, reg);
+        break;
+
+    case CMD_SCTRL_UNCONDITIONAL_MAC_DOWN:
+	    sctrl_unconditional_mac_sleep();
+        break;
+
+    case CMD_SCTRL_UNCONDITIONAL_MAC_UP:
+        sctrl_unconditional_mac_wakeup();
+        break;
+        
+    case CMD_SCTRL_UNCONDITIONAL_RF_DOWN:
+    	sctrl_rf_sleep();
+        break;
+
+    case CMD_SCTRL_UNCONDITIONAL_RF_UP:
+        sctrl_rf_wakeup();
+        break;
     default:
         ret = SCTRL_FAILURE;
         break;

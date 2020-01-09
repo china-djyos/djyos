@@ -85,7 +85,7 @@
 //%$#@end configue  ****≤Œ ˝≈‰÷√Ω· ¯
 //@#$%component end configure
 
-static AUD_ADC_CFG_ST aud_adc;
+static AUD_ADC_CFG_ST aud_adc = {0};
 
 void djy_audio_adc_open(uint16_t buf_len,uint16_t channel,
         audio_sample_rate_e freq,uint32_t linein_detect_pin)
@@ -137,7 +137,12 @@ void djy_audio_adc_control( uint32_t cmd, void *args)
 void djy_audio_adc_close(void)
 {
     audio_adc_close();
-    free(aud_adc.buf);
+    if (aud_adc.buf)
+    {
+        free(aud_adc.buf);
+    }
+
+    memset(&aud_adc, 0, sizeof(aud_adc));
 }
 
 

@@ -66,7 +66,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
+//    extern s32 ModuleInstall_FlashInstallXIP(const char *TargetFs,s32 bstart, s32 bend, u32 doformat);
 //    ModuleInstall_FlashInstallXIP(CFG_EFLASH_XIPFSMOUNT_NAME,CFG_EFLASH_XIP_PART_START,
 //                                              CFG_EFLASH_XIP_PART_END, CFG_EFLASH_XIP_PART_FORMAT);
 //%$#@end initcode  ****初始化代码结束
@@ -204,7 +204,10 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                     offset = (offset * 34 / 32) - offset;   //存在crc的bin文件，app的文件头要在这里先保留下来
                     app_head = malloc(offset + Get_AppHeadSize());
                     if(app_head == NULL)
+                    {
+                        djy_flash_req(unlock, 0);
                         return (-1);
+                    }
                     memcpy(app_head, cx->apphead, cx->Wappsize);
                     memcpy(app_head + cx->Wappsize, data, offset);
 
@@ -233,7 +236,10 @@ s32 xip_flash_write(struct __icore *core, u8 *data, u32 bytes, u32 pos)
                 {
                     offset = (offset * 34 / 32) - offset;       //保留下来的文件头，在这里重新填充数据，并计算crc
                     if(app_head == NULL)
+                    {
+                        djy_flash_req(unlock, 0);
                         return (-1);
+                    }
                     u8 *name = (u8 *)core->root->child->name;
                     u8 flag = 1;
                     u32 app_head_size = offset + Get_AppHeadSize();

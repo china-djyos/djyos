@@ -136,51 +136,51 @@ ghttp_uri_validate(char *a_uri)
   return(http_uri_parse(a_uri, NULL));
 }
 
-int
-ghttp_set_uri(ghttp_request *a_request, char *a_uri)
+int ghttp_set_uri(ghttp_request *a_request, char *a_uri)
 {
-  int l_rv = 0;
-  http_uri *l_new_uri = NULL;
+    int l_rv = 0;
+    http_uri *l_new_uri = NULL;
 
-  if ((!a_request) || (!a_uri))
-    return -1;
-  /* set the uri */
-  l_new_uri = http_uri_new();
-  l_rv = http_uri_parse(a_uri, l_new_uri);
-  if (l_rv < 0)
+    if ((!a_request) || (!a_uri))
+        return -1;
+    /* set the uri */
+    l_new_uri = http_uri_new();
+    l_rv = http_uri_parse(a_uri, l_new_uri);
+
+    if (l_rv < 0)
     {
-      http_uri_destroy(l_new_uri);
-      return -1;
+        http_uri_destroy(l_new_uri);
+        return -1;
     }
-  if (a_request->uri)
+    if (a_request->uri)
     {
-      /* check to see if this has been set yet. */
-      if (a_request->uri->host &&
-	  a_request->uri->port &&
-	  a_request->uri->resource)
-	{
-	  /* check to see if we just need to change the resource */
-	  if ((!strcmp(a_request->uri->host, l_new_uri->host)) &&
-	      (a_request->uri->port == l_new_uri->port))
-	    {
-	      free(a_request->uri->resource);
-	      /* make a copy since we're about to destroy it */
-	      a_request->uri->resource = strdup(l_new_uri->resource);
-	      http_uri_destroy(l_new_uri);
-	    }
-	  else
-	    {
-	      http_uri_destroy(a_request->uri);
-	      a_request->uri = l_new_uri;
-	    }
-	}
-      else
-	{
-	  http_uri_destroy(a_request->uri);
-	  a_request->uri = l_new_uri;
-	}
+        /* check to see if this has been set yet. */
+        if (a_request->uri->host &&
+                a_request->uri->port &&
+                a_request->uri->resource)
+        {
+            /* check to see if we just need to change the resource */
+            if ((!strcmp(a_request->uri->host, l_new_uri->host)) &&
+                    (a_request->uri->port == l_new_uri->port))
+            {
+                free(a_request->uri->resource);
+                /* make a copy since we're about to destroy it */
+                a_request->uri->resource = strdup(l_new_uri->resource);
+                http_uri_destroy(l_new_uri);
+            }
+            else
+            {
+                http_uri_destroy(a_request->uri);
+                a_request->uri = l_new_uri;
+            }
+        }
+        else
+        {
+            http_uri_destroy(a_request->uri);
+            a_request->uri = l_new_uri;
+        }
     }
-  return 0;
+    return 0;
 }
 
 int

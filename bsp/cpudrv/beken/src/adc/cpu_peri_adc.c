@@ -301,8 +301,16 @@ int vbat_voltage_get(void)
             j++;
         }
     }
-    AverageVbat = AverageVbat / j;
-    return AverageVbat;
+
+    if (j)
+    {
+        AverageVbat = AverageVbat / j;
+        return AverageVbat;
+    }
+    else
+    {
+        return 0;
+    }
 }
 static void temp_single_get_desc_init(void)
 {

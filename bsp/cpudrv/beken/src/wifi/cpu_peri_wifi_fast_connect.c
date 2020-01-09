@@ -121,8 +121,8 @@ int wlan_fast_connect_info_read(wlan_fast_connect_t *data_info)
         return -1;
 
     memset(data, 0, sizeof(struct wlan_fast_connect));
-//    djy_flash_read(FLASH_FAST_DATA_ADDR, data, sizeof(data));
-    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
+    djy_flash_read(FLASH_FAST_DATA_ADDR, data, sizeof(data));
+//    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
     crc1 = data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4];
     crc2 = wlan_standard_chksum(data, sizeof(struct wlan_fast_connect));
     if ((data[0] != ~0x0)   && (crc1 == crc2)) // 0xFFFFFFFF
@@ -150,19 +150,19 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
     if(data_info==NULL)
         return -1;
     memset(data, 0, sizeof(data));
-//    djy_flash_read(FLASH_FAST_DATA_ADDR, data, sizeof(data));
-    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
+    djy_flash_read(FLASH_FAST_DATA_ADDR, data, sizeof(data));
+//    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
     crc1 = wlan_standard_chksum(data_info, sizeof(struct wlan_fast_connect));
     crc2 = data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4];
     if ((memcmp(data, (uint8_t *) data_info, sizeof(struct wlan_fast_connect)) != 0) || (crc1 != crc2))
     {
         memcpy(data, data_info, sizeof(struct wlan_fast_connect));
         data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4] = crc1;
-//        flash_protection_op(0,FLASH_PROTECT_NONE);
-//        djy_flash_erase(FLASH_FAST_DATA_ADDR);
-//        djy_flash_write(FLASH_FAST_DATA_ADDR, (uint8_t *)data, sizeof(struct wlan_fast_connect) + 4);
-//        flash_protection_op(0,FLASH_PROTECT_ALL);
-        SetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(struct wlan_fast_connect) + 4);
+        flash_protection_op(0,FLASH_PROTECT_NONE);
+        djy_flash_erase(FLASH_FAST_DATA_ADDR);
+        djy_flash_write(FLASH_FAST_DATA_ADDR, (uint8_t *)data, sizeof(struct wlan_fast_connect) + 4);
+        flash_protection_op(0,FLASH_PROTECT_ALL);
+//        SetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(struct wlan_fast_connect) + 4);
     }
     return 0;
 }

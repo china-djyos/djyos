@@ -175,7 +175,7 @@ void Int_RestoreAsynSignal(void)
         {
             __Djy_Schedule();
 //                Int_ContactAsynSignal();    //汇编中已经打开，无须再调用
-        }   //else
+        }else
             Int_LowAtomEnd(tg_IntAsynStatus);
 //          Int_ContactAsynSignal();
     }else

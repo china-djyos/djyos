@@ -2939,6 +2939,18 @@ static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
     {
         __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
     }
+    if(ccb->machinestat==EN_TCP_MC_FINWAIT1 &&  !(ccb->channelstat & CN_TCP_CHANNEL_STATARCV))
+    {
+        //printf("==============__finwait1_ms==================!\r\n");
+        __sendflag(client,CN_TCP_FLAG_RST|CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
+        __ResetCCB(ccb, EN_TCP_MC_2FREE);
+    }
+    if(ccb->machinestat==EN_TCP_MC_FINWAIT2 &&  !(ccb->channelstat & CN_TCP_CHANNEL_STATARCV))
+    {
+        //printf("==============__finwait2_ms==================!\r\n");
+        __sendflag(client,CN_TCP_FLAG_RST|CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
+        __ResetCCB(ccb, EN_TCP_MC_2FREE);
+    }
     return true;
 }
 

@@ -82,7 +82,7 @@ static void qspi_icu_configuration(UINT32 enable)
         param = (FIQ_PSRAM_BIT);
         sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
 
-		param = BLK_BIT_MIC_R_CHANNEL;
+		param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;
     	sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_ENABLE, &param);
     }
     else
@@ -93,7 +93,7 @@ static void qspi_icu_configuration(UINT32 enable)
         param = PWD_QSPI_CLK_BIT;
 	    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, &param);
 
-		param = (~BLK_BIT_MIC_R_CHANNEL);
+		param = (~BLK_BIT_MIC_QSPI_RAM_OR_FLASH);
     	sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_ENABLE, &param);
     }
 }

@@ -76,6 +76,7 @@
 #include "dbug.h"
 #include "project_config.h"
 #include "Iboot_info.h"
+#include <wdt_pub.h>
 #if (CFG_RUNMODE_BAREAPP == 0)
 
 #define IAPBUF_SIZE   512
@@ -259,6 +260,7 @@ bool_t Iboot_UpdateApp(void)
                             printf("\b\b\b%2d%%",percentage);
                             percentage_last = percentage;
                         }
+                        sddev_control(WDT_DEV_NAME, WCMD_RELOAD_PERIOD, 0);
                         readsize = fread(buf, 1, IAPBUF_SIZE, srcapp);
                         if((readsize != IAPBUF_SIZE) && srcsize >= IAPBUF_SIZE)
                         {
@@ -301,6 +303,7 @@ bool_t Iboot_UpdateApp(void)
             }
             else
             {
+                fclose(srcapp);
                 error_printf("IAP","App file error .\r\n");
                 Djy_EventDelay(1000*1000);      //延时一下，让升级过程中的信息能打印出来
             }

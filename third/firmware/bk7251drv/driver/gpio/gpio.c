@@ -112,7 +112,9 @@ void gpio_config(UINT32 index, UINT32 mode)
     case GMODE_SECOND_FUNC_PULL_UP:
         val = 0x70;
         break;
-
+    case GMODE_SET_HIGH_IMPENDANCE:
+        val = 0x08;
+        break;
     default:
         overstep = 1;
 //        WARN_PRT("gpio_mode_exception:%d\r\n", mode);
@@ -354,14 +356,24 @@ static void gpio_enable_second_function(UINT32 func_mode)
         pmask = GPIO_SD_MODULE_MASK;
         break;
     case GFUNC_MODE_QSPI_1LINE:
-        start_index = 22;   //22 \ 16
-        end_index = 23;     //23 \ 17
+#if (1 == CFG_USE_QSPI_GPIO16_19)
+        start_index = 16;
+        end_index = 17;
+#else
+        start_index = 22;
+        end_index = 23;
+#endif
         pmode = PERIAL_MODE_3;
         break;   
 		
 	case GFUNC_MODE_QSPI_4LINE:
-        start_index = 20;   //20 \16
-        end_index = 23;     // 23   \19
+#if (1 == CFG_USE_QSPI_GPIO16_19)
+        start_index = 16;
+        end_index = 19;
+#else
+        start_index = 20;
+        end_index = 23;
+#endif
         pmode = PERIAL_MODE_3;
         break;    
 		

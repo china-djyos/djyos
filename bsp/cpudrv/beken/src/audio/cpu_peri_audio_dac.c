@@ -46,7 +46,7 @@
 #include "cpu_peri.h"
 #include "stdlib.h"
 
-static AUD_DAC_CFG_ST aud_dac;
+static AUD_DAC_CFG_ST aud_dac = {0};
 
 void djy_audio_dac_close(void);
 void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
@@ -88,10 +88,8 @@ void djy_audio_dac_close(void)
     int len_temp = 0;
     audio_dac_close();
     if(aud_dac.buf) {
-        buf_temp = aud_dac.buf;
-        len_temp = aud_dac.buf_len;
+        free(aud_dac.buf);
+        aud_dac.buf = NULL;
     }
     memset(&aud_dac,  0,  sizeof(aud_dac));
-    aud_dac.buf = buf_temp;
-    aud_dac.buf_len = len_temp;
 }

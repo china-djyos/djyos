@@ -59,7 +59,7 @@ extern void sdcard_uninitialize(void);
 void sdcard_power_on(void)
 {
     u32 param;
-    param = BLK_BIT_MIC_R_CHANNEL;                 //先使能电源
+    param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;                 //先使能电源
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_ENABLE, &param);
 //    param = QSPI_IO_3_3V;
 //    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_IO_VOLTAGE, &param);
@@ -77,21 +77,12 @@ void sdcard_power_off(void)
 
     sdcard_uninitialize();
 
-    param = BLK_BIT_MIC_R_CHANNEL;
+    param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_DISABLE, &param);
 //    param = QSPI_IO_1_8V;
 //    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_IO_VOLTAGE, &param);
     param = PSRAM_VDD_1_8V;
     sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
-
-    gpio_config(GPIO34,GMODE_OUTPUT);
-    gpio_output(GPIO34, 0);
-    gpio_config(GPIO35,GMODE_OUTPUT);
-    gpio_output(GPIO35, 0);
-    gpio_config(GPIO36,GMODE_OUTPUT);
-    gpio_output(GPIO36, 0);
-    gpio_config(GPIO12,GMODE_OUTPUT);
-    gpio_output(GPIO12, 0);
 }
 // =============================================================================
 // 功能：    复位sd卡

@@ -279,8 +279,8 @@ void sdcard_set_host_buswidth_1line(void)
 
 SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
 {
-    UINT32 reg, i;
-    while(1)
+    UINT32 reg, i, tout=100000;
+    while(tout--)
     {
         reg = REG_READ(REG_SDCARD_CMD_RSP_INT_SEL);
         if(reg & (SDCARD_CMDRSP_DATA_REC_END_INT
@@ -289,6 +289,11 @@ SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
         {
             break;
         }
+    }
+    if (0 == tout)
+    {
+        reg |= SDCARD_CMDRSP_DATA_TIME_OUT_INT;
+        printf("SDCARD_CMDRSP_DATA_TIME_OUT_INT\r\n");
     }
 
     REG_WRITE(REG_SDCARD_CMD_RSP_INT_SEL, SD_DATA_RSP);//clear the int flag
@@ -304,12 +309,17 @@ SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
 
     for (i = 0; i < SD_DEFAULT_BLOCK_SIZE ;)
     {
+        tout=100000;
         /* wait fifo data valid */
-        while(1)
+        while(tout--)
         {
             //software  needn't handle dead-loop,hardware can garantee
             if(REG_READ(REG_SDCARD_FIFO_THRESHOLD)&SDCARD_FIFO_RXFIFO_RD_READY)
                 break;
+        }
+        if (0 == tout)
+        {
+            break;
         }
         reg = REG_READ(REG_SDCARD_RD_DATA_ADDR);
         *(receive_buf+i++) = reg & 0xff;

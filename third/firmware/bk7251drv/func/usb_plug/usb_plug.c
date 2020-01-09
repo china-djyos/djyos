@@ -12,6 +12,11 @@
 #include "fake_clock_pub.h"
 #include "board.h"
 
+
+#define VBAT_VOL_HIGH       4150
+#define VBAT_VOL_START_CHR  4050
+#define VBAT_VOL_LOW        3350
+
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #if CFG_USE_USB_CHARGE
 UINT32 charge_elect = 530;
@@ -22,19 +27,18 @@ static int charge_started = 0;  //1 -- 正在充电；0 -- 当前未在充电
 int Get_StabilizeVol(void)
 {
     int vol;
-    if(charge_started == 1)
+    if(usb_is_pluged() != 0)
     {
         usb_charge_stop();
-//                printf("停止充电.\r\n");
         Djy_EventDelay(6000*1000);
+        vol = vbat_voltage_get();
+
+        if(charge_started == 1)
+            usb_charge_start();
+        vol -= 80;
     }
-    vol = vbat_voltage_get();
-    if(charge_started == 1)
-    {
-        usb_charge_start();
-//                printf("开始充电.\r\n");
-    }
-    vol -= 80;
+    else
+        vol = vbat_voltage_get();
     return vol;
 }
 
@@ -76,45 +80,62 @@ void usb_charge_stop()
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_USB_CHARGE_STOP, &charge_type);
 }
 
+// 1 -- 正在充电；0 -- 当前未在充电
+int usb_charge_get_state(void)
+{
+    return charge_started;
+}
+
 void usb_charge_check_cb(void)
 {
     UINT32 tmp;
-    int vol;
+    static int vol = 3700;
+    int tmpVol;
 
     if(charge_func_init && usb_is_pluged())
     {
 //        tmp = fclk_get_second();
 //        if(tmp > last_second)
 //        {
-            vol = vbat_voltage_get();
-            /*check per second,if charge full*/
-//          printf("内部充电检测到的电压 = %d.   charge_started = %d.\r\n",vol,charge_started);
-            if(charge_started == 1 && vol > 4300)
+        tmpVol = vbat_voltage_get();
+        if (tmpVol)
+        {
+            vol = vol*0.8 + tmpVol*0.2;
+        }
+
+        if (vol >= VBAT_VOL_HIGH)
+        {
+            if (1 == charge_started)
             {
                 usb_charge_stop();
                 charge_started = 0;
                 printf("charger_is_full %d\r\n",vol);
             }
-            else if(charge_started == 0 && vol < 4160)
+        }
+        else if (vol > VBAT_VOL_START_CHR)
+        {
+
+        }
+        else
+        {
+            if (0 == charge_started)
             {
                 usb_charge_start();
                 charge_started = 1;
                 printf("charger_start %d\r\n",vol);
             }
-
-//            last_second = tmp;
-//        }
-    }
-    else
-    {
-//      printf("检测到拔掉充电器时 charge_started = %d.\r\n",charge_started);
-        if(charge_started == 1)
-        {
-            usb_charge_stop();
-            charge_started = 0;
-            printf("Charger removal.\r\n");
         }
     }
+//    else
+//    {
+////      printf("检测到拔掉充电器时 charge_started = %d.\r\n",charge_started);
+//        if(1 == charge_started)
+//        {
+//            usb_charge_stop();
+//            charge_started = 0;
+//            printf("Charger removal.\r\n");
+//        }
+//    }
 
 }
 
