@@ -390,10 +390,11 @@ s32 xip_flash_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 xip_fs_format(struct __icore *core)
+s32 xip_fs_format(void *core)
 {
-    s32 left = core->ASize, start, all, page_size, page_num;
-    start = (core->MStart * nordescription->BytesPerPage) * 34 / 32;
+    struct __icore *xip_core = core;
+    s32 left = xip_core->ASize, start, all, page_size, page_num;
+    start = (xip_core->MStart * nordescription->BytesPerPage) * 34 / 32;
     page_size = nordescription->BytesPerPage;
     page_num = nordescription->PagesPerSector;
     all = page_size * page_num;

@@ -223,26 +223,38 @@ bool_t ModuleInstall_KeyBoardHal(const char *dev_name)
 
 u32 keyboard_scan(void)
 {
-    int Vol;
+    int Vol,i = 0;
+    u32 readed = 0;
     enum EasyKeyValue current_key = NO_KEY;
     Vol = djy_adc_read(2);
-    if(Vol > 1550)
-    {
-        if(Vol < 2200)
-            current_key = COMEBACK_KEY;
-        else
-            current_key = NO_KEY;
-    }
-    else if(Vol > 950)
-        current_key = VOL_UP_KEY;
-    else if(Vol > 300)
-        current_key = VOL_DOWN_KEY;
-    else if(Vol >= 0)
-        current_key = PAUSE_PLAY_KEY;
 
-    if(djy_gpio_read(13))
+    if(Vol < 2200)
+    {
+        if(Vol > 1550)
+            current_key = COMEBACK_KEY;
+        else if(Vol > 950)
+            current_key = VOL_UP_KEY;
+        else if(Vol > 300)
+            current_key = VOL_DOWN_KEY;
+        else if(Vol >= 0)
+            current_key = PAUSE_PLAY_KEY;
+
+        readed |= (u32)(current_key<<(i<<3));
+        i++;
+    }
+    if(djy_gpio_read(GPIO13))
+    {
         current_key = POWER_KEY;
+        readed |= (u32)(current_key<<(i<<3));
+        i++;
+    }
+    if(djy_gpio_read(GPIO8))
+    {
+        current_key = HEADSET_STATE;
+        readed |= (u32)(current_key<<(i<<3));
+        i++;
+    }
 
 //    printf("key = %d\r\n", current_key);
-    return current_key;
+    return readed;
 }

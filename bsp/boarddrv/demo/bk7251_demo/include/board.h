@@ -77,13 +77,6 @@ extern "C" {
 //#define FT_INT     djy_gpio_read(GPIO6)
 #define FT_INT     gpio_input(GPIO6)
 /*************************************************************************************/
-void Board_Init(void);
-void FT6236_Pin_Init(void);
-u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
-void OpenScreen();
-void CloseScreen();
-void ClosePower();
-void CloseSpeaker();
 enum EasyKeyValue
 {
     NO_KEY = 0,
@@ -92,8 +85,24 @@ enum EasyKeyValue
     VOL_DOWN_KEY,
     COMEBACK_KEY,
     POWER_KEY,
+    HEADSET_STATE,
 } ;
 
+enum SpeakerState
+{
+    Speaker_off,
+    Speaker_on,
+};
+
+void Board_Init(void);
+void FT6236_Pin_Init(void);
+u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag);
+void OpenScreen();
+void CloseScreen();
+void ClosePower();
+void CloseSpeaker();
+void OpenSpeaker();
+enum SpeakerState GetSpeakerState();
 #ifdef __cplusplus
 }
 #endif

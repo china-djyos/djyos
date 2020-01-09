@@ -1040,7 +1040,6 @@ static s32 xip_app_fs_install(struct FsCore *super, u32 opt, void *config)
 
     struct __icore *core;
     struct umedia *um;
-    u32 flash_page_size;
 
     config = config;
     opt = opt;
@@ -1193,7 +1192,7 @@ s32 xip_app_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     return result;
 }
 
-__attribute__((weak)) s32 xip_fs_format(struct __icore *core)
+__attribute__((weak)) s32 xip_fs_format(void *core)
 {
     return 0;
 }

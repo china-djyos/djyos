@@ -313,13 +313,14 @@ s32 xip_emflash_erase(struct __icore *core, u32 bytes, u32 pos)
 // 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
-s32 xip_fs_format(struct __icore *core)
+s32 xip_fs_format(void *core)
 {
+    struct __icore *xip_core = core;
     u32 remainunit = 0,block = 0,endunit = 0;
-    s64 startunit = core->MStart;
+    s64 startunit = xip_core->MStart;
     struct uesz esz = {0};
     esz.block = 1;
-    endunit = (core->ASize/core->bufsz) + startunit;
+    endunit = (xip_core->ASize/xip_core->bufsz) + startunit;
     __embed_req(whichblock, (ptu32_t)&block, (ptu32_t)&startunit);
     if(__embed_erase(block, esz))
     {

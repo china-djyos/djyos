@@ -186,7 +186,7 @@ bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePa
                      u32 BufSize)
 {
     struct Object *current;
-    char *Name;
+    char *Name = 0;
     char *Entire = EntirePath;
     u32 objnum = 0,len;
     s32 offset = BufSize;
@@ -213,13 +213,16 @@ bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePa
         Entire += len+1;
     }
     //把PathTail中的字符串copy到EntirePath中
-    Name = PathTail;
-    while('/' == *Name)
-        Name++; // 过滤多余的'/'
-    if((Name != 0) && (*Name != 0))
+//    Name = PathTail;
+    if(PathTail != NULL)
     {
-        len = strlen(Name);
-        strcpy(Entire,Name);
+        if(*PathTail != 0)
+        {
+            while('/' == *PathTail)
+                PathTail++; // 过滤多余的'/'
+            len = strlen(PathTail);
+            strcpy(Entire,PathTail);
+        }
     }
     else
     {

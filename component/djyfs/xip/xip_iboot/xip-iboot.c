@@ -112,10 +112,16 @@ u64 FileNowPos = 0;
 //static const char *xip_iboot_target = "xip-iboot";
 // 底层接口函数
 //
-extern s32 xip_fs_format(struct __icore *core);
+//extern s32 xip_fs_format(void *core);
 static s32 xip_iboot_fs_install(struct FsCore *super, u32 opt, void *config);
 s32 xip_iboot_ops(void *opsTarget, u32 cmd, ptu32_t OpsArgs1,
                         ptu32_t OpsArgs2, ptu32_t OpsArgs3);
+
+
+__attribute__((weak)) s32 xip_fs_format(void *core)
+{
+    return 0;
+}
 
 //==========================================================================
 // 功能：文件上锁
@@ -374,10 +380,6 @@ s32 xip_iboot_ops(void *opsTarget, u32 objcmd, ptu32_t OpsArgs1,
     }
 
     return result;
-}
-__attribute__((weak)) s32 xip_fs_format(struct __icore *core)
-{
-    return 0;
 }
 // ============================================================================
 // 功能：安装xip文件系统
