@@ -214,15 +214,12 @@ bool_t GetEntirePath(struct Object *BaseObject, char * PathTail, char * EntirePa
     }
     //把PathTail中的字符串copy到EntirePath中
 //    Name = PathTail;
-    if(PathTail != NULL)
+    if((PathTail != NULL) && (*PathTail != 0))
     {
-        if(*PathTail != 0)
-        {
-            while('/' == *PathTail)
-                PathTail++; // 过滤多余的'/'
-            len = strlen(PathTail);
-            strcpy(Entire,PathTail);
-        }
+        while('/' == *PathTail)
+            PathTail++; // 过滤多余的'/'
+        len = strlen(PathTail);
+        strcpy(Entire,PathTail);
     }
     else
     {

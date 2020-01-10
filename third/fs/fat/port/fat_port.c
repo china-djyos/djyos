@@ -866,7 +866,7 @@ static s32 __fat_readdentry(struct objhandle *hdl, struct dirent *dentry)
 
     memset(lfname, 0x0, 256);
     info.lfname = lfname;
-
+    info.lfsize = 256;
     res = f_readdir(context, &info);
     if(FR_OK !=res)
         return (-1);
