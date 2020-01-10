@@ -1081,6 +1081,7 @@ static int __sol_socket(struct tagSocket *sock,int optname,const void *optval, i
         case SO_SNDTIMEO:
             break;
         case SO_REUSEADDR:
+            result = 0;
             break;
         case SO_TYPE:
             break;

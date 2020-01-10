@@ -1016,8 +1016,10 @@ static struct tagSocket *__acceptclient(struct tagSocket *sock)
             client = client->Nextsock;
         }
     }
-    if(scb->clst == NULL)
-       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT);
+    if(scb->clst == NULL) {
+       handle_ClrMultiplexEvent(fd2Handle(sock->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
+       //printf("--info: low level remove the accept event...\r\n");
+    }
     return result;
 }
 
@@ -2830,7 +2832,7 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
             //notice the server to accept
             server = ccb->server;
             scb = (struct ServerCB *)server->TplCB;
-            handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT);
+            handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
             semp_post(scb->acceptsemp);
         }
     }
