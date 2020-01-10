@@ -13,11 +13,12 @@ void *djyos_realloc(void *p, size_t size)
 {
   //printf("djyos_realloc: 0x%x, %d!\r\n", p, size);
   void *rp = 0;
+  /* 释放size空间 */
   if (size == 0) {
       if (p) free(p);
       return 0;
   }
-  if (p == 0 && size == 0) return 0;
+  /* 申请size空间  */
   if (p == 0 && size > 0) {
       //printf("djyos_realloc->malloc(%d)!\r\n", size);
       rp = malloc(size);
@@ -26,8 +27,12 @@ void *djyos_realloc(void *p, size_t size)
       }
       return rp;
   }
-
-  rp = realloc(p,  size);
+  /* 先拷贝原来的数据，由于原来的数据长度不知道，所以全部拷贝 */
+ rp = malloc(size);
+ if (rp && p) {
+     memcpy(rp, p, size);
+     free(p);
+ }
   return rp;
 }
 
@@ -1602,7 +1607,6 @@ void mbuf_resize(struct mbuf *a, size_t new_size) {
      * size == 0, but that is covered too.
      */
     if (buf == NULL && new_size != 0) {
-      printf("===error==!\r\n");
       return;
     }
     a->buf = buf;
@@ -1624,7 +1628,6 @@ size_t mbuf_insert(struct mbuf *a, size_t off, const void *buf, size_t len) {
 
   /* check overflow */
   if (~(size_t) 0 - (size_t) a->buf < len) return 0;
-
   if (a->len + len <= a->size) {
     memmove(a->buf + off + len, a->buf + off, a->len - off);
     if (buf != NULL) {
@@ -1654,7 +1657,6 @@ size_t mbuf_insert(struct mbuf *a, size_t off, const void *buf, size_t len) {
       len = 0;
     }
   }
-
   return len;
 }
 
@@ -3896,10 +3898,16 @@ void mg_set_non_blocking_mode(sock_t sock) {
       printf("error: Client:set client sndbuf failed!\r\n");
   }
 */
-  opt = 6 * 1024;
-  if (0 != setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &opt, 4))
-  {
-      printf("Client: setsockopt failed!\n\r");
+  struct tagSocket *sock_obj = __Fd2Sock(sock);
+  if (sock_obj && sock_obj->sockstat &CN_SOCKET_LISTEN) {
+      printf("listen socket!!!!!!!!!\r\n");
+  }
+  else {
+      opt = 6 * 1024;
+      if (0 != setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &opt, 4))
+      {
+          printf("Client: setsockopt failed!\n\r");
+      }
   }
   opt = 1;
   if(0 != setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, &opt,4))

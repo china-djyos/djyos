@@ -103,7 +103,7 @@ typedef struct tagSocket  tagItemCB; //each socket is a item
 static struct Object *s_ptSocketObject;
 static struct MemCellPool *s_ptSocketPool;  //socket控制块内存池头指针
 
-static struct tagSocket *__Fd2Sock(s32 fd)
+struct tagSocket *__Fd2Sock(s32 fd)
 {
     struct objhandle *hdl;
     struct tagSocket *sock;
