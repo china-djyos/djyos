@@ -1058,17 +1058,17 @@ static void __TextBox_DeleteText(HWND hwnd)
 //          输入字符串指针.
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-bool_t TextBox_TextCtrl(HWND hwnd,u8 ctrlcmd,u32 para1,ptu32_t para2)
+bool_t TextBox_TextCtrl(HWND hwnd,u8 ctrlcmd,ptu32_t para1)
 {
     if(hwnd==NULL)
         return false;
     switch(ctrlcmd)
     {
         case EN_GET_TEXT:
-            __TextBox_GetText(hwnd,(char *)para2);
+            __TextBox_GetText(hwnd,(char *)para1);
             break;
         case EN_SET_TEXT:
-            __TextBox_SetText(hwnd,(char *)para2);
+            __TextBox_SetText(hwnd,(char *)para1);
             break;
         case EN_DELETE_TEXT:
             __TextBox_DeleteText(hwnd);

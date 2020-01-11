@@ -71,12 +71,13 @@ extern "C" {
 
 
 
-#define VK_DEL_CHAR           120
+#define VK_DEL_CHAR           0x20
 #define VK_ENTER_CHAR         161
 #define VK_UP                 85
 #define VK_DOWN               68
 
-
+#define VK_CHAR_START         0x21
+#define VK_CHAR_END           0x7e
 
 #define VK_DECIMAL_POINT      46   //Ð¡Êýµã
 

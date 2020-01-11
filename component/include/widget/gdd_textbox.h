@@ -136,7 +136,7 @@ HWND CreateTextBox(const char *Text,u32 Style,
 //          输入字符串指针.
 // 返回值  :成功则返回true，失败则返回false.
 // =============================================================================
-bool_t TextBox_TextCtrl(HWND hwnd,u8 ctrlcmd,u32 para1,ptu32_t para2);
+bool_t TextBox_TextCtrl(HWND hwnd,u8 ctrlcmd,ptu32_t para1);
 
 
 #if __cplusplus

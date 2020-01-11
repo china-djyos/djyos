@@ -441,21 +441,21 @@ void uart1_init(void)
 
     ddev_register_dev(UART1_DEV_NAME, &uart1_op);
 //
-//    intc_service_register(IRQ_UART1, PRI_IRQ_UART1, uart1_isr);
+    intc_service_register(IRQ_UART1, PRI_IRQ_UART1, uart1_isr);
 
-//    param = PWD_UART1_CLK_BIT;
-//    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
-//
-//    param = GFUNC_MODE_UART1;
-//    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
-//    uart_hw_init(UART1_PORT);
-//
-//    /*irq enable, Be careful: it is best that irq enable at open routine*/
-//    intr_status = REG_READ(REG_UART1_INTR_STATUS);
-//    REG_WRITE(REG_UART1_INTR_STATUS, intr_status);
-//
-//    param = IRQ_UART1_BIT;
-//    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+    param = PWD_UART1_CLK_BIT;
+    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
+
+    param = GFUNC_MODE_UART1;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+    uart_hw_init(UART1_PORT);
+
+    /*irq enable, Be careful: it is best that irq enable at open routine*/
+    intr_status = REG_READ(REG_UART1_INTR_STATUS);
+    REG_WRITE(REG_UART1_INTR_STATUS, intr_status);
+
+    param = IRQ_UART1_BIT;
+    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
 }
 
 void uart1_exit(void)
