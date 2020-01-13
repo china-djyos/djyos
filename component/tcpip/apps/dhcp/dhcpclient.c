@@ -158,6 +158,7 @@ int net_set_dhcp_ip(struct NetDev *pNetDev, u32 ip_temp);
 //do the reply message deal
 static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
 {
+    u32              renew_counter;
     u32              txid;
     tagTaskItem     *tmp;
     bool_t           result = false;
@@ -187,7 +188,8 @@ static bool_t __cpyReplyMsg(tagDhcpMsg *msg)
             else if(reply.msgtype == DHCP_ACK)
             {
                 tmp->stat = EN_CLIENT_INFORM;
-                tmp->timeout = reply.leasetime;
+                renew_counter = reply.leasetime*10;//reply.leasetime: seconds, timer 100ms everytime
+                tmp->timeout = renew_counter>>1; //renew_counter must before timeout
                 //here we also to update the rout info
                 //we get the new router,so must del the old one
                 if(tmp->routlan)

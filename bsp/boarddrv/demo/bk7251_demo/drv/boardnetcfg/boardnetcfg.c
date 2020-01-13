@@ -67,9 +67,9 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"cpu onchip MAC","ethernet phy lan8720","tcpip"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu onchip MAC","ethernet phy lan8720","tcpip","cpu onchip random"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -86,7 +86,7 @@
 #define CFG_MODULE_ENABLE_NETWORK_CONFIG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100
 //%$#@enum,true,false
-#define CFG_STATIC_IP       false            //"IP属性",true=使用静态IP，false=动态IP
+#define CFG_STATIC_IP       false            //"静态IP",true=使用静态IP，false=动态IP
 //%$#@string,1,16
 #define CFG_NETCARD_NAME    "BK7251_WIFI"    //"网卡名",
 //%$#@string,7,15
@@ -178,7 +178,40 @@ void ModuleInstall_InitNet(void)   //static ip example
 #endif
     wifi_set_mac_address((char*)gc_NetMac);
     ModuleInstall_Wifi(CFG_NETCARD_NAME,gc_NetMac,false,1*mS,NULL);
+#if 0
+    int GetDHCPMode();
+    if (GetDHCPMode()==1) {//dhcp server
+        tagHostAddrV4  ipv4addr;
+        //we use the static ip we like
+        memset((void *)&ipv4addr,0,sizeof(ipv4addr));
+        ipv4addr.ip      = inet_addr(CFG_DHCPD_IPV4);
+        ipv4addr.submask = inet_addr(CFG_DHCPD_SUBMASK);
+        ipv4addr.gatway  = inet_addr(CFG_DHCPD_GATWAY);
+        ipv4addr.dns     = inet_addr(CFG_DHCPD_DNS);
+        ipv4addr.broad   = inet_addr("255.255.255.255");
+        if(RoutCreate(CFG_NETCARD_NAME,EN_IPV_4,(void *)&ipv4addr,CN_ROUT_NONE))
+        {
+            printk("%s:CreateRout:%s:%s success\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+        }
+        else
+        {
+            printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
+        }
+    }
+#endif
+//    if(DhcpAddClientTask(CFG_NETCARD_NAME))
+//    {
+//       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+//    }
+//    else
+//    {
+//        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
+//    }
 
+}
+
+void dhcpd_route_add_default()
+{
     tagHostAddrV4  ipv4addr;
     //we use the static ip we like
     memset((void *)&ipv4addr,0,sizeof(ipv4addr));
@@ -195,15 +228,5 @@ void ModuleInstall_InitNet(void)   //static ip example
     {
         printk("%s:CreateRout:%s:%s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME,inet_ntoa(ipv4addr.ip));
     }
-
-//    if(DhcpAddClientTask(CFG_NETCARD_NAME))
-//    {
-//       printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-//    }
-//    else
-//    {
-//        printk("%s:Add %s failed\r\n",__FUNCTION__,CFG_NETCARD_NAME);
-//    }
-
 }
 
