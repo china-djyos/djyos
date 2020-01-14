@@ -95,7 +95,7 @@ bool_t  runiboot(char *param)
      Cache_CleanData();
      Cache_InvalidInst();
 #endif
-     reset();
+    reset();
     return false;
 }
 
@@ -112,7 +112,7 @@ bool_t  runapp(char *param)
      Cache_CleanData();
      Cache_InvalidInst();
 #endif
-     reset();
+    reset();
     return false;
 }
 

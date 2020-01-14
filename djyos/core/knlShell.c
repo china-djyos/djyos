@@ -267,8 +267,12 @@ ptu32_t kernel_spy(void)
 #if CFG_OS_TINY == false
     u32 pl_ecb;
     u32 cycle;
-
+    struct Wdt *wdt;
     Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
+    cycle *=mS;
+//#if(DEBUG != 1)
+    wdt = Wdt_Create("runtime watch", cycle * 5, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+//#endif  //for (DEBUG != 1)
     while(1)
     {
 
@@ -280,8 +284,14 @@ ptu32_t kernel_spy(void)
            g_tECB_Table[pl_ecb].consumed_time_record =
                             (u32)g_tECB_Table[pl_ecb].consumed_time;
         }
-
-        Djy_EventDelay(cycle*mS); // 延时1秒；
+//#if(DEBUG != 1)
+        //如果idle事件运行时间超过 1/16，则喂狗
+        if(g_tECB_Table[0].consumed_time_second > (cycle >> 4))
+        {
+            Wdt_Clean(wdt);
+        }
+//#endif  //for (DEBUG != 1)
+        Djy_EventDelay(cycle); // 延时1秒；
     }
 #endif
 }

@@ -49,11 +49,6 @@
 #include "int.h"
 #include "hard-exp.h"
 #include "board-config.h"
-#include <Iboot_Info.h>
-
-extern void Load_Preload(void);
-
-extern void __Djy_VmEngine(ptu32_t (*thread_routine)(void));
 
 uint32_t djy_switch_interrupt_flag __attribute__ ((section(".data.interrupt")));
 uint32_t *djy_interrupt_from_thread __attribute__ ((section(".data.interrupt")));
@@ -97,8 +92,13 @@ __attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
     gRunTicks += ticks;
 }
 
+// ============================================================================
+// ARM9的reboot、reset和restart_app，在对应的cpudrv里实现，不放在这里实现
+// ============================================================================
+#if 0
+#include <Iboot_Info.h>
 
-
+extern void Load_Preload(void);
 //void reboot(u32 key)
 //{
 //
@@ -115,9 +115,8 @@ void reset(u32 key)
     fn_start();
 //  _start();
 }
-
 void restart_app(u32 key)
 {
     Load_Preload();
 }
-
+#endif

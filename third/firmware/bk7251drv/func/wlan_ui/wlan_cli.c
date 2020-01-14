@@ -1015,6 +1015,8 @@ void get_version(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
     os_printf("get_version\r\n");
 }
 
+#define OPEN_BK_REBOOT          0      //这个函数放到，cpudrv/beken/src/boot/boot.c中
+#if OPEN_BK_REBOOT
 void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     FUNCPTR reboot = 0;
@@ -1041,6 +1043,7 @@ void reboot(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
     GLOBAL_INT_RESTORE();
 #endif
 }
+#endif
 
 static void echo_cmd_handler(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
@@ -1482,9 +1485,9 @@ static const struct cli_command built_ins[] =
     {"memdump", "<addr> <length>", memory_dump_Command},
     {"os_memset", "<addr> <value 1> [<value 2> ... <value n>]", memory_set_Command},
     {"memp", "print memp list", memp_dump_Command},
-
+#if OPEN_BK_REBOOT
     {"reboot", "reboot system", reboot},
-
+#endif
     {"time",     "system time",                 uptime_Command},
     {"flash",    "Flash memory map",            partShow_Command},
 
