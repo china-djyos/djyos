@@ -24,10 +24,16 @@ bool_t IAP_IsForceIboot(void)
     return false;
 }
 void AppStart() __attribute__((optimize("O0")));
+u32 abccc = 0x87654321;
 void AppStart()
 {
     void __asm_reset_msp();
     __asm_reset_msp();
+    if((Int_GetStatus() & 0xc0)  != 0xc0)
+    {
+        abccc = 0x12345678;
+        while(1);
+    }
     Load_Preload();
 }
 

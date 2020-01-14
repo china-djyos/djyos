@@ -49,7 +49,7 @@
 
 extern void deep_sleep(void);
 extern int Get_StabilizeVol(void);
-extern UINT32 usb_is_pluged(void);
+extern UINT32 usb_is_plug_in(void);
 char vol_to_percentage(int assign)
 {
     int vol = 0,vol_diff = 0;
@@ -59,7 +59,7 @@ char vol_to_percentage(int assign)
     static int vol_temp = 0,vol_last = 0;
     if(assign == 0)
     {
-        if(usb_is_pluged() != 0)
+        if(usb_is_plug_in() != 0)
         {
             vol = Get_StabilizeVol();
         }
@@ -132,7 +132,7 @@ char vol_to_percentage(int assign)
 //            percentage = 75;
         if(critical < 100)
         {
-            if(usb_is_pluged() != 0)
+            if(usb_is_plug_in() != 0)
             {
                 //printf(" =====  vol(%d) = %d ======\r\n",num,vol);
 
@@ -390,7 +390,7 @@ char vol_to_percentage(int assign)
     {
         percentage = 1;
     }
-    else if((vol < 3310) && (usb_is_pluged() == 0))
+    else if((vol < 3310) && (usb_is_plug_in() == 0))
     {
         if(vol >= 2700)     //防止一些异常电压导致休眠
         {
