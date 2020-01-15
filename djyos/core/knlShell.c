@@ -271,7 +271,7 @@ ptu32_t kernel_spy(void)
     Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
 //#if(DEBUG != 1)
-    wdt = Wdt_Create("runtime watch", cycle * 5, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+    wdt = Wdt_Create("runtime watch", cycle * 10, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
 //#endif  //for (DEBUG != 1)
     while(1)
     {
