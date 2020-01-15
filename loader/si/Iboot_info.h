@@ -103,7 +103,7 @@ struct IbootAppInfo
         u32 head_wdt_reset        :1;//看门狗复位标志
         u32 soft_reset_flag       :1;//软件引起的内部复位
         u32 reboot_flag           :1;//reboot 标志
-        u32 restart_app_flag      :1;//restart_app标志
+        u32 restart_system_flag      :1;//restart_system标志
         u32 head_reset_flag       :1;//外部硬件复位标志
         u32 low_power_wakeup      :1;//低功耗深度休眠中断唤醒标志
         u32 call_fun_resent       :1;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启

@@ -62,7 +62,7 @@ extern "C" {
 
 void reboot(void);
 void reset(void);
-void restart_app(void);
+void restart_system(void);
 
 //当操作CCSR的寄存器时，务必使用下述读写
 extern u8   read8(ptu32_t addr);

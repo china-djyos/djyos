@@ -437,7 +437,7 @@ void __asm_reset_cpu(void)
 void __asm_reset_cpu_hot(void)
 {
 }
-void restart_app(void)
+void restart_system(void)
 {
 }
 void reboot(void)

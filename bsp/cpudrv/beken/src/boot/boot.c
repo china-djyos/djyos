@@ -6,6 +6,39 @@
 #include <drv_model_pub.h>
 #include <co_math.h>
 
+//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
+//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
+//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//%$#@end initcode  ****初始化代码结束
+
+//%$#@describe      ****组件描述开始
+//component name:"cpu onchip boot"//CPU的rtc外设驱动
+//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
+//select:required              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
+                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
+                                //表示初始化时间，分别是早期、中期、后期
+//dependence:"none"             //该组件的依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件将强制选中，
+                                //如果依赖多个组件，则依次列出
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+                                //选中该组件时，被依赖组件不会被强制选中，
+                                //如果依赖多个组件，则依次列出，用“,”分隔
+//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
+                                //如果与多个组件互斥，则依次列出
+//%$#@end describe  ****组件描述结束
+
+//%$#@configue      ****参数配置开始
+//%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+//@#$%component end configure
+
+
+
+
 extern void Load_Preload(void);
 
 
@@ -58,11 +91,14 @@ void reset(u32 key)
     bk_reboot();
 }
 
-void restart_app(u32 key)
+void restart_system(u32 key)
 {
     Set_RestartAppFlag();
 #if (CFG_RUNMODE_BAREAPP == 0)
     Set_PreviouResetFlag();
 #endif
-    Load_Preload();
+//    Load_Preload();
+    void (*fn_start)();
+    fn_start = 0x0;
+    fn_start();
 }

@@ -81,7 +81,7 @@
 #define IAPBUF_SIZE   512
 extern void reboot();
 extern void reset();
-extern void restart_app(u32 key);
+extern void restart_system(u32 key);
 // ============================================================================
 // 功能：设置运行iboot
 // 参数：
@@ -536,7 +536,7 @@ bool_t restart(char *param)
     {
         key = strtoul(param,NULL,0);
     }
-    restart_app(key);
+    restart_system(key);
     return true;
 }
 

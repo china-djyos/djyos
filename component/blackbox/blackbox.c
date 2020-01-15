@@ -146,7 +146,7 @@ static enum EN_BlackBoxAction  __BlackBox_ResultMerge(enum EN_BlackBoxAction Res
 //else key will do record in the reset reboot or restart
 extern void reset();
 extern void reboot();
-extern void restart_app();
+extern void restart_system();
 // =============================================================================
 // 函数功能: 处理异常的最终结果
 // 输入参数:blackboxdealresult,异常结果
@@ -174,7 +174,7 @@ static enum EN_BlackBoxDealResult  __BlackBox_ExecAction(u32 FinalAction,\
             reboot();
             break;
         case EN_BLACKBOX_DEAL_RESTART:
-            restart_app();
+            restart_system();
             break;
         case EN_BLACKBOX_DEAL_WAIT:
             while(1);

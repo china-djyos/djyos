@@ -93,7 +93,7 @@ __attribute__((weak)) void DjyUpdateTicks(uint32_t ticks)
 }
 
 // ============================================================================
-// ARM9的reboot、reset和restart_app，在对应的cpudrv里实现，不放在这里实现
+// ARM9的reboot、reset和restart_system，在对应的cpudrv里实现，不放在这里实现
 // ============================================================================
 #if 0
 #include <Iboot_Info.h>
@@ -115,7 +115,7 @@ void reset(u32 key)
     fn_start();
 //  _start();
 }
-void restart_app(u32 key)
+void restart_system(u32 key)
 {
     Load_Preload();
 }

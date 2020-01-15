@@ -113,7 +113,7 @@ bool_t Sh_RestartSystem(char *param);
 
  void reset(void);
  void reboot(void);
- void restart_app(void);
+ void restart_system(void);
 
 
 
@@ -885,7 +885,7 @@ void reboot(void)
 }
 
 // =============================================================================
-// 函数功能：restart_app
+// 函数功能：restart_system
 //           reboot CPU
 // 输入参数：无
 //
@@ -894,7 +894,7 @@ void reboot(void)
 // 说明    ：
 // =============================================================================
 
-void restart_app(void)
+void restart_system(void)
 {
 }
 

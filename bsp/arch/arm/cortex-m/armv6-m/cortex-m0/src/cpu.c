@@ -103,7 +103,7 @@ void reset(void)
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_app(void)
+void restart_system(void)
 {
     Load_Preload();
 }

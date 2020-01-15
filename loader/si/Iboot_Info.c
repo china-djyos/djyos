@@ -1129,7 +1129,7 @@ bool_t Si_IbootAppInfoInit()
         Iboot_App_Info.runflag.soft_reset_flag       = 0;//软件引起的内部复位
         Iboot_App_Info.runflag.reboot_flag           = 0;//reboot 标志
         Iboot_App_Info.runflag.head_reset_flag       = 0;//外部硬件复位标志
-        Iboot_App_Info.runflag.restart_app_flag      = 0;//restart_app复位标志
+        Iboot_App_Info.runflag.restart_system_flag      = 0;//restart_system复位标志
         Iboot_App_Info.runflag.low_power_wakeup      = 0;//低功耗深度休眠中断唤醒标志
         Iboot_App_Info.runflag.call_fun_resent       = 0;//1=内部复位/重启是主动调用相关函数引发的；0=异常重启
         Iboot_App_Info.runflag.power_on_resent_flag  = 1;//上电复位标志，结合b18~19以及“上电标志”字判定
@@ -1212,7 +1212,7 @@ bool_t Set_SoftResetFlag()
     Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.soft_reset_flag = 1;
     Iboot_App_Info.runflag.reboot_flag = 0;
-    Iboot_App_Info.runflag.restart_app_flag = 0;
+    Iboot_App_Info.runflag.restart_system_flag = 0;
     return true;
 }
 //==============================================================================
@@ -1224,18 +1224,18 @@ bool_t Set_RebootFlag()
 {
     Iboot_App_Info.runflag.call_fun_resent = 1;
     Iboot_App_Info.runflag.reboot_flag = 1;
-    Iboot_App_Info.runflag.restart_app_flag = 0;
+    Iboot_App_Info.runflag.restart_system_flag = 0;
     return true;
 }
 //==============================================================================
-//功能：设置restart_app复位标志
+//功能：设置restart_system复位标志
 //参数：null
 //返回值：true
 //==============================================================================
 bool_t Set_RestartAppFlag()
 {
     Iboot_App_Info.runflag.call_fun_resent = 1;
-    Iboot_App_Info.runflag.restart_app_flag = 1;
+    Iboot_App_Info.runflag.restart_system_flag = 1;
     return true;
 }
 
@@ -1277,13 +1277,13 @@ bool_t Get_RebootFlag()
         return false;
 }
 //==============================================================================
-//功能：获取是否有restart_app标志
+//功能：获取是否有restart_system标志
 //参数：无
 //返回值：true -- 有；false -- 无
 //==============================================================================
 bool_t Get_RestartAppFlag()
 {
-    if(Iboot_App_Info.runflag.restart_app_flag == 1)
+    if(Iboot_App_Info.runflag.restart_system_flag == 1)
         return true;
     else
         return false;
@@ -1483,15 +1483,15 @@ bool_t Update_ToRun()
 
     if(Iboot_App_Info.runflag.update_runmode ==0)//iboot
     {
-        info_printf("IAP","Run iboot in 5 seconds.\r\n");
+        info_printf("IAP","Run iboot in 3 seconds.\r\n");
         Iboot_App_Info.runflag.restart_run_iboot = 1;
     }
     else
     {
-        info_printf("IAP","Run app in 5 seconds.\r\n");
+        info_printf("IAP","Run app in 3 seconds.\r\n");
         Iboot_App_Info.runflag.restart_run_app = 1;
     }
-    Djy_EventDelay(5000*1000);		//延时一下，让升级过程中的信息能打印出来
+    Djy_EventDelay(3000*1000);		//延时一下，让升级过程中的信息能打印出来
     reset();
     return true;
 }

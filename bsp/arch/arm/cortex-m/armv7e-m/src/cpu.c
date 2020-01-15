@@ -170,7 +170,7 @@ void reset()
 // 参数：无
 // 返回：无
 // =============================================================================
-void restart_app()
+void restart_system()
 {
     Djy_DelayUs(10);
     __set_PSP((uint32_t)msp_top);
