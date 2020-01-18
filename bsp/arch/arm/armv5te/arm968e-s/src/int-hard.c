@@ -377,10 +377,13 @@ bool_t Int_SetPrio(ufast_t ufl_line,u32 prio)
 //参数：ufast ufl_line，响应的中断线号
 //返回：无
 //-----------------------------------------------------------------------------
+#define CN_CPU_MODE_USR    0x10
+#define CN_CPU_MODE_SVC    0x13
+#define CN_CPU_MODE_SYS    0x1F
 void _irq_Int_EngineAll(ufast_t intStatus)
 {
     ufast_t ufl_line = 0;
-
+    u32 CpuStatus;
     intStatus &=0x0000ffff;
     for(;(intStatus!=0)&&(ufl_line<=16);ufl_line++)
     {
@@ -399,12 +402,19 @@ void _irq_Int_EngineAll(ufast_t intStatus)
           intStatus &=~(1<<ufl_line);
       }
     }
+    if(g_ptEventReady != g_ptEventRunning)
+    {
+        CpuStatus = Int_GetPreStatus();
+        if((CpuStatus == CN_CPU_MODE_USR) || (CpuStatus == CN_CPU_MODE_SYS)
+                                          || (CpuStatus == CN_CPU_MODE_SVC))
+            __Djy_ScheduleAsynSignal();       //执行中断内调度
+    }
 }
 
 void _fiq_Int_EngineAll(ufast_t intStatus)
 {
     ufast_t ufl_line = 16;
-
+    u32 CpuStatus;
     intStatus &=0xffff0000;
 
     for(;(intStatus!=0)&&(ufl_line<=31);ufl_line++)
@@ -417,6 +427,13 @@ void _fiq_Int_EngineAll(ufast_t intStatus)
               __Int_EngineAsynSignal(ufl_line);         //是异步信号
           intStatus &=~(1<<ufl_line);
       }
+    }
+    if(g_ptEventReady != g_ptEventRunning)
+    {
+        CpuStatus = Int_GetPreStatus();
+        if((CpuStatus == CN_CPU_MODE_USR) || (CpuStatus == CN_CPU_MODE_SYS)
+                                          || (CpuStatus == CN_CPU_MODE_SVC))
+            __Djy_ScheduleAsynSignal();       //执行中断内调度
     }
 }
 void __Int_InitHard()
@@ -446,10 +463,16 @@ void __Int_InitHard()
 //参数：无
 //返回：无
 //-----------------------------------------------------------------------------
+extern uint32_t djy_switch_interrupt_flag;
+extern uint32_t *djy_interrupt_from_thread;
+extern uint32_t *djy_interrupt_to_thread;
 void Int_Init(void)
 {
     ufast_t ufl_line;
 
+    djy_switch_interrupt_flag = 0;
+    djy_interrupt_from_thread = NULL;
+    djy_interrupt_to_thread = NULL;
     __Int_InitHard();
     __Int_ClearAllLine();
     for(ufl_line=0;ufl_line <= CN_INT_LINE_LAST;ufl_line++)
@@ -549,13 +572,7 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
                         NULL,0,(ptu32_t)isr_result, (ptu32_t)ufl_line,0);
     }
     tg_int_global.nest_asyn_signal--;
-    if(g_ptEventReady != g_ptEventRunning)
-    {
-        CpuStatus = Int_GetPreStatus();
-        if((CpuStatus == CN_CPU_MODE_USR) || (CpuStatus == CN_CPU_MODE_SYS)
-                                          || (CpuStatus == CN_CPU_MODE_SVC))
-            __Djy_ScheduleAsynSignal();       //执行中断内调度
-    }
+
     g_bScheduleEnable = true;
 }
 
