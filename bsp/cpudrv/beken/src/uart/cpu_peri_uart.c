@@ -250,14 +250,12 @@ static u32 __UART_SendStart (uint8_t port,u32 timeout)
     if(port>CN_UART2)
        return 0;
     uart_set_tx_fifo_needwr_int(port,1);
-    while(uart_is_tx_fifo_full(port)==0)
+    if(uart_is_tx_fifo_empty(port) == 1)
     {
         if(0 != UART_PortRead((struct UartGeneralCB *)pUartCB[port],&val,1))
         {
             uart_write_byte(port,val);
         }
-        else
-            break;
     }
     return 1;
 }
