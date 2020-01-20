@@ -46,7 +46,7 @@
 #include "cpu_peri.h"
 #include <device/include/uart.h>
 #include "stdlib.h"
-
+#include <icu_pub.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -167,6 +167,45 @@ static void __UART_BaudSet(uint8_t port,uint32_t data)
     djybsp_uart[port].baud_rate = data;
         uart_hw_set_change(port,&djybsp_uart[port]);
 }
+// =============================================================================
+// 功能: 关串口中断
+// 参数: SerialNo,串口号，0,1
+// 返回: 无
+// =============================================================================
+static void __UART_CloseInte(uint8_t SerialNo)
+{
+    u32 param;
+    if(SerialNo == CN_UART1)
+    {
+        param = IRQ_UART1_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
+    }
+    else if(SerialNo == CN_UART2)
+    {
+        param = IRQ_UART2_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
+    }
+}
+
+// =============================================================================
+// 功能: 开串口中断
+// 参数: SerialNo,串口号，0,1
+// 返回: 无
+// =============================================================================
+static void __UART_OpenInte(uint8_t SerialNo)
+{
+    u32 param;
+    if(SerialNo == CN_UART1)
+    {
+        param = IRQ_UART1_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+    }
+    else if(SerialNo == CN_UART2)
+    {
+        param = IRQ_UART2_BIT;
+        sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+    }
+}
 
 // =============================================================================
 // 功能: 硬件参数配置和寄存器的初始化，包括波特率、停止位、校验位、数据位，默认情况下:
@@ -246,17 +285,29 @@ static void __UART_ComConfig(u32 port,struct COMParam *COM)
 // =============================================================================
 static u32 __UART_SendStart (uint8_t port,u32 timeout)
 {
-    u8 val = 0;
+
+    u8 val[256];
+    u32 i = 0,len = 0;
     if(port>CN_UART2)
        return 0;
     uart_set_tx_fifo_needwr_int(port,1);
+
+    __UART_CloseInte(port);
+
     if(uart_is_tx_fifo_empty(port) == 1)
     {
-        if(0 != UART_PortRead((struct UartGeneralCB *)pUartCB[port],&val,1))
+        len = UART_PortRead((struct UartGeneralCB *)pUartCB[port],val,256);
+        if(0 != len)
         {
-            uart_write_byte(port,val);
+            for(i = 0; i < len; i++)
+            {
+                uart_write_byte(port,val[i]);
+            }
         }
+
     }
+
+    __UART_OpenInte(port);
     return 1;
 }
 
