@@ -173,8 +173,8 @@ void CloseScreen()
 static enum SpeakerState Speaker;
 void CloseSpeaker()
 {
-//    djy_gpio_write(GPIO9,0);
-//    Speaker = Speaker_off;
+    djy_gpio_write(GPIO9,0);
+    Speaker = Speaker_off;
 }
 void OpenSpeaker()
 {
