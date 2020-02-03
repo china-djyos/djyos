@@ -62,7 +62,20 @@ char vol_to_percentage(int assign)
         if(usb_is_plug_in() != 0)
         {
             vol = Get_StabilizeVol();
-            vol -= 120;
+            if(vol < 3800)
+                vol -= 230;
+            else if(vol < 3920)
+                vol -= 200;
+            else if(vol < 4020)
+                vol -= 170;
+            else if(vol < 4070)
+                vol -= 150;
+            else if(vol < 4100)
+                vol -= 120;
+            else if(vol < 4110)
+                vol -= 80;
+            else if(vol < 4300)
+                vol -= 60;
         }
         else
         {
@@ -182,7 +195,7 @@ char vol_to_percentage(int assign)
         }
     }
 //    else if(vol >= 3790)
-    if(vol >= 3800)
+    if(vol >= 3850)
     {
 //        if(vol >= 3925)
 //            percentage = 74;
@@ -236,7 +249,7 @@ char vol_to_percentage(int assign)
 //            percentage = 50;
         if(critical < 75)
         {
-            if(vol > 3900)
+            if(vol > 3950)
             {
                 percentage = 75;
                 critical = 75;
@@ -251,7 +264,7 @@ char vol_to_percentage(int assign)
         }
     }
 //    else if(vol >= 3720)
-    if(vol >= 3500)
+    if(vol >= 3650)
     {
 //        if(vol >= 3786)
 //            percentage = 49;
@@ -305,7 +318,7 @@ char vol_to_percentage(int assign)
 //            percentage = 25;
         if(critical < 50)
         {
-            if(vol > 3600)
+            if(vol > 3750)
             {
                 percentage = 50;
                 critical = 50;
