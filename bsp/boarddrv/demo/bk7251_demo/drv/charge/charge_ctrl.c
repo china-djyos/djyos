@@ -62,6 +62,7 @@ char vol_to_percentage(int assign)
         if(usb_is_plug_in() != 0)
         {
             vol = Get_StabilizeVol();
+            vol -= 120;
         }
         else
         {
@@ -74,7 +75,7 @@ char vol_to_percentage(int assign)
         vol = assign;
 //        printf("指定的Vbat = %d  \r\n", vol);    //显示当前的电池电压
     }
-    if(vol >= 3930)     //目前做了充电的临界。还没做放电的临界
+    if(vol >= 4000)     //目前做了充电的临界。还没做放电的临界
     {
 //        if(vol >= 4160)
 //            percentage = 100;
@@ -166,7 +167,7 @@ char vol_to_percentage(int assign)
                 vol_temp = 0;
                 vol_last = 0;
             }
-            if((vol > 4155) || (vol_diff < 0))
+            if((vol > 4155) || (vol_diff < 4))
             {
                 percentage = 100;
                 critical = 100;
@@ -181,7 +182,7 @@ char vol_to_percentage(int assign)
         }
     }
 //    else if(vol >= 3790)
-    if(vol >= 3790)
+    if(vol >= 3800)
     {
 //        if(vol >= 3925)
 //            percentage = 74;
@@ -235,7 +236,7 @@ char vol_to_percentage(int assign)
 //            percentage = 50;
         if(critical < 75)
         {
-            if(vol > 3848)
+            if(vol > 3900)
             {
                 percentage = 75;
                 critical = 75;
@@ -250,7 +251,7 @@ char vol_to_percentage(int assign)
         }
     }
 //    else if(vol >= 3720)
-    if(vol >= 3720)
+    if(vol >= 3500)
     {
 //        if(vol >= 3786)
 //            percentage = 49;
@@ -304,7 +305,7 @@ char vol_to_percentage(int assign)
 //            percentage = 25;
         if(critical < 50)
         {
-            if(vol > 3743)
+            if(vol > 3600)
             {
                 percentage = 50;
                 critical = 50;
@@ -319,7 +320,7 @@ char vol_to_percentage(int assign)
         }
     }
 //    else if(vol >= 3630)
-    if(vol >= 3630)
+    if(vol >= 3310)
     {
 //        if(vol >= 3718)
 //            percentage = 24;
@@ -371,7 +372,7 @@ char vol_to_percentage(int assign)
 //            percentage = 1;
         if(critical < 25)
         {
-            if(vol > 3694)
+            if(vol > 3400)
             {
                 percentage = 25;
                 critical = 25;
@@ -386,10 +387,10 @@ char vol_to_percentage(int assign)
         }
     }
 //    else if(vol >= 3590)
-    if(vol >= 3590)
-    {
-        percentage = 1;
-    }
+//    if(vol >= 3590)
+//    {
+//        percentage = 1;
+//    }
     else if((vol < 3310) && (usb_is_plug_in() == 0))
     {
         if(vol >= 2700)     //防止一些异常电压导致休眠
