@@ -34,7 +34,6 @@ int Get_StabilizeVol(void)
         usb_charge_start();
 //                printf("¿ªÊ¼³äµç.\r\n");
     }
-    vol -= 80;
     return vol;
 }
 
@@ -168,18 +167,18 @@ void usb_plug_func_handler(void *usr_data, UINT32 event)
 
 void usb_plug_func_open(void)
 {
-//    DD_HANDLE usb_plug_hdl;
-//    UINT32 status;
-//    USB_PLUG_INOUT_ST user_plug;
-//
-//    user_plug.handler = usb_plug_func_handler;
-//    user_plug.usr_data = 0;
-//
-//    usb_plug_hdl = ddev_open(USB_PLUG_DEV_NAME, &status, (UINT32)&user_plug);
-//    if(DD_HANDLE_UNVALID == usb_plug_hdl)
-//    {
-//        return;
-//    }
+    DD_HANDLE usb_plug_hdl;
+    UINT32 status;
+    USB_PLUG_INOUT_ST user_plug;
+
+    user_plug.handler = usb_plug_func_handler;
+    user_plug.usr_data = 0;
+
+    usb_plug_hdl = ddev_open(USB_PLUG_DEV_NAME, &status, (UINT32)&user_plug);
+    if(DD_HANDLE_UNVALID == usb_plug_hdl)
+    {
+        return;
+    }
 
 #if CFG_USE_USB_CHARGE
     charge_func_init = 1;
