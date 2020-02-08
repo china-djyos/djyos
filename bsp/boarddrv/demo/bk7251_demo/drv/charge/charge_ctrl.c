@@ -50,9 +50,10 @@
 extern void deep_sleep(void);
 extern int Get_StabilizeVol(void);
 extern UINT32 usb_is_plug_in(void);
+#define IS_FULL_VOL_DIFF    4
 char vol_to_percentage(int assign)
 {
-    int vol = 0,vol_diff = 0;
+    int vol = 0,vol_diff = IS_FULL_VOL_DIFF;
     int i, j, temp;
     char percentage = 0;
     static char critical = 0,num = 0;
@@ -180,7 +181,7 @@ char vol_to_percentage(int assign)
                 vol_temp = 0;
                 vol_last = 0;
             }
-            if((vol > 4155) || (vol_diff < 4))
+            if((vol > 4155) || (vol_diff < IS_FULL_VOL_DIFF))
             {
                 percentage = 100;
                 critical = 100;
