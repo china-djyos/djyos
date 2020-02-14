@@ -484,7 +484,7 @@ again:
 
                        if (EccRet && (EccRet != HAMMING_ERROR_SINGLE_BIT))
                        {
-                           TraceDrv(FLASH_TRACE_DEBUG, "cannot be fixed");
+                           debug_printf("nand driver", "cannot be fixed");
                            Lock_MutexPost(NandFlashLock);
                            return (-3);
                        }
