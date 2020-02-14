@@ -56,7 +56,6 @@
 #include "iicbus.h"
 //#include "ctiic.h"
 #include "board.h"
-#include "app_flash.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -73,11 +72,11 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"touchscreen FT6236"//iic接口的触摸屏控制
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"touch"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:later              //初始化时机，可选值：early，medium，later, pre-main。
+//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
 //dependence:"io analog iic bus","touch"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
@@ -98,11 +97,11 @@
 #define CT_MAX_TOUCH  5                         //"触控数",支持最多5点触摸
 //%$#@enum,true,false,
 //%$#@string,1,128,
-#define CFG_TOUCH_ADJUST_FILE   "/efs/touch_init.dat"  //保存触摸屏矫正参数的文件
+#define CFG_TOUCH_ADJUST_FILE   "/efs/touch_init.dat"  //"矫正文件路径",保存触摸屏矫正参数的文件
 #define CFG_FT6236_BUS_NAME     "IoIic"        //"IIC总线名称",触摸芯片使用的IIC总线名称
 #define CFG_FT6236_TOUCH_NAME   "FT6236"       //"触摸屏名称",配置触摸屏名称
-#define CFG_DISPLAY_NAME        "display"      //"显示器名称",配置触摸屏所在显示器的名称
-//%$#select,        ***从列出的选项中选择若干个定义成宏
+#define CFG_TARGET_DISPLAY_NAME "display"      //"触屏所在显示器名称",配置触摸屏所在显示器的名称
+//%$#@select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
@@ -382,7 +381,7 @@ bool_t ModuleInstall_FT6236(void)
     s_FT6236_Dev = IIC_DevAdd(CFG_FT6236_BUS_NAME,"IIC_Dev_FT6236",FT_CMD_WR>>1,0,8);
     if(NULL != s_FT6236_Dev)
     {
-        desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
+        desktop = GK_GetDesktop(CFG_TARGET_DISPLAY_NAME);
         IIC_BusCtrl(s_FT6236_Dev,CN_IIC_SET_CLK,100*1000,0);
         ps_FT6236_Dev = s_FT6236_Dev;
         result=FT6236_Init();
@@ -394,7 +393,7 @@ bool_t ModuleInstall_FT6236(void)
             return false;
 
         FT6236.read_touch = FT6236_Scan;    //读触摸点的坐标函数
-        FT6236.touch_loc.display = GK_GetDisplay(CFG_DISPLAY_NAME);
+        FT6236.touch_loc.display = GK_GetDisplay(CFG_TARGET_DISPLAY_NAME);
         result=Touch_InstallDevice(CFG_FT6236_TOUCH_NAME,&FT6236);//添加驱动到Touch
         if(!result)
             return false;

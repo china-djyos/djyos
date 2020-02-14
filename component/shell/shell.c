@@ -77,8 +77,8 @@
 #include <string.h>
 #include <systime.h>
 #include <unistd.h>
-#include "project_config.h"
-//允许是个空文件，所有配置将按默认值配置。
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
@@ -90,7 +90,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"shell"       //shell
+//component name:"shell"        //shell
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -112,12 +112,12 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_SHELL    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,0x10000,
-#define CFG_SHELL_STACK            0x1000      //"执行shell命令的栈尺寸"
+#define CFG_SHELL_STACK            0x1000      //"执行shell命令的栈尺寸",
 //%$#@enum,true,false,
-#define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令"
-#define CFG_ADD_EXPAND_SHELL       true        //"是否添加拓展shell命令"
-#define CFG_ADD_GLOBAL_FUN         false       //"添加全局函数到shell"
-#define CFG_SHOW_ADD_SHEELL        true        //"显示在编译窗口添加的shell命令"
+#define CFG_ADD_ROUTINE_SHELL      true        //"是否添加常规shell命令",
+#define CFG_ADD_EXPAND_SHELL       true        //"是否添加拓展shell命令",
+#define CFG_ADD_GLOBAL_FUN         false       //"添加全局函数到shell",
+#define CFG_SHOW_ADD_SHEELL        true        //"显示在编译窗口添加的shell命令",
 //%$#@string,1,10,
 //%$#@SYMBOL        ***不经配置界面，直接定义符号
 //%$#select,        ***从列出的选项中选择若干个定义成宏

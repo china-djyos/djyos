@@ -62,7 +62,7 @@
 #include <board.h>
 #include <libc/misc/ecc/ecc_256.h>
 #include <dbug.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <math.h>
 #include "stm32f7xx_hal_conf.h"
 
@@ -441,13 +441,13 @@ s32  S3C2416_PageRead(u32 PageNo, u8 *Data, u32 Flags)
                 case 1:// 1位错，可纠错
                 {
                     Data[(EccStatus >> 7) & 0x7ff] ^= (1 << ((EccStatus >> 4) & 0x7));
-                    TraceDrv(FLASH_TRACE_DEBUG, "fix: bit 0x%x in Byte 0x%x\r\n",
+                    debug_printf("nand driver"，"fix: bit 0x%x in Byte 0x%x\r\n",
                             ((EccStatus >> 4) & 0x7), ((EccStatus >> 7) & 0x7ff));
                     break;
                 }
                 case 2:// 错误位太多, 不可纠错
                 case 3:// ECC计算错误
-                    TraceDrv(FLASH_TRACE_DEBUG, "cannot be fixed");
+                    debug_printf("nand driver", "cannot be fixed");
                     Lock_MutexPost(NandFlashLock);
                     return (-3);
             }

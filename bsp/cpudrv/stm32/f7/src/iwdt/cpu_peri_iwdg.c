@@ -11,7 +11,6 @@
 #include "stddef.h"
 #include "djyos.h"
 #include "cpu_peri.h"
-#include "wdt_hal.h"
 #include "shell.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -23,13 +22,13 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip iwdt"//组件名
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"watch dog"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:early               //初始化时机，可选值：early，medium，later, pre-main。
+//init time:later               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"kernel","stm32f7"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"watch dog"        //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -45,8 +44,10 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_IWDT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100000000,
-#define CFG_FEED_CYCLE  (2000*1000)     //"feed dog cycle"
+#define CFG_FEED_CYCLE              (2000*1000)     //"看门狗超时时间"，单位us
+#define CFG_BOOT_TIME_LIMIT         30000000        //"启动加载超限时间",允许保护启动加载过程才需要配置此项
 //%$#@enum,true,false,
+#define CFG_DEFEND_ON_BOOT          false          //"保护启动过程",启动加载过程如果出现死机，看门狗将复位
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -106,7 +107,6 @@ bool_t BrdWdt_FeedDog(void)
 }
 
 
-bool_t BrdBoot_FeedEnd(void);
 u32 FeedDog_Isr(ptu32_t intline)
 {
     WDT_TIM->CNT = 0;
@@ -116,10 +116,18 @@ u32 FeedDog_Isr(ptu32_t intline)
     FeedCnt1++;
     return 1;
 }
-bool_t BrdBoot_FeedStart(u32 bootfeedtime)
+
+//----启动boot期间喂狗----------------------------------------------------------
+//功能：启动boot期间喂狗功能，一般来说，须启动一个定时器，中断周期是CFG_WDT_FEED_CYCLE
+//      的80%，中断设为实时中断，在其ISR中，执行喂狗操作。CFG_BOOT_TIME_LIMIT 时间之后，
+//      停止喂狗。
+//参数：无
+//返回：true
+//-----------------------------------------------------------------------------
+bool_t BrdBoot_FeedStart( void)
 {
     u8 irqline = CN_INT_LINE_TIM8_BRK_TIM12;
-    sBootDogFeedTime = bootfeedtime;
+    sBootDogFeedTime = CFG_BOOT_TIME_LIMIT;
     RCC->APB1ENR |=RCC_APB1ENR_TIM12EN;
     WDT_TIM->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
     WDT_TIM->CR1 |= TIM_CR1_ARPE | TIM_CR1_DIR;//自动重装
@@ -135,7 +143,12 @@ bool_t BrdBoot_FeedStart(u32 bootfeedtime)
     return true;
 }
 
-bool_t BrdBoot_FeedEnd(void)
+//----停止启动boot期间喂狗-------------------------------------------------------
+//功能：把硬件看门狗模块安装到系统后，正常的喂狗操作即将开始，由定时器ISR喂狗即结束。
+//参数：无
+//返回：true
+//-----------------------------------------------------------------------------
+bool_t __BrdBoot_FeedEnd(void)
 {
     u8 irqline = CN_INT_LINE_TIM8_BRK_TIM12;
     BrdWdt_FeedDog();
@@ -173,15 +186,22 @@ void IWDG_Init(void)
 }
 
 // =============================================================================
-// 功能：板上看门狗芯片初始化
+// 功能：板上看门狗芯片初始化，此函数在软看门狗组件后面初始化，如果启动了“防护启动加载过程”
+//      的功能，本函数调用后，将停止自动喂狗。
 // 参数：无
 // 返回：无
 // =============================================================================
-void ModuleInstall_BrdWdt(void)
+bool_t ModuleInstall_BrdWdt(void)
 {
+    bool_t result;
     IWDG_Init();
-    WdtHal_RegisterWdtChip("Wdt_IWDG",CFG_FEED_CYCLE/4,BrdWdt_FeedDog,\
-            BrdBoot_FeedStart,BrdBoot_FeedEnd);
+//  WdtHal_RegisterWdtChip("Wdt_IWDG",CFG_FEED_CYCLE/4,BrdWdt_FeedDog,\
+//          BrdBoot_FeedStart,BrdBoot_FeedEnd);
+    result = WdtHal_RegisterWdtChip("Wdt_IWDG", CFG_FEED_CYCLE/4, BrdWdt_FeedDog);
+#if(CFG_DEFEND_ON_BOOT == true)
+    __BrdWdt_FeedDog();
+#endif
+    return result;
 }
 
 

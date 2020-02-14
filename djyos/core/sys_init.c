@@ -67,6 +67,7 @@ extern s32 handle_ModuleInit(void);
 extern s32 Lock_CreateObject(void);
 extern s32 Mb_CreateObject(void);
 extern void Sys_ModuleInit(void);
+extern void Board_Init(void);
 
 align_type InitStack[CFG_INIT_STACK_SIZE/sizeof(align_type)] = {'d'};
 
@@ -110,6 +111,7 @@ void Sys_Start(void)
     handle_ModuleInit();          // 对象句柄体系初始化；
     Lock_CreateObject();    // lock体系；
     Mb_CreateObject();      // memory block体系；
+    Board_Init();
     Sys_ModuleInit();
     // 黑客们注意,此两函数间不要企图插入什么代码,一切后果自负.
     __StartOs();

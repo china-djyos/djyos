@@ -330,8 +330,6 @@ djy_context_switch_interrupt_do:
     /*把新的栈顶的值存到SP上面*/
     LDR     SP,  [R6]
 
-
-
     LDMFD   SP!, {R4}
     AND     R4,  R4, #0Xffffff3f
     MSR     SPSR_cxsf, R4

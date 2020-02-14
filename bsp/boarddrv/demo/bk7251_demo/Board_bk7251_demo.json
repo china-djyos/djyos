@@ -1,19 +1,28 @@
 {
-	"board_name":"bk7251_demo",
+	"board_name":"AiEasyTalk",
 	"cpus":{
 		"bk7251":{
 			"clocks":{
 				
 			},
-			"chips":["st7796s",
-			"gd25q16c",
-			"ft6236"],
-			"peripherals":["cpu_peri_audio_mic",
-			"cpu_peri_flash",
-			"cpu_peri_gpio",
-			"cpu_peri_uart",
-			"cpu_peri_eth"],
-			"mian_freq":0,
+			"chips":["ft6236",
+			"st7796s",
+			"gd25q16c"],
+			"peripherals":["cpu onchip adc",
+			"cpu onchip audio in_out",
+			"cpu onchip flash",
+			"cpu onchip gpio",
+			"cpu onchip iwdt",
+			"cpu onchip MAC",
+			"cpu onchip pwm",
+			"cpu onchip timer",
+			"cpu onchip uart",
+			"cpu_peri_scard",
+			"embflash install efs",
+			"flash insatall xip",
+			"qspi",
+			"spi"],
+			"mian_freq":180,
 			"memories":{
 				
 			}

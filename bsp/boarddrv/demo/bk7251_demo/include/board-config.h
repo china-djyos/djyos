@@ -104,7 +104,7 @@ extern "C" {
 
 #define CN_CAN_NUM                    1
 
-#define DJY_BOARD       "APOLLO"
+#define DJY_BOARD       "BK7251Demo"
 #ifdef __cplusplus
 }
 #endif

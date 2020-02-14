@@ -84,6 +84,7 @@ void bk_rtos_thread_sleep(uint32_t seconds)
 
 static uint32_t rtos_sem_cnt = 0;
 static uint32_t rtos_mutex_cnt = 0;
+bool_t init_jtag(char *param);
 
 OSStatus bk_rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
 {
@@ -92,6 +93,11 @@ OSStatus bk_rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
     *semaphore = Lock_SempCreate(maxCount,0,CN_BLOCK_FIFO,NULL);
     GLOBAL_INT_RESTORE();
     rtos_sem_cnt++;
+    if(rtos_sem_cnt > 100)
+    {
+        printk("semaphore over\r\n");
+        init_jtag(NULL);
+    }
     RTOS_DBG("bk_rtos_init_semaphore:%d\r\n",rtos_sem_cnt);
     return (*semaphore != NULL) ? kNoErr : kGeneralErr;
 }
@@ -146,6 +152,7 @@ OSStatus bk_rtos_deinit_semaphore( beken_semaphore_t* semaphore )
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
     Lock_SempDelete(*semaphore);
+    rtos_sem_cnt--;
     GLOBAL_INT_RESTORE();
     return kNoErr;
 }
@@ -192,6 +199,7 @@ OSStatus bk_rtos_deinit_mutex( beken_mutex_t* mutex)
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
     Lock_MutexDelete(*mutex);
+    rtos_mutex_cnt--;
     GLOBAL_INT_RESTORE();
     return kNoErr;
 }

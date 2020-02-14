@@ -145,7 +145,7 @@ void __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u8 Protocol)
 ptu32_t Slave_ISBUS_Process(void)
 {
     u32 timeout,sta,Completed,Completed1;
-    ptu32_t DevRe;
+    s32 DevRe;
     struct Slave_ISBUSPort *Port;
     struct Slave_FunctionSocket *Me;
     struct DjyDevice *Device; //对应的设备指针

@@ -53,8 +53,8 @@
 //   新版本号: V1.0.0
 //   修改说明: 原始版本
 //------------------------------------------------------
-#ifndef __CORTEX_M_H__
-#define __CORTEX_M_H__
+#ifndef __SYSTICK_H__
+#define __SYSTICK_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -67,5 +67,6 @@ __attribute__((weak)) u32 Tick_SetNextTimeTick(s32 Ticks);
 
 #ifdef __cplusplus
 }
+#endif
 #endif
 

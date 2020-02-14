@@ -104,7 +104,7 @@ __attribute__((weak))  bool_t IAP_IsForceIboot()
 void IAP_SelectLoadProgam(void)
 {
 #if (CFG_RUNMODE_BAREAPP == 1)
-        Load_Preload();   //运行Iboot
+        Load_Preload();   //直接加载运行APP
 #else
     Si_IbootAppInfoInit();
 
@@ -169,7 +169,7 @@ void Load_Preload(void)
     Cache_config();
 #endif
 
-    Pre_Start();   //用指针做远程调用
+    Pre_Start();
 }
 
 extern struct copy_table sysload_copy_table;

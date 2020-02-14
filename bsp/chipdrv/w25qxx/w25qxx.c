@@ -527,7 +527,7 @@ s32 ModuleInstall_NOR(void)
     Chip = (struct FlashChip*)malloc(sizeof(*Chip) + Len);
     if(NULL == Chip)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
+        error_printf("w25qxx","out of memory!\r\n");
         return (-2);
     }
     memset(Chip, 0x0, sizeof(*Chip));
@@ -545,7 +545,7 @@ s32 ModuleInstall_NOR(void)
     Chip->Buf = (u8*)malloc(Chip->Descr.Nor.BytesPerPage);// NANDµ×²ã»º³å
     if(NULL == Chip->Buf)
     {
-        TraceDrv(FLASH_TRACE_ERROR, "out of memory!\r\n");
+        error_printf("w25qxx","out of memory!\r\n");
         free(Chip);
         return (-2);
     }

@@ -60,7 +60,7 @@
                                       //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early                    //初始化时机，可选值：early，medium，later, pre-main。
                                       //表示初始化时间，分别是早期、中期、后期
-//dependence:"file system"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"file system"            //该组件的依赖组件名（可以是none，表示无依赖组件），
                                       //选中该组件时，被依赖组件将强制选中，
                                       //如果依赖多个组件，则依次列出
 //weakdependence:"none"               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -76,11 +76,11 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_FAT_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,MS_INSTALLUSE,
-#define CFG_FAT_MS_INSTALLUSE       MS_INSTALLUSE       //使用时才发生安装动作
-//%$#@enum,"MSC","EMMC",
-#define CFG_FAT_MEDIA_KIND          "MSC"      //"name",媒体所属类别（ "MSC", "EMMC"）
+#define CFG_FAT_MS_INSTALLUSE       MS_INSTALLUSE   //"选项",参考filesystem.h中的MS_INSTALLUSE等定义
+//%$#@enum,"MSC","EMMC","SD",
+#define CFG_FAT_MEDIA_KIND          "MSC"      //"媒体所属类别",（如"MSC", "EMMC"
 //%$#@string,1,10,
-#define CFG_FAT_MOUNT_POINT         "fat"      //"name",FAT文件系统安装目录
+#define CFG_FAT_MOUNT_POINT         "fat"      //"安装路径",FAT文件系统安装目录
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif

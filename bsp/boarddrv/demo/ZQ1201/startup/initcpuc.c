@@ -65,7 +65,8 @@
 #include "lowpower.h"
 #include "djyos.h"
 //#include "core_cmFunc.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
 extern   uint32_t   msp_top[ ];
 //extern void __set_PSP(uint32_t topOfProcStack);
@@ -225,7 +226,8 @@ bool_t IAP_IsForceIboot(void)
 #ifdef CFG_CPU_ZQ12XX_CK
 #include "csi_core.h"
 #include "arch_feature.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
 extern void Load_Preload(void);
 

@@ -71,6 +71,8 @@
 #include "gk_syscall.h"
 #include "gk_usercall.h"
 #include "gk_win.h"
+#include <gdd.h>
+#include <msgqueue.h>
 #include <gui/gkernel/gk_display.h>
 //----创建桌面-----------------------------------------------------------------
 //功能: 创建桌面，新显示器加入后，首先要创建桌面才能使用。桌面其实和一个普通窗口

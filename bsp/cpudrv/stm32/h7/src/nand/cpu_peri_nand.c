@@ -60,7 +60,7 @@
 #include <djyos.h>
 #include <math.h>
 #include <dbug.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <misc/ecc/ecc_256.h>
@@ -485,7 +485,7 @@ again:
 
                        if (EccRet && (EccRet != HAMMING_ERROR_SINGLE_BIT))
                        {
-                           TraceDrv(FLASH_TRACE_DEBUG, "cannot be fixed");
+                           debug_printf("nand driver", "cannot be fixed");
                            Lock_MutexPost(NandFlashLock);
                            return (-3);
                        }

@@ -43,14 +43,14 @@
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
 //所属模块:中断模块
-//作者：lst
+//作者:  罗侍田.
 //版本：V1.0.0
-//文件描述: cm4异常处理模块
+//文件描述: cm3异常处理模块
 //其他说明:
 //修订历史:
 //2. ...
 //1. 日期: 2009-08-30
-//   作者: lst
+//   作者:  罗侍田.
 //   新版本号: V1.0.0
 //   修改说明:
 //------------------------------------------------------
@@ -65,63 +65,29 @@ extern "C" {
 
 #include "blackbox.h"
 
-#define CN_EXP_TYPE_HARD_FAULT      (CN_BLACKBOX_TYPE_HARD_START+0)
-#define CN_EXP_TYPE_MEMMANAGE_FAULT (CN_BLACKBOX_TYPE_HARD_START+1)
-#define CN_EXP_TYPE_BUS_FAULT       (CN_BLACKBOX_TYPE_HARD_START+2)
-#define CN_EXP_TYPE_USAGE_FAULT     (CN_BLACKBOX_TYPE_HARD_START+3)
-#define CN_EXP_TYPE_DBG_FAULT       (CN_BLACKBOX_TYPE_HARD_START+4)
+#define CN_EXP_TYPE_UNDEF_CODE      (CN_BLACKBOX_TYPE_HARD_START+0)
+#define CN_EXP_TYPE_PREFETCH        (CN_BLACKBOX_TYPE_HARD_START+1)
+#define CN_EXP_TYPE_DATA_ABORT      (CN_BLACKBOX_TYPE_HARD_START+2)
 
-//系统异常表
-#define CN_SYSVECT_RESET                    1
-#define CN_SYSVECT_NMI                      2
-#define CN_SYSVECT_HARD_FAULT               3
-#define CN_SYSVECT_MEMMANAGE_FAULT          4
-#define CN_SYSVECT_BUS_FAULT                5
-#define CN_SYSVECT_USAGE_FAULT              6
-#define CN_SYSVECT_SVC                      11
-#define CN_SYSVECT_DEBUG                    12
-#define CN_SYSVECT_PENDSV                   14
-#define CN_SYSVECT_SYSTICK                  15
+extern u8 usr_top[];
+extern u8 usr_bottom[];
+extern u8 svc_top[];
+extern u8 svc_bottom[];
+extern u8 irq_top[];
+extern u8 irq_bottom[];
+extern u8 fiq_top[];
+extern u8 fiq_bottom[];
+extern u8 undef_top[];
+extern u8 undef_bottom[];
+extern u8 abort_top[];
+extern u8 abort_bottom[];
+
+extern void (* engine_irq)(ufast_t ufl_line);
+
 
 //异常解码名称和标志
 #define CN_HARDEXP_DECODERNAME          "HARDEXP_DECODER"
 #define CN_SYS_EXP_CPUINFO_VALIDFLAG    ((u32)(0x87654321))
-
-//定义DEBUG FAULT状态位
-#define CN_EXP_DFSR_HALTED                  (0x01 << 0)
-#define CN_EXP_DFSR_BKPT                    (0x01 << 1)
-#define CN_EXP_DFSR_DWTTRAP                 (0x01 << 2)
-#define CN_EXP_DFSR_VCATCH                  (0x01 << 3)
-#define CN_EXP_DFSR_EXTERNAL                (0x01 << 4)
-
-//定义HARD FAULT状态位
-#define CN_EXP_HFSR_VECTBL                  (0x01 << 1)
-#define CN_EXP_HFSR_FORCED                  (0x01 << 30)
-#define CN_EXP_HFSR_DEBUGEVT                (0x01 << 31)
-
-//定义USAGE FAULT状态位
-#define CN_EXP_UFSR_UNDEFINSTR              (0x01 << 0)
-#define CN_EXP_UFSR_INVSTATE                (0x01 << 1)
-#define CN_EXP_UFSR_INVPC                   (0x01 << 2)
-#define CN_EXP_UFSR_NOCP                    (0x01 << 3)
-#define CN_EXP_UFSR_UNALIGNED               (0x01 << 8)
-#define CN_EXP_UFSR_DIVBYZERO               (0x01 << 9)
-
-//定义BUS FAULT状态位
-#define CN_EXP_BFSR_IBUSERR                 (0x01 << 0)
-#define CN_EXP_BFSR_PRECISERR               (0x01 << 1)
-#define CN_EXP_BFSR_IMPRECISERR             (0x01 << 2)
-#define CN_EXP_BFSR_UNSTKERR                (0x01 << 3)
-#define CN_EXP_BFSR_STKERR                  (0x01 << 4)
-#define CN_EXP_BFSR_BFARVALID               (0x01 << 7)
-
-//定义MEM FAULT状态位
-#define CN_EXP_MFSR_IACCVIOL                (0x01 << 0)
-#define CN_EXP_MFSR_DACCVIOL                (0x01 << 1)
-#define CN_EXP_MFSR_MUNSTKERR               (0x01 << 3)
-#define CN_EXP_MFSR_MSTKERR                 (0x01 << 4)
-#define CN_EXP_MFSR_MMARVALID               (0x01 << 7)
-
 
 //该异常信息是属于CPU 的CORE 信息，属于CORE所有，和具体CPU型号无关
 struct SysExpCoreInfo
@@ -146,70 +112,21 @@ struct SysExpCoreInfo
     u32 spr_xpsr;   //r0-r3,r12-r15是自动大压栈
 };
 
-struct SysExpRegInfo
-{
-    u32 fpu_s16;
-    u32 fpu_s17;
-    u32 fpu_s18;
-    u32 fpu_s19;
-    u32 fpu_s20;
-    u32 fpu_s21;
-    u32 fpu_s22;
-    u32 fpu_s23;
-    u32 fpu_s24;
-    u32 fpu_s25;
-    u32 fpu_s26;
-    u32 fpu_s27;
-    u32 fpu_s28;
-    u32 fpu_s29;
-    u32 fpu_s30;
-    u32 fpu_s31;
-    struct SysExpCoreInfo CoreInfo;
-    u32 fpu_s0;
-    u32 fpu_s1;
-    u32 fpu_s2;
-    u32 fpu_s3;
-    u32 fpu_s4;
-    u32 fpu_s5;
-    u32 fpu_s6;
-    u32 fpu_s7;
-    u32 fpu_s8;
-    u32 fpu_s9;
-    u32 fpu_s10;
-    u32 fpu_s11;
-    u32 fpu_s12;
-    u32 fpu_s13;
-    u32 fpu_s14;
-    u32 fpu_s15;
-    u32 fpu_fpscr;
-    u32 fpu_res;
-};
-
-struct SysExpNvicInfo
-{
-    u32 bfar;       //bus fault address register
-    u32 mmar;       //memory manage fault address register
-    u32 dfsr;       //debug fault state register
-    u32 hfsr;       //hard fault state register
-    u16 ufsr;       //usage fault state register
-    u8  bfsr;       //bus fault state register
-    u8  mfsr;       //memory manage fault state register
-};
-
 struct SysExceptionInfo
 {
     u32 SysExpType;                     //异常信息类型
     u32 SysExpCpuFlag;                 //该异常信息的有效编码
-    struct SysExpRegInfo ExpRegInfo;
-    struct SysExpNvicInfo NvicInfo;
+    struct SysExpCoreInfo ExpRegInfo;
+    //struct SysExpNvicInfo NvicInfo;
 };
 
-extern u32 g_u32ExpTable[16];
+extern void * g_u32ExpTable[8];
 void HardExp_Init(void);
 void HardExp_ConnectSystick(void (*tick)(u32 inc_ticks));
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif // _EXCEPTION_H_
 

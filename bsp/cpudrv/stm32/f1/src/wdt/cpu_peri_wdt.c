@@ -54,7 +54,6 @@
 #include "stdint.h"
 #include "stddef.h"
 #include "systime.h"
-#include "wdt_hal.h"
 #include "cpu_peri.h"
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
@@ -79,9 +78,9 @@
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
+//init time:later              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"watch dog"   //该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"watch dog"        //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -96,15 +95,17 @@
 //#warning  " cpu_onchip_wdt  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_WDT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,500000,20000000,
+//%$#@num,0,,
+#define CFG_IWDT_WDTCYCLE       5000000      //"IWDT看门狗超时时间",
+#define CFG_WWDG_WDTCYCLE       50000        //"WWDG看门狗超时时间",
+#define CFG_BOOT_TIME_LIMIT         30000000       //"启动加载超限时间",允许保护启动加载过程才需要配置此项
 //%$#@enum,true,false,
 #define CFG_WWDG_ENABLE         false            //"是否配置使用WWDG",
 #define CFG_IWDG_ENABLE         false            //"是否配置使用IWDG",
+#define CFG_DEFEND_ON_BOOT      false            //"保护启动过程",启动加载过程如果出现死机，看门狗将复位
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏"s
 //%$#@free,s
-#define CFG_IWDT_WDTCYCLE       (5000*mS)      //"WDT看门狗时间",
-#define CFG_WWDG_WDTCYCLE       (50*mS)        //"WWDG看门狗时间",
 #endif
 //%$#@end configue  ****参数配置结束
 //@#$%component end configure
@@ -192,8 +193,8 @@ bool_t IWDG_Stm32ReloadSet(u16 value)
 }
 
 // =============================================================================
-// 函数功能:IWDG_Stm32Initial
-//          IWDG_Stm32Initial看门狗注册
+// 功能：板上看门狗芯片初始化，此函数在软看门狗组件后面初始化，如果启动了“防护启动加载过程”
+//      的功能，本函数调用后，将停止自动喂狗。
 // 输入参数:
 // 返回值  :true成功false失败
 // 说明：IWDG不可用，配置完PR和RL后，STM_IWDG->IWDG_SR相应位总是为1
@@ -208,9 +209,13 @@ bool_t IWDG_Stm32Initial(u32 setcycle)
     //配置重装载值，即喂狗后，装载值,配置为5分频
     IWDG_Stm32ReloadSet((40/s_prevalue[CN_PRE_VALUE]) * (CFG_IWDT_WDTCYCLE/mS));
 
-    result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME,CFG_IWDT_WDTCYCLE,\
-                                    IWDG_Stm32WdtFeed,NULL,NULL);
+//  result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME,CFG_IWDT_WDTCYCLE,\
+//                                  IWDG_Stm32WdtFeed,NULL,NULL);
 
+    result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME, CFG_IWDT_WDTCYCLE, IWDG_Stm32WdtFeed);
+#if(CFG_DEFEND_ON_BOOT == true)
+    BrdBoot_FeedEnd();
+#endif
     IWDG_Stm32Enable();
     return result;
 }
@@ -231,8 +236,12 @@ bool_t WWDG_STM32Init(u32 setcycle)
     STM_WWDG->WWDG_CFR |= (3<<7);//WDGTB0,1
     WWDG_STM32WdtFeed();
 
-    result = WdtHal_RegisterWdtChip(CN_WWDG_DOGNAME,CFG_WWDG_WDTCYCLE,\
-                            WWDG_STM32WdtFeed,NULL,NULL);
+//  result = WdtHal_RegisterWdtChip(CN_WWDG_DOGNAME,CFG_WWDG_WDTCYCLE,\
+//                          WWDG_STM32WdtFeed,NULL,NULL);
+    result = WdtHal_RegisterWdtChip(CN_WWDG_DOGNAME, CFG_WWDG_WDTCYCLE, WWDG_STM32WdtFeed);
+#if(CFG_DEFEND_ON_BOOT == true)
+    BrdBoot_FeedEnd();
+#endif
     STM_WWDG->WWDG_CR |= (1<<7);//使能看门狗
     return result;
 }
