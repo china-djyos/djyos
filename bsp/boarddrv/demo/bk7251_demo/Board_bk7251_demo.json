@@ -1,5 +1,5 @@
 {
-	"board_name":"AiEasyTalk",
+	"board_name":"bk7251_demo",
 	"cpus":{
 		"bk7251":{
 			"clocks":{

@@ -41,9 +41,9 @@
 //%$#@enum,VERIFICATION_NULL,VERIFICATION_CRC,VERIFICATION_MD5,VERIFICATION_SSL,
 #define  CFG_APP_VERIFICATION   VERIFICATION_NULL   //"APP校验方法",
 //%$#@num,0,100,
-#define CFG_IBOOT_VERSION_SMALL       00        //"Iboot版本号:低",xx.xx.__
-#define CFG_IBOOT_VERSION_MEDIUM      00        //"Iboot版本号:中",xx.__.xx
-#define CFG_IBOOT_VERSION_LARGE       01        //"Iboot版本号:高",__.xx.xx
+#define CFG_IBOOT_VERSION_SMALL       00        //"Iboot版本号:低",xx.xx.__，APP忽略
+#define CFG_IBOOT_VERSION_MEDIUM      00        //"Iboot版本号:中",xx.__.xx，APP忽略
+#define CFG_IBOOT_VERSION_LARGE       01        //"Iboot版本号:高",__.xx.xx，APP忽略
 //%$#@string,1,128,
 #define CFG_IBOOT_UPDATE_NAME      "/yaf2/iboot.bin"           //"待升级iboot默认存储路径"
 #define CFG_APP_UPDATE_NAME        "/yaf2/app.bin"            //"待升级app默认存储路径"
