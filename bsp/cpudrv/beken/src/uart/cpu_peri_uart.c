@@ -62,14 +62,6 @@
 //    #if CFG_UART2_ENABLE ==1
 //    ModuleInstall_UART(CN_UART2);
 //    #endif
-//
-//    #if CFG_UART3_ENABLE ==1
-//    ModuleInstall_UART(CN_UART3);
-//    #endif
-//
-//    #if CFG_UART4_ENABLE ==1
-//    ModuleInstall_UART(CN_UART4);
-//    #endif
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -80,7 +72,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"device file system","lock","uart device file","heap","cpu onchip uart"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"device file system","lock","uart device file","heap"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -98,24 +90,12 @@
 //%$#@num,0,512,
 #define CFG_UART1_SENDBUF_LEN       64      //"UART1发送环形缓冲区大小",
 #define CFG_UART1_RECVBUF_LEN       64      //"UART1接收环形缓冲区大小",
-#define CFG_UART1_DMABUF_LEN        64      //"UART1 DMA环形缓冲区大小",
 
 #define CFG_UART2_SENDBUF_LEN       64      //"UART2发送环形缓冲区大小",
 #define CFG_UART2_RECVBUF_LEN       64      //"UART2接收环形缓冲区大小",
-#define CFG_UART2_DMABUF_LEN        64      //"UART2 DMA环形缓冲区大小",
-
-#define CFG_UART3_SENDBUF_LEN       64      //"UART3发送环形缓冲区大小",
-#define CFG_UART3_RECVBUF_LEN       64      //"UART3接收环形缓冲区大小",
-#define CFG_UART3_DMABUF_LEN        64      //"UART3 DMA环形缓冲区大小",
-
-#define CFG_UART4_SENDBUF_LEN       64      //"UART4发送环形缓冲区大小",
-#define CFG_UART4_RECVBUF_LEN       64      //"UART4接收环形缓冲区大小",
-#define CFG_UART4_DMABUF_LEN        64      //"UART4 DMA环形缓冲区大小",
 //%$#@enum,true,false
 #define CFG_UART1_ENABLE           true        //"是否使用UART1",
 #define CFG_UART2_ENABLE           true       //"是否使用UART2",
-#define CFG_UART3_ENABLE           false       //"是否使用UART3",
-#define CFG_UART4_ENABLE           false       //"是否使用UART4",
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,

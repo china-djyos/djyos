@@ -55,8 +55,6 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern void Board_Init(void);
-//    Board_Init();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -67,7 +65,7 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:early               //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"kernel","bk7251","cpu onchip gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"cpu onchip gpio"//该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
@@ -100,29 +98,29 @@
 // 参数：无
 // 返回：无
 // =============================================================================
-
-static struct SemaphoreLCB* p7_sem=0;
-void p7_sem_init()
-{
-    if (p7_sem==0) {
-        p7_sem = semp_init(1,1,"p7_sem");
-    }
-}
-
-void p7_isr_hdr(void *args)
-{
-    if (p7_sem) {
-         semp_post(p7_sem);
-    }
-}
-
-int pend_p7_down(unsigned int timeout)
-{
-    int ret = 0;
-    ret = semp_pendtimeout(p7_sem, timeout);
-    return ret;
-}
-
+//
+//static struct SemaphoreLCB* p7_sem=0;
+//void p7_sem_init()
+//{
+//    if (p7_sem==0) {
+//        p7_sem = semp_init(1,1,"p7_sem");
+//    }
+//}
+//
+//void p7_isr_hdr(void *args)
+//{
+//    if (p7_sem) {
+//         semp_post(p7_sem);
+//    }
+//}
+//
+//int pend_p7_down(unsigned int timeout)
+//{
+//    int ret = 0;
+//    ret = semp_pendtimeout(p7_sem, timeout);
+//    return ret;
+//}
+//
 //电容触摸芯片IIC接口初始化
 void FT6236_Pin_Init(void)
 {
@@ -189,6 +187,8 @@ enum SpeakerState GetSpeakerState()
 void Board_Init(void)
 {
     extern void os_clk_init(void);
+    extern s32 Djy_GpioInit(void);
+    Djy_GpioInit();
     os_meminit();
     drv_model_init();
     g_dd_init();

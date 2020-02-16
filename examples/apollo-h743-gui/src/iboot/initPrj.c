@@ -1,5 +1,5 @@
 /****************************************************
- *  Automatically-generated file. Do not edit!	*
+ *  Automatically-generated file. Do not edit!  *
  ****************************************************/
 
 #include "project_config.h"
@@ -8,179 +8,179 @@
 #include "stddef.h"
 #include "cpu_peri.h"
 extern ptu32_t djy_main(void);
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 
 ptu32_t __djy_main(void)
 {
-	djy_main();
-	return 0;
+    djy_main();
+    return 0;
 }
 
 void Sys_ModuleInit(void)
 {
-	uint16_t evtt_main;
+    uint16_t evtt_main;
 
-	extern void Board_GpioInit(void);
-	Board_GpioInit();
+    extern void Board_GpioInit(void);
+    Board_GpioInit();
 
-	extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
-	Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
-	extern s32 ModuleInstall_Shell(ptu32_t para);
-	ModuleInstall_Shell(0);
+    extern void Stdio_KnlInOutInit(char * StdioIn, char *StdioOut);
+    Stdio_KnlInOutInit(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME);
+    extern s32 ModuleInstall_Shell(ptu32_t para);
+    ModuleInstall_Shell(0);
 
-	//-------------------early-------------------------//
-	extern void ModuleInstall_BlackBox(void);
-	ModuleInstall_BlackBox( );
+    //-------------------early-------------------------//
+    extern void ModuleInstall_BlackBox(void);
+    ModuleInstall_BlackBox( );
 
-	extern bool_t ModuleInstall_DjyBus(void);
-	ModuleInstall_DjyBus ( );
+    extern bool_t ModuleInstall_DjyBus(void);
+    ModuleInstall_DjyBus ( );
 
-	extern bool_t ModuleInstall_CANBus(void);
-	ModuleInstall_CANBus ( );
+    extern bool_t ModuleInstall_CANBus(void);
+    ModuleInstall_CANBus ( );
 
-	extern bool_t ModuleInstall_IICBus(void);
-	ModuleInstall_IICBus ( );
+    extern bool_t ModuleInstall_IICBus(void);
+    ModuleInstall_IICBus ( );
 
-	extern bool_t ModuleInstall_MsgQ(void);
-	ModuleInstall_MsgQ ( );
+    extern bool_t ModuleInstall_MsgQ(void);
+    ModuleInstall_MsgQ ( );
 
-	extern s32 ModuleInstall_EFS(const char *target, u32 opt, void *config);
-	ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, CFG_EFS_INSTALL_OPTION, NULL);
+    extern s32 ModuleInstall_EFS(const char *target, u32 opt, void *config);
+    ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, CFG_EFS_INSTALL_OPTION, NULL);
 
-	extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
-	ModuleInstall_XIP_APP_FS(0,NULL);
+    extern s32 ModuleInstall_XIP_APP_FS(u32 opt, void *data);
+    ModuleInstall_XIP_APP_FS(0,NULL);
 
-	#if !defined (CFG_RUNMODE_BAREAPP)
-	extern ptu32_t ModuleInstall_IAP(void);
-	ModuleInstall_IAP( );
-	#endif
+    #if !defined (CFG_RUNMODE_BAREAPP)
+    extern ptu32_t ModuleInstall_IAP(void);
+    ModuleInstall_IAP( );
+    #endif
 
-	extern bool_t ModuleInstall_Multiplex(void);
-	ModuleInstall_Multiplex ();
+    extern bool_t ModuleInstall_Multiplex(void);
+    ModuleInstall_Multiplex ();
 
-	extern u8 RNG_Init(void);
-	RNG_Init();
+    extern u8 RNG_Init(void);
+    RNG_Init();
 
-	extern bool_t MoudleInit_Systime(ptu32_t para);
-	MoudleInit_Systime(0);
+    extern bool_t MoudleInit_Systime(ptu32_t para);
+    MoudleInit_Systime(0);
 
-	extern bool_t ModuleInstall_HardTimer(void);
-	ModuleInstall_HardTimer();
+    extern bool_t ModuleInstall_HardTimer(void);
+    ModuleInstall_HardTimer();
 
-	extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
-	#if CFG_UART1_ENABLE ==1
-	ModuleInstall_UART(CN_UART1);
-	#endif
-	#if CFG_UART2_ENABLE ==1
-	ModuleInstall_UART(CN_UART2);
-	#endif
-	#if CFG_UART3_ENABLE ==1
-	ModuleInstall_UART(CN_UART3);
-	#endif
-	#if CFG_UART4_ENABLE ==1
-	ModuleInstall_UART(CN_UART4);
-	#endif
-	#if CFG_UART5_ENABLE ==1
-	ModuleInstall_UART(CN_UART5);
-	#endif
-	#if CFG_UART6_ENABLE ==1
-	ModuleInstall_UART(CN_UART6);
-	#endif
-	#if CFG_UART7_ENABLE ==1
-	ModuleInstall_UART(CN_UART7);
-	#endif
-	#if CFG_UART8_ENABLE ==1
-	ModuleInstall_UART(CN_UART8);
-	#endif
+    extern ptu32_t ModuleInstall_UART(ptu32_t SerialNo);
+    #if CFG_UART1_ENABLE ==1
+    ModuleInstall_UART(CN_UART1);
+    #endif
+    #if CFG_UART2_ENABLE ==1
+    ModuleInstall_UART(CN_UART2);
+    #endif
+    #if CFG_UART3_ENABLE ==1
+    ModuleInstall_UART(CN_UART3);
+    #endif
+    #if CFG_UART4_ENABLE ==1
+    ModuleInstall_UART(CN_UART4);
+    #endif
+    #if CFG_UART5_ENABLE ==1
+    ModuleInstall_UART(CN_UART5);
+    #endif
+    #if CFG_UART6_ENABLE ==1
+    ModuleInstall_UART(CN_UART6);
+    #endif
+    #if CFG_UART7_ENABLE ==1
+    ModuleInstall_UART(CN_UART7);
+    #endif
+    #if CFG_UART8_ENABLE ==1
+    ModuleInstall_UART(CN_UART8);
+    #endif
 
-	extern bool_t ModuleInstall_PCF8574(void);
-	ModuleInstall_PCF8574();
+    extern bool_t ModuleInstall_PCF8574(void);
+    ModuleInstall_PCF8574();
 
-	//-------------------medium-------------------------//
-	extern bool_t ModuleInstall_Font(void);
-	ModuleInstall_Font ( );
+    //-------------------medium-------------------------//
+    extern bool_t ModuleInstall_Font(void);
+    ModuleInstall_Font ( );
 
-	extern void ModuleInstall_FontGB2312(void);
-	ModuleInstall_FontGB2312();
+    extern void ModuleInstall_FontGB2312(void);
+    ModuleInstall_FontGB2312();
 
-	extern bool_t ModuleInstall_GK(void);
-	ModuleInstall_GK();
+    extern bool_t ModuleInstall_GK(void);
+    ModuleInstall_GK();
 
-	extern bool_t ModuleInstall_HmiIn(void);
-	ModuleInstall_HmiIn();      //初始化人机界面输入模块
+    extern bool_t ModuleInstall_HmiIn(void);
+    ModuleInstall_HmiIn();      //初始化人机界面输入模块
 
-	extern bool_t ModuleInstall_Touch(void);
-	ModuleInstall_Touch();    //初始化人机界面输入模块
+    extern bool_t ModuleInstall_Touch(void);
+    ModuleInstall_Touch();    //初始化人机界面输入模块
 
-	#if(CFG_OS_TINY == flase)
-	extern s32 kernel_command(void);
-	kernel_command();
-	#endif
+    #if(CFG_OS_TINY == flase)
+    extern s32 kernel_command(void);
+    kernel_command();
+    #endif
 
-	extern ptu32_t ModuleInstall_Charset(ptu32_t para);
-	ModuleInstall_Charset(0);
-	extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
-	ModuleInstall_CharsetNls("C");
+    extern ptu32_t ModuleInstall_Charset(ptu32_t para);
+    ModuleInstall_Charset(0);
+    extern void ModuleInstall_CharsetNls(const char * DefaultCharset);
+    ModuleInstall_CharsetNls("C");
 
-	extern bool_t ModuleInstall_CharsetAscii(void);
-	ModuleInstall_CharsetAscii ( );
+    extern bool_t ModuleInstall_CharsetAscii(void);
+    ModuleInstall_CharsetAscii ( );
 
-	extern bool_t ModuleInstall_CharsetGb2312(void);
-	ModuleInstall_CharsetGb2312 ( );
+    extern bool_t ModuleInstall_CharsetGb2312(void);
+    ModuleInstall_CharsetGb2312 ( );
 
-	extern bool_t ModuleInstall_Timer(void);
-	ModuleInstall_Timer();
+    extern bool_t ModuleInstall_Timer(void);
+    ModuleInstall_Timer();
 
-	extern bool_t ModuleInstall_TcpIp(void);
-	ModuleInstall_TcpIp( );
+    extern bool_t ModuleInstall_TcpIp(void);
+    ModuleInstall_TcpIp( );
 
-	extern bool_t ModuleInstall_ETH(void);
-	ModuleInstall_ETH( );
+    extern bool_t ModuleInstall_ETH(void);
+    ModuleInstall_ETH( );
 
-	extern bool_t LAN8720_ResetInit(void);
-	LAN8720_RESET( );
-	LAN8720_ResetInit( );
+    extern bool_t LAN8720_ResetInit(void);
+    LAN8720_RESET( );
+    LAN8720_ResetInit( );
 
-	extern struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapName);
-	ModuleInstall_LCD(CFG_DISPLAY_NAME,CFG_LCD_HEAP_NAME);
+    extern struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,const char* HeapName);
+    ModuleInstall_LCD(CFG_DISPLAY_NAME,CFG_LCD_HEAP_NAME);
 
-	//-------------------later-------------------------//
-	extern void ModuleInstall_Gdd_AND_Desktop(void);
-	ModuleInstall_Gdd_AND_Desktop();
+    //-------------------later-------------------------//
+    extern void ModuleInstall_Gdd_AND_Desktop(void);
+    ModuleInstall_Gdd_AND_Desktop();
 
-	#if(CFG_STDIO_STDIOFILE == true)
-	extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
-	ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
-	#endif
+    #if(CFG_STDIO_STDIOFILE == true)
+    extern s32 ModuleInstall_STDIO(const char *in,const char *out, const char *err);
+    ModuleInstall_STDIO(CFG_STDIO_IN_NAME,CFG_STDIO_OUT_NAME,CFG_STDIO_ERR_NAME);
+    #endif
 
-	extern void ModuleInstall_InitNet( );
-	ModuleInstall_InitNet( );
+    extern void ModuleInstall_InitNet( );
+    ModuleInstall_InitNet( );
 
-	extern struct GkWinObj;
-	extern bool_t ModuleInstall_FT5X26(struct GkWinObj *desktop);
-	struct GkWinObj *desktop;
-	desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
-	if(NULL == desktop)
-	{
-	printf("Desktop Not Exist !\r\n");
-	}
-	else
-	{
-	ModuleInstall_FT5X26(desktop);
-	}
-	extern bool_t GDD_AddInputDev(const char *InputDevName);
-	GDD_AddInputDev(CFG_FT5X26_TOUCH_NAME);
+    extern struct GkWinObj;
+    extern bool_t ModuleInstall_FT5X26(struct GkWinObj *desktop);
+    struct GkWinObj *desktop;
+    desktop = GK_GetDesktop(CFG_DISPLAY_NAME);
+    if(NULL == desktop)
+    {
+    printf("Desktop Not Exist !\r\n");
+    }
+    else
+    {
+    ModuleInstall_FT5X26(desktop);
+    }
+    extern bool_t GDD_AddInputDev(const char *InputDevName);
+    GDD_AddInputDev(CFG_FT5X26_TOUCH_NAME);
 
-	evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
-	__djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
-	//事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
-	Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
+    evtt_main = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS,0,0,
+    __djy_main,NULL,CFG_MAINSTACK_LIMIT, "main function");
+    //事件的两个参数暂设为0,如果用shell启动,可用来采集shell命令行参数
+    Djy_EventPop(evtt_main,NULL,0,NULL,0,0);
 
-	#if ((CFG_DYNAMIC_MEM == true))
-	extern bool_t Heap_DynamicModuleInit(void);
-	Heap_DynamicModuleInit ( );
-	#endif
+    #if ((CFG_DYNAMIC_MEM == true))
+    extern bool_t Heap_DynamicModuleInit(void);
+    Heap_DynamicModuleInit ( );
+    #endif
 
-	return ;
+    return ;
 }
 

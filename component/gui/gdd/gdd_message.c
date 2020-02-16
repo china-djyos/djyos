@@ -610,7 +610,7 @@ bool_t    PostMessage(HWND hwnd,u32 msg,u32 param1,ptu32_t param2)
                     break;
 
                 case MSG_TIMER:
-                    __PostTimerMessage(pMsgQ,hwnd,param2);
+                    __PostTimerMessage(pMsgQ,hwnd,(struct WinTimer *)param2);
                     res=TRUE;
                     break;
 

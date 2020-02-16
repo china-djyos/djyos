@@ -152,7 +152,7 @@ void __ISBUS_Process(u32 timeout)
     struct Host_FunctionSocket *Me;
     struct Host_ISBUSPort *Port;
     struct DjyDevice *Device;
-    ptu32_t DevRe;
+    s32 DevRe;
     u32 sta,Completed,Completed1;
     u8 FSM,temp,loop;
 

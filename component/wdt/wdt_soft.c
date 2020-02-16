@@ -63,59 +63,16 @@
 
 #include <os.h>
 #include <wdt_soft.h>
-#include <wdt_hal.h>
 #include <blackbox.h>
 #include "dbug.h"
 #include <shell.h>
 #include "board-config.h"
-#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
-                                //允许是个空文件，所有配置将按默认值配置。
-
-//@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
-//****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
-//%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    extern bool_t ModuleInstall_Wdt(void);
-//    ModuleInstall_Wdt();
-//%$#@end initcode  ****初始化代码结束
-
-//%$#@describe      ****组件描述开始
-//component name:"watch dog"//系统看门狗组件
-//parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
-//attribute:system              //选填“third、system、bsp、user”，本属性用于在IDE中分组
-//select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
-                                //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
-                                //表示初始化时间，分别是早期、中期、后期
-//dependence:"message queue","black box"//该组件的依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
-                                //选中该组件时，被依赖组件不会被强制选中，
-                                //如果依赖多个组件，则依次列出，用“,”分隔
-//mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                //如果与多个组件互斥，则依次列出，用“,”分隔
-//%$#@end describe  ****组件描述结束
-
-//%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_WATCH_DOG == false )
-//#warning  " watch_dog  组件参数未配置，使用默认配置"
-//%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_WATCH_DOG    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,1,100,
-#define CFG_WDT_LIMIT           10      //"看门狗数量",允许养狗数量
-#define CFG_WDTMSG_LIMIT        3       //"消息队列长度"，操作看门狗的消息队列的最大长度
-//%$#@enum,true,false,
-//%$#@string,1,10,
-//%$#select,        ***从列出的选项中选择若干个定义成宏
-//%$#@free,
-#endif
-//%$#@end configue  ****参数配置结束
-//@#$%component end configure
+#include "component_config_wdt.h"
 
 
 #define CN_WDT_YIP_NEVER      CN_LIMIT_SINT64     //当timeout为该时间时表示该看门狗暂停状态
 #define CN_WDT_YIP_PRECISION  CN_CFG_TICK_US      //软件看门狗模块的狗叫时间精度
-
+#define CN_WDTMSG_LIMIT       5                   //看门狗操作消息队列长度
 //struct Wdt;
 //typedef u32 (* fnYipHook)(struct Wdt *wdt);
 //the struct of the wdt
@@ -679,7 +636,7 @@ static ptu32_t Wdt_Service(void)
     u32           waittime;
     tagWdtMsg     wdtmsg;
     //将硬件狗从裸狗中接管过来
-    WdtHal_BootEnd();
+//  WdtHal_BootEnd();
     // deal all the msg cached in the msgbox
     timenow = DjyGetSysTime();
     while(MsgQ_Receive(ptWdtMsgBox,(u8 *)&wdtmsg,sizeof(tagWdtMsg),0))
@@ -762,7 +719,7 @@ bool_t ModuleInstall_Wdt(void)
     ptWdtHard = NULL;
 
     //create the msg box for the api to snd msg to the wdt service task
-    ptWdtMsgBox = MsgQ_Create(CFG_WDTMSG_LIMIT,sizeof(tagWdtMsg),CN_MSGQ_TYPE_FIFO);
+    ptWdtMsgBox = MsgQ_Create(CN_WDTMSG_LIMIT,sizeof(tagWdtMsg),CN_MSGQ_TYPE_FIFO);
 
     //create the main service
     evttid = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_WDT,0,0,Wdt_Service,
@@ -774,18 +731,6 @@ bool_t ModuleInstall_Wdt(void)
         debug_printf("WDT","POP SERVICE FAILED!\n\r");
         Djy_EvttUnregist(evttid);
         return false;
-    }
-
-    //create the soft wdt match the hard wdt
-    struct WdtHalChipInfo hardpara;
-    result_bool = WdtHal_GetChipPara(&hardpara);
-    if(true == result_bool)//存在硬件看门狗，则创建硬件看门狗
-    {
-        fnWdtHardFeed = hardpara.wdtchip_feed;
-        ptWdtHard = Wdt_Create(hardpara.wdtchip_name,\
-                               hardpara.wdtchip_cycle,\
-                               __Wdt_HardWdtYipHook,\
-                               EN_BLACKBOX_DEAL_IGNORE, 0,0);
     }
 
     WdtDecoder.MyDecoder = __Wdt_WdtExpInfoDecoder;
@@ -1010,5 +955,25 @@ bool_t Wdt_Ctrl(tagWdt *wdt, u32 type, ptu32_t para)
     }
     return result;
 }
+
+// =============================================================================
+// 功能：WdtHal_RegisterWdtChip
+//          注册硬件看门狗芯片
+// 参数：chipname,芯片名字
+//       yipcycle,WDT芯片狗叫周期，填芯片手册中的最小值即可，函数内部留了20%裕量。
+//       wdtchip_feed,硬件看门狗的喂狗方法
+// 返回值 ：true成功 false失败
+// 说明   ：失败一定是参数不正确，name存储的地方一定是const型，千万别是局部变量
+// =============================================================================
+bool_t WdtHal_RegisterWdtChip(char *chipname, u32 yipcycle,\
+                              bool_t (*wdtchip_feed)(void))
+{
+    fnWdtHardFeed = wdtchip_feed;
+    //喂狗周期调整为溢出周期的80%
+    ptWdtHard = Wdt_Create(chipname,yipcycle*4/5,__Wdt_HardWdtYipHook,
+                            EN_BLACKBOX_DEAL_IGNORE, 0,0);
+    return true;
+}
+
 ADD_TO_ROUTINE_SHELL(wdtshow,wdtshow,"usage:wdtshow");
 

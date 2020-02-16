@@ -59,6 +59,7 @@
 #include "drv_model_pub.h"
 #include "sys_ctrl_pub.h"
 #include "saradc_pub.h"
+#include <lock.h>
 #include <string.h>
 #include <stdio.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
@@ -137,9 +138,9 @@ DD_HANDLE djy_adc_open(uint8_t channel, saradc_desc_t *adcDesc, uint8_t cntOfDat
 
 void djy_adc_fill_buffer(DD_HANDLE handle, saradc_desc_t *adcDescOpened, uint32_t delayUs)
 {
-    s64 startTimeUs = 0;
-    s64 tmpDelayUs = delayUs;
-    uint32_t hasDelayMs = 0;
+//    s64 startTimeUs = 0;
+//    s64 tmpDelayUs = delayUs;
+//    uint32_t hasDelayMs = 0;
     uint32_t cmd;
     uint8_t run_stop;
 

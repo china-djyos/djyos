@@ -59,7 +59,6 @@ extern "C" {
 #include "nor.h"
 #include "nand.h"
 #include "embedded_flash.h"
-#include "flash_trace.h"
 #include "misc.h"
 
 //

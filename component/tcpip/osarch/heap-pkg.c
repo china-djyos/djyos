@@ -391,7 +391,7 @@ BlockSplit(tagHeadControl * control,tagBlockHeader * block, uint32_t level)
     tagBlockHeader* remaining = OffsetToBlock(BlockToPtr(block), size);
     const size_t remain_size = BlockGetSize(block) - (size + BLOCK_HEADER_OFFSET);
 
-    if(BlockToPtr(remaining) ==align_down(BLOCK_ALIGN_SIZE, BlockToPtr(remaining)))
+    if(BlockToPtr(remaining) == (void*)align_down(BLOCK_ALIGN_SIZE, BlockToPtr(remaining)))
     {
 //      HEAP_AEESRT(BlockGetSize(block) == remain_size + size + BLOCK_HEADER_OFFSET);
         BlockSetSize(remaining, remain_size);

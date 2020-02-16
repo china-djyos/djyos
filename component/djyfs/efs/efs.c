@@ -56,7 +56,7 @@
 #include <endian.h>
 #include <misc.h>
 #include <lock.h>
-#include "efs.h"
+#include "djyfs/efs/efs.h"
 #include <dbug.h>
 #include <Object.h>
 #include <systime.h>
@@ -68,7 +68,7 @@
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
 //    extern s32 ModuleInstall_EFS(const char *target, u32 opt, u32 config);
-//    ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, CFG_EFS_INSTALL_OPTION, NULL);
+//    ModuleInstall_EFS(CFG_EFS_MOUNT_POINT, CFG_EFS_INSTALL_OPTION, 0);
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始+
@@ -95,17 +95,14 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_EASY_FILE_SYSTEM    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,1073741823,
-#define CFG_EFS_FILE_SIZE_LIMIT           4096                 // 单个文件大小的上限
-#define CFG_EFS_MAX_CREATE_FILE_NUM       50                   // 默认支持的创建最大文件数
-#define CFG_EFS_MAX_OPEN_FILE_NUM         10                   // 默认支持的同时打开最大文件数
-//%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,MS_INSTALLUSE
-#define CFG_EFS_INSTALL_OPTION            MS_INSTALLCREAT      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统
-//%$#@enum,MS_INSTALLFORMAT,MS_INSTALLCREAT,MS_INSTALLUSE,0
-#define CFG_EFS_INSTALL_OPTION_APPEND     0      //EFS文件系统安装选项，MS_INSTALLCREAT:文件系统不存在时则新建；MS_INSTALLFORMAT：格式化文件系统; MS_INSTALLUSE:使用时才安装文件系统,0:无附加安装选项
+#define CFG_EFS_FILE_SIZE_LIMIT           4096                 //"单个文件大小的上限"
+#define CFG_EFS_MAX_CREATE_FILE_NUM       50                   //"允许创建最大文件数"
+#define CFG_EFS_MAX_OPEN_FILE_NUM         10                   //"允许同时打开最大文件数"
 //%$#@string,1,10,
-#define CFG_EFS_MOUNT_POINT               "efs"      //"name",EFS文件系统安装目录
+#define CFG_EFS_MOUNT_POINT               "efs"      //"EFS文件系统安装目录"
 //%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
+#define CFG_EFS_INSTALL_OPTION            MS_INSTALLCREAT      //"安装选项"，MS_INSTALLFORMAT,MS_INSTALLCREAT,MS_INSTALLUSE中一个或多个的“或”
 #endif
 //%$#@end configue  ****参数配置结束
 
@@ -2150,7 +2147,7 @@ s32 ModuleInstall_EFS(const char *target, u32 opt, u32 config)
     }
 //    obj_DutyUp(mountobj);
     opt |= MS_DIRECTMOUNT;
-    opt |= CFG_EFS_INSTALL_OPTION_APPEND;
+//  opt |= CFG_EFS_INSTALL_OPTION_APPEND;
     res = mountfs(NULL, target, "EFS", opt, (void *)config);
     if(res == -1)
     {

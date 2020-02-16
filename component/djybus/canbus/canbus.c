@@ -147,7 +147,7 @@ struct Object * ModuleInstall_CANBus()
             CAN_BusSndStack,sizeof(CAN_BusSndStack),"CAN Bus Send Task");
     if(evtt_id!=CN_EVTT_ID_INVALID)
     {
-        Djy_EventPop(evtt_id,NULL,0,NULL,0,0);
+        Djy_EventPop(evtt_id,NULL,0,0,0,0);
     }
     else
     {

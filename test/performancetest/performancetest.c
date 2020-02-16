@@ -56,7 +56,8 @@
 #include "int.h"
 #include "lock.h"
 #include "atomic.h"
-#include "project_config.h"
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 #include "stdlib.h"
 #include "string.h"
 #include "timer_hard.h"

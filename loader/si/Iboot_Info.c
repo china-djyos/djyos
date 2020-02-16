@@ -69,7 +69,7 @@ extern void __asm_bl_fun(void * fun_addr);
 //版本号
 #define APP_HEAD_VERSION        2
 
-extern const char MANUFACTURERNAME_NAME[];
+extern const char CN_MANUFACTURER_NAME[];
 
 #if (CFG_RUNMODE_BAREAPP == 0)
 //const char djyos_tag [] = "djyos";
@@ -121,10 +121,10 @@ const struct AppHead Djy_App_Head __attribute__ ((section(".DjyAppHead"))) =
 //         .DjyosTag     = "djyos",
 #if CFG_RUNMODE
 #if(CN_PTR_BITS < 64)
-        .ManufacturerNameAddr      = (u32)(&MANUFACTURERNAME_NAME),
+        .ManufacturerNameAddr      = (u32)(&CN_MANUFACTURER_NAME),
         .ManufacturerNamereserved32    = 0xffffffff,
 #else
-        .ManufacturerNameAddr      = (u64)(&MANUFACTURERNAME_NAME),
+        .ManufacturerNameAddr      = (u64)(&CN_MANUFACTURER_NAME),
 #endif
 #endif
          .ProductClassify = PRODUCT_PRODUCT_CLASSIFY,
@@ -1101,7 +1101,7 @@ bool_t Si_IbootAppInfoInit()
     Iboot_App_Info.ibootVer_medium = CFG_IBOOT_VERSION_MEDIUM;         //iboot 版本
     Iboot_App_Info.ibootVer_large = CFG_IBOOT_VERSION_LARGE;         //iboot 版本
 #endif
-    Fill_boardname(DJY_BOARD,Iboot_App_Info.boardname,sizeof(Iboot_App_Info.boardname));
+    Fill_boardname(PRODUCT_BOARD_TYPE,Iboot_App_Info.boardname,sizeof(Iboot_App_Info.boardname));
     if(PowerUp == true)                        //上电复位初始化
     {
         Iboot_App_Info.PreviouReset = 0;//复位前运行模式

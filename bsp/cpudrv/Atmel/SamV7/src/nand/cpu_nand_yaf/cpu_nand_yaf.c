@@ -54,7 +54,7 @@
 #include <djyos.h>
 #include <math.h>
 #include <dbug.h>
-#include <filesystems.h>
+#include <djyfs/filesystems.h>
 #include <device/include/unit_media.h>
 #include <board.h>
 #include <fs/yaf2/yaffs2-583dbd9/yaffs2-583dbd9/yaffs_guts.h>

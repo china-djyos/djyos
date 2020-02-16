@@ -67,7 +67,7 @@
 //attribute:bsp                  //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                  //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
-//init time:medium               //初始化时机，可选值：early，medium，later, pre-main。
+//init time:later               //初始化时机，可选值：early，medium，later, pre-main。
                                  //表示初始化时间，分别是早期、中期、后期
 //dependence:"watch dog"   //该组件的依赖组件名（可以是none，表示无依赖组件），
                                  //选中该组件时，被依赖组件将强制选中，
@@ -84,8 +84,11 @@
 //#warning  " cpu_onchip_wdt  组件参数未配置，使用默认配置"
 //%$#@target = header              //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_WDT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,100,
+//%$#@num,0,,
+#define CFG_WDT_WDTCYCLE        (3*1000*1000)       //"看门狗超时时间"，单位us
+#define CFG_BOOT_TIME_LIMIT         30000000        //"启动加载超限时间",允许保护启动加载过程才需要配置此项
 //%$#@enum,true,false,
+#define CFG_DEFEND_ON_BOOT          false          //"保护启动过程",启动加载过程如果出现死机，看门狗将复位
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -103,9 +106,6 @@ typedef struct
 #define CN_WAT_REG_BASE (0x40700000)
 
 static volatile tagWatReg* sgpt_WatReg = (volatile tagWatReg*)CN_WAT_REG_BASE;
-
-#define CN_WDT_WDTCYCLE   1000*mS//              //单位为微秒
-static u32 sgWdtFeedCycle = 1000*mS;
 
 #define CN_WWDG_WDTCYCLE  32000*mS               //WWDG最大为58mS
 
@@ -185,8 +185,8 @@ bool_t Wdt_ReloadSet(u16 value)
 }
 
 // =============================================================================
-// 函数功能:WatDog_Initial
-//          WatDog_Initial看门狗注册
+// 功能：板上看门狗芯片初始化，此函数在软看门狗组件后面初始化，如果启动了“防护启动加载过程”
+//      的功能，本函数调用后，将停止自动喂狗。
 // 输入参数:
 // 返回值  :true成功false失败
 // 说明：
@@ -201,9 +201,13 @@ bool_t Wdt_Initial(u32 setcycle)
 
     //配置重装载值，即喂狗后，装载值,配置为5分频
     Wdt_ReloadSet(SYSWDT_OTSET_1s);
-    result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME,CN_WDT_WDTCYCLE,\
-                                    Wdt_Feed,NULL,NULL);
+//  result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME,CFG_WDT_WDTCYCLE,\
+//                                  Wdt_Feed,NULL,NULL);
 
+    result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME, CFG_WDT_WDTCYCLE, Wdt_Feed);
+#if(CFG_DEFEND_ON_BOOT == true)
+    BrdBoot_FeedEnd();
+#endif
     Wdt_Enable();
     return result;
 }

@@ -286,7 +286,7 @@ static void cropzeros(char *buffer)
     stop = buffer--;
     while (*buffer == '0') buffer--;
     if (*buffer == '.') buffer--;
-    while (*++buffer = *stop++);
+    while (*(++buffer) = *stop++);
   }
 }
 #include <stdlib.h>
@@ -392,7 +392,7 @@ static void cfltcvt(double value, char *buffer, char fmt, int precision)
 
 static u32 flt(char *TempBuf, ptu32_t Target, s32 Size, double num,
         int size, int precision, char fmt,int flags,u32 position,
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
   char tmp[80];
   char c, sign;
@@ -470,7 +470,7 @@ static u32 flt(char *TempBuf, ptu32_t Target, s32 Size, double num,
 
 static u32 number(char *TempBuf,ptu32_t Target, s32 Size, u64  num,\
         s32 base, s32 size, s32 precision, s32 type, u32 position,\
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
     /* we are called with base 8, 10 or 16, only, thus don't need "G..."  */
     static const char digits[ ] = "0123456789ABCDEF";
@@ -578,7 +578,7 @@ static u32 number(char *TempBuf,ptu32_t Target, s32 Size, u64  num,\
 
 static u32 string(char *TempBuf,ptu32_t Target, s32 Size, char *s, s32 field_width,
         s32 precision, s32 flags, u32 position,
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
     s32 len, i;
 
@@ -601,7 +601,7 @@ static u32 string(char *TempBuf,ptu32_t Target, s32 Size, char *s, s32 field_wid
 }
 static u32 pointer(char *TempBuf,ptu32_t Target, s32 Size, void *ptr,
         s32 field_width, s32 precision, s32 flags, u32 position,
-        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position))
+        u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position))
 {
     flags |= SMALL;
     if (field_width == -1) {
@@ -621,7 +621,7 @@ static u32 pointer(char *TempBuf,ptu32_t Target, s32 Size, void *ptr,
 //      Position，Buf的偏移量
 //返回：Position的新位置。
 //-----------------------------------------------------------------------------
-u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 Position)
+u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,s32 Position)
 {
     if(Position < (Size-1))
     {
@@ -640,7 +640,7 @@ u32 __PushCharToString(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 P
 //      Position，Buf的偏移量
 //返回：Position的新位置。
 //-----------------------------------------------------------------------------
-u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 Position)
+u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,s32 Position)
 {
     if(Position >= CN_BUF_LENGTH)
     {
@@ -670,7 +670,7 @@ u32 __PushCharDirect(char *TempBuf,ptu32_t Target,s32 Size,const char ch,u32 Pos
 //      Position，Buf的偏移量
 //返回：Position的新位置。
 //-----------------------------------------------------------------------------
-u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,u32 Position)
+u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,s32 Position)
 {
     if(Position >= CN_BUF_LENGTH)
     {
@@ -705,9 +705,9 @@ u32 __PushCharToFileDev(char *TempBuf,ptu32_t Target,s32 Res2,const char ch,u32 
 static s32 __vsnprintf(char *TempBuf,ptu32_t Target, s32 Size,
                        u32 Method, const char *fmt,va_list args)
 {
-    u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,u32 position);
+    u32 (*PushChar)(char *TempBuf,ptu32_t Target, s32 Size, char ch,s32 position);
     u64 num;
-    u32 position;
+    s32 position;
     s32 base;
     s32 flags;          //显示数字时的标志
 

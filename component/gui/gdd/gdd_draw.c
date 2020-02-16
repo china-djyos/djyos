@@ -63,6 +63,8 @@
 #include    <gui/gdd/gdd_private.h>
 #include <loc_string.h>
 /*============================================================================*/
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static  bool_t    BeginDraw(HDC hdc)
 {
@@ -73,7 +75,7 @@ static  void    EndDraw(HDC hdc)
 {
 
 }
-
+#pragma GCC diagnostic pop
 
 static  void    __LPtoDP(HDC hdc,POINT *pt,s32 count)
 {
