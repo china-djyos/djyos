@@ -2,6 +2,6 @@
 <arch>
     <compile-option>
         <march>armv5te</march>
-        <instruction set>ARM</instruction set>
+        <instructionset>ARM</instructionset>
     </compile-option>
 </arch>
