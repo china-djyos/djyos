@@ -51,6 +51,7 @@
 #include <sys/socket.h>
 #include "param_config.h"
 #include "cpu_peri_flash.h"
+#include <driver_info_to_fs.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -94,6 +95,7 @@
 #define CFG_MY_SUBMASK      "255.255.255.0" //"子网掩码",
 #define CFG_MY_GATWAY       "192.168.0.1"   //"网关",
 #define CFG_MY_DNS          "192.168.0.1"   //"DNS",
+#define CFG_MAC_DATA_FILE_NAME "/efs/mac.dat"    //存MAC地址的文件路径
 //%$#@select
 //%$#@free
 #endif
@@ -165,13 +167,15 @@ void ModuleInstall_InitNet(void)   //static ip example
         memcpy(gc_NetMac,DEFAULT_MAC_ADDR,sizeof(gc_NetMac));
     }
 #else
-    if(wifi_mac_flash_read(gc_NetMac, 6) == false)
+    if(GetNameValueFS(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6) == false)
+//    if(wifi_mac_flash_read(gc_NetMac, 6) == false)
     {
         u32 mac_rand =  trng_get_random();
         memcpy(&gc_NetMac[2], &mac_rand, 4);
         gc_NetMac[0] = 0x00;
         gc_NetMac[1] = 0x01;
-        wifi_mac_flash_write(gc_NetMac, 6);
+//        wifi_mac_flash_write(gc_NetMac, 6);
+        SetNameValueFS(CFG_MAC_DATA_FILE_NAME, gc_NetMac, 6);
     }
     printf("\r\n==WIFI MAC==:%02X-%02X-%02X-%02X-%02X-%02X!\r\n",
         gc_NetMac[0], gc_NetMac[1], gc_NetMac[2], gc_NetMac[3], gc_NetMac[4], gc_NetMac[5]);

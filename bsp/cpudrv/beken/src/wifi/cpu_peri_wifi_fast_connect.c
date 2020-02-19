@@ -47,6 +47,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <cpu_peri.h>
+#include <driver_info_to_fs.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -59,15 +60,7 @@
 #define FOLD_U32T(u)          (((u) >> 16) + ((u) & 0x0000ffffUL))
 #endif
 
-__attribute__((weak)) int SetNameValueFS(char *name, char *val, int len)
-{
-    return 0;
-}
 
-__attribute__((weak)) int GetNameValueFS(char *name, char *val, int len)
-{
-    return 0;
-}
 uint16_t wlan_standard_chksum(const void *dataptr, int len)
 {
   const uint8_t *pb = (const uint8_t *)dataptr;
