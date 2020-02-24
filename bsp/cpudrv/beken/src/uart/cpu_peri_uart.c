@@ -88,11 +88,11 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_UART    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,512,
-#define CFG_UART1_SENDBUF_LEN       64      //"UART1发送环形缓冲区大小",
-#define CFG_UART1_RECVBUF_LEN       64      //"UART1接收环形缓冲区大小",
+#define CFG_UART1_SENDBUF_LEN       256      //"UART1发送环形缓冲区大小",
+#define CFG_UART1_RECVBUF_LEN       256      //"UART1接收环形缓冲区大小",
 
-#define CFG_UART2_SENDBUF_LEN       64      //"UART2发送环形缓冲区大小",
-#define CFG_UART2_RECVBUF_LEN       64      //"UART2接收环形缓冲区大小",
+#define CFG_UART2_SENDBUF_LEN       256      //"UART2发送环形缓冲区大小",
+#define CFG_UART2_RECVBUF_LEN       256      //"UART2接收环形缓冲区大小",
 //%$#@enum,true,false
 #define CFG_UART1_ENABLE           true        //"是否使用UART1",
 #define CFG_UART2_ENABLE           true       //"是否使用UART2",
@@ -301,7 +301,7 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
 {
     uint8_t val = 0;
     uint8_t num = 0;
-    uint8_t fifo[64];
+    uint8_t fifo[256];
     uint32_t fifo_status_reg = 0;
 
     if(port>CN_UART2)
