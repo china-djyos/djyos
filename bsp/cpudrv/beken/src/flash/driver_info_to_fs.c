@@ -73,6 +73,7 @@ bool_t SetNameValueFS(char *name, char *val, int len)
         stat(name,&file_state);
         //这里如果用的是efs文件系统存mac信息时，当文件已经容不下这次需要写的数据时，则删除该文件，重新创建
         //CFG_EFS_FILE_SIZE_LIMIT是设置的efs文件的最大大小
+#if CFG_MODULE_ENABLE_EASY_FILE_SYSTEM
         if((file_state.st_size + len) > CFG_EFS_FILE_SIZE_LIMIT)
         {
             if(remove(name))
@@ -80,6 +81,7 @@ bool_t SetNameValueFS(char *name, char *val, int len)
             else
                 info_printf("app_flash"," file full . remove %s success\r\n.",name);
         }
+#endif
         fd = fopen(name,"a+");
         if(fd)
         {
