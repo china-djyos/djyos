@@ -205,6 +205,7 @@ enum EN_BlackBoxDealResult  BlackBox_ThrowExp(struct BlackBoxThrowPara *throwpar
     {
         return EN_BLACKBOX_RESULT_PARAERR;
     }
+    printk("\r\nblockbox called form function: %s line: %d", __FUNCTION__,__LINE__);
     if(NULL != throwpara)   //抛出有效
     {
         //抛出信息处理
