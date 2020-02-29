@@ -686,7 +686,7 @@ bool_t wdtshow(char *param)
     wdt = ptWdtHead;
     debug_printf("WDT","\n\r");
     debug_printf("WDT","%-4s%-16s%-9s%-9s%-9s%-9s%-9s\n\r",
-            "No","NAME","FUNCTION","ACTION","CYCLE","OWNER","DEADLINE");
+            "No","NAME","hook    ","ACTION","CYCLE","OWNER","DEADLINE");
     while(NULL != wdt)
     {
         debug_printf("WDT","%-4d%-16s%-8x %-8x %-8x %-8x %llx\n\r",\

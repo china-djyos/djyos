@@ -102,6 +102,7 @@ static u32 sBootDogFeedTime = 0;
 // =============================================================================
 bool_t BrdWdt_FeedDog(void)
 {
+    printf("--hard feed dog\r\n");        //lst
     if(sddev_control(WDT_DEV_NAME, WCMD_RELOAD_PERIOD, 0) == 0)
         return true;
     else
@@ -146,8 +147,6 @@ bool_t ModuleInstall_BrdWdt(void)
     sBootDogFeedTime = CFG_WDT_FEED_CYCLE * 10 / 6;
     sddev_control(WDT_DEV_NAME, WCMD_POWER_UP, 0);      //开看门狗
     sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &sBootDogFeedTime);    //设置看门狗，狗叫时间
-//  WdtHal_RegisterWdtChip("Wdt_BK7251", CFG_WDT_FEED_CYCLE/4, BrdWdt_FeedDog,\
-//          BrdBoot_FeedStart,BrdBoot_FeedEnd);
     result = WdtHal_RegisterWdtChip("Wdt_BK7251", CFG_WDT_FEED_CYCLE/4, BrdWdt_FeedDog);
 #if(CFG_DEFEND_ON_BOOT == true)
     __BrdWdt_FeedDog();

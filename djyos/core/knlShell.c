@@ -288,6 +288,7 @@ ptu32_t kernel_spy(void)
         //如果idle事件运行时间超过 1/16，则喂狗
         if(g_tECB_Table[0].consumed_time_second > (cycle >> 4))
         {
+            printf("idle feed dog\r\n");        //lst
             Wdt_Clean(wdt);
         }
 //#endif  //for (DEBUG != 1)
