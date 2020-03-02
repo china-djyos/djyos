@@ -255,7 +255,37 @@ bool_t stack(char *param)
     printf("\n\r栈指针是最后一次上下文切换时保存的值");
     return (TRUE);
 }
-
+bool_t spyk(char *param);
+u32 fnYipHook(struct Wdt *wdt)
+{
+    printf("--------idle wdt yit--------");
+    spyk("0");
+    spyk("1");
+    spyk("2");
+    spyk("3");
+    spyk("4");
+    spyk("5");
+    spyk("6");
+    spyk("7");
+    spyk("8");
+    spyk("9");
+    spyk("10");
+    spyk("11");
+    spyk("12");
+    spyk("13");
+    spyk("14");
+    spyk("15");
+    spyk("16");
+    spyk("17");
+    spyk("18");
+    spyk("19");
+    spyk("20");
+    spyk("21");
+    spyk("22");
+    spyk("23");
+    spyk("24");
+    spyk("25");
+}
 // ============================================================================
 // 功能：统计一定内事件运行占用率
 // 参数：无；
@@ -271,7 +301,8 @@ ptu32_t kernel_spy(void)
     Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
 //#if(DEBUG != 1)
-    wdt = Wdt_Create("runtime watch", cycle * 10, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+//  wdt = Wdt_Create("runtime watch", cycle * 10, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+    wdt = Wdt_Create("runtime watch", cycle * 10, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
 //#endif  //for (DEBUG != 1)
     while(1)
     {
@@ -288,7 +319,7 @@ ptu32_t kernel_spy(void)
         //如果idle事件运行时间超过 1/16，则喂狗
         if(g_tECB_Table[0].consumed_time_second > (cycle >> 4))
         {
-            printf("idle feed dog\r\n");        //lst
+//            printf("idle feed dog\r\n");        //lst
             Wdt_Clean(wdt);
         }
 //#endif  //for (DEBUG != 1)
@@ -371,6 +402,61 @@ bool_t spy(char *param)
     else
     {
         printf("knlshell","%05d  空闲事件控制块",pl_ecb);
+    }
+    return (TRUE);
+}
+bool_t spyk(char *param)
+{
+    u16 pl_ecb;
+    u32 loop,StackSize,pads;
+    u32 *stack;
+    char *name;
+
+    printk("\r\n事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名");
+    pl_ecb = atoi(param);
+    if(g_tECB_Table[pl_ecb].previous !=
+                    (struct EventECB*)&s_ptEventFree)
+    {
+        printk("\n\r");
+        printk("%05d  ",pl_ecb);
+        if(g_tECB_Table[pl_ecb].vm)
+            printk("已分配 ");
+        else
+        {
+            printk("未分配 ");
+            return true ;
+        }
+        StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+        pads = 0x64646464;
+        stack = (u32*)(&(g_tECB_Table[pl_ecb].vm[1]));
+        for(loop = 0; loop < (StackSize>>2)-1; loop++)
+        {
+            if(stack[loop] != pads)
+            {
+                break;
+            }
+        }
+#if CFG_OS_TINY == false
+        name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+        name = "unkown";
+#endif  //CFG_OS_TINY == false
+        printk("%08x %08x %08x %08x %s",
+                    (ptu32_t)(&g_tECB_Table[pl_ecb].vm[1]),
+                    (ptu32_t)(g_tECB_Table[pl_ecb].vm->stack),
+                    StackSize,(loop<<2),name);
+        loop = g_tECB_Table[pl_ecb].vm->stack;
+        printk("\n\r%x: ",loop);
+        for(;loop < g_tECB_Table[pl_ecb].vm->stack_top; loop+=4)
+        {
+            if(loop % 32 == 0)
+                printk("\n\r%x: ",loop);
+            printk(" %08x",*(u32*)loop);
+        }
+    }
+    else
+    {
+        printk("knlshell","%05d  空闲事件控制块",pl_ecb);
     }
     return (TRUE);
 }

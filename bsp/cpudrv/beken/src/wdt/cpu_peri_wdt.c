@@ -102,7 +102,7 @@ static u32 sBootDogFeedTime = 0;
 // =============================================================================
 bool_t BrdWdt_FeedDog(void)
 {
-    printf("--hard feed dog\r\n");        //lst
+//    printf("--hard feed dog\r\n");        //lst
     if(sddev_control(WDT_DEV_NAME, WCMD_RELOAD_PERIOD, 0) == 0)
         return true;
     else
