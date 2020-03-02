@@ -159,8 +159,9 @@ static struct objhandle *xip_iboot_open(struct Object *ob, u32 flags, char *unca
     struct __icore *core = (struct __icore*)corefs(ob);
 //    mode_t mode;
 
-    if(test_writeable(flags) == 0)
+    if((test_writeable(flags) == 0) || (test_directory(flags) == 1))
     {
+        printf("\r\n: error :cannot open the xip-iboot directory and the files in it only support write mode.");
         return (NULL);    //xip-iboot只支持写模式
     }
 
@@ -406,7 +407,7 @@ s32 ModuleInstall_XIP_FS(u32 opt, void *data,char * xip_target)
     res = regfs(typeXIPIBOOT);
     if(-1==res)
     {
-        printf("\r\n: dbug : module : cannot register \"XIP-APP\"(file system type).");
+        printf("\r\n: dbug : module : cannot register \"xip-iboot\"(file system type).");
         return (-1); // 失败;
     }
 
