@@ -544,7 +544,7 @@ static void __UART_HardInit(u8 SerialNo)
 // 返回: 发送的个数
 // =============================================================================
 
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 port;
     u32 delay=0,len;

@@ -468,7 +468,7 @@ static void __UART_HardInit(u8 port)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (u16 port,u32 timeout)
+static u32 __UART_SendStart (u16 port)
 {
     u16 len=0;
     HAL_StatusTypeDef Ret;

@@ -666,7 +666,7 @@ u32 __UART_PDMA_SendStart(u32 port)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static uint32_t __UART_SendStart (tagUartReg *Reg,uint32_t timeout)
+static uint32_t __UART_SendStart (tagUartReg *Reg)
 {
     uint8_t port;
     uint32_t delay=0;

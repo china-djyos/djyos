@@ -263,7 +263,7 @@ static void __UART_ComConfig(u32 port,struct COMParam *COM)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (uint8_t port,u32 timeout)
+static u32 __UART_SendStart (uint8_t port)
 {
 
     u8 val[256];
