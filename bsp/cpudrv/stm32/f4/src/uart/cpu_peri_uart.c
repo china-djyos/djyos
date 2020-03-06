@@ -589,7 +589,7 @@ u32 __UART_DMA_SendStart(u32 port)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 port;
     u32 delay=0;

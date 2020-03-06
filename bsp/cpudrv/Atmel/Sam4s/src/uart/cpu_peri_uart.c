@@ -667,7 +667,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 //       timeout,超时时间，微秒
 // 返回: 发送的字节数
 // =============================================================================
-u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
+u32 __UART_SendStart(tagUartReg *Reg)
 {
     u8 Port;
 

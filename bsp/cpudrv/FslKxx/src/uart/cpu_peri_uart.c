@@ -467,7 +467,7 @@ static void __UART_HardInit(u8 SerialNo)
 // 参数: PrivateTag,被操作的串口设备指针数值.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 fifodep=1,num,ch[8],port;
 

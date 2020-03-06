@@ -491,7 +491,7 @@ static void __UART_HardInit(u8 port)
 // 参数: port:串口号.
 // 返回:
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *reg)
 {
     u8 port=0;
     //u32 delay=0;

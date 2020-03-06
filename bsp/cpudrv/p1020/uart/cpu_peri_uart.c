@@ -348,7 +348,7 @@ ptu32_t __UART_Ctrl(tagUartReg *Reg,u32 cmd, va_list *arg0)
 //参数: uart_dev,被操作的串口设备指针.
 //返回: 发送的个数
 //-----------------------------------------------------------------------------
-u32 __UART_SendStart(tagUartReg *Reg,u32 timeout)
+u32 __UART_SendStart(tagUartReg *Reg)
 {
     u8 trans,num,ch[16],port;
 

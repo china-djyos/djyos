@@ -416,7 +416,7 @@ static void __UART_HardInit(u8 SerialNo)
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg,u32 timeout)
+static u32 __UART_SendStart (tagUartReg *Reg)
 {
     u8 trans=0,num,ch[16],port;
 
