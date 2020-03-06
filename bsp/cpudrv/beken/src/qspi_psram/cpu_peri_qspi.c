@@ -58,7 +58,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"qspi"//qspi接口的psram
+//component name:"cpu onchip qspi"//qspi接口的psram
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -76,21 +76,21 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_QSPI == false )
+//#warning  "   ADC组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#ifndef CFG_QSPI_RAM_SIZE           //****检查参数是否已经配置好
-#warning   qspi组件参数未配置，使用默认值
-//%$#@num,0,8388608,
-#define CFG_QSPI_RAM_SIZE                   8388608       //RAM的尺寸，默认8M。
-#define CFG_QSPI_RAM_PAGE_SIZE              1024          //RAM的页尺寸，默认1K。
-#define CFG_QSPI_RAM_ALIGNMENT              0             //要求的对齐尺寸，0表示用系统的对齐尺寸
-//%$#@enum,true,false,
-#define CFG_QSPI_RAM_DEDICATED              false         //true表示专用heap，false表示通用heap。
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_QSPI    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+//%$#@num,0,100,
+//%$#@enum,true,flase,
 //%$#@string,1,10,
-#define CFG_QSPI_RAM_HEAP_NAME              "PSRAM"      //新建的heap名字。
-//%$#@select
+//%$#select,        ***定义无值的宏，仅用于第三方组件
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
+
+//%$#@exclude       ****编译排除文件列表
+//%$#@end exclude   ****组件描述结束
+
 //@#$%component end configure
 
 
@@ -122,12 +122,6 @@ int ModuleInstall_QSPI_PSRAM(void)
 
 //  if(Heap_Add(QSPI_DCACHE_BASE, CFG_QSPI_RAM_SIZE, CFG_QSPI_RAM_PAGE_SIZE, CFG_QSPI_RAM_ALIGNMENT,
 //          CFG_QSPI_RAM_DEDICATED, CFG_QSPI_RAM_HEAP_NAME) == 0)       //把QSPI接的RAM添加到heap当中
-    if(Heap_Add(QSPI_DCACHE_BASE + 0x10000, 0x7f0000, CFG_QSPI_RAM_PAGE_SIZE, CFG_QSPI_RAM_ALIGNMENT,
-            CFG_QSPI_RAM_DEDICATED, CFG_QSPI_RAM_HEAP_NAME) == 0)       //把QSPI接的RAM添加到heap当中
-    {
-        info_printf("QSPI","QSPI add heap fail.\r\n");
-        return 0;
-    }
 
     return 1;
 }

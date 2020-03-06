@@ -108,11 +108,11 @@ bool_t UdpServer_Rcv(void)
     sndopt = CN_SOCKBUF_LEN;
     if(0 == setsockopt(server,SOL_SOCKET ,SO_RCVBUF,&sndopt,4))
     {
-        printk("Client:set client sndbuf success!\n\r");
+        printk("Client:set client rcvbuf success!\n\r");
     }
     else
     {
-        printk("Client:set client sndbuf failed!\n\r");
+        printk("Client:set client rcvbuf failed!\n\r");
     }
     //设置发送缓冲区触发水平
     rcvbuf = malloc(CN_BUF_LEN);

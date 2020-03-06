@@ -147,6 +147,67 @@ bool_t event(char *param)
                "\r\n非对称内存分配与释放的情况，即A事件分配的内存，在B事件释放");
     return true;
 }
+bool_t eventk(char *param)
+{
+    u16 pl_ecb;
+    u32 time1,MemSize,StackSize,heapsize=0,maxsize=0;
+    char *name;
+    bool_t native = false;
+
+    MemSize = 0;
+    printk("事件号  类型号  优先级 CPU  栈尺寸   动态内存 最大内存   类型名");
+    for(pl_ecb = 0; pl_ecb < CFG_EVENT_LIMIT; pl_ecb++)
+    {
+        if(g_tECB_Table[pl_ecb].previous !=
+                        (struct EventECB*)&s_ptEventFree)
+        {
+            // printf("%05d %05d     ",pl_ecb,g_ptECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK));
+            // printf("%03d    ",g_ptECB_Table[pl_ecb].prio);
+            // printf("%02d%%  %8x",time1,g_ptECB_Table[pl_ecb].vm->stack_size);
+#if CFG_OS_TINY == false
+            time1 = g_tECB_Table[pl_ecb].consumed_time_second/10000;
+            name = g_tEvttTable[g_tECB_Table[pl_ecb].evtt_id&(~CN_EVTT_ID_MASK)].evtt_name;
+#else
+            time1 = 0;
+            name = "unkown";
+#endif  //CFG_OS_TINY == false
+            if(NULL == g_tECB_Table[pl_ecb].vm)
+            {
+//                printf("knlshell","%02d%%  %08x %s",0,0,name);
+                StackSize = 0;
+            }
+            else
+            {
+                StackSize = g_tECB_Table[pl_ecb].vm->stack_size;
+//                printf("knlshell","%02d%%  %08x %s",time1,g_tECB_Table[pl_ecb].vm->stack_size,name);
+//                MemSize += g_tECB_Table[pl_ecb].vm->stack_size;
+            }
+//            printf("knlshell","\n\r");
+
+            printk("\r\n%05d   %05d   %03d    %02d%%  %08x %08x %08x %s",\
+                   pl_ecb,g_tECB_Table[pl_ecb].evtt_id &(~CN_EVTT_ID_MASK),\
+                    g_tECB_Table[pl_ecb].prio,time1,\
+                    StackSize, g_tECB_Table[pl_ecb].HeapSize,
+                    g_tECB_Table[pl_ecb].HeapSizeMax, name);
+            heapsize += g_tECB_Table[pl_ecb].HeapSize;
+            maxsize += g_tECB_Table[pl_ecb].HeapSizeMax;
+            MemSize += StackSize;
+            if(g_tECB_Table[pl_ecb].HeapSize > 0x80000000)
+                native = true;
+        }
+        else
+        {
+//          printf("knlshell","%5d   空闲",pl_ecb);
+        }
+    }
+
+    printk("\r\n所有事件栈尺寸总计:         %08x %08x %08x", MemSize,heapsize,maxsize);
+    printk("\r\n允许的事件总数:             %d", CFG_EVENT_LIMIT);
+    if(native == true)
+        printk("\r\n温馨提示：个别事件使用的动态内存统计出现非常大的值，请不要惊慌，说明您的代码中存在"
+               "\r\n非对称内存分配与释放的情况，即A事件分配的内存，在B事件释放");
+    return true;
+}
 
 // ============================================================================
 // 功能：显示事件类型列表
@@ -259,6 +320,7 @@ bool_t spyk(char *param);
 u32 fnYipHook(struct Wdt *wdt)
 {
     printf("--------idle wdt yit--------");
+    eventk(NULL);
     spyk("0");
     spyk("1");
     spyk("2");

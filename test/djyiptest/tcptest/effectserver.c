@@ -211,11 +211,11 @@ ptu32_t tcptstserver(void)
             sndopt = CN_RCVBUF_LEN;
             if(0 == setsockopt(clientfd,SOL_SOCKET ,SO_RCVBUF,&sndopt,4))
             {
-                printf("Client:set client sndbuf success!\n\r");
+                printf("Client:set client rcvbuf success!\n\r");
             }
             else
             {
-                printf("Client:set client sndbuf failed!\n\r");
+                printf("Client:set client rcvbuf failed!\n\r");
             }
             //TEST RCV
 //          rcvtotal = 0;

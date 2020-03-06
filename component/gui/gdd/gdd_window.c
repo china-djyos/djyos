@@ -831,7 +831,7 @@ HWND    InitGddDesktop(struct GkWinObj *desktop)
         HWND_Desktop = pGddWin;
 
         MyEvtt = Djy_EvttRegist(EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0, __MessageLoop,
-                                NULL, 2048, "desktop");
+                                NULL, 1024, "desktop");
         if(MyEvtt != CN_EVTT_ID_INVALID)
         {
             MyEventid=Djy_EventPop(MyEvtt, NULL, 0, (ptu32_t)pGddWin, 0, 0);

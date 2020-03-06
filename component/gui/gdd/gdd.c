@@ -118,7 +118,7 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
     SetFocusWindow(pGddWin);
     //gdd¶¨Ê±Æ÷É¨Ãè
     evtt = Djy_EvttRegist(  EN_CORRELATIVE, CFG_GUI_RUN_PRIO, 0, 0,
-                          GDD_TimerScan, NULL,2048,"gdd timer");
+                          GDD_TimerScan, NULL,1024,"gdd timer");
     if (evtt != CN_EVTT_ID_INVALID)
     {
         Djy_EventPop(evtt, NULL, 0, 0, 0, 0);

@@ -144,7 +144,7 @@ bool_t ModuleInstall_GK(void)
 //  g_ptUsercallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait repaint");
     g_ptSyscallSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"gk wait job");
     g_u16GkServerEvtt = Djy_EvttRegist(EN_CORRELATIVE,249,0,0,__GK_Server,
-                                    NULL,8120,"gui kernel server");
+                                    NULL,0x1000,"gui kernel server");
 
 //  g_u16GkUsercallServerEvtt= Djy_EvttRegist(EN_CORRELATIVE,249,0,0,
 //                  __GK_UsercallServer,NULL,4096,"gkernel usercall server");
