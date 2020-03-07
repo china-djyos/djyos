@@ -304,54 +304,54 @@ static bool_t touch_ratio_adjust(struct GkWinObj *desktop)
     else
     {
         memset(&tg_touch_adjust, 0, sizeof(struct ST_TouchAdjust));
-        limit_left = desktop->limit_left;
-        limit_top = desktop->limit_top;
-        limit_right = desktop->limit_right;
-        limit_bottom = desktop->limit_bottom;
-
-        GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
-                       "触摸屏矫正卡片", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
-                       "请准确点击十字交叉点", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
-        GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
-        GK_SyncShow(CN_TIMEOUT_FOREVER);
-        while(!FT6236_Scan(&touch_xyz0));//等待触摸
+//        limit_left = desktop->limit_left;
+//        limit_top = desktop->limit_top;
+//        limit_right = desktop->limit_right;
+//        limit_bottom = desktop->limit_bottom;
+//
+//        GK_FillWin(desktop,CN_COLOR_WHITE,0);
+//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+//                       "触摸屏矫正卡片", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
+//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+//                       "请准确点击十字交叉点", 21, CN_COLOR_BLACK+1, CN_R2_COPYPEN, 0);
+//        GK_Lineto(desktop,0,20,40,20,CN_COLOR_RED,CN_R2_COPYPEN,0);
+//        GK_Lineto(desktop,20,0,20,40,CN_COLOR_RED,CN_R2_COPYPEN,CN_TIMEOUT_FOREVER);
+//        GK_SyncShow(CN_TIMEOUT_FOREVER);
+//        while(!FT6236_Scan(&touch_xyz0));//等待触摸
         touch_xyz0.x = 220;
         touch_xyz0.y = 20;
         printf("采集坐标1:(%d,%d)\n\r",touch_xyz0.x,touch_xyz0.y);
-        touch_check();
+//        touch_check();
 
 
-        GK_FillWin(desktop,CN_COLOR_WHITE,0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
-                       "触摸屏矫正", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
-        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
-                       "再次准确点击十字交叉点", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
-        GK_Lineto(desktop,limit_right-40,limit_bottom-20,
-                      limit_right,limit_bottom-20,
-                      CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_Lineto(desktop,limit_right-20,limit_bottom-40,
-                      limit_right-20,limit_bottom,
-                      CN_COLOR_RED,CN_R2_COPYPEN,0);
-        GK_SyncShow(CN_TIMEOUT_FOREVER);
-
-        while(!FT6236_Scan(&touch_xyz1)); //记录触摸屏第二点校正值
+//        GK_FillWin(desktop,CN_COLOR_WHITE,0);
+//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+50,
+//                       "触摸屏矫正", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
+//        GK_DrawText(desktop,NULL,NULL,limit_left+10,limit_top+70,
+//                       "再次准确点击十字交叉点", 21, CN_COLOR_BLACK + 1, CN_R2_COPYPEN, 0);
+//        GK_Lineto(desktop,limit_right-40,limit_bottom-20,
+//                      limit_right,limit_bottom-20,
+//                      CN_COLOR_RED,CN_R2_COPYPEN,0);
+//        GK_Lineto(desktop,limit_right-20,limit_bottom-40,
+//                      limit_right-20,limit_bottom,
+//                      CN_COLOR_RED,CN_R2_COPYPEN,0);
+//        GK_SyncShow(CN_TIMEOUT_FOREVER);
+//
+//        while(!FT6236_Scan(&touch_xyz1)); //记录触摸屏第二点校正值
         touch_xyz1.x = 20;
         touch_xyz1.y = 300;
         printf("采集坐标2:(%d,%d)\n\r",touch_xyz1.x,touch_xyz1.y);
-        touch_check();
+//        touch_check();
 
-        GK_FillWin(desktop,CN_COLOR_GREEN,0);
+//        GK_FillWin(desktop,CN_COLOR_GREEN,0);
         tg_touch_adjust.ratio_x = ((touch_xyz1.x - touch_xyz0.x)<<16)
                         /(limit_right - limit_left -40);
         tg_touch_adjust.offset_x = (touch_xyz0.x<<16) - 20*tg_touch_adjust.ratio_x;
         tg_touch_adjust.ratio_y = ((touch_xyz1.y - touch_xyz0.y)<<16)
                         /(limit_bottom- limit_top-40);
         tg_touch_adjust.offset_y= (touch_xyz0.y<<16) - 20*tg_touch_adjust.ratio_y;
-        GK_FillWin(desktop,CN_COLOR_BLUE,0);
-        GK_SyncShow(CN_TIMEOUT_FOREVER);
+//        GK_FillWin(desktop,CN_COLOR_BLUE,0);
+//        GK_SyncShow(CN_TIMEOUT_FOREVER);
         touch_init = fopen(CFG_TOUCH_ADJUST_FILE,"w+");
         if(touch_init)
         {
