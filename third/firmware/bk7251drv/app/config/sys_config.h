@@ -129,6 +129,10 @@
 
 /*section 19-----for SDCARD HOST*/
 #define CFG_USE_SDCARD_HOST                        1
+//select SD or SD1
+#define SD_HOST_INTF                                0
+#define SD1_HOST_INTF                               1
+#define CFG_SD_HOST_INTF                            SD1_HOST_INTF
 
 /*section 20 ----- support mp3 decoder*/
 #define CONFIG_APP_MP3PLAYER                       0
