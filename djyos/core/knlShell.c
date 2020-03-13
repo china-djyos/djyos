@@ -319,7 +319,7 @@ bool_t stack(char *param)
 bool_t spyk(char *param);
 u32 fnYipHook(struct Wdt *wdt)
 {
-    printf("--------idle wdt yit--------");
+    printk("--------idle wdt yit--------");
     eventk(NULL);
     spyk("0");
     spyk("1");
@@ -364,7 +364,7 @@ ptu32_t kernel_spy(void)
     cycle *=mS;
 //#if(DEBUG != 1)
 //  wdt = Wdt_Create("runtime watch", cycle * 10, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
-    wdt = Wdt_Create("runtime watch", cycle * 10, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
+    wdt = Wdt_Create("runtime watch", cycle * 30, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
 //#endif  //for (DEBUG != 1)
     while(1)
     {

@@ -1005,20 +1005,20 @@ bool_t __lcd_disp_ctrl(struct DisplayObj *disp)
     return true;
 }
 
-void DispMainInterface(unsigned char *pic)
-{
-    struct Rectangle dst_rect = {0,0,CFG_LCD_XSIZE,CFG_LCD_YSIZE};
-    struct RectBitmap src_bitmap;
-
-    src_bitmap.bm_bits = pic;
-    src_bitmap.width = CFG_LCD_XSIZE;
-    src_bitmap.height = CFG_LCD_YSIZE;
-    src_bitmap.linebytes = CFG_LCD_XSIZE*2;
-    src_bitmap.reversal = 0;
-    src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
-    __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
-}
-
+//void DispMainInterface(unsigned char *pic)
+//{
+//    struct Rectangle dst_rect = {0,0,CFG_LCD_XSIZE,CFG_LCD_YSIZE};
+//    struct RectBitmap src_bitmap;
+//
+//    src_bitmap.bm_bits = pic;
+//    src_bitmap.width = CFG_LCD_XSIZE;
+//    src_bitmap.height = CFG_LCD_YSIZE;
+//    src_bitmap.linebytes = CFG_LCD_XSIZE*2;
+//    src_bitmap.reversal = 0;
+//    src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
+//    __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
+//}
+//
 //----初始化lcd设备------------------------------------------------------------
 //功能: 如名
 //参数: 无
