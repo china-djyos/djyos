@@ -76,6 +76,33 @@ void (*fg_vect_table[CN_INT_LINE_LAST+1])(void)
 void __start_asyn_signal(void);
 void __start_real(void);
 
+
+//----原子状态检测--------------------------------------------------------------
+//功能：根据 Int_LowAtomStart 函数返回值，测试在调用该函数前的低级原子操作状态
+//参数：AtomStatus，Int_LowAtomStart 函数返回值
+//返回：true = 调用 Int_LowAtomStart 前已经处于原子操作状态，false 反之
+//-----------------------------------------------------------------------------
+bool_t Int_IsLowAtom(atom_low_t AtomStatus)
+{
+    if((AtomStatus & 0xc0) != 0xc0)
+        return false;
+    else
+        return true;
+}
+
+//----原子状态检测--------------------------------------------------------------
+//功能：根据 Int_HighAtomStart 函数返回值，测试在调用该函数前的低级原子操作状态
+//参数：AtomStatus，Int_HighAtomStart 函数返回值
+//返回：true = 调用 Int_HighAtomStart 前已经处于原子操作状态，false 反之
+//-----------------------------------------------------------------------------
+bool_t Int_IsHighAtom(atom_high_t AtomStatus)
+{
+    if((AtomStatus & 0xc0) != 0xc0)
+        return false;
+    else
+        return true;
+}
+
 //----接通异步信号开关---------------------------------------------------------
 //功能：接通异步信号开关,如果总开关接通且中断线开关接通,该中断将被允许
 //      1.当有独立的硬件开关时,把该开关接通即可

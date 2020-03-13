@@ -120,7 +120,6 @@ enum _ENUM_USE_CRC_
     EN_USE_APP_CRC,
 };
 
-ptu32_t ModuleInstall_IAP(void);
 u32 IAP_GetAPPCRC(void);
 u32 IAP_GetAPPStartCodeRamAddr(void);
 u32 IAP_GetAPPCodeRamSize(void);

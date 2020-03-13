@@ -61,7 +61,7 @@
   * @{
   */ 
 
-#define HID_MIN_POLL                                10
+#define HID_MIN_POLL                                11
 #define HID_REPORT_SIZE                             16    
 #define HID_MAX_USAGE                               10
 #define HID_MAX_NBR_REPORT_FMT                      10 

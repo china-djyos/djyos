@@ -560,17 +560,18 @@ static u8 __deflags(u32 flags)
 {
     u8 mode = 0;
 
-    if(test_creat(flags))
+    if(test_creat(flags) == 1)
     {
         if(test_onlycreat(flags))
             mode |= FA_CREATE_NEW;
+        else if(test_trunc(flags))
+            mode |= FA_CREATE_ALWAYS;
         else
-            mode |= FA_OPEN_ALWAYS;
+            mode |= FA_OPEN_ALWAYS ;
+
     }
     else
-    {
-        mode |= FA_OPEN_ALWAYS;
-    }
+        mode |= FA_OPEN_EXISTING;
 
     if(test_readable(flags))
         mode |= FA_READ;
@@ -626,7 +627,7 @@ static struct objhandle *__fat_open(struct Object *ob, u32 flags, char *full)
     part_path += strlen(mount_name);
     //用volume中的设备名替换entirepath中的mount点名，因为fat只识别几种特定的设备
     sprintf(path,"%s%s", volume, part_path);
-
+    res = FR_OK;
     mode = __deflags(flags);
     do
     {
@@ -658,8 +659,11 @@ static struct objhandle *__fat_open(struct Object *ob, u32 flags, char *full)
             {
                 res = f_open(context, path, mode);
                 if(FR_EXIST == res)
-                {
                     res = FR_OK; // 这个返回值也是操作成功的
+                if(res == FR_OK)
+                {
+                    if(test_append(flags))
+                        res = f_lseek(context, ((FIL *)context)->fsize);
                 }
             }
             property = S_IFREG;

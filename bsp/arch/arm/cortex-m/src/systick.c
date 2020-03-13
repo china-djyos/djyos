@@ -59,7 +59,7 @@
 #include <int.h>
 #include <int_hard.h>
 #include "cpu_peri.h"
-#include <core_cm4.h>
+#include <core_cm7.h>
 
 extern struct IntMasterCtrl  tg_int_global;
 extern void __Djy_ScheduleAsynSignal(void);
