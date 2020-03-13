@@ -84,7 +84,7 @@ void __start_real(void);
 //-----------------------------------------------------------------------------
 bool_t Int_IsLowAtom(atom_low_t AtomStatus)
 {
-    if((AtomStatus & 0xc0) != 0xc0)
+    if((AtomStatus != 0xff)
         return false;
     else
         return true;
@@ -97,7 +97,7 @@ bool_t Int_IsLowAtom(atom_low_t AtomStatus)
 //-----------------------------------------------------------------------------
 bool_t Int_IsHighAtom(atom_high_t AtomStatus)
 {
-    if((AtomStatus & 0xc0) != 0xc0)
+    if((AtomStatus != 1)
         return false;
     else
         return true;
