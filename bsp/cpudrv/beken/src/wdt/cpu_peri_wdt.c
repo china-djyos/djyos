@@ -49,6 +49,8 @@
 #include "djyos.h"
 #include "cpu_peri.h"
 #include <wdt_pub.h>
+#include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
+                                //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
@@ -58,7 +60,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu onchip iwdt"//spi接口的norflash
+//component name:"cpu onchip iwdt"//组件名
 //parent:"watch dog"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -68,7 +70,7 @@
 //dependence:"watch dog"        //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
-//weakdependence:               //该组件的弱依赖组件名（可以是none，表示无依赖组件），
+//weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
@@ -82,9 +84,10 @@
 //%$#@num,0,100000000,
 #define CFG_WDT_FEED_CYCLE          12000000       //"看门狗超时时间"，单位us
 #define CFG_BOOT_TIME_LIMIT         30000000       //"启动加载超限时间",允许保护启动加载过程才需要配置此项
-//%$#@enum,false,
+//%$#@enum,true,false,
 #define CFG_DEFEND_ON_BOOT          false          //"保护启动过程",启动加载过程如果出现死机，看门狗将复位，BK7251不支持，只能选false
-//%$#@select
+//%$#@string,1,10,
+//%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
 //%$#@end configue  ****参数配置结束
