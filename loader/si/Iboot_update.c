@@ -232,7 +232,12 @@ bool_t Iboot_UpdateApp(void)
         info_printf("IAP","app update start.\r\n");
         if(srcapp == NULL)
         {
-            strcpy(apppath, Get_MutualUpdatePath());
+            if(Get_MutualUpdatePath(apppath, sizeof(apppath)) == false)
+            {
+                error_printf("IAP","app path get fail  .\r\n");
+                Djy_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
+                return TRUE;
+            }
             srcapp = fopen(apppath, "r+");
         }
         else
@@ -243,6 +248,12 @@ bool_t Iboot_UpdateApp(void)
         if(srcapp != NULL)
         {
             file = strrchr(apppath, '/');
+            if(strlen(file) > 31)
+            {
+                error_printf("IAP","Filename is too long  %s ,\r\n",file);
+                Djy_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
+                return TRUE;
+            }
             if(file)
             {
                 sprintf(xipapppath, "%s%s", "/xip-app", file);
@@ -386,7 +397,13 @@ bool_t App_UpdateIboot(char *param)
     char percentage_last = 0, percentage = 0;
 
     info_printf("IAP","iboot update start.\r\n");
-    strcpy(iapibootname, Get_MutualUpdatePath());
+    if(Get_MutualUpdatePath(iapibootname, sizeof(iapibootname)) == false)
+    {
+        error_printf("IAP","iboot name get fail  .\r\n");
+        Djy_EventDelay(100*1000);      //延时一下，让升级过程中的信息能打印出来
+        return TRUE;
+    }
+
     Update_and_run_mode = NULL;
 
     srciboot = fopen(iapibootname, "r+");

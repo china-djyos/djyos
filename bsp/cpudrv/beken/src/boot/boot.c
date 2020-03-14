@@ -41,7 +41,7 @@
 //@#$%component end configure
 
 extern void Load_Preload(void);
-
+void WrResetToReg(void);
 
 static void bk_reboot(void)
 {
@@ -62,7 +62,9 @@ static void bk_reboot(void)
 
 //    printf("wdt reboot\r\n");
     sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &wdt_val);
+    WrResetToReg();
     sddev_control(WDT_DEV_NAME, WCMD_POWER_UP, NULL);
+    Djy_DelayUs(100000);
 #if CFG_USE_STA_PS
     }
     GLOBAL_INT_RESTORE();

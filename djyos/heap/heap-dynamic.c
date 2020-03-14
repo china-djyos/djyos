@@ -2152,8 +2152,10 @@ ptu32_t __M_GetMaxFreeBlockHeap(struct HeapCB *Heap)
 extern bool_t heapadded;
     if((*(u32*)0x37fff8c != 0x33fff88) && heapadded)
     {
+#if CFG_RUNMODE == CN_RUNMODE_APP
 bool_t init_jtag(char *param);      //lst test
         init_jtag(NULL);
+#endif
     }
     if((Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {

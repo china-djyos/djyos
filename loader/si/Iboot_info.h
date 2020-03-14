@@ -53,7 +53,7 @@
 #define __SI_INFO_H__
 #include "stdio.h"
 #include <project_config.h>
-#define MutualPathLen   40   //在交互信息中存待升级文件路径的最大长度
+
 enum runibootmode{
     HEARD_SET_RUN_IBOOT,
     RAM_SET_RUN_IBOOT,
@@ -76,7 +76,24 @@ enum hardflag
     POWER_ON_RESET,
 
 };
+
+enum productinfo
+{
+    APP_HEAD_VERSION_NUM,        //APP版本xx.xx.xx，
+    APP_HEAD_MANUFACTURER,       //厂商名
+    APP_HEAD_CLASSIFY,           //产品分类
+    APP_HEAD_TYPE,               //产品型号
+    APP_HEAD_TYPE_CODE,          //产品型号数字编码
+    APP_HEAD_PRODUCTION_TIME,    //生产时间
+    APP_HEAD_PRODUCTION_NUM,     //产品序号
+    APP_HEAD_BOARD_TYPE,         //板件型号
+    APP_HEAD_CPU_TYPE,           //cpu型号
+
+    APP_HEAD_SN,                 //获取SN号
+};
+
 //#define IBOOT_APP_INFO_VER                 (1)
+#define MutualPathLen   40   //在交互信息中存待升级文件路径的最大长度,就是update_path的长度
 struct IbootAppInfo
 {
     #define PREVIOURESET_IBOOT   (0x12345678)//复位前运行iboot
@@ -151,31 +168,30 @@ struct AppHead
     u64  VirtAddr;        //运行地址
 #endif
     u16  appheadsize;     //信息块的大小
-    char VersionNumber[3];      //APP版本xx.xx.xx，
-    char reserved[3];          //保留
+    char reserved[6];          //保留
     char appname[96];      //app的文件名 由外部工具填充该bin文件的文件名
     char VerifBuf[128];     //校验码与校验方法对应的具体内容 由工具填充
+};
 
-//    const char ManufacturerName[65];  //厂商名称， DIDE中配置
+struct ProductInfo
+{
 #if(CN_PTR_BITS < 64)
     u32  ManufacturerNameAddr;        //厂商名地址
     u32  ManufacturerNamereserved32;      //保留
 #else
     u64  ManufacturerNameAddr;        //厂商名地址
 #endif
-//    const char DjyosTag[6];          //"djyos"串
     const char ProductClassify[9];    //产品分类字符串，厂商在DIDE中配置
     const char ProductType[9];        //产品型号字符串，厂商在DIDE中配置
     const char TypeCode[6];           //产品型号数字编码
     char ProductionTime[4];     //生产时间，BCD码，年+星期（3字节）.源码中填FF，生产时服务器下发，iboot写入
     char ProductionNumber[5];   //产品序号，源码中填FF，生产时服务器下发，iboot写入
     char reserved8;             //保留
-    const char PanelType[16];   //板件型号
+    char VersionNumber[3];      //APP版本xx.xx.xx，
+    const char BoardType[16];   //板件型号
     const char CPU_Type[16];   //cpu型号
-//    u32 ProductionNumber;   //源码中填FF，生产时服务器下发，iboot写入
-    char Reserved[182];         //保留
+    char Reserved[179];         //保留
 };
-
 
 //bool_t Set_RunIbootUpdateIboot();
 bool_t Set_RebootFlag();
@@ -198,7 +214,8 @@ bool_t Get_HeadResetFlag();
 bool_t Get_LowPowerWakeup();
 
 #if (CFG_RUNMODE_BAREAPP == 0)
-bool_t Rewrite_AppHead_FileInfo(void * apphead,const char*name,u32 filesize);
+bool_t Get_APP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
+bool_t Rewrite_ProductInfo_Num_Time(void * productinfo,const char* time,const char *num);
 bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num);
 bool_t XIP_AppFileCheck_Easy(void * apphead);
 bool_t XIP_AppFileCheck(void * apphead);
@@ -225,7 +242,7 @@ char Get_RunAppFormFile();
 char Get_RunMode(void);
 char Get_LastRunMode(void);
 bool_t Get_HeardSetRunIboot(void);
-char * Get_MutualUpdatePath(void);
+bool_t Get_MutualUpdatePath(char *buf, u32 buf_len);
 bool_t Get_UpdateApp(void);
 bool_t Get_Updateiboot(void);
 bool_t Set_UpdateRunModet(u8 mode);
@@ -237,9 +254,9 @@ bool_t Get_ErrorAppCheck(void);
 bool_t Get_ErrorAppNoFile(void);
 bool_t Get_ErrorAppSize(void);
 bool_t Get_HeardSetRunIboot(void);
-char * Get_ProductSN(void);
-char * Get_ProductVersion(void * apphead);
-const char * Get_ManufacturerName(void);
+//char * Get_ProductSN(void);
+//char * Get_ProductVersion(void * apphead);
+//const char * Get_ManufacturerName(void);
 
 bool_t  runiboot(char *param);
 bool_t  runapp(char *param);

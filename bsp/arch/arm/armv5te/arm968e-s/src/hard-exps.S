@@ -233,6 +233,28 @@ Init_Cpu:
     mov     r2,#0
     str     r2,[r1]
 
+//以下程序用于bk7251狗叫复位后，从cpu寄存器中获取复位信息
+	ldr     r8,=0x00400000
+	ldr 	r7, [r8]
+
+	ldr     r6,=0x12345678
+	cmp		r7, r6
+	beq		soft
+	ldr     r6,=0x87654321
+	cmp		r7, r6
+	beq		soft
+
+	str		r9, [r8]
+	ldr     r8,=0x00400004
+	str		r10, [r8]
+
+soft:
+	MOV R6,  #0
+	MOV R7,  #0
+	MOV R8,  #0
+	MOV R9,  #0
+	MOV R10,  #0
+//
     BL    ExpStackInit
     //Clear Registers
     MOV R0,  #0
@@ -251,6 +273,8 @@ Init_Cpu:
 
     bl  cp15_enable_alignfault
     ldr     pc, =IAP_SelectLoadProgam
+
+
 
 //注意，Init_Cpu将在Iboot中被连接，AppStart将在APP中被连接。
 //ExpStackInit中各状态的栈指针，将由Iboot.lds或app.lds分配，其值可能不一样。
@@ -325,5 +349,17 @@ GetSvcSP:
     mov r0,sp
     msr CPSR, r1
     BX LR
+
+.text
+.align 5
+.globl WrResetToReg
+.type WrResetToReg, %function
+WrResetToReg:
+	ldr     r8,=0x00400000
+	ldr     r9,[r8]
+	ldr     r8,=0x00400004
+	ldr     r10,[r8]
+
+    BX      LR
 .end
 
