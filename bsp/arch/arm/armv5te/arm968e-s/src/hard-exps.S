@@ -234,26 +234,26 @@ Init_Cpu:
     str     r2,[r1]
 
 //以下程序用于bk7251狗叫复位后，从cpu寄存器中获取复位信息
-	ldr     r8,=0x00400000
-	ldr 	r7, [r8]
+//	ldr     r8,=0x00400000
+//	ldr 	r7, [r8]
 
-	ldr     r6,=0x12345678
-	cmp		r7, r6
-	beq		soft
-	ldr     r6,=0x87654321
-	cmp		r7, r6
-	beq		soft
+//	ldr     r6,=0x12345678
+//	cmp		r7, r6
+//	beq		soft
+//	ldr     r6,=0x87654321
+//	cmp		r7, r6
+//	beq		soft
 
-	str		r9, [r8]
-	ldr     r8,=0x00400004
-	str		r10, [r8]
+//	str		r9, [r8]
+//	ldr     r8,=0x00400004
+//	str		r10, [r8]
 
-soft:
-	MOV R6,  #0
-	MOV R7,  #0
-	MOV R8,  #0
-	MOV R9,  #0
-	MOV R10,  #0
+//soft:
+//	MOV R6,  #0
+//	MOV R7,  #0
+//	MOV R8,  #0
+//	MOV R9,  #0
+//	MOV R10,  #0
 //
     BL    ExpStackInit
     //Clear Registers
@@ -350,16 +350,16 @@ GetSvcSP:
     msr CPSR, r1
     BX LR
 
-.text
-.align 5
-.globl WrResetToReg
-.type WrResetToReg, %function
-WrResetToReg:
-	ldr     r8,=0x00400000
-	ldr     r9,[r8]
-	ldr     r8,=0x00400004
-	ldr     r10,[r8]
+//.text
+//.align 5
+//.globl WrResetToReg
+//.type WrResetToReg, %function
+//WrResetToReg:
+//	ldr     r8,=0x00400000
+//	ldr     r9,[r8]
+//	ldr     r8,=0x00400004
+//	ldr     r10,[r8]
 
-    BX      LR
-.end
+//    BX      LR
+//.end
 
