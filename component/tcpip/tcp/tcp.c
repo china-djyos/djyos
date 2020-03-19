@@ -270,12 +270,12 @@ struct ClienCB
     s16 sa, sd;                /* 用于计算RTO：sa = 8*A；sv = 4*D */
     s16 rto;                   /* RTO */
     //tcp timer
-    u8                         timerctrl;
+    u16                        timerctrl;
     u16                        mltimer;     //(unit:tcp tick,used for 2msl wait)
     u16                        lingertimer; //(unit:tcp tick,used for linger close)
     u16                        keeptimer;   //(unit:tcp tick,used for keep alive)
     u16                        persistimer; //(unit:tcp tick,used for probe window)
-    u16                        corktimer;   //(unit:tcp tick,used for cork timeout)
+    u16                        corktimer;   //(unit:tcp tick,used for cork timeout(supper Nagle))
     u8                         resndtimes;  //when resend,add it;when ack the data then clear it
     u8                         resndtimer;  //when resend time is zero,do the resend
     u8                         acktimes;    //if acktimes overrun the limit, then will do fast ack
@@ -1428,6 +1428,8 @@ static void __senddata(struct tagSocket *sock,s32 length)
                         else
                         {
                             ccb->machinestat = EN_TCP_MC_FINWAIT1;
+//                            ccb->timerctrl |= CN_TCP_TIMER_2MSL;     //容错计数，若网络传丢了后续的fin，4ML后将收回。
+//                            ccb->mltimer = CN_TCP_TICK_2ML*2;
                         }
                         ccb->channelstat &= (~CN_TCP_CHANNEL_STATKSND);
                         ccb->timerctrl |= CN_TCP_TIMER_FIN;  //open the fin timer
@@ -1805,6 +1807,8 @@ static s32 __shutdownWR(struct tagSocket *sock)
             else
             {
                 ccb->machinestat  = EN_TCP_MC_FINWAIT1;
+//                ccb->timerctrl |= CN_TCP_TIMER_2MSL;     //容错计数，若网络传丢了后续的fin，4ML后将收回。
+//                ccb->mltimer = CN_TCP_TICK_2ML*2;
             }
             result = 0;
         }
@@ -1886,7 +1890,7 @@ static s32 __closesocket(struct tagSocket *sock)
                 if(ccb->machinestat == EN_TCP_MC_CREAT)
                 {
                     __ResetCCB(ccb, EN_TCP_MC_2FREE);
-                    result = true;
+                    result = 1;
                 }
                 else
                 {
@@ -2840,7 +2844,7 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
 }
 
 //------------------------------------------------------------------------------
-//功能：客户端已经发送了FIN信号
+//功能：接收包处理，客户端已经发送了SYN信号
 //参数：client，客户端
 //     hdr，tcp头
 //     pkg，偏移已经越过tcp头的网络包
@@ -2875,7 +2879,7 @@ static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
 }
 
 //------------------------------------------------------------------------------
-//功能：已经处于稳定连接状态
+//功能：接收包处理，已经处于稳定连接状态
 //参数：client，客户端
 //     hdr，tcp头
 //     pkg，偏移已经越过tcp头的网络包
@@ -2979,6 +2983,8 @@ static bool_t __finwait1_ms(struct tagSocket *client, struct TcpHdr *hdr,struct 
     {
         ccb->timerctrl &= (~CN_TCP_TIMER_FIN);  //CLOSE THE FIN TIMER
         ccb->machinestat= EN_TCP_MC_FINWAIT2;
+        ccb->timerctrl |= CN_TCP_TIMER_2MSL;     //容错计数，若网络传丢了后续的fin，4ML后将收回。
+        ccb->mltimer = CN_TCP_TICK_2ML*2;
     }
     //if any fin received
     if((CN_TCP_FLAG_FIN & hdr->flags)&&((ccb->rbuf.rcvnxt== seqno)||(rcvlen > 0)))

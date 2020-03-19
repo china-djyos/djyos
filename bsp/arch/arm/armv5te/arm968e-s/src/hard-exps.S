@@ -361,5 +361,5 @@ GetSvcSP:
 //	ldr     r10,[r8]
 
 //    BX      LR
-//.end
+    .end
 

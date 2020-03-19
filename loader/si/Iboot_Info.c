@@ -1611,7 +1611,7 @@ bool_t Update_ToRun()
         info_printf("IAP","Run app in 3 seconds.\r\n");
         Iboot_App_Info.runflag.restart_run_app = 1;
     }
-    Djy_EventDelay(3000*1000);		//延时一下，让升级过程中的信息能打印出来
+    Djy_EventDelay(3000*1000);      //延时一下，让升级过程中的信息能打印出来
     reset();
     return true;
 }

@@ -65,7 +65,7 @@ typedef struct
 static tagOsCB gOsCB;
 
 //use this function for the statistics
-void *net_malloc(int size)
+void *net_malloc(s32 size)
 {
     void *ret;
     ret = malloc(size);
@@ -134,7 +134,7 @@ bool_t semp_pend(semp_t semp)
     return Lock_SempPend(semp,CN_TIMEOUT_FOREVER);
 }
 
-bool_t semp_pendtimeout(semp_t semp, unsigned int timeout)
+bool_t semp_pendtimeout(semp_t semp, u32 timeout)
 {
     return Lock_SempPend(semp,timeout);
 }
@@ -183,13 +183,13 @@ EXIT_EVTTFAILED:
 
 //this function is used to format the char string to the argc mode
 //this function will changed the original string, used it carefully
-int string2arg(int *argc, char *argv[],char *string)
+s32 string2arg(s32 *argc, char *argv[],char *string)
 {
-    int argvlen = 0;
-    int paramnum = 0;
+    s32 argvlen = 0;
+    s32 paramnum = 0;
     char *tmp = NULL;
     char bak;
-    int len;
+    s32 len;
 
     argvlen = *argc;
     *argc = paramnum;
@@ -230,13 +230,13 @@ int string2arg(int *argc, char *argv[],char *string)
 }
 
 //usage:use this function to change the string to the args
-int getargs(int argc, char *argv[],char *string)
+s32 getargs(s32 argc, char *argv[],char *string)
 {
-    int argvlen = 0;
-    int paramnum = 0;
+    s32 argvlen = 0;
+    s32 paramnum = 0;
     char *tmp = NULL;
     char bak;
-    int len;
+    s32 len;
 
     argvlen = argc;
     if(NULL == string)
@@ -280,10 +280,10 @@ int getargs(int argc, char *argv[],char *string)
 bool_t string2mac(char *str,u8 *mac)
 {
     bool_t result = false;
-    int num = 0;
-    int i =0;
+    s32 num = 0;
+    s32 i =0;
 
-    unsigned int data[6];
+    u32 data[6];
 
     num = sscanf(str,"%x-%x-%x-%x-%x-%x",&data[0],&data[1],&data[2],&data[3],&data[4],&data[5]);
     if(num == 6)
@@ -292,7 +292,7 @@ bool_t string2mac(char *str,u8 *mac)
         //cpy the mac
         for(i=0;i<6;i++)
         {
-            mac[i] = (unsigned char)data[i];
+            mac[i] = (u8)data[i];
         }
     }
 
@@ -300,14 +300,14 @@ bool_t string2mac(char *str,u8 *mac)
 }
 char* mac2string(u8 *mac)
 {
-    int i =0;
+    s32 i =0;
     static char  str[30];
 
-    unsigned int data[6];
+    u32 data[6];
 
     for(i = 0;i <6;i++)
     {
-        data[i] = (unsigned int)mac[i];
+        data[i] = (u32)mac[i];
     }
     memset(str,0,30);
     sprintf(str,"%02x-%02x-%02x-%02x-%02x-%02x",data[0],data[1],data[2],data[3],data[4],data[5]);
@@ -320,8 +320,8 @@ char* mac2string(u8 *mac)
 typedef struct
 {
     void               *nxt;
-    int                 life;
-    int                 cycle;
+    s32                 life;
+    s32                 cycle;
     u32                 runtimes;
     fnNetTickIsr        isr;
     const char         *name;
@@ -330,13 +330,13 @@ typedef struct
 typedef struct
 {
     tagTickerItem *lst;
-    int            num;
+    s32            num;
     mutex_t        lock;
 }tagTikerCB;
 static tagTikerCB gTickerCB;
 //use this function to install a ticker isr
 //unit:ms
-void*  NetTickerIsrInstall(const char *name,fnNetTickIsr isr,int cycle)
+void*  NetTickerIsrInstall(const char *name,fnNetTickIsr isr,s32 cycle)
 {
     tagTickerItem *item;
     item = malloc(sizeof(tagTickerItem));
@@ -444,7 +444,7 @@ static ptu32_t __NetTickerTask(void)
 {
     bool_t ret = true;
     tagTickerItem *item;
-    int  no = 0;
+    s32  no = 0;
 
     if(mutex_lock(gTickerCB.lock))
     {
@@ -518,9 +518,9 @@ EXIT_LOCK:
     return ret;
 }
 
-void OsPrintSplit(char c,int num)
+void OsPrintSplit(char c,s32 num)
 {
-    int i = 0;
+    s32 i = 0;
     for(i = 0;i<num;i++)
     {
         printf("%c",c);

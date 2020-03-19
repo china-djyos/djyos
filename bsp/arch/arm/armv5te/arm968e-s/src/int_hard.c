@@ -406,6 +406,26 @@ void __irq_Int_EngineAll(ufast_t intStatus)
           intStatus &=~(1<<ufl_line);
       }
     }
+#if(CN_KOUYUTONG == 1)
+extern u16 evrecord[150];
+extern u16 evoffset;
+    evrecord[3*evoffset] = 0x100+ufl_line;
+    evrecord[3*evoffset+1] = g_ptEventRunning->evtt_id;
+    evrecord[3 * evoffset + 2] = g_ptEventRunning->event_id;
+    evoffset++;
+    if(evoffset == 50)
+    {
+        evoffset = 0;
+    }
+extern bool_t heapadded;
+extern u32 xff8c,xff0c;
+    if(heapadded)
+    if(((*(u32*)0x37fff0c != xff0c) || (*(u32*)0x37fff8c != xff8c)) )
+    {
+bool_t init_jtag(char *param);      //lst test
+        init_jtag(NULL);
+    }
+#endif
     if(g_ptEventReady != g_ptEventRunning)
     {
         CpuStatus = Int_GetPreStatus();

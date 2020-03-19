@@ -696,6 +696,8 @@ void Djy_CreateProcessVm(void)
 //      3.实时中断是否禁止,与调度无关.
 //      4.由于最低优先级的系统服务事件总是ready,因此本函数总是能够找到目标事件
 //-----------------------------------------------------------------------------
+u16 evrecord[150] = {0};
+u16 evoffset = 0;
 bool_t __Djy_Schedule(void)
 {
     struct EventECB *event;
@@ -715,6 +717,25 @@ bool_t __Djy_Schedule(void)
         g_s64RunningStartTime = time;
 #endif  //CFG_OS_TINY == false
         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
+
+#if(CN_KOUYUTONG == 1)
+        evrecord[3*evoffset] = 0;
+        evrecord[3*evoffset+1] = g_ptEventRunning->evtt_id;
+        evrecord[3 * evoffset + 2] = g_ptEventRunning->event_id;
+        evoffset++;
+        if(evoffset == 50)
+        {
+            evoffset = 0;
+        }
+extern bool_t heapadded;
+extern u32 xff8c,xff0c;
+    if(heapadded)
+    if(((*(u32*)0x37fff0c != xff0c) || (*(u32*)0x37fff8c != xff8c)) )
+    {
+bool_t init_jtag(char *param);      //lst test
+        init_jtag(NULL);
+    }
+#endif
         g_ptEventRunning=g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
@@ -755,6 +776,24 @@ void __Djy_ScheduleAsynSignal(void)
 #endif  //CFG_OS_TINY == false
 //         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
+#if(CN_KOUYUTONG == 1)
+         evrecord[3*evoffset] = 1;
+         evrecord[3*evoffset+1] = g_ptEventRunning->evtt_id;
+         evrecord[3 * evoffset + 2] = g_ptEventRunning->event_id;
+         evoffset++;
+         if(evoffset == 50)
+         {
+             evoffset = 0;
+         }
+extern bool_t heapadded;
+extern u32 xff8c,xff0c;
+    if(heapadded)
+    if(((*(u32*)0x37fff0c != xff0c) || (*(u32*)0x37fff8c != xff8c)) )
+    {
+bool_t init_jtag(char *param);      //lst test
+        init_jtag(NULL);
+    }
+#endif
          g_ptEventRunning=g_ptEventReady;
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);
 //         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
