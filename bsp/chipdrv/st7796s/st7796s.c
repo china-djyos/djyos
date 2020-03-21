@@ -304,6 +304,7 @@ static int __st7796s_read_reg()
 ---------------------------------------------------------------------------*/
 void __lcd_st7796s_init(void)
 {
+    spi_init();
     spi_flash_enable_voltage();
     spi_init_extral_gpio();
     Djy_DelayUs(300);

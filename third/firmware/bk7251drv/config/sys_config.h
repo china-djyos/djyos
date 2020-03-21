@@ -1,6 +1,7 @@
 #ifndef _SYS_CONFIG_H_
 #define _SYS_CONFIG_H_
-
+#include <stddef.h>
+#include "project_config.h"
 //#define CFG_SUPPORT_BOOTLOADER                     0
 
 /*SUMMARY: macro--1: OPEN; --0:CLOSE*/
@@ -13,11 +14,12 @@
 
 /*section 0-----app macro config-----*/
 #define CFG_IEEE80211N                             1
-
 /*section 1-----OS macro config-----*/
-#define CFG_OS_FREERTOS                            1
+#define CFG_OS_FREERTOS                            0
+#define CFG_SUPPORT_DJYOS                          1
 
-#if CFG_OS_FREERTOS
+
+#if CFG_OS_FREERTOS | CFG_SUPPORT_DJYOS
 #define THD_APPLICATION_PRIORITY                   133
 #define THD_CORE_PRIORITY                          132
 #define THD_UMP3_PRIORITY                          4
@@ -61,7 +63,7 @@
 #define CFG_SUPPORT_UVC                            0
 #endif
 #define CFG_USE_USB_CHARGE                         1
-#define CFG_USE_QSPI							   1
+#define CFG_USE_QSPI                               1
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
 #define CFG_UART_DEBUG_COMMAND_LINE                1
@@ -154,10 +156,12 @@
 /*section 24 ----- less memery in rwnx*/
 #define CFG_LESS_MEMERY_IN_RWNX                    0
 
-/*section 25 ----- use audio*/
-#define CFG_USE_AUDIO                              1
-#define CFG_USE_AUD_DAC                            1
-#define CFG_USE_AUD_ADC                            1
+/*section 25 ----- use audio*/      //djyos下，audio配置已经转移到DIDE中
+#if(CFG_SUPPORT_DJYOS == 1)
+#define CFG_USE_AUDIO                              CFG_MODULE_ENABLE_AUDIO
+//#define CFG_USE_AUD_DAC                            1
+//#define CFG_USE_AUD_ADC                            1
+#endif
 
 /*section 26 ----- general spi master/slave */
 #define CFG_USE_SPI_MASTER                         1

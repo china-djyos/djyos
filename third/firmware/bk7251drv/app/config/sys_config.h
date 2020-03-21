@@ -1,6 +1,7 @@
 #ifndef _SYS_CONFIG_H_
 #define _SYS_CONFIG_H_
-
+#include <stddef.h>
+#include "project_config.h"
 #define CFG_SUPPORT_BOOTLOADER                     0
 
 /*SUMMARY: macro--1: OPEN; --0:CLOSE*/
@@ -15,9 +16,10 @@
 #define CFG_IEEE80211N                             1
 
 /*section 1-----OS macro config-----*/
-#define CFG_OS_FREERTOS                            1
+#define CFG_OS_FREERTOS                            0
+#define CFG_SUPPORT_DJYOS                          1
 
-#if CFG_OS_FREERTOS
+#if CFG_OS_FREERTOS | CFG_SUPPORT_DJYOS
 #define THD_APPLICATION_PRIORITY                   133
 #define THD_CORE_PRIORITY                          132
 #define THD_UMP3_PRIORITY                          4

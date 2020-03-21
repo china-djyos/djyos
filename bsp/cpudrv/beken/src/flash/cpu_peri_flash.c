@@ -467,9 +467,8 @@ s32 EmbFsInstallInit(const char *fs, s32 bstart, s32 bend, void *mediadrv)
 // 返回：0 -- 成功， -1 -- 失败
 // 备注：
 // ============================================================================
-int ModuleInstall_Flash(void)
+s32 ModuleInstall_Flash(void)
 {
-
     if(!nordescription) //初始化nor的信息
     {
         nordescription = malloc(sizeof(struct NorDescr));

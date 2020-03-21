@@ -445,10 +445,12 @@ ptu32_t ModuleInstall_UART(u32 port)
     switch(port)
     {
         case CN_UART1:
+            uart1_init();
             UART_SndBufLen = CFG_UART1_SENDBUF_LEN;
             UART_RxBufLen  = CFG_UART1_RECVBUF_LEN;
             break;
         case CN_UART2:
+            uart2_init();
             UART_SndBufLen = CFG_UART2_SENDBUF_LEN;
             UART_RxBufLen  = CFG_UART2_RECVBUF_LEN;
             break;

@@ -18,6 +18,7 @@
 #include "bk7011_cal_pub.h"
 #include "rw_pub.h"
 #include "net_param_pub.h"
+#include "param_config.h"
 
 general_param_t *g_wlan_general_param = NULL;
 ap_param_t *g_ap_param_ptr = NULL;
@@ -53,7 +54,7 @@ uint32_t cfg_param_init(void)
 #error "BK7231 not support efuse!"
 #endif
 
-#define DEFAULT_MAC_ADDR "\xC8\x47\x8C\x00\x00\x00"
+//#define DEFAULT_MAC_ADDR "\xC8\x47\x8C\x00\x00\x00"
 uint8_t system_mac[6] = DEFAULT_MAC_ADDR;
 #if CFG_SUPPORT_RTT
 uint32_t prandom_get(void);
@@ -147,6 +148,13 @@ uint8_t wifi_get_vif_index_by_mac(char *mac)
 
 int wifi_set_mac_address(char *mac)
 {
+
+    if(mac[0]&0x01)
+    {
+        os_printf("set failed,can be a bc/mc address\r\n");
+        return 0;
+    }
+
    os_memcpy(system_mac, mac, 6);
 
 #if (WIFI_MAC_POS == MAC_EFUSE)
@@ -156,6 +164,8 @@ int wifi_set_mac_address(char *mac)
 #elif (WIFI_MAC_POS == MAC_ITEM)
     save_info_item(WIFI_MAC_ITEM, (UINT8 *)system_mac, NULL, NULL);
 #endif
+
+    return 0;
 }
 
 #endif

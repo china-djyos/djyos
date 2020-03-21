@@ -56,9 +56,6 @@ void bk_secrity_exit(void);
 #include "security_pub.h"
 #endif
 
-__attribute__((weak))  void djy_audio_init(void)
-{
-}
 
 #ifdef CFG_USE_QSPI
 #include "qspi_pub.h"
@@ -104,7 +101,7 @@ static DD_INIT_S dd_init_tbl[] =
 
 #if CFG_USE_AUDIO
     {AUD_DAC_DEV_NAME,      audio_init,                 audio_exit},
-    {"djy audio init",        djy_audio_init,             NULLPTR},
+//    {"djy audio init",        djy_audio_init,             NULLPTR},
 #endif
 #if CFG_SDIO || CFG_SDIO_TRANS
     {SDIO_DEV_NAME,         sdio_init,                  sdio_exit},

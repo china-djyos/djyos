@@ -103,6 +103,7 @@ int ModuleInstall_QSPI_PSRAM(void)
 {
     qspi_dcache_drv_desc qspi_cfg;
 
+    qspi_init();
     qspi_cfg.mode = 0;        // 0: 1 line mode    3: 4 line mode
     qspi_cfg.clk_set = 0x0;
     qspi_cfg.wr_command = 0x02;        //write

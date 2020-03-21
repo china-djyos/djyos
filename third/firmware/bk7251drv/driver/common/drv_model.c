@@ -381,7 +381,7 @@ UINT32 ddev_unregister_dev(char *dev_name)
         }
     }
 
-    ASSERT(NULLPTR == dev_ptr);
+//    ASSERT(NULLPTR == dev_ptr);       //嵌入式用assert有什么用？
 
     return DRV_SUCCESS;
 }

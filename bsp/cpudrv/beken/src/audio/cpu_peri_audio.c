@@ -45,54 +45,30 @@
 // =============================================================================
 #include "cpu_peri.h"
 #include "stdlib.h"
+#include "audio_pub.h"
 #include "component_config_audio.h"
-
 static AUD_DAC_CFG_ST aud_dac;
 
-void djy_audio_dac_close(void);
-void djy_audio_dac_open(uint16_t buf_len,uint16_t channel,
-                                    audio_sample_rate_e freq)
+// ============================================================================
+// 功能：初始化片音频模块
+// 参数：无
+// 返回：0 -- 成功， -1 -- 失败
+// 备注：
+// ============================================================================
+s32 ModuleInstall_Audio(void)
 {
-    if(channel>2) channel=2;
-    if(buf_len<0) buf_len=1024;
+//    audio_init();
+    #if (CFG_USE_AUD_DAC == true)
+    audio_dac_software_init();
+    #endif
 
-    aud_dac.buf = realloc(aud_dac.buf, buf_len);
-    if(aud_dac.buf==0){
-        printf("err: djy_audio_dac_open failed!\r\n");
-        aud_dac.buf_len = 0;
-    }
-    else {
-        aud_dac.buf_len = buf_len;
-    }
-    aud_dac.channels = channel;
-    aud_dac.freq = freq;
-    aud_dac.dma_mode = 1;
-    audio_dac_open(&aud_dac);
-    audio_dac_ctrl(AUD_DAC_CMD_PLAY,0);
+    #if (CFG_USE_AUD_ADC  ==true)
+    audio_adc_software_init();
+    #endif
+
+    audio_hardware_init();
+    audio_dac_volume_use_single_port();
+
+    djy_audio_adc_open(CFG_RX_DMA_BUF_SIZE,1,CFG_AUDIO_SAMPLE_RATE,AUD_ADC_LINEIN_DETECT_PIN);
 }
 
-uint32_t djy_audio_dac_ctrl(uint32_t cmd, void *param)
-{
-    if(aud_dac.buf == NULL) return 0;
-    return audio_dac_ctrl(cmd, param);
-}
-
-uint32_t djy_audio_dac_write(char *user_buf, uint32_t count)
-{
-    if(aud_dac.buf == NULL) return 0;
-    return audio_dac_write(user_buf, count, (uint32_t)&aud_dac);
-}
-
-void djy_audio_dac_close(void)
-{
-    unsigned char *buf_temp = 0;
-    int len_temp = 0;
-    audio_dac_close();
-    if(aud_dac.buf) {
-        buf_temp = aud_dac.buf;
-        len_temp = aud_dac.buf_len;
-    }
-    memset(&aud_dac,  0,  sizeof(aud_dac));
-    aud_dac.buf = buf_temp;
-    aud_dac.buf_len = len_temp;
-}
