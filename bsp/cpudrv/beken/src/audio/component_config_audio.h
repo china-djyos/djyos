@@ -11,7 +11,7 @@
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
-//component name:"cpu peri audio" //组件名
+//component name:"cpu onchip audio" //组件名
 //parent:"none"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable               //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
@@ -29,10 +29,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_CPU_PERI_AUDIO == false )
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_AUDIO == false )
 //#warning  " myname 组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_CPU_PERI_AUDIO    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_AUDIO    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,16384,
 #define CFG_RX_DMA_BUF_SIZE     8192        //"采样DMA buffer size",
 //%$#@enum,8000,11025,12000,16000,22050,24000,32000,44100,48000,
