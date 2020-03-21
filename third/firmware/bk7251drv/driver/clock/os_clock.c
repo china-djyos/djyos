@@ -25,7 +25,7 @@ static void fclk_hdl(UINT8 param)
     GLOBAL_INT_DISABLE();
 
     /*rt_tick_increase();*/
-    current_clock ++;
+    current_clock += 10; //PWM 10ms
 
 
     Exp_SystickTickHandler();
