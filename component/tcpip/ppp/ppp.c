@@ -1457,13 +1457,17 @@ bool_t PppInit(void) {
 }
 //add the device to the task list
 static bool_t __PppAddTask(tagPPP *ppp) {
-    bool_t ret = false;
-    ret = taskcreate("PPPCLIENT",CN_PPP_TASKSTACKSIZE,CN_PPP_TASKPRIOR,__ClientMain,ppp);
-    if (ret == false) {
-        debug_printf("PPP","PPPCLIENT:TASK CREATE ERR\n\r");
-        pPPPClient = ppp;
+    bool_t result = false;
+    u16 eventID;
+
+    if ((NULL != ppp) && (CN_EVTT_ID_INVALID != gPppEvttID)) {
+        eventID = Djy_EventPop(gPppEvttID, NULL, 0, (ptu32_t) ppp, 0, 0);
+        if (CN_EVENT_ID_INVALID != eventID) {
+            pPPPClient = ppp;
+            result = true;
+        }
     }
-    return ret;
+    return result;
 }
 
 //just do the configuration and pop a task to do it
