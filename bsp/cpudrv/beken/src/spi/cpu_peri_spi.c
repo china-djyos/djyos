@@ -81,10 +81,10 @@
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
-#if ( CFG_MODULE_ENABLE_AUDIO == false )
+#if ( CFG_MODULE_ENABLE_CPU_ONCHIP_SPI == false )
 //#warning  " myname 组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
-#define CFG_MODULE_ENABLE_AUDIO    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
+#define CFG_MODULE_ENABLE_CPU_ONCHIP_SPI    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,30000000,
 #define CFG_SPI_CLK                    30000000       //SPI 时钟。
 //%$#@num,0,1,
