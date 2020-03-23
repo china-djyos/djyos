@@ -757,13 +757,13 @@ static s32 StatusOfNand(void)
 //返回:
 //备注:
 //-----------------------------------------------------------------------------
-
+extern unsigned char  NAND_RB_Get(void);
 static u8 NAND_WaitRB(vu8 rb)
 {
     vu32 time=0;
     while(time<30000)
     {
-        if(NAND_RB_Get() == rb)return 0;
+        if(NAND_RB_Get() == rb)return 0;    //NAND_RB_Get在板件中的board.c中实现，用于获取RG引脚的值。
         time++;
     }
     return 1;
