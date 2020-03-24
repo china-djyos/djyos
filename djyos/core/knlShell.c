@@ -362,10 +362,11 @@ ptu32_t kernel_spy(void)
     struct Wdt *wdt;
     Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
-//#if(DEBUG != 1)
-//  wdt = Wdt_Create("runtime watch", cycle * 10, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+#if(DEBUG == 1)
     wdt = Wdt_Create("runtime watch", cycle * 30, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
-//#endif  //for (DEBUG != 1)
+#else
+  wdt = Wdt_Create("runtime watch", cycle * 30, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+#endif  //for (DEBUG != 1)
     while(1)
     {
 

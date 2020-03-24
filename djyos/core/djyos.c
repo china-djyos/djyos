@@ -719,6 +719,7 @@ bool_t __Djy_Schedule(void)
         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
 #if(CN_KOUYUTONG == 1)
+#if(DEBUG == 1)
         evrecord[3*evoffset] = 0;
         evrecord[3*evoffset+1] = g_ptEventRunning->evtt_id;
         evrecord[3 * evoffset + 2] = g_ptEventRunning->event_id;
@@ -737,6 +738,7 @@ extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
 bool_t init_jtag(char *param);      //lst test
         init_jtag(NULL);
     }
+#endif
 #endif
         g_ptEventRunning=g_ptEventReady;
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
@@ -779,6 +781,7 @@ void __Djy_ScheduleAsynSignal(void)
 //         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
 #if(CN_KOUYUTONG == 1)
+#if(DEBUG == 1)
          evrecord[3*evoffset] = 1;
          evrecord[3*evoffset+1] = g_ptEventRunning->evtt_id;
          evrecord[3 * evoffset + 2] = g_ptEventRunning->event_id;
@@ -797,6 +800,7 @@ extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
 bool_t init_jtag(char *param);      //lst test
         init_jtag(NULL);
     }
+#endif
 #endif
          g_ptEventRunning=g_ptEventReady;
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);

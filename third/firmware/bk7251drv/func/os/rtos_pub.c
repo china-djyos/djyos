@@ -92,12 +92,14 @@ OSStatus bk_rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
     GLOBAL_INT_DISABLE();
     *semaphore = Lock_SempCreate(maxCount,0,CN_BLOCK_FIFO,NULL);
     GLOBAL_INT_RESTORE();
+#if(DEBUG == 1)
     rtos_sem_cnt++;
     if(rtos_sem_cnt > 100)
     {
         printk("semaphore over\r\n");
         init_jtag(NULL);
     }
+#endif
     RTOS_DBG("bk_rtos_init_semaphore:%d\r\n",rtos_sem_cnt);
     return (*semaphore != NULL) ? kNoErr : kGeneralErr;
 }

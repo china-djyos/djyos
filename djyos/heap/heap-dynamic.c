@@ -2150,6 +2150,7 @@ ptu32_t __M_GetMaxFreeBlockHeap(struct HeapCB *Heap)
     if(Heap== NULL)
         return 0;
 #if(CN_KOUYUTONG == 1)
+#if(DEBUG == 1)
 extern bool_t heapadded;
 extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
     if(heapadded)
@@ -2160,6 +2161,7 @@ extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
 bool_t init_jtag(char *param);      //lst test
         init_jtag(NULL);
     }
+#endif
 #endif
     if((Heap->HeapProperty & CN_HEAP_PRIVATE) == CN_HEAP_PRIVATE)
     {

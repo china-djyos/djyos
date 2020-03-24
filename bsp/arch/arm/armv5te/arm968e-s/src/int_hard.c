@@ -407,6 +407,7 @@ void __irq_Int_EngineAll(ufast_t intStatus)
       }
     }
 #if(CN_KOUYUTONG == 1)
+#if(DEBUG == 1)
 extern u16 evrecord[150];
 extern u16 evoffset;
     evrecord[3*evoffset] = 0x100+ufl_line;
@@ -427,6 +428,7 @@ extern u32 xff8c,xff0c,xff8cnow,xff0cnow;
 bool_t init_jtag(char *param);      //lst test
         init_jtag(NULL);
     }
+#endif
 #endif
     if(g_ptEventReady != g_ptEventRunning)
     {
