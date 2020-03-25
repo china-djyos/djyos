@@ -5,7 +5,7 @@ SECTIONS
 {
     Rom_Start :
     {
-        restore = .; 
+        restore = .;
     }>flash
 
     /*share_rRAM1_lRAM1段保存的是Iboot和APP共享信息，必须确保在同一地址，*/
@@ -27,7 +27,7 @@ SECTIONS
         . = ALIGN(0x08);
         msp_top = .;
     }>ram
-	
+
     .vectors :
     {
         KEEP(*(*.vectors))
@@ -109,7 +109,7 @@ SECTIONS
         * (.bss .bss.* COMMON)
         . = ALIGN(0x4) ;
     }>ram
-	
+
     routine_shell_data_section :
     {
         KEEP(* (.ro_shell_data))
@@ -266,14 +266,14 @@ SECTIONS
         gc_pAppRange = .;           /* APP空间范围 */
         LONG(LENGTH(flash) - IbootSize)
     }>flash
-    
+
    Iboot_AppInfo :
     {
        /* . = restore + IbootSize;*/
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
         LONG( restore + IbootSize)
         . += 256;
-        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
+        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */
         LONG( restore + IbootSize + 256)
         . += 256;
         gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
@@ -283,7 +283,7 @@ SECTIONS
     }>flash
 
 
-	
+
     shell_config_section :
     {
         KEEP(*(.shellconfig))
@@ -303,8 +303,8 @@ SECTIONS
     Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>flash 
+        LONG(restore) /* 该bin文件的起始地址*/
+        LONG(IbootSize) /*该bin文件允许大小*/
+    }>flash
 
 }
