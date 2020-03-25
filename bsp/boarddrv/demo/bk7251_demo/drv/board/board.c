@@ -153,6 +153,15 @@ u32 IIC_IoCtrlFunc(enum IIc_Io IO,u32 tag)
     }
     return 0;
 }
+void OpenBackLight()
+{
+    djy_gpio_write(GPIO10,1);
+}
+
+void CloseBackLight()
+{
+    djy_gpio_write(GPIO10,0);
+}
 
 void OpenScreen()
 {
@@ -168,7 +177,7 @@ void CloseScreen()
     djy_gpio_write(GPIO11,0);
 }
 
-static enum SpeakerState Speaker;
+static enum SpeakerState Speaker = Speaker_off;
 void CloseSpeaker()
 {
     djy_gpio_write(GPIO9,0);
@@ -191,7 +200,20 @@ void Board_Init(void)
     Djy_GpioInit();
     os_meminit();
     drv_model_init();
-    g_dd_init();
+	gpio_config(GPIO9, GMODE_OUTPUT);	//设置控制喇叭的IO为输出模式
+    gpio_output(GPIO9, 0);				//开始设置为0 关闭喇叭
+//  g_dd_init();
+    sctrl_init();
+    icu_init();
+    wdt_init();
+    gpio_init();
+    flash_init();       //本函数不能放到ModuleInstall_Flash中，sctrl_sta_ps_init调用时需要访问flash设备。
+    gdma_init();
+    bk_timer_init();
+    mpb_init();                         //暂时先放这里
+    sctrl_sta_ps_init();
+    pwm_init();         //用于os_clk_init做CPU时钟
+
     intc_init();
     os_clk_init();
 
@@ -216,11 +238,9 @@ void Board_Init(void)
 //    djy_gpio_attach_irq(GPIO7, PIN_IRQ_MODE_FALLING, p7_isr_hdr, NULL);
 //    djy_gpio_irq_enable( GPIO7, 1);
 
-    djy_gpio_mode(GPIO9,PIN_MODE_OUTPUT);         //喇叭使能
-    OpenSpeaker();
 
     djy_gpio_mode(GPIO10,PIN_MODE_OUTPUT);         //液晶背光
-    djy_gpio_write(GPIO10,1);
+//    djy_gpio_write(GPIO10,1);
 
     djy_gpio_mode(GPIO11,PIN_MODE_OUTPUT);        //液晶+触摸屏电源控制管脚
     djy_gpio_write(GPIO11,1);
