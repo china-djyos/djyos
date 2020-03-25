@@ -9,7 +9,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-       KEEP(*(.IbootAppInfo .IbootAppInfo.*))  
+       KEEP(*(.IbootAppInfo .IbootAppInfo.*))
     }>RAM_SDRAM
 
         stack_rRAM1_lRAM1 (NOLOAD) :
@@ -42,10 +42,10 @@ SECTIONS
         text_preload_rIbootRom_lIbootRom :
         {
                 . = ALIGN(0x08);
-		g_pAppCodeStartRamAddr = .;
+                g_pAppCodeStartRamAddr = .;
         *libos_Iboot.a:loader.o (.data .data.*)
         *int_hard.o (.text .text.* .rodata .rodata.*)
-		KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
+                KEEP(*hard-exps.o (.text .text.* .rodata .rodata.*))
         *hard-exp.o (.text .text.* .rodata .rodata.*)
 
         *libos_Iboot.a:int.o (.data .data.*)
@@ -112,15 +112,15 @@ SECTIONS
     }>RAM_SDRAM
 
     routine_shell_data_section :
-	{
-   		 KEEP(* (.ro_shell_data))
- 	 }>RAM_SDRAM AT>ROM1_SDRAM
- 	
+        {
+                 KEEP(* (.ro_shell_data))
+         }>RAM_SDRAM AT>ROM1_SDRAM
+
     expand_shell_data_section :
-	{
- 	     KEEP(* (.ex_shell_data))
- 	 }>RAM_SDRAM AT>ROM1_SDRAM
- 	 
+        {
+             KEEP(* (.ex_shell_data))
+         }>RAM_SDRAM AT>ROM1_SDRAM
+
         preload_cp_table :
     {
        . = ALIGN(0x08);
@@ -142,16 +142,16 @@ SECTIONS
         LONG(ADDR(zi_preload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_preload_rRAM1_lRAM1))
         LONG(0)
-        
+
         LONG(LOADADDR(routine_shell_data_section))
-	    LONG(ADDR(routine_shell_data_section))
-	    LONG(SIZEOF(routine_shell_data_section))
-	    LONG(1)
-	
-      	LONG(LOADADDR(expand_shell_data_section))
-	    LONG(ADDR(expand_shell_data_section))
-	    LONG(SIZEOF(expand_shell_data_section))
-	    LONG(1)
+            LONG(ADDR(routine_shell_data_section))
+            LONG(SIZEOF(routine_shell_data_section))
+            LONG(1)
+
+        LONG(LOADADDR(expand_shell_data_section))
+            LONG(ADDR(expand_shell_data_section))
+            LONG(SIZEOF(expand_shell_data_section))
+            LONG(1)
     }>ROM1_SDRAM
 
         sysload_cp_table :
@@ -218,7 +218,7 @@ SECTIONS
         gc_pAppOffset = .;          /* APP空间偏置  为了访问下面四个字节 */
         LONG(Flash2Offset + IbootSize)
     }>ROM1_SDRAM
-	
+
     Iboot_AppInfo :
     {
        /* . = restore + IbootSize;*/
@@ -235,27 +235,27 @@ SECTIONS
     }>ROM1_SDRAM
 
     shell_config_section :
-	{
-   		KEEP(*(.shellconfig))
- 	}>ROM1_SDRAM
-    
+        {
+                KEEP(*(.shellconfig))
+        }>ROM1_SDRAM
+
     routine_shell_section :
-	{
-   		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
- 	}>ROM1_SDRAM
- 	
+        {
+                 KEEP(* (.ro_shell_cmd))
+                 KEEP(* (.ro_shell_data))
+        }>ROM1_SDRAM
+
     expand_shell_section :
-	{
- 	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>ROM1_SDRAM
- 	
- 	Shell_Info :
+        {
+             KEEP(* (.ex_shell_cmd))
+             KEEP(* (.ex_shell_data))
+              . = ALIGN(0x08);
+        }>ROM1_SDRAM
+
+        Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>ROM1_SDRAM 
+        LONG(restore) /* 该bin文件的起始地址*/
+        LONG(IbootSize) /*该bin文件允许大小*/
+    }>ROM1_SDRAM
 }

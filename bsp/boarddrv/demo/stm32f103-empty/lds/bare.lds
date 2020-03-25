@@ -16,7 +16,7 @@ SECTIONS
     Iboot_RevRam (NOLOAD):
     {
         . = ALIGN(0x08);
-         KEEP(*(.IbootAppInfo .IbootAppInfo.*)) 
+         KEEP(*(.IbootAppInfo .IbootAppInfo.*))
     }>RAM1
 
     /*iboot.lds中InitStack大小及位置必须与应用程序中debug/release.lds*/
@@ -119,15 +119,15 @@ SECTIONS
     }>RAM1
 
     routine_shell_data_section :
-	{
-   		 KEEP(* (.ro_shell_data))
- 	 }>RAM1 AT>InnerFlash
- 	
+        {
+                 KEEP(* (.ro_shell_data))
+         }>RAM1 AT>InnerFlash
+
     expand_shell_data_section :
-	{
- 	     KEEP(* (.ex_shell_data))
- 	 }>RAM1 AT>InnerFlash
- 	 
+        {
+             KEEP(* (.ex_shell_data))
+         }>RAM1 AT>InnerFlash
+
     preload_cp_table :
     {
         . = ALIGN(0x08);
@@ -176,17 +176,17 @@ SECTIONS
         LONG(LOADADDR(zi_sysload_rRAM1_lRAM1))
         LONG(ADDR(zi_sysload_rRAM1_lRAM1))
         LONG(SIZEOF(zi_sysload_rRAM1_lRAM1))
-        LONG(0)	 
-        
-		LONG(LOADADDR(routine_shell_data_section))
-		LONG(ADDR(routine_shell_data_section))
-		LONG(SIZEOF(routine_shell_data_section))
-		LONG(1)
-		
-		LONG(LOADADDR(expand_shell_data_section))
-		LONG(ADDR(expand_shell_data_section))
-		LONG(SIZEOF(expand_shell_data_section))
-		LONG(1)
+        LONG(0)
+
+                LONG(LOADADDR(routine_shell_data_section))
+                LONG(ADDR(routine_shell_data_section))
+                LONG(SIZEOF(routine_shell_data_section))
+                LONG(1)
+
+                LONG(LOADADDR(expand_shell_data_section))
+                LONG(ADDR(expand_shell_data_section))
+                LONG(SIZEOF(expand_shell_data_section))
+                LONG(1)
     }>InnerFlash
 
     heap_rRAM1_lRAM1 (NOLOAD) :
@@ -252,36 +252,36 @@ SECTIONS
         gc_pAppOffset = .;          /* APP空间偏置 */
         gc_pAppRange = .;           /* APP空间范围 */
         gc_ptIbootCtrl = .;         /*结构变量，c中可用，用于检查APP正确性*/
-        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */ 
+        gc_ptAppInfo = .;           /*ROM区 存储APP的起始地址及大小 */
         gc_AppAddr = .;             /*函数指针变量，指向APP的起始地址*/
         __AppStart = .;           /*函数指针变量，指向APP的Preload函数*/
     }>InnerFlash
 
 
     shell_config_section :
-	{
-   		KEEP(*(.shellconfig))
- 	}>InnerFlash
-    
+        {
+                KEEP(*(.shellconfig))
+        }>InnerFlash
+
     routine_shell_section :
-	{
-   		 KEEP(* (.ro_shell_cmd))
-   		 KEEP(* (.ro_shell_data))
- 	}>InnerFlash
- 	
+        {
+                 KEEP(* (.ro_shell_cmd))
+                 KEEP(* (.ro_shell_data))
+        }>InnerFlash
+
     expand_shell_section :
-	{
- 	     KEEP(* (.ex_shell_cmd))
- 	     KEEP(* (.ex_shell_data))
- 	      . = ALIGN(0x08);
- 	}>InnerFlash
- 	
- 	Shell_Info :
+        {
+             KEEP(* (.ex_shell_cmd))
+             KEEP(* (.ex_shell_data))
+              . = ALIGN(0x08);
+        }>InnerFlash
+
+        Shell_Info :
     {
         p_shell_info = .;
-        LONG(restore) /* _shell_fun_tab_start 内部函数表的起始地址  文件的起始地址*/
-        LONG(IbootSize) /*_shell_fun_tab_end  内部函数表的结束地址 文件允许大小*/
-    }>InnerFlash 
-	
+        LONG(restore) /* 该bin文件的起始地址*/
+        LONG(IbootSize) /* 该bin文件允许大小*/
+    }>InnerFlash
+
 }
 /**** The End ****/
