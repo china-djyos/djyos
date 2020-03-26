@@ -92,6 +92,17 @@
 //%$#@enum,true,false,
 //%$#@string,1,30,
 #define CFG_FLASH_CHIP_NAME              "embedded flash"     //"芯片名",
+//%$#@num,0,,
+#define CFG_EFLASH_PAGE_SIZE                 512      //片内flash的页大小，单位字节。
+#define CFG_EFLASH_SMALL_SECT_PAGE_NUM       16         //片内flash的小扇区中，有多少页。
+#define CFG_EFLASH_LARGE_SECT_PAGE_NUM       224         //片内flash的大扇区中，有多少页。
+#define CFG_EFLASH_NORMAL_SECT_PAGE_NUM      256         //片内flash的标准扇区中，有多少页。
+#define CFG_EFLASH_PLANE_SMALL_SECT_NUM      2         //片内flash的主存储块中，有多少小扇区。
+#define CFG_EFLASH_PLANE_LARGE_SECT_NUM      1         //片内flash的主存储块中，有多少大扇区。
+#define CFG_EFLASH_PLANE_NORMAL_SECT_NUM     15       //片内flash的主存储块中，有多少标准扇区。
+#define CFG_EFLASH_PLANE_NUM                 1         //片内flash的主存储块个数。
+#define CFG_EFLASH_MAPPED_START_ADDR         0x400000 //片内flash的映射起始地址。
+
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
 #endif
@@ -193,15 +204,15 @@ void __CacheMpuEnable(u8 IsEnable)
 // ============================================================================
 static s32 EEFC_Init(struct EmbdFlashDescr *Description)
 {
-    Description->BytesPerPage = 512;
-    Description->PagesPerSmallSect = 16;
-    Description->PagesPerLargeSect = 224;
-    Description->PagesPerNormalSect = 256;
-    Description->SmallSectorsPerPlane = 2;
-    Description->LargeSectorsPerPlane = 1;
-    Description->NormalSectorsPerPlane = 15;
-    Description->Planes = 1;
-    Description->MappedStAddr = 0x400000;
+    Description->BytesPerPage = CFG_EFLASH_PAGE_SIZE;
+    Description->PagesPerSmallSect = CFG_EFLASH_SMALL_SECT_PAGE_NUM;
+    Description->PagesPerLargeSect = CFG_EFLASH_LARGE_SECT_PAGE_NUM;
+    Description->PagesPerNormalSect = CFG_EFLASH_NORMAL_SECT_PAGE_NUM;
+    Description->SmallSectorsPerPlane = CFG_EFLASH_PLANE_SMALL_SECT_NUM;
+    Description->LargeSectorsPerPlane = CFG_EFLASH_PLANE_LARGE_SECT_NUM;
+    Description->NormalSectorsPerPlane = CFG_EFLASH_PLANE_NORMAL_SECT_NUM;
+    Description->Planes = CFG_EFLASH_PLANE_NUM;
+    Description->MappedStAddr = CFG_EFLASH_MAPPED_START_ADDR;
     return (0);
 }
 

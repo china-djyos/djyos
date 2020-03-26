@@ -771,7 +771,7 @@ bool_t ModuleInstall_HardTimer(void)
     for(temp = 0; temp < CN_STM32TIMER_NUM; temp++)
     {
         tg_TIMER_Reg[temp]->CR1 &= ~(TIM_CR1_CEN_MASK); //禁止TIMER
-        tg_TIMER_Reg[i]->CR1 |= TIM_CR1_ARPE;//自动重装
+        tg_TIMER_Reg[temp]->CR1 |= TIM_CR1_ARPE;//自动重装
 
         tg_TIMER_Reg[temp]->DIER |= TIM_DIER_UIE_MASK;
         tg_TIMER_Reg[temp]->PSC = 0x23;//配置为36，则一个时钟为1uS

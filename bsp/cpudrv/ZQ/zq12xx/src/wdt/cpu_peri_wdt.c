@@ -230,6 +230,23 @@ static void WDT_HardInit(void)
 
 }
 
+//**************************************************//
+//todo：这三个函数用于实现保护加载过程，使用的时候需补全
+u32 __FeedDog_Isr(ptu32_t intline)
+{
+    return false;
+}
+bool_t __BrdBoot_FeedStart(u32 bootfeedtime)
+{
+    return false;
+}
+
+bool_t __BrdBoot_FeedEnd(void)
+{
+    return false;
+}
+//**************************************************//
+
 // =============================================================================
 // 函数功能: 看门狗注册
 // 输入参数:
@@ -245,7 +262,7 @@ bool_t WatDog_Install(void)
 //  result = WdtHal_RegisterWdtChip(pgWatDogName[0],CN_WDT_WDTCYCLE,g_WatDogFeedHandle[0],NULL,NULL);
     result = WdtHal_RegisterWdtChip("zqM0WatDog1", CN_WDT_WDTCYCLE, WDT_WdtFeed);
 #if(CFG_DEFEND_ON_BOOT == true)
-    BrdBoot_FeedEnd();
+    __BrdBoot_FeedEnd();
 #endif
 
    return result;

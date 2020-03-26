@@ -89,6 +89,16 @@
 #define CFG_MODULE_ENABLE_CPU_DRIVE_INNER_FLASH    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false,
 #define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
+//%$#@num,0,,
+#define CFG_EFLASH_PAGE_SIZE                 512      //片内flash的页大小，单位字节。
+#define CFG_EFLASH_SMALL_SECT_PAGE_NUM       32         //片内flash的小扇区中，有多少页。
+#define CFG_EFLASH_LARGE_SECT_PAGE_NUM       128         //片内flash的大扇区中，有多少页。
+#define CFG_EFLASH_NORMAL_SECT_PAGE_NUM      256         //片内flash的标准扇区中，有多少页。
+#define CFG_EFLASH_PLANE_SMALL_SECT_NUM      4         //片内flash的主存储块中，有多少小扇区。
+#define CFG_EFLASH_PLANE_LARGE_SECT_NUM      1         //片内flash的主存储块中，有多少大扇区。
+#define CFG_EFLASH_PLANE_NORMAL_SECT_NUM     7       //片内flash的主存储块中，有多少标准扇区。
+#define CFG_EFLASH_PLANE_NUM                 1         //片内flash的主存储块个数。
+#define CFG_EFLASH_MAPPED_START_ADDR         0x8000000 //片内flash的映射起始地址。
 //%$#@string,1,32,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
@@ -144,15 +154,15 @@ bool_t BrdWdt_FeedDog(void)
 // ============================================================================
 static s32 Flash_Init(struct EmbdFlashDescr *Description)
 {
-    Description->BytesPerPage = 512;
-    Description->PagesPerSmallSect = 32;
-    Description->PagesPerLargeSect = 128;
-    Description->PagesPerNormalSect = 256;
-    Description->SmallSectorsPerPlane = 4;
-    Description->LargeSectorsPerPlane = 1;
-    Description->NormalSectorsPerPlane = 7;
-    Description->Planes = 1;
-    Description->MappedStAddr = 0x08000000;
+    Description->BytesPerPage = CFG_EFLASH_PAGE_SIZE;
+    Description->PagesPerSmallSect = CFG_EFLASH_SMALL_SECT_PAGE_NUM;
+    Description->PagesPerLargeSect = CFG_EFLASH_LARGE_SECT_PAGE_NUM;
+    Description->PagesPerNormalSect = CFG_EFLASH_NORMAL_SECT_PAGE_NUM;
+    Description->SmallSectorsPerPlane = CFG_EFLASH_PLANE_SMALL_SECT_NUM;
+    Description->LargeSectorsPerPlane = CFG_EFLASH_PLANE_LARGE_SECT_NUM;
+    Description->NormalSectorsPerPlane = CFG_EFLASH_PLANE_NORMAL_SECT_NUM;
+    Description->Planes = CFG_EFLASH_PLANE_NUM;
+    Description->MappedStAddr = CFG_EFLASH_MAPPED_START_ADDR;
     return (0);
 }
 

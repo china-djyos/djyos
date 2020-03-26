@@ -142,7 +142,7 @@ bool_t BrdWdt_FeedDog(void)
 }
 
 
-u32 FeedDog_Isr(ptu32_t intline)
+u32 __FeedDog_Isr(ptu32_t intline)
 {
     WDT_TIM->CNT = 0;
     WDT_TIM->SR = 0;//清中断标志
@@ -159,9 +159,10 @@ u32 FeedDog_Isr(ptu32_t intline)
 //参数：无
 //返回：true
 //-----------------------------------------------------------------------------
-bool_t BrdBoot_FeedStart( void)
+bool_t __BrdBoot_FeedStart( void)
 {
     u8 irqline = CN_INT_LINE_TIM8_BRK_TIM12;
+    IWDG_Init();
     sBootDogFeedTime = CFG_BOOT_TIME_LIMIT;
     RCC->APB1ENR |=RCC_APB1ENR_TIM12EN;
     WDT_TIM->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
@@ -170,7 +171,7 @@ bool_t BrdBoot_FeedStart( void)
     WDT_TIM->PSC = 4000-1;//分频系数 为零 不分频(1/108)1uS
     WDT_TIM->ARR = 27000;//定时器预装初值
     Int_Register(irqline);
-    Int_IsrConnect(irqline,FeedDog_Isr);
+    Int_IsrConnect(irqline,__FeedDog_Isr);
     Int_SettoReal(irqline);
     Int_ClearLine(irqline);
     Int_RestoreRealLine(irqline);

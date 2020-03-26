@@ -55,6 +55,7 @@
 #include "stddef.h"
 #include "systime.h"
 #include "cpu_peri.h"
+#include <int.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
@@ -98,7 +99,8 @@
 //%$#@num,0,,
 #define CFG_IWDT_WDTCYCLE       5000000      //"IWDT看门狗超时时间",
 #define CFG_WWDG_WDTCYCLE       50000        //"WWDG看门狗超时时间",
-#define CFG_BOOT_TIME_LIMIT         30000000       //"启动加载超限时间",允许保护启动加载过程才需要配置此项
+//%$#@enum,TIM6,TIM7,
+#define CFG_WDT_TIM             TIM6    //启动加载用到的定时器,
 //%$#@enum,true,false,
 #define CFG_WWDG_ENABLE         false            //"是否配置使用WWDG",
 #define CFG_IWDG_ENABLE         false            //"是否配置使用IWDG",
@@ -124,6 +126,8 @@
 #define CN_PRE_VALUE   5
 static u16 s_prevalue[]={4,8,16,32,64,128,256,256};
 
+
+bool_t __BrdBoot_FeedEnd(void);
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // ------------------------ STM32 独立开门狗 -----------------------------------
@@ -150,7 +154,6 @@ bool_t IWDG_Stm32WdtFeed(void)
     STM_IWDG->IWDG_KR = 0xAAAA;
     return true;
 }
-
 // =============================================================================
 // 函数功能:IWDG_PreSet,IWDG时钟源为内部RC，为40KHz
 //          IWDG_PreSet设置时钟分步系数
@@ -199,7 +202,7 @@ bool_t IWDG_Stm32ReloadSet(u16 value)
 // 返回值  :true成功false失败
 // 说明：IWDG不可用，配置完PR和RL后，STM_IWDG->IWDG_SR相应位总是为1
 // =============================================================================
-bool_t IWDG_Stm32Initial(u32 setcycle)
+bool_t IWDG_Stm32Initial(void)
 {
     bool_t result;
     pg_rcc_reg->CSR |= (1<<0);//turn on LSI
@@ -214,7 +217,7 @@ bool_t IWDG_Stm32Initial(u32 setcycle)
 
     result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME, CFG_IWDT_WDTCYCLE, IWDG_Stm32WdtFeed);
 #if(CFG_DEFEND_ON_BOOT == true)
-    BrdBoot_FeedEnd();
+    __BrdBoot_FeedEnd();
 #endif
     IWDG_Stm32Enable();
     return result;
@@ -228,7 +231,7 @@ bool_t WWDG_STM32WdtFeed(void)
 
 //PCLK1=36M时钟，CK计时器时钟(PCLK1除以4096)除以8，为1.09，即WWDG计数器每
 //1.09mS计数一次，WWDG看门狗最大喂狗时间为58mS
-bool_t WWDG_STM32Init(u32 setcycle)
+bool_t WWDG_STM32Init(void)
 {
     bool_t result;
     pg_rcc_reg->APB1ENR |= (1<<11);//enable wwdg
@@ -240,8 +243,82 @@ bool_t WWDG_STM32Init(u32 setcycle)
 //                          WWDG_STM32WdtFeed,NULL,NULL);
     result = WdtHal_RegisterWdtChip(CN_WWDG_DOGNAME, CFG_WWDG_WDTCYCLE, WWDG_STM32WdtFeed);
 #if(CFG_DEFEND_ON_BOOT == true)
-    BrdBoot_FeedEnd();
+    __BrdBoot_FeedEnd();
 #endif
     STM_WWDG->WWDG_CR |= (1<<7);//使能看门狗
     return result;
 }
+
+bool_t BrdWdt_FeedDog(void)
+{
+#if(CFG_IWDG_ENABLE == true)
+    IWDG_Stm32WdtFeed();
+#endif
+
+#if(CFG_WWDG_ENABLE == true)
+    WWDG_STM32WdtFeed();
+#endif
+
+    return (TRUE); // 空函数
+}
+#if(CFG_DEFEND_ON_BOOT == true)
+
+u32 __FeedDog_Isr(ptu32_t intline)
+{
+    CFG_WDT_TIM->CNT = 0;
+    CFG_WDT_TIM->SR = 0;//清中断标志
+    BrdWdt_FeedDog();
+    Int_ClearLine(intline);
+    return 1;
+}
+bool_t __BrdBoot_FeedStart(u32 bootfeedtime)
+{
+
+    u8 irqline = CN_INT_LINE_TIM6;
+
+#if(CFG_WWDG_ENABLE == true)
+    pg_rcc_reg->APB1ENR |= (1<<11);//enable wwdg
+    STM_WWDG->WWDG_CR &= ~(1<<7);//WDGA
+    STM_WWDG->WWDG_CFR |= (3<<7);//WDGTB0,1
+    WWDG_STM32WdtFeed();
+    STM_WWDG->WWDG_CR |= (1<<7);//使能看门狗
+#endif
+
+#if(CFG_IWDG_ENABLE == true)
+    pg_rcc_reg->CSR |= (1<<0);//turn on LSI
+    while(!(pg_rcc_reg->CSR & (1<<1)));
+    IWDG_Stm32PreSet(CN_PRE_VALUE);     //配置时钟预分频，时钟源为40KHZ
+    //配置重装载值，即喂狗后，装载值,配置为5分频
+    IWDG_Stm32ReloadSet((40/s_prevalue[CN_PRE_VALUE]) * (CFG_IWDT_WDTCYCLE/mS));
+
+    IWDG_Stm32Enable();
+#endif
+
+    pg_rcc_reg->APB1ENR |= (1<<4)|(1<<5);//时钟使能,timer6/7的使能位为比特4/5
+    CFG_WDT_TIM->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
+    CFG_WDT_TIM->CR1 |= TIM_CR1_ARPE | TIM_CR1_DIR;//自动重装
+    CFG_WDT_TIM->DIER |= TIM_DIER_UIE;//使能更新中断
+    CFG_WDT_TIM->PSC = 4000-1;//分频系数 为零 不分频(1/108)1uS
+    CFG_WDT_TIM->ARR = 27000;//定时器预装初值
+    Int_Register(irqline);
+    Int_IsrConnect(irqline,__FeedDog_Isr);
+    Int_SettoReal(irqline);
+    Int_ClearLine(irqline);
+    Int_RestoreRealLine(irqline);
+    CFG_WDT_TIM->CR1 |= (TIM_CR1_CEN); //使能TIMER
+    return true;
+}
+
+bool_t __BrdBoot_FeedEnd(void)
+{
+    u8 irqline = CN_INT_LINE_TIM6;
+    BrdWdt_FeedDog();
+    CFG_WDT_TIM->CR1 &=~(TIM_CR1_CEN); //禁止TIMER
+    Int_SaveRealLine(irqline);
+    Int_IsrDisConnect(irqline);
+    Int_UnRegister(irqline);
+//    RCC->APB1ENR &=(~RCC_APB1ENR_TIM12EN);
+    pg_rcc_reg->APB1ENR &= (~((1<<4)|(1<<5)));//时钟使能,timer6/7的使能位为比特4/5
+    return true;
+}
+#endif

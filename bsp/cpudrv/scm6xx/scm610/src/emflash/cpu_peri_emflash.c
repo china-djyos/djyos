@@ -89,6 +89,14 @@
 #define CFG_MODULE_ENABLE_CPU_PERI_EMFLASH    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@enum,true,false,
 #define CFG_EFLASH_PART_FORMAT     false      //分区选项,是否需要擦除该芯片。
+//%$#@num,0,,
+#define CFG_EFLASH_PAGE_SIZE                 256             //片内flash的页大小，单位字节。
+#define CFG_EFLASH_SECTOR_SIZE               512             //片内flash的扇区中的字节数。
+#define CFG_EFLASH_SECTOR_PAGE_NUM           2               //片内flash每扇区中的页数。
+#define CFG_EFLASH_BLOCK_PAGE_NUM            16              //片内flash每块中的页数。
+#define CFG_EFLASH_ALL_PAGE_SIZE             4096            //片内flash的总的页数。
+#define CFG_EFLASH_ALL_BLOCK_SIZE            256             //片内flash的总的块数。
+#define CFG_EFLASH_MAPPED_START_ADDR         0x00000000      //片内flash的映射起始地址。
 //%$#@string,1,32,
 //%$#@string,1,10,
 //%$#select,        ***定义无值的宏，仅用于第三方组件
@@ -149,12 +157,12 @@ bool_t BrdWdt_FeedDog(void)
 // ============================================================================
 static s32 EmFlash_Init(struct EmbdFlashDescr *Description)
 {
-    Description->BytesPerPage     = CN_PAGE_SIZE;
-    Description->BytesPerSector   = CN_SECTOR_SIZE;
-    Description->PagesPerBlock    = CN_BLOCK_SIZE / CN_PAGE_SIZE;
-    Description->PagesPerSector   = CN_SECTOR_SIZE / CN_PAGE_SIZE;
-    Description->TotalBlocks      = CN_FLASH_SIZE / CN_BLOCK_SIZE;
-    Description->TotalPages       = CN_FLASH_SIZE / CN_PAGE_SIZE;
+    Description->BytesPerPage     = CFG_EFLASH_PAGE_SIZE;
+    Description->BytesPerSector   = CFG_EFLASH_SECTOR_SIZE;
+    Description->PagesPerBlock    = CFG_EFLASH_BLOCK_PAGE_NUM;
+    Description->PagesPerSector   = CFG_EFLASH_SECTOR_PAGE_NUM;
+    Description->TotalBlocks      = CFG_EFLASH_ALL_BLOCK_SIZE;
+    Description->TotalPages       = CFG_EFLASH_ALL_PAGE_SIZE;
     Description->MappedStAddr = 0x00000000;
     return (0);
 }
@@ -193,10 +201,10 @@ s32 Flash_BlockEarse(u32 BlockNo)
     u16 tmpCnt = 0;
 
     //get the base of the erease address
-    tmpEreaseAddBase = BlockNo * CN_BLOCK_SIZE;
+    tmpEreaseAddBase = BlockNo * CFG_EFLASH_SECTOR_SIZE * 2 *4;
 
     //the numbers of sectors need to be ereased
-    SectorNo = CN_BLOCK_SIZE / embeddescription->BytesPerSector;
+    SectorNo = CFG_EFLASH_SECTOR_SIZE * 2 *4 / embeddescription->BytesPerSector;
 //    while(tmpLoop < SectorNo)
     for(tmpLoop = 0;tmpLoop < SectorNo;tmpLoop++)
     {

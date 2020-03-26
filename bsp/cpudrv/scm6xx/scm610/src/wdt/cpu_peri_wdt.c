@@ -184,6 +184,23 @@ bool_t Wdt_ReloadSet(u16 value)
 
 }
 
+//**************************************************//
+//todo：这三个函数用于实现保护加载过程，使用的时候需补全
+u32 __FeedDog_Isr(ptu32_t intline)
+{
+    return false;
+}
+bool_t __BrdBoot_FeedStart(u32 bootfeedtime)
+{
+    return false;
+}
+
+bool_t __BrdBoot_FeedEnd(void)
+{
+    return false;
+}
+//**************************************************//
+
 // =============================================================================
 // 功能：板上看门狗芯片初始化，此函数在软看门狗组件后面初始化，如果启动了“防护启动加载过程”
 //      的功能，本函数调用后，将停止自动喂狗。
@@ -206,7 +223,7 @@ bool_t Wdt_Initial(u32 setcycle)
 
     result = WdtHal_RegisterWdtChip(CN_WDT_DOGNAME, CFG_WDT_WDTCYCLE, Wdt_Feed);
 #if(CFG_DEFEND_ON_BOOT == true)
-    BrdBoot_FeedEnd();
+    __BrdBoot_FeedEnd();
 #endif
     Wdt_Enable();
     return result;

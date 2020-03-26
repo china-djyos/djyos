@@ -93,7 +93,7 @@
 #define CFG_MODULE_ENABLE_EMFLASH_INSATALL_XIP    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,-1,12,
 #define CFG_EFLASH_XIP_PART_START      6          //分区起始，填写块号，块号从0开始计算
-#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块
+#define CFG_EFLASH_XIP_PART_END        -1         //分区结束，-1表示最后一块，如果结束块是6，起始块是0，则该分区使用的块为0，1，2，3，4，5块
 //%$#@enum,true,false,
 #define CFG_EFLASH_XIP_PART_FORMAT     false      //分区选项,是否需要格式化该分区。
 //%$#@string,1,32,
