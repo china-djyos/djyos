@@ -1259,7 +1259,7 @@ bool_t Si_IbootAppInfoInit()
         Iboot_App_Info.runflag.power_on_resent_flag  = 1;//上电复位标志，结合b18~19以及“上电标志”字判定
 
         Iboot_App_Info.reserved = 0;//保留
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_MODULE_ENABLE_BK7251) && (CFG_SOC_NAME == SOC_BK7221U))
         Set_RunIbootFlag();
 #endif
     }

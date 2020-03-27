@@ -100,11 +100,11 @@
 #define CFG_IWDT_WDTCYCLE       5000000      //"IWDT看门狗超时时间",
 #define CFG_WWDG_WDTCYCLE       50000        //"WWDG看门狗超时时间",
 //%$#@enum,TIM6,TIM7,
-#define CFG_WDT_TIM             TIM6    //启动加载用到的定时器,
+#define CFG_WDT_TIM             TIM6    //启动加载用到的定时器（如果CFG_DEFEND_ON_BOOT没选，该选项是无用的）
 //%$#@enum,true,false,
 #define CFG_WWDG_ENABLE         false            //"是否配置使用WWDG",
 #define CFG_IWDG_ENABLE         false            //"是否配置使用IWDG",
-#define CFG_DEFEND_ON_BOOT      false            //"保护启动过程",启动加载过程如果出现死机，看门狗将复位
+#define CFG_DEFEND_ON_BOOT      false            //"保护启动过程",启动加载过程如果出现死机，看门狗将复位（如果CFG_WWDG_ENABLE和CFG_IWDG_ENABLE都没选，该选项是无用的）
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏"s
 //%$#@free,s
