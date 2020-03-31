@@ -491,143 +491,6 @@ static bool_t __RecordTest(u32 timestotal,u32 msglen)
     return ret;
 }
 
-
-//you could use this function to add one messages -t times -l maxlenth
-//static bool_t __RecordTestShell(char *param)
-bool_t blackboxrtest(char *param)
-{
-    int argc = 8;
-    char *argv[8];
-
-    u32 len = CN_TEST_LENMAX;
-    if(NULL!= param)
-    {
-        string2arg(&argc,argv,param);
-        if(argc > 0) //argv[0]:subcmd
-        {
-            if((0 == strcmp(argv[0],"test"))&&(argc == 3)) //arg[1]:times argv[2]:length
-            {
-
-                u32 totaltimes = 1;
-                totaltimes = strtol(argv[1],NULL,0);
-                len = strtol(argv[2],NULL,0);
-                if((totaltimes != 0)&&(len <= gTestConfig.maxlen))
-                {
-                    __RecordTest(totaltimes,len);
-                }
-                else
-                {
-                    debug_printf("null","paras:test testtimes(>0) msglen(<=maxlen)\n\r");
-                }
-            }
-            else if((0 == strcmp(argv[0],"func"))&&(argc >= 2))//argv[1]:scan/clean/save/get/checknum/checklen
-            {
-                u32 number;
-                u32 len;
-                if((0 == strcmp(argv[1],"scan"))&&(argc == 2))
-                {
-                    if(__MsgScan())
-                    {
-                        debug_printf("null","Scan:OK\n\r");
-                    }
-                    else
-                    {
-                        debug_printf("null","Scan:ERR\n\r");
-                    }
-                }
-                else if((0 == strcmp(argv[1],"clean"))&&(argc == 2))
-                {
-                    if(__MsgClean())
-                    {
-                        debug_printf("null","Clean:OK\n\r");
-                    }
-                    else
-                    {
-                        debug_printf("null","Clean:ERR\n\r");
-                    }
-                }
-                else if((0 == strcmp(argv[1],"clean"))&&(argc == 2))
-                {
-                    if(__MsgClean())
-                    {
-                        debug_printf("null","Clean:OK\n\r");
-                    }
-                    else
-                    {
-                        debug_printf("null","Clean:ERR\n\r");
-                    }
-                }
-                else if((0 == strcmp(argv[1],"num"))&&(argc == 2))
-                {
-                    if(__MsgNum(&number))
-                    {
-                        debug_printf("null","Num:%d OK\n\r",number);
-                    }
-                    else
-                    {
-                        debug_printf("null","Num:ERR\n\r");
-                    }
-                }
-                else if((0 == strcmp(argv[1],"save"))&&(argc == 3))
-                {
-                    len = (u32)strtol(argv[2],NULL,0);
-                    if(__MsgSave(len))
-                    {
-                        debug_printf("null","Save:%d OK\n\r",len);
-                    }
-                    else
-                    {
-                        debug_printf("null","Save:%d ERR\n\r",len);
-                    }
-                }
-                else if((0 == strcmp(argv[1],"get"))&&(argc == 4))
-                {
-                    number = (u32)strtol(argv[2],NULL,0);
-                    len = (u32)strtol(argv[3],NULL,0);
-                    if(__MsgGet(number,len))
-                    {
-                        debug_printf("null","Get:%d Len:%d OK\n\r",number,len);
-                    }
-                    else
-                    {
-                        debug_printf("null","Get:%d Len:%d ERR\n\r",number,len);
-                    }
-                }
-                else if((0 == strcmp(argv[1],"len"))&&(argc == 3))
-                {
-                    number = (u32)strtol(argv[2],NULL,0);
-                    if(__MsgLen(number,&len))
-                    {
-                        debug_printf("null","Len:%d:%d OK\n\r",number,len);
-                    }
-                    else
-                    {
-                        debug_printf("null","Len:%d ERR\n\r",number);
-                    }
-                }
-                else
-                {
-                    debug_printf("null","paras:subcmd:scan/clean/num/(get+number+len)/(save+len)/(len+number)\n\r");
-                }
-            }
-            else
-            {
-                debug_printf("null","paras:test/func subcmdpara\n\r");
-            }
-        }
-        else
-        {
-            debug_printf("null","paras:subcmd(test/func)+subcmdpara\n\r");
-        }
-    }
-    else  //show the config
-    {
-        __RecorderConfigShow();
-        debug_printf("null","paras:subcmd(test/func)+subcmdpara\n\r");
-    }
-
-    return true;
-}
 //you also could use this function to make a task to do the auto test
 ptu32_t __RecordTestTask(void)
 {
@@ -770,5 +633,143 @@ bool_t ModuleInstall_BlackBoxRecordTest(struct BlackBoxRecordOperate *opt,u32 ma
     }
     return ret;
 }
+#if(CFG_MODULE_ENABLE_TCPIP == true)
+//you could use this function to add one messages -t times -l maxlenth
+//static bool_t __RecordTestShell(char *param)
+bool_t blackboxrtest(char *param)
+{
+    int argc = 8;
+    char *argv[8];
+
+    u32 len = CN_TEST_LENMAX;
+    if(NULL!= param)
+    {
+        string2arg(&argc,argv,param);
+        if(argc > 0) //argv[0]:subcmd
+        {
+            if((0 == strcmp(argv[0],"test"))&&(argc == 3)) //arg[1]:times argv[2]:length
+            {
+
+                u32 totaltimes = 1;
+                totaltimes = strtol(argv[1],NULL,0);
+                len = strtol(argv[2],NULL,0);
+                if((totaltimes != 0)&&(len <= gTestConfig.maxlen))
+                {
+                    __RecordTest(totaltimes,len);
+                }
+                else
+                {
+                    debug_printf("null","paras:test testtimes(>0) msglen(<=maxlen)\n\r");
+                }
+            }
+            else if((0 == strcmp(argv[0],"func"))&&(argc >= 2))//argv[1]:scan/clean/save/get/checknum/checklen
+            {
+                u32 number;
+                u32 len;
+                if((0 == strcmp(argv[1],"scan"))&&(argc == 2))
+                {
+                    if(__MsgScan())
+                    {
+                        debug_printf("null","Scan:OK\n\r");
+                    }
+                    else
+                    {
+                        debug_printf("null","Scan:ERR\n\r");
+                    }
+                }
+                else if((0 == strcmp(argv[1],"clean"))&&(argc == 2))
+                {
+                    if(__MsgClean())
+                    {
+                        debug_printf("null","Clean:OK\n\r");
+                    }
+                    else
+                    {
+                        debug_printf("null","Clean:ERR\n\r");
+                    }
+                }
+                else if((0 == strcmp(argv[1],"clean"))&&(argc == 2))
+                {
+                    if(__MsgClean())
+                    {
+                        debug_printf("null","Clean:OK\n\r");
+                    }
+                    else
+                    {
+                        debug_printf("null","Clean:ERR\n\r");
+                    }
+                }
+                else if((0 == strcmp(argv[1],"num"))&&(argc == 2))
+                {
+                    if(__MsgNum(&number))
+                    {
+                        debug_printf("null","Num:%d OK\n\r",number);
+                    }
+                    else
+                    {
+                        debug_printf("null","Num:ERR\n\r");
+                    }
+                }
+                else if((0 == strcmp(argv[1],"save"))&&(argc == 3))
+                {
+                    len = (u32)strtol(argv[2],NULL,0);
+                    if(__MsgSave(len))
+                    {
+                        debug_printf("null","Save:%d OK\n\r",len);
+                    }
+                    else
+                    {
+                        debug_printf("null","Save:%d ERR\n\r",len);
+                    }
+                }
+                else if((0 == strcmp(argv[1],"get"))&&(argc == 4))
+                {
+                    number = (u32)strtol(argv[2],NULL,0);
+                    len = (u32)strtol(argv[3],NULL,0);
+                    if(__MsgGet(number,len))
+                    {
+                        debug_printf("null","Get:%d Len:%d OK\n\r",number,len);
+                    }
+                    else
+                    {
+                        debug_printf("null","Get:%d Len:%d ERR\n\r",number,len);
+                    }
+                }
+                else if((0 == strcmp(argv[1],"len"))&&(argc == 3))
+                {
+                    number = (u32)strtol(argv[2],NULL,0);
+                    if(__MsgLen(number,&len))
+                    {
+                        debug_printf("null","Len:%d:%d OK\n\r",number,len);
+                    }
+                    else
+                    {
+                        debug_printf("null","Len:%d ERR\n\r",number);
+                    }
+                }
+                else
+                {
+                    debug_printf("null","paras:subcmd:scan/clean/num/(get+number+len)/(save+len)/(len+number)\n\r");
+                }
+            }
+            else
+            {
+                debug_printf("null","paras:test/func subcmdpara\n\r");
+            }
+        }
+        else
+        {
+            debug_printf("null","paras:subcmd(test/func)+subcmdpara\n\r");
+        }
+    }
+    else  //show the config
+    {
+        __RecorderConfigShow();
+        debug_printf("null","paras:subcmd(test/func)+subcmdpara\n\r");
+    }
+
+    return true;
+}
 ADD_TO_ROUTINE_SHELL(blackboxrtest,blackboxrtest,"usage:blackboxrtest [test/func] [subcmdparas]");
+#endif
 
