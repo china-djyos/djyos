@@ -47,9 +47,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <cpu_peri.h>
+#include <misc/md5/md5.h>
 #include <driver_info_to_fs.h>
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
+
 
 /** Swap the bytes in an uint16_t: much like lwip_htons() for little-endian */
 #ifndef SWAP_BYTES_IN_WORD
@@ -103,60 +105,188 @@ uint16_t wlan_standard_chksum(const void *dataptr, int len)
   return (uint16_t)sum;
 }
 
-int wlan_fast_connect_info_read(wlan_fast_connect_t *data_info)
+//int wlan_fast_connect_info_read(wlan_fast_connect_t *data_info)
+//{
+//    int result = 0;
+//    uint32_t crc1, crc2;
+//    uint32_t data[(sizeof(struct wlan_fast_connect) + 4 - 1) / 4 + 1 ];
+//
+//    if(data_info==NULL)
+//        return -1;
+//
+//    memset(data, 0, sizeof(struct wlan_fast_connect));
+//
+//    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
+//    crc1 = data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4];
+//    crc2 = wlan_standard_chksum(data, sizeof(struct wlan_fast_connect));
+//    if ((data[0] != ~0x0)   && (crc1 == crc2)) // 0xFFFFFFFF
+//    {
+//        memcpy(data_info, data, sizeof(struct wlan_fast_connect));
+//        result = 0;
+//    }
+//    else
+//    {
+//        printf("fast_connect ap info crc failed\r\n");
+//        result = -1;
+//    }
+//    if( (data_info->channel < 1) || (data_info->channel > 13) )
+//    {
+//        printf("[%s] channel out of range! \n", __FUNCTION__);
+//        result = -2;
+//    }
+//    return result;
+//}
+
+void hex_dump(const char *desc, const void *addr, const int len);
+
+/*
+* ssid: 需要连接ssid
+* passwd: 需要连接ssid对应的密码
+* out_info: 如果查找成功，返回快连信息
+* 返回值： 返回0，没快连信息； 返回1,获取快连信息成功
+*/
+#define BLOCK_SIZE 4*1024
+int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info)
 {
-    int result = 0;
-    uint32_t crc1, crc2;
-    uint32_t data[(sizeof(struct wlan_fast_connect) + 4 - 1) / 4 + 1 ];
+    int ret = 0;
+    uint32_t crc = 0;
+    struct wlan_fast_connect *p = 0;
+    unsigned char md5_tmp[16];
+    MD5_CTX ctx;
 
-    if(data_info==NULL)
+    if(ssid==0 || passwd==0) return -1;
+
+    u8 *new_buf = (u8*)malloc(BLOCK_SIZE);
+    if(new_buf==0) return -1;
+
+    memset(md5_tmp, 0, sizeof(md5_tmp));
+    memset(new_buf, 0, BLOCK_SIZE);
+
+    ret = GetNameValueFS(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
+    if(ret <= 0) {
+        goto FUN_RET;
+    }
+    int cnt = ret/sizeof(struct wlan_fast_connect);
+    printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
+    p = (struct wlan_fast_connect*)new_buf;
+    while(cnt > 0) {
+        printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
+        if (strcmp(p[cnt-1].ssid, ssid) == 0 ){
+            MD5Init(&ctx);
+            MD5Update(&ctx, passwd, strlen(passwd));
+            MD5Final(md5_tmp, &ctx);
+            //hex_dump("wlan_fast_info_match: md5", md5_tmp, sizeof(md5_tmp));
+
+            if(memcmp(p[cnt-1].md5_passphrase, md5_tmp, sizeof(md5_tmp)) == 0){
+                printf("info: %s, md5_passphrase matched ok!!!\r\n", __FUNCTION__);
+                crc = wlan_standard_chksum(&p[cnt-1], sizeof(wlan_fast_connect_t)-4);
+                printf("info: %s, index: %d, crc validated, (crc)(%08x %s %08x)!\r\n",
+                        __FUNCTION__, cnt-1, crc, (crc==p[cnt-1].crc?"=":"!="), p[cnt-1].crc);
+                if (p[cnt-1].ssid[0] != 0xFF &&
+                    p[cnt-1].channel >= 1 &&
+                    p[cnt-1].channel <= 13 &&
+                    p[cnt-1].crc == crc &&
+                    out_info) {
+                    printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
+                    memcpy(out_info, &p[cnt-1], sizeof(wlan_fast_connect_t));
+                    ret = 1;
+                    break;
+                }
+            }
+        }
+        cnt--;
+    }
+    if(cnt<=0) {
+        printf("info: %s, matched failed, Do Normal WiFi Connecting ... \r\n", __FUNCTION__);
+        ret = 0;
+    }
+
+FUN_RET:
+    if(new_buf) free(new_buf);
+    return ret;
+}
+
+int CompFastInfo(wlan_fast_connect_t *src, wlan_fast_connect_t *dest)
+{
+    if (src == 0 || dest==0) return -1;
+    if (strcmp(src->ssid, dest->ssid) != 0) {
+        printf("info: %s, src->ssid=%s, dest->ssid=%s!\r\n", __FUNCTION__, src->ssid, dest->ssid);
         return -1;
-
-    memset(data, 0, sizeof(struct wlan_fast_connect));
-//    djy_flash_read(FLASH_FAST_DATA_ADDR, data, sizeof(data));
-    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
-    crc1 = data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4];
-    crc2 = wlan_standard_chksum(data, sizeof(struct wlan_fast_connect));
-    if ((data[0] != ~0x0)   && (crc1 == crc2)) // 0xFFFFFFFF
-    {
-        memcpy(data_info, data, sizeof(struct wlan_fast_connect));
-        result = 0;
     }
-    else
-    {
-        printf("fast_connect ap info crc failed\r\n");
-        result = -1;
+    if (memcmp(src->bssid, dest->bssid, sizeof(src->bssid)) != 0){
+        //hex_dump("warnning src bssid", src->bssid, sizeof(src->bssid));
+        //hex_dump("warnning dest bssid", dest->bssid, sizeof(dest->bssid));
+        printf("info: %s, src bssid != dest bssid!\r\n", __FUNCTION__);
+        return -2;
     }
-    if( (data_info->channel < 1) || (data_info->channel > 13) )
-    {
-        printf("[%s] channel out of range! \n", __FUNCTION__);
-        result = -2;
+    if (src->channel != dest->channel) {
+        printf("warning: src->channel=%d, dest->channel=%d!\r\n", src->channel, dest->channel);
+        return -3;
     }
-    return result;
+    if (src->security != dest->security) {
+        printf("warning: src->security=%d, dest->security=%d!\r\n", src->security, dest->security);
+        return -3;
+    }
+    if (memcmp(src->md5_passphrase, dest->md5_passphrase, sizeof(src->md5_passphrase)) != 0){
+        //hex_dump("warnning src md5_passphrase", src->md5_passphrase, sizeof(src->md5_passphrase));
+        //hex_dump("warnning dest md5_passphrase", dest->md5_passphrase, sizeof(dest->md5_passphrase));
+        printf("info: %s, src md5_passphrase != dest md5_passphrase!\r\n", __FUNCTION__);
+        return -4;
+    }
+    if (memcmp(src->psk, dest->psk, sizeof(src->psk)) != 0){
+        //hex_dump("warnning src psk", src->psk, sizeof(src->psk));
+        //hex_dump("warnning dest psk", dest->psk, sizeof(dest->psk));
+        printf("info: %s, src psk != dest psk!\r\n", __FUNCTION__);
+        return -5;
+    }
+    if (src->crc != dest->crc) {
+        printf("warning: src->crc=%d, dest->crc=%d!\r\n", src->crc, dest->crc);
+        return -6;
+    }
+    return 0;
 }
 
 int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
 {
-    uint32_t crc1, crc2;
-    uint32_t data[(sizeof(struct wlan_fast_connect) + 4 - 1) / 4 + 1 ];
-    if(data_info==NULL)
-        return -1;
-    memset(data, 0, sizeof(data));
-//    djy_flash_read(FLASH_FAST_DATA_ADDR, data, sizeof(data));
-    GetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(data));
-    crc1 = wlan_standard_chksum(data_info, sizeof(struct wlan_fast_connect));
-    crc2 = data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4];
-    if ((memcmp(data, (uint8_t *) data_info, sizeof(struct wlan_fast_connect)) != 0) || (crc1 != crc2))
-    {
-        memcpy(data, data_info, sizeof(struct wlan_fast_connect));
-        data[(sizeof(struct wlan_fast_connect) + 4 - 1 ) / 4] = crc1;
-//        flash_protection_op(0,FLASH_PROTECT_NONE);
-//        djy_flash_erase(FLASH_FAST_DATA_ADDR);
-//        djy_flash_write(FLASH_FAST_DATA_ADDR, (uint8_t *)data, sizeof(struct wlan_fast_connect) + 4);
-//        flash_protection_op(0,FLASH_PROTECT_ALL);
-        SetNameValueFS(CFG_FAST_DATA_FILE_NAME,data,sizeof(struct wlan_fast_connect) + 4);
+    int ret = 0;
+    struct wlan_fast_connect *p = 0;
+
+    if(data_info == NULL)
+      return -1;
+
+    u8 *new_buf = (u8*)malloc(BLOCK_SIZE);
+    if(new_buf==0) return -1;
+
+    memset(new_buf, 0, BLOCK_SIZE);
+
+    ret = GetNameValueFS(CFG_FAST_DATA_FILE_NAME, new_buf, BLOCK_SIZE);
+    if(ret < 0) {
+        goto FUN_RET;
     }
-    return 0;
+    int cnt = ret/sizeof(struct wlan_fast_connect);
+    printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
+    p = (struct wlan_fast_connect*)new_buf;
+    data_info->crc = wlan_standard_chksum(data_info, sizeof(struct wlan_fast_connect)-4);
+    printf("info: %s, data_info->crc=0x%08x!\r\n", __FUNCTION__, data_info->crc);
+    //hex_dump("wlan_fast_connect_info_write: md5", data_info->md5_passphrase, sizeof(data_info->md5_passphrase));
+    while(cnt > 0) {
+        printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
+        //if (memcmp(&p[cnt-1], data_info, sizeof(struct wlan_fast_connect)) == 0 ){
+        if (CompFastInfo(&p[cnt-1], data_info)==0){
+            printf("info: %s, mathed item, index=%d, Do Not Writed New, Do Nothing!!!\r\n", __FUNCTION__, cnt-1);
+            break;
+        }
+        cnt--;
+    }
+    if(cnt<=0) {//找不到，重新写入
+        printf("info: %s, New Item Will Be Writed!\r\n", __FUNCTION__);
+        SetNameValueFS(CFG_FAST_DATA_FILE_NAME, data_info, sizeof(struct wlan_fast_connect));
+        ret = 1;
+    }
+
+FUN_RET:
+    if(new_buf) free(new_buf);
+    return ret;
 }
 
 

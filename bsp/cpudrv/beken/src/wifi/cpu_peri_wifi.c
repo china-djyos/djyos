@@ -367,6 +367,7 @@ void DjyWifi_ApClose(void)
 }
 
 extern int wpa_get_psk(char *psk);
+extern int wpa_get_passphrase_md5(unsigned char *md5_passphrase, int len);
 void DjyWifi_StaConnectDone(void)
 {
     LinkStatusTypeDef link_status;
@@ -374,56 +375,51 @@ void DjyWifi_StaConnectDone(void)
     uint8_t len = 0;
     if ((bk_wlan_get_link_status(&link_status) == kNoErr) && (SECURITY_TYPE_WEP != link_status.security))
     {
+        printf("info: %s, Write Quick Info Now!!!\r\n", __FUNCTION__);
+        memset(&ap_info, 0, sizeof(struct wlan_fast_connect));//±ØÐëÇå¿Õ
         len = strnlen(link_status.ssid, 32);
-        if(len<32)
-            len += 1;
+        if(len<32) len += 1;
         memcpy(ap_info.ssid, link_status.ssid, len);
         memcpy(ap_info.bssid, link_status.bssid, 6);
         ap_info.channel = link_status.channel;
         ap_info.security = link_status.security;
         wpa_get_psk(ap_info.psk);
+        wpa_get_passphrase_md5(ap_info.md5_passphrase, sizeof(ap_info.md5_passphrase));
         wlan_fast_connect_info_write(&ap_info);
     }
 }
-
+int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info);
+int wpa_set_passphrase_md5(char *passphrase);
 void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
 {
+    int i = 0;
+    char tmp[68] = {0};
+    network_InitTypeDef_adv_st  wNetConfigAdv;
     struct wlan_fast_connect ap_info;
+    memset(&wNetConfigAdv, 0, sizeof(network_InitTypeDef_adv_st));
     memset(&ap_info, 0, sizeof(struct wlan_fast_connect));
-    if (wlan_fast_connect_info_read(&ap_info) == 0)
-    {
-        if (strcmp(ssid, ap_info.ssid) == 0)
-        {
-            network_InitTypeDef_adv_st  wNetConfigAdv;
-            memset(&wNetConfigAdv, 0x0, sizeof(network_InitTypeDef_adv_st));
-            strncpy(wNetConfigAdv.ap_info.ssid, ap_info.ssid, 32);
-            memcpy(wNetConfigAdv.ap_info.bssid, ap_info.bssid, 6);
-            wNetConfigAdv.ap_info.security = ap_info.security;
-            wNetConfigAdv.ap_info.channel = ap_info.channel;
-            {
-                int i = 0;
-                char tmp[68];
-                memset(tmp, 0, sizeof(tmp));
-                for (i = 0; i < 32; i ++)
-                {
-                    sprintf(&tmp[i * 2], "%02x",  ap_info.psk[i]);
-                }
-                memcpy(wNetConfigAdv.key, tmp, 64);
-                wNetConfigAdv.key_len =  64; // strnlen(passwd, 32);
-            }
-            wNetConfigAdv.dhcp_mode = DHCP_CLIENT;
-            wNetConfigAdv.wifi_retry_interval = 100;
-            bk_wlan_start_sta_adv(&wNetConfigAdv);
+    memset(tmp, 0, sizeof(tmp));
+    wpa_set_passphrase_md5(connect_key);
+    if (wlan_fast_info_match(ssid, connect_key, &ap_info)) {
+        printf("info: %s, Do Quick WiFi Connect, ssid=%s, connect_key=%s\r\n", __FUNCTION__, ssid, connect_key);
+        strncpy(wNetConfigAdv.ap_info.ssid, ap_info.ssid, 32);
+        memcpy(wNetConfigAdv.ap_info.bssid, ap_info.bssid, 6);
+        wNetConfigAdv.ap_info.security = ap_info.security;
+        wNetConfigAdv.ap_info.channel = ap_info.channel;
+        for (i = 0; i < 32; i ++) {
+            sprintf(&tmp[i * 2], "%02x",  ap_info.psk[i]);
         }
-        else
-        {
-            demo_sta_app_init(ssid, connect_key);
-        }
+        memcpy(wNetConfigAdv.key, tmp, 64);
+        wNetConfigAdv.key_len =  64; // strnlen(passwd, 32);
+        wNetConfigAdv.dhcp_mode = DHCP_CLIENT;
+        wNetConfigAdv.wifi_retry_interval = 100;
+        bk_wlan_start_sta_adv(&wNetConfigAdv);
     }
-    else
-    {
+    else {
+        printf("info: %s, Do Normal WiFi Connect, ssid=%s, connect_key=%s\r\n", __FUNCTION__, ssid, connect_key);
         demo_sta_app_init(ssid, connect_key);
     }
+
 }
 
 void DjyWifi_StartScan(FUNC_2PARAM_PTR ind_cb)

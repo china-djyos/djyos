@@ -122,13 +122,13 @@ bool_t SetNameValueFS(char *name, char *val, int len)
 // ============================================================================
 // 功能：获取文件信息，从文件末尾开始读
 // 参数：name -- 文件名；val -- 待写数据；len -- 长度
-// 返回： 0 -- 失败； 1 -- 成功
+// 返回： 0 -- 失败； > 0 -- 成功,实际读取的有效数据长度
 // 备注：
 // ============================================================================
-bool_t GetNameValueFS(char *name, char *val, int len)
+int GetNameValueFS(char *name, char *val, int len)
 {
     FILE *fd = NULL;
-    bool_t res = false;
+    int res = 0;
     struct stat file_state;
     if(val)
     {
@@ -138,15 +138,20 @@ bool_t GetNameValueFS(char *name, char *val, int len)
         fd = fopen(name,"a+");
         if(fd)
         {
-            if(file_state.st_size > len)
+            if(file_state.st_size > len){
                 fseek(fd, file_state.st_size - len, SEEK_SET);
-            else
+            } else{
                 fseek(fd, 0, SEEK_SET);
-
-            if(fread(val, 1, len, fd) != (size_t)len)
+                len = file_state.st_size;
+            }
+            if(fread(val, 1, len, fd) != (size_t)len){
                 error_printf("app_flash"," read  %s fail\r\n.",name);
-            else
-                res = true;
+                res = 0;
+            }
+            else {
+                //hex_dump(name, val, len);
+                res = len;
+            }
             fclose(fd);
         }
         else
