@@ -187,7 +187,16 @@ struct BusMessage
 #define EthTxBufSize    1524
 static u8 gTxBuffer[EthTxBufSize];      //for sending copy frame
 static struct NetPbuf  tx_pbuf;
+static int gQuickConnect = 0;
 extern WIFI_CORE_T g_wifi_core;
+void SetQuickConnectFlag(int val)
+{
+    gQuickConnect = val;
+}
+int GetQuickConnectFlag()
+{
+    return gQuickConnect;
+}
 //mac control function
 static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
 {
@@ -401,6 +410,7 @@ void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
     memset(tmp, 0, sizeof(tmp));
     wpa_set_passphrase_md5(connect_key);
     if (wlan_fast_info_match(ssid, connect_key, &ap_info)) {
+        SetQuickConnectFlag(1);
         printf("info: %s, Do Quick WiFi Connect, ssid=%s, connect_key=%s\r\n", __FUNCTION__, ssid, connect_key);
         strncpy(wNetConfigAdv.ap_info.ssid, ap_info.ssid, 32);
         memcpy(wNetConfigAdv.ap_info.bssid, ap_info.bssid, 6);
@@ -416,6 +426,7 @@ void DjyWifi_StaAdvancedConnect(char *ssid,char *connect_key)
         bk_wlan_start_sta_adv(&wNetConfigAdv);
     }
     else {
+        SetQuickConnectFlag(0);
         printf("info: %s, Do Normal WiFi Connect, ssid=%s, connect_key=%s\r\n", __FUNCTION__, ssid, connect_key);
         demo_sta_app_init(ssid, connect_key);
     }

@@ -170,7 +170,7 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
     p = (struct wlan_fast_connect*)new_buf;
     while(cnt > 0) {
-        printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
+        //printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
         if (strcmp(p[cnt-1].ssid, ssid) == 0 ){
             MD5Init(&ctx);
             MD5Update(&ctx, passwd, strlen(passwd));
@@ -210,7 +210,7 @@ int CompFastInfo(wlan_fast_connect_t *src, wlan_fast_connect_t *dest)
 {
     if (src == 0 || dest==0) return -1;
     if (strcmp(src->ssid, dest->ssid) != 0) {
-        printf("info: %s, src->ssid=%s, dest->ssid=%s!\r\n", __FUNCTION__, src->ssid, dest->ssid);
+        //printf("info: %s, src->ssid=%s, dest->ssid=%s!\r\n", __FUNCTION__, src->ssid, dest->ssid);
         return -1;
     }
     if (memcmp(src->bssid, dest->bssid, sizeof(src->bssid)) != 0){
@@ -264,14 +264,13 @@ int wlan_fast_connect_info_write(wlan_fast_connect_t *data_info)
         goto FUN_RET;
     }
     int cnt = ret/sizeof(struct wlan_fast_connect);
-    printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
+    //printf("info: %s, cnt=%d, ret=%d, size_item=%d!\r\n", __FUNCTION__, cnt, ret, sizeof(struct wlan_fast_connect));
     p = (struct wlan_fast_connect*)new_buf;
     data_info->crc = wlan_standard_chksum(data_info, sizeof(struct wlan_fast_connect)-4);
-    printf("info: %s, data_info->crc=0x%08x!\r\n", __FUNCTION__, data_info->crc);
+    //printf("info: %s, data_info->crc=0x%08x!\r\n", __FUNCTION__, data_info->crc);
     //hex_dump("wlan_fast_connect_info_write: md5", data_info->md5_passphrase, sizeof(data_info->md5_passphrase));
     while(cnt > 0) {
-        printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
-        //if (memcmp(&p[cnt-1], data_info, sizeof(struct wlan_fast_connect)) == 0 ){
+        //printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
         if (CompFastInfo(&p[cnt-1], data_info)==0){
             printf("info: %s, mathed item, index=%d, Do Not Writed New, Do Nothing!!!\r\n", __FUNCTION__, cnt-1);
             break;
