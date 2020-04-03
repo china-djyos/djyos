@@ -57,7 +57,7 @@
 #include "mesh.h"
 #include "errno-base.h"
 #include "str_pub.h"
-
+#include "rw_pub.h"
 #include "include.h"
 #include "uart_pub.h"
 
@@ -5499,6 +5499,13 @@ void wpas_auth_failed(struct wpa_supplicant *wpa_s, char *reason)
         return;
 
     ssid->disabled_until.sec = now.sec + dur;
+    void mhdr_set_station_status(msg_sta_states val);
+    if (reason && strcmp("WRONG_KEY",  reason)==0) {
+        mhdr_set_station_status(MSG_PASSWD_WRONG);
+    }
+    else if (reason && strcmp("AUTH_FAILED",  reason)==0) {
+        mhdr_set_station_status(MSG_CONN_FAIL);
+    }
 
     wpa_msg(wpa_s, MSG_INFO, WPA_EVENT_TEMP_DISABLED
         "id=%d ssid=\"%s\" auth_failures=%u duration=%d reason=%s",

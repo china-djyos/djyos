@@ -70,6 +70,7 @@ typedef struct
     u32                        offerip;
     u32                        offerserver;
     int                        is_exist_ip; //IP Got previous.
+    int                        try_cnts;
     struct SemaphoreLCB*       sem; //notify dhcp get ip successfully
 }tagTaskItem;
 typedef enum
@@ -81,7 +82,7 @@ typedef enum
 }enDhcpClientStat;
 
 #define CN_DHCP_TICKER_CYCLE 100    //100ms run once
-#define CN_DHCP_TIMEOUT      0x10   //if not reply in the time, then will snd again
+#define CN_DHCP_TIMEOUT      10   //if not reply in the time, then will snd again
 #define CN_DHCP_CLIENTTXID   0x10000000
 //rebuild the dhcp client task
 typedef struct
@@ -299,6 +300,15 @@ static void __dealTask(void)
                 makeDhcpRequestMsg(&gClientCB.msg,&reqpara);
                 send(gClientCB.sockfd,(void *)&gClientCB.msg,sizeof(gClientCB.msg),0);
                 task->timeout = CN_DHCP_TIMEOUT;
+                if(task->try_cnts++ > 8) {//超时复位从头申请,8秒没回应,就重来，这过程基本都很快才合理。
+                    printf("==warning: EN_CLIENT_REQUEST, timeout, begin from EN_CLIENT_DICOVER==!!!\r\n");
+                    task->stat = EN_CLIENT_DICOVER;
+                    task->transID = gClientCB.txid++;
+                    task->timeout = 0;
+                    task->offerip = 0;
+                    task->is_exist_ip = 0;
+                    task->try_cnts = 0;
+                }
             }
             else
             {

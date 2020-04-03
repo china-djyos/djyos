@@ -16,6 +16,8 @@
 #include "main_none.h"
 #include "ps.h"
 
+#include <misc/md5/md5.h>
+
 #if (!CFG_SUPPORT_ALIOS)
 #include "sys_rtos.h"
 #endif
@@ -41,7 +43,7 @@ extern void wpas_thread_start(void);
 extern void wpas_thread_stop(void);
 extern void wpa_handler_signal(void *arg, u8 vif_idx);
 extern void dhcp_stop_timeout_check(void);
-
+void hex_dump(const char *desc, const void *addr, const int len);
 int wpa_get_psk(char *psk)
 {
     struct wpa_config *conf = NULL;
@@ -54,6 +56,43 @@ int wpa_get_psk(char *psk)
     conf = wpa_global_ptr->ifaces->conf;
     memcpy(psk, conf->ssid->psk, 32);
 
+    return 0;
+}
+
+static unsigned char gmd5_passphrase[16];
+int wpa_get_passphrase_md5(unsigned char *md5_passphrase, int len)
+{
+    int min = len;
+
+    if (md5_passphrase == 0 || len <= 0) return -1;
+
+    min = min < sizeof(gmd5_passphrase) ? min : sizeof(gmd5_passphrase);
+    memcpy(md5_passphrase, gmd5_passphrase, min);
+
+    //hex_dump("wpa_get_passphrase_md5", md5_passphrase, min);
+
+    return 0;
+}
+
+int wpa_set_passphrase_md5(char *passphrase)
+{
+    unsigned char md5_tmp[16];
+    MD5_CTX ctx;
+    int min = sizeof(gmd5_passphrase);
+
+    if (passphrase == 0) return -1;
+
+    memset(md5_tmp,  0,  sizeof(md5_tmp));
+    MD5Init(&ctx);
+    MD5Update(&ctx, passphrase, strlen(passphrase));
+    MD5Final(md5_tmp, &ctx);
+
+    //printf("==wpa_set_passphrase_md5: %s==\r\n", passphrase);
+
+    min = min < sizeof(md5_tmp) ? min : sizeof(md5_tmp);
+    memcpy(gmd5_passphrase, md5_tmp, min);
+
+    //hex_dump("wpa_set_passphrase_md5", gmd5_passphrase, min);
     return 0;
 }
 

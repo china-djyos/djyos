@@ -9,7 +9,7 @@ extern "C" {
 #include <stddef.h>
 
 bool_t SetNameValueFS(char *name, char *val, int len);
-bool_t GetNameValueFS(char *name, char *val, int len);
+int GetNameValueFS(char *name, char *val, int len);
 bool_t RmNameValueFS(char *name);
 
 #ifdef __cplusplus

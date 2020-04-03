@@ -232,11 +232,11 @@ void rl_uninit(void)
     ASSERT(kNoErr == err);  
     g_role_launch.rl_timer_flag = RL_TIMER_UNINIT;   
 }
-
+void rl_stop(void);
 void rl_start(void)
 {    
     OSStatus err = kNoErr;
-
+    rl_stop();
     JL_PRT("rl_start\r\n");
     if(0 == rtos_is_oneshot_timer_running(&g_role_launch.rl_timer))
     {

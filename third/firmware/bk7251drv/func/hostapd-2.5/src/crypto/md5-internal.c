@@ -76,7 +76,7 @@ static void byteReverse(unsigned char *buf, unsigned longs)
     } while (--longs);
 }
 #endif
-
+#if 0 //跟djyos中misc/md5/md5.c定义相同，关闭这里的，指定使用djyos里的md5.
 /*
  * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
@@ -284,4 +284,5 @@ static void MD5Transform(u32 buf[4], u32 const in[16])
     buf[2] += c;
     buf[3] += d;
 }
+#endif
 /* ===== end - public domain MD5 implementation ===== */
