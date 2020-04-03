@@ -235,7 +235,7 @@ bool_t ModuleInstall_BrdWdt(void)
 //          BrdBoot_FeedStart,BrdBoot_FeedEnd);
     result = WdtHal_RegisterWdtChip("Wdt_IWDG", CFG_FEED_CYCLE/4, BrdWdt_FeedDog);
 #if(CFG_DEFEND_ON_BOOT == true)
-    __BrdWdt_FeedDog();
+    __BrdBoot_FeedEnd();
 #endif
     return result;
 }

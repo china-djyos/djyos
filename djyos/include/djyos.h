@@ -128,8 +128,6 @@ enum _KNL_ERROR_CODE_
 
 //事件优先级名称定义
 #define CN_PRIO_CRITICAL    (100)
-#define CN_PRIO_RLYMAIN     (110)
-#define CN_PRIO_RECORD      (112)
 #define CN_PRIO_REAL        (130)
 #define CN_PRIO_RRS         (200)
 #define CN_PRIO_WDT         (1)

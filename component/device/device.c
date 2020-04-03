@@ -983,7 +983,7 @@ s32 ModuleInstall_dev(void)
 //      A线程以D_RDONLY模式打开,----任意线程(包含A)还可以用D_WRONLY模式打开
 //      D_WRONLY同上
 // 参数：name,设备名字符串,包含路径名，但不必包含'dev\'这4个字符
-//      flags,设备打开模式,D_RDONLY,D_WRONLY,D_RDWR中的一个
+//      flags,设备打开模式,O_RDONLY,O_WRONLY,O_RDWR 中的一个
 //      timeout，超时设置,单位是微秒，CN_TIMEOUT_FOREVER=无限等待，0则立即按
 //          超时返回。非0值将被向上调整为CN_CFG_TICK_US的整数倍
 // 返回：成功打开设备返回描述符,否则返回-1.

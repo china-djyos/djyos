@@ -1,0 +1,105 @@
+//================================================================================
+//组件名称：ISBUS_host
+//组件描述：工业串行总线（Industrial Serial Bus）通信模块主机端部分
+//开发版本：V1.00
+//开发人员:YT
+//================================================================================
+#ifndef __ISBUSHOST_H__
+#define __ISBUSHOST_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+//通信错误编号
+#define CN_INS_OK              0x0
+#define CN_INS_LEN_ERR         0x1
+#define CN_INS_CHKSUM_ERR      0x2
+#define CN_INS_PHY_ERR         0x3
+#define CN_INS_TIMEROUT_ERR    0x4
+
+//协议字段偏移量
+#define CN_OFF_START        0
+#define CN_OFF_DST          1
+#define CN_OFF_PROTO        2
+#define CN_OFF_SRC          3
+#define CN_OFF_LEN          4
+#define CN_OFF_CHKSUM       5
+#define CN_OFF_USER         6
+
+//系统协议号定义，由平台确定和管理。
+#define CN_SET_SLAVE_TABLE          0       //传送从机地址列表，数据包格式：数量+列表
+#define CN_SET_MTC_TABLE            1       //建立组播号并传送组播地址表
+#define CN_SET_LINKLAYER_PARAM      2       //发布链路层通信参数
+#define CN_SET_POLL_CYCLE           3       //告知轮询周期
+#define CN_SET_ECHO_TIME_LIMIT      4       //告知从机，收到轮询命令后必须应答的时限
+#define CN_CHK_SLAVE                5       //检查从机是否存在，从机收到后须在20mS内应答。
+
+//用户协议号定义
+#define CN_PROTOCOL_USER_START     16
+//广播地址
+#define CN_INS_BROADCAST        0xff        //广播
+
+//组播起始地址
+#define CN_INS_MULTICAST        0x80        //组播
+#define CN_INS_MTC_INVALID      0xfe        //非法组播地址
+
+//轮询方式定义
+#define CN_POLL_FASTEST         (0)  //定时周期不做要求，有多快就轮询多快
+#define CN_POLL_SAME_INTERVAL   (1)  //等间隔周期轮询各个从机
+#define CN_POLL_SAME_CYCLE      (2)  //等周期轮询所有从机
+
+#define ONE_BY_ONE        (0)  //一问一答
+#define BROADCAST_MODEL   (1)  //一问多答，广播模式
+#define MULTICAST_MODEL   (2)  //一问多答，组播模式
+
+#define UNLIMITED_NUMBER  (0xFFFFFFFF)  //无限次数轮询
+
+struct ISBUS_FunctionSocket;
+struct ISBUS_Protocol;
+struct Host_ISBUSPort;      //通信端口
+struct Slave_ISBUSPort;
+struct SlaveList;                             //从机列表
+typedef void (*ISBUS_FntProtocolProcess) (struct ISBUS_FunctionSocket  *InSerSocket, u8 src, u8 *buf, u32 len);
+typedef void (*ISBUS_FntProtocolError) (void  *Port , u32 ErrorNo);
+
+
+
+void ISBUS_PollConfig(struct Host_ISBUSPort *Port,u32 timercycle,u8 PoolModel);
+
+struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,ISBUS_FntProtocolError fnError,u32 Timeout);
+
+struct ISBUS_FunctionSocket *ISBUS_HostRegistProtocol(struct Host_ISBUSPort *Port, u8 Protocol,
+                                          u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn);
+
+struct SlaveList *Slave_Creat(struct Host_ISBUSPort *Port,s32 dev,
+                                   struct SlaveList *pHead,u8 address,u8 group,u8 rank,u32 timeout);
+
+struct SlaveList * Slave_Delete (struct SlaveList * pHead, u8 address);
+
+u32 Slave_GetNum(struct SlaveList * pHead);
+
+void ISBUS_HostSetAddress(u8 Addr);
+
+
+
+bool_t ISBUS_SlaveInit(u32 StackSize);
+
+struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char * dev,ISBUS_FntProtocolError fnError,u32 Timeout);
+
+struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *Port, u8 Protocol,
+                                                           u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn);
+
+u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *Slave_FunctionSocket, u8 dst, u8 *buf, u8 len);
+
+ptu32_t ISBUS_SlaveProcess(void);
+
+void ISBUS_SlaveSetAddress(u8 Addr);
+
+void ISBUS_SlaveSetMtcAddress(struct Slave_ISBUSPort *Port, u8 Addr);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif //ifndef __ISBUSHost_H__
+

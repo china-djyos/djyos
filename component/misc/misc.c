@@ -42,55 +42,109 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-/*
- * osarch.h
- *
- *  Created on: 2016年11月25日
- *      Author: zhangqf
- */
+//所属模块:大小端调整相关的公共函数
+//作者:  罗侍田.
+//版本：V1.0.0
+//文件描述:公共函数
+//其他说明:
+//修订历史:
+//2. ...
+//1. 日期: 2009-01-04
+//   作者:  罗侍田.
+//   新版本号: V1.0.0
+//   修改说明: 原始版本
+//------------------------------------------------------
+#include "stdint.h"
+#include "string.h"
+//this function is used to format the char string to the argc mode
+//this function will changed the original string, used it carefully
+s32 string2arg(s32 *argc, char *argv[],char *string)
+{
+    s32 argvlen = 0;
+    s32 paramnum = 0;
+    char *tmp = NULL;
+    char bak;
+    s32 len;
 
-#ifndef __OSARCH_H
-#define __OSARCH_H
+    argvlen = *argc;
+    *argc = paramnum;
+    if(NULL == string)
+    {
+        return 1;
+    }
 
-#include <os.h>
+    //use the '\0' to replace the ' '
+    len = strlen(string);
+    tmp = string;
+    while(tmp < (string + len))
+    {
+        if(*tmp == ' ')
+        {
+            *tmp = '\0';
+        }
+        tmp++;
+    }
+    bak = '\0';
+    tmp = string;
+    while(tmp < (string + len))
+    {
+        if((*tmp != '\0')&&(bak =='\0'))
+        {
+            if(paramnum < argvlen)
+            {
+                argv[paramnum] = tmp;
+                paramnum++;
+            }
+        }
+        bak = *tmp;
+        tmp++;
+    }
+    *argc = paramnum;
 
-//memory here
-void *net_malloc(int size);
-void net_free(void *mem);
-//mutex
-typedef struct MutexLCB*      mutex_t;
-mutex_t mutex_init(const char *name);
-bool_t mutex_lock(mutex_t mutex);
-bool_t mutex_locktimeout(mutex_t mutex,u32 timeout);
-bool_t mutex_unlock(mutex_t mutex);
-void mutex_del(mutex_t mutex);
-//semphore
-typedef struct SemaphoreLCB*  semp_t;
-semp_t semp_init(u32 limit,u32 value,const char *name);
-void   semp_del(semp_t);
-bool_t semp_pend(semp_t semp);
-bool_t semp_pendtimeout(semp_t semp,unsigned int timeout);
-bool_t semp_post(semp_t semp);
-//task
-bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),void* para);
-//some string deal functions in the tcp ip
-char* mac2string(u8 *mac);
-bool_t string2mac(char *str,u8 *mac);
-//we create some thing needed by the net stack
-//here we do a net ticker here,we could do it in a task
-//for it will consumed more time here,if use the timer,then it will be make the
-//timer system very very poor efficiency and poor imprecise,so we make a task here
-//we will call the  isr each time when the cycle comes
-typedef void (*fnNetTickIsr)(void);
-//cycle unit:ms
-//and the precise is depend on the netticker itself:could be configured
-//return the ticker handle,and you could get the ticks in the handle
-void* NetTickerIsrInstall(const char *name,fnNetTickIsr isr,int cycle);
-bool_t NetTickerIsrRemove(void *ticker);
-u32 NetTickerTicks(void *ticker);
-void OsPrintSplit(char c,int num);
-bool_t OsArchInit();
-#endif /* __OSARCH_H */
+    return 0;
+}
 
+//usage:use this function to change the string to the args
+s32 getargs(s32 argc, char *argv[],char *string)
+{
+    s32 argvlen = 0;
+    s32 paramnum = 0;
+    char *tmp = NULL;
+    char bak;
+    s32 len;
 
+    argvlen = argc;
+    if(NULL == string)
+    {
+        return paramnum;
+    }
+
+    //use the '\0' to replace the ' '
+    len = strlen(string);
+    tmp = string;
+    while(tmp < (string + len))
+    {
+        if(*tmp == ' ')
+        {
+            *tmp = '\0';
+        }
+        tmp++;
+    }
+    bak = '\0';
+    tmp = string;
+    while(tmp < (string + len))
+    {
+        if((*tmp != '\0')&&(bak =='\0'))
+        {
+            if(paramnum < argvlen)
+            {
+                argv[paramnum] = tmp;
+                paramnum++;
+            }
+        }
+        bak = *tmp;
+        tmp++;
+    }
+    return paramnum;
+}
 

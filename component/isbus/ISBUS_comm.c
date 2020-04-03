@@ -42,55 +42,28 @@
 // 于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等），
 // 不负任何责任，即在该种使用已获事前告知可能会造成此类损害的情形下亦然。
 //-----------------------------------------------------------------------------
-/*
- * osarch.h
- *
- *  Created on: 2016年11月25日
- *      Author: zhangqf
- */
 
-#ifndef __OSARCH_H
-#define __OSARCH_H
-
-#include <os.h>
-
-//memory here
-void *net_malloc(int size);
-void net_free(void *mem);
-//mutex
-typedef struct MutexLCB*      mutex_t;
-mutex_t mutex_init(const char *name);
-bool_t mutex_lock(mutex_t mutex);
-bool_t mutex_locktimeout(mutex_t mutex,u32 timeout);
-bool_t mutex_unlock(mutex_t mutex);
-void mutex_del(mutex_t mutex);
-//semphore
-typedef struct SemaphoreLCB*  semp_t;
-semp_t semp_init(u32 limit,u32 value,const char *name);
-void   semp_del(semp_t);
-bool_t semp_pend(semp_t semp);
-bool_t semp_pendtimeout(semp_t semp,unsigned int timeout);
-bool_t semp_post(semp_t semp);
-//task
-bool_t taskcreate(const char *name,u16 stacksize,u8 prior,ptu32_t (*fnTask)(void),void* para);
-//some string deal functions in the tcp ip
-char* mac2string(u8 *mac);
-bool_t string2mac(char *str,u8 *mac);
-//we create some thing needed by the net stack
-//here we do a net ticker here,we could do it in a task
-//for it will consumed more time here,if use the timer,then it will be make the
-//timer system very very poor efficiency and poor imprecise,so we make a task here
-//we will call the  isr each time when the cycle comes
-typedef void (*fnNetTickIsr)(void);
-//cycle unit:ms
-//and the precise is depend on the netticker itself:could be configured
-//return the ticker handle,and you could get the ticks in the handle
-void* NetTickerIsrInstall(const char *name,fnNetTickIsr isr,int cycle);
-bool_t NetTickerIsrRemove(void *ticker);
-u32 NetTickerTicks(void *ticker);
-void OsPrintSplit(char c,int num);
-bool_t OsArchInit();
-#endif /* __OSARCH_H */
-
-
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <djyos.h>
+#include "component_config_isbus.h"
+// ============================================================================
+// 函数功能：安装内部串口通信模块。该模块仅适用于从机部分。
+// 输入参数：StackSize，模块需要的内存尺寸，由于串行通信协议解析后，要调用用户
+//              提供的回调函数处理数据，本模块自身需要的内存很少，最多不过数百
+//              字节，请用户根据自己的回调函数决定。
+//       CN_PRIO_RLYMAIN，事件优先级，由用户自己选取，一般选择较高优先级
+// 返回值： 总是成功，不成功就进入死循环。
+// ============================================================================
+bool_t ModuleInstall_ISBUS(u32 HostStackSize,u32 SlaveStackSize)
+{
+#if(CFG_HOST_ENABLE == true)
+    ISBUS_HostInit(HostStackSize);
+#endif
+#if(CFG_SLAVE_ENABLE == true)
+    ISBUS_SlaveInit(SlaveStackSize);
+#endif
+}
 
