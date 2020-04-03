@@ -498,7 +498,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
     dst_offset = (u16*)((ptu32_t)(dst_bitmap->bm_bits+\
              DstRect->top * dst_bitmap->linebytes)+\
              DstRect->left*lcd.pixsize);
-
+//    dst_offset -= 0x22;   显示全屏图片的时候，会有点偏差，加上这个就没有偏差了。
     if(false==Lock_MutexPend(&Dma2dMutex,lcd.Dma2dTimeOut))
         return false;
     DMA2D->CR=0<<16;                //存储器到存储器模式
@@ -673,7 +673,53 @@ bool_t __lcd_fill_rect_screen(struct Rectangle *Target,
 static bool_t __lcd_bm_to_screen(struct Rectangle *dst_rect,
         struct RectBitmap *src_bitmap,s32 x,s32 y)
 {
-    return false;
+
+    u32 width,height;
+    u32 pixel,use=0,linelen;
+    u32 j,timeout=0;;
+    u16 *line;
+    u8 x0,x1;
+    bool_t flag=true;
+    u32 addr;
+
+    width = dst_rect->right-dst_rect->left;
+    height = dst_rect->bottom-dst_rect->top;
+//    LTDC_Layer_Window_Config(0,x,y,width,height);
+
+    addr=((u32)lcd.pFrameBuffe+lcd.pixsize*(CFG_LCD_XSIZE*y+x));
+
+    if(false==Lock_MutexPend(&Dma2dMutex,lcd.Dma2dTimeOut))
+        return false;
+    DMA2D->CR=0<<16;                //存储器到存储器模式
+    DMA2D->FGPFCCR=lcd.Dma2dPixelFormat;   //设置颜色格式
+    DMA2D->FGOR=(u32)(src_bitmap->width - width); //前景层行偏移为0
+    DMA2D->OOR= (u32)(src_bitmap->height - height); //设置行偏移
+    DMA2D->CR&=~(1<<0);             //先停止DMA2D
+    DMA2D->FGMAR=(u32)src_bitmap->bm_bits;        //源地址
+    DMA2D->OMAR=(u32)addr;        //输出存储器地址
+    DMA2D->NLR=(height)|((width)<<16);   //设定行数寄存器
+    DMA2D->CR|=1<<0;                //启动DMA2D
+    while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
+    {
+        timeout++;
+        if(timeout>0X1FFFFF)
+        {
+            flag=false;
+            break;  //超时退出
+        }
+    }
+    DMA2D->IFCR|=1<<1;              //清除传输完成标志
+    Lock_MutexPost(&Dma2dMutex);
+
+
+//    linelen = src_bitmap->linebytes;
+//    line = (u16*)(src_bitmap->bm_bits + ysrc*linelen + xsrc*2);
+//    for(y = 0;y < height;y++)
+//    {
+//        WriteDataBytes(line,width*2);
+//        line += linelen/2;
+//    }
+    return flag;
 }
 //----从screen中取像素---------------------------------------------------------
 //功能: 从screen中取一像素，并转换成cn_sys_pf_e8r8g8b8或cn_sys_pf_a8r8g8b8格式。
@@ -787,7 +833,19 @@ struct DisplayObj* ModuleInstall_LCD(const char *DisplayName,\
 
 
 
+void DispMainInterface(unsigned char *pic)
+{
+    struct Rectangle dst_rect = {0,0,CFG_LCD_XSIZE,CFG_LCD_YSIZE};
+    struct RectBitmap src_bitmap;
 
+    src_bitmap.bm_bits = pic;
+    src_bitmap.width = CFG_LCD_XSIZE;
+    src_bitmap.height = CFG_LCD_YSIZE;
+    src_bitmap.linebytes = CFG_LCD_XSIZE*2;
+    src_bitmap.reversal = 0;
+    src_bitmap.PixelFormat = CN_SYS_PF_RGB565;
+    __lcd_bm_to_screen(&dst_rect,  &src_bitmap, 0, 0);
+}
 
 
 
