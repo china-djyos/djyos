@@ -20,7 +20,7 @@
 #include "timer_hard.h"
 #include "dbug.h"
 #include "component_config_isbus.h"
-#if 1
+
 //通信端口的描述
 struct Slave_ISBUSPort
 {
@@ -64,16 +64,19 @@ struct ISBUS_FunctionSocket * __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u
     struct ISBUS_FunctionSocket *Next,*SocketStart;
     bool_t found = false;
     SocketStart = Port->SocketCurrent;
-    Next = SocketStart;
-    do
+    if(SocketStart != NULL)
     {
-        if(Next->Protocol == Protocol)
+        Next = SocketStart;
+        do
         {
-            found = true;
-            break;
-        }
-        Next = Next->Next;
-    } while(Next != SocketStart);
+            if(Next->Protocol == Protocol)
+            {
+                found = true;
+                break;
+            }
+            Next = Next->Next;
+        } while(Next != SocketStart);
+    }
     if(found)
     {
         Port->SocketCurrent = Next; //记住当前值，下次查找往往是同一个功能。
@@ -96,10 +99,11 @@ ptu32_t ISBUS_SlaveProcess(void)
     s32 DevRe = Port->SerialDevice;
     u8 *protobuf;
     u8 chk,len,startoffset, mydst;
-    s16 restlen,Completed,readed,tmp;
+    s16 restlen,Completed,readed,tmp,tmp1;
     s16 exdata;
 
     Djy_GetEventPara((ptu32_t*)&Port, NULL);
+    DevRe = Port->SerialDevice;
     mydst = sg_u8SlaveAddress;
     while(1)
     {
@@ -117,8 +121,15 @@ ptu32_t ISBUS_SlaveProcess(void)
                 readed = 0;
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
-                readed += DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
-                                            0, Port->Timeout);
+            }
+            tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
+                                        0, Port->Timeout);
+            if(tmp != 0)
+            {
+                printf("\r\nslave recv:");
+                for(tmp1 = 0; tmp1<tmp;tmp1++)
+                    printf("%02x ",protobuf[tmp1+readed]);
+                readed += tmp;
             }
             if( ! Gethead)
             {
@@ -208,7 +219,7 @@ ptu32_t ISBUS_SlaveProcess(void)
             {
                 Port->EchoModel = BROADCAST_MODEL;
                 memcpy(Port->MTCcast, protobuf + startoffset + sizeof(struct ISBUS_Protocol),len);
-                if(mydst == 1)      //todo :应使用从机地址表的首地址。
+                if(Port->BoardcastPre == 0)      //本机地址是第一个从机。
                 {
                     Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
                 }
@@ -231,7 +242,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         }
         Port->src = protohead.SrcAddress;
         Port->dst = protohead.DstAddress;
-        return true;
+//        return true;
     }
 }
 
@@ -245,8 +256,8 @@ ptu32_t ISBUS_SlaveProcess(void)
 // ============================================================================
 bool_t ISBUS_SlaveInit(u32 StackSize)
 {
-    sg_ptSlaveEvtt = Djy_EvttRegist(EN_CORRELATIVE, CN_PRIO_REAL, 1, 1, ISBUS_SlaveProcess,
-                            NULL, StackSize, "ISBUS com process with slave");
+    sg_ptSlaveEvtt = Djy_EvttRegist(EN_INDEPENDENCE, CN_PRIO_REAL, 1, 1, ISBUS_SlaveProcess,
+                            NULL, StackSize, "ISBUS slave");
     if(sg_ptSlaveEvtt == CN_EVTT_ID_INVALID)
     {
         debug_printf("ISBUS","ISBUS通信模块从机端初始化异常\n\r");
@@ -281,7 +292,25 @@ void __SetMTC_Address(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src, u8 *bu
 //-----------------------------------------------------------------------------
 void __SetSlaveList(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,u32 len)
 {
-
+    struct Slave_ISBUSPort *Port;
+    u8 nearest = 255,least = 255;
+    u8 loop,now;
+    Port = ProtocolSocket->CommPort;
+    for(loop = 0;loop < len; loop++)
+    {
+        now = buf[loop];
+        if(now < sg_u8SlaveAddress)
+        {
+            if(now- sg_u8SlaveAddress < nearest)
+                nearest = now;
+        }
+        if(now < least)
+            least = now;            //找出从机表中编号最小的地址
+    }
+    if(sg_u8SlaveAddress == least)  //若本板地址编号最小，则其前置地址是主机地址
+        sg_ptSlavePortHead->BoardcastPre = 0;
+    else
+        sg_ptSlavePortHead->BoardcastPre = nearest;
 }
 
 //-----------------------------------------------------------------------------
@@ -317,9 +346,9 @@ struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char *dev,\
         return NULL;
     Port = (struct Slave_ISBUSPort *)malloc(sizeof(struct Slave_ISBUSPort ));
     recvbuf = malloc(512+2*sizeof(struct ISBUS_Protocol));
-    memset(Port, 0, sizeof(struct Slave_ISBUSPort ));
     if((Port != NULL) && (recvbuf != NULL)) //分配成功
     {
+        memset(Port, 0, sizeof(struct Slave_ISBUSPort ));
         if(sg_ptSlavePortHead == NULL)
         {
             Port->Next = NULL;
@@ -445,7 +474,7 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
 {
     struct Slave_ISBUSPort *Port;
     u8 *SendBuf;
-    u16 SendLen;
+    u16 SendLen,tmp;
     if(ISBUS_FunctionSocket == NULL)
         return 0;
     if(len > ISBUS_FunctionSocket->ProtocolSendLen)
@@ -464,6 +493,11 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
     memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
 
     DevWrite(Port->SerialDevice, SendBuf, SendLen, 0, CN_TIMEOUT_FOREVER);
+    printf("\r\nslave send:");
+    for(tmp = 0;tmp < SendLen;tmp++)
+    {
+        printf("%02x ",SendBuf[tmp]);
+    }
 //  if(Completed != -1)
 //      Port->SendP = Completed;
 
@@ -471,7 +505,7 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
 }
 
 // ============================================================================
-// 函数功能：设置从机地址。
+// 函数功能：设置从机的本机地址。
 // 输入参数：Addr，本机地址，8位
 // 返回值： 无
 // ============================================================================
@@ -480,11 +514,6 @@ void ISBUS_SlaveSetAddress(u8 Addr)
     if(Addr < CN_INS_MULTICAST)  //不能超过组播起始地址
     {
         sg_u8SlaveAddress = Addr;
-        //todo: 下发从机列表功能做好后，应在下发从机时设置 BoardcastPre
-        if(Addr == 1)
-            sg_ptSlavePortHead->BoardcastPre = 28;
-        else
-            sg_ptSlavePortHead->BoardcastPre = Addr - 1;
     }
 }
 
@@ -499,4 +528,4 @@ void ISBUS_SlaveSetMtcAddress(struct Slave_ISBUSPort *Port, u8 Addr)
     if((Addr >= CN_INS_MULTICAST) && (Addr != CN_INS_BROADCAST) && (Port != NULL))
         Port->MTC_Address = Addr;
 }
-#endif
+

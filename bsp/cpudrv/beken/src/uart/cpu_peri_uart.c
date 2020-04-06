@@ -140,6 +140,15 @@ static const uint8_t volatile *sUartReg[CN_UART_NUM] = {
 };
 static ptu32_t __UART_Ctrl(uint8_t port,u32 cmd, va_list *arg0);
 
+__attribute__((weak))  void Board_UartHalfDuplexSend(u8 SerialNo)
+{
+    return;
+}
+__attribute__((weak))  void Board_UartHalfDuplexRecv(u8 SerialNo)
+{
+    return ;
+}
+
 static void __UART_BaudSet(uint8_t port,uint32_t data)
 {
     if((data == 0) || (port > CN_UART2))
@@ -270,9 +279,11 @@ static u32 __UART_SendStart (uint8_t port)
     u32 i = 0,len = 0;
     if(port>CN_UART2)
        return 0;
+    Board_UartHalfDuplexSend(port);//切换到发送
     uart_set_tx_fifo_needwr_int(port,1);
 
     __UART_CloseInte(port);
+    uart_set_tx_stop_end_int(port, 1);
 
     if(uart_is_tx_fifo_empty(port) == 1)
     {
@@ -297,7 +308,7 @@ static u32 __UART_SendStart (uint8_t port)
 // 参数：串口号
 // 返回：1=成功，0=失败
 // =============================================================================
-static uint32_t djybsp_uart_rx_isr(uint32_t port)
+static uint32_t djybsp_uart_rx_isr(uint32_t port, void *param)
 {
     uint8_t val = 0;
     uint8_t num = 0;
@@ -335,7 +346,7 @@ static uint32_t djybsp_uart_rx_isr(uint32_t port)
     return 1;
 }
 
-static uint32_t djybsp_uart_tx_isr(uint32_t port)
+static uint32_t djybsp_uart_tx_isr(uint32_t port, void *param)
 {
     uint8_t val = 0;
     if(port>CN_UART2)
@@ -356,6 +367,15 @@ static uint32_t djybsp_uart_tx_isr(uint32_t port)
     return 1;
 }
 
+static uint32_t djybsp_uart_tx_end_isr(uint32_t port, void *param)
+{
+    if(port>CN_UART2)
+        return 0;
+
+    Board_UartHalfDuplexRecv(port);
+    return 1;
+}
+
 // =============================================================================
 // 功能: 初始化UART对应的中断线，并初始化中断入口函数
 // 参数：SerialNo,串口号
@@ -367,6 +387,7 @@ static void __UART_IntInit(u32 port)
        return ;
     uart_rx_callback_set(port, djybsp_uart_rx_isr, (void *)port);
     uart_tx_fifo_needwr_callback_set(port,djybsp_uart_tx_isr,(void *)port);
+    uart_tx_end_callback_set(port,djybsp_uart_tx_end_isr,(void *)port);
 }
 
 // =============================================================================
@@ -467,6 +488,7 @@ ptu32_t ModuleInstall_UART(u32 port)
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
 
+        Board_UartHalfDuplexRecv(port);
         pUartCB[port] = UART_InstallGeneral(&UART_Param);
         if( pUartCB[port] != NULL)
         {

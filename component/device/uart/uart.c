@@ -831,7 +831,7 @@ struct UartGeneralCB *UART_InstallGeneral(struct UartParam *Param)
 //  UGCB->MplWriteTrigLevel  = Param->TxRingBufLen + 1;
     UGCB->Baud               = Param->Baud;
     UGCB->UartPortTag        = Param->UartPortTag;
-    UGCB->StartSend                  = Param->StartSend;
+    UGCB->StartSend          = Param->StartSend;
     UGCB->UartCtrl           = Param->UartCtrl;
 //  UGCB->pMultiplexUart     = NULL;                     //初始化时为NULL
 //  UGCB->MplUartStatus      = CN_MULTIPLEX_SENSINGBIT_WRITE;//初始时可写不可读

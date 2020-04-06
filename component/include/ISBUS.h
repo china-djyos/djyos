@@ -63,38 +63,30 @@ typedef void (*ISBUS_FntProtocolProcess) (struct ISBUS_FunctionSocket  *InSerSoc
 typedef void (*ISBUS_FntProtocolError) (void  *Port , u32 ErrorNo);
 
 
-
-void ISBUS_PollConfig(struct Host_ISBUSPort *Port,u32 timercycle,u8 PoolModel);
-
+//主机API
 struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,ISBUS_FntProtocolError fnError,u32 Timeout);
-
 struct ISBUS_FunctionSocket *ISBUS_HostRegistProtocol(struct Host_ISBUSPort *Port, u8 Protocol,
                                           u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn);
+u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
+                        u8 *buf, u8 len, s32 times);
+u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
+                            u8 *buf, u8 len);
+void ISBUS_PollConfig(struct Host_ISBUSPort *Port,u32 timercycle,u8 PoolModel);
+void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address);
+void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num);
+struct SlaveList* ISBUS_ScanSlave(struct Host_ISBUSPort *Port,u8 MaxAddress);
+u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address);
+void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num);
+void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address);
+void ISBUS_HostInit(u32 HostStackSize);
 
-struct SlaveList *Slave_Creat(struct Host_ISBUSPort *Port,s32 dev,
-                                   struct SlaveList *pHead,u8 address,u8 group,u8 rank,u32 timeout);
-
-struct SlaveList * Slave_Delete (struct SlaveList * pHead, u8 address);
-
-u32 Slave_GetNum(struct SlaveList * pHead);
-
-void ISBUS_HostSetAddress(u8 Addr);
-
-
-
+//从机API
 bool_t ISBUS_SlaveInit(u32 StackSize);
-
 struct Slave_ISBUSPort *ISBUS_SlaveRegistPort(char * dev,ISBUS_FntProtocolError fnError,u32 Timeout);
-
 struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *Port, u8 Protocol,
                                                            u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn);
-
 u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *Slave_FunctionSocket, u8 dst, u8 *buf, u8 len);
-
-ptu32_t ISBUS_SlaveProcess(void);
-
 void ISBUS_SlaveSetAddress(u8 Addr);
-
 void ISBUS_SlaveSetMtcAddress(struct Slave_ISBUSPort *Port, u8 Addr);
 
 #ifdef __cplusplus
