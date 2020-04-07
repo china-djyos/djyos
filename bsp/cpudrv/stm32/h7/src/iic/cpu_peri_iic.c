@@ -66,7 +66,7 @@
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
-//    bool_t IIC_Init(u8 iic_port);
+//bool_t ModuleInstall_IIC(ptu32_t port);
 //    #if CFG_IIC1_ENABLE== true
 //     ModuleInstall_IIC(CN_IIC1);
 //    #endif
@@ -1533,11 +1533,7 @@ bool_t IIC_Busfree(u32 port,u32 sda_pin,u32 sck_pin)
 
     return true;
 }
-//为了接口兼容
-bool_t IIC_Init(u8 iic_port)
-{
-    return ModuleInstall_IIC(iic_port);
-}
+
 // =============================================================================
 // 功能：IIC底层驱动的初始化，完成整个IIC总线的初始化，其主要工作如下：
 //       1.初始化总线控制块IIC_CB，回调函数和缓冲区的初始化赋值；
