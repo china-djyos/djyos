@@ -141,7 +141,7 @@ void hex_dump(const char *desc, const void *addr, const int len);
 
 /*
 * ssid: 需要连接ssid
-* passwd: 需要连接ssid对应的密码
+* passwd: 需要连接ssid对应的密码，如果passwd,就只匹配ssid, 并使用记录中ssid的对应的密码
 * out_info: 如果查找成功，返回快连信息
 * 返回值： 返回0，没快连信息； 返回1,获取快连信息成功
 */
@@ -154,7 +154,7 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     unsigned char md5_tmp[16];
     MD5_CTX ctx;
 
-    if(ssid==0 || passwd==0) return -1;
+    if(ssid==0 /* || passwd==0 */) return -1;
 
     u8 *new_buf = (u8*)malloc(BLOCK_SIZE);
     if(new_buf==0) return -1;
@@ -172,27 +172,33 @@ int wlan_fast_info_match(char *ssid, char *passwd, wlan_fast_connect_t *out_info
     while(cnt > 0) {
         //printf("info: %s, p[%d].ssid=%s, old_crc=0x%08x!\r\n", __FUNCTION__, cnt-1, p[cnt-1].ssid, p[cnt-1].crc);
         if (strcmp(p[cnt-1].ssid, ssid) == 0 ){
-            MD5Init(&ctx);
-            MD5Update(&ctx, passwd, strlen(passwd));
-            MD5Final(md5_tmp, &ctx);
-            //hex_dump("wlan_fast_info_match: md5", md5_tmp, sizeof(md5_tmp));
-
-            if(memcmp(p[cnt-1].md5_passphrase, md5_tmp, sizeof(md5_tmp)) == 0){
-                printf("info: %s, md5_passphrase matched ok!!!\r\n", __FUNCTION__);
-                crc = wlan_standard_chksum(&p[cnt-1], sizeof(wlan_fast_connect_t)-4);
-                printf("info: %s, index: %d, crc validated, (crc)(%08x %s %08x)!\r\n",
-                        __FUNCTION__, cnt-1, crc, (crc==p[cnt-1].crc?"=":"!="), p[cnt-1].crc);
-                if (p[cnt-1].ssid[0] != 0xFF &&
-                    p[cnt-1].channel >= 1 &&
-                    p[cnt-1].channel <= 13 &&
-                    p[cnt-1].crc == crc &&
-                    out_info) {
-                    printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
-                    memcpy(out_info, &p[cnt-1], sizeof(wlan_fast_connect_t));
-                    ret = 1;
-                    break;
+            if (passwd) {
+                MD5Init(&ctx);
+                MD5Update(&ctx, passwd, strlen(passwd));
+                MD5Final(md5_tmp, &ctx);
+                if(memcmp(p[cnt-1].md5_passphrase, md5_tmp, sizeof(md5_tmp)) != 0){//密码不匹配
+                    cnt--;
+                    continue;
                 }
             }
+            //hex_dump("wlan_fast_info_match: md5", md5_tmp, sizeof(md5_tmp));
+
+            //if(memcmp(p[cnt-1].md5_passphrase, md5_tmp, sizeof(md5_tmp)) == 0){
+            printf("info: %s, md5_passphrase matched ok!!!\r\n", __FUNCTION__);
+            crc = wlan_standard_chksum(&p[cnt-1], sizeof(wlan_fast_connect_t)-4);
+            printf("info: %s, index: %d, crc validated, (crc)(%08x %s %08x)!\r\n",
+                    __FUNCTION__, cnt-1, crc, (crc==p[cnt-1].crc?"=":"!="), p[cnt-1].crc);
+            if (p[cnt-1].ssid[0] != 0xFF &&
+                p[cnt-1].channel >= 1 &&
+                p[cnt-1].channel <= 13 &&
+                p[cnt-1].crc == crc &&
+                out_info) {
+                printf("info: %s, matched ok, Do WiFi Quick Connnecting ... \r\n", __FUNCTION__);
+                memcpy(out_info, &p[cnt-1], sizeof(wlan_fast_connect_t));
+                ret = 1;
+                break;
+            }
+            //}
         }
         cnt--;
     }
@@ -205,6 +211,7 @@ FUN_RET:
     if(new_buf) free(new_buf);
     return ret;
 }
+
 
 int CompFastInfo(wlan_fast_connect_t *src, wlan_fast_connect_t *dest)
 {
