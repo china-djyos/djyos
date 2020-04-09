@@ -78,6 +78,7 @@ extern struct EventECB  *s_ptEventFree; //空闲链表头,不排序
 bool_t event(char *param);
 bool_t evtt(char *param);
 bool_t stack(char *param);
+bool_t spyk(u16 pl_ecb);
 
 // ============================================================================
 // 功能：显示事件列表
@@ -149,7 +150,7 @@ bool_t event(char *param)
 }
 bool_t eventk(char *param)
 {
-    u16 pl_ecb;
+    u16 pl_ecb,busy = CN_EVENT_ID_INVALID;
     u32 time1,MemSize,StackSize,heapsize=0,maxsize=0;
     char *name;
     bool_t native = false;
@@ -171,6 +172,8 @@ bool_t eventk(char *param)
             time1 = 0;
             name = "unkown";
 #endif  //CFG_OS_TINY == false
+            if(time1 >50)
+                busy = pl_ecb;
             if(NULL == g_tECB_Table[pl_ecb].vm)
             {
 //                printf("knlshell","%02d%%  %08x %s",0,0,name);
@@ -206,6 +209,10 @@ bool_t eventk(char *param)
     if(native == true)
         printk("\r\n温馨提示：个别事件使用的动态内存统计出现非常大的值，请不要惊慌，说明您的代码中存在"
                "\r\n非对称内存分配与释放的情况，即A事件分配的内存，在B事件释放");
+    if(busy == CN_EVENT_ID_INVALID)
+        printk("当前没有事件占用CPU超过50%%");
+    else
+        spyk(busy);
     return true;
 }
 
@@ -316,37 +323,10 @@ bool_t stack(char *param)
     printf("\n\r栈指针是最后一次上下文切换时保存的值");
     return (TRUE);
 }
-bool_t spyk(char *param);
 u32 fnYipHook(struct Wdt *wdt)
 {
     printk("--------idle wdt yit--------");
     eventk(NULL);
-    spyk("0");
-    spyk("1");
-    spyk("2");
-    spyk("3");
-    spyk("4");
-    spyk("5");
-    spyk("6");
-    spyk("7");
-    spyk("8");
-    spyk("9");
-    spyk("10");
-    spyk("11");
-    spyk("12");
-    spyk("13");
-    spyk("14");
-    spyk("15");
-    spyk("16");
-    spyk("17");
-    spyk("18");
-    spyk("19");
-    spyk("20");
-    spyk("21");
-    spyk("22");
-    spyk("23");
-    spyk("24");
-    spyk("25");
 }
 // ============================================================================
 // 功能：统计一定内事件运行占用率
@@ -362,11 +342,13 @@ ptu32_t kernel_spy(void)
     struct Wdt *wdt;
     Djy_GetEventPara((ptu32_t*)(&cycle), NULL);
     cycle *=mS;
+#if(CFG_IDLE_MONITOR_CYCLE > 0)
 #if(DEBUG == 1)
-    wdt = Wdt_Create("runtime watch", cycle * 30, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
+    wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, fnYipHook, EN_BLACKBOX_DEAL_IGNORE, 0, 0);
 #else
-  wdt = Wdt_Create("runtime watch", cycle * 30, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
+  wdt = Wdt_Create("runtime watch", cycle * CFG_IDLE_MONITOR_CYCLE, NULL, EN_BLACKBOX_DEAL_RESET, 0, 0);
 #endif  //for (DEBUG != 1)
+#endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
     while(1)
     {
 
@@ -378,14 +360,13 @@ ptu32_t kernel_spy(void)
            g_tECB_Table[pl_ecb].consumed_time_record =
                             (u32)g_tECB_Table[pl_ecb].consumed_time;
         }
-//#if(DEBUG != 1)
+#if(CFG_IDLE_MONITOR_CYCLE > 0)
         //如果idle事件运行时间超过 1/16，则喂狗
         if(g_tECB_Table[0].consumed_time_second > (cycle >> 4))
         {
-//            printf("idle feed dog\r\n");        //lst
             Wdt_Clean(wdt);
         }
-//#endif  //for (DEBUG != 1)
+#endif  //for (CFG_IDLE_MONITOR_CYCLE > 0)
         Djy_EventDelay(cycle); // 延时1秒；
     }
 #endif
@@ -468,15 +449,13 @@ bool_t spy(char *param)
     }
     return (TRUE);
 }
-bool_t spyk(char *param)
+bool_t spyk(u16 pl_ecb)
 {
-    u16 pl_ecb;
     u32 loop,StackSize,pads;
     u32 *stack;
     char *name;
 
     printk("\r\n事件号 线程   栈底     栈指针   栈尺寸   剩余量   类型名");
-    pl_ecb = atoi(param);
     if(g_tECB_Table[pl_ecb].previous !=
                     (struct EventECB*)&s_ptEventFree)
     {

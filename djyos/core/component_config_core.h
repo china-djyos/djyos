@@ -39,6 +39,7 @@
 #define CFG_EVENT_TYPE_LIMIT    15      //"事件类型数限值",事件类型数
 #define CFG_MAINSTACK_LIMIT     4096    //"main函数栈尺寸",main函数运行所需的栈尺寸
 #define CFG_IDLESTACK_LIMIT     1024    //"IDLE事件栈尺寸",IDLE事件处理函数运行的栈尺寸，一般按默认值就可以了
+#define CFG_IDLE_MONITOR_CYCLE  30      //"IDLE监视周期",监视IDLE事件持续低于1/16 CPU占比的时间，秒数，0=不监视
 //%$#@enum,true,false
 #define CFG_OS_TINY             false   //"tiny版内核",true=用于资源紧缺的场合，内核会裁剪掉：事件类型名字，事件处理时间统计。
 //%$#@string,1,10
