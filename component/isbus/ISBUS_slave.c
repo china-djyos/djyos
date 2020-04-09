@@ -98,8 +98,8 @@ ptu32_t ISBUS_SlaveProcess(void)
     struct ISBUS_Protocol protohead;
     s32 DevRe = Port->SerialDevice;
     u8 *protobuf;
-    u8 chk,len,startoffset, mydst;
-    s16 restlen,Completed,readed,tmp,tmp1;
+    u8 chk,len, mydst;
+    s16 restlen,Completed,readed,startoffset,tmp,tmp1;
     s16 exdata;
 
     Djy_GetEventPara((ptu32_t*)&Port, NULL);
@@ -121,6 +121,14 @@ ptu32_t ISBUS_SlaveProcess(void)
                 readed = 0;
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
+            }
+            if(readed >= 256)
+            {
+                memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
+                startoffset = 0;
+                readed -= startoffset;
+                Port->analyzeoff = 0;
+                Port->recvoff = readed;
             }
             tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
                                         0, Port->Timeout);

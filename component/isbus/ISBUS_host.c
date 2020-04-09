@@ -189,6 +189,14 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             Port->analyzeoff = 0;
             Port->recvoff = 0;
         }
+        if(readed >= 256)
+        {
+            memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
+            startoffset = 0;
+            readed -= startoffset;
+            Port->analyzeoff = 0;
+            Port->recvoff = readed;
+        }
         tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed, 0, Port->Timeout);
         if(tmp != 0)
         {
