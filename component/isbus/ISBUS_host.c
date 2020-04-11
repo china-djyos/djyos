@@ -192,8 +192,8 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
         if(readed >= 256)
         {
             memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
-            startoffset = 0;
             readed -= startoffset;
+            startoffset = 0;
             Port->analyzeoff = 0;
             Port->recvoff = readed;
         }
@@ -339,7 +339,7 @@ bool_t __ISBUS_BroadcastProcess(struct Host_ISBUSPort *Port,u8 src)
         slaveaddr = Current->Address;
         __ISBUS_UniProcess(Port, slaveaddr);
         Current = Current->Next;
-    }while(Current == Port->SlaveHead);
+    }while(Current != Port->SlaveHead);
     return true;
 }
 
@@ -774,6 +774,21 @@ void __ISBUS_AddSlave(struct ISBUS_FunctionSocket  *InSerSocket , u8 src, u8 *bu
 void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
 {
     struct SlaveList *p1;
+    struct SlaveList* current;
+    u8 result = 0;
+    if(Port == NULL)
+        return ;
+    current = Port->SlaveHead;
+    if(current != NULL)
+    {
+        do
+        {
+            if(current->Address == address)
+                return;     //从机已经存在
+            else
+                current = current->Next;
+        }while(current != Port->SlaveHead);
+    }
     p1=(struct SlaveList*)malloc(sizeof(struct SlaveList));//申请新节点
     if(p1==NULL)
     {
@@ -846,11 +861,11 @@ u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address)
     {
         do
         {
-            result++;
             if(address != NULL)
                 address[result] = current->Address;
             current = current->Next;
-        }while(current != Port->SlaveHead);
+            result++;
+       }while(current != Port->SlaveHead);
     }
     return result;
 }

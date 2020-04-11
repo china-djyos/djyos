@@ -125,8 +125,8 @@ ptu32_t ISBUS_SlaveProcess(void)
             if(readed >= 256)
             {
                 memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
-                startoffset = 0;
                 readed -= startoffset;
+                startoffset = 0;
                 Port->analyzeoff = 0;
                 Port->recvoff = readed;
             }
@@ -516,6 +516,7 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
 // 函数功能：设置从机的本机地址。
 // 输入参数：Addr，本机地址，8位
 // 返回值： 无
+// 注意：须在注册端口之前调用
 // ============================================================================
 void ISBUS_SlaveSetAddress(u8 Addr)
 {
