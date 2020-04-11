@@ -274,7 +274,7 @@ s32 SignalStrength(u8 bArgC, ...)
         close(handle);
         return (-1);
     }
-
+    Djy_EventDelay(1000*1000);
     if(__GetResponse(handle, at_command, response, sizeof(response)))
     {
         // Driver_CloseDevice(handle);
@@ -389,7 +389,7 @@ char *ReadICCID(u8 bArgC, ...)
         close(handle);
         return NULL;
     }
-
+    Djy_EventDelay(1000*1000);
     if(__GetResponse(handle, at_command, response, sizeof(response)))
     {
         close(handle);
@@ -490,7 +490,7 @@ u8 *AT_Command(char *at_command,char *name)
         close(handle);
         return NULL;
     }
-
+    Djy_EventDelay(1000*1000);
     if(__GetResponse(handle, at_command, AT_Output, sizeof(AT_Output)))
     {
         close(handle);
