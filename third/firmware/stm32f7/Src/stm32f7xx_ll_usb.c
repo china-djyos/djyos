@@ -764,13 +764,15 @@ HAL_StatusTypeDef USB_EP0StartXfer(USB_OTG_GlobalTypeDef *USBx , USB_OTG_EPTypeD
 HAL_StatusTypeDef USB_WritePacket(USB_OTG_GlobalTypeDef *USBx, uint8_t *src, uint8_t ch_ep_num, uint16_t len, uint8_t dma)
 {
   uint32_t count32b= 0 , i= 0;
+  u32 temp;
   
   if (dma == 0)
   {
     count32b =  (len + 3) / 4;
     for (i = 0; i < count32b; i++, src += 4)
     {
-      USBx_DFIFO(ch_ep_num) = *((__packed uint32_t *)src);
+        temp = src[0]+(src[1]<<8)+(src[2]<<16)+(src[3]<<24);
+        USBx_DFIFO(ch_ep_num) = temp;
     }
   }
   return HAL_OK;
