@@ -189,7 +189,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             Port->analyzeoff = 0;
             Port->recvoff = 0;
         }
-        if(readed >= 256)
+        if((readed >= 256) && (startoffset > 128))
         {
             memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
             readed -= startoffset;
@@ -242,6 +242,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                             Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
                         Port->ErrorLast = CN_INS_CHKSUM_ERR;
                         Port->ErrorPkgs++;
+                        startoffset++;
                         Gethead = false;
                         continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
                     }
@@ -303,7 +304,8 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
         Me = __Host_GetProtocol(Port, protohead.Protocol);
         if(Me != NULL)
         {
-            Me->MyProcess(Me,src,protobuf+startoffset+sizeof(struct ISBUS_Protocol),len);
+            if(Me->MyProcess != NULL)
+                Me->MyProcess(Me,src,protobuf+startoffset+sizeof(struct ISBUS_Protocol),len);
         }
         startoffset += sizeof(struct ISBUS_Protocol) + len;
         if(startoffset == readed)
@@ -334,6 +336,8 @@ bool_t __ISBUS_BroadcastProcess(struct Host_ISBUSPort *Port,u8 src)
 {
     u8 slaveaddr;
     struct SlaveList *Current = Port->SlaveHead;
+    if(Current == NULL)
+        return false;
     do
     {
         slaveaddr = Current->Address;

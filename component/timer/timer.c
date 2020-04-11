@@ -96,7 +96,7 @@
 //%$#@num,0,100,
 #define CFG_TIMERS_LIMIT        5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
 //%$#@enum,true,false,
-#define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick/tickless做时钟源
+#define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick做时钟源
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,

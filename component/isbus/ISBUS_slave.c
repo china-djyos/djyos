@@ -122,7 +122,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
             }
-            if(readed >= 256)
+            if((readed >= 256) && (startoffset > 128))
             {
                 memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
                 readed -= startoffset;
@@ -173,6 +173,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                                 Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
                             Port->ErrorLast = CN_INS_CHKSUM_ERR;
                             Port->ErrorPkgs++;
+                            startoffset++;
                             Gethead = false;
                             continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
                         }
@@ -218,7 +219,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         Me = __Slave_GetProtocol(Port, protohead.Protocol);
         if(Me != NULL)
         {
-            if(protohead.DstAddress == mydst)
+            if((protohead.DstAddress == mydst) && (Me->MyProcess != NULL))
             {
                 Me->MyProcess(Me, protohead.SrcAddress,
                               protobuf + startoffset + sizeof(struct ISBUS_Protocol), len);
@@ -227,12 +228,14 @@ ptu32_t ISBUS_SlaveProcess(void)
             {
                 Port->EchoModel = BROADCAST_MODEL;
                 memcpy(Port->MTCcast, protobuf + startoffset + sizeof(struct ISBUS_Protocol),len);
-                if(Port->BoardcastPre == 0)      //本机地址是第一个从机。
+                if((Port->BoardcastPre == 0) && (Me->MyProcess != NULL))     //本机地址是第一个从机。
                 {
                     Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
                 }
             }
-            else if((protohead.SrcAddress == Port->BoardcastPre) && (Port->EchoModel == BROADCAST_MODEL))
+            else if((protohead.SrcAddress == Port->BoardcastPre)
+                        && (Port->EchoModel == BROADCAST_MODEL)
+                        && (Me->MyProcess != NULL))
             {
                 Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
             }
