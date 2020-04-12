@@ -114,9 +114,9 @@ ptu32_t ISBUS_SlaveProcess(void)
         protobuf = Port->RecvPkgBuf;
         startoffset = Port->analyzeoff;
         readed = Port->recvoff;
+        starttime = (u32)DjyGetSysTime();
         while(1)
         {
-            starttime = (u32)DjyGetSysTime();
             if(startoffset == readed)
             {
                 startoffset = 0;

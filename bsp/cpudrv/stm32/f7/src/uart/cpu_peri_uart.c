@@ -165,13 +165,21 @@
 
 //%$#@enum,true,false
 #define CFG_UART1_ENABLE           true        //"是否使用UART1",
+#define CFG_UART1_ENABLE_DMA       true        //"UART1使能DMA",
 #define CFG_UART2_ENABLE           false       //"是否使用UART2",
+#define CFG_UART2_ENABLE_DMA       false       //"UART2使能DMA",
 #define CFG_UART3_ENABLE           false       //"是否使用UART3",
+#define CFG_UART3_ENABLE_DMA       false       //"UART3使能DMA",
 #define CFG_UART4_ENABLE           false       //"是否使用UART4",
+#define CFG_UART4_ENABLE_DMA       false       //"UART4使能DMA",
 #define CFG_UART5_ENABLE           false       //"是否使用UART5",
+#define CFG_UART5_ENABLE_DMA       false       //"UART5使能DMA",
 #define CFG_UART6_ENABLE           false       //"是否使用UART6",
+#define CFG_UART6_ENABLE_DMA       false       //"UART6使能DMA",
 #define CFG_UART7_ENABLE           false       //"是否使用UART7",
+#define CFG_UART7_ENABLE_DMA       false       //"UART7使能DMA",
 #define CFG_UART8_ENABLE           false       //"是否使用UART8",
+#define CFG_UART8_ENABLE_DMA       false       //"UART8使能DMA",
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -1230,7 +1238,7 @@ u32 UART_ISR(ptu32_t port)
 ptu32_t ModuleInstall_UART(u32 serial_no)
 {
     struct UartParam UART_Param;
-
+    bool_t dmause;
     switch(serial_no)
     {
     case CN_UART1://串口1
@@ -1241,6 +1249,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART1_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART1_ENABLE_DMA;
         break;
     case CN_UART2://串口2
         UART_Param.Name         = "UART2";
@@ -1250,6 +1259,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART2_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART2_ENABLE_DMA;
         break;
 
     case CN_UART3://串口3
@@ -1260,6 +1270,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART3_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART3_ENABLE_DMA;
         break;
 
     case CN_UART4://串口4
@@ -1270,6 +1281,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART4_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART4_ENABLE_DMA;
         break;
     case CN_UART5://串口5
         UART_Param.Name         = "UART5";
@@ -1279,6 +1291,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART5_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART5_ENABLE_DMA;
         break;
     case CN_UART6://串口6
         UART_Param.Name         = "UART6";
@@ -1288,6 +1301,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART6_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART6_ENABLE_DMA;
         break;
     case CN_UART7://串口7
         UART_Param.Name         = "UART7";
@@ -1297,6 +1311,7 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART7_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART7_ENABLE_DMA;
         break;
     case CN_UART8://串口8
         UART_Param.Name         = "UART8";
@@ -1306,18 +1321,26 @@ ptu32_t ModuleInstall_UART(u32 serial_no)
         UART_Param.RxRingBufLen = CFG_UART8_RECVBUF_LEN;
         UART_Param.StartSend    = (UartStartSend)__UART_SendStart;
         UART_Param.UartCtrl     = (UartControl)__UART_Ctrl;
+        dmause                  = CFG_UART8_ENABLE_DMA;
         break;
     default:
         return 0;
     }
     UART_Param.mode = CN_UART_GENERAL;
-    pUART_DmaSendBuf[serial_no]=NULL;
-    pUART_DmaRecvBuf[serial_no][0]=NULL;
-    pUART_DmaRecvBuf[serial_no][1]=NULL;
     Board_UartHalfDuplexRecv(serial_no);
     //硬件初始化
     __UART_HardInit(serial_no);
     __UART_IntInit(serial_no);
+    if(dmause)
+    {
+        __UART_SetDmaUsed(serial_no);
+    }
+    else
+    {
+        pUART_DmaSendBuf[serial_no]=NULL;
+        pUART_DmaRecvBuf[serial_no][0]=NULL;
+        pUART_DmaRecvBuf[serial_no][1]=NULL;
+    }
     sUartInited |= (0x01 << serial_no);
     pUartCB[serial_no] = UART_InstallGeneral(&UART_Param);
     if( pUartCB[serial_no] == NULL)
