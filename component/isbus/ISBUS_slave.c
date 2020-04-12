@@ -132,11 +132,14 @@ ptu32_t ISBUS_SlaveProcess(void)
             }
             tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
                                         0, Port->Timeout);
-            if((tmp != 0) && (debug_ctrl ==true))
+            if(tmp != 0)
             {
-                printf("\r\nslave recv:");
-                for(tmp1 = 0; tmp1<tmp;tmp1++)
-                    printf("%02x ",protobuf[tmp1+readed]);
+                if(debug_ctrl ==true)
+                {
+                    printf("\r\nslave recv:");
+                    for(tmp1 = 0; tmp1<tmp;tmp1++)
+                        printf("%02x ",protobuf[tmp1+readed]);
+                }
                 readed += tmp;
             }
             if( ! Gethead)
@@ -150,41 +153,51 @@ ptu32_t ISBUS_SlaveProcess(void)
                     }
                 }
             }
-            if(Gethead)
+            if(Gethead && (readed - (s16)startoffset >= sizeof(struct ISBUS_Protocol)))
             {
-                if(readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol))
+                if((protobuf[startoffset + CN_OFF_DST] == mydst)    //本机地址
+                    ||(protobuf[startoffset + CN_OFF_DST] >= CN_INS_MULTICAST)  //广播或组播地址
+                    ||(protobuf[startoffset + CN_OFF_SRC] == Port->BoardcastPre)//广播前置地址
+                    ||(protobuf[startoffset + CN_OFF_SRC] == Port->MTCPre))     //组前置地址
                 {
-                    if((protobuf[startoffset + CN_OFF_DST] == mydst)    //本机地址
-                        ||(protobuf[startoffset + CN_OFF_DST] >= CN_INS_MULTICAST)  //广播或组播地址
-                        ||(protobuf[startoffset + CN_OFF_SRC] == Port->BoardcastPre)//广播前置地址
-                        ||(protobuf[startoffset + CN_OFF_SRC] == Port->MTCPre))     //组前置地址
+                    chk = 0xEB + protobuf[startoffset + CN_OFF_DST]
+                               + protobuf[startoffset + CN_OFF_PROTO]
+                               + protobuf[startoffset + CN_OFF_SRC]
+                               + protobuf[startoffset + CN_OFF_LEN];    //计算chk
+                    if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
                     {
-                        chk = 0xEB + protobuf[startoffset + CN_OFF_DST]
-                                   + protobuf[startoffset + CN_OFF_PROTO]
-                                   + protobuf[startoffset + CN_OFF_SRC]
-                                   + protobuf[startoffset + CN_OFF_LEN];    //计算chk
-                        if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
-                        {
-                            break;       //找到合法的协议头，退出循环，继续收数据包
-                        }
-                        else
-                        {
-                            if(Port->fnError != NULL)
-                                Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
-                            Port->ErrorLast = CN_INS_CHKSUM_ERR;
-                            Port->ErrorPkgs++;
-                            startoffset++;
-                            Gethead = false;
-                            continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
-                        }
+                        break;       //找到合法的协议头，退出循环，继续收数据包
                     }
                     else
                     {
-                        Gethead = false;
+                        if(Port->fnError != NULL)
+                            Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
+                        Port->ErrorLast = CN_INS_CHKSUM_ERR;
+                        Port->ErrorPkgs++;
                         startoffset++;
+                        Gethead = false;
                         continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
                     }
-                    break;
+                }
+                else
+                {
+                    Gethead = false;
+                    startoffset++;
+                    continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
+                }
+                break;
+            }
+            else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
+            {
+                if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
+                {
+                    if(Port->fnError != NULL)
+                        Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR);
+                    Port->ErrorLast = CN_INS_TIMEROUT_ERR;
+                    Port->ErrorPkgs++;
+                    Port->analyzeoff = 0;
+                    Port->recvoff = 0;
+                    return false;
                 }
             }
         };

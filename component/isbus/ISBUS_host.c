@@ -168,8 +168,8 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
     u32 starttime,nowtime;
     s32 DevRe = Port->SerialDevice;
     u8 *protobuf;
-    u8 chk,len,startoffset;
-    s16 restlen,Completed,readed,tmp,tmp1;
+    u8 chk,len;
+    s16 restlen,Completed,readed,startoffset,tmp,tmp1;
     s16 exdata;
 
     bool_t Gethead = false;
@@ -198,13 +198,16 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             Port->recvoff = readed;
         }
         tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed, 0, Port->Timeout);
-        if((tmp != 0) && (debug_ctrl ==true))
+        if(tmp != 0)
         {
-            printf("\r\nhost recv:");
-            for(tmp1 = 0; tmp1<tmp;tmp1++)
-                printf("%02x ",protobuf[tmp1+readed]);
+            if(debug_ctrl ==true)
+            {
+                printf("\r\nhost recv:");
+                for(tmp1 = 0; tmp1<tmp;tmp1++)
+                    printf("%02x ",protobuf[tmp1+readed]);
+            }
+            readed += tmp;
         }
-        readed += tmp;
         if( ! Gethead)
         {
             for(; startoffset < readed;startoffset++)
@@ -216,39 +219,36 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                 }
             }
         }
-        if(Gethead)
+        if(Gethead && (readed - (s16)startoffset >= sizeof(struct ISBUS_Protocol)))
         {
-            if(readed - (s16)startoffset >= sizeof(struct ISBUS_Protocol))
+            if((protobuf[startoffset + CN_OFF_DST] != 0)     //只收发给主机的包，主机地址总是0
+                ||(protobuf[startoffset + CN_OFF_SRC] != src))  //校验源地址
             {
-                if((protobuf[startoffset + CN_OFF_DST] != 0)     //只收发给主机的包，主机地址总是0
-                    ||(protobuf[startoffset + CN_OFF_SRC] != src))  //校验源地址
+                Gethead = false;
+                startoffset++;
+                continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
+            }
+            else
+            {
+                chk = 0xEB + 0 + protobuf[startoffset + CN_OFF_PROTO]
+                               + src
+                               + protobuf[startoffset + CN_OFF_LEN];    //计算chk
+                if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
                 {
-                    Gethead = false;
-                    startoffset++;
-                    continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
+                    break;       //找到合法的协议头，退出循环，继续收数据包
                 }
                 else
                 {
-                    chk = 0xEB + 0 + protobuf[startoffset + CN_OFF_PROTO]
-                                   + src
-                                   + protobuf[startoffset + CN_OFF_LEN];    //计算chk
-                    if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
-                    {
-                        break;       //找到合法的协议头，退出循环，继续收数据包
-                    }
-                    else
-                    {
-                        if(Port->fnError != NULL)
-                            Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
-                        Port->ErrorLast = CN_INS_CHKSUM_ERR;
-                        Port->ErrorPkgs++;
-                        startoffset++;
-                        Gethead = false;
-                        continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
-                    }
+                    if(Port->fnError != NULL)
+                        Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
+                    Port->ErrorLast = CN_INS_CHKSUM_ERR;
+                    Port->ErrorPkgs++;
+                    startoffset++;
+                    Gethead = false;
+                    continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
                 }
-                break;
             }
+            break;
         }
         else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
         {
@@ -261,11 +261,6 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
                 return false;
-            }
-            else
-            {
-                startoffset = 0;        //从头开始继续接收并查找0xEB
-                readed = 0;
             }
         }
 
