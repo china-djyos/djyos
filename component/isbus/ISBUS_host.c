@@ -198,13 +198,13 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             Port->recvoff = readed;
         }
         tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed, 0, Port->Timeout);
-        if(tmp != 0)
+        if((tmp != 0) && (debug_ctrl ==true))
         {
             printf("\r\nhost recv:");
             for(tmp1 = 0; tmp1<tmp;tmp1++)
                 printf("%02x ",protobuf[tmp1+readed]);
-            readed += tmp;
         }
+        readed += tmp;
         if( ! Gethead)
         {
             for(; startoffset < readed;startoffset++)
@@ -588,10 +588,13 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 *dst)
             SendBuf = me->IM_buf;
             SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
             DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
-            printf("\r\nhost send:");
-            for(tmp = 0;tmp < SendLen;tmp++)
+            if((debug_ctrl ==true))
             {
-                printf("%02x ",SendBuf[tmp]);
+                printf("\r\nhost send:");
+                for(tmp = 0;tmp < SendLen;tmp++)
+                {
+                    printf("%02x ",SendBuf[tmp]);
+                }
             }
             *dst = SendBuf[CN_OFF_DST];
             result = true;
@@ -617,10 +620,13 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 *dst)
             *dst = SendBuf[CN_OFF_DST];
             SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
             DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
-            printf("\r\nhost send:");
-            for(tmp = 0;tmp < SendLen;tmp++)
+            if((debug_ctrl ==true))
             {
-                printf("%02x ",SendBuf[tmp]);
+                printf("\r\nhost send:");
+                for(tmp = 0;tmp < SendLen;tmp++)
+                {
+                    printf("%02x ",SendBuf[tmp]);
+                }
             }
             result = true;
         }
@@ -949,4 +955,5 @@ void ISBUS_HostInit(u32 HostStackSize)
     }
 
 }
+
 

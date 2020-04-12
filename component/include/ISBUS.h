@@ -53,6 +53,7 @@ extern "C" {
 #define MULTICAST_MODEL   (2)  //一问多答，组播模式
 
 #define UNLIMITED_NUMBER  (0xFFFFFFFF)  //无限次数轮询
+extern bool_t debug_ctrl;
 
 struct ISBUS_FunctionSocket;
 struct ISBUS_Protocol;

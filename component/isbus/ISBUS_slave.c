@@ -132,7 +132,7 @@ ptu32_t ISBUS_SlaveProcess(void)
             }
             tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
                                         0, Port->Timeout);
-            if(tmp != 0)
+            if((tmp != 0) && (debug_ctrl ==true))
             {
                 printf("\r\nslave recv:");
                 for(tmp1 = 0; tmp1<tmp;tmp1++)
@@ -504,10 +504,13 @@ u32 ISBUS_SlaveSendPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket, u8 ds
     memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
 
     DevWrite(Port->SerialDevice, SendBuf, SendLen, 0, CN_TIMEOUT_FOREVER);
-    printf("\r\nslave send:");
-    for(tmp = 0;tmp < SendLen;tmp++)
+    if((debug_ctrl ==true))
     {
-        printf("%02x ",SendBuf[tmp]);
+        printf("\r\nslave send:");
+        for(tmp = 0;tmp < SendLen;tmp++)
+        {
+            printf("%02x ",SendBuf[tmp]);
+        }
     }
 //  if(Completed != -1)
 //      Port->SendP = Completed;

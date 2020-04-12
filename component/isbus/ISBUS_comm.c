@@ -48,7 +48,10 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <djyos.h>
+#include <shell.h>
 #include "component_config_isbus.h"
+
+bool_t debug_ctrl = true;
 // ============================================================================
 // 函数功能：安装内部串口通信模块。该模块仅适用于从机部分。
 // 输入参数：StackSize，模块需要的内存尺寸，由于串行通信协议解析后，要调用用户
@@ -66,4 +69,13 @@ bool_t ModuleInstall_ISBUS(u32 HostStackSize,u32 SlaveStackSize)
     ISBUS_SlaveInit(SlaveStackSize);
 #endif
 }
+
+bool_t ndbgisbus(char *param)
+{
+    if(debug_ctrl == false)
+        debug_ctrl = true;
+    else
+        debug_ctrl = false;
+}
+ADD_TO_ROUTINE_SHELL(ndbgisbus,ndbgisbus,"");
 
