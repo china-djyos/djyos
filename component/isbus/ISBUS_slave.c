@@ -93,6 +93,7 @@ struct ISBUS_FunctionSocket * __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u
 // ============================================================================
 ptu32_t ISBUS_SlaveProcess(void)
 {
+    u32 starttime,nowtime;
     struct Slave_ISBUSPort *Port;
     struct ISBUS_FunctionSocket *Me;
     struct ISBUS_Protocol protohead;
@@ -115,6 +116,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         readed = Port->recvoff;
         while(1)
         {
+            starttime = (u32)DjyGetSysTime();
             if(startoffset == readed)
             {
                 startoffset = 0;
