@@ -59,11 +59,11 @@
 #include "stddef.h"
 
 //硬件定时器状态和控制位，也是EN_TIMER_GETSTATE命令返回值
-#define CN_TIMER_ENCOUNT     ((u32)(1<<0))//允许计数
-#define CN_TIMER_ENINT       ((u32)(1<<1))//允许产生异常
-#define CN_TIMER_REALINT     ((u32)(1<<2))//实时信号
-#define CN_TIMER_RELOAD      ((u32)(1<<3))//是否reload
-#define CN_TIMER_ENUSE       ((u32)(1<<10))//正在使用
+#define CN_TIMER_ENCOUNT     ((u32)(1<<0))      //允许计数
+#define CN_TIMER_ENINT       ((u32)(1<<1))      //允许产生异常
+#define CN_TIMER_REALINT     ((u32)(1<<2))      //实时信号
+#define CN_TIMER_RELOAD      ((u32)(1<<3))      //是否reload
+#define CN_TIMER_ENUSE       ((u32)(1<<10))     //正在使用，用于硬件定时器
 
 //TIMER的操作码
 enum HardTimerCmdCode

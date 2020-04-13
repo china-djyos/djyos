@@ -113,7 +113,7 @@ struct Timer
     char          *name;
     u32           cycle;        //定时器周期 (单位是微秒)
     fnTimerRecall isr;          //定时器定时时间节点钩子函数
-    u32           stat;         //定时器状态标志，参见CN_TIMER_ENCOUNT等常数
+    u32           stat;         //定时器状态标志，参见 CN_TIMER_ENCOUNT 等常数
     ptu32_t       TimerTag;     //私有标签
     s64           deadline;     //定时器定时时间(单位是微秒)
 };
@@ -555,6 +555,27 @@ tagTimer* Timer_Create(const char *name, u32 cycle,fnTimerRecall isr)
     }
     return result;
 }
+
+//-----------------------------------------------------------------------------
+//功能：查看定时器是否在运行状态
+//参数：Timer，待查看的定时器
+//返回：true = running，false= stop
+//-----------------------------------------------------------------------------
+bool_t Timer_IsRunning(tagTimer *Timer)
+{
+    if(Timer == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        if(Timer->stat & CN_TIMER_ENCOUNT)
+            return true;
+        else
+            return false;
+    }
+}
+
 // =============================================================================
 // 函数功能：Timer_Delete
 //           删除一个定时器
@@ -615,7 +636,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
                         __Timer_Add(timer);
                     }
                     break;
-                case EN_TIMER_SOFT_PAUSE:
+                case EN_TIMER_SOFT_STOP:
                     if(CN_TIMER_ENCOUNT & timer->stat)          //本来在运行态
                     {
                         timer->stat &= (~CN_TIMER_ENCOUNT);
@@ -713,7 +734,7 @@ ptu32_t  Timer_VMTask(void)
                         __Timer_Add(timer);
                     }
                     break;
-                case EN_TIMER_SOFT_PAUSE:
+                case EN_TIMER_SOFT_STOP:
                     if(CN_TIMER_ENCOUNT & timer->stat)      //本来在运行态
                     {
                         timer->stat &= (~CN_TIMER_ENCOUNT);
