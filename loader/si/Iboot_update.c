@@ -229,7 +229,6 @@ bool_t Iboot_UpdateApp(void)
         if(!stat(CFG_FORCED_UPDATE_PATH,&test_stat))
             srcapp = fopen(CFG_FORCED_UPDATE_PATH, "r+");
 
-        info_printf("IAP","app update start.\r\n");
         if(srcapp == NULL)
         {
             if(Get_MutualUpdatePath(apppath, sizeof(apppath)) == false)
@@ -247,6 +246,7 @@ bool_t Iboot_UpdateApp(void)
         }
         if(srcapp != NULL)
         {
+            info_printf("IAP","app update start.\r\n");
             file = strrchr(apppath, '/');
             if(strlen(file) > 31)
             {

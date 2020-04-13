@@ -585,7 +585,7 @@ static void __UART_ComConfig(tagUartReg volatile *Reg,u32 port,struct COMParam *
 
     switch(COM->StopBits)  //todu:F7的 0.5个停止位没有写进来
     {
-        Reg->CR2 &= ~(3<<12);
+//        Reg->CR2 &= ~(3<<12);
 //      case CN_UART_STOPBITS_0_5;  Reg->CR2 |= (1<<12);break;
         case CN_UART_STOPBITS_1:    Reg->CR2 |= (0<<12);break;
         case CN_UART_STOPBITS_1_5:  Reg->CR2 |= (3<<12);break;
@@ -1158,7 +1158,7 @@ uint32_t UART_DmaRx_ISR(ptu32_t port)
     else//区发生缓冲区环绕
     {
         recvs = &DmaRecvBufold[DmaRecvBufLen]-sp_DmaRecvBuf[port];
-        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],newrcvlen);
+        num = UART_PortWrite(pUartCB[port],sp_DmaRecvBuf[port],recvs);
         if(num != recvs)
             UART_ErrHandle(pUartCB[port],CN_UART_BUF_OVER_ERR);
 
