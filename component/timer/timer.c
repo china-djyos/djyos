@@ -132,7 +132,6 @@ static u32 s_u32TimerFreq;          //所用的硬件定时器频率
 //static bool_t  sbUsingHardTimer = false;
 static tagTimer* ptTimerHead = NULL;                 //软定时器队列头
 static tagTimer* ptTimerTail = NULL;                 //软件定时器队尾
-static tagTimer           *ptTimerMem = NULL;        //动态分配内存
 static struct MemCellPool  *ptTimerMemPool = NULL;    //内存池头指针。
 static struct MutexLCB     *ptTimerQSync =NULL;       //API资源竞争锁
 
@@ -372,6 +371,9 @@ u32 __GetTclkCycle(u32 waittime)
         result = s_u32Precision2Tclk;
     return result;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 函数功能：Timer_ISR
 //          定时器中断服务HOOK
@@ -399,6 +401,7 @@ u32 Timer_ISR(ptu32_t irq_no)
 
     return 0;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 函数功能：Timer_Create_s
@@ -417,7 +420,6 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
 {
     tagTimer*      result = NULL;
     u32                waittime;
-    tagTimerMsg    msg;
     if(NULL == timer)  //参数检查
     {
         result =NULL;
@@ -453,6 +455,7 @@ tagTimer*  Timer_Create_s(tagTimer *timer,const char *name,
         }
 #else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
+            tagTimerMsg    msg;
             timer->name = (char*)name;
             timer->cycle = cycle;
             timer->isr = isr;
@@ -481,7 +484,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
 {
     tagTimer*      result = NULL;
     u32                waittime;
-    tagTimerMsg    msg;
+
     if(NULL == timer)  //参数检查
     {
         result =NULL;
@@ -511,6 +514,7 @@ tagTimer* Timer_Delete_s(tagTimer* timer)
         }
 #else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
+            tagTimerMsg    msg;
             msg.timer = timer;
             msg.type = EN_TIMERSOFT_REMOVE;
             if(MsgQ_Send(ptTimerMsgQ,(u8 *)&msg, sizeof(msg),\
@@ -588,7 +592,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
     bool_t  result = false;
     u32     waittime;
     s64     timenow;               //当前时间
-    tagTimerMsg msg;
+
     if(timer)                      //参数检查
     {
 #if CFG_TIMER_SOUCE_HARD == true        //由硬件计时器提供时钟源
@@ -657,6 +661,7 @@ bool_t Timer_Ctrl(tagTimer* timer,u32 opcode, u32 para)
         }
 #else       //for #if CFG_TIMER_SOUCE_HARD == true
         {
+            tagTimerMsg msg;
             msg.timer = timer;
             msg.type = opcode;
             msg.para = para;
@@ -809,8 +814,6 @@ char *Timer_GetName(tagTimer* timer)
 bool_t ModuleInstall_Timer(void)
 {
     static tagTimer ptTimerMem[CFG_TIMERS_LIMIT];
-    u16 u16EvttId;
-    u16 u16EventId;
     printk("Timer:Init Start....\n\r");
     ptTimerMemPool = Mb_CreatePool(ptTimerMem,CFG_TIMERS_LIMIT,
                                 sizeof(tagTimer),0,0,"Timer");
@@ -842,6 +845,8 @@ bool_t ModuleInstall_Timer(void)
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_ENINT,(ptu32_t)NULL);
         HardTimer_Ctrl(sgHardTimerDefault,EN_TIMER_SETRELOAD,(ptu32_t)false);
 #else   //CFG_TIMER_SOUCE_HARD == true      由tick提供时钟源
+        u16 u16EvttId;
+        u16 u16EventId;
 
         //建立通信用的消息队列
         ptTimerMsgQ = MsgQ_Create(CN_TIMERSOFT_MSGLEN, \
@@ -882,7 +887,6 @@ EXIT_TIMERFAILED:
     Mb_DeletePool(ptTimerMemPool);
 EXIT_POOLFAILED:
     free(ptTimerMem);
-EXIT_MEMFAILED:
     printk("Timer:Init Failed\n\r");
     return false;
 }

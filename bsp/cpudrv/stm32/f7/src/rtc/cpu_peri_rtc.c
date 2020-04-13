@@ -364,6 +364,8 @@ static bool_t RTC_Configuration(void)
     }
     return true;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 功能：RTC时间注册及初始化
 // 参数：time, 时间值
@@ -405,8 +407,4 @@ ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
         return false;
     return true;
 }
-
-
-
-
-
+#pragma GCC diagnostic pop

@@ -165,7 +165,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
 {
     struct ISBUS_FunctionSocket *Me;
     struct ISBUS_Protocol protohead;
-    u32 starttime,nowtime;
+    u32 starttime;
     s32 DevRe = Port->SerialDevice;
     u8 *protobuf;
     u8 chk,len;
@@ -219,7 +219,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                 }
             }
         }
-        if(Gethead && (readed - (s16)startoffset >= sizeof(struct ISBUS_Protocol)))
+        if(Gethead && (readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol)))
         {
             if((protobuf[startoffset + CN_OFF_DST] != 0)     //只收发给主机的包，主机地址总是0
                 ||(protobuf[startoffset + CN_OFF_SRC] != src))  //校验源地址
@@ -326,6 +326,8 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
         return false;
     }
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 bool_t __ISBUS_BroadcastProcess(struct Host_ISBUSPort *Port,u8 src)
 {
@@ -346,6 +348,7 @@ bool_t __ISBUS_MulticastProcess(struct Host_ISBUSPort *Port,u8 src)
 {
     return true;
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 函数功能：主机端协议处理函数
@@ -505,7 +508,6 @@ struct ISBUS_FunctionSocket *ISBUS_HostRegistProtocol(struct Host_ISBUSPort *Por
                                           u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn)
 {
     struct ISBUS_FunctionSocket *ProtocolSocket;
-    bool_t result = true;
     if(Port == NULL)
         return NULL;
     ProtocolSocket = (struct ISBUS_FunctionSocket *)malloc(sizeof(struct Host_ISBUSPort ));
@@ -761,6 +763,8 @@ void ISBUS_PollConfig(struct Host_ISBUSPort *Port,u32 PollCycle,u8 PollModel)
     return;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // ============================================================================
 // 功能：扫描子机的功能函数，添加从机并设置参数。
 // 输入参数：InSerSocket，功能槽号
@@ -775,12 +779,12 @@ void __ISBUS_AddSlave(struct ISBUS_FunctionSocket  *InSerSocket , u8 src, u8 *bu
     Port = InSerSocket->CommPort;
     ISBUS_AddSlave(Port, src);
 }
+#pragma GCC diagnostic pop
 
 void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
 {
     struct SlaveList *p1;
     struct SlaveList* current;
-    u8 result = 0;
     if(Port == NULL)
         return ;
     current = Port->SlaveHead;
@@ -899,9 +903,9 @@ void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num)
 void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address)
 {
     struct SlaveList* current,*pre;
-    u8 result = 0;
+
     if(Port == NULL)
-        return 0;
+        return ;
     current = Port->SlaveHead;
     pre = Port->SlaveTail;
     while(current != NULL)
@@ -930,7 +934,7 @@ void ISBUS_DeleteSlave (struct Host_ISBUSPort * Port, u8 address)
         pre = current;
         current = current->Next;
     }
-    return result;
+    return;
 }
 
 //-----------------------------------------------------------------------------

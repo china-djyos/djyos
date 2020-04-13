@@ -252,6 +252,9 @@ static u8 *pUART_DmaRecvBuf[CN_UART_NUM][2];
 
 static struct UartGeneralCB *pUartCB[CN_UART_NUM];
 static u8 *sp_DmaRecvBuf[CN_UART_NUM];
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 //用于标识串口是否初始化标记，第0位表示UART0，第一位表UART1....
 //依此类推，1表示初始化，0表示未初始化
 static u8 sUartInited = 0;
@@ -271,6 +274,8 @@ __attribute__((weak))  void UART_OutLowPowerPinCfg(u8 SerialNo)
 {
     return ;
 }
+#pragma GCC diagnostic pop
+
 // =============================================================================
 static ptu32_t UART_ISR(ptu32_t port);
 static uint32_t UART_DmaRx_ISR(ptu32_t port);
@@ -784,13 +789,16 @@ u32 __UART_DMA_SendStart(u32 port)
     return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 功能: 启动串口发送，其目的是触发中断，用中断方式发送数据。
 // 参数: Reg,被操作的串口寄存器指针.
 // 返回: 发送的个数
 // =============================================================================
-static u32 __UART_SendStart (tagUartReg *Reg)
+static u32 __UART_SendStart (ptu32_t MyReg)
 {
+    tagUartReg *Reg = (tagUartReg *)MyReg;
     u8 port;
 
     switch((u32)Reg)
@@ -821,6 +829,7 @@ static u32 __UART_SendStart (tagUartReg *Reg)
     __UART_TxIntEnable(s_UART_DmaUsed[port],port);
     return 1;
 }
+#pragma GCC diagnostic pop
 
 // =============================================================================
 // 功能: 设置uart使用dma收发，根据stm32各串口的收发dma通道配置寄存器。将重新初

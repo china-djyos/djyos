@@ -185,7 +185,7 @@ static tagUartReg volatile * const tg_UART_Reg[] = {(tagUartReg *)CN_UART0_BASE,
                                                     (tagUartReg *)CN_UART4_BASE,
                                                     (tagUartReg *)CN_UART5_BASE};
 
-typedef uint32_t (* UartStartSend)(ptu32_t PrivateTag,uint32_t timeout);
+typedef uint32_t (* UartStartSend)(ptu32_t PrivateTag);
 //typedef u32 (* UartDirectSend)(ptu32_t PrivateTag,u8 *send_buf,u32 len,u32 timeout);
 typedef ptu32_t (*UartControl)(ptu32_t PrivateTag,uint32_t cmd, uint32_t data1,uint32_t data2);
 

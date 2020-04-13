@@ -93,15 +93,14 @@ struct ISBUS_FunctionSocket * __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u
 // ============================================================================
 ptu32_t ISBUS_SlaveProcess(void)
 {
-    u32 starttime,nowtime;
+    u32 starttime;
     struct Slave_ISBUSPort *Port;
     struct ISBUS_FunctionSocket *Me;
     struct ISBUS_Protocol protohead;
-    s32 DevRe = Port->SerialDevice;
+    s32 DevRe;
     u8 *protobuf;
     u8 chk,len, mydst;
     s16 restlen,Completed,readed,startoffset,tmp,tmp1;
-    s16 exdata;
 
     Djy_GetEventPara((ptu32_t*)&Port, NULL);
     DevRe = Port->SerialDevice;
@@ -155,7 +154,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                     }
                 }
             }
-            if(Gethead && (readed - (s16)startoffset >= sizeof(struct ISBUS_Protocol)))
+            if(Gethead && (readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol)))
             {
                 if((protobuf[startoffset + CN_OFF_DST] == mydst)    //本机地址
                     ||(protobuf[startoffset + CN_OFF_DST] >= CN_INS_MULTICAST)  //广播或组播地址
@@ -226,10 +225,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                 if(Completed >= restlen)
                     break;
             }
-            exdata = Completed - restlen;
         }
-        else
-            exdata = 0 - restlen;
 
         Me = __Slave_GetProtocol(Port, protohead.Protocol);
         if(Me != NULL)
@@ -295,6 +291,9 @@ bool_t ISBUS_SlaveInit(u32 StackSize)
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 //-----------------------------------------------------------------------------
 //功能：协议处理函数，用于接收组播列表，设置本端口组播号、组播前序地址，并把本端口
 //      的应答模式改为组播批量模式，立即生效。
@@ -351,6 +350,7 @@ void __CHK_SlaveSend(struct ISBUS_FunctionSocket *ProtocolSocket,u8 src,u8 *buf,
 {
     ISBUS_SlaveSendPkg(ProtocolSocket, 0, NULL, 0);
 }
+#pragma GCC diagnostic pop
 
 // ============================================================================
 // 函数功能：注册使用的通信端口，事实上，不是串口也可以注册的。从机端。
@@ -437,7 +437,7 @@ struct ISBUS_FunctionSocket *ISBUS_SlaveRegistProtocol(struct Slave_ISBUSPort *P
                                             u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn)
 {
     struct ISBUS_FunctionSocket *ProtocolSocket;
-    bool_t result = true;
+
     if(Port == NULL)
         return NULL;
     ProtocolSocket = (struct ISBUS_FunctionSocket *)malloc(sizeof(struct Slave_ISBUSPort ));

@@ -230,7 +230,7 @@ int   _EXFUN(remove, (const char *));
 FILE *  _EXFUN(freopen, (const char *restrict, const char *restrict, FILE *restrict));
 int   _EXFUN(vfprintf, (FILE *restrict, const char *restrict, va_list));
 int   _EXFUN(fprintf, (FILE *restrict, const char *restrict, ...));
-//s32 printk (const char *fmt, ...);
+s32 printk (const char *fmt, ...);
 //void NULL_Func(void);
 int   _EXFUN(fputc, (int, FILE *));
 int   _EXFUN(fgetc, (FILE *));

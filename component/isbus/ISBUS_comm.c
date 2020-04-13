@@ -51,6 +51,8 @@
 #include <shell.h>
 #include "component_config_isbus.h"
 
+bool_t ISBUS_SlaveInit(u32 StackSize);
+void ISBUS_HostInit(u32 HostStackSize);
 bool_t debug_ctrl = true;
 // ============================================================================
 // 函数功能：安装内部串口通信模块。该模块仅适用于从机部分。
@@ -76,6 +78,7 @@ bool_t ndbgisbus(char *param)
         debug_ctrl = true;
     else
         debug_ctrl = false;
+    return true;
 }
 ADD_TO_ROUTINE_SHELL(ndbgisbus,ndbgisbus,"");
 
