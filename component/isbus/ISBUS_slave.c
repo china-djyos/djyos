@@ -123,7 +123,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
             }
-            if((readed >= 256) && (startoffset > 128))
+            else if((readed >= 256) && (startoffset > 128))
             {
                 memcpy(protobuf, &protobuf[startoffset], readed-startoffset);
                 readed -= startoffset;
@@ -154,51 +154,56 @@ ptu32_t ISBUS_SlaveProcess(void)
                     }
                 }
             }
-            if(Gethead && (readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol)))
+            if(Gethead )
             {
-                if((protobuf[startoffset + CN_OFF_DST] == mydst)    //本机地址
-                    ||(protobuf[startoffset + CN_OFF_DST] >= CN_INS_MULTICAST)  //广播或组播地址
-                    ||(protobuf[startoffset + CN_OFF_SRC] == Port->BoardcastPre)//广播前置地址
-                    ||(protobuf[startoffset + CN_OFF_SRC] == Port->MTCPre))     //组前置地址
+                if(readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol))
                 {
-                    chk = 0xEB + protobuf[startoffset + CN_OFF_DST]
-                               + protobuf[startoffset + CN_OFF_PROTO]
-                               + protobuf[startoffset + CN_OFF_SRC]
-                               + protobuf[startoffset + CN_OFF_LEN];    //计算chk
-                    if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
+                    u8 *proto = protobuf + startoffset;
+                    if((proto[CN_OFF_DST] == mydst)    //本机地址
+                        ||(proto[CN_OFF_DST] >= CN_INS_MULTICAST)  //广播或组播地址
+                        ||(proto[CN_OFF_SRC] == Port->BoardcastPre)//广播前置地址
+                        ||(proto[CN_OFF_SRC] == Port->MTCPre))     //组前置地址
                     {
-                        break;       //找到合法的协议头，退出循环，继续收数据包
+                        chk = 0xEB + proto[CN_OFF_DST]
+                                   + proto[CN_OFF_PROTO]
+                                   + proto[CN_OFF_SRC]
+                                   + proto[CN_OFF_LEN];    //计算chk
+                        if(chk == proto[CN_OFF_CHKSUM])
+                        {
+                            break;      //协议头校验正确，退出循环，继续收和处理数据包
+                        }
+                        else            //包头校验出错，记录错误信息
+                        {
+                            if(Port->fnError != NULL)
+                                Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
+                            Port->ErrorLast = CN_INS_CHKSUM_ERR;
+                            Port->ErrorPkgs++;
+                            startoffset++;
+                            Gethead = false;
+                            continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
+                        }
                     }
                     else
                     {
-                        if(Port->fnError != NULL)
-                            Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
-                        Port->ErrorLast = CN_INS_CHKSUM_ERR;
-                        Port->ErrorPkgs++;
-                        startoffset++;
                         Gethead = false;
+                        startoffset++;
                         continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
                     }
+                    break;
                 }
-                else
+                else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
                 {
-                    Gethead = false;
-                    startoffset++;
-                    continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
-                }
-                break;
-            }
-            else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
-            {
-                if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
-                {
-                    if(Port->fnError != NULL)
-                        Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR);
-                    Port->ErrorLast = CN_INS_TIMEROUT_ERR;
-                    Port->ErrorPkgs++;
-                    Port->analyzeoff = 0;
-                    Port->recvoff = 0;
-                    return false;
+                    if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
+                    {
+                        if(Port->fnError != NULL)
+                            Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR);
+                        Port->ErrorLast = CN_INS_TIMEROUT_ERR;
+                        Port->ErrorPkgs++;
+                        Port->analyzeoff = 0;
+                        Port->recvoff = 0;
+                        printf("\r\n timeover return....");
+                        continue;
+                    }
                 }
             }
         };
@@ -264,7 +269,6 @@ ptu32_t ISBUS_SlaveProcess(void)
         }
         Port->src = protohead.SrcAddress;
         Port->dst = protohead.DstAddress;
-//        return true;
     }
 }
 

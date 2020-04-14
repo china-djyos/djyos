@@ -105,6 +105,7 @@ struct Host_ISBUSPort
     u8  fsm;                                //当前协议接收状态
     s16 analyzeoff;                         //解包指针
     s16 recvoff;                            //当前接收指针
+    u8 *ResendPkgBuf;                       //发包指针备份，用于重发
     u8 *PollSendPkgBuf;                     //发送数据包指针（包含协议头）
     struct IM_Pkg *IM_Head;                 //立即发送包队列头
     struct IM_Pkg *IM_Tail;                 //立即发送包队列尾
@@ -125,7 +126,7 @@ static u16 sg_ptHostEvtt;
 u8 COUNT_Slave;
 u8 Effective_Slave=0;
 u8 g_TimeOut=0;  //超时标志位
-bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 *dst);
+bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst);
 
 
 struct ISBUS_FunctionSocket * __Host_GetProtocol(struct Host_ISBUSPort *Port,u8 Protocol)
@@ -251,6 +252,8 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             break;
         }
         else        //一个超时周期过去了，没收到完整的协议头，肯定超时了。
+                    //此处与从机不一样，从机只在收到部分包时判超时，因为从机时被动接收。
+                    //主机是发包后等待从机响应，从机必须立即响应。
         {
             if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
             {
@@ -280,7 +283,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             readed -= startoffset;
             startoffset = 0;
         }
-        while(((u32)DjyGetSysTime - starttime) < Port->Timeout)
+        while(((u32)DjyGetSysTime() - starttime) < Port->Timeout)
         {
             tmp = DevRead(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
             Completed += tmp;
@@ -374,17 +377,17 @@ ptu32_t ISBUS_HostProcess(void)
     struct Host_ISBUSPort *Port;
     s64 Polltime;
     u8 dst;
-    bool_t send;
+    bool_t send,resend = false;
     Djy_GetEventPara((ptu32_t*)&Port, NULL);
     Polltime = DjyGetSysTime();
     while(1)
     {
-        send = __HostSendPkg(Port, &dst);   //dst用于提取发送buffer中的dst地址
+        send = __HostSendPkg(Port, resend, &dst);   //dst用于提取发送包的dst地址
         if(send == true)
         {
             if(dst < CN_INS_MULTICAST)          //点对点通信,一应一答模式
             {
-                __ISBUS_UniProcess(Port,dst);          //接收并处理数据包
+                resend = ! __ISBUS_UniProcess(Port,dst);          //接收并处理数据包
                 //注：快速轮询直接继续执行下一个while循环，无须单独处理
                 if(Port->PollModel == CN_POLL_SAME_INTERVAL)   //等间隔轮询
                 {
@@ -402,7 +405,7 @@ ptu32_t ISBUS_HostProcess(void)
             }
             else       //组播/广播地址，组播号内的从机依序上传
             {
-                __ISBUS_BroadcastProcess(Port,dst);
+                resend = ! __ISBUS_UniProcess(Port,dst);
                 if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
                     Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
@@ -418,6 +421,7 @@ ptu32_t ISBUS_HostProcess(void)
                 Djy_EventDelay(20000);
             else
                 Djy_EventDelay(Port->PollCycle);
+            resend = false;
         }
     }
     return 0;
@@ -468,6 +472,7 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
         Port->Resttime = 0;
         Port->analyzeoff = 0;
         Port->recvoff = 0;
+        Port->ResendPkgBuf = NULL;
         Port->PollSendPkgBuf = recvbuf + 256 + sizeof(struct ISBUS_Protocol);
         Port->RecvPkgBuf = recvbuf;
         Port->PortMaxRecvLen = sizeof(struct ISBUS_Protocol);
@@ -563,77 +568,95 @@ struct ISBUS_FunctionSocket *ISBUS_HostRegistProtocol(struct Host_ISBUSPort *Por
 //      dst，返回发送的目的地址
 //返回值： 发送的目的地址，用于调用方决定下一步接收过程。
 // ============================================================================
-bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 *dst)
+bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
 {
     u8 *SendBuf;
     bool_t result;
     struct IM_Pkg *me;
     u8 SendLen,tmp;
-    Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
-    if(Port->IM_Head != NULL)       //发送即时消息
+    if((resend) && (Port->ResendPkgBuf != NULL))
     {
-            me = Port->IM_Head;
-            if(Port->IM_Head == Port->IM_Tail)
+        SendBuf = Port->ResendPkgBuf;
+        SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+        DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
+        *dst = SendBuf[CN_OFF_DST];
+        printf("\r\nhost resend:");
+            for(tmp = 0;tmp < SendLen;tmp++)
             {
-                Port->IM_Tail = NULL;
-                Port->IM_Head = NULL;
+                printf("%02x ",SendBuf[tmp]);
+            }
+        result = true;
+    }
+    else
+    {
+        Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
+        if(Port->IM_Head != NULL)       //发送即时消息
+        {
+                me = Port->IM_Head;
+                if(Port->IM_Head == Port->IM_Tail)
+                {
+                    Port->IM_Tail = NULL;
+                    Port->IM_Head = NULL;
+                }
+                else
+                {
+                    Port->IM_Head = Port->IM_Head->next;
+                }
+                SendBuf = me->IM_buf;
+                SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+                DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
+                if((debug_ctrl ==true))
+                {
+                    printf("\r\nhost send:");
+                    for(tmp = 0;tmp < SendLen;tmp++)
+                    {
+                        printf("%02x ",SendBuf[tmp]);
+                    }
+                }
+                *dst = SendBuf[CN_OFF_DST];
+                result = true;
+                free(me);
+                Port->ResendPkgBuf = SendBuf;
+        }
+        else                            //发送周期性轮询消息
+        {
+            if((Port->SendTimes != 0) && (Port->SlaveHead != NULL))
+            {
+                SendBuf = Port->PollSendPkgBuf;
+                if(SendBuf[CN_OFF_DST] < CN_INS_MULTICAST)
+                {
+                    SendBuf[CN_OFF_DST] = Port->SlaveCurrent->Address;
+                    Port->SlaveCurrent = Port->SlaveCurrent->Next;
+                    if((Port->SlaveCurrent == Port->SlaveHead) && (Port->SendTimes != -1))
+                        Port->SendTimes--;
+                }
+                else
+                    if(Port->SendTimes != -1)
+                        Port->SendTimes--;
+                SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST]  + SendBuf[CN_OFF_PROTO]
+                                          + SendBuf[CN_OFF_SRC]  + SendBuf[CN_OFF_LEN];
+                *dst = SendBuf[CN_OFF_DST];
+                SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+                DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
+                if((debug_ctrl ==true))
+                {
+                    printf("\r\nhost send:");
+                    for(tmp = 0;tmp < SendLen;tmp++)
+                    {
+                        printf("%02x ",SendBuf[tmp]);
+                    }
+                }
+                result = true;
+                Port->ResendPkgBuf = SendBuf;
             }
             else
             {
-                Port->IM_Head = Port->IM_Head->next;
+                *dst = 0;
+                result = false;
             }
-            SendBuf = me->IM_buf;
-            SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-            DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
-            if((debug_ctrl ==true))
-            {
-                printf("\r\nhost send:");
-                for(tmp = 0;tmp < SendLen;tmp++)
-                {
-                    printf("%02x ",SendBuf[tmp]);
-                }
-            }
-            *dst = SendBuf[CN_OFF_DST];
-            result = true;
-            free(me);
-    }
-    else                            //发送周期性轮询消息
-    {
-        if((Port->SendTimes != 0) && (Port->SlaveHead != NULL))
-        {
-            SendBuf = Port->PollSendPkgBuf;
-            if(SendBuf[CN_OFF_DST] < CN_INS_MULTICAST)
-            {
-                SendBuf[CN_OFF_DST] = Port->SlaveCurrent->Address;
-                Port->SlaveCurrent = Port->SlaveCurrent->Next;
-                if((Port->SlaveCurrent == Port->SlaveHead) && (Port->SendTimes != -1))
-                    Port->SendTimes--;
-            }
-            else
-                if(Port->SendTimes != -1)
-                    Port->SendTimes--;
-            SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST]  + SendBuf[CN_OFF_PROTO]
-                                      + SendBuf[CN_OFF_SRC]  + SendBuf[CN_OFF_LEN];
-            *dst = SendBuf[CN_OFF_DST];
-            SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-            DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
-            if((debug_ctrl ==true))
-            {
-                printf("\r\nhost send:");
-                for(tmp = 0;tmp < SendLen;tmp++)
-                {
-                    printf("%02x ",SendBuf[tmp]);
-                }
-            }
-            result = true;
         }
-        else
-        {
-            *dst = 0;
-            result = false;
-        }
+        Lock_SempPost(Port->PortSemp);
     }
-    Lock_SempPost(Port->PortSemp);
 
     return result;
 }
@@ -689,13 +712,28 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
                             u8 *buf, u8 len)
 {
     struct Host_ISBUSPort *Port;
+    struct SlaveList *current;
     struct IM_Pkg *mypkg;
     u8 *SendBuf;
+    bool_t found = false;
     if(ISBUS_FunctionSocket == NULL)
         return 0;
     if(len > ISBUS_FunctionSocket->ProtocolSendLen)
         return 0;
     Port = ISBUS_FunctionSocket->CommPort;
+    current = Port->SlaveHead;
+    if(current != NULL)
+    {
+        do
+        {
+            if(current->Address == dst)
+                found = true;
+            else
+                current = current->Next;
+        }while(current != Port->SlaveHead);
+        if( ! found )                  //从机不存在，拒绝发送
+            return 0;
+    }
     Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
     mypkg = malloc(sizeof(struct IM_Pkg)+len+sizeof(struct ISBUS_Protocol));
     if(mypkg != NULL)
@@ -834,9 +872,9 @@ void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
 // 返回值：从机列表指针
 // 说明：如果主机上电立即扫描，从机可能还没上电，提供一个接口，应用程序调时才扫描
 // ============================================================================
-struct SlaveList* ISBUS_ScanSlave(struct Host_ISBUSPort *Port,u8 MaxAddress)
+struct SlaveList* ISBUS_ScanSlave(struct Host_ISBUSPort *Port,u8 MinAddress,u8 MaxAddress)
 {
-    static u8 SlaveAddress=1;
+    u8 SlaveAddress = MinAddress;
     ISBUS_HostRegistProtocol(Port, CN_CHK_SLAVE, 0, 0, __ISBUS_AddSlave);
     while(1)
     {
