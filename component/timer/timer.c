@@ -93,7 +93,7 @@
 //#warning  " Software_Timers  组件参数未配置，使用默认配置"
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_SOFTWARE_TIMERS    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
-//%$#@num,0,100,
+//%$#@num,0,2000,
 #define CFG_TIMERS_LIMIT        5       //"定时器数量",可创建的定时器数量（不包含图形界面的定时器）
 //%$#@enum,true,false,
 #define CFG_TIMER_SOUCE_HARD    true    //"硬件定时器提供时钟源",选择专用硬件还是tick做时钟源
