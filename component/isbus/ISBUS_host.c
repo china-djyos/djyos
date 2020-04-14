@@ -834,9 +834,9 @@ void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
 // 返回值：从机列表指针
 // 说明：如果主机上电立即扫描，从机可能还没上电，提供一个接口，应用程序调时才扫描
 // ============================================================================
-struct SlaveList* ISBUS_ScanSlave(struct Host_ISBUSPort *Port,u8 MaxAddress)
+struct SlaveList* ISBUS_ScanSlave(struct Host_ISBUSPort *Port,u8 MinAddress,u8 MaxAddress)
 {
-    static u8 SlaveAddress=1;
+    u8 SlaveAddress = MinAddress;
     ISBUS_HostRegistProtocol(Port, CN_CHK_SLAVE, 0, 0, __ISBUS_AddSlave);
     while(1)
     {

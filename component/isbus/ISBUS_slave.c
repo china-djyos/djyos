@@ -198,8 +198,6 @@ ptu32_t ISBUS_SlaveProcess(void)
                     Port->ErrorPkgs++;
                     Port->analyzeoff = 0;
                     Port->recvoff = 0;
-//                    return false;
-                    printf("timeover return.\r\n");
                     continue;
                 }
             }
