@@ -214,6 +214,7 @@ bool_t Get_HeadResetFlag();
 bool_t Get_LowPowerWakeup();
 
 #if (CFG_RUNMODE_BAREAPP == 0)
+bool_t Get_ProductInfo(void * ProductInfo);
 bool_t Get_APP_ProductInfo(enum productinfo type, char *date_buf, u32 buf_len);
 bool_t Rewrite_ProductInfo_Num_Time(void * productinfo,const char* time,const char *num);
 bool_t Rewrite_AppHead_NumTime(void * apphead,const char* time,char *num);
