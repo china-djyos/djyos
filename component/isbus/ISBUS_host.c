@@ -246,6 +246,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                     Port->ErrorPkgs++;
                     startoffset++;
                     Gethead = false;
+                    printf("\r\nhost chksum error:");
                     continue;       //startoffset不变，while循环中,从当前位置重新寻找 0xEB
                 }
             }
@@ -264,6 +265,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
                 return false;
+                printf("\r\nhost protocol timeout");
             }
         }
 
@@ -326,6 +328,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
         Port->ErrorPkgs++;
         Port->analyzeoff = 0;
         Port->recvoff = 0;
+        printf("\r\nhost data timeout");
         return false;
     }
 }
@@ -681,6 +684,8 @@ u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
     if(len > ISBUS_FunctionSocket->ProtocolSendLen)
         return 0;
     Port = ISBUS_FunctionSocket->CommPort;
+    if(Port->SlaveHead == NULL)
+        return 0;
     Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
     Port->SendTimes = times;
     SendBuf = Port->PollSendPkgBuf;
@@ -727,7 +732,10 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
         do
         {
             if(current->Address == dst)
+            {
                 found = true;
+                break;
+            }
             else
                 current = current->Next;
         }while(current != Port->SlaveHead);

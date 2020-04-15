@@ -81,10 +81,11 @@ char g_cTmWdays[][8] = {"ĞÇÆÚÌì", "ĞÇÆÚÒ»", "ĞÇÆÚ¶ş", "ĞÇÆÚÈı", "ĞÇÆÚËÄ", "ĞÇÆÚÎ
 //¹¦ÄÜ: °Ñ·Ö½âÊ±¼ä£¨ÄêÔÂÈÕÊ±·ÖÃë£©×ª»»³ÉÈÕÀúÊ±¼ä(1970ÄêÒÔÀ´µÄÃëÊı),
 //²ÎÊı: dt£¬ÄêÔÂÈÕÊ±·ÖÃëĞÎÊ½µÄÊ±¼ä
 //·µ»Ø: ·Ö½âÊ±¼ä
+//×¢£º±¾º¯ÊıÀ´Ô´ÓÚLinux£¬ÍøÉÏËÑ¡°719499¡±¿ÉÒÔµÃµ½±¾º¯ÊıËã·¨µÄÏêÏ¸ËµÃ÷
 //----------------------------------------------------------------------------
 s64 Tm_MkTime(struct tm *dt)
 {
-    u32 year = dt->tm_year;
+    u32 year = dt->tm_year + 1900;  //×¢Òâtm_yearµÄº¬Òå
     u32 mon  = dt->tm_mon;
 
     //½«Ê±¼äºóÍÆÁ½¸öÔÂ£¬Ôò²»ÓÃÅĞ¶ÏÈòÄê¶şÔÂ·Ö½ç
@@ -451,6 +452,7 @@ s32 Tm_SetDateTimeStr(char *buf)
         return EN_CLOCK_SEC_ERROR;
     }
 
+    ptDateTime.tm_year -= 1900;
     nowtime = Tm_MkTimeUs(&ptDateTime);
     //use the rtc module to set
     __Rtc_SetTime(nowtime);
@@ -482,7 +484,7 @@ void Tm_SetDateTime(struct tm *tm)
 //----------------------------------------------------------------------------
 void Tm_AscTime(struct tm *tm, char buf[])
 {
-    itoa(tm->tm_year, &buf[0], 10);
+    itoa(tm->tm_year + 1900, &buf[0], 10);
     buf[4] = '/';
     itoa(tm->tm_mon, &buf[5], 10);
     if(buf[6] == '\0')  //É¾³ı×Ö·û´®½áÎ²£¬ÓÃ0Ìî³ä
@@ -612,15 +614,14 @@ struct tm *localtime(const time_t *timep)
     return localtime_r(timep,&result);
 }
 
-//TODO,modified by zqf,gmtime return the year from 1900
-//     and moth is is 0 to 11
+//     moth is is 0 to 11
 struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
     struct tm *myresult;
     myresult = Tm_GmTime_r(timep,result);
     if(NULL != myresult)
     {
-        myresult->tm_year -= 1900;
+//      myresult->tm_year -= 1900;
         myresult->tm_mon -= 1;
     }
     return myresult;

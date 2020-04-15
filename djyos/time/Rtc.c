@@ -56,7 +56,8 @@
 #include "systime.h"
 #include <sys/time.h>
 #include "component_config_time.h"
-static s64 sgRtcTimeSet = 946684800000000;//手动设置或从RTC中读取的时间，初始值=2000/1/1
+//手动设置或从RTC中读取的时间，距离1970/1/1的微秒数，初始值=2000/1/1/0时
+static s64 sgRtcTimeSet = 946684800000000;
 static s64               sgRtcUpdateTime2SysTime;  //读取或者设置RTC时间时系统的运行时刻
 static fnRtc_GetTime    fnRtcGetTime = NULL;      //获取RTC设备RTC时间
 static fnRtc_SetTime    fnRtcSetTime = NULL;      //设置RTC设备RTC时间

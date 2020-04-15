@@ -67,9 +67,9 @@ typedef void (*fnTimerRecall)(struct Timer *timer);
 
 enum TimerCmdCode
 {
-    EN_TIMER_SOFT_START,     //使能计数，inoutpara无意义
-    EN_TIMER_SOFT_PAUSE,     //停止计数，inoutpara无意义，保留是为了兼容
-    EN_TIMER_SOFT_STOP = EN_TIMER_SOFT_PAUSE,   //停止计数，inoutpara无意义
+    EN_TIMER_SOFT_START,     //启动计时，定时周期重新计算，inoutpara无意义，若已经启动，则为空操作
+    EN_TIMER_SOFT_PAUSE,     //停止计时，inoutpara无意义，保留是为了兼容
+    EN_TIMER_SOFT_STOP = EN_TIMER_SOFT_PAUSE,   //停止计时，inoutpara无意义
     EN_TIMER_SOFT_SETCYCLE,  //设置周期，inoutpara为u32,待设置的周期（uS数）
     EN_TIMER_SOFT_SETRELOAD, //reload模式,true代表自动reload
 };

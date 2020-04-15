@@ -340,6 +340,7 @@ u32 __Timer_DealTimeout(void)
                 }
                 else
                 {
+                    timer->stat &= (~CN_TIMER_ENCOUNT);
                     timer->deadline = CN_TIMER_ALARMNEVER;
                     __Timer_AddLast(timer);
                 }

@@ -32,14 +32,14 @@
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"time","int"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"time"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出
+                                //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                //如果与多个组件互斥，则依次列出
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -57,21 +57,129 @@
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****组件描述结束
 //@#$%component end configure
+#define LSE_Flag_Reg 0xA5A5   //标志，板件掉电之后
+#define LSI_Flag_Reg 0xA5A0   //标志
 
-RTC_HandleTypeDef RTC_Handler;
+#define BAK_Reg   2
 
+#define HexToBcd(x) ((((x) / 10) <<4) + ((x) % 10))  //16进制转换成BCD
+#define BcdToHex(x) ((((x) & 0xF0) >>4) * 10 + ((x) & 0x0F)) //BCD转换成16进制
+
+//static struct SemaphoreLCB *pRtcSemp  = NULL;
+static s64  UpdateTime = 0;                     //需更新的时间
+
+// =============================================================================
+// 功能：RTC读后备区域SRAM
+// 参数：BKPx:后备区寄存器编号,范围:0~19
+// 返回：后备区域数据
+// =============================================================================
+
+u32 BKP_ReadBackupRegister(u32 BKRx)
+{
+    u32 temp=0;
+    temp=RTC_BASE+0x50+BKRx*4;
+    return (*(u32*)temp);        //返回读取到的值
+}
+
+// =============================================================================
+// 功能：RTC写入后备区域SRAM
+// 参数：BKPx:后备区寄存器编号,范围:0~19
+//       data:要写入的数据,32位长度
+// 返回：true,正常操作，否则出错
+// =============================================================================
+
+void BKP_WriteBackupRegister(u32 BKRx,u32 data)
+{
+    u32 temp=0;
+    temp=RTC_BASE+0x50+BKRx*4;
+    (*(u32*)temp)=data;
+}
+// =============================================================================
+// 功能：等待RSF同步 防止在同步时读取造成误差
+// 参数：void
+// 返回：
+// =============================================================================
+bool_t RTC_Wait_Rsf(void)
+{
+    u32 retry=0XFFFFF;
+    SET_BIT(PWR->CR1, PWR_CR1_DBP);
+    RTC->WPR=0xCA;
+    RTC->WPR=0x53;
+    RTC->ISR&=~(1<<5);        //清除RSF位
+
+    while(retry&&((RTC->ISR&(1<<5))==0x00))
+    {
+        retry--;
+    }
+
+    if(retry==0)
+        return false; //同步失败
+    RTC->WPR=0xFF;     //使能RTC寄存器写保护
+    return true;
+}
+// =============================================================================
+// 功能：从RTC进入初始化模式
+// 参数：无
+// 返回：true,正常操作，否则出错
+// =============================================================================
+static bool_t RTC_Init_Mode(void)
+{
+    u32 retry=0XFFFFF;
+    if(RTC->ISR&(1<<6))  //初始化RTC
+        return true;
+    RTC->ISR|=1<<7;      //初始化模式，用于编程时间和日期寄存器（ RTC_TR和 RTC_DR）以
+                         //及预分频器寄存器(RTC_PRER)。计数器停止计数，当 INIT被复位后，计数器从新值开始计数。
+    while(retry&&((RTC->ISR&(1<<6))==0x00))  //   ==判断是否相等，若等则为真1，等待RTC进入初始化状态
+        retry--;
+    if(retry==0)
+        return false;
+    return true;
+}
 // =============================================================================
 // 功能：从RTC设备中读取RTC时间，单位微秒,取从1970年1月1日0:0:0到现在的时间差
 // 参数：time, 时间值，需把日历时间转换成1970年1月1日0:0:0到现在的时间差
 // 返回：true,正常操作，否则出错
 // =============================================================================
-bool_t RTC_GetTime(u8 *time)
+bool_t RTC_GetTime(s64 *time)
 {
-    RTC_TimeTypeDef RTC_TimeStruct;
-    RTC_DateTypeDef RTC_DateStruct;
-    HAL_RTC_GetTime(&RTC_Handler,&RTC_TimeStruct,RTC_FORMAT_BIN);
-    HAL_RTC_GetDate(&RTC_Handler,&RTC_DateStruct,RTC_FORMAT_BIN);
-    *time = RTC_TimeStruct.Seconds;
+    struct tm dtm;
+    u32 year,month,date,hour,min,sec;
+    u32 DR_bak=0,TR_bak=0;
+    u32 tim_us;
+    u8 timeout=20;
+
+    atom_low_t atom_bak = Int_LowAtomStart();
+
+    SET_BIT(PWR->CR1, PWR_CR1_DBP);
+    while(timeout&&(false==RTC_Wait_Rsf()))
+    {
+        timeout--;
+    }
+     if(0==timeout)    //等待同步
+         return false;
+
+     DR_bak=RTC->DR;//将年月日。。一次读出来防止进位误差
+     TR_bak=RTC->TR;
+     tim_us = (1000000*(0xff - RTC->SSR) )/ (0xff + 1);
+
+    year=BcdToHex((DR_bak>>16)&0XFF);
+    month=BcdToHex((DR_bak>>8)&0X1F);
+    date=BcdToHex(DR_bak&0X3F);
+
+    hour=BcdToHex((TR_bak>>16)&0X3F);
+    min=BcdToHex((TR_bak>>8)&0X7F);
+    sec=BcdToHex(TR_bak&0X7F);
+
+    dtm.tm_year = year + 100;    //stm32的year是从2000年起计，dtm中是1900起计
+    dtm.tm_mon  = month;
+    dtm.tm_mday = date;
+    dtm.tm_hour = hour;
+    dtm.tm_min  = min;
+    dtm.tm_sec  = sec;
+
+    *time = (s64)(1000000 * Tm_MkTime(&dtm)+tim_us);
+    Int_LowAtomEnd(atom_bak);
+    return true;
 }
 
 // =============================================================================
@@ -79,69 +187,193 @@ bool_t RTC_GetTime(u8 *time)
 // 参数：time, 时间值
 // 返回：true,正常操作，否则出错
 // =============================================================================
-HAL_StatusTypeDef RTC_Set_Time(u8 hour,u8 min,u8 sec,u8 ampm)
+static bool_t __Rtc_SetTime(s64 time)
 {
-    RTC_TimeTypeDef RTC_TimeStructure;
+    struct tm dtm;
+    s64 time_s;
+    u8 tm_wday;
+    u8 tm_year;
 
-    RTC_TimeStructure.Hours=hour;
-    RTC_TimeStructure.Minutes=min;
-    RTC_TimeStructure.Seconds=sec;
-    RTC_TimeStructure.TimeFormat=ampm;
-    RTC_TimeStructure.DayLightSaving=RTC_DAYLIGHTSAVING_NONE;
-    RTC_TimeStructure.StoreOperation=RTC_STOREOPERATION_RESET;
-    return HAL_RTC_SetTime(&RTC_Handler,&RTC_TimeStructure,RTC_FORMAT_BIN);
+    atom_low_t  atom_bak;
+    atom_bak = Int_LowAtomStart();
+    time_s = time/1000000;
+    Tm_LocalTime_r(&time_s,&dtm);
+
+    //关闭RTC寄存器写保护
+    SET_BIT(PWR->CR1, PWR_CR1_DBP);
+    RTC->WPR=0xCA;
+    RTC->WPR=0x53;
+    if(false==RTC_Init_Mode())
+        return false;//进入RTC初始化模式失败
+
+    if(dtm.tm_wday==0)
+        tm_wday=7;
+    else
+        tm_wday=dtm.tm_wday;
+    tm_year = dtm.tm_year - 100;    //stm32的year是从2000年起计，dtm中是1900起计
+    RTC->DR=(((u32)(tm_wday&0X07))<<13)|
+            ((u32)HexToBcd(tm_year)<<16)|
+            ((u32)HexToBcd(dtm.tm_mon)<<8)|
+            ((u32)HexToBcd(dtm.tm_mday));
+
+    RTC->TR=((u32)HexToBcd(dtm.tm_hour)<<16)|\
+            ((u32)HexToBcd(dtm.tm_min)<<8)|\
+            (u32)(HexToBcd(dtm.tm_sec));
+
+    RTC->ISR&=~(1<<7);            //退出RTC初始化模式
+    Int_LowAtomEnd(atom_bak);
+    return true;
 }
 
-HAL_StatusTypeDef RTC_Set_Date(u8 year,u8 month,u8 date,u8 week)
+// =============================================================================
+// 功能：RTC时间更新任务，专门用一个低
+//     优先级的任务作为更新RTC任务，以防占用其他线程的CPU时间
+// 参数：无
+// 返回：无
+// =============================================================================
+ptu32_t Rtc_UpdateTime(void)
 {
-    RTC_DateTypeDef RTC_DateStructure;
 
-    RTC_DateStructure.Date=date;
-    RTC_DateStructure.Month=month;
-    RTC_DateStructure.WeekDay=week;
-    RTC_DateStructure.Year=year;
-    return HAL_RTC_SetDate(&RTC_Handler,&RTC_DateStructure,RTC_FORMAT_BIN);
-}
+    s64 rtc_time;
+    struct tm dtm;
+//    while(1)
+//    {
+//        if(Lock_SempPend(pRtcSemp,CN_TIMEOUT_FOREVER))
+//        {
 
-u8 RTC_Init(void)
-{
-    RTC_Handler.Instance=RTC;
-    RTC_Handler.Init.HourFormat=RTC_HOURFORMAT_24;
-    RTC_Handler.Init.AsynchPrediv=0X7F;
-    RTC_Handler.Init.SynchPrediv=0XFF;
-    RTC_Handler.Init.OutPut=RTC_OUTPUT_DISABLE;
-    RTC_Handler.Init.OutPutPolarity=RTC_OUTPUT_POLARITY_HIGH;
-    RTC_Handler.Init.OutPutType=RTC_OUTPUT_TYPE_OPENDRAIN;
-    if(HAL_RTC_Init(&RTC_Handler)!=HAL_OK) return 2;
-
-    if(HAL_RTCEx_BKUPRead(&RTC_Handler,RTC_BKP_DR0)!=0X5050)
-    {
-        RTC_Set_Time(10,50,0,RTC_HOURFORMAT12_AM);
-        RTC_Set_Date(17,8,13,7);
-        HAL_RTCEx_BKUPWrite(&RTC_Handler,RTC_BKP_DR0,0X5050);
-    }
+            if(false == __Rtc_SetTime(UpdateTime))
+            {
+                printf("Rtc update error !!\n\r");
+                RTC_GetTime(&rtc_time);
+                rtc_time = rtc_time/1000000;
+            }
+            else
+            {
+                printf("Rtc update Success \n\r");
+                rtc_time = UpdateTime/1000000;
+            }
+            Tm_LocalTime_r(&rtc_time,&dtm);
+            printf("Rtc time :%4d年%2d月%2d日  %2d时 %2d分%2d秒 \n\r ",
+                    dtm.tm_year+1900,dtm.tm_mon,dtm.tm_mday,\
+                    dtm.tm_hour,dtm.tm_min,dtm.tm_min);
+//        }
+//    }
     return 0;
 }
 
-void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
+
+// =============================================================================
+// 功能：设置RTC设备RTC时间，单位微秒，该时间从1970年1月1日0:0:0到现在的时间差
+// 参数：time, 时间值
+// 返回：true,正常操作，否则出错
+// =============================================================================
+bool_t RTC_SetTime(s64 time)
 {
-    RCC_OscInitTypeDef RCC_OscInitStruct;
-    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
-    __HAL_RCC_RTC_CLK_ENABLE();     //????RTC?±??
-    HAL_PWR_EnableBkUpAccess();     //????±?·????ò??±??¤
 
-    RCC_OscInitStruct.OscillatorType=RCC_OSCILLATORTYPE_LSE;//LSE????
-    RCC_OscInitStruct.PLL.PLLState=RCC_PLL_NONE;
-    RCC_OscInitStruct.LSEState=RCC_LSE_ON;                  //RTC????LSE
-    HAL_RCC_OscConfig(&RCC_OscInitStruct);
-
-    PeriphClkInitStruct.PeriphClockSelection=RCC_PERIPHCLK_RTC;//???è??RTC
-    PeriphClkInitStruct.RTCClockSelection=RCC_RTCCLKSOURCE_LSE;//RTC?±??????LSE
-    HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
-
-    __HAL_RCC_RTC_ENABLE();//RTC?±??????
+    UpdateTime = time;
+    Rtc_UpdateTime();
+    return true;
 }
+// =============================================================================
+// 功能：RTC硬件初始化首先检查LSE是否能可用如果不行则使用LSI时钟
+// 参数：void
+// 返回：true,正常操作，否则出错
+// =============================================================================
 
+static bool_t RTC_Configuration(void)
+{
+
+    u16 retry=400;
+    u32 SSR;
+
+    RCC->APB1ENR|=1<<28;        //使能电源接口时钟
+    PWR->CR1|=1<<8;                //后备区域访问使能(RTC+SRAM)
+    if(LSE_Flag_Reg!=BKP_ReadBackupRegister(BAK_Reg))
+    {
+
+            RCC->BDCR=1<<16;            //复位BDCR
+            Djy_DelayUs(10);
+            RCC->BDCR=(3<<3);                //结束复位
+
+            RCC->CSR|=1<<0;                //LSI总是使能
+            while(!(RCC->CSR&0x02));    //等待LSI就绪
+
+            RCC->BDCR|=1<<0;            //尝试开启LSE
+            while(retry&&((RCC->BDCR&0X02)==0))//等待LSE准备好
+            {
+                retry--;
+                Djy_DelayUs(5*1000);
+            }
+
+            RCC->BDCR&=~(3<<8);            //清零8/9位
+
+            if(retry==0)
+            {
+                BKP_WriteBackupRegister(BAK_Reg,LSI_Flag_Reg);
+                RCC->BDCR|=1<<9;    //LSE开启失败,启动LSI.
+                printf("Error:LSE 没有起震\n\r");
+            }
+            else
+            {
+                BKP_WriteBackupRegister(BAK_Reg,LSE_Flag_Reg);
+                RCC->BDCR|=1<<8;            //选择LSE,作为RTC时钟
+            }
+            RCC->BDCR|=1<<15;                //使能RTC时钟
+            SET_BIT(PWR->CR1, PWR_CR1_DBP);
+            RTC->WPR=0xCA;    //关闭RTC寄存器写保护
+            RTC->WPR=0x53;
+            RTC->CR=0;
+            if(false==RTC_Init_Mode())
+            {
+                RCC->BDCR=1<<16;        //复位BDCR
+                Djy_DelayUs(10);
+                RCC->BDCR=(3<<3);            //结束复位
+                return false;                //进入RTC初始化模式
+            }
+            RTC->PRER=0XFF;                //RTC同步分频系数(0~7FFF),必须先设置同步分频,再设置异步分频,Frtc=Fclks/((Sprec+1)*(Asprec+1))
+            RTC->PRER|=0X7F<<16;        //RTC异步分频系数(1~0X7F)
+            RTC->CR&=~(1<<6);            //RTC设置为,24小时格式
+            RTC->ISR&=~(1<<7);            //退出RTC初始化模式
+            RTC->WPR=0xFF;                //使能RTC寄存器写保护
+            //第一次配置装载时间初值退出初始化模式
+            if(BKP_ReadBackupRegister(BAK_Reg)!=LSI_Flag_Reg &&\
+             BKP_ReadBackupRegister(BAK_Reg)!=LSI_Flag_Reg)
+            {
+
+                    RTC->DR=(((u32)(1))<<13)|
+                    ((u32)HexToBcd(2017-1970)<<16)|
+                    ((u32)HexToBcd(2)<<8)|
+                    ((u32)HexToBcd(20));
+
+                    RTC->TR=((u32)HexToBcd(12)<<16)|\
+                    ((u32)HexToBcd(0)<<8)|\
+                    (u32)(HexToBcd(0));
+            }
+
+    }
+    else
+    {
+        retry=10;        //连续10次SSR的值都没变化,则LSE死了.
+        SSR=RTC->SSR;    //读取初始值
+        while(retry)    //检测ssr寄存器的动态,来判断LSE是否正常
+        {
+            Djy_DelayUs(10*1000);
+            if(SSR==RTC->SSR)retry--;    //对比
+            else break;
+        }
+        if(retry==0)    //LSE挂了,清除配置等待下次进入重新设置
+        {
+            BKP_WriteBackupRegister(BAK_Reg,0XFFFF);    //标记错误的值
+            printf("Error:外部晶振起震失败。\n\r");
+            RCC->BDCR=1<<16;            //复位BDCR
+            Djy_DelayUs(10);
+            RCC->BDCR=(3<<3);          //结束复位
+        }
+    }
+    return true;
+}
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 // =============================================================================
 // 功能：RTC时间注册及初始化
 // 参数：time, 时间值
@@ -149,13 +381,38 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 // =============================================================================
 ptu32_t ModuleInstall_CpuRtc(ptu32_t para)
 {
-    RTC_Init();
+    s64 rtc_time;
+    struct timeval tv;
+//    u16 evtt;
 
+    RTC_Configuration();    // 配置RTC
+    //初始化硬件
+
+//    pRtcSemp = Lock_SempCreate(1,0,CN_BLOCK_FIFO,"RTC_SEMP");
+//
+//    if(NULL == pRtcSemp)
+//        return false;
+
+//    evtt = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_REAL,0,0,
+//                            Rtc_UpdateTime,NULL,1024,
+//                                "RTC Update Event");
+
+//    if(evtt == CN_EVTT_ID_INVALID)
+//    {
+//        free(pRtcSemp);
+//        return false;
+//    }
+//    Djy_EventPop(evtt,NULL,0,NULL,0,0);
+    RTC_GetTime(&rtc_time);
+
+    tv.tv_sec  = rtc_time/1000000;
+    tv.tv_usec = rtc_time%1000000;
+
+    settimeofday(&tv,NULL);
+
+    //注册RTC时间
+    if(!Rtc_RegisterDev(NULL,RTC_SetTime))
+        return false;
     return true;
 }
-
-
-
-
-
-
+#pragma GCC diagnostic pop

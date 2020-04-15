@@ -26,20 +26,20 @@
 
 //%$#@describe      ****组件描述开始
 //component name:"cpu onchip rtc"//CPU的rtc外设驱动
-//parent:"time"                 //填写该组件的父组件名字，none表示没有父组件
+//parent:"rtc"                 //填写该组件的父组件名字，none表示没有父组件
 //attribute:bsp                 //选填“third、system、bsp、user”，本属性用于在IDE中分组
 //select:choosable              //选填“required、choosable、none”，若填必选且需要配置参数，则IDE裁剪界面中默认勾取，
                                 //不可取消，必选且不需要配置参数的，或是不可选的，IDE裁剪界面中不显示，
 //init time:medium              //初始化时机，可选值：early，medium，later, pre-main。
                                 //表示初始化时间，分别是早期、中期、后期
-//dependence:"time","int"//该组件的依赖组件名（可以是none，表示无依赖组件），
+//dependence:"time"             //该组件的依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件将强制选中，
-                                //如果依赖多个组件，则依次列出
+                                //如果依赖多个组件，则依次列出，用“,”分隔
 //weakdependence:"none"         //该组件的弱依赖组件名（可以是none，表示无依赖组件），
                                 //选中该组件时，被依赖组件不会被强制选中，
                                 //如果依赖多个组件，则依次列出，用“,”分隔
 //mutex:"none"                  //该组件的互斥组件名（可以是none，表示无互斥组件），
-                                //如果与多个组件互斥，则依次列出
+                                //如果与多个组件互斥，则依次列出，用“,”分隔
 //%$#@end describe  ****组件描述结束
 
 //%$#@configue      ****参数配置开始
@@ -57,14 +57,13 @@
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****组件描述结束
 //@#$%component end configure
-
-#define LSE_Flag_Reg 0xA5A5
-#define LSI_Flag_Reg 0xA5A0
+#define LSE_Flag_Reg 0xA5A5   //标志，板件掉电之后
+#define LSI_Flag_Reg 0xA5A0   //标志
 
 #define BAK_Reg   2
 
-#define HexToBcd(x) ((((x) / 10) <<4) + ((x) % 10))
-#define BcdToHex(x) ((((x) & 0xF0) >>4) * 10 + ((x) & 0x0F))
+#define HexToBcd(x) ((((x) / 10) <<4) + ((x) % 10))  //16进制转换成BCD
+#define BcdToHex(x) ((((x) & 0xF0) >>4) * 10 + ((x) & 0x0F)) //BCD转换成16进制
 
 //static struct SemaphoreLCB *pRtcSemp  = NULL;
 static s64  UpdateTime = 0;                     //需更新的时间
@@ -126,10 +125,11 @@ bool_t RTC_Wait_Rsf(void)
 static bool_t RTC_Init_Mode(void)
 {
     u32 retry=0XFFFFF;
-    if(RTC->ISR&(1<<6))
+    if(RTC->ISR&(1<<6))  //初始化RTC
         return true;
-    RTC->ISR|=1<<7;
-    while(retry&&((RTC->ISR&(1<<6))==0x00))
+    RTC->ISR|=1<<7;      //初始化模式，用于编程时间和日期寄存器（ RTC_TR和 RTC_DR）以
+                         //及预分频器寄存器(RTC_PRER)。计数器停止计数，当 INIT被复位后，计数器从新值开始计数。
+    while(retry&&((RTC->ISR&(1<<6))==0x00))  //   ==判断是否相等，若等则为真1，等待RTC进入初始化状态
         retry--;
     if(retry==0)
         return false;
@@ -162,7 +162,7 @@ bool_t RTC_GetTime(s64 *time)
      TR_bak=RTC->TR;
      tim_us = (1000000*(0xff - RTC->SSR) )/ (0xff + 1);
 
-    year=BcdToHex((DR_bak>>16)&0XFF)+1970;
+    year=BcdToHex((DR_bak>>16)&0XFF);
     month=BcdToHex((DR_bak>>8)&0X1F);
     date=BcdToHex(DR_bak&0X3F);
 
@@ -170,7 +170,7 @@ bool_t RTC_GetTime(s64 *time)
     min=BcdToHex((TR_bak>>8)&0X7F);
     sec=BcdToHex(TR_bak&0X7F);
 
-    dtm.tm_year = year;
+    dtm.tm_year = year + 100;    //stm32的year是从2000年起计，dtm中是1900起计
     dtm.tm_mon  = month;
     dtm.tm_mday = date;
     dtm.tm_hour = hour;
@@ -192,6 +192,7 @@ static bool_t __Rtc_SetTime(s64 time)
     struct tm dtm;
     s64 time_s;
     u8 tm_wday;
+    u8 tm_year;
 
     atom_low_t  atom_bak;
     atom_bak = Int_LowAtomStart();
@@ -209,8 +210,9 @@ static bool_t __Rtc_SetTime(s64 time)
         tm_wday=7;
     else
         tm_wday=dtm.tm_wday;
+    tm_year = dtm.tm_year - 100;    //stm32的year是从2000年起计，dtm中是1900起计
     RTC->DR=(((u32)(tm_wday&0X07))<<13)|
-            ((u32)HexToBcd(dtm.tm_year-1970)<<16)|
+            ((u32)HexToBcd(tm_year)<<16)|
             ((u32)HexToBcd(dtm.tm_mon)<<8)|
             ((u32)HexToBcd(dtm.tm_mday));
 
@@ -252,13 +254,19 @@ ptu32_t Rtc_UpdateTime(void)
             }
             Tm_LocalTime_r(&rtc_time,&dtm);
             printf("Rtc time :%4d年%2d月%2d日  %2d时 %2d分%2d秒 \n\r ",
-                    dtm.tm_year,dtm.tm_mon,dtm.tm_mday,\
+                    dtm.tm_year+1900,dtm.tm_mon,dtm.tm_mday,\
                     dtm.tm_hour,dtm.tm_min,dtm.tm_min);
 //        }
 //    }
     return 0;
 }
 
+
+// =============================================================================
+// 功能：设置RTC设备RTC时间，单位微秒，该时间从1970年1月1日0:0:0到现在的时间差
+// 参数：time, 时间值
+// 返回：true,正常操作，否则出错
+// =============================================================================
 bool_t RTC_SetTime(s64 time)
 {
 
