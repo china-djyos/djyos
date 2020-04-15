@@ -727,7 +727,10 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
         do
         {
             if(current->Address == dst)
+            {
                 found = true;
+                break;
+            }
             else
                 current = current->Next;
         }while(current != Port->SlaveHead);
