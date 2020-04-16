@@ -264,8 +264,8 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                 Port->ErrorPkgs++;
                 Port->analyzeoff = 0;
                 Port->recvoff = 0;
+                printf("\r\nhost protocol timeout,%d  %d",Gethead,tmp);
                 return false;
-                printf("\r\nhost protocol timeout");
             }
         }
 
@@ -450,7 +450,7 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
     if(devfd == -1)
         return NULL;
     Port = (struct Host_ISBUSPort *)malloc(sizeof(struct Host_ISBUSPort ));
-    recvbuf = malloc(512+2*sizeof(struct ISBUS_Protocol));
+    recvbuf = malloc(3*(256+sizeof(struct ISBUS_Protocol)));
     Semp = Lock_SempCreate(1, 1, CN_BLOCK_FIFO, "ISBUS_Host");
     if((Port != NULL) && (recvbuf != NULL)&&(Semp != NULL)) //分配成功
     {
@@ -475,9 +475,9 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
         Port->Resttime = 0;
         Port->analyzeoff = 0;
         Port->recvoff = 0;
-        Port->ResendPkgBuf = NULL;
-        Port->PollSendPkgBuf = recvbuf + 256 + sizeof(struct ISBUS_Protocol);
         Port->RecvPkgBuf = recvbuf;
+        Port->PollSendPkgBuf = Port->RecvPkgBuf + 256 + sizeof(struct ISBUS_Protocol);
+        Port->ResendPkgBuf = Port->PollSendPkgBuf + 256 + sizeof(struct ISBUS_Protocol);
         Port->PortMaxRecvLen = sizeof(struct ISBUS_Protocol);
         Port->PortMaxSendLen = sizeof(struct ISBUS_Protocol);
 //      Port->PortSendLen = 0;
@@ -577,7 +577,7 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
     bool_t result;
     struct IM_Pkg *me;
     u8 SendLen,tmp;
-    if((resend) && (Port->ResendPkgBuf != NULL))
+    if(resend)
     {
         SendBuf = Port->ResendPkgBuf;
         SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
@@ -618,8 +618,8 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                 }
                 *dst = SendBuf[CN_OFF_DST];
                 result = true;
+                memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
                 free(me);
-                Port->ResendPkgBuf = SendBuf;
         }
         else                            //发送周期性轮询消息
         {
@@ -650,7 +650,7 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                     }
                 }
                 result = true;
-                Port->ResendPkgBuf = SendBuf;
+                memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
             }
             else
             {
