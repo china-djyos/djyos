@@ -5,7 +5,7 @@
 			"clocks":{
 				
 			},
-			"chips":["at24c02"],
+			"chips":["EEPROM at24c02"],
 			"peripherals":["cpu_peri_emflash",
 			"cpu_peri_iic",
 			"cpu_peri_lowpower",

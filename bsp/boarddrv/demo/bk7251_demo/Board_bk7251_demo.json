@@ -5,9 +5,9 @@
 			"clocks":{
 				
 			},
-			"chips":["ft6236",
-			"st7796s",
-			"gd25q16c"],
+			"chips":["touchscreen FT6236",
+			"LCD driver st7796s",
+			"nor flash gd25q16c"],
 			"peripherals":["cpu onchip adc",
 			"cpu onchip audio in_out",
 			"cpu onchip flash",

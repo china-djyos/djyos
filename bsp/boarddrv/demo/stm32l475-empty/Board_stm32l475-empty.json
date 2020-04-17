@@ -5,8 +5,8 @@
 			"clocks":{
 				
 			},
-			"chips":["at24c128b",
-			"at45db321"],
+			"chips":["EEPROM at24c128b",
+			"nor flash at45db321"],
 			"peripherals":["cpu_peri_emflash",
 			"cpu_peri_iic",
 			"cpu_peri_lowpwer",

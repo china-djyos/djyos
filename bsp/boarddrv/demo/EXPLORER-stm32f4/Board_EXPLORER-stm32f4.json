@@ -5,8 +5,8 @@
 			"clocks":{
 				
 			},
-			"chips":["at24c02",
-			"lan8720"],
+			"chips":["EEPROM at24c02",
+			"ethernet phy lan8720"],
 			"peripherals":["cpu_peri_emflash",
 			"cpu_peri_eth",
 			"cpu_peri_gpio",

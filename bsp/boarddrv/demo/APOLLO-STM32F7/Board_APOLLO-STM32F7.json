@@ -5,10 +5,10 @@
 			"clocks":{
 				
 			},
-			"chips":["88e6060",
-			"ft5x26",
-			"pcf8574",
-			"lan8720"],
+			"chips":["ls88e6060",
+			"touchscreen FT5X26",
+			"IIC to 8gpio pcf8574",
+			"ethernet phy lan8720"],
 			"peripherals":["cpu_peri_bkpsram",
 			"cpu_peri_can",
 			"cpu_peri_emflash",

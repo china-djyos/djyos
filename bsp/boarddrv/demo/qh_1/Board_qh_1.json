@@ -5,9 +5,9 @@
 			"clocks":{
 				
 			},
-			"chips":["at24c02",
-			"ili9325",
-			"STMPE811"],
+			"chips":["EEPROM at24c02",
+			"LCD driver ili9325",
+			"stmpe811"],
 			"peripherals":["cpu_peri_dma",
 			"cpu_peri_emflash",
 			"cpu_peri_gpio",

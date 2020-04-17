@@ -5,9 +5,9 @@
 			"clocks":{
 				
 			},
-			"chips":["ft5x26",
-			"lan8720",
-			"pcf8574"],
+			"chips":["touchscreen FT5X26",
+			"IIC to 8gpio pcf8574",
+			"ethernet phy lan8720"],
 			"peripherals":["cpu_peri_gpio",
 			"cpu_peri_uart",
 			"cpu_peri_hal",

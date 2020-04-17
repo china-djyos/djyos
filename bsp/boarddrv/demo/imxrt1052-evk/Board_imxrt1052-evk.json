@@ -5,7 +5,7 @@
 			"clocks":{
 				
 			},
-			"chips":["ft5406"],
+			"chips":["touchscreen ft5406"],
 			"peripherals":["cpu_peri_clock",
 			"cpu_peri_eth",
 			"cpu_peri_iic",
