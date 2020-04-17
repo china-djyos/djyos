@@ -565,12 +565,15 @@ void __Int_EngineReal(ufast_t ufl_line)
 //参数：ufast ufl_line，响应的中断线号
 //返回：无
 //-----------------------------------------------------------------------------
+#include <gpio_pub.h>
 extern void __Djy_EventReady(struct EventECB *event_ready);
 void __Int_EngineAsynSignal(ufast_t ufl_line)
 {
     struct EventECB *event;
     struct IntLine *ptIntLine;
     u32 isr_result,CpuStatus;
+
+    djy_gpio_write(GPIO13,1);
 
     g_bScheduleEnable = false;
     tg_int_global.nest_asyn_signal++;
@@ -602,6 +605,7 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     tg_int_global.nest_asyn_signal--;
 
     g_bScheduleEnable = true;
+    djy_gpio_write(GPIO13,0);
 }
 
 
