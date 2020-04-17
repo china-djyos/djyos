@@ -229,31 +229,44 @@ ptu32_t ISBUS_SlaveProcess(void)
                 readed += tmp;
                 if(Completed >= restlen)
                     break;
+                if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
+                {
+                    if(Port->fnError != NULL)
+                        Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR);
+                    Port->ErrorLast = CN_INS_TIMEROUT_ERR;
+                    Port->ErrorPkgs++;
+                    Port->analyzeoff = 0;
+                    Port->recvoff = 0;
+                    printf("\r\n protocol timeover return....");
+                }
             }
         }
 
-        Me = __Slave_GetProtocol(Port, protohead.Protocol);
-        if(Me != NULL)
+        if(Completed >= restlen)	//检查是否收齐了数据
         {
-            if((protohead.DstAddress == mydst) && (Me->MyProcess != NULL))
+            Me = __Slave_GetProtocol(Port, protohead.Protocol);
+            if(Me != NULL)
             {
-                Me->MyProcess(Me, protohead.SrcAddress,
-                              protobuf + startoffset + sizeof(struct ISBUS_Protocol), len);
-            }
-            else if(protohead.DstAddress >= CN_INS_MULTICAST)
-            {
-                Port->EchoModel = BROADCAST_MODEL;
-                memcpy(Port->MTCcast, protobuf + startoffset + sizeof(struct ISBUS_Protocol),len);
-                if((Port->BoardcastPre == 0) && (Me->MyProcess != NULL))     //本机地址是第一个从机。
+                if((protohead.DstAddress == mydst) && (Me->MyProcess != NULL))
+                {
+                    Me->MyProcess(Me, protohead.SrcAddress,
+                                  protobuf + startoffset + sizeof(struct ISBUS_Protocol), len);
+                }
+                else if(protohead.DstAddress >= CN_INS_MULTICAST)
+                {
+                    Port->EchoModel = BROADCAST_MODEL;
+                    memcpy(Port->MTCcast, protobuf + startoffset + sizeof(struct ISBUS_Protocol),len);
+                    if((Port->BoardcastPre == 0) && (Me->MyProcess != NULL))     //本机地址是第一个从机。
+                    {
+                        Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
+                    }
+                }
+                else if((protohead.SrcAddress == Port->BoardcastPre)
+                            && (Port->EchoModel == BROADCAST_MODEL)
+                            && (Me->MyProcess != NULL))
                 {
                     Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
                 }
-            }
-            else if((protohead.SrcAddress == Port->BoardcastPre)
-                        && (Port->EchoModel == BROADCAST_MODEL)
-                        && (Me->MyProcess != NULL))
-            {
-                Me->MyProcess(Me, protohead.SrcAddress,Port->MTCcast, len);
             }
         }
         startoffset += sizeof(struct ISBUS_Protocol) + len;

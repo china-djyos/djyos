@@ -408,7 +408,7 @@ ptu32_t ISBUS_HostProcess(void)
             }
             else       //组播/广播地址，组播号内的从机依序上传
             {
-                resend = ! __ISBUS_UniProcess(Port,dst);
+                resend = ! __ISBUS_BroadcastProcess(Port,dst);
                 if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
                     Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
@@ -729,18 +729,21 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
     current = Port->SlaveHead;
     if(current != NULL)
     {
-        do
+        if(dst < CN_INS_MULTICAST)		//组播、广播时可以发送的
         {
-            if(current->Address == dst)
+            do
             {
-                found = true;
-                break;
-            }
-            else
-                current = current->Next;
-        }while(current != Port->SlaveHead);
-        if( ! found )                  //从机不存在，拒绝发送
-            return 0;
+                if(current->Address == dst)
+                {
+                    found = true;
+                    break;
+                }
+                else
+                    current = current->Next;
+            }while(current != Port->SlaveHead);
+            if( ! found )                  //从机不存在，拒绝发送
+                return 0;
+        }
     }
     Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
     mypkg = malloc(sizeof(struct IM_Pkg)+len+sizeof(struct ISBUS_Protocol));
