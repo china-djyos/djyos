@@ -86,7 +86,7 @@ char g_cTmWdays[][8] = {"ĞÇÆÚÌì", "ĞÇÆÚÒ»", "ĞÇÆÚ¶ş", "ĞÇÆÚÈı", "ĞÇÆÚËÄ", "ĞÇÆÚÎ
 s64 Tm_MkTime(struct tm *dt)
 {
     u32 year = dt->tm_year + 1900;  //×¢Òâtm_yearµÄº¬Òå
-    u32 mon  = dt->tm_mon;
+    u32 mon  = dt->tm_mon + 1;
 
     //½«Ê±¼äºóÍÆÁ½¸öÔÂ£¬Ôò²»ÓÃÅĞ¶ÏÈòÄê¶şÔÂ·Ö½ç
     //Ö±½ÓÓÃyear/4 - year/100 + year/400

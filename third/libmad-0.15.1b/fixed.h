@@ -69,10 +69,7 @@ typedef mad_fixed_t mad_sample_t;
  * supported, and must be done with care.
  */
 
-#define FPM_DEFAULT
-
-
-# define MAD_F_FRACBITS		28
+#include "config.h"
 
 # if MAD_F_FRACBITS == 28
 #  define MAD_F(x)		((mad_fixed_t) (x##L))

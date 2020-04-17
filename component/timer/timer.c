@@ -880,7 +880,7 @@ bool_t ModuleInstall_Timer(void)
         else
         {
             u16EvttId = Djy_EvttRegist(EN_CORRELATIVE,CN_PRIO_RRS-2,0,0,
-                                   Timer_VMTask,NULL,0x400,NULL);
+                                   Timer_VMTask,NULL,0x1000,NULL);
             if(CN_EVTT_ID_INVALID == u16EvttId)
             {
                 MsgQ_Delete(ptTimerMsgQ);
