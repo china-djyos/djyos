@@ -1050,10 +1050,12 @@ s32 DevClose(s32 fd)
         return (-1);
 
     res = __devclose(devfile);
+
+    //注意：和socket一样，dev设备文件有自己的关闭函数，没有经过对象系统的close调用，故需要
+    //自己删除句柄，像fat、yaffs2、efs等就不用自己删除。
     if(res == 0)
         handle_Delete(devfile);
 
-    // TODO: 未减一
     return (0);
 #endif
 }
