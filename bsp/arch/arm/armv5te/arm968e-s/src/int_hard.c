@@ -573,7 +573,6 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     struct IntLine *ptIntLine;
     u32 isr_result,CpuStatus;
 
-    djy_gpio_write(GPIO13,1);
 
     g_bScheduleEnable = false;
     tg_int_global.nest_asyn_signal++;
@@ -605,7 +604,6 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
     tg_int_global.nest_asyn_signal--;
 
     g_bScheduleEnable = true;
-    djy_gpio_write(GPIO13,0);
 }
 
 
