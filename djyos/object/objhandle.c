@@ -749,7 +749,7 @@ s32 issocketactive(s32 Fd, s32 mode)
 // ============================================================================
 struct objhandle *__open(char *path, u32 flags, u32 mode)
 {
-    struct objhandle *hdl = 0;
+    struct objhandle *hdl = NULL;
     struct Object *ob;
     char *uncached;
     s32 run;

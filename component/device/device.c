@@ -184,9 +184,6 @@ static s32 __devclose(struct objhandle *hdl)
     if(dev && dev->dClose)
         res = (s32)dev->dClose(hdl);
 
-//  if(!res)
-//      handle_Delete(hdl);
-
     return (res);
 }
 
@@ -1014,7 +1011,7 @@ s32 DevOpen(const char *name, s32 flags, u32 timeout)
 // 功能：关闭设备，由于设备受互斥量保护，故只有设备拥有者(即打开设备的事件)才能关
 //      闭设备，这是由互斥量的特点决定的。
 // 参数：fd -- 设备文件描述符
-// 返回：成功（TRUE）；失败（FALSE）；
+// 返回：成功（0）；失败（-1）；
 // 备注：
 // ============================================================================
 s32 DevClose(s32 fd)
@@ -1053,8 +1050,8 @@ s32 DevClose(s32 fd)
         return (-1);
 
     res = __devclose(devfile);
-    if(res)
-        return (-1);
+    if(res == 0)
+        handle_Delete(devfile);
 
     // TODO: 未减一
     return (0);
