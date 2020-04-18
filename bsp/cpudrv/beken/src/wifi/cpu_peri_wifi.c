@@ -95,7 +95,7 @@
 //%$#@enum,true,false,
 #define CFG_ETH_LOOP_ENABLE     true        //"网卡接收是否轮询",
 //%$#@string,1,32,
-#define CFG_ETH_DEV_NAME        "STM32F7_ETH"//"网卡名称",
+#define CFG_ETH_DEV_NAME        "BK7251_WiFi"//"网卡名称",
 //%$#@string,1,100,
 #define CFG_FAST_DATA_FILE_NAME "/efs/fast_data.dat"    //存快联信息的文件路径
 //%$#select,        ***从列出的选项中选择若干个定义成宏
