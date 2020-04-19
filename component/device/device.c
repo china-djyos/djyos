@@ -144,7 +144,7 @@ static struct objhandle *__devopen(struct Object *ob, u32 flags, u32 timeout)
                 debug_printf("device","cannot open device \"%s\".", obj_name(ob));
                 return (NULL);
             }
-            obj_LinkHandle(devfile, ob);      //将objhandle与obj关联
+//            obj_LinkHandle(devfile, ob);      //将objhandle与obj关联
             return (devfile);
         }
         else
