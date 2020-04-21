@@ -50,7 +50,7 @@
 //%$#@exclude       ****编译排除文件列表
 //%$#@end exclude   ****排除文件列表结束
 //%$#@include path
-//../include;                   ————路径列表，用分号“;”隔开，以本文件所在目录为当前目录，允许用通配符
+//../include;
 //%$#@end include path
 //%$#@library path
 //../ip/my_lib_name.a

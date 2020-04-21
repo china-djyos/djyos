@@ -1743,7 +1743,10 @@ ptu32_t __WinMsgProc(struct WindowMsg *pMsg)
                 }
             }
             if(MyTableLinkNode == &s_gDefWindowMsgLink)
+            {
                 MyTableLinkNode =NULL;
+                break;
+            }
             else
                 MyTableLinkNode = hwnd->MyMsgTableLink[++num];
         }
