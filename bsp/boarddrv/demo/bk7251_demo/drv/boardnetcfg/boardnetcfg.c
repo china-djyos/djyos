@@ -121,13 +121,15 @@ __attribute__((weak)) int cb_ip_get(u32 *ip)
 __attribute__((weak)) int cb_ip_set(u32 ip){
     return 0;
 }
-
+void DhcpclientDeleteAllTask(void);//清除以前连接的路由和dhcp任务
 int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(u32 *ip));
 int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(u32 ip));
 void DhcpStaStartIp(void)
 {
     dhcp_getip_cb(CFG_NETCARD_NAME, cb_ip_get);
     dhcp_setip_cb(CFG_NETCARD_NAME, cb_ip_set);
+
+    DhcpclientDeleteAllTask();
     if(DhcpAddClientTask(CFG_NETCARD_NAME))
     {
        printk("%s:Add %s success\r\n",__FUNCTION__,CFG_NETCARD_NAME);
@@ -145,7 +147,8 @@ int PendDhcpDone(unsigned int timeout)
 
 void DhcpStaClearIp(void)
 {
-
+    printf("info: DhcpStaClearIp!!!\r\n");
+    DhcpclientDeleteAllTask();
 }
 
 

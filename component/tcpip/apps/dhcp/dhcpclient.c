@@ -347,17 +347,52 @@ static void __DhcpclientTicker(void)
 
     return ;
 }
+void   RouterRemoveByHandle(struct RoutItem4 *rout);
+void DhcpclientDeleteAllTask(void)
+{
+
+    tagTaskItem      *task;
+    tagTaskItem      *task_tmp;
+    //OK,NOW ADD IT TO THE QUEUE
+    if(mutex_lock(gClientCB.lock))
+    {
+        task = gClientCB.lst;
+        while (task) {
+            task_tmp = task;
+            task = task->nxt;
+            gClientCB.lst = task;
+            //delete task_tmp
+            if(task_tmp->routwan){
+                RouterRemoveByHandle(task_tmp->routwan);
+                task->routwan = 0;
+            }
+            if(task_tmp->routlan){
+                RouterRemoveByHandle(task_tmp->routlan);
+                task_tmp->routlan = 0;
+            }
+            if(task_tmp->sem) {
+                semp_del(task_tmp->sem);
+                task_tmp->sem = 0;
+            }
+            net_free(task_tmp);
+            //printf("-----------------------------\r\n");
+        }
+        mutex_unlock(gClientCB.lock);
+    }
+}
 
 int dhcp_getip_cb(const char *ifname, int (*cb_ip_get)(unsigned int *ip));
 int dhcp_setip_cb(const char *ifname, int (*cb_ip_set)(unsigned int ip));
 int net_get_dhcp_ip(struct NetDev *pNetDev, u32 *ip_temp);
 //if you want to use the interface to get a ipv4 dynamic, then call this function
+
 bool_t DhcpAddClientTask(const char *ifname)
 {
     bool_t ret = false;
     tagTaskItem *task;
     tagHostAddrV4 addr;
     tagRouterPara  routpara; //use this to make the router
+
     //first we will do some thing here
     memset(&addr,0,sizeof(addr));
     addr.broad = INADDR_BROADCAST;
@@ -372,6 +407,7 @@ bool_t DhcpAddClientTask(const char *ifname)
     routpara.hop = &addr.hop;
     routpara.prior = CN_ROUT_PRIOR_ANY;
     task = net_malloc(sizeof(tagTaskItem));
+
     if(NULL == task) //no mem here
     {
         error_printf("dhcp","%s:MEMERR\n\r",__FUNCTION__);
@@ -395,8 +431,10 @@ bool_t DhcpAddClientTask(const char *ifname)
         error_printf("dhcp","%s: sem_init FAILED\n\r",__FUNCTION__);
         goto EXIT_ROUTWAN;
     }
+
     memcpy(task->mac,NetDevGetMac(NetDevGet(ifname)),CN_MACADDR_LEN);
     task->transID = gClientCB.txid++;
+
     task->routwan = RouterCreate(&routpara); //has create one
     if(NULL == task->routwan)
     {
@@ -430,6 +468,7 @@ EXIT_ROUTWAN:
 EXIT_MEM:
     return ret;
 }
+
 
 //the first time to get the ip from the server is init->discover->request->stable
 //then if you want to extend the lease time, then:request,if receive ack, then goto
