@@ -35,6 +35,7 @@
 #define CFG_DESKTOP_WIDTH       0           //"桌面宽度",桌面尺寸（像素数）宽度，0=显示器宽度
 #define CFG_DESKTOP_HEIGHT      0           //"桌面高度",桌面尺寸（像素数）高度，0=显示器高度
 //%$#@enum,true,false,
+#define CFG_DESKTOP_BUF         true        //"桌面窗口是否带缓存"，内存稀少的硬件可不带缓存
 //%$#@string,1,127,
 #define CFG_DISPLAY_NAME        "DISPLAY_NAME"         //"显示器名",须与bsp中显示器驱动模块配置的显示器名字相同
 #define CFG_DESKTOP_NAME        "DESKTOP_NAME"         //"给桌面起个名字"，

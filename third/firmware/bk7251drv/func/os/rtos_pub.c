@@ -97,7 +97,7 @@ OSStatus bk_rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
     if(rtos_sem_cnt > 100)
     {
         printk("semaphore over\r\n");
-        init_jtag(NULL);
+        init_jtag(NULL);    //本函数是测试函数，可以从口语机的main.c中找到
     }
 #endif
     RTOS_DBG("bk_rtos_init_semaphore:%d\r\n",rtos_sem_cnt);

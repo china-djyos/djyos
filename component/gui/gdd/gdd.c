@@ -138,10 +138,16 @@ void ModuleInstall_GDD(struct GkWinObj *desktop)
 void ModuleInstall_Gdd_AND_Desktop(void)
 {
     struct GkWinObj *desktop;
-    desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
-                            (s32)CFG_DESKTOP_WIDTH,(s32)CFG_DESKTOP_HEIGHT,
-                            (u32)CFG_FILL_COLOR,(u32)CN_WINBUF_BUF,
-                            (u16)CFG_DESKTOP_FORMAT,(u32)CFG_GRAY_BASE_COLOR);
+    if(CFG_DESKTOP_BUF == true)
+        desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
+                                (s32)CFG_DESKTOP_WIDTH,(s32)CFG_DESKTOP_HEIGHT,
+                                (u32)CFG_FILL_COLOR, (u32)CN_WINBUF_BUF,
+                                (u16)CFG_DESKTOP_FORMAT,(u32)CFG_GRAY_BASE_COLOR);
+    else
+        desktop = GK_CreateDesktop(CFG_DISPLAY_NAME,CFG_DESKTOP_NAME,
+                                (s32)CFG_DESKTOP_WIDTH,(s32)CFG_DESKTOP_HEIGHT,
+                                (u32)CFG_FILL_COLOR, (u32)CN_WINBUF_NONE,
+                                (u16)CFG_DESKTOP_FORMAT,(u32)CFG_GRAY_BASE_COLOR);
     if(desktop == NULL)
     {
         printf("创建桌面出错");
