@@ -729,7 +729,7 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
     current = Port->SlaveHead;
     if(current != NULL)
     {
-        if(dst < CN_INS_MULTICAST)		//组播、广播时可以发送的
+        if(dst < CN_INS_MULTICAST)      //组播、广播时可以发送的
         {
             do
             {
@@ -780,8 +780,8 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
 
 void __ISBUS_SentChkSlave(struct Host_ISBUSPort *Port,u8 dst)
 {
-    u8 *SendBuf;
-    SendBuf = Port->PollSendPkgBuf;
+    u8 SendBuf[sizeof(struct ISBUS_Protocol)];
+//  SendBuf = Port->PollSendPkgBuf;
     SendBuf[CN_OFF_START]   = 0xEB;
     SendBuf[CN_OFF_DST]     = dst;
     SendBuf[CN_OFF_PROTO]   = CN_CHK_SLAVE;

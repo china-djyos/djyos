@@ -86,6 +86,33 @@ struct ISBUS_FunctionSocket * __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u
         return NULL;
 }
 
+//struct dbgrecord
+//{
+//    u32 ev;
+//    u32 time;
+//    u8 len;
+//    u8  data[64];
+//};
+//struct dbgrecord dbgrecord[1000] = {0};
+//u32 offset485 = 0;
+//
+//void recdbg(u32 ev, u8 *buf, u32 len)
+//{
+//    u32 cpylen;
+//    if(offset485 < 1000)
+//    {
+//        if(len < 64)
+//            cpylen = len;
+//        else
+//            cpylen = 64;
+//        if(cpylen != 0)
+//            memcpy(dbgrecord[offset485].data, buf, cpylen);
+//        dbgrecord[offset485].len = cpylen;
+//        dbgrecord[offset485].time = DjyGetSysTime();
+//        dbgrecord[offset485].ev = ev;
+//        offset485++;
+//    }
+//}
 // ============================================================================
 // 函数功能：从机端协议处理函数，该处理函数一般作为一个高优先级的线程弹出
 // 输入参数：无
@@ -101,6 +128,7 @@ ptu32_t ISBUS_SlaveProcess(void)
     u8 *protobuf;
     u8 chk,len, mydst;
     s16 restlen,Completed,readed,startoffset,tmp,tmp1;
+    bool_t needread = true;
 
     Djy_GetEventPara((ptu32_t*)&Port, NULL);
     DevRe = Port->SerialDevice;
@@ -114,7 +142,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         startoffset = Port->analyzeoff;
         readed = Port->recvoff;
         starttime = (u32)DjyGetSysTime();
-        while(1)
+        while(1)        //此循环用于接收包头
         {
             if(startoffset == readed)
             {
@@ -131,8 +159,14 @@ ptu32_t ISBUS_SlaveProcess(void)
                 Port->analyzeoff = 0;
                 Port->recvoff = readed;
             }
-            tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
-                                        0, Port->Timeout);
+            if(needread)
+            {
+                tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
+                                                0, Port->Timeout);
+            }
+//            recdbg(2, &protobuf[readed],tmp);
+//            if((tmp == 12) && (protobuf[readed+7] == 4))
+//                tmp = 12;
             if(tmp != 0)
             {
                 if(debug_ctrl ==true)
@@ -159,6 +193,7 @@ ptu32_t ISBUS_SlaveProcess(void)
                 if(readed - (s16)startoffset >= (s16)sizeof(struct ISBUS_Protocol))
                 {
                     u8 *proto = protobuf + startoffset;
+                    needread = false;
                     if((proto[CN_OFF_DST] == mydst)    //本机地址
                         ||(proto[CN_OFF_DST] >= CN_INS_MULTICAST)  //广播或组播地址
                         ||(proto[CN_OFF_SRC] == Port->BoardcastPre)//广播前置地址
@@ -204,8 +239,11 @@ ptu32_t ISBUS_SlaveProcess(void)
                         printf("\r\n timeover return....");
                         continue;
                     }
+                    needread = true;
                 }
             }
+            else
+                needread = true;
         };
         memcpy((u8*)&protohead, protobuf+startoffset, sizeof(struct ISBUS_Protocol));
         len = protobuf[startoffset + CN_OFF_LEN];
@@ -225,6 +263,7 @@ ptu32_t ISBUS_SlaveProcess(void)
             while(1)
             {
                 tmp = DevRead(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
+//              recdbg(3, &protobuf[readed],tmp);
                 Completed += tmp;
                 readed += tmp;
                 if(Completed >= restlen)
@@ -242,13 +281,14 @@ ptu32_t ISBUS_SlaveProcess(void)
             }
         }
 
-        if(Completed >= restlen)	//检查是否收齐了数据
+        if(Completed >= restlen)    //检查是否收齐了数据
         {
             Me = __Slave_GetProtocol(Port, protohead.Protocol);
             if(Me != NULL)
             {
                 if((protohead.DstAddress == mydst) && (Me->MyProcess != NULL))
                 {
+//                  recdbg(4, NULL,0);
                     Me->MyProcess(Me, protohead.SrcAddress,
                                   protobuf + startoffset + sizeof(struct ISBUS_Protocol), len);
                 }
@@ -274,6 +314,7 @@ ptu32_t ISBUS_SlaveProcess(void)
         {
             Port->analyzeoff = 0;
             Port->recvoff = 0;
+            needread = true;
         }
         else
         {
@@ -284,6 +325,18 @@ ptu32_t ISBUS_SlaveProcess(void)
         Port->dst = protohead.DstAddress;
     }
 }
+
+//bool_t showbuf(void)
+//{
+//    u32 loop,n;
+//    for(loop = 0; loop < offset485; loop++)
+//    {
+//        printf("\r\nev = %d ,  time = %d num = %d  ", dbgrecord[loop].ev, dbgrecord[loop].time,dbgrecord[loop].len);
+//        for(n = 0; n < dbgrecord[loop].len;n++)
+//            printf(" %x,",dbgrecord[loop].data[n]);
+//    }
+//}
+//ADD_TO_ROUTINE_SHELL(showbuf, showbuf, "");
 
 // ============================================================================
 // 函数功能：安装内部串口通信模块。该模块仅适用于从机部分。

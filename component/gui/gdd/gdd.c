@@ -151,7 +151,7 @@ void ModuleInstall_Gdd_AND_Desktop(void)
     if(desktop == NULL)
     {
         printf("创建桌面出错");
-        while( 1 );             //初始化时出错，死循环即可
+//      while( 1 );             //初始化时出错，死循环即可
     }
     else
     {
