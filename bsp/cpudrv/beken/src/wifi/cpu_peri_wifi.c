@@ -255,7 +255,19 @@ static bool_t MacCtrl(struct NetDev *devhandle,u8 cmd,ptu32_t para)
 #endif
     return true;
 }
-
+#if 0
+int hexdump(int tag, const unsigned char *buf, int size)
+{
+    int i;
+    if(tag)
+        printf("===>>>\r\n");
+    else
+        printf("<<<===\r\n");
+    for(i=0; i<size; i++)
+        printf("%02x,%s", buf[i], (i+1)%16?"":"\r\n");
+    return 0;
+}
+#endif
 //extern void hexdump(const unsigned char* buf, int len);
 static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
 {
@@ -284,27 +296,28 @@ static bool_t __MacSnd(void* handle,struct NetPkg * pkg,u32 netdevtask)
         if(len <= EthTxBufSize)
         {
             p = pbuf_alloc(PBUF_RAW, len, PBUF_RAM);
-            src = &gTxBuffer[0];
-            memcpy(p->payload,src,len);
-//            printk("\r\ntx buf:");
-////            for(int i=0;i<len;i++)
-////                printf("%x ",*(src + i));
-////            printf("\r\n");
-//            hexdump(src,len);
-            msg.type = BMSG_TX_TYPE;
-            msg.arg = (uint32_t)p;
-            msg.len = 0;
-//            msg.sema = gMacDriver.sendsync;
-            msg.sema = NULL;
-//            Lock_SempPend(gMacDriver.sendsync,10*mS);
-            ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
-            if(0 != ret)
-            {
-                result = false;
+            if(p) {
+                src = &gTxBuffer[0];
+                memcpy(p->payload,src,len);
+                //hexdump(1, src,len);
+                msg.type = BMSG_TX_TYPE;
+                msg.arg = (uint32_t)p;
+                msg.len = 0;
+    //            msg.sema = gMacDriver.sendsync;
+                msg.sema = NULL;
+    //            Lock_SempPend(gMacDriver.sendsync,10*mS);
+                ret = bk_rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
+                if(0 != ret)
+                {
+                    result = false;
+                }
+                else
+                {
+                    result = true;
+                }
             }
-            else
-            {
-                result = true;
+            else {
+                result = false;
             }
         }
         else
