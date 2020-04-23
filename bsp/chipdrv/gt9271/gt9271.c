@@ -235,7 +235,7 @@ static bool_t GT9271_Init( )
                 if(Val_1 < 0x06)
                 {
                     ret = GT9271_RD_Reg(GT9271_CONFIG_VERSION, &Val_2, 1);
-                    if((ret == 1) && (Val_2 >= 90) && (Val_2 == cfg_info_group5[0]))
+                    if((ret == 1) && (Val_2 >= 90))
                     {
                         if(GT9271_WR_Reg(GT9271_CONFIG_VERSION, cfg_info_group5, sizeof(cfg_info_group5)) == sizeof(cfg_info_group5))
                         {
