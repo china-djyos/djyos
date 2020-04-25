@@ -1004,4 +1004,8 @@ void ISBUS_HostInit(u32 HostStackSize)
 
 }
 
+void ISBUS_Host_SetTimeOut(struct Host_ISBUSPort *port, u32 timeout)
+{
+    port->Timeout = timeout;
+}
 
