@@ -19,6 +19,7 @@
 #include "ISBUS_Protocol.h"
 #include "timer_hard.h"
 #include "dbug.h"
+#include <shell.h>
 #include "component_config_isbus.h"
 
 //通信端口的描述
@@ -93,12 +94,15 @@ struct ISBUS_FunctionSocket * __Slave_GetProtocol(struct Slave_ISBUSPort *Port,u
 //    u8 len;
 //    u8  data[64];
 //};
-//struct dbgrecord dbgrecord[1000] = {0};
+//struct dbgrecord dbgrecord[1010] = {0};
 //u32 offset485 = 0;
 //
 //void recdbg(u32 ev, u8 *buf, u32 len)
 //{
 //    u32 cpylen;
+////    if(offset485 >= 1000)
+////        offset485 = 0;
+//
 //    if(offset485 < 1000)
 //    {
 //        if(len < 64)
@@ -163,20 +167,20 @@ ptu32_t ISBUS_SlaveProcess(void)
             {
                 tmp = DevRead(DevRe, &protobuf[readed], 256+sizeof(struct ISBUS_Protocol) - readed,
                                                 0, Port->Timeout);
+                if(tmp != 0)
+                {
+                    if(debug_ctrl ==true)
+                    {
+                        printf("\r\nslave recv:");
+                        for(tmp1 = 0; tmp1<tmp;tmp1++)
+                            printf("%02x ",protobuf[tmp1+readed]);
+                    }
+                    readed += tmp;
+                }
             }
 //            recdbg(2, &protobuf[readed],tmp);
 //            if((tmp == 12) && (protobuf[readed+7] == 4))
 //                tmp = 12;
-            if(tmp != 0)
-            {
-                if(debug_ctrl ==true)
-                {
-                    printf("\r\nslave recv:");
-                    for(tmp1 = 0; tmp1<tmp;tmp1++)
-                        printf("%02x ",protobuf[tmp1+readed]);
-                }
-                readed += tmp;
-            }
             if( ! Gethead)
             {
                 for(; startoffset < readed;startoffset++)
@@ -263,7 +267,7 @@ ptu32_t ISBUS_SlaveProcess(void)
             while(1)
             {
                 tmp = DevRead(DevRe, &protobuf[readed],restlen, 0, Port->Timeout);
-//              recdbg(3, &protobuf[readed],tmp);
+//                recdbg(3, &protobuf[readed],tmp);
                 Completed += tmp;
                 readed += tmp;
                 if(Completed >= restlen)
@@ -288,7 +292,7 @@ ptu32_t ISBUS_SlaveProcess(void)
             {
                 if((protohead.DstAddress == mydst) && (Me->MyProcess != NULL))
                 {
-//                  recdbg(4, NULL,0);
+//                    recdbg(4, NULL,0);
                     Me->MyProcess(Me, protohead.SrcAddress,
                                   protobuf + startoffset + sizeof(struct ISBUS_Protocol), len);
                 }
