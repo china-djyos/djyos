@@ -694,15 +694,15 @@ static bool_t  stm32f7_NAND_ControllerConfig(void)
     NAND_Handler.Init.TCLRSetupTime=7;//设置TCLR(tCLR=CLE到RE的延时)=(TCLR+TSET+2)*THCLK,THCLK=1/180M=4.6ns
     NAND_Handler.Init.TARSetupTime=7; //设置TAR(tAR=ALE到RE的延时)=(TAR+TSET+1)*THCLK,THCLK=1/180M=4.6n。
 
-    ComSpaceTiming.SetupTime=3;         //建立时间
-    ComSpaceTiming.WaitSetupTime=4;    //等待时间
-    ComSpaceTiming.HoldSetupTime=3;    //保持时间
-    ComSpaceTiming.HiZSetupTime=3;     //高阻态时间
+    ComSpaceTiming.SetupTime=10;         //建立时间
+    ComSpaceTiming.WaitSetupTime=10;    //等待时间
+    ComSpaceTiming.HoldSetupTime=10;    //保持时间
+    ComSpaceTiming.HiZSetupTime=10;     //高阻态时间
 
-    AttSpaceTiming.SetupTime=3;         //建立时间
-    AttSpaceTiming.WaitSetupTime=4;    //等待时间
-    AttSpaceTiming.HoldSetupTime=3;    //保持时间
-    AttSpaceTiming.HiZSetupTime=3;     //高阻态时间
+    AttSpaceTiming.SetupTime=10;         //建立时间
+    AttSpaceTiming.WaitSetupTime=10;    //等待时间
+    AttSpaceTiming.HoldSetupTime=10;    //保持时间
+    AttSpaceTiming.HiZSetupTime=10;     //高阻态时间
 
     HAL_NAND_Init(&NAND_Handler,&ComSpaceTiming,&AttSpaceTiming);
     NAND_Reset();                       //复位NAND
