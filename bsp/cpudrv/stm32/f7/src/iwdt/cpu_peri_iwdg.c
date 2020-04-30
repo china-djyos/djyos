@@ -48,12 +48,15 @@
 #include "djyos.h"
 #include "cpu_peri.h"
 #include "shell.h"
+#include <math.h>//引用指数函数等，pow(a,b),a的b次方
 #include "project_config.h"     //本文件由IDE中配置界面生成，存放在APP的工程目录中。
                                 //允许是个空文件，所有配置将按默认值配置。
 
 //@#$%component configure   ****组件配置开始，用于 DIDE 中图形化配置界面
 //****配置块的语法和使用方法，参见源码根目录下的文件：component_config_readme.txt****
 //%$#@initcode      ****初始化代码开始，由 DIDE 删除“//”后copy到初始化文件中
+//    extern bool_t ModuleInstall_BrdWdt(void);
+//    ModuleInstall_BrdWdt();
 //%$#@end initcode  ****初始化代码结束
 
 //%$#@describe      ****组件描述开始
@@ -79,10 +82,15 @@
 //%$#@target = header           //header = 生成头文件,cmdline = 命令行变量，DJYOS自有模块禁用
 #define CFG_MODULE_ENABLE_CPU_ONCHIP_IWDT    false //如果勾选了本组件，将由DIDE在project_config.h或命令行中定义为true
 //%$#@num,0,100000000,
-#define CFG_FEED_CYCLE              (2000*1000)     //"看门狗超时时间"，单位us
 #define CFG_BOOT_TIME_LIMIT         30000000        //"启动加载超限时间",允许保护启动加载过程才需要配置此项
+//%$#@enum,4,8,16,32,64,128,256
+#define CFG_IWDG_PRESCALER           128             //iwdg的分配系数。
+//%$#@num,0,4095,
+#define CFG_RELOAD_CYCLE             4000            //自动重装载值,看门狗溢出时间为Tout=((4× 2^prer) × rlr) /32
+//%$#@free,
+#define CFG_WDT_TIM                 TIM12    //启动加载用到的定时器
 //%$#@enum,true,false,
-#define CFG_DEFEND_ON_BOOT          false          //"保护启动过程",启动加载过程如果出现死机，看门狗将复位
+#define CFG_DEFEND_ON_BOOT           false          //"保护启动过程",启动加载过程如果出现死机，看门狗将复位
 //%$#@string,1,10,
 //%$#select,        ***从列出的选项中选择若干个定义成宏
 //%$#@free,
@@ -95,7 +103,6 @@
 // =============================================================================
 static IWDG_HandleTypeDef   IwdgHandle;
 
-#define WDT_TIM    TIM12    //启动加载用到的定时器TIM12
 
 static u32 sBootDogFeedTime = 0;
 static u32 FeedCnt1=0;
@@ -144,8 +151,8 @@ bool_t BrdWdt_FeedDog(void)
 
 u32 __FeedDog_Isr(ptu32_t intline)
 {
-    WDT_TIM->CNT = 0;
-    WDT_TIM->SR = 0;//清中断标志
+    CFG_WDT_TIM->CNT = 0;
+    CFG_WDT_TIM->SR = 0;//清中断标志
     BrdWdt_FeedDog();
     Int_ClearLine(intline);
     FeedCnt1++;
@@ -165,17 +172,17 @@ bool_t __BrdBoot_FeedStart( void)
     IWDG_Init();
     sBootDogFeedTime = CFG_BOOT_TIME_LIMIT;
     RCC->APB1ENR |=RCC_APB1ENR_TIM12EN;
-    WDT_TIM->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
-    WDT_TIM->CR1 |= TIM_CR1_ARPE | TIM_CR1_DIR;//自动重装
-    WDT_TIM->DIER |= TIM_DIER_UIE;//使能更新中断
-    WDT_TIM->PSC = 4000-1;//分频系数 为零 不分频(1/108)1uS
-    WDT_TIM->ARR = 27000;//定时器预装初值
+    CFG_WDT_TIM->CR1 &= ~(TIM_CR1_CEN); //禁止TIMER
+    CFG_WDT_TIM->CR1 |= TIM_CR1_ARPE | TIM_CR1_DIR;//自动重装
+    CFG_WDT_TIM->DIER |= TIM_DIER_UIE;//使能更新中断
+    CFG_WDT_TIM->PSC = 4000-1;//分频系数 为零 不分频(1/108)1uS
+    CFG_WDT_TIM->ARR = 27000;//定时器预装初值
     Int_Register(irqline);
     Int_IsrConnect(irqline,__FeedDog_Isr);
     Int_SettoReal(irqline);
     Int_ClearLine(irqline);
     Int_RestoreRealLine(irqline);
-    WDT_TIM->CR1 |= (TIM_CR1_CEN); //使能TIMER
+    CFG_WDT_TIM->CR1 |= (TIM_CR1_CEN); //使能TIMER
     return true;
 }
 
@@ -188,7 +195,7 @@ bool_t __BrdBoot_FeedEnd(void)
 {
     u8 irqline = CN_INT_LINE_TIM8_BRK_TIM12;
     BrdWdt_FeedDog();
-    WDT_TIM->CR1 &=~(TIM_CR1_CEN); //禁止TIMER
+    CFG_WDT_TIM->CR1 &=~(TIM_CR1_CEN); //禁止TIMER
     Int_SaveRealLine(irqline);
     Int_IsrDisConnect(irqline);
     Int_UnRegister(irqline);
@@ -209,16 +216,38 @@ void IWDG_Init(void)
 
    /*##-2- Configure the IWDG peripheral ######################################*/
       /*##-3- Configure the IWDG peripheral ######################################*/
+      switch(CFG_IWDG_PRESCALER)
+      {
+          case 4:
+              IwdgHandle.Init.Prescaler = IWDG_PRESCALER_4;break;
+          case 16:
+              IwdgHandle.Init.Prescaler = IWDG_PRESCALER_16;break;
+          case 32:
+              IwdgHandle.Init.Prescaler = IWDG_PRESCALER_32;break;
+          case 64:
+              IwdgHandle.Init.Prescaler = IWDG_PRESCALER_64;break;
+          case 128:
+              IwdgHandle.Init.Prescaler = IWDG_PRESCALER_128;break;
+          case 256:
+              IwdgHandle.Init.Prescaler = IWDG_PRESCALER_256;break;
+
+          default:
+              return ;
+      }
+      if(CFG_RELOAD_CYCLE >= 4096)
+      {
+          return ;
+      }
+
       IwdgHandle.Instance = IWDG;
-      IwdgHandle.Init.Prescaler = IWDG_PRESCALER_32;
-      IwdgHandle.Init.Reload    = 32000/16;
+      IwdgHandle.Init.Reload    = CFG_RELOAD_CYCLE;
       IwdgHandle.Init.Window    = IWDG_WINDOW_DISABLE;
 
     if (HAL_IWDG_Init(&IwdgHandle) != HAL_OK)
     {
-        printf("IWDG Init failed.\r\n");
+//        printf("IWDG Init failed.\r\n");
     }
-    printf("IWDG Init success.\r\n");
+//    printf("IWDG Init success.\r\n");
 }
 
 // =============================================================================
@@ -230,10 +259,11 @@ void IWDG_Init(void)
 bool_t ModuleInstall_BrdWdt(void)
 {
     bool_t result;
+    u32 feed;
     IWDG_Init();
-//  WdtHal_RegisterWdtChip("Wdt_IWDG",CFG_FEED_CYCLE/4,BrdWdt_FeedDog,\
-//          BrdBoot_FeedStart,BrdBoot_FeedEnd);
-    result = WdtHal_RegisterWdtChip("Wdt_IWDG", CFG_FEED_CYCLE/4, BrdWdt_FeedDog);
+
+    feed = (pow(2,IwdgHandle.Init.Prescaler) * IwdgHandle.Init.Reload) / 8; //看门狗溢出时间单位ms
+    result = WdtHal_RegisterWdtChip("Wdt_IWDG", feed * 1000 /4, BrdWdt_FeedDog);
 #if(CFG_DEFEND_ON_BOOT == true)
     __BrdBoot_FeedEnd();
 #endif
