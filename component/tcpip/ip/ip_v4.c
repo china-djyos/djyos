@@ -207,6 +207,8 @@ bool_t IpV4Send(u32 ipsrc, u32 ipdst, struct NetPkg *pkg,u16 translen,u8 proto,\
     u32 iphost = INADDR_ANY;
     tagRoutLink  rout;
 
+    if(ipsrc != 0)
+        ret = false;
     TCPIP_DEBUG_INC(gV4CB.sndnum);
     memset(&rout,0,sizeof(rout));
     rout.ver = EN_IPV_4;

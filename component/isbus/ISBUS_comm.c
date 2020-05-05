@@ -54,6 +54,7 @@
 bool_t ISBUS_SlaveInit(u32 StackSize);
 void ISBUS_HostInit(u32 HostStackSize);
 bool_t debug_ctrl = true;
+u32 dbg_stopack = 0;
 // ============================================================================
 // 函数功能：安装内部串口通信模块。该模块仅适用于从机部分。
 // 输入参数：StackSize，模块需要的内存尺寸，由于串行通信协议解析后，要调用用户
@@ -80,5 +81,14 @@ bool_t ndbgisbus(char *param)
         debug_ctrl = false;
     return true;
 }
+bool_t stopack(char *param)
+{
+    u32 times;
+    times = atoi(param);
+    dbg_stopack = times;
+    return true;
+}
+
 ADD_TO_ROUTINE_SHELL(ndbgisbus,ndbgisbus,"");
+ADD_TO_ROUTINE_SHELL(stopack,stopack,"");
 

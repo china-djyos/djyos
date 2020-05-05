@@ -71,7 +71,7 @@ extern "C" {
 #define CBN_SELECTED    1    //被选中
 #define CBN_UNSELECTED  2    //未被选中
 
-// 复选框风格
+// 复选框风格，使用struct WINDOW结构Style的低16位，高16位用于窗口公共风格。
 #define CBS_SELECTED        (1<<1)  //复选框选中
 
 HWND CreateCheckBox(  const char *Text,u32 Style,

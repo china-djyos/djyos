@@ -22,9 +22,10 @@ extern "C" {
 #define CN_OFF_DST          1
 #define CN_OFF_PROTO        2
 #define CN_OFF_SRC          3
-#define CN_OFF_LEN          4
-#define CN_OFF_CHKSUM       5
-#define CN_OFF_USER         6
+#define CN_OFF_SERIAL       4
+#define CN_OFF_LEN          5
+#define CN_OFF_CHKSUM       6
+#define CN_OFF_USER         7
 
 //系统协议号定义，由平台确定和管理。
 #define CN_SET_SLAVE_TABLE          0       //传送从机地址列表，数据包格式：数量+列表
@@ -33,6 +34,7 @@ extern "C" {
 #define CN_SET_POLL_CYCLE           3       //告知轮询周期
 #define CN_SET_ECHO_TIME_LIMIT      4       //告知从机，收到轮询命令后必须应答的时限
 #define CN_CHK_SLAVE                5       //检查从机是否存在，从机收到后须在20mS内应答。
+#define CN_SLAVE_ACK                6       //表示从机收到，用于收到空插槽的时候
 
 //用户协议号定义
 #define CN_PROTOCOL_USER_START     16
@@ -48,10 +50,6 @@ extern "C" {
 #define CN_POLL_SAME_INTERVAL   (1)  //等间隔周期轮询各个从机
 #define CN_POLL_SAME_CYCLE      (2)  //等周期轮询所有从机
 
-#define ONE_BY_ONE        (0)  //一问一答
-#define BROADCAST_MODEL   (1)  //一问多答，广播模式
-#define MULTICAST_MODEL   (2)  //一问多答，组播模式
-
 #define UNLIMITED_NUMBER  (0xFFFFFFFF)  //无限次数轮询
 extern bool_t debug_ctrl;
 
@@ -61,7 +59,7 @@ struct Host_ISBUSPort;      //通信端口
 struct Slave_ISBUSPort;
 struct SlaveList;                             //从机列表
 typedef void (*ISBUS_FntProtocolProcess) (struct ISBUS_FunctionSocket  *InSerSocket, u8 src, u8 *buf, u32 len);
-typedef void (*ISBUS_FntProtocolError) (void  *Port , u32 ErrorNo);
+typedef void (*ISBUS_FntProtocolError) (void  *Port , u32 ErrorNo, u8 SlaveAddress);
 
 
 //主机API
