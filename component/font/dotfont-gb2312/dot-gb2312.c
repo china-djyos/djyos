@@ -192,7 +192,7 @@ s32 Gb2312Ucs4ToMb (u8* mb, u32 wc);
 #if CFG_GB2312_12_SONG != zk_disable
 #include "../dotfont-ascii/dot-ascii8x12song.h"
 
-bool_t __Gb2312_12LoadFromFileSong(char *zk_addr);
+bool_t __Gb2312_12LoadFromFileSong(const char* FileName);
 void __Gb2312_12UnLoadFromFileSong(void);
 bool_t __Font_Gb2312_12GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -396,7 +396,7 @@ bool_t ModuleInstall_FontGb2312_12_Song(void)
 #if CFG_GB2312_16_SONG != zk_disable
 #include "../dotfont-ascii/dot-ascii8x16song.h"
 
-bool_t __Gb2312_16LoadFromFileSong(char *zk_addr);
+bool_t __Gb2312_16LoadFromFileSong(const char* FileName);
 void __Gb2312_16UnLoadFromFileSong(void);
 bool_t __Font_Gb2312_16GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -589,7 +589,7 @@ bool_t ModuleInstall_FontGb2312_16_Song(void)
 #if CFG_GB2312_16_YAHEI != zk_disable
 #include "../dotfont-ascii/dot-ascii8x16song.h"
 
-bool_t __Gb2312_16LoadFromFileYahei(char *zk_addr);
+bool_t __Gb2312_16LoadFromFileYahei(const char* FileName);
 void __Gb2312_16UnLoadFromFileYahei(void);
 bool_t __Font_Gb2312_16GetCharBitMapYahei(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -782,7 +782,7 @@ bool_t ModuleInstall_FontGb2312_16_Yahei(void)
 #if CFG_GB2312_16_FANG != zk_disable
 #include "../dotfont-ascii/dot-ascii8x16fang.h"
 
-bool_t __Gb2312_16LoadFromFileFang(char *zk_addr);
+bool_t __Gb2312_16LoadFromFileFang(const char* FileName);
 void __Gb2312_16UnLoadFromFileFang(void);
 bool_t __Font_Gb2312_16GetCharBitMapFang(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -974,7 +974,7 @@ bool_t ModuleInstall_FontGb2312_16_Fang(void)
 #if CFG_GB2312_16_HEI != zk_disable
 #include "../dotfont-ascii/dot-ascii8x16hei.h"
 
-bool_t __Gb2312_16LoadFromFileHei(char *zk_addr);
+bool_t __Gb2312_16LoadFromFileHei(const char* FileName);
 void __Gb2312_16UnLoadFromFileHei(void);
 bool_t __Font_Gb2312_16GetCharBitMapHei(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -1167,7 +1167,7 @@ bool_t ModuleInstall_FontGb2312_16_Hei(void)
 #if CFG_GB2312_16_KAI != zk_disable
 #include "../dotfont-ascii/dot-ascii8x16song.h"
 
-bool_t __Gb2312_16LoadFromFileKai(char *zk_addr);
+bool_t __Gb2312_16LoadFromFileKai(const char* FileName);
 void __Gb2312_16UnLoadFromFileKai(void);
 bool_t __Font_Gb2312_16GetCharBitMapKai(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -1360,7 +1360,7 @@ bool_t ModuleInstall_FontGb2312_16_Kai(void)
 #if CFG_GB2312_16_YUAN != zk_disable
 #include "../dotfont-ascii/dot-ascii8x16yuan.h"
 
-bool_t __Gb2312_16LoadFromFileYuan(char *zk_addr);
+bool_t __Gb2312_16LoadFromFileYuan(const char* FileName);
 void __Gb2312_16UnLoadFromFileYuan(void);
 bool_t __Font_Gb2312_16GetCharBitMapYuan(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -1557,9 +1557,9 @@ bool_t ModuleInstall_FontGb2312_16_Yuan(void)
 #define FONT_HZ24_ASCII_BYTES   48              // ASCII的字节数
 
 #if CFG_GB2312_24_SONG != zk_disable
-#include "../dotfont-ascii/dot-ascii8x24song.h"
+#include "../dotfont-ascii/dot-ascii12x24song.h"
 
-bool_t __Gb2312_24LoadFromFileSong(char *zk_addr);
+bool_t __Gb2312_24LoadFromFileSong(const char* FileName);
 void __Gb2312_24UnLoadFromFileSong(void);
 bool_t __Font_Gb2312_24GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -1752,7 +1752,7 @@ bool_t ModuleInstall_FontGb2312_24_Song(void)
 #if CFG_GB2312_24_YAHEI != zk_disable
 #include "../dotfont-ascii/dot-ascii12x24song.h"
 
-bool_t __Gb2312_24LoadFromFileYahei(char *zk_addr);
+bool_t __Gb2312_24LoadFromFileYahei(const char* FileName);
 void __Gb2312_24UnLoadFromFileYahei(void);
 bool_t __Font_Gb2312_24GetCharBitMapYahei(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -1945,7 +1945,7 @@ bool_t ModuleInstall_FontGb2312_24_Yahei(void)
 #if CFG_GB2312_24_FANG != zk_disable
 #include "../dotfont-ascii/dot-ascii8x24fang.h"
 
-bool_t __Gb2312_24LoadFromFileFang(char *zk_addr);
+bool_t __Gb2312_24LoadFromFileFang(const char* FileName);
 void __Gb2312_24UnLoadFromFileFang(void);
 bool_t __Font_Gb2312_24GetCharBitMapFang(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -2138,7 +2138,7 @@ bool_t ModuleInstall_FontGb2312_24_Fang(void)
 #if CFG_GB2312_24_HEI != zk_disable
 #include "../dotfont-ascii/dot-ascii8x24hei.h"
 
-bool_t __Gb2312_24LoadFromFileHei(char *zk_addr);
+bool_t __Gb2312_24LoadFromFileHei(const char* FileName);
 void __Gb2312_24UnLoadFromFileHei(void);
 bool_t __Font_Gb2312_24GetCharBitMapHei(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -2331,7 +2331,7 @@ bool_t ModuleInstall_FontGb2312_24_Hei(void)
 #if CFG_GB2312_24_KAI != zk_disable
 #include "../dotfont-ascii/dot-ascii8x24song.h"
 
-bool_t __Gb2312_24LoadFromFileKai(char *zk_addr);
+bool_t __Gb2312_24LoadFromFileKai(const char* FileName);
 void __Gb2312_24UnLoadFromFileKai(void);
 bool_t __Font_Gb2312_24GetCharBitMapKai(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -2524,7 +2524,7 @@ bool_t ModuleInstall_FontGb2312_24_Kai(void)
 #if CFG_GB2312_24_YUAN != zk_disable
 #include "../dotfont-ascii/dot-ascii8x24yuan.h"
 
-bool_t __Gb2312_24LoadFromFileYuan(char *zk_addr);
+bool_t __Gb2312_24LoadFromFileYuan(const char* FileName);
 void __Gb2312_24UnLoadFromFileYuan(void);
 bool_t __Font_Gb2312_24GetCharBitMapYuan(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -2721,9 +2721,9 @@ bool_t ModuleInstall_FontGb2312_24_Yuan(void)
 #define FONT_HZ32_ASCII_BYTES   64              // ASCII的字节数
 
 #if CFG_GB2312_32_SONG != zk_disable
-#include "../dotfont-ascii/dot-ascii8x32song.h"
+#include "../dotfont-ascii/dot-ascii16x32song.h"
 
-bool_t __Gb2312_32LoadFromFileSong(char *zk_addr);
+bool_t __Gb2312_32LoadFromFileSong(const char* FileName);
 void __Gb2312_32UnLoadFromFileSong(void);
 bool_t __Font_Gb2312_32GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -2767,7 +2767,7 @@ bool_t __Font_Gb2312_32GetCharBitMapSong(u32 charcode, u32 size,u32 resv,
         bitmap->PixelFormat = CN_SYS_PF_GRAY1;
         if(bitmap->bm_bits != NULL)
         {
-            for(i=0; i<32; i++)
+            for(i=0; i<FONT_HZ32_ASCII_BYTES; i++)
             {
                 bitmap->bm_bits[i] = pg_Ascii16x32Song[offset + i];
             }
@@ -2916,7 +2916,7 @@ bool_t ModuleInstall_FontGb2312_32_Song(void)
 #if CFG_GB2312_32_FANG != zk_disable
 #include "../dotfont-ascii/dot-ascii8x32fang.h"
 
-bool_t __Gb2312_32LoadFromFileFang(char *zk_addr);
+bool_t __Gb2312_32LoadFromFileFang(const char* FileName);
 void __Gb2312_32UnLoadFromFileFang(void);
 bool_t __Font_Gb2312_32GetCharBitMapFang(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -3109,7 +3109,7 @@ bool_t ModuleInstall_FontGb2312_32_Fang(void)
 #if CFG_GB2312_32_HEI != zk_disable
 #include "../dotfont-ascii/dot-ascii8x32hei.h"
 
-bool_t __Gb2312_32LoadFromFileHei(char *zk_addr);
+bool_t __Gb2312_32LoadFromFileHei(const char* FileName);
 void __Gb2312_32UnLoadFromFileHei(void);
 bool_t __Font_Gb2312_32GetCharBitMapHei(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -3302,7 +3302,7 @@ bool_t ModuleInstall_FontGb2312_32_Hei(void)
 #if CFG_GB2312_32_KAI != zk_disable
 #include "../dotfont-ascii/dot-ascii8x32song.h"
 
-bool_t __Gb2312_32LoadFromFileKai(char *zk_addr);
+bool_t __Gb2312_32LoadFromFileKai(const char* FileName);
 void __Gb2312_32UnLoadFromFileKai(void);
 bool_t __Font_Gb2312_32GetCharBitMapKai(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
@@ -3495,7 +3495,7 @@ bool_t ModuleInstall_FontGb2312_32_Kai(void)
 #if CFG_GB2312_32_YUAN != zk_disable
 #include "../dotfont-ascii/dot-ascii8x32yuan.h"
 
-bool_t __Gb2312_32LoadFromFileYuan(char *zk_addr);
+bool_t __Gb2312_32LoadFromFileYuan(const char* FileName);
 void __Gb2312_32UnLoadFromFileYuan(void);
 bool_t __Font_Gb2312_32GetCharBitMapYuan(u32 charcode, u32 size,u32 resv,
                                     struct RectBitmap *bitmap);
