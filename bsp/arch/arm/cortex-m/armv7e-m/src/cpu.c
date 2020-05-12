@@ -146,8 +146,8 @@ typedef struct
 void reboot()
 {
     u32 InitCpu_Addr;
-//    Set_RebootFlag();
-//    Set_PreviouResetFlag();
+    Set_RebootFlag();
+    Set_PreviouResetFlag();
     InitCpu_Addr = (u32)Init_Cpu;
     ((void (*)(void))(InitCpu_Addr))();
 
@@ -160,8 +160,8 @@ void reboot()
 // =============================================================================
 void reset()
 {
-//    Set_SoftResetFlag();
-//    Set_PreviouResetFlag();
+    Set_SoftResetFlag();
+    Set_PreviouResetFlag();
     pg_scb_reg->AIRCR = (0x05FA << 16)|(0x01 << bo_scb_aircr_sysresetreq);
     return;
 }
