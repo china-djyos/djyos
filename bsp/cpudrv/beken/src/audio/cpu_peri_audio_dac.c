@@ -83,6 +83,15 @@ uint32_t djy_audio_dac_write(char *user_buf, uint32_t count)
     return audio_dac_write(user_buf, count, (uint32_t)&aud_dac);
 }
 
+uint32_t djy_audio_dac_clear_buffer()
+{
+    if(aud_dac.buf == NULL) return 0;
+    if(aud_dac.buf_len > 0) {
+        memset(aud_dac.buf,  0, aud_dac.buf_len);
+    }
+    return 0;
+}
+
 void djy_audio_dac_close(void)
 {
     unsigned char *buf_temp = 0;
