@@ -750,6 +750,7 @@ void wpa_supplicant_set_state(struct wpa_supplicant *wpa_s,
         wpa_drv_sta_set_flags(wpa_s, wpa_s->bssid, ~0, WPA_STA_AUTHORIZED, ~0);
 
         DhcpStaStartIp();
+        Djy_EventDelay(200*1000);
     }
     if(state == WPA_DISCONNECTED && state != wpa_s->wpa_state){
         wpa_config_set_network_defaults(wpa_s->conf->ssid);
@@ -761,6 +762,7 @@ void wpa_supplicant_set_state(struct wpa_supplicant *wpa_s,
 
         wpa_s->conf->ssid->mem_only_psk = 1; // set psk, to enable rescan.
         DhcpStaClearIp();
+        Djy_EventDelay(200*1000);
     }
 
 #ifdef CONFIG_P2P
