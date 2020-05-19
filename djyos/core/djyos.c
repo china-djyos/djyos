@@ -1479,7 +1479,7 @@ bool_t __Djy_RaiseTempPrioForStack(u16 event_id)
             __Djy_ChangeBlockQueue(pl_ecb);
         }
     }
-    testprio();
+//    testprio();
     return true;
 }
 
@@ -1631,7 +1631,7 @@ bool_t Djy_SetEventPrio(u16 event_id,ufast_t new_prio)
             pl_ecb->prio = new_prio;
     }
     Int_RestoreAsynSignal();
-    testprio();
+//    testprio();
     return true;
 }
 
@@ -1671,7 +1671,7 @@ bool_t Djy_RaiseTempPrio(u16 event_id)
             pl_ecb->prio = g_ptEventRunning->prio;
     }
     Int_RestoreAsynSignal();
-    testprio();
+//    testprio();
     return true;
 }
 
@@ -1693,7 +1693,7 @@ bool_t Djy_RestorePrio(void)
         __Djy_EventReady(g_ptEventRunning);
     }
     Int_RestoreAsynSignal();
-    testprio();
+//    testprio();
     return true;
 }
 
@@ -2135,12 +2135,12 @@ u32 Djy_WaitEvttPop(u16 evtt_id,u32 *base_times, u32 timeout)
 //          回处理结果。单位是us
 //      pop_result,事件弹出或处理状态，如果函数返回了合法的事件id，
 //          且timeout !=0，则
-//              pop_result = cn_sync_success，表示事件被处理完成后返回
-//              pop_result = cn_sync_timeout，表示事件未被处理完，超时返回
-//              pop_result = enum_knl_event_sync_exit，事件处理被异常终止
+//              pop_result = CN_SYNC_SUCCESS ，表示事件被处理完成后返回
+//              pop_result = CN_SYNC_TIMEOUT ，表示事件未被处理完，超时返回
+//              pop_result = CN_STS_EVENT_EXP_EXIT ，事件处理被异常终止
 //              如果timeout ==0，则pop_result无意义。
 //
-//          如果函数返回了cn_invalid_event_id，则返回具体的出错信息
+//          如果函数返回了 CN_EVENT_ID_INVALID ，则返回具体的出错信息
 //      PopPrarm1，PopPrarm2：传递给事件的参数，如果连续弹出关联型事件，事件控
 //          制块中总是保存最后一次弹出的参数。
 //      prio,事件优先级,对于需要创建新事件的情况，0表示新事件使用默认值(存在事件
@@ -2437,7 +2437,7 @@ u32 Djy_GetEvttPopTimes(u16 evtt_id)
 
 //----取事件处理结果-----------------------------------------------------------
 //功能: 一个事件在处理过程中，如果弹出了新事件，并且等待事件处理结果(调用
-//      djy_event_pop函数是sync=true)。如果调用djy_event_pop时返回了合法的事件
+//      Djy_EventPop 函数时 timeout != 0)。如果调用 Djy_EventPop 时返回了合法的事件
 //      id，且不是超时返回，则可以用本函数获取新事件的处理结果。只能取最后一次
 //      成功处理的事件结果。
 //参数: 无

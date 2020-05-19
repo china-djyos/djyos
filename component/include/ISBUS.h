@@ -16,6 +16,7 @@ extern "C" {
 #define CN_INS_CHKSUM_ERR      0x2
 #define CN_INS_PHY_ERR         0x3
 #define CN_INS_TIMEROUT_ERR    0x4
+#define CN_INS_SLAVE_FAULT     0x5      //从机故障
 
 //协议字段偏移量
 #define CN_OFF_START        0
@@ -34,15 +35,15 @@ extern "C" {
 #define CN_SET_POLL_CYCLE           3       //告知轮询周期
 #define CN_SET_ECHO_TIME_LIMIT      4       //告知从机，收到轮询命令后必须应答的时限
 #define CN_CHK_SLAVE                5       //检查从机是否存在，从机收到后须在20mS内应答。
-#define CN_SLAVE_ACK                6       //表示从机收到，用于收到空插槽的时候
+#define CN_SLAVE_ACK                6       //表示收到空插槽或重发的数据
 
 //用户协议号定义
 #define CN_PROTOCOL_USER_START     16
 //广播地址
-#define CN_INS_BROADCAST        0xff        //广播
+#define CN_INS_BROADCAST        0xff        //广播地址
 
 //组播起始地址
-#define CN_INS_MULTICAST        0x80        //组播
+#define CN_INS_MULTICAST        0x80        //组播起始地址
 #define CN_INS_MTC_INVALID      0xfe        //非法组播地址
 
 //轮询方式定义
@@ -67,9 +68,9 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,ISBUS_FntProtocolError fnE
 struct ISBUS_FunctionSocket *ISBUS_HostRegistProtocol(struct Host_ISBUSPort *Port, u8 Protocol,
                                           u16 MaxRecvLen,u16 MaxSendLen, ISBUS_FntProtocolProcess fn);
 u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
-                        u8 *buf, u8 len, s32 times);
+                        u8 *buf, u8 len, s32 times, u32 Timeout);
 u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
-                            u8 *buf, u8 len);
+                            u8 *buf, u8 len, u32 Timeout);
 void ISBUS_PollConfig(struct Host_ISBUSPort *Port,u32 timercycle,u8 PoolModel);
 void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address);
 void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num);
