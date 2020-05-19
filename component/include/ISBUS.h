@@ -10,6 +10,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 //通信错误编号
 #define CN_INS_OK              0x0
 #define CN_INS_LEN_ERR         0x1
@@ -17,6 +18,7 @@ extern "C" {
 #define CN_INS_PHY_ERR         0x3
 #define CN_INS_TIMEROUT_ERR    0x4
 #define CN_INS_SLAVE_FAULT     0x5      //从机故障
+#define CN_INS_SLAVE_RECOVER   0x6      //从机恢复
 
 //协议字段偏移量
 #define CN_OFF_START        0

@@ -345,7 +345,11 @@ bool_t __ISBUS_RecordSlaveError(struct SlaveList *slave, bool_t error)
     if(!error)
     {
         if((slave->Errors >= 3) && (Port->FaultNum != 0))
+        {
             Port->FaultNum--;
+            if(Port->fnError != NULL)
+                Port->fnError((void *)Port, CN_INS_SLAVE_RECOVER, slave->Address);
+        }
         slave->Errors = 0;
     }
     else
