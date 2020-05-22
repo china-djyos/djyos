@@ -806,6 +806,7 @@ void *RouterCreate(tagRouterPara *para)
         {
             debug_printf("router","%s:ROUT EXSITED\n\r", CN_ERR_ROUTPREDIX);
             net_free(newitem);
+            ret = tmp;
         }
         else
         {
