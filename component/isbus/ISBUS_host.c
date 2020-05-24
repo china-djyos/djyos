@@ -70,15 +70,16 @@ struct IM_Pkg
 {
     struct IM_Pkg *next;
     u8 *IM_buf;
+    struct SemaphoreLCB *IM_Semp;           //用于通知发送完成。
 };
 
 //从机描述
-struct SlaveList                             //从机列表
+struct SlaveList                            //从机列表
 {
-    struct Host_ISBUSPort *CommPort;         //对应的通信口指针
-    u8  Address;                             //从机地址
-//    u32 Timeout;                             //超时时间
-    struct SlaveList *Next;                     //将从机组成一个循环链表，末端指向表头
+    struct Host_ISBUSPort *CommPort;        //对应的通信口指针
+    u8  Address;                            //从机地址
+    u8  Errors;                             //通信出错次数，出错累加，正常一次即清零
+    struct SlaveList *Next;                 //将从机组成一个循环链表，末端指向表头
 };
 
 
@@ -91,7 +92,8 @@ struct Host_ISBUSPort
     struct SlaveList* SlaveHead;            //从机队列头，单向循环链表
     struct SlaveList* SlaveTail;            //从机队列尾
     struct SlaveList* SlaveCurrent;         //从机队列当前轮询
-    struct SemaphoreLCB *PortSemp;          //保护待发送的消息队列。
+    struct SemaphoreLCB *PortSemp;          //保护待发送的消息队列，确保数据包完整性
+    struct SemaphoreLCB *PollSemp;          //保护轮询队列，用于通知发送完成。
     s32 SerialDevice;                       //对应的设备
     ISBUS_FntProtocolError fnError;         //出错对应的回调函数
     u32 ErrorPkgs;                          //累计错误数
@@ -99,10 +101,12 @@ struct Host_ISBUSPort
     u32 Timeout;                            //超时时间
     u32 Resttime;                           //离触发超时剩余时间
     s32 SendTimes;                          //发送buffer中的数据发送次数，-1表示无限次数
-    u8  EchoModel;                          //当前应答模式， ONE_BY_ONE 等
     u32 PollCycle;                          //轮询周期，uS，含义与 PollModel 有关
+//  u8  EchoModel;                          //当前应答模式， ONE_BY_ONE 等
     u8  PollModel;                          //轮询模式，取值 CN_POLL_FASTEST 等
-    u8  fsm;                                //当前协议接收状态
+    u8  PkgSerial;                          //当前发送包序号
+    u8  SlaveNum;                           //从机数量
+    u8  FaultNum;                           //通信失效的从机数量
     s16 analyzeoff;                         //解包指针
     s16 recvoff;                            //当前接收指针
     u8 *ResendPkgBuf;                       //发包指针备份，用于重发
@@ -110,13 +114,13 @@ struct Host_ISBUSPort
     struct IM_Pkg *IM_Head;                 //立即发送包队列头
     struct IM_Pkg *IM_Tail;                 //立即发送包队列尾
     u8 *RecvPkgBuf;                         //接收数据包指针（包含协议头）
+//  u8 MTC_Address;                         //本端口接受的组播地址，若不接受组播
+//                                          //可设为CN_MTC_RESV（默认）
     u16 PortMaxRecvLen;                     //本端口最大接收包长度，包含协议头
     u16 PortMaxSendLen;                     //本端口最大发送包长度，不含协议头
 //  u16 PortSendLen;                        //本端口正在发送的包长度，不含协议头
 //    u16 RecvP;                              //接收偏移量，不含协议头
 //    u32 SendP;                              //发送偏移量，！！！含协议头
-    u8 MTC_Address;                         //本端口接受的组播地址，若不接受组播
-                                            //可设为CN_MTC_RESV（默认）
 };
 
 struct Host_ISBUSPort *sg_ptHostPortHead = NULL; //主机端链表初始化
@@ -233,6 +237,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             {
                 chk = 0xEB + 0 + protobuf[startoffset + CN_OFF_PROTO]
                                + src
+                               + protobuf[startoffset + CN_OFF_SERIAL]
                                + protobuf[startoffset + CN_OFF_LEN];    //计算chk
                 if(chk == protobuf[startoffset + CN_OFF_CHKSUM])
                 {
@@ -241,7 +246,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                 else
                 {
                     if(Port->fnError != NULL)
-                        Port->fnError((void*)Port, CN_INS_CHKSUM_ERR);
+                        Port->fnError((void*)Port, CN_INS_CHKSUM_ERR, src);
                     Port->ErrorLast = CN_INS_CHKSUM_ERR;
                     Port->ErrorPkgs++;
                     startoffset++;
@@ -259,7 +264,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
             if(((u32)DjyGetSysTime() - starttime) > Port->Timeout)
             {
                 if(Port->fnError != NULL)
-                    Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR);
+                    Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR, src);
                 Port->ErrorLast = CN_INS_TIMEROUT_ERR;
                 Port->ErrorPkgs++;
                 Port->analyzeoff = 0;
@@ -268,7 +273,6 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
                 return false;
             }
         }
-
     };
     memcpy((u8*)&protohead, protobuf+startoffset, sizeof(struct ISBUS_Protocol));
     len = protobuf[startoffset + CN_OFF_LEN];
@@ -323,7 +327,7 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
     else
     {
         if(Port->fnError != NULL)
-            Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR);
+            Port->fnError((void*)Port, CN_INS_TIMEROUT_ERR, src);
         Port->ErrorLast = CN_INS_TIMEROUT_ERR;
         Port->ErrorPkgs++;
         Port->analyzeoff = 0;
@@ -332,22 +336,61 @@ bool_t __ISBUS_UniProcess(struct Host_ISBUSPort *Port,u8 src)
         return false;
     }
 }
+//返回值：true = 需要重发；false = 不需要重发
+bool_t __ISBUS_RecordSlaveError(struct SlaveList *slave, bool_t error)
+{
+    struct Host_ISBUSPort *Port = slave->CommPort;
+    bool_t resent = false;
+
+    if(!error)
+    {
+        if((slave->Errors >= 3) && (Port->FaultNum != 0))
+        {
+            Port->FaultNum--;
+            if(Port->fnError != NULL)
+                Port->fnError((void *)Port, CN_INS_SLAVE_RECOVER, slave->Address);
+        }
+        slave->Errors = 0;
+    }
+    else
+    {
+        if(slave->Errors != 255)
+        {
+            slave->Errors++;
+            if(slave->Errors < 3)
+                resent = true;
+            else if(slave->Errors == 3)
+            {
+                //出错次数达到3的时候，用回调函数通知APP。
+                resent = false;
+                Port->FaultNum++;
+                if(Port->fnError != NULL)
+                    Port->fnError((void*)Port, CN_INS_SLAVE_FAULT, slave->Address);
+            }
+        }
+    }
+    return resent;
+}
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-
+//返回值：true = 需要重发；false = 不需要重发
 bool_t __ISBUS_BroadcastProcess(struct Host_ISBUSPort *Port,u8 src)
 {
     u8 slaveaddr;
+    bool_t err,resent = false;
     struct SlaveList *Current = Port->SlaveHead;
     if(Current == NULL)
-        return false;
+        return resent;
     do
     {
         slaveaddr = Current->Address;
-        __ISBUS_UniProcess(Port, slaveaddr);
+        err = __ISBUS_UniProcess(Port, slaveaddr);
+        if(__ISBUS_RecordSlaveError(Current, ! err))
+            resent = true;
         Current = Current->Next;
     }while(Current != Port->SlaveHead);
-    return true;
+    return resent;
 }
 
 bool_t __ISBUS_MulticastProcess(struct Host_ISBUSPort *Port,u8 src)
@@ -390,7 +433,8 @@ ptu32_t ISBUS_HostProcess(void)
         {
             if(dst < CN_INS_MULTICAST)          //点对点通信,一应一答模式
             {
-                resend = ! __ISBUS_UniProcess(Port,dst);          //接收并处理数据包
+                resend = __ISBUS_UniProcess(Port,dst);          //接收并处理数据包
+                resend = __ISBUS_RecordSlaveError(Port->SlaveCurrent, ! resend);
                 //注：快速轮询直接继续执行下一个while循环，无须单独处理
                 if(Port->PollModel == CN_POLL_SAME_INTERVAL)   //等间隔轮询
                 {
@@ -408,7 +452,7 @@ ptu32_t ISBUS_HostProcess(void)
             }
             else       //组播/广播地址，组播号内的从机依序上传
             {
-                resend = ! __ISBUS_BroadcastProcess(Port,dst);
+                resend = __ISBUS_BroadcastProcess(Port,dst);
                 if(Port->PollModel == CN_POLL_SAME_CYCLE)         //等周期轮询
                 {
                     Polltime += Port->PollCycle;    //此时PollCycle代表轮询一个周期的时间
@@ -442,7 +486,7 @@ ptu32_t ISBUS_HostProcess(void)
 struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
                                 ISBUS_FntProtocolError fnError,u32 Timeout)
 {
-    struct SemaphoreLCB *Semp;
+    struct SemaphoreLCB *Semp1,*Semp2;
     struct Host_ISBUSPort *Port;
     u8 *recvbuf;
     s32 devfd;
@@ -451,11 +495,13 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
         return NULL;
     Port = (struct Host_ISBUSPort *)malloc(sizeof(struct Host_ISBUSPort ));
     recvbuf = malloc(3*(256+sizeof(struct ISBUS_Protocol)));
-    Semp = Lock_SempCreate(1, 1, CN_BLOCK_FIFO, "ISBUS_Host");
-    if((Port != NULL) && (recvbuf != NULL)&&(Semp != NULL)) //分配成功
+    Semp1 = Lock_SempCreate(1, 1, CN_BLOCK_FIFO, "ISBUS_Host");
+    Semp2 = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, "ISBUS_Poll");
+    if((Port != NULL) && (recvbuf != NULL)&&(Semp1 != NULL)&&(Semp2 != NULL)) //分配成功
     {
         memset(Port, 0, sizeof(struct Host_ISBUSPort ));
-        Port->PortSemp = Semp;
+        Port->PortSemp = Semp1;
+        Port->PollSemp = Semp2;
         if(sg_ptHostPortHead == NULL)
         {
             Port->Next = NULL;
@@ -469,12 +515,8 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
         Port->SocketCurrent = NULL;
         Port->SerialDevice = devfd;
         Port->fnError = fnError;
-        Port->ErrorPkgs = 0;
         Port->ErrorLast = CN_INS_OK;
         Port->Timeout = Timeout;
-        Port->Resttime = 0;
-        Port->analyzeoff = 0;
-        Port->recvoff = 0;
         Port->RecvPkgBuf = recvbuf;
         Port->PollSendPkgBuf = Port->RecvPkgBuf + 256 + sizeof(struct ISBUS_Protocol);
         Port->ResendPkgBuf = Port->PollSendPkgBuf + 256 + sizeof(struct ISBUS_Protocol);
@@ -484,7 +526,7 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
 //        Port->RecvP = 0;
         //若置0，初始状态会发送一包数据。
 //        Port->SendP = sizeof(struct ISBUS_Protocol);  //发送偏移量为协议头
-        Port->MTC_Address = CN_INS_MTC_INVALID;
+//      Port->MTC_Address = CN_INS_MTC_INVALID;
         dev_SetUserTag(devfd, (ptu32_t)Port);
 //        Multiplex_AddObject(Port->MultiplexPort, devfd,
 //                                           CN_MULTIPLEX_SENSINGBIT_READ
@@ -498,7 +540,8 @@ struct Host_ISBUSPort *ISBUS_HostRegistPort(char *dev,
     {
         free(Port);
         free(recvbuf);
-        Lock_SempDelete(Semp);
+        Lock_SempDelete(Semp1);
+        Lock_SempDelete(Semp2);
     }
     return Port;
 }
@@ -575,19 +618,26 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
 {
     u8 *SendBuf;
     bool_t result;
+    bool_t AllError = false;
     struct IM_Pkg *me;
     u8 SendLen,tmp;
+    if(Port->FaultNum >= Port->SlaveNum)
+        return false;
     if(resend)
     {
         SendBuf = Port->ResendPkgBuf;
+//        tmp = SendBuf[CN_OFF_SERIAL];
+//        SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
+//        SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
+//        Port->PkgSerial++;
         SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
         DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
         *dst = SendBuf[CN_OFF_DST];
-        printf("\r\nhost resend:");
-            for(tmp = 0;tmp < SendLen;tmp++)
-            {
-                printf("%02x ",SendBuf[tmp]);
-            }
+//        printf("\r\nhost resend:");
+//        for(tmp = 0;tmp < SendLen;tmp++)
+//        {
+//            printf("%02x ",SendBuf[tmp]);
+//        }
         result = true;
     }
     else
@@ -606,6 +656,10 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                     Port->IM_Head = Port->IM_Head->next;
                 }
                 SendBuf = me->IM_buf;
+                tmp = SendBuf[CN_OFF_SERIAL];
+                SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
+                SendBuf[CN_OFF_CHKSUM] += Port->PkgSerial - tmp;
+                Port->PkgSerial++;
                 SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
                 DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
                 if((debug_ctrl ==true))
@@ -619,7 +673,8 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                 *dst = SendBuf[CN_OFF_DST];
                 result = true;
                 memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
-                free(me);
+                Lock_SempPost(me->IM_Semp);
+                free(me);   //对应的 malloc 函数在 ISBUS_HostSetIM_Pkg 函数中
         }
         else                            //发送周期性轮询消息
         {
@@ -628,29 +683,60 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
                 SendBuf = Port->PollSendPkgBuf;
                 if(SendBuf[CN_OFF_DST] < CN_INS_MULTICAST)
                 {
-                    SendBuf[CN_OFF_DST] = Port->SlaveCurrent->Address;
+                    struct SlaveList *end;
                     Port->SlaveCurrent = Port->SlaveCurrent->Next;
-                    if((Port->SlaveCurrent == Port->SlaveHead) && (Port->SendTimes != -1))
-                        Port->SendTimes--;
-                }
-                else
-                    if(Port->SendTimes != -1)
-                        Port->SendTimes--;
-                SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST]  + SendBuf[CN_OFF_PROTO]
-                                          + SendBuf[CN_OFF_SRC]  + SendBuf[CN_OFF_LEN];
-                *dst = SendBuf[CN_OFF_DST];
-                SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
-                DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
-                if((debug_ctrl ==true))
-                {
-                    printf("\r\nhost send:");
-                    for(tmp = 0;tmp < SendLen;tmp++)
+                    end = Port->SlaveCurrent;
+                    while(Port->SlaveCurrent->Errors >= 3)
                     {
-                        printf("%02x ",SendBuf[tmp]);
+                        Port->SlaveCurrent = Port->SlaveCurrent->Next;
+                        if(Port->SlaveCurrent == end)
+                        {
+                            AllError = true;
+                            break;
+                        }
+                    }
+                    SendBuf[CN_OFF_DST] = Port->SlaveCurrent->Address;
+                    if((Port->SlaveCurrent == Port->SlaveTail) && (Port->SendTimes != -1))
+                    {
+                        Port->SendTimes--;
+                        if(Port->SendTimes == 0)
+                            Lock_SempPost(Port->PollSemp);
                     }
                 }
-                result = true;
-                memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
+                else
+                {
+                    if(Port->SendTimes != -1)
+                    {
+                        Port->SendTimes--;
+                        if(Port->SendTimes == 0)
+                            Lock_SempPost(Port->PollSemp);
+                    }
+                }
+                if(AllError == false)
+                {
+                    SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;
+                    SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST]  + SendBuf[CN_OFF_PROTO]
+                                              + SendBuf[CN_OFF_SRC] + SendBuf[CN_OFF_SERIAL] + SendBuf[CN_OFF_LEN];
+                    Port->PkgSerial++;
+                    *dst = SendBuf[CN_OFF_DST];
+                    SendLen = SendBuf[CN_OFF_LEN] + sizeof(struct ISBUS_Protocol);
+                    DevWrite(Port->SerialDevice, SendBuf, SendLen,0,0);
+                    if((debug_ctrl ==true))
+                    {
+                        printf("\r\nhost send:");
+                        for(tmp = 0;tmp < SendLen;tmp++)
+                        {
+                            printf("%02x ",SendBuf[tmp]);
+                        }
+                    }
+                    result = true;
+                    memcpy(Port->ResendPkgBuf,SendBuf,SendLen);
+                }
+                else
+                {
+                    *dst = 0;
+                    result = false;
+                }
             }
             else
             {
@@ -668,14 +754,16 @@ bool_t __HostSendPkg(struct Host_ISBUSPort *Port, u8 resend, u8 *dst)
 //功能：设置轮询数据包，但不发送，待轮到自己发送时将发送。发送时，将根据扫描到的从机
 //      地址表依次改变目的地址。仅主机端需要这个API。
 //参数：Host_FunctionSocket，通信协议插口指针，为ISBUS_HostRegistProtocol函数的返回值
-//        dst，目的地址，可以是广播、组播地址，如果是点播地址，将被忽略，自动改为从机
-//              列表中的第一个从机地址。
-//        buf，待发送的数据包，不含协议头
-//        len，发送长度
+//      dst，目的地址，可以是广播、组播地址，如果是点播地址，将被忽略，自动改为从机
+//           列表中的第一个从机地址。
+//      buf，待发送的数据包，不含协议头
+//      len，发送长度
+//      times，发送次数（若为点播，则所有从机都发送一遍为一次）
+//      Timeout等待发送完成的时限，，若times = -1，本参数将被忽略。
 // 返回值：  发送的数据量，只是copy到了发送buf。
 // ============================================================================
 u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
-                        u8 *buf, u8 len, s32 times)
+                        u8 *buf, u8 len, s32 times, u32 Timeout)
 {
     struct Host_ISBUSPort *Port;
     u8 *SendBuf;
@@ -697,24 +785,35 @@ u32 ISBUS_SetPollPkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
     SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
     SendBuf[CN_OFF_SRC]     = 0;
     SendBuf[CN_OFF_LEN]     = len;
-    SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST] + SendBuf[CN_OFF_PROTO] + len;
+    SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;   //包序号不修改
+    SendBuf[CN_OFF_CHKSUM]  = 0xEB + SendBuf[CN_OFF_DST] + SendBuf[CN_OFF_PROTO]
+                              + len + SendBuf[CN_OFF_SERIAL];
     memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
+    Lock_SempPend(Port->PollSemp, 0);   //解释一下：如果上一次调用本函数时，参数
+                                        //Timeout=0，发送完成后 PollSemp 将处于
+                                        //有信号状态，将使后续等待失效。
+                                        //本行须在 PortSemp 之前调用才严谨。
     Lock_SempPost(Port->PortSemp);
 
+    if((Timeout != 0) && (times != -1))
+    {
+        Lock_SempPend(Port->PollSemp, Timeout);
+    }
     return len;
 }
 
 // ============================================================================
 //功能：设置即时发送数据包，但不发送，待轮到自己发送时将发送。
 //参数：ISBUS_FunctionSocket，通信协议插口指针，为ISBUS_HostRegistProtocol函数的返回值
-//        dst，目的地址，对于主机端：目的地址为从机地址，原地址为 0；
-//             对于从机：目的地址为主机地址，源地址为本板地址
-//        buf，待发送的数据包，不含协议头
-//        len，发送长度
+//      dst，目的地址，对于主机端：目的地址为从机地址，原地址为 0；
+//           对于从机：目的地址为主机地址，源地址为本板地址
+//      buf，待发送的数据包，不含协议头
+//      len，发送长度
+//      Timeout，等待发送完成的时限，若不等待，填 0 即可。
 // 返回值：  发送的数据量，只是copy到了发送buf。
 // ============================================================================
 u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 dst,
-                            u8 *buf, u8 len)
+                            u8 *buf, u8 len, u32 Timeout)
 {
     struct Host_ISBUSPort *Port;
     struct SlaveList *current;
@@ -745,10 +844,19 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
                 return 0;
         }
     }
-    Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
+    //对应的 free 函数在 __HostSendPkg 函数中
     mypkg = malloc(sizeof(struct IM_Pkg)+len+sizeof(struct ISBUS_Protocol));
     if(mypkg != NULL)
     {
+        if(Timeout != 0)
+        {
+            mypkg->IM_Semp = Lock_SempCreate(1, 0, CN_BLOCK_FIFO, NULL);
+            if(mypkg->IM_Semp == NULL)
+                return 0;
+        }
+        else
+            mypkg->IM_Semp = NULL;
+        Lock_SempPend(Port->PortSemp,CN_TIMEOUT_FOREVER);
         mypkg->IM_buf = (u8*)(mypkg+1);
         if(Port->IM_Tail == NULL)
         {
@@ -769,12 +877,18 @@ u32 ISBUS_HostSetIM_Pkg(struct ISBUS_FunctionSocket  *ISBUS_FunctionSocket,u8 ds
         SendBuf[CN_OFF_PROTO]   = ISBUS_FunctionSocket->Protocol;
         SendBuf[CN_OFF_SRC]     = 0;
         SendBuf[CN_OFF_LEN]     = len;
-        SendBuf[CN_OFF_CHKSUM]  = 0xEB + dst + SendBuf[CN_OFF_PROTO] + 0 + len;
+        SendBuf[CN_OFF_SERIAL] = Port->PkgSerial;   //包序号不修改
+        SendBuf[CN_OFF_CHKSUM]  = 0xEB + dst + SendBuf[CN_OFF_PROTO] + 0
+                                  + len + SendBuf[CN_OFF_SERIAL];
         memcpy(SendBuf + sizeof(struct ISBUS_Protocol), buf, len);
+        Lock_SempPost(Port->PortSemp);
+        if(Timeout != 0)
+        {
+            Lock_SempPend(mypkg->IM_Semp, Timeout);
+        }
     }
     else
         len = 0;
-    Lock_SempPost(Port->PortSemp);
     return len;
 }
 
@@ -787,7 +901,9 @@ void __ISBUS_SentChkSlave(struct Host_ISBUSPort *Port,u8 dst)
     SendBuf[CN_OFF_PROTO]   = CN_CHK_SLAVE;
     SendBuf[CN_OFF_SRC]     = 0;
     SendBuf[CN_OFF_LEN]     = 0;
-    SendBuf[CN_OFF_CHKSUM]  = 0xEB + dst + SendBuf[CN_OFF_PROTO];
+    SendBuf[CN_OFF_SERIAL]  = Port->PkgSerial;
+    Port->PkgSerial++;
+    SendBuf[CN_OFF_CHKSUM]  = 0xEB + dst + SendBuf[CN_OFF_PROTO] + SendBuf[CN_OFF_SERIAL];
     DevWrite(Port->SerialDevice, SendBuf, sizeof(struct ISBUS_Protocol),0,0);
     return ;
 }
@@ -830,10 +946,17 @@ void __ISBUS_AddSlave(struct ISBUS_FunctionSocket  *InSerSocket , u8 src, u8 *bu
 }
 #pragma GCC diagnostic pop
 
+//-----------------------------------------------------------------------------
+//功能：添加从机，从机构成单向循环链表，该链表按从机地址大小排序，Port->SlaveHead指向
+//      地址最小的从机。
+//参数：Port，新从机添加到本端口中
+//      address，新从机的地址
+//返回：无
+//-----------------------------------------------------------------------------
 void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
 {
     struct SlaveList *p1;
-    struct SlaveList* current;
+    struct SlaveList* current, *pre = NULL;
     if(Port == NULL)
         return ;
     current = Port->SlaveHead;
@@ -843,10 +966,16 @@ void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
         {
             if(current->Address == address)
                 return;     //从机已经存在
+            else if(current->Address > address)
+                break;
             else
+            {
+                pre = current;
                 current = current->Next;
+            }
         }while(current != Port->SlaveHead);
     }
+    Port->SlaveNum++;
     p1=(struct SlaveList*)malloc(sizeof(struct SlaveList));//申请新节点
     if(p1==NULL)
     {
@@ -854,25 +983,32 @@ void ISBUS_AddSlave(struct Host_ISBUSPort *Port, u8 address)
     }
     p1->CommPort = Port;
     p1->Address = address;
+    p1->Errors = 0;
 //    p1->Timeout = CN_LIMIT_UINT32;
-    if(Port->SlaveHead == NULL)
+    if(current == NULL)             //尚未添加从机
     {
         p1->Next = p1;
         Port->SlaveHead = p1;
         Port->SlaveCurrent = p1;
         Port->SlaveTail = p1;
     }
-    else if(Port->SlaveHead == Port->SlaveTail)
+    else if(pre == NULL)    //current指向队列头，表明新从机地址小于队列头
     {
-        p1->Next = Port->SlaveHead;
-        Port->SlaveHead->Next = p1;
-        Port->SlaveTail = p1;
-    }
-    else
-    {
-        p1->Next = Port->SlaveHead;
+        p1->Next = current;
         Port->SlaveTail->Next = p1;
+        Port->SlaveHead = p1;
+    }
+    else if(pre == current)     //只有一个从机，且地址小于新从机
+    {
+        p1->Next = current;
+        current->Next = p1;
         Port->SlaveTail = p1;
+    }else                       //有多个从机
+    {
+        p1->Next = current;
+        pre->Next = p1;
+        if(address > Port->SlaveTail->Address)  //新从机地址大于队列尾部
+            Port->SlaveTail = p1;
     }
 }
 
@@ -893,9 +1029,9 @@ struct SlaveList* ISBUS_ScanSlave(struct Host_ISBUSPort *Port,u8 MinAddress,u8 M
         __ISBUS_UniProcess(Port,SlaveAddress);
         SlaveAddress++;
         if(SlaveAddress > MaxAddress)
-           break;
+            break;
     }
-    Port->SlaveCurrent = Port->SlaveHead;
+    Port->SlaveCurrent = Port->SlaveTail;
     Port->ErrorLast = 0;
     Port->ErrorPkgs = 0;
     return Port->SlaveHead;
@@ -939,8 +1075,8 @@ u8 ISBUS_GetSlaveTable(struct Host_ISBUSPort *Port,u8 *address)
 void ISBUS_SendSlaveTable(struct Host_ISBUSPort *Port,u8 *address, u8 num)
 {
     struct ISBUS_FunctionSocket *sock;
-    sock = ISBUS_HostRegistProtocol(Port, CN_SET_SLAVE_TABLE, 0, 0, NULL);
-    ISBUS_HostSetIM_Pkg(sock,CN_INS_BROADCAST, address,num);
+    sock = ISBUS_HostRegistProtocol(Port, CN_SET_SLAVE_TABLE, 0, 127, NULL);
+    ISBUS_SetPollPkg(sock,0, address,num, 1,1000000); //对于轮询包，除广播地址外，其他目的地址并无意义。
 }
 
 // ============================================================================

@@ -55,7 +55,7 @@
 #include "component_config_tcpip.h"
 
 #define CN_TCPIP_VERSION    "V1.2.0"
-#define CN_TCPIP_AUTHOR     "luost@sznari.com,zhangqf1314@163.com"
+
 //static bool_t __TcpIpVersion(char *param)
 bool_t tcpipver(char *param)
 {

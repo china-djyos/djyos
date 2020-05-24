@@ -177,6 +177,7 @@ static tagRoutCB  gRoutCB;
 static bool_t __ShowTab(enum_ipv_t ver)
 {
     int i = 0;
+    struct NetDev *iface = NULL;
     struct RoutItem4 *item;
     char net[CFG_IP_STRMAX];
     char host[CFG_IP_STRMAX];
@@ -193,19 +194,24 @@ static bool_t __ShowTab(enum_ipv_t ver)
         {
             debug_printf("router","%2s %-15s %-15s %-15s %-15s %s%s%s %-3s %-3s %-4s %s\n\r",
                     "NO", "NET","MASK", "HOST", "HOP","U", "G", "R", "PRI", "LEN","MTU","IFACE");
-            item = gRoutCB.v4lst;
-            while (NULL != item)
+            iface = NetDev_ForEachFromDefault(iface);
+            while(iface != NULL)
             {
-                rout4 = item->rout4;
-                inet_ntop(AF_INET, &rout4->net, net, CFG_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->host, host, CFG_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->hop, hop, CFG_IP_STRMAX);
-                inet_ntop(AF_INET, &rout4->mask, mask, CFG_IP_STRMAX);
-                debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
-                                 i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
-                                 item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
-                        item->pro.len,item->pro.mtu,NetDevName(item->DevFace));
-                item = item->nxt;
+                item = NetDev_GetIPv4RoutEntry(iface);
+                while (NULL != item)
+                {
+                    rout4 = item->rout4;
+                    inet_ntop(AF_INET, &rout4->net, net, CFG_IP_STRMAX);
+                    inet_ntop(AF_INET, &rout4->host, host, CFG_IP_STRMAX);
+                    inet_ntop(AF_INET, &rout4->hop, hop, CFG_IP_STRMAX);
+                    inet_ntop(AF_INET, &rout4->mask, mask, CFG_IP_STRMAX);
+                    debug_printf("router","%-2d %-15s %-15s %-15s %-15s %d%d%d %-3d %-3d %-4x %s\n\r", \
+                                     i++, net, mask, host, hop, item->pro.flag.bits.U_Active,\
+                                     item->pro.flag.bits.G_Gateway, item->pro.flag.bits.R_Restore, item->pro.pri,\
+                            item->pro.len,item->pro.mtu,NetDevName(item->DevFace));
+                    item = item->nxt;
+                }
+                iface = NetDev_ForEachFromDefault(iface);
             }
             if(NULL != gRoutCB.v4host)
             {
@@ -412,7 +418,7 @@ bool_t RouterInit(void)
     }
     return ret;
 }
-//check how many ones in the net mask
+//检查网络掩码中有多少个 1
 static u8 __CheckOnes(u32 value)
 {
     u8 ret = 0;
@@ -437,6 +443,7 @@ bool_t RouterMatch(tagRoutLink *para)
     bool_t ret = false;
     struct RoutItem4 *tmp = NULL;
     struct RoutV4   *v4;
+    struct NetDev *iface = NULL;
     struct in_addr addr;
     if((NULL == para)||(NULL == para->DstIP))
     {
@@ -473,48 +480,59 @@ bool_t RouterMatch(tagRoutLink *para)
             }
             else  //do the find
             {
-                tmp = gRoutCB.v4lst;
-                while(NULL != tmp)
+//              tmp = gRoutCB.v4lst;
+                iface = NetDev_ForEachFromDefault(iface);
+                while(iface != NULL)
                 {
-                    v4 = tmp->rout4;
-                    if(v4->host.s_addr == addr.s_addr)
+                    tmp = NetDev_GetIPv4RoutEntry(iface);
+                    while(NULL != tmp)
                     {
-                        para->type = EN_IPTYPE_V4_LOCAL;
-                        tmp = gRoutCB.v4host;
-                        break;
-                    }
-                    else if (v4->broad.s_addr == addr.s_addr)
-                    {
-                        para->type = EN_IPTYPE_V4_BROAD;
-                        break;
-                    }
-                    else if(v4->net.s_addr == (addr.s_addr&v4->mask.s_addr))
-                    {
-                        if(addr.s_addr != INADDR_ANY)
+                        v4 = tmp->rout4;
+                        if(v4->host.s_addr == addr.s_addr)
                         {
-                            para->type = EN_IPTYPE_V4_SUBNET;
+                            para->type = EN_IPTYPE_V4_LOCAL;
+                            tmp = gRoutCB.v4host;
+                            break;
+                        }
+                        else if (v4->broad.s_addr == addr.s_addr)
+                        {
+                            para->type = EN_IPTYPE_V4_BROAD;
+                            break;
+                        }
+                        else if(v4->net.s_addr == (addr.s_addr&v4->mask.s_addr))
+                        {
+                            if(addr.s_addr != INADDR_ANY)
+                            {
+                                para->type = EN_IPTYPE_V4_SUBNET;
+                            }
+                            break;
+                        }
+                        else
+                        {
+                            tmp = tmp->nxt;
+                        }
+                    }
+                    if(NULL != tmp)
+                    {
+                        v4 = tmp->rout4;
+                        para->DevFace = tmp->DevFace;
+                        if(NULL != para->HostIP)
+                        {
+                            memcpy(para->HostIP,&v4->host.s_addr,sizeof(struct in_addr));
+                        }
+                        if(NULL != para->HopIP)
+                        {
+                            memcpy(para->HopIP,&v4->hop.s_addr,sizeof(struct in_addr));
                         }
                         break;
                     }
                     else
-                    {
-                        tmp = tmp->nxt;
-                    }
-                }
-                if(NULL != tmp)
-                {
-                    v4 = tmp->rout4;
-                    para->DevFace = tmp->DevFace;
-                    if(NULL != para->HostIP)
-                    {
-                        memcpy(para->HostIP,&v4->host.s_addr,sizeof(struct in_addr));
-                    }
-                    if(NULL != para->HopIP)
-                    {
-                        memcpy(para->HopIP,&v4->hop.s_addr,sizeof(struct in_addr));
-                    }
+                        iface = NetDev_ForEachFromDefault(iface);
                 }
             }
+        }
+        else        //IPv6尚待完善
+        {
         }
         mutex_unlock(gRoutCB.lock);
     }
@@ -537,7 +555,8 @@ static int __ItemFind(enum_ipv_t ver, struct NetDev *iface, void *net, void *hos
     if (ver == EN_IPV_4)
     {
         struct RoutItem4 *tmp = NULL;
-        tmp = gRoutCB.v4lst;
+//      tmp = gRoutCB.v4lst;
+        tmp = NetDev_GetIPv4RoutEntry(iface);
         while ((NULL != tmp) && (ret < len))
         {
             v4 = tmp->rout4;
@@ -568,7 +587,7 @@ static int __ItemFind(enum_ipv_t ver, struct NetDev *iface, void *net, void *hos
     else if (ver == EN_IPV_6)
     {
         struct RoutItem6 *tmp = NULL;
-        tmp = gRoutCB.v6lst;
+//        tmp = gRoutCB.v6lst;
         while ((NULL != tmp) && (ret < len))
         {
             v6 = tmp->rout6;
@@ -604,7 +623,7 @@ static int __ItemFind(enum_ipv_t ver, struct NetDev *iface, void *net, void *hos
 }
 
 
-//compare the two rout sequence in the queue when add it to the queue
+//比较两个路由项目的优先级，顺序：prior成员（大者优先）——>掩码长者优先——>后到者优先
 //rules:first prior, then mask length,else the refers times
 //return:>0 which means a should be before b
 //       =0 which means a should be after b
@@ -632,8 +651,9 @@ static int  __SeqCompare(struct RoutItem4 *a,struct RoutItem4 *b)
     }
     return ret;
 }
-//add a route to the queue,return the queue head:use the compare function to compare
-static struct RoutItem4 *__Add2Queue(struct RoutItem4 *queue, struct RoutItem4 *item) //--TODO
+
+//添加一个路由条目到路由队列中
+struct RoutItem4 *__Add2Queue(struct RoutItem4 *queue, struct RoutItem4 *item)
 {
     struct RoutItem4 *tmp;
     struct RoutItem4 *nxt;
@@ -711,7 +731,31 @@ static struct RoutItem6 * __RemoveFromQueueV6(struct RoutItem6 *queue, struct Ro
 {
     return NULL;
 }
-//when enable the loop.then call it
+
+struct in_addr __Router_PickIPv4(struct RoutItem4 *Item)
+{
+    return Item->rout4->host;
+}
+struct in6_addr __Router_PickIPv6(struct RoutItem6 *Item)
+{
+    return Item->rout6->host;
+}
+
+struct in_addr *__Router_GetNextV4(struct RoutItem4 *Item)
+{
+    return Item->nxt;
+}
+struct in6_addr *__Router_GetNextV6(struct RoutItem6 *Item)
+{
+    return Item->nxt;
+}
+//-----------------------------------------------------------------------------
+//功能：创建并设置主机路由，即自环路由条目，自环条目虽然属于 “loop”网卡，但并不挂在网
+//     卡的 数据结构中，而是在路由控制块 gRoutCB 中。
+//参数：ver，路由条目版本，EN_IPV_4 或 EN_IPV_6
+//      ifname，已经由 NetDevInstall 安装的网卡名字
+//返回：无
+//-----------------------------------------------------------------------------
 void RouterSetHost(enum_ipv_t ver,const char *ifname)
 {
     struct RoutItem4 *newitem = NULL;
@@ -719,12 +763,11 @@ void RouterSetHost(enum_ipv_t ver,const char *ifname)
     int memsize;
     struct RoutV4 *v4;
     iface = NetDevGet(ifname);
-    if(iface == NULL) //no interface for this rout,so return NULL.
+    if(iface == NULL)       //自环网卡不存在
     {
         return ;
     }
-    //first we should make a new one:supposed that you could create one
-    //we do it here for we will not do the block following
+
     memsize = (ver == EN_IPV_4) ? sizeof(struct RoutV4) : sizeof(struct RoutV6);
     memsize += sizeof(struct RoutItem4);
     newitem = net_malloc(memsize);
@@ -734,7 +777,7 @@ void RouterSetHost(enum_ipv_t ver,const char *ifname)
     }
     memset(newitem, 0, memsize);
     newitem->rout4 = (struct RoutItem4 *) (newitem++);
-    //USED TO SEE IF ANY ROUT USE THE SAME ROUTE
+
     if (mutex_lock(gRoutCB.lock))
     {
         if(ver == EN_IPV_4)
@@ -759,7 +802,7 @@ void RouterSetHost(enum_ipv_t ver,const char *ifname)
                 gRoutCB.v4host = newitem;
             }
         }
-        else //not implement yet --IPV6
+        else // IPV6 尚未完成
         {
             net_free(newitem);
         }
@@ -777,7 +820,7 @@ void *RouterCreate(tagRouterPara *para)
     int memsize;
     struct RoutV4 *v4;
     if((para == NULL)||(NULL == para->ifname)||(NULL==para->mask)||\
-       (NULL==para->host)||(NULL==para->net)) //parameters is not enough
+       (NULL==para->host)||(NULL==para->net))       //参数不完整
     {
         return ret;
     }
@@ -840,7 +883,8 @@ void *RouterCreate(tagRouterPara *para)
                 }
                 newitem->pro.len = __CheckOnes(v4->mask.s_addr);
                 newitem->pro.flag.bits.IPV4 = 1;
-                gRoutCB.v4lst = __Add2Queue(gRoutCB.v4lst, newitem);
+                NetDev_AddIPv4RoutItem(iface,newitem);
+//              gRoutCB.v4lst = __Add2Queue(gRoutCB.v4lst, newitem);
             }
             else
             {

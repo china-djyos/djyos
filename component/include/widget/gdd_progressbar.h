@@ -68,15 +68,15 @@ extern "C" {
 #include    "gdd.h"
 
 //进度条Flag
-#define PBF_ORG_LEFT    (0<<0)
-#define PBF_ORG_RIGHT   (1<<0)
-#define PBF_ORG_TOP     PBF_ORG_LEFT
-#define PBF_ORG_BOTTOM  PBF_ORG_RIGHT
+#define PBF_ORG_LEFT    (0<<0)              //未用到
+#define PBF_ORG_RIGHT   (1<<0)              //ProgressBar_Paint中用到
+#define PBF_ORG_TOP     PBF_ORG_LEFT        //未用到
+#define PBF_ORG_BOTTOM  PBF_ORG_RIGHT       //ProgressBar_Paint中用到
 #define PBF_SHOWTEXT    (1<<1)
 //进度条数据结构
 typedef struct
 {
-    u32 Flag;//进度条风格
+    u32 Flag;//进度条风格，2bit used
     u32 Range;//进度条范围
     u32 Pos;  //是否移动及移动方向
     u32 FGColor;//进度条颜色
@@ -88,7 +88,7 @@ typedef struct
 }PROGRESSBAR_DATA;
 
 
-// 进度条风格
+// 进度条风格，使用struct WINDOW结构Style的低16位，高16位用于窗口公共风格。
 #define PBS_HOR     (0<<0)  //水平进度条
 #define PBS_VER     (1<<0)  //垂直进度条
 #define PBS_FLAT    (1<<1)  //平面风格
