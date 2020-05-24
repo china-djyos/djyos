@@ -428,14 +428,7 @@ ptu32_t ISBUS_HostProcess(void)
     Polltime = DjyGetSysTime();
     while(1)
     {
-        extern u32 testresend;
-        if(testresend != 0)
-        {
-            send = __HostSendPkg(Port, true, &dst);   //dst用于提取发送包的dst地址
-            testresend--;
-        }
-        else
-            send = __HostSendPkg(Port, resend, &dst);   //dst用于提取发送包的dst地址
+        send = __HostSendPkg(Port, resend, &dst);   //dst用于提取发送包的dst地址
         if(send == true)
         {
             if(dst < CN_INS_MULTICAST)          //点对点通信,一应一答模式
