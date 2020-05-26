@@ -67,7 +67,7 @@ extern "C" {
 #endif
 #include    "gdd.h"
 
-// 按钮风格，使用struct WINDOW结构Style的低16位中的高8位
+// 按钮风格，使用struct WINDOW结构Style的低16位，高16位用于窗口公共风格。
 #define BS_TYPE_MASK        (3<<8)  //类型掩码
 #define BS_NORMAL           (0<<8)  //常规按钮
 #define BS_HOLD             (1<<8)  //自锁按钮

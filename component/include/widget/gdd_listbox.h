@@ -67,7 +67,7 @@ extern "C" {
 #endif
 #include    "gdd.h"
 
-// 列表框风格
+// 列表框风格，使用struct WINDOW结构Style的低16位，高16位用于窗口公共风格。
 #define LBS_FLAT    (1<<0)  //平面风格
 
 //Listbox

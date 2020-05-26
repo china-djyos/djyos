@@ -173,11 +173,11 @@ enum enLinkProto
 enum NetDevEvent
 {
     //THE OLD ONES ARE DEPRECATED
-    EN_NETDEVEVENT_LINKDOWN = 0, //which means the phy down or network cable is pullout
-    EN_NETDEVEVENT_LINKUP,       //which means the phy up or network cable has been inserted ok
-    EN_NETDEVEVENT_IPGET,        //which means has get ip from dhcp or ppp
-    EN_NETDEVEVENT_IPRELEASE,    //which means has release ip to dhcp or ppp down
-    EN_NETDEVEVENT_RESET,        //which means the dev has been reset for some reason
+    EN_NETDEVEVENT_LINKDOWN = 0, //网卡停止工作，例如断电或者拔出网线
+    EN_NETDEVEVENT_LINKUP,       //网卡启动，例如接通电源或插入网线
+    EN_NETDEVEVENT_IPGET,        //from dhcp or ppp获得了IP
+    EN_NETDEVEVENT_IPRELEASE,    //release ip to dhcp or ppp down
+    EN_NETDEVEVENT_RESET,        //网卡因故被复位
     EN_NETDEVEVENT_BROAD_OVER,   //means the broad over
     EN_NETDEVEVENT_BROAD_LACK,   //means the broad lack
     EN_NETDEVEVENT_MULTI_OVER,   //means the multi over
@@ -186,6 +186,8 @@ enum NetDevEvent
     EN_NETDEVEVENT_POINT_LACK,   //means the point lack,
     EN_NETDEVEVENT_FLOW_OVER,    //means the FLOW over
     EN_NETDEVEVENT_FLOW_LACK,    //means the FLOW lack,
+    EN_NETDEVEVENT_SWITCH_IN,    //本网卡被设置成默认网卡
+    EN_NETDEVEVENT_SWITCH_OUT,   //本网卡由默认网卡变成非默认网卡
     EN_NETDEVEVENT_RESERVED,     //which means nothing
 };
 typedef bool_t (*fnNetDevEventHook)(struct NetDev* iface,enum NetDevEvent event);
@@ -207,7 +209,7 @@ struct NetDevPara
     fnIfSend       ifsend;   //dev snd function
 //  fnIfRecv       ifrecv;   //dev receive function，暂不用，考虑多路复用
     fnIfCtrl       ifctrl;   //dev ctrl or stat get fucntion
-    u32            devfunc;  //dev hard function,such as tcp chksum
+    u32            devfunc;  //网卡附加功能，参见netbsp.h中的 CN_IPDEV_TCPOCHKSUM 等定义
     u16            mtu;      //dev mtu
     void          *Private;  //the dev driver use this to has its owner property
     u8             mac[CN_MACADDR_LEN];   //mac address

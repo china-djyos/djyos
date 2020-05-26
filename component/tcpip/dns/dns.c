@@ -66,7 +66,7 @@ bool_t DnsGet(enum_ipv_t ver,void *addr,void *addrbak)
         }
         if(NULL != addrbak)
         {
-            memcpy(addr,&gDnsV4[1],sizeof(struct in_addr));
+            memcpy(addrbak,&gDnsV4[1],sizeof(struct in_addr));
         }
         ret = true;
     }
