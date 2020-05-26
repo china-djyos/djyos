@@ -3898,6 +3898,7 @@ void mg_set_non_blocking_mode(sock_t sock) {
       printf("error: Client:set client sndbuf failed!\r\n");
   }
 */
+
   struct tagSocket *sock_obj = __Fd2Sock(sock);
   if (sock_obj && sock_obj->sockstat &CN_SOCKET_LISTEN) {
       printf("listen socket!!!!!!!!!\r\n");
@@ -3940,16 +3941,13 @@ void mg_socket_if_connect_tcp(struct mg_connection *nc,
     nc->err = mg_get_errno() ? mg_get_errno() : 1;
     return;
   }
-#if !defined(MG_ESP8266) && !defined(DJYOS)
+#if !defined(MG_ESP8266)
   mg_set_non_blocking_mode(nc->sock);
 #endif
   rc = connect(nc->sock, &sa->sa, sizeof(sa->sin));
   nc->err = rc < 0 && mg_is_error() ? mg_get_errno() : 0;
   DBG(("%p sock %d rc %d errno %d err %d", nc, nc->sock, rc, mg_get_errno(),
        nc->err));
-#if defined(DJYOS)
-  mg_set_non_blocking_mode(nc->sock);
-#endif
 }
 
 void mg_socket_if_connect_udp(struct mg_connection *nc) {
