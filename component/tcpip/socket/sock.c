@@ -324,12 +324,7 @@ s32 connect(s32 sockfd, struct sockaddr *addr, s32 addrlen)
         result = sock->ProtocolOps->__connect(sock, addr, addrlen);
         if(errno < 0)
         {
-            if ((sock->sockstat & CN_SOCKET_PROBLOCK) == 0){//·Ç×èÈû
-                errno = EAGAIN;
-            }
-            else {
-                errno = ECONNREFUSED;
-            }
+           errno = ECONNREFUSED;
         }
         else
         {
