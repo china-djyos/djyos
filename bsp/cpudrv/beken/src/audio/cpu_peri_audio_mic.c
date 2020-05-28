@@ -65,7 +65,8 @@ void djy_audio_adc_open(uint16_t buf_len,uint16_t channel,
     audio_adc_open((uint32_t)(&aud_adc));
 
     audio_adc_ctrl(AUD_ADC_CMD_PLAY,0);
-    djy_gpio_mode(linein_detect_pin,PIN_MODE_INPUT);    //linein检测无须上拉
+    //linein检测不能上拉，口语机用于检测耳机，上拉就不能检测了。
+    djy_gpio_mode(linein_detect_pin,PIN_MODE_INPUT);
 }
 
 void djy_linein_adc_open(uint16_t buf_len,uint16_t channel,

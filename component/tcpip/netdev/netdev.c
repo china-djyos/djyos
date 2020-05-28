@@ -81,7 +81,9 @@ typedef struct
 //first we should implement the device layer
 struct NetDev
 {
-    struct NetDev      *nxt;                    //dev chain
+    struct NetDev      *NextDev;  //所有网卡组成单向循环链表
+    struct RoutItem4   *v4lst;    //IPv4路由列表，单向NULL结束链表
+    struct RoutItem6   *v6lst;    //IPv6路由列表，单向NULL结束链表
     char                name[CN_TCPIP_NAMELEN]; //dev name
     enum enLinkType     iftype;   //dev type
     fnIfSend            ifsend;   //dev snd function
@@ -89,7 +91,7 @@ struct NetDev
     fnIfCtrl            ifctrl;   //dev ctrl or stat get fucntion
     struct LinkOps     *linkops;  //dev link operations
     fnNetDevEventHook   eventhook;//dev event hook dealer
-    u32                 devfunc;  //dev hard function,such as tcp chksum
+    u32                 devfunc;  //网卡附加功能，参见netbsp.h中的 CN_IPDEV_TCPOCHKSUM 等定义
     u16                 mtu;      //dev mtu
     void                *Private;  //the dev driver use this to has its owner property
     u8                  mac[CN_MACADDR_LEN];   //mac address
@@ -105,9 +107,18 @@ struct NetDev
 struct NetDevCB
 {
     mutex_t   lock;
-    struct NetDev *lst;
+    struct NetDev *NetDevLst;       //struct NetDev的 NextDev 成员组成单向循环链表
+    struct NetDev *NetDevDefault;   //本指针指向默认网卡，匹配路由条目时，将首先匹配它
+                                    //新增加的网卡，将排在它后面
 }; //interface controller
 static struct NetDevCB gIfaceCB;
+static struct NetDev *g_ptDefaultNetDev;
+static mutex_t g_ptNetDevLock;
+
+struct in_addr __Router_PickIPv4(struct RoutItem4 *Item);
+struct in6_addr __Router_PickIPv6(struct RoutItem6 *Item);
+struct in_addr *__Router_GetNextV4(struct RoutItem4 *Item);
+struct in6_addr *__Router_GetNextV6(struct RoutItem6 *Item);
 
 void NetDevPkgsndInc(struct NetDev *iface)
 {
@@ -131,31 +142,31 @@ void NetDevPkgrcvErrInc(struct NetDev *iface)
 
 //-----------------------------------------------------------------------------
 //功能: 通过名字获取网卡设备控制块指针。
-//参数: name，网卡名，NULL则返回第一块网卡
+//参数: name，网卡名，NULL则返回默认网卡
 //返回: 网卡指针
 //-----------------------------------------------------------------------------
 static struct NetDev* __NetDevGet(const char *name)
 {
     struct NetDev* ret = NULL;
-    struct NetDev* tmp = gIfaceCB.lst;
+    struct NetDev* tmp = g_ptDefaultNetDev;
     if(NULL == name)
     {
-        ret = gIfaceCB.lst;
+        ret = g_ptDefaultNetDev;
     }
-    else
+    else if(g_ptDefaultNetDev != NULL)
     {
-        while(NULL != tmp)
+        do
         {
             if(0 == strcmp(tmp->name,name))
             {
                 ret = tmp;
-                tmp = NULL;//end the search
+                break;
             }
             else
             {
-                tmp = tmp->nxt;
+                tmp = tmp->NextDev;
             }
-        }
+        }while(g_ptDefaultNetDev != tmp);
     }
     return ret;
 }
@@ -219,10 +230,10 @@ const char *NetDevName(struct NetDev *DevFace)
 struct NetDev *NetDevGet(const char *ifname)
 {
     struct NetDev * ret = NULL;
-    if(mutex_lock(gIfaceCB.lock))
+    if(mutex_lock(g_ptNetDevLock))
     {
         ret = __NetDevGet(ifname);
-        mutex_unlock(gIfaceCB.lock);
+        mutex_unlock(g_ptNetDevLock);
     }
     return ret;
 }
@@ -282,6 +293,41 @@ struct LinkOps *NetDevLinkOps(struct NetDev *DevFace)
     }
     return ret;
 }
+
+//-----------------------------------------------------------------------------
+//功能: 设置当前默认网卡
+//参数: NetDev，将要被设置成默认网卡的指针
+//返回: 无
+//-----------------------------------------------------------------------------
+void NetDev_SetDefault(struct NetDev *NetDev)
+{
+    struct NetDev *current;
+    current = g_ptDefaultNetDev;
+    if ((NetDev != NULL) && (current != NULL))
+    {
+        do
+        {
+            if(current == NetDev)
+            {
+                g_ptDefaultNetDev = NetDev;
+                break;
+            }
+            current = current->NextDev;
+        }while(current != g_ptDefaultNetDev);
+    }
+    return;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 获取当前默认网卡
+//参数: 无
+//返回: 默认网卡结构指针
+//-----------------------------------------------------------------------------
+struct NetDev * NetDev_GetDefault(void)
+{
+    return g_ptDefaultNetDev;
+}
+
 //-----------------------------------------------------------------------------
 //功能: 获取网卡的Mac地址，按网络字节序的buffer。
 //参数: DevFace，网络控制块指针
@@ -300,8 +346,124 @@ const u8 *NetDevGetMac(struct NetDev *DevFace)
 }
 
 //-----------------------------------------------------------------------------
-//功能: 默认网卡事件监听钩子，APP可以调用 NetDevRegisterEventHook 函数重新设置，只打印
-//      信息，其他什么都不做。
+//功能: 从默认网卡开始，遍历所有网卡
+//参数: Current，当前网卡，若==NULL，则返回默认网卡，否则返回其 nxp 指针，若
+//      若 DevFace->NextDev == 当前网卡，则返回NULL
+//返回: 网卡控制块，遍历完成则返回NULL
+//-----------------------------------------------------------------------------
+struct NetDev *NetDev_ForEachFromDefault(struct NetDev *Current)
+{
+    if(Current == NULL)
+        return g_ptDefaultNetDev;
+    else
+    {
+        if((g_ptDefaultNetDev != NULL) && (Current->NextDev != g_ptDefaultNetDev))
+        {
+            return Current->NextDev;
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+//功能: 取网卡的IPv4 路由条目链表入口
+//参数: NetDev，网卡指针
+//返回: 网卡控制块，遍历完成则返回NULL
+//-----------------------------------------------------------------------------
+struct RoutItem4 *NetDev_GetIPv4RoutEntry(struct NetDev *NetDev)
+{
+    if(NetDev != NULL)
+        return NetDev->v4lst;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 取网卡的IPv6 路由条目链表入口
+//参数: NetDev，网卡指针
+//返回: 网卡控制块，遍历完成则返回NULL
+//-----------------------------------------------------------------------------
+struct RoutItem6 *NetDev_GetIPv6RoutEntry(struct NetDev *NetDev)
+{
+    if(NetDev != NULL)
+        return NetDev->v6lst;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 添加网卡的 IPv4 路由条目
+//参数: NetDev，网卡指针
+//返回: 无
+//-----------------------------------------------------------------------------
+void NetDev_AddIPv4RoutItem(struct NetDev *NetDev, struct RoutItem4 *v4Item)
+{
+    if(NetDev != NULL)
+    {
+        NetDev->v4lst = __Add2Queue(NetDev->v4lst, v4Item);
+    }
+}
+
+//-----------------------------------------------------------------------------
+//功能: 添加网卡的 IPv6 路由条目
+//参数: NetDev，网卡指针
+//返回: 无
+//-----------------------------------------------------------------------------
+void NetDev_AddIPv6RoutItem(struct NetDev *NetDev, struct RoutItem6 *v6Item)
+{
+    //未实现
+}
+
+//-----------------------------------------------------------------------------
+//功能: 取网卡IPv4的路由表
+//参数: NetDev，网卡指针
+//      v4Item，接收IP表，若=NULL则只计算路由条目数（即绑定的IP数）
+//返回: 无
+//-----------------------------------------------------------------------------
+u32 NetDev_GetIPv4Table(struct NetDev *NetDev, struct in_addr *v4Item)
+{
+    struct RoutItem4 *rt4;
+    u32 num = 0;
+    if(NetDev != NULL)
+    {
+        rt4 = NetDev->v4lst;
+        while(rt4 != NULL)
+        {
+            if(v4Item != NULL)
+                v4Item[num] = __Router_PickIPv4(rt4);
+            num++;
+            rt4 = __Router_GetNextV4(rt4);
+        }
+    }
+    return num;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 取网卡IPv4的路由表
+//参数: NetDev，网卡指针
+//      v6Item，接收路IP表，若=NULL则只计算路由条目数（即绑定的IP数）
+//返回: 无
+//-----------------------------------------------------------------------------
+u32 NetDev_GetIPv6Table(struct NetDev *NetDev, struct in6_addr *v6Item)
+{
+    struct RoutItem6 *rt6;
+    u32 num = 0;
+    if(NetDev != NULL)
+    {
+        rt6 = NetDev->v6lst;
+        while(rt6 != NULL)
+        {
+            if(v6Item != NULL)
+                v6Item[num] = __Router_PickIPv6(rt6);
+            num++;
+            rt6 = __Router_GetNextV6(rt6);
+        }
+    }
+    return num;
+}
+
+//-----------------------------------------------------------------------------
+//功能: 系统提供的网卡事件监听钩子，APP可以调用 NetDevRegisterEventHook 函数重新设置，
+//      只打印信息，其他什么都不做。
 //参数: iface，网络控制块指针
 //      event，网卡事件，参见 EN_NETDEVEVENT_LINKDOWN 等定义
 //返回: true
@@ -384,7 +546,7 @@ struct NetDev* NetDevInstall(struct NetDevPara *para)
         return iface;
     }
 
-    if(mutex_lock(gIfaceCB.lock))
+    if(mutex_lock(g_ptNetDevLock))
     {
         iface = __NetDevGet(para->name);
         if(NULL == iface)
@@ -419,8 +581,19 @@ struct NetDev* NetDevInstall(struct NetDevPara *para)
                 iface->rfilter[EN_NETDEV_FRAME_ALL   ].overevent =EN_NETDEVEVENT_FLOW_OVER;
                 iface->rfilter[EN_NETDEV_FRAME_ALL   ].lackevent =EN_NETDEVEVENT_FLOW_LACK;
                 //add it to the dev chain
-                iface->nxt = gIfaceCB.lst;
-                gIfaceCB.lst = iface;
+//              iface->NextDev = gIfaceCB.NetDevLst;
+//              gIfaceCB.NetDevLst = iface;
+                //新增加的网卡排在默认网卡的后面，并不立即变成默认网卡
+                if(g_ptDefaultNetDev == NULL)
+                {
+                    iface->NextDev = iface;
+                    g_ptDefaultNetDev = iface;
+                }
+                else
+                {
+                    iface->NextDev = g_ptDefaultNetDev->NextDev;
+                    g_ptDefaultNetDev->NextDev = iface;
+                }
             }
             else
             {
@@ -428,7 +601,7 @@ struct NetDev* NetDevInstall(struct NetDevPara *para)
                 printf("%s:failed--no mem\r\n",__FUNCTION__);
             }
         }
-        mutex_unlock(gIfaceCB.lock);
+        mutex_unlock(g_ptNetDevLock);
     }
     return iface;
 }
@@ -444,37 +617,40 @@ bool_t  NetDevUninstall(const char *name)
     struct NetDev* bak;
     bool_t     result = false;
 
-    if(mutex_lock(gIfaceCB.lock))
+    if(mutex_lock(g_ptNetDevLock))
     {
-        tmp = gIfaceCB.lst;
-        bak = tmp;
-        while(NULL != tmp)
+        tmp = g_ptDefaultNetDev;
+        if(tmp != NULL)
         {
-            if(0 == strcmp(tmp->name,name))
-            {
-                //bingo,we got it now
-                //remove it from the dev chain
-                if(tmp == gIfaceCB.lst)
-                {
-                    //the head one
-                    gIfaceCB.lst = tmp->nxt;
-                }
-                else
-                {
-                    bak->nxt = tmp->nxt;
-                }
-                //net_free the device memory now
-                net_free((void *)tmp);
-                result = true;
-                break;
-            }
+            bak = tmp;
+            while(bak->NextDev != tmp)      //bak指向默认网卡的前一个网卡
+                bak = bak->NextDev;
+            if(bak == tmp)                  //只有一个网卡
+                g_ptDefaultNetDev = NULL;
             else
             {
-                bak = tmp;
-                tmp = tmp->nxt;
+                do
+                {
+                    if(0 == strcmp(tmp->name,name))
+                    {
+                        bak->NextDev = tmp->NextDev;
+                        if(tmp == g_ptDefaultNetDev)    //卸载默认网卡
+                        {
+                            g_ptDefaultNetDev = tmp->NextDev;
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        bak = tmp;
+                        tmp = tmp->NextDev;
+                    }
+                }while(g_ptDefaultNetDev != tmp);
             }
+            net_free((void *)tmp);
+            result = true;
         }
-        mutex_unlock(gIfaceCB.lock);
+        mutex_unlock(g_ptNetDevLock);
     }
     return result;
 }
@@ -488,14 +664,14 @@ bool_t  NetDevUninstall(const char *name)
 bool_t NetDevRegisterEventHook(struct NetDev *handle,fnNetDevEventHook hook)
 {
     bool_t result = false;
-    if(mutex_lock(gIfaceCB.lock))
+    if(mutex_lock(g_ptNetDevLock))
     {
         if(NULL != handle)
         {
             handle->eventhook = hook;
             result = true;
         }
-        mutex_unlock(gIfaceCB.lock);
+        mutex_unlock(g_ptNetDevLock);
     }
     return result;
 }
@@ -509,14 +685,14 @@ bool_t NetDevUnRegisterEventHook(struct NetDev * handle)
 {
     bool_t result = false;
 
-    if(mutex_lock(gIfaceCB.lock))
+    if(mutex_lock(g_ptNetDevLock))
     {
         if(NULL != handle)
         {
             handle->eventhook = __NetdevEventHook;
             result = true;
         }
-        mutex_unlock(gIfaceCB.lock);
+        mutex_unlock(g_ptNetDevLock);
     }
     return result;
 }
@@ -536,13 +712,13 @@ bool_t NetDevPostEvent(struct NetDev* handle,enum NetDevEvent event)
     {
         return false;
     }
-    if(mutex_lock(gIfaceCB.lock))
+    if(mutex_lock(g_ptNetDevLock))
     {
         if(NULL != iface)
         {
             hook =iface->eventhook;
         }
-        mutex_unlock(gIfaceCB.lock);
+        mutex_unlock(g_ptNetDevLock);
         if(NULL != hook)
         {
             result = hook(iface,event);
@@ -610,7 +786,7 @@ bool_t NetDevFlowSet(struct NetDev* handle,enum EthFramType type,\
     bool_t result = false;
     tagNetDevRcvFilter *filter;
 
-    if(Lock_MutexPend(gIfaceCB.lock, CN_TIMEOUT_FOREVER))
+    if(Lock_MutexPend(g_ptNetDevLock, CN_TIMEOUT_FOREVER))
     {
         if(NULL != handle)
         {
@@ -623,7 +799,7 @@ bool_t NetDevFlowSet(struct NetDev* handle,enum EthFramType type,\
             filter->en = enable?1:0;
             result = true;
         }
-        Lock_MutexPost(gIfaceCB.lock);
+        Lock_MutexPost(g_ptNetDevLock);
     }
     return result;
 }
@@ -835,18 +1011,21 @@ bool_t ifconfig(char *param)
     OsPrintSplit('*',100);
     debug_printf("netdev","%-2s %-10s %-10s %-8s %-8s %-8s %-8s %-8s %-8s %-s\n\r",\
             "NO","NAME","TYPE","FUNCTION","MTU","SNDTOTAL","SNDERR","RCVTOTAL","RCVERR","MAC");
-    if(mutex_lock(gIfaceCB.lock))
+    if(mutex_lock(g_ptNetDevLock))
     {
-        iface = gIfaceCB.lst;
-        while(NULL != iface)
+        iface = g_ptDefaultNetDev;
+        if(iface != NULL)
         {
-            i++;
-            debug_printf("netdev","%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
-                    i,iface->name,LinkTypeName(iface->iftype),iface->devfunc,iface->mtu,\
-                    iface->pkgsnd,iface->pkgsnderr,iface->pkgrcv,iface->pkgrcverr,mac2string(iface->mac));
-            iface = iface->nxt;
+            do
+            {
+                i++;
+                debug_printf("netdev","%-2d %-10s %-10s %-8x %-8x %-8x %-8x %-8x %-8x %-s\n\r",\
+                        i,iface->name,LinkTypeName(iface->iftype),iface->devfunc,iface->mtu,\
+                        iface->pkgsnd,iface->pkgsnderr,iface->pkgrcv,iface->pkgrcverr,mac2string(iface->mac));
+                iface = iface->NextDev;
+            }while(g_ptDefaultNetDev != iface);
+            mutex_unlock(g_ptNetDevLock);
         }
-        mutex_unlock(gIfaceCB.lock);
     }
     OsPrintSplit('*',100);
     return true;
@@ -861,9 +1040,9 @@ bool_t ifconfig(char *param)
 bool_t NetDevInit(void)
 {
     bool_t ret = false;
-    gIfaceCB.lst = NULL;
-    gIfaceCB.lock = mutex_init(NULL);
-    if(NULL == gIfaceCB.lock)
+    g_ptDefaultNetDev = NULL;
+    g_ptNetDevLock = mutex_init(NULL);
+    if(NULL == g_ptNetDevLock)
     {
         goto EXIT_MUTEX;
     }

@@ -956,7 +956,7 @@ bool_t ModuleInstall_ETH(void)
     u8 gc_NetMac[CN_MACADDR_LEN];
     memset(signature,0,sizeof(signature));
     GetCpuID(&signature[0],&signature[1],&signature[2]);
-    printk("CPU SIGNATURE:%08X-%08X-%08X-%08X\n\r",signature[0],signature[1],signature[2],signature[3]);
+    printk("CPU SIGNATURE:%08X-%08X-%08X\n\r",signature[0],signature[1],signature[2]);
     //use the signature as the mac address
     signature[0] = signature[1]+signature[2];
     memcpy(gc_NetMac,&signature[0],CN_MACADDR_LEN);
