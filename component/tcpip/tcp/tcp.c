@@ -2823,7 +2823,7 @@ static bool_t __ackdata(struct tagSocket *client, struct TcpHdr *hdr)
 }
 
 //------------------------------------------------------------------------------
-//功能：服务器端已经收到SYN
+//功能：服务器端已经收到FIN
 //参数：client，客户端
 //     hdr，tcp头
 //     pkg，偏移已经越过tcp头的网络包
@@ -2851,7 +2851,6 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
             //notice the server to accept
             server = ccb->server;
             scb = (struct ServerCB *)server->TplCB;
-            //如果非阻塞，需要这里设置app可以接收标志
             handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
             semp_post(scb->acceptsemp);
         }
