@@ -1227,8 +1227,11 @@ static s32 __tcpconnect(struct tagSocket *sock, struct sockaddr *serveraddr, s32
                     ccb->channelstat|=CN_TCP_CHANNEL_STATASND|CN_TCP_CHANNEL_STATARCV;
                     result = 0; //connection success
                 }
-                else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0) {//握手设置非阻塞，
+                else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+                        (sock->sockstat & CN_SOCKET_CLIENT) &&
+                        (sock->sockstat & CN_SOCKET_CLOSE)==0) {//握手设置非阻塞，
                     //result = -1; //默认是-1，这里不用设置也可以
+                    sock->sockstat |= CN_SOCKET_PROCONNECT;
                 }
                 else
                 {
@@ -1609,8 +1612,9 @@ static s32 __tcpsend(struct tagSocket *sock, const void *msg, s32 len, s32 flags
                     }
                 }
             }
-            else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0) {//握手设置非阻塞，
-				//result = -1; //默认是-1，这里不用设置也可以
+            else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+                    (sock->sockstat & CN_SOCKET_PROCONNECT)) {//握手设置非阻塞，
+                //result = -1; //默认是-1，这里不用设置也可以
             }
             else
             {
@@ -1731,8 +1735,10 @@ static s32 __tcprecv(struct tagSocket *sock, void *buf,s32 len, u32 flags)
                     __sendflag(sock,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
                 }
             }
-            else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0) {//握手设置非阻塞，
-				//result = -1; //默认是-1，这里不用设置也可以
+            else if((sock->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+                    (sock->sockstat & CN_SOCKET_PROCONNECT)) //握手设置非阻塞，
+            {
+                //result = -1; //默认是-1，这里不用设置也可以
             }
             else
             {
@@ -2845,10 +2851,6 @@ static bool_t __rcvsyn_ms(struct tagSocket *client, struct TcpHdr *hdr, struct N
             //notice the server to accept
             server = ccb->server;
             scb = (struct ServerCB *)server->TplCB;
-            //如果非阻塞，需要这里设置app可以接收标志
-            if((client->sockstat & CN_SOCKET_PROBLOCK) == 0) {//握手设置非阻塞，
-                ccb->channelstat|=CN_TCP_CHANNEL_STATASND|CN_TCP_CHANNEL_STATARCV;
-            }
             handle_SetMultiplexEvent(fd2Handle(server->sockfd),CN_SOCKET_IOACCEPT|CN_SOCKET_IOREAD);
             semp_post(scb->acceptsemp);
         }
@@ -2884,7 +2886,9 @@ static bool_t __sndsyn_ms(struct tagSocket *client, struct TcpHdr *hdr,struct Ne
             dealtcpoption(ccb,hdr);
             ccb->rbuf.rcvnxt = ntohl(hdr->seqno) + 1;
             __sendflag(client,CN_TCP_FLAG_ACK,NULL,0,ccb->sbuf.sndnxtno);
-            if((client->sockstat & CN_SOCKET_PROBLOCK) == 0) {//握手设置非阻塞，
+			
+            if((client->sockstat & CN_SOCKET_PROBLOCK) == 0 &&
+               (client->sockstat & CN_SOCKET_PROCONNECT)) {//握手设置非阻塞，
                 ccb->channelstat|=CN_TCP_CHANNEL_STATASND|CN_TCP_CHANNEL_STATARCV;
             }
             //notice the applications  the connect success

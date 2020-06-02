@@ -64,6 +64,7 @@
 #include    <gui/gdd/gdd_private.h>
 #include    <gdd_widget.h>
 
+
 bool_t    MakeProgressRect(RECT *dst,const RECT *src,u32 Range,u32 Val,EN_PB_MODE mode)
 {
     s32 a0,a1;

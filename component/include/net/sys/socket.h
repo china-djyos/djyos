@@ -311,6 +311,8 @@ enum _EN_SOCKEY_ERRORNO
 #define CN_SOCKET_PROKEEPALIVE  (1<<17)
 #define CN_SOCKET_PROBROAD      (1<<18)
 
+#define CN_SOCKET_PROCONNECT    (1<<19)  //使用非阻塞连接时添加这个标志来记录目前发起了连接请求
+
 typedef struct
 {
     u32 iplocal;
