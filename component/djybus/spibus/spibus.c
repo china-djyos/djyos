@@ -322,28 +322,6 @@ bool_t SPI_DevDelete(struct SPI_Device *DelDev)
 }
 
 // =============================================================================
-// 功能：删除SPI总线上的器件，从总线子结点中删除
-// 参数：DelDev,删除的器件指针
-// 返回：true,删除成功;false,删除失败
-// =============================================================================
-bool_t SPI_DevDelete_s(struct SPI_Device *DelDev)
-{
-    bool_t result;
-    if(NULL == DelDev)
-        return false;
-
-    if(obj_Delete(DelDev->HostObj))
-    {
-        result = false;
-    }
-    else
-    {
-        result = true;
-    }
-    return result;
-}
-
-// =============================================================================
 // 功能：查找器件结点，该结点必然是挂接在相应的SPI总线结点上
 // 参数：BusName,被搜索的SPI总线名称
 //       DevName,器件名称

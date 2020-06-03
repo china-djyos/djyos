@@ -741,7 +741,7 @@ bool_t init_jtag(char *param);      //lst test
 #endif
 #endif
         g_ptEventRunning=g_ptEventReady;
-        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+//        g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
         Int_HalfEnableAsynSignal( );
         __asm_switch_context(g_ptEventReady->vm ,event->vm);
         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
@@ -761,7 +761,7 @@ bool_t init_jtag(char *param);      //lst test
 //参数：无
 //返回：无
 //备注：本函数由操作系统在异步信号引擎返回前调用
-//      由于最低优先级的y_idle_service事件总是ready,因此总是能够找到调度对象的.
+//      由于最低优先级的 IDLE 事件总是ready,因此总是能够找到调度对象的.
 //-----------------------------------------------------------------------------
 void __Djy_ScheduleAsynSignal(void)
 {
@@ -778,7 +778,7 @@ void __Djy_ScheduleAsynSignal(void)
          event->consumed_time += time - g_s64RunningStartTime;
          g_s64RunningStartTime = time;
 #endif  //CFG_OS_TINY == false
-//         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
+         g_tEvttTable[event->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_OUT);
 
 #if(CN_KOUYUTONG == 1)
 #if(DEBUG == 1)
@@ -804,7 +804,7 @@ bool_t init_jtag(char *param);      //lst test
 #endif
          g_ptEventRunning=g_ptEventReady;
          __asm_switch_context_int(g_ptEventReady->vm,event->vm);
-//         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
+         g_tEvttTable[g_ptEventRunning->evtt_id & (~CN_EVTT_ID_MASK)].SchHook(EN_SWITCH_IN);
     }else
     {//优先级高于running的事件全部进入内存等待队列,下一个要处理的事件就是
      //running事件,无须执行任何操作

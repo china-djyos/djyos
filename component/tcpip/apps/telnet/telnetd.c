@@ -131,7 +131,7 @@ static tagDevTelnetd gDevTelnetd;
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 //do the open
-static s32 __open(struct objhandle *hdl, u32 dwMode, u32 timeout)
+static s32 __Telnet_open(struct objhandle *hdl, u32 dwMode, u32 timeout)
 {
     s32 ret =-1;
     if(NULL == gDevTelnetd.hdl)
@@ -141,7 +141,7 @@ static s32 __open(struct objhandle *hdl, u32 dwMode, u32 timeout)
     }
     return ret;
 }
-static s32 __close(struct objhandle *hdl)
+static s32 __Telnet_close(struct objhandle *hdl)
 {
     s32 ret =-1;
     if(NULL == gDevTelnetd.hdl)
@@ -155,7 +155,7 @@ static s32 __close(struct objhandle *hdl)
 #pragma GCC diagnostic pop
 
 //install the device as an io device
-static s32 __write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeout)
+static s32 __Telnet_write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeout)
 {
     if(gDevTelnetd.clientfd >0)
     {
@@ -163,7 +163,7 @@ static s32 __write(struct objhandle *hdl,u8 *buf, u32 len,u32 offset, u32 timeou
     }
     return len;
 }
-static s32 __read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 timeout)
+static s32 __Telnet_read(struct objhandle *hdl,u8 *buf,u32 len,u32 offset,u32 timeout)
 {
     u32 ret =0;
     if(semp_pendtimeout(gDevTelnetd.rcvsync,timeout))
@@ -286,7 +286,7 @@ static ptu32_t __telnetdmain(void)
     int sockopt = 1;
 
     //安装我们自己的 设备, TODO,这套接口作的有问题
-    if(NULL==dev_Create(CN_TELNET_DEVNAME,__open,__close,__write,__read,NULL,0))
+    if(NULL==dev_Create(CN_TELNET_DEVNAME,__Telnet_open,__Telnet_close,__Telnet_write,__Telnet_read,NULL,0))
     {
         printf("\r\n: info : net    : create dev %s failed.",CN_TELNET_DEVNAME);
         return 0;
