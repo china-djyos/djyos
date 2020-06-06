@@ -85,7 +85,7 @@
 //%$#@end include path
 
 //%$#@library path
-//../ip/libip_7221u_sta.a
+//../ip/libip_7221u_sta.a;../driver/ble/libble.a
 //%$#@end library path
 
 //@#$%component end configure
