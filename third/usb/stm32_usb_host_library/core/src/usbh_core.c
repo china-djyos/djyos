@@ -808,7 +808,7 @@ static USBH_StatusTypeDef USBH_HandleEnum (USBH_HandleTypeDef *phost)
                                        0xff) == USBH_OK)
                 {
                     /* User callback for Serial number string */
-                    printf("\r\n                  Product : %s(%02x).",  (char *)phost->device.Data, phost->id);
+//                    printf("\r\n                  Product : %s(%02x).",  (char *)phost->device.Data, phost->id);
                     printf("\r\n                  Serial Number : %s(%02x).",  (char *)phost->device.Data, phost->id);
                     Status = USBH_OK;
                 }

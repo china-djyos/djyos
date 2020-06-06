@@ -125,6 +125,7 @@ struct __DeviceInfomation
 }
 DEVICE_TABLE[] =
 {
+    {0x4D20, 0x2DEE, 0x1,  0x3, NOT_SUPPORT, "MEIG, SLM790"},        // MEIG
     {0xF601, 0x05C6, 0x2,  0x1, NOT_SUPPORT, "FORGE, SLM730"},       // FORGE
     {0x9025, 0x05C6, 0x2,  0x1, NOT_SUPPORT, "FORGE, SLM630"},       // FORGE
     {0x9B3C, 0x1C9E, 0x2,  0x1, NOT_SUPPORT, "LOONSONG, u9300C"},    // LONGSONG£¬do not work

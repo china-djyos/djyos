@@ -327,7 +327,7 @@ static void LTDC_Init(u8 *pFrameBufferFG)
     LTDC_Layer_Parameter_Config(0,(u32)pFrameBufferFG,lcd.LtdcPixelFormat,255,0,6,7,0X000000);//层参数配置
     LTDC_Layer_Window_Config(0,0,0,lcd_display.width,lcd_display.height);
     LTDC_Select_Layer(0);           //选择第1层
-    Lcd_BackLight_OnOff(1);
+//    Lcd_BackLight_OnOff(1);
 
 }
 //------------------------------------------------------------------

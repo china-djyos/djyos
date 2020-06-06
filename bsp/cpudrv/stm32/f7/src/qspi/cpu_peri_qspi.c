@@ -50,7 +50,7 @@
 //%$#@num,0,255,
 #define CFG_QSPI_CLOCK_PRESCALER    2   //设置QSPI的时钟为AHB时钟的1/(CFG_QSPI_CLOCK_PRESCALER + 1)
 //%$#@num,0,31,
-#define CFG_QSPI_FIFO_THRESHOLD_LEVEL    3   //设置QSPI的FIFO的阈值为CFG_QSPI_FIFO_THRESHOLD_LEVEL + 1
+#define CFG_QSPI_FIFO_THRESHOLD_LEVEL    4   //设置QSPI的FIFO的阈值为CFG_QSPI_FIFO_THRESHOLD_LEVEL
 #define CFG_QSPI_FLASH_SIZE              24  //Flash 中的字节数 = 2^[FSIZE+1]
 //%$#@num,1,8,
 #define CFG_QSPI_CHIP_SELECT_HIGH_TIME   4  //片选高电平时间
@@ -87,7 +87,6 @@
 QSPI_HandleTypeDef QSPI_Handler;
 
 
-#if REG
 #define     QSPI_SR_TCF     1 << 1      //传输完成标志
 #define     QSPI_SR_FTF     1 << 2      //FIFO阈值标志
 #define     QSPI_SR_BUSY    1 << 5      //忙
@@ -112,7 +111,6 @@ bool_t QSPI_WaitFlag(u32 flag, u8 state, u32 time)
     else
         return false;
 }
-#endif
 //-----------------------------------------------------------------------------
 //功能: 命令发送
 //参数: cmd：发送的命令，addr：目标地址，mode：模式，dmcycle：空指令周期数
@@ -222,8 +220,10 @@ bool_t QSPI_Send_CMD(u32 instruction,u32 addr,u32 dummy_cycles,u32 instruction_m
     else
         Cmdhandler.DdrHoldHalfCycle=QSPI_DDR_HHC_HALF_CLK_DELAY;
 
-    HAL_QSPI_Command(&QSPI_Handler,&Cmdhandler,CFG_QSPI_TIMEOUT);
-    return  true;
+    if(HAL_QSPI_Command(&QSPI_Handler,&Cmdhandler,CFG_QSPI_TIMEOUT) == HAL_OK)
+        return  true;
+    else
+        return  false;
 #endif
 }
 
@@ -270,9 +270,29 @@ bool_t QSPI_Receive(u8 *buf,u32 len)
     return sta;
 #else
 
+    u8 fifo_data = 0;
+    u8 read_fifo;
+    __IO u32 *data_reg = &QUADSPI->DR;
     QSPI_Handler.Instance->DLR=len-1;       //配置数据长度
-    if(HAL_QSPI_Receive(&QSPI_Handler,buf,CFG_QSPI_TIMEOUT)==HAL_OK) return true;
-    else return false;
+    if(HAL_QSPI_Receive(&QSPI_Handler, buf, CFG_QSPI_TIMEOUT)==HAL_OK)
+    {
+        while(QSPI_WaitFlag(QSPI_SR_BUSY, 0, 0xffff) == false)
+        {
+            while(QSPI_WaitFlag(QSPI_SR_FTF, 0, 0xffff) == false)
+            {
+                fifo_data = (QUADSPI->SR >> 8) & 0x1f;
+                while(fifo_data > 0)
+                {
+                    read_fifo = *(__IO u8 *)data_reg;
+                    fifo_data --;
+                }
+
+            }
+        }
+        return true;
+    }
+    else
+        return false;
 #endif
 }
 
@@ -425,11 +445,28 @@ bool_t QSPI_Init(void)
     else
         QSPI_Handler.Init.DualFlash=QSPI_DUALFLASH_DISABLE; //禁止双闪存模式
 
-    if(HAL_QSPI_Init(&QSPI_Handler)==HAL_OK) return true;
-    else return false;
+    if(HAL_QSPI_Init(&QSPI_Handler)==HAL_OK)
+        return true;
+    else
+        return false;
 #endif
 
 }
+
+//-----------------------------------------------------------------------------
+//功能: QSPI注销
+//参数: 无
+//返回: true -- 成功; false -- 失败;
+//备注:
+//-----------------------------------------------------------------------------
+bool_t QSPI_DeInit(void)
+{
+    if(HAL_QSPI_DeInit(&QSPI_Handler) == HAL_OK)
+        return true;
+    else
+        return false;
+}
+
 //-----------------------------------------------------------------------------
 //功能: 安装QSPI
 //参数: 无
@@ -438,7 +475,7 @@ bool_t QSPI_Init(void)
 //-----------------------------------------------------------------------------
 s32 ModuleInstall_QSPI(void)
 {
-	RCC->AHB3ENR|=1<<1;  //使能QSPI时钟
+    RCC->AHB3ENR|=1<<1;  //使能QSPI时钟
     if(false == QSPI_Init())
         return (-1);
     return (0);
