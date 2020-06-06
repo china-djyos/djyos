@@ -327,7 +327,7 @@ static void LTDC_Init(u8 *pFrameBufferFG)
     LTDC_Layer_Parameter_Config(0,(u32)pFrameBufferFG,lcd.LtdcPixelFormat,255,0,6,7,0X000000);//层参数配置
     LTDC_Layer_Window_Config(0,0,0,lcd_display.width,lcd_display.height);
     LTDC_Select_Layer(0);           //选择第1层
-    Lcd_BackLight_OnOff(1);
+//    Lcd_BackLight_OnOff(1);
 
 }
 //------------------------------------------------------------------
@@ -475,7 +475,7 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
 {
 
     u16 *src_offset,*dst_offset;    //源位图点阵缓冲区可能不对齐!!!
-    u32 width,height;
+    u32 width,height,y;
     u32 timeout=0;
     bool_t flag=true;
     struct RopGroup Rop = { 0, 0, 0, CN_R2_COPYPEN, 0, 0, 0  };
@@ -505,21 +505,50 @@ bool_t __lcd_blt_bm_to_bm(struct RectBitmap *dst_bitmap,
     DMA2D->FGPFCCR=lcd.Dma2dPixelFormat;   //设置颜色格式
     DMA2D->FGOR=(u32)(src_bitmap->width - width); //前景层行偏移为0
     DMA2D->OOR= (u32)(dst_bitmap->width - width); //设置行偏移
-    DMA2D->CR&=~(1<<0);             //先停止DMA2D
-    DMA2D->FGMAR=(u32)src_offset;        //源地址
-    DMA2D->OMAR=(u32)dst_offset;        //输出存储器地址
-    DMA2D->NLR=(height)|((width)<<16);   //设定行数寄存器
-    DMA2D->CR|=1<<0;                //启动DMA2D
-    while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
+    DMA2D->CR&=~(1<<0);                 //先停止DMA2D
+    if(src_bitmap->reversal == false)
     {
-        timeout++;
-        if(timeout>0X1FFFFF)
+        DMA2D->FGMAR=(u32)src_offset;       //源地址
+        DMA2D->OMAR=(u32)dst_offset;        //输出存储器地址
+        DMA2D->NLR=(height)|((width)<<16);   //设定行数寄存器
+        DMA2D->CR|=1<<0;                //启动DMA2D
+        while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
         {
-            flag=false;
-            break;  //超时退出
+            timeout++;
+            if(timeout>0X1FFFFF)
+            {
+                flag=false;
+                break;  //超时退出
+            }
         }
+        DMA2D->IFCR|=1<<1;              //清除传输完成标志
     }
-    DMA2D->IFCR|=1<<1;              //清除传输完成标志
+    else
+    {
+        src_offset = (u16*)((ptu32_t)src_bitmap->bm_bits
+            +(src_bitmap->height - SrcRect->top-1) * src_bitmap->linebytes);
+        src_offset += SrcRect->left;
+        for(y = DstRect->top; y < DstRect->bottom; y++)
+        {
+            DMA2D->FGMAR=(u32)src_offset;       //源地址
+            DMA2D->OMAR=(u32)dst_offset;        //输出存储器地址
+            DMA2D->NLR=(1)|((width)<<16);   //设定行数寄存器
+            DMA2D->CR|=1<<0;                //启动DMA2D
+            while((DMA2D->ISR&(1<<1))==0)   //等待传输完成
+            {
+                timeout++;
+                if(timeout>0X1FFFFF)
+                {
+                    flag=false;
+                    break;  //超时退出
+                }
+            }
+            DMA2D->IFCR|=1<<1;              //清除传输完成标志
+            dst_offset += dst_bitmap->linebytes >> 1;
+            src_offset -= src_bitmap->linebytes >> 1;
+        }
+
+    }
     Lock_MutexPost(&Dma2dMutex);
     return flag;
 }

@@ -190,16 +190,16 @@ u8 W25QXX_WriteSR(u8 regno, u8 data)
     switch(regno)
     {
         case 1:
-            command=W25X_ReadStatusReg1;    //写状态寄存器1
+            command=W25X_WriteStatusReg1;    //写状态寄存器1
             break;
         case 2:
-            command=W25X_ReadStatusReg2;    //写状态寄存器2
+            command=W25X_WriteStatusReg2;    //写状态寄存器2
             break;
         case 3:
-            command=W25X_ReadStatusReg3;    //写状态寄存器3
+            command=W25X_WriteStatusReg3;    //写状态寄存器3
             break;
         default:
-            command=W25X_ReadStatusReg1;
+            command=W25X_WriteStatusReg1;
             break;
     }
     if(W25QXX_QPI_MODE)
@@ -384,8 +384,8 @@ bool_t W25QXX_EraseBlock(u32 addr)
 bool_t W25QXX_Read(u8* buf,u32 addr,u32 len)
 {
     Lock_MutexPend(W25qxx_Lock,CN_TIMEOUT_FOREVER);
-    //QSPI，快速读数据，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，8个空周期，
-    if(QSPI_Send_CMD(W25X_FastReadData,addr,8,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
+    //QSPI，快速读数据，地址为addr，4线传输数据，32位地址，4线传输地址，4线传输指令，2个空周期，
+    if(QSPI_Send_CMD(W25X_FastReadData,addr,2,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_4_LINES,QSPI_ADDRESS_32_BITS,QSPI_DATA_4_LINES))
     {
         if(QSPI_Receive(buf, len))
         {
@@ -589,6 +589,7 @@ bool_t W25QXX_QspiEnable(void)
         else
             ret = false;
     }
+    Djy_EventDelay(20*1000);
     //写使能QSPI指令，地址为0，无数据，8位地址，无地址，单线传输指令，无空周期，0个字节数据
     if(QSPI_Send_CMD(W25X_EnterQPIMode,0,0,QSPI_INSTRUCTION_1_LINE,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_NONE))
         W25QXX_QPI_MODE=1;              //标记QSPI模式
@@ -649,7 +650,7 @@ bool_t W25QXX_Init(void)
                     //写设置读参数指令，地址为0，4线传输数据，8位地址，无地址，4线传输指令，无空周期，0个字节数据
                     if(QSPI_Send_CMD(W25X_SetReadParam,0,0,QSPI_INSTRUCTION_4_LINES,QSPI_ADDRESS_NONE,QSPI_ADDRESS_8_BITS,QSPI_DATA_4_LINES))
                     {
-                        temp = 3<<4;                  //设置P4&P5=11,8个dummy clocks,104M
+                        temp = 0<<4;                  //设置P4&P5=00,2个dummy clocks,44M
                         if(QSPI_Transmit(&temp,1))
                             ret = true;
                     }

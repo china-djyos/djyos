@@ -13,27 +13,6 @@ extern "C" {
 #endif
 
 
-
-#define DataMode_No             (0<<6)
-#define DataMode_Single         (1<<6)
-#define DatatMode_Two           (2<<6)
-#define DataMode_Four           (3<<6)
-
-#define AddrLen_8Bit            (0<<4)
-#define AddrLen_16Bit           (1<<4)
-#define AddrLen_24Bit           (2<<4)
-#define AddrLen_32Bit           (3<<4)
-
-#define AddrMode_No             (0<<2)
-#define AddrMode_Single         (1<<2)
-#define AddrtMode_Two           (2<<2)
-#define AddrMode_Four           (3<<2)
-
-#define InstructMode_No         (0<<0)
-#define InstructMode_Single     (1<<0)
-#define InstructMode_Two        (2<<0)
-#define InstructMode_Four       (3<<0)
-
 #define W25X_WriteEnable        0x06
 #define W25X_WriteDisable       0x04
 #define W25X_ReadStatusReg1     0x05
